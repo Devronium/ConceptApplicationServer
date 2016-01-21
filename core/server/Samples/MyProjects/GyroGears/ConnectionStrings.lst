@@ -1,0 +1,20 @@
+MSSQL|Driver={SQL Server};Server=localhost;Database=pubs;Uid=;Pwd=;|
+Access|Driver={Microsoft Access Driver (*.mdb)};Dbq=mydatabase.mdb;Uid=;Pwd=;|
+Oracle|Driver={Microsoft ODBC for Oracle};Server=OracleServer.world;Uid=;Pwd=;|
+MySQL|Driver={MySQL ODBC 3.51 Driver};SERVER=data.domain.com;PORT=3306;DATABASE=myDatabase;USER=myUsername;PASSWORD=myPassword;OPTION=3;|
+Interbase|Driver={Easysoft IB6 ODBC};Server=localhost;Database=localhost:mydatabase.gdb;Uid=username;Pwd=password;|
+IBM DB2|Driver={IBM DB2 ODBC DRIVER};Database=myDbName;hostname=myServerName;port=myPortNum;protocol=TCPIP; uid=myUserName; pwd=myPwd;|
+Sysbase 12|Driver={SYBASE ASE ODBC Driver};Srvr=localhost;Uid=username;Pwd=password|
+Sysbase 11|Driver={SYBASE SYSTEM 11};Srvr=localhost;Uid=username;Pwd=password;Database=mydb|
+Informix|Dsn='';Driver={INFORMIX 3.30 32 BIT};Host=hostname;Server=myserver;Service=service-name;Protocol=olsoctcp;Database=mydb;UID=username;PWD=myPwd;|
+Ingress|Provider=MSDASQL.1;DRIVER=Ingres;SRVR=xxxxx;DB=xxxxx;Persist Security Info=False;uid=xxxx;pwd=xxxxx;SELECTLOOPS=N;Extended Properties="SERVER=xxxxx;DATABASE=xxxxx;SERVERTYPE=INGRES"|
+Mimer SQL|Driver={MIMER};Database=mydb;Uid=myuser;Pwd=mypw;|
+Paradox 7.x|Provider=MSDASQL.1;Persist Security Info=False;Mode=Read;Extended Properties='DSN=Paradox;DBQ=C:\myDb;DefaultDir=C:\myDb;DriverId=538;FIL=Paradox 7.X;MaxBufferSize=2048;PageTimeout=600;';Initial Catalog=C:\myDb|
+Firebird|Driver=Firebird/InterBase(r) driver;UID=SYSDBA;PWD=masterkey;DBNAME=D:\FIREBIRD\examples\TEST.FDB|
+Excel|Driver={Microsoft Excel Driver (*.xls)};DriverId=790;Dbq=C:\MyExcel.xls;DefaultDir=c:\mypath;|
+Text|Driver={Microsoft Text Driver (*.txt; *.csv)};Dbq=c:\txtFilesFolder\;Extensions=asc,csv,tab,txt;|
+DBF/FoxPro|Driver={Microsoft dBASE Driver (*.dbf)};DriverID=277;Dbq=c:\mydbpath;|
+AS/400(iSeries)|Driver={Client Access ODBC Driver (32-bit)};System=my_system_name;Uid=myUserName;Pwd=myPwd|
+Visual FoxPRO(.DBC)|Driver={Microsoft Visual FoxPro Driver};SourceType=DBC;SourceDB=c:\myvfpdb.dbc;Exclusive=No;NULL=NO;Collate=Machine;BACKGROUNDFETCH=NO;DELETED=NO|
+Visual FoxPRO(Free table dir)|Driver={Microsoft Visual FoxPro Driver};SourceType=DBF;SourceDB=c:\myvfpdbfolder;Exclusive=No;Collate=Machine;NULL=NO;DELETED=NO;BACKGROUNDFETCH=NO|
+Pervasive|Driver={Pervasive ODBC Client Interface};ServerName=srvname;dbq=@dbname

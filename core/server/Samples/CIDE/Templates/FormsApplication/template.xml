@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+
+<ApplicationTemplate Name="Concept Application" Icon="icon.png" Target="gui" Description="Choose this if you want to create a GUI based application" Representative="MainForm.con">
+	<Source Name="Project.con" Designable="0" />
+	<Source Name="MainForm.con" Designable="1" />
+	<Resource Name="string.table.xml" type="xml" />
+	<Project File="Project.con" />
+	<Description>
+Use this template if you want to create powerful concept:// applications for Concept Application Server.
+
+	</Description>
+</ApplicationTemplate>

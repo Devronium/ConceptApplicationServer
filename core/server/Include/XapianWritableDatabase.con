@@ -1,0 +1,138 @@
+include XapianDocument.con
+include XapianDatabase.con
+
+define	DB_CREATE_OR_OPEN	1
+define	DB_CREATE		2
+define	DB_CREATE_OR_OVERWRITE	3
+define	DB_OPEN			4
+
+class XapianWritableDatabase extends XapianDatabase {
+	//protected var THISREF=null;
+	//public property REF { get THISREF }
+
+	public function XapianWritableDatabase(string path="", number action=DB_CREATE_OR_OPEN) {
+		if (path)
+			this.THISREF=XapianWritableDatabaseCreate2(var exc2, path, action);
+		else
+			this.THISREF=XapianWritableDatabaseCreate(var exc);
+	}
+
+	public function finalize() {
+		if (this.THISREF)
+			XapianWritableDatabaseDestroy(THISREF, var exc);
+		this.THISREF=null;
+	}
+	public function flush() {
+		var result=XapianWritableDatabase__flush(this->THISREF, var exc);
+		if (exc)
+			throw exc;
+		return result;
+	}
+
+	public function begin_transaction(number flushed) {
+		var result=XapianWritableDatabase__begin_transaction(this->THISREF, var exc, flushed);
+		if (exc)
+			throw exc;
+		return result;
+	}
+
+	public function commit_transaction() {
+		var result=XapianWritableDatabase__commit_transaction(this->THISREF, var exc);
+		if (exc)
+			throw exc;
+		return result;
+	}
+
+	public function cancel_transaction() {
+		var result=XapianWritableDatabase__cancel_transaction(this->THISREF, var exc);
+		if (exc)
+			throw exc;
+		return result;
+	}
+
+	public function add_document(XapianDocument document) {
+		var result=XapianWritableDatabase__add_document(this->THISREF, var exc, document.REF);
+		if (exc)
+			throw exc;
+		return result;
+	}
+
+	public function delete_document(number docid) {
+		var result=XapianWritableDatabase__delete_document(this->THISREF, var exc, docid);
+		if (exc)
+			throw exc;
+		return result;
+	}
+
+	public function delete_document2(string unique_term) {
+		var result=XapianWritableDatabase__delete_document2(this->THISREF, var exc, unique_term);
+		if (exc)
+			throw exc;
+		return result;
+	}
+
+	public function replace_document(number did, XapianDocument document) {
+		var result=XapianWritableDatabase__replace_document(this->THISREF, var exc, did, document.REF);
+		if (exc)
+			throw exc;
+		return result;
+	}
+
+	public function replace_document2(string unique_term, XapianDocument document) {
+		var result=XapianWritableDatabase__replace_document2(this->THISREF, var exc, unique_term, document.REF);
+		if (exc)
+			throw exc;
+		return result;
+	}
+
+	public function add_spelling(string word, number freqinc) {
+		var result=XapianWritableDatabase__add_spelling(this->THISREF, var exc, word, freqinc);
+		if (exc)
+			throw exc;
+		return result;
+	}
+
+	public function remove_spelling(string word, number freqdec) {
+		var result=XapianWritableDatabase__remove_spelling(this->THISREF, var exc, word, freqdec);
+		if (exc)
+			throw exc;
+		return result;
+	}
+
+	public function add_synonym(string term, string synonym) {
+		var result=XapianWritableDatabase__add_synonym(this->THISREF, var exc, term, synonym);
+		if (exc)
+			throw exc;
+		return result;
+	}
+
+	public function remove_synonym(string term, string synonym) {
+		var result=XapianWritableDatabase__remove_synonym(this->THISREF, var exc, term, synonym);
+		if (exc)
+			throw exc;
+		return result;
+	}
+
+	public function clear_synonyms(string term) {
+		var result=XapianWritableDatabase__clear_synonyms(this->THISREF, var exc, term);
+		if (exc)
+			throw exc;
+		return result;
+	}
+
+	public function set_metadata(string key, string _value) {
+		var result=XapianWritableDatabase__set_metadata(this->THISREF, var exc, key, _value);
+		if (exc)
+			throw exc;
+		return result;
+	}
+
+	override get_description;
+	public function get_description() {
+		var result=XapianWritableDatabase__get_description(this->THISREF, var exc);
+		if (exc)
+			throw exc;
+		return result;
+	}
+
+}

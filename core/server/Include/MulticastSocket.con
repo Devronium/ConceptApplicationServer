@@ -1,0 +1,101 @@
+import standard.net.socket
+
+class MulticastSocket {
+	public var Socket=-1;
+	protected var _islisten=false;
+	public property HasData { get GetHasData }
+	public property Error { get GetError }
+	public property Info { get GetInfo }
+
+	public function MulticastSocket(host, port) {
+		this.Socket = MulticastSocket(host, port);
+	}
+
+	public function Join(string host, string interface="") {
+		return MulticastJoin(this.Socket, host, interface);
+	}
+
+	public function Drop(string host, string interface="") {
+		return MulticastDrop(this.Socket, host, interface);
+	}
+
+	public function GetInfo() {
+		if (Socket<=0)
+			throw "Invalid socket (GetInfo)";
+		return SocketInfo(Socket);
+	}
+	
+
+	public function Close(force = false) {
+		if (Socket>0) {
+			if (force)
+				var res=SocketClose(Socket, true);
+			else
+				res=SocketClose(Socket);
+			Socket=-1;
+			_islisten=false;
+			return res;
+		}
+		return 0;
+	}
+
+	public function Read(var udphost=null, var port=null, number max_size=0xFFFF) {
+		udphost = "";
+		port = 0;
+
+		if (Socket<=0)
+			throw "Invalid socket (Read)";
+
+		var res=SocketRead(Socket, var buffer, max_size, true, false, udphost, port);
+		if (res>0)
+			return buffer;
+		else
+		if (res==0)
+			return "";
+		throw "Broken socket (Read)";
+	}
+
+	public function Write(var string buffer, string udphost, number port) {
+		if (Socket<=0)
+			throw "Invalid socket (Write)";
+
+		if (length buffer) {
+			var res=SocketWrite(Socket, buffer, true, udphost, port);
+			if (res<0)
+				throw "Broken socket (Write)";
+			return res;
+		}
+		return 0;
+	}
+
+	public function GetHasData() {
+		if (Socket<=0)
+			throw "Invalid socket (GetHasData)";
+		var res=SocketHasData(Socket);
+		if (res<0)
+			throw "Broken socket (GetHasData)";
+		return res;
+	}
+
+	public function GetError() {
+		if (Socket<=0)
+			throw "Invalid socket (GetError)";
+		return SocketError(Socket);
+	}
+
+	public function SetOption(level, opt, val) {
+		if (Socket<=0)
+			throw "Invalid socket (SetOption)";
+		return SocketSetOption(Socket, level, opt, val);
+	}
+
+	public function GetOption(level, opt, var val) {
+		if (Socket<=0)
+			throw "Invalid socket (SetOption)";
+		return SocketGetOption(Socket, level, opt, val);
+	}
+
+	public function finalize() {
+		this.Close();
+	}
+}

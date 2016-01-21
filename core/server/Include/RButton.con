@@ -1,0 +1,135 @@
+include SingleContainer.con
+include ClassID.con
+include RImage.con
+include RemoteEvents.con
+
+define RELIEF_NORMAL	0
+define RELIEF_HALF	1
+define RELIEF_NONE	2
+
+define POS_LEFT		0
+define POS_RIGHT	1
+define POS_TOP		2
+define POS_BOTTOM	3
+
+class RButton extends SingleContainer {
+	private var CAPTION;
+	private var RELIEFSTYLE;
+	private var IMAGE;
+	private var USESTOCK;
+	private var IMAGEPOSITION;
+
+	public property Caption { get CAPTION, set SetCaption }
+	public property Image { get IMAGE, set SetImage }
+	public property ReliefStyle { get RELIEFSTYLE, set SetReliefStyle }
+	public property UseStock { get USESTOCK, set SetUseStock }
+	public property ImagePosition { get IMAGEPOSITION, set SetImageImagePosition }
+
+	// ------------------ EVENTS ----------------------- //
+	public property OnClicked { get GetOnClicked, set SetOnClicked }
+	public function GetOnClicked() {
+		return _GET_REMOTE_EVENT(EVENT_ON_CLICKED);
+	}
+
+	public function SetOnClicked(var delegate deleg) {
+		return _MAP_REMOTE_EVENT(EVENT_ON_CLICKED, deleg);
+	}
+
+	public property OnActivate { get GetOnActivate, set SetOnActivate }
+	public function GetOnActivate() {
+		return _GET_REMOTE_EVENT(EVENT_ON_ACTIVATE);
+	}
+
+	public function SetOnActivate(var delegate deleg) {
+		return _MAP_REMOTE_EVENT(EVENT_ON_ACTIVATE, deleg);
+	}
+
+	public property OnPressed { get GetOnPressed, set SetOnPressed }
+	public function GetOnPressed() {
+		return _GET_REMOTE_EVENT(EVENT_ON_PRESSED);
+	}
+
+	public function SetOnPressed(var delegate deleg) {
+		return _MAP_REMOTE_EVENT(EVENT_ON_PRESSED, deleg);
+	}
+
+	public property OnReleased { get GetOnReleased, set SetOnReleased }
+	public function GetOnReleased() {
+		return _GET_REMOTE_EVENT(EVENT_ON_RELEASED);
+	}
+
+	public function SetOnReleased(var delegate deleg) {
+		return _MAP_REMOTE_EVENT(EVENT_ON_RELEASED, deleg);
+	}
+
+	public property OnEnter { get GetOnEnter, set SetOnEnter }
+	public function GetOnEnter() {
+		return _GET_REMOTE_EVENT(EVENT_ON_ENTER);
+	}
+
+	public function SetOnEnter(var delegate deleg) {
+		return _MAP_REMOTE_EVENT(EVENT_ON_ENTER, deleg);
+	}
+
+	public property OnLeave { get GetOnLeave, set SetOnLeave }
+	public function GetOnLeave() {
+		return _GET_REMOTE_EVENT(EVENT_ON_LEAVE);
+	}
+
+	public function SetOnLeave(var delegate deleg) {
+		return _MAP_REMOTE_EVENT(EVENT_ON_LEAVE, deleg);
+	}
+	// ------------------------------------------------- //
+
+	public function RButton(OWNER) {
+		super(OWNER, CLASS_BUTTON);
+	}
+
+	public function SetCaption(argument) {
+		SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_CAPTION,argument);
+		CAPTION=argument;
+		return argument;
+	}
+
+	public function SetUseStock(number stock) {
+		SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_USESTOCK,stock);
+		USESTOCK=stock;
+		return stock;
+	}
+
+	public function SetReliefStyle(argument) {
+		SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_RELIEFSTYLE,argument);
+		RELIEFSTYLE=argument;
+		return argument;
+	}
+
+	public function SetImageImagePosition(number argument) {
+		SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_IMAGEPOSITION,argument);
+		IMAGEPOSITION=argument;
+		return argument;
+	}
+
+
+	public function SetImage(argument) {
+		if (argument) {
+			SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_IMAGE,argument.RID);
+			IMAGE=&argument;
+		}
+		return argument;
+	}
+
+	public function LoadIcon(filename) {
+		var IMAGE=&new RImage(null);
+		IMAGE.Filename=filename;
+		//IMAGE.Show();
+		return SetImage(IMAGE);
+	}
+
+	public function LoadStockIcon(id) {
+		var IMAGE=&new RImage(0);
+		IMAGE.LoadResource(id,1);
+		//IMAGE.Show();
+
+		return SetImage(IMAGE);
+	}
+}

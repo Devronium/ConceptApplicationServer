@@ -1,0 +1,180 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+  <title>Data types.Object data type</title>
+  <link href="css/style.css" rel="stylesheet" type="text/css">
+  <meta http-equiv="Content-Type" content="text/html;charset=utf-8" >
+</head>
+<body bgcolor="#ffffff">
+<table border="0" width="100%" bgcolor="#F0F0FF">
+  <tr>
+    <td>Language documentation</td>
+  	<td align="right"><a href="index.html">Contents</a> | <a href="index_fun.html">Index</a></td>
+  </tr>
+</table>
+<h2>Object data type, <a href="Data types.html">Data types</a></h2>
+<br />
+
+<b>Description:</b><br />
+<table width="100%" bgcolor="#FAFAFF" style="border-style:solid;border-width:1px;border-color:#D0D0D0;">
+<tr><td>
+This is probably the most used data type in general Concept applications. 
+<br/>
+<br/>Can have various members like: var (variant member), properties, functions and events.
+<br/>
+<br/>Access to class members can be: public, private, protected and static.
+<br/>
+<br/>public&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;will be available to any child class, and to any user
+<br/>private&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;will be available to the current class only. Will NOT be available to a child class
+<br/>protected&nbsp;&nbsp;&nbsp;&nbsp;will be available to the current calss and all its children. Will not be available to an external call.
+<br/>static&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this type applies only to functions and if a function is declared static, is not allowed to use any of the other members of the class. This is useful for functions that you're required to call without instantiating the class. Concept is an strict object-oriented language, so one cannot create functions not contained by a class, but instead can create static functions.
+<br/>
+<br/>
+<br/><b>Let's discuss the example.</b>
+<br/>
+<br/>On line 1 you see how a class is declared using the "class" keyword.
+<br/>Line 2 contains a standard data member contained by the class. As you can see it has a default value. The default values can be only numbers or strings and are optional.
+<br/>
+<br/>Line 3 declares an event. Events are basically aliases for virtual functions that were used in the early versions of Concept. As you can see the event is named "_EventName". Each time in the current class the event will be fired (by calling this as a normal function) a function named  "EventName" (what you see after the "triggers" keyword). After the {delegate} data type was added, the "event/triggers" is considered useless. How ever one can find function to this, and was and will be maintained.
+<br/>
+<br/>On line 5 you have a standard constructor. A constructor is a function that has the same name with the class, must have public access and should not be called directly. It is called automatically by using the "new" operator, and passing is parameters list to it as you can see on line 87.
+<br/>
+<br/>On line 12 you have a private member function. That function will be available only to "BaseClass" objects. Other classes (even it's a child) will not be able to call foo_base.
+<br/>
+<br/>On line 25 we see another class that inherits (extends) "BaseClass". A class can inherit one or more classes as you can see on line 79. Multiple inheritance is not generally recommended. 
+<br/>A child class will inherit all of the parent's members and will have access to the public and protected ones. The default access for class members is "public" (if a member specifies no access, the "public" access will be assumed).
+<br/>A class parent can be referenced using the "super". If a class has more than one parents, "super" will reference the first parent. The other parents should be referenced by their names. For example, C inherits B and A. To call the constructor from B you can use B() and A() to call A's constructor.
+<br/>
+<br/>On lines 28,29 and 32 you can see how properties are set. A property has a read method ("get") and an optional write method ("set"). The get method can be applied to a data member or a function. However, the "set" method can be only a function. If you call set on a data member, the Concept Server will fail to set the variable. This is because the set implies a control over the data set by using a function. If no function is found, no action will be taken.
+<br/>
+<br/>On line 38 you see how a member (virtually any member can be overridden). An overridden member will allow to define another member having the same name in the child class. To call the old member, you can use the super::member_name.
+<br/>
+<br/>On line 65 you see a static function. Static function can be called using the "::" operator. For example, you can call foo static this way: SomeClass::foo_static(1,2) without having an object of that class. Keep in mind that static functions can not be access members of the owner class ("this" is not available, "this" references the current instance of the current class).
+<br/>
+<br/>On line 74 you have an example of how you can override an operator used by a class. Not all the operators can be overridden. For more information about operators overriding check the "override" section.
+<br/>
+<br/>On line 87 you see how a class is instantiated.
+<br/>
+<br/>On line 53 you see how you declare a function with optional parameters (parameters that can be omitted when calling the function). After the first optional parameter definition, all the remaining parameters that follow should be also optional. Default values of the optional parameters can be only static data types (numbers or strings).
+<br/>
+<br/>On line 60 you se a variable preceded by the "var" keywords that is usually used to declare variables. When this is this way, a variable will be passed by the reference. When a variable will be referenced this way, any changes to that variable in the called function will directly reflect into the one passed as a parameter. Variables not passed with the "var" keyword will not suffer any changes. Notice that the objects passed as a parameter will affect the same object (even if no "var" is used). "var" links to a variable, but one or more variables can link to the same object or array.
+<br/>
+<br/>The entry point of a Concept Application is the constructor of the class named Main.
+<br/>
+</td></tr>
+</table>
+<br />
+
+<b>Example:</b>
+<table bgcolor="#F0F0FF" width="100%"  style="border-style:solid;border-width:1px;border-color:#D0D0D0;"><tr><td>
+<font color="#101060"><pre>01:	class Base {
+02:		public var test="default value";
+03:		event _EventName triggers EventName;
+04:	
+05:		public function Base() {
+06:			// the Base class constructor
+07:	
+08:			// fire an event (a virtual function that will be later implemented)
+09:			_EventName();
+10:		}
+11:	
+12:		private function foo_base() {
+13:			return "not accessible by a child";
+14:		}
+15:	
+16:		public function foo_to_override() {
+17:		}
+18:	}
+19:	
+20:	
+21:	class Base2 {
+22:		// no members
+23:	}
+24:	
+25:	class SomeClass extends Base {
+26:		private var _X;
+27:	
+28:		public property X { get _X, set SetX } // a read-write property
+29:		public property read_onlyX { get _X} //  a read only property
+30:		// you can't have write-only properties
+31:		
+32:		public property readX { get GetX }
+33:	
+34:		public function EventName() {
+35:			echo "Event fired!";
+36:		}
+37:	
+38:		override foo_to_override;
+39:		public function foo_to_override(x) { // can have a different header
+40:			// if you want, you can call the old function this way:
+41:			Base::foo_to_override();
+42:		}
+43:	
+44:		public function GetX() {
+45:			return _X;
+46:		}
+47:	
+48:		public function SetX(x) {
+49:			_X=x;	// or this._X=x; (is exactly the same)
+50:			return x;
+51:		}
+52:	
+53:		public function SomeClass(x, y="an optional parameter") {
+54:			// counstructor
+55:	
+56:			super(); // is equivalent to Base()
+57:			// when having multiple inheritance, super will refer the first class name.
+58:		}
+59:
+60:		public function foo(x, var y) {
+61:			y=x*10;
+62:			return 5;
+63:		}
+64:	
+65:		static function foo_static(a,b) {
+66:			returns a*b;
+67:		}
+68:	
+69:		function finalize() {
+70:			// the destructor, if needed
+71:		}
+72:	
+73:		// override the + operator
+74:		operator +(y) {
+75:			return _X+y; // returns a number
+76:		}
+77:	}
+78:	
+79:	class MultimpleInheritance 	extends Base
+80:					extends Base2 {
+81:	
+82:	}
+83:	
+84:
+85:	class Main {
+86:		function Main() {
+87:			var a=new SomeClass(10)
+88:		}
+89:	}
+</pre></font>
+</td></tr></table>
+<br />
+
+<br />
+<br />
+<!--
+  <p>
+    <a href="http://validator.w3.org/check?uri=referer"><img
+        src="http://www.w3.org/Icons/valid-html40"
+        alt="Valid HTML 4.0 Transitional" height="31" width="88" border="0"></a>
+ <a href="http://jigsaw.w3.org/css-validator/">
+  <img style="border:0;width:88px;height:31px"
+       src="http://jigsaw.w3.org/css-validator/images/vcss" 
+       alt="Valid CSS!" border="0"/>
+ </a>
+</p>
+-->
+<table bgcolor="#F0F0F0" width="100%"><tr><td>Documented by Eduard Suica, generation time: Sun Jan 27 18:15:21 2013
+ GMT</td><td align="right">(c)2013 <a href="http://www.devronium.com">Devronium Applications</a></td></tr></table>
+</body>
+</html>

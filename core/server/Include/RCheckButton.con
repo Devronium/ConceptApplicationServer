@@ -1,0 +1,13 @@
+include RToggleButton.con
+include ClassID.con
+
+define POS_LEFT		0
+define POS_RIGHT	1
+define POS_TOP		2
+define POS_BOTTOM	3
+
+class RCheckButton extends RToggleButton {
+	public function RCheckButton(OWNER) {
+		super(OWNER, CLASS_CHECKBUTTON);
+	}
+}

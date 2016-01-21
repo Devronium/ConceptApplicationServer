@@ -1,0 +1,195 @@
+/*
+    qmc2-machinery: v0.3, 10-SEP-2010, rene.reucher@batcom-it.net
+
+    Qt style sheet compatible with QMC2 0.2.b13+
+
+    http://qmc2.arcadehits.net/wordpress/style-sheets/
+
+    This style sheet is based on the work of an unknown author from ii-system.com:
+
+    http://ii-system.com/soft/devzone/Qt%20Vista%20Style%20test.2007.12.24.zip
+    http://ii-system.com/soft/devzone/devzone_en.htm
+
+    Changes:
+    
+    v0.3 - updated to 0.2.b17
+    v0.2 - updated to 0.2.b15
+    v0.1 - initial version
+*/
+
+QMenuBar {
+    background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #fcfdfe, stop:0.5 #cfd7eb stop:1 #e9ecfa);
+}
+
+QMenuBar::item {
+    background: transparent;
+}
+
+QMenuBar::item:selected {
+    border: 1px solid #f5f6fa;
+    border-radius: 3px;
+    background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #f0f0f0 stop:0.5 #ffffff stop:1 #e9ecfa);
+}
+
+QMenuBar::item:pressed {
+    border: 1px solid grey;
+    border-radius: 3px;
+}
+
+QMenu {
+    background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #fcfdfe, stop:0.5 #cfd7eb stop:1 #e9ecfa);
+    border: 1px solid #979797;
+}
+
+QMenu::item {
+    margin-left: 2px;
+    margin-right: 2px;
+    padding-top: 4px;
+    padding-bottom: 4px;
+    padding-left: 20px;
+    padding-right: 10px;
+}
+
+QMenu::item:selected {
+    border: 1px solid #a7dbff;
+    border-radius: 3px;
+    background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #f1f1f1 stop:1 #e4f0f5);
+    margin-left: 2px;
+    margin-right: 2px;
+    padding-left: 20px;
+    padding-right: 10px;
+}
+
+QMenu::indicator:unchecked {
+    border-radius: 3px;
+}
+
+QMenu::indicator:checked:enabled {
+    border: 1px solid #a7dbff;
+    border-radius: 3px;
+    background-color: #e6eff4;
+    image: url(menu_indicator.png)
+}
+
+QMenu::indicator:checked:!enabled {
+    image: url(menu_indicator_disabled.png)
+}
+
+QMenu::separator {
+    height: 1px;
+    margin-left: 2px;
+    margin-right: 2px;
+    margin-top: 2px;
+    margin-bottom: 2px;
+    background-color: #a0a0a0;
+}
+
+QToolBar {
+    height: 16px;
+    background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #f0f0ff, stop:0.5 #d0d0d0 stop:1 #f0f0f0);
+}
+
+QToolBar QToolButton {
+    background: transparent; 
+    color: white;
+}
+
+QToolBar QToolButton:hover:enabled {
+    border: 1px solid grey;
+    border-radius: 3px;
+    background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #f0f0f0 stop:0.5 #054874 stop:1 #6fc9ca);
+}
+
+QToolBar QToolButton:pressed {
+    border: 1px solid grey;
+    border-radius: 3px;
+    background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #c0c0d0 stop:0.5 #054874 stop:1 #377277);
+}
+
+QToolBar QToolButton:on {
+    border: 1px solid grey;
+    border-radius: 3px;
+    background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #c0c0d0 stop:0.5 #054874 stop:1 #377277);
+}
+
+QGroupBox {
+    border-top: 1px solid gray;
+    margin-top: 6px;
+}
+
+QGroupBox::title {
+    subcontrol-origin: margin;
+    subcontrol-position: top left;
+    padding: 0 3px;
+}
+
+QGroupBox::indicator {
+    width: 13px;
+    height: 13px;
+}
+
+QCheckBox {
+    spacing: 5px;
+}
+
+QCheckBox::indicator {
+    width: 13px;
+    height: 13px;
+}
+
+QRadioButton {
+    spacing: 5px;
+}
+
+QRadioButton::indicator {
+    width: 12px;
+    height: 12px;
+}
+
+QSpinBox::up-button:!enabled, QDoubleSpinBox::up-button:!enabled,
+QSpinBox::up-arrow:off, QDoubleSpinBox::up-arrow:off {
+    border-image: url(spin_up_disabled.png) 1;
+}
+
+QSpinBox::down-button:!enabled, QDoubleSpinBox::down-button:!enabled,
+QSpinBox::down-arrow:off, QDoubleSpinBox::down-arrow:off {
+    border-image: url(spin_down_disabled.png) 1;
+}
+
+QSpinBox::up-button:hover:enabled, QDoubleSpinBox::up-button:hover:enabled {
+    border-image: url(spin_up_enabled_hover.png) 1;
+}
+
+QSpinBox::up-button:pressed:enabled, QDoubleSpinBox::up-button:pressed:enabled {
+    border-image: url(spin_up_enabled_pressed.png) 1;
+}
+
+QSpinBox::down-button:hover:enabled, QDoubleSpinBox::down-button:hover:enabled {
+    border-image: url(spin_down_enabled_hover.png) 1;
+}
+
+QSpinBox::down-button:pressed:enabled, QDoubleSpinBox::down-button:pressed:enabled {
+    border-image: url(spin_down_enabled_pressed.png) 1;
+}
+
+QSpinBox::up-button, QDoubleSpinBox::up-button {
+    subcontrol-origin: border;
+    subcontrol-position: top right;
+    width: 16px;
+    border-width: 2px;
+    border-bottom-width: 0;
+    border-image: url(spin_up_enabled.png) 1;
+}
+
+QSpinBox::down-button, QDoubleSpinBox::down-button {
+    subcontrol-origin: border;
+    subcontrol-position: bottom right;
+    width: 16px;
+    border-width: 2px;
+    border-top-width: 0;
+    border-image: url(spin_down_enabled.png) 1;
+}
+
+QLabel {
+    border: 0px
+}

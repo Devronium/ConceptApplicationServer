@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<object cycid="1" class="Project">
+  <member name="sources" type="array">
+    <array cycid="2">
+      <element key="SpeechTest.con" index="0" type="string">SpeechTest.con</element>
+    </array>
+  </member>
+  <member name="designablesources" type="array">
+    <array cycid="3">
+      <element key="MainForm.con" index="0" type="string">MainForm.con</element>
+    </array>
+  </member>
+  <member name="resources" type="array">
+    <array cycid="4">
+      <element key="string.table.xml" index="0" type="string">string.table.xml</element>
+    </array>
+  </member>
+  <member name="templates" type="array">
+    <array cycid="5"/>
+  </member>
+  <member name="description" type="string">From template: Choose this if you want to create a GUI based application</member>
+  <member name="name" type="string">SpeechTest</member>
+  <member name="entrypoint" type="string">SpeechTest.con</member>
+  <member name="target" type="string">gui</member>
+  <member name="representative" type="string">MainForm.con</member>
+  <member name="reduce_references" type="array">
+    <array cycid="6"/>
+  </member>
+</object>

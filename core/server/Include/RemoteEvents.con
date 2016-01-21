@@ -1,0 +1,149 @@
+// general events
+define EVENT_ON_SHOW               "3"
+define EVENT_ON_HIDE               "4"
+define EVENT_ON_MAP                "5"
+define EVENT_ON_UNMAP              "6"
+define EVENT_ON_REALIZE            "7"
+define EVENT_ON_UNREALIZE          "8"
+define EVENT_ON_SIZEREQUEST        "9"
+define EVENT_ON_SIZEALLOCATE       "10"
+define EVENT_ON_STATECHANGED       "11"
+define EVENT_ON_PARENTCHANGED      "12"
+define EVENT_ON_HIERARCHYCHANGED   "13"
+define EVENT_ON_STYLECHANGED       "14"
+define EVENT_ON_DIRECTIONCHANGED   "15"
+define EVENT_ON_GRABNOTIFY         "16"
+define EVENT_ON_CHILDNOTIFY        "17"
+define EVENT_ON_MNEMONICACTIVATE   "18"
+define EVENT_ON_GRABFOCUS          "19"
+define EVENT_ON_FOCUS              "20"
+define EVENT_ON_EVENT              "21"
+define EVENT_ON_BUTTONPRESS        "22"
+define EVENT_ON_BUTTONRELEASE      "23"
+define EVENT_ON_SCROLL             "24"
+define EVENT_ON_MOTIONNOTIFY       "25"
+define EVENT_ON_DELETEEVENT        "26"
+define EVENT_ON_EXPOSEEVENT        "27"
+define EVENT_ON_KEYPRESS           "28"
+define EVENT_ON_KEYRELEASE         "29"
+define EVENT_ON_ENTERNOTIFY        "30"
+define EVENT_ON_LEAVENOTIFY        "31"
+define EVENT_ON_CONFIGURE          "32"
+define EVENT_ON_FOCUSIN            "33"
+define EVENT_ON_FOCUSOUT           "34"
+define EVENT_ON_MAPEVENT           "35"
+define EVENT_ON_UNMAPEVENT         "36"
+define EVENT_ON_PROPERTY           "37"
+define EVENT_ON_SELECTIONCLEAR     "38"
+define EVENT_ON_SELECTIONREQUEST   "39"
+define EVENT_ON_SELECTIONNOTIFY    "40"
+define EVENT_ON_PROXIMITYIN        "41"
+define EVENT_ON_PROXIMITYOUT       "42"
+define EVENT_ON_VISIBILITY         "43"
+define EVENT_ON_NOEXPOSE           "45"
+define EVENT_ON_WINDOWSTATE        "46"
+define EVENT_ON_SELECTIONGET       "47"
+define EVENT_ON_SELECTIONRECEIVED  "48"
+define EVENT_ON_DRAGBEGIN          "49"
+define EVENT_ON_DRAGEND            "50"
+define EVENT_ON_DRAGDATAGET        "51"
+define EVENT_ON_DRAGDATADELETE     "52"
+define EVENT_ON_DRAGLEAVE          "53"
+define EVENT_ON_DRAGMOTION         "54"
+define EVENT_ON_DRAGDROP           "55"
+define EVENT_ON_DRAGDATARECEIVED   "56"
+define EVENT_ON_SCREENCHANGED      "57"
+
+// radio&check buttons
+define EVENT_ON_TOGGLED            "2"
+define EVENT_ON_GROUPCHANGED       "58"
+
+// button events
+define EVENT_ON_CLICKED            "1"
+define EVENT_ON_ACTIVATE           "59"
+define EVENT_ON_PRESSED            "60"
+define EVENT_ON_RELEASED           "61"
+define EVENT_ON_ENTER              "62"
+define EVENT_ON_LEAVE              "63"
+
+// entry events
+define EVENT_ON_INSERTATCURSOR     "64"
+define EVENT_ON_POPULATEPOPUP      "65"
+
+// textview events
+define EVENT_ON_SETANCHOR          "66"
+define EVENT_ON_SETSCROLLADJUSTMENTS "67"
+
+// spinbutton events
+define EVENT_ON_INPUT              "68"
+define EVENT_ON_OUTPUT             "69"
+define EVENT_ON_VALUECHANGED       "70"
+
+// window events
+define EVENT_ON_FRAMEEVENT         "71"
+define EVENT_ON_SETFOCUS           "72"
+
+// notebook events
+define EVENT_ON_SWITCHPAGE         "73"
+
+// adjustment events
+define EVENT_ON_CHANGED            "74"
+
+// item events
+define EVENT_ON_SELECT             "75"
+define EVENT_ON_DESELECT           "76"
+
+// menuitem
+define EVENT_ON_ACTIVATEITEM       "77"
+
+// handlebox
+define EVENT_ON_CHILDATTACHED      "78"
+define EVENT_ON_CHILDDETACHED      "79"
+
+// toolbar
+define EVENT_ON_ORIENTATIONCHANGED  "80"
+define EVENT_ON_POPUPCONTEXTMENU    "81"
+define EVENT_ON_TOOLBARSTYLECHANGED "82"
+
+// toolbutton
+define EVENT_ON_CREATEMENUPROXY     "83"
+define EVENT_ON_TOOLBARRECONFIGURED "84"
+
+// menutoolbutton
+define EVENT_ON_SHOWMENU            "85"
+
+// treeview
+define EVENT_ON_COLUMNSCHANGED      "86"
+define EVENT_ON_CURSORCHANGED       "87"
+define EVENT_ON_ROWACTIVATED        "88"
+define EVENT_ON_ROWCOLLAPSED        "89"
+define EVENT_ON_ROWEXPANDED         "90"
+
+// timers
+define EVENT_ON_TIMER               "91"
+
+// calendar
+define EVENT_ON_DAYSELECTED         "92"
+define EVENT_ON_DAYSELECTEDDBCLICK  "93"
+define EVENT_ON_MONTHCHANGED        "94"
+define EVENT_ON_NEXTMONTH           "95"
+define EVENT_ON_NEXTYEAR            "96"
+define EVENT_ON_PREVMONTH           "97"
+define EVENT_ON_PREVYEAR            "98"
+
+// treeview columns
+define EVENT_ON_STARTEDITING        "99"
+define EVENT_ON_ENDEDITING         "100"
+define EVENT_ON_CANCELEDITING      "101"
+
+// ActiveX events
+define EVENT_ACTIVEX_EVENT         "102"
+
+// scrollbar and scale
+define EVENT_ON_ADJUSTBOUNDS       "103"
+define EVENT_ON_CHANGEVALUE        "104"
+define EVENT_ON_MOVESLIDER         "105"
+
+// treeview columns again
+define EVENT_ON_HEADERCLICKED      "106"
+define EVENT_ON_COLUMNRESIZED      "107"

@@ -1,0 +1,20 @@
+include Application.con
+include MainForm.con
+include Lang.con
+
+class Main {
+	function Main() {
+			try {
+				var StringTable=new Lang();
+
+				var Application=new CApplication(new APPLICATION_FORM_TYPE(null,StringTable));
+
+				Application.Init();
+				Application.Run();
+				Application.Done();
+
+			} catch (var Exception) {
+				echo Exception;
+			}
+	}
+}

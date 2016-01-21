@@ -1,0 +1,74 @@
+include 'Object.con'
+include 'ControlException.con'
+
+class Control extends Object {
+	protected var _PARENT;
+	protected var _OWNER;
+
+	property Parent { get _PARENT, set SetParent }
+	property Owner  { get _OWNER,  set SetOwner }
+
+	function AddControl();override AddControl;
+
+
+	public function Control(Owner, Class) {
+                // notify the client
+		this->_NAME=""+___CONCEPT_INTERFACE_HELPER_GENERATE_UNIQUE_ID();
+                if (typeof Owner!=CLASS_TYPE)
+                	SendMessage(this->Name, MSG_CREATE, Class, 0);
+		else {
+                	SendMessage(this->Name, MSG_CREATE, Class, Owner->Name);
+			Owner->AddControl(this);
+		}
+		this->Owner=&Owner;
+	}
+
+	protected function SetOwner(x) {
+		if ((typeof x==CLASS_TYPE) || (x==NULL))
+			this->_OWNER=&x;
+		else
+			throw new ControlException(EXC_INVALID_ARGUMENT_TYPE, this);
+	}
+
+	protected function SetParent(x) {
+		if ((typeof x==CLASS_TYPE) || (x==NULL))
+			this->_PARENT=&x;
+		else
+			throw new ControlException(EXC_INVALID_ARGUMENT_TYPE, this);
+	}
+
+	public function SendFileCookie(local_filename, client_filename) {
+		if (typeof local_filename==STRING_TYPE) {
+			var FILE=_fopen(local_filename,"rb");
+			if (FILE) {
+				var DATA;
+				var size=_fread(DATA,1,_fsize(FILE),FILE);
+				_fclose(FILE);
+				DATA=mime_encode(DATA);
+                		SendMessage(this->Name, MSG_FILE_COOKIE, ""+client_filename, DATA);
+			}
+		} else
+		     	throw new ControlException(EXC_INVALID_ARGUMENT_TYPE, this);
+
+	}
+
+	public function SendTextCookie(DATA, client_filename) {
+                SendMessage(this->Name, MSG_FILE_COOKIE, ""+client_filename, mime_encode(""+DATA));
+	}
+
+	override XMLSerialized;
+	function XMLSerialized() {
+		var XMLData=""; // no serialization !
+		return XMLData;
+	}
+
+	protected function Control_ProcessMessage(Sender, ID, Target, Value) {
+		if (Sender==this->_NAME) {
+			// to do if any
+		}
+	}
+
+	public function ProcessMessage(Sender, ID, Target, Value) {
+		this->Control_ProcessMessage(Sender,ID,Target,Value);
+	}
+}

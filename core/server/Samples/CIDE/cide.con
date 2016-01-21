@@ -1,0 +1,49 @@
+include Application.con
+include MainIDEForm.con
+include Lang.con
+import standard.lib.cripto
+import standard.lib.thread
+
+class Main {
+	IsAuthorized() {
+		var ip = GetRemoteIP();
+		if ((ip != "127.0.0.1") && (ip != "::ffff:127.0.0.1")) {
+			var path = _getenv("CONCEPT_CERTIFICATE") + "/developers.lst";
+			var data = ReadFile(path);
+			var logged_in = false;
+			if (data) {
+				var arr = UnBinarizeObject(data);
+				if (arr) {
+					var challenge="";
+					if (CApplication.Login(var username="", var password="", "This application requires login", "SHA1", challenge)==RESPONSE_OK) {
+						var pass = arr[username];
+						if ((pass) && (password) && (sha1(challenge+pass) == password))
+							logged_in = true;
+					}
+				}
+			}
+			if (!logged_in) {
+				Sleep(1000);
+				CApplication::Message("Cannot access CIDE from your current location.");
+			}
+			return logged_in;
+		}
+		return true;
+	}
+
+	function Main() {
+			try {
+				if (!IsAuthorized())
+					return;
+
+				var Application=new CApplication(new MainIDEForm(NULL));
+				Application.ShellDebug=Application.ApplicationForm.DebugCallback;
+
+				Application.Init();
+				Application.Run();
+				Application.Done();
+			} catch (var Exception) {
+				echo Exception;
+			}
+	}
+}

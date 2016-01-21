@@ -1,0 +1,19 @@
+include 'Container.con'
+
+class ConceptGroupBox extends Container {
+	protected var _CAPTION;
+	public property Caption { set SetCaption, get _CAPTION }
+
+	public function ConceptGroupBox(Owner) {
+		this->Container(Owner, CLASS_GROUPBOX);		
+	}
+
+	public function SetCaption(x) {
+		if (typeof x==STRING_TYPE)
+			this->_CAPTION=x;
+		else
+		     	throw new ControlException(EXC_INVALID_ARGUMENT_TYPE, this);
+
+                SendMessage(this->Name, MSG_CHANGED, P_CAPTION, x);
+	}
+}

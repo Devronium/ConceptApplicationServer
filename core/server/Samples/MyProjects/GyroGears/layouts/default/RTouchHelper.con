@@ -1,0 +1,365 @@
+include RForm.con
+include RImage.con
+include RButton.con
+include RTable.con
+include RVBox.con
+include RHBox.con
+include RAlignment.con
+include REventBox.con
+include RViewPort.con
+include RScrolledWindow.con
+include RLabel.con
+include Application.con
+include include/Utils.con
+
+class _DashData {
+    var Image=null;
+    var Title="";
+    var Content="";
+    var Alerts=null;
+    var Link="";
+    var IsImportant=false;
+    
+    function _DashData(_gyro_Title, _gyro_IsImportant=false, _gyro_Link="", _gyro_Image=null, _gyro_Content="", _gyro_Alerts=null) {
+        this.Title=_gyro_Title;
+        this.Content=_gyro_Content;
+        this.Alerts=_gyro_Alerts;
+        this.Link=_gyro_Link;
+        this.Image=_gyro_Image;
+        this.IsImportant=_gyro_IsImportant;
+    }
+}
+
+class RTouchInfo extends REventBox {
+    public function RTouchInfo(Owner, S, array elements) {
+        super(Owner);
+        CApplication.BeginNonCritical();
+        this.Packing=PACK_EXPAND_WIDGET;
+
+        var vbox=new RHBox(this);
+        vbox.PackType=PACK_SHRINK;
+        vbox.Show();
+
+        var len=length elements;
+        for (var i=0;i<len;i++) {
+             var e=elements[i];
+             if (e) {
+                 if (e.IsImportant)
+                     var btn=this.GetButton(vbox, e.Title, e.Image);
+                 else
+                     btn=this.GetButton(vbox, e.Title, e.Image, 0x009800);
+                 if (e.Alerts) {
+                     if (e.Content)
+                         btn.AddAccelKey(e.Content);
+                     btn.OnClicked=e.Alerts;
+                 }
+             }
+        }
+        var ev=new REventBox(vbox);
+        ev.Packing=PACK_EXPAND_WIDGET;
+        ev.BgColor=0x180052;
+        ev.Show();
+        this.BgColor=0x180052;
+        CApplication.EndNonCritical();
+    }
+
+    public function GetButton(owner, string caption, icon="", bgcolor=0xA200AB, fgcolor=0xFFFFFF, font="", is_stock=true) {
+        var button=new RButton(owner);
+        button.ReliefStyle=RELIEF_NONE;
+        button.Show();
+        var e=new REventBox(button);
+
+        e.BgColor=bgcolor;
+        e.Show();
+
+        var a=new RAlignment(e);
+        a.LeftPadding=5;
+        a.RightPadding=5;
+        a.TopPadding=5;
+        a.BottomPadding=5;
+        a.BgColor=bgcolor;
+        a.Show();
+
+        var box=new RHBox(a);
+        box.Spacing=5;
+        box.PackType=PACK_SHRINK;
+        box.Show();
+        var image=new RImage(box);
+        if (!icon)
+            image.LoadResource("gtk-new", 1);
+        else
+        if (classof icon=="RImage")
+            image.RenderImage=icon;
+        else
+            image.Filename=icon;
+        image.Scale(16,16,INTERP_HYPER);
+        image.Show();
+        var label=new RLabel(box);
+        label.XAlign=0;
+        label.Caption=caption;
+        label.FgColor=fgcolor;
+        if (font)
+            label.Font.Name=font;
+        label.Show();
+
+        return button;
+    }
+}
+
+class RTouchHelper extends RForm {
+    public var OnUrl;
+    
+    public function RTouchHelper(Owner, S, array elements, string username, array recent, title="Welcome") {
+        super(Owner);
+        CApplication.BeginNonCritical();
+        var len=length elements;
+        //if (len>50)
+        //    len=50;
+        var len_max=len*2;
+        var rows=int32(len_max/6)+3;
+        var columns=len_max%6+1;
+        if (columns<8)
+            columns=8;
+        columns++;
+        var[] links;
+
+        var vowner=new RViewPort(this);
+        vowner.ShadowType=SHADOW_NONE;
+        vowner.Show();
+
+        var table=new RTable(vowner);
+        table.Rows=rows;
+        table.Columns=columns;
+        table.Visible=true;
+
+        table.AttachOptions(0, columns-1, 0, 1, FILL | EXPAND, SHRINK | FILL, 0, 0);
+        var label=new RLabel(table);
+        label.Caption=title;
+        label.Font.Name="bold 22";
+        label.FgColor=0xF0FFF0;
+        label.XAlign=0;
+        label.Show();
+
+        table.AttachOptions(columns-1, columns, 0, 1, FILL | SHRINK, SHRINK | FILL, 0, 0);
+        if (username) {
+            var button=this.GetButton(table, username, "gtk-dialog-authentication", 0x180052);
+            button.UserData="internal://gopassword";
+            button.MinHeight=50;
+            button.MinWidth=150;
+        }
+
+        //for (var i=0;i<len;i++) {
+        //}
+        table.AttachOptions(columns-1, columns, 1, rows, FILL | SHRINK, EXPAND | FILL, 0, 0);
+        var align=new RAlignment(table);
+        align.LeftPadding=6;
+        align.RightPadding=6;
+        align.BottomPadding=10;
+        align.Show();
+        var eventbox=new REventBox(align);
+        eventbox.BgColor=0x1F006C;
+        eventbox.Show();
+
+        var scroll=new RScrolledWindow(eventbox);
+        scroll.ShadowType=SHADOW_NONE;
+        scroll.VScrollPolicy=POLICY_AUTOMATIC;
+        scroll.HScrollPolicy=POLICY_NEVER;
+        scroll.BgColor=eventbox.BgColor;
+        scroll.Show();
+
+        var viewport=new RViewPort(scroll);
+        viewport.ShadowType=SHADOW_NONE;
+        viewport.BgColor=eventbox.BgColor;
+        viewport.Show();
+
+        var vbox=new RVBox(viewport);
+        vbox.BgColor=eventbox.BgColor;
+        vbox.PackType=PACK_SHRINK;
+        this.GetButton(vbox, S<<"Home", "gtk-home", 0x623EBE).UserData="internal://gohome";
+        this.GetButton(vbox, S<<"Calendar", "gtk-index", 0x623EBE).UserData="internal://gocalendar";
+        this.GetButton(vbox, S<<"Help", "gtk-help", 0x623EBE).UserData="internal://gohelp";
+        
+        var len2=length recent;
+        for (var i=0;i<len2;i++) {
+            var r=recent[i];
+            if (r) {
+                this.GetButton(vbox, Utils::Limit(r.Title, 12), r.Image, /*0xDB532E*/0xA200AB, 0xF0FFF0, "bold 11", false).UserData=r.Link;
+                links[r.Link]=r.Link;
+            }
+        }
+        vbox.Show();
+
+        var col=0;
+        var row=1;
+        var size=1;
+        //table.Homogeneous=true;
+        var shown=0;
+        var free_space=new [];
+        for (i=0;i<len;i++) {
+            var e=elements[i];
+            if (!e)
+                continue;
+            if (e.IsImportant)
+                size=2;
+            else
+                size=1;
+
+            var space=null;
+            if (col+size>=columns-1) {
+                if ((size>1) && (col+1<columns-1))
+                    free_space[length free_space]=[col, row];
+                col=0;
+                row++;
+            } else {
+                if ((size==1) && (free_space)) {
+                    space=free_space[0];
+                    var len3=length free_space;
+                    var tfs=new [];
+                    for (var j=1;j<len3;j++)
+                        tfs[length tfs]=free_space[j];
+
+                    free_space=tfs;
+                }
+            }
+            if (space) {
+                table.AttachOptions(space[0], space[0]+size, space[1], space[1]+1, FILL | SHRINK, SHRINK | FILL, 0, 0);
+            } else {
+                table.AttachOptions(col, col+size, row, row+1, FILL | SHRINK, SHRINK | FILL, 0, 0);
+                col+=size;
+                shown+=size;
+            }
+
+            var color=0x623EBE;
+            if (e.IsImportant)
+                color=0x009800;
+            if (links[e.Link])
+                color=0xDC572E;
+
+            if (len<=10) {
+                var b=this.GetButton2(table, e.Title, e.Content, e.Image, color);
+                b.MinHeight=150;
+            } else
+            if (e.IsImportant)
+                b=this.GetButton2(table, e.Title, e.Content, e.Image, color);
+            else
+                b=this.GetButton2(table, Utils::Limit(e.Title, 10), Utils::Limit(e.Content, 12), e.Image, color);
+            b.UserData=e.Link;
+
+            if (shown>=76)
+                break;
+        }
+        if (len<=10) {
+            table.AttachOptions(0, columns-1, rows-1, rows, FILL | SHRINK, EXPAND | FILL, 0, 0);
+            var dummy=new RLabel(table);
+            dummy.Show();
+        }
+        
+        this.BorderWidth=20;
+        table.Show();
+        vowner.BgColor=0x180052;
+        this.BgColor=0x180052;
+        this.FullScreen=true;
+        CApplication.EndNonCritical();
+    }
+
+    public function OnClicked(Sender, EventData) {
+        if ((Sender.UserData) && (OnUrl)) {
+            this.OnUrl(this, Sender.UserData);
+            this.Hide();
+        }
+    }
+
+    //0x623EBE
+    public function GetButton(owner, string caption, _gyro_icon="gtk-dialog-authentication", bgcolor=0xA200AB, fgcolor=0xF0FFF0, font="bold 11", is_stock=true) {
+        var button=new RButton(owner);
+        button.ReliefStyle=RELIEF_NONE;
+        button.Show();
+        var e=new REventBox(button);
+        e.BgColor=bgcolor;
+        e.Show();
+        var a=new RAlignment(e);
+        a.LeftPadding=10;
+        a.RightPadding=10;
+        a.TopPadding=10;
+        a.BottomPadding=10;
+        a.BgColor=bgcolor;
+        a.Show();
+        var box=new RHBox(a);
+        box.Spacing=10;
+        box.PackType=PACK_SHRINK;
+        box.Show();
+        if (_gyro_icon) {
+            var image=new RImage(box);
+            if (is_stock)
+                image.LoadResource(_gyro_icon, 1);
+            else {
+                if (classof _gyro_icon=="RImage")
+                   image.RenderImage=_gyro_icon;
+                else
+                   image.Filename=_gyro_icon;
+                image.Scale(16,16,INTERP_HYPER);
+            }
+            image.Show();
+        }
+        var label=new RLabel(box);
+        label.XAlign=0;
+        label.Caption=caption;
+        label.FgColor=fgcolor;
+        label.Font.Name=font;
+        label.Show();
+        button.OnClicked=this.OnClicked;
+        return button;
+    }
+
+    public function GetButton2(owner, string caption, string description="", string icon="", bgcolor=0x623EBE, fgcolor=0xF0FFF0, font="bold 11") {
+        var button=new RButton(owner);
+        button.ReliefStyle=RELIEF_NONE;
+        button.Show();
+        var e=new REventBox(button);
+        e.BgColor=bgcolor;
+        e.Show();
+        var a=new RAlignment(e);
+        a.LeftPadding=10;
+        a.RightPadding=10;
+        a.TopPadding=10;
+        a.BottomPadding=10;
+        a.BgColor=bgcolor;
+        a.Show();
+
+        var box=new RHBox(a);
+        box.Spacing=10;
+        box.PackType=PACK_SHRINK;
+        box.Show();
+        if (icon) {
+            var image=new RImage(box);
+            image.YAlign=0.0;
+            if (classof icon=="RImage")
+               image.RenderImage=icon;
+            else
+               image.Filename=icon;
+            image.Show();
+        }
+        var vbox=new RVBox(box);
+        vbox.Packing=PACK_SHRINK;
+        vbox.Spacing=10;
+        vbox.Show();
+        
+        var label=new RLabel(vbox);
+        label.XAlign=0;
+        //label.Wrap=true;
+        label.Caption=caption;
+        label.FgColor=fgcolor;
+        label.Font.Name=font;
+        label.Show();
+
+        var label2=new RLabel(vbox);
+        label2.XAlign=0;
+        //label2.Wrap=true;
+        label2.Caption=description;
+        label2.UseMarkup=true;
+        label2.FgColor=fgcolor;
+        label2.Show();
+        button.OnClicked=this.OnClicked;
+        return button;
+    }
+}

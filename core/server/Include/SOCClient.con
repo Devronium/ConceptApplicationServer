@@ -1,0 +1,56 @@
+import win32.base.messages
+import standard.C.io
+import standard.C.time
+import standard.net.socket
+import standard.lib.thread
+import standard.lib.str
+include Serializable.con
+
+class SOCClient {
+	private var socket;
+
+	public function SOCClient() {
+		this.socket=SocketCreate();
+	}
+
+	public function ProtoGet(var buffer) {
+		var rsize=SocketRead(socket, var ibuffer="", 100, false, true);
+		if (rsize!=100) {
+			return false;
+		}
+		var size=value ibuffer;
+
+		if (size)
+			rsize=SocketRead(socket, buffer="", size, false, true);
+
+		return size;
+	}
+
+	public function ProtoSend(string entity, string operation, string data="") {
+		var header="$entity::$operation::"+length data;
+		var len=length header;
+
+		for (var i=len;i<100;i++)
+			header+=" ";
+
+		SocketWrite(this.socket,header);
+		SocketWrite(this.socket,data);
+	}
+
+	public function Connect(string host, number port=3000) {
+		if (SocketConnect(this.socket,host,port)==-1)
+			return false;
+		return true;
+	}
+
+	public function Close() {
+		if (this.socket>0) {
+			SocketClose(this.socket);
+			this.socket=0;
+		}
+	}
+
+	public function finalize() {
+		this.Close();
+	}
+}

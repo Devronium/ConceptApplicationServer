@@ -1,0 +1,17 @@
+include XapianDatabase.con
+include XapianEnquire.con
+include XapianQueryParser.con
+include XapianTermGenerator.con
+include XapianWritableDatabase.con
+include XapianMSetIterator.con
+
+
+class Xapian {
+	static function sortable_serialise(number n) {
+		return Xapian__sortable_serialise(n);
+	}
+
+	static function sortable_unserialise(string s) {
+		return Xapian__sortable_unserialise(s);
+	}
+}

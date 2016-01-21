@@ -1,0 +1,169 @@
+import standard.lib.str
+import standard.net.curl
+
+define CURL_ROBOTID		"Concept Application (visit www.devronium.com for more information)" 
+
+
+class URL {
+	private var data="";
+	private var header="";
+	private var header_arr;
+
+	private var _content_type="";
+	private var _content_length=0;
+	private var _location="";
+	private var _response=0;
+	private var _version="";
+
+	private var _host="";
+	private var rtl;
+
+	public property Data { get data }
+	public property Headers { get header_arr }
+
+	public property Response { get _response }
+	public property Location { get _location }
+	public property ContentType { get _content_type }
+	public property ContentLength { get _content_length }
+	public property HTTPVersion { get _version }
+
+	public property Host { get _host }
+
+	public var my_delegate;
+
+	private var prec_stream;
+
+	protected function write_data(ptr, size, nmemb, stream) {
+		if (stream==1001) 
+			header+=ptr;
+		else {
+			if (prec_stream==1001) {
+				this.DoHeader();
+			}
+
+			data+=ptr;
+
+			if (my_delegate)
+				my_delegate(this, size*nmemb);
+		}
+
+		prec_stream=stream;
+		return size*nmemb;
+	}
+
+
+	private function go_fetch(url, post_array=0, verification=true, robot_id=CURL_ROBOTID, no_post=false, headers=null, options=null) {
+		var curl=curl_easy_init();
+		data="";
+		header="";
+		if (curl) {
+			if (!verification) {
+				curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0);
+				curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0);
+			} else {
+				curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 1);
+				curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 1);
+			}
+
+			curl_easy_setopt(curl, CURLOPT_URL, url);
+			curl_easy_setopt(curl, CURLOPT_USERAGENT, robot_id);
+			//curl_easy_setopt(curl, CURLOPT_HTTPHEADER, ["Expect:"] );
+			if (headers)
+				curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
+			curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_data);
+			curl_easy_setopt(curl, CURLOPT_WRITEDATA, 1002);
+			//curl_easy_setopt(curl, CURLOPT_WRITEHEADER , 1001);
+			curl_easy_setopt(curl, CURLOPT_HEADERDATA , 1001);
+			curl_easy_setopt(curl, CURLOPT_HEADERFUNCTION, write_data);
+
+			if (post_array) {
+				if (typeof post_array=="array") {
+					var form=curl_formnew(post_array);
+					if (form) {
+						curl_easy_setopt(curl, CURLOPT_HTTPPOST, form);
+						if (no_post)
+							curl_easy_setopt(curl, CURLOPT_HTTPGET, 1);
+					}
+				} else {
+					curl_easy_setopt(curl, CURLOPT_POSTFIELDS, post_array);
+				}
+			}
+			if (options) {
+				var len=length options;
+				for (var i=0;i<len;i++) {
+					var e=options[i];
+					if (e)
+						curl_easy_setopt(curl, e[0], e[1]);
+				}
+			}
+			curl_easy_perform(curl);
+
+			if (form)
+				curl_formfree(form);
+
+			curl_easy_cleanup(curl);
+		}
+	}
+
+	function IsSuccessful() {
+		return ((_response>=200) && (_response<300));
+	}
+
+	function IsRedirect() {
+		return ((_response>=300) && (_response<400));
+	}
+
+	private function DoHeader() {
+		header_arr=StrSplit(header,"\r\n");
+
+		_response=0;
+		_content_type="";
+		_location="";
+
+		var len=length header_arr;
+		if (len) {
+			var tmp=trim(header_arr[0]);
+			var arr=StrSplit(tmp," ");
+
+			_version=arr[0];
+			_response=value (""+arr[1]);
+
+			for (var i=1;i<len;i++) {
+				tmp=header_arr[i];
+				arr=StrSplit(tmp,":");
+
+				var len2=length arr;
+				if ((arr) && (len2)) {
+					var header_var=ToLower(arr[0]);
+					var remaining="";
+					for (var j=1;j<len2;j++) {
+						if (j!=1)
+							remaining+=":"+arr[j];
+						else
+							remaining+=arr[j];
+					}
+					remaining=trim(remaining);
+					switch (header_var) {
+						case "location":
+							_location=remaining;
+							break;
+						case "content-type":
+							_content_type=remaining;
+							break;
+						case "content-length":
+							_content_length=value (""+remaining);
+							break;
+					}
+				}
+			}
+		}
+	}
+
+	public function Get(string url, post_array=null, verification=true, robot_id=CURL_ROBOTID, no_post=false, headers=null, curl_options=null) {
+		data="";
+
+		_content_length=0;
+		go_fetch(url, post_array, verification, robot_id, no_post, headers, curl_options);
+		DoHeader();
+	}
+}

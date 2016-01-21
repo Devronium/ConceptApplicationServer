@@ -1,0 +1,240 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+  <title>XMLDocument</title>
+  <link href="css/style.css" rel="stylesheet" type="text/css">
+  <meta http-equiv="Content-Type" content="text/html;charset=utf-8" >
+</head>
+<body bgcolor="#ffffff">
+<table border="0" width="100%" bgcolor="#F0F0FF">
+  <tr>
+    <td>Concept Framework 2.2 documentation</td>
+  	<td align="right"><a href="index.html">Contents</a> | <a href="index_fun.html">Index</a></td>
+  </tr>
+</table>
+<h2>XMLDocument</h2>
+<table border="0" cellspacing="0" cellpadding="0" width="400" style="border-style:solid;border-width:1px;border-color:#D0D0D0;">
+  <tr bgcolor="#f0f0f0">
+     <td><i>Name</i></td>
+     <td><i>Version</i></td>
+     <td><i>Deprecated</i></td>
+  </tr>
+  <tr bgcolor="#fafafa">
+     <td><b>XMLDocument</b></td>
+     <td>version 1.0</td>
+     <td>no</td>
+  </tr>
+</table>
+<br />
+<b>Defined in : </b>XMLDocument.con
+<br/><i>(this file must be included in your application in order to have access, unless you use a child class of XMLDocument that includes this file)</i><br /><br />
+
+
+<b>Require</b> : standard.lib.xml
+<br />
+<br />
+
+<b>Description:</b><br />
+<table width="100%" bgcolor="#FAFAFF" style="border-style:solid;border-width:1px;border-color:#D0D0D0;">
+<tr><td>
+A provides access to an XML document. It contains a tree of <a href="XMLNode.html">XMLNode</a>s than can be accessed starting from the root node using the <a href="XMLDocument.Root.html">Root</a> property.
+</td></tr>
+</table>
+<br />
+<br />
+
+
+<b>Properties:</b><br />
+<table bgcolor="#FFFFFF" width="100%" style="border-style:solid;border-width:1px;border-color:#D0D0D0;">
+
+	   <tr>
+	   	   <td>
+		   	   <a href="XMLDocument.Encoding.html">Encoding</a>
+		   </td>
+	   	   <td>
+		   	   Sets or gets the encoding type to use for the document
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="XMLDocument.Errors.html">Errors</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="XMLDocument.ErrorsText.html">ErrorsText</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="XMLDocument.Filename.html">Filename</a>
+		   </td>
+	   	   <td>
+		   	   Sets or gets the name of the targeted filename
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="XMLDocument.Root.html">Root</a>
+		   </td>
+	   	   <td>
+		   	   Gets or sets the root node of a XML document
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="XMLDocument.Version.html">Version</a>
+		   </td>
+	   	   <td>
+		   	   Sets or gets the xml version to required by the output operations like <a href="XMLDocument.Save.html">Save</a> or <a href="XMLDocument.SaveString.html">SaveString</a>
+		   </td>
+	   </tr>
+
+</table>
+<br />
+
+
+
+<b>Methods:</b><br />
+<table bgcolor="#FFFFFF" width="100%" style="border-style:solid;border-width:1px;border-color:#D0D0D0;">
+
+	   <tr>
+	   	   <td>
+		   	   <a href="XMLDocument.Create.html">Create</a>
+		   </td>
+	   	   <td>
+		   	   Initializes the XML document
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="XMLDocument.Free.html">Free</a>
+		   </td>
+	   	   <td>
+		   	   Frees the memory used by the XML document
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="XMLDocument.GetXPath.html">GetXPath</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="XMLDocument.Load.html">Load</a>
+		   </td>
+	   	   <td>
+		   	   Loads the xml data from the given <a href="XMLDocument.Filename.html">Filename</a>
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="XMLDocument.LoadHTML.html">LoadHTML</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="XMLDocument.LoadString.html">LoadString</a>
+		   </td>
+	   	   <td>
+		   	   Loads the xml document from a given string
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="XMLDocument.NewNode.html">NewNode</a>
+		   </td>
+	   	   <td>
+		   	   Creates a new <a href="XMLNode.html">XMLNode</a> and returns it
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="XMLDocument.Save.html">Save</a>
+		   </td>
+	   	   <td>
+		   	   Saves the xml data to the given <a href="XMLDocument.Filename.html">Filename</a>
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="XMLDocument.SaveString.html">SaveString</a>
+		   </td>
+	   	   <td>
+		   	   Saves the xml document to a string
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="XMLDocument.XMLDocument.html">XMLDocument</a>
+		   </td>
+	   	   <td>
+		   	   The standard constructor
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="XMLDocument.finalize.html">finalize</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+</table>
+<br />
+
+
+
+
+
+
+
+
+<br />
+
+<br />
+<br />
+<!--
+  <p>
+    <a href="http://validator.w3.org/check?uri=referer"><img
+        src="http://www.w3.org/Icons/valid-html40"
+        alt="Valid HTML 4.0 Transitional" height="31" width="88" border="0"></a>
+ <a href="http://jigsaw.w3.org/css-validator/">
+  <img style="border:0;width:88px;height:31px"
+       src="http://jigsaw.w3.org/css-validator/images/vcss" 
+       alt="Valid CSS!" border="0"/>
+ </a>
+</p>
+-->
+<table bgcolor="#F0F0F0" width="100%"><tr><td>Documented by Eduard Suica, generation time: Sun Jan 27 18:15:12 2013
+ GMT</td><td align="right">(c)2013 <a href="http://www.devronium.com">Devronium Applications</a></td></tr></table>
+</body>
+</html>

@@ -1,0 +1,42 @@
+include 'VisibleControl.con'
+
+class ConceptCheckButton extends VisibleControl {
+	protected var _CAPTION;
+	protected var _CHECKED;
+	public property Caption { set SetCaption, get _CAPTION }
+        public property Checked { set SetChecked, get _CHECKED }
+
+	public function ConceptCheckButton(Owner) {
+		this->VisibleControl(Owner, CLASS_CHECKBUTTON);
+	}
+
+	protected function SetCaption(x) {
+		if (typeof x==STRING_TYPE)
+			this->_CAPTION=x;
+		else
+		     	throw new ControlException(EXC_INVALID_ARGUMENT_TYPE, this);
+
+                SendMessage(this->Name, MSG_CHANGED, P_CAPTION, x);
+	}
+
+	protected function SetChecked(x) {
+		if (typeof x==NUMERIC_TYPE)
+			this->_CHECKED=x;
+		else
+		     	throw new ControlException(EXC_INVALID_ARGUMENT_TYPE, this);
+
+                SendMessage(this->Name, MSG_CHANGED, P_CHECKED, x);
+	}
+
+	public function ConceptCheckButton_ProcessMessage(Sender, ID, Target, Value) {
+		if ((ID==MSG_CHANGED) && (Sender==this->_NAME))
+			this->_CHECKED=value Value;
+		this->VisibleControl_ProcessMessage(Sender, ID, Target, Value);
+	}
+
+	override ProcessMessage;
+	public function ProcessMessage(Sender, ID, Target, Value) {
+		this->ConceptCheckButton_ProcessMessage(Sender,ID,Target,Value);
+	}
+
+}

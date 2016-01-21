@@ -1,0 +1,23 @@
+include Application.con
+include MainForm.con
+include Lang.con
+
+class Main {
+	function Main() {
+			try {
+				var StringTable=new Lang();
+				var form=new APPLICATION_FORM_TYPE(null,StringTable);
+				if (!form.service_image)
+					return 0;
+
+				var Application=new CApplication(form);
+				Application.ShellDebug=Application.ApplicationForm.OnAPMessage;
+				Application.Init();
+				Application.Run();
+				Application.Done();
+
+			} catch (var Exception) {
+				echo Exception;
+			}
+	}
+}

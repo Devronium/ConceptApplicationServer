@@ -1,0 +1,293 @@
+include Profiler.con
+include RTreeView.con
+include RNotebook.con
+include RForm.con
+include RScrolledWindow.con
+include RToolbar.con
+include RToolButton.con
+include Application.con
+include RToggleToolButton.con
+
+import standard.C.math
+import standard.lang.cli
+
+class ProfilerForm extends RForm {
+	protected var treeTime;
+	protected var treeCount;
+	protected var treeExc;
+	protected var treeObjects;
+	protected var treeMemory;
+	protected var _Profiler;
+	public var RefreshTimeout = 2000;
+
+	function ProfilerForm(Owner, prof) {
+		super(Owner);
+		this._Profiler = prof;
+		Caption = "Profiler";
+		KeepAbove = true;
+		Height = 600;
+		Width = 800;
+
+		var model = MODEL_LISTVIEW;
+
+		var toolbar = new RToolbar(null);
+		toolbar.LinkIfNotLinked(this);
+		toolbar.Style = TOOLBAR_ICONS;
+		toolbar.ShowArrow=false;
+		toolbar.Show();
+
+		var button = new RToolButton(toolbar);
+		button.StockID = "gtk-refresh";
+		button.Caption = "Refresh";
+		button.Tooltip = "Refresh";
+		button.IsImportant = false;
+		button.OnClicked = this.RefreshClicked;
+		button.Show();
+
+		button = new RToolButton(toolbar);
+		button.StockID = "gtk-clear";
+		button.Caption = "Clear";
+		button.Tooltip = "Clear";
+		button.IsImportant = false;
+		button.OnClicked = this.ResetClicked;
+		button.Show();
+
+		button = new RToggleToolButton(toolbar);
+		button.Caption = "Show call stack";
+		button.StockID = "gtk-info";
+		button.Tooltip = "Show call stack";
+		button.IsImportant = false;
+		button.Checked = prof.CallStack;
+		button.OnToggled = this.ToggleClicked;
+		button.Show();
+
+		button = new RToolButton(toolbar);
+		button.StockID = "gtk-delete";
+		button.Caption = "Dispose unreachable objects";
+		button.Tooltip = "Dispose unreachable objects";
+		button.IsImportant = false;
+		button.OnClicked = this.DisposeClicked;
+		button.Show();
+
+		var notebook = new RNotebook(this);
+		notebook.TabPos = POS_BOTTOM;
+		notebook.Show();
+
+		var scr = new RScrolledWindow(notebook);
+		scr.HScrollPolicy = POLICY_AUTOMATIC;
+		scr.VScrollPolicy = POLICY_AUTOMATIC;
+		scr.Show();
+
+		notebook.Pages[0].Caption = "By execution time";
+		treeTime = new RTreeView(scr);
+		treeTime.Model = model;
+		treeTime.GridLines = TREE_VIEW_GRID_LINES_BOTH;
+		treeTime.AddColumn("Function");
+		treeTime.AddColumn("Time(ms)");
+		treeTime.Columns[1].XAlign=1.0;
+		treeTime.AddColumn("Count");
+		treeTime.Columns[2].XAlign=1.0;
+		treeTime.AddColumn(" ", PERCENT_COLUMN);
+		treeTime.Show();
+
+		scr = new RScrolledWindow(notebook);
+		scr.HScrollPolicy = POLICY_AUTOMATIC;
+		scr.VScrollPolicy = POLICY_AUTOMATIC;
+		scr.Show();
+
+		notebook.Pages[1].Caption = "By call count";
+		treeCount = new RTreeView(scr);
+		treeCount.Model = model;
+		treeCount.GridLines = TREE_VIEW_GRID_LINES_BOTH;
+		treeCount.AddColumn("Function");
+		treeCount.AddColumn("Count");
+		treeCount.Columns[1].XAlign=1.0;
+		treeCount.AddColumn(" ", PERCENT_COLUMN);
+		treeCount.Show();
+
+		scr = new RScrolledWindow(notebook);
+		scr.HScrollPolicy = POLICY_AUTOMATIC;
+		scr.VScrollPolicy = POLICY_AUTOMATIC;
+		scr.Show();
+
+		notebook.Pages[2].Caption = "Exception throwers";
+		treeExc = new RTreeView(scr);
+		treeExc.Model = model;
+		treeExc.GridLines = TREE_VIEW_GRID_LINES_BOTH;
+		treeExc.AddColumn("Function");
+		treeExc.AddColumn("Count");
+		treeExc.Columns[1].XAlign=1.0;
+		treeExc.AddColumn(" ", PERCENT_COLUMN);
+		treeExc.Show();
+
+		//if (prof.CallStack) {
+		treeTime.AddColumn("Hint", HIDDEN_COLUMN);
+		treeTime.TooltipColumn = 4;
+		treeTime.Columns[4].Visible=false;
+
+		treeCount.AddColumn("Hint");
+		treeCount.TooltipColumn = 3;
+		treeCount.Columns[3].Visible=false;
+
+		treeExc.AddColumn("Hint");
+		treeExc.TooltipColumn = 3;
+		treeExc.Columns[3].Visible=false;
+
+		scr = new RScrolledWindow(notebook);
+		scr.HScrollPolicy = POLICY_AUTOMATIC;
+		scr.VScrollPolicy = POLICY_AUTOMATIC;
+		scr.Show();
+		notebook.Pages[3].Caption = "Memory objects";
+
+		treeObjects = new RTreeView(scr);
+		treeObjects.Model = model;
+		treeObjects.GridLines = TREE_VIEW_GRID_LINES_BOTH;
+		treeObjects.AddColumn("Class");
+		treeObjects.AddColumn("Count");
+		treeObjects.Columns[1].XAlign=1.0;
+		treeObjects.AddColumn(" ", PERCENT_COLUMN);
+		treeObjects.Show();
+
+		scr = new RScrolledWindow(notebook);
+		scr.HScrollPolicy = POLICY_AUTOMATIC;
+		scr.VScrollPolicy = POLICY_AUTOMATIC;
+		scr.Show();
+		notebook.Pages[4].Caption = "Memory info";
+
+		treeMemory = new RTreeView(scr);
+		treeMemory.Model = model;
+		treeMemory.GridLines = TREE_VIEW_GRID_LINES_BOTH;
+		treeMemory.AddColumn(" ");
+		treeMemory.AddColumn(" ");
+		treeMemory.Columns[1].XAlign=1.0;
+		treeMemory.Show();
+
+		notebook.ActiveControlEnd=toolbar;
+		this.AddTimer(this.Timeout, 1);
+	}
+
+	protected function GetTotal(arr) {
+		var res=0;
+		var len=length arr;
+		for (var i=0;i<len;i++) {
+			var item=arr[i];
+			if (item)
+				res+=item[1];
+		}
+		return res;
+	}
+
+	protected function GetMax(arr) {
+		var res=0;
+		var len=length arr;
+		for (var i=0;i<len;i++) {
+			var item=arr[i];
+			if ((item) && (Pos(item[0],"ProfilerForm.")<=0) && (Pos(item[0],"Profiler.")<=0)) {
+				var v=item[1];
+				if (v>res)
+					res=v;
+			}
+		}
+		return res;
+	}
+
+	protected function DoTree(target, t, counts=null) {
+		target.Clear();
+		var len = length t;
+		var max = this.GetMax(t);
+
+		var val_col=2;
+		if (counts)
+			val_col=3;
+		var is_stack = _Profiler.CallStack;
+		for (var i=0;i<len;i++) {
+			var item = t[i];
+			if (item) {
+				var key = item[0];
+				if (is_stack) {
+					var cstack=StrSplit(item[0], ",");
+					item[val_col+1]=StrReplace(item[0], ",", "\n");
+					item[0]=cstack[length cstack - 1];
+				} else
+					item[val_col+1]="";
+
+				if ((Pos(item[0],"ProfilerForm.")<=0) && (Pos(item[0],"Profiler.")<=0)) {
+					var proc=100;
+					if (counts)
+						item[2]=counts[key];
+					if (max)
+						item[val_col]=item[1]/max*100;
+					else
+						item[val_col]=0;
+					if (counts)
+						item[1]=number_format(item[1], 2, ".", " ");
+					target.AddItem(item);
+				}
+			}
+		}
+	}
+
+	public function Sync() {
+		var t = this._Profiler.DurationSorted;
+		var c = this._Profiler.CallSorted;
+		var e = this._Profiler.ThrowSorted;
+		this._Profiler.UpdateMemoryInfo();
+		var o = this._Profiler.ObjectInfo;
+		CApplication::BeginNonCritical();
+		this.DoTree(treeTime, t, this._Profiler.Call);
+		this.DoTree(treeCount, c);
+		this.DoTree(treeExc, e);
+		this.DoTree(treeObjects, o);
+		treeMemory.Clear();
+		var minfo = this._Profiler.MemoryInfo;
+		treeMemory.AddItem(["Memory", number_format(minfo["memory"] / 1024, 2, ".", " ") + " Kbytes"]);
+		treeMemory.AddItem(["Variables", number_format(minfo["variables"], 0, ".", " ")]);
+		treeMemory.AddItem(["Strings", number_format(minfo["strings"], 0, ".", " ")]);
+		treeMemory.AddItem(["Memory used by strings", number_format(minfo["strings_memory"] / 1024, 2, ".", " ") + " Kbytes"]);
+		treeMemory.AddItem(["Delegates", number_format(minfo["delegates"], 0, ".", " ")]);
+		treeMemory.AddItem(["Numbers", number_format(minfo["numbers"], 0, ".", " ")]);
+		treeMemory.AddItem(["Unreachable objects", number_format(minfo["unreachable_objects"], 0, ".", " ")]);
+		treeMemory.AddItem(["Unreachable arrays", number_format(minfo["unreachable_arrays"], 0, ".", " ")]);
+		var arrays = minfo["arrays"];
+		var len = 0;
+		if (arrays)
+			len = length arrays;
+		var array_elements = 0;
+		for (var i = 0; i < len; i++)
+			array_elements += arrays[i];
+		treeMemory.AddItem(["Arrays", number_format(len, 0, ".", " ")]);
+		treeMemory.AddItem(["Array elements", number_format(array_elements, 0, ".", " ")]);
+		LinkInfo(var data_in, var data_out);
+		treeMemory.AddItem(["Received network data", number_format(data_in/1024, 2, ".", " ") + " Kbytes"]);
+		treeMemory.AddItem(["Sent network data", number_format(data_out/1024, 2, ".", " ") + " Kbytes"]);
+		CApplication::EndNonCritical();
+	}
+
+	public function RefreshClicked(Sender, EventData) {
+		Sync();
+	}
+
+	public function Timeout(Sender, EventData) {
+		Sync();
+		//this.AddTimer(this.Timeout, this.RefreshTimeout);
+	}
+
+	public function ResetClicked(Sender, EventData) {
+		this._Profiler.Reset();
+		treeTime.Clear();
+		treeCount.Clear();
+		treeExc.Clear();
+	}
+
+	public function ToggleClicked(Sender, EventData) {
+		this._Profiler.CallStack = !this._Profiler.CallStack;
+		this._Profiler.Reset();
+		treeTime.Clear();
+		treeCount.Clear();
+		treeExc.Clear();
+	}
+
+	public function DisposeClicked(Sender, EventData) {
+		CheckReachability();
+	}
+}

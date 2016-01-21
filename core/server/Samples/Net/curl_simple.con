@@ -1,0 +1,14 @@
+import standard.net.curl
+
+
+class Main {
+	function Main() {
+		var curl=curl_easy_init();
+		if (curl) {
+			curl_easy_setopt(curl, CURLOPT_URL, "curl.haxx.se");
+			var res=curl_easy_perform(curl);
+
+			curl_easy_cleanup(curl);
+		}
+	}
+}

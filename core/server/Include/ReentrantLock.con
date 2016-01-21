@@ -1,0 +1,23 @@
+import standard.lib.thread
+
+class ReentrantLock {
+	protected var sem;
+
+	ReentrantLock() {
+		var sem = semcreate();
+		seminit(sem, 1);
+		this.sem = sem;
+	}
+
+	Lock() {
+		semp(this.sem);
+	}
+
+	Unlock() {
+		semv(this.sem);
+	}
+	
+	finalize() {
+		semdone(this.sem);
+	}
+}

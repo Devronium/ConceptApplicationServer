@@ -1,0 +1,543 @@
+include ActiveXControl.con
+
+//////////////////////////////////////////////////////////////////////////
+// This file was generated automatically by AXInterfaceGenerator        //
+//                                          (c)2006 RadGs Software      //
+//                                                                      //
+//                   PLEASE DO NOT MODIFY THIS FILE !                   //
+//////////////////////////////////////////////////////////////////////////
+
+class IWebBrowser2 extends ActiveXControl {
+	//Uncomment LICENCE_KEY if the control needs to be registered
+ 	function IWebBrowser2(Owner/*, LICENCE_KEY*/) {
+		//super(Owner, "InternetExplorer.Application", LICENCE_KEY);
+		super(Owner, "InternetExplorer.Application", "");
+		__AX_SET_EVENTS();
+	}
+
+/*0*/	function /*{HRESULT}*/ Navigate2(var parameter0)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_CALL_METHOD, "Navigate2", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*1*/	function /*{HRESULT}*/ QueryStatusWB(parameter0 /*{OLECMDID}*/, var parameter1 /*{OLECMDF*}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter1);
+		Send(MSG_AX_CALL_METHOD, "QueryStatusWB", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*2*/	function /*{HRESULT}*/ ExecWB(parameter0 /*{OLECMDID}*/, parameter1 /*{OLECMDEXECOPT}*/, var parameter2 /*{VARIANT*}*/, var parameter3 /*{VARIANT*}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter1);
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter2);
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter3);
+		Send(MSG_AX_CALL_METHOD, "ExecWB", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*3*/	function /*{HRESULT}*/ ShowBrowserBar(var parameter0 /*{VARIANT*}*/, var parameter1 /*{VARIANT*}*/, var parameter2 /*{VARIANT*}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter1);
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter2);
+		Send(MSG_AX_CALL_METHOD, "ShowBrowserBar", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*4*/	function /*{HRESULT}*/ AX_GET_ReadyState( /*{tagREADYSTATE*}*/) /*{propget}*/ {
+		Send(MSG_AX_GET_PROPERTY, "ReadyState", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*5*/	function /*{HRESULT}*/ AX_GET_Offline( /*{VARIANT_BOOL*}*/) /*{propget}*/ {
+		Send(MSG_AX_GET_PROPERTY, "Offline", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*6*/	function /*{HRESULT}*/ AX_SET_Offline(parameter0 /*{VARIANT_BOOL}*/) /*{propput}*/ {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_SET_PROPERTY, "Offline", "0");
+	}
+
+/*7*/	function /*{HRESULT}*/ AX_GET_Silent( /*{VARIANT_BOOL*}*/) /*{propget}*/ {
+		Send(MSG_AX_GET_PROPERTY, "Silent", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*8*/	function /*{HRESULT}*/ AX_SET_Silent(parameter0 /*{VARIANT_BOOL}*/) /*{propput}*/ {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_SET_PROPERTY, "Silent", "0");
+	}
+
+/*9*/	function /*{HRESULT}*/ AX_GET_RegisterAsBrowser( /*{VARIANT_BOOL*}*/) /*{propget}*/ {
+		Send(MSG_AX_GET_PROPERTY, "RegisterAsBrowser", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*10*/	function /*{HRESULT}*/ AX_SET_RegisterAsBrowser(parameter0 /*{VARIANT_BOOL}*/) /*{propput}*/ {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_SET_PROPERTY, "RegisterAsBrowser", "0");
+	}
+
+/*11*/	function /*{HRESULT}*/ AX_GET_RegisterAsDropTarget( /*{VARIANT_BOOL*}*/) /*{propget}*/ {
+		Send(MSG_AX_GET_PROPERTY, "RegisterAsDropTarget", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*12*/	function /*{HRESULT}*/ AX_SET_RegisterAsDropTarget(parameter0 /*{VARIANT_BOOL}*/) /*{propput}*/ {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_SET_PROPERTY, "RegisterAsDropTarget", "0");
+	}
+
+/*13*/	function /*{HRESULT}*/ AX_GET_TheaterMode( /*{VARIANT_BOOL*}*/) /*{propget}*/ {
+		Send(MSG_AX_GET_PROPERTY, "TheaterMode", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*14*/	function /*{HRESULT}*/ AX_SET_TheaterMode(parameter0 /*{VARIANT_BOOL}*/) /*{propput}*/ {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_SET_PROPERTY, "TheaterMode", "0");
+	}
+
+/*15*/	function /*{HRESULT}*/ AX_GET_AddressBar( /*{VARIANT_BOOL*}*/) /*{propget}*/ {
+		Send(MSG_AX_GET_PROPERTY, "AddressBar", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*16*/	function /*{HRESULT}*/ AX_SET_AddressBar(parameter0 /*{VARIANT_BOOL}*/) /*{propput}*/ {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_SET_PROPERTY, "AddressBar", "0");
+	}
+
+/*17*/	function /*{HRESULT}*/ AX_GET_Resizable( /*{VARIANT_BOOL*}*/) /*{propget}*/ {
+		Send(MSG_AX_GET_PROPERTY, "Resizable", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*18*/	function /*{HRESULT}*/ AX_SET_Resizable(parameter0 /*{VARIANT_BOOL}*/) /*{propput}*/ {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_SET_PROPERTY, "Resizable", "0");
+	}
+
+//---------------- BEGIN OF EVENTS INTERFACE (info only) -----------------//
+	//Event syntax:void StatusTextChange(parameter0<BSTR>) 
+	public property _OnStatusTextChange { get Get_OnStatusTextChange, set Set_OnStatusTextChange }
+	public function Get_OnStatusTextChange() {
+		return _AX_EVENTS[1];
+	}
+
+	public function Set_OnStatusTextChange(delegate deleg) {
+		_AX_EVENTS[1]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",1);
+	}
+
+	//Event syntax:void ProgressChange(parameter0<long>, parameter1<long>) 
+	public property _OnProgressChange { get Get_OnProgressChange, set Set_OnProgressChange }
+	public function Get_OnProgressChange() {
+		return _AX_EVENTS[2];
+	}
+
+	public function Set_OnProgressChange(delegate deleg) {
+		_AX_EVENTS[2]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",2);
+	}
+
+	//Event syntax:void CommandStateChange(parameter0<long>, parameter1<VARIANT_BOOL>) 
+	public property _OnCommandStateChange { get Get_OnCommandStateChange, set Set_OnCommandStateChange }
+	public function Get_OnCommandStateChange() {
+		return _AX_EVENTS[3];
+	}
+
+	public function Set_OnCommandStateChange(delegate deleg) {
+		_AX_EVENTS[3]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",3);
+	}
+
+	//Event syntax:void DownloadBegin() 
+	public property _OnDownloadBegin { get Get_OnDownloadBegin, set Set_OnDownloadBegin }
+	public function Get_OnDownloadBegin() {
+		return _AX_EVENTS[4];
+	}
+
+	public function Set_OnDownloadBegin(delegate deleg) {
+		_AX_EVENTS[4]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",4);
+	}
+
+	//Event syntax:void DownloadComplete() 
+	public property _OnDownloadComplete { get Get_OnDownloadComplete, set Set_OnDownloadComplete }
+	public function Get_OnDownloadComplete() {
+		return _AX_EVENTS[5];
+	}
+
+	public function Set_OnDownloadComplete(delegate deleg) {
+		_AX_EVENTS[5]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",5);
+	}
+
+	//Event syntax:void TitleChange(parameter0<BSTR>) 
+	public property _OnTitleChange { get Get_OnTitleChange, set Set_OnTitleChange }
+	public function Get_OnTitleChange() {
+		return _AX_EVENTS[6];
+	}
+
+	public function Set_OnTitleChange(delegate deleg) {
+		_AX_EVENTS[6]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",6);
+	}
+
+	//Event syntax:void PropertyChange(parameter0<BSTR>) 
+	public property _OnPropertyChange { get Get_OnPropertyChange, set Set_OnPropertyChange }
+	public function Get_OnPropertyChange() {
+		return _AX_EVENTS[7];
+	}
+
+	public function Set_OnPropertyChange(delegate deleg) {
+		_AX_EVENTS[7]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",7);
+	}
+
+	//Event syntax:void BeforeNavigate2(parameter0<IDispatch*>, parameter1<VARIANT*>, parameter2<VARIANT*>, parameter3<VARIANT*>, parameter4<VARIANT*>, parameter5<VARIANT*>, parameter6<VARIANT_BOOL*>) 
+	public property _OnBeforeNavigate2 { get Get_OnBeforeNavigate2, set Set_OnBeforeNavigate2 }
+	public function Get_OnBeforeNavigate2() {
+		return _AX_EVENTS[8];
+	}
+
+	public function Set_OnBeforeNavigate2(delegate deleg) {
+		_AX_EVENTS[8]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",8);
+	}
+
+	//Event syntax:void NewWindow2(parameter0<IDispatch**>, parameter1<VARIANT_BOOL*>) 
+	public property _OnNewWindow2 { get Get_OnNewWindow2, set Set_OnNewWindow2 }
+	public function Get_OnNewWindow2() {
+		return _AX_EVENTS[9];
+	}
+
+	public function Set_OnNewWindow2(delegate deleg) {
+		_AX_EVENTS[9]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",9);
+	}
+
+	//Event syntax:void NavigateComplete2(parameter0<IDispatch*>, parameter1<VARIANT*>) 
+	public property _OnNavigateComplete2 { get Get_OnNavigateComplete2, set Set_OnNavigateComplete2 }
+	public function Get_OnNavigateComplete2() {
+		return _AX_EVENTS[10];
+	}
+
+	public function Set_OnNavigateComplete2(delegate deleg) {
+		_AX_EVENTS[10]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",10);
+	}
+
+	//Event syntax:void DocumentComplete(parameter0<IDispatch*>, parameter1<VARIANT*>) 
+	public property _OnDocumentComplete { get Get_OnDocumentComplete, set Set_OnDocumentComplete }
+	public function Get_OnDocumentComplete() {
+		return _AX_EVENTS[11];
+	}
+
+	public function Set_OnDocumentComplete(delegate deleg) {
+		_AX_EVENTS[11]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",11);
+	}
+
+	//Event syntax:void OnQuit() 
+	public property _OnOnQuit { get Get_OnOnQuit, set Set_OnOnQuit }
+	public function Get_OnOnQuit() {
+		return _AX_EVENTS[12];
+	}
+
+	public function Set_OnOnQuit(delegate deleg) {
+		_AX_EVENTS[12]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",12);
+	}
+
+	//Event syntax:void OnVisible(parameter0<VARIANT_BOOL>) 
+	public property _OnOnVisible { get Get_OnOnVisible, set Set_OnOnVisible }
+	public function Get_OnOnVisible() {
+		return _AX_EVENTS[13];
+	}
+
+	public function Set_OnOnVisible(delegate deleg) {
+		_AX_EVENTS[13]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",13);
+	}
+
+	//Event syntax:void OnToolBar(parameter0<VARIANT_BOOL>) 
+	public property _OnOnToolBar { get Get_OnOnToolBar, set Set_OnOnToolBar }
+	public function Get_OnOnToolBar() {
+		return _AX_EVENTS[14];
+	}
+
+	public function Set_OnOnToolBar(delegate deleg) {
+		_AX_EVENTS[14]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",14);
+	}
+
+	//Event syntax:void OnMenuBar(parameter0<VARIANT_BOOL>) 
+	public property _OnOnMenuBar { get Get_OnOnMenuBar, set Set_OnOnMenuBar }
+	public function Get_OnOnMenuBar() {
+		return _AX_EVENTS[15];
+	}
+
+	public function Set_OnOnMenuBar(delegate deleg) {
+		_AX_EVENTS[15]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",15);
+	}
+
+	//Event syntax:void OnStatusBar(parameter0<VARIANT_BOOL>) 
+	public property _OnOnStatusBar { get Get_OnOnStatusBar, set Set_OnOnStatusBar }
+	public function Get_OnOnStatusBar() {
+		return _AX_EVENTS[16];
+	}
+
+	public function Set_OnOnStatusBar(delegate deleg) {
+		_AX_EVENTS[16]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",16);
+	}
+
+	//Event syntax:void OnFullScreen(parameter0<VARIANT_BOOL>) 
+	public property _OnOnFullScreen { get Get_OnOnFullScreen, set Set_OnOnFullScreen }
+	public function Get_OnOnFullScreen() {
+		return _AX_EVENTS[17];
+	}
+
+	public function Set_OnOnFullScreen(delegate deleg) {
+		_AX_EVENTS[17]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",17);
+	}
+
+	//Event syntax:void OnTheaterMode(parameter0<VARIANT_BOOL>) 
+	public property _OnOnTheaterMode { get Get_OnOnTheaterMode, set Set_OnOnTheaterMode }
+	public function Get_OnOnTheaterMode() {
+		return _AX_EVENTS[18];
+	}
+
+	public function Set_OnOnTheaterMode(delegate deleg) {
+		_AX_EVENTS[18]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",18);
+	}
+
+	//Event syntax:void WindowSetResizable(parameter0<VARIANT_BOOL>) 
+	public property _OnWindowSetResizable { get Get_OnWindowSetResizable, set Set_OnWindowSetResizable }
+	public function Get_OnWindowSetResizable() {
+		return _AX_EVENTS[19];
+	}
+
+	public function Set_OnWindowSetResizable(delegate deleg) {
+		_AX_EVENTS[19]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",19);
+	}
+
+	//Event syntax:void WindowSetLeft(parameter0<long>) 
+	public property _OnWindowSetLeft { get Get_OnWindowSetLeft, set Set_OnWindowSetLeft }
+	public function Get_OnWindowSetLeft() {
+		return _AX_EVENTS[20];
+	}
+
+	public function Set_OnWindowSetLeft(delegate deleg) {
+		_AX_EVENTS[20]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",20);
+	}
+
+	//Event syntax:void WindowSetTop(parameter0<long>) 
+	public property _OnWindowSetTop { get Get_OnWindowSetTop, set Set_OnWindowSetTop }
+	public function Get_OnWindowSetTop() {
+		return _AX_EVENTS[21];
+	}
+
+	public function Set_OnWindowSetTop(delegate deleg) {
+		_AX_EVENTS[21]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",21);
+	}
+
+	//Event syntax:void WindowSetWidth(parameter0<long>) 
+	public property _OnWindowSetWidth { get Get_OnWindowSetWidth, set Set_OnWindowSetWidth }
+	public function Get_OnWindowSetWidth() {
+		return _AX_EVENTS[22];
+	}
+
+	public function Set_OnWindowSetWidth(delegate deleg) {
+		_AX_EVENTS[22]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",22);
+	}
+
+	//Event syntax:void WindowSetHeight(parameter0<long>) 
+	public property _OnWindowSetHeight { get Get_OnWindowSetHeight, set Set_OnWindowSetHeight }
+	public function Get_OnWindowSetHeight() {
+		return _AX_EVENTS[23];
+	}
+
+	public function Set_OnWindowSetHeight(delegate deleg) {
+		_AX_EVENTS[23]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",23);
+	}
+
+	//Event syntax:void WindowClosing(parameter0<VARIANT_BOOL>, parameter1<VARIANT_BOOL*>) 
+	public property _OnWindowClosing { get Get_OnWindowClosing, set Set_OnWindowClosing }
+	public function Get_OnWindowClosing() {
+		return _AX_EVENTS[24];
+	}
+
+	public function Set_OnWindowClosing(delegate deleg) {
+		_AX_EVENTS[24]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",24);
+	}
+
+	//Event syntax:void ClientToHostWindow(parameter0<long*>, parameter1<long*>) 
+	public property _OnClientToHostWindow { get Get_OnClientToHostWindow, set Set_OnClientToHostWindow }
+	public function Get_OnClientToHostWindow() {
+		return _AX_EVENTS[25];
+	}
+
+	public function Set_OnClientToHostWindow(delegate deleg) {
+		_AX_EVENTS[25]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",25);
+	}
+
+	//Event syntax:void SetSecureLockIcon(parameter0<long>) 
+	public property _OnSetSecureLockIcon { get Get_OnSetSecureLockIcon, set Set_OnSetSecureLockIcon }
+	public function Get_OnSetSecureLockIcon() {
+		return _AX_EVENTS[26];
+	}
+
+	public function Set_OnSetSecureLockIcon(delegate deleg) {
+		_AX_EVENTS[26]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",26);
+	}
+
+	//Event syntax:void FileDownload(parameter0<VARIANT_BOOL>, parameter1<VARIANT_BOOL*>) 
+	public property _OnFileDownload { get Get_OnFileDownload, set Set_OnFileDownload }
+	public function Get_OnFileDownload() {
+		return _AX_EVENTS[27];
+	}
+
+	public function Set_OnFileDownload(delegate deleg) {
+		_AX_EVENTS[27]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",27);
+	}
+
+	//Event syntax:void NavigateError(parameter0<IDispatch*>, parameter1<VARIANT*>, parameter2<VARIANT*>, parameter3<VARIANT*>, parameter4<VARIANT_BOOL*>) 
+	public property _OnNavigateError { get Get_OnNavigateError, set Set_OnNavigateError }
+	public function Get_OnNavigateError() {
+		return _AX_EVENTS[28];
+	}
+
+	public function Set_OnNavigateError(delegate deleg) {
+		_AX_EVENTS[28]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",28);
+	}
+
+	//Event syntax:void PrintTemplateInstantiation(parameter0<IDispatch*>) 
+	public property _OnPrintTemplateInstantiation { get Get_OnPrintTemplateInstantiation, set Set_OnPrintTemplateInstantiation }
+	public function Get_OnPrintTemplateInstantiation() {
+		return _AX_EVENTS[29];
+	}
+
+	public function Set_OnPrintTemplateInstantiation(delegate deleg) {
+		_AX_EVENTS[29]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",29);
+	}
+
+	//Event syntax:void PrintTemplateTeardown(parameter0<IDispatch*>) 
+	public property _OnPrintTemplateTeardown { get Get_OnPrintTemplateTeardown, set Set_OnPrintTemplateTeardown }
+	public function Get_OnPrintTemplateTeardown() {
+		return _AX_EVENTS[30];
+	}
+
+	public function Set_OnPrintTemplateTeardown(delegate deleg) {
+		_AX_EVENTS[30]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",30);
+	}
+
+	//Event syntax:void UpdatePageStatus(parameter0<IDispatch*>, parameter1<VARIANT*>, parameter2<VARIANT*>) 
+	public property _OnUpdatePageStatus { get Get_OnUpdatePageStatus, set Set_OnUpdatePageStatus }
+	public function Get_OnUpdatePageStatus() {
+		return _AX_EVENTS[31];
+	}
+
+	public function Set_OnUpdatePageStatus(delegate deleg) {
+		_AX_EVENTS[31]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",31);
+	}
+
+	//Event syntax:void PrivacyImpactedStateChange(parameter0<VARIANT_BOOL>) 
+	public property _OnPrivacyImpactedStateChange { get Get_OnPrivacyImpactedStateChange, set Set_OnPrivacyImpactedStateChange }
+	public function Get_OnPrivacyImpactedStateChange() {
+		return _AX_EVENTS[32];
+	}
+
+	public function Set_OnPrivacyImpactedStateChange(delegate deleg) {
+		_AX_EVENTS[32]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",32);
+	}
+
+	//Event syntax:void NewWindow3(parameter0<IDispatch**>, parameter1<VARIANT_BOOL*>, parameter2<ULONG>, parameter3<BSTR>, parameter4<BSTR>) 
+	public property _OnNewWindow3 { get Get_OnNewWindow3, set Set_OnNewWindow3 }
+	public function Get_OnNewWindow3() {
+		return _AX_EVENTS[33];
+	}
+
+	public function Set_OnNewWindow3(delegate deleg) {
+		_AX_EVENTS[33]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",33);
+	}
+
+	//Event syntax:void SetPhishingFilterStatus(parameter0<long>) 
+	public property _OnSetPhishingFilterStatus { get Get_OnSetPhishingFilterStatus, set Set_OnSetPhishingFilterStatus }
+	public function Get_OnSetPhishingFilterStatus() {
+		return _AX_EVENTS[34];
+	}
+
+	public function Set_OnSetPhishingFilterStatus(delegate deleg) {
+		_AX_EVENTS[34]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",34);
+	}
+
+	//Event syntax:void WindowStateChanged(parameter0<ULONG>, parameter1<ULONG>) 
+	public property _OnWindowStateChanged { get Get_OnWindowStateChanged, set Set_OnWindowStateChanged }
+	public function Get_OnWindowStateChanged() {
+		return _AX_EVENTS[35];
+	}
+
+	public function Set_OnWindowStateChanged(delegate deleg) {
+		_AX_EVENTS[35]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",35);
+	}
+
+//------------------ END OF EVENTS INTERFACE (info only) -----------------//
+
+	public property ReadyState { get AX_GET_ReadyState }
+	public property Offline { get AX_GET_Offline, set AX_SET_Offline }
+	public property Silent { get AX_GET_Silent, set AX_SET_Silent }
+	public property RegisterAsBrowser { get AX_GET_RegisterAsBrowser, set AX_SET_RegisterAsBrowser }
+	public property RegisterAsDropTarget { get AX_GET_RegisterAsDropTarget, set AX_SET_RegisterAsDropTarget }
+	public property TheaterMode { get AX_GET_TheaterMode, set AX_SET_TheaterMode }
+	public property AddressBar { get AX_GET_AddressBar, set AX_SET_AddressBar }
+	public property Resizable { get AX_GET_Resizable, set AX_SET_Resizable }
+}

@@ -1,0 +1,692 @@
+#!/usr/local/bin/concept
+include Worker.con
+include TinBase.con
+include TCPSocket.con
+include UNIXSocket.con
+import standard.lib.cripto
+import standard.math.rand
+import standard.lang.cli
+include Profiler.con
+
+define READ_BUFFER	0xFFFF
+
+// 256M packet
+define MAX_OP_SIZE	0xFFFFFFF
+
+define ERR_DB		-1
+define ERR_DB_S		"Invalid db"
+define ERR_COLLECTION	-2
+define ERR_COLLECTION_S	"Invalid collection"
+define ERR_INTERNAL	-3
+define ERR_IO		-4
+define ERR_IO_S		"Server I/O error"
+define ERR_LOGIN	-5
+define ERR_LOGIN_S	"Login required"
+define ERR_USER_PASS	-6
+define ERR_USER_PASS_S	"Invalid username or password"
+define ERR_IN_CODE	-7
+define ERR_NO_MEMBER_S	"No such function"
+define BUSY_FSYNC_LIMIT	 10000
+
+class Triggers {
+	var OnDelete;
+	var OnInsert;
+	var OnUpdate;
+}
+
+class SocketIOBase {
+	Send(socket) {
+		var to_send = BinarizeObject(this);
+		to_send = ToSize(length to_send) + to_send;
+		var offset = 0;
+		do {
+			var res = SocketWrite(socket, to_send, false, "", 0, false, offset);
+			if (res <= 0)
+				return res;
+			offset += res;
+		} while (offset < length to_send);
+		return offset;
+	}
+}
+
+class Q {
+pragma used
+	var q = "";
+	var o = "Q";
+	var d = "";
+	var c = "";
+	var f = null;
+
+	var[] p;
+	var[] x;
+}
+
+
+class R extends SocketIOBase {
+pragma used
+	var id = -1;
+	var q = "";
+	var e = false;
+	var et = "";
+	var[] p;
+}
+
+class ConnectionContext {
+	var buffer = "";
+	var challenge = "";
+	var auth = false;
+	var key;
+
+	ConnectionContext() {
+		key = RandomInteger(1, 0xFFFFFFF);
+	}
+}
+
+class QueryWorker {
+pragma used
+	var[] sockets;
+	var[] buffers;
+	var WorkerID;
+
+	RemoveSocket(sock) {
+		var res = new [];
+		var buffers = this.buffers;
+		var buf = new [];
+		var sockets = this.sockets;
+		var keys = GetKeys(buffers);
+		var sock_key = "" + sock;
+		for (var i = 0; i < length sockets; i++) {
+			var s = sockets[i];
+			if ((s) && (s != sock))
+				res[length res] = s;
+			var k = keys[i];
+			if ((k) && (k != sock_key))
+				buf[k] = buffers[k];
+		}
+		SocketClose(sock);
+		this.sockets = res;
+		this.buffers = buf;
+	}
+
+	RandomString(len) {
+		var res="";
+		while (length res<len) {
+			var c = RandomInteger(33, 126);
+			if ((c != '\r') && (c != '\n') && (c != ';'))
+				res += chr(c);
+		}
+		return res;
+	}
+
+	QueryWorker(n) {
+		n = UnBinarizeObject(n);
+		WorkerID = n[0];
+		var storage_workers = n[1];
+		var[] storage_dbs;
+		var next_worker = 0;
+
+		var AccessDB = new TinBase("sys");
+		AccessDB.Mode = "rb";
+		var t = AccessDB["users"];
+		t.Open();
+		var current_worker = CurrentWorker();
+		while (true) {
+			var data = "";
+			if (Worker::Pending(data)) {
+				var job = UnBinarizeObject(data);
+				var socket = job[0];
+				if (socket > 0) {
+					var post_key = job[1];
+					if (post_key) {
+						var sock_key = "" + socket;
+						if (IsSet(buffers, sock_key)) {
+							var post_back_ctx = buffers[sock_key];
+							if ((post_back_ctx) && (post_back_ctx.key == post_key)) {
+								var post_back_r = job[2];
+								post_back_r.Send(socket);
+								delete post_back_r;
+								delete job;
+							}
+						}
+					} else {
+						sockets[length sockets] = socket;
+						buffers["" + socket] = new ConnectionContext();
+					}
+				}
+			}
+			if ((SocketPoll(sockets, var outsockets, 0)) && (outsockets)) {
+				for (var i = 0; i < length outsockets; i++) {
+					var sock = outsockets[i];
+					var buffer = "";
+					var buf2 = "";
+					var obj = null;
+					var res = SocketRead(sock, buffer, READ_BUFFER);
+					if (res > 0) {
+						var ctx = buffers["" + sock];
+						var buf = ctx.buffer + buffer;
+						// deserialize
+						while (buf) {
+							var to_read = FromSize(buf, var bytes);
+							if (to_read <= MAX_OP_SIZE) {
+								if ((to_read > 0) && (to_read <= length buf - bytes)) {
+									buf2 = SubStr(buf, bytes, to_read);
+									buf = SubStr(buf, to_read + bytes);
+									obj = UnBinarizeObject(buf2);
+ 									if ((obj) && (classof obj == "Q")) {
+										switch (obj.o) {
+											case "A":
+											case "Q":
+											case "I":
+											case "D":
+											case "X":
+											case "H":
+											case ".":
+											case "*":
+												if (ctx.auth) {
+													if (typeof obj.c != "string")
+														obj.c = "";
+													if ((!obj.d) || (typeof obj.d != "string") || (Pos(obj.d, "/") > 0) || (Pos(obj.d, "\\") > 0)) {
+														var r = new R();
+														r.e = ERR_DB;
+														r.et = ERR_DB_S;
+														r.Send(sock);
+													} else
+													if ((obj.c) && ((Pos(obj.c, "/") > 0) || (Pos(obj.c, "\\") > 0))) {
+														r = new R();
+														r.e = ERR_DB;
+														r.et = ERR_DB_S;
+														r.Send(sock);
+													} else {
+														var storage_key = "" + obj.d + "/" + obj.c;
+														var storage = storage_dbs[storage_key];
+														if (!storage) {
+															storage = storage_workers[next_worker++];
+															if (next_worker >= length storage_workers)
+																next_worker = 0;
+															storage_dbs[storage_key] = storage;
+														}
+														AddWorkerData(storage, BinarizeObject([sock, obj, current_worker, ctx.key]));
+													}
+												} else {
+													r = new R();
+													r.q = obj.q;
+													if (ctx.challenge) {
+														if (obj.o == "A") {
+															var username = obj.p["u"];
+															var digest = obj.p["d"];
+															//var db = obj.p["db"];
+															try {
+																var user = t.Query(["username" => username])[0];
+																if (user) {
+																	var d2 = sha256(username + ":" + ctx.challenge + ":" + user["password"]);
+																	if ((user) && (d2 == digest)) {
+																		ctx.auth = true;
+																		r.id = 0;
+																		r.p["ok"] = true;
+																		r.Send(sock);
+																	}
+																}
+															} catch (var exc) {
+																echo "Exception: $exc\n";
+															}
+														}
+														if (!ctx.auth) {
+															r.e = ERR_USER_PASS;
+															r.et = ERR_USER_PASS_S;
+															r.Send(sock);
+															RemoveSocket(sock);
+															buf = "";
+														}
+													} else {
+														ctx.challenge = RandomString(48);
+														r.e = ERR_LOGIN;
+														r.et = ERR_LOGIN_S;
+														r.p["c"] = ctx.challenge;
+														r.p["m"] = "sha256";
+														r.Send(sock);
+													}
+												}
+												break;
+										}
+									}
+								} else {
+									ctx.buffer = buf;
+									break;
+								}
+								ctx.buffer = buf;
+							} else {
+								// drop socket ... packet to large
+								RemoveSocket(sock);
+								break;
+							}
+						}
+					} else
+						RemoveSocket(sock);
+				}
+				continue;
+			}
+			if (sockets) {
+				Sleep(2);
+			} else
+				Sleep(5);
+		}
+	}
+}
+
+class StorageWorker {
+pragma used
+	var[] managed_dbs;
+	var[] objects;
+	var[] members;
+	var[] triggers;
+	var non_flushed_writes = 0;
+
+	GetDelegate(dbobject, db, name, var objects, var members, r = null) {
+		var arr = StrSplit(name, ".");
+		var member;
+		if (length arr == 2) {
+			var classname = arr[0];
+			var mname = arr[1];
+			var key = "$db.$classname";		
+			var key_mname = "$key.$mname";
+			member = members[key_mname];
+			if (!member) {
+				var handler = objects[key];
+				if (!handler) {
+					handler = CreateObject2(classname, dbobject);
+					if (handler)
+						objects[key] = handler;
+				}
+				if (handler) {
+					if (!GetMember(handler, mname, member, true))
+						member = null;
+				}
+			}
+
+			if ((r) && (!member)) {
+				r.e = ERR_IN_CODE;
+				r.et = ERR_NO_MEMBER_S;
+			}
+		}
+		return member;
+	}
+
+	Flush(flush_index = true) {
+		non_flushed_writes = 0;
+		for (var i = 0; i < length managed_dbs; i++) {
+			var db = managed_dbs[i];
+			if (db) {
+				try {
+					db.Flush(flush_index);
+				} catch (var exc) {
+					echo "Flush error: $exc\n";
+				}
+			}
+		}
+	}
+
+	Execute(var data) {
+		var key;
+		var trigger;
+
+		data = UnBinarizeObject(data);
+		var socket = data[0];
+		var obj = data[1];
+		var target_worker = data[2];
+		var target_key = data[3];
+		var r = new R();
+		if (obj)
+			r.q = obj.q;
+		if ((obj) && (obj.d)) {
+			try {
+				var db = managed_dbs[obj.d];
+				if (!db) {
+					if ((Pos(obj.d, "/") > 0) || (Pos(obj.d, "\\") > 0))
+						throw "DB name error";
+					db = new TinBase(obj.d);
+					managed_dbs[obj.d] = db;
+					var code = db.ReadHandler();
+					if (code) {
+						var load_err = IncludeCode(code);
+						if (load_err) {
+							echo "Stored handler loading error:\n$load_err\n";
+							load_err = "";
+						}
+						code = "";
+						var t2 = db.ReadTriggers();
+						if (typeof t2 == "array")
+							triggers = t2;
+					}
+				}
+				if ((obj.c) && ((Pos(obj.c, "/") > 0) || (Pos(obj.c, "\\") > 0)))
+					throw "Collection name error";
+
+				var multi_insert = false;
+
+				switch (obj.o) {
+					case "Q":
+						var t = db[obj.c];
+						if (t) {
+							if ((obj.f) && (typeof obj.f != "array"))
+								obj.f = null;
+							if (typeof obj.p != "array")
+								obj.p = [ ];
+							r.p = t.Query(obj.p, obj.f, obj.x["descending"], obj.x["start"], obj.x["len"]);
+							r.id = 0;
+						}
+						break;
+					case "D":
+						t = db[obj.c];
+						if (t) {
+							if ((obj.f) && (typeof obj.f != "array"))
+								obj.f = null;
+							if (typeof obj.p != "array")
+								obj.p = [ ];
+							var items = t.Query(obj.p, obj.f, obj.x["descending"], obj.x["start"], obj.x["len"]);
+							if (items) {
+								t.Delete(items);
+								non_flushed_writes += length items;
+								obj.p = items;
+								trigger = triggers["${obj.d}.${obj.c}"];
+								if ((trigger) && (trigger.OnDelete)) {
+									var deleg = this.GetDelegate(db, obj.d, trigger.OnDelete, objects, members);
+									if (deleg) {
+										try {
+											r.p['$trigger'] = deleg(t, items);
+										} catch (var deleg_exception) {
+											echo "Uncaught delegate exception: $deleg_exception\n";
+										}
+									}
+								}
+							}
+							r.p['$count'] = length items;
+							t.Flush();
+						}
+						break;
+					case "I":
+						if ((obj.c) && (typeof obj.p == "array")) {
+							t = db[obj.c];
+							if (obj.x["multi"])
+								multi_insert = true;
+							var id = -1;
+							if (t) {
+								trigger = triggers["${obj.d}.${obj.c}"];
+								if (multi_insert) {
+									id = new [];
+									for (var i = 0; i < length obj.p; i++) {
+										var o = obj.p[i];
+										if (typeof o == "array") {
+											try {
+												var id2 = t.Store(obj.p[i]);
+											} catch (var store_exc) {
+												echo "Store error: $store_exc\n";
+											}
+											non_flushed_writes++;
+											id[length id] = id2;
+											o['$'] = id2;
+											if ((trigger) && (trigger.OnInsert)) {
+												deleg = this.GetDelegate(db, obj.d, trigger.OnInsert, objects, members);
+												if (deleg) {
+													try {
+														deleg(t, o);
+													} catch (deleg_exception) {
+														echo "Uncaught delegate exception: $deleg_exception\n";
+													}
+												}
+											}
+										}
+									}
+									r.id = id;
+								} else {
+									if ((IsSet(obj.p, '$')) && (obj.p['$'] > 0)) {
+										id = obj.p['$'];
+										if (!t.Update(obj.p, id, true, var old_bin, var new_bin))
+											id = -1;
+										else
+										if (old_bin) {
+											old_bin['$'] = id;
+											obj.p = [old_bin, new_bin, obj.p];
+											obj.o = "U";
+											//obj.o = "I";
+											//obj.p = new_bin;
+											//do_index = true;
+										}
+										non_flushed_writes++;
+										if ((trigger) && (trigger.OnUpdate)) {
+											deleg = this.GetDelegate(db, obj.d, trigger.OnUpdate, objects, members);
+											if (deleg) {
+												try {
+													r.p['$trigger'] = deleg(t, obj.p);
+												} catch (deleg_exception) {
+													echo "Uncaught delegate exception: $deleg_exception\n";
+												}
+											}
+										}
+									} else {
+										id = t.Store(obj.p);
+										non_flushed_writes++;
+										if ((trigger) && (trigger.OnInsert)) {
+											deleg = this.GetDelegate(db, obj.d, trigger.OnInsert, objects, members);
+											if (deleg) {
+												try {
+													r.p['$trigger'] = deleg(t, obj.p);
+												} catch (deleg_exception) {
+													echo "Uncaught delegate exception: $deleg_exception\n";
+												}
+											}
+										}
+									}
+									r.id = id;
+									if (id > 0)
+										obj.p['$'] = id;
+								}
+								// t.Flush();
+							} else {
+								r.e = ERR_IO;
+								r.et = ERR_IO_S;
+							}
+						} else {
+							r.e = ERR_COLLECTION;
+							r.et = ERR_COLLECTION_S;
+						}
+						break;
+					case "X":
+						r.id = 0;
+						t = db[obj.c];
+						if ((obj.p) && (typeof obj.p == "array")) {
+							t.EnsureIndexes(obj.p);
+							non_flushed_writes++;
+						}
+						break;
+					case "H":
+						var remove = obj.p["remove"];
+						code = obj.p["code"];
+						if (remove) {
+							if (typeof remove != "array") {
+								RemoveClass(remove);
+							} else {
+								for (i = 0; i < length remove; i++)
+									RemoveClass(remove[i]);
+							}
+							objects = new [];
+							members = new [];
+						}
+						if (code) {
+							var err = IncludeCode(code);
+							if (err) {
+								r.e = ERR_IN_CODE;
+								r.et = err;
+							} else {
+								db.StoreHandler(code);
+							}
+						}
+						break;
+					case ".":
+						code = obj.p["code"];
+						var member = null;
+						if (code) {
+							var arr = StrSplit(code, ".");
+							if (length arr == 2) {
+								var classname = arr[0];
+								var mname = arr[1];
+								key = "${obj.d}.$classname";
+								var key_mname = "$key.$mname";
+								member = members[key_mname];
+								if (!member) {
+									var handler = objects[key];
+									if (!handler) {
+										handler = CreateObject2(classname, db);
+										if (handler)
+											objects[key] = handler;
+									}
+									if (handler) {
+										if (!GetMember(handler, mname, member, true))
+											member = null;
+									}
+								}
+								if (member) {
+									var parameters = obj.p["params"];
+									try {
+										if (parameters)
+											r.p = member(parameters);
+										else
+											r.p = member();
+									} catch (deleg_exception) {
+										echo "Uncaught delegate exception: $deleg_exception\n";
+									}
+								} else {
+									r.e = ERR_IN_CODE;
+									r.et = ERR_NO_MEMBER_S;
+								}
+							}
+						}
+						break;
+					case "*":
+						if ((obj.c) && (typeof obj.p == "array")) {
+							key = "${obj.d}.${obj.c}";
+							trigger = triggers[key];
+							if (!trigger) {
+								trigger = new Triggers();
+								triggers[key] = trigger;
+							}
+							// insert
+							// update
+							// delete
+							if (IsSet(obj.p, "insert")) {
+								trigger.OnInsert = obj.p["insert"];
+								if (!this.GetDelegate(db, obj.d, trigger.OnInsert, objects, members, r)) {
+									trigger.OnInsert = null;
+									break;
+								}
+							}
+							if (IsSet(obj.p, "update")) {
+								trigger.OnUpdate = obj.p["update"];
+								if (!this.GetDelegate(db, obj.d, trigger.OnUpdate, objects, members, r)) {
+									trigger.OnUpdate = null;
+									break;
+								}
+							}
+							if (IsSet(obj.p, "delete")) {
+								trigger.OnDelete = obj.p["delete"];
+								if (!this.GetDelegate(db, obj.d, trigger.OnDelete, objects, members, r)) {
+									trigger.OnDelete = null;
+									break;
+								}
+							}
+							db.StoreTriggers(triggers);
+						} else {
+							r.e = ERR_COLLECTION;
+							r.et = ERR_COLLECTION_S;
+						}
+						break;
+				}
+			} catch (var exc) {
+				r.e = ERR_COLLECTION;
+				r.et = exc;
+			}
+		} else {
+			r.e = ERR_DB;
+			r.et = ERR_DB_S;
+		}
+		if ((!obj) || (!obj.x) || (!IsSet(obj.x, 'silent')) || (!obj.x['silent'])) {
+			if ((target_worker) && (target_key))
+				AddWorkerData(target_worker, BinarizeObject([socket, target_key, r]));
+			else
+				r.Send(socket);
+		}
+	}
+
+	StorageWorker(n) {
+		while (true) {
+			var data = "";
+			while (Worker::Pending(data)) {
+				try {
+					Execute(data);
+				} catch (var exc) {
+					echo "Storage worker exception: $exc\n";
+				}
+				data = "";
+				if (non_flushed_writes > BUSY_FSYNC_LIMIT)
+					this.Flush();
+			}
+			if (non_flushed_writes)
+				this.Flush();
+			Sleep(5);
+		}
+	}
+}
+
+class TinDB {
+	protected var[] QueryWorkers;
+	protected var WorkerIndex = 0;
+	protected var Socket;
+	protected var[] StorageWorkers;
+
+	TinDB(workers = 1, storage_workers = 1) {
+		var[] sworkers;
+		for (var i = 0; i < storage_workers; i++) {
+			StorageWorkers[i] = new Worker("StorageWorker", "");
+			var w_obj = StorageWorkers[i]._workerobj;
+			sworkers[length sworkers] = w_obj;
+			Sleep(100);
+		}
+		for (i = 0; i < workers; i++) {
+			QueryWorkers[i] = new Worker("QueryWorker", BinarizeObject(["QW${i+1}", sworkers]));
+			Sleep(100);
+		}
+	}
+
+	InitializeDatabases() {
+		var AccessDB = new TinBase("sys");
+		var t = AccessDB["users"];
+		if (!t.EnsureIndex("username"))
+			t.Store(["username" => "sysdbadministrator", "password" => sha256("sysdbadministrator"), "db" => ""]);
+	}
+
+	Start(port = 2668, max_connections = 1024, working_directory = "", interface = "") {
+		if (working_directory)
+			_chdir(working_directory);
+		Socket = new TCPSocket();
+		if (Socket.Listen(port, max_connections, interface))
+			throw "Error initializing TinDB server (port ${port} already in use)";
+		this.InitializeDatabases();
+		while (true) {
+			var sock = Socket.Accept(true);
+			if (sock > 0) {
+				QueryWorkers[WorkerIndex++].AddData(BinarizeObject([sock]));
+				if (WorkerIndex >= length QueryWorkers)
+					WorkerIndex = 0;
+			}
+		}
+	}
+	
+}
+
+class Main {
+	Main() {
+		echo "Initializing Tinbase...\n";
+		var db = new TinDB();
+		echo "Listening\n";
+		db.Start();
+	}
+}

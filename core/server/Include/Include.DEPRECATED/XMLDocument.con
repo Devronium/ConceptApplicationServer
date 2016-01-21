@@ -1,0 +1,222 @@
+import standard.lib.xml
+
+class XMLNode {
+	var _handle;
+	
+	public property Handle { get GetHandle }
+	public property Content { get GetContent, set SetContent }
+
+	public property Child { get GetChild }
+	public property Parent { get GetParent }
+	public property Last { get GetLast }
+	public property Prev { get GetPrev }
+	public property Next { get GetNext }
+	public property Name { get GetName }
+
+	function GetHandle() {
+		return _handle;
+	}
+
+	function SetContent(str) {
+		xmlNodeSetContent(_handle,str);
+	}
+
+	function GetContent() {
+		return xmlNodeGetContent(_handle);
+	}
+
+	function __Create(name) {
+		_handle=xmlNewNode(0,name);
+		return this;
+	}
+
+	function CreateNew(name) {
+		var node=new XMLNode();
+		node._handle=xmlNewNode(0,name);
+		return node;
+	}
+
+	function AddChild(xmlnode) {
+		if (classof xmlnode != "XMLNode")
+			return 0;
+		return xmlAddChild(_handle,xmlnode._handle);
+	}
+
+	function AddNext(xmlnode) {
+		if (classof xmlnode != "XMLNode")
+			return 0;
+		return xmlAddNextSibling(_handle,xmlnode._handle);
+	}
+
+	function AddPrev(xmlnode) {
+		if (classof xmlnode != "XMLNode")
+			return 0;
+		return xmlAddPrevSibling(_handle,xmlnode._handle);
+	}
+
+	function SetProperty(name,val) {
+		return xmlSetProp(_handle,name,val);
+	}
+
+	function GetProperty(name) {
+		return xmlGetProp(_handle,name);
+	}
+
+	function GetNext() {
+		var arr_node=xmlGetNodeArray(_handle);
+		if (arr_node) {
+			var nptr=arr_node["next"];
+			if (!nptr)
+				return 0;
+			var node=new XMLNode();
+			node._handle=nptr;
+			return node;
+		}
+		return 0;
+	}
+
+	function GetPrev() {
+		var arr_node=xmlGetNodeArray(_handle);
+		if (arr_node) {
+			var nptr=arr_node["prev"];
+			if (!nptr)
+				return 0;
+			var node=new XMLNode();
+			node._handle=nptr;
+			return node;
+		}
+		return 0;
+	}
+
+	function GetLast() {
+		var arr_node=xmlGetNodeArray(_handle);
+		if (arr_node) {
+			var nptr=arr_node["last"];
+			if (!nptr)
+				return 0;
+			var node=new XMLNode();
+			node._handle=nptr;
+			return node;
+		}
+		return 0;
+	}
+
+	function GetParent() {
+		var arr_node=xmlGetNodeArray(_handle);
+		if (arr_node) {
+			var nptr=arr_node["parent"];
+			if (!nptr)
+				return 0;
+			var node=new XMLNode();
+			node._handle=nptr;
+			return node;
+		}
+		return 0;
+	}
+
+	function GetChild() {
+		var arr_node=xmlGetNodeArray(_handle);
+		if (arr_node) {
+			var nptr=arr_node["children"];
+			if (!nptr)
+				return 0;
+			var node=new XMLNode();
+			node._handle=nptr;
+			return node;
+		}
+		return 0;
+	}
+
+	function GetName() {
+		var arr_node=xmlGetNodeArray(_handle);
+		if (arr_node) {
+			return ""+arr_node["name"];
+		}
+		return "";
+	}
+}
+
+class XMLDocument {
+	private var docptr;
+	private var rootnode;
+	private var _encoding;
+	private var _filename;
+	private var _version;
+
+	public property Encoding { set SetEncoding, get _encoding }
+	public property Root { set SetRoot, get GetRoot}
+	public property Filename { set SetFilename, get _filename}
+	public property Version { set SetVersion, get _version}
+
+	private function GetRoot() {
+		if (rootnode)
+			return rootnode;
+
+		var node=new XMLNode();
+		node._handle=xmlDocGetRootElement(docptr);
+		if (!node._handle)
+			return 0;
+		rootnode=node;
+		return node;
+	}
+
+	private function SetRoot(node) {
+		if (classof node != "XMLNode")
+			return 0;
+
+		rootnode=node;
+		xmlDocSetRootElement(docptr,node.Handle);
+	}
+
+	private function SetEncoding(enc) {
+		_encoding=""+enc;
+	}
+
+	private function SetFilename(fstr) {
+		_filename=""+fstr;
+	}
+
+	private function SetVersion(str) {
+		_version=""+str;
+	}
+
+	public function XMLDocument() {
+		docptr=0;
+		_encoding="";
+		_version="1.0";
+		_filename="document.xml";
+	}
+
+	public function Create() {
+		docptr=xmlNewDoc(_version);
+		return (docptr!=0);
+	}
+
+	public function LoadString(str) {
+		docptr=xmlReadMemory(str,_filename,"",0);
+		return (docptr!=0);
+	}
+
+	public function Load() {
+		docptr=xmlReadFile(_filename,_encoding,0);
+		return (docptr!=0);
+	}
+
+	public function Save() {
+		return xmlSaveFile(_filename,docptr,_encoding);
+	}
+
+	public function SaveString() {
+		return xmlDocDumpFormatMemory(docptr,0);
+	}
+
+	public function NewNode(name) {
+		var node=new XMLNode();
+		return node.__Create(name);
+	}
+
+	public function Free() {
+		xmlFreeDoc(docptr);
+		docptr=0;
+	}
+}

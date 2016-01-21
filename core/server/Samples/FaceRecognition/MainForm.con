@@ -1,0 +1,185 @@
+include project_forms.glade.con
+include OCV/ROCV.con
+
+import standard.lib.face
+import standard.coding.base64
+
+define APPLICATION_FORM_TYPE	MainForm
+define SAFE_ACC                 7
+define SERIAL_FILE              "res/trainingdata.xml"
+
+class Container extends Serializable {
+    var[] faces;
+    var[] names;
+}
+
+class MainForm extends window1 {
+        var ocv;
+        var faceobj;
+        var image;
+        
+        var container;
+        var[] cache;
+        var new_data=true;
+        var rec_handler=null;
+
+        public function MainForm(Owner, Lang S) {
+                super(Owner, S);
+                this.iconview1.AddColumns(1, IMAGE_COLUMN);
+                this.iconview1.AddColumns(1);
+                this.iconview1.ImageColumn=0;
+                this.iconview1.MarkupColumn=1;
+
+                ocv=new ROCV(this);
+                ocv.FrameWidth=320;
+                ocv.FrameHeight=240;
+                ocv.LinkedImage=image1;
+                ocv.Format="png";
+
+                faceobj=LoadObject("res/face.xml");
+                
+                this.AddTimer(this.image_timer, 1);
+                image=new RImage(null);
+                image.Show();
+                
+                this.container=Serializable.UnSerialize(SERIAL_FILE);
+                if (container) {
+                    var faces=container.faces;
+                    var len=length faces;
+                    for (var i=0;i<len;i++)
+                        faces[i]=mime_decode(faces[i]);
+                } else
+                    container=new Container();
+        }
+
+        public function image_timer(Sender, EventData) {
+            var data=this.ocv.Frame;
+            var arr=ObjectDetect(data, faceobj, OBJECT_BUFFER, 0, "png");
+            var position=0;
+            if (arr) {
+                if (typeof arr=="array") {
+                    var len=length arr;
+                    if (len==1) {
+                        statusbar1.Caption="one person in this frame";
+                    } else
+                        statusbar1.Caption="$len persons in this frame";
+
+                    this.cache=new [];
+                    var cache=this.cache;
+                    var faces=container.faces;
+                    var names=container.names;
+                    var count=this.iconview1.Items.Count;
+                    for (var i=0;i<len;i++) {
+                        var e=arr[i];
+                        if (e) {
+                            var f=e["data"];
+                            var w=e["w"];
+                            if (f) {
+                                var name="";
+                                /*if (len==1) {
+                                    if (length faces < 2) {
+                                        if ((CApplication.Input(name="", false, "<b>Who is this ?</b>")==RESPONSE_OK) && (name)) {
+                                            faces[length faces]=f;
+                                            names[length names]=name;
+                                        }
+                                    }
+                                }*/
+
+                                var ix=-1;
+                                var coef=0;
+                                if (length faces>=2) {
+                                    if (new_data) {
+                                        // reset context
+                                        CloseRecognize(rec_handler);
+                                        new_data=false;
+                                    }
+                                    ix=FaceRecognize(f, faces, coef, OBJECT_BUFFER, "", rec_handler);
+                                }
+                                image.Send(MSG_PUT_STREAM,"frame$i.png",f);
+                                image.Scale(100,100);
+                                name="";
+                                if (ix>=0) {
+                                    if (coef<0)
+                                        coef*=-1;
+                                    var tname=names[ix];
+                                    if (coef>SAFE_ACC)
+                                        tname="<span color='red'>$tname</span>";
+                                    if (coef<2)
+                                        tname="<span color='#008000'>$tname</span>";
+                                    name="$ix.<b>"+tname;
+                                    var distance="";
+                                    if (w<=80)
+                                        distance=" far";
+                                    else
+                                    if (w<=110)
+                                        distance=" reasonable";
+                                    else
+                                    if (w<=170)
+                                        distance=" close";
+                                    else
+                                    if (w<=300)
+                                        distance=" too close";
+                                    else
+                                        distance=" unknown";
+                                    name+="</b>\n(accuracy ${number_format(coef,2,',','.')},$distance)";
+                                } else {
+                                    if (len==1) {
+                                        if (length faces==1) {
+                                            faces[length faces]=f;
+                                            names[length names]=names[0];
+                                        } else
+                                        if ((CApplication.Input(name="", false, "<b>Who is this ?</b>")==RESPONSE_OK) && (name)) {
+                                            faces[length faces]=f;
+                                            names[length names]=name;
+                                            new_data=true;
+                                        }
+                                    } else
+                                        name="Somebody else";
+                                }
+                                if (position<count)
+                                    iconview1.UpdateItem(position, [image,name]);
+                                else
+                                    iconview1.AddItem([image,name]);
+                                cache[position]=f;
+                                position++;
+                            }
+                        }
+                    }
+                } else
+                    statusbar1.Caption="Error code $arr";
+            } else
+                statusbar1.Caption="Nobody in this frame";
+            for (i=position;i<count;i++)
+                iconview1.DeleteItem(i);
+            if (coef>SAFE_ACC)
+                this.AddTimer(image_timer, 1000);
+            else
+                this.AddTimer(image_timer, 250);
+        }
+        
+        function on_iconview1_move_cursor(Sender, EventData) {
+            var index=value EventData;
+            if (index>=0) {
+                var data=cache[index];
+                var faces=container.faces;
+                var names=container.names;
+                if (data) {
+                    var name="";
+                    if ((CApplication.Input(name, false, "<b>Who is this ?</b>")==RESPONSE_OK) && (name)) {
+                        faces[length faces]=data;
+                        names[length names]=name;
+                        new_data=true;
+                    }
+                }
+            }
+        }
+        
+        function on_button1_clicked(Sender, EventData) {
+            var faces=container.faces;
+            var len=length faces;
+            for (var i=0;i<len;i++)
+                faces[i]=mime_encode(faces[i]);
+            this.container.Serialize(SERIAL_FILE);
+            this.Hide();
+        }
+}

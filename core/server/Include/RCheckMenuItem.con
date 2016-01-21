@@ -1,0 +1,60 @@
+include RMenuItem.con
+include ClassID.con
+include RemoteEvents.con
+include RemoteProperties.con
+include RemoteMessages.con
+
+define IS_CHECK_FLAG	-1
+
+class RCheckMenuItem extends RMenuItem {
+	private var INCONSISTENT;
+	private var DRAWASRADIO;
+
+	public property Checked { get GetChecked, set SetChecked }
+	public property Inconsistent { get GetInconsistent, set SetInconsistent }
+	public property DrawAsRadio { get DrawAsRadio, set SetDrawAsRadio }
+
+	//----------- EVENTS ----------------------------------------------------//	
+	public property OnToggled { get GetOnToggled, set SetOnToggled }
+	public function GetOnToggled() {
+		return _GET_REMOTE_EVENT(EVENT_ON_TOGGLED);
+	}
+
+	public function SetOnToggled(var delegate deleg) {
+		return _MAP_REMOTE_EVENT(EVENT_ON_TOGGLED, deleg);
+	}
+	//-----------------------------------------------------------------------//	
+
+	public function RCheckMenuItem(OWNER,CAPTION) {
+		PostString(CAPTION);
+		// don't call super; Call RItem instead
+		RItem(OWNER, CLASS_CHECKMENUITEM);
+	}
+
+
+	public function GetChecked() {
+		return value GetProperty(P_CHECKED);
+	}
+
+	public function SetChecked(argument) {
+		SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_CHECKED,argument);
+		return argument;
+	}
+
+	public function SetInconsistent(argument) {
+		SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_INCONSISTENT,argument);
+		INCONSISTENT=(argument!=0);
+		return argument;
+	}
+
+	public function GetInconsistent() {
+		INCONSISTENT=value GetProperty(P_INCONSISTENT);
+		return INCONSISTENT;
+	}
+
+	public function SetDrawAsRadio(argument) {
+		DRAWASRADIO=(argument!=0);
+		SetProperty(P_DRAWASRADIO,DRAWASRADIO);
+		return argument;
+	}
+}

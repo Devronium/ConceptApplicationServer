@@ -1,0 +1,70 @@
+include VisibleRemoteObject.con
+
+define POS_LEFT		0
+define POS_RIGHT	1
+define POS_TOP		2
+define POS_BOTTOM	3
+
+class RToggleButton extends VisibleRemoteObject {
+	private var CAPTION="";
+	private var INCONSISTENT;
+	private var USESTOCK;
+	private var IMAGEPOSITION;
+	public property Caption { get CAPTION, set SetCaption }
+	public property Checked { get GetChecked, set SetChecked }
+	public property Inconsistent { get GetInconsistent, set SetInconsistent }
+	public property UseStock { get USESTOCK, set SetUseStock }
+	public property ImagePosition { get IMAGEPOSITION, set SetImageImagePosition }
+
+	//----------- EVENTS ----------------------------------------------------//	
+	public property OnToggled { get GetOnToggled, set SetOnToggled }
+	public function GetOnToggled() {
+		return _GET_REMOTE_EVENT(EVENT_ON_TOGGLED);
+	}
+
+	public function SetOnToggled(var delegate deleg) {
+		return _MAP_REMOTE_EVENT(EVENT_ON_TOGGLED, deleg);
+	}
+	//-----------------------------------------------------------------------//	
+	public function RToggleButton(OWNER,CLASS) {
+		super(OWNER, CLASS);
+	}
+
+	public function SetCaption(argument) {
+		SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_CAPTION,argument);
+		CAPTION=argument;
+		return argument;
+	}
+
+	public function SetImageImagePosition(number argument) {
+		SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_IMAGEPOSITION,argument);
+		IMAGEPOSITION=argument;
+		return argument;
+	}
+
+	public function SetUseStock(number stock) {
+		SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_USESTOCK,stock);
+		USESTOCK=stock;
+		return stock;
+	}
+
+	public function GetChecked() {
+		return value GetProperty(P_CHECKED);
+	}
+
+	public function SetChecked(argument) {
+		SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_CHECKED,argument);
+		return argument;
+	}
+
+	public function SetInconsistent(argument) {
+		SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_INCONSISTENT,argument);
+		INCONSISTENT=(argument!=0);
+		return argument;
+	}
+
+	public function GetInconsistent() {
+		INCONSISTENT=value GetProperty(P_INCONSISTENT);
+		return INCONSISTENT;
+	}
+}

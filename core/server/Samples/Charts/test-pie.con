@@ -1,0 +1,35 @@
+import standard.lib.chart
+import standard.C.io
+
+class Main {
+	function Main() {
+		var labels=["Microsoft", "Sun", "Oracle", "Novell", "RadGs"];
+		var values=[10, 5, 4.4, 1.6, 79];
+
+		var file=fopen("chart.gif", "wb");
+		if (!file) {
+			echo "Error creating file.";
+			return 0;
+		}
+
+		GDCPIE_title("Cota de piata a firmelor de soft la nivel mondial");
+
+		var color=[ 0xFF4040, 0x80FF80, 0x8080FF, 0xFF80FF, 0xFFFF80, 0x80FFFF ];
+		var expl = [ 20, 20, 60, 20, 20, 0 ]; 
+		GDCPIE_label_line(true);
+		GDCPIE_label_dist(15);
+		GDCPIE_LineColor(0x000000);
+		GDCPIE_label_size(GDC_SMALL);
+		GDCPIE_3d_depth(25);
+		GDCPIE_3d_angle(120);
+		GDCPIE_explode(expl);
+		GDCPIE_Color(color);
+		GDCPIE_BGColor(0xFFFFFF);
+		GDCPIE_EdgeColor(0x000000);
+		//GDCPIE_missing(missing);
+		GDCPIE_percent_labels(GDCPIE_PCT_RIGHT);
+
+		pie_gif(480, 360, file, GDC_3DPIE, 5, labels, values);
+		fclose(file);		
+	}
+}

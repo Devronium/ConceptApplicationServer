@@ -1,0 +1,35 @@
+<?xml version="1.0"?>
+<StringTable>
+  <default langid="en"/>
+  <string msgid="Name">
+    <lang id="en">
+Name
+    </lang>
+    <lang id="ro">
+Nume
+    </lang>
+  </string>
+  <string msgid="Surname">
+    <lang id="en">
+Surname
+    </lang>
+    <lang id="ro">
+Prenume
+    </lang>
+  </string>
+  <string msgid="Face recognition example">
+    <lang id="en">
+Face recognition example
+    </lang>
+  </string>
+  <string msgid="gtk-quit">
+    <lang id="en">
+gtk-quit
+    </lang>
+  </string>
+  <string msgid="&lt;b&gt;Detected faces&lt;/b&gt;">
+    <lang id="en">
+&lt;b&gt;Detected faces&lt;/b&gt;
+    </lang>
+  </string>
+</StringTable>

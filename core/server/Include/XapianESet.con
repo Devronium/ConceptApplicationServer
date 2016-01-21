@@ -1,0 +1,93 @@
+include XapianESetIterator.con
+
+class XapianESet {
+	protected var THISREF=null;
+	public property REF { get THISREF }
+
+	public function XapianESet(number ref=0) {
+		if (ref)
+			this.THISREF=ref;
+		else
+			this.THISREF=XapianESetCreate(var exc);
+	}
+
+	public function finalize() {
+		XapianESetDestroy(THISREF, var exc);
+		this.THISREF=null;
+	}
+
+	public function get_ebound() {
+		var result=XapianESet__get_ebound(this->THISREF, var exc);
+		if (exc)
+			throw exc;
+		return result;
+	}
+
+	public function size() {
+		var result=XapianESet__size(this->THISREF, var exc);
+		if (exc)
+			throw exc;
+		return result;
+	}
+
+	public function max_size() {
+		var result=XapianESet__max_size(this->THISREF, var exc);
+		if (exc)
+			throw exc;
+		return result;
+	}
+
+	public function empty() {
+		var result=XapianESet__empty(this->THISREF, var exc);
+		if (exc)
+			throw exc;
+		return result;
+	}
+
+	public function swap(XapianESet other) {
+		var result=XapianESet__swap(this->THISREF, var exc, other.REF);
+		if (exc)
+			throw exc;
+		return result;
+	}
+
+	public function begin() {
+		var result=new XapianESetIterator(XapianESet__begin(this->THISREF, var exc));
+		if (exc)
+			throw exc;
+		return result;
+	}
+
+	public function end() {
+		var result=new XapianESetIterator(XapianESet__end(this->THISREF, var exc));
+		if (exc)
+			throw exc;
+		return result;
+	}
+
+	public function back() {
+		var result=new XapianESetIterator(XapianESet__back(this->THISREF, var exc));
+		if (exc)
+			throw exc;
+		return result;
+	}
+
+	public function getiter(number index) {
+		var result=new XapianESetIterator(XapianESet__getiter(this->THISREF, var exc, index));
+		if (exc)
+			throw exc;
+		return result;
+	}
+
+	public operator[](number index) {
+		return this.getiter(index);
+	}
+
+	public function get_description() {
+		var result=XapianESet__get_description(this->THISREF, var exc);
+		if (exc)
+			throw exc;
+		return result;
+	}
+
+}

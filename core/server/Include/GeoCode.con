@@ -1,0 +1,112 @@
+include URL.con
+include XMLDocument.con
+include Serializable.con
+
+import standard.lib.str
+
+define GET_PATH	"http://api.local.yahoo.com/MapsService/V1/geocode?appid=rlerdorf&location=$location"
+
+class CodeResult extends Serializable {
+	var Warning="";
+	var Precision="";
+
+	var Latitude="";
+	var Longitude="";
+	var Address="";
+	var City="";
+	var State="";
+	var Zip="";
+	var Country="";
+}
+
+class GeoCode {
+	static function _DoResult(XMLNode node) {
+		if (node.Name!="Result")
+			return null;
+
+		var code=new CodeResult();
+		code.Precision=node.GetProperty("precision");
+		code.Warning=node.GetProperty("warning");
+
+		var child=node.Child;
+		while (child) {
+			switch (ToLower(child.Name)) {
+				case "latitude":
+					code.Latitude=child.Content;
+					break;
+				case "longitude":
+					code.Longitude=child.Content;
+					break;
+				case "address":
+					code.Address=child.Content;
+					break;
+				case "city":
+					code.City=child.Content;
+					break;
+				case "state":
+					code.State=child.Content;
+					break;
+				case "zip":
+					code.Zip=child.Content;
+					break;
+				case "country":
+					code.Country=child.Content;
+					break;
+			}
+			child=child.Next;
+		}
+		return code;
+	}
+
+	static function Code(string location) {
+		location=StrReplace(location, " ", "+");
+
+		var url=new URL();
+		url.Get(GET_PATH);
+		var data=url.Data;
+
+		if (!url.IsSuccessful()) {
+			if ((url.Response!=400) || (!data)) {
+				throw "HTTP ERROR Code: ${url.Response}";
+			}
+		}
+		if (!data)
+			throw "No data";
+
+		var doc=new XMLDocument();
+		data=StrReplace(data, "xmlns", "noxmlns_in_order_to_use_xpath");
+		if (!doc.LoadString(data))
+			throw "Unable to parse the received data: $data";
+		var root=doc.Root;
+
+		if (!root) {		
+			doc.Free();
+			throw "No data received";
+		}
+		if (root.Name=="Error") {
+			var err=root.Content;
+			doc.Free();
+			throw err;
+		}
+
+		if (root.Name!="ResultSet") {
+			err="Invalid root node name: ${root.Name}";
+			doc.Free();
+			throw err;
+		}
+
+		var res_arr=new [];
+		var results=doc.GetXPath("/ResultSet/Result");
+		var len=length results;
+		for (var i=0;i<len;i++) {
+			var node=results[i];
+			if (node) {
+				var res=GeoCode::_DoResult(node);
+				if (res)
+					res_arr[length res_arr]=res;
+			}
+		}
+		
+		return res_arr;
+	}
+}

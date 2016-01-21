@@ -1,0 +1,23 @@
+include DoubleContainer.con
+
+class RPaned extends DoubleContainer {
+	DEFINE_FIXED_CONTROL
+
+	protected var POSITION;
+
+	public property Position { get GetPosition, set SetPosition }
+	
+	public function RPaned(OWNER,CLASS) {
+		super(OWNER, CLASS);
+	}
+
+	public function SetPosition(argument) {
+		SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_POSITION,argument);
+		POSITION=argument;
+		return argument;
+	}
+
+	public function GetPosition() {		
+		return POSITION=value GetProperty(P_POSITION);
+	}
+}

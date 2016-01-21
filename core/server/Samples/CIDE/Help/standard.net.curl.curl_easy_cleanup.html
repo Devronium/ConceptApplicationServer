@@ -1,0 +1,79 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+  <title>standard.net.curl.curl_easy_cleanup</title>
+  <link href="css/style.css" rel="stylesheet" type="text/css">
+  <meta http-equiv="Content-Type" content="text/html;charset=utf-8" >
+</head>
+<body bgcolor="#ffffff">
+<table border="0" width="100%" bgcolor="#F0F0FF">
+  <tr>
+    <td>Concept Framework 2.2 documentation</td>
+  	<td align="right"><a href="index.html">Contents</a> | <a href="index_fun.html">Index</a></td>
+  </tr>
+</table>
+<h2><a href="standard.net.curl.html">standard.net.curl</a>.curl_easy_cleanup</h2>
+<table border="0" cellspacing="0" cellpadding="0" width="500" style="border-style:solid;border-width:1px;border-color:#D0D0D0;">
+  <tr bgcolor="#f0f0f0">
+     <td><i>Name</i></td>
+     <td><i>Version</i></td>
+     <td><i>Deprecated</i></td>
+  </tr>
+  <tr bgcolor="#fafafa">
+     <td><b>curl_easy_cleanup</b></td>
+     <td>version 1.0</td>
+     <td>no</td>
+  </tr>
+</table>
+<br />
+<b>Prototype:</b><br />
+	<table bgcolor="#F0F0F0" width="100%" style="border-style:solid;border-width:1px;border-color:#D0D0D0;"><tr><td><b>null-returned curl_easy_cleanup(number handle)</b></td></tr></table>
+<br />
+
+<b>Parameters:</b><br />
+<table bgcolor="#FFFFFF" style="border-style:solid;border-width:1px;border-color:#D0D0D0;">
+
+	   <tr>
+	   	   <td>
+		   	   <i>handle</i>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+		   </td>
+	   	   <td>
+		   	   the CURL handle as returned by <a href="standard.net.curl.curl_easy_init.html">curl_easy_init</a>
+		   </td>
+	   </tr>
+
+</table>
+
+<br />
+<b>Description:</b><br />
+<table width="100%" bgcolor="#FAFAFF" style="border-style:solid;border-width:1px;border-color:#D0D0D0;">
+<tr><td>
+End a libcurl easy session. This function must be the last function to call for an easy session. It is the opposite of the <a href="standard.net.curl.curl_easy_init.html">curl_easy_init</a> function and must be called with the same handle as input that the curl_easy_init call returned. 
+<br/>This will effectively close all connections this handle has used and possibly has kept open until now. Don't call this function if you intend to transfer more files. 
+<br/>When you've called this, you can safely remove all the strings you've previously told libcurl to use, as it won't use them anymore now. 
+<br/>Any uses of the handle after this function has been called are illegal. This kills the handle and all memory associated with it! 
+<br/>
+</td></tr>
+</table>
+<br />
+
+<b>Returns:</b><br />
+Returns nothing.
+<br />
+<br />
+<!--
+  <p>
+    <a href="http://validator.w3.org/check?uri=referer"><img
+        src="http://www.w3.org/Icons/valid-html40"
+        alt="Valid HTML 4.0 Transitional" height="31" width="88" border="0"></a>
+ <a href="http://jigsaw.w3.org/css-validator/">
+  <img style="border:0;width:88px;height:31px"
+       src="http://jigsaw.w3.org/css-validator/images/vcss" 
+       alt="Valid CSS!" border="0"/>
+ </a>
+</p>
+-->
+<table bgcolor="#F0F0F0" width="100%"><tr><td>Documented by Eduard Suica, generation time: Sun Jan 27 18:15:21 2013
+ GMT</td><td align="right">(c)2013 <a href="http://www.devronium.com">Devronium Applications</a></td></tr></table>
+</body>
+</html>

@@ -1,0 +1,40 @@
+include MessageDispatcher.con
+include RemoteMessages.con
+include RImage.con
+
+class RClipboard {
+	static function Copy(data) {
+		if (typeof data=="class") {
+			if (classof data=="RImage")
+				SendMessage("%APP",MSG_SET_CLIPBOARD,"1",data.RID);
+			else
+				throw "Unsupported clipboard object : "+classof data;
+		} else
+		if (typeof data!="array") {
+				SendMessage("%APP",MSG_SET_CLIPBOARD,"2",data);
+		} else
+				throw "Unsupported clipboard type : "+ typeof data;			
+	}
+
+	static function Clear() {
+		SendMessage("%APP",MSG_SET_CLIPBOARD,"0","0");
+	}
+
+	static function GetImageBuffer(type="png") {
+		SendMessage("%APP",MSG_GET_CLIPBOARD,"1",type);
+		WaitMessage(var sender, MSG_GET_CLIPBOARD, var target, var val);
+		if (target==1) {
+			return val;
+		} else
+			return null;
+	}
+
+	static function GetText() {
+		SendMessage("%APP",MSG_GET_CLIPBOARD,"2","0");
+		WaitMessage(var sender, MSG_GET_CLIPBOARD, var target, var val);
+		if (target==1) {
+			return val;
+		} else
+			return null;
+	}
+}

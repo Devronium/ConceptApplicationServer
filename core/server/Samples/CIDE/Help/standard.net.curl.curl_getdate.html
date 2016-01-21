@@ -1,0 +1,108 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+  <title>standard.net.curl.curl_getdate</title>
+  <link href="css/style.css" rel="stylesheet" type="text/css">
+  <meta http-equiv="Content-Type" content="text/html;charset=utf-8" >
+</head>
+<body bgcolor="#ffffff">
+<table border="0" width="100%" bgcolor="#F0F0FF">
+  <tr>
+    <td>Concept Framework 2.2 documentation</td>
+  	<td align="right"><a href="index.html">Contents</a> | <a href="index_fun.html">Index</a></td>
+  </tr>
+</table>
+<h2><a href="standard.net.curl.html">standard.net.curl</a>.curl_getdate</h2>
+<table border="0" cellspacing="0" cellpadding="0" width="500" style="border-style:solid;border-width:1px;border-color:#D0D0D0;">
+  <tr bgcolor="#f0f0f0">
+     <td><i>Name</i></td>
+     <td><i>Version</i></td>
+     <td><i>Deprecated</i></td>
+  </tr>
+  <tr bgcolor="#fafafa">
+     <td><b>curl_getdate</b></td>
+     <td>version 1.0</td>
+     <td>no</td>
+  </tr>
+</table>
+<br />
+<b>Prototype:</b><br />
+	<table bgcolor="#F0F0F0" width="100%" style="border-style:solid;border-width:1px;border-color:#D0D0D0;"><tr><td><b>number curl_getdate(string datestring)</b></td></tr></table>
+<br />
+
+<b>Parameters:</b><br />
+<table bgcolor="#FFFFFF" style="border-style:solid;border-width:1px;border-color:#D0D0D0;">
+
+	   <tr>
+	   	   <td>
+		   	   <i>datestring</i>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+		   </td>
+	   	   <td>
+		   	   the date string
+		   </td>
+	   </tr>
+
+</table>
+
+<br />
+<b>Description:</b><br />
+<table width="100%" bgcolor="#FAFAFF" style="border-style:solid;border-width:1px;border-color:#D0D0D0;">
+<tr><td>
+Convert a date string to number of seconds since January 1, 1970.
+<br/>This function returns the number of seconds since January 1st 1970 in the UTC time zone, for the date and time that the datestring parameter specifies.
+<br/>
+<br/>A "date" is a string containing several items separated by whitespace. The order of the items is immaterial. A date string may contain many flavors of items: 
+<br/>calendar date items Can be specified several ways. Month names can only be three-letter english abbrivations, numbers can be zero-prefixed and the year may use 2 or 4 digits. Examples: 06 Nov 1994, 06-Nov-94 and Nov-94 6. 
+<br/>time of the day items This string specifies the time on a given day. You must specify it with 6 digits with two colons: HH:MM:SS. To not include the time in a date string, will make the function assume 00:00:00. Example: 18:19:21. 
+<br/>time zone items Specifies international time zone. There are a few acronyms supported, but in general you should instead use the specific relative time compared to UTC. Supported formats include: -1200, MST, +0100. 
+<br/>day of the week items Specifies a day of the week. Days of the week may be spelled out in full (using english): `Sunday', `Monday', etc or they may be abbreviated to their first three letters. This is usually not info that adds anything. 
+<br/>pure numbers If a decimal number of the form YYYYMMDD appears, then YYYY is read as the year, MM as the month number and DD as the day of the month, for the specified calendar date. 
+<br/>
+<br/>EXAMPLES
+<br/>Sun, 06 Nov 1994 08:49:37 GMT
+<br/> Sunday, 06-Nov-94 08:49:37 GMT
+<br/> Sun Nov  6 08:49:37 1994
+<br/> 06 Nov 1994 08:49:37 GMT
+<br/> 06-Nov-94 08:49:37 GMT
+<br/> Nov  6 08:49:37 1994
+<br/> 06 Nov 1994 08:49:37
+<br/> 06-Nov-94 08:49:37
+<br/> 1994 Nov 6 08:49:37
+<br/> GMT 08:49:37 06-Nov-94 Sunday
+<br/> 94 6 Nov 08:49:37
+<br/> 1994 Nov 6
+<br/> 06-Nov-94
+<br/> Sun Nov 6 94
+<br/> 1994.Nov.6
+<br/> Sun/Nov/6/94/GMT
+<br/> Sun, 06 Nov 1994 08:49:37 CET
+<br/> 06 Nov 1994 08:49:37 EST
+<br/> Sun, 12 Sep 2004 15:05:58 -0700
+<br/> Sat, 11 Sep 2004 21:32:11 +0200
+<br/> 20040912 15:05:58 -0700
+<br/> 20040911 +0200
+<br/>
+</td></tr>
+</table>
+<br />
+
+<b>Returns:</b><br />
+Returns the number of seconds elapsed since January 1, 1970 until datestring.
+<br />
+<br />
+<!--
+  <p>
+    <a href="http://validator.w3.org/check?uri=referer"><img
+        src="http://www.w3.org/Icons/valid-html40"
+        alt="Valid HTML 4.0 Transitional" height="31" width="88" border="0"></a>
+ <a href="http://jigsaw.w3.org/css-validator/">
+  <img style="border:0;width:88px;height:31px"
+       src="http://jigsaw.w3.org/css-validator/images/vcss" 
+       alt="Valid CSS!" border="0"/>
+ </a>
+</p>
+-->
+<table bgcolor="#F0F0F0" width="100%"><tr><td>Documented by Eduard Suica, generation time: Sun Jan 27 18:15:21 2013
+ GMT</td><td align="right">(c)2013 <a href="http://www.devronium.com">Devronium Applications</a></td></tr></table>
+</body>
+</html>

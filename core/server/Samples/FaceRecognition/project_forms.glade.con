@@ -1,0 +1,95 @@
+
+//=============================================================//
+include Lang.con
+include RForm.con
+include Application.con
+include RForm.con
+include RVBox.con
+include RImage.con
+include RLabel.con
+include RScrolledWindow.con
+include RIconView.con
+include RButton.con
+include RStatusbar.con
+
+
+
+class window1 extends RForm {
+        // keep the string table
+        protected var S;
+
+        public var vbox1;
+        public var image1;
+        public var label1;
+        public var scrolledwindow1;
+        public var iconview1;
+        public var button1;
+        public var statusbar1;
+
+
+	public function on_iconview1_move_cursor(Sender, EventData);
+	public function on_button1_clicked(Sender, EventData);
+
+
+        // ========================================================================
+        // constructor;
+        // S is a Lang object used to translate strings using
+        // the default string table named string.table.xml
+        // Is your responsability to pass this object to other forms instantiated
+        // in this application
+        // ========================================================================
+
+        public function window1(Owner, Lang S) {
+                super(Owner);
+                this.S=S;
+
+		CApplication::BeginNonCritical();
+
+                this.Caption=S<<"Face recognition example";
+                this.Width=320;
+                this.Height=700;
+
+                vbox1=new RVBox(this);
+                vbox1.Visible=true;
+
+                image1=new RImage(vbox1);
+                image1.Packing=PACK_SHRINK;
+                image1.Visible=true;
+                image1.LoadResource("gtk-missing-image",1);
+
+                label1=new RLabel(vbox1);
+                label1.Packing=PACK_SHRINK;
+                label1.Visible=true;
+                label1.XAlign=0;
+                label1.Caption=S<<"<b>Detected faces</b>";
+                label1.UseMarkup=true;
+
+                scrolledwindow1=new RScrolledWindow(vbox1);
+                scrolledwindow1.Visible=true;
+                scrolledwindow1.HScrollPolicy=POLICY_AUTOMATIC;
+                scrolledwindow1.VScrollPolicy=POLICY_AUTOMATIC;
+
+                iconview1=new RIconView(scrolledwindow1);
+                iconview1.Visible=true;
+                iconview1.OnItemActivated=this.on_iconview1_move_cursor;
+
+                button1=new RButton(vbox1);
+                button1.Packing=PACK_SHRINK;
+                button1.Caption=S<<"gtk-quit";
+                button1.Visible=true;
+                button1.UseStock=true;
+                button1.OnClicked=this.on_button1_clicked;
+
+                statusbar1=new RStatusbar(vbox1);
+                statusbar1.Packing=PACK_SHRINK;
+                statusbar1.Visible=true;
+                statusbar1.Spacing=2;
+
+		CApplication::EndNonCritical();
+        }
+
+	override on_iconview1_move_cursor;
+	override on_button1_clicked;
+
+}
+

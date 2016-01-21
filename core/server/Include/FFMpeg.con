@@ -1,0 +1,510 @@
+import standard.C.io
+import standard.lib.str
+import standard.C.math
+import standard.C.casts
+import standard.C.time
+import win32.graph.freeimage
+include Serializable.con
+include File.con
+
+define ERR_MOVIE_DOES_NOT_EXISTS	"#E01 Cannot load movie '$path': File does not exist."
+define ERR_NO_INFO			"#E02 Cannot load movie '$path': Cannot extract movie information. Wrong format ?"
+define ERR_NO_MOVIE_LOADED		"#E03 No movie is loaded at this time. Please load a movie first."
+define ERR_GEN_THUMBNAIL		"#E04 Error generating thumbnail for movie '$path'"
+
+define TEMP_PREVIEW			"${this._TEMP_DIR}/preview${this.KID}-$index.$format"
+
+define DURATION_CMD			"ffmpeg -i \"$path\""
+define PREVIEW_CMD			"ffmpeg -i \"$path\" -y -s $size -vcodec $format -vframes 1 -an -f rawvideo -ss $where \"" + TEMP_PREVIEW + "\""
+define CONVERT_CMD			"ffmpeg -i \"$path\" -y -s $size -f $format -b $bitrate -ar $samplerate $extra \"$output\""
+define CONVERT_CMD_LIVE			"ffmpeg -i \"$path\" -y -s $size -f $format -b $bitrate -ar $samplerate $extra \"$output\""
+define FLVMETADATA_CMD			"yamdi -i \"$output\" -o \"$output2\""
+define DEFAULT_DURATION			20
+
+define PREVIEW_JPEG			"jpeg"
+define PREVIEW_PNG			"png"
+
+define TEMP_DIR				"temp"
+define TEMP_PIPE			"${this._TEMP_DIR}/result${this.KID}.txt"
+define TEMP_PIPE2			"${this._TEMP_DIR}/result2-${this.KID}.txt"
+
+define VIDEO_CODEC			0
+define VIDEO_COLOR			1
+define VIDEO_SIZE			2
+define VIDEO_FPS			3
+
+define AUDIO_CODEC			0
+define AUDIO_HZ				1
+define AUDIO_TYPE			2
+define ADUIO_BPS			3
+
+class FFMpeg {
+	protected var _IMOVIE="";
+	protected var _TEMP;
+	protected var _TEMP2;
+	protected var _TEMP_DIR=TEMP_DIR;
+	protected var _DURATION=0;
+	protected var[] _INFO_VIDEO;
+	protected var[] _INFO_AUDIO;
+	private var _MOVIE_LOADED=false;
+	private var KID;
+	private var _KEEP_RATIO=true;
+
+	public property InputMovie { set SetMovie, get GetMovie }
+	public property Duration { get _DURATION }
+	public property AudioInfo { get _INFO_AUDIO }
+	public property VideoInfo { get _INFO_VIDEO }
+	public property LastResult { get GetLastResult }
+	public property LastResult2 { get GetLastResult2 }
+	public property KeepAspectRation { get _KEEP_RATIO, set SetKeepRatio }
+
+	public function FFMpeg() {
+		this._TEMP_DIR=_getenv("tmp");
+		this.KID=ClsPtr(this)+rand();
+		if (!this._TEMP_DIR)
+			this._TEMP_DIR=_getenv("temp");
+		if (!this._TEMP_DIR)
+			this._TEMP_DIR=TEMP_DIR;
+
+		_mkdir(this._TEMP_DIR);
+
+		this._TEMP=TEMP_PIPE;
+		this._TEMP2=TEMP_PIPE2;
+	}
+
+    static function Resize(string image_name, number max_w, number max_h, string out_name="", string format=PREVIEW_PNG, crop=false) {
+        var type=FreeImage_GetFileType(image_name);
+        if (type<0)
+            return false;
+
+        var hBitmap=FreeImage_Load(type, image_name, 0);
+        if (hBitmap) {
+            var image_format=2;
+            if (ToLower(format)=="png")
+                image_format=13;
+
+            var true_width=FreeImage_GetWidth(hBitmap);
+            var true_height=FreeImage_GetHeight(hBitmap);
+
+            if ((!true_width) || (!true_height)) {
+                FreeImage_Unload(hBitmap);
+                return false;
+            }
+
+            if ((true_width<=max_w) && (true_height<=max_h)) {
+                if (!FreeImage_Save(image_format,hBitmap,out_name,0)) {
+                    FreeImage_Unload(hBitmap);
+                    return false;
+                }
+                FreeImage_Unload(hBitmap);
+                return true;
+            }
+
+            var aspect_ratio=1;//true_height/true_width;
+
+            var coef_w=max_w/true_width;
+            var coef_h=max_h/true_height;
+
+            var crop_done=0;
+            
+            if ((crop) && (true_height>max_h) && (true_width>max_w)) {
+                var p_a_ratio=true_width/true_height;
+                var t_a_ratio=max_w/max_h;
+
+                if (p_a_ratio!=t_a_ratio) {
+                    var new_height=true_height;
+                    var new_width=true_width;
+
+                    if (coef_h>coef_w)
+                        new_width=true_height*t_a_ratio;
+                    else
+                        new_height=true_width/t_a_ratio;
+
+                    if (new_width>true_width)
+                        new_width=true_width;
+
+                    if (new_height>true_height)
+                        new_height=true_height;
+
+                    var left=(true_width-new_width)/2;
+                    var right=true_width-left;
+                    var top=(true_height-new_height)/2;
+                    var bottom=true_height-top;
+
+                    if ((left) || (top) || (right!=true_width) || (bottom!=true_height)) {
+                        var hBitmap3=FreeImage_Copy(hBitmap, left, top, right, bottom);
+                        if (hBitmap3) {
+                            FreeImage_Unload(hBitmap);
+                            hBitmap=hBitmap3;
+                            hBitmap3=null;
+                            true_width=new_width;
+                            true_height=new_height;
+                            coef_w=max_w/true_width;
+                            coef_h=max_h/true_height;
+                            crop_done=true;
+                        }
+                    }
+                }
+            }
+            
+            if (coef_w<coef_h) {
+                aspect_ratio*=coef_w;
+            } else {
+                aspect_ratio*=coef_h;
+            }
+
+            if (aspect_ratio>1)
+                aspect_ratio=1;
+                
+            var hBitmap2=FreeImage_Rescale(hBitmap,true_width*aspect_ratio,true_height*aspect_ratio,0);
+
+            FreeImage_Unload(hBitmap);
+
+            if (hBitmap2) {
+		if (!out_name)
+			out_name="thumb_"+image_name;
+                if (!FreeImage_Save(image_format,hBitmap2,out_name,0)) {
+                    FreeImage_Unload(hBitmap2);
+                    return false;
+                }
+            }
+
+            FreeImage_Unload(hBitmap2);
+            return true;
+        }
+        return false;
+    }
+
+	private function ComputeDuration(string len) {
+		var result=0;
+		var len_arr=StrSplit(len, ":");
+		if (length len_arr==3) {
+			result+=3600*(value len_arr[0]);
+			result+=60*(value len_arr[1]);
+			result+=value len_arr[2];
+			result=round(result);
+		}
+		return result;
+	}
+
+	private function GetStreamData(string data, string stream) {
+		var data_arr=StrSplit(data, stream);
+		var[] info_data;
+		if (length data_arr>=2) {
+			var target=data_arr[1];
+			var target_arr=StrSplit(target, "\n");
+			if (length target_arr >=1) {
+				info_data=StrSplit(target_arr[0],", ");
+				var len=length info_data;
+				for (var i=0;i<len;i++) {
+					var dt=info_data[i];
+					var dt_arr=StrSplit(dt, " [");
+					if (length dt_arr > 1) {
+						info_data[i]=dt_arr[0];
+					}
+				}
+			}
+		}
+		return info_data;
+	}
+
+	private function _GetInfo(string path) {
+		this._IMOVIE=path;
+		WriteFile("", TEMP_PIPE);
+		var err=system(DURATION_CMD +" 2> " + _TEMP);
+		
+		var data=ReadFile(TEMP_PIPE);
+		// to be the same on windows and unix
+		data=StrReplace(data, "\r", "");
+
+		var data_arr=StrSplit(data, "Duration: ");
+		if (length data_arr>=2) {
+			var target=data_arr[length data_arr - 1];
+			var target_arr=StrSplit(target, ", ");
+			if (length target_arr >=1) {
+				var duration=target_arr[0];
+				this._DURATION=ComputeDuration(duration);
+			}
+		} else
+			throw ERR_NO_INFO;
+
+		this._INFO_VIDEO=this.GetStreamData(data, "Video: ");
+		this._INFO_AUDIO=this.GetStreamData(data, "Audio: ");
+	}
+
+	public function SetMovie(string path, is_stream=false) {
+		_DURATION=0;
+		this._IMOVIE="";
+		if ((!is_stream) && (!FileExists(path)))
+			throw ERR_MOVIE_DOES_NOT_EXISTS;
+
+		if (is_stream)
+			this._IMOVIE=path;
+		else
+			this._GetInfo(path);
+		_MOVIE_LOADED=true;
+
+		return this;
+	}
+
+	private function SecondsToTime(number seconds) {
+		var hours=int32(seconds/3600);
+		seconds=seconds%3600;
+		var minutes=int32(seconds/60);
+		seconds=seconds%60;
+
+		return "$hours:$minutes:$seconds";
+	}
+
+	public function SetKeepRatio(number ratio) {
+		this._KEEP_RATIO=ratio;
+		return ratio;
+	}
+
+	private function _SplitSize(string size, var width, var height) {
+		var size_arr=StrSplit(size, "x");
+		width=0;
+		height=0;
+		if (length size_arr == 2) {
+			width=value (""+size_arr[0]);
+			height=value (""+size_arr[1]);
+			width=floor(width/2)*2;
+			height=floor(height/2)*2;
+			return true;
+		}
+		return false;
+	}
+
+	private function _ComputeSize(string size) {
+		var new_size=size;
+		this._SplitSize(""+this._INFO_VIDEO[2], var orig_width, var orig_height);
+		this._SplitSize(size, var width, var height);
+
+		if ((orig_width<width) && (orig_height<height)) {
+			width=orig_width;
+			height=orig_height;
+		}
+
+		if (this._KEEP_RATIO) {
+			if ((!orig_width) && (!orig_height))
+				this._SplitSize(""+this._INFO_VIDEO[1], orig_width, orig_height);
+
+			if ((width) && (height) && (orig_width) && (orig_height)) {
+				var aspect_ratio=1;
+				/*if (orig_width>orig_height) {
+					aspect_ratio*=width/orig_width;
+				} else {
+					aspect_ratio*=height/orig_height;
+				}*/
+				var coef_w=width/orig_width;
+				var coef_h=height/orig_height;
+            
+				if (coef_w<coef_h)
+					aspect_ratio*=coef_w;
+				else
+					aspect_ratio*=coef_h;
+
+				if (aspect_ratio>1)
+					aspect_ratio=1;
+
+				var new_width=floor(int32(orig_width*aspect_ratio)/2)*2;
+				var new_height=floor(int32(orig_height*aspect_ratio)/2)*2;
+				new_size="${new_width}x${new_height}";
+			}
+		} else {
+
+			new_width=floor(width/2)*2;
+			new_height=floor(height/2)*2;
+
+			new_size="${new_width}x${new_height}";
+		}
+		return new_size;
+	}
+
+	public function GetPreview(string output, string format=PREVIEW_PNG, string size="320x240", number how_much=1, number from_where=-1) {
+		var path=this._IMOVIE;
+		if ((!this._MOVIE_LOADED) || (!path))
+			throw ERR_NO_MOVIE_LOADED;
+
+		size=this._ComputeSize(size);
+
+		_srand(_time());
+
+		if (how_much<1)
+			how_much=1;
+
+		var duration=this._DURATION;
+
+		if (duration<=0)
+			duration=DEFAULT_DURATION;
+
+		if ((duration<20) && (how_much>1)) {
+			how_much=1;
+			if (_rand()>0x3FF)
+				from_where=int32(duration/2)+1;
+			else
+				from_where=int32(duration/2)-1;
+		}
+
+		if (from_where==-1)
+			var where=this.SecondsToTime(duration);
+
+		var max_size=-100;
+		var max_file="";
+
+		var offset=int32(duration/(how_much+1));
+
+		var pos_time=0;
+
+		for (var index=0;index<how_much;index++) {
+			if (from_where==-1) {
+				if (_rand()>0x3FF)
+					pos_time+=offset+1;
+				else
+					pos_time+=offset-1;
+
+				where=this.SecondsToTime(pos_time);
+			}
+			_unlink(TEMP_PREVIEW);
+
+			var err=system(PREVIEW_CMD + " 2> " + this._TEMP);
+
+			var fsize=_filesize(TEMP_PREVIEW);
+			if (fsize>max_size) {
+				if (max_file)
+					_unlink(max_file);
+				max_size=fsize;
+				max_file=TEMP_PREVIEW;
+			} else
+				_unlink(TEMP_PREVIEW);
+		}
+		if (max_size<=0)
+			throw ERR_GEN_THUMBNAIL;
+		else {
+			WriteFile(ReadFile(max_file), output);
+			_unlink(max_file);
+		}
+
+		return true;
+	}
+
+	public function GetStreamPreview(string output, string format=PREVIEW_PNG, string size="320x240", number from_where=-1) {
+		var how_much=1;
+		var path=this._IMOVIE;
+		if ((!this._MOVIE_LOADED) || (!path))
+			throw ERR_NO_MOVIE_LOADED;
+
+		size=this._ComputeSize(size);
+
+		_srand(_time());
+
+		var where=from_where;
+		if (where<0)
+			where=1;
+
+		var max_size=-100;
+		var max_file="";
+
+		var pos_time=0;
+
+		for (var index=0;index<how_much;index++) {
+			_unlink(TEMP_PREVIEW);
+
+			var err=system(PREVIEW_CMD + " 2> " + this._TEMP);
+
+			var fsize=_filesize(TEMP_PREVIEW);
+			if (fsize>max_size) {
+				if (max_file)
+					_unlink(max_file);
+				max_size=fsize;
+				max_file=TEMP_PREVIEW;
+			} else
+				_unlink(TEMP_PREVIEW);
+		}
+		if (max_size<=0)
+			throw ERR_GEN_THUMBNAIL;
+		else {
+			WriteFile(ReadFile(max_file), output);
+			_unlink(max_file);
+		}
+
+		return true;
+	}
+
+	public function Convert(string output, string size="320x240", bitrate=200000, samplerate=44100, string format="flv", preset="", extra_params="") {
+		var path=this._IMOVIE;
+		size=this._ComputeSize(size);
+
+		if ((!this._MOVIE_LOADED) || (!path))
+			throw ERR_NO_MOVIE_LOADED;
+
+		var extra="";
+		if (preset)
+			extra+="-preset $preset";
+
+		if (extra_params) {
+			if (extra)
+				extra+=" ";
+			extra+=extra_params;
+		}
+
+		var err=system(CONVERT_CMD + " 2> " + this._TEMP);
+
+		var output2=output+".tmp.flv";
+		var err2=system(FLVMETADATA_CMD + " 2> " + this._TEMP2);
+		if (!err2) {
+			// no errors were encountered !
+			_unlink(output);
+			rename(output2, output);
+		}
+		this._GetInfo(output);
+
+		return !err;
+	}
+
+	public function LiveStream(string size="320x240", bitrate=200000, samplerate=44100, string format="flv", preset="veryslow", extra_params="") {
+		var output="pipe:1";
+		var path=this._IMOVIE;
+		size=this._ComputeSize(size);
+
+		if ((!this._MOVIE_LOADED) || (!path))
+			throw ERR_NO_MOVIE_LOADED;
+
+		var extra="";
+		if (preset)
+			extra+="-preset $preset";
+
+		if (extra_params) {
+			if (extra)
+				extra+=" ";
+			extra+=extra_params;
+		}
+
+		var f=new File();
+		f.Name=CONVERT_CMD_LIVE + " 2> " + this._TEMP;
+		f.Mode="rb";
+
+		//var err=system(CONVERT_CMD_LIVE + " 2> " + this._TEMP);
+		if (f.POpen())
+			return f;
+
+		return null;
+	}
+
+	public function GetLastResult() {
+		return ReadFile(this._TEMP);
+	}
+
+	public function GetLastResult2() {
+		return ReadFile(this._TEMP2);
+	}
+
+	public function GetMovie() {
+		return this._IMOVIE;
+	}
+
+	public function finalize() {
+		_unlink(this._TEMP);
+		_unlink(this._TEMP2);
+	}
+}

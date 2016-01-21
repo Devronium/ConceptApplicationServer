@@ -1,0 +1,140 @@
+include RWebView.con
+import standard.C.io
+
+define GOOGLE_MAPS_TEMPLATE	"res/GoogleMaps.res"
+define GOOGLE_MAPS_V2_TEMPLATE	"res/GoogleMaps.v2.res"
+
+class GoogleMaps {
+	private var WebView;
+	private var Key;
+	private var TemplateData;
+
+	private var LatMember;
+	private var LongMember;
+	private var TitleMember;
+	private var DescriptionMember;
+	private var AddressMembers;
+
+	public function GoogleMaps(Owner) {
+		WebView=new RWebView(Owner);
+		WebView.Show();
+	}
+
+	public function Set(Obj) {
+		// set !
+		if (!LatMember)
+			throw "GoogleMaps plug-in error: no coordinates set";
+
+		var markers="";
+		var address="";
+
+		var title="";
+		var description="";
+		var temp="";
+		var coord="";
+
+		if (TitleMember) {
+			if (!GetMember(Obj, TitleMember, temp))
+				temp=TitleMember;//throw "GoogleMaps plug-in error: no such member '${TitleMember}'";
+			title=""+temp;
+			title=StrReplace(title, "\\", "\\\\");
+			title=StrReplace(title, "\"", "\\\"");
+		}
+
+		if (DescriptionMember) {
+			if (!GetMember(Obj, DescriptionMember, temp))
+				temp=DescriptionMember;//throw "GoogleMaps plug-in error: no such member '${DescriptionMember}'";
+			description=""+temp;
+			description=StrReplace(description, "\\", "\\\\");
+			description=StrReplace(description, "\"", "\\\"");
+		}
+
+
+		if (AddressMembers) {
+			if (!TemplateData)
+				TemplateData=ReadFile(GOOGLE_MAPS_V2_TEMPLATE);
+
+			var arr=AddressMembers;
+			var len=length arr;
+			for (var i=0;i<len;i++) {
+				var e=arr[i];
+				if (e) {
+					if (!GetMember(Obj, e, temp))
+						temp=e;//throw "GoogleMaps plug-in error: no such member '$e'";
+					temp=""+temp;
+					if (address)
+						address+=", ";
+					address+=temp;
+				}
+			}
+		} else {
+			if (!TemplateData)
+				TemplateData=ReadFile(GOOGLE_MAPS_TEMPLATE);
+
+			if (!GetMember(Obj, LatMember, temp))
+				throw "GoogleMaps plug-in error: no such member '${LatMember}'";
+
+			if (LongMember) {
+				coord=""+temp;
+				coord+=", ";
+
+				if (!GetMember(Obj, LongMember, temp))
+					throw "GoogleMaps plug-in error: no such member '${LongMember}'";
+				coord+=temp;
+			} else
+				coord=""+temp;
+		
+	    		markers+="var marker = new google.maps.Marker({position: new google.maps.LatLng($coord), map: map, title:\"$title\"});\n";
+    			markers+="var infowindow;\n";
+			if (title)
+				markers+="google.maps.event.addListener(marker, 'click', function() { if (!infowindow) infowindow = new google.maps.InfoWindow({content: \"$description\"}); infowindow.open(marker.get('map'), marker); });\n";
+		}
+
+		if (!coord)
+			coord="0, 0";
+
+		var data=this.TemplateData;
+		data=StrReplace(data, "[KEY]", Key);
+		data=StrReplace(data, "[CENTER]", coord);
+		data=StrReplace(data, "[MARKERS]", markers);
+		data=StrReplace(data, "[ADDRESS]", address);
+		data=StrReplace(data, "[DESCRIPTION]", description);
+		data=StrReplace(data, "[TITLE]", title);
+		WebView.OpenString(data);
+		return this;
+	}
+
+	public function Get(Obj) {
+		// get
+		return this;
+	}
+
+	public function Validate(Obj, var error_string) {
+		error_string="";
+		return true;
+	}
+
+	static function Query(string operation, target, prev_object, key="", LatMember="", LongMember="", TitleMember="", DescriptionMember="", AddressMembers="") {
+		return true;
+	}
+
+	static function Create(Context, ContainerObject, OwnerForm, key="", LatMember="", LongMember="", TitleMember="", DescriptionMember="", AddressMembers="") {
+		var handler=new GoogleMaps(ContainerObject);
+		handler.LatMember=LatMember;
+		handler.LongMember=LongMember;
+		handler.TitleMember=TitleMember;
+		handler.DescriptionMember=DescriptionMember;
+		handler.AddressMembers=StrSplit(AddressMembers,",");
+		handler.Key=key;
+
+		if (AddressMembers)
+			handler.TemplateData=ReadFile(GOOGLE_MAPS_V2_TEMPLATE);
+		else
+			handler.TemplateData=ReadFile(GOOGLE_MAPS_TEMPLATE);
+
+		Context.Set=handler.Set;
+		Context.Get=handler.Get;
+		Context.Validate=handler.Validate;
+		return handler;
+	}
+}

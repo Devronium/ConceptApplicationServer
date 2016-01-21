@@ -1,0 +1,1061 @@
+* {
+	max-height: 100vh;
+	max-width: 100vw;
+}
+
+a, div, tr, td, table, tbody, thead {
+	-webkit-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	-o-user-select: none;
+	user-select: none;
+}
+
+.RHButtonBox > *, .RHBox > .RLabel, .RImage {
+	-webkit-align-self: center; /* Safari 7.0+ */
+	align-self: center;
+}
+
+.CodeError {
+	position: absolute;
+	background: rgb(254,187,187); /* Old browsers */
+	background: -moz-linear-gradient(top,  rgba(254,187,187,1) 0%, rgba(254,144,144,1) 45%, rgba(255,92,92,1) 100%); /* FF3.6+ */
+	background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,rgba(254,187,187,1)), color-stop(45%,rgba(254,144,144,1)), color-stop(100%,rgba(255,92,92,1))); /* Chrome,Safari4+ */
+	background: -webkit-linear-gradient(top,  rgba(254,187,187,1) 0%,rgba(254,144,144,1) 45%,rgba(255,92,92,1) 100%); /* Chrome10+,Safari5.1+ */
+	background: -o-linear-gradient(top,  rgba(254,187,187,1) 0%,rgba(254,144,144,1) 45%,rgba(255,92,92,1) 100%); /* Opera 11.10+ */
+	background: -ms-linear-gradient(top,  rgba(254,187,187,1) 0%,rgba(254,144,144,1) 45%,rgba(255,92,92,1) 100%); /* IE10+ */
+	background: linear-gradient(to bottom,  rgba(254,187,187,1) 0%,rgba(254,144,144,1) 45%,rgba(255,92,92,1) 100%); /* W3C */
+	filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#febbbb', endColorstr='#ff5c5c',GradientType=0 ); /* IE6-9 */
+}
+
+.CodeBreakpoint {
+	-webkit-border-radius: 3px 50px 50px 3px;
+	-moz-border-radius: 3px 50px 50px 3px;
+	border-radius: 3px 50px 50px 3px;
+	background: rgb(222,239,255); /* Old browsers */
+	background: -moz-linear-gradient(top,  rgba(222,239,255,1) 0%, rgba(152,190,222,1) 100%); /* FF3.6+ */
+	background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,rgba(222,239,255,1)), color-stop(100%,rgba(152,190,222,1))); /* Chrome,Safari4+ */
+	background: -webkit-linear-gradient(top,  rgba(222,239,255,1) 0%,rgba(152,190,222,1) 100%); /* Chrome10+,Safari5.1+ */
+	background: -o-linear-gradient(top,  rgba(222,239,255,1) 0%,rgba(152,190,222,1) 100%); /* Opera 11.10+ */
+	background: -ms-linear-gradient(top,  rgba(222,239,255,1) 0%,rgba(152,190,222,1) 100%); /* IE10+ */
+	background: linear-gradient(to bottom,  rgba(222,239,255,1) 0%,rgba(152,190,222,1) 100%); /* W3C */
+	filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#deefff', endColorstr='#98bede',GradientType=0 ); /* IE6-9 */
+}
+
+.FileUploader {
+	opacity:0;
+	height:0px;
+	width:0px;
+}
+
+.RTextView > p, .RTextViewTag > p, .RTextViewHighlight > p {
+	display: inline !important;
+	margin: 0px;
+	padding: 0px;
+}
+
+.RTextView {
+	min-height: 100px;
+	white-space: pre-wrap;
+	-webkit-user-select: text !important;
+	-moz-user-select: text !important;
+	-ms-user-select: text !important;
+	-o-user-select: text !important;
+	user-select: text !important;
+}
+
+.RTextViewHighlight {
+	border-bottom: 1px dashed red;
+	display: inline;
+}
+
+.RTextViewTag {
+	display: inline;
+}
+
+.RComboBoxEditContainer {
+	width: 100%;
+}
+
+.RNotify {
+	margin: 0px;
+}
+
+.RFixed {
+	position: relative;
+}
+
+.RNoRelief {
+	background: transparent;
+	border: 0px;	
+}
+
+.RNotebookPageLink {
+	color: #999;
+}
+
+.RMenuToolButtonCaret {
+	text-decoration: inherit !important;
+	color: inherit !important;
+}
+
+.RMenuItemAccelKey {
+	float: right;
+	margin-right: -6px;	
+}
+
+.RMenuItemChecked > a:before {
+	padding-right: 5px;
+	content: "\2705";
+	color: lightgray;
+}
+.RMenuItem > a {
+	box-shadow: none !important;
+}
+
+.RMenuItem > a > * {
+	box-shadow: none !important;
+}
+
+.RMenuLabel {
+	display: inline;
+}
+
+.RVScrollBar {
+	overflow-x: hidden;
+	overflow-y: scroll;
+}
+
+.RHScrollBar {
+	overflow-x: scroll;
+	overflow-y: hidden;
+}
+
+.RNotebookPageLink > .RHBox > .RLabel,
+.RNotebookPageLink > .RHBox > .REventBox,
+.RNotebookPageLink > .RHBox > .RButton {
+	padding-left: 5px;
+}
+
+.active > .RNotebookPageLink {
+	background: rgb(255,255,255);
+	background: -moz-linear-gradient(top,  rgba(255,255,255,1) 0%, rgba(246,246,246,1) 47%, rgba(237,237,237,1) 100%);
+	background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,rgba(255,255,255,1)), color-stop(47%,rgba(246,246,246,1)), color-stop(100%,rgba(237,237,237,1)));
+	background: -webkit-linear-gradient(top,  rgba(255,255,255,1) 0%,rgba(246,246,246,1) 47%,rgba(237,237,237,1) 100%);
+	background: -o-linear-gradient(top,  rgba(255,255,255,1) 0%,rgba(246,246,246,1) 47%,rgba(237,237,237,1) 100%);
+	background: -ms-linear-gradient(top,  rgba(255,255,255,1) 0%,rgba(246,246,246,1) 47%,rgba(237,237,237,1) 100%);
+	background: linear-gradient(to bottom,  rgba(255,255,255,1) 0%,rgba(246,246,246,1) 47%,rgba(237,237,237,1) 100%);
+	filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#ffffff', endColorstr='#ededed',GradientType=0 );
+	color: #888;
+}
+
+.RNotebookTabs {
+	background: rgb(238,238,238);
+	background: -moz-linear-gradient(top,  rgba(238,238,238,1) 0%, rgba(204,204,204,1) 100%);
+	background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,rgba(238,238,238,1)), color-stop(100%,rgba(204,204,204,1)));
+	background: -webkit-linear-gradient(top,  rgba(238,238,238,1) 0%,rgba(204,204,204,1) 100%);
+	background: -o-linear-gradient(top,  rgba(238,238,238,1) 0%,rgba(204,204,204,1) 100%);
+	background: -ms-linear-gradient(top,  rgba(238,238,238,1) 0%,rgba(204,204,204,1) 100%);
+	background: linear-gradient(to bottom,  rgba(238,238,238,1) 0%,rgba(204,204,204,1) 100%);
+	filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#eeeeee', endColorstr='#cccccc',GradientType=0 );
+}
+
+.RNotebookTabs > li > * {
+	min-height: 43px;
+	color: #777;
+}
+
+.RMenubar {
+	margin-bottom: 0px;
+}
+
+.RCaret {
+	position: absolute;
+	right: 10px;
+	top: 48%;
+}
+
+.RVDivider {
+	cursor: n-resize;
+	min-height: 8px;
+	height: 8px;
+}
+
+.RHDivider {
+	cursor: e-resize;
+	min-width: 8px;
+	width: 8px;
+}
+
+.RCalendar > div > div > table > thead > tr:first-child {
+	background-image:-webkit-linear-gradient(top,#428bca 0,#2d6ca2 100%);
+	background-image:-o-linear-gradient(top,#428bca 0,#2d6ca2 100%);
+	background-image:-webkit-gradient(linear,left top,left bottom,from(#428bca),to(#2d6ca2));
+	background-image:linear-gradient(to bottom,#428bca 0,#2d6ca2 100%);
+	filter:progid:DXImageTransform.Microsoft.gradient(startColorstr='#ff428bca', endColorstr='#ff2d6ca2', GradientType=0);
+	filter:progid:DXImageTransform.Microsoft.gradient(enabled=false);
+	background-repeat:repeat-x;
+	border-color:#2b669a
+	text-shadow: 0px -1px 0px rgba(0, 0, 0, 0.2);
+	box-shadow: 0px 1px 0px rgba(255, 255, 255, 0.15) inset, 0px 1px 1px rgba(0, 0, 0, 0.075);
+	color: #FFF;
+}
+
+.RCalendar > div > div > table {
+	min-width: 260px;
+}
+
+/*.RScrolledWindow > * {
+	height: 100%;
+	width: 100%;
+}*/
+
+.RScintilla {
+	height: 100%;
+	width: 100%;
+	margin: 0px;
+}
+
+.REventBox {
+	display: -webkit-flex;
+	display: flex;
+	overflow: hidden;
+}
+
+.RNotebookPages {
+	width: 100%;
+}
+
+.REditComboBoxButton {
+	height: 100%;
+	min-height: 43px;
+	padding: 5px;
+}
+
+.RComboBoxItems {
+	height: auto;
+	max-height: 250px;
+	overflow-x: hidden;
+	z-index: 10000000;
+}
+
+.RTable {
+	display: table;
+	width: 100%;
+	//border-spacing: 5px;
+	border-collapse: separate;
+	//height: 0px;
+	table-layout: fixed;
+}
+
+.RIconViewContainer {
+	padding-left: 0px;
+	list-style: outside none none;
+}
+.RIconViewContainer li {
+	float: left;
+	padding: 10px;
+	line-height: 1.4;
+}
+
+.RIconViewContainer li:hover {
+	color: #fff;
+	background-color:#563d7c
+}
+
+.RIconViewItem {
+	display: block;
+	cursor: pointer;
+	-webkit-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	-o-user-select: none;
+	user-select: none;
+	font-size: 12px;
+	width: 150px;
+}
+
+.RIconViewItemVertical {
+	text-align: center;
+}
+
+.RIconViewItemIconHorizontal {
+	float: left;
+}
+
+.RIconViewItemHorizontal {
+	float: none;
+	text-align: left;
+}
+
+.RIconViewDataIcon {
+	overflow: hidden;
+}
+
+.RIconViewData {
+	display: block;
+	word-wrap: break-word;
+	-webkit-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	-o-user-select: none;
+	user-select: none;
+}
+
+.RComboBoxColumn {
+	float: left;
+}
+
+.RComboBoxItem > .RComboBoxColumn {
+	margin-left: 10px;
+	//margin-bottom: 10px;
+} 
+
+.RComboBoxItem {
+	display: table;
+	height: 100%;
+	overflow: hidden;
+	position: relative;
+	width: 100%;
+}
+
+.RSpinButtonContainer {
+	height: 43px;
+	width: 22px;
+}
+
+.RSpinButtonButton {
+	height: 22px;
+}
+
+.RComboBoxButton {
+	width: 100%;
+}
+
+.RComboBoxButton > span {
+	float:right;
+}
+
+.RAlignment {
+	display: -webkit-flex;
+	display: flex;
+	vertical-align: top;
+	align: left;
+}
+
+.RScrolledWindow {
+	overflow: auto;
+	max-width: 100%;
+	width: 1px;
+	//height: 100vh;
+	//display: flex;
+	//flex-direction: column;
+}
+
+.RToolbar {
+	display: -webkit-flex;
+	display: flex;
+}
+
+.RToolbarVertical {
+	display: -webkit-flex;
+	display: flex;
+
+	-webkit-flex-direction: column;
+	flex-direction: column;
+	flow: v-flow;
+}
+
+.RToolbar > .btn-group, .btn-group-vertical, .RToolbarVertical, .RToolbar, .RStatusbar {
+	backgorund: rgba(0,0,0,1);
+}
+
+.RToolButton {
+	min-height: 32px;
+}
+
+.RToolButtonImage {
+	float: left;
+}
+
+.RToolButtonLabel {
+	display: none;
+	float: left;
+	padding-left: 3px;
+}
+
+.RToolMenuButtonLabel {
+	padding-right: 15px;
+}
+
+.RToolbarIconsOnly > * > * > .RToolButtonLabel {
+	display: none;
+}
+
+.RToolbarLabelsOnly > * > * > .RToolButtonImage {
+	display: none;
+}
+
+.RToolbar > .btn-group {
+	margin-right: 5px;
+}
+
+.RToolbarVertical > .btn-group-vertical {
+	margin-bottom: 10px;
+}
+
+.RTableRow {
+	display: table-row;
+	width: 100%;
+	flow: v-flow;
+	height: auto;
+}
+
+.RTableCell {
+	display: table-cell;
+	vertical-align: middle;
+	height: 100%;
+	padding: 5px;
+}
+
+.RLabel {
+	display: block;
+	white-space: nowrap;
+	text-align: center;
+	margin: 0px;
+	padding: 0px;
+	cursor: default;
+}
+
+.RForm {
+	display: block;
+	top: 0px;
+	width: 100%;
+	overflow: hidden;
+}
+
+.RFormHeader {
+	cursor: grab;
+}
+
+.RFormHeader:active {
+	cursor: grabbing;
+}
+
+.RChildForm > * {
+	flex-grow: 1;
+	flex-shrink: 0;
+}
+
+.RChildForm {
+	display: -webkit-flex;
+	display: flex;
+	//width: 80%;
+	max-height: 90vh;
+}
+
+.REditSuggest {
+	display: block;
+	max-height: 50vh;
+	width: 100%;
+	overflow-y: auto;
+	overflow-x: hidden;
+}
+
+.REdit {
+	display: block;
+}
+
+.REditPrimaryContainer {
+	display: block;
+	width: 0px;
+}
+
+.REditContainer {
+	width: 100%;
+}
+
+.REditIcon {
+	padding: 2px 10px;
+	width: 0px;
+}
+
+.RHBox {
+	flow: h-flow;
+	display: -webkit-flex;
+	display: flex;
+}
+
+.RHButtonBox {
+	flow: h-flow;
+	display: -webkit-flex;
+	display: flex;
+
+	-webkit-flex-pack: end;
+	flex-pack: end;
+
+	align-items: center;
+	justify-content: flex-end;
+}
+
+/*
+.RHButtonBox {
+	display: box;
+	display: -moz-box;
+	display: -webkit-box;
+	display: -ms-flexbox;
+	display: -webkit-flex;
+	
+	box-orient: horizontal;
+	-moz-box-orient: horizontal;
+	-webkit-box-orient: horizontal;
+	-ms-box-orient: horizontal;
+
+	box-align: center;
+	-moz-box-align: center;
+	-webkit-box-align: center;
+	-ms-flex-align: center;
+		
+	box-pack: end;
+	-moz-box-pack: end;
+	-webkit-box-pack: end;
+	-ms-flex-pack: end;
+
+	flow: h-flow;
+}
+*/
+
+.RHButtonBox > * {
+	margin-left: 10px;
+	//float: left;
+}
+
+
+/*.RHButtonBox > .RToolbar {
+	float: left;
+}*/
+
+.RVButtonBox {
+	display: box;
+	display: -moz-box;
+	display: -webkit-box;
+	display: -ms-flexbox;
+	
+	box-orient: vertical;
+	-moz-box-orient: vertical;
+	-webkit-box-orient: vertical;
+	-ms-box-orient: vertical;
+
+	box-align: center;
+	-moz-box-align: center;
+	-webkit-box-align: center;
+	-ms-flex-align: center;
+		
+	box-pack: end;
+	-moz-box-pack: end;
+	-webkit-box-pack: end;
+	-ms-flex-pack: end;
+
+	flow: v-flow;
+}
+
+.RVButtonBox > * {
+	margin-top: 10px;
+}
+
+.RPropertiesBox {
+	flow: v-flow;
+	border: 1px solid gray;
+}
+
+.RPropertiesBoxCategory {
+	float: left;
+	clear: both;
+	font-weight: bold;
+	width: 100%;
+	margin-top: 2px;
+	background-color: black;
+	color: white;
+}
+
+.RPropertiesBox > * {
+	float: left;
+	display: block;
+	font-size: 12px;
+	padding-bottom: 0px;
+	padding-top: 0px;
+}
+
+.RPropertiesBox > label {
+	width: 45%;
+	clear: both;
+}
+
+.RPropertiesBox > input[type=text],
+.RPropertiesBox > textarea,
+.RPropertiesBox > select {
+	width: 55%;
+}
+
+.RPropertiesBox > input,
+.RPropertiesBox > select {
+	height: 23px;
+}
+
+.RPropertiesBoxImportant {
+	font-weight: bold;
+}
+
+.RCentered {
+	-webkit-box-align: center;
+	-moz-box-align: center;
+	box-align: center;  
+	align-items: center;
+}
+
+.RVBox {
+	display: -webkit-flex;
+	display: flex;
+
+	-webkit-flex-direction: column;
+	flex-direction: column;
+	flow: v-flow;
+}
+
+.RVPaned {
+	display: -webkit-flex;
+	display: flex;
+
+	-webkit-flex-direction: column;
+	flex-direction: column;
+
+	flow: v-flow;
+}
+
+.RHPaned {
+	flow: h-flow;
+}
+
+.RWebView {
+	display: block;
+	width: 100%;
+	height: 100%;
+	min-height: 500px;
+	border: none;
+}
+
+//.RScrolledWindow > * {
+//	flex-grow: 1;
+//}
+
+.RTreeViewHeader {
+	background-color: #333;
+	color: #FFF;
+}
+
+.RTreeView > thead > tr > th {
+	white-space: nowrap;
+}
+
+.RTreeView > thead > tr > th > a {
+	text-decoration: inherit !important;
+	color: inherit !important;
+}
+
+.RTreeView > tbody > tr > td {
+	white-space: pre-wrap
+}
+
+.RTreeViewSelectedItem > td {
+	background-color: lightblue;
+}
+
+.RTreeViewBorderHorizontal > table > thead > tr > th, .RTreeViewBorderHorizontal > table > tbody > tr > td  {
+	border-left: 1px solid gray;
+	border-right: 1px solid gray;
+}
+
+.RTreeViewBorderVertical > table > thead > tr > th, .RTreeViewBorderVertical > table > tbody > tr > td  {
+	border-top: 1px solid gray;
+	border-bottom: 1px solid gray;
+}
+
+.RTreeViewBorder > table > thead > tr > th, .RTreeViewBorder > table > tbody > tr > td  {
+	border: 1px solid gray;
+}
+
+.RTreeViewEdit {
+	color: inherit;
+	background-color: transparent;
+	border: 0px;
+}
+
+.RTreeViewEdit:focus {
+	color: black;
+	background-color: white;
+	border: 1px solid;
+	border: 1px solid rgba(81, 203, 238, 1);
+}
+
+.SortableColumn.SortableDescending:before {
+	padding-right: 5px;
+	content: "\25BC";
+	color: lightgray;
+}
+
+.SortableColumn.SortableAscending:before {
+	padding-right: 5px;
+	content: "\25B2";
+	color: lightgray;
+}
+
+.RTreeView {
+	cursor: default;
+	height: 0px;
+}
+
+.RTreeViewExpanderColumn {
+	width: 0px;
+	text-align: right;
+	vertical-align: middle;
+}
+
+.RTreeViewCollapse:before {
+	content: "\25BC";
+}
+
+.RTreeViewCollapse {
+	padding-right: 5px;
+	color:gray;
+	text-decoration: none;
+	font-size: 12px;
+	line-height: 12px;
+}
+
+.RTreeViewExpand:before {
+	content: "\25B6";
+}
+
+.RTreeViewExpand {
+	padding-right: 5px;
+	color:gray;
+	text-decoration: none;
+	font-size: 12px;
+	line-height: 12px;
+}
+
+.RMessageBoxInput {
+	width: 100%;
+}
+
+.RMessageBoxPassword {
+	width: 300px;
+}
+
+.RMessageBoxIcon {
+	width: 32px;
+	height: 32px;
+	align: left;
+	margin-right: 10px;
+	border: none;
+}
+
+.RMenu {
+	width: auto;
+}
+
+.RButtonImage {
+	float: left;
+	margin-right: 5px;
+	display: inline-block;
+	vertical-align: middle;
+}
+
+.RMenuImage {
+	margin-right: 10px;
+}
+
+.RButtonLabel {
+	display: inline-block;
+	vertical-align: middle;
+	margin-right: 10px;
+	white-space: nowrap;
+}
+
+/*.RExpanderContent > .RScrolledWindow {
+	max-height: 300px;
+	-webkit-flex-grow: 1;
+	-webkit-flex-shrink: 0;
+	flex-grow: 1;
+	flex-shrink: 0;
+}*/
+
+.RExpander {
+	/*border: 1px solid #eee;*/
+	display: -webkit-flex;
+	display: flex;
+
+	-webkit-flex-direction: column;
+	flex-direction: column;
+}
+
+.RExpanderButton {
+	border-left: 1px solid #eee;
+	border-top: none;
+	border-bottom: none;
+	border-right: none;
+	background: transparent;
+	font-weight: bold;
+	text-align: left;
+}
+
+.RExpanderButtonCollapsed:before {
+	content: "\25B6";
+	padding-right: 10px;
+}
+
+.RExpanderButtonExpanded:before {
+	content: "\25BC";
+	padding-right: 10px;
+}
+
+.RExpanderContent {
+	border-left: 1px solid #eee;
+	flex-grow: 1;
+	flex-shrink: 1;
+	-webkit-flex-grow: 1;
+	-webkit-flex-shrink: 1;
+}
+
+.RVideoCanvas {
+	margin: auto;
+	display: block;
+	padding: 0px;
+}
+
+label {
+	font-weight: normal;
+	padding: 5px;
+	vertical-align: middle;
+}
+
+
+/* ===================================================== *
+ * Miscelaneous CSS                                      *
+ * ===================================================== */
+.dropdown-submenu {
+    position:relative;
+}
+.dropdown-submenu>.dropdown-menu {
+    top:0;
+    left:100%;
+    margin-top:-6px;
+    margin-left:-1px;
+    -webkit-border-radius:0 6px 6px 6px;
+    -moz-border-radius:0 6px 6px 6px;
+    border-radius:0 6px 6px 6px;
+}
+.dropdown-submenu:hover>.dropdown-menu {
+    display:block;
+}
+.dropdown-submenu>a:after {
+    display:block;
+    content:" ";
+    float:right;
+    width:0;
+    height:0;
+    border-color:transparent;
+    border-style:solid;
+    border-width:5px 0 5px 5px;
+    border-left-color:#cccccc;
+    margin-top:5px;
+    margin-right:-10px;
+}
+.dropdown-submenu:hover>a:after {
+    border-left-color:#ffffff;
+}
+.dropdown-submenu.pull-left {
+    float:none;
+}
+/* ===================================================== */
+/* custom inclusion of right, left and below tabs */
+
+.tabs-left, .tabs-right {
+	display: -webkit-flex;
+	display: flex;
+}
+
+.tabs-left > ul, .tabs-right > ul {
+	//display: table;
+}
+
+.tabs-below > .nav-tabs,
+.tabs-right > .nav-tabs,
+.tabs-left > .nav-tabs {
+  border-bottom: 0;
+}
+
+.tab-content > .tab-pane,
+.pill-content > .pill-pane {
+  display: none;
+}
+
+.tab-content > .active,
+.pill-content > .active {
+  display: block;
+}
+
+//.tab-content > .active {
+//  display: flex;
+//}
+
+.tabs-below > .nav-tabs {
+  border-top: 1px solid #ddd;
+}
+
+.tabs-below > .nav-tabs > li {
+  margin-top: -1px;
+  margin-bottom: 0;
+}
+
+.tabs-below > .nav-tabs > li > a {
+  -webkit-border-radius: 0 0 4px 4px;
+     -moz-border-radius: 0 0 4px 4px;
+          border-radius: 0 0 4px 4px;
+}
+
+.tabs-below > .nav-tabs > li > a:hover,
+.tabs-below > .nav-tabs > li > a:focus {
+  border-top-color: #ddd;
+  border-bottom-color: transparent;
+}
+
+.tabs-below > .nav-tabs > .active > a,
+.tabs-below > .nav-tabs > .active > a:hover,
+.tabs-below > .nav-tabs > .active > a:focus {
+  border-color: transparent #ddd #ddd #ddd;
+}
+
+.tabs-left > .nav-tabs > li,
+.tabs-right > .nav-tabs > li {
+  float: none;
+}
+
+.tabs-left > .nav-tabs > li > a,
+.tabs-right > .nav-tabs > li > a {
+  min-width: 74px;
+  margin-right: 0;
+  margin-bottom: 3px;
+}
+
+.tabs-left > .nav-tabs {
+  float: left;
+  margin-right: 19px;
+  border-right: 1px solid #ddd;
+}
+
+.tabs-left > .nav-tabs > li > a {
+  margin-right: -1px;
+  -webkit-border-radius: 4px 0 0 4px;
+     -moz-border-radius: 4px 0 0 4px;
+          border-radius: 4px 0 0 4px;
+}
+
+.tabs-left > .nav-tabs > li > a:hover,
+.tabs-left > .nav-tabs > li > a:focus {
+  border-color: #eeeeee #dddddd #eeeeee #eeeeee;
+}
+
+.tabs-left > .nav-tabs .active > a,
+.tabs-left > .nav-tabs .active > a:hover,
+.tabs-left > .nav-tabs .active > a:focus {
+  border-color: #ddd transparent #ddd #ddd;
+  *border-right-color: #ffffff;
+}
+
+.tabs-right > .nav-tabs {
+  float: right;
+  margin-left: 19px;
+  border-left: 1px solid #ddd;
+}
+
+.tabs-left > .RNotebookPages > .RNotebookPage {
+	margin-right: 19px;
+}
+
+.tabs-right > .nav-tabs > li > a {
+  margin-left: -1px;
+  -webkit-border-radius: 0 4px 4px 0;
+     -moz-border-radius: 0 4px 4px 0;
+          border-radius: 0 4px 4px 0;
+}
+
+.tabs-right > .nav-tabs > li > a:hover,
+.tabs-right > .nav-tabs > li > a:focus {
+  border-color: #eeeeee #eeeeee #eeeeee #dddddd;
+}
+
+.tabs-right > .nav-tabs .active > a,
+.tabs-right > .nav-tabs .active > a:hover,
+.tabs-right > .nav-tabs .active > a:focus {
+  border-color: #ddd #ddd #ddd transparent;
+  *border-left-color: #ffffff;
+}
+.spinner {
+  width: 100px;
+}
+.spinner input {
+  text-align: right;
+  width: 100%;
+}
+.input-group-btn-vertical {
+  position: relative;
+  white-space: nowrap;
+  vertical-align: middle;
+  display: table-cell;
+}
+.input-group-btn-vertical > .btn {
+  display: block;
+  float: none;
+  width: 100%;
+  max-width: 100%;
+  padding: 8px;
+  margin-left: -1px;
+  position: relative;
+  border-radius: 0;
+  width: 20px;
+}
+.input-group-btn-vertical > .btn:first-child {
+  border-top-right-radius: 4px;
+}
+.input-group-btn-vertical > .btn:last-child {
+  margin-top: -1px;
+  border-bottom-right-radius: 4px;
+}
+.input-group-btn-vertical i{
+  position: absolute;
+  top: 0;
+  left: 4px;
+}
+
+.btn-file {
+	position: relative;
+	overflow: hidden;
+	width: 100%;
+}
+
+.btn-file input[type=file] {
+	position: absolute;
+	top: 0;
+	right: 0;
+	min-width: 100%;
+	min-height: 100%;
+	font-size: 100px;
+	text-align: right;
+	filter: alpha(opacity=0);
+	opacity: 0;
+	outline: none;
+	background: white;
+	cursor: inherit;
+	display: block;
+}

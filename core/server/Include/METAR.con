@@ -1,0 +1,499 @@
+include URL.con
+import standard.C.time
+import standard.C.math
+
+define DEFAULT_METAR_URL	"ftp://tgftp.nws.noaa.gov/data/observations/metar/stations/[STATION_ID].TXT"
+
+define MODIFIER_LIGHT		"+"
+define MODIFIER_HEAVY		"-"
+define MODIFIER_VECINITY 	"VC"
+define MODIFIER_NONE		""
+
+class METARRec {
+	public var Raw="";
+	public var Station="";
+	public var Time="";
+	public var Modifier="NONE";
+	public var WindDirection=0;
+	public var WindDirectionFrom=0;
+	public var WindDirectionTo=0;
+	public var WindVariable=false;
+	public var WindKT=0;
+	public var WindMS=0;
+	public var WindKH=0;
+	public var WindGustKT=0;
+	public var WindGustMS=0;
+	public var WindGustKH=0;
+	public var Visibility=9999;
+	public var Intensity=MODIFIER_NONE;
+	public var Scattered=false;
+	public var ScatteredAltitude=0;
+	public var ScatteredAltitudeM=0;
+	public var Clear=false;
+	public var Broken=false;
+	public var BrokenAltitude=0;
+	public var BrokenAltitudeM=0;
+	public var Few=false;
+	public var FewAltitude=0;
+	public var FewAltitudeM=0;
+	public var Overcast=false;
+	public var OvercastAltitude=0;
+	public var OvercastAltitudeM=0;
+
+	public var NonSignificant=false;
+	public var Tempo=false;
+	public var TempoIntensity=MODIFIER_NONE;
+
+	public var Snow=false;
+	public var Rain=false;
+	public var TempoSnow=false;
+	public var TempoRain=false;
+
+	public var SnowGrains=false;
+	public var TempoSnowGrains=false;
+
+	public var Drizzle=false;
+	public var TempoDrizzle=false;
+
+	public var Shallow=false;
+	public var Patches=false;
+	public var LowDrifting=false;
+	public var Blowing=false;
+	public var Showers=false;
+	public var Tunderstorm=false;
+	public var Freezing=false;
+	public var Partial=false;
+	public var IceCristals=false;
+	public var IcePellets=false;
+	public var IceGrains=false;
+	public var SmallHail=false;
+	public var UnknownPrecipitation=false;
+	public var Mist=false;
+	public var Fog=false;
+	public var Smoke=false;
+	public var Dust=false;
+	public var DustWhirls=false;
+	public var Sand=false;
+	public var Haze=false;
+	public var Spray=false;
+	public var VolcanicAsh=false;
+	public var Whirls=false;
+	public var Squalls=false;
+	public var FunnelCloud=false;
+	public var Tornado=false;
+	public var SandStorm=false;
+	public var DustStorm=false;
+	public var Thunderstorm=false;
+
+	public var TempoShallow=false;
+	public var TempoPatches=false;
+	public var TempoLowDrifting=false;
+	public var TempoBlowing=false;
+	public var TempoShowers=false;
+	public var TempoTunderstorm=false;
+	public var TempoFreezing=false;
+	public var TempoPartial=false;
+	public var TempoIceCristals=false;
+	public var TempoIcePellets=false;
+	public var TempoIceGrains=false;
+	public var TempoSmallHail=false;
+	public var TempoUnknownPrecipitation=false;
+	public var TempoMist=false;
+	public var TempoFog=false;
+	public var TempoSmoke=false;
+	public var TempoDust=false;
+	public var TempoDustWhirls=false;
+	public var TempoSand=false;
+	public var TempoHaze=false;
+	public var TempoSpray=false;
+	public var TempoVolcanicAsh=false;
+	public var TempoWhirls=false;
+	public var TempoSqualls=false;
+	public var TempoFunnelCloud=false;
+	public var TempoTornado=false;
+	public var TempoSandStorm=false;
+	public var TempoDustStorm=false;
+	public var TempoThunderstorm=false;
+
+	public var Temperature=0;
+	public var DewPoint=0;
+
+	public var TempoTemperature=0;
+	public var TempoDewPoint=0;
+}
+
+class METAR {
+	public var METARURL=DEFAULT_METAR_URL;
+
+	public function METAR() {
+	}
+
+	public function Translate(array metar, raw) {
+		var res=new METARRec();
+		var len=length metar;
+		res.Raw=raw;
+		res.Station=metar[0];
+		var t_arr=localtime(time());
+		var time_str=""+metar[1];
+		t_arr["tm_mday"]=time_str[0]+time_str[1];
+		t_arr["tm_hour"]=time_str[2]+time_str[3];
+		t_arr["tm_min"]=time_str[4]+time_str[5];
+		var is_dst=t_arr["tm_isdst"];
+		var timev=mktime(t_arr);
+		if (is_dst)
+			timev+=3600;
+		res.Time=timev;
+
+		var index=2;
+		var mod=""+metar[index];
+		if ((mod=="AUTO") || (mod=="COR")) {
+			res.Modifier=mod;
+			index++;
+		}
+		var wind=""+metar[index++];
+		res.WindDirection=wind[0]+wind[1]+wind[2];
+		if (res.WindDirection=="VRB")
+			res.WindVariable=true;
+		res.WindDirection=value res.WindDirection;
+		res.WindKT=value (""+wind[3]+wind[4]);
+		res.WindMS=round(res.WindKT*0.514);
+		res.WindKH=round(res.WindKT*1.852);
+		if (wind[5]=='G') {
+			res.WindGustKT=value (""+wind[6]+wind[7]);
+			res.WindGustMS=round(res.WindGustKT*0.514);
+			res.WindGustKH=round(res.WindGustKT*1.852);
+		}
+		if (Pos(metar[index],"V")==4) {
+			var sf=metar[index++];
+			res.WindDirectionFrom=value (""+sf[0]+sf[1]+sf[2]);
+			res.WindDirectionTo=value (""+sf[4]+sf[5]+sf[6]);
+		}
+		res.Visibility=metar[index++];
+		
+		var temp_index=index;
+		while (temp_index<len) {
+			var param=metar[temp_index++];
+			var lenparam=length (""+param);
+			var len_1=lenparam-1;
+			var base=1;
+			if (len_1<1)
+				len_1=0xFFFF;
+
+			if (param=="TEMPO") {
+				res.Tempo=true;
+			} else
+			if (param=="NOSIG")
+				res.NonSignificant=true;
+			else
+			if (Pos(param, "+")==1) {
+				if (res.Tempo)
+					res.TempoIntensity=MODIFIER_HEAVY;
+				else
+					res.Intensity=MODIFIER_HEAVY;
+				base++;
+			} else
+			if (Pos(param, "-")==1) {
+				if (res.Tempo)
+					res.TempoIntensity=MODIFIER_LIGHT;
+				else
+					res.Intensity=MODIFIER_LIGHT;
+				base++;
+			} else
+			if (Pos(param, "VC")==1) {
+				if (res.Tempo)
+					res.TempoIntensity=MODIFIER_VECINITY;
+				else
+					res.Intensity=MODIFIER_VECINITY;
+				base++;
+			}
+
+			
+			var pindex=Pos(param,'/');
+			var pindex2=Pos(param,'//');
+			if ((pindex>1) && (pindex!=pindex2)) {
+				if (res.Tempo) {
+					if (param[0]=='M')
+						param[0]="-";
+					if (param[pindex]=='M')
+						param[pindex]="-";
+					res.TempoTemperature=value SubStr(param,0,pindex-1);
+					res.TempoDewPoint=value SubStr(param,pindex,length param - pindex);
+				} else {
+					if (param[0]=='M')
+						param[0]="-";
+					if (param[pindex]=='M')
+						param[pindex]="-";
+					res.Temperature=value SubStr(param,0,pindex-1);
+					res.DewPoint=value SubStr(param,pindex,length param - pindex);
+				}
+			}
+
+			if (Pos(param, "MI")==base) {
+				if (res.Tempo)
+					res.TempoShallow=true;
+				else
+					res.Shallow=true;
+			} else
+			if (Pos(param, "BC")==base) {
+				if (res.Tempo)
+					res.TempoPatches=true;
+				else
+					res.Patches=true;
+			} else
+			if (Pos(param, "DR")==base) {
+				if (res.Tempo)
+					res.TempoLowDrifting=true;
+				else
+					res.LowDrifting=true;
+			} else
+			if (Pos(param, "BL")==base) {
+				if (res.Tempo)
+					res.TempoBlowing=true;
+				else
+					res.Blowing=true;
+			} else
+			if (Pos(param, "BL")==base) {
+				if (res.Tempo)
+					res.TempoBlowing=true;
+				else
+					res.Blowing=true;
+			} else
+			if (Pos(param, "SH")==base) {
+				if (res.Tempo)
+					res.TempoShowers=true;
+				else
+					res.Showers=true;
+			} else
+			if (Pos(param, "TS")==base) {
+				if (res.Tempo)
+					res.TempoThunderstorm=true;
+				else
+					res.Thunderstorm=true;
+			} else
+			if (Pos(param, "FZ")==base) {
+				if (res.Tempo)
+					res.TempoFreezing=true;
+				else
+					res.Freezing=true;
+			} else
+			if (Pos(param, "PR")==base) {
+				if (res.Tempo)
+					res.TempoPartial=true;
+				else
+					res.Partial=true;
+			}
+
+
+			if (Pos(param, "SN")==len_1) {
+				if (res.Tempo)
+					res.TempoSnow=true;
+				else
+					res.Snow=true;
+			} else
+			if (Pos(param, "RA")==len_1) {
+				if (res.Tempo)
+					res.TempoRain=true;
+				else
+					res.Rain=true;
+			} else
+			if (Pos(param, "DZ")==len_1) {
+				if (res.Tempo)
+					res.TempoDrizzle=true;
+				else
+					res.Drizzle=true;
+			} else
+			if (Pos(param, "SG")==len_1) {
+				if (res.Tempo)
+					res.TempoSnowGrains=true;
+				else
+					res.SnowGrains=true;
+			} else
+			if (Pos(param, "SG")==len_1) {
+				if (res.Tempo)
+					res.TempoSnowGrains=true;
+				else
+					res.SnowGrains=true;
+			} else
+			if (Pos(param, "IC")==len_1) {
+				if (res.Tempo)
+					res.TempoIceCristals=true;
+				else
+					res.IceCristals=true;
+			} else
+			if (Pos(param, "PL")==len_1) {
+				if (res.Tempo)
+					res.TempoIcePellets=true;
+				else
+					res.IcePellets=true;
+			} else
+			if (Pos(param, "GR")==len_1) {
+				if (res.Tempo)
+					res.TempoIceGrains=true;
+				else
+					res.IceGrains=true;
+			} else
+			if (Pos(param, "GS")==len_1) {
+				if (res.Tempo)
+					res.TempoSmallHail=true;
+				else
+					res.SmallHail=true;
+			} else
+			if (Pos(param, "UP")==len_1) {
+				if (res.Tempo)
+					res.TempoUnknownPrecipitation=true;
+				else
+					res.UnknownPrecipitation=true;
+			} else
+			if (Pos(param, "BR")==len_1) {
+				if (res.Tempo)
+					res.TempoMist=true;
+				else
+					res.Mist=true;
+			} else
+			if (Pos(param, "FG")==len_1) {
+				if (res.Tempo)
+					res.TempoFog=true;
+				else
+					res.Fog=true;
+			} else
+			if (Pos(param, "FU")==len_1) {
+				if (res.Tempo)
+					res.TempoSmoke=true;
+				else
+					res.Smoke=true;
+			} else
+			if (Pos(param, "DU")==len_1) {
+				if (res.Tempo)
+					res.TempoDust=true;
+				else
+					res.Dust=true;
+			} else
+			if (Pos(param, "SA")==len_1) {
+				if (res.Tempo)
+					res.TempoSand=true;
+				else
+					res.Sand=true;
+			} else
+			if (Pos(param, "HZ")==len_1) {
+				if (res.Tempo)
+					res.TempoHaze=true;
+				else
+					res.Haze=true;
+			} else
+			if (Pos(param, "PY")==len_1) {
+				if (res.Tempo)
+					res.TempoSpray=true;
+				else
+					res.Spray=true;
+			} else
+			if (Pos(param, "VA")==len_1) {
+				if (res.Tempo)
+					res.TempoVolcanicAsh=true;
+				else
+					res.VolcanicAsh=true;
+			} else
+			if (Pos(param, "PO")==len_1) {
+				if (res.Tempo)
+					res.TempoDustWhirls=true;
+				else
+					res.DustWhirls=true;
+			} else
+			if (Pos(param, "SQ")==len_1) {
+				if (res.Tempo)
+					res.TempoSqualls=true;
+				else
+					res.Squalls=true;
+			} else
+			if (Pos(param, "FC")==len_1) {
+				if (res.Tempo)
+					res.TempoFunnelCloud=true;
+				else
+					res.FunnelCloud=true;
+			} else
+			if (Pos(param, "+FC")==len_1) {
+				if (res.Tempo)
+					res.TempoTornado=true;
+				else
+					res.Tornado=true;
+			} else
+			if (Pos(param, "SS")==len_1) {
+				if (res.Tempo)
+					res.TempoSandStorm=true;
+				else
+					res.SandStorm=true;
+			} else
+			if (Pos(param, "DS")==len_1) {
+				if (res.Tempo)
+					res.TempoDustStorm=true;
+				else
+					res.DustStorm=true;
+			} else
+			switch (param[0]+param[1]+param[2]) {
+				case "SKC":
+				case "CLR":
+					res.Clear=true;
+					break;
+				case "SCT":
+					res.Scattered=true;
+					res.ScatteredAltitude=(value (""+param[3]+param[4]+param[5]))*100;
+					res.ScatteredAltitudeM=round(res.ScatteredAltitude*0.3048);
+					break;
+				case "FEW":
+					res.Few=true;
+					res.FewAltitude=(value (""+param[3]+param[4]+param[5]))*100;
+					res.FewAltitudeM=round(res.FewAltitude*0.3048);
+					break;
+				case "BKN":
+					res.Broken=true;
+					res.BrokenAltitude=(value (""+param[3]+param[4]+param[5]))*100;
+					res.BrokenAltitudeM=round(res.BrokenAltitude*0.3048);
+					break;
+				case "OVK":
+					res.Overcast=true;
+					res.OvercastAltitude=(value (""+param[3]+param[4]+param[5]))*100;
+					res.OvercastAltitudeM=round(res.OvercastAltitude*0.3048);
+					break;
+			}
+		}
+		var pos=0;
+		if ((pos=Pos(raw, " -"))>1)
+			res.Modifier=MODIFIER_LIGHT;
+		else
+		if ((pos=Pos(raw, " +"))>1)
+			res.Modifier=MODIFIER_HEAVY;
+		else
+		if ((pos=Pos(raw, " VC"))>1)
+			res.Modifier=MODIFIER_VECINITY;
+		return res;
+	}
+
+	public function Fetch(string station) {
+		var url_str=StrReplace(this.METARURL, "[STATION_ID]", ToUpper(trim(station)));
+		
+		var url=new URL();
+		url.Get(url_str);
+
+		var data="";
+		if ((url.IsSuccessful()) || (!url.Response)) {
+			data=ToUpper(url.Data);
+		} else {
+			throw "Couldn't fetch data from '$url_str'";
+		}
+
+		data=StrReplace(data,"\r","");
+		var data_arr=StrSplit(data, "\n");
+		if (data_arr)  {
+			var len=length data_arr;
+			if (len>1)
+				return this.Translate(StrSplit(data_arr[1], " "), data);
+			else
+				return this.Translate(StrSplit(data_arr[0], " "), data);
+		}
+		throw "Invalid metar data received ('$data')";
+	}
+
+	static function Get(string station) {
+		var metar=new METAR();
+		return metar.Fetch(station);
+	}
+}

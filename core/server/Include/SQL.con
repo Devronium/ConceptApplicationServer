@@ -1,0 +1,325 @@
+import standard.db.sqlite
+
+
+class SQL {
+	/*private */var db;
+	private var[] params;
+	private var[] named_params;
+	private var QUERY="";
+	private var stmt;
+	private var cloned;
+	private var links;
+	private var clone_owner;
+
+	public property Query { set SetQuery, get QUERY}
+	public property Error { get GetError }
+	public property ErrorCode { get GetErrorCode }
+
+	public function SQL(database) {
+		cloned=false;
+		links=0;
+		clone_owner=null;
+		if ((typeof database)=="string") {
+			db=DBOpen(database);
+			if (db)
+				stmt=DBNewStmt(db);
+		} else if ((classof database) == "SQL") {
+			cloned=true;
+			db=database.db;
+			database.links++;
+			clone_owner=database;
+		}
+	}
+
+	public function GetError() {
+		if (db) {
+			var err=DBError(db);
+			if (err=="not an error")
+				err="";
+			return err;
+		} else {
+			throw "Invalid database";
+		}
+	}
+
+	public function GetErrorCode() {
+		if (db) {
+			return DBErrorCode(db);
+		} else {
+			throw "Invalid database";
+		}
+	}
+
+	public function Open(database) {
+		SQL(database);
+	}
+
+	public function Close() {
+		if (!cloned) {
+			if (!links) {
+				DBClose(db);
+				db=0;
+			} else
+				links=-1;
+		} else {
+			clone_owner.links--;
+		}
+	}
+
+	public function SetBLOB(number index, number size) {
+		if (index<1)
+			throw "Index must be greater then one";
+		params[index-1]=[index,size];
+	}
+
+	public function SetBLOBName(string name, number size) {
+		named_params[name]=[name,size];
+	}
+
+	public function BLOB(number index, number size) {
+		if (typeof(index)=="numeric")
+			return SetBLOB(index,size);
+		else
+		if (typeof(index)=="string")
+			return SetBLOBName(index,size);
+		throw "Invalid index type (must be string or numeric)";
+	}
+
+	public function SetParameter(number index, parameter) {
+		if (index<1)
+			throw "Index must be greater then one";
+
+		if (typeof parameter == "numeric")
+			parameter=""+parameter;
+		else
+		if (typeof parameter != "string")
+			throw "Invalid parameter type";
+
+		params[index-1]=[index,parameter];
+	}
+
+	public function SetParameterByName(string name, parameter) {
+		if (typeof parameter == "numeric")
+			parameter=""+parameter;
+		else
+		if (typeof parameter != "string")
+			throw "Invalid parameter type";
+
+		named_params[name]=[name,parameter];
+	}
+
+	public function Parameter(index, parameter) {
+		if (typeof(index)=="numeric")
+			return SetParameter(index,parameter);
+		else
+		if (typeof(index)=="string")
+			return SetParameterByName(index,parameter);
+		throw "Invalid index type (must be string or numeric)";
+	}
+
+	public function ClearParameters() {
+		params=new [];
+		named_params=new [];
+		if (stmt)
+			DBClearBindings(stmt);
+	}
+
+	public function Execute() {
+		if (!stmt)
+			stmt=DBNewStmt(db);
+
+		if (!stmt)
+			throw "Error creating statement: "+this.Error;
+		var res=DBQuery(stmt,QUERY);
+
+		if (res) {
+			DBFree(stmt);
+			stmt=0;
+			throw "Error executing query: "+this.Error;
+		}
+		if (params) {
+			var len=length params;
+			for (var i=0;i<len;i++) {
+				var arr=params[i];
+				if (typeof arr[1]!="string")
+					DBBLOBBind(stmt,arr[0],arr[1]);
+				else
+					DBBind(stmt,arr[0],arr[1]);
+			}
+		}
+		if (named_params) {
+			len=length named_params;
+			for (i=0;i<len;i++) {
+				arr=named_params[i];
+				if (typeof arr[1]!="string")
+					DBBLOBNameBind(stmt,arr[0],arr[1]);
+				else
+					DBNameBind(stmt,arr[0],arr[1]);
+			}
+		}
+
+		if (!Error)
+			DBFirst(stmt);		
+
+		return true;
+	}
+
+	public function Free() {
+		if (stmt) {
+			DBFree(stmt);
+		}
+		ClearParameters();
+		if (db) {
+			stmt=DBNewStmt(db);
+		}
+	}
+
+	public function BeginTransaction() {
+		if (!stmt)
+			stmt=DBNewStmt(db);
+
+		if (!stmt)
+			throw "Error creating statement: "+this.Error;
+
+		DBQuery(stmt,"BEGIN;");
+		DBFirst(stmt);
+	}
+
+	public function Commit() {
+		if (!stmt)
+			stmt=DBNewStmt(db);
+
+		if (!stmt)
+			throw "Error creating statement: "+this.Error;
+
+		DBQuery(stmt,"COMMIT;");
+		DBFirst(stmt);
+	}
+
+	public function Rollback() {
+		if (!stmt)
+			stmt=DBNewStmt(db);
+
+		if (!stmt)
+			throw "Error creating statement: "+this.Error;
+
+		DBQuery(stmt,"ROLLBACK;");
+		DBFirst(stmt);
+	}
+
+	public function BLOBWrite(number index, number rowid, string buffer, number offset) {
+		var size_ret=DBDataWrite(stmt,index, rowid, buffer, offset);
+
+		if (size_ret<0)
+			throw "Error writing to BLOB: "+this.Error;
+
+		return size_ret;
+	}
+
+	public function BLOBRead(number index, number rowid, number size, number offset) {
+		var buffer="";
+		var size_ret=DBDataRead(stmt, index, rowid, buffer, size, offset);
+
+		if (size_ret<0)
+			throw "Error reading from BLOB: "+this.Error;
+
+		return buffer;
+	}
+
+	public function ColumnDeclType(number index) {
+		if (!stmt)
+			throw "No result set available";
+
+		return DBColumnDeclType(stmt,index);
+	}
+
+	public function ColumnName(number index) {
+		if (!stmt)
+			throw "No result set available";
+
+		return DBColumnName(stmt,index);
+	}
+
+	public function ColumnType(number index) {
+		if (!stmt)
+			throw "No result set available";
+
+		return DBColumnType(stmt,index);
+	}
+
+	public function Row() {
+		if (!stmt)
+			throw "No result set available";
+
+		var count=DBColumns(stmt);
+		var[] result;
+		for (var i=0;i<count;i++) {
+			var name=DBColumnName(stmt,i);
+			var data=DBData(stmt, i);
+			if (name)
+				result[name]=""+data;
+			else
+				result[length result]=""+data;
+		}
+		return result;
+	}
+
+	public function RowColumn(index) {
+		if (!stmt)
+			throw "No result set available";
+
+		var data=DBData(stmt, index);
+
+		return data;
+	}
+
+	public function Wrap(delegate deleg) {
+		if (db) {
+			return DBWrap(db, deleg);
+		} else {
+			throw "Invalid database";
+		}
+	}
+
+	public function First() {
+		if (!stmt)
+			throw "No result set available";
+
+		return DBFirst(stmt)!=-1;
+	}
+
+	public function Next() {
+		if (!stmt)
+			throw "No result set available";
+
+		return DBNext(stmt);
+	}
+
+	public function SetQuery(string data) {
+		QUERY=data;
+	}
+
+	public function GetLastRowID() {
+		if (db) {
+			return DBLastRowID(db);
+		} else {
+			throw "Invalid database";
+		}
+	}
+
+	public function Changes() {
+		if (db) {
+			return DBChanges(db);
+		} else {
+			throw "Invalid database";
+		}
+	}
+
+	public function finalize() {
+		if (stmt)
+			DBFree(stmt);
+
+		if (db)
+			Close();
+	}
+}

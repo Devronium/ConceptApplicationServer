@@ -1,0 +1,24 @@
+RMenuBar {
+	background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 darkgray, stop:1 black);
+}
+
+RMenuBar::item {
+	background-color: #000010;
+	spacing: 3px;
+	padding: 1px 6px;
+	background: transparent;
+	border-radius: 0px;
+	color: #F0F0FF;
+}
+
+RMenuBar::item:selected {
+	background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 lightgray, stop:1 darkgray);
+}
+
+RMenuBar::item:pressed {
+	background: #88a888;
+}
+
+RIconView::item {
+	background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #ffffff, stop:1 #afbfbf);
+}

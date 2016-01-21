@@ -1,0 +1,178 @@
+include RIconView.con
+include RAlignment.con
+include REdit.con
+include REventBox.con
+include RLabel.con
+include RScrolledWindow.con
+include RVBox.con
+include Lang.con
+include Application.con
+
+class RSearchBox extends RAlignment {
+        private var[] items;
+        private var DummyImage;
+        private var entry1;
+        private var treeview1;
+        private var lastquery="";
+        
+        public function RSearchBox(Owner, Lang S) {
+            super(Owner);
+            CApplication::BeginNonCritical();
+            this.TopPadding=10;
+            this.BottomPadding=10;
+            this.LeftPadding=10;
+            this.RightPadding=10;
+            this.Show();
+
+            var vbox1=new RVBox(this);
+            vbox1.Visible=true;
+            vbox1.Spacing=10;
+
+            var label1=new RLabel(vbox1);
+            label1.Packing=PACK_SHRINK;
+            label1.Visible=true;
+            label1.XAlign=0;
+            label1.Caption=S<<"Features";
+
+            entry1=new REdit(vbox1);
+            entry1.Packing=PACK_SHRINK;
+            entry1.Visible=true;
+            entry1.Border=false;
+            entry1.OnChanged=this.on_entry1_changed2;
+            entry1.OnActivate=this.on_entry1_activate;
+            entry1.OnIconRelease=this.on_entry1_activate;
+
+            //var viewport=new RViewPort(vbox1);
+            //viewport.ShadowType=SHADOW_NONE;
+            //viewport.Show();
+
+            var scrolledwindow1=new RScrolledWindow(vbox1);
+            scrolledwindow1.Visible=true;
+            scrolledwindow1.HScrollPolicy=POLICY_NEVER;
+            scrolledwindow1.VScrollPolicy=POLICY_AUTOMATIC;
+
+            treeview1=new RIconView(scrolledwindow1);
+            treeview1.Visible=true;
+            treeview1.Orientation=ORIENTATION_HORIZONTAL;
+            treeview1.OnButtonRelease=this.on_treeview1_item_activated;
+
+            var bgcolor=0x180052;
+            var fgcolor=0xFFFFFF;
+            var font="normal 14";
+            
+            label1.Font.Name=font;
+            label1.FgColor=fgcolor;
+            this.entry1.BgColor=0xFFFFFF;
+            this.entry1.FgColor=0x101010;
+            this.entry1.SecondaryIconName="gtk-find";
+            this.entry1.Font.Name=font;
+            scrolledwindow1.ShadowType=SHADOW_NONE;
+            //this.treeview1.BgColor=bgcolor;
+            //this.treeview1.FgColor=fgcolor;
+            this.treeview1.AddColumn("", IMAGE_COLUMN);
+            this.treeview1.AddColumn("", NORMAL_COLUMN);
+            this.treeview1.Font.Name="normal 12";
+            this.treeview1.ImageColumn=0;
+            this.treeview1.MarkupColumn=1;
+            this.treeview1.ItemWidth=160;
+            this.treeview1.Columns=1;
+            //this.BgColor=bgcolor;
+            //Owner.BgColor=bgcolor;
+            
+            CApplication::EndNonCritical();            
+        }
+        
+        public function RegisterFunction(image, function_name, function_description, deleg) {
+            if (!image) {
+                image=DummyImage;
+                if (!DummyImage) {
+                    DummyImage=new RImage(null);
+                    DummyImage.LoadResource("gtk-execute", 3);
+                    image=DummyImage;
+                }
+            } else {
+                var image2=new RImage(null);
+                image2.RenderImage=image;
+                image2.Scale(32, 32);
+                image=image2;
+            }
+            var forig=function_name;
+            var fdesc=function_description;
+            function_name=StrReplace(function_name, "&", "&amp;");
+            function_name=StrReplace(function_name, "<", "&lt;");
+            function_name=StrReplace(function_name, ">", "&gt;");
+            function_description=StrReplace(function_description, "&", "&amp;");
+            function_description=StrReplace(function_description, "<", "&lt;");
+            function_description=StrReplace(function_description, ">", "&gt;");
+            items[length items]=[image, function_name, function_description, deleg, ToLower(forig), ToLower(fdesc)];
+        }
+        
+        public function RenderInitial() {
+            this.on_entry1_activate(this.entry1, "");
+        }
+        
+        public function on_treeview1_item_activated(Sender, EventData) {
+            var index=this.treeview1.RowIndex;
+            if (index>-1) {
+                var e=this.treeview1.Items[index];
+                if (e) {
+                    var deleg=items[e[2]][3];
+                    if (deleg)
+                        deleg(Sender, EventData);
+                }
+            }
+        }
+        
+        public function on_entry1_activate(Sender, EventData) {
+            this.on_entry1_changed2(Sender, Sender.Text);
+            if (this.treeview1.Items.Count==1) {
+                var e=this.treeview1.Items[0];
+                if (e) {
+                    var deleg=items[e[2]][3];
+                    if (deleg)
+                        deleg(Sender, EventData);
+                }
+            }   
+        }
+
+        public function on_entry1_changed2(Sender, EventData) {
+            lastquery=EventData;
+            this.AddTimer(this.on_entry1_changed, 100);
+        }
+
+        public function on_entry1_changed(Sender, EventData) {
+            this.treeview1.Clear();
+            var tmp=items;
+            if (!tmp)
+                return;
+            var len=length tmp;
+            var items_added=0;
+            var look=ToLower(trim(lastquery));
+            for (var i=0;i<len;i++) {
+                var e=tmp[i];
+                if (e) {
+                    if (!look)
+                        this.treeview1.AddItem([e[0], e[1]+"\n<small>"+e[2]+"</small>", i]);
+                    else
+                    if (Pos(e[4], look)>0) {
+                        var s=StrReplace(e[1], look, "<b>$look</b>");
+                        var e2=[e[0], s+"\n<small>"+e[2]+"</small>", i];
+                        
+                        this.treeview1.AddItem(e2);
+                        items_added++;
+                    }
+                    if (Pos(e[5], look)>0) {
+                        s=StrReplace(e[2], look, "<b>$look</b>");
+                        e2=[e[0], e[1]+"\n<small>"+s+"</small>", i];
+                        
+                        this.treeview1.AddItem(e2);
+                        items_added++;
+                    }
+                }
+            }
+            if ((items_added) || (!look))
+                this.entry1.BgColor=0xFFFFFF;
+            else
+                this.entry1.BgColor=0xFFE0E0;
+        }
+}

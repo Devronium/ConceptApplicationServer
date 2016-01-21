@@ -1,0 +1,58 @@
+include 'VisibleControl.con'
+
+class Container extends VisibleControl {
+	protected var[] _ELEMENTS; 
+	protected var	_ELEM_COUNT;	
+	event _OnMessage triggers OnMessage;
+
+	public function Container(Owner, Class) {
+		//this->_ELEMENTS=new ArrayList();
+		this->VisibleControl(Owner, Class);
+	}
+
+	public function Clear() {
+		this->_ELEMENTS->Clear();
+	}
+
+	public function Delete(index) {
+		this->_ELEMENTS->DeleteElementByIndex(index);
+	} 
+
+	public function AddControl(ctrl) {
+		if (typeof ctrl==CLASS_TYPE) {
+			//this->_ELEMENTS->Add(ctrl,this->_ELEMENTS->Count);
+			this->_ELEMENTS[_ELEM_COUNT++]=ctrl;
+			ctrl->Parent=&this;
+		} else
+			throw new ControlException(EXC_INVALID_ARGUMENT_TYPE, this);
+	}
+
+	public function GetControl(index) {
+		return this->_ELEMENTS[index];//this->_ELEMENTS->GetElementByIndex(index); 
+	}
+
+	protected function ProcessChildMessage(Sender, ID, Target, Value) {
+		var _COUNT=this->_ELEM_COUNT;
+		for (var i=0;i<_COUNT;i++) {
+			var ELEMENT=&this->_ELEMENTS[i];
+
+			//if ((typeof ELEMENT==CLASS_TYPE) && (ELEMENT->Name==Sender))
+			ELEMENT->ProcessMessage(Sender, ID, Target, Value);
+		}
+	}
+
+	public function Container_ProcessMessage(Sender, ID, Target, Value) {
+		if (Sender!=this->_NAME)
+			this->ProcessChildMessage(Sender,ID,Target,Value);
+		else
+			this->VisibleControl_ProcessMessage(Sender, ID, Target, Value);
+		var result=this->_OnMessage(Sender,ID,Target,Value);
+		return result;
+	}
+
+	override ProcessMessage;
+	public function ProcessMessage(Sender, ID, Target, Value) {
+		return this->Container_ProcessMessage(Sender,ID,Target,Value);
+	}
+
+}

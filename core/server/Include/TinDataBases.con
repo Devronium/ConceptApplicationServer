@@ -1,0 +1,254 @@
+include TCPSocket.con
+include Binarizable.con
+import standard.lib.thread
+import standard.C.math
+import standard.lib.cripto
+import standard.C.time
+import standard.lib.str
+
+class Q {
+pragma used
+	var q = "";
+	var o = "Q";
+	var d = "";
+	var c = "";
+	var f = null;
+
+	var[] p;
+	var[] x;
+
+	Q(obj, db, c, op = "Q", q = "") {
+		this.o = op;
+		this.d = db;
+		this.c = c;
+		if (q)
+			this.q = q;
+		else
+			this.q = "Q" + Murmur("" + ClsPtr(this) + time() + rand());
+		if (typeof obj == "array")
+			this.p = obj;
+		else
+		if (typeof obj == "class")
+			this.p = ToArray(obj);
+	}
+
+	Send(socket) {
+		var to_send = BinarizeObject(this);
+		to_send = ToSize(length to_send) + to_send;
+		var offset = 0;
+		do {
+			var res = SocketWrite(socket, to_send, false, "", 0, false, offset);
+			if (res <= 0)
+				return res;
+			offset += res;
+		} while (offset < length to_send);
+		return offset;
+	}
+}
+
+class R {
+pragma used
+	var id = -1;
+	var q = "";
+	var e = false;
+	var et = "";
+	var[] p;
+}
+
+class TinConnection {
+	private var socket;
+	protected var[] ActiveQueries;
+	protected var InternalBuffer = "";
+	var Database;
+	var OnReconnectRequested;
+	private var[] ConnectOptions;
+
+	DriverOpen(string db, string host = "localhost", number port = 2668) {
+		InternalBuffer = "";
+		ActiveQueries = new [];
+		if (!db)
+			throw "TinConnection: No database specified";
+		var t = new TCPSocket();
+		if (!t.Connect("localhost", 2668))
+			return false;
+		socket = t;
+		this.Database = db;
+
+		ConnectOptions = [host, port];
+		return true;
+	}
+
+	_Handle(q, callback, userdata = null) {
+		if (!this.socket)
+			throw "TinConnection: Not connected";
+		if (q.Send(this.socket.Socket) > 0) {
+			if ((!IsSet(q.x, "silent")) && (callback)) {
+				if (userdata)
+					ActiveQueries[q.q] = [callback, userdata];
+				else
+					ActiveQueries[q.q] = callback;
+			}
+		} else
+			throw "TinConnection: Not connected";
+	}
+
+	protected _RemoveQuery(qid) {
+		var keys = GetKeys(ActiveQueries);
+		var[] res;
+		var q = null;
+		for (var i = 0; i < length keys; i++) {
+			var k = keys[i];	
+			if ((k) && (k != qid))
+				res[k] = ActiveQueries[k];
+		}
+		if (qid)
+			q = ActiveQueries[qid];
+		ActiveQueries = res;
+		return q;
+	}
+
+	Iterate(cli = false) {
+		if (!this.socket)
+			return cli;
+		while (this.socket.GetHasData()) {
+			var buf = this.socket.Read();
+			if (!buf) {
+				InternalBuffer = "";
+				ActiveQueries = new [];
+				if (this.OnReconnectRequested)
+					this.OnReconnectRequested(this);
+				return false;
+			}
+			InternalBuffer += buf;
+			var size = FromSize(InternalBuffer, var bytes);
+			while ((size > 0) && (size <= length InternalBuffer - bytes)) {
+				var buf2 = SubStr(InternalBuffer, bytes, size);
+				InternalBuffer = SubStr(InternalBuffer, bytes + size);
+				var obj = UnBinarizeObject(buf2);
+				if ((obj) && (IsSet(ActiveQueries, obj.q))) {
+					var callback = this._RemoveQuery(obj.q);
+					if (callback) {
+						var err;
+						if (obj.e)
+							err = [obj.e, obj.et];
+						if (typeof callback == "array") {
+							var deleg = callback[0];
+							deleg(obj.p, obj.id, err, callback[1]);
+						} else
+							callback(obj.p, obj.id, err);
+					}
+				}
+				size = FromSize(InternalBuffer, bytes);
+			}
+		}
+		return cli;
+	}
+
+	Disconnect() {
+		if (socket)
+			socket.Close();
+		socket = null;
+
+		InternalBuffer = "";
+		ActiveQueries = new [];
+	}
+}
+
+class TinDataSet {
+	var Connection;
+	var Collection;
+	var UserData = null;
+	protected var _private_data;
+
+	TinDataSet(Connection, string Collection) {
+		if (!Collection)
+			throw "TinDataSet: No collection specified";
+
+		this.Connection = Connection;
+		this.Collection = Collection;
+	}
+
+	Store(obj, multiple = false, callback = null) {
+		if (typeof obj != "array")
+			obj = ToArray(obj);
+
+		var q = new Q(obj, Connection.Database, this.Collection, "I");
+		if (!callback)
+			q.x["silent"] = true;
+		if (multiple)
+			q.x["multi"] = true;
+		this.Connection._Handle(q, callback, this.UserData);
+	}
+
+	Delete(obj, callback = null) {
+		if (typeof obj != "array")
+			obj = ToArray(obj);
+
+		var q = new Q(obj, Connection.Database, this.Collection, "D");
+		if (!callback)
+			q.x["silent"] = true;
+
+		this.Connection._Handle(q, callback, this.UserData);
+	}
+
+	Query(params, delegate callback, fields = null, len = 0, start = 0, descending = false) {
+		if (typeof params != "array")
+			params = ToArray(params);
+
+		var q = new Q(params, Connection.Database, this.Collection, "Q");
+		if (start)
+			q.x["start"] = start;
+		if (len)
+			q.x["len"] = len;
+		if (descending)
+			q.x["descending"] = descending;
+		q.f = fields;
+		this.Connection._Handle(q, callback, this.UserData);
+	}
+
+	protected _AuthDelegate(r, id, err, userdata = null) {
+		var callback = _private_data[3];
+		if ((!err) || (err[0] != -5)) {
+			_private_data = null;
+			if (userdata)
+				callback(r, id, err, userdata);
+			else
+				callback(r, id, err);
+			return;
+		}
+
+		var challenge = r["c"];
+		var username = _private_data[0];
+		var pass = sha256(username + ":" + challenge + ":" + sha256(_private_data[1]));
+		var db = _private_data[2];
+		var q = new Q(["u" => username, "d" => pass, "db" => db ], Connection.Database, this.Collection, "A");
+		this.Connection._Handle(q, callback, this.UserData);
+	}
+
+	Auth(string username, string password, string db = "", callback = null) {
+		_private_data = [ username, password, db, callback ];
+		var q = new Q([ ], Connection.Database, this.Collection, "A");
+		this.Connection._Handle(q, _AuthDelegate);
+	}
+
+	EnsureIndexes(array indexes) {
+		var q = new Q(indexes, Connection.Database, this.Collection, "X");
+		q.x["silent"] = true;
+		this.Connection._Handle(q, null);
+	}
+
+	Code(string code, remove = null, callback = null) {
+		var q = new Q(["code" => code, "remove" => remove], Connection.Database, this.Collection, "H");
+		this.Connection._Handle(q, callback);
+	}
+
+	Call(string functionname, parameters = null, callback = null) {
+		var q = new Q(["code" => functionname, "params" => parameters], Connection.Database, this.Collection, ".");
+		this.Connection._Handle(q, callback, this.UserData);
+	}
+
+	Triggers(array triggers, callback = null) {
+		var q = new Q(triggers, Connection.Database, this.Collection, "*");
+		this.Connection._Handle(q, callback, this.UserData);
+	}
+}

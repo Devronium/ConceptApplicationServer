@@ -1,0 +1,333 @@
+include RVBox.con
+include RScrolledWindow.con
+include Sheet/RSheet.con
+include RToolbar.con
+include RToolButton.con
+include RToolSeparator.con
+include Serializable.con
+include Application.con
+
+class DataContainer extends Serializable {
+    public var Matrix;
+    public var Format;
+}
+
+class RSheetEmulator extends RSheet {
+    protected var tool;
+    protected var ignore_clear;
+
+    private var LastCol;
+    private var LastRow;
+    private var LastRange;
+    
+    protected var[] matrix;
+    protected var[] format;
+    public property Text { set SetText, get GetText }
+
+    public function AddSeparator() {
+        var s=new RToolSeparator(tool);
+        s.Show();
+    }
+    
+    public function FormatRange(array range) {
+        var range_str=""+range[0]+";"+range[1]+";"+range[2]+";"+range[3];
+        if (!IsSet(format, range_str))
+            return 0;
+        var fmt=format[range_str];
+        var font_str="";
+        if ((IsSet(fmt, "bold")) && (fmt["bold"])) {
+            if (font_str)
+                font_str+=" ";
+            font_str+="bold";
+        }
+        if ((IsSet(fmt, "italic")) && (fmt["italic"])) {
+            if (font_str)
+                font_str+=" ";
+            font_str+="italic";
+        }
+        if ((IsSet(fmt, "underline")) && (fmt["underline"])) {
+            if (font_str)
+                font_str+=" ";
+            font_str+="underline";
+        }
+        if ((IsSet(fmt, "strikethrough")) && (fmt["strikethrough"])) {
+            if (font_str)
+                font_str+=" ";
+            font_str+="strikethrough";
+        }
+        
+        if ((IsSet(fmt, "bold")) || (IsSet(fmt, "italic")) || (IsSet(fmt, "strikethrough")) || (IsSet(fmt, "underline"))) {
+            if (!font_str)
+                font_str="normal";
+        }
+
+        if (IsSet(fmt, "font")) {
+            if (font_str)
+                font_str=" "+font_str;
+            this.SetRangeFont(range[0],range[1],range[2],range[3], fmt["font"]+font_str);
+        } else
+        if (font_str)
+            this.SetRangeFont(range[0],range[1],range[2],range[3], "Sans "+font_str+" 10");
+
+        if (IsSet(fmt, "forecolor"))
+            this.SetRangeForeground(range[0],range[1],range[2],range[3], fmt["forecolor"]);
+        if (IsSet(fmt, "backcolor"))
+            this.SetRangeBackground(range[0],range[1],range[2],range[3], fmt["backcolor"]);
+        if (IsSet(fmt, "align"))
+            this.SetRangeJustification(range[0],range[1],range[2],range[3], fmt["align"]);
+        return 1;
+    }
+
+    public function ButtonClicked(Sender, EventData) {
+        var action=Sender.UserData;
+        var state=this.State;
+        var range=0;
+        switch (state) {
+            case SHEET_ROW_SELECTED:
+                range=[this.LastRow,0,this.LastRow,this.Columns-1];
+                break;
+            case SHEET_COLUMN_SELECTED:
+                range=[0,this.LastCol,this.Rows-1,this.LastCol];
+                break;
+            case SHEET_RANGE_SELECTED:
+                range=StrNumberSplit(this.LastRange, ";");
+                break;
+            case SHEET_NORMAL:
+            default:
+                var active=this.ActiveCell;
+                range=active+active;
+        }
+        var range_str=""+range[0]+";"+range[1]+";"+range[2]+";"+range[3];
+        var format_arr=format[range_str];
+        if (!format_arr) {
+            format_arr=new [];
+            format[range_str]=format_arr;
+            format_arr["range"]=range;
+        }
+        switch (action) {
+            case "bold":
+                format_arr[action]=!format_arr[action];
+                break;
+            case "italic":
+                format_arr[action]=!format_arr[action];
+                break;
+            case "underline":
+                format_arr[action]=!format_arr[action];
+                break;
+            case "strikethrough":
+                format_arr[action]=!format_arr[action];
+                break;
+            case "font":
+		var str_font=CApplication::ChooseFont();
+		if (str_font)
+                	format_arr[action]=str_font;
+                break;
+            case "forecolor":
+		var color=CApplication::ChooseColor("Choose foreground color");
+		if (color)
+                	format_arr[action]=color;
+                break;
+            case "backcolor":
+		color=CApplication::ChooseColor("Choose background color");
+		if (color)
+                	format_arr[action]=color;
+                break;
+            case "left":
+                format_arr["align"]=0;
+                break;
+            case "center":
+                format_arr["align"]=2;
+                break;
+            case "right":
+                format_arr["align"]=1;
+                break;
+            case "full":
+                format_arr["align"]=3;
+                break;
+        }
+        this.FormatRange(range);
+    }
+    
+    public function SetText(var string text) {
+	this.ignore_clear=true;
+        this.Delete();
+        var idx=0;
+
+        CApplication::Query("Ping");
+        while (CApplication::MessagePending())
+            CApplication::Iterate();
+
+	this.ignore_clear=false;
+        if (text) {
+            this.MoveTo(0,0,0,0);
+            var data=DataContainer.UnSerialize(text, true);
+            //var data=JSONDeserialize(text);
+            if (data) {
+                this.Freeze();
+                matrix=data.Matrix;
+                format=data.Format;
+                if (typeof matrix!="array")
+                    matrix=new [];
+                    
+                if (typeof format!="array")
+                    format=new [];
+                var p_matrix=matrix;
+                var len_m=length p_matrix;
+                if (len_m>=this.Rows-2)
+                    this.AddRows(len_m-this.Rows+2);
+
+                for (var j=0;j<len_m;j++) {
+                    var column=p_matrix[j];
+                    if (column) {
+                        var len_c=length column;
+
+                        if (len_c>=this.Columns-2)
+                            this.AddColumns(len_c-this.Columns+2);
+
+                        for (var k=0;k<len_c;k++) {
+                            if ((""!=column[k]) && (column[k]))
+                                this.SetCellText(j,k,""+column[k]);
+                        }
+                    }
+                }
+                
+                var p_format=format;
+                var len=length p_format;
+                for (var i=0;i<len;i++) {
+                    var fmt=p_format[i];
+                    if ((fmt) && (IsSet(fmt, "range")) && (fmt["range"])) {
+                        this.FormatRange(fmt["range"]);
+                    }
+                }
+                //if (p_format["activecell"])
+                //    this.ActiveCell=p_format["activecell"];
+                this.Thaw();
+            } else {
+                matrix=new [];
+                format=new [];
+                this.ActiveCell=[0,0];
+            }
+        } else {
+            matrix=new [];
+            format=new [];
+            this.ActiveCell=[0,0];
+        }
+    }
+
+    private function FixupEditingCell() {
+        var d=this.ActiveCell;
+        var text=this.GetCellText(d[0],d[1]);
+        //if (text) {
+            if (!matrix)
+                matrix=new [];
+            if (!matrix[d[0]])
+                matrix[d[0]]=new [];
+            matrix[d[0]][d[1]]=text;
+        //}
+        return d;
+    }
+
+    public function GetText() {
+        var d=FixupEditingCell();
+
+	if ((!this.matrix) && (!this.format))
+		return "";
+
+        //this.format["activecell"]=d;
+	//var arr=[matrix, format];
+	//return JSONSerialize(arr);
+        var data=new DataContainer();
+        data.Matrix=this.matrix;
+        data.Format=this.format;
+        return data.Serialize("");
+    }
+
+    public function AddButton(string name, string stockicon, string action) {
+        var b=new RToolButton(tool);
+        b.Homogeneous=true;
+        b.Expand=false;
+        b.StockID=stockicon; 
+        b.Caption=name;
+        b.Tooltip=name;
+        b.OnClicked=this.ButtonClicked;
+        b.UserData=action;
+        b.Show();
+    }
+
+    public function ColSelected(Sender, EventData) {
+        LastCol=value EventData;
+    }
+
+    public function RowSelected(Sender, EventData) {
+        LastRow=value EventData;
+    }
+
+    public function RangeSelected(Sender, EventData) {
+        LastRange=EventData;
+    }
+    
+    public function CellChanged(Sender, EventData) {
+        var coords=StrSplit(EventData, ";");
+        var row=value ""+coords[0];
+        var col=value ""+coords[1];
+        var str="";
+        var len=length coords;
+        for (var i=2;i<len;i++) {
+            if (str)
+                str+=";";
+            str+=coords[i];
+        }
+        var delta=this.Rows-row;
+        if (delta<=2)
+            this.AddRows(3-delta);
+        delta=this.Columns-col;
+        if (delta<=2)
+            this.AddColumns(3-delta);
+
+        if (!matrix[row])
+            matrix[row]=new [];
+        matrix[row][col]=str;
+    }
+    
+    public function CellCleared(Sender, EventData) {
+	if (!ignore_clear)
+        	this.CellChanged(Sender, EventData);
+    }
+
+    public function RSheetEmulator(Owner) {
+        var vbox=new RVBox(Owner);
+        vbox.Show();
+
+        tool=new RToolbar(vbox);
+        tool.Style=TOOLBAR_ICONS;
+        this.AddButton("Bold", "gtk-bold", "bold");
+        this.AddButton("Italic", "gtk-italic", "italic");
+        //this.AddButton("Underline", "gtk-underline", "underline");
+        //this.AddButton("Strikethrough", "gtk-strikethrough", "strikethrough");
+        this.AddSeparator();
+        this.AddButton("Select font", "gtk-select-font", "font");
+        this.AddButton("Font color", "gtk-color-picker", "forecolor");
+        this.AddButton("Background color", "gtk-select-color", "backcolor");
+        this.AddSeparator();
+        this.AddButton("Align left", "gtk-justify-left", "left");
+        this.AddButton("Align center", "gtk-justify-center", "center");
+        this.AddButton("Align right", "gtk-justify-right", "right");
+        this.AddButton("Align full", "gtk-justify-fill", "full");
+        tool.Show();
+        
+
+        var sb=new RScrolledWindow(vbox);
+        sb.HScrollPolicy=POLICY_AUTOMATIC;
+        sb.VScrollPolicy=POLICY_AUTOMATIC;
+        sb.Show();	
+
+        super(sb,2,2);
+	this.ignore_clear=false;
+        this.AutoResize=true;
+        this.OnSetCell=CellChanged;
+        this.OnClearCell=CellCleared;
+        this.OnSelectColumn=ColSelected;
+        this.OnSelectRow=RowSelected;
+        this.OnSelectRange=RangeSelected;
+    }
+}

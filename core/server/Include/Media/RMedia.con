@@ -1,0 +1,273 @@
+include Media/RMedia.internals.con
+include Application.con
+
+class RMedia extends VisibleRemoteObject {
+	private var M_ENABLE_AUDIO=true;
+	private var M_CURSOR_VISIBLE=true;
+	private var M_STRETCH=false;
+	private var M_FOCUSABLE=true;
+	private var M_VOLUME=100;
+
+	public property Volume { get M_VOLUME, set SetVolume }
+	public property EnableAudio { get M_ENABLE_AUDIO, set SetEnableAudio }
+	public property Stretch { get M_STRETCH, set SetStretch }
+	public property Focusable { get M_FOCUSABLE, set SetFocusable }
+
+	// read only properties
+	public property VideoWidth { get GetVideoWidth }
+	public property VideoHeight { get GetVideoHeight }
+	public property HasVideo { get GetHasVideo }
+	public property HasAudio { get GetHasAudio }
+	public property HasSubtitle { get GetHasSubtitle }
+
+	public property Title { get GetTitle }
+	public property Author { get GetAuthor }
+	public property Copyright { get GetCopyright }
+	public property Comment { get GetComment }
+	public property Album { get GetAlbum }
+	public property Year { get GetYear }
+	public property Track { get GetTrack }
+	public property Genre { get GetGenre }
+
+	public property Offset { get GetOffset }
+	public property Duration { get GetDuration }
+
+	public property Size { get GetSize }
+	public property StartTime { get GetStartTime }
+
+	public property CurrentFps { get GetCurrentFps }
+	public property CurrentTime { get GetCurrentTime }
+
+	public property CodecName { get GetCodecName }
+	public property PacketSize { get GetPacketSize }
+	public property PendingBuffers { get GetPendingBuffers }
+
+	public property CursorVisible { get M_CURSOR_VISIBLE, set SetCursorVisible }
+
+	public property OnVideoResize { get GetOnVideoResize, set SetOnVideoResize }
+	public function GetOnVideoResize() {
+		return _GET_REMOTE_EVENT(EVENT_PLAY_VIDEORESIZE);
+	}
+
+	public function SetOnVideoResize(delegate deleg) {
+		return _MAP_REMOTE_EVENT(EVENT_PLAY_VIDEORESIZE, deleg);
+	}
+
+	public property OnVideoKeyPress { get GetOnVideoKeyPress, set SetOnVideoKeyPress }
+	public function GetOnVideoKeyPress() {
+		return _GET_REMOTE_EVENT(EVENT_PLAY_KEYPRESS);
+	}
+
+	public function SetOnVideoKeyPress(delegate deleg) {
+		return _MAP_REMOTE_EVENT(EVENT_PLAY_KEYPRESS, deleg);
+	}
+
+	public property OnVideoMouseClick { get GetOnVideoMouseClick, set SetOnVideoMouseClick }
+	public function GetOnVideoMouseClick() {
+		return _GET_REMOTE_EVENT(EVENT_PLAY_MOUSE);
+	}
+
+	public function SetOnVideoMouseClick(delegate deleg) {
+		return _MAP_REMOTE_EVENT(EVENT_PLAY_MOUSE, deleg);
+	}
+
+	public property OnVideoFinished { get GetOnVideoFinished, set SetOnVideoFinished }
+	public function GetOnVideoFinished() {
+		return _GET_REMOTE_EVENT(EVENT_PLAY_FINISHED);
+	}
+
+	public function SetOnVideoFinished(delegate deleg) {
+		return _MAP_REMOTE_EVENT(EVENT_PLAY_FINISHED, deleg);
+	}
+
+	public property OnVideoError { get GetOnVideoError, set SetOnVideoError }
+	public function GetOnVideoError() {
+		return _GET_REMOTE_EVENT(EVENT_PLAY_ERROR);
+	}
+
+	public function SetOnVideoError(delegate deleg) {
+		return _MAP_REMOTE_EVENT(EVENT_PLAY_ERROR, deleg);
+	}
+
+	public property OnVideoFatalError { get GetOnVideoFatalError, set SetOnVideoFatalError }
+	public function GetOnVideoFatalError() {
+		return _GET_REMOTE_EVENT(EVENT_PLAY_ERROR_FATAL);
+	}
+
+	public function SetOnVideoFatalError(delegate deleg) {
+		return _MAP_REMOTE_EVENT(EVENT_PLAY_ERROR_FATAL, deleg);
+	}
+
+
+	public function RMedia(OWNER) {
+		super(OWNER, RMEDIA_CONTROL_ID);
+	}
+
+
+	public function SetEnableAudio(number val) {
+		M_ENABLE_AUDIO=(val!=0);
+		if (val)
+			return SetProperty(P_MEDIA_ENABLE_AUDIO, M_VOLUME);
+		else
+			return SetProperty(P_MEDIA_ENABLE_AUDIO, 0);
+	}
+
+	public function SetVolume(number val) {
+		if (val<0)
+			val=0;			
+		M_ENABLE_AUDIO=true;
+		M_VOLUME=val;
+		return SetProperty(P_MEDIA_ENABLE_AUDIO, val);
+	}
+
+	public function SetCursorVisible(number val) {
+		M_CURSOR_VISIBLE=(val!=0);
+		return SetProperty(P_MEDIA_MOUSECURSOR, val);
+	}
+
+	public function OpenRemote(string url) {
+		return SetProperty(P_MEDIA_OPEN_FILE, url);
+	}
+
+	public function OpenFile(string filename) {
+		CApplication::SendCookie(filename);
+		return SetProperty(P_MEDIA_OPEN_FILE, filename);
+	}
+
+	public function Play() {
+		return SetProperty(P_MEDIA_PLAY, 1);
+	}
+
+
+	public function Pause() {
+		return SetProperty(P_MEDIA_PAUSE, 1);
+	}
+
+	public function Stop() {
+		return SetProperty(P_MEDIA_STOP, 1);
+	}
+
+	public function Close() {
+		return SetProperty(P_MEDIA_CLOSE, 1);
+	}
+
+	public function Skip(number nSeconds) {
+		return SetProperty(P_MEDIA_SKIP, nSeconds);
+	}
+
+	public function Seek(number nBytes) {
+		return SetProperty(P_MEDIA_SEEK, nBytes);
+	}
+
+	public function SetStretch(number s_on) {
+		M_STRETCH=s_on;
+		return SetProperty(P_MEDIA_STRETCH, s_on);
+	}
+
+	public function SetFocusable(number f_on) {
+		M_FOCUSABLE=f_on;
+		return SetProperty(P_MEDIA_FOCUSABLE, f_on);
+	}
+
+	public function GetVideoWidth() {
+		return value GetProperty(P_MEDIA_VIDEO_WIDTH);
+	}
+
+	public function GetVideoHeight(){
+		return value GetProperty(P_MEDIA_VIDEO_HEIGHT);
+	}
+
+	public function GetHasVideo() {
+		return value GetProperty(P_MEDIA_HAS_VIDEO);
+	}
+
+	public function GetHasAudio() {
+		return value GetProperty(P_MEDIA_HAS_AUDIO);
+	}
+
+	public function GetHasSubtitle() {
+		return value GetProperty(P_MEDIA_HAS_SUBTITLE);
+	}
+
+
+	public function GetTitle() {
+		return GetProperty(P_MEDIA_INFO_TITLE);
+	}
+
+	public function GetAuthor() {
+		return GetProperty(P_MEDIA_INFO_AUTHOR);
+	}
+
+	public function GetCopyright() {
+		return GetProperty(P_MEDIA_INFO_COPYRIGHT);
+	}
+
+	public function GetComment() {
+		return GetProperty(P_MEDIA_INFO_COMMENT);
+	}
+
+	public function GetAlbum() {
+		return GetProperty(P_MEDIA_INFO_ALBUM);
+	}
+
+	public function GetYear() {
+		return value GetProperty(P_MEDIA_INFO_YEAR);
+	}
+
+	public function GetTrack() {
+		return value GetProperty(P_MEDIA_INFO_TRACK);
+	}
+
+	public function GetGenre() {
+		return GetProperty(P_MEDIA_INFO_GENRE);
+	}
+
+	public function GetOffset() {
+		return value GetProperty(P_MEDIA_INFO_OFFSET);
+	}
+
+	public function GetDuration() {
+		return value GetProperty(P_MEDIA_INFO_DURATION);
+	}
+
+	public function GetSize() {
+		return value GetProperty(P_MEDIA_INFO_SIZE);
+	}
+
+	public function GetStartTime() {
+		return value GetProperty(P_MEDIA_INFO_STARTTIME);
+	}
+
+	public function GetCurrentFps() {
+		return value GetProperty(P_MEDIA_CURRENT_FPS);
+	}
+
+	public function GetCurrentTime() {
+		return value GetProperty(P_MEDIA_CURRENT_TIME);
+	}
+
+	public function GetCodecName() {
+		return GetProperty(P_MEDIA_CODEC_NAME);
+	}
+
+	public function GetPacketSize() {
+		return value GetProperty(P_MEDIA_INFO_PACKETSIZE);
+	}
+
+	public function GetPendingBuffers() {
+		return value GetProperty(P_MEDIA_BUFFERS_COUNT);
+	}
+
+	public function BeginStream() {
+		return SetProperty(P_MEDIA_OPEN_STREAM, 1);
+	}
+
+	public function ClearBuffer() {
+		return SetProperty(P_MEDIA_CLEAR_BUFFERS, 1);
+	}
+
+	public function StreamBuffer(string szBuffer) {
+		return Send(MSG_PUT_STREAM, "0", szBuffer);
+	}
+
+}

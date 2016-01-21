@@ -1,0 +1,40 @@
+pragma warnings off
+
+include 'DataBases.con'
+include 'XMLDocumentGenerator.con'
+
+define	CONNECTION_STRING		"Driver={MySQL ODBC 3.51 Driver};Server=localhost;Database=sesal;Username=radgs;option=16"
+define  QUERY				"select * from firme"
+
+class Main {
+	function Main() {
+		var Connection=new ADOConnection();
+		var DataSet=new ADODataSet(Connection);
+
+		Connection.Open(CONNECTION_STRING);
+		DataSet.CommandText=QUERY;
+		DataSet.ExecuteQuery();
+
+		try {
+			var XMLDocument=new XMLDocumentGenerator();
+			XMLDocument.BeginDocument("Document");
+
+			if (DataSet.First()) {
+				do {
+					XMLDocument.AddSerializableObject(DataSet.FieldValues);
+				} while (DataSet.Next());
+
+			}
+
+			XMLDocument.EndDocument();
+
+			echo XMLDocument.GetDocument();
+
+		} catch (var Exception) {
+			echo "Exception raised : "+Exception._STRING_DATA;
+		}
+
+		Connection.Close();
+		echo Connection.LastError();
+	}
+}

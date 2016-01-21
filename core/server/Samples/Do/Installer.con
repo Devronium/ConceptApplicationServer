@@ -1,0 +1,61 @@
+include URL.con
+include Updater.con
+
+define SHORTCUT_PATH		"../Shortcuts/"
+
+define MAX_REDIRECT     10
+
+class Installer {
+    public var OnRead;
+    public var TotalReceived;
+
+    public function deleg(Sender, Size) {
+        TotalReceived+=Size;
+        if (OnRead)
+            return this.OnRead(Sender, Size, TotalReceived);
+    }
+    
+	public function InstallCallback(specialfilename, content) {
+		switch (specialfilename) {
+			case URL_RUN:
+			case CONSOLE_RUN:
+				system(specialfilename);
+				break;
+			case INFO_RUN:
+				echo "\n";
+				echo content;
+				break;
+			case CLIENT_RUN:
+				CApplication::ClientShell(specialfilename,GetAPID());
+				break;
+			case SQL_FILE_LIST:
+				//ProcessSQL(content);
+				break;
+			default:
+				// is shortcut
+				WriteFile(content, SHORTCUT_PATH+specialfilename);
+		}
+	}    
+
+    public function Get(string path) {
+        var url=new URL();
+        url.my_delegate=deleg;
+        TotalReceived=0;
+        url.Get(path);
+        
+        while (url.IsRedirect()) {
+            url.Get(url.Location);
+        }
+        if (url.IsSuccessful()) {
+            return url.Data;
+        }
+        return "";
+    }
+    
+    public function Install(var data) {
+        var name="Do/updates/update${GetAPID()}.zip";
+        WriteFile(data, name);
+        Arc::UnZip(name, InstallCallback);
+        _unlink(name);
+    }
+}

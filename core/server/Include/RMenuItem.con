@@ -1,0 +1,78 @@
+include RItem.con
+include RemoteEvents.con
+include RemoteProperties.con
+include RemoteMessages.con
+include ClassID.con
+
+class RMenuItem extends RItem {
+	protected var SUBMENU;
+	protected var RIGHTJUSTIFY;
+	protected var ACCELKEY;
+	protected var CAPTION="";
+	protected var CONTAINED_OBJECT;
+
+	public property AccelKey { get ACCELKEY, set SetAccelKey }
+	public property SubMenu { get SUBMENU, set SetSubmenu }
+	public property Caption { get CAPTION, set SetCaption }
+	public property RightJustfy { get RIGHTJUSTIFY, set SetRightJustify }
+	public property ContainedObject {get CONTAINED_OBJECT, set SetContainedObject }
+
+	// ------------------ EVENTS ----------------------- //
+	public property OnActivate { get GetOnActivate, set SetOnActivate }
+	public function GetOnActivate() {
+		return _GET_REMOTE_EVENT(EVENT_ON_ACTIVATE);
+	}
+
+	public function SetOnActivate(delegate deleg) {
+		return _MAP_REMOTE_EVENT(EVENT_ON_ACTIVATE, deleg);
+	}
+
+	public property OnActivateItem { get GetOnActivateItem, set SetOnActivateItem }
+	public function GetOnActivateItem() {
+		return _GET_REMOTE_EVENT(EVENT_ON_ACTIVATEITEM);
+	}
+
+	public function SetOnActivateItem(delegate deleg) {
+		return _MAP_REMOTE_EVENT(EVENT_ON_ACTIVATEITEM, deleg);
+	}
+	// ------------------------------------------------- //
+
+	public function RMenuItem(OWNER,CAPTION) {
+		PostString(CAPTION);
+		super(OWNER, CLASS_MENUITEM);
+	}
+
+	public function SetAccelKey(x) {
+		ACCELKEY=x;
+		return SetProperty(P_ACCELKEY,x);
+	}
+
+	public function SetRightJustify(x) {
+		RIGHTJUSTIFY=x;
+		return SetProperty(P_RIGHTJUSTIFIED,x!=0);
+	}
+
+	public function SetSubmenu(menu) {
+		SUBMENU=&menu;
+		if (menu)
+			SetProperty(P_SUBMENU,menu.RID);
+		else
+			SetProperty(P_SUBMENU,-1);
+		return menu;
+	}
+
+	public function SetCaption(string argument) {
+		SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_CAPTION,argument);
+		CAPTION=argument;
+
+		if (CONTAINED_OBJECT)
+			delete CONTAINED_OBJECT;
+		return argument;
+	}
+
+	public function SetContainedObject(VisibleRemoteObject obj) {
+		SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_MENUOBJECT,obj.RID);
+		CONTAINED_OBJECT=obj;
+		return obj;
+	}
+}

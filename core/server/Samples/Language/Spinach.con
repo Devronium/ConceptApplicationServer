@@ -1,0 +1,18 @@
+include 'Vegetable.con'
+
+class Spinach extends Vegetable {
+      public var cooked;
+
+      function Spinach()  {
+               this->cooked=0;
+               this->Vegetable(1,"green");
+      }
+
+      function cook_it() {
+               this->cooked = 1;
+      }
+
+      function is_cooked() {
+              return this->cooked;
+      }
+}

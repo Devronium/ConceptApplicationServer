@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<StringTable>
+	<default langid="en" />
+
+	<string msgid="Name">
+		<lang id="en">Name</lang>
+		<lang id="ro">Nume</lang>
+	</string>
+	<string msgid="Surname">
+		<lang id="en">Surname</lang>
+		<lang id="ro">Prenume</lang>
+	</string>
+</StringTable>

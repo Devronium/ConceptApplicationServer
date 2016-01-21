@@ -1,0 +1,303 @@
+import standard.lib.str
+import standard.C.casts
+
+include RWebView.con
+include Application.con
+include RToolbar.con
+include RToolButton.con
+include RToolSeparator.con
+include RClipboard.con
+include RMenuToolButton.con
+include RMenu.con
+include RMenuItem.con
+
+class RWebEditorToolbar extends RToolbar {
+    public var Editor;
+    public var ImageCallback;
+    private var fontsize=3;
+
+    public function RWebEditorToolbar(Owner) {
+        super(Owner);
+        this.Style=TOOLBAR_ICONS;
+    }
+    
+    public function AddSeparator() {
+        var s=new RToolSeparator(this);
+        s.Show();
+    }
+
+    public function AddButton(string name, string stockicon, string action) {
+        var b=new RToolButton(this);
+        b.Homogeneous=true;
+        b.Expand=false;
+        b.StockID=stockicon; 
+        b.Caption=name;
+        b.Tooltip=name;
+        b.OnClicked=this.ButtonClicked;
+        b.UserData=action;
+        b.Show();
+    }
+    
+    public function ButtonClicked(Sender, EventData) {
+        if (this.Editor) {
+            switch (Sender.UserData) {
+                case "paste":
+                    var data=RClipboard.GetText();
+                    if (data) {
+                        data=StrReplace(data, "\\", "\\\\");
+                        data=StrReplace(data, "'", "\\'");
+                        data=StrReplace(data, "\r", "");
+                        data=StrReplace(data, "\n", "\\n");
+                        this.Editor.ExecuteScript("document.execCommand('insertText', true, '$data')");
+                    }
+                    break;
+                case "pastehtml":
+                    data=RClipboard.GetText();
+                    if (data) {
+                        data=StrReplace(data, "\\", "\\\\");
+                        data=StrReplace(data, "'", "\\'");
+                        data=StrReplace(data, "\r", "");
+                        data=StrReplace(data, "\n", "\\n");
+                        this.Editor.ExecuteScript("document.execCommand('insertHTML', false, '$data')");
+                    }
+                    break;
+                case "backcolor":
+                    var color=CApplication::ChooseColor("Choose text background color");
+                    if (color>-1)
+                        this.Editor.ExecuteScript("document.execCommand('backColor', 0, '#${NumberToHex(color)}')");
+                    break;
+                case "forecolor":
+                    color=CApplication::ChooseColor("Choose text color");
+                    if (color>-1)
+                        this.Editor.ExecuteScript("document.execCommand('foreColor', 0, '#${NumberToHex(color)}')");
+                    break;
+                case "fontsize+":
+                    this.fontsize++;
+                    if (this.fontsize>7)
+                        this.fontsize=7;
+                    this.Editor.ExecuteScript("document.execCommand('fontSize', 0, '${this.fontsize}')");
+                    break;
+                case "fontsize-":
+                    this.fontsize--;
+                    if (this.fontsize>7)
+                        this.fontsize=0;
+                    this.Editor.ExecuteScript("document.execCommand('fontSize', 0, '${this.fontsize}')");
+                    break;
+		case "font":
+                    var font=CApplication::ChooseFont();
+                    if (font) {
+			var font_arr=StrSplit(font, " ");
+			font=font_arr[0];
+                        this.Editor.ExecuteScript("document.execCommand('fontName', 0, '$font')");
+                    }
+                    break;
+                case "link":
+                    var link="";
+                    if (CApplication::Input(link, false, "<b>URL:</b>")==RESPONSE_OK) {
+                        link=StrReplace(link, "\\", "\\\\");
+                        link=StrReplace(link, "'", "\\'");
+                        this.Editor.ExecuteScript("document.execCommand('createLink', 0, '$link')");
+                    }
+                    break;
+                case "image":
+                    link="";
+		var extra="";
+                    if (ImageCallback) {
+                        ImageCallback(this, link, extra);
+                    } else
+                    if (CApplication::Input(link, false, "<b>URL:</b>")==RESPONSE_OK) {
+                        link=StrReplace(link, "\\", "\\\\");
+                        link=StrReplace(link, "'", "\\'");
+			var link_arr=StrSplit(link, ',');
+			if (length link_arr>1) {
+				link=link_arr[0];
+				var len=length link_arr;
+				for (var i=1;i<len;i++)
+					extra+=link_arr[i]+" ";
+			}
+                    }
+
+                    if (link)
+			this.Editor.ExecuteScript("document.execCommand('insertHTML', false, \"<img src='$link' $extra/>\")");
+                    break;
+                case "back":
+                    this.Editor.Back();
+                    break;
+                default:
+                    this.Editor.ExecuteScript(Sender.UserData);
+            }
+        }
+    }
+}
+
+class RWebEditor extends RWebView {
+    protected var r_TEXT="";
+    protected var s_TEXT="";
+    protected var _handled=false;
+    public var OnRequestDeturnated=null;
+
+    public property Text { get GetText, set SetText }
+
+    public function RWebEditor(Owner) {
+        super(Owner);
+        this.Editable=true;
+        this.Packing=PACK_EXPAND_WIDGET;
+        this.OpenString("");
+        this.OnRequest2=this.OnRequestHandler;
+        this.OnNavigationRequested=this.NavigationRequested;
+        // inactivate links
+        this.SetEventResponse(EVENT_ON_NAVIGATION_REQUESTED, true);
+    }
+    
+    public function NavigationRequested(Sender, EventData) {
+        // dummy
+    }
+
+    public function SetText(string text, var clear_cache=true) {
+        if (clear_cache)
+            this.ClearCache();
+        this.SetEventResponse(EVENT_ON_NAVIGATION_REQUESTED, false);
+        this.OpenString(text);
+        this.SetEventResponse(EVENT_ON_NAVIGATION_REQUESTED, true);
+	this.s_TEXT=text;
+	return text;
+    }
+
+    public function GetText() {
+        // disable link blocking
+	this.GrabFocus();
+	this.ExecuteScript("document.title=document.body.innerHTML;");	
+	return this.GetTitle();
+
+        //this.SetEventResponse(EVENT_ON_NAVIGATION_REQUESTED, false);
+        //var i=0;
+        //this._handled=false;
+        //this.ExecuteScript("var s=document.body.innerHTML; var p={_i:s} ;var myForm = document.createElement('form'); myForm.method='post'; myForm.action = 'http://0_0'; for (var k in p) { var myInput = document.createElement('input') ; myInput.setAttribute('name', k) ; myInput.setAttribute('value', p[k]); myForm.appendChild(myInput) ; }\n document.body.appendChild(myForm) ; myForm.submit() ; document.body.removeChild(myForm) ;");
+        //// wait for post ... by reading dummy properties
+        //while ((!CApplication::MessagePending()) && (++i<10))
+        //    CApplication::Query("Ping");
+
+        //while ((CApplication::MessagePending()) /*|| (!this._handled)*/) {
+        //    CApplication::Iterate();
+        //}
+        //var res=this.r_TEXT;
+	//if ((!res) && (!this._handled))
+	//	res=this.s_TEXT;
+        //this.r_TEXT="";
+        //this.SetEventResponse(EVENT_ON_NAVIGATION_REQUESTED, true);
+        //return res;
+    }
+    
+    public function InitToolbar(RWebEditorToolbar t)  {
+        t.Editor=this;
+        t.AddButton("Increase font size", "gtk-zoom-in", "fontsize+");
+        t.AddButton("Decrease font size", "gtk-zoom-out", "fontsize-");
+        t.AddSeparator();
+
+        var b=new RMenuToolButton(t);
+        b.Homogeneous=true;
+        b.Expand=false;
+        b.StockID="gtk-jump-to";
+        b.Caption="Heading";
+        b.Tooltip="Heading";
+	b.Menu = new RMenu(b);
+	var menuItem = new RMenuItem(b.Menu, "Heading 1");
+	menuItem.OnActivate = t.ButtonClicked;
+        menuItem.UserData = "document.execCommand('formatBlock', false, '<h1>')";
+	menuItem.Show();
+
+	menuItem = new RMenuItem(b.Menu, "Heading 2");
+	menuItem.OnActivate = t.ButtonClicked;
+        menuItem.UserData = "document.execCommand('formatBlock', false, '<h2>')";
+	menuItem.Show();
+
+	menuItem = new RMenuItem(b.Menu, "Heading 3");
+	menuItem.OnActivate = t.ButtonClicked;
+        menuItem.UserData = "document.execCommand('formatBlock', false, '<h3>')";
+	menuItem.Show();
+
+	menuItem = new RMenuItem(b.Menu, "Heading 4");
+	menuItem.OnActivate = t.ButtonClicked;
+        menuItem.UserData = "document.execCommand('formatBlock', false, '<h4>')";
+	menuItem.Show();
+
+	menuItem = new RMenuItem(b.Menu, "Heading 5");
+	menuItem.OnActivate = t.ButtonClicked;
+        menuItem.UserData = "document.execCommand('formatBlock', false, '<h5>')";
+	menuItem.Show();
+
+	menuItem = new RMenuItem(b.Menu, "Heading 6");
+	menuItem.OnActivate = t.ButtonClicked;
+        menuItem.UserData = "document.execCommand('formatBlock', false, '<h6>')";
+	menuItem.Show();
+
+	menuItem = new RMenuItem(b.Menu, "Paragraph");
+	menuItem.OnActivate = t.ButtonClicked;
+        menuItem.UserData = "document.execCommand('formatBlock', false, 'p')";
+	menuItem.Show();
+
+	b.Menu.Show();
+        b.Show();
+
+        t.AddButton("Bold", "gtk-bold", "document.execCommand('bold', false, false)");
+        t.AddButton("Italic", "gtk-italic", "document.execCommand('italic', false, false)");
+        t.AddButton("Underline", "gtk-underline", "document.execCommand('underline', false, false)");
+        t.AddButton("Strikethrough", "gtk-strikethrough", "document.execCommand('strikethrough', false, false)");
+        t.AddButton("Select font", "gtk-select-font", "font");
+        t.AddButton("Font color", "gtk-color-picker", "forecolor");
+        t.AddButton("Background color", "gtk-select-color", "backcolor");
+        
+        //t.AddSeparator();
+        //t.AddButton("Undo", "gtk-undo", "document.execCommand('undo', false, false)");
+        //t.AddButton("Redo", "gtk-redo", "document.execCommand('redo', false, false)");
+        t.AddSeparator();
+        t.AddButton("Insert image", "gtk-orientation-landscape", "image");
+        t.AddButton("Insert link", "gtk-connect", "link");
+        t.AddButton("Unlink", "gtk-disconnect", "document.execCommand('unlink', false, false)");
+        t.AddSeparator();
+        t.AddButton("Cut", "gtk-cut", "document.execCommand('cut', false, false)");
+        t.AddButton("Copy", "gtk-copy", "document.execCommand('copy', false, false)");
+        t.AddButton("Paste", "gtk-paste", "paste");
+        t.AddButton("Paste HTML", "gtk-paste", "pastehtml");
+        t.AddSeparator();
+        t.AddButton("Align left", "gtk-justify-left", "document.execCommand('JustifyLeft', false, false)");
+        t.AddButton("Align center", "gtk-justify-center", "document.execCommand('JustifyCenter', false, false)");
+        t.AddButton("Align right", "gtk-justify-right", "document.execCommand('JustifyRight', false, false)");
+        t.AddButton("Align full", "gtk-justify-fill", "document.execCommand('JustifyFull', false, false)");
+        t.AddButton("Insert ordered list", "gtk-sort-ascending", "document.execCommand('InsertOrderedList', false, false)");
+        t.AddButton("Insert unordered list", "gtk-sort-descending", "document.execCommand('InsertUnorderedList', false, false)");
+        t.AddSeparator();
+        t.AddButton("Increase indentation", "gtk-indent", "document.execCommand('Indent', false, false)");
+        t.AddButton("Decrease indentation", "gtk-unindent", "document.execCommand('Outdent', false, false)");
+        t.AddButton("Subscript", "gtk-go-down", "document.execCommand('Subscript', false, false)");
+        t.AddButton("Superscript", "gtk-go-up", "document.execCommand('Superscript', false, false)");
+        t.AddButton("Remove format", "gtk-clear", "document.execCommand('RemoveFormat')");
+    }
+    
+    public function OnRequestHandler(Sender, EventData) {
+        if ((this.OnRequestDeturnated) && (this.OnRequestDeturnated(Sender, EventData)!=false))
+            return false;
+
+        var request=this.DecodeRequest2(EventData);
+        if (request) {
+            var data=request["data"];
+            if (data) {
+                var id=data[0]+data[1]+data[2];
+                if (id!="_i=") {
+                    this.Back();
+                    return;
+                }
+                data++;
+                data++;
+                data++;
+                if (data) {
+                    data=StrReplace(data, "+", " ");
+                    data=URIDecode(data);
+                    this.r_TEXT=data;
+                    this._handled=true;
+                    this.OpenString(data);
+                }
+            }
+        }
+    }
+}

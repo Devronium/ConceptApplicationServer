@@ -1,0 +1,70 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+  <title>Data types.The static string type</title>
+  <link href="css/style.css" rel="stylesheet" type="text/css">
+  <meta http-equiv="Content-Type" content="text/html;charset=utf-8" >
+</head>
+<body bgcolor="#ffffff">
+<table border="0" width="100%" bgcolor="#F0F0FF">
+  <tr>
+    <td>Language documentation</td>
+  	<td align="right"><a href="index.html">Contents</a> | <a href="index_fun.html">Index</a></td>
+  </tr>
+</table>
+<h2>The static string type, <a href="Data types.html">Data types</a></h2>
+<br />
+
+<b>Description:</b><br />
+<table width="100%" bgcolor="#FAFAFF" style="border-style:solid;border-width:1px;border-color:#D0D0D0;">
+<tr><td>
+&nbsp;&nbsp;&nbsp;&nbsp;Concept strings are autoallocable (you don't need to allocate them). It can hold up to 2GB of bytes (on the 32-bit platforms). A Concept will have (when possible) a zero at the end of it, for compatibility with general libraries, most of them written in C. It has its own length (an internally data field), so when you call the {length} operator no character count will be performed.  There are some gadgets associated with string operators, like the [] operator. In C, normally you can say s[1]='x' when s is "abcd" resulting into "axbcd". This is true in Concept too, but you can also do this: s[1]="xyz" resulting into "axyzcd", so you can replace a character with another string. Also, in Concept you have two types of quotes the ' and the ". In most cases are identical, but there are some exceptions. 
+<br/>
+<br/>The " quotes can contain expressions preceded by the $. 
+<br/>For example:
+<br/>&nbsp;&nbsp;&nbsp;&nbsp;var name="Joe";
+<br/>&nbsp;&nbsp;&nbsp;&nbsp;var str="Hello $name";
+<br/>
+<br/>Will result in a string that looks like this: "Hello Joe".
+<br/>
+<br/>If the name variable is a member of an object, or requires an expression, you must use ${} to evaluate like this:
+<br/>
+<br/>&nbsp;&nbsp;&nbsp;&nbsp;var str="Hello ${this.name}" resulting in "Hello Joe".
+<br/>
+<br/>Even if you use a member name from the current class (a non-local variable) the { } are mandatory. The { } are optional only when you put simple variables with NO operators.
+<br/>
+<br/>Examples
+<br/>
+<br/>&nbsp;&nbsp;&nbsp;&nbsp;Expressions: &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"one plus one is ${1+1}" results "one plus one is 2"
+<br/>&nbsp;&nbsp;&nbsp;&nbsp;Array elements&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"element is ${arr[0]}"
+<br/>&nbsp;&nbsp;&nbsp;&nbsp;Array elements with keys&nbsp;&nbsp;&nbsp;&nbsp;"element is ${arr['key']}" (notice the single quotes used)
+<br/>
+<br/>
+<br/>When using the single quotes (') the expressions will NOT be evaluated, and will be taken as it is:
+<br/>
+<br/>Example
+<br/>&nbsp;&nbsp;&nbsp;&nbsp;"one plus one is ${1+1}"&nbsp;&nbsp;&nbsp;&nbsp;results "one plus one is 2"
+<br/>&nbsp;&nbsp;&nbsp;&nbsp;'one plus one is ${1+1}'&nbsp;&nbsp;&nbsp;&nbsp;remains unchanged to 'one plus one is ${1+1}'
+<br/>
+</td></tr>
+</table>
+<br />
+
+<br />
+<br />
+<!--
+  <p>
+    <a href="http://validator.w3.org/check?uri=referer"><img
+        src="http://www.w3.org/Icons/valid-html40"
+        alt="Valid HTML 4.0 Transitional" height="31" width="88" border="0"></a>
+ <a href="http://jigsaw.w3.org/css-validator/">
+  <img style="border:0;width:88px;height:31px"
+       src="http://jigsaw.w3.org/css-validator/images/vcss" 
+       alt="Valid CSS!" border="0"/>
+ </a>
+</p>
+-->
+<table bgcolor="#F0F0F0" width="100%"><tr><td>Documented by Eduard Suica, generation time: Sun Jan 27 18:15:21 2013
+ GMT</td><td align="right">(c)2013 <a href="http://www.devronium.com">Devronium Applications</a></td></tr></table>
+</body>
+</html>

@@ -1,0 +1,94 @@
+import standard.search.xapian
+include XapianPositionIterator.con
+
+class XapianTermIterator {
+	protected var THISREF=null;
+	public property REF { get THISREF }
+
+	public function XapianTermIterator(number ref) {
+		this.THISREF=ref;
+	}
+
+	public function next() {
+		var result=XapianTermIterator__next(this->THISREF, var exc);
+		if (exc)
+			throw exc;
+		return result;
+	}
+
+	public operator++() {
+		return this.next();
+	}	
+
+	public function get_value() {
+		var result=XapianTermIterator__get_value(this->THISREF, var exc);
+		if (exc)
+			throw exc;
+		return result;
+	}
+
+	public function skip_to(number pos) {
+		var result=XapianTermIterator__skip_to(this->THISREF, var exc, pos);
+		if (exc)
+			throw exc;
+		return result;
+	}
+
+	public function get_description() {
+		var result=XapianTermIterator__get_description(this->THISREF, var exc);
+		if (exc)
+			throw exc;
+		return result;
+	}
+
+	public function equal(XapianTermIterator iter) {
+		var result=XapianTermIterator__equal(this->THISREF, var exc, iter.REF);
+		if (exc)
+			throw exc;
+		return result;
+	}
+
+	public operator ==(XapianTermIterator iter) {
+		return equal(iter);
+	}
+
+	public operator !=(XapianTermIterator iter) {
+		return !equal(iter);
+	}
+
+	public function get_wdf() {
+		var result=XapianTermIterator__get_wdf(this->THISREF, var exc);
+		if (exc)
+			throw exc;
+		return result;
+	}
+
+	public function get_termfreq() {
+		var result=XapianTermIterator__get_termfreq(this->THISREF, var exc);
+		if (exc)
+			throw exc;
+		return result;
+	}
+
+	public function positionlist_count() {
+		var result=XapianTermIterator__positionlist_count(this->THISREF, var exc);
+		if (exc)
+			throw exc;
+		return result;
+	}
+
+	public function positionlist_begin() {
+		var result=new XapianPositionIterator(XapianTermIterator__positionlist_begin(this->THISREF, var exc));
+		if (exc)
+			throw exc;
+		return result;
+	}
+
+	public function positionlist_end() {
+		var result=new XapianPositionIterator(XapianTermIterator__positionlist_end(this->THISREF, var exc));
+		if (exc)
+			throw exc;
+		return result;
+	}
+
+}

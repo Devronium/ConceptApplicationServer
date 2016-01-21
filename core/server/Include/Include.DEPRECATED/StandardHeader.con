@@ -1,0 +1,92 @@
+//--------------------------------------------------------------------------------------//
+// Standard Concept Controls :                                                          //
+//                                                                                      //
+// Object is the basic class for all concept objects/controls                           //
+// Control is the base of all Concept controls                                          //
+// VisibleControl is the base of all Concept visible controls, such as forms, edit boxes//
+// Container is the basic container for keeping controls object                         //
+//--------------------------------------------------------------------------------------//
+
+include 'ArrayList.con'
+include 'MessageDispatcher.con'
+include 'BasicMessages.con'
+include 'DataBases.con'
+include 'ClassNames.con'
+include 'PropertyNames.con'
+import 'standard.C.io'
+import 'standard.C.casts'
+import 'standard.coding.base64'
+import 'concept.helper.idgenerator'
+
+define DEFAULT_FONT			"MS Sans Serif"
+define DEFAULT_SIZE			14
+
+define NULL				0
+
+define DEFAULT_LEFT			0
+define DEFAULT_TOP			0
+define DEFAULT_HEIGHT			100
+define DEFAULT_WIDTH			100
+define EXC_INVALID_ARGUMENT_TYPE	"Argument has an invalid type"
+define NUMERIC_TYPE			"numeric"
+define CLASS_TYPE			"class"
+define STRING_TYPE			"string"
+
+define true				1
+define false				0
+
+// MDI FORM
+define CONCEPT_NORMAL_FORM		0
+define CONCEPT_MDI_CHILD_FORM		1
+define CONCEPT_MDI_FORM			2
+
+define FRM_BORDER_SIZABLE		0
+define FRM_BORDER_NONE			1
+define FRM_BORDER_DIALOG		2
+define FRM_BORDER_FIXED			3
+
+define BORDER_CLIENT_DEFAULT		0
+define BORDER_NONE             		1
+define BORDER_3D_OUTSET        		2
+define BORDER_3D_INSET         		3
+
+define NO_SCROLLBAR			0
+define V_SCROLLBAR			1
+define H_SCROLLBAR			2
+
+define MINIMIZE_BUTTON			1
+define MAXIMIZE_BUTTON			2
+define SYSTEM_BUTTON			4
+
+define VERTICAL_SCROLL     0
+define HORIZONTAL_SCROLL   1
+
+define SB_LINEUP           0
+define SB_LINELEFT         0
+define SB_LINEDOWN         1
+define SB_LINERIGHT        1
+define SB_PAGEUP           2
+define SB_PAGELEFT         2
+define SB_PAGEDOWN         3
+define SB_PAGERIGHT        3
+define SB_TOP              6
+define SB_LEFT             6
+define SB_BOTTOM           7
+define SB_RIGHT            7
+
+define ANCHOR_NONE         0x00
+define ANCHOR_BOTTOM       0x01
+define ANCHOR_TOP          0x02
+define ANCHOR_LEFT         0x04
+define ANCHOR_RIGHT        0x08
+
+define DOCK_CUSTOM         0x00
+define DOCK_BOTTOM         0x01
+define DOCK_TOP            0x02
+define DOCK_LEFT           0x03
+define DOCK_RIGHT          0x04
+define DOCK_FILL           0x05
+
+define B_UNCHECKED         0x00
+define B_CHECKED           0x01
+define B_INDETERMINATE     0x02

@@ -1,0 +1,52 @@
+include VisibleRemoteObject.con
+include ClassID.con
+include RemoteEvents.con
+
+define PROGRESS_LEFT_TO_RIGHT	0
+define PROGRESS_RIGHT_TO_LEFT	1
+define PROGRESS_BOTTOM_TO_TOP	2
+define PROGRESS_TOP_TO_BOTTOM	3
+
+class RProgressBar extends VisibleRemoteObject {
+	private var CAPTION;
+	private var FRACTION;
+	private var ORIENTATION;
+	private var STEP;
+
+	public property Caption { get CAPTION, set SetCaption }
+	public property Fraction { get FRACTION, set SetFraction }
+	public property Orientation { get ORIENTATION, set SetOrientation }
+	public property Step { get STEP, set SetStep }
+
+	public function RProgressBar(OWNER) {
+		super(OWNER, CLASS_PROGRESSBAR);
+	}
+
+	public function SetCaption(argument) {
+		SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_CAPTION,argument);
+		CAPTION=argument;
+		return argument;
+	}
+
+	public function SetFraction(argument) {
+		SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_FRACTION,argument);
+		FRACTION=argument;
+		return argument;
+	}
+
+	public function SetOrientation(argument) {
+		SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_ORIENTATION,argument);
+		ORIENTATION=argument;
+		return argument;
+	}
+
+	public function SetStep(argument) {
+		SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_STEP,argument);
+		STEP=argument;
+		return argument;
+	}
+
+	public function Pulse() {
+		SendMessage(REMOTE_ID_STR,MSG_CUSTOM_MESSAGE1,"0","0");
+	}
+}

@@ -1,0 +1,181 @@
+include RButton.con
+include REditComboBox.con
+include REdit.con
+include RVBox.con
+include RLabel.con
+include RRadioButton.con
+include RHButtonBox.con
+include RProgressBar.con
+include DataBases.con
+include RHBox.con
+include Constants.con
+//include RScrolledWindow.con
+
+import standard.lib.str
+
+//define CONNECTION_LIST	"ConnectionStrings.lst"
+
+class DataConnectorDialog extends RVBox {
+	private var RadioDSN;
+	private var RadioString;
+	private var LabelUser;
+	private var LabelPass;
+	private var EditUser;
+	private var EditPass;
+
+	private var LabelDSN;
+	private var ComboDSN;
+
+	private var LabelString;
+	private var ComboString;
+
+	private var OkButton;
+	private var CancelButton;
+
+	private var string_box;
+	private var dsn_box;
+
+	private var callback_delegate;
+
+	public function OnOkPressed(Sender, extra) {
+		callback_delegate(this, true);
+	}
+
+	public function OnCancelPressed(Sender, extra) {
+		callback_delegate(this, false);
+	}
+
+	public function GetOptions(var username, var password, var str) {
+		username=EditUser.Text;
+		password=EditPass.Text;
+		var type=RadioDSN.Checked;
+		if (type)
+			str=ComboDSN.Text;
+		else
+			str=ComboString.Text;
+		return type;
+	}
+
+	public function MessageBox(message) {
+		Send(MSG_MESSAGE_BOX,"",message);
+	}
+
+	public function ButtonOnToggled(Sender, extra) {
+		if (RadioDSN.Checked) {
+			dsn_box.Show();
+			string_box.Hide();
+		} else {
+			dsn_box.Hide();
+			string_box.Show();
+		}
+	}
+
+	private function ListDSN() {
+		var dsn=ODBCFirstDSN();
+		while (dsn!="")  {
+			ComboDSN.AddItem([dsn]);
+			dsn=ODBCNextDSN();
+		} 
+	}
+
+	private function ListCStrings(cnt) {
+		//var cnt=ReadFile(CONNECTION_LIST);
+		if (cnt!="") {
+			var arr=StrSplit(cnt,"|");
+			var len=length arr;
+			for (var i=0;i<len;i+=2) {
+				var desc=arr[i];
+				var val=arr[i+1];
+				ComboString.AddItem([val]);
+			}
+		}
+	}
+
+	public function DataConnectorDialog(owner, deleg, strings) {
+		super(owner);
+		callback_delegate=deleg;
+
+		var mainbox=this;
+		//var mainbox=new RVBox(this);
+
+		var hbox1=new RHBox(mainbox);
+
+		LabelUser=new RLabel(hbox1);
+		LabelUser.Caption="Username:";
+		LabelUser.Show();
+
+		EditUser=new REdit(hbox1);
+		EditUser.Show();
+
+		LabelPass=new RLabel(hbox1);
+		LabelPass.Caption="Password:";
+		LabelPass.Show();
+
+		EditPass=new REdit(hbox1);
+		EditPass.Masked=true;
+		EditPass.Show();
+		hbox1.Show();
+
+		var hbox=new RHBox(mainbox);
+		RadioDSN=new RRadioButton(hbox);
+		RadioDSN.Caption="Connect using a DSN";
+		RadioDSN.Show();
+
+		RadioString=new RRadioButton(hbox);
+		RadioString.Caption="Connect using a connection string";
+		RadioString.GroupWith=RadioDSN;
+		RadioString.Show();
+		RadioDSN.OnToggled=ButtonOnToggled;
+		RadioString.OnToggled=ButtonOnToggled;
+
+		RadioDSN.Checked=true;
+
+		var hbox2=new RHBox(mainbox);
+
+		dsn_box=new RVBox(hbox2);
+		ComboDSN=new REditComboBox(dsn_box);
+		ComboDSN.Packing=PACK_EXPAND_WIDGET;
+		ComboDSN.AddColumns(1,HIDDEN_COLUMN);
+		ListDSN();
+		ComboDSN.TextColumn=0;
+		ComboDSN.Show();
+		dsn_box.Show();
+
+		string_box=new RVBox(hbox2);
+
+		//var scrl=new RScrolledWindow(string_box);
+		//scrl.HScrollPolicy=POLICY_AUTOMATIC;
+		//scrl.VScrollPolicy=POLICY_AUTOMATIC;
+
+		ComboString=new REditComboBox(string_box);
+		ComboString.AddColumns(1);
+		//ComboString.AddColumns(1,HIDDEN_COLUMN);
+		ListCStrings(strings);
+		ComboString.TextColumn=0;
+		ComboString.Packing=PACK_EXPAND_WIDGET;
+		ComboString.Show();
+		//scrl.Show();
+
+		hbox2.PackType=PACK_SHRINK;
+		OkButton=new RButton(hbox2);
+		OkButton.Tooltip="Connect";
+		var ImageOk=new RImage(OkButton);
+		ImageOk.LoadResource(CONNECT,ICON_SIZE_MENU);
+		ImageOk.Show();
+		OkButton.OnClicked=OnOkPressed;
+		OkButton.Show();
+
+		CancelButton=new RButton(hbox2);
+		CancelButton.Tooltip="Cancel this connection";
+		var ImageCancel=new RImage(CancelButton);
+		ImageCancel.LoadResource(CANCEL,ICON_SIZE_MENU);
+		ImageCancel.Show();
+		CancelButton.OnClicked=OnCancelPressed;
+		CancelButton.Show();
+
+		hbox2.Show();
+
+		hbox.Show();
+		mainbox.Show();
+	}
+}

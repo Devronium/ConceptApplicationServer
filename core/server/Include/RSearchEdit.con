@@ -1,0 +1,57 @@
+include VisibleRemoteObject.con
+include ClassID.con
+include RemoteEvents.con
+
+
+class RSearchEdit extends VisibleRemoteObject {
+	protected var _ShowWith;
+	public property ShowWith { get _ShowWith, set SetShowWith }
+	public property Text { get GetCaption, set SetCaption }
+	//----------- EVENTS ----------------------------------------------------//	
+	public property OnChanged { get GetOnChanged, set SetOnChanged }
+	public function GetOnChanged() {
+		return _GET_REMOTE_EVENT(EVENT_ON_CHANGED);
+	}
+
+	public function SetOnChanged(var delegate deleg) {
+		return _MAP_REMOTE_EVENT(EVENT_ON_CHANGED, deleg);
+	}
+
+	public property OnClose { get GetOnClose, set SetOnClose }
+	public function GetOnClose() {
+		return _GET_REMOTE_EVENT(EVENT_ON_RELEASED);
+	}
+
+	public function SetOnClose(var delegate deleg) {
+		return _MAP_REMOTE_EVENT(EVENT_ON_RELEASED, deleg);
+	}
+
+	public property OnActivate { get GetOnActivate, set SetOnActivate }
+	public function GetOnActivate() {
+		return _GET_REMOTE_EVENT(EVENT_ON_ACTIVATE);
+	}
+
+	public function SetOnActivate(var delegate deleg) {
+		return _MAP_REMOTE_EVENT(EVENT_ON_ACTIVATE, deleg);
+	}
+	//-----------------------------------------------------------------------//	
+	public function RSearchEdit(OWNER) {
+		super(OWNER, CLASS_SEARCHEDIT);
+	}
+	public function GetCaption() {
+		return GetProperty(P_CAPTION);
+	}
+
+	public function SetCaption(argument) {
+		SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_CAPTION,argument);
+		return argument;
+	}
+
+	public function SetShowWith(fr) {
+		if (fr)
+			SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_WIDGET,""+fr.RID);
+		else
+			SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_WIDGET,"0");
+		_ShowWith = fr;
+	}
+}

@@ -1,0 +1,466 @@
+include RemoteContainer.con
+include ClassID.con
+include RemoteEvents.con
+
+define JUSTIFY_LEFT	0
+define JUSTIFY_RIGHT	1
+define JUSTIFY_CENTER	2
+define JUSTIFY_FILL	3
+
+define WRAP_NONE	0
+define WRAP_CHAR	1
+define WRAP_WORD	2
+define WRAP_WORD_CHAR	3
+
+define UNDERLINE_NONE	0
+define UNDERLINE_SINGLE	1
+define UNDERLINE_DOUBLE	2
+define UNDERLINE_LOW	3
+define UNDERLINE_ERROR	4
+
+define TEXT_DIR_NONE	0
+define TEXT_DIR_LTR	1
+define TEXT_DIR_RTL	2
+
+
+class RTextTag extends RemoteObject {
+	private var PRIORITY;
+	private var WRAP;
+	private var FONTWEIGHT;
+
+	private var UNDERLINE;
+	private var STRIKEOUT;
+	private var STRETCH;
+	private var FONTSIZE;
+	private var FONTSCALE;
+	private var RISE;
+	private var RIGHTMARGIN;
+	private var PIXELSINSIDE;
+	private var PIXELSBELOW;
+	private var PIXELSABOVE;
+	private var LEFTMARGIN;
+	private var LANGUAGE;
+	private var JUSTIFICATION;
+	private var VISIBLE;
+	private var INDENT;
+	private var FOREGROUND;
+	private var FONTNAME;
+	private var FONTFAMILY;
+	private var READONLY;
+	private var DIRECTION;
+	private var BACKGROUND;
+	private var BACKGROUNDFULL;
+	private var FONTSTYLE;
+
+	public property Priority { get PRIORITY, set SetPriority };
+	public property WrapMode { get WRAP, set SetWrapMode };
+	public property FontWeight { get FONTWEIGHT, set SetFontWeight };
+
+	public property Underline { get UNDERLINE, set SetUnderline };
+	public property Strikethrough { get STRIKEOUT, set SetStrikeout };
+	public property Stretch { get STRETCH, set SetStretch };
+	public property FontSize { get FONTSIZE, set SetFontSize };
+	public property FontScale { get FONTSCALE, set SetFontScale};
+	public property Rise { get RISE, set SetRise};
+	public property RightMargin { get RIGHTMARGIN, set SetRightMargin};
+	public property PixelsInside { get PIXELSINSIDE, set SetPixelsInside};
+	public property PixelsBelow { get PIXELSBELOW, set SetPixelsBelow};
+	public property PixelsAbove { get PIXELSABOVE, set SetPixelsAbove};
+	public property LeftMargin { get LEFTMARGIN, set SetLeftMargin};
+	public property Language { get LANGUAGE, set SetLanguage};
+	public property Justification { get JUSTIFICATION, set SetJustification};
+	public property IsVisible { get VISIBLE, set SetIsVisible};
+	public property Indent { get INDENT, set SetIndent};
+	public property ForeColor { get FOREGROUND, set SetForeColor};
+	public property FontName { get FONTNAME, set SetFontName};
+	public property FontFamily { get FONTFAMILY, set SetFontFamily};
+	public property IsReadOnly { get READONLY, set SetIsReadOnly};
+	public property Direction { get DIRECTION, set SetDirection};
+	public property BackColor { get BACKGROUND, set SetBackColor};
+	public property BackgroundFull { get BACKGROUNDFULL, set SetBackgroundFull};
+	public property FontStyle { get FONTSTYLE, set SetFontStyle};
+
+
+	public function SetPriority(argument) {
+		return PRIORITY=SetProperty(P_PRIORITY, argument);
+	}
+
+	public function SetWrapMode(argument) {
+		return WRAP=SetProperty(P_WRAP, argument);
+	}
+
+	public function SetFontWeight(argument) {
+		return FONTWEIGHT=SetProperty(P_FONTWEIGHT, argument);
+	}
+
+	public function SetUnderline(argument) {
+		return UNDERLINE=SetProperty(P_UNDERLINE, argument);
+	}
+
+	public function SetStrikeout(argument) {
+		return STRIKEOUT=SetProperty(P_STRIKEOUT, argument);
+	}
+
+	public function SetStretch(argument) {
+		return STRETCH=SetProperty(P_STRETCH, argument);
+	}
+
+	public function SetFontSize(argument) {
+		return FONTSIZE=SetProperty(P_FONTSIZE, argument);
+	}
+
+	public function SetFontScale(argument) {
+		return FONTSCALE=SetProperty(P_SCALE, argument);
+	}
+
+	public function SetRise(argument) {
+		return RISE=SetProperty(P_RISE, argument);
+	}
+
+	public function SetRightMargin(argument) {
+		return RIGHTMARGIN=SetProperty(P_RIGHTMARGIN, argument);
+	}
+
+	public function SetPixelsInside(argument) {
+		return PIXELSINSIDE=SetProperty(P_PIXELSINSIDE, argument);
+	}
+
+	public function SetPixelsBelow(argument) {
+		return PIXELSBELOW=SetProperty(P_PIXELSBELOW, argument);
+	}
+
+	public function SetPixelsAbove(argument) {
+		return PIXELSABOVE=SetProperty(P_PIXELSABOVE, argument);
+	}
+
+	public function SetLeftMargin(argument) {
+		return LEFTMARGIN=SetProperty(P_LEFTMARGIN, argument);
+	}
+
+	public function SetLanguage(argument) {
+		return LANGUAGE=SetProperty(P_LANGUAGE, argument);
+	}
+
+	public function SetJustification(argument) {
+		return JUSTIFICATION=SetProperty(P_JUSTIFY, argument);
+	}
+
+	public function SetIsVisible(argument) {
+		return VISIBLE=SetProperty(P_VISIBLE, argument);
+	}
+
+	public function SetIndent(argument) {
+		return INDENT=SetProperty(P_INDENT, argument);
+	}
+
+	public function SetForeColor(argument) {
+		return FOREGROUND=SetProperty(P_FORECOLOR, argument);
+	}
+
+	public function SetFontName(argument) {
+		return FONTNAME=SetProperty(P_FONTNAME, argument);
+	}
+
+	public function SetFontFamily(argument) {
+		return FONTFAMILY=SetProperty(P_FONTFAMILY, argument);
+	}
+
+	public function SetIsReadOnly(argument) {
+		return READONLY=SetProperty(P_READONLY, argument);
+	}
+
+	public function SetDirection(argument) {
+		return DIRECTION=SetProperty(P_DIRECTION, argument);
+	}
+
+	public function SetBackColor(argument) {
+		return BACKGROUND=SetProperty(P_BACKCOLOR, argument);
+	}
+
+	public function SetBackgroundFull(argument) {
+		return BACKGROUNDFULL=SetProperty(P_BACKGROUNDFULL, argument);
+	}
+
+	public function SetFontStyle(argument) {
+		return FONTSTYLE=SetProperty(P_FONTSTYLE, argument);
+	}
+
+	public function RTextTag(Owner) {
+		super(Owner, CLASS_TEXTTAG);
+	}
+	
+}
+
+class RTextView extends RemoteContainer {
+	private var[] Styles;
+
+	private var READONLY;
+	private var WRAP;
+	private var ACCEPTTAB;
+	private var CURSORVISIBLE;
+	private var OVERWRITE;
+	private var LEFTMARGIN;
+	private var RIGHTMARGIN;
+	private var PIXELSABOVE;
+	private var PIXELSBELOW;
+	private var PIXELSINSIDE;
+	private var JUSTIFY;
+	private var _INDENT;
+	
+	public property Text { get GetCaption, set SetCaption }
+	public property Wrap { get WRAP, set SetWrap }
+	public property ReadOnly { get READONLY, set SetReadOnly }
+	public property AcceptTab { get ACCEPTTAB, set SetAcceptTab }
+	public property CursorVisible { get CURSORVISIBLE, set SetCursorVisible }
+	public property Overwrite { get OVERWRITE, set SetOverwrite }
+	public property LeftMargin { get LEFTMARGIN, set SetLeftMargin }
+	public property RightMargin { get LEFTMARGIN, set SetRightMargin }
+	public property PixelsAbove { get PIXELSABOVE, set SetPixelsAbove }
+	public property PixelsBelow { get PIXELSBELOW, set SetPixelsBelow }
+	public property PixelsInside { get PIXELSABOVE, set SetPixelsInside }
+	public property Justify { get JUSTIFY, set SetJustify }
+	public property Indent { get _INDENT, set SetIndent }
+
+	public property SelectionStart { get GetSelectionStart, set SetSelectionStart }
+	public property SelectionLength { get GetSelectionLength, set SetSelectionLength }
+
+	//----------- EVENTS ----------------------------------------------------//
+	public property OnInsertAtCursor { get GetOnInsertAtCursor, set SetOnInsertAtCursor }
+	public function GetOnInsertAtCursor() {
+		return _GET_REMOTE_EVENT(EVENT_ON_INSERTATCURSOR);
+	}
+
+	public function SetOnInsertAtCursor(var delegate deleg) {
+		return _MAP_REMOTE_EVENT(EVENT_ON_INSERTATCURSOR, deleg);
+	}
+
+	public property OnPopulatePopup { get GetOnPopulatePopup, set SetOnPopulatePopup }
+	public function GetOnPopulatePopup() {
+		return _GET_REMOTE_EVENT(EVENT_ON_POPULATEPOPUP);
+	}
+
+	public function SetOnPopulatePopup(var delegate deleg) {
+		return _MAP_REMOTE_EVENT(EVENT_ON_POPULATEPOPUP, deleg);
+	}
+
+	public property OnSetAnchor { get GetOnSetAnchor, set SetOnSetAnchor }
+	public function GetOnSetAnchor() {
+		return _GET_REMOTE_EVENT(EVENT_ON_SETANCHOR);
+	}
+
+	public function SetOnSetAnchor(var delegate deleg) {
+		return _MAP_REMOTE_EVENT(EVENT_ON_SETANCHOR, deleg);
+	}
+
+	public property OnSetScrollAdjustments { get GetOnSetScrollAdjustments, set SetOnSetScrollAdjustments }
+	public function GetOnSetScrollAdjustments() {
+		return _GET_REMOTE_EVENT(EVENT_ON_SETSCROLLADJUSTMENTS);
+	}
+
+	public function SetOnSetScrollAdjustments(var delegate deleg) {
+		return _MAP_REMOTE_EVENT(EVENT_ON_SETSCROLLADJUSTMENTS, deleg);
+	}
+	//-----------------------------------------------------------------------//
+
+	public function RTextView(OWNER) {
+		super(OWNER, CLASS_TEXTVIEW);
+	}
+
+	public function SetPixelsInside(argument) {
+		SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_PIXELSINSIDE,argument);
+		PIXELSINSIDE=argument;
+		return argument;
+	}
+
+	public function SetPixelsBelow(argument) {
+		SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_PIXELSBELOW,argument);
+		PIXELSBELOW=argument;
+		return argument;
+	}
+
+	public function SetPixelsAbove(argument) {
+		SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_PIXELSABOVE,argument);
+		PIXELSABOVE=argument;
+		return argument;
+	}
+
+	public function SetLeftMargin(argument) {
+		SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_LEFTMARGIN,argument);
+		LEFTMARGIN=argument;
+		return argument;
+	}
+
+	public function SetRightMargin(argument) {
+		SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_RIGHTMARGIN,argument);
+		RIGHTMARGIN=argument;
+		return argument;
+	}
+
+	public function SetOverwrite(argument) {
+		argument=(argument!=0);
+		SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_OVERWRITE,argument);
+		OVERWRITE=argument;
+		return argument;
+	}
+
+	public function SetCursorVisible(argument) {
+		argument=(argument!=0);
+		SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_CURSORVISIBLE,argument);
+		CURSORVISIBLE=argument;
+		return argument;
+	}
+
+	public function SetAcceptTab(argument) {
+		argument=(argument!=0);
+		SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_ACCEPTTAB,argument);
+		ACCEPTTAB=argument;
+		return argument;
+	}
+
+	public function SetCaption(argument) {
+		SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_CAPTION,argument);
+		return argument;
+	}
+
+	public function SetReadOnly(argument) {
+		argument=(argument!=0);
+		SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_READONLY,argument);
+		READONLY=argument;
+		return argument;
+	}
+
+	public function SetWrap(argument) {
+		SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_WRAP,argument);
+		WRAP=argument;
+		return argument;
+	}
+
+	public function SetJustify(argument) {
+		SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_JUSTIFY,argument);
+		JUSTIFY=argument;
+		return argument;
+	}
+
+	public function SetIndent(argument) {
+		SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_INDENT,argument);
+		_INDENT=argument;
+		return argument;
+	}
+
+	public function GetSelectionStart() {
+		return value GetProperty(P_SELECTIONSTART);
+	}
+
+	public function SetSelectionStart(position) {
+		return SetProperty(P_SELECTIONSTART,position);
+	}
+
+	public function GetSelectionLength() {
+		return value GetProperty(P_SELECTIONLENGTH);
+	}
+
+	public function SetSelectionLength(len) {
+		return SetProperty(P_SELECTIONLENGTH, len);
+	}
+
+	public function GetCaption() {
+		return GetProperty(P_CAPTION);
+	}
+
+	public function AddText(text) {
+		return SetProperty(P_ADDTEXT, text);
+	}
+
+	public function AddStyledText(text, style) {
+		if (typeof style=="string")
+			style=Styles[style];
+
+		if (classof style=="RTextTag")
+			SendMessage(REMOTE_ID_STR,MSG_CUSTOM_MESSAGE1,""+style.RID,text);
+		else
+			AddText(text);
+	}
+
+	public function InsertText(position, text) {
+		PostString(""+position);
+		SendMessage(REMOTE_ID_STR,MSG_CUSTOM_MESSAGE2,"-1",text);
+	}
+
+	public function InsertStyledText(position, text, style) {
+		if (typeof style=="string")
+			style=Styles[style];
+
+		if (classof style=="RTextTag") {
+			PostString(""+position);
+			SendMessage(REMOTE_ID_STR,MSG_CUSTOM_MESSAGE2,""+style.RID,text);
+		} else
+			InsertText(position,text);
+	}
+
+	public function AddObject(Object, add_by_copy=false) {
+		if (typeof Object !="class")
+			return 0;
+
+		Object.LinkIfNotLinked(this);
+
+		if (add_by_copy)
+			return SendMessage(REMOTE_ID_STR,MSG_CUSTOM_MESSAGE3,"-2",Object.RID);
+
+		return SendMessage(REMOTE_ID_STR,MSG_CUSTOM_MESSAGE3,"-1",Object.RID);
+	}
+
+	public function InsertObject(position, Object) {
+
+		if (typeof Object !="class")
+			return 0;
+
+		if (position<-1)
+			return 0;
+
+		Object.LinkIfNotLinked(this);
+
+		return SendMessage(REMOTE_ID_STR,MSG_CUSTOM_MESSAGE3,""+position,Object.RID);
+	}
+
+	public function GetStyle(szStylename) {
+		return Styles[szStylename];
+	}
+
+	public function CreateStyle(szStylename) {
+		if (!szStylename) {
+			Styles[length Styles]=new RTextTag(this);
+		} else {
+			szStylename=""+szStylename;
+
+			if (var st_ex=GetStyle(szStylename))
+				return st_ex;
+
+			return Styles[szStylename]=new RTextTag(this);
+		}
+	}
+
+	public function MarkWords(string wordlist, tag) {
+		var tag_rid=-1;
+		if (tag) {
+			if (typeof tag=="string") {
+				tag=Styles[tag];
+				if (tag)
+					tag_rid=tag.RID;
+			} else
+			if (classof tag=="RTextTag") {
+				tag_rid=tag.RID;
+			}
+		}		
+		var prop_str=""+tag_rid;
+		if (wordlist)
+			prop_str+=";"+wordlist;
+		else
+		if (tag_rid==-1)
+			prop_str="";
+		return SetProperty(P_SEARCHENTRY, prop_str);
+	}
+
+	public function Print() {
+		return SetProperty(P_PRINT,0);
+	}
+}

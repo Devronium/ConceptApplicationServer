@@ -1,0 +1,23 @@
+import standard.lib.amf
+import standard.C.io
+
+class A {
+	var name="some name";
+	var surnume="lazy";
+}
+
+class Main {
+	function Main() {
+		var[] arr;
+		arr["test"]="value test";
+		arr["test2"]=1234;
+		arr["object"]=new [];
+		arr["object"]["prop1"]="prop1";
+		arr["class"]=new A();
+		var d1=AMF(arr);
+		var d2=AMF(new A());
+
+		var d=AMF([1,"2", [3,4,new A()]]);
+		echo UnAMF(d1);
+	}
+}

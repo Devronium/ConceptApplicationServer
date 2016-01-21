@@ -1,0 +1,191 @@
+include RTable.con
+include REdit.con
+include RButton.con
+include RForm.con
+import standard.lib.str
+
+class RTouchKeyboard extends RTable {
+        public var Edit;
+        public var Target=null;
+        public var OnFinish;
+        public property Text { set SetText, get _Text }
+        private var _Text="";
+        private var CAPS=false;
+        private var SHIFT=false;
+
+        public function SetText(text) {
+            this._Text=""+text;
+            this.Edit.Text=text;
+            return text;
+        }
+
+        public function OnButtonClicked(Sender, EventData) {
+            var data=Sender.UserData;
+            var c="";
+            if (typeof data=="array") {
+                var opt=data[1];
+                switch (opt) {
+                    case "TAB":
+                        c='\t';
+                        break;
+                    case "SPACE":
+                        c=' ';
+                        break;
+                    case "CAPS":
+                        CAPS=!CAPS;
+                        break;
+                    case "SHIFT":
+                        this.SHIFT=true;
+                        this.Edit.SecondaryIconName="gtk-go-up";
+                        return 0;
+                    case "BACK":
+                        if (this._Text) {
+                            this._Text=SubStr(this._Text, 0, length this._Text - 1);
+                            this.Edit.Text=this._Text;
+                        }
+                        break;
+                    case "CLEAR":
+                        if (this._Text) {
+                            this._Text="";
+                            this.Edit.Text=this._Text;
+                        }
+                        break;
+                    case "ENTER":
+                        if (this.Target)
+                            this.Target.Text=this._Text;
+                        if (this.OnFinish)
+                            this.OnFinish(this, this._Text);
+                        break;
+                    default:
+                        if (this.SHIFT)
+                            c=data[1];
+                        else
+                            c=data[0];
+                }
+            } else {
+                c=data;
+            }
+            if (c) {
+                if (CAPS) {
+                    if (!SHIFT)
+                        c=ToUpper(c);
+                } else 
+                if (SHIFT)
+                    c=ToUpper(c);
+                this._Text+=c;
+                this.Edit.Text=this._Text;
+            }
+            this.SHIFT=false;
+            if (CAPS)
+                this.Edit.SecondaryIconName="gtk-goto-top";
+            else
+                this.Edit.SecondaryIconName="gtk-goto-bottom";
+        }
+
+        public function RTouchKeyboard(Sender, layout=null, size=50) {
+            super(Sender);
+            if (!layout) {
+                layout=[
+                        [["`","~"],["1","!"],["2","@"],["3","#"],["4","\$"],["5","%"],["6","^"],["7","&"],["8","*"],["9","("],["0",")"],["-","_"],["=","+"],["\\","|"],["##gtk-go-back","BACK"]], 
+                        [["#Tab","TAB"],"q","w","e","r","t","y","u","i","o","p",["[","{"], ["]","}"],["##gtk-clear", "CLEAR"]],
+                        [["##gtk-goto-top","CAPS"],"a","s","d","f","g","h","j","k","l",[";",":"],["\"","'"],["##gtk-ok", "ENTER"]],
+                        [["##gtk-go-up", "SHIFT"],"z","x","c","v","b","n","m",[",","<"],[".",">"],["/","?"],["#Space", "SPACE"]]
+                ];
+            }
+            var lines=length layout;
+            var max_rows=0;
+            for (var i=0;i<lines;i++) {
+                var line=layout[i];
+                if (line) {
+                    var len_rows=length line;
+                    if (len_rows>max_rows)
+                        max_rows=len_rows;
+                }
+            }
+
+            this.Rows=lines+1;
+            this.Columns=max_rows+1;
+            this.Homogeneous=true;
+
+            this.AttachOptions(0, max_rows+1, 0, 1, FILL | SHRINK, FILL | SHRINK, 1, 1);
+            var entry=new REdit(this, false);
+            entry.ReadOnly=true;
+            entry.Font.Name="arial bold 12";
+            entry.Show();
+            this.Edit=entry;
+            
+            for (i=0;i<lines;i++) {
+                line=layout[i];
+                if (line) {
+                    var len_line=length line;
+                    var index=0;
+                    for (var j=0;j<len_line;j++) {
+                        var is_stock=false;
+                        var elem=line[j];
+                        var delta=1;
+                        if (typeof elem=="array") {
+                            var caption=elem[0];
+                            if (caption[0]=='#') {
+                                caption++;
+                                delta++;
+                                if (caption[0]=="#") {
+                                    is_stock=true;
+                                    caption++;
+                                }
+                            } else {
+                                caption=elem[1]+"\n"+elem[0];
+                            }
+                                
+                        } else {
+                            caption=ToUpper(""+elem);
+                        }
+                        
+                        this.AttachOptions(index, index+delta, i+1, i+2, FILL | EXPAND, FILL | EXPAND, 1, 1);
+                        index+=delta;
+                        var button=new RButton(this);
+                        if (is_stock)
+                            button.LoadStockIcon(caption);
+                        else {
+                            button.Caption=caption;
+                            //if (length (""+caption)==1)
+                            //    button.AddAccelKey("<alt>"+caption);
+                        }
+                        button.MinHeight=size;
+                        button.MinWidth=size;
+                        button.UserData=elem;
+                        button.OnButtonPress=OnButtonClicked;
+                        button.Show();
+                    }
+                }
+            }
+        }
+}
+
+class RTouchKeyboardForm extends RForm {
+    public var Keyboard;
+
+    public function RTouchKeyboardForm(Owner) {
+        super(Owner);
+        this.Caption="Touch keyboard";
+        this.Keyboard=new RTouchKeyboard(this);
+        this.Keyboard.Show();
+        this.Keyboard.OnFinish=this.OnFinish;
+        this.Position=WP_CENTER;
+        this.KeepAbove=true;
+        this.OnFocusOut=this.OnFinish;
+    }
+
+    public function _Popup(target) {
+         if (target.ReadOnly)
+             return 0;
+         var kb=this.Keyboard;
+         kb.Target=target;
+         kb.Text=target.Text;
+         kb.Edit.Masked=target.Masked;
+         this.Show();
+    }
+    
+    public function OnFinish(Sender, EventData) {
+        this.Hide();
+    }
+}

@@ -1,0 +1,14 @@
+include WebDocument.con
+
+class Main {
+	Main() {
+		var doc = new WebDocument();
+		var token = WebVar("token");
+		doc.UseSessions = false;
+		doc.Content = "application/json";
+		doc.PutHeader("Access-Control-Allow-Origin: *");
+		doc.BeginDocument();
+		doc << "{ \"notification\": { \"title\": \"Hello!\", \"message\": \"Hello world!\", \"icon\": \"img/icon-192x192.png\" } }";
+		doc.EndDocument();
+	}
+}

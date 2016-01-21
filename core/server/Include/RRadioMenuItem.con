@@ -1,0 +1,41 @@
+include RCheckMenuItem.con
+include ClassID.con
+include RemoteEvents.con
+include RemoteProperties.con
+include RemoteMessages.con
+
+define IS_RADIO_FLAG	-2
+
+class RRadioMenuItem extends RCheckMenuItem {
+	private var GROUPED_WITH;
+	
+	public property GroupWith { get GROUPED_WITH, set SetGroup }
+
+	//----------- EVENTS ----------------------------------------------------//	
+	public property OnGroupChanged { get GetOnGroupChanged, set SetOnGroupChanged }
+	public function GetOnGroupChanged() {
+		return _GET_REMOTE_EVENT(EVENT_ON_GROUPCHANGED);
+	}
+
+	public function SetOnGroupChanged(var delegate deleg) {
+		return _MAP_REMOTE_EVENT(EVENT_ON_GROUPCHANGED, deleg);
+	}
+	//-----------------------------------------------------------------------//	
+
+	public function RRadioMenuItem(OWNER,CAPTION) {
+		PostString(CAPTION);
+		// don't call super; Call RItem instead
+		RItem(OWNER, CLASS_RADIOMENUITEM);
+	}
+
+	public function SetGroup(radio_object) {
+		if (classof radio_object=="RRadioMenuItem") {
+			SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_GROUP,radio_object.RID);
+			GROUPED_WITH=radio_object;
+		} else {
+			SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_GROUP,"-1");
+			GROUPED_WITH=0;
+		}
+		return radio_object;
+	}
+}

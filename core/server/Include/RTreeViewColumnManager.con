@@ -1,0 +1,211 @@
+include RemoteProperties.con
+include RemoteMessages.con
+include RemoteObject.con
+
+class RColumnManager {
+	private var _OWNER_RID;
+	private var _OWNER;
+
+	private var _ALIGNMENT;
+	private var _CLICKABLE;
+	private var _EXPAND;
+	private var _MAXWIDTH;
+	private var _MINWIDTH;
+	private var _REORDERABLE;
+	private var _SIZING;
+	private var _SORTINDICATOR;
+	private var _SORTINDICATORTYPE;
+	private var _RESIZABLE;
+	private var _CAPTION;
+	private var _SENSITIVE;
+	private var _BACKCOLOR;
+	private var _VISIBLE=1;
+
+	private var _FGCOLOR;
+	private var _XALIGN;
+	private var _YALIGN;
+	private var _XPADDING;
+	private var _YPADDING;
+	private var _WRAP;
+	private var _FONT;
+
+	public property Alignment { get _ALIGNMENT, set SetAlignment }
+	public property Clickable { get _CLICKABLE, set SetClickable }
+	public property Expand { get _EXPAND, set SetExpand }
+	public property FixedWidth { get GetWidth, set SetFixedWidth }
+	public property MaxWidth { get _MAXWIDTH, set SetMaxWidth }
+	public property MinWidth { get _MINWIDTH, set SetMinWidth }
+	public property Reorderable { get _REORDERABLE, set SetReorderable }
+	public property Sizing { get _SIZING, set SetSizing }
+	public property Resizable { get _RESIZABLE, set SetResizable }
+	public property SortIndicator { get _SORTINDICATOR, set SetSortIndicator }
+	public property SortIndicatorType { get _SORTINDICATORTYPE, set SetSortIndicatorType }
+	public property Caption { get _CAPTION, set SetCaption }
+	public property Sensitive { get _SENSITIVE, set SetSensitive }
+	public property BackColor { get _BACKCOLOR, set SetBackColor }
+	public property Visible { get _VISIBLE, set SetVisible }
+
+	public property ForeColor { get _FGCOLOR, set SetForeColor }
+	public property XAlign { get _XALIGN, set SetXAlign }
+	public property YAlign { get _YALIGN, set SetYAlign }
+	public property XPadding { get _XPADDING, set SetXPadding }
+	public property YPadding { get _YPADDING, set SetYPadding }	
+	public property Wrap { get _WRAP, set SetWrap }
+	public property FontDescription { get _FONT, set SetFontDescription }
+
+	public function RColumnManager(Owner) {
+		_OWNER_RID=""+Owner.RID;
+		_OWNER=Owner;
+	}
+
+	public function SetVisible(arg) {
+		_VISIBLE=arg;
+		return SendMessage(_OWNER_RID, MSG_CUSTOM_MESSAGE7, P_VISIBLE, arg);
+	}
+
+	public function SetAlignment(arg) {
+		_ALIGNMENT=arg;
+		return SendMessage(_OWNER_RID, MSG_CUSTOM_MESSAGE7, P_ALIGNMENT, arg);
+	}
+
+	public function SetReorderable(arg) {
+		_REORDERABLE=arg;
+		return SendMessage(_OWNER_RID, MSG_CUSTOM_MESSAGE7, P_REORDERABLE, arg);
+	}
+
+	public function SetResizable(arg) {
+		_RESIZABLE=arg;
+		return SendMessage(_OWNER_RID, MSG_CUSTOM_MESSAGE7, P_RESIZABLE, arg);
+	}
+
+	public function SetSortIndicator(arg) {
+		_SORTINDICATOR=arg;
+		return SendMessage(_OWNER_RID, MSG_CUSTOM_MESSAGE7, P_SORTINDICATOR, arg);
+	}
+
+	public function SetSortIndicatorType(arg) {
+		_SORTINDICATORTYPE=arg;
+		return SendMessage(_OWNER_RID, MSG_CUSTOM_MESSAGE7, P_SORTINDICATORTYPE, arg);
+	}
+
+	public function SetCaption(arg) {
+		_CAPTION=arg;
+		return SendMessage(_OWNER_RID, MSG_CUSTOM_MESSAGE7, P_CAPTION, arg);
+	}
+
+	public function SetSizing(arg) {
+		_SIZING=arg;
+		return SendMessage(_OWNER_RID, MSG_CUSTOM_MESSAGE7, P_SIZING, arg);
+	}
+
+	public function SetClickable(arg) {
+		_CLICKABLE=arg;
+		return SendMessage(_OWNER_RID, MSG_CUSTOM_MESSAGE7, P_CLICKABLE, arg);
+	}
+
+	public function SetExpand(arg) {
+		_EXPAND=arg;
+		return SendMessage(_OWNER_RID, MSG_CUSTOM_MESSAGE7, P_EXPAND, arg);
+	}
+
+	public function SetFixedWidth(arg) {
+		return SendMessage(_OWNER_RID, MSG_CUSTOM_MESSAGE7, P_FIXEDWIDTH, arg);
+	}
+
+	public function GetWidth() {
+		SendMessage(_OWNER_RID, MSG_CUSTOM_MESSAGE7, P_WIDTH, "");
+		WaitMessage(_OWNER_RID, MSG_CUSTOM_MESSAGE7, P_WIDTH, var arg);
+	}
+
+	public function SetMinWidth(arg) {
+		_MINWIDTH=arg;
+		return SendMessage(_OWNER_RID, MSG_CUSTOM_MESSAGE7, P_MINWIDTH, arg);
+	}
+
+	public function SetMaxWidth(arg) {
+		_MAXWIDTH=arg;
+		return SendMessage(_OWNER_RID, MSG_CUSTOM_MESSAGE7, P_MAXWIDTH, arg);
+	}
+
+	public function SetSensitive(arg) {
+		_SENSITIVE=arg;
+		return SendMessage(_OWNER_RID, MSG_CUSTOM_MESSAGE7, P_SENSITIVE, arg);
+	}
+
+	public function SetBackColor(arg) {
+		_BACKCOLOR=arg;
+		return SendMessage(_OWNER_RID, MSG_CUSTOM_MESSAGE7, P_BACKCOLOR, arg);
+	}
+	
+	public function SetForeColor(number arg) {
+		_FGCOLOR=arg;
+		return SendMessage(_OWNER_RID, MSG_CUSTOM_MESSAGE7, P_FORECOLOR, arg);
+	}
+
+	public function SetXAlign(number arg) {
+		_XALIGN=arg;
+		return SendMessage(_OWNER_RID, MSG_CUSTOM_MESSAGE7, P_XALIGN, arg);
+	}
+
+	public function SetYAlign(number arg) {
+		_YALIGN=arg;
+		return SendMessage(_OWNER_RID, MSG_CUSTOM_MESSAGE7, P_YALIGN, arg);
+	}
+
+	public function SetXPadding(number arg) {
+		_XPADDING=arg;
+		return SendMessage(_OWNER_RID, MSG_CUSTOM_MESSAGE7, P_XPADDING, arg);
+	}
+
+	public function SetYPadding(number arg) {
+		_YPADDING=arg;
+		return SendMessage(_OWNER_RID, MSG_CUSTOM_MESSAGE7, P_YPADDING, arg);
+	}
+
+	public function SetWrap(number arg) {
+		_WRAP=arg;
+		return SendMessage(_OWNER_RID, MSG_CUSTOM_MESSAGE7, P_WRAP, arg);
+	}
+
+	public function SetFontDescription(string arg) {
+		_FONT=arg;
+		return SendMessage(_OWNER_RID, MSG_CUSTOM_MESSAGE7, P_FONTNAME, arg);
+	}
+
+	public function AddAttribute(string attribute_name) {
+		return SendMessage(_OWNER_RID, MSG_CUSTOM_MESSAGE10, "0", attribute_name);
+	}
+
+	public function UseWidget(RemoteObject Object) {
+		Object.LinkIfNotLinked(_OWNER);
+
+		return SendMessage(_OWNER_RID,MSG_CUSTOM_MESSAGE7, P_WIDGET, Object.RID);
+	}
+}
+
+class RTreeViewColumnManager {
+	private var _OWNER_RID;
+	private var _OWNER;
+	private var Column;
+
+	public var Count;
+
+	public function RTreeViewColumnManager(Owner) {
+		_OWNER_RID=""+Owner.RID;
+		_OWNER=Owner;
+		Column=new RColumnManager(Owner);
+	}
+	
+	public function PostString(str) {
+		SendMessage(""+_OWNER_RID, MSG_POST_STRING, "0", str);
+	}
+
+	public function AddAttribute(string attribute_name) {
+		return SendMessage(_OWNER_RID, MSG_CUSTOM_MESSAGE10, "-1", attribute_name);
+	}
+
+	operator [] (index) {
+		PostString(index);
+		return Column;
+	}
+}

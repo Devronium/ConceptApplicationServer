@@ -1,0 +1,207 @@
+import standard.arch.speex
+import standard.lib.str
+
+
+class SpeexDecoder {
+	private var bits;
+	private var state;
+	private var _sample_rate=16000;
+	private var speex_frame_size;
+
+	public property BitsHandle { get bits }
+	public property StateHandle { get state }
+
+	public property SampleRate { get _sample_rate, set SetSampleRate }
+	public property FrameSize { get speex_frame_size }
+
+
+	public function SpeexDecoder() {
+		bits=speex_bits_init(bits);
+		state = speex_decoder_init(speex_nb_mode);
+		speex_decoder_ctl(state,SPEEX_SET_SAMPLING_RATE, _sample_rate);
+		speex_decoder_ctl(state,SPEEX_GET_FRAME_SIZE,speex_frame_size);
+		speex_decoder_ctl(state, SPEEX_SET_ENH, 1);
+	}
+
+	public function SetSampleRate(number sr) {
+		_sample_rate=sr;
+		speex_decoder_ctl(state,SPEEX_SET_SAMPLING_RATE, sr);
+		speex_decoder_ctl(state,SPEEX_GET_FRAME_SIZE,speex_frame_size);
+		return sr;
+	}
+
+	public function Decode(var buffer, number chunk_size=28) {
+		var res="";
+		var len_i=length buffer;
+		speex_bits_reset(bits);
+		var i=0;
+		do {
+			var buf=SubStr(buffer,i, chunk_size);
+			if (buf) {
+				speex_bits_read_from(bits, buf);
+				speex_decode_int(state, bits, var output);
+				i+=chunk_size;
+				res+=output;
+			}
+		} while (buf);
+		return res;
+	}
+
+	public function finalize() {
+		speex_decoder_destroy(state);
+		speex_bits_destroy(bits);
+	}
+}
+
+class SpeexEncoder {
+	private var bits;
+	private var state;
+	private var _quality=5;
+	private var _sample_rate=16000;
+	private var speex_frame_size;
+	private var remainder="";
+
+	public property BitsHandle { get bits }
+	public property StateHandle { get state }
+
+	public property Quality { get _quality, set SetQuality }
+	public property SampleRate { get _sample_rate, set SetSampleRate }
+	public property FrameSize { get speex_frame_size }
+
+
+	public function SpeexEncoder() {
+		bits=speex_bits_init(bits);
+		state = speex_encoder_init(speex_nb_mode);
+		speex_encoder_ctl(state,SPEEX_SET_QUALITY,_quality);
+		speex_encoder_ctl(state,SPEEX_SET_SAMPLING_RATE, _sample_rate);
+		speex_encoder_ctl(state,SPEEX_GET_FRAME_SIZE,speex_frame_size);
+	}
+
+	public function SetQuality(number qual) {
+		_quality=qual;
+		speex_encoder_ctl(state,SPEEX_SET_QUALITY,qual);
+		speex_encoder_ctl(state,SPEEX_GET_FRAME_SIZE,speex_frame_size);
+		return qual;
+	}
+
+	public function SetSampleRate(number sr) {
+		_sample_rate=sr;
+		speex_encoder_ctl(state,SPEEX_SET_SAMPLING_RATE, sr);
+		speex_encoder_ctl(state,SPEEX_GET_FRAME_SIZE,speex_frame_size);
+		return sr;
+	}
+
+	public function Encode(var ibuffer, var chunk_size=null) {
+		if (remainder) {
+			var buffer=remainder+ibuffer;
+			remainder="";
+		} else
+			buffer=ibuffer;
+
+		var res="";
+		var fs=speex_frame_size*2;
+		var len_i=length buffer;
+
+		if (len_i>=fs) {
+			for (var i=0;i<len_i;i+=fs) {
+				speex_bits_reset(bits);
+				var sbuf=SubStr(buffer, i, fs);
+				if (length sbuf<fs) {
+					//sbuf+="\0";
+					break;
+				}
+				speex_encode_int(state, sbuf, bits);
+				var b=speex_bits_write(bits, var buf, 0xFFF);
+				if (b>0) {
+					chunk_size=b;
+					res+=buf;
+				}
+			}
+		}
+		if (i) {
+			var delta=len_i%fs;
+			if (delta)
+				remainder=SubStr(buffer, len_i-delta, delta);
+		} else
+			remainder=buffer;
+
+		return res;
+	}
+
+	public function Reset() {
+		remainder="";
+	}
+
+	public function finalize() {
+		speex_encoder_destroy(state);
+		speex_bits_destroy(bits);
+	}
+}
+
+class SpeexEchoCanceler {
+	public var Handle;
+	private var FrameSize;
+	private var internal_buffer="";
+	private var tail_len;
+
+	public function SpeexEchoCanceler(number frame_size=160, number filter_len=1000, number samplerate=8000) {
+		Handle=speex_echo_state_init(frame_size, filter_len, samplerate);
+		tail_len=filter_len;
+		FrameSize=frame_size;
+	}
+
+	public function Playback(var buffer) {
+		internal_buffer+=buffer;
+		var len=length internal_buffer;
+		var tl=tail_len*2;
+		if (len>tl)
+			internal_buffer=SubStr(internal_buffer, len-tl, tl);
+	}
+
+	public function EchoCancel(var buffer) {
+		var len=length buffer;
+		var orig_len=len;
+		var fs=FrameSize*2;
+		var ibuf=this.internal_buffer;
+
+		var li=length ibuf;
+		if ((li!=tail_len*2) || (len>li))
+			return buffer;
+
+		var len2=length ibuf;
+
+		var res="";
+		var out="";
+		var offset=0;
+		var h=Handle;
+
+		var tl=tail_len*2;
+		if (len>tl)
+			len=tl;
+
+		while (len>=fs) {
+			var buf=SubStr(buffer, offset, fs);
+
+			speex_echo_capture(h, buf, out);
+			offset+=fs;
+			len-=fs;
+			res+=out;
+
+			//if (offset+fs<len2) {
+			var buf2=SubStr(ibuf, offset, fs);
+			speex_echo_playback(h, buf2);
+			//}
+		}
+		//internal_buffer=SubStr(internal_buffer, offset, len2 - offset);
+
+		if (len)
+			res+=SubStr(buffer, offset, orig_len-offset);
+
+		return res;
+	}
+
+	public function finalize() {
+		if (Handle)
+			speex_echo_state_destroy(Handle);
+	}
+}

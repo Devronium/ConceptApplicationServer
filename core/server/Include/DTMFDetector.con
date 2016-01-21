@@ -1,0 +1,47 @@
+import standard.lib.dtmf
+import standard.lib.str
+
+class DTMFDetector {
+	private var handle;
+	private var reminder = "";
+	private var framesize;
+	private var threshold = 328;
+
+	public property Buttons { get GetButtons }
+	public property Threshold { get threshold, set SetThreshold }
+
+	DTMFDetector(framesize = 160) {
+		this.handle = DTMFDetectorInit(framesize);
+		this.framesize = framesize;
+	}
+
+	AddBuffer(buffer) {
+		if (reminder)
+			buffer = reminder + buffer;
+
+		var fs = framesize * 2;
+		while (length buffer > fs) {
+			DTMFDetectorDetect(handle, buffer);
+			buffer = SubStr(buffer, fs);
+		}
+		if (buffer)
+			reminder = buffer;
+	}
+
+	Reset() {
+		DTMFDetectorReset(handle);
+	}
+
+	GetButtons() {
+		return DTMFDetectorButtons(handle);
+	}
+
+	SetThreshold(t) {
+		this.threshold = t;
+		DTMFDetectorThreshold(this.handle, t);
+	}
+
+	finalize() {
+		DTMFDetectorDone(handle);
+	}
+}

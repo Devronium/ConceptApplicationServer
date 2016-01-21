@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<Home BackColor="2E2E2E">
+	<Image Name="homeimage.png"/><br/>
+	<!-- <Text BackColor="2E2E2E" ForeColor="F0F0F0" Font="Sans bold 14">Welcome to CIDE (Concept IDE) 1.2</Text><br /><br /> -->
+	<Text BackColor="2E2E2E" ForeColor="A0A0A0" Font="Arial bold 10">Select one of your recent projects if you want to edit it</Text><br />
+	<Projects />
+</Home>

@@ -1,0 +1,284 @@
+include RLabel.con
+include RVBox.con
+include RHBox.con
+include RScrolledWindow.con
+include RTreeView.con
+include XMLDocument.con
+include RImage.con
+include RButton.con
+include Constants.con
+
+define CONTROLS_PATH	"Toolbox/"
+define ICON_SIZE	"22x22"
+define ICON_PATH	CONTROLS_PATH + ICON_SIZE + "/"
+define CONTROLS_FILE	CONTROLS_PATH + "controls.xml"
+define CONTROLS_PROP	CONTROLS_PATH + "properties_and_events.xml"
+
+class DesignControl {
+	public var Name;
+	public var PublicName;
+	public var Hint;
+	public var Icon;
+	//public var DragIcon;
+}
+
+class ControlsToolbox extends RScrolledWindow {
+	private var tree;
+
+	static function BuildInheritance(inherits, PropertiesAndEvents, current_name) {
+		var target=PropertiesAndEvents[inherits];
+
+		var dest=PropertiesAndEvents[current_name];
+
+		var events_in=target[0];
+		var events_out=dest[0];
+		var len=length events_in;
+
+		for (var i=0;i<len;i++) 
+			events_out[events_in[i][0]]=events_in[i];
+
+		var prop_in=target[1];
+		var prop_out=dest[1];
+		len=length prop_in;
+		for (i=0;i<len;i++) 
+			prop_out[prop_in[i][0]]=prop_in[i];
+	}
+
+	static function LoadPropertiesAndEvents() {
+		var[] PropertiesAndEvents;
+
+		var doc=new XMLDocument();
+		doc.Filename=CONTROLS_PROP;
+		if (!doc.Load()) {
+			throw "Error loading controls definitions";
+		}
+
+		var root=doc.Root;
+		if (root) {
+			var prop_set=&root.Child;
+			while (prop_set) {
+				if (prop_set.Name=="set") {
+					var name=prop_set.GetProperty("name");
+					var base=value prop_set.GetProperty("base");
+					if (!name)
+						throw "Invalid xml definition file '" + CONTROLS_PROP + "': The name field is invalid";
+
+					var importance=1;
+					if (!base)
+						importance=-1;
+
+
+					PropertiesAndEvents[name]=new [];
+
+					// on the first position, we have an array with all the events
+					PropertiesAndEvents[name][0]=new [];
+
+					// on the second one, we have all the properties
+					PropertiesAndEvents[name][1]=new [];
+
+					var inherits=prop_set.GetProperty("inherits");
+					if (inherits)
+						ControlsToolbox::BuildInheritance(inherits, PropertiesAndEvents, name);
+
+					var elem=&prop_set.Child;
+					while (elem) {
+						var type=elem.Name;
+						var elem_name=elem.GetProperty("name");
+						var elem_default=elem.GetProperty("default");
+						var elem_return_type=elem.GetProperty("type");
+						var design_time=value elem.GetProperty("designtime");
+
+						if (type=="bool") {
+							if ((elem_default!="true") && (elem_default!="false"))
+								elem_default="false";
+
+							PropertiesAndEvents[name][1][elem_name]=new [];
+							PropertiesAndEvents[name][1][elem_name]=[elem_name, importance*PROP_OPTION, elem_default, ["true","false"] ];
+							
+							PropertiesAndEvents[name][1][elem_name]["_EXTRA"]=[0,design_time];
+						} else
+						if (type=="editable") {
+							PropertiesAndEvents[name][1][elem_name]=new [];
+							PropertiesAndEvents[name][1][elem_name]=[elem_name,importance*PROP_INSTANT,elem_default];
+
+							PropertiesAndEvents[name][1][elem_name]["_EXTRA"]=[1,design_time,elem_return_type];
+						} else
+						if (type=="selectable") {
+
+							var editable=value elem.GetProperty("editable");
+							var items=elem.Child;
+
+							var elements=&new [];
+							var control_elements=&new [];
+							while (items) {
+								if (items.Name=="item") {
+									elements[length elements]=items.Content;
+								} else
+								if (items.Name=="controlitem") {
+									var control_item_type=items.GetProperty("type");
+
+									if (!control_item_type)
+										control_item_type="*";
+
+									control_elements[length control_elements]=control_item_type;
+								}
+
+								items=&items.Next;
+							}
+							PropertiesAndEvents[name][1][elem_name]=new [];
+							if (editable)
+								PropertiesAndEvents[name][1][elem_name]=[elem_name,importance*PROP_OPTIONEDIT,elem_default,elements];
+							else
+								PropertiesAndEvents[name][1][elem_name]=[elem_name,importance*PROP_OPTION,elem_default,elements];
+
+							PropertiesAndEvents[name][1][elem_name]["_EXTRA"]=[2,design_time,elem_return_type,control_elements];
+						} else
+						if (type=="events") {
+							var events=&elem.Child;
+							while (events) {
+								if (events.Name=="event") {
+									var event_name=events.GetProperty("name");
+
+									PropertiesAndEvents[name][0][event_name]=[event_name,importance*PROP_OPTIONEDIT,"",["(New event handler)"]];
+
+								}
+								events=&events.Next;
+							}
+						}
+
+						elem=&elem.Next;
+					}
+					PropertiesAndEvents[name][0]=KeySorted(PropertiesAndEvents[name][0]);
+					PropertiesAndEvents[name][1]=KeySorted(PropertiesAndEvents[name][1]);
+				}
+				prop_set=&prop_set.Next;
+			}
+		}
+		return PropertiesAndEvents;
+	}
+
+	static function LoadControls() {
+		var[] ControlsARR;
+		var doc=new XMLDocument();
+		doc.Filename=CONTROLS_FILE;
+		if (!doc.Load()) {
+			throw "Error loading controls definitions";
+		}
+		var root=doc.Root;
+		if (root) {
+			var category=&root.Child;
+
+			while (category) {
+				var child=&category.Child;
+
+				var cat_name=category.Name;
+				if (cat_name=="Category") {
+					var elems=&new [];
+					cat_name=category.GetProperty("Name");
+					ControlsARR[cat_name]=elems;
+					ControlsARR[cat_name][0]=cat_name;
+
+					while (child) {
+						if (child.Name=="Control") {
+							var Control=&new DesignControl();
+
+							var icon=child.GetProperty("Icon");
+							//var drag_icon=child.GetProperty("DragIcon");
+							var name=child.GetProperty("Name");
+							var public_name=child.GetProperty("PublicName");
+							var hint=child.Content;
+
+							//var drag_path=ICON_PATH+drag_icon;
+							var icon_path=ICON_PATH+icon;
+
+							elems[name]=&Control;
+
+							var Image=&new RImage(null);
+							Image.Filename=icon_path;
+
+							/*var DImage=&new RImage(null);
+							DImage.Filename=drag_path;*/
+
+							Control.Name=name;
+							Control.PublicName=public_name;
+							Control.Hint=hint;
+							Control.Icon=Image;
+							//Control.DragIcon=DImage;
+						}
+				
+						child=&child.Next;
+					}
+				}
+				category=&category.Next;
+			} 
+		}
+		return ControlsARR;
+	}
+	
+	public function TreeDragStart(Sender, EventData) {
+		//Sender.CreateDragIconFromCurrent();
+	}
+	
+	public function TreeItemSelected(Sender, EventData) {
+		var rowindex=Sender->RowIndex;
+		if (rowindex=="-1") {
+			return 0;
+		}
+
+		var row=Sender.Items.GetPath(rowindex);
+		if (row) {
+			if (row[2]) {
+				Sender.Dragable=true;
+				Sender.DragData=row[2];
+				Sender.CreateDragIconFromCurrent();
+			} else
+				Sender.Dragable=false;
+		} else
+			Sender.Dragable=false;
+	}
+
+	public function RenderControls(ControlsARR) {
+		var cnt=length ControlsARR;
+		tree=new RTreeView(this);
+		tree.Model=MODEL_TREEVIEW;
+		tree.HeadersVisible=false;
+		tree.HoverSelection=true;
+		tree.ExpanderColumn=0;
+		tree.EnableSearch=true;
+		tree.SearchColumn=1;
+
+		tree.AddColumn("Image",IMAGE_COLUMN);
+		tree.AddColumn("Control name", NORMAL_COLUMN);
+		tree.AddColumn("Control type", HIDDEN_COLUMN);
+
+		tree.OnDragBegin=TreeDragStart;
+		tree.OnCursorChanged=TreeItemSelected;
+
+		tree.Show();
+
+		var CategoryImage=new RImage(null);
+		CategoryImage.LoadResource(INFO,ICON_SIZE_MENU);
+
+		for (var i=0;i<cnt;i++) {
+			var arr=&ControlsARR[i];
+			var cat_name=arr[0];
+			var cnt2=length arr;
+
+			tree.AddItem([CategoryImage,cat_name,""]);
+
+			for (var j=1;j<cnt2;j++) {
+				var Control=&arr[j];
+				if (Control) {
+					tree.AddChild([i],[Control.Icon,Control.PublicName,Control.Name]);
+				}
+			}
+		}
+		tree.ExpandAll();
+	}
+
+	public function ControlsToolbox(Owner) {
+		super(Owner);
+		this.HScrollPolicy=POLICY_AUTOMATIC;
+		this.VScrollPolicy=POLICY_AUTOMATIC;
+	}
+}

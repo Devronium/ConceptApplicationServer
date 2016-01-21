@@ -1,0 +1,122 @@
+include VisibleRemoteObject.con
+include RAdjustment.con
+include RemoteEvents.con
+
+define POS_LEFT		0
+define POS_RIGHT	1
+define POS_TOP		2
+define POS_BOTTOM	3
+
+class RScale extends VisibleRemoteObject {
+	private var DIGITS;
+	private var DRAWVALUE;
+	private var VALUEPOS;
+	private var MIN;
+	private var MAX;
+	private var STEP;
+
+	public property Min { get MIN, set SetMin }
+	public property Max { get MAX, set SetMax }
+	public property Step { get STEP, set SetStep }
+
+	public property Digits { get DIGITS, set SetDigits }
+	public property DrawValue { get DRAWVALUE, set SetDrawValue }
+	public property ValuePos { get VALUEPOS, set SetValuePos }
+
+	public property Value { get GetValue, set SetValue }
+
+	public var Adjustment;
+
+	//- Events ------------------------------------------------------------//
+	public property OnChangeValue { get GetOnChangeValue, set SetOnChangeValue }
+	public function GetOnChangeValue() {
+		return _GET_REMOTE_EVENT(EVENT_ON_CHANGEVALUE);
+	}
+
+	public function SetOnChangeValue(var delegate deleg) {
+		return _MAP_REMOTE_EVENT(EVENT_ON_CHANGEVALUE, deleg);
+	}
+
+	public property OnMoveSlider { get GetOnMoveSlider, set SetOnMoveSlider }
+	public function GetOnMoveSlider() {
+		return _GET_REMOTE_EVENT(EVENT_ON_MOVESLIDER);
+	}
+
+	public function SetOnMoveSlider(var delegate deleg) {
+		return _MAP_REMOTE_EVENT(EVENT_ON_MOVESLIDER, deleg);
+	}
+
+	public property OnAdjustBounds { get GetOnAdjustBounds, set SetOnAdjustBounds }
+	public function GetOnAdjustBounds() {
+		return _GET_REMOTE_EVENT(EVENT_ON_ADJUSTBOUNDS);
+	}
+
+	public function SetOnAdjustBounds(var delegate deleg) {
+		return _MAP_REMOTE_EVENT(EVENT_ON_ADJUSTBOUNDS, deleg);
+	}
+	//------------------------------------------------------------------//
+
+	public function RScale(OWNER, CLASS) {
+		// create an adjustment object and post it before "remoting" thist object
+		MIN=0;
+		MAX=100;
+		STEP=10;
+
+		Adjustment=new RAdjustment();
+		Adjustment.Lower=MIN;
+		Adjustment.Upper=MAX;
+		Adjustment.Increment=STEP;
+		Adjustment.Post();
+		super(OWNER, CLASS);
+
+		Adjustment.LinkIfNotLinked(this);
+		//Adjustment.__EVENTS_VECTOR=&__EVENTS_VECTOR;
+		//__EVENTS_VECTOR[Adjustment.RID]=new[];
+	}
+
+
+	public function GetValue() {
+		return Adjustment.Value;
+	}
+
+	public function SetValue(val) {
+		return Adjustment.Value=val;
+	}
+
+	public function SetMin(argument) {
+		MIN=argument;
+		Adjustment.Lower=argument;
+		return argument;
+	}
+
+	public function SetMax(argument) {
+		MAX=argument;
+		Adjustment.Upper=argument;
+		return argument;
+	}
+
+
+	public function SetStep(argument) {
+		STEP=argument;
+		Adjustment.Increment=argument;
+		return argument;
+	}
+
+	public function SetDigits(argument) {
+		SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_DIGITS,argument);
+		DIGITS=argument;
+		return argument;
+	}
+
+	public function SetDrawValue(argument) {
+		SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_DRAWVALUE,argument);
+		DRAWVALUE=(argument!=0);
+		return argument;
+	}
+
+	public function SetValuePos(argument) {
+		SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_VALUEPOS,argument);
+		VALUEPOS=argument;
+		return argument;
+	}
+}

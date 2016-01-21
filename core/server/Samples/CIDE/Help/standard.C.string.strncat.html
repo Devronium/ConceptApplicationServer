@@ -1,0 +1,93 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+  <title>standard.C.string.strncat</title>
+  <link href="css/style.css" rel="stylesheet" type="text/css">
+  <meta http-equiv="Content-Type" content="text/html;charset=utf-8" >
+</head>
+<body bgcolor="#ffffff">
+<table border="0" width="100%" bgcolor="#F0F0FF">
+  <tr>
+    <td>Concept Framework 2.2 documentation</td>
+  	<td align="right"><a href="index.html">Contents</a> | <a href="index_fun.html">Index</a></td>
+  </tr>
+</table>
+<h2><a href="standard.C.string.html">standard.C.string</a>.strncat</h2>
+<table border="0" cellspacing="0" cellpadding="0" width="500" style="border-style:solid;border-width:1px;border-color:#D0D0D0;">
+  <tr bgcolor="#f0f0f0">
+     <td><i>Name</i></td>
+     <td><i>Version</i></td>
+     <td><i>Deprecated</i></td>
+  </tr>
+  <tr bgcolor="#fafafa">
+     <td><b>strncat</b></td>
+     <td>version 1.0</td>
+     <td>no</td>
+  </tr>
+</table>
+<br />
+<b>Prototype:</b><br />
+	<table bgcolor="#F0F0F0" width="100%" style="border-style:solid;border-width:1px;border-color:#D0D0D0;"><tr><td><b>string strncat(string strDest, string strSource, number count)</b></td></tr></table>
+<br />
+
+<b>Parameters:</b><br />
+<table bgcolor="#FFFFFF" style="border-style:solid;border-width:1px;border-color:#D0D0D0;">
+
+	   <tr>
+	   	   <td>
+		   	   <i>strDest </i>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+		   </td>
+	   	   <td>
+		   	   Null-terminated destination string 
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <i>strSource</i>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+		   </td>
+	   	   <td>
+		   	   Null-terminated source string
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <i>count </i>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+		   </td>
+	   	   <td>
+		   	   Number of characters to append 
+		   </td>
+	   </tr>
+
+</table>
+
+<br />
+<b>Description:</b><br />
+<table width="100%" bgcolor="#FAFAFF" style="border-style:solid;border-width:1px;border-color:#D0D0D0;">
+<tr><td>
+Append characters of a string.The strncat function appends, at most, the first count characters of strSource to strDest. The initial character of strSource overwrites the terminating null character of strDest. If a null character appears in strSource before count characters are appended, strncat appends all characters from strSource, up to the null character. If count is greater than the length of strSource, the length of strSource is used in place of count. The resulting string is terminated with a null character. If copying takes place between strings that overlap, the behavior is undefined.
+</td></tr>
+</table>
+<br />
+
+<b>Returns:</b><br />
+Returns strDest.
+<br />
+<br />
+<!--
+  <p>
+    <a href="http://validator.w3.org/check?uri=referer"><img
+        src="http://www.w3.org/Icons/valid-html40"
+        alt="Valid HTML 4.0 Transitional" height="31" width="88" border="0"></a>
+ <a href="http://jigsaw.w3.org/css-validator/">
+  <img style="border:0;width:88px;height:31px"
+       src="http://jigsaw.w3.org/css-validator/images/vcss" 
+       alt="Valid CSS!" border="0"/>
+ </a>
+</p>
+-->
+<table bgcolor="#F0F0F0" width="100%"><tr><td>Documented by Eduard Suica, generation time: Sun Jan 27 18:15:16 2013
+ GMT</td><td align="right">(c)2013 <a href="http://www.devronium.com">Devronium Applications</a></td></tr></table>
+</body>
+</html>

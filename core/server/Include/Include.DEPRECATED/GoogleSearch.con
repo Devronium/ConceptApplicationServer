@@ -1,0 +1,204 @@
+import 'standard.net.soap'
+
+define GOOGLE_URL		"http://api.google.com/search/beta2"
+
+define GOOGLE_URN		"urn:GoogleSearch"
+define GOOGLE_METHOD		"doGoogleSearch"
+
+define true			1
+define false			0
+
+class GoogleResult {
+	public var URL;
+	public var Snippet;
+	public var Title;
+	public var Hostname;
+}
+
+class GoogleSearch {
+	private var key;
+
+	private var _SEARCH_STRING;
+	private var _START;
+	private var _MAX_RESULTS;
+	private var _FILTER;
+	private var _CHAR_SET;
+	private var _SAFE_SEARCH;
+
+	private var _ERROR;
+
+	private var _RESULTS;
+	private var _ENDINDEX;
+	private var _SEARCH_TIME;
+	private var[] _RESULTS_ARRAY;
+
+	public property SearchString { get _SEARCH_STRING, set SetSearchString }
+	public property Start { get _START, set SetStart }
+	public property MaxResults { get _MAX_RESULTS, set SetMaxResults }
+	public property CharSet { get _CHAR_SET, set SetCharSet }
+	public property Filter { get _FILTER, set SetFilter }
+	public property SafeSearch { get _SAFE_SEARCH, set SetSafeSearch }
+	public property ResultsCount { get _RESULTS }
+	public property EndIndex { get _ENDINDEX }
+	public property SearchTime { get _SEARCH_TIME }
+
+	public property Error { get _ERROR }
+
+	public property Results { get _RESULTS_ARRAY }
+
+
+	function GoogleSearch(KEY) {
+		key=KEY;
+		_SEARCH_STRING="";
+		_START=0;
+		_MAX_RESULTS=10;
+		_FILTER=true;
+		_CHAR_SET="latin1";
+		_ERROR="";
+		_RESULTS=0;
+		_ENDINDEX=0;
+		_SEARCH_TIME=0;
+		_SAFE_SEARCH=0;
+
+		var err=SOAPClientInitArgs();
+		if (err)
+			_ERROR=SOAPError(err);
+	}
+
+	function Search() {
+		var ctx;
+		var ctx2;
+		var env;
+		_ERROR="";
+		_RESULTS=0;
+		_ENDINDEX=0;
+		_SEARCH_TIME=0;
+
+		delete _RESULTS_ARRAY;
+		_RESULTS_ARRAY=new [];
+
+		var err=SOAPCtxNewWithMethod(GOOGLE_URN,GOOGLE_METHOD,ctx);
+		if (err) {
+			_ERROR=SOAPError(err);
+			return false;
+		}
+
+		env=SOAPGetEnv(ctx);
+
+		SOAPEnvAddItem(env,"xsd:string","key",key);
+		SOAPEnvAddItem(env,"xsd:string","q",_SEARCH_STRING);
+		SOAPEnvAddItem(env,"xsd:int","start",""+_START);
+		SOAPEnvAddItem(env,"xsd:int","maxResults",""+_MAX_RESULTS);
+
+		if (_FILTER)
+			SOAPEnvAddItem(env,"xsd:boolean","filter","true");
+		else
+			SOAPEnvAddItem(env,"xsd:boolean","filter","false");
+
+		SOAPEnvAddItem(env,"xsd:string","restrict","");
+		if (_SAFE_SEARCH)
+			SOAPEnvAddItem(env,"xsd:boolean","safeSearch","true");
+		else
+			SOAPEnvAddItem(env,"xsd:boolean","safeSearch","false");
+		SOAPEnvAddItem(env,"xsd:string","lr","");
+		SOAPEnvAddItem(env,"xsd:string","ie",_CHAR_SET);
+		SOAPEnvAddItem(env,"xsd:string","oe",_CHAR_SET);
+
+		err=SOAPClientInvoke(ctx,ctx2,GOOGLE_URL,"");
+		if (err) {
+			_ERROR=SOAPError(err);
+			SOAPCtxFree(ctx);
+			SOAPClientDestroy();
+			return false;
+		}		
+
+		//SOAPXMLDocPrint(SOAPGetRootDoc(SOAPGetEnv(ctx2)));
+		// method node ...
+		var node=SOAPEnvGetMethod(SOAPGetEnv(ctx2));
+		if (node)
+			node=SOAPXMLGetChildren(node);
+
+		if (node)
+			node=SOAPXMLGetChildren(node);
+
+		var idx=0;
+		while (node) {
+			var node_arr=SOAPXMLGetNodeArray(node);
+			var name=node_arr["name"];
+
+			if (name=="estimatedTotalResultsCount")
+				_RESULTS=value node_arr["text"];
+			else
+			if (name=="endIndex")
+				_ENDINDEX=value node_arr["text"];
+			else
+			if (name=="searchTime")
+				_SEARCH_TIME=value node_arr["text"];
+			else
+			if (name=="resultElements") {
+				var results_node=SOAPXMLGetChildren(node);
+
+				while (results_node) {
+					var gresult=&new GoogleResult();
+					_RESULTS_ARRAY[idx++]=gresult;
+
+					var item_node=SOAPXMLGetChildren(results_node);
+					while (item_node) {
+						var item_arr=SOAPXMLGetNodeArray(item_node);
+						var item_name=item_arr["name"];
+
+						if (item_name=="URL")
+							gresult.URL=item_arr["text"];
+						else
+						if (item_name=="snippet")
+							gresult.Snippet=item_arr["text"];
+						else
+						if (item_name=="title")
+							gresult.Title=item_arr["text"];
+						else
+						if (item_name=="hostName")
+							gresult.Hostname=item_arr["text"];
+						
+						item_node=SOAPXMLGetNext(item_node);
+						delete item_arr;
+					}
+					results_node=SOAPXMLGetNext(results_node);
+				}
+			}
+
+			node=SOAPXMLGetNext(node);
+			delete node_arr;
+		}
+
+		
+
+		SOAPCtxFree(ctx);
+		SOAPClientDestroy();
+
+		return true;
+	}
+
+	function SetSearchString(s) {
+		_SEARCH_STRING=""+s;
+	}
+
+	function SetStart(s) {
+		_START=s;
+	}
+
+	function SetMaxResults(s) {
+		_MAX_RESULTS=s;
+	}
+
+	function SetFilter(s) {
+		_FILTER=s;
+	}
+
+	function SetSafeSearch(s) {
+		_SAFE_SEARCH=s;
+	}
+
+	function SetCharSet(s) {
+		_CHAR_SET=""+s;
+	}
+}

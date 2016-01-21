@@ -1,0 +1,52 @@
+import standard.lib.str
+import standard.C.io
+import standard.lang.serialize
+
+//pragma warnings off
+
+class DirectoryList {
+	static function ListByType(directory, type) {
+		var dirp=opendir(directory);
+		var[] arr;
+		if (!dirp)
+			return arr;
+
+		while ((var dp=readdir(dirp))!=0) {
+			var filename=dirname(dp);
+			if (filetype(directory+filename)==type) {
+				//PutInOrder(arr,filename);
+				arr[filename]=filename;
+			}
+		}
+		closedir(dirp);
+		//return arr;
+		return KeySorted(arr);
+	}
+
+	static function ListByExt(directory, ext_arr, nodir=true) {
+		var dirp=opendir(directory);
+		var[] arr;
+		if (!dirp)
+			return arr;
+
+		var cnt=length ext_arr;
+		while ((var dp=readdir(dirp))!=0) {
+			var filename=dirname(dp);
+			if ((nodir) && (filetype(directory+filename)==S_IFDIR))
+				continue;
+
+			var extension=ToLower(Ext(filename));
+
+			for (var i=0;i<cnt;i++) {
+				if ((ext_arr[i]==extension) || (ext_arr[i]=="*")) {
+					//PutInOrder(arr,filename);
+					arr[filename]=filename;
+					break;
+				}
+			}
+		}
+		closedir(dirp);
+		//return arr;
+		return KeySorted(arr);
+	}
+}

@@ -1,0 +1,88 @@
+include 'ArrayList.con'
+
+class SimonicString {
+    private var str;
+
+    property Str { set SetStr, get str }
+
+    function SetStr(s) {        
+        this.str = s;        
+    }
+
+    function SimonicString(str) {
+        this.str = str;
+    }
+
+    function Length() {
+        return length this.str;
+    }
+
+    function Split(ch, var arr) {
+        var j = arr.Count;
+        var s = "";
+        var len=length this.str;
+        for (var i=0;i<len;i++) {                     
+            if (this.str[i] == ch) {                                                
+                arr.Add(s, j);                                
+                j++;
+                s = "";                
+            } else 
+                s += this.str[i];            
+        }         
+        arr.Add(s, j);                
+    }
+
+    function SplitLast(ch) {
+        var s = "";         
+        var len=length this.str;
+        for (var i=0;i<len;i++) {                     
+            if (this.str[i] == ch) {                                                
+                s = "";
+            } else 
+                s += this.str[i];
+        }        
+        return s;        
+    }
+
+    function SubStr(start, len) {
+        if (start<0) 
+            start = 0;
+        var this_len = length this.str;
+        if (len > this_len)
+            len = this_len;
+        var ret = "";
+        for (var i = start; i<len; i++)
+            ret += this.str[i];
+        return ret;
+    }   
+
+    private function FindSubStr(s) {
+        var i = 0;
+        var k;
+        var len = length this.str;
+        var sub_str_len= length s;
+
+        var found = 0;        
+        for (i = 0; i<len; i++) {
+            found = 1;
+            k = i;
+		for (var j=0;j<sub_str_len;j++) {
+                if (this.str[k] != s[j]) {
+                    found = 0;
+                    break;
+                }
+                k++;
+            }
+            if (found)
+                break;
+        }
+        return found;
+    }
+
+    function InString(find) {
+        if (classof(find) == "String")
+            return this.FindSubStr(find.Str);
+        else
+            return this.FindSubStr(find);
+    }
+}

@@ -1,0 +1,35 @@
+<?xml version="1.0"?>
+<StringTable>
+  <default langid="en"/>
+  <string msgid="Name">
+    <lang id="en">
+Name
+    </lang>
+    <lang id="ro">
+Nume
+    </lang>
+  </string>
+  <string msgid="Surname">
+    <lang id="en">
+Surname
+    </lang>
+    <lang id="ro">
+Prenume
+    </lang>
+  </string>
+  <string msgid="label">
+    <lang id="en">
+label
+    </lang>
+  </string>
+  <string msgid="Concept PDF Viewer 1.0">
+    <lang id="en">
+Concept PDF Viewer 1.0
+    </lang>
+  </string>
+  <string msgid="Open PDF document">
+    <lang id="en">
+Open PDF document
+    </lang>
+  </string>
+</StringTable>

@@ -1,0 +1,23 @@
+include RForm.con
+include RImage.con
+
+
+class AboutForm extends RForm {
+	public function AboutForm(Owner) {
+		super(Owner);
+
+		var image=new RImage(this);
+		image.Filename="Resources/cide.png";
+		image.Show();
+
+
+		Caption="About CIDE";
+		Resizable=false;
+		Decorations=DECOR_BORDER | DECOR_TITLE | DECOR_MENU;
+		Position=WP_CENTER_ON_PARENT;
+		Modal=true;
+		//MinWidth=400;
+		//MinHeight=300;
+	}
+	
+}

@@ -1,0 +1,587 @@
+include VisibleRemoteObject.con
+include XMLDocument.con
+import standard.lib.str
+
+define WEBKIT_USER_AGENT        "Mozilla/5.0 (U; c) AppleWebKit/531.2+ (like Gecko) Safari/531.2+"
+
+define P_OPENURL		"10001"
+define P_STOPLOADING		"10002"
+define P_WEBCOPY		"10003"
+define P_WEBCUT			"10004"
+define P_WEBPASTE		"10005"
+define P_WEBDELETE		"10006"
+define P_EXECUTESCRIPT		"10007"
+
+define P_CANGOFORWARD		"10008"
+define P_CANGOBACK		"10009"
+define P_WEBCANPASTE		"10010"
+
+define P_OPENSTRING		"10011"
+
+define P_SELECTALL		"10012"
+define P_HIGHLIGHTMATCHES	"10013"
+define P_MATAINBACKFORWARD	"10014"
+define P_WEBBACK		"10015"
+define P_WEBFORWARD		"10016"
+define P_UNMARKTEXTMATCHES	"10017"
+define P_SEARCHNEXT		"10018"
+define P_SEARCHPREV		"10019"
+define P_SENSITIVE		"10020"
+define P_MARKTEXTMATCHES	"10021"
+define P_RELOAD			"10022"
+define P_EVENTRESPONSETRUE	"10023"
+define P_WEBPRINT		"10024"
+define P_WEBINSPECTOR		"10025"
+define P_EVENTRESPONSEFALSE	"10026"
+define P_WEBVIEWNEW		"10027"
+
+define P_INITWEBSERVER		"10028"
+define P_STOPWEBSERVER		"10029"
+define P_WEBSERVERRUNNING	"10030"
+define P_WEBRESPONSE            "10031"
+define P_REGISTERFORRESPONSE    "10032"
+define P_WEBCLEARCACHE          "10033"
+define P_HTMLSOURCEVIEW         "10034"
+
+
+define EVENT_ON_CONSOLE_MESSAGE		"350"
+define EVENT_ON_COPY_CLIPBOARD		"351"
+define EVENT_ON_CREATE_WEBVIEW		"352"
+define EVENT_ON_CUT_CLIPBOARD		"353"
+define EVENT_ON_HOVER_LINK		"354"
+define EVENT_ON_ICON_LOADED		"355"
+define EVENT_ON_LOAD_COMMITTED		"356"
+define EVENT_ON_LOAD_FINISHED		"357"
+define EVENT_ON_PROGRESS_CHANGED	"358"
+define EVENT_ON_LOAD_STARTED		"359"
+define EVENT_ON_NAVIGATION_REQUESTED 	"360"
+define EVENT_ON_PASTE_CLIPBOARD		"361"
+define EVENT_ON_POPULATE_POPUP		"362"
+define EVENT_ON_SCRIPT_ALERT		"363"
+define EVENT_ON_SELECT_ALL		"364"
+define EVENT_ON_SELECTION_CHANGED	"365"
+define EVENT_ON_STATUSBAR_TEXT_CHANGED	"366"
+define EVENT_ON_TITLE_CHANGED		"367"
+define EVENT_ON_WINDOW_OBJECT_CLEARED	"368"
+define EVENT_ON_SCRIPT_PROMPT		"369"
+define EVENT_ON_SCRIPT_CONFIRM		"370"
+define EVENT_ON_WEB_VIEW_READY		"371"
+define EVENT_ON_DOWNLOAD_REQUESTED	"372"
+define EVENT_ON_WEBSERVER_REQUEST	"373"
+define EVENT_ON_REQUEST			"374"
+
+class RWebView extends VisibleRemoteObject {
+	protected var _ZOOM=1.0;
+	protected var _URI="";
+	protected var _EDITABLE=false;
+	protected var _FULLCONTENTZOOM=false;
+	protected var _TRANSPARENT=false;
+	protected var _MANTAINBACKFORWARD=false;
+	protected var _SENSITIVESEARCH=false;
+	protected var _HIGHLIGHTMATCHES=false;
+	protected var _SOURCEVIEW=false;
+
+	protected var _INSPECTORCONTAINER=null;
+	protected var _NEWCONTAINER=null;
+
+	public property Zoom { set SetZoom, get _ZOOM }
+	public property URI { set SetURI, get GetURI }
+	public property Editable { set SetEditable, get _EDITABLE }
+	public property FullContentZoom { set SetFullContentZoom, get _FULLCONTENTZOOM }
+	public property Transparent { set SetTransparent, get _TRANSPARENT }
+	public property Inspector { set SetInspector, get _INSPECTORCONTAINER }
+	public property MaintainBackForward { set SetMantainBackForward, get _MANTAINBACKFORWARD }
+	public property CaseSensitive { set SetCaseSensitive, get _SENSITIVESEARCH }
+	public property HighlightMatches { set SetHighlightMatches, get _HIGHLIGHTMATCHES }
+	public property SourceView { set SetSourceView, get _SOURCEVIEW }
+	public property Content { get GetContentString, set OpenString }
+	public property Title { get GetTitle }
+
+	public property CanGoForward { get GetCanGoForward }
+	public property CanGoBack { get GetCanGoBack }
+
+	public property NewWindowView { set SetNewWindowView, get _NEWCONTAINER }
+
+	public property ServerRunning { get GetServerRunning }
+
+	//=============================================================================//
+	public property OnRequest { get GetOnRequest, set SetOnRequest }
+	public function GetOnRequest() {
+		return _GET_REMOTE_EVENT(EVENT_ON_WEBSERVER_REQUEST);
+	}
+
+	public function SetOnRequest(var delegate deleg) {
+		return _MAP_REMOTE_EVENT(EVENT_ON_WEBSERVER_REQUEST, deleg);
+	}
+
+	public property OnRequest2 { get GetOnRequest2, set SetOnRequest2 }
+	public function GetOnRequest2() {
+		return _GET_REMOTE_EVENT(EVENT_ON_REQUEST);
+	}
+
+	public function SetOnRequest2(var delegate deleg) {
+		return _MAP_REMOTE_EVENT(EVENT_ON_REQUEST, deleg);
+	}
+
+	public property OnConsoleMessage { get GetOnConsoleMessage, set SetOnConsoleMessage }
+	public function GetOnConsoleMessage() {
+		return _GET_REMOTE_EVENT(EVENT_ON_CONSOLE_MESSAGE);
+	}
+
+	public function SetOnConsoleMessage(var delegate deleg) {
+		return _MAP_REMOTE_EVENT(EVENT_ON_CONSOLE_MESSAGE, deleg);
+	}
+
+	public property OnCopyClipboard { get GetOnCopyClipboard, set SetOnCopyClipboard }
+	public function GetOnCopyClipboard() {
+		return _GET_REMOTE_EVENT(EVENT_ON_COPY_CLIPBOARD);
+	}
+
+	public function SetOnCopyClipboard(var delegate deleg) {
+		return _MAP_REMOTE_EVENT(EVENT_ON_COPY_CLIPBOARD, deleg);
+	}
+
+	public property OnCreateWebview { get GetOnCreateWebview, set SetOnCreateWebview }
+	public function GetOnCreateWebview() {
+		return _GET_REMOTE_EVENT(EVENT_ON_CREATE_WEBVIEW);
+	}
+
+	public function SetOnCreateWebview(var delegate deleg) {
+		return _MAP_REMOTE_EVENT(EVENT_ON_CREATE_WEBVIEW, deleg);
+	}
+
+	public property OnCutClipboard { get GetOnCutClipboard, set SetOnCutClipboard }
+	public function GetOnCutClipboard() {
+		return _GET_REMOTE_EVENT(EVENT_ON_CUT_CLIPBOARD);
+	}
+
+	public function SetOnCutClipboard(var delegate deleg) {
+		return _MAP_REMOTE_EVENT(EVENT_ON_CUT_CLIPBOARD, deleg);
+	}
+
+	public property OnHoverLink { get GetOnHoverLink, set SetOnHoverLink }
+	public function GetOnHoverLink() {
+		return _GET_REMOTE_EVENT(EVENT_ON_HOVER_LINK);
+	}
+
+	public function SetOnHoverLink(var delegate deleg) {
+		return _MAP_REMOTE_EVENT(EVENT_ON_HOVER_LINK, deleg);
+	}
+
+	public property OnIconLoaded { get GetOnIconLoaded, set SetOnIconLoaded }
+	public function GetOnIconLoaded() {
+		return _GET_REMOTE_EVENT(EVENT_ON_ICON_LOADED);
+	}
+
+	public function SetOnIconLoaded(var delegate deleg) {
+		return _MAP_REMOTE_EVENT(EVENT_ON_ICON_LOADED, deleg);
+	}
+
+	public property OnLoadCommitted { get GetOnLoadCommitted, set SetOnLoadCommitted }
+	public function GetOnLoadCommitted() {
+		return _GET_REMOTE_EVENT(EVENT_ON_LOAD_COMMITTED);
+	}
+
+	public function SetOnLoadCommitted(var delegate deleg) {
+		return _MAP_REMOTE_EVENT(EVENT_ON_LOAD_COMMITTED, deleg);
+	}
+
+	public property OnLoadFinished { get GetOnLoadFinished, set SetOnLoadFinished }
+	public function GetOnLoadFinished() {
+		return _GET_REMOTE_EVENT(EVENT_ON_LOAD_FINISHED);
+	}
+
+	public function SetOnLoadFinished(var delegate deleg) {
+		return _MAP_REMOTE_EVENT(EVENT_ON_LOAD_FINISHED, deleg);
+	}
+
+	public property OnProgressChanged { get GetOnProgressChanged, set SetOnProgressChanged }
+	public function GetOnProgressChanged() {
+		return _GET_REMOTE_EVENT(EVENT_ON_PROGRESS_CHANGED);
+	}
+
+	public function SetOnProgressChanged(var delegate deleg) {
+		return _MAP_REMOTE_EVENT(EVENT_ON_PROGRESS_CHANGED, deleg);
+	}
+
+	public property OnLoadStarted { get GetOnLoadStarted, set SetOnLoadStarted }
+	public function GetOnLoadStarted() {
+		return _GET_REMOTE_EVENT(EVENT_ON_LOAD_STARTED);
+	}
+
+	public function SetOnLoadStarted(var delegate deleg) {
+		return _MAP_REMOTE_EVENT(EVENT_ON_LOAD_STARTED, deleg);
+	}
+
+	public property OnNavigationRequested { get GetOnNavigationRequested, set SetOnNavigationRequested }
+	public function GetOnNavigationRequested() {
+		return _GET_REMOTE_EVENT(EVENT_ON_NAVIGATION_REQUESTED);
+	}
+
+	public function SetOnNavigationRequested(var delegate deleg) {
+		return _MAP_REMOTE_EVENT(EVENT_ON_NAVIGATION_REQUESTED, deleg);
+	}
+
+	public property OnPasteClipboard { get GetOnPasteClipboard, set SetOnPasteClipboard }
+	public function GetOnPasteClipboard() {
+		return _GET_REMOTE_EVENT(EVENT_ON_PASTE_CLIPBOARD);
+	}
+
+	public function SetOnPasteClipboard(var delegate deleg) {
+		return _MAP_REMOTE_EVENT(EVENT_ON_PASTE_CLIPBOARD, deleg);
+	}
+
+	public property OnPopulatePopup { get GetOnPopulatePopup, set SetOnPopulatePopup }
+	public function GetOnPopulatePopup() {
+		return _GET_REMOTE_EVENT(EVENT_ON_POPULATE_POPUP);
+	}
+
+	public function SetOnPopulatePopup(var delegate deleg) {
+		return _MAP_REMOTE_EVENT(EVENT_ON_POPULATE_POPUP, deleg);
+	}
+
+	public property OnScriptAlert { get GetOnScriptAlert, set SetOnScriptAlert }
+	public function GetOnScriptAlert() {
+		return _GET_REMOTE_EVENT(EVENT_ON_SCRIPT_ALERT);
+	}
+
+	public function SetOnScriptAlert(var delegate deleg) {
+		return _MAP_REMOTE_EVENT(EVENT_ON_SCRIPT_ALERT, deleg);
+	}
+
+	public property OnSelectAll { get GetOnSelectAll, set SetOnSelectAll }
+	public function GetOnSelectAll() {
+		return _GET_REMOTE_EVENT(EVENT_ON_SELECT_ALL);
+	}
+
+	public function SetOnSelectAll(var delegate deleg) {
+		return _MAP_REMOTE_EVENT(EVENT_ON_SELECT_ALL, deleg);
+	}
+
+	public property OnSelectionChanged { get GetOnSelectionChanged, set SetOnSelectionChanged }
+	public function GetOnSelectionChanged() {
+		return _GET_REMOTE_EVENT(EVENT_ON_SELECTION_CHANGED);
+	}
+
+	public function SetOnSelectionChanged(var delegate deleg) {
+		return _MAP_REMOTE_EVENT(EVENT_ON_SELECTION_CHANGED, deleg);
+	}
+
+	public property OnStatusTextChanged { get GetOnStatusTextChanged, set SetOnStatusTextChanged }
+	public function GetOnStatusTextChanged() {
+		return _GET_REMOTE_EVENT(EVENT_ON_STATUSBAR_TEXT_CHANGED);
+	}
+
+	public function SetOnStatusTextChanged(var delegate deleg) {
+		return _MAP_REMOTE_EVENT(EVENT_ON_STATUSBAR_TEXT_CHANGED, deleg);
+	}
+
+	public property OnTitleChanged { get GetOnTitleChanged, set SetOnTitleChanged }
+	public function GetOnTitleChanged() {
+		return _GET_REMOTE_EVENT(EVENT_ON_TITLE_CHANGED);
+	}
+
+	public function SetOnTitleChanged(var delegate deleg) {
+		return _MAP_REMOTE_EVENT(EVENT_ON_TITLE_CHANGED, deleg);
+	}
+
+	public property OnWindowObjectCleared { get GetOnWindowObjectCleared, set SetOnWindowObjectCleared }
+	public function GetOnWindowObjectCleared() {
+		return _GET_REMOTE_EVENT(EVENT_ON_WINDOW_OBJECT_CLEARED);
+	}
+
+	public function SetOnWindowObjectCleared(var delegate deleg) {
+		return _MAP_REMOTE_EVENT(EVENT_ON_WINDOW_OBJECT_CLEARED, deleg);
+	}
+
+	public property OnScriptPrompt { get GetOnScriptPrompt, set SetOnScriptPrompt }
+	public function GetOnScriptPrompt() {
+		return _GET_REMOTE_EVENT(EVENT_ON_SCRIPT_PROMPT);
+	}
+
+	public function SetOnScriptPrompt(var delegate deleg) {
+		return _MAP_REMOTE_EVENT(EVENT_ON_SCRIPT_PROMPT, deleg);
+	}
+
+	public property OnScriptConfirm { get GetOnScriptConfirm, set SetOnScriptConfirm }
+	public function GetOnScriptConfirm() {
+		return _GET_REMOTE_EVENT(EVENT_ON_SCRIPT_CONFIRM);
+	}
+
+	public function SetOnScriptConfirm(var delegate deleg) {
+		return _MAP_REMOTE_EVENT(EVENT_ON_SCRIPT_CONFIRM, deleg);
+	}
+
+	public property OnWebViewReady { get GetOnWebViewReady, set SetOnWebViewReady }
+	public function GetOnWebViewReady() {
+		return _GET_REMOTE_EVENT(EVENT_ON_WEB_VIEW_READY);
+	}
+
+	public function SetOnWebViewReady(var delegate deleg) {
+		return _MAP_REMOTE_EVENT(EVENT_ON_WEB_VIEW_READY, deleg);
+	}
+
+	public property OnDownloadRequested { get GetOnDownloadRequested, set SetOnDownloadRequested }
+	public function GetOnDownloadRequested() {
+		return _GET_REMOTE_EVENT(EVENT_ON_DOWNLOAD_REQUESTED);
+	}
+
+	public function SetOnDownloadRequested(var delegate deleg) {
+		return _MAP_REMOTE_EVENT(EVENT_ON_DOWNLOAD_REQUESTED, deleg);
+	}
+
+	//=============================================================================//
+
+	public function RWebView(OWNER) {
+		super(OWNER, "1012");
+		//this.Set("user-agent", WEBKIT_USER_AGENT);
+		this.Set("default-encoding", "UTF-8");
+	}
+
+	public function SetZoom(number zoom) {
+		this._ZOOM=zoom;
+		return SendMessage(REMOTE_ID_STR,MSG_PUT_STREAM,"zoom",zoom);
+	}
+
+	public function SetEditable(number arg) {
+		this._EDITABLE=arg;
+		return SendMessage(REMOTE_ID_STR,MSG_PUT_STREAM,"editable",arg);
+	}
+
+	public function SetSourceView(number arg) {
+		this._SOURCEVIEW=(arg!=0);
+		return this.SetProperty(P_HTMLSOURCEVIEW, arg);
+	}
+
+	public function SetFullContentZoom(number arg) {
+		this._FULLCONTENTZOOM=arg;
+		return SendMessage(REMOTE_ID_STR,MSG_PUT_STREAM,"full-content-zoom",arg);
+	}
+
+	public function SetTransparent(number arg) {
+		this._TRANSPARENT=arg;
+		return SendMessage(REMOTE_ID_STR,MSG_PUT_STREAM,"transparent",arg);
+	}
+
+	public function Set(string prop, arg) {
+		return SendMessage(REMOTE_ID_STR,MSG_PUT_STREAM,prop,arg);
+	}
+
+	public function SetURI(string uri) {
+		this._URI=uri;
+		return this.SetProperty(P_OPENURL, uri);
+	}
+
+	public function GetURI() {
+		this._URI=this.GetProperty(P_OPENURL);
+		return this._URI;
+	}
+
+	public function GetCanGoForward() {
+		return value this.GetProperty(P_CANGOFORWARD);
+	}
+
+	public function GetCanGoBack() {
+		return value this.GetProperty(P_CANGOBACK);
+	}
+
+	public function SetInspector(VisibleRemoteObject container) {
+		this._INSPECTORCONTAINER=container;
+		return this.SetProperty(P_WEBINSPECTOR, container.RID);
+	}
+
+	public function Stop() {
+		return this.SetProperty(P_STOPLOADING, "1");
+	}
+
+	public function Copy() {
+		return this.SetProperty(P_WEBCOPY, "1");
+	}
+
+	public function Cut() {
+		return this.SetProperty(P_WEBCUT, "1");
+	}
+
+	public function Paste() {
+		return this.SetProperty(P_WEBPASTE, "1");
+	}
+
+	public function Delete() {
+		return this.SetProperty(P_WEBDELETE, "1");
+	}
+
+	public function ExecuteScript(string script, return_data = false) {
+		if (return_data) {
+			return SendMessage(""+REMOTE_ID, MSG_GET_PROPERTY, P_EXECUTESCRIPT, script);
+		} else
+			return this.SetProperty(P_EXECUTESCRIPT, script);
+	}
+
+	public function OpenString(string str) {
+		return this.SetProperty(P_OPENSTRING, str);
+	}
+
+	public function GetContentString() {
+		return this.GetProperty(P_OPENSTRING);
+	}
+
+	public function GetTitle() {
+		return this.GetProperty(P_CAPTION);
+	}
+
+	public function SelectAll() {
+		return this.SetProperty(P_SELECTALL, "1");
+	}
+
+	public function Back() {
+		return this.SetProperty(P_WEBBACK, "1");
+	}
+
+	public function Forward() {
+		return this.SetProperty(P_WEBFORWARD, "1");
+	}
+
+	public function Reload() {
+		return this.SetProperty(P_RELOAD, "1");
+	}
+
+	public function Print() {
+		return this.SetProperty(P_WEBPRINT, "1");
+	}
+
+	public function SetEventResponse(string eventid, number response=true) {
+		if (response) {
+			return this.SetProperty(P_EVENTRESPONSETRUE, eventid);
+		} else {
+			return this.SetProperty(P_EVENTRESPONSEFALSE, eventid);
+		}
+	}
+
+	public function Search(string what, number forward=true) {
+		if (forward) {
+			return this.SetProperty(P_SEARCHNEXT, what);
+		} else {
+			return this.SetProperty(P_SEARCHPREV, what);
+		}
+	}
+
+	public function MarkText(string what) {
+		return this.SetProperty(P_MARKTEXTMATCHES, what);
+	}
+
+	public function UnMarkText() {
+		return this.SetProperty(P_UNMARKTEXTMATCHES, "1");
+	}
+
+	public function SetMantainBackForward(number mantain) {
+		this._MANTAINBACKFORWARD=mantain;
+		return this.SetProperty(P_MATAINBACKFORWARD, mantain);
+	}
+
+	public function SetCaseSensitive(number case_sensitive) {
+		this._SENSITIVESEARCH=case_sensitive;
+		return this.SetProperty(P_SENSITIVE, case_sensitive);
+	}
+
+	public function SetHighlightMatches(number highlight) {
+		this._HIGHLIGHTMATCHES=highlight;
+		return this.SetProperty(P_HIGHLIGHTMATCHES, highlight);
+	}
+
+	public function SetNewWindowView(RWebView view) {
+		this._NEWCONTAINER=view;
+		return this.SetProperty(P_WEBVIEWNEW, view.RID);
+	}
+
+	public function StartWebServer(number port=801) {
+		this.SetProperty(P_INITWEBSERVER, port);
+	}
+
+	public function StopWebServer() {
+		this.SetProperty(P_STOPWEBSERVER, "1");
+	}
+
+	public function GetServerRunning() {
+		return value (""+this.GetProperty(P_WEBSERVERRUNNING));
+	}
+
+	static function DecodeRequest(string data) {
+		var[] result;
+		result["method"]="";
+		result["url"]="";
+		result["version"]="";
+		result["data"]="";
+
+		var doc=new XMLDocument();
+		doc.LoadString(data);
+		var node_arr_m=doc.GetXPath("/request/method");
+		if (node_arr_m)
+			result["method"]=ToUpper(trim(node_arr_m[0].Content));
+
+		node_arr_m=doc.GetXPath("/request/url");
+		if (node_arr_m)
+			result["url"]=trim(node_arr_m[0].Content);
+
+		node_arr_m=doc.GetXPath("/request/version");
+		if (node_arr_m)
+			result["version"]=ToUpper(trim(node_arr_m[0].Content));
+
+		node_arr_m=doc.GetXPath("/request/data");
+		if (node_arr_m)
+			result["data"]=trim(node_arr_m[0].Content);
+
+		return result;
+	}
+
+	static function DecodeRequest2(string data) {
+		var[] result;
+		result["method"]="";
+		result["url"]="";
+		result["version"]="HTTP/1.0";
+		result["data"]="";
+
+		var dataarr=StrSplit(data,"\r\n\r\n",true);
+		if (dataarr) {
+			var req=dataarr[0];
+			req=StrSplit(req, " ", true);
+			result["method"]=req[0];
+			var len=length req;
+
+			var line="";
+			for (var i=1;i<len;i++) {
+				if (line)
+					line+=" ";
+				line+=req[i];
+			}
+			result["url"]=line;
+
+			var len2=length dataarr;
+			var my_data="";
+			for (i=1;i<len2;i++) {
+				if (my_data)
+					my_data+="\r\n\r\n";
+				my_data+=dataarr[i];
+			}
+			result["data"]=my_data;
+		}
+
+		return result;
+	}
+
+	public function AddHook(string hook, number load=true) {
+		SendMessage(REMOTE_ID_STR, MSG_CUSTOM_MESSAGE1, ""+load, hook);
+	}
+
+	/*public function SendResponse(string data) {
+		return this.SetProperty(P_WEBRESPONSE, data);
+	}*/
+
+	public function Cache(element_name, element_content) {
+		SendMessage(REMOTE_ID_STR, MSG_PUT_SECONDARY_STREAM, element_name, element_content);
+	}
+
+	public function ClearCache() {
+		SetProperty(P_WEBCLEARCACHE, "0");
+	
+	}
+}

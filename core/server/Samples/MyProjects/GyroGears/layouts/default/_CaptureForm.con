@@ -1,0 +1,64 @@
+include project_forms.glade.con
+include OCV/ROCV.con
+
+class _CaptureForm extends _CaptureWindow {
+        protected var ocv;
+        protected var in_use=false;
+        protected var data="";
+        protected var OnOk;
+        protected var OnCancel;
+
+        public function _CaptureForm(Owner, Lang S) {
+            super(Owner, S);
+
+            ocv=new ROCV(this);
+            ocv.LinkedImage=image;
+        }
+
+        public function Popup(OnOk, OnCancel, string format="jpg") {
+            this.AddTimer(this.on_timerRefresh, 1);
+            //ocv.Format=format;
+            ocv.Format="png";
+            in_use=true;
+            data="";
+            this.OnOk=OnOk;
+            this.OnCancel=OnCancel;
+            this.Show();
+        }
+        
+        public function on_timerRefresh(Sender, EventData) {
+            ocv.UpdateImage();
+            if (in_use)
+                this.AddTimer(this.on_timerRefresh, 50);
+        }
+
+        public function on_buttonCancel_clicked(Sender, EventData) {
+            data="";
+            in_use=false;
+            this.Hide();
+            if (OnCancel)
+                OnCancel();
+        }
+
+        public function on_buttonOk_clicked(Sender, EventData) {
+            in_use=false;
+            if (!data)
+                data=ocv.Frame;
+            this.Hide();
+            if (OnOk)
+                OnOk(data);
+            data="";
+        }
+
+        public function on_buttonCapture_clicked(Sender, EventData) {
+            in_use=false;
+            data=ocv.Frame;
+            image.UpdateContent(data);
+        }
+
+        public function on_buttonNext_clicked(Sender, EventData) {
+            data="";
+            in_use=true;
+            this.AddTimer(this.on_timerRefresh, 1);
+        }
+}

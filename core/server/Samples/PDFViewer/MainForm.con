@@ -1,0 +1,66 @@
+// the standard project forms definition. If no glade is used, comment the next line.
+include project_forms.glade.con
+include PDF/RPDF.con
+
+// comment the next line if this is NOT the main application form
+define APPLICATION_FORM_TYPE	MainForm
+
+// manually replace window1 with your glade window name
+class MainForm extends PDFWindow {
+        // ========================================================================
+        // constructor;
+        // S is a Lang object used to translate strings using
+        // the default string table named string.table.xml
+        // Is your responsability to pass this object to other forms instantiated
+        // in this application
+        // ========================================================================
+        protected var PDF;
+        protected var pages=0;
+
+        public function MainForm(Owner, Lang S) {
+                super(Owner, S);
+
+                PDF=new RPDF(this.scrolledwindow1);
+                PDF.IconView=iconview1;
+                PDF.Show();
+
+                PDF.LoadPDF(ReadFile("../../CASQG.pdf"));
+                pages=PDF.Pages;
+        }
+        
+        public function on_iconview1_item_activated(Sender, EventData) {
+            PDF.CurrentPage=value EventData;
+        }
+        
+        public function on_iconview1_selection_changed(Sender, EventData) {
+            PDF.CurrentPage=value iconview1.Path;
+        }
+
+        // Manually add your events here //
+        public function on_toolbutton1_clicked(VisibleRemoteObject Sender, string EventData) {
+            if (CApplication.RequestFile(var filename, var content,"Open PDF", "PDF Files|*.pdf")) {
+                PDF.LoadPDF(content);
+                pages=PDF.Pages;
+            }
+        }
+
+        public function on_toolbutton5_clicked(VisibleRemoteObject Sender, string EventData) {
+            PDF.Zoom+=0.1;
+        }
+
+        public function on_toolbutton2_clicked(VisibleRemoteObject Sender, string EventData) {
+            PDF.Zoom-=0.1;
+        }        
+
+        public function on_toolbutton3_clicked(VisibleRemoteObject Sender, string EventData) {
+            if (PDF.CurrentPage>0) {
+                PDF.CurrentPage-=1;
+            }
+        }
+
+        public function on_toolbutton4_clicked(VisibleRemoteObject Sender, string EventData) {
+            if (PDF.CurrentPage<pages-1) {
+                PDF.CurrentPage+=1;
+            }
+        }        
+}

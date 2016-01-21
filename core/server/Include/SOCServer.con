@@ -1,0 +1,143 @@
+import win32.base.messages
+import standard.C.io
+import standard.C.time
+import standard.net.socket
+import standard.lib.thread
+import standard.lib.str
+include Serializable.con
+
+class SOCClientThread {
+	protected var ClientSocket=-1;
+	protected var callback;
+
+	public function SOCClientThread(number socket, delegate callback) {
+		this.ClientSocket=socket;
+		this.callback=callback;
+	}
+
+	public function End(number code) {
+		echo "Client socket error $code\n";
+		SocketClose(this.ClientSocket);
+		return code;
+	}
+
+	public function Go() {
+		var socket=this.ClientSocket;
+
+		// true for "get exact size"
+		var rsize=SocketRead(socket, var buffer, 100, false, true);
+		if (rsize!=100) {
+			return this.End(-1);
+		}
+
+		var data=StrSplit(buffer, "::");
+		var len=length data;
+
+		if (len!=3) {
+			return this.End(-2);
+		}
+
+		var entity=data[0];
+		var operation=data[1];
+		var size=value (data[2]);
+
+		buffer="";
+		if (size>0) {
+			if (SocketRead(socket, buffer, size, false, true)!=size) {
+				return this.End(-3);
+			}
+		}
+
+		if (!this.callback)
+			return this.End(-4);
+
+		this.callback(socket, entity, operation, buffer);
+
+		/*if (SocketHasData(socket)) {
+			return this.End(-5);
+		}*/
+
+		SocketClose(socket);
+
+		return 0;
+	}
+}
+
+class SOCServer {
+	private var socket;
+	private var[] callbacks;
+	private var[] allow_ip;
+
+	static function ProtoSend(number s, string data) {
+		var header=""+length data;
+		var len=length header;
+
+		for (var i=len;i<100;i++)
+			header+=" ";
+
+		SocketWrite(s,header);
+		SocketWrite(s,data);
+	}
+
+	public function SOCServer(number port=3000) {
+		this.socket=SocketCreate();
+		if (!this.socket)
+			return;
+		SocketListen(this.socket, port);
+	}
+
+	public function OnRequest(number socket, string entity, string operation, string data) {
+		// to do
+		var ent_lo=ToLower(entity);
+		var op_lo=ToLower(operation);
+		var key="$ent_lo::$op_lo";
+		if (IsSet(this.callbacks, key)) {
+			var deleg=this.callbacks[key];
+			if (deleg)
+				deleg(socket, entity, data);
+		}
+		return -1;
+	}
+
+	public function RegisterHandler(string entity, string operation, delegate callback) {
+		var ent_lo=ToLower(entity);
+		var op_lo=ToLower(operation);
+		var key="$ent_lo::$op_lo";
+		this.callbacks[key]=callback;
+		return true;
+	}
+
+	public function AllowIP(string ip) {
+		ip=trim(ip);
+		this.allow_ip[ip]=ip;
+	}
+
+	public function Start() {
+		var callback=this.OnRequest;
+		var sock=this.socket;
+		do {
+			var s_client=SocketAccept(sock);
+			if (s_client>=0) {
+				var info=SocketInfo(s_client);
+				if (info) {
+					echo "Incoming traffic from "+info["address"]+": ";
+					if (allow_ip) {
+						if (IsSet(allow_ip, trim(info["address"]))) {
+							var t=new SOCClientThread(s_client, callback);
+							RunThread(t.Go);
+							echo " ACCEPTED\n";
+						} else {
+							SocketClose(s_client);
+							echo " DENIED\n";
+						}
+					} else {
+						t=new SOCClientThread(s_client, callback);
+						RunThread(t.Go);
+						echo " ACCEPTED\n";
+					}
+				}
+			}
+		} while (s_client>=0);
+		return true;
+	}
+}

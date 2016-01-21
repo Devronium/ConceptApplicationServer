@@ -1,0 +1,122 @@
+include RForm.con
+include RLabel.con
+include RVBox.con
+include RHBox.con
+include RHButtonBox.con
+include RImage.con
+include RButton.con
+include REdit.con
+include Constants.con
+
+class OptionDialog extends RForm {
+	private var[] options_buttons;
+
+	private var DialogImage;
+	private var Label;
+	private var ButBox;
+	public var Edit;
+
+	private var[] _OPT_ARRAY;
+	private var on_select_delegate;
+
+	private var _EDITABLE;
+
+	public property Editable { get _EDITABLE, set SetEditable }
+	public property Text { set SetText, get GetText }
+
+	public property Options { get _OPT_ARRAY, set SetOptions }
+	public property Image { get DialogImage }
+	public property Message { get GetMessage, set SetMessage }
+	public property OnOption { get on_select_delegate, set SetOnSelect }
+
+
+	public function GetText() {
+		return Edit.Text;
+	}
+
+	public function SetText(text) {
+		return Edit.Text=text;
+	}
+	
+	public function SetEditable(editable) {
+		_EDITABLE=editable;
+		if (editable) {
+			Edit.Show();
+			Edit.GrabFocus();
+		} else
+			Edit.Hide();
+		return editable;
+	}
+
+	function GetMessage() {
+		return Label.Caption;
+	}
+
+	function SetMessage(msg) {
+		return Label.Caption=msg;
+	}
+	
+
+	function OptionDialog(owner) {
+		super(owner);
+		var hbox=new RHBox(this);
+		hbox.PackType=PACK_SHRINK;
+
+		DialogImage=new RImage(hbox);
+		DialogImage.MinWidth=80;
+		DialogImage.Show();
+
+		hbox.PackType=PACK_EXPAND_PADDING;
+		var vbox=new RVBox(hbox);
+
+		Label=new RLabel(vbox);
+		Label.Show();
+
+		Edit=new REdit(vbox);
+		Edit.ActivateDefault=true;
+
+		ButBox=new RHButtonBox(vbox);
+		ButBox.Layout=BUTTONBOX_SPREAD;
+		ButBox.Show();
+		vbox.Show();
+		hbox.Show();
+		Modal=true;
+		KeepAbove=true;
+		MinWidth=300;
+		MinHeight=100;
+	}
+
+	public function OnButtonPressed(Sender, EventData) {
+		Hide();
+		if (on_select_delegate)
+			on_select_delegate(this,Sender.UserData);
+	}
+
+	public function SetOnSelect(delegate deleg) {
+		on_select_delegate=&deleg;
+	}
+
+	public function SetOptions(options) {
+		delete _OPT_ARRAY;
+		_OPT_ARRAY=options;
+
+		var cnt=length options_buttons;
+		for (var i=0;i<cnt;i++) {
+			options_buttons[i].Hide();
+		}
+
+		delete options_buttons;
+		options_buttons=new [];
+
+		cnt=length options;
+		for (i=0;i<cnt;i++) {
+			options_buttons[i]=&new RButton(ButBox);
+			options_buttons[i].Caption=options[i];
+			options_buttons[i].OnClicked=OnButtonPressed;
+			options_buttons[i].UserData=i;
+			options_buttons[i].Show();
+		}
+		if (cnt)
+			DefaultControl=options_buttons[0];
+	}
+}

@@ -1,0 +1,224 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+  <title>standard.net.curl.curl_easy_getinfo</title>
+  <link href="css/style.css" rel="stylesheet" type="text/css">
+  <meta http-equiv="Content-Type" content="text/html;charset=utf-8" >
+</head>
+<body bgcolor="#ffffff">
+<table border="0" width="100%" bgcolor="#F0F0FF">
+  <tr>
+    <td>Concept Framework 2.2 documentation</td>
+  	<td align="right"><a href="index.html">Contents</a> | <a href="index_fun.html">Index</a></td>
+  </tr>
+</table>
+<h2><a href="standard.net.curl.html">standard.net.curl</a>.curl_easy_getinfo</h2>
+<table border="0" cellspacing="0" cellpadding="0" width="500" style="border-style:solid;border-width:1px;border-color:#D0D0D0;">
+  <tr bgcolor="#f0f0f0">
+     <td><i>Name</i></td>
+     <td><i>Version</i></td>
+     <td><i>Deprecated</i></td>
+  </tr>
+  <tr bgcolor="#fafafa">
+     <td><b>curl_easy_getinfo</b></td>
+     <td>version 1.0</td>
+     <td>no</td>
+  </tr>
+</table>
+<br />
+<b>Prototype:</b><br />
+	<table bgcolor="#F0F0F0" width="100%" style="border-style:solid;border-width:1px;border-color:#D0D0D0;"><tr><td><b>number curl_easy_getinfo(number handle, number info, var parameter)</b></td></tr></table>
+<br />
+
+<b>Parameters:</b><br />
+<table bgcolor="#FFFFFF" style="border-style:solid;border-width:1px;border-color:#D0D0D0;">
+
+	   <tr>
+	   	   <td>
+		   	   <i>handle</i>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+		   </td>
+	   	   <td>
+		   	   the CURL handle as returned by <a href="standard.net.curl.curl_easy_init.html">curl_easy_init</a>
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <i>info</i>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+		   </td>
+	   	   <td>
+		   	   the CURL info  required
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <i>parameter</i>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+		   </td>
+	   	   <td>
+		   	   the resulted data
+		   </td>
+	   </tr>
+
+</table>
+
+<br />
+<b>Description:</b><br />
+<table width="100%" bgcolor="#FAFAFF" style="border-style:solid;border-width:1px;border-color:#D0D0D0;">
+<tr><td>
+Request internal information from the curl session with this function. The third argument will be a number, a string or an array. The data pointed-to will be filled in accordingly and can be relied upon only if the function returns CURLE_OK. Use this function AFTER a performed transfer if you want to get transfer- oriented data. 
+<br/>You should not free the memory returned by this function unless it is explicitly mentioned below. 
+<br/>
+<br/>AVAILABLE INFORMATION
+<br/>============================
+<br/>The following information can be extracted: 
+<br/>CURLINFO_EFFECTIVE_URL 
+<br/>Receive the last used effective URL. 
+<br/>CURLINFO_RESPONSE_CODE 
+<br/>Receive the last received HTTP or FTP code. This option was known as CURLINFO_HTTP_CODE in libcurl 7.10.7 and earlier. This will be zero if no server response code has been received. Note that a proxy's CONNECT response should be read with CURLINFO_HTTP_CONNECTCODE and not this. 
+<br/>CURLINFO_HTTP_CONNECTCODE 
+<br/>Receive the last received proxy response code to a CONNECT request. 
+<br/>CURLINFO_FILETIME 
+<br/>Receive the remote time of the retrieved document (in number of seconds since 1 jan 1970 in the GMT/UTC time zone). If you get -1, it can be because of many reasons (unknown, the server hides it or the server doesn't support the command that tells document time etc) and the time of the document is unknown. Note that you must tell the server to collect this information before the transfer is made, by using the CURLOPT_FILETIME option to <a href="standard.net.curl.curl_easy_setopt.html">curl_easy_setopt</a> or you will unconditionally get a -1 back. (Added in 7.5) 
+<br/>CURLINFO_TOTAL_TIME 
+<br/>Receive the total time in seconds for the previous transfer, including name resolving, TCP connect etc. 
+<br/>CURLINFO_NAMELOOKUP_TIME 
+<br/>Receive the time, in seconds, it took from the start until the name resolving was completed. 
+<br/>CURLINFO_CONNECT_TIME 
+<br/>Receive the time, in seconds, it took from the start until the connect to the remote host (or proxy) was completed. 
+<br/>CURLINFO_PRETRANSFER_TIME 
+<br/>Receive the time, in seconds, it took from the start until the file transfer is just about to begin. This includes all pre-transfer commands and negotiations that are specific to the particular protocol(s) involved. 
+<br/>CURLINFO_STARTTRANSFER_TIME 
+<br/>Receive the time, in seconds, it took from the start until the first byte is just about to be transferred. This includes CURLINFO_PRETRANSFER_TIME and also the time the server needs to calculate the result. 
+<br/>CURLINFO_REDIRECT_TIME 
+<br/>Receive the total time, in seconds, it took for all redirection steps include name lookup, connect, pretransfer and transfer before final transaction was started. CURLINFO_REDIRECT_TIME contains the complete execution time for multiple redirections. (Added in 7.9.7) 
+<br/>CURLINFO_REDIRECT_COUNT 
+<br/>Receive the total number of redirections that were actually followed. (Added in 7.9.7) 
+<br/>CURLINFO_SIZE_UPLOAD 
+<br/>Receive the total amount of bytes that were uploaded. 
+<br/>CURLINFO_SIZE_DOWNLOAD 
+<br/>Receive the total amount of bytes that were downloaded. The amount is only for the latest transfer and will be reset again for each new transfer. 
+<br/>CURLINFO_SPEED_DOWNLOAD 
+<br/>Receive the average download speed that curl measured for the complete download. 
+<br/>CURLINFO_SPEED_UPLOAD 
+<br/>Receive the average upload speed that curl measured for the complete upload. 
+<br/>CURLINFO_HEADER_SIZE 
+<br/>Receive the total size of all the headers received. 
+<br/>CURLINFO_REQUEST_SIZE 
+<br/>Receive the total size of the issued requests. This is so far only for HTTP requests. Note that this may be more than one request if FOLLOWLOCATION is true. 
+<br/>CURLINFO_SSL_VERIFYRESULT 
+<br/>Receive the result of the certification verification that was requested (using the CURLOPT_SSL_VERIFYPEER option to <a href="standard.net.curl.curl_easy_setopt.html">curl_easy_setopt</a>). 
+<br/>CURLINFO_SSL_ENGINES 
+<br/>Rreceive a linked-list of OpenSSL crypto-engines supported. Note that engines are normally implemented in separate dynamic libraries. Hence not all the returned engines may be available at run-time. (Added in 7.12.3) 
+<br/>CURLINFO_CONTENT_LENGTH_DOWNLOAD 
+<br/>Receive the content-length of the download. This is the value read from the Content-Length: field. 
+<br/>CURLINFO_CONTENT_LENGTH_UPLOAD 
+<br/>Receive the specified size of the upload. 
+<br/>CURLINFO_CONTENT_TYPE 
+<br/>Receive the content-type of the downloaded object. This is the value read from the Content-Type: field. If you get NULL, it means that the server didn't send a valid Content-Type header or that the protocol used doesn't support this. 
+<br/>CURLINFO_PRIVATE 
+<br/>Receive the pointer to the private data associated with the curl handle (set with the CURLOPT_PRIVATE option to <a href="standard.net.curl.curl_easy_setopt.html">curl_easy_setopt</a>). (Added in 7.10.3) 
+<br/>CURLINFO_HTTPAUTH_AVAIL 
+<br/>Receive a bitmask indicating the authentication method(s) available. The meaning of the bits is explained in the CURLOPT_HTTPAUTH option for <a href="standard.net.curl.curl_easy_setopt.html">curl_easy_setopt</a>. (Added in 7.10.8) 
+<br/>CURLINFO_PROXYAUTH_AVAIL 
+<br/>Receive a bitmask indicating the authentication method(s) available for your proxy authentication. (Added in 7.10.8) 
+<br/>CURLINFO_OS_ERRNO 
+<br/>Receive the errno variable from a connect failure. (Added in 7.12.2) 
+<br/>CURLINFO_NUM_CONNECTS 
+<br/>Receive how many new connections libcurl had to create to achieve the previous transfer (only the successful connects are counted). Combined with CURLINFO_REDIRECT_COUNT you are able to know how many times libcurl successfully reused existing connection(s) or not. See the Connection Options of <a href="standard.net.curl.curl_easy_setopt.html">curl_easy_setopt</a> to see how libcurl tries to make persistent connections to save time. (Added in 7.12.3) 
+<br/>CURLINFO_COOKIELIST 
+<br/>Receive an array of all cookies cURL knows (expired ones, too). (Added in 7.14.1) 
+<br/>CURLINFO_LASTSOCKET 
+<br/>Receive the last socket used by this curl session. If the socket is no longer valid, -1 is returned. When you finish working with the socket, you must call curl_easy_cleanup() as usual and let libcurl close the socket and cleanup other resources associated with the handle. This is typically used in combination with CURLOPT_CONNECT_ONLY. (Added in 7.15.2) 
+<br/>CURLINFO_FTP_ENTRY_PATH 
+<br/>Receive a string holding the path of the entry path. That is the initial path libcurl ended up in when logging on to the remote FTP server. (Added in 7.15.4) 
+<br/>
+</td></tr>
+</table>
+<br />
+
+<b>Example:</b>
+<table bgcolor="#F0F0FF" width="100%"  style="border-style:solid;border-width:1px;border-color:#D0D0D0;"><tr><td>
+<font color="#101060"><pre>import standard.net.curl
+import standard.C.io
+
+
+class Main {
+	var data="";
+	var header="";
+
+	function write_data(ptr, size, nmemb, stream) {
+		//echo "Stream: $stream\n";
+		if (stream==1001) 
+			header+=ptr;
+		else
+			data+=ptr;
+		return size*nmemb;
+	}
+
+	function read_data(var ptr, size, nmemb, stream) {
+		echo typeof ptr;
+
+		for (var i=0;i&lt;100;i++)
+			ptr+="x";
+
+		return size*nmemb;
+	}
+
+	function progress(clientp, dltotal, dlnow, ultotal, ulnow) {
+		echo "$dlnow/$dltotal bytes received      \r";
+	}
+
+	function Main() {
+		curl_global_init(CURL_GLOBAL_ALL);
+
+		var curl_handle=curl_easy_init();
+
+		curl_easy_setopt(curl_handle, CURLOPT_PROGRESSFUNCTION, progress);
+		curl_easy_setopt(curl_handle, CURLOPT_NOPROGRESS, 0);
+
+
+		curl_easy_setopt(curl_handle, CURLOPT_URL, "http://curl.haxx.se");
+
+		curl_easy_setopt(curl_handle, CURLOPT_READFUNCTION, read_data);
+
+		curl_easy_setopt(curl_handle, CURLOPT_WRITEFUNCTION, write_data);
+		curl_easy_setopt(curl_handle, CURLOPT_WRITEDATA, 1002);
+		curl_easy_setopt(curl_handle, CURLOPT_WRITEHEADER , 1001);
+
+
+		curl_easy_perform(curl_handle);
+		echo "\n\n";
+		curl_easy_getinfo(curl_handle, CURLINFO_SSL_ENGINES, var arr);
+		echo arr;
+
+		curl_easy_cleanup(curl_handle);
+
+		WriteFile(data,"data.html");
+		WriteFile(header,"data_header.txt");
+
+	}
+}</pre></font>
+</td></tr></table>
+<br />
+
+<b>Returns:</b><br />
+Returns zero if succeeded or an error code if failed.
+<br />
+<br />
+<!--
+  <p>
+    <a href="http://validator.w3.org/check?uri=referer"><img
+        src="http://www.w3.org/Icons/valid-html40"
+        alt="Valid HTML 4.0 Transitional" height="31" width="88" border="0"></a>
+ <a href="http://jigsaw.w3.org/css-validator/">
+  <img style="border:0;width:88px;height:31px"
+       src="http://jigsaw.w3.org/css-validator/images/vcss" 
+       alt="Valid CSS!" border="0"/>
+ </a>
+</p>
+-->
+<table bgcolor="#F0F0F0" width="100%"><tr><td>Documented by Eduard Suica, generation time: Sun Jan 27 18:15:20 2013
+ GMT</td><td align="right">(c)2013 <a href="http://www.devronium.com">Devronium Applications</a></td></tr></table>
+</body>
+</html>

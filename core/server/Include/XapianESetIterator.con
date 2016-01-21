@@ -1,0 +1,69 @@
+import standard.search.xapian
+
+class XapianESetIterator {
+	protected var THISREF=null;
+	public property REF { get THISREF }
+
+	public function XapianESetIterator(number ref) {
+		this.THISREF=ref;
+	}
+
+	public function next() {
+		var result=XapianESetIterator__next(this->THISREF, var exc);
+		if (exc)
+			throw exc;
+		return result;
+	}
+
+	public function prev() {
+		var result=XapianESetIterator__prev(this->THISREF, var exc);
+		if (exc)
+			throw exc;
+		return result;
+	}
+
+	public operator ++ () {
+		return this.next();
+	}
+
+	public operator -- () {
+		return this.prev();
+	}
+
+	public function get_value() {
+		var result=XapianESetIterator__get_value(this->THISREF, var exc);
+		if (exc)
+			throw exc;
+		return result;
+	}
+
+	public function get_description() {
+		var result=XapianESetIterator__get_description(this->THISREF, var exc);
+		if (exc)
+			throw exc;
+		return result;
+	}
+
+	public function equal(XapianESetIterator iter) {
+		var result=XapianESetIterator__equal(this->THISREF, var exc, iter.REF);
+		if (exc)
+			throw exc;
+		return result;
+	}
+
+	public operator ==(XapianESetIterator iter) {
+		return equal(iter);
+	}
+
+	public operator !=(XapianESetIterator iter) {
+		return !equal(iter);
+	}	
+
+	public function get_weight() {
+		var result=XapianESetIterator__get_weight(this->THISREF, var exc);
+		if (exc)
+			throw exc;
+		return result;
+	}
+
+}

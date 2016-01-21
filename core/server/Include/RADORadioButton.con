@@ -1,0 +1,27 @@
+include RRadioButton.con
+include DataBases.con
+
+class RADORadioButton	extends RRadioButton
+			extends VirtualADOObject {
+
+	override __DataSetUpdateCommand;
+	public function __DataSetUpdateCommand(Sender) {
+		try {
+			var obj=Sender.FieldValues[this._DATAFIELD];
+			if (typeof obj == "class") {
+				var checked=obj.ToNumber();
+				if ((checked==true) || (checked==false))
+					this.Checked=checked;
+				else
+					this.Inconsistent=true;
+			} else
+				this.Inconsistent=true;
+		} catch (var exception) {
+			this.Inconsistent=true;
+		}
+	}
+
+	public function RADORadioButton(OWNER) {
+		RRadioButton(OWNER);
+	}
+}

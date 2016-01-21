@@ -1,0 +1,163 @@
+include XapianMSetIterator.con
+
+class XapianMSet {
+	protected var THISREF=null;
+	public property REF { get THISREF }
+
+	public function XapianMSet(number ref=0) {
+		if (ref)
+			this.THISREF=ref;
+		else
+			this.THISREF=XapianMSetCreate(var exc);
+	}
+
+	public function finalize() {
+		XapianMSetDestroy(THISREF, var exc);
+		this.THISREF=null;
+	}
+
+	public function fetch() {
+		var result=XapianMSet__fetch(this->THISREF, var exc);
+		if (exc)
+			throw exc;
+		return result;
+	}
+
+	public function convert_to_percent(number wt) {
+		var result=XapianMSet__convert_to_percent(this->THISREF, var exc, wt);
+		if (exc)
+			throw exc;
+		return result;
+	}
+
+	public function convert_to_percent2(XapianMSetIterator it) {
+		var result=XapianMSet__convert_to_percent2(this->THISREF, var exc, it.REF);
+		if (exc)
+			throw exc;
+		return result;
+	}
+
+	public function get_termfreq(string tname) {
+		var result=XapianMSet__get_termfreq(this->THISREF, var exc, tname);
+		if (exc)
+			throw exc;
+		return result;
+	}
+
+	public function get_termweight(string tname) {
+		var result=XapianMSet__get_termweight(this->THISREF, var exc, tname);
+		if (exc)
+			throw exc;
+		return result;
+	}
+
+	public function get_firstitem() {
+		var result=XapianMSet__get_firstitem(this->THISREF, var exc);
+		if (exc)
+			throw exc;
+		return result;
+	}
+
+	public function get_matches_lower_bound() {
+		var result=XapianMSet__get_matches_lower_bound(this->THISREF, var exc);
+		if (exc)
+			throw exc;
+		return result;
+	}
+
+	public function get_matches_estimated() {
+		var result=XapianMSet__get_matches_estimated(this->THISREF, var exc);
+		if (exc)
+			throw exc;
+		return result;
+	}
+
+	public function get_matches_upper_bound() {
+		var result=XapianMSet__get_matches_upper_bound(this->THISREF, var exc);
+		if (exc)
+			throw exc;
+		return result;
+	}
+
+	public function get_max_possible() {
+		var result=XapianMSet__get_max_possible(this->THISREF, var exc);
+		if (exc)
+			throw exc;
+		return result;
+	}
+
+	public function get_max_attained() {
+		var result=XapianMSet__get_max_attained(this->THISREF, var exc);
+		if (exc)
+			throw exc;
+		return result;
+	}
+
+	public function size() {
+		var result=XapianMSet__size(this->THISREF, var exc);
+		if (exc)
+			throw exc;
+		return result;
+	}
+
+	public function max_size() {
+		var result=XapianMSet__max_size(this->THISREF, var exc);
+		if (exc)
+			throw exc;
+		return result;
+	}
+
+	public function empty() {
+		var result=XapianMSet__empty(this->THISREF, var exc);
+		if (exc)
+			throw exc;
+		return result;
+	}
+
+	public function swap(XapianMSet other) {
+		var result=XapianMSet__swap(this->THISREF, var exc, other.REF);
+		if (exc)
+			throw exc;
+		return result;
+	}
+
+	public function begin() {
+		var result=new XapianMSetIterator(XapianMSet__begin(this->THISREF, var exc));
+		if (exc)
+			throw exc;
+		return result;
+	}
+
+	public function end() {
+		var result=new XapianMSetIterator(XapianMSet__end(this->THISREF, var exc));
+		if (exc)
+			throw exc;
+		return result;
+	}
+
+	public function back() {
+		var result=new XapianMSetIterator(XapianMSet__back(this->THISREF, var exc));
+		if (exc)
+			throw exc;
+		return result;
+	}
+
+	public function getiter(number _i) {
+		var result=new XapianMSetIterator(XapianMSet__getiter(this->THISREF, var exc, _i));
+		if (exc)
+			throw exc;
+		return result;
+	}
+
+	public operator[](number index) {
+		return this.getiter(index);
+	}
+
+	public function get_description() {
+		var result=XapianMSet__get_description(this->THISREF, var exc);
+		if (exc)
+			throw exc;
+		return result;
+	}
+
+}

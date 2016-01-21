@@ -1,0 +1,198 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+  <title>RImage.LoadResource</title>
+  <link href="css/style.css" rel="stylesheet" type="text/css">
+  <meta http-equiv="Content-Type" content="text/html;charset=utf-8" >
+</head>
+<body bgcolor="#ffffff">
+<table border="0" width="100%" bgcolor="#F0F0FF">
+  <tr>
+    <td>Concept Framework 2.2 documentation</td>
+  	<td align="right"><a href="index.html">Contents</a> | <a href="index_fun.html">Index</a></td>
+  </tr>
+</table>
+<h2><a href="RImage.html">RImage</a>.LoadResource</h2>
+<table border="0" cellspacing="0" cellpadding="0" width="500" style="border-style:solid;border-width:1px;border-color:#D0D0D0;">
+  <tr bgcolor="#f0f0f0">
+     <td><i>Name</i></td>
+     <td><i>Type</i></td>
+     <td><i>Access</i></td>
+     <td><i>Version</i></td>
+     <td><i>Deprecated</i></td>
+  </tr>
+  <tr bgcolor="#fafafa">
+     <td><b>LoadResource</b></td>
+     <td>function</td>
+     <td>public</td>
+     <td>version 1.0</td>
+     <td>no</td>
+  </tr>
+</table>
+<br />
+<b>Prototype:</b><br />
+	<table bgcolor="#F0F0F0" width="100%" style="border-style:solid;border-width:1px;border-color:#D0D0D0;"><tr><td><b>public function LoadResource(resid,size);</b></td></tr></table>
+<br />
+
+<b>Parameters:</b><br />
+<table bgcolor="#FFFFFF" style="border-style:solid;border-width:1px;border-color:#D0D0D0;">
+
+	   <tr>
+	   	   <td>
+		   	   <i>resid </i>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+		   </td>
+	   	   <td>
+		   	   the stock id of the image to load 
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <i>size</i>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+		   </td>
+	   	   <td>
+		   	   the size of the image
+		   </td>
+	   </tr>
+
+</table>
+
+<br />
+<b>Description:</b><br />
+<table width="100%" bgcolor="#FAFAFF" style="border-style:solid;border-width:1px;border-color:#D0D0D0;">
+<tr><td>
+Loads an image from stock (built-in images).
+<br/>
+<br/>Note! 
+<br/>
+<br/>The size parameter must be:
+<br/>ICON_SIZE_INVALID
+<br/>ICON_SIZE_MENU
+<br/>ICON_SIZE_SMALL_TOOLBAR
+<br/>ICON_SIZE_LARGE_TOOLBAR
+<br/>ICON_SIZE_BUTTON
+<br/>ICON_SIZE_DND
+<br/>ICON_SIZE_DIALOG
+<br/>(this constants are defined in StockConstants.con . You must include this file if you want to use it)
+<br/>
+<br/>resid (the stock id) can be a string representing the gtk2 stock icon to use or : 
+<br/>
+<br/>ABOUT 
+<br/>ADD 
+<br/>APPLY 
+<br/>BOLD 
+<br/>CANCEL 
+<br/>CDROM 
+<br/>CLEAR 
+<br/>CLOSE 
+<br/>COLOR_PICKER 
+<br/>CONNECT 
+<br/>CONVERT 
+<br/>COPY 
+<br/>CUT 
+<br/>DELETE 
+<br/>DIALOG_AUTHENTICATION 
+<br/>DIALOG_ERROR 
+<br/>DIALOG_INFO 
+<br/>DIALOG_QUESTION 
+<br/>DIALOG_WARNING 
+<br/>DIRECTORY 
+<br/>DISCONNECT 
+<br/>DND 
+<br/>DND_MULTIPLE 
+<br/>EDIT 
+<br/>EXECUTE 
+<br/>FILE 
+<br/>FIND 
+<br/>FIND_AND_REPLACE 
+<br/>FLOPPY 
+<br/>FULLSCREEN 
+<br/>GO_BACK 
+<br/>GO_DOWN 
+<br/>GO_FORWARD 
+<br/>GO_UP 
+<br/>GOTO_BOTTOM 
+<br/>GOTO_FIRST 
+<br/>GOTO_LAST 
+<br/>GOTO_TOP 
+<br/>HARDDISK 
+<br/>HELP 
+<br/>HOME 
+<br/>INDENT 
+<br/>INDEX 
+<br/>INFO 
+<br/>ITALIC 
+<br/>JUMP_TO 
+<br/>JUSTIFY_CENTER 
+<br/>JUSTIFY_FILL 
+<br/>JUSTIFY_LEFT 
+<br/>JUSTIFY_RIGHT 
+<br/>LEAVE_FULLSCREEN 
+<br/>MEDIA_FORWARD 
+<br/>MEDIA_NEXT 
+<br/>MEDIA_PAUSE 
+<br/>MEDIA_PLAY 
+<br/>MEDIA_PREVIOUS 
+<br/>MEDIA_RECORD 
+<br/>MEDIA_REWIND 
+<br/>MEDIA_STOP 
+<br/>MISSING_IMAGE 
+<br/>NETWORK 
+<br/>NEW 
+<br/>NO 
+<br/>OK 
+<br/>OPEN 
+<br/>PASTE 
+<br/>PREFERENCES 
+<br/>PRINT 
+<br/>PRINT_PREVIEW 
+<br/>PROPERTIES 
+<br/>QUIT 
+<br/>REDO 
+<br/>REFRESH 
+<br/>REMOVE 
+<br/>REVERT_TO_SAVED 
+<br/>SAVE 
+<br/>SAVE_AS 
+<br/>SELECT_COLOR 
+<br/>SELECT_FONT 
+<br/>SORT_ASCENDING 
+<br/>SORT_DESCENDING 
+<br/>SPELL_CHECK 
+<br/>STOP 
+<br/>STRIKETHROUGH 
+<br/>UNDELETE 
+<br/>UNDERLINE 
+<br/>UNDO 
+<br/>UNINDENT 
+<br/>YES 
+<br/>ZOOM_100 
+<br/>ZOOM_FIT 
+<br/>ZOOM_IN 
+<br/>ZOOM_OUT 
+<br/>(this constants are defined in StockConstants.con . You must include this file if you want to use it)
+<br/>
+</td></tr>
+</table>
+<br />
+
+<b>Returns:</b><br />
+This function returns null.
+<br />
+<br />
+<!--
+  <p>
+    <a href="http://validator.w3.org/check?uri=referer"><img
+        src="http://www.w3.org/Icons/valid-html40"
+        alt="Valid HTML 4.0 Transitional" height="31" width="88" border="0"></a>
+ <a href="http://jigsaw.w3.org/css-validator/">
+  <img style="border:0;width:88px;height:31px"
+       src="http://jigsaw.w3.org/css-validator/images/vcss" 
+       alt="Valid CSS!" border="0"/>
+ </a>
+</p>
+-->
+<table bgcolor="#F0F0F0" width="100%"><tr><td>Documented by Eduard Suica, generation time: Sun Jan 27 18:15:07 2013
+ GMT</td><td align="right">(c)2013 <a href="http://www.devronium.com">Devronium Applications</a></td></tr></table>
+</body>
+</html>

@@ -1,0 +1,30 @@
+include "Control.con"
+
+class ConceptListColumn extends Control {
+	protected var _CAPTION;
+	protected var _WIDTH;
+	public property Caption { set SetCaption, get _CAPTION }
+	public property Width	{ set SetWidth, get _WIDTH }
+
+	public function ConceptListColumn(Owner) {
+		this->Control(/*Owner*/0, CLASS_LISTCOLUMN);
+	}
+
+	protected function SetCaption(x) {
+		if (typeof x==STRING_TYPE)
+			this->_CAPTION=x;
+		else
+		     	throw new ControlException(EXC_INVALID_ARGUMENT_TYPE, this);
+
+                SendMessage(this->Name, MSG_CHANGED, P_LISTCOLUMNCAPTION, x);
+	}
+
+	protected function SetWidth(x) {
+		if (typeof x==NUMERIC_TYPE)
+			this->_WIDTH=x;
+		else
+			throw new ControlException(EXC_INVALID_ARGUMENT_TYPE, this);
+
+                SendMessage(this->Name, MSG_CHANGED, P_LISTCOLUMNWIDTH, x);
+	}
+}

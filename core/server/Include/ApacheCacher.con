@@ -1,0 +1,236 @@
+import web.server.api
+include MemCached.con
+import standard.lib.cripto
+
+
+class ApacheCacher {
+	static function GetBaseKey() {
+		var query=ServerVar("QUERY_STRING");
+		if (query)
+			query="?"+query;
+		var basekey=""+Murmur(ServerVar("HTTP_HOST")+ServerVar("PATH_INFO")+query);
+		return basekey;
+	}
+
+
+	static function CacheForAll(var content, seconds=3600, string content_type="", string headers="", var m=null) {
+		var basekey=ApacheCacher::GetBaseKey();
+		if (!m) {
+			m=new MemCached();
+			m.AddServer();
+		}
+		m.Set("*"+basekey, content, seconds);
+		if (content_type)
+			m.Set("Content-Type@"+basekey, content_type, seconds);
+
+		if (headers)
+			m.Set("Headers@"+basekey, headers, seconds);
+		return content;
+	}
+
+	static function CacheForVisitors(var content, seconds=3600, string content_type="", string headers="", var m=null) {
+		var basekey=ApacheCacher::GetBaseKey();
+		if (!m) {
+			m=new MemCached();
+			m.AddServer();
+		}
+		m.Set(basekey, content, seconds);
+		if (content_type)
+			m.Set("Content-Type@"+basekey, content_type, seconds);
+
+		if (headers)
+			m.Set("Headers@"+basekey, headers, seconds);
+		return content;
+	}
+
+	static function CacheForUser(string sessionid, var content, seconds=3600, string content_type="", string headers="", var m=null) {
+		var basekey=ApacheCacher::GetBaseKey();
+		if (!m) {
+			m=new MemCached();
+			m.AddServer();
+		}
+		m.Set(sessionid+"@"+basekey, content, seconds);
+		m.Set(sessionid+"(queryuser)"+basekey, "1", seconds);
+		if (content_type)
+			m.Set("Content-Type@"+basekey, content_type, seconds);
+
+		if (headers)
+			m.Set("Headers@"+basekey, headers, seconds);
+		return content;
+	}
+
+	static function CacheForLang(string lang, var content, seconds=3600, string content_type="", string headers="", var m=null) {
+		var basekey=ApacheCacher::GetBaseKey();
+		if (!m) {
+			m=new MemCached();
+			m.AddServer();
+		}
+		m.Set(lang+"(lang)"+basekey, content, seconds);
+		m.Set(lang+"(querylang)"+basekey, "1", seconds);
+		if (content_type)
+			m.Set("Content-Type@"+basekey, content_type, seconds);
+
+		if (headers)
+			m.Set("Headers@"+basekey, headers, seconds);
+		return content;
+	}
+
+	static function Invalidate(var m=null) {
+		var basekey=ApacheCacher::GetBaseKey();
+		try {
+			m.Delete(basekey);
+		} catch (var exc) {
+			// nothing
+		}
+		try {
+			m.Delete("*"+basekey);
+		} catch (exc) {
+			// nothing
+		}
+		try {
+			m.Delete("Content-Type@"+basekey);
+		} catch (exc) {
+			// nothing
+		}
+		try {
+			m.Delete("Headers@"+basekey);
+		} catch (exc) {
+			// nothing
+		}
+	}
+
+	static function InvalidateLang(string language, seconds=3600, var m=null) {
+		var basekey=ApacheCacher::GetBaseKey();
+		var masterkey=language+"(lang)"+basekey;
+
+		if (!m) {
+			m=new MemCached();
+			m.AddServer();
+		}
+		try {
+			m.Delete(masterkey);
+		} catch (var exc) {
+			// nothing
+		}
+		if (language) {
+			m.Set(language+"(querylang)"+basekey, "0", seconds);
+		}
+		return m;
+	}
+
+	static function InvalidateUser(string sessionid, seconds=3600, var m=null) {
+		var basekey=ApacheCacher::GetBaseKey();
+		var masterkey=sessionid+"@"+basekey;
+
+		if (!m) {
+			m=new MemCached();
+			m.AddServer();
+		}
+		try {
+			m.Delete(masterkey);
+		} catch (var exc) {
+			// nothing
+		}
+		if (sessionid) {
+			m.Set(sessionid+"(queryuser)"+basekey, "0", seconds);
+		}
+		return m;
+	}
+
+	static function MetaClose(string basekey="", var m=null) {
+		if (!basekey)
+			basekey=ApacheCacher::GetBaseKey();
+		if (!m) {
+			m=new MemCached();
+			m.AddServer();
+		}
+		try {
+			m.Delete("Content-Type@"+basekey);
+		} catch(var exc) {
+			// nothing
+		}
+		try {
+			m.Delete("Headers@"+basekey);
+		} catch(exc) {
+			// nothing
+		}
+		return m;
+	}
+
+	static function CloseForAll(do_metaclose=true, var m=null) {
+		var basekey=ApacheCacher::GetBaseKey();
+
+		if (!m) {
+			m=new MemCached();
+			m.AddServer();
+		}
+		try {
+			m.Delete("*"+basekey);
+		} catch(var exc) {
+			// nothing
+		}
+		if (do_metaclose)
+			ApacheCacher::MetaClose(basekey, m);
+		return m;
+	}
+
+	static function CloseForVisitors(do_metaclose=true, var m=null) {
+		var basekey=ApacheCacher::GetBaseKey();
+
+		if (!m) {
+			m=new MemCached();
+			m.AddServer();
+		}
+		try {
+			m.Delete("*"+basekey);
+		} catch(var exc) {
+			// nothing
+		}
+		if (do_metaclose)
+			ApacheCacher::MetaClose(basekey, m);
+		return m;
+	}
+
+	static function CloseForLang(string lang, do_metaclose=false, var m=null) {
+		var basekey=ApacheCacher::GetBaseKey();
+
+		if (!m) {
+			m=new MemCached();
+			m.AddServer();
+		}
+		try {
+			m.Delete(lang+"(lang)"+basekey);
+		} catch(var exc) {
+			// nothing
+		}
+		try {
+			m.Delete(lang+"(querylang)"+basekey);
+		} catch(exc) {
+			// nothing
+		}
+		ApacheCacher::MetaClose(basekey, m);
+		return m;
+	}
+
+	static function CloseForUser(string sessionid, do_metaclose=false, var m=null) {
+		var basekey=ApacheCacher::GetBaseKey();
+
+		if (!m) {
+			m=new MemCached();
+			m.AddServer();
+		}
+		try {
+			m.Delete(sessionid+"@"+basekey);
+		} catch(var exc) {
+			// nothing
+		}
+		try {
+			m.Delete(sessionid+"(queryuser)"+basekey);
+		} catch(exc) {
+			// nothing
+		}
+		if (do_metaclose)
+			ApacheCacher::MetaClose(basekey, m);
+		return m;
+	}
+}

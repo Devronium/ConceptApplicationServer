@@ -1,0 +1,127 @@
+include VisibleRemoteObject.con
+include ClassID.con
+include RemoteEvents.con
+import standard.C.io
+import standard.C.casts
+
+define ROTATE_NONE		0
+define ROTATE_COUNTERCLOCKWISE	1
+define ROTATE_UPSIDEDOWN	2
+define ROTATE_CLOCKWISE		3
+
+define INTERP_NEAREST		0
+define INTERP_TILES		1
+define INTERP_BILINEAR		2
+define INTERP_HYPER		3
+
+class RImage extends VisibleRemoteObject {
+	private var FILENAME="";
+	private var RENDER_IMAGE;
+	private var XALIGN;
+	private var YALIGN;
+	private var XPADDING;
+	private var YPADDING;
+
+	public property Filename { get FILENAME, set SetFilename }
+	public property RenderImage { get RENDER_IMAGE, set SetRenderImage }
+	public property XAlign { get XALIGN, set SetXAlign }
+	public property YAlign { get YALIGN, set SetYAlign }
+	public property XPadding { get XPADDING, set SetXPadding }
+	public property YPadding { get YPADDING, set SetYPadding }
+
+	public function RImage(OWNER) {
+		super(OWNER, CLASS_IMAGE);
+	}
+
+	public function UpdateContent(var string buffer, string fname="") {
+		if (!fname)
+			fname="__image_APID_${REMOTE_ID_STR}_${GetAPID()}.png";
+		SendMessage(REMOTE_ID_STR,MSG_PUT_STREAM,fname,buffer);
+	}
+
+	public function SetFilename(argument) {
+		if (argument=="") {
+			FILENAME=argument;
+			SendMessage(REMOTE_ID_STR,MSG_PUT_STREAM,"","");
+			return argument;
+		}
+		var content=ReadFile(argument);
+		if (content) {
+			//var DATA=mime_encode(content);
+
+			var len=length argument;
+			var fname="";
+			for (var i=len-1;i>=0;i--) {
+				if ((argument[i]!='/') && (argument[i]!='\\'))
+					fname=argument[i]+fname;
+				else
+					break;
+			}
+			SendMessage(REMOTE_ID_STR,MSG_PUT_STREAM,fname,content);
+			FILENAME=argument;
+		}
+		return argument;
+	}
+
+	public function SetBuffer(buffer, namehint="image.png") {
+		SendMessage(REMOTE_ID_STR,MSG_PUT_STREAM,namehint,buffer);
+		return buffer;
+	}
+
+	public function SetRenderImage(var _Image) {
+		if (classof _Image!="RImage")
+			throw "RenderImage is not an image !";
+		else {
+			RENDER_IMAGE = _Image;
+			return SetProperty(P_IMAGE,_Image.RID);
+		}
+	}
+
+	public function LoadResource(resid,size=1) {
+		FILENAME=resid;
+		SendMessage(REMOTE_ID_STR,MSG_PUT_SECONDARY_STREAM,""+resid,size);
+	}
+
+	public function SetXPadding(argument) {
+		SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_XPADDING,argument);
+		XPADDING=argument;
+		return argument;
+	}
+
+	public function SetYPadding(argument) {
+		SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_YPADDING,argument);
+		YPADDING=argument;
+		return argument;
+	}
+
+	public function SetXAlign(argument) {
+		SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_XALIGN,argument);
+		XALIGN=argument;
+		return argument;
+	}
+
+	public function SetYAlign(argument) {
+		SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_YALIGN,argument);
+		YALIGN=argument;
+		return argument;
+	}
+
+	public function Scale(width, height, type=0) {
+		var argument=int32(width)*0xFFFF;
+		argument+=int32(height);
+
+		SendMessage(REMOTE_ID_STR,MSG_CUSTOM_MESSAGE1,""+type,argument);
+	}
+
+	public function Scale2(coef, type=0) {
+		SendMessage(REMOTE_ID_STR,MSG_CUSTOM_MESSAGE3,""+type,coef);
+	}
+
+	public function Rotate90(angle) {
+		SendMessage(REMOTE_ID_STR,MSG_CUSTOM_MESSAGE2,"1",angle);
+	}
+
+	public function Flip(horizontal=false) {
+		SendMessage(REMOTE_ID_STR,MSG_CUSTOM_MESSAGE2,"0",horizontal);
+	}
+}

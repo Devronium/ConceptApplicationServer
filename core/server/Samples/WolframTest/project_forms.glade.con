@@ -1,0 +1,106 @@
+
+//=============================================================//
+include Lang.con
+include RForm.con
+include Application.con
+include RForm.con
+include RVBox.con
+include RHBox.con
+include REdit.con
+include RButton.con
+include RScrolledWindow.con
+include RTreeView.con
+include RStatusbar.con
+
+
+
+class window1 extends RForm {
+        // keep the string table
+        protected var S;
+
+        public var vbox1;
+        public var hbox1;
+        public var entry1;
+        public var button1;
+        public var button2;
+        public var scrolledwindow1;
+        public var treeview1;
+        public var statusbar1;
+
+
+	public function on_button1_clicked(Sender, EventData);
+	public function on_button2_clicked(Sender, EventData);
+	public function on_treeview1_row_activated(Sender, EventData);
+
+
+        // ========================================================================
+        // constructor;
+        // S is a Lang object used to translate strings using
+        // the default string table named string.table.xml
+        // Is your responsability to pass this object to other forms instantiated
+        // in this application
+        // ========================================================================
+
+        public function window1(Owner, Lang S) {
+                super(Owner);
+                this.S=S;
+
+		CApplication::BeginNonCritical();
+
+                this.Caption=S<<"Wolfram Alpha integration test";
+                this.Width=800;
+                this.Height=600;
+
+                vbox1=new RVBox(this);
+                vbox1.Visible=true;
+
+                hbox1=new RHBox(vbox1);
+                hbox1.Packing=PACK_SHRINK;
+                hbox1.Visible=true;
+
+                entry1=new REdit(hbox1);
+                entry1.Visible=true;
+                entry1.MaskedChar="●";
+                entry1.ActivateDefault=true;
+
+                button1=new RButton(hbox1);
+                button1.Packing=PACK_SHRINK;
+                button1.Caption=S<<"gtk-find";
+                button1.Visible=true;
+                button1.ReliefStyle=RELIEF_NONE;
+                button1.UseStock=true;
+                button1.OnClicked=this.on_button1_clicked;
+
+                button2=new RButton(hbox1);
+                button2.Packing=PACK_SHRINK;
+                button2.Caption=S<<"gtk-save";
+                button2.Visible=true;
+                button2.ReliefStyle=RELIEF_NONE;
+                button2.UseStock=true;
+                button2.OnClicked=this.on_button2_clicked;
+
+                scrolledwindow1=new RScrolledWindow(vbox1);
+                scrolledwindow1.Visible=true;
+                scrolledwindow1.HScrollPolicy=POLICY_AUTOMATIC;
+                scrolledwindow1.VScrollPolicy=POLICY_AUTOMATIC;
+
+                treeview1=new RTreeView(scrolledwindow1);
+                treeview1.Visible=true;
+                treeview1.SearchColumn=1;
+                treeview1.TreeLines=true;
+                treeview1.OnRowActivated=this.on_treeview1_row_activated;
+
+                statusbar1=new RStatusbar(vbox1);
+                statusbar1.Packing=PACK_SHRINK;
+                statusbar1.Visible=true;
+                statusbar1.Spacing=2;
+
+		CApplication::EndNonCritical();
+        }
+
+	override on_button1_clicked;
+	override on_button2_clicked;
+	override on_treeview1_row_activated;
+
+}
+

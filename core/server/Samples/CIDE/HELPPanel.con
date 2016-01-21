@@ -1,0 +1,45 @@
+include HTML/RHTML.con
+include RVBox.con
+include RScrolledWindow.con
+
+define HELP_DIR		"CIDE/Help/"
+define DEFAULT_INDEX	"index.html"
+
+class HELPPanel extends RVBox {
+	private var HTML;
+	var source;
+
+	public function OnLinkClicked(Sender,EventData) {
+		source=HELP_DIR+EventData;
+		var content=ReadFile(source);
+		if (!content) {
+			source=HELP_DIR+DEFAULT_INDEX;
+			content=ReadFile(source);
+		}
+		HTML.Content=content;
+	}
+
+	public function OnRequest(Sender, EventData) {
+		HTML.Cache(EventData, ReadFile(HELP_DIR+EventData));
+		HTML.Content=ReadFile(source);
+	}
+
+	public function HELPPanel(owner) {
+		super(owner);
+		PackType=PACK_EXPAND_WIDGET;
+		var wnd=new RScrolledWindow(this);
+		wnd.PackType=PACK_EXPAND_WIDGET;
+		wnd.Show();
+		wnd.HScrollPolicy=POLICY_AUTOMATIC;
+		wnd.VScrollPolicy=POLICY_AUTOMATIC;
+
+		source=HELP_DIR+DEFAULT_INDEX;
+
+		HTML=new RHTML(wnd);
+		HTML.OnImageRequest=OnRequest;
+		HTML.OnUrl=OnLinkClicked;
+		HTML.Content=ReadFile(source);
+		HTML.Magnification=1.1;
+		HTML.Show();
+	}
+}

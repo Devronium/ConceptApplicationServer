@@ -1,0 +1,30 @@
+include 'Control.con'
+
+class ConceptTreeNode extends Control {
+	protected var _CAPTION;
+	protected var _IMAGEINDEX;
+	public property Caption { set SetCaption, get _CAPTION }
+	public property ImageIndex { set SetImageIndex, get _IMAGEINDEX }
+
+	protected function SetImageIndex(x) {
+		if (typeof x==NUMERIC_TYPE)
+			this->_IMAGEINDEX=x;
+		else
+			throw new ControlException(EXC_INVALID_ARGUMENT_TYPE, this);
+
+                SendMessage(this->Name, MSG_CHANGED, P_IMAGEINDEX, x);
+	}
+
+	public function ConceptTreeNode(Owner) {
+		this->Control(/*Owner*/0, CLASS_TREENODE);
+	}
+
+	protected function SetCaption(x) {
+		if (typeof x==STRING_TYPE)
+			this->_CAPTION=x;
+		else
+		     	throw new ControlException(EXC_INVALID_ARGUMENT_TYPE, this);
+
+                SendMessage(this->Name, MSG_CHANGED, P_TREENODECAPTION, x);
+	}
+}

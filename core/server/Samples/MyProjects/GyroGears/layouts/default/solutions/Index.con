@@ -1,0 +1,220 @@
+// the standard project forms definition. If no glade is used, comment the next line.
+include Lang.con
+include RForm.con
+include Application.con
+include RForm.con
+include RVBox.con
+include RHBox.con
+include RScrolledWindow.con
+include RIconView.con
+include RStatusbar.con
+include RImage.con
+include Serializable.con
+include RMirrorContainer.con
+include RLabel.con
+
+import standard.coding.base64
+
+define APPLICATION_FORM_TYPE	MainForm
+
+class SolutionMeta extends Serializable {
+    var Title="";
+    var Description="";
+    var Path="";
+    var Icon="";
+}
+
+class SolutionContainer extends Serializable {
+    var Title="";
+    var Description="";
+    var Icon="";
+    var Path="";
+
+    var []Solutions;
+}
+
+// manually replace window1 with your glade window name
+class MainForm extends RForm {
+    public var vbox1;
+    public var vbox2;
+    public var scrolledwindow1;
+    public var iconview;
+    public var statusbar1;
+    
+    public var Host="";
+    private var label;
+    private var labeldesc;
+
+    public function Dummy() {
+        new SolutionMeta();
+        new SolutionContainer();
+    }
+
+    public function Extract(path) {
+        path=StrReplace(path, "\\", "/");
+        var arr=StrSplit(path, "/");
+        var len=length arr;
+        len-=2;
+        var res="/";
+        for (var i=0;i<len;i++) {
+             res+=arr[i]+"/";
+        }
+        return res;
+    }
+
+    public function MainForm(Owner, Lang S) {
+        super(Owner);
+        var port=value _getenv('CONCEPT_PORT');
+        if (port==2662)
+            var st=ToLower(_getenv('CONCEPT_SERVERNAME'))+this.Extract(_getenv('CONCEPT_FILENAME'));
+        else
+            st=ToLower(_getenv('CONCEPT_SERVERNAME'))+":"+port+this.Extract(_getenv('CONCEPT_FILENAME'));
+        st=StrReplace(st, "/./","/");
+        this.Host=st;
+
+        CApplication::BeginNonCritical();
+        this.Caption=S<<"Launch application";
+        this.Position=WP_CENTER;
+        this.Width=450;
+        this.Height=330;
+        this.Type=WT_DIALOG;
+
+        vbox1=new RVBox(this);
+        vbox1.Visible=true;
+
+        vbox2=new RVBox(vbox1);
+        vbox2.Packing=PACK_SHRINK;
+        vbox2.Visible=true;
+
+        scrolledwindow1=new RScrolledWindow(vbox1);
+        scrolledwindow1.Visible=true;
+        scrolledwindow1.HScrollPolicy=POLICY_AUTOMATIC;
+        scrolledwindow1.VScrollPolicy=POLICY_AUTOMATIC;
+
+        iconview=new RIconView(scrolledwindow1);
+        iconview.Visible=true;
+        iconview.OnItemActivated=this.on_iconview_item_activated;
+        iconview.OnSelectionChanged=this.on_iconview_cursor_changed;
+
+        statusbar1=new RStatusbar(vbox1);
+        statusbar1.Packing=PACK_SHRINK;
+        statusbar1.Visible=true;
+        
+        this.iconview.AddColumn("Icon", IMAGE_COLUMN);
+        this.iconview.AddColumn();
+        this.iconview.AddColumn();
+        this.iconview.AddColumn();
+        this.iconview.ImageColumn=0;
+        this.iconview.TextColumn=1;
+        this.iconview.TooltipColumn=3;
+        
+        var mirror=new RMirrorContainer(this.vbox2);
+        mirror.Show();
+
+        var mbox=new RHBox(mirror);
+        mbox.Show();
+
+        var mbutton=new RButton(mbox);
+        mbutton.ReliefStyle=RELIEF_NONE;
+        mbutton.OnClicked=this.on_master_clicked;
+        mbutton.Show();
+
+        var app_img=new RImage(mbutton);
+        app_img.LoadResource("gtk-execute", 1);
+        app_img.Show();
+
+        this.label=new RLabel(mbox);
+        this.label.XAlign=0;
+        this.label.Font.Name="bold 19";
+        this.label.Show();
+        
+        this.labeldesc=new RLabel(this.vbox2);
+        this.labeldesc.XAlign=0;
+        this.labeldesc.Show();
+
+        var bkimage=new RImage(null);
+        bkimage.Filename="background.jpg";
+        this.BackgroundImage(bkimage);
+        mirror.BackgroundImage(bkimage);
+
+        var sc=Serializable::UnSerialize("Index.xml");
+        if (sc) {
+            this.Init(sc, app_img);
+            mbutton.UserData=sc.Path;
+            mbutton.Tooltip="concept://${this.Host}${sc.Path}";
+        }
+        CApplication::EndNonCritical();
+    }
+
+    public function Init(SolutionContainer sc, RImage app_img) {
+        var arr=sc.Solutions;
+        var len=length arr;
+        label.Caption=sc.Title;
+        labeldesc.Caption=sc.Description;
+	if (length sc.Icon>20)
+            SendMessage(""+app_img.RID,MSG_PUT_STREAM,"image.png",mime_decode(sc.Icon));
+        var host=this.Host;
+        for (var i=0;i<len;i++) {
+            var sol=sc.Solutions[i];
+            if (sol) {
+                var img=new RImage(null);
+		if (length sol.Icon>20)
+                    SendMessage(""+img.RID,MSG_PUT_STREAM,"image.png",mime_decode(sol.Icon));
+                else
+                    img.LoadResource("gtk-execute", 1);
+                this.iconview.AddItem([img, sol.Title, sol.Description, "concept://${host}solutions/"+sol.Path]);
+            }
+        }
+    }
+    
+    public function on_iconview_cursor_changed(Sender, EventData) {
+        var index=Sender.Path;
+        if (index>-1) {
+            var item=Sender.Items[index];
+            if (item) {
+                var path=item[3];
+                this.statusbar1.Caption=""+item[2];
+            }
+        }
+    }
+
+    public function on_iconview_item_activated(Sender, EventData) {
+        var index=Sender.Path;
+        if (index>-1) {
+            var item=Sender.Items[index];
+            if (item) {
+                var path=item[3];
+                if (path) {
+                    CApplication::OpenLink(path);
+                    this.Hide();
+                }
+            }
+         }
+    }
+
+    public function on_master_clicked(Sender, EventData) {
+         var master=Sender.UserData;
+         if (master) {
+             var link="concept://${this.Host}$master";
+             CApplication::OpenLink(link);
+             this.Hide();
+         }
+    }
+}
+
+class Main {
+	function Main() {
+			try {
+				var StringTable=new Lang();
+
+				var Application=new CApplication(new APPLICATION_FORM_TYPE(null,StringTable));
+
+				Application.Init();
+				Application.Run();
+				Application.Done();
+
+			} catch (var Exception) {
+				echo Exception;
+			}
+	}
+}

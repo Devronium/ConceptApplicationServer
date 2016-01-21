@@ -1,0 +1,9 @@
+import standard.lib.ocr
+
+class Main {
+	function Main() {
+		//OCRDebugFile("");
+		if (!OCR("eurotext.tif", var data))
+			echo data;
+	}
+}

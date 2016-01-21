@@ -1,0 +1,8 @@
+include SingleContainer.con
+include ClassID.con
+
+class RToolSeparator extends SingleContainer {
+	public function RToolSeparator(OWNER) {
+		super(OWNER, CLASS_TOOLSEPARATOR);
+	}
+}

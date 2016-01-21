@@ -1,0 +1,39 @@
+// This file is written only if it does not exist.
+// Here shoud be the custom functions and classes.
+include Application.con
+
+class Misc {
+	static function MailTo(Sender, target) {
+		var Subject="";
+		var Content="";
+
+		var to="";
+		if (!GetMember(target, "Email", to))
+			if (!GetMember(target, "E_mail", to))
+				if (!GetMember(target, "email", to))
+					if (!GetMember(target, "e_mail", to)) {
+						return -1;
+		}
+		to=StrReplace(""+to, "\r", "");
+		to=StrReplace(to, "\n", ",");
+		to=StrReplace(to, ";", ",");
+
+		var extra="";
+		if (Subject)
+			extra+="subject=$Subject";
+		if (Content) {
+			if (extra)
+				extra+="&";
+			extra+="body=$Content";
+		}
+		if (extra)
+			extra="?"+extra;
+
+		CApplication.RemoteCommand("\"mailto:$to$extra\"");
+		return 0;
+	}
+
+	static function foo() {
+		// nothing
+	}
+}

@@ -1,0 +1,759 @@
+import standard.C.io
+import standard.C.casts
+import standard.lib.str
+import standard.lang.serialize
+
+include XMLDocument.con
+
+class SourceGenerator {
+	var[] Conversions;
+	var[] ConversionsProperties;
+	var[] ConversionsIncludes;
+	var[] ConversionsTypes;
+	var[] ConversionsConstants;
+	var[] ConversionsEvents;
+	var[] Strings;
+
+	var WindowName="";
+	var last_is_placeholder=false;
+
+
+	var[] members;
+	var[] includes;
+	var[] images;
+	var[] events;
+
+	var document;
+        var reduce_references=null;
+
+	private function LoadConversions(filename, extra=0) {
+		var data=ReadFile(filename);
+		data=StrReplace(data,"\r","");
+		if (data) {
+			var arr=StrSplit(data,"\n");
+			var len=length arr;
+			var[] equiv;
+			for (var i=0;i<len;i++) {
+				var element=arr[i];
+				var arr2=StrSplit(element,":");
+				equiv[trim(""+arr2[0])]=trim(""+arr2[1]);
+				if (typeof extra=="array") {
+					extra[trim(""+arr2[0])]=trim(""+arr2[2]);
+				}
+			}
+			return equiv;
+		} else {
+			echo "WARNING: FAILED TO LOAD CONVERSION GTK TABLES !";
+		}
+		return [ ];
+	}
+
+	private function LoadConversions2(filename) {
+		var data=ReadFile(filename);
+		data=StrReplace(data,"\r","");
+		if (data) {
+			var arr=StrSplit(data,"\n");
+			var len=length arr;
+			var[] equiv;
+			for (var i=0;i<len;i++) {
+				var element=arr[i];
+				var arr2=StrSplit(element,":");
+				var key=trim(""+arr2[0]);
+				if (length arr2==3) {
+					var key2=trim(""+arr2[2]);
+					equiv[key+"."+key2]=trim(""+arr2[1]);
+				} else
+					equiv[key]=trim(""+arr2[1]);
+					
+			}
+			return equiv;
+		} else {
+			echo "WARNING: FAILED TO LOAD CONVERSION GTK TABLES !";
+		}
+		return [ ];
+	}
+
+	private function Property(node,prop_name,var has_prop) {
+		while(node) {
+			if ((node.Name=="property") && (node.GetProperty("name")==prop_name)) {
+				has_prop=true;
+				return StrReplace(node.Content, "\n", "\\n");
+			}
+			node=node.Next;
+		} 
+		return "";
+	}
+
+	private function CheckTab(node, type="tab") {
+		var target=node.Parent;
+		var path=target.Path+"/packing";
+		var node_arr=document.GetXPath(path);
+		if (node_arr) {
+			var f_node=node_arr[0].Child;
+			if (Property(f_node, "type", var has_prop)==type) {
+				return true;
+			}
+			//node_arr[0].Free();
+		}
+		return false;
+	}
+
+	private function DoPacking(node, parent_name, parent_type, gp_name="", gp_type="") {
+		if (!node)
+			return "";
+
+		var path=node.Path+"/packing";
+		//echo path;
+		
+		var node_arr=document.GetXPath(path);
+		if (node_arr) {
+			var node2=node_arr[0];
+			path=node2.Path+"/property";
+			node_arr=document.GetXPath(path);
+			//node2.Free();
+
+			var to_fill=false;
+
+			var to_expand=false;
+
+			var to_fill_set=false;
+			var to_expand_set=false;
+
+			var x,y;
+			var coords_set=false;
+
+			var temp="";
+
+			var left_attach=0;
+			var right_attach=1;
+			var top_attach=0;
+			var bottom_attach=1;
+			var x_options="FILL | EXPAND";
+			var y_options="FILL | EXPAND";
+			var x_padding=0;
+			var y_padding=0;
+
+			if (node_arr) {
+				var len=length node_arr;
+				node2=null;
+				for (var i=0;i<len;i++) {
+					//if (node2)
+						//node2.Free();
+					node2=node_arr[i];
+					var propname=ToLower(""+node2.GetProperty("name"));
+					var propvalueorig=trim(node2.Content);
+					var propvalue=ToLower(propvalueorig);
+					if (!propvalue)
+						continue;
+
+					if (propname=="fill") {
+						to_fill_set=true;
+						to_fill=(propvalue=="true");
+					} else
+					if (propname=="expand") {
+						to_expand_set=true;
+						to_expand=(propvalue=="true");
+					} else
+					if (propname=="x") {
+						x=propvalue;
+						coords_set=true;
+					} else
+					if (propname=="y") {
+						y=propvalue;
+						coords_set=true;
+					} else					
+					if (propname=="homogeneous") {
+						if (	(parent_type=="RToolButton") ||
+							(parent_type=="RToggleToolButton") ||
+							(parent_type=="RMenuToolButton") ||
+							(parent_type=="RRadioToolButton")) {
+
+							propvalue=ToLower(propvalue);
+							temp+="                $parent_name.Homogeneous=$propvalue;\n";
+						}
+					} else
+					if (propname=="left_attach") {
+						left_attach=propvalueorig;
+					} else
+					if (propname=="right_attach") {
+						right_attach=propvalueorig;
+					} else
+					if (propname=="top_attach") {
+						top_attach=propvalueorig;
+					} else
+					if (propname=="bottom_attach") {
+						bottom_attach=propvalueorig;
+					} else
+					if (propname=="x_padding") {
+						x_padding=propvalueorig;
+					} else
+					if (propname=="y_padding") {
+						y_padding=propvalueorig;
+					} else
+					if (propname=="x_options") {
+						x_options=StrReplace(propvalueorig,"GTK_","");
+					} else
+					if (propname=="y_options") {
+						y_options=StrReplace(propvalueorig,"GTK_","");
+					}
+				}
+				if (gp_type=="RTable") {
+					return "                $gp_name.AttachOptions($left_attach, $right_attach, $top_attach, $bottom_attach, $x_options, $y_options, $x_padding, $y_padding);\n";
+				}
+
+				if ((!to_fill_set) && (!to_expand_set)) {
+					if (coords_set) {
+						temp+="                $parent_name.Left=$x;\n";
+						temp+="                $parent_name.Top=$y;\n";
+						return temp;
+					}
+
+					if ((parent_type=="RComboBox") || (parent_type=="REditComboBox")) {
+						temp+="                $parent_name.Packing=PACK_EXPAND_WIDGET;\n";
+						return temp;
+					}
+					return "";
+				}
+
+				if ((	(parent_type=="RToolButton") ||
+					(parent_type=="RToggleToolButton") ||
+					(parent_type=="RMenuToolButton") ||
+					(parent_type=="RRadioToolButton")
+				   ) && (!to_fill_set) && (to_expand_set)) {
+					if (to_expand)
+						temp+="                $parent_name.Expand=true;\n";
+					else
+						temp+="                $parent_name.Expand=false;\n";
+				} else {
+					if ((to_fill) && (to_expand))
+						var pack_type="PACK_EXPAND_WIDGET";
+					else
+					if ((to_fill) && (!to_expand))
+						pack_type="PACK_EXPAND_PADDING";
+					else
+					if (!to_fill) 
+						pack_type="PACK_SHRINK";
+
+					temp+="                $parent_name.Packing=$pack_type;\n";
+				}
+				return temp;
+			}
+		}
+
+		return "";
+	}
+
+	private function DoNode(node, var final_parent, parent_name="", parent_type="", parent_child_index=0, internal="") {
+		if (!node)
+			return "";
+
+		var ref_declaration="";
+
+		var final_final="";
+
+		var COL_TYPES="";
+
+		var result="";
+		var node_name=node.Name;
+		while (node_name=="text") {
+			node=node.Next;
+			if (node) {
+				node_name=node.Name;
+			} else {
+				return "";
+			}
+		}
+
+
+		var final="";
+		var is_this=false;
+		var icon_name="";
+		var icon_name_id="";
+		var icon_size="1";
+		if (node_name=="placeholder") {
+			last_is_placeholder=true;
+			return "";
+		} else
+		if ((node_name=="widget") || (node_name=="object")) {
+			var nodeid=node.GetProperty("id");
+
+			if ((IsSet(reduce_references, nodeid)) && (reduce_references[nodeid])) {
+				ref_declaration="var ";
+			}
+
+			var name_arr=StrSplit(nodeid, ".");
+			var name="";
+
+			if (name_arr)
+				name=name_arr[(length name_arr)-1];
+
+			var gtkclass=node.GetProperty("class");
+			var conceptclass=Conversions[gtkclass];
+
+			if (!conceptclass) {
+
+				return "                //Unsupported class: $gtkclass\n";
+				//return "";
+			}
+
+			if ((parent_name=="null") && (conceptclass=="RForm")) {
+				is_this=true;
+			}
+
+			includes[conceptclass]="$conceptclass.con";
+
+			var inc=ConversionsProperties[gtkclass];
+			if ((inc) && (inc!="0"))
+				includes[conceptclass]=inc;
+
+			var has_label=false;
+
+			result+="\n";
+			var name2=name;
+
+			if (internal)
+				name2=StrReplace(name,"-","_");
+
+			var final_prop="";
+			if (!is_this) {
+				if 	((conceptclass!="RImageMenuItem") &&
+					(conceptclass!="RMenuItem") &&
+					(conceptclass!="RCheckMenuItem") &&
+					(conceptclass!="RRadioMenuItem")) {
+
+					//if ((parent_type=="RNotebook") && ((parent_child_index+1)%2==0)) {
+					var is_tab=CheckTab(node);
+					var is_label=CheckTab(node, "label_item");
+
+					if ((parent_type=="RNotebook") && (is_tab)) {
+						// is an empty rnotebook tab ...
+						if (last_is_placeholder==true) {
+							last_is_placeholder=false;
+							return "";
+						}
+
+						if (conceptclass=="RLabel") {
+							var has_prop=false;
+							result+="                $parent_name.Pages[${int32(parent_child_index/2)}].Caption=\"${Property(node.Child,"label",has_prop)}\";\n";
+							final_parent+=final_final;
+							return result;
+						}
+						result+="                $ref_declaration$name=new $conceptclass(null);\n";
+						result+="                $name.LinkIfNotLinked($parent_name);\n";
+						final_prop+="                $parent_name.Pages[${int32(parent_child_index/2)}].Header=$name;\n";
+					} else
+					if (((parent_type=="RExpander") || (parent_type=="RFrame")) && (is_label)) {
+						if (conceptclass=="RLabel") {
+							has_prop=false;
+							result+="                $parent_name.Caption=\"${Property(node.Child,"label",has_prop)}\";\n";
+
+							//if (parent_type=="RFrame") {
+								has_prop=false;
+								var tmp_prop=Property(node.Child,"use_markup",has_prop);
+								if (has_prop) {
+									tmp_prop=ToLower(""+tmp_prop);
+									result+="                $parent_name.UseMarkup=$tmp_prop;\n";
+								}
+							//}
+
+							final_parent+=final_final;
+							return result;
+						}
+					} else {
+						if ((parent_type=="RTable") && (node)) {
+							var res_temp=DoPacking(node.Parent, name2, conceptclass, parent_name, parent_type);
+							if (res_temp)
+								result+=res_temp;
+							else
+								result+="                $parent_name.AttachOptions(0, 1, 0, 1, FILL | EXPAND, FILL | EXPAND, 0, 0);\n";
+						}
+
+						if (internal) {
+							if (parent_type=="RImageMenuItem") {
+								result+="                var $name2=new $conceptclass(null);\n";
+							} else
+								result+="                var $name2=new $conceptclass($parent_name);\n";
+						} else {
+							/*if ((parent_type=="RMenuItem") || (parent_type=="RImageMenuItem") ||
+							    (parent_type=="RRadioMenuItem") || (parent_type=="RCheckMenuItem")) {
+								result+="                $name=new $conceptclass(null);\n";
+								result+="                $name.LinkIfNotLinked($parent_name);\n";
+								result+="                $parent_name.SubMenu=$name;\n";
+							} else*/
+							result+="                $ref_declaration$name=new $conceptclass($parent_name);\n";
+						}
+					}
+				} else {
+					var caption=Property(node.Child,"label",has_label);
+					var stock=Property(node.Child,"use_stock",var has_stock);
+					var extra_stock="";
+
+					if (has_stock)
+						extra_stock=", ${ToLower(stock)}";
+
+					if (has_label)
+						result+="                $ref_declaration$name=new $conceptclass($parent_name,\"$caption\"$extra_stock);\n";
+					else 
+						result+="                $ref_declaration$name=new $conceptclass($parent_name,\"\");\n";
+				}
+				if (!internal) {
+					if (ref_declaration=="")
+						members[name]=name;
+				}
+			} else {
+				WindowName=name;
+				name2="this";
+			}
+
+			if (node)
+				result+=DoPacking(node.Parent, name2, conceptclass);
+
+			var node2=&node.Child;
+			var child_count=0;
+			var columns_added=false;
+
+			while (node2) {
+				if (node2.Name=="signal") {
+					var signame=node2.GetProperty("name");
+					var sigvalue=node2.GetProperty("handler");
+					var sigconcept_name="On";
+
+					if (IsSet(ConversionsEvents,gtkclass+"."+signame)) {
+						sigconcept_name=ConversionsEvents[gtkclass+"."+signame];
+					} else
+					if (IsSet(ConversionsEvents,signame)) {
+						sigconcept_name=ConversionsEvents[signame];
+					} else {
+						//var sig_arr=StrSplit(trim(signame),"-");
+						signame=StrReplace(signame, "-", "_");
+						signame=StrReplace(signame, "_event", "");
+						var sig_arr=StrSplit(trim(signame),"_");
+						var len_arr=length sig_arr;
+
+						for (var j=0;j<len_arr;j++) {
+							var temp_sig=sig_arr[j];
+							temp_sig[0]=ToUpper(temp_sig[0]);
+							sigconcept_name+=temp_sig;
+						}
+					}
+					result+="                $name2.$sigconcept_name=this.$sigvalue;\n";
+					events[sigvalue]=sigvalue;
+				} else
+				if (node2.Name=="property") {
+					var propname=node2.GetProperty("name");
+					var propvalue=node2.Content;
+					var concept_prop="";
+					var type="";
+
+					if ((has_label) && (propname=="label")) {
+						node2=node2.Next;
+						continue;
+					}
+
+					if (IsSet(ConversionsProperties,gtkclass+"."+propname)) {
+						concept_prop=ConversionsProperties[gtkclass+"."+propname];
+						type=ConversionsTypes[gtkclass+"."+propname];
+					} else
+					if (IsSet(ConversionsProperties,propname)) {
+						concept_prop=ConversionsProperties[propname];
+						type=ConversionsTypes[propname];
+					}
+					if (concept_prop) {
+
+						switch (type) {
+							case "string":
+								propvalue=StrReplace(propvalue, "\\", "\\\\");
+								propvalue=StrReplace(propvalue, "\n", "\\n");
+								propvalue=StrReplace(propvalue, '"', '\\"');
+								propvalue=StrReplace(propvalue, "\$", "\\\$");
+								if (ToLower(trim(node2.GetProperty("translatable")))=="yes") {
+									result+="                $name2.$concept_prop=S<<\"$propvalue\";\n";
+									Strings[propvalue]=propvalue;
+								} else {
+									if (concept_prop=="Filename")
+										result+="                $name2.$concept_prop=\"res/$propvalue\";\n";
+									else
+										result+="                $name2.$concept_prop=\"$propvalue\";\n";
+								}
+								break;
+							case "image":
+								//result+="                ${name2}_image_wrap=new RImage(null);\n";
+								result+="                var ${name2}_image_wrap=new RImage(null);\n";
+								result+="                ${name2}_image_wrap.Filename=\"res/$propvalue\";\n";
+								result+="                ${name2}_image_wrap.Show();\n";
+								result+="                $name2.$concept_prop=${name2}_image_wrap;\n";
+								//members["${name2}_image_wrap"]="${name2}_image_wrap";
+								break;
+							case "adjustment":
+								var prop_arr=StrSplit(trim(propvalue)," ");
+								result+="                $name2.$concept_prop.Lower=${prop_arr[1]};\n";
+								result+="                $name2.$concept_prop.Upper=${prop_arr[2]};\n";
+								result+="                $name2.$concept_prop.Increment=${prop_arr[3]};\n";
+								result+="                $name2.$concept_prop.PageIncrement=${prop_arr[4]};\n";
+								result+="                $name2.$concept_prop.PageSize=${prop_arr[5]};\n";
+								result+="                $name2.$concept_prop.Value=${prop_arr[0]};\n";
+
+								break;
+							default:
+								var key2=propvalue+"."+propname;
+								//echo "Probing for $key2: $propvalue\n";
+								if (IsSet(ConversionsConstants,key2)) {
+									propvalue=ConversionsConstants[key2];
+									//echo "Prop for $key2: $propvalue\n";
+								} else
+								if (IsSet(ConversionsConstants,propvalue))
+									propvalue=ConversionsConstants[propvalue];
+								else {
+									var prop_val_low=ToLower(propvalue);
+									if (prop_val_low=="true") {
+										if (type!="reversed")
+											propvalue=prop_val_low;
+										else
+											propvalue="false";
+									} else
+									if (prop_val_low=="false") {
+										if (type!="reversed")
+											propvalue=prop_val_low;
+										else
+											propvalue="true";
+									} else
+									if (propname=="editable") {
+										if (propvalue=="false")
+											propvalue="true";
+										else
+										if (propvalue=="true")
+											propvalue="false";
+									}
+								}
+								if ((concept_prop=="RowIndex") && (!columns_added))
+									final_prop+="                $name2.$concept_prop=$propvalue;\n";
+								else
+								if (concept_prop=="TextColumn") {
+									COL_TYPES=", HIDDEN_COLUMN";
+									final_prop+="                $name2.$concept_prop=$propvalue;\n";
+								} else
+								if (concept_prop=="GroupWith") {
+									var parr=StrSplit(propvalue, ".");
+									if (parr)
+										propvalue=parr[(length parr)-1];
+
+									final_parent+="                $name2.$concept_prop=$propvalue;\n";
+								} else
+								if (concept_prop=="Checked")
+									final_final+="                $name2.$concept_prop=$propvalue;\n";
+								else
+									result+="                $name2.$concept_prop=$propvalue;\n";
+						}
+					} else {
+						if (((conceptclass=="RComboBox") || (conceptclass=="REditComboBox")) && (propname=="items")) {
+							if ((conceptclass=="REditComboBox") && (!COL_TYPES)) {
+								var prop_val=this.Property(node2,"text_column",var has_p_prop);
+								if (!has_p_prop)
+									prop_val=this.Property(node2,"text-column",has_p_prop);
+								if ((has_p_prop) && (prop_val=="0"))
+									COL_TYPES=", HIDDEN_COLUMN";
+							}
+
+							result+="                $name2.AddColumns(1$COL_TYPES);\n";
+							COL_TYPES="";
+							propvalue=StrReplace(propvalue,"\r","");
+							var arr_items=StrSplit(propvalue,"\n");
+							var n_items=length arr_items;
+							columns_added=true;
+
+
+							var lang_prefix="";
+							if (ToLower(trim(node2.GetProperty("translatable")))=="yes") {
+								lang_prefix="S<<";
+								//result+="                $name2.$concept_prop=S<<\"$propvalue\";\n";
+								Strings[propvalue]=propvalue;
+							}
+
+
+							for (var i=0;i<n_items;i++) {
+								result+="                $name2.AddItem($lang_prefix\"${arr_items[i]}\");\n";
+								if (lang_prefix)
+									Strings[arr_items[i]]=arr_items[i];
+							}
+
+							/*if (final_prop) {
+								result+=final_prop;
+								final_prop="";
+							}*/
+						} else
+						if (conceptclass=="RImage") {
+							if ((propname=="stock") || (propname=="icon_name")) {
+								icon_name=propvalue;
+							} else
+							if ((propname=="icon_size") || (propname=="icon-size")) {
+								icon_size=propvalue;
+							}
+							//result+="                $name2.LoadResource(\"$propvalue\",1);\n";
+						} else
+						if (propname=="stock_id") {
+							icon_name_id=propvalue;
+						}
+
+
+						/* else
+							result+="                // unsupported : $name2.$propname=$propvalue;\n";*/
+					}
+				} else
+				if ((node2.Name=="child") && (conceptclass!="REditComboBox")) {
+					var is_internal=node2.GetProperty("internal-child");
+
+					var child=node2.Child;
+					result+=DoNode(child,final,name2,conceptclass,child_count,is_internal);
+
+					child_count++;
+				}
+				node2=node2.Next;
+			}
+
+
+			if (final_prop) {
+				result+=final_prop;
+				final_prop="";
+			}
+
+			if (final)
+				result+="\n"+final;
+
+			if (icon_name)
+				result+="                $name2.LoadResource(\"$icon_name\",$icon_size);\n";
+			if ((internal) && (internal=="image"))
+				result+="                $parent_name.Image=$name2;\n";
+
+			if (icon_name_id) {
+				if (	(conceptclass=="RToolButton") ||
+					(conceptclass=="RToggleToolButton") ||
+					(conceptclass=="RMenuToolButton") ||
+					(conceptclass=="RRadioToolButton")) {
+					result+="                $name2.LoadStockIcon(\"$icon_name_id\");\n";
+				}
+
+			}
+
+			last_is_placeholder=false;
+			final_parent+=final_final;
+			return result;
+		}
+		last_is_placeholder=false;
+		final_parent+=final_final;
+		return "";
+	}
+
+	public function IsSaved(content, content2) {
+		var doc2=new XMLDocument();
+		doc2.LoadString(content2);
+		var res="";
+		if (doc2.Root) {
+			var rcontent=doc2.Root.Content;
+			if (content==rcontent)
+				res="";
+			else
+				res=rcontent;
+		}
+		doc2.Free();
+		xmlCleanupParser();
+		return res;
+	}
+
+	private function LoadGlade(data, interface=0) {
+		var doc2=new XMLDocument();
+		doc2.LoadString(data);
+
+		var node2=doc2.Root;
+		members=new [];
+		includes=new [];
+		images=new [];
+		events=new [];
+		Strings=new [];
+		WindowName="";
+		last_is_placeholder=false;
+
+		if (!node2) {
+			doc2.Free();
+			return "";
+		}
+
+		document=doc2;
+		var nodes=doc2.GetXPath("/glade-interface | /interface");
+
+		var ret_data="";
+
+		if (reduce_references) {
+			ret_data+="                GLOBALS()[\"framework.flags.orphan\"]=true;\n";
+		}
+
+		try {
+			if (nodes) {
+				var final="";
+				var target=nodes[0].Child;
+
+
+				while ((target.Name!="widget") && (target.Name!="object")) {
+					target=target.Next;
+					if (!target)
+						throw "No more interfaces";
+				}
+
+				if (interface) {
+					for (var i=0;i<interface;i++) {
+						target=target.Next;
+						if (!target)
+							throw "No more interfaces";
+
+						if ((target.Name!="widget") && (target.Name!="object"))
+							interface++;
+					}
+				}
+
+				ret_data+=DoNode(target,final,"null");
+				ret_data+=final;
+				//nodes[0].Free();
+			}
+		} catch (var exc) {
+			// nothing
+		}
+
+		doc2.Free();
+		xmlCleanupParser();
+		document=null;
+		if (exc)
+			throw exc;
+		return ret_data;
+	}
+
+	public function Init(conversion_file, properties_file,constants_file, events_file) {
+		Conversions=LoadConversions(conversion_file, includes);
+		ConversionsProperties=LoadConversions(properties_file, ConversionsTypes);
+		ConversionsConstants=LoadConversions2(constants_file);
+		ConversionsEvents=LoadConversions(events_file);
+	}
+
+	public function GetIncludes() {
+		var includes=this.includes;
+		var len=length includes;
+		var result="";
+		for (var i=0;i<len;i++) {
+			result+="include ${includes[i]}\n";
+		}
+		return result;
+	}
+
+	public function GetVars(string access="protected") {
+		var members=this.members;
+		var len=length members;
+		var result="";
+		for (var i=0;i<len;i++) {
+			result+="        $access var ${members[i]};\n";
+		}
+		return result;
+	}
+
+	public function Do(data, interface=0, reduce_references=null) {
+		this.reduce_references=reduce_references;
+		return LoadGlade(data, interface);
+	}
+}

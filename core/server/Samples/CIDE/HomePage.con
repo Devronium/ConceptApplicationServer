@@ -1,0 +1,158 @@
+include Application.con
+include RVBox.con
+include RTextView.con
+include RScrolledWindow.con
+include RTreeView.con
+include RHBox.con
+include DirectoryList.con
+include XMLDocument.con
+include Serializable.con
+include RImage.con
+include ActiveXControl.con
+include Project.con
+include NewProject.con
+include RTreeView.con
+include RIconView.con
+include DirectoryList.con
+import standard.C.io
+
+
+include RForm.con
+
+define HOME_XML "Resources/home.xml"
+
+class HomePage extends RVBox {
+	private var HomeCallback;
+
+	public function OnProjectItemChanged(Sender, EventData) {
+		var index=Sender.RowIndex;
+		if (index>-1) {
+			var row=Sender.Items.GetPath(index);
+			if (row)
+				HomeCallback(index,row[3],row[4]);
+
+		}
+	}
+
+	public function OnProjectItemChangedIV(Sender, EventData) {
+		var index=Sender.Path;
+		if (index>-1) {
+			var row=Sender.Items[index];
+			if (row)
+				HomeCallback(index,row[3],row[4]);
+
+		}
+	}
+
+	private function Limit(str) {
+		if (length str>31)
+			str=SubStr(str,0,30)+"..";
+		return str;
+	}
+
+	private function CreateProjectsList(owner,do_treeview=false) {
+		if (do_treeview) {
+			var treeview=new RTreeView(owner);
+			treeview.Model=MODEL_LISTVIEW;
+		} else {
+			treeview=new RIconView(owner);
+		}
+		treeview.AddColumn(" ",IMAGE_COLUMN);
+		treeview.AddColumn("Type",NORMAL_COLUMN);
+		treeview.AddColumn("Hint",HIDDEN_COLUMN);
+		if (do_treeview) {
+			treeview.HeadersVisible=false;
+			treeview.HoverSelection=true;
+			treeview.SearchColumn=1;
+			treeview.OnRowActivated=OnProjectItemChanged;
+			treeview.RulesHint=true;
+		} else {
+			treeview.ImageColumn=0;
+			treeview.Columns=-1;
+			treeview.ItemWidth=210;
+			treeview.MarkupColumn=1;
+			treeview.Orientation=ORIENTATION_HORIZONTAL;
+			treeview.OnItemActivated=OnProjectItemChangedIV;
+			treeview.Spacing=0;
+			treeview.RowSpacing=0;
+		}
+		treeview.MouseCursor=CURSOR_CURSOR_ARROW;
+		treeview.TooltipColumn=2;
+
+		var dirList=new DirectoryList();
+
+		var files=dirList.ListByType("../"+PROJECTS_CONTAINER+"/",S_IFDIR);
+            	var len=length files;
+
+		var[] Images;
+
+		Images["newapplication"]=new RImage(null);
+		Images["newapplication"].Filename="Resources/application_icons/newapplication.png";
+		Images["console"]=new RImage(null);
+		Images["console"].Filename="Resources/application_icons/console.png";
+		Images["gui"]=new RImage(null);
+		Images["gui"].Filename="Resources/application_icons/gui.png";
+		Images["web"]=new RImage(null);
+		Images["web"].Filename="Resources/application_icons/web.png";
+
+		if (do_treeview)
+			treeview.AddItem([Images["newapplication"],"Create a new application\nCreate a new application using the wizard","Create a new application using the wizard","",""]);
+		else
+			treeview.AddItem([Images["newapplication"],"<b>Create a new application</b>\n<span foreground='blue'><small>GUI, Web or Console</small></span>","Create a new application using the wizard","",""]);
+
+		var param=CLArg()[0];
+		var found=0;
+		var row_3="";
+		var row_4="";
+		for (var i=0;i<len;i++) {
+			if ((files[i]!=".") && (files[i]!="..")) {
+				//var path="../"+PROJECTS_CONTAINER+"/"+files[i]+"/info.xml";
+				var proj_holder=files[i]+".pxml";
+				var path="../"+PROJECTS_CONTAINER+"/"+files[i]+"/"+proj_holder;
+				if (FileExists(path)) {
+					try {
+						var prj=Serializable::UnSerialize(path);
+						if (prj) {
+							var image=Images[prj.target];
+
+							if (prj.icon_name) {
+								image=new RImage(null);
+								image.Filename="../"+PROJECTS_CONTAINER+"/"+files[i]+"/"+prj.icon_name;
+							}
+							if (do_treeview)
+								treeview.AddItem([image,prj.name+"\n"+prj.description,prj.description,proj_holder,PROJECTS_CONTAINER+"/"+files[i]/*+"/"*/]);
+							else
+								treeview.AddItem([image,"<b>"+prj.name+"</b>\n<small>"+Limit(prj.description)+"</small>",prj.description,proj_holder,PROJECTS_CONTAINER+"/"+files[i]/*+"/"*/]);
+							if ((param) && (param==files[i])) {
+								row_3=proj_holder;
+								row_4=PROJECTS_CONTAINER+"/"+files[i];
+								found=i+1;
+							}
+						}
+					} catch (var exception) {
+						echo "Error loading project infos : $exception\n";
+					}
+				}
+			}
+		}
+		if (found)
+			GLOBALS()["CIDE_OPEN"]=[found-1,row_3,row_4];
+
+		return treeview;
+	}
+
+	public function LoadPage(page=HOME_XML) {
+		var scrolled_home=new RScrolledWindow(this);
+		scrolled_home.HScrollPolicy=POLICY_AUTOMATIC;
+		scrolled_home.VScrollPolicy=POLICY_AUTOMATIC;
+		scrolled_home.Show();
+		var ctrl=CreateProjectsList(scrolled_home);
+		ctrl.Show();
+	}
+
+	public function HomePage(owner, Callback) {
+		super(owner);
+		HomeCallback=Callback;
+		LoadPage();
+	}
+}

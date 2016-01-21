@@ -1,0 +1,20 @@
+include 'Object.con'
+
+class ControlException extends Object {
+	protected var _INFO;
+	protected var _RAISER;
+
+	public property Information {get _INFO }
+	public property Raiser      {get _RAISER}
+
+	public function ControlException(_INFO, _RAISER) {
+		this->_INFO = _INFO;
+		this->_RAISER = _RAISER;
+	}
+
+	override XMLSerialized;
+	public function XMLSerialized() {
+		var XMLData='<Exception _NAME="'+this->_NAME+'" _INFO="'+this->_INFO+'" />';
+		return XMLData;
+	}
+}

@@ -1,0 +1,137 @@
+// Simple Dynamic List
+
+class ConceptException {
+	public var _NUMBER_DATA;
+	public var _STRING_DATA;
+
+	public function ConceptException(NUMBER_DATA,STRING_DATA) {
+		this->_NUMBER_DATA=NUMBER_DATA;
+		this->_STRING_DATA=STRING_DATA;
+	}
+}
+
+class CListNode {
+	public var _DATA;
+	public var _NEXT_NODE;
+}
+
+
+class ArrayList {
+	private var FIRST_NODE;
+	private var LAST_NODE;
+	private var COUNT;
+
+	function ArrayList() {
+		this->FIRST_NODE=0;
+		this->COUNT=0;
+	}
+
+	function Add(DATA) {
+		var newNODE=new CListNode();
+
+		newNODE->_DATA=DATA;
+		newNODE->_NEXT_NODE=0;
+
+		if (!this->COUNT)
+			this->FIRST_NODE=newNODE;
+		else {
+			/*var currentNODE=this->FIRST_NODE;
+			for (var i=1;i<this->COUNT;i++)
+				currentNODE=&currentNODE->_NEXT_NODE;
+			currentNODE->_NEXT_NODE=&newNODE;*/
+			this->LAST_NODE->_NEXT_NODE=&newNODE;
+		}
+		this->LAST_NODE=&newNODE;
+		this->COUNT++;
+	}
+
+	function Count() {
+		return this->COUNT;
+	}
+
+	function DeleteElementByIndex(INDEX) {
+		if ((INDEX>=this->COUNT) || (INDEX<0))
+			throw new ConceptException(1,"Invalid index.");
+
+		var DATA;
+
+		if (!INDEX) {
+			DATA=&this->FIRST_NODE->_DATA;
+			var NODE=&this->FIRST_NODE->_NEXT_NODE;
+			delete this->FIRST_NODE;
+			this->FIRST_NODE=&NODE;
+			return DATA;
+		}
+
+		var currentNODE=&this->FIRST_NODE;
+		var precNODE;
+		for (var i=0;i<INDEX;i++) {
+			precNODE=&currentNODE;
+			currentNODE=&currentNODE->_NEXT_NODE;
+		}
+		precNODE->_NEXT_NODE=&currentNODE->_NEXT_NODE;
+
+		if (INDEX==this->COUNT-1)
+			this->LAST_NODE=&precNODE;
+
+		DATA=&currentNODE->_DATA;
+		delete currentNODE;
+		this->COUNT--;
+
+		return DATA;
+	}
+
+	function GetElementByIndex(INDEX) {
+		if ((INDEX>=this->COUNT) || (INDEX<0))
+			throw new ConceptException(1,"Invalid index.");
+
+		var currentNODE=&this->FIRST_NODE;
+		for (var i=0;i<INDEX;i++) 
+			currentNODE=&currentNODE->_NEXT_NODE;
+		return currentNODE->_DATA;
+	}
+
+	operator [](INDEX) {
+		if ((INDEX>=this->COUNT) || (INDEX<0))
+			throw new ConceptException(1,"Invalid index.");
+
+		var currentNODE=&this->FIRST_NODE;
+		for (var i=0;i<INDEX;i++) 
+			currentNODE=&currentNODE->_NEXT_NODE;
+		return currentNODE->_DATA;
+	}
+
+	function Print() {
+		var node=FIRST_NODE;
+		while (typeof(node)!="numeric") {
+			echo ""+ node->_DATA + "\n";
+			node=&node->_NEXT_NODE;
+		}
+	}
+}
+
+class Main {
+	function Main() {
+		var array=new ArrayList();
+		try {
+			for (var j=0;j<10;j++) 
+				array->Add(j);
+
+			j=0;
+			while (++j<array->Count()) {
+				//if (j%2)
+				//	array->DeleteElementByIndex(j);
+				//else
+					array[j]=100+j;
+			}
+			array.Print();
+
+			/*for (var i=0;i<array->Count();i++)
+				echo "Element " + i + " " + array->GetElementByIndex(i)+"\r\n";*/
+
+		} catch (var Exception) {
+			echo Exception->_STRING_DATA;	
+		}
+		delete array;
+	}
+}

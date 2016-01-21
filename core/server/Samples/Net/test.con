@@ -1,0 +1,64 @@
+import standard.net.curl
+import standard.C.io
+import standard.lib.xml
+
+
+class Main {
+	var data="";
+	var header="";
+
+	function write_data(ptr, size, nmemb, stream) {
+		//echo "Stream: $stream\n";
+		if (stream==1001) 
+			header+=ptr;
+		else
+			data+=ptr;
+		return size*nmemb;
+	}
+
+	function read_data(var ptr, size, nmemb, stream) {
+		echo typeof ptr;
+
+		for (var i=0;i<100;i++)
+			ptr+="x";
+
+		return size*nmemb;
+	}
+
+	function progress(clientp, dltotal, dlnow, ultotal, ulnow) {
+		echo "$dlnow/$dltotal bytes received      \r";
+	}
+
+	function Main() {
+		curl_global_init(CURL_GLOBAL_ALL);
+
+		var curl_handle=curl_easy_init();
+
+		curl_easy_setopt(curl_handle, CURLOPT_PROGRESSFUNCTION, progress);
+		curl_easy_setopt(curl_handle, CURLOPT_NOPROGRESS, 0);
+
+
+		curl_easy_setopt(curl_handle, CURLOPT_URL, "http://curl.haxx.se");
+
+		curl_easy_setopt(curl_handle, CURLOPT_READFUNCTION, read_data);
+
+		curl_easy_setopt(curl_handle, CURLOPT_WRITEFUNCTION, write_data);
+		curl_easy_setopt(curl_handle, CURLOPT_WRITEDATA, 1002);
+		curl_easy_setopt(curl_handle, CURLOPT_WRITEHEADER , 1001);
+
+
+		curl_easy_perform(curl_handle);
+		echo "\n\n";
+		curl_easy_getinfo(curl_handle, CURLINFO_SSL_ENGINES, var arr);
+		echo arr;
+
+		curl_easy_cleanup(curl_handle);
+
+		echo data;
+		var htmldoc=htmlReadMemory(data, "", "", 0);
+		echo htmldoc;
+		
+		WriteFile(data,"data.html");
+		WriteFile(header,"data_header.txt");
+	}
+}

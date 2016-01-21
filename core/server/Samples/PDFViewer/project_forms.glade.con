@@ -1,0 +1,137 @@
+
+//=============================================================//
+include Lang.con
+include RForm.con
+include Application.con
+include RForm.con
+include RVBox.con
+include RToolbar.con
+include RToolButton.con
+include RHPaned.con
+include RScrolledWindow.con
+include RIconView.con
+
+
+
+class PDFWindow extends RForm {
+        // keep the string table
+        protected var S;
+
+        public var vbox1;
+        public var toolbar1;
+        public var toolbutton1;
+        public var toolbutton5;
+        public var toolbutton2;
+        public var toolbutton3;
+        public var toolbutton4;
+        public var hpaned1;
+        public var scrolledwindow2;
+        public var iconview1;
+        public var scrolledwindow1;
+
+
+	public function on_toolbutton1_clicked(Sender, EventData);
+	public function on_toolbutton5_clicked(Sender, EventData);
+	public function on_toolbutton2_clicked(Sender, EventData);
+	public function on_toolbutton3_clicked(Sender, EventData);
+	public function on_toolbutton4_clicked(Sender, EventData);
+	public function on_iconview1_item_activated(Sender, EventData);
+	public function on_iconview1_selection_changed(Sender, EventData);
+
+
+        // ========================================================================
+        // constructor;
+        // S is a Lang object used to translate strings using
+        // the default string table named string.table.xml
+        // Is your responsability to pass this object to other forms instantiated
+        // in this application
+        // ========================================================================
+
+        public function PDFWindow(Owner, Lang S) {
+                super(Owner);
+                this.S=S;
+
+		CApplication::BeginNonCritical();
+
+                this.Caption=S<<"Concept PDF Viewer 1.0";
+                this.Position=WP_CENTER;
+                this.Width=800;
+                this.Height=600;
+
+                vbox1=new RVBox(this);
+                vbox1.Visible=true;
+
+                toolbar1=new RToolbar(vbox1);
+                toolbar1.Packing=PACK_SHRINK;
+                toolbar1.Visible=true;
+                toolbar1.Style=TOOLBAR_BOTH_HORIZ;
+
+                toolbutton1=new RToolButton(toolbar1);
+                toolbutton1.Homogeneous=true;
+                toolbutton1.Expand=false;
+                toolbutton1.Visible=true;
+                toolbutton1.IsImportant=true;
+                toolbutton1.Caption=S<<"Open PDF document";
+                toolbutton1.StockID="gtk-open";
+                toolbutton1.OnClicked=this.on_toolbutton1_clicked;
+
+                toolbutton5=new RToolButton(toolbar1);
+                toolbutton5.Homogeneous=true;
+                toolbutton5.Expand=false;
+                toolbutton5.Visible=true;
+                toolbutton5.StockID="gtk-zoom-in";
+                toolbutton5.OnClicked=this.on_toolbutton5_clicked;
+
+                toolbutton2=new RToolButton(toolbar1);
+                toolbutton2.Homogeneous=true;
+                toolbutton2.Expand=false;
+                toolbutton2.Visible=true;
+                toolbutton2.StockID="gtk-zoom-out";
+                toolbutton2.OnClicked=this.on_toolbutton2_clicked;
+
+                toolbutton3=new RToolButton(toolbar1);
+                toolbutton3.Homogeneous=true;
+                toolbutton3.Expand=false;
+                toolbutton3.Visible=true;
+                toolbutton3.StockID="gtk-go-back";
+                toolbutton3.OnClicked=this.on_toolbutton3_clicked;
+
+                toolbutton4=new RToolButton(toolbar1);
+                toolbutton4.Homogeneous=true;
+                toolbutton4.Expand=false;
+                toolbutton4.Visible=true;
+                toolbutton4.StockID="gtk-go-forward";
+                toolbutton4.OnClicked=this.on_toolbutton4_clicked;
+
+                hpaned1=new RHPaned(vbox1);
+                hpaned1.Visible=true;
+                hpaned1.Position=150;
+
+                scrolledwindow2=new RScrolledWindow(hpaned1);
+                scrolledwindow2.Visible=true;
+                scrolledwindow2.HScrollPolicy=POLICY_AUTOMATIC;
+                scrolledwindow2.VScrollPolicy=POLICY_AUTOMATIC;
+
+                iconview1=new RIconView(scrolledwindow2);
+                iconview1.Visible=true;
+                iconview1.OnItemActivated=this.on_iconview1_item_activated;
+                iconview1.OnSelectionChanged=this.on_iconview1_selection_changed;
+
+                scrolledwindow1=new RScrolledWindow(hpaned1);
+                scrolledwindow1.Visible=true;
+                scrolledwindow1.HScrollPolicy=POLICY_AUTOMATIC;
+                scrolledwindow1.VScrollPolicy=POLICY_AUTOMATIC;
+
+		CApplication::EndNonCritical();
+        }
+
+	override on_toolbutton1_clicked;
+	override on_toolbutton5_clicked;
+	override on_toolbutton2_clicked;
+	override on_toolbutton3_clicked;
+	override on_toolbutton4_clicked;
+	override on_iconview1_item_activated;
+	override on_iconview1_selection_changed;
+
+}
+

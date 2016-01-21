@@ -1,0 +1,299 @@
+
+//=============================================================//
+include Lang.con
+include RForm.con
+include Application.con
+include RForm.con
+include RVBox.con
+include RHBox.con
+include REventBox.con
+include RButton.con
+include RNotebook.con
+include RScrolledWindow.con
+include RTreeView.con
+include RImage.con
+include RLabel.con
+include RComboBox.con
+include RHButtonBox.con
+include RToolbar.con
+include RToolButton.con
+include RTextView.con
+include RStatusbar.con
+
+
+
+class window1 extends RForm {
+        // keep the string table
+        protected var S;
+
+        public var vbox1;
+        public var hbox1;
+        public var eventbox1;
+        public var button1;
+        public var notebook1;
+        public var scrolledwindow1;
+        public var treeview1;
+        public var hbox2;
+        public var image1;
+        public var label1;
+        public var vbox2;
+        public var label3;
+        public var image3;
+        public var combobox1;
+        public var button2;
+        public var hbox3;
+        public var image2;
+        public var label2;
+        public var vbox3;
+        public var scrolledwindow2;
+        public var hbuttonbox1;
+        public var button3;
+        public var hbox4;
+        public var image4;
+        public var label4;
+        public var vbox4;
+        public var toolbar1;
+        public var toolbutton1;
+        public var toolbutton2;
+        public var toolbutton3;
+        public var scrolledwindow3;
+        public var textview1;
+        public var hbox5;
+        public var image5;
+        public var label5;
+        public var statusbar1;
+
+
+	public function on_button1_clicked(Sender, EventData);
+	public function on_treeview1_row_activated(Sender, EventData);
+	public function on_button2_clicked(Sender, EventData);
+	public function on_button3_clicked(Sender, EventData);
+	public function on_toolbutton1_clicked(Sender, EventData);
+	public function on_toolbutton2_clicked(Sender, EventData);
+	public function on_toolbutton3_clicked(Sender, EventData);
+
+
+        // ========================================================================
+        // constructor;
+        // S is a Lang object used to translate strings using
+        // the default string table named string.table.xml
+        // Is your responsability to pass this object to other forms instantiated
+        // in this application
+        // ========================================================================
+
+        public function window1(Owner, Lang S) {
+                super(Owner);
+                this.S=S;
+
+		CApplication::BeginNonCritical();
+
+                this.Caption=S<<"Concept 2.0 BeeKeeper - Admin system";
+                this.Width=800;
+                this.Height=600;
+
+                vbox1=new RVBox(this);
+                vbox1.Visible=true;
+
+                hbox1=new RHBox(vbox1);
+                hbox1.Packing=PACK_SHRINK;
+                hbox1.Visible=true;
+
+                eventbox1=new REventBox(hbox1);
+                eventbox1.Visible=true;
+
+                button1=new RButton(hbox1);
+                button1.Packing=PACK_SHRINK;
+                button1.Caption=S<<"gtk-refresh";
+                button1.Visible=true;
+                button1.ReliefStyle=RELIEF_NONE;
+                button1.UseStock=true;
+                button1.OnClicked=this.on_button1_clicked;
+
+                notebook1=new RNotebook(vbox1);
+                notebook1.Visible=true;
+                notebook1.TabPos=POS_LEFT;
+
+                scrolledwindow1=new RScrolledWindow(notebook1);
+                scrolledwindow1.Visible=true;
+                scrolledwindow1.HScrollPolicy=POLICY_AUTOMATIC;
+                scrolledwindow1.VScrollPolicy=POLICY_AUTOMATIC;
+
+                treeview1=new RTreeView(scrolledwindow1);
+                treeview1.Visible=true;
+                treeview1.Tooltip=S<<"Double click on an action\nDouble click on (Add service) to add new services";
+                treeview1.RulesHint=true;
+                treeview1.HoverSelection=true;
+                treeview1.OnRowActivated=this.on_treeview1_row_activated;
+
+                hbox2=new RHBox(null);
+                notebook1.Pages[0].Header=hbox2;
+                hbox2.Visible=true;
+
+                image1=new RImage(hbox2);
+                image1.Packing=PACK_SHRINK;
+                image1.Visible=true;
+                image1.LoadResource("gtk-network",5);
+
+                label1=new RLabel(hbox2);
+                label1.Visible=true;
+                label1.XAlign=0;
+                label1.Caption=S<<"<b>Service manager</b>";
+                label1.UseMarkup=true;
+
+                vbox2=new RVBox(notebook1);
+                vbox2.Visible=true;
+
+                label3=new RLabel(vbox2);
+                label3.Packing=PACK_SHRINK;
+                label3.Visible=true;
+                label3.Caption=S<<"label";
+
+                image3=new RImage(vbox2);
+                image3.Visible=true;
+                image3.LoadResource("gtk-dialog-authentication",6);
+
+                combobox1=new RComboBox(vbox2);
+                combobox1.Packing=PACK_SHRINK;
+                combobox1.Visible=true;
+                combobox1.AddColumns(1);
+                combobox1.AddItem(S<<"Generate 256 bits certificate");
+                combobox1.AddItem(S<<"Generate 512 bits certificate");
+                combobox1.AddItem(S<<"Generate 1024 bits certificate");
+                combobox1.AddItem(S<<"Generate 2048 bits certificate");
+                combobox1.RowIndex=1;
+
+                button2=new RButton(vbox2);
+                button2.Packing=PACK_SHRINK;
+                button2.Caption=S<<"gtk-execute";
+                button2.Visible=true;
+                button2.UseStock=true;
+                button2.OnClicked=this.on_button2_clicked;
+
+                hbox3=new RHBox(null);
+                notebook1.Pages[1].Header=hbox3;
+                hbox3.Visible=true;
+
+                image2=new RImage(hbox3);
+                image2.Packing=PACK_SHRINK;
+                image2.Visible=true;
+                image2.LoadResource("gtk-dialog-authentication",5);
+
+                label2=new RLabel(hbox3);
+                label2.Visible=true;
+                label2.XAlign=0;
+                label2.Caption=S<<"<b>Cryptographic keys</b>";
+                label2.UseMarkup=true;
+
+                vbox3=new RVBox(notebook1);
+                vbox3.Visible=true;
+
+                scrolledwindow2=new RScrolledWindow(vbox3);
+                scrolledwindow2.Visible=true;
+                scrolledwindow2.HScrollPolicy=POLICY_AUTOMATIC;
+                scrolledwindow2.VScrollPolicy=POLICY_AUTOMATIC;
+
+                hbuttonbox1=new RHButtonBox(vbox3);
+                hbuttonbox1.Packing=PACK_SHRINK;
+                hbuttonbox1.Visible=true;
+                hbuttonbox1.Layout=BUTTONBOX_END;
+
+                button3=new RButton(hbuttonbox1);
+                button3.Packing=PACK_SHRINK;
+                button3.Caption=S<<"gtk-apply";
+                button3.Visible=true;
+                button3.UseStock=true;
+                button3.OnClicked=this.on_button3_clicked;
+
+                hbox4=new RHBox(null);
+                notebook1.Pages[2].Header=hbox4;
+                hbox4.Visible=true;
+
+                image4=new RImage(hbox4);
+                image4.Packing=PACK_SHRINK;
+                image4.Visible=true;
+                image4.LoadResource("gtk-execute",5);
+
+                label4=new RLabel(hbox4);
+                label4.Visible=true;
+                label4.XAlign=0;
+                label4.Caption=S<<"<b>Server configuration</b>";
+                label4.UseMarkup=true;
+
+                vbox4=new RVBox(notebook1);
+                vbox4.Visible=true;
+
+                toolbar1=new RToolbar(vbox4);
+                toolbar1.Packing=PACK_SHRINK;
+                toolbar1.Visible=true;
+                toolbar1.Style=TOOLBAR_BOTH_HORIZ;
+                toolbar1.ShowArrow=false;
+
+                toolbutton1=new RToolButton(toolbar1);
+                toolbutton1.Homogeneous=true;
+                toolbutton1.Expand=false;
+                toolbutton1.Visible=true;
+                toolbutton1.IsImportant=true;
+                toolbutton1.Caption=S<<"Delete all log entries";
+                toolbutton1.StockID="gtk-clear";
+                toolbutton1.OnClicked=this.on_toolbutton1_clicked;
+
+                toolbutton2=new RToolButton(toolbar1);
+                toolbutton2.Homogeneous=true;
+                toolbutton2.Expand=false;
+                toolbutton2.Visible=true;
+                toolbutton2.IsImportant=true;
+                toolbutton2.Caption=S<<"Show log";
+                toolbutton2.StockID="gtk-edit";
+                toolbutton2.OnClicked=this.on_toolbutton2_clicked;
+
+                toolbutton3=new RToolButton(toolbar1);
+                toolbutton3.Homogeneous=true;
+                toolbutton3.Expand=false;
+                toolbutton3.Visible=true;
+                toolbutton3.IsImportant=true;
+                toolbutton3.Caption=S<<"Download log";
+                toolbutton3.StockID="gtk-go-down";
+                toolbutton3.OnClicked=this.on_toolbutton3_clicked;
+
+                scrolledwindow3=new RScrolledWindow(vbox4);
+                scrolledwindow3.Visible=true;
+                scrolledwindow3.HScrollPolicy=POLICY_AUTOMATIC;
+                scrolledwindow3.VScrollPolicy=POLICY_AUTOMATIC;
+
+                textview1=new RTextView(scrolledwindow3);
+                textview1.Visible=true;
+                textview1.ReadOnly=true;
+
+                hbox5=new RHBox(null);
+                notebook1.Pages[3].Header=hbox5;
+                hbox5.Visible=true;
+
+                image5=new RImage(hbox5);
+                image5.Packing=PACK_SHRINK;
+                image5.Visible=true;
+                image5.LoadResource("gtk-harddisk",5);
+
+                label5=new RLabel(hbox5);
+                label5.Visible=true;
+                label5.XAlign=0;
+                label5.Caption=S<<"<b>Server logs</b>";
+                label5.UseMarkup=true;
+
+                statusbar1=new RStatusbar(vbox1);
+                statusbar1.Packing=PACK_SHRINK;
+                statusbar1.Visible=true;
+                statusbar1.Spacing=2;
+
+		CApplication::EndNonCritical();
+        }
+
+	override on_button1_clicked;
+	override on_treeview1_row_activated;
+	override on_button2_clicked;
+	override on_button3_clicked;
+	override on_toolbutton1_clicked;
+	override on_toolbutton2_clicked;
+	override on_toolbutton3_clicked;
+
+}
+

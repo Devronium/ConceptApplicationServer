@@ -1,0 +1,16 @@
+import standard.lib.captcha
+import standard.C.io
+include WebDocument.con
+
+class Main {
+	function Main() {
+		var doc=new WebDocument();
+		doc.Content="image/gif";
+		doc.PutHeader("Cache-Control: max-age=0, must-revalidate");
+		doc.BeginDocument();
+		var code=Captcha(var gif);
+		SetSessionVar("code", code);
+		doc << gif;
+		doc.EndDocument();
+	}
+}

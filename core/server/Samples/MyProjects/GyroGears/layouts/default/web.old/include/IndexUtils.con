@@ -1,0 +1,108 @@
+include Xapian.con
+import standard.lang.cli
+
+class _i_Indexer {
+	var XapianDB;
+
+	public function _i_Indexer(string dbname) {
+		this.XapianDB=new XapianWritableDatabase(GLOBALS()["dataindex"]+"/"+dbname, DB_CREATE_OR_OPEN);
+		if (!this.XapianDB.REF)
+			delete this.XapianDB;
+	}
+
+	public function UnIndex(number id) {
+	    if (!this.XapianDB)
+            throw "Xapian database was not created !";
+		this.XapianDB.delete_document2("GYROINTERNALID_$id");
+	}
+
+	public function Index(number id, number is_arc, number UID, number GID, array data, string stem="english") {
+		if (!this.XapianDB)
+			throw "Xapian database was not created !";
+
+		var indexer=new XapianTermGenerator();
+		var stemmer=new XapianStem(stem);
+		indexer.set_stemmer(stemmer);
+
+		var doc=new XapianDocument();
+		doc.add_value(0, ""+id);
+		doc.add_value(1, ""+UID);
+		doc.add_value(2, ""+GID);
+		doc.add_value(3, ""+is_arc);
+		doc.add_term("GYROINTERNALID_$id");
+
+		// if exits ...
+		this.XapianDB.delete_document2("GYROINTERNALID_$id");
+
+		var para="";
+		var len=length data;
+		for (var i=0;i<len;i++) {
+			var d_arr=data[i];
+			if (d_arr) {
+				if (para)
+					para+=" ";
+				para+=d_arr[0];
+			}
+		}
+
+		doc.set_data(para);
+		indexer.set_document(doc);
+		indexer.index_text(para);
+
+		this.XapianDB.add_document(doc);
+
+		delete stemmer;
+		delete indexer;
+	}
+
+	public function finalize() {
+	    if (this.XapianDB)
+            delete this.XapianDB;
+	}
+}
+
+class _i_Query {
+	var XapianDB;
+	
+	public function _i_Query(string dbname) {
+		this.XapianDB=new XapianDatabase(GLOBALS()["dataindex"]+"/"+dbname);
+		if (!this.XapianDB.REF)
+            delete this.XapianDB;
+	}
+
+	public function Query(var count, string what, number start, number len, string sort_by="", number sort_by_index=0, number is_arc=false, number UID=-1, number GID=-1, var infoarr=null, string stem="english") {
+		var[] result;
+		infoarr=new [];
+
+		if (!this.XapianDB) {
+			count=0;
+			return result;
+		}
+
+		var enquire=new XapianEnquire(this.XapianDB);
+
+		var qp=new XapianQueryParser();
+
+		var stemmer=new XapianStem(stem);
+		qp.set_database(this.XapianDB);
+		qp.set_stemming_strategy(STEM_SOME);
+
+		var query=qp.parse_query(what);
+
+		enquire.set_query(query);
+
+		var matches=enquire.get_mset(start,len);
+
+		count=matches.get_matches_estimated();
+
+		for (var i=matches.begin(); i!=matches.end(); i++) {
+			var doc=i.get_document();
+			if (doc) {
+				var id=value (""+doc.get_value(0));
+				result[length result]=id;
+				infoarr[""+id]=[i.get_rank(), i.get_percent()];
+			}
+		}
+		return result;
+	}
+}

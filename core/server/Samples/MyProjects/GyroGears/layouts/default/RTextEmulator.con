@@ -1,0 +1,89 @@
+include RWebEditor.con
+include Application.con
+include RScrolledWindow.con
+include RVBox.con
+import standard.lib.str
+
+class RTextEmulator extends RWebEditor {
+    protected var _PORT=801;
+    protected var _IMG_STRING="";
+    protected var _IMG_STRING2="";
+    protected var []REPL;
+
+    public var OnImageGet=null;
+    public var GetImageList=null;
+
+    public function RTextEmulator(Owner, number server_port=801, desktop_version=true) {
+	var vbox=new RVBox(Owner);
+	vbox.Show();
+
+	if (desktop_version) {
+		var tool=new RWebEditorToolbar(vbox);
+		tool.Show();
+	}
+
+	this._PORT=server_port;
+        if (desktop_version) {
+                var sb=new RScrolledWindow(vbox);
+                sb.HScrollPolicy=POLICY_AUTOMATIC;
+                sb.VScrollPolicy=POLICY_AUTOMATIC;
+                sb.Show();
+
+                super(sb);
+
+                this.InitToolbar(tool);
+
+                this._IMG_STRING="http://127.0.0.1:${this._PORT}/WRAP_${this.RID}:";
+	        this._IMG_STRING2="/WRAP_${this.RID}:";
+	} else {
+                super(Owner);
+
+                this._IMG_STRING="WRAP_${this.RID}_";
+                this._IMG_STRING2="WRAP_${this.RID}_";
+	}
+
+        //no need anymore ! :)
+        //if (!this.ServerRunning)
+        //    this.StartWebServer(server_port);
+    }
+
+    override SetText;    
+    public function SetText(string txt) {
+        var[] pictures;
+        if ((this.GetImageList) && (this.OnImageGet))
+            pictures=this.GetImageList();
+        var len=length pictures;
+        REPL=new [];
+        this.ClearCache();
+        var picture_object="";
+        for (var i=0;i<len;i++) {
+            var picture=pictures[i];
+            if (picture) {
+                var content=this.OnImageGet(""+picture[0]);
+                var new_pid=this._IMG_STRING+picture[0];
+                //var new_pid2=this._IMG_STRING2+picture[0];
+                this.Cache(new_pid/*2*/, content);
+                txt=StrReplace(txt,picture[2],new_pid);
+                REPL[length REPL]=[picture[2], new_pid];
+                if (picture_object)
+                    picture_object+=", ";
+                picture_object+="\"$new_pid\": \"${picture[1]}\"";
+            }
+        }
+        var data=txt;
+        this.Stop();
+        RWebEditor::SetText(txt, false);
+    }
+
+    override GetText;
+    public function GetText() {
+        var text=RWebEditor::GetText();
+        var len=length this.REPL;
+        for (var i=0;i<len;i++) {
+            var rep=this.REPL[i];
+            if (rep)
+                text=StrReplace(text,rep[1],rep[0]);
+        }
+        return StrReplace(text,"<br>", "<br/>");
+    }
+}

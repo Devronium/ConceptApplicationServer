@@ -1,0 +1,1033 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+  <title>standard.lib.xml</title>
+  <link href="css/style.css" rel="stylesheet" type="text/css">
+  <meta http-equiv="Content-Type" content="text/html;charset=utf-8" >
+</head>
+<body bgcolor="#ffffff">
+<table border="0" width="100%" bgcolor="#F0F0FF">
+  <tr>
+    <td>Concept Framework 2.2 documentation</td>
+  	<td align="right"><a href="index.html">Contents</a> | <a href="index_fun.html">Index</a></td>
+  </tr>
+</table>
+<h2>standard.lib.xml</h2>
+<table border="0" cellspacing="0" cellpadding="0" width="400" style="border-style:solid;border-width:1px;border-color:#D0D0D0;">
+  <tr bgcolor="#f0f0f0">
+     <td><i>Static library name</i></td>
+     <td><i>Version</i></td>
+     <td><i>Deprecated</i></td>
+  </tr>
+  <tr bgcolor="#fafafa">
+     <td><b>standard.lib.xml</b></td>
+     <td>version 1.0</td>
+     <td>no</td>
+  </tr>
+</table>
+<br />
+<b>Import library : </b>standard.lib.xml<br />
+<i>(you must include this at the top of your source: "import standard.lib.xml" (no quotes)</i><br />
+<br /><br />
+
+<b>Description:</b><br />
+<table width="100%" bgcolor="#FAFAFF" style="border-style:solid;border-width:1px;border-color:#D0D0D0;">
+<tr><td>
+XML low level library based on libxml2.
+<br>Is recommeded the usage of <a href="XMLDocument.html">XMLDocument</a> and <a href="XMLNode.html">XMLNode</a> instead of low-level functions.
+<br>
+<br>Libxml2 is the XML C parser and toolkit developed for the Gnome project (but usable outside of the Gnome platform), it is free software available under the MIT License. XML itself is a metalanguage to design markup languages, i.e. text language where semantic and structure are added to the content using extra "markup" information enclosed between angle brackets. HTML is the most well-known markup language. Though the library is written in C a variety of language bindings make it available in other environments.
+<br>Libxml2 is known to be very portable, the library should build and work without serious troubles on a variety of systems (Linux, Unix, Windows, CygWin, MacOS, MacOS X, RISC Os, OS/2, VMS, QNX, MVS, ...)
+<br>Libxml2 implements a number of existing standards related to markup languages:
+<br>·	the XML standard: http://www.w3.org/TR/REC-xml 
+<br>·	Namespaces in XML: http://www.w3.org/TR/REC-xml-names/ 
+<br>·	XML Base: http://www.w3.org/TR/xmlbase/ 
+<br>·	RFC 2396 : Uniform Resource Identifiers http://www.ietf.org/rfc/rfc2396.txt 
+<br>·	XML Path Language (XPath) 1.0: http://www.w3.org/TR/xpath 
+<br>·	HTML4 parser: http://www.w3.org/TR/html401/ 
+<br>·	XML Pointer Language (XPointer) Version 1.0: http://www.w3.org/TR/xptr 
+<br>·	XML Inclusions (XInclude) Version 1.0: http://www.w3.org/TR/xinclude/ 
+<br>·	ISO-8859-x encodings, as well as rfc2044 [UTF-8] and rfc2781 [UTF-16] Unicode encodings, and more if using iconv support 
+<br>·	part of SGML Open Technical Resolution TR9401:1997 
+<br>·	XML Catalogs Working Draft 06 August 2001: http://www.oasis-open.org/committees/entity/spec-2001-08-06.html 
+<br>·	Canonical XML Version 1.0: http://www.w3.org/TR/xml-c14n and the Exclusive XML Canonicalization CR draft http://www.w3.org/TR/xml-exc-c14n 
+<br>·	Relax NG, ISO/IEC 19757-2:2003, http://www.oasis-open.org/committees/relax-ng/spec-20011203.html 
+<br>·	W3C XML Schemas Part 2: Datatypes REC 02 May 2001 
+<br>·	W3C xml:id Working Draft 7 April 2004 
+<br>In most cases libxml2 tries to implement the specifications in a relatively strictly compliant way. As of release 2.4.16, libxml2 passed all 1800+ tests from the OASIS XML Tests Suite.
+<br>
+</td></tr>
+</table>
+<br />
+<br />
+
+
+
+
+<b>Contained static functions:</b><br />
+<table bgcolor="#FFFFFF" width="100%" style="border-style:solid;border-width:1px;border-color:#D0D0D0;">
+
+	   <tr>
+	   	   <td>
+		   	   <a href="standard.lib.xml.htmlCreateMemoryParserCtxt.html">htmlCreateMemoryParserCtxt</a>
+		   </td>
+	   	   <td>
+		   	   Create a parser context for an HTML in-memory document
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="standard.lib.xml.htmlCtxtReadDoc.html">htmlCtxtReadDoc</a>
+		   </td>
+	   	   <td>
+		   	   Parse an XML in-memory document and build a tree
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="standard.lib.xml.htmlCtxtReadFile.html">htmlCtxtReadFile</a>
+		   </td>
+	   	   <td>
+		   	   Parse an XML file from the filesystem or the network
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="standard.lib.xml.htmlCtxtReadMemory.html">htmlCtxtReadMemory</a>
+		   </td>
+	   	   <td>
+		   	   Parse an XML in-memory document and build a tree
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="standard.lib.xml.htmlCtxtReset.html">htmlCtxtReset</a>
+		   </td>
+	   	   <td>
+		   	   Reset a parser context
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="standard.lib.xml.htmlCtxtUseOptions.html">htmlCtxtUseOptions</a>
+		   </td>
+	   	   <td>
+		   	   Applies the options to the parser context
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="standard.lib.xml.htmlDocDumpMemory.html">htmlDocDumpMemory</a>
+		   </td>
+	   	   <td>
+		   	   Dump an HTML document in memory
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="standard.lib.xml.htmlElemDescArray.html">htmlElemDescArray</a>
+		   </td>
+	   	   <td>
+		   	   Describes the htmlElemDesc into an array
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="standard.lib.xml.htmlElementAllowedHere.html">htmlElementAllowedHere</a>
+		   </td>
+	   	   <td>
+		   	   Checks whether an HTML element may be a direct child of a parent element
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="standard.lib.xml.htmlElementStatusHere.html">htmlElementStatusHere</a>
+		   </td>
+	   	   <td>
+		   	   Checks whether an HTML element may be a direct child of a parent element, and if so whether it is valid or deprecated
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="standard.lib.xml.htmlEntityDescArray.html">htmlEntityDescArray</a>
+		   </td>
+	   	   <td>
+		   	   Describes the htmlEntityDesc into an array
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="standard.lib.xml.htmlFreeParserCtxt.html">htmlFreeParserCtxt</a>
+		   </td>
+	   	   <td>
+		   	   Free all the memory used by a parser context
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="standard.lib.xml.htmlGetMetaEncoding.html">htmlGetMetaEncoding</a>
+		   </td>
+	   	   <td>
+		   	   Encoding definition lookup in the Meta tags
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="standard.lib.xml.htmlHandleOmittedElem.html">htmlHandleOmittedElem</a>
+		   </td>
+	   	   <td>
+		   	   Set and return the previous value for handling HTML omitted tags
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="standard.lib.xml.htmlIsAutoClosed.html">htmlIsAutoClosed</a>
+		   </td>
+	   	   <td>
+		   	   The HTML DTD allows a tag to implicitly close other tags
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="standard.lib.xml.htmlIsBooleanAttr.html">htmlIsBooleanAttr</a>
+		   </td>
+	   	   <td>
+		   	   Determine if a given attribute is a boolean attribute
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="standard.lib.xml.htmlIsScriptAttribute.html">htmlIsScriptAttribute</a>
+		   </td>
+	   	   <td>
+		   	   Check if an attribute is of content type Script
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="standard.lib.xml.htmlNewDoc.html">htmlNewDoc</a>
+		   </td>
+	   	   <td>
+		   	   Creates a new HTML document
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="standard.lib.xml.htmlNewDocNoDtD.html">htmlNewDocNoDtD</a>
+		   </td>
+	   	   <td>
+		   	   Creates a new HTML document without a DTD node if URI and ExternalID are empty strings
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="standard.lib.xml.htmlNodeStatus.html">htmlNodeStatus</a>
+		   </td>
+	   	   <td>
+		   	   Checks whether the tree node is valid
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="standard.lib.xml.htmlParseCharRef.html">htmlParseCharRef</a>
+		   </td>
+	   	   <td>
+		   	   Parse Reference declarations
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="standard.lib.xml.htmlParseChunk.html">htmlParseChunk</a>
+		   </td>
+	   	   <td>
+		   	   Parse a Chunk of memory
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="standard.lib.xml.htmlParseDoc.html">htmlParseDoc</a>
+		   </td>
+	   	   <td>
+		   	   Parse an HTML in-memory document and build a tree
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="standard.lib.xml.htmlParseDocument.html">htmlParseDocument</a>
+		   </td>
+	   	   <td>
+		   	   Parse an HTML document (and build a tree if using the standard SAX interface)
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="standard.lib.xml.htmlParseElement.html">htmlParseElement</a>
+		   </td>
+	   	   <td>
+		   	   Parse an HTML element, this is highly recursive
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="standard.lib.xml.htmlParseFile.html">htmlParseFile</a>
+		   </td>
+	   	   <td>
+		   	   Parse an HTML file and build a tree
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="standard.lib.xml.htmlReadDoc.html">htmlReadDoc</a>
+		   </td>
+	   	   <td>
+		   	   Parse an XML in-memory document and build a tree
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="standard.lib.xml.htmlReadFile.html">htmlReadFile</a>
+		   </td>
+	   	   <td>
+		   	   Parse an XML file from the filesystem or the network
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="standard.lib.xml.htmlReadMemory.html">htmlReadMemory</a>
+		   </td>
+	   	   <td>
+		   	   Parse an XML in-memory document and build a tree
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="standard.lib.xml.htmlSaveFile.html">htmlSaveFile</a>
+		   </td>
+	   	   <td>
+		   	   Dump an HTML document to a file
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="standard.lib.xml.htmlSaveFileEnc.html">htmlSaveFileEnc</a>
+		   </td>
+	   	   <td>
+		   	   Dump an HTML document to a file using a given encoding
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="standard.lib.xml.htmlSaveFileFormat.html">htmlSaveFileFormat</a>
+		   </td>
+	   	   <td>
+		   	   Dump an HTML document to a file using a given encoding and formatting returns/spaces are added
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="standard.lib.xml.htmlSetMetaEncoding.html">htmlSetMetaEncoding</a>
+		   </td>
+	   	   <td>
+		   	   Sets the current encoding in the Meta tags
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="standard.lib.xml.xmlAddChild.html">xmlAddChild</a>
+		   </td>
+	   	   <td>
+		   	   Add a new node to parent, at the end of the child (or property) list merging adjacent TEXT nodes (in which case cur is freed)
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="standard.lib.xml.xmlAddChildList.html">xmlAddChildList</a>
+		   </td>
+	   	   <td>
+		   	   Add a list of node at the end of the child list of the parent merging adjacent TEXT nodes
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="standard.lib.xml.xmlAddNextSibling.html">xmlAddNextSibling</a>
+		   </td>
+	   	   <td>
+		   	   Add a new node elem as the next sibling of cur
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="standard.lib.xml.xmlAddPrevSibling.html">xmlAddPrevSibling</a>
+		   </td>
+	   	   <td>
+		   	   Add a new node elem as the previous sibling of cur merging adjacent TEXT nodes (elem may be freed)
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="standard.lib.xml.xmlAddSibling.html">xmlAddSibling</a>
+		   </td>
+	   	   <td>
+		   	   Add a new element elem to the list of siblings of cur merging adjacent TEXT nodes (elem may be freed)
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="standard.lib.xml.xmlCleanupParser.html">xmlCleanupParser</a>
+		   </td>
+	   	   <td>
+		   	   Cleanup function for the XML library
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="standard.lib.xml.xmlDocDumpFormatMemory.html">xmlDocDumpFormatMemory</a>
+		   </td>
+	   	   <td>
+		   	   Dump an XML document in memory and return the buffer
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="standard.lib.xml.xmlDocGetRootElement.html">xmlDocGetRootElement</a>
+		   </td>
+	   	   <td>
+		   	   Get the root element of the document (doc->children is a list containing possibly comments, PIs, etc 
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="standard.lib.xml.xmlDocSetRootElement.html">xmlDocSetRootElement</a>
+		   </td>
+	   	   <td>
+		   	   Set the root element of the document (doc->children is a list containing possibly comments, PIs, etc)
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="standard.lib.xml.xmlEncodeEntitiesReentrant.html">xmlEncodeEntitiesReentrant</a>
+		   </td>
+	   	   <td>
+		   	   Do a global encoding of a string, replacing the predefined entities and non ASCII values with their entities and CharRef counterparts
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="standard.lib.xml.xmlFreeDoc.html">xmlFreeDoc</a>
+		   </td>
+	   	   <td>
+		   	   Free up all the structures used by a document, tree included
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="standard.lib.xml.xmlFreeTextReader.html">xmlFreeTextReader</a>
+		   </td>
+	   	   <td>
+		   	   Deallocate all the resources associated to the reader
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="standard.lib.xml.xmlGetNodeArray.html">xmlGetNodeArray</a>
+		   </td>
+	   	   <td>
+		   	   Retrieve the XML node information into an array
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="standard.lib.xml.xmlGetNodePath.html">xmlGetNodePath</a>
+		   </td>
+	   	   <td>
+		   	   Build a structure based Path for the given node
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="standard.lib.xml.xmlGetNsList.html">xmlGetNsList</a>
+		   </td>
+	   	   <td>
+		   	   Search all the namespace applying to a given element
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="standard.lib.xml.xmlGetNsProp.html">xmlGetNsProp</a>
+		   </td>
+	   	   <td>
+		   	   Search and get the value of an attribute associated to a node
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="standard.lib.xml.xmlGetProp.html">xmlGetProp</a>
+		   </td>
+	   	   <td>
+		   	   Search and get the value of an attribute associated to a node
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="standard.lib.xml.xmlHasNsProp.html">xmlHasNsProp</a>
+		   </td>
+	   	   <td>
+		   	   Search for an attribute associated to a node
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="standard.lib.xml.xmlHasProp.html">xmlHasProp</a>
+		   </td>
+	   	   <td>
+		   	   Search an attribute associated to a node
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="standard.lib.xml.xmlIsBlankNode.html">xmlIsBlankNode</a>
+		   </td>
+	   	   <td>
+		   	   Checks whether this node is an empty or whitespace only (and possibly ignorable) text-node
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="standard.lib.xml.xmlMemoryDump.html">xmlMemoryDump</a>
+		   </td>
+	   	   <td>
+		   	   Dump in-extenso the memory blocks allocated to the file 
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="standard.lib.xml.xmlNewChild.html">xmlNewChild</a>
+		   </td>
+	   	   <td>
+		   	   Creation of a new child element, added at the end of parent children list
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="standard.lib.xml.xmlNewComment.html">xmlNewComment</a>
+		   </td>
+	   	   <td>
+		   	   Creation of a new node containing a comment
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="standard.lib.xml.xmlNewDoc.html">xmlNewDoc</a>
+		   </td>
+	   	   <td>
+		   	   Creates a new XML document
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="standard.lib.xml.xmlNewDocComment.html">xmlNewDocComment</a>
+		   </td>
+	   	   <td>
+		   	   Creation of a new node containing a comment within a document
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="standard.lib.xml.xmlNewDocNode.html">xmlNewDocNode</a>
+		   </td>
+	   	   <td>
+		   	   Creation of a new node element within a document
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="standard.lib.xml.xmlNewDocPI.html">xmlNewDocPI</a>
+		   </td>
+	   	   <td>
+		   	   Creation of a processing instruction element
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="standard.lib.xml.xmlNewDocRawNode.html">xmlNewDocRawNode</a>
+		   </td>
+	   	   <td>
+		   	   Creation of a new node element within a document
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="standard.lib.xml.xmlNewDocText.html">xmlNewDocText</a>
+		   </td>
+	   	   <td>
+		   	   Creation of a new text node within a document
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="standard.lib.xml.xmlNewGlobalNs.html">xmlNewGlobalNs</a>
+		   </td>
+	   	   <td>
+		   	   Creation of a Namespace
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="standard.lib.xml.xmlNewNode.html">xmlNewNode</a>
+		   </td>
+	   	   <td>
+		   	   Creation of a new node element
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="standard.lib.xml.xmlNewNs.html">xmlNewNs</a>
+		   </td>
+	   	   <td>
+		   	   Creation of a new Namespace
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="standard.lib.xml.xmlNewNsProp.html">xmlNewNsProp</a>
+		   </td>
+	   	   <td>
+		   	   Create a new property tagged with a namespace and carried by a node
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="standard.lib.xml.xmlNewPI.html">xmlNewPI</a>
+		   </td>
+	   	   <td>
+		   	   Creation of a processing instruction element
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="standard.lib.xml.xmlNewProp.html">xmlNewProp</a>
+		   </td>
+	   	   <td>
+		   	   Create a new property carried by a node
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="standard.lib.xml.xmlNewReference.html">xmlNewReference</a>
+		   </td>
+	   	   <td>
+		   	   Creation of a new reference node
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="standard.lib.xml.xmlNewText.html">xmlNewText</a>
+		   </td>
+	   	   <td>
+		   	   Creation of a new text node
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="standard.lib.xml.xmlNewTextChild.html">xmlNewTextChild</a>
+		   </td>
+	   	   <td>
+		   	   Creation of a new child element, added at the end of parent children list
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="standard.lib.xml.xmlNodeAddContent.html">xmlNodeAddContent</a>
+		   </td>
+	   	   <td>
+		   	   Append the extra substring to the node content
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="standard.lib.xml.xmlNodeGetBase.html">xmlNodeGetBase</a>
+		   </td>
+	   	   <td>
+		   	   Searches for the BASE URL
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="standard.lib.xml.xmlNodeGetContent.html">xmlNodeGetContent</a>
+		   </td>
+	   	   <td>
+		   	   Read the value of a node, this can be either the text carried directly by this node if it's a TEXT node or the aggregate string of the values carried by this node child's (TEXT and ENTITY_REF)
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="standard.lib.xml.xmlNodeGetLang.html">xmlNodeGetLang</a>
+		   </td>
+	   	   <td>
+		   	   Searches the language of a node
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="standard.lib.xml.xmlNodeIsText.html">xmlNodeIsText</a>
+		   </td>
+	   	   <td>
+		   	   Is this node a Text node?
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="standard.lib.xml.xmlNodeSetBase.html">xmlNodeSetBase</a>
+		   </td>
+	   	   <td>
+		   	   Set (or reset) the base URI of a node
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="standard.lib.xml.xmlNodeSetContent.html">xmlNodeSetContent</a>
+		   </td>
+	   	   <td>
+		   	   Replace the content of a node
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="standard.lib.xml.xmlNodeSetLang.html">xmlNodeSetLang</a>
+		   </td>
+	   	   <td>
+		   	   Set the language of a node
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="standard.lib.xml.xmlNodeSetName.html">xmlNodeSetName</a>
+		   </td>
+	   	   <td>
+		   	   Set (or reset) the name of a node
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="standard.lib.xml.xmlParseFile.html">xmlParseFile</a>
+		   </td>
+	   	   <td>
+		   	   Parse an XML file and build a tree
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="standard.lib.xml.xmlParseMemory.html">xmlParseMemory</a>
+		   </td>
+	   	   <td>
+		   	   Parse an XML in-memory block and build a tree
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="standard.lib.xml.xmlReadDoc.html">xmlReadDoc</a>
+		   </td>
+	   	   <td>
+		   	   Parse an XML in-memory document and build a tree
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="standard.lib.xml.xmlReadFile.html">xmlReadFile</a>
+		   </td>
+	   	   <td>
+		   	   Parse an XML file from the filesystem or the network
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="standard.lib.xml.xmlReadMemory.html">xmlReadMemory</a>
+		   </td>
+	   	   <td>
+		   	   Parse an XML in-memory document and build a tree
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="standard.lib.xml.xmlReaderForFile.html">xmlReaderForFile</a>
+		   </td>
+	   	   <td>
+		   	   Parse an XML file from the filesystem or the network
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="standard.lib.xml.xmlReaderForMemory.html">xmlReaderForMemory</a>
+		   </td>
+	   	   <td>
+		   	   Create an xmltextReader for an XML in-memory document
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="standard.lib.xml.xmlRemoveProp.html">xmlRemoveProp</a>
+		   </td>
+	   	   <td>
+		   	   Unlink and free one attribute, all the content is freed too Note this doesn't work for namespace definition attributes
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="standard.lib.xml.xmlSaveFile.html">xmlSaveFile</a>
+		   </td>
+	   	   <td>
+		   	   Dump an XML document to a file
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="standard.lib.xml.xmlSearchNs.html">xmlSearchNs</a>
+		   </td>
+	   	   <td>
+		   	   Search a Ns registered under a given name space for a document
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="standard.lib.xml.xmlSearchNsByHref.html">xmlSearchNsByHref</a>
+		   </td>
+	   	   <td>
+		   	   Search a Ns aliasing a given URI
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="standard.lib.xml.xmlSetNsProp.html">xmlSetNsProp</a>
+		   </td>
+	   	   <td>
+		   	   Set (or reset) an attribute carried by a node
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="standard.lib.xml.xmlSetProp.html">xmlSetProp</a>
+		   </td>
+	   	   <td>
+		   	   Set (or reset) an attribute carried by a node
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="standard.lib.xml.xmlSetTreeDoc.html">xmlSetTreeDoc</a>
+		   </td>
+	   	   <td>
+		   	   Update all nodes under the tree to point to the right document
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="standard.lib.xml.xmlTextReaderConstName.html">xmlTextReaderConstName</a>
+		   </td>
+	   	   <td>
+		   	   The qualified name of the node, equal to Prefix :LocalName
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="standard.lib.xml.xmlTextReaderConstValue.html">xmlTextReaderConstValue</a>
+		   </td>
+	   	   <td>
+		   	   Provides the text value of the node if present
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="standard.lib.xml.xmlTextReaderCurrentDoc.html">xmlTextReaderCurrentDoc</a>
+		   </td>
+	   	   <td>
+		   	   Hacking interface allowing to get the xmlDocPtr correponding to the current document being accessed by the xmlTextReader
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="standard.lib.xml.xmlTextReaderDepth.html">xmlTextReaderDepth</a>
+		   </td>
+	   	   <td>
+		   	   The depth of the node in the tree
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="standard.lib.xml.xmlTextReaderHasValue.html">xmlTextReaderHasValue</a>
+		   </td>
+	   	   <td>
+		   	   Whether the node can have a text value
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="standard.lib.xml.xmlTextReaderIsEmptyElement.html">xmlTextReaderIsEmptyElement</a>
+		   </td>
+	   	   <td>
+		   	   Check if the current node is empty
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="standard.lib.xml.xmlTextReaderIsValid.html">xmlTextReaderIsValid</a>
+		   </td>
+	   	   <td>
+		   	   Retrieve the validity status from the parser context
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="standard.lib.xml.xmlTextReaderNodeType.html">xmlTextReaderNodeType</a>
+		   </td>
+	   	   <td>
+		   	   Get the node type of the current node
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="standard.lib.xml.xmlTextReaderPreservePattern.html">xmlTextReaderPreservePattern</a>
+		   </td>
+	   	   <td>
+		   	   This tells the XML Reader to preserve all nodes matched by the pattern
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="standard.lib.xml.xmlTextReaderRead.html">xmlTextReaderRead</a>
+		   </td>
+	   	   <td>
+		   	   The quotation mark character used to enclose the value of an attribute
+		   </td>
+	   </tr>
+
+</table>
+<br />
+
+
+
+
+
+
+<br />
+
+<br />
+<br />
+<!--
+  <p>
+    <a href="http://validator.w3.org/check?uri=referer"><img
+        src="http://www.w3.org/Icons/valid-html40"
+        alt="Valid HTML 4.0 Transitional" height="31" width="88" border="0"></a>
+ <a href="http://jigsaw.w3.org/css-validator/">
+  <img style="border:0;width:88px;height:31px"
+       src="http://jigsaw.w3.org/css-validator/images/vcss" 
+       alt="Valid CSS!" border="0"/>
+ </a>
+</p>
+-->
+<table bgcolor="#F0F0F0" width="100%"><tr><td>Documented by Eduard Suica by adapting from http://xmlsoft.org/, generation time: Sun Jan 27 18:15:20 2013
+ GMT</td><td align="right">(c)2013 <a href="http://www.devronium.com">Devronium Applications</a></td></tr></table>
+</body>
+</html>

@@ -1,0 +1,46 @@
+import standard.lib.xslt
+
+class Main {
+	function XSLTProcess(xmlStream, xslStream) {
+		var argums = [
+				"/_stylesheet", xslStream,
+				"/_xmlinput", xmlStream,
+				"/_output", null,
+				null
+		];
+		var params = [
+				"myvar", "test",
+				"mynode", "<foo>bar</foo>"
+		];
+
+
+		var returncode = SablotProcess("arg:/_stylesheet","arg:/_xmlinput","arg:/_output", params, argums, var resultStr);
+		if (returncode != 0)
+			throw SablotGetMsgText(returncode);
+		return resultStr;
+	}
+
+	function Main() {
+		var xml =	'<?xml version="1.0"?>'+
+				'<para>'+
+				' change me'+
+				'</para>';
+
+		var xsl = 	'<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">'+
+				'<xsl:output method="html" encoding="ISO-8859-1" indent="no"'+
+				' omit-xml-declaration="yes"  media-type="text/html"/>'+
+				' <xsl:param name="myvar"/>'+
+				' <xsl:param name="mynode"/>'+
+				' <xsl:template match="/">'+
+				'My Concept variable : <xsl:value-of select="$myvar"/><br />\n'+
+				'My node set : <xsl:value-of select="$mynode"/>'+
+				' </xsl:template>'+
+				'</xsl:stylesheet>';
+
+		try {
+			echo XSLTProcess(xml,xsl);
+		} catch (var ex) {
+			echo ex;
+		}
+	}
+}

@@ -1,0 +1,29 @@
+pragma warnings off
+include Lang.con
+include RForm.con
+include Application.con
+[INCLUDE]
+
+
+class [NAME] extends RForm {
+        // keep the string table
+        protected var S;
+
+[MEMBERS]
+
+[EVENTS]
+        // ========================================================================
+        // S is a Lang object used to translate strings using
+        // the default string table named string.table.xml
+        // ========================================================================
+        public function [NAME](Owner, Lang S) {
+                super(Owner);
+                this.S=S;
+
+                CApplication::BeginNonCritical();
+[CONSTRUCTOR]
+                CApplication::EndNonCritical();
+        }
+[OVERRIDE]
+}
+pragma warnings on

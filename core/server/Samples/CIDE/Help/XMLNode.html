@@ -1,0 +1,330 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+  <title>XMLNode</title>
+  <link href="css/style.css" rel="stylesheet" type="text/css">
+  <meta http-equiv="Content-Type" content="text/html;charset=utf-8" >
+</head>
+<body bgcolor="#ffffff">
+<table border="0" width="100%" bgcolor="#F0F0FF">
+  <tr>
+    <td>Concept Framework 2.2 documentation</td>
+  	<td align="right"><a href="index.html">Contents</a> | <a href="index_fun.html">Index</a></td>
+  </tr>
+</table>
+<h2>XMLNode</h2>
+<table border="0" cellspacing="0" cellpadding="0" width="400" style="border-style:solid;border-width:1px;border-color:#D0D0D0;">
+  <tr bgcolor="#f0f0f0">
+     <td><i>Name</i></td>
+     <td><i>Version</i></td>
+     <td><i>Deprecated</i></td>
+  </tr>
+  <tr bgcolor="#fafafa">
+     <td><b>XMLNode</b></td>
+     <td>version 1.0</td>
+     <td>no</td>
+  </tr>
+</table>
+<br />
+<b>Defined in : </b>XMLDocument.con
+<br/><i>(this file must be included in your application in order to have access, unless you use a child class of XMLNode that includes this file)</i><br /><br />
+
+
+<b>Require</b> : standard.lib.xml
+<br />
+<br />
+
+<b>Description:</b><br />
+<table width="100%" bgcolor="#FAFAFF" style="border-style:solid;border-width:1px;border-color:#D0D0D0;">
+<tr><td>
+The node of a <a href="XMLDocument.html">XMLDocument</a>. Provides access to the node of a XML tree; is based on the libxml2 library (you may want to check the libxml2 help).
+</td></tr>
+</table>
+<br />
+<br />
+
+
+<b>Properties:</b><br />
+<table bgcolor="#FFFFFF" width="100%" style="border-style:solid;border-width:1px;border-color:#D0D0D0;">
+
+	   <tr>
+	   	   <td>
+		   	   <a href="XMLNode.Child.html">Child</a>
+		   </td>
+	   	   <td>
+		   	   Gets the first child of the xml node
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="XMLNode.Content.html">Content</a>
+		   </td>
+	   	   <td>
+		   	   Gets or sets the text contained inside the node
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="XMLNode.Handle.html">Handle</a>
+		   </td>
+	   	   <td>
+		   	   Gets the internal handle of the node used by the standard
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="XMLNode.Last.html">Last</a>
+		   </td>
+	   	   <td>
+		   	   Gets the last node on the same level with the xml node
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="XMLNode.Name.html">Name</a>
+		   </td>
+	   	   <td>
+		   	   Gets the name of the xml node
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="XMLNode.Next.html">Next</a>
+		   </td>
+	   	   <td>
+		   	   Gets the next node on the same level with the xml node
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="XMLNode.Parent.html">Parent</a>
+		   </td>
+	   	   <td>
+		   	   Gets the parent of the xml node
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="XMLNode.Path.html">Path</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="XMLNode.Prev.html">Prev</a>
+		   </td>
+	   	   <td>
+		   	   Gets the previous node on the same level with the xml node
+		   </td>
+	   </tr>
+
+</table>
+<br />
+
+
+
+<b>Methods:</b><br />
+<table bgcolor="#FFFFFF" width="100%" style="border-style:solid;border-width:1px;border-color:#D0D0D0;">
+
+	   <tr>
+	   	   <td>
+		   	   <a href="XMLNode.AddChild.html">AddChild</a>
+		   </td>
+	   	   <td>
+		   	   Adds a child to the current xml node
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="XMLNode.AddNext.html">AddNext</a>
+		   </td>
+	   	   <td>
+		   	   Adds a sibling node after the current xml node
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="XMLNode.AddPrev.html">AddPrev</a>
+		   </td>
+	   	   <td>
+		   	   Adds a sibling node before the current xml node
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="XMLNode.Copy.html">Copy</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="XMLNode.CreateNew.html">CreateNew</a>
+		   </td>
+	   	   <td>
+		   	   This function creates a new node
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="XMLNode.GetChild.html">GetChild</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="XMLNode.GetContent.html">GetContent</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="XMLNode.GetHandle.html">GetHandle</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="XMLNode.GetLast.html">GetLast</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="XMLNode.GetName.html">GetName</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="XMLNode.GetNext.html">GetNext</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="XMLNode.GetParent.html">GetParent</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="XMLNode.GetPath.html">GetPath</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="XMLNode.GetPrev.html">GetPrev</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="XMLNode.GetProperty.html">GetProperty</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="XMLNode.SetContent.html">SetContent</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="XMLNode.SetProperty.html">SetProperty</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="XMLNode.__Create.html">__Create</a>
+		   </td>
+	   	   <td>
+		   	   This function creates a new node
+		   </td>
+	   </tr>
+
+</table>
+<br />
+
+
+
+
+
+
+
+
+<br />
+
+<br />
+<br />
+<!--
+  <p>
+    <a href="http://validator.w3.org/check?uri=referer"><img
+        src="http://www.w3.org/Icons/valid-html40"
+        alt="Valid HTML 4.0 Transitional" height="31" width="88" border="0"></a>
+ <a href="http://jigsaw.w3.org/css-validator/">
+  <img style="border:0;width:88px;height:31px"
+       src="http://jigsaw.w3.org/css-validator/images/vcss" 
+       alt="Valid CSS!" border="0"/>
+ </a>
+</p>
+-->
+<table bgcolor="#F0F0F0" width="100%"><tr><td>Documented by Eduard Suica, generation time: Sun Jan 27 18:15:12 2013
+ GMT</td><td align="right">(c)2013 <a href="http://www.devronium.com">Devronium Applications</a></td></tr></table>
+</body>
+</html>

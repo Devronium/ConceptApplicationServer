@@ -1,0 +1,35 @@
+include 'Container.con'
+
+class ConceptTabControl extends Container {
+	protected var _IMAGELIST;
+
+	public property ImageList { set SetImageList, get _IMAGELIST }
+
+	protected function SetImageList(x) {
+		if (typeof x==CLASS_TYPE)
+			this->_IMAGELIST=x;
+		else
+		     	throw new ControlException(EXC_INVALID_ARGUMENT_TYPE, this);
+
+                SendMessage(this->Name, MSG_CHANGED, P_IMAGELIST, x->Name);
+	}
+
+	public function ConceptTabControl(Owner) {
+		this->Container(Owner, CLASS_TABCONTROL);
+	}
+
+	public function AddPage(PageCaption, ImageIndex) {
+		var NewPage=new ConceptPanel(this);
+		NewPage->Edge=BORDER_NONE;
+
+		// setting the image index
+		SendMessage(NewPage->Name, MSG_CHANGED, P_IMAGEINDEX, ImageIndex);
+
+		SendMessage(this->Name, MSG_ITEM_ADD, NewPage->Name, PageCaption);
+		return NewPage;
+	}
+
+	public function GetPage(i) {
+		return this->GetControl(i);
+	}
+}

@@ -1,0 +1,33 @@
+import standard.commercial.pdf
+import standard.C.io
+
+class Main {
+	function Main() {
+		var p=PDF_new();
+
+		/*  open new PDF file; insert a file name to create the PDF on disk */
+		if (PDF_begin_document(p, "", 0, "") == 0) {
+    			echo "Error: " + PDF_get_errmsg(p);
+			return 0;
+		}
+		PDF_set_info(p, "Creator", "hello.con");
+		PDF_set_info(p, "Author", "Eduard Suica");
+		PDF_set_info(p, "Title", "Hello world (Concept)!");
+
+		PDF_begin_page_ext(p, 595, 842, "");
+
+		var font = PDF_load_font(p, "Helvetica-Bold", 0, "winansi", "");
+
+		PDF_setfont(p, font, 24.0);
+		PDF_set_text_pos(p, 50, 700);
+		PDF_show(p, "Hello world!");
+		PDF_continue_text(p, "(says Concept)");
+		PDF_end_page_ext(p, "");
+
+		PDF_end_document(p, "");
+
+		var buf = PDF_get_buffer(p, var len);
+		WriteFile(buf, "hello.pdf");
+
+	}
+}

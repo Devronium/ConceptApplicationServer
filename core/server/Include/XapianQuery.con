@@ -1,0 +1,89 @@
+include XapianTermIterator.con
+
+class XapianQuery {
+	protected var THISREF=null;
+	public property REF { get THISREF }
+
+	public function XapianQuery(var param1=null, var param2=true, var param3=null) {
+		if ((param1==-1) && (param2==-1)) {
+			this.THISREF=param3;
+		} else
+		if ((!param1) && (!param3))
+			this.THISREF=XapianQueryCreate(var exc);
+		else {
+			if (typeof param1=="string")
+				this.THISREF=XapianQueryCreate2(var exc2, param1, param2, param3);
+			else
+			if ((classof param2=="XapianQuery") && (classof param3=="XapianQuery")) {
+				this.THISREF=XapianQueryCreate3(var exc3, param1, param2.REF, param3.REF);
+			} else
+			if ((typeof param2=="string") && (typeof param3=="string"))
+				this.THISREF=XapianQueryCreate4(var exc4, param1, param2, param3);
+			else
+			if ((typeof param2=="number") && (typeof param3=="string"))
+				this.THISREF=XapianQueryCreate5(var exc5, param1, param2, param3);
+		}
+	}
+
+	public function finalize() {
+		XapianQueryDestroy(THISREF, var exc);
+		this.THISREF=null;
+	}
+
+	public function get_length() {
+		var result=XapianQuery__get_length(this->THISREF, var exc);
+		if (exc)
+			throw exc;
+		return result;
+	}
+
+	public function get_terms_begin() {
+		var result=new XapianTermIterator(XapianQuery__get_terms_begin(this->THISREF, var exc));
+		if (exc)
+			throw exc;
+		return result;
+	}
+
+	public function get_terms_end() {
+		var result=new XapianTermIterator(XapianQuery__get_terms_end(this->THISREF, var exc));
+		if (exc)
+			throw exc;
+		return result;
+	}
+
+	public function empty() {
+		var result=XapianQuery__empty(this->THISREF, var exc);
+		if (exc)
+			throw exc;
+		return result;
+	}
+
+	public function get_description() {
+		var result=XapianQuery__get_description(this->THISREF, var exc);
+		if (exc)
+			throw exc;
+		return result;
+	}
+
+	/*public function serialise() {
+		var result=XapianQuery__serialise(this->THISREF, var exc);
+		if (exc)
+			throw exc;
+		return result;
+	}
+
+	public function get_parameter() {
+		var result=XapianQuery__get_parameter(this->THISREF, var exc);
+		if (exc)
+			throw exc;
+		return result;
+	}
+
+	public function get_terms() {
+		var result=new XapianTermIterator(XapianQuery__get_terms(this->THISREF, var exc));
+		if (exc)
+			throw exc;
+		return result;
+	}*/
+
+}

@@ -1,0 +1,60 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+  <title>Data types.The delegates</title>
+  <link href="css/style.css" rel="stylesheet" type="text/css">
+  <meta http-equiv="Content-Type" content="text/html;charset=utf-8" >
+</head>
+<body bgcolor="#ffffff">
+<table border="0" width="100%" bgcolor="#F0F0FF">
+  <tr>
+    <td>Language documentation</td>
+  	<td align="right"><a href="index.html">Contents</a> | <a href="index_fun.html">Index</a></td>
+  </tr>
+</table>
+<h2>The delegates, <a href="Data types.html">Data types</a></h2>
+<br />
+
+<b>Description:</b><br />
+<table width="100%" bgcolor="#FAFAFF" style="border-style:solid;border-width:1px;border-color:#D0D0D0;">
+<tr><td>
+Delegates are functions contained by an object (by object you should understand an instantiated class) that are referenced by a variable. Delegates cannot be static functions. A delegate should respect the rights of the calling point (so, if is private, the caller must be able to call the delegate). Delegates can be passed as parameters to functions providing callback.
+</td></tr>
+</table>
+<br />
+
+<b>Example:</b>
+<table bgcolor="#F0F0FF" width="100%"  style="border-style:solid;border-width:1px;border-color:#D0D0D0;"><tr><td>
+<font color="#101060"><pre>class Main {
+	function mydelegate(x) {
+		echo x; // prints x
+	}
+
+	function Main() {
+		var f=mydelegate;
+		// now e can call the delegate function this way:
+		f();
+	}
+}
+</pre></font>
+</td></tr></table>
+<br />
+
+<br />
+<br />
+<!--
+  <p>
+    <a href="http://validator.w3.org/check?uri=referer"><img
+        src="http://www.w3.org/Icons/valid-html40"
+        alt="Valid HTML 4.0 Transitional" height="31" width="88" border="0"></a>
+ <a href="http://jigsaw.w3.org/css-validator/">
+  <img style="border:0;width:88px;height:31px"
+       src="http://jigsaw.w3.org/css-validator/images/vcss" 
+       alt="Valid CSS!" border="0"/>
+ </a>
+</p>
+-->
+<table bgcolor="#F0F0F0" width="100%"><tr><td>Documented by Eduard Suica, generation time: Sun Jan 27 18:15:22 2013
+ GMT</td><td align="right">(c)2013 <a href="http://www.devronium.com">Devronium Applications</a></td></tr></table>
+</body>
+</html>

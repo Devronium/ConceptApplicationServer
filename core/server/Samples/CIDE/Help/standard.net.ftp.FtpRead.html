@@ -1,0 +1,109 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+  <title>standard.net.ftp.FtpRead</title>
+  <link href="css/style.css" rel="stylesheet" type="text/css">
+  <meta http-equiv="Content-Type" content="text/html;charset=utf-8" >
+</head>
+<body bgcolor="#ffffff">
+<table border="0" width="100%" bgcolor="#F0F0FF">
+  <tr>
+    <td>Concept Framework 2.2 documentation</td>
+  	<td align="right"><a href="index.html">Contents</a> | <a href="index_fun.html">Index</a></td>
+  </tr>
+</table>
+<h2><a href="standard.net.ftp.html">standard.net.ftp</a>.FtpRead</h2>
+<table border="0" cellspacing="0" cellpadding="0" width="500" style="border-style:solid;border-width:1px;border-color:#D0D0D0;">
+  <tr bgcolor="#f0f0f0">
+     <td><i>Name</i></td>
+     <td><i>Version</i></td>
+     <td><i>Deprecated</i></td>
+  </tr>
+  <tr bgcolor="#fafafa">
+     <td><b>FtpRead</b></td>
+     <td>version 1.0</td>
+     <td>no</td>
+  </tr>
+</table>
+<br />
+<b>Prototype:</b><br />
+	<table bgcolor="#F0F0F0" width="100%" style="border-style:solid;border-width:1px;border-color:#D0D0D0;"><tr><td><b>string FtpRead(number size, number stream_handle)</b></td></tr></table>
+<br />
+
+<b>Parameters:</b><br />
+<table bgcolor="#FFFFFF" style="border-style:solid;border-width:1px;border-color:#D0D0D0;">
+
+	   <tr>
+	   	   <td>
+		   	   <i>size</i>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+		   </td>
+	   	   <td>
+		   	   the amount of data to read in bytes
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <i>stream_handle</i>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+		   </td>
+	   	   <td>
+		   	   the stream handle as returned by <a href="standard.net.ftp.FtpAccess.html">FtpAccess</a>
+		   </td>
+	   </tr>
+
+</table>
+
+<br />
+<b>Description:</b><br />
+<table width="100%" bgcolor="#FAFAFF" style="border-style:solid;border-width:1px;border-color:#D0D0D0;">
+<tr><td>
+Read from a data connection.
+</td></tr>
+</table>
+<br />
+
+<b>Example:</b>
+<table bgcolor="#F0F0FF" width="100%"  style="border-style:solid;border-width:1px;border-color:#D0D0D0;"><tr><td>
+<font color="#101060"><pre>	function TestFtp() {
+		var con=FtpConnect("ftp.rdsct.ro");
+		if (!con) {
+			echo "Can't Connect\n";
+			return 0;
+		} else {
+			echo "Connected !!!\n";
+		}
+		FtpLogin("","",con);
+		//if (!FtpGet("c:\\test.zip","/pub/PPPoE/win98/RASPPPOE_098B.ZIP",FTPLIB_IMAGE,con))
+		//	echo "Error getting file\n";
+		var ftpfile=FtpAccess("/pub/PPPoE/win98/RASPPPOE_098B.ZIP",FTPLIB_FILE_READ,FTPLIB_IMAGE,con);
+		if (ftpfile) {
+			echo "File opened !\n";
+			echo FtpRead(1,ftpfile);
+			FtpClose(ftpfile);
+		}
+		FtpQuit(con);
+	}
+</pre></font>
+</td></tr></table>
+<br />
+
+<b>Returns:</b><br />
+Returns the data buffer read. 
+<br />
+<br />
+<!--
+  <p>
+    <a href="http://validator.w3.org/check?uri=referer"><img
+        src="http://www.w3.org/Icons/valid-html40"
+        alt="Valid HTML 4.0 Transitional" height="31" width="88" border="0"></a>
+ <a href="http://jigsaw.w3.org/css-validator/">
+  <img style="border:0;width:88px;height:31px"
+       src="http://jigsaw.w3.org/css-validator/images/vcss" 
+       alt="Valid CSS!" border="0"/>
+ </a>
+</p>
+-->
+<table bgcolor="#F0F0F0" width="100%"><tr><td>Documented by Eduard Suica, generation time: Sun Jan 27 18:15:19 2013
+ GMT</td><td align="right">(c)2013 <a href="http://www.devronium.com">Devronium Applications</a></td></tr></table>
+</body>
+</html>

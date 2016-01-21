@@ -1,0 +1,33 @@
+import standard.lib.xslt
+import standard.C.io
+
+class Main {
+	function XSLTProcess(xmlStream, xslStream, var parameters=null) {
+		var argums = [
+				"/_stylesheet", xslStream,
+				"/_xmlinput", xmlStream,
+				"/_output", null,
+				null
+		];
+		var params;
+		if (parameters)
+			params=parameters;
+		else
+			params=new [];
+			
+
+
+		var returncode = SablotProcess("arg:/_stylesheet","arg:/_xmlinput","arg:/_output", params, argums, var resultStr);
+		if (returncode != 0)
+			throw SablotGetMsgText(returncode);
+		return resultStr;
+	}
+
+	function Main() {
+		try {
+			echo XSLTProcess(ReadFile("hanoi.xml"),ReadFile("hanoi.xsl"));
+		} catch (var ex) {
+			echo "Exception: $ex\n";
+		}
+	}
+}

@@ -1,0 +1,30 @@
+include 'Container.con'
+include 'ListColumn.con'
+include 'ListItem.con'
+
+class ConceptListView extends Container {
+	protected var _IMAGELIST;
+
+	public property ImageList { set SetImageList, get _IMAGELIST }
+
+	protected function SetImageList(x) {
+		if (typeof x==CLASS_TYPE)
+			this->_IMAGELIST=x;
+		else
+		     	throw new ControlException(EXC_INVALID_ARGUMENT_TYPE, this);
+
+                SendMessage(this->Name, MSG_CHANGED, P_IMAGELIST, x->Name);
+	}
+
+	public function ConceptListView(Owner) {
+		this->Container(Owner, CLASS_LISTVIEW);
+	}
+
+	public function AddColumn(index, Column) {
+                SendMessage(this->Name, MSG_ITEMEX1_ADD, Column->Name, index);
+	}
+
+	public function AddItem(index, Item) {
+                SendMessage(this->Name, MSG_ITEM_ADD, Item->Name, index);
+	}
+}

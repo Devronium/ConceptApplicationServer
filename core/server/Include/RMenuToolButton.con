@@ -1,0 +1,19 @@
+include RToolButton.con
+
+class RMenuToolButton extends RToolButton {
+	private var MENU;
+	public property Menu { get MENU, set SetMenu }
+
+	public function RMenuToolButton(OWNER) {
+		// don't call super !!!
+		SingleContainer(OWNER, CLASS_MENUTOOLBUTTON);
+	}
+
+	public function SetMenu(argument) {
+		if (argument) {
+			SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_MENU,argument.RID);
+			MENU=&argument;
+		}
+		return argument;
+	}
+}

@@ -1,0 +1,1539 @@
+include ActiveXControl.con
+
+//////////////////////////////////////////////////////////////////////////
+// This file was generated automatically by AXInterfaceGenerator        //
+//                                          (c)2006 RadGs Software      //
+//                                                                      //
+//                   PLEASE DO NOT MODIFY THIS FILE !                   //
+//////////////////////////////////////////////////////////////////////////
+
+class IRealAudio extends ActiveXControl {
+	//Uncomment LICENCE_KEY if the control needs to be registered
+ 	function IRealAudio(Owner/*, LICENCE_KEY*/) {
+		//super(Owner, "rmocx.RealPlayer G2 Control", LICENCE_KEY);
+		super(Owner, "rmocx.RealPlayer G2 Control", "");
+		__AX_SET_EVENTS();
+	}
+
+/*0*/	function /*{HRESULT}*/ AX_GET_Source( /*{BSTR*}*/) /*{propget}*/ {
+		Send(MSG_AX_GET_PROPERTY, "Source", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*1*/	function /*{HRESULT}*/ AX_SET_Source(parameter0 /*{BSTR}*/) /*{propput}*/ {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_SET_PROPERTY, "Source", "0");
+	}
+
+/*2*/	function /*{HRESULT}*/ AX_GET_Console( /*{BSTR*}*/) /*{propget}*/ {
+		Send(MSG_AX_GET_PROPERTY, "Console", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*3*/	function /*{HRESULT}*/ AX_SET_Console(parameter0 /*{BSTR}*/) /*{propput}*/ {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_SET_PROPERTY, "Console", "0");
+	}
+
+/*4*/	function /*{HRESULT}*/ AX_GET_Controls( /*{BSTR*}*/) /*{propget}*/ {
+		Send(MSG_AX_GET_PROPERTY, "Controls", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*5*/	function /*{HRESULT}*/ AX_SET_Controls(parameter0 /*{BSTR}*/) /*{propput}*/ {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_SET_PROPERTY, "Controls", "0");
+	}
+
+/*6*/	function /*{HRESULT}*/ AX_GET_NoLabels( /*{VARIANT_BOOL*}*/) /*{propget}*/ {
+		Send(MSG_AX_GET_PROPERTY, "NoLabels", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*7*/	function /*{HRESULT}*/ AX_SET_NoLabels(parameter0 /*{VARIANT_BOOL}*/) /*{propput}*/ {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_SET_PROPERTY, "NoLabels", "0");
+	}
+
+/*8*/	function /*{HRESULT}*/ AX_GET_AutoStart( /*{VARIANT_BOOL*}*/) /*{propget}*/ {
+		Send(MSG_AX_GET_PROPERTY, "AutoStart", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*9*/	function /*{HRESULT}*/ AX_SET_AutoStart(parameter0 /*{VARIANT_BOOL}*/) /*{propput}*/ {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_SET_PROPERTY, "AutoStart", "0");
+	}
+
+/*10*/	function /*{HRESULT}*/ AX_GET_AutoGotoURL( /*{VARIANT_BOOL*}*/) /*{propget}*/ {
+		Send(MSG_AX_GET_PROPERTY, "AutoGotoURL", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*11*/	function /*{HRESULT}*/ AX_SET_AutoGotoURL(parameter0 /*{VARIANT_BOOL}*/) /*{propput}*/ {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_SET_PROPERTY, "AutoGotoURL", "0");
+	}
+
+/*12*/	function /*{HRESULT}*/ AX_GET_WindowName( /*{BSTR*}*/) /*{propget}*/ {
+		Send(MSG_AX_GET_PROPERTY, "WindowName", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*13*/	function /*{HRESULT}*/ AX_SET_WindowName(parameter0 /*{BSTR}*/) /*{propput}*/ {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_SET_PROPERTY, "WindowName", "0");
+	}
+
+/*14*/	function /*{HRESULT}*/ GetSource(var parameter0 /*{BSTR*}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_CALL_METHOD, "GetSource", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*15*/	function /*{HRESULT}*/ SetSource(parameter0 /*{BSTR}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_CALL_METHOD, "SetSource", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*16*/	function /*{HRESULT}*/ GetConsole(var parameter0 /*{BSTR*}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_CALL_METHOD, "GetConsole", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*17*/	function /*{HRESULT}*/ SetConsole(parameter0 /*{BSTR}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_CALL_METHOD, "SetConsole", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*18*/	function /*{HRESULT}*/ GetControls(var parameter0 /*{BSTR*}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_CALL_METHOD, "GetControls", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*19*/	function /*{HRESULT}*/ SetControls(parameter0 /*{BSTR}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_CALL_METHOD, "SetControls", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*20*/	function /*{HRESULT}*/ GetNoLabels(var parameter0 /*{VARIANT_BOOL*}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_CALL_METHOD, "GetNoLabels", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*21*/	function /*{HRESULT}*/ SetNoLabels(parameter0 /*{VARIANT_BOOL}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_CALL_METHOD, "SetNoLabels", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*22*/	function /*{HRESULT}*/ GetAutoStart(var parameter0 /*{VARIANT_BOOL*}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_CALL_METHOD, "GetAutoStart", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*23*/	function /*{HRESULT}*/ SetAutoStart(parameter0 /*{VARIANT_BOOL}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_CALL_METHOD, "SetAutoStart", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*24*/	function /*{HRESULT}*/ GetAutoGotoURL(var parameter0 /*{VARIANT_BOOL*}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_CALL_METHOD, "GetAutoGotoURL", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*25*/	function /*{HRESULT}*/ SetAutoGotoURL(parameter0 /*{VARIANT_BOOL}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_CALL_METHOD, "SetAutoGotoURL", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*26*/	function /*{HRESULT}*/ GetVolume(var parameter0 /*{short*}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_CALL_METHOD, "GetVolume", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*27*/	function /*{HRESULT}*/ SetVolume(parameter0 /*{short}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_CALL_METHOD, "SetVolume", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*28*/	function /*{HRESULT}*/ GetMute(var parameter0 /*{VARIANT_BOOL*}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_CALL_METHOD, "GetMute", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*29*/	function /*{HRESULT}*/ SetMute(parameter0 /*{VARIANT_BOOL}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_CALL_METHOD, "SetMute", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*30*/	function /*{HRESULT}*/ GetLoop(var parameter0 /*{VARIANT_BOOL*}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_CALL_METHOD, "GetLoop", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*31*/	function /*{HRESULT}*/ SetLoop(parameter0 /*{VARIANT_BOOL}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_CALL_METHOD, "SetLoop", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*32*/	function /*{HRESULT}*/ GetImageStatus(var parameter0 /*{VARIANT_BOOL*}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_CALL_METHOD, "GetImageStatus", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*33*/	function /*{HRESULT}*/ SetImageStatus(parameter0 /*{VARIANT_BOOL}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_CALL_METHOD, "SetImageStatus", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*34*/	function /*{HRESULT}*/ GetPacketsTotal(var parameter0 /*{long*}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_CALL_METHOD, "GetPacketsTotal", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*35*/	function /*{HRESULT}*/ GetPacketsReceived(var parameter0 /*{long*}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_CALL_METHOD, "GetPacketsReceived", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*36*/	function /*{HRESULT}*/ GetPacketsOutOfOrder(var parameter0 /*{long*}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_CALL_METHOD, "GetPacketsOutOfOrder", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*37*/	function /*{HRESULT}*/ GetPacketsMissing(var parameter0 /*{long*}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_CALL_METHOD, "GetPacketsMissing", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*38*/	function /*{HRESULT}*/ GetPacketsEarly(var parameter0 /*{long*}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_CALL_METHOD, "GetPacketsEarly", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*39*/	function /*{HRESULT}*/ GetPacketsLate(var parameter0 /*{long*}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_CALL_METHOD, "GetPacketsLate", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*40*/	function /*{HRESULT}*/ GetBandwidthAverage(var parameter0 /*{long*}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_CALL_METHOD, "GetBandwidthAverage", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*41*/	function /*{HRESULT}*/ GetBandwidthCurrent(var parameter0 /*{long*}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_CALL_METHOD, "GetBandwidthCurrent", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*42*/	function /*{HRESULT}*/ DoPlayPause()  {
+		Send(MSG_AX_CALL_METHOD, "DoPlayPause", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*43*/	function /*{HRESULT}*/ DoStop()  {
+		Send(MSG_AX_CALL_METHOD, "DoStop", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*44*/	function /*{HRESULT}*/ DoNextItem()  {
+		Send(MSG_AX_CALL_METHOD, "DoNextItem", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*45*/	function /*{HRESULT}*/ DoPrevItem()  {
+		Send(MSG_AX_CALL_METHOD, "DoPrevItem", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*46*/	function /*{HRESULT}*/ CanPlayPause(var parameter0 /*{VARIANT_BOOL*}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_CALL_METHOD, "CanPlayPause", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*47*/	function /*{HRESULT}*/ CanStop(var parameter0 /*{VARIANT_BOOL*}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_CALL_METHOD, "CanStop", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*48*/	function /*{HRESULT}*/ HasNextItem(var parameter0 /*{VARIANT_BOOL*}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_CALL_METHOD, "HasNextItem", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*49*/	function /*{HRESULT}*/ HasPrevItem(var parameter0 /*{VARIANT_BOOL*}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_CALL_METHOD, "HasPrevItem", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*50*/	function /*{HRESULT}*/ HasNextEntry(var parameter0 /*{VARIANT_BOOL*}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_CALL_METHOD, "HasNextEntry", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*51*/	function /*{HRESULT}*/ HasPrevEntry(var parameter0 /*{VARIANT_BOOL*}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_CALL_METHOD, "HasPrevEntry", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*52*/	function /*{HRESULT}*/ DoNextEntry()  {
+		Send(MSG_AX_CALL_METHOD, "DoNextEntry", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*53*/	function /*{HRESULT}*/ DoPrevEntry()  {
+		Send(MSG_AX_CALL_METHOD, "DoPrevEntry", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*54*/	function /*{HRESULT}*/ AboutBox()  {
+		Send(MSG_AX_CALL_METHOD, "AboutBox", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*55*/	function /*{HRESULT}*/ EditPreferences()  {
+		Send(MSG_AX_CALL_METHOD, "EditPreferences", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*56*/	function /*{HRESULT}*/ HideShowStatistics()  {
+		Send(MSG_AX_CALL_METHOD, "HideShowStatistics", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*57*/	function /*{HRESULT}*/ IsStatisticsVisible(var parameter0 /*{VARIANT_BOOL*}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_CALL_METHOD, "IsStatisticsVisible", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*58*/	function /*{HRESULT}*/ DoGotoURL(parameter0 /*{BSTR}*/, parameter1 /*{BSTR}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter1);
+		Send(MSG_AX_CALL_METHOD, "DoGotoURL", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*59*/	function /*{HRESULT}*/ DoPlay()  {
+		Send(MSG_AX_CALL_METHOD, "DoPlay", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*60*/	function /*{HRESULT}*/ DoPause()  {
+		Send(MSG_AX_CALL_METHOD, "DoPause", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*61*/	function /*{HRESULT}*/ GetPosition(var parameter0 /*{long*}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_CALL_METHOD, "GetPosition", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*62*/	function /*{HRESULT}*/ GetPlayState(var parameter0 /*{long*}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_CALL_METHOD, "GetPlayState", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*63*/	function /*{HRESULT}*/ GetLength(var parameter0 /*{long*}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_CALL_METHOD, "GetLength", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*64*/	function /*{HRESULT}*/ GetTitle(var parameter0 /*{BSTR*}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_CALL_METHOD, "GetTitle", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*65*/	function /*{HRESULT}*/ GetAuthor(var parameter0 /*{BSTR*}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_CALL_METHOD, "GetAuthor", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*66*/	function /*{HRESULT}*/ GetCopyright(var parameter0 /*{BSTR*}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_CALL_METHOD, "GetCopyright", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*67*/	function /*{HRESULT}*/ GetClipWidth(var parameter0 /*{long*}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_CALL_METHOD, "GetClipWidth", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*68*/	function /*{HRESULT}*/ GetClipHeight(var parameter0 /*{long*}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_CALL_METHOD, "GetClipHeight", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*69*/	function /*{HRESULT}*/ CanPlay(var parameter0 /*{VARIANT_BOOL*}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_CALL_METHOD, "CanPlay", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*70*/	function /*{HRESULT}*/ CanPause(var parameter0 /*{VARIANT_BOOL*}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_CALL_METHOD, "CanPause", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*71*/	function /*{HRESULT}*/ SetPosition(parameter0 /*{long}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_CALL_METHOD, "SetPosition", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*72*/	function /*{HRESULT}*/ GetNumLoop(var parameter0 /*{long*}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_CALL_METHOD, "GetNumLoop", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*73*/	function /*{HRESULT}*/ SetNumLoop(parameter0 /*{long}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_CALL_METHOD, "SetNumLoop", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*74*/	function /*{HRESULT}*/ GetCenter(var parameter0 /*{VARIANT_BOOL*}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_CALL_METHOD, "GetCenter", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*75*/	function /*{HRESULT}*/ SetCenter(parameter0 /*{VARIANT_BOOL}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_CALL_METHOD, "SetCenter", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*76*/	function /*{HRESULT}*/ GetNoLogo(var parameter0 /*{VARIANT_BOOL*}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_CALL_METHOD, "GetNoLogo", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*77*/	function /*{HRESULT}*/ SetNoLogo(parameter0 /*{VARIANT_BOOL}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_CALL_METHOD, "SetNoLogo", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*78*/	function /*{HRESULT}*/ GetMaintainAspect(var parameter0 /*{VARIANT_BOOL*}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_CALL_METHOD, "GetMaintainAspect", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*79*/	function /*{HRESULT}*/ SetMaintainAspect(parameter0 /*{VARIANT_BOOL}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_CALL_METHOD, "SetMaintainAspect", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*80*/	function /*{HRESULT}*/ GetBackgroundColor(var parameter0 /*{BSTR*}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_CALL_METHOD, "GetBackgroundColor", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*81*/	function /*{HRESULT}*/ SetBackgroundColor(parameter0 /*{BSTR}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_CALL_METHOD, "SetBackgroundColor", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*82*/	function /*{HRESULT}*/ GetStereoState(var parameter0 /*{VARIANT_BOOL*}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_CALL_METHOD, "GetStereoState", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*83*/	function /*{HRESULT}*/ GetLiveState(var parameter0 /*{VARIANT_BOOL*}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_CALL_METHOD, "GetLiveState", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*84*/	function /*{HRESULT}*/ GetShowStatistics(var parameter0 /*{VARIANT_BOOL*}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_CALL_METHOD, "GetShowStatistics", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*85*/	function /*{HRESULT}*/ SetShowStatistics(parameter0 /*{VARIANT_BOOL}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_CALL_METHOD, "SetShowStatistics", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*86*/	function /*{HRESULT}*/ GetShowPreferences(var parameter0 /*{VARIANT_BOOL*}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_CALL_METHOD, "GetShowPreferences", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*87*/	function /*{HRESULT}*/ SetShowPreferences(parameter0 /*{VARIANT_BOOL}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_CALL_METHOD, "SetShowPreferences", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*88*/	function /*{HRESULT}*/ GetShowAbout(var parameter0 /*{VARIANT_BOOL*}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_CALL_METHOD, "GetShowAbout", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*89*/	function /*{HRESULT}*/ SetShowAbout(parameter0 /*{VARIANT_BOOL}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_CALL_METHOD, "SetShowAbout", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*90*/	function /*{HRESULT}*/ GetOriginalSize(var parameter0 /*{VARIANT_BOOL*}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_CALL_METHOD, "GetOriginalSize", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*91*/	function /*{HRESULT}*/ SetOriginalSize()  {
+		Send(MSG_AX_CALL_METHOD, "SetOriginalSize", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*92*/	function /*{HRESULT}*/ GetDoubleSize(var parameter0 /*{VARIANT_BOOL*}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_CALL_METHOD, "GetDoubleSize", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*93*/	function /*{HRESULT}*/ SetDoubleSize()  {
+		Send(MSG_AX_CALL_METHOD, "SetDoubleSize", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*94*/	function /*{HRESULT}*/ GetFullScreen(var parameter0 /*{VARIANT_BOOL*}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_CALL_METHOD, "GetFullScreen", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*95*/	function /*{HRESULT}*/ SetFullScreen()  {
+		Send(MSG_AX_CALL_METHOD, "SetFullScreen", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*96*/	function /*{HRESULT}*/ GetEnableContextMenu(var parameter0 /*{VARIANT_BOOL*}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_CALL_METHOD, "GetEnableContextMenu", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*97*/	function /*{HRESULT}*/ SetEnableContextMenu(parameter0 /*{VARIANT_BOOL}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_CALL_METHOD, "SetEnableContextMenu", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*98*/	function /*{HRESULT}*/ GetEnableOriginalSize(var parameter0 /*{VARIANT_BOOL*}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_CALL_METHOD, "GetEnableOriginalSize", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*99*/	function /*{HRESULT}*/ SetEnableOriginalSize(parameter0 /*{VARIANT_BOOL}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_CALL_METHOD, "SetEnableOriginalSize", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*100*/	function /*{HRESULT}*/ GetEnableDoubleSize(var parameter0 /*{VARIANT_BOOL*}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_CALL_METHOD, "GetEnableDoubleSize", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*101*/	function /*{HRESULT}*/ SetEnableDoubleSize(parameter0 /*{VARIANT_BOOL}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_CALL_METHOD, "SetEnableDoubleSize", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*102*/	function /*{HRESULT}*/ GetEnableFullScreen(var parameter0 /*{VARIANT_BOOL*}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_CALL_METHOD, "GetEnableFullScreen", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*103*/	function /*{HRESULT}*/ SetEnableFullScreen(parameter0 /*{VARIANT_BOOL}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_CALL_METHOD, "SetEnableFullScreen", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*104*/	function /*{HRESULT}*/ GetEnableMessageBox(var parameter0 /*{VARIANT_BOOL*}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_CALL_METHOD, "GetEnableMessageBox", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*105*/	function /*{HRESULT}*/ SetEnableMessageBox(parameter0 /*{VARIANT_BOOL}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_CALL_METHOD, "SetEnableMessageBox", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*106*/	function /*{HRESULT}*/ SetTitle(parameter0 /*{BSTR}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_CALL_METHOD, "SetTitle", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*107*/	function /*{HRESULT}*/ SetAuthor(parameter0 /*{BSTR}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_CALL_METHOD, "SetAuthor", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*108*/	function /*{HRESULT}*/ SetCopyright(parameter0 /*{BSTR}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_CALL_METHOD, "SetCopyright", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*109*/	function /*{HRESULT}*/ GetWantKeyboardEvents(var parameter0 /*{VARIANT_BOOL*}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_CALL_METHOD, "GetWantKeyboardEvents", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*110*/	function /*{HRESULT}*/ SetWantKeyboardEvents(parameter0 /*{VARIANT_BOOL}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_CALL_METHOD, "SetWantKeyboardEvents", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*111*/	function /*{HRESULT}*/ GetWantMouseEvents(var parameter0 /*{VARIANT_BOOL*}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_CALL_METHOD, "GetWantMouseEvents", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*112*/	function /*{HRESULT}*/ SetWantMouseEvents(parameter0 /*{VARIANT_BOOL}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_CALL_METHOD, "SetWantMouseEvents", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*113*/	function /*{HRESULT}*/ GetNumEntries(var parameter0 /*{short*}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_CALL_METHOD, "GetNumEntries", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*114*/	function /*{HRESULT}*/ GetCurrentEntry(var parameter0 /*{short*}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_CALL_METHOD, "GetCurrentEntry", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*115*/	function /*{HRESULT}*/ GetEntryTitle(parameter0 /*{short}*/, var parameter1 /*{BSTR*}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter1);
+		Send(MSG_AX_CALL_METHOD, "GetEntryTitle", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*116*/	function /*{HRESULT}*/ GetEntryAuthor(parameter0 /*{short}*/, var parameter1 /*{BSTR*}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter1);
+		Send(MSG_AX_CALL_METHOD, "GetEntryAuthor", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*117*/	function /*{HRESULT}*/ GetEntryCopyright(parameter0 /*{short}*/, var parameter1 /*{BSTR*}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter1);
+		Send(MSG_AX_CALL_METHOD, "GetEntryCopyright", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*118*/	function /*{HRESULT}*/ GetEntryAbstract(parameter0 /*{short}*/, var parameter1 /*{BSTR*}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter1);
+		Send(MSG_AX_CALL_METHOD, "GetEntryAbstract", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*119*/	function /*{HRESULT}*/ SetCanSeek(parameter0 /*{VARIANT_BOOL}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_CALL_METHOD, "SetCanSeek", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*120*/	function /*{HRESULT}*/ GetCanSeek(var parameter0 /*{VARIANT_BOOL*}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_CALL_METHOD, "GetCanSeek", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*121*/	function /*{HRESULT}*/ GetBufferingTimeElapsed(var parameter0 /*{long*}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_CALL_METHOD, "GetBufferingTimeElapsed", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*122*/	function /*{HRESULT}*/ GetBufferingTimeRemaining(var parameter0 /*{long*}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_CALL_METHOD, "GetBufferingTimeRemaining", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*123*/	function /*{HRESULT}*/ GetConnectionBandwidth(var parameter0 /*{long*}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_CALL_METHOD, "GetConnectionBandwidth", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*124*/	function /*{HRESULT}*/ GetPreferedLanguageString(var parameter0 /*{BSTR*}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_CALL_METHOD, "GetPreferedLanguageString", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*125*/	function /*{HRESULT}*/ GetPreferedLanguageID(var parameter0 /*{long*}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_CALL_METHOD, "GetPreferedLanguageID", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*126*/	function /*{HRESULT}*/ GetUserCountryID(var parameter0 /*{long*}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_CALL_METHOD, "GetUserCountryID", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*127*/	function /*{HRESULT}*/ GetNumSources(var parameter0 /*{short*}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_CALL_METHOD, "GetNumSources", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*128*/	function /*{HRESULT}*/ GetSourceTransport(parameter0 /*{short}*/, var parameter1 /*{BSTR*}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter1);
+		Send(MSG_AX_CALL_METHOD, "GetSourceTransport", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*129*/	function /*{HRESULT}*/ GetWantErrors(var parameter0 /*{VARIANT_BOOL*}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_CALL_METHOD, "GetWantErrors", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*130*/	function /*{HRESULT}*/ SetWantErrors(parameter0 /*{VARIANT_BOOL}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_CALL_METHOD, "SetWantErrors", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*131*/	function /*{HRESULT}*/ GetShuffle(var parameter0 /*{VARIANT_BOOL*}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_CALL_METHOD, "GetShuffle", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*132*/	function /*{HRESULT}*/ SetShuffle(parameter0 /*{VARIANT_BOOL}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_CALL_METHOD, "SetShuffle", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*133*/	function /*{HRESULT}*/ GetVersionInfo(var parameter0 /*{BSTR*}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_CALL_METHOD, "GetVersionInfo", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*134*/	function /*{HRESULT}*/ GetLastMessage(var parameter0 /*{BSTR*}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_CALL_METHOD, "GetLastMessage", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*135*/	function /*{HRESULT}*/ GetLastErrorSeverity(var parameter0 /*{long*}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_CALL_METHOD, "GetLastErrorSeverity", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*136*/	function /*{HRESULT}*/ GetLastErrorRMACode(var parameter0 /*{long*}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_CALL_METHOD, "GetLastErrorRMACode", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*137*/	function /*{HRESULT}*/ GetLastErrorUserCode(var parameter0 /*{long*}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_CALL_METHOD, "GetLastErrorUserCode", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*138*/	function /*{HRESULT}*/ GetLastErrorUserString(var parameter0 /*{BSTR*}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_CALL_METHOD, "GetLastErrorUserString", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*139*/	function /*{HRESULT}*/ GetLastErrorMoreInfoURL(var parameter0 /*{BSTR*}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_CALL_METHOD, "GetLastErrorMoreInfoURL", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*140*/	function /*{HRESULT}*/ SetPreFetch(parameter0 /*{VARIANT_BOOL}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_CALL_METHOD, "SetPreFetch", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*141*/	function /*{HRESULT}*/ GetPreFetch(var parameter0 /*{VARIANT_BOOL*}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_CALL_METHOD, "GetPreFetch", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*142*/	function /*{HRESULT}*/ SetRegion(parameter0 /*{BSTR}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_CALL_METHOD, "SetRegion", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*143*/	function /*{HRESULT}*/ GetRegion(var parameter0 /*{BSTR*}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_CALL_METHOD, "GetRegion", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*144*/	function /*{HRESULT}*/ GetIsPlus(var parameter0 /*{VARIANT_BOOL*}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_CALL_METHOD, "GetIsPlus", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*145*/	function /*{HRESULT}*/ GetConsoleEvents(var parameter0 /*{VARIANT_BOOL*}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_CALL_METHOD, "GetConsoleEvents", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*146*/	function /*{HRESULT}*/ SetConsoleEvents(parameter0 /*{VARIANT_BOOL}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_CALL_METHOD, "SetConsoleEvents", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*147*/	function /*{HRESULT}*/ GetDRMInfo(parameter0 /*{BSTR}*/, var parameter1 /*{BSTR*}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter1);
+		Send(MSG_AX_CALL_METHOD, "GetDRMInfo", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*148*/	function /*{HRESULT}*/ SetShowVideo(parameter0 /*{VARIANT_BOOL}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_CALL_METHOD, "SetShowVideo", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*149*/	function /*{HRESULT}*/ AddLicense(parameter0 /*{BSTR}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_CALL_METHOD, "AddLicense", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*150*/	function /*{HRESULT}*/ SetVideoOverlay(parameter0 /*{VARIANT_BOOL}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_CALL_METHOD, "SetVideoOverlay", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*151*/	function /*{HRESULT}*/ EnsureTranscryptionLicense(parameter0 /*{BSTR}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_CALL_METHOD, "EnsureTranscryptionLicense", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+//---------------- BEGIN OF EVENTS INTERFACE (info only) -----------------//
+	//Event syntax:void OnGotoURL(parameter0<BSTR>, parameter1<BSTR>) 
+	public property _OnOnGotoURL { get Get_OnOnGotoURL, set Set_OnOnGotoURL }
+	public function Get_OnOnGotoURL() {
+		return _AX_EVENTS[1];
+	}
+
+	public function Set_OnOnGotoURL(delegate deleg) {
+		_AX_EVENTS[1]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",1);
+	}
+
+	//Event syntax:void OnClipOpened(parameter0<BSTR>, parameter1<BSTR>) 
+	public property _OnOnClipOpened { get Get_OnOnClipOpened, set Set_OnOnClipOpened }
+	public function Get_OnOnClipOpened() {
+		return _AX_EVENTS[2];
+	}
+
+	public function Set_OnOnClipOpened(delegate deleg) {
+		_AX_EVENTS[2]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",2);
+	}
+
+	//Event syntax:void OnClipClosed() 
+	public property _OnOnClipClosed { get Get_OnOnClipClosed, set Set_OnOnClipClosed }
+	public function Get_OnOnClipClosed() {
+		return _AX_EVENTS[3];
+	}
+
+	public function Set_OnOnClipClosed(delegate deleg) {
+		_AX_EVENTS[3]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",3);
+	}
+
+	//Event syntax:void OnShowStatus(parameter0<BSTR>) 
+	public property _OnOnShowStatus { get Get_OnOnShowStatus, set Set_OnOnShowStatus }
+	public function Get_OnOnShowStatus() {
+		return _AX_EVENTS[4];
+	}
+
+	public function Set_OnOnShowStatus(delegate deleg) {
+		_AX_EVENTS[4]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",4);
+	}
+
+	//Event syntax:void OnPositionChange(parameter0<long>, parameter1<long>) 
+	public property _OnOnPositionChange { get Get_OnOnPositionChange, set Set_OnOnPositionChange }
+	public function Get_OnOnPositionChange() {
+		return _AX_EVENTS[5];
+	}
+
+	public function Set_OnOnPositionChange(delegate deleg) {
+		_AX_EVENTS[5]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",5);
+	}
+
+	//Event syntax:void OnVolumeChange(parameter0<short>) 
+	public property _OnOnVolumeChange { get Get_OnOnVolumeChange, set Set_OnOnVolumeChange }
+	public function Get_OnOnVolumeChange() {
+		return _AX_EVENTS[6];
+	}
+
+	public function Set_OnOnVolumeChange(delegate deleg) {
+		_AX_EVENTS[6]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",6);
+	}
+
+	//Event syntax:void OnMuteChange(parameter0<long>) 
+	public property _OnOnMuteChange { get Get_OnOnMuteChange, set Set_OnOnMuteChange }
+	public function Get_OnOnMuteChange() {
+		return _AX_EVENTS[7];
+	}
+
+	public function Set_OnOnMuteChange(delegate deleg) {
+		_AX_EVENTS[7]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",7);
+	}
+
+	//Event syntax:void OnTitleChange(parameter0<BSTR>) 
+	public property _OnOnTitleChange { get Get_OnOnTitleChange, set Set_OnOnTitleChange }
+	public function Get_OnOnTitleChange() {
+		return _AX_EVENTS[8];
+	}
+
+	public function Set_OnOnTitleChange(delegate deleg) {
+		_AX_EVENTS[8]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",8);
+	}
+
+	//Event syntax:void OnAuthorChange(parameter0<BSTR>) 
+	public property _OnOnAuthorChange { get Get_OnOnAuthorChange, set Set_OnOnAuthorChange }
+	public function Get_OnOnAuthorChange() {
+		return _AX_EVENTS[9];
+	}
+
+	public function Set_OnOnAuthorChange(delegate deleg) {
+		_AX_EVENTS[9]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",9);
+	}
+
+	//Event syntax:void OnCopyrightChange(parameter0<BSTR>) 
+	public property _OnOnCopyrightChange { get Get_OnOnCopyrightChange, set Set_OnOnCopyrightChange }
+	public function Get_OnOnCopyrightChange() {
+		return _AX_EVENTS[10];
+	}
+
+	public function Set_OnOnCopyrightChange(delegate deleg) {
+		_AX_EVENTS[10]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",10);
+	}
+
+	//Event syntax:void OnPlayStateChange(parameter0<long>) 
+	public property _OnOnPlayStateChange { get Get_OnOnPlayStateChange, set Set_OnOnPlayStateChange }
+	public function Get_OnOnPlayStateChange() {
+		return _AX_EVENTS[11];
+	}
+
+	public function Set_OnOnPlayStateChange(delegate deleg) {
+		_AX_EVENTS[11]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",11);
+	}
+
+	//Event syntax:void OnErrorMessage(parameter0<short>, parameter1<long>, parameter2<long>, parameter3<BSTR>, parameter4<BSTR>, parameter5<BSTR>) 
+	public property _OnOnErrorMessage { get Get_OnOnErrorMessage, set Set_OnOnErrorMessage }
+	public function Get_OnOnErrorMessage() {
+		return _AX_EVENTS[12];
+	}
+
+	public function Set_OnOnErrorMessage(delegate deleg) {
+		_AX_EVENTS[12]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",12);
+	}
+
+	//Event syntax:void OnStatsInfoChange(parameter0<BSTR>) 
+	public property _OnOnStatsInfoChange { get Get_OnOnStatsInfoChange, set Set_OnOnStatsInfoChange }
+	public function Get_OnOnStatsInfoChange() {
+		return _AX_EVENTS[13];
+	}
+
+	public function Set_OnOnStatsInfoChange(delegate deleg) {
+		_AX_EVENTS[13]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",13);
+	}
+
+	//Event syntax:void OnContacting(parameter0<BSTR>) 
+	public property _OnOnContacting { get Get_OnOnContacting, set Set_OnOnContacting }
+	public function Get_OnOnContacting() {
+		return _AX_EVENTS[14];
+	}
+
+	public function Set_OnOnContacting(delegate deleg) {
+		_AX_EVENTS[14]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",14);
+	}
+
+	//Event syntax:void OnPreSeek(parameter0<long>, parameter1<long>) 
+	public property _OnOnPreSeek { get Get_OnOnPreSeek, set Set_OnOnPreSeek }
+	public function Get_OnOnPreSeek() {
+		return _AX_EVENTS[15];
+	}
+
+	public function Set_OnOnPreSeek(delegate deleg) {
+		_AX_EVENTS[15]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",15);
+	}
+
+	//Event syntax:void OnPostSeek(parameter0<long>, parameter1<long>) 
+	public property _OnOnPostSeek { get Get_OnOnPostSeek, set Set_OnOnPostSeek }
+	public function Get_OnOnPostSeek() {
+		return _AX_EVENTS[16];
+	}
+
+	public function Set_OnOnPostSeek(delegate deleg) {
+		_AX_EVENTS[16]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",16);
+	}
+
+	//Event syntax:void OnPresentationOpened() 
+	public property _OnOnPresentationOpened { get Get_OnOnPresentationOpened, set Set_OnOnPresentationOpened }
+	public function Get_OnOnPresentationOpened() {
+		return _AX_EVENTS[17];
+	}
+
+	public function Set_OnOnPresentationOpened(delegate deleg) {
+		_AX_EVENTS[17]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",17);
+	}
+
+	//Event syntax:void OnPresentationClosed() 
+	public property _OnOnPresentationClosed { get Get_OnOnPresentationClosed, set Set_OnOnPresentationClosed }
+	public function Get_OnOnPresentationClosed() {
+		return _AX_EVENTS[18];
+	}
+
+	public function Set_OnOnPresentationClosed(delegate deleg) {
+		_AX_EVENTS[18]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",18);
+	}
+
+	//Event syntax:void OnPreFetchComplete() 
+	public property _OnOnPreFetchComplete { get Get_OnOnPreFetchComplete, set Set_OnOnPreFetchComplete }
+	public function Get_OnOnPreFetchComplete() {
+		return _AX_EVENTS[19];
+	}
+
+	public function Set_OnOnPreFetchComplete(delegate deleg) {
+		_AX_EVENTS[19]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",19);
+	}
+
+	//Event syntax:void OnLButtonDown(parameter0<int>, parameter1<int>, parameter2<int>) 
+	public property _OnOnLButtonDown { get Get_OnOnLButtonDown, set Set_OnOnLButtonDown }
+	public function Get_OnOnLButtonDown() {
+		return _AX_EVENTS[20];
+	}
+
+	public function Set_OnOnLButtonDown(delegate deleg) {
+		_AX_EVENTS[20]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",20);
+	}
+
+	//Event syntax:void OnLButtonUp(parameter0<int>, parameter1<int>, parameter2<int>) 
+	public property _OnOnLButtonUp { get Get_OnOnLButtonUp, set Set_OnOnLButtonUp }
+	public function Get_OnOnLButtonUp() {
+		return _AX_EVENTS[21];
+	}
+
+	public function Set_OnOnLButtonUp(delegate deleg) {
+		_AX_EVENTS[21]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",21);
+	}
+
+	//Event syntax:void OnRButtonDown(parameter0<int>, parameter1<int>, parameter2<int>) 
+	public property _OnOnRButtonDown { get Get_OnOnRButtonDown, set Set_OnOnRButtonDown }
+	public function Get_OnOnRButtonDown() {
+		return _AX_EVENTS[22];
+	}
+
+	public function Set_OnOnRButtonDown(delegate deleg) {
+		_AX_EVENTS[22]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",22);
+	}
+
+	//Event syntax:void OnRButtonUp(parameter0<int>, parameter1<int>, parameter2<int>) 
+	public property _OnOnRButtonUp { get Get_OnOnRButtonUp, set Set_OnOnRButtonUp }
+	public function Get_OnOnRButtonUp() {
+		return _AX_EVENTS[23];
+	}
+
+	public function Set_OnOnRButtonUp(delegate deleg) {
+		_AX_EVENTS[23]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",23);
+	}
+
+	//Event syntax:void OnMouseMove(parameter0<int>, parameter1<int>, parameter2<int>) 
+	public property _OnOnMouseMove { get Get_OnOnMouseMove, set Set_OnOnMouseMove }
+	public function Get_OnOnMouseMove() {
+		return _AX_EVENTS[24];
+	}
+
+	public function Set_OnOnMouseMove(delegate deleg) {
+		_AX_EVENTS[24]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",24);
+	}
+
+	//Event syntax:void OnKeyDown(parameter0<int>, parameter1<int>) 
+	public property _OnOnKeyDown { get Get_OnOnKeyDown, set Set_OnOnKeyDown }
+	public function Get_OnOnKeyDown() {
+		return _AX_EVENTS[25];
+	}
+
+	public function Set_OnOnKeyDown(delegate deleg) {
+		_AX_EVENTS[25]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",25);
+	}
+
+	//Event syntax:void OnKeyUp(parameter0<int>, parameter1<int>) 
+	public property _OnOnKeyUp { get Get_OnOnKeyUp, set Set_OnOnKeyUp }
+	public function Get_OnOnKeyUp() {
+		return _AX_EVENTS[26];
+	}
+
+	public function Set_OnOnKeyUp(delegate deleg) {
+		_AX_EVENTS[26]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",26);
+	}
+
+	//Event syntax:void OnKeyPress(parameter0<int>, parameter1<int>) 
+	public property _OnOnKeyPress { get Get_OnOnKeyPress, set Set_OnOnKeyPress }
+	public function Get_OnOnKeyPress() {
+		return _AX_EVENTS[27];
+	}
+
+	public function Set_OnOnKeyPress(delegate deleg) {
+		_AX_EVENTS[27]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",27);
+	}
+
+	//Event syntax:void OnBuffering(parameter0<long>, parameter1<long>) 
+	public property _OnOnBuffering { get Get_OnOnBuffering, set Set_OnOnBuffering }
+	public function Get_OnOnBuffering() {
+		return _AX_EVENTS[28];
+	}
+
+	public function Set_OnOnBuffering(delegate deleg) {
+		_AX_EVENTS[28]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",28);
+	}
+
+	//Event syntax:void OnStateChange(parameter0<long>, parameter1<long>) 
+	public property _OnOnStateChange { get Get_OnOnStateChange, set Set_OnOnStateChange }
+	public function Get_OnOnStateChange() {
+		return _AX_EVENTS[29];
+	}
+
+	public function Set_OnOnStateChange(delegate deleg) {
+		_AX_EVENTS[29]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",29);
+	}
+
+	//Event syntax:void OnRecordableStateChange(parameter0<VARIANT_BOOL>) 
+	public property _OnOnRecordableStateChange { get Get_OnOnRecordableStateChange, set Set_OnOnRecordableStateChange }
+	public function Get_OnOnRecordableStateChange() {
+		return _AX_EVENTS[30];
+	}
+
+	public function Set_OnOnRecordableStateChange(delegate deleg) {
+		_AX_EVENTS[30]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",30);
+	}
+
+//------------------ END OF EVENTS INTERFACE (info only) -----------------//
+
+	public property Source { get AX_GET_Source, set AX_SET_Source }
+	public property Console { get AX_GET_Console, set AX_SET_Console }
+	public property Controls { get AX_GET_Controls, set AX_SET_Controls }
+	public property NoLabels { get AX_GET_NoLabels, set AX_SET_NoLabels }
+	public property AutoStart { get AX_GET_AutoStart, set AX_SET_AutoStart }
+	public property AutoGotoURL { get AX_GET_AutoGotoURL, set AX_SET_AutoGotoURL }
+	public property WindowName { get AX_GET_WindowName, set AX_SET_WindowName }
+}

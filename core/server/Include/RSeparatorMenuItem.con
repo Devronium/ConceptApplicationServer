@@ -1,0 +1,11 @@
+include RItem.con
+include RemoteEvents.con
+include RemoteProperties.con
+include RemoteMessages.con
+include ClassID.con
+
+class RSeparatorMenuItem extends RItem {
+	public function RSeparatorMenuItem(OWNER) {
+		super(OWNER, CLASS_SEPARATORMENUITEM);
+	}
+}

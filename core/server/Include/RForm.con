@@ -1,0 +1,278 @@
+//include SingleContainer.con
+include RemoteContainer.con
+include ClassID.con
+
+define WP_NONE			0
+define WP_CENTER		1
+define WP_MOUSE			2
+define WP_CENTER_ALWAYS		3
+define WP_CENTER_ON_PARENT	4 
+
+
+define DECOR_ALL	1 << 0
+define DECOR_BORDER	1 << 1
+define DECOR_RESIZEH	1 << 2
+define DECOR_TITLE	1 << 3
+define DECOR_MENU	1 << 4
+define DECOR_MINIMIZE	1 << 5
+define DECOR_MAXIMIZE	1 << 6
+
+
+define WT_NORMAL	0
+define WT_DIALOG	1
+define WT_MENU		2
+define WT_TOOLBAR	3
+define WT_SPLASHSCREEN	4
+define WT_UTILITY	5
+define WT_DOCK		6
+define WT_DESKTOP	7
+
+
+define WINDOW_TOPLEVEL	0
+define WINDOW_POPUP	1
+
+class RForm extends RemoteContainer {
+
+	DEFINE_FIXED_CONTROL
+
+	private var CAPTION;
+	private var HEIGHT;
+	private var WIDTH;
+	private var RESIZABLE;
+	private var MODAL;
+	private var MAXIMIZED;
+	private var MINIMIZED;
+	private var FULLSCREEN;
+	private var TITLEBAR;
+	private var DEFAULTCONTROL;
+	private var BORDERWIDTH;
+	private var DECORATIONS;
+	private var SKIPTASKBAR;
+	private var KEEPABOVE;
+	private var KEEPBELOW;
+	private var SKIPPAGER;
+	private var ICON;
+	private var POSITION;
+	private var URGENT;
+	private var TYPE;
+	private var CLOSEABLE;
+	private var OPACITY=1.0;
+
+
+	public property Caption { get CAPTION, set SetCaption }
+	public property Resizable { get RESIZABLE, set SetResizable }
+	public property Modal { get MODAL, set SetModal }
+	public property Maximized { get MAXIMIZED, set SetMaximized }
+	public property Minimized { get MINIMIZED, set SetMinimized }
+	public property FullScreen { get FULLSCREEN, set SetFullscreen }
+	public property Titlebar { get TITLEBAR, set SetTitlebar }
+	public property DefaultControl { get DEFAULTCONTROL, set SetDefaultControl }
+	public property BorderWidth { get BORDERWIDTH, set SetBorderwidth }
+	public property Decorations { get DECORATIONS, set SetDecorations }
+	public property SkipTaskbar { get SKIPTASKBAR, set SetSkipTaskbar }
+	public property KeepAbove { get KEEPABOVE, set SetKeepAbove }
+	public property KeepBelow { get KEEPBELOW, set SetKeepBelow }
+	public property SkipPager { get SKIPPAGER, set SetSkipPager }
+	public property Icon { get ICON, set SetIcon }
+	public property Position { get POSITION, set SetPosition }
+	public property Urgent { get URGENT, set SetUrgent }
+	public property Type { get TYPE, set SetType }
+	public property Closeable { get CLOSEABLE, set SetCloseable }
+	public property Opacity { get OPACITY, set SetOpacity }
+	public property Screen { get GetScreen, set SetScreen }
+	
+	//----------- EVENTS ----------------------------------------------------//	
+	public property OnFrameEvent { get GetOnFrameEvent, set SetOnFrameEvent }
+	public function GetOnFrameEvent() {
+		return _GET_REMOTE_EVENT(EVENT_ON_FRAMEEVENT);
+	}
+
+	public function SetOnFrameEvent(var delegate deleg) {
+		return _MAP_REMOTE_EVENT(EVENT_ON_FRAMEEVENT, deleg);
+	}
+
+	public property OnSetFocus { get GetOnSetFocus, set SetOnSetFocus }
+	public function GetOnSetFocus() {
+		return _GET_REMOTE_EVENT(EVENT_ON_SETFOCUS);
+	}
+
+	public function SetOnSetFocus(var delegate deleg) {
+		return _MAP_REMOTE_EVENT(EVENT_ON_SETFOCUS, deleg);
+	}
+	//-----------------------------------------------------------------------//	
+
+	public function RForm(OWNER) {
+		var is_component_flag=GLOBALS()["framework.flags.component"];
+		var orphan_flag=GLOBALS()["framework.flags.orphan"];
+		GLOBALS()["framework.flags.orphan"]=false;
+
+		if ((is_component_flag) && (OWNER)) {
+			// emulate the form
+			super(OWNER, CLASS_EVENTBOX);
+		} else
+			super(OWNER, CLASS_FORM);
+		GLOBALS()["framework.flags.orphan"]=orphan_flag;
+	}
+
+	public function SetUrgent(argument) {
+		SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_URGENT,argument);
+		URGENT=argument;
+		return argument;
+	}
+
+	public function SetType(argument) {
+		SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_TYPE,argument);
+		TYPE=argument;
+		return argument;
+	}
+
+	public function SetPosition(argument) {
+		SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_POSITION,argument);
+		POSITION=argument;
+		return argument;
+	}
+
+	public function SetCaption(argument) {
+		SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_CAPTION,argument);
+		CAPTION=argument;
+		return argument;
+	}
+
+	public function SetResizable(argument) {
+		SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_RESIZABLE,argument);
+		RESIZABLE=argument;
+		return argument;
+	}
+
+	public function SetModal(argument) {
+		SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_MODAL,argument);
+		MODAL=argument;
+		return argument;
+	}
+
+	public function SetMaximized(argument) {
+		SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_MAXIMIZED,argument);
+		MAXIMIZED=argument;
+		return argument;
+	}
+
+	public function SetMinimized(argument) {
+		SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_MINIMIZED,argument);
+		MINIMIZED=argument;
+		return argument;
+	}
+
+	public function SetFullscreen(argument) {
+		SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_FULLSCREEN,argument);
+		FULLSCREEN=argument;
+		return argument;
+	}
+
+	public function SetTitlebar(argument) {
+		SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_TITLEBAR,argument);
+		TITLEBAR=argument;
+		return argument;
+	}
+
+	public function SetDefaultControl(argument) {
+		if (argument) {
+			SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_DEFAULTCONTROL,argument->RID);
+			DEFAULTCONTROL=&argument;
+		} else {
+			SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_DEFAULTCONTROL,0);
+			delete DEFAULTCONTROL;
+		}
+		return argument;
+	}
+
+	public function SetBorderwidth(argument) {
+		SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_BORDERWIDTH,argument);
+		BORDERWIDTH=argument;
+		return argument;
+	}
+
+	public function SetKeepAbove(argument) {
+		SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_KEEPABOVE,argument);
+		KEEPABOVE=argument;
+		return argument;
+	}
+
+	public function SetKeepBelow(argument) {
+		SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_KEEPBELOW,argument);
+		KEEPBELOW=argument;
+		return argument;
+	}
+
+	public function SetDecorations(argument) {
+		SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_DECORATIONS,argument);
+		DECORATIONS=argument;
+		return argument;
+	}
+
+	public function SetCloseable(argument) {
+		SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_CLOSEABLE,argument);
+		CLOSEABLE=argument;
+		return argument;
+	}
+
+	public function SetOpacity(argument) {
+		SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_OPACITY,argument);
+		OPACITY=argument;
+		return argument;
+	}
+
+	public function SetSkipTaskbar(argument) {
+		SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_SKIPTASKBAR,argument);
+		SKIPTASKBAR=argument;
+		return argument;
+	}
+
+	public function SetSkipPager(argument) {
+		SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_SKIPPAGER,argument);
+		SKIPPAGER=argument;
+		return argument;
+	}
+
+	public function SetIcon(ImageObject) {
+		if (typeof ImageObject!="class")
+			return 0;
+
+		SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_ICON,ImageObject.RID);
+		ICON=&ImageObject;
+		return ImageObject;
+	}
+
+	public function Maximize() {
+		Maximized=true;
+	}
+
+	public function Minimize() {
+		Minimized=true;
+	}
+
+	public function Restore() {
+		Minimized=false;
+		Maximized=false;
+	}
+
+	public function Raise() {
+		SendMessage(REMOTE_ID_STR,MSG_CUSTOM_MESSAGE1,"0","0");
+	}
+
+	public function BackgroundImage(object img) {
+		return SetProperty(P_BACKGROUNDIMAGE,img.RID);
+	}
+
+	public function SetScreen(number argument) {
+		this.SetProperty(P_SCREEN, argument);
+		return argument;
+	}
+
+	public function GetScreen() {
+		return value this.GetProperty(P_SCREEN);
+	}
+
+	public function BeCool(args="") {
+		this.SetProperty(P_COOLSYSTEMWINDOW, ""+args);
+	}
+}

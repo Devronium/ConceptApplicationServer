@@ -1,0 +1,103 @@
+include File.con
+
+define	OPENSSL_PATH	"openssl"
+
+class RSA {
+	static function GenerateKeys(var public_key, var private_key, var bits) {
+		var f=new File();
+		private_key="";
+		public_key="";
+		f.Name=OPENSSL_PATH+" genrsa $bits";
+		f.Mode="r";
+		if (f.POpen()) {
+			var result="";
+			do {
+				var size=f.Read(var buf, 0xFFFF);
+				if (size>0)
+					result+=buf;
+			} while (size>0);
+			private_key=result;
+			f.Close();
+
+			var tmp=_getenv("TMP");
+			if (!tmp)
+				tmp=_getenv("TEMP");
+			if (!tmp)
+				tmp="temp";
+			var fname="$tmp/pubout.txt";
+			f.Name=OPENSSL_PATH+" rsa -outform PEM -pubout -out \"$fname\"";
+			f.Mode="w";
+
+
+			if (f.POpen()) {
+				f.Write(private_key);
+				f.Close();
+				public_key=ReadFile(fname);
+			}
+			_unlink(fname);
+		} else
+			throw "Error executing openssl ('${f.Name}':${_errno()}";
+		return true;
+	}
+
+	static function Encrypt(key, var data, string temp_filename="rsa") {
+		var res="";
+		var tmp=_getenv("TMP");
+		if (!tmp)
+			tmp=_getenv("TEMP");
+		if (!tmp)
+			tmp="temp";
+
+		var infile="$tmp/$temp_filename.in.txt";
+		var outfile="$tmp/$temp_filename.out.txt";
+		var keyfile="$tmp/$temp_filename.pub.key.pem";
+		WriteFile(data, infile);
+		WriteFile(key, keyfile);
+		var cmd=OPENSSL_PATH+" rsautl -encrypt -inkey \"$keyfile\" -pubin -in \"$infile\" -out \"$outfile\"";
+		var resc=system(cmd);
+		if (resc==0) {
+			_unlink(keyfile);
+			res=ReadFile(outfile);
+			_unlink(infile);
+			_unlink(outfile);
+		} else {
+			_unlink(keyfile);
+			_unlink(infile);
+			_unlink(outfile);
+			throw "Error executing openssl ('$cmd': $resc/errno: ${_errno()}";
+		}
+		return res;
+		
+	}
+
+	static function Decrypt(key, var data, string temp_filename="rsad") {
+		var res="";
+		var tmp=_getenv("TMP");
+		if (!tmp)
+			tmp=_getenv("TEMP");
+		if (!tmp)
+			tmp="temp";
+
+		var infile="$tmp/$temp_filename.in.txt";
+		var outfile="$tmp/$temp_filename.out.txt";
+		var keyfile="$tmp/$temp_filename.priv.key.pem";
+		WriteFile(data, infile);
+		WriteFile(key, keyfile);
+
+		var cmd=OPENSSL_PATH+" rsautl -decrypt -inkey \"$keyfile\" -in \"$infile\" -out \"$outfile\"";
+		var resc=system(cmd);
+		if (resc==0) {
+			_unlink(keyfile);
+			res=ReadFile(outfile);
+			_unlink(infile);
+			_unlink(outfile);
+		} else {
+			_unlink(keyfile);
+			_unlink(infile);
+			_unlink(outfile);
+			throw "Error executing openssl ('$cmd': $resc/errno ${_errno()}";
+		}
+		return res;
+		
+	}
+}

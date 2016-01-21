@@ -1,0 +1,272 @@
+include XMLDocument.con
+import standard.C.io
+
+define STRING_PROPS	["Caption" => 1, "Title" => 1, "Text" => 1, "Tooltip" => 1, "Markup" => 1, "DragData" => 1, "TooltipMarkup" => 1, "PrimaryIconName" => 1, "SecondaryIconName" => 1, "SecondaryIconTooltip" => 1, "PrimaryIconTooltip" => 1, "Suggest" => 1, "MaskedChar" => 1, "CSS" => 1, "Filename" => 1, "AccelKey" => 1, "Stock" => 1, "StockID"=>1, "Icon" => 1, "Pattern" => 1, "Tooltips" => 1, "URI"=>1, "Content" => 1, "InputFormat" => 1, "CurrentPageLabel" => 1]
+
+class CodeGenerator {
+	static SafeString(str) {
+		str = StrReplace(str, "\\", "\\\\");
+		str = StrReplace(str, "\n", "\\n");
+		str = StrReplace(str, "'", "\\'");
+		return str;
+	}
+
+	static Recursive(node, level=0, var vars="", var extra="", parent="null", includes=null, strings=null) {
+		var res="";
+		var child_index = -1;
+		if (node) {
+			var child = node.Child;
+			while (child) {
+				var name = child.Name;
+				if (ToLower(name)!="text") {
+					var cname = child.GetProperty("Name");
+					if (cname) {
+						if (Pos(cname, ".")>0) {
+							var arr = StrSplit(cname, ".");
+							if (arr)
+								cname = arr[length arr - 1];
+						}
+						var fname = "this."+cname;
+						var s_needed = ToLower(child.GetProperty("Needed"));
+						var needed = true;
+
+						var properties = child.Properties;
+						var len = length properties;
+						var is_tab = false;
+						var parent_ref = parent;
+						var ignore_caption = false;
+
+						if (node.Name == "RNotebook") {
+							var val2 = child.GetProperty("IsTab");
+							if ((value val2) || (ToLower(val2)=="true")) {
+								is_tab  = true;
+								parent_ref = "null";
+							}
+						} else
+						if ((node.Name == "RImageMenuItem") && (child.Name == "RImage"))
+							parent_ref = "null";
+
+
+						if (!is_tab)
+							child_index++;
+
+						if (!level) {
+							res+="class $cname extends $name {\n";
+							res+="	public var S;\n\n";
+							vars = "";
+							extra = "";
+							fname = "this";
+						} else {
+							if ((s_needed=="0") || (s_needed=="false")) {
+								needed = false;
+								fname = cname;
+							}
+
+							if (node.Name == "RTable") {
+								var left = value child.GetProperty("LeftAttach");
+								var right = value child.GetProperty("RightAttach");
+								var top = value child.GetProperty("TopAttach");
+								var bottom = value child.GetProperty("BottomAttach");
+								var xoptions = child.GetProperty("XOptions");
+								var yoptions = child.GetProperty("YOptions");
+
+								if (right<=left)
+									right=left+1;
+								if (bottom<=top)
+									bottom=top+1;
+
+								if (!xoptions)
+									xoptions = "FILL_EXPAND";
+								if (!yoptions)
+									yoptions = "FILL_EXPAND";
+
+								var xpadding = value child.GetProperty("XPadding");
+								var ypadding = value child.GetProperty("YPadding");
+								extra += "		$parent.AttachOptions($left, $right, $top, $bottom, $xoptions, $yoptions, $xpadding, $ypadding);\n";
+							}
+							var extra_params="";
+							switch (name) {
+								case "RImageMenuItem":
+									var caption2 = child.GetProperty("Caption");
+									strings[caption2] = caption2;
+									extra_params += ", S << '${CodeGenerator::SafeString(caption2)}'";
+									var use_stock = ToLower(child.GetProperty("UseStock"));
+									if ((value use_stock) || (use_stock == "true"))
+										extra_params+=", true";
+									ignore_caption = true;
+									break;
+								case "RMenuItem":
+								case "RRadioMenuItem":
+								case "RCheckMenuItem":
+									caption2 = child.GetProperty("Caption");
+									strings[caption2] = caption2;
+									extra_params += ", S << '${CodeGenerator::SafeString(caption2)}'";
+									ignore_caption = true;
+									break;
+							}
+
+							if (needed) {
+								vars+="	public var $cname;\n";
+								extra += "		this.$cname = new $name($parent_ref$extra_params);\n";
+							} else {
+								extra += "		var $cname = new $name($parent_ref$extra_params);\n";
+							}
+							if (is_tab) {
+								if (needed)
+									extra += "		this.$cname.LinkIfNotLinked(this);\n";
+								else
+									extra += "		$cname.LinkIfNotLinked(this);\n";
+							}
+						}
+
+						var visible = false;
+						for (var i = 0; i<len; i++) {
+							var prop = properties[i];
+							if (prop) {
+								var val = child.GetProperty(prop);
+								switch (ToLower(prop)) {
+									case "name":
+									case "needed":
+										break;
+									case "items":
+										if ((name=="RComboBox") || (name=="REditComboBox")) {
+											extra += "		$fname.AddColumns(1);\n";
+											if (node.Name=="REditComboBox")
+												extra += "		$fname.TextColumn = 0;\n";
+											val = StrReplace(val, "\n", "\\n");
+											var val_arr=StrSplit(val, "\\n");
+											var len2 = length val_arr;
+											for (var j = 0; j<len2; j++) {
+												var s=trim(val_arr[j]);
+												if (s) {
+													strings[s] = s;
+													extra += "		$fname.AddItem(S << '${CodeGenerator::SafeString(s)}');\n";
+												}
+											}
+										}
+										break;
+									case "visible":
+										val = trim(val);
+										if ((val == "1") || (ToLower(val)=="true"))
+											visible = true;
+										break;
+									case "pagecaption":
+										if (node.Name == "RNotebook") {
+											//extra += "		if ($parent.Pages)\n";
+											//extra += "			$parent.Pages[length $parent.Pages - 1].Caption = S << '${CodeGenerator::SafeString(val)}';\n";
+											if (child_index>=0) {
+												strings[val] = val;
+												extra += "		$parent.Pages[$child_index].Caption = S << '${CodeGenerator::SafeString(val)}';\n";
+											}
+										}
+										break;
+									case "istab":
+										break;
+									case "leftattach":
+									case "rightattach":
+									case "topattach":
+									case "bottomattach":
+									case "xoptions":
+									case "yoptions":
+									case "xpadding":
+									case "ypadding":
+										if (node.Name=="RTable")
+											break;
+									case "icon":
+										extra += "		var __${cname}_icon = new RImage(null);\n";
+										extra += "		__${cname}_icon.Filename = 'res/${CodeGenerator::SafeString(val)}';\n";
+										extra += "		__${cname}_icon.Show();\n";
+										extra += "		$cname.$prop = __${cname}_icon;\n";
+										break;
+									default:
+										if ((ignore_caption) && ((prop=="Caption") || (prop=="UseStock")))
+											break;
+										if ((prop=="Stock") && (name=="RImage"))
+											extra += "		$fname.LoadResource('${CodeGenerator::SafeString(val)}');\n";
+										else
+										if ((prop=="Filename") && (name=="RImage"))
+											extra += "		$fname.Filename = 'res/${CodeGenerator::SafeString(val)}';\n";
+										else
+										if (prop[0]+prop[1]=="On") {
+											if (val)
+												extra += "		$fname.$prop = this.$val;\n";
+										} else
+										if (STRING_PROPS[prop]) {
+											strings[val] = val;
+											extra += "		$fname.$prop = S << '${CodeGenerator::SafeString(val)}';\n";
+										} else
+										if (Pos(prop, "Color")>0) {
+											val=ToLower(val);
+											if ((length val == 8) && (val[0]+val[1]=="ff")) {
+												val++;
+												val++;
+											}
+											if (val)
+												extra += "		$fname.$prop = 0x$val;\n";
+										} else
+										if (val)
+											extra += "		$fname.$prop = $val;\n";
+								}
+							}
+						}
+
+						res+=CodeGenerator::Recursive(child, level+1, vars, extra, fname, includes, strings);
+						if (visible)
+							extra += "		$fname.Show();\n";
+
+						if ((node.Name == "RImageMenuItem") && (child.Name == "RImage"))
+							extra += "		$parent.Image = $fname;\n";
+
+						if (is_tab) {
+							if (child_index>=0)
+								extra += "		$parent.Pages[$child_index].Header = $fname;\n";
+						}
+
+						includes[name]=name;
+
+						if (!level) {
+							if (vars)
+								res+=vars+"\n";
+							res+="	public $cname(Owner, __S) {\n";
+							res+="		CApplication::BeginNonCritical();\n";
+							res+="		super(Owner);\n";
+							res+="		this.S = __S;\n";
+							res+=extra;
+							res+="		CApplication::EndNonCritical();\n";
+							res+="	}\n";
+
+							res+="}\n\n";
+						}
+					}
+				}
+				child = child.Next;
+			}
+		}
+		return res;
+	}
+
+	static Do(var string data, var strings = null) {
+		var res="";
+		strings = new [];
+		var doc = new XMLDocument();
+		if (doc.LoadString(data)) {
+			var root = doc.Root;
+			if (ToLower(root.Name)=="ui") {
+				var[] includes;
+				var temp=CodeGenerator::Recursive(root, 0, "", "", "", includes, strings);
+
+				res+="include Application.con\n";
+				res+="include Lang.con\n";
+				var len = length includes;
+				for (var i=0;i<len;i++) {
+					var e = includes[i];
+					if (e)
+						res+="include $e.con\n";
+				}
+				res+="\n";
+				res+=temp;
+			}
+		}
+		return res;
+	}
+}

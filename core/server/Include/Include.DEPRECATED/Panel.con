@@ -1,0 +1,31 @@
+include 'Container.con'
+
+class ConceptPanel extends Container {
+	protected var _CAPTION;
+	protected var _EDGE;
+
+	public property Caption { set SetCaption, get _CAPTION }
+	public property Edge { set SetEdge, get _EDGE }
+
+	public function ConceptPanel(Owner) {
+		this->Container(Owner, CLASS_PANEL);		
+	}
+
+	public function SetCaption(x) {
+		if (typeof x==STRING_TYPE)
+			this->_CAPTION=x;
+		else
+		     	throw new ControlException(EXC_INVALID_ARGUMENT_TYPE, this);
+
+                SendMessage(this->Name, MSG_CHANGED, P_CAPTION, x);
+	}
+
+	public function SetEdge(x) {
+		if (typeof x==NUMERIC_TYPE)
+			this->_EDGE=x;
+		else
+		     	throw new ControlException(EXC_INVALID_ARGUMENT_TYPE, this);
+
+                SendMessage(this->Name, MSG_CHANGED, P_EDGE, x);
+	}
+}

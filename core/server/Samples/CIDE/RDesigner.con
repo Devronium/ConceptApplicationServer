@@ -1,0 +1,1284 @@
+include Application.con
+include RForm.con
+include RPropertiesBox.con
+include UIDesignerHelper.con
+include GladeConverter.con
+include Scintilla/Scintilla.con
+include PieChart.con
+
+class RFormContainer extends RScrolledWindow {
+	public var extraCSS="";
+	public var hoverCSS="";
+
+	RFormContainer(owner) {
+		super(owner);
+		extraCSS = "#rid"+RID+" { border-top: 5px solid darkgray; }";
+		hoverCSS = "border-top: 5px solid navy;";
+		CSS = extraCSS;
+	}
+}
+
+class RDesigner extends RHBox {
+	var UIList;
+	var Workspace;
+	var Code;
+	var Designer;
+	var Properties;
+	var Events;
+	var AppTree;
+	var FocusedObject;
+	var TempIcon;
+	var[] Icons;
+	var DefaultIcon;
+	var DeleteButton;
+	var[] Counts;
+	var[] ObjectTree;
+	var[] Objects;
+	var ControlID;
+	var glade;
+	var Progress;
+	var IgnoreNext;
+	var PMenu;
+	var copyMenu;
+	var IsCut = false;
+	var cutMenu;
+	var pasteMenu;
+	var Changed=false;
+	var ClipboardObject;
+	var h=75;
+	var s=0.1;
+	var v=0.99;
+	var[] UsedNames;
+	var ActivePath="./";
+
+	protected var ignore_names;
+
+	property Text { get GetText, set SetText }
+	property Editor { get Code }
+
+	public RDesigner(owner) {
+		super(owner);
+
+		var UIScroll = new RScrolledWindow(this);
+		UIScroll.HScrollPolicy = POLICY_NEVER;
+		UIScroll.VScrollPolicy = POLICY_ALWAYS;
+		UIScroll.Packing = PACK_SHRINK;
+		UIScroll.Width = 180;
+		UIScroll.Show();
+
+		UIList = new RTreeView(UIScroll);
+		//UIList.Packing = PACK_SHRINK;
+		UIList.Model = MODEL_LISTVIEW;
+		//UIList.MinWidth = 220;
+		UIList.LevelIndentation = 0;
+		UIList.HeadersVisible=false;
+		UIList.AddColumn("Icon", IMAGE_COLUMN);
+		UIList.AddColumn("Object");
+		//UIList.OnCursorChanged = this.UICursorChanged;
+		UIList.Dragable = true;
+		UIList.CSS="RTreeView::item {background: qlineargradient(spread:pad, x1:0, y1:0, x2:1, y2:0.273, stop:0 rgba(235, 225, 225, 255), stop:1 rgba(255, 255, 255, 255)); color: black; }";
+		UIList.Show();
+
+		PMenu = new RMenu(null);
+		PMenu.LinkIfNotLinked(this);
+
+		cutMenu = new RImageMenuItem(PMenu, "gtk-cut", true);
+		cutMenu.OnActivate = this.Cut;
+		cutMenu.Show();
+
+		copyMenu = new RImageMenuItem(PMenu, "gtk-copy", true);
+		copyMenu.OnActivate = this.Copy;
+		copyMenu.Show();
+
+		pasteMenu = new RImageMenuItem(PMenu, "gtk-paste", true);
+		pasteMenu.OnActivate = this.Paste;
+		pasteMenu.Enabled = false;
+		pasteMenu.Show();
+
+		Designer = new RNotebook(this);
+		Designer.ShowBorder = false;
+		Designer.OnSwitchPage = this.PageSwitch;
+		Designer.TabPos = POS_BOTTOM;
+
+		Progress = new RLabel(null);
+		Progress.UseMarkup = true;
+		Designer.ActiveControlEnd = Progress;
+		Progress.MinWidth = 100;
+
+		Workspace = new RNotebook(Designer);
+		Workspace.ShowBorder = false;
+		Workspace.DropSite = DROP_STRINGS;
+		Workspace.OnDragDataReceived = this.ObjectDropped;
+		Workspace.Show();
+
+		Designer.Pages[0].Caption="Design view";
+
+		Code = RScintilla::CreateGeneralEditor(Designer, SCLEX_XML, UIDesignerHelper::Keywords());        
+		for (var i=0;i<12;i++) {
+			Code.SciMessage(SCI_STYLESETFONT, i, "Lucida Console");
+			Code.SciMessage(SCI_STYLESETSIZE, i, 10);
+		}
+		Code.Show();
+
+		Designer.Pages[1].Caption="Editor view";
+
+		Designer.Show();
+
+		var vbox = new RVPaned(this);
+		vbox.Packing = PACK_SHRINK;
+		vbox.MinWidth=300;
+		vbox.Show();
+		TempIcon = new RImage(null);
+		DefaultIcon = new RImage(null);
+		DefaultIcon.Filename = "./res/rwindowgroup.png";
+
+		var scroll = new RScrolledWindow(vbox);
+		scroll.Show();
+
+		AppTree = new RTreeView(scroll);
+		AppTree.HeadersVisible = false;
+		AppTree.LevelIndentation = 10;
+		//AppTree.HoverSelection = true;
+		AppTree.Model = MODEL_TREEVIEW;
+		AppTree.AddColumn("Object");
+		AppTree.AddColumn("Icon", IMAGE_COLUMN);
+		AppTree.AddColumn("Type");
+		AppTree.Columns[0].FontDescription="bold";
+		AppTree.Columns[2].ForeColor=0xA0A0A0;
+		AppTree.TooltipColumn = 2;
+		AppTree.SearchColumn = 0;
+		AppTree.DropSite = DROP_STRINGS;
+		AppTree.OnRowActivated = this.RowActivated;
+		AppTree.OnDragDataReceived = this.ObjectTreeDropped;
+		AppTree.Columns.AddAttribute("background");
+		AppTree.Show();
+
+		var notebook = new RNotebook(vbox);
+		notebook.MinHeight = 300;
+		notebook.Show();
+
+		var hbox = new RHBox(null);
+		hbox.LinkIfNotLinked(this);
+		hbox.Show();
+
+		var search = new REdit(hbox);
+		search.Tooltip = "Search control";
+		search.Width = 120;
+		search.Packing = PACK_SHRINK;
+		search.SecondaryIconName = "gtk-find";
+		search.Show();
+		AppTree.SearchEntry = search;
+
+		var del = new RButton(hbox);
+		del.Packing = PACK_SHRINK;
+		notebook.ActiveControlEnd = hbox;
+		del.Tooltip = "Delete control";
+		del.ReliefStyle = RELIEF_NONE;
+		del.LoadStockIcon("gtk-delete");
+		del.OnClicked = this.OnDeleteObject;
+		del.Enabled = false;
+		del.Show();
+		hbox.Show();
+
+		DeleteButton = del;
+
+		Properties = new RPropertiesBox(notebook);
+		Properties.OnPropertyChanged = this.PropertyChanged;
+		Properties.CSS = "RTreeView { alternate-background-color: #EFEFC0; background-color: #FFFFE0;}";
+		Properties.DropSite = DROP_STRINGS;
+		Properties.OnDragDataReceived = this.ObjectTreeDropped;
+		Properties.Show();
+		notebook.Pages[0].Caption="Properties";
+
+		Events = new RPropertiesBox(notebook);
+		Events.OnPropertyChanged = this.EventChanged;
+		Events.CSS = Properties.CSS;
+		Events.DropSite = DROP_STRINGS;
+		Events.OnDragDataReceived = this.ObjectTreeDropped;
+		Events.Show();
+		notebook.Pages[1].Caption="Events";
+
+		vbox.Position=200;
+
+		glade = new GladeConverter();
+		glade.Init(CONVERSION_LIST, CONVERSION_PROP,CONVERSION_CONST,CONVERSION_EVENT);
+
+		UIDesignerHelper::LoadUI(this);
+	}
+
+	public ParseProperty(EventData) {
+		var pos = Pos(EventData, "=");
+		if (pos > 1) {
+			var prop = SubStr(EventData, 0, pos - 1);
+			if (prop)
+				return [prop, SubStr(EventData, pos, length EventData - pos)];
+		}
+		return [ ];
+	}
+
+	public EventChanged(Sender, EventData) {
+		var events = Sender.Properties;
+		if ((FocusedObject) && (FocusedObject.UserData)) {
+			var arr = this.ParseProperty(EventData);
+			if (arr) {
+				Changed = true;
+				FocusedObject.UserData["events"][arr[0]]=arr[1];
+			}
+		}
+	}
+
+	public GenerateName(string name) {
+		var len=length name;
+		var result="";
+		var ord_a=ord('a');
+		var ord_z=ord('z');
+		var ord_A=ord('A');
+		var ord_Z=ord('Z');
+		var ord_0=ord('0');
+		var ord_9=ord('9');
+		var ord_=ord('_');
+		var ordp=ord('.');
+
+		for (var i=0;i<len;i++) {
+			var c=name[i];
+			var ord_c=ord(c);
+			if (((ord_c>=ord_a) && (ord_c<=ord_z)) ||
+				((ord_c>=ord_A) && (ord_c<=ord_Z)) ||
+				((ord_c>=ord_0) && (ord_c<=ord_9)) ||
+				(ord_c==ord_) || (ord_c==ordp)) {
+					result+=c;
+			} else {
+				result+="_";
+			}
+		}
+		return result;
+	}
+
+	public PropertyChanged(Sender, EventData) {
+		var properties = Sender.Properties;
+		var prev_value = "";
+		if ((FocusedObject) && (FocusedObject.UserData)) {
+			var arr = this.ParseProperty(EventData);
+			if (arr) {
+				var name = arr[0];
+				var val = arr[1];
+				switch (name) {
+					case "Red":
+					case "Green":
+					case "Blue":
+					case "Alpha":
+						break;
+					default:
+						Changed = true;
+						if (IsSet(properties, name)) {
+							var type = properties[name][1];
+							if (type<0)
+								type *= -1;
+							if (type == PROP_COLOR)
+								val = NumberToHex(value val);
+						}
+						prev_value = FocusedObject.UserData["properties"][name];
+
+						if (name=="Name") {
+							var UsedNames = this.UsedNames;
+
+							var toplevel = this.TopLevel(FocusedObject);
+
+							if ((toplevel) && (toplevel.UserData))
+								UsedNames = toplevel.UserData["usednames"];
+
+							val = GenerateName(val);
+
+							if (prev_value)
+								UsedNames[prev_value] = false;
+
+							if (UsedNames[val]) {
+								CApplication::Message("Name '<b>$val</b>' is already in use.", "Invalid name", MESSAGE_WARNING);
+								return;
+							}
+
+							UsedNames[val] = true;
+
+							var path = this.GetObjectPath(FocusedObject);
+							var item = AppTree.Items[path];
+							if (item) {
+								item[0]=val;
+								AppTree.UpdateItem(path, item);
+							}
+						}
+
+						FocusedObject.UserData["properties"][name] = val;
+						this.UpdateProperties(FocusedObject, FocusedObject.Parent);
+
+						switch (name) {
+							case "IsTab":
+								ignore_names = true;
+								this.DeleteObject(FocusedObject);
+								FocusedObject = this.DuplicateObject(FocusedObject, FocusedObject.Parent, value val);
+								ignore_names = false;
+								break;
+							case "LeftAttach":
+							case "RightAttach":
+							case "TopAttach":
+							case "BottomAttach":
+							case "XOptions":
+							case "YOptions":
+							case "XPadding":
+							case "YPadding":
+								this.DeleteObject(FocusedObject);
+								ignore_names = true;
+								FocusedObject = this.DuplicateObject(FocusedObject, FocusedObject.Parent);
+								ignore_names = false;
+								break;
+						}
+				}
+			}
+		}
+	}
+
+	public LoadControl(string name, string title, parent="") {
+		var path = "./res/${StrReplace(ToLower(name), 'edit', 'entry')}.png";
+		if (FileExists(path)) {
+			var icon = Icons[name];
+			if (!icon) {
+				icon = new RImage(null);
+				icon.Filename = path;
+				Icons[name] = icon;
+			}
+			
+			UIList.AddItem([icon, title, name]);
+		} else {
+			Icons[name] = DefaultIcon;
+			UIList.AddItem([DefaultIcon, title, name]);
+		}
+	}
+
+	public RemoveFromParent(obj, id) {
+		var parent = obj.Parent;
+		if ((parent) && (parent.UserData)) {
+			var tree = parent.UserData["tree"];
+			var tree2 = new [];	
+			var len = length tree;
+			for (var i=0;i<len;i++) {
+				var e = tree[i];
+				if ((e) && (e[2]!=id))
+					tree2[length tree2] = e;
+			}
+			parent.UserData["tree"] = tree2;
+		} else
+		if (parent) {
+			tree = ObjectTree;
+			tree2 = new [];	
+			len = length tree;
+			for (i=0;i<len;i++) {
+				e = tree[i];
+				if ((e) && (e[2]!=id))
+					tree2[length tree2] = e;
+			}
+			ObjectTree = tree2;
+		}
+	}
+
+
+	public DeleteObject(obj) {
+		Changed = true;
+		if (obj==ClipboardObject)
+			this.ResetClipboard();
+		obj.Hide();
+		obj.DisposeObject();
+
+		var path = this.GetObjectPath(obj);
+
+		AppTree.DeleteItem(path);
+
+		if (obj.UserData) {
+			var UsedNames = this.UsedNames;
+
+			var toplevel = this.TopLevel(FocusedObject);
+			if ((toplevel) && (toplevel.UserData))
+				UsedNames = toplevel.UserData["usednames"];
+
+			var id = obj.UserData["id"];
+			var name = obj.UserData["properties"]["Name"];
+			if (name)
+				UsedNames[name] = false;
+			Objects[""+id] = null;
+			RemoveFromParent(obj, id);
+		}
+		obj = null;
+	}
+
+
+	public OnDeleteObject(Sender, EventData) {
+		if (FocusedObject) {
+			this.DeleteObject(FocusedObject);
+			FocusedObject = null;
+
+			Properties.Properties = [ ];
+			Events.Properties = [ ];
+			DeleteButton.Enabled = false;
+		}
+	}
+
+	public GetIndexForID(obj, id) {
+		if ((obj) && (obj.UserData)) {
+			var tree = obj.UserData["tree"];
+			var len = length tree;
+			for (var i=0;i<len;i++) {
+				var t=tree[i];
+				if ((t) && (t[2]==id))
+					return i;
+			}
+		} else {
+			len = length ObjectTree;
+			for (i=0;i<len;i++) {
+				var e = ObjectTree[i];
+				if ((e) && (id==e[2]))
+					return i;
+			}
+		}
+		return -1;
+	}
+
+	public GetObjectPath(obj) {	
+		var res="";
+
+		if (obj.UserData) {
+			var id = obj.UserData["id"];
+			var index = this.GetIndexForID(obj.Parent, id);
+			if (index<0)
+				return "";
+
+			var parent = obj.Parent;
+			if (parent) {
+				res = this.GetObjectPath(parent);
+				if (res)
+					res+=":";
+			}
+			res+=index;
+		}
+		return res;
+	}
+
+	public GetOptions(val) {
+		var res=0;
+		val = "" + val;
+		if (Pos(val, "EXPAND")>0)
+			res|=EXPAND;
+		if (Pos(val, "SHRINK")>0)
+			res|=SHRINK;
+		if (Pos(val, "FILL")>0)
+			res|=FILL;
+		return res;
+	}
+
+	public GetBool(val) {
+		val=ToLower(""+val);
+		if ((!val) || (val=="0") || (val=="false"))
+			return false;
+		return true;
+	}
+
+	public AddObject(parent, type, properties = null, events = null, is_tab = false, expand = true) {
+		var is_menu = false;
+
+		var UsedNames = this.UsedNames;
+
+		var toplevel = this.TopLevel(parent);
+		if ((toplevel) && (toplevel.UserData))
+			UsedNames = toplevel.UserData["usednames"];
+
+		switch (type) {
+			case "RCheckMenuItem":
+			case "RMenuItem":
+			case "RImageMenuItem":
+			case "RSeparatorMenuItem":
+			case "RTearoffMenuItem":
+			case "RMenu":
+				is_menu = true;
+				var pcls = classof parent;
+				if ((pcls!="RMenuBar") && (pcls!="RMenu") && (Pos(pcls, "MenuItem") <= 0) && (pcls!="RMenuToolButton"))
+					return;
+				break;
+			case "RRadioToolButton":
+			case "RToolButton":
+			case "RToolSeparator":
+			case "RToggleToolButton":
+			case "RMenuToolButton":
+				if (classof parent != "RToolbar")
+					return;
+				break;
+		}
+		if (HasMember(parent, "SingleContainer")) {
+			if (parent.Child) {
+				if (parent.Parent)
+					return this.AddObject(parent.Parent, type, properties, events, is_tab, expand);
+
+				CApplication::MessageBox("An $type object cannot be added to ${classof parent}, because is derived from SingleContainer and can have only one child.");
+				return;
+			}	
+		}
+		if (HasMember(parent, "DoubleContainer")) {
+			if ((parent.Child1) && (parent.Child2)) {
+
+				if (parent.Parent)
+					return this.AddObject(parent.Parent, type, properties, events, is_tab, expand);
+
+				CApplication::MessageBox("An $type object cannot be added to ${classof parent}, because is derived from DoubleContainer and can have only two children.");
+				return;
+			}
+		} else
+		if ((classof parent == "RScrolledWindow") || (classof parent == "RViewPort")) {
+			if (length parent.Childs) {
+				if (parent.Parent)
+					return this.AddObject(parent.Parent, type, properties, events, is_tab, expand);
+
+				CApplication::MessageBox("An $type object cannot be added to ${classof parent}, because it can have only one child.");
+				return;
+			}	
+		}
+
+		if (!properties) {
+			properties = new [];
+
+			if (type != "RForm")
+				properties["Visible"]="1";
+		}
+
+		if (!events)
+			events = new [];
+
+		var name=type;
+		if (name[0]=="R")
+			name++;
+		name=ToLower(name);
+		var objname;
+		if (properties) {
+			objname=properties["Name"];
+			if ((objname) && (!ignore_names)) {
+				var oidx=1;
+				var origname = objname;
+
+				while (UsedNames[objname]) {
+					objname=origname+oidx;
+					oidx++;
+				}
+				UsedNames[objname] = true;
+			}
+		}
+
+		if (!objname) {
+			Counts[type]++;
+			var idx = Counts[type];
+
+			objname=name+idx;
+
+			while (UsedNames[objname]) {
+				idx++;
+				objname=name+idx;
+			}
+			UsedNames[objname] = true;
+		}
+
+		if (classof parent == "RNotebook") {
+			if (is_tab) {
+				properties["IsTab"] = "True";
+			} else
+			if (IsSet(properties, "IsTab"))
+				is_tab = this.GetBool(properties["IsTab"]);
+		}
+
+		if (classof parent == "RTable") {
+			//if ((IsSet(properties, "LeftAttach")) || (IsSet(properties, "TopAttach")) || (IsSet(properties, "RightAttach")) || (IsSet(properties, "BottomAttach"))) {
+				var left = value properties["LeftAttach"];
+				var right = value properties["RightAttach"];
+				var top = value properties["TopAttach"];
+				var bottom = value properties["BottomAttach"];
+
+				var xoptions = this.GetOptions(properties["XOptions"]);
+				var yoptions = this.GetOptions(properties["YOptions"]);
+
+				var xpadding = value properties["XPadding"];
+				var ypadding = value properties["YPadding"];
+
+				if (right<=left)
+					right=left+1;
+				if (bottom<=top)
+					bottom=top+1;
+
+				if (!xoptions)
+					xoptions = SHRINK | FILL;
+				if (!yoptions)
+					yoptions = SHRINK | FILL;
+
+
+				parent.AttachOptions(left, right, top, bottom, xoptions, yoptions, xpadding, ypadding);
+			//} else
+			//	parent.AttachOptions(0, 1, 0, 1, SHRINK | FILL, SHRINK | FILL, 0, 0);
+		}
+
+		try {
+			if (is_tab) {
+				var obj = UIDesignerHelper::Create(this, type, NULL, objname, properties);
+				if (obj) {
+					obj.LinkIfNotLinked(parent);
+					if (length parent.Pages > 0)
+						parent.Pages[length parent.Pages - 1].Header = obj;
+				}
+			} else
+				obj = UIDesignerHelper::Create(this, type, parent, objname, properties);
+			if (!obj)
+				return;
+			Changed = true;
+		} catch (var exc) {
+			echo "$objname: $exc\n";
+		}
+
+		if (HasMember(obj, "Add")) {
+			obj.DropSite = DROP_STRINGS;
+			obj.OnDragDataReceived = this.ObjectDropped;
+		}
+		if ((classof obj == "RCalendar") || (classof obj == "RPropertiesBox"))
+			obj.OnButtonPress = this.OnFocused;
+		else
+		if ((Pos(classof obj, "MenuItem")>0) && (classof obj != "RSeparatorMenuItem"))
+			obj.OnActivate = this.OnFocused;
+		else
+		if (Pos(classof obj, "ToolButton")>0)
+			obj.OnClicked = this.OnFocused;
+		else
+			obj.OnFocusIn = this.OnFocused;
+
+
+		obj.UserData = new [];
+		obj.UserData["properties"] = properties;
+		obj.UserData["events"] = events;
+		obj.UserData["tree"] = new [];
+		obj.UserData["properties"]["Name"] = objname;
+
+		this.UpdateProperties(obj, parent);
+
+		obj.UserData["id"] = ++ControlID;
+
+		//if ((classof parent != "RScrolledWindow") && (classof parent != "RViewPort") && (classof obj!="RLabel") && (classof obj!="RFormContainer")) {
+		if (classof parent == "RImage") {
+			obj.MinWidth = 22;
+			obj.MinHeight = 22;
+		}
+
+		if (type=="RForm")
+			obj.CSS="#rid"+obj.RID+":hover { border: 2px solid blue;"+obj.hoverCSS+"}"+obj.extraCSS;
+		else
+			obj.CSS="#rid"+obj.RID+":hover { border: 2px solid blue;}";
+		obj.Show();
+
+		if (parent.UserData) {
+			var arr = parent.UserData["tree"];
+			arr[length arr] = [objname, type, obj.UserData["id"]];
+			var path = this.GetObjectPath(parent);
+			var pitem=AppTree.Items[path];
+			var color="";
+			if (pitem)
+				color=pitem[4];
+			AppTree.AddChild(path, [objname, Icons[type], type, color, color]);
+			if (expand)
+				AppTree.Expand(this.GetObjectPath(parent));
+		} else {
+			obj.UserData["usednames"] = [objname => true];//UsedNames;
+
+			ObjectTree[length ObjectTree] = [objname, type, obj.UserData["id"]];
+			if (h>=360)
+				h-=360;
+			color = PieChart::HSVtoRGB(h, s, v);
+			var color_child = PieChart::HSVtoRGB(h, s/2, v-0.03);
+			AppTree.AddItem([objname, Icons[type], type, color, color_child]);
+			h+=75;
+
+			if (IsSet(properties, "Caption"))
+				parent.Pages[length parent.Pages - 1].Caption = properties["Caption"];
+			else
+				parent.Pages[length parent.Pages - 1].Caption = objname;
+		}
+		Objects[""+obj.UserData["id"]] = obj;
+
+		obj.PopupMenu = PMenu;
+		return obj;
+	}
+
+	public Color(val) {
+		val = trim(""+val);
+		if (val[0]=="#")
+			val++;
+		else
+		if (val[0]+val[1]=="0x");
+			val++;
+		return HexToNumber(val);
+	}
+
+
+	public UpdateProperties(obj, parent) {
+		var properties = obj.UserData["properties"];
+		if (!properties)
+			return;
+
+		if (classof parent != "RTable") {
+			if ((parent.UserData) && (classof parent == "RNotebook")) {
+				if (IsSet(properties, "PageCaption"))
+					parent.Pages[length parent.Pages - 1].Caption = properties["PageCaption"];
+			}
+			if (IsSet(properties, "Packing")) {
+				switch (properties["Packing"]) {
+					case "PACK_EXPAND_WIDGET":
+						obj.Packing = PACK_EXPAND_WIDGET;
+						break;
+					case "PACK_EXPAND_PADDING":
+						obj.Packing = PACK_EXPAND_PADDING;
+						break;
+					case "PACK_SHRINK":
+						obj.Packing = PACK_SHRINK;
+						break;
+				}
+			}
+		}
+		if ((IsSet(properties, "Orientation")) && (HasMember(obj, "Orientation"))) {
+			switch (properties["Orientation"]) {
+				case "ORIENTATION_HORIZONTAL":
+					obj.Orientation = ORIENTATION_HORIZONTAL;
+					break;
+				case "ORIENTATION_VERTICAL":
+					obj.Orientation = ORIENTATION_VERTICAL;
+					break;
+			}
+		}
+		if ((IsSet(properties, "TabPos")) && (HasMember(obj, "TabPos"))) {
+			switch (properties["TabPos"]) {
+				case "POS_LEFT":
+					obj.TabPos = POS_LEFT;
+					break;
+				case "POS_RIGHT":
+					obj.TabPos = POS_RIGHT;
+					break;
+				case "POS_TOP":
+					obj.TabPos = POS_TOP;
+					break;
+				case "POS_BOTTOM":
+					obj.TabPos = POS_BOTTOM;
+					break;
+			}
+		}
+		if ((IsSet(properties, "Style")) && (HasMember(obj, "Style"))) {
+			switch (properties["Style"]) {
+				case "TOOLBAR_ICONS":
+					obj.Style = TOOLBAR_ICONS;
+					break;
+				case "TOOLBAR_TEXT":
+					obj.Style = TOOLBAR_TEXT;
+					break;
+				case "TOOLBAR_BOTH":
+					obj.Style = TOOLBAR_BOTH;
+					break;
+				case "TOOLBAR_BOTH_HORIZ":
+					obj.Style = TOOLBAR_BOTH_HORIZ;
+					break;
+			}
+		}
+		if ((IsSet(properties, "Expanded")) && (HasMember(obj, "Expanded")))
+			obj.Expanded = this.GetBool(properties["Expanded"]);
+		if ((IsSet(properties, "UseMarkup")) && (HasMember(obj, "UseMarkup")))
+			obj.UseMarkup=this.GetBool(properties["UseMarkup"]);
+		if ((IsSet(properties, "UseStock")) && (HasMember(obj, "UseStock")))
+			obj.UseStock=this.GetBool(properties["UseStock"]);
+		if ((IsSet(properties, "IsImportant")) && (HasMember(obj, "IsImportant")))
+			obj.IsImportant=this.GetBool(properties["IsImportant"]);
+		if ((IsSet(properties, "Stock")) && (HasMember(obj, "LoadResource")))
+			obj.LoadResource(properties["Stock"]);
+		if ((IsSet(properties, "StockID")) && (HasMember(obj, "StockID")))
+			obj.StockID=properties["StockID"];
+		if ((IsSet(properties, "Icon")) && (HasMember(obj, "LoadIcon")))
+			obj.LoadIcon(this.ActivePath+"res/"+properties["Icon"]);
+		if ((IsSet(properties, "Filename")) && (HasMember(obj, "Filename")))
+			obj.Filename=this.ActivePath+"res/"+properties["Filename"];
+
+		if ((IsSet(properties, "Caption")) && (HasMember(obj, "Caption")))
+			obj.Caption=properties["Caption"];
+		else
+		if ((IsSet(properties, "Text")) && (HasMember(obj, "Text")))
+			obj.Text=properties["Text"];
+
+		if ((IsSet(properties, "Angle")) && (HasMember(obj, "Angle")))
+			obj.Angle=value (""+properties["Angle"]);
+
+		if ((IsSet(properties, "CSS")) && (HasMember(obj, "CSS")))
+			obj.CSS=properties["CSS"];
+
+		if ((classof parent == "RButton") && (parent.Caption)) {
+			if (!IsSet(parent.UserData["properties"], "Caption"))
+				parent.Caption="";
+		}
+
+		if ((IsSet(properties, "BgColor")) && (HasMember(obj, "BgColor")))
+			obj.BgColor=this.Color(properties["BgColor"]);
+		if ((IsSet(properties, "FgColor")) && (HasMember(obj, "FgColor")))
+			obj.FgColor=this.Color(properties["FgColor"]);
+		if ((IsSet(properties, "InactiveBgColor")) && (HasMember(obj, "InactiveBgColor")))
+			obj.InactiveBgColor=this.Color(properties["InactiveBgColor"]);
+		if ((IsSet(properties, "InactiveFgColor")) && (HasMember(obj, "InactiveFgColor")))
+			obj.FgColor=this.Color(properties["InactiveFgColor"]);
+		if ((IsSet(properties, "SelectedBgColor")) && (HasMember(obj, "SelectedBgColor")))
+			obj.SelectedBgColor=this.Color(properties["SelectedBgColor"]);
+		if ((IsSet(properties, "SelectedFgColor")) && (HasMember(obj, "SelectedFgColor")))
+			obj.SelectedFgColor=this.Color(properties["SelectedFgColor"]);
+
+		if ((IsSet(properties, "XAlign")) && (HasMember(obj, "XAlign")))
+			obj.XAlign=value properties["XAlign"];
+		if ((IsSet(properties, "YAlign")) && (HasMember(obj, "YAlign")))
+			obj.YAlign=value properties["YAlign"];
+
+		if ((IsSet(properties, "XPadding")) && (HasMember(obj, "XPadding")))
+			obj.XPadding=value properties["XPadding"];
+		if ((IsSet(properties, "YPadding")) && (HasMember(obj, "YPadding")))
+			obj.YPadding=value properties["YPadding"];
+		if ((IsSet(properties, "Left")) && (HasMember(obj, "Left")))
+			obj.Left=value properties["Left"];
+		if ((IsSet(properties, "Top")) && (HasMember(obj, "Top")))
+			obj.Top=value properties["Top"];
+		if ((IsSet(properties, "MinWidth")) && (HasMember(obj, "MinWidth")))
+			obj.MinWidth=value properties["MinWidth"];
+		if ((IsSet(properties, "MinHeight")) && (HasMember(obj, "MinHeight")))
+			obj.MinHeight=value properties["MinHeight"];
+		if ((IsSet(properties, "Width")) && (HasMember(obj, "Width")))
+			obj.Width=value properties["Width"];
+		if ((IsSet(properties, "Height")) && (HasMember(obj, "Height")))
+			obj.Height=value properties["Height"];
+		if ((IsSet(properties, "Checked")) && (HasMember(obj, "Checked")))
+			obj.Checked=GetBool(properties["Checked"]);
+		if ((IsSet(properties, "Content")) && (HasMember(obj, "Content")))
+			obj.Content=properties["Content"];
+		if ((IsSet(properties, "URI")) && (HasMember(obj, "URI")))
+			obj.URI=properties["URI"];
+		if ((IsSet(properties, "Spacing")) && (HasMember(obj, "Spacing")))
+			obj.Spacing=value properties["Spacing"];
+		if ((IsSet(properties, "HTextAlign")) && (HasMember(obj, "HTextAlign")))
+			obj.HTextAlign=value properties["HTextAlign"];
+		if ((IsSet(properties, "VTextAlign")) && (HasMember(obj, "VTextAlign")))
+			obj.VTextAlign=value properties["VTextAlign"];
+		if ((IsSet(properties, "Value")) && (HasMember(obj, "Value")))
+			obj.Value=value properties["Value"];
+		if ((IsSet(properties, "Min")) && (HasMember(obj, "Min")))
+			obj.Min=value properties["Min"];
+		if ((IsSet(properties, "Max")) && (HasMember(obj, "Max")))
+			obj.Max=value properties["Max"];
+		if ((IsSet(properties, "Position")) && (HasMember(obj, "Position")))
+			obj.Position=value properties["Position"];
+		if ((IsSet(properties, "ColSpacing")) && (HasMember(obj, "ColSpacing")))
+			obj.ColSpacing=value properties["ColSpacing"];
+		if ((IsSet(properties, "RowSpacing")) && (HasMember(obj, "RowSpacing")))
+			obj.RowSpacing=value properties["RowSpacing"];
+		if ((IsSet(properties, "ShowArrow")) && (HasMember(obj, "ShowArrow")))
+			obj.ShowArrow=GetBool(properties["ShowArrow"]);
+		if ((IsSet(properties, "Year")) && (HasMember(obj, "Year")))
+			obj.Year=value properties["Year"];
+		if ((IsSet(properties, "Month")) && (HasMember(obj, "Month")))
+			obj.Month=value properties["Month"];
+		if ((IsSet(properties, "Day")) && (HasMember(obj, "Day")))
+			obj.Day=value properties["Day"];
+		if ((IsSet(properties, "ShowTabs")) && (HasMember(obj, "ShowTabs")))
+			obj.ShowTabs=GetBool(properties["ShowTabs"]);
+		if ((IsSet(properties, "PageIndex")) && (HasMember(obj, "PageIndex")))
+			obj.PageIndex=value properties["PageIndex"];
+
+		if (classof obj != "RFormContainer") {
+			if ((IsSet(properties, "Visible")) && (HasMember(obj, "Visible")))
+				obj.Visible=GetBool(properties["Visible"]);
+		}
+	}
+
+	public ObjectDropped(Sender, EventData) {
+		var target=value EventData;
+
+		var item = UIList.Items[target];
+		if (!item)
+			return;
+
+		this.AddObject(Sender, item[2]);
+	}
+
+	public OnFocused(Sender, EventData) {
+		if (FocusedObject) {
+			if (classof FocusedObject == "RFormContainer")
+				FocusedObject.CSS="#rid"+FocusedObject.RID+":hover { border: 2px solid blue;"+FocusedObject.hoverCSS+"}"+FocusedObject.extraCSS;
+			else
+				FocusedObject.CSS="#rid"+FocusedObject.RID+":hover { border: 2px solid blue;}";
+		}
+
+		DeleteButton.Enabled = true;
+		if (classof Sender=="RCalendar")
+			Sender.CSS="border: 3px dashed red;";
+		else
+		if (classof Sender=="RFormContainer")
+			Sender.CSS="#rid"+Sender.RID+" {border: 2px dashed red;}"+Sender.extraCSS;
+		else
+			Sender.CSS="#rid"+Sender.RID+" {border: 2px dashed red;}";
+		FocusedObject=Sender;
+		if ((Sender.Parent) && (Sender.Parent.UserData))
+			Properties.Properties = UIDesignerHelper::Properties(classof Sender, Sender.UserData["properties"], classof Sender.Parent);
+		else
+			Properties.Properties = UIDesignerHelper::Properties(classof Sender, Sender.UserData["properties"]);
+
+		Events.Properties = UIDesignerHelper::Events(classof Sender, Sender.UserData["events"]);
+		AppTree.RowIndex = this.GetObjectPath(FocusedObject);
+		//IgnoreNext = true;
+	}
+
+	public EnsureVisible(obj) {
+		var parent = obj.Parent;
+		while (parent)  {
+			if (classof parent=="RNotebook") {
+				var children = parent.Pages;
+				var len = length children;
+
+				for (var i = 0; i<len; i++) {
+					var page = children[i];
+					if (page) {
+						if ((obj==page.Page) || (obj==page.Header)) {
+							parent.PageIndex = i;
+							break;
+						}
+					}
+				}
+			} else
+			if (classof parent=="RExpander")
+				parent.Expanded = true;
+
+			if (!parent.UserData)
+				return;
+
+			obj = parent;
+			parent = parent.Parent;
+		}
+	}
+
+	public TopLevel(obj) {
+		var parent = obj.Parent;
+		while (parent)  {
+			if (!parent.UserData)
+				return obj;
+
+			obj = parent;
+			parent = parent.Parent;
+		}
+		return null;
+	}
+
+
+	public RowActivated(Sender, EventData) {
+		if ((value EventData<0) || (IgnoreNext)) {
+			IgnoreNext = false;
+			return;
+		}
+
+		var arr=StrNumberSplit(EventData, ":");
+		var len=length arr;
+		var t_arr=ObjectTree;
+		var p;
+		for (var i=0;i<len;i++) {
+			var e=arr[i];
+			var e2=t_arr[e];
+			if (e2) {
+				p = Objects[""+e2[2]];
+				if (p)
+					t_arr=p.UserData["tree"];
+				else
+					break;
+			} else
+				break;
+		}
+		if (p) {
+			this.EnsureVisible(p);
+			this.OnFocused(p, "");
+		}
+	}
+
+	public ObjectTreeDropped(Sender, EventData) {
+		if (FocusedObject)
+			this.ObjectDropped(FocusedObject, EventData);
+	}
+
+	public Duplicate(arr) {
+		var[] res;
+		var keys = GetKeys(arr);
+		var len = length keys;
+		for (var i = 0; i<len; i++) {
+			var key = keys[i];
+			if (key!="IsTab") {
+				var e = arr[key];
+				res[key] = e;
+			}
+		}
+		return res;
+	}
+
+	public DuplicateObject(obj, parent, is_tab=false) {
+		if (obj.UserData) {
+			var type = classof obj;
+			if (type == "RFormContainer")
+				type = "RForm";
+			var clone = this.AddObject(parent, type, this.Duplicate(obj.UserData["properties"]), this.Duplicate(obj.UserData["events"]), is_tab);
+			if (clone) {
+				var children = obj.UserData["tree"];
+				var len = length children;
+				for (var i=0;i<len;i++) {
+					var arr = children[i];
+					if (arr) {
+						var id = arr[2];
+						var child_obj = Objects[""+id];
+						var type2 = arr[1];
+
+						if (child_obj) {
+							this.DuplicateObject(child_obj, clone);
+						}
+					}
+				}
+			}
+			return clone;
+		}
+	}
+
+	public UIRecursive(arr, node) {
+		var len = length arr;
+		for (var i=0;i<len;i++) {
+			var e=arr[i];
+			if (e) {
+				var n = XMLNode::CreateNew(e[1]);
+				n.SetProperty("Name", e[0]);
+				node.AddChild(n);
+				
+				var id = e[2];
+				var obj = Objects[""+id];
+				if (obj.UserData) {
+					var properties = obj.UserData["properties"];
+					var keys=GetKeys(properties);
+					var len2=length keys;
+					for (var j=0;j<len2;j++) {
+						var k = keys[j];
+						var e2=properties[k];
+						n.SetProperty(k, ""+e2);
+					}
+					var events = obj.UserData["events"];
+					keys=GetKeys(events);
+					len2=length keys;
+					for (j=0;j<len2;j++) {
+						k = keys[j];
+						e2=events[k];
+						n.SetProperty(k, ""+e2);
+					}
+					UIRecursive(obj.UserData["tree"], n);
+				}
+			}
+		}
+	}
+
+	public GetUI() {
+		Progress.Caption="Exporting <b>UI</b> to XML...";
+		Progress.Show();
+		this.Enabled=false;
+
+		var xml=new XMLDocument();
+		xml.Create();
+
+		var node = xml.NewNode("UI");
+		xml.Root = node;
+		
+		UIRecursive(ObjectTree, node);
+		var res = xml.SaveString();
+		this.Enabled=true;
+		Progress.Hide();
+		Progress.Caption="";
+		Changed = false;
+		return res;
+	}
+
+	public RecursiveLoadUI(Parent, node) {
+		while (node) {
+			if (node.Name!="text") {
+				var arr = node.Properties;
+				var len = length arr;
+				var properties = new [];
+				var events = new [];
+
+				for (var i=0;i<len;i++) {
+					var p = arr[i];
+					if (p) {
+						if (((p[0]+p[1]=="On") || (p[0]+p[1]=="__")) && (length p>2))
+							events[p]=node.GetProperty(p);
+						else
+							properties[p]=node.GetProperty(p);
+					}
+				}
+				var obj = this.AddObject(Parent, node.Name, properties, events, false, false);
+				if (obj)
+					RecursiveLoadUI(obj, node.Child);
+			}
+			node=node.Next;
+		}
+	}
+
+	public Reset() {
+		CApplication::BeginNonCritical();
+		FocusedObject = null;
+
+		Properties.Properties = [ ];
+		Events.Properties = [ ];
+		DeleteButton.Enabled = false;
+
+		var len=length Objects;
+		for (var i=0;i<len;i++) {
+			var obj = Objects[i];
+			if (obj)
+				obj.DisposeObject();
+		}
+		AppTree.Clear();
+		CApplication::EndNonCritical();
+		Objects = new [];
+		Counts = new [];
+		ObjectTree = new [];
+		ControlID = 0;
+		Changed = false;
+		UsedNames = new [];
+	}
+
+	public LoadUI(var text) {
+		Progress.Show();
+		h=75;
+		this.Enabled=false;
+		Changed=false;
+
+		var xml=new XMLDocument();
+		xml.LoadString(text);
+		var err = xml.ErrorsText;
+		if (err) {
+			if (length err>1024)
+				err=SubStr(err, 0, 1024)+"...\n(and other errors)";
+			CApplication.Message(err);
+		} else {
+			this.Reset();
+			var node=xml.Root;
+			if (node) {			
+				var node_lo = ToLower(node.Name);
+				if (node_lo=="ui") {
+					Progress.Caption = "Loading <b>UI</b> ...";
+					this.ResetClipboard();
+					RecursiveLoadUI(Workspace, xml.Root.Child);
+				} else
+				if ((node_lo=="glade") || (node_lo=="glade-interface") || (node_lo=="interface")) {
+					Progress.Caption = "Converting <b>glade</b> ...";
+					if (!glade) {
+						glade = new GladeConverter();
+						glade.Init(CONVERSION_LIST, CONVERSION_PROP,CONVERSION_CONST,CONVERSION_EVENT);
+					}
+					glade.Load(text);
+					text = glade.Do();
+					return LoadUI(text);
+				}
+			}
+		}
+		Progress.Caption = "";
+		Progress.Hide();
+		this.Enabled=true;
+	}
+
+	public ResetClipboard() {
+		pasteMenu.Enabled = false;
+		ClipboardObject = null;
+		IsCut = false;
+	}
+
+	public Cut(Sender=null, EventData="") {
+		if (!FocusedObject)
+			return;
+		ClipboardObject = FocusedObject;
+		pasteMenu.Enabled = true;
+		IsCut = true;
+	}
+
+	public Copy(Sender=null, EventData="") {
+		if (!FocusedObject)
+			return;
+		ClipboardObject = FocusedObject;
+		pasteMenu.Enabled = true;
+		IsCut = false;
+	}
+
+	public Paste(Sender=null, EventData="") {
+		if ((ClipboardObject) && (FocusedObject) && (ClipboardObject!=FocusedObject)) {
+			if (IsCut) {
+				var UsedNames = this.UsedNames;
+
+				var toplevel = this.TopLevel(ClipboardObject);
+				if ((toplevel) && (toplevel.UserData))
+					UsedNames = toplevel.UserData["usednames"];
+
+				var name = ClipboardObject.UserData["properties"]["Name"];
+				if (name)
+					UsedNames[name] = false;
+			}
+			if (IsCut)
+				ignore_names = true;
+			var obj = this.DuplicateObject(ClipboardObject, FocusedObject);
+			if (IsCut)
+				ignore_names = false;
+			if ((IsCut) && (obj)) {
+				this.DeleteObject(ClipboardObject);
+				ClipboardObject = null;
+				pasteMenu.Enabled = false;
+				IsCut = false;
+			}
+			if (name) {
+				UsedNames = this.UsedNames;
+
+				toplevel = this.TopLevel(FocusedObject);
+				if ((toplevel) && (toplevel.UserData))
+					UsedNames = toplevel.UserData["usednames"];
+
+				UsedNames[name] = true;
+			}
+		}
+	}
+
+	public GetText() {
+		var txt;
+		if (Changed) {
+			txt = GetUI();
+			Code.Text = txt;
+			Code.SciMessage(SCI_SETSAVEPOINT,0,0);
+		} else
+			txt = Code.Text;
+
+		return txt;
+	}
+
+	public SetText(string text) {
+		Code.Text = text;
+		Code.SciMessage(SCI_EMPTYUNDOBUFFER,0,0);
+		Code.SciMessage(SCI_SETSAVEPOINT,0,0);
+		LoadUI(text);
+	}
+
+	public UICursorChanged(Sender, EventData) {
+		Sender.CreateDragIconFromCurrent();
+		Sender.DragData = Sender.RowIndex;
+	}
+
+	public PageSwitch(Sender, EventData) {
+		var page = value EventData;
+		if (page == 1) {
+			if (Changed) {
+				Code.Text = GetUI();
+				Code.SciMessage(SCI_SETSAVEPOINT,0,0);
+			}
+		} else {
+			if (Code.SciMessageReturnNumber(SCI_GETMODIFY,0,0))
+				LoadUI(Code.Text);
+		}
+	}
+}

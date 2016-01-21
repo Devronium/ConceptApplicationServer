@@ -1,0 +1,106 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+  <title>standard.net.curl.curl_global_init</title>
+  <link href="css/style.css" rel="stylesheet" type="text/css">
+  <meta http-equiv="Content-Type" content="text/html;charset=utf-8" >
+</head>
+<body bgcolor="#ffffff">
+<table border="0" width="100%" bgcolor="#F0F0FF">
+  <tr>
+    <td>Concept Framework 2.2 documentation</td>
+  	<td align="right"><a href="index.html">Contents</a> | <a href="index_fun.html">Index</a></td>
+  </tr>
+</table>
+<h2><a href="standard.net.curl.html">standard.net.curl</a>.curl_global_init</h2>
+<table border="0" cellspacing="0" cellpadding="0" width="500" style="border-style:solid;border-width:1px;border-color:#D0D0D0;">
+  <tr bgcolor="#f0f0f0">
+     <td><i>Name</i></td>
+     <td><i>Version</i></td>
+     <td><i>Deprecated</i></td>
+  </tr>
+  <tr bgcolor="#fafafa">
+     <td><b>curl_global_init</b></td>
+     <td>version 1.0</td>
+     <td>no</td>
+  </tr>
+</table>
+<br />
+<b>Prototype:</b><br />
+	<table bgcolor="#F0F0F0" width="100%" style="border-style:solid;border-width:1px;border-color:#D0D0D0;"><tr><td><b>number curl_global_init(number flags)</b></td></tr></table>
+<br />
+
+<b>Parameters:</b><br />
+<table bgcolor="#FFFFFF" style="border-style:solid;border-width:1px;border-color:#D0D0D0;">
+
+	   <tr>
+	   	   <td>
+		   	   <i>flags</i>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+		   </td>
+	   	   <td>
+		   	   the init flags:
+
+CURL_GLOBAL_ALL Initialize everything possible. This sets all known bits.<br>
+CURL_GLOBAL_SSL Initialize SSL <br>
+CURL_GLOBAL_WIN32 Initialize the Win32 socket libraries. <br>
+CURL_GLOBAL_NOTHING Initialise nothing extra. This sets no bit. 
+
+		   </td>
+	   </tr>
+
+</table>
+
+<br />
+<b>Description:</b><br />
+<table width="100%" bgcolor="#FAFAFF" style="border-style:solid;border-width:1px;border-color:#D0D0D0;">
+<tr><td>
+Global libcurl initialization.
+<br/>This function sets up the program environment that libcurl needs. Think of it as an extension of the library loader. 
+<br/>This function must be called at least once within a program (a program is all the code that shares a memory space) before the program calls any other function in libcurl. The environment it sets up is constant for the life of the program and is the same for every program, so multiple calls have the same effect as one call. 
+<br/>The flags option is a bit pattern that tells libcurl exactly what features to init, as described below. Set the desired bits by ORing the values together. In normal operation, you must specify CURL_GLOBAL_ALL. Don't use any other value unless you are familiar with and mean to control internal operations of libcurl. 
+<br/>This function is not thread safe. You must not call it when any other thread in the program (i.e. a thread sharing the same memory) is running. This doesn't just mean no other thread that is using libcurl. Because curl_global_init() calls functions of other libraries that are similarly thread unsafe, it could conflict with any other thread that uses these other libraries. 
+<br/>See the description in libcurl of global environment requirements for details of how to use this function. 
+<br/>
+</td></tr>
+</table>
+<br />
+
+<b>Example:</b>
+<table bgcolor="#F0F0FF" width="100%"  style="border-style:solid;border-width:1px;border-color:#D0D0D0;"><tr><td>
+<font color="#101060"><pre>import standard.net.curl
+
+
+class Main {
+	function Main() {
+		var curl=curl_easy_init();
+		if (curl) {
+			curl_easy_setopt(curl, CURLOPT_URL, "curl.haxx.se");
+			var res=curl_easy_perform(curl);
+
+			curl_easy_cleanup(curl);
+		}
+	}
+}</pre></font>
+</td></tr></table>
+<br />
+
+<b>Returns:</b><br />
+If this function returns non-zero, something went wrong and you cannot use the other curl functions.
+<br />
+<br />
+<!--
+  <p>
+    <a href="http://validator.w3.org/check?uri=referer"><img
+        src="http://www.w3.org/Icons/valid-html40"
+        alt="Valid HTML 4.0 Transitional" height="31" width="88" border="0"></a>
+ <a href="http://jigsaw.w3.org/css-validator/">
+  <img style="border:0;width:88px;height:31px"
+       src="http://jigsaw.w3.org/css-validator/images/vcss" 
+       alt="Valid CSS!" border="0"/>
+ </a>
+</p>
+-->
+<table bgcolor="#F0F0F0" width="100%"><tr><td>Documented by Eduard Suica, generation time: Sun Jan 27 18:15:20 2013
+ GMT</td><td align="right">(c)2013 <a href="http://www.devronium.com">Devronium Applications</a></td></tr></table>
+</body>
+</html>

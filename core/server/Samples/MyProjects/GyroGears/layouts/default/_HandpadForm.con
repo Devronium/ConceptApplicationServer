@@ -1,0 +1,136 @@
+include project_forms.glade.con
+import standard.lib.str
+
+class HandpadForm extends KeyPadwindow {
+        protected var KeyResult="";
+        protected var SenderObject=null;
+
+        public function HandpadForm(Owner, Lang S) {
+            super(Owner, S);
+            CApplication.BeginNonCritical();
+            button1.UserData="1";
+            button1.MinWidth=50;
+            button1.MinHeight=50;
+            button2.UserData="2";
+            button2.MinWidth=50;
+            button2.MinHeight=50;
+            button3.UserData="3";
+            button3.MinWidth=50;
+            button3.MinHeight=50;
+            button4.UserData="4";
+            button4.MinWidth=50;
+            button4.MinHeight=50;
+            button5.UserData="5";
+            button5.MinWidth=50;
+            button5.MinHeight=50;
+            button6.UserData="6";
+            button6.MinWidth=50;
+            button6.MinHeight=50;
+            button7.UserData="7";
+            button7.MinWidth=50;
+            button7.MinHeight=50;
+            button8.UserData="8";
+            button8.MinWidth=50;
+            button8.MinHeight=50;
+            button9.UserData="9";
+            button9.MinWidth=50;
+            button9.MinHeight=50;
+            button10.UserData=".";
+            button10.MinWidth=50;
+            button10.MinHeight=50;
+            button11.UserData="0";
+            button11.MinWidth=50;
+            button11.MinHeight=50;
+            button12.UserData="del";
+            button12.MinWidth=50;
+            button12.MinHeight=50;
+            button13.UserData="ok";
+            button13.MinWidth=50;
+            button13.MinHeight=50;
+            button14.UserData="clear";
+            button14.MinWidth=50;
+            button14.MinHeight=50;
+            button15.UserData="cancel";
+            button15.MinWidth=50;
+            button15.MinHeight=50;
+            this.editValue.Font.Name="arial bold 28";
+            CApplication.EndNonCritical();
+        }
+
+        public function Go(VisibleRemoteObject CallingObject) {
+            // avoid double calling !
+            if (CallingObject==this.SenderObject) {
+                this.SenderObject=null;
+                return;
+            }
+            //this.KeyResult=CallingObject.Text;
+            //if (this.KeyResult=="0")
+                this.KeyResult="";
+            this.SenderObject=CallingObject;
+            this.UpdateData(true);
+            this.Show();
+        }
+        
+        private function UpdateData(first_time=false) {
+            CApplication.BeginNonCritical();
+            if (length this.KeyResult) {
+                if (!button12.Enabled)
+                    button12.Enabled=true;
+            } else {
+                if (button12.Enabled)
+                    button12.Enabled=false;
+            }
+            if (Pos(this.KeyResult, ".")>0) {
+                if (button10.Enabled)
+                    button10.Enabled=false;
+            } else {
+                if (!button10.Enabled)
+                    button10.Enabled=true;
+            }
+            if (first_time)
+                this.editValue.Text=this.SenderObject.Text;
+            else
+                this.editValue.Text=this.KeyResult;
+            CApplication.EndNonCritical();
+        }
+
+        public function on_button_clicked(Sender, EventData) {
+            if ((Pos(this.KeyResult, ".")>0) && (Sender.UserData=="."))
+                return;
+
+            this.KeyResult+=Sender.UserData;
+            this.UpdateData();
+        }
+        
+        public function on_button12_clicked(Sender, EventData) {
+            // delete !
+            var len=length this.KeyResult;
+            if (len) {
+                this.KeyResult=SubStr(this.KeyResult, 0, len-1);
+                this.UpdateData();
+            }
+        }
+
+        public function on_button14_clicked(Sender, EventData) {
+            // clear !
+            this.KeyResult="";
+            this.UpdateData();
+        }
+
+        public function on_button13_clicked(Sender, EventData) {
+            // ok !
+
+            if (this.KeyResult=="")
+
+                this.KeyResult=this.editValue.Text;
+            this.SenderObject.Text=this.KeyResult;
+            this.KeyResult="";
+            this.Hide();
+        }
+
+        public function on_button15_clicked(Sender, EventData) {
+            // cancel
+            this.KeyResult="";
+            this.Hide();
+        }
+}

@@ -1,0 +1,41 @@
+include WebDocument.con
+import standard.lib.regex
+
+class WebUtils {
+	private var LoggedUser;
+	private var Level;
+	
+	static function CheckMail(string mail) {
+		var exp="^([A-Za-z0-9_.]+)@(.+)\\.(\\a+)\$";
+
+		var arr=regex_match(mail,exp);
+		return arr;
+	}
+	
+	static function IsLoggedIn(var UID=null, var username=null) {
+		var lin=ToLower(SessionVar("logged_in"));
+		UID=-1;
+		if (lin=="true") {
+			UID=value (""+SessionVar("UID"));
+			username=SessionVar("username");
+			return true;
+		}
+		return false;
+	}
+
+	static function NotifyLogin(var UID, string username, number remember_me=false) {
+		SetSessionVar("UID", ""+UID);
+		SetSessionVar("username", username);
+		SetSessionVar("logged_in", "true");
+		if (remember_me)
+			SessionTimeout(0xFFFFFF);
+		return true;
+	}
+
+	static function LogOut() {
+		SetSessionVar("UID", "-1");
+		SetSessionVar("username", "");
+		SetSessionVar("logged_in", "false");
+		return true;
+	}
+}

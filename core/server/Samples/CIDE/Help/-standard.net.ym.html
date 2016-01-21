@@ -1,0 +1,904 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+  <title>-standard.net.ym</title>
+  <link href="css/style.css" rel="stylesheet" type="text/css">
+  <meta http-equiv="Content-Type" content="text/html;charset=utf-8" >
+</head>
+<body bgcolor="#ffffff">
+<table border="0" width="100%" bgcolor="#F0F0FF">
+  <tr>
+    <td>Concept Framework 2.2 documentation</td>
+  	<td align="right"><a href="index.html">Contents</a> | <a href="index_fun.html">Index</a></td>
+  </tr>
+</table>
+<h2>-standard.net.ym</h2>
+<table border="0" cellspacing="0" cellpadding="0" width="400" style="border-style:solid;border-width:1px;border-color:#D0D0D0;">
+  <tr bgcolor="#f0f0f0">
+     <td><i>Static library name</i></td>
+     <td><i>Version</i></td>
+     <td><i>Deprecated</i></td>
+  </tr>
+  <tr bgcolor="#fafafa">
+     <td><b>-standard.net.ym</b></td>
+     <td>version 1.0</td>
+     <td>no</td>
+  </tr>
+</table>
+<br />
+<b>Import library : </b>-standard.net.ym<br />
+<i>(you must include this at the top of your source: "import -standard.net.ym" (no quotes)</i><br />
+<br /><br />
+
+<b>Description:</b><br />
+<table width="100%" bgcolor="#FAFAFF" style="border-style:solid;border-width:1px;border-color:#D0D0D0;">
+<tr><td>
+Yahoo! Messenger client library based on the libyahoo library.
+<br>
+<br>TODO: Documentation. Only example is available for now.
+</td></tr>
+</table>
+<br />
+<br />
+
+
+
+
+
+
+
+
+
+<br />
+
+<b>Example:</b>
+<table bgcolor="#F0F0FF" width="100%"  style="border-style:solid;border-width:1px;border-color:#D0D0D0;"><tr><td>
+<font color="#101060"><pre>include lang.con
+<br>
+<br>import standard.net.ym
+<br>import standard.C.io
+<br>import standard.lib.str
+<br>import standard.lib.thread
+<br>
+<br>include Application.con
+<br>include RButton.con
+<br>include RVBox.con
+<br>include RHBox.con
+<br>include RHButtonBox.con
+<br>include RTreeView.con
+<br>include RNotebook.con
+<br>include RScrolledWindow.con
+<br>include RStatusbar.con
+<br>include RCombobox.con
+<br>include RImage.con
+<br>include RVPaned.con
+<br>include RTextView.con
+<br>include RFrame.con
+<br>include REdit.con
+<br>include RCheckButton.con
+<br>include RLabel.con
+<br>include Serializable.con
+<br>include RHButtonBox.con
+<br>
+<br>define 	MSG_IM			0x1000
+<br>define 	MSG_ADDED		0x1001
+<br>define 	MSG_MAIL		0x1002
+<br>
+<br>
+<br>define MAX_NOTIFY		10
+<br>
+<br>class Message extends Serializable {
+<br>	var who="";
+<br>	var name="";
+<br>	var msg="";
+<br>}
+<br>
+<br>class BeAdded extends RForm {
+<br>	var InfoText;
+<br>	var RejectText;
+<br>	var lbl1;
+<br>	var who="";
+<br>	var delegate;
+<br>
+<br>	public function AcceptClicked(Sender, EventData) {
+<br>		delegate(1);
+<br>		Hide();
+<br>	}
+<br>
+<br>	public function RejectClicked(Sender, EventData) {
+<br>		//yahoo_reject_buddy(who, RejectText.Text);
+<br>		delegate(0, RejectText.Text);
+<br>		Hide();
+<br>	}
+<br>
+<br>	public function EventHide(Sender, EventData) {
+<br>		delegate(0, RejectText.Text);
+<br>	}
+<br>
+<br>	public function BeAdded(Owner, who, msg, deleg) {
+<br>		BeginUpdateSession();
+<br>		super(Owner);
+<br>		delegate=deleg;
+<br>
+<br>		var vbox=new RVBox(this);
+<br>		vbox.Show();
+<br>		lbl1=new RLabel(vbox);
+<br>		lbl1.Caption=LANG_WANTS_TO_ADD;
+<br>		lbl1.Show();
+<br>
+<br>		InfoText=new RTextView(vbox);
+<br>		InfoText.CursorVisible=false;
+<br>		InfoText.ReadOnly=true;
+<br>		InfoText.Text=msg;
+<br>		InfoText.Show();
+<br>
+<br>
+<br>		var lbl2=new RLabel(vbox);
+<br>		lbl2.Caption=LANG_REJECT_MESSAGE;
+<br>		lbl2.Show();
+<br>
+<br>		RejectText=new RTextView(vbox);
+<br>		RejectText.Text=DEFAULT_REJECT;
+<br>		RejectText.Show();
+<br>
+<br>		var btnbox=new RHButtonBox(vbox);
+<br>		btnbox.Show();
+<br>
+<br>		var btn1=new RButton(btnbox);
+<br>		btn1.Caption=LANG_ACCEPT;
+<br>		btn1.OnClicked=AcceptClicked;
+<br>		btn1.Show();
+<br>
+<br>		var btn2=new RButton(btnbox);
+<br>		btn2.Caption=LANG_REJECT;
+<br>		btn2.OnClicked=RejectClicked;
+<br>		btn2.Show();
+<br>
+<br>		BorderWidth=20;
+<br>
+<br>		Width=200;
+<br>		Height=200;
+<br>
+<br>		Caption=LANG_ADD_REQUEST;
+<br>		SkipTaskbar=true;
+<br>
+<br>		Decorations=DECOR_TITLE;
+<br>		Type=WT_DIALOG;
+<br>
+<br>		Modal=true;
+<br>		OnHide=EventHide;
+<br>		EndUpdateSession();
+<br>	}
+<br>}
+<br>
+<br>class LoginForm extends RForm {
+<br>	var EditUser;
+<br>	var EditPass;
+<br>	var CheckInvisible;
+<br>	var Button;
+<br>
+<br>	var delegate;
+<br>
+<br>	function LogInClicked(Sender, EventData) {
+<br>		delegate(EditUser.Text, EditPass.Text, CheckInvisible.Checked);
+<br>		Hide();
+<br>	}
+<br>
+<br>	function LoginForm(Owner, deleg) {
+<br>		super(Owner);
+<br>
+<br>		BeginUpdateSession();
+<br>		Caption=LANG_SIGN_IN;
+<br>
+<br>		delegate=deleg;
+<br>		var Frame=new RFrame(this);
+<br>		Frame.Caption=LANG_Y_ACCOUNT;
+<br>		Frame.Show();
+<br>
+<br>		var vbox=new RVBox(Frame);
+<br>		vbox.Show();
+<br>
+<br>		var lbl1=new RLabel(vbox);
+<br>		lbl1.Caption=LANG_USERNAME;
+<br>		lbl1.Show();
+<br>
+<br>		EditUser=new REdit(vbox);
+<br>		EditUser.ActivateDefault=true;
+<br>		EditUser.Show();
+<br>
+<br>		EditPass=new REdit(vbox);
+<br>		EditPass.Masked=true;
+<br>		EditPass.MaskedChar="*";
+<br>		EditPass.ActivateDefault=true;
+<br>		EditPass.Show();
+<br>
+<br>		var lbl2=new RLabel(vbox);
+<br>		lbl2.Caption=LANG_PASSWORD;
+<br>		lbl2.Show();
+<br>
+<br>		CheckInvisible=new RCheckButton(vbox);
+<br>		CheckInvisible.Caption=LANG_SIGN_INVISIBLE;
+<br>		CheckInvisible.Checked=false;
+<br>		CheckInvisible.Show();
+<br>
+<br>		Button=new RButton(vbox);
+<br>		Button.Caption=LANG_SIGN_IN;
+<br>		Button.OnClicked=LogInClicked;
+<br>		Button.Show();
+<br>
+<br>		Modal=true;
+<br>		DefaultControl=Button;
+<br>		EndUpdateSession();
+<br>	}
+<br>}
+<br>
+<br>class IMForm extends RForm {
+<br>	var TextView;
+<br>	var ScrollView;
+<br>	var InputView;
+<br>	var Status;
+<br>	var yid="";
+<br>	var my_id="";
+<br>	//var names;
+<br>
+<br>
+<br>	public function Timer(Sender, EventData) {
+<br>		Urgent=false;
+<br>	}
+<br>
+<br>	public function SetTyping(flag) {
+<br>		if (flag) {
+<br>			Status.Caption=yid+" "+LANG_TYPING;
+<br>		} else {
+<br>			Status.Caption="";
+<br>		}
+<br>	}
+<br>
+<br>	public function AddMessage(who, message, name) {
+<br>		BeginUpdateSession();
+<br>		var must_scroll=false;
+<br>
+<br>		/*if (names[who])
+<br>			who=names[who];*/
+<br>
+<br>		var vadj=ScrollView.VAdjustment;
+<br>		if (vadj.Value==vadj.Upper-vadj.PageSize)
+<br>			must_scroll=true;
+<br>
+<br>		if (name)
+<br>			who=name;
+<br>
+<br>		TextView.AddStyledText(who+": ","otheruser");
+<br>		TextView.AddStyledText(message+"\n","text");
+<br>
+<br>		if (must_scroll)
+<br>			vadj.Value=vadj.Upper-vadj.PageSize;
+<br>		Urgent=true;
+<br>		AddTimer(Timer, 3000);
+<br>		EndUpdateSession();
+<br>	}
+<br>
+<br>	public function SendClicked(Sender, EventData) {
+<br>		var text=InputView.Text;
+<br>
+<br>		if (text) {
+<br>			BeginUpdateSession();
+<br>			InputView.Text="";
+<br>			var must_scroll=false;
+<br>			var vadj=ScrollView.VAdjustment;
+<br>			if (vadj.Value==vadj.Upper-vadj.PageSize)
+<br>				must_scroll=true;
+<br>
+<br>			TextView.AddStyledText(my_id+": ","myuser");
+<br>			TextView.AddStyledText(text+"\n","text");
+<br>			EndUpdateSession();
+<br>
+<br>			if (must_scroll)
+<br>				vadj.Value=vadj.Upper-vadj.PageSize;
+<br>
+<br>			yahoo_send_im(yid,text,false);
+<br>		}
+<br>	}
+<br>
+<br>	public function IMForm(Owner, who, my_id, names) {
+<br>		super(null);
+<br>		//this.names=names;
+<br>		LinkIfNotLinked(Owner);
+<br>
+<br>		var vbox=new RVBox(this);
+<br>		vbox.Show();
+<br>		yid=who;
+<br>		this.my_id=my_id;
+<br>
+<br>		var hpane=new RVPaned(vbox);
+<br>		hpane.Show();
+<br>		hpane.Position=280;
+<br>
+<br>		ScrollView=new RScrolledWindow(hpane);
+<br>		ScrollView.HScrollPolicy=POLICY_AUTOMATIC;
+<br>		ScrollView.VScrollPolicy=POLICY_ALWAYS;
+<br>		ScrollView.Show();
+<br>
+<br>		TextView=new RTextView(ScrollView);
+<br>		TextView.CursorVisible=false;
+<br>		TextView.ReadOnly=true;
+<br>		TextView.LeftMargin=5;
+<br>		TextView.RightMargin=5;
+<br>		TextView.Wrap=WRAP_WORD;
+<br>		TextView.Show();
+<br>
+<br>		var style0=TextView.CreateStyle("text");
+<br>		style0.FontName="arial 10";
+<br>		style0.ForeColor=0x000000;
+<br>
+<br>		var style1=TextView.CreateStyle("myuser");
+<br>		style1.FontName="arial bold 10";
+<br>		style1.ForeColor=0x505050;
+<br>
+<br>		var style2=TextView.CreateStyle("otheruser");
+<br>		style2.FontName="arial bold 10";
+<br>		style2.ForeColor=0x0000A0;
+<br>
+<br>
+<br>		var hbox=new RHBox(hpane);
+<br>		hbox.Packing=PACK_SHRINK;
+<br>		hbox.Show();
+<br>
+<br>		var Scroll1=new RScrolledWindow(hbox);
+<br>		Scroll1.HScrollPolicy=POLICY_AUTOMATIC;
+<br>		Scroll1.VScrollPolicy=POLICY_AUTOMATIC;
+<br>		Scroll1.Show();
+<br>
+<br>		InputView=new /*RTextView*/REdit(Scroll1);
+<br>		InputView.Packing=PACK_EXPAND_WIDGET;
+<br>		InputView.Font.Name="arial 10";
+<br>		InputView.ActivateDefault=true;
+<br>		InputView.Show();
+<br>		
+<br>		var Button=new RButton(hbox);
+<br>		Button.Caption=LANG_SEND;
+<br>		Button.Packing=PACK_SHRINK;
+<br>		Button.MinWidth=75;
+<br>		Button.OnClicked=SendClicked;
+<br>		Button.Show();
+<br>
+<br>		Width=500;
+<br>		Height=350;
+<br>		DefaultControl=Button;
+<br>
+<br>		Status=new RStatusbar(vbox);
+<br>		Status.Show();
+<br>	}
+<br>}
+<br>
+<br>
+<br>class MainForm extends RForm {
+<br>	var Tabs;
+<br>	var Buddies;
+<br>	var AddressBook;
+<br>	var StatusBar;
+<br>	var StatusCombo;
+<br>	var yab_done=false;
+<br>	var[] groups;
+<br>	var[] Images;
+<br>	var[] ids;
+<br>	var   my_id="";
+<br>	var   to_add=-1;
+<br>	var   reject_reason="";
+<br>	var   ScrollStatus;
+<br>	var   StatusList;
+<br>
+<br>
+<br>	var[] IM_windows;
+<br>
+<br>	var logindialog;
+<br>
+<br>	public function Notify(evt,text) {
+<br>		StatusList.InsertItem(0, [ Images[evt],text]);
+<br>
+<br>		while (StatusList.Items.Count&gt;MAX_NOTIFY)
+<br>			StatusList.DeleteItem(StatusList.Items.Count-1);
+<br>	}
+<br>
+<br>	function GetIMWindow(who) {
+<br>		var len=length IM_windows;
+<br>		
+<br>		if (IM_windows[who]) {
+<br>			IM_windows[who].Show();
+<br>			//IM_windows[who].Urgent=true;
+<br>		} else {
+<br>			IM_windows[who]=new IMForm(this, who, my_id, ids);
+<br>			IM_windows[who].Show();
+<br>			IM_windows[who].Caption=""+ids[who]+" ("+who+") -- "+LANG_INSTANT_MESSAGE;
+<br>			//IM_windows[who].Urgent=true;
+<br>		}
+<br>		return IM_windows[who];
+<br>	}
+<br>
+<br>
+<br>	function OnIM(id, who, msg, tm, stat, utf8) {
+<br>		//var frm=GetIMWindow(who);
+<br>		//frm.AddMessage(who, msg);
+<br>		var im=new Message();
+<br>
+<br>		im.who=who;
+<br>		im.msg=msg;
+<br>		im.name=ids[who];
+<br>
+<br>		SendAPMessage(GetAPID(), MSG_IM, im.Serialize(""));
+<br>	}
+<br>
+<br>	function OnStatus(id, who, stat, msg, away) {
+<br>		//echo "$who is now ${yahoo_status_code(stat)}/$away/$msg\n";
+<br>		var buddie=this.FindId(who);
+<br>		if (buddie) {
+<br>			var item=Buddies.Items.GetPath(buddie);
+<br>
+<br>			if (stat!=YAHOO_STATUS_OFFLINE) {
+<br>				item[0]=Images["online"];
+<br>				if (item[3]==1) {
+<br>					who=item[1];
+<br>					Notify("online", LANG_IS_NOW_AVAILABLE);
+<br>					item[3]=2;
+<br>				}
+<br>				item[2]=yahoo_status_code(stat);
+<br>			} else {
+<br>				item[0]=Images["offline"];
+<br>				item[3]=1;
+<br>				who=item[1];
+<br>				Notify("offline", LANG_IS_NOW_OFFLINE);
+<br>				item[2]=" ";
+<br>			}
+<br>
+<br>			Buddies.UpdateItem(buddie, item);
+<br>		}
+<br>	}
+<br>
+<br>	function OnType(id, who, stat) {
+<br>		var frm=GetIMWindow(who);
+<br>		frm.SetTyping(stat);
+<br>	}
+<br>
+<br>	function OnYab(id, arr) {
+<br>		var len=length arr;
+<br>
+<br>		// group messages (optimeze Concept network traffic)
+<br>		BeginUpdateSession();
+<br>		for (var i=0;i&lt;len;i++) {
+<br>			var arr2=arr[i];
+<br>			var group=arr2["group"];
+<br>			if (arr2["id"]) {
+<br>
+<br>				if (typeof groups[group]!="string") {
+<br>					groups[group]=group;
+<br>
+<br>					Buddies.AddItem([ Images["group"], group, "(group)", 0, 0]);
+<br>				}
+<br>
+<br>				groups[group]=group;
+<br>
+<br>				var path=this.FindGroup(group);
+<br>
+<br>				var name="";
+<br>				if (arr2["yab_entry"]) {
+<br>					name=arr2["yab_entry"]["fname"]+" "+arr2["yab_entry"]["lname"];
+<br>					yab_done=true;
+<br>				}
+<br>
+<br>				if (path&gt;=0) {
+<br>					var bud_id=this.FindId(arr2["id"]);
+<br>					if (bud_id) {
+<br>						var item_upd=Buddies.Items.GetPath(bud_id);
+<br>						if ((item_upd) && (item_upd[1]!=name) && (trim(name))) {
+<br>							var bud_item=Buddies.Items.GetPath(bud_id);
+<br>							bud_item[1]=name;
+<br>							Buddies.UpdateItem(bud_id, bud_item);
+<br>							ids[arr2["id"]]=name;
+<br>						}
+<br>					} else {
+<br>						if (!trim(name))
+<br>							name=arr2["id"];
+<br>
+<br>						ids[arr2["id"]]=name;
+<br>						Buddies.AddChild([path], [ Images["offline"], name, "", 1, arr2["id"] ]);
+<br>					}
+<br>				}
+<br>			}
+<br>		}
+<br>		Buddies.ExpandAll();
+<br>		EndUpdateSession();
+<br>
+<br>	}
+<br>
+<br>	public function OnContact(id, myid, who, msg) {
+<br>		var my_msg=new Message();
+<br>		my_msg.who=who;
+<br>		my_msg.msg=msg;
+<br>		to_add=-1;
+<br>
+<br>		SendAPMessage(GetAPID(), MSG_ADDED, my_msg.Serialize(""));
+<br>
+<br>		while (to_add==-1) {
+<br>			Sleep(1000);
+<br>		}
+<br>
+<br>		if (!to_add)
+<br>			yahoo_reject_buddy(who, reject_reason);
+<br>	}
+<br>
+<br>	public function Login(username, password, invisible=false) {
+<br>		my_id=username;
+<br>		if (invisible)
+<br>			yahoo_login(username,password,YAHOO_STATUS_INVISIBLE);
+<br>		else
+<br>			yahoo_login(username,password,YAHOO_STATUS_AVAILABLE);
+<br>		
+<br>	}
+<br>
+<br>	public function OnError(id, err, fatal) {
+<br>		CApplication::MessageBox(err);
+<br>	}
+<br>
+<br>	public function OnSysMsg(id, msg) {
+<br>		CApplication::MessageBox(msg);
+<br>	}
+<br>
+<br>	public function FindId(id) {
+<br>		var len=Buddies.Items.Count;
+<br>		for (var i=0;i&lt;len;i++) {
+<br>			var item=Buddies.Items.GetPath(i);
+<br>			
+<br>			var j=0;
+<br>			do {
+<br>				var child_item=Buddies.Items.GetPath([i,j]);
+<br>				if ((child_item) && (child_item[4]==id))
+<br>					return [i,j];
+<br>				j++;
+<br>			} while (child_item);
+<br>		}
+<br>		return 0;
+<br>	}
+<br>
+<br>
+<br>	public function FindGroup(group) {
+<br>		var len=Buddies.Items.Count;
+<br>		for (var i=0;i&lt;len;i++) {
+<br>			var item=Buddies.Items.GetPath(i);
+<br>			if (item[1]==group) {
+<br>				return i;
+<br>			}
+<br>		}
+<br>		return -1;
+<br>	}
+<br>
+<br>
+<br>	public function TimerBuddies(Sender,EventData) {
+<br>		yahoo_get_yab();
+<br>	}
+<br>
+<br>	public function OnLogin(id, succ, url) {
+<br>		var err;
+<br>
+<br>		switch (succ) {
+<br>			case YAHOO_LOGIN_OK:
+<br>				StatusBar.Caption=LANG_LOGGED;
+<br>				// don't interrupt this procedure (no yahoo function should be called here ... so ... add a timer !)
+<br>				AddTimer(TimerBuddies,1000);
+<br>				break;
+<br>			case YAHOO_LOGIN_UNAME:
+<br>				err="Could not log into Yahoo service - username not recognised.  Please verify that your username is correctly typed.";
+<br>				break;
+<br>			case YAHOO_LOGIN_PASSWD:
+<br>				err="Could not log into Yahoo service - password incorrect.  Please verify that your password is correctly typed.";
+<br>				break;
+<br>			case YAHOO_LOGIN_LOCK:
+<br>				err="Could not log into Yahoo service.  Your account has been locked.\nVisit $url to reactivate it.";
+<br>				break;
+<br>			case YAHOO_LOGIN_DUPL:
+<br>				err="You have been logged out of the yahoo service, possibly due to a duplicate login.";
+<br>				break;
+<br>			case YAHOO_LOGIN_SOCK:
+<br>				err="The server closed the socket.";
+<br>				break;
+<br>			default:
+<br>				err="Could not log in, unknown reason: $succ.";
+<br>		}
+<br>
+<br>		if (err) {
+<br>			CApplication::MessageBox(err);
+<br>			logindialog.Show();
+<br>			logindialog.Raise();
+<br>		}
+<br>	}
+<br>
+<br>
+<br>	public function SimpleOnMail(from, subj, cnt) {
+<br>		if (from)
+<br>			Notify("mail", LANG_MAIL);
+<br>		if (cnt)
+<br>			Notify("multimail", LANG_MULTIMAIL);
+<br>	}
+<br>
+<br>	public function OnMail(id, from, subj, cnt) {
+<br>		// reusing Message to store mail data
+<br>		var msg=new Message();
+<br>
+<br>		msg.who=from;
+<br>		msg.msg=subj;
+<br>		msg.name=cnt;		
+<br>
+<br>		SendAPMessage(GetAPID(), MSG_MAIL, msg.Serialize(""));
+<br>	}
+<br>
+<br>	private function InitYahoo() {
+<br>		yahoo_set_callback(YM_ON_GOT_IM, OnIM);
+<br>		yahoo_set_callback(YM_ON_TYPING_NOTIFY, OnType);
+<br>		yahoo_set_callback(YM_ON_STATUS_CHANGED, OnStatus);
+<br>		yahoo_set_callback(YM_ON_GOT_BUDDIES, OnYab);
+<br>
+<br>		yahoo_set_callback(YM_ON_YAHOO_ERROR, OnError);
+<br>		yahoo_set_callback(YM_ON_SYSTEM_MESSAGE, OnSysMsg);
+<br>		yahoo_set_callback(YM_ON_LOGIN_RESPONSE, OnLogin);
+<br>
+<br>		yahoo_set_callback(YM_ON_CONTACT_ADDED, OnContact);
+<br>
+<br>		yahoo_set_callback(YM_ON_MAIL_NOTIFY, OnMail);
+<br>		
+<br>	}
+<br>
+<br>	public function OnBuddySelect(Sender, EventData) {
+<br>		var path=Sender.RowIndex;
+<br>		if (path!="-1") {
+<br>			var item=Buddies.Items.GetPath(path);
+<br>			var who=item[4];
+<br>
+<br>			GetIMWindow(who);
+<br>		}
+<br>	}
+<br>
+<br>	private function LoadImages() {
+<br>		var img=new RImage(null);
+<br>		img.Filename="res/offline.gif";
+<br>		Images["offline"]=img;
+<br>		
+<br>		var img1=new RImage(null);
+<br>		img1.Filename="res/online.gif";
+<br>		Images["online"]=img1;
+<br>
+<br>		var img2=new RImage(null);
+<br>		img2.Filename="res/friend_root.bmp";
+<br>		Images["group"]=img2;
+<br>
+<br>		var img3=new RImage(null);
+<br>		img3.Filename="res/mail.gif";
+<br>		Images["mail"]=img3;
+<br>
+<br>		var img4=new RImage(null);
+<br>		img4.Filename="res/multiplemail.gif";
+<br>		Images["multimail"]=img4;
+<br>	}
+<br>
+<br>	public function StatusChanged(Sender, EventData) {
+<br>		var index=StatusCombo.RowIndex;
+<br>		var status=-1;
+<br>
+<br>		switch (index) {
+<br>			case 0:
+<br>				status=YAHOO_STATUS_AVAILABLE;
+<br>				break;
+<br>			case 1:
+<br>				status=YAHOO_STATUS_BRB;
+<br>				break;
+<br>			case 2:
+<br>				status=YAHOO_STATUS_BUSY;
+<br>				break;
+<br>			case 3:
+<br>				status=YAHOO_STATUS_NOTATHOME;
+<br>				break;
+<br>			case 4:
+<br>				status=YAHOO_STATUS_NOTATDESK;
+<br>				break;
+<br>			case 5:
+<br>				status=YAHOO_STATUS_NOTINOFFICE;
+<br>				break;
+<br>			case 6:
+<br>				status=YAHOO_STATUS_ONPHONE;
+<br>				break;
+<br>			case 7:
+<br>				status=YAHOO_STATUS_ONVACATION;
+<br>				break;
+<br>			case 8:
+<br>				status=YAHOO_STATUS_OUTTOLUNCH;
+<br>				break;
+<br>			case 9:
+<br>				status=YAHOO_STATUS_STEPPEDOUT;
+<br>				break;
+<br>			case 10:
+<br>				status=YAHOO_STATUS_INVISIBLE;
+<br>				break;
+<br>			case 11:
+<br>				status=YAHOO_STATUS_IDLE;
+<br>				break;
+<br>			case 12:
+<br>				status=YAHOO_STATUS_OFFLINE;
+<br>				break;
+<br>			case 13:
+<br>				status=YAHOO_STATUS_CUSTOM;
+<br>				break;
+<br>			case 14:
+<br>				status=YAHOO_STATUS_NOTIFY;
+<br>				break;
+<br>		}
+<br>		if (status!=-1)
+<br>			yahoo_set_away(status,"", 1);
+<br>	}
+<br>
+<br>	public function OnAcceptAdd(added, rejtxt="") {
+<br>		to_add=added;
+<br>		reject_reason=rejtxt;
+<br>	}
+<br>
+<br>	public function DebugCallback(SenderAPID, MSGID, szData) {
+<br>		switch (MSGID) {
+<br>			case MSG_IM:
+<br>				var im2=Serializable.UnSerialize(szData, true);
+<br>				if (im2) {
+<br>					var frm=GetIMWindow(im2.who);
+<br>					if (frm)
+<br>						frm.AddMessage(im2.who, im2.msg, im2.name);
+<br>				}
+<br>				break;
+<br>			case MSG_ADDED:
+<br>				im2=Serializable.UnSerialize(szData, true);
+<br>				if (im2) {
+<br>					var b=new BeAdded(this, im2.who, im2.msg, OnAcceptAdd);
+<br>					b.Show();
+<br>				}
+<br>				break;
+<br>			case MSG_MAIL:
+<br>				im2=Serializable.UnSerialize(szData, true);
+<br>				if (im2) {
+<br>					SimpleOnMail(im2.who, im2.msg, im2.name);
+<br>				}
+<br>				break;			
+<br>		}
+<br>	}
+<br>
+<br>	public function MainForm(Owner) {
+<br>		super(Owner);
+<br>		Caption=LANG_APP_NAME;
+<br>
+<br>		var box=new RVBox(this);
+<br>		box.Show();
+<br>
+<br>		StatusCombo=new RComboBox(box);
+<br>		StatusCombo.Show();
+<br>		StatusCombo.AddColumns(1);
+<br>
+<br>
+<br>		StatusCombo.AddItem(STATUS_AVAILABLE);
+<br>		StatusCombo.AddItem(STATUS_BRB);
+<br>		StatusCombo.AddItem(STATUS_BUSY);
+<br>		StatusCombo.AddItem(STATUS_NOTATHOME);
+<br>		StatusCombo.AddItem(STATUS_NOTATDESK);
+<br>		StatusCombo.AddItem(STATUS_NOTINOFFICE);
+<br>		StatusCombo.AddItem(STATUS_ONPHONE);
+<br>		StatusCombo.AddItem(STATUS_ONVACATION);
+<br>		StatusCombo.AddItem(STATUS_OUTTOLUNCH);
+<br>		StatusCombo.AddItem(STATUS_STEPPEDOUT);
+<br>		StatusCombo.AddItem(STATUS_INVISIBLE);
+<br>		StatusCombo.AddItem(STATUS_IDLE);
+<br>		StatusCombo.AddItem(STATUS_OFFLINE);
+<br>		StatusCombo.AddItem(STATUS_CUSTOM);
+<br>		StatusCombo.AddItem(STATUS_NOTIFY);
+<br>		StatusCombo.OnChanged=StatusChanged;
+<br>		StatusCombo.RowIndex=0;
+<br>
+<br>
+<br>		var hpaned=new RVPaned(box);
+<br>		hpaned.Show();
+<br>
+<br>		Tabs=new RNotebook(hpaned);
+<br>		Tabs.Show();
+<br>
+<br>		var scroll1=new RScrolledWindow(Tabs);
+<br>		scroll1.HScrollPolicy=POLICY_AUTOMATIC;
+<br>		scroll1.VScrollPolicy=POLICY_AUTOMATIC;
+<br>		scroll1.Show();
+<br>
+<br>		Buddies=new RTreeView(scroll1);
+<br>		Buddies.Model=MODEL_TREEVIEW;
+<br>		Buddies.Sorted=true;
+<br>		Buddies.SortColumn=1;
+<br>		Buddies.OnRowActivated=OnBuddySelect;
+<br>		Buddies.AddColumn(" ", IMAGE_COLUMN);
+<br>		Buddies.AddColumn("Contact", NORMAL_COLUMN);
+<br>		Buddies.AddColumn("Status", NORMAL_COLUMN);
+<br>		Buddies.SearchColumn=2;
+<br>		Buddies.HoverSelection=true;
+<br>		Buddies.HeadersVisible=false;
+<br>
+<br>		Buddies.Show();
+<br>		Tabs.Pages[0].Caption=LANG_MESSENGER;
+<br>
+<br>		var scroll2=new RScrolledWindow(Tabs);
+<br>		scroll2.HScrollPolicy=POLICY_AUTOMATIC;
+<br>		scroll2.VScrollPolicy=POLICY_AUTOMATIC;
+<br>		//scroll2.Show();
+<br>
+<br>		AddressBook=new RTreeView(scroll2);
+<br>		AddressBook.Model=MODEL_LISTVIEW;
+<br>		AddressBook.Show();
+<br>		Tabs.Pages[1].Caption=LANG_ADDRESSBOOK;
+<br>
+<br>		var ScrollStatus=new RScrolledWindow(hpaned);
+<br>		ScrollStatus.HScrollPolicy=POLICY_AUTOMATIC;
+<br>		ScrollStatus.VScrollPolicy=POLICY_AUTOMATIC;
+<br>		ScrollStatus.Show();
+<br>
+<br>		StatusList=new RTreeView(ScrollStatus);
+<br>		StatusList.Model=MODEL_LISTVIEW;
+<br>		StatusList.HeadersVisible=false;
+<br>		StatusList.HoverSelection=true;
+<br>
+<br>		StatusList.AddColumn(" ", IMAGE_COLUMN);
+<br>		StatusList.AddColumn("Event", NORMAL_COLUMN);
+<br>		StatusList.Show();
+<br>		
+<br>
+<br>		hpaned.Position=450;
+<br>		StatusBar=new RStatusbar(box);
+<br>		StatusBar.Show();
+<br>		StatusBar.Caption=LANG_NOT_LOGGED;
+<br>
+<br>		LoadImages();
+<br>		InitYahoo();
+<br>
+<br>		Width=250;
+<br>		Height=600;
+<br>
+<br>		logindialog=new LoginForm(this, Login);
+<br>		logindialog.Show();
+<br>
+<br>	}
+<br>}
+<br>
+<br>
+<br>class Main {
+<br>	function Main() {
+<br>			try {
+<br>				var Application=new CApplication(new MainForm(NULL));
+<br>				Application.ShellDebug=Application.ApplicationForm.DebugCallback;
+<br>
+<br>
+<br>				Application.Init();
+<br>				Application.Run();
+<br>				Application.Done();
+<br>
+<br>			} catch (var Exception) {
+<br>				echo Exception;
+<br>			}
+<br>	}
+<br>}
+<br></pre></font>
+</td></tr></table>
+<br />
+
+<br />
+<br />
+<!--
+  <p>
+    <a href="http://validator.w3.org/check?uri=referer"><img
+        src="http://www.w3.org/Icons/valid-html40"
+        alt="Valid HTML 4.0 Transitional" height="31" width="88" border="0"></a>
+ <a href="http://jigsaw.w3.org/css-validator/">
+  <img style="border:0;width:88px;height:31px"
+       src="http://jigsaw.w3.org/css-validator/images/vcss" 
+       alt="Valid CSS!" border="0"/>
+ </a>
+</p>
+-->
+<table bgcolor="#F0F0F0" width="100%"><tr><td>Documented by Eduard Suica, generation time: Sun Jan 27 18:15:22 2013
+ GMT</td><td align="right">(c)2013 <a href="http://www.devronium.com">Devronium Applications</a></td></tr></table>
+</body>
+</html>

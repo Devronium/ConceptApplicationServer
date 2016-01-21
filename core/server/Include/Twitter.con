@@ -1,0 +1,322 @@
+import standard.net.twitter
+
+class Twitter {
+	private var _handle;
+
+	public property Username { set SetUsername, get GetUsername }
+	public property Password { set SetPassword, get GetPassword }
+	public property LastResponse { get GetLastResponse }
+
+	public property TimelinePublic { get GetTimelinePublic }
+	public property TimelineFriends { get GetTimelineFriends }
+	public property FeaturedUsers { get GetFeaturedUsers }
+	public property Mentions { get GetMentions }
+
+	public property DirectMessage { get GetDirectMessage }
+	public property DirectMessageSent { get GetDirectMessageSent }
+
+	public property RateLimit { get GetRateLimit }
+	public property Favorite { get GetFavorite }
+
+	public property SavedSearch { get GetSavedSearch }
+
+	public property IsInit { get GetIsInit }
+
+	public property LastError { get GetLastError }
+
+	public property ProxyServerIp { set SetProxyServerIp, get GetProxyServerIp }
+	public property ProxyServerPort { set SetProxyServerPort, get GetProxyServerPort }
+	public property ProxyUserName { set SetProxyUserName, get GetProxyUserName }
+	public property ProxyPassword { set SetProxyPassword, get GetProxyPassword }
+
+	public function Twitter() {
+		this._handle=Twitter_Create();
+	}
+
+	public function finalize() {
+		if (this._handle)
+			Twitter_Destroy(this._handle);
+	}
+
+	public function Auth(string public_key, string private_key, string pin, consumerkey="", consumersecret="") {
+		Twitter_Auth(this._handle, public_key, private_key, pin, consumerkey, consumersecret);
+	}
+
+	public function SetUsername(string user) {
+		Twitter_setTwitterUsername(this._handle, user);
+		return user;
+	}
+
+	public function GetUsername() {
+		return Twitter_getTwitterUsername(this._handle);
+	}
+
+	public function SetPassword(string passwd) {
+		Twitter_setTwitterPassword(this._handle, passwd);
+		return passwd;
+	}
+
+	public function GetPassword() {
+		return Twitter_getTwitterPassword(this._handle);
+	}
+
+	public function Search(string what) {
+		if (Twitter_search(this._handle,what)) {
+			return Twitter_getLastWebResponse(this._handle);
+		} else {
+			throw "Cannot search on twitter";
+		}
+	}
+
+	public function GetLastResponse() {
+		return Twitter_getLastWebResponse(this._handle);
+	}
+
+	public function StatusUpdate(string new_status) {
+		return Twitter_statusUpdate(this._handle, new_status);
+	}
+
+	public function StatusShowById(string statusId) {
+		return Twitter_statusShowById(this._handle, statusId);
+	}
+
+	public function StatusDestroyById(string statusId) {
+		return Twitter_statusDestroyById(this._handle, statusId);
+	}
+
+	public function GetTimelinePublic() {
+		if (Twitter_timelinePublicGet(this._handle)) {
+			return Twitter_getLastWebResponse(this._handle);
+		} else
+			throw "Error getting timelinePublic";
+	}
+
+	public function GetTimelineFriends() {
+		if (Twitter_timelineFriendsGet(this._handle)) {
+			return Twitter_getLastWebResponse(this._handle);
+		} else
+			throw "Error getting timelineFriends";
+	}
+
+	public function GetFeaturedUsers() {
+		if (Twitter_featuredUsersGet(this._handle)) {
+			return Twitter_getLastWebResponse(this._handle);
+		} else
+			throw "Error getting featured users";
+	}
+
+	public function GetMentions() {
+		if (Twitter_mentionsGet(this._handle)) {
+			return Twitter_getLastWebResponse(this._handle);
+		} else
+			throw "Error getting mentions";
+	}
+	
+	public function GetTimelineUser(string userInfo="", number isUserId=false) {
+		if (Twitter_timelineUserGet(this._handle, userInfo, isUserId)) {
+			return Twitter_getLastWebResponse(this._handle);
+		} else
+			throw "Error getting timelineUser";
+	}
+
+	public function GetUser(string userInfo, number isUserId=false) {
+		if (Twitter_userGet(this._handle, userInfo, isUserId)) {
+			return Twitter_getLastWebResponse(this._handle);
+		} else
+			throw "Error in userGet";
+	}
+
+	public function GetFriends(string userInfo="", number isUserId=false) {
+		if (Twitter_friendsGet(this._handle, userInfo, isUserId)) {
+			return Twitter_getLastWebResponse(this._handle);
+		} else
+			throw "Error in friendsGet";
+	}
+
+	public function GetFollowers(string userInfo="", number isUserId=false) {
+		if (Twitter_followersGet(this._handle, userInfo, isUserId)) {
+			return Twitter_getLastWebResponse(this._handle);
+		} else
+			throw "Error in followersGet";
+	}
+
+	public function GetDirectMessage() {
+		if (Twitter_directMessageGet(this._handle)) {
+			return Twitter_getLastWebResponse(this._handle);
+		} else
+			throw "Error in directMessageGet";
+	}
+
+	public function GetDirectMessageSent() {
+		if (Twitter_directMessageGetSent(this._handle)) {
+			return Twitter_getLastWebResponse(this._handle);
+		} else
+			throw "Error in directMessageGetSent";
+	}
+
+	public function DirectMessageDestroyById(string dmsgId) {
+		if (Twitter_directMessageDestroyById(this._handle, dmsgId)) {
+			return true;
+		} else
+			throw "Error in DirectMessageDestroyById";
+	}
+
+	public function DirectMessageSend(string userInfo, string dMsg, number isUserId=false) {
+		if (Twitter_directMessageSend(this._handle, userInfo, dMsg, isUserId)) {
+			return true;
+		} else
+			throw "Error in directMessageSend";
+	}
+
+	public function CreateFriendship(string userInfo, number isUserId=false) {
+		if (Twitter_friendshipCreate(this._handle, userInfo, isUserId)) {
+			return true;
+		} else
+			throw "Error in CreateFriendship";
+	}
+
+	public function DestroyFriendship(string userInfo, number isUserId=false) {
+		if (Twitter_friendshipDestroy(this._handle, userInfo, isUserId)) {
+			return true;
+		} else
+			throw "Error in DestroyFriendship";
+	}
+
+	public function ShowFriendship(string userInfo, number isUserId=false) {
+		if (Twitter_friendshipShow(this._handle, userInfo, isUserId)) {
+			return Twitter_getLastWebResponse(this._handle);
+		} else
+			throw "Error in ShowFriendship";
+	}
+
+	public function GetFriendsIds(string userInfo, number isUserId=false) {
+		if (Twitter_friendsIdsGet(this._handle, userInfo, isUserId)) {
+			return Twitter_getLastWebResponse(this._handle);
+		} else
+			throw "Error in friendsIdsGet";
+	}
+
+	public function GetFollowersIds(string userInfo, number isUserId=false) {
+		if (Twitter_followersIdsGet(this._handle, userInfo, isUserId)) {
+			return Twitter_getLastWebResponse(this._handle);
+		} else
+			throw "Error in friendsIdsGet";
+	}
+
+	public function GetRateLimit() {
+		if (Twitter_accountRateLimitGet(this._handle)) {
+			return Twitter_getLastWebResponse(this._handle);
+		} else
+			throw "Error in accountRateLimitGet";
+	}
+
+	public function GetFavorite() {
+		if (Twitter_favoriteGet(this._handle)) {
+			return Twitter_getLastWebResponse(this._handle);
+		} else
+			throw "Error in favoriteGet";
+	}
+
+	public function FavoriteCreate(string statusId) {
+		if (Twitter_favoriteCreate(this._handle, statusId)) {
+			return true;
+		} else
+			throw "Error in FavoriteCreate";
+	}
+
+	public function FavoriteDestroy(string statusId) {
+		if (Twitter_favoriteDestroy(this._handle, statusId)) {
+			return true;
+		} else
+			throw "Error in FavoriteDestroy";
+	}
+
+
+	public function BlockCreate(string userInfo) {
+		if (Twitter_blockCreate(this._handle, userInfo)) {
+			return true;
+		} else
+			throw "Error in BlockCreate";
+	}
+
+	public function BlockDestroy(string userInfo) {
+		if (Twitter_blockDestroy(this._handle, userInfo)) {
+			return true;
+		} else
+			throw "Error in BlockDestroy";
+	}
+
+	public function GetSavedSearch() {
+		if (Twitter_savedSearchGet(this._handle)) {
+			return Twitter_getLastWebResponse(this._handle);
+		} else
+			throw "Error in savedSearchGet";
+	}
+
+	public function SavedSearchCreate(string query) {
+		if (Twitter_savedSearchCreate(this._handle, query)) {
+			return true;
+		} else
+			throw "Error in savedSearchCreate";
+	}
+
+	public function SavedSearchShow(string searchId) {
+		if (Twitter_savedSearchShow(this._handle, searchId)) {
+			return Twitter_getLastWebResponse(this._handle);
+		} else
+			throw "Error in savedSearchShow";
+	}
+
+	public function SavedSearchDestroy(string searchId) {
+		if (Twitter_savedSearchDestroy(this._handle, searchId)) {
+			return true;
+		} else
+			throw "Error in savedSearchDestroy";
+	}
+
+	public function GetIsInit() {
+		return Twitter_isCurlInit(this._handle);
+	}
+
+	public function GetLastError() {
+		return Twitter_getLastCurlError(this._handle);
+	}
+
+	public function SetProxyServerIp(string ip) {
+		Twitter_setProxyServerIp(this._handle, ip);
+		return ip;
+	}
+
+	public function GetProxyServerIp() {
+		return Twitter_getProxyServerIp(this._handle);
+	}
+
+	public function SetProxyServerPort(port) {
+		var s_port=""+port;
+		Twitter_setProxyServerPort(this._handle, s_port);
+		return value s_port;
+	}
+
+	public function GetProxyServerPort() {
+		Twitter_getProxyServerPort(this._handle);
+	}
+
+	public function SetProxyUserName(string username) {
+		Twitter_setProxyUserName(this._handle, username);
+		return username;
+	}
+
+	public function GetProxyUserName() {
+		return Twitter_getProxyUserName(this._handle);
+	}
+
+	public function SetProxyPassword(string passwd) {
+		Twitter_setProxyPassword(this._handle, passwd);
+		return passwd;
+	}
+
+	public function GetProxyPassword() {
+		return Twitter_getProxyPassword(this._handle);
+	}
+}
+

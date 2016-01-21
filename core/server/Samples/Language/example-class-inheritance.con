@@ -1,0 +1,75 @@
+define 	true	1
+define  false	0
+
+class Vegetable {
+      public var edible;
+      public var color;
+
+      function Vegetable(edible,color)  {
+               this->edible = edible;
+               this->color = color;
+      }
+
+      function is_edible() {
+               return this->edible;
+      }
+
+      function what_color() {
+               return this->color;
+      }
+}
+
+class Spinach extends Vegetable {
+      public var cooked;
+
+      function Spinach()  {
+               this->cooked=false;
+               this->Vegetable(true,"green");
+      }
+
+      function cook_it() {
+               this->cooked = true;
+      }
+
+      function is_cooked() {
+               return this->cooked;
+      }
+
+}
+
+class Main {
+      function Main() {
+               var test=new Spinach();
+               echo "---- Vegetable and Spinach ---\n";
+               echo "Color  : "+test->color+"\n";
+               var edible=test->is_edible();
+
+               if (!edible)
+                  edible="no";
+               else
+                  edible="yes";
+
+               echo "Edible : "+edible+"\n";
+               echo "-------- Only Spinach --------\n";
+
+               var cooked=test->is_cooked();
+
+               if (!cooked)
+                  cooked="no";
+               else
+                  cooked="yes";
+
+               echo "Cooked : "+cooked+"\n";
+               echo "Cooking ...\n";
+
+               test->cook_it();
+               cooked=test->is_cooked();
+
+               if (!cooked)
+                  cooked="no";
+               else
+                  cooked="yes";
+
+               echo "Cooked : "+cooked+"\n";
+       }
+}

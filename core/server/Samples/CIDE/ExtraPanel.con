@@ -1,0 +1,86 @@
+include RNotebook.con
+include RVBox.con
+include RHBox.con
+include RScrolledWindow.con
+include RTreeView.con
+include RHandleBox.con
+
+class ExtraWindow extends RHandleBox {
+	private var ClassTree;
+	private var FilesTree;
+	private var Notebook;
+	public var SelectDelegate;
+	public var SelectFileDelegate;
+
+	public property ClassExplorer { get ClassTree }
+	public property ProjectExplorer { get FilesTree }
+
+	public function OnSelectMember(Sender, EventData) {
+		var path=Sender.RowIndex;
+		if (path!="-1") {
+			var item=Sender.Items.GetPath(path);
+			var line=item[1];
+			if (SelectDelegate)
+				SelectDelegate("",line, item[4]);
+		}
+	}
+
+	public function OnSelectFile(Sender, EventData) {
+		var path=Sender.RowIndex;
+		if (path!="-1") {
+			if (SelectFileDelegate) {
+				var item=Sender.Items.GetPath(path);
+
+				SelectFileDelegate(item[2], item[1], path);
+			}
+		}
+	}
+
+	private function InitPanels() {		
+		var scwindow1=new RScrolledWindow(Notebook);
+		scwindow1.HScrollPolicy=POLICY_AUTOMATIC;
+		scwindow1.VScrollPolicy=POLICY_AUTOMATIC;
+		Notebook.Pages[0].Caption="Class explorer";
+		ClassTree=new RTreeView(scwindow1);
+		ClassTree.HeadersVisible=false;
+		ClassTree.Model=MODEL_TREEVIEW;
+		ClassTree.AddColumn(" ",IMAGE_COLUMN);
+		ClassTree.AddColumn("Line",HIDDEN_COLUMN);
+		ClassTree.AddColumn("Member",NORMAL_COLUMN);
+		ClassTree.AddColumn("Type",NORMAL_COLUMN);
+		ClassTree.Columns[2].FontDescription="bold";
+		ClassTree.Columns[1].FontDescription="italic";
+		ClassTree.Columns[1].ForeColor=0xA0A0A0;
+		ClassTree.LevelIndentation = 10;
+		//ClassTree.HeadersVisible=false;
+		ClassTree.SearchColumn=2;
+		ClassTree.TooltipColumn=3;
+		ClassTree.OnRowActivated=OnSelectMember;
+		ClassTree.Show();
+		scwindow1.Show();
+
+		var scwindow2=new RScrolledWindow(Notebook);
+		scwindow2.HScrollPolicy=POLICY_AUTOMATIC;
+		scwindow2.VScrollPolicy=POLICY_AUTOMATIC;
+
+		Notebook.Pages[1].Caption="Project explorer";
+		//FilesTree.HeadersVisible=false;
+		FilesTree=new RTreeView(scwindow2);
+		FilesTree.Model=MODEL_TREEVIEW;
+		FilesTree.AddColumn(" ",IMAGE_COLUMN);
+		FilesTree.AddColumn("Files",NORMAL_COLUMN);
+		FilesTree.OnRowActivated=OnSelectFile;
+		FilesTree.SearchColumn=1;
+		FilesTree.HeadersVisible=false;
+		FilesTree.Show();
+		scwindow2.Show();
+	}
+
+	public function ExtraWindow(owner) {
+		super(owner);
+		Notebook=new RNotebook(this);
+		Notebook.Show();
+		InitPanels();
+		HandlePosition=POS_TOP;
+	}
+}

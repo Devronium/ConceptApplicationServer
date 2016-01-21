@@ -1,0 +1,434 @@
+include SIP.con
+include OCV/RAudioStream.con
+import standard.lib.thread
+include RemoteAudio.con 
+
+define sQUALITY                 8
+define PACKET_GROUP             3
+define MAX_BUFFERS              6
+
+class SIPMain {
+    var sip;
+    var has_request=0;
+    var out=0;
+    var apid=0;
+    var data="";
+    var chunk=0;
+    var sem;
+    var registered=false;
+    var data2="";
+    var packets=0;
+    var total_packets=0;
+    var username="";
+    var password="";
+    var host="host.localhost";
+    var proxyhost="";
+    var port_delta=0;
+    var owner;
+
+    function SetBuf(var buf, chunk_size) {
+        semp(sem);
+        chunk=chunk_size;
+        if (length data>1900)
+            data=buf;
+        else
+            data+=buf;
+        semv(sem);
+    }
+    
+    function Reset() {
+        semp(sem);
+        data="";
+        semv(sem);
+    }
+    
+    function SetQuality(qual) {
+        semp(sem);
+        sip.SetQuality(qual);
+        semv(sem);
+    }
+
+    function OnVoiceRequest(var payload, var chunk_size, reset_buffer=false) {
+        var res=0;
+        semp(sem);
+        if (reset_buffer) {
+            if (data)
+                data="";
+        } else
+        if (data) {
+            chunk_size=chunk;
+            payload=SubStr(data, 0, chunk_size);
+            chunk_size=chunk;
+            data=SubStr(data, chunk_size, length data);
+            if (data)
+                res=2;
+            else
+                res=1;
+        }
+        semv(sem);
+        return res;
+    }
+
+    function OnVoice(var payload, chunk_size) {
+        if (!chunk_size)
+            return;
+
+        var pa=int32((length payload)/chunk_size);
+        
+        total_packets+=pa;
+        data2+=payload;
+        packets+=pa;
+
+        if ((chunk_size) && (packets>=PACKET_GROUP)) {
+            owner._InterAppShell(apid, 101, chr(packets)+chr(chunk_size)+data2);
+            data2="";
+            packets=0;
+        }
+    }
+
+    function OnCall(from) {
+        if (length from==6)
+            from="0241"+from;
+
+        if (from)
+            from=StrSplit(from, " ")[0];
+        owner._InterAppShell(apid, 102,from);
+        has_request=1;
+    }
+
+    function OnHangup(from) {
+        owner._InterAppShell(apid, 103,from);
+        has_request=0;
+    }
+
+    function OnLoginFailed() {
+        owner._InterAppShell(apid, 108,"");
+    }
+
+    function OnRegister(timeout) {
+        //if (!registered) {
+            registered++;
+            owner._InterAppShell(apid, 100,""+timeout);
+        //}
+    }
+    
+
+    function OnRinging(to) {
+        if (to)
+            to=StrSplit(to, " ")[0];
+        owner._InterAppShell(apid, 105,to);
+    }
+
+    function OnAnswer(to) {
+        if (length to==6)
+            to="0241"+to;
+        
+        if (to)
+            to=StrSplit(to, " ")[0];
+        owner._InterAppShell(apid, 106,to);
+    }
+        
+
+    function Main() {
+        sem=semcreate();
+        seminit(sem, 1);
+        sip=new SIP(host);
+        sip.Username=this.username;
+        sip.ProxyHost=proxyhost;
+        sip.Password=this.password;
+        sip.LocalRTPPort=sip.LocalRTPPort+port_delta*2;
+        sip.Register();
+        sip.OnCall=OnCall;
+        sip.OnEndCall=this.OnHangup;
+        sip.OnRegister=this.OnRegister;
+        sip.OnVoice=this.OnVoice;
+        sip.OnVoiceRequest=this.OnVoiceRequest;
+        sip.OnLoginFailed=this.OnLoginFailed;
+        sip.Quality=sQUALITY;
+        sip.OnRinging=this.OnRinging;
+        sip.OnAnswer=this.OnAnswer;
+
+        try {
+            while (true) {
+                if (sip.Iterate()<=0)
+                    break;
+
+                if (out)
+                    break;
+            }
+        } catch (var exc) {
+            echo exc;
+        }
+    }
+}
+
+
+class SIPPhone {
+    private var sip;
+    public var Phonenumber="";
+    public var CallFrom="";
+    public var OnCall=null;
+    public var OnAnswer=null;
+    public var OnRinging=null;
+    public var OnHangup=null;
+    public var OnLoginFailed=null;
+    public var OnMissedCall=null;
+
+    private var raudio;
+    private var raudio_in;
+    private var ring_audio;
+    private var call_mode;
+    private var is_received;
+    private var in_val=0;
+    private var out_val=0;
+    private var missed_call;
+    private var in_call;
+    private var new_call;
+    private var has_missed;
+    private var sec;
+
+    public property Seconds { get sec }
+    public property SIP { get sip }
+    public property Registered { get GetRegistered }
+
+    function SIPPhone(Sender, proxyhost, username, password, host="", port_delta=1) {
+        sip=new SIPMain();
+        sip.owner=this;
+        sip.proxyhost=proxyhost;
+        if (host)
+            sip.host=host;
+        sip.username=username;
+        sip.password=password;
+        sip.port_delta=port_delta - 1;
+        sip.apid=GetAPID();
+        RunThread(sip.Main);
+
+        raudio=new RAudioStreamer(Sender);
+        raudio.SampleRate=8000;
+        raudio.Quality=sQUALITY;
+        raudio.MaxBuffers=MAX_BUFFERS;
+        raudio.Compression=true;
+            
+        raudio_in=new RAudioStreamer(Sender);
+        raudio_in.OnBuffer=this.on_audio_buffer;
+        raudio_in.Channels=1;
+        raudio_in.Quality=sQUALITY;
+        raudio_in.Compression=true;
+        raudio_in.SampleRate=raudio.SampleRate;
+    }
+
+    public function GetRegistered() {
+        return (sip.registered>0);
+    }
+
+    public function on_audio_buffer(Sender, EventData) {
+        out_val+=length EventData;
+        EventData++;
+        var chunk_size=ord(EventData[0]);
+        EventData++;
+        this.sip.SetBuf(EventData, chunk_size);
+    }
+        
+    public function on_hscale1_change_value(Sender, EventData) {
+        var qual=value EventData;
+        if (raudio.Quality!=qual) {
+            raudio.Quality=qual;
+            raudio_in.Quality=qual;
+            sip.SetQuality(qual);
+        }
+    }
+
+    public function Accept() {
+        this.has_missed=false;
+        if ((!Phonenumber) && (!sip.has_request))
+            return;
+        CApplication.BeginNonCritical();
+        CApplication.Query("Ring", -1, "0");
+        CApplication.Query("Wake", -1, "1");
+        if (ring_audio) {
+            ring_audio.Stop();
+            ring_audio=null;
+        }
+        call_mode=1;
+        new_call=true;
+        try {
+            raudio.Stop();
+            raudio_in.Stop();
+        } catch (var exc) {
+        }            
+        if (sip.has_request) {
+            is_received=true;
+            sip.sip.Answer();
+        } else {
+            is_received=false;
+            var text=Phonenumber;
+            if (text) {
+                this.sip.sip.Call(text, 60);
+            }
+        }
+        raudio.Play();
+        raudio_in.Record();
+        sip.Reset();
+        CApplication.EndNonCritical();
+        CApplication.Query("Wake", -1, "0");
+    }
+        
+    public function Reject(reset_number=true) {
+        this.has_missed=false;
+        CApplication.BeginNonCritical();
+        if (ring_audio) {
+            ring_audio.Stop();
+            ring_audio=null;
+        }
+        try {
+            raudio.Stop();
+            raudio_in.Stop();
+        } catch (var exc) {
+        }
+        CApplication.Query("Ring", -1, "0");
+        sip.sip.Reject();
+        if ((!call_mode) && (!is_received) && (reset_number)) {
+            Phonenumber="";
+        }
+        call_mode=0;
+        CApplication.EndNonCritical();
+    }
+
+    public function _InterAppShell(SenderAPID, MSGID, Data) {
+        switch (MSGID) {
+            case 105:
+                try {
+                    raudio.Play();
+                    raudio_in.Record();
+                } catch (var exc2) {
+                }
+                ring_audio=RemoteAudio.StockSound("ring", -1);
+                sip.Reset();
+                if (OnRinging)
+                    OnRinging(Data);
+                break;
+
+            case 100:
+                break;
+
+            case 106:
+                if (ring_audio) {
+                    ring_audio.Stop();
+                    ring_audio=null;
+                }                
+                if (OnAnswer)
+                    OnAnswer(Data);
+                break;
+                    
+            case 101:
+                var now=microseconds();
+
+                if (ring_audio) {
+                    ring_audio.Stop();
+                    ring_audio=null;
+                }
+                raudio.AddBuffer(Data);
+                in_val+=length Data;
+                break;
+            case 102:
+                CApplication.BeginNonCritical();
+                CApplication.Query("Ring", -1, "1");
+                call_mode=0;
+                var cfrom=Data;
+
+                CApplication.EndNonCritical();
+
+                CApplication.BeginNonCritical();
+                    
+                this.Phonenumber=Data;
+                this.CallFrom=Data;
+                this.has_missed=true;
+                this.is_received=true;
+                //RemoteAudio::Go("ringtone.mp3", false, false);
+                raudio.Play();
+                raudio_in.Record();
+                sip.Reset();
+                if (OnCall)
+                    OnCall(cfrom);
+                CApplication.EndNonCritical();
+                break;
+            case 108:
+                if (OnLoginFailed)
+                    OnLoginFailed();
+                break;
+            case 103:
+                CApplication.Query("Ring", -1, "0");
+                CApplication.BeginNonCritical();
+                if (ring_audio) {
+                    ring_audio.Stop();
+                    ring_audio=null;
+                }                    
+                var orig_is_received=is_received;
+                if (this.has_missed) {
+                    //CApplication.Notify("Missed call", CallFrom);
+                    this.has_missed=false;
+                    if (this.OnMissedCall)
+                        this.OnMissedCall(CallFrom);
+                } else {
+                    //if (this.is_received)                        
+                }
+                this.CallFrom="";
+                this.is_received=false;
+                in_val=0;
+                out_val=0;
+                sec=0;
+                try {
+                    raudio.Stop();
+                } catch (var exc) {
+                }
+                try {
+                    raudio_in.Stop();
+                } catch (exc) {
+                }
+                call_mode=0;
+                if (Pos(Data, "(486)")>0) {
+                    RemoteAudio.StockSound("busy", 4000);
+                    //CApplication.MessageBox("Line is busy");
+                } else
+                if (Pos(Data, "(487)")>0) {
+                    if (orig_is_received) {
+                        RemoteAudio.StockSound("busy", 4000);
+                        //CApplication.MessageBox("Rejected");
+                    }
+                } else
+                if (Pos(Data, "(404)")>0) {
+                    RemoteAudio.StockSound("error", 4000);
+                    //CApplication.MessageBox("Number is not in service");
+                } else
+                if (Pos(Data, "(408)")>0) {
+                    RemoteAudio.StockSound("congestion", 4000);
+                    //CApplication.MessageBox("Request timed out");
+                } else
+                if (Pos(Data, "(410)")>0) {
+                    RemoteAudio.StockSound("congestion", 4000);
+                    //CApplication.MessageBox("Phone number not connected anymore");
+                } else
+                if (Pos(Data, "(480)")>0) {
+                    RemoteAudio.StockSound("error", 4000);
+                    //CApplication.MessageBox("Number unavailable for the moment");
+                }
+                if (OnHangup)
+                    OnHangup(Data);
+                CApplication.EndNonCritical();
+                break;
+        }
+    }
+
+    function Done() {
+            if (!sip.out) {
+                this.Reject();
+                sip.sip.Bye();
+                sip.sip.Unregister();
+                sip.out=true;
+            }
+    }
+        
+    function finalize() {
+        this.Done();
+    }
+}

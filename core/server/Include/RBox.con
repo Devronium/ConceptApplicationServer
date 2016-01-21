@@ -1,0 +1,49 @@
+include RemoteContainer.con
+
+class RBox extends RemoteContainer {
+	DEFINE_FIXED_CONTROL
+
+	protected var SPACING;
+	protected var HOMOGENEOUS;
+
+	public property Spacing { get SPACING, set SetSpacing }
+	public property Homogeneous { get HOMOGENEOUS, set SetHomogeneous }
+	
+	public function RBox(OWNER,CLASS) {
+		super(OWNER, CLASS);
+	}
+
+	public function SetSpacing(argument) {
+		SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_SPACING,argument);
+		SPACING=argument;
+		return argument;
+	}
+
+	public function SetHomogeneous(argument) {
+		SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_HOMOGENEOUS,argument);
+		HOMOGENEOUS=argument;
+		return argument;
+	}
+
+	public function ReorderChild(Child, position) {
+		if (typeof Child!="class")
+			throw "Child should be an instance of a class !";
+		var ch_ptr=this.CHILDS;
+		var ch_rid=Child.RID;
+		if (ch_ptr) {
+			if ((position >= 0) || (position < length ch_ptr)) {
+				var len=length ch_ptr;
+				for (var i=position+1;i<len;i++) {
+					var obj=&ch_ptr[i];
+					if (obj.RID!=ch_rid) {
+						ch_ptr[i]=&ch_ptr[i-1];
+					}
+				}
+				ch_ptr[position]=&Child;
+				return Send(MSG_REORDER_CHILD,""+ch_rid,position);
+			} else
+				throw "Invalid position in reorder child";
+		} else
+			throw "Object has not children";
+	}
+}

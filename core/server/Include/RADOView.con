@@ -1,0 +1,213 @@
+include RTreeView.con
+include DataBases.con
+
+
+class RADOView 		extends RTreeView 
+			extends VirtualADOObject {
+
+	override DataField;
+
+	override Model;
+
+	override Sorted;
+	override SortColumn;
+	override SortDescending;
+
+	override OnCursorChanged;
+	override OnStartEditing
+	override OnEndEditing;
+
+	public var OnCursorChanged;
+	public var OnStartEditing;
+	public var OnEndEditing;
+
+
+	override __DataSetUpdateCommand;
+
+	private var _TARGET_EDIT_INDEX=-1;
+	private var _TARGET_EDIT_COLUMN=-1;
+
+	var _EDITABLE=false;
+	var[] _DATAFIELDS;
+	var[] _FIELDSTEXT;
+
+	private var _first_query=false;
+
+	public property Editable { set SetEditable, get _EDITABLE }
+
+	public property DataFields { set SetDataFields, get _DATAFIELDS }
+
+	public property FieldsText { set SetFieldsText, get _FIELDSTEXT }
+
+
+	public function __DataSetUpdateCommand(Sender) {
+		try {
+			if (Sender->IsUpdateQuery)
+				this->UpdateItem(DataSet->RowIndex, DataSet->FieldValues[this->DataField].ToString());
+			this->RowIndex=DataSet->RowIndex;
+		} catch (var exception) {
+			// nothing ...
+		}
+	}
+
+	override __DataSetNewQueryNotify;
+	public function __DataSetNewQueryNotify(Sender) {
+		// to do ...
+		_first_query=false;
+		if (!Sender->IsUpdateQuery) {
+			Clear();
+			ClearColumns();
+			var _col=DataSet.Columns;
+			if (_col) {
+				var len=length _col;
+				var col_type=NORMAL_COLUMN;
+				if (_EDITABLE)
+					col_type|=EDITABLE_COLUMN;
+
+				var len2=length _DATAFIELDS;
+
+				if (len2)
+					len=len2;
+
+				var has_names=false;
+
+				if (_FIELDSTEXT)
+					has_names=true;
+
+
+				var old_visible=false;
+				if (VISIBLE) {
+					old_visible=true;
+					Hide();
+				}
+
+				for (var i=0;i<len;i++) {
+					var name=0;
+
+					if (has_names)
+						name=_FIELDSTEXT[i];
+
+					if (!name) {
+						name=_col[i];
+					}
+
+					AddColumn(name,col_type);
+				}
+
+
+				DataSet->UpdateColumnList(this);
+
+				if (old_visible)
+					Show();
+
+			}
+		}
+	}
+
+	override __DataSetColumnUpdate;
+	public function __DataSetColumnUpdate(Sender,ColumnValue,is_indexed) {
+		//this->SetItemText(is_indexed, ColumnValue);
+		var len=length DataFields;
+
+		_first_query=false;
+		var []col_val;
+		for (var i=0;i<len;i++) {
+			col_val[i]=ColumnValue[DataFields[i]];
+		}
+		if (!len)
+			col_val=ColumnValue;
+		//AddItem(ColumnValue);
+		AddItem(col_val);
+	}
+
+	public function IndexChanged(Sender, EventData) {
+		var index=RowIndex;
+
+		if (DataSet) {
+			if (!_first_query) {
+				DataSet.FetchByIndex(0);
+				_first_query=true;
+				return 0;
+			}
+
+			if (index!=DataSet.RowIndex) {
+				DataSet.FetchByIndex(index);
+			}
+		}
+
+		if (typeof OnCursorChanged=="delegate")
+			OnCursorChanged(Sender, EventData);
+	}
+
+	public function StartEditingCell(Sender, EventData) {
+		_TARGET_EDIT_INDEX=RowIndex;
+		_TARGET_EDIT_COLUMN=ColumnIndex;
+		if (typeof OnStartEditing=="delegate")
+			OnStartEditing(Sender, EventData);
+	}
+
+	public function EndEditingCell(Sender, EventData) {
+		if (DataSet.RowIndex!=_TARGET_EDIT_INDEX)
+			DataSet.FetchByIndex(_TARGET_EDIT_INDEX);
+
+
+		_TARGET_EDIT_INDEX;
+		_TARGET_EDIT_COLUMN;
+
+		var item=Items[_TARGET_EDIT_INDEX];
+		item[_TARGET_EDIT_COLUMN]=EventData;
+
+		UpdateItem(_TARGET_EDIT_INDEX, item);
+
+		DataSet.FieldValues[_TARGET_EDIT_COLUMN]=EventData;
+		DataSet.Update();
+
+		if (typeof OnEndEditing=="delegate")
+			OnEndEditing(Sender, EventData);
+
+	}
+
+	public function SetEditable(editable) {
+		editable=(editable!=0);
+		_EDITABLE=editable;
+		if (DataSet) {
+			__DataSetNewQueryNotify(DataSet);
+		}
+		return editable;
+	}
+
+	public function SetDataFields(fields) {
+		if (typeof fields!="array")
+			throw "Fields should be an array";
+
+		_DATAFIELDS=fields;
+		if (DataSet) {
+			__DataSetNewQueryNotify(DataSet);
+		}
+
+		return fields;
+	}
+
+	public function SetFieldsText(texts) {
+		if (typeof texts!="array")
+			throw "Fields text should be an array";
+
+		_FIELDSTEXT=texts;
+
+		if (DataSet) {
+			__DataSetNewQueryNotify(DataSet);
+		}
+		return texts;
+	}
+
+	public function RADOView(Owner) {
+		RTreeView(Owner);
+		RTreeView::Model=MODEL_LISTVIEW;
+		RTreeView::OnCursorChanged=IndexChanged;
+
+		RTreeView::OnEndEditing=EndEditingCell;
+		RTreeView::OnStartEditing=StartEditingCell;
+		GridLines=TREE_VIEW_GRID_LINES_BOTH;
+	}
+
+}

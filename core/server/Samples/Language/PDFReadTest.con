@@ -1,0 +1,21 @@
+import standard.lib.poppler
+import standard.C.io
+
+class Main {
+	function Main() {
+		var pdf=PDFLoadBuffer(ReadFile("test.pdf"), "", var err);
+		if (pdf) {
+			var pages=PDFPageCount(pdf);
+			echo "Document has $pages pages\n";
+			for (var i=0;i<pages;i++) {
+				echo "Page ${i+1}:\n";
+				echo "===============================================================\n";
+				echo PDFPageText(pdf, i);
+				echo PDFPageImage(pdf, i, "page_$i.png");
+				echo "===============================================================\n";
+				echo PDFFindText(pdf, i, "sample");
+			}
+			PDFClose(pdf);
+		}
+	}
+}

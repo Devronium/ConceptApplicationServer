@@ -1,0 +1,62 @@
+include VisibleRemoteObject.con
+
+class RemoteContainer extends VisibleRemoteObject {
+	protected var[] CHILDS;
+
+	public property Childs { get CHILDS }
+
+	public function RemoteContainer(OWNER,CLASS_ID) {
+		super(OWNER, CLASS_ID);
+	}
+
+	public function Add(child) {
+		CHILDS[length CHILDS]=child;
+		return child;
+	}
+
+	override DisposeObject;
+	public function DisposeObject(clean_child=true) {
+		var len=length CHILDS;
+
+		for (var i=0;i<len;i++) {
+
+			var CHILD=&CHILDS[i];
+
+			if (CHILD) {
+				if (HasMember(CHILD,"DisposeObject")) {
+					CHILD.DisposeObject(false);
+				}
+				delete CHILDS[i];
+			}
+		}
+		delete CHILDS;
+		CHILDS=new [];
+		VisibleRemoteObject::DisposeObject(clean_child);
+		delete this;
+	}
+
+	override __QueryDispose;
+	public function __QueryDispose(object obj) {
+		var rRID=obj.RID;
+		var len=length CHILDS;
+
+		var childptr=CHILDS;
+		delete CHILDS;
+		var childptr_new=new [];
+
+		var index=0;
+		var not_set=true;
+		for (var i=0;i<len;i++) {
+			var child=&childptr[i];
+			if (child) {
+				if ((not_set) && (rRID==child.RID)) {
+					delete childptr[i];
+					not_set=false;
+				} else {
+					childptr_new[index++]=childptr[i];
+				}
+			}
+		}
+		CHILDS=&childptr_new;
+	}
+}

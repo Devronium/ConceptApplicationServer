@@ -1,0 +1,516 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+  <title>standard.net.soap</title>
+  <link href="css/style.css" rel="stylesheet" type="text/css">
+  <meta http-equiv="Content-Type" content="text/html;charset=utf-8" >
+</head>
+<body bgcolor="#ffffff">
+<table border="0" width="100%" bgcolor="#F0F0FF">
+  <tr>
+    <td>Concept Framework 2.2 documentation</td>
+  	<td align="right"><a href="index.html">Contents</a> | <a href="index_fun.html">Index</a></td>
+  </tr>
+</table>
+<h2>standard.net.soap</h2>
+<table border="0" cellspacing="0" cellpadding="0" width="400" style="border-style:solid;border-width:1px;border-color:#D0D0D0;">
+  <tr bgcolor="#f0f0f0">
+     <td><i>Static library name</i></td>
+     <td><i>Version</i></td>
+     <td><i>Deprecated</i></td>
+  </tr>
+  <tr bgcolor="#fafafa">
+     <td><b>standard.net.soap</b></td>
+     <td>version 1.0</td>
+     <td>no</td>
+  </tr>
+</table>
+<br />
+<b>Import library : </b>standard.net.soap<br />
+<i>(you must include this at the top of your source: "import standard.net.soap" (no quotes)</i><br />
+<br /><br />
+
+<b>Description:</b><br />
+<table width="100%" bgcolor="#FAFAFF" style="border-style:solid;border-width:1px;border-color:#D0D0D0;">
+<tr><td>
+Provide access to client/server SOAP services. This library is based on the csoap library (http://csoap.sourceforge.net/).
+<br>
+<br>Note: There are many application servers based on SOAP services. Concept Application Server is NOT based on SOAP services (it has its own client and protocol). The SOAP functionality is provided in order to create advanced web services, and Concept application that interact with web services.
+<br>
+<br>csoap is a client/server SOAP library implemented in pure C. It comes with an embedded HTTP server called nanohttp. The transfered XML structures are handled by libxml2. csoap comes with the followin features: 
+<br>
+<br>- client/server HTTP engine 
+<br>- Attachments via MIME 
+<br>- https (SSL) with OpenSSL
+<br>
+</td></tr>
+</table>
+<br />
+<br />
+
+
+
+
+<b>Contained static functions:</b><br />
+<table bgcolor="#FFFFFF" width="100%" style="border-style:solid;border-width:1px;border-color:#D0D0D0;">
+
+	   <tr>
+	   	   <td>
+		   	   <a href="standard.net.soap.SOAPClientBlockSocket.html">SOAPClientBlockSocket</a>
+		   </td>
+	   	   <td>
+		   	   Set the blocking mode to use for the client socket
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="standard.net.soap.SOAPClientDestroy.html">SOAPClientDestroy</a>
+		   </td>
+	   	   <td>
+		   	   Destroy the soap client module
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="standard.net.soap.SOAPClientGetBlockmode.html">SOAPClientGetBlockmode</a>
+		   </td>
+	   	   <td>
+		   	   Get the current client blocking mode
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="standard.net.soap.SOAPClientInitArgs.html">SOAPClientInitArgs</a>
+		   </td>
+	   	   <td>
+		   	   Initializes the client side soap engine
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="standard.net.soap.SOAPClientInvoke.html">SOAPClientInvoke</a>
+		   </td>
+	   	   <td>
+		   	   Perform a remote action
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="standard.net.soap.SOAPCtxAddFile.html">SOAPCtxAddFile</a>
+		   </td>
+	   	   <td>
+		   	   Add a file
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="standard.net.soap.SOAPCtxFree.html">SOAPCtxFree</a>
+		   </td>
+	   	   <td>
+		   	   Free a previously allocated context
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="standard.net.soap.SOAPCtxGetFile.html">SOAPCtxGetFile</a>
+		   </td>
+	   	   <td>
+		   	   Get the attached file if any found
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="standard.net.soap.SOAPCtxNewWithMethod.html">SOAPCtxNewWithMethod</a>
+		   </td>
+	   	   <td>
+		   	   Create a new soap context
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="standard.net.soap.SOAPEnvAddItem.html">SOAPEnvAddItem</a>
+		   </td>
+	   	   <td>
+		   	   Add a new XML node under the current parent
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="standard.net.soap.SOAPEnvAttachment.html">SOAPEnvAttachment</a>
+		   </td>
+	   	   <td>
+		   	   Add attachment href node to the envelope current parent
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="standard.net.soap.SOAPEnvFindMethodname.html">SOAPEnvFindMethodname</a>
+		   </td>
+	   	   <td>
+		   	   Get the method of the message
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="standard.net.soap.SOAPEnvFindUrn.html">SOAPEnvFindUrn</a>
+		   </td>
+	   	   <td>
+		   	   Get the URN of the message
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="standard.net.soap.SOAPEnvFree.html">SOAPEnvFree</a>
+		   </td>
+	   	   <td>
+		   	   Free the envelope
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="standard.net.soap.SOAPEnvGetBody.html">SOAPEnvGetBody</a>
+		   </td>
+	   	   <td>
+		   	   Get the XML node handle pointing to SOAP Body
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="standard.net.soap.SOAPEnvGetFault.html">SOAPEnvGetFault</a>
+		   </td>
+	   	   <td>
+		   	   Get the XML node handle pointing to SOAP fault
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="standard.net.soap.SOAPEnvGetMethod.html">SOAPEnvGetMethod</a>
+		   </td>
+	   	   <td>
+		   	   Get the XML node handle pointing to SOAP method (call)
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="standard.net.soap.SOAPEnvNewFromBuffer.html">SOAPEnvNewFromBuffer</a>
+		   </td>
+	   	   <td>
+		   	   Create an envelop object from a string
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="standard.net.soap.SOAPEnvNewFromDoc.html">SOAPEnvNewFromDoc</a>
+		   </td>
+	   	   <td>
+		   	   Creates an envelope from a given xml document handle
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="standard.net.soap.SOAPEnvNewFromStream.html">SOAPEnvNewFromStream</a>
+		   </td>
+	   	   <td>
+		   	   Create an envelope from a given http stream
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="standard.net.soap.SOAPEnvNewWithFault.html">SOAPEnvNewWithFault</a>
+		   </td>
+	   	   <td>
+		   	   Create an envelope with a fault object
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="standard.net.soap.SOAPEnvNewWithMethod.html">SOAPEnvNewWithMethod</a>
+		   </td>
+	   	   <td>
+		   	   Create an envelope with a method to invoke a soap service
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="standard.net.soap.SOAPEnvNewWithResponse.html">SOAPEnvNewWithResponse</a>
+		   </td>
+	   	   <td>
+		   	   Create a soap envelope with a response
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="standard.net.soap.SOAPEnvPopItem.html">SOAPEnvPopItem</a>
+		   </td>
+	   	   <td>
+		   	   Set the xml pointer one level higher
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="standard.net.soap.SOAPEnvPushItem.html">SOAPEnvPushItem</a>
+		   </td>
+	   	   <td>
+		   	   Push the current xml node in the soap envelope one level deeper
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="standard.net.soap.SOAPError.html">SOAPError</a>
+		   </td>
+	   	   <td>
+		   	   Get the error text associated with the error handle
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="standard.net.soap.SOAPFaultBuild.html">SOAPFaultBuild</a>
+		   </td>
+	   	   <td>
+		   	   Build a SOAP fault XML node
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="standard.net.soap.SOAPGetCtxArray.html">SOAPGetCtxArray</a>
+		   </td>
+	   	   <td>
+		   	   Convert a SOAP context handle to an array
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="standard.net.soap.SOAPGetCurrentNode.html">SOAPGetCurrentNode</a>
+		   </td>
+	   	   <td>
+		   	   Get the current XML node of the envelope
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="standard.net.soap.SOAPGetEnv.html">SOAPGetEnv</a>
+		   </td>
+	   	   <td>
+		   	   Get the envelope handle associated with the given SOAP context
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="standard.net.soap.SOAPGetEnvArray.html">SOAPGetEnvArray</a>
+		   </td>
+	   	   <td>
+		   	   Convert a SOAP envelope handle to an array
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="standard.net.soap.SOAPGetRootDoc.html">SOAPGetRootDoc</a>
+		   </td>
+	   	   <td>
+		   	   Get the root document of the SOAP envelope
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="standard.net.soap.SOAPGetRootNode.html">SOAPGetRootNode</a>
+		   </td>
+	   	   <td>
+		   	   Get the root XML node of the envelope
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="standard.net.soap.SOAPGetServiceMethod.html">SOAPGetServiceMethod</a>
+		   </td>
+	   	   <td>
+		   	   Get the method name of the service as a string
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="standard.net.soap.SOAPGetServiceUrn.html">SOAPGetServiceUrn</a>
+		   </td>
+	   	   <td>
+		   	   Get the URN of the service as a string
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="standard.net.soap.SOAPRouterFindService.html">SOAPRouterFindService</a>
+		   </td>
+	   	   <td>
+		   	   Search for a registered soap service
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="standard.net.soap.SOAPRouterFree.html">SOAPRouterFree</a>
+		   </td>
+	   	   <td>
+		   	   Free the router object
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="standard.net.soap.SOAPRouterNew.html">SOAPRouterNew</a>
+		   </td>
+	   	   <td>
+		   	   Creates a new router object
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="standard.net.soap.SOAPRouterRegisterService.html">SOAPRouterRegisterService</a>
+		   </td>
+	   	   <td>
+		   	   Register a SOAP service (in this case a Concept function) to the router
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="standard.net.soap.SOAPServerDestroy.html">SOAPServerDestroy</a>
+		   </td>
+	   	   <td>
+		   	   Free the SOAP server
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="standard.net.soap.SOAPServerInitArgs.html">SOAPServerInitArgs</a>
+		   </td>
+	   	   <td>
+		   	   Initialize the soap server with command line arguments
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="standard.net.soap.SOAPServerRegisterRouter.html">SOAPServerRegisterRouter</a>
+		   </td>
+	   	   <td>
+		   	   Register a router to the SOAP server
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="standard.net.soap.SOAPServerRun.html">SOAPServerRun</a>
+		   </td>
+	   	   <td>
+		   	   Enter the server loop and starts to listen to incoming requests
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="standard.net.soap.SOAPXMLDocPrint.html">SOAPXMLDocPrint</a>
+		   </td>
+	   	   <td>
+		   	   Print the content of an XML document
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="standard.net.soap.SOAPXMLGetChildren.html">SOAPXMLGetChildren</a>
+		   </td>
+	   	   <td>
+		   	   Get the first child of a XML node
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="standard.net.soap.SOAPXMLGetNext.html">SOAPXMLGetNext</a>
+		   </td>
+	   	   <td>
+		   	   Get the next sibling of a XML node
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="standard.net.soap.SOAPXMLGetNodeArray.html">SOAPXMLGetNodeArray</a>
+		   </td>
+	   	   <td>
+		   	   Convert a XML node handle to an array
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="standard.net.soap.SOAPXMLGetText.html">SOAPXMLGetText</a>
+		   </td>
+	   	   <td>
+		   	   Get the text contained by the XML node
+		   </td>
+	   </tr>
+
+</table>
+<br />
+
+
+
+
+
+
+<br />
+
+<br />
+<br />
+<!--
+  <p>
+    <a href="http://validator.w3.org/check?uri=referer"><img
+        src="http://www.w3.org/Icons/valid-html40"
+        alt="Valid HTML 4.0 Transitional" height="31" width="88" border="0"></a>
+ <a href="http://jigsaw.w3.org/css-validator/">
+  <img style="border:0;width:88px;height:31px"
+       src="http://jigsaw.w3.org/css-validator/images/vcss" 
+       alt="Valid CSS!" border="0"/>
+ </a>
+</p>
+-->
+<table bgcolor="#F0F0F0" width="100%"><tr><td>Documented by Eduard Suica, generation time: Sun Jan 27 18:15:19 2013
+ GMT</td><td align="right">(c)2013 <a href="http://www.devronium.com">Devronium Applications</a></td></tr></table>
+</body>
+</html>

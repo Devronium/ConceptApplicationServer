@@ -1,0 +1,31 @@
+import standard.search.xapian
+
+class XapianStem {
+	protected var THISREF=null;
+	public property REF { get THISREF }
+
+	public function XapianStem(string lang="") {
+		if (lang)
+			this.THISREF=XapianStemCreate2(var exc, lang);
+		else
+			this.THISREF=XapianStemCreate(var exc2);
+	}
+	public function finalize() {
+		XapianStemDestroy(THISREF, var exc);
+		this.THISREF=null;
+	}
+	public function get_description() {
+		var result=XapianStem__get_description(this->THISREF, var exc);
+		if (exc)
+			throw exc;
+		return result;
+	}
+
+	public function stem_word(string word) {
+		var result=XapianStem__stem_word(this->THISREF, var exc, word);
+		if (exc)
+			throw exc;
+		return result;
+	}
+
+}

@@ -1,0 +1,72 @@
+include 'Container.con'
+
+class ConceptForm extends Container {
+	protected var _CAPTION;
+	protected var _STYLE;
+	protected var _SCROLL_BARS;
+	protected var _BORDER_ICONS;
+	protected var _MENU;
+
+	public property Caption { set SetCaption, get _CAPTION }
+	public property Style {set SetStyle, get _STYLE }
+	public property ScrollBars {set SetScrollBars, get _SCROLL_BARS }
+	public property BorderIcons {set SetBorderIcons, get _BORDER_ICONS }
+	public property Menu {set SetMenu, get _MENU}
+
+	public function ConceptForm(Owner) {
+		//this->VisibleControl(Owner);
+		this->Container(Owner, CLASS_FORM);
+		this->BorderIcons=MINIMIZE_BUTTON | MAXIMIZE_BUTTON | SYSTEM_BUTTON;
+	}
+
+	public function Close() {
+		this->Visible=false;
+                SendMessage(this->Name, MSG_CLOSE, "", 0);
+	}
+
+	protected function SetMenu(x) {
+		if (classof x=="ConceptMenu")
+			this->_SCROLL_BARS=x;
+		else
+		     	throw new ControlException(EXC_INVALID_ARGUMENT_TYPE, this);
+
+                SendMessage(this->Name, MSG_CHANGED, P_MENU, x->Name);
+	}
+
+	protected function SetScrollBars(x) {
+		if (typeof x==NUMERIC_TYPE)
+			this->_SCROLL_BARS=x;
+		else
+		     	throw new ControlException(EXC_INVALID_ARGUMENT_TYPE, this);
+
+                SendMessage(this->Name, MSG_CHANGED, P_SCROLLBARS, x);
+	}
+
+
+	protected function SetStyle(x) {
+		if (typeof x==NUMERIC_TYPE)
+			this->_STYLE=x;
+		else
+		     	throw new ControlException(EXC_INVALID_ARGUMENT_TYPE, this);
+
+                SendMessage(this->Name, MSG_CHANGED, P_STYLE, x);
+	}
+
+	protected function SetBorderIcons(x) {
+		if (typeof x==NUMERIC_TYPE)
+			this->_BORDER_ICONS=x;
+		else
+		     	throw new ControlException(EXC_INVALID_ARGUMENT_TYPE, this);
+
+                SendMessage(this->Name, MSG_CHANGED, P_BORDERICONS, x);
+	}
+
+	protected function SetCaption(x) {
+		if (typeof x==STRING_TYPE)
+			this->_CAPTION=x;
+		else
+		     	throw new ControlException(EXC_INVALID_ARGUMENT_TYPE, this);
+
+                SendMessage(this->Name, MSG_CHANGED, P_CAPTION, x);
+	}
+}

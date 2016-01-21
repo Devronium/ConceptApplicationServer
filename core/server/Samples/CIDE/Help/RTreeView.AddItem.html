@@ -1,0 +1,94 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+  <title>RTreeView.AddItem</title>
+  <link href="css/style.css" rel="stylesheet" type="text/css">
+  <meta http-equiv="Content-Type" content="text/html;charset=utf-8" >
+</head>
+<body bgcolor="#ffffff">
+<table border="0" width="100%" bgcolor="#F0F0FF">
+  <tr>
+    <td>Concept Framework 2.2 documentation</td>
+  	<td align="right"><a href="index.html">Contents</a> | <a href="index_fun.html">Index</a></td>
+  </tr>
+</table>
+<h2><a href="RTreeView.html">RTreeView</a>.AddItem</h2>
+<table border="0" cellspacing="0" cellpadding="0" width="500" style="border-style:solid;border-width:1px;border-color:#D0D0D0;">
+  <tr bgcolor="#f0f0f0">
+     <td><i>Name</i></td>
+     <td><i>Type</i></td>
+     <td><i>Access</i></td>
+     <td><i>Version</i></td>
+     <td><i>Deprecated</i></td>
+  </tr>
+  <tr bgcolor="#fafafa">
+     <td><b>AddItem</b></td>
+     <td>function</td>
+     <td>public</td>
+     <td>version 1.0</td>
+     <td>no</td>
+  </tr>
+</table>
+<br />
+<b>Prototype:</b><br />
+	<table bgcolor="#F0F0F0" width="100%" style="border-style:solid;border-width:1px;border-color:#D0D0D0;"><tr><td><b>public function AddItem(item)</b></td></tr></table>
+<br />
+
+<b>Parameters:</b><br />
+<table bgcolor="#FFFFFF" style="border-style:solid;border-width:1px;border-color:#D0D0D0;">
+
+	   <tr>
+	   	   <td>
+		   	   <i>item</i>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+		   </td>
+	   	   <td>
+		   	   the item to add 
+		   </td>
+	   </tr>
+
+</table>
+
+<br />
+<b>Description:</b><br />
+<table width="100%" bgcolor="#FAFAFF" style="border-style:solid;border-width:1px;border-color:#D0D0D0;">
+<tr><td>
+This function adds an item in the view. Regardless value of <a href="RTreeView.Model.html">Model</a> property, the item will be added on the top level (it won't be the child of any other item). If the <a href="RTreeView.Sorted.html">Sorted</a> property is set to true, then the item is inserted at the right position in order to maintain the view sorted. Other ways, the item is just added at the end of the list. In addition, after calling AddItem you cannot set the <a href="RTreeView.Sorted.html">Sorted</a> property to true (resulting in an exception). 
+<br/>Item must be a string, number, <a href="RImage.html">RImage</a> or <a href="RComboBox.html">RComboBox</a> depending on the column type or an array containing elements of the string, number, <a href="RImage.html">RImage</a> or <a href="RComboBox.html">RComboBox</a>. The array must have at least one item for each column, respecting the column type; first array element must have the type of the first column and so on. However, the array can have more items than the number of columns, in which case the exceeding number of items will be not be displayed in the view.
+<br/>
+</td></tr>
+</table>
+<br />
+
+<b>Example:</b>
+<table bgcolor="#F0F0FF" width="100%"  style="border-style:solid;border-width:1px;border-color:#D0D0D0;"><tr><td>
+<font color="#101060"><pre>	// for views with one column
+	TreeList.AddItem("Joe");	
+	// for views with two columns	
+	TreeList.AddItem(["Joe","Black"]);	
+	// also, if you added one column as IMAGE_COLUMN and another one as NORMAL_COLUMN
+	myImage=new RImage(null);	
+	myImage.Filename="picture.jpg";
+	TreeList.AddItem([myImage, "me at the pet shop"]);</pre></font>
+</td></tr></table>
+<br />
+
+<b>Returns:</b><br />
+Returns the index of the row in which the item was added.
+<br />
+<br />
+<!--
+  <p>
+    <a href="http://validator.w3.org/check?uri=referer"><img
+        src="http://www.w3.org/Icons/valid-html40"
+        alt="Valid HTML 4.0 Transitional" height="31" width="88" border="0"></a>
+ <a href="http://jigsaw.w3.org/css-validator/">
+  <img style="border:0;width:88px;height:31px"
+       src="http://jigsaw.w3.org/css-validator/images/vcss" 
+       alt="Valid CSS!" border="0"/>
+ </a>
+</p>
+-->
+<table bgcolor="#F0F0F0" width="100%"><tr><td>Documented by Eduard Suica, generation time: Sun Jan 27 18:15:10 2013
+ GMT</td><td align="right">(c)2013 <a href="http://www.devronium.com">Devronium Applications</a></td></tr></table>
+</body>
+</html>

@@ -1,0 +1,124 @@
+import standard.lib.xls
+import standard.lib.str
+
+class XLSWorkSheet {
+	protected var ref_index=0;
+	protected var handle;
+	protected var[] cached;
+	protected var doc_ref=0;
+	protected var _name;
+
+	public var[] Properties;
+
+	public property Matrix { get GetMatrix }
+	public property LastRow { get GetLastRow }
+	public property LastCol { get GetLastCol }
+	public property Name { get _name }
+	public property Index { get ref_index }
+
+	public function XLSWorkSheet(xls, i, name) {
+		this.doc_ref=xls;
+		this.ref_index=i;
+		this._name=name;
+	}
+
+	private function _init() {
+		if (!this.handle) {
+			if (!this.doc_ref)
+				throw "Invalid XLS document";
+			this.handle=xls_getWorkSheet(this.doc_ref, this.ref_index);
+			if (this.handle) {
+				xls_parseWorkSheet(this.handle);
+				this.Properties=xls_getWorkSheetProperties(this.handle);
+			} else
+				throw "Invalid worksheet for index ${this.ref_index}";
+		}
+	}
+
+	public operator [] (index) {
+		this._init();
+		return xls_row(this.handle, index);
+	}
+
+	public function GetCell(number row, number col) {
+		this._init();
+		return xls_cell(this.handle, row, col);
+	}
+
+	public function CellProperties(number row, number col) {
+		this._init();
+		return xls_getCellProperties(this.handle, row, col);
+	}
+
+	public function RowProperties(number row) {
+		this._init();
+		return xls_getRowProperties(this.handle, row);
+	}
+
+	public function GetMatrix() {
+		this._init();
+		if (!this.cached)
+			this.cached=xls_matrix(this.handle);
+		return this.cached;
+	}
+
+	public function GetLastCol() {
+		this._init();
+		return xls_getLastCol(this.handle);
+	}
+
+	public function GetLastRow() {
+		this._init();
+		return xls_getLastRow(this.handle);
+	}
+}
+
+class XLSDocument {
+	protected var _HANDLE;
+	public var[] Properties;
+	protected var[] _SHEETS;
+
+	public property Sheets { get _SHEETS }
+
+	public function XLSDocument() {
+	}
+
+	public function Open(string filename, string encoding="UTF-8") {
+		if (this._HANDLE)
+			this.Close();
+		this.Properties=new [];
+		this._SHEETS=new [];
+		this._HANDLE=xls_open(filename, encoding);
+		if (this._HANDLE) {
+			var xls=this._HANDLE;
+			xls_parseWorkBook(this._HANDLE);
+			this.Properties=xls_getWorkBookProperties(xls);
+			var sheets=this.Properties["sheets"];
+			var len=length sheets;
+			for (var i=0;i<len;i++) {
+				var sheet=sheets[i];
+				if (sheet) {
+					var name=sheet["name"];
+					this._SHEETS[name]=new XLSWorkSheet(xls, i, ""+name);
+				}
+			}
+		}
+		return (this._HANDLE!=0);
+	}
+
+	public function Close() {
+		if (this._HANDLE)
+			xls_close(this._HANDLE);
+		this._HANDLE=0;
+		this.Properties=new [];
+		this._SHEETS=new [];
+	}
+
+	public function finalize() {
+		this.Close();		
+	}
+
+	static function Version() {
+		return xls_getVersion();
+	}
+}

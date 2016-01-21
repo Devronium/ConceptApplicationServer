@@ -1,0 +1,9 @@
+include RSeparator.con
+include ClassID.con
+include RemoteEvents.con
+
+class RHSeparator extends RSeparator {
+	public function RHSeparator(OWNER) {
+		super(OWNER, CLASS_HSEPARATOR);
+	}
+}

@@ -1,0 +1,78 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+  <title>Data types.The Concept arrays</title>
+  <link href="css/style.css" rel="stylesheet" type="text/css">
+  <meta http-equiv="Content-Type" content="text/html;charset=utf-8" >
+</head>
+<body bgcolor="#ffffff">
+<table border="0" width="100%" bgcolor="#F0F0FF">
+  <tr>
+    <td>Language documentation</td>
+  	<td align="right"><a href="index.html">Contents</a> | <a href="index_fun.html">Index</a></td>
+  </tr>
+</table>
+<h2>The Concept arrays, <a href="Data types.html">Data types</a></h2>
+<br />
+
+<b>Description:</b><br />
+<table width="100%" bgcolor="#FAFAFF" style="border-style:solid;border-width:1px;border-color:#D0D0D0;">
+<tr><td>
+The concept arrays are a little bit different. The arrays are organized into vectorial finite structures contained by blocks (about 8000 elements per block). The blocks are then linked into a single linked list, providing this way the speed of a normal array, but the flexibility of a dynamic list. Also can have string keys that will be indexed used a binary search algorithm to provide the best speed. Note that binary search is not the best for sorting, but in this case is the best for adding elements to an array. An array can be retrieved by using the [] operator.
+<br/>
+<br/>You can allocate arrays three ways:
+<br/>1)&nbsp;&nbsp;&nbsp;&nbsp;var[] arr;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;// standard (also dynamically allocated)
+<br/>2)&nbsp;&nbsp;&nbsp;&nbsp;var arr=new [];&nbsp;&nbsp;&nbsp;&nbsp;// dynamically alocated
+<br/>3)&nbsp;&nbsp;&nbsp;&nbsp;var arr=[1,2,3];&nbsp;&nbsp;&nbsp;&nbsp;// by providing its values
+<br/>
+<br/>Using indexes
+<br/>
+<br/>&nbsp;&nbsp;&nbsp;&nbsp;var[] arr;
+<br/>&nbsp;&nbsp;&nbsp;&nbsp;arr[5]="test"; 
+<br/>
+<br/>&nbsp;&nbsp;&nbsp;&nbsp;Will result in allocating 6 elements in to the given array (0 to 5). The array will look like this: [0,0,0,0,0,"test"]
+<br/>
+<br/>As you noticed, the concept arrays are not homogeneous. This means you can add virtually anything to an array, but two different elements can contain different data types.
+<br/>
+<br/>Example:
+<br/>&nbsp;&nbsp;&nbsp;&nbsp;arr[0]=5;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;// a number
+<br/>&nbsp;&nbsp;&nbsp;&nbsp;arr[1]="test";&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;// a string
+<br/>&nbsp;&nbsp;&nbsp;&nbsp;arr[2]=new SomeClass()&nbsp;&nbsp;&nbsp;&nbsp;// a class
+<br/>&nbsp;&nbsp;&nbsp;&nbsp;arr[3]=Foo;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;// where Foo is a function in the current class, a delegate
+<br/>&nbsp;&nbsp;&nbsp;&nbsp;arr[4]=new [];&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;// another array
+<br/>
+<br/>
+<br/>An array can also use string keys:
+<br/>&nbsp;&nbsp;&nbsp;&nbsp;arr["test"]="some element";
+<br/>&nbsp;&nbsp;&nbsp;&nbsp;arr["another test"]="some other element";
+<br/>&nbsp;&nbsp;&nbsp;&nbsp;var key="test3";
+<br/>&nbsp;&nbsp;&nbsp;&nbsp;arr[key]="some other other element"
+<br/>
+<br/>The keys should be readable strings (null terminated). If your string contains a null character, the key will end at that point. In the last example there were 3 elements added, linked string keys. You can also reference them using number indexes, where 0 is the index of the first added string.
+<br/>
+<br/>&nbsp;&nbsp;&nbsp;&nbsp;arr[0]&nbsp;&nbsp;&nbsp;&nbsp;will be the same with arr["test"]
+<br/>&nbsp;&nbsp;&nbsp;&nbsp;arr[1]&nbsp;&nbsp;&nbsp;&nbsp;will be the same with arr["another test"]
+<br/>&nbsp;&nbsp;&nbsp;&nbsp;arr[2]&nbsp;&nbsp;&nbsp;&nbsp;will be the same with arr["test3"]
+<br/>
+</td></tr>
+</table>
+<br />
+
+<br />
+<br />
+<!--
+  <p>
+    <a href="http://validator.w3.org/check?uri=referer"><img
+        src="http://www.w3.org/Icons/valid-html40"
+        alt="Valid HTML 4.0 Transitional" height="31" width="88" border="0"></a>
+ <a href="http://jigsaw.w3.org/css-validator/">
+  <img style="border:0;width:88px;height:31px"
+       src="http://jigsaw.w3.org/css-validator/images/vcss" 
+       alt="Valid CSS!" border="0"/>
+ </a>
+</p>
+-->
+<table bgcolor="#F0F0F0" width="100%"><tr><td>Documented by Eduard Suica, generation time: Sun Jan 27 18:15:21 2013
+ GMT</td><td align="right">(c)2013 <a href="http://www.devronium.com">Devronium Applications</a></td></tr></table>
+</body>
+</html>

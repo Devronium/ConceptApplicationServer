@@ -1,0 +1,433 @@
+include Application.con
+include RForm.con
+include Media/RMedia.con
+include RVBox.con
+include RButton.con
+include RHBox.con
+include RTextView.con
+include RTreeView.con
+include RScrolledWindow.con
+include RLabel.con
+include DirectoryList.con
+include RImage.con
+include RVPaned.con
+include RStatusbar.con
+include IO.con
+include File.con
+
+import standard.lib.str
+
+
+define STREAM_LIST_DIR		"Streams"
+define STREAM_EXTENSIONS	"mp3","avi","mpg","mpeg","wmv","ram","rm", "dat","m1v","divx"
+define RESOURCE_FILE		"resource.txt"
+
+class MyForm extends RForm {	
+	var Media;
+	var StreamsList;
+	var filename="";
+	var NowPlayingTree;
+
+	var start=0;
+	var done=0;
+	var is_video=0;
+	var playing=0;
+	var info_set=0;
+	var status;
+	var box;
+	var sent_packages;
+	var buffers;
+
+	var buttonbox;
+	var scroll;
+
+	var file;
+
+	function info() {
+		var info="Using codec: "+Media.CodecName;
+		info+="\n";
+		info+="Duration: "+Media.Duration;
+		info+="\n";
+		info+="Width: "+Media.VideoWidth;
+		info+="\n";
+		info+="Height: "+Media.VideoHeight;
+		info+="\n";
+		info+="Title: "+Media.Title;
+		info+="\n";
+		info+="Offset: "+Media.Offset;
+		info+="\n";
+		info+="FPS: "+Media.CurrentFps;
+		info+="\n";
+		return info;
+
+	}
+
+	function Stream(Sender, EventData) {
+
+		var f=file;
+		f.Name=filename;
+
+		if (!f.Open()) {
+			status.Caption="Error opening stream";
+			return 0;
+		}
+
+		var sz=49000;
+
+		if (!start) {
+			sent_packages=0;
+			buffers=10;
+			if (is_video)
+				sz=250000;
+			else
+				sz=100000;
+		} else {
+			if (!playing) {
+				f.Close();
+				AddTimer(Stream, 2000);
+				return 0;
+			}
+		}
+
+		var start_prec=start;
+
+		if (f) {
+			if (sent_packages>buffers) {
+				sent_packages=Media.PendingBuffers;
+				if (sent_packages>buffers) {
+					AddTimer(Stream, 3000);
+					status.Caption="Waiting for client to play data ($sent_packages packages buffered)";
+					buffers=3;
+					f.Close();
+					return 0;
+				} else {
+					status.Caption="Buffering";
+					buffers=10;
+				}
+			}
+
+			f.Seek(start);
+
+			var len=f.Read(var buf="", sz);
+			if (len<0)
+				len=0;
+
+			start+=len;
+			if (len!=sz) {
+				done=true;
+				buttonbox.Enabled=false;
+			}
+			f.Close();
+
+			Media.StreamBuffer(buf);
+
+			if (!start_prec) {
+				status.Caption="Ok, stream loaded";
+				box.Enabled=true;
+			}
+
+			if (!done) {
+				sent_packages++;
+				if (is_video)
+					AddTimer(Stream, 300);
+				else
+					AddTimer(Stream, 3000);
+			}
+		} else
+			status.Caption="Error opening stream";
+		
+	}
+
+	function Fade(Sender, EventData) {
+		if (Opacity>0) {
+			Opacity-=0.05;
+			AddTimer(Fade, 100);
+		} else
+			Hide();
+	}
+
+	function Populate(directory=STREAM_LIST_DIR) {
+
+		if (!DirectoryExists(directory)) {
+			directory=STREAM_LIST_DIR;
+		}
+		var arr=DirectoryList::ListByExt(directory+"/", [STREAM_EXTENSIONS],true);
+		var len=length arr;
+		var image_audio=new RImage(null);
+		image_audio.Filename="Res/audio.gif";
+		image_audio.Show();
+
+		var image_video=new RImage(null);
+		image_video.Filename="Res/video.gif";
+		image_video.Show();
+
+		Icon=image_video;
+		
+
+		for (var i=0;i<len;i++) {
+			var item=arr[i];
+			if (Ext(item)=="mp3")
+				StreamsList.AddItem([image_audio, item, false, directory+"/"+item]);
+			else
+				StreamsList.AddItem([image_video, item, true, directory+"/"+item]);
+		}
+	}
+
+	function OnStreamSelected(Sender, EventData) {
+		// user selected a new stream
+		var index=value (""+Sender.RowIndex);
+
+		if (index>-1) {
+			if (playing) {
+				Media.Pause();
+			}
+			if (filename) {
+				Media.Close();
+			}
+
+			Media.BeginStream();
+			buttonbox.Enabled=true;
+
+			status.Caption="Buffering ...";
+			var arr=Sender.Items[index];
+			var file=arr[1];
+			filename=arr[3];//STREAM_LIST_DIR+"/"+file;
+			is_video=arr[2];
+			start=0;
+			info_set=0;
+			done=0;
+
+			box.Enabled=false;
+			Stream(0,0);
+			if (playing) {
+				Media.Play();
+			}
+
+			NowPlayingTree.Clear();
+			NowPlayingTree.AddItem(["Now playing ",arr[0],arr[1]]);
+			
+		}
+
+	}
+
+	function btnPlayClicked(Sender,EventData) {
+		if (!playing) {
+			playing=true;
+			Stream(0,0);
+			Media.Play();
+			status.Caption="Playing";
+		}
+	}
+
+	function btnPauseClicked(Sender,EventData) {
+		if (playing) {
+			Media.Pause();	
+			playing=false;
+			status.Caption="Paused";
+		}
+	}
+
+	function btnStopClicked(Sender,EventData) {
+		if (playing) {
+			Media.Stop();	
+			playing=false;
+			status.Caption="Stopped";
+		}
+	}
+
+	function btnCloseClicked(Sender,EventData) {
+		AddTimer(Fade, 1);
+	}
+
+	function btnFullClicked(Sender,EventData) {
+		this.GoFull(true);
+	}
+
+
+	function btnMinimizeClicked(Sender,EventData) {
+		Minimized=true;
+	}
+
+	function MediaVideoKey(Sender, EventData) {
+		var key=value EventData;
+
+		if (!filename)
+			return 0;
+
+		switch (key) {
+			case 0x1B:
+				this.GoFull(false);
+				break;
+			case ord('f'):
+			case ord('F'):
+				this.GoFull(!FullScreen);
+				break;
+		}
+	}
+
+	function GoFull(full=true) {
+		BeginUpdateSession();
+		buttonbox.Visible=!full;
+		scroll.Visible=!full;
+		status.Visible=!full;
+		FullScreen=full;
+		Media.CursorVisible=!full;
+		EndUpdateSession();
+	}
+
+	function Create() {
+		BeginUpdateSession();
+		Caption="Concept media streaming";
+
+		box=new RVBox(this);
+		box.Show();
+
+		buttonbox=new RHBox(box);
+		buttonbox.Packing=PACK_SHRINK;
+		buttonbox.Enabled=false;
+		buttonbox.Show();
+
+		var btnPlay=new RButton(buttonbox);
+		btnPlay.Tooltip="Play ... Life is short. Play more !";
+		btnPlay.ReliefStyle=RELIEF_NONE;
+		//btnPlay.Caption="Play";
+		var plimage=new RImage(btnPlay);
+		plimage.Filename="Res/play.gif";
+		plimage.Show();
+		btnPlay.Packing=PACK_SHRINK;
+		btnPlay.OnClicked=btnPlayClicked;
+		btnPlay.Show();
+
+		var btnPause=new RButton(buttonbox);
+		btnPause.Tooltip="Pause";
+		var paimage=new RImage(btnPause);
+		paimage.Filename="Res/pause.gif";
+		paimage.Show();
+		btnPause.Packing=PACK_SHRINK;
+		btnPause.ReliefStyle=RELIEF_NONE;
+		btnPause.OnClicked=btnPauseClicked;
+		btnPause.Show();
+
+		var btnStop=new RButton(buttonbox);
+		btnStop.Tooltip="Stop";
+		var stimage=new RImage(btnStop);
+		stimage.Filename="Res/stop.gif";
+		stimage.Show();
+		btnStop.Packing=PACK_SHRINK;
+		btnStop.ReliefStyle=RELIEF_NONE;
+		btnStop.OnClicked=btnStopClicked;
+		btnStop.Show();
+
+		NowPlayingTree=new RTreeView(buttonbox);
+		NowPlayingTree.Model=MODEL_LISTVIEW;
+		NowPlayingTree.Packing=PACK_EXPAND_WIDGET;
+		NowPlayingTree.AddColumn("Message",	NORMAL_COLUMN);
+		NowPlayingTree.AddColumn("Type",	IMAGE_COLUMN);
+		NowPlayingTree.AddColumn("Stream name",	NORMAL_COLUMN);
+		NowPlayingTree.HeadersVisible=false;
+		NowPlayingTree.MinWidth=300;
+		NowPlayingTree.Show();
+
+
+		var btnFull=new RButton(buttonbox);
+		btnFull.Tooltip="Fullscreen";
+		var flimage=new RImage(btnFull);
+		flimage.Filename="Res/full.gif";
+		flimage.Show();
+		btnFull.ReliefStyle=RELIEF_NONE;
+		btnFull.OnClicked=btnFullClicked;
+		btnFull.Packing=PACK_SHRINK;
+		btnFull.Show();
+
+		var btnMin=new RButton(buttonbox);
+		btnMin.Tooltip="Minimize";
+		var mnimage=new RImage(btnMin);
+		mnimage.Filename="Res/minimize.gif";
+		mnimage.Show();
+		btnMin.ReliefStyle=RELIEF_NONE;
+		btnMin.OnClicked=btnMinimizeClicked;
+		btnMin.Packing=PACK_SHRINK;
+		btnMin.Show();
+
+		var btnClose=new RButton(buttonbox);
+		btnClose.Tooltip="Close application";
+		var climage=new RImage(btnClose);
+		climage.Filename="Res/close.gif";
+		climage.Show();
+		btnClose.Packing=PACK_SHRINK;
+		btnClose.ReliefStyle=RELIEF_NONE;
+		btnClose.OnClicked=btnCloseClicked;
+		btnClose.Show();
+
+		var paned=new RVPaned(box);
+		paned.PackType=PACK_EXPAND_WIDGET;
+		paned.Show();
+
+		Media=new RMedia(paned);
+		Media.MinHeight=200;
+		Media.MinWidth=300;
+		Media.BgColor=0x000000;
+		Media.Packing=PACK_EXPAND_WIDGET;
+		Media.Show();
+
+		scroll=new RScrolledWindow(paned);
+		scroll.Packing=PACK_SHRINK;
+		scroll.MinHeight=100;
+		scroll.HScrollPolicy=POLICY_AUTOMATIC;
+		scroll.VScrollPolicy=POLICY_AUTOMATIC;
+		scroll.Show();
+
+		StreamsList=new RTreeView(scroll);
+		StreamsList.Model=MODEL_LISTVIEW;
+
+		StreamsList.AddColumn("Type",	IMAGE_COLUMN);
+		StreamsList.AddColumn("Stream name",	NORMAL_COLUMN);
+		StreamsList.HoverSelection=true;
+		StreamsList.HeadersVisible=false;
+		StreamsList.OnRowActivated=OnStreamSelected;
+		StreamsList.SearchColumn=1;
+		StreamsList.EnableSearch=true;
+		StreamsList.Show();
+
+		var data=ReadFile(RESOURCE_FILE);
+		if (data)
+			Populate(data);
+		else
+			Populate();
+
+		KeepAbove=true;
+		//Closeable=false;
+
+		status=new RStatusbar(box);
+		status.Show();
+		Height=500;
+		EndUpdateSession();
+	}
+
+	function CreateTimer(Sender, EventData) {
+		Media.OnVideoKeyPress=MediaVideoKey;
+	}
+
+	function MyForm(owner) {
+		super(owner);
+		AddTimer(CreateTimer, 1);
+		file=new File();
+		Create();
+	}
+}
+
+
+class Main {
+	function Main() {
+			try {
+				var Application=new CApplication(new MyForm(NULL));
+
+				Application.Init();
+				Application.Run();
+				Application.Done();
+
+			} catch (var Exception) {
+				//echo Exception.Information;
+			}
+	}
+}

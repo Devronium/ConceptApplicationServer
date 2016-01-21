@@ -1,0 +1,1056 @@
+include ActiveXControl.con
+
+//////////////////////////////////////////////////////////////////////////
+// This file was generated automatically by AXInterfaceGenerator        //
+//                                          (c)2006 RadGs Software      //
+//                                                                      //
+//                   PLEASE DO NOT MODIFY THIS FILE !                   //
+//////////////////////////////////////////////////////////////////////////
+
+class IWMPPlayer4 extends ActiveXControl {
+	//Uncomment LICENCE_KEY if the control needs to be registered
+ 	function IWMPPlayer4(Owner/*, LICENCE_KEY*/) {
+		//super(Owner, "WMPlayer.OCX.7", LICENCE_KEY);
+		super(Owner, "WMPlayer.OCX.7", "");
+		__AX_SET_EVENTS();
+	}
+
+/*0*/	function /*{void}*/ QueryInterface(var parameter0 /*{GUID*}*/, var parameter1 /*{void**}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter1);
+		Send(MSG_AX_CALL_METHOD, "QueryInterface", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*1*/	function /*{ULONG}*/ AddRef()  {
+		Send(MSG_AX_CALL_METHOD, "AddRef", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*2*/	function /*{ULONG}*/ Release()  {
+		Send(MSG_AX_CALL_METHOD, "Release", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*3*/	function /*{void}*/ GetTypeInfoCount(var parameter0 /*{UINT*}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_CALL_METHOD, "GetTypeInfoCount", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*4*/	function /*{void}*/ GetTypeInfo(parameter0 /*{UINT}*/, parameter1 /*{ULONG}*/, var parameter2 /*{void**}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter1);
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter2);
+		Send(MSG_AX_CALL_METHOD, "GetTypeInfo", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*5*/	function /*{void}*/ GetIDsOfNames(var parameter0 /*{GUID*}*/, var parameter1 /*{char**}*/, parameter2 /*{UINT}*/, parameter3 /*{ULONG}*/, var parameter4 /*{long*}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter1);
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter2);
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter3);
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter4);
+		Send(MSG_AX_CALL_METHOD, "GetIDsOfNames", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*6*/	function /*{void}*/ Invoke(parameter0 /*{long}*/, var parameter1 /*{GUID*}*/, parameter2 /*{ULONG}*/, parameter3 /*{USHORT}*/, var parameter4 /*{DISPPARAMS*}*/, var parameter5 /*{VARIANT*}*/, var parameter6 /*{EXCEPINFO*}*/, var parameter7 /*{UINT*}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter1);
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter2);
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter3);
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter4);
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter5);
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter6);
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter7);
+		Send(MSG_AX_CALL_METHOD, "Invoke", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*7*/	function /*{void}*/ close()  {
+		Send(MSG_AX_CALL_METHOD, "close", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*8*/	function /*{BSTR}*/ AX_GET_URL() /*{propget}*/ {
+		Send(MSG_AX_GET_PROPERTY, "URL", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*9*/	function /*{void}*/ AX_SET_URL(parameter0 /*{BSTR}*/) /*{propput}*/ {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_SET_PROPERTY, "URL", "0");
+	}
+
+/*10*/	function /*{WMPOpenState}*/ AX_GET_openState() /*{propget}*/ {
+		Send(MSG_AX_GET_PROPERTY, "openState", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*11*/	function /*{WMPPlayState}*/ AX_GET_playState() /*{propget}*/ {
+		Send(MSG_AX_GET_PROPERTY, "playState", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*12*/	function /*{IWMPControls*}*/ AX_GET_controls() /*{propget}*/ {
+		Send(MSG_AX_GET_PROPERTY, "controls", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*13*/	function /*{IWMPSettings*}*/ AX_GET_settings() /*{propget}*/ {
+		Send(MSG_AX_GET_PROPERTY, "settings", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*14*/	function /*{IWMPMedia*}*/ AX_GET_currentMedia() /*{propget}*/ {
+		Send(MSG_AX_GET_PROPERTY, "currentMedia", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*15*/	function /*{void}*/ AX_SET_currentMedia(var parameter0 /*{IWMPMedia*}*/) /*{propput}*/ {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_SET_PROPERTY, "currentMedia", "0");
+	}
+
+/*16*/	function /*{IWMPMediaCollection*}*/ AX_GET_mediaCollection() /*{propget}*/ {
+		Send(MSG_AX_GET_PROPERTY, "mediaCollection", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*17*/	function /*{IWMPPlaylistCollection*}*/ AX_GET_playlistCollection() /*{propget}*/ {
+		Send(MSG_AX_GET_PROPERTY, "playlistCollection", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*18*/	function /*{BSTR}*/ AX_GET_versionInfo() /*{propget}*/ {
+		Send(MSG_AX_GET_PROPERTY, "versionInfo", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*19*/	function /*{void}*/ launchURL(parameter0 /*{BSTR}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_CALL_METHOD, "launchURL", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*20*/	function /*{IWMPNetwork*}*/ AX_GET_network() /*{propget}*/ {
+		Send(MSG_AX_GET_PROPERTY, "network", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*21*/	function /*{IWMPPlaylist*}*/ AX_GET_currentPlaylist() /*{propget}*/ {
+		Send(MSG_AX_GET_PROPERTY, "currentPlaylist", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*22*/	function /*{void}*/ AX_SET_currentPlaylist(var parameter0 /*{IWMPPlaylist*}*/) /*{propput}*/ {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_SET_PROPERTY, "currentPlaylist", "0");
+	}
+
+/*23*/	function /*{IWMPCdromCollection*}*/ AX_GET_cdromCollection() /*{propget}*/ {
+		Send(MSG_AX_GET_PROPERTY, "cdromCollection", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*24*/	function /*{IWMPClosedCaption*}*/ AX_GET_closedCaption() /*{propget}*/ {
+		Send(MSG_AX_GET_PROPERTY, "closedCaption", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*25*/	function /*{VARIANT_BOOL}*/ AX_GET_isOnline() /*{propget}*/ {
+		Send(MSG_AX_GET_PROPERTY, "isOnline", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*26*/	function /*{IWMPError*}*/ AX_GET_Error() /*{propget}*/ {
+		Send(MSG_AX_GET_PROPERTY, "Error", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*27*/	function /*{BSTR}*/ AX_GET_status() /*{propget}*/ {
+		Send(MSG_AX_GET_PROPERTY, "status", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*28*/	function /*{IWMPDVD*}*/ AX_GET_dvd() /*{propget}*/ {
+		Send(MSG_AX_GET_PROPERTY, "dvd", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*29*/	function /*{IWMPPlaylist*}*/ newPlaylist(parameter0 /*{BSTR}*/, parameter1 /*{BSTR}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter1);
+		Send(MSG_AX_CALL_METHOD, "newPlaylist", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*30*/	function /*{IWMPMedia*}*/ newMedia(parameter0 /*{BSTR}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_CALL_METHOD, "newMedia", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*31*/	function /*{VARIANT_BOOL}*/ AX_GET_enabled() /*{propget}*/ {
+		Send(MSG_AX_GET_PROPERTY, "enabled", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*32*/	function /*{void}*/ AX_SET_enabled(parameter0 /*{VARIANT_BOOL}*/) /*{propput}*/ {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_SET_PROPERTY, "enabled", "0");
+	}
+
+/*33*/	function /*{VARIANT_BOOL}*/ AX_GET_fullScreen() /*{propget}*/ {
+		Send(MSG_AX_GET_PROPERTY, "fullScreen", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*34*/	function /*{void}*/ AX_SET_fullScreen(parameter0 /*{VARIANT_BOOL}*/) /*{propput}*/ {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_SET_PROPERTY, "fullScreen", "0");
+	}
+
+/*35*/	function /*{VARIANT_BOOL}*/ AX_GET_enableContextMenu() /*{propget}*/ {
+		Send(MSG_AX_GET_PROPERTY, "enableContextMenu", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*36*/	function /*{void}*/ AX_SET_enableContextMenu(parameter0 /*{VARIANT_BOOL}*/) /*{propput}*/ {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_SET_PROPERTY, "enableContextMenu", "0");
+	}
+
+/*37*/	function /*{void}*/ AX_SET_uiMode(parameter0 /*{BSTR}*/) /*{propput}*/ {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_SET_PROPERTY, "uiMode", "0");
+	}
+
+/*38*/	function /*{BSTR}*/ AX_GET_uiMode() /*{propget}*/ {
+		Send(MSG_AX_GET_PROPERTY, "uiMode", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*39*/	function /*{VARIANT_BOOL}*/ AX_GET_stretchToFit() /*{propget}*/ {
+		Send(MSG_AX_GET_PROPERTY, "stretchToFit", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*40*/	function /*{void}*/ AX_SET_stretchToFit(parameter0 /*{VARIANT_BOOL}*/) /*{propput}*/ {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_SET_PROPERTY, "stretchToFit", "0");
+	}
+
+/*41*/	function /*{VARIANT_BOOL}*/ AX_GET_windowlessVideo() /*{propget}*/ {
+		Send(MSG_AX_GET_PROPERTY, "windowlessVideo", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*42*/	function /*{void}*/ AX_SET_windowlessVideo(parameter0 /*{VARIANT_BOOL}*/) /*{propput}*/ {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_SET_PROPERTY, "windowlessVideo", "0");
+	}
+
+/*43*/	function /*{VARIANT_BOOL}*/ AX_GET_isRemote() /*{propget}*/ {
+		Send(MSG_AX_GET_PROPERTY, "isRemote", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*44*/	function /*{IWMPPlayerApplication*}*/ AX_GET_playerApplication() /*{propget}*/ {
+		Send(MSG_AX_GET_PROPERTY, "playerApplication", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*45*/	function /*{void}*/ openPlayer(parameter0 /*{BSTR}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_CALL_METHOD, "openPlayer", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+//---------------- BEGIN OF EVENTS INTERFACE (info only) -----------------//
+	//Event syntax:void OpenStateChange(parameter0<long>) 
+	public property _OnOpenStateChange { get Get_OnOpenStateChange, set Set_OnOpenStateChange }
+	public function Get_OnOpenStateChange() {
+		return _AX_EVENTS[1];
+	}
+
+	public function Set_OnOpenStateChange(delegate deleg) {
+		_AX_EVENTS[1]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",1);
+	}
+
+	//Event syntax:void PlayStateChange(parameter0<long>) 
+	public property _OnPlayStateChange { get Get_OnPlayStateChange, set Set_OnPlayStateChange }
+	public function Get_OnPlayStateChange() {
+		return _AX_EVENTS[2];
+	}
+
+	public function Set_OnPlayStateChange(delegate deleg) {
+		_AX_EVENTS[2]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",2);
+	}
+
+	//Event syntax:void AudioLanguageChange(parameter0<long>) 
+	public property _OnAudioLanguageChange { get Get_OnAudioLanguageChange, set Set_OnAudioLanguageChange }
+	public function Get_OnAudioLanguageChange() {
+		return _AX_EVENTS[3];
+	}
+
+	public function Set_OnAudioLanguageChange(delegate deleg) {
+		_AX_EVENTS[3]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",3);
+	}
+
+	//Event syntax:void StatusChange() 
+	public property _OnStatusChange { get Get_OnStatusChange, set Set_OnStatusChange }
+	public function Get_OnStatusChange() {
+		return _AX_EVENTS[4];
+	}
+
+	public function Set_OnStatusChange(delegate deleg) {
+		_AX_EVENTS[4]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",4);
+	}
+
+	//Event syntax:void ScriptCommand(parameter0<BSTR>, parameter1<BSTR>) 
+	public property _OnScriptCommand { get Get_OnScriptCommand, set Set_OnScriptCommand }
+	public function Get_OnScriptCommand() {
+		return _AX_EVENTS[5];
+	}
+
+	public function Set_OnScriptCommand(delegate deleg) {
+		_AX_EVENTS[5]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",5);
+	}
+
+	//Event syntax:void NewStream() 
+	public property _OnNewStream { get Get_OnNewStream, set Set_OnNewStream }
+	public function Get_OnNewStream() {
+		return _AX_EVENTS[6];
+	}
+
+	public function Set_OnNewStream(delegate deleg) {
+		_AX_EVENTS[6]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",6);
+	}
+
+	//Event syntax:void Disconnect(parameter0<long>) 
+	public property _OnDisconnect { get Get_OnDisconnect, set Set_OnDisconnect }
+	public function Get_OnDisconnect() {
+		return _AX_EVENTS[7];
+	}
+
+	public function Set_OnDisconnect(delegate deleg) {
+		_AX_EVENTS[7]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",7);
+	}
+
+	//Event syntax:void Buffering(parameter0<VARIANT_BOOL>) 
+	public property _OnBuffering { get Get_OnBuffering, set Set_OnBuffering }
+	public function Get_OnBuffering() {
+		return _AX_EVENTS[8];
+	}
+
+	public function Set_OnBuffering(delegate deleg) {
+		_AX_EVENTS[8]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",8);
+	}
+
+	//Event syntax:void Error() 
+	public property _OnError { get Get_OnError, set Set_OnError }
+	public function Get_OnError() {
+		return _AX_EVENTS[17];
+	}
+
+	public function Set_OnError(delegate deleg) {
+		_AX_EVENTS[9]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",9);
+	}
+
+	//Event syntax:void Warning(parameter0<long>, parameter1<long>, parameter2<BSTR>) 
+	public property _OnWarning { get Get_OnWarning, set Set_OnWarning }
+	public function Get_OnWarning() {
+		return _AX_EVENTS[10];
+	}
+
+	public function Set_OnWarning(delegate deleg) {
+		_AX_EVENTS[10]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",10);
+	}
+
+	//Event syntax:void EndOfStream(parameter0<long>) 
+	public property _OnEndOfStream { get Get_OnEndOfStream, set Set_OnEndOfStream }
+	public function Get_OnEndOfStream() {
+		return _AX_EVENTS[11];
+	}
+
+	public function Set_OnEndOfStream(delegate deleg) {
+		_AX_EVENTS[11]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",11);
+	}
+
+	//Event syntax:void PositionChange(parameter0<double>, parameter1<double>) 
+	public property _OnPositionChange { get Get_OnPositionChange, set Set_OnPositionChange }
+	public function Get_OnPositionChange() {
+		return _AX_EVENTS[12];
+	}
+
+	public function Set_OnPositionChange(delegate deleg) {
+		_AX_EVENTS[12]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",12);
+	}
+
+	//Event syntax:void MarkerHit(parameter0<long>) 
+	public property _OnMarkerHit { get Get_OnMarkerHit, set Set_OnMarkerHit }
+	public function Get_OnMarkerHit() {
+		return _AX_EVENTS[13];
+	}
+
+	public function Set_OnMarkerHit(delegate deleg) {
+		_AX_EVENTS[13]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",13);
+	}
+
+	//Event syntax:void DurationUnitChange(parameter0<long>) 
+	public property _OnDurationUnitChange { get Get_OnDurationUnitChange, set Set_OnDurationUnitChange }
+	public function Get_OnDurationUnitChange() {
+		return _AX_EVENTS[14];
+	}
+
+	public function Set_OnDurationUnitChange(delegate deleg) {
+		_AX_EVENTS[14]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",14);
+	}
+
+	//Event syntax:void CdromMediaChange(parameter0<long>) 
+	public property _OnCdromMediaChange { get Get_OnCdromMediaChange, set Set_OnCdromMediaChange }
+	public function Get_OnCdromMediaChange() {
+		return _AX_EVENTS[15];
+	}
+
+	public function Set_OnCdromMediaChange(delegate deleg) {
+		_AX_EVENTS[15]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",15);
+	}
+
+	//Event syntax:void PlaylistChange(parameter0<IDispatch*>, parameter1<WMPPlaylistChangeEventType>) 
+	public property _OnPlaylistChange { get Get_OnPlaylistChange, set Set_OnPlaylistChange }
+	public function Get_OnPlaylistChange() {
+		return _AX_EVENTS[16];
+	}
+
+	public function Set_OnPlaylistChange(delegate deleg) {
+		_AX_EVENTS[16]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",16);
+	}
+
+	//Event syntax:void CurrentPlaylistChange(parameter0<WMPPlaylistChangeEventType>) 
+	public property _OnCurrentPlaylistChange { get Get_OnCurrentPlaylistChange, set Set_OnCurrentPlaylistChange }
+	public function Get_OnCurrentPlaylistChange() {
+		return _AX_EVENTS[17];
+	}
+
+	public function Set_OnCurrentPlaylistChange(delegate deleg) {
+		_AX_EVENTS[17]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",17);
+	}
+
+	//Event syntax:void CurrentPlaylistItemAvailable(parameter0<BSTR>) 
+	public property _OnCurrentPlaylistItemAvailable { get Get_OnCurrentPlaylistItemAvailable, set Set_OnCurrentPlaylistItemAvailable }
+	public function Get_OnCurrentPlaylistItemAvailable() {
+		return _AX_EVENTS[18];
+	}
+
+	public function Set_OnCurrentPlaylistItemAvailable(delegate deleg) {
+		_AX_EVENTS[18]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",18);
+	}
+
+	//Event syntax:void MediaChange(parameter0<IDispatch*>) 
+	public property _OnMediaChange { get Get_OnMediaChange, set Set_OnMediaChange }
+	public function Get_OnMediaChange() {
+		return _AX_EVENTS[19];
+	}
+
+	public function Set_OnMediaChange(delegate deleg) {
+		_AX_EVENTS[19]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",19);
+	}
+
+	//Event syntax:void CurrentMediaItemAvailable(parameter0<BSTR>) 
+	public property _OnCurrentMediaItemAvailable { get Get_OnCurrentMediaItemAvailable, set Set_OnCurrentMediaItemAvailable }
+	public function Get_OnCurrentMediaItemAvailable() {
+		return _AX_EVENTS[20];
+	}
+
+	public function Set_OnCurrentMediaItemAvailable(delegate deleg) {
+		_AX_EVENTS[20]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",20);
+	}
+
+	//Event syntax:void CurrentItemChange(parameter0<IDispatch*>) 
+	public property _OnCurrentItemChange { get Get_OnCurrentItemChange, set Set_OnCurrentItemChange }
+	public function Get_OnCurrentItemChange() {
+		return _AX_EVENTS[21];
+	}
+
+	public function Set_OnCurrentItemChange(delegate deleg) {
+		_AX_EVENTS[21]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",21);
+	}
+
+	//Event syntax:void MediaCollectionChange() 
+	public property _OnMediaCollectionChange { get Get_OnMediaCollectionChange, set Set_OnMediaCollectionChange }
+	public function Get_OnMediaCollectionChange() {
+		return _AX_EVENTS[22];
+	}
+
+	public function Set_OnMediaCollectionChange(delegate deleg) {
+		_AX_EVENTS[22]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",22);
+	}
+
+	//Event syntax:void MediaCollectionAttributeStringAdded(parameter0<BSTR>, parameter1<BSTR>) 
+	public property _OnMediaCollectionAttributeStringAdded { get Get_OnMediaCollectionAttributeStringAdded, set Set_OnMediaCollectionAttributeStringAdded }
+	public function Get_OnMediaCollectionAttributeStringAdded() {
+		return _AX_EVENTS[23];
+	}
+
+	public function Set_OnMediaCollectionAttributeStringAdded(delegate deleg) {
+		_AX_EVENTS[23]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",23);
+	}
+
+	//Event syntax:void MediaCollectionAttributeStringRemoved(parameter0<BSTR>, parameter1<BSTR>) 
+	public property _OnMediaCollectionAttributeStringRemoved { get Get_OnMediaCollectionAttributeStringRemoved, set Set_OnMediaCollectionAttributeStringRemoved }
+	public function Get_OnMediaCollectionAttributeStringRemoved() {
+		return _AX_EVENTS[24];
+	}
+
+	public function Set_OnMediaCollectionAttributeStringRemoved(delegate deleg) {
+		_AX_EVENTS[24]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",24);
+	}
+
+	//Event syntax:void MediaCollectionAttributeStringChanged(parameter0<BSTR>, parameter1<BSTR>, parameter2<BSTR>) 
+	public property _OnMediaCollectionAttributeStringChanged { get Get_OnMediaCollectionAttributeStringChanged, set Set_OnMediaCollectionAttributeStringChanged }
+	public function Get_OnMediaCollectionAttributeStringChanged() {
+		return _AX_EVENTS[25];
+	}
+
+	public function Set_OnMediaCollectionAttributeStringChanged(delegate deleg) {
+		_AX_EVENTS[25]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",25);
+	}
+
+	//Event syntax:void PlaylistCollectionChange() 
+	public property _OnPlaylistCollectionChange { get Get_OnPlaylistCollectionChange, set Set_OnPlaylistCollectionChange }
+	public function Get_OnPlaylistCollectionChange() {
+		return _AX_EVENTS[26];
+	}
+
+	public function Set_OnPlaylistCollectionChange(delegate deleg) {
+		_AX_EVENTS[26]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",26);
+	}
+
+	//Event syntax:void PlaylistCollectionPlaylistAdded(parameter0<BSTR>) 
+	public property _OnPlaylistCollectionPlaylistAdded { get Get_OnPlaylistCollectionPlaylistAdded, set Set_OnPlaylistCollectionPlaylistAdded }
+	public function Get_OnPlaylistCollectionPlaylistAdded() {
+		return _AX_EVENTS[27];
+	}
+
+	public function Set_OnPlaylistCollectionPlaylistAdded(delegate deleg) {
+		_AX_EVENTS[27]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",27);
+	}
+
+	//Event syntax:void PlaylistCollectionPlaylistRemoved(parameter0<BSTR>) 
+	public property _OnPlaylistCollectionPlaylistRemoved { get Get_OnPlaylistCollectionPlaylistRemoved, set Set_OnPlaylistCollectionPlaylistRemoved }
+	public function Get_OnPlaylistCollectionPlaylistRemoved() {
+		return _AX_EVENTS[28];
+	}
+
+	public function Set_OnPlaylistCollectionPlaylistRemoved(delegate deleg) {
+		_AX_EVENTS[28]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",28);
+	}
+
+	//Event syntax:void PlaylistCollectionPlaylistSetAsDeleted(parameter0<BSTR>, parameter1<VARIANT_BOOL>) 
+	public property _OnPlaylistCollectionPlaylistSetAsDeleted { get Get_OnPlaylistCollectionPlaylistSetAsDeleted, set Set_OnPlaylistCollectionPlaylistSetAsDeleted }
+	public function Get_OnPlaylistCollectionPlaylistSetAsDeleted() {
+		return _AX_EVENTS[29];
+	}
+
+	public function Set_OnPlaylistCollectionPlaylistSetAsDeleted(delegate deleg) {
+		_AX_EVENTS[29]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",29);
+	}
+
+	//Event syntax:void ModeChange(parameter0<BSTR>, parameter1<VARIANT_BOOL>) 
+	public property _OnModeChange { get Get_OnModeChange, set Set_OnModeChange }
+	public function Get_OnModeChange() {
+		return _AX_EVENTS[30];
+	}
+
+	public function Set_OnModeChange(delegate deleg) {
+		_AX_EVENTS[30]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",30);
+	}
+
+	//Event syntax:void MediaError(parameter0<IDispatch*>) 
+	public property _OnMediaError { get Get_OnMediaError, set Set_OnMediaError }
+	public function Get_OnMediaError() {
+		return _AX_EVENTS[31];
+	}
+
+	public function Set_OnMediaError(delegate deleg) {
+		_AX_EVENTS[31]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",31);
+	}
+
+	//Event syntax:void OpenPlaylistSwitch(parameter0<IDispatch*>) 
+	public property _OnOpenPlaylistSwitch { get Get_OnOpenPlaylistSwitch, set Set_OnOpenPlaylistSwitch }
+	public function Get_OnOpenPlaylistSwitch() {
+		return _AX_EVENTS[32];
+	}
+
+	public function Set_OnOpenPlaylistSwitch(delegate deleg) {
+		_AX_EVENTS[32]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",32);
+	}
+
+	//Event syntax:void DomainChange(parameter0<BSTR>) 
+	public property _OnDomainChange { get Get_OnDomainChange, set Set_OnDomainChange }
+	public function Get_OnDomainChange() {
+		return _AX_EVENTS[33];
+	}
+
+	public function Set_OnDomainChange(delegate deleg) {
+		_AX_EVENTS[33]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",33);
+	}
+
+	//Event syntax:void SwitchedToPlayerApplication() 
+	public property _OnSwitchedToPlayerApplication { get Get_OnSwitchedToPlayerApplication, set Set_OnSwitchedToPlayerApplication }
+	public function Get_OnSwitchedToPlayerApplication() {
+		return _AX_EVENTS[34];
+	}
+
+	public function Set_OnSwitchedToPlayerApplication(delegate deleg) {
+		_AX_EVENTS[34]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",34);
+	}
+
+	//Event syntax:void SwitchedToControl() 
+	public property _OnSwitchedToControl { get Get_OnSwitchedToControl, set Set_OnSwitchedToControl }
+	public function Get_OnSwitchedToControl() {
+		return _AX_EVENTS[35];
+	}
+
+	public function Set_OnSwitchedToControl(delegate deleg) {
+		_AX_EVENTS[35]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",35);
+	}
+
+	//Event syntax:void PlayerDockedStateChange() 
+	public property _OnPlayerDockedStateChange { get Get_OnPlayerDockedStateChange, set Set_OnPlayerDockedStateChange }
+	public function Get_OnPlayerDockedStateChange() {
+		return _AX_EVENTS[36];
+	}
+
+	public function Set_OnPlayerDockedStateChange(delegate deleg) {
+		_AX_EVENTS[36]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",36);
+	}
+
+	//Event syntax:void PlayerReconnect() 
+	public property _OnPlayerReconnect { get Get_OnPlayerReconnect, set Set_OnPlayerReconnect }
+	public function Get_OnPlayerReconnect() {
+		return _AX_EVENTS[37];
+	}
+
+	public function Set_OnPlayerReconnect(delegate deleg) {
+		_AX_EVENTS[37]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",37);
+	}
+
+	//Event syntax:void Click(parameter0<short>, parameter1<short>, parameter2<long>, parameter3<long>) 
+	public property _OnClick { get Get_OnClick, set Set_OnClick }
+	public function Get_OnClick() {
+		return _AX_EVENTS[38];
+	}
+
+	public function Set_OnClick(delegate deleg) {
+		_AX_EVENTS[38]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",38);
+	}
+
+	//Event syntax:void DoubleClick(parameter0<short>, parameter1<short>, parameter2<long>, parameter3<long>) 
+	public property _OnDoubleClick { get Get_OnDoubleClick, set Set_OnDoubleClick }
+	public function Get_OnDoubleClick() {
+		return _AX_EVENTS[39];
+	}
+
+	public function Set_OnDoubleClick(delegate deleg) {
+		_AX_EVENTS[39]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",39);
+	}
+
+	//Event syntax:void KeyDown(parameter0<short>, parameter1<short>) 
+	public property _OnKeyDown { get Get_OnKeyDown, set Set_OnKeyDown }
+	public function Get_OnKeyDown() {
+		return _AX_EVENTS[40];
+	}
+
+	public function Set_OnKeyDown(delegate deleg) {
+		_AX_EVENTS[40]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",40);
+	}
+
+	//Event syntax:void KeyPress(parameter0<short>) 
+	public property _OnKeyPress { get Get_OnKeyPress, set Set_OnKeyPress }
+	public function Get_OnKeyPress() {
+		return _AX_EVENTS[41];
+	}
+
+	public function Set_OnKeyPress(delegate deleg) {
+		_AX_EVENTS[41]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",41);
+	}
+
+	//Event syntax:void KeyUp(parameter0<short>, parameter1<short>) 
+	public property _OnKeyUp { get Get_OnKeyUp, set Set_OnKeyUp }
+	public function Get_OnKeyUp() {
+		return _AX_EVENTS[42];
+	}
+
+	public function Set_OnKeyUp(delegate deleg) {
+		_AX_EVENTS[42]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",42);
+	}
+
+	//Event syntax:void MouseDown(parameter0<short>, parameter1<short>, parameter2<long>, parameter3<long>) 
+	public property _OnMouseDown { get Get_OnMouseDown, set Set_OnMouseDown }
+	public function Get_OnMouseDown() {
+		return _AX_EVENTS[43];
+	}
+
+	public function Set_OnMouseDown(delegate deleg) {
+		_AX_EVENTS[43]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",43);
+	}
+
+	//Event syntax:void MouseMove(parameter0<short>, parameter1<short>, parameter2<long>, parameter3<long>) 
+	public property _OnMouseMove { get Get_OnMouseMove, set Set_OnMouseMove }
+	public function Get_OnMouseMove() {
+		return _AX_EVENTS[44];
+	}
+
+	public function Set_OnMouseMove(delegate deleg) {
+		_AX_EVENTS[44]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",44);
+	}
+
+	//Event syntax:void MouseUp(parameter0<short>, parameter1<short>, parameter2<long>, parameter3<long>) 
+	public property _OnMouseUp { get Get_OnMouseUp, set Set_OnMouseUp }
+	public function Get_OnMouseUp() {
+		return _AX_EVENTS[45];
+	}
+
+	public function Set_OnMouseUp(delegate deleg) {
+		_AX_EVENTS[45]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",45);
+	}
+
+	//Event syntax:void DeviceConnect(parameter0<IWMPSyncDevice*>) 
+	public property _OnDeviceConnect { get Get_OnDeviceConnect, set Set_OnDeviceConnect }
+	public function Get_OnDeviceConnect() {
+		return _AX_EVENTS[46];
+	}
+
+	public function Set_OnDeviceConnect(delegate deleg) {
+		_AX_EVENTS[46]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",46);
+	}
+
+	//Event syntax:void DeviceDisconnect(parameter0<IWMPSyncDevice*>) 
+	public property _OnDeviceDisconnect { get Get_OnDeviceDisconnect, set Set_OnDeviceDisconnect }
+	public function Get_OnDeviceDisconnect() {
+		return _AX_EVENTS[47];
+	}
+
+	public function Set_OnDeviceDisconnect(delegate deleg) {
+		_AX_EVENTS[47]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",47);
+	}
+
+	//Event syntax:void DeviceStatusChange(parameter0<IWMPSyncDevice*>, parameter1<WMPDeviceStatus>) 
+	public property _OnDeviceStatusChange { get Get_OnDeviceStatusChange, set Set_OnDeviceStatusChange }
+	public function Get_OnDeviceStatusChange() {
+		return _AX_EVENTS[48];
+	}
+
+	public function Set_OnDeviceStatusChange(delegate deleg) {
+		_AX_EVENTS[48]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",48);
+	}
+
+	//Event syntax:void DeviceSyncStateChange(parameter0<IWMPSyncDevice*>, parameter1<WMPSyncState>) 
+	public property _OnDeviceSyncStateChange { get Get_OnDeviceSyncStateChange, set Set_OnDeviceSyncStateChange }
+	public function Get_OnDeviceSyncStateChange() {
+		return _AX_EVENTS[49];
+	}
+
+	public function Set_OnDeviceSyncStateChange(delegate deleg) {
+		_AX_EVENTS[49]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",49);
+	}
+
+	//Event syntax:void DeviceSyncError(parameter0<IWMPSyncDevice*>, parameter1<IDispatch*>) 
+	public property _OnDeviceSyncError { get Get_OnDeviceSyncError, set Set_OnDeviceSyncError }
+	public function Get_OnDeviceSyncError() {
+		return _AX_EVENTS[50];
+	}
+
+	public function Set_OnDeviceSyncError(delegate deleg) {
+		_AX_EVENTS[50]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",50);
+	}
+
+	//Event syntax:void CreatePartnershipComplete(parameter0<IWMPSyncDevice*>, parameter1<HRESULT>) 
+	public property _OnCreatePartnershipComplete { get Get_OnCreatePartnershipComplete, set Set_OnCreatePartnershipComplete }
+	public function Get_OnCreatePartnershipComplete() {
+		return _AX_EVENTS[51];
+	}
+
+	public function Set_OnCreatePartnershipComplete(delegate deleg) {
+		_AX_EVENTS[51]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",51);
+	}
+
+	//Event syntax:void CdromRipStateChange(parameter0<IWMPCdromRip*>, parameter1<WMPRipState>) 
+	public property _OnCdromRipStateChange { get Get_OnCdromRipStateChange, set Set_OnCdromRipStateChange }
+	public function Get_OnCdromRipStateChange() {
+		return _AX_EVENTS[52];
+	}
+
+	public function Set_OnCdromRipStateChange(delegate deleg) {
+		_AX_EVENTS[52]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",52);
+	}
+
+	//Event syntax:void CdromRipMediaError(parameter0<IWMPCdromRip*>, parameter1<IDispatch*>) 
+	public property _OnCdromRipMediaError { get Get_OnCdromRipMediaError, set Set_OnCdromRipMediaError }
+	public function Get_OnCdromRipMediaError() {
+		return _AX_EVENTS[53];
+	}
+
+	public function Set_OnCdromRipMediaError(delegate deleg) {
+		_AX_EVENTS[53]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",53);
+	}
+
+	//Event syntax:void CdromBurnStateChange(parameter0<IWMPCdromBurn*>, parameter1<WMPBurnState>) 
+	public property _OnCdromBurnStateChange { get Get_OnCdromBurnStateChange, set Set_OnCdromBurnStateChange }
+	public function Get_OnCdromBurnStateChange() {
+		return _AX_EVENTS[54];
+	}
+
+	public function Set_OnCdromBurnStateChange(delegate deleg) {
+		_AX_EVENTS[54]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",54);
+	}
+
+	//Event syntax:void CdromBurnMediaError(parameter0<IWMPCdromBurn*>, parameter1<IDispatch*>) 
+	public property _OnCdromBurnMediaError { get Get_OnCdromBurnMediaError, set Set_OnCdromBurnMediaError }
+	public function Get_OnCdromBurnMediaError() {
+		return _AX_EVENTS[55];
+	}
+
+	public function Set_OnCdromBurnMediaError(delegate deleg) {
+		_AX_EVENTS[55]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",55);
+	}
+
+	//Event syntax:void CdromBurnError(parameter0<IWMPCdromBurn*>, parameter1<HRESULT>) 
+	public property _OnCdromBurnError { get Get_OnCdromBurnError, set Set_OnCdromBurnError }
+	public function Get_OnCdromBurnError() {
+		return _AX_EVENTS[56];
+	}
+
+	public function Set_OnCdromBurnError(delegate deleg) {
+		_AX_EVENTS[56]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",56);
+	}
+
+	//Event syntax:void LibraryConnect(parameter0<IWMPLibrary*>) 
+	public property _OnLibraryConnect { get Get_OnLibraryConnect, set Set_OnLibraryConnect }
+	public function Get_OnLibraryConnect() {
+		return _AX_EVENTS[57];
+	}
+
+	public function Set_OnLibraryConnect(delegate deleg) {
+		_AX_EVENTS[57]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",57);
+	}
+
+	//Event syntax:void LibraryDisconnect(parameter0<IWMPLibrary*>) 
+	public property _OnLibraryDisconnect { get Get_OnLibraryDisconnect, set Set_OnLibraryDisconnect }
+	public function Get_OnLibraryDisconnect() {
+		return _AX_EVENTS[58];
+	}
+
+	public function Set_OnLibraryDisconnect(delegate deleg) {
+		_AX_EVENTS[58]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",58);
+	}
+
+	//Event syntax:void FolderScanStateChange(parameter0<WMPFolderScanState>) 
+	public property _OnFolderScanStateChange { get Get_OnFolderScanStateChange, set Set_OnFolderScanStateChange }
+	public function Get_OnFolderScanStateChange() {
+		return _AX_EVENTS[59];
+	}
+
+	public function Set_OnFolderScanStateChange(delegate deleg) {
+		_AX_EVENTS[59]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",59);
+	}
+
+	//Event syntax:void StringCollectionChange(parameter0<IDispatch*>, parameter1<WMPStringCollectionChangeEventType>, parameter2<long>) 
+	public property _OnStringCollectionChange { get Get_OnStringCollectionChange, set Set_OnStringCollectionChange }
+	public function Get_OnStringCollectionChange() {
+		return _AX_EVENTS[60];
+	}
+
+	public function Set_OnStringCollectionChange(delegate deleg) {
+		_AX_EVENTS[60]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",60);
+	}
+
+	//Event syntax:void MediaCollectionMediaAdded(parameter0<IDispatch*>) 
+	public property _OnMediaCollectionMediaAdded { get Get_OnMediaCollectionMediaAdded, set Set_OnMediaCollectionMediaAdded }
+	public function Get_OnMediaCollectionMediaAdded() {
+		return _AX_EVENTS[61];
+	}
+
+	public function Set_OnMediaCollectionMediaAdded(delegate deleg) {
+		_AX_EVENTS[61]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",61);
+	}
+
+	//Event syntax:void MediaCollectionMediaRemoved(parameter0<IDispatch*>) 
+	public property _OnMediaCollectionMediaRemoved { get Get_OnMediaCollectionMediaRemoved, set Set_OnMediaCollectionMediaRemoved }
+	public function Get_OnMediaCollectionMediaRemoved() {
+		return _AX_EVENTS[62];
+	}
+
+	public function Set_OnMediaCollectionMediaRemoved(delegate deleg) {
+		_AX_EVENTS[62]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",62);
+	}
+
+//------------------ END OF EVENTS INTERFACE (info only) -----------------//
+
+	public property URL { get AX_GET_URL, set AX_SET_URL }
+	public property openState { get AX_GET_openState }
+	public property playState { get AX_GET_playState }
+	public property controls { get AX_GET_controls }
+	public property settings { get AX_GET_settings }
+	public property currentMedia { get AX_GET_currentMedia, set AX_SET_currentMedia }
+	public property mediaCollection { get AX_GET_mediaCollection }
+	public property playlistCollection { get AX_GET_playlistCollection }
+	public property versionInfo { get AX_GET_versionInfo }
+	public property network { get AX_GET_network }
+	public property currentPlaylist { get AX_GET_currentPlaylist, set AX_SET_currentPlaylist }
+	public property cdromCollection { get AX_GET_cdromCollection }
+	public property closedCaption { get AX_GET_closedCaption }
+	public property isOnline { get AX_GET_isOnline }
+	public property Error { get AX_GET_Error }
+	public property status { get AX_GET_status }
+	public property dvd { get AX_GET_dvd }
+	public property enabled { get AX_GET_enabled, set AX_SET_enabled }
+	public property fullScreen { get AX_GET_fullScreen, set AX_SET_fullScreen }
+	public property enableContextMenu { get AX_GET_enableContextMenu, set AX_SET_enableContextMenu }
+	public property uiMode { get AX_GET_uiMode, set AX_SET_uiMode }
+	public property stretchToFit { get AX_GET_stretchToFit, set AX_SET_stretchToFit }
+	public property windowlessVideo { get AX_GET_windowlessVideo, set AX_SET_windowlessVideo }
+	public property isRemote { get AX_GET_isRemote }
+	public property playerApplication { get AX_GET_playerApplication }
+}

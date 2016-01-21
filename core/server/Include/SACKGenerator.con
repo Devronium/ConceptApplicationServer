@@ -1,0 +1,178 @@
+include 'ArrayList.con'
+
+define SACK_METHOD_POST		"POST"
+define SACK_METHOD_GET		"GET"
+define DEFAULT_SACK_ELEMENT	"replaceme"
+
+define SACK_SOURCE_JS		"tw-sack.js"
+
+class SACKStaticElement {
+	public var _NAME;
+	public var _VALUE;
+
+	function SACKStaticElement(name,VALUE) {
+		_NAME=name;
+		_VALUE=VALUE;
+	}
+}
+
+
+class SACKGenerator {
+        private var _TARGET;
+        private var _METHOD;
+        private var _FORMNAME;
+        private var _SACKELEMENT;
+        private var _SACKELEMENT_STATUS;
+        private var _DATA_ARRAY;
+        private var _STATIC_ARRAY;
+
+        public var WhenLoadingText;
+        public var WhenLoadedText;
+        public var WhenInteractiveText;
+        public var WhenCompletedText;
+
+        public var WhenLoadingJava;
+        public var WhenLoadedJava;
+        public var WhenInteractiveJava;
+        public var WhenCompletedJava;
+
+
+        property Target { get _TARGET, set SetTarget }
+        property Name { get _FORMNAME }
+        property SackElement { get _SACKELEMENT, set SetSackElement }
+        property SackStatus { get _SACKELEMENT_STATUS, set SetSackStatus }
+        property Method { get _METHOD, set SetMethod }
+	property Trigger { get GetTriggerFunction }
+
+        private function SetMethod(method) {
+	        // make sure it's casted to a string
+            this._METHOD=""+method;
+        }
+
+        private function SetTarget(target) {
+	        // make sure it's casted to a string
+	        return this._TARGET=""+target;
+        }
+
+        private function SetSackElement(VALUE) {
+	        // make sure it's casted to a string
+		if (this._SACKELEMENT_STATUS==0)
+			this._SACKELEMENT_STATUS=""+VALUE;
+	        return this._SACKELEMENT=""+VALUE;
+        }
+
+        private function SetSackStatus(VALUE) {
+	        // make sure it's casted to a string
+	        return this._SACKELEMENT_STATUS=""+VALUE;
+        }
+
+        public function AddElement(name) {
+	        // make sure it's casted to a string
+	        this._DATA_ARRAY.Add(""+name,this._DATA_ARRAY.Count);
+        }
+
+        public function AddStaticElement(name,VALUE) {
+	        // make sure it's casted to a string
+	        this._STATIC_ARRAY.Add(new SACKStaticElement(name,VALUE),this._STATIC_ARRAY.Count);
+        }
+
+        public function SACKGenerator(formname) {
+	        this._FORMNAME=""+formname;
+	        this._TARGET="";
+	        this._METHOD=SACK_METHOD_POST;
+	        this._SACKELEMENT=DEFAULT_SACK_ELEMENT;
+	        this._DATA_ARRAY=new ArrayList();
+	        this._STATIC_ARRAY=new ArrayList();
+
+	        this.WhenLoadingText="";
+	        this.WhenLoadedText="";
+	        this.WhenInteractiveText="";
+	        this.WhenCompletedText="";
+
+	        this.WhenLoadingJava="";
+	        this.WhenLoadedJava="";
+	        this.WhenInteractiveJava="";
+	        this.WhenCompletedJava="";
+        }
+
+        public function Generate() {
+	        var output="<script type=\"text/javascript\">\n\nvar "+_FORMNAME+"_ajax = new sack();\n\n";
+
+            // on loading ....
+	        output+="function "+_FORMNAME+"whenLoading() {\n";
+	        output+=WhenLoadingJava;
+		if (WhenLoadingText!="") {
+	        	output+="\tvar e = document.getElementById('"+_SACKELEMENT_STATUS+"');\n";
+	        	output+="\te.innerHTML = \""+WhenLoadingText+"\";\n";
+		}
+	        output+="}\n\n";
+
+            // on loaded ....
+	        output+="function "+_FORMNAME+"whenLoaded() {\n";
+	        output+=WhenLoadedJava;
+		if (WhenLoadedText!="") {
+	        	output+="\tvar e = document.getElementById('"+_SACKELEMENT_STATUS+"');\n";
+	        	output+="\te.innerHTML = \""+WhenLoadedText+"\";\n";
+		}
+	        output+="}\n\n";
+
+            // on interactive ...
+	        output+="function "+_FORMNAME+"whenInteractive() {\n";
+	        output+=WhenInteractiveJava;
+		if (WhenInteractiveText!="") {
+	        	output+="\tvar e = document.getElementById('"+_SACKELEMENT_STATUS+"');\n";
+	        	output+="\te.innerHTML = \""+WhenInteractiveText+"\";\n";
+		}
+	        output+="}\n\n";
+
+            // on completed ...
+	        output+="function "+_FORMNAME+"whenCompletion() {\n";
+	        output+=WhenCompletedJava;
+		if (WhenCompletedText!="") {
+	        	output+="\tvar e = document.getElementById('"+_SACKELEMENT_STATUS+"');\n";
+	        	output+="\te.innerHTML = \""+WhenCompletedText+"\";\n";
+		}
+	        output+="}\n\n";
+
+            // do it !
+            var ajax_name=_FORMNAME+"_ajax";
+            output+="function "+_FORMNAME+"_go_ajax() {\n";
+
+            var count=_DATA_ARRAY.Count;
+	    if (count) {
+            	output+="\tvar form = document.getElementById('"+_FORMNAME+"');\n";
+            	for (var i=0;i<count;i++) {
+                	var name=""+_DATA_ARRAY[i];
+                	output+="\t"+ajax_name+".setVar(\""+name+"\", form."+name+".value);\n";
+			//output+="\t"+ajax_name+".setVar(\""+name+"\", "+name+".value);\n";
+            	}
+	    }
+
+            count=_STATIC_ARRAY.Count;
+            for (i=0;i<count;i++) {
+                var static_element=_STATIC_ARRAY[i];
+                output+="\t"+ajax_name+".setVar(\""+static_element._NAME+"\",\""+static_element._VALUE+"\");\n";
+            }
+
+            output+="\t"+ajax_name+".method=\""+_METHOD+"\";\n";
+            output+="\t"+ajax_name+".element=\""+_SACKELEMENT+"\";\n";
+            output+="\t"+ajax_name+".onLoading="+_FORMNAME+"whenLoading;\n";
+            output+="\t"+ajax_name+".onLoaded="+_FORMNAME+"whenLoaded;\n";
+            output+="\t"+ajax_name+".onInteractive="+_FORMNAME+"whenInteractive;\n";
+            output+="\t"+ajax_name+".onCompletion="+_FORMNAME+"whenCompletion;\n";
+            output+="\t"+ajax_name+".requestFile=\""+_TARGET+"\";\n";
+            output+="\t"+ajax_name+".runAJAX();\n";
+	    output+="}\n\n";
+            output+="</script>";
+
+            return output;
+        }
+
+	public function IncludeScripts() {
+		return '<script type="text/javascript" src="'+SACK_SOURCE_JS+'"></script>';
+	}
+
+	public function GetTriggerFunction() {
+		return _FORMNAME+"_go_ajax()";
+	}
+}

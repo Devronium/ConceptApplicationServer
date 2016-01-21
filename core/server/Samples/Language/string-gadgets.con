@@ -1,0 +1,88 @@
+//include 'Application.con'
+import 'standard.C.time'
+
+class ClassTest {
+	private var x;
+	private var y;
+
+	function b(x) {
+		this.y=x;
+	}
+
+	function ClassTest(x) {
+		/*var test1=100;
+		var test2=101;
+		var test3=102;
+		var test4=103;
+		var test5=104;
+		var test6=105;
+		var test7=106;
+		var test8=107;
+		var test9=108;
+		var test10=109;
+*/
+		this.x=x;
+		this.b(this.x);
+	}
+}
+
+class Main {
+	function Main() {
+		echo "Current time is : ";
+		echo asctime(time());
+		echo "\n";
+		var test="0123456789";
+		test[2]="doi";
+		echo test+"\n";
+
+		echo "Concatening 1,000,000 strings, using a 4 characters string\n";
+		echo "Total transfer on this operation is up to 100 megabytes of memory, depending on your machine memory fragmentation\n\n";
+		var i=1000000;
+		var string="";
+		var start=clock();
+		while (i--) {
+			string+="test";
+		}
+		var total_time=clock()-start;
+		echo "Done in "+total_time+" miliseconds\n";
+
+		i=11750000;
+		echo "Iteration test : "+i+" cycles, with 2 operations in a 'while' loop ... \n";
+		start=clock();
+		while (i) {
+			i--;
+		}
+		total_time=clock()-start;
+		echo "Done in "+total_time+" miliseconds\n";
+
+		i=1000000;
+		echo "Class instance test : instanciating "+i+" objects ...\n";
+		start=clock();
+		while (i--) {
+			var cls=&new ClassTest(i);
+		}	
+		total_time=clock()-start;
+		echo "Done in "+total_time+" miliseconds\n";
+
+		i=1000000;
+		echo "Function call test : calling "+i+" functions ...\n";
+		start=clock();
+		while (i--) {
+			cls->b(i);
+		}	
+		total_time=clock()-start;
+		echo "Done in "+total_time+" miliseconds\n";
+
+		i=1000000;
+		echo "Delegate function test : calling "+i+" delegates ...\n";
+		var delegate=cls->b;
+
+		start=clock();
+		while (i--) {
+			delegate(i);
+		}	
+		total_time=clock()-start;
+		echo "Done in "+total_time+" miliseconds\n";
+
+	}
+}

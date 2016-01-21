@@ -1,0 +1,299 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<object cycid="1" class="_DesignFile">
+  <member name="serial" type="array">
+    <array cycid="2">
+      <element index="0" type="array">
+        <array cycid="3">
+          <element index="0" type="string">RForm</element>
+          <element index="1" type="array">
+            <array cycid="4">
+              <element index="0" type="array">
+                <array cycid="5">
+                  <element index="0" type="string">RVBox</element>
+                  <element index="1" type="array">
+                    <array cycid="6">
+                      <element index="0" type="array">
+                        <array cycid="7">
+                          <element index="0" type="string">RScrolledWindow</element>
+                          <element index="1" type="array">
+                            <array cycid="8">
+                              <element index="0" type="array">
+                                <array cycid="9">
+                                  <element index="0" type="string">RTreeView</element>
+                                  <element index="1" type="array">
+                                    <array cycid="10"/>
+                                  </element>
+                                </array>
+                              </element>
+                            </array>
+                          </element>
+                        </array>
+                      </element>
+                      <element index="1" type="array">
+                        <array cycid="11">
+                          <element index="0" type="string">RHBox</element>
+                          <element index="1" type="array">
+                            <array cycid="12">
+                              <element index="0" type="array">
+                                <array cycid="13">
+                                  <element index="0" type="string">RLabel</element>
+                                  <element index="1" type="array">
+                                    <array cycid="14"/>
+                                  </element>
+                                </array>
+                              </element>
+                              <element index="1" type="array">
+                                <array cycid="15">
+                                  <element index="0" type="string">REdit</element>
+                                  <element index="1" type="array">
+                                    <array cycid="16"/>
+                                  </element>
+                                </array>
+                              </element>
+                            </array>
+                          </element>
+                        </array>
+                      </element>
+                      <element index="2" type="array">
+                        <array cycid="17">
+                          <element index="0" type="string">RHButtonBox</element>
+                          <element index="1" type="array">
+                            <array cycid="18">
+                              <element index="0" type="array">
+                                <array cycid="19">
+                                  <element index="0" type="string">RButton</element>
+                                  <element index="1" type="array">
+                                    <array cycid="20"/>
+                                  </element>
+                                </array>
+                              </element>
+                              <element index="1" type="array">
+                                <array cycid="21">
+                                  <element index="0" type="string">RButton</element>
+                                  <element index="1" type="array">
+                                    <array cycid="22"/>
+                                  </element>
+                                </array>
+                              </element>
+                            </array>
+                          </element>
+                        </array>
+                      </element>
+                    </array>
+                  </element>
+                </array>
+              </element>
+            </array>
+          </element>
+        </array>
+      </element>
+    </array>
+  </member>
+  <member name="count" type="number">9</member>
+  <member name="properties" type="array">
+    <array cycid="23">
+      <element index="0" type="array">
+        <array cycid="24">
+          <element key="(Name)" index="0" type="array">
+            <array cycid="25">
+              <element index="0" type="string">(Name)</element>
+              <element index="1" type="string">VBox1</element>
+              <element index="2" type="string">VBox1</element>
+            </array>
+          </element>
+        </array>
+      </element>
+      <element index="1" type="array">
+        <array cycid="26">
+          <element key="(Name)" index="0" type="array">
+            <array cycid="27">
+              <element index="0" type="string">(Name)</element>
+              <element index="1" type="string">ScrolledWindow1</element>
+              <element index="2" type="string">ScrolledWindow1</element>
+            </array>
+          </element>
+          <element key="HScrollPolicy" index="1" type="array">
+            <array cycid="28">
+              <element index="0" type="string">HScrollPolicy</element>
+              <element index="1" type="string">POLICY_AUTOMATIC</element>
+              <element index="2" type="number">1</element>
+            </array>
+          </element>
+          <element key="VScrollPolicy" index="2" type="array">
+            <array cycid="29">
+              <element index="0" type="string">VScrollPolicy</element>
+              <element index="1" type="string">POLICY_AUTOMATIC</element>
+              <element index="2" type="number">1</element>
+            </array>
+          </element>
+          <element key="ShadowType" index="3" type="array">
+            <array cycid="30">
+              <element index="0" type="string">ShadowType</element>
+              <element index="1" type="string">SHADOW_ETCHED_OUT</element>
+              <element index="2" type="number">4</element>
+            </array>
+          </element>
+        </array>
+      </element>
+      <element index="2" type="array">
+        <array cycid="31">
+          <element key="(Name)" index="0" type="array">
+            <array cycid="32">
+              <element index="0" type="string">(Name)</element>
+              <element index="1" type="string">TreeView1</element>
+              <element index="2" type="string">TreeView1</element>
+            </array>
+          </element>
+          <element key="Model" index="1" type="array">
+            <array cycid="33">
+              <element index="0" type="string">Model</element>
+              <element index="1" type="string">MODEL_LISTVIEW</element>
+              <element index="2" type="number">0</element>
+            </array>
+          </element>
+        </array>
+      </element>
+      <element index="3" type="array">
+        <array cycid="34">
+          <element key="(Name)" index="0" type="array">
+            <array cycid="35">
+              <element index="0" type="string">(Name)</element>
+              <element index="1" type="string">HBox1</element>
+              <element index="2" type="string">HBox1</element>
+            </array>
+          </element>
+          <element key="Packing" index="1" type="array">
+            <array cycid="36">
+              <element index="0" type="string">Packing</element>
+              <element index="1" type="string">PACK_SHRINK</element>
+              <element index="2" type="number">1</element>
+            </array>
+          </element>
+        </array>
+      </element>
+      <element index="4" type="array">
+        <array cycid="37">
+          <element key="(Name)" index="0" type="array">
+            <array cycid="38">
+              <element index="0" type="string">(Name)</element>
+              <element index="1" type="string">Label1</element>
+              <element index="2" type="string">Label1</element>
+            </array>
+          </element>
+        </array>
+      </element>
+      <element index="5" type="array">
+        <array cycid="39">
+          <element key="(Name)" index="0" type="array">
+            <array cycid="40">
+              <element index="0" type="string">(Name)</element>
+              <element index="1" type="string">Edit1</element>
+              <element index="2" type="string">Edit1</element>
+            </array>
+          </element>
+          <element key="Packing" index="1" type="array">
+            <array cycid="41">
+              <element index="0" type="string">Packing</element>
+              <element index="1" type="string">PACK_EXPAND_WIDGET</element>
+              <element index="2" type="number">3</element>
+            </array>
+          </element>
+        </array>
+      </element>
+      <element index="6" type="array">
+        <array cycid="42">
+          <element key="(Name)" index="0" type="array">
+            <array cycid="43">
+              <element index="0" type="string">(Name)</element>
+              <element index="1" type="string">HButtonBox1</element>
+              <element index="2" type="string">HButtonBox1</element>
+            </array>
+          </element>
+          <element key="Layout" index="1" type="array">
+            <array cycid="44">
+              <element index="0" type="string">Layout</element>
+              <element index="1" type="string">BUTTONBOX_SPREAD</element>
+              <element index="2" type="number">1</element>
+            </array>
+          </element>
+          <element key="Packing" index="2" type="array">
+            <array cycid="45">
+              <element index="0" type="string">Packing</element>
+              <element index="1" type="string">PACK_SHRINK</element>
+              <element index="2" type="number">1</element>
+            </array>
+          </element>
+        </array>
+      </element>
+      <element index="7" type="array">
+        <array cycid="46">
+          <element key="(Name)" index="0" type="array">
+            <array cycid="47">
+              <element index="0" type="string">(Name)</element>
+              <element index="1" type="string">Button1</element>
+              <element index="2" type="string">Button1</element>
+              <element index="3" type="number">0</element>
+            </array>
+          </element>
+          <element key="Caption" index="1" type="array">
+            <array cycid="48">
+              <element index="0" type="string">Caption</element>
+              <element index="1" type="string">"_Cancel"</element>
+              <element index="2" type="string">_Cancel</element>
+              <element index="3" type="number">0</element>
+            </array>
+          </element>
+        </array>
+      </element>
+      <element index="8" type="array">
+        <array cycid="49">
+          <element key="(Name)" index="0" type="array">
+            <array cycid="50">
+              <element index="0" type="string">(Name)</element>
+              <element index="1" type="string">Button2</element>
+              <element index="2" type="string">Button2</element>
+            </array>
+          </element>
+          <element key="Caption" index="1" type="array">
+            <array cycid="51">
+              <element index="0" type="string">Caption</element>
+              <element index="1" type="string">"O_k"</element>
+              <element index="2" type="string">O_k</element>
+            </array>
+          </element>
+        </array>
+      </element>
+    </array>
+  </member>
+  <member name="events" type="array">
+    <array cycid="52">
+      <element index="0" type="array">
+        <array cycid="53"/>
+      </element>
+      <element index="1" type="array">
+        <array cycid="54"/>
+      </element>
+      <element index="2" type="array">
+        <array cycid="55"/>
+      </element>
+      <element index="3" type="array">
+        <array cycid="56"/>
+      </element>
+      <element index="4" type="array">
+        <array cycid="57"/>
+      </element>
+      <element index="5" type="array">
+        <array cycid="58"/>
+      </element>
+      <element index="6" type="array">
+        <array cycid="59"/>
+      </element>
+      <element index="7" type="array">
+        <array cycid="60"/>
+      </element>
+      <element index="8" type="array">
+        <array cycid="61"/>
+      </element>
+    </array>
+  </member>
+</object>

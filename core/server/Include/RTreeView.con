@@ -1,0 +1,761 @@
+include RemoteContainer.con
+include ClassID.con
+include RemoteProperties.con
+include RemoteEvents.con
+include RAdjustment.con
+include MultiItems.con
+include RTreeViewColumnManager.con
+
+define MODEL_LISTVIEW	0
+define MODEL_TREEVIEW	1
+
+define HIDDEN_COLUMN	0
+define NORMAL_COLUMN	1
+define PERCENT_COLUMN	2
+define CHECK_COLUMN	3
+define RADIO_COLUMN	4
+define IMAGE_COLUMN     5
+define COMBO_COLUMN     6
+define MARKUP_COLUMN    7
+
+define EDITABLE_COLUMN  0x80
+
+define TV_COLUMN_GROW_ONLY	0
+define TV_COLUMN_AUTOSIZE	1
+define TV_COLUMN_FIXED		2
+
+define SI_ASCENDING	0
+define SI_DESCENDING	1
+
+
+define TREE_VIEW_GRID_LINES_NONE	0
+define TREE_VIEW_GRID_LINES_HORIZONTAL	1
+define TREE_VIEW_GRID_LINES_VERTICAL	2
+define TREE_VIEW_GRID_LINES_BOTH	3
+
+
+
+class RTreeView extends RemoteContainer {
+	private var ITEMS;
+	private var MODEL;
+	private var ENABLESEARCH;
+	private var EXPANDERCOLUMN;
+	private var FIXEDHEIGHTMODE;
+	private var HEADERSCLICKABLE;
+	private var HEADERSVISIBLE=true;
+	private var HOVEREXPAND;
+	private var HOVERSELECTION;
+	private var REORDABLE;
+	private var RULESHINT;
+	private var SEARCHCOLUMN;
+	private var _HAdjustment;
+	private var _VAdjustment;
+	private var _SORTED=0;
+	private var _SORTCOLUMN=0;
+	private var _DESCENDING=0;
+	private var _GRIDLINES=0;
+	private var _TREELINES=0;
+	private var _LEVELIDENTATION=0;
+	private var _SHOWEXPANDERS=true;
+	private var _MULTIPLESELECTION=false;
+	private var _SEARCHENTRY=0;
+	private var _TOOLTIPCOLUMN=-1;
+	private var _COLUMNCOUNT=0;
+	private var _Columns;
+
+	public property Columns { get _Columns };
+
+	public property Items { get ITEMS }
+	public property Model { get MODEL, set SetModel }
+	public property EnableSearch { get ENABLESEARCH, set SetEnableSearch }
+	public property ExpanderColumn { get EXPANDERCOLUMN, set SetExpanderColumn }
+	public property FixedHeightMode { get FIXEDHEIGHTMODE, set SetFixedHeightMode }
+	public property HeadersClickable { get HEADERSCLICKABLE, set SetHeadersClickable }
+	public property HeadersVisible { get HEADERSVISIBLE, set SetHeadersVisible }
+	public property HoverExpand { get HOVEREXPAND, set SetHoverExpand }
+	public property HoverSelection { get HOVERSELECTION, set SetHoverSelection }
+	public property Reorderable { get REORDABLE, set SetReorderable }
+	public property RulesHint { get RULESHINT, set SetRulesHint }
+	public property SearchColumn { get SEARCHCOLUMN, set SetSearchColumn }
+	public property TooltipColumn { get _TOOLTIPCOLUMN, set SetTooltipColumn }
+	public property RowIndex { get GetRowIndex, set SetRowIndex }
+	public property ColumnIndex { get GetColumnIndex, set SetColumnIndex }
+	//public property VAdjustment { get _VAdjustment }
+	//public property HAdjustment { get _HAdjustment }
+	public property VAdjustment { get GetVAdjustment }
+	public property HAdjustment { get GetHAdjustment }
+
+	public property Sorted { get _SORTED, set SetSorted }
+	public property SortColumn { get _SORTCOLUMN, set SetSortColumn }
+	public property SortDescending { get _DESCENDING, set SetSortDescending }
+
+	public property GridLines { get _GRIDLINES, set SetGridLines }
+	public property TreeLines { get _TREELINES, set SetTreeLines }
+	public property LevelIndentation { get _LEVELIDENTATION, set SetLevelIndentation }
+	public property ShowExpanders { get _SHOWEXPANDERS, set SetShowExpanders }
+
+	public property MultipleSelection { get _MULTIPLESELECTION, set SetMultipleSelection }
+	public property SearchEntry { get _SEARCHENTRY, set SetSearchEntry }
+
+	public property Selected { get GetSelected }
+
+
+
+	//-------- Events ----------------------------------------------------------------//
+	public property OnHeadersClicked { get GetOnHeadersClicked, set SetOnHeadersClicked }
+	public function GetOnHeadersClicked() {
+		return _GET_REMOTE_EVENT(EVENT_ON_HEADERCLICKED);
+	}
+
+	public function SetOnHeadersClicked(var delegate _delegate) {
+		return _MAP_REMOTE_EVENT(EVENT_ON_HEADERCLICKED, _delegate);
+	}
+	public property OnColumnsChanged { get GetOnColumnsChanged, set SetOnColumnsChanged }
+	public function GetOnColumnsChanged() {
+		return _GET_REMOTE_EVENT(EVENT_ON_COLUMNSCHANGED);
+	}
+
+	public function SetOnColumnsChanged(var delegate _delegate) {
+		return _MAP_REMOTE_EVENT(EVENT_ON_COLUMNSCHANGED, _delegate);
+	}
+
+	public property OnCursorChanged { get GetOnCursorChanged, set SetOnCursorChanged }
+	public function GetOnCursorChanged() {
+		return _GET_REMOTE_EVENT(EVENT_ON_CURSORCHANGED);
+	}
+
+	public function SetOnCursorChanged(var delegate _delegate) {
+		return _MAP_REMOTE_EVENT(EVENT_ON_CURSORCHANGED, _delegate);
+	}
+
+	public property OnRowActivated { get GetOnRowActivated, set SetOnRowActivated }
+	public function GetOnRowActivated() {
+		return _GET_REMOTE_EVENT(EVENT_ON_ROWACTIVATED);
+	}
+
+	public function SetOnRowActivated(var delegate _delegate) {
+		return _MAP_REMOTE_EVENT(EVENT_ON_ROWACTIVATED, _delegate);
+	}
+
+	public property OnRowCollapsed { get GetOnRowCollapsed, set SetOnRowCollapsed }
+	public function GetOnRowCollapsed() {
+		return _GET_REMOTE_EVENT(EVENT_ON_ROWCOLLAPSED);
+	}
+
+	public function SetOnRowCollapsed(var delegate _delegate) {
+		return _MAP_REMOTE_EVENT(EVENT_ON_ROWCOLLAPSED, _delegate);
+	}
+
+	public property OnRowExpanded { get GetOnRowExpanded, set SetOnRowExpanded }
+	public function GetOnRowExpanded() {
+		return _GET_REMOTE_EVENT(EVENT_ON_ROWEXPANDED);
+	}
+
+	public function SetOnRowExpanded(var delegate _delegate) {
+		return _MAP_REMOTE_EVENT(EVENT_ON_ROWEXPANDED, _delegate);
+	}
+
+	public property OnSetScrollAdjustments { get GetOnSetScrollAdjustments, set SetOnSetScrollAdjustments }
+	public function GetOnSetScrollAdjustments() {
+		return _GET_REMOTE_EVENT(EVENT_ON_SETSCROLLADJUSTMENTS);
+	}
+
+	public function SetOnSetScrollAdjustments(var delegate _delegate) {
+		return _MAP_REMOTE_EVENT(EVENT_ON_SETSCROLLADJUSTMENTS, _delegate);
+	}
+
+	public property OnStartEditing { get GetOnStartEditing, set SetOnStartEditing }
+	public function GetOnStartEditing() {
+		return _GET_REMOTE_EVENT(EVENT_ON_STARTEDITING);
+	}
+
+	public function SetOnStartEditing(var delegate _delegate) {
+		return _MAP_REMOTE_EVENT(EVENT_ON_STARTEDITING, _delegate);
+	}
+
+	public property OnEndEditing { get GetOnEndEditing, set SetOnEndEditing }
+	public function GetOnEndEditing() {
+		return _GET_REMOTE_EVENT(EVENT_ON_ENDEDITING);
+	}
+
+	public function SetOnEndEditing(var delegate _delegate) {
+		return _MAP_REMOTE_EVENT(EVENT_ON_ENDEDITING, _delegate);
+	}
+
+	public property OnCancelEditing { get GetOnCancelEditing, set SetOnCancelEditing }
+	public function GetOnCancelEditing() {
+		return _GET_REMOTE_EVENT(EVENT_ON_CANCELEDITING);
+	}
+
+	public function SetOnCancelEditing(var delegate _delegate) {
+		return _MAP_REMOTE_EVENT(EVENT_ON_CANCELEDITING, _delegate);
+	}
+
+	public property OnColumnResized { get GetOnColumnResized, set SetOnColumnResized }
+	public function GetOnColumnResized() {
+		return _GET_REMOTE_EVENT(EVENT_ON_COLUMNRESIZED);
+	}
+
+	public function SetOnColumnResized(var delegate _delegate) {
+		return _MAP_REMOTE_EVENT(EVENT_ON_COLUMNRESIZED, _delegate);
+	}
+
+	//----------------------------------------------------------------------------//
+	public function GetRowIndex() {
+		if (MODEL==MODEL_LISTVIEW)
+			return value GetProperty(P_CURSOR);
+		else
+		if (MODEL==MODEL_TREEVIEW)
+			return GetProperty(P_CURSOR);
+	}
+
+	public function SetRowIndex(argument) {
+		return SetProperty(P_CURSOR, argument);
+	}
+
+	public function GetColumnIndex() {
+		return value GetProperty(P_SELECTEDCOLUMN);
+	}
+
+	public function SetColumnIndex(argument) {
+		return SetProperty(P_SELECTEDCOLUMN, argument);
+	}
+
+	public function SetEnableSearch(argument) {
+		ENABLESEARCH=SetProperty(P_ENABLESEARCH, argument);
+		return argument;
+	}
+
+	public function SetExpanderColumn(argument) {
+		EXPANDERCOLUMN=SetProperty(P_EXPANDERCOLUMN, argument);
+		return argument;
+	}
+
+	public function SetFixedHeightMode(argument) {
+		FIXEDHEIGHTMODE=SetProperty(P_FIXEDHEIGHTMODE, argument);
+		return argument;
+	}
+
+	public function SetHeadersClickable(argument) {
+		HEADERSCLICKABLE=SetProperty(P_HEADERSCLICKABLE, argument);
+		return argument;
+	}
+
+	public function SetHeadersVisible(argument) {
+		HEADERSVISIBLE=SetProperty(P_HEADERSVISIBLE, argument);
+		return argument;
+	}
+
+	public function SetHoverExpand(argument) {
+		HOVEREXPAND=SetProperty(P_HOVEREXPAND, argument);
+		return argument;
+	}
+
+	public function SetHoverSelection(argument) {
+		HOVERSELECTION=SetProperty(P_HOVERSELECTION, argument);
+		return argument;
+	}
+
+	public function SetReorderable(argument) {
+		REORDABLE=SetProperty(P_REORDABLE, argument);
+		return argument;
+	}
+
+	public function SetRulesHint(argument) {
+		RULESHINT=SetProperty(P_RULESHINT, argument);
+		return argument;
+	}
+
+	public function SetSearchColumn(argument) {
+		SEARCHCOLUMN=SetProperty(P_SEARCHCOLUMN, argument);
+		return argument;
+	}
+
+
+	public function SetModel(argument) {
+		MODEL=SetProperty(P_MODEL, argument);
+		return MODEL;
+	}
+
+	public function SetSorted(argument) {
+		argument=(argument!=0);
+
+		if ((!_SORTED) && (ITEMS.GetCount()) && (argument))
+			throw "You can't switch to sorted if the view (treeview or listview) already contains items";
+
+		_SORTED=argument;
+		return _SORTED;
+	}
+
+	public function SetSortColumn(argument) {
+		if ((_SORTED) && (ITEMS.GetCount()) && (argument!=_SORTCOLUMN))
+			throw "You can't change the sort column if the view (treeview or listview) already contains items";
+
+		_SORTCOLUMN=argument;
+		return argument;
+	}
+
+	public function SetSortDescending(argument) {
+		_DESCENDING=(argument==true);
+		return _DESCENDING;
+	}
+
+	public function AddColumn(string column_name, number visible=NORMAL_COLUMN) {
+		/*if (typeof ComboControl == "class")
+			ComboControl.Post();*/
+		this._Columns.Count++;
+		return Send(MSG_CUSTOM_MESSAGE1, column_name, visible);
+	}
+
+	public function EditCell(path=-1, number column=-1) {
+		if (path==-1)
+			path=this.RowIndex;
+		if (column==-1)
+			column=this.ColumnIndex;
+		
+		return Send(MSG_CUSTOM_MESSAGE11, ""+path, ""+column);
+	}
+
+	private function __AddItem(item) {
+		var type=typeof item;
+		if (type=="array") {
+			var len=length item;
+
+			for (var i=0;i<len;i++) {
+				var it=&item[i];
+				if (typeof it=="class")
+					Send(MSG_CUSTOM_MESSAGE3,0,it.RID);
+				else
+					Send(MSG_CUSTOM_MESSAGE3,0,it);
+			}
+
+		} else {
+			if (typeof item!="class")
+				Send(MSG_CUSTOM_MESSAGE3,0,item);
+			else
+				Send(MSG_CUSTOM_MESSAGE3,0,item.RID);
+		}
+
+		ITEMS.Add(item);
+		return Send(MSG_CUSTOM_MESSAGE2, 0, -1);
+	}
+
+
+	public function AddItem(item) {
+		if ((_SORTED) && (ITEMS.GetCount())) {
+			return this.InsertItem(0,item);
+		}
+
+		return __AddItem(item);
+	}
+
+	static public function PathToStr(array arr) {
+		/*if (typeof array!="array")
+			return 0;*/
+		var len=length arr;
+		var szpath="";
+		for (var i=0;i<len;i++) {
+			if (i)
+				szpath+=":";
+			szpath+=arr[i];
+		}
+		return szpath;
+	}
+
+	public function DeleteItem(item_index) {
+		var type=typeof item_index;
+
+		if (type=="array")
+			item_index=PathToStr(item_index);
+
+		ITEMS.Delete(item_index);
+		return Send(MSG_CUSTOM_MESSAGE2, 2, item_index);
+	}
+
+	public function Clear() {
+		if (ITEMS.GetCount()) {
+			ITEMS.Clear();
+			return Send(MSG_CUSTOM_MESSAGE2, 1, 0);
+		}
+		return 0;
+	}
+
+
+	public function ClearColumns() {
+		this._Columns.Count=0;
+		return Send(MSG_CUSTOM_MESSAGE2, 3, 0);
+	}
+
+	public function RemoveColumn(column_index) {
+		Send(MSG_CUSTOM_MESSAGE2, 4, column_index);
+		return 0;
+	}
+
+	public function InsertItem(position, item) {
+		if (_SORTED)
+			position=MultiItems::FindSortedPlace(ITEMS.Content, _SORTCOLUMN, item, 1);
+
+
+		if (typeof position=="numeric") {
+			var count=ITEMS.GetCount();
+			if ((position<0) || (position>=count))
+				return __AddItem(item);
+		}
+		if (typeof position=="string")
+			position=StrNumberSplit(position, ":");
+
+		var type=typeof item;
+		if (type=="array") {
+			var len=length item;
+
+			for (var i=0;i<len;i++) {
+				var it=&item[i];
+				if (typeof it!="class")
+					Send(MSG_CUSTOM_MESSAGE3,0,it);
+				else
+					Send(MSG_CUSTOM_MESSAGE3,0,it.RID);
+			}
+
+		} else {
+			if (typeof item!="class")
+				Send(MSG_CUSTOM_MESSAGE3,0,item);
+			else
+				Send(MSG_CUSTOM_MESSAGE3,0,item.RID);
+		}
+
+		if (typeof position=="array") {
+			ITEMS.Insert(position,item);
+			position=PathToStr(position);
+		} else
+		if (typeof position=="numeric")
+			ITEMS.Insert(position,item);
+
+		return Send(MSG_CUSTOM_MESSAGE2, 0, position);
+	}
+
+
+	public function UpdateItem(position, item) {
+		if (typeof position=="string")
+			position=StrNumberSplit(position, ":");
+
+		if (typeof position=="numeric") {
+			var count=ITEMS.GetCount();
+			if ((position<0) || (position>=count))
+				return 0;
+		}
+
+		if (_SORTED) {
+			this.DeleteItem(position);
+			if ((typeof position=="array") && (length position==1))
+				position=position[0];
+
+			if (typeof position=="numeric") {
+				return this.AddItem(item);
+			} else
+			if (typeof position=="array") {
+				var[] path;
+				var len_k=length position - 1;
+				for (var k=0;k<len_k;k++)
+					path[k]=position[k];
+				return this.AddChild(path,item);
+			}
+		}
+
+		var type=typeof item;
+		if (type=="array") {
+			var len=length item;
+
+			for (var i=0;i<len;i++) {
+				var it=&item[i];
+				if (typeof it!="class")
+					Send(MSG_CUSTOM_MESSAGE3,0,it);
+				else
+					Send(MSG_CUSTOM_MESSAGE3,0,it.RID);
+
+			}
+
+		} else {
+			if (typeof item!="class")
+				Send(MSG_CUSTOM_MESSAGE3,0,item);
+			else
+				Send(MSG_CUSTOM_MESSAGE3,0,item.RID);
+		}
+
+		if (typeof position=="array") {
+			ITEMS.Update(position, item);
+			position=PathToStr(position);
+		} else
+		if (typeof position=="numeric")
+			ITEMS.Update([position],item);
+
+		Send(MSG_CUSTOM_MESSAGE6, 0, position);
+		return position;
+	}
+
+	public function ItemAt(x, y, var column=null) {
+		Send(MSG_CUSTOM_MESSAGE14, ""+x, ""+y);
+		WaitMessage(var Sender, MSG_CUSTOM_MESSAGE14, var Target, var Value);
+		column = value (""+Target);
+		return Value;
+	}
+
+	public function CellArea(path, var column=-1, used_area=false) {
+		var msg=MSG_CUSTOM_MESSAGE13;
+		if (used_area)
+			msg=MSG_CUSTOM_MESSAGE12;
+		Send(msg, ""+path, ""+column);
+		WaitMessage(var Sender, msg, var Target, var Value);
+		var[] res;
+		var arr=StrNumberSplit(Value, ",");
+		res["x"]=arr[0];
+		res["y"]=arr[1];
+		res["width"]=arr[2];
+		res["height"]=arr[3];
+		return res;
+	}
+
+	public function AddChild(path_after, item) {
+		if (typeof path_after=="string")
+			path_after=StrNumberSplit(path_after, ":");
+
+		if ((_SORTED) && (ITEMS.GetCount())) {
+			return this.InsertChild(path_after,0,item);
+		}
+
+		var type=typeof item;
+		if (type=="array") {
+			var len=length item;
+
+			for (var i=0;i<len;i++) {
+				var it=&item[i];
+				if (typeof it=="class")
+					Send(MSG_CUSTOM_MESSAGE3,0,it.RID);
+				else
+					Send(MSG_CUSTOM_MESSAGE3,0,it);
+			}
+
+		} else {
+			if (typeof item!="class")
+				Send(MSG_CUSTOM_MESSAGE3,0,item);
+			else
+				Send(MSG_CUSTOM_MESSAGE3,0,item.RID);
+		}
+
+		if (typeof path_after=="array")
+			path_after=PathToStr(path_after);
+
+		ITEMS.AddChild(path_after, item);
+		return Send(MSG_CUSTOM_MESSAGE4, "-1", path_after);
+	}
+
+	public function GetChilds(path) {
+		return ITEMS.GetChildren(path);
+	}
+
+	public function InsertChild(path_after, index, item) {
+		var type=typeof item;
+
+		if (type=="array") {
+			var len=length item;
+
+			for (var i=0;i<len;i++) {
+				if (typeof item[i]!="class")
+					Send(MSG_CUSTOM_MESSAGE3,0,item[i]);
+				else
+					Send(MSG_CUSTOM_MESSAGE3,0,item[i].RID);
+			}
+
+		} else {
+			if (typeof item[i]!="class")
+				Send(MSG_CUSTOM_MESSAGE3,0,item);
+			else
+				Send(MSG_CUSTOM_MESSAGE3,0,item.RID);
+		}
+
+		var path_arr=path_after;
+		if (typeof path_after=="array") {
+			path_after=PathToStr(path_after);
+		} else
+			path_arr=StrSplit(""+path_after,":");
+
+		
+
+		len=length path_arr;
+		var target=ITEMS.Content;
+		var last=target;
+
+		for (i=0;i<len;i++) {
+		    last=target;
+			target=target[path_arr[i]];
+			if (!target)
+				throw "Invalid path to add after";
+			else
+				target=target.CHILDREN;
+		}
+
+		if (!target)
+			target=last;
+
+		if (_SORTED)
+			index=MultiItems::FindSortedPlace(target, _SORTCOLUMN, item, 1);
+
+		var path=""+path_after+":"+index;
+		ITEMS.Insert(path, item);
+
+		Send(MSG_CUSTOM_MESSAGE4, index, path_after);
+
+		return path;
+	}
+
+	public function ExpandAll() {
+		return Send(MSG_CUSTOM_MESSAGE5,0,0);
+	}
+
+	public function CollapseAll() {
+		return Send(MSG_CUSTOM_MESSAGE5,1,0);
+	}
+
+	public function Expand(path) {
+		if (typeof path=="array")
+			path=PathToStr(path);
+		return Send(MSG_CUSTOM_MESSAGE5,2,path);
+	}
+
+	public function Collapse(path) {
+		if (typeof path=="array")
+			path=PathToStr(path);
+		return Send(MSG_CUSTOM_MESSAGE5,3,path);
+	}
+
+	public function ExpandToPath(path) {
+		return Send(MSG_CUSTOM_MESSAGE5,4,path);
+	}
+
+	public function ScrollToRow(path) {
+		if (typeof path=="array")
+			path=PathToStr(path);
+		return SetProperty(P_SCROLLTOROW, path);
+	}
+
+	public function ScrollToColumn(index) {
+		return SetProperty(P_SCROLLTOCOLUMN, index);
+	}
+
+	public function CreateDragIconFromCurrent(path = -1) {
+		if (typeof path=="array")
+			path=PathToStr(path);
+		return Send(MSG_CUSTOM_MESSAGE8,0,path);
+	}
+
+	public function SetGridLines(flag) {
+		_GRIDLINES=flag;
+		return SetProperty(P_GRIDLINES, flag);
+	}
+
+	public function SetTreeLines(flag) {
+		_TREELINES=flag;
+		return SetProperty(P_TREELINES, flag);
+	}
+
+	public function SetLevelIndentation(level) {
+		_LEVELIDENTATION=level;
+		return SetProperty(P_LEVELIDENTATION, level);
+	}
+
+	public function SetShowExpanders(flag) {
+		_SHOWEXPANDERS=flag;
+		return SetProperty(P_SHOWEXPANDERS, flag);
+	}
+
+	public function SetMultipleSelection(flag) {
+		_MULTIPLESELECTION=flag;
+		return SetProperty(P_MULTIPLESELECTION, flag);
+	}
+
+	public function SetSearchEntry(entry) {
+		if (typeof entry!="class")
+			entry=null;
+		_SEARCHENTRY=entry;
+		if (entry)
+			return SetProperty(P_SEARCHENTRY, entry.RID);
+		else
+			return SetProperty(P_SEARCHENTRY, "-1");
+	}
+
+	public function AlternateColors(number color_odd, number color_even) {
+		Send(MSG_CUSTOM_MESSAGE9,""+color_odd,""+color_even);
+	}
+
+
+	public function RTreeView(OWNER) {
+		//_HAdjustment=new RAdjustment();
+		//_VAdjustment=new RAdjustment();
+
+		super(OWNER, CLASS_TREEVIEW);
+
+		/*var rid1=_HAdjustment.RID;
+		var rid2=_HAdjustment.RID;
+
+		_HAdjustment.__EVENTS_VECTOR=&__EVENTS_VECTOR;
+		__EVENTS_VECTOR[rid1]=new [];
+
+		_VAdjustment.__EVENTS_VECTOR=&__EVENTS_VECTOR;
+		__EVENTS_VECTOR[rid2]=new [];
+
+
+		//SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_HADJUSTMENT,_HAdjustment.RID);
+		//SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_VADJUSTMENT,_VAdjustment.RID);
+		*/
+
+		ITEMS=new MultiItems();
+		_Columns=new RTreeViewColumnManager(this);
+	}
+
+	public function GetHAdjustment() {
+		if (!_HAdjustment) {
+			_HAdjustment=new RAdjustment();
+			_HAdjustment.LinkIfNotLinked(this);
+			SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_HADJUSTMENT,_HAdjustment.RID); // comment ?
+		}
+
+		return _HAdjustment;
+	}
+
+	public function GetVAdjustment() {
+		if (!_VAdjustment) {
+			_VAdjustment=new RAdjustment();
+			_VAdjustment.LinkIfNotLinked(this);
+			SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_VADJUSTMENT,_VAdjustment.RID); // comment ?
+		}
+
+		return _VAdjustment;
+	}
+
+	public function SetTooltipColumn(number argument) {
+		return _TOOLTIPCOLUMN=SetProperty(P_TOOLTIPCOLUMN, argument);
+	}
+
+	public function GetSelected() {
+		var result=new [];
+		var selection=GetProperty(P_SELECT);
+		return StrSplit(selection, ";");
+	}
+
+	public function Select(path, select=true) {
+		var type=typeof path;
+
+		if (type=="array")
+			path=PathToStr(path);
+		if (select)
+			return SetProperty(P_SELECT, path);
+		else
+			return SetProperty(P_UNSELECT, path);
+	}
+
+	public function SelectAll(selected=true) {
+		if (selected)
+			return SetProperty(P_SELECT, "");
+		else
+			return SetProperty(P_UNSELECT, "");
+	}
+}

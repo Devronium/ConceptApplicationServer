@@ -1,0 +1,80 @@
+include AllEntities.con
+
+define _HLAPI_CHECK	var hlapi=GLOBALS()["GyroGears::HLAPI::Base"]; if (!hlapi) throw "GyroGrease was not initialized. You must call GyroGrease::Start first";
+define HLA		GyroGrease::Wrap
+define Grease		GyroGrease::Wrap
+define HLAPI_MAX_CACHE	100
+define UseGrease	GyroGrease::Start
+
+
+class HLAPIBase {
+	public var Connection;
+	public var UserLevel=100;
+	public var UID=-1;
+	public var GID=-1;
+
+	static function Start(object Connection, UserLevel=100, UID=-1, GID=-1) {
+		var hlapi=new GyroGrease();
+		hlapi.UID=UID;
+		hlapi.GID=GID;
+		hlapi.UserLevel=UserLevel;
+		hlapi.Connection=Connection;
+
+		GLOBALS()["GyroGears::HLAPI::Base"]=hlapi;
+		return hlapi;
+	}
+
+	static function Cached(string type, __key) {
+		var arr=GLOBALS()["GyroGears::HLAPI::Cache::$type"];
+		if (typeof arr!="array") {
+			arr=new [];
+			GLOBALS()["GyroGears::HLAPI::Cache::$type"]=arr;
+		}
+		if (typeof __key=="string")
+			return arr["key:"+__key];
+		else
+		if (typeof __key=="numeric")
+			return arr["idx:"+__key];
+
+		throw "Invalid key type in call to HLAPIBase::Cached";
+	}
+
+	static function Cache(string type, __key, __obj) {
+		if (!__obj)
+			return;
+		var arr=GLOBALS()["GyroGears::HLAPI::Cache::$type"];
+		if (typeof arr!="array") {
+			arr=new [];
+			GLOBALS()["GyroGears::HLAPI::Cache::$type"]=arr;
+		}
+
+		var len=length arr;
+		if (len>HLAPI_MAX_CACHE) {
+			var arr2=new [];
+			var keys=GetKeys(arr);
+			len=length keys;
+
+			var delta=len-HLAPI_MAX_CACHE-10;
+			if (delta<0)
+				delta=0;
+			for (var i=delta;i<len;i++) {
+				var k=keys[i];
+				arr2[k]=arr[k];
+			}
+			arr=arr2;
+			GLOBALS()["GyroGears::HLAPI::Cache::$type"]=arr;
+		}
+
+		if (typeof __key=="string")
+			arr["key:"+__key]=__obj;
+		else
+		if (typeof __key=="numeric")
+			arr["idx:"+__key]=__obj;
+		else
+			throw "Invalid key type in call to HLAPIBase::Cached";
+	}
+
+	static function InvalidateCacheByType(string type) {
+		GLOBALS()["GyroGears::HLAPI::Cache::$type"]=null;
+	}
+}

@@ -1,0 +1,188 @@
+import win32.base.messages
+import standard.C.io
+import standard.lib.str
+
+include ThreadVariable.con
+include Serializable.con
+
+
+define SERVICES_XML 	"RegisteredServices.xml"
+define SECONDS		30
+
+class ActiveServices extends Serializable {
+	var[] Services;
+	var[] Errors;
+}
+
+class __Thread {
+	var Data;
+	var TID;
+	var Semaphore;
+	var Done=0;
+	var _t;
+
+	public function __Thread() {
+		Semaphore=semcreate();
+
+		seminit(Semaphore, 1);
+		semp(Semaphore);
+		_t=new _tvar();
+	}
+
+	public function GetPath(string path) {
+		var len=length path;
+		for (var i=len-1;i>=0;i--) {
+			var c=path[i];
+			if ((c=='/') || (c=='\\'))
+				return SubStr(path, 0, i);
+		}
+		return path;
+	}
+
+	public function Go() {
+		if (!Data) {
+			semv(Semaphore);
+			return;
+		}
+		var exec_data=Data;
+		var path=this.GetPath(exec_data);
+		if (Pos(exec_data, " "))
+			exec_data="\""+exec_data+"\"";
+		//if (Pos(path, " "))
+		//	path="\""+path+"\"";
+		//exec_data="concept "+exec_data;
+		//if (ON_MSWINDOWS)//
+
+		semv(Semaphore);
+		//_chdir(path);
+		do {
+			_t.Data[Data]="Running";
+			var res=system(exec_data);
+			if (res!=0)
+				res=system("concept "+exec_data);
+
+			if (res<0) {
+				echo "Service '${Data}' failed with code $res\n";
+				_t.Data[Data]="Failed (code $res)";
+			} else {
+				echo "Service '${Data}' ended (code $res) - restarting service in "+SECONDS+" seconds\n";
+				_t.Data[Data]="Ended (code $res), restarting in "+SECONDS + " seconds";
+				Sleep(SECONDS*1000);
+			}
+		} while (!res);
+		semp(Semaphore);
+		Done=1;
+		semv(Semaphore);
+	}
+
+
+	public function Wait() {
+		semp(Semaphore);
+		var done=Done;
+		semv(Semaphore);
+		Sleep(100);
+		return done;
+	}
+}
+
+class Main {
+	var as=null;
+	var[] Threads;
+
+	function RegisterService(string path) {
+		as.Services[path]=path;
+		as.Serialize(SERVICES_XML);
+	}
+
+	function UnRegisterService(string path) {
+		as.Services[path]=null;
+		as.Serialize(SERVICES_XML);
+	}
+
+	public function RunService(string path) {
+		var t=new __Thread();
+		t.Data=path;
+
+		var old_t=this.Threads[path];
+		if ((old_t) && (!old_t.Wait())) {
+			echo "Stopping service '$path'\n";
+			KillThread(old_t.TID);
+		}
+		if (!old_t)
+			RegisterService(path);
+		this.Threads[path]=t;
+		t._t=as.Errors;
+
+		echo "Running service '$path'\n";
+		t.TID=RunThread(t.Go);
+		t.Wait();
+		return t.TID;
+	}
+
+	function Wait() {
+		var apid=GetAPID();
+		if (apid>0) {
+			var threads=this.Threads;
+			while (GetAPMessage(var SenderAPID, var nMSG_ID, var szData)) {
+				switch (nMSG_ID) {
+					case 1000:
+						SendAPMessage(SenderAPID, nMSG_ID, szData);
+						if (szData)
+							RunService(szData);
+						else
+							echo "No service to run\n";
+						break;
+					case 1001:
+					case 1002:
+						SendAPMessage(SenderAPID, nMSG_ID, szData);
+						if (IsSet(threads, szData)) {
+							var t=threads[szData];
+							if (t.Wait())
+								echo "Service '$szData' already inactive\n";
+							else {
+								KillThread(t.TID);
+								as.Errors[szData]="Stopped";
+								echo "Service '$szData' ended successfully\n";
+
+							}
+							if (nMSG_ID==1002) {
+								UnRegisterService(szData);
+								as.Errors[szData]="Unregistered";
+							}
+						} else
+							echo "No such service to end ('$szData')\n";
+						break;
+					case 1003:
+						SendAPMessage(SenderAPID, nMSG_ID, as.Serialize(""));
+						break;
+				}
+			}
+		} else
+			echo "Simple Concept Service Manager 1.0 (c)2011 RadGs Software\nThis application cannot be run from the command line(it is ivoked by the Concept Application Server)";
+	}
+
+	function Main() {
+		WriteFile("Launching service with apid "+GetAPID()+"\n","ServiceManager.log");
+		_putenv("CONCEPT_FORCE_CHDIR=1");
+		if (FileExists(SERVICES_XML))
+			as=Serializable::UnSerialize(SERVICES_XML);
+		else
+			as=new ActiveServices();
+		var services=as.Services;
+		var len=length services;
+		for (var i=0;i<len;i++)
+			if (services[i])
+				RunService(services[i]);
+		Wait();
+	}
+
+	public function finalize() {
+		var threads=this.Threads;
+		var len=length threads;
+		for (var i=0;i<len;i++) {
+			var t=threads[i];
+			if ((t) && (!t.Wait()))
+				KillThread(t.TID);
+		}
+	}
+}

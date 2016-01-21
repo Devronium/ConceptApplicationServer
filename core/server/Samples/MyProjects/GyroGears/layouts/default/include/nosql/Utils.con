@@ -1,0 +1,3078 @@
+import standard.lib.str
+import standard.C.time
+import standard.C.io
+import standard.C.casts
+import standard.coding.base64
+import standard.lib.cripto
+import win32.graph.freeimage
+//import standard.lib.chart
+import standard.graph.svg
+import standard.lib.preg
+include PieChart.con
+include LineChart.con
+
+include Serializable.con
+include RImage.con
+include XMLDocument.con
+include FFMpeg.con
+include File.con
+include RTreeView.con
+include RComboBox.con
+include RIconView.con
+include REdit.con
+include CSV.con
+include Application.con
+include WebDocument.con
+include MemCached.con
+
+include HTMLTrimmer.con
+include _AllPlugins.con
+
+include [DBTYPE]DataBases.con
+
+define QueryDB          Utils::SQL
+define StringQueryDB    Utils::StringSQL
+define IfElse		Utils::If
+
+define DAYS_ARR [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
+
+class QueryID {
+	var _D;
+
+	public function QueryID(data) {
+		this._D=data;
+	}
+}
+
+class RevisionData {
+	public var id="";
+	public var timestamp="";
+	public var reason="";
+
+	public function RevisionData(id="", timestamp="", reason="") {
+		this.id=id;
+		this.timestamp=timestamp;
+		this.reason=reason;
+	}
+
+	public operator[](key) {
+		switch (""+key) {
+			case "id":
+			case "0":
+				return id;
+			case "timestamp":
+			case "1":
+				return timestamp;
+			case "reason":
+			case "2":
+				return reason;
+			
+		}
+	}
+}
+
+class StatElement {
+    var entity="";
+    var description="";
+    var has_view="";
+    var count="";
+}
+
+class CustomStatElement{
+    var entity="";
+    var[] stats;
+    var chartfilename="";
+}
+
+class CustomStat {
+    var description="";
+    var total="";
+    
+    public function CustomStat(array data) {
+        description=""+data[0];
+        total=""+data[1];
+    }
+    
+    static function Get(array data) {
+        var len=length data;
+        var[] result;
+        for (var i=0;i<len;i++) {
+            if (data[i]) {
+                var elem=new CustomStat(data[i]);
+                result[length result]=elem;
+            }
+        }
+        return result;
+    }
+}
+
+class _FormDescription {
+    public var Left=0;
+    public var Top=0;
+    public var Width=800;
+    public var Height=600;
+    public var ParentPosition=0;
+}
+
+class PersonalSettings extends Serializable {
+    public var[] Documents;
+    
+    public var[] FormsDescription;
+
+    public var CalendarExpanded=true;
+    public var ClipboardExpanded=true;
+    public var PersonalExpanded=true;
+    
+    public var Left=0;
+    public var Top=0;
+    public var Width=800;
+    public var Height=600;
+
+    public var PaneVisible=true;
+
+    public var[] OpenTabs;
+    public var TabIndex=0;
+    public var RibbonIndex=0;
+    public var RibbonVisible=true;
+}
+
+class PersonalSettingsContainer extends Serializable {
+    public var settings_xml="";
+    public var UID="";
+}
+
+class _PlugInDataContainer {
+	var Set=null;
+	var Get=null;
+	var UpdateFormula=null;
+	var Validate=null;
+
+	var FormSync=null;
+
+	var Handler=null;
+	var UserData=null;
+}
+
+class _MemCachedDataContainer extends Serializable {
+	var Data;
+}
+
+class ReportXML extends Serializable {
+	var Data;
+
+	ReportXML(data) {
+		Data = data;
+	}
+}
+
+class Utils {
+    private var LoggedUser;
+    private var Level;
+    private var _UID;
+    private var _MID;
+    private var _REVISIONDATA;
+    private var GetDBLink;
+    private var Alert;
+    private var GetAlert;
+
+    static function SafeValue(param) {
+        if (typeof param=="array") {
+            var len=length param;
+            var result="";
+            for (var i=0;i<len;i++) {
+                 if (result)
+                     result+=", ";
+                 result+=param[i];
+            }
+            return result;
+        } else
+            return param;
+    }
+
+    static function GetExtraParameters(array data, var parameters, prefix="") {
+        var len=length data;
+        var result="";
+        parameters=new [];
+        for (var i=0;i<len;i++) {
+            var arr=data[i];
+            var len_arr=length arr;
+            if (arr) {
+                if (len_arr==3) {
+                    var p_arr=arr[2];
+                    if (length parameters)
+                        result+= " AND ";
+                    if (typeof p_arr=="array") {
+                        var len_p_arr=length p_arr;
+                        if (p_arr) {
+                            result+="(";
+                            for (var p_i=0;p_i<len_p_arr;p_i++) {
+                                if (p_i)
+                                    result+=" OR ";
+                                if (prefix)
+                                    result+="$prefix."+arr[0]+" "+arr[1]+" ";
+                                else
+                                    result+=""+arr[0]+" "+arr[1]+" ";
+                                parameters[length parameters]=""+p_arr[p_i];
+                            }
+                            result+=")";
+                        }
+                    } else {
+                        if (prefix)
+                            result+="$prefix."+arr[0]+" "+arr[1]+" ";
+                        else
+                            result+=""+arr[0]+" "+arr[1]+" ";
+                        parameters[length parameters]=""+p_arr;
+                    }
+                } else
+                if (len_arr==5) {
+                    if (length parameters)
+                        result+= " AND ";
+                    // ['field', 'entity', 'operator', 'id']
+                    var ids=arr[4];
+                    if (typeof ids=="array") {
+                        var len_ids=length ids;
+                        result +="(";
+                        for (var j=0;j<len_ids;j++) {
+                            if (j) {
+                                if (arr[3]=="=")
+                                    result+=" OR ";
+                                else
+                                    result+=" AND ";
+                            }
+                            result+="rel_${arr[1]}_${arr[0]}.id_${arr[2]} "+arr[3]+" ";
+                            parameters[length parameters]=""+ids[j];
+                        }
+                        result +=")";
+                    } else {
+                        result+="rel_${arr[1]}_${arr[0]}.id_${arr[2]} "+arr[3]+" ";
+                        parameters[length parameters]=""+ids;
+                    }
+                }
+            }
+        }
+        return result;
+    }
+
+    static function NoSQLPattern(var pattern) {
+        if ((typeof pattern=="string") && (Pos(pattern, "%")>0)) {
+            if ((pattern[0]!='%') && (pattern[0]!='^'))
+                pattern="^"+pattern;
+            pattern=StrReplace(pattern, "%", ".*");
+            pattern="/$pattern/i";
+            return true;
+        }
+        return false;
+    }
+
+    static function ExtraBuild(array query, arr) {
+        var key=arr[0];
+        var pattern=arr[2];
+        if (Utils::NoSQLPattern(pattern))
+            key="%"+key;
+
+        switch (arr[1]) {
+                case "<>":
+                      query[key]=new [];
+                      if (typeof pattern=="array")
+                          query[key]['$nin']=pattern;
+                      else
+                          query[key]['$ne']=pattern;
+                      break;
+                case "<=":
+                      query[key]=new [];
+                      query[key]['$lte']=pattern;
+                      break;
+                case ">=":
+                      query[key]=new [];
+                      query[key]['$gte']=pattern;
+                      break;
+                case "<":
+                      query[key]=new [];
+                      query[key]['$lt']=pattern;
+                      break;
+                case ">":
+                      query[key]=new [];
+                      query[key]['$gt']=pattern;
+                      break;
+                case "=":
+                case "":
+                case "LIKE":
+                case "ILIKE":
+                      if (typeof pattern=="array") {
+                          query[key]=new [];
+                          query[key]['$in']=pattern;
+                      } else
+                          query[key]=pattern;
+                      break;
+		default:
+                      return null;
+        }
+    }
+
+    static function GetExtraParametersNoSQL(array query, array data) {
+        var len=length data;
+        for (var i=0;i<len;i++) {
+            var arr=data[i];
+            var len_arr=length arr;
+            if (arr) {
+                if (len_arr==3) {
+                    Utils::ExtraBuild(query, arr);
+                } else
+                if (len_arr==5) {
+                    var emul=["&"+arr[0], arr[3], arr[4]];
+                    Utils::ExtraBuild(query, emul);
+                }
+            }
+        }
+        return query;
+    }
+
+    static function GetSettings([DBTYPE]Connection dc, UID, var new_settings=null) {
+        var dataset=new [DBTYPE]DataSet(dc, "gyro_personal_settings");
+        var cond=new [];
+        cond["UID"]=""+UID;
+        dataset.Query=cond;
+        var obj_c=dataset.FindOne();
+        var obj=null;
+        var err=dataset.LastError();
+        if (err)
+            throw err+"\n("+@class+"."+@member+":"+@line+")"+"\n("+@class+"."+@member+":"+@line+")";
+
+        if (obj_c)
+            obj=Serializable::UnSerialize(obj_c.settings_xml, true);
+	
+        if ((!obj) && ((!UID) || (UID=="-1"))) {
+            obj=new PersonalSettings();
+            new_settings=true;
+        }
+
+        if ((!obj) && (UID) && (UID!="-1")) {
+            new_settings=true;
+            return Utils::GetSettings(dc, "-1");
+        }
+		
+	return obj;
+    }
+
+    	static function GetFolders([DBTYPE]Connection dc, parent="-1", UID="-1") {
+		var dataset=new [DBTYPE]DataSet(dc, "gyro_folders");
+		var cond=new [];
+		cond["parent"]=""+parent;
+		if ((UID) && (UID!="-1"))
+			cond["UID"]=""+UID;
+		dataset.Query=cond;
+		var cursor=dataset.Find();
+		var[] result;
+		if (cursor) {
+			while (cursor.Next()) {
+				var id=""+cursor.FieldValues["_id"];
+				result[id]=[null, ""+cursor.FieldValues["name"], ""+cursor.FieldValues["UID"], id];
+			}
+			cursor.Close();
+		}
+
+        	return result;
+	}
+
+    	static function GetParent([DBTYPE]Connection dc, folder) {
+		folder=""+folder;
+		if ((!folder) || (folder=="-1"))
+			return "-1";
+
+		var dataset=new [DBTYPE]DataSet(dc, "gyro_folders");
+		dataset.Query=folder;
+		var obj=dataset.FindOne();
+		var err=dataset.LastError();
+		if (err)
+			throw err+"\n("+@class+"."+@member+":"+@line+")"+"\n("+@class+"."+@member+":"+@line+")";
+		if (obj)
+			return ""+obj["parent"];
+		return "-1";
+	}
+
+
+    	static function GetFiles([DBTYPE]Connection dc, parent="-1", UID="-1") {
+		var dataset=new [DBTYPE]DataSet(dc, "gyro_files");
+		var cond=new [];
+		cond["parent"]=""+parent;
+		if ((UID) && (UID!="-1"))
+			cond["UID"]=""+UID;
+		dataset.Query=cond;
+		var cursor=dataset.Find();
+		var[] result;
+		if (cursor) {
+			while (cursor.Next()) {
+				var id=""+cursor.FieldValues["_id"];
+				result[id]=[null, ""+cursor.FieldValues["name"], ""+cursor.FieldValues["UID"], id, ""+cursor.FieldValues["type"], ""+cursor.FieldValues["EID"]];
+			}
+			cursor.Close();
+		}
+
+        	return result;
+	}
+
+
+    static function FolderExists([DBTYPE]Connection dc, string name, parent="-1") {
+        var dataset=new [DBTYPE]DataSet(dc, "gyro_folders");
+        var cond=new [];
+        cond["parent"]=""+parent;
+        cond["name"]=name;
+        dataset.Query=cond;
+
+        var obj=dataset.FindOne();
+        var err=dataset.LastError();
+        if (err)
+            throw err+"\n("+@class+"."+@member+":"+@line+")"+"\n("+@class+"."+@member+":"+@line+")";
+
+        if (obj)
+            return true;
+	return false;
+    }
+
+    static function FileExists([DBTYPE]Connection dc, string type, EID, parent="-1") {
+        var dataset=new [DBTYPE]DataSet(dc, "gyro_files");
+        var cond=new [];
+        cond["parent"]=""+parent;
+        cond["type"]=type;
+        cond["EID"]=""+EID;
+        dataset.Query=cond;
+        var obj=dataset.FindOne();
+        var err=dataset.LastError();
+        if (err)
+            throw err+"\n("+@class+"."+@member+":"+@line+")"+"\n("+@class+"."+@member+":"+@line+")";
+        if (obj)
+            return true;
+	return false;
+    }
+
+    static function DeleteFile([DBTYPE]Connection dc, id) {
+        var dataset=new [DBTYPE]DataSet(dc, "gyro_files");
+        dataset.Query=""+id;
+        dataset.Remove();
+        var err=dataset.LastError();
+        if (err)
+            throw err+"\n("+@class+"."+@member+":"+@line+")";	
+    }
+
+    static function DeleteFiles([DBTYPE]Connection dc, parent="-1") {
+        var dataset=new [DBTYPE]DataSet(dc, "gyro_files");
+        var cond=new [];
+        cond["parent"]=""+parent;
+        dataset.Query=cond;
+        dataset.Remove();
+        var err=dataset.LastError();
+        if (err)
+            throw err+"\n("+@class+"."+@member+":"+@line+")";
+    }
+
+    static function DeleteFolder([DBTYPE]Connection dc, id) {
+        id=""+id;
+
+        Utils::DeleteFiles(dc, id);
+
+        var dataset=new [DBTYPE]DataSet(dc, "gyro_folders");
+        dataset.Query=id;
+        dataset.Remove();
+
+        var err=dataset.LastError();
+        if (err)
+            throw err+"\n("+@class+"."+@member+":"+@line+")";
+
+        var items=Utils::GetFolders(dc, id);
+        var len=length items;
+        for (var i=0;i<len;i++) {
+             var item=items[i];
+             if (item)
+                 Utils::DeleteFolder(dc, item[3]);
+        }
+
+    }
+
+    static function CreateFolder([DBTYPE]Connection dc, string name, parent="-1", UID="-1") {        
+        if (Utils::FolderExists(dc, name, parent))
+            return false;
+
+        var data=new [];
+        data["parent"]=""+parent;
+        data["UID"]=""+UID;
+        data["name"]=name;
+        var dataset=new [DBTYPE]DataSet(dc, "gyro_folders");
+        dataset.Insert([data]);
+
+        var err=dataset.LastError();
+        if (err)
+            throw err+"\n("+@class+"."+@member+":"+@line+")";
+
+        return true;
+    }
+
+    static function CreateFile([DBTYPE]Connection dc, string name, string type, EID, parent="-1", UID="-1") {
+        if (Utils::FileExists(dc, type, EID, parent))
+            return false;
+
+        var data=new [];
+        data["parent"]=""+parent;
+        data["UID"]=""+UID;
+        data["name"]=name;
+        data["type"]=""+type;
+        data["EID"]=""+EID;
+        var dataset=new [DBTYPE]DataSet(dc, "gyro_files");
+        dataset.Insert([data]);
+
+        var err=dataset.LastError();
+        if (err)
+            throw err+"\n("+@class+"."+@member+":"+@line+")";
+
+        return true;
+    }
+
+
+    static function DirectNonQuery([DBTYPE]Connection dc, string query, number throw_err=true) {
+    }
+
+    static function SetSettings([DBTYPE]Connection dc, UID, PersonalSettings ps, number update=true) {
+        var dataset=new [DBTYPE]DataSet(dc, "gyro_personal_settings");
+        var cond=new [];
+        cond["UID"]=""+UID;
+        dataset.Query=cond;
+        dataset.Remove();
+
+        var err=dataset.LastError();
+        if (err)
+            throw err+"\n("+@class+"."+@member+":"+@line+")";
+
+        var psc=new PersonalSettingsContainer();
+        psc.settings_xml=ps.Serialize("");
+        psc.UID=""+UID;
+        dataset.Insert(psc);
+
+        err=dataset.LastError();
+        if (err)
+            throw err+"\n("+@class+"."+@member+":"+@line+")";
+    }
+
+    static function CacheSearch([DBTYPE]Connection dc, string type, string query, Edit=null) {
+	query=trim(query);
+	if (length query < 3)
+		return 0;
+
+	var hash=""+Murmur(type+query);
+        var dataset=new [DBTYPE]DataSet(dc, "gyro_search_cache");
+        dataset.Query["hash"]=hash;
+
+	if (dataset.FindOne())
+		return 0;
+
+
+        var data=new [];
+        data["event_time"]=Utils::DateNow();
+        data["type"]=type;
+        data["hash"]=hash;
+        data["cached"]=query;
+
+        dataset.Insert([data]);
+        var err=dataset.LastError();
+        if (err)
+           throw err+"\n("+@class+"."+@member+":"+@line+")";
+
+
+	var cached=GLOBALS()["app.cached.search.$type"];
+	if (!cached)
+		cached="";
+	else
+		cached+=";";
+	cached+=query;
+	GLOBALS()["app.cached.search.$type"]=cached;
+	if (Edit)
+		Edit.Suggest=cached;
+	return 1;
+    }
+
+    static function GetCacheSearch([DBTYPE]Connection dc, string type="") {
+	var cached=GLOBALS()["app.cached.search.$type"];
+	if (cached)
+		return cached;
+
+	CheckPoint(0);
+
+	var dataset=new [DBTYPE]DataSet(dc, "gyro_search_cache");
+	dataset.Query['$query']=new [];
+	if (type)
+		dataset.Query['$query']["type"]=type;
+	dataset.Query['$orderby']=new [];
+	dataset.Query['$orderby']["cached"]=1;
+
+	var cursor=dataset.Find();
+	var err=dataset.LastError();
+	if (err)
+		throw err+"\n("+@class+"."+@member+":"+@line+")";
+
+	var res="";
+	if (cursor) {
+		while (cursor.Next()) {
+			if (res)
+				res+=";";
+			res+=cursor.FieldValues["cached"];
+		}
+		cursor.Close();
+	}
+
+	GLOBALS()["app.cached.search.$type"]=res;
+	return res;
+    }
+
+
+    static function Reorder([DBTYPE]Connection dc, string entity_type, view, id, before_id, desc=false, id_field="", id_field2="", parent_id=-1) {
+	id="" + id;
+	before_id="" + before_id;
+
+	if ((id==before_id) || (id==-1) || (before_id==-1) || (id=="") || (before_id==""))
+		return;
+
+	// not supported yet on NoSQL
+	if (id_field)
+		return;
+
+	var dataset=new [DBTYPE]DataSet(dc, entity_type);
+	dataset.Query=before_id;
+
+	var order=0;
+	var cursor=dataset.FindOne(["_ORDER" => "_ORDER"], false);
+	var err=dataset.LastError();
+	if (err)
+		throw err+"\n("+@class+"."+@member+":"+@line+")";
+	if (cursor)
+		order=cursor["_ORDER"];
+
+
+	var items=view.Items;
+	var len=items.Count;
+
+	var target_item;
+	var insert_index=-1;
+	var delete_index=-1;
+	var after=false;
+	var idx_after=false;
+	for (var i=0;i<len;i++) {
+		var item=items[i];
+		if (item) {
+			var e_id=item[(length item) - 1];
+			if (e_id==id) {
+				target_item=item;
+				delete_index=i;
+				view.DeleteItem(i);
+				i--;
+				len--;
+			} else
+			if (e_id==before_id) {
+				insert_index=i;
+				if (delete_index>-1)
+					idx_after=true;
+			}
+		}
+	}
+
+	if ((idx_after) && (delete_index>-1) && (insert_index>-1)) {
+		after=true;
+		insert_index++;
+	}
+
+	if ((target_item) && (insert_index>-1))
+		view.InsertItem(insert_index, target_item);
+
+
+	if (after) {
+		dataset.Query=new [];
+		dataset.Query["_ORDER"]=new [];
+		if (desc)
+			dataset.Query["_ORDER"]['$lt']=order;
+		else
+			dataset.Query["_ORDER"]['$lte']=order;
+
+		var data=new [];
+		data['$inc']=new [];
+		data['$inc']['_ORDER']=-1;
+		dataset.Update(data);
+
+		err=dataset.LastError();
+		if (err)
+			throw err+"\n("+@class+"."+@member+":"+@line+")";
+
+		dataset.Query=new [];
+		dataset.Query["_ORDER"]=new [];
+		if (desc)
+			dataset.Query["_ORDER"]['$gte']=order;
+		else
+			dataset.Query["_ORDER"]['$gt']=order;
+
+		data['$inc']['_ORDER']=1;
+		dataset.Update(data);
+
+		err=dataset.LastError();
+		if (err)
+			throw err+"\n("+@class+"."+@member+":"+@line+")";
+	} else {
+		dataset.Query=new [];
+		dataset.Query["_ORDER"]=new [];
+		if (desc)
+			dataset.Query["_ORDER"]['$lte']=order;
+		else
+			dataset.Query["_ORDER"]['$lt']=order;
+
+		data=new [];
+		data['$inc']=new [];
+		data['$inc']['_ORDER']=-1;
+		dataset.Update(data);
+
+		err=dataset.LastError();
+		if (err)
+			throw err+"\n("+@class+"."+@member+":"+@line+")";
+
+		dataset.Query=new [];
+		dataset.Query["_ORDER"]=new [];
+		if (desc)
+			dataset.Query["_ORDER"]['$gt']=order;
+		else
+			dataset.Query["_ORDER"]['$gte']=order;
+
+		data['$inc']['_ORDER']=1;
+		dataset.Update(data);
+
+		err=dataset.LastError();
+		if (err)
+			throw err+"\n("+@class+"."+@member+":"+@line+")";
+	}
+	dataset.Query=id;
+	var set_data=new [];
+	set_data['$set']=new [];
+	set_data['$set']["_ORDER"]=order;
+	dataset.Update(set_data);
+
+
+	err=dataset.LastError();
+	if (err)
+		throw err+"\n("+@class+"."+@member+":"+@line+")";
+    }
+
+    static function DirectQuery([DBTYPE]Connection dc, string query, number throw_err=true, string result_default="-", return_array=false) {
+    }
+
+    static function Query([DBTYPE]Connection dc, string query, number min_version=0, force_no_throw=false) {
+        return true;
+    }
+
+    static function StringSQL(string query) {
+        return "#NOSQL_ON_[DBTYPE]DB";
+    }
+
+    static function SQL(string query) {
+        return "#NOSQL_ON_[DBTYPE]DB";
+    }
+    
+    static function DirectUpdate([DBTYPE]Connection dc, string table, array parameters, array ids, UID="-1", GID="-1") {
+        var dataset=new [DBTYPE]DataSet(dc, table);
+        var len=length parameters;
+
+        if (!len)
+            return false;
+
+        var[] set_arr;
+        var[] cond;
+
+        for (var i=0;i<len;i++) {
+            var param=parameters[i];
+            if (param) {
+                var key=""+param[0];
+                var val=param[1];
+
+                // some old bug, solved, but for compatibility
+                if (typeof val=="string")
+                    set_arr[key]=val;
+                else
+                    set_arr[key]=val;
+            }
+        }
+
+        len=length ids;
+        if (!len)
+            return false;
+
+        for (i=0;i<len;i++)
+            cond[length cond]=""+ids[i];
+
+        dataset.Query['_id']=new [];
+        dataset.Query['_id']['$in']=cond;
+
+        if ((GID) && (GID!="-1"))
+            dataset.Query["_GID"]=GID;
+        
+        if ((UID) && (UID!="-1")) {
+            dataset.Query["__OUID"]=UID;
+            set_arr["__MUID"]=UID;
+        }
+		var set_param=new [];
+		set_param['$set']=set_arr;
+        dataset.Update(set_param);
+
+        var err=dataset.LastError();
+        if (err)
+           throw err+"\n("+@class+"."+@member+":"+@line+")";
+
+        return true;
+    }
+
+    static function MatrixQuery([DBTYPE]Connection dc, string query, parameters=null) {
+        return true;
+    }
+
+
+    static function Limit(string s, number max_len=50, string after="..") {
+        var len=UTF8Length(s);
+        if (len<=max_len)
+            return s;
+        else {
+            max_len=UTF8Offset(s, max_len);
+            return SubStr(s, 0, max_len)+after;
+        }
+    }
+
+    static function ByteLimit(string s, number max_len=50, string after="..") {
+        var len=length s;
+        if (len<=max_len)
+            return s;
+        else
+            return SubStr(s, 0, max_len-(length after))+after;
+    }
+
+    static function GenerateThumb(string image_name, string thumb_name, number max_w=300, number max_h=200, string image_type="JPEG", number crop=false) {
+        var type=FreeImage_GetFileType(image_name);
+        image_type=ToLower(image_type);
+        if (type<0)
+            return false;
+
+        var hBitmap=FreeImage_Load(type, image_name, 0);
+        if (hBitmap) {
+            var flags=0;
+            var img_type=2;
+            if (image_type=="png")
+                img_type=13;
+            else
+            if (image_type=="jpeg")
+                flags=JPEG_QUALITYSUPERB;
+
+            var true_width=FreeImage_GetWidth(hBitmap);
+            var true_height=FreeImage_GetHeight(hBitmap);
+
+            if ((!true_width) || (!true_height)) {
+                FreeImage_Unload(hBitmap);
+                _unlink("temp/"+image_name);
+                return false;
+            }
+
+            if ((true_width<=max_w) && (true_height<=max_h)) {
+                if (!FreeImage_Save(img_type,hBitmap,thumb_name,0)) {
+                    FreeImage_Unload(hBitmap);
+                    return false;
+                }
+                FreeImage_Unload(hBitmap);
+                return true;
+            }
+
+            var aspect_ratio=1;
+
+            var coef_w=max_w/true_width;
+            var coef_h=max_h/true_height;
+            var crop_done=0;
+            
+            if ((crop) && (true_height>max_h) && (true_width>max_w)) {
+                var p_a_ratio=true_width/true_height;
+                var t_a_ratio=max_w/max_h;
+
+                if (p_a_ratio!=t_a_ratio) {
+                    var new_height=true_height;
+                    var new_width=true_width;
+
+                    if (coef_h>coef_w)
+                        new_width=true_height*t_a_ratio;
+                    else
+                        new_height=true_width/t_a_ratio;
+
+                    if (new_width>true_width)
+                        new_width=true_width;
+
+                    if (new_height>true_height)
+                        new_height=true_height;
+
+                    var left=(true_width-new_width)/2;
+                    var right=true_width-left;
+                    var top=(true_height-new_height)/2;
+                    var bottom=true_height-top;
+
+                    if ((left) || (top) || (right!=true_width) || (bottom!=true_height)) {
+                        var hBitmap3=FreeImage_Copy(hBitmap, left, top, right, bottom);
+                        if (hBitmap3) {
+                            FreeImage_Unload(hBitmap);
+                            hBitmap=hBitmap3;
+                            hBitmap3=null;
+                            true_width=new_width;
+                            true_height=new_height;
+                            coef_w=max_w/true_width;
+                            coef_h=max_h/true_height;
+                            crop_done=true;
+                        }
+                    }
+                }
+            }
+
+            if (coef_w<coef_h) {
+                aspect_ratio*=coef_w;
+            } else {
+                aspect_ratio*=coef_h;
+            }
+
+            if (aspect_ratio>1)
+                aspect_ratio=1;
+
+
+            var hBitmap2=FreeImage_Rescale(hBitmap,true_width*aspect_ratio,true_height*aspect_ratio,0);
+
+
+            FreeImage_Unload(hBitmap);
+            if (hBitmap2) {
+                if (!FreeImage_Save(img_type,hBitmap2,thumb_name,flags)) {
+                    FreeImage_Unload(hBitmap2);
+                    return false;
+                }
+            }
+
+            FreeImage_Unload(hBitmap2);
+            return true;
+        }
+        return false;
+    }
+
+    static function GenerateThumbByContent(string image_content, string image_name, number max_w=160, number max_h=160, string image_type="JPEG", number crop=false) {
+        WriteFile(image_content, "temp/"+image_name);
+        var type=FreeImage_GetFileType("temp/"+image_name);
+        image_type=ToLower(image_type);
+        
+        if (type<0) {
+            _unlink("temp/"+image_name);
+            return "";
+        }
+
+        var hBitmap=FreeImage_Load(type, "temp/"+image_name, 0);
+        if (hBitmap) {
+            var flags=0;
+            var true_width=FreeImage_GetWidth(hBitmap);
+            var true_height=FreeImage_GetHeight(hBitmap);
+
+            if ((!true_width) || (!true_height)) {
+                FreeImage_Unload(hBitmap);
+                _unlink("temp/"+image_name);
+                return "";
+            }
+
+            var img_type=2;
+            if (image_type=="png")
+                img_type=13;
+            else
+            if (image_type=="jpeg")
+                flags=JPEG_QUALITYSUPERB;
+
+            if ((true_width<=max_w) && (true_height<=max_h)) {
+                if (hBitmap) {
+                    if (!FreeImage_Save(img_type,hBitmap,"temp/thumb_"+image_name,flags)) {
+                        FreeImage_Unload(hBitmap);
+                        _unlink("temp/"+image_name);
+                        return "";
+                    }
+                }
+
+                FreeImage_Unload(hBitmap);
+                var thumb_data=ReadFile("temp/thumb_"+image_name);
+                _unlink("temp/thumb_"+image_name);
+                return thumb_data;
+            }
+
+            var aspect_ratio=1;//true_height/true_width;
+
+            var coef_w=max_w/true_width;
+            var coef_h=max_h/true_height;
+            var crop_done=0;
+            
+            if ((crop) && (true_height>max_h) && (true_width>max_w)) {
+                var p_a_ratio=true_width/true_height;
+                var t_a_ratio=max_w/max_h;
+
+                if (p_a_ratio!=t_a_ratio) {
+                    var new_height=true_height;
+                    var new_width=true_width;
+
+                    if (coef_h>coef_w)
+                        new_width=true_height*t_a_ratio;
+                    else
+                        new_height=true_width/t_a_ratio;
+
+                    if (new_width>true_width)
+                        new_width=true_width;
+
+                    if (new_height>true_height)
+                        new_height=true_height;
+
+                    var left=(true_width-new_width)/2;
+                    var right=true_width-left;
+                    var top=(true_height-new_height)/2;
+                    var bottom=true_height-top;
+
+                    if ((left) || (top) || (right!=true_width) || (bottom!=true_height)) {
+                        var hBitmap3=FreeImage_Copy(hBitmap, left, top, right, bottom);
+                        if (hBitmap3) {
+                            FreeImage_Unload(hBitmap);
+                            hBitmap=hBitmap3;
+                            hBitmap3=null;
+                            true_width=new_width;
+                            true_height=new_height;
+                            coef_w=max_w/true_width;
+                            coef_h=max_h/true_height;
+                            crop_done=true;
+                        }
+                    }
+                }
+            }
+            
+            if (coef_w<coef_h) {
+                aspect_ratio*=coef_w;
+            } else {
+                aspect_ratio*=coef_h;
+            }
+
+            if (aspect_ratio>1)
+                aspect_ratio=1;
+                
+            var hBitmap2=FreeImage_Rescale(hBitmap,true_width*aspect_ratio,true_height*aspect_ratio,0);
+
+            FreeImage_Unload(hBitmap);
+            _unlink("temp/"+image_name);
+
+            if (hBitmap2) {
+                if (!FreeImage_Save(img_type,hBitmap2,"temp/thumb_"+image_name,flags)) {
+                    FreeImage_Unload(hBitmap2);
+                    return "";
+                }
+            }
+
+            FreeImage_Unload(hBitmap2);
+            thumb_data=ReadFile("temp/thumb_"+image_name);
+            _unlink("temp/thumb_"+image_name);
+            return thumb_data;
+        } else
+            _unlink("temp/"+image_name);
+        return "";
+    }
+
+    static function DateNow() {
+        var t_arr=localtime(_time());
+        var result="";
+        result+=1900+t_arr["tm_year"];
+        result+="-";
+        var month=t_arr["tm_mon"]+1;
+        if (month<10)
+            result+="0";
+        result+=month;
+        result+="-";
+        
+        var day=t_arr["tm_mday"];
+        if (day<10)
+            result+="0";
+
+        result+=day;
+        var hour=t_arr["tm_hour"];
+        if (hour<10)
+            hour="0"+hour;
+        var minute=t_arr["tm_min"];
+        if (minute<10)
+            minute="0"+minute;
+        var sec=t_arr["tm_sec"];
+        if (sec<10)
+            sec="0"+sec;
+
+        result+=" $hour:$minute:$sec";
+        
+        return result;
+    }    
+
+    static function ToDate(number t, number has_time=false) {
+        var t_arr=localtime(t);
+        var result="";
+        result+=1900+t_arr["tm_year"];
+        result+="-";
+        var month=t_arr["tm_mon"]+1;
+        if (month<10)
+            result+="0";
+        result+=month;
+        result+="-";
+        
+        var day=t_arr["tm_mday"];
+        if (day<10)
+            result+="0";
+
+        result+=day;
+        if (has_time) {
+            var hour=t_arr["tm_hour"];
+            if (hour<10)
+                hour="0"+hour;
+            var minute=t_arr["tm_min"];
+            if (minute<10)
+                minute="0"+minute;
+
+            var sec=t_arr["tm_sec"];
+            if (sec<10)
+                sec="0"+sec;
+
+            result+=" $hour:$minute:$sec";
+        }
+        
+        return result;
+    }
+
+    static function GetDate(var year, var month, var day, number t=0) {
+        if (!t)
+            t=_time();
+        var t_arr=_localtime(t);
+
+        year=1900+t_arr["tm_year"];
+        month=t_arr["tm_mon"]+1;
+        day=t_arr["tm_mday"];
+    }
+
+    static function GetWeek(number year, number month, number day) {
+        var[] result;
+        var wdays=["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
+        
+        var tm_arr=_localtime(time());
+
+        tm_arr["tm_year"]=year-1900;
+        tm_arr["tm_mon"]=month-1;
+        tm_arr["tm_mday"]=day;
+                    
+        var tm=mktime(tm_arr);
+        var initial=tm;
+
+        var day_seconds=24*3600;
+
+        var arr=_localtime(tm);
+        var wday=arr["tm_wday"];
+
+        var delta=wday*day_seconds;
+
+        tm-=delta;
+        for (var i=0;i<7;i++) {
+            var tmp=_localtime(tm);
+
+            result[i]=[Utils::ToDate(tm), wdays[tmp["tm_wday"]],(tm==initial)];
+
+            tm+=day_seconds;
+        }
+
+        return result;
+    }
+    
+    static function GetPieData(array data, string name, string field) {
+        var[] result;
+        if ((IsSet(data, name)) && (IsSet(data, field))) {
+            var arr1=data[name];
+            var arr2=data[field];
+            if ((typeof arr1=="array") && (typeof arr2=="array")) {
+                var len=length arr1;
+                if (len==length arr2) {
+                    for (var i=0;i<len;i++) {
+                        if ((typeof arr1[i]!="array") && (typeof arr2[i]!="array"))
+                            result+=[[Utils::Limit(arr1[i],20,"~")+"  ", value (""+arr2[i])]];
+                    }
+                }
+            }
+        } else {
+            len=length data;
+            for (i=0;i<len;i++) {
+                var arr=data[i];
+                if (typeof arr=="array") {
+                    if ((IsSet(arr, name)) && (IsSet(arr, field))) {
+                        var data1=arr[name];
+                        var data2=arr[field];
+                        if ((typeof data1!="array") && (typeof data2!="array"))
+                            result+=[[Utils::Limit(data1,20,"~")+"  ", value (""+data2)]];
+                    }
+                }
+            }
+        }
+        return result;
+    }
+
+/*
+    static function GetChartData(array data, string name) {
+        var[] result;
+        if (IsSet(data, name)) {
+            var arr1=data[name];
+            if (typeof arr1=="array") {
+                var len=length arr1;
+                for (var i=0;i<len;i++) {
+                    if (typeof arr1[i]!="array")
+                        result+=Utils::Limit(arr1[i],30,"~");
+                }
+            }
+        } else {
+            len=length data;
+            for (i=0;i<len;i++) {
+                var arr=data[i];
+                if (typeof arr=="array") {
+                    if (IsSet(arr, name)) {
+                        var data1=arr[name];
+                        if (typeof data1!="array")
+                            result+=Utils::Limit(data1,30,"~");
+                    }
+                }
+            }
+        }
+        return result;
+    }
+
+    static function ChartError(string data, string filename, number width=260, number height=240) {
+	var file=fopen(filename, "wb");
+	if (!file)
+		throw "Error creating file '$filename'. Insufficent rights, volume is read-only or insufficient disk space."+"\n("+@class+"."+@member+":"+@line+")";
+	out_err(width, height, file, 0xFFFFFF, 0x000000, data);
+	fclose(file);
+	return filename;
+    }
+
+    static function DoChart(array data, string filename="chart.gif", number width=260, height=240, number type=GDC_3DBAR, string title="", set_colors=null) {
+        GDC_BGColor(0xFFFFFF);
+		GDC_LineColor(0x000000);
+        GDC_grid(true);  
+        
+        GDC_title(title);
+        GDC_transparent_bg(true);
+        GDC_stack_type(GDC_STACK_BESIDE);
+        GDC_xaxis_angle(90);
+        
+        var[] colors;
+        
+		var num_sets=(length data)-1;
+		var elem_count=0;
+		
+		if ((num_sets>100) || (num_sets<1))
+            return Utils::ChartError("Maximum allowed input sets must not exceed 100", filename, width, height);
+
+		var[] vals;
+
+		var explains=data[0];
+
+
+        var len=length data;
+
+        var delta=int32(0x100/(num_sets+1));
+
+        if (typeof explains!="array")
+            explains=new [];
+
+        var max_len=0;
+        for (var i=1;i<len;i++) {
+            var arr=data[i];
+            var len2=length arr;
+            var dset=new [];
+            vals[length vals]=dset;
+            
+            for (var j=0;j<len2;j++) {
+                if (typeof arr[j]!="array")
+                    dset[length dset]=value (""+arr[j]);
+            }
+
+            if (length dset>max_len)
+                max_len=length dset;
+
+            while (length explains < length dset)
+            	explains[length explains]="";
+
+            switch ((i-1)%3) {
+                case 0:
+                    var color=0xFF80 + i*delta;
+                case 1:
+                    color=0x8080FF + (i*delta*0x100);
+                    break;
+                case 2:
+                    color=0x80FF80 + (i*delta*0x10000);
+                    break;
+            }
+            colors[length colors]=color;
+        }
+        
+        len=length vals;
+        for (i=0;i<len;i++) {
+            arr=vals[i];
+            if (length arr<max_len)
+                arr[max_len-1]=0;
+        }
+
+        elem_count=max_len;
+        num_sets=len;
+
+		if ((num_sets<1) || (elem_count<1))
+            return Utils::ChartError("No data.", filename, width, height);
+
+        if ((typeof set_colors=="array") && (set_colors))
+                GDC_SetColor(set_colors);
+        else
+                GDC_SetColor(colors);
+
+		var file=fopen(filename, "wb");
+        out_graph(width, height, file, type, elem_count, explains, num_sets, 
+                vals[0],vals[1],vals[2],vals[3],vals[4],vals[5],vals[6],vals[7],vals[8],vals[9],
+                vals[10],vals[11],vals[12],vals[13],vals[14],vals[15],vals[16],vals[17],vals[18],vals[19],
+                vals[20],vals[21],vals[22],vals[23],vals[24],vals[25],vals[26],vals[27],vals[28],vals[29],
+                vals[30],vals[31],vals[32],vals[33],vals[34],vals[35],vals[36],vals[37],vals[38],vals[39],
+                vals[40],vals[41],vals[42],vals[43],vals[44],vals[45],vals[46],vals[47],vals[48],vals[49],
+                vals[50],vals[51],vals[52],vals[53],vals[54],vals[55],vals[56],vals[57],vals[58],vals[59],
+                vals[60],vals[61],vals[62],vals[63],vals[64],vals[65],vals[66],vals[67],vals[68],vals[69],
+                vals[70],vals[71],vals[72],vals[73],vals[74],vals[75],vals[76],vals[77],vals[78],vals[79],
+                vals[80],vals[81],vals[82],vals[83],vals[84],vals[85],vals[86],vals[87],vals[88],vals[89],
+                vals[90],vals[91],vals[92],vals[93],vals[94],vals[95],vals[96],vals[97],vals[98],vals[99]
+        );
+		fclose(file);
+		return filename;
+    }	
+*/
+
+    static function GetChartIndex(array key, val) {
+        var len=length key;
+        for (var i=0;i<len;i++) {
+            if (val==key[i])
+                return i;
+        }
+        return -1;
+    }
+
+    static function GetChartData(array data, string name, string value_name, string key_name, keys, max_len=50, unique=false) {
+        var[] result;
+
+        if (IsSet(data, name)) {
+            var arr1=data[name];
+            if (typeof arr1=="array") {
+                var len=length arr1;
+                for (var i=0;i<len;i++) {
+                    if (typeof arr1[i]!="array") {
+                        if (unique)
+                            result[""+arr1[i]]=Utils::Limit(arr1[i],max_len,"..");
+                        else
+                            result+=[Utils::Limit(arr1[i],max_len,"..")];
+                    }
+                }
+            }
+        } else {
+            len=length data;
+            for (i=0;i<len;i++) {
+                var arr=data[i];
+                if (typeof arr=="array") {
+                    if (IsSet(arr, name)) {
+                        var data1=arr[name];
+			var key_index=-1;
+                        var axis_value="";
+
+                        if ((value_name) && (key_name) && (keys)) {
+                            key_index=Utils::GetChartIndex(keys, ""+arr[key_name]);
+                            axis_value=arr[value_name];
+                        }
+
+                        if (typeof data1!="array") {
+                            if (unique)
+                                result[data1]=Utils::Limit(data1,max_len,"..");
+                            else {
+                                if (axis_value) {
+                                    var target=result[axis_value];
+                                    if (!target) {
+                                        target=new [];
+                                        result[axis_value]=target;
+                                        target[0]=axis_value;
+                                    }
+                                    if (key_index>=0)
+                                        target[key_index+1]=value (""+data1);
+                                } else
+                                    result+=value (""+data1);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return result;
+    }
+
+    static function DoLineChart(array data, string filename="chart.png", number width=260, height=240, type=0) {
+	var svg=LineChart::Do(data, width, height, type, 2);
+	WriteFile(SVG(svg), filename);
+	return filename;
+    }
+
+    static function DoPie(array data, string filename="chart.gif", number width=460, height=240) {
+	var svgdata=PieChart::Do(data, width, height);
+	if (svgdata) {
+		WriteFile(SVG(svgdata), filename);
+		return filename;
+	}
+	return false;
+    }
+
+    static function ValidateDate(var string date, date_null_val="0001-01-01") {
+        date=trim(date);
+	if ((!date) || (date=="0000-00-00") || (date=="--") || (date=="..") || (date=="//")) {
+            date=date_null_val;
+            return true;
+        }
+
+        var days_arr=DAYS_ARR;
+
+        date=trim(date);
+        date=StrReplace(date, "/", "-");
+        date=StrReplace(date, "\\", "-");
+        date=StrReplace(date, ".", "-");
+        date=StrReplace(date, " ", "-");
+        
+        var arr=StrSplit(date, "-");
+        if ((length arr) != 3)
+            return false;
+
+        var year=value (""+arr[0]);
+        var month=value (""+arr[1]);
+        var day=value (""+arr[2]);
+        
+        if (year%4==0)
+            days_arr[1]++;
+        
+        if (year<0)
+            return 0;
+
+        if (month>12)
+            return false;
+        if (month<1)
+            return false;
+        
+        if (day<1)
+            return false;
+
+        if (day>days_arr[month-1])
+            return false;
+        
+        return true;
+    }
+
+    static function ValidateDateTime(var string date, date_null_val="0001-01-01 00:00:00") {
+        date=trim(date);
+	var date_part=StrSplit(date, " ")[0];
+
+	if ((!date) || (date_part=="0000-00-00") || (date_part=="--") || (date_part=="..") || (date_part=="//")) {
+            date=date_null_val;
+            return true;
+        }
+        var days_arr=DAYS_ARR;
+
+        date=trim(date);
+        date=StrReplace(date, "/", "-");
+        date=StrReplace(date, "\\", "-");
+        date=StrReplace(date, ".", "-");
+        
+        var arr=StrSplit(date, "-");
+
+        if ((length arr) != 3)
+            return false;
+
+        var year=value (""+arr[0]);
+        var month=value (""+arr[1]);
+
+        var last_arr=StrSplit(""+arr[2]," ");
+        if ((length last_arr)!=2)
+            return false;
+
+        var day=value (""+last_arr[0]);
+        
+        if (year%4==0)
+            days_arr[1]++;
+        
+        if (year<0)
+            return 0;
+
+        if (month>12)
+            return false;
+        if (month<1)
+            return false;
+        
+        if (day<1)
+            return false;
+
+        if (day>days_arr[month-1])
+            return false;
+
+        var my_time=StrSplit(last_arr[1],":");
+
+        if (length my_time < 2)
+            return false;
+
+        var hour=value (""+my_time[0]);
+        var min=value(""+my_time[1]);
+
+        if ((hour < 0) || (hour > 23) || (min < 0) || (min > 59))
+            return false;
+
+        return true;
+    }
+    
+    static function DoNode(XMLNode node, var array res) {
+        var node2=node;
+        do {
+            var node_name=ToLower(node2.Name);
+            if ((node_name=="element") || (node_name=="property")) {
+                var el_name=trim(node2.GetProperty("name"));
+                var el_is=trim(node2.GetProperty("is"));
+                var el_type=trim(node2.GetProperty("type"));
+
+                if (!el_is)
+                    el_is=el_name;
+
+                if (!el_type)
+                    el_type="xs:string";
+
+                if (el_name) {
+                    var prefix=el_type[0];
+                    if ("_"==el_type[1])
+                        prefix+=el_type[1];
+                    if (prefix!="_") {
+                        res[node_name][el_name]=el_is;
+                    }
+                }
+            }
+            node2=node2.Next;
+        } while (node2);
+    }
+    
+    static function GetDescription(string entity) {
+        var[] res;
+
+        res["element"]=new [];
+        res["property"]=new [];
+        res["entity"]="";
+
+        var data=ReadFile("import_schema/$entity.transform.xml");
+
+        if (!data)
+            return res;
+
+        var doc=new XMLDocument();
+        if (!doc.LoadString(data))
+            return res;
+        
+        //var lo_entity=ToLower(entity);
+        var root=doc.Root;
+        do {
+            if (ToLower(root.Name)=="transform_schema") {
+                var n_entity=ToLower(root.GetProperty("entity"));
+        	res["entity"]=n_entity;
+                //if (lo_entity==n_entity) {
+                    Utils::DoNode(root.Child, res);
+		//}
+            }
+            root=root.Next;
+        } while (root);
+        doc.Free();
+        return res;
+    }
+
+	private function  SetByMemberName(a,b,c) {
+		// never called !... a dummy function
+	}
+
+	static function DoNodes(entity, XMLNode node, array elem, array prop) {
+		var set_count=0;
+		do {
+			var name=node.Name;
+			if (IsSet(elem, name)) {
+				if (ToLower(""+node.GetProperty("coding"))=="base64")
+					entity.SetByMemberName(null, elem[name], mime_decode(node.Content));
+				else
+					entity.SetByMemberName(null, elem[name], node.Content);
+				set_count++;
+			} else
+			if (node.Child) {
+				if (ToLower(""+node.GetProperty("hint"))!="relational")
+					set_count+=Utils::DoNodes(entity, node.Child, elem, prop);
+			}
+
+			node=node.Next;
+		} while (node);
+		return set_count;
+	}
+
+	static function ProcessNode(delegate deleg, delegate deleg_write, XMLNode node, var entities) {
+		var node_name=node.Name;
+
+		if (!IsSet(entities, node_name)) {
+			var desc=Utils::GetDescription(node_name);
+			entities[node_name]=desc;
+		}
+		var arr=entities[node_name];
+		var set_members=0;
+		if (arr) {
+			var elem=arr[0];
+			var prop=arr[1];
+			var entity_name=arr[2];
+			if (!entity_name)
+				return 0;
+			var entity=deleg(entity_name);
+
+			if (!entity)
+				return set_members;
+
+			var len=length elem;
+			for (var i=0;i<len;i++) {
+				//var elm=elem[i];
+				var node2=node.Child;
+
+				if (node2) {
+					set_members+=Utils::DoNodes(entity, node2, elem, prop);
+				}
+			}
+			deleg_write(entity);
+		}
+		return set_members;
+	}
+
+	static function AnalizeNode(delegate deleg, delegate deleg_write, XMLNode node, var entities) {
+		do {
+			var res=Utils::ProcessNode(deleg, deleg_write, node, entities);
+			if (!res) {
+				if (node.Child)
+					Utils::AnalizeNode(deleg, deleg_write, node.Child, entities);
+			}
+			node=node.Next;
+		} while(node);
+	}
+
+	static function ImportXML(delegate deleg, delegate deleg_write, string xml_data, var entities) {
+		var xml=new XMLDocument();
+		if (!xml.LoadString(xml_data))
+			return false;
+		var root=xml.Root;
+		if (root)
+			Utils::AnalizeNode(deleg, deleg_write, root, entities);
+		xml.Free();
+		return true;
+	}
+
+	static function GenerateSortingKey(array arr, string key) {
+		var key_index=0;
+		var res_key=key;
+		while (IsSet(arr, res_key)) {
+			res_key="$key$key_index";
+			key_index++;
+		}
+		return res_key;
+	}
+
+	static function XMLSafe(data) {
+		data=""+data;
+		data=StrReplace(data, "&", "&amp;");
+		data=StrReplace(data, "<", "&lt;");
+		data=StrReplace(data, ">", "&gt;");
+		return data;
+	}
+
+	static function XMLSafeFile(data, max_len=22) {
+		var len=length data;
+		if (length data>max_len) {
+			len-=3;
+			var half_max=max_len/2;
+			//var half=len/2;
+			var pre=SubStr(data, 0, half_max);
+			var post=SubStr(data, len-half_max+3, half_max+3);
+			data=pre+"..."+post;
+		}
+		return Utils::XMLSafe(data);
+	}
+
+	static function CopyFile(dest, src) {
+		if ((!dest) || (!src))
+			return false;
+
+		if (!src.Open())
+			throw "Error opening ${dest.Name}"+"\n("+@class+"."+@member+":"+@line+")";
+
+		var mode=dest.Mode;
+		dest.Mode="wb";
+		if (!dest.Open()) {
+			src.Close();
+			dest.Mode=mode;
+			throw "Error opening ${dest.Name}"+"\n("+@class+"."+@member+":"+@line+")";
+		}
+		var size=0;
+		while (!src.EOF) {
+			if ((size=src.Read(var buffer, 0x1FFFF))<=0) {
+				src.Close();
+				dest.Close();
+				dest.Mode=mode;
+				throw "Error in reading file ${src.Name}"+"\n("+@class+"."+@member+":"+@line+")";
+			}
+			if (dest.Write(buffer)!=size) {
+				src.Close();
+				dest.Close();
+				dest.Mode=mode;
+				throw "Error in writing file ${dest.Name}"+"\n("+@class+"."+@member+":"+@line+")";
+			}
+		}
+		src.Close();
+		dest.Close();
+		dest.Mode=mode;
+		return true;
+		
+	}
+
+	static function SafePathWrite(fid, string filename) {
+		filename=StrReplace(filename, "\\","/");
+		var path_arr=StrSplit(filename, "/");
+		var len=length path_arr;
+		len--;
+
+		var base="";
+		for (var i=0;i<len;i++) {
+			base+=path_arr[i]+"/";
+			_mkdir(base);
+		}
+
+
+		if (typeof fid=="string")
+			return WriteFile(fid, filename);
+
+		if (!fid)
+			return false;
+		if (!fid.Open())
+			throw "Error opening $filename"+"\n("+@class+"."+@member+":"+@line+")";
+
+		var file=new File("wb");
+		file.Name=filename;
+		var size=0;
+		if (file.Open()) {
+			while (!fid.EOF) {
+				if ((size=fid.Read(var buffer, 0x1FFFF))<0) {
+					fid.Close();
+					file.Close();
+					throw "Error in reading file ${fid.Name}"+"\n("+@class+"."+@member+":"+@line+")";
+				}
+				if (!size)
+					break;
+				if (file.Write(buffer)!=size) {
+					fid.Close();
+					file.Close();
+					throw "Error in writing file ${file.Name}"+"\n("+@class+"."+@member+":"+@line+")";
+				}
+			}
+			file.Close();
+		}
+		fid.Close();
+		return true;
+	}
+
+	static function AddSuggestion(string key_file, string key, var data="") {
+		if (key=="")
+			return false;
+		data=ReadFile(key_file);
+		var arr_data=StrSplit(data, ";");
+		var len=length arr_data;
+		for (var i=0;i<len;i++) {
+			if (key==arr_data[i])
+				return false;
+		}
+		if (data)
+			data+=";";
+		data+=key;
+		WriteFile(data, key_file);
+		return true;
+	}
+
+	static function CheckMultimedia(string file) {
+		var ffmpeg=new FFMpeg();
+		try {
+			ffmpeg.InputMovie=file;
+		} catch (var exception) {
+			return exception;
+		}
+		return "";
+	}
+
+	static function CheckMultimediaContent(var content, string fid="mmedia") {
+		var filename="temp/$fid.avi";
+		Utils::SafePathWrite(content, filename);
+		var result=Utils::CheckMultimedia(filename);
+		_unlink(filename);
+		return result;
+	}
+
+	static function PlayFile(file, number delete_after=false) {
+		if (!file)
+			return 0;
+		if (!file.Open())
+			return 0;
+		var chunk=CApplication::SendChunkedCookie("media.avi");
+		if (chunk) {
+			while (!file.EOF) {
+				if (file.Read(var buffer, 0xAFFFFF)<=0)
+					break;
+				CApplication.ChunkWrite(chunk, buffer);
+			}
+			CApplication.ChunkClose(chunk);
+			CApplication::RemoteCommand("ffplay media.avi");
+		} else
+			echo "CRITICAL: Error writing cookie\n";
+	}
+
+	static function SendFile(file, filename, is_cookie=false) {
+		var chunk;
+		if (!file)
+			return 0;
+		if (!file.Open())
+			return 0;
+
+		if (is_cookie)
+			chunk=CApplication::SendChunkedCookie(filename);
+		else
+			chunk=CApplication::SendChunkedFile(filename);
+
+		if (chunk) {
+			while (!file.EOF) {
+				if (file.Read(var buffer, 0xAFFFFF)<=0)
+					break;
+				CApplication.ChunkWrite(chunk, buffer);
+			}
+			file.Close();
+			CApplication.ChunkClose(chunk);
+			return 1;
+		}
+		file.Close();
+		return 0;
+	}
+
+	static function PlayStream(var stream, string fid) {
+		/*var filename="temp/$fid.avi";
+		Utils::SafePathWrite(stream, filename);
+		Utils::PlayFile(filename, true);*/
+		
+		CApplication::SendCookieContent("media.avi", stream);
+		CApplication::RemoteCommand("ffplay media.avi");
+	}
+
+    static function CountArray(array arr, val) {
+        var result=0;
+        var len=length arr;
+        for (var i=0;i<len;i++) {
+            if (arr[i]==val)
+                result++;
+        }
+        return result;
+    }
+
+    static function CheckCriteria(arr, string field) {
+        if (!arr)
+            return false;
+
+        var len=length arr;
+        for (var i=0;i<len;i++) {
+            var item=arr[i];
+            if ((item) && (item[0]==field))
+                return true;
+        }
+        return false;
+    }
+    
+    static function WebSafe(variable) {
+        switch (typeof variable) {
+            case "string":
+                return variable;
+            case "numeric":
+                return ""+variable;
+            case "array":
+                return ""+variable[0];
+        }
+        return "";
+    }
+    
+    static function GetExtraWhere(array data) {
+        var len=length data;
+        var result="";
+        for (var i=0;i<len;i++) {
+            var item=data[i];
+            if (item) {
+                if (result)
+                    result+=" AND ";
+                result+="($item)";
+            }
+        }
+
+        if ((result) && (len>1))
+            result="("+result+")";
+
+        return result;
+    }
+
+    static function AddExtraWhere(array query, string data) {
+        var conds=StrSplit(data, " AND ");
+        if (conds) {
+            var len=length conds;
+            if (len>1) {
+                for (var i=0;i<len;i++)
+                     Utils::AddExtraWhere(query, conds[i]);
+            } else {
+                var cond=trim(""+conds[0]);
+                if (cond) {
+                    cond=StrReplace(cond, "(", "");
+                    cond=StrReplace(cond, ")", "");
+                    var lencond=length cond;
+                    var name="";
+                    var op="";
+                    var val="";
+                    var in_value=false;
+                    var pre_val="";
+                    var ord_a=ord('a');
+                    var ord_z=ord('z');
+                    var ord_A=ord('A');
+                    var ord_Z=ord('Z');
+                    var ord_0=ord('0');
+                    var ord_9=ord('9');
+                    var ord_=ord('_');
+
+                    var last=lencond-1;
+                    for (i=0;i<lencond;i++) {
+                         var c=cond[i];
+                         if (c) {
+                             var ord_c=ord(c);
+                             if (in_value) {
+                                 if ((i!=last) || (c!=pre_val))
+                                     val+=c;
+                             } else
+                             if (((ord_c>=ord_a) && (ord_c<=ord_z)) ||
+                                 ((ord_c>=ord_A) && (ord_c<=ord_Z)) ||
+                                 ((ord_c>=ord_0) && (ord_c<=ord_9)) ||
+                                 (ord_c==ord_)) {
+                                 if (!op)
+                                     name+=c;
+                                 else
+                                 if ((c!=" ") && (c!="\t")) {
+                                     in_value=true;
+                                     if ((!pre_val) && (((c=="'") || (c=='"')) && (!val)))
+                                         pre_val=c;
+                                     else
+                                         val+=c;
+                                 }
+                             } else
+                             if ((c=="=") || (c==">") || (c=="<") || (c=="!")) {
+                                 op+=c;
+                             } else {
+                                 if ((!pre_val) && (((c=="'") || (c=='"')) && (!val))) {
+                                     pre_val=c;
+                                     in_value=true;
+                                 }
+                             }
+                         }
+                    }
+
+                    if (!pre_val)
+                        val=value val;
+
+                    if (name) {
+                        switch (op) {
+                            case "=":
+                            case "<>":
+                            case "!=":
+                            case ">=":
+                            case ">":
+                            case "<=":
+                            case "<=":
+                                Utils::ExtraBuild(query, [name, op, val]);
+                                break;
+                            default:
+                                throw "Invalid operator in filter ('$op')"+"\n("+@class+"."+@member+":"+@line+")";
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    static function LoadImage(image, filename, content) {
+	if (!image)
+		return;
+
+        if ((filename) && (content) && (length content>10)) {
+            var apid=GetAPID();
+            WriteFile(content, "temp/thumb$apid.png");
+            image.Filename="temp/thumb$apid.png";
+            _unlink("temp/thumb$apid.png");
+        } else {
+            image.LoadResource(MISSING_IMAGE,ICON_SIZE_DIALOG);
+        }
+        image.Show();
+    }
+
+    static function LogEvent([DBTYPE]Connection dc, string event_type, string event_description, string event_key="", ENT_ID=-1, UID=-1, userfield="") {
+        var data=new [];
+        data["user"]=""+userfield;
+        data["event_time"]=Utils::DateNow();
+        data["event_type"]=""+event_type;
+        data["event_key"]=""+event_key;
+        data["event_description"]=""+event_description;
+        data["event_UID"]=""+UID;
+        data["event_EID"]=""+ENT_ID;
+        var dataset=new [DBTYPE]DataSet(dc, "gyro_user_register_log");
+        dataset.Insert([data]);
+        var err=dataset.LastError();
+        if (err)
+            throw err+"\n("+@class+"."+@member+":"+@line+")";
+    }
+
+	static function Escape(var string data) {
+		var result;
+		result=StrReplace(data, "&", "&amp;");
+		result=StrReplace(result,"<", "&lt;");
+		result=StrReplace(result,">", "&gt;");
+		return result;
+	}
+	
+	static function NumberParam(string data) {
+		var result=0x7FFFCAFE;
+		var num=""+value data;
+		if (num==data)
+			return value num;
+		return result;
+	}
+
+	static function BooleanParam(param, string s_TRUE="TRUE", string s_FALSE="FALSE") {
+		if (ToLower(""+param)=="true")
+			param=1;
+		param=value (""+param);
+		if (param==1) {
+                        if (s_TRUE=="1")
+                            return true;
+			return s_TRUE;
+                }
+                if (s_FALSE=="0")
+                    return false;
+		return s_FALSE;
+	}
+
+	static function BooleanCriteria(param, string s_TRUE="TRUE", string s_FALSE="FALSE") {
+		param=ToLower(""+param);
+		if (param=="true")
+			return s_TRUE;
+		if (param=="false")
+			return s_FALSE;
+		param=value (""+param);
+		if (param==1)
+			return s_TRUE;
+		else
+		if (param==0)
+			return s_FALSE;
+		return "NULL";
+	}
+
+	static function SheetTable(array sheet, array format) {
+		var result="";
+		var columns=0;
+
+		var len=length sheet;
+		if (!len)
+			return result;
+
+		for (var k=0;k<len;k++) {
+			var kline=sheet[k];
+			if (kline) {
+				var len_k=length kline;
+				if (len_k > columns)
+					columns=len_k;
+			}
+		}
+
+		if (!columns)
+			return result;
+
+		var pre_result='<fo:table table-layout = "fixed" width = "100%" border-spacing = "0pt" border-width = "0.5pt" border-style="solid">\n';
+		var row_data="";
+
+		for (var i=0;i<len;i++) {
+			var line=sheet[i];
+			pre_result+='\t<fo:table-column column-width = "proportional-column-width(1)" />\n';
+			row_data+='\t\t<fo:table-row>\n';
+			for (var j=0;j<columns;j++) {
+				var data="&#160;";
+				if ((line) && (line[j])) {
+					data=line[j];
+					row_data+='\t\t\t<fo:table-cell border-style="solid" border-width="0.5pt"><fo:block><![CDATA['+data+']]></fo:block></fo:table-cell>\n';
+				} else
+					row_data+='\t\t\t<fo:table-cell border-style="solid" border-width="0.5pt"><fo:block>'+data+'</fo:block></fo:table-cell>\n';
+			}
+			row_data+='\t\t</fo:table-row>\n';
+		}
+
+		result+="\t</fo:table-body>\n";
+		result+="</fo:table>\n";
+
+		return pre_result+"\t<fo:table-body>\n"+row_data+result;
+	}
+
+	static function PositiveLimit(numb, minimum=0) {
+		if (numb<minimum)
+			numb=minimum;
+		return numb;
+	}
+
+	static function DoDirectory(string path) {
+		path=StrReplace(path, "\\","/");
+		var path_arr=StrSplit(path, "/");
+
+		var len=length path_arr;
+
+		var base="";
+		for (var i=0;i<len;i++) {
+			base+=path_arr[i]+"/";
+			_mkdir(base);
+		}
+		return true;
+	}
+
+	static function GetIDFrom(view) {
+		if (view) {
+			var index=-1;
+			if (classof view=="RTreeView") {
+				index=view.RowIndex;
+			} else
+				index=value (""+view.Path);
+			if (index>-1) {
+				var item=view.Items[index];
+				if (item) {
+					var len=length item;
+					if (len>1)
+						return value (""+item[len-1]);
+				}
+			}
+		}
+		return -1;
+	}
+
+	static function ItemOnScreen(control, id, var index) {
+		index=-1;
+		var items=control.Items;
+		var len=items.Count;
+		for (var i=0;i<len;i++) {
+			var row=items[i];
+			if (row) {
+				var t_id=row[(length row)-1];
+				if (t_id==id) {
+					index=i;
+					return row;
+				}
+			}
+		}
+		return null;
+	}
+
+	static function ComboData(Items, id) {
+		if (id<=0)
+			return "-";
+		var len=Items.Count;
+		for (var i=0;i<len;i++) {
+			var item=Items[i];
+			if (item) {
+				var len_item=length item;
+				if (item[len_item-1]==id)
+					return item[0];
+			}
+				
+		}
+		return "-";
+	}
+
+	static function SentenceCase(string s) {
+		if (s) {
+			s=ToLower(s);
+			s[0]=ToUpper(s[0]);
+		}
+		return s;
+	}
+
+	static function NameCase(string s) {
+		var len=length s;
+		if (len) {
+			var next_is_upper=true;
+			var ord_a=ord('a');
+			var ord_z=ord('z');
+			var ord_A=ord('A');
+			var ord_Z=ord('Z');
+			var ord_0=ord('0');
+			var ord_9=ord('9');
+			var ord_=ord('_');
+
+			for (var i=0;i<len;i++) {
+				var c=s[i];
+				var ord_c=ord(c);
+				if (	((ord_c>=ord_a) && (ord_c<=ord_z)) ||
+					((ord_c>=ord_A) && (ord_c<=ord_Z)) ||
+					((ord_c>=ord_0) && (ord_c<=ord_9)) ||
+					(ord_c==ord_)) {
+					if (next_is_upper) {
+						c=ToUpper(c);
+						next_is_upper=false;
+					} else
+						c=ToLower(c);
+					s[i]=c;
+				} else
+					next_is_upper=true;
+			}
+                }
+		return s;
+	}
+
+	static function ShouldUseIndex(fulltext, string query) {
+		if ((!query) || (!fulltext))
+			return null;
+
+		var lenft=length fulltext;
+		var[] res;
+
+		var last=lenft-1;
+		for (var i=0;i<lenft;i++) {
+			var t1=fulltext[i];
+			if (!t1)
+				return null;
+
+			var len=length t1;
+
+			if (len==3) {
+			    if ((t1[1]=="<=") && (!t1[2]) && (!t1[0])) {
+			        res[length res]=[t1[0], "0", t1[2]];
+			        continue;
+			    } else
+			    if ((t1[1]=="[LIKE]") || (t1[1]=="=")) {
+			        res[length res]=[t1[0], t1[2], t1[2]];
+			        continue;
+			    }
+			} else
+			    return null;
+
+			if (i==last)
+				return null;
+
+			var t2=fulltext[++i];
+
+			// exclude relations
+			if ((!t1) || (len!=3) || (!t2) || (length t2!=3) || (!t1[0]) || (!t2[0]))
+				return null;
+
+			// not the same field
+			if (t1[0]!=t2[0])
+				return null;
+
+			// valid only for range searches
+			if ((t1[1]!=">=") && (t2[1]!="<="))
+				return null;
+
+			// empty fields not allowed
+			if (!t2[2])
+				return null;
+
+			// field, start..end
+			res[length res]=[t1[0], t1[2], t2[2]];
+		}
+
+		if (!res)
+			return null;
+		return res;
+	}
+
+        static function RemoveNonAlpha(name) {
+		if (typeof name=="numeric")
+			return name;
+
+		var len=length name;
+		var result="";
+		var ord_a=ord('a');
+		var ord_z=ord('z');
+		var ord_A=ord('A');
+		var ord_Z=ord('Z');
+		var ord_0=ord('0');
+		var ord_9=ord('9');
+		var ord_=ord('_');
+
+		for (var i=0;i<len;i++) {
+			var c=name[i];
+			var ord_c=ord(c);
+			if (((ord_c>=ord_a) && (ord_c<=ord_z)) ||
+				((ord_c>=ord_A) && (ord_c<=ord_Z)) ||
+				((ord_c>=ord_0) && (ord_c<=ord_9)) ||
+				(ord_c==ord_))
+				result+=c;
+			else
+                        	result+="_";
+		}
+		return result;
+	}
+
+	static function CSVSafe(var data, string separator=",", string line_separator="", string quotes='"') {
+		var result="";
+		if (!line_separator)
+			line_separator="\n";
+		if ((data) && ((Pos(data, separator)) || (Pos(data, quotes)) || (Pos(data, line_separator)))) {
+			result=quotes+StrReplace(data, quotes, quotes+quotes)+quotes;
+		} else
+			return data;
+		return result;
+	}
+
+	static function FindCSVSeparator(var data) {
+		if (data) {
+			var len=length data;
+			var comma_count=0;
+			var semicolon_count=0;
+			var tab_count=0;
+			for (var i=0;i<len;i++) {
+				var c=data[i];
+				if ((c=='\n') && ((comma_count) || (semicolon_count) || (tab_count)))
+					break;
+				switch (c) {
+					case ",":
+						comma_count++;
+						break;
+					case ";":
+						semicolon_count++;
+						break;
+					case "\t":
+						tab_count++;
+						break;
+					case "\"":
+						// is data column !
+						return ",";
+				}
+			}
+			if ((semicolon_count>comma_count) && (semicolon_count>tab_count))
+				return ";";
+			if ((tab_count>comma_count) && (tab_count>semicolon_count))
+				return "\t";
+			if (!comma_count)
+				return ";";
+		}
+		return ",";
+	}
+
+	static function ImportCSV(delegate deleg, delegate deleg_write, var csv_data, string type, var error="", separator="") {
+		if (!separator)
+			separator=Utils::FindCSVSeparator(csv_data);
+		var csv=new CSV();
+		csv.Delim=separator;
+		var arr=csv.Parse(csv_data, true);
+		error=csv.ErrorText;
+		var total=0;
+		if (arr) {
+			var headers=arr[0];
+			var len=length arr;
+			if (len)
+				GLOBALS()["gyro.import.total"]=len-1;
+			for (var i=1;i<len;i++) {
+				var line=arr[i];
+				if (line) {
+					var entity=deleg(type);
+					if (!entity)
+						return -1;
+					total++;
+					var len2=length line;
+					for (var j=0;j<len2;j++) {
+						var mname=headers[j];
+						if (mname) {
+							try {
+								entity.SetByMemberName(null, mname, line[j]);
+							} catch (var dummy) {
+								// nothing ... non existent member
+							}
+						}
+					}
+					if (deleg_write(entity))
+						total++;
+				}
+			}
+		}
+		return total;
+	}
+
+	static function If(var condition, var true_exp, var false_exp) {
+		if (condition)
+			return true_exp;
+		else
+			return false_exp;
+	}
+
+	static function SafeId(id, var distinct=null) {
+		var res="";
+		distinct=false;
+		if (!id)
+			return res;
+		if (typeof id=="array") {
+			if (length id>1) {
+				res=new [];
+				res['$in']=id;
+				distinct=true;
+			} else
+				res=id[0];
+		} else
+			res=""+id;
+		return res;
+	}
+
+	static function Validate(val, expression) {
+		var arr=preg(""+val, expression);
+		if (!arr)
+			return false;
+		if (arr[0]==val)
+			return true;
+		return false;
+	}
+
+	static function Contains(array arr, string element) {
+		element=ToLower(element);
+		var len=length arr;
+		for (var i=0;i<len;i++) {
+			if ((arr[i]) && (ToLower(""+arr[i])==element))
+				return true;
+		}
+		return false;
+	}
+
+    static function Increment([DBTYPE]Connection dc, id, string collection, string member, number count=1) {
+        var dataset=new [DBTYPE]DataSet(dc, collection);
+        dataset.Query=id;
+        var []data;
+        data['$inc']=new [];
+        data['$inc'][member]=count;
+        dataset.Update(data);
+        var err=dataset.LastError();
+        if (err)
+            throw err+"\n("+@class+"."+@member+":"+@line+")";
+    }
+
+    static function Set([DBTYPE]Connection dc, id, string collection, string member, val) {
+        var dataset=new [DBTYPE]DataSet(dc, collection);
+        dataset.Query=id;
+        var []data;
+        data['$set']=new [];
+        data['$set'][member]=val;
+        dataset.Update(data);
+        var err=dataset.LastError();
+        if (err)
+            throw err+"\n("+@class+"."+@member+":"+@line+")";
+    }
+
+    static function AddToArray([DBTYPE]Connection dc, string table_name, string m_adv_mname, this_id, linked_id, remove_from_set=false) {
+        if ((!this_id) || (!linked_id))
+            return -1;
+        var dataset=new [DBTYPE]DataSet(dc, table_name);
+        if (typeof this_id=="array") {
+            dataset.Query['_id']=new [];
+            dataset.Query['_id']['$in']=this_id;
+        } else
+            dataset.Query=this_id;
+        var arr=new [];
+        var op='$addToSet';
+        if (remove_from_set) {
+            if (typeof linked_id=="array")
+                op='$pullAll';
+            else
+                op='$pull';
+        }
+        arr[op]=new [];
+
+        if ((!remove_from_set) && (typeof linked_id=="array")) {
+            arr[op][m_adv_mname]=new [];
+            arr[op][m_adv_mname]['$each']=linked_id;
+        } else
+            arr[op][m_adv_mname]=linked_id;
+        var res=dataset.Update(arr, false, true);
+        var err=dataset.LastError();
+        if (err)
+            throw err+"\n("+@class+"."+@member+":"+@line+")";
+        return res;
+    }
+
+	static function ViewOrder(view) {
+		var count=view.Items.Count;
+		var result=count;
+		for (var i=0;i<count;i++) {
+			var item=view.Items[i];
+			if (item) {
+				var len=length item;
+				if (len>2) {
+					var order=item[len-3];
+					if (order>result)
+						result=order;
+				}
+			}
+		}
+		return result;
+	}
+
+	static function StrToTime(date, as_arr=false) {
+		var date_arr=StrSplit(date, " ");
+
+		var d=""+date_arr[0];
+		var t=""+date_arr[1];
+
+		var d_arr=StrNumberSplit(d, "-");
+		var t_arr=StrNumberSplit(t, ":");
+
+	        var tm_arr=_localtime(time());
+
+	        tm_arr["tm_year"]=d_arr[0]-1900;
+        	tm_arr["tm_mon"]=d_arr[1]-1;
+	        tm_arr["tm_mday"]=d_arr[2];
+
+	        tm_arr["tm_hour"]=t_arr[0];
+        	tm_arr["tm_min"]=t_arr[1];
+	        tm_arr["tm_sec"]=t_arr[2];
+		if (as_arr)
+			return tm_arr;
+                    
+        	var tm=mktime(tm_arr);
+
+		return tm;
+	}
+
+	static function HasNext(view, last_id) {
+		if ((!view) || (!last_id) || (last_id<0))
+			return 0;
+		var items=view.Items;
+		var len=items.Count;
+		len--;
+		for (var i=0;i<len;i++) {
+			var item=items[i];
+			if (item) {
+				var id=item[length item - 1];
+				if ((id) && (id==last_id)) {
+					var item2=items[i+1];
+					if (item2)
+						return item2[length item2 - 1];
+					return 0;
+				}
+			}
+		}
+		return 0;
+	}
+
+	static function HasPrev(view, last_id) {
+		if ((!view) || (!last_id) || (last_id<0))
+			return 0;
+		var items=view.Items;
+		var len=items.Count;
+		var prec_id=0;
+		for (var i=0;i<len;i++) {
+			var item=items[i];
+			if (item) {
+				var id=item[length item - 1];
+				if ((id) && (id==last_id))
+					return prec_id;
+				prec_id=id;
+			}
+		}
+		return 0;
+	}
+
+	static function MoveViewTo(view, t_id) {
+		if ((!view) || (!t_id) || (t_id<0))
+			return 0;
+		var items=view.Items;
+		var len=items.Count;
+		for (var i=0;i<len;i++) {
+			var item=items[i];
+			if (item) {
+				var id=item[length item - 1];
+				if ((id) && (id==t_id)) {
+					if (classof view=="RTreeView")
+						view.RowIndex=i;
+					else
+					if (classof view=="RIconView")
+						view.Path=""+i;
+					return i;
+				}
+			}
+		}
+		return -1;
+	}
+
+	static function ViewRemove(view, arr, renumber=true) {
+		if ((!view) || (!arr))
+			return 0;
+
+		var removed=0;
+		var items=view.Items;
+		var len=items.Count;
+		for (var i=0;i<len;i++) {
+			var item=items[i];
+			if (item) {
+				var id=item[length item - 1];
+				if ((id) && (arr[""+id])) {
+					view.DeleteItem(i);
+					i--;
+					len--;
+					removed++;
+				}
+			}
+		}
+		if ((renumber) && (removed)) {
+			items=view.Items;
+			len=items.Count;
+			var index=1;
+			for (i=0;i<len;i++) {
+				item=items[i];
+				if (item) {
+					item[0]=index++;
+					view.UpdateItem(i, item);
+				}
+			}
+		}
+		return removed;
+	}
+
+	static function CheckRights(LoggedUser, number level, string memname="") {
+		if (!LoggedUser)
+			return 0;
+		if (LoggedUser.Level<level) {
+			var val=0;
+			if ((memname) && (GetMember(LoggedUser, memname, val))) {
+				if (val)
+					return 0;
+			}
+			return 1;
+		}
+		return 0;
+	}
+
+
+	static function CleanEvents(events, target_date, is_slave=false, font_prefix="xx-large", start_hour=8, hours=12, resolution=2, markup=true) {
+		if (is_slave)
+			return KeySorted(events);
+
+		events=KeySorted(events);
+		var[] res;
+		var min;
+
+		if (resolution<=0)
+			resolution=2;
+
+		var fraction=60/resolution;
+
+		var[] round_events;
+		var len=length events;
+		var begin=""+start_hour;
+		if (length begin==1)
+			begin="0"+start_hour;
+
+		var h=0;
+		var s=0.25;
+		var v=0.95;
+		var[] pushed_colors;
+		var master_color="#FFFFFF";
+		for (var i=0;i<len;i++) {
+			var e=events[i];
+			if (e) {
+				var color=PieChart::HSVtoRGB(h,s,v);
+				h+=50;
+				if (h>=360)
+					h-=360;
+
+				var interval=StrSplit(e[1],"\n");
+				var base=StrSplit(interval[0]," ");
+				var when=base[1];
+				var end="";
+
+				if ((base[0]<target_date) || (!when)) {
+					if (start_hour<10)
+						when="0"+start_hour+":00:00";
+					else
+						when=""+start_hour+":00:00";
+
+				}
+
+				var key=begin;
+				if (when) {
+					var t=StrNumberSplit(when,":");
+					if (length t>1) {
+						var h1=t[0];
+						var m1=t[1];
+						m1=round(m1/fraction)*fraction;
+						if (m1>=60) {
+							h1++;
+							if (h1>23)
+								h1=0;
+							m1=0;
+						}
+						key="";
+						if (h1<10)
+							key="0"+h1;
+						else
+							key=""+h1;
+						if (m1<10)
+							key+=":0"+m1;
+						else
+							key+=":"+m1;
+
+						if (h1+1>start_hour+hours)
+							hours=24;
+
+						if (h1<start_hour) {
+							if (hours<=24) {
+								hours+=start_hour-h1;
+								if (hours>24)
+									hours=24;
+							}
+							start_hour=h1;
+						}
+					}
+				}
+
+
+				if (interval[1]) {
+					var base2=StrSplit(interval[1]," ");
+					if (base2[0]>target_date) {
+						if (base[0]==target_date)
+							pushed_colors[key]=color;
+						else
+							master_color=color;
+						
+					} else
+					if (base2[0]==target_date) {
+						var when2=base2[1];
+						if (when2>when) {
+							t=StrNumberSplit(when2,":");
+							if (length t>1) {
+								h1=t[0];
+								m1=t[1];
+								m1=round(m1/fraction)*fraction;
+								if (m1>=60) {
+									h1++;
+									if (h1>23)
+										h1=0;
+									m1=0;
+								} else
+								if (m1<0) {
+									m1=60+m1;
+									h1--;
+									if (h1<0)
+										h1=23;
+								}
+								var key3="";
+								if (h1<10)
+									key3="0"+h1;
+								else
+									key3=""+h1;
+								if (m1<10)
+									key3+=":0"+m1;
+								else
+									key3+=":"+m1;
+
+								pushed_colors[key]=color;
+								pushed_colors[key3]=master_color;
+							}
+						}
+					}
+				}
+
+				var arr=round_events[key];
+				if (!arr) {
+					arr=new [];
+					round_events[key]=arr;
+				}
+
+				arr[length arr]=e;
+				e[1]=color;
+			}
+		}
+
+		if (start_hour+hours>=24) {
+			start_hour=0;
+			hours=24;
+		}
+
+		var hour=start_hour;
+
+		for (i=0;i<hours;i++) {
+
+			for (var j=0;j<resolution;j++) {
+				if (hour<10)
+					var shour="0"+hour;
+				else
+					shour=""+hour;
+				min=int32(j*fraction);
+				if (min<10)
+					var smin="0"+min;
+				else
+					smin=""+min;
+
+				key=shour+":"+smin;
+
+				arr=round_events[key];
+
+				var icon=-1;
+				var e_type="";
+				var e_id="-1";
+				var e_desc="";
+				var e_res="";
+				var e_name="";
+
+				var pcolor=pushed_colors[key];
+				if (pcolor)
+					master_color=pcolor;
+
+				color=master_color;
+
+
+				if (arr) {
+					e=arr[0];
+					if (e) {
+						icon=e[0];
+						e_desc=e[2];
+						e_name=e[3];
+						e_res=e[4];
+						e_type=e[5];
+						e_id=e[(length e)-1];
+						color=e[1];
+						if (e_res) {
+							if (markup)
+								e_res="\n<span size='small'>"+Utils::XMLSafe(e_res)+"</span>";
+							else
+								e_res="\n"+e_res;
+						}
+
+					}
+				}
+
+				if (markup) {
+					if (j)
+						res[key]=[icon, "<span size='$font_prefix'><tt>&#160;&#160;</tt></span>:"+smin, Utils::XMLSafe(e_desc)+e_res, color, e_name, e_type, e_id];
+					else
+						res[key]=[icon, "<span size='$font_prefix'><tt><b>"+shour+"</b></tt></span>:"+smin, Utils::XMLSafe(e_desc)+e_res, color, e_name, e_type, e_id];
+
+				} else
+					res[key]=[-1, key, e_desc, e_name, e_type, e_id];
+
+				if (arr) {
+					var len_arr=length arr;
+					for (var ii=1;ii<len_arr;ii++) {
+						e=arr[ii];
+						if (e) {
+							icon=e[0];
+							e_desc=e[2];
+							e_name=e[3];
+							e_res=e[4];
+							e_type=e[5];
+							e_id=e[(length e)-1];
+							color=e[1];
+							if (e_res) {
+								if (markup)
+									e_res="\n<span size='small'>"+Utils::XMLSafe(e_res)+"</span>";
+								else
+									e_res="\n"+e_res;
+							}
+							if (markup)
+								e_desc=Utils::XMLSafe(e_desc);
+
+							if (ii<10)
+								var key2=key+"00"+ii;
+							else
+							if (ii<100)
+								key2=key+"0"+ii;
+							else
+								key2=key+ii;
+							res[key2]=[icon, "...", e_desc+e_res, color, e_name, e_type, e_id];
+						}
+					}
+				}
+
+			}
+			hour++;
+			if (hour>23)
+				hour=0;
+		}
+
+		return KeySorted(res);
+	}
+
+	static function GetHour(Sender, index) {
+		var item=Sender.Items[index];
+		if ((item) && (item[5]))
+			return item[5];
+		return "09:00";
+	}
+
+	static function Cache(string app, string key, val, timeout=-1) {
+		var m=GLOBALS()["application.MemCached"];
+		if (m) {
+			var data;
+			switch (typeof val) {
+				case "numeric":
+					data=""+val;
+					break;
+				case "string":
+					data=val;
+					break;
+				case "delegate":
+					throw "Don't know how to store a delegate in memcached";
+				default:
+					var data2=new _MemCachedDataContainer();
+					data2.Data=val;
+					data=data2.Serialize("");
+			}
+			key=sha1(key);
+			try {
+				m.SetByKey(app, key, data, timeout);
+			} catch (var exc) {
+				return -1;
+			}
+			return 1;
+		}
+		return 0;
+	}
+
+	static function GetCache(string app, string key, var result, need_object=false) {
+		var m=GLOBALS()["application.MemCached"];
+		result=null;
+		if (m) {
+			try {
+				key=sha1(key);
+				var data=m.GetByKey(app, key);
+				if (need_object) {
+					if (data)
+						data=Serializable.UnSerialize(data, true);
+					if (data)
+						result=data.Data;
+				} else
+					result=data;
+			} catch (var exc) {
+				// nothing;
+				return false;
+			}
+			return true;
+		}
+		return false;
+	}
+
+	static function CheckNullDate(fmt, date) {
+		if (date) {
+			var d=StrSplit(""+date, " ")[0];
+			if ((!d) || (length d<10) || (d=="0000-00-00") || (d=="0001-01-01"))
+				return "";
+		} else
+			return "";
+
+		if (fmt)
+			return fmt;
+		return date;
+	}
+
+	static function SafeChanged(fields) {
+		var arr=StrSplit(fields, "\n");
+		var len=length arr;
+		var res="";
+		var[] cache;
+		for (var i=0;i<len;i++) {
+			var e=arr[i];
+			if ((e) && (!cache[e])) {
+				cache[e]=e;
+				if (res)
+					res+="\n";
+				res+=e;
+			}
+		}
+		return res;
+	}
+
+	static function GetParentAtLevel(parentchain, level) {
+		var arr=StrSplit(""+parentchain, "/");
+		if (length arr<=level)
+			return "";
+		return arr[level];
+	}
+
+	static function GetAggregation(table_name, array data, var aggfields=null, var targetfields=null) {
+		var[] result;
+		var len=length data;
+		aggfields=new [];
+		targetfields=new [];
+		for (var i=0;i<len;i++) {
+			var agg=data[i];
+			if ((agg) && (length agg>=2)) {
+				var arr=new [];
+				arr['$'+agg[0]]='$'+agg[1];
+				result["_aggfield$i"]=arr;
+				aggfields["_aggfield$i"]="_aggfield$i";
+				targetfields[agg[1]]=agg[1];
+			}
+		}
+		return result;
+	}
+
+    static function DoZDate(string data, string timezone="") {
+        var iarr=StrSplit(data, " ");
+        var date=""+iarr[0];
+        var time_data=""+iarr[1];
+        var arr=StrSplit(date, "-");
+        var tarr=StrSplit(time_data, ":");
+        var year=arr[0];
+        var month=arr[1];
+        var day=arr[2];
+        var hour=tarr[0];
+        var minute=tarr[1];
+        var sec=tarr[2];
+        
+        var time_arr=localtime(time());
+        time_arr["tm_hour"]=value (""+hour);
+        time_arr["tm_min"]=value (""+minute);
+        time_arr["tm_sec"]=value (""+sec);
+        time_arr["tm_year"]=value (""+year)-1900;
+        time_arr["tm_mon"]=value (""+month) - 1;
+        time_arr["tm_mday"]=value (""+day);
+        
+        var time_arr2=/*gmtime*/localtime(mktime(time_arr));
+        var result="";
+        year=1900+time_arr["tm_year"];
+        var mon=""+(time_arr["tm_mon"]+1);
+        if (length mon < 2)
+            mon="0"+mon;
+        day=""+(time_arr["tm_mday"]);
+        if (length day < 2)
+            day="0"+day;
+
+        if (timezone)
+            result="$timezone:$year$mon$day";
+        else
+            result="$year$mon$day";
+        result+="T";
+        hour=""+time_arr["tm_hour"];
+        if (length hour<2)
+            hour="0"+hour;
+        var min=""+time_arr["tm_min"];
+        if (length min<2)
+            min="0"+min;
+        result+="$hour$min";
+        result+="00";
+        if (!timezone)
+            result+="Z";
+        return result;
+    }
+}
+
+
+// in order to avoid double definition for Misc (recursive inclusion)
+class DummyClass {
+    private function DummyFunction() {
+       new Misc();
+    }
+}

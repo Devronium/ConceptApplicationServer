@@ -1,0 +1,102 @@
+include XapianDocument.con
+include XapianWritableDatabase.con
+include XapianStem.con
+
+class XapianTermGenerator {
+	protected var THISREF=null;
+	public property REF { get THISREF }
+
+	public function XapianTermGenerator() {
+		this.THISREF=XapianTermGeneratorCreate(var exc);
+	}
+	public function finalize() {
+		XapianTermGeneratorDestroy(THISREF, var exc);
+		this.THISREF=null;
+	}
+	public function set_stemmer(XapianStem stemmer) {
+		var result=XapianTermGenerator__set_stemmer(this->THISREF, var exc, stemmer.REF);
+		if (exc)
+			throw exc;
+		return result;
+	}
+
+	public function set_stopper(number stop=null) {
+		var result=XapianTermGenerator__set_stopper(this->THISREF, var exc, stop);
+		if (exc)
+			throw exc;
+		return result;
+	}
+
+	public function set_document(XapianDocument document) {
+		var result=XapianTermGenerator__set_document(this->THISREF, var exc, document.REF);
+		if (exc)
+			throw exc;
+		return result;
+	}
+
+	public function get_document() {
+		var result=XapianTermGenerator__get_document(this->THISREF, var exc);
+		if (exc)
+			throw exc;
+		if (result)
+			return new XapianDocument(result);
+		return result;
+	}
+
+	public function set_database(XapianWritableDatabase db) {
+		var result=XapianTermGenerator__set_database(this->THISREF, var exc, db.REF);
+		if (exc)
+			throw exc;
+		return result;
+	}
+
+	public function set_flags(number toggle, number mask=0) {
+		var result=XapianTermGenerator__set_flags(this->THISREF, var exc, toggle, mask);
+		if (exc)
+			throw exc;
+		return result;
+	}
+
+	public function index_text(string text, number weight=1, string prefix="") {
+		var result=XapianTermGenerator__index_text(this->THISREF, var exc, text, weight, prefix);
+		if (exc)
+			throw exc;
+		return result;
+	}
+
+	public function index_text_without_positions(string text, number weight=1, string prefix="") {
+		var result=XapianTermGenerator__index_text_without_positions(this->THISREF, var exc, text, weight, prefix);
+		if (exc)
+			throw exc;
+		return result;
+	}
+
+	public function increase_termpos(number delta=100) {
+		var result=XapianTermGenerator__increase_termpos(this->THISREF, var exc, delta);
+		if (exc)
+			throw exc;
+		return result;
+	}
+
+	public function get_termpos() {
+		var result=XapianTermGenerator__get_termpos(this->THISREF, var exc);
+		if (exc)
+			throw exc;
+		return result;
+	}
+
+	public function set_termpos(number termpos) {
+		var result=XapianTermGenerator__set_termpos(this->THISREF, var exc, termpos);
+		if (exc)
+			throw exc;
+		return result;
+	}
+
+	public function get_description() {
+		var result=XapianTermGenerator__get_description(this->THISREF, var exc);
+		if (exc)
+			throw exc;
+		return result;
+	}
+
+}

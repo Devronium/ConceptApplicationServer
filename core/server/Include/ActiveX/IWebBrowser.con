@@ -1,0 +1,394 @@
+include ActiveXControl.con
+
+//////////////////////////////////////////////////////////////////////////
+// This file was generated automatically by AXInterfaceGenerator        //
+//                                          (c)2006 RadGs Software      //
+//                                                                      //
+//                   PLEASE DO NOT MODIFY THIS FILE !                   //
+//////////////////////////////////////////////////////////////////////////
+
+class IWebBrowser extends ActiveXControl {
+	//Uncomment LICENCE_KEY if the control needs to be registered
+ 	function IWebBrowser(Owner/*, LICENCE_KEY*/) {
+		//super(Owner, "Shell.Explorer.1", LICENCE_KEY);
+		super(Owner, "Shell.Explorer.1", "");
+		__AX_SET_EVENTS();
+	}
+
+/*0*/	function /*{HRESULT}*/ GoBack()  {
+		Send(MSG_AX_CALL_METHOD, "GoBack", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*1*/	function /*{HRESULT}*/ GoForward()  {
+		Send(MSG_AX_CALL_METHOD, "GoForward", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*2*/	function /*{HRESULT}*/ GoHome()  {
+		Send(MSG_AX_CALL_METHOD, "GoHome", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*3*/	function /*{HRESULT}*/ GoSearch()  {
+		Send(MSG_AX_CALL_METHOD, "GoSearch", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*4*/	function /*{HRESULT}*/ Navigate(parameter0 /*{BSTR}*/, var parameter1 /*{VARIANT*}*/, var parameter2 /*{VARIANT*}*/, var parameter3 /*{VARIANT*}*/, var parameter4 /*{VARIANT*}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter1);
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter2);
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter3);
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter4);
+		Send(MSG_AX_CALL_METHOD, "Navigate", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*5*/	function /*{HRESULT}*/ Refresh()  {
+		Send(MSG_AX_CALL_METHOD, "Refresh", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*6*/	function /*{HRESULT}*/ Refresh2(var parameter0 /*{VARIANT*}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_CALL_METHOD, "Refresh2", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*7*/	function /*{HRESULT}*/ Stop()  {
+		Send(MSG_AX_CALL_METHOD, "Stop", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*8*/	function /*{HRESULT}*/ AX_GET_Application( /*{IDispatch**}*/) /*{propget}*/ {
+		Send(MSG_AX_GET_PROPERTY, "Application", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*9*/	function /*{HRESULT}*/ AX_GET_Parent( /*{IDispatch**}*/) /*{propget}*/ {
+		Send(MSG_AX_GET_PROPERTY, "Parent", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*10*/	function /*{HRESULT}*/ AX_GET_Container( /*{IDispatch**}*/) /*{propget}*/ {
+		Send(MSG_AX_GET_PROPERTY, "Container", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*11*/	function /*{HRESULT}*/ AX_GET_Document( /*{IDispatch**}*/) /*{propget}*/ {
+		Send(MSG_AX_GET_PROPERTY, "Document", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*12*/	function /*{HRESULT}*/ AX_GET_TopLevelContainer( /*{VARIANT_BOOL*}*/) /*{propget}*/ {
+		Send(MSG_AX_GET_PROPERTY, "TopLevelContainer", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*13*/	function /*{HRESULT}*/ AX_GET_Type( /*{BSTR*}*/) /*{propget}*/ {
+		Send(MSG_AX_GET_PROPERTY, "Type", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*14*/	function /*{HRESULT}*/ AX_GET_Left( /*{long*}*/) /*{propget}*/ {
+		Send(MSG_AX_GET_PROPERTY, "Left", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*15*/	function /*{HRESULT}*/ AX_SET_Left(parameter0 /*{long}*/) /*{propput}*/ {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_SET_PROPERTY, "Left", "0");
+	}
+
+/*16*/	function /*{HRESULT}*/ AX_GET_Top( /*{long*}*/) /*{propget}*/ {
+		Send(MSG_AX_GET_PROPERTY, "Top", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*17*/	function /*{HRESULT}*/ AX_SET_Top(parameter0 /*{long}*/) /*{propput}*/ {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_SET_PROPERTY, "Top", "0");
+	}
+
+/*18*/	function /*{HRESULT}*/ AX_GET_Width( /*{long*}*/) /*{propget}*/ {
+		Send(MSG_AX_GET_PROPERTY, "Width", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*19*/	function /*{HRESULT}*/ AX_SET_Width(parameter0 /*{long}*/) /*{propput}*/ {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_SET_PROPERTY, "Width", "0");
+	}
+
+/*20*/	function /*{HRESULT}*/ AX_GET_Height( /*{long*}*/) /*{propget}*/ {
+		Send(MSG_AX_GET_PROPERTY, "Height", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*21*/	function /*{HRESULT}*/ AX_SET_Height(parameter0 /*{long}*/) /*{propput}*/ {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_SET_PROPERTY, "Height", "0");
+	}
+
+/*22*/	function /*{HRESULT}*/ AX_GET_LocationName( /*{BSTR*}*/) /*{propget}*/ {
+		Send(MSG_AX_GET_PROPERTY, "LocationName", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*23*/	function /*{HRESULT}*/ AX_GET_LocationURL( /*{BSTR*}*/) /*{propget}*/ {
+		Send(MSG_AX_GET_PROPERTY, "LocationURL", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*24*/	function /*{HRESULT}*/ AX_GET_Busy( /*{VARIANT_BOOL*}*/) /*{propget}*/ {
+		Send(MSG_AX_GET_PROPERTY, "Busy", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+//---------------- BEGIN OF EVENTS INTERFACE (info only) -----------------//
+	//Event syntax:void BeforeNavigate(parameter0<BSTR>, parameter1<long>, parameter2<BSTR>, parameter3<VARIANT*>, parameter4<BSTR>, parameter5<VARIANT_BOOL*>) 
+	public property _OnBeforeNavigate { get Get_OnBeforeNavigate, set Set_OnBeforeNavigate }
+	public function Get_OnBeforeNavigate() {
+		return _AX_EVENTS[1];
+	}
+
+	public function Set_OnBeforeNavigate(delegate deleg) {
+		_AX_EVENTS[1]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",1);
+	}
+
+	//Event syntax:void NavigateComplete(parameter0<BSTR>) 
+	public property _OnNavigateComplete { get Get_OnNavigateComplete, set Set_OnNavigateComplete }
+	public function Get_OnNavigateComplete() {
+		return _AX_EVENTS[2];
+	}
+
+	public function Set_OnNavigateComplete(delegate deleg) {
+		_AX_EVENTS[2]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",2);
+	}
+
+	//Event syntax:void StatusTextChange(parameter0<BSTR>) 
+	public property _OnStatusTextChange { get Get_OnStatusTextChange, set Set_OnStatusTextChange }
+	public function Get_OnStatusTextChange() {
+		return _AX_EVENTS[3];
+	}
+
+	public function Set_OnStatusTextChange(delegate deleg) {
+		_AX_EVENTS[3]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",3);
+	}
+
+	//Event syntax:void ProgressChange(parameter0<long>, parameter1<long>) 
+	public property _OnProgressChange { get Get_OnProgressChange, set Set_OnProgressChange }
+	public function Get_OnProgressChange() {
+		return _AX_EVENTS[4];
+	}
+
+	public function Set_OnProgressChange(delegate deleg) {
+		_AX_EVENTS[4]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",4);
+	}
+
+	//Event syntax:void DownloadComplete() 
+	public property _OnDownloadComplete { get Get_OnDownloadComplete, set Set_OnDownloadComplete }
+	public function Get_OnDownloadComplete() {
+		return _AX_EVENTS[5];
+	}
+
+	public function Set_OnDownloadComplete(delegate deleg) {
+		_AX_EVENTS[5]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",5);
+	}
+
+	//Event syntax:void CommandStateChange(parameter0<long>, parameter1<VARIANT_BOOL>) 
+	public property _OnCommandStateChange { get Get_OnCommandStateChange, set Set_OnCommandStateChange }
+	public function Get_OnCommandStateChange() {
+		return _AX_EVENTS[6];
+	}
+
+	public function Set_OnCommandStateChange(delegate deleg) {
+		_AX_EVENTS[6]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",6);
+	}
+
+	//Event syntax:void DownloadBegin() 
+	public property _OnDownloadBegin { get Get_OnDownloadBegin, set Set_OnDownloadBegin }
+	public function Get_OnDownloadBegin() {
+		return _AX_EVENTS[7];
+	}
+
+	public function Set_OnDownloadBegin(delegate deleg) {
+		_AX_EVENTS[7]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",7);
+	}
+
+	//Event syntax:void NewWindow(parameter0<BSTR>, parameter1<long>, parameter2<BSTR>, parameter3<VARIANT*>, parameter4<BSTR>, parameter5<VARIANT_BOOL*>) 
+	public property _OnNewWindow { get Get_OnNewWindow, set Set_OnNewWindow }
+	public function Get_OnNewWindow() {
+		return _AX_EVENTS[8];
+	}
+
+	public function Set_OnNewWindow(delegate deleg) {
+		_AX_EVENTS[8]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",8);
+	}
+
+	//Event syntax:void TitleChange(parameter0<BSTR>) 
+	public property _OnTitleChange { get Get_OnTitleChange, set Set_OnTitleChange }
+	public function Get_OnTitleChange() {
+		return _AX_EVENTS[9];
+	}
+
+	public function Set_OnTitleChange(delegate deleg) {
+		_AX_EVENTS[9]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",9);
+	}
+
+	//Event syntax:void FrameBeforeNavigate(parameter0<BSTR>, parameter1<long>, parameter2<BSTR>, parameter3<VARIANT*>, parameter4<BSTR>, parameter5<VARIANT_BOOL*>) 
+	public property _OnFrameBeforeNavigate { get Get_OnFrameBeforeNavigate, set Set_OnFrameBeforeNavigate }
+	public function Get_OnFrameBeforeNavigate() {
+		return _AX_EVENTS[10];
+	}
+
+	public function Set_OnFrameBeforeNavigate(delegate deleg) {
+		_AX_EVENTS[10]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",10);
+	}
+
+	//Event syntax:void FrameNavigateComplete(parameter0<BSTR>) 
+	public property _OnFrameNavigateComplete { get Get_OnFrameNavigateComplete, set Set_OnFrameNavigateComplete }
+	public function Get_OnFrameNavigateComplete() {
+		return _AX_EVENTS[11];
+	}
+
+	public function Set_OnFrameNavigateComplete(delegate deleg) {
+		_AX_EVENTS[11]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",11);
+	}
+
+	//Event syntax:void FrameNewWindow(parameter0<BSTR>, parameter1<long>, parameter2<BSTR>, parameter3<VARIANT*>, parameter4<BSTR>, parameter5<VARIANT_BOOL*>) 
+	public property _OnFrameNewWindow { get Get_OnFrameNewWindow, set Set_OnFrameNewWindow }
+	public function Get_OnFrameNewWindow() {
+		return _AX_EVENTS[12];
+	}
+
+	public function Set_OnFrameNewWindow(delegate deleg) {
+		_AX_EVENTS[12]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",12);
+	}
+
+	//Event syntax:void Quit(parameter0<VARIANT_BOOL*>) 
+	public property _OnQuit { get Get_OnQuit, set Set_OnQuit }
+	public function Get_OnQuit() {
+		return _AX_EVENTS[13];
+	}
+
+	public function Set_OnQuit(delegate deleg) {
+		_AX_EVENTS[13]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",13);
+	}
+
+	//Event syntax:void WindowMove() 
+	public property _OnWindowMove { get Get_OnWindowMove, set Set_OnWindowMove }
+	public function Get_OnWindowMove() {
+		return _AX_EVENTS[14];
+	}
+
+	public function Set_OnWindowMove(delegate deleg) {
+		_AX_EVENTS[14]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",14);
+	}
+
+	//Event syntax:void WindowResize() 
+	public property _OnWindowResize { get Get_OnWindowResize, set Set_OnWindowResize }
+	public function Get_OnWindowResize() {
+		return _AX_EVENTS[15];
+	}
+
+	public function Set_OnWindowResize(delegate deleg) {
+		_AX_EVENTS[15]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",15);
+	}
+
+	//Event syntax:void WindowActivate() 
+	public property _OnWindowActivate { get Get_OnWindowActivate, set Set_OnWindowActivate }
+	public function Get_OnWindowActivate() {
+		return _AX_EVENTS[16];
+	}
+
+	public function Set_OnWindowActivate(delegate deleg) {
+		_AX_EVENTS[16]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",16);
+	}
+
+	//Event syntax:void PropertyChange(parameter0<BSTR>) 
+	public property _OnPropertyChange { get Get_OnPropertyChange, set Set_OnPropertyChange }
+	public function Get_OnPropertyChange() {
+		return _AX_EVENTS[17];
+	}
+
+	public function Set_OnPropertyChange(delegate deleg) {
+		_AX_EVENTS[17]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",17);
+	}
+
+//------------------ END OF EVENTS INTERFACE (info only) -----------------//
+
+	public property Application { get AX_GET_Application }
+	public property AX_Parent { get AX_GET_Parent }
+	public property Container { get AX_GET_Container }
+	public property Document { get AX_GET_Document }
+	public property TopLevelContainer { get AX_GET_TopLevelContainer }
+	public property Type { get AX_GET_Type }
+	public property AX_Left { get AX_GET_Left, set AX_SET_Left }
+	public property AX_Top { get AX_GET_Top, set AX_SET_Top }
+	public property AX_Width { get AX_GET_Width, set AX_SET_Width }
+	public property AX_Height { get AX_GET_Height, set AX_SET_Height }
+	public property LocationName { get AX_GET_LocationName }
+	public property LocationURL { get AX_GET_LocationURL }
+	public property Busy { get AX_GET_Busy }
+}

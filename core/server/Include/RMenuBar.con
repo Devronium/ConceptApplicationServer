@@ -1,0 +1,101 @@
+include RemoteContainer.con
+include RMenu.con
+include RMenuItem.con
+include RSeparatorMenuItem.con
+include RImageMenuItem.con
+include RTearoffMenuItem.con
+include RCheckMenuItem.con
+include RImage.con
+include ClassID.con
+import standard.lib.str
+
+class RMenuBar extends RemoteContainer {
+	public function RMenuBar(OWNER) {
+		super(OWNER, CLASS_MENUBAR);
+	}
+
+	private function AccelerateRecursive(parent, array arr) {
+		var array=arr;
+		var len=length array;
+		var radio_item=0;
+		for (var i=0;i<len;i+=2) {
+			var text=&array[i];
+			var data=&array[i+1];
+			var image=&array[i+2];
+			var is_image=0;
+			var is_object=0;
+			var is_checked=0;
+			var is_radio=0;
+
+			if ((typeof image)=="class")  {
+				is_image=1;
+				is_object=1;
+				i++;
+			} else
+			if ((typeof image)=="numeric") {
+				i++;
+				if (image>0)
+					is_image=1;
+				if (image==IS_CHECK_FLAG)
+					is_checked=1;
+				else
+				if (image==IS_RADIO_FLAG)
+					is_radio=1;
+			} else
+			if ((typeof image)=="string") {
+				if ((Pos(image,"gtk-")>0) && (Pos(image,".")<=0)) {
+					i++;
+					is_image=1;
+				}
+			}
+
+			var menuitem;
+			if (text=="-") {
+				menuitem=&new RSeparatorMenuItem(parent);
+			} else
+			if (text==".") {
+				menuitem=&new RTearoffMenuItem(parent);
+			} else {
+				if (!is_image) {
+					if (is_checked) {
+						menuitem=&new RCheckMenuItem(parent,text);
+					} else
+					if (is_radio) {
+						menuitem=&new RRadioMenuItem(parent,text);
+						if (radio_item)
+							menuitem.GroupWith=radio_item;
+						else
+							radio_item=menuitem;
+						menuitem.Checked=false;
+					} else
+						menuitem=&new RMenuItem(parent,text);
+				} else {
+					menuitem=&new RImageMenuItem(parent,text);
+					if (!is_object) {
+						var stockid=image;
+						image=&new RImage(menuitem);
+						image.LoadResource(stockid,ICON_SIZE_MENU);
+					}
+					menuitem.Image=image;
+				}
+
+				if (typeof data=="delegate")
+					menuitem.OnActivate=data;
+				else
+				if (typeof data=="array") {
+					var menu=&new RMenu(menuitem);
+					AccelerateRecursive(menu,data);
+					menu.Show();
+				}
+			}
+			menuitem.Show();
+		}
+		if (radio_item)
+			radio_item.Checked=false;
+	}
+
+	public function Accelerate(array arr) {
+		AccelerateRecursive(this,arr);
+		Show();
+	}
+}

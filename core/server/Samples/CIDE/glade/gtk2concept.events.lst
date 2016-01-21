@@ -1,0 +1,4 @@
+on-frame-event:OnFrameEvent
+on-event:OnEvent
+move_cursor:OnCursorChanged
+move-cursor:OnCursorChanged

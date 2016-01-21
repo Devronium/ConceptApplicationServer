@@ -1,0 +1,8 @@
+// This file is written only if it does not exist.
+// Here shoud be the custom initialisation functions and classes.
+
+class MiscInit {
+	static function foo() {
+		// nothing
+	}
+}

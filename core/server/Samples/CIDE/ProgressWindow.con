@@ -1,0 +1,49 @@
+include RForm.con
+include RProgressBar.con
+import standard.C.casts
+
+
+class ProgressWindow extends RForm {
+	private var ProgressBar;
+	private var Step;
+	private var Fraction;
+
+
+	public function Begin(steps) {
+		Fraction=0;
+		ProgressBar.Fraction=Fraction;
+
+		if (!steps)
+			steps=1;
+
+		this.Step=1/steps;
+		ProgressBar.Caption="0%";
+	}
+
+	public function Advance(extra) {
+		Fraction+=Step;
+
+		var percent=int32(Fraction*100);
+		
+		if (extra)
+			ProgressBar.Caption="$percent%";
+		else {
+			ProgressBar.Caption="$extra ($percent%)";
+		}
+	}
+
+	public function ProgressWindow(Owner) {
+		super(Owner);
+		BeginUpdateSession();
+		MinWidth=200;
+		MinHeight=25;
+		KeepAbove=true;
+		Modal=true;
+		Titlebar=false;
+		Resizable=false;
+
+		ProgressBar=new RProgressBar(this);
+		ProgressBar.Show();
+		EndUpdateSession();
+	}
+}

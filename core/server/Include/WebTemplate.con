@@ -1,0 +1,69 @@
+import web.service.template
+import standard.C.io
+
+
+class WebTemplate {
+	private var _ERRORS="";
+	private var _RESULT="";
+	private var _CONTEXT;
+	private var _CONTENT="";
+	private var _TEMPLATEFILENAME="";
+
+	public property TemplateFile { get _TEMPLATEFILENAME, set SetTemplate }
+	public property TemplateContent { get _CONTENT, set SetTemplateContent }
+
+	public property Result { get _RESULT }
+
+	public property Errors { get _ERRORS }
+
+	public function Bind(szTemplate_var_name, var variable) {
+		return TBind(szTemplate_var_name, variable, _CONTEXT);
+	}
+
+	public function UnBind(var variable) {
+		return TUnBind(variable, _CONTEXT);
+	}
+	
+
+	public function Generate() {
+		_RESULT="";
+		TCompile(_CONTENT, _CONTEXT);
+		_ERRORS=TErrors(_CONTEXT);
+		if (_ERRORS) {
+			return false;
+		}
+		_RESULT=TExecute(_CONTEXT);
+		return true;
+	}
+
+	public function WebTemplate() {
+		_CONTEXT=NewTemplateContext();
+	}
+
+	public function SetTemplate(filename) {
+		_CONTENT=ReadFile(filename);
+		_TEMPLATEFILENAME="";
+		if (_CONTENT) {
+			_TEMPLATEFILENAME=filename;
+			return filename;
+		}
+		return filename;
+	}
+
+	public function SetTemplateContent(content) {
+		_CONTENT=content;
+		_TEMPLATEFILENAME="";
+		return content;
+	}
+
+	public function Done() {
+		if (_CONTEXT)
+			DestroyTemplateContext(_CONTEXT);
+		_CONTEXT=null;
+	}
+
+	public function finalize() {
+		if (_CONTEXT)
+			DestroyTemplateContext(_CONTEXT);
+	}
+}

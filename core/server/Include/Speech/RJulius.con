@@ -1,0 +1,613 @@
+include RemoteObject.con
+include Application.con
+include XMLDocument.con
+
+define P_STARTRECOGNITION	"1000"
+define P_PAUSERECOGNITION	"1001"
+define P_TERMINATERECOGNITION	"1002"
+define P_CONFFILE		"1003"
+define P_DFAGRAM		"1004"
+define P_DICTFILE		"1005"
+define P_HMMDEFS		"1006"
+define P_HMMLIST		"1007"
+define P_PENALTY1		"1008"
+define P_PENALTY2		"1009"
+define P_CCD			"1010"
+define P_IWCD1			"1011"
+define P_MIXTURES		"1012"
+define P_PRUNNING		"1013"
+define P_GSHMM			"1014"
+define P_GSNUM			"1015"
+define P_BEAMWIDTH		"1016"
+define P_BEAMWIDTH2		"1017"
+define P_SCOREBEAM		"1018"
+define P_HYPOTHESESSTACK	"1019"
+define P_HYPOTHESESOVERFLOW	"1020"
+define P_LOOKUPRANGE		"1021"
+define P_SENTENCES		"1022"
+define P_OUTPUT			"1023"
+define P_LOOKTRELLIS		"1024"
+define P_SPMODEL		"1025"
+define P_IWSP			"1026"
+define P_IWSPPENALTY		"1027"
+define P_GMM			"1028"
+define P_GMMNUM			"1029"
+define P_GMMREJECT		"1030"
+define P_REJECTSHORT		"1031"
+define P_PAUSESEGMENT		"1032"
+define P_TRESHOLDLEVEL		"1033"
+define P_HEADMARGIN		"1034"
+define P_TAILMARGIN		"1035"
+define P_ZEROCROSS		"1036"
+define P_SAMPLERATE		"1037"
+define P_SAMPLEPERIOD		"1038"
+define P_WINDOWSIZE		"1039"
+define P_FRAMESHIFT		"1040"
+define P_DELTAWINDOW		"1041"
+define P_HIFREQ			"1042"
+define P_LOFREQ			"1043"
+define P_WALIGN			"1044"
+define P_PALIGN			"1045"
+define P_SALIGN			"1046"
+define P_CMALPHA		"1047"
+define P_SEPARATESCORE		"1048"
+define P_PROGOUT		"1049"
+define P_PROGINTERVAL		"1050"
+define P_QUIET			"1051"
+define P_DEMO			"1052"
+define P_DEBUG			"1053"
+define P_MODULE			"1054"
+define P_OUTCODE		"1055"
+define P_GRAMFILE		"1056"
+define P_GRAMLIST		"1057"
+define P_RUNNING		"1058"
+define P_MICERROR		"1059"
+
+define EVENT_ON_SENTENCE	"350"
+define EVENT_ON_RECSTART	"351"
+define EVENT_ON_RECREADY	"352"
+
+class JuliusPhrase {
+	public var Sentence="";
+	public var Phonetics="";
+	public var[] Score;
+	public var[] Sequence;
+}
+
+class RJulius extends RemoteObject {
+	protected var _CONFFILE=-1;
+	protected var _DFAGRAM=-1;
+	protected var _DICTFILE=-1;
+	protected var _HMMDEFS=-1;
+	protected var _HMMLIST=-1;
+	protected var _PENALTY1=-1;
+	protected var _PENALTY2=-1;
+	protected var _CCD=-1;
+	protected var _IWCD1=-1;
+	protected var _MIXTURES=-1;
+	protected var _PRUNNING=-1;
+	protected var _GSHMM=-1;
+	protected var _GSNUM=-1;
+	protected var _BEAMWIDTH=-1;
+	protected var _BEAMWIDTH2=-1;
+	protected var _SCOREBEAM=-1;
+	protected var _HYPOTHESESSTACK=-1;
+	protected var _HYPOTHESESOVERFLOW=-1;
+	protected var _LOOKUPRANGE=-1;
+	protected var _SENTENCES=-1;
+	protected var _OUTPUT=-1;
+	protected var _LOOKTRELLIS=-1;
+	protected var _SPMODEL=-1;
+	protected var _IWSP=-1;
+	protected var _IWSPPENALTY=-1;
+	protected var _GMM=-1;
+	protected var _GMMNUM=-1;
+	protected var _GMMREJECT=-1;
+	protected var _REJECTSHORT=-1;
+	protected var _PAUSESEGMENT=-1;
+	protected var _TRESHOLDLEVEL=-1;
+	protected var _HEADMARGIN=-1;
+	protected var _TAILMARGIN=-1;
+	protected var _ZEROCROSS=-1;
+	protected var _SAMPLERATE=-1;
+	protected var _SAMPLEPERIOD=-1;
+	protected var _WINDOWSIZE=-1;
+	protected var _FRAMESHIFT=-1;
+	protected var _DELTAWINDOW=-1;
+	protected var _HIFREQ=-1;
+	protected var _LOFREQ=-1;
+	protected var _WALIGN=-1;
+	protected var _PALIGN=-1;
+	protected var _SALIGN=-1;
+	protected var _CMALPHA=-1;
+	protected var _SEPARATESCORE=-1;
+	protected var _PROGOUT=-1;
+	protected var _PROGINTERVAL=-1;
+	protected var _QUIET=-1;
+	protected var _DEMO=-1;
+	protected var _DEBUG=-1;
+	protected var _MODULE=-1;
+	protected var _OUTCODE=-1;
+	protected var _GRAMFILE=-1;
+	protected var _GRAMLIST=-1;
+	public property ConfFile { set SetConfFile, get  _CONFFILE }
+	public property DFAGram { set SetDFAGram, get  _DFAGRAM }
+	public property DictFile { set SetDictFile, get  _DICTFILE }
+	public property HMMDefs { set SetHMMDefs, get  _HMMDEFS }
+	public property HMMList { set SetHMMList, get  _HMMLIST }
+	public property Penalty1 { set SetPenalty1, get  _PENALTY1 }
+	public property Penalty2 { set SetPenalty2, get  _PENALTY2 }
+	public property CCD { set SetCCD, get  _CCD }
+	public property IWCD1 { set SetIWCD1, get  _IWCD1 }
+	public property Mixtures { set SetMixtures, get  _MIXTURES }
+	public property Prunning { set SetPrunning, get  _PRUNNING }
+	public property GSHMM { set SetGSHMM, get  _GSHMM }
+	public property GSNum { set SetGSNum, get  _GSNUM }
+	public property BeamWidth { set SetBeamWidth, get  _BEAMWIDTH }
+	public property BeamWidth2 { set SetBeamWidth2, get  _BEAMWIDTH2 }
+	public property ScoreBeam { set SetScoreBeam, get  _SCOREBEAM }
+	public property HypothesesStack { set SetHypothesesStack, get  _HYPOTHESESSTACK }
+	public property HypothesesOverflow { set SetHypothesesOverflow, get  _HYPOTHESESOVERFLOW }
+	public property LookupRange { set SetLookupRange, get  _LOOKUPRANGE }
+	public property Sentences { set SetSentences, get  _SENTENCES }
+	public property Output { set SetOutput, get  _OUTPUT }
+	public property LookTrellis { set SetLookTrellis, get  _LOOKTRELLIS }
+	public property SPModel { set SetSPModel, get  _SPMODEL }
+	public property iwsp { set Setiwsp, get  _IWSP }
+	public property iwsppenalty { set Setiwsppenalty, get  _IWSPPENALTY }
+	public property GMM { set SetGMM, get  _GMM }
+	public property GMMNum { set SetGMMNum, get  _GMMNUM }
+	public property GMMReject { set SetGMMReject, get  _GMMREJECT }
+	public property RejectShort { set SetRejectShort, get  _REJECTSHORT }
+	public property PauseSegment { set SetPauseSegment, get  _PAUSESEGMENT }
+	public property TresholdLevel { set SetTresholdLevel, get  _TRESHOLDLEVEL }
+	public property HeadMargin { set SetHeadMargin, get  _HEADMARGIN }
+	public property TailMargin { set SetTailMargin, get  _TAILMARGIN }
+	public property ZeroCross { set SetZeroCross, get  _ZEROCROSS }
+	public property SampleRate { set SetSampleRate, get  _SAMPLERATE }
+	public property SamplePeriod { set SetSamplePeriod, get  _SAMPLEPERIOD }
+	public property WindowSize { set SetWindowSize, get  _WINDOWSIZE }
+	public property FrameShift { set SetFrameShift, get  _FRAMESHIFT }
+	public property DeltaWindow { set SetDeltaWindow, get  _DELTAWINDOW }
+	public property HiFreq { set SetHiFreq, get  _HIFREQ }
+	public property LoFreq { set SetLoFreq, get  _LOFREQ }
+	public property WAlign { set SetWAlign, get  _WALIGN }
+	public property PAlign { set SetPAlign, get  _PALIGN }
+	public property SAlign { set SetSAlign, get  _SALIGN }
+	public property CMAlpha { set SetCMAlpha, get  _CMALPHA }
+	public property SeparateScore { set SetSeparateScore, get  _SEPARATESCORE }
+	public property ProgOut { set SetProgOut, get  _PROGOUT }
+	public property ProgInterval { set SetProgInterval, get  _PROGINTERVAL }
+	public property Quiet { set SetQuiet, get  _QUIET }
+	public property Demo { set SetDemo, get  _DEMO }
+	public property Debug { set SetDebug, get  _DEBUG }
+	public property Module { set SetModule, get  _MODULE }
+	public property OutCode { set SetOutCode, get  _OUTCODE }
+	public property GramFile { set SetGramFile, get  _GRAMFILE }
+	public property GramList { set SetGramList, get  _GRAMLIST }
+
+	public property MicError { get GetMicError }
+	public property Running {get GetRunning }
+
+	//-------- Events ----------------//
+	public property OnSentence { get GetOnSentence, set SetOnSentence }
+	private function GetOnSentence() {
+		return _GET_REMOTE_EVENT(EVENT_ON_SENTENCE);
+	}
+
+	private function SetOnSentence(delegate deleg) {
+		return _MAP_REMOTE_EVENT(EVENT_ON_SENTENCE, deleg);
+	}
+
+	public property OnRecStart { get GetOnRecStart, set SetOnRecStart }
+	private function GetOnRecStart() {
+		return _GET_REMOTE_EVENT(EVENT_ON_RECSTART);
+	}
+
+	private function SetOnRecStart(delegate deleg) {
+		return _MAP_REMOTE_EVENT(EVENT_ON_RECSTART, deleg);
+	}
+
+	public property OnRecReady { get GetOnRecReady, set SetOnRecReady }
+	private function GetOnRecReady() {
+		return _GET_REMOTE_EVENT(EVENT_ON_RECREADY);
+	}
+
+	private function SetOnRecReady(delegate deleg) {
+		return _MAP_REMOTE_EVENT(EVENT_ON_RECREADY, deleg);
+	}
+	//-------- End of Events ---------//
+
+	public function RJulius(RemoteObject Owner) {
+		super(null, "1017");
+		this.LinkIfNotLinked(Owner);
+	}
+
+	public function VoicePack(string pack_filename) {
+		CApplication::SendCookie(pack_filename, var fname, true);
+		return fname;
+	}
+
+	public function Start() {
+		this.SetProperty(P_STARTRECOGNITION, "1");
+	}
+
+	public function Pause() {
+		this.SetProperty(P_PAUSERECOGNITION, "1");
+	}
+
+	public function Resume() {
+		this.SetProperty(P_PAUSERECOGNITION, "0");
+	}
+
+	public function Terminate() {
+		this.SetProperty(P_TERMINATERECOGNITION, "1");
+	}
+
+	public function SetConfFile(ConfFileValue) {
+		this._CONFFILE=ConfFileValue;
+		this.SetProperty(P_CONFFILE, ConfFileValue);
+		return ConfFileValue;
+	}
+
+	public function SetDFAGram(DFAGramValue) {
+		this._DFAGRAM=DFAGramValue;
+		this.SetProperty(P_DFAGRAM, DFAGramValue);
+		return DFAGramValue;
+	}
+
+	public function SetDictFile(DictFileValue) {
+		this._DICTFILE=DictFileValue;
+		this.SetProperty(P_DICTFILE, DictFileValue);
+		return DictFileValue;
+	}
+
+	public function SetHMMDefs(HMMDefsValue) {
+		this._HMMDEFS=HMMDefsValue;
+		this.SetProperty(P_HMMDEFS, HMMDefsValue);
+		return HMMDefsValue;
+	}
+
+	public function SetHMMList(HMMListValue) {
+		this._HMMLIST=HMMListValue;
+		this.SetProperty(P_HMMLIST, HMMListValue);
+		return HMMListValue;
+	}
+
+	public function SetPenalty1(Penalty1Value) {
+		this._PENALTY1=Penalty1Value;
+		this.SetProperty(P_PENALTY1, Penalty1Value);
+		return Penalty1Value;
+	}
+
+	public function SetPenalty2(Penalty2Value) {
+		this._PENALTY2=Penalty2Value;
+		this.SetProperty(P_PENALTY2, Penalty2Value);
+		return Penalty2Value;
+	}
+
+	public function SetCCD(CCDValue) {
+		this._CCD=CCDValue;
+		this.SetProperty(P_CCD, CCDValue);
+		return CCDValue;
+	}
+
+	public function SetIWCD1(IWCD1Value) {
+		this._IWCD1=IWCD1Value;
+		this.SetProperty(P_IWCD1, IWCD1Value);
+		return IWCD1Value;
+	}
+
+	public function SetMixtures(MixturesValue) {
+		this._MIXTURES=MixturesValue;
+		this.SetProperty(P_MIXTURES, MixturesValue);
+		return MixturesValue;
+	}
+
+	public function SetPrunning(PrunningValue) {
+		this._PRUNNING=PrunningValue;
+		this.SetProperty(P_PRUNNING, PrunningValue);
+		return PrunningValue;
+	}
+
+	public function SetGSHMM(GSHMMValue) {
+		this._GSHMM=GSHMMValue;
+		this.SetProperty(P_GSHMM, GSHMMValue);
+		return GSHMMValue;
+	}
+
+	public function SetGSNum(GSNumValue) {
+		this._GSNUM=GSNumValue;
+		this.SetProperty(P_GSNUM, GSNumValue);
+		return GSNumValue;
+	}
+
+	public function SetBeamWidth(BeamWidthValue) {
+		this._BEAMWIDTH=BeamWidthValue;
+		this.SetProperty(P_BEAMWIDTH, BeamWidthValue);
+		return BeamWidthValue;
+	}
+
+	public function SetBeamWidth2(BeamWidth2Value) {
+		this._BEAMWIDTH2=BeamWidth2Value;
+		this.SetProperty(P_BEAMWIDTH2, BeamWidth2Value);
+		return BeamWidth2Value;
+	}
+
+	public function SetScoreBeam(ScoreBeamValue) {
+		this._SCOREBEAM=ScoreBeamValue;
+		this.SetProperty(P_SCOREBEAM, ScoreBeamValue);
+		return ScoreBeamValue;
+	}
+
+	public function SetHypothesesStack(HypothesesStackValue) {
+		this._HYPOTHESESSTACK=HypothesesStackValue;
+		this.SetProperty(P_HYPOTHESESSTACK, HypothesesStackValue);
+		return HypothesesStackValue;
+	}
+
+	public function SetHypothesesOverflow(HypothesesOverflowValue) {
+		this._HYPOTHESESOVERFLOW=HypothesesOverflowValue;
+		this.SetProperty(P_HYPOTHESESOVERFLOW, HypothesesOverflowValue);
+		return HypothesesOverflowValue;
+	}
+
+	public function SetLookupRange(LookupRangeValue) {
+		this._LOOKUPRANGE=LookupRangeValue;
+		this.SetProperty(P_LOOKUPRANGE, LookupRangeValue);
+		return LookupRangeValue;
+	}
+
+	public function SetSentences(SentencesValue) {
+		this._SENTENCES=SentencesValue;
+		this.SetProperty(P_SENTENCES, SentencesValue);
+		return SentencesValue;
+	}
+
+	public function SetOutput(OutputValue) {
+		this._OUTPUT=OutputValue;
+		this.SetProperty(P_OUTPUT, OutputValue);
+		return OutputValue;
+	}
+
+	public function SetLookTrellis(LookTrellisValue) {
+		this._LOOKTRELLIS=LookTrellisValue;
+		this.SetProperty(P_LOOKTRELLIS, LookTrellisValue);
+		return LookTrellisValue;
+	}
+
+	public function SetSPModel(SPModelValue) {
+		this._SPMODEL=SPModelValue;
+		this.SetProperty(P_SPMODEL, SPModelValue);
+		return SPModelValue;
+	}
+
+	public function Setiwsp(iwspValue) {
+		this._IWSP=iwspValue;
+		this.SetProperty(P_IWSP, iwspValue);
+		return iwspValue;
+	}
+
+	public function Setiwsppenalty(iwsppenaltyValue) {
+		this._IWSPPENALTY=iwsppenaltyValue;
+		this.SetProperty(P_IWSPPENALTY, iwsppenaltyValue);
+		return iwsppenaltyValue;
+	}
+
+	public function SetGMM(GMMValue) {
+		this._GMM=GMMValue;
+		this.SetProperty(P_GMM, GMMValue);
+		return GMMValue;
+	}
+
+	public function SetGMMNum(GMMNumValue) {
+		this._GMMNUM=GMMNumValue;
+		this.SetProperty(P_GMMNUM, GMMNumValue);
+		return GMMNumValue;
+	}
+
+	public function SetGMMReject(GMMRejectValue) {
+		this._GMMREJECT=GMMRejectValue;
+		this.SetProperty(P_GMMREJECT, GMMRejectValue);
+		return GMMRejectValue;
+	}
+
+	public function SetRejectShort(RejectShortValue) {
+		this._REJECTSHORT=RejectShortValue;
+		this.SetProperty(P_REJECTSHORT, RejectShortValue);
+		return RejectShortValue;
+	}
+
+	public function SetPauseSegment(PauseSegmentValue) {
+		this._PAUSESEGMENT=PauseSegmentValue;
+		this.SetProperty(P_PAUSESEGMENT, PauseSegmentValue);
+		return PauseSegmentValue;
+	}
+
+	public function SetTresholdLevel(TresholdLevelValue) {
+		this._TRESHOLDLEVEL=TresholdLevelValue;
+		this.SetProperty(P_TRESHOLDLEVEL, TresholdLevelValue);
+		return TresholdLevelValue;
+	}
+
+	public function SetHeadMargin(HeadMarginValue) {
+		this._HEADMARGIN=HeadMarginValue;
+		this.SetProperty(P_HEADMARGIN, HeadMarginValue);
+		return HeadMarginValue;
+	}
+
+	public function SetTailMargin(TailMarginValue) {
+		this._TAILMARGIN=TailMarginValue;
+		this.SetProperty(P_TAILMARGIN, TailMarginValue);
+		return TailMarginValue;
+	}
+
+	public function SetZeroCross(ZeroCrossValue) {
+		this._ZEROCROSS=ZeroCrossValue;
+		this.SetProperty(P_ZEROCROSS, ZeroCrossValue);
+		return ZeroCrossValue;
+	}
+
+	public function SetSampleRate(SampleRateValue) {
+		this._SAMPLERATE=SampleRateValue;
+		this.SetProperty(P_SAMPLERATE, SampleRateValue);
+		return SampleRateValue;
+	}
+
+	public function SetSamplePeriod(SamplePeriodValue) {
+		this._SAMPLEPERIOD=SamplePeriodValue;
+		this.SetProperty(P_SAMPLEPERIOD, SamplePeriodValue);
+		return SamplePeriodValue;
+	}
+
+	public function SetWindowSize(WindowSizeValue) {
+		this._WINDOWSIZE=WindowSizeValue;
+		this.SetProperty(P_WINDOWSIZE, WindowSizeValue);
+		return WindowSizeValue;
+	}
+
+	public function SetFrameShift(FrameShiftValue) {
+		this._FRAMESHIFT=FrameShiftValue;
+		this.SetProperty(P_FRAMESHIFT, FrameShiftValue);
+		return FrameShiftValue;
+	}
+
+	public function SetDeltaWindow(DeltaWindowValue) {
+		this._DELTAWINDOW=DeltaWindowValue;
+		this.SetProperty(P_DELTAWINDOW, DeltaWindowValue);
+		return DeltaWindowValue;
+	}
+
+	public function SetHiFreq(HiFreqValue) {
+		this._HIFREQ=HiFreqValue;
+		this.SetProperty(P_HIFREQ, HiFreqValue);
+		return HiFreqValue;
+	}
+
+	public function SetLoFreq(LoFreqValue) {
+		this._LOFREQ=LoFreqValue;
+		this.SetProperty(P_LOFREQ, LoFreqValue);
+		return LoFreqValue;
+	}
+
+	public function SetWAlign(WAlignValue) {
+		this._WALIGN=WAlignValue;
+		this.SetProperty(P_WALIGN, WAlignValue);
+		return WAlignValue;
+	}
+
+	public function SetPAlign(PAlignValue) {
+		this._PALIGN=PAlignValue;
+		this.SetProperty(P_PALIGN, PAlignValue);
+		return PAlignValue;
+	}
+
+	public function SetSAlign(SAlignValue) {
+		this._SALIGN=SAlignValue;
+		this.SetProperty(P_SALIGN, SAlignValue);
+		return SAlignValue;
+	}
+
+	public function SetCMAlpha(CMAlphaValue) {
+		this._CMALPHA=CMAlphaValue;
+		this.SetProperty(P_CMALPHA, CMAlphaValue);
+		return CMAlphaValue;
+	}
+
+	public function SetSeparateScore(SeparateScoreValue) {
+		this._SEPARATESCORE=SeparateScoreValue;
+		this.SetProperty(P_SEPARATESCORE, SeparateScoreValue);
+		return SeparateScoreValue;
+	}
+
+	public function SetProgOut(ProgOutValue) {
+		this._PROGOUT=ProgOutValue;
+		this.SetProperty(P_PROGOUT, ProgOutValue);
+		return ProgOutValue;
+	}
+
+	public function SetProgInterval(ProgIntervalValue) {
+		this._PROGINTERVAL=ProgIntervalValue;
+		this.SetProperty(P_PROGINTERVAL, ProgIntervalValue);
+		return ProgIntervalValue;
+	}
+
+	public function SetQuiet(QuietValue) {
+		this._QUIET=QuietValue;
+		this.SetProperty(P_QUIET, QuietValue);
+		return QuietValue;
+	}
+
+	public function SetDemo(DemoValue) {
+		this._DEMO=DemoValue;
+		this.SetProperty(P_DEMO, DemoValue);
+		return DemoValue;
+	}
+
+	public function SetDebug(DebugValue) {
+		this._DEBUG=DebugValue;
+		this.SetProperty(P_DEBUG, DebugValue);
+		return DebugValue;
+	}
+
+	public function SetModule(ModuleValue) {
+		this._MODULE=ModuleValue;
+		this.SetProperty(P_MODULE, ModuleValue);
+		return ModuleValue;
+	}
+
+	public function SetOutCode(OutCodeValue) {
+		this._OUTCODE=OutCodeValue;
+		this.SetProperty(P_OUTCODE, OutCodeValue);
+		return OutCodeValue;
+	}
+
+	public function SetGramFile(GramFileValue) {
+		this._GRAMFILE=GramFileValue;
+		this.SetProperty(P_GRAMFILE, GramFileValue);
+		return GramFileValue;
+	}
+
+	public function SetGramList(GramListValue) {
+		this._GRAMLIST=GramListValue;
+		this.SetProperty(P_GRAMLIST, GramListValue);
+		return GramListValue;
+	}
+
+	public function GetMicError() {
+		return value (""+this.GetProperty(P_MICERROR));
+	}
+
+	public function GetRunning() {
+		return value (""+this.GetProperty(P_RUNNING));
+	}
+
+	static function Parse(string data) {
+		var doc=new XMLDocument();
+		doc.LoadString(data);
+
+		var node_arr=doc.GetXPath("/sl/ph");
+		var len=length node_arr;
+		var[] result;
+		for (var i=0;i<len;i++) {
+			var node=node_arr[i];
+			if (node) {
+				var jp=new JuliusPhrase();
+				var child=node.Child;
+				while (child) {
+					var name=ToLower(child.Name);
+					if (name=="s")
+						jp.Sentence=trim(""+child.Content);
+					if (name=="d") {
+						jp.Phonetics=child.GetProperty("phseq");
+						jp.Score=StrSplit(""+child.GetProperty("cmscore")," ");
+						jp.Sequence=StrSplit(""+child.GetProperty("wsek")," ");
+					}
+					child=child.Next;
+				}
+				result[length result]=jp;
+			}
+		}
+		return result;
+	}
+}

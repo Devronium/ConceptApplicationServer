@@ -1,0 +1,109 @@
+include RComboBox.con
+include DataBases.con
+
+
+class RADOComboBox	extends RComboBox
+			extends VirtualADOObject {
+
+	override DataField;
+
+
+	override Sorted;
+	override SortColumn;
+	override SortDescending;
+
+	override OnChanged;
+
+	override __DataSetUpdateCommand;
+
+	public var OnChanged;
+
+	private var []_DATAFIELDS;
+	public property DataFields { set SetDataFields, get _DATAFIELDS }
+
+	public function __DataSetUpdateCommand(Sender) {
+		try {
+			if (Sender->IsUpdateQuery)
+				this->UpdateItem(DataSet->RowIndex, DataSet->FieldValues[this->DataField].ToString());
+			this->RowIndex=DataSet->RowIndex;
+		} catch (var exception) {
+			// nothing ...
+		}
+	}
+
+	override __DataSetNewQueryNotify;
+	public function __DataSetNewQueryNotify(Sender) {
+		// to do ...
+		if (!Sender->IsUpdateQuery) {
+			Clear();
+			ClearItemsColumns();
+			var _col=DataSet.Columns;
+			if (_col) {
+				var len=length _col;
+
+				var len2=length _DATAFIELDS;
+
+				if (len2)
+					len=len2;
+
+				var old_visible=false;
+				if (VISIBLE) {
+					old_visible=true;
+					Hide();
+				}
+
+				AddColumns(len);
+
+				DataSet->UpdateColumnList(this);
+
+				if (old_visible)
+					Show();
+			}
+		}
+	}
+
+	override __DataSetColumnUpdate;
+	public function __DataSetColumnUpdate(Sender,ColumnValue,is_indexed) {
+		//this->SetItemText(is_indexed, ColumnValue);
+		var len=length DataFields;
+
+		var []col_val;
+		for (var i=0;i<len;i++) {
+			col_val[i]=ColumnValue[DataFields[i]];
+		}
+		if (!len)
+			col_val=ColumnValue;
+		//AddItem(ColumnValue);
+		AddItem(col_val);
+	}
+
+	public function IndexChanged(Sender, EventData) {
+		var index=RowIndex;
+		if (DataSet) {
+			if (index!=DataSet.RowIndex)
+				DataSet.FetchByIndex(index);
+		}
+
+		if (typeof OnChanged=="delegate")
+			OnChanged(Sender, EventData);
+	}
+
+
+	public function SetDataFields(fields) {
+		if (typeof fields!="array")
+			throw "Fields should be an array";
+
+		_DATAFIELDS=fields;
+		if (DataSet) {
+			__DataSetNewQueryNotify(DataSet);
+		}
+
+		return fields;
+	}
+
+	public function RADOComboBox(Owner) {
+		RComboBox(Owner);
+		RComboBox::OnChanged=IndexChanged;
+	}
+
+}

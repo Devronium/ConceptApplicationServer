@@ -1,0 +1,21 @@
+include File.con
+
+
+class Main {
+	function Main() {
+		var f=new File();
+		try {
+			f.Name="test_IO.con";
+			f.Open();
+			do {
+				var size=f.Read(var buffer="", 1);
+				echo buffer;
+			} while (size==1);
+			f.Close();
+		} catch (var exception) {
+			echo "Exception : $exception\nIOError   : ";
+			echo IO::Error();
+			echo "\n";
+		}
+	}
+}

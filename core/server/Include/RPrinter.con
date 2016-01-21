@@ -1,0 +1,70 @@
+include ClassID.con
+include RemoteObject.con
+include RemoteProperties.con
+
+define PRINT_OPERATION_RESULT_ERROR		0
+define PRINT_OPERATION_RESULT_APPLY		1
+define PRINT_OPERATION_RESULT_CANCEL		2
+define PRINT_OPERATION_RESULT_IN_PROGRESS	3
+
+define PRINT_OPERATION_ACTION_PRINT_DIALOG	0
+define PRINT_OPERATION_ACTION_PRINT		1
+define PRINT_OPERATION_ACTION_PREVIEW		2
+define PRINT_OPERATION_ACTION_EXPORT		3
+
+define PRINT_STATUS_INITIAL		0
+define PRINT_STATUS_PREPARING		1
+define PRINT_STATUS_GENERATING_DATA	2
+define PRINT_STATUS_SENDING_DATA	3
+define PRINT_STATUS_PENDING		4
+define PRINT_STATUS_PENDING_ISSUE	5
+define PRINT_STATUS_PRINTING		6
+define PRINT_STATUS_FINISHED		7
+define PRINT_STATUS_FINISHED_ABORTED	8
+
+
+class RPrinter extends RemoteObject {
+	private var BACKOBJECT;
+
+	public property BackgroundObject { set SetBackgroundObject, get BACKOBJECT }
+
+	public function RPrinter(Owner) {
+		super(Owner, CLASS_PRINTER);
+	}
+
+	public function SetupPage() {
+		SendMessage(""+REMOTE_ID, MSG_CUSTOM_MESSAGE1, "0", "0");
+	}
+
+	public function Write(markup_text) {
+		SendMessage(""+REMOTE_ID, MSG_CUSTOM_MESSAGE2, "0", markup_text);
+	}
+
+	public function Print(action=PRINT_OPERATION_ACTION_PRINT, output_file="output.pdf") {
+		SendMessage(""+REMOTE_ID, MSG_CUSTOM_MESSAGE3, ""+action, output_file);
+	}
+
+	public function UseWrap(wrap_mode) {
+		SendMessage(""+REMOTE_ID, MSG_SET_PROPERTY, P_WRAP, wrap_mode);
+	}
+
+	public function UseJustify(bJustify) {
+		SendMessage(""+REMOTE_ID, MSG_SET_PROPERTY, P_JUSTIFY, bJustify);
+	}
+
+	public function UseIndent(nIndent) {
+		SendMessage(""+REMOTE_ID, MSG_SET_PROPERTY, P_INDENT, nIndent);
+	}
+
+	public function UseSpacing(nSpace) {
+		SendMessage(""+REMOTE_ID, MSG_SET_PROPERTY, P_SPACING, nSpace);
+	}
+
+	public function SetBackgroundObject(RemoteObject obj) {
+		SendMessage(""+REMOTE_ID, MSG_SET_PROPERTY, P_BACKGROUNDFULL, obj.RID);
+	}
+
+	public function Send(MSGID, _TARGET, VALUE) {
+		return SendMessage(""+REMOTE_ID,MSGID, ""+_TARGET, VALUE);
+	}
+}

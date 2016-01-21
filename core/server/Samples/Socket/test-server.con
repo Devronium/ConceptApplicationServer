@@ -1,0 +1,48 @@
+import standard.net.socket
+import standard.lib.thread
+
+
+class ThreadClient {
+	var socket;
+
+	function ClientThread() {		
+		var info=SocketInfo(socket);
+		echo info;
+
+		var i=0;
+		while (SocketRead(socket, var buffer, 100)>0) {
+			echo "Received: $buffer\n";
+
+			// read just half the messages ...
+			if (++i>5)
+				break;
+		}
+
+		if (SocketHasData(socket)) {
+			echo "Socket still has data waiting to be read !!!";
+		}
+
+		echo "Bye !";
+		SocketClose(socket);
+	}
+}
+
+class Main {
+
+	function Main() {
+		var s=SocketCreate();
+
+		SocketListen(s,3500);
+
+		do {
+			var s_client=SocketAccept(s);
+			echo "Accepted !";
+			if (s_client>=0) {
+				var cl=new ThreadClient();
+				cl.socket=s_client;
+
+				RunThread(cl.ClientThread);
+			}
+		} while (1);
+	}
+}

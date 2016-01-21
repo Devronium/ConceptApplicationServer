@@ -1,0 +1,58 @@
+include RemoteContainer.con
+include ClassID.con
+include RAdjustment.con
+
+define SHADOW_NONE		0
+define SHADOW_IN		1
+define SHADOW_OUT		2
+define SHADOW_ETCHED_IN		3
+define SHADOW_ETCHED_OUT	4
+
+class RViewPort extends RemoteContainer {
+	DEFINE_FIXED_CONTROL
+
+	private var SHADOWTYPE;
+
+	private var _HAdjustment;
+	private var _VAdjustment;
+
+	public property ShadowType { get SHADOWTYPE, set SetShadowType }
+	public property VAdjustment { get _VAdjustment }
+	public property HAdjustment { get _HAdjustment }
+
+	//--------------Events---------------------------------------------------//
+	public property OnSetScrollAdjustments { get GetOnSetScrollAdjustments, set SetOnSetScrollAdjustments }
+	public function GetOnSetScrollAdjustments() {
+		return _GET_REMOTE_EVENT(EVENT_ON_SETSCROLLADJUSTMENTS);
+	}
+
+	public function SetOnSetScrollAdjustments(var delegate deleg) {
+		return _MAP_REMOTE_EVENT(EVENT_ON_SETSCROLLADJUSTMENTS, deleg);
+	}
+	//-----------------------------------------------------------------------//
+
+	public function RViewPort(OWNER) {
+		_HAdjustment=new RAdjustment();
+		_VAdjustment=new RAdjustment();
+
+		super(OWNER, CLASS_VIEWPORT);
+
+		/*_HAdjustment.__EVENTS_VECTOR=&__EVENTS_VECTOR;
+		__EVENTS_VECTOR[_HAdjustment.RID]=new[];
+
+		_VAdjustment.__EVENTS_VECTOR=&__EVENTS_VECTOR;
+		__EVENTS_VECTOR[_VAdjustment.RID]=new[];*/
+		_HAdjustment.LinkIfNotLinked(this);
+		_VAdjustment.LinkIfNotLinked(this);
+
+		SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_HADJUSTMENT,_HAdjustment.RID);
+		SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_VADJUSTMENT,_VAdjustment.RID);
+	}
+
+	public function SetShadowType(argument) {
+		SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_SHADOWTYPE,argument);
+		SHADOWTYPE=argument;
+		return argument;
+	}
+
+}

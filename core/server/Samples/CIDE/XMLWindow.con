@@ -1,0 +1,212 @@
+include RNoteBook.con
+include Scintilla/Scintilla.con
+include RLabel.con
+include RVBox.con
+include RHBox.con
+include RAlignment.con
+include RToolbar.con
+include RImage.con
+include RToolButton.con
+include Constants.con
+include RToolSeparator.con
+include RVBox.con
+import standard.C.io
+
+define CODE_VIEW_CAPTION	"XML View"
+define XML_KEYWORDS		"xml"
+
+class XMLWindow extends RVBox {
+	private var Scintilla;
+	public var SavePath;
+	private var ModifiedCallback;
+	private var PAGEID;
+
+	public property PageID { get PAGEID }
+
+	public property Editor { get Scintilla }
+
+	public function SetSavePoint() {
+		Scintilla.SciMessage(SCI_SETSAVEPOINT,0,0);
+	}
+
+	public function IsModified() {
+		return Scintilla.SciMessageReturnNumber(SCI_GETMODIFY,0,0);
+	}
+
+
+	private function NewScintilla(box) {
+		var keywords=XML_KEYWORDS;
+		var tst=new RScintilla(box);
+
+		tst.SciMessage(SCI_STYLECLEARALL,0,0);
+		tst.SciMessage(SCI_SETLEXER, SCLEX_XML, 0);
+		tst.SciMessage(SCI_SETKEYWORDS, 0, keywords);
+
+		tst.SciMessage(SCI_CLEARDOCUMENTSTYLE, 0, 0);
+		tst.SciMessage(SCI_SETSTYLEBITS, 7, 0);
+		tst.SciMessage(SCI_SETTABWIDTH,4,0);
+		tst.SciMessage(SCI_SETINDENT,4,0);
+		tst.SciMessage(SCI_SETCARETPERIOD,400,0);
+
+   		tst.SciMessage(SCI_SETPROPERTY, "fold", "1");
+   		tst.SciMessage(SCI_SETPROPERTY, "fold.html", "1");
+   		tst.SciMessage(SCI_SETPROPERTY, "fold.html.preprocessor", "1");
+   		tst.SciMessage(SCI_SETPROPERTY, "fold.comment", "1");
+   		tst.SciMessage(SCI_SETPROPERTY, "fold.at.else", "1");
+   		tst.SciMessage(SCI_SETPROPERTY, "fold.flags", "1");
+   		tst.SciMessage(SCI_SETPROPERTY, "fold.preprocessor", "1");
+   		tst.SciMessage(SCI_SETPROPERTY, "styling.within.preprocessor", "1");
+   		tst.SciMessage(SCI_SETPROPERTY, "asp.default.language", "1");
+		// Tell scintilla to draw folding lines UNDER the folded line
+   		tst.SciMessage(SCI_SETFOLDFLAGS, 16,0);
+		// Set margin 2 = folding margin to display folding symbols
+   		tst.SciMessage(SCI_SETMARGINMASKN, 2, SC_MASK_FOLDERS);
+		tst.SciMessage(SCI_SETMODEVENTMASK, SC_MOD_INSERTTEXT|SC_MOD_DELETETEXT, 0);
+		tst.SciMessage(SCI_SETMARGINSENSITIVEN, 2, true);
+		tst.SciMessage(SCI_SETMARGINSENSITIVEN, 1, true);
+		tst.SciMessage(SCI_MARKERDEFINE, SC_MARKNUM_FOLDEROPEN, SC_MARK_BOXMINUSCONNECTED);
+		tst.SciMessage(SCI_MARKERDEFINE, SC_MARKNUM_FOLDER, SC_MARK_BOXPLUSCONNECTED);
+		tst.SciMessage(SCI_MARKERDEFINE, SC_MARKNUM_FOLDERSUB, SC_MARK_VLINE);
+		tst.SciMessage(SCI_MARKERDEFINE, SC_MARKNUM_FOLDERTAIL, SC_MARK_TCORNER);
+		tst.SciMessage(SCI_MARKERDEFINE, SC_MARKNUM_FOLDEREND, SC_MARK_EMPTY);
+		tst.SciMessage(SCI_MARKERDEFINE, SC_MARKNUM_FOLDEROPENMID, SC_MARK_EMPTY);
+		tst.SciMessage(SCI_MARKERDEFINE, SC_MARKNUM_FOLDERMIDTAIL, SC_MARK_TCORNER);
+
+		tst.SciMessage(SCI_STYLESETFORE, SCE_C_DEFAULT, 0x000000);
+		// comment
+		tst.SciMessage(SCI_STYLESETFORE, SCE_C_COMMENT, 0x008000);
+		tst.SciMessage(SCI_STYLESETFORE, SCE_C_COMMENTLINE, 0x008000);
+		tst.SciMessage(SCI_STYLESETFORE, SCE_C_COMMENTDOC, 0x008000);
+		// keyword
+		tst.SciMessage(SCI_STYLESETFORE, SCE_C_WORD, 0xC80000);
+		// strings
+		tst.SciMessage(SCI_STYLESETFORE, 6, 0x004000);
+   
+		tst.SciMessage(SCI_STYLESETFORE, 9, 0x0000FF);
+		// operators
+		tst.SciMessage(SCI_STYLESETFORE, 10, 0x400080);
+
+		tst.SciMessage(SCI_STYLESETFORE, 11, 0x000000);
+		// set the backgroundcolor of brace highlights
+		tst.SciMessage(SCI_STYLESETBACK, STYLE_BRACELIGHT, 0x00FF00);
+		// set end of line mode to CRLF
+		tst.SciMessage(SCI_CONVERTEOLS, SC_EOL_CRLF, 0);
+		tst.SciMessage(SCI_SETEOLMODE, SC_EOL_CRLF/*2*/, 0);
+
+		// set markersymbol for marker type 0 - bookmark
+		tst.SciMessage(SCI_MARKERDEFINE, 0, SC_MARK_BACKGROUND);
+		tst.SciMessage(SCI_MARKERSETBACK ,0, 0xA0A0FF);
+		tst.SciMessage(SCI_MARKERDEFINE, 1, SC_MARK_CIRCLE);
+		tst.SciMessage(SCI_MARKERSETBACK ,1, 0x0000FF);
+		tst.SciMessage(SCI_MARKERSETFORE,1, 0x0000FF);
+
+		tst.SciMessage(SCI_MARKERSETBACK ,SC_MARKNUM_FOLDEROPEN, 0xF0A0A0);
+		tst.SciMessage(SCI_MARKERSETFORE ,SC_MARKNUM_FOLDEROPEN, 0xFFFFFF);
+		tst.SciMessage(SCI_MARKERSETBACK ,SC_MARKNUM_FOLDER, 0xF0A0A0);
+		tst.SciMessage(SCI_MARKERSETFORE ,SC_MARKNUM_FOLDER, 0xFFFFFF);
+		tst.SciMessage(SCI_MARKERSETBACK ,SC_MARKNUM_FOLDERSUB, 0xF0A0A0);
+		tst.SciMessage(SCI_MARKERSETBACK ,SC_MARKNUM_FOLDERTAIL, 0xF0A0A0);
+		tst.SciMessage(SCI_MARKERSETBACK ,SC_MARKNUM_FOLDERMIDTAIL, 0xF0A0A0);
+
+		tst.SciMessage(SCI_SETFOLDMARGINCOLOUR, 1, 0xFFFFFF);
+		tst.SciMessage(SCI_SETMARGINWIDTHN, 2, 16);
+		tst.SciMessage(SCI_SETMARGINWIDTHN, 1, 16);
+
+		tst.SciMessage(SCI_SETUSETABS,0,0);
+
+		tst.SciMessage(SCI_SETEDGEMODE,1,0);
+		tst.SciMessage(SCI_SETEDGECOLUMN,80,0);
+
+		tst.SciMessage(SCI_AUTOCSETIGNORECASE,1,0);
+		var lWidth = tst.SciMessageReturnNumber(SCI_TEXTWIDTH, STYLE_LINENUMBER, "9");
+		tst.SciMessage(SCI_SETMARGINWIDTHN, 0, lWidth*5);
+		tst.SciMessage(SCI_STYLESETBACK, STYLE_LINENUMBER, 0xFFFFFF);
+		tst.SciMessage(SCI_STYLESETFORE, STYLE_LINENUMBER, 0xA0A0A0);
+		tst.SciMessage(SCI_STYLESETBACK, STYLE_CALLTIP, 0xF0FFFF);
+		tst.SciMessage(SCI_STYLESETFORE, STYLE_CALLTIP, 0x000000);
+		tst.SciMessage(SCI_CALLTIPUSESTYLE,0,0);
+		tst.SciMessage(SCI_SETBACKSPACEUNINDENTS, true, 0);
+		tst.SciMessage(SCI_SETINDENTATIONGUIDES, false, 0);
+		tst.SciMessage(SCI_AUTOCSETAUTOHIDE, false, 0);
+		tst.Show();
+		return tst;
+	}
+
+	private function AddToolItem(hint,icon,toolbar,delegate) {
+		var toolbutton=new RToolButton(toolbar);
+		toolbutton.LoadStockIcon2(icon,ICON_SIZE_SMALL_TOOLBAR);
+		toolbutton.MinWidth=26;
+		toolbutton.MinHeight=26;
+		toolbutton.Tooltip=hint;
+		toolbutton.OnClicked=delegate;
+		toolbutton.Show();
+	}
+
+	private function AddToolSeparator(toolbar) {
+		var toolsep=new RToolSeparator(toolbar);
+		toolsep.Show();
+	}
+
+	public function CloseSourceClicked(Sender, extra) {
+		if ((IsModified()) && (ModifiedCallback)) {
+			ModifiedCallback(this);
+			return 0;
+		} else
+			Hide();
+		return 1;
+	}
+
+	public function SaveToServerClicked(Sender, extra) {
+		// TO DO !
+	}
+
+	public function IndentClicked(Sender, extra) {
+		// TO DO !
+	}
+	
+	public function UnIndentClicked(Sender, extra) {
+		// TO DO !
+	}
+
+	public function ZoomInClicked(Sender, extra) {
+		Scintilla.SciMessage(SCI_ZOOMIN,0,0);
+	}
+
+	public function ZoomOutClicked(Sender, extra) {
+		Scintilla.SciMessage(SCI_ZOOMOUT,0,0);
+	}
+
+	public function XMLWindow(Owner, ModifiedCallback, pageid) {
+		super(Owner);
+		PAGEID=pageid;
+		this.ModifiedCallback=ModifiedCallback;
+		var vbox=new RVBox(this);
+
+		vbox.PackType=PACK_SHRINK;
+		
+		var toolbar=new RToolbar(vbox);
+		toolbar.Style=TOOLBAR_ICONS;
+		toolbar.Tooltips=true;
+
+		AddToolItem("Close source", CLOSE, toolbar, CloseSourceClicked);
+		//AddToolItem("Save to server", SAVE, toolbar, SaveToServerClicked);
+		AddToolSeparator(toolbar);
+
+		AddToolItem("Indent", INDENT, toolbar, IndentClicked);
+		AddToolItem("Unindent", UNINDENT, toolbar, UnIndentClicked);
+		AddToolSeparator(toolbar);
+		AddToolItem("Zoom in", ZOOM_IN, toolbar, ZoomInClicked);
+		AddToolItem("Zoom out", ZOOM_OUT, toolbar, ZoomOutClicked);
+		AddToolSeparator(toolbar);
+
+		toolbar.Show();
+
+		vbox.PackType=PACK_EXPAND_WIDGET;
+
+		Scintilla=NewScintilla(vbox);
+		vbox.Show();
+
+		SavePath="";
+		Scintilla.GrabFocus();
+	}
+}

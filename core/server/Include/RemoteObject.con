@@ -1,0 +1,217 @@
+import concept.helper.idgenerator
+import standard.lang.serialize
+import standard.lang.cli
+import standard.coding.base64
+include MessageDispatcher.con
+include RemoteMessages.con
+include RemoteEvents.con
+include RemoteProperties.con
+
+define NULL	0
+define null	0
+define true	1
+define false	0
+
+class RemoteObject {
+	protected var REMOTE_ID;
+	protected var OWNER;
+	protected var CLASS_ID;
+	public var Compensable;
+	
+	public var[] __EVENTS_VECTOR;
+
+        public property RID	{ get REMOTE_ID }
+	public property Parent	{ get OWNER, set SetParent }
+
+	public function Repaint() {
+		SendMessage(""+REMOTE_ID, MSG_REPAINT, "0", "0");
+	}
+
+	public function Post() {
+		SendMessage(""+REMOTE_ID, MSG_POST_OBJECT, "0", "0");
+	}
+
+	public function PostString(str) {
+		SendMessage(""+REMOTE_ID, MSG_POST_STRING, "0", str);
+	}
+
+	public function _MAP_REMOTE_EVENT(var string EVENT_ID, var delegate deleg, extra=0, force_extra=false, remote_event=true) {
+		var event_id=value EVENT_ID;
+
+		if (!__EVENTS_VECTOR[REMOTE_ID]) {
+			// a new events vector for each control
+			var new_vector=new [];
+			// on the first position of each event vector, we have the control
+			new_vector[0]=this;
+			__EVENTS_VECTOR[REMOTE_ID]=new_vector;
+		}
+
+		if (remote_event) {
+			if ((!extra) && (this.Compensable)) {
+				switch (EVENT_ID) {
+					case EVENT_ON_CLICKED:
+					case EVENT_ON_PRESSED:
+					case EVENT_ON_RELEASED:
+					case EVENT_ON_ACTIVATEITEM:
+					case EVENT_ON_TOGGLED:
+					case EVENT_ON_DELETEEVENT:
+					case EVENT_ON_ACTIVATE:
+					case EVENT_ON_ROWACTIVATED:
+					case 360:
+						var code = MetaCode(deleg, -5, var func_name);
+						if (func_name) {
+							if (code) {
+								extra = code;
+								extra += "\n#" + func_name;
+							} else
+								extra = "#" + func_name;
+							extra = mime_encode(extra);
+						}				
+						break;
+				}
+			}
+
+			if (!__EVENTS_VECTOR[REMOTE_ID][event_id])
+				SendMessage(""+REMOTE_ID,MSG_SET_EVENT,EVENT_ID,extra);
+			else
+			if (force_extra)
+				SendMessage(""+REMOTE_ID,MSG_SET_EVENT,EVENT_ID,extra);
+		}
+
+		__EVENTS_VECTOR[REMOTE_ID][event_id]=deleg;
+		return true;
+	}
+
+	public function _GET_REMOTE_EVENT(var string EVENT_ID) {
+		if (!__EVENTS_VECTOR)
+			return null;
+		if (!__EVENTS_VECTOR[REMOTE_ID])
+			return null;
+		return __EVENTS_VECTOR[REMOTE_ID][value EVENT_ID];
+	}
+
+	public function GetObjectByID(ID) {
+		if (typeof ID=="string")
+			ID=value ID;
+		if (ID<0)
+			return 0;
+		if (!__EVENTS_VECTOR[ID])
+			return 0;
+		return __EVENTS_VECTOR[ID][0];
+	}
+
+	public function GetProperty(PROPERTY_ID) {
+                SendMessage(""+REMOTE_ID, MSG_GET_PROPERTY, PROPERTY_ID, 0);
+		WaitMessage(var Sender=this.REMOTE_ID, var MSG_ID=MSG_GET_PROPERTY, var Target, var VALUE);
+		return VALUE;
+	}
+
+	public function RequestProperty(PROPERTY_ID) {
+                SendMessage(""+REMOTE_ID, MSG_GET_PROPERTY, PROPERTY_ID, 0);
+	}
+
+	public function WaitProperty() {
+		WaitMessage(var Sender=this.REMOTE_ID, var MSG_ID=MSG_GET_PROPERTY, var Target, var VALUE);
+		return VALUE;
+	}
+
+	public function SetProperty(PROPERTY_ID, VALUE) {
+                SendMessage(""+REMOTE_ID, MSG_SET_PROPERTY, PROPERTY_ID, ""+VALUE);
+		return VALUE;
+	}
+
+	public function AddTimer(delegate deleg, number timeout) {
+                //SendMessage(""+REMOTE_ID, MSG_SET_EVENT, EVENT_ON_TIMER, ""+timeout);
+		this._MAP_REMOTE_EVENT(EVENT_ON_TIMER, deleg, timeout, true);
+		return timeout;
+	}
+	
+	public function AddLocalTimer(delegate deleg, number timeout, number repeat=0) {
+		this._MAP_REMOTE_EVENT(EVENT_ON_TIMER, deleg, 0, false, false);
+		return LocalTimer(REMOTE_ID, timeout, repeat);
+	}
+
+	// we'll define add later
+	public function Add();
+	public function RemoteObject(OWNER,CLASS_ID) {
+		REMOTE_ID=___CONCEPT_INTERFACE_HELPER_GENERATE_UNIQUE_ID();
+		var not_orphan_flag=!GLOBALS()["framework.flags.orphan"];
+
+		if ((not_orphan_flag) && (OWNER))
+			this.OWNER=OWNER;
+
+		this.CLASS_ID=CLASS_ID;
+
+		if (typeof OWNER=="class") {
+			SendMessage(""+OWNER.RID, MSG_CREATE, CLASS_ID, REMOTE_ID);
+			if ((not_orphan_flag) || (classof OWNER=="RNotebook"))
+				OWNER.Add(this);
+			__EVENTS_VECTOR=OWNER.__EVENTS_VECTOR;
+		} else {
+			if (OWNER) {
+				this.OWNER=null;
+				SendMessage(""+OWNER, MSG_CREATE, CLASS_ID, REMOTE_ID);
+			} else {
+				SendMessage("-1", MSG_CREATE, CLASS_ID, REMOTE_ID);
+			}
+		}
+		return REMOTE_ID;
+	}
+	// for now, just override it
+	override Add;
+
+	public function __Recreate(OWNER) {
+		this.REMOTE_ID=0;
+		this.OWNER=null;
+		delete this.__EVENTS_VECTOR;
+
+		return this.RemoteObject(OWNER, this.CLASS_ID);
+	}
+
+	public function LinkIfNotLinked(obj) {
+		if (OWNER)
+			return 0;
+
+		if (typeof obj!="class")
+			return -1;
+
+		OWNER=obj;
+
+		var old_vector=__EVENTS_VECTOR[REMOTE_ID];
+		if (typeof old_vector!="array") {
+			old_vector=new [];
+			old_vector[0]=this;
+		}
+
+		__EVENTS_VECTOR=&obj.__EVENTS_VECTOR;
+		__EVENTS_VECTOR[REMOTE_ID]=old_vector;//new[];
+	}
+
+	// pure virtual ...
+	public function __QueryDispose(object Obj);
+
+	public function DisposeObject(clean_child=true) {
+		SetProperty(P_DISPOSE,true);
+		delete __EVENTS_VECTOR[REMOTE_ID];
+		if (clean_child) {
+			if (OWNER)  {
+				if (HasMember(OWNER,"__QueryDispose"))
+					OWNER.__QueryDispose(this);
+			}
+		} else
+			delete OWNER;
+	}
+
+	public function SetParent(New_Parent) {
+		if (typeof New_Parent=="class") {
+			if (OWNER) {
+				OWNER.__QueryDispose(this);
+				delete OWNER;
+			}
+			OWNER=New_Parent;
+			return SetProperty(P_PARENT, New_Parent.RID);
+		} else {
+			throw "The new parent set using SetParent cannot be null";
+		}
+	}
+}

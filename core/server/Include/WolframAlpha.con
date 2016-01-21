@@ -1,0 +1,302 @@
+include URL.con
+include XMLDocument.con
+import standard.lib.str
+
+define WOLFRAM_API_URL	"http://api.wolframalpha.com/v2/query"
+
+class WALINK {
+	public var Text="";
+	public var URL="";
+}
+
+class WASSUMPTIONVALUE {
+	public var Name="";
+	public var Desc="";
+	public var Input="";
+}
+
+class WASSUMPTION {
+	public var Type="";
+	public var Word="";
+
+	public var[] Values;
+}
+
+class WSUBPOD {
+	public var Title="";
+	public var Text="";
+	public var Compressed=false;
+	public var Img="";
+	public var ImgContent="";
+	public var ImgAlt="";
+	public var ImgTitle="";
+	public var ImgWidth=0;
+	public var ImgHeight=0;
+}
+
+class WPOD {
+	public var Id="";
+	public var Title="";
+	public var Scanner="";
+	public var Position=0;
+	public var Error=false;
+	public var Text="";
+	public var Sound="";
+	public var SoundContent="";
+
+	public var[] Pods;
+	public var[] States;
+	public var[] Links;
+}
+
+class WARESULT {
+	public var[] Pods;
+	public var[] Assumptions;
+
+	public var Time=0;
+	public var Scripts="";
+	public var CSS="";
+}
+
+class WolframAlpha extends URL {
+	private var __APPID="";
+	public property AppID { get __APPID }
+	public var Format="plaintext,image";
+	public var Metric=-1;
+	public var Width=0;
+	public var MaxWidth=0;
+	public var PlotWidth=0;
+	public var Mag=1.0;
+	public var IgnoreCase=false;
+	public var FetchRemoteContent=false;
+
+
+	public function WolframAlpha(string APPID) {
+		this.__APPID=APPID;
+	}
+
+	protected function DecodeResult(var data) {
+		var xml=new XMLDocument();
+		xml.LoadString(data);
+		var root=xml.Root;
+		if (!root)
+			throw "Invalid response received";
+
+		if (ToLower(root.Name)!="queryresult")
+			throw "Root node name is invalid (changed APIs ?)";
+		
+		var prop=ToLower(""+root.GetProperty("error"));
+		if (prop!="false") {
+			var child=xml.GetXPath("/queryresult/error/msg");
+			var child2=xml.GetXPath("/queryresult/error/code");
+			var msg="";
+			var code="0";
+			if (child)
+				msg=child[0].Content;
+			if (child2)
+				code=child2[0].Content;
+
+			throw "Wolfram|Alpha returned an error: $msg (code $code)\n";
+		}
+
+		prop=ToLower(""+root.GetProperty("success"));
+		if (prop!="true")
+			throw "Query string cannot be understood by Wolfram|Alpha";
+
+		var result=new WARESULT();
+
+		result.Time=value (""+root.GetProperty("timing"));
+		var css=xml.GetXPath("/queryresult/css");
+		var scripts=xml.GetXPath("/queryresult/scripts");
+
+		if (css)
+			result.CSS=css[0].Content;
+
+		if (scripts)
+			result.Scripts=scripts[0].Content;
+
+		var pods=xml.GetXPath("/queryresult/pod");
+		var len=length pods;
+
+		var sec_url;
+		if (this.FetchRemoteContent)
+			sec_url=new URL();
+		for (var i=0;i<len;i++) {
+			var pod=pods[i];
+			if (pod) {
+				var w=new WPOD();
+
+				w.Title=pod.GetProperty("title");
+				w.Scanner=pod.GetProperty("scanner");
+				w.Id=pod.GetProperty("id");
+				w.Position=value (""+pod.GetProperty("position"));
+				if (ToLower(""+pod.GetProperty("error"))=="true")
+					w.Error=true;
+
+				var num_subpods=value (""+pod.GetProperty("numsubpods"));
+				if (num_subpods) {
+					var subpods=xml.GetXPath("/queryresult/pod[${i+1}]/subpod");
+					var len2=length subpods;
+					for (var j=0;j<len2;j++) {
+						var subpod=subpods[j];
+						if (subpod) {
+							var ws=new WSUBPOD();
+							ws.Title=subpod.GetProperty("title");
+
+							w.Pods[length w.Pods]=ws;
+
+							var schild=subpod.Child;
+							while (schild) {
+								switch (ToLower(schild.Name)) {
+									case "cell":
+										if (ToLower(""+schild.GetProperty("compressed"))=="true")
+											ws.Compressed=true;
+									case "plaintext":
+									case "markup":
+										ws.Text=schild.Content;
+										break;
+									case "img":
+										ws.Img=schild.GetProperty("src");
+										ws.ImgAlt=schild.GetProperty("alt");
+										ws.ImgTitle=schild.GetProperty("title");
+										ws.ImgWidth=value (""+schild.GetProperty("width"));
+										ws.ImgHeight=value (""+schild.GetProperty("height"));
+										if (sec_url) {
+											sec_url.Get(ws.Img);
+											if (sec_url.IsSuccessful())
+												ws.ImgContent=sec_url.Data;
+										}
+										break;
+								}
+								schild=schild.Next;
+							}
+						}
+					}
+					var states=xml.GetXPath("/queryresult/pod[${i+1}]/states/state");
+					len2=length states;
+					for (j=0;j<len2;j++) {
+						var state=states[j];
+						if (state) {
+							var ww=new WASSUMPTIONVALUE();
+							ww.Name=state.GetProperty("name");
+							ww.Input=state.GetProperty("input");
+							w.States[length w.States]=ww;
+						}
+					}
+
+					var links=xml.GetXPath("/queryresult/pod[${i+1}]/infos/info/link");
+					len2=length links;
+					for (j=0;j<len2;j++) {
+						var link=links[j];
+						if (link) {
+							ww=new WALINK();
+							ww.Text=link.GetProperty("text");
+							ww.URL=link.GetProperty("url");
+							w.Links[length w.Links]=ww;
+						}
+					}
+				}
+
+				var markup=xml.GetXPath("/queryresult/pod[${i+1}]/markup");
+				if (markup)
+					w.Text=markup[0].Content;
+
+				var sounds=xml.GetXPath("/queryresult/pod[${i+1}]/sounds/sound");
+				if (sounds) {
+					w.Sound=sounds[0].GetProperty("url");
+					if (w.Sound) {
+						if (sec_url) {
+							sec_url.Get(w.Sound);
+							if (sec_url.IsSuccessful())
+								w.SoundContent=sec_url.Data;
+						}
+					}
+				}
+				
+				result.Pods[length result.Pods]=w;
+			}
+		}
+		var assumptions=xml.GetXPath("/queryresult/assumptions/assumption");
+		len=length assumptions;
+
+		for (i=0;i<len;i++) {
+			var a=assumptions[i];
+			if (a) {
+				var was=new WASSUMPTION();
+				was.Type=a.GetProperty("type");
+				was.Word=a.GetProperty("word");
+				var values=xml.GetXPath("/queryresult/assumptions/assumption[${i+1}]/value");
+				len2=length values;
+				for (j=0;j<len2;j++) {
+					var v=values[j];
+					if (v) {
+						var wav=new WASSUMPTIONVALUE();
+						wav.Name=v.GetProperty("name");
+						wav.Desc=v.GetProperty("desc");
+						wav.Input=v.GetProperty("input");
+						was.Values[length was.Values]=wav;
+					}
+				}
+				result.Assumptions[length result.Assumptions]=was;
+			}
+		}
+		return result;
+	}
+
+	public function Query(string q, string podstate="", string assumption="", string podtitle="", string ip="", string latlong="", string location="") {
+		if (!q)
+			throw "No query was given";
+
+		q=URIEncode(q);
+
+		var query=WOLFRAM_API_URL;
+		query+="?input=$q";
+
+		var f=this.Format;
+		if (f)
+			query+="&format=$f";
+
+		if (podstate)
+			query+="&podstate=$podstate";
+
+		if (assumption)
+			query+="&assumption=$assumption";
+
+		if (podtitle)
+			query+="&podtitle=$podtitle";
+
+		if (ip)
+			query+="&ip=$ip";
+
+		if (latlong)
+			query+="&latlong=$latlong";
+
+		if (location)
+			query+="&location=$location";
+
+		if (this.Metric==false)
+			query+="&metric=false";
+		else
+		if (this.Metric==true)
+			query+="&metric=true";
+
+		if (this.Width>0)
+			query+="&width=${this.Width}";
+
+		if (this.MaxWidth>0)
+			query+="&maxwidth=${this.MaxWidth}";
+
+		if (this.PlotWidth>0)
+			query+="&plotwidth=${this.PlotWidth}";
+
+		if (this.Mag!=1.0)
+			query+="&mag=${this.Mag}";
+
+		query+="&appid=${this.__APPID}";
+		this.Get(query);
+
+		if (!this.IsSuccessful())
+			throw "Error connecting to wolfram alpha: (HTTP_RESPONSE_CODE: ${this.Response})";
+		return DecodeResult(this.Data);
+	}
+}

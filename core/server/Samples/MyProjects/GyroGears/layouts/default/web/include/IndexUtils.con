@@ -1,0 +1,172 @@
+include Xapian.con
+include Utils.con
+import standard.lib.str
+import standard.lang.cli
+import standard.lib.cripto
+
+class _i_Indexer {
+	var XapianDB;
+
+	public function _i_Indexer(string dbname) {
+		this.XapianDB=new XapianWritableDatabase(GLOBALS()["dataindex"]+"/"+dbname, DB_CREATE_OR_OPEN);
+		if (!this.XapianDB.REF)
+			delete this.XapianDB;
+	}
+
+	public function UnIndex(id) {
+		if (!this.XapianDB)
+			throw "Xapian database was not created !";
+		this.XapianDB.delete_document2("GYROINTERNALID_$id");
+	}
+
+	public function Index(id, number is_arc, UID, GID, array data, array hashes, string stem="english") {
+		if (!this.XapianDB)
+			throw "Xapian database was not created !";
+
+		var indexer=new XapianTermGenerator();
+		var stemmer=new XapianStem(stem);
+		indexer.set_stemmer(stemmer);
+
+		var doc=new XapianDocument();
+		doc.add_value(0, ""+id);
+		doc.add_value(1, ""+UID);
+		doc.add_value(2, ""+GID);
+		doc.add_value(3, ""+is_arc);
+
+		var lj=length hashes;
+		for (var j=0;j<lj;j++) {
+			var hash=hashes[j];
+			if (hash) {
+				var key=Murmur(ToLower(""+hash[0])) / 0x10;
+				if ((key>=0) && (key<=3))
+					key=4;
+
+				doc.add_value(key, Utils::RemoveNonAlpha(hash[1]));
+			}
+		}
+
+		doc.add_term("GYROINTERNALID_$id");
+
+		// if exits ...
+		this.XapianDB.delete_document2("GYROINTERNALID_$id");
+
+		var para="";
+		var len=length data;
+		for (var i=0;i<len;i++) {
+			var d_arr=data[i];
+			if (d_arr) {
+				if (para)
+					para+=" ";
+				para+=d_arr[0];
+			}
+		}
+
+		doc.set_data(para);
+		indexer.set_document(doc);
+		indexer.index_text(para);
+
+		this.XapianDB.add_document(doc);
+
+		delete stemmer;
+		delete indexer;
+	}
+
+	public function finalize() {
+	    if (this.XapianDB)
+            delete this.XapianDB;
+	}
+}
+
+class _i_Query {
+	var XapianDB;
+	
+	public function _i_Query(string dbname) {
+		this.XapianDB=new XapianDatabase(GLOBALS()["dataindex"]+"/"+dbname);
+		if (!this.XapianDB.REF)
+			delete this.XapianDB;
+	}
+
+
+	function BuildQuery(db, string what, filters) {
+		var enquire=new XapianEnquire(db);
+		
+		var base_qp=new XapianQueryParser();
+		base_qp.set_database(db);
+		base_qp.set_stemming_strategy(STEM_SOME);
+
+
+		var base_query=base_qp.parse_query(what);
+		var filter_qp=null;
+
+		if (filters) {		
+			var len=length filters;
+			for (var i=0;i<len;i++) {
+				var filter=filters[i];
+				if (filter) {
+					var valno=Murmur(ToLower(""+filter[0])) / 0x10;
+					var val_min=Utils::RemoveNonAlpha(filter[1]);
+					var val_max=Utils::RemoveNonAlpha(filter[2]);
+
+					var vp=null;
+					if (typeof val_max=="string")
+						vp=new XapianStringValueRangeProcessor(valno);
+					else
+					if (typeof val_max=="numeric")
+						vp=new XapianNumberValueRangeProcessor(valno);
+
+					if (vp) {
+						var qp=new XapianQueryParser();
+						qp.set_database(db);
+						qp.set_stemming_strategy(STEM_SOME);
+						qp.add_valuerangeprocessor(vp);
+						var q=qp.parse_query("$val_min..$val_max");
+						if (filter_qp)
+							filter_qp=new XapianQuery(OP_AND, filter_qp, q);
+						else
+							filter_qp=q;
+					}
+				}
+			}
+		}
+		if ((filter_qp) && (filter_qp.REF))
+			base_query=new XapianQuery(OP_FILTER, base_query, filter_qp);
+		return base_query;
+	}
+
+	public function Query(var count, string what, number start, number len, string sort_by="", number sort_by_index=0, number is_arc=false, UID=-1, GID=-1, var infoarr=null, extra_arr=null, string stem="english", descending=false) {
+		var[] result;
+		infoarr=new [];
+
+		if (!this.XapianDB) {
+			count=0;
+			return result;
+		}
+
+		var enquire=new XapianEnquire(this.XapianDB);
+
+		var qp=new XapianQueryParser();
+
+		//var stemmer=new XapianStem(stem);
+		qp.set_database(this.XapianDB);
+		qp.set_stemming_strategy(STEM_SOME);
+
+		var query=BuildQuery(this.XapianDB, what, extra_arr);//qp.parse_query(what);
+		if (sort_by)
+			enquire.set_sort_by_value_then_relevance(Murmur(ToLower(""+sort_by)) / 0x10, descending);
+		enquire.set_query(query);
+
+		var matches=enquire.get_mset(start,len);
+
+		count=matches.get_matches_estimated();
+
+		for (var i=matches.begin(); i!=matches.end(); i++) {
+			var doc=i.get_document();
+			if (doc) {
+				var id=doc.get_value(0);
+				result[length result]=id;
+				infoarr[""+id]=[i.get_rank(), i.get_percent()];
+			}
+		}
+		return result;
+	}
+}

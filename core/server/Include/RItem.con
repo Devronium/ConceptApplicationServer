@@ -1,0 +1,51 @@
+include SingleContainer.con
+include RemoteEvents.con
+include RemoteProperties.con
+include RemoteMessages.con
+
+class RItem extends SingleContainer {
+	// ----------------------- events start ----------------------- //
+	public property OnSelect { get GetOnSelect, set SetOnSelect }
+	public function GetOnSelect() {
+		return _GET_REMOTE_EVENT(EVENT_ON_SELECT);
+	}
+
+	public function SetOnSelect(var delegate deleg) {
+		return _MAP_REMOTE_EVENT(EVENT_ON_SELECT, deleg);
+	}
+
+	public property OnDeselect { get GetOnDeselect, set SetOnDeselect }
+	public function GetOnDeselect() {
+		return _GET_REMOTE_EVENT(EVENT_ON_DESELECT);
+	}
+
+	public function SetOnDeselect(var delegate deleg) {
+		return _MAP_REMOTE_EVENT(EVENT_ON_DESELECT, deleg);
+	}
+
+	public property OnToggle { get GetOnToggle, set SetOnToggle }
+	public function GetOnToggle() {
+		return _GET_REMOTE_EVENT(EVENT_ON_TOGGLED);
+	}
+
+	public function SetOnToggle(var delegate deleg) {
+		return _MAP_REMOTE_EVENT(EVENT_ON_TOGGLED, deleg);
+	}
+	// ------------------------ events end ------------------------ //
+
+	public function RItem(OWNER, CLASS) {
+		super(OWNER, CLASS);
+	}
+
+	public function Select() {
+		SetProperty(P_SELECTED,1);
+	}
+
+	public function Deselect() {
+		SetProperty(P_SELECTED,0);
+	}
+
+	public function Toggle() {
+		SetProperty(P_TOGGLE,1);
+	}
+}

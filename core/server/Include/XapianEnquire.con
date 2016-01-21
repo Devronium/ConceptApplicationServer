@@ -1,0 +1,149 @@
+include XapianRSet.con
+include XapianQuery.con
+include XapianDatabase.con
+include XapianMSet.con
+include XapianESet.con
+
+class XapianEnquire {
+	protected var THISREF=null;
+	public property REF { get THISREF }
+
+	public function XapianEnquire(XapianDatabase db) {
+		this.THISREF=XapianEnquireCreate(var exc, db.REF);
+	}
+
+	public function finalize() {
+		XapianEnquireDestroy(THISREF, var exc);
+		this.THISREF=null;
+	}
+
+	public function set_query(XapianQuery query, number qlen=0) {
+		var result=XapianEnquire__set_query(this->THISREF, var exc, query.REF, qlen);
+		if (exc)
+			throw exc;
+		return result;
+	}
+
+	public function get_query() {
+		var result=new XapianQuery(XapianEnquire__get_query(this->THISREF, var exc));
+		if (exc)
+			throw exc;
+		return result;
+	}
+
+	public function set_weighting_scheme(number weight) {
+		var result=XapianEnquire__set_weighting_scheme(this->THISREF, var exc, weight);
+		if (exc)
+			throw exc;
+		return result;
+	}
+
+	public function set_collapse_key(number collapse_key) {
+		var result=XapianEnquire__set_collapse_key(this->THISREF, var exc, collapse_key);
+		if (exc)
+			throw exc;
+		return result;
+	}
+
+	public function set_docid_order(number order) {
+		var result=XapianEnquire__set_docid_order(this->THISREF, var exc, order);
+		if (exc)
+			throw exc;
+		return result;
+	}
+
+	public function set_cutoff(number percent_cutoff, number weight_cutoff=0) {
+		var result=XapianEnquire__set_cutoff(this->THISREF, var exc, percent_cutoff, weight_cutoff);
+		if (exc)
+			throw exc;
+		return result;
+	}
+
+	public function set_sort_by_relevance() {
+		var result=XapianEnquire__set_sort_by_relevance(this->THISREF, var exc);
+		if (exc)
+			throw exc;
+		return result;
+	}
+
+	public function set_sort_by_value(number sort_key, number reverse=true) {
+		var result=XapianEnquire__set_sort_by_value(this->THISREF, var exc, sort_key, reverse);
+		if (exc)
+			throw exc;
+		return result;
+	}
+
+	public function set_sort_by_value_then_relevance(number sort_key, number reverse=true) {
+		var result=XapianEnquire__set_sort_by_value_then_relevance(this->THISREF, var exc, sort_key, reverse);
+		if (exc)
+			throw exc;
+		return result;
+	}
+
+	public function set_sort_by_relevance_then_value(number sort_key, number reverse=true) {
+		var result=XapianEnquire__set_sort_by_relevance_then_value(this->THISREF, var exc, sort_key, reverse);
+		if (exc)
+			throw exc;
+		return result;
+	}
+
+	public function get_mset(number first, number maxitems, number checkatleast=0, omrset=null) {
+		var omr_ref=0;
+		if (omrset)
+			omr_ref=omrset.REF;
+		var result=new XapianMSet(XapianEnquire__get_mset(this->THISREF, var exc, first, maxitems, checkatleast, omr_ref));
+		if (exc)
+			throw exc;
+		return result;
+	}
+
+	public function get_eset(number maxitems, XapianRSet omrset, number flags=0, number k=1.0) {
+		var result=new XapianESet(XapianEnquire__get_eset(this->THISREF, var exc, maxitems, omrset.REF, flags, k));
+		if (exc)
+			throw exc;
+		return result;
+	}
+
+	public function get_eset2(number maxitems, XapianRSet omrset) {
+		var result=new XapianESet(XapianEnquire__get_eset2(this->THISREF, var exc, maxitems, omrset.REF));
+		if (exc)
+			throw exc;
+		return result;
+	}
+
+	public function get_matching_terms_begin(number did) {
+		var result=new XapianTermIterator(XapianEnquire__get_matching_terms_begin(this->THISREF, var exc, did));
+		if (exc)
+			throw exc;
+		return result;
+	}
+
+	public function get_matching_terms_end(number did) {
+		var result=new XapianTermIterator(XapianEnquire__get_matching_terms_end(this->THISREF, var exc, did));
+		if (exc)
+			throw exc;
+		return result;
+	}
+
+	public function get_matching_terms_begin2(XapianMSetIterator it) {
+		var result=new XapianTermIterator(XapianEnquire__get_matching_terms_begin2(this->THISREF, var exc, it.REF));
+		if (exc)
+			throw exc;
+		return result;
+	}
+
+	public function get_matching_terms_end2(XapianMSetIterator it) {
+		var result=new XapianTermIterator(XapianEnquire__get_matching_terms_end2(this->THISREF, var exc, it.REF));
+		if (exc)
+			throw exc;
+		return result;
+	}
+
+	public function get_description() {
+		var result=XapianEnquire__get_description(this->THISREF, var exc);
+		if (exc)
+			throw exc;
+		return result;
+	}
+
+}

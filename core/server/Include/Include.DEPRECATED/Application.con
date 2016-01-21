@@ -1,0 +1,37 @@
+pragma warnings off
+
+include 'Controls.con'
+
+
+class CApplication {
+	protected var _ApplicationForm;
+	public property ApplicationForm { set SetApplicationForm, get _ApplicationForm }
+
+	public function CApplication(CForm) {
+		this.SetApplicationForm(CForm);
+	}
+
+	public function SetApplicationForm(CForm) {
+		this._ApplicationForm=CForm;
+	}
+
+	public function Init() {
+		//InitMessagingSystem();
+		SendMessage("Application",MSG_MESSAGING_SYSTEM,"0","1");
+	}
+	
+	public function Run() {
+		var AppForm=this._ApplicationForm;
+
+		while (GetMessage(var Sender, var ID, var Target, var Value)) {
+			if ((ID==MSG_APPLICATION_QUIT) || (AppForm.ProcessMessage(Sender, ID, Target, Value)==MSG_CLOSE) || ((ID==MSG_CLOSE) && (Sender==AppForm.Name)) )
+				break;
+		}
+	}
+
+	public function Done() {
+		SendMessage("Application",MSG_MESSAGING_SYSTEM,"0","0");
+		SendMessage("Application",MSG_APPLICATION_QUIT,"0","0");
+		//DestroyMessagingSystem();
+	}
+}

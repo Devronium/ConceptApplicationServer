@@ -1,0 +1,401 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+  <title>CApplication</title>
+  <link href="css/style.css" rel="stylesheet" type="text/css">
+  <meta http-equiv="Content-Type" content="text/html;charset=utf-8" >
+</head>
+<body bgcolor="#ffffff">
+<table border="0" width="100%" bgcolor="#F0F0FF">
+  <tr>
+    <td>Concept Framework 2.2 documentation</td>
+  	<td align="right"><a href="index.html">Contents</a> | <a href="index_fun.html">Index</a></td>
+  </tr>
+</table>
+<h2>CApplication</h2>
+<table border="0" cellspacing="0" cellpadding="0" width="400" style="border-style:solid;border-width:1px;border-color:#D0D0D0;">
+  <tr bgcolor="#f0f0f0">
+     <td><i>Name</i></td>
+     <td><i>Version</i></td>
+     <td><i>Deprecated</i></td>
+  </tr>
+  <tr bgcolor="#fafafa">
+     <td><b>CApplication</b></td>
+     <td>version 1.0</td>
+     <td>no</td>
+  </tr>
+</table>
+<br />
+<b>Defined in : </b>CApplication.con
+<br/><i>(this file must be included in your application in order to have access, unless you use a child class of CApplication that includes this file)</i><br /><br />
+
+
+<b>Description:</b><br />
+<table width="100%" bgcolor="#FAFAFF" style="border-style:solid;border-width:1px;border-color:#D0D0D0;">
+<tr><td>
+The base for every remote GUI Application. You've noticed that the application has a "C" instead of the usual "R"(Remote). That is because the application class doesn't have an instance on the client, and has a role only for the server application management. "C" comes from "Concept".
+<br>
+<br>A remote GUI application has three phases <a href="CApplication.Init.html">Init</a>, <a href="CApplication.Run.html">Run</a> and <a href="CApplication.Done.html">Done</a>.
+<br>
+</td></tr>
+</table>
+<br />
+<br />
+
+
+<b>Properties:</b><br />
+<table bgcolor="#FFFFFF" width="100%" style="border-style:solid;border-width:1px;border-color:#D0D0D0;">
+
+	   <tr>
+	   	   <td>
+		   	   <a href="CApplication.ApplicationForm.html">ApplicationForm</a>
+		   </td>
+	   	   <td>
+		   	   Sets or gets the main form for the application
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="CApplication.ShellDebug.html">ShellDebug</a>
+		   </td>
+	   	   <td>
+		   	   Sets the debug call back function
+		   </td>
+	   </tr>
+
+</table>
+<br />
+
+
+
+<b>Methods:</b><br />
+<table bgcolor="#FFFFFF" width="100%" style="border-style:solid;border-width:1px;border-color:#D0D0D0;">
+
+	   <tr>
+	   	   <td>
+		   	   <a href="CApplication.AddWebChild.html">AddWebChild</a>
+		   </td>
+	   	   <td>
+		   	   Set the current Concept Applicaton as a parent for a given web application idetified by key
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="CApplication.BeginNonCritical.html">BeginNonCritical</a>
+		   </td>
+	   	   <td>
+		   	   This function is used to minimize the network traffic
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="CApplication.CApplication.html">CApplication</a>
+		   </td>
+	   	   <td>
+		   	   This is the standard contructor for this class and should not be used directly
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="CApplication.ClientDebugShell.html">ClientDebugShell</a>
+		   </td>
+	   	   <td>
+		   	   Tells the client to spawn itself, and execute another application in the debug mode, on the current server; this function is intended to be used by IDEs only
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="CApplication.ClientShell.html">ClientShell</a>
+		   </td>
+	   	   <td>
+		   	   Tells the client to spawn itself, and execute another application on the current server
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="CApplication.Done.html">Done</a>
+		   </td>
+	   	   <td>
+		   	   Tells the client that the current application ended its execution
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="CApplication.EndNonCritical.html">EndNonCritical</a>
+		   </td>
+	   	   <td>
+		   	   This function is used to minimize the network traffic
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="CApplication.GetCookie.html">GetCookie</a>
+		   </td>
+	   	   <td>
+		   	   Gets the data set by [SetCookie] asociated with the current user and current host
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="CApplication.GlobalFlag.html">GlobalFlag</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="CApplication.Init.html">Init</a>
+		   </td>
+	   	   <td>
+		   	   Initializes the application on the remote client
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="CApplication.Input.html">Input</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="CApplication.Iterate.html">Iterate</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="CApplication.Login.html">Login</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="CApplication.Message.html">Message</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="CApplication.MessageBox.html">MessageBox</a>
+		   </td>
+	   	   <td>
+		   	   Tells the client to show a message box
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="CApplication.MessagePending.html">MessagePending</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="CApplication.MessageYesNo.html">MessageYesNo</a>
+		   </td>
+	   	   <td>
+		   	   Tells the client to show a question message box and waits for a response (Yes, No or Close)
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="CApplication.Ping.html">Ping</a>
+		   </td>
+	   	   <td>
+		   	   Pings the client machine
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="CApplication.Query.html">Query</a>
+		   </td>
+	   	   <td>
+		   	   Queries the client for information
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="CApplication.RegisterDebugWebChild.html">RegisterDebugWebChild</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="CApplication.RemoteCommand.html">RemoteCommand</a>
+		   </td>
+	   	   <td>
+		   	   Executes a system command on the client
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="CApplication.RemoveWebChild.html">RemoveWebChild</a>
+		   </td>
+	   	   <td>
+		   	   Remove the child web application idetified by key, previously added by <a href="CApplication.AddWebChild.html">AddWebChild</a>
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="CApplication.RequestFile.html">RequestFile</a>
+		   </td>
+	   	   <td>
+		   	   Request a file from the client machine
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="CApplication.Run.html">Run</a>
+		   </td>
+	   	   <td>
+		   	   Starts the main loop for the remote application
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="CApplication.SendCookie.html">SendCookie</a>
+		   </td>
+	   	   <td>
+		   	   Sends a cookie to the client
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="CApplication.SendCookieContent.html">SendCookieContent</a>
+		   </td>
+	   	   <td>
+		   	   Sends a virtual cookie to the client
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="CApplication.SendFile.html">SendFile</a>
+		   </td>
+	   	   <td>
+		   	   Sends a file to the client
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="CApplication.SetApplicationForm.html">SetApplicationForm</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="CApplication.SetCookie.html">SetCookie</a>
+		   </td>
+	   	   <td>
+		   	   Set a cookie on the client side containing the given data
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="CApplication.SetGlobalFlag.html">SetGlobalFlag</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+</table>
+<br />
+
+
+
+
+
+
+
+
+<br />
+
+<b>Example:</b>
+<table bgcolor="#F0F0FF" width="100%"  style="border-style:solid;border-width:1px;border-color:#D0D0D0;"><tr><td>
+<font color="#101060"><pre>include RForm.con
+<br>
+<br>class MyFrom extends RForm {
+<br>	function MyForm(Owner) {
+<br>		super(Owner);
+<br>	}
+<br>}
+<br>
+<br>class Main {
+<br>	function Main() {
+<br>			try {
+<br>				var Application=new CApplication(new MyForm(null));
+<br>
+<br>				Application.Init();
+<br>				Application.Run();
+<br>				Application.Done();
+<br>			} catch (var Exception) {
+<br>				echo Exception;
+<br>			}
+<br>	}
+<br>}
+<br></pre></font>
+</td></tr></table>
+<br />
+
+<br />
+<br />
+<!--
+  <p>
+    <a href="http://validator.w3.org/check?uri=referer"><img
+        src="http://www.w3.org/Icons/valid-html40"
+        alt="Valid HTML 4.0 Transitional" height="31" width="88" border="0"></a>
+ <a href="http://jigsaw.w3.org/css-validator/">
+  <img style="border:0;width:88px;height:31px"
+       src="http://jigsaw.w3.org/css-validator/images/vcss" 
+       alt="Valid CSS!" border="0"/>
+ </a>
+</p>
+-->
+<table bgcolor="#F0F0F0" width="100%"><tr><td>Documented by Eduard Suica, generation time: Sun Jan 27 18:15:11 2013
+ GMT</td><td align="right">(c)2013 <a href="http://www.devronium.com">Devronium Applications</a></td></tr></table>
+</body>
+</html>

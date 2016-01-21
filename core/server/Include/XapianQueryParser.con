@@ -1,0 +1,204 @@
+include XapianDatabase.con
+include XapianQuery.con
+include XapianStem.con
+include XapianTermIterator.con
+
+class XapianStringValueRangeProcessor {
+	protected var THISREF=null;
+	public property REF { get THISREF }
+
+	public function XapianStringValueRangeProcessor(number valno) {
+		this.THISREF=XapianStringValueRangeProcessorCreate(valno);
+	}
+
+	public function finalize() {
+		XapianStringValueRangeProcessorDestroy(this.THISREF);
+		this.THISREF=null;
+	}
+}
+
+class XapianNumberValueRangeProcessor {
+	protected var THISREF=null;
+	public property REF { get THISREF }
+
+	public function XapianNumberValueRangeProcessor(number valno, string _str="", number _prefix=true) {
+		this.THISREF=XapianNumberValueRangeProcessorCreate(valno, _str, _prefix);
+	}
+
+	public function finalize() {
+		XapianNumberValueRangeProcessorDestroy(this.THISREF);
+		this.THISREF=null;
+	}
+}
+
+class XapianDateValueRangeProcessor {
+	protected var THISREF=null;
+	public property REF { get THISREF }
+
+	public function XapianDateValueRangeProcessor(number valno, number prefer_mdy=false, number epoch_year=1970) {
+		this.THISREF=XapianDateValueRangeProcessorCreate(valno, prefer_mdy, epoch_year);
+	}
+
+	public function finalize() {
+		XapianDateValueRangeProcessorDestroy(this.THISREF);
+		this.THISREF=null;
+	}
+}
+
+class XapianSimpleStopper {
+	protected var THISREF=null;
+	public property REF { get THISREF }
+
+	public function XapianSimpleStopper() {
+		this.THISREF=XapianSimpleStopperCreate();
+	}
+
+	public function finalize() {
+		XapianSimpleStopperDestroy(this.THISREF);
+		this.THISREF=null;
+	}
+
+	public function add(string term) {
+		var result=XapianSimpleStopper__add(this.THISREF, term, var exc);
+		if (exc)
+			throw exc;
+		return result;
+	}
+
+	public function has(string term) {
+		var result=XapianSimpleStopper__has(this.THISREF, term, var exc);
+		if (exc)
+			throw exc;
+		return result;
+	}
+}
+
+class XapianQueryParser {
+	protected var THISREF=null;
+	public property REF { get THISREF }
+
+	public function XapianQueryParser() {
+		this.THISREF=XapianQueryParserCreate(var exc);
+	}
+
+	public function finalize() {
+		XapianQueryParserDestroy(THISREF, var exc);
+		this.THISREF=null;
+	}
+
+	public function set_stemmer(XapianStem stemmer) {
+		var result=XapianQueryParser__set_stemmer(this->THISREF, var exc, stemmer.REF);
+		if (exc)
+			throw exc;
+		return result;
+	}
+
+	public function set_stemming_strategy(number strategy) {
+		var result=XapianQueryParser__set_stemming_strategy(this->THISREF, var exc, strategy);
+		if (exc)
+			throw exc;
+		return result;
+	}
+
+	public function set_stopper(number stop) {
+		var result=XapianQueryParser__set_stopper(this->THISREF, var exc, stop);
+		if (exc)
+			throw exc;
+		return result;
+	}
+
+	public function set_default_op(number default_op) {
+		var result=XapianQueryParser__set_default_op(this->THISREF, var exc, default_op);
+		if (exc)
+			throw exc;
+		return result;
+	}
+
+	public function get_default_op() {
+		var result=XapianQueryParser__get_default_op(this->THISREF, var exc);
+		if (exc)
+			throw exc;
+		return result;
+	}
+
+	public function set_database(XapianDatabase db) {
+		var result=XapianQueryParser__set_database(this->THISREF, var exc, db.REF);
+		if (exc)
+			throw exc;
+		return result;
+	}
+
+	public function parse_query(string query_string, number flags=FLAG_DEFAULT, string default_prefix="") {
+		var result=new XapianQuery(-1,-1,XapianQueryParser__parse_query(this->THISREF, var exc, query_string, flags, default_prefix));
+		if (exc)
+			throw exc;
+		if (!result.REF)
+			result=null;
+		return result;
+	}
+
+	public function add_prefix(string field, string prefix) {
+		var result=XapianQueryParser__add_prefix(this->THISREF, var exc, field, prefix);
+		if (exc)
+			throw exc;
+		return result;
+	}
+
+	public function add_boolean_prefix(string field, string prefix) {
+		var result=XapianQueryParser__add_boolean_prefix(this->THISREF, var exc, field, prefix);
+		if (exc)
+			throw exc;
+		return result;
+	}
+
+
+	public function add_valuerangeprocessor(vrprocesor) {
+		var result=XapianQueryParser__add_valuerangeprocessor(this->THISREF, var exc, vrprocesor->REF);
+		if (exc)
+			throw exc;
+		return result;
+	}
+
+	public function stoplist_begin() {
+		var result=new XapianTermIterator(XapianQueryParser__stoplist_begin(this->THISREF, var exc));
+		if (exc)
+			throw exc;
+		return result;
+	}
+
+	public function stoplist_end() {
+		var result=new XapianTermIterator(XapianQueryParser__stoplist_end(this->THISREF, var exc));
+		if (exc)
+			throw exc;
+		return result;
+	}
+
+	public function unstem_begin(string term) {
+		var result=new XapianTermIterator(XapianQueryParser__unstem_begin(this->THISREF, var exc, term));
+		if (exc)
+			throw exc;
+		return result;
+	}
+
+	public function unstem_end(string term) {
+		var result=new XapianTermIterator(XapianQueryParser__unstem_end(this->THISREF, var exc, term));
+		if (exc)
+			throw exc;
+		return result;
+	}
+
+	public function get_corrected_query_string() {
+		var result=XapianQueryParser__get_corrected_query_string(this->THISREF, var exc);
+		if (exc)
+			throw exc;
+		return result;
+	}
+
+	public function get_description() {
+		var result=XapianQueryParser__get_description(this->THISREF, var exc);
+		if (exc)
+			throw exc;
+		return result;
+	}
+
+}

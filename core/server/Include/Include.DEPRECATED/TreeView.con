@@ -1,0 +1,34 @@
+include 'Container.con'
+include 'TreeNode.con'
+
+class ConceptTreeView extends Container {
+	protected var _IMAGELIST;
+	public property ImageList { set SetImageList, get _IMAGELIST }
+
+	protected function SetImageList(x) {
+		if (typeof x==CLASS_TYPE)
+			this->_IMAGELIST=x;
+		else
+		     	throw new ControlException(EXC_INVALID_ARGUMENT_TYPE, this);
+
+                SendMessage(this->Name, MSG_CHANGED, P_IMAGELIST, x->Name);
+	}
+
+	public function ConceptTreeView(Owner) {
+		this->Container(Owner, CLASS_TREEVIEW);
+	}
+
+	public function AddSibling(prevNode,item) {
+		if (typeof prevNode==CLASS_TYPE)
+                	SendMessage(this->Name, MSG_ITEM_ADD, prevNode->Name, item->Name);
+		else
+                	SendMessage(this->Name, MSG_ITEM_ADD, "0", item->Name);
+	}
+
+	public function AddChild(prevNode,item) {
+		if (typeof prevNode==CLASS_TYPE)
+                	SendMessage(this->Name, MSG_ITEMEX1_ADD, prevNode->Name, item->Name);
+		else
+                	SendMessage(this->Name, MSG_ITEMEX1_ADD, "0", item->Name);
+	}
+}

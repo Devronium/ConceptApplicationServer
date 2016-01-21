@@ -1,0 +1,161 @@
+include VisibleRemoteObject.con
+include Application.con
+import standard.lib.str
+
+define P_AUDIOENABLED          "1000"
+define P_PLAYING               "1001"
+define P_SPEED                 "1002"
+define P_FULLSCREENMODE        "1003"
+define P_ADVANCE               "1005"
+define P_ALIGNMENT             "1006"
+define P_PLAYERFOCUS           "1007"
+define P_MAXRUNTIME            "1008"
+define P_VARIABLES             "1009"
+define P_FRAMERATE             "1010"
+define P_SCALEMODE             "1011"
+define P_CACHESIZE             "1012"
+define P_SELECTION             "1013"
+define P_URL                   "1014"
+define P_BASEURL               "1015"
+
+define EVENT_ON_COMMAND		"350"
+define EVENT_ON_URL		"351"
+
+class RSwf extends VisibleRemoteObject {
+	protected var _VARIABLES="";
+
+	public property URL { get GetURL, set SetURL }
+	public property Playing { set SetPlaying, get GetPlaying }
+	public property Variables { set SetVariables, get GetVariables }
+	public property Speed { set SetSpeed, get GetSpeed }
+	public property AllowFullscreen { set SetAllowFullscreen, get GetAllowFullscreen }
+	public property MaxRuntime { set SetMaxRuntime, get GetMaxRuntime }
+	public property CacheSize { set SerCacheSize, get GetCacheSize }
+	public property BaseURL { set SetBaseURL, get GetBaseURL }
+	public property Selection { get GetSelection }
+	public property FrameRate { get GetFrameRate }
+
+	//-------- Events ----------------//
+	public property OnCommand { get GetOnCommand, set SetOnCommand }
+	private function GetOnCommand() {
+		return _GET_REMOTE_EVENT(EVENT_ON_COMMAND);
+	}
+
+	private function SetOnCommand(delegate deleg) {
+		return _MAP_REMOTE_EVENT(EVENT_ON_COMMAND, deleg);
+	}
+
+	public property OnUrl { get GetOnUrl, set SetOnUrl }
+	private function GetOnUrl() {
+		return _GET_REMOTE_EVENT(EVENT_ON_URL);
+	}
+
+	private function SetOnUrl(delegate deleg) {
+		return _MAP_REMOTE_EVENT(EVENT_ON_URL, deleg);
+	}
+	//-------- End of Events ---------//
+
+	public function RSwf(OWNER) {
+		super(OWNER, "1014");
+	}
+
+	public function Stream(string filename) {
+		var fname="";
+		CApplication::SendCookie(filename, fname);
+		this.SetURL(filename);
+	}
+
+	public function GetVariables() {
+		return this._VARIABLES;
+		//return this.GetProperty(P_VARIABLES);
+	}
+
+	public function SetVariables(string vars) {
+		this._VARIABLES=vars;
+		this.SetProperty(P_VARIABLES, vars);
+		return vars;
+	}
+
+	public function GetURL() {
+		return this.GetProperty(P_URL);
+	}
+
+	public function SetURL(string URL) {
+		this.SetProperty(P_URL, URL);
+		return URL;
+	}
+
+	public function GetPlaying() {
+		return value (""+GetProperty(P_PLAYING));
+	}
+
+	public function SetPlaying(number bplay=true) {
+		this.SetProperty(P_PLAYING, bplay);
+		return bplay;
+	}
+
+	public function Play() {
+		this.SetPlaying(true);
+	}
+
+	public function Stop() {
+		this.SetPlaying(false);
+	}
+
+	public function SetSpeed(number speed) {
+		this.SetProperty(P_SPEED, speed);
+		return speed;
+	}
+
+	public function GetSpeed() {
+		return value (""+this.GetProperty(P_SPEED));
+	}
+
+	public function SetAllowFullscreen(number allow=true) {
+		this.SetProperty(P_FULLSCREENMODE, allow);
+		return allow;
+	}
+
+	public function GetAllowFullscreen() {
+		return value (""+this.GetProperty(P_FULLSCREENMODE));
+	}
+
+	public function SetMaxRuntime(number seconds) {
+		this.SetProperty(P_MAXRUNTIME, seconds);
+		return seconds;
+	}
+
+	public function GetMaxRuntime() {
+		return value (""+this.GetProperty(P_MAXRUNTIME));
+	}
+
+	public function SerCacheSize(number bytes) {
+		this.SetProperty(P_CACHESIZE, bytes);
+		return bytes;
+	}
+
+	public function GetCacheSize() {
+		return value (""+this.GetProperty(P_CACHESIZE));
+	}
+
+	public function SetBaseURL(string URL) {
+		this.SetProperty(P_BASEURL, URL);
+		return URL;
+	}
+
+	public function GetBaseURL() {
+		return this.GetProperty(P_BASEURL);
+	}
+
+	public function GetSelection() {
+		return this.GetProperty(P_SELECTION);
+	}
+
+	public function GetFrameRate() {
+		return value (""+this.GetProperty(P_FRAMERATE));
+	}
+
+	public function Skip(number seconds) {
+		this.SetProperty(P_ADVANCE, seconds);
+	}
+}

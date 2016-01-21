@@ -1,0 +1,787 @@
+import standard.lib.str
+
+include VisibleRemoteObject.con
+include RAdjustment.con
+
+define SHEET_NORMAL		0
+define SHEET_ROW_SELECTED	1
+define SHEET_COLUMN_SELECTED	2
+define SHEET_RANGE_SELECTED	3
+
+
+define CELL_FULL_BORDER			0xFF
+define CELL_BOTTOM_BORDER		0x40
+define CELL_BOX_BORDER			0x78
+define CELL_RIGHT_BORDER		0x10
+define CELL_TOP_BORDER			0x20
+define CELL_LEFT_BORDER			0x8
+
+define LINE_SOLID			0
+define LINE_ON_OFF_DASH			1
+define LINE_DOUBLE_DASH			2
+
+define EVENT_ON_SHEET_ACTIVATE                  "350"
+define EVENT_ON_SHEET_CHANGED                   "351"
+define EVENT_ON_SHEET_CLEARCELL                 "352"
+define EVENT_ON_SHEET_CLIPRANGE                 "353"
+define EVENT_ON_SHEET_DEACTIVATE                "354"
+define EVENT_ON_SHEET_MOVERANGE                 "355"
+define EVENT_ON_SHEET_RESIZERANGE               "356"
+define EVENT_ON_SHEET_SELECTCOLUMN              "357"
+define EVENT_ON_SHEET_SELECTRANGE               "358"
+define EVENT_ON_SHEET_SELECTROW                 "359"
+define EVENT_ON_SHEET_SETCELL                   "360"
+define EVENT_ON_SHEET_TRAVERSE                  "361"
+
+#defin SELECTION_SINGLE			0
+#defin SELECTION_BROWSE			1
+
+define P_SHEET_ENTRYTYPE   "1000"
+define P_SHEET_VADJUSTMENT "1001"
+define P_SHEET_HADJUSTMENT "1002"
+define P_SHEET_STATE       "1003"
+define P_SHEET_RANGE       "1004"
+define P_SHEET_SELECTMODE  "1005"
+define P_SHEET_AUTORESIZE  "1006"
+define P_SHEET_AUTOSCROLL  "1007"
+define P_SHEET_CLIPTEXT    "1008"
+define P_SHEET_JUSTIFY     "1009"
+define P_SHEET_LOCKED      "1010"
+define P_SHEET_TITLE       "1011"
+define P_SHEET_FREEZE      "1012"
+define P_SHEET_THAW        "1013"
+define P_SHEET_BACKGROUND  "1014"
+define P_SHEET_GRIDCOLOR   "1015"
+define P_SHEET_GRIDVISIBLE "1016"
+define P_SHEET_COLUMNTITLE "1017"
+define P_SHEET_ROWTITLE    "1018"
+define P_SHEET_ROWBUTTONADD "1019"
+define P_SHEET_COLBUTTONADD "1020"
+define P_SHEET_ROWBUTTONJUST "1021"
+define P_SHEET_COLBUTTONJUST "1022"
+define P_SHEET_MOVETO      "1023"
+define P_SHEET_ROWTITLEVISIBLE "1024"
+define P_SHEET_COLTITLEVISIBLE "1025"
+define P_SHEET_COLVISIBLE  "1026"
+define P_SHEET_ROWVISIBLE  "1027"
+define P_SHEET_ROWSSENSITIVE "1028"
+define P_SHEET_COLSSENSITIVE "1029"
+define P_SHEET_ROWRESIZABLE "1030"
+define P_SHEET_COLRESIZABLE "1031"
+define P_SHEET_ROWSENSITIVE "1032"
+define P_SHEET_COLSENSITIVE "1033"
+define P_SHEET_SELECTROW   "1034"
+define P_SHEET_SELECTCOL   "1035"
+define P_SHEET_CLIPRANGE   "1036"
+define P_SHEET_UNCLIPRANGE "1037"
+define P_SHEET_IN_CLIP     "1038"
+define P_SHEET_SELECTRANGE "1039"
+define P_SHEET_UNSELECTRANGE "1040"
+define P_SHEET_ACTIVECELL  "1041"
+define P_SHEET_CELL        "1042"
+define P_SHEET_CELLTEXT    "1043"
+define P_SHEET_CELLCLEAR   "1044"
+define P_SHEET_CELLDELETE  "1045"
+define P_SHEET_RANGECLEAR  "1046"
+define P_SHEET_RANGEDELETE "1047"
+define P_SHEET_CELLSTATE   "1048"
+define P_SHEET_ROWHEIGHT   "1049"
+define P_SHEET_COLWIDTH    "1050"
+define P_SHEET_ADDCOL      "1051"
+define P_SHEET_ADDROW      "1052"
+define P_SHEET_INSERTCOL   "1053"
+define P_SHEET_INSERTROW   "1054"
+define P_SHEET_RANGE_BCOLOR "1055"
+define P_SHEET_RANGE_FCOLOR "1056"
+define P_SHEET_RANGE_EDITABLE "1057"
+define P_SHEET_RANGE_VISIBLE "1058"
+define P_SHEET_RANGE_BORDER "1059"
+define P_SHEET_RANGE_BORDER_COLOR "1060"
+define P_SHEET_RANGE_FONT  "1061"
+define P_SHEET_ATTACH      "1062"
+define P_SHEET_ATTACH_BUTTON "1063"
+define P_SHEET_DELETE_COLUMNS "1064"
+define P_SHEET_DELETE_ROWS "1065"
+define P_SHEET_RANGE_JUST  "1066"
+
+class RSheet extends VisibleRemoteObject {
+	private var _ROWS=0;
+	private var _COLS=0;
+	private var _AUTORESIZE=0;
+	private var _ENTRYTYPE=0;
+	private var _SELECTMODE=0;
+	private var _AUTOSCROLL=false;
+	private var _CLIPTEXT=false;
+	private var _JUSTIFY;
+	private var _TITLE;
+	private var _LOCKED;
+	private var _FROZEN;
+	private var _BACKGROUND_COLOR;
+	private var _GRID_COLOR;
+	private var _GRID_VISIBLE=true;
+
+	private var _HAdjustment;
+	private var _VAdjustment;
+
+	private var _COLTITLES;
+	private var _COLLABELS;
+	private var _ROWTITLES;
+	private var _ROWLABELS;
+
+	private var _COLSSENSITIVE=true;
+	private var _ROWSSENSITIVE=true;
+	private var _COLSRESIZABLE=true;
+	private var _ROWSRESIZABLE=true;
+
+
+	public property Rows { get _ROWS }
+	public property Columns { get _COLS }
+	public property VAdjustment { get GetVAdjustment }
+	public property HAdjustment { get GetHAdjustment }
+	public property AutoResize { get _AUTORESIZE, set SetAutoResize }
+	public property EntryType { get _ENTRYTYPE, set SetEntryType }
+	public property VisibleRange { get GetVisibleRange }
+	public property SelectMode { get _SELECTMODE, set SetSelectMode }
+	public property AutoScroll { get _AUTOSCROLL, set SetAutoScroll }
+	public property ClipText { get _CLIPTEXT, set SetClipText }
+	public property Justify { get _JUSTIFY, set SetJustify }
+	public property Title { get _TITLE, set SetTitle }
+	public property Locked { get _LOCKED, set SetLocked }
+	public property Frozen { get _FROZEN }
+	public property BackgroundColor { get _BACKGROUND_COLOR, set SetBackgroundColor }
+	public property GridColor { get _GRID_COLOR, set SetGridColor }
+	public property GridVisible { get _GRID_VISIBLE, set SetGridVisible }
+	public property RowsSensitive { get _ROWSSENSITIVE, set SetRowsSensitive }
+	public property ColumnsSensitive { get _COLSSENSITIVE, set SetColumnsSensitive }
+	public property RowsResizable { get _ROWSRESIZABLE, set SetRowsResizable }
+	public property ColumnsResizable { get _ROWSRESIZABLE, set SetColumnsResizable }
+	public property ActiveCell { get GetActiveCell, set SetActiveCell }
+	public property State { get GetState }
+	public property InClip { get GetInClip }
+	public property SelectedRange { get GetSelectedRange }
+
+
+	public property OnActivate { get GetOnActivate, set SetOnActivate }
+	public function GetOnActivate() {
+		return _GET_REMOTE_EVENT(EVENT_ON_SHEET_ACTIVATE);
+	}
+
+	public function SetOnActivate(var delegate deleg) {
+		return _MAP_REMOTE_EVENT(EVENT_ON_SHEET_ACTIVATE, deleg);
+	}
+
+	public property OnChanged { get GetOnChanged, set SetOnChanged }
+	public function GetOnChanged() {
+		return _GET_REMOTE_EVENT(EVENT_ON_SHEET_CHANGED);
+	}
+
+	public function SetOnChanged(var delegate deleg) {
+		return _MAP_REMOTE_EVENT(EVENT_ON_SHEET_CHANGED, deleg);
+	}
+
+	public property OnClearCell { get GetOnClearCell, set SetOnClearCell }
+	public function GetOnClearCell() {
+		return _GET_REMOTE_EVENT(EVENT_ON_SHEET_CLEARCELL);
+	}
+
+	public function SetOnClearCell(var delegate deleg) {
+		return _MAP_REMOTE_EVENT(EVENT_ON_SHEET_CLEARCELL, deleg);
+	}
+
+	public property OnSelectRange { get GetOnSelectRange, set SetOnSelectRange }
+	public function GetOnSelectRange() {
+		return _GET_REMOTE_EVENT(EVENT_ON_SHEET_SELECTRANGE);
+	}
+
+	public function SetOnSelectRange(var delegate deleg) {
+		return _MAP_REMOTE_EVENT(EVENT_ON_SHEET_SELECTRANGE, deleg);
+	}
+
+	public property OnClipRange { get GetOnClipRange, set SetOnClipRange }
+	public function GetOnClipRange() {
+		return _GET_REMOTE_EVENT(EVENT_ON_SHEET_CLIPRANGE);
+	}
+
+	public function SetOnClipRange(var delegate deleg) {
+		return _MAP_REMOTE_EVENT(EVENT_ON_SHEET_CLIPRANGE, deleg);
+	}
+
+	public property OnDeactivate { get GetOnDeactivate, set SetOnDeactivate }
+	public function GetOnDeactivate() {
+		return _GET_REMOTE_EVENT(EVENT_ON_SHEET_DEACTIVATE);
+	}
+
+	public function SetOnDeactivate(var delegate deleg) {
+		return _MAP_REMOTE_EVENT(EVENT_ON_SHEET_DEACTIVATE, deleg);
+	}
+
+	public property OnMoveRange { get GetOnMoveRange, set SetOnMoveRange }
+	public function GetOnMoveRange() {
+		return _GET_REMOTE_EVENT(EVENT_ON_SHEET_MOVERANGE);
+	}
+
+	public function SetOnMoveRange(var delegate deleg) {
+		return _MAP_REMOTE_EVENT(EVENT_ON_SHEET_MOVERANGE, deleg);
+	}
+
+	public property OnSelectColumn { get GetOnSelectColumn, set SetOnSelectColumn }
+	public function GetOnSelectColumn() {
+		return _GET_REMOTE_EVENT(EVENT_ON_SHEET_SELECTCOLUMN);
+	}
+
+	public function SetOnSelectColumn(var delegate deleg) {
+		return _MAP_REMOTE_EVENT(EVENT_ON_SHEET_SELECTCOLUMN, deleg);
+	}
+
+	public property OnSelectRow { get GetOnSelectRow, set SetOnSelectRow }
+	public function GetOnSelectRow() {
+		return _GET_REMOTE_EVENT(EVENT_ON_SHEET_SELECTROW);
+	}
+
+	public function SetOnSelectRow(var delegate deleg) {
+		return _MAP_REMOTE_EVENT(EVENT_ON_SHEET_SELECTROW, deleg);
+	}
+
+	public property OnSetCell { get GetOnSetCell, set SetOnSetCell }
+	public function GetOnSetCell() {
+		return _GET_REMOTE_EVENT(EVENT_ON_SHEET_SETCELL);
+	}
+
+	public function SetOnSetCell(var delegate deleg) {
+		return _MAP_REMOTE_EVENT(EVENT_ON_SHEET_SETCELL, deleg);
+	}
+
+	public property OnTraverse { get GetOnTraverse, set SetOnTraverse }
+	public function GetOnTraverse() {
+		return _GET_REMOTE_EVENT(EVENT_ON_SHEET_TRAVERSE);
+	}
+
+	public function SetOnTraverse(var delegate deleg) {
+		return _MAP_REMOTE_EVENT(EVENT_ON_SHEET_TRAVERSE, deleg);
+	}
+
+
+	public function RSheet(OWNER, number rows = 10, number columns = 10, string title="", number editable=true) {
+		var post_string="$editable;$rows;$columns;$title";
+		this._TITLE=title;
+		this.PostString(post_string);
+		super(OWNER, "1019");
+
+		this._ROWS=rows;
+		this._COLS=columns;
+		this._COLTITLES=new [];
+		this._COLLABELS=new [];
+		this._ROWTITLES=new [];
+		this._ROWLABELS=new [];
+	}
+
+	public function SetColumnTitle(number column, string title) {
+		if ((column<0) || (column>=this._COLS))
+			throw "Invalid column $column (Valid values are from 0 to ${this._COLS-1})";
+
+		this.SetProperty(P_SHEET_COLUMNTITLE, ""+column+";"+title);
+		_COLTITLES[column]=title;
+		return title;
+	}
+
+	public function SetColumnLabel(number column, string title) {
+		if ((column<0) || (column>=this._COLS))
+			throw "Invalid column $column (Valid values are from 0 to ${this._COLS-1})";
+
+		this.SetProperty(P_SHEET_COLBUTTONADD, ""+column+";"+title);
+		_COLLABELS[column]=title;
+		return title;
+	}
+
+	public function SetColumnLabelVisible(number column, number visible) {
+		if ((column<0) || (column>=this._COLS))
+			throw "Invalid column $column (Valid values are from 0 to ${this._COLS-1})";
+
+		this.SetProperty(P_SHEET_COLTITLEVISIBLE, ""+column+";"+visible);
+		return visible;
+	}
+
+	public function SetColumnVisible(number column, number visible) {
+		if ((column<0) || (column>=this._COLS))
+			throw "Invalid column $column (Valid values are from 0 to ${this._COLS-1})";
+
+		this.SetProperty(P_SHEET_COLVISIBLE, ""+column+";"+visible);
+		return visible;
+	}
+
+	public function GetColumnTitle(number column) {
+		if ((column<0) || (column>=this._COLS))
+			throw "Invalid column $column (Valid values are from 0 to ${this._COLS-1})";
+		return _COLTITLES[column];
+	}
+
+	public function GetColumnLabel(number column) {
+		if ((column<0) || (column>=this._COLS))
+			throw "Invalid column $column (Valid values are from 0 to ${this._COLS-1})";
+		return _COLLABELS[column];
+	}
+
+	public function SetRowLabelVisible(number row, number visible) {
+		if ((row<0) || (row>=this._ROWS))
+			throw "Invalid row '$row' (Valid values are between 0 and ${this._ROWS-1})";
+
+		this.SetProperty(P_SHEET_ROWTITLEVISIBLE, ""+row+";"+visible);
+		return visible;
+	}
+
+	public function SetRowVisible(number row, number visible) {
+		if ((row<0) || (row>=this._ROWS))
+			throw "Invalid row '$row' (Valid values are between 0 and ${this._ROWS-1})";
+
+		this.SetProperty(P_SHEET_ROWVISIBLE, ""+row+";"+visible);
+		return visible;
+	}
+
+	public function SetRowTitle(number row, string title) {
+		if ((row<0) || (row>=this._ROWS))
+			throw "Invalid row '$row' (Valid values are between 0 and ${this._ROWS-1})";
+
+		this.SetProperty(P_SHEET_ROWTITLE, ""+row+";"+title);
+		_ROWTITLES[row]=title;
+		return title;
+	}
+
+	public function SetRowLabel(number row, string title) {
+		if ((row<0) || (row>=this._ROWS))
+			throw "Invalid row '$row' (Valid values are between 0 and ${this._ROWS-1})";
+
+		this.SetProperty(P_SHEET_ROWBUTTONADD, ""+row+";"+title);
+		_ROWLABELS[row]=title;
+		return title;
+	}
+
+	public function GetRowTitle(number row) {
+		if ((row<0) || (row>=this._ROWS))
+			throw "Invalid row '$row' (Valid values are between 0 and ${this._ROWS-1})";
+		return _ROWTITLES[row];
+	}
+
+	public function GetRowLabel(number row) {
+		if ((row<0) || (row>=this._ROWS))
+			throw "Invalid row '$row' (Valid values are between 0 and ${this._ROWS-1})";
+		return _ROWLABELS[row];
+	}
+
+	public function SetRowJustify(number row, number just) {
+		if ((row<0) || (row>=this._ROWS))
+			throw "Invalid row '$row' (Valid values are between 0 and ${this._ROWS-1})";
+
+		this.SetProperty(P_SHEET_ROWBUTTONJUST, ""+row+";"+just);
+		return just;
+	}
+
+	public function SeColumnJustify(number column, number just) {
+		if ((column<0) || (column>=this._COLS))
+			throw "Invalid column $column (Valid values are from 0 to ${this._COLS-1})";
+
+		this.SetProperty(P_SHEET_COLBUTTONJUST, ""+column+";"+just);
+		return just;
+	}
+
+	public function ColumnEnable(number column, number enable) {
+		if ((column<0) || (column>=this._COLS))
+			throw "Invalid column $column (Valid values are from 0 to ${this._COLS-1})";
+
+		this.SetProperty(P_SHEET_COLSENSITIVE, ""+column+";"+enable);
+		return enable;
+	}
+
+	public function RowEnable(number row, number enable) {
+		if ((row<0) || (row>=this._ROWS))
+			throw "Invalid row '$row' (Valid values are between 0 and ${this._ROWS-1})";
+
+		this.SetProperty(P_SHEET_ROWSENSITIVE, ""+row+";"+enable);
+		return enable;
+	}
+
+	public function SetRowHeight(number row, number height) {
+		if ((row<0) || (row>=this._ROWS))
+			throw "Invalid row '$row' (Valid values are between 0 and ${this._ROWS-1})";
+
+		this.SetProperty(P_SHEET_ROWHEIGHT, ""+row+";"+height);
+		return height;
+	}
+
+	public function SetColumnWidth(number column, number width) {
+		if ((column<0) || (column>=this._COLS))
+			throw "Invalid column $column (Valid values are from 0 to ${this._COLS-1})";
+
+		this.SetProperty(P_SHEET_COLWIDTH, ""+column+";"+width);
+		return width;
+	}
+
+	public function RowSelect(number row) {
+		if ((row<0) || (row>=this._ROWS))
+			throw "Invalid row '$row' (Valid values are between 0 and ${this._ROWS-1})";
+
+		this.SetProperty(P_SHEET_SELECTROW, ""+row);
+		return row;
+	}
+
+	public function ColumnSelect(number column) {
+		if ((column<0) || (column>=this._COLS))
+			throw "Invalid column $column (Valid values are from 0 to ${this._COLS-1})";
+
+		this.SetProperty(P_SHEET_SELECTCOL, ""+column);
+		return column;
+	}
+
+	public function SetCellText(number row, number column, val) {
+		if ((column<0) || (column>=this._COLS))
+			throw "Invalid column $column (Valid values are from 0 to ${this._COLS-1})";
+		if ((row<0) || (row>=this._ROWS))
+			throw "Invalid row $row (Valid values are from 0 to ${this._ROWS-1})";
+		this.SetProperty(P_SHEET_CELLTEXT, ""+row+";"+column+";"+val);
+	}
+
+	public function SetCell(number row, number column, number justification, val) {
+		if ((column<0) || (column>=this._COLS))
+			throw "Invalid column $column (Valid values are from 0 to ${this._COLS-1})";
+		if ((row<0) || (row>=this._ROWS))
+			throw "Invalid row $row (Valid values are from 0 to ${this._ROWS-1})";
+		this.SetProperty(P_SHEET_CELL, ""+row+";"+column+";"+justification+";"+val);
+	}
+
+	public function SetAutoResize(number flag) {
+		flag=(flag!=0);
+		this._AUTORESIZE=flag;
+		this.SetProperty(P_SHEET_AUTORESIZE, flag);
+		return flag;
+	}
+
+	public function SetEntryType(number flag) {
+		this._ENTRYTYPE=flag;
+		this.SetProperty(P_SHEET_ENTRYTYPE, flag);
+		return flag;
+	}
+
+
+	public function GetHAdjustment() {
+		if (!_HAdjustment) {
+			_HAdjustment=new RAdjustment();
+			_HAdjustment.LinkIfNotLinked(this);
+			this.SetProperty(P_SHEET_HADJUSTMENT ,_HAdjustment.RID);
+		}
+
+		return _HAdjustment;
+	}
+
+	public function GetVAdjustment() {
+		if (!_VAdjustment) {
+			_VAdjustment=new RAdjustment();
+			_VAdjustment.LinkIfNotLinked(this);
+			this.SetProperty(P_SHEET_VADJUSTMENT ,_HAdjustment.RID);
+		}
+
+		return _VAdjustment;
+	}
+
+
+	public function GetVisibleRange() {
+		var res_str=""+this.GetProperty(P_SHEET_RANGE);
+		var res=StrNumberSplit(res_str, ";");
+		var res_ret=new [];
+		res_ret["row0"]=res[0];
+		res_ret["col0"]=res[1];
+		res_ret["rowi"]=res[2];
+		res_ret["coli"]=res[3];
+		return res_ret;
+	}
+
+	public function GetSelectedRange() {
+		var res_str=""+this.GetProperty(P_SHEET_SELECTRANGE);
+		var res=StrNumberSplit(res_str, ";");
+		var res_ret=new [];
+		res_ret["row0"]=res[0];
+		res_ret["col0"]=res[1];
+		res_ret["rowi"]=res[2];
+		res_ret["coli"]=res[3];
+		return res_ret;
+	}
+
+	public function SetSelectMode(number flag) {
+		this.SetProperty(P_SHEET_SELECTMODE, flag);
+		return flag;
+	}
+
+	public function SetAutoScroll(number flag) {
+		flag=(flag!=0);
+		this._AUTOSCROLL=flag;
+		this.SetProperty(P_SHEET_AUTOSCROLL, flag);
+		return flag;
+	}
+
+	public function SetClipText(number flag) {
+		flag=(flag!=0);
+		this._CLIPTEXT=flag;
+		this.SetProperty(P_SHEET_CLIPTEXT, flag);
+		return flag;
+	}
+
+	public function SetJustify(number flag) {
+		flag=(flag!=0);
+		this._JUSTIFY=flag;
+		this.SetProperty(P_SHEET_JUSTIFY, flag);
+		return flag;
+	}
+
+	public function SetTitle(string title) {
+		this._TITLE=title;
+		this.SetProperty(P_SHEET_TITLE, title);
+		return title;
+	}
+
+	public function SetLocked(number flag) {
+		flag=(flag!=0);
+		this._LOCKED=flag;
+		this.SetProperty(P_SHEET_LOCKED, flag);
+		return flag;
+	}
+
+	public function Freeze() {
+		this.SetProperty(P_SHEET_FREEZE, "1");
+		this._FROZEN=true;
+	}
+
+	public function Thaw() {
+		this.SetProperty(P_SHEET_THAW, "1");
+		this._FROZEN=false;
+	}
+
+	public function SetBackgroundColor(number color) {
+		this._BACKGROUND_COLOR=color;
+		this.SetProperty(P_SHEET_BACKGROUND, color);
+		return color;				
+	}
+
+	public function SetGridColor(number color) {
+		this._GRID_COLOR=color;
+		this.SetProperty(P_SHEET_GRIDCOLOR, color);
+		return color;				
+	}
+
+	public function SetGridVisible(number flag) {
+		this._GRID_VISIBLE=flag;
+		this.SetProperty(P_SHEET_GRIDVISIBLE, flag);
+		return flag;
+	}
+
+	public function MoveTo(number row, number column, number row_align=0.5, number col_align=0.5) {
+		this.SetProperty(P_SHEET_MOVETO, "$row;$column;$row_align;$col_align");
+	}
+
+	public function SetRowsSensitive(number flag) {
+		flag=(flag!=0);
+		this._ROWSSENSITIVE=flag;
+		this.SetProperty(P_SHEET_ROWSSENSITIVE, flag);
+		return flag;
+	}
+
+	public function SetColumnsSensitive(number flag) {
+		flag=(flag!=0);
+		this._COLSSENSITIVE=flag;
+		this.SetProperty(P_SHEET_COLSSENSITIVE, flag);
+		return flag;
+	}
+
+	public function SetRowsResizable(number flag) {
+		flag=(flag!=0);
+		this._ROWSRESIZABLE=flag;
+		this.SetProperty(P_SHEET_ROWRESIZABLE, flag);
+		return flag;
+	}
+
+	public function SetColumnsResizable(number flag) {
+		flag=(flag!=0);
+		this._COLSRESIZABLE=flag;
+		this.SetProperty(P_SHEET_COLRESIZABLE, flag);
+		return flag;
+	}
+
+	public function ClipRange(number row0, number col0, number rowi, coli) {
+		this.SetProperty(P_SHEET_CLIPRANGE, "$row0;$col0;$rowi;$coli");
+	}
+
+	public function UnClipRange() {
+		this.SetProperty(P_SHEET_UNCLIPRANGE, "1");
+	}
+
+	public function SelectRange(number row0, number col0, number rowi, coli) {
+		this.SetProperty(P_SHEET_SELECTRANGE, "$row0;$col0;$rowi;$coli");
+	}
+
+
+	public function UnSelectRange() {
+		this.SetProperty(P_SHEET_UNSELECTRANGE, "1");
+	}
+
+	public function GetActiveCell() {
+		var res=StrNumberSplit(""+this.GetProperty(P_SHEET_ACTIVECELL), ";");
+		return res;
+	}
+
+	public function SetActiveCell(array arr) {
+		this.SetProperty(P_SHEET_ACTIVECELL, "${arr[0]};${arr[1]}");
+		return arr;
+	}
+
+	public function ClearCell(number row, number column) {
+		if ((column<0) || (column>=this._COLS))
+			throw "Invalid column $column (Valid values are from 0 to ${this._COLS-1})";
+		if ((row<0) || (row>=this._ROWS))
+			throw "Invalid row $row (Valid values are from 0 to ${this._ROWS-1})";
+		this.SetProperty(P_SHEET_CELLCLEAR, ""+row+";"+column);
+	}
+
+	public function DeleteCell(number row, number column) {
+		if ((column<0) || (column>=this._COLS))
+			throw "Invalid column $column (Valid values are from 0 to ${this._COLS-1})";
+		if ((row<0) || (row>=this._ROWS))
+			throw "Invalid row $row (Valid values are from 0 to ${this._ROWS-1})";
+		this.SetProperty(P_SHEET_CELLDELETE, ""+row+";"+column);
+	}
+
+	public function ClearRange(number row, number column, number rowi, number columni) {
+		this.SetProperty(P_SHEET_RANGECLEAR, ""+row+";"+column+";"+rowi+";"+columni);
+	}
+
+	public function DeleteRange(number row, number column, number rowi, number columni) {
+		this.SetProperty(P_SHEET_RANGEDELETE, ""+row+";"+column+";"+rowi+";"+columni);
+	}
+
+	public function SetRangeBackground(number row, number column, number rowi, number columni, number color) {
+		this.SetProperty(P_SHEET_RANGE_BCOLOR, ""+row+";"+column+";"+rowi+";"+columni+";"+color);
+	}
+
+	public function SetRangeForeground(number row, number column, number rowi, number columni, number color) {
+		this.SetProperty(P_SHEET_RANGE_FCOLOR, ""+row+";"+column+";"+rowi+";"+columni+";"+color);
+	}
+
+	public function SetRangeEditable(number row, number column, number rowi, number columni, number editable) {
+		this.SetProperty(P_SHEET_RANGE_EDITABLE, ""+row+";"+column+";"+rowi+";"+columni+";"+editable);
+	}
+
+	public function SetRangeVisible(number row, number column, number rowi, number columni, number visible) {
+		this.SetProperty(P_SHEET_RANGE_EDITABLE, ""+row+";"+column+";"+rowi+";"+columni+";"+visible);
+	}
+
+	public function SetRangeBorder(number row, number column, number rowi, number columni, number mask=CELL_FULL_BORDER, number width=2, number line_style=LINE_SOLID) {
+		this.PostString(""+row+";"+column+";"+rowi+";"+columni);
+		this.SetProperty(P_SHEET_RANGE_BORDER, ""+mask+";"+width+";"+line_style);
+	}
+
+	public function SetRangeJustification(number row, number column, number rowi, number columni, number justification) {
+		this.PostString(""+row+";"+column+";"+rowi+";"+columni);
+		this.SetProperty(P_SHEET_RANGE_JUST, ""+justification);
+	}
+
+	public function SetRangeBorderColor(number row, number column, number rowi, number columni, number color) {
+		this.SetProperty(P_SHEET_RANGE_BORDER_COLOR, ""+row+";"+column+";"+rowi+";"+columni+";"+color);
+	}
+
+	public function SetRangeFont(number row, number column, number rowi, number columni, string font) {
+		this.SetProperty(P_SHEET_RANGE_FONT, ""+row+";"+column+";"+rowi+";"+columni+";"+font);
+	}
+
+	public function Attach(RemoteObject obj, number row, number column, number xoption=1, number yoption=1, number xpadding=0, number ypadding=0) {
+		obj.LinkIfNotLinked(this);
+		this.SetProperty(P_SHEET_ATTACH, "$row;$column;$xoption;$yoption;$xpadding;$ypadding;${obj.RID}");
+	}
+
+	public function AttachButton(RemoteObject obj, number row, number column) {
+		obj.LinkIfNotLinked(this);
+		this.SetProperty(P_SHEET_ATTACH_BUTTON, "$row;$column;${obj.RID}");
+	}
+
+	public function AddColumns(cols=1) {
+		this._COLS+=cols;
+		this.SetProperty(P_SHEET_ADDCOL, ""+cols);
+		return this._COLS;
+	}
+
+	public function AddRows(rows=1) {
+		this._ROWS+=rows;
+		this.SetProperty(P_SHEET_ADDROW, ""+rows);
+		return this._ROWS;
+	}
+
+	public function InsertColumns(number col, cols=1) {
+		this._COLS+=cols;
+		this.SetProperty(P_SHEET_ADDCOL, ""+col+";"+cols);
+		return this._COLS;
+	}
+
+	public function InsertRows(number row, rows=1) {
+		this._ROWS+=rows;
+		this.SetProperty(P_SHEET_ADDROW, ""+row+";"+rows);
+		return this._ROWS;
+	}
+
+	public function DeleteRows(number row, rows=1) {
+		if ((row<0) || (row>=this._ROWS))
+			throw "Invalid row $row (Valid values are from 0 to ${this._ROWS-1})";
+
+		if (row+rows>this._ROWS)
+			throw "Invalid row $row+$rows (Valid values are from 0 to ${this._ROWS-1})";
+
+		this._ROWS-=rows;
+		this.SetProperty(P_SHEET_DELETE_ROWS, ""+row+";"+rows);
+		return this._ROWS;
+	}
+
+	public function DeleteColumns(number column, cols=1) {
+		if ((column<0) || (column>=this._COLS))
+			throw "Invalid column $column (Valid values are from 0 to ${this._COLS-1})";
+		if (column+cols>this._COLS)
+			throw "Invalid column $column+$cols (Valid values are from 0 to ${this._COLS-1})";
+
+		this._COLS-=cols;
+		this.SetProperty(P_SHEET_DELETE_COLUMNS, ""+column+";"+cols);
+		return this._COLS;
+	}
+
+	public function Clear() {
+		this.ClearRange(0,0,this._ROWS-1,this._COLS-1);
+	}
+
+	public function Delete() {
+		this.DeleteRange(0,0,this._ROWS-1,this._COLS-1);
+	}
+
+	public function GetState() {
+		return value (""+this.GetProperty(P_SHEET_STATE));
+	}
+
+	public function GetInClip() {
+		return value (""+this.GetProperty(P_SHEET_IN_CLIP));
+	}
+
+	public function GetCellText(number row, number column) {
+		if ((column<0) || (column>=this._COLS))
+			throw "Invalid column $column (Valid values are from 0 to ${this._COLS-1})";
+		if ((row<0) || (row>=this._ROWS))
+			throw "Invalid row $row (Valid values are from 0 to ${this._ROWS-1})";
+		
+		var post_string="$row;$column";
+		this.PostString(post_string);
+
+		return this.GetProperty(P_SHEET_CELLTEXT);
+	}
+
+	public function GetCellState(number row, number column) {
+		if ((column<0) || (column>=this._COLS))
+			throw "Invalid column $column (Valid values are from 0 to ${this._COLS-1})";
+		if ((row<0) || (row>=this._ROWS))
+			throw "Invalid row $row (Valid values are from 0 to ${this._ROWS-1})";
+		
+		var post_string="$row;$column";
+		this.PostString(post_string);
+
+		return value (""+this.GetProperty(P_SHEET_CELLSTATE));
+	}
+}

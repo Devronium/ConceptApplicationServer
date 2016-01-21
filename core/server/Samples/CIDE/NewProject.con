@@ -1,0 +1,228 @@
+include Application.con
+// DO NOT EDIT THE FOLLOWING LINES
+//{{ <CIDE section="include">
+include RVBox.con
+include RScrolledWindow.con
+include RTreeView.con
+include RHBox.con
+include RLabel.con
+include REdit.con
+include RHButtonBox.con
+include RButton.con
+//}} </CIDE>
+include DirectoryList.con
+include XMLDocument.con
+include Serializable.con
+include RImage.con
+import standard.C.io
+
+
+include RForm.con
+
+define PROJECTS_CONTAINER "MyProjects"
+
+define DEFAULT_PROJECT_TEMPLATE "template.xml"
+
+class Template {
+    var[] sources;
+    var[] designablesources;
+    var[] resources;
+    var[] content;
+    var[] templates;
+    var[] template_content;
+    var description;
+    var description_advanced="";
+    var name;
+    var entrypoint;
+    var icon;
+    var target;
+    var representative;
+}
+
+
+class NewProject extends RForm {
+
+        // DO NOT EDIT THE FOLLOWING LINES
+        //{{ <CIDE section="members">
+        protected var VBox1;
+        protected var ScrolledWindow1;
+        protected var TreeView1;
+        protected var HBox1;
+        protected var Label1;
+        protected var Edit1;
+        protected var HButtonBox1;
+        protected var Button1;
+        protected var Button2;
+        //}} </CIDE>
+	protected var TextView1;
+        public var[] templates;
+        public var callback;
+
+        public function LoadTemplates(template_dir="Templates/") {
+            var dirList=new DirectoryList();
+            var files=dirList.ListByType(template_dir,S_IFDIR);
+            var len=length files;
+            for (var i=0;i<len;i++) {
+                if ((files[i]!=".") && (files[i]!="..")) {
+                    var path=template_dir+files[i]+"/"+DEFAULT_PROJECT_TEMPLATE;
+                    var flag=FileExists(path);
+                    if (flag) {
+                        var doc=new XMLDocument();
+                        doc.Filename=path;
+                        if (!doc.Load()) {
+			                throw "Error loading templates";
+		                }
+		                
+                        var root=doc.Root;
+                        if ((root) && (root.Name=="ApplicationTemplate")) {
+                            var child=root.Child;
+                            var tmpl=new Template();
+                            tmpl.name=root.GetProperty("Name");
+                            tmpl.icon=new RImage(null);
+                            tmpl.target=root.GetProperty("Target");
+                            tmpl.description=root.GetProperty("Description");
+                            tmpl.representative=root.GetProperty("Representative");
+                            var image_name=root.GetProperty("Icon");
+                            if (image_name) {
+                                tmpl.icon.Filename=template_dir+"/"+files[i]+"/"+image_name;
+                            }
+                            templates[length templates]=tmpl;
+                            
+                            while (child) {
+                                var filename=""+child.GetProperty("Name");
+                                switch (ToLower(child.Name)) {
+                                    case "source":
+                                                    if (value child.GetProperty("Designable"))
+                                                        tmpl.designablesources[length tmpl.designablesources]=filename;
+                                                    else
+                                                        tmpl.sources[length tmpl.sources]=filename;
+                                                    tmpl.content[filename]=ReadFile(template_dir+"/"+files[i]+"/"+filename);
+                                                    break;
+                                    case "resource":
+                                                    tmpl.resources[length tmpl.resources]=filename;
+                                                    tmpl.content[filename]=ReadFile(template_dir+"/"+files[i]+"/"+filename);
+                                                    break;
+                                    case "project":
+                                                    tmpl.entrypoint=child.GetProperty("File");
+                                                    break;
+                                    case "template":
+                                                    tmpl.templates[length tmpl.templates]=filename;
+                                                    tmpl.template_content[filename]=ReadFile(template_dir+"/"+files[i]+"/"+filename);
+                                                    break;
+                                    case "description":
+                                                   tmpl.description_advanced=trim(""+child.Content);
+                                                   break;
+                                }
+                                child=child.Next;
+                            }
+                            TreeView1.AddItem([tmpl.icon, tmpl.name+"\n"+tmpl.description]);
+                        }
+                        doc.Free();
+                    }
+                }
+            }
+        }
+        
+        public function ItemChanged(Sender, EventData) {
+            var rowindex=Sender.RowIndex;
+            if (rowindex>-1) {
+                if (templates[rowindex]) {
+                    UserData=rowindex;
+                    Caption="New "+templates[rowindex].name;
+                    var index=0;
+                    var name="";
+                    var rname=StrReplace(templates[rowindex].name," ","_");
+                    do {
+                        index++;
+                        name="$rname$index";
+                    } while ((FileExists(PROJECTS_CONTAINER+"/"+name)) || (DirectoryExists(PROJECTS_CONTAINER+"/"+name)));
+                    Edit1.Text=name;
+                    this.TextView1.Text=templates[rowindex].description_advanced;
+                }
+            }
+        }
+        
+        // constructor
+        public function NewProject(Owner, _callback) {
+                super(Owner);
+                BeginUpdateSession();
+
+                // DO NOT EDIT THE FOLLOWING LINES
+                //{{ <CIDE section="constructor">
+                this.VBox1=new RVBox(this);
+                var MainBox=new RHBox(this.VBox1);
+		MainBox.Show();
+                this.ScrolledWindow1=new RScrolledWindow(MainBox);
+		this.ScrolledWindow1.MinWidth=380;
+                this.ScrolledWindow1.ShadowType=SHADOW_NONE;
+                this.TreeView1=new RTreeView(this.ScrolledWindow1);
+                this.TreeView1.HeadersVisible=false;
+                this.HBox1=new RHBox(this.VBox1);
+                this.Label1=new RLabel(this.HBox1);
+                this.Edit1=new REdit(this.HBox1);
+                this.HButtonBox1=new RHButtonBox(this.VBox1);
+                this.Button1=new RButton(this.HButtonBox1);
+                this.Button2=new RButton(this.HButtonBox1);
+
+                // properties ...
+                this.VBox1.Show();
+                this.ScrolledWindow1.HScrollPolicy=POLICY_AUTOMATIC;
+                this.ScrolledWindow1.VScrollPolicy=POLICY_AUTOMATIC;
+                this.ScrolledWindow1.Show();
+                this.TreeView1.Model=MODEL_LISTVIEW;
+                this.TreeView1.Show();
+                this.HBox1.Packing=PACK_SHRINK;
+                this.HBox1.Show();
+                this.Label1.Show();
+                this.Edit1.Packing=PACK_EXPAND_WIDGET;
+                this.Edit1.Show();
+                this.HButtonBox1.Layout=BUTTONBOX_END;
+                this.HButtonBox1.Packing=PACK_SHRINK;
+                this.HButtonBox1.Show();
+		this.Button1.UseStock=true;
+                this.Button1.Caption="gtk-cancel";
+                this.Button1.OnClicked=this.Button1Clicked;
+                this.Button1.Show();
+		this.Button2.UseStock=true;
+                this.Button2.Caption="gtk-ok";
+                this.Button2.OnClicked=this.Button2Clicked;
+                this.Button2.Show();
+                //}} </CIDE>
+                this.Label1.Caption="Project name: ";
+                Width=620;
+                Height=250;
+                Caption="New project";
+                KeepAbove=true;
+                this.DefaultControl=Button2;
+                this.Edit1.ActivateDefault=true;
+
+                TreeView1.AddColumn(" ",IMAGE_COLUMN);
+                TreeView1.AddColumn("Project type", NORMAL_COLUMN);
+                TreeView1.OnCursorChanged=ItemChanged;
+                Modal=true;
+                callback=_callback;
+
+		this.TextView1=new RTextView(MainBox);
+		this.TextView1.ReadOnly=true;
+		this.TextView1.CursorVisible=false;
+		this.TextView1.Wrap=WRAP_WORD;
+		this.TextView1.MinWidth=200;
+		this.TextView1.Show();
+		this.TextView1.PixelsAbove=80;
+                EndUpdateSession();
+
+                // TO DO:
+                // put your code here
+        }
+
+        //{{ <CIDE section="events">
+        public function Button1Clicked(Sender, EventData) {
+            Hide();
+        }
+
+        public function Button2Clicked(Sender, EventData) {
+            Hide();
+            callback(templates[UserData], Edit1.Text);
+        }
+        //}} </CIDE>
+}

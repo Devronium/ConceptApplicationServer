@@ -1,0 +1,120 @@
+import standard.C.time
+include RImage.con
+// the standard project forms definition. If no glade is used, comment the next line.
+include project_forms.glade.con
+
+class CustomProgressForm extends Progress_ExtraWindow {
+        private var ErrorImage;
+        private var WarningImage;
+        private var SuccessImage;
+        private var InfoImage;
+
+        // ========================================================================
+        // constructor;
+        // S is a Lang object used to translate strings using
+        // the default string table named string.table.xml
+        // Is your responsability to pass this object to other forms instantiated
+        // in this application
+        // ========================================================================
+
+        public function CustomProgressForm(Owner, Lang S, string comments="", number progress1_visible=true, number progress2_visible=true, number history_visible=true) {
+            super(Owner, S);
+
+            this.treeviewStatus.Model=MODEL_LISTVIEW;
+            this.treeviewStatus.AddColumn(" ", IMAGE_COLUMN);
+            this.treeviewStatus.AddColumn("Date/Time");
+            this.treeviewStatus.AddColumn("Status");
+            this.treeviewStatus.Columns[1].FontDescription="italic";
+            this.treeviewStatus.Columns[2].FontDescription="bold";
+            
+            
+            this.ErrorImage=new RImage(null);
+            this.ErrorImage.LoadResource("gtk-dialog-error",ICON_SIZE_SMALL_TOOLBAR);
+
+            this.WarningImage=new RImage(null);
+            this.WarningImage.LoadResource("gtk-dialog-warning",ICON_SIZE_SMALL_TOOLBAR);
+
+            this.SuccessImage=new RImage(null);
+            this.SuccessImage.LoadResource("gtk-apply",ICON_SIZE_SMALL_TOOLBAR);
+
+            this.InfoImage=new RImage(null);
+            this.InfoImage.LoadResource("gtk-info",ICON_SIZE_SMALL_TOOLBAR);
+            
+            this.MasterLabel.Caption=comments;
+            this.Progressbar.Visible=progress1_visible;
+            this.SecondaryProgressbar.Visible=progress2_visible;
+            this.Masterscrolledwindow.Visible=history_visible;
+        }
+        
+        public function ScrollDown() {
+            CApplication.BeginNonCritical();
+            var upper=Masterscrolledwindow.VAdjustment.Upper;
+            var pagesize=Masterscrolledwindow.VAdjustment.PageSize;
+            var increment=Masterscrolledwindow.VAdjustment.Increment;
+            CApplication.EndNonCritical();
+            if (!this.Visible) {
+                this.Show();
+            }
+
+            if (upper<=pagesize) {
+                return 0;
+            }
+
+            var delta=upper-pagesize+increment;
+            Masterscrolledwindow.VAdjustment.Value=delta;
+        }
+
+        public function Info(string message) {
+            var timestring=StrReplace(ctime(time()),"\n","");
+            this.treeviewStatus.AddItem([this.InfoImage, timestring, message]);
+            this.ScrollDown();
+        }
+
+        public function Warning(string message) {
+            var timestring=StrReplace(ctime(time()),"\n","");
+            this.treeviewStatus.AddItem([this.WarningImage, timestring, message]);
+            this.ScrollDown();
+        }
+
+        public function Error(string message) {
+            var timestring=StrReplace(ctime(time()),"\n","");
+            this.treeviewStatus.AddItem([this.ErrorImage, timestring, message]);
+            this.ScrollDown();
+        }
+
+        public function Success(string message) {
+            var timestring=StrReplace(ctime(time()),"\n","");
+            this.treeviewStatus.AddItem([this.SuccessImage, timestring, message]);
+            this.ScrollDown();
+        }
+        
+        public function Clear() {
+            CApplication.BeginNonCritical();
+            this.treeviewStatus.Clear();
+            this.Progressbar.Fraction=0;
+            this.Progressbar.Caption="";
+            this.SecondaryProgressbar.Fraction=0;
+            this.SecondaryProgressbar.Caption="";
+            CApplication.EndNonCritical();
+        }
+        
+        public function Progress(number fraction, string data="") {
+            this.Progressbar.Fraction=fraction;
+            if (data) {
+                this.Progressbar.Caption=data;
+            }
+            if (!this.Visible) {
+                this.Show();
+            }
+        }
+
+        public function Progress2(number fraction, string data="") {
+            this.SecondaryProgressbar.Fraction=fraction;
+            if (data) {
+                this.SecondaryProgressbar.Caption=data;
+            }
+            if (!this.Visible) {
+                this.Show();
+            }
+        }
+}

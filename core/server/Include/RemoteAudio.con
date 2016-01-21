@@ -1,0 +1,100 @@
+include MessageDispatcher.con
+include RemoteMessages.con
+include Application.con
+
+define REMOTE_AUDIO_CLS_ID	"1011"
+
+class RemoteAudio {
+	private var _VOLUME=0.5;
+	private var _PITCH=1.0;
+	private var _PAN=0.0;
+	private var _KEY="";
+	private var _REPEAT=false;
+
+	public property Key { get _KEY }	
+	public property Volume { set SetVolume, get _VOLUME }
+	public property Pitch { set SetPitch, get _PITCH }
+	public property Pan { set SetPan, get _PAN }
+	public property Repeat { set SetRepeat, get _REPEAT }
+
+	public function RemoteAudio(string filename, string key="DefaultPlayer", number open_file=true) {
+		this._KEY=key;
+		if (open_file)
+			this.Query("open", filename);
+	}
+
+	public function SetVolume(number volume) {
+		this._VOLUME=volume;
+		this.Query("volume", ""+volume);
+		return volume;
+	}
+
+	public function SetPitch(number pitch) {
+		this._PITCH=pitch;
+		this.Query("pitch", ""+pitch);
+		return pitch;
+	}
+
+	public function SetPan(number pan) {
+		this._PAN=pan;
+		this.Query("pan", ""+pan);
+		return pan;
+	}
+
+	public function SetRepeat(number repeat) {
+		this._REPEAT=(repeat!=0);
+		this.Query("repeat", ""+(repeat!=0));
+		return (repeat!=0);
+	}
+
+	public function Play() {
+		this.Query("play");
+	}
+
+	public function Vibrate() {
+		this.Query("vibrate");
+	}
+
+	public function Stop() {
+		this.Query("stop");
+	}
+
+	public function Reset() {
+		this.Query("reset");
+	}
+
+	public function Done() {
+		this.Query("done");
+	}
+
+	private function Query(string operation, string parameter="") {
+		var data=operation;
+		if (parameter)
+			data+=":"+parameter;
+		return SendMessage(REMOTE_AUDIO_CLS_ID, MSG_STATIC_QUERY, this._KEY, data);
+	}
+
+	static function StockSound(string sound, number duration) {
+		var audio=new RemoteAudio("", "DefaultStockPlayer", false);
+		audio.Query(sound, ""+duration);
+		return audio;
+	}
+
+	static function Go(string filename, number repeat=false, number send_file=true, string key="DefaultStaticPlayer") {
+		if (send_file) {
+			CApplication::SendCookie(filename, var out_file);
+			filename=out_file;
+		}
+		var audio=new RemoteAudio(filename, key);
+		if (repeat>=0) {
+			audio.Repeat=repeat;
+			audio.Play();
+		}
+
+		return audio;
+	}
+
+	/*public function finalize() {
+		this.Done();
+	}*/
+}

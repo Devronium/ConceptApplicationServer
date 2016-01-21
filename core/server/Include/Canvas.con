@@ -1,0 +1,74 @@
+include VisibleRemoteObject.con
+include RemoteMessages.con
+import standard.C.math
+
+class Canvas {
+	private var Owner;
+	private var PENCOLOR;
+
+	public property PenColor { get PENCOLOR, set SetPenColor}
+
+	public function Canvas(Owner) {
+		this.Owner=Owner;
+	}
+
+	public function Line(x1,y1,x2,y2) {
+		x1 = floor(x1);
+		y1 = floor(y1);
+		x2 = floor(x2);
+		y2 = floor(y2);
+		var xy1=x1*0xFFFF+y1;
+		var xy2=x2*0xFFFF+y2;
+		Owner.Send(MSG_D_PRIMITIVE_LINE, xy1, xy2);
+	}
+
+	public function Rectangle(x,y,w,h,filled=false) {
+		x = floor(x);
+		y = floor(y);
+		w = floor(w);
+		h = floor(h);
+		var xy=x*0xFFFF+y;
+		var wh=w*0xFFFF+h;
+
+		if (filled)
+			Owner.Send(MSG_D_PRIMITIVE_FILL_RECT, xy, wh);
+		else
+			Owner.Send(MSG_D_PRIMITIVE_RECT, xy, wh);
+	}
+
+	public function Arc(x,y,w,h,angle1,angle2,filled=false) {
+		x = floor(x);
+		y = floor(y);
+		w = floor(w);
+		h = floor(h);
+		var xy=x*0xFFFF+y;
+		var wh=w*0xFFFF+h;
+
+		var angles=angle1*0xFFFF+angle2;
+
+		Owner.PostString(""+angles);
+
+		if (filled)
+			Owner.Send(MSG_D_PRIMITIVE_FILL_ARC, xy, wh);
+		else
+			Owner.Send(MSG_D_PRIMITIVE_ARC, xy, wh);
+	}
+
+	public function Circle(x,y,r, filled=false) {
+		x = floor(x);
+		y = floor(y);
+		r = floor(r);
+
+		Arc(x-r,y-r,r*2,r*2,0,360*64,filled);
+	}
+
+	public function Point(x,y) {
+		x = floor(x);
+		y = floor(y);
+		Owner.Send(MSG_D_PRIMITIVE_POINT, x, y);
+	}
+
+	public function SetPenColor(color) {
+		Owner.Send(MSG_D_PRIMITIVE_COLOR, "0", color);
+	}
+}

@@ -1,0 +1,337 @@
+include RToolbar.con
+include RToolButton.con
+include RToolSeparator.con
+include RVBox.con
+include RHBox.con
+include RLabel.con
+include RAdjustment.con
+include RScrolledWindow.con
+include RTreeView.con
+include Application.con
+
+class RTreeViewHelper extends RForm {
+    private var precindex=-1;
+    private var reshown=false;
+    private var treeview;
+    private var RefOwner;
+    private var sizeindex;
+    private var swindow;
+
+    private var left;
+    private var top;
+    private var width;
+    private var height;
+    public var WaitScroll;
+
+    public var MasterLabel;
+    public var DetailLabel;
+    private var EntityView;
+    public var S;
+    
+    public var AproximateHeight = 100;
+    
+    RTreeViewHelper(Owner, treeview, swindow, index, viewcallback=null, editcallback=null, archivecallback=null, unarchivecallback=null, deletecallback=null, actions=null, newfor=null, addto=null, sendto=null, EntityView=null) {
+        super(Owner);
+        this.S = Owner.GetLanguage();
+        this.swindow = swindow;
+        this.RefOwner = Owner;
+        this.treeview = treeview;
+        this.OnRealize = this.Realized;
+        this.OnFocusOut = this.FocusOut;
+        this.OnShow = this.DoShow;
+        this.EntityView = EntityView;
+        this.sizeindex = index;
+        
+        var vbox = new RVBox(this);
+        vbox.Show();
+
+        var toolbar = new RToolbar(vbox);
+        toolbar.IconSize=1;
+        toolbar.Style=TOOLBAR_BOTH_HORIZ;
+        toolbar.ShowArrow=true;
+        toolbar.Show();
+        var close = new RToolButton(toolbar);
+        close.IsImportant=false;
+        close.Caption=S<<"Close";
+        close.StockID="gtk-close";
+        close.OnClicked = this.CloseClicked;
+        close.Show();
+        
+        var sep=new RToolSeparator(toolbar);
+        sep.MinWidth=20;
+        sep.Show();
+        if (viewcallback) {
+            var view = new RToolButton(toolbar);
+            view.IsImportant=true;
+            view.Caption=S<<"View";
+            view.Tooltip=view.Caption;
+            view.StockID="gtk-copy";
+            view.OnClicked = this.generalcallback;
+            view.UserData = viewcallback;
+            view.Show();
+        }
+
+        if (editcallback) {
+            var edit = new RToolButton(toolbar);
+            edit.IsImportant=true;
+            edit.Caption=S<<"Edit";
+            edit.Tooltip=edit.Caption;
+            edit.StockID="gtk-edit";
+            edit.OnClicked = this.generalcallback;
+            edit.UserData = editcallback;
+            edit.Show();
+            echo edit.UserData;
+        }
+
+
+        var hbox=new RHBox(vbox);
+        hbox.Packing=PACK_EXPAND_WIDGET;
+        hbox.Show();
+
+        MasterLabel = new RLabel(hbox);
+        MasterLabel.XAlign=0.05;
+        MasterLabel.YAlign=0.5;
+        MasterLabel.UseMarkup=true;
+        MasterLabel.Packing=PACK_EXPAND_WIDGET;
+        MasterLabel.OnActivateLink=this.OnLink;
+        MasterLabel.Show();
+
+        DetailLabel = new RLabel(hbox);
+        DetailLabel.XAlign=1.0;
+        DetailLabel.YAlign=1.0;
+        DetailLabel.UseMarkup=true;
+        DetailLabel.Packing=PACK_SHRINK;
+        DetailLabel.OnActivateLink=this.OnLink;
+        DetailLabel.Show();
+
+        if (actions) {
+            sep=new RToolSeparator(toolbar);
+            sep.MinWidth=10;
+            sep.Show();
+
+            this.AddButtons(toolbar, actions);
+        }
+
+        sep=new RToolSeparator(toolbar);
+        sep.MinWidth=50;
+        sep.Show();
+
+        if (archivecallback) {
+            var arc = new RToolButton(toolbar);
+            arc.IsImportant=true;
+            arc.Caption=S<<"Archive";
+            arc.Tooltip=arc.Caption;
+            arc.StockID="gtk-harddisk";
+            arc.OnClicked = this.generalcallback;
+            arc.UserData = archivecallback;
+            arc.Show();
+        }
+
+        if (unarchivecallback) {
+            arc = new RToolButton(toolbar);
+            arc.IsImportant=false;
+            arc.Caption=S<<"Unarchive";
+            arc.Tooltip=arc.Caption;
+            arc.StockID="gtk-index";
+            arc.OnClicked = this.generalcallback;
+            arc.UserData = unarchivecallback;
+            arc.Show();
+        }
+
+        if (deletecallback) {
+            var del = new RToolButton(toolbar);
+            del.IsImportant=false;
+            del.Caption=S<<"Delete";
+            del.Tooltip=del.Caption;
+            del.StockID="gtk-cancel";
+            del.OnClicked = this.generalcallback;
+            del.UserData = deletecallback;
+            del.Show();
+        }
+
+        if ((newfor) || (sendto) || (addto)) {
+            toolbar = new RToolbar(vbox);
+            toolbar.IconSize=1;
+            toolbar.Style=TOOLBAR_BOTH_HORIZ;
+            toolbar.ShowArrow=true;
+            toolbar.Show();
+
+            if (addto) {
+                var btn = new RToolButton(toolbar);
+                btn.IsImportant=true;
+                btn.Caption=S<<"Add";
+                btn.Tooltip=btn.Caption;
+                btn.Enabled=false;
+                btn.Show();
+
+                this.AddButtons(toolbar, addto);
+
+                sep=new RToolSeparator(toolbar);
+                sep.MinWidth=20;
+                sep.Show();
+            }
+            if (sendto) {
+                btn = new RToolButton(toolbar);
+                btn.IsImportant=true;
+                btn.Caption=S<<"Send to";
+                btn.Tooltip=btn.Caption;
+                btn.Enabled=false;
+                btn.Show();
+
+                this.AddButtons(toolbar, sendto);
+                sep=new RToolSeparator(toolbar);
+                sep.MinWidth=20;
+                sep.Show();
+            }
+
+            if (newfor) {
+                btn = new RToolButton(toolbar);
+                btn.IsImportant=true;
+                btn.Caption=S<<"New for";
+                btn.Tooltip=btn.Caption;
+                btn.Enabled=false;
+                btn.Show();
+
+                this.AddButtons(toolbar, newfor);
+            }
+        }
+    }
+
+    AddButtons(toolbar, actions) {
+        var len=length actions;
+        for (var i=0;i<len;i++) {
+                var item=actions[i];
+                if (item) {
+                    var button = new RToolButton(toolbar);
+                    var img = item[0];
+                    if (img) {
+                        var img2 = new RImage(null);
+                        img2.Filename = img;
+                        img2.Scale(16,16);
+                        img2.Show();
+                        button.Icon=img2;
+                    }
+                    button.IsImportant=true;
+                    button.Caption=S<<(item[1]);
+                    button.Tooltip=button.Caption;
+                    button.OnClicked = this.generalcallback;
+                    button.UserData = item[2];
+                    button.Show();
+                }
+        }
+    }
+
+    OnLink(Sender, EventData) {
+        if (EntityView) {
+            var arr=StrSplit(EventData, ":");
+            if (length arr>1) {
+                this.Close();
+                EntityView(arr[0], arr[1]);
+            }
+        }
+    }
+
+    generalcallback(Sender, EventData) {
+        var d=Sender.UserData;
+        if (d) {
+            this.Close();
+            d(this, EventData);
+        }
+    }
+
+    DoShow(Sender, EventData) {
+        CApplication.BeginNonCritical();
+        this.Top=top;
+        this.Left=left;
+        this.Width=width;
+        this.MinHeight=height;
+        this.KeepAbove=true;
+        CApplication.EndNonCritical();
+
+        width = swindow.HAdjustment.PageSize;
+        this.Width=width;
+    }
+    
+    Close() {
+        this.PrepareHide();
+        this.Hide();
+    }
+
+    CloseClicked(Sender, EventData) {
+        this.Close();
+    }
+
+    Realized(Sender, EventData) {
+        this.BorderWidth=0;
+        this.Decorations=0;
+        this.Type=WT_SPLASHSCREEN;
+        width = swindow.HAdjustment.PageSize;
+        this.Width = width;
+    }
+    
+    protected PrepareHide() {
+        if (precindex!=-1) {
+            var item2 = treeview.Items[precindex];
+            item2[sizeindex]=-1;
+            treeview.UpdateItem(precindex, item2);
+            precindex=-1;
+        }
+    }
+    
+    FocusOut(Sender, EventData) {
+        /*if (reshown) {
+            reshown=false;
+            return;
+        }*/
+        this.PrepareHide();
+        this.Hide();
+        precindex=-1;
+    }
+    
+    override Show;
+    Show() {
+        var ri=treeview.RowIndex;
+        if (""+ri=="-1")
+            return;
+
+        if (precindex==ri)
+            return;
+
+
+        reshown=true;
+        WaitScroll=true;
+
+        CApplication.BeginNonCritical();
+        this.PrepareHide();
+        var delta=RefOwner.Absolute[1]-RefOwner.Top-4;
+        precindex=ri;
+
+        var area  = treeview.CellArea(ri);
+        left  = area[0];
+        //this.Left = left;
+        top   = area[1]+delta;//area[3]
+        //this.Top  = top;
+        width = swindow.HAdjustment.PageSize;//area[2];
+        this.Width = width;
+        
+        var h=area[3];
+        if (!h)
+            h = 100;
+
+        var height=h;
+        while (height<AproximateHeight)
+            height += h;
+
+        var item = treeview.Items[ri];
+        item[sizeindex]=height;
+
+
+        treeview.UpdateItem(ri, item);
+        //this.MinHeight=height+8;
+        VisibleRemoteObject::Show();
+        CApplication.EndNonCritical();
+        //this.Top = top;
+        //this.Left = left;
+        this.height=height+4;
+    }
+}

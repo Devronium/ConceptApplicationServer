@@ -1,0 +1,637 @@
+import 'standard.db.sql'
+import 'standard.lib.str'
+import win32.base.messages
+
+
+define TRANSACTION_ROLLBACK		0
+define TRANSACTION_COMMIT		1
+
+class ADODataRecord {
+	public var DATA;
+	private var ORDER;
+	private var LINK;
+
+	public operator = (x) {
+		this.DATA=""+x;
+		ODBCColumnSet(ORDER,this.DATA,this.LINK);
+		return x;
+	}
+
+	public function ToBuffer() {
+		return this.DATA;
+	}
+
+	public function ToString() {
+		return String(this.DATA);
+	}
+
+	public function ToNumber() {
+		return value this.DATA;
+	}
+
+	function XMLSerialized() {
+		var XMLData;
+		if (typeof DATA=="class")
+			XMLData = "<ADODataRecord>" + this->DATA->XMLSerialized() + "\n</ADODataRecord>";
+		else
+			XMLData = "<ADODataRecord>" + String(this->DATA) + "</ADODataRecord>";
+
+		return XMLData;
+	}
+
+	function ADODataRecord(ORD,LNK) {
+		this.ORDER=ORD;
+		this.LINK=LNK;
+	}
+}
+
+
+class ADOConnection {
+	protected var connection=0;
+	protected var result=0;
+
+	public property Connection { get connection }
+	
+	function ADOConnection() {
+		this->connection=0;
+	}
+
+	function Open(strConnection) {
+		this->connection=ODBCDriverConnect(strConnection);
+		return this->connection;
+	}
+
+	function OpenDSN(DSN, username="", password="") {
+		this->connection=ODBCConnect(DSN,username,password);
+		return this->connection;
+	}
+
+	function Close() {
+		if (this->connection)
+			ODBCDisconnect(this->connection);
+		return this->connection=0;
+	}
+
+	function StartTransaction() {
+		if (this->connection)
+			ODBCAutoCommit(0,this->connection);
+	}
+
+	function EndTransaction(MODE) {
+		if (MODE==TRANSACTION_ROLLBACK)
+			return ODBCRollback(this->connection);
+		else
+			return ODBCCommit(this->connection);
+	}
+
+	private function _GetStmtElements(stmt) {
+		var arr=0;
+		if (ODBCFetchForward(stmt)) {
+			var len=ODBCCountColumns(stmt);
+			var[] _columns;
+
+			for (var j=0;j<len;j++) {
+				ODBCDescribeCol(j+1,
+						var name,
+						var data_type,
+						var column_size,
+						var decimal_digits,
+						var nullable, 
+						stmt
+				);
+				_columns[name]=name;
+			}
+
+			arr=new [];
+			do {
+
+				var arr2=new [];
+				for (var i=0;i<len;i++) {
+					arr2[_columns[i]]=String(ODBCColumnGet(i,stmt));
+				}
+				arr[length arr]=arr2;
+				
+			} while (ODBCFetchForward(stmt));
+		}
+		return arr;
+	}
+
+	function ListTables(database="%") {
+		var stmt=ODBCListTables("", database, "", "",connection);
+		if (stmt) {
+			ODBCBindResult(stmt);
+
+			var result=_GetStmtElements(stmt);
+			ODBCFreeQuery(stmt);
+			return result;
+		}
+		return 0;
+	}
+
+	function ListColumns(table="",columns="") {
+		var stmt=ODBCListColumns("", "", table, columns,connection);
+		if (stmt) {
+			ODBCBindResult(stmt);
+
+			var result=_GetStmtElements(stmt);
+			ODBCFreeQuery(stmt);
+			return result;
+		}
+		return 0;
+	}
+
+	static function ListDSN() {
+		var dsn=ODBCFirstDSN();
+		var[] arr;
+		while (dsn!="")  {
+			arr[length arr]=dsn;
+			dsn=ODBCNextDSN();
+		}
+		return arr;
+	}
+
+	function LastError() {
+		return ODBCError(this->connection);
+	}
+}
+
+class VirtualADOObject {
+	protected var _DATASET;
+	protected var _DATAFIELD;
+
+	public property DataSet { set SetDataSet, get _DATASET }
+	public property DataField { set SetDataField, get _DATAFIELD }
+
+	// is pure virtual !
+	public function __DataSetUpdateCommand(Sender);
+	public function __DataSetNewQueryNotify(Sender);
+
+	public function __DataSetColumnUpdate(Sender,ColumnValue,rowindex);
+
+	protected function AddLinkedObject();
+	protected function SetDataSet(dataset) {
+		if (this->_DATASET) {
+			if (dataset) {
+				if (dataset==this->_DATASET)
+					return;
+			}
+		}
+
+		this->_DATASET=dataset;
+		dataset->AddLinkedObject(this);
+	}
+	override AddLinkedObject;
+
+	protected function SetDataField(x) {
+		this->_DATAFIELD=x;
+	}
+}
+
+class ADODataSet {
+	protected var _CONNECTION;
+	protected var _COMMANDTEXT;
+        protected var result=0;
+        protected var data_array;
+
+	protected var ADO_LINKED_OBJECTS;
+	protected var rowindex=0;
+	protected var prepared_query;
+	protected var status=0;
+
+	protected var old_rowindex=0;
+	protected var _columns=0;
+	protected var reset_error_flag=true;
+
+
+	public property Columns { get _columns }
+	public property Connection { set SetConnection, get _CONNECTION }
+	public property CommandText { set SetCommandText, get _COMMANDTEXT }
+	public property FieldValues { get GetValues }
+	public property PreparedQuery { get prepared_query, set SetPreparedQuery }
+	public property RowIndex { get rowindex }
+	public property IsUpdateQuery { get status }
+
+	function First();
+
+
+	public function SetPreparedQuery(string query) {
+		/*if (this->result) {
+			ODBCFreeResult(this->result);
+			ODBCFreeQuery(this->result);
+			this->result=0;
+		}*/
+
+		if (!this->result)
+			this->result=ODBCStatement(this->_CONNECTION->Connection);
+		this->prepared_query=query;
+		this->_COMMANDTEXT="";
+	}
+
+	public function AddParameter(var parameter) {
+		if (!this->result)
+			this->result=ODBCStatement(this->_CONNECTION->Connection);
+		ODBCAddParameter(""+parameter,this->result);
+	}
+
+	public function ClearParameters() {
+		if (this->result)
+			ODBCClearParameters(this->result);
+	}
+
+	function Text(); override Text;
+	function Checked(); override Checked;
+
+	private function ForcedNotify() {
+		var count=length this->ADO_LINKED_OBJECTS;
+		for (var i=0;i<count;i++) {
+			var object=&this->ADO_LINKED_OBJECTS[i];
+			object->__DataSetNewQueryNotify(this);
+		}
+	}
+
+	private function Syncronize() {
+		var count=length this->ADO_LINKED_OBJECTS;
+		for (var i=0;i<count;i++) {
+			var object=&this->ADO_LINKED_OBJECTS[i];
+			if 	((classof object=="RADOEdit") ||
+				(classof object=="RADOEditComboBox") ||
+				(classof object=="RADOTextView")) {
+					var field=object->DataField;
+					if (field!="")
+						FieldValues[field]=object->Text;
+			} else
+			if 	((classof object=="RADOCheckButton") ||
+				(classof object=="RADORadioButton")) {
+					field=object->DataField;
+					if (field!="")
+						FieldValues[field]=""+object->Checked;
+			}
+		}
+	}
+
+	function ExecuteQuery(); override ExecuteQuery;
+	function FetchByIndex(); override FetchByIndex;
+
+	public function Update() {
+		if (this->result) {
+			status=1;
+			Syncronize();
+			ODBCUpdate(this->result);
+
+			old_rowindex=rowindex;
+
+			this.ExecuteQuery();
+			status=0;
+		} else
+			old_rowindex=-1;
+	}
+
+	public function Refresh() {
+		old_rowindex=rowindex;
+		this.ExecuteQuery();
+	}
+
+	public function Delete() {
+		if (this->result) {
+			ODBCDelete(this->result);
+			old_rowindex=rowindex;
+			this.ExecuteQuery();
+
+		}
+	}
+
+	public function ADODataSet(ADOConnection _Connection, err_flag=true) {
+		Connection=_Connection;
+		this->ADO_LINKED_OBJECTS=new [];
+		this->data_array=new [];
+		this->rowindex=-1;
+		this->_COMMANDTEXT="";
+		this->prepared_query="";
+		this->old_rowindex=-1;
+		this->reset_error_flag=err_flag;
+	}
+
+	protected function SetConnection(ADOConnection x) {
+		this->_CONNECTION=x;
+	}
+
+	private function SetCommandText(string x) {
+		this->_COMMANDTEXT=x;
+		this->prepared_query="";
+	}
+
+	public function UpdateColumnList(Sender) {
+		try {
+			//var index=data_array->GetIndexByKey(Sender->DataField);
+			if (!_columns)
+				return 0;
+
+			BeginUpdateSession();
+			if (ODBCFetchFirst(this->result)) {
+				var len=length _columns;
+
+				var arr=new [];
+				// init array 
+				for (var i=0;i<len;i++)
+					arr[_columns[i]]="";
+
+				do {
+
+					for (i=0;i<len;i++)
+						arr[i]=String(ODBCColumnGet(i,this->result));
+
+					Sender->__DataSetColumnUpdate(this,arr,-1);
+				} while (ODBCFetchNext(this->result));
+				ODBCFetchFirst(this->result);
+			}
+			EndUpdateSession();
+
+		} catch (var Exception) {
+		}
+	}
+
+	public function AfterQueryNotify() {
+		var ADO_COUNT=length this->ADO_LINKED_OBJECTS;
+		var OBJECTS=this->ADO_LINKED_OBJECTS;
+
+		for (var i=0;i<ADO_COUNT;i++) {
+			var ADO_ELEMENT=&OBJECTS[i];
+			ADO_ELEMENT->__DataSetNewQueryNotify(this);
+		}
+	}
+
+	function ExecuteNonQuery() {
+		this->rowindex=-1;
+		this->old_rowindex=-1;
+
+		if (reset_error_flag)
+			this.LastError();
+
+		var conection_target=this->_CONNECTION->Connection;
+		if (!conection_target)
+			return -1;
+
+		var result;
+		delete _columns;
+
+		if (prepared_query!="") {
+			if (ODBCExecute(this->prepared_query,this->result)) {
+				ODBCFreeResult(this->result);
+				ODBCFreeQuery(this->result);
+				this->result=0;
+				return 0;
+			}
+		} else {
+			if (this->result) {
+				ODBCFreeResult(this->result);
+				ODBCFreeQuery(this->result);
+				this->result=0;
+			}
+			result=ODBCExecuteQuery(this->_COMMANDTEXT,conection_target);
+		}
+
+		if (result) {
+			ODBCFreeResult(result);
+			ODBCFreeQuery(result);
+			result=0;
+			return 1;
+		} else
+			return 0;
+	}
+
+	function ExecuteQuery(forwad_only=false) {
+		this->rowindex=-1;
+		delete _columns;
+
+		if (reset_error_flag)
+			this.LastError();
+
+		var conection_target=this->_CONNECTION->Connection;
+		if (!conection_target)
+			return -1;
+
+		if (prepared_query!="") {
+			if (ODBCExecute(this->prepared_query,this->result)) {
+				ODBCFreeResult(result);
+				ODBCFreeQuery(result);
+				result=0;
+				return 0;
+			}
+		} else {
+
+			if (this->result) {
+				ODBCFreeResult(this->result);
+				ODBCFreeQuery(this->result);
+				this->result=0;
+			}
+
+			this->result=ODBCExecuteQuery(this->_COMMANDTEXT,conection_target);
+		}
+
+
+		if (!this->result)
+			return -1;
+
+		this->data_array=new [];
+
+		var count=ODBCCountColumns(this->result);
+		var result=this->result;
+
+		ODBCBindResult(result);
+
+		if (count)
+			_columns=new [];
+
+		for (var i=0;i<count;i++) {
+
+			ODBCDescribeCol(i+1,
+						var name,
+						var data_type,
+						var column_size,
+						var decimal_digits,
+						var nullable, 
+						result
+			);
+			_columns[i]=name;
+
+			//this->data_array->Add(0,name);
+			if (!this->data_array[name])
+			    this->data_array[name]=new ADODataRecord(i,result);
+            else {
+                var tmp_index=2;
+                var temp_name="$name($tmp_index)";
+                while (this->data_array[temp_name]) {
+                    temp_name="$name($tmp_index)";
+                    tmp_index++;
+                }
+			    this->data_array[temp_name]=new ADODataRecord(i,result);
+			    _columns[i]=temp_name;
+            }
+		}
+
+
+		this->AfterQueryNotify();
+
+
+		if (old_rowindex==-1) {
+			if (!forwad_only)
+				this->First();
+		} else {
+			rowindex=-1;
+			if (!forwad_only)
+				this->FetchByIndex(old_rowindex);
+			old_rowindex=-1;
+		}
+		return result;
+	}
+
+	public function CountRows() {
+		if (this->result)
+			return ODBCCountRows(this->result);
+	}
+
+	public function FetchByIndex(index) {
+		var read=0;
+		if (!this->result)
+			return 0;
+
+		if (index==0) {
+			read=ODBCFetchFirst(this->result);
+		} else
+		if (this->rowindex==index-1)
+			read=ODBCFetchNext(this->result);
+		else
+			read=ODBCFetchAbsolute(index+1,this->result);
+
+		if (!read) {
+			//this->CloseRead();
+			return 0;
+		}
+		this->rowindex=index;
+
+		var array=this->data_array;
+		var count=length array;
+
+		for (var i=0;i<count;i++) {
+			var str=ODBCColumnGet(i,this->result);
+			//array->ChangeValueByIndex(i,str);
+			array[i]=str;
+		}
+
+		if (read) {
+			var ADO_COUNT=length this->ADO_LINKED_OBJECTS;
+			var OBJECTS=this->ADO_LINKED_OBJECTS;
+			BeginUpdateSession();
+			for (i=0;i<ADO_COUNT;i++) {
+				var ADO_ELEMENT=&OBJECTS[i];//->GetElementByIndex(i);
+				ADO_ELEMENT->__DataSetUpdateCommand(this);
+			}
+			EndUpdateSession();
+		}
+		
+		return read;
+	}
+
+	public function Next() {
+		return FetchByIndex(rowindex+1);
+	}
+
+	public function Prev() {
+		return FetchByIndex(rowindex-1);
+	}
+
+	public function Current() {
+		return FetchByIndex(rowindex);
+	}
+
+	override First;
+	public function First() {
+		return FetchByIndex(0);
+	}
+
+	public function FetchForward() {
+		var read=0;
+		if (!this->result)
+			return 0;
+
+		read=ODBCFetchForward(this->result);
+
+		if (!read) {
+			//this->CloseRead();
+			return 0;
+		}
+
+		if (!read) {
+			//this->CloseRead();
+			return 0;
+		}
+		this->rowindex++;
+
+		var array=this->data_array;
+		var count=length array;
+
+		for (var i=0;i<count;i++) {
+			var str=ODBCColumnGet(i,this->result);
+			//array->ChangeValueByIndex(i,str);
+			array[i]=str;
+		}
+
+		if (read) {
+			var ADO_COUNT=length this->ADO_LINKED_OBJECTS;
+			var OBJECTS=this->ADO_LINKED_OBJECTS;
+			BeginUpdateSession();
+			for (i=0;i<ADO_COUNT;i++) {
+				var ADO_ELEMENT=&OBJECTS[i];//->GetElementByIndex(i);
+				ADO_ELEMENT->__DataSetUpdateCommand(this);
+			}
+			EndUpdateSession();
+		}
+		
+		return read;
+	}
+
+	public function AddLinkedObject(Object) {
+		this->ADO_LINKED_OBJECTS[length this->ADO_LINKED_OBJECTS]=Object;
+		Object->__DataSetNewQueryNotify(this);
+		Object->__DataSetUpdateCommand(this);
+	}
+
+	public function RemoveLinkedObject(Name) {
+		//this->ADO_LINKED_OBJECTS->DeleteElementByKey(Name);
+		var arr=this->ADO_LINKED_OBJECTS;
+		arr[Name]=null;
+
+		var []arr2;
+
+		var len=length arr;
+		for (var i=0;i<len;i++) {
+			if (arr[i])
+				arr2[length arr2]=arr[i];
+		}
+
+		this->ADO_LINKED_OBJECTS=arr2;
+	}
+
+	function GetValues() {
+		var array=this->data_array;
+		return array;
+	}
+
+	function CloseRead() {
+		if (this->result) {
+			ODBCFreeResult(this->result);
+			ODBCFreeQuery(this->result);
+			this->result=0;
+		}
+		this->old_rowindex=-1;
+	}
+
+	function finalize() {
+		if (this->result)
+			ODBCFreeResult(this->result);
+	}
+
+	function LastError() {
+		return ODBCError();
+	}
+}

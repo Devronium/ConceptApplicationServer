@@ -1,0 +1,96 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+  <title>standard.db.sql.ODBCExecute</title>
+  <link href="css/style.css" rel="stylesheet" type="text/css">
+  <meta http-equiv="Content-Type" content="text/html;charset=utf-8" >
+</head>
+<body bgcolor="#ffffff">
+<table border="0" width="100%" bgcolor="#F0F0FF">
+  <tr>
+    <td>Concept Framework 2.2 documentation</td>
+  	<td align="right"><a href="index.html">Contents</a> | <a href="index_fun.html">Index</a></td>
+  </tr>
+</table>
+<h2><a href="standard.db.sql.html">standard.db.sql</a>.ODBCExecute</h2>
+<table border="0" cellspacing="0" cellpadding="0" width="500" style="border-style:solid;border-width:1px;border-color:#D0D0D0;">
+  <tr bgcolor="#f0f0f0">
+     <td><i>Name</i></td>
+     <td><i>Version</i></td>
+     <td><i>Deprecated</i></td>
+  </tr>
+  <tr bgcolor="#fafafa">
+     <td><b>ODBCExecute</b></td>
+     <td>version 1.0</td>
+     <td>no</td>
+  </tr>
+</table>
+<br />
+<b>Prototype:</b><br />
+	<table bgcolor="#F0F0F0" width="100%" style="border-style:solid;border-width:1px;border-color:#D0D0D0;"><tr><td><b>number ODBCExecute(string query, number statement) </b></td></tr></table>
+<br />
+
+<b>Parameters:</b><br />
+<table bgcolor="#FFFFFF" style="border-style:solid;border-width:1px;border-color:#D0D0D0;">
+
+	   <tr>
+	   	   <td>
+		   	   <i>query</i>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+		   </td>
+	   	   <td>
+		   	   the SQL query
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <i>statement</i>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+		   </td>
+	   	   <td>
+		   	   the statement handle (or result set) as returned by <a href="standard.db.sql.ODBCStatement.html">ODBCStatement</a>.
+		   </td>
+	   </tr>
+
+</table>
+
+<br />
+<b>Description:</b><br />
+<table width="100%" bgcolor="#FAFAFF" style="border-style:solid;border-width:1px;border-color:#D0D0D0;">
+<tr><td>
+Execute a prepared query. A prepared query contains bounded parameters via the <a href="standard.db.sql.ODBCAddParameter.html">ODBCAddParameter</a> function. 
+<br/>
+<br/>If you want to build a prepared query, the order is this:
+<br/><a href="standard.db.sql.ODBCStatement.html">ODBCStatement</a>
+<br/>for each parameter in the query, <a href="standard.db.sql.ODBCAddParameter.html">ODBCAddParameter</a>
+<br/><a href="standard.db.sql.ODBCExecute.html">ODBCExecute</a>
+<br/>
+<br/>This function is considered safer when dealing with data from the user.
+<br/>
+<br/>In addition, you may want to check the <a href="standard.db.sql.ODBCExecuteQuery.html">ODBCExecuteQuery</a> as a convenient alternative.
+<br/>
+<br/>After a query that provides results is successfully executed, you must call {ODBCBind} in order to be able to access the data in the result set (result set is the same as statement handle).
+<br/>
+</td></tr>
+</table>
+<br />
+
+<b>Returns:</b><br />
+Return -1 if failed (call <a href="standard.db.sql.ODBCError.html">ODBCError</a> to retrieve the error), -3 if the statement contains unbound parameters or 0 if succeeded.
+<br />
+<br />
+<!--
+  <p>
+    <a href="http://validator.w3.org/check?uri=referer"><img
+        src="http://www.w3.org/Icons/valid-html40"
+        alt="Valid HTML 4.0 Transitional" height="31" width="88" border="0"></a>
+ <a href="http://jigsaw.w3.org/css-validator/">
+  <img style="border:0;width:88px;height:31px"
+       src="http://jigsaw.w3.org/css-validator/images/vcss" 
+       alt="Valid CSS!" border="0"/>
+ </a>
+</p>
+-->
+<table bgcolor="#F0F0F0" width="100%"><tr><td>Documented by Eduard Suica, generation time: Sun Jan 27 18:15:19 2013
+ GMT</td><td align="right">(c)2013 <a href="http://www.devronium.com">Devronium Applications</a></td></tr></table>
+</body>
+</html>

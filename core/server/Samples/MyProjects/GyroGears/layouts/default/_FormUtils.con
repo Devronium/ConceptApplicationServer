@@ -1,0 +1,29 @@
+include _DBInfoForm.con
+include Application.con
+
+class _FormUtils {
+	static function Say(string text) {
+		CheckPoint(0);
+		var globals=GLOBALS();
+		var mainform=globals["application.mainform"];
+		var lang=null;
+		if (mainform)
+			lang=mainform.GetLanguage();
+		else
+			lang=new Lang();
+
+		var sayform=globals["formutils.sayform"];
+		if (!sayform) {
+			sayform=new DBInfoForm(mainform, lang);
+			globals["formutils.sayform"]=sayform;
+		}
+		sayform.Markup=text;
+		sayform.Show();
+	}
+
+	static function UnSay() {
+		var sayform=GLOBALS()["formutils.sayform"];
+		if (sayform)
+			sayform.Hide();
+	}
+}

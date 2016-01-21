@@ -1,0 +1,130 @@
+import standard.lib.str
+import standard.C.io
+import standard.lang.cli
+
+class Main {
+	protected var Separator="=";
+
+	function Capitalize(string s) {
+		var arr=StrSplit(s,"-");
+		var len=length arr;
+		var res="";
+		for (var i=0;i<len;i++) {
+			var e=arr[i];
+			if (e) {
+				e=ToLower(e);
+				e[0]=ToUpper(e[0]);
+				res+=e;
+			}
+		}
+		return res;
+	}
+
+	function Do(string line, var string res, var string fun, var string pre_run, number is_bool, arr=null) {
+		var prop_name=Capitalize(line);
+		prop_name=StrReplace(prop_name,"-","");
+		prop_name=StrReplace(prop_name,":","");
+		prop_name=StrReplace(prop_name,"/","");
+
+		var name=ToUpper(prop_name);
+		res+="	protected var _$name=null;\n";
+		res+="	protected var _${name}_set=false;\n";
+		res+="	public property $prop_name { get _$name, set Set$prop_name }\n\n";
+
+		fun+="	public function Set$prop_name(val) {\n";
+		if (is_bool) {
+			fun+="		if (val)\n";
+			fun+="			val=true;\n";
+			fun+="		else\n";
+			fun+="			val=false;\n";
+		}
+		if (arr) {
+			var cond="";
+			var len=length arr;
+			for (var i=0;i<len;i++) {
+				var val=trim(""+arr[i]);
+				if (val) {
+					if (cond)
+						cond+=" && ";
+					cond+="(val!='$val')";
+				}
+			}
+			if (cond) {
+				fun+="		if ($cond)\n";
+				fun+="			throw \"Invalid value '\$val' for $prop_name\";\n";
+			}
+		}
+		fun+="		this._${name}_set=true;\n";
+		fun+="		this._${name}=val;\n";
+		fun+="		return val;\n";
+		fun+="	}\n\n";
+
+		fun+="	public function UnSet$prop_name() {\n";
+		fun+="		this._${name}_set=false;\n";
+		fun+="		this._${name}=null;\n";
+		fun+="	}\n\n";
+
+		pre_run+="		if (this._${name}_set)\n";
+		if (is_bool)
+			pre_run+="			params['$line']='$line';\n";
+		else
+			pre_run+="			params['$line']='$line'+'${this.Separator}'+this._${name};\n";
+	}
+
+	function Main() {
+		var argv=CLArg();
+		if (length argv!=3) {
+			echo "Usage: DoWrap.con ClassName input_file commandline\n";
+			return -1;
+		}
+			
+		var data=ReadFile(argv[1]);
+		if (!data) {
+			echo "No data found in file ${argv[1]}\n";
+			return -1;
+		}
+
+		var res="include CLWrap.con\n\n";
+		res+="class ${argv[0]} extends CLWrap {\n";
+		res+="	protected var _last_result=\"\";\n";
+		res+="	public property Output { get _last_result }\n\n";
+		res+="	public var DirectQuery=\"\";\n\n";
+
+		data=StrReplace(data, "\r","");
+		var arr=StrSplit(data, "\n");
+		var len=length arr;
+		var fun="";
+		var pre_run="";
+		pre_run+="	public function Start(string input_stream=\"\") {\n";
+		pre_run+="		var[] params;\n";
+		for (var i=0;i<len;i++) {
+			var line=trim(""+arr[i]);
+			if (line) {
+				if (Pos(ToLower(trim(line)), "#separator")==1)	{
+					var xarr=StrSplit(line, " is ");
+					this.Separator=""+xarr[1];
+				} else {
+					var arr2=StrSplit(line, "=");
+					if (length arr2==1) {
+						var is_bool=false;
+						if (Pos(line, "=")<1)
+							is_bool=true;
+						Do(arr2[0], res, fun, pre_run, is_bool);
+					} else
+					if (length arr2==2) {
+						var arr3=StrSplit(arr2[1],"|");
+						Do(arr2[0], res, fun, pre_run, is_bool, arr3);
+					}
+				}
+			}
+		}
+		pre_run+="		if (this.DirectQuery)\n";
+		pre_run+="			params[\"%DIRECTQUERY%\"]=this.DirectQuery;\n";
+		pre_run+="		return this.Run(\"${argv[2]}\", params, this._last_result, input_stream);\n";
+		pre_run+="	}\n\n";
+		res+=pre_run;
+		res+=fun;
+		res+="}\n";
+		echo res;
+	}
+}

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+
+<ApplicationTemplate Name="Console Application" Icon="icon.png" Target="console" Description="This is the basic console application" Representative="console.con">
+	<Source Name="console.con" Designable="0" />
+	<Project File="console.con" />
+	<Description>
+Simple console application for Concept Command Line Interpreter
+
+	</Description>
+</ApplicationTemplate>

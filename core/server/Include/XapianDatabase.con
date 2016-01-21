@@ -1,0 +1,254 @@
+include XapianDocument.con
+include XapianTermIterator.con
+include XapianPositionIterator.con
+include XapianPostingIterator.con
+
+class XapianDatabase {
+	protected var THISREF=null;
+	public property REF { get THISREF }
+
+	public function XapianDatabase(string path="") {
+		if (path)
+			this.THISREF=XapianDatabaseCreate2(var exc2, path);
+		else
+			this.THISREF=XapianDatabaseCreate(var exc);
+	}
+
+	public function finalize() {
+		if (this.THISREF)
+			XapianDatabaseDestroy(THISREF, var exc);
+		this.THISREF=null;
+	}
+
+	public function add_database(XapianDatabase database) {
+		var result=XapianDatabase__add_database(this->THISREF, var exc, database->REF);
+		if (exc)
+			throw exc;
+		return result;
+	}
+
+	public function reopen() {
+		var result=XapianDatabase__reopen(this->THISREF, var exc);
+		if (exc)
+			throw exc;
+		return result;
+	}
+
+	public function get_description() {
+		var result=XapianDatabase__get_description(this->THISREF, var exc);
+		if (exc)
+			throw exc;
+		return result;
+	}
+
+	public function postlist_begin(string tname) {
+		var result=new XapianPostingIterator(XapianDatabase__postlist_begin(this->THISREF, var exc, tname));
+		if (exc)
+			throw exc;
+		return result;
+	}
+
+	public function postlist_end(string tname) {
+		var result=new XapianPostingIterator(XapianDatabase__postlist_end(this->THISREF, var exc, tname));
+		if (exc)
+			throw exc;
+		return result;
+	}
+
+	public function termlist_begin(number did) {
+		var result=new XapianTermIterator(XapianDatabase__termlist_begin(this->THISREF, var exc, did));
+		if (exc)
+			throw exc;
+		return result;
+	}
+
+	public function termlist_end(number did) {
+		var result=new XapianTermIterator(XapianDatabase__termlist_end(this->THISREF, var exc, did));
+		if (exc)
+			throw exc;
+		return result;
+	}
+
+	public function has_positions() {
+		var result=XapianDatabase__has_positions(this->THISREF, var exc);
+		if (exc)
+			throw exc;
+		return result;
+	}
+
+	public function positionlist_begin(number did, string tname) {
+		var result=new XapianPositionIterator(XapianDatabase__positionlist_begin(this->THISREF, var exc, did, tname));
+		if (exc)
+			throw exc;
+		return result;
+	}
+
+	public function positionlist_end(number did, string tname) {
+		var result=new XapianPositionIterator(XapianDatabase__positionlist_end(this->THISREF, var exc, did, tname));
+		if (exc)
+			throw exc;
+		return result;
+	}
+
+	public function allterms_begin() {
+		var result=new XapianTermIterator(XapianDatabase__allterms_begin(this->THISREF, var exc));
+		if (exc)
+			throw exc;
+		return result;
+	}
+
+	public function allterms_end() {
+		var result=new XapianTermIterator(XapianDatabase__allterms_end(this->THISREF, var exc));
+		if (exc)
+			throw exc;
+		return result;
+	}
+
+	public function allterms_begin2(string prefix) {
+		var result=new XapianTermIterator(XapianDatabase__allterms_begin2(this->THISREF, var exc, prefix));
+		if (exc)
+			throw exc;
+		return result;
+	}
+
+	public function allterms_end2(string prefix) {
+		var result=new XapianTermIterator(XapianDatabase__allterms_end2(this->THISREF, var exc, prefix));
+		if (exc)
+			throw exc;
+		return result;
+	}
+
+	public function get_doccount() {
+		var result=XapianDatabase__get_doccount(this->THISREF, var exc);
+		if (exc)
+			throw exc;
+		return result;
+	}
+
+	public function get_lastdocid() {
+		var result=XapianDatabase__get_lastdocid(this->THISREF, var exc);
+		if (exc)
+			throw exc;
+		return result;
+	}
+
+	public function get_avlength() {
+		var result=XapianDatabase__get_avlength(this->THISREF, var exc);
+		if (exc)
+			throw exc;
+		return result;
+	}
+
+	public function get_termfreq(string tname) {
+		var result=XapianDatabase__get_termfreq(this->THISREF, var exc, tname);
+		if (exc)
+			throw exc;
+		return result;
+	}
+
+	public function term_exists(string tname) {
+		var result=XapianDatabase__term_exists(this->THISREF, var exc, tname);
+		if (exc)
+			throw exc;
+		return result;
+	}
+
+	public function get_collection_freq(string tname) {
+		var result=XapianDatabase__get_collection_freq(this->THISREF, var exc, tname);
+		if (exc)
+			throw exc;
+		return result;
+	}
+
+	public function get_doclength(number did) {
+		var result=XapianDatabase__get_doclength(this->THISREF, var exc, did);
+		if (exc)
+			throw exc;
+		return result;
+	}
+
+	public function keep_alive() {
+		var result=XapianDatabase__keep_alive(this->THISREF, var exc);
+		if (exc)
+			throw exc;
+		return result;
+	}
+
+	public function get_document(number did) {
+		var result=new XapianDocument(XapianDatabase__get_document(this->THISREF, var exc, did));
+		if (exc)
+			throw exc;
+		return result;
+	}
+
+	public function get_spelling_suggestion(string word, number max_edit_distance) {
+		var result=XapianDatabase__get_spelling_suggestion(this->THISREF, var exc, word, max_edit_distance);
+		if (exc)
+			throw exc;
+		return result;
+	}
+
+	/*public function spellings_begin(string term) {
+		var result=new XapianTermIterator(XapianDatabase__spellings_begin(this->THISREF, var exc, term));
+		if (exc)
+			throw exc;
+		return result;
+	}
+
+	public function spellings_end(string term) {
+		var result=new XapianTermIterator(XapianDatabase__spellings_end(this->THISREF, var exc, term));
+		if (exc)
+			throw exc;
+		return result;
+	}*/
+
+	public function synonyms_begin(string term) {
+		var result=new XapianTermIterator(XapianDatabase__synonyms_begin(this->THISREF, var exc, term));
+		if (exc)
+			throw exc;
+		return result;
+	}
+
+	public function synonyms_end(string term) {
+		var result=new XapianTermIterator(XapianDatabase__synonyms_end(this->THISREF, var exc, term));
+		if (exc)
+			throw exc;
+		return result;
+	}
+
+	public function synonym_keys_begin(string term) {
+		var result=new XapianTermIterator(XapianDatabase__synonym_keys_begin(this->THISREF, var exc, term));
+		if (exc)
+			throw exc;
+		return result;
+	}
+
+	public function synonym_keys_end(string term) {
+		var result=new XapianTermIterator(XapianDatabase__synonym_keys_end(this->THISREF, var exc, term));
+		if (exc)
+			throw exc;
+		return result;
+	}
+
+	public function get_metadata(string key) {
+		var result=XapianDatabase__get_metadata(this->THISREF, var exc, key);
+		if (exc)
+			throw exc;
+		return result;
+	}
+
+	public function metadata_keys_begin(string term) {
+		var result=new XapianTermIterator(XapianDatabase__metadata_keys_begin(this->THISREF, var exc, term));
+		if (exc)
+			throw exc;
+		return result;
+	}
+
+	public function metadata_keys_end(string term) {
+		var result=new XapianTermIterator(XapianDatabase__metadata_keys_end(this->THISREF, var exc, term));
+		if (exc)
+			throw exc;
+		return result;
+	}
+
+}

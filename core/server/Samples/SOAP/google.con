@@ -1,0 +1,39 @@
+include 'GoogleSearch.con'
+include 'WebDocument.con'
+
+define GOOGLE_KEY	"ooRIDLpQFHKfSNhp65RD9qvFbyyRzO/j"
+
+class Main {
+
+
+	function Main() {
+		var doc=new WebDocument();
+		doc.UseSessions=false;
+		doc.BeginDocument();
+
+		var Google=new GoogleSearch(GOOGLE_KEY);
+		if (WebVar("search"))
+			Google.SearchString=WebVar("search");
+		else
+			Google.SearchString="RadGs Software";
+
+		if (!Google.Search()) {
+			doc << "Failed : " << Google.Error;
+			return -1;
+		}
+
+		var count=length Google.Results;
+
+		for (var i=0;i<count;i++) {
+			doc << "<b>URL     </b>: <a href='" << Google.Results[i].URL << "'>" << Google.Results[i].URL << "</a>" <<  doc.endl;
+			doc << "<b>Title   </b>: " << Google.Results[i].Title << doc.endl;
+			doc << "<b>Snippet </b>: " << Google.Results[i].Snippet << doc.endl;
+			doc << "<b>Hostname</b>: " << Google.Results[i].Hostname << doc.endl;
+			doc << "----------------------------------------------------------------" << doc.endl;
+		}
+		doc << "Found " << Google.ResultsCount << " in " << Google.SearchTime << " seconds." << doc.endl;
+		doc << "Showing results from " << Google.Start+1 << " to " << Google.EndIndex << doc.endl;
+
+		doc.EndDocument();
+	}
+}

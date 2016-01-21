@@ -1,0 +1,64 @@
+include 'Control.con'
+
+class ConceptFont extends Control {
+	protected var _BOLD;
+	protected var _ITALIC;
+	protected var _UNDERLINE;
+	protected var _FONT_SIZE;
+	protected var _FONT_NAME;
+
+	public property FontName { set SetFontName, get _FONT_NAME }
+	public property FontSize { set SetFontSize, get _FONT_SIZE }
+	public property Bold { set SetBold, get _BOLD }
+	public property Italic { set SetItalic, get _ITALIC }
+	public property Underline { set SetUnderline, get _UNDERLINE }
+
+	public function ConceptFont(Owner) {
+		this->Control(/*Owner*/0, CLASS_FONT);
+	}
+
+	protected function SetFontName(x) {
+		if (typeof x==STRING_TYPE)
+			this->_FONT_NAME=x;
+		else
+		     	throw new ControlException(EXC_INVALID_ARGUMENT_TYPE, this);
+
+                SendMessage(this->Name, MSG_CHANGED, P_FONTNAME, x);
+	}
+
+	protected function SetFontSize(x) {
+		if (typeof x==NUMERIC_TYPE)
+			this->_FONT_SIZE=x;
+		else
+		     	throw new ControlException(EXC_INVALID_ARGUMENT_TYPE, this);
+
+                SendMessage(this->Name, MSG_CHANGED, P_FONTSIZE, x);
+	}
+
+	protected function SetBold(x) {
+		if (typeof x==NUMERIC_TYPE)
+			this->_BOLD=x;
+		else
+		     	throw new ControlException(EXC_INVALID_ARGUMENT_TYPE, this);
+
+                SendMessage(this->Name, MSG_CHANGED, P_BOLD, x);
+	}
+
+	protected function SetItalic(x) {
+		if (typeof x==NUMERIC_TYPE)
+			this->_ITALIC=x;
+		else
+		     	throw new ControlException(EXC_INVALID_ARGUMENT_TYPE, this);
+
+                SendMessage(this->Name, MSG_CHANGED, P_ITALIC, x);
+	}
+
+	protected function SetUnderline(x) {
+		if (typeof x==NUMERIC_TYPE)
+			this->_UNDERLINE=x;
+		else
+		     	throw new ControlException(EXC_INVALID_ARGUMENT_TYPE, this);
+
+                SendMessage(this->Name, MSG_CHANGED, P_UNDERLINE, x);
+	}
+}

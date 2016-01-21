@@ -1,0 +1,33 @@
+include XMLDocument.con
+
+class Main {
+	function Main() {
+		var doc=new XMLDocument();
+		doc.Create();
+		var node=doc.NewNode("test");
+			node.Content="vasile, ce faci ba vasile !?";
+			node.SetProperty("parameteru","valoare");
+			var child=doc.NewNode("ion");
+				child.Content="test";
+				var child2=doc.NewNode("maria");
+					child2.Content="test2";
+				child.AddNext(child2);
+			node.AddChild(child);
+		doc.Root=node;
+		echo doc.SaveString();
+		doc.Save();
+		doc.Free();
+
+		var doc2=new XMLDocument();
+		doc2.Load();
+		var node2=doc2.Root;
+		echo node2.GetProperty("parameteru");
+			node2=&node2.Child;
+			while (node2) {
+				echo node2.Name;
+				echo "\n";
+				node2=&node2.Next;
+			}
+		doc2.Free();
+	}
+}

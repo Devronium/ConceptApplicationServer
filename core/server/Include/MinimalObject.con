@@ -1,0 +1,141 @@
+import concept.helper.idgenerator
+//import standard.lang.serialize
+include MessageDispatcher.con
+include RemoteMessages.con
+include RemoteEvents.con
+include RemoteProperties.con
+
+define NULL	0
+define null	0
+define true	1
+define false	0
+
+class MinimalObject {
+	public var RID;
+	public var Parent;
+
+	public var UserData;
+
+	protected var ENABLED=1;
+	protected var VISIBLE;
+	protected var _PACKING;
+	protected var PACKTYPE;
+
+	public property Enabled { get ENABLED, set SetEnabled }
+	public property PackType { get PACKTYPE, set SetPackType }
+	public property Visible { get VISIBLE, set SetVisible }
+	public property Packing { get _PACKING, set SetPacking }
+	
+	public var __EVENTS_VECTOR;
+
+	public function _MAP_REMOTE_EVENT(var EVENT_ID, var delegate deleg) {
+		var event_id=value EVENT_ID;
+
+		if (!__EVENTS_VECTOR[RID][event_id])
+			SendMessage(""+RID,MSG_SET_EVENT,EVENT_ID,0);
+
+		__EVENTS_VECTOR[RID][event_id]=deleg;
+		return true;
+	}
+
+	public function _GET_REMOTE_EVENT(var EVENT_ID) {
+		return __EVENTS_VECTOR[RID][value EVENT_ID];
+	}
+
+	public function GetProperty(PROPERTY_ID) {
+                SendMessage(""+RID, MSG_GET_PROPERTY, PROPERTY_ID, 0);
+		WaitMessage(var Sender=this.RID, var MSG_ID=MSG_GET_PROPERTY, var Target, var VALUE);
+		return VALUE;
+	}
+
+	public function RequestProperty(PROPERTY_ID) {
+                SendMessage(""+RID, MSG_GET_PROPERTY, PROPERTY_ID, 0);
+	}
+
+	public function WaitProperty(PROPERTY_ID) {
+		WaitMessage(var Sender=this.RID, var MSG_ID=MSG_GET_PROPERTY, var Target, var VALUE);
+		return VALUE;
+	}
+
+	public function SetProperty(PROPERTY_ID, VALUE) {
+                SendMessage(""+RID, MSG_SET_PROPERTY, PROPERTY_ID, ""+VALUE);
+		return VALUE;
+	}
+
+	public function Add(child) {
+		// just for compatibility, not implemented
+	}
+
+	public function MinimalObject(OWNER,CLASS_ID, number HAS_EVENTS=true) {
+		this.RID=___CONCEPT_INTERFACE_HELPER_GENERATE_UNIQUE_ID();
+		//this.Parent=OWNER;
+
+		if (OWNER) {
+			SendMessage(""+OWNER.RID, MSG_CREATE, CLASS_ID, RID);
+			OWNER.Add(this);
+			__EVENTS_VECTOR=OWNER.__EVENTS_VECTOR;
+		} else {
+			SendMessage("-1", MSG_CREATE, CLASS_ID, RID);
+			__EVENTS_VECTOR=new [];
+		}
+
+		if (HAS_EVENTS) {
+			// a new events vector for each control
+			var new_vector=new [];
+			// on the first position of each event vector, we have the control
+			new_vector[0]=this;
+			__EVENTS_VECTOR[this.RID]=new_vector;
+		}
+	}
+
+	public function SetPacking(x) {
+		if ((x>=-1) && (x<=2)) {
+			PACKTYPE=x;
+			return SetProperty(P_PACKING, x);
+		}
+		return 0;
+	}
+
+	public function SetPackType(x) {
+		if ((x>=-1) && (x<=2)) {
+			PACKTYPE=x;
+			return SetProperty(P_PACKTYPE, x);
+		}
+		return 0;
+	}
+
+	public function SetVisible(visible) {
+		SendMessage(""+this.RID,MSG_SET_PROPERTY,P_VISIBLE,visible);
+		VISIBLE=(visible!=0);
+		return visible;
+	}
+
+	public function SetEnabled(argument) {
+		SendMessage(""+this.RID,MSG_SET_PROPERTY,P_ENABLED,argument);
+		ENABLED=(argument!=0);
+		return argument;
+	}
+
+	public function Show() {
+		Visible=true;
+	}
+
+	public function Hide() {
+		Visible=false;
+	}
+
+	public function LinkIfNotLinked(obj) {
+		if (this.Parent)
+			return 0;
+
+		if (typeof obj!="class")
+			return -1;
+
+		this.Parent=obj;
+
+		var old_vector=__EVENTS_VECTOR[RID];
+
+		__EVENTS_VECTOR=&obj.__EVENTS_VECTOR;
+		__EVENTS_VECTOR[RID]=old_vector;//new[];
+	}
+}

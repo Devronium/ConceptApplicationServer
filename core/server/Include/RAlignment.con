@@ -1,0 +1,82 @@
+include SingleContainer.con
+include ClassID.con
+
+define ALIGN_LEFT	0
+define ALIGN_CENTER	1
+define ALIGN_RIGHT	2
+define ALIGN_TOP	3
+define ALIGN_BOTTOM	4
+
+class RAlignment extends SingleContainer {
+	private var XALIGN;
+	private var YALIGN;
+	private var XSCALE;
+	private var YSCALE;
+	private var TOPPADDING;
+	private var LEFTPADDING;
+	private var BOTTOMPADDING;
+	private var RIGHTPADDING;
+
+	public property XAlign { get XALIGN, set SetXAlign }
+	public property YAlign { get YALIGN, set SetYAlign }
+	public property XScale { get XSCALE, set SetXScale }
+	public property YScale { get YSCALE, set SetYScale }
+	public property TopPadding { get TOPPADDING, set SetTopPadding }
+	public property LeftPadding { get LEFTPADDING, set SetLeftPadding }
+	public property BottomPadding { get BOTTOMPADDING, set SetBottomPadding }
+	public property RightPadding { get RIGHTPADDING, set SetRightPadding }
+	
+	public function RAlignment(OWNER) {
+		super(OWNER, CLASS_ALIGNMENT);
+	}
+
+	public function SetTopPadding(argument) {
+		SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_TOPPADDING,argument);
+		TOPPADDING=argument;
+		return argument;
+	}
+
+	public function SetLeftPadding(argument) {
+		SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_LEFTPADDING,argument);
+		LEFTPADDING=argument;
+		return argument;
+	}
+
+	public function SetBottomPadding(argument) {
+		SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_BOTTOMPADDING,argument);
+		BOTTOMPADDING=argument;
+		return argument;
+	}
+
+	public function SetRightPadding(argument) {
+		SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_RIGHTPADDING,argument);
+		RIGHTPADDING=argument;
+		return argument;
+	}
+
+	public function SetXAlign(argument) {
+		SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_XALIGN,argument);
+		XALIGN=argument;
+		return argument;
+	}
+
+	public function SetYAlign(argument) {
+		SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_YALIGN,argument);
+		YALIGN=argument;
+		return argument;
+	}
+
+
+	public function SetXScale(argument) {
+		SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_XSCALE,argument);
+		XSCALE=argument;
+		return argument;
+	}
+
+	public function SetYScale(argument) {
+		SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_YSCALE,argument);
+		YSCALE=argument;
+		return argument;
+	}
+
+}

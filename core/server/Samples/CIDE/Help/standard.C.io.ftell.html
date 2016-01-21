@@ -1,0 +1,115 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+  <title>standard.C.io.ftell</title>
+  <link href="css/style.css" rel="stylesheet" type="text/css">
+  <meta http-equiv="Content-Type" content="text/html;charset=utf-8" >
+</head>
+<body bgcolor="#ffffff">
+<table border="0" width="100%" bgcolor="#F0F0FF">
+  <tr>
+    <td>Concept Framework 2.2 documentation</td>
+  	<td align="right"><a href="index.html">Contents</a> | <a href="index_fun.html">Index</a></td>
+  </tr>
+</table>
+<h2><a href="standard.C.io.html">standard.C.io</a>.ftell</h2>
+<table border="0" cellspacing="0" cellpadding="0" width="500" style="border-style:solid;border-width:1px;border-color:#D0D0D0;">
+  <tr bgcolor="#f0f0f0">
+     <td><i>Name</i></td>
+     <td><i>Version</i></td>
+     <td><i>Deprecated</i></td>
+  </tr>
+  <tr bgcolor="#fafafa">
+     <td><b>ftell</b></td>
+     <td>version 1.0</td>
+     <td>no</td>
+  </tr>
+</table>
+<br />
+<b>Prototype:</b><br />
+	<table bgcolor="#F0F0F0" width="100%" style="border-style:solid;border-width:1px;border-color:#D0D0D0;"><tr><td><b>number ftell(number fd) </b></td></tr></table>
+<br />
+
+<b>Parameters:</b><br />
+<table bgcolor="#FFFFFF" style="border-style:solid;border-width:1px;border-color:#D0D0D0;">
+
+	   <tr>
+	   	   <td>
+		   	   <i>fd</i>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+		   </td>
+	   	   <td>
+		   	   [in] A valid file descriptor
+
+		   </td>
+	   </tr>
+
+</table>
+
+<br />
+<b>Description:</b><br />
+<table width="100%" bgcolor="#FAFAFF" style="border-style:solid;border-width:1px;border-color:#D0D0D0;">
+<tr><td>
+The ftell function gets the current position of the file pointer (if any) associated with the file descriptor. The position is expressed as an offset relative to the beginning of the stream.
+<br/>The value returned by ftell may not reflect the physical byte offset for streams opened in text mode, because text mode causes carriage return-linefeed translation. Use ftell with fseek to return to file locations correctly.
+<br/>
+<br/>Note that when a file is opened for appending data, the current file position is determined by the last I/O operation, not by where the next write would occur. For example, if a file is opened for an append and the last operation was a read, the file position is the point where the next read operation would start, not where the next write would start. (When a file is opened for appending, the file position is moved to end of file before any write operation.) If no I/O operation has yet occurred on a file opened for appending, the file position is the beginning of the file.
+<br/>
+<br/>In text mode, CTRL+Z is interpreted as an end-of-file character on input. In files opened for reading/writing, fopen and all related routines check for a CTRL+Z at the end of the file and remove it if possible. This is done because using ftell and fseek to move within a file that ends with a CTRL+Z may cause ftell to behave improperly near the end of the file.  
+<br/>
+</td></tr>
+</table>
+<br />
+
+<b>Example:</b>
+<table bgcolor="#F0F0FF" width="100%"  style="border-style:solid;border-width:1px;border-color:#D0D0D0;"><tr><td>
+<font color="#101060"><pre>import standard.C.io
+import standard.C.string
+
+define FILENAME     "test.txt"
+
+class Main {
+     function Main() {
+          var fd; 
+          var position;
+          var buffer = "";          
+
+          // Open file for read 
+          if (fd = fopen(FILENAME, "r")) {               
+               // Move the pointer by reading data               
+               fread(buffer, 1, 50, fd);
+               // Get position after read: 
+               position = ftell(fd);
+               echo "Position after trying to read 50 bytes: $position";
+               fclose(fd);               
+          } else
+               echo "Problem opening the file\n";
+          
+     }
+}  
+
+Results 
+Position after trying to read 50 bytes: 50 
+</pre></font>
+</td></tr></table>
+<br />
+
+<b>Returns:</b><br />
+The value returned by ftell may not reflect the physical byte offset for streams opened in text mode, because text mode causes carriage return-linefeed translation.
+<br />
+<br />
+<!--
+  <p>
+    <a href="http://validator.w3.org/check?uri=referer"><img
+        src="http://www.w3.org/Icons/valid-html40"
+        alt="Valid HTML 4.0 Transitional" height="31" width="88" border="0"></a>
+ <a href="http://jigsaw.w3.org/css-validator/">
+  <img style="border:0;width:88px;height:31px"
+       src="http://jigsaw.w3.org/css-validator/images/vcss" 
+       alt="Valid CSS!" border="0"/>
+ </a>
+</p>
+-->
+<table bgcolor="#F0F0F0" width="100%"><tr><td>Documented by Simona Plesuvu, generation time: Sun Jan 27 18:15:15 2013
+ GMT</td><td align="right">(c)2013 <a href="http://www.devronium.com">Devronium Applications</a></td></tr></table>
+</body>
+</html>

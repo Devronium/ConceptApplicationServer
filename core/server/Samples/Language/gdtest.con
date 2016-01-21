@@ -1,0 +1,47 @@
+import standard.lib.gd
+import standard.C.io
+
+class Main {
+
+	function Main() {
+	    var fin,out;
+	    var im;
+	    var radius;
+	    fin=fopen("eleanor.jpg","rb");
+	    if (!fin) {
+	        im = gdImageCreateTrueColor (300, 300);
+	    } else {
+            im = gdImageCreateFromJpeg (fin);
+            fclose (fin);
+        }
+        if (gdImageSX (im) < gdImageSY (im)) {
+            radius = gdImageSX (im) / 2;
+        } else {
+            radius = gdImageSY (im) / 2;
+        }
+        
+        var error = gdImageStringFTCircle (im,
+			 gdImageSX (im) / 2,
+			 gdImageSY (im) / 2,
+			 radius,
+			 radius / 2,
+			 0.8,
+			 "arial",
+			 24,
+			 "top text",
+			 "bottom text",
+			 gdTrueColorAlpha (192, 100, 255, 32));
+	    if (error)
+	        echo "Error: $error";
+        out = fopen ("gdfx.png", "wb");
+        if (!out) {
+            echo "Can't create gdfx.png\n";
+            return 1;
+        }
+        gdImagePng (im, out);
+        fclose (out);
+        gdImageDestroy (im);
+        return 0;	    
+	}
+}
+

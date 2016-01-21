@@ -1,0 +1,224 @@
+include ActiveXControl.con
+
+//////////////////////////////////////////////////////////////////////////
+// This file was generated automatically by AXInterfaceGenerator        //
+//                                          (c)2006 RadGs Software      //
+//                                                                      //
+//                   PLEASE DO NOT MODIFY THIS FILE !                   //
+//////////////////////////////////////////////////////////////////////////
+
+class IXcpControl2 extends ActiveXControl {
+	//Uncomment LICENCE_KEY if the control needs to be registered
+ 	function IXcpControl2(Owner/*, LICENCE_KEY*/) {
+		super(Owner, "AgControl.AgControl");
+		__AX_SET_EVENTS();
+	}
+
+/*0*/	function /*{void}*/ QueryInterface(var parameter0 /*{GUID*}*/, var parameter1 /*{void**}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter1);
+		Send(MSG_AX_CALL_METHOD, "QueryInterface", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*1*/	function /*{ULONG}*/ AddRef()  {
+		Send(MSG_AX_CALL_METHOD, "AddRef", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*2*/	function /*{ULONG}*/ Release()  {
+		Send(MSG_AX_CALL_METHOD, "Release", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*3*/	function /*{void}*/ GetTypeInfoCount(var parameter0 /*{UINT*}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_CALL_METHOD, "GetTypeInfoCount", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*4*/	function /*{void}*/ GetTypeInfo(parameter0 /*{UINT}*/, parameter1 /*{ULONG}*/, var parameter2 /*{void**}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter1);
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter2);
+		Send(MSG_AX_CALL_METHOD, "GetTypeInfo", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*5*/	function /*{void}*/ GetIDsOfNames(var parameter0 /*{GUID*}*/, var parameter1 /*{char**}*/, parameter2 /*{UINT}*/, parameter3 /*{ULONG}*/, var parameter4 /*{long*}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter1);
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter2);
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter3);
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter4);
+		Send(MSG_AX_CALL_METHOD, "GetIDsOfNames", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*6*/	function /*{void}*/ Invoke(parameter0 /*{long}*/, var parameter1 /*{GUID*}*/, parameter2 /*{ULONG}*/, parameter3 /*{USHORT}*/, var parameter4 /*{DISPPARAMS*}*/, var parameter5 /*{VARIANT*}*/, var parameter6 /*{EXCEPINFO*}*/, var parameter7 /*{UINT*}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter1);
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter2);
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter3);
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter4);
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter5);
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter6);
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter7);
+		Send(MSG_AX_CALL_METHOD, "Invoke", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*7*/	function /*{BSTR}*/ AX_GET_Source() /*{propget}*/ {
+		Send(MSG_AX_GET_PROPERTY, "Source", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*8*/	function /*{void}*/ AX_SET_Source(parameter0 /*{BSTR}*/) /*{propput}*/ {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_SET_PROPERTY, "Source", "0");
+	}
+
+/*9*/	function /*{VARIANT_BOOL}*/ AX_GET_IsLoaded() /*{propget}*/ {
+		Send(MSG_AX_GET_PROPERTY, "IsLoaded", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*10*/	function /*{IDispatch*}*/ AX_GET_Content() /*{propget}*/ {
+		Send(MSG_AX_GET_PROPERTY, "Content", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*11*/	function /*{IDispatch*}*/ AX_GET_Settings() /*{propget}*/ {
+		Send(MSG_AX_GET_PROPERTY, "Settings", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*12*/	function /*{VARIANT}*/ AX_GET_OnLoad() /*{propget}*/ {
+		Send(MSG_AX_GET_PROPERTY, "OnLoad", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*13*/	function /*{void}*/ AX_SET_OnLoad(var parameter0 /*{VARIANT*}*/) /*{propput}*/ {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_SET_PROPERTY, "OnLoad", "0");
+	}
+
+/*14*/	function /*{VARIANT}*/ AX_GET_OnError() /*{propget}*/ {
+		Send(MSG_AX_GET_PROPERTY, "OnError", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*15*/	function /*{void}*/ AX_SET_OnError(var parameter0 /*{VARIANT*}*/) /*{propput}*/ {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_SET_PROPERTY, "OnError", "0");
+	}
+
+/*16*/	function /*{IXcpObject*}*/ CreateObject(parameter0 /*{BSTR}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_CALL_METHOD, "CreateObject", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*17*/	function /*{VARIANT_BOOL}*/ IsVersionSupported(parameter0 /*{BSTR}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_CALL_METHOD, "IsVersionSupported", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*18*/	function /*{BSTR}*/ AX_GET_InitParams() /*{propget}*/ {
+		Send(MSG_AX_GET_PROPERTY, "InitParams", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*19*/	function /*{void}*/ AX_SET_InitParams(parameter0 /*{BSTR}*/) /*{propput}*/ {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_SET_PROPERTY, "InitParams", "0");
+	}
+
+/*20*/	function /*{void}*/ LoadRuntime()  {
+		Send(MSG_AX_CALL_METHOD, "LoadRuntime", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*21*/	function /*{BSTR}*/ AX_GET_SplashScreenSource() /*{propget}*/ {
+		Send(MSG_AX_GET_PROPERTY, "SplashScreenSource", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*22*/	function /*{void}*/ AX_SET_SplashScreenSource(parameter0 /*{BSTR}*/) /*{propput}*/ {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_SET_PROPERTY, "SplashScreenSource", "0");
+	}
+
+/*23*/	function /*{VARIANT}*/ AX_GET_OnSourceDownloadComplete() /*{propget}*/ {
+		Send(MSG_AX_GET_PROPERTY, "OnSourceDownloadComplete", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*24*/	function /*{void}*/ AX_SET_OnSourceDownloadComplete(var parameter0 /*{VARIANT*}*/) /*{propput}*/ {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_SET_PROPERTY, "OnSourceDownloadComplete", "0");
+	}
+
+/*25*/	function /*{VARIANT}*/ AX_GET_OnSourceDownloadProgressChanged() /*{propget}*/ {
+		Send(MSG_AX_GET_PROPERTY, "OnSourceDownloadProgressChanged", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*26*/	function /*{void}*/ AX_SET_OnSourceDownloadProgressChanged(var parameter0 /*{VARIANT*}*/) /*{propput}*/ {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_SET_PROPERTY, "OnSourceDownloadProgressChanged", "0");
+	}
+
+//---------------- BEGIN OF EVENTS INTERFACE (info only) -----------------//
+	public property Source { get AX_GET_Source, set AX_SET_Source }
+	public property IsLoaded { get AX_GET_IsLoaded }
+	public property Content { get AX_GET_Content }
+	public property Settings { get AX_GET_Settings }
+	public property OnLoad { get AX_GET_OnLoad, set AX_SET_OnLoad }
+	public property OnError { get AX_GET_OnError, set AX_SET_OnError }
+	public property InitParams { get AX_GET_InitParams, set AX_SET_InitParams }
+	public property SplashScreenSource { get AX_GET_SplashScreenSource, set AX_SET_SplashScreenSource }
+	public property OnSourceDownloadComplete { get AX_GET_OnSourceDownloadComplete, set AX_SET_OnSourceDownloadComplete }
+	public property OnSourceDownloadProgressChanged { get AX_GET_OnSourceDownloadProgressChanged, set AX_SET_OnSourceDownloadProgressChanged }
+}

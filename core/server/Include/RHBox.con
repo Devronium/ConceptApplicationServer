@@ -1,0 +1,8 @@
+include RBox.con
+include ClassID.con
+
+class RHBox extends RBox {
+	public function RHBox(OWNER) {
+		super(OWNER, CLASS_HBOX);
+	}
+}

@@ -1,0 +1,156 @@
+include VisibleRemoteObject.con
+include ClassID.con
+include RemoteEvents.con
+import standard.lib.str
+
+define PROP_INSTANT    0x01
+define PROP_OPTION     0x02
+define PROP_OPTIONEDIT 0x03
+define PROP_COLOR      0x04
+define PROP_FONT       0x05
+define PROP_FILE       0x06
+define PROP_STATIC     0x07
+define PROP_LONGTEXT   0x08
+define PROP_BOOLEAN    0x09
+define PROP_DATE       0x0A
+define PROP_TIME       0x0B
+define PROP_DATETIME   0x0C
+define PROP_INTEGER    0x0D
+define PROP_DECIMAL    0x0E
+
+define IMPORTANT_FLAG  -1
+
+class RPropertiesBox extends VisibleRemoteObject {
+	protected var __LABELMINWIDTH=-1;
+	protected var __RETURNPROPERTYINDEX=false;
+	protected var[] __PROPERTIES;
+	
+	public property Properties { get __PROPERTIES, set SetProperties }
+	public property LabelMinWidth { get __LABELMINWIDTH, set SetLabelMinWidth }
+	public property ReturnPropertyIndex { get __RETURNPROPERTYINDEX, set SetReturnPropertyIndex }
+
+	//----------- EVENTS ----------------------------------------------------//	
+	public property OnPropertyChanged { get GetOnPropertyChanged, set SetOnPropertyChanged }
+	public function GetOnPropertyChanged() {
+		return _GET_REMOTE_EVENT(EVENT_ON_CHANGED);
+	}
+
+	public function SetOnPropertyChanged(var delegate deleg) {
+		return _MAP_REMOTE_EVENT(EVENT_ON_CHANGED, deleg);
+	}
+	//-----------------------------------------------------------------------//
+
+	public function RPropertiesBox(OWNER) {
+		super(OWNER, CLASS_PROPERTIESBOX);
+	}
+
+	public function SetProperties(prop, changed_properties_array=0, arr_elem=3, extra_options=0) {
+		this.__PROPERTIES=prop;
+		var xml="<pr>";
+
+		if (typeof prop!="array")
+			throw "Properties must be an array [ ['property_name',PROPERTY_TYPE, property_value, [OPTIONS,..] ] , ... ]";
+		var len=length prop;
+
+		for (var i=0;i<len;i++) {
+			var arr2=prop[i];
+
+			if (typeof arr2!="array")
+				throw "Properties ELEMENTS must be an array  ['property_name',PROPERTY_TYPE,property_value, [OPTIONS,..]]";
+
+			var type=arr2[1];
+			var prop_val;
+			var cat="";
+
+			var rendertype=type;
+			if (type<0) {
+				type*=-1;
+			}
+
+			if (changed_properties_array) {
+				var changed_arr=changed_properties_array[arr2[0]];
+				if (changed_arr) {
+					prop_val=changed_arr[arr_elem];
+				} else
+					prop_val=arr2[2];
+			} else
+				prop_val=arr2[2];
+
+			if (typeof prop_val == "string") {
+				prop_val=StrReplace(prop_val,"&","&amp;");
+				prop_val=StrReplace(prop_val,"<","&lt;");
+				prop_val=StrReplace(prop_val,">","&gt;");
+				prop_val=StrReplace(prop_val,"\"","&quot;");
+			} else
+			if (typeof prop_val !="numeric") {
+				throw "property value should be either a string or a number";
+			}
+
+			xml+="<pp n=\"${arr2[0]}\" t=\"$rendertype\" v=\"$prop_val\"";
+
+			if ((type==PROP_OPTION) || (type==PROP_OPTIONEDIT)) {
+				if (length arr2>4) {
+					cat=arr2[4];
+					xml+=" c=\"$cat\"";
+				}
+				xml+=">";
+				var arr3=arr2[3];
+				if (typeof arr3!="array")
+					throw "OPTIONS must be of array type";
+
+				var len3=length arr3;
+				for (var j=0;j<len3;j++) {
+					xml+="<o>";
+					var op_val=arr3[j];
+					if (typeof op_val == "string") {
+						op_val=StrReplace(op_val,"&","&amp;");
+						op_val=StrReplace(op_val,"<","&lt;");
+						op_val=StrReplace(op_val,">","&gt;");
+					} else
+					if (typeof op_val !="numeric") {
+						throw "option value should be either a string or a number";
+					}
+					xml+="$op_val</o>";
+				}
+				if (typeof extra_options=="array") {
+					len3=length extra_options;
+					for (j=0;j<len3;j++) {
+						xml+="<o>";
+						op_val=extra_options[j];
+						if (typeof op_val == "string") {
+							op_val=StrReplace(op_val,"&","&amp;");
+							op_val=StrReplace(op_val,"<","&lt;");
+							op_val=StrReplace(op_val,">","&gt;");
+						} else
+						if (typeof op_val !="numeric") {
+							throw "extra_option value should be either a string or a number";
+						}
+						xml+="$op_val</o>";
+					}
+				}
+				xml+="</pp>";
+			} else {
+				if (length arr2>3) {
+					cat=arr2[3];
+					xml+=" c=\"$cat\"";
+				}
+				xml+=" />";
+			}
+		}
+
+		xml+="</pr>";
+		return SetProperty(P_PROPERTIES,xml);
+	}
+
+	public function SetLabelMinWidth(number width) {
+		this.__LABELMINWIDTH=width;
+		SetProperty(P_SPACING, width);
+		return width;
+	}
+
+	public function SetReturnPropertyIndex(number flag) {
+		this.__RETURNPROPERTYINDEX=flag;
+		SetProperty(P_MODEL, flag);
+		return flag;
+	}
+}

@@ -1,0 +1,36 @@
+include 'Control.con'
+
+class ConceptListItem extends Control {
+	protected var _CAPTION;
+	protected var _SUBITEM_INDEX;
+	protected var _IMAGEINDEX;
+	public property Caption { set SetCaption, get _CAPTION }
+	public property ImageIndex { set SetImageIndex, get _IMAGEINDEX }
+
+	protected function SetImageIndex(x) {
+		if (typeof x==NUMERIC_TYPE)
+			this->_IMAGEINDEX=x;
+		else
+			throw new ControlException(EXC_INVALID_ARGUMENT_TYPE, this);
+
+                SendMessage(this->Name, MSG_CHANGED, P_IMAGEINDEX, x);
+	}
+
+	public function ConceptListItem(Owner) {
+		this->Control(/*Owner*/0, CLASS_LISTITEM);
+	}
+
+	public function AddSubItem(Text) {
+		this->_SUBITEM_INDEX++;
+                SendMessage(this->Name, MSG_ITEM_ADD, Text, this->_SUBITEM_INDEX);
+	}
+
+	protected function SetCaption(x) {
+		if (typeof x==STRING_TYPE)
+			this->_CAPTION=x;
+		else
+		     	throw new ControlException(EXC_INVALID_ARGUMENT_TYPE, this);
+
+                SendMessage(this->Name, MSG_CHANGED, P_LISTITEMCAPTION, x);
+	}
+}

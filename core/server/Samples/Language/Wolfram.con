@@ -1,0 +1,30 @@
+include WolframAlpha.con
+import standard.C.io
+
+class Main {
+	function Main() {
+		var w=new WolframAlpha(WOLFRAM_KEY);
+		//w.Format="cell";
+		w.FetchRemoteContent=true;
+		try {
+			var result=w.Query("weather in Constanta, Romania");
+			var arr=result.Pods;
+			var len=length arr;
+
+			//echo "<html><head>\n";
+			//echo w.CSS+"\n";
+			//echo w.Scripts+"\n";
+			//echo "</head><body>";
+			for (var i=0;i<len;i++) {
+				var pod=arr[i];
+				echo "$i:"+pod.Text;
+				//if (pod.Sound)
+				//	WriteFile(pod.SoundContent, "out$i.mid");
+				//echo "\n";
+			}
+			//echo "</body></html>";
+		} catch (var exc) {
+			echo exc;
+		}
+	}
+}

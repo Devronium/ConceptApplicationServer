@@ -1,0 +1,245 @@
+﻿<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" >
+<head>
+    <title>Documentation for {application} - Views, buttons and menus</title>
+</head>
+<body>
+
+<table width="100%" border="0" cellpadding="0" cellspacing="0">
+    <tr bgcolor="#660066"><td colspan="2"><h1><font color="#FFFFFF">{application}</font></h1></td></tr>
+    <tr bgcolor="#F3F3F3"><td>{description}</td><td align="right"><a href="javascript:if (history.length>1) history.go(-1); else window.location.href='internal://goback';"><img src="res/_back.png" alt="back" border="0"/></a>&nbsp;<a href="index.html"><img src="res/_home.png" alt="home" border="0"/></a>&nbsp;<a href="javascript:if (history.length>1) history.go(1); else window.location.href='internal://goforward';"><img src="res/_forward.png" alt="next" border="0"/></a></td></tr>
+    <tr bgcolor="#FFFFFF"><td colspan="2">
+        <br />
+        <br />
+        <table>
+        <tr>
+        <td>
+        <strong>Application views, buttons and menus</strong><br />
+        </td></tr></table>
+        <hr />
+        <table><tr>
+        <td valign="middle"><img src="res/_info.png" alt="i"/> </td>
+        <td><i>Note that the icons according to the used theme/skin.</i></td>
+        </tr><tr>
+        <td valign="middle"><img src="res/_info.png" alt="i"/> </td>
+        <td><i>Note that the texts may vary according to the selected language.</i></td>
+        </tr></table>
+        <br />
+        Almost any operation can be done in 2 ways: by using the assigned button or by choosing from the context menu
+        that will pop-up when you <b>right click</b> on an <b>item</b> or in a <b>view</b>.<br />
+        <br />
+        The <b>main view windows</b> look like this:<br />
+        <img src="res/_views.png" alt "Views"/><br />
+        You can see the "First", "Back", "Next", "Last" buttons on the buttom, and also a combobox that
+        allows you to directly jump to a given page. This is needed because, in order to
+        minimize the network traffic and provide fast applications, all the data in a view
+        is paged in 50-items page. So, if you have a view containing 10 000 items, you will have to
+        jump from one page to another. In the PDF quick reports, all the data will be visible (though is not
+        recommended to export this amount of data).<br />
+        <table><tr>
+        <td valign="middle"><img src="res/_info.png" alt="i"/> </td>
+        <td><b>In order to edit or view an item, you must <u>double click</u> on it.</b></td>
+        </tr><tr>
+        <td valign="middle"><img src="res/_info.png" alt="i"/> </td>
+        <td><b>In order to perform any other operation an item, you must <u>right click</u> on a item or in the "white" area in the view.</b>
+        A menu like:<br />
+        <img src="res/_menus.png" alt="Menus" /><br />
+        will be displayed.        
+        </td></tr>
+        <tr>
+        <td valign="middle"><img src="res/_warning.png" alt="i"/> </td>
+        <td><b>The displayed menu items may vary according to your user level.</b></td>
+        </tr>
+        <tr>
+        <td valign="middle"><img src="res/_info.png" alt="i"/></td>
+        <td>Data from these views is draggable to another view that accepts the same data type or to the "Personal documents" zone or "Clipboard"</td></tr>
+        </table>
+        <br /><b>Left panel buttons description:</b>
+        <table width="100%" border="0" cellspacing="0" cellpadding="0">
+        <tr>
+            <td valign="top" width="35px" align="left">
+                <img src="res/_archivebutton.png" alt=""/>
+            </td>
+            <td valign="middle">
+                Show the archive view (if enabled).
+            </td>
+        </tr>
+        <tr>
+            <td valign="top" width="35px" align="left">
+                <img src="res/_currentbutton.png" alt=""/>
+            </td>
+            <td valign="middle">
+                Show the current view (return from archive). This should be used in conjuction with the archive button.
+            </td>
+        </tr>
+        <tr>
+            <td valign="top" width="35px" align="left">
+                <img src="res/_printbutton.png" alt=""/>
+            </td>
+            <td valign="middle">
+                Print the current view on the server's default printer.
+            </td>
+        </tr>
+        <tr>
+            <td valign="top" width="35px" align="left">
+                <img src="res/_printpreviewbutton.png" alt=""/>
+            </td>
+            <td valign="middle">
+                Generate a quick report and show it in <a href="__printpreview.html">print preview</a>.
+            </td>
+        </tr>
+        <tr>
+            <td valign="top" width="35px" align="left">
+                <img src="res/_pdfbutton.png" alt=""/>
+            </td>
+            <td valign="middle">
+                Export this view as a PDF document.
+            </td>
+        </tr>
+        <tr>
+            <td valign="top" width="35px" align="left">
+                <img src="res/_rtfbutton.png" alt=""/>
+            </td>
+            <td valign="middle">
+                Export this view as a RTF document.
+            </td>
+        </tr>
+        <tr>
+            <td valign="top" width="35px" align="left">
+                <img src="res/_xmlbutton.png" alt=""/>
+            </td>
+            <td valign="middle">
+                Export this view in XML. The XML format is used for transparent interaction
+                with other applications (eg.: Excel).<br />
+                Also, it can be used to localy save the data for later importing.
+            </td>
+        </tr>
+        <tr>
+            <td valign="top" width="35px" align="left">
+                <img src="res/_reloadxmlbutton.png" alt=""/>
+            </td>
+            <td valign="middle">
+                Imports data from XML. The structure of the XML must be defined and compatible
+                with the application.<br />
+                It can import previously exported XML data when using the "XML export button".
+            </td>
+        </tr>
+        </table>         
+        <br />
+        Other forms of views are the drop-down choose-from forms that look like this:<br />
+        <table><tr><td valign="top">
+        <img src="res/_dropdown.png" alt="Drop down views"/>
+        </td><td>
+        
+        <table>
+        <tr>
+        <td valign="middle"><img src="res/_info.png" alt="i"/></td>
+        <td>Data from these views is draggable to another view that accepts the same data type or to the "Personal documents" zone or "Clipboard"</td></tr>
+        <tr>
+        <td valign="middle"><img src="res/_info.png" alt="i"/> </td>
+        <td><b>In order to select an item, you must <u>double click</u> on it.</b></td>
+        </tr><tr>
+        <td valign="middle"><img src="res/_info.png" alt="i"/> </td>
+        <td><b>In order to perform any other operation an item, you must <u>right click</u> on a item or in the "white" area in the view.</b>
+        A menu like:<br />
+        <img src="res/_menus.png" alt="Menus" /><br />
+        will be displayed.
+        </td></tr>
+        </table>
+        
+        Here you wil identify the almost the same buttons like in the master views. (excepting the "Advanced search" expander).
+        You can see the "First", "Back", "Next", "Last" buttons on the buttom, and also a combobox that
+        allows you to directly jump to a given page. This is needed because, in order to
+        minimize the network traffic and provide fast applications, all the data in a view
+        is paged in 50-items page.
+        </td></tr>        
+        </table>
+        <br />
+        <br />
+        Other buttons that you may encounter:<br />
+        <table width="100%" border="0" cellspacing="0" cellpadding="0">
+        <tr>
+            <td valign="top" align="left">
+                <img src="res/_advancedsearchbutton.png" alt=""/>
+            </td>
+            <td valign="middle">
+                Show the advanced search fields (if any). Please note that in order to
+                activate an advanced search field, you must first check the checkbox 
+                preceeding the filed name. After you're done searching, you must uncheck it.<br />
+                Also, you can choose from varios comparators like "<b>=</b>(equal)", "<b>&lt;=</b>(less or equal)", "<b>&gt;=</b>(greater or equal)"
+                or "<b>&lt;&gt;</b>(not equal)".
+            </td>
+        </tr>
+        <tr>
+            <td valign="top" align="left">
+                <img src="res/_formbuttons.png" alt=""/>
+            </td>
+            <td valign="middle">
+                You will see these buttons on the buttom of a input form.<br />
+                The first button: export form to XML (for importing at a later time or in another program)</b><br />
+                The second button: print the form on the server's default printer<br />
+                The third button: save form localy as PDF<br />
+                The fourth button: <b>Save</b> data to the database.<br />
+                The fifth button: <b>Cancel</b> the operation and close the form.<br />
+            </td>            
+        </tr>
+        <tr>
+            <td valign="top" align="left">
+                <img src="res/_formviewbuttons.png" alt=""/>
+            </td>
+            <td valign="middle">
+                You will see these buttons on the buttom of a view in an input form.<br />
+                The first button: print the form view data on the server's default printer<br />
+                The second button: save form view localy as PDF<br />
+                The third button: <b>Add</b> data to the view.<br />
+                The fourth button: <b>Delete</b> data from the view.<br />
+                <br />
+                The Add and Delete operations can be also performed by <b>right clicking</b> in the form view.
+                <table><tr>
+                <td valign="middle"><img src="res/_info.png" alt="i"/></td>
+                <td>Data from these views is draggable to another view that accepts the same data type or to the "Personal documents" zone or "Clipboard"</td></tr>
+                </table>
+            </td>            
+        </tr>
+        <tr>
+            <td valign="top" align="left">
+                <img src="res/_formviewbuttons_short.png" alt=""/>
+            </td>
+            <td valign="middle">
+                You will see these buttons on the buttom of a view in an input form that accepts only one item.<br />
+                The first button: <b>delete</b> data from the view.<br />
+                The second button: <b>add</b> data to the view.<br />
+                <br />
+                The add and delete operations can be also performed by <b>right clicking</b> in the form view.
+                <br />
+                If the view already contains an item, you must first delete it/remove it from the view.<br />
+                <table><tr>
+                <td valign="middle"><img src="res/_info.png" alt="i"/></td>
+                <td>Data from these views is draggable to another view that accepts the same data type or to the "Personal documents" zone or "Clipboard"</td></tr>
+                </table>
+            </td>
+        </tr>        
+        </table>
+        <table width="100%" border="0" cellspacing="0" cellpadding="0">
+        <tr>
+            <td valign="top" align="left">
+                <img src="res/_searchbutton.png" alt=""/>
+            </td>
+        </tr>
+        <tr>
+            <td valign="top" align="left">
+                You can perform quick searches by entering some text in the search field and pressing the Enter key or the <b>Find button</b>.
+                You can also perform pattern search using the '%' character.<br />
+                The '%' replaces a letter or a group of letters.<br />
+                Eg.
+                    If you want to search for all the data containing 'John' as a field you can search for '%John%' (without the quotes).<br />
+                    Then all the results like 'John Smith' and 'Mr. John' will be displayed.<br />
+            </td>
+        </tr>
+        </table>
+        
+    </td></tr>
+    <tr bgcolor="#660066"><td colspan="2"><font color="#FFFFFF"><small>Help file generated at {time}</small></font></td></tr>
+</table>
+</body>
+</html>

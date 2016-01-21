@@ -1,0 +1,697 @@
+include ActiveXControl.con
+
+//////////////////////////////////////////////////////////////////////////
+// This file was generated automatically by AXInterfaceGenerator        //
+//                                          (c)2006 RadGs Software      //
+//                                                                      //
+//                   PLEASE DO NOT MODIFY THIS FILE !                   //
+//////////////////////////////////////////////////////////////////////////
+
+class _DChartfx extends ActiveXControl {
+	//Uncomment LICENCE_KEY if the control needs to be registered
+ 	function _DChartfx(Owner/*, LICENCE_KEY*/) {
+		//super(Owner, "SoftwareFX.ChartFX.20", LICENCE_KEY);
+		super(Owner, "SoftwareFX.ChartFX.20", "");
+		__AX_SET_EVENTS();
+	}
+
+/*0*/	function /*{double}*/ AX_GET_Value( /*{short}*/) /*{propget}*/ {
+		Send(MSG_AX_GET_PROPERTY, "Value", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*1*/	function /*{void}*/ AX_SET_Value(parameter0 /*{short}*/, parameter1 /*{double}*/) /*{propput}*/ {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter1);
+		Send(MSG_AX_SET_PROPERTY, "Value", "0");
+	}
+
+/*2*/	function /*{double}*/ AX_GET_XValue( /*{short}*/) /*{propget}*/ {
+		Send(MSG_AX_GET_PROPERTY, "XValue", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*3*/	function /*{void}*/ AX_SET_XValue(parameter0 /*{short}*/, parameter1 /*{double}*/) /*{propput}*/ {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter1);
+		Send(MSG_AX_SET_PROPERTY, "XValue", "0");
+	}
+
+/*4*/	function /*{double}*/ AX_GET_IniValue( /*{short}*/) /*{propget}*/ {
+		Send(MSG_AX_GET_PROPERTY, "IniValue", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*5*/	function /*{void}*/ AX_SET_IniValue(parameter0 /*{short}*/, parameter1 /*{double}*/) /*{propput}*/ {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter1);
+		Send(MSG_AX_SET_PROPERTY, "IniValue", "0");
+	}
+
+/*6*/	function /*{double}*/ AX_GET_Const( /*{short}*/) /*{propget}*/ {
+		Send(MSG_AX_GET_PROPERTY, "Const", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*7*/	function /*{void}*/ AX_SET_Const(parameter0 /*{short}*/, parameter1 /*{double}*/) /*{propput}*/ {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter1);
+		Send(MSG_AX_SET_PROPERTY, "Const", "0");
+	}
+
+/*8*/	function /*{OLE_COLOR}*/ AX_GET_Color( /*{short}*/) /*{propget}*/ {
+		Send(MSG_AX_GET_PROPERTY, "Color", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*9*/	function /*{void}*/ AX_SET_Color(parameter0 /*{short}*/, parameter1 /*{OLE_COLOR}*/) /*{propput}*/ {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter1);
+		Send(MSG_AX_SET_PROPERTY, "Color", "0");
+	}
+
+/*10*/	function /*{OLE_COLOR}*/ AX_GET_BkColor( /*{short}*/) /*{propget}*/ {
+		Send(MSG_AX_GET_PROPERTY, "BkColor", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*11*/	function /*{void}*/ AX_SET_BkColor(parameter0 /*{short}*/, parameter1 /*{OLE_COLOR}*/) /*{propput}*/ {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter1);
+		Send(MSG_AX_SET_PROPERTY, "BkColor", "0");
+	}
+
+/*12*/	function /*{double}*/ AX_GET_Adm( /*{short}*/) /*{propget}*/ {
+		Send(MSG_AX_GET_PROPERTY, "Adm", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*13*/	function /*{void}*/ AX_SET_Adm(parameter0 /*{short}*/, parameter1 /*{double}*/) /*{propput}*/ {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter1);
+		Send(MSG_AX_SET_PROPERTY, "Adm", "0");
+	}
+
+/*14*/	function /*{short}*/ AX_GET_Pattern( /*{short}*/) /*{propget}*/ {
+		Send(MSG_AX_GET_PROPERTY, "Pattern", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*15*/	function /*{void}*/ AX_SET_Pattern(parameter0 /*{short}*/, parameter1 /*{short}*/) /*{propput}*/ {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter1);
+		Send(MSG_AX_SET_PROPERTY, "Pattern", "0");
+	}
+
+/*16*/	function /*{long}*/ AX_GET_Fonts( /*{short}*/) /*{propget}*/ {
+		Send(MSG_AX_GET_PROPERTY, "Fonts", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*17*/	function /*{void}*/ AX_SET_Fonts(parameter0 /*{short}*/, parameter1 /*{long}*/) /*{propput}*/ {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter1);
+		Send(MSG_AX_SET_PROPERTY, "Fonts", "0");
+	}
+
+/*18*/	function /*{BSTR}*/ AX_GET_Title( /*{short}*/) /*{propget}*/ {
+		Send(MSG_AX_GET_PROPERTY, "Title", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*19*/	function /*{void}*/ AX_SET_Title(parameter0 /*{short}*/, parameter1 /*{BSTR}*/) /*{propput}*/ {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter1);
+		Send(MSG_AX_SET_PROPERTY, "Title", "0");
+	}
+
+/*20*/	function /*{BSTR}*/ AX_GET_Legend( /*{short}*/) /*{propget}*/ {
+		Send(MSG_AX_GET_PROPERTY, "Legend", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*21*/	function /*{void}*/ AX_SET_Legend(parameter0 /*{short}*/, parameter1 /*{BSTR}*/) /*{propput}*/ {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter1);
+		Send(MSG_AX_SET_PROPERTY, "Legend", "0");
+	}
+
+/*22*/	function /*{BSTR}*/ AX_GET_SerLeg( /*{short}*/) /*{propget}*/ {
+		Send(MSG_AX_GET_PROPERTY, "SerLeg", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*23*/	function /*{void}*/ AX_SET_SerLeg(parameter0 /*{short}*/, parameter1 /*{BSTR}*/) /*{propput}*/ {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter1);
+		Send(MSG_AX_SET_PROPERTY, "SerLeg", "0");
+	}
+
+/*24*/	function /*{BSTR}*/ AX_GET_KeyLeg( /*{short}*/) /*{propget}*/ {
+		Send(MSG_AX_GET_PROPERTY, "KeyLeg", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*25*/	function /*{void}*/ AX_SET_KeyLeg(parameter0 /*{short}*/, parameter1 /*{BSTR}*/) /*{propput}*/ {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter1);
+		Send(MSG_AX_SET_PROPERTY, "KeyLeg", "0");
+	}
+
+/*26*/	function /*{BSTR}*/ AX_GET_FixLeg( /*{short}*/) /*{propget}*/ {
+		Send(MSG_AX_GET_PROPERTY, "FixLeg", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*27*/	function /*{void}*/ AX_SET_FixLeg(parameter0 /*{short}*/, parameter1 /*{BSTR}*/) /*{propput}*/ {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter1);
+		Send(MSG_AX_SET_PROPERTY, "FixLeg", "0");
+	}
+
+/*28*/	function /*{BSTR}*/ AX_GET_YLeg( /*{short}*/) /*{propget}*/ {
+		Send(MSG_AX_GET_PROPERTY, "YLeg", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*29*/	function /*{void}*/ AX_SET_YLeg(parameter0 /*{short}*/, parameter1 /*{BSTR}*/) /*{propput}*/ {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter1);
+		Send(MSG_AX_SET_PROPERTY, "YLeg", "0");
+	}
+
+/*30*/	function /*{BSTR}*/ AX_GET_KeySer( /*{short}*/) /*{propget}*/ {
+		Send(MSG_AX_GET_PROPERTY, "KeySer", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*31*/	function /*{void}*/ AX_SET_KeySer(parameter0 /*{short}*/, parameter1 /*{BSTR}*/) /*{propput}*/ {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter1);
+		Send(MSG_AX_SET_PROPERTY, "KeySer", "0");
+	}
+
+/*32*/	function /*{BSTR}*/ AX_GET_StatusText( /*{short}*/) /*{propget}*/ {
+		Send(MSG_AX_GET_PROPERTY, "StatusText", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*33*/	function /*{void}*/ AX_SET_StatusText(parameter0 /*{short}*/, parameter1 /*{BSTR}*/) /*{propput}*/ {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter1);
+		Send(MSG_AX_SET_PROPERTY, "StatusText", "0");
+	}
+
+/*34*/	function /*{OLE_COLOR}*/ AX_GET_RGBFont( /*{short}*/) /*{propget}*/ {
+		Send(MSG_AX_GET_PROPERTY, "RGBFont", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*35*/	function /*{void}*/ AX_SET_RGBFont(parameter0 /*{short}*/, parameter1 /*{OLE_COLOR}*/) /*{propput}*/ {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter1);
+		Send(MSG_AX_SET_PROPERTY, "RGBFont", "0");
+	}
+
+/*36*/	function /*{short}*/ AX_GET_HFont( /*{short}*/) /*{propget}*/ {
+		Send(MSG_AX_GET_PROPERTY, "HFont", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*37*/	function /*{void}*/ AX_SET_HFont(parameter0 /*{short}*/, parameter1 /*{short}*/) /*{propput}*/ {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter1);
+		Send(MSG_AX_SET_PROPERTY, "HFont", "0");
+	}
+
+/*38*/	function /*{short}*/ AX_GET_ItemWidth( /*{short}*/) /*{propget}*/ {
+		Send(MSG_AX_GET_PROPERTY, "ItemWidth", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*39*/	function /*{void}*/ AX_SET_ItemWidth(parameter0 /*{short}*/, parameter1 /*{short}*/) /*{propput}*/ {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter1);
+		Send(MSG_AX_SET_PROPERTY, "ItemWidth", "0");
+	}
+
+/*40*/	function /*{short}*/ AX_GET_ItemStyle( /*{short}*/) /*{propget}*/ {
+		Send(MSG_AX_GET_PROPERTY, "ItemStyle", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*41*/	function /*{void}*/ AX_SET_ItemStyle(parameter0 /*{short}*/, parameter1 /*{short}*/) /*{propput}*/ {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter1);
+		Send(MSG_AX_SET_PROPERTY, "ItemStyle", "0");
+	}
+
+/*42*/	function /*{OLE_COLOR}*/ AX_GET_ItemColor( /*{short}*/) /*{propget}*/ {
+		Send(MSG_AX_GET_PROPERTY, "ItemColor", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*43*/	function /*{void}*/ AX_SET_ItemColor(parameter0 /*{short}*/, parameter1 /*{OLE_COLOR}*/) /*{propput}*/ {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter1);
+		Send(MSG_AX_SET_PROPERTY, "ItemColor", "0");
+	}
+
+/*44*/	function /*{short}*/ AX_GET_DecimalsNum( /*{short}*/) /*{propget}*/ {
+		Send(MSG_AX_GET_PROPERTY, "DecimalsNum", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*45*/	function /*{void}*/ AX_SET_DecimalsNum(parameter0 /*{short}*/, parameter1 /*{short}*/) /*{propput}*/ {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter1);
+		Send(MSG_AX_SET_PROPERTY, "DecimalsNum", "0");
+	}
+
+/*46*/	function /*{long}*/ OpenDataEx(parameter0 /*{short}*/, parameter1 /*{long}*/, parameter2 /*{long}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter1);
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter2);
+		Send(MSG_AX_CALL_METHOD, "OpenDataEx", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*47*/	function /*{VARIANT_BOOL}*/ CloseData(parameter0 /*{short}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_CALL_METHOD, "CloseData", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*48*/	function /*{long}*/ DblClk(parameter0 /*{short}*/, parameter1 /*{long}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter1);
+		Send(MSG_AX_CALL_METHOD, "DblClk", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*49*/	function /*{long}*/ RigClk(parameter0 /*{short}*/, parameter1 /*{long}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter1);
+		Send(MSG_AX_CALL_METHOD, "RigClk", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*50*/	function /*{long}*/ Status(parameter0 /*{short}*/, parameter1 /*{long}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter1);
+		Send(MSG_AX_CALL_METHOD, "Status", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*51*/	function /*{long}*/ ShowDialog(parameter0 /*{short}*/, parameter1 /*{long}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter1);
+		Send(MSG_AX_CALL_METHOD, "ShowDialog", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*52*/	function /*{long}*/ PrintIt()  {
+		Send(MSG_AX_CALL_METHOD, "PrintIt", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*53*/	function /*{long}*/ Scroll(parameter0 /*{long}*/, parameter1 /*{long}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter1);
+		Send(MSG_AX_CALL_METHOD, "Scroll", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*54*/	function /*{long}*/ SetStatusItem(parameter0 /*{short}*/, parameter1 /*{VARIANT_BOOL}*/, parameter2 /*{short}*/, parameter3 /*{VARIANT_BOOL}*/, parameter4 /*{short}*/, parameter5 /*{short}*/, parameter6 /*{short}*/, parameter7 /*{long}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter1);
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter2);
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter3);
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter4);
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter5);
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter6);
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter7);
+		Send(MSG_AX_CALL_METHOD, "SetStatusItem", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*55*/	function /*{long}*/ Paint(parameter0 /*{long}*/, parameter1 /*{short}*/, parameter2 /*{short}*/, parameter3 /*{short}*/, parameter4 /*{short}*/, parameter5 /*{short}*/, parameter6 /*{long}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter1);
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter2);
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter3);
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter4);
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter5);
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter6);
+		Send(MSG_AX_CALL_METHOD, "Paint", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*56*/	function /*{long}*/ SetStripe(parameter0 /*{short}*/, parameter1 /*{double}*/, parameter2 /*{double}*/, parameter3 /*{OLE_COLOR}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter1);
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter2);
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter3);
+		Send(MSG_AX_CALL_METHOD, "SetStripe", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*57*/	function /*{long}*/ Language(parameter0 /*{BSTR}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_CALL_METHOD, "Language", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*58*/	function /*{long}*/ ExportFile(parameter0 /*{BSTR}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_CALL_METHOD, "ExportFile", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*59*/	function /*{long}*/ ImportFile(parameter0 /*{BSTR}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_CALL_METHOD, "ImportFile", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*60*/	function /*{long}*/ WriteTemplate(parameter0 /*{BSTR}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_CALL_METHOD, "WriteTemplate", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*61*/	function /*{long}*/ ReadTemplate(parameter0 /*{BSTR}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_CALL_METHOD, "ReadTemplate", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*62*/	function /*{long}*/ CopyData()  {
+		Send(MSG_AX_CALL_METHOD, "CopyData", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*63*/	function /*{long}*/ CopyBitmap()  {
+		Send(MSG_AX_CALL_METHOD, "CopyBitmap", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*64*/	function /*{void}*/ Refresh()  {
+		Send(MSG_AX_CALL_METHOD, "Refresh", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*65*/	function /*{void}*/ AboutBox()  {
+		Send(MSG_AX_CALL_METHOD, "AboutBox", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+//---------------- BEGIN OF EVENTS INTERFACE (info only) -----------------//
+	//Event syntax:void LButtonDblClk(parameter0<short>, parameter1<short>, parameter2<short>, parameter3<long>, parameter4<short*>) 
+	public property _OnLButtonDblClk { get Get_OnLButtonDblClk, set Set_OnLButtonDblClk }
+	public function Get_OnLButtonDblClk() {
+		return _AX_EVENTS[1];
+	}
+
+	public function Set_OnLButtonDblClk(deleg) {
+		_AX_EVENTS[1]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",1);
+	}
+
+	//Event syntax:void RButtonDown(parameter0<short>, parameter1<short>, parameter2<short>, parameter3<long>, parameter4<short*>) 
+	public property _OnRButtonDown { get Get_OnRButtonDown, set Set_OnRButtonDown }
+	public function Get_OnRButtonDown() {
+		return _AX_EVENTS[2];
+	}
+
+	public function Set_OnRButtonDown(deleg) {
+		_AX_EVENTS[2]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",2);
+	}
+
+	//Event syntax:void ChangeValue(parameter0<double>, parameter1<short>, parameter2<long>, parameter3<short*>) 
+	public property _OnChangeValue { get Get_OnChangeValue, set Set_OnChangeValue }
+	public function Get_OnChangeValue() {
+		return _AX_EVENTS[3];
+	}
+
+	public function Set_OnChangeValue(deleg) {
+		_AX_EVENTS[3]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",3);
+	}
+
+	//Event syntax:void ChangeString(parameter0<short>, parameter1<long>, parameter2<short*>) 
+	public property _OnChangeString { get Get_OnChangeString, set Set_OnChangeString }
+	public function Get_OnChangeString() {
+		return _AX_EVENTS[4];
+	}
+
+	public function Set_OnChangeString(deleg) {
+		_AX_EVENTS[4]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",4);
+	}
+
+	//Event syntax:void ChangeColor(parameter0<short>, parameter1<short>, parameter2<short*>) 
+	public property _OnChangeColor { get Get_OnChangeColor, set Set_OnChangeColor }
+	public function Get_OnChangeColor() {
+		return _AX_EVENTS[5];
+	}
+
+	public function Set_OnChangeColor(deleg) {
+		_AX_EVENTS[5]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",5);
+	}
+
+	//Event syntax:void Destroy() 
+	public property _OnDestroy { get Get_OnDestroy, set Set_OnDestroy }
+	public function Get_OnDestroy() {
+		return _AX_EVENTS[6];
+	}
+
+	public function Set_OnDestroy(deleg) {
+		_AX_EVENTS[6]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",6);
+	}
+
+	//Event syntax:void ReadFile() 
+	public property _OnReadFile { get Get_OnReadFile, set Set_OnReadFile }
+	public function Get_OnReadFile() {
+		return _AX_EVENTS[7];
+	}
+
+	public function Set_OnReadFile(deleg) {
+		_AX_EVENTS[7]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",7);
+	}
+
+	//Event syntax:void ChangePalette(parameter0<short>, parameter1<short*>) 
+	public property _OnChangePalette { get Get_OnChangePalette, set Set_OnChangePalette }
+	public function Get_OnChangePalette() {
+		return _AX_EVENTS[8];
+	}
+
+	public function Set_OnChangePalette(deleg) {
+		_AX_EVENTS[8]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",8);
+	}
+
+	//Event syntax:void ChangeFont(parameter0<short>, parameter1<short*>) 
+	public property _OnChangeFont { get Get_OnChangeFont, set Set_OnChangeFont }
+	public function Get_OnChangeFont() {
+		return _AX_EVENTS[9];
+	}
+
+	public function Set_OnChangeFont(deleg) {
+		_AX_EVENTS[9]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",9);
+	}
+
+	//Event syntax:void ReadTemplate() 
+	public property _OnReadTemplate { get Get_OnReadTemplate, set Set_OnReadTemplate }
+	public function Get_OnReadTemplate() {
+		return _AX_EVENTS[10];
+	}
+
+	public function Set_OnReadTemplate(deleg) {
+		_AX_EVENTS[10]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",10);
+	}
+
+	//Event syntax:void ChangePattern(parameter0<short>, parameter1<short>, parameter2<short*>) 
+	public property _OnChangePattern { get Get_OnChangePattern, set Set_OnChangePattern }
+	public function Get_OnChangePattern() {
+		return _AX_EVENTS[11];
+	}
+
+	public function Set_OnChangePattern(deleg) {
+		_AX_EVENTS[11]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",11);
+	}
+
+	//Event syntax:void ChangePattPal(parameter0<short>, parameter1<short*>) 
+	public property _OnChangePattPal { get Get_OnChangePattPal, set Set_OnChangePattPal }
+	public function Get_OnChangePattPal() {
+		return _AX_EVENTS[12];
+	}
+
+	public function Set_OnChangePattPal(deleg) {
+		_AX_EVENTS[12]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",12);
+	}
+
+	//Event syntax:void Menu(parameter0<long>, parameter1<short>, parameter2<long>, parameter3<short*>) 
+	public property _OnMenu { get Get_OnMenu, set Set_OnMenu }
+	public function Get_OnMenu() {
+		return _AX_EVENTS[13];
+	}
+
+	public function Set_OnMenu(deleg) {
+		_AX_EVENTS[13]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",13);
+	}
+
+	//Event syntax:void ChangeType(parameter0<short>, parameter1<short*>) 
+	public property _OnChangeType { get Get_OnChangeType, set Set_OnChangeType }
+	public function Get_OnChangeType() {
+		return _AX_EVENTS[14];
+	}
+
+	public function Set_OnChangeType(deleg) {
+		_AX_EVENTS[14]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",14);
+	}
+
+	//Event syntax:void UserScroll(parameter0<long>, parameter1<long>, parameter2<short*>) 
+	public property _OnUserScroll { get Get_OnUserScroll, set Set_OnUserScroll }
+	public function Get_OnUserScroll() {
+		return _AX_EVENTS[15];
+	}
+
+	public function Set_OnUserScroll(deleg) {
+		_AX_EVENTS[15]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",15);
+	}
+
+	//Event syntax:void GetLegend(parameter0<short>, parameter1<short*>) 
+	public property _OnGetLegend { get Get_OnGetLegend, set Set_OnGetLegend }
+	public function Get_OnGetLegend() {
+		return _AX_EVENTS[16];
+	}
+
+	public function Set_OnGetLegend(deleg) {
+		_AX_EVENTS[16]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",16);
+	}
+
+//------------------ END OF EVENTS INTERFACE (info only) -----------------//
+
+	public property Value { get AX_GET_Value, set AX_SET_Value }
+	public property XValue { get AX_GET_XValue, set AX_SET_XValue }
+	public property IniValue { get AX_GET_IniValue, set AX_SET_IniValue }
+	public property Const { get AX_GET_Const, set AX_SET_Const }
+	public property Color { get AX_GET_Color, set AX_SET_Color }
+	public property BkColor { get AX_GET_BkColor, set AX_SET_BkColor }
+	public property Adm { get AX_GET_Adm, set AX_SET_Adm }
+	public property Pattern { get AX_GET_Pattern, set AX_SET_Pattern }
+	public property Fonts { get AX_GET_Fonts, set AX_SET_Fonts }
+	public property Title { get AX_GET_Title, set AX_SET_Title }
+	public property Legend { get AX_GET_Legend, set AX_SET_Legend }
+	public property SerLeg { get AX_GET_SerLeg, set AX_SET_SerLeg }
+	public property KeyLeg { get AX_GET_KeyLeg, set AX_SET_KeyLeg }
+	public property FixLeg { get AX_GET_FixLeg, set AX_SET_FixLeg }
+	public property YLeg { get AX_GET_YLeg, set AX_SET_YLeg }
+	public property KeySer { get AX_GET_KeySer, set AX_SET_KeySer }
+	public property StatusText { get AX_GET_StatusText, set AX_SET_StatusText }
+	public property RGBFont { get AX_GET_RGBFont, set AX_SET_RGBFont }
+	public property HFont { get AX_GET_HFont, set AX_SET_HFont }
+	public property ItemWidth { get AX_GET_ItemWidth, set AX_SET_ItemWidth }
+	public property ItemStyle { get AX_GET_ItemStyle, set AX_SET_ItemStyle }
+	public property ItemColor { get AX_GET_ItemColor, set AX_SET_ItemColor }
+	public property DecimalsNum { get AX_GET_DecimalsNum, set AX_SET_DecimalsNum }
+}

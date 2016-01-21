@@ -1,0 +1,23 @@
+include RTextView.con
+include DataBases.con
+
+class RADOTextView	extends RTextView
+			extends VirtualADOObject {
+
+	override __DataSetUpdateCommand;
+	public function __DataSetUpdateCommand(Sender) {
+		try {
+			var obj=Sender.FieldValues[this._DATAFIELD];
+			if (typeof obj == "class")
+				this.Text=obj.ToString();
+			else
+				this.Text="";
+		} catch (var exception) {
+			this.Text="";
+		}
+	}
+
+	public function RADOTextView(Owner) {
+		RTextView(Owner);
+	}
+}

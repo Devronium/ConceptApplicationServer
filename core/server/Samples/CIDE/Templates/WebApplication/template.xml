@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+
+<ApplicationTemplate Name="REST/CGI Application" Icon="icon.png" Target="web" Description="Creates a standard web application/service body" Representative="webapplication.csp">
+	<Source Name="webapplication.csp" Designable="0" />
+	<Template Name="webapplication.ctp" />
+	<Project File="webapplication.csp" />
+	<Description>
+Standard CGI applications. Please note that the recommended type of application is "Concept Application".
+
+Note that this application type is recommended only for REST services.
+	</Description>
+</ApplicationTemplate>

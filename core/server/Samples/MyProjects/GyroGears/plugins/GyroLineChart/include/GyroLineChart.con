@@ -1,0 +1,205 @@
+include RImage.con
+include LineChart.con
+import standard.graph.svg
+
+class GyroLineChart {
+	private var Image;
+
+	private var DataSource;
+	private var Series;
+	private var SeriesNames;
+	private var SeriesFilters;
+	private var PointsMember;
+	private var MaxPoints;
+	private var width;
+	private var height;
+	private var descending=false;
+	private var Entity;
+	private var type;
+	private var keys;
+
+	public function GyroLineChart(Owner) {
+		Image=new RImage(Owner);
+		Image.Show();
+	}
+
+	private function DoLegend(elements) {
+		var[] res;
+		keys=new [];
+		var filters=SeriesFilters;
+		if (filters) {
+			var names=SeriesNames;
+			var len3=length names;
+			var len2=length elements;
+			for (var j=0;j<len2;j++) {
+				var v=elements[j];
+				if (v) {
+					var len=length filters;
+					for (var i=0;i<len;i++) {
+						var f=filters[i];
+						if (f) {
+							if (!GetMember(v, f, var member))
+								throw "LineChart plug-in error: no such member '${classof v}.${f}'";
+
+							for (var k=0;k<len3;k++) {
+								var s=names[k];
+								var sname="$s ($member)";
+								if (!res[sname]) {
+									res[sname]=sname;
+									keys[sname]=length keys - 1;
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+		if (!res)
+			res=SeriesNames;
+		return res;
+	}
+
+	private function GetSeries(basearr, v, points) {
+		var series=Series;
+		var len=length series;
+		var sf="";
+		if (SeriesFilters)
+			sf=SeriesFilters[0];
+		var e=new [];
+		var delta=1;
+		if (!points)
+			e[0]="";
+
+		if (sf)
+			e[length keys]=0;
+
+		var arr=basearr[0];
+		var names=SeriesNames;
+		for (var i=0;i<len;i++) {
+			var s=series[i];
+			if (s) {
+				if (!GetMember(v, s, var member))
+					throw "LineChart plug-in error: no such member '${classof v}.${s}'";
+
+				if (sf) {
+					if (!GetMember(v, sf, var member2))
+						throw "LineChart plug-in error: no such member '${classof v}.${sf}'";
+					var s2=names[i];
+					if (!s2)
+						s2="";
+
+					var sname="$s2 ($member2)";
+					var idx=keys[sname];
+					e[idx+delta]=value (""+member);
+				} else
+					e[i+delta]=value (""+member);
+			}
+		}
+		if (points) {
+			v._Format([v]);
+			if (!GetMember(v, points, var member3))
+				throw "LineChart plug-in error: no such member '${classof v}.${points}'";
+			e[0]=member3;
+			var e_prec=basearr[member3];
+			if (e_prec) {
+				var len_prec=length e;
+				for (i=1;i<len_prec;i++)
+					e_prec[i]+=e[i];
+			} else
+				basearr[member3]=e;
+		} else
+			basearr[length basearr]=e;
+	}
+
+	public function Set(Obj) {
+		if (!Entity)
+			throw "LineChart plug-in error: no entity set";
+
+		if (!DataSource)
+			throw "LineChart plug-in error: no data source set";
+		if (!Series)			
+			throw "LineChart plug-in error: no series set";
+
+		var dc=GLOBALS()["Connection"];
+		if (!dc)
+			throw "LineChart plug-in error: no data connection";
+
+		var classmember="GetBy${classof Obj}${DataSource}";
+		if (!GetMember(Entity, classmember, var member, true))
+			throw "LineChart plug-in error: no such member '${classmember}'";
+
+		var vector=member(dc, Obj.ID, "", descending, 2, 0, MaxPoints);
+		var len=length vector;
+
+		var[] arr;
+		arr[0]=this.DoLegend(vector);
+		var points=PointsMember;
+		for (var i=0;i<len;i++) {
+			var v=vector[i];
+			if (v)
+				this.GetSeries(arr, v, points);
+		}
+		var data=SVG(LineChart::Do(arr, width, height, type, 2, "white"));
+		SendMessage(""+Image.RID,MSG_PUT_STREAM,"img.png",data);
+		return this;
+	}
+
+	public function Get(Obj) {
+		return this;
+	}
+
+	public function Validate(Obj, var error_string) {
+		error_string="";
+		return true;
+	}
+
+	static function Query(string operation, target, prev_object, Entity="", DataSource="", Series="", SeriesNames="", SeriesFilters="", PointsMember="", MaxPoints="", width="", height="", descending="false", fill="true") {
+		return true;
+	}
+
+	static function Create(Context, ContainerObject, OwnerForm, Entity="", DataSource="", Series="", SeriesNames="", SeriesFilters="", PointsMember="", MaxPoints="", width="", height="", descending="false", fill="true") {
+		var handler=new GyroLineChart(ContainerObject);
+		handler.DataSource=DataSource;
+		handler.Series=StrSplit(Series,",");
+		var series=handler.Series;
+		var len=length series;
+		for (var i=0;i<len;i++) {
+			if (series[i])
+				series[i]=trim(series[i]);
+		}
+		handler.SeriesNames=StrSplit(SeriesNames,",");
+		series=handler.SeriesNames;
+		len=length series;
+		for (i=0;i<len;i++) {
+			if (series[i])
+				series[i]=trim(series[i]);
+		}
+		handler.SeriesFilters=StrSplit(SeriesFilters,",");
+		series=handler.SeriesFilters;
+		len=length series;
+		for (i=0;i<len;i++) {
+			if (series[i])
+				series[i]=trim(series[i]);
+		}
+		// just one filter for now
+		if (series)
+			handler.SeriesFilters=[ series[0] ];
+
+		handler.PointsMember=PointsMember;
+		handler.MaxPoints=value MaxPoints;
+		handler.Entity=CreateObject(Entity);
+		if (handler.MaxPoints<=0)
+			handler.MaxPoints=0xFFFFFF;
+		handler.width=value width;
+		handler.height=value height;
+		if (descending=="true")
+			handler.descending=true;
+		if (fill=="true")
+			handler.type=1;
+
+		Context.Set=handler.Set;
+		Context.Get=handler.Get;
+		Context.Validate=handler.Validate;
+		return handler;
+	}
+}

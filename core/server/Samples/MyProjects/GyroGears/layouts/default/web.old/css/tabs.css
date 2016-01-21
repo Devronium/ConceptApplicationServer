@@ -1,0 +1,284 @@
+/*  isTabs ~ Sean Catchpole  */
+
+body {
+  background:#606060;
+}
+/* Style for Usual tabs */
+.usual {
+  background:#606060;
+  color:#111;
+  padding:15px 20px;
+  width:950;
+//  border:1px solid #222;
+  margin:8px auto;
+}
+.usual li { list-style:none; float:left; }
+.usual ul a {
+  display:block;
+  padding:6px 10px;
+  text-decoration:none!important;
+  margin:1px;
+  margin-left:0;
+  font:10px Verdana;
+  color:#FFF;
+  background:#444;
+}
+.usual ul a:hover {
+  color:#FFF;
+  background:#111;
+  }
+.usual ul a.selected {
+  margin-bottom:0;
+  color:#000;
+  background:snow;
+  border-bottom:1px solid snow;
+  cursor:default;
+  }
+.usual div {
+  padding:10px 10px 8px 10px;
+  *padding-top:3px;
+  *margin-top:-15px;
+  clear:left;
+  background:snow;
+  font:10pt Georgia;
+}
+.usual div a { color:#000; font-weight:bold; }
+
+#usual2 { background:#0A0A0A; border:1px solid #1A1A1A; }
+#usual2 a { background:#222; }
+#usual2 a:hover { background:#000; }
+#usual2 a.selected { background:snow; }
+#tabs3 { background:#FF9; }
+
+/* Style for various uses of tabs */
+
+#freedom {
+  float:left;
+  width:90px;
+  color:#68D;
+  font:1.3em Cambria, Times New Roman, serif;
+  font-style:italic;
+}
+#freedom li a {
+  width:80px;
+  text-align:left;
+  padding:2px 6px 4px;
+  background:#222;
+  margin:1px;
+  *margin:0px;
+  display:block;
+  text-decoration:none;
+  font-weight:bold;
+  font-size:0.7em;
+  font-style:normal;
+}
+#freedom li a:hover {
+  background:#0A0A0A;
+  width:86px;
+}
+#freedom li a.selected {
+  background:#FFF;
+  color:#000;
+  width:90px;
+  cursor:default;
+}
+
+.tabContainer {
+  width:400px;
+  margin:20px auto;
+  padding-top:2px;
+  background:#181818;
+  border:1px solid #222;
+}
+.tabContainer h3 {
+  padding-bottom:4px;
+  color:#F60;
+}
+.tabContainer p {
+  padding:2px 12px 10px;
+  text-align:left;
+}
+
+#three {
+  position:absolute;
+  top:0;
+  left:0;
+  border-bottom:1px solid #444;
+  border-right:1px solid #444;
+}
+
+#four {
+  color:#D66;
+  font:2em Cambria, Times New Roman, serif;
+  position:fixed;
+  bottom:10px;
+  right:20px;
+}
+
+.imagebox {
+  background:#040404;
+  border:1px solid #1A1A1A;
+  width:100px;
+  height:90px;
+  margin:10px auto;
+}
+.imagebox a {
+  display:block;
+  width:25px;
+  height:25px;
+  line-height:23px;
+  float:left;
+  text-decoration:none;
+  background:#111;
+}
+.imagebox a:hover { background:#000; }
+.imagebox a.selected {
+  background:snow;
+  color:#222;
+  font-weight:bold;
+}
+.imagebox img { margin-top:6px; clear:both; }
+
+
+/* Styles for Advanced Section */
+
+#adv2 {
+  width:500px;
+  margin:6px auto;
+  background:#181818;
+}
+#adv2 ul {
+ display:block;
+ width:50px;
+ height:50px;
+ float:left;
+}
+#adv2 li { float:left; }
+#adv2 li.split { clear:both; }
+#adv2 li a {
+  display:block;
+  height:25px;
+  width:25px;
+  line-height:22px;
+  text-decoration:none;
+  background:#222;
+}
+#adv2 li a:hover {
+  background:#0A0A0A;
+}
+#adv2 li a.selected {
+  background:snow;
+  color:#111;
+  font-weight:bold;
+}
+
+#adv2 span {
+  height:50px;
+  display:block;
+  line-height:45px;
+  width:450px;
+  float:right;
+  background:#181818;
+}
+
+#adv3 a {
+  color:snow;
+  font-size:2em;
+  font-weight:bold;
+  text-decoration:none;
+  margin:6px;
+}
+#adv3 a:hover { color:#68D; }
+#adv3 p {
+  color:#888;
+  margin:5px;
+  font-style:italic; 
+}
+#adv3 p a {
+  margin:0;
+  color:#CCC;
+  font-size:1em;
+  font-weight:bold;
+  text-decoration:underline;
+}
+#adv3 p a:hover { color:#FFF; }
+
+#message {
+  margin:10px auto;
+  border:6px solid #222;
+  width:240px;
+  height:40px;
+  background:#0D0D0D;
+  font-size:1.3em;
+  line-height:2em;
+  color:#FC4;
+}
+
+
+
+form {  /* set width in form, not fieldset (still takes up more room w/ fieldset width */
+  font:100% verdana,arial,sans-serif;
+  margin: 0;
+  padding: 0;
+  min-width: 500px;
+  max-width: 600px;
+  width: 560px; 
+}
+
+form fieldset {
+  / * clear: both; note that this clear causes inputs to break to left in ie5.x mac, commented out */
+  border-color: #000;
+  border-width: 1px;
+  border-style: solid;
+  padding: 10px;        /* padding in fieldset support spotty in IE */
+  margin: 0;
+}
+
+form fieldset legend {
+	font-size:1.1em; /* bump up legend font size, not too large or it'll overwrite border on left */
+                       /* be careful with padding, it'll shift the nice offset on top of border  */
+}
+
+form label { 
+	display: block;  /* block float the labels to left column, set a width */
+	float: left; 
+	width: 150px; 
+	padding: 0; 
+	margin: 5px 0 0; /* set top margin same as form input - textarea etc. elements */
+	text-align: left; 
+	vertical-align: center;
+}
+
+form fieldset label:first-letter { /* use first-letter pseudo-class to underline accesskey, note that */
+	text-decoration:underline;    /* Firefox 1.07 WIN and Explorer 5.2 Mac don't support first-letter */
+                                    /* pseudo-class on legend elements, but do support it on label elements */
+                                    /* we instead underline first letter on each label element and accesskey */
+                                    /* each input. doing only legends would  lessens cognitive load */
+                                   /* opera breaks after first letter underlined legends but not labels */
+}
+
+form input, form textarea, form select {
+	/* display: inline; inline display must not be set or will hide submit buttons in IE 5x mac */
+	width:auto;      /* set width of form elements to auto-size, otherwise watch for wrap on resize */
+	margin:5px 0 0 10px; /* set margin on left of form elements rather than right of
+                              label aligns textarea better in IE */
+}
+
+form input#reset {
+	margin-left:0px; /* set margin-left back to zero on reset button (set above) */
+}
+
+textarea { overflow: auto; }
+
+form small {
+	display: block;
+	margin: 0 0 5px 160px; /* instructions/comments left margin set to align w/ right column inputs */
+	padding: 1px 3px;
+	font-size: 88%;
+}
+
+form .required{font-weight:bold;} /* uses class instead of div, more efficient */
+
+form br {
+	clear:left; /* setting clear on inputs didn't work consistently, so brs added for degrade */
+}

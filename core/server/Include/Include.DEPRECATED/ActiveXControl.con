@@ -1,0 +1,60 @@
+include 'Container.con'
+
+class ActiveXControl extends VisibleControl {
+	protected var _CLSID;
+	protected var _LICENCE_KEY;
+
+	public property ClassID { get _CLSID }
+	public property LicenceKey { get _LICENCE_KEY }
+
+	public function ActiveXControl(Owner, CLSID, LICENCE_KEY) {
+		this->VisibleControl(Owner, CLASS_ACTIVEX);
+		this->_CLSID=_CLSID;
+		this->_LICENCE_KEY=LICENCE_KEY;
+
+		// make sure that the CLSID and LICENCE_KEY are of STATIC STRING type
+		SendMessage(this->Name, MSG_CREATE_ACTIVEX, ""+CLSID, ""+LICENCE_KEY);
+	}
+
+	public function AddEventID(id) {
+		SendMessage(this->Name, MSG_AX_ADD_EVENT, "0", id);
+	}
+
+	public function GetEventParameter(index) {
+		SendMessage(this->Name, MSG_AX_GET_EVENT_PARAM, "0", index);
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_EVENT_PARAM, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+	public function AknowledgeEvent(parameter_count) {
+		SendMessage(this->Name, MSG_AX_AKNOWLEDGE_EVENT, "0", parameter_count);
+	}
+
+	public function ClearEvents() {
+		SendMessage(this->Name, MSG_AX_CLEAR_EVENTS_DATA, "0", "0");
+	}
+
+	public function AddParameter(parameter) {
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter);
+	}
+
+	public function ExecuteMethod(method_name) {
+		SendMessage(this->Name, MSG_AX_CALL_METHOD, method_name, "0");
+	}
+
+	public function SetProperty(property_name, property_value) {
+		SendMessage(this->Name, MSG_AX_SET_PROPERTY, property_name, property_value);
+	}
+
+	public function AX_ProcessMessage(Sender, ID, Target, Value) {
+		this->VisibleControl_ProcessMessage(Sender, ID, Target, Value);
+	}
+
+	override ProcessMessage;
+	public function ProcessMessage(Sender, ID, Target, Value) {
+		var result=this->AX_ProcessMessage(Sender,ID,Target,Value);
+		//if (ID==MSG_AX_EVENT_FIRED)
+		//	this->AknowledgeEvent(Value);
+		return result;
+	}
+}

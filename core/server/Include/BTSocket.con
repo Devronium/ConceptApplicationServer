@@ -1,0 +1,157 @@
+import standard.net.socket
+import standard.net.bluetooth
+
+class BTSocket {
+	public var Socket=-1;
+	protected var _islisten=false;
+	protected var _type=BTPROTO_RFCOMM;
+
+	public property HasData { get GetHasData }
+	public property Error { get GetError }
+	public property Type { get _type }
+	public property Info { get GetInfo }
+
+	static function Register(string servicename, string service_uuid, number port=-1, comments="") {
+		if ((port<=0) && (!comments)) {
+			if (BTRegister(servicename, service_uuid))
+				return false;
+			return true;
+		}
+		if (BTRegister(servicename, service_uuid, port, comments))
+			return false;
+		return true;
+	}
+
+	static function Unregister(string servicename, service_uuid="") {
+		if (BTUnregister(servicename, service_uuid))
+			return false;
+		return true;
+	}
+
+	static function Discover(string service_type_uuid="") {
+		if (service_type_uuid)
+			return BTDiscover(service_type_uuid);
+		return BTDiscover();
+	}
+
+	public function BTSocket(type=BTPROTO_RFCOMM, sock=-1) {
+		if (sock==-1)
+			Socket=BTSocketCreate(type);
+		else
+			Socket=sock;
+		this._type=type;
+	}
+
+	public function GetInfo() {
+		if (Socket<=0)
+			throw "Invalid socket (GetInfo)";
+		return BTSocketInfo(Socket);
+	}
+
+	public function Connect(string host, string service="{00000000-0000-0000-0000-000000000000}") {
+		if (Socket<=0)
+			throw "Invalid socket (connect operation)";
+
+		var is_l2cap=false;
+		if (_type==BTPROTO_L2CAP)
+			is_l2cap=true;
+
+		return !BTSocketConnect(Socket, host, service, is_l2cap);
+	}
+	
+	public function Listen(port, max_connections=0x100, interface="") {
+		if (Socket<=0)
+			throw "Invalid socket (listen operation)";
+		_islisten=true;
+		var is_l2cap=false;
+		if (_type==BTPROTO_L2CAP)
+			is_l2cap=true;
+		return BTSocketListen(Socket, port, max_connections, is_l2cap, interface);
+	}
+
+	public function Accept(return_static_socket=false) {		
+		if (Socket<=0)
+			throw "Invalid socket (Accept)";
+		if (!_islisten)
+			throw "Invalid socket type (Accept)";
+
+		if (return_static_socket)
+			return BTSocketAccept(Socket);
+		var sock = BTSocketAccept(Socket);
+		if (sock >= 0)
+			return new BTSocket(this._type, sock);
+
+		return null;
+	}
+
+	public function Close() {
+		if (Socket>0) {
+			var res=BTSocketClose(Socket);
+			Socket=-1;
+			_islisten=false;
+			return res;
+		}
+		return 0;
+	}
+
+	public function Read(number max_size=0xFFFF) {
+		if (Socket<=0)
+			throw "Invalid socket (Read)";
+		if (_islisten)
+			throw "Invalid socket type (Read)";
+		var res=SocketRead(Socket, var buffer, max_size);
+		if (res>0)
+			return buffer;
+		else
+		if (res==0)
+			return "";
+		throw "Broken socket (Read)";
+	}
+
+	public function Write(var string buffer) {
+		if (Socket<=0)
+			throw "Invalid socket (Write)";
+		if (_islisten)
+			throw "Invalid socket type (Write)";
+		if (length buffer) {
+			var res=SocketWrite(Socket, buffer);
+			if (res<0)
+				throw "Broken socket (Write)";
+			return res;
+		}
+		return 0;
+	}
+
+	public function GetHasData() {
+		if (Socket<=0)
+			throw "Invalid socket (GetHasData)";
+		if (_islisten)
+			throw "Invalid socket type (GetHasData)";
+		var res=SocketHasData(Socket);
+		if (res<0)
+			throw "Broken socket (GetHasData)";
+		return res;
+	}
+
+	public function GetError() {
+		if (Socket<=0)
+			throw "Invalid socket (GetError)";
+		return SocketError(Socket);
+	}
+
+	public function SetOption(level, opt, val) {
+		if (Socket<=0)
+			throw "Invalid socket (SetOption)";
+		return SocketSetOption(Socket, level, opt, val);
+	}
+
+	public function GetOption(level, opt, var val) {
+		if (Socket<=0)
+			throw "Invalid socket (SetOption)";
+		return SocketGetOption(Socket, level, opt, val);
+	}
+
+	public function finalize() {
+		this.Close();
+	}
+}

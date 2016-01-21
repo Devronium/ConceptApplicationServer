@@ -1,0 +1,26 @@
+import standard.graph.imagemagick
+import standard.C.io
+
+class Main {
+	function Main() {
+		var w=NewMagickWand();
+		var img=MagickReadImage(w, "test.png");
+		if (img) {
+			//echo MagickResizeImage(w, 32, 32, 0, 1);
+		} else {
+			echo MagickGetException(w, var sev);
+			return -1;
+		}
+		var draw=NewDrawingWand();
+		//DrawSetFont(draw, "Wingdings");
+		DrawSetFont(draw, "test.ttf");
+		DrawSetFontSize(draw, 50);
+		MagickAnnotateImage(w, draw, 50, 250, -15, "A cool butterfly");
+		//MagickWriteImages(w);
+		MagickWriteImage(w, "test2.png");
+		WriteFile(MagickGetImageBlob(w),"test3.png");
+
+		echo MagickQueryFonts("*");
+		DestroyMagickWand(w);
+	}
+}

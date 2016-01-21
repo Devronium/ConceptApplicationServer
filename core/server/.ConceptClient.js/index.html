@@ -1,0 +1,55 @@
+<!DOCTYPE html> 
+<html>
+    <head>
+  	<meta name=viewport content="width=device-width, initial-scale=1">
+	<meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/>
+	<meta charset=utf-8/>
+	<meta name="viewport" content="width=device-width, initial-scale=1,maximum-scale=1">
+        <title>Concept Client 4.0 BETA</title>
+
+	<link rel="manifest" href="/ConceptClient.manifest.json">
+	<link rel="stylesheet" type="text/css" href="/UIMisc.css">
+
+	<!--   BOOTSTRAP   -->
+	<!-- <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap-theme.min.css"> -->
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css">
+	<script src="/js/avc.js"></script>
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+	<script src="https://code.jquery.com/ui/1.11.2/jquery-ui.min.js"></script>
+	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
+	<!-- END BOOTSTRAP -->
+
+	<link rel="stylesheet" type="text/css" href="/css/theme.css">
+	<!--   CONCEPT CLIENT   -->
+	<link rel="stylesheet" type="text/css" href="/css/ConceptClient.css">
+	<link rel="stylesheet" type="text/css" href="/css/datepicker.css">
+	<link rel="stylesheet" type="text/css" href="/css/slider.css">
+	<script src="/js/ConceptClientCrypto.js"></script>
+	<script src="/js/FileSaver.js"></script>
+	<script src="/js/html2canvas.js"></script>
+	<script src="/js/speex.js"></script>
+	<script src="/js/opus.js"></script>
+	<script src="/js/ContextMenu.js"></script>
+	<script src="/js/ace.js"></script>
+	<script src="/js/ext-language_tools.js"></script>
+	<script src="/js/jquery.maskedinput.min.js"></script>
+	<script src="/js/bootstrap-datepicker.js"></script>
+	<script src="/js/bootstrap-slider.js"></script>
+	<script src="/ConceptClient.js"></script>
+	<!-- END CONCEPT CLIENT -->
+
+	<script> 
+            var client;
+            function init() {
+                client = new ConceptClient("{PROTOCOL}://{HOST}/{APP}", "output", "loading", true);
+            }
+            
+            window.addEventListener("load", init, false);
+        </script>
+    </head>
+    <body>
+        <div id="output"></div>
+        <div id="loading">Concept Client 4.0 JS Beta</div>
+    </body>
+</html>

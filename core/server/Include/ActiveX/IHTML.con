@@ -1,0 +1,771 @@
+include ActiveXControl.con
+
+//////////////////////////////////////////////////////////////////////////
+// This file was generated automatically by AXInterfaceGenerator        //
+//                                          (c)2006 RadGs Software      //
+//                                                                      //
+//                   PLEASE DO NOT MODIFY THIS FILE !                   //
+//////////////////////////////////////////////////////////////////////////
+
+class IHTML extends ActiveXControl {
+	//Uncomment LICENCE_KEY if the control needs to be registered
+ 	function IHTML(Owner/*, LICENCE_KEY*/) {
+		//super(Owner, "NMWEB.HTML", LICENCE_KEY);
+		super(Owner, "NMWEB.HTML", "");
+		__AX_SET_EVENTS();
+	}
+
+/*0*/	function /*{HRESULT}*/ AX_GET_DocInput( /*{DocInput**}*/) /*{propget}*/ {
+		Send(MSG_AX_GET_PROPERTY, "DocInput", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*1*/	function /*{HRESULT}*/ AX_GET_DocOutput( /*{DocOutput**}*/) /*{propget}*/ {
+		Send(MSG_AX_GET_PROPERTY, "DocOutput", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*2*/	function /*{HRESULT}*/ AX_GET_URL( /*{BSTR*}*/) /*{propget}*/ {
+		Send(MSG_AX_GET_PROPERTY, "URL", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*3*/	function /*{HRESULT}*/ AX_GET_RequestURL( /*{BSTR*}*/) /*{propget}*/ {
+		Send(MSG_AX_GET_PROPERTY, "RequestURL", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*4*/	function /*{HRESULT}*/ AX_GET_BaseURL( /*{BSTR*}*/) /*{propget}*/ {
+		Send(MSG_AX_GET_PROPERTY, "BaseURL", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*5*/	function /*{HRESULT}*/ AX_GET_Forms( /*{HTMLForms**}*/) /*{propget}*/ {
+		Send(MSG_AX_GET_PROPERTY, "Forms", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*6*/	function /*{HRESULT}*/ AX_GET_TotalWidth( /*{long*}*/) /*{propget}*/ {
+		Send(MSG_AX_GET_PROPERTY, "TotalWidth", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*7*/	function /*{HRESULT}*/ AX_GET_TotalHeight( /*{long*}*/) /*{propget}*/ {
+		Send(MSG_AX_GET_PROPERTY, "TotalHeight", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*8*/	function /*{HRESULT}*/ AX_GET_RetrieveBytesTotal( /*{long*}*/) /*{propget}*/ {
+		Send(MSG_AX_GET_PROPERTY, "RetrieveBytesTotal", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*9*/	function /*{HRESULT}*/ AX_GET_RetrieveBytesDone( /*{long*}*/) /*{propget}*/ {
+		Send(MSG_AX_GET_PROPERTY, "RetrieveBytesDone", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*10*/	function /*{HRESULT}*/ AX_GET_ParseDone( /*{VARIANT_BOOL*}*/) /*{propget}*/ {
+		Send(MSG_AX_GET_PROPERTY, "ParseDone", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*11*/	function /*{HRESULT}*/ AX_GET_LayoutDone( /*{VARIANT_BOOL*}*/) /*{propget}*/ {
+		Send(MSG_AX_GET_PROPERTY, "LayoutDone", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*12*/	function /*{HRESULT}*/ AX_GET_DeferRetrieval( /*{VARIANT_BOOL*}*/) /*{propget}*/ {
+		Send(MSG_AX_GET_PROPERTY, "DeferRetrieval", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*13*/	function /*{HRESULT}*/ AX_SET_DeferRetrieval(parameter0 /*{VARIANT_BOOL}*/) /*{propput}*/ {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_SET_PROPERTY, "DeferRetrieval", "0");
+	}
+
+/*14*/	function /*{HRESULT}*/ AX_GET_ViewSource( /*{VARIANT_BOOL*}*/) /*{propget}*/ {
+		Send(MSG_AX_GET_PROPERTY, "ViewSource", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*15*/	function /*{HRESULT}*/ AX_SET_ViewSource(parameter0 /*{VARIANT_BOOL}*/) /*{propput}*/ {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_SET_PROPERTY, "ViewSource", "0");
+	}
+
+/*16*/	function /*{HRESULT}*/ AX_GET_RetainSource( /*{VARIANT_BOOL*}*/) /*{propget}*/ {
+		Send(MSG_AX_GET_PROPERTY, "RetainSource", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*17*/	function /*{HRESULT}*/ AX_SET_RetainSource(parameter0 /*{VARIANT_BOOL}*/) /*{propput}*/ {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_SET_PROPERTY, "RetainSource", "0");
+	}
+
+/*18*/	function /*{HRESULT}*/ AX_GET_SourceText( /*{BSTR*}*/) /*{propget}*/ {
+		Send(MSG_AX_GET_PROPERTY, "SourceText", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*19*/	function /*{HRESULT}*/ AX_GET_ElemNotification( /*{VARIANT_BOOL*}*/) /*{propget}*/ {
+		Send(MSG_AX_GET_PROPERTY, "ElemNotification", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*20*/	function /*{HRESULT}*/ AX_SET_ElemNotification(parameter0 /*{VARIANT_BOOL}*/) /*{propput}*/ {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_SET_PROPERTY, "ElemNotification", "0");
+	}
+
+/*21*/	function /*{HRESULT}*/ AX_GET_Timeout( /*{long*}*/) /*{propget}*/ {
+		Send(MSG_AX_GET_PROPERTY, "Timeout", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*22*/	function /*{HRESULT}*/ AX_SET_Timeout(parameter0 /*{long}*/) /*{propput}*/ {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_SET_PROPERTY, "Timeout", "0");
+	}
+
+/*23*/	function /*{HRESULT}*/ AX_GET_Redraw( /*{VARIANT_BOOL*}*/) /*{propget}*/ {
+		Send(MSG_AX_GET_PROPERTY, "Redraw", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*24*/	function /*{HRESULT}*/ AX_SET_Redraw(parameter0 /*{VARIANT_BOOL}*/) /*{propput}*/ {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_SET_PROPERTY, "Redraw", "0");
+	}
+
+/*25*/	function /*{HRESULT}*/ AX_GET_UnderlineLinks( /*{VARIANT_BOOL*}*/) /*{propget}*/ {
+		Send(MSG_AX_GET_PROPERTY, "UnderlineLinks", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*26*/	function /*{HRESULT}*/ AX_SET_UnderlineLinks(parameter0 /*{VARIANT_BOOL}*/) /*{propput}*/ {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_SET_PROPERTY, "UnderlineLinks", "0");
+	}
+
+/*27*/	function /*{HRESULT}*/ AX_GET_UseDocColors( /*{VARIANT_BOOL*}*/) /*{propget}*/ {
+		Send(MSG_AX_GET_PROPERTY, "UseDocColors", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*28*/	function /*{HRESULT}*/ AX_SET_UseDocColors(parameter0 /*{VARIANT_BOOL}*/) /*{propput}*/ {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_SET_PROPERTY, "UseDocColors", "0");
+	}
+
+/*29*/	function /*{HRESULT}*/ AX_GET_BackImage( /*{BSTR*}*/) /*{propget}*/ {
+		Send(MSG_AX_GET_PROPERTY, "BackImage", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*30*/	function /*{HRESULT}*/ AX_SET_BackImage(parameter0 /*{BSTR}*/) /*{propput}*/ {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_SET_PROPERTY, "BackImage", "0");
+	}
+
+/*31*/	function /*{HRESULT}*/ AX_GET_BackColor( /*{OLE_COLOR*}*/) /*{propget}*/ {
+		Send(MSG_AX_GET_PROPERTY, "BackColor", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*32*/	function /*{HRESULT}*/ AX_SET_BackColor(parameter0 /*{OLE_COLOR}*/) /*{propput}*/ {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_SET_PROPERTY, "BackColor", "0");
+	}
+
+/*33*/	function /*{HRESULT}*/ AX_GET_ForeColor( /*{OLE_COLOR*}*/) /*{propget}*/ {
+		Send(MSG_AX_GET_PROPERTY, "ForeColor", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*34*/	function /*{HRESULT}*/ AX_SET_ForeColor(parameter0 /*{OLE_COLOR}*/) /*{propput}*/ {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_SET_PROPERTY, "ForeColor", "0");
+	}
+
+/*35*/	function /*{HRESULT}*/ AX_GET_LinkColor( /*{OLE_COLOR*}*/) /*{propget}*/ {
+		Send(MSG_AX_GET_PROPERTY, "LinkColor", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*36*/	function /*{HRESULT}*/ AX_SET_LinkColor(parameter0 /*{OLE_COLOR}*/) /*{propput}*/ {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_SET_PROPERTY, "LinkColor", "0");
+	}
+
+/*37*/	function /*{HRESULT}*/ AX_GET_VisitedColor( /*{OLE_COLOR*}*/) /*{propget}*/ {
+		Send(MSG_AX_GET_PROPERTY, "VisitedColor", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*38*/	function /*{HRESULT}*/ AX_SET_VisitedColor(parameter0 /*{OLE_COLOR}*/) /*{propput}*/ {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_SET_PROPERTY, "VisitedColor", "0");
+	}
+
+/*39*/	function /*{HRESULT}*/ AX_GET_DocBackColor( /*{OLE_COLOR*}*/) /*{propget}*/ {
+		Send(MSG_AX_GET_PROPERTY, "DocBackColor", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*40*/	function /*{HRESULT}*/ AX_GET_DocForeColor( /*{OLE_COLOR*}*/) /*{propget}*/ {
+		Send(MSG_AX_GET_PROPERTY, "DocForeColor", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*41*/	function /*{HRESULT}*/ AX_GET_DocLinkColor( /*{OLE_COLOR*}*/) /*{propget}*/ {
+		Send(MSG_AX_GET_PROPERTY, "DocLinkColor", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*42*/	function /*{HRESULT}*/ AX_GET_DocVisitedColor( /*{OLE_COLOR*}*/) /*{propget}*/ {
+		Send(MSG_AX_GET_PROPERTY, "DocVisitedColor", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*43*/	function /*{HRESULT}*/ AX_GET_Font( /*{IFontDisp**}*/) /*{propget}*/ {
+		Send(MSG_AX_GET_PROPERTY, "Font", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*44*/	function /*{HRESULT}*/ AX_SET_Font(var parameter0 /*{IFontDisp*}*/) /*{propput}*/ {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_SET_PROPERTY, "Font", "0");
+	}
+
+/*45*/	function /*{HRESULT}*/ AX_GET_FixedFont( /*{IFontDisp**}*/) /*{propget}*/ {
+		Send(MSG_AX_GET_PROPERTY, "FixedFont", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*46*/	function /*{HRESULT}*/ AX_SET_FixedFont(var parameter0 /*{IFontDisp*}*/) /*{propput}*/ {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_SET_PROPERTY, "FixedFont", "0");
+	}
+
+/*47*/	function /*{HRESULT}*/ AX_GET_Heading1Font( /*{IFontDisp**}*/) /*{propget}*/ {
+		Send(MSG_AX_GET_PROPERTY, "Heading1Font", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*48*/	function /*{HRESULT}*/ AX_SET_Heading1Font(var parameter0 /*{IFontDisp*}*/) /*{propput}*/ {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_SET_PROPERTY, "Heading1Font", "0");
+	}
+
+/*49*/	function /*{HRESULT}*/ AX_GET_Heading2Font( /*{IFontDisp**}*/) /*{propget}*/ {
+		Send(MSG_AX_GET_PROPERTY, "Heading2Font", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*50*/	function /*{HRESULT}*/ AX_SET_Heading2Font(var parameter0 /*{IFontDisp*}*/) /*{propput}*/ {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_SET_PROPERTY, "Heading2Font", "0");
+	}
+
+/*51*/	function /*{HRESULT}*/ AX_GET_Heading3Font( /*{IFontDisp**}*/) /*{propget}*/ {
+		Send(MSG_AX_GET_PROPERTY, "Heading3Font", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*52*/	function /*{HRESULT}*/ AX_SET_Heading3Font(var parameter0 /*{IFontDisp*}*/) /*{propput}*/ {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_SET_PROPERTY, "Heading3Font", "0");
+	}
+
+/*53*/	function /*{HRESULT}*/ AX_GET_Heading4Font( /*{IFontDisp**}*/) /*{propget}*/ {
+		Send(MSG_AX_GET_PROPERTY, "Heading4Font", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*54*/	function /*{HRESULT}*/ AX_SET_Heading4Font(var parameter0 /*{IFontDisp*}*/) /*{propput}*/ {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_SET_PROPERTY, "Heading4Font", "0");
+	}
+
+/*55*/	function /*{HRESULT}*/ AX_GET_Heading5Font( /*{IFontDisp**}*/) /*{propget}*/ {
+		Send(MSG_AX_GET_PROPERTY, "Heading5Font", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*56*/	function /*{HRESULT}*/ AX_SET_Heading5Font(var parameter0 /*{IFontDisp*}*/) /*{propput}*/ {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_SET_PROPERTY, "Heading5Font", "0");
+	}
+
+/*57*/	function /*{HRESULT}*/ AX_GET_Heading6Font( /*{IFontDisp**}*/) /*{propget}*/ {
+		Send(MSG_AX_GET_PROPERTY, "Heading6Font", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*58*/	function /*{HRESULT}*/ AX_SET_Heading6Font(var parameter0 /*{IFontDisp*}*/) /*{propput}*/ {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_SET_PROPERTY, "Heading6Font", "0");
+	}
+
+/*59*/	function /*{HRESULT}*/ AX_GET_IsPrintingDone( /*{long}*/  /*{VARIANT_BOOL*}*/) /*{propget}*/ {
+		Send(MSG_AX_GET_PROPERTY, "IsPrintingDone", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*60*/	function /*{HRESULT}*/ RequestDoc(parameter0 /*{BSTR}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_CALL_METHOD, "RequestDoc", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*61*/	function /*{HRESULT}*/ RequestAllEmbedded()  {
+		Send(MSG_AX_CALL_METHOD, "RequestAllEmbedded", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*62*/	function /*{HRESULT}*/ Cancel(parameter0 /*{VARIANT}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_CALL_METHOD, "Cancel", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*63*/	function /*{HRESULT}*/ BeginPrinting(parameter0 /*{long}*/, parameter1 /*{VARIANT}*/, parameter2 /*{VARIANT}*/, parameter3 /*{VARIANT}*/, parameter4 /*{VARIANT}*/, parameter5 /*{VARIANT}*/, parameter6 /*{VARIANT}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter1);
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter2);
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter3);
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter4);
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter5);
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter6);
+		Send(MSG_AX_CALL_METHOD, "BeginPrinting", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*64*/	function /*{HRESULT}*/ PrintPage(parameter0 /*{long}*/, parameter1 /*{long}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter1);
+		Send(MSG_AX_CALL_METHOD, "PrintPage", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*65*/	function /*{HRESULT}*/ EndPrinting()  {
+		Send(MSG_AX_CALL_METHOD, "EndPrinting", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*66*/	function /*{HRESULT}*/ AutoPrint(parameter0 /*{long}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_CALL_METHOD, "AutoPrint", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*67*/	function /*{HRESULT}*/ AX_GET_Errors( /*{icErrors**}*/) /*{propget}*/ {
+		Send(MSG_AX_GET_PROPERTY, "Errors", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*68*/	function /*{HRESULT}*/ AX_GET_hWnd( /*{OLE_HANDLE*}*/) /*{propget}*/ {
+		Send(MSG_AX_GET_PROPERTY, "hWnd", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*69*/	function /*{HRESULT}*/ GetPlainText(parameter0 /*{VARIANT_BOOL}*/, parameter1 /*{VARIANT_BOOL}*/, var parameter2 /*{BSTR*}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter1);
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter2);
+		Send(MSG_AX_CALL_METHOD, "GetPlainText", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*70*/	function /*{HRESULT}*/ HasSelection(var parameter0 /*{VARIANT_BOOL*}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_CALL_METHOD, "HasSelection", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*71*/	function /*{HRESULT}*/ SelectAll()  {
+		Send(MSG_AX_CALL_METHOD, "SelectAll", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+//---------------- BEGIN OF EVENTS INTERFACE (info only) -----------------//
+	//Event syntax:void Error(parameter0<short>, parameter1<BSTR*>, parameter2<long>, parameter3<BSTR>, parameter4<BSTR>, parameter5<long>, parameter6<VARIANT_BOOL*>) 
+	public property _OnError { get Get_OnError, set Set_OnError }
+	public function Get_OnError() {
+		return _AX_EVENTS[1];
+	}
+
+	public function Set_OnError(deleg) {
+		_AX_EVENTS[1]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",1);
+	}
+
+	//Event syntax:void DocInput(parameter0<DocInput*>) 
+	public property _OnDocInput { get Get_OnDocInput, set Set_OnDocInput }
+	public function Get_OnDocInput() {
+		return _AX_EVENTS[2];
+	}
+
+	public function Set_OnDocInput(deleg) {
+		_AX_EVENTS[2]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",2);
+	}
+
+	//Event syntax:void DocOutput(parameter0<DocOutput*>) 
+	public property _OnDocOutput { get Get_OnDocOutput, set Set_OnDocOutput }
+	public function Get_OnDocOutput() {
+		return _AX_EVENTS[3];
+	}
+
+	public function Set_OnDocOutput(deleg) {
+		_AX_EVENTS[3]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",3);
+	}
+
+	//Event syntax:void ParseComplete() 
+	public property _OnParseComplete { get Get_OnParseComplete, set Set_OnParseComplete }
+	public function Get_OnParseComplete() {
+		return _AX_EVENTS[4];
+	}
+
+	public function Set_OnParseComplete(deleg) {
+		_AX_EVENTS[4]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",4);
+	}
+
+	//Event syntax:void LayoutComplete() 
+	public property _OnLayoutComplete { get Get_OnLayoutComplete, set Set_OnLayoutComplete }
+	public function Get_OnLayoutComplete() {
+		return _AX_EVENTS[5];
+	}
+
+	public function Set_OnLayoutComplete(deleg) {
+		_AX_EVENTS[5]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",5);
+	}
+
+	//Event syntax:void Timeout() 
+	public property _OnTimeout { get Get_OnTimeout, set Set_OnTimeout }
+	public function Get_OnTimeout() {
+		return _AX_EVENTS[6];
+	}
+
+	public function Set_OnTimeout(deleg) {
+		_AX_EVENTS[6]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",6);
+	}
+
+	//Event syntax:void BeginRetrieval() 
+	public property _OnBeginRetrieval { get Get_OnBeginRetrieval, set Set_OnBeginRetrieval }
+	public function Get_OnBeginRetrieval() {
+		return _AX_EVENTS[7];
+	}
+
+	public function Set_OnBeginRetrieval(deleg) {
+		_AX_EVENTS[7]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",7);
+	}
+
+	//Event syntax:void UpdateRetrieval() 
+	public property _OnUpdateRetrieval { get Get_OnUpdateRetrieval, set Set_OnUpdateRetrieval }
+	public function Get_OnUpdateRetrieval() {
+		return _AX_EVENTS[8];
+	}
+
+	public function Set_OnUpdateRetrieval(deleg) {
+		_AX_EVENTS[8]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",8);
+	}
+
+	//Event syntax:void EndRetrieval() 
+	public property _OnEndRetrieval { get Get_OnEndRetrieval, set Set_OnEndRetrieval }
+	public function Get_OnEndRetrieval() {
+		return _AX_EVENTS[9];
+	}
+
+	public function Set_OnEndRetrieval(deleg) {
+		_AX_EVENTS[9]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",9);
+	}
+
+	//Event syntax:void DoRequestDoc(parameter0<BSTR>, parameter1<HTMLElement*>, parameter2<DocInput*>, parameter3<VARIANT_BOOL*>) 
+	public property _OnDoRequestDoc { get Get_OnDoRequestDoc, set Set_OnDoRequestDoc }
+	public function Get_OnDoRequestDoc() {
+		return _AX_EVENTS[10];
+	}
+
+	public function Set_OnDoRequestDoc(deleg) {
+		_AX_EVENTS[10]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",10);
+	}
+
+	//Event syntax:void DoRequestEmbedded(parameter0<BSTR>, parameter1<HTMLElement*>, parameter2<DocInput*>, parameter3<VARIANT_BOOL*>) 
+	public property _OnDoRequestEmbedded { get Get_OnDoRequestEmbedded, set Set_OnDoRequestEmbedded }
+	public function Get_OnDoRequestEmbedded() {
+		return _AX_EVENTS[11];
+	}
+
+	public function Set_OnDoRequestEmbedded(deleg) {
+		_AX_EVENTS[11]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",11);
+	}
+
+	//Event syntax:void DoRequestSubmit(parameter0<BSTR>, parameter1<HTMLForm*>, parameter2<DocOutput*>, parameter3<VARIANT_BOOL*>) 
+	public property _OnDoRequestSubmit { get Get_OnDoRequestSubmit, set Set_OnDoRequestSubmit }
+	public function Get_OnDoRequestSubmit() {
+		return _AX_EVENTS[12];
+	}
+
+	public function Set_OnDoRequestSubmit(deleg) {
+		_AX_EVENTS[12]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",12);
+	}
+
+	//Event syntax:void DoNewElement(parameter0<BSTR>, parameter1<VARIANT_BOOL>, parameter2<HTMLAttrs*>, parameter3<BSTR>, parameter4<VARIANT_BOOL*>) 
+	public property _OnDoNewElement { get Get_OnDoNewElement, set Set_OnDoNewElement }
+	public function Get_OnDoNewElement() {
+		return _AX_EVENTS[13];
+	}
+
+	public function Set_OnDoNewElement(deleg) {
+		_AX_EVENTS[13]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",13);
+	}
+
+	//Event syntax:void KeyPress(parameter0<short>) 
+	public property _OnKeyPress { get Get_OnKeyPress, set Set_OnKeyPress }
+	public function Get_OnKeyPress() {
+		return _AX_EVENTS[14];
+	}
+
+	public function Set_OnKeyPress(deleg) {
+		_AX_EVENTS[14]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",14);
+	}
+
+	//Event syntax:void KeyDown(parameter0<short>, parameter1<short>) 
+	public property _OnKeyDown { get Get_OnKeyDown, set Set_OnKeyDown }
+	public function Get_OnKeyDown() {
+		return _AX_EVENTS[15];
+	}
+
+	public function Set_OnKeyDown(deleg) {
+		_AX_EVENTS[15]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",15);
+	}
+
+	//Event syntax:void KeyUp(parameter0<short>, parameter1<short>) 
+	public property _OnKeyUp { get Get_OnKeyUp, set Set_OnKeyUp }
+	public function Get_OnKeyUp() {
+		return _AX_EVENTS[16];
+	}
+
+	public function Set_OnKeyUp(deleg) {
+		_AX_EVENTS[16]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",16);
+	}
+
+	//Event syntax:void Click() 
+	public property _OnClick { get Get_OnClick, set Set_OnClick }
+	public function Get_OnClick() {
+		return _AX_EVENTS[17];
+	}
+
+	public function Set_OnClick(deleg) {
+		_AX_EVENTS[17]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",17);
+	}
+
+	//Event syntax:void DblClick() 
+	public property _OnDblClick { get Get_OnDblClick, set Set_OnDblClick }
+	public function Get_OnDblClick() {
+		return _AX_EVENTS[18];
+	}
+
+	public function Set_OnDblClick(deleg) {
+		_AX_EVENTS[18]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",18);
+	}
+
+	//Event syntax:void MouseDown(parameter0<short>, parameter1<short>, parameter2<OLE_XPOS_PIXELS>, parameter3<OLE_YPOS_PIXELS>) 
+	public property _OnMouseDown { get Get_OnMouseDown, set Set_OnMouseDown }
+	public function Get_OnMouseDown() {
+		return _AX_EVENTS[19];
+	}
+
+	public function Set_OnMouseDown(deleg) {
+		_AX_EVENTS[19]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",19);
+	}
+
+	//Event syntax:void MouseMove(parameter0<short>, parameter1<short>, parameter2<OLE_XPOS_PIXELS>, parameter3<OLE_YPOS_PIXELS>) 
+	public property _OnMouseMove { get Get_OnMouseMove, set Set_OnMouseMove }
+	public function Get_OnMouseMove() {
+		return _AX_EVENTS[20];
+	}
+
+	public function Set_OnMouseMove(deleg) {
+		_AX_EVENTS[20]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",20);
+	}
+
+	//Event syntax:void MouseUp(parameter0<short>, parameter1<short>, parameter2<OLE_XPOS_PIXELS>, parameter3<OLE_YPOS_PIXELS>) 
+	public property _OnMouseUp { get Get_OnMouseUp, set Set_OnMouseUp }
+	public function Get_OnMouseUp() {
+		return _AX_EVENTS[21];
+	}
+
+	public function Set_OnMouseUp(deleg) {
+		_AX_EVENTS[21]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",21);
+	}
+
+//------------------ END OF EVENTS INTERFACE (info only) -----------------//
+
+	public property DocInput { get AX_GET_DocInput }
+	public property DocOutput { get AX_GET_DocOutput }
+	public property URL { get AX_GET_URL }
+	public property RequestURL { get AX_GET_RequestURL }
+	public property BaseURL { get AX_GET_BaseURL }
+	public property Forms { get AX_GET_Forms }
+	public property TotalWidth { get AX_GET_TotalWidth }
+	public property TotalHeight { get AX_GET_TotalHeight }
+	public property RetrieveBytesTotal { get AX_GET_RetrieveBytesTotal }
+	public property RetrieveBytesDone { get AX_GET_RetrieveBytesDone }
+	public property ParseDone { get AX_GET_ParseDone }
+	public property LayoutDone { get AX_GET_LayoutDone }
+	public property DeferRetrieval { get AX_GET_DeferRetrieval, set AX_SET_DeferRetrieval }
+	public property ViewSource { get AX_GET_ViewSource, set AX_SET_ViewSource }
+	public property RetainSource { get AX_GET_RetainSource, set AX_SET_RetainSource }
+	public property SourceText { get AX_GET_SourceText }
+	public property ElemNotification { get AX_GET_ElemNotification, set AX_SET_ElemNotification }
+	public property Timeout { get AX_GET_Timeout, set AX_SET_Timeout }
+	public property Redraw { get AX_GET_Redraw, set AX_SET_Redraw }
+	public property UnderlineLinks { get AX_GET_UnderlineLinks, set AX_SET_UnderlineLinks }
+	public property UseDocColors { get AX_GET_UseDocColors, set AX_SET_UseDocColors }
+	public property BackImage { get AX_GET_BackImage, set AX_SET_BackImage }
+	public property BackColor { get AX_GET_BackColor, set AX_SET_BackColor }
+	public property ForeColor { get AX_GET_ForeColor, set AX_SET_ForeColor }
+	public property LinkColor { get AX_GET_LinkColor, set AX_SET_LinkColor }
+	public property VisitedColor { get AX_GET_VisitedColor, set AX_SET_VisitedColor }
+	public property DocBackColor { get AX_GET_DocBackColor }
+	public property DocForeColor { get AX_GET_DocForeColor }
+	public property DocLinkColor { get AX_GET_DocLinkColor }
+	public property DocVisitedColor { get AX_GET_DocVisitedColor }
+	public property _Font { get AX_GET_Font, set AX_SET_Font }
+	public property FixedFont { get AX_GET_FixedFont, set AX_SET_FixedFont }
+	public property Heading1Font { get AX_GET_Heading1Font, set AX_SET_Heading1Font }
+	public property Heading2Font { get AX_GET_Heading2Font, set AX_SET_Heading2Font }
+	public property Heading3Font { get AX_GET_Heading3Font, set AX_SET_Heading3Font }
+	public property Heading4Font { get AX_GET_Heading4Font, set AX_SET_Heading4Font }
+	public property Heading5Font { get AX_GET_Heading5Font, set AX_SET_Heading5Font }
+	public property Heading6Font { get AX_GET_Heading6Font, set AX_SET_Heading6Font }
+	public property IsPrintingDone { get AX_GET_IsPrintingDone }
+	public property Errors { get AX_GET_Errors }
+	public property hWnd { get AX_GET_hWnd }
+}

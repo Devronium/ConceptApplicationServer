@@ -1,0 +1,24 @@
+<html>
+<head>
+	<title></title>
+</head>
+<body style="margin: 0px 0px 0px 0px;">
+<div id="sample">
+<script type="text/javascript">
+var ImagesList={{IMAGE_LIST_OBJECT}};
+</script>
+<script type="text/javascript" src="js/nicEdit.js"></script>
+<script type="text/javascript">
+	//bkLib.onDomLoaded(function() { nicEditors.allTextAreas() });
+    bkLib.onDomLoaded(function() {var ne=new nicEditor({buttonList : ['fontSize','bold','italic','underline','strikeThrough','subscript','superscript', 'strikethrough' ,'left','center','right', 'justify', 'indent', 'outdent', 'forecolor', 'bgcolor', 'ol', 'ul' ,'html','image','link','unlink']}); ne.setPanel('myNicPanel'); ne.addInstance('area1'); });
+</script>
+<form enctype="multipart/form-data" method="post" action="http://null/update.html" name="emulateform" id="eform">
+    <div id="myNicPanel" style="width: 100%;"></div>
+    <textarea name="content" id="area1" style="width: 100%;">
+	    {CONTENT}
+    </textarea>
+    <div style="visibility:hidden"><input type="submit" id="sbtn" value="Update content"/></div>
+</form>
+
+</body>
+</html>

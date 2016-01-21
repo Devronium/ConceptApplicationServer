@@ -1,0 +1,81 @@
+﻿<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" >
+<head>
+    <title>Documentation for {action.Name}</title>
+</head>
+<body>
+
+<table width="100%" border="0" cellpadding="0" cellspacing="0">
+    <tr bgcolor="#660066"><td colspan="2"><h1><font color="#FFFFFF">{application}</font></h1></td></tr>
+    <tr bgcolor="#F3F3F3"><td>{description}</td><td align="right"><a href="javascript:if (history.length>1) history.go(-1); else window.location.href='internal://goback';"><img src="res/_back.png" alt="back" border="0"/></a>&nbsp;<a href="index.html"><img src="res/_home.png" alt="home" border="0"/></a>&nbsp;<a href="javascript:if (history.length>1) history.go(1); else window.location.href='internal://goforward';"><img src="res/_forward.png" alt="next" border="0"/></a></td></tr>
+    <tr bgcolor="#FFFFFF"><td colspan="2">
+        <br />
+        <br />
+        <table>
+        <tr>
+        <td valign="middle" align="center"><img src="res/{action_icon}" alt="{action.Name} icon" /></td>
+        <td>
+        <strong>{action.Name}</strong><br />
+        </td></tr></table>
+        <hr />
+        <table width="100%" cellpadding="0" cellspacing="0"><tr><td bgcolor="#f0f0f0">
+        <small>
+        <font color="#808080">
+        {if action.UserLevel}
+            You need to be at least {action.UserLevel} level user to perform this operation.
+        {else}
+            Any user can perform this operation.
+        {endif}
+        </font></small>
+        </td></tr>
+        </table>
+        <br />
+        <br />
+        {if action.ShowInMenu}
+            {if action.ShowInToolbar}
+                {if action.MenuCategory}
+                    You can trigger this operation by pressing on the "<b>{action.Name}</b>" from the main form toolbar or from the menu path:<br /> <b>{action.MenuCategory}</b> -> <b>{action.Name}</b>.
+                {else}
+                    You can trigger this operation by pressing on the "<b>{action.Name}</b>" from the main form toolbar or from the menu, by choosing </b>{action.Name}</b>.
+                {endif}
+            {else}
+                {if action.MenuCategory}
+                    You can trigger this operation from the main menu path:<br /> <b>{action.MenuCategory}</b> -> <b>{action.Name}</b>.
+                {else}
+                    You can trigger this operation from the main menu, by choosing </b>{action.Name}</b>.
+                {endif}
+            {endif}
+        {else}
+            {if action.ShowInToolbar}
+                You can trigger this operation by pressing on the "<b>{action.Name}</b>" from the main form toolbar.
+            {endif}
+        {endif}
+        <br />
+        
+        {if action.Comments}
+        <br />
+        <b>Description:</b><br />
+        {action.Comments}
+        <br /><br />
+        {endif}
+        <br />
+        {if action.HasProgressbar}
+            {if action.HasSecondaryProgressbar}
+            When you select this, two progressbars indicating the overall and the current progress status of the operation will be displayed.
+            {else}
+            When you select this, a progressbar indicating the progress status of the operation will be displayed.
+            {endif}
+            <br />
+        {endif}
+        
+        {if action.HasHistory}
+            In the progress window associated with this operation, an info box displaying errors, warnings or status information will appear.<br />
+        {endif}
+        <br />
+        <br />
+        <br />
+    </td></tr>
+    <tr bgcolor="#660066"><td colspan="2"><font color="#FFFFFF"><small>Help file generated at {time}</small></font></td></tr>
+</table>
+</body>
+</html>

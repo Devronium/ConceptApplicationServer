@@ -1,0 +1,55 @@
+import 'standard.net.soap'
+include 'WebDocument.con'
+
+define URL	"http://websrv.cs.fsu.edu/~engelen/calcserver.cgi"
+
+define URN	"urn:calc"
+define METHOD	"pow"
+
+class Main {
+
+
+	function Main() {
+		var ctx;
+		var ctx2;
+		var err;
+		var env;
+
+		err=SOAPClientInitArgs();
+		if (err) {
+			echo SOAPError(err);
+			return -1;
+		}
+		err=SOAPCtxNewWithMethod(URN,METHOD,ctx);
+		if (err) {
+			echo SOAPError(err);
+			return -1;
+		}
+
+		env=SOAPGetEnv(ctx);
+		if (err) {
+			echo SOAPError(err);
+			return -1;
+		}
+
+
+		SOAPEnvAddItem(env,"xsd:double","a","10");
+		SOAPEnvAddItem(env,"xsd:double","b","20");
+
+		err=SOAPClientInvoke(ctx,ctx2,URL,"");
+		if (err) {
+			echo SOAPError(err);
+			SOAPXMLDocPrint(SOAPGetRootDoc(SOAPGetEnv(ctx)));
+			return -1;
+		}
+
+		SOAPXMLDocPrint(SOAPGetRootDoc(SOAPGetEnv(ctx2)));
+		echo "\n\n";
+		SOAPXMLDocPrint(SOAPGetRootDoc(SOAPGetEnv(ctx)));
+
+		SOAPCtxFree(ctx2);
+		SOAPCtxFree(ctx);
+		SOAPClientDestroy();
+	}
+}
+

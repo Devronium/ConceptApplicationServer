@@ -1,0 +1,92 @@
+//---------------------------------------------------------------//
+// Concept messages list                                         //
+//---------------------------------------------------------------//
+
+//-------- basic message list -------//
+define MSG_GET_PROPERTY         0x9E
+define MSG_FOCUS_CHANGED        0x9F
+define MSG_CREATE               0x100
+define MSG_DESTROY              0x101
+define MSG_ACTIVATE             0x102
+define MSG_DEACTIVATE           0x103
+define MSG_CLOSE                0x104
+define MSG_MINIMIZE             0x105
+define MSG_MAXIMIZE             0x106
+define MSG_RESTORE              0x107
+define MSG_ENABLE               0x108
+define MSG_DISABLE              0x109
+define MSG_KEY_PRESSED          0x10A
+define MSG_CHANGED              0x10B
+
+//-------- mouse message list -------//
+define MSG_MOUSE_ENTER          0x701
+define MSG_MOUSE_LEAVE          0x702
+
+define MSG_LBUTTON_UP           0x703
+define MSG_LBUTTON_DOWN         0x704
+define MSG_LBUTTON_DBCLK        0x705
+
+define MSG_RBUTTON_UP           0x706
+define MSG_RBUTTON_DOWN         0x707
+define MSG_RBUTTON_DBCLK        0x708
+
+define MSG_MBUTTON_UP           0x709
+define MSG_MBUTTON_DOWN         0x70A
+define MSG_MBUTTON_DBCLK        0x70B
+
+define MSG_MENU_COMMAND         0x750
+
+//------ behaviour message list -----//
+
+define MSG_VERTICAL_SCROLL      0x110
+define MSG_HORIZONTAL_SCROLL    0x111
+
+define MSG_SIZE_CHANGED         0x112
+define MSG_POSITION_CHANGED     0x113
+define MSG_LIST_BOX_INDEX_CHANGED 0x299
+
+define MSG_STATUS_BAR_TEXT      0x120
+
+define MSG_UP_DOWN_CHANGED      0x130
+define MSG_TRACK_CHANGED        0x140
+
+define MSG_SETIMAGE             0x250
+
+define MSG_TIMER                0x350
+
+define MSG_GRAPH_MOVE_TO        0x400
+define MSG_GRAPH_LINE_TO        0x401
+define MSG_GRAPH_PEN_COLOR      0x402
+define MSG_GRAPH_CANVAS_COLOR   0x403
+
+define MSG_CREATE_ACTIVEX       0x420
+define MSG_AX_SET_PROPERTY      0x421
+define MSG_AX_ADD_PARAMETER     0x422
+define MSG_AX_CALL_METHOD       0x423
+define MSG_AX_ADD_FILEPARAMETER 0x424
+define MSG_AX_GET_PROPERTY      0x425
+define MSG_AX_GET_RESULT        0x426
+define MSG_AX_ADD_EVENT         0x427
+define MSG_AX_AKNOWLEDGE_EVENT  0x428
+define MSG_AX_CLEAR_EVENTS_DATA 0x429
+define MSG_AX_EVENT_FIRED       0x430
+define MSG_AX_GET_EVENT_PARAM   0x431
+
+define MSG_SCROLL               0x450
+
+define MSG_APPLICATION_QUIT     0x500
+define MSG_MESSAGING_SYSTEM     0x501
+define MSG_FILE_COOKIE          0x502
+define MSG_CLIENT_QUERY         0x503
+
+define MSG_ITEM_ADD             0x504
+define MSG_ITEM_REMOVE          0x505
+define MSG_ITEM_CLEAR           0x506
+define MSG_ITEM_GET             0x507
+define MSG_ITEM_SET             0x508
+
+define MSG_ITEMEX1_ADD          0x514
+define MSG_ITEMEX1_REMOVE       0x515
+define MSG_ITEMEX1_CLEAR        0x516
+define MSG_ITEMEX1_GET          0x517
+define MSG_ITEMEX1_SET          0x518

@@ -1,0 +1,43 @@
+include 'Control.con'
+
+class ConceptImageList extends Control {
+	protected var _IMAGEWIDTH;
+	protected var _IMAGEHEIGHT;
+	public property ImageWidth { set SetImageWidth, get _IMAGEWIDTH }
+	public property ImageHeight { set SetImageHeight, get _IMAGEHEIGHT }
+
+	protected function SetImageWidth(x) {
+		if (typeof x==NUMERIC_TYPE)
+			this->_IMAGEWIDTH=x;
+		else
+			throw new ControlException(EXC_INVALID_ARGUMENT_TYPE, this);
+
+                SendMessage(this->Name, MSG_CHANGED, P_ICONWIDTH, x);
+	}
+
+	protected function SetImageHeight(x) {
+		if (typeof x==NUMERIC_TYPE)
+			this->_IMAGEHEIGHT=x;
+		else
+			throw new ControlException(EXC_INVALID_ARGUMENT_TYPE, this);
+                SendMessage(this->Name, MSG_CHANGED, P_ICONHEIGHT, x);
+	}
+
+	public function ConceptImageList(Owner) {
+		this->Control(Owner, CLASS_IMAGELIST);
+	}
+
+	public function AddPicture(x) {
+		if (typeof x==STRING_TYPE) {
+			var FILE=_fopen(x,"rb");
+			if (FILE) {
+				var DATA;
+				var size=_fread(DATA,1,_fsize(FILE),FILE);
+				_fclose(FILE);
+				DATA=mime_encode(DATA);
+                		SendMessage(this->Name, MSG_ITEM_ADD, "0", DATA);
+			}
+		} else
+		     	throw new ControlException(EXC_INVALID_ARGUMENT_TYPE, this);
+	}
+}

@@ -1,0 +1,76 @@
+include VisibleRemoteObject.con
+//include RemoteEvents.con
+
+define P_OPERATION                 "10003"
+define P_PROJECTINDEX              "10004"
+define P_PALETTETYPE               "10005"
+define P_NEWPROJECT                "10006"
+define P_CLOSEPROJECT              "10007"
+
+define PALETTE_ICONS		0
+define PALETTE_ICONS_TEXT	1
+define PALETTE_TEXT		2
+
+class RGlade extends VisibleRemoteObject {
+	private var PALETTE;
+
+	public property Palette { set SetPalette, get PALETTE }
+
+	public function RGlade(OWNER) {
+		super(OWNER, "1005");
+	}
+
+	public function Cut() {
+		SetProperty(P_OPERATION, "cut");
+	}
+
+	public function Copy() {
+		SetProperty(P_OPERATION, "copy");
+	}
+
+	public function Paste() {
+		SetProperty(P_OPERATION, "paste");
+	}
+
+	public function Undo() {
+		SetProperty(P_OPERATION, "undo");
+	}
+
+	public function Redo() {
+		SetProperty(P_OPERATION, "redo");
+	}
+
+	public function SelectProject(number index) {
+		SetProperty(P_PROJECTINDEX, index);
+	}
+
+	public function NewProject() {
+		SetProperty(P_NEWPROJECT, 1);
+	}
+
+	public function CloseProject(number index=0) {
+		SetProperty(P_CLOSEPROJECT, index);
+	}
+
+	public function LoadProject(string project_name, string content) {
+		Send(MSG_CUSTOM_MESSAGE1, project_name, content);
+	}
+
+	public function SaveProject(number index=0) {
+		Send(MSG_CUSTOM_MESSAGE2, "", index);
+		WaitMessage(var Sender=RID, MSG_CUSTOM_MESSAGE2, var target="", var val="");
+		return val;
+	}
+
+	public function IsSaved(number index=0) {
+		Send(MSG_CUSTOM_MESSAGE3, "", index);
+		WaitMessage(var Sender=RID, MSG_CUSTOM_MESSAGE3, var target="", var val="");
+		return value val;
+	}
+
+	public function SetPalette(number palette) {
+		PALETTE=palette;
+		SetProperty(P_PALETTETYPE, palette);
+		return palette;
+	}
+}

@@ -1,0 +1,41 @@
+include 'Exceptions.con'
+
+class XMLDocumentGenerator {
+	protected var DOCUMENT;
+	protected var CURRENT_TAG;
+
+	function XMLSerialized() {
+		throw new ConceptException(102,"XMLDocumentGenerator is not XML Serializable");
+	}
+
+	function Clear() {
+		this->DOCUMENT="<?xml version = '1.0'?>\n";
+		this->CURRENT_TAG="";
+	}
+
+	function XMLDocumentGenerator() {
+		this->Clear();
+	}
+
+	function BeginDocument(TAGNAME) {
+		this->CURRENT_TAG=TAGNAME;
+		this->DOCUMENT+="<"+TAGNAME+">\n";
+	}
+
+	function EndDocument() {
+		this->DOCUMENT+="</"+this->CURRENT_TAG+">\n";
+		this->CURRENT_TAG="";
+	}
+
+
+	function AddSerializableObject(OBJECT) {
+		if ((typeof OBJECT)!="class")
+			throw new ConceptException(101,"Only class objects can be serialized.");
+		else
+			this->DOCUMENT+=OBJECT->XMLSerialized();
+	}
+
+	function GetDocument() {
+		return (this->DOCUMENT);
+	}
+}

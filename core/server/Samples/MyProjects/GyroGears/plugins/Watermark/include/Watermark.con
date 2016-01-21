@@ -1,0 +1,140 @@
+include RButton.con
+include RVBox.con
+include Application.con
+
+import standard.lib.str
+import standard.C.io
+import win32.graph.freeimage
+
+class Watermark {
+	public function Watermark(Owner) {
+		// nothing
+	}
+
+	public function Set(Obj) {
+		return this;
+	}
+
+	public function Get(Obj) {
+		return this;
+	}
+
+	public function Validate(Obj, var error_string) {
+		error_string="";
+		return true;
+	}
+
+    static function DoWatermark(string image_name, string watermark, string outname, number x_align=0.5, number y_align=0.5, number alpha=0.5) {
+        var type=FreeImage_GetFileType(image_name);
+        if (type<0)
+            return false;
+
+        var hBitmap=FreeImage_Load(type, image_name, 0);
+        if (hBitmap) {
+            var true_width=FreeImage_GetWidth(hBitmap);
+            var true_height=FreeImage_GetHeight(hBitmap);
+
+            var wType=FreeImage_GetFileType(watermark);
+
+            var hWatermark=FreeImage_Load(wType, watermark, 0);
+
+            if ((!true_width) || (!true_height) || (!hWatermark)) {
+                FreeImage_Unload(hBitmap);
+                if (hWatermark)
+                    FreeImage_Unload(hWatermark);
+                return false;
+            }
+            var w_width=FreeImage_GetWidth(hWatermark);
+            var w_height=FreeImage_GetHeight(hWatermark);
+            
+            var left=true_width*x_align-w_width/2;
+            var top=true_height*y_align-w_height/2;
+            if (left<0)
+                left=0;
+            if (top<0)
+                top=0;
+
+            if (left+w_width>true_width)
+                left=true_width-w_width;
+
+            if (top+w_height>true_height)
+                top=true_height-w_height;
+
+            var bottom=top+w_height;
+            var right=left+w_width;
+
+            var hBitmap2=FreeImage_Copy(hBitmap, left, top, right, bottom);
+            var res=0;
+            if (hBitmap2) {
+                res=FreeImage_Composite(hWatermark, hBitmap2);
+                if (res) {
+                    if (FreeImage_Paste(hBitmap, res, left, top, alpha*255))
+                        FreeImage_Save(type,hBitmap,outname,95);
+                    else
+                        res=0;
+                    FreeImage_Unload(res);
+                }
+                FreeImage_Unload(hBitmap2);
+            }
+            FreeImage_Unload(hBitmap);
+            FreeImage_Unload(hWatermark);
+            if (res)
+                return true;
+        }
+        return false;
+    }
+
+	static function Create(Context, ContainerObject, OwnerForm, member="", input_watermark="res/watermark.png", x_align="0", y_align="0", alpha="0.5", apply_on_preview="false") {
+		var handler=new Watermark(ContainerObject);
+
+		if (Context) {
+			Context.Set=handler.Set;
+			Context.Get=handler.Get;
+			Context.Validate=handler.Validate;
+		}
+		return handler;
+	}
+
+	static function Query(string operation, target, prev_object, member="", input_watermark="res/watermark.png", x_align="0", y_align="0", alpha="0.5", apply_on_preview="false") {
+		operation=ToLower(operation);
+		if ((operation=="oninsert") || (operation=="onupdate")) {
+			var h=Watermark::Create(null, null, null, member, x_align, y_align, alpha);
+			var temp="";
+			var filename="";
+			var preview="";
+			if (!GetMember(target, member+"_filename", filename))
+				throw "Watermark plug-in error: no such member '${member}_filename'";
+
+			if (!GetMember(target, member, temp))
+				throw "Watermark plug-in error: no such member '$member'";
+
+			if ((apply_on_preview) && (apply_on_preview=="true")) {
+				if (!GetMember(target, member+"_preview", preview))
+					throw "Watermark plug-in error: no such member '${member}_preview'";
+			}
+			if (prev_object) {
+				var temp2="";
+				if (GetMember(prev_object, member, temp2)) {
+					// nothing changed
+					if (temp==temp2)
+						return false;
+				}
+			}
+
+
+			var input_image="temp/"+clock()+"_"+GetAPID()+"_"+filename;
+			WriteFile(temp, input_image);
+			if (h.DoWatermark(input_image, input_watermark, input_image, value (""+x_align), value (""+y_align), value (""+alpha))) {
+				SetMember(target, member, ReadFile(input_image));
+			}
+			if (preview) {
+				WriteFile(preview, input_image);
+				if (h.DoWatermark(input_image, input_watermark, input_image, value (""+x_align), value (""+y_align), value (""+alpha))) {
+					SetMember(target, member+"_preview", ReadFile(input_image));
+				}
+			}
+			_unlink(input_image);
+                }
+		return false;
+	}
+}

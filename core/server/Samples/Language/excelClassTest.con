@@ -1,0 +1,12 @@
+include XLSDocument.con
+
+class Main {
+	function Main() {
+		var x=new XLSDocument();
+		x.Open("test.xls");
+		echo x.Sheets["Sheet1"][1][1];
+		echo x.Sheets["Sheet1"].GetCell(1,1);
+		echo x.Sheets["Sheet1"].Matrix[1][1];
+		x.Close();
+	}
+}

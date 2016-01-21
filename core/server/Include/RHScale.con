@@ -1,0 +1,8 @@
+include RScale.con
+include ClassID.con
+
+class RHScale extends RScale {
+	public function RHScale(OWNER) {
+		super(OWNER, CLASS_HSCALE);
+	}
+}

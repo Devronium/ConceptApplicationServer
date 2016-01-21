@@ -1,0 +1,72 @@
+/*Credits: Dynamic Drive CSS Library */
+/*URL: http://www.dynamicdrive.com/style/ */
+
+#modernbricksmenu{
+padding: 0;
+width: 100%;
+background: transparent;
+voice-family: "\"}\"";
+voice-family: inherit;
+}
+
+#modernbricksmenu ul{
+font: bold 11px Arial;
+margin:0;
+margin-left: 40px; /*margin between first menu item and left browser edge*/
+padding: 0;
+list-style: none;
+}
+
+#modernbricksmenu li{
+display: inline;
+margin: 0 2px 0 0;
+padding: 0;
+text-transform:uppercase;
+}
+
+#modernbricksmenu a{
+float: left;
+display: block;
+color: white;
+margin: 0 1px 0 0; /*Margin between each menu item*/
+padding: 5px 10px;
+text-decoration: none;
+letter-spacing: 1px;
+background-color: black; /*Default menu color*/
+border-bottom: 1px solid white;
+}
+
+#modernbricksmenu a:hover{
+background-color: gray; /*Menu hover bgcolor*/
+}
+
+#modernbricksmenu #current a{ /*currently selected tab*/
+background-color: #D25A0B; /*Brown color theme*/ 
+border-color: #D25A0B; /*Brown color theme*/ 
+}
+
+#modernbricksmenuline{
+clear: both;
+padding: 0;
+width: 100%;
+height: 5px;
+line-height: 5px;
+background: #D25A0B; /*Brown color theme*/ 
+}
+
+#myform{ /*CSS for sample search box. Remove if desired */
+float: right;
+margin: 0;
+padding: 0;
+}
+
+#myform .textinput{
+width: 190px;
+border: 1px solid gray;
+}
+
+#myform .submit{
+font: bold 11px Verdana;
+height: 22px;
+background-color: lightyellow;
+}

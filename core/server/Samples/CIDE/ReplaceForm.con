@@ -1,0 +1,228 @@
+include RForm.con
+include REditComboBox.con
+include RVBox.con
+include RHBox.con
+include RFrame.con
+include RLabel.con
+include RHButtonBox.con
+include RCheckButton.con
+include RButton.con
+
+
+class ReplaceForm extends RForm {
+	var EditSearch;
+	var EditWith;
+	var MatchCase;
+	var WholeWord;
+	var WordStart;
+	var RegExp;
+	var SearchInSelected;
+
+	var _MatchCase;
+	var _WholeWord;
+	var _WordStart;
+	var _RegExp;
+	var _SearchInFiles;
+	var _SearchInSelected;
+
+
+	public var _ReplaceDelegate;
+	public var _ReplaceAllDelegate;
+
+	public function MatchCaseToggled(Sender, EventData) {
+		_MatchCase=MatchCase.Checked;
+	}
+
+	public function WholeWordToggled(Sender, EventData) {
+		_WholeWord=WholeWord.Checked;
+	}
+
+	public function WordStartToggled(Sender, EventData) {
+		_WordStart=WordStart.Checked;
+	}
+
+	public function RegExpToggled(Sender, EventData) {
+		_RegExp=RegExp.Checked;
+	}
+
+	public function SearchInSelectedToggled(Sender, EventData) {
+		_SearchInSelected=SearchInSelected.Checked;
+	}
+
+	public function CancelClicked(Sender, EventData) {
+		Hide();
+	}
+
+	public function ReplaceClicked(Sender, EventData) {
+		var text=EditSearch.Text;
+		if (text=="")
+			return 0;
+
+		var text2=EditWith.Text;
+		if (text==text2)
+			return 0;
+
+		if (EditSearch.FindByData(text)==-1)
+			EditSearch.InsertItem(0,text);
+
+		if (EditWith.FindByData(text2)==-1)
+			EditWith.InsertItem(0,text2);
+
+		if (_ReplaceDelegate)
+			_ReplaceDelegate(text, text2);
+
+
+	}
+
+	public function AllClicked(Sender, EventData) {
+		var text=EditSearch.Text;
+		if (text=="")
+			return 0;
+
+		var text2=EditWith.Text;
+
+		if (EditSearch.FindByData(text)==-1)
+			EditSearch.InsertItem(0,text);
+
+		if (EditWith.FindByData(text2)==-1)
+			EditWith.InsertItem(0,text2);
+
+		if (_ReplaceAllDelegate)
+			_ReplaceAllDelegate(text, text2);
+	}
+
+	public function ReplaceForm(Owner, ReplaceDelegate, ReplaceAllDelegate) {
+		super(Owner);
+
+		_ReplaceDelegate=ReplaceDelegate;
+		_ReplaceAllDelegate=ReplaceAllDelegate;
+
+
+		var vbox=new RVBox(this);
+		vbox.Show();
+
+		var hbox1=new RHBox(vbox);
+		hbox1.Packing=PACK_SHRINK;
+		hbox1.Show();
+
+		var label1=new RLabel(hbox1);
+		label1.Caption="Replace: ";
+		label1.MinWidth=60;
+		label1.Show();
+
+		EditSearch=new REditComboBox(hbox1);
+		EditSearch.Packing = PACK_EXPAND_WIDGET;
+		EditSearch.AddColumns(1,HIDDEN_COLUMN);
+
+		EditSearch.MinWidth=250;
+
+		EditSearch.TextColumn=0;
+		EditSearch.ActivateDefault=true;
+		EditSearch.OnActivate=ReplaceClicked;
+		EditSearch.Show();
+
+		var hbox1_1=new RHBox(vbox);
+		hbox1_1.Packing=PACK_SHRINK;
+		hbox1_1.Show();
+
+
+		var label1_1=new RLabel(hbox1_1);
+		label1_1.Caption="with: ";
+		label1_1.MinWidth=60;
+		label1_1.Show();
+
+		EditWith=new REditComboBox(hbox1_1);
+		EditWith.Packing = PACK_EXPAND_WIDGET;
+		EditWith.AddColumns(1,HIDDEN_COLUMN);
+
+		EditWith.MinWidth=250;
+
+		EditWith.TextColumn=0;
+		EditWith.ActivateDefault=true;
+		EditWith.OnActivate=ReplaceClicked;
+		EditWith.Show();
+
+
+		var frame=new RFrame(vbox);
+		frame.Caption=" Options ";
+		frame.Show();
+
+		var box2=new RVBox(frame);
+		box2.Show();
+
+		MatchCase=new RCheckButton(box2);
+		MatchCase.Caption="_Match case";
+		MatchCase.OnToggled=MatchCaseToggled;
+		MatchCase.Show();
+
+		WholeWord=new RCheckButton(box2);
+		WholeWord.Caption="_Whole words only";
+		WholeWord.OnToggled=WholeWordToggled;
+		WholeWord.Show();
+
+		WordStart=new RCheckButton(box2);
+		WordStart.Caption="Word _start";
+		WordStart.OnToggled=WordStartToggled;
+		WordStart.Show();
+
+		RegExp=new RCheckButton(box2);
+		RegExp.Caption="Rege_x Search";
+		RegExp.OnToggled=RegExpToggled;
+		RegExp.Show();
+
+
+		_SearchInFiles=new RCheckButton(box2);
+		_SearchInFiles.Caption="Search a_ll open files";
+		_SearchInFiles.Show();
+
+
+
+		var buttonbox=new RHButtonBox(vbox);
+		buttonbox.Layout=BUTTONBOX_END;
+		buttonbox.Homogeneous=true;
+		buttonbox.Show();
+
+		var buttonReplace=new RButton(buttonbox);
+		buttonReplace.Caption="_Replace";
+		buttonReplace.OnClicked=ReplaceClicked;
+		buttonReplace.Show();
+
+
+		DefaultControl=buttonReplace;
+
+		var buttonAll=new RButton(buttonbox);
+		buttonAll.Caption="Replace _all";
+		buttonAll.OnClicked=AllClicked;
+		buttonAll.Show();
+
+		var buttonCancel=new RButton(buttonbox);
+		buttonCancel.Caption="_Cancel";
+		buttonCancel.OnClicked=CancelClicked;
+		buttonCancel.Show();
+
+		Caption="Replace text";
+		Resizable=false;
+		Decorations=DECOR_BORDER | DECOR_TITLE;
+		MinWidth=400;
+		Position=WP_CENTER_ON_PARENT;
+		//Modal=true;
+	}
+	
+}
+
+
+/*include Application.con
+
+
+class Main {
+	function Main() {
+			try {
+				var Application=new CApplication(new SearchForm(NULL,0,0));
+				Application.Init();
+				Application.Run();
+				Application.Done();
+			} catch (var Exception) {
+				echo Exception;
+			}
+	}
+}*/

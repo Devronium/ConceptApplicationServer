@@ -1,0 +1,150 @@
+include project_forms.glade.con
+include RCheckButton.con
+
+// manually replace window1 with your glade window name
+class _SelectorForm extends Selector_Window {
+        private var OkDelegate;
+        protected var SelectorButton;
+        protected var flag="";
+        protected var row=-1;
+        // ========================================================================
+        // constructor;
+        // S is a Lang object used to translate strings using
+        // the default string table named string.table.xml
+        // Is your responsability to pass this object to other forms instantiated
+        // in this application
+        // ========================================================================
+
+        public function _SelectorForm(Owner, Lang S, delegate OKDeleg) {
+                super(Owner, S);
+
+                this.treeview.Model=MODEL_LISTVIEW;
+                this.treeview.AlternateColors(0xFAFAFA,0xFFFFFF);
+
+                this.treeview.AddColumn(" ", CHECK_COLUMN | EDITABLE_COLUMN);
+
+                this.SelectorButton=new RCheckButton(null);
+                this.treeview.Columns[0].UseWidget(this.SelectorButton);
+                this.SelectorButton.Checked=true;
+                this.SelectorButton.Show();
+
+                this.treeview.AddColumn("Column");
+                this.treeview.Columns[1].FontDescription="bold";
+
+                this.treeview.EnableSearch=true;
+                this.treeview.SearchColumn=1;
+                
+                this.treeview.HeadersClickable=true;
+                this.treeview.OnHeadersClicked=this.on_treeview_HeadersClicked;
+                //this.treeview.OnCursorChanged=this.on_treeview_cursor_changed;
+                this.treeview.OnStartEditing=this.on_treeview_start_editing;
+                this.treeview.OnEndEditing=this.on_treeview_end_editing;
+                this.treeview.ColumnIndex=1;
+                
+                this.OkDelegate=OKDeleg;
+        }
+
+        public function SetFields(array fields) {
+                this.treeview.Clear();
+                var len=length fields;
+                for (var i=0;i<len;i++) {
+                    var item=fields[i];
+                    this.treeview.AddItem([1, item]);
+                }
+        }
+
+        public function Go(string flag) {
+                this.flag=flag;
+                this.Show();
+        }
+
+        // Manually add your events here //
+        public function on_buttonOk_clicked(Sender, EventData) {
+                this.Hide();
+                var[] result;
+                // index... always show
+                result[0]=true;
+                var items=this.treeview.Items;
+                var len=this.treeview.Items.Count;
+                for (var i=0;i<len;i++) {
+                    var item=items[i];
+                    result[length result]=item[0];
+                }
+                if (this.OkDelegate)
+                    this.OkDelegate(result, this.flag);
+        }
+
+        public function on_buttonCancel_clicked(Sender, EventData) {
+                this.Hide();
+        }
+        
+        public function on_treeview_start_editing(Sender, EventData) {
+            row = value EventData;
+        }
+
+        public function on_treeview_end_editing(Sender, EventData) {
+            this.UpdateSelection(row, value EventData);
+        }
+
+        public function UpdateSelection(rowindex, flag) {
+                if (rowindex>-1) {
+                    var item=this.treeview.Items[rowindex];
+                    item[0]=flag;
+                    
+                    var len=this.treeview.Items.Count;
+                    var total_set=0;
+                    for (var i=0;i<len;i++) {
+                        var row=this.treeview.Items[i];
+                        if (row) {
+                            if (row[0])
+                                total_set++;
+                        }
+                    }
+                    if (total_set==len) {
+                        this.SelectorButton.Inconsistent=false;
+                        this.SelectorButton.Checked=true;
+                    } else
+                    if (total_set==0) {
+                        if (this.SelectorButton.Inconsistent)
+                            this.SelectorButton.Inconsistent=false;
+                        if (this.SelectorButton.Checked)
+                            this.SelectorButton.Checked=false;
+                    } else {
+                        if (!this.SelectorButton.Inconsistent)
+                            this.SelectorButton.Inconsistent=true;
+                    } 
+                }
+        }
+
+        public function on_treeview_HeadersClicked(Sender, EventData) {
+                var len=this.treeview.Items.Count;
+                var total_set=0;
+                for (var i=0;i<len;i++) {
+                    var row=this.treeview.Items[i];
+                    if (row) {
+                        var row_orig=row[0];
+                        row[0]=!row[0];
+
+                        this.treeview.UpdateItem(i, row);
+                        if (row[0])
+                            total_set++;
+                    }
+                }
+                if (total_set==len) {
+                    if (this.SelectorButton.Inconsistent)
+                        this.SelectorButton.Inconsistent=false;
+                    if (!this.SelectorButton.Checked)
+                        this.SelectorButton.Checked=true;
+                } else
+                if (total_set==0) {
+                    if (this.SelectorButton.Inconsistent)
+                        this.SelectorButton.Inconsistent=false;
+                    if (this.SelectorButton.Checked)
+                        this.SelectorButton.Checked=false;
+                } else {
+                    if (!this.SelectorButton.Inconsistent)
+                        this.SelectorButton.Inconsistent=true;
+                } 
+                this.treeview.ColumnIndex=1;
+        }
+}

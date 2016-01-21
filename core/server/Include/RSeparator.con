@@ -1,0 +1,7 @@
+include VisibleRemoteObject.con
+
+class RSeparator extends VisibleRemoteObject {
+	public function RSeparator(OWNER,CLASS) {
+		super(OWNER, CLASS);
+	}
+}

@@ -1,0 +1,180 @@
+import web.server.api
+include Exceptions.con
+import standard.lib.str
+
+define USE_SESSION		1
+define NO_SESSION		0
+
+define DEFAULT_SESSION	USE_SESSION
+
+define DEFAULT_CONTENT	"text/html"
+define EXC_NO_SESSION	"You are not in a session"
+define EXC_INVALID_BEGIN	"You can't init a document at this state (document already initialized, or destroyed)"
+define EXC_INVALID_END	"You can't destroy this document at this point.(not init, or already destroyed)"
+define EXC_INVALID_POINT	"This operation is invalid after BeginDocument"
+define EXC_INVALID_OUT   "You must call BeginDocument first"
+
+define DOCUMENT_NOTINIT	0
+define DOCUMENT_INIT	1
+define DOCUMENT_DONE	2
+
+define HTML_ENDL		"<br>"
+define UNIX_ENDL		"\n"
+define WIN_CRLF		"\r\n"
+
+class WebDocument {
+		protected var _USE_SESSION;
+		protected var _CONTENT;
+		protected var _DOCUMENT_STATUS;
+		
+		public var endl;
+
+		public property Content { get _CONTENT, set SetContent }
+		public property UseSessions { get _USE_SESSION, set SetSession }
+		public property Status { get _DOCUMENT_STATUS }
+
+		function WebDocument() {
+				this->_USE_SESSION=DEFAULT_SESSION;
+				this->_CONTENT=DEFAULT_CONTENT;
+				this->_DOCUMENT_STATUS=DOCUMENT_NOTINIT;
+				this->endl=HTML_ENDL;
+		}
+
+		function Headers(string data, string separator=":") {
+				//echo ""+data+"\r\n";
+				var split=StrSplit(data, separator, true);
+				var len=length split;
+				var val="";
+				var key=split[0];
+
+				for (var i=1;i<len;i++) {
+					if (val)	
+						val+=separator;
+					val+=split[i];
+				}
+
+				if (key)
+					this.Header(key, val);
+		}
+
+		function Header(string key, string val) {
+			if (this->_DOCUMENT_STATUS!=DOCUMENT_NOTINIT) 
+				throw new ConceptException(0,EXC_INVALID_POINT);
+			if (key)
+				SetHeader(key, val);
+		}
+
+		function PutHeader(string header) {
+			if (this->_DOCUMENT_STATUS!=DOCUMENT_NOTINIT) 
+				throw new ConceptException(0,EXC_INVALID_POINT);
+			if (header)
+				echo header+"\r\n";
+		}
+
+		function SetSession(session) {
+				if (this->_DOCUMENT_STATUS!=DOCUMENT_NOTINIT) 
+					throw new ConceptException(0,EXC_INVALID_POINT);
+				this->_USE_SESSION=session;
+		}
+
+		function SetContent(content_type) {
+				if (this->_DOCUMENT_STATUS!=DOCUMENT_NOTINIT) 
+					throw new ConceptException(0,EXC_INVALID_POINT);
+				// convert to string, if is a number ...
+				this->_CONTENT=""+content_type;
+		}
+
+		function BeginDocument() {
+				var res="";
+				if (this->_DOCUMENT_STATUS==DOCUMENT_NOTINIT) {
+						this->_DOCUMENT_STATUS=DOCUMENT_INIT;
+						if (this->_USE_SESSION==USE_SESSION)
+							res=SessionStart();
+						if (this->_CONTENT)
+							ContentType(this->_CONTENT);
+				} else
+					throw new ConceptException(1,EXC_INVALID_BEGIN);
+
+				return res;
+		}
+
+		function EndDocument() {
+				if (this->_DOCUMENT_STATUS==DOCUMENT_INIT) {
+					if (this->_USE_SESSION==USE_SESSION)
+						SessionDone();
+					this->_DOCUMENT_STATUS=DOCUMENT_DONE;
+				} else
+					throw new ConceptException(2,EXC_INVALID_END);
+				WebFree();
+		}
+
+		function DestroySession() {
+				if (this->_USE_SESSION==USE_SESSION)
+					SessionDestroy();	
+				else
+					throw new ConceptException(3,EXC_NO_SESSION);
+		}
+
+		function SessionID() {
+				if (this->_USE_SESSION==USE_SESSION)
+					return GetSessionID();
+				else
+					throw new ConceptException(3,EXC_NO_SESSION);
+		}
+
+		operator << (x) {
+				if (this->_DOCUMENT_STATUS==DOCUMENT_INIT) {
+					echo x;
+					return this;
+				} else
+					throw new ConceptException(4,EXC_INVALID_OUT);
+		}
+
+		function Print(x) {
+				this << x;
+		}
+
+		function PrintLn(x) {
+				this << x << this->endl;
+		}
+
+		function Reload() {
+			this << "<script> document.location=''; </script>";
+		}
+
+		function Navigate(str) {
+			this << "<script> document.location='"+str+"'; </script>";
+		}
+
+		static function ParseQuery(string query) {
+			var[] res;
+			if (!query)
+				return res;
+			query=trim(query);
+			if (query[0]=="?")
+				query++;
+
+			var arr=StrSplit(query, "&");
+
+
+			var len=length arr;
+			for (var i=0;i<len;i++) {
+				var pair=arr[i];
+				if (pair) {
+					var arr2=StrSplit(pair,"=", true);
+					if (length arr2==2) {
+						var key=arr2[0];
+						var val=StrReplace(arr2[1], "+","%20");
+						var len_val=length val;
+
+						if ((val) && (val[0]==val[len_val-1]) && (val[0]=='"'))
+							val=SubStr(val, 1,len_val-2);
+
+						val=URIDecode(val);
+						res[key]=val;
+					}
+				}
+			}
+			return res;
+		}
+}

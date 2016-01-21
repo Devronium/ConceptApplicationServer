@@ -1,0 +1,101 @@
+include MessageDispatcher.con
+
+define MSG_APPLICATION_MESSAGE    -0x100
+
+define MSG_RAISE_ERROR            -11
+define MSG_DEBUGGER_TRAPPED       -10
+define MSG_MESSAGE_REQUESTINPUT    -8
+define MSG_MESSAGE_LOGIN           -7
+define MSG_MESSAGE_BOX_GENERIC     -6
+define MSG_MESSAGE_BOX_YESNO       -5
+define MSG_NON_CRITICAL            -4
+define MSG_CONSOLE                 -3
+define MSG_MESSAGE_BOX             -2
+define MSG_RAW_OUTPUT              -1
+
+define MSG_CHOOSE_COLOR         0x90
+define MSG_CHOOSE_FONT          0x91
+define MSG_SET_PROPERTY_BY_NAME 0x92
+
+define MSG_CREATE               0x100
+define MSG_SET_PROPERTY         0x110
+define MSG_PUT_STREAM           0x111
+define MSG_PUT_SECONDARY_STREAM 0x112
+define MSG_POST_OBJECT          0x113
+define MSG_REMOTE_METHOD        0x114
+define MSG_GET_PROPERTY         0x115
+define MSG_POST_STRING          0x116
+define MSG_SEND_COOKIE          0x117
+define MSG_OS_COMMAND           0x118
+define MSG_REORDER_CHILD        0x119
+
+define MSG_CUSTOM_MESSAGE1      0x120
+define MSG_CUSTOM_MESSAGE2      0x121
+define MSG_CUSTOM_MESSAGE3      0x122
+define MSG_CUSTOM_MESSAGE4      0x123
+define MSG_CUSTOM_MESSAGE5      0x124
+define MSG_CUSTOM_MESSAGE6      0x125
+define MSG_CUSTOM_MESSAGE7      0x126
+define MSG_CUSTOM_MESSAGE8      0x127
+define MSG_CUSTOM_MESSAGE9      0x128
+define MSG_CUSTOM_MESSAGE10     0x129
+define MSG_CUSTOM_MESSAGE11     0x12A
+define MSG_CUSTOM_MESSAGE12     0x12B
+define MSG_CUSTOM_MESSAGE13     0x12C
+define MSG_CUSTOM_MESSAGE14     0x12D
+define MSG_CUSTOM_MESSAGE15     0x12E
+define MSG_CUSTOM_MESSAGE16     0x12F
+define MSG_REPAINT              0x130
+define MSG_REQUEST_FOR_FILE     0x131
+define MSG_SAVE_FILE            0x132
+define MSG_SET_CLIPBOARD        0x133
+define MSG_GET_CLIPBOARD        0x134
+define MSG_STATIC_QUERY         0x135
+define MSG_STATIC_RESPONSE      0x136
+define MSG_SAVE_FILE2           0x137
+define MSG_REQUEST_FOR_CHUNK    0x138
+define MSG_SAVE_CHUNK           0x139
+define MSG_CHUNK                0x13A
+define MSG_SEND_COOKIE_CHUNK    0x13B
+
+define MSG_D_PRIMITIVE_LINE        0x140
+define MSG_D_PRIMITIVE_ARC         0x141
+define MSG_D_PRIMITIVE_FILL_ARC    0x142
+define MSG_D_PRIMITIVE_RECT        0x143
+define MSG_D_PRIMITIVE_FILL_RECT   0x144
+define MSG_D_PRIMITIVE_POINT       0x145
+define MSG_D_PRIMITIVE_COLOR       0x146
+
+define MSG_SEND_ZCOOKIE            0x147
+
+define MSG_SET_COOKIE              0x148
+define MSG_GET_COOKIE              0x149
+
+define MSG_GET_DNDFILE             0x14A
+define MSG_CLIENT_ENVIRONMENT      0x14B
+define MSG_OS_COMMAND_CLOSE        0x14C
+define MSG_OS_COMMAND_QUEUE_CLEAR  0x14D
+
+define MSG_CREATE_ACTIVEX       0x420
+define MSG_AX_SET_PROPERTY      0x421
+define MSG_AX_ADD_PARAMETER     0x422
+define MSG_AX_CALL_METHOD       0x423
+define MSG_AX_ADD_FILEPARAMETER 0x424
+define MSG_AX_GET_PROPERTY      0x425
+define MSG_AX_GET_RESULT        0x426
+define MSG_AX_ADD_EVENT         0x427
+define MSG_AX_AKNOWLEDGE_EVENT  0x428
+define MSG_AX_CLEAR_EVENTS_DATA 0x429
+define MSG_AX_GET_EVENT_PARAM   0x430
+
+define MSG_APPLICATION_RUN      0x800
+define MSG_APPLICATION_QUIT     0x500
+define MSG_MESSAGING_SYSTEM     0x501
+define MSG_CLIENT_QUERY         0x503
+define MSG_RUN_APPLICATION      0x504
+define MSG_DEBUG_APPLICATION    0x505
+define MSG_CACHE                0x506
+
+define MSG_SET_EVENT            0x1000
+define MSG_EVENT_FIRED          0x1001
+define MSG_CONFIRM_EVENT        0x1002

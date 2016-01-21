@@ -1,0 +1,17 @@
+import standard.arch.zip
+import standard.C.io
+
+class Main {
+	function Main() {
+		var archive="test.zip";
+		if (!(var za=zip_open(archive, ZIP_CREATE, var err))) {
+			echo "Error: $err\n";
+			return 1;
+		}
+
+		var zs=zip_source_buffer(za, "Hello world ... from a ZIP file !");
+
+		zip_add(za, "teststring.txt",zs);
+		zip_close(za);
+	}
+}

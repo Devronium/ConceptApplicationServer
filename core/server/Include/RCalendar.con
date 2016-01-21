@@ -1,0 +1,115 @@
+include VisibleRemoteObject.con
+include RemoteProperties.con
+include RemoteEvents.con
+include ClassID.con
+
+class RCalendar extends VisibleRemoteObject {
+	public property Day { get GetDay, set SetDay }
+	public property Month { get GetMonth, set SetMonth }
+	public property Year { get GetYear, set SetYear }
+
+	// -------------------------- events ------------------------- //
+	public property OnDaySelected { get GetOnDaySelected, set SetOnDaySelected }
+	public function GetOnDaySelected() {
+		return _GET_REMOTE_EVENT(EVENT_ON_DAYSELECTED);
+	}
+
+	public function SetOnDaySelected(var delegate deleg) {
+		return _MAP_REMOTE_EVENT(EVENT_ON_DAYSELECTED, deleg);
+	}
+
+	public property OnDaySelectedDbClick { get GetOnDaySelectedDbClick, set SetOnDaySelectedDbClick }
+	public function GetOnDaySelectedDbClick() {
+		return _GET_REMOTE_EVENT(EVENT_ON_DAYSELECTEDDBCLICK);
+	}
+
+	public function SetOnDaySelectedDbClick(var delegate deleg) {
+		return _MAP_REMOTE_EVENT(EVENT_ON_DAYSELECTEDDBCLICK, deleg);
+	}
+
+	public property OnMonthChanged { get GetOnMonthChanged, set SetOnMonthChanged }
+	public function GetOnMonthChanged() {
+		return _GET_REMOTE_EVENT(EVENT_ON_MONTHCHANGED);
+	}
+
+	public function SetOnMonthChanged(var delegate deleg) {
+		return _MAP_REMOTE_EVENT(EVENT_ON_MONTHCHANGED, deleg);
+	}
+
+	public property OnNextMonth { get GetOnNextMonth, set SetOnNextMonth }
+	public function GetOnNextMonth() {
+		return _GET_REMOTE_EVENT(EVENT_ON_NEXTMONTH);
+	}
+
+	public function SetOnNextMonth(var delegate deleg) {
+		return _MAP_REMOTE_EVENT(EVENT_ON_NEXTMONTH, deleg);
+	}
+
+	public property OnNextYear { get GetOnNextYear, set SetOnNextYear }
+	public function GetOnNextYear() {
+		return _GET_REMOTE_EVENT(EVENT_ON_NEXTYEAR);
+	}
+
+	public function SetOnNextYear(var delegate deleg) {
+		return _MAP_REMOTE_EVENT(EVENT_ON_NEXTYEAR, deleg);
+	}
+
+	public property OnPrevMonth { get GetOnPrevMonth, set SetOnPrevMonth }
+	public function GetOnPrevMonth() {
+		return _GET_REMOTE_EVENT(EVENT_ON_PREVMONTH);
+	}
+
+	public function SetOnPrevMonth(var delegate deleg) {
+		return _MAP_REMOTE_EVENT(EVENT_ON_PREVMONTH, deleg);
+	}
+
+	public property OnPrevYear { get GetOnPrevYear, set SetOnPrevYear }
+	public function GetOnPrevYear() {
+		return _GET_REMOTE_EVENT(EVENT_ON_PREVYEAR);
+	}
+
+	public function SetOnPrevYear(var delegate deleg) {
+		return _MAP_REMOTE_EVENT(EVENT_ON_PREVYEAR, deleg);
+	}
+	// -------------------- end of events ------------------ //
+
+	public function RCalendar(OWNER) {
+		super(OWNER, CLASS_CALENDAR);
+	}
+
+	public function SetDay(x) {
+		return SetProperty(P_DAY,x);
+	}	
+
+	public function GetDay() {
+		return value GetProperty(P_DAY);
+	}	
+
+	public function SetMonth(x) {
+		return SetProperty(P_MONTH,x);
+	}	
+
+	public function GetMonth() {
+		return value GetProperty(P_MONTH);
+	}	
+
+	public function SetYear(x) {
+		return SetProperty(P_YEAR,x);
+	}	
+
+	public function GetYear() {
+		return value GetProperty(P_YEAR);
+	}
+
+	public function MarkDay(day) {
+		Send(MSG_CUSTOM_MESSAGE1,day,"1");
+	}
+
+	public function UnmarkDay(day) {
+		Send(MSG_CUSTOM_MESSAGE1,day,"0");
+	}
+
+	public function ClearMarks() {
+		Send(MSG_CUSTOM_MESSAGE2,"0","0");
+	}
+}

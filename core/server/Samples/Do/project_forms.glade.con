@@ -1,0 +1,62 @@
+
+//=============================================================//
+include Lang.con
+include RForm.con
+include Application.con
+include RForm.con
+include RVBox.con
+include RImage.con
+include RProgressBar.con
+
+
+
+class window1 extends RForm {
+        // keep the string table
+        protected var S;
+
+        public var vbox1;
+        public var image1;
+        public var progressbar;
+
+
+	public function on_window1_realize(Sender, EventData);
+
+
+        // ========================================================================
+        // constructor;
+        // S is a Lang object used to translate strings using
+        // the default string table named string.table.xml
+        // Is your responsability to pass this object to other forms instantiated
+        // in this application
+        // ========================================================================
+
+        public function window1(Owner, Lang S) {
+                super(Owner);
+                this.S=S;
+
+		CApplication::BeginNonCritical();
+
+                this.MinWidth=380;
+                this.Caption=S<<"CUDW/Concept Package Installer";
+                this.Position=WP_CENTER;
+                this.OnRealize=this.on_window1_realize;
+
+                vbox1=new RVBox(this);
+                vbox1.Visible=true;
+
+                image1=new RImage(vbox1);
+                image1.Packing=PACK_SHRINK;
+                image1.MinWidth=200;
+                image1.Visible=true;
+                image1.LoadResource("gtk-cdrom",1);
+
+                progressbar=new RProgressBar(vbox1);
+                progressbar.Visible=true;
+
+		CApplication::EndNonCritical();
+        }
+
+	override on_window1_realize;
+
+}
+

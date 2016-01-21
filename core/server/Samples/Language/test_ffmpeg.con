@@ -1,0 +1,44 @@
+include FFMpeg.con
+
+class Main {
+	function Main() {
+		var ff=new FFMpeg();
+		try {
+			ff.InputMovie="a1.avi";
+			echo "Duration   : " + ff.Duration + " seconds\n";
+			echo "Resolution : " + ff.VideoInfo[VIDEO_SIZE] + "\n";
+			echo "Video codec: " + ff.VideoInfo[VIDEO_CODEC] + "\n";
+			echo "Audio codec: " + ff.AudioInfo[AUDIO_CODEC] + "\n";
+
+			echo "\n\nStarting generating best 10 previews ... ";
+			var start=_clock();
+			var idcode="best_preview";
+			var idcode_png=idcode+".png";
+			var idcode_flv=idcode+".flv";
+
+			if (ff.GetPreview(idcode_png, PREVIEW_PNG, "320x240", 5)) {
+				FFMpeg::Resize(idcode_png, 160, 120);
+			}
+
+			
+			var end=_clock();
+			var total=end-start;
+
+			echo "done\n";
+			echo "Total time: "+int32(total/1000)+" seconds\n";
+
+			echo "\n\nStart converting to FLV ... ";
+			start=_clock();
+			ff.Convert(idcode_flv);
+
+			end=_clock();
+			total=end-start;
+
+			echo "done\n";
+			echo "Total time: "+int32(total/1000)+" seconds\n";
+
+		} catch (var exc) {
+			echo exc;
+		}
+	}
+}

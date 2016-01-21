@@ -1,0 +1,71 @@
+include RWebView.con
+
+class WebBrowser {
+	private var WebView;
+	private var URIMember;
+	private var NoURICallback;
+
+	public function WebBrowser(Owner) {
+		WebView=new RWebView(Owner);
+		WebView.Show();
+	}
+
+	public function Set(Obj) {
+		// set !
+		if (!URIMember)
+			throw "WebBrowser plug-in error: no URI member set";
+
+		var temp="";
+		if (!GetMember(Obj, URIMember, temp))
+			throw "WebBrowser plug-in error: no such member '${URIMember}'";
+
+		temp=""+temp;
+
+		if (!Pos(ToLower(temp), "http://"))
+			temp="http://"+temp;
+
+		WebView.Stop();
+		WebView.URI=temp;
+
+		return this;
+	}
+
+	public function Get(Obj) {
+		if (NoURICallback)
+			return;
+
+		if (!URIMember)
+			throw "WebBrowser plug-in error: no URI member set";
+
+		var uri=WebView.URI;
+		if (uri) {
+			if (!SetMember(Obj, URIMember, uri))
+				throw "WebBrowser plug-in error: no such member '${URIMember}'";
+		}
+
+		return this;
+	}
+
+	public function Validate(Obj, var error_string) {
+		error_string="";
+		return true;
+	}
+
+	static function Query(string operation, target, prev_object, URIMember="", NoURICallback="true") {
+		return true;
+	}
+
+	static function Create(Context, ContainerObject, OwnerForm, URIMember="", NoURICallback="true") {
+		var handler=new WebBrowser(ContainerObject);
+		handler.URIMember=URIMember;
+		if (NoURICallback=="true")
+			handler.NoURICallback=true;
+		else
+			handler.NoURICallback=false;
+
+		Context.Set=handler.Set;
+		Context.Get=handler.Get;
+		Context.Validate=handler.Validate;
+		return handler;
+	}
+}

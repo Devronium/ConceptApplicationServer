@@ -1,0 +1,1466 @@
+import standard.net.sip
+import standard.net.rtp
+import standard.net.socket
+import standard.lib.cripto
+import standard.lib.thread
+import standard.lib.str
+import standard.C.math
+import standard.C.time
+import standard.C.io
+include Speex.con
+
+define BUFFSIZE		3200
+define SIP_USER_AGENT	"ConceptSIP/UA"
+
+define BITRATE		8000
+define QUALITY		0
+
+class SIP {
+	public var ProxyHost="";
+	public var ProxyPort=5060;
+	public var LocalRTPPort=30002;
+	public var Username="";
+	public var Password="";
+	public var RegisterTimeout=3600;
+	public var Tag="";
+	public var Branch="";
+	public var Debug=false;
+	public var Codec=-1;
+
+	public property IsRegistered { get _registered }
+
+	private var osip;
+	private var p_cseq=1;
+	private var iNonceCount=1;
+	private var client_sock=-1;
+	private var LocalIP="";
+	private var _registered=false;
+	private var NextRegister;
+	private var LoginSent=false;
+
+	private var RTPSess;
+	private var invite_response="";
+	private var reject_response="";
+	private var terminate_response="";
+	private var[] vias;
+
+	public var OnRegister;
+	public var OnCall;
+	public var OnEndCall;
+	public var OnLoginFailed;
+	private var dialog;
+
+	private var Encoder;
+	private var Decoder;
+
+	public var OnVoice;
+	public var OnVoiceRequest;
+	public var OnRinging;
+	public var OnAnswer;
+
+	public var OnAddDestination;
+
+	public var Bitrate=BITRATE;
+
+	public property Quality { get _Quality, set SetQuality }
+	public var _Quality=QUALITY;
+	private var Algorithm="";
+	private var MediaType=8;
+	private var IsALaw=-1;
+	private var CallInitiated=false;
+	private var LastCallId="";
+	private var firstrtp=true;
+	private var set_bye=false;
+	private var clear_rtp=false;
+	private var LastMethod="";
+	private var LastCSEQ=1;
+	private var LastINVITECSEQ=1;
+	private var CanBeTerminated=false;
+	private var LastFrom="";
+	private var LastTo="";
+	private var Echo;
+	public var DebugCallback=null;
+
+	static function RandomString(len, var iteration=0) {
+		var res="";
+		while (len--) {
+			res+=chr(rand() % 26 + 97);
+			srand(rand());
+		}
+		iteration++;
+		return res;
+	}
+
+	function cb_SendMsg(tr, sip, buf, port, out_socket) {
+		if (this.Debug)
+			echo "cb_SendMsg ($buf:$port)\n";
+		var is_msg=false;
+		if (typeof sip=="string")
+			var msg_str=sip;
+		else {
+			is_msg=true;
+			osip_message_to_str(sip, msg_str);
+		}
+		if (msg_str) {
+			if (this.Debug)
+				echo msg_str;
+
+			/*var msg_arr=osip_message_describe(sip);
+			var msg_vias=msg_arr["vias"];
+			while (!osip_list_eol (msg_vias, 0)) {
+				var via;
+				via = osip_list_get (msg_vias, 0);
+				osip_via_free(via);
+				osip_list_remove(msg_vias, 0);
+			}*/
+
+			/*if (is_msg) {
+				var msg_arr=osip_message_describe(sip);
+				var vias=msg_arr["vias"];
+				var vias_len=osip_list_size(vias);
+				if (vias_len) {
+					for (var i=0;i<vias_len;i++) {
+						var via=osip_list_get(vias, i);
+						if (via) {
+							var host=via_get_host(via);
+							var port2=value (""+via_get_port(via));
+							SocketWrite(out_socket, msg_str, true, host, port);
+							if (this.DebugCallback)
+								this.DebugCallback(this, msg_str, "cb_SendMsg ($host:$port2)");
+						}
+					}
+				} else {
+					if (this.DebugCallback)
+						this.DebugCallback(this, msg_str, "cb_SendMsg ($buf:$port)");
+
+					SocketWrite(out_socket, msg_str, true, buf, port);
+				}
+			} else {*/
+				if (this.DebugCallback)
+					this.DebugCallback(this, msg_str, "cb_SendMsg ($buf:$port)");
+				SocketWrite(out_socket, msg_str, true, buf, port);
+			//}
+		}
+		return 0;
+	}
+
+	function cb_SendMsg2(tr, sip, buf, port, out_sock) {
+		if (vias) {
+			var len=length vias;
+			for (var i=0;i<len;i++) {
+				var via=vias[i];
+				if (via)
+					cb_SendMsg(tr, sip, via[0], via[1], out_sock);
+			}
+		} else
+			cb_SendMsg(tr, sip, buf, port, out_sock);
+	}
+
+	function cb_RcvICTRes(type, tr, msg) {
+		if (this.Debug)
+			echo "cb_RcvICTRes\n";
+		if (this.DebugCallback)
+			this.DebugCallback(this, "", "cb_RcvICTRes");
+	}
+
+	function cb_RcvNICTRes(type, tr, msg) {
+		if (this.Debug)
+			echo "cb_RcvNICTRes\n";
+		if (this.DebugCallback)
+			this.DebugCallback(this, "", "cb_RcvNICTRes");
+	}
+
+	public function LoopRTP() {
+		if (this.RTPSess)
+			this.RTPIterate(this.RTPSess);
+	}
+
+	private function InitRTP(host, port, is_remote_call=true) {
+		if (this.Debug)
+			echo "[Creating RTP handler]\n";
+		var sess=RTPCreate(["Portbase"=>this.LocalRTPPort, "AcceptOwnPackets"=>true, "OwnTimestampUnit" => 1/10], var err);
+		this.firstrtp=true;
+		if (sess) {
+			RTPSetDefaultPayloadType(sess, 8);
+			RTPSetDefaultMark(sess, false);
+			RTPSetDefaultTimestampIncrement(sess, 160);
+
+			if (is_remote_call) {
+				RTPClearDestinations(sess);
+
+				if (this.DebugCallback)
+					this.DebugCallback(this, "$host:$port", "RTP Add destinations");
+
+				var status=RTPAddDestination(sess, host, port);
+				if (status<0)
+					throw RTPError(status);
+				if (this.Encoder)
+					this.Encoder.Reset();
+				if (this.OnAddDestination)
+					this.OnAddDestination(host, port);
+			}
+			//this.SendSilence();
+		} else
+			throw RTPError(err);
+		return sess;
+	}
+
+	private function DoneRTP(sess) {
+		clear_rtp=false;
+		if (sess) {
+			this.RTPSess=null;
+			if (this.Debug)
+				echo "[Closing RTP handler]\n";
+			RTPBYEDestroy(sess, 10, "client closed");
+			if (this.DebugCallback)
+				this.DebugCallback(this, "", "RTP client closed");
+		}
+		this.IsALaw=-1;
+		this.Codec=-1;
+	}
+
+	public function SendAudio(var data, chunk_size) {
+		if ((!data) || (set_bye) || (clear_rtp))
+			return 0;
+
+		var sess=this.RTPSess;
+		if (!sess)
+			return -1;
+
+		if (!this.Decoder)
+			return -2;
+
+		if (chunk_size>0)
+			var payload=this.Decoder.Decode(data, chunk_size);
+		else
+			payload=data;
+		if (payload) {
+			if (this.IsALaw)
+				payload=pcm2alaw(payload);//u
+			else
+				payload=pcm2ulaw(payload);
+		}
+		return RTPSend(sess, payload);
+	}
+
+	public function LoopAudio() {
+		if (this.RTPSess)
+			this.RTPIterate(this.RTPSess);
+	}
+
+	private function RTPIterate(var sess) {
+		if (clear_rtp) {
+			DoneRTP(sess);
+			this.RTPSess=null;
+			sess=null;
+			return 0;
+		}
+		if (!sess)
+			return 0;
+
+		var iterations=0;
+		var data_sent=false;
+		var delay=true;
+
+		if (this.OnVoiceRequest) {
+			if (this.Decoder) {
+				var res=this.OnVoiceRequest(var payload2, var chunk_size2);
+				if (res) {
+					payload2=this.Decoder.Decode(payload2, chunk_size2);
+					if (payload2) {
+						data_sent=true;
+						if (this.Echo)
+							payload2=this.Echo.EchoCancel(payload2);
+						if (this.IsALaw)
+							payload2=pcm2alaw(payload2);//u
+						else
+							payload2=pcm2ulaw(payload2);
+
+						RTPSend(sess, payload2);
+						if (res==2)
+							delay=false;
+					}
+				}
+			} else
+				this.OnVoiceRequest(null, null, true);
+
+		}
+
+		RTPPoll(sess);
+
+		RTPBeginDataAccess(sess);
+		if (RTPGotoFirstSourceWithData(sess)>0) {
+			do {
+				while (var pack=RTPGetNextPacket(sess)) {
+					var payload=pack["Payload"];
+					var type=pack["PayloadType"];
+					Codec=type;
+
+					if ((type!=0) && (type!=8))
+						throw "RTP codec $type not supported";
+
+					if (payload) {
+						var isalaw=(type==8);
+						if (this.IsALaw!=isalaw) {
+							if (isalaw)
+								RTPSetDefaultPayloadType(sess, 8);
+							else
+								RTPSetDefaultPayloadType(sess, 0);
+							this.IsALaw=isalaw;
+						}
+						if (isalaw)
+							payload=alaw2pcm(payload);//u
+						else
+							payload=ulaw2pcm(payload);
+
+						if (this.Echo)
+							this.Echo.Playback(payload);
+
+						payload=this.Encoder.Encode(payload, var chunk_size);
+
+						if (payload) {
+							iterations++;
+
+							if (this.OnVoice)
+								this.OnVoice(payload, chunk_size);
+						}
+				
+						firstrtp=false;
+					}
+
+				}
+			} while (RTPGotoNextSourceWithData(sess)>0);
+		}
+		RTPEndDataAccess(sess);
+/*
+		if ((!data_sent) && (firstrtp)) {
+			// 20ms of silence
+			payload="";
+
+			var c=chr(128);
+			for (var i=0;i<160;i++)
+				payload+=c;
+
+			if (this.IsALaw)
+				payload=pcm2alaw(payload);
+			else
+				payload=pcm2ulaw(payload);
+
+			RTPSend(this.RTPSess, payload);
+			firstrtp=false;
+		}
+*/
+	}
+	
+	public function SendSilence(number ms=20) {
+		var sess=this.RTPSess;
+		if (sess) {
+			var payload="";
+			var len=ms*8;
+			var c=chr(128);
+			for (var i=0;i<len;i++)
+				payload+=c;
+
+			if (this.IsALaw) {
+				RTPSetDefaultPayloadType(sess, 0);
+				payload=pcm2alaw(payload);
+			} else {
+				RTPSetDefaultPayloadType(sess, 0);
+				payload=pcm2ulaw(payload);
+			}
+			RTPSend(sess, payload);
+		}
+	}
+
+	private function BuildResponse(request, var response, var from_str="", cseq="", do_contact=true, reversed=true) {
+		osip_message_init(var msg);
+
+		var req_arr=osip_message_describe(request);
+		var msg_arr=osip_message_describe(msg);
+
+		// from and to reversed
+		if (reversed) {
+			osip_from_to_str(req_arr["to"], var str);
+			osip_message_set_from(msg, str);
+
+			osip_to_to_str(req_arr["from"], str);
+			osip_message_set_to(msg, str);
+		} else {
+			osip_from_to_str(req_arr["to"], str);
+			osip_message_set_to(msg, str);
+
+			osip_to_to_str(req_arr["from"], str);
+			osip_message_set_from(msg, str);
+		}
+		from_str=StrReplace(osip_to_get_displayname(req_arr["from"]), "\"", "");
+		if (cseq)
+			osip_message_set_cseq(msg, cseq);
+		else {
+			osip_cseq_to_str(req_arr["cseq"], str);
+			osip_message_set_cseq(msg, str);
+		}
+
+
+		osip_call_id_to_str(req_arr["call_id"], str);
+		osip_message_set_call_id(msg, str);
+
+		var pos = 0;
+
+		var vias=req_arr["vias"];
+		var msg_vias=msg_arr["vias"];
+		while (!osip_list_eol (vias, pos)) {
+			var via;
+			var via2;
+			via = osip_list_get (vias, pos);
+			var i = osip_via_clone (via, via2);
+			if (i != 0) {
+				osip_message_free (msg);
+				return i;
+			}
+			osip_list_add (msg_vias, via2, -1);
+			pos++;
+		}
+		// =========================//
+		/*osip_via_init(var via);
+		via_set_version(via, "2.0");
+		via_set_protocol(via, "UDP");
+		via_set_host(via, ProxyHost);
+		via_set_port(via, ""+ProxyPort);
+		osip_via_set_branch(via, Branch+p_cseq);
+		osip_via_to_str(via, var via_str);
+		osip_list_add(msg_vias, via, -1);*/
+		// =========================//
+		
+
+	
+		if (do_contact) {
+			osip_contact_init(var con);
+
+			osip_uri_init(var contact_url);
+
+			osip_uri_set_host(contact_url, this.LocalIP);
+			osip_uri_set_username(contact_url, this.Username);
+			osip_contact_set_url(con, contact_url);
+			osip_list_add(msg_arr["contacts"], con, -1);
+		}
+
+		osip_message_set_user_agent(msg, SIP_USER_AGENT);
+		osip_message_set_version(msg, "SIP/2.0");
+
+
+		//osip_message_set_user_agent(msg, SIP_USER_AGENT);
+
+
+		//osip_message_set_allow(msg, "INVITE, ACK, CANCEL, BYE, NOTIFY");
+		osip_message_set_allow(msg, "REGISTER,OPTIONS,INVITE,ACK,CANCEL,BYE,INFO,REFER,SUBSCRIBE,NOTIFY,PUBLISH");
+
+		response = msg;
+		return 0;
+	}
+
+	function Respond(tran, msg, code, code_desc="OK") {
+		if (code==SIP_REQUEST_TERMINATED)
+			BuildResponse(msg, var response, var from_str, "${this.LastINVITECSEQ} INVITE");
+		else
+			BuildResponse(msg, response, from_str);
+		osip_message_set_status_code(response, code);
+		osip_message_set_reason_phrase(response, code_desc);
+		return response;
+	}
+
+	function cb_RcvISTReq(type, tran, msg) {
+		if (this.Debug)
+			echo "cb_RcvISTReq\n";
+
+		// ringing !
+		var response;
+		var evt;
+		var from_str="";
+		this.CanBeTerminated=false;
+
+		if (this.DebugCallback) {
+			if (msg) {
+				osip_message_to_str(msg, var str0);
+				this.DebugCallback(this, str0, "cb_RcvISTReq");
+			}
+		}
+
+		var msg_arr=osip_message_describe(msg);
+		if (msg_arr["call_id"])
+			this.LastCallId=osip_call_id_get_number(msg_arr["call_id"]);
+
+		if (msg_arr["cseq"]) {
+			var msg_method=osip_cseq_get_method(msg_arr["cseq"]);
+			if (msg_method)
+				this.LastINVITECSEQ=osip_cseq_get_number(msg_arr["cseq"]);
+		}
+
+		var vias=msg_arr["vias"];
+		this.vias=new [];
+		var vias_len=osip_list_size(vias);
+		for (var i=0;i<vias_len;i++) {
+			var via=osip_list_get(vias, i);
+			if (via)
+				this.vias[length this.vias]=[via_get_host(via), value (""+via_get_port(via))];
+		}
+
+
+		BuildResponse(msg, response, from_str, "", true, false);//trying
+		osip_message_set_status_code(response, SIP_TRYING);
+		this.LastFrom=from_str;
+
+		evt = osip_new_outgoing_sipmessage(response);	
+		osip_message_set_reason_phrase(response, "Trying");
+		osip_transaction_add_event(tran, evt);
+		//osip_transaction_execute(tran, evt);
+
+
+		/*if (this.DebugCallback) {
+			osip_message_to_str(response, var str2);
+			this.DebugCallback(this, str2, "cb_RcvISTReq/TRYING");
+		}*/
+
+		if (dialog)
+			osip_dialog_free(dialog);
+
+		//osip_dialog_init_as_uac(dialog, msg, response);
+	
+		/*BuildResponse(msg, response);//dialog establishement
+		osip_message_set_status_code(response, 101);
+		evt = osip_new_outgoing_sipmessage(response);	
+		osip_message_set_reason_phrase(response, "Dialog Establishement");
+		osip_transaction_add_event(tran, evt);*/
+
+
+		BuildResponse(msg, response, "", "", true, false);//ringing
+		osip_message_set_status_code(response, SIP_RINGING);
+		evt = osip_new_outgoing_sipmessage(response);	
+		osip_message_set_reason_phrase(response, "Ringing");
+		osip_transaction_add_event(tran, evt);
+		//osip_transaction_execute(tran, evt);
+
+		/*BuildResponse(msg, response, "", "", true);//ringing
+		osip_message_set_status_code(response, SIP_OK);
+		osip_message_set_reason_phrase(response, "OK");
+		if (response) {
+			this.Algorithm="8 PCMA/8000";
+			this.IsALaw=-1;
+			this.Bitrate=8000;
+
+			sdp_message_init(var sdp);
+			sdp_message_v_version_set(sdp,"0");
+			sdp_message_o_origin_set(sdp, Username, "0", "0", "IN", "IP4", this.LocalIP);
+
+			sdp_message_s_name_set(sdp, "Talk to you");
+			sdp_message_t_time_descr_add(sdp, "0", "0");
+
+			sdp_message_m_media_add(sdp, "audio", ""+(this.LocalRTPPort), "", "RTP/AVP");
+			sdp_message_c_connection_add(sdp, 0, "IN", "IP4", this.LocalIP, "", "");
+			sdp_message_m_payload_add(sdp, 0, "8");
+
+			sdp_message_a_attribute_add(sdp,0,"rtpmap",this.Algorithm);
+			sdp_message_to_str(sdp, var sdp_str);
+			
+			osip_message_set_body(response, sdp_str);
+			osip_message_set_content_type(response, "application/sdp");
+		}
+		evt = osip_new_outgoing_sipmessage(response);	
+		osip_transaction_add_event(tran, evt);
+		osip_transaction_execute(tran, evt);*/
+
+
+		if (this.DebugCallback) {
+			osip_message_to_str(response, var str);
+			this.DebugCallback(this, str, "cb_RcvISTReq/RINGING");
+		}
+
+		if (this.invite_response)
+			this.invite_response="";
+
+		var invite_body="";
+
+		if (osip_message_get_body(msg, 0, var body)>=0) {
+			osip_body_to_str(body, invite_body);
+			osip_body_free(body);
+
+			if (this.DebugCallback)
+				this.DebugCallback(this, "Ringing:\n$from_str\n\n$invite_body", "cb_RcvISTReq");
+
+			if (this._registered)
+				this.NextRegister=time()+60;
+
+			this.invite_response=this.CreateAnswerMessage(tran, msg, invite_body);
+			this.reject_response=this.CreateRejectMessage(tran, msg, invite_body);
+			this.terminate_response=this.CreateTerminateMessage(tran, msg, invite_body);
+		} else {
+			if (this.Debug)
+				echo "No message body";
+			if (this.DebugCallback)
+				this.DebugCallback(this, "No message body", "Invite");
+		}
+		if (this.RTPSess)
+			RTPSend(this.RTPSess, "");
+		if (this.OnCall)
+			this.OnCall(from_str);
+	}
+
+	function cb_ISTTranKill(type, tr, sip=null) {
+
+		if (sip) {
+			var arr2=osip_message_describe(sip);
+
+			osip_call_id_to_str(arr2["call_id"], var str_callid);
+			str_callid=StrSplit(""+str_callid, "@")[0];
+
+			//echo "CI: ${this.LastCallId} ${str_callid}\n";
+			if ((this.LastCallId!=str_callid) || (this.LastCallId==""))
+				return;
+		}
+		if (this.invite_response)
+			this.invite_response="";
+		if (this.Debug)
+			echo "Hangup\n";
+		if (this.DebugCallback)
+			this.DebugCallback(this, "", "cb_ISTTranKill");
+		var codec=this.Codec;
+		if (this.RTPSess) {
+			DoneRTP(this.RTPSess);
+			this.RTPSess=0;
+		}
+		this.CanBeTerminated=false;
+		this.CallInitiated=false;
+		this.LastMethod="";
+		this.LastCallId="";
+		if (this.OnEndCall) {
+			var arr=osip_transaction_describe(tr);
+			var from=arr["from"];
+			var str="";
+			if (from)
+				osip_from_to_str(from, str);
+
+			if (sip) {
+				arr=osip_message_describe(sip);
+				var status_code=arr["status_code"];
+				str+=" ($status_code)";
+			}
+
+			this.Codec=codec;
+			this.OnEndCall(str);
+			this.Codec=-1;
+		}
+		if ((tr) && (!sip))
+			osip_remove_transaction (osip, tr);
+	}
+
+	function SIP(string localip) {
+		osip_init(osip);
+		if (osip) {
+			this.Tag="con"+RandomString(10);
+			this.Branch=RandomString(12);
+			this.client_sock=SocketCreate(PROTOCOL_UDP);
+			this.LocalIP=localip;
+
+			osip_set_cb_send_message(osip, cb_SendMsg);
+			osip_set_message_callback(osip, OSIP_ICT_STATUS_1XX_RECEIVED, this.cb_RcvICTRes);
+			osip_set_message_callback(osip, OSIP_NICT_STATUS_1XX_RECEIVED, this.cb_RcvNICTRes);
+			osip_set_message_callback(osip, OSIP_IST_INVITE_RECEIVED, this.cb_RcvISTReq);
+
+			osip_set_kill_transaction_callback(osip, OSIP_IST_KILL_TRANSACTION, this.cb_ISTTranKill);
+/*			osip_set_kill_transaction_callback(osip, OSIP_NIST_KILL_TRANSACTION, this.cb_ISTTranKill);
+
+			osip_set_kill_transaction_callback(osip, OSIP_ICT_KILL_TRANSACTION, this.cb_ISTTranKill);
+			osip_set_kill_transaction_callback(osip, OSIP_NICT_KILL_TRANSACTION, this.cb_ISTTranKill);
+*/
+		}
+	}
+
+	private function internalBye() {
+		var response;
+		var msg_arr;
+		if (this.invite_response) {
+			this.cb_SendMsg(0, this.reject_response, this.ProxyHost, this.ProxyPort, client_sock);
+			this.invite_response="";
+		} else
+		if (this.CallInitiated==1) {
+			response=this.Header("CANCEL", 0, this.ProxyHost, this.ProxyPort, this.ProxyHost, this.Tag, this.Branch, this.LastCallId, this.p_cseq++, msg_arr, this.LastFrom);
+			this.cb_SendMsg(0, response, this.ProxyHost, this.ProxyPort, client_sock);
+			osip_message_free(response);
+		} else {
+			response=this.Header("BYE", 0, this.ProxyHost, this.ProxyPort, this.ProxyHost, this.Tag, this.Branch+"xBYE", this.LastCallId, 1, msg_arr, this.LastFrom);
+			this.cb_SendMsg(0, response, this.ProxyHost, this.ProxyPort, client_sock);
+			osip_message_free(response);
+
+			if (this.CanBeTerminated) {
+				this.cb_SendMsg(0, this.terminate_response, this.ProxyHost, this.ProxyPort, client_sock);
+				this.invite_response="";
+			}
+		}
+		if (this.RTPSess)
+			clear_rtp=true;
+
+		this.CanBeTerminated=false;
+		this.CallInitiated=false;
+	}
+
+	private function Ack(as_message=false, sip=null) {
+		if (this.LastMethod)
+			var response=this.Header("ACK", 0, this.ProxyHost, this.ProxyPort, this.ProxyHost, this.Tag, this.Branch, this.LastCallId, this.LastCSEQ, var msg_arr, this.LastTo, this.LastMethod, sip);
+		else
+			response=this.Header("ACK", 0, this.ProxyHost, this.ProxyPort, this.ProxyHost, this.Tag, this.Branch, this.LastCallId, this.LastCSEQ, msg_arr, this.LastTo, "", sip);
+		if (as_message)
+			return response;
+
+		this.cb_SendMsg(0, response, this.ProxyHost, this.ProxyPort, client_sock);
+		osip_message_free(response);
+	}
+
+	private function OnAnswerHandler(tran, msg) {
+		var sess=this.RTPSess;
+		if (sess) {
+			var masg_arr=
+			var response=this.Header("ACK", 0, this.ProxyHost, this.ProxyPort, this.ProxyHost, this.Tag, this.Branch, this.LastCallId, this.LastINVITECSEQ, var msg_arr, this.LastTo, "INVITE", msg);
+
+			var host="";
+			var port=0;
+
+			if (osip_message_get_body(msg, 0, var body)>=0) {
+				osip_body_to_str(body, var str_body="");
+				sdp_message_init(var sdp);
+				if (sdp_message_parse(sdp, str_body)>=0) {
+//					host=sdp_message_o_addr_get(sdp);
+					host=sdp_message_c_addr_get(sdp, 0, 0);
+					if (!host)
+						host=sdp_message_o_addr_get(sdp);
+					var index=0;
+					do {
+						var media=sdp_message_m_media_get(sdp, index);
+						if (ToLower(media)=="audio")
+							break;
+						index++;
+					} while (media);
+					var media_port=value sdp_message_m_port_get(sdp, index);
+					var protocol=ToUpper(sdp_message_m_proto_get(sdp, index));
+					var media_type=sdp_message_m_payload_get(sdp, index, 0);
+					port=media_port;
+					this.MediaType=value media_type;
+					this.Algorithm=sdp_message_a_att_value_get(sdp,0,0);
+					/*if (Pos(this.Algorithm, "PCMA")>0)
+						this.OtherIsALaw=true;
+					else
+						this.OtherIsALaw=false;*/
+					var arr3=StrNumberSplit(this.Algorithm, "/");
+					var len3=length arr3;
+					//if (len3>1)
+					//	this.Bitrate=arr3[len3-1];
+					//else
+						this.Bitrate=BITRATE;
+
+					if (Pos(protocol, "RTP")<=0) {
+						sdp_message_free(sdp);
+						throw "Unsuportted protocol ($protocol)";
+					}
+				}
+				//osip_body_free(body);
+				sdp_message_free(sdp);
+	
+				if ((host) && (port)) {
+					if (CallInitiated) {
+						RTPClearDestinations(sess);
+						var status=RTPAddDestination(sess, host, port);
+						firstrtp=true;
+						if (status<0)
+							throw RTPError(status);
+						if (this.Encoder)
+							this.Encoder.Reset();
+						if (this.OnAddDestination)
+							this.OnAddDestination(host, port);
+						if (this.DebugCallback)
+							this.DebugCallback(this, "$host:$port", "[RTP add destionation]");
+					}
+
+					if (this.OnAnswer) {
+						var arr2=osip_transaction_describe(tran);
+						var from=arr2["to"];
+						var str="";
+						if (from)
+							osip_from_to_str(from, str);
+						this.OnAnswer(str);
+					}
+				}
+			}
+			this.cb_SendMsg(tran, response, this.ProxyHost, this.ProxyPort, client_sock);
+			osip_message_free(response);
+		}
+	}
+
+	private function OnRingingHandler(tran, msg) {
+		if ((this.RTPSess) && (osip_message_get_body(msg, 0, var body)>=0)) {
+			osip_body_to_str(body, var str_body="");
+			sdp_message_init(var sdp);
+			var host="";
+			var port=0;
+			if (sdp_message_parse(sdp, str_body)>=0) {
+//				host=sdp_message_o_addr_get(sdp);
+				host=sdp_message_c_addr_get(sdp, 0, 0);
+				if (!host)
+					host=sdp_message_o_addr_get(sdp);
+				var index=0;
+				do {
+					var media=sdp_message_m_media_get(sdp, index);
+					if (ToLower(media)=="audio")
+						break;
+					index++;
+				} while (media);
+				var media_port=value sdp_message_m_port_get(sdp, index);
+				var protocol=ToUpper(sdp_message_m_proto_get(sdp, index));
+				var media_type=sdp_message_m_payload_get(sdp, index, 0);
+				port=media_port;
+				this.MediaType=value media_type;
+				this.Algorithm=sdp_message_a_att_value_get(sdp,0,0);
+				/*if (Pos(this.Algorithm, "PCMA")>0)
+					this.OtherIsALaw=true;
+				else
+					this.OtherIsALaw=false;
+				*/
+				var arr3=StrNumberSplit(this.Algorithm, "/");
+				var len3=length arr3;
+				//if (len3>1)
+				//	this.Bitrate=arr3[len3-1];
+				//else
+				//	this.Bitrate=BITRATE;
+				if (Pos(protocol, "RTP")<=0) {
+					sdp_message_free(sdp);
+					throw "Unsuportted protocol ($protocol)";
+				}
+			}
+			//osip_body_free(body);
+			sdp_message_free(sdp);
+	
+			if ((host) && (port)) {
+				RTPClearDestinations(this.RTPSess);
+				var status=RTPAddDestination(this.RTPSess, host, port);
+				if (status<0)
+					throw RTPError(status);
+				if (this.Encoder)
+					this.Encoder.Reset();
+
+				if (this.OnAddDestination)
+					this.OnAddDestination(host, port);
+			}
+		}
+
+		if (this.OnRinging) {
+			var arr2=osip_transaction_describe(tran);
+			var from=arr2["to"];
+			var str="";
+			if (from)
+				osip_from_to_str(from, str);
+			this.OnRinging(str);
+		}
+	}
+
+	private function CheckForData(socket) {
+		var buffer="";
+		var has_data=SocketHasData(socket);
+		if (has_data<0)
+			return -1;
+		if (has_data) {
+			var res=SocketRead(socket, buffer, BUFFSIZE, true);
+			if (res>0) {
+				if (this.Debug)
+					echo buffer;
+
+				var evt=osip_parse(buffer);
+				if (evt) {
+					if (this.Debug)
+						echo "=> Event\n";
+					if (this.DebugCallback)
+						this.DebugCallback(this, buffer, "Event");
+					var rc = osip_find_transaction_and_add_event(osip, evt);
+					if (rc) {
+						var tran;
+						var sip=osip_event_describe(evt)["sip"];
+
+						var arr=osip_message_describe(sip);
+						var status_code=arr["status_code"];
+						var method=osip_cseq_get_method(arr["cseq"]);
+
+						if ((status_code==200) && (!this._registered)) {
+							if (method=="REGISTER") {
+								_registered=true;
+								var tout=osip_message_get_header_str(sip, "expires", 0);
+								if (tout)
+									this.RegisterTimeout=tout;
+								if (this.RegisterTimeout<60)
+									this.NextRegister=time()+this.RegisterTimeout;
+								else
+									this.NextRegister=time()+60;//this.RegisterTimeout-60;
+								if (this.OnRegister)
+									this.OnRegister(this.RegisterTimeout);
+							}
+						}
+						if (status_code==401) {
+							if (LoginSent) {
+								if (this.Debug)
+									echo "Login failed\n";
+								if (OnLoginFailed)
+									this.OnLoginFailed();
+								if (this.DebugCallback)
+									this.DebugCallback(this, "", "SIP Login failed");
+							} else {
+								var auth=arr["www_authenticates"];
+								if (auth) {
+									var a=osip_list_get(auth, 0);
+									if (a) {
+										var nounce=osip_proxy_authenticate_get_nonce(a);
+										var realm=osip_proxy_authenticate_get_realm(a);
+										if (nounce) {
+											var qop=osip_proxy_authenticate_get_qop_options (a);
+
+											var msg=this.InternalRegister(this.Username, this.Password, this.RegisterTimeout, this.ProxyHost, this.ProxyPort, this.ProxyHost, this.Tag, this.Branch, this.Username, p_cseq++, nounce, arr["cseq"], realm, qop);
+											if (this.Debug)
+												echo msg;
+											if (this.DebugCallback)
+												this.DebugCallback(this, msg, "Register");
+
+											SocketWrite(client_sock, msg, true, this.ProxyHost, 5060);
+											LoginSent=true;
+										}
+									}
+								}
+							}
+						} else {
+							osip_transaction_init(tran, IST, osip, sip);
+							if (tran) {
+								if ((status_code==200) && (this.CallInitiated==1)) {
+									this.CallInitiated=2;
+									this.OnAnswerHandler(tran, sip);
+								} else
+								if ((status_code==180) || (status_code==183)) {
+									this.OnRingingHandler(tran, sip);
+								}
+
+								osip_transaction_set_out_socket (tran, socket);
+								osip_transaction_set_your_instance(tran, osip);
+								if (((method=="CANCEL") || (method=="BYE")) && (status_code!=200)) {
+									var msg2=this.Respond(tran, sip, SIP_OK);
+									this.cb_SendMsg(tran, msg2, this.ProxyHost, this.ProxyPort, socket);
+									osip_message_free(msg2);
+
+									msg2=this.Respond(tran, sip, SIP_REQUEST_TERMINATED, "Request Terminated");
+									this.cb_SendMsg(tran, msg2, this.ProxyHost, this.ProxyPort, socket);
+									osip_message_free(msg2);
+
+									this.cb_ISTTranKill(-1, tran, sip);
+									osip_remove_transaction(osip, tran);
+									osip_transaction_free(tran);
+								} else
+								if ((status_code>=400) && (status_code<500)) {
+									if ((status_code!=403) && (status_code!=481)) {
+										this.Ack(false, sip);
+										this.cb_ISTTranKill(-1, tran, sip);
+									}
+									//osip_transaction_add_event(tran, evt);
+									osip_event_free(evt);
+								}// else
+								//	osip_transaction_add_event(tran, evt);
+							} else
+								osip_event_free(evt);
+						}
+					}
+					if (this.Debug)
+						echo "=> end event loop\n";
+				} else {
+					if (this.DebugCallback)
+						this.DebugCallback(this, buffer, "Invalid packet received");
+
+					if (this.Debug)
+						throw "Invalid packet received:\n$buffer\n";
+				}
+			}
+			return res;
+		}
+	}
+
+	function Iterate() {
+		var res=CheckForData(client_sock);
+		if (res<0)
+			return 0;
+
+		osip_ict_execute(osip);
+		osip_ist_execute(osip);
+		osip_nict_execute(osip);
+		osip_nist_execute(osip);
+		osip_timers_ict_execute(osip);
+		osip_timers_ist_execute(osip);
+		osip_timers_nict_execute(osip);
+		osip_timers_nist_execute(osip);
+		if (this.RTPSess)
+			RTPIterate(this.RTPSess);
+		//else
+		if ((this._registered) && (this.NextRegister) && (time()>this.NextRegister)) {
+			//this.NextRegister=0;
+			this._registered=false;
+			if (this.Debug)
+				echo "Re-register";
+			if (this.DebugCallback)
+				this.DebugCallback(this, "", "Re-register");
+
+			this.NextRegister=time()+60;
+			this.Register();
+		}
+
+		if (set_bye) {
+			this.internalBye();
+			set_bye=false;
+			if (this.RTPSess) {
+				DoneRTP(this.RTPSess);
+				this.RTPSess=0;
+			}
+		}
+		return 1;
+	}
+
+	private function Header(method, timeout, local_ip, local_port, proxy_ip, from_tag, via_branch, v_call_id, v_cseq, var msg_arr, to_str="", prec_method="", var prec_msg=null) {
+		osip_message_init(var msg);
+		var is_invite=false;
+		switch (method) {
+			case "INVITE":
+				is_invite=true;
+				this.LastINVITECSEQ=v_cseq;
+			case "BYE":
+				this.LastMethod=method;
+				this.LastCSEQ=v_cseq;
+				break;
+			case "ACK":
+				this.LastMethod="";
+				break;
+		}
+		var sip_username=this.Username;
+		if (msg) {
+			osip_message_set_version(msg, "SIP/2.0");
+			osip_message_set_max_forwards(msg, "70");
+			osip_message_set_method(msg, method);
+			osip_message_force_update(msg);
+
+			osip_uri_init(var req_uri);
+			osip_uri_set_host(req_uri, proxy_ip);
+			osip_message_set_uri(msg, req_uri);
+
+			osip_via_init(var via);
+			via_set_version(via, "2.0");
+			via_set_protocol(via, "UDP");
+			via_set_host(via, local_ip);
+			via_set_port(via, ""+local_port);
+			osip_via_set_branch(via, via_branch+p_cseq);
+			osip_via_to_str(via, var via_str);
+			//osip_message_set_via(msg, via_str);
+
+			msg_arr=osip_message_describe(msg);
+			var vias=msg_arr["vias"];
+			osip_list_add(vias, via, -1);
+
+			osip_from_message(var from, msg);
+			osip_from_set_displayname(from, sip_username);
+			osip_from_set_tag(from, from_tag);
+
+			osip_uri_init(var from_url);
+			if ((is_invite) || (method=="ACK"))
+				osip_uri_set_host(from_url, /*proxy_ip*/this.LocalIP);
+			else
+				osip_uri_set_host(from_url, proxy_ip);
+			osip_uri_set_username(from_url, sip_username);
+			osip_from_set_url(from, from_url);
+
+			var prec_msg_arr;
+			if (prec_msg)
+				prec_msg_arr=osip_message_describe(prec_msg);
+
+			var contact_host=0;
+			if (prec_msg_arr) {
+				var contacts=prec_msg_arr["contacts"];
+				if (contacts) {
+					var contact = osip_list_get (contacts, 0);
+					if (contact) {
+						var tmp=osip_contact_get_url(contact);
+						if (tmp)
+							osip_uri_clone(tmp, contact_host);
+					}
+				}
+			}
+			if (contact_host) {
+				osip_to_message(var to, msg);
+				if (to_str)
+					osip_to_set_displayname(to, to_str);
+				osip_to_set_url(to, contact_host);
+			} else
+			if (to_str) {
+				osip_to_message(to, msg);
+				osip_to_set_displayname(to, to_str);
+				osip_uri_init(var to_url);
+				osip_uri_set_host(to_url, proxy_ip);
+				osip_uri_set_username(to_url, to_str);
+				//osip_uri_parse(to_url, to_str);
+				osip_to_set_url(to, to_url);
+			} else {
+				osip_to_message(to, msg);
+				osip_to_set_displayname(to, sip_username);
+				osip_uri_init(to_url);
+				osip_uri_set_host(to_url, proxy_ip);
+				osip_uri_set_username(to_url, sip_username);
+				osip_to_set_url(to, to_url);
+			}
+
+			osip_call_id_message(var call_id, msg);
+			osip_call_id_set_host(call_id, local_ip);
+			osip_call_id_set_number(call_id, v_call_id);
+
+			osip_cseq_message(var cseq, msg);
+			if (prec_method)
+				osip_cseq_set_method(cseq, prec_method);
+			else
+				osip_cseq_set_method(cseq, method);
+			osip_cseq_set_number(cseq, ""+v_cseq);
+
+			osip_contact_init(var con);
+
+			osip_uri_init(var contact_url);
+
+			osip_uri_set_host(contact_url, this.LocalIP/*local_ip*/);
+			//osip_uri_set_port(contact_url, ""+local_port);
+			osip_uri_set_username(contact_url, this.Username);
+
+			osip_contact_set_url(con, contact_url);
+
+			osip_contact_param_add(con, "expires", ""+timeout);
+			osip_message_set_user_agent(msg, SIP_USER_AGENT);
+
+			osip_list_add(msg_arr["contacts"], con, -1);
+			//osip_message_set_allow(msg, "INVITE, ACK, CANCEL, BYE, NOTIFY");
+			osip_message_set_allow(msg, "REGISTER,OPTIONS,INVITE,ACK,CANCEL,BYE,INFO,REFER,SUBSCRIBE,NOTIFY,PUBLISH");
+
+		}
+		return msg;
+	}
+
+
+	private function InternalRegister(sip_username, sip_password, timeout, local_ip, local_port, proxy_ip, from_tag, via_branch, v_call_id, v_cseq, rev_nonce="", prev=null, realm="", p_qop="") {
+		var msg=Header("REGISTER", timeout, local_ip, local_port, proxy_ip, from_tag, via_branch, v_call_id, v_cseq, var msg_arr);
+
+		if (msg) {
+			//osip_message_set_content_type(msg, "text/plain");
+			//osip_message_set_body(msg,"test\n");
+
+			if (rev_nonce) {
+				osip_authorization_init(var p_auth);
+				osip_authorization_set_auth_type (p_auth, "Digest");
+				osip_authorization_set_realm (p_auth, realm);
+				osip_authorization_set_nonce (p_auth, rev_nonce);
+
+				var uri=StrReplace(realm, '"', "");
+				osip_authorization_set_uri (p_auth, "\""+uri+"\"");
+				osip_authorization_set_username (p_auth, "\""+sip_username+"\"");
+
+				realm=StrReplace(realm, '"', "");
+				var ha1=md5(sip_username+":"+realm+":"+sip_password);
+				var method=osip_cseq_get_method(prev);
+				var ha2=md5(method+":"+uri);
+
+				if (p_qop=="auth") {
+					var cnonce="0a4f113b";
+					var response=md5(ha1+":"+StrReplace(rev_nonce, '"', "")+":"+"00000001:"+cnonce+":auth:"+ha2);
+					osip_authorization_set_cnonce (p_auth, "\""+cnonce+"\"");
+					osip_authorization_set_nonce_count (p_auth, "00000001");
+					iNonceCount++;
+					osip_authorization_set_algorithm (p_auth, "MD5");
+				} else
+					response=md5(ha1+":"+StrReplace(rev_nonce, '"', "")+":"+ha2);
+
+
+				//osip_authorization_set_opaque (p_auth, "\"\"");
+				if (p_qop=="auth")
+					osip_authorization_set_message_qop (p_auth, p_qop);
+				osip_authorization_set_response (p_auth, "\""+response+"\"");
+
+				
+				osip_list_add(msg_arr["authorizations"], p_auth, -1);
+			}
+
+
+			osip_message_to_str(msg, var str);
+			osip_message_free(msg);
+			return str;
+		}
+	}
+
+	public function Register() {
+		var msg=this.InternalRegister(this.Username, this.Password, this.RegisterTimeout, this.LocalIP, this.ProxyPort, this.ProxyHost, this.Tag, this.Branch, this.Username, this.p_cseq++);
+		if (msg) {
+			LoginSent=false;
+			if (this.Debug)
+				echo msg;
+			if (this.DebugCallback)
+				this.DebugCallback(this, msg, "Register");
+
+			return (SocketWrite(this.client_sock, msg, true, this.ProxyHost, this.ProxyPort)>0);
+		}
+		return 0;
+	}
+
+	public function Unregister() {
+		var msg=this.InternalRegister(this.Username, this.Password, 0, this.LocalIP, this.ProxyPort, this.ProxyHost, this.Tag, this.Branch, this.Username, this.p_cseq++);
+		if (msg) {
+			if (this.Debug)
+				echo msg;
+			if (this.DebugCallback)
+				this.DebugCallback(this, msg, "Unregister");
+			return (SocketWrite(this.client_sock, msg, true, this.ProxyHost, this.ProxyPort)>0);
+		}
+		return 0;
+	}
+
+	private function Invite(to_str, timeout=60, number g722=false) {
+		//this.p_cseq=1;
+		if (this._registered)
+			this.NextRegister=time()+60;
+		this.CanBeTerminated=false;
+		this.LastTo=to_str;
+		var local_ip=this.LocalIP;
+		var sip_username=this.Username;
+		//var sip_password=this.Password;
+		var proxy_ip=this.ProxyHost;
+		var v_cseq=this.p_cseq++;
+		var v_call_id=RandomString(8)+"-"+RandomString(8)+"-"+RandomString(8)+"-"+RandomString(8);//this.Username+this.Tag;
+		this.LastCallId=v_call_id;
+		var msg=Header("INVITE", timeout, proxy_ip, this.ProxyPort, proxy_ip, this.Tag, this.Branch, v_call_id, v_cseq, var msg_arr, to_str);
+
+		if (msg) {
+			this.Algorithm="8 PCMA/8000";
+			this.IsALaw=-1;
+			this.Bitrate=8000;
+
+			var str="";
+			sdp_message_init(var sdp);
+			sdp_message_v_version_set(sdp,"0");
+			sdp_message_o_origin_set(sdp, sip_username, "0", "0", "IN", "IP4", local_ip);
+
+			sdp_message_s_name_set(sdp, "Talk to me");
+			sdp_message_t_time_descr_add(sdp, "0", "0");
+
+			sdp_message_m_media_add(sdp, "audio", ""+(this.LocalRTPPort), "", "RTP/AVP");
+			sdp_message_c_connection_add(sdp, 0, "IN", "IP4", local_ip, "", "");
+			sdp_message_m_payload_add(sdp, 0, ""+(8+g722));
+
+			sdp_message_a_attribute_add(sdp,0,"rtpmap",this.Algorithm);
+			sdp_message_to_str(sdp, var sdp_str);
+			
+			osip_message_set_body(msg, sdp_str);
+			osip_message_set_content_type(msg, "application/sdp");
+
+			osip_message_to_str(msg, var msg_str);
+			osip_message_free(msg);
+
+			//sdp_message_free(sdp);
+			if (this.Debug)
+				echo msg_str;
+			if (this.DebugCallback)
+				this.DebugCallback(this, msg_str, "Invite");
+
+			/*osip_transaction_init (var tran, ICT, osip, msg);
+			//osip_transaction_set_out_socket (tran, this.client_sock);
+			osip_transaction_set_your_instance(tran, osip);
+
+			var evt = osip_new_outgoing_sipmessage(msg);
+			osip_transaction_add_event(tran, evt);
+			osip_transaction_execute(tran, evt);
+			return 1;*/
+			return (SocketWrite(this.client_sock, msg_str, true, this.ProxyHost, this.ProxyPort)>0);
+		}
+		return -1;
+	}
+
+	public function Call(string phone_number, timeout=60, g722=false) {
+		if (this.Invite(phone_number, timeout, g722)>0) {
+			if (this.RTPSess) {
+				var s=this.RTPSess;
+				this.RTPSess=null;
+				this.DoneRTP(s);
+			}
+
+			var sess=this.InitRTP(this.LocalIP, this.LocalRTPPort, false);
+			this.Encoder=new SpeexEncoder();
+			this.Encoder.Quality=this._Quality;
+			this.Encoder.SampleRate=this.Bitrate;
+			this.Decoder=new SpeexDecoder();
+			this.Decoder.SampleRate=this.Bitrate;
+
+			//this.Echo=new SpeexEchoCanceler(this.Encoder.FrameSize, Bitrate/4);
+
+			this.RTPSess=sess;
+			this.CallInitiated=true;
+		}
+	}
+
+	private function CreateAnswerMessage(tran, msg, var str_body) {
+		sdp_message_init(var sdp);
+
+		if (sdp_message_parse(sdp, str_body)>=0) {
+//			var rtp_host=sdp_message_o_addr_get(sdp);
+			var rtp_host=sdp_message_c_addr_get(sdp, 0, 0);
+			if (!rtp_host)
+				rtp_host=sdp_message_o_addr_get(sdp);
+			var index=0;
+			do {
+				var media=sdp_message_m_media_get(sdp, index);
+				if (ToLower(media)=="audio")
+					break;
+				index++;
+			} while (media);
+			var sessid=sdp_message_o_sess_id_get(sdp);
+			var sessver=sdp_message_o_sess_version_get(sdp);
+			var media_port=value sdp_message_m_port_get(sdp, index);
+			var protocol=ToUpper(sdp_message_m_proto_get(sdp, index));
+			var media_type="8";//sdp_message_m_payload_get(sdp, index, 0);
+
+			this.MediaType=value media_type;
+
+			//this.Algorithm=sdp_message_a_att_value_get(sdp,0,0);
+			this.Algorithm="8 PCMA/8000";
+
+			if (Pos(this.Algorithm, "PCMA")>0)
+				this.IsALaw=-1;
+			else
+				this.IsALaw=false;
+
+			var arr3=StrNumberSplit(this.Algorithm, "/");
+			var len3=length arr3;
+			//if (len3>1)
+			//	this.Bitrate=arr3[len3-1];
+			//else
+				this.Bitrate=BITRATE;
+
+			if (Pos(protocol, "RTP")<=0) {
+				sdp_message_free(sdp);
+				throw "Unsuportted protocol ($protocol)";
+			}
+			if (this.RTPSess) {
+				DoneRTP(this.RTPSess);
+				this.RTPSess=null;
+			}
+			this.RTPSess=InitRTP(rtp_host, media_port);
+
+			BuildResponse(msg, var response, "", "", true, false);
+			osip_message_set_status_code(response, SIP_OK);
+			if (response) {
+				sdp_message_init(var sdp2);
+				sdp_message_v_version_set(sdp2,"0");
+				sdp_message_o_origin_set(sdp2, this.Username, sessid, sessver, "IN", "IP4", this.LocalIP);
+
+				sdp_message_s_name_set(sdp2, SIP_USER_AGENT);
+				sdp_message_t_time_descr_add(sdp2, "0", "0");
+
+				sdp_message_m_media_add(sdp2, "audio", ""+(this.LocalRTPPort), "", "RTP/AVP");
+				sdp_message_c_connection_add(sdp2, 0, "IN", "IP4", this.LocalIP, "", "");
+				sdp_message_m_payload_add(sdp2, 0, media_type);
+
+				sdp_message_a_attribute_add(sdp2,0,"rtpmap",this.Algorithm/*"8 PCMA/8000"*/);
+				sdp_message_to_str(sdp2, var sdp_str);
+
+				osip_message_set_body(response, sdp_str);
+				osip_message_set_content_type(response, "application/sdp");
+
+				sdp_message_free(sdp2);
+			}
+
+			osip_message_set_reason_phrase(response, "OK");
+		}
+		sdp_message_free(sdp);
+
+		var out_str="";
+		if (response) {
+			osip_message_to_str(response, out_str);
+			osip_message_free(response);
+		}
+		return out_str;
+	}
+
+	private function CreateRejectMessage(tran, msg, var str_body) {
+		BuildResponse(msg, var response, "", "", true, false);
+
+		var out_str="";
+		if (response) {
+			osip_message_set_status_code(response, SIP_BUSY_HERE);
+			osip_message_set_reason_phrase(response, "Busy here");
+			osip_message_to_str(response, out_str);
+			osip_message_free(response);
+		}
+		return out_str;
+	}
+
+	private function CreateTerminateMessage(tran, msg, var str_body) {
+		BuildResponse(msg, var response, "", "", true, false);
+
+		var out_str="";
+		if (response) {
+			osip_message_set_status_code(response, SIP_REQUEST_TERMINATED);
+			osip_message_set_reason_phrase(response, "Request terminated");
+			osip_message_to_str(response, out_str);
+			osip_message_free(response);
+		}
+		return out_str;
+	}
+
+	public function Answer() {
+		if (!this.invite_response)
+			throw "No call to be aswered";
+		this.cb_SendMsg(0, this.invite_response, this.ProxyHost, this.ProxyPort, client_sock);
+		this.invite_response="";
+		this.CanBeTerminated=true;
+		this.Encoder=new SpeexEncoder();
+		this.Encoder.Quality=this._Quality;
+		this.Encoder.SampleRate=this.Bitrate;
+		this.Decoder=new SpeexDecoder();
+		this.Decoder.SampleRate=this.Bitrate;
+		//this.Echo=new SpeexEchoCanceler(this.Encoder.FrameSize, Bitrate/4);
+	}
+
+	public function SetQuality(number qual) {
+		this._Quality=qual;
+		if (this.Encoder)
+			this.Encoder.Quality=qual;
+		return qual;
+	}
+
+	public function Reject() {
+		if (!this.invite_response) {
+			return this.Bye();
+		}
+		this.cb_SendMsg(0, this.reject_response, this.ProxyHost, this.ProxyPort, client_sock);
+		this.invite_response="";
+		this.CallInitiated=false;
+		this.LastMethod="";
+		if (this.RTPSess) {
+			DoneRTP(this.RTPSess);
+			this.RTPSess=0;
+		}
+		this.CanBeTerminated=false;
+		if (this.OnEndCall)
+			this.OnEndCall("");
+	}
+
+	public function Bye() {
+		if ((this.RTPSess) || (this.CallInitiated) || (this.invite_response) || (this.CanBeTerminated))
+			this.set_bye=true;
+	}
+
+	function finalize() {
+		if (osip)
+			osip_release(osip);
+		if (client_sock>0)
+			SocketClose(client_sock);
+		if (this.RTPSess) {
+			DoneRTP(this.RTPSess);
+			this.RTPSess=0;
+		}
+	}
+}

@@ -1,0 +1,68 @@
+import standard.C.time
+import standard.C.casts
+import standard.C.math
+
+define S_SIZE	8190
+
+class Main {
+
+	function Sieve2(n) {
+		var count = 0;
+		var[] flags;
+
+		var startTime=clock();
+		while (n-- > 0) {
+			count = 0;
+			for (var i=0; i<8193; i++)
+				flags[i]=true;
+
+    			for (i=2; i<8193; i++) {
+    				if (flags[i] > 0) {
+        				for (var k=i+i; k <= 8192; k+=i) {
+        					flags[k] = false;
+        				}
+        				count++;
+				}
+			}
+		}
+		return clock()-startTime;
+	}
+
+	function Sieve(SIZE) {
+		var[] flags;
+		var i, prime, k, iter, count;
+		var iterations, seconds, score, startTime, elapsedTime;
+
+		startTime=clock();
+		while (true) {
+			count=0;
+			for (i=0; i<SIZE; i++)
+				flags[i]=true;
+
+			for (i=0;i<SIZE;i++) {
+				if (flags[i]) {
+					prime=i+i+3;
+					for (k=i+prime;k<SIZE;k+=prime)
+						flags[k]=false;
+					count++;
+				}
+			}
+			iterations++;
+			elapsedTime=clock()-startTime;
+			if (elapsedTime >=10000)
+				break;
+		}
+		seconds=elapsedTime/1000;
+		score=round(iterations/seconds);
+		echo "$iterations iterations in $seconds seconds\n";
+		/*if (count !=1899)
+			echo "Error: count <> 1899\n";
+		else*/
+			echo "Sieve score = $score\n";
+	}
+
+	function Main() {
+		//Sieve(10);
+		echo Sieve2(900)+" miliseconds\n";
+	}
+}

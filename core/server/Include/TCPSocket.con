@@ -1,0 +1,140 @@
+import standard.net.socket
+
+class TCPSocket {
+	public var Socket=-1;
+	protected var _islisten=false;
+	protected var _ipv6=false;
+
+	public property HasData { get GetHasData }
+	public property Error { get GetError }
+	public property Info { get GetInfo }
+	public property Ipv6 { get _ipv6 }
+
+	public function TCPSocket(sock=-1, ipv6=false) {
+		if (sock==-1) {
+			if (ipv6)
+				Socket=SocketCreate(PROTOCOL_TCP, true);
+			else
+				Socket=SocketCreate(PROTOCOL_TCP);
+		} else
+			Socket=sock;
+		if (ipv6)
+			this._ipv6=true;
+	}
+
+	public function GetInfo() {
+		if (Socket<=0)
+			throw "Invalid socket (GetInfo)";
+		return SocketInfo(Socket);
+	}
+
+	public function Connect(host, port) {
+		if (Socket<=0)
+			throw "Invalid socket (connect operation)";
+		if (_ipv6)
+			return !SocketConnect(Socket, host, port, true);
+		return !SocketConnect(Socket, host, port);
+	}
+	
+	public function Listen(port, max_connections=0x100, interface="") {
+		if (Socket<=0)
+			throw "Invalid socket (listen operation)";
+		_islisten=true;
+		if (_ipv6)
+			return SocketListen(Socket, port, max_connections, interface, true);
+
+		return SocketListen(Socket, port, max_connections, interface);
+	}
+
+	public function Accept(return_static_socket=false) {		
+		if (Socket<=0)
+			throw "Invalid socket (Accept)";
+		if (!_islisten)
+			throw "Invalid socket type (Accept)";
+
+		if (return_static_socket)
+			return SocketAccept(Socket);
+		var sock = SocketAccept(Socket);
+		if (sock >= 0)
+			return new TCPSocket(sock, this._ipv6);
+
+		return null;
+	}
+
+	public function Close(force=false) {
+		if (Socket>0) {
+			if (force)
+				var res=SocketClose(Socket, true);
+			else
+				res=SocketClose(Socket);
+			Socket=-1;
+			_islisten=false;
+			return res;
+		}
+		return 0;
+	}
+
+	public function Read(number max_size=0xFFFF) {
+		if (Socket<=0)
+			throw "Invalid socket (Read)";
+		if (_islisten)
+			throw "Invalid socket type (Read)";
+		var res=SocketRead(Socket, var buffer, max_size);
+		if (res>0)
+			return buffer;
+		else
+		if (res==0)
+			return "";
+		throw "Broken socket (Read)";
+	}
+
+	public function Write(var string buffer) {
+		if (Socket<=0)
+			throw "Invalid socket (Write)";
+		if (_islisten)
+			throw "Invalid socket type (Write)";
+		if (length buffer) {
+			var res=SocketWrite(Socket, buffer);
+			if (res<0)
+				throw "Broken socket (Write)";
+			return res;
+		}
+		return 0;
+	}
+
+	public function GetHasData(var timeout=0) {
+		if (Socket<=0)
+			throw "Invalid socket (GetHasData)";
+		//if (_islisten)
+		//	throw "Invalid socket type (GetHasData)";
+		if (timeout<=0)
+			var res=SocketHasData(Socket);
+		else
+			res=SocketHasData(Socket, timeout);
+		if (res<0)
+			throw "Broken socket (GetHasData)";
+		return res;
+	}
+
+	public function GetError() {
+		if (Socket<=0)
+			throw "Invalid socket (GetError)";
+		return SocketError(Socket);
+	}
+
+	public function SetOption(level, opt, val) {
+		if (Socket<=0)
+			throw "Invalid socket (SetOption)";
+		return SocketSetOption(Socket, level, opt, val);
+	}
+
+	public function GetOption(level, opt, var val) {
+		if (Socket<=0)
+			throw "Invalid socket (SetOption)";
+		return SocketGetOption(Socket, level, opt, val);
+	}
+
+	public function finalize() {
+		this.Close();
+	}
+}

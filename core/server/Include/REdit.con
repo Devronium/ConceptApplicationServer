@@ -1,0 +1,365 @@
+include VisibleRemoteObject.con
+include ClassID.con
+include RemoteEvents.con
+include RImage.con
+
+import standard.C.time
+import standard.lib.str
+
+class REdit extends VisibleRemoteObject {
+	private var MASKED;
+	private var MASKEDCHAR;
+	private var READONLY;
+	private var BORDER;
+	private var ACTIVATEDEFAULT;
+	private var MAXLEN;
+	private var SUGEST;
+	private var XALIGN;
+	private var PFRACTION;
+	private var PSTEP;
+	private var CAPSWARNING=false;
+	private var PRIMARYICON;
+	private var SECONDARYICON;
+	private var PRIMARYICONNAME="";
+	private var SECONDARYICONNAME="";
+	private var PRIMARYICONACTIVE=true;
+	private var SECONDARYICONACTIVE=true;
+	private var PRIMARYTOOLTIP="";
+	private var SECONDARYTOOLTIP="";
+	private var OVERWRITE;
+	private var INPUTFORMAT="";
+
+	// dummy function
+	private function _Popup();
+	
+	public property Text { get GetCaption, set SetCaption }
+	public property Masked { get MASKED, set SetMasked }
+	public property MaskedChar { get MASKEDCHAR, set SetMaskedChar }
+	public property InputFormat { get INPUTFORMAT, set SetInputFormat }
+	public property ActivateDefault { get ACTIVATEDEFAULT, set SetActivateDefault }
+	public property Border { get BORDER, set SetBorder }
+	public property MaxLen { get MAXLEN, set SetMaxLen }
+	public property Suggest { get SUGEST, set SetSuggest }
+	public property ReadOnly { get READONLY, set SetReadOnly }
+	public property XAlign { get XALIGN, set SetXAlign }
+
+	public property ProgressFraction { get PFRACTION, set SetProgressFraction }
+	public property ProgressStep { get PSTEP, set SetProgressStep }
+
+	public property PrimaryIcon { get PRIMARYICON, set SetPrimaryIcon }
+	public property SecondaryIcon { get SECONDARYICON, set SetSecondaryIcon }
+
+	public property PrimaryIconName { get PRIMARYICONNAME, set SetPrimaryIconName }
+	public property SecondaryIconName { get SECONDARYICONNAME, set SetSecondaryIconName }
+
+	public property PrimaryIconActivable { get PRIMARYICONACTIVE, set SetPrimaryIconActivable }
+	public property SecondaryIconActivable { get SECONDARYICONACTIVE, set SetSecondaryIconActivable }
+
+	public property PrimaryIconTooltip { get PRIMARYTOOLTIP, set SetPrimaryIconTooltip }
+	public property SecondaryIconTooltip { get SECONDARYTOOLTIP, set SetSecondaryIconTooltip }
+
+	public property CapsWarning { get CAPSWARNING, set SetCapsWarning }
+	public property Overwrite { get OVERWRITE, set SetOverwrite }
+
+	public var Format;
+
+	//----------- EVENTS ----------------------------------------------------//	
+	public property OnInsertAtCursor { get GetOnInsertAtCursor, set SetOnInsertAtCursor }
+	public function GetOnInsertAtCursor() {
+		return _GET_REMOTE_EVENT(EVENT_ON_INSERTATCURSOR);
+	}
+
+	public function SetOnInsertAtCursor(var deleg) {
+		return _MAP_REMOTE_EVENT(EVENT_ON_INSERTATCURSOR, deleg);
+	}
+
+	public property OnPopulatePopup { get GetOnPopulatePopup, set SetOnPopulatePopup }
+	public function GetOnPopulatePopup() {
+		return _GET_REMOTE_EVENT(EVENT_ON_POPULATEPOPUP);
+	}
+
+	public function SetOnPopulatePopup(var deleg) {
+		return _MAP_REMOTE_EVENT(EVENT_ON_POPULATEPOPUP, deleg);
+	}
+
+	public property OnIconPress { get GetOnIconPress, set SetOnIconPress }
+	public function GetOnIconPress() {
+		return _GET_REMOTE_EVENT(EVENT_ON_PRESSED);
+	}
+
+	public function SetOnIconPress(var deleg) {
+		return _MAP_REMOTE_EVENT(EVENT_ON_PRESSED, deleg);
+	}
+
+	public property OnIconRelease { get GetOnIconRelease, set SetOnIconRelease }
+	public function GetOnIconRelease() {
+		return _GET_REMOTE_EVENT(EVENT_ON_RELEASED);
+	}
+
+	public function SetOnIconRelease(var deleg) {
+		return _MAP_REMOTE_EVENT(EVENT_ON_RELEASED, deleg);
+	}
+
+	public property OnActivate { get GetOnActivate, set SetOnActivate }
+	public function GetOnActivate() {
+		return _GET_REMOTE_EVENT(EVENT_ON_ACTIVATE);
+	}
+
+	public function SetOnActivate(var delegate deleg) {
+		return _MAP_REMOTE_EVENT(EVENT_ON_ACTIVATE, deleg);
+	}
+
+	public property OnChanged { get GetOnChanged, set SetOnChanged }
+	public function GetOnChanged() {
+		return _GET_REMOTE_EVENT(EVENT_ON_CHANGED);
+	}
+
+	public function SetOnChanged(var delegate deleg) {
+		return _MAP_REMOTE_EVENT(EVENT_ON_CHANGED, deleg);
+	}
+	//-----------------------------------------------------------------------//	
+	public function REdit(OWNER, check_touch_flag=true) {
+		super(OWNER, CLASS_EDIT);
+		if (check_touch_flag)
+			this._CheckTouchMode();
+	}
+
+	public function OnTouchIconPress(Sender, EventData) {
+		if (value EventData==1) {
+			if (this.Format)
+				return;
+			var keyboard=GLOBALS()["framework.entry.touchkeyboard"];
+			if (keyboard)
+				keyboard._Popup(this);
+		}
+	}
+
+	private function _CheckTouchMode() {
+		if (this.Format)
+			return;
+		if (GLOBALS()["framework.flags.touchscreen"]) {
+			this.SecondaryIconName="gtk-spell-check";
+			this.SecondaryIconActivable=true;
+			this.OnIconPress=this.OnTouchIconPress;
+		}
+	}
+
+	public function DoFormat(data) {
+		if (!this.Format)
+			return data;
+
+		var t_arr=strptime(data, this.Format, var has_time);
+		var result="";
+		if (t_arr) {
+			if (t_arr["tm_isdst"]==1)
+				t_arr=_localtime(mktime(t_arr)-3600);
+
+			result+=1900+t_arr["tm_year"];
+			result+="-";
+			var month=t_arr["tm_mon"]+1;
+			if (month<10)
+				result+="0";
+			result+=month;
+			result+="-";
+        
+			var day=t_arr["tm_mday"];
+			if (day<10)
+				result+="0";
+
+			result+=day;
+
+			if (has_time) {
+				var hour=t_arr["tm_hour"];
+				if (hour<10)
+					hour="0"+hour;
+				var minute=t_arr["tm_min"];
+				if (minute<10)
+					minute="0"+minute;
+
+				var sec=t_arr["tm_sec"];
+				if (sec<10)
+					sec="0"+sec;
+
+				result+=" $hour:$minute:$sec";
+			}
+				
+		}
+		return result;
+	}
+
+	public function GetCaption() {
+		if (this.Format) {
+			var data=GetProperty(P_CAPTION);
+			return this.DoFormat(data);
+		} 
+		return GetProperty(P_CAPTION);
+	}
+
+	public function SetSuggest(sugestions) {
+		return SUGEST=SetProperty(P_SUGESTION,sugestions);
+	}
+
+	public function SuggestModel(VisibleRemoteObject obj, number text_column) {
+		PostString(""+text_column);
+		return SUGEST=SetProperty(P_SUGESTIONMODEL,obj.RID);
+	}
+
+	public function SetCaption(argument) {
+		var data;
+		if (this.Format) {
+			var date_arr=StrSplit(argument, " ");
+
+			var d=""+date_arr[0];
+			var t=""+date_arr[1];
+
+			var d_arr=StrNumberSplit(d, "-");
+			var t_arr=StrNumberSplit(t, ":");
+
+		        var tm_arr=_localtime(time());
+
+	        	tm_arr["tm_year"]=d_arr[0]-1900;
+        		tm_arr["tm_mon"]=d_arr[1]-1;
+		        tm_arr["tm_mday"]=d_arr[2];
+
+		        tm_arr["tm_hour"]=t_arr[0];
+	        	tm_arr["tm_min"]=t_arr[1];
+	        	tm_arr["tm_sec"]=t_arr[2];
+
+			data=strftime(tm_arr, this.Format);
+		} else
+			data=argument;
+
+		SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_CAPTION,data);
+		return argument;
+	}
+
+	public function SetMaskedChar(argument) {
+		argument=argument[0];
+		SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_MASKEDCHAR,argument);
+		MASKEDCHAR=argument;
+		return argument;
+	}
+
+	public function SetInputFormat(argument) {
+		SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_FORMAT,argument);
+		INPUTFORMAT=argument;
+		return argument;
+	}
+
+	public function SetMaxLen(argument) {
+		SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_MAXLEN,argument);
+		MAXLEN=argument;
+		return argument;
+	}
+
+	public function SetMasked(argument) {
+		argument=(argument!=0);
+		SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_MASKED,argument);
+		MASKED=argument;
+		return argument;
+	}
+
+	public function SetReadOnly(argument) {
+		argument=(argument!=0);
+		SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_READONLY,argument);
+		READONLY=argument;
+		return argument;
+	}
+
+	public function SetBorder(argument) {
+		argument=(argument!=0);
+		SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_BORDER,argument);
+		BORDER=argument;
+		return argument;
+	}
+
+	public function SetActivateDefault(argument) {
+		argument=(argument!=0);
+		SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_ACTIVATEDEFAULT,argument);
+		ACTIVATEDEFAULT=argument;
+		return argument;
+	}
+
+	public function SetXAlign(argument) {
+		SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_XALIGN,argument);
+		XALIGN=argument;
+		return argument;
+	}
+
+	public function SetProgressFraction(number fraction) {
+		SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_FRACTION,fraction);
+		PFRACTION=fraction;
+		return fraction;
+	}
+
+	public function SetProgressStep(number step) {
+		SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_STEP,step);
+		PSTEP=step;
+		return step;
+	}
+
+	public function ProgressPulse() {
+		SendMessage(REMOTE_ID_STR,MSG_CUSTOM_MESSAGE1,"0","1");
+        }
+
+	public function SetPrimaryIcon(RImage image) {
+		SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_PRIMARYICON, image.RID);
+		PRIMARYICON=image;
+		return image;
+	}
+
+	public function SetSecondaryIcon(RImage image) {
+		SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_SECONDARYICON, image.RID);
+		SECONDARYICON=image;
+		return image;
+	}
+
+	public function SetPrimaryIconName(string image) {
+		SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_PRIMARYICONNAME, image);
+		PRIMARYICONNAME=image;
+		return image;
+	}
+
+	public function SetSecondaryIconName(string image) {
+		SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_SECONDARYICONNAME, image);
+		SECONDARYICONNAME=image;
+		return image;
+	}
+
+	public function SetPrimaryIconTooltip(string tip) {
+		SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_PRIMARYTOOLTIP, tip);
+		PRIMARYTOOLTIP=tip;
+		return tip;
+	}
+
+	public function SetSecondaryIconTooltip(string tip) {
+		SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_SECONDARYTOOLTIP, tip);
+		SECONDARYTOOLTIP=tip;
+		return tip;
+	}
+
+	public function SetPrimaryIconActivable(number active) {
+		SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_PRIMARYACTIVABLE, active);
+		PRIMARYICONACTIVE=active;
+		return active;
+	}
+
+	public function SetSecondaryIconActivable(number active) {
+		SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_SECONDARYACTIVABLE, active);
+		SECONDARYICONACTIVE=active;
+		return active;
+	}
+
+	public function SetCapsWarning(number active) {
+		SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_CAPSWARNING, active);
+		CAPSWARNING=active;
+		return active;
+	}
+
+	public function SetOverwrite(argument) {
+		argument=(argument!=0);
+		SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_OVERWRITE,argument);
+		OVERWRITE=argument;
+		return argument;
+	}
+}

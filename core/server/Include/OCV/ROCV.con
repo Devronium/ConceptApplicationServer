@@ -1,0 +1,384 @@
+import standard.C.io
+import standard.lib.str
+
+include RemoteObject.con
+include Application.con
+
+define P_USEWIDGET             "1000"
+define P_UPDATEWIDGET          "1001"
+define P_UPDATEFRAME           "1002"
+define P_CAPTUREINIT           "1003"
+define P_RELEASECAPTURE        "1004"
+define P_CAPTUREFORMAT         "1005"
+
+define P_VIDEOFORMAT           "1006"
+define P_VIDEOWRITERCREATE     "1007"
+define P_VIDEOWRITERDONE       "1008"
+define P_VIDEOUPDATE           "1009"
+define P_VIDEOFPS              "1010"
+define P_VIDEOINIT             "1011"
+define P_CLEARSTREAMDATA       "1012"
+define P_VIDEOUPDATEIMAGE      "1014"
+define P_STREAMDATA            "1015"
+
+define P_MOTIONDETECTOR        "1016"
+define P_MOTIONTRESHOLD        "1017"
+define P_USEWIDGET2            "1018"
+define P_UPDATEMOTION          "1019"
+
+define P_CLEAROBJECTS          "1020"
+define P_SCALEOBJECTS          "1021"
+define P_UPDATEOBJECT          "1022"
+define P_USEWIDGET3            "1023"
+
+define P_TRACKVMIN             "1024"
+define P_TRACKVMAX             "1025"
+define P_TRACKSMIN             "1026"
+define P_USEWIDGET4            "1027" 
+define P_UPDATETRACK           "1028"
+define P_TRACKOBJECT           "1029"
+define P_LASTHISTOGRAM         "1030"
+
+define P_FRAMEWIDTH            "1031"
+define P_FRAMEHEIGHT           "1032"
+
+define P_SMALLFRAME           "1033"
+
+define EVENT_ON_MOTION         "350"
+define EVENT_ON_OBJECTDETECTED "351"
+define EVENT_ON_TRACK          "352"
+
+class ROCV extends VisibleRemoteObject {
+	protected var _IIMAGE=null;
+	protected var _IIMAGE2=null;
+	protected var _IIMAGE3=null;
+	protected var _IIMAGE4=null;
+	protected var _FORMAT="png";
+	protected var _VIDEOFORMAT="DIVX";
+	protected var _FPS=25;
+	protected var _MOTION=false;
+	protected var _MOTIONTRESHOLD=30;
+	protected var _SCALE=1;
+	protected var _VMIN=10;
+	protected var _VMAX=256;
+	protected var _SMIN=30;
+	protected var _FRAMEWIDTH=-1;
+	protected var _FRAMEHEIGHT=-1;
+	protected var[] _TRACKOBJECT;
+
+	public property LinkedImage { set SetLinkedImage, get _IIMAGE }
+	public property Frame { get GetFrame }
+	public property SmallFrame { get GetSmallFrame }
+	public property IsInit { get GetIsInit }
+	public property IsVideoInit { get GetIsVideoInit }
+	public property Format { set SetFormat, get _FORMAT }
+	public property VideoFormat { set SetVideoFormat, get _VIDEOFORMAT }
+	public property Fps { set SetFps, get _FPS }
+	public property VideoStream { get GetVideoStream }
+
+	public property DetectMotion { get _MOTION, set SetMotion }
+	public property MotionTreshold { get _MOTIONTRESHOLD, set SetMotionTreshold }
+	public property MotionImage { get _IIMAGE2, set SetMotionImage }
+	public property MotionFrame { get GetMotionFrame }
+
+
+	public property ObjectFrame { get GetObjectFrame }
+	public property Scale { set SetScale, get _SCALE }
+	public property ObjectImage { get _IIMAGE3, set SetObjectImage }
+
+	public property TrackImage { get _IIMAGE4, set SetTrackImage }
+	public property Vmin { get _VMIN, set SetVmin }
+	public property Vmax { get _VMAX, set SetVmax }
+	public property Smin { get _SMIN, set SetSmin }
+	public property Track { get _TRACKOBJECT, set SetTrackObject }
+	public property TrackFrame { get GetTrackFrame }
+	public property LastHistogram { get GetLastHistogram }
+
+	public property FrameWidth { get _FRAMEWIDTH, set SetFrameWidth }
+	public property FrameHeight { get _FRAMEHEIGHT, set SetFrameHeight }
+
+	//-------- Events ----------------//
+	public property OnMotion { get GetOnMotion, set SetOnMotion }
+	private function GetOnMotion() {
+		return _GET_REMOTE_EVENT(EVENT_ON_MOTION);
+	}
+
+	private function SetOnMotion(delegate deleg) {
+		return _MAP_REMOTE_EVENT(EVENT_ON_MOTION, deleg);
+	}
+
+	public property OnObjectDetected { get GetOnObjectDetected, set SetOnObjectDetected }
+	private function GetOnObjectDetected() {
+		return _GET_REMOTE_EVENT(EVENT_ON_OBJECTDETECTED);
+	}
+
+	private function SetOnObjectDetected(delegate deleg) {
+		return _MAP_REMOTE_EVENT(EVENT_ON_OBJECTDETECTED, deleg);
+	}
+
+	public property OnTrack { get GetOnTrack, set SetOnTrack }
+	private function GetOnTrack() {
+		return _GET_REMOTE_EVENT(EVENT_ON_TRACK);
+	}
+
+	private function SetOnTrack(delegate deleg) {
+		return _MAP_REMOTE_EVENT(EVENT_ON_TRACK, deleg);
+	}
+	//-------- End of Events ---------//
+
+	public function ROCV(RemoteObject Owner, number capture_device_id=0, number is_mobile=false) {
+		this.PostString(""+capture_device_id);
+		if (is_mobile)
+			super(Owner, "1015");
+		else {
+			super(null, "1015");
+			this.LinkIfNotLinked(Owner);
+		}
+	}
+
+	public function DetectObject(string CascadeClassifier, string NestedClassifier="") {
+		if (!CascadeClassifier)
+			throw "ROCV::DetectObject received an empty CascadeClassifier parameter";
+		
+		if (!FileExists(CascadeClassifier))
+			throw "ROCV::DetectObject CascadeClassifier file is inaccessible";
+
+		var CascadeFname="";
+		var NestedFname="";
+		CApplication::SendCookie(CascadeClassifier, CascadeFname, false);
+
+		if (NestedClassifier) {
+			if (!FileExists(NestedClassifier))
+				throw "ROCV::DetectObject NestedClassifier file is inaccessible";
+			CApplication::SendCookie(NestedClassifier, NestedFname, false);
+		}
+		SendMessage(""+this.REMOTE_ID, MSG_PUT_STREAM, CascadeFname, NestedFname);
+	}
+
+	public function DetectObjectZip(string archive, string CascadeClassifier, string NestedClassifier="") {
+		if (!archive)
+			throw "ROCV::DetectObjectZip received an empty archive parameter";
+		
+		if (!FileExists(archive))
+			throw "ROCV::DetectObjectZip archive file is inaccessible";
+
+		if (!CascadeClassifier)
+			throw "ROCV::DetectObject received an empty CascadeClassifier parameter";
+
+		CApplication::SendCookie(archive, var dummy_name, true);
+
+		SendMessage(""+this.REMOTE_ID, MSG_PUT_STREAM, CascadeClassifier,  NestedClassifier);
+	}
+
+	public function BeginVideo() {
+		this.SetProperty(P_VIDEOWRITERCREATE,true);
+	}
+
+	public function EndVideo() {
+		this.SetProperty(P_VIDEOWRITERDONE,true);
+	}
+
+	public function ClearObjects() {
+		this.SetProperty(P_CLEAROBJECTS,true);
+	}
+
+	public function UpdateVideo(number update_image=true) {
+		if (update_image)
+			this.SetProperty(P_VIDEOUPDATEIMAGE,true);
+		else
+			this.SetProperty(P_VIDEOUPDATE,true);
+	}
+
+	public function ClearVideo() {
+		this.SetProperty(P_CLEARSTREAMDATA, true);
+	}
+
+	public function GetVideoStream() {
+		return this.GetProperty(P_STREAMDATA);
+	}
+
+	public function SetLinkedImage(Sender) {
+		if (Sender) {
+			if (classof Sender!="RImage")
+				throw "ROCV::SetLinkedImage received instead of RImage an object of type \"${classof Sender}\"";
+			this._IIMAGE=Sender;
+			this.SetProperty(P_USEWIDGET, Sender.RID);
+		} else {
+			this._IIMAGE=null;
+			this.SetProperty(P_USEWIDGET, 0);
+		}
+		return Sender;
+	}
+
+	public function SetMotionImage(Sender) {
+		if (Sender) {
+			if (classof Sender!="RImage")
+				throw "ROCV::SetMotionImage received instead of RImage an object of type \"${classof Sender}\"";
+			this._IIMAGE2=Sender;
+			this.SetProperty(P_USEWIDGET2, Sender.RID);
+		} else {
+			this._IIMAGE2=null;
+			this.SetProperty(P_USEWIDGET2, 0);
+		}
+		return Sender;
+	}
+
+	public function SetObjectImage(Sender) {
+		if (Sender) {
+			if (classof Sender!="RImage")
+				throw "ROCV::SetObjectImage received instead of RImage an object of type \"${classof Sender}\"";
+			this._IIMAGE3=Sender;
+			this.SetProperty(P_USEWIDGET3, Sender.RID);
+		} else {
+			this._IIMAGE3=null;
+			this.SetProperty(P_USEWIDGET3, 0);
+		}
+		return Sender;
+	}
+
+	public function SetTrackImage(Sender) {
+		if (Sender) {
+			if (classof Sender!="RImage")
+				throw "ROCV::SetTrackImage received instead of RImage an object of type \"${classof Sender}\"";
+			this._IIMAGE4=Sender;
+			this.SetProperty(P_USEWIDGET4, Sender.RID);
+		} else {
+			this._IIMAGE4=null;
+			this.SetProperty(P_USEWIDGET4, 0);
+		}
+		return Sender;
+	}
+
+	public function SetFormat(string format) {
+		format=ToLower(format);
+		this.SetProperty(P_CAPTUREFORMAT, format);
+		this._FORMAT=format;
+		return format;
+	}
+
+	public function SetVideoFormat(string format) {
+		this.SetProperty(P_VIDEOFORMAT, format);
+		this._VIDEOFORMAT=format;
+		return format;
+	}
+
+	public function SetFps(number fps) {
+		this.SetProperty(P_VIDEOFPS, fps);
+		this._FPS=fps;
+		return fps;
+	}
+
+	public function SetScale(number scale) {
+		if (!scale)
+			throw "ROCV::SetScale scale parameter cannot be 0";
+		this.SetProperty(P_SCALEOBJECTS, scale);
+		this._SCALE=scale;
+		return scale;
+	}
+
+	public function SetMotion(number motion) {
+		motion=(motion!=false);
+		this.SetProperty(P_MOTIONDETECTOR, motion);
+		this._MOTION=motion;
+		return motion;
+	}
+
+	public function SetMotionTreshold(number treshold) {
+		this.SetProperty(P_MOTIONTRESHOLD, treshold);
+		this._MOTIONTRESHOLD=treshold;
+		return treshold;
+	}
+
+	public function SetVmin(number min) {
+		this.SetProperty(P_TRACKVMIN, min);
+		this._VMIN=min;
+		return min;
+	}
+
+	public function SetVmax(number max) {
+		this.SetProperty(P_TRACKVMAX, max);
+		this._VMAX=max;
+		return max;
+	}
+
+	public function SetSmin(number min) {
+		this.SetProperty(P_TRACKSMIN, min);
+		this._SMIN=min;
+		return min;
+	}
+
+	public function SetFrameWidth(number width) {
+		this.SetProperty(P_FRAMEWIDTH, width);
+		this._FRAMEWIDTH=width;
+		return width;
+	}
+
+	public function SetFrameHeight(number height) {
+		this.SetProperty(P_FRAMEHEIGHT, height);
+		this._FRAMEHEIGHT=height;
+		return height;
+	}
+
+	public function SetTrackObject(array tobj) {
+		if (length tobj!=4)
+			throw "ROCV::SetTrackObject parameter must be an array with 4 elements";
+		this._TRACKOBJECT=tobj;
+		this.SetProperty(P_TRACKOBJECT, "${tobj[0]},${tobj[1]},${tobj[2]},${tobj[3]}");
+		return tobj;
+	}
+
+	public function UpdateImage() {
+		if (this._IIMAGE)
+			this.SetProperty(P_UPDATEWIDGET, true);
+		else
+			throw "ROCV.LinkedImage is null. Please set an image first.";
+	}
+
+	public function GetIsInit() {
+		return value (""+this.GetProperty(P_CAPTUREINIT));
+	}
+
+	public function GetIsVideoInit() {
+		return value (""+this.GetProperty(P_VIDEOINIT));
+	}
+
+	public function GetFrame() {
+		return this.GetProperty(P_UPDATEFRAME);
+	}
+
+	public function GetSmallFrame() {
+		return this.GetProperty(P_SMALLFRAME);
+	}
+
+	public function GetMotionFrame() {
+		return this.GetProperty(P_UPDATEMOTION);
+	}
+
+	public function GetObjectFrame() {
+		return this.GetProperty(P_UPDATEOBJECT);
+	}
+
+	public function GetLastHistogram() {
+		return this.GetProperty(P_LASTHISTOGRAM);
+	}
+
+	public function GetTrackFrame() {
+		return this.GetProperty(P_UPDATETRACK);
+	}
+
+	public function Release() {
+		this.SetProperty(P_RELEASECAPTURE, true);
+	}
+
+	public function Start() {
+		this.SetProperty(P_RELEASECAPTURE, false);
+	}
+
+	public function Stop() {
+		this.SetProperty(P_RELEASECAPTURE, true);
+	}
+
+	public function finalize() {
+		this.SetProperty(P_RELEASECAPTURE, true);
+	}
+}

@@ -1,0 +1,68 @@
+include project_forms.glade.con
+
+class _HistoryForm extends _HistoryWindow {
+        public var Elements=50;
+        public var RequestHistory=null;
+        public var ElementSelected=null;
+
+        public function _HistoryForm(Owner, Lang S, RequestHistory=null, ElementSelected=null) {
+            super(Owner, S);
+
+            CApplication.BeginNonCritical();
+            this.treeview1.Model=MODEL_LISTVIEW;
+            this.treeview1.AddColumn(S<<"#");
+            this.treeview1.AddColumn(S<<"Timestamp");
+            this.treeview1.AddColumn(S<<"Revision");
+            this.treeview1.Columns[0].FontDescription="bold";
+            this.treeview1.Columns[0].XAlign=1.0;
+            this.treeview1.Columns[2].FontDescription="bold";
+            this.treeview1.SearchColumn=1;
+            CApplication.EndNonCritical();
+            
+            this.RequestHistory=RequestHistory;
+            this.ElementSelected=ElementSelected;            
+        }
+
+        public function on_button1_clicked(Sender, EventData) {
+            this.Hide();
+        }
+        
+        public function on_treeview1_row_activated(Sender, EventData) {
+            var index=value (""+EventData);
+            if ((index>=0) && (this.ElementSelected)) {
+                var item=this.treeview1.Items[index];
+                var last=length item;
+                last--;
+                if (last>0)
+                    this.ElementSelected(item[last]);
+            }
+        }
+        
+        public function Revise(array data) {
+            CApplication.BeginNonCritical();
+            this.treeview1.Clear();
+            var len=length data;
+            for (var i=0;i<len;i++) {
+                var line=data[i];
+                treeview1.AddItem([i+1, line[1], line[2], line[0]]);
+            }
+            CApplication.EndNonCritical();
+        }
+        
+        public function on_combobox1_changed(Sender, EventData) {
+            var item_index=combobox1.RowIndex;
+            if (item_index>=0) {
+		var elements=value combobox1.Items[item_index];
+		if (elements==this.Elements)
+			return;
+
+                this.Elements=elements;
+                if (this.Elements<=0)
+                    this.Elements=0xFFFF;
+                if (this.RequestHistory) {
+                    this.Hide();
+                    this.RequestHistory(this);
+                }
+            }
+        }
+}

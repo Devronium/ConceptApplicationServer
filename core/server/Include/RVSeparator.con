@@ -1,0 +1,9 @@
+include RSeparator.con
+include ClassID.con
+include RemoteEvents.con
+
+class RVSeparator extends RSeparator {
+	public function RVSeparator(OWNER) {
+		super(OWNER, CLASS_VSEPARATOR);
+	}
+}

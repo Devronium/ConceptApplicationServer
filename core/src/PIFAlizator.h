@@ -1,0 +1,335 @@
+#ifndef __PIFALIZATOR_H
+#define __PIFALIZATOR_H
+
+#include "AnsiString.h"
+#include "AnsiList.h"
+#include "Codes.h"
+#include "AnsiParser.h"
+#include "ClassCode.h"
+#include "Debugger.h"
+#include "ConceptPools.h"
+#include "TinyString.h"
+#include "StaticList.h"
+#include "GarbageCollector.h"
+#include "Array.h"
+#include "ClassCode.h"
+
+#include "semhh.h"
+
+#ifdef SIMPLE_MULTI_THREADING
+
+ #define CC_WRITE_LOCK(PIF)       bool IsWriteLocked = false; if (PIF->ThreadsCount > 0) { PIF->MasterLock = 1; semp(PIF->WriteLock); IsWriteLocked = true; }
+ #define CC_WRITE_LOCK2(PIF)      IsWriteLocked      = false; if (PIF->ThreadsCount > 0) { PIF->MasterLock = 1; semp(PIF->WriteLock); IsWriteLocked = true; }
+ #define CC_WRITE_UNLOCK(PIF)     if (IsWriteLocked) { semv(PIF->WriteLock); PIF->MasterLock = 0; IsWriteLocked = false; }
+ #define CC_WRITE_LOCK3(PIF)      PIF->MasterLock = 1; semp(PIF->WriteLock);
+ #define CC_WRITE_UNLOCK3(PIF)    PIF->MasterLock = 0; semv(PIF->WriteLock);
+
+ #define WRITE_LOCK      if ((!IsWriteLocked) && (PIF->ThreadsCount > 0)) { semp(PIF->WriteLock); PIF->MasterLock = 1; IsWriteLocked = 1; }
+ #define WRITE_UNLOCK    if (IsWriteLocked) { IsWriteLocked = 0; PIF->MasterLock = 0; semv(PIF->WriteLock); }
+ #define NEW_THREAD      semp(PIF->InternalLock); PIF->ThreadsCount++; semv(PIF->InternalLock);
+ #define DONE_THREAD     semp(PIF->InternalLock); PIF->ThreadsCount--; semv(PIF->InternalLock);
+ #define INTERNAL_LOCK(PIF)      semp(PIF->InternalLock);
+ #define INTERNAL_UNLOCK(PIF)    semv(PIF->InternalLock);
+
+ #define ALLOC_LOCK      semp(((PIFAlizator *)PIF)->AllocLock);
+ #define ALLOC_UNLOCK    semv(((PIFAlizator *)PIF)->AllocLock);
+
+ #define SMART_LOCK(VARIABLE)                                                                                                                        \
+    if (VARIABLE->LINKS > 1) {                                                                                                                       \
+        WRITE_LOCK                                                                                                                                   \
+    } else                                                                                                                                           \
+    if (VARIABLE->CLASS_DATA) {                                                                                                                      \
+        if (((VARIABLE->TYPE == VARIABLE_CLASS) || (VARIABLE->TYPE == VARIABLE_DELEGATE)) && (((CompiledClass *)VARIABLE->CLASS_DATA)->LINKS > 1)) { \
+            WRITE_LOCK                                                                                                                               \
+        } else                                                                                                                                       \
+        if ((VARIABLE->TYPE == VARIABLE_ARRAY) && (((Array *)VARIABLE->CLASS_DATA)->LINKS > 1)) {                                                    \
+            WRITE_LOCK                                                                                                                               \
+        }                                                                                                                                            \
+    }
+#else
+ #define CC_WRITE_LOCK(PIF)
+ #define CC_WRITE_UNLOCK(PIF)
+ #define CC_WRITE_LOCK2(PIF)
+
+ #define WRITE_LOCK
+ #define WRITE_UNLOCK
+ #define NEW_THREAD
+ #define DONE_THREAD
+ #define INTERNAL_LOCK(PIF)
+ #define INTERNAL_UNLOCK(PIF)
+ #define ALLOC_LOCK
+ #define ALLOC_UNLOCK
+
+ #define SMART_LOCK(VARIABLE)
+#endif
+
+//#define CACHED_CLASSES
+#define CACHED_VARIABLES
+#define DEBUGGER_VAR_NAMES
+
+#ifdef CACHED_CLASSES
+ #include <map>
+#endif
+
+#ifdef CACHED_VARIABLES
+ #include <map>
+#endif
+
+#ifdef DEBUGGER_VAR_NAMES
+ #include <map>
+#endif
+
+#define PDATA_ITEMS               0xFF
+
+#define PRAGMA_WARNINGS           (char *)"warnings"
+#define PRAGMA_EXCEPTIONS         (char *)"lib_exceptions"
+#define PRAGMA_IMPLICIT           (char *)"implicit"
+#define PRAGMA_ENTRY_POINT        (char *)"entry_point"
+#define PRAGMA_USED               (char *)"used"
+#define PRAGMA_STRICT             (char *)"strict"
+
+#define PRAGMA_ON                 (char *)"on"
+#define PRAGMA_OFF                (char *)"off"
+
+#define MAIN_ENTRY_POINT          "Main"
+
+#define DEFAULT_USE_WARNINGS      1
+#define DEFAULT_USE_EXCEPTIONS    0
+#define DEFAULT_USE_IMPLICIT      0
+#define DEFAULT_STRICT_MODE       1
+
+#define DEFAULT_BIN_EXTENSION     ".accel"
+#define DEFAULT_PACK_EXTENSION    ".package"
+
+#define DIRTY_LIMIT               350000
+#define STATIC_LINKS_INCREMENT    0x20
+#define INSPECT_INCREMENT         0x200
+#define INITIAL_INSPECT_SIZE      0x10
+//#define USE_RECURSIVE_MARKINGS
+
+typedef struct tsProtoData {
+    void               *data;
+    DESTROY_PROTO_DATA destroy_func;
+} ProtoData;
+
+typedef struct {
+    VariableDATA  POOL[POOL_BLOCK_SIZE];
+    void          *NEXT;
+    void          *PREV;
+    void          *PIF;
+    unsigned char POOL_VARS;
+    unsigned char FIRST_VAR;
+} VARPool;
+
+class PIFAlizator {
+    friend class Optimizer;
+    friend class ClassCode;
+    friend class ClassMember;
+    friend class ConceptInterpreter;
+    friend class CompiledClass;
+    friend class GarbageCollector;
+    friend void DeturnatedPrint(void *PIF, char *text, int len, void *userdata);
+
+    friend void *AllocVAR(void *PIF);
+
+    friend void AllocMultipleVars(void **context, void *PIF, int count, int offset);
+
+    friend void *AllocClassObject(void *PIF);
+
+    friend void *AllocArray(void *PIF);
+
+    friend int CheckReachability(void *PIF);
+
+    friend INTEGER Invoke(INTEGER INVOKE_TYPE, ...);
+
+    friend int GetVariableByName(int operation, void **VDESC, void **CONTEXT, int Depth, char *VariableName, char *buffer, int buf_size, void *PIF, void *STACK_TRACE);
+
+    friend int GetMemoryStatistics(void *PIF, void *RESULT);
+
+    StaticList *GeneralMembers;
+    int        pipe_read;
+    int        pipe_write;
+    int        apid;
+    int        parent_apid;
+    void       *parentPIF;
+
+    SimpleStream *out;
+
+    INTEGER DebugOn;
+
+    AnsiString FileName;
+    AnsiString *InputStream;
+
+    AnsiList  *ClassList;
+    ClassCode **StaticClassList;
+
+    AnsiList *IncludedList;
+    AnsiList *ModuleList;
+    AnsiList ModuleNamesList;
+    AnsiList *ConstantList;
+    AnsiList UndefinedMembers;
+    AnsiList UndefinedClasses;
+    AnsiList DeletedMembers;
+
+    SYS_INT *StaticLinks;
+    int     StaticLinksCount;
+    int     StaticLinksSize;
+
+    unsigned int LinkStatic(char *funname);
+    INTEGER AddUndefinedMember(AnsiString& member, TinyString& _CLASS, char *_MEMBER, intptr_t line);
+    INTEGER CheckUndefinedMembers();
+    INTEGER AddUndefinedClass(AnsiString& member, TinyString& _CLASS, char *_MEMBER, intptr_t line);
+    INTEGER CheckUndefinedClasses();
+
+#ifdef CACHED_VARIABLES
+    INTEGER VariableIsDescribed(AnsiString& S, DoubleList *VDList, std::map<HASH_TYPE, unsigned int> *CachedVariables = 0, char is_hased = 0);
+
+#else
+    INTEGER VariableIsDescribed(AnsiString& S, DoubleList *VDList);
+#endif
+    INTEGER ConstantIsDescribed(AnsiString& S, AnsiList *VDList);
+
+    AnsiString GetSpecial(AnsiParser *P, ClassCode *CC, ClassMember *CM, AnsiString special);
+    INTEGER BuildFunction(ClassCode *CC, AnsiParser *P, INTEGER on_line = 0, INTEGER ACCESS = ACCESS_PUBLIC, INTEGER OPERATOR = 0, char STATIC = 0, char *prec_parse = 0, char is_inline = 0);
+    INTEGER BuildProperty(ClassCode *CC, AnsiParser *P, INTEGER on_line = 0, INTEGER ACCESS = ACCESS_PUBLIC);
+    INTEGER BuildEvent(ClassCode *CC, AnsiParser *P, INTEGER on_line = 0, INTEGER ACCESS = ACCESS_PUBLIC);
+    INTEGER BuildOverride(ClassCode *CC, AnsiParser *P, INTEGER on_line);
+    INTEGER IncludePackage(AnsiString filename);
+    INTEGER IncludeFile(AnsiString MODULE_NAME, INTEGER on_line);
+    INTEGER RuntimeIncludeCode(char *CODE);
+
+    AnsiString NormalizePath(AnsiString *MODULE_NAME);
+
+    INTEGER BuildClass(AnsiParser *P, INTEGER on_line = 0);
+
+    INTEGER BuildPragma(AnsiParser *P, ClassCode *CC = NULL);
+
+    INTEGER Execute(AnsiString *Stream, INTEGER on_line = 0, char _USE_WARN = DEFAULT_USE_WARNINGS, char _USE_EXC = DEFAULT_USE_EXCEPTIONS, char _USE_IMPLICIT = DEFAULT_USE_IMPLICIT);
+    SYS_INT ClassExists(char *name, char by_addr = 0, int *index = 0);
+    INTEGER ListContains(AnsiString& S, AnsiList *VDList, char is_tiny = false);
+    INTEGER BuildVariable(ClassCode *CC, AnsiParser *P, INTEGER on_line, INTEGER ACCESS);
+    INTEGER ExtendClass(ClassCode *CC, AnsiParser *P, INTEGER on_line, INTEGER OWNER_CLSID);
+
+    INTEGER ENTRY_CLASS;
+
+    DEBUGGER_CALLBACK DEBUGGER_TRAP;
+    void              *DEBUGGER_RESERVED;
+    char              *SERVER_PUBLIC_KEY;
+    char              *SERVER_PRIVATE_KEY;
+    char              *CLIENT_PUBLIC_KEY;
+
+    AnsiString INCLUDE_DIR;
+    AnsiString IMPORT_DIR;
+    AnsiString TEMP_INC_DIR;
+
+    char         USE_WARN;
+    char         USE_EXC;
+    char         USE_IMPLICIT;
+    char         STRICT_MODE;
+    char         *PROFILE_DRIVEN;
+    unsigned int PROFILE_DRIVEN_ID;
+    int          INCLUDE_LEVEL;
+
+    INTEGER Warning(const char *WRN, int line, int wrn_code, char *extra, char *filename = 0);
+    void DefineConstant(const char *name, const char *value, int is_string = 1);
+
+    char *CheckMember(char *member_name);
+
+    char basic_constants_count;
+#ifdef CACHED_LIST
+    std::map<HASH_TYPE, unsigned int> CachedClasses;
+#endif
+
+#ifdef SIMPLE_MULTI_THREADING
+    HHSEM WriteLock;
+    char  MasterLock;
+
+    HHSEM     InternalLock;
+    uintptr_t ThreadsCount;
+#endif
+    HHSEM DelegateLock;
+
+    Array        *var_globals;
+    unsigned int IDGenerator;
+    void         *static_result;
+
+    ProtoData PDATA[PDATA_ITEMS];
+public:
+#ifdef SIMPLE_MULTI_THREADING
+    HHSEM AllocLock;
+#endif
+
+    VARPool * POOL;
+    VARPool *CACHEDPOOL;
+
+    void *CLASSPOOL;
+    void *CACHEDCLASSPOOL;
+
+    void *ARRAYPOOL;
+    void *CACHEDARRAYPOOL;
+    int  object_count;
+
+    int    free_vars;
+    int    free_class_objects;
+    int    free_arrays;
+    void   *RootInstance;
+    GCRoot *GCROOT;
+    int    dirty_limit;
+    int    last_gc_run;
+
+    static int refSOCKET;
+    POOLED(PIFAlizator)
+    void *CachedhDLL;
+    static int         argc;
+    static char        **argv;
+    int                last_result;
+    int                direct_pipe;
+    int                fixed_class_count;
+    static CHECK_POINT CheckPoint;
+
+    static AnsiString GetPath(AnsiString *S);
+    void AcknoledgeRunTimeError(SCStack *STACK_TRACE, AnsiException *Exc);
+
+    DoubleList PIF;
+    DoubleList VariableDescriptors;
+    AnsiList   Errors;
+    AnsiList   Warnings;
+
+    char is_buffer;
+
+    AnsiString DEBUG_CLASS_CONFIGURATION();
+    AnsiString DEBUG_INFO();
+    AnsiString PRINT_ERRORS(int html = 0);
+    AnsiString PRINT_WARNINGS(int html = 0);
+    AnsiString SerializeWarningsErrors(int ser_warnings = 0);
+
+    INTEGER ErrorCount();
+    INTEGER WarningCount();
+
+    void Adjust(INTEGER debug, DEBUGGER_CALLBACK DC, void *DEBUGGER_RESERVED, char *SPubK, char *SPrivK, char *CPubK);
+
+    PIFAlizator(AnsiString INC_DIR, AnsiString LIB_DIR, AnsiString *S, SimpleStream *Out, AnsiString _FileName = "", INTEGER debug = 0, DEBUGGER_CALLBACK DC = 0, void *DEBUGGER_RESERVED = 0, char *SPubK = 0, char *SPrivK = 0, char *CPubK = 0, PIFAlizator *sibling = NULL, void *static_result = NULL, void *module_list = NULL);
+    void SetPipe(int pipein, int pipeout, int apid, int papid, int direct_pipe);
+    INTEGER Execute();
+    void Optimize(int start = 0, char use_compiled_code = 0);
+    void OptimizeMemoryUsage();
+    bool CheckRunable();
+    void *GetStartingPoint();
+    int Serialize(char *filename, bool is_lib = false);
+    int Unserialize(char *filename, bool is_lib = false);
+    static int ComputeSharedSize(char *filename);
+    void Hibernate();
+    void SyncClassList();
+
+#ifdef DEBUGGER_VAR_NAMES
+    std::map<HASH_TYPE, INTEGER> DebugVarNames;
+#endif
+    INTEGER FindVariableByName(void *key, char *name);
+    void RegisterVariableName(void *key, char *name, INTEGER val);
+
+    void Clear();
+
+    ~PIFAlizator(void);
+};
+#endif //__PIFALIZATOR_H
+

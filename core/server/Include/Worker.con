@@ -1,0 +1,66 @@
+import standard.lib.thread
+
+class Worker {
+	var _workerobj;
+	var _workerthread;
+
+	Worker(classname, string parameter = "") {
+		_workerobj = CreateWorker(classname, _workerthread, parameter);
+		if (_workerthread) {
+			var iterations=0;
+			while (!ThreadIsActive(_workerthread)) {
+				iterations++;
+				if (iterations>100000000)
+					break;
+			}
+		}
+	}
+
+	Join() {
+		if (_workerobj) {
+			WaitThread(_workerthread);
+			FreeWorker(_workerobj);
+			_workerobj = null;
+			_workerthread = 0;
+		}
+	}
+
+
+	AddData(string data) {
+		if (_workerobj)
+			return AddWorkerData(_workerobj, data);
+		return -1;
+	}
+
+	GetResult(var data) {
+		if (_workerobj)
+			return GetWorkerResultData(_workerobj, data);
+		return -1;
+	}
+
+	static Pending(var data) {
+		return GetWorkerData(data);
+	}
+
+	static Result(data) {
+		return AddWorkerResultData(data);
+	}
+
+	Exit() {
+		if ((_workerthread) && (_workerobj)) {
+			var res = KillThread(_workerthread);
+			FreeWorker(_workerobj);
+			_workerobj = null;
+			_workerthread = 0;
+		}
+		return 0;
+	}
+
+	IsActive() {
+		return ThreadIsActive(_workerthread);
+	}
+
+	finalize() {
+		this.Join();
+	}
+}

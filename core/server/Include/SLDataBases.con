@@ -1,0 +1,618 @@
+import standard.db.sqlite
+import standard.lib.str
+import win32.base.messages
+
+
+define TRANSACTION_ROLLBACK		0
+define TRANSACTION_COMMIT		1
+
+class SLDataRecord {
+	public var DATA;
+	private var ORDER;
+
+	public operator = (string x) {
+		this.DATA=x;
+		return x;
+	}
+
+	public function ToBuffer() {
+		return this.DATA;
+	}
+
+	public function ToString() {
+		return this.DATA;
+	}
+
+	public function ToNumber() {
+		return value this.DATA;
+	}
+
+	function XMLSerialized() {
+		var XMLData;
+		if (typeof DATA=="class")
+			XMLData = "<ADODataRecord>" + this->DATA->XMLSerialized() + "\n</ADODataRecord>";
+		else
+			XMLData = "<ADODataRecord>" + this->DATA + "</ADODataRecord>";
+
+		return XMLData;
+	}
+
+	function SLDataRecord(ORD,LNK) {
+		this.ORDER=ORD;
+		//this.LINK=LNK;
+	}
+}
+
+
+class SLConnection {
+	protected var connection=0;
+	protected var result=0;
+
+	private var db;
+
+	public property Connection { get connection }
+	
+	function SLConnection() {
+		this->connection=0;
+	}
+
+	public function InitError() {
+		if (connection) {
+			var code=DBErrorCode(connection);
+			var err="";
+			if ((code) && (code<100)) {
+				err=DBError(connection);
+				//if (err=="not an error")
+				//	err="";
+				if (err)
+					err="ERR$code: $err";
+			}
+			return err;
+		} else
+			return "Invalid database object";
+	}
+
+	function Reopen() {
+		if (this->connection)
+			this.Close();
+
+		this->connection=DBOpen(db);
+		return this->connection;
+	}
+
+	function Open(string db) {
+		this.db=db;
+		this->connection=DBOpen(db);
+		return this->connection;
+	}
+
+	function DriverOpen(string db, string username="", string password="", string host="localhost", number port=0, string tty="", flags="") {
+		return this->Open(db);
+	}
+
+	function Close() {
+		if (this->connection)
+			DBClose(this->connection);
+		return this->connection=0;
+	}
+
+	private function _internalQuery(string query) {
+		if (this->connection) {
+			var stmt=DBNewStmt(db);
+
+			if (!stmt)
+				throw "Error creating statement: "+DBError(this->connection);
+
+			DBQuery(stmt,query);
+			DBFirst(stmt);
+			DBFree(stmt);
+			return true;
+		}
+		return false;
+	}
+
+	function StartTransaction() {
+		return _internalQuery("BEGIN;");
+	}
+
+	function EndTransaction(MODE) {
+		if (MODE==TRANSACTION_ROLLBACK)
+			return _internalQuery("ROLLBACK;");
+		else
+			return _internalQuery("COMMIT;");
+	}
+
+	private function _GetStmtElements(number res) {
+		var arr=0;
+		if (!res)
+			return arr;
+		if (DBFirst(res)) {
+			var len=DBColumns(res);
+			var[] _columns;
+			for (var j=0;j<len;j++) {
+				var name=DBColumnName(res, j);
+				_columns[name]=name;
+			}
+
+			arr=new [];
+			do {
+				var arr2=new [];
+				for (var i=0;i<len;i++) {
+					arr2[_columns[i]]=DBData(res, i);
+				}
+				arr[length arr]=arr2;
+				
+			} while (DBNext(res));
+		}
+		return arr;
+	}
+
+	function ListTables(string wildcard="") {
+		return 0;
+	}
+
+	function ListColumns(string table,string columns="") {
+		return 0;
+	}
+
+	static function ListDSN() {
+		return [ ];
+	}
+
+	function LastError() {
+		return this.InitError();
+	}
+}
+
+class VirtualADOObject {
+	protected var _DATASET;
+	protected var _DATAFIELD;
+
+	public property DataSet { set SetDataSet, get _DATASET }
+	public property DataField { set SetDataField, get _DATAFIELD }
+
+	// is pure virtual !
+	public function __DataSetUpdateCommand(Sender);
+	public function __DataSetNewQueryNotify(Sender);
+
+	public function __DataSetColumnUpdate(Sender,ColumnValue,rowindex);
+
+	protected function AddLinkedObject();
+	protected function SetDataSet(dataset) {
+		if (this->_DATASET) {
+			if (dataset) {
+				if (dataset==this->_DATASET)
+					return;
+			}
+		}
+
+		this->_DATASET=dataset;
+		dataset->AddLinkedObject(this);
+	}
+	override AddLinkedObject;
+
+	protected function SetDataField(x) {
+		this->_DATAFIELD=x;
+	}
+}
+
+class SLDataSet {
+	protected var _CONNECTION;
+	protected var _COMMANDTEXT;
+	protected var stmt=null;
+        protected var data_array;
+
+	protected var ADO_LINKED_OBJECTS;
+	protected var rowindex=0;
+	protected var status=0;
+
+	protected var old_rowindex=0;
+	protected var _columns=0;
+	protected var reset_error_flag=true;
+
+	var[] parameters;
+
+	public property Columns { get _columns }
+	public property Connection { set SetConnection, get _CONNECTION }
+	public property CommandText { set SetCommandText, get _COMMANDTEXT }
+	public property FieldValues { get GetValues }
+	public property PreparedQuery { get _COMMANDTEXT, set SetCommandText }
+	public property RowIndex { get rowindex }
+	public property IsUpdateQuery { get status }
+
+	function First();
+
+
+	public function AddParameter(var parameter) {
+		parameters[length parameters]=""+parameter;//"'"+this.Escape(""+parameter)+"'";
+	}
+
+	public function ClearParameters() {
+		parameters=new [];
+		if (this.stmt)
+			DBClearBindings(this.stmt);
+	}
+
+	function Text(); override Text;
+	function Checked(); override Checked;
+
+	private function ForcedNotify() {
+		var count=length this->ADO_LINKED_OBJECTS;
+		for (var i=0;i<count;i++) {
+			var object=&this->ADO_LINKED_OBJECTS[i];
+			object->__DataSetNewQueryNotify(this);
+		}
+	}
+
+	private function Syncronize() {
+		var count=length this->ADO_LINKED_OBJECTS;
+		for (var i=0;i<count;i++) {
+			var object=&this->ADO_LINKED_OBJECTS[i];
+			if 	((classof object=="RADOEdit") ||
+				(classof object=="RADOEditComboBox") ||
+				(classof object=="RADOTextView")) {
+					var field=object->DataField;
+					if (field!="")
+						FieldValues[field]=object->Text;
+			} else
+			if 	((classof object=="RADOCheckButton") ||
+				(classof object=="RADORadioButton")) {
+					field=object->DataField;
+					if (field!="")
+						FieldValues[field]=""+object->Checked;
+			}
+		}
+	}
+
+	function ExecuteQuery(); override ExecuteQuery;
+	function FetchByIndex(); override FetchByIndex;
+
+	public function Update() {
+		throw "Positional update not supported !";
+	}
+
+	public function Refresh() {
+		old_rowindex=rowindex;
+		this.ExecuteQuery();
+	}
+
+	public function Delete() {
+		throw "Positional delete not supported !";
+	}
+
+	public function SLDataSet(SLConnection _Connection, number err_flag=true) {
+		Connection=_Connection;
+		this->ADO_LINKED_OBJECTS=new [];
+		this->data_array=new [];
+		this->rowindex=-1;
+		this->_COMMANDTEXT="";
+		this->old_rowindex=-1;
+		this->reset_error_flag=err_flag;
+	}
+
+	protected function SetConnection(SLConnection x) {
+		this->_CONNECTION=x;
+	}
+
+	private function SetCommandText(string x) {
+		this->_COMMANDTEXT=x;
+		return x;
+	}
+
+	public function UpdateColumnList(Sender) {
+		try {
+			//var index=data_array->GetIndexByKey(Sender->DataField);
+			if (!_columns)
+				return 0;
+
+			BeginUpdateSession();
+			if (DBFirst(this->stmt)) {
+				var len=length _columns;
+
+				var arr=new [];
+				// init array 
+				for (var i=0;i<len;i++)
+					arr[_columns[i]]="";
+
+				do {
+					for (i=0;i<len;i++) {
+						arr[i]=DBData(this->stmt, i);
+					}
+					Sender->__DataSetColumnUpdate(this,arr,-1);
+				} while (DBNext(this->stmt));
+				DBFirst(this->stmt);
+			}
+			EndUpdateSession();
+
+		} catch (var Exception) {
+		}
+	}
+
+	public function AfterQueryNotify() {
+		var ADO_COUNT=length this->ADO_LINKED_OBJECTS;
+		var OBJECTS=this->ADO_LINKED_OBJECTS;
+
+		for (var i=0;i<ADO_COUNT;i++) {
+			var ADO_ELEMENT=&OBJECTS[i];
+			ADO_ELEMENT->__DataSetNewQueryNotify(this);
+		}
+	}
+
+	private function CountParameters(string str) {
+		var arr=StrSplit(str, "?", true);
+
+		var count=length arr;
+		if (count<=1)
+			return 0;
+
+		return count-1;
+	}
+
+	private function DoParameters(string query) {
+		var params=this.parameters;
+
+		var arr=StrSplit(query, "?", true);
+		var count=length arr;
+
+		var res="";
+		for (var i=0;i<count;i++) {
+			if (i) {
+				res+=params[i-1];
+			}
+			res+=arr[i];
+		}
+		this.ClearParameters();
+
+		return res;
+	}
+
+	function ExecuteNonQuery() {
+		this->rowindex=-1;
+		this->old_rowindex=-1;
+		var params=this.parameters;
+
+		delete _columns;
+
+		if (reset_error_flag)
+			this.LastError();
+
+		var conection_target=this->_CONNECTION->Connection;
+		if (!conection_target)
+			return -1;
+
+		this.CloseRead(false);
+
+		this.stmt=DBNewStmt(conection_target);
+		var res=0;
+		if (!stmt)
+			throw "Error creating statement";
+		
+		res=DBQuery(stmt,this->_COMMANDTEXT);
+		if (res) {
+			DBFree(stmt);
+			stmt=0;
+			return 0;
+		}
+		var count_param=DBParamCount(stmt);
+		var orig_param=length params;
+		if (orig_param != count_param)
+			throw "Invalid parameter count: Needed $count_param, received $orig_param.";
+
+		if (count_param) {
+			for (var i=0;i<count_param;i++) {
+				/*if (ToLower(""+DBColumnDeclType(this.stmt))=="BLOB")
+					DBBLOBBind(stmt,i+1,params[i]);
+				else*/
+				DBBind(stmt,i+1,params[i]);
+			}
+		}
+		res=!DBFirst(stmt);
+		this.CloseRead();
+		return res;
+	}
+
+	function ExecuteQuery(number client_processing=true) {
+		this->rowindex=-1;
+		delete _columns;
+		var params=this.parameters;
+
+		if (reset_error_flag)
+			this.LastError();
+
+		this.CloseRead(false);
+
+		var conection_target=this->_CONNECTION->Connection;
+		if (!conection_target)
+			return -1;
+
+		this.stmt=DBNewStmt(conection_target);
+		var res=0;
+		if (!stmt)
+			throw "Error creating statement";
+		res=DBQuery(stmt,this->_COMMANDTEXT);
+		if (res) {
+			DBFree(stmt);
+			stmt=0;
+			return 0;
+		}
+
+		var count_param=DBParamCount(stmt);
+		var orig_param=length params;
+		if (orig_param != count_param)
+			throw "Invalid parameter count: Needed $count_param, received $orig_param.";
+		if (count_param) {
+			for (var i=0;i<count_param;i++) {
+				DBBind(stmt,i+1,params[i]);
+			}
+		}
+
+		if (!DBFirst(this.stmt))
+			return -1;
+
+		this->data_array=new [];
+		var result=this->stmt;
+		var count=DBColumns(result);
+
+		if (count)
+			_columns=new [];
+
+		for (i=0;i<count;i++) {
+			var name=DBColumnName(result, i);
+			_columns[i]=name;
+
+			//this->data_array->Add(0,name);
+			if (!this->data_array[name])
+				this->data_array[name]=new SLDataRecord(i,result);
+			else {
+				var tmp_index=2;
+				var temp_name="$name($tmp_index)";
+				while (this->data_array[temp_name]) {
+					temp_name="$name($tmp_index)";
+					tmp_index++;
+				}
+				this->data_array[temp_name]=new SLDataRecord(i,result);
+				_columns[i]=temp_name;
+			}
+		}
+		this->AfterQueryNotify();
+
+		if (old_rowindex==-1) {
+			this->First();
+			this->rowindex=-1;
+		} else {
+			rowindex=-1;
+			this->FetchByIndex(old_rowindex);
+			old_rowindex=-1;
+		}
+		return result;
+	}
+
+	public function CountRows() {
+		return 0;
+	}
+
+	public function FetchByIndex(index) {
+		var read=0;
+		if (!this->stmt)
+			return 0;
+
+		if (index==0) {
+			read=DBFirst(this->stmt);
+		} else
+		if (this->rowindex==index-1)
+			read=DBNext(this->stmt);
+		else
+			throw "Absolute positioning not supported";
+
+		if (!read) {
+			//this->CloseRead();
+			return 0;
+		}
+		this->rowindex=index;
+
+		var array=this->data_array;
+		var count=length array;
+
+		for (var i=0;i<count;i++)
+			array[i]=""+DBData(this->stmt, i);
+
+		if (read) {
+			var ADO_COUNT=length this->ADO_LINKED_OBJECTS;
+			var OBJECTS=this->ADO_LINKED_OBJECTS;
+			BeginUpdateSession();
+			for (i=0;i<ADO_COUNT;i++) {
+				var ADO_ELEMENT=&OBJECTS[i];//->GetElementByIndex(i);
+				ADO_ELEMENT->__DataSetUpdateCommand(this);
+			}
+			EndUpdateSession();
+		}
+		
+		return read;
+	}
+
+	public function Next() {
+		return FetchByIndex(rowindex+1);
+	}
+
+	public function Prev() {
+		return FetchByIndex(rowindex-1);
+	}
+
+	public function Current() {
+		return FetchByIndex(rowindex);
+	}
+
+	override First;
+	public function First() {
+		return FetchByIndex(0);
+	}
+
+	public function FetchRow() {
+		if (stmt) {
+			var count=DBColumns(stmt);
+			var[] result;
+			for (var i=0;i<count;i++) {
+				var name=DBColumnName(stmt,i);
+				var data=DBData(stmt, i);
+				if (name)
+					result[name]=""+data;
+				else
+					result[length result]=""+data;
+			}
+			return result;
+		} else
+			throw "No results to fetch rows from";
+	}
+
+	public function FetchForward() {
+		return this.Next();
+	}
+
+	public function AddLinkedObject(Object) {
+		this->ADO_LINKED_OBJECTS[length this->ADO_LINKED_OBJECTS]=Object;
+		Object->__DataSetNewQueryNotify(this);
+		Object->__DataSetUpdateCommand(this);
+	}
+
+	public function RemoveLinkedObject(Name) {
+		//this->ADO_LINKED_OBJECTS->DeleteElementByKey(Name);
+		var arr=this->ADO_LINKED_OBJECTS;
+		arr[Name]=null;
+
+		var []arr2;
+
+		var len=length arr;
+		for (var i=0;i<len;i++) {
+			if (arr[i])
+				arr2[length arr2]=arr[i];
+		}
+
+		this->ADO_LINKED_OBJECTS=arr2;
+	}
+
+	function GetValues() {
+		var array=this->data_array;
+		return array;
+	}
+
+	function CloseRead(number clear_parameters=true) {
+		if (this.stmt) {
+			DBFree(stmt);
+			this.stmt=null;
+		}
+		if (clear_parameters)
+			this.ClearParameters();
+		this->old_rowindex=-1;
+	}
+
+	function finalize() {
+		if (this->stmt) {
+			DBFree(stmt);
+			this.stmt=null;
+		}
+	}
+
+	function LastError() {
+		return this._CONNECTION.LastError();
+	}
+}

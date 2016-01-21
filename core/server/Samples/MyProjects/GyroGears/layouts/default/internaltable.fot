@@ -1,0 +1,74 @@
+]]>
+                <fo:table
+                    table-layout = "fixed"
+                    width = "100%"
+                    border-spacing = "0">
+{foreach column}
+{ldelim}if columns{rdelim}
+                    <fo:table-column column-width = "proportional-column-width({column.width}*{ldelim}columns[{column.index}]{rdelim})"/>
+{ldelim}else{rdelim}
+                    <fo:table-column column-width = "proportional-column-width({column.width})"/>
+{ldelim}endif{rdelim}
+{endfor}
+                    <fo:table-body start-indent = "0pt">
+                        <fo:table-row background-color = "green">
+{foreach column}
+    {if column.align_right}
+                            <fo:table-cell padding = "0pt" display-align = "center" text-align = "right">
+    {else}
+                            <fo:table-cell padding = "0pt" display-align = "center">
+    {endif}
+{ldelim}if columns{rdelim}
+{ldelim}if columns[{column.index}]{rdelim}
+                            <fo:block>
+                              <fo:inline color = "white" font-weight = "bold" font-size = "{fontsize}"><![CDATA[{column.column_name}]]></fo:inline>
+                            </fo:block>
+{ldelim}else{rdelim}
+                            <fo:block />
+{ldelim}endif{rdelim}
+{ldelim}else{rdelim}
+                            <fo:block />
+{ldelim}endif{rdelim}
+</fo:table-cell>
+{endfor}
+                        </fo:table-row>
+{ldelim}foreach row{rdelim}
+    {ldelim}if row.__EVENINDEX{rdelim}
+                        <fo:table-row background-color = "#f0f0f0">
+    {ldelim}else{rdelim}
+                        <fo:table-row>
+    {ldelim}endif{rdelim}
+{foreach column}
+    {if column.align_right}
+                            <fo:table-cell padding = "0pt" display-align = "center" text-align = "right">
+    {else}
+                            <fo:table-cell padding = "0pt" display-align = "center">
+    {endif}
+{ldelim}if columns[{column.index}]{rdelim}
+                               <fo:block>
+    {if column.member_name}
+        {if column.is_bool}
+                                    <fo:inline color = "black" font-size = "{fontsize}">
+                                    {ldelim}if row.{column.member_name}{rdelim}
+                                    [*]
+                                    {ldelim}else{rdelim}
+                                    [ ]
+                                    {ldelim}endif{rdelim}
+                                    </fo:inline>
+        {else}
+                                    <fo:inline color = "black" font-size = "{fontsize}"><![CDATA[{ldelim}row.{column.member_name}{rdelim}]]>&#160;</fo:inline>
+        {endif}
+    {else}
+                                    <fo:inline color = "black" font-size = "{fontsize}">{ldelim}row.__VIEWINDEX{rdelim}&#160;&#160;</fo:inline>
+    {endif}
+                                </fo:block>
+{ldelim}else{rdelim}
+                                <fo:block />
+{ldelim}endif{rdelim}
+                             </fo:table-cell>
+{endfor}
+                        </fo:table-row>
+{ldelim}endfor{rdelim}
+                    </fo:table-body>
+                </fo:table>
+<![CDATA[

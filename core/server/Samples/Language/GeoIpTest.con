@@ -1,0 +1,11 @@
+include GeoIP.con
+
+class Main {
+	function Main() {
+		var g=new GeoIP();
+		g.Create();
+		g.HostnameMode=true;
+		echo g["yahoo.com"];
+		//echo g.GetRecord("www.yahoo.com");
+	}
+}

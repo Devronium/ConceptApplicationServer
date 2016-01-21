@@ -1,0 +1,436 @@
+import standard.db.mongo2
+
+class MongoConnection {
+	public var conn;
+	public var Db="";
+
+	public function Connect(db="", host="127.0.0.1", port=27017, user="", password="") {
+		var auth = "";
+		if (user) {
+			auth = user;
+			if (password)
+				auth += ":" + password;
+			auth += "@";
+		}
+		conn=MongoConnect("mongodb://$auth$host:$port/$db");
+		Db=db;
+		return conn;
+	}
+
+	public function ConnectReplica(string repl_name, array servers, db="", user="", password="") {
+		var replica = "";
+		for (var i = 0; i < length servers; i++) {
+			var s = servers[i];
+			if (typeof s == "array") {
+				if (replica)
+					replica += ",";
+				replica += s[0];
+				if (s[1])
+					replica += ":" + s[1];
+			}
+		}
+		var auth = "";
+		if (user) {
+			auth = user;
+			if (password)
+				auth += ":" + password;
+			auth += "@";
+		}
+		var uri = "mongodb://$auth$replica/$db?replicaSet=$repl_name";
+		conn=MongoConnect(uri);
+		Db=db;
+		return conn;
+	}
+
+	public function DriverOpen(db="", user="", password="", host="127.0.0.1", port=27017) {
+		return this.Connect(db, host, port, user, password);
+	}
+
+	public function ConnectURI(uri, db="") {
+		conn=MongoConnect(uri);
+		Db=db;
+		return conn;
+	}
+
+	public function Error() {
+		return MongoError(conn);
+	}
+
+	public function LastError(var out=null) {
+		if (!conn)
+			return "MongoDB: Not connected to a server";
+		if (MongoError(var msg))
+			return msg;
+
+		return "";
+	}
+
+
+	public function SimpleCommand(string cmd, parameter=0, var out=null, keep_object_types=true) {
+		if (!conn)
+			throw "MongoDB: Not connected to a server";
+		return MongoSimpleCommand(conn, Db, cmd, parameter, out, keep_object_types);
+	}
+
+	public function Eval(string query, keep_object_types=true) {
+		if (!conn)
+			throw "MongoDB: Not connected to a server";
+		var res=this.SimpleCommand("eval", query, var out, keep_object_types);
+		if (!res) {
+			if (out["ok"]==1)
+				return out["retval"];
+			throw out["errmsg"];
+		}
+		return [ ];
+	}
+
+	public function Command(array command, var out=null, keep_object_types=true) {
+		if (!conn)
+			throw "MongoDB: Not connected to a server";
+
+		return MongoCommand(conn, Db, command, out, keep_object_types);
+	}
+
+	public function Close() {
+		if (conn) {
+			MongoDisconnect(conn);
+			conn=0;
+		}
+	}
+
+	public function finalize() {
+		this.Close();
+	}
+}
+
+class MongoCursor {
+	private var handle;
+	public var[] FieldValues;
+
+	public function MongoCursor(handle) {
+		this.handle=handle;
+	}
+
+	public function Next(keep_object_types=true) {
+		if (!handle)
+			return 0;
+		FieldValues=new [];
+		var res=MongoNext(handle, var out, keep_object_types);
+
+		if (res)
+			FieldValues=out;
+		return res;
+	}
+
+	public function FetchForward() {
+		return this.Next();
+	}
+
+	public function Close() {
+		if (handle) {
+			MongoClose(handle);
+			handle=0;
+		}
+	}
+
+	public function finalize() {
+		Close();
+	}
+}
+
+class MongoDataSet {
+	protected var Connection;
+	public var Db="";
+	public var Collection="";
+	public var[] Query;
+	public var GridFS=null;
+
+	public function MongoDataSet(MongoConnection c, string collection="") {
+		this.Connection=c;
+		this.Collection=collection;
+		this.Db=c.Db;
+	}
+
+	public function DoneFS() {
+		var g=this.GridFS;
+		if (g) {
+			GridFSDone(g);
+			this.GridFS=null;
+		}
+	}
+
+	public function InitFS(string prefix="") {
+		var c=Connection.conn;
+		if (!c)
+			throw "MongoDB: Not connected to a server";
+
+		this.DoneFS();
+
+		if (!prefix)
+			prefix=Collection;
+
+		var g=GridFSInit(c, this.Db, prefix);
+		this.GridFS=g;
+
+		return g;
+	}
+
+	public function WriteFile(var data, string filename, string content_type="application/octet-stream") {
+		var g=this.GridFS;
+		if (!g)
+			this.InitFS();
+		g=this.GridFS;
+		if (!g)
+			throw "MongoDB: GridFS was not initialized. Call MongoDataSet.InitFS first.";		
+		return !GridFSStore(g, filename, data, content_type);
+	}
+
+	public function ReadFile(string filename) {
+		var g=this.GridFS;
+		if (!g)
+			this.InitFS();
+		g=this.GridFS;
+		if (!g)
+			throw "MongoDB: GridFS was not initialized. Call MongoDataSet.InitFS first.";		
+
+		return GridFSGet(g, filename);
+	}
+
+	public function Exists(string filename) {
+		var g=this.GridFS;
+		if (!g)
+			this.InitFS();
+		g=this.GridFS;
+		if (!g)
+			throw "MongoDB: GridFS was not initialized. Call MongoDataSet.InitFS first.";		
+
+		return GridFSExists(g, filename);
+	}
+
+	public function Filesize(string filename) {
+		var g=this.GridFS;
+		if (!g)
+			this.InitFS();
+		g=this.GridFS;
+		if (!g)
+			throw "MongoDB: GridFS was not initialized. Call MongoDataSet.InitFS first.";		
+
+		return GridFSSize(g, filename);
+	}
+
+	public function RemoveFile(string filename) {
+		var g=this.GridFS;
+		if (!g)
+			this.InitFS();
+		g=this.GridFS;
+		if (!g)
+			throw "MongoDB: GridFS was not initialized. Call MongoDataSet.InitFS first.";		
+
+		return !GridFSRemove(g, filename);
+	}
+
+	public function Date(string filename) {
+		var g=this.GridFS;
+		if (!g)
+			this.InitFS();
+		g=this.GridFS;
+		if (!g)
+			throw "MongoDB: GridFS was not initialized. Call MongoDataSet.InitFS first.";		
+
+		return GridFSDate(g, filename);
+	}
+
+	public function MD5(string filename) {
+		var g=this.GridFS;
+		if (!g)
+			this.InitFS();
+		g=this.GridFS;
+		if (!g)
+			throw "MongoDB: GridFS was not initialized. Call MongoDataSet.InitFS first.";		
+
+		return GridFSMD5(g, filename);
+	}
+
+	public function ContentType(string filename) {
+		var g=this.GridFS;
+		if (!g)
+			this.InitFS();
+		g=this.GridFS;
+		if (!g)
+			throw "MongoDB: GridFS was not initialized. Call MongoDataSet.InitFS first.";		
+
+		return GridFSType(g, filename);
+	}
+
+	public function MapReduce(string map, string reduce, skip=0, limit=0, resultCollection="", var out=null, keep_object_types=true) {
+		var c=Connection.conn;
+		if (!c)
+			throw "MongoDB: Not connected to a server";
+
+		var[] cmd;
+		cmd["mapreduce"]=Collection;
+		cmd["map"]=map;
+		cmd["reduce"]=reduce;
+
+		if (Query)
+			cmd["query"]=Query["query"];
+
+		if (skip)
+			cmd["skip"]=skip;
+		if (limit)
+			cmd["limit"]=limit;
+
+		if (!resultCollection) {
+			cmd["out"]=new [];
+			cmd["out"]["inline"]=1;
+		} else
+			cmd["out"]=resultCollection;
+
+		var res=Connection.Command(cmd, out, keep_object_types);
+		if ((res>=0) && (out) && (out["results"])) {
+			return out["results"];
+		}
+		return null;
+	}
+
+	public function Insert(data, keep_object_types=true, id_field="_id") {
+		var c=Connection.conn;
+		if (!c)
+			throw "MongoDB: Not connected to a server";
+		if (!Db)
+			throw "MongoDB: Plase choose a database first";
+
+		if (!Collection)
+			throw "MongoDB: Plase choose a collection first";
+
+		var res=MongoInsert(c, Db, Collection, data, keep_object_types, var id, id_field);
+		if (res)
+			return id;
+		return 0;
+	}
+
+	public function Count() {
+		var c=Connection.conn;
+		if (!c)
+			throw "MongoDB: Not connected to a server";
+		if (!Db)
+			throw "MongoDB: Plase choose a database first";
+
+		if (!Collection)
+			throw "MongoDB: Plase choose a collection first";
+
+		return MongoCount(c, Db, Collection, Query);
+	}
+
+	public function Remove() {
+		var c=Connection.conn;
+		if (!c)
+			throw "MongoDB: Not connected to a server";
+		if (!Db)
+			throw "MongoDB: Plase choose a database first";
+
+		if (!Collection)
+			throw "MongoDB: Plase choose a collection first";
+
+		return MongoRemove(c, Db, Collection, Query);
+	}
+
+	public function Update(op, number update_all=true, keep_object_types=true, force_objects=true) {
+		var flags=MONGOC_UPDATE_MULTI_UPDATE;
+		if (!update_all)
+			flags=MONGOC_UPDATE_NONE;
+		var c=Connection.conn;
+		if (!c)
+			throw "MongoDB: Not connected to a server";
+		if (!Db)
+			throw "MongoDB: Plase choose a database first";
+
+		if (!Collection)
+			throw "MongoDB: Plase choose a collection first";
+		if (typeof op=="array")
+			return MongoUpdate(c, Db, Collection, Query, op, flags, force_objects);
+		else
+		if (typeof op=="class")
+			return MongoUpdateObject(c, Db, Collection, Query, op, keep_object_types, flags);
+		throw "MongoDB: op is not an array or an object";
+	}
+
+	public function UpdateType(string field, number type, val, number flags=MONGOC_UPDATE_MULTI_UPDATE, keep_object_types=true) {
+		var c=Connection.conn;
+		if (!c)
+			throw "MongoDB: Not connected to a server";
+		if (!Db)
+			throw "MongoDB: Plase choose a database first";
+
+		if (!Collection)
+			throw "MongoDB: Plase choose a collection first";
+
+		return MongoUpdateType(c, Db, Collection, Query, field, type, val, keep_object_types, flags);
+	}
+
+	public function Find(fields=null, skip=0, limit=0, flags=MONGOC_QUERY_SLAVE_OK) {
+		var c=Connection.conn;
+		if (!c)
+			throw "MongoDB: Not connected to a server";
+		if (!Db)
+			throw "MongoDB: Plase choose a database first";
+
+		if (!Collection)
+			throw "MongoDB: Plase choose a collection first";
+
+		if (!fields)
+			fields=new [];
+
+		var data=MongoFind(c, Db, Collection, Query, fields, limit, skip, flags);
+		if (data)
+			return new MongoCursor(data);
+		return null;
+	}
+
+	public function FindOne(fields=null, keep_object_types=true, flags=MONGOC_QUERY_SLAVE_OK) {
+		var c=Connection.conn;
+		if (!c)
+			throw "MongoDB: Not connected to a server";
+		if (!Db)
+			throw "MongoDB: Plase choose a database first";
+
+		if (!Collection)
+			throw "MongoDB: Plase choose a collection first";
+
+		if (!fields)
+			fields=new [];
+
+		var cursor = MongoFind(c, Db, Collection, Query, fields, 1, 0, flags);
+		if (cursor) {
+			MongoNext(cursor, var out, keep_object_types);
+			MongoClose(cursor);
+			return out;
+		}
+		return null;
+	}
+
+	public function Index(array fields, name = "") {
+		var c=Connection.conn;
+		if (!c)
+			throw "MongoDB: Not connected to a server";
+		if (!Db)
+			throw "MongoDB: Plase choose a database first";
+
+		if (!Collection)
+			throw "MongoDB: Plase choose a collection first";
+
+		if (name)
+			var res=MongoIndex(c, Db, Collection, fields, name);
+		else
+			res=MongoIndex(c, Db, Collection, fields);
+		return res;
+	}
+
+	public function LastError(var out=null) {
+		return this.Connection.LastError(out);
+	}
+
+	public function finalize() {
+		this.DoneFS();
+	}
+}

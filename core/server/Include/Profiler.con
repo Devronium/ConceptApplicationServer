@@ -1,0 +1,149 @@
+import standard.lang.profiler
+import standard.C.time
+import standard.C.casts
+include Serializable.con
+
+class Profiler {
+	public var[] Call;
+	public var[] Duration;
+	public var[] Throw;
+
+	public var CallStack = false;
+	public var[] CurrentStack;
+	public var[] MemoryInfo;
+
+	public property CallSorted { get GetCallSorted }
+	public property DurationSorted { get GetDurationSorted }
+	public property ThrowSorted { get GetThrowSorted }
+	public property ObjectInfo { get GetObjectInfo }
+
+	protected var[] _ICalls;
+
+	Profiler(stack=false) {
+		this.CallStack=stack;
+		ProfilerDelegate(this.__profile_handler);
+	}
+
+	private Pop() {
+		var stack = this.CurrentStack;
+		var nstack = new [];
+		var len = (length stack) - 1;
+		for (var i=0; i<len; i++) {
+			var e = stack[i];
+			if (e)
+				nstack[length nstack]=e;
+		}
+		this.CurrentStack = nstack;
+	}
+
+	private StackString() {
+		var res="";
+		var stack = this.CurrentStack;
+		var len = length stack;
+		for (var i=0; i<len; i++) {
+			var e = stack[i];
+			if (e)
+				res+=e+",";
+		}
+		return res;
+	}
+
+	private __profile_handler(code, cls, member) {
+		if (cls==@class)
+			return;
+
+		var now = microseconds();
+
+		var arr2 = this._ICalls;
+		var arr3 = this.Call;
+		var arr4 = this.Duration;
+		var arr5 = this.Throw;
+
+		var fullname = cls+"."+member;
+		var key = fullname;
+		var stack = null;
+		var call_stack = this.CallStack;
+		if (call_stack) {
+			stack = this.CurrentStack;
+			if (code==PROFILER_CALL_START) {
+				key = this.StackString() + key;
+				stack[length stack] = fullname;
+			} else {
+				Pop();
+				key = this.StackString() + key;
+			}
+		}
+		switch (code) {
+			case PROFILER_CALL_START:
+				arr3[key]++;
+				arr2[key] = now;
+				break;
+			case PROFILER_CALL_THROW:
+				arr5[key]++;
+			case PROFILER_CALL_END:
+				var call_time = arr2[key];
+				if (call_time) {
+					var duration  = now-call_time;
+					arr4[key] += duration/1000;
+				}
+				break;
+			default:
+				break;
+		}
+	}
+
+	protected function Sort(source) {
+		var[] arr;
+		var len = length source;
+
+		var keys = GetKeys(source);
+		for (var i=0;i<len;i++) {
+			var k=keys[i];
+			if (k) {
+				var v=source[i];
+				var v_str=""+int32(v*1000);
+				while (length v_str<15)
+					v_str="0"+v_str;
+				arr[""+v_str+"."+k] = [k, v];
+			}
+		}
+		arr=KeySorted(arr);
+		len=length arr;
+		var[] res;
+		for (i=len-1;i>=0;i--) {
+			res[length res] = arr[i];
+		}
+		return res;
+	}
+
+	public function GetCallSorted() {
+		return this.Sort(this.Call);
+	}
+
+	public function GetDurationSorted() {
+		return this.Sort(this.Duration);
+	}
+
+	public function GetThrowSorted() {
+		return this.Sort(this.Throw);
+	}
+
+	public UpdateMemoryInfo() {
+		MemoryInfo = CoreMemoryInfo();
+	}
+
+	public GetObjectInfo() {
+		return this.Sort(this.MemoryInfo["objects"]);
+	}
+
+	public function Reset() {
+		Call = new [];
+		Duration  = new [];
+		Throw = new [];
+		CurrentStack = new [];
+	}
+
+	finalize() {
+		ProfilerReset();
+	}
+}

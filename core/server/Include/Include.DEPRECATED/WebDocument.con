@@ -1,0 +1,111 @@
+import 'web.server.api'
+include 'Exceptions.con'
+
+define USE_SESSION		1
+define NO_SESSION		0
+
+define DEFAULT_SESSION	USE_SESSION
+
+define DEFAULT_CONTENT	"text/html"
+define EXC_NO_SESSION	"You are not in a session"
+define EXC_INVALID_BEGIN	"You can't init a document at this state (document already initialized, or destroyed)"
+define EXC_INVALID_END	"You can't destroy this document at this point.(not init, or already destroyed)"
+define EXC_INVALID_POINT	"This operation is invalid after BeginDocument"
+define EXC_INVALID_OUT   "You must call BeginDocument first"
+
+define DOCUMENT_NOTINIT	0
+define DOCUMENT_INIT	1
+define DOCUMENT_DONE	2
+
+define HTML_ENDL		"<br>"
+define UNIX_ENDL		"\n"
+define WIN_CRLF		"\r\n"
+
+class WebDocument {
+		protected var _USE_SESSION;
+		protected var _CONTENT;
+		protected var _DOCUMENT_STATUS;
+		
+		public var endl;
+
+		public property Content { get _CONTENT, set SetContent }
+		public property UseSessions { get _USE_SESSION, set SetSession }
+
+		function WebDocument() {
+				this->_USE_SESSION=DEFAULT_SESSION;
+				this->_CONTENT=DEFAULT_CONTENT;
+				this->_DOCUMENT_STATUS=DOCUMENT_NOTINIT;
+				this->endl=HTML_ENDL;
+		}
+
+		function SetSession(session) {
+				if (this->_DOCUMENT_STATUS!=DOCUMENT_NOTINIT) 
+					throw new ConceptException(0,EXC_INVALID_POINT);
+				this->_USE_SESSION=session;
+		}
+
+		function SetContent(content_type) {
+				if (this->_DOCUMENT_STATUS!=DOCUMENT_NOTINIT) 
+					throw new ConceptException(0,EXC_INVALID_POINT);
+				// convert to string, if is a number ...
+				this->_CONTENT=""+content_type;
+		}
+
+		function BeginDocument() {
+				if (this->_DOCUMENT_STATUS==DOCUMENT_NOTINIT) {
+						this->_DOCUMENT_STATUS=DOCUMENT_INIT;
+						if (this->_USE_SESSION==USE_SESSION)
+							SessionStart();
+						ContentType(this->_CONTENT);
+				} else
+					throw new ConceptException(1,EXC_INVALID_BEGIN);
+		}
+
+		function EndDocument() {
+				if (this->_DOCUMENT_STATUS==DOCUMENT_INIT) {
+					if (this->_USE_SESSION==USE_SESSION)
+						SessionDone();
+					this->_DOCUMENT_STATUS=DOCUMENT_DONE;
+				} else
+					throw new ConceptException(2,EXC_INVALID_END);
+				WebFree();
+		}
+
+		function DestroySession() {
+				if (this->_USE_SESSION==USE_SESSION)
+					SessionDestroy();	
+				else
+					throw new ConceptException(3,EXC_NO_SESSION);
+		}
+
+		function SessionID() {
+				if (this->_USE_SESSION==USE_SESSION)
+					return GetSessionID();
+				else
+					throw new ConceptException(3,EXC_NO_SESSION);
+		}
+
+		operator << (x) {
+				if (this->_DOCUMENT_STATUS==DOCUMENT_INIT) {
+					echo x;
+					return this;
+				} else
+					throw new ConceptException(4,EXC_INVALID_OUT);
+		}
+
+		function Print(x) {
+				this << x;
+		}
+
+		function PrintLn(x) {
+				this << x << this->endl;
+		}
+
+		function Reload() {
+			this << "<script> document.location=''; </script>";
+		}
+
+		function Navigate(str) {
+			this << "<script> document.location='"+str+"'; </script>";
+		}
+}

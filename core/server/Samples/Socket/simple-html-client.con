@@ -1,0 +1,41 @@
+import standard.net.socket
+import standard.lang.cli
+import standard.C.io
+
+define DEFAULT_ADDRESS	"www.yahoo.com"
+define DEFAULT_PORT	80
+define MAX_SIZE		0xFFFF
+
+class Main {
+	function Main() {
+		// get the command line arguments
+		var args=CLArg();
+		var host=DEFAULT_ADDRESS;
+		var port=DEFAULT_PORT;
+		
+		if (length args) {
+			host=args[0];
+			if (args[1])
+				port=value args[1];
+		}
+
+		var s=SocketCreate();
+
+		echo "Connecting ... ";
+		if (SocketConnect(s, host, port)==-1) {
+			echo "Couldn't Connect to $host on port $port: "+SocketError(s)+"\n";
+			return 0;
+		}
+
+		echo "Connected !\n";
+
+		SocketWrite(s, "GET /\r\n\r\n");
+
+		// try to read exactly MAX_SIZE bytes (the server will disconnect us)
+		SocketRead(s, var data, MAX_SIZE, false, true);
+
+		WriteFile(data, host+".html");
+
+		SocketClose(s);
+	}
+}

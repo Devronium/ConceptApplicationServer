@@ -1,0 +1,670 @@
+include CLWrap.con
+
+class MSMTP extends CLWrap {
+	protected var _last_result="";
+	public property Output { get _last_result }
+
+	public var To="";
+
+	protected var _VERSION=null;
+	protected var _VERSION_set=false;
+	public property Version { get _VERSION, set SetVersion }
+
+	protected var _HELP=null;
+	protected var _HELP_set=false;
+	public property Help { get _HELP, set SetHelp }
+
+	protected var _PRETEND=null;
+	protected var _PRETEND_set=false;
+	public property Pretend { get _PRETEND, set SetPretend }
+
+	protected var _DEBUG=null;
+	protected var _DEBUG_set=false;
+	public property Debug { get _DEBUG, set SetDebug }
+
+	protected var _SERVERINFO=null;
+	protected var _SERVERINFO_set=false;
+	public property Serverinfo { get _SERVERINFO, set SetServerinfo }
+
+	protected var _RMQS=null;
+	protected var _RMQS_set=false;
+	public property Rmqs { get _RMQS, set SetRmqs }
+
+	protected var _FILE=null;
+	protected var _FILE_set=false;
+	public property File { get _FILE, set SetFile }
+
+	protected var _ACCOUNT=null;
+	protected var _ACCOUNT_set=false;
+	public property Account { get _ACCOUNT, set SetAccount }
+
+	protected var _HOST=null;
+	protected var _HOST_set=false;
+	public property Host { get _HOST, set SetHost }
+
+	protected var _PORT=null;
+	protected var _PORT_set=false;
+	public property Port { get _PORT, set SetPort }
+
+	protected var _TIMEOUT=null;
+	protected var _TIMEOUT_set=false;
+	public property Timeout { get _TIMEOUT, set SetTimeout }
+
+	protected var _PROTOCOL=null;
+	protected var _PROTOCOL_set=false;
+	public property Protocol { get _PROTOCOL, set SetProtocol }
+
+	protected var _DOMAIN=null;
+	protected var _DOMAIN_set=false;
+	public property Domain { get _DOMAIN, set SetDomain }
+
+	protected var _AUTH=null;
+	protected var _AUTH_set=false;
+	public property Auth { get _AUTH, set SetAuth }
+
+	protected var _USER=null;
+	protected var _USER_set=false;
+	public property User { get _USER, set SetUser }
+
+	protected var _PASS=null;
+	protected var _PASS_set=false;
+	public property Password { get _PASS, set SetPassword }
+
+	protected var _TLS=null;
+	protected var _TLS_set=false;
+	public property Tls { get _TLS, set SetTls }
+
+	protected var _TLSSTRATTLS=null;
+	protected var _TLSSTRATTLS_set=false;
+	public property TlsStrattls { get _TLSSTRATTLS, set SetTlsStrattls }
+
+	protected var _TLSTRUSTFILE=null;
+	protected var _TLSTRUSTFILE_set=false;
+	public property TlsTrustFile { get _TLSTRUSTFILE, set SetTlsTrustFile }
+
+	protected var _TLSFINGERPRINT=null;
+	protected var _TLSFINGERPRINT_set=false;
+	public property TlsFingerprint { get _TLSFINGERPRINT, set SetTlsFingerprint }
+
+	protected var _TLSKEYFILE=null;
+	protected var _TLSKEYFILE_set=false;
+	public property TlsKeyFile { get _TLSKEYFILE, set SetTlsKeyFile }
+
+	protected var _TLSCERTFILE=null;
+	protected var _TLSCERTFILE_set=false;
+	public property TlsCertFile { get _TLSCERTFILE, set SetTlsCertFile }
+
+	protected var _TLSCERTCHECK=null;
+	protected var _TLSCERTCHECK_set=false;
+	public property TlsCertcheck { get _TLSCERTCHECK, set SetTlsCertcheck }
+
+	protected var _TLSFORCESSLV3=null;
+	protected var _TLSFORCESSLV3_set=false;
+	public property TlsForceSslv3 { get _TLSFORCESSLV3, set SetTlsForceSslv3 }
+
+	protected var _TLSMINDHPRIMEBITS=null;
+	protected var _TLSMINDHPRIMEBITS_set=false;
+	public property TlsMinDhPrimeBits { get _TLSMINDHPRIMEBITS, set SetTlsMinDhPrimeBits }
+
+	protected var _TLSPRIORITIES=null;
+	protected var _TLSPRIORITIES_set=false;
+	public property TlsPriorities { get _TLSPRIORITIES, set SetTlsPriorities }
+
+	protected var _AUTOFROM=null;
+	protected var _AUTOFROM_set=false;
+	public property AutoFrom { get _AUTOFROM, set SetAutoFrom }
+
+	protected var _FROM=null;
+	protected var _FROM_set=false;
+	public property From { get _FROM, set SetFrom }
+
+	protected var _MAILDOMAIN=null;
+	protected var _MAILDOMAIN_set=false;
+	public property Maildomain { get _MAILDOMAIN, set SetMaildomain }
+
+	protected var _DSNNOTIFY=null;
+	protected var _DSNNOTIFY_set=false;
+	public property DsnNotify { get _DSNNOTIFY, set SetDsnNotify }
+
+	protected var _DSNRETURN=null;
+	protected var _DSNRETURN_set=false;
+	public property DsnReturn { get _DSNRETURN, set SetDsnReturn }
+
+	protected var _KEEPBCC=null;
+	protected var _KEEPBCC_set=false;
+	public property Keepbcc { get _KEEPBCC, set SetKeepbcc }
+
+	protected var _LOGFILE=null;
+	protected var _LOGFILE_set=false;
+	public property Logfile { get _LOGFILE, set SetLogfile }
+
+	protected var _SYSLOG=null;
+	protected var _SYSLOG_set=false;
+	public property Syslog { get _SYSLOG, set SetSyslog }
+
+	protected var _READRECIPIENTS=null;
+	protected var _READRECIPIENTS_set=false;
+	public property ReadRecipients { get _READRECIPIENTS, set SetReadRecipients }
+
+	protected var _READENVELOPE=null;
+	protected var _READENVELOPE_set=false;
+	public property ReadEnvelope { get _READENVELOPE, set SetReadEnvelope }
+
+	public function Send(string input_stream="") {
+		var[] params;
+		if (this._VERSION_set)
+			params['--version']='--version';
+		if (this._HELP_set)
+			params['--help']='--help';
+		if (this._PRETEND_set)
+			params['--pretend']='--pretend';
+		if (this._DEBUG_set)
+			params['--debug']='--debug';
+		if (this._SERVERINFO_set)
+			params['--serverinfo']='--serverinfo';
+		if (this._RMQS_set)
+			params['--rmqs']='--rmqs';
+		if (this._FILE_set)
+			params['--file']='--file'+'='+this._FILE;
+		if (this._ACCOUNT_set)
+			params['--account']='--account'+'='+this._ACCOUNT;
+		if (this._HOST_set)
+			params['--host']='--host'+'='+this._HOST;
+		if (this._PORT_set)
+			params['--port']='--port'+'='+this._PORT;
+		if (this._TIMEOUT_set)
+			params['--timeout']='--timeout'+'='+this._TIMEOUT;
+		if (this._PROTOCOL_set)
+			params['--protocol']='--protocol'+'='+this._PROTOCOL;
+		if (this._DOMAIN_set)
+			params['--domain']='--domain'+'='+this._DOMAIN;
+		if (this._AUTH_set)
+			params['--auth']='--auth'+'='+this._AUTH;
+		if (this._USER_set)
+			params['--user']='--user'+'='+this._USER;
+		if (this._PASS_set)
+			params['--passwordeval']='--passwordeval'+'='+this._PASS;
+		if (this._TLS_set)
+			params['--tls']='--tls'+'='+this._TLS;
+		if (this._TLSSTRATTLS_set)
+			params['--tls-strattls']='--tls-strattls'+'='+this._TLSSTRATTLS;
+		if (this._TLSTRUSTFILE_set)
+			params['--tls-trust-file']='--tls-trust-file'+'='+this._TLSTRUSTFILE;
+		if (this._TLSFINGERPRINT_set)
+			params['--tls-fingerprint']='--tls-fingerprint'+'='+this._TLSFINGERPRINT;
+		if (this._TLSKEYFILE_set)
+			params['--tls-key-file']='--tls-key-file'+'='+this._TLSKEYFILE;
+		if (this._TLSCERTFILE_set)
+			params['--tls-cert-file']='--tls-cert-file'+'='+this._TLSCERTFILE;
+		if (this._TLSCERTCHECK_set)
+			params['--tls-certcheck']='--tls-certcheck'+'='+this._TLSCERTCHECK;
+		if (this._TLSFORCESSLV3_set)
+			params['--tls-force-sslv3']='--tls-force-sslv3'+'='+this._TLSFORCESSLV3;
+		if (this._TLSMINDHPRIMEBITS_set)
+			params['--tls-min-dh-prime-bits']='--tls-min-dh-prime-bits'+'='+this._TLSMINDHPRIMEBITS;
+		if (this._TLSPRIORITIES_set)
+			params['--tls-priorities']='--tls-priorities'+'='+this._TLSPRIORITIES;
+		if (this._AUTOFROM_set)
+			params['--auto-from']='--auto-from'+'='+this._AUTOFROM;
+		if (this._FROM_set)
+			params['--from']='--from'+'='+this._FROM;
+		if (this._MAILDOMAIN_set)
+			params['--maildomain']='--maildomain'+'='+this._MAILDOMAIN;
+		if (this._DSNNOTIFY_set)
+			params['--dsn-notify']='--dsn-notify'+'='+this._DSNNOTIFY;
+		if (this._DSNRETURN_set)
+			params['--dsn-return']='--dsn-return'+'='+this._DSNRETURN;
+		if (this._KEEPBCC_set)
+			params['--keepbcc']='--keepbcc'+'='+this._KEEPBCC;
+		if (this._LOGFILE_set)
+			params['--logfile']='--logfile'+'='+this._LOGFILE;
+		if (this._SYSLOG_set)
+			params['--syslog']='--syslog'+'='+this._SYSLOG;
+		if (this._READRECIPIENTS_set)
+			params['--read-recipients']='--read-recipients';
+		if (this._READENVELOPE_set)
+			params['--read-envelope']='--read-envelope';
+		if (this.To)
+			params["%DIRECTQUERY%"]=this.To;
+		return this.Run("msmtp", params, this._last_result, input_stream);
+	}
+
+	public function SetVersion(val) {
+		if (val)
+			val=true;
+		else
+			val=false;
+		this._VERSION_set=true;
+		this._VERSION=val;
+		return val;
+	}
+
+	public function UnSetVersion() {
+		this._VERSION_set=false;
+		this._VERSION=null;
+	}
+
+	public function SetHelp(val) {
+		if (val)
+			val=true;
+		else
+			val=false;
+		this._HELP_set=true;
+		this._HELP=val;
+		return val;
+	}
+
+	public function UnSetHelp() {
+		this._HELP_set=false;
+		this._HELP=null;
+	}
+
+	public function SetPretend(val) {
+		if (val)
+			val=true;
+		else
+			val=false;
+		this._PRETEND_set=true;
+		this._PRETEND=val;
+		return val;
+	}
+
+	public function UnSetPretend() {
+		this._PRETEND_set=false;
+		this._PRETEND=null;
+	}
+
+	public function SetDebug(val) {
+		if (val)
+			val=true;
+		else
+			val=false;
+		this._DEBUG_set=true;
+		this._DEBUG=val;
+		return val;
+	}
+
+	public function UnSetDebug() {
+		this._DEBUG_set=false;
+		this._DEBUG=null;
+	}
+
+	public function SetServerinfo(val) {
+		if (val)
+			val=true;
+		else
+			val=false;
+		this._SERVERINFO_set=true;
+		this._SERVERINFO=val;
+		return val;
+	}
+
+	public function UnSetServerinfo() {
+		this._SERVERINFO_set=false;
+		this._SERVERINFO=null;
+	}
+
+	public function SetRmqs(val) {
+		if (val)
+			val=true;
+		else
+			val=false;
+		this._RMQS_set=true;
+		this._RMQS=val;
+		return val;
+	}
+
+	public function UnSetRmqs() {
+		this._RMQS_set=false;
+		this._RMQS=null;
+	}
+
+	public function SetFile(val) {
+		this._FILE_set=true;
+		this._FILE=val;
+		return val;
+	}
+
+	public function UnSetFile() {
+		this._FILE_set=false;
+		this._FILE=null;
+	}
+
+	public function SetAccount(val) {
+		this._ACCOUNT_set=true;
+		this._ACCOUNT=val;
+		return val;
+	}
+
+	public function UnSetAccount() {
+		this._ACCOUNT_set=false;
+		this._ACCOUNT=null;
+	}
+
+	public function SetHost(val) {
+		this._HOST_set=true;
+		this._HOST=val;
+		return val;
+	}
+
+	public function UnSetHost() {
+		this._HOST_set=false;
+		this._HOST=null;
+	}
+
+	public function SetPort(val) {
+		this._PORT_set=true;
+		this._PORT=val;
+		return val;
+	}
+
+	public function UnSetPort() {
+		this._PORT_set=false;
+		this._PORT=null;
+	}
+
+	public function SetTimeout(val) {
+		this._TIMEOUT_set=true;
+		this._TIMEOUT=val;
+		return val;
+	}
+
+	public function UnSetTimeout() {
+		this._TIMEOUT_set=false;
+		this._TIMEOUT=null;
+	}
+
+	public function SetProtocol(val) {
+		if ((val!='smtp') && (val!='lmtp'))
+			throw "Invalid value '$val' for Protocol";
+		this._PROTOCOL_set=true;
+		this._PROTOCOL=val;
+		return val;
+	}
+
+	public function UnSetProtocol() {
+		this._PROTOCOL_set=false;
+		this._PROTOCOL=null;
+	}
+
+	public function SetDomain(val) {
+		this._DOMAIN_set=true;
+		this._DOMAIN=val;
+		return val;
+	}
+
+	public function UnSetDomain() {
+		this._DOMAIN_set=false;
+		this._DOMAIN=null;
+	}
+
+	public function SetAuth(val) {
+		this._AUTH_set=true;
+		this._AUTH=val;
+		return val;
+	}
+
+	public function UnSetAuth() {
+		this._AUTH_set=false;
+		this._AUTH=null;
+	}
+
+	public function SetUser(val) {
+		this._USER_set=true;
+		this._USER=val;
+		return val;
+	}
+
+	public function UnSetUser() {
+		this._USER_set=false;
+		this._USER=null;
+	}
+
+	public function SetPassword(val) {
+		this._PASS_set=true;
+		this._PASS=val;
+		return val;
+	}
+
+	public function UnSetPassword() {
+		this._PASS_set=false;
+		this._PASS=null;
+	}
+
+	public function SetTls(val) {
+		if ((val!='on') && (val!='off'))
+			throw "Invalid value '$val' for Tls";
+		this._TLS_set=true;
+		this._TLS=val;
+		return val;
+	}
+
+	public function UnSetTls() {
+		this._TLS_set=false;
+		this._TLS=null;
+	}
+
+	public function SetTlsStrattls(val) {
+		if ((val!='on') && (val!='off'))
+			throw "Invalid value '$val' for TlsStrattls";
+		this._TLSSTRATTLS_set=true;
+		this._TLSSTRATTLS=val;
+		return val;
+	}
+
+	public function UnSetTlsStrattls() {
+		this._TLSSTRATTLS_set=false;
+		this._TLSSTRATTLS=null;
+	}
+
+	public function SetTlsTrustFile(val) {
+		this._TLSTRUSTFILE_set=true;
+		this._TLSTRUSTFILE=val;
+		return val;
+	}
+
+	public function UnSetTlsTrustFile() {
+		this._TLSTRUSTFILE_set=false;
+		this._TLSTRUSTFILE=null;
+	}
+
+	public function SetTlsFingerprint(val) {
+		this._TLSFINGERPRINT_set=true;
+		this._TLSFINGERPRINT=val;
+		return val;
+	}
+
+	public function UnSetTlsFingerprint() {
+		this._TLSFINGERPRINT_set=false;
+		this._TLSFINGERPRINT=null;
+	}
+
+	public function SetTlsKeyFile(val) {
+		this._TLSKEYFILE_set=true;
+		this._TLSKEYFILE=val;
+		return val;
+	}
+
+	public function UnSetTlsKeyFile() {
+		this._TLSKEYFILE_set=false;
+		this._TLSKEYFILE=null;
+	}
+
+	public function SetTlsCertFile(val) {
+		this._TLSCERTFILE_set=true;
+		this._TLSCERTFILE=val;
+		return val;
+	}
+
+	public function UnSetTlsCertFile() {
+		this._TLSCERTFILE_set=false;
+		this._TLSCERTFILE=null;
+	}
+
+	public function SetTlsCertcheck(val) {
+		this._TLSCERTCHECK_set=true;
+		this._TLSCERTCHECK=val;
+		return val;
+	}
+
+	public function UnSetTlsCertcheck() {
+		this._TLSCERTCHECK_set=false;
+		this._TLSCERTCHECK=null;
+	}
+
+	public function SetTlsForceSslv3(val) {
+		this._TLSFORCESSLV3_set=true;
+		this._TLSFORCESSLV3=val;
+		return val;
+	}
+
+	public function UnSetTlsForceSslv3() {
+		this._TLSFORCESSLV3_set=false;
+		this._TLSFORCESSLV3=null;
+	}
+
+	public function SetTlsMinDhPrimeBits(val) {
+		this._TLSMINDHPRIMEBITS_set=true;
+		this._TLSMINDHPRIMEBITS=val;
+		return val;
+	}
+
+	public function UnSetTlsMinDhPrimeBits() {
+		this._TLSMINDHPRIMEBITS_set=false;
+		this._TLSMINDHPRIMEBITS=null;
+	}
+
+	public function SetTlsPriorities(val) {
+		this._TLSPRIORITIES_set=true;
+		this._TLSPRIORITIES=val;
+		return val;
+	}
+
+	public function UnSetTlsPriorities() {
+		this._TLSPRIORITIES_set=false;
+		this._TLSPRIORITIES=null;
+	}
+
+	public function SetAutoFrom(val) {
+		if ((val!='on') && (val!='off'))
+			throw "Invalid value '$val' for AutoFrom";
+		this._AUTOFROM_set=true;
+		this._AUTOFROM=val;
+		return val;
+	}
+
+	public function UnSetAutoFrom() {
+		this._AUTOFROM_set=false;
+		this._AUTOFROM=null;
+	}
+
+	public function SetFrom(val) {
+		this._FROM_set=true;
+		this._FROM=val;
+		return val;
+	}
+
+	public function UnSetFrom() {
+		this._FROM_set=false;
+		this._FROM=null;
+	}
+
+	public function SetMaildomain(val) {
+		this._MAILDOMAIN_set=true;
+		this._MAILDOMAIN=val;
+		return val;
+	}
+
+	public function UnSetMaildomain() {
+		this._MAILDOMAIN_set=false;
+		this._MAILDOMAIN=null;
+	}
+
+	public function SetDsnNotify(val) {
+		this._DSNNOTIFY_set=true;
+		this._DSNNOTIFY=val;
+		return val;
+	}
+
+	public function UnSetDsnNotify() {
+		this._DSNNOTIFY_set=false;
+		this._DSNNOTIFY=null;
+	}
+
+	public function SetDsnReturn(val) {
+		this._DSNRETURN_set=true;
+		this._DSNRETURN=val;
+		return val;
+	}
+
+	public function UnSetDsnReturn() {
+		this._DSNRETURN_set=false;
+		this._DSNRETURN=null;
+	}
+
+	public function SetKeepbcc(val) {
+		if ((val!='on') && (val!='off'))
+			throw "Invalid value '$val' for Keepbcc";
+		this._KEEPBCC_set=true;
+		this._KEEPBCC=val;
+		return val;
+	}
+
+	public function UnSetKeepbcc() {
+		this._KEEPBCC_set=false;
+		this._KEEPBCC=null;
+	}
+
+	public function SetLogfile(val) {
+		this._LOGFILE_set=true;
+		this._LOGFILE=val;
+		return val;
+	}
+
+	public function UnSetLogfile() {
+		this._LOGFILE_set=false;
+		this._LOGFILE=null;
+	}
+
+	public function SetSyslog(val) {
+		this._SYSLOG_set=true;
+		this._SYSLOG=val;
+		return val;
+	}
+
+	public function UnSetSyslog() {
+		this._SYSLOG_set=false;
+		this._SYSLOG=null;
+	}
+
+	public function SetReadRecipients(val) {
+		if (val)
+			val=true;
+		else
+			val=false;
+		this._READRECIPIENTS_set=true;
+		this._READRECIPIENTS=val;
+		return val;
+	}
+
+	public function UnSetReadRecipients() {
+		this._READRECIPIENTS_set=false;
+		this._READRECIPIENTS=null;
+	}
+
+	public function SetReadEnvelope(val) {
+		if (val)
+			val=true;
+		else
+			val=false;
+		this._READENVELOPE_set=true;
+		this._READENVELOPE=val;
+		return val;
+	}
+
+	public function UnSetReadEnvelope() {
+		this._READENVELOPE_set=false;
+		this._READENVELOPE=null;
+	}
+
+}

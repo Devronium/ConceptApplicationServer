@@ -1,0 +1,128 @@
+include SingleContainer.con
+include RemoteEvents.con
+include RemoteProperties.con
+include RemoteMessages.con
+include RImage.con
+include ClassID.con
+include Constants.con
+
+class RToolButton extends SingleContainer {
+	private var CAPTION="";
+	private var IMAGE;
+	private var HOMOGENEOUS;
+	private var RELIEFSTYLE;
+	private var ISIMPORTANT;
+	private var VISIBLEVERTICAL;
+	private var VISIBLEHORIZONTAL;
+	private var _EXPAND;
+	private var STOCKID;
+	
+	public property Caption { get CAPTION, set SetCaption }
+	public property Icon { get IMAGE, set SetImage }
+	public property Homogeneous { get HOMOGENEOUS, set SetHomogeneous }
+	public property IsImportant { get ISIMPORTANT, set SetIsImportant }
+	public property VisibleVertical { get VISIBLEVERTICAL, set SetVisibleVertical }
+	public property VisibleHorizontal { get VISIBLEHORIZONTAL, set SetVisibleHorizontal }
+	public property Expand { get _EXPAND, set SetExpand }
+	public property StockID { get STOCKID, set SetStockID }
+
+	//-----------EVENT--------------------------------------------------//
+	public property OnCreateMenuProxy { get GetOnCreateMenuProxy, set SetOnCreateMenuProxy }
+	public function GetOnCreateMenuProxy() {
+		return _GET_REMOTE_EVENT(EVENT_ON_CREATEMENUPROXY);
+	}
+
+	public function SetOnCreateMenuProxy(var delegate deleg) {
+		return _MAP_REMOTE_EVENT(EVENT_ON_CREATEMENUPROXY, deleg);
+	}
+
+	public property OnToolbarReconfigured { get GetOnToolbarReconfigured, set SetOnToolbarReconfigured }
+	public function GetOnToolbarReconfigured() {
+		return _GET_REMOTE_EVENT(EVENT_ON_TOOLBARRECONFIGURED);
+	}
+
+	public function SetOnToolbarReconfigured(var delegate deleg) {
+		return _MAP_REMOTE_EVENT(EVENT_ON_TOOLBARRECONFIGURED, deleg);
+	}
+
+	public property OnClicked { get GetOnClicked, set SetOnClicked }
+	public function GetOnClicked() {
+		return _GET_REMOTE_EVENT(EVENT_ON_CLICKED);
+	}
+
+	public function SetOnClicked(var delegate deleg) {
+		return _MAP_REMOTE_EVENT(EVENT_ON_CLICKED, deleg);
+	}
+	//------------------------------------------------------------------//
+	public function RToolButton(OWNER) {
+		super(OWNER, CLASS_TOOLBUTTON);
+	}
+
+	public function SetIsImportant(argument) {
+		ISIMPORTANT=SetProperty(P_ISIMPORTANT,argument);
+		return ISIMPORTANT;
+	}
+
+	public function SetVisibleVertical(argument) {
+		VISIBLEVERTICAL=value SetProperty(P_VISIBLEVERTICAL,argument);
+		return VISIBLEVERTICAL;
+	}
+
+	public function SetVisibleHorizontal(argument) {
+		VISIBLEHORIZONTAL=value SetProperty(P_VISIBLEHORIZONTAL,argument);
+		return VISIBLEHORIZONTAL;
+	}
+
+	public function SetCaption(argument) {
+		SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_CAPTION,argument);
+		CAPTION=argument;
+		return argument;
+	}
+
+	public function SetImage(argument) {
+		if (argument) {
+			SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_ICON,argument.RID);
+			IMAGE=argument;
+		}
+		return argument;
+	}
+
+	public function LoadIcon(filename) {
+		var IMAGE=&new RImage(0);
+		IMAGE.Filename=filename;
+		IMAGE.Show();
+		return SetImage(IMAGE);
+	}
+
+	public function LoadStockIcon(id) {
+		var IMAGE=&new RImage(0);
+		IMAGE.LoadResource(id,ICON_SIZE_LARGE_TOOLBAR);
+		IMAGE.Show();
+		return SetImage(IMAGE);
+	}
+
+	public function LoadStockIcon2(id,size) {
+		var IMAGE=&new RImage(0);
+		IMAGE.LoadResource(id,size);
+		IMAGE.Show();
+		return SetImage(IMAGE);
+	}
+
+	public function SetHomogeneous(argument) {
+		SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_HOMOGENEOUS,argument);
+		HOMOGENEOUS=argument;
+		return argument;
+	}
+
+	public function SetStockID(argument) {
+		SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_USESTOCK,argument);
+		STOCKID=argument;
+		return argument;
+	}
+
+	public function SetExpand(argument) {
+		SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_RELIEFSTYLE,argument);
+		_EXPAND=(argument!=0);
+		return argument;
+	}
+}

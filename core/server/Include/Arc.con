@@ -1,0 +1,109 @@
+import standard.lib.str
+import standard.lang.serialize
+import standard.arch.zip
+import standard.C.io
+
+
+class Arc {
+	static function DoDirectory(path) {
+		var len=length path;
+		if (len<2)
+			return 0;
+		len--;
+		var base="";
+		for (var i=0;i<len;i++) {
+			base+=path[i]+"/";
+			_mkdir(base);
+		}
+		return true;
+	}
+
+	static function GetFilenameFromFullPath(path) {
+		var len=length path;
+		var result="";
+		for (var i=len-1;i>=0;i--) {
+			if ((path[i]=='\\') || (path[i]=='/'))
+				return result;
+			result=path[i]+result;
+		}
+		return result;
+	}
+
+	static function UnZip(filename) {
+		var zip=zip_open(filename,ZIP_CHECKCONS, var err);
+		if (!zip)
+			throw "Unzip failed with error code $err";
+
+		var num_files=zip_get_num_files(zip);
+		for (var i=0;i<num_files;i++) {
+			var name=zip_get_name(zip, i, 0);
+			var arr=StrSplit(name, "/");
+
+			if (length arr>1) {
+				Arc::DoDirectory(arr);
+			} else {
+				arr=StrSplit(name, "\\");
+				if (length arr>1)
+					Arc::DoDirectory(arr);
+			}
+
+
+			Arc::DoDirectory(arr);
+			if (name) {
+				var zf=zip_fopen_index(zip, i, 0);
+				if (zf) {
+					var data2="";
+					var amount=zip_fread(zf, var buf, 8192*1024*2);
+					if (amount>0)
+						data2=buf;
+
+					WriteFile(data2,name);
+					zip_fclose(zf);
+				}
+
+			}
+		}
+
+		zip_close(zip);
+		return true;
+	}
+
+	static function Create(filename, no_create=false) {
+		var mode=ZIP_CREATE;
+		if (no_create)
+			mode=ZIP_CHECKCONS;
+		var zip=zip_open(filename, mode, var err);
+		if (!zip)
+			throw "Unzip failed with error code '$err'";
+		return zip;
+	}
+	
+	static function Add(number zip, filename) {
+	    var source=zip_source_file(zip, filename, 0, 0);
+	    if (!source)
+		throw "Error reading file '$filename'";
+	    var ret=zip_add(zip, filename, source);
+	    // not needed !
+	    //zip_source_free(source);
+	    if (ret<0)
+		throw "Error adding file '$filename'";
+	    return ret;
+	}
+
+	static function AddContent(number zip, filename, var content) {
+	    var source=zip_source_buffer(zip, content);
+	    if (!source)
+		throw "Error reading file '$filename'";
+	    var ret=zip_add(zip, filename, source);
+	    if (ret<0)
+		throw "Error adding file '$filename'";
+	    return ret;
+	}
+	
+	static function Close(var zip) {
+	    if (zip)
+            zip_close(zip);
+        zip=null;
+		return true;
+	}
+}

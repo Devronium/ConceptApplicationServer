@@ -1,0 +1,55 @@
+import standard.lang.js
+
+class Main {
+	function Error(cx, message, struct) {
+		echo "\nError: $message in ${struct->filename} at line ${struct->lineno}";
+	}
+
+
+	function test(a,b) {
+		echo "a is '$a', b is '$b'";
+		return a*b;
+	}
+
+
+	function Main() {
+		var runtime;
+		var context;
+		var global;
+
+		var script="var b=2; test(5,b);";
+
+		var rval;
+
+  		if (	(!(runtime = JSNewRuntime (1024*1024)))
+       			|| (!(context = JSNewContext (runtime, 8192)))
+       			|| (!(global  = JSNewObject  (context, null, null, null)))) 
+			return -1;
+
+		if (!JSInitStandardClasses(context, global)) 
+			return -2;
+
+		JSSetErrorReporter(context, Error);
+
+		JSWrap(context, global, test, "test");
+
+		if (!JSEvaluateScript(context, global,script, "script", 1, rval)) {
+			return -3;
+		}
+
+		echo "Result: $rval\n";
+		
+  		JSDestroyContext(context);
+  		JSDestroyRuntime(runtime);
+  		JSShutDown();
+
+		/*
+		echo JSEval("1+1+Math.sin(0.5)");
+		echo "\n";
+		echo JSEval('false');
+		echo JSEval('0.5E-1;');
+		echo "\n";
+		echo JSEval('null');*/
+		
+	}
+}

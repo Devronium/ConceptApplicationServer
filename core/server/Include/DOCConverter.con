@@ -1,0 +1,79 @@
+import standard.lib.str
+import standard.C.io
+import standard.C.math
+
+include Serializable.con
+include DirectoryList.con
+
+define CONVERT_CMD	"abiword \"--to=$output\" \"$input\" --exp-props=\"embed-css: yes;\""
+define CONVERT_TXT_CMD	"abiword \"--to=$output_txt\" \"$input\""
+
+define TEMP_OUT		"${this._TEMP_DIR}/result${this.KID}.$format"
+define TEMP_OUT_DIR	"${this._TEMP_DIR}/result${this.KID}.${format}_files"
+//define TEMP_OUT_TXT	"${this._TEMP_DIR}/result${this.KID}.txt"
+
+define TEMP_IN		"${this._TEMP_DIR}/in${this.KID}$filename"
+
+define RESOURCE_ID	"result${this.KID}.${format}_files"
+
+define TEMP_DIR		"temp"
+
+class DOCConverter {
+	protected var _TEMP_DIR=TEMP_DIR;
+	private var KID;
+	private var[] _FILES;
+
+	public property Files { get _FILES }
+
+	public function DOCConverter() {
+		this.KID=ClsPtr(this)+rand();
+		this._TEMP_DIR=_getenv("tmp");
+		if (!this._TEMP_DIR)
+			this._TEMP_DIR=_getenv("temp");
+		if (!this._TEMP_DIR)
+			this._TEMP_DIR=TEMP_DIR;
+
+		_mkdir(this._TEMP_DIR);
+	}
+
+	public function Convert(string input, string format="html") {
+		var output=TEMP_OUT;
+		//var output_txt=TEMP_OUT_TXT;
+		// in case it exists
+		this._FILES=new [];
+		_unlink(output);
+		//_unlink(output_txt);
+		//this._TEXT="";
+
+		var err=system(CONVERT_CMD);
+
+		//var err2=system(CONVERT_TXT_CMD);
+		var data=ReadFile(output);
+		//this._TEXT=ReadFile(output_txt);
+
+		_unlink(output);
+		//_unlink(output_txt);
+
+		var files=DirectoryList::ListByExt(TEMP_OUT_DIR,["*"], true);
+
+		var len=length files;
+		for (var i=0;i<len;i++) {
+			var file=files[i];
+			var full_path=TEMP_OUT_DIR+"/"+file;
+			var content=ReadFile(full_path);
+
+			this._FILES[file]=[file, content, RESOURCE_ID];
+			_unlink(full_path);
+		}
+		_rmdir(TEMP_OUT_DIR);
+		return data;
+	}
+
+	public function ConvertBuffer(string buffer, string filename, string format="html") {
+		var fpath=TEMP_IN;
+		WriteFile(buffer, TEMP_IN);
+		var res=this.Convert(TEMP_IN, format);
+		_unlink(TEMP_IN);
+		return res;
+	}
+}

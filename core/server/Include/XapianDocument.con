@@ -1,0 +1,152 @@
+import standard.search.xapian
+include XapianValueIterator.con
+include XapianTermIterator.con
+
+class XapianDocument {
+	protected var THISREF=null;
+	public property REF { get THISREF }
+
+	public function XapianDocument(number ref=null) {
+		if (ref)
+			this.THISREF=ref;
+		else
+			this.THISREF=XapianDocumentCreate(var exc);
+	}
+
+	public function finalize() {
+		XapianDocumentDestroy(THISREF, var exc);
+		this.THISREF=null;
+	}
+	public function get_value(number valueno) {
+		var result=XapianDocument__get_value(this->THISREF, var exc, valueno);
+		if (exc)
+			throw exc;
+		return result;
+	}
+
+	public function add_value(number valueno, _value) {
+		var result=XapianDocument__add_value(this->THISREF, var exc, valueno, _value);
+		if (exc)
+			throw exc;
+		return result;
+	}
+
+	public function remove_value(number valueno) {
+		var result=XapianDocument__remove_value(this->THISREF, var exc, valueno);
+		if (exc)
+			throw exc;
+		return result;
+	}
+
+	public function clear_values() {
+		var result=XapianDocument__clear_values(this->THISREF, var exc);
+		if (exc)
+			throw exc;
+		return result;
+	}
+
+	public function get_data() {
+		var result=XapianDocument__get_data(this->THISREF, var exc);
+		if (exc)
+			throw exc;
+		return result;
+	}
+
+	public function set_data(string data) {
+		var result=XapianDocument__set_data(this->THISREF, var exc, data);
+		if (exc)
+			throw exc;
+		return result;
+	}
+
+	public function add_posting(string tname, number tpos, number wdfinc=1) {
+		var result=XapianDocument__add_posting(this->THISREF, var exc, tname, tpos, wdfinc);
+		if (exc)
+			throw exc;
+		return result;
+	}
+
+	public function add_term(string tname, number wdfinc=1) {
+		var result=XapianDocument__add_term(this->THISREF, var exc, tname, wdfinc);
+		if (exc)
+			throw exc;
+		return result;
+	}
+
+	public function remove_posting(string tname, number tpos, number wdfdec=1) {
+		var result=XapianDocument__remove_posting(this->THISREF, var exc, tname, tpos, wdfdec);
+		if (exc)
+			throw exc;
+		return result;
+	}
+
+	public function remove_term(string tname) {
+		var result=XapianDocument__remove_term(this->THISREF, var exc, tname);
+		if (exc)
+			throw exc;
+		return result;
+	}
+
+	public function clear_terms() {
+		var result=XapianDocument__clear_terms(this->THISREF, var exc);
+		if (exc)
+			throw exc;
+		return result;
+	}
+
+	public function termlist_count() {
+		var result=XapianDocument__termlist_count(this->THISREF, var exc);
+		if (exc)
+			throw exc;
+		return result;
+	}
+
+	public function values_count() {
+		var result=XapianDocument__values_count(this->THISREF, var exc);
+		if (exc)
+			throw exc;
+		return result;
+	}
+
+	public function get_docid() {
+		var result=XapianDocument__get_docid(this->THISREF, var exc);
+		if (exc)
+			throw exc;
+		return result;
+	}
+
+	public function get_description() {
+		var result=XapianDocument__get_description(this->THISREF, var exc);
+		if (exc)
+			throw exc;
+		return result;
+	}
+
+	public function values_begin() {
+		var result=new XapianValueIterator(XapianDocument__values_begin(this->THISREF, var exc));
+		if (exc)
+			throw exc;
+		return result;
+	}
+
+	public function values_end() {
+		var result=new XapianValueIterator(XapianDocument__values_end(this->THISREF, var exc));
+		if (exc)
+			throw exc;
+		return result;
+	}
+
+	public function termlist_begin() {
+		var result=new XapianTermIterator(XapianDocument__termlist_begin(this->THISREF, var exc));
+		if (exc)
+			throw exc;
+		return result;
+	}
+
+	public function termlist_end() {
+		var result=new XapianTermIterator(XapianDocument__termlist_end(this->THISREF, var exc));
+		if (exc)
+			throw exc;
+		return result;
+	}
+}

@@ -1,0 +1,87 @@
+include File.con
+
+class FileRedirect extends File {
+	protected var old=-1;
+	protected var hFileNo;
+	
+	public property HandleNo { get hFileNo }
+	override Close;
+
+	public function FileRedirect() {
+		super();
+	}
+
+	public function Close() {
+		if (old!=-1) {
+			close(old);
+			dup2(old, _fileno(hFile));
+			old=-1;
+		}
+		hFile=0;
+	}
+
+	public function OpenHandle(number handle) {
+		if (!handle)
+			throw "Given handle is null";
+
+		if (hFile)
+			this.Close();
+
+		is_pipe=false;
+		var handle_no=_fileno(handle);
+
+		if (pipe(var p0, var p1))
+			throw "Error in creating pipe links";
+
+		hFile=fdopen(p0, "a");
+		this.old=dup(handle_no);
+
+		dup2(p1, handle_no);
+
+		close(p1);
+
+		return (hFile!=0);
+	}
+
+
+	static function RemapIO(number on=true) {
+		if (on) {
+			if (pipe(var p1, var p2))
+				return 0;
+
+			var filer=new FileRedirect();
+			filer.hFileNo=p1;
+
+			var filew=new FileRedirect();
+			filew.hFileNo=p2;
+
+			remap_pipe_stdin_stdout(p1, p2);
+
+			return [filer, filew];
+		} else {
+			remap_pipe_stdin_stdout(stdin, stdout);
+		}
+		return null;
+	}
+
+	public function Read2(var buffer, number size) {
+		if (hFileNo<0)
+			throw "Invalid file descriptor or no open file";
+
+		var read_size=read(buffer, 1, size, hFileNo);
+
+		if (read_size<=0)
+			buffer="";
+
+		return read_size;
+	}
+
+	public function Write2(string buffer) {
+		if (hFileNo<0)
+			throw "Invalid file descriptor or no open file";
+
+		var size=fwrite(buffer, 1, length buffer, hFileNo);
+
+		return size;
+	}
+}

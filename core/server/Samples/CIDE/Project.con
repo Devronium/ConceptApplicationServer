@@ -1,0 +1,16 @@
+include Serializable.con
+
+class Project extends Serializable {
+    var[] sources;
+    var[] designablesources;
+    var[] resources;
+    var[] templates;
+    var description;
+    var name;
+    var entrypoint;
+    var icon_name;
+    var target;
+    var representative;
+
+    var[] reduce_references;
+}

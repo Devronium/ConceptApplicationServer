@@ -1,0 +1,96 @@
+import standard.arch.opus
+import standard.lib.str
+
+
+class OpusDecoder {
+	private var bits;
+	private var _sample_rate=16000;
+
+	public property SampleRate { get _sample_rate }
+
+
+	public function OpusDecoder(samplerate=16000, channels=1) {
+		_sample_rate=samplerate;
+		bits=opus_decoder_create(samplerate, channels, var err);
+	}
+
+	public function Decode(var buffer, dummy=null) {
+		var res="";
+		if (bits)
+			opus_decode(bits, buffer, res, opus_packet_get_nb_samples(buffer, _sample_rate), 0);
+		return res;
+	}
+
+	public function finalize() {
+		if (bits)
+			opus_decoder_destroy(bits);
+	}
+}
+
+
+class OpusEncoder {
+	private var bits;
+	private var _bitrate=9000;
+	private var _sample_rate=16000;
+	private var Opus_frame_size;
+	private var _signal=OPUS_AUTO;
+	private var _band=OPUS_AUTO;
+	private var _complexity=8;
+
+	public var Quality; // dummy parameter
+
+	public property Bitrate { get _bitrate, set SetBitrate }
+	public property Signal { get _signal, set SetSignal }
+	public property Bandwidth { get _band, set SetBandwidth }
+	public property Complexity { get _complexity, set SetComplexity }
+
+	public function OpusEncoder(samplerate=16000, channels=1, type=OPUS_APPLICATION_VOIP) {
+		_sample_rate=samplerate;
+		bits=opus_encoder_create(samplerate, channels, type, var err);
+		opus_encoder_ctl(bits, OPUS_SET_BITRATE_REQUEST, _bitrate);
+	}
+
+	public function SetBitrate(number qual) {
+		_bitrate=qual;
+		if (bits)
+			opus_encoder_ctl(bits, OPUS_SET_BITRATE_REQUEST, qual);
+		return qual;
+	}
+
+	public function SetComplexity(number c) {
+		_complexity=c;
+		if (bits)
+			opus_encoder_ctl(bits, OPUS_SET_COMPLEXITY_REQUEST, c);
+		return c;
+	}
+
+	public function SetSignal(number s) {
+		_signal=s;
+		if (bits)
+			opus_encoder_ctl(bits, OPUS_SET_SIGNAL_REQUEST, s);
+		return s;
+	}
+
+	public function SetBandwidth(number s) {
+		_band=s;
+		if (bits)
+			opus_encoder_ctl(bits, OPUS_SET_BANDWIDTH_REQUEST, s);
+		return s;
+	}
+
+	public function Encode(var ibuffer, var size=null) {
+		var res="";
+		if (bits) {
+			opus_encode(bits, ibuffer, res);
+			size = length res;
+		} else
+			size=0;
+
+		return res;
+	}
+
+	public function finalize() {
+		if (bits)
+			opus_encoder_destroy(bits);
+	}
+}

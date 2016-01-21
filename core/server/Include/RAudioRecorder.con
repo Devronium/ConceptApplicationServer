@@ -1,0 +1,204 @@
+include RForm.con
+include Application.con
+include Lang.con
+include RLabel.con
+include RButton.con
+include RHBox.con
+include RVBox.con
+include RAudioStreamer.con
+
+class RAudioRecorder extends RVBox {
+        var audio_in;
+        var audio_out;
+        var Running;
+        var size = 0;
+        var timeout = 0;
+        var data = "";
+        var Seconds = 18;
+        var packet_no = 0;
+        var Playing = false;
+        var OnUpload = null;
+
+        public var label1;
+        public var label2;
+        public var hbox1;
+        public var button1;
+        public var button2;
+        public var button3; 
+
+        public function RAudioRecorder(Owner) {
+                super(Owner);
+                this.label1 = new RLabel(this);
+                this.label1.UseMarkup = 1;
+                this.label1.Packing = PACK_EXPAND_WIDGET;
+                this.label1.Show();
+                this.label2 = new RLabel(this);
+                this.label2.UseMarkup = 1;
+                this.label2.Show();
+                this.hbox1 = new RHBox(this);
+                this.hbox1.Packing = PACK_SHRINK;
+                this.button1 = new RButton(this.hbox1);
+                this.button1.Packing = PACK_EXPAND_WIDGET;
+                this.button1.ReliefStyle = RELIEF_NONE;
+                this.button1.OnClicked = this.on_start;
+                this.button1.Show();
+                this.button2 = new RButton(this.hbox1);
+                this.button2.Packing = PACK_SHRINK;
+                this.button2.ReliefStyle = RELIEF_NONE;
+                this.button2.OnClicked = this.on_play;
+                this.button3 = new RButton(this.hbox1);
+                this.button3.Packing = PACK_SHRINK;
+                this.button3.ReliefStyle = RELIEF_NONE;
+                this.button3.OnClicked = this.on_upload;
+                this.hbox1.Show();
+
+                audio_in = new RAudioStreamer(this);
+                audio_in.SampleRate = 44100;
+                audio_in.Channels = 1;
+                audio_in.Quality = 8;
+                audio_in.FrameSize = 160;
+                audio_in.Compression = false;
+
+                audio_out = new RAudioStreamer(this);
+                audio_out.SampleRate = audio_in.SampleRate;
+                audio_out.Channels = 1;
+                audio_out.Quality = audio_in.Quality;
+                audio_out.Compression = audio_in.Compression;
+
+                audio_in.OnBuffer = function(Sender, var EventData) {
+                    try {
+                        packet_no++;
+                        if (packet_no < 10)
+                            return;
+                        data += EventData;
+                        size += length EventData;
+                    } catch (var exc) {
+                        this.Stop();
+                    }
+                };
+                button1.Font.Name="FontAwesome";
+                button1.Font.Size=32;
+                button1.Caption=U_(0xf130);
+
+                button2.Font.Name="FontAwesome";
+                button2.Font.Size=32;
+                button2.FgColor=0x008000;
+                button2.Caption=U_(0xf04b);
+
+                button3.Font.Name="FontAwesome";
+                button3.Font.Size=32;
+                button3.FgColor=0x0000FF;
+                button3.Caption=U_(0xf0ee);
+
+                label1.Font.Size = 48;
+        }
+        
+        Timer(Sender, EventData) {
+            if (Running) {
+                timeout --;
+                label1.Caption = "<b>" + timeout + "</b>";
+                label2.Caption = "" + round(size/1024) + " kB";
+                var seconds = this.Seconds;
+                if (seconds) {
+                    var time = size / audio_in.SampleRate / 2;
+                    if (time > seconds)
+                        timeout = 0;
+                }
+                if (timeout)
+                    this.AddTimer(this.Timer, 1000);
+                else
+                    this.Stop();
+            }
+        }
+
+        Start() {
+            if (!Running) {
+                if (Playing) {
+                    try {
+                        audio_out.Stop();
+                    } catch (var exc) {
+                    }
+                    Playing = false;
+                }
+                button2.Hide();
+                button3.Hide();
+                button1.FgColor = 0xFF0000;
+                button1.Caption=U_(0xf04d);
+                var seconds = this.Seconds;
+                if (seconds > 0)
+                    seconds++;
+                timeout = seconds;
+                size = 0;
+                data = "";
+                packet_no = 0;         
+                Running = true;
+                Timer(this, "");
+                audio_in.Record();
+            }
+        }
+
+        Stop() {
+            if (Playing) {
+                try {
+                    audio_out.Stop();
+                } catch (var exc) {
+                }
+                Playing = false;
+            }
+            if (Running) {
+                button1.FgColor = 0x000000;                
+                button1.Caption=U_(0xf130);
+                audio_in.Stop();
+                Running = false;
+                if (size) {
+                    button2.Show();
+                    button3.Show();
+                }
+            }
+        }
+        
+        on_start(Sender, EventData) {
+            if (Running) {
+                Stop();
+            } else {
+                Start();
+            }
+        }
+        
+        on_play(Sender, EventData) {
+            if ((size) && (!Running) && (!Playing)) {
+                var time = size / audio_in.SampleRate / 2 * 1000;
+                audio_out.Play();
+                Playing = true;
+                audio_out.AddBuffer(data);
+                this.AddTimer(function(Sender,EventData) {
+                    if (!Playing)
+                        return;
+                    try {
+                        Playing = false;
+                        audio_out.Stop();
+                    } catch (var exc) {
+                        // nothing
+                    }
+                }, time);
+            }
+        }
+
+        on_upload(Sender, EventData) {
+            if ((size) && (!Running)) {
+                if (this.OnUpload)
+                    this.OnUpload(this, data);
+                data = "";
+                size = 0;
+                button2.Hide();
+                button3.Hide();
+                if (Playing) {
+                    try {
+                        audio_out.Stop();
+                    } catch (var exc) {
+                    }
+                    Playing = false;
+                }
+            }
+        }
+}

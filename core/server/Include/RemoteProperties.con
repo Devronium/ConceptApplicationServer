@@ -1,0 +1,375 @@
+// general (window) messages
+define P_CAPTION                "100"
+define P_RESIZABLE              "101"
+define P_HEIGHT                 "102"
+define P_WIDTH                  "103"
+define P_LEFT                   "104"
+define P_TOP                    "105"
+define P_MODAL                  "106"
+define P_MAXIMIZED              "107"
+define P_MINIMIZED              "108"
+define P_FULLSCREEN             "109"
+
+define P_NORMAL_BG_COLOR        "110"
+define P_INACTIVE_BG_COLOR      "111"
+define P_SELECTED_BG_COLOR      "112"
+
+define P_NORMAL_FG_COLOR        "113"
+define P_INACTIVE_FG_COLOR      "114"
+define P_SELECTED_FG_COLOR      "115"
+
+define P_TITLEBAR               "116"
+define P_DEFAULTCONTROL         "117"
+define P_BORDERWIDTH            "118"
+
+define P_VISIBLE                "119"
+define P_TOOLTIP                "120"
+define P_POPUPMENU              "121"
+define P_ENABLED                "122"
+define P_DECORATIONS            "123"
+define P_SKIPTASKBAR            "124"
+define P_KEEPABOVE              "125"
+define P_KEEPBELOW              "126"
+define P_SKIPPAGER              "127"
+define P_PACKTYPE               "128"
+define P_FOCUS                  "129"
+define P_FIXED                  "130"
+define P_DISPOSE                "131"
+define P_PACKING                "132"
+define P_PARENT                 "133"
+define P_MOUSECURSOR            "134"
+define P_MOUSECURSORIMAGE       "135"
+define P_CLOSEABLE              "136"
+define P_URGENT                 "137"
+define P_TYPE                   "138"
+define P_OPACITY                "139"
+
+define P_TOOLTIPMARKUP		"140"
+define P_TOOLTIPWINDOW          "141"
+define P_SHOWTOOLTIP            "142"
+define P_FORMMASK               "143"
+
+define P_PRESENTYOURSELF        "160"
+define P_SCREENSHOT             "161"
+
+define P_BACKGROUNDIMAGE        "162"
+define P_CLIENTHANDLE           "163"
+define P_SCREEN                 "164"
+define P_COOLSYSTEMWINDOW       "165"
+
+// button messages
+define P_RELIEFSTYLE            "200"
+define P_IMAGE                  "201"
+define P_LAYOUT                 "202"
+define P_USESTOCK               "203"
+define P_IMAGEPOSITION          "204"
+
+//box
+define P_SPACING                "300"
+define P_HOMOGENEOUS            "301"
+define P_XPADDING               "302"
+define P_YPADDING               "303"
+define P_MINHEIGHT              "304"
+define P_MINWIDTH               "305"
+define P_STYLE                  "306"
+
+//edit
+define P_MASKED                 "400"
+define P_MASKEDCHAR             "401"
+define P_MAXLEN                 "402"
+define P_READONLY               "403"
+define P_ACTIVATEDEFAULT        "404"
+define P_BORDER                 "405"
+define P_SUGESTION              "406"
+define P_SUGESTIONMODEL         "407"
+define P_CAPSWARNING            "408"
+define P_PRIMARYICONNAME        "409"
+define P_SECONDARYICONNAME      "410"
+define P_PRIMARYICON            "411"
+define P_SECONDARYICON          "412"
+define P_PRIMARYACTIVABLE       "413"
+define P_SECONDARYACTIVABLE     "414"
+define P_PRIMARYTOOLTIP         "415"
+define P_SECONDARYTOOLTIP       "416"
+define P_ABSOLUTE               "417"
+define P_FORMAT                 "418"
+
+// radio & check
+define P_CHECKED                "500"
+define P_INCONSISTENT           "501"
+define P_GROUP                  "502"
+
+// label
+define P_ANGLE                  "600"
+define P_SELECTABLE             "601"
+define P_WRAP                   "602"
+define P_JUSTIFY                "603"
+define P_PATTERN                "604"
+define P_MARKUP                 "605"
+define P_USEUNDERLINE           "606"
+
+// frame
+define P_SHADOWTYPE             "700"
+define P_VTEXTALIGN             "701"
+define P_HTEXTALIGN             "702"
+
+// progress bar
+define P_FRACTION               "800"
+define P_ORIENTATION            "801"
+define P_STEP                   "802"
+
+// paned
+define P_POSITION               "803"
+
+// Adjustment 
+define P_LOWER                  "900"
+define P_UPPER                  "901"
+define P_VALUE                  "902"
+define P_INCREMENT              "903"
+define P_PAGEINCREMENT          "904"
+define P_PAGESIZE               "905"
+
+// v/h scale
+define P_DIGITS                "1001"
+define P_DRAWVALUE             "1002"
+define P_VALUEPOS              "1003"
+
+//scrollbar
+define P_INVERTED              "1100"
+
+//spinbutton
+define P_SNAPTOTICKS           "1200"
+define P_NUMERIC               "1201"
+
+//textview
+define P_ACCEPTTAB             "1300"
+define P_CURSORVISIBLE         "1301"
+define P_INDENT                "1302"
+define P_LEFTMARGIN            "1303"
+define P_OVERWRITE             "1304"
+define P_PIXELSABOVE           "1305"
+define P_PIXELSBELOW           "1306"
+define P_PIXELSINSIDE          "1307"
+define P_RIGHTMARGIN           "1308"
+define P_ADDTEXT               "1309"
+define P_PRINT                 "1310"
+define P_SELECTIONSTART        "1311"
+define P_SELECTIONLENGTH       "1312"
+
+//alignment
+define P_XSCALE                "1401"
+define P_YSCALE                "1402"
+define P_XALIGN                "1403"
+define P_YALIGN                "1404"
+define P_TOPPADDING            "1405"
+define P_LEFTPADDING           "1406"
+define P_RIGHTPADDING          "1407"
+define P_BOTTOMPADDING         "1408"
+
+//notebook
+define P_PAGE                  "1500"
+define P_SCROLLABLE            "1501"
+define P_SHOWBORDER            "1502"
+define P_SHOWTABS              "1503"
+define P_TABBORDER             "1504"
+define P_TABPOS                "1505"
+define P_VERTICALBORDER        "1506"
+define P_HORIZONTALBORDER      "1507"
+define P_ACTIONWIDGETSTART     "1508"
+define P_ACTIONWIDGETEND       "1509"
+
+//scrolled window
+define P_HADJUSTMENT           "1600"
+define P_VADJUSTMENT           "1601"
+define P_PLACEMENT             "1602"
+define P_HSCROLLBARPOLICY      "1603"
+define P_VSCROLLBARPOLICY      "1604"
+
+//aspect frame
+define P_OBEYCHILD             "1700"
+define P_RATIO                 "1701"
+
+//drag & drop
+define P_DRAGOBJECT            "1801"
+define P_DROPSITE              "1802"
+define P_DRAGDATA              "1803"
+define P_DRAGICON              "1804"
+
+// item properties
+define P_SELECTED              "1900"
+define P_TOGGLE                "1901"
+
+// menuitem
+define P_SUBMENU               "2000"
+define P_RIGHTJUSTIFIED        "2001"
+define P_ACCELKEY              "2002"
+define P_MENUOBJECT            "2003"
+
+// checkmenuitem
+define P_DRAWASRADIO           "2100"
+
+// expander
+define P_EXPANDED              "2200"
+
+// handlebox                    
+define P_INDRAG                "2300"
+define P_ISDETACHED            "2301"
+define P_HANDLEPOSITION        "2302"
+define P_SNAPEDGE              "2303"
+
+// toolbar
+define P_ICONSIZE              "2400"
+define P_SHOWARROW             "2401"
+define P_TOOLBARSTYLE          "2402"
+define P_TOOLTIPS              "2403"
+
+// toolbutton
+define P_ISIMPORTANT           "2500"
+define P_VISIBLEVERTICAL       "2501"
+define P_VISIBLEHORIZONTAL     "2502"
+define P_ICON                  "2503"
+define P_EXPAND                "2504"
+
+// menutoolbar
+define P_MENU                  "2600"
+
+// treeview
+define P_ENABLESEARCH          "2701"
+define P_EXPANDERCOLUMN        "2702"
+define P_FIXEDHEIGHTMODE       "2703"
+define P_HEADERSCLICKABLE      "2704"
+define P_HEADERSVISIBLE        "2705"
+define P_HOVEREXPAND           "2706"
+define P_HOVERSELECTION        "2707"
+define P_MODEL                 "2708"
+define P_REORDABLE             "2709"
+define P_RULESHINT             "2710"
+define P_SEARCHCOLUMN          "2711"
+define P_SEARCHENTRY           "2712"
+define P_CURSOR                "2713"
+define P_GRIDLINES             "2714"
+define P_TREELINES             "2715"
+define P_LEVELIDENTATION       "2716"
+define P_SHOWEXPANDERS         "2717"
+define P_MULTIPLESELECTION     "2718"
+define P_SELECTEDCOLUMN        "2719"
+define P_SCROLLTOCOLUMN        "2720"
+define P_SCROLLTOROW           "2721"
+define P_SELECT                "2722"
+define P_UNSELECT              "2733"
+
+// combobox
+//P_CURSOR
+define P_ADDTEAROFFS           "2800"
+define P_FOCUSONCLICK          "2801"
+define P_WRAPWIDTH             "2802"
+define P_ROWSPANCOLUMN         "2803"
+//P_HASFRAME
+
+// comboboxentry
+define P_TEXTCOLUMN            "2900"
+
+// font
+define P_FONTFAMILY            "3000"
+define P_FONTSTYLE             "3001"
+define P_FONTVARIANT           "3002"
+define P_FONTWEIGHT            "3003"
+define P_FONTSTRETCH           "3004"
+define P_FONTSIZE              "3005"
+define P_FONTNAME              "3006"
+
+// calendar
+define P_DAY                   "3100"
+define P_MONTH                 "3101"
+define P_YEAR                  "3102"
+
+// text tag
+define P_PRIORITY              "3201"
+define P_UNDERLINE             "3202"
+define P_STRIKEOUT             "3203"
+define P_STRETCH               "3204"
+define P_RISE                  "3205"
+define P_LANGUAGE              "3206"
+define P_BACKGROUNDFULL        "3208"
+define P_SCALE                 "3209"
+define P_FORECOLOR             "3210"
+define P_BACKCOLOR             "3211"
+define P_DIRECTION             "3212"
+
+// tree column
+define P_ALIGNMENT             "3301"
+define P_CLICKABLE             "3302"
+define P_FIXEDWIDTH            "3303"
+define P_MAXWIDTH              "3304"
+define P_REORDERABLE           "3305"
+define P_SIZING                "3306"
+define P_SORTINDICATOR         "3307"
+define P_SORTINDICATORTYPE     "3308"
+define P_WIDGET                "3309"
+define P_SENSITIVE             "3310"
+//define P_MARKUP                "3311"
+
+// table
+define P_COLUMNS               "3400"
+define P_ROWS                  "3401"
+define P_ROWSPACING            "3402"
+define P_COLUMNSPACING         "3403"
+define P_ATTLEFT               "3404"
+define P_ATTRIGHT              "3405"
+define P_ATTTOP                "3406"
+define P_ATTBOTTOM             "3407"
+define P_ATTHOPT               "3408"
+define P_ATTVOPT               "3409"
+define P_ATTHSPACING           "3410"
+define P_ATTVSPACING           "3411"
+
+
+// properties box
+define P_PROPERTIES            "3500"
+define P_CHANGEDPROPERTIES     "3501"
+
+// IDE look properties !!!
+define P_USERRESIZABLE         "3600"
+define P_DOTTED                "3601"
+
+
+// printer
+define P_UNIT                  "3700"
+define P_BOTTOMMARGIN          "3701"
+define P_TOPMARGIN             "3702"
+define P_PAGEHEIGHT            "3703"
+define P_PAGEWIDTH             "3704"
+define P_PAPERHEIGHT           "3705"
+define P_PAPERWIDTH            "3706"
+define P_PAPERSIZE             "3707"
+define P_COLLATE               "3709"
+define P_DITHER                "3710"
+define P_DUPLEX                "3711"
+define P_FINISHINGS            "3712"
+define P_MEDIATYPE             "3713"
+define P_COPIES                "3714"
+define P_NUMBERUP              "3715"
+define P_ORIENTATION_2         "3716"
+define P_OUTPUTBIN             "3717"
+define P_PAGERANGES            "3718"
+define P_PAGESET               "3719"
+define P_PAPERHEIGHT_2         "3720"
+define P_PAPERSIZE_2           "3721"
+define P_PAPERWIDTH_2          "3722"
+define P_PRINTPAGES            "3723"
+define P_PRINTER               "3724"
+define P_QUALITY               "3725"
+define P_RESOLUTION            "3726"
+define P_REVERSE               "3727"
+define P_USECOLOR              "3729"
+define P_CURRENTPAGE           "3730"
+define P_CAPABILITES           "3731"
+
+// IconView
+define P_IMAGECOLUMN           "3800"
+define P_MARKUPCOLUMN          "3801"
+define P_ITEMWIDTH             "3803"
+define P_TOOLTIPCOLUMN         "3804"
+
+
+define DEFINE_FIXED_CONTROL protected var FIXED; public property Fixed { get FIXED, set SetFixed }public function SetFixed(fixed) {if (FIXED) throw "Control is already fixed";if (!fixed) return 0;FIXED=fixed;return SetProperty(P_FIXED, fixed);}

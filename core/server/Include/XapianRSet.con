@@ -1,0 +1,83 @@
+import standard.search.xapian
+include XapianMSetIterator.con
+
+class XapianRSet {
+	protected var THISREF=null;
+	public property REF { get THISREF }
+
+	public function XapianRSet(number ref=0) {
+		if (ref)
+			this.THISREF=ref;
+		else
+			this.THISREF=XapianRSetCreate(var exc);
+	}
+
+	public function finalize() {
+		XapianRSetDestroy(THISREF, var exc);
+		this.THISREF=null;
+	}
+
+	public function size() {
+		var result=XapianRSet__size(this->THISREF, var exc);
+		if (exc)
+			throw exc;
+		return result;
+	}
+
+	public function empty() {
+		var result=XapianRSet__empty(this->THISREF, var exc);
+		if (exc)
+			throw exc;
+		return result;
+	}
+
+	public function add_document(number did) {
+		var result=XapianRSet__add_document(this->THISREF, var exc, did);
+		if (exc)
+			throw exc;
+		return result;
+	}
+
+	public function add_document2(XapianMSetIterator it) {
+		var result=XapianRSet__add_document2(this->THISREF, var exc, it.REF);
+		if (exc)
+			throw exc;
+		return result;
+	}
+
+	public function remove_document(number did) {
+		var result=XapianRSet__remove_document(this->THISREF, var exc, did);
+		if (exc)
+			throw exc;
+		return result;
+	}
+
+	public function remove_document2(XapianMSetIterator it) {
+		var result=XapianRSet__remove_document2(this->THISREF, var exc, it.REF);
+		if (exc)
+			throw exc;
+		return result;
+	}
+
+	public function contains(number did) {
+		var result=XapianRSet__contains(this->THISREF, var exc, did);
+		if (exc)
+			throw exc;
+		return result;
+	}
+
+	public function contains2(XapianMSetIterator it) {
+		var result=XapianRSet__contains2(this->THISREF, var exc, it.REF);
+		if (exc)
+			throw exc;
+		return result;
+	}
+
+	public function get_description() {
+		var result=XapianRSet__get_description(this->THISREF, var exc);
+		if (exc)
+			throw exc;
+		return result;
+	}
+
+}

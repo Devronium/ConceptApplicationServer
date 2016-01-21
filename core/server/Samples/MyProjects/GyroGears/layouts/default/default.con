@@ -1,0 +1,24 @@
+include Application.con
+include MainForm.con
+include Lang.con
+
+class Main {
+	function Main() {
+			try {
+				var StringTable=new Lang();
+				var mainform=new MainForm(null,StringTable);
+				if (!mainform.MainFormCreated) {
+					CApplication.Done();
+					return -1;
+				}
+				var Application=new CApplication(mainform);
+				Application.ShellDebug=mainform._InterAppShell;
+				Application.Init();
+				Application.Run();
+				Application.Done();
+
+			} catch (var Exception) {
+				CApplication::Message(Exception, "Uncaught exception", MESSAGE_ERROR);
+			}
+	}
+}

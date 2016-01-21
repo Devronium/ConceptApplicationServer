@@ -1,0 +1,675 @@
+pragma warnings off
+include RForm.con
+include Constants.con
+include RTouchKeyboard.con
+
+import standard.C.io
+import standard.C.time
+import standard.lib.str
+import standard.C.math
+import standard.C.casts
+
+define MAX_LOOP_TIME	120
+
+/*define RESPONSE_NONE    -4
+define RESPONSE_YES	-8
+define RESPONSE_NO	-9*/
+
+define MESSAGE_INFO		0
+define MESSAGE_WARNING		1
+define MESSAGE_QUESTION		2
+define MESSAGE_ERROR		3
+define MESSAGE_OTHER		4
+
+define BUTTONS_NONE		0
+define BUTTONS_OK		1
+define BUTTONS_CLOSE		2
+define BUTTONS_CANCEL		3
+define BUTTONS_YES_NO		4
+define BUTTONS_OK_CANCEL	5
+
+define BUTTONS_YES_NO_CANCEL	6
+define BUTTONS_SAVE_DISCARD_CANCEL	7
+
+
+define RESPONSE_NONE		-1
+define RESPONSE_REJECT		-2
+define RESPONSE_ACCEPT		-3
+define RESPONSE_DELETE_EVENT	-4
+define RESPONSE_OK		-5
+define RESPONSE_CANCEL		-6
+define RESPONSE_CLOSE		-7
+define RESPONSE_YES		-8
+define RESPONSE_NO		-9
+define RESPONSE_APPLY		-10
+define RESPONSE_HELP		-11
+
+define QREMOVE_ALL		-1
+define QREMOVE_CURRENT		0
+
+define SCREEN_ORIENTATION_LANDSCAPE	1
+define SCREEN_ORIENTATION_PORTRAIT	2
+define SCREEN_ORIENTATION_DYNAMIC	3
+
+define TLS_SUPPORTED		0
+define TLS_ACCEPT_UNTRUSTED	1
+define TLS_STRICT		2
+
+class CApplication {
+	protected var _ApplicationForm;
+	public var MobileApplication=false;
+
+	public property ApplicationForm { set SetApplicationForm, get _ApplicationForm }
+
+	public var ShellDebug;
+	public var AsyncPropertyCallback;
+	public var OnIdle;
+
+
+	static function SetGlobalFlag(string key, val) {
+		GLOBALS()[key]=val;
+	}
+
+	static function GlobalFlag(string key) {
+		return GLOBALS()[key];
+	}
+
+	static function Query(string szQueryString, number return_Target=true, Value="") {
+		SendMessage("%APP%",MSG_CLIENT_QUERY,szQueryString, ""+Value);
+		if (return_Target==-1)
+			return Value;
+
+		WaitMessage(var Sender, MSG_CLIENT_QUERY, var Target, Value);
+		if (return_Target)
+			return Target;
+
+		var qslower=ToLower(szQueryString);
+		while ((Target) && (ToLower(Target)!=qslower)) {
+			Target="";
+			WaitMessage(Sender, MSG_CLIENT_QUERY, Target, Value);
+		}
+		return Value;
+	}
+
+	static function Cache(string store, string key, var content, expires) {
+		SendMessage(store,MSG_CACHE,key + ":" + expires,content);
+	}
+
+	static function Cursor() {
+		return StrNumberSplit(CApplication::Query("Cursor", false, ""), ",");
+	}
+
+	static function Notify(string title, string content) {
+		SendMessage(title, MSG_CLIENT_QUERY, "Notify", content);
+	}
+
+	static function Wait(string title="", on=false) {
+		SendMessage(title, MSG_CLIENT_QUERY, "Wait", ""+on);
+	}
+
+	static function SetOrientation(number orientation) {
+		return CApplication::Query("Orientation", false, ""+orientation);
+	}
+
+	static function GetContact(number index, number photo=false) {
+		if (photo)
+			return CApplication::Query("ContactPhoto", false, ""+index);
+
+		return CApplication::Query("Contact", false, ""+index);
+	}
+
+	static function SendSMS(string destination, string Value) {
+		SendMessage(destination,MSG_CLIENT_QUERY,"SMS", Value);
+		WaitMessage(var Sender, MSG_CLIENT_QUERY, var Target, Value);
+		return Value;
+	}
+
+	static function AddWebChild(key) {
+		SendAPMessage(-1,-10,key);
+	}
+
+	static function RegisterDebugWebChild(key) {
+		SendAPMessage(-1,-12,key);
+	}
+
+	static function RemoveWebChild(key) {
+		SendAPMessage(-1,-11,key);
+	}
+
+	static function Ping() {
+		SendMessage("%APP%",MSG_CLIENT_QUERY,"Ping", microseconds());
+		do {
+			WaitMessage(var Sender, MSG_CLIENT_QUERY, var Target, var Value);
+		} while ((Target) && (ToLower(Target)!="ping"));
+		return int32((microseconds() - (value Value))/1000);
+	}
+
+	static function Upgrade(mode=TLS_STRICT) {
+		SendMessage("%APP%",MSG_CLIENT_QUERY,"TLS", mode);
+		WaitMessage(var Sender, MSG_CLIENT_QUERY, var Target, var Value);
+		return value Value;
+	}
+
+	static function RemoteQueueLength() {
+		SendMessage("%APP%",MSG_CLIENT_QUERY,"CommandCount", "0");
+		WaitMessage(var Sender, MSG_CLIENT_QUERY, var Target, var Value);
+		return Value;
+	}
+
+	static function RemoteDataTransferIndicator(number show) {
+		SendMessage("%APP%",MSG_CLIENT_QUERY,"ShowDataTransfer", ""+show);
+		WaitMessage(var Sender, MSG_CLIENT_QUERY, var Target, var Value);
+		return value Value;
+	}
+
+	static function OpenLink(string link) {
+		SendMessage("%APP%",MSG_CLIENT_QUERY,"OpenLink", link);
+		WaitMessage(var Sender, MSG_CLIENT_QUERY, var Target, var Value);
+		Value=value Value;
+		return (!Value);
+	}
+
+	static function GetDisplays() {
+		SendMessage("%APP%",MSG_CLIENT_QUERY,"Displays", "0");
+		WaitMessage(var Sender, MSG_CLIENT_QUERY, var Target, var Value);
+		return Value;
+	}
+
+	static function SetDefaultDisplay(string display_name) {
+		SendMessage("%APP%",MSG_CLIENT_QUERY,"DefaultDisplay", display_name);
+		WaitMessage(var Sender, MSG_CLIENT_QUERY, var Target, var Value);
+		Value=value Value;
+		return Value;
+	}
+
+	public function CApplication(CForm) {
+		this.SetApplicationForm(CForm);
+		GLOBALS()["application.mainform"]=CForm;
+	}
+
+	static function MessageBox(szText, szTitle="") {
+		SendMessage("Application",MSG_MESSAGE_BOX, ""+szTitle, szText);
+	}
+
+	static function MessageYesNo(szText, szTitle="") {
+		CheckPoint(0);
+		SendMessage("Application",MSG_MESSAGE_BOX_YESNO, ""+szTitle, szText);
+		WaitMessage(var Sender, MSG_MESSAGE_BOX_YESNO, var Target, var Value);
+                return value (""+Value);
+	}
+
+	static function Message(szMarkupText, szTitle="", number message_type=MESSAGE_INFO, number message_buttons=BUTTONS_OK) {
+		CheckPoint(0);
+		var param=message_type*0x100;
+		param+=message_buttons;
+		SendMessage("Application",MSG_POST_STRING, "%", ""+param);
+		SendMessage("Application",MSG_MESSAGE_BOX_GENERIC, ""+szTitle, szMarkupText);
+		WaitMessage(var Sender, MSG_MESSAGE_BOX_GENERIC, var Target, var Value);
+                return value (""+Value);
+	}
+
+	static function ChooseColor(string title="Choose color") {
+		CheckPoint(0);
+		SendMessage("Application",MSG_CHOOSE_COLOR, title, "0");
+		WaitMessage(var Sender, MSG_CHOOSE_COLOR, var is_set, var Value);
+		if (is_set=="1")
+                	return value (""+Value);
+		return -1;
+	}
+
+	static function ChooseFont(string title="Choose font") {
+		CheckPoint(0);
+		SendMessage("Application",MSG_CHOOSE_FONT, title, "0");
+		WaitMessage(var Sender, MSG_CHOOSE_FONT, var is_set, var Value);
+		if (is_set=="1")
+                	return Value;
+		return "";
+	}
+
+	static function Input(var string text, number is_password=false, string hint_markup="This application requires some input") {
+		CheckPoint(0);
+		SendMessage("Application",MSG_POST_STRING, "%", hint_markup);
+		SendMessage("Application",MSG_MESSAGE_REQUESTINPUT, ""+text, is_password);
+
+		WaitMessage(var Sender, MSG_MESSAGE_REQUESTINPUT, text, var Value);
+
+                return value (""+Value);
+	}
+
+	static function Login(var string username, var string password, string hint_markup="This application requires login", var string method="PLAIN", var string challenge="") {
+		CheckPoint(0);
+		if (!method)
+			method="PLAIN";
+		else
+			method=ToUpper(method);
+
+		if (method!="PLAIN") {
+			if (!challenge) {
+				challenge="";
+				// 64 bytes of random string ... any length will do
+				for (var i=0;i<64;i++) {
+					var c=chr(33+rand()%94);
+					challenge+=c;
+				}
+			}
+			SendMessage("Application",MSG_POST_STRING, challenge, hint_markup);
+		} else
+			SendMessage("Application",MSG_POST_STRING, "%", hint_markup);
+
+		SendMessage(method,MSG_MESSAGE_LOGIN, ""+username, ""+password);
+
+		WaitMessage(var Sender, MSG_MESSAGE_LOGIN, var Target, var Value);
+		WaitMessage(Sender, MSG_MESSAGE_LOGIN, username, password);
+
+                return value (""+Value);
+	}
+
+	static function SendCookieContent(filename, content, number zipped=false) {
+		CheckPoint(0);
+		if (zipped)
+			SendMessage("Application",MSG_SEND_ZCOOKIE,filename, content);
+		else
+			SendMessage("Application",MSG_SEND_COOKIE,filename, content);
+	}
+
+	static function SendCookie(filename, var fname="", number zipped=false) {
+		CheckPoint(0);
+		var content=ReadFile(filename);
+		fname="";
+		if (content) {
+			var len=length filename;
+			//var fname="";
+			for (var i=len-1;i>=0;i--) {
+				if ((filename[i]!='/') && (filename[i]!='\\'))
+					fname=filename[i]+fname;
+				else
+					break;
+			}
+			if (zipped)
+				SendMessage("Application",MSG_SEND_ZCOOKIE,fname,content);
+			else
+				SendMessage("Application",MSG_SEND_COOKIE,fname,content);
+			return true;
+		}
+		return false;
+	}
+
+	static function RemoteCommand(command, add_to_queue=0) {
+		SendMessage("Application",MSG_OS_COMMAND,""+add_to_queue,command);
+	}
+
+	static function RemoteQueueClose(number elements=QREMOVE_CURRENT, number no_kill_process=false) {
+		if (no_kill_process)
+			SendMessage("Application",MSG_OS_COMMAND_QUEUE_CLEAR,""+elements,"0");
+		else
+			SendMessage("Application",MSG_OS_COMMAND_CLOSE,""+elements,"0");
+	}
+
+	static function RequestFile(var FileName, var Content, DialogTitle="Open file", FileType="All files|*;JPEG Images|*.jpg;PNG Images|*.png;GIF Images|*.gif;Text files|*.txt;") {
+		CheckPoint(0);
+		SendMessage("Application",MSG_REQUEST_FOR_FILE,DialogTitle,FileType);
+		WaitMessage(var Sender, MSG_REQUEST_FOR_FILE, FileName, Content);
+		if (FileName)
+			return true;
+		return false;
+	}
+
+	static function SendFile(FileName, var Content, DialogTitle="Save file", FileType="All files|*;JPEG Images|*.jpg;PNG Images|*.png;GIF Images|*.gif;Text files|*.txt;", framework1_compatible=false) {
+		CheckPoint(0);
+		var res=false;
+		if (framework1_compatible) {
+			SendMessage("Application", MSG_POST_STRING, "0", Content);
+			SendMessage(FileName,MSG_SAVE_FILE ,DialogTitle,FileType);
+
+			WaitMessage(var Sender, MSG_SAVE_FILE , var FileName2, var Content2);
+			res=value Content2;
+		} else {
+			SendMessage(FileName,MSG_SAVE_FILE2 ,DialogTitle,FileType);
+			WaitMessage(Sender, MSG_SAVE_FILE2 , FileName2, Content2);
+			res=value Content2;
+			if (res)
+				SendMessage("Application", MSG_POST_STRING, "0", Content);
+		}
+
+		if (res)
+			return true;
+		return false;
+	}
+
+	static function SendChunkedCookie(filename, var fname="") {
+		CheckPoint(0);
+		fname="";
+		var len=length filename;
+		//var fname="";
+		for (var i=len-1;i>=0;i--) {
+			if ((filename[i]!='/') && (filename[i]!='\\'))
+				fname=filename[i]+fname;
+			else
+				break;
+		}
+		SendMessage("Application",MSG_SEND_COOKIE_CHUNK,fname,"0");
+		WaitMessage(var Sender,MSG_SEND_COOKIE_CHUNK,fname,var res);
+		res=value res;
+		return res;
+	}
+
+	static function SendChunkedFile(FileName, DialogTitle="Save file", FileType="All files|*;JPEG Images|*.jpg;PNG Images|*.png;GIF Images|*.gif;Text files|*.txt;") {
+		CheckPoint(0);
+		SendMessage(FileName, MSG_SAVE_CHUNK, DialogTitle, FileType);
+		WaitMessage(var Sender, MSG_SAVE_CHUNK, var target, var res);
+		var fout=value res;
+		return fout;
+	}
+
+	static function RequestChunkedFile(var FileName, var FileSize=null, DialogTitle="Open file", FileType="All files|*;JPEG Images|*.jpg;PNG Images|*.png;GIF Images|*.gif;Text files|*.txt;") {
+		CheckPoint(0);
+		SendMessage("Application", MSG_REQUEST_FOR_CHUNK, DialogTitle, FileType);
+		WaitMessage(FileName, MSG_REQUEST_FOR_CHUNK, var target, var res);
+		var fout=value res;
+		FileSize=value target;
+		return fout;
+	}
+
+	static function ChunkWrite(var file, var string data) {
+		if (!file)
+			throw "File ID is null";
+
+		if (length data == 0)
+			return 0;
+
+		CheckPoint(0);
+		SendMessage("send",MSG_CHUNK,""+file,data);
+		WaitMessage(var Sender, MSG_CHUNK, var target, var res);
+		target=value target;
+		if (target==-1)
+			throw "File ID is invalid";
+		return target;
+	}
+
+	static function ChunkRead(var file, var data, number size) {
+		if (!file)
+			throw "File ID is null";
+
+		data="";
+		if (size <= 0)
+			return 0;
+
+		CheckPoint(0);
+		SendMessage("recv",MSG_CHUNK,""+file,""+size);
+		WaitMessage(var Sender, MSG_CHUNK, var res, data);
+		res=value res;
+		if (res==-1)
+			throw "File ID is invalid";
+		return res;		
+	}
+
+	static function ChunkSkip(var file, var size) {
+		if (!file)
+			throw "File ID is null";
+
+		if (size <= 0)
+			return 0;
+
+		SendMessage("skip",MSG_CHUNK,""+file,""+size);
+		WaitMessage(var Sender, MSG_CHUNK, var res, var data);
+		res=value res;
+		return res;
+	}
+
+	static function ChunkClose(var file) {
+		if (!file)
+			throw "File ID is null";
+		SendMessage("recv",MSG_CHUNK,""+file,"-1");
+		WaitMessage(var Sender, MSG_CHUNK, var target, var res);
+		target=value target;
+		file=0;
+		return (target!=-1);
+	}
+
+	static function BeginNonCritical() {
+		BeginUpdateSession();
+		SendMessage("Application", MSG_NON_CRITICAL, "0", "1");
+	}
+
+	static function EndNonCritical() {
+		SendMessage("Application", MSG_NON_CRITICAL, "0", "0");
+		EndUpdateSession2();
+	}
+
+	static function ClientShell(szApplicationPath,nDebugPipe) {
+		SendMessage("Application",MSG_RUN_APPLICATION,szApplicationPath,""+nDebugPipe);
+	}
+
+	static function ClientDebugShell(szApplicationPath,nDebugPipe) {
+		SendMessage("Application",MSG_DEBUG_APPLICATION,szApplicationPath,""+nDebugPipe);
+	}
+
+	static function Screenshot(VisibleRemoteObject obj) {
+		return obj.GetProperty(P_SCREENSHOT);
+	}
+
+	static function DescribeObject(RemoteObject obj) {
+		var[] res;
+                SendMessage(""+obj.RID, MSG_GET_PROPERTY, P_PRESENTYOURSELF, 0);
+		WaitMessage(var Sender, var MSG_ID=MSG_GET_PROPERTY, var Target, var VALUE);
+		if (VALUE) {
+			var props=StrSplit(VALUE,"\n");
+			var len=length props;
+			for (var i=0;i<len;i++) {
+				var prop=props[i];
+				if (prop) {
+					var data_arr=StrSplit(prop,",",true);
+					var len2=length data_arr;
+					if (len2>=6) {
+						var res_data=new [];
+						var prop_name=data_arr[0];
+						res_data["property"]=prop_name;
+						res_data["nick"]=data_arr[1];
+						res_data["access"]=data_arr[2];
+						var type=data_arr[3];
+
+						var type_arr=StrSplit(type,"[");
+
+						if (length type_arr==2) {
+							res_data["type"]=type_arr[0];
+
+							var type2=StrSplit(type_arr[1],"]");
+
+							var types=StrSplit(type2[0],";");
+
+							var len_t=length types;
+							var type_extra=new [];
+							var type_extra2=new [];
+							for (var n=0;n<len_t;n++) {
+								var t_arr=StrSplit(types[n],"=",true);
+								if (t_arr) {
+									var t_arr2=new [];
+									var t_nick=t_arr[0];
+									var t_value=t_arr[(length t_arr)-1];
+									type_extra[t_nick]=t_value;
+									type_extra2[t_value]=t_nick;
+								}
+							}
+							res_data["type_extra"]=new [];
+							res_data["type_extra"]["values"]=type_extra;
+							res_data["type_extra"]["nicks"]=type_extra2;
+						} else
+							res_data["type"]=type;
+						res_data["owner"]=data_arr[4];
+
+						var val_arr=StrSplit(data_arr[5],"=",true);
+						res_data["default"]=val_arr[0];
+
+						var len_val=length val_arr[0];
+						var len_base=length data_arr[5];
+						var val=SubStr(data_arr[5],len_val+1, len_base-len_val-1);
+						for (var j=6;j<len2;j++) {
+							if ((j>6) || (val))
+								val+=",";
+							val+=data_arr[j];
+						}
+						res_data["value"]=val;
+						res_data["orig"]=prop;
+						res[prop_name]=res_data;
+
+					}
+				}
+			}
+		}
+		return res;
+	}
+
+	static function ModifyObject(RemoteObject obj, string prop, val) {
+		if (typeof val=="class")
+			val=&(""+val.RID);
+		if ((typeof val=="array") || (typeof val=="delegate"))
+			throw "CApplication.ModifyObject: Invalid value type (array and delegate are NOT accepted) for property \"$prop\" received";
+		if (prop=="")
+			throw "CApplication.ModifyObject: Property cannot be null";
+                SendMessage(""+obj.RID, MSG_SET_PROPERTY_BY_NAME, prop, ""+val);
+	}
+
+	public function SetApplicationForm(CForm) {
+		this._ApplicationForm=CForm;
+	}
+
+	public function Init() {
+		SendMessage("Application",MSG_MESSAGING_SYSTEM,"0","1");
+	}
+
+	static function MessagePending() {
+		return HaveMessage();
+	}
+	
+	static function Iterate(AppForm=null, inter_app_deleg=null) {
+		if (!AppForm)
+			AppForm=GLOBALS()["application.mainform"];
+		var res=GetMessage(var Sender, var ID, var Target, var Value);
+		if (res>0) {
+			if (ID==MSG_APPLICATION_QUIT)
+				return MSG_APPLICATION_QUIT;
+			else
+			if (ID==MSG_EVENT_FIRED) {
+				var tmpsender=value Sender;
+				var tmptarget=value Target;
+				if ((tmpsender<0) || (tmpsender >= length AppForm.__EVENTS_VECTOR) || (tmptarget<=0))
+					return res;
+
+				var ctrl_events=AppForm.__EVENTS_VECTOR[tmpsender];
+				if ((ctrl_events) && (tmptarget < length ctrl_events)) {
+					var delegate=ctrl_events[tmptarget];
+
+					if ((delegate) && (delegate(ctrl_events[0],Value)==MSG_APPLICATION_QUIT))
+						return MSG_APPLICATION_QUIT;
+				}
+			} else
+			if (ID==MSG_APPLICATION_MESSAGE) {
+				if (inter_app_deleg)
+					inter_app_deleg(Sender, Target, Value);
+			}
+		} else {
+			return MSG_APPLICATION_QUIT;
+		}
+		return res;
+	}
+
+	public function Run(MAX_TIME=MAX_LOOP_TIME, do_init=true) {
+		var AppForm=this._ApplicationForm;
+		var deleg=this.ShellDebug;
+		var async=this.AsyncPropertyCallback;
+		if (do_init)
+			SendMessage("Application",MSG_APPLICATION_RUN,""+AppForm.RID,0);
+
+		// GetMessage(var Sender, var ID, var Target, var Value, this.OnIdle)>0
+		while (true) {
+			if (this.OnIdle) {
+				if (GetMessage(var Sender, var ID, var Target, var Value, this.OnIdle)<=0)
+					break;
+			} else {
+				if (GetMessage(Sender, ID, Target, Value)<=0)
+					break;
+			}
+			CheckPoint(MAX_TIME);
+
+			if (ID==MSG_APPLICATION_QUIT)
+				break;
+			else
+			if (ID==MSG_EVENT_FIRED) {
+				var tmpsender=value Sender;
+				var tmptarget=value Target;
+				if ((tmpsender<0) || (tmpsender >= length AppForm.__EVENTS_VECTOR) || (tmptarget<=0)) {
+					if (this.MobileApplication)
+						SendMessage("App",MSG_EVENT_FIRED,"0","1");
+					continue;
+				}
+				var ctrl_events=AppForm.__EVENTS_VECTOR[tmpsender];
+				if ((ctrl_events) && (tmptarget < length ctrl_events)) {
+					var delegate=ctrl_events[tmptarget];
+					if ((delegate) && (delegate(ctrl_events[0],Value)==MSG_APPLICATION_QUIT))
+						break;
+				}
+			} else
+			if (ID==MSG_APPLICATION_MESSAGE) {
+				if (deleg)
+					deleg(Sender, Target, Value);
+			} else
+			if ((ID==MSG_GET_PROPERTY) && (async)) {
+				tmpsender=value Sender;
+				tmptarget=value Target;
+				if ((tmpsender>0) && (tmptarget>0))
+					async(tmpsender,tmptarget,Value);
+			} else
+			if (ID==MSG_CONFIRM_EVENT)
+				SendMessage("App",MSG_CONFIRM_EVENT,"0",Value);
+
+			if (this.MobileApplication)
+				SendMessage("App",MSG_EVENT_FIRED,"0","1");
+			CheckPoint(0);
+		}
+		CheckPoint(0);
+	}
+
+	static function SetCookie(string user, string data="") {
+		SendMessage("Application",MSG_SET_COOKIE,user,data);
+	}
+
+	static function GetCookie(string user) {
+		var content="";
+		SendMessage("Application",MSG_GET_COOKIE,user,"");
+		WaitMessage(var Sender,MSG_GET_COOKIE, var ret_user, content);
+		return content;
+	}
+
+	static function Done() {
+		SendMessage("Application",MSG_MESSAGING_SYSTEM,"0","0");
+		SendMessage("Application",MSG_APPLICATION_QUIT,"0","0");
+	}
+
+	static function NotifyTouchMode() {
+		GLOBALS()["framework.flags.touchscreen"]=true;
+	}
+
+	static function GetClientEnv(string variable) {
+		SendMessage("Application",MSG_CLIENT_ENVIRONMENT,"",variable);
+		WaitMessage(var Sender,MSG_CLIENT_ENVIRONMENT, var ret_variable="", variable);
+		return variable;
+	}
+
+	static function SetClientEnv(string vname, string val) {
+		if (!vname)
+			throw "Variable name is empty";
+		SendMessage("Application",MSG_CLIENT_ENVIRONMENT,vname,val);
+		return val;
+	}
+
+	static function CreateTouchKeyboard(Owner, critical_section_opened=false) {
+		var globals=GLOBALS();
+		globals["framework.flags.touchscreen"]=true;
+		if (!critical_section_opened)
+			CApplication::BeginNonCritical();
+		var keyboard=new RTouchKeyboardForm(Owner);
+		globals["framework.entry.touchkeyboard"]=keyboard;
+		if (!critical_section_opened)
+			CApplication::EndNonCritical();
+	}
+}

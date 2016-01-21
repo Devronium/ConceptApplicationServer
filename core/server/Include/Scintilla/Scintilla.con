@@ -1,0 +1,256 @@
+include VisibleRemoteObject.con
+include Scintilla/SciLexer.con
+include Scintilla/ScintillaDefs.con
+import standard.C.io
+
+define __INCLUDE_FILE		"100000"
+define EVENT_REQUEST_FILE	"350"
+define EVENT_UPDATE_CLASS_LIST	"351"
+
+class RScintilla extends VisibleRemoteObject {
+	public property Text { get GetCaption, set SetCaption }
+
+	//-------- Events ----------------------------------------------------------------//
+	public property __ConceptInteraction_RequestFile { get Get__ConceptInteraction, set Set__ConceptInteraction }
+	private function Get__ConceptInteraction() {
+		return _GET_REMOTE_EVENT(EVENT_REQUEST_FILE);
+	}
+
+	private function Set__ConceptInteraction(var delegate deleg) {
+		return _MAP_REMOTE_EVENT(EVENT_REQUEST_FILE, deleg);
+	}
+
+	public property __ConceptInteraction_ClassList { get Get__ClassList, set Set__ClassList }
+	private function Get__ClassList() {
+		return _GET_REMOTE_EVENT(EVENT_UPDATE_CLASS_LIST);
+	}
+
+	private function Set__ClassList(var delegate deleg) {
+		return _MAP_REMOTE_EVENT(EVENT_UPDATE_CLASS_LIST, deleg);
+	}
+	//-------- End of Events ----------------------------------------------------------//
+
+	public function RScintilla(OWNER) {
+		super(OWNER, "1000");
+	}
+
+
+	public function GetCaption() {
+		return GetProperty(P_CAPTION);
+	}
+
+	public function SetCaption(argument) {
+		SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_CAPTION,argument);
+		return argument;
+	}
+
+	public function SciMessage(message, w=0, l=0) {
+		var w_type=typeof w;
+		var l_type=typeof l;
+
+		if ((w_type=="numeric") && (l_type=="numeric")) {
+			PostString(message);
+			Send(MSG_CUSTOM_MESSAGE2,w,l);
+		} else
+		if ((w_type=="numeric") && (l_type=="string")) {
+			PostString(message);
+			Send(MSG_CUSTOM_MESSAGE3,w,l);
+		} else
+		if ((w_type=="string") && (l_type=="numeric")) {
+			PostString(message);
+			Send(MSG_CUSTOM_MESSAGE4,w,l);
+		} else
+		if ((w_type=="string") && (l_type=="string")) {
+			PostString(message);
+			Send(MSG_CUSTOM_MESSAGE5,w,l);
+		}
+	}
+
+	public function SciMessageReturnString(message, w=0, l=0) {
+		var w_type=typeof w;
+		var l_type=typeof l;
+
+		if ((w_type=="numeric") && (l_type=="numeric")) {
+			PostString(message);
+			Send(MSG_CUSTOM_MESSAGE6,w,l);
+			WaitMessage(var Sender=this.RID,MSG_CUSTOM_MESSAGE6, var target, var Value);
+			return Value;
+		} else
+		if ((w_type=="numeric") && (l_type=="string")) {
+			PostString(message);
+			Send(MSG_CUSTOM_MESSAGE7,w,l);
+			WaitMessage(Sender=this.RID,MSG_CUSTOM_MESSAGE7, target, Value);
+			return Value;
+		} else
+		if ((w_type=="string") && (l_type=="numeric")) {
+			PostString(message);
+			Send(MSG_CUSTOM_MESSAGE8,w,l);
+			WaitMessage(Sender=this.RID,MSG_CUSTOM_MESSAGE8, target, Value);
+			return Value;
+		} else
+		if ((w_type=="string") && (l_type=="string")) {
+			PostString(message);
+			Send(MSG_CUSTOM_MESSAGE9,w,l);
+			WaitMessage(Sender=this.RID,MSG_CUSTOM_MESSAGE9, target, Value);
+			return Value;
+		}
+	}
+
+	public function SciMessageReturnNumber(message, w=0, l=0) {
+		var w_type=typeof w;
+		var l_type=typeof l;
+
+		if ((w_type=="numeric") && (l_type=="numeric")) {
+			PostString(message);
+			Send(MSG_CUSTOM_MESSAGE10,w,l);
+			WaitMessage(var Sender=this.RID,MSG_CUSTOM_MESSAGE10, var target, var Value);
+			return value Value;
+		} else
+		if ((w_type=="numeric") && (l_type=="string")) {
+			PostString(message);
+			Send(MSG_CUSTOM_MESSAGE11,w,l);
+			WaitMessage(Sender=this.RID,MSG_CUSTOM_MESSAGE11, target, Value);
+			return value Value;
+		} else
+		if ((w_type=="string") && (l_type=="numeric")) {
+			PostString(message);
+			Send(MSG_CUSTOM_MESSAGE12,w,l);
+			WaitMessage(Sender=this.RID,MSG_CUSTOM_MESSAGE12, target, Value);
+			return value Value;
+		} else
+		if ((w_type=="string") && (l_type=="string")) {
+			PostString(message);
+			Send(MSG_CUSTOM_MESSAGE13,w,l);
+			WaitMessage(Sender=this.RID,MSG_CUSTOM_MESSAGE13, target, Value);
+			return value Value;
+		}
+	}
+
+	public function SetAutoHints(len, list) {
+		Send(MSG_CUSTOM_MESSAGE14,len,""+list);
+	}
+
+	public function SendIncludedFile(filename, text) {
+		return Send(MSG_CUSTOM_MESSAGE1, filename, text);
+	}
+
+	public function ClearIncluded() {
+		return Send(MSG_CUSTOM_MESSAGE1, "", "");
+	}
+
+	static function CreateGeneralEditor(owner, number lexer=SCLEX_XML, string keywords="") {
+		var tst=new RScintilla(owner);
+
+		tst.SciMessage(SCI_STYLECLEARALL,0,0);
+		tst.SciMessage(SCI_SETLEXER, lexer, 0);
+
+		if (keywords)
+			tst.SciMessage(SCI_SETKEYWORDS, 0, keywords);
+
+		tst.SciMessage(SCI_CLEARDOCUMENTSTYLE, 0, 0);
+		tst.SciMessage(SCI_SETSTYLEBITS, 7, 0);
+		tst.SciMessage(SCI_SETTABWIDTH,4,0);
+		tst.SciMessage(SCI_SETINDENT,4,0);
+		tst.SciMessage(SCI_SETCARETPERIOD,400,0);
+
+   		tst.SciMessage(SCI_SETPROPERTY, "fold", "1");
+   		tst.SciMessage(SCI_SETPROPERTY, "fold.html", "1");
+   		tst.SciMessage(SCI_SETPROPERTY, "fold.html.preprocessor", "1");
+   		tst.SciMessage(SCI_SETPROPERTY, "fold.comment", "1");
+   		tst.SciMessage(SCI_SETPROPERTY, "fold.at.else", "1");
+   		tst.SciMessage(SCI_SETPROPERTY, "fold.flags", "1");
+   		tst.SciMessage(SCI_SETPROPERTY, "fold.preprocessor", "1");
+   		tst.SciMessage(SCI_SETPROPERTY, "styling.within.preprocessor", "1");
+   		tst.SciMessage(SCI_SETPROPERTY, "asp.default.language", "1");
+		// Tell scintilla to draw folding lines UNDER the folded line
+   		tst.SciMessage(SCI_SETFOLDFLAGS, 16,0);
+		// Set margin 2 = folding margin to display folding symbols
+   		tst.SciMessage(SCI_SETMARGINMASKN, 2, SC_MASK_FOLDERS);
+		tst.SciMessage(SCI_SETMODEVENTMASK, SC_MOD_INSERTTEXT|SC_MOD_DELETETEXT, 0);
+		tst.SciMessage(SCI_SETMARGINSENSITIVEN, 2, true);
+		tst.SciMessage(SCI_SETMARGINSENSITIVEN, 1, true);
+		tst.SciMessage(SCI_MARKERDEFINE, SC_MARKNUM_FOLDEROPEN, SC_MARK_BOXMINUSCONNECTED);
+		tst.SciMessage(SCI_MARKERDEFINE, SC_MARKNUM_FOLDER, SC_MARK_BOXPLUSCONNECTED);
+		tst.SciMessage(SCI_MARKERDEFINE, SC_MARKNUM_FOLDERSUB, SC_MARK_VLINE);
+		tst.SciMessage(SCI_MARKERDEFINE, SC_MARKNUM_FOLDERTAIL, SC_MARK_TCORNER);
+		tst.SciMessage(SCI_MARKERDEFINE, SC_MARKNUM_FOLDEREND, SC_MARK_EMPTY);
+		tst.SciMessage(SCI_MARKERDEFINE, SC_MARKNUM_FOLDEROPENMID, SC_MARK_EMPTY);
+		tst.SciMessage(SCI_MARKERDEFINE, SC_MARKNUM_FOLDERMIDTAIL, SC_MARK_TCORNER);
+
+		//tst.SciMessage(SCI_STYLESETFORE, SCE_C_DEFAULT, 0x000000);
+		// comment
+		//tst.SciMessage(SCI_STYLESETFORE, SCE_C_COMMENT, 0x008000);
+		//tst.SciMessage(SCI_STYLESETFORE, SCE_C_COMMENTLINE, 0x008000);
+		//tst.SciMessage(SCI_STYLESETFORE, SCE_C_COMMENTDOC, 0x008000);
+		// keyword
+		//tst.SciMessage(SCI_STYLESETFORE, SCE_C_WORD, 0xC80000);
+		// strings
+		//tst.SciMessage(SCI_STYLESETFORE, 6, 0x004000);
+
+		//tst.SciMessage(SCI_STYLESETFORE, 2, 0x004000);
+   
+		//tst.SciMessage(SCI_STYLESETFORE, 9, 0x0000FF);
+		// operators
+		//tst.SciMessage(SCI_STYLESETFORE, 10, 0x400080);
+
+		//tst.SciMessage(SCI_STYLESETFORE, 11, 0x000000);
+
+
+		tst.SciMessage(SCI_STYLESETFORE, 0, 0x000000);
+		tst.SciMessage(SCI_STYLESETFORE, 2, 0x004000);
+		tst.SciMessage(SCI_STYLESETFORE, 5, 0x0000FF);
+		tst.SciMessage(SCI_STYLESETFORE, 6, 0xC81400);
+		tst.SciMessage(SCI_STYLESETFORE, 9, 0x0000FF);
+		tst.SciMessage(SCI_STYLESETFORE, 10, 0xFF0040);
+		tst.SciMessage(SCI_STYLESETFORE, 11, 0x000000);
+
+		// set the backgroundcolor of brace highlights
+		tst.SciMessage(SCI_STYLESETBACK, STYLE_BRACELIGHT, 0x00FF00);
+		// set end of line mode to CRLF
+		tst.SciMessage(SCI_CONVERTEOLS, SC_EOL_CRLF, 0);
+		tst.SciMessage(SCI_SETEOLMODE, SC_EOL_CRLF/*2*/, 0);
+		tst.SciMessage(SCI_SETPASTECONVERTENDINGS, true, true);
+
+		// set markersymbol for marker type 0 - bookmark
+		tst.SciMessage(SCI_MARKERDEFINE, 0, SC_MARK_BACKGROUND);
+		tst.SciMessage(SCI_MARKERSETBACK ,0, 0xA0A0FF);
+		tst.SciMessage(SCI_MARKERDEFINE, 1, SC_MARK_CIRCLE);
+		tst.SciMessage(SCI_MARKERSETBACK ,1, 0x0000FF);
+		tst.SciMessage(SCI_MARKERSETFORE,1, 0x0000FF);
+
+		tst.SciMessage(SCI_MARKERSETBACK ,SC_MARKNUM_FOLDEROPEN, 0xF0A0A0);
+		tst.SciMessage(SCI_MARKERSETFORE ,SC_MARKNUM_FOLDEROPEN, 0xFFFFFF);
+		tst.SciMessage(SCI_MARKERSETBACK ,SC_MARKNUM_FOLDER, 0xF0A0A0);
+		tst.SciMessage(SCI_MARKERSETFORE ,SC_MARKNUM_FOLDER, 0xFFFFFF);
+		tst.SciMessage(SCI_MARKERSETBACK ,SC_MARKNUM_FOLDERSUB, 0xF0A0A0);
+		tst.SciMessage(SCI_MARKERSETBACK ,SC_MARKNUM_FOLDERTAIL, 0xF0A0A0);
+		tst.SciMessage(SCI_MARKERSETBACK ,SC_MARKNUM_FOLDERMIDTAIL, 0xF0A0A0);
+
+		tst.SciMessage(SCI_SETFOLDMARGINCOLOUR, 1, 0xFFFFFF);
+		tst.SciMessage(SCI_SETMARGINWIDTHN, 2, 16);
+		tst.SciMessage(SCI_SETMARGINWIDTHN, 1, 16);
+
+		tst.SciMessage(SCI_SETUSETABS,0,0);
+
+		//tst.SciMessage(SCI_SETEDGEMODE,1,0);
+		//tst.SciMessage(SCI_SETEDGECOLUMN,80,0);
+
+		tst.SciMessage(SCI_AUTOCSETIGNORECASE,1,0);
+		var lWidth = tst.SciMessageReturnNumber(SCI_TEXTWIDTH, STYLE_LINENUMBER, "9");
+		tst.SciMessage(SCI_SETMARGINWIDTHN, 0, lWidth*6);
+		tst.SciMessage(SCI_STYLESETBACK, STYLE_LINENUMBER, 0xFFFFFF);
+		tst.SciMessage(SCI_STYLESETFORE, STYLE_LINENUMBER, 0xA0A0A0);
+		tst.SciMessage(SCI_STYLESETBACK, STYLE_CALLTIP, 0xF0FFFF);
+		tst.SciMessage(SCI_STYLESETFORE, STYLE_CALLTIP, 0x000000);
+		tst.SciMessage(SCI_CALLTIPUSESTYLE,0,0);
+		tst.SciMessage(SCI_CALLTIPSETFOREHLT, 0x008000, 0);
+		tst.SciMessage(SCI_SETBACKSPACEUNINDENTS, true, 0);
+		tst.SciMessage(SCI_SETINDENTATIONGUIDES, false, 0);
+		//tst.SciMessage(SCI_AUTOCSETAUTOHIDE, false, 0);
+		tst.SciMessage(SCI_AUTOCGETIGNORECASE, true, 0);
+		//tst.SciMessage(SCI_AUTOCSTOPS, 0, AUTO_STOP_CHARS);
+
+		return tst;
+	}
+
+}

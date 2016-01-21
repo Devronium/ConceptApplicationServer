@@ -1,0 +1,170 @@
+import standard.lib.hpdf
+import standard.C.math
+
+define PAGE_TITLE	"Font demo"
+define OUTPUT_FILENAME	"sample2.pdf"
+
+class Main {
+	function error(err, detail) {
+		echo "Error no $err, detail no $detail\n";
+	}
+
+	function show_description(page, x, y, text) {
+		HPDF_Page_MoveTo (page, x, y - 10);
+		HPDF_Page_LineTo (page, x, y + 10);
+		HPDF_Page_MoveTo (page, x - 10, y);
+		HPDF_Page_LineTo (page, x + 10, y);
+		HPDF_Page_Stroke (page);
+
+		HPDF_Page_SetFontAndSize (page, HPDF_Page_GetCurrentFont (page), 8);
+		HPDF_Page_SetRGBFill (page, 0, 0, 0);
+
+		HPDF_Page_BeginText (page);
+
+		var buf="(x=$x,y=$y)";
+
+		HPDF_Page_MoveTextPos (page, x - HPDF_Page_TextWidth (page, buf) - 5, y - 10);
+		HPDF_Page_ShowText (page, buf);
+		HPDF_Page_EndText (page);
+
+		HPDF_Page_BeginText (page);
+		HPDF_Page_MoveTextPos (page, x - 20, y - 25);
+		HPDF_Page_ShowText (page, text);
+		HPDF_Page_EndText (page);
+	}
+
+	function Main() {
+		HPDF_SetErrorHandler(error);
+		var pdf=HPDF_New();
+
+		if (!pdf) {
+			echo "error creating pdf object";
+			return 1;
+		}
+
+		HPDF_SetCompressionMode (pdf, HPDF_COMP_ALL);
+
+		/* create default-font */
+		var font = HPDF_GetFont (pdf, "Helvetica", "");
+		
+		/* add a new page object. */
+		var page = HPDF_AddPage (pdf);
+
+
+		HPDF_Page_SetWidth (page, 550);
+		HPDF_Page_SetHeight (page, 500);
+
+		var dst = HPDF_Page_CreateDestination (page);
+		HPDF_Destination_SetXYZ (dst, 0, HPDF_Page_GetHeight (page), 1);
+		HPDF_SetOpenAction(pdf, dst);
+
+		HPDF_Page_BeginText (page);
+		HPDF_Page_SetFontAndSize (page, font, 20);
+		HPDF_Page_MoveTextPos (page, 220, HPDF_Page_GetHeight (page) - 70);
+		HPDF_Page_ShowText (page, "ImageDemo");
+		HPDF_Page_EndText (page);
+
+		var image  = HPDF_LoadPngImageFromFile (pdf, "pngsuite/basn3p02.png");
+		var image1 = HPDF_LoadPngImageFromFile (pdf, "pngsuite/basn3p02.png");
+		var image2 = HPDF_LoadPngImageFromFile (pdf, "pngsuite/basn0g01.png");
+		var image3 = HPDF_LoadPngImageFromFile (pdf, "pngsuite/maskimage.png");
+
+		var iw = HPDF_Image_GetWidth (image);
+		var ih = HPDF_Image_GetHeight (image);
+
+		HPDF_Page_SetLineWidth (page, 0.5);
+
+		var x = 100;
+    		var y = HPDF_Page_GetHeight (page) - 150;
+
+		/* Draw image to the canvas. (normal-mode with actual size.)*/
+		HPDF_Page_DrawImage (page, image, x, y, iw, ih);
+
+		show_description (page, x, y, "Actual Size");
+
+		x += 150;
+
+		/* Scalling image (X direction) */
+		HPDF_Page_DrawImage (page, image, x, y, iw * 1.5, ih);
+
+		show_description (page, x, y, "Scalling image (X direction)");
+
+		x += 150;
+
+		/* Scalling image (Y direction). */
+		HPDF_Page_DrawImage (page, image, x, y, iw, ih * 1.5);
+		show_description (page, x, y, "Scalling image (Y direction)");
+
+		x = 100;
+		y -= 120;
+
+		/* Skewing image. */
+		var angle1 = 10;
+		var angle2 = 20;
+		var rad1 = angle1 / 180 * 3.141592;
+		var rad2 = angle2 / 180 * 3.141592;
+
+		HPDF_Page_GSave (page);
+
+		HPDF_Page_Concat (page, iw, tan(rad1) * iw, tan(rad2) * ih, ih, x, y);
+
+		HPDF_Page_ExecuteXObject (page, image);
+		HPDF_Page_GRestore (page);
+
+		show_description (page, x, y, "Skewing image");
+
+		x += 150;
+
+		/* Rotating image */
+		var angle = 30;     /* rotation of 30 degrees. */
+		var rad = angle / 180 * 3.141592; /* Calcurate the radian value. */
+
+		HPDF_Page_GSave (page);
+
+		HPDF_Page_Concat (page, iw * cos(rad), iw * sin(rad), ih * -sin(rad), ih * cos(rad), x, y);
+
+		HPDF_Page_ExecuteXObject (page, image);
+		HPDF_Page_GRestore (page);
+
+		show_description (page, x, y, "Rotating image");
+
+		x += 150;
+
+		/* draw masked image. */
+
+		/* Set image2 to the mask image of image1 */
+		HPDF_Image_SetMaskImage (image1, image2);
+
+		HPDF_Page_SetRGBFill (page, 0, 0, 0);
+		HPDF_Page_BeginText (page);
+		HPDF_Page_MoveTextPos (page, x - 6, y + 14);
+		HPDF_Page_ShowText (page, "MASKMASK");
+		HPDF_Page_EndText (page);
+
+		HPDF_Page_DrawImage (page, image1, x - 3, y - 3, iw + 6, ih + 6);
+
+		show_description (page, x, y, "masked image");
+
+		x = 100;
+		y -= 120;
+
+		/* color mask. */
+		HPDF_Page_SetRGBFill (page, 0, 0, 0);
+		HPDF_Page_BeginText (page);
+		HPDF_Page_MoveTextPos (page, x - 6, y + 14);
+		HPDF_Page_ShowText (page, "MASKMASK");
+		HPDF_Page_EndText (page);
+
+		HPDF_Image_SetColorMask (image3, 0, 255, 0, 0, 0, 255);
+		HPDF_Page_DrawImage (page, image3, x, y, iw, ih);
+
+		show_description (page, x, y, "Color Mask");
+
+		/* save the document to a file */
+		HPDF_SaveToFile (pdf, OUTPUT_FILENAME);
+
+		/* clean up */
+		HPDF_Free (pdf);
+		
+	}
+}

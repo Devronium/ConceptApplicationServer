@@ -1,0 +1,398 @@
+
+//=============================================================//
+include Lang.con
+include RForm.con
+include Application.con
+include RForm.con
+include RVBox.con
+include REventBox.con
+include RHBox.con
+include RToolbar.con
+include RToolButton.con
+include RToolSeparator.con
+include RToggleToolButton.con
+
+
+
+class MediaBaseWindow extends RForm {
+        // keep the string table
+        protected var S;
+
+        public var this_image_wrap;
+        public var vbox1;
+        public var MediaHolder;
+        public var hbox1;
+        public var toolbar2;
+        public var toolbutton5;
+        public var toolbutton6;
+        public var toolbutton7;
+        public var separatortoolitem2;
+        public var toolbutton8;
+        public var toolbutton9;
+        public var separatortoolitem3;
+        public var toolbar1;
+        public var toolbutton1;
+        public var toolbutton2;
+        public var toolbutton3;
+        public var ToolPlayListToggle;
+        public var separatortoolitem1;
+        public var fullscreentoggle;
+        public var toolbutton4;
+
+
+	public function MediaBaseWindowCreated(Sender, EventData);
+	public function PlayClicked(Sender, EventData);
+	public function PauseClicked(Sender, EventData);
+	public function StopClicked(Sender, EventData);
+	public function OpenStreamClicked(Sender, EventData);
+	public function OpenURLClicked(Sender, EventData);
+	public function ShowPlaylistToggle(Sender, EventData);
+	public function FullScreenToggled(Sender, EventData);
+
+
+        // ========================================================================
+        // constructor;
+        // S is a Lang object used to translate strings using
+        // the default string table named string.table.xml
+        // Is your responsability to pass this object to other forms instantiated
+        // in this application
+        // ========================================================================
+
+        public function MediaBaseWindow(Owner, Lang S) {
+                super(Owner);
+                this.S=S;
+
+		CApplication::BeginNonCritical();
+
+                this.Caption=S<<"Concept media streamer";
+                this_image_wrap=new RImage(null);
+                this_image_wrap.Filename="res/.";
+                this_image_wrap.Show();
+                this.Icon=this_image_wrap;
+                this.OnRealize=this.MediaBaseWindowCreated;
+
+                vbox1=new RVBox(this);
+                vbox1.Visible=true;
+
+                MediaHolder=new REventBox(vbox1);
+                MediaHolder.MinWidth=320;
+                MediaHolder.MinHeight=240;
+                MediaHolder.Visible=true;
+
+                hbox1=new RHBox(vbox1);
+                hbox1.Packing=PACK_SHRINK;
+                hbox1.Visible=true;
+
+                toolbar2=new RToolbar(hbox1);
+                toolbar2.Visible=true;
+                toolbar2.Style=TOOLBAR_ICONS;
+
+                toolbutton5=new RToolButton(toolbar2);
+                toolbutton5.Expand=false;
+                toolbutton5.Visible=true;
+                toolbutton5.Caption=S<<"Play";
+                toolbutton5.StockID="gtk-media-play";
+                toolbutton5.OnClicked=this.PlayClicked;
+
+                toolbutton6=new RToolButton(toolbar2);
+                toolbutton6.Expand=false;
+                toolbutton6.Visible=true;
+                toolbutton6.Caption=S<<"Pause";
+                toolbutton6.StockID="gtk-media-pause";
+                toolbutton6.OnClicked=this.PauseClicked;
+
+                toolbutton7=new RToolButton(toolbar2);
+                toolbutton7.Expand=false;
+                toolbutton7.Visible=true;
+                toolbutton7.Caption=S<<"Stop";
+                toolbutton7.StockID="gtk-media-stop";
+                toolbutton7.OnClicked=this.StopClicked;
+
+                separatortoolitem2=new RToolSeparator(toolbar2);
+                separatortoolitem2.Packing=PACK_SHRINK;
+                separatortoolitem2.Visible=true;
+
+                toolbutton8=new RToolButton(toolbar2);
+                toolbutton8.Expand=false;
+                toolbutton8.Visible=true;
+                toolbutton8.Caption=S<<"Previous";
+                toolbutton8.StockID="gtk-media-previous";
+
+                toolbutton9=new RToolButton(toolbar2);
+                toolbutton9.Expand=false;
+                toolbutton9.Visible=true;
+                toolbutton9.Caption=S<<"Next";
+                toolbutton9.StockID="gtk-media-next";
+
+                separatortoolitem3=new RToolSeparator(toolbar2);
+                separatortoolitem3.Packing=PACK_SHRINK;
+                separatortoolitem3.Visible=true;
+
+                toolbar1=new RToolbar(hbox1);
+                toolbar1.Packing=PACK_SHRINK;
+                toolbar1.Visible=true;
+                toolbar1.Style=TOOLBAR_ICONS;
+                toolbar1.ShowArrow=false;
+
+                toolbutton1=new RToolButton(toolbar1);
+                toolbutton1.Expand=false;
+                toolbutton1.Visible=true;
+                toolbutton1.Caption=S<<"Open server stream";
+                toolbutton1.StockID="gtk-open";
+                toolbutton1.OnClicked=this.OpenStreamClicked;
+
+                toolbutton2=new RToolButton(toolbar1);
+                toolbutton2.Expand=false;
+                toolbutton2.Visible=true;
+                toolbutton2.Caption=S<<"Open URL";
+                toolbutton2.StockID="gtk-connect";
+                toolbutton2.OnClicked=this.OpenURLClicked;
+
+                toolbutton3=new RToolSeparator(toolbar1);
+                toolbutton3.Packing=PACK_SHRINK;
+                toolbutton3.Visible=true;
+
+                ToolPlayListToggle=new RToggleToolButton(toolbar1);
+                ToolPlayListToggle.Expand=false;
+                ToolPlayListToggle.Visible=true;
+                ToolPlayListToggle.Caption=S<<"Show playlist";
+                ToolPlayListToggle.StockID="gtk-select-all";
+                ToolPlayListToggle.OnToggled=this.ShowPlaylistToggle;
+
+                separatortoolitem1=new RToolSeparator(toolbar1);
+                separatortoolitem1.Packing=PACK_SHRINK;
+                separatortoolitem1.Visible=true;
+
+                fullscreentoggle=new RToggleToolButton(toolbar1);
+                fullscreentoggle.Expand=false;
+                fullscreentoggle.Visible=true;
+                fullscreentoggle.Caption=S<<"Full screen";
+                fullscreentoggle.StockID="gtk-fullscreen";
+                fullscreentoggle.OnToggled=this.FullScreenToggled;
+
+                toolbutton4=new RToolButton(toolbar1);
+                toolbutton4.Expand=false;
+                toolbutton4.Visible=true;
+                toolbutton4.Caption=S<<"Settings";
+                toolbutton4.StockID="gtk-preferences";
+
+		CApplication::EndNonCritical();
+        }
+
+	override MediaBaseWindowCreated;
+	override PlayClicked;
+	override PauseClicked;
+	override StopClicked;
+	override OpenStreamClicked;
+	override OpenURLClicked;
+	override ShowPlaylistToggle;
+	override FullScreenToggled;
+
+}
+
+
+//=============================================================//
+include Lang.con
+include RForm.con
+include Application.con
+include RForm.con
+include RHBox.con
+include RLabel.con
+include REdit.con
+include RButton.con
+
+
+
+class RemotePlayWindow extends RForm {
+        // keep the string table
+        protected var S;
+
+        public var hbox2;
+        public var label1;
+        public var EditURL;
+        public var button1;
+
+
+	public function GoClicked(Sender, EventData);
+
+
+        // ========================================================================
+        // constructor;
+        // S is a Lang object used to translate strings using
+        // the default string table named string.table.xml
+        // Is your responsability to pass this object to other forms instantiated
+        // in this application
+        // ========================================================================
+
+        public function RemotePlayWindow(Owner, Lang S) {
+                super(Owner);
+                this.S=S;
+
+		CApplication::BeginNonCritical();
+
+                this.Type=WINDOW_POPUP;
+                this.Caption=S<<"Open URL";
+                this.Resizable=false;
+                this.Modal=true;
+                this.Position=WP_CENTER_ON_PARENT;
+                this.Type=WT_TOOLBAR;
+
+                hbox2=new RHBox(this);
+                hbox2.Visible=true;
+
+                label1=new RLabel(hbox2);
+                label1.Packing=PACK_SHRINK;
+                label1.Visible=true;
+                label1.Caption=S<<"Open URL:";
+
+                EditURL=new REdit(hbox2);
+                EditURL.Visible=true;
+                EditURL.ActivateDefault=true;
+
+                button1=new RButton(hbox2);
+                button1.Packing=PACK_SHRINK;
+                button1.Visible=true;
+                button1.Caption=S<<"Go";
+                button1.OnClicked=this.GoClicked;
+
+		CApplication::EndNonCritical();
+        }
+
+	override GoClicked;
+
+}
+
+
+//=============================================================//
+include Lang.con
+include RForm.con
+include Application.con
+include RForm.con
+include RVBox.con
+include RToolbar.con
+include RToolButton.con
+include RToolSeparator.con
+include RScrolledWindow.con
+include RTreeView.con
+include RStatusbar.con
+
+
+
+class PlayListWindow extends RForm {
+        // keep the string table
+        protected var S;
+
+        public var vbox2;
+        public var toolbar3;
+        public var toolbutton10;
+        public var toolbutton11;
+        public var toolbutton16;
+        public var separatortoolitem4;
+        public var toolbutton13;
+        public var toolbutton15;
+        public var toolbutton12;
+        public var toolbutton14;
+        public var scrolledwindow1;
+        public var ItemsView;
+        public var statusbar1;
+
+
+	public function OnPlayListWindowDelete(Sender, EventData);
+
+
+        // ========================================================================
+        // constructor;
+        // S is a Lang object used to translate strings using
+        // the default string table named string.table.xml
+        // Is your responsability to pass this object to other forms instantiated
+        // in this application
+        // ========================================================================
+
+        public function PlayListWindow(Owner, Lang S) {
+                super(Owner);
+                this.S=S;
+
+		CApplication::BeginNonCritical();
+
+                this.Caption=S<<"Play list";
+                this.Type=WT_DIALOG;
+                this.Decorations=false;
+                this.OnDelete=this.OnPlayListWindowDelete;
+
+                vbox2=new RVBox(this);
+                vbox2.Visible=true;
+
+                toolbar3=new RToolbar(vbox2);
+                toolbar3.Packing=PACK_SHRINK;
+                toolbar3.Visible=true;
+                toolbar3.Style=TOOLBAR_ICONS;
+
+                toolbutton10=new RToolButton(toolbar3);
+                toolbutton10.Expand=false;
+                toolbutton10.Visible=true;
+                toolbutton10.Caption=S<<"Add to playlist";
+                toolbutton10.StockID="gtk-add";
+
+                toolbutton11=new RToolButton(toolbar3);
+                toolbutton11.Expand=false;
+                toolbutton11.Visible=true;
+                toolbutton11.Caption=S<<"Remove from playlist";
+                toolbutton11.StockID="gtk-delete";
+
+                toolbutton16=new RToolButton(toolbar3);
+                toolbutton16.Expand=false;
+                toolbutton16.Visible=true;
+                toolbutton16.Caption=S<<"Remove all from playlist";
+                toolbutton16.StockID="gtk-clear";
+
+                separatortoolitem4=new RToolSeparator(toolbar3);
+                separatortoolitem4.Packing=PACK_SHRINK;
+                separatortoolitem4.Visible=true;
+
+                toolbutton13=new RToolButton(toolbar3);
+                toolbutton13.Expand=false;
+                toolbutton13.Visible=true;
+                toolbutton13.Caption=S<<"New playlist";
+                toolbutton13.StockID="gtk-new";
+
+                toolbutton15=new RToolButton(toolbar3);
+                toolbutton15.Expand=false;
+                toolbutton15.Visible=true;
+                toolbutton15.Caption=S<<"Open playlist";
+                toolbutton15.StockID="gtk-open";
+
+                toolbutton12=new RToolButton(toolbar3);
+                toolbutton12.Expand=false;
+                toolbutton12.Visible=true;
+                toolbutton12.Caption=S<<"Save playlist";
+                toolbutton12.StockID="gtk-save";
+
+                toolbutton14=new RToolButton(toolbar3);
+                toolbutton14.Expand=false;
+                toolbutton14.Visible=true;
+                toolbutton14.Caption=S<<"Save playlist as";
+                toolbutton14.StockID="gtk-save-as";
+
+                scrolledwindow1=new RScrolledWindow(vbox2);
+                scrolledwindow1.Visible=true;
+                scrolledwindow1.HScrollPolicy=POLICY_AUTOMATIC;
+                scrolledwindow1.VScrollPolicy=POLICY_AUTOMATIC;
+                scrolledwindow1.ShadowType=SHADOW_IN;
+
+                ItemsView=new RTreeView(scrolledwindow1);
+                ItemsView.Visible=true;
+                ItemsView.HeadersVisible=false;
+                ItemsView.SearchColumn=1;
+
+                statusbar1=new RStatusbar(vbox2);
+                statusbar1.Packing=PACK_SHRINK;
+                statusbar1.Visible=true;
+                statusbar1.Spacing=2;
+
+		CApplication::EndNonCritical();
+        }
+
+	override OnPlayListWindowDelete;
+
+}
+

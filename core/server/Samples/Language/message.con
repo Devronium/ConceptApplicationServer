@@ -1,0 +1,39 @@
+import 'win32.base.messages'
+
+define MSG_CAPTION_CHANGED	0xABBA
+
+class A {
+	var NAME;
+	var CAPTION;
+
+	property Caption { set SetCaption, get CAPTION}
+
+	function A(name) {
+		this->NAME=name;
+		this->Caption=name;
+	}
+
+	function SetCaption(_caption) {
+		send_message(this->NAME, MSG_CAPTION_CHANGED, "Caption", _caption);
+		return 0;
+	}
+}
+class B extends A {
+	function B(name) {
+		this->A(name);
+	}
+}
+
+class Main {
+	function Main() {
+		echo "Sending message ...";
+		send_message("test",100,"target","101");
+
+		//var a=new B("ObjectA");
+		//a->Caption="Message trigger test !!!";
+
+		/*get_message(var name, var MSG, var target, var param);
+
+		echo send_message("test",100,"target","101");*/
+	}
+}

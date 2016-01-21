@@ -1,0 +1,107 @@
+include RemoteObject.con
+include RemoteProperties.con
+include ClassID.con
+
+class RAdjustment extends RemoteObject {
+	private var REMOTE_ID_STR;
+
+	protected var LOWER;
+	protected var UPPER;
+	protected var VALUE;
+	protected var PAGESIZE;
+	protected var INCREMENT;
+	protected var PAGEINCREMENT;
+	
+	public property Lower { get GetLower, set SetLower }
+	public property Upper { get GetUpper, set SetUpper }
+	public property Value { get GetValue, set SetValue }
+	public property PageSize { get GetPageSize, set SetPageSize }
+	public property Increment { get GetIncrement, set SetIncrement }
+	public property PageIncrement { get GetPageIncrement, set SetPageIncrement }
+
+	//----------- EVENTS ----------------------------------------------------//	
+	public property OnChanged { get GetOnChanged, set SetOnChanged }
+	public function GetOnChanged() {
+		return _GET_REMOTE_EVENT(EVENT_ON_CHANGED);
+	}
+
+	public function SetOnChanged(var delegate deleg) {
+		return _MAP_REMOTE_EVENT(EVENT_ON_CHANGED, deleg);
+	}
+
+	public property OnValueChanged { get GetOnValueChanged, set SetOnValueChanged }
+	public function GetOnValueChanged() {
+		return _GET_REMOTE_EVENT(EVENT_ON_VALUECHANGED);
+	}
+
+	public function SetOnValueChanged(var delegate deleg) {
+		return _MAP_REMOTE_EVENT(EVENT_ON_VALUECHANGED, deleg);
+	}
+
+	//-----------------------------------------------------------------------//	
+
+	public function RAdjustment() {
+		super(null, CLASS_ADJUSTMENT);
+		REMOTE_ID_STR=""+REMOTE_ID;
+	}
+
+	public function SetLower(argument) {
+		SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_LOWER,argument);
+		LOWER=argument;
+		return argument;
+	}
+
+	public function SetUpper(argument) {
+		SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_UPPER,argument);
+		UPPER=argument;
+		return argument;
+	}
+
+	public function SetValue(argument) {
+		SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_VALUE,argument);
+		VALUE=argument;
+		return argument;
+	}
+
+	public function GetLower() {
+		return value GetProperty(P_LOWER);
+	}
+
+	public function GetUpper() {
+		return value GetProperty(P_UPPER);
+	}
+
+	public function GetValue() {
+		return value GetProperty(P_VALUE);
+	}
+
+	public function GetPageSize() {
+		return value GetProperty(P_PAGESIZE);
+	}
+
+	public function GetPageIncrement() {
+		return value GetProperty(P_PAGEINCREMENT);
+	}
+
+	public function GetIncrement() {
+		return value GetProperty(P_INCREMENT);
+	}
+
+	public function SetPageSize(argument) {
+		SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_PAGESIZE,argument);
+		PAGESIZE=argument;
+		return argument;
+	}
+
+	public function SetPageIncrement(argument) {
+		SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_PAGEINCREMENT,argument);
+		PAGEINCREMENT=argument;
+		return argument;
+	}
+
+	public function SetIncrement(argument) {
+		SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_INCREMENT,argument);
+		INCREMENT=argument;
+		return argument;
+	}
+}

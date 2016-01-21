@@ -1,0 +1,96 @@
+include RImage.con
+include RIconView.con
+import standard.lib.poppler
+
+class RPDF2 extends RImage {
+	protected var _ZOOM=1.0;
+	protected var _CURRENTPAGE=0;
+	protected var _CURRENTPAGELABEL="";
+	protected var _ICONVIEW=null;
+	protected var _THUMBSIZE=150;
+
+	protected var DummyImage;
+	protected var pdf;
+	protected var content;
+
+	public property Pages { get GetPages }
+	public property IconView { get _ICONVIEW, set SetIconView }
+	public property ThumbSize { get _THUMBSIZE, set SetThumbSize }
+
+	public property CurrentPage { set SetCurrentPage, get _CURRENTPAGE }
+	public property CurrentPageLabel { set SetCurrentPageLabel, get _CURRENTPAGELABEL }
+	public property Zoom { set SetZoom, get _ZOOM }
+
+	public function RPDF2(OWNER) {
+		super(OWNER);
+	}
+
+	public function GetPages() {
+		if (pdf)
+			return PDFPageCount(pdf);
+		return 0;
+	}
+
+	public function SetZoom(number zoom) {
+		_ZOOM=zoom;
+		if (pdf)
+			this.SetCurrentPage(_CURRENTPAGE);
+	}
+
+	public function SetThumbSize(number thumb_size) {
+		_THUMBSIZE=thumb_size;
+	}
+
+	public function SetCurrentPage(number page) {
+		if ((pdf) && (page>=0) && (page<PDFPageCount(pdf))) {
+			var buf = PDFPageImageBuffer(pdf, page, "png", _ZOOM);
+			this.SetBuffer(buf);
+			_CURRENTPAGE=page;
+		}
+	}
+
+	public function SetIconView(RIconView view) {
+		_ICONVIEW=view;
+		view.AddColumn();
+		view.AddColumns(1, IMAGE_COLUMN);
+		view.TextColumn=0;
+		view.ImageColumn=1;
+	}
+
+	public function SetCurrentPageLabel(string pagelabel) {
+		_CURRENTPAGELABEL=pagelabel;
+	}
+
+	public function LoadPDF(string content, string password="") {
+		if (pdf)
+			PDFClose(pdf);
+
+		this.content=content;
+		pdf = PDFLoadBuffer(this.content, password);
+		if (_ICONVIEW)
+			_ICONVIEW.Clear();
+
+		if ((pdf) && (PDFPageCount(pdf))) {
+			var buf = PDFPageImageBuffer(pdf, 0);
+			this.SetBuffer(buf);
+		} else
+			this.content="";
+
+		if ((pdf) && (_ICONVIEW)) {
+			if (!DummyImage)
+				DummyImage=new RImage(null);
+			var len = PDFPageCount(pdf);
+			var scale = _THUMBSIZE/1000;
+			for (var i=0;i<len;i++) {
+				buf = PDFPageImageBuffer(pdf, i, "png", scale);
+				DummyImage.SetBuffer(buf);
+				_ICONVIEW.AddItem(["${i+1}", DummyImage]);
+			}
+		}
+	}
+
+	finalize() {
+		if (pdf)
+			PDFClose(pdf);
+	}
+}

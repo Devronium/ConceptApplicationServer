@@ -1,0 +1,17 @@
+class Vegetable {
+      public var edible;
+      public var color;
+
+      function Vegetable(edible,color)  {
+               this->edible = edible;
+               this->color = color;
+      }
+
+      function is_edible() {
+               return this->edible;
+      }
+
+      function what_color() {
+               return this->color;
+      }
+}

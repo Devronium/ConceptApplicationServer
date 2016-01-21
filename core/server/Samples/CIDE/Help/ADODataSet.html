@@ -1,0 +1,397 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+  <title>ADODataSet</title>
+  <link href="css/style.css" rel="stylesheet" type="text/css">
+  <meta http-equiv="Content-Type" content="text/html;charset=utf-8" >
+</head>
+<body bgcolor="#ffffff">
+<table border="0" width="100%" bgcolor="#F0F0FF">
+  <tr>
+    <td>Concept Framework 2.2 documentation</td>
+  	<td align="right"><a href="index.html">Contents</a> | <a href="index_fun.html">Index</a></td>
+  </tr>
+</table>
+<h2>ADODataSet</h2>
+<table border="0" cellspacing="0" cellpadding="0" width="400" style="border-style:solid;border-width:1px;border-color:#D0D0D0;">
+  <tr bgcolor="#f0f0f0">
+     <td><i>Name</i></td>
+     <td><i>Version</i></td>
+     <td><i>Deprecated</i></td>
+  </tr>
+  <tr bgcolor="#fafafa">
+     <td><b>ADODataSet</b></td>
+     <td>version 1.0</td>
+     <td>no</td>
+  </tr>
+</table>
+<br />
+<b>Defined in : </b>DataBases.con
+<br/><i>(this file must be included in your application in order to have access, unless you use a child class of ADODataSet that includes this file)</i><br /><br />
+
+
+<b>Require</b> : standard.db.sql
+
+<br />
+<br />
+
+<b>Description:</b><br />
+<table width="100%" bgcolor="#FAFAFF" style="border-style:solid;border-width:1px;border-color:#D0D0D0;">
+<tr><td>
+Encapsulates the result of a query as <a href="ADODataRecord.html">ADODataRecord</a>s. This is the class you should instantiate after an <a href="ADOConnection.html">ADOConnection</a> was created in order to have access to the connected database.
+<br>
+<br>ADODataSet is a set of <a href="ADODataRecord.html">ADODataRecord</a>s encapsulating various properties like <a href="ADODataSet.CommandText.html">CommandText</a> and <a href="ADODataSet.FieldValues.html">FieldValues</a> and methods like <a href="ADODataSet.ExecuteQuery.html">ExecuteQuery</a> for execution of a SQL query.
+<br>
+</td></tr>
+</table>
+<br />
+<br />
+
+
+<b>Properties:</b><br />
+<table bgcolor="#FFFFFF" width="100%" style="border-style:solid;border-width:1px;border-color:#D0D0D0;">
+
+	   <tr>
+	   	   <td>
+		   	   <a href="ADODataSet.Columns.html">Columns</a>
+		   </td>
+	   	   <td>
+		   	   This is the number of columns in the current row
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="ADODataSet.CommandText.html">CommandText</a>
+		   </td>
+	   	   <td>
+		   	   Using this property you can set the SQL query text
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="ADODataSet.Connection.html">Connection</a>
+		   </td>
+	   	   <td>
+		   	   Sets or gets the <a href="ADOConnection.html">ADOConnection</a> used for this data set
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="ADODataSet.FieldValues.html">FieldValues</a>
+		   </td>
+	   	   <td>
+		   	   With this property you have access to the result of an executed query
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="ADODataSet.IsUpdateQuery.html">IsUpdateQuery</a>
+		   </td>
+	   	   <td>
+		   	   Returns the status of a positional update query (true if updated, false if not)
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="ADODataSet.PreparedQuery.html">PreparedQuery</a>
+		   </td>
+	   	   <td>
+		   	   This property is very similar to the <a href="ADODataSet.CommandText.html">CommandText</a> property, but it takes parameters (for large objects for example)
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="ADODataSet.RowIndex.html">RowIndex</a>
+		   </td>
+	   	   <td>
+		   	   The row index of the current row
+		   </td>
+	   </tr>
+
+</table>
+<br />
+
+
+
+<b>Methods:</b><br />
+<table bgcolor="#FFFFFF" width="100%" style="border-style:solid;border-width:1px;border-color:#D0D0D0;">
+
+	   <tr>
+	   	   <td>
+		   	   <a href="ADODataSet.ADODataSet.html">ADODataSet</a>
+		   </td>
+	   	   <td>
+		   	   This is the standard contructor for this class and should not be used directly
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="ADODataSet.AddLinkedObject.html">AddLinkedObject</a>
+		   </td>
+	   	   <td>
+		   	   Adds an ADO control to the linked objects list
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="ADODataSet.AddParameter.html">AddParameter</a>
+		   </td>
+	   	   <td>
+		   	   Adds a parameter to a prepared SQL query
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="ADODataSet.AfterQueryNotify.html">AfterQueryNotify</a>
+		   </td>
+	   	   <td>
+		   	   Notifies <a href="VirtualADOObject.html">VirtualADOObject</a> derived controls that the current SQL query has changed, and should update their contents
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="ADODataSet.Checked.html">Checked</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="ADODataSet.ClearParameters.html">ClearParameters</a>
+		   </td>
+	   	   <td>
+		   	   Clears all parameters added with the <a href="ADODataSet.AddParameter.html">AddParameter</a> function
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="ADODataSet.CloseRead.html">CloseRead</a>
+		   </td>
+	   	   <td>
+		   	   Closes the current read operation
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="ADODataSet.CountRows.html">CountRows</a>
+		   </td>
+	   	   <td>
+		   	   This function returns the number of rows in the current result
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="ADODataSet.Current.html">Current</a>
+		   </td>
+	   	   <td>
+		   	   Refreshes the current record, is possible
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="ADODataSet.Delete.html">Delete</a>
+		   </td>
+	   	   <td>
+		   	   Performs a positional delete on the current query
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="ADODataSet.ExecuteNonQuery.html">ExecuteNonQuery</a>
+		   </td>
+	   	   <td>
+		   	   This function is similar to the <a href="ADODataSet.ExecuteQuery.html">ExecuteQuery</a> function, but it returns no records
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="ADODataSet.ExecuteQuery.html">ExecuteQuery</a>
+		   </td>
+	   	   <td>
+		   	   It executes the SQL query specified by the <a href="ADODataSet.CommandText.html">CommandText</a> or <a href="ADODataSet.PreparedQuery.html">PreparedQuery</a> property and updates the <a href="ADODataSet.FieldValues.html">FieldValues</a> property
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="ADODataSet.FetchByIndex.html">FetchByIndex</a>
+		   </td>
+	   	   <td>
+		   	   Fetches a row by its index
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="ADODataSet.FetchForward.html">FetchForward</a>
+		   </td>
+	   	   <td>
+		   	   This function should be used only when working with MySQL and tables that contain big text fields
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="ADODataSet.First.html">First</a>
+		   </td>
+	   	   <td>
+		   	   Moves to the first row, if possible
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="ADODataSet.GetValues.html">GetValues</a>
+		   </td>
+	   	   <td>
+		   	   Identical to <a href="ADODataSet.FieldValues.html">FieldValues</a>, if you prefer the functional version
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="ADODataSet.LastError.html">LastError</a>
+		   </td>
+	   	   <td>
+		   	   The last error(s) encountered by the data set, as a string
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="ADODataSet.Next.html">Next</a>
+		   </td>
+	   	   <td>
+		   	   Moves to the next row, if possible
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="ADODataSet.Prev.html">Prev</a>
+		   </td>
+	   	   <td>
+		   	   Moves to the previous row, if possible
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="ADODataSet.Refresh.html">Refresh</a>
+		   </td>
+	   	   <td>
+		   	   Reexecutes the current SQL query
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="ADODataSet.RemoveLinkedObject.html">RemoveLinkedObject</a>
+		   </td>
+	   	   <td>
+		   	   Remove an ADO control to the linked objects list
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="ADODataSet.SetConnection.html">SetConnection</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="ADODataSet.SetPreparedQuery.html">SetPreparedQuery</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="ADODataSet.Text.html">Text</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="ADODataSet.Update.html">Update</a>
+		   </td>
+	   	   <td>
+		   	   Performs a positional update on the current query
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="ADODataSet.UpdateColumnList.html">UpdateColumnList</a>
+		   </td>
+	   	   <td>
+		   	   This function performs list-style operations for <a href="VirtualADOObject.html">VirtualADOObject</a> derived controls
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="ADODataSet.finalize.html">finalize</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+</table>
+<br />
+
+
+
+
+
+
+
+
+<br />
+
+<br />
+<br />
+<!--
+  <p>
+    <a href="http://validator.w3.org/check?uri=referer"><img
+        src="http://www.w3.org/Icons/valid-html40"
+        alt="Valid HTML 4.0 Transitional" height="31" width="88" border="0"></a>
+ <a href="http://jigsaw.w3.org/css-validator/">
+  <img style="border:0;width:88px;height:31px"
+       src="http://jigsaw.w3.org/css-validator/images/vcss" 
+       alt="Valid CSS!" border="0"/>
+ </a>
+</p>
+-->
+<table bgcolor="#F0F0F0" width="100%"><tr><td>Documented by Eduard Suica, generation time: Sun Jan 27 18:15:09 2013
+ GMT</td><td align="right">(c)2013 <a href="http://www.devronium.com">Devronium Applications</a></td></tr></table>
+</body>
+</html>

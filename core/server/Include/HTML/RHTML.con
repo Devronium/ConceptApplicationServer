@@ -1,0 +1,120 @@
+include VisibleRemoteObject.con
+include RImage.con
+include RemoteEvents.con
+include XMLDocument.con
+import standard.lib.str
+
+
+define EVENT_ON_URL		"350"
+define EVENT_ON_IMAGE_REQUEST	"351"
+define EVENT_ON_SUBMIT		"352"
+
+define P_CLEARCACHE             "10001"
+define P_HTSELECTION            "10002"
+
+class RHTML extends VisibleRemoteObject {
+	private var CONTENT="";
+	private var MAGNIFICATION=1;
+	private var img_arr;
+
+	public property Content { get CONTENT, set SetContent }
+	public property Magnification { get MAGNIFICATION, set SetMagnification }
+	public property Selection { get GetSelection }
+
+	//-------- Events ----------------//
+	public property OnUrl { get GetOnUrl, set SetOnUrl }
+	private function GetOnUrl() {
+		return _GET_REMOTE_EVENT(EVENT_ON_URL);
+	}
+
+	private function SetOnUrl(delegate deleg) {
+		return _MAP_REMOTE_EVENT(EVENT_ON_URL, deleg);
+	}
+
+	public property OnImageRequest { get GetImageRequest, set SetImageRequest }
+	private function GetImageRequest() {
+		return _GET_REMOTE_EVENT(EVENT_ON_IMAGE_REQUEST);
+	}
+
+	private function SetImageRequest(delegate deleg) {
+		return _MAP_REMOTE_EVENT(EVENT_ON_IMAGE_REQUEST, deleg);
+	}
+
+	public property OnSubmit { get GetSubmit, set SetSubmit }
+	private function GetSubmit() {
+		return _GET_REMOTE_EVENT(EVENT_ON_SUBMIT);
+	}
+
+	private function SetSubmit(delegate deleg) {
+		return _MAP_REMOTE_EVENT(EVENT_ON_SUBMIT, deleg);
+	}
+	//-------- End of Events ---------//
+
+	public function RHTML(OWNER) {
+		super(OWNER, "1001");
+	}
+
+	private function GetResults(node) {
+		if (!node)
+			return 0;
+
+		do {
+			if (node.Child)
+				GetResults(node.Child);
+
+			var name=ToLower(trim(node.Name));
+			if (name=="img") {
+				var ref_base=trim(node.GetProperty("src"));
+				img_arr[ref_base]=ref_base;
+			}
+			node=node.Next;
+		} while (node);
+	}
+
+	public function GetImages(string content) {
+		var doc=new XMLDocument();
+		doc.LoadHTML(content);
+		img_arr=new [];
+		this.GetResults(doc.Root);
+		return img_arr;
+	}
+
+	public function LoadImages(string extra_path="") {
+		if (!img_arr)
+			return false;
+		var len=length img_arr;
+		for (var i=0;i<len;i++) {
+			var file=img_arr[i];
+			this.Cache(file, ReadFile(extra_path+file));
+		}
+		return true;
+	}
+
+	public function SetContent(argument) {
+		SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_CAPTION,argument);
+		CONTENT=argument;
+		return argument;
+	}
+
+	public function SetMagnification(argument) {
+		SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_RATIO,argument);
+		MAGNIFICATION=argument;
+		return argument;
+	}
+
+	public function JumpToAnchor(szAnchor) {
+		SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_POSITION,szAnchor);
+	}
+
+	public function Cache(element_name, element_content) {
+		SendMessage(REMOTE_ID_STR, MSG_PUT_STREAM, element_name,element_content);
+	}
+
+	public function ClearCache() {
+		SetProperty(P_CLEARCACHE, "0");
+	}
+
+	public function GetSelection() {
+		return GetProperty(P_HTSELECTION);
+	}
+}

@@ -1,0 +1,164 @@
+include XMLDocument.con
+
+import standard.lib.str
+
+class HTMLTrimmer {
+	private var Result="";
+	private var PlainText="";
+	private var LenLeft;
+
+	private var Objects;
+
+	static function Limit(string s, number max_len=50, string after="..") {
+		var len=UTF8Length(s);
+		if (len<=max_len)
+			return s;
+		else {
+			max_len=UTF8Offset(s, max_len);
+			return SubStr(s, 0, max_len)+after;
+		}
+	}
+
+	private function Recursive(node) {
+		var result_text="";
+		if (!node)
+			return result_text;
+		var parent_name=node.Name;
+
+		if (parent_name=="script")
+			return result_text;
+
+		if (parent_name=="object")
+			return result_text;
+
+		if (parent_name=="embed")
+			return result_text;
+
+		var out=false;
+		do {
+			var name=ToLower(trim(node.Name));
+
+			if ((name=="img") || (name=="object") || (name=="embed")) {
+				if (this.Objects>-2) {
+					this.Objects--;
+					if (this.Objects<0) {
+						this.LenLeft=-1;
+						out=true;
+					}
+				}
+				if (name!="img") {
+					var prop_string1="";
+					var properties1=node.Properties;
+					var plen1=length properties1;
+					for (var i1=0;i1<plen1;i1++) {
+						var prop_name1=properties1[i1];
+						if (prop_name1)
+							prop_string1+=" $prop_name1=\"${node.GetProperty(prop_name1)}\"";
+					}
+					result_text+="<$name$prop_string1>";
+					result_text+=trim(this.Recursive(node.Child));
+					result_text+="</$name>";
+				}
+
+			}
+			if (name=="br")
+				this.PlainText+="\n";
+
+
+			if ((!out) && (name!="script") && (name!="embed") && (name!="object") && (name!="comment")) {
+
+				if (node.Child) {
+					if ((name!="text") && (name!="body") && (name!="html")) {
+						var prop_string="";
+						var properties=node.Properties;
+						var plen=length properties;
+						for (var i=0;i<plen;i++) {
+							var prop_name=properties[i];
+							if (prop_name)
+								prop_string+=" $prop_name=\"${node.GetProperty(prop_name)}\"";
+						}
+						result_text+="<$name$prop_string>";
+					}
+
+					result_text+=trim(this.Recursive(node.Child));
+
+					if ((name!="text") && (name!="body") && (name!="html")) {
+						if (name!="text")
+							result_text+="</$name>";
+					}
+
+					if (this.LenLeft<=0) {
+						out=true;
+					}
+				} else
+				if (name!="text") {
+					prop_string="";
+					properties=node.Properties;
+					plen=length properties;
+					for (i=0;i<plen;i++) {
+						prop_name=properties[i];
+						if (prop_name)
+							prop_string+=" $prop_name=\"${node.GetProperty(prop_name)}\"";
+					}
+					result_text+="<$name$prop_string />";
+				}
+
+				if (name=="text") {
+					var internal=trim(node.Content);
+					var len=length internal;
+
+					var len_left=this.LenLeft-len;
+
+					if (len_left<=0) {
+						var max_len=this.LenLeft;
+						if (max_len<=0)
+							max_len=1;
+
+						internal=this.Limit(internal, max_len);
+						this.LenLeft=-1;
+						this.PlainText+=internal;
+						out=true;
+					} else {
+						this.PlainText+=internal;
+						this.LenLeft=len_left;
+					}
+
+					result_text+=" "+internal;
+				}
+			}
+
+			if (this.LenLeft<=0)
+				out=true;
+			if (out)
+				break;
+
+			node=node.Next;
+		} while (node);
+
+
+		return result_text;
+	}
+
+	public function HTMLTrimmer(string content, number max_len, number objects=-2) {
+		Result="";
+		this.Objects=objects;
+		this.LenLeft=max_len;
+
+
+		content=StrReplace(content, "\r","");
+		content=StrReplace(content, "\n"," ");
+
+		var doc=new XMLDocument();
+		doc.LoadHTML(content);
+
+		
+		this.Result=this.Recursive(doc.Root);
+	}
+
+	static function Go(string html, number max_len, objects=-2, return_plain_text=false) {
+		var trimmer=new HTMLTrimmer(html, max_len, objects);
+		if (return_plain_text)
+			return trimmer.PlainText;
+		return trimmer.Result;
+	}
+}

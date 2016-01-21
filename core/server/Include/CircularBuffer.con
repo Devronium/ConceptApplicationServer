@@ -1,0 +1,63 @@
+include ReentrantLock.con
+
+class CircularBuffer {
+	private var MaxBuffers=1000;
+
+	private var[] data;
+	private var index;
+	private var playindex;
+	private var Lock;
+
+	public property Buffers { get MaxBuffers, set SetBuffers }
+
+	CircularBuffer() {
+		Lock = new ReentrantLock();
+	}
+
+	Add(var buffer) {
+		var lock = Lock;
+
+		lock.Lock();
+		if (index>=MaxBuffers)
+			index=0;
+
+		data[index++]=buffer;
+		lock.Unlock();
+	}
+
+	Get(reset_buffer=true) {
+		var lock = Lock;
+
+		lock.Lock();
+		var iterations=0;
+		do {
+			if (playindex>=MaxBuffers)
+				playindex=0;
+
+			var buf = data[playindex];
+			if (reset_buffer)
+				data[playindex]=null;
+			if (!buf) {
+				buf="";
+				break;
+			}
+
+			playindex++;
+
+			//if (!buf)
+			//	index=playindex;
+
+			iterations++;
+		} while ((!buf) && (iterations<MaxBuffers));
+		lock.Unlock();
+		if (!buf)
+			return "";
+		return buf;
+	}
+
+	SetBuffers(number max) {
+		Lock.Lock();
+		MaxBuffers=max;
+		Lock.Unlock();
+	}
+}

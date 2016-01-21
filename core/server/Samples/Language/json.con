@@ -1,0 +1,31 @@
+import standard.lib.json
+
+
+class Test {
+	var x=10;
+	var test="some test !";
+	var arr;
+}
+
+class Main {
+	function Main() {
+		echo JSONSerialize("test");
+		echo "\n";
+		echo JSONSerialize(1.0);
+		echo "\n";
+		echo JSONSerialize([1,2,[1,2],"test"]);
+		echo "\n";
+		var t=new Test();
+		t.arr=[1,"test",1231312];
+		echo JSONSerialize(t);
+		echo "\n";
+		var[] arr2;
+		arr2["test"]="works !";
+		// serialize as object
+		echo JSONSerialize(arr2, true);
+		echo "\n----------------\n";
+		echo JSONDeserialize(JSONSerialize("test"));
+		echo "\n";
+		echo JSONDeserialize(JSONSerialize(t));
+	}
+}

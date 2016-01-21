@@ -1,0 +1,100 @@
+<?xml version="1.0"?>
+<StringTable>
+  <default langid="en"/>
+  <string msgid="Name">
+    <lang id="en">
+Name
+    </lang>
+    <lang id="ro">
+Nume
+    </lang>
+  </string>
+  <string msgid="Surname">
+    <lang id="en">
+Surname
+    </lang>
+    <lang id="ro">
+Prenume
+    </lang>
+  </string>
+  <string msgid="WebKit Concept Test">
+    <lang id="en">
+WebKit Concept Test
+    </lang>
+  </string>
+  <string msgid="gtk-jump-to">
+    <lang id="en">
+gtk-jump-to
+    </lang>
+  </string>
+  <string msgid="Back">
+    <lang id="en">
+Back
+    </lang>
+  </string>
+  <string msgid="Forward">
+    <lang id="en">
+Forward
+    </lang>
+  </string>
+  <string msgid="Refresh">
+    <lang id="en">
+Refresh
+    </lang>
+  </string>
+  <string msgid="Stop">
+    <lang id="en">
+Stop
+    </lang>
+  </string>
+  <string msgid="Home">
+    <lang id="en">
+Home
+    </lang>
+  </string>
+  <string msgid="Add tab">
+    <lang id="en">
+Add tab
+    </lang>
+  </string>
+  <string msgid="Concept WKB">
+    <lang id="en">
+Concept WKB
+    </lang>
+  </string>
+  <string msgid="case sensitive">
+    <lang id="en">
+case sensitive
+    </lang>
+  </string>
+  <string msgid="gtk-go-down">
+    <lang id="en">
+gtk-go-down
+    </lang>
+  </string>
+  <string msgid="gtk-go-up">
+    <lang id="en">
+gtk-go-up
+    </lang>
+  </string>
+  <string msgid="gtk-find">
+    <lang id="en">
+gtk-find
+    </lang>
+  </string>
+  <string msgid="gtk-clear">
+    <lang id="en">
+gtk-clear
+    </lang>
+  </string>
+  <string msgid="gtk-edit">
+    <lang id="en">
+gtk-edit
+    </lang>
+  </string>
+  <string msgid="Print">
+    <lang id="en">
+Print
+    </lang>
+  </string>
+</StringTable>

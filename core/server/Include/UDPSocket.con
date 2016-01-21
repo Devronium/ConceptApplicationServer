@@ -1,0 +1,118 @@
+import standard.net.socket
+
+class UDPSocket {
+	public var Socket=-1;
+	protected var _islisten=false;
+	protected var _ipv6=false;
+
+	public property HasData { get GetHasData }
+	public property Error { get GetError }
+	public property Info { get GetInfo }
+	public property Ipv6 { get _ipv6 }
+
+
+	public function UDPSocket(ipv6=false) {
+		if (ipv6) {
+			Socket=SocketCreate(PROTOCOL_UDP, true);
+			this._ipv6=true;
+		} else
+			Socket=SocketCreate(PROTOCOL_UDP);
+	}
+
+	public function GetInfo() {
+		if (Socket<=0)
+			throw "Invalid socket (GetInfo)";
+		return SocketInfo(Socket);
+	}
+	
+	public function Bind(port, interface="", ipv6=false) {
+		if (Socket<=0)
+			throw "Invalid socket (bind operation)";
+		_islisten=true;
+		if ((ipv6) || (_ipv6))
+			return SocketBindUDP(Socket, port, interface, true);
+		return SocketBindUDP(Socket, port, interface);
+	}
+
+	public function Close(force = false) {
+		if (Socket>0) {
+			if (force)
+				var res=SocketClose(Socket, true);
+			else
+				res=SocketClose(Socket);
+			Socket=-1;
+			_islisten=false;
+			return res;
+		}
+		return 0;
+	}
+
+	public function Read(var udphost=null, var port=null, number max_size=0xFFFF) {
+		udphost = "";
+		port = 0;
+
+		if (Socket<=0)
+			throw "Invalid socket (Read)";
+		if (this._ipv6) {
+			var res=SocketRead(Socket, var buffer, max_size, true, false, udphost, port);
+		} else
+			res=SocketRead(Socket, buffer, max_size, true, false, udphost, port);
+
+		if (res>0)
+			return buffer;
+		else
+		if (res==0)
+			return "";
+		throw "Broken socket (Read)";
+	}
+
+	public function Write(var string buffer, string udphost, number port) {
+		if (Socket<=0)
+			throw "Invalid socket (Write)";
+
+		if (length buffer) {
+			if (this._ipv6)
+				var res=SocketWrite(Socket, buffer, true, udphost, port, true);
+			else
+				res=SocketWrite(Socket, buffer, true, udphost, port);
+			if (res<0)
+				throw "Broken socket (Write)";
+			return res;
+		}
+		return 0;
+	}
+
+	public function GetHasData(var timeout=0) {
+		if (Socket<=0)
+			throw "Invalid socket (GetHasData)";
+		if (timeout<=0)
+			var res=SocketHasData(Socket);
+		else
+			res=SocketHasData(Socket, timeout);
+		if (res<0)
+			throw "Broken socket (GetHasData)";
+		return res;
+	}
+
+	public function GetError() {
+		if (Socket<=0)
+			throw "Invalid socket (GetError)";
+		return SocketError(Socket);
+	}
+
+	public function SetOption(level, opt, val) {
+		if (Socket<=0)
+			throw "Invalid socket (SetOption)";
+		return SocketSetOption(Socket, level, opt, val);
+	}
+
+	public function GetOption(level, opt, var val) {
+		if (Socket<=0)
+			throw "Invalid socket (SetOption)";
+		return SocketGetOption(Socket, level, opt, val);
+	}
+
+	public function finalize() {
+		this.Close();
+	}
+}

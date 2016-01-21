@@ -1,0 +1,39 @@
+import standard.math.gmp
+import standard.C.time
+
+class Main {
+	function Main() {
+		var n=mpz_init();
+		mpz_set_str(n, "1234", 10);
+		//echo mpz_get_str(10, n);
+		var r=gmp_randinit_mt();
+		gmp_randseed_ui(r, time());
+		mpz_urandomb (n, r, 1000);
+		//mpz_random(n, 1);
+		echo mpz_get_str(10, n);
+		mpz_clear(n);
+		echo "\n\n";
+
+		var rt=mpq_init();
+		mpq_set_str(rt, "1/2", 10);
+
+		var rt2=mpq_init();
+		mpq_set_str(rt2, "1/4", 10);
+
+		var sum=mpq_init();
+		mpq_add(sum, rt, rt2);
+
+		echo mpq_get_str(10, sum);
+
+		echo "\n\n";
+		var f=mpf_init();
+		mpf_set_str(f,"123.4", 10);
+		echo "Double: "+mpf_get_d(f)+"\n";
+		echo mpf_get_str(var exp, 10, 20, f);
+		mpf_clear(f);
+		var arr=mpf_inits(10);
+		echo arr;
+		mpf_clears(arr);
+		
+	}
+}

@@ -1,0 +1,524 @@
+include Scintilla/Scintilla.con
+include RButton.con
+include RTextView.con
+include RVBox.con
+include RHBox.con
+include REdit.con
+include RScrolledWindow.con
+include RHPaned.con
+include RVPaned.con
+include Constants.con
+include RTreeView.con
+include RToolbar.con
+include RToolSeparator.con
+include RToolButton.con
+
+import standard.lib.shared
+
+define KEYWORDS			"if else for while do echo return try catch throw break continue new delete class function private public event property set get extends include import triggers var operator typeof classof define length override value this protected this pragma static on off super true false"
+define CHAT_KEY			0xCE2662
+define SHARE_SIZE		0xFFFF
+
+class TeamChatPanel extends RVBox {
+	private var Scintilla;
+	private var Loginbox;
+	private var EditUser;
+	private var LoginButton;
+	public var SendButton;
+	private var scroll_msg;
+	private var memo;
+	private var edit_text;
+	private var share_ctx;
+	private var users_count;
+	private var users_list;
+	private var only_nickname;
+	private var loggedin=false;
+
+	public property Editor { get Scintilla }
+
+	private function NewScintilla(box) {
+		var keywords=KEYWORDS;
+		var tst=new RScintilla(box);
+
+		tst.SciMessage(SCI_STYLECLEARALL,0,0);
+		tst.SciMessage(SCI_SETLEXER, _CUSTOM_MADE_SCLEX_CONCEPT, 0);
+		tst.SciMessage(SCI_SETKEYWORDS, 0, keywords);
+		for (var i=0;i<12;i++) {
+			tst.SciMessage(SCI_STYLESETFONT, i, "Lucida Console");
+			tst.SciMessage(SCI_STYLESETSIZE, i, 10);
+		}
+
+		tst.SciMessage(SCI_CLEARDOCUMENTSTYLE, 0, 0);
+		tst.SciMessage(SCI_SETSTYLEBITS, 7, 0);
+		tst.SciMessage(SCI_SETTABWIDTH,4,0);
+		tst.SciMessage(SCI_SETINDENT,4,0);
+		tst.SciMessage(SCI_SETCARETPERIOD,400,0);
+
+   		tst.SciMessage(SCI_SETPROPERTY, "fold", "1");
+   		tst.SciMessage(SCI_SETPROPERTY, "fold.html", "1");
+   		tst.SciMessage(SCI_SETPROPERTY, "fold.html.preprocessor", "1");
+   		tst.SciMessage(SCI_SETPROPERTY, "fold.comment", "1");
+   		tst.SciMessage(SCI_SETPROPERTY, "fold.at.else", "1");
+   		tst.SciMessage(SCI_SETPROPERTY, "fold.flags", "1");
+   		tst.SciMessage(SCI_SETPROPERTY, "fold.preprocessor", "1");
+   		tst.SciMessage(SCI_SETPROPERTY, "styling.within.preprocessor", "1");
+   		tst.SciMessage(SCI_SETPROPERTY, "asp.default.language", "1");
+		// Tell scintilla to draw folding lines UNDER the folded line
+   		tst.SciMessage(SCI_SETFOLDFLAGS, 16,0);
+		// Set margin 2 = folding margin to display folding symbols
+   		tst.SciMessage(SCI_SETMARGINMASKN, 2, SC_MASK_FOLDERS);
+		tst.SciMessage(SCI_SETMODEVENTMASK, SC_MOD_INSERTTEXT|SC_MOD_DELETETEXT, 0);
+		tst.SciMessage(SCI_SETMARGINSENSITIVEN, 2, true);
+		tst.SciMessage(SCI_SETMARGINSENSITIVEN, 1, true);
+		tst.SciMessage(SCI_MARKERDEFINE, SC_MARKNUM_FOLDEROPEN, SC_MARK_BOXMINUSCONNECTED);
+		tst.SciMessage(SCI_MARKERDEFINE, SC_MARKNUM_FOLDER, SC_MARK_BOXPLUSCONNECTED);
+		tst.SciMessage(SCI_MARKERDEFINE, SC_MARKNUM_FOLDERSUB, SC_MARK_VLINE);
+		tst.SciMessage(SCI_MARKERDEFINE, SC_MARKNUM_FOLDERTAIL, SC_MARK_TCORNER);
+		tst.SciMessage(SCI_MARKERDEFINE, SC_MARKNUM_FOLDEREND, SC_MARK_EMPTY);
+		tst.SciMessage(SCI_MARKERDEFINE, SC_MARKNUM_FOLDEROPENMID, SC_MARK_EMPTY);
+		tst.SciMessage(SCI_MARKERDEFINE, SC_MARKNUM_FOLDERMIDTAIL, SC_MARK_TCORNER);
+
+		tst.SciMessage(SCI_STYLESETFORE, SCE_C_DEFAULT, 0x000000);
+		// comment
+		tst.SciMessage(SCI_STYLESETFORE, SCE_C_COMMENT, 0x008000);
+		tst.SciMessage(SCI_STYLESETFORE, SCE_C_COMMENTLINE, 0x008000);
+		tst.SciMessage(SCI_STYLESETFORE, SCE_C_COMMENTDOC, 0x008000);
+		// keyword
+		tst.SciMessage(SCI_STYLESETFORE, SCE_C_WORD, 0xC80000);
+		// strings
+		tst.SciMessage(SCI_STYLESETFORE, 6, 0x004000);
+   
+		tst.SciMessage(SCI_STYLESETFORE, 9, 0x0000FF);
+		// operators
+		tst.SciMessage(SCI_STYLESETFORE, 10, 0x400080);
+
+		tst.SciMessage(SCI_STYLESETFORE, 11, 0x000000);
+		// set the backgroundcolor of brace highlights
+		tst.SciMessage(SCI_STYLESETBACK, STYLE_BRACELIGHT, 0x00FF00);
+		// set end of line mode to CRLF
+		tst.SciMessage(SCI_CONVERTEOLS, SC_EOL_CRLF, 0);
+		tst.SciMessage(SCI_SETEOLMODE, SC_EOL_CRLF/*2*/, 0);
+
+		// set markersymbol for marker type 0 - bookmark
+		tst.SciMessage(SCI_MARKERDEFINE, 0, SC_MARK_BACKGROUND);
+		tst.SciMessage(SCI_MARKERSETBACK ,0, 0xA0A0FF);
+		tst.SciMessage(SCI_MARKERDEFINE, 1, SC_MARK_CIRCLE);
+		tst.SciMessage(SCI_MARKERSETBACK ,1, 0x0000FF);
+		tst.SciMessage(SCI_MARKERSETFORE,1, 0x0000FF);
+
+		tst.SciMessage(SCI_MARKERSETBACK ,SC_MARKNUM_FOLDEROPEN, 0xF0A0A0);
+		tst.SciMessage(SCI_MARKERSETFORE ,SC_MARKNUM_FOLDEROPEN, 0xFFFFFF);
+		tst.SciMessage(SCI_MARKERSETBACK ,SC_MARKNUM_FOLDER, 0xF0A0A0);
+		tst.SciMessage(SCI_MARKERSETFORE ,SC_MARKNUM_FOLDER, 0xFFFFFF);
+		tst.SciMessage(SCI_MARKERSETBACK ,SC_MARKNUM_FOLDERSUB, 0xF0A0A0);
+		tst.SciMessage(SCI_MARKERSETBACK ,SC_MARKNUM_FOLDERTAIL, 0xF0A0A0);
+		tst.SciMessage(SCI_MARKERSETBACK ,SC_MARKNUM_FOLDERMIDTAIL, 0xF0A0A0);
+
+		tst.SciMessage(SCI_SETFOLDMARGINCOLOUR, 1, 0xFFFFFF);
+		tst.SciMessage(SCI_SETMARGINWIDTHN, 2, 16);
+		tst.SciMessage(SCI_SETMARGINWIDTHN, 1, 16);
+
+		tst.SciMessage(SCI_SETUSETABS,0,0);
+
+		tst.SciMessage(SCI_SETEDGEMODE,1,0);
+		//tst.SciMessage(SCI_SETEDGECOLUMN,80,0);
+
+		tst.SciMessage(SCI_AUTOCSETIGNORECASE,1,0);
+		//var lWidth = tst.SciMessageReturnNumber(SCI_TEXTWIDTH, STYLE_LINENUMBER, "9");
+		var lWidth = 8;//tst.SciMessageReturnNumber(SCI_TEXTWIDTH, STYLE_LINENUMBER, "9");
+
+		tst.SciMessage(SCI_SETMARGINWIDTHN, 0, lWidth*5);
+		tst.SciMessage(SCI_STYLESETBACK, STYLE_LINENUMBER, 0xFFFFFF);
+		tst.SciMessage(SCI_STYLESETFORE, STYLE_LINENUMBER, 0xA0A0A0);
+		tst.SciMessage(SCI_STYLESETBACK, STYLE_CALLTIP, 0xF0FFFF);
+		tst.SciMessage(SCI_STYLESETFORE, STYLE_CALLTIP, 0x000000);
+		tst.SciMessage(SCI_CALLTIPUSESTYLE,0,0);
+		tst.SciMessage(SCI_SETBACKSPACEUNINDENTS, true, 0);
+		tst.SciMessage(SCI_SETINDENTATIONGUIDES, false, 0);
+		tst.SciMessage(SCI_AUTOCSETAUTOHIDE, false, 0);
+		tst.Show();
+		return tst;
+	}
+
+	public function NotifyUsers(data) {
+		var arr=StrSplit(data,",");
+		var cnt=length arr;
+		for (var i=0;i<cnt;i++) {
+			var arr2=&StrSplit(arr[i],"@");
+			var username=arr2[0];
+			var apid=value arr2[1];
+			users_list.AddItem([username, apid, ""]);
+			SendAPMessage(apid,0x201,only_nickname);
+		}
+		//SendAPMessage(null,0x201,only_nickname);
+	}
+
+	public function LoginClick(Sender, EventData) {
+		loggedin=true;
+		var text=EditUser.Text;
+		if (text=="")
+			text="Lazy Programmer";
+		else
+			text=StrReplace(text,"@","at");
+		only_nickname=text;
+		text+="@";
+		var apid=GetAPID();
+		text+=apid;
+		var nickname=text;
+
+		share_ctx=share_create(CHAT_KEY,SHARE_SIZE);
+
+		if (share_ctx) {
+			Loginbox.Hide();
+			share_lock(share_ctx);
+			var users=share_get(share_ctx);
+			NotifyUsers(users);
+			if (length users > 0)
+				users+=",";
+
+			users+=text;
+			share_set(share_ctx,users);
+			share_unlock(share_ctx);
+			users_count=share_link_count(share_ctx);
+			memo.AddStyledText("Welcome to Concept Team Chat !\nThere are $users_count users on-line.\n\nYou are logged in as '$nickname'\n\n","text");
+
+			users_list.AddItem([only_nickname,apid, ""]);
+		}
+		edit_text.GrabFocus();
+	}
+
+	public function PutDoubleText(text1,style1,text2,style2) {
+		var must_scroll=false;
+		var vadj=scroll_msg.VAdjustment;
+		if (vadj.Value==vadj.Upper-vadj.PageSize)
+			must_scroll=true;
+		memo.AddStyledText(text1,style1);
+		memo.AddStyledText(text2,style2);
+		if (must_scroll)
+			vadj.Value=vadj.Upper-vadj.PageSize;
+	}
+
+	public function PutText(text,style) {
+		var must_scroll=false;
+		var vadj=scroll_msg.VAdjustment;
+		if (vadj.Value==vadj.Upper-vadj.PageSize)
+			must_scroll=true;
+		memo.AddStyledText(text,style);
+		if (must_scroll)
+			vadj.Value=vadj.Upper-vadj.PageSize;
+	}
+
+	public function JoinUser(Username, APID) {
+		users_list.AddItem([Username, APID]);
+		PutText("$Username@$APID has joined this chat.\n","notice");
+		return 0;
+	}
+
+	public function LeaveUser(APID) {
+		var items=users_list.Items;
+		var items_cnt=users_list.Items.Count;
+		for (var i=0;i<items_cnt;i++) {
+			var row=&items[i];
+			if (row[1]==APID) {
+				PutText("${row[0]}@$APID is leaving.\n","notice");
+				users_list.DeleteItem(i);
+				break;
+			}
+		}
+	}
+
+	public function AddMessage(APID, text) {
+		var items=users_list.Items;
+		var items_cnt=users_list.Items.Count;
+		for (var i=0;i<items_cnt;i++) {
+			var row=&items[i];
+			if (row[1]==APID) {
+				var style="otheruser";
+				if (APID==GetAPID())
+					style="myuser";
+
+				BeginUpdateSession();
+				PutDoubleText(""+row[0]+"@"+row[1]+": ",style, text+"\n", "text");
+				EndUpdateSession();
+				return 1;
+			}
+		}
+		PutText("UnknownUser@$APID: ","otheruser");
+		PutText(text+"\n", "text");
+		return 0;
+	}
+
+
+	public function SendChatMessage(text) {
+		if (text=="")
+			return 0;
+		var items=users_list.Items;
+		var items_cnt=users_list.Items.Count;
+		for (var i=0;i<items_cnt;i++) {
+			var row=&items[i];
+			SendAPMessage(row[1],0x200,text);
+		}
+	}
+
+	public function CloseClicked(Sender, EventData) {
+		Hide();
+	}
+	
+	private function AddToolSeparator(toolbar) {
+		var toolsep=new RToolSeparator(toolbar);
+		toolsep.Show();
+	}
+
+	private function AddToolItem(hint,icon,toolbar,deleg) {
+		var toolbutton=new RToolButton(toolbar);
+		toolbutton.LoadStockIcon2(icon,ICON_SIZE_SMALL_TOOLBAR);
+		toolbutton.MinWidth=35;
+		toolbutton.MinHeight=35;
+		toolbutton.Tooltip=hint;
+		toolbutton.OnClicked=deleg;
+		toolbutton.Show();
+	}
+
+	public function RemoveUser(data) {
+		var arr=StrSplit(data,",");
+		var cnt=length arr;
+		var my_nick=only_nickname;
+		var content="";
+		var first=1;
+		for (var i=0;i<cnt;i++) {
+			var arr2=&StrSplit(arr[i],"@");
+			var username=arr2[0];
+			var apid=value arr2[1];
+			if (username!=my_nick) {
+				if (!first) {
+					content+=",";
+				} else
+					first=0;
+				content+=arr2[0]+"@"+arr2[1];
+			}
+		}
+		return content;
+	}
+
+	public function ThisHide(Sender=null, EventData="") {
+		if (loggedin) {
+			var items=users_list.Items;
+			var items_cnt=users_list.Items.Count;
+			for (var i=0;i<items_cnt;i++) {
+				var row=&items[i];
+				SendAPMessage(row[1],0x202,"");
+			}
+			share_lock(share_ctx);
+			share_set(share_ctx,RemoveUser(share_get(share_ctx)));
+			share_unlock(share_ctx);
+			share_done(share_ctx);
+			share_ctx=0;
+			users_count=0;
+			users_list.Clear();
+			//SendAPMessage(null,0x202,"");
+		}
+		only_nickname="";
+		Loginbox.Show();
+	}
+
+	public function SendClick(Sender, EventData) {
+		if (!Loginbox.Visible) {
+			SendChatMessage(edit_text.Text);
+			edit_text.Text="";
+		}
+	}
+
+	public function SyncToAll(text) {
+		//SendAPMessage(null,0x203,text);
+		var items=users_list.Items;
+		var items_cnt=users_list.Items.Count;
+		for (var i=0;i<items_cnt;i++) {
+			var row=&items[i];
+			SendAPMessage(row[1],0x203,text);
+		}
+	}
+
+	public function Sync(APID, text) {
+		if (APID==GetAPID()) {
+			PutText("Code snippet successfuly posted.\n","notice");
+			return 1;
+		}
+		Scintilla.Text=text;
+
+		var items=users_list.Items;
+		var items_cnt=users_list.Items.Count;
+		for (var i=0;i<items_cnt;i++) {
+			var row=&items[i];
+			if (row[1]==APID) {
+				PutText("Code snippet received from "+row[0]+"@"+row[1]+"\n","notice");
+				return 1;
+			}
+		}
+		PutText("Code snippet received from UnknownUser@$APID\n","notice");
+	}
+
+	public function SyncClick(Sender, EventData) {
+		if (!Loginbox.Visible) {
+			SyncToAll(Scintilla.Text);
+		}
+	}
+
+	public function ChangeStatus(status) {
+		if (Loginbox.Visible)
+			return 0;
+
+		//SendAPMessage(null,0x204,status);
+		var items=users_list.Items;
+		var items_cnt=users_list.Items.Count;
+		for (var i=0;i<items_cnt;i++) {
+			var row=&items[i];
+			SendAPMessage(row[1],0x204,status);
+		}
+	}
+
+	public function StatusChanged(APID, text) {
+		var items=users_list.Items;
+		var items_cnt=users_list.Items.Count;
+		for (var i=0;i<items_cnt;i++) {
+			var row=&items[i];
+			if (row[1]==APID) {
+				//PutText(""+row[0]+"@"+row[1]+" is now '$text'\n","notice");
+				row[2]=text;
+				users_list.UpdateItem(i,row);
+				return 1;
+			}
+		}
+		//PutText("UnknownUser@$APID is now '$text'\n","notice");
+		return 0;
+	}
+
+	function finalize() {
+		ThisHide();
+	}
+
+	public function TeamChatPanel(Owner) {
+		super(Owner);
+		BeginUpdateSession();
+		OnHide=ThisHide;
+
+		PackType=PACK_SHRINK;
+		echo "TeamChat: Initializing GUI ...\n";
+
+		/*var toolbar=new RToolbar(this);
+		toolbar.Style=TOOLBAR_ICONS;
+		toolbar.Tooltips=true;
+
+		AddToolItem("Close chat", CLOSE, toolbar, CloseClicked);
+		AddToolSeparator(toolbar);
+
+		toolbar.Show();*/
+
+		echo "TeamChat: Initializing login system ...\n";
+
+		Loginbox=new RHBox(this);
+		Loginbox.PackType=PACK_SHRINK;
+
+		EditUser=new REdit(Loginbox);
+		EditUser.Tooltip="Enter here your name";
+		EditUser.OnActivate=LoginClick;
+		EditUser.Show();
+
+		LoginButton=new RButton(Loginbox);
+		LoginButton.Caption="_Join discussion";
+		LoginButton.OnClicked=LoginClick;
+		LoginButton.Show();
+		
+		Loginbox.Show();
+		PackType=PACK_EXPAND_WIDGET;
+		var paned=new RHPaned(this);
+
+		paned.PackType=PACK_EXPAND_WIDGET;
+		scroll_msg=new RScrolledWindow(paned);
+		scroll_msg.HScrollPolicy=POLICY_AUTOMATIC;
+		scroll_msg.VScrollPolicy=POLICY_AUTOMATIC;
+
+		echo "TeamChat: Initializing views ...\n";
+		paned.PackType=PACK_SHRINK;
+		memo=new RTextView(scroll_msg);
+		memo.ReadOnly=true;
+		memo.CursorVisible=false;
+		memo.Tooltip="Messages";
+		memo.Wrap=true;
+
+
+		echo "TeamChat: creating styles ...\n";
+
+		var style0=memo.CreateStyle("text");
+		style0.FontName="arial 10";
+		style0.ForeColor=0x000000;
+
+		var style1=memo.CreateStyle("myuser");
+		style1.FontName="arial bold 10";
+		style1.ForeColor=0x0000A0;
+
+		var style2=memo.CreateStyle("otheruser");
+		style2.FontName="arial bold 10";
+		style2.ForeColor=0x000000;
+
+		var style3=memo.CreateStyle("notice");
+		style3.FontName="arial 10";
+		style3.ForeColor=0x008000;
+
+		memo.Show();
+		scroll_msg.Show();
+		
+		var vbox2=new RVPaned(paned);
+		vbox2.PackType=PACK_EXPAND_WIDGET;
+
+		var vbox3=new RVBox(vbox2);
+		vbox3.PackType=PACK_EXPAND_WIDGET;
+
+		echo "TeamChat: creating scintilla ...\n";
+		Scintilla=NewScintilla(vbox3);
+
+		vbox3.PackType=PACK_SHRINK;
+		var syncbutton=new RButton(vbox3);
+		syncbutton.Caption="_Post source code";
+		syncbutton.OnClicked=SyncClick;
+		syncbutton.Show();
+
+		vbox3.Show();
+
+		var scroll_users=new RScrolledWindow(vbox2);
+		scroll_users.HScrollPolicy=POLICY_AUTOMATIC;
+		scroll_users.VScrollPolicy=POLICY_AUTOMATIC;
+
+		echo "TeamChat: creating users list ...\n";
+		users_list=new RTreeView(scroll_users);
+		users_list.Model=MODEL_LISTVIEW;
+		users_list.AddColumn("Username",NORMAL_COLUMN);
+		users_list.AddColumn("APID",NORMAL_COLUMN);
+		users_list.AddColumn("Status",NORMAL_COLUMN);
+		users_list.Show();
+		scroll_users.Show();
+
+		vbox2.Show();
+
+		PackType=PACK_SHRINK;
+
+		var hbox2=new RHBox(this);
+
+		echo "TeamChat: finalizing ...\n";
+		hbox2.PackType=PACK_EXPAND_WIDGET;
+		edit_text=new REdit(hbox2);
+		edit_text.OnActivate=SendClick;
+		edit_text.Show();
+		hbox2.PackType=PACK_SHRINK;
+		SendButton=new RButton(hbox2);
+		SendButton.Caption="_Send";
+		SendButton.OnClicked=SendClick;
+		SendButton.Show();
+
+		hbox2.Show();
+
+		paned.Show();
+		EndUpdateSession();
+		echo "TeamChat: Team chat ready to go ...\n";
+	}
+
+}

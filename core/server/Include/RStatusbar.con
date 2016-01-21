@@ -1,0 +1,15 @@
+include RBox.con
+include ClassID.con
+
+class RStatusbar extends RBox {
+	private var CAPTION;
+	public property Caption { get CAPTION, set SetCaption }
+
+	public function SetCaption(caption) {
+		return SetProperty(P_CAPTION,this.CAPTION=caption);
+	}
+
+	public function RStatusbar(OWNER) {
+		super(OWNER, CLASS_STATUSBAR);
+	}
+}

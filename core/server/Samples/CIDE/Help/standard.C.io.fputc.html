@@ -1,0 +1,125 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+  <title>standard.C.io.fputc</title>
+  <link href="css/style.css" rel="stylesheet" type="text/css">
+  <meta http-equiv="Content-Type" content="text/html;charset=utf-8" >
+</head>
+<body bgcolor="#ffffff">
+<table border="0" width="100%" bgcolor="#F0F0FF">
+  <tr>
+    <td>Concept Framework 2.2 documentation</td>
+  	<td align="right"><a href="index.html">Contents</a> | <a href="index_fun.html">Index</a></td>
+  </tr>
+</table>
+<h2><a href="standard.C.io.html">standard.C.io</a>.fputc</h2>
+<table border="0" cellspacing="0" cellpadding="0" width="500" style="border-style:solid;border-width:1px;border-color:#D0D0D0;">
+  <tr bgcolor="#f0f0f0">
+     <td><i>Name</i></td>
+     <td><i>Version</i></td>
+     <td><i>Deprecated</i></td>
+  </tr>
+  <tr bgcolor="#fafafa">
+     <td><b>fputc</b></td>
+     <td>version 1.0</td>
+     <td>no</td>
+  </tr>
+</table>
+<br />
+<b>Prototype:</b><br />
+	<table bgcolor="#F0F0F0" width="100%" style="border-style:solid;border-width:1px;border-color:#D0D0D0;"><tr><td><b>string fputc(string ch, number fd) </b></td></tr></table>
+<br />
+
+<b>Parameters:</b><br />
+<table bgcolor="#FFFFFF" style="border-style:solid;border-width:1px;border-color:#D0D0D0;">
+
+	   <tr>
+	   	   <td>
+		   	   <i>ch</i>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+		   </td>
+	   	   <td>
+		   	   [in] Character to be written
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <i>fd</i>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+		   </td>
+	   	   <td>
+		   	   [in] A valid file descriptor
+		   </td>
+	   </tr>
+
+</table>
+
+<br />
+<b>Description:</b><br />
+<table width="100%" bgcolor="#FAFAFF" style="border-style:solid;border-width:1px;border-color:#D0D0D0;">
+<tr><td>
+fputc writes the single character ch to a file at the position indicated by the associated file position indicator (if defined) and advances the indicator as appropriate; the file is associated with fd. If the file cannot support positioning requests or was opened in append mode, the character is appended to the end of the stream.
+</td></tr>
+</table>
+<br />
+
+<b>Example:</b>
+<table bgcolor="#F0F0FF" width="100%"  style="border-style:solid;border-width:1px;border-color:#D0D0D0;"><tr><td>
+<font color="#101060"><pre>import standard.C.io
+
+define FILENAME "test.txt"
+
+class Main {
+     function Main() {
+          var fd; 
+          var ch;
+          var i;
+          var buffer = "Test of fputc\n"; 
+
+          // Open file for write 
+          if (fd = fopen(FILENAME, "w")) { 
+               // Print line to stream using fputc
+               ch = buffer[0];
+               i = 0;
+               while (ch) {
+                    fputc(ch, fd);
+                    i++;
+                    ch = buffer[i];
+               }
+
+               freopen(FILENAME, "r", fd);
+               buffer = "";
+               fread(buffer, 1, 15, fd);
+
+               echo "$buffer\n";
+               fclose(fd);
+          } else
+               echo "Problem opening the file\n"; 
+     }
+}  
+
+Results 
+Test of fputc  
+</pre></font>
+</td></tr></table>
+<br />
+
+<b>Returns:</b><br />
+fputc returns the written character.
+<br />
+<br />
+<!--
+  <p>
+    <a href="http://validator.w3.org/check?uri=referer"><img
+        src="http://www.w3.org/Icons/valid-html40"
+        alt="Valid HTML 4.0 Transitional" height="31" width="88" border="0"></a>
+ <a href="http://jigsaw.w3.org/css-validator/">
+  <img style="border:0;width:88px;height:31px"
+       src="http://jigsaw.w3.org/css-validator/images/vcss" 
+       alt="Valid CSS!" border="0"/>
+ </a>
+</p>
+-->
+<table bgcolor="#F0F0F0" width="100%"><tr><td>Documented by Simona Plesuvu, generation time: Sun Jan 27 18:15:16 2013
+ GMT</td><td align="right">(c)2013 <a href="http://www.devronium.com">Devronium Applications</a></td></tr></table>
+</body>
+</html>

@@ -1,0 +1,221 @@
+include RemoteContainer.con
+include ClassID.con
+include RemoteEvents.con
+include RemoteProperties.con
+include RemoteMessages.con
+
+define POS_LEFT		0
+define POS_RIGHT	1
+define POS_TOP		2
+define POS_BOTTOM	3
+
+class __RNOTEBOOKPages {
+	private var owner;
+	private var ctrl;
+	private var text="";
+	private var header;
+
+	public property Caption { get text, set SetCaption }
+	public property Header { get header, set SetHeader }
+	public property Page { get ctrl }
+
+	function __RNOTEBOOKPages(OWNER,CTRL) {
+		owner=OWNER;
+		ctrl=CTRL;
+	}
+
+	public function SetCaption(caption) {
+		text=caption;
+		// MSG_CUSTOM_MESSAGE1 sets by index, CUSTOM_MESSAGE2 by control
+		SendMessage(""+owner.RID,MSG_CUSTOM_MESSAGE2,""+ctrl.RID,caption);
+		return caption;
+	}
+
+	public function SetHeader(RemoteObject header_object) {
+		/*if (typeof header_object!="class")
+			throw "header_object should be an RemoteObject descendant object";*/
+
+		if (header)
+			header_object.LinkIfNotLinked(owner);
+
+		header=header_object;
+		// MSG_CUSTOM_MESSAGE3 sets by index, CUSTOM_MESSAGE4 by control
+		if (header)
+			SendMessage(""+owner.RID,MSG_CUSTOM_MESSAGE4,""+ctrl.RID,header_object.RID);
+		else
+			SendMessage(""+owner.RID,MSG_CUSTOM_MESSAGE4,""+ctrl.RID,-1);
+		return header;
+	}
+
+	public function __PrepareDispose() {
+		delete owner;
+		delete ctrl;
+	}
+
+	public function DisposeObject(clean_child=true) {
+		delete owner;
+		ctrl.DisposeObject(clean_child);
+	}
+}
+
+class RNotebook extends RemoteContainer {
+	protected var HOMOGENEOUS;
+	protected var PAGE;
+	protected var SCROLLABLE;
+	protected var SHOWBORDER;
+	protected var SHOWTABS;
+	protected var TABBORDER;
+	protected var TABPOS;
+	protected var VERTICALBORDER;
+	protected var HORIZONTALBORDER;
+	protected var ACTIVECONTROLSTART;
+	protected var ACTIVECONTROLEND;
+
+	
+	public property Homogeneous { get HOMOGENEOUS, set SetHomogeneous }
+	public property Pages { get CHILDS }
+	public property PageIndex { get GetPageIndex, set SetPageIndex }
+	public property Scrollable { get SCROLLABLE, set SetScrollable }
+	public property ShowBorder { get SHOWBORDER, set SetShowBorder }
+	public property ShowTabs { get SHOWTABS, set SetShowTabs }
+	public property TabBorder { get TABBORDER, set SetTabBorder }
+	public property TabPos { get TABPOS, set SetTabPos }
+	public property VerticalTabBorder { get VERTICALBORDER, set SetVerticalTabBorder }
+	public property HorizontalTabBorder { get HORIZONTALBORDER, set SetHorizontalTabBorder }
+	public property ActiveControlStart { get ACTIVECONTROLSTART, set SetActiveControlStart }
+	public property ActiveControlEnd { get ACTIVECONTROLEND, set SetActiveControlEnd }
+
+	//----------- EVENTS ----------------------------------------------------//	
+	public property OnSwitchPage { get GetOnSwitchPage, set SetOnSwitchPage }
+	public function GetOnSwitchPage() {
+		return _GET_REMOTE_EVENT(EVENT_ON_SWITCHPAGE);
+	}
+
+	public function SetOnSwitchPage(var delegate deleg) {
+		return _MAP_REMOTE_EVENT(EVENT_ON_SWITCHPAGE, deleg);
+	}
+	//-----------------------------------------------------------------------//	
+	
+	public function RNotebook(OWNER) {
+		super(OWNER, CLASS_NOTEBOOK);
+	}
+
+	public function SetActiveControlStart(obj) {
+		if (typeof obj!="class")
+			obj=null;
+		if (obj) {
+			obj.LinkIfNotLinked(this);
+			this.SetProperty(P_ACTIONWIDGETSTART, obj.RID);
+		} else
+			this.SetProperty(P_ACTIONWIDGETSTART, obj);
+		this.ACTIVECONTROLSTART=obj;
+		return obj;
+	}
+
+	public function SetActiveControlEnd(obj) {
+		if (typeof obj!="class")
+			obj=null;
+		if (obj) {
+			obj.LinkIfNotLinked(this);
+			this.SetProperty(P_ACTIONWIDGETEND, obj.RID);
+		} else
+			this.SetProperty(P_ACTIONWIDGETEND, obj);
+		this.ACTIVECONTROLEND=obj;
+		return obj;
+	}
+
+	public function SetTabBorder(argument) {
+		SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_TABBORDER,argument);
+		TABBORDER=argument;
+		return argument;
+	}
+
+	public function SetVerticalTabBorder(argument) {
+		SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_VERTICALBORDER,argument);
+		VERTICALBORDER=argument;
+		return argument;
+	}
+
+	public function SetHorizontalTabBorder(argument) {
+		SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_HORIZONTALBORDER,argument);
+		HORIZONTALBORDER=argument;
+		return argument;
+	}
+
+	public function SetTabPos(argument) {
+		SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_TABPOS,argument);
+		TABPOS=argument;
+		return argument;
+	}
+
+	public function SetPageIndex(argument) {
+		SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_PAGE,argument);
+		PAGE=argument;
+		return argument;
+	}
+
+	public function GetPageIndex() {
+		return value GetProperty(P_PAGE);
+	}
+
+	public function SetScrollable(argument) {
+		SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_SCROLLABLE,argument);
+		SCROLLABLE=argument;
+		return argument;
+	}
+
+	public function SetShowBorder(argument) {
+		SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_SHOWBORDER,argument);
+		SHOWBORDER=argument;
+		return argument;
+	}
+
+	public function SetShowTabs(argument) {
+		SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_SHOWTABS,argument);
+		SHOWTABS=argument;
+		return argument;
+	}
+
+	public function SetHomogeneous(argument) {
+		SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_HOMOGENEOUS,argument);
+		HOMOGENEOUS=argument;
+		return argument;
+	}
+
+	// we need to override the Add function defined in RemoteContainer
+	override Add;
+	public function Add(child) {
+		// CHILDS is protected ...
+		CHILDS[length CHILDS]=new __RNOTEBOOKPages(this,child);
+		return child;
+	}
+
+	override __QueryDispose;
+	public function __QueryDispose(object mobj) {
+		var rRID=mobj.RID;
+		var len=length CHILDS;
+
+		var childptr=CHILDS;
+		delete CHILDS;
+		var childptr_new=new [];
+
+		var index=0;
+		var not_set=true;
+		for (var i=0;i<len;i++) {
+			var child=&childptr[i];
+			if (child) {
+				var child2=&child.Page;
+				if (child2) {
+					if ((not_set) && (rRID==child2.RID)) {
+						child.__PrepareDispose();
+						delete childptr[i];
+						not_set=false;
+					} else {
+						childptr_new[index++]=childptr[i];
+					}
+				}
+			}
+		}
+		CHILDS=&childptr_new;
+	}
+}

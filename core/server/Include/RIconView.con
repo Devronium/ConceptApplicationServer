@@ -1,0 +1,357 @@
+include RemoteContainer.con
+include ClassID.con
+include RemoteProperties.con
+include RemoteEvents.con
+include MultiItems.con
+include RTreeView.con
+
+define HIDDEN_COLUMN	0
+define NORMAL_COLUMN    1
+//define PERCENT_COLUMN	2
+define IMAGE_COLUMN     5
+define MARKUP_COLUMN    7
+
+
+define ORIENTATION_HORIZONTAL	0
+define ORIENTATION_VERTICAL	1
+
+class RIconView extends RemoteContainer {
+	protected var ITEMS;
+	private var _BORDER=0;
+	private var _SORTED=0;
+	private var _SORTCOLUMN=0;
+	private var _DESCENDING=0;
+	private var _IMAGECOLUMN=-1;
+	private var _MARKUPCOLUMN=-1;
+	private var _TEXTCOLUMN=-1;
+	private var _ITEMWIDTH=-1;
+	private var _SPACING=-1;
+	private var _ROWSPACING=-1;
+	private var _ORIENTATION=-1;
+	private var _REORDABLE=0;
+	private var _MULTIPLESELECTION=false;
+	private var _COLUMNS=-1;
+	private var _TOOLTIPCOLUMN=-1;
+
+	public property ImageColumn { get _IMAGECOLUMN, set SetImageColumn }
+	public property MarkupColumn { get _MARKUPCOLUMN, set SetMarkupColumn }
+	public property TextColumn { get _TEXTCOLUMN, set SetTextColumn }
+	public property TooltipColumn { get _TOOLTIPCOLUMN, set SetTooltipColumn }
+
+	public property Columns { get _COLUMNS, set SetColumns }
+	public property ItemWidth { get _ITEMWIDTH, set SetItemWidth }
+
+	public property Spacing { get _SPACING, set SetSpacing }
+	public property RowSpacing { get _ROWSPACING, set SetRowSpacing }
+
+	public property MultipleSelection { get _MULTIPLESELECTION, set SetMultipleSelection }
+	public property Reorderable { get _REORDABLE, set SetReorderable }
+	public property Orientation { get _ORIENTATION, set SetOrientation }
+	public property Items { get ITEMS }
+	public property Path { get GetPath, set SetPath }
+	public property RowIndex { get GetRowIndex, set SetPath }
+	public property Border { get _BORDER, set SetBorder }
+	public property Sorted { get _SORTED, set SetSorted }
+	public property SortColumn { get _SORTCOLUMN, set SetSortColumn }
+	public property SortDescending { get _DESCENDING, set SetSortDescending }
+
+	public property Selected { get GetSelected }
+
+	// ------------------------- EVENTS ---------------------------------- //
+	public property OnSelectionChanged { get GetOnSelectionChanged, set SetOnSelectionChanged }
+	public function GetOnSelectionChanged() {
+		return _GET_REMOTE_EVENT(EVENT_ON_CHANGED);
+	}
+
+	public function SetOnSelectionChanged(delegate deleg) {
+		return _MAP_REMOTE_EVENT(EVENT_ON_CHANGED, deleg);
+	}
+
+	public property OnSetScrollAdjustments { get GetOnSetScrollAdjustments, set SetOnSetScrollAdjustments }
+	public function GetOnSetScrollAdjustments() {
+		return _GET_REMOTE_EVENT(EVENT_ON_SETSCROLLADJUSTMENTS);
+	}
+
+	public function SetOnSetScrollAdjustments(var delegate _delegate) {
+		return _MAP_REMOTE_EVENT(EVENT_ON_SETSCROLLADJUSTMENTS, _delegate);
+	}
+
+	public property OnItemActivated { get GetOnItemActivated, set SetOnItemActivated }
+	public function GetOnItemActivated() {
+		return _GET_REMOTE_EVENT(EVENT_ON_ROWACTIVATED);
+	}
+
+	public function SetOnItemActivated(var delegate _delegate) {
+		return _MAP_REMOTE_EVENT(EVENT_ON_ROWACTIVATED, _delegate);
+	}
+	// ------------------------------------------------------------------- //
+	public function FindByData(data) {
+		var cnt=ITEMS.Count;
+		for (var i=0;i<cnt;i++) {
+			if (ITEMS.Content[i].ITEM_DATA==data)
+				return i;
+		}
+		return -1;
+	}
+
+	public function SetBorder(number argument) {
+		return _BORDER=SetProperty(P_BORDER, argument);
+	}
+
+	public function SetColumns(number argument) {
+		return _COLUMNS=SetProperty(P_COLUMNS, argument);
+	}
+
+	public function SetItemWidth(number argument) {
+		return _ITEMWIDTH=SetProperty(P_ITEMWIDTH, argument);
+	}
+
+	public function SetSpacing(number argument) {
+		return _SPACING=SetProperty(P_SPACING, argument);
+	}
+
+	public function SetRowSpacing(number argument) {
+		return _ROWSPACING=SetProperty(P_ROWSPACING, argument);
+	}
+
+
+	public function SetImageColumn(number argument) {
+		return _IMAGECOLUMN=SetProperty(P_IMAGECOLUMN, argument);
+	}
+
+	public function SetTextColumn(number argument) {
+		return _TEXTCOLUMN=SetProperty(P_TEXTCOLUMN, argument);
+	}
+
+	public function SetTooltipColumn(number argument) {
+		return _TOOLTIPCOLUMN=SetProperty(P_TOOLTIPCOLUMN, argument);
+	}
+
+	public function SetMarkupColumn(number argument) {
+		return _MARKUPCOLUMN=SetProperty(P_MARKUPCOLUMN, argument);
+	}
+
+	public function GetPath() {
+		return GetProperty(P_CURSOR);
+	}
+
+	public function GetRowIndex() {
+		return value GetProperty(P_CURSOR);
+	}
+
+	public function SetPath(argument) {
+		return SetProperty(P_CURSOR, argument);
+	}
+
+
+	public function AddColumns(count,type=NORMAL_COLUMN) {
+		return Send(MSG_CUSTOM_MESSAGE1, ""+type, count);
+	}
+
+	public function AddColumn(string column_name="",type=NORMAL_COLUMN) {
+		return Send(MSG_CUSTOM_MESSAGE1, ""+type, 1);
+	}
+
+
+	public function UpdateItem(position, item) {
+		if (typeof position=="numeric") {
+			var count=ITEMS.GetCount();
+			if ((position<0) || (position>=count))
+				return -1;
+		}
+
+		if (_SORTED) {
+			this.DeleteItem(position);
+			return this.AddItem(item);
+		}
+
+		var type=typeof item;
+		if (type=="array") {
+			var len=length item;
+
+			for (var i=0;i<len;i++) {
+				var it=&item[i];
+				if (typeof it!="class")
+					Send(MSG_CUSTOM_MESSAGE3,0,it);
+				else
+					Send(MSG_CUSTOM_MESSAGE3,0,it.RID);
+
+			}
+
+		} else {
+			if (typeof item!="class")
+				Send(MSG_CUSTOM_MESSAGE3,0,item);
+			else
+				Send(MSG_CUSTOM_MESSAGE3,0,item.RID);
+		}
+
+		if (typeof position=="array") {
+			ITEMS.Update(position, item);
+			position=RTreeView::PathToStr(position);
+		} else
+		if (typeof position=="numeric")
+			ITEMS.Update([position],item);
+
+		Send(MSG_CUSTOM_MESSAGE6, 0, position);
+		return position;
+	}
+
+	private function __AddItem(item) {
+		var type=typeof item;
+		if (type=="array") {
+			var len=length item;
+
+			for (var i=0;i<len;i++) {
+				if (typeof item[i] != "class")
+					Send(MSG_CUSTOM_MESSAGE3,0,item[i]);
+				else
+					Send(MSG_CUSTOM_MESSAGE3,0,item[i].RID);
+			}
+
+		} else {
+			if (typeof item != "class")
+				Send(MSG_CUSTOM_MESSAGE3,0,item);
+			else
+				Send(MSG_CUSTOM_MESSAGE3,0,item.RID);
+		}
+
+		ITEMS.Add(item);
+		return Send(MSG_CUSTOM_MESSAGE2, 0, -1);
+	}
+
+	public function AddItem(item) {
+		if ((_SORTED) && (ITEMS.GetCount())) {
+			return this.InsertItem(0,item);
+		}
+		return __AddItem(item);
+	}
+
+	public function DeleteItem(item_index) {
+		ITEMS.Delete(item_index);
+		return Send(MSG_CUSTOM_MESSAGE2, 2, item_index);
+	}
+
+	public function Clear() {
+		if (ITEMS.GetCount()) {
+			ITEMS.Clear();
+			return Send(MSG_CUSTOM_MESSAGE2, 1, 0);
+		}
+	}
+
+	public function ClearItemsColumns() {
+		return Send(MSG_CUSTOM_MESSAGE2, 3, 0);
+	}
+
+
+	public function InsertItem(position, item) {
+		if (_SORTED)
+			position=MultiItems::FindSortedPlace(ITEMS.Content, _SORTCOLUMN, item, !_DESCENDING);
+
+		if (typeof position=="numeric") {
+			var count=ITEMS.GetCount();
+			if ((position<0) || (position>=count))
+				return __AddItem(item);
+		}
+	
+
+		var type=typeof item;
+		if (type=="array") {
+			var len=length item;
+
+			for (var i=0;i<len;i++) {
+				if (typeof item[i] != "class")
+					Send(MSG_CUSTOM_MESSAGE3,0,item[i]);
+				else
+					Send(MSG_CUSTOM_MESSAGE3,0,item[i].RID);
+			}
+		} else {
+			if (typeof item != "class")
+				Send(MSG_CUSTOM_MESSAGE3,0,item);
+			else
+				Send(MSG_CUSTOM_MESSAGE3,0,item.RID);
+		}
+
+		ITEMS.Insert(position,item);
+
+		return Send(MSG_CUSTOM_MESSAGE2, 0, position);
+	}
+
+	public function SetSorted(argument) {
+		argument=(argument!=0);
+
+		if ((!_SORTED) && (ITEMS.GetCount()) && (argument))
+			throw "You can't switch to sorted if the view (iconview) already contains items";
+
+		_SORTED=argument;
+		return _SORTED;
+	}
+
+	public function SetSortColumn(argument) {
+		if ((_SORTED) && (ITEMS.GetCount()) && (argument!=_SORTCOLUMN))
+			throw "You can't change the sort column if the view (iconview) already contains items";
+
+		_SORTCOLUMN=argument;
+		return argument;
+	}
+
+	public function SetSortDescending(argument) {
+		if ((_SORTED) && (ITEMS.GetCount()) && (argument!=_SORTCOLUMN))
+			throw "You can't change the sort direction if the view (iconview) already contains items";
+		_DESCENDING=(argument==true);
+		return _DESCENDING;
+	}
+
+	public function SetOrientation(number argument) {
+		_ORIENTATION=argument;
+		return SetProperty(P_ORIENTATION,argument);
+	}
+
+	public function SetReorderable(number argument) {
+		_REORDABLE=SetProperty(P_REORDABLE, argument);
+		return argument;
+	}
+
+	public function SetMultipleSelection(number flag) {
+		_MULTIPLESELECTION=flag;
+		return SetProperty(P_MULTIPLESELECTION, flag);
+	}
+
+	public function ScrollToRow(path) {
+		if (typeof path=="array")
+			path=RTreeView::PathToStr(path);
+		return SetProperty(P_SCROLLTOROW, path);
+	}
+
+	public function RIconView(OWNER) {
+		super(OWNER, CLASS_ICONVIEW);
+		ITEMS=new MultiItems();
+	}
+
+	public function CreateDragIconFromCurrent(number path = -1) {
+		return Send(MSG_CUSTOM_MESSAGE8,0,path);
+	}
+
+	public function GetSelected() {
+		var result=new [];
+		var selection=GetProperty(P_SELECT);
+		return StrNumberSplit(selection, ";");
+	}
+
+	public function Select(path, select=true) {
+		var type=typeof path;
+
+		if (type=="array")
+			path=RTreeView::PathToStr(path);
+		if (select)
+			return SetProperty(P_SELECT, path);
+		else
+			return SetProperty(P_UNSELECT, path);
+	}
+
+	public function SelectAll(selected=true) {
+		if (selected)
+			return SetProperty(P_SELECT, "");
+		else
+			return SetProperty(P_UNSELECT, "");
+	}
+}

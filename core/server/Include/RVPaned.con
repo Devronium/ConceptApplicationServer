@@ -1,0 +1,8 @@
+include RPaned.con
+include ClassID.con
+
+class RVPaned extends RPaned {
+	public function RVPaned(OWNER) {
+		super(OWNER, CLASS_VPANED);
+	}
+}

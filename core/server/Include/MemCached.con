@@ -1,0 +1,260 @@
+import standard.net.memcached
+
+class MemCached {
+	private var _CTX;
+	public var Timeout=0;
+
+	public function MemCached() {
+		this._CTX=MemCachedCreate();
+	}
+
+	public function MGet(array keys) {
+		if (!this._CTX)
+			throw "Error creating memcached client object";
+		var data=MemCachedMGet(this._CTX, keys);
+		return data;
+	}
+
+	public function Increment(string key, number offset=1) {
+		if (!this._CTX)
+			throw "Error creating memcached client object";
+		
+		var err=MemCachedIncrement(this._CTX, key, offset);
+		if (err)
+			throw "Memcached error (" + @member +  ") " + MemCachedError(this._CTX, err);
+	}
+
+	public function Decrement(string key, number offset=1) {
+		if (!this._CTX)
+			throw "Error creating memcached client object";
+		
+		var err=MemCachedDecrement(this._CTX, key, offset);
+		if (err)
+			throw "Memcached error (" + @member +  ") " + MemCachedError(this._CTX, err);
+	}
+
+	public function MGetByKey(string masterkey, array keys) {
+		if (!this._CTX)
+			throw "Error creating memcached client object";
+		var data=MemCachedMGetByKey(this._CTX, masterkey, keys);
+		return data;
+	}
+
+	public function Get(string key, number flags=0) {
+		if (!this._CTX)
+			throw "Error creating memcached client object";
+		var data=MemCachedGet(this._CTX, key, flags, var err);
+		if (err)
+			throw "Memcached error (" + @member +  ") " + MemCachedError(this._CTX, err);
+		return data;
+	}
+
+	public function Delete(string key, number vtime=-1) {
+		if (!this._CTX)
+			throw "Error creating memcached client object";
+		if (vtime<0)
+			vtime=this.Timeout;
+		var err=MemCachedDelete(this._CTX, key, vtime);
+		if (err)
+			throw "Memcached error (" + @member +  ") " + MemCachedError(this._CTX, err);
+	}
+
+	public function DeleteByKey(string masterkey, string key, number vtime=-1) {
+		if (!this._CTX)
+			throw "Error creating memcached client object";
+		if (vtime<0)
+			vtime=this.Timeout;
+		var err=MemCachedDeleteByKey(this._CTX, masterkey, key, vtime);
+		if (err)
+			throw "Memcached error (" + @member +  ") " + MemCachedError(this._CTX, err);
+	}
+
+	public function GetByKey(string masterkey, string key, number flags=0) {
+		if (!this._CTX)
+			throw "Error creating memcached client object";
+		var data=MemCachedGetByKey(this._CTX, masterkey, key, flags, var err);
+		if (err)
+			throw "Memcached error (" + @member +  ") " + MemCachedError(this._CTX, err);
+		return data;
+	}
+
+	public operator [](string key) {
+		try {
+			return this.Get(key);
+		} catch (var exc) {
+			return "";
+		}
+	}
+
+	public function Set(string key, string data, number vtime=-1, number flags=0) {
+		if (!this._CTX)
+			throw "Error creating memcached client object";
+		if (vtime<0)
+			vtime=this.Timeout;
+		var rc=MemCachedSet(this._CTX, key, data, vtime, flags);
+		if (rc)
+			throw "Memcached error (" + @member +  ") " + MemCachedError(this._CTX, rc);
+	}
+
+	public function SetByKey(string masterkey, string key, string data, number vtime=-1, number flags=0) {
+		if (!this._CTX)
+			throw "Error creating memcached client object";
+		if (vtime<0)
+			vtime=this.Timeout;
+		var rc=MemCachedSetByKey(this._CTX, masterkey, key, data, vtime, flags);
+		if (rc)
+			throw "Memcached error (" + @member +  ") " + MemCachedError(this._CTX, rc);
+	}
+
+	public function Add(string key, string data, number vtime=0, number flags=0) {
+		if (!this._CTX)
+			throw "Error creating memcached client object";
+		var rc=MemCachedAdd(this._CTX, key, data, vtime, flags);
+		if (rc)
+			throw "Memcached error (" + @member +  ") " + MemCachedError(this._CTX, rc);
+	}
+
+	public function AddByKey(string masterkey, string key, string data, number vtime=-1, number flags=0) {
+		if (!this._CTX)
+			throw "Error creating memcached client object";
+		if (vtime<0)
+			vtime=this.Timeout;
+		var rc=MemCachedAddByKey(this._CTX, masterkey, key, data, vtime, flags);
+		if (rc)
+			throw "Memcached error (" + @member +  ") " + MemCachedError(this._CTX, rc);
+	}
+
+	public function Append(string key, string data, number vtime=-1, number flags=0) {
+		if (!this._CTX)
+			throw "Error creating memcached client object";
+		if (vtime<0)
+			vtime=this.Timeout;
+		var rc=MemCachedAppend(this._CTX, key, data, vtime, flags);
+		if (rc)
+			throw "Memcached error (" + @member +  ") " + MemCachedError(this._CTX, rc);
+	}
+
+	public function AppendByKey(string masterkey, string key, string data, number vtime=-1, number flags=0) {
+		if (!this._CTX)
+			throw "Error creating memcached client object";
+		if (vtime<0)
+			vtime=this.Timeout;
+		var rc=MemCachedAppendByKey(this._CTX, masterkey, key, data, vtime, flags);
+		if (rc)
+			throw "Memcached error (" + @member +  ") " + MemCachedError(this._CTX, rc);
+	}
+
+	public function Replace(string key, string data, number vtime=-1, number flags=0) {
+		if (!this._CTX)
+			throw "Error creating memcached client object";
+		if (vtime<0)
+			vtime=this.Timeout;
+		var rc=MemCachedReplace(this._CTX, key, data, vtime, flags);
+		if (rc)
+			throw "Memcached error (" + @member +  ") " + MemCachedError(this._CTX, rc);
+	}
+
+	public function ReplaceByKey(string masterkey, string key, string data, number vtime=-1, number flags=0) {
+		if (!this._CTX)
+			throw "Error creating memcached client object";
+		if (vtime<0)
+			vtime=this.Timeout;
+		var rc=MemCachedReplaceByKey(this._CTX, masterkey, key, data, vtime, flags);
+		if (rc)
+			throw "Memcached error (" + @member +  ") " + MemCachedError(this._CTX, rc);
+	}
+
+	public function Prepend(string key, string data, number vtime=-1, number flags=0) {
+		if (!this._CTX)
+			throw "Error creating memcached client object";
+		if (vtime<0)
+			vtime=this.Timeout;
+		var rc=MemCachedPrepend(this._CTX, key, data, vtime, flags);
+		if (rc)
+			throw "Memcached error (" + @member +  ") " + MemCachedError(this._CTX, rc);
+	}
+
+	public function PrependByKey(string masterkey, string key, string data, number vtime=-1, number flags=0) {
+		if (!this._CTX)
+			throw "Error creating memcached client object";
+		if (vtime<0)
+			vtime=this.Timeout;
+		var rc=MemCachedPrependByKey(this._CTX, masterkey, key, data, vtime, flags);
+		if (rc)
+			throw "Memcached error (" + @member +  ") " + MemCachedError(this._CTX, rc);
+	}
+
+	public function Reset() {
+		if (!this._CTX)
+			throw "Memcached error (" + @member +  ") " + "Error creating memcached client object";
+		MemCachedResetServers(this._CTX);
+	}
+
+	public function BehaviorSet(number prop_id, number val) {
+		if (!this._CTX)
+			throw "Error creating memcached client object";
+		var rc=MemCachedBehaviorSet(this._CTX, prop_id, val);
+		if (rc)
+			throw "Memcached error (" + @member +  ") " + MemCachedError(this._CTX, rc);
+		return val;
+	}
+
+	public function BehaviorGet(number prop_id) {
+		if (!this._CTX)
+			throw "Error creating memcached client object";
+		return MemCachedBehaviorGet(this._CTX, prop_id);
+	}
+	
+	public function Flush() {
+		if (!this._CTX)
+			throw "Error creating memcached client object";
+		var rc=MemCachedFlush(this._CTX);
+		if (rc)
+			throw "Memcached error (" + @member +  ") " + MemCachedError(this._CTX, rc);
+	}
+
+	public function Done() {
+		if (this._CTX)
+			MemCachedFree(this._CTX);
+	}
+
+	public function finalize() {
+		this.Done();
+	}
+
+	public function AddServer(string host="localhost", number port=11211) {
+		if (!this._CTX)
+			throw "Error creating memcached client object";
+
+		var rc=MemCachedAddServer(this._CTX, host, port);
+		if (rc)
+			throw "Memcached error (" + @member +  ") " + MemCachedError(this._CTX, rc);
+	}
+
+	public function AddServerUDP(string host="localhost", number port=11211) {
+		if (!this._CTX)
+			throw "Error creating memcached client object";
+
+		var rc=MemCachedAddServerUDP(this._CTX, host, port);
+		if (rc)
+			throw "Memcached error (" + @member +  ") " + MemCachedError(this._CTX, rc);
+	}
+
+	public function AddServerUnixSocket(string socket) {
+		if (!this._CTX)
+			throw "Error creating memcached client object";
+
+		var rc=MemCachedAddServerUnixSocket(socket);
+		if (rc)
+			throw "Memcached error (" + @member +  ") " + MemCachedError(this._CTX, rc);
+	}
+
+	public function Push(array servers) {
+		if (!this._CTX)
+			throw "Error creating memcached client object";
+
+		var rc=MemCachedServerPush(this._CTX, servers);
+		if (rc)
+			throw "Memcached error (" + @member +  ") " + MemCachedError(this._CTX, rc);
+	}
+}

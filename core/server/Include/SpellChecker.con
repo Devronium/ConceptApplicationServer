@@ -1,0 +1,129 @@
+import standard.lib.hunspell
+import standard.lib.str
+import standard.lang.cli
+
+class SpellChecker {
+	public var Handle;
+
+	function CheckSpell(string str, var misspelled_words=null, max_words=100) {
+		misspelled_words="";
+		if (!str)
+			return "";
+		var handle=this.Handle;
+		if (!handle)
+			throw "SpellChecker was not initialized";
+		var len=length str;
+		var pdata="";
+		for (var i=0;i<len;i++) {
+			var c=str[i];
+			if ((c=='.') || (c==",") || (c=="#") || (c=="&") || (c=="+") || (c=="@") || (c=="%") ||
+				(c=='~') || (c=="\"") || (c=="'") || (c=="(") || (c==")") || (c=="{") || (c=="}") ||
+				(c=='[') || (c=="]") || (c=="?") || (c=="!") || (c=="<") || (c==">") || (c=="/") ||
+				(c==':') || (c==";") || (c=="=") || (c=="\\") || (c=="\n") || (c=="\r") || (c=="\t"))
+				c=" ";
+			pdata+=c;
+		}
+		var data=StrSplit(pdata, " ");
+		len=length data;
+		var result="";
+		var errors=0;
+		var ord_0=ord('0');
+		var ord_9=ord('9');
+
+		if ((max_words>0) && (len>max_words))
+			len=max_words;
+
+		for (i=0;i<len;i++) {
+			var word=data[i];
+			var arr=Hunspell_suggest(handle, word);
+			if (arr) {
+				var len2=length arr;
+				var target_word="";
+				if (Hunspell_spell(handle, word)) {
+					target_word=word;
+				} else {
+					if (misspelled_words)
+						misspelled_words+=",";
+					misspelled_words+=word;
+					for (var j=0;j<len2;j++) {
+						var e=arr[j];
+						if ((e) && (e==word)) {
+							target_word=word;
+							break;
+						}
+					}
+					if (!target_word) {
+						var oc=ord(word[0]);
+						if ((length word==1) || ((oc>='0') && (oc<=ord_9))) {
+							target_word=word;
+						} else {
+							errors++;
+							target_word=arr[0];
+						}
+					}
+				}
+					
+				if (result)
+					result+=" ";
+				result+=target_word;
+			} else {
+				if (Hunspell_spell(handle, word)) {
+					target_word=word;
+					if (result)
+						result+=" ";
+					result+=target_word;
+				} else {
+					if (misspelled_words)
+						misspelled_words+=",";
+					misspelled_words+=word;
+				}
+			}
+
+		}
+
+		if (errors)
+			return result;
+		return "";
+	}
+
+	function Check(string word, null_if_correct=true) {
+		var handle=this.Handle;
+		if (!handle)
+			throw "SpellChecker was not initialized";
+
+		if ((null_if_correct) && (Hunspell_spell(handle, word)))
+			return [ ];
+
+		return Hunspell_suggest(handle, word);
+	}
+
+	function SpellChecker(language_path) {
+		this.Handle=Hunspell_create("$language_path.aff", "$language_path.dic");
+	}
+
+	static function Static(language_path) {
+		var obj=new SpellChecker(language_path);
+		GLOBALS()["application.SpellChecker"]=obj;
+		return obj;
+	}
+
+	static function Suggest(string str, var misspelled_words=null, max_words=100) {
+		misspelled_words="";
+		if (!str)
+			return "";
+
+		var obj=GLOBALS()["application.SpellChecker"];
+		if (obj)
+			return obj.CheckSpell(str, misspelled_words, max_words);
+
+		return "";
+	}
+
+	function finalize() {
+		if (this.Handle) {
+			Hunspell_destroy(this.Handle);
+			this.Handle=0;
+		}
+	}
+
+}

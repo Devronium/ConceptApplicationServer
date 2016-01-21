@@ -1,0 +1,60 @@
+include project_forms.glade.con
+
+class _LinksForm extends _Linkswindow {
+        public var SelectDelegate=null;
+
+        public function _LinksForm(Owner, Lang S) {
+            super(Owner, S);
+            this.treeLinks.Model=MODEL_TREEVIEW;
+            this.treeLinks.AddColumn("Entity");
+            this.treeLinks.Columns[0].AddAttribute("font");
+        }
+
+        public function Load(array data) {
+            this.treeLinks.Clear();
+            var len=length data;
+            for (var i=0;i<len;i++) {
+                var element=data[i];
+                if (element) {
+                    this.treeLinks.AddItem([element[0], "bold", ""]);
+                    var sub_arr=element[1];
+                    if (sub_arr) {
+                        var len2=length sub_arr;
+                        for (var j=0;j<len2;j++) {
+                            var e2=sub_arr[j];
+                            if (e2) {
+                                var sub_arr3=e2[1];
+                                if (sub_arr3) {
+                                    var len3=length sub_arr3;
+                                    this.treeLinks.AddChild([i], [e2[0]+" ($len3)", "bold", ""]);
+                                    for (var k=0;k<len3;k++) {
+                                        var e3=sub_arr3[k];
+                                        if (e3) {
+                                            this.treeLinks.AddChild([i,j], [e3[0], "regular", e3[1]]);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            this.treeLinks.ExpandAll();
+        }
+        
+        public function on_button1_clicked(Sender, EventData) {
+            this.Hide();
+        }
+        
+        public function on_treeLinks_row_activated(Sender, EventData) {
+            var item=this.treeLinks.Items[EventData];
+            if ((item) && (item[2]) && (this.SelectDelegate)) {
+                var ent=item[2];
+                var arr=StrSplit(ent, ":");
+                if (length arr==2) {
+                    this.Hide();
+                    this.SelectDelegate(arr[0], value (""+arr[1]));
+                }
+            }
+        }
+}

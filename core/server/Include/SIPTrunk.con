@@ -1,0 +1,1267 @@
+import standard.lib.str
+import standard.C.io
+import standard.math.rand
+import standard.lib.cripto
+import standard.lib.thread
+import standard.C.casts
+import standard.C.time
+
+include DTMFDetector.con
+include Serializable.con
+include UDPSocket.con
+include Speex.con
+
+define SIP_CODES	["100" => "Trying", "180" => "Ringing", "181" => "Call Is Being Forwarded", "182" => "Queued", "200" => "OK", "300" => "Multiple Choices", "301" => "Moved Permanently", "302" => "Moved Temporarily", "303" => "See Other", "305" => "Use Proxy", "380" => "Alternative Service", "400" => "Bad Request", "401" => "Unauthorized", "402" => "Payment Required", "403" => "Forbidden", "404" => "Not Found", "405" => "Method Not Allowed", "406" => "Not Acceptable", "407" => "Proxy Authentication Required", "408" => "Request Timeout", "409" => "Conflict", "410" => "Gone", "411" => "Length Required", "413" => "Request Entity Too Large", "414" => "Request-URI Too Large", "415" => "Unsupported Media Type", "420" => "Bad Extension", "480" => "Temporarily not available", "481" => "Call Leg/Transaction Does Not Exist", "482" => "Loop Detected", "483" => "Too Many Hops", "484" => "Address Incomplete", "485" => "Ambiguous", "486" => "Busy Here", "500" => "Internal Server Error", "501" => "Not Implemented", "502" => "Bad Gateway", "503" => "Service Unavailable", "504" => "Gateway Time-out", "505" => "SIP Version not supported", "600" => "Busy Everywhere", "603" => "Decline", "604" => "Does not exist anywhere", "606" => "Not Acceptable"]
+define SIP_ALLOW	"REGISTER,INVITE,ACK,CANCEL,BYE,REFER,NOTIFY"
+define RTP_START_PORT	16000
+define RTP_END_PORT	32000
+
+class SIPSession {
+	public var CallID;
+	public var ssrc_id;
+	public var UserData;
+
+	private var Expire = 0;
+	private var msg;
+	private var s;
+	private var sequence_number;
+	private var rtp_port;
+	private var rtp;
+	private var d;
+
+	var remote_port = -1;
+	var remote_host = "";
+	var remote_id = 0;
+	var ip;
+	var port;
+	var packet_time;
+	var started;
+
+	var DTMFHistory = "";
+
+	var ivr="";
+	var ivr_chunk=0;
+
+	var buf="";
+	var buf_chunk=0;
+	var accept_bye = false;
+	var bye_set = false;
+	var chunk_size;
+
+	SIPSession(s, msg, rtp_port, ip, port, chunk_size = 20, expire = 3600) {
+		packet_time = microseconds();
+		rtp = new UDPSocket();
+		rtp.Bind(rtp_port);
+		this.rtp_port = rtp_port;
+		this.chunk_size = chunk_size * 1000;
+
+		this.s = s;
+		this.msg = msg;
+
+		this.ip = ip;
+		this.port = port;
+		Expire = time() + expire;
+		CallID = msg.Headers["call-id"];
+		ssrc_id = ClsPtr(this);
+		sequence_number = RandomInteger(0, 0xFFF);
+
+		this.UpdateMedia(msg);
+	}
+
+	UpdateMedia(msg) {
+		var payload = msg.Payload;
+		for (var i = 0; i < length payload; i++) {
+			var line = payload[i];
+			switch (line[0] + line[1]) {
+				case "o=":
+					var arr = StrSplit(SubStr(line, 2, length line), " ");
+					remote_host = arr[5];
+					remote_id = value arr[1];
+					break;
+				case "m=":
+					arr = StrSplit(SubStr(line, 2, length line), " ");
+					if ((arr) && (ToLower(arr[0]) == "audio"))
+						remote_port = value arr[1];
+					break;
+			}
+		}
+	}
+
+	Accept(code=200) {
+		accept_bye = true;
+		bye_set = true;
+		var exc;
+		try {
+			this.s.ResponseUDP(code, msg, msg.Headers["from"], this.GetSDP());
+			return true;
+		} catch (exc) {
+			return false;
+		}
+	}
+
+	Reject(code=486) {
+		var exc;
+		try {
+			this.s.ResponseUDP(code, msg, msg.Headers["from"]);
+			if (this.s.OnEnd)
+				this.s.OnEnd(this, msg, "");
+			this.s.RemoveSessionByRef(this);
+			return true;
+		} catch (exc) {
+			return false;
+		}
+	}
+
+	Bye(delete_session=false) {
+		var exc;
+		try {
+			if (accept_bye)
+				var msg2 = s.Bye(msg, ip, port);
+		} catch (exc) {
+			// nothing
+		}
+		try {
+			if (rtp)
+				rtp.Close();
+			if (delete_session) {
+				if (this.s.OnEnd)
+					this.s.OnEnd(this, msg2, "");
+				this.s.RemoveSessionByRef(this);
+			}
+		} catch (exc) {
+			// nothing
+		}
+		rtp = null;
+	}
+
+	Cancel(delete_session=false) {
+		var exc;
+		try {
+			if (accept_bye)
+				return this.Bye(delete_session);
+			var msg2 = s.Cancel(msg, ip, port);
+		} catch (exc) {
+			// nothing
+		}
+		try {
+			if (rtp)
+				rtp.Close();
+			if (delete_session) {
+				if (this.s.OnEnd)
+					this.s.OnEnd(this, msg2, "");
+				this.s.RemoveSessionByRef(this);
+			}
+		} catch (exc) {
+			// nothing
+		}
+		rtp = null;
+	}
+
+	Expired() {
+		return (time() >= Expire);
+	}
+
+	Refer(address) {
+		this.s.Refer(msg, address);
+	}
+
+	SimpleRTP(payload, profile = 8) {
+		var res = chr(0x80) + chr(profile);
+		res += toubin(htons(sequence_number), 16);
+		res += toubin(0, 32);
+		res += toubin(htonl(ClsPtr(this)), 32);
+		res += payload;
+		sequence_number++;
+		return res;
+	}
+
+	ParseRTP(data, var type = null) {
+		type = -1;
+		if (length data > 12) {
+			type = tounumber(data[1], 8) & 0x7F;
+			var sequence_number = ntohs(tounumber(data[2] + data[3], 16));
+			var ssrc_id = (tounumber(data[8] + data[9] + data[10] + data[11], 32));
+			var payload = SubStr(data, 12, length data);
+			return payload;
+		}
+		return "";
+	}
+
+	GetSDP(codec = 8) {
+		var res = "v=0\r\no=somebody ${ClsPtr(this)} ${VarPtr(this)} IN IP4 ${s.localhost}\t\ns=Concept\r\nc=IN IP4 ${s.localhost}\r\nt=0 0\r\nm=audio ${rtp_port} RTP/AVP $codec\r\na=rtpmap:$codec PCMA/8000\r\n";
+		return res;
+	}
+
+	finalize() {
+		if (rtp)
+			rtp.Close();
+	}
+
+	CheckAudio(var type = null) {
+		if ((rtp) && (rtp.HasData))
+			return ParseRTP(rtp.Read(), type);
+		return "";
+	}
+
+	LoadVoice(voice) {
+		ivr = voice;
+		ivr_chunk = 0;
+		packet_time = microseconds();
+	}
+
+	AppendVoice(voice) {
+		ivr += voice;
+	}
+
+	Clear() {
+		buf = "";
+	}
+
+	Write(payload) {
+		if ((remote_host) && (remote_port > 0)) {
+			buf+=payload;
+			return length buf;
+		}
+		return -1;
+	}
+
+	ResetDTMF() {
+		if (d) {
+			d.Reset();
+			DTMFHistory = "";
+		}
+	}
+
+	Iterate() {
+		var exc;
+		var ops = 0;
+		try {
+			var data = CheckAudio(var type);
+			if (data) {
+				ops++;
+				if (s.OnAudio)
+					s.OnAudio(this, data, type);
+				started = true;
+				if (s.OnDTMF) {
+					if (!d) {
+						d = new DTMFDetector();
+						d.Threshold = 600;
+					}
+					if (type == 8)
+						d.AddBuffer(alaw2pcm(data));
+					else
+					if (type == 0)
+						d.AddBuffer(ulaw2pcm(data));
+
+					var buttons = d.Buttons;
+					if ((buttons) && (buttons != DTMFHistory)) {
+						DTMFHistory = buttons;
+						s.OnDTMF(this, buttons[length buttons - 1]);
+					}
+				}
+			}
+
+			if (started) {
+				if ((remote_host) && (remote_port > 0) && (rtp)) {
+					var delta = uint32((microseconds() - packet_time) / chunk_size);
+					if (ivr) {
+						if (delta >= ivr_chunk) {
+							var f_size = chunk_size / 1000 * 8;
+							var d_ivr = SubStr(ivr, ivr_chunk * /*160*/ f_size, f_size);
+							ivr_chunk = delta + 1;
+							if (d_ivr) {
+								if (this.s.OnAudioOut)
+									this.s.OnAudioOut(s, d_ivr);
+								rtp.Write(SimpleRTP(d_ivr), remote_host, remote_port);
+							} else {
+								ivr = "";
+								ivr_chunk = 0;
+								packet_time = microseconds();
+								if (s.OnIVRFinished)
+									s.OnIVRFinished(this);
+							}
+							ops++;
+						}
+					} else {
+						if (delta >= buf_chunk) {
+							buf_chunk = delta + 1;
+							f_size = chunk_size / 1000 * 8;
+							var d_buf = SubStr(buf, 0, /*160*/f_size);
+							if (d_buf) {
+								buf = SubStr(buf, /*160*/f_size, length buf);
+								if (this.s.OnAudioOut)
+									this.s.OnAudioOut(s, d_buf);
+								rtp.Write(SimpleRTP(d_buf), remote_host, remote_port);
+							}
+							ops++;
+						}
+					}
+				}
+			} else
+			if (!started) {
+				if ((packet_time >= microseconds()) && (rtp)) {
+					if ((remote_host) && (remote_port > 0)) {
+						var str = "";
+						for (var i = 0; i < 16; i++)
+							str += '\0\0\0\0\0\0\0\0\0\0';
+						buf = str;
+						rtp.Write(this.SimpleRTP(str), remote_host, remote_port);
+					}
+					packet_time = microseconds() + 19000;
+					ops++;
+				}
+				started = true;
+			}
+		} catch (exc) {
+			this.s.RemoveSessionByRef(this);
+			this.Bye();
+			ops++;
+		}
+		return ops;
+	}
+}
+
+class SIPMessage {
+	var FromServer = false;
+	var Understood = false;
+	var Protocol = "SIP/2.0";
+	var ServerCode = 0;
+	var ServerCodeText = "";
+	var Destination = "";
+	var Method = "";
+	var Branch = "";
+	var[] Headers;
+	var[] Payload;
+	var PayloadBlob = "";
+
+	GenerateResponse(code) {
+		var msg = new SIPMessage();
+		msg.FromServer = true;
+		msg.Understood = true;
+		msg.Protocol = this.Protocol;
+		msg.ServerCode = code;
+		var exp = SIP_CODES["" + this.ServerCode];
+		if (exp)
+			msg.ServerCodeText = exp;
+		msg.Destination = this.Destination;
+		msg.Method = this.Method;
+		msg.Branch = this.Branch;
+
+		return msg;
+	}
+
+	ToString() {
+		var res = "";
+		if (this.FromServer) {
+			if ((this.ServerCode) && (this.Protocol)) {
+				var exp = SIP_CODES["" + this.ServerCode];
+				if (!exp)
+					exp = this.ServerCodeText;
+				res += this.Protocol + " " + this.ServerCode + " " + exp + "\r\n";
+			} else
+				return res;
+		} else
+		if ((this.Method) && (this.Destination)) {
+			res += this.Method + " " + this.Destination;
+			if (this.Protocol)
+				res += " " + this.Protocol;
+			res+= "\r\n";
+		} else
+			return res;
+		var headers = this.Headers;
+
+		if (headers) {
+			var keys = GetKeys(headers);
+			var len = length keys;
+			for (var i = 0; i < len; i++) {
+				var key = keys[i];	
+				if ((key) && (key!="user-agent") && (key!="organization")) {
+					var val = headers[key];
+					key[0] = ToUpper(key[0]);
+					if (typeof val == "array") {
+						var len2 = length val;
+						for (var j = 0; j < len2; j++)
+							res += key + ": " + val[j] + "\r\n";							
+					} else {
+						if (key == "Call-id") {
+							res += "User-agent: Concept4_0SIP_API/1.0\r\n";
+							res += "Organization: Devronium/Concept Application Server\r\n";
+							res += "Call-ID: " + val + "\r\n";
+						} else
+						if (key == "Cseq") {
+							res += "CSeq: " + val + "\r\n";
+						} else
+							res += key + ": " + val + "\r\n";
+					}
+				}
+			}
+		}
+
+		res += "\r\n";
+		if (this.PayloadBlob) {
+			res += this.PayloadBlob;
+		} else
+		if (this.Payload) {
+			var p_str = "";
+			var payload = this.Payload;
+			len = length payload;
+			for (i=0; i < len; i++) {
+				var p = payload[i];
+				if (p)
+					p_str += p + "\r\n";
+			}
+			if (p_str)
+				res += p_str;
+		}
+		return res;
+	}
+}
+
+class SIPStack {
+	var udpclientsocket;
+	var localhost;
+	var local_port = 5060;
+	var full_host;
+	var rtp_port_index = RTP_START_PORT;
+	var realm = "";
+	var[] Sessions;
+
+	var OnDTMF;
+	var OnAudio;
+	var OnAudioOut;
+	var OnInvite;
+	var OnEnd;
+	var OnRinging;
+	var OnIVRFinished;
+	var OnNotify;
+	var OnResponse;
+	var OnNotUnderstood;
+	var OnRegister;
+	var OnNeedAuthorization;
+
+	var OnRecv;
+	var OnSend;
+
+	var FrameSize = 20;
+
+	SIPStack(localhost, bind_port = 5060) {
+		this.localhost = localhost;
+		this.local_port = bind_port;
+		this.realm = localhost;
+		udpclientsocket = new UDPSocket();
+		udpclientsocket.Bind(bind_port);
+		this.full_host = localhost;
+		if (local_port != 5060)
+			this.full_host += ":" + bind_port;
+	}
+
+	private ParseDestination(destination) {
+		var arr = StrSplit(destination, ";");
+		return arr[0];
+	}
+
+	public Parse(msg) {
+		if (msg) {
+			msg = StrReplace(msg, "\r", "");
+
+			var arr = StrSplit(msg, "\n", true);
+			var len = length arr;
+
+			var first_line = arr[0];
+			if (first_line) {
+				var first_line_arr = StrSplit(first_line, " ");
+				var sipid = ToUpper(first_line_arr[0]);	
+				var message = new SIPMessage();
+				if (sipid[0] + sipid[1] + sipid[2] == "SIP") {
+					// is server response
+					message.FromServer = true;
+					message.ServerCode = value first_line_arr[1];
+					message.ServerCodeText = first_line_arr[2];
+					message.Protocol = sipid;
+				} else {
+					switch (sipid) {
+						case "INVITE":
+						case "ACK":
+						case "BYE":
+						case "CANCEL":
+						case "OPTIONS":
+						case "REGISTER":
+						case "PRACK":
+						case "NOTIFY":
+						case "PUBLISH":
+						case "INFO":
+						case "REFER":
+						case "MESSAGE":
+						case "UPDATE":
+							if (length first_line_arr > 1) {
+								message.Understood = true;	
+								message.Destination = this.ParseDestination(first_line_arr[1]);
+								message.Method = sipid;
+								if (first_line_arr[2])
+									message.Protocol = first_line_arr[2];
+							}
+							break;
+					}
+				}
+				
+				var headers = new [];
+				var need_payload = false;
+				for (var i = 1; i < len; i++) {
+					var line = arr[i];
+					if (line) {
+						var pos = Pos(line, ":");
+						if (pos > 0) {
+							var name = ToLower(SubStr(line, 0, pos - 1));
+							var val = trim(SubStr(line, pos, length line));
+							if (headers[name]) {
+								if (typeof headers[name] == "array")
+									headers[name] += val;
+								else
+									headers[name] = [ headers[name], val ];
+							} else
+								headers[name] = val;
+
+							if (name == "content-type") {
+								if ((val == "application/sdp") || (val=="sdp"))
+									need_payload = true;
+							}
+						}
+					} else {
+						// switch to payload
+						break;
+					}
+				}
+				var payload = new [];
+				if (need_payload) {
+					while (i < len) {
+						line = arr[i++];
+						if (line)
+							payload[length payload] = line;
+					}
+				}
+				message.Headers = headers;
+				message.Payload = payload;
+			}
+		}
+		return message;
+	}
+
+	private RandomString(len) {
+		var res="";
+		var characters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+		var rlen = length characters - 1;
+		while (length res<len) {
+			var c = RandomInteger(0, rlen);
+			res += characters[c];
+		}
+		return res;
+	}
+
+	private ParseAuth(auth) {
+		var len = length auth;
+		var in_quotes = false;
+
+		var name = "";
+		var val = "";
+		var temp = "";
+		var[] res;
+		for (var i = 0; i < len; i++) {
+			var c = auth[i];
+			if (c == '"') {
+				in_quotes = !in_quotes;
+				if (!in_quotes) {
+					val = temp;
+					res[ToLower(name)] = val;
+					temp = "";
+					name = "";
+				}
+			} else
+			if (in_quotes) {
+				temp += c;
+			} else
+			if (c == "=") {
+				temp = "";
+			} else
+			if (c != ",") {
+				if ((c == " ") || (c=="\n") || (c=="\r") || (c=="\t"))
+					name = "";
+				else
+					name += c;
+			}
+		}
+		return res;
+	}
+
+	private WWWAuth(auth, username, password, method, uri, var nonce) {
+		var res = ParseAuth(auth);
+		nonce = res["nonce"];
+		if ((res["nonce"]) && (res["realm"])) {
+			var alg = res["algorithm"];
+			if (!alg)	
+				alg = "md5";
+			else
+				alg = ToLower(alg);
+			switch (alg) {
+				case "sha1":
+					var ha1 = sha1(username + ":" + res["realm"] + ":" + password);
+					var ha2 = sha1(method + ":" + uri);
+					var response = sha1(ha1 +":" + res["nonce"] + ":" + ha2);
+					break;
+				case "sha256":
+					ha1 = sha256(username + ":" + res["realm"] + ":" + password);
+					ha2 = sha256(method + ":" + uri);
+					response = sha256(ha1 +":" + res["nonce"] + ":" + ha2);
+					break;
+				default:
+					ha1 = md5(username + ":" + res["realm"] + ":" + password);
+					ha2 = md5(method + ":" + uri);
+					response = md5(ha1 +":" + res["nonce"] + ":" + ha2);
+			}
+			return "Digest username=\"$username\", realm=\"${res['realm']}\", nonce=\"${res['nonce']}\", uri=\"$uri\", response=\"$response\"";
+		}
+		return "";
+	}
+
+	private Register(username, password, server, server_port = 5060, response = null, var nonce = null, max_forwards = 70) {
+		var register = new SIPMessage();
+		register.Destination = "sip:" + server;
+		if (server_port != 5060)
+			register.Destination += ":" + server_port;
+		register.Method = "REGISTER";
+
+		var branch;
+		var callid;
+		var authorization = "";
+		if (response) {
+			branch = response.Branch;
+			callid = response.Headers["call-id"];
+			if ((response.ServerCode >= 400) && (response.ServerCode < 500)) {
+				if (response.ServerCode != 401)
+					throw "Invalid username or password";
+				var auth = response.Headers["www-authenticate"];
+				if (auth)
+					authorization = this.WWWAuth(auth, username, password, register.Method, server, nonce);
+			}
+		}
+		if (!branch)
+			branch = "z9hG4bK" + this.RandomString(14);
+		if (!callid)
+			callid = this.RandomString(32) + "@" + localhost;
+
+		register.Headers["Via"] = "SIP/2.0/UDP " + full_host + ";rport;branch=" + branch;
+		var from = username + " <sip:" + username + "@" + server + ">";
+		register.Headers["From"] = from;
+		register.Headers["To"] = from;
+		register.Headers["Max-Forwards"] = max_forwards;
+
+		register.Headers["Call-ID"] = callid;	
+		register.Headers["Allow"] = SIP_ALLOW;
+		if (response)
+			register.Headers["CSeq"] = "" + (value (response.Headers["cseq"]) + 1) + " " + register.Method;
+		else
+			register.Headers["CSeq"] = "1 " + register.Method;
+		register.Headers["Contact"] = "\"$username\" <sip:" + username + "@" + full_host + ">";
+		if (authorization)
+			register.Headers["Authorization"] = authorization;
+
+		register.Headers["Content-Length"] = 0;
+
+		return register;
+	}
+
+	private TimedOutRead(t, timeout) {
+		while (!t.HasData) {
+			Sleep(10);
+			timeout -= 10;
+			if (timeout <= 0)
+				return null;
+		}
+		return this.Parse(t.Read(var ip, var port));
+	}
+
+	RegisterUDP(username, password, server, server_port=5060, timeout=5000) {
+		try {
+			var register = this.Register(username, password, server, server_port, null, var nonce);
+			var local_udpclientsocket = udpclientsocket;//new UDPSocket();
+			if (local_udpclientsocket.Write(register.ToString(), server, server_port) <= 0)
+				return null;
+
+			var msg = this.TimedOutRead(local_udpclientsocket, timeout);
+			if ((msg) && (msg.ServerCode == 401)) {
+				register = this.Register(username, password, server, server_port, msg, nonce);
+				if (local_udpclientsocket.Write(register.ToString(), server, server_port) < 0)
+					return null;
+				var msg2 = this.TimedOutRead(local_udpclientsocket, timeout);
+				if (msg2)
+					msg2.PayloadBlob = nonce;
+				return msg2;
+			}
+		} catch (var exc) {
+			// silently ignore the network error
+		}
+		return null;
+	}
+
+	PerformUDP(method, from, destination, payload = "", payload_type = "application/sdp", max_forwards = 70, parent_msg = null, extra_headers = null, ip = "", port = 0) {
+		var msg = new SIPMessage();
+		destination = ParseDestination(destination);
+		msg.Destination = destination;
+		if ((length destination > 2) && (destination[0] == "<") && (destination[length destination - 1] == ">"))
+			msg.Destination = SubStr(destination, 1, (length destination) - 2);
+
+		msg.Method = ToUpper(method);
+		if (extra_headers)
+			msg.Headers = extra_headers;
+
+		var callid;
+
+		if (parent_msg)
+			callid = parent_msg.Headers["call-id"];
+		else
+			callid = this.RandomString(32) + "@" + localhost;
+
+		var server = "";
+		var server_port = 0;
+		var full_server = "";
+		var arr = StrSplit(destination, "@");
+		if (length arr == 2) {
+			this.ParseHost(arr[1], server, server_port);
+			if (server_port != 5060)
+				full_server = server + ":" + server_port;
+			else
+				full_server = server;
+		}
+
+		if (parent_msg) {
+			if ((msg.Method == "ACK") || (msg.Method == "CANCEL") || (msg.Method == "BYE")) {
+				if ((msg.Method == "BYE") || ((parent_msg.ServerCode >= 200) && (parent_msg.ServerCode < 300))) {
+					var branch = "z9hG4bK" + this.RandomString(14);
+					msg.Headers["Via"] = "SIP/2.0/UDP " + full_host + ";rport;branch=" + branch;
+				} else
+					msg.Headers["Via"] = parent_msg.Headers["via"];
+				msg.Headers["Max-Forwards"] = max_forwards;
+				msg.Headers["From"] = parent_msg.Headers["from"];
+				msg.Headers["To"] = parent_msg.Headers["to"];
+			} else {
+				msg.Headers["Via"] = parent_msg.Headers["via"];
+				msg.Headers["Max-Forwards"] = max_forwards;
+
+				msg.Headers["From"] = parent_msg.Headers["to"];
+				msg.Headers["To"] = parent_msg.Headers["from"];
+			}
+		} else {
+			branch = "z9hG4bK" + this.RandomString(14);
+			msg.Headers["Via"] = "SIP/2.0/UDP " + full_server + ";rport;branch=" + branch;
+			msg.Headers["Max-Forwards"] = max_forwards;
+			msg.Headers["From"] = from;//username + " <sip:" + username + "@" + server + ">";
+			msg.Headers["To"] = destination;
+		}
+
+		msg.Headers["Call-ID"] = callid;	
+		if (parent_msg) {
+			var cseq = value (parent_msg.Headers["cseq"]);
+			if (msg.Method == "BYE")
+				cseq++;
+			msg.Headers["CSeq"] = "$cseq " + msg.Method;
+		} else
+			msg.Headers["CSeq"] = "1 " + msg.Method;
+		if ((method != "ACK") && (method != "CANCEL")) {
+			msg.Headers["Contact"] = from;//"<sip:" + username + "@" + localhost + ">";
+			msg.Headers["Allow"] = SIP_ALLOW;;
+		}
+		msg.Headers["Content-Length"] = length payload;
+
+		if ((payload_type) && (payload)) {
+			msg.Headers["Content-Type"] = payload_type;
+			msg.PayloadBlob = payload;
+		}
+
+		try {
+			if ((ip) && (port)) {
+				server = ip;
+				server_port = port;
+			}
+			if (this.OnSend)
+				this.OnSend(msg, server, server_port);
+
+			if (udpclientsocket.Write(msg.ToString(), server, server_port) <= 0)
+				return null;
+			return msg;
+		} catch (var exc) {
+			// nothing
+		}
+		return null;
+	}
+
+	ResponseUDP(code, parent_msg, destination, payload = "", payload_type = "application/sdp", max_forwards = 70, extra_headers = null, contact = "", ip = "", port = 0) {
+		var msg = parent_msg.GenerateResponse(code);
+
+		var server = "";
+		var server_port = 0;
+		var full_server = "";
+
+		var via = parent_msg.Headers["via"];
+		if (via) {
+			this.ParseVia(parent_msg, server, server_port);
+			full_server = "$server:$server_port";
+		} else
+			return null;
+
+
+		msg.Destination = "sip:" + server;
+		if (server_port != 5060)
+			msg.Destination += ":" + server_port;
+		msg.Method = "";
+		if (extra_headers)
+			msg.Headers = extra_headers;
+
+		var branch = "z9hG4bK" + this.RandomString(14);
+		var callid;
+
+		if (parent_msg)
+			callid = parent_msg.Headers["call-id"];
+		else
+			callid = this.RandomString(32) + "@" + localhost;
+
+		//msg.Headers["From"] = parent_msg.Headers["from"];
+		//msg.Headers["To"] = parent_msg.Headers["to"];
+
+		msg.Headers["From"] = parent_msg.Headers["from"];//parent_msg.Destination;//username + " <sip:" + username + "@" + localhost + ">";
+		msg.Headers["To"] = parent_msg.Headers["to"];//destination;
+		if (parent_msg)
+			msg.Headers["Via"] = parent_msg.Headers["via"];
+		else
+			msg.Headers["Via"] = "SIP/2.0/UDP " + full_server + ";rport;branch=" + branch;
+		msg.Headers["Max-Forwards"] = max_forwards;
+
+		msg.Headers["Call-ID"] = callid;	
+		msg.Headers["Allow"] = SIP_ALLOW;;
+		if (parent_msg) {
+			var cseq = value (parent_msg.Headers["cseq"]);
+			msg.Headers["CSeq"] = "$cseq " + parent_msg.Method;
+		}
+		if (contact)
+			msg.Headers["Contact"] = contact;
+		/*else
+			msg.Headers["Contact"] = parent_msg.Destination;//"<sip:" + username + "@" + localhost + ">";*/
+
+		msg.Headers["Content-Length"] = length payload;
+
+		if ((payload_type) && (payload)) {
+			msg.Headers["Content-Type"] = payload_type;
+			msg.PayloadBlob = payload;
+		}
+
+		try {
+			if (this.OnSend)
+				this.OnSend(msg, server, server_port);
+
+			if (udpclientsocket.Write(msg.ToString(), server, server_port) <= 0)
+				return null;
+			return msg;
+		} catch (var exc) {
+			// nothing
+		}
+		return null;
+	}
+
+	private Ack(msg, ip = "", port = 0, max_forwards = 70) {
+		var contact = msg.Headers["contact"];
+		if (!contact)
+			contact = msg.Headers["from"];
+
+		var msg2 = null;
+		if (contact)
+			msg2 = PerformUDP("ACK", msg.Headers["to"], contact, "", "", max_forwards, msg, null, ip, port);
+		return msg2;
+	}
+
+	public Refer(msg, address, ip = "", port = 0, max_forwards = 70) {
+		var contact = msg.Headers["contact"];
+		if (!contact)
+			contact = msg.Headers["from"];
+
+		var msg2 = null;
+		if (contact)
+			msg2 = PerformUDP("REFER", msg.Headers["to"], contact, "", "", max_forwards, msg, ["Refer-To" => address], ip, port);
+
+		return msg2;
+	}
+
+	Bye(msg, ip = "", port = 0, max_forwards = 70) {
+		var contact = msg.Headers["contact"];
+		if (!contact)
+			contact = msg.Headers["from"];
+
+		var msg2 = null;
+		if (contact)
+			msg2 = PerformUDP("BYE", msg.Headers["to"], contact, "", "", max_forwards, msg, null, ip, port);
+		return msg2;
+	}
+
+	Cancel(msg, ip = "", port = 0, max_forwards = 70) {
+		var msg2 = null;
+
+		var contact = msg.Headers["contact"];
+		if (!contact)
+			contact = msg.Headers["from"];
+
+		if (contact)
+			msg2 = PerformUDP("CANCEL", msg.Headers["to"], contact, "", "", max_forwards, msg, null, ip, port);
+		return msg2;
+	}
+
+	PeekMessage(var ip, var port, max_forwards = 70) {
+		try {
+			if (udpclientsocket.HasData) {
+				var msg = this.Parse(udpclientsocket.Read(ip, port));
+				if (msg) {
+					if (this.OnRecv)
+						this.OnRecv(msg, ip, port);
+					if (((msg.ServerCode >= 200) || (!msg.ServerCode)) && (msg.Method == "") && (!Pos(""+msg.Headers["cseq"], " ACK")))
+						this.Ack(msg, ip, port, max_forwards);
+					return msg;
+				}
+			}
+		} catch (var exc) {
+			// nothing
+		}
+		return null;
+	}
+
+	CreateSession(msg, ip, port) {
+		var id = msg.Headers["call-id"];
+		if (id) {
+			if (Sessions[id])
+				return false;
+			var session = new SIPSession(this, msg, rtp_port_index++, ip, port, this.FrameSize);
+			if (rtp_port_index > RTP_END_PORT)
+				rtp_port_index = RTP_START_PORT;
+			Sessions[id] = session;
+			return session;
+		}
+		return false;
+	}
+
+	RemoveSession(msg) {
+		var id = msg.Headers["call-id"];
+		if (id) {
+			if (IsSet(Sessions, id)) {
+				var sessions = Sessions;
+				var new_sessions = new [];
+				var res = sessions[id];
+				for (var i = 0; i < length sessions; i++) {
+					var sess = sessions[i];	
+					if ((sess) && (sess.CallID != id))
+						new_sessions[sess.CallID] = sess;
+				}
+				Sessions = new_sessions;
+				return res;
+			}
+		}
+		return null;
+	}
+
+	GetSession(msg) {
+		var id = msg.Headers["call-id"];
+		if (id) {
+			if (IsSet(Sessions, id))
+				return Sessions[id];
+		}
+		return null;
+	}
+
+	RemoveSessionByRef(session) {
+		if (session) {
+			var sessions = Sessions;
+			var new_sessions = new [];
+			var id = session.CallID;
+			for (var i = 0; i < length sessions; i++) {
+				var sess = sessions[i];	
+				if ((sess) && (sess.CallID != id))
+					new_sessions[sess.CallID] = sess;
+			}
+			Sessions = new_sessions;
+			return true;
+		}
+		return false;
+	}
+
+	TerminateSession(msg) {
+		var id = msg.Headers["call-id"];
+		if (id) {
+			if (IsSet(Sessions, id)) {
+				var sess = Sessions[id];
+				if (sess) {
+					sess.Bye();
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+
+	ParseFullDestination(destination, var user, var server, var port) {
+		var arr = StrSplit(destination, "@");
+		if (length arr == 2) {
+			user = arr[0];
+			var pos = Pos(user, ":");
+			if (pos > 0) {
+				user = SubStr(user, pos, length user);
+			}
+			this.ParseHost(arr[1], server, port);
+		}
+	}
+
+	Invite(destination, username, max_forwards = 70) {
+		var msg = new SIPMessage();
+		msg.Method = "INVITE";
+
+		var server = "";
+		var server_port = 0;
+		var full_server = "";
+
+		ParseFullDestination(destination, var target_user, server, server_port);
+		if (server_port != 5060)
+			full_server = server + ":" + server_port;
+		else
+			full_server = server;
+
+		msg.Destination = destination;
+		//msg.Destination = "sip:${target_user}@${full_host}";
+
+		var branch = "z9hG4bK" + this.RandomString(14);
+		var callid = this.RandomString(32) + "@" + localhost;
+
+		msg.Headers["via"] = "SIP/2.0/UDP " + this.full_host + ";rport;branch=" + branch;
+		msg.Headers["max-forwards"] = max_forwards;
+
+		msg.Headers["from"] = "sip:" + username + "@" + this.localhost + ";tag="+this.RandomString(20);
+		msg.Headers["to"] = "sip:${target_user}@${localhost}";//destination;
+		msg.Headers["contact"] = "<sip:" + username + "@" + this.full_host + ">";
+
+		msg.Headers["call-id"] = callid;
+		msg.Headers["cseq"] = "1 " + msg.Method;
+		msg.Headers["supported"] = "outbound";
+
+		msg.Headers["allow"] = SIP_ALLOW;
+
+		var sess = this.CreateSession(msg, server, server_port);
+		msg.Headers["supported"] = "100rel, timer";
+		msg.Headers["session-expires"] = "3600;refresher=uac";
+		if (sess) {
+			var payload = sess.GetSDP();
+			var payload_type = "application/sdp";
+			msg.Headers["content-length"] = length payload;
+			msg.Headers["content-type"] = payload_type;
+			msg.PayloadBlob = payload;
+
+			try {
+				if (this.OnSend)
+					this.OnSend(msg, server, server_port);
+
+				if (udpclientsocket.Write(msg.ToString(), server, server_port) <= 0)
+					return null;
+				return sess;
+			} catch (var exc) {
+				// nothing
+			}
+		}
+		return null;
+	}
+
+	KeepAlive(ip, port) {
+		try {
+			if (udpclientsocket.Write("\r\n", ip, port) <= 0)
+				return false;
+			return true;
+		} catch (var exc) {
+			// nothing
+		}
+	}
+
+	ParseHost(full_host, var host, var port) {
+		port = 5060;
+		if (full_host) {
+			var arr = StrSplit(full_host, ":");
+			if (length arr == 2) {
+				host = arr[0];
+				port = value arr[1];
+			} else
+				host = full_host;
+			if (host)
+				host = StrSplit(host, ">")[0];
+		}
+	}
+
+	ParseVia(msg, var host, var port, var protocol = null) {
+		if (msg) {
+			var via = msg.Headers["via"];
+			if (via) {
+				if (typeof via == "array")
+					via = via[0];
+				var arr = StrSplit(via, " ");
+				if (length arr >= 2) {
+					protocol = arr[0];
+					ParseHost(StrSplit(arr[1], ";")[0], host, port);
+				}
+			}
+		}
+	}
+
+	RequestAuth(msg) {
+		var nonce = md5(RandomString(32));
+		var extra_headers = new [];
+		extra_headers["WWW-Authenticate"] = "Digest realm=\"${this.realm}\", qop=\"auth\", nonce=\"$nonce\", algorithm=md5";
+		return extra_headers;
+	}
+
+	CheckAuth(auth, nonce, password, method = "REGISTER") {
+		var res = ParseAuth(auth);
+		var username = res["username"];
+		var uri = res["uri"];
+		if ((res["nonce"]) && (res["realm"]) && (res["response"]) && (username) && (uri)) {
+			var alg = res["algorithm"];
+			if (!alg)	
+				alg = "md5";
+			else
+				alg = ToLower(alg);
+			switch (alg) {
+				case "sha1":
+					var ha1 = sha1(username + ":" + res["realm"] + ":" + password);
+					var ha2 = sha1(method + ":" + uri);
+					var response = sha1(ha1 +":" + nonce + ":" + ha2);
+					break;
+				case "sha256":
+					ha1 = sha256(username + ":" + nonce + ":" + password);
+					ha2 = sha256(method + ":" + uri);
+					response = sha256(ha1 +":" + nonce + ":" + ha2);
+					break;
+				default:
+					ha1 = md5(username + ":" + nonce + ":" + password);
+					ha2 = md5(method + ":" + uri);
+					response = md5(ha1 +":" + nonce + ":" + ha2);
+			}
+			if (response == res["response"])
+				return 200;
+		}
+		return 401;
+	}
+
+	Iterate() {
+		var sessions = this.Sessions;
+		var ops = 0;
+		for (var i = 0; i < length sessions; i++) {
+			var session = sessions[i];
+			if (session)
+				ops += session.Iterate();
+		}
+		var msg = this.PeekMessage(var ip, var port);
+		if (msg) {
+			ops++;
+			if (this.OnNeedAuthorization) {
+				var auth_code = this.OnNeedAuthorization(msg);
+				if (auth_code) {
+					this.ResponseUDP(auth_code, msg, msg.Headers["from"]);
+					return;
+				}
+			}
+			var extra_headers;
+			switch (msg.Method) {
+				case "INVITE":
+					var sess = this.CreateSession(msg, ip, port);
+					if (sess) {
+						this.ResponseUDP(180, msg, msg.Headers["from"]);
+
+						if (this.OnInvite)
+							this.OnInvite(sess, msg);
+					} else {
+						echo "Cannot create session\n";
+						this.ResponseUDP(430, msg, msg.Headers["from"]);
+					}
+					break;
+				case "REGISTER":
+					var register_response = 401;
+					var auth = "";
+					if (IsSet(msg.Headers, "authorization"))
+						auth = msg.Headers["authorization"];
+					if (!auth)
+						extra_headers = RequestAuth(msg);
+
+					if (this.OnRegister)
+						register_response = this.OnRegister(msg, auth, extra_headers);
+					this.ResponseUDP(register_response, msg, msg.Headers["from"], "", "", 70, extra_headers);
+					break;
+				case "NOTIFY":
+					// message
+					var code = 200;
+					if (this.OnNotify)
+						code = this.OnNotify(msg);
+					this.ResponseUDP(code, msg, msg.Headers["from"]);
+					break;
+				case "CANCEL":
+				case "BYE":
+					sess = this.RemoveSession(msg);
+					if (sess) {
+						this.ResponseUDP(200, msg, msg.Headers["from"]);
+						if (this.OnEnd)
+							this.OnEnd(sess, msg, msg.Headers["reason"]);
+					} else {
+						// Cannot remove non-existing session;
+						this.ResponseUDP(481, msg, msg.Headers["from"]);
+					}
+					break;
+				case "ACK":
+					// ignore it
+					break;
+				default:
+					if (msg.FromServer) {
+						var ctype = msg.Headers["content-type"];
+						sess = null;
+						if ((ctype) && (ToLower(ctype) == "application/sdp") && (msg.Payload)) {
+							sess = GetSession(msg);
+							if (sess)
+								sess.UpdateMedia(msg);
+						}
+
+						if ((msg.ServerCode >= 200) && (msg.ServerCode < 300)) {
+							if (!sess)
+								sess = GetSession(msg);
+							if ((sess) && (!session.bye_set)) {
+								sess.bye_set = true;
+								sess.accept_bye = true;
+							}
+						}
+
+						if (this.OnResponse)
+							this.OnResponse(msg);
+
+						if (this.OnRinging) {
+							if ((msg.ServerCode == 180) || (msg.ServerCode == 183)) {
+								if (!sess)
+									sess = GetSession(msg);
+								if (sess)
+									this.OnRinging(sess, msg);
+							}
+						}
+						if (msg.ServerCode >= 400) {
+							if (!sess)
+								sess = GetSession(msg);
+
+							if (sess) {
+								sess.Bye();
+								this.RemoveSessionByRef(sess);
+								if (this.OnEnd)
+									this.OnEnd(sess, msg, msg.Headers["reason"] ?? "");
+							}
+						}
+					} else {
+						if (this.OnNotUnderstood)
+							this.OnNotUnderstood(msg);
+					}
+					break;
+			}
+		}
+		ops++;
+	}
+}

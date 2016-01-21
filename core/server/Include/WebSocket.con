@@ -1,0 +1,121 @@
+import standard.lib.str
+import standard.C.casts
+import standard.lib.cripto
+import standard.coding.base64
+
+class WebSocket {
+	static function SerializeMessage(data, is_text=false) {
+		if (!data)
+			return 0;
+
+		// binary message
+		var buf;
+		if (is_text)
+			buf=chr(0x81);
+		else
+			buf=chr(0x82);
+
+		var len=length data;
+		if (len<=125)
+			buf+=toubin(len, 8);
+		else
+		if ((len>= 126) && (len<=65535)) {
+			buf+=toubin(126, 8);
+			buf+=toubin(len >> 8 & 0xFF, 8);
+			buf+=toubin(len & 0xFF, 8);
+		} else {
+			// on 32-bit machines, >> is using 32-bit integers
+
+			var len1=len/0x1000000;
+			var len2=len%0x1000000;
+
+			buf+=toubin(127, 8);
+
+			buf+=toubin(len1 >> 24 & 0xFF, 8);
+			buf+=toubin(len1 >> 16 & 0xFF, 8);
+			buf+=toubin(len1 >> 8 & 0xFF, 8);
+			buf+=toubin(len1 & 0xFF, 8);
+
+			buf+=toubin(len2 >> 24 & 0xFF, 8);
+			buf+=toubin(len2 >> 16 & 0xFF, 8);
+			buf+=toubin(len2 >> 8 & 0xFF, 8);
+			buf+=toubin(len2 & 0xFF, 8);
+		}
+		buf+=data;
+		return buf;
+	}
+
+	GetSize(var data) {
+		if (length data<6)
+			return 0;
+
+		var tos=data[0];
+		var size=tounumber(data[1], 8) & 0x7F;
+
+		if (size==126) {
+			if (length data<8)
+				return 0;
+			// 2 bytes size
+			size=tounumber(data[2], 8) << 8;
+			size+=tounumber(data[3], 8);
+			data=SubStr(data, 4, size+4);
+		} else
+		if (size==127) {
+			if (length data<14)
+				return 0;
+			// 8 bytes size
+			size=tounumber(data[2], 8) << 24;
+			size+=tounumber(data[3], 8) << 16;
+			size+=tounumber(data[4], 8) << 8;
+			size+=tounumber(data[5], 8);
+			size*=0x1000000;
+
+			size+=tounumber(data[6], 8) << 24;
+			size+=tounumber(data[7], 8) << 16;
+			size+=tounumber(data[8], 8) << 8;
+			size+=tounumber(data[9], 8);
+
+			data=SubStr(data, 10, size+4);
+		} else {
+			data=SubStr(data, 2, size+4);
+		}
+		return size;
+	}
+
+	Decode(var data) {
+		var len=length data;
+		var res="";
+
+		var[] mask;
+		for (var i=0;i<4;i++)
+			mask[i]=tounumber(data[i], 8);
+
+		for (i=4;i<len;i++) {
+			var c=ord(data[i]);
+
+			res+=toubin(c ^ mask[i%4], 8);
+		}
+		return res;
+	}
+
+	UnserializeMessage(data, var pending) {
+		var size=GetSize(data);
+		pending=size-length data+4;
+		if (!pending)
+			return this.Decode(data);
+		return "";
+	}
+
+	static AcceptKey(key) {
+		var res=key+"258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
+		res=sha1(res);
+		var len=length res;
+		var res2="";
+		for (var i=0;i<len;i+=2)
+			res2+=toubin(HexToNumber(res[i]+res[i+1]), 8);
+
+		res=mime_encode(res2);
+		res=StrReplace(res, "\r", "");
+		return StrReplace(res, "\n", "");
+	}
+}

@@ -1,0 +1,19 @@
+include 'VisibleControl.con'
+
+class ConceptMenu extends VisibleControl {
+
+	public function ConceptMenu(Owner) {
+		this->VisibleControl(Owner, CLASS_MENU);
+	}
+
+	public function AddPopup(Popup, caption) {
+		if (classof Popup!="ConceptPopup")
+		     	throw new ControlException(EXC_INVALID_ARGUMENT_TYPE, this);
+
+                SendMessage(this->Name, MSG_ITEMEX1_ADD, caption, Popup->Name);
+	}
+
+	public function AddItem(caption, ID) {
+                SendMessage(this->Name, MSG_ITEM_ADD, caption, ID);
+	}
+}

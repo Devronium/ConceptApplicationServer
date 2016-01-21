@@ -1,0 +1,256 @@
+﻿<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" >
+<head>
+    <title>Documentation for {entity.Name}</title>
+</head>
+<body>
+
+<table width="100%" border="0" cellpadding="0" cellspacing="0">
+    <tr bgcolor="#660066"><td colspan="2"><h1><font color="#FFFFFF">{application}</font></h1></td></tr>
+    <tr bgcolor="#F3F3F3"><td>{description}</td><td align="right"><a href="javascript:if (history.length>1) history.go(-1); else window.location.href='internal://goback';"><img src="res/_back.png" alt="back" border="0"/></a>&nbsp;<a href="index.html"><img src="res/_home.png" alt="home" border="0"/></a>&nbsp;<a href="javascript:if (history.length>1) history.go(1); else window.location.href='internal://goforward';"><img src="res/_forward.png" alt="next" border="0"/></a></td></tr>
+    <tr bgcolor="#FFFFFF"><td colspan="2">
+        <table>
+        <tr>
+        <td valign="middle" align="center"><img src="res/{entity_icon}" alt="{entity_name} icon" /></td>
+        <td>
+        <strong>{entity_name}</strong><br />
+        {if entity.Comments}
+        <i>{entity.Comments}</i>
+        {endif}
+        </td></tr></table>
+        <hr />
+
+        <table width="100%" cellpadding="0" cellspacing="0"><tr><td bgcolor="#f0f0f0">
+        <small>
+        <font color="#808080">
+        {if entity.Add}
+            {if entity.AddLevel}
+                Added only by level {entity.AddLevel} users or higher.
+            {else}
+                Added directly by any user.
+            {endif}
+            <br />
+        {endif}
+        {if entity.Modify}
+            {if entity.ModifyLevel}
+                {if entity.ModifySame}
+                    Can be modified by level {entity.ModifyLevel} users or higher.
+                {else}
+                    Can be modified by the user that owns (added) it or by level {entity.ModifyLevel} users or higher.
+                {endif}
+            {else}
+                Can be modified by any user.
+            {endif}
+            <br />
+        {endif}
+        {if entity.Delete}
+            {if entity.DeleteLevel}
+                {if entity.DeleteSame}
+                    Can be deleted by level {entity.DeleteLevel} users or higher.
+                {else}
+                    Can be deleted by the user that owns (added) it or by level {entity.DeleteLevel} users or higher.
+                {endif}
+            {else}
+                Can be deleted by any user.
+            {endif}
+            <br />
+        {endif}
+        {if entity.List}
+            {if entity.ListLevel}
+                {if entity.ListSame}
+                    Can be listed/printed/reported by level {entity.ListLevel} users or higher.
+                {else}
+                    Can be listed/printed by the user that owns (added) it or by level {entity.ListLevel} users or higher.
+                {endif}
+            {else}
+                Can be listed (on screen or in reports) by any user
+            {endif}
+            <br />
+        {endif}
+        {if entity.Find}
+            {if entity.FindLevel}
+                {if entity.FindSame}
+                    Only level {entity.FindLevel} users or higher can search this.
+                {else}
+                    Only the user that owns (added) it or level {entity.FindLevel} users or higher can search on this.
+                {endif}
+            {else}
+                Any user can perform searches on this.
+            {endif}
+            <br />
+        {endif}
+        </font></small>
+        </td></tr>
+        </table>
+        <br />
+        {if linked_members_length}
+            You can link to {entity_name} from: 
+            <ul>
+            {foreach linked_members}
+                <li><a href="{linked_members.Link}.html">{linked_members.Entity}</a> by '<b>{linked_members.ByMember}</b>'</li>
+            {endfor}
+            </ul>
+            <br />
+        {endif}
+        {if exclusive_members_length}
+            You can <b>add '{entity_name}'</b> from:
+            <ul>
+            {foreach exclusive_members}
+                <li><a href="{exclusive_members.Link}.html">{exclusive_members.Entity}</a> to '<b>{exclusive_members.ByMember}</b>'</li>
+            {endfor}
+            </ul>
+            <br />
+        {endif}
+        {if entity.GenerateViews}
+            You can open the general view in the application main form 
+            (the one that appears after you log on) by clicking in the toolbar on the button
+            named "<b>{entity_name}</b>".<br />
+            {if entity.MenuCategory}
+                Another way to access it is from main menu bar, menu:<br /> <b>{entity.MenuCategory}</b> -> <b>{entity_name}</b> -> <b>Index</b>.
+            {else}
+                Another way to access it is from main menu bar, menu:<br /> <b>{entity_name}</b> -> <b>Index</b>.
+            {endif}
+            <br />
+            <table><tr>
+            <td valign="middle"><img src="res/_info.png" alt="i"/> </td>
+            <td><i>Note that menu path may vary according to the selected language.</i></td>
+            </tr></table>
+            <br />
+            In the general view you can perform multiple operations like: <br />
+            <ul>
+            {if entity.Find}
+                <li>
+                <b>Search the database</b>: just type what you want to find in the text box and press enter or use the mouse to click on the 'Find' button.<br />
+                <table><tr>
+                <td valign="middle"><img src="res/_info.png" alt="i"/> </td>
+                <td><i>When you use this method of searching, all the fields/properties are checked for the searched value. 
+                You can also use the '%' wildcard that replaces a character or a group of 
+                characters. For example, if you search for '%John%' all the values like 'John Smith' or 'Mary of John' or 'Mary of John Smith' will satisfy your criteria.</i></td>
+                </tr></table>
+                {if advanced_members_length}
+                    You can also perform <b>advanced searches</b> by combining with any or all of the following members:<br />
+                    {foreach advanced_members}
+                        {if advanced_members.PatternSearch}
+                            <b>{advanced_members.Name}</b>(with pattern included, so no leading and ending '%' is needed), 
+                        {else}
+                            <b>{advanced_members.Name}</b>, 
+                        {endif}
+                    {endfor}
+                    and the master search field (the upper text box used in the normal search).<br />
+                    For that, you must expand the "Advanced search" box and choose the criteria by checking the check box on the begining on the line. 
+                    Next, you should select an operator, eg:<br />
+                         "=" for searching all the records that "match" the given text or pattern. If you choose "<>" instead all of the records that don't match
+                    the given criteria will be presented. Don't forget to uncheck the advanced criteria box before minimizing the "Advanced search" zone, because will affect all your future searches.<br />
+                    <b>Hint:</b> For date fields you can even search records between a given interval.<br />
+                    {if entity.Archivable}
+                    When switching to archive view, the search works the same but on the archive.
+                    {endif}
+                {endif}
+                </li>
+            {endif}
+            {if entity.Add}
+                <li>
+                <b>You can add new "<b>{entity_name}</b>" to the database</b> by right clicking your mouse in the working area of the general view and then click "<b>New</b>". A new {entity_name} form will be opened and data can be entered.
+                {if entity.Categories}
+                    {if entity.CategoryType}
+                        <!-- nothing -->
+                    {else}
+                        You can switch from any category ({entity.Categories}) from the tabs in order to input all your data.
+                    {endif}
+                {endif}
+                </li>
+            {endif}
+            {if entity.Modify}
+                <li><b>You can modify "<b>{entity_name}</b>" </b> by right clicking "<b>Edit</b>" on it. A {entity_name} form will be opened and data can be modified. Note that if you don't have enough rights to perform this operation, the "Save" button will be disabled.
+                {if entity.Categories}
+                    {if entity.CategoryType}
+                        <!-- nothing -->
+                    {else}
+                        You can switch from any category ({entity.Categories}) from the tabs in order to input all your data.
+                    {endif}
+                {endif}
+                <br />
+                {if entity.ConfirmCancel}
+                        <!-- nothing -->
+                    When you hit the "Cancel" button, you will be asked to confirm the operation (that could result in data loss).
+                {else}
+                    <table><tr>
+                    <td valign="middle"><img src="res/_warning.png" alt="warning"/> </td>
+                    <td><b>When you hit "Cancel" the form will be closed without any asking for confirmation and all the modified data will be lost.</b></td>
+                    </tr></table>
+                {endif}
+                </li>
+            {endif}
+            {if entity.Delete}
+                <li><b>You can delete "<b>{entity_name}</b>" </b> by right clicking "<b>Delete</b>" on it. A confirmation pop-up window will appear. If you choose "Yes" it will be permanently deleted from the database.
+                <table><tr>
+                <td valign="middle"><img src="res/_warning.png" alt="warning"/> </td>
+                <td><b>When you delete an entity, all the related data in the database will be also deleted.</b></td>
+                </tr></table>
+                </li>
+            {endif}
+            {if entity.Archivable}
+                <li><b>You can send to archive "<b>{entity_name}</b>" </b> by right clicking "<b>Send to archive</b>" on it. <br />
+                When switching to the "Archive view" instead of the normal view, you will find it there. You can right click again on it and 
+                choose "<b>Bring back from archive</b>".
+                </li>
+            {endif}
+            </ul>
+        {else}
+            <table><tr>
+            <td valign="middle"><img src="res/_warning.png" alt="warning"/> </td>
+            <td><b>You cannot acces a view directly from the main window. {entity_name} can be accesed only from its parents forms.</b></td>
+            </tr></table>
+            <br />
+        {endif}
+        <br />
+        {if unique_members_length}
+            <table><tr>
+            <td valign="middle"><img src="res/_warning.png" alt="warning"/> </td>
+            <td><b>Field(s): 
+            {foreach unique_members}
+                {if unique_members.Enforced}
+                    {unique_members.Name}</b>(only for the logged user)<b>,
+                {else}
+                    {unique_members.Name},
+                {endif}
+            {endfor}
+            must be unique in the database.
+            </b></td> 
+            </tr></table>
+            <br />
+        {endif}
+        <strong>{entity_name}</strong> has the following properties:
+        
+        <table width="100%" cellpadding="0" cellspacing="0" border="1">
+        <tr bgcolor="#A0A0A0"><td><b>Property name</b></td><td><b>Default value</b></td><td><b>Description</b></td><td><b>Category</b></td><td><b>Possible values</b></td></tr>
+        {foreach members}
+            <tr><td>
+            <b>{members.Name}</b>
+            </td>
+            <td>&nbsp;{members.DefaultValue}</td>
+            <td><i>&nbsp;{members.Description}</i></td>
+            {if members.Category} 
+                <td>{members.Category}</td>
+            {else}
+                <td>&nbsp;</td>
+            {endif}
+            <td>
+            {if members.Children}
+                A relation with <a href="{members.Children}.html">{members.RelationWith}</a>
+            {else}
+                {if members.Values}
+                    {members.Values}
+                {else}
+                    {members.type}
+                {endif}
+            {endif}
+            </td>
+            </tr>
+        {endfor}
+        </table>
+    </td></tr>
+    <tr bgcolor="#660066"><td colspan="2"><font color="#FFFFFF"><small>Help file generated at {time}</small></font></td></tr>
+</table>
+</body>
+</html>

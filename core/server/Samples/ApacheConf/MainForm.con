@@ -1,0 +1,64 @@
+include project_forms.glade.con
+include HttpdConf.con
+
+import standard.C.io
+
+define APPLICATION_FORM_TYPE	MainForm
+
+class MainForm extends MainWindow {
+        private var inputconfcontent="";
+        private var inputconffilename="";
+
+
+        public function MainForm(Owner, Lang S) {
+                super(Owner, S);
+                
+                var path=_getenv("CONCEPT_ROOT");
+                var arr=StrSplit(path, "..");
+                var dist_path="";
+
+                if (Pos(path, ":\\")>0) {
+                    // we're on windows ...
+                    this.EditCGIName.Text="concept-cgi.exe";
+                }
+                if (length arr)
+                    dist_path=arr[0];
+
+                var debug_path=path+"MyProjects";
+
+                this.EditPort.Value=8080;
+                this.EditDebugPath.Text=debug_path;
+                this.EditDistPath.Text=dist_path;
+        }
+
+        // Manually add your events here //
+        public function on_GenerateButton_clicked(Sender, EventData) {
+            var do_debug=this.CheckDebug.Checked;
+            var dist_path=this.EditDistPath.Text;
+            var debug_path=this.EditDebugPath.Text;
+            var debug_port=this.EditPort.Value;
+            var directory_index=this.EditIndex.Text;
+            var cgi_name=this.EditCGIName.Text;
+            
+            try {
+                var content=HttpdConf::DoApache(inputconfcontent, dist_path, cgi_name, directory_index!="", directory_index, do_debug, debug_path);
+                this.textview1.AddText("${inputconffilename} successfuly updated !\n");
+                CApplication.SendFile(inputconffilename,content,S<<"Save file",S<<"Apache conf files(*.conf)|*.conf;All files(*.*)|*.*;");
+            } catch (var exception) {
+                this.textview1.AddText(exception+"\n");
+            }
+        }
+
+        public function on_InputButton_clicked(Sender, EventData) {
+            if (CApplication::RequestFile(
+                var FileName, 
+                var Content,
+                S<<"Open file",
+                S<<"Apache conf files(*.conf)|*.conf;All files(*.*)|*.*;")) {
+
+                inputconffilename=FileName;
+                inputconfcontent=Content;
+                GenerateButton.Enabled=true;
+            }
+        }
+}

@@ -1,0 +1,2566 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+  <title>RVButtonBox</title>
+  <link href="css/style.css" rel="stylesheet" type="text/css">
+  <meta http-equiv="Content-Type" content="text/html;charset=utf-8" >
+</head>
+<body bgcolor="#ffffff">
+<table border="0" width="100%" bgcolor="#F0F0FF">
+  <tr>
+    <td>Concept Framework 2.2 documentation</td>
+  	<td align="right"><a href="index.html">Contents</a> | <a href="index_fun.html">Index</a></td>
+  </tr>
+</table>
+<h2>RVButtonBox</h2>
+<table border="0" cellspacing="0" cellpadding="0" width="400" style="border-style:solid;border-width:1px;border-color:#D0D0D0;">
+  <tr bgcolor="#f0f0f0">
+     <td><i>Name</i></td>
+     <td><i>Version</i></td>
+     <td><i>Deprecated</i></td>
+  </tr>
+  <tr bgcolor="#fafafa">
+     <td><b>RVButtonBox</b></td>
+     <td>version 1.0</td>
+     <td>no</td>
+  </tr>
+</table>
+<br />
+<b>Defined in : </b>RVButtonBox.con
+<br/><i>(this file must be included in your application in order to have access, unless you use a child class of RVButtonBox that includes this file)</i><br /><br />
+
+<b>Inherits</b> : <a href="RButtonBox.html">RButtonBox</a>&nbsp;&nbsp;
+<br /><br />
+
+
+<b>Description:</b><br />
+<table width="100%" bgcolor="#FAFAFF" style="border-style:solid;border-width:1px;border-color:#D0D0D0;">
+<tr><td>
+A container for arranging buttons vertically. A button box should be used to provide a consistent layout of buttons throughout your application
+</td></tr>
+</table>
+<br />
+<br />
+
+
+
+
+<b>Methods:</b><br />
+<table bgcolor="#FFFFFF" width="100%" style="border-style:solid;border-width:1px;border-color:#D0D0D0;">
+
+	   <tr>
+	   	   <td>
+		   	   <a href="RVButtonBox.RVButtonBox.html">RVButtonBox</a>
+		   </td>
+	   	   <td>
+		   	   This is the constructor for RVButtonBox
+		   </td>
+	   </tr>
+
+</table>
+<br />
+
+
+
+
+
+
+
+<b>Inherited from <a href="RButtonBox.html">RButtonBox</a>:</b><br />
+<br />
+
+
+<b>Inherited properties from <a href="RButtonBox.html">RButtonBox</a></b><br />
+<table bgcolor="#FFFFFF" width="100%" style="border-style:solid;border-width:1px;border-color:#D0D0D0;">
+
+	   <tr>
+	   	   <td>
+		   	   <a href="RButtonBox.Layout.html">Layout</a>
+		   </td>
+	   	   <td>
+		   	   How to layout the buttons in the box
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="RButtonBox.XPadding.html">XPadding</a>
+		   </td>
+	   	   <td>
+		   	   This property sets the X padding for the RButtonBox
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="RButtonBox.YPadding.html">YPadding</a>
+		   </td>
+	   	   <td>
+		   	   This property sets the Y padding for the RButtonBox
+		   </td>
+	   </tr>
+
+</table>
+<br />
+
+
+
+
+
+
+
+
+
+
+<b>Inherited from <a href="RBox.html">RBox</a>:</b><br />
+<br />
+
+
+<b>Inherited properties from <a href="RBox.html">RBox</a></b><br />
+<table bgcolor="#FFFFFF" width="100%" style="border-style:solid;border-width:1px;border-color:#D0D0D0;">
+
+	   <tr>
+	   	   <td>
+		   	   <a href="RBox.Fixed.html">Fixed</a>
+		   </td>
+	   	   <td>
+		   	   This property applies to container controls
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="RBox.Homogeneous.html">Homogeneous</a>
+		   </td>
+	   	   <td>
+		   	   When this property is set, all children of the box have the same size (the box is homogeneous)
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="RBox.Spacing.html">Spacing</a>
+		   </td>
+	   	   <td>
+		   	   This property sets the amount of spacing pixels between children of the <a href="RBox.html">RBox</a>
+		   </td>
+	   </tr>
+
+</table>
+<br />
+
+
+
+
+<b>Inherited methods from <a href="RBox.html">RBox</a></b><br />
+<table bgcolor="#FFFFFF" width="100%" style="border-style:solid;border-width:1px;border-color:#D0D0D0;">
+
+	   <tr>
+	   	   <td>
+		   	   <a href="RBox.ReorderChild.html">ReorderChild</a>
+		   </td>
+	   	   <td>
+		   	   This function changes the order of a child
+		   </td>
+	   </tr>
+
+</table>
+<br />
+
+
+
+
+
+
+
+<b>Inherited from <a href="RemoteContainer.html">RemoteContainer</a>:</b><br />
+<br />
+
+
+<b>Inherited properties from <a href="RemoteContainer.html">RemoteContainer</a></b><br />
+<table bgcolor="#FFFFFF" width="100%" style="border-style:solid;border-width:1px;border-color:#D0D0D0;">
+
+	   <tr>
+	   	   <td>
+		   	   <a href="RemoteContainer.Childs.html">Childs</a>
+		   </td>
+	   	   <td>
+		   	   An array containing the children of an RemoteContainer-derived object
+		   </td>
+	   </tr>
+
+</table>
+<br />
+
+
+
+
+<b>Inherited methods from <a href="RemoteContainer.html">RemoteContainer</a></b><br />
+<table bgcolor="#FFFFFF" width="100%" style="border-style:solid;border-width:1px;border-color:#D0D0D0;">
+
+	   <tr>
+	   	   <td>
+		   	   <a href="RemoteContainer.Add.html">Add</a>
+		   </td>
+	   	   <td>
+		   	   This member adds a child to the container
+		   </td>
+	   </tr>
+
+</table>
+<br />
+
+
+
+
+
+
+
+<b>Inherited from <a href="VisibleRemoteObject.html">VisibleRemoteObject</a>:</b><br />
+<br />
+
+
+<b>Inherited properties from <a href="VisibleRemoteObject.html">VisibleRemoteObject</a></b><br />
+<table bgcolor="#FFFFFF" width="100%" style="border-style:solid;border-width:1px;border-color:#D0D0D0;">
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.BgColor.html">BgColor</a>
+		   </td>
+	   	   <td>
+		   	   This property sets or gets the background color of a control
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.DragData.html">DragData</a>
+		   </td>
+	   	   <td>
+		   	   This is the data received by the control on which this control is dropped <a href="VisibleRemoteObject.OnDragDataReceived.html">OnDragDataReceived</a>
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.DragIcon.html">DragIcon</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.Dragable.html">Dragable</a>
+		   </td>
+	   	   <td>
+		   	   When this property is set to true, a control can be dragged by the user (using the mouse)
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.DropSite.html">DropSite</a>
+		   </td>
+	   	   <td>
+		   	   When this property is set to true, a control can receive <a href="VisibleRemoteObject.Dragable.html">Dragable</a> objects
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.Enabled.html">Enabled</a>
+		   </td>
+	   	   <td>
+		   	   When this property is set to true, a control can receive focus (is enabled)
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.FgColor.html">FgColor</a>
+		   </td>
+	   	   <td>
+		   	   This property sets or gets the foreground color of a control
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.Font.html">Font</a>
+		   </td>
+	   	   <td>
+		   	   Allows to modify the font used by a control via the <a href="RFont.html">RFont</a> class
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.Height.html">Height</a>
+		   </td>
+	   	   <td>
+		   	   This property gets the height (in pixels) of a control
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.InactiveBgColor.html">InactiveBgColor</a>
+		   </td>
+	   	   <td>
+		   	   This property sets or gets the background color of an inactive object
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.InactiveFgColor.html">InactiveFgColor</a>
+		   </td>
+	   	   <td>
+		   	   This property sets or gets the foreground color of an inactive object
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.Left.html">Left</a>
+		   </td>
+	   	   <td>
+		   	   This property gets the number of pixels from the left margin of this control to the left margin of its parent
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.Mask.html">Mask</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.MinHeight.html">MinHeight</a>
+		   </td>
+	   	   <td>
+		   	   This property gets or sets the minimum height(in pixels) for a control
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.MinWidth.html">MinWidth</a>
+		   </td>
+	   	   <td>
+		   	   This property gets or sets the minimum width for a control
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.MouseCursor.html">MouseCursor</a>
+		   </td>
+	   	   <td>
+		   	   This property sets or gets the mouse cursor image using a stock image
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.MouseCursorImage.html">MouseCursorImage</a>
+		   </td>
+	   	   <td>
+		   	   This property sets the image used by the mouse cursor from a <a href="RImage.html">RImage</a> object
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.PackType.html">PackType</a>
+		   </td>
+	   	   <td>
+		   	   This property sets or gets the type of the packing used for the next child of this control
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.Packing.html">Packing</a>
+		   </td>
+	   	   <td>
+		   	   This property sets or gets the type of the packing for this control
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.PopupMenu.html">PopupMenu</a>
+		   </td>
+	   	   <td>
+		   	   This property gets or sets the popup menu used for this control (the menu that appears when the mouse is right clicked)
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.SelectedBgColor.html">SelectedBgColor</a>
+		   </td>
+	   	   <td>
+		   	   This property sets or gets the background color of a selected control
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.SelectedFgColor.html">SelectedFgColor</a>
+		   </td>
+	   	   <td>
+		   	   This property sets or gets the foreground color of a selected control
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.Tooltip.html">Tooltip</a>
+		   </td>
+	   	   <td>
+		   	   This property sets or gets the tool tip for a visible object
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.TooltipMarkup.html">TooltipMarkup</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.TooltipWindow.html">TooltipWindow</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.Top.html">Top</a>
+		   </td>
+	   	   <td>
+		   	   This property gets the number of pixels from the top margin of this control to the top margin of its parent
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.UserData.html">UserData</a>
+		   </td>
+	   	   <td>
+		   	   This is a property that encapsulates custom data that needs to be attached to a control
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.Visible.html">Visible</a>
+		   </td>
+	   	   <td>
+		   	   A Boolean value specifying whether the button is visible
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.Width.html">Width</a>
+		   </td>
+	   	   <td>
+		   	   This property gets the width (in pixels) of a control
+		   </td>
+	   </tr>
+
+</table>
+<br />
+
+
+
+
+<b>Inherited methods from <a href="VisibleRemoteObject.html">VisibleRemoteObject</a></b><br />
+<table bgcolor="#FFFFFF" width="100%" style="border-style:solid;border-width:1px;border-color:#D0D0D0;">
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.ConfirmDelete.html">ConfirmDelete</a>
+		   </td>
+	   	   <td>
+		   	   This function is used to confirm the Delete event in an <a href="VisibleRemoteObject.OnDelete.html">OnDelete</a> event that needs confirmation
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.ConfirmEvent.html">ConfirmEvent</a>
+		   </td>
+	   	   <td>
+		   	   Some events require confirmation
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.DisposeObject.html">DisposeObject</a>
+		   </td>
+	   	   <td>
+		   	   This function tells the client that a control is no longer needed and can be deleted
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.GetDNDFile.html">GetDNDFile</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.GetFont.html">GetFont</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.GetHeight.html">GetHeight</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.GetLeft.html">GetLeft</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.GetOnButtonPress.html">GetOnButtonPress</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.GetOnButtonRelease.html">GetOnButtonRelease</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.GetOnChildNotify.html">GetOnChildNotify</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.GetOnConfigure.html">GetOnConfigure</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.GetOnDelete.html">GetOnDelete</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.GetOnDirectionChanged.html">GetOnDirectionChanged</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.GetOnDragBegin.html">GetOnDragBegin</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.GetOnDragDataDelete.html">GetOnDragDataDelete</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.GetOnDragDataGet.html">GetOnDragDataGet</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.GetOnDragDataReceived.html">GetOnDragDataReceived</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.GetOnDragDrop.html">GetOnDragDrop</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.GetOnDragEnd.html">GetOnDragEnd</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.GetOnDragLeave.html">GetOnDragLeave</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.GetOnDragMotion.html">GetOnDragMotion</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.GetOnEnterNotify.html">GetOnEnterNotify</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.GetOnEvent.html">GetOnEvent</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.GetOnExposeEvent.html">GetOnExposeEvent</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.GetOnFocus.html">GetOnFocus</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.GetOnFocusIn.html">GetOnFocusIn</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.GetOnFocusOut.html">GetOnFocusOut</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.GetOnGrabFocus.html">GetOnGrabFocus</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.GetOnGrabNotify.html">GetOnGrabNotify</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.GetOnHide.html">GetOnHide</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.GetOnHierarchyChanged.html">GetOnHierarchyChanged</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.GetOnKeyPress.html">GetOnKeyPress</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.GetOnKeyRelease.html">GetOnKeyRelease</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.GetOnLeaveNotify.html">GetOnLeaveNotify</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.GetOnMap.html">GetOnMap</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.GetOnMapEvent.html">GetOnMapEvent</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.GetOnMnemonicActivate.html">GetOnMnemonicActivate</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.GetOnMotionNotify.html">GetOnMotionNotify</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.GetOnNoExpose.html">GetOnNoExpose</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.GetOnParentChanged.html">GetOnParentChanged</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.GetOnProperty.html">GetOnProperty</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.GetOnProximityIn.html">GetOnProximityIn</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.GetOnProximityOut.html">GetOnProximityOut</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.GetOnRealize.html">GetOnRealize</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.GetOnScreenChanged.html">GetOnScreenChanged</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.GetOnScroll.html">GetOnScroll</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.GetOnSelectionClear.html">GetOnSelectionClear</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.GetOnSelectionGet.html">GetOnSelectionGet</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.GetOnSelectionNotify.html">GetOnSelectionNotify</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.GetOnSelectionReceived.html">GetOnSelectionReceived</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.GetOnSelectionRequest.html">GetOnSelectionRequest</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.GetOnShow.html">GetOnShow</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.GetOnSizeAllocate.html">GetOnSizeAllocate</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.GetOnSizeRequest.html">GetOnSizeRequest</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.GetOnStateChanged.html">GetOnStateChanged</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.GetOnStyleChanged.html">GetOnStyleChanged</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.GetOnUnmap.html">GetOnUnmap</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.GetOnUnmapEvent.html">GetOnUnmapEvent</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.GetOnUnrealize.html">GetOnUnrealize</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.GetOnVisibility.html">GetOnVisibility</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.GetOnWindowState.html">GetOnWindowState</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.GetTop.html">GetTop</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.GetWidth.html">GetWidth</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.GrabFocus.html">GrabFocus</a>
+		   </td>
+	   	   <td>
+		   	   This function marks the control as focused
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.Hide.html">Hide</a>
+		   </td>
+	   	   <td>
+		   	   This function hides this control by setting the <a href="VisibleRemoteObject.Visible.html">Visible</a> property to false
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.Move.html">Move</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.ResetDNDFiles.html">ResetDNDFiles</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.Send.html">Send</a>
+		   </td>
+	   	   <td>
+		   	   Sends a message to the client
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.SetBgColor.html">SetBgColor</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.SetDragData.html">SetDragData</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.SetDragIcon.html">SetDragIcon</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.SetDragable.html">SetDragable</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.SetDropSite.html">SetDropSite</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.SetEnabled.html">SetEnabled</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.SetFgColor.html">SetFgColor</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.SetIBgColor.html">SetIBgColor</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.SetIFgColor.html">SetIFgColor</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.SetLeft.html">SetLeft</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.SetMask.html">SetMask</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.SetMinHeight.html">SetMinHeight</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.SetMinWidth.html">SetMinWidth</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.SetMouseCursor.html">SetMouseCursor</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.SetMouseCursorImage.html">SetMouseCursorImage</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.SetOnButtonPress.html">SetOnButtonPress</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.SetOnButtonRelease.html">SetOnButtonRelease</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.SetOnChildNotify.html">SetOnChildNotify</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.SetOnConfigure.html">SetOnConfigure</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.SetOnDelete.html">SetOnDelete</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.SetOnDirectionChanged.html">SetOnDirectionChanged</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.SetOnDragBegin.html">SetOnDragBegin</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.SetOnDragDataDelete.html">SetOnDragDataDelete</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.SetOnDragDataGet.html">SetOnDragDataGet</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.SetOnDragDataReceived.html">SetOnDragDataReceived</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.SetOnDragDrop.html">SetOnDragDrop</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.SetOnDragEnd.html">SetOnDragEnd</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.SetOnDragLeave.html">SetOnDragLeave</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.SetOnDragMotion.html">SetOnDragMotion</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.SetOnEnterNotify.html">SetOnEnterNotify</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.SetOnEvent.html">SetOnEvent</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.SetOnExposeEvent.html">SetOnExposeEvent</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.SetOnFocus.html">SetOnFocus</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.SetOnFocusIn.html">SetOnFocusIn</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.SetOnFocusOut.html">SetOnFocusOut</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.SetOnGrabFocus.html">SetOnGrabFocus</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.SetOnGrabNotify.html">SetOnGrabNotify</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.SetOnHide.html">SetOnHide</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.SetOnHierarchyChanged.html">SetOnHierarchyChanged</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.SetOnKeyPress.html">SetOnKeyPress</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.SetOnKeyRelease.html">SetOnKeyRelease</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.SetOnLeaveNotify.html">SetOnLeaveNotify</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.SetOnMap.html">SetOnMap</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.SetOnMapEvent.html">SetOnMapEvent</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.SetOnMnemonicActivate.html">SetOnMnemonicActivate</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.SetOnMotionNotify.html">SetOnMotionNotify</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.SetOnNoExpose.html">SetOnNoExpose</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.SetOnParentChanged.html">SetOnParentChanged</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.SetOnProperty.html">SetOnProperty</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.SetOnProximityIn.html">SetOnProximityIn</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.SetOnProximityOut.html">SetOnProximityOut</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.SetOnRealize.html">SetOnRealize</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.SetOnScreenChanged.html">SetOnScreenChanged</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.SetOnScroll.html">SetOnScroll</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.SetOnSelectionClear.html">SetOnSelectionClear</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.SetOnSelectionGet.html">SetOnSelectionGet</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.SetOnSelectionNotify.html">SetOnSelectionNotify</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.SetOnSelectionReceived.html">SetOnSelectionReceived</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.SetOnSelectionRequest.html">SetOnSelectionRequest</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.SetOnShow.html">SetOnShow</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.SetOnSizeAllocate.html">SetOnSizeAllocate</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.SetOnSizeRequest.html">SetOnSizeRequest</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.SetOnStateChanged.html">SetOnStateChanged</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.SetOnStyleChanged.html">SetOnStyleChanged</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.SetOnUnmap.html">SetOnUnmap</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.SetOnUnmapEvent.html">SetOnUnmapEvent</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.SetOnUnrealize.html">SetOnUnrealize</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.SetOnVisibility.html">SetOnVisibility</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.SetOnWindowState.html">SetOnWindowState</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.SetPackType.html">SetPackType</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.SetPacking.html">SetPacking</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.SetPopupMenu.html">SetPopupMenu</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.SetSBgColor.html">SetSBgColor</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.SetSFgColor.html">SetSFgColor</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.SetTooltip.html">SetTooltip</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.SetTooltipMarkup.html">SetTooltipMarkup</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.SetTooltipWindow.html">SetTooltipWindow</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.SetTop.html">SetTop</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.SetUserData.html">SetUserData</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.SetVisible.html">SetVisible</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.Show.html">Show</a>
+		   </td>
+	   	   <td>
+		   	   This function shows this control by setting the <a href="VisibleRemoteObject.Visible.html">Visible</a> property to true
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.ShowTooltip.html">ShowTooltip</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.VisibleRemoteObject.html">VisibleRemoteObject</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+</table>
+<br />
+
+
+
+
+<b>Inherited events from <a href="VisibleRemoteObject.html">VisibleRemoteObject</a></b><br />
+<table bgcolor="#FFFFFF" width="100%" style="border-style:solid;border-width:1px;border-color:#D0D0D0;">
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.OnButtonPress.html">OnButtonPress</a>
+		   </td>
+	   	   <td>
+		   	   Event triggered by user pressing button
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.OnButtonRelease.html">OnButtonRelease</a>
+		   </td>
+	   	   <td>
+		   	   Event triggered by user releasing button
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.OnChildNotify.html">OnChildNotify</a>
+		   </td>
+	   	   <td>
+		   	   This event is fired for each child property that has changed on an object
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.OnConfigure.html">OnConfigure</a>
+		   </td>
+	   	   <td>
+		   	   Event triggered by a window resizing
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.OnDelete.html">OnDelete</a>
+		   </td>
+	   	   <td>
+		   	   Event triggered by window begin closed
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.OnDirectionChanged.html">OnDirectionChanged</a>
+		   </td>
+	   	   <td>
+		   	   Informs objects that their text direction has been changed (if the control contains text)
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.OnDragBegin.html">OnDragBegin</a>
+		   </td>
+	   	   <td>
+		   	   This event is fired on the drag source when a drag is started
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.OnDragDataDelete.html">OnDragDataDelete</a>
+		   </td>
+	   	   <td>
+		   	   This event is fired on the drag source when a drag with the move action is successfully completed
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.OnDragDataGet.html">OnDragDataGet</a>
+		   </td>
+	   	   <td>
+		   	   This event is fired on the drag source when the drop site requests the data which is dragged
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.OnDragDataReceived.html">OnDragDataReceived</a>
+		   </td>
+	   	   <td>
+		   	   This event is fired on the drop site when the dragged data has been received
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.OnDragDrop.html">OnDragDrop</a>
+		   </td>
+	   	   <td>
+		   	   The event is fired on the drop site when the user drops the data onto the control
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.OnDragEnd.html">OnDragEnd</a>
+		   </td>
+	   	   <td>
+		   	   This event is fired on the drag source when a drag is finished
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.OnDragLeave.html">OnDragLeave</a>
+		   </td>
+	   	   <td>
+		   	   This event is fired on the drop site when the cursor leaves the control
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.OnDragMotion.html">OnDragMotion</a>
+		   </td>
+	   	   <td>
+		   	   The event is fired on the drop site when the user moves the cursor over the control during a drag
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.OnEnterNotify.html">OnEnterNotify</a>
+		   </td>
+	   	   <td>
+		   	   Generated when the pointer enters a window
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.OnEvent.html">OnEvent</a>
+		   </td>
+	   	   <td>
+		   	   This event is fired when another event is fired
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.OnExposeEvent.html">OnExposeEvent</a>
+		   </td>
+	   	   <td>
+		   	   Event triggered by window requiring a refresh
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.OnFocus.html">OnFocus</a>
+		   </td>
+	   	   <td>
+		   	   This event is fired when this control receives focus(check GTK documentation for more information)
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.OnFocusIn.html">OnFocusIn</a>
+		   </td>
+	   	   <td>
+		   	   This event is fired when this control receives focus(check GTK documentation for more information)
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.OnFocusOut.html">OnFocusOut</a>
+		   </td>
+	   	   <td>
+		   	   This event is fired when this control looses its focus(check GTK documentation for more information)
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.OnGrabFocus.html">OnGrabFocus</a>
+		   </td>
+	   	   <td>
+		   	   This event is fired when this control grabs focus
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.OnGrabNotify.html">OnGrabNotify</a>
+		   </td>
+	   	   <td>
+		   	   Event fired when a control is grabbed(check GTK for more information)
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.OnHide.html">OnHide</a>
+		   </td>
+	   	   <td>
+		   	   Event triggered when the control is hidden
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.OnHierarchyChanged.html">OnHierarchyChanged</a>
+		   </td>
+	   	   <td>
+		   	   Informs objects that their top level control has been changed
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.OnKeyPress.html">OnKeyPress</a>
+		   </td>
+	   	   <td>
+		   	   This event is fired whenever the Sender control picks up a key pressed signal
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.OnKeyRelease.html">OnKeyRelease</a>
+		   </td>
+	   	   <td>
+		   	   This event is fired whenever the user releases a key
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.OnLeaveNotify.html">OnLeaveNotify</a>
+		   </td>
+	   	   <td>
+		   	   Generated when the pointer leaves a window
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.OnMap.html">OnMap</a>
+		   </td>
+	   	   <td>
+		   	   Event triggered when the control is mapped (please check GTK documentation for more information)
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.OnMapEvent.html">OnMapEvent</a>
+		   </td>
+	   	   <td>
+		   	   Event triggered when the control is raising a map_event signal (please check GTK documentation for more information)
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.OnMnemonicActivate.html">OnMnemonicActivate</a>
+		   </td>
+	   	   <td>
+		   	   Event fired when a mnemonic is activated(check GTK for more information)
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.OnMotionNotify.html">OnMotionNotify</a>
+		   </td>
+	   	   <td>
+		   	   Event triggered by user moving pointer
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.OnNoExpose.html">OnNoExpose</a>
+		   </td>
+	   	   <td>
+		   	   Event triggered by window requiring a refresh
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.OnParentChanged.html">OnParentChanged</a>
+		   </td>
+	   	   <td>
+		   	   This event is fired when the control's parent is changed
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.OnProperty.html">OnProperty</a>
+		   </td>
+	   	   <td>
+		   	   Event triggered when a property of the control is changed(please check GTK documentation for more information)
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.OnProximityIn.html">OnProximityIn</a>
+		   </td>
+	   	   <td>
+		   	   Proximity events are generated when using GDK's wrapper for the XInput extension
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.OnProximityOut.html">OnProximityOut</a>
+		   </td>
+	   	   <td>
+		   	   Proximity events are generated when using GDK's wrapper for the XInput extension
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.OnRealize.html">OnRealize</a>
+		   </td>
+	   	   <td>
+		   	   Event triggered when the control is realized (please check GTK documentation for more information)
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.OnScreenChanged.html">OnScreenChanged</a>
+		   </td>
+	   	   <td>
+		   	   This event is fired when the screen is changed(check GTK documentation for more information)
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.OnScroll.html">OnScroll</a>
+		   </td>
+	   	   <td>
+		   	   Generated from button presses for the buttons 4 to 7
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.OnSelectionClear.html">OnSelectionClear</a>
+		   </td>
+	   	   <td>
+		   	   Generated when a selection is requested or ownership of a selection is taken over by another client application
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.OnSelectionGet.html">OnSelectionGet</a>
+		   </td>
+	   	   <td>
+		   	   The "selection-get" event is fired when the selection data is requested from control(see gtk documentation for more information)
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.OnSelectionNotify.html">OnSelectionNotify</a>
+		   </td>
+	   	   <td>
+		   	   Generated when a selection is requested or ownership of a selection is taken over by another client application
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.OnSelectionReceived.html">OnSelectionReceived</a>
+		   </td>
+	   	   <td>
+		   	   This event is fired when the selection data is received from control(see gtk documentation for more information)
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.OnSelectionRequest.html">OnSelectionRequest</a>
+		   </td>
+	   	   <td>
+		   	   Generated when a selection is requested or ownership of a selection is taken over by another client application
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.OnShow.html">OnShow</a>
+		   </td>
+	   	   <td>
+		   	   Event triggered when the control is shown
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.OnSizeAllocate.html">OnSizeAllocate</a>
+		   </td>
+	   	   <td>
+		   	   Event triggered after the control is resized (please check GTK documentation for more information)
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.OnSizeRequest.html">OnSizeRequest</a>
+		   </td>
+	   	   <td>
+		   	   Event triggered before the control is resized (please check GTK documentation for more information)
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.OnStateChanged.html">OnStateChanged</a>
+		   </td>
+	   	   <td>
+		   	   Event triggered when the control's state is changed(please check GTK documentation for more information)
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.OnStyleChanged.html">OnStyleChanged</a>
+		   </td>
+	   	   <td>
+		   	   Informs objects that their style has been changed
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.OnUnmap.html">OnUnmap</a>
+		   </td>
+	   	   <td>
+		   	   Event triggered when the control is mapped (please check GTK documentation for more information)
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.OnUnmapEvent.html">OnUnmapEvent</a>
+		   </td>
+	   	   <td>
+		   	   Event triggered when the control is raising a unmap_event signal (please check GTK documentation for more information)
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.OnUnrealize.html">OnUnrealize</a>
+		   </td>
+	   	   <td>
+		   	   Event triggered when the control is unrealized (please check GTK documentation for more information)
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.OnVisibility.html">OnVisibility</a>
+		   </td>
+	   	   <td>
+		   	   This event is fired whenever the Sender control visibility is changed
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="VisibleRemoteObject.OnWindowState.html">OnWindowState</a>
+		   </td>
+	   	   <td>
+		   	   This event is generated when the state of a toplevel window changes
+		   </td>
+	   </tr>
+
+</table>
+<br />
+
+
+
+
+<b>Inherited from <a href="RemoteObject.html">RemoteObject</a>:</b><br />
+<br />
+
+
+<b>Inherited properties from <a href="RemoteObject.html">RemoteObject</a></b><br />
+<table bgcolor="#FFFFFF" width="100%" style="border-style:solid;border-width:1px;border-color:#D0D0D0;">
+
+	   <tr>
+	   	   <td>
+		   	   <a href="RemoteObject.Parent.html">Parent</a>
+		   </td>
+	   	   <td>
+		   	   This function returns the Parent for a specific Concept GUI Object
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="RemoteObject.RID.html">RID</a>
+		   </td>
+	   	   <td>
+		   	   The RID (Remote ID) for an object
+		   </td>
+	   </tr>
+
+</table>
+<br />
+
+
+
+
+<b>Inherited methods from <a href="RemoteObject.html">RemoteObject</a></b><br />
+<table bgcolor="#FFFFFF" width="100%" style="border-style:solid;border-width:1px;border-color:#D0D0D0;">
+
+	   <tr>
+	   	   <td>
+		   	   <a href="RemoteObject.Add.html">Add</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="RemoteObject.AddTimer.html">AddTimer</a>
+		   </td>
+	   	   <td>
+		   	   This function sets up a timer
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="RemoteObject.DisposeObject.html">DisposeObject</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="RemoteObject.GetObjectByID.html">GetObjectByID</a>
+		   </td>
+	   	   <td>
+		   	   This function finds the object corresponding to the ID parameter
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="RemoteObject.GetProperty.html">GetProperty</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="RemoteObject.LinkIfNotLinked.html">LinkIfNotLinked</a>
+		   </td>
+	   	   <td>
+		   	   This is a special function, wich should be used after a GUI object was created that has no parent
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="RemoteObject.Post.html">Post</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="RemoteObject.PostString.html">PostString</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="RemoteObject.RemoteObject.html">RemoteObject</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="RemoteObject.Repaint.html">Repaint</a>
+		   </td>
+	   	   <td>
+		   	   This member tells to the remote control to repaint itself(Queue for redraw)
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="RemoteObject.SetParent.html">SetParent</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="RemoteObject.SetProperty.html">SetProperty</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="RemoteObject._GET_REMOTE_EVENT.html">_GET_REMOTE_EVENT</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="RemoteObject._MAP_REMOTE_EVENT.html">_MAP_REMOTE_EVENT</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="RemoteObject.__QueryDispose.html">__QueryDispose</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="RemoteObject.__Recreate.html">__Recreate</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+</table>
+<br />
+
+
+
+
+
+
+
+
+
+
+
+<br />
+
+<br />
+<br />
+<!--
+  <p>
+    <a href="http://validator.w3.org/check?uri=referer"><img
+        src="http://www.w3.org/Icons/valid-html40"
+        alt="Valid HTML 4.0 Transitional" height="31" width="88" border="0"></a>
+ <a href="http://jigsaw.w3.org/css-validator/">
+  <img style="border:0;width:88px;height:31px"
+       src="http://jigsaw.w3.org/css-validator/images/vcss" 
+       alt="Valid CSS!" border="0"/>
+ </a>
+</p>
+-->
+<table bgcolor="#F0F0F0" width="100%"><tr><td>Documented by Eduard Suica, generation time: Sun Jan 27 18:15:05 2013
+ GMT</td><td align="right">(c)2013 <a href="http://www.devronium.com">Devronium Applications</a></td></tr></table>
+</body>
+</html>

@@ -1,0 +1,11 @@
+Entity:mandatory,entity
+Data source:mandatory,member
+Series (separated by comma):mandatory,string
+Series names (separated by comma):mandatory,string
+Series filter:optional,string
+Points name:optional,string
+Maximum points:optional,number,0
+Width:mandatory,number,600
+Height:mandatory,number,400
+Descending:optional,boolean,false
+Fill:optional,boolean,true

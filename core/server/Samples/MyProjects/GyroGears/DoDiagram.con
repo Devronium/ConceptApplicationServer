@@ -1,0 +1,32 @@
+include GyroDiagram.con
+
+class Main {
+	private var Fraction;
+	private var Caption;
+
+	function Main() {
+		var arg=CLArg();
+		if (length arg==1)
+			arg[1]="gyrodiagram.png";
+
+		if (length arg!=2) {
+			echo "Usage: GyroDiagram.con app.gyroxml [output.png]\n";
+			return -1;
+		}
+		var app=GyroApplication::UnSerialize(arg[0]);
+		if (!app) {
+			echo "File cannot be read or is invalid.\n";
+			return -2;
+		}
+		if (classof app!="GyroApplication") {
+			echo "Invalid file received.\n";
+			return -2;
+		}
+		var g=new GyroDiagram();
+		try {
+			g.Do(app, arg[1]);
+		} catch (var exc) {
+			echo exc;
+		}
+	}
+}

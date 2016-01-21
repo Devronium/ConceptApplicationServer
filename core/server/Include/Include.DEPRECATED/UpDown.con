@@ -1,0 +1,68 @@
+include 'VisibleControl.con'
+
+class ConceptUpDown extends VisibleControl {
+	protected var _VALUE;
+	protected var _MAXIM;
+	protected var _MINIM;
+	protected var _BUDDY;
+
+	public property Value { set SetValue, get _VALUE }
+	public property Maxim { set SetMaxim, get _MAXIM }
+	public property Minim { set SetMinim, get _MINIM }
+	public property Buddy { set SetBuddy, get _BUDDY }
+
+
+	public function SetMaxim(x) {
+		if (typeof x==NUMERIC_TYPE)
+			this->_MAXIM=x;
+		else
+		     	throw new ControlException(EXC_INVALID_ARGUMENT_TYPE, this);
+
+                SendMessage(this->Name, MSG_CHANGED, P_UPDOWNSETMAXIM, x);
+	}
+
+	public function SetMinim(x) {
+		if (typeof x==NUMERIC_TYPE)
+			this->_MINIM=x;
+		else
+		     	throw new ControlException(EXC_INVALID_ARGUMENT_TYPE, this);
+
+                SendMessage(this->Name, MSG_CHANGED, P_UPDOWNSETMINIM, x);
+	}
+
+	public function SetBuddy(x) {
+		if (typeof x==CLASS_TYPE)
+			this->_BUDDY=&x;
+		else
+		     	throw new ControlException(EXC_INVALID_ARGUMENT_TYPE, this);
+
+                SendMessage(this->Name, MSG_CHANGED, P_UPDOWNBUDDY, x->Name);
+	}
+
+
+	public function SetValue(x) {
+		if (typeof x==NUMERIC_TYPE)
+			this->_VALUE=x;
+		else
+		     	throw new ControlException(EXC_INVALID_ARGUMENT_TYPE, this);
+
+                SendMessage(this->Name, MSG_CHANGED, P_UPDOWNVALUE, x);
+	}
+
+	public function ConceptUpDown(Owner) {
+		this->VisibleControl(Owner, CLASS_UPDOWN);
+	}
+
+
+	public function ConceptUpDown_ProcessMessage(Sender, ID, Target, Value) {
+		if ((Sender==this->_NAME) && (ID==MSG_UP_DOWN_CHANGED))
+			this->_VALUE=value Value;
+		// else
+		this->VisibleControl_ProcessMessage(Sender, ID, Target, Value);
+	}
+
+	override ProcessMessage;
+	public function ProcessMessage(Sender, ID, Target, Value) {
+		this->ConceptUpDown_ProcessMessage(Sender,ID,Target,Value);
+	}
+}

@@ -1,0 +1,25 @@
+include HTTPServer.con
+
+define DEF_ROOT			getcwd() + "/../Samples/MyProjects"
+define PORT			8080
+
+class Main {
+	Main() {
+		var s = new HTTPServer();
+		s.DocumentRoot = DEF_ROOT;
+		s.DocumentIndex = ["index.html", "index.htm", "index.csp", "index.con"];
+		s.AddCGI("application/concept", "concept-cgi");
+
+		if (!s.Start(PORT)) {
+			echo "A server is already running on port "+PORT+"\n";
+			return -1;
+		}
+
+		if (!s.StartTLS())
+			echo "Error initializing SSL socket\n";
+
+		while (true) {
+			Sleep(1000);
+		}
+	}
+}

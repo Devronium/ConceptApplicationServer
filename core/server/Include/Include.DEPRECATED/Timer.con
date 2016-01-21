@@ -1,0 +1,31 @@
+include 'Control.con'
+
+class ConceptTimer extends Control {
+	protected var _INTERVAL;
+	protected var _ENABLED;
+	public property Interval { set SetInterval, get _INTERVAL }
+	public property Enabled { set SetEnabled, get _ENABLED }
+
+	public function ConceptTimer(Owner) {
+		this->Control(Owner, CLASS_TIMER);
+		this->Interval=1000;
+	}
+
+	protected function SetInterval(x) {
+		if (typeof x==NUMERIC_TYPE) {
+			this->_INTERVAL=x;
+		} else
+		     	throw new ControlException(EXC_INVALID_ARGUMENT_TYPE, this);
+
+                SendMessage(this->Name, MSG_CHANGED, P_TIMERINTERVAL, x);
+	}
+
+	protected function SetEnabled(x) {
+		if (typeof x==NUMERIC_TYPE) {
+			this->_ENABLED=(x!=0);
+		} else
+		     	throw new ControlException(EXC_INVALID_ARGUMENT_TYPE, this);
+
+                SendMessage(this->Name, MSG_CHANGED, P_TIMERENABLED, x);
+	}
+}

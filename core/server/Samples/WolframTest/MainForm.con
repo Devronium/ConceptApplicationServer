@@ -1,0 +1,139 @@
+include project_forms.glade.con
+include WolframAlpha.con
+define APPLICATION_FORM_TYPE	MainForm
+
+define WA_KEY                   "4TKHGH-2WLGU33QWE"
+
+class MainForm extends window1 {
+        public var LinkImg;
+        public var wa;
+        public var _state="";
+        public var _assumption="";
+        
+        public function MainForm(Owner, Lang S) {
+                super(Owner, S);
+                this.DefaultControl=button1;
+                this.treeview1.Model=MODEL_TREEVIEW;
+                this.treeview1.AddColumn("Image", IMAGE_COLUMN);
+                this.treeview1.AddColumn("Text", MARKUP_COLUMN);
+                this.LinkImg=new RImage(null);
+                this.treeview1.Columns[0].Resizable=true;
+
+                wa=new WolframAlpha(WA_KEY);
+                wa.FetchRemoteContent=true;
+        }
+        
+        public function SafeText(string text) {
+                text=StrReplace(text, "&", "&amp;");
+                text=StrReplace(text, "<", "&lt;");
+                text=StrReplace(text, ">", "&gt;");
+                return text;
+        }
+
+        public function on_button1_clicked(Sender, EventData) {
+                this.treeview1.Clear();
+                var text=this.entry1.Text;
+                if (!text)
+                    return;
+
+                this.Enabled=false;
+                this.statusbar1.Caption="Please wait ...";
+                var image=this.LinkImg;
+                try {
+                    var res=wa.Query(text, this._state, this._assumption);
+                    this._state="";
+                    this._assumption="";
+                    var pods=res.Pods;
+                    var len=length pods;
+                    for (var i=0;i<len;i++) {
+                        var pod=pods[i];
+                        if (pod) {
+                            this.treeview1.AddItem(["", "<b>"+SafeText(pod.Title)+"</b>\n<small>"+SafeText(pod.Scanner)+"</small>"]);
+                            var subpods=pod.Pods;
+                            var len2=length subpods;
+                            for (var j=0;j<len2;j++) {
+                                var subpod=subpods[j];
+                                if (subpod) {
+                                    var title=SafeText(subpod.Title);
+                                    if (title) {
+                                        title="<b>"+title+"</b>\n\n";
+                                    }
+                                    var timg="";
+                                    if (subpod.ImgContent) {
+                                        SendMessage(""+image.RID,MSG_PUT_STREAM,"entity$i.$j.gif",subpod.ImgContent);
+                                        timg=image;
+                                    }
+                                    this.treeview1.AddChild(i, [timg, title+SafeText(subpod.Text)]);
+                                }
+                            }
+                            var last=j;
+                            var states=pod.States;
+                            len2=length states;
+                            if (len2) {
+                                this.treeview1.AddChild(i, ["", "<span color='gray'>States($len2)</span>"]);
+                                for (j=0;j<len2;j++) {
+                                    var a=states[j];
+                                    if (a)
+                                        this.treeview1.AddChild("$i:$last", ["", SafeText(a.Name), a.Input, "s"]);
+                                }
+                            }
+                            last++;
+                            var links=pod.Links;
+                            len2=length links;
+                            if (len2) {
+                                this.treeview1.AddChild(i, ["", "<span color='gray'>Links($len2)</span>"]);
+                                for (j=0;j<len2;j++) {
+                                    a=links[j];
+                                    if (a)
+                                        this.treeview1.AddChild("$i:$last", ["", SafeText(a.Text)+"\n<span color='blue'><u>"+SafeText(a.URL)+"</u></span>"]);
+                                }
+                            }
+                        }
+                    }
+                    last=i;
+                    var assumptions=res.Assumptions;
+                    len=length assumptions;
+                    if (len) {
+                        this.treeview1.AddItem(["", "<span color='gray'>Assumptions($len)</span>"]);
+                        for (i=0;i<len;i++) {
+                            a=assumptions[i];
+                            if (a) {
+                                this.treeview1.AddChild(last, ["", SafeText(a.Word)+"\n<small>"+SafeText(a.Type)+"</small>"]);
+                                var values=a.Values;
+                                len2=length values;
+                                for (j=0;j<len2;j++) {
+                                    var v=values[j];
+                                    if (v)
+                                        this.treeview1.AddChild([last,i], ["", "<b>"+SafeText(v.Name)+"</b>\n<small>"+SafeText(v.Desc)+"</small>", v.Input, "a"]);
+                                }
+                            }
+                        }
+                    }
+                    this.statusbar1.Caption="Query OK";
+                } catch (var exc) {
+                    this.statusbar1.Caption=exc;
+                }
+                this.treeview1.ExpandAll();
+                this.Enabled=true;
+        }
+        
+        public function on_treeview1_row_activated(Sender, EventData) {
+            var item=this.treeview1.Items[EventData];
+            if ((item) && (length item==4)) {
+                var input=item[2];
+                var type=item[3];
+                if (type=="s")
+                    this._state=input;
+                else
+                    this._assumption=input;
+
+                this.on_button1_clicked(Sender, EventData);
+            }
+        }
+        
+        public function on_button2_clicked(Sender, EventData) {
+            var data=CApplication::Screenshot(this.treeview1);
+            if (data)
+                CApplication.SendFile("screenshot.png", data, S<<"Save file", "PNG images|*.png;All files|*;");
+        }
+}

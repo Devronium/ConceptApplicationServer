@@ -1,0 +1,102 @@
+import standard.lib.csv
+import standard.lib.str
+
+
+define CSV_VALIDATE_THIS	if (!this._HANDLE) throw "Invalid CSV instance (handle is null)";
+
+class CSV {
+	protected var _HANDLE;
+
+	protected var _DELIM=",";
+	protected var _QUOTE="\"";
+
+	public property Delim { get _DELIM, set SetDelim }
+	public property Quote { get _QUOTE, set SetQuote }
+	public property Error { get GetError }
+	public property ErrorText { get GetErrorText }
+
+	public function CSV(number mode=0) {
+		this._HANDLE=CSVCreate(mode);
+	}
+
+	public function SetDelim(string char) {
+		CSV_VALIDATE_THIS
+		this._DELIM=char;
+		CSVSetDelim(this._HANDLE, char);
+		return char;
+	}
+
+	public function SetQuote(string char) {
+		CSV_VALIDATE_THIS
+		this._QUOTE=char;
+		CSVSetQuote(this._HANDLE, char);
+		return char;
+	}
+
+	public function Parse(var string data, number is_complete=false) {
+		CSV_VALIDATE_THIS
+		return CSVParse(this._HANDLE, data, is_complete);
+	}
+
+	public function GetError() {
+		CSV_VALIDATE_THIS
+		return CSVError(this._HANDLE);
+	}
+
+	public function GetErrorText() {
+		CSV_VALIDATE_THIS
+		var err=CSVError(this._HANDLE);
+		if (err)
+			return CSVErrorExplain(err);
+		return "";
+	}
+
+	public function Done() {
+		if (this._HANDLE) {
+			CSVDone(this._HANDLE);
+			this._HANDLE=0;
+			return true;
+		}
+		return false;
+	}
+
+	public function finalize() {
+		this.Done();
+	}
+
+	static function Do(var string data, var mode=null, var error=null, var error_text="") {
+		var c=new CSV(mode);
+		var res=c.Parse(data, true);
+		error=c.GetError();
+		if (error)
+			error=CSVErrorExplain(error);
+		else
+			error_text="";
+		c.Done();
+		return res;
+	}
+
+	static function ByHeader(array data, do_trim=true) {
+		var len=length data;
+		var[] res;
+		if (!data)
+			return res;
+
+		var header=data[0];
+		for (var i=1;i<len;i++) {
+			var line=data[i];
+			if (line) {
+				var len2=length line;
+				var tmp=new [];
+				for (var j=0;j<len2;j++) {
+					if (do_trim)
+						tmp[trim(""+header[j])]=trim(""+line[j]);
+					else
+						tmp[header[j]]=line[j];
+				}
+				res[length res]=tmp;
+			}
+		}
+		return res;
+	}
+}

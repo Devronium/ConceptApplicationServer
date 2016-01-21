@@ -1,0 +1,110 @@
+include RemoteContainer.con
+include ClassID.con
+include RAdjustment.con
+
+define POLICY_ALWAYS	0
+define POLICY_AUTOMATIC	1
+define POLICY_NEVER	2
+
+define SHADOW_NONE		0
+define SHADOW_IN		1
+define SHADOW_OUT		2
+define SHADOW_ETCHED_IN		3
+define SHADOW_ETCHED_OUT	4
+
+define CORNER_TOP_LEFT		0
+define CORNER_BOTTOM_LEFT	1
+define CORNER_TOP_RIGHT		2
+define CORNER_BOTTOM_RIGHT	3
+
+define FIT_WIDTH		0
+define FIT_HEIGHT		1
+define FIT_FULL			3
+
+class RScrolledWindow extends RemoteContainer {
+	DEFINE_FIXED_CONTROL
+
+	private var SHADOWTYPE;
+	private var PLACEMENT;
+	private var HSCROLLBARPOLICY;
+	private var VSCROLLBARPOLICY;
+
+	private var _HAdjustment;
+	private var _VAdjustment;
+
+	public property ShadowType { get SHADOWTYPE, set SetShadowType }
+	public property Placement { get PLACEMENT, set SetPlacement }
+	public property HScrollPolicy { get HSCROLLBARPOLICY, set SetHScrollPolicy }
+	public property VScrollPolicy { get VSCROLLBARPOLICY, set SetVScrollPolicy }
+	//public property VAdjustment { get _VAdjustment }
+	//public property HAdjustment { get _HAdjustment }
+	public property VAdjustment { get GetVAdjustment }
+	public property HAdjustment { get GetHAdjustment }
+
+	public function RScrolledWindow(OWNER) {
+		//_HAdjustment=new RAdjustment();
+		//_VAdjustment=new RAdjustment();
+
+		super(OWNER, CLASS_SCROLLEDWINDOW);
+
+		//_HAdjustment.LinkIfNotLinked(this);
+		//_VAdjustment.LinkIfNotLinked(this);
+
+		//SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_HADJUSTMENT,_HAdjustment.RID);
+		//SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_VADJUSTMENT,_VAdjustment.RID);
+	}
+
+	public function GetHAdjustment() {
+		if (!_HAdjustment) {
+			_HAdjustment=new RAdjustment();
+			_HAdjustment.LinkIfNotLinked(this);
+			SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_HADJUSTMENT,_HAdjustment.RID);
+		}
+
+		return _HAdjustment;
+	}
+
+	public function GetVAdjustment() {
+		if (!_VAdjustment) {
+			_VAdjustment=new RAdjustment();
+			_VAdjustment.LinkIfNotLinked(this);
+			SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_VADJUSTMENT,_VAdjustment.RID);
+		}
+
+		return _VAdjustment;
+	}
+
+	public function SetShadowType(argument) {
+		SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_SHADOWTYPE,argument);
+		SHADOWTYPE=argument;
+		return argument;
+	}
+
+	public function SetPlacement(argument) {
+		SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_PLACEMENT,argument);
+		PLACEMENT=argument;
+		return argument;
+	}
+
+	public function SetHScrollPolicy(argument) {
+		SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_HSCROLLBARPOLICY,argument);
+		HSCROLLBARPOLICY=argument;
+		return argument;
+	}
+
+	public function SetVScrollPolicy(argument) {
+		SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_VSCROLLBARPOLICY,argument);
+		VSCROLLBARPOLICY=argument;
+		return argument;
+	}
+
+	public function Fit(number fit_type=FIT_FULL) {
+		SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_MAXIMIZED,fit_type);
+		return true;
+	}
+
+	public function ScrollDown() {
+		SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_CURSOR,true);
+		return true;
+	}
+}

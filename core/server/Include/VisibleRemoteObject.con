@@ -1,0 +1,1135 @@
+include RemoteObject.con
+include RemoteProperties.con
+include RemoteEvents.con
+include ClassID.con
+
+import standard.lib.str
+
+define PACK_DEFAULT		-1
+define PACK_SHRINK		0
+define PACK_EXPAND_PADDING	1
+define PACK_EXPAND_WIDGET	2
+
+define DROP_NONE		0
+define DROP_STRINGS		1
+define DROP_FILES		2
+define DROP_ANY			3
+
+define CURSOR_CURSOR_X_CURSOR   		0
+define CURSOR_CURSOR_ARROW   			1
+define CURSOR_CURSOR_BASED_ARROW_DOWN   	2
+define CURSOR_BASED_ARROW_UP   			3
+define CURSOR_BOAT   				4
+define CURSOR_BOGOSITY   			5
+define CURSOR_BOTTOM_LEFT_CORNER   		6
+define CURSOR_BOTTOM_RIGHT_CORNER   		7
+define CURSOR_BOTTOM_SIDE   			8
+define CURSOR_BOTTOM_TEE   			9
+define CURSOR_BOX_SPIRAL   			10
+define CURSOR_CENTER_PTR   			11
+define CURSOR_CIRCLE   				12
+define CURSOR_CLOCK   				13
+define CURSOR_COFFEE_MUG   			14
+define CURSOR_CROSS   				15
+define CURSOR_CROSS_REVERSE   			16
+define CURSOR_CROSSHAIR   			17
+define CURSOR_DIAMOND_CROSS   			18
+define CURSOR_DOT   				19
+define CURSOR_DOTBOX   				20
+define CURSOR_DOUBLE_ARROW   			21
+define CURSOR_DRAFT_LARGE   			22
+define CURSOR_DRAFT_SMALL   			23
+define CURSOR_DRAPED_BOX   			24
+define CURSOR_EXCHANGE   			25
+define CURSOR_FLEUR   				26
+define CURSOR_GOBBLER   			27
+define CURSOR_GUMBY   				28
+define CURSOR_HAND1   				29
+define CURSOR_HAND2   				30
+define CURSOR_HEART   				31
+define CURSOR_ICON   				32
+define CURSOR_IRON_CROSS   			33
+define CURSOR_LEFT_PTR   			34
+define CURSOR_LEFT_SIDE   			35
+define CURSOR_LEFT_TEE   			36
+define CURSOR_LEFTBUTTON   			37
+define CURSOR_LL_ANGLE   			38
+define CURSOR_LR_ANGLE   			39
+define CURSOR_MAN   				40
+define CURSOR_MIDDLEBUTTON   			41
+define CURSOR_MOUSE   				42
+define CURSOR_PENCIL   				43
+define CURSOR_PIRATE   				44
+define CURSOR_PLUS   				45
+define CURSOR_QUESTION_ARROW   			46
+define CURSOR_RIGHT_PTR   			47
+define CURSOR_RIGHT_SIDE   			48
+define CURSOR_RIGHT_TEE   			49
+define CURSOR_RIGHTBUTTON   			50
+define CURSOR_RTL_LOGO   			51
+define CURSOR_SAILBOAT   			52
+define CURSOR_SB_DOWN_ARROW   			53
+define CURSOR_SB_H_DOUBLE_ARROW   		54
+define CURSOR_SB_LEFT_ARROW   			55
+define CURSOR_SB_RIGHT_ARROW   			56
+define CURSOR_SB_UP_ARROW   			57
+define CURSOR_SB_V_DOUBLE_ARROW   		58
+define CURSOR_SHUTTLE   			59
+define CURSOR_SIZING   				60
+define CURSOR_SPIDER   				61
+define CURSOR_SPRAYCAN   			62
+define CURSOR_STAR   				63
+define CURSOR_TARGET   				64
+define CURSOR_TCROSS   				65
+define CURSOR_TOP_LEFT_ARROW   			66
+define CURSOR_TOP_LEFT_CORNER   		67
+define CURSOR_TOP_RIGHT_CORNER   		68
+define CURSOR_TOP_SIDE   			69
+define CURSOR_TOP_TEE   			70
+define CURSOR_TREK   				71
+define CURSOR_UL_ANGLE   			72
+define CURSOR_UMBRELLA   			73
+define CURSOR_UR_ANGLE   			74
+define CURSOR_WATCH   				75
+define CURSOR_XTERM   				76
+define CURSOR_LAST_CURSOR  			77
+
+define GDK_NOTHING		-1
+define GDK_DELETE		0
+define GDK_DESTROY		1
+define GDK_EXPOSE		2
+define GDK_MOTION_NOTIFY	3
+define GDK_BUTTON_PRESS		4
+define GDK_2BUTTON_PRESS	5
+define GDK_3BUTTON_PRESS	6
+define GDK_BUTTON_RELEASE	7
+define GDK_KEY_PRESS		8
+define GDK_KEY_RELEASE		9
+define GDK_ENTER_NOTIFY		10
+define GDK_LEAVE_NOTIFY		11
+define GDK_FOCUS_CHANGE		12
+define GDK_CONFIGURE		13
+define GDK_MAP			14
+define GDK_UNMAP		15
+define GDK_PROPERTY_NOTIFY	16
+define GDK_SELECTION_CLEAR	17
+define GDK_SELECTION_REQUEST	18
+define GDK_SELECTION_NOTIFY	19
+define GDK_PROXIMITY_IN		20
+define GDK_PROXIMITY_OUT	21
+define GDK_DRAG_ENTER		22
+define GDK_DRAG_LEAVE		23
+define GDK_DRAG_MOTION		24
+define GDK_DRAG_STATUS		25
+define GDK_DROP_START		26
+define GDK_DROP_FINISHED	27
+define GDK_CLIENT_EVENT		28
+define GDK_VISIBILITY_NOTIFY	29
+define GDK_NO_EXPOSE		30
+define GDK_SCROLL		31
+define GDK_WINDOW_STATE		32
+define GDK_SETTING		33
+define GDK_OWNER_CHANGE		34
+define GDK_GRAB_BROKEN		35
+
+
+define GDK_SCROLL_UP		0
+define GDK_SCROLL_DOWN		1
+define GDK_SCROLL_LEFT		2
+define GDK_SCROLL_RIGHT		3
+
+define GDK_VISIBILITY_FULLY_OBSCURED	0
+define GDK_VISIBILITY_PARTIAL		1
+define GDK_VISIBILITY_UNOBSCURED	2
+
+define GDK_CROSSING_NORMAL		0
+define GDK_CROSSING_GRAB		1
+define GDK_CROSSING_UNGRAB		2
+
+define GDK_NOTIFY_INFERIOR		0
+define GDK_NOTIFY_ANCESTOR		1
+define GDK_NOTIFY_VIRTUAL		2
+define GDK_NOTIFY_NONLINEAR		3
+define GDK_NOTIFY_NONLINEAR_VIRTUAL	4
+
+define GDK_WINDOW_STATE_WITHDRAWN	1 << 0
+define GDK_WINDOW_STATE_ICONIFIED	1 << 1
+define GDK_WINDOW_STATE_MAXIMIZED	1 << 2
+define GDK_WINDOW_STATE_STICKY		1 << 3
+define GDK_WINDOW_STATE_FULLSCREEN	1 << 4
+define GDK_WINDOW_STATE_ABOVE		1 << 5
+define GDK_WINDOW_STATE_BELOW		1 << 6
+
+
+define STYLE_NORMAL	0  
+define STYLE_OBLIQUE	1
+define STYLE_ITALIC	2
+
+define VARIANT_NORMAL		0
+define VARIANT_SMALL_CAPS	1
+
+define WEIGHT_ULTRALIGHT	0
+define WEIGHT_LIGHT		1
+define WEIGHT_NORMAL		2
+define WEIGHT_SEMIBOLD		3
+define WEIGHT_BOLD		4
+define WEIGHT_ULTRABOLD		5
+define WEIGHT_HEAVY		6
+
+define STRETCH_ULTRA_CONDENSED	0
+define STRETCH_EXTRA_CONDENSED	1
+define STRETCH_CONDENSED	2
+define STRETCH_SEMI_CONDENSED	3
+define STRETCH_NORMAL		4
+define STRETCH_SEMI_EXPANDED	5
+define STRETCH_EXPANDED		6
+define STRETCH_EXTRA_EXPANDED	7
+define STRETCH_ULTRA_EXPANDED	8
+
+
+class RFont {
+	private var OWNER;
+
+	private var FONTFAMILY;
+	private var FONTSTYLE;
+	private var FONTVARIANT;
+	private var FONTWEIGHT;
+	private var FONTSTRETCH;
+	private var FONTSIZE;
+	private var FONTNAME;
+
+	public property Name { get FONTNAME, set SetFontName }
+	public property Family { get FONTFAMILY, set SetFamily }
+	public property Style { get FONTSTYLE, set SetStyle }
+	public property Variant { get FONTVARIANT, set SetVariant }
+	public property Weight { get FONTWEIGHT, set SetWeight }
+	public property Stretch { get FONTSTRETCH, set SetStretch }
+	public property Size { get FONTSIZE, set SetSize }
+
+	public function SetFamily(argument) {
+		FONTFAMILY=this.SetProperty(P_FONTFAMILY, argument);
+		return FONTFAMILY;
+	}
+
+	public function SetFontName(argument) {
+		FONTNAME=this.SetProperty(P_FONTNAME, argument);
+		return FONTNAME;
+	}
+	
+	public function SetStyle(argument) {
+		FONTSTYLE=this.SetProperty(P_FONTSTYLE, argument);
+		return FONTSTYLE;
+	}
+
+	public function SetVariant(argument) {
+		FONTVARIANT=this.SetProperty(P_FONTVARIANT, argument);
+		return FONTVARIANT;
+	}
+
+	public function SetWeight(argument) {
+		FONTWEIGHT=this.SetProperty(P_FONTWEIGHT, argument);
+		return FONTWEIGHT;
+	}
+
+	public function SetStretch(argument) {
+		FONTSTRETCH=this.SetProperty(P_FONTSTRETCH, argument);
+		return FONTSTRETCH;
+	}
+
+	public function SetSize(argument) {
+		FONTSIZE=this.SetProperty(P_FONTSIZE, argument);
+		return FONTSIZE;
+	}
+
+	public function RFont(parent) {
+		OWNER = ""+parent.RID;
+	}
+
+	SetProperty(prop, val) {
+		SendMessage(OWNER, MSG_SET_PROPERTY, prop, val);
+		return val;
+	}
+
+	public function __QueryDispose() {
+		// nothing
+	}
+}
+
+
+class VisibleRemoteObject extends RemoteObject {
+	protected var FONT;
+
+	protected var LEFT;
+	protected var TOP;
+
+	public property Left { get GetLeft, set SetLeft }
+	public property Top { get GetTop, set SetTop }
+	public property Absolute { get GetAbsolute }
+
+	protected var MINHEIGHT;
+	protected var MINWIDTH;
+	protected var VISIBLE;
+	protected var REMOTE_ID_STR;
+	protected var TOOLTIP="";
+	protected var TOOLTIPMARKUP="";
+	protected var TOOLTIPWINDOW;
+	protected var IBGCOLOR=-1;
+	protected var SBGCOLOR=-1;
+	protected var BGCOLOR=-1;
+	protected var IFGCOLOR=-1;
+	protected var SFGCOLOR=-1;
+	protected var FGCOLOR=-1;
+
+	protected var DRAGDATA="";
+
+	protected var ENABLED=1;
+
+	protected var DRAGABLE;
+	protected var DROPSITE;
+	protected var PACKTYPE=PACK_DEFAULT;
+	protected var POPUPMENU;
+	protected var DRAGICON;
+	protected var _PACKING;
+	protected var _MOUSECURSOR;
+	protected var _MOUSECURSORIMAGE;
+	protected var _CSS="";
+
+	protected var MASKIMAGE;
+
+	public property Visible { get VISIBLE, set SetVisible }
+	public property ClientVisible { get GetClientVisible }
+	public property DragIcon { get DRAGICON, set SetDragIcon }
+	public property Tooltip { get TOOLTIP, set SetTooltip }
+	public property TooltipMarkup { get TOOLTIPMARKUP, set SetTooltipMarkup }
+	public property TooltipWindow { get TOOLTIPWINDOW, set SetTooltipWindow }
+	public property MinHeight { get MINHEIGHT, set SetMinHeight }
+	public property MinWidth { get MINWIDTH, set SetMinWidth }
+
+	public property InactiveBgColor { get IBGCOLOR, set SetIBgColor }
+	public property SelectedBgColor { get SBGCOLOR, set SetSBgColor }
+	public property BgColor { get BGCOLOR, set SetBgColor }
+
+	public property InactiveFgColor { get IFGCOLOR, set SetIFgColor }
+	public property SelectedFgColor { get SFGCOLOR, set SetSFgColor }
+	public property FgColor { get FGCOLOR, set SetFgColor }
+
+	public property Width { get GetWidth, set SetWidth }
+	public property Height { get GetHeight, set SetHeight }
+
+	public property Dragable { get DRAGABLE, set SetDragable }
+	public property DragData { get DRAGDATA, set SetDragData }
+	public property DropSite { get DROPSITE, set SetDropSite }
+
+	public property Mask { get MASKIMAGE, set SetMask }
+	public property Font { get GetFont }
+
+	public var UserData;
+
+	public property Enabled { get ENABLED, set SetEnabled }
+	public property PackType { get PACKTYPE, set SetPackType }
+
+	public property Packing { get _PACKING, set SetPacking }
+	public property MouseCursor { get _MOUSECURSOR, set SetMouseCursor }
+	public property MouseCursorImage { get _MOUSECURSORIMAGE, set SetMouseCursorImage }
+
+	public property PopupMenu { get POPUPMENU, set SetPopupMenu }
+
+	public property CSS { get _CSS, set SetCSS }
+
+	//-------------------- EVENTS ---------------------//
+	public property OnShow { get GetOnShow, set SetOnShow }
+	public function GetOnShow() {
+		return _GET_REMOTE_EVENT(EVENT_ON_SHOW);
+	}
+
+	public function SetOnShow(var delegate deleg) {
+		return _MAP_REMOTE_EVENT(EVENT_ON_SHOW, deleg);
+	}
+
+	public property OnHide { get GetOnHide, set SetOnHide }
+	public function GetOnHide() {
+		return _GET_REMOTE_EVENT(EVENT_ON_HIDE);
+	}
+
+	public function SetOnHide(var delegate deleg) {
+		return _MAP_REMOTE_EVENT(EVENT_ON_HIDE, deleg);
+	}
+
+	public property OnRealize { get GetOnRealize, set SetOnRealize }
+	public function GetOnRealize() {
+		return _GET_REMOTE_EVENT(EVENT_ON_REALIZE);
+	}
+
+	public function SetOnRealize(var delegate deleg) {
+		return _MAP_REMOTE_EVENT(EVENT_ON_REALIZE, deleg);
+	}
+
+	public property OnUnrealize { get GetOnUnrealize, set SetOnUnrealize }
+	public function GetOnUnrealize() {
+		return _GET_REMOTE_EVENT(EVENT_ON_UNREALIZE);
+	}
+
+	public function SetOnUnrealize(var delegate deleg) {
+		return _MAP_REMOTE_EVENT(EVENT_ON_UNREALIZE, deleg);
+	}
+
+	public property OnSizeRequest { get GetOnSizeRequest, set SetOnSizeRequest }
+	public function GetOnSizeRequest() {
+		return _GET_REMOTE_EVENT(EVENT_ON_SIZEREQUEST);
+	}
+
+	public function SetOnSizeRequest(var delegate deleg) {
+		return _MAP_REMOTE_EVENT(EVENT_ON_SIZEREQUEST, deleg);
+	}
+
+	public property OnSizeAllocate { get GetOnSizeAllocate, set SetOnSizeAllocate }
+	public function GetOnSizeAllocate() {
+		return _GET_REMOTE_EVENT(EVENT_ON_SIZEALLOCATE);
+	}
+
+	public function SetOnSizeAllocate(var delegate deleg) {
+		return _MAP_REMOTE_EVENT(EVENT_ON_SIZEALLOCATE, deleg);
+	}
+
+	public property OnStateChanged { get GetOnStateChanged, set SetOnStateChanged }
+	public function GetOnStateChanged() {
+		return _GET_REMOTE_EVENT(EVENT_ON_STATECHANGED);
+	}
+
+	public function SetOnStateChanged(var delegate deleg) {
+		return _MAP_REMOTE_EVENT(EVENT_ON_STATECHANGED, deleg);
+	}
+
+
+	public property OnGrabFocus { get GetOnGrabFocus, set SetOnGrabFocus }
+	public function GetOnGrabFocus() {
+		return _GET_REMOTE_EVENT(EVENT_ON_GRABFOCUS);
+	}
+
+	public function SetOnGrabFocus(var delegate deleg) {
+		return _MAP_REMOTE_EVENT(EVENT_ON_GRABFOCUS, deleg);
+	}
+
+	public property OnFocus { get GetOnFocus, set SetOnFocus }
+	public function GetOnFocus() {
+		return _GET_REMOTE_EVENT(EVENT_ON_FOCUS);
+	}
+
+	public function SetOnFocus(var delegate deleg) {
+		return _MAP_REMOTE_EVENT(EVENT_ON_FOCUS, deleg);
+	}
+
+	public property OnEvent { get GetOnEvent, set SetOnEvent }
+	public function GetOnEvent() {
+		return _GET_REMOTE_EVENT(EVENT_ON_EVENT);
+	}
+
+	public function SetOnEvent(var delegate deleg) {
+		return _MAP_REMOTE_EVENT(EVENT_ON_EVENT, deleg);
+	}
+
+	public property OnButtonPress { get GetOnButtonPress, set SetOnButtonPress }
+	public function GetOnButtonPress() {
+		return _GET_REMOTE_EVENT(EVENT_ON_BUTTONPRESS);
+	}
+
+	public function SetOnButtonPress(var delegate deleg) {
+		return _MAP_REMOTE_EVENT(EVENT_ON_BUTTONPRESS, deleg);
+	}
+
+	public property OnButtonRelease { get GetOnButtonRelease, set SetOnButtonRelease }
+	public function GetOnButtonRelease() {
+		return _GET_REMOTE_EVENT(EVENT_ON_BUTTONRELEASE);
+	}
+
+	public function SetOnButtonRelease(var delegate deleg) {
+		return _MAP_REMOTE_EVENT(EVENT_ON_BUTTONRELEASE, deleg);
+	}
+
+	public property OnMotionNotify { get GetOnMotionNotify, set SetOnMotionNotify }
+	public function GetOnMotionNotify() {
+		return _GET_REMOTE_EVENT(EVENT_ON_MOTIONNOTIFY);
+	}
+
+	public function SetOnMotionNotify(var delegate deleg) {
+		return _MAP_REMOTE_EVENT(EVENT_ON_MOTIONNOTIFY, deleg);
+	}
+
+	public property OnExposeEvent { get GetOnExposeEvent, set SetOnExposeEvent }
+	public function GetOnExposeEvent() {
+		return _GET_REMOTE_EVENT(EVENT_ON_EXPOSEEVENT);
+	}
+
+	public function SetOnExposeEvent(var delegate deleg) {
+		return _MAP_REMOTE_EVENT(EVENT_ON_EXPOSEEVENT, deleg);
+	}
+
+	public property OnKeyPress { get GetOnKeyPress, set SetOnKeyPress }
+	public function GetOnKeyPress() {
+		return _GET_REMOTE_EVENT(EVENT_ON_KEYPRESS);
+	}
+
+	public function SetOnKeyPress(var delegate deleg) {
+		return _MAP_REMOTE_EVENT(EVENT_ON_KEYPRESS, deleg);
+	}
+
+	public property OnKeyRelease { get GetOnKeyRelease, set SetOnKeyRelease }
+	public function GetOnKeyRelease() {
+		return _GET_REMOTE_EVENT(EVENT_ON_KEYRELEASE);
+	}
+
+	public function SetOnKeyRelease(var delegate deleg) {
+		return _MAP_REMOTE_EVENT(EVENT_ON_KEYRELEASE, deleg);
+	}
+
+	public property OnEnterNotify { get GetOnEnterNotify, set SetOnEnterNotify }
+	public function GetOnEnterNotify() {
+		return _GET_REMOTE_EVENT(EVENT_ON_ENTERNOTIFY);
+	}
+
+	public function SetOnEnterNotify(var delegate deleg) {
+		return _MAP_REMOTE_EVENT(EVENT_ON_ENTERNOTIFY, deleg);
+	}
+
+	public property OnLeaveNotify { get GetOnLeaveNotify, set SetOnLeaveNotify }
+	public function GetOnLeaveNotify() {
+		return _GET_REMOTE_EVENT(EVENT_ON_LEAVENOTIFY);
+	}
+
+	public function SetOnLeaveNotify(var delegate deleg) {
+		return _MAP_REMOTE_EVENT(EVENT_ON_LEAVENOTIFY, deleg);
+	}
+
+	public property OnConfigure { get GetOnConfigure, set SetOnConfigure }
+	public function GetOnConfigure() {
+		return _GET_REMOTE_EVENT(EVENT_ON_CONFIGURE);
+	}
+
+	public function SetOnConfigure(var delegate deleg) {
+		return _MAP_REMOTE_EVENT(EVENT_ON_CONFIGURE, deleg);
+	}
+
+	public property OnFocusIn { get GetOnFocusIn, set SetOnFocusIn }
+	public function GetOnFocusIn() {
+		return _GET_REMOTE_EVENT(EVENT_ON_FOCUSIN);
+	}
+
+	public function SetOnFocusIn(var delegate deleg) {
+		return _MAP_REMOTE_EVENT(EVENT_ON_FOCUSIN, deleg);
+	}
+
+	public property OnFocusOut { get GetOnFocusOut, set SetOnFocusOut }
+	public function GetOnFocusOut() {
+		return _GET_REMOTE_EVENT(EVENT_ON_FOCUSOUT);
+	}
+
+	public function SetOnFocusOut(var delegate deleg) {
+		return _MAP_REMOTE_EVENT(EVENT_ON_FOCUSOUT, deleg);
+	}
+
+
+	public property OnVisibility { get GetOnVisibility, set SetOnVisibility }
+	public function GetOnVisibility() {
+		return _GET_REMOTE_EVENT(EVENT_ON_VISIBILITY);
+	}
+
+	public function SetOnVisibility(var delegate deleg) {
+		return _MAP_REMOTE_EVENT(EVENT_ON_VISIBILITY, deleg);
+	}
+
+	public property OnDragBegin { get GetOnDragBegin, set SetOnDragBegin }
+	public function GetOnDragBegin() {
+		return _GET_REMOTE_EVENT(EVENT_ON_DRAGBEGIN);
+	}
+
+	public function SetOnDragBegin(var delegate deleg) {
+		return _MAP_REMOTE_EVENT(EVENT_ON_DRAGBEGIN, deleg);
+	}
+
+	public property OnDragEnd { get GetOnDragEnd, set SetOnDragEnd }
+	public function GetOnDragEnd() {
+		return _GET_REMOTE_EVENT(EVENT_ON_DRAGEND);
+	}
+
+	public function SetOnDragEnd(var delegate deleg) {
+		return _MAP_REMOTE_EVENT(EVENT_ON_DRAGEND, deleg);
+	}
+
+	public property OnDragDataGet { get GetOnDragDataGet, set SetOnDragDataGet }
+	public function GetOnDragDataGet() {
+		return _GET_REMOTE_EVENT(EVENT_ON_DRAGDATAGET);
+	}
+
+	public function SetOnDragDataGet(var delegate deleg) {
+		return _MAP_REMOTE_EVENT(EVENT_ON_DRAGDATAGET, deleg);
+	}
+
+	public property OnDragDataDelete { get GetOnDragDataDelete, set SetOnDragDataDelete }
+	public function GetOnDragDataDelete() {
+		return _GET_REMOTE_EVENT(EVENT_ON_DRAGDATADELETE);
+	}
+
+	public function SetOnDragDataDelete(var delegate deleg) {
+		return _MAP_REMOTE_EVENT(EVENT_ON_DRAGDATADELETE, deleg);
+	}
+
+	public property OnDragLeave { get GetOnDragLeave, set SetOnDragLeave }
+	public function GetOnDragLeave() {
+		return _GET_REMOTE_EVENT(EVENT_ON_DRAGLEAVE);
+	}
+
+	public function SetOnDragLeave(var delegate deleg) {
+		return _MAP_REMOTE_EVENT(EVENT_ON_DRAGLEAVE, deleg);
+	}
+
+	public property OnDragMotion { get GetOnDragMotion, set SetOnDragMotion }
+	public function GetOnDragMotion() {
+		return _GET_REMOTE_EVENT(EVENT_ON_DRAGMOTION);
+	}
+
+	public function SetOnDragMotion(var delegate deleg) {
+		return _MAP_REMOTE_EVENT(EVENT_ON_DRAGMOTION, deleg);
+	}
+
+	public property OnDragDrop { get GetOnDragDrop, set SetOnDragDrop }
+	public function GetOnDragDrop() {
+		return _GET_REMOTE_EVENT(EVENT_ON_DRAGDROP);
+	}
+
+	public function SetOnDragDrop(var delegate deleg) {
+		return _MAP_REMOTE_EVENT(EVENT_ON_DRAGDROP, deleg);
+	}
+
+	public property OnDragDataReceived { get GetOnDragDataReceived, set SetOnDragDataReceived }
+	public function GetOnDragDataReceived() {
+		return _GET_REMOTE_EVENT(EVENT_ON_DRAGDATARECEIVED);
+	}
+
+	public function SetOnDragDataReceived(var delegate deleg) {
+		return _MAP_REMOTE_EVENT(EVENT_ON_DRAGDATARECEIVED, deleg);
+	}
+
+	public property OnScreenChanged { get GetOnScreenChanged, set SetOnScreenChanged }
+	public function GetOnScreenChanged() {
+		return _GET_REMOTE_EVENT(EVENT_ON_SCREENCHANGED);
+	}
+
+	public function SetOnScreenChanged(var delegate deleg) {
+		return _MAP_REMOTE_EVENT(EVENT_ON_SCREENCHANGED, deleg);
+	}
+
+	public property OnDelete { get GetOnDelete, set SetOnDelete }
+	public function GetOnDelete() {
+		return _GET_REMOTE_EVENT(EVENT_ON_DELETEEVENT);
+	}
+
+	public function SetOnDelete(var delegate deleg) {
+		return _MAP_REMOTE_EVENT(EVENT_ON_DELETEEVENT, deleg);
+	}
+
+	/* ============== DEPRECATED ==============================================
+
+	public property OnMap { get GetOnMap, set SetOnMap }
+	public function GetOnMap() {
+		return _GET_REMOTE_EVENT(EVENT_ON_MAP);
+	}
+
+	public function SetOnMap(var delegate deleg) {
+		return _MAP_REMOTE_EVENT(EVENT_ON_MAP, deleg);
+	}
+
+	public property OnUnmap { get GetOnUnmap, set SetOnUnmap }
+	public function GetOnUnmap() {
+		return _GET_REMOTE_EVENT(EVENT_ON_UNMAP);
+	}
+
+	public function SetOnUnmap(var delegate deleg) {
+		return _MAP_REMOTE_EVENT(EVENT_ON_UNMAP, deleg);
+	}
+
+	public property OnParentChanged { get GetOnParentChanged, set SetOnParentChanged }
+	public function GetOnParentChanged() {
+		return _GET_REMOTE_EVENT(EVENT_ON_PARENTCHANGED);
+	}
+
+	public function SetOnParentChanged(var delegate deleg) {
+		return _MAP_REMOTE_EVENT(EVENT_ON_PARENTCHANGED, deleg);
+	}
+
+	public property OnHierarchyChanged { get GetOnHierarchyChanged, set SetOnHierarchyChanged }
+	public function GetOnHierarchyChanged() {
+		return _GET_REMOTE_EVENT(EVENT_ON_HIERARCHYCHANGED);
+	}
+
+	public function SetOnHierarchyChanged(var delegate deleg) {
+		return _MAP_REMOTE_EVENT(EVENT_ON_HIERARCHYCHANGED, deleg);
+	}
+
+	public property OnStyleChanged { get GetOnStyleChanged, set SetOnStyleChanged }
+	public function GetOnStyleChanged() {
+		return _GET_REMOTE_EVENT(EVENT_ON_STYLECHANGED);
+	}
+
+	public function SetOnStyleChanged(var delegate deleg) {
+		return _MAP_REMOTE_EVENT(EVENT_ON_STYLECHANGED, deleg);
+	}
+
+	public property OnDirectionChanged { get GetOnDirectionChanged, set SetOnDirectionChanged }
+	public function GetOnDirectionChanged() {
+		return _GET_REMOTE_EVENT(EVENT_ON_DIRECTIONCHANGED);
+	}
+
+	public function SetOnDirectionChanged(var delegate deleg) {
+		return _MAP_REMOTE_EVENT(EVENT_ON_DIRECTIONCHANGED, deleg);
+	}
+
+	public property OnGrabNotify { get GetOnGrabNotify, set SetOnGrabNotify }
+	public function GetOnGrabNotify() {
+		return _GET_REMOTE_EVENT(EVENT_ON_GRABNOTIFY);
+	}
+
+	public function SetOnGrabNotify(var delegate deleg) {
+		return _MAP_REMOTE_EVENT(EVENT_ON_GRABNOTIFY, deleg);
+	}
+
+	public property OnChildNotify { get GetOnChildNotify, set SetOnChildNotify }
+	public function GetOnChildNotify() {
+		return _GET_REMOTE_EVENT(EVENT_ON_CHILDNOTIFY);
+	}
+
+	public function SetOnChildNotify(var delegate deleg) {
+		return _MAP_REMOTE_EVENT(EVENT_ON_CHILDNOTIFY, deleg);
+	}
+
+	public property OnMnemonicActivate { get GetOnMnemonicActivate, set SetOnMnemonicActivate }
+	public function GetOnMnemonicActivate() {
+		return _GET_REMOTE_EVENT(EVENT_ON_MNEMONICACTIVATE);
+	}
+
+	public function SetOnMnemonicActivate(var delegate deleg) {
+		return _MAP_REMOTE_EVENT(EVENT_ON_MNEMONICACTIVATE, deleg);
+	}
+
+	public property OnScroll { get GetOnScroll, set SetOnScroll }
+	public function GetOnScroll() {
+		return _GET_REMOTE_EVENT(EVENT_ON_SCROLL);
+	}
+
+	public function SetOnScroll(var delegate deleg) {
+		return _MAP_REMOTE_EVENT(EVENT_ON_SCROLL, deleg);
+	}
+
+	public property OnMapEvent { get GetOnMapEvent, set SetOnMapEvent }
+	public function GetOnMapEvent() {
+		return _GET_REMOTE_EVENT(EVENT_ON_MAPEVENT);
+	}
+
+	public function SetOnMapEvent(var delegate deleg) {
+		return _MAP_REMOTE_EVENT(EVENT_ON_MAPEVENT, deleg);
+	}
+
+	public property OnUnmapEvent { get GetOnUnmapEvent, set SetOnUnmapEvent }
+	public function GetOnUnmapEvent() {
+		return _GET_REMOTE_EVENT(EVENT_ON_UNMAPEVENT);
+	}
+
+	public function SetOnUnmapEvent(var delegate deleg) {
+		return _MAP_REMOTE_EVENT(EVENT_ON_UNMAPEVENT, deleg);
+	}
+
+	public property OnProperty { get GetOnProperty, set SetOnProperty }
+	public function GetOnProperty() {
+		return _GET_REMOTE_EVENT(EVENT_ON_PROPERTY);
+	}
+
+	public function SetOnProperty(var delegate deleg) {
+		return _MAP_REMOTE_EVENT(EVENT_ON_PROPERTY, deleg);
+	}
+
+	public property OnSelectionClear { get GetOnSelectionClear, set SetOnSelectionClear }
+	public function GetOnSelectionClear() {
+		return _GET_REMOTE_EVENT(EVENT_ON_SELECTIONCLEAR);
+	}
+
+	public function SetOnSelectionClear(var delegate deleg) {
+		return _MAP_REMOTE_EVENT(EVENT_ON_SELECTIONCLEAR, deleg);
+	}
+
+	public property OnSelectionRequest { get GetOnSelectionRequest, set SetOnSelectionRequest }
+	public function GetOnSelectionRequest() {
+		return _GET_REMOTE_EVENT(EVENT_ON_SELECTIONREQUEST);
+	}
+
+	public function SetOnSelectionRequest(var delegate deleg) {
+		return _MAP_REMOTE_EVENT(EVENT_ON_SELECTIONREQUEST, deleg);
+	}
+
+	public property OnSelectionNotify { get GetOnSelectionNotify, set SetOnSelectionNotify }
+	public function GetOnSelectionNotify() {
+		return _GET_REMOTE_EVENT(EVENT_ON_SELECTIONNOTIFY);
+	}
+
+	public function SetOnSelectionNotify(var delegate deleg) {
+		return _MAP_REMOTE_EVENT(EVENT_ON_SELECTIONNOTIFY, deleg);
+	}
+
+	public property OnProximityIn { get GetOnProximityIn, set SetOnProximityIn }
+	public function GetOnProximityIn() {
+		return _GET_REMOTE_EVENT(EVENT_ON_PROXIMITYIN);
+	}
+
+	public function SetOnProximityIn(var delegate deleg) {
+		return _MAP_REMOTE_EVENT(EVENT_ON_PROXIMITYIN, deleg);
+	}
+
+	public property OnProximityOut { get GetOnProximityOut, set SetOnProximityOut }
+	public function GetOnProximityOut() {
+		return _GET_REMOTE_EVENT(EVENT_ON_PROXIMITYOUT);
+	}
+
+	public function SetOnProximityOut(var delegate deleg) {
+		return _MAP_REMOTE_EVENT(EVENT_ON_PROXIMITYOUT, deleg);
+	}
+
+	public property OnNoExpose { get GetOnNoExpose, set SetOnNoExpose }
+	public function GetOnNoExpose() {
+		return _GET_REMOTE_EVENT(EVENT_ON_NOEXPOSE);
+	}
+
+	public function SetOnNoExpose(var delegate deleg) {
+		return _MAP_REMOTE_EVENT(EVENT_ON_NOEXPOSE, deleg);
+	}
+
+	public property OnWindowState { get GetOnWindowState, set SetOnWindowState }
+	public function GetOnWindowState() {
+		return _GET_REMOTE_EVENT(EVENT_ON_WINDOWSTATE);
+	}
+
+	public function SetOnWindowState(var delegate deleg) {
+		return _MAP_REMOTE_EVENT(EVENT_ON_WINDOWSTATE, deleg);
+	}
+
+	public property OnSelectionGet { get GetOnSelectionGet, set SetOnSelectionGet }
+	public function GetOnSelectionGet() {
+		return _GET_REMOTE_EVENT(EVENT_ON_SELECTIONGET);
+	}
+
+	public function SetOnSelectionGet(var delegate deleg) {
+		return _MAP_REMOTE_EVENT(EVENT_ON_SELECTIONGET, deleg);
+	}
+
+	public property OnSelectionReceived { get GetOnSelectionReceived, set SetOnSelectionReceived }
+	public function GetOnSelectionReceived() {
+		return _GET_REMOTE_EVENT(EVENT_ON_SELECTIONRECEIVED);
+	}
+
+	public function SetOnSelectionReceived(var delegate deleg) {
+		return _MAP_REMOTE_EVENT(EVENT_ON_SELECTIONRECEIVED, deleg);
+	}
+
+	============== END DEPRECATED =========================================== */
+
+	//------------------END OF EVENTS -----------------//
+
+	public function VisibleRemoteObject(OWNER,CLASS_ID) {
+		super(OWNER, CLASS_ID);
+		REMOTE_ID_STR=""+REMOTE_ID;
+	}
+
+	public function SetVisible(visible) {
+		if ((!visible) || (this.VISIBLE!=visible) || (CLASS_ID==CLASS_FORM)) {
+			SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_VISIBLE,visible);
+			VISIBLE=(visible!=0);
+		}
+		return visible;
+	}
+
+	public function SetTooltip(tip) {
+		SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_TOOLTIP,tip);
+		TOOLTIP=tip;
+		return tip;
+	}
+
+	public function SetTooltipMarkup(string markuptip) {
+		SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_TOOLTIPMARKUP,markuptip);
+		TOOLTIPMARKUP=markuptip;
+		return markuptip;
+	}
+
+	public function SetTooltipWindow(VisibleRemoteObject window) {
+		SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_TOOLTIPWINDOW,window.RID);
+		TOOLTIPWINDOW=window;
+		return window;
+	}
+
+	public function SetMask(image) {
+		if (!image)
+			SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_FORMMASK,"0");
+		else
+			SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_FORMMASK,image.RID);
+		MASKIMAGE=image;
+		return image;
+	}
+
+
+	public function ShowTooltip() {
+		SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_SHOWTOOLTIP,"1");
+	}
+
+
+	public function SetIBgColor(x) {
+		SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_INACTIVE_BG_COLOR,x);
+		IBGCOLOR=x;
+		return x;
+	}
+
+	public function SetSBgColor(x) {
+		SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_SELECTED_BG_COLOR,x);
+		SBGCOLOR=x;
+		return x;
+	}
+
+	public function SetBgColor(x) {
+		if (x!=BGCOLOR)
+			SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_NORMAL_BG_COLOR,x);
+		BGCOLOR=x;
+		return x;
+	}
+
+	public function SetIFgColor(x) {
+		if (x!=IFGCOLOR)
+			SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_INACTIVE_FG_COLOR,x);
+		IFGCOLOR=x;
+		return x;
+	}
+
+	public function SetSFgColor(x) {
+		if (x!=SFGCOLOR)
+			SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_SELECTED_FG_COLOR,x);
+		SFGCOLOR=x;
+		return x;
+	}
+
+	public function SetFgColor(x) {
+		if (x!=FGCOLOR)
+			SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_NORMAL_FG_COLOR,x);
+		FGCOLOR=x;
+		return x;
+	}
+
+	public function SetMinHeight(argument) {
+		SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_MINHEIGHT,argument);
+		MINHEIGHT=argument;
+		return argument;
+	}
+
+	public function SetMinWidth(argument) {
+		SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_MINWIDTH,argument);
+		MINWIDTH=argument;
+		return argument;
+	}
+
+	public function SetDragable(argument) {
+		SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_DRAGOBJECT,argument);
+		DRAGABLE=(argument!=0);
+		return argument;
+	}
+
+	public function SetDragData(argument) {
+		SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_DRAGDATA,argument);
+		DRAGDATA=argument;
+		return argument;
+	}
+
+	public function Send(MSGID, _TARGET, VALUE) {
+		return SendMessage(REMOTE_ID_STR,MSGID, ""+_TARGET, VALUE);
+	}
+
+	public function SetDropSite(argument) {
+		SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_DROPSITE,argument);
+		DROPSITE=argument;//(argument!=0);
+		return argument;
+	}
+
+	public function SetMouseCursor(argument) {
+		SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_MOUSECURSOR,argument);
+		_MOUSECURSOR=argument;
+		return argument;
+	}
+
+	public function SetMouseCursorImage(argument) {
+		if (classof argument != "RImage")
+			throw "Mouse cursor image should be a RImage object";
+
+		SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_MOUSECURSORIMAGE,argument.RID);
+
+		_MOUSECURSORIMAGE=argument;
+		return argument;
+	}
+
+	public function SetEnabled(argument) {
+		if (ENABLED!=argument) {
+			SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_ENABLED,argument);
+			ENABLED=(argument!=0);
+		}
+		return argument;
+	}
+
+	public function SetWidth(argument) {
+		SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_WIDTH,argument);
+		return argument;
+	}
+
+	public function SetHeight(argument) {
+		SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_HEIGHT,argument);
+		return argument;
+	}
+
+	public function GetWidth() {
+		return value GetProperty(P_WIDTH);
+	}
+
+	public function GetHeight() {
+		return value GetProperty(P_HEIGHT);
+	}
+
+	public function GetClientVisible() {
+		return value GetProperty(P_VISIBLE);
+	}
+
+	public function Show() {
+		Visible=true;
+	}
+
+	public function GrabFocus() {
+		SetProperty(P_FOCUS,true);
+	}
+
+	public function Hide() {
+		Visible=false;
+	}
+
+	public function SetPackType(x) {
+		if ((x>=-1) && (x<=2)) {
+			PACKTYPE=x;
+			return SetProperty(P_PACKTYPE, x);
+		}
+		return 0;
+	}
+
+	public function SetPacking(x) {
+		if ((x>=-1) && (x<=2)) {
+			_PACKING=x;
+			return SetProperty(P_PACKING, x);
+		}
+		return 0;
+	}
+
+	public function ConfirmEvent(eventID) {
+		return SendMessage(REMOTE_ID_STR,MSG_CONFIRM_EVENT,eventID,"1");
+	}
+
+	public function ConfirmDelete() {
+		return ConfirmEvent(EVENT_ON_DELETEEVENT);
+	}
+
+	public function SetPopupMenu(argument) {
+		if (argument) {
+			SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_POPUPMENU,argument.RID);
+			POPUPMENU=argument;
+		}
+		return argument;
+	}
+
+	public function GetTop() {
+		return value GetProperty(P_TOP);
+	}
+
+	public function GetLeft() {
+		return value GetProperty(P_LEFT);
+	}
+
+	public function GetAbsolute() {
+		return StrNumberSplit(GetProperty(P_ABSOLUTE), ",");
+	}
+
+	public function GetCSS() {
+		return GetProperty(P_STYLE);
+	}
+
+	public function SetCSS(css) {
+		_CSS = css;
+		return SetProperty(P_STYLE, css);
+	}
+
+	public function Move(); override Move;
+	public function SetLeft(argument) {
+		LEFT=argument;
+
+		if (classof Parent=="RFixed")
+			Parent.Move(this,LEFT,TOP);
+		else
+			SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_LEFT,argument);
+
+		return argument;
+	}
+
+	public function SetTop(argument) {
+		TOP=argument;
+
+		if (classof Parent=="RFixed")
+			Parent.Move(this,LEFT,TOP);
+		else
+			SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_TOP,argument);
+
+		return argument;
+	}
+
+	public function SetDragIcon(ImageObject) {
+		if (typeof ImageObject !="class")
+			return -1;
+
+		SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_DRAGICON,ImageObject.RID);
+		DRAGICON=&ImageObject;
+		return ImageObject;
+	}
+
+	override DisposeObject;
+	public function DisposeObject(clean_child=true) {
+		Visible=false;
+		if (FONT) {
+			FONT.__QueryDispose();
+			delete FONT;
+		}
+		RemoteObject::DisposeObject(clean_child);
+	}
+
+	public function GetFont() {
+		if (FONT)
+			return FONT;
+		FONT=new RFont(this);
+		return FONT;
+	}
+
+	public function ResetDNDFiles() {
+		SendMessage(REMOTE_ID_STR, MSG_GET_DNDFILE, "reset", "1");
+	}
+
+	public function GetDNDFile(string filename, var content, var errtext="") {
+		CheckPoint(0);
+		content="";
+		SendMessage(REMOTE_ID_STR, MSG_GET_DNDFILE, filename, "0");
+		WaitMessage(var Sender=this.RID, MSG_GET_DNDFILE, var Target, content);
+		var errcode=value Target;
+		if (errcode) {
+			errtext=content;
+			content="";
+			return errcode;
+		}
+		return 0;
+	}
+
+	public function AddAccelKey(string x) {
+		return SetProperty(P_ACCELKEY,x);
+	}
+}

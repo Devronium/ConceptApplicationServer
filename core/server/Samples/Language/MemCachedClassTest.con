@@ -1,0 +1,14 @@
+include MemCached.con
+
+class Main {
+	function Main() {
+		var m=new MemCached();
+		m.AddServer();
+		m.Set("test", "105");
+		echo m["test"];
+		m.Set("test", "106");
+		echo m["test"];
+		m.Increment("test");
+		echo m["test"];
+	}
+}

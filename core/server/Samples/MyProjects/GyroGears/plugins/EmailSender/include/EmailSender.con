@@ -1,0 +1,165 @@
+include MSMTP.con
+include RImage.con
+include RButton.con
+include RVBox.con
+include Application.con
+
+import standard.lib.cripto
+import standard.C.io
+
+class EmailSender {
+	private var Handler;
+	private var msmtp;
+	private var Template="";
+	private var TargetObj=null;
+	private var To="";
+	private var From="";
+	private var Subject="";
+	private var Members;
+	private var SendOnWrite=false;
+	private var add_headers=false;
+
+	public function EmailSender(Owner) {
+		if (Owner) {
+			Handler=new RButton(Owner);
+			var image=new RImage(Handler);
+			image.Filename="res/EmailSender.png";
+			image.Show();
+			Handler.ReliefStyle=RELIEF_NONE;
+			Handler.Image=image;
+			Handler.ImagePosition=POS_LEFT;		
+			Handler.OnClicked=this.OnSendMailClicked;
+			Handler.Show();
+		}
+	}
+
+	public function SendMail(var _target=null) {
+		var target=_target;
+		if (!target)
+			target=TargetObj;
+		if (!target)
+			return -2;
+		var members=this.Members;
+		var email=Template;
+		if (members) {
+			var len=length Members;
+			for (var i=0;i<len;i++) {
+				var m=members[i];
+				if (m) {
+					var temp="";
+					if (!GetMember(target, m, temp))
+						throw "EmailSender plug-in error: no such member '$m'";
+					email=StrReplace(email,"[$m]",""+temp);
+				}
+			}
+		}
+		if (!To)
+			throw "EmailSender plug-in error: No target e-mail address is set";
+
+		if (!GetMember(target, To, temp))
+			temp=To;
+
+		var header="To: $temp\r\n";
+		msmtp.To=temp;
+		if (!From)
+			throw "EmailSender plug-in error: No sender e-mail address is set";
+
+		if (!GetMember(target, From, temp))
+			temp=From;
+		msmtp.From=temp;
+		header+="From: $temp\r\n";
+
+		if (!GetMember(target, Subject, temp))
+			temp=Subject;
+
+		header+="Subject: $temp\r\n\r\n";
+	
+		if (add_headers)
+			email=header+email;
+
+		return msmtp.Send(email);
+	}
+
+	public function OnSendMailClicked(Sender, EventData) {
+		var res=this.SendMail();
+		if (res!=1)
+			CApplication::Message("Error sending mail (Error: $res)\n\n${this.msmtp.Output}");
+		else
+			CApplication::Message("Message sent !");
+	}
+
+	public function Set(Obj) {
+		TargetObj=Obj;
+		return this;
+	}
+
+	public function Get(Obj) {
+		return this;
+	}
+
+	public function Validate(Obj, var error_string) {
+		error_string="";
+		return true;
+	}
+
+	static function Create(Context, ContainerObject, OwnerForm, servername="localhost", port="25", Username="", Password="", From="", Template="", members="", to="", subject="", button_caption="", tls="", tls_file="", auth="", send_on_write="false", add_headers="true") {
+		var handler=new EmailSender(ContainerObject);
+
+		if (Context) {
+			Context.Set=handler.Set;
+			Context.Get=handler.Get;
+			Context.Validate=handler.Validate;
+		}
+
+		var msmtp=new MSMTP();
+		handler.msmtp=msmtp;
+
+		msmtp.Host=servername;
+		msmtp.Port=port;
+		if (Username)
+			msmtp.User=Username;
+		if (Password) // msmtp evaluates the password
+			msmtp.Password="echo "+Password;
+
+		if (auth)
+			msmtp.Auth=auth;
+		handler.From=From;
+		handler.Template=Template;
+		handler.Members=StrSplit(members,",");
+		handler.To=to;
+		handler.Subject=subject;
+
+		if (handler.Handler)
+			handler.Handler.Caption=button_caption;
+
+		var btls=false;
+		if ((tls) && (tls=="true")) {
+			msmtp.Tls="on";
+			btls=true;
+		}
+
+		if ((add_headers) && (add_headers=="true"))
+			handler.add_headers=true;
+
+		if (tls_file)
+			msmtp.TlsTrustFile=tls_file;
+		else
+		if (btls)
+			msmtp.TlsCertcheck="off";
+
+		if ((send_on_write) && (send_on_write=="true"))
+			handler.SendOnWrite=true;
+
+		return handler;
+	}
+
+	static function Query(string operation, target, prev_object, servername="localhost", port="25", Username="", Password="", From="", Template="", members="", to="", subject="", button_caption="", tls="", tls_file="", auth="", send_on_write="false", add_headers="true") {
+		operation=ToLower(operation);
+		if ((operation=="write") && (send_on_write) && (send_on_write=="true")) {
+			var h=EmailSender::Create(null, null, null, servername, port, Username, Password, From, Template, members, to, subject, button_caption, tls, tls_file, auth, send_on_write, add_headers);
+			var res=h.SendMail(target);
+			return (res>0);
+		}
+		return false;
+	}
+}

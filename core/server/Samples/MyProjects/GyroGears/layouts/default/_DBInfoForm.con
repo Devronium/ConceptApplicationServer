@@ -1,0 +1,21 @@
+// the standard project forms definition. If no glade is used, comment the next line.
+include project_forms.glade.con
+
+// comment the next line if this is NOT the main application form
+
+class DBInfoForm extends DBInfowindow {
+        public property Markup { set SetMarkup, get GetMarkup }
+        
+        public function DBInfoForm(Owner, Lang S) {
+                super(Owner, S);
+                //this.Opacity=0.75;
+        }
+
+        public function SetMarkup(string text) {
+            return this.label1.Caption=text;
+        }
+        
+        public function GetMarkup() {
+            return this.label1.Caption;
+        }
+}

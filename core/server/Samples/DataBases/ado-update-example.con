@@ -1,0 +1,54 @@
+pragma warnings off
+
+include 'DataBases.con'
+include 'XMLDocumentGenerator.con'
+
+define	CONNECTION_STRING		"Driver={MySQL ODBC 3.51 Driver};Server=localhost;Database=concept;Username=radgs;option=16"
+//define		CONNECTION_STRING		"Driver={SQL Server};Server=(local);Database=iadc;Uid=iadc;Pwd=iadc;"
+
+define  QUERY				"select libname from library"
+
+class Main {
+	function Main() {
+		var Connection=new ADOConnection();
+		var DataSet=new ADODataSet(Connection);
+
+		//Connection.Open(CONNECTION_STRING);
+		echo "Error : "+Connection.OpenDSN("iadc","iadc","iadc");
+
+		// selecting
+		DataSet.CommandText=QUERY;
+		DataSet.ExecuteQuery();
+
+		try {
+			if (DataSet.First()) {
+				do {
+					//echo "ID  : "+DataSet.FieldValues["descript"].ToString()+"\n";
+					echo "Name: "+DataSet.FieldValues["libname"].ToString()+"\n\n";
+
+					//DataSet.FieldValues["descript"]="test1";
+					//DataSet.Update();
+				} while (DataSet.Next());
+
+			}
+
+			/*DataSet.CommandText=QUERY;
+			DataSet.ExecuteQuery();
+			// after modification ...
+			echo "After modification\n";
+			if (DataSet.First()) {
+				do {
+					echo "ID  : "+DataSet.FieldValues["descript"].ToString()+"\n";
+					echo "Name: "+DataSet.FieldValues["libname"].ToString()+"\n\n";
+				} while (DataSet.Next());
+
+			}*/
+
+		} catch (var Exception) {
+			echo "Exception raised : "+Exception._STRING_DATA;
+		}
+
+		Connection.Close();
+		echo Connection.LastError();
+	}
+}

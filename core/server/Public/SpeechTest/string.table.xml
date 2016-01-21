@@ -1,0 +1,55 @@
+<?xml version="1.0"?>
+<StringTable>
+  <default langid="en"/>
+  <string msgid="Name">
+    <lang id="en">
+Name
+    </lang>
+    <lang id="ro">
+Nume
+    </lang>
+  </string>
+  <string msgid="Surname">
+    <lang id="en">
+Surname
+    </lang>
+    <lang id="ro">
+Prenume
+    </lang>
+  </string>
+  <string msgid="gtk-media-record">
+    <lang id="en">
+gtk-media-record
+    </lang>
+  </string>
+  <string msgid="gtk-media-stop">
+    <lang id="en">
+gtk-media-stop
+    </lang>
+  </string>
+  <string msgid="Supported voice commands:\n1. CALL, PHONE\n2. JOHN, JOHNSTON\n3. ONE, TWO, THREE ...\n\nEg: PHONE JOHNSON\n\nYou can edit the dictionary file to add more words.">
+    <lang id="en">
+Supported voice commands:\n1. CALL, PHONE\n2. JOHN, JOHNSTON\n3. ONE, TWO, THREE ...\n\nEg: PHONE JOHNSON\n\nYou can edit the dictionary file to add more words.
+    </lang>
+  </string>
+  <string msgid="Voice Recognition Test">
+    <lang id="en">
+Voice Recognition Test
+    </lang>
+  </string>
+  <string msgid="Supported voice commands:\n1. CALL, PHONE\n2. JOHN, JOHNSTON\n3. ONE, TWO, THREE ...\n\nEg: PHONE JOHNSON\n\nYou can edit the dictionary file to add more words.\n\nBased on Julius library.">
+    <lang id="en">
+Supported voice commands:\n1. CALL, PHONE\n2. JOHN, JOHNSTON\n3. ONE, TWO, THREE ...\n\nEg: PHONE JOHNSON\n\nYou can edit the dictionary file to add more words.\n\nBased on Julius library.
+    </lang>
+  </string>
+  <string msgid="Supported voice commands:\n1. CALL, PHONE\n2. JOHN, JOHNSTON\n3. ONE, TWO, THREE ...\n\nEg: PHONE JOHNSON\n\nYou can edit the dictionary file to add more words.\n\nBased on Julius library. Press record to start.">
+    <lang id="en">
+Supported voice commands:\n1. CALL, PHONE\n2. JOHN, JOHNSTON\n3. ONE, TWO, THREE ...\n\nEg: PHONE JOHNSON\n\nYou can edit the dictionary file to add more words.\n\nBased on Julius library. Press record to start.
+    </lang>
+  </string>
+  <string msgid="Supported voice commands:\n1. DIAL, CALL, PHONE\n2. JOHN, JOHNSTON\n3. ONE, TWO, THREE ...\n\nEg: PHONE JOHNSON\n\nYou can edit the dictionary file to add more words.\n\nBased on Julius library. Press record to start.">
+    <lang id="en">
+Supported voice commands:\n1. DIAL, CALL, PHONE\n2. JOHN, JOHNSTON\n3. ONE, TWO, THREE ...\n\nEg: PHONE JOHNSON\n\nYou can edit the dictionary file to add more words.\n\nBased on Julius library. Press record to start.
+    </lang>
+  </string>
+</StringTable>

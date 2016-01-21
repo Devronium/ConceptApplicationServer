@@ -1,0 +1,31 @@
+include RTextView.con
+include RScrolledWindow.con
+
+class _ChatUtils {
+	static function Init(memo) {
+		var style0=memo.CreateStyle("text");
+		style0.FontName="arial 10";
+		style0.ForeColor=0x000000;
+
+		var style1=memo.CreateStyle("myuser");
+		style1.FontName="arial bold 10";
+		style1.ForeColor=0x0000A0;
+
+		var style2=memo.CreateStyle("otheruser");
+		style2.FontName="arial bold 10";
+		style2.ForeColor=0x000000;
+
+		var style3=memo.CreateStyle("notice");
+		style3.FontName="arial 10";
+		style3.ForeColor=0x008000;
+
+		memo.AddStyledText("\nTalk system ready.\nWelcome !\n\n", "notice");
+	}
+
+	static function PutText(memo, text, type="notice", scroll=null) {
+		memo.AddStyledText(text, type);
+		if (scroll)
+			scroll.ScrollDown();
+	}
+
+}

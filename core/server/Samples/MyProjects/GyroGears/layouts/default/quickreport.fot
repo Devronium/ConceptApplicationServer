@@ -1,0 +1,274 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<fo:root
+    xmlns:fn = "http://www.w3.org/2005/xpath-functions"
+    xmlns:fo = "http://www.w3.org/1999/XSL/Format"
+    xmlns:xdt = "http://www.w3.org/2005/xpath-datatypes"
+    xmlns:xs = "http://www.w3.org/2001/XMLSchema"
+    xmlns:xsi = "http://www.w3.org/2001/XMLSchema-instance">
+    <fo:layout-master-set>
+        <fo:simple-page-master
+            master-name = "default-page"
+
+{ldelim}if landscape{rdelim}
+            page-height = "8.27in"
+            page-width = "11.69in"
+{ldelim}else{rdelim}
+            page-height = "11.69in"
+            page-width = "8.27in"
+{ldelim}endif{rdelim}
+            margin-left = "0.6in"
+            margin-right = "0.6in">
+            <fo:region-body margin-top = "1.2in" margin-bottom = "0.63in"/>
+            <fo:region-before extent = "0.79in"/>
+            <fo:region-after extent = "0.79in"/>
+        </fo:simple-page-master>
+    </fo:layout-master-set>
+
+    <fo:page-sequence
+        master-reference = "default-page"
+        initial-page-number = "1"
+        format = "1">
+        <fo:static-content flow-name = "xsl-region-before">
+            <fo:block>
+                <fo:table
+                    table-layout = "fixed"
+                    width = "100%"
+                    border-spacing = "2pt">
+                    <fo:table-column column-width = "proportional-column-width(1)"/>
+                    <fo:table-column column-width = "proportional-column-width(1)"/>
+                    <fo:table-body start-indent = "0pt">
+                        <fo:table-row>
+                            <fo:table-cell
+                                number-columns-spanned = "2"
+                                padding = "0"
+                                height = "30"
+                                display-align = "center">
+                                <fo:block>
+                                    {ldelim}HEADER_TEXT{rdelim}
+                                </fo:block>
+                            </fo:table-cell>
+                        </fo:table-row>
+                        <fo:table-row>
+                            <fo:table-cell
+                                number-columns-spanned = "2"
+                                padding = "0"
+                                display-align = "center">
+                                <fo:block>
+                                    <fo:block text-align = "center">
+                                        <fo:leader
+                                            leader-pattern = "rule"
+                                            rule-thickness = "1"
+                                            leader-length = "100%"
+                                            color = "black"/>
+                                    </fo:block>
+                                </fo:block>
+                            </fo:table-cell>
+                        </fo:table-row>
+                    </fo:table-body>
+                </fo:table>
+            </fo:block>
+        </fo:static-content>
+        <fo:static-content flow-name = "xsl-region-after">
+            <fo:block>
+                <fo:table
+                    table-layout = "fixed"
+                    width = "100%"
+                    border-spacing = "2pt">
+                    <fo:table-column column-width = "proportional-column-width(1)"/>
+                    <fo:table-column column-width = "150"/>
+                    <fo:table-body start-indent = "0pt">
+                        <fo:table-row>
+                            <fo:table-cell
+                                number-columns-spanned = "2"
+                                padding = "0"
+                                display-align = "center">
+                                <fo:block>
+                                    <fo:block text-align = "center">
+                                        <fo:leader
+                                            leader-pattern = "rule"
+                                            top = "-37pt"
+                                            rule-thickness = "1"
+                                            leader-length = "100%"
+                                            color = "black"/>
+                                    </fo:block>
+                                </fo:block>
+                            </fo:table-cell>
+                        </fo:table-row>
+                        <fo:table-row>
+                            <fo:table-cell
+                                font-size = "smaller"
+                                padding = "0"
+                                text-align = "left"
+                                display-align = "center">
+                                <fo:block>
+                                    <fo:inline font-weight = "bold">Document: <![CDATA[{REPORT_TITLE}, {ldelim}REPORT_DATE{rdelim}]]></fo:inline>
+                                </fo:block>
+                            </fo:table-cell>
+                            <fo:table-cell
+                                font-size = "smaller"
+                                padding = "0"
+                                text-align = "right"
+                                display-align = "center">
+                                <fo:block>
+                                    <fo:inline font-weight = "bold">Page:</fo:inline>
+                                    <fo:page-number font-weight = "bold"/>
+                                    <fo:inline font-weight = "bold">/</fo:inline>
+                                    <fo:page-number-citation ref-id = "SV_RefID_PageTotal" font-weight = "bold"/>
+                                </fo:block>
+                            </fo:table-cell>
+                        </fo:table-row>
+                    </fo:table-body>
+                </fo:table>
+            </fo:block>
+        </fo:static-content>
+        <fo:flow flow-name = "xsl-region-body">
+            <fo:block>
+                <fo:inline font-size = "x-large" font-weight = "bold"><![CDATA[{REPORT_TITLE}]]></fo:inline>
+                <fo:table
+                    table-layout = "fixed"
+                    width = "100%"
+                    border-spacing = "0">
+                    <fo:table-column column-width = "proportional-column-width(1)"/>
+                    <fo:table-body start-indent = "0pt">
+                        <fo:table-row>
+                            <fo:table-cell padding = "0" display-align = "center">
+                                <fo:block>
+                                    <fo:inline font-size = "small">Description</fo:inline>
+                                </fo:block>
+                            </fo:table-cell>
+                        </fo:table-row>
+                        <fo:table-row background-color = "#e1e1e1">
+                            <fo:table-cell padding = "0" display-align = "center">
+                                <fo:block>
+                                    <fo:inline font-size = "small"><![CDATA[{REPORT_DESCRIPTION}]]></fo:inline>
+                                </fo:block>
+                            </fo:table-cell>
+                        </fo:table-row>
+                    </fo:table-body>
+                </fo:table>
+{ldelim}if has_criteria{rdelim}
+                <fo:table
+                    table-layout = "fixed"
+                    width = "100%"
+                    border-spacing = "0">
+                    <fo:table-column column-width = "proportional-column-width(1)"/>
+                    <fo:table-column column-width = "proportional-column-width(1)"/>
+                    <fo:table-column column-width = "proportional-column-width(1)"/>
+                    <fo:table-column column-width = "proportional-column-width(1)"/>
+                    <fo:table-body start-indent = "0pt">
+{ldelim}foreach criteria{rdelim}
+                        <fo:table-row>
+    {ldelim}foreach criteria{rdelim}
+                            <fo:table-cell padding = "0" display-align = "center">
+                                <fo:block>
+                                    <fo:inline font-size = "{ldelim}fontsize{rdelim}"><![CDATA[{ldelim}criteria{rdelim}]]></fo:inline>
+                                </fo:block>
+                            </fo:table-cell>
+    {ldelim}endfor{rdelim}
+                        </fo:table-row>
+{ldelim}endfor{rdelim}
+                    </fo:table-body>
+                </fo:table>
+{ldelim}endif{rdelim}
+                <fo:table
+                    table-layout = "fixed"
+                    width = "100%"
+                    border-spacing = "0">
+{foreach column}
+      {ldelim}if columns{rdelim}
+                    <fo:table-column column-width = "proportional-column-width({column.width}*{ldelim}columns[{column.index}]{rdelim})"/>
+      {ldelim}else{rdelim}
+                    <fo:table-column column-width = "proportional-column-width({column.width})"/>
+      {ldelim}endif{rdelim}
+{endfor}
+                    <fo:table-header>
+                        <fo:table-row background-color = "green">
+{foreach column}
+    {if column.align_right}
+                            <fo:table-cell padding = "0pt" display-align = "center" text-align = "right">
+    {else}
+                            <fo:table-cell padding = "0pt" display-align = "center">
+    {endif}
+
+    {ldelim}if columns{rdelim}
+        {ldelim}if columns[{column.index}]{rdelim}
+                                <fo:block>
+                                    <fo:inline color = "white" font-weight = "bold" font-size = "{ldelim}fontsize{rdelim}"><![CDATA[{column.column_name}]]></fo:inline>
+                                </fo:block>
+        {ldelim}else{rdelim}
+                                <fo:block />
+        {ldelim}endif{rdelim}
+    {ldelim}else{rdelim}
+                                <fo:block />
+    {ldelim}endif{rdelim}
+                            </fo:table-cell>
+{endfor}
+                        </fo:table-row>
+                    </fo:table-header>
+                    <fo:table-body start-indent = "0pt">
+{ldelim}foreach row{rdelim}
+    {ldelim}if row.__EVENINDEX{rdelim}
+                        <fo:table-row background-color = "#f0f0f0">
+    {ldelim}else{rdelim}
+                        <fo:table-row>
+    {ldelim}endif{rdelim}
+{foreach column}
+    {if column.align_right}
+                            <fo:table-cell padding = "0pt" display-align = "center" text-align = "right">
+    {else}
+                            <fo:table-cell padding = "0pt" display-align = "center">
+    {endif}
+
+{ldelim}if columns{rdelim}
+    {ldelim}if columns[{column.index}]{rdelim}
+                              <fo:block>
+    {if column.member_name}
+        {if column.is_bool}
+                                    <fo:inline color = "black" font-size = "{ldelim}fontsize{rdelim}">
+                                    {ldelim}if row.{column.member_name}{rdelim}
+                                    [*]
+                                    {ldelim}else{rdelim}
+                                    [ ]
+                                    {ldelim}endif{rdelim}
+                                    </fo:inline>
+        {else}
+                                    <fo:inline color = "black" font-size = "{ldelim}fontsize{rdelim}"><![CDATA[{ldelim}row.{column.member_name}{rdelim}]]>&#160;</fo:inline>
+        {endif}
+    {else}
+                                    <fo:inline color = "black" font-size = "{ldelim}fontsize{rdelim}"><![CDATA[{ldelim}row.__VIEWINDEX{rdelim}]]>&#160;&#160;</fo:inline>
+    {endif}
+                                </fo:block>
+    {ldelim}else{rdelim}
+                                <fo:block />
+    {ldelim}endif{rdelim}
+{ldelim}else{rdelim}
+                              <fo:block>
+    {if column.member_name}
+        {if column.is_bool}
+                                    <fo:inline color = "black" font-size = "{ldelim}fontsize{rdelim}">
+                                    {ldelim}if row.{column.member_name}{rdelim}
+                                    [*]
+                                    {ldelim}else{rdelim}
+                                    [ ]
+                                    {ldelim}endif{rdelim}
+                                    </fo:inline>
+        {else}
+                                    <fo:inline color = "black" font-size = "{ldelim}fontsize{rdelim}"><![CDATA[{ldelim}row.{column.member_name}{rdelim}]]>&#160;</fo:inline>
+        {endif}
+    {else}
+                                    <fo:inline color = "black" font-size = "{ldelim}fontsize{rdelim}"><![CDATA[{ldelim}row.__VIEWINDEX{rdelim}]]>&#160;&#160;</fo:inline>
+    {endif}
+                                </fo:block>
+{ldelim}endif{rdelim}
+
+                            </fo:table-cell>
+{endfor}
+                        </fo:table-row>
+{ldelim}endfor{rdelim}
+                    </fo:table-body>
+                </fo:table>
+            </fo:block>
+            <fo:block id = "SV_RefID_PageTotal"/>
+        </fo:flow>
+    </fo:page-sequence>
+</fo:root>

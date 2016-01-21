@@ -1,0 +1,40 @@
+include 'DataBases.con'
+include 'XMLDocumentGenerator.con'
+
+define	CONNECTION_STRING		"Driver={mySQL};Server=localhost;Option=16834;Database=sesal;"
+define  QUERY				"select * from curs"
+
+
+class Main {
+	function Main() {
+		var DB;
+		DB=new DataConnection();
+		DB.Open(CONNECTION_STRING);
+
+		DB.ExecuteQuery(QUERY);
+
+		try {
+			var XMLDocument=new XMLDocumentGenerator();
+			XMLDocument.BeginDocument("Document");
+
+			while (DB.Read()) {
+				XMLDocument.AddSerializableObject(DB.FieldValues);
+
+				//for (var i=0;i<DB.FieldValues.Count;i++)
+				//	echo DB.FieldValues[i]+" ";
+
+				// echo DB.FieldValues["name"];
+				// or 
+				// echo DB["name"];
+			}
+			XMLDocument.EndDocument();
+
+			echo XMLDocument.GetDocument();
+
+		} catch (var Exception) {
+			echo "Exception raised : "+Exception._STRING_DATA;
+		}
+
+		DB->Close();
+	}
+}

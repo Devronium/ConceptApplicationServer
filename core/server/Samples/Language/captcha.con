@@ -1,0 +1,10 @@
+import standard.lib.captcha
+import standard.C.io
+
+class Main {
+	function Main() {
+		var c=Captcha(var gif);
+		echo c;
+		WriteFile(gif, "a.gif");
+	}
+}

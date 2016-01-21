@@ -1,0 +1,1144 @@
+include ActiveXControl.con
+
+//////////////////////////////////////////////////////////////////////////
+// This file was generated automatically by AXInterfaceGenerator        //
+//                                          (c)2006 RadGs Software      //
+//                                                                      //
+//                   PLEASE DO NOT MODIFY THIS FILE !                   //
+//////////////////////////////////////////////////////////////////////////
+
+class IDirectSS extends ActiveXControl {
+	//Uncomment LICENCE_KEY if the control needs to be registered
+ 	function IDirectSS(Owner/*, LICENCE_KEY*/) {
+		//super(Owner, "ActiveVoice.ActiveVoice", LICENCE_KEY);
+		super(Owner, "ActiveVoice.ActiveVoice", "");
+		__AX_SET_EVENTS();
+	}
+
+/*0*/	function /*{void}*/ QueryInterface(var parameter0 /*{GUID*}*/, var parameter1 /*{void**}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter1);
+		Send(MSG_AX_CALL_METHOD, "QueryInterface", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*1*/	function /*{ULONG}*/ AddRef()  {
+		Send(MSG_AX_CALL_METHOD, "AddRef", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*2*/	function /*{ULONG}*/ Release()  {
+		Send(MSG_AX_CALL_METHOD, "Release", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*3*/	function /*{void}*/ GetTypeInfoCount(var parameter0 /*{UINT*}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_CALL_METHOD, "GetTypeInfoCount", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*4*/	function /*{void}*/ GetTypeInfo(parameter0 /*{UINT}*/, parameter1 /*{ULONG}*/, var parameter2 /*{void**}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter1);
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter2);
+		Send(MSG_AX_CALL_METHOD, "GetTypeInfo", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*5*/	function /*{void}*/ GetIDsOfNames(var parameter0 /*{GUID*}*/, var parameter1 /*{char**}*/, parameter2 /*{UINT}*/, parameter3 /*{ULONG}*/, var parameter4 /*{long*}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter1);
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter2);
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter3);
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter4);
+		Send(MSG_AX_CALL_METHOD, "GetIDsOfNames", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*6*/	function /*{void}*/ Invoke(parameter0 /*{long}*/, var parameter1 /*{GUID*}*/, parameter2 /*{ULONG}*/, parameter3 /*{USHORT}*/, var parameter4 /*{DISPPARAMS*}*/, var parameter5 /*{VARIANT*}*/, var parameter6 /*{EXCEPINFO*}*/, var parameter7 /*{UINT*}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter1);
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter2);
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter3);
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter4);
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter5);
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter6);
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter7);
+		Send(MSG_AX_CALL_METHOD, "Invoke", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*7*/	function /*{short}*/ AX_GET_debug() /*{propget}*/ {
+		Send(MSG_AX_GET_PROPERTY, "debug", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*8*/	function /*{void}*/ AX_SET_debug(parameter0 /*{short}*/) /*{propput}*/ {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_SET_PROPERTY, "debug", "0");
+	}
+
+/*9*/	function /*{short}*/ AX_GET_Initialized() /*{propget}*/ {
+		Send(MSG_AX_GET_PROPERTY, "Initialized", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*10*/	function /*{void}*/ AX_SET_Initialized(parameter0 /*{short}*/) /*{propput}*/ {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_SET_PROPERTY, "Initialized", "0");
+	}
+
+/*11*/	function /*{void}*/ Speak(parameter0 /*{BSTR}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_CALL_METHOD, "Speak", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*12*/	function /*{long}*/ AX_GET_Pitch() /*{propget}*/ {
+		Send(MSG_AX_GET_PROPERTY, "Pitch", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*13*/	function /*{void}*/ AX_SET_Pitch(parameter0 /*{long}*/) /*{propput}*/ {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_SET_PROPERTY, "Pitch", "0");
+	}
+
+/*14*/	function /*{long}*/ AX_GET_MaxPitch() /*{propget}*/ {
+		Send(MSG_AX_GET_PROPERTY, "MaxPitch", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*15*/	function /*{void}*/ AX_SET_MaxPitch(parameter0 /*{long}*/) /*{propput}*/ {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_SET_PROPERTY, "MaxPitch", "0");
+	}
+
+/*16*/	function /*{long}*/ AX_GET_MinPitch() /*{propget}*/ {
+		Send(MSG_AX_GET_PROPERTY, "MinPitch", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*17*/	function /*{void}*/ AX_SET_MinPitch(parameter0 /*{long}*/) /*{propput}*/ {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_SET_PROPERTY, "MinPitch", "0");
+	}
+
+/*18*/	function /*{long}*/ AX_GET_Speed() /*{propget}*/ {
+		Send(MSG_AX_GET_PROPERTY, "Speed", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*19*/	function /*{void}*/ AX_SET_Speed(parameter0 /*{long}*/) /*{propput}*/ {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_SET_PROPERTY, "Speed", "0");
+	}
+
+/*20*/	function /*{long}*/ AX_GET_MaxSpeed() /*{propget}*/ {
+		Send(MSG_AX_GET_PROPERTY, "MaxSpeed", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*21*/	function /*{void}*/ AX_SET_MaxSpeed(parameter0 /*{long}*/) /*{propput}*/ {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_SET_PROPERTY, "MaxSpeed", "0");
+	}
+
+/*22*/	function /*{long}*/ AX_GET_MinSpeed() /*{propget}*/ {
+		Send(MSG_AX_GET_PROPERTY, "MinSpeed", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*23*/	function /*{void}*/ AX_SET_MinSpeed(parameter0 /*{long}*/) /*{propput}*/ {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_SET_PROPERTY, "MinSpeed", "0");
+	}
+
+/*24*/	function /*{long}*/ AX_GET_VolumeRight() /*{propget}*/ {
+		Send(MSG_AX_GET_PROPERTY, "VolumeRight", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*25*/	function /*{void}*/ AX_SET_VolumeRight(parameter0 /*{long}*/) /*{propput}*/ {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_SET_PROPERTY, "VolumeRight", "0");
+	}
+
+/*26*/	function /*{long}*/ AX_GET_MinVolumeRight() /*{propget}*/ {
+		Send(MSG_AX_GET_PROPERTY, "MinVolumeRight", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*27*/	function /*{void}*/ AX_SET_MinVolumeRight(parameter0 /*{long}*/) /*{propput}*/ {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_SET_PROPERTY, "MinVolumeRight", "0");
+	}
+
+/*28*/	function /*{long}*/ AX_GET_MaxVolumeRight() /*{propget}*/ {
+		Send(MSG_AX_GET_PROPERTY, "MaxVolumeRight", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*29*/	function /*{void}*/ AX_SET_MaxVolumeRight(parameter0 /*{long}*/) /*{propput}*/ {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_SET_PROPERTY, "MaxVolumeRight", "0");
+	}
+
+/*30*/	function /*{void}*/ Select(parameter0 /*{int}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_CALL_METHOD, "Select", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*31*/	function /*{BSTR}*/ EngineID(parameter0 /*{int}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_CALL_METHOD, "EngineID", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*32*/	function /*{long}*/ AX_GET_CountEngines() /*{propget}*/ {
+		Send(MSG_AX_GET_PROPERTY, "CountEngines", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*33*/	function /*{BSTR}*/ ModeName(parameter0 /*{int}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_CALL_METHOD, "ModeName", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*34*/	function /*{BSTR}*/ MfgName(parameter0 /*{int}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_CALL_METHOD, "MfgName", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*35*/	function /*{BSTR}*/ ProductName(parameter0 /*{int}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_CALL_METHOD, "ProductName", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*36*/	function /*{BSTR}*/ ModeID(parameter0 /*{int}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_CALL_METHOD, "ModeID", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*37*/	function /*{BSTR}*/ Speaker(parameter0 /*{int}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_CALL_METHOD, "Speaker", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*38*/	function /*{BSTR}*/ Style(parameter0 /*{int}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_CALL_METHOD, "Style", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*39*/	function /*{long}*/ Gender(parameter0 /*{int}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_CALL_METHOD, "Gender", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*40*/	function /*{long}*/ Age(parameter0 /*{int}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_CALL_METHOD, "Age", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*41*/	function /*{long}*/ Features(parameter0 /*{int}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_CALL_METHOD, "Features", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*42*/	function /*{long}*/ Interfaces(parameter0 /*{int}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_CALL_METHOD, "Interfaces", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*43*/	function /*{long}*/ EngineFeatures(parameter0 /*{int}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_CALL_METHOD, "EngineFeatures", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*44*/	function /*{long}*/ LanguageID(parameter0 /*{int}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_CALL_METHOD, "LanguageID", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*45*/	function /*{BSTR}*/ Dialect(parameter0 /*{int}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_CALL_METHOD, "Dialect", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*46*/	function /*{long}*/ AX_GET_RealTime() /*{propget}*/ {
+		Send(MSG_AX_GET_PROPERTY, "RealTime", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*47*/	function /*{void}*/ AX_SET_RealTime(parameter0 /*{long}*/) /*{propput}*/ {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_SET_PROPERTY, "RealTime", "0");
+	}
+
+/*48*/	function /*{long}*/ AX_GET_MaxRealTime() /*{propget}*/ {
+		Send(MSG_AX_GET_PROPERTY, "MaxRealTime", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*49*/	function /*{long}*/ AX_GET_MinRealTime() /*{propget}*/ {
+		Send(MSG_AX_GET_PROPERTY, "MinRealTime", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*50*/	function /*{void}*/ AX_SET_MinRealTime(parameter0 /*{long}*/) /*{propput}*/ {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_SET_PROPERTY, "MinRealTime", "0");
+	}
+
+/*51*/	function /*{void}*/ AudioPause()  {
+		Send(MSG_AX_CALL_METHOD, "AudioPause", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*52*/	function /*{void}*/ AudioReset()  {
+		Send(MSG_AX_CALL_METHOD, "AudioReset", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*53*/	function /*{void}*/ AudioResume()  {
+		Send(MSG_AX_CALL_METHOD, "AudioResume", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*54*/	function /*{void}*/ Inject(parameter0 /*{BSTR}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_CALL_METHOD, "Inject", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*55*/	function /*{long}*/ AX_GET_Tagged() /*{propget}*/ {
+		Send(MSG_AX_GET_PROPERTY, "Tagged", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*56*/	function /*{void}*/ AX_SET_Tagged(parameter0 /*{long}*/) /*{propput}*/ {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_SET_PROPERTY, "Tagged", "0");
+	}
+
+/*57*/	function /*{BSTR}*/ Phonemes(parameter0 /*{long}*/, parameter1 /*{long}*/, parameter2 /*{BSTR}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter1);
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter2);
+		Send(MSG_AX_CALL_METHOD, "Phonemes", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*58*/	function /*{void}*/ PosnGet(var parameter0 /*{long*}*/, var parameter1 /*{long*}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter1);
+		Send(MSG_AX_CALL_METHOD, "PosnGet", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*59*/	function /*{void}*/ TextData(parameter0 /*{long}*/, parameter1 /*{long}*/, parameter2 /*{BSTR}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter1);
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter2);
+		Send(MSG_AX_CALL_METHOD, "TextData", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*60*/	function /*{void}*/ InitAudioDestMM(parameter0 /*{long}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_CALL_METHOD, "InitAudioDestMM", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*61*/	function /*{void}*/ AboutDlg(parameter0 /*{long}*/, parameter1 /*{BSTR}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter1);
+		Send(MSG_AX_CALL_METHOD, "AboutDlg", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*62*/	function /*{void}*/ GeneralDlg(parameter0 /*{long}*/, parameter1 /*{BSTR}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter1);
+		Send(MSG_AX_CALL_METHOD, "GeneralDlg", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*63*/	function /*{void}*/ LexiconDlg(parameter0 /*{long}*/, parameter1 /*{BSTR}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter1);
+		Send(MSG_AX_CALL_METHOD, "LexiconDlg", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*64*/	function /*{void}*/ TranslateDlg(parameter0 /*{long}*/, parameter1 /*{BSTR}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter1);
+		Send(MSG_AX_CALL_METHOD, "TranslateDlg", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*65*/	function /*{long}*/ FindEngine(parameter0 /*{BSTR}*/, parameter1 /*{BSTR}*/, parameter2 /*{BSTR}*/, parameter3 /*{BSTR}*/, parameter4 /*{BSTR}*/, parameter5 /*{long}*/, parameter6 /*{BSTR}*/, parameter7 /*{BSTR}*/, parameter8 /*{BSTR}*/, parameter9 /*{long}*/, parameter10 /*{long}*/, parameter11 /*{long}*/, parameter12 /*{long}*/, parameter13 /*{long}*/, parameter14 /*{long}*/, parameter15 /*{long}*/, parameter16 /*{long}*/, parameter17 /*{long}*/, parameter18 /*{long}*/, parameter19 /*{long}*/, parameter20 /*{long}*/, parameter21 /*{long}*/, parameter22 /*{long}*/, parameter23 /*{long}*/, parameter24 /*{long}*/, parameter25 /*{long}*/, parameter26 /*{long}*/, parameter27 /*{long}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter1);
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter2);
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter3);
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter4);
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter5);
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter6);
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter7);
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter8);
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter9);
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter10);
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter11);
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter12);
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter13);
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter14);
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter15);
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter16);
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter17);
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter18);
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter19);
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter20);
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter21);
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter22);
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter23);
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter24);
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter25);
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter26);
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter27);
+		Send(MSG_AX_CALL_METHOD, "FindEngine", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*66*/	function /*{short}*/ AX_GET_MouthHeight() /*{propget}*/ {
+		Send(MSG_AX_GET_PROPERTY, "MouthHeight", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*67*/	function /*{void}*/ AX_SET_MouthHeight(parameter0 /*{short}*/) /*{propput}*/ {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_SET_PROPERTY, "MouthHeight", "0");
+	}
+
+/*68*/	function /*{short}*/ AX_GET_MouthWidth() /*{propget}*/ {
+		Send(MSG_AX_GET_PROPERTY, "MouthWidth", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*69*/	function /*{void}*/ AX_SET_MouthWidth(parameter0 /*{short}*/) /*{propput}*/ {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_SET_PROPERTY, "MouthWidth", "0");
+	}
+
+/*70*/	function /*{short}*/ AX_GET_MouthUpturn() /*{propget}*/ {
+		Send(MSG_AX_GET_PROPERTY, "MouthUpturn", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*71*/	function /*{void}*/ AX_SET_MouthUpturn(parameter0 /*{short}*/) /*{propput}*/ {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_SET_PROPERTY, "MouthUpturn", "0");
+	}
+
+/*72*/	function /*{short}*/ AX_GET_JawOpen() /*{propget}*/ {
+		Send(MSG_AX_GET_PROPERTY, "JawOpen", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*73*/	function /*{void}*/ AX_SET_JawOpen(parameter0 /*{short}*/) /*{propput}*/ {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_SET_PROPERTY, "JawOpen", "0");
+	}
+
+/*74*/	function /*{short}*/ AX_GET_TeethUpperVisible() /*{propget}*/ {
+		Send(MSG_AX_GET_PROPERTY, "TeethUpperVisible", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*75*/	function /*{void}*/ AX_SET_TeethUpperVisible(parameter0 /*{short}*/) /*{propput}*/ {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_SET_PROPERTY, "TeethUpperVisible", "0");
+	}
+
+/*76*/	function /*{short}*/ AX_GET_TeethLowerVisible() /*{propget}*/ {
+		Send(MSG_AX_GET_PROPERTY, "TeethLowerVisible", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*77*/	function /*{void}*/ AX_SET_TeethLowerVisible(parameter0 /*{short}*/) /*{propput}*/ {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_SET_PROPERTY, "TeethLowerVisible", "0");
+	}
+
+/*78*/	function /*{short}*/ AX_GET_TonguePosn() /*{propget}*/ {
+		Send(MSG_AX_GET_PROPERTY, "TonguePosn", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*79*/	function /*{void}*/ AX_SET_TonguePosn(parameter0 /*{short}*/) /*{propput}*/ {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_SET_PROPERTY, "TonguePosn", "0");
+	}
+
+/*80*/	function /*{short}*/ AX_GET_LipTension() /*{propget}*/ {
+		Send(MSG_AX_GET_PROPERTY, "LipTension", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*81*/	function /*{void}*/ AX_SET_LipTension(parameter0 /*{short}*/) /*{propput}*/ {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_SET_PROPERTY, "LipTension", "0");
+	}
+
+/*82*/	function /*{short}*/ AX_GET_CallBacksEnabled() /*{propget}*/ {
+		Send(MSG_AX_GET_PROPERTY, "CallBacksEnabled", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*83*/	function /*{void}*/ AX_SET_CallBacksEnabled(parameter0 /*{short}*/) /*{propput}*/ {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_SET_PROPERTY, "CallBacksEnabled", "0");
+	}
+
+/*84*/	function /*{short}*/ AX_GET_MouthEnabled() /*{propget}*/ {
+		Send(MSG_AX_GET_PROPERTY, "MouthEnabled", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*85*/	function /*{void}*/ AX_SET_MouthEnabled(parameter0 /*{short}*/) /*{propput}*/ {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_SET_PROPERTY, "MouthEnabled", "0");
+	}
+
+/*86*/	function /*{long}*/ AX_GET_LastError() /*{propget}*/ {
+		Send(MSG_AX_GET_PROPERTY, "LastError", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*87*/	function /*{void}*/ AX_SET_LastError(parameter0 /*{long}*/) /*{propput}*/ {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_SET_PROPERTY, "LastError", "0");
+	}
+
+/*88*/	function /*{short}*/ AX_GET_SuppressExceptions() /*{propget}*/ {
+		Send(MSG_AX_GET_PROPERTY, "SuppressExceptions", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*89*/	function /*{void}*/ AX_SET_SuppressExceptions(parameter0 /*{short}*/) /*{propput}*/ {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_SET_PROPERTY, "SuppressExceptions", "0");
+	}
+
+/*90*/	function /*{short}*/ AX_GET_Speaking() /*{propget}*/ {
+		Send(MSG_AX_GET_PROPERTY, "Speaking", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*91*/	function /*{void}*/ AX_SET_Speaking(parameter0 /*{short}*/) /*{propput}*/ {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_SET_PROPERTY, "Speaking", "0");
+	}
+
+/*92*/	function /*{long}*/ AX_GET_LastWordPosition() /*{propget}*/ {
+		Send(MSG_AX_GET_PROPERTY, "LastWordPosition", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*93*/	function /*{void}*/ AX_SET_LastWordPosition(parameter0 /*{long}*/) /*{propput}*/ {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_SET_PROPERTY, "LastWordPosition", "0");
+	}
+
+/*94*/	function /*{short}*/ AX_GET_LipType() /*{propget}*/ {
+		Send(MSG_AX_GET_PROPERTY, "LipType", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*95*/	function /*{void}*/ AX_SET_LipType(parameter0 /*{short}*/) /*{propput}*/ {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_SET_PROPERTY, "LipType", "0");
+	}
+
+/*96*/	function /*{void}*/ GetPronunciation(parameter0 /*{long}*/, parameter1 /*{BSTR}*/, parameter2 /*{long}*/, var parameter3 /*{BSTR*}*/, var parameter4 /*{long*}*/, var parameter5 /*{BSTR*}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter1);
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter2);
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter3);
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter4);
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter5);
+		Send(MSG_AX_CALL_METHOD, "GetPronunciation", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*97*/	function /*{void}*/ InitAudioDestDirect(parameter0 /*{long}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_CALL_METHOD, "InitAudioDestDirect", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*98*/	function /*{BSTR}*/ AX_GET_Sayit() /*{propget}*/ {
+		Send(MSG_AX_GET_PROPERTY, "Sayit", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*99*/	function /*{void}*/ AX_SET_Sayit(parameter0 /*{BSTR}*/) /*{propput}*/ {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_SET_PROPERTY, "Sayit", "0");
+	}
+
+/*100*/	function /*{void}*/ InitAudioDestObject(parameter0 /*{long}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_CALL_METHOD, "InitAudioDestObject", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*101*/	function /*{BSTR}*/ AX_GET_FileName() /*{propget}*/ {
+		Send(MSG_AX_GET_PROPERTY, "FileName", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*102*/	function /*{void}*/ AX_SET_FileName(parameter0 /*{BSTR}*/) /*{propput}*/ {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_SET_PROPERTY, "FileName", "0");
+	}
+
+/*103*/	function /*{long}*/ AX_GET_CurrentMode() /*{propget}*/ {
+		Send(MSG_AX_GET_PROPERTY, "CurrentMode", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*104*/	function /*{void}*/ AX_SET_CurrentMode(parameter0 /*{long}*/) /*{propput}*/ {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_SET_PROPERTY, "CurrentMode", "0");
+	}
+
+/*105*/	function /*{long}*/ AX_GET_hWnd() /*{propget}*/ {
+		Send(MSG_AX_GET_PROPERTY, "hWnd", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*106*/	function /*{long}*/ Find(parameter0 /*{BSTR}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_CALL_METHOD, "Find", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*107*/	function /*{long}*/ AX_GET_VolumeLeft() /*{propget}*/ {
+		Send(MSG_AX_GET_PROPERTY, "VolumeLeft", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*108*/	function /*{void}*/ AX_SET_VolumeLeft(parameter0 /*{long}*/) /*{propput}*/ {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_SET_PROPERTY, "VolumeLeft", "0");
+	}
+
+/*109*/	function /*{long}*/ AX_GET_MinVolumeLeft() /*{propget}*/ {
+		Send(MSG_AX_GET_PROPERTY, "MinVolumeLeft", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*110*/	function /*{void}*/ AX_SET_MinVolumeLeft(parameter0 /*{long}*/) /*{propput}*/ {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_SET_PROPERTY, "MinVolumeLeft", "0");
+	}
+
+/*111*/	function /*{long}*/ AX_GET_MaxVolumeLeft() /*{propget}*/ {
+		Send(MSG_AX_GET_PROPERTY, "MaxVolumeLeft", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*112*/	function /*{void}*/ AX_SET_MaxVolumeLeft(parameter0 /*{long}*/) /*{propput}*/ {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_SET_PROPERTY, "MaxVolumeLeft", "0");
+	}
+
+/*113*/	function /*{long}*/ AX_GET_AudioDest() /*{propget}*/ {
+		Send(MSG_AX_GET_PROPERTY, "AudioDest", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*114*/	function /*{long}*/ AX_GET_Attributes( /*{long}*/) /*{propget}*/ {
+		Send(MSG_AX_GET_PROPERTY, "Attributes", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*115*/	function /*{void}*/ AX_SET_Attributes(parameter0 /*{long}*/, parameter1 /*{long}*/) /*{propput}*/ {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter1);
+		Send(MSG_AX_SET_PROPERTY, "Attributes", "0");
+	}
+
+/*116*/	function /*{BSTR}*/ AX_GET_AttributeString( /*{long}*/) /*{propget}*/ {
+		Send(MSG_AX_GET_PROPERTY, "AttributeString", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*117*/	function /*{void}*/ AX_SET_AttributeString(parameter0 /*{long}*/, parameter1 /*{BSTR}*/) /*{propput}*/ {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter1);
+		Send(MSG_AX_SET_PROPERTY, "AttributeString", "0");
+	}
+
+/*118*/	function /*{long}*/ AX_GET_AttributeMemory( /*{long}*/  /*{long*}*/) /*{propget}*/ {
+		Send(MSG_AX_GET_PROPERTY, "AttributeMemory", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*119*/	function /*{void}*/ AX_SET_AttributeMemory(parameter0 /*{long}*/, var parameter1 /*{long*}*/, parameter2 /*{long}*/) /*{propput}*/ {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter1);
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter2);
+		Send(MSG_AX_SET_PROPERTY, "AttributeMemory", "0");
+	}
+
+/*120*/	function /*{void}*/ LexAddTo(parameter0 /*{ULONG}*/, parameter1 /*{long}*/, parameter2 /*{BSTR}*/, parameter3 /*{BSTR}*/, parameter4 /*{long}*/, parameter5 /*{long}*/, parameter6 /*{long}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter1);
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter2);
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter3);
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter4);
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter5);
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter6);
+		Send(MSG_AX_CALL_METHOD, "LexAddTo", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*121*/	function /*{void}*/ LexGetFrom(parameter0 /*{long}*/, parameter1 /*{long}*/, parameter2 /*{BSTR}*/, parameter3 /*{long}*/, var parameter4 /*{BSTR*}*/, var parameter5 /*{long*}*/, var parameter6 /*{long*}*/, var parameter7 /*{long*}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter1);
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter2);
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter3);
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter4);
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter5);
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter6);
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter7);
+		Send(MSG_AX_CALL_METHOD, "LexGetFrom", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*122*/	function /*{void}*/ LexRemoveFrom(parameter0 /*{long}*/, parameter1 /*{BSTR}*/, parameter2 /*{long}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter1);
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter2);
+		Send(MSG_AX_CALL_METHOD, "LexRemoveFrom", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*123*/	function /*{void}*/ QueryLexicons(parameter0 /*{long}*/, var parameter1 /*{long*}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter1);
+		Send(MSG_AX_CALL_METHOD, "QueryLexicons", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*124*/	function /*{void}*/ ChangeSpelling(parameter0 /*{long}*/, parameter1 /*{BSTR}*/, parameter2 /*{BSTR}*/)  {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter1);
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter2);
+		Send(MSG_AX_CALL_METHOD, "ChangeSpelling", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+//---------------- BEGIN OF EVENTS INTERFACE (info only) -----------------//
+	//Event syntax:void ClickIn(parameter0<long>, parameter1<long>) 
+	public property _OnClickIn { get Get_OnClickIn, set Set_OnClickIn }
+	public function Get_OnClickIn() {
+		return _AX_EVENTS[1];
+	}
+
+	public function Set_OnClickIn(deleg) {
+		_AX_EVENTS[1]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",1);
+	}
+
+	//Event syntax:void ClickOut(parameter0<long>, parameter1<long>) 
+	public property _OnClickOut { get Get_OnClickOut, set Set_OnClickOut }
+	public function Get_OnClickOut() {
+		return _AX_EVENTS[2];
+	}
+
+	public function Set_OnClickOut(deleg) {
+		_AX_EVENTS[2]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",2);
+	}
+
+	//Event syntax:void AudioStart(parameter0<long>, parameter1<long>) 
+	public property _OnAudioStart { get Get_OnAudioStart, set Set_OnAudioStart }
+	public function Get_OnAudioStart() {
+		return _AX_EVENTS[3];
+	}
+
+	public function Set_OnAudioStart(deleg) {
+		_AX_EVENTS[3]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",3);
+	}
+
+	//Event syntax:void AudioStop(parameter0<long>, parameter1<long>) 
+	public property _OnAudioStop { get Get_OnAudioStop, set Set_OnAudioStop }
+	public function Get_OnAudioStop() {
+		return _AX_EVENTS[4];
+	}
+
+	public function Set_OnAudioStop(deleg) {
+		_AX_EVENTS[4]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",4);
+	}
+
+	//Event syntax:HRESULT AttribChanged(parameter0<long>) 
+	public property _OnAttribChanged { get Get_OnAttribChanged, set Set_OnAttribChanged }
+	public function Get_OnAttribChanged() {
+		return _AX_EVENTS[5];
+	}
+
+	public function Set_OnAttribChanged(deleg) {
+		_AX_EVENTS[5]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",5);
+	}
+
+	//Event syntax:HRESULT Visual(parameter0<long>, parameter1<long>, parameter2<short>, parameter3<short>, parameter4<long>, parameter5<short>, parameter6<short>, parameter7<short>, parameter8<short>, parameter9<short>, parameter10<short>, parameter11<short>, parameter12<short>) 
+	public property _OnVisual { get Get_OnVisual, set Set_OnVisual }
+	public function Get_OnVisual() {
+		return _AX_EVENTS[6];
+	}
+
+	public function Set_OnVisual(deleg) {
+		_AX_EVENTS[6]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",6);
+	}
+
+	//Event syntax:HRESULT WordPosition(parameter0<long>, parameter1<long>, parameter2<long>) 
+	public property _OnWordPosition { get Get_OnWordPosition, set Set_OnWordPosition }
+	public function Get_OnWordPosition() {
+		return _AX_EVENTS[7];
+	}
+
+	public function Set_OnWordPosition(deleg) {
+		_AX_EVENTS[7]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",7);
+	}
+
+	//Event syntax:HRESULT BookMark(parameter0<long>, parameter1<long>, parameter2<long>) 
+	public property _OnBookMark { get Get_OnBookMark, set Set_OnBookMark }
+	public function Get_OnBookMark() {
+		return _AX_EVENTS[8];
+	}
+
+	public function Set_OnBookMark(deleg) {
+		_AX_EVENTS[8]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",8);
+	}
+
+	//Event syntax:HRESULT TextDataStarted(parameter0<long>, parameter1<long>) 
+	public property _OnTextDataStarted { get Get_OnTextDataStarted, set Set_OnTextDataStarted }
+	public function Get_OnTextDataStarted() {
+		return _AX_EVENTS[9];
+	}
+
+	public function Set_OnTextDataStarted(deleg) {
+		_AX_EVENTS[9]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",9);
+	}
+
+	//Event syntax:HRESULT TextDataDone(parameter0<long>, parameter1<long>, parameter2<long>) 
+	public property _OnTextDataDone { get Get_OnTextDataDone, set Set_OnTextDataDone }
+	public function Get_OnTextDataDone() {
+		return _AX_EVENTS[10];
+	}
+
+	public function Set_OnTextDataDone(deleg) {
+		_AX_EVENTS[10]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",10);
+	}
+
+	//Event syntax:HRESULT ActiveVoiceStartup(parameter0<long>, parameter1<long>) 
+	public property _OnActiveVoiceStartup { get Get_OnActiveVoiceStartup, set Set_OnActiveVoiceStartup }
+	public function Get_OnActiveVoiceStartup() {
+		return _AX_EVENTS[11];
+	}
+
+	public function Set_OnActiveVoiceStartup(deleg) {
+		_AX_EVENTS[11]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",11);
+	}
+
+	//Event syntax:HRESULT Debugging() 
+	public property _OnDebugging { get Get_OnDebugging, set Set_OnDebugging }
+	public function Get_OnDebugging() {
+		return _AX_EVENTS[12];
+	}
+
+	public function Set_OnDebugging(deleg) {
+		_AX_EVENTS[12]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",12);
+	}
+
+	//Event syntax:HRESULT Error(parameter0<ULONG>, parameter1<BSTR>, parameter2<BSTR>) 
+	public property _OnError { get Get_OnError, set Set_OnError }
+	public function Get_OnError() {
+		return _AX_EVENTS[13];
+	}
+
+	public function Set_OnError(deleg) {
+		_AX_EVENTS[13]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",13);
+	}
+
+	//Event syntax:HRESULT warning(parameter0<ULONG>, parameter1<BSTR>, parameter2<BSTR>) 
+	public property _Onwarning { get Get_Onwarning, set Set_Onwarning }
+	public function Get_Onwarning() {
+		return _AX_EVENTS[14];
+	}
+
+	public function Set_Onwarning(deleg) {
+		_AX_EVENTS[14]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",14);
+	}
+
+	//Event syntax:HRESULT VisualFuture(parameter0<long>, parameter1<long>, parameter2<long>, parameter3<short>, parameter4<short>, parameter5<long>, parameter6<short>, parameter7<short>, parameter8<short>, parameter9<short>, parameter10<short>, parameter11<short>, parameter12<short>, parameter13<short>) 
+	public property _OnVisualFuture { get Get_OnVisualFuture, set Set_OnVisualFuture }
+	public function Get_OnVisualFuture() {
+		return _AX_EVENTS[15];
+	}
+
+	public function Set_OnVisualFuture(deleg) {
+		_AX_EVENTS[15]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",15);
+	}
+
+//------------------ END OF EVENTS INTERFACE (info only) -----------------//
+
+	public property debug { get AX_GET_debug, set AX_SET_debug }
+	public property Initialized { get AX_GET_Initialized, set AX_SET_Initialized }
+	public property Pitch { get AX_GET_Pitch, set AX_SET_Pitch }
+	public property MaxPitch { get AX_GET_MaxPitch, set AX_SET_MaxPitch }
+	public property MinPitch { get AX_GET_MinPitch, set AX_SET_MinPitch }
+	public property Speed { get AX_GET_Speed, set AX_SET_Speed }
+	public property MaxSpeed { get AX_GET_MaxSpeed, set AX_SET_MaxSpeed }
+	public property MinSpeed { get AX_GET_MinSpeed, set AX_SET_MinSpeed }
+	public property VolumeRight { get AX_GET_VolumeRight, set AX_SET_VolumeRight }
+	public property MinVolumeRight { get AX_GET_MinVolumeRight, set AX_SET_MinVolumeRight }
+	public property MaxVolumeRight { get AX_GET_MaxVolumeRight, set AX_SET_MaxVolumeRight }
+	public property CountEngines { get AX_GET_CountEngines }
+	public property RealTime { get AX_GET_RealTime, set AX_SET_RealTime }
+	public property MaxRealTime { get AX_GET_MaxRealTime }
+	public property MinRealTime { get AX_GET_MinRealTime, set AX_SET_MinRealTime }
+	public property Tagged { get AX_GET_Tagged, set AX_SET_Tagged }
+	public property MouthHeight { get AX_GET_MouthHeight, set AX_SET_MouthHeight }
+	public property MouthWidth { get AX_GET_MouthWidth, set AX_SET_MouthWidth }
+	public property MouthUpturn { get AX_GET_MouthUpturn, set AX_SET_MouthUpturn }
+	public property JawOpen { get AX_GET_JawOpen, set AX_SET_JawOpen }
+	public property TeethUpperVisible { get AX_GET_TeethUpperVisible, set AX_SET_TeethUpperVisible }
+	public property TeethLowerVisible { get AX_GET_TeethLowerVisible, set AX_SET_TeethLowerVisible }
+	public property TonguePosn { get AX_GET_TonguePosn, set AX_SET_TonguePosn }
+	public property LipTension { get AX_GET_LipTension, set AX_SET_LipTension }
+	public property CallBacksEnabled { get AX_GET_CallBacksEnabled, set AX_SET_CallBacksEnabled }
+	public property MouthEnabled { get AX_GET_MouthEnabled, set AX_SET_MouthEnabled }
+	public property LastError { get AX_GET_LastError, set AX_SET_LastError }
+	public property SuppressExceptions { get AX_GET_SuppressExceptions, set AX_SET_SuppressExceptions }
+	public property Speaking { get AX_GET_Speaking, set AX_SET_Speaking }
+	public property LastWordPosition { get AX_GET_LastWordPosition, set AX_SET_LastWordPosition }
+	public property LipType { get AX_GET_LipType, set AX_SET_LipType }
+	public property Sayit { get AX_GET_Sayit, set AX_SET_Sayit }
+	public property FileName { get AX_GET_FileName, set AX_SET_FileName }
+	public property CurrentMode { get AX_GET_CurrentMode, set AX_SET_CurrentMode }
+	public property hWnd { get AX_GET_hWnd }
+	public property VolumeLeft { get AX_GET_VolumeLeft, set AX_SET_VolumeLeft }
+	public property MinVolumeLeft { get AX_GET_MinVolumeLeft, set AX_SET_MinVolumeLeft }
+	public property MaxVolumeLeft { get AX_GET_MaxVolumeLeft, set AX_SET_MaxVolumeLeft }
+	public property AudioDest { get AX_GET_AudioDest }
+	public property Attributes { get AX_GET_Attributes, set AX_SET_Attributes }
+	public property AttributeString { get AX_GET_AttributeString, set AX_SET_AttributeString }
+	public property AttributeMemory { get AX_GET_AttributeMemory, set AX_SET_AttributeMemory }
+}

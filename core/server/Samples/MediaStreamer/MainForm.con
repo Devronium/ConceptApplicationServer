@@ -1,0 +1,235 @@
+// the standard project forms definition. If no glade is used, comment the next line.
+include project_forms.glade.con
+include Media/RMedia.con
+include ServerFileChooser.con
+include File.con
+include Canvas.con
+include Serializable.con
+
+// comment the next line if this is NOT the main application form
+define APPLICATION_FORM_TYPE	MainForm
+
+class PLAYLIST extends Serializable {
+    var[] Files;
+}
+
+class RemotePlay extends RemotePlayWindow {
+        var OpenDelegate;
+        
+        public function RemotePlay(Owner, Lang S, delegate OpenDelegate) {
+            super(Owner, S);
+            this.OpenDelegate=OpenDelegate;
+            this.KeepAbove=true;
+        }
+        
+        public function GoClicked(Sender, EventData) {
+            Hide();
+
+            var URL=EditURL.Text;
+            if (!URL) {
+                CApplication.MessageBox("No URL specified", "Error");
+                return 0;
+            }
+            
+            OpenDelegate(URL);
+        }
+}
+
+class PlaylistForm extends PlayListWindow {
+        var ToolPlayListToggle;
+        public var LIST;
+
+        public function PlaylistForm(Owner, Lang S, RToggleToolButton ToolPlayListToggle) {
+            super(Owner, S);                      
+            this.ToolPlayListToggle=ToolPlayListToggle;
+            this.ItemsView.Model=MODEL_TREEVIEW;
+            this.ItemsView.AddColumn(" ", IMAGE_COLUMN);
+            this.ItemsView.AddColumn(S<<"Media",NORMAL_COLUMN);
+            Width=300;
+            Height=300;
+        }
+        
+        public function New() {
+        }
+
+        public function Save(string path) {
+            if (LIST) {
+                LIST.Serialize(path);
+            } else {
+                CApplication.MessageBox(S<<"No playlist opened",S<<"Error");
+            }
+        }
+        
+        public function Load(string path) {
+            LIST=Serializable.UnSerialize(path);
+            if (!LIST) {
+                CApplication.MessageBox(S<<"Error loading playlist "+path,S<<"Error");
+            }
+        }
+    
+        public function OnPlayListWindowDelete(Sender, EventData) {
+            // the delete event must be confirmed !
+            // if we don't confirm this event, the window won't be closed
+            ToolPlayListToggle.Checked=false;
+            Hide();
+        }
+}
+
+class MainForm extends MediaBaseWindow {
+        // ========================================================================
+        // constructor;
+        // S is a Lang object used to translate strings using
+        // the default string table named string.table.xml
+        // Is your responsability to pass this object to other forms instantiated
+        // in this application
+        // ========================================================================
+
+        var mplayer;
+
+        var RPlayDialog;
+        var OpenStreamDialog;
+        var Playlist;
+        
+        var OpenedFile;
+        
+        var is_video=-1;
+        var is_audio=-1;
+        
+        public function MainForm(Owner, Lang S) {
+                super(Owner, S);
+                RPlayDialog=new RemotePlay(this, S, this.OpenURL);
+                OpenedFile=new File();
+
+                toolbar2.Packing=PACK_EXPAND_WIDGET;
+
+                OpenStreamDialog=new ServerFileChooser(this);
+                OpenStreamDialog.Path="/";
+                OpenStreamDialog.FileTypes=["All media files:avi,mpg,mpeg,mp3,rm,ram,divx,3gp,mov,wav,vox,dat,mid,flv,fli","All files:*"];
+                OpenStreamDialog.OnFileSelected=this.OpenStreamDialogFileSelected;
+                OpenStreamDialog.ListDirectory();
+                
+                Playlist=new PlaylistForm(this, S, ToolPlayListToggle);
+        }
+        
+        public function StreamTimer(Sender=null, EventData="") {
+            if ((OpenedFile) && (OpenedFile.Handle)) {
+                if (mplayer.PendingBuffers>=100) {
+                    if (is_video==0)
+                        AddTimer(StreamTimer, 3000);
+                    else
+                        AddTimer(StreamTimer, 100);
+                    return;
+                }
+
+                var to_read=49000;
+                if (!Sender) {
+                    to_read=1000000;
+                }
+                
+                if ((!is_audio) && (!is_video)) {
+                    is_video=mplayer.HasVideo;
+                    is_audio=mplayer.HasAudio;
+                }
+
+                var read_size=OpenedFile.Read(var buffer, to_read);
+                if (read_size>0) {
+                    mplayer.StreamBuffer(buffer);
+                    //echo mplayer.CurrentTime;
+                    //echo "/";
+                    //echo mplayer.Duration;
+                    //echo "\n";
+                    if (is_video==-1) {
+                        is_video=mplayer.HasVideo;
+                    }
+                    if (is_audio==-1) {
+                        is_audio=mplayer.HasAudio;
+                    }
+                    
+                    if (is_video) {
+                        AddTimer(StreamTimer, 10);
+                    } else
+                        AddTimer(StreamTimer, 3000);
+                } else {
+                    mplayer.Seek(0);
+                }
+            }
+        }
+
+        // Manually add your events here //
+        public function MediaBaseWindowCreated(Sender, EventData) {
+            mplayer=new RMedia(MediaHolder);
+            mplayer.Show();
+            
+            var canvas=new Canvas(mplayer);
+            canvas.PenColor=0x000000;
+			canvas.Rectangle(0,0,2000,2000,true);
+        }
+        
+        public function OpenURL(string url) {
+            mplayer.OpenRemote(url);
+        }
+        
+        public function OpenURLClicked(Sender, EventData) {
+            RPlayDialog.Show();
+        }
+        
+        public function LoadStream(string full_path) {
+            OpenedFile.Name=full_path;
+            is_video=-1;
+            is_audio=-1;
+            
+            if (!OpenedFile.Open()) {
+                CApplication.MessageBox("Error opening file $full_path","Error");
+                return false;
+            } else {
+                mplayer.BeginStream();
+                StreamTimer();
+            }
+            return true;
+        }
+        
+        public function OpenStreamDialogFileSelected(Sender, EventData) {
+            if (OpenedFile.Handle) {
+                OpenedFile.Close();
+                mplayer.Pause();
+                mplayer.Stop();
+                mplayer.Close();
+            }
+
+            var full_path=OpenStreamDialog.Path+EventData;
+            LoadStream(full_path);
+        }
+        
+        public function OpenStreamClicked(Sender, EventData) {
+            OpenStreamDialog.Show();
+        }
+        
+        public function PlayClicked(Sender, EventData) {
+            /*if (mplayer.Size<=0)
+                CApplication.MessageBox("No stream loaded yet","Error");
+            else*/
+                mplayer.Play();
+        }
+
+        public function PauseClicked(Sender, EventData) {
+            mplayer.Pause();
+        }
+
+        public function StopClicked(Sender, EventData) {
+            mplayer.Stop();
+            mplayer.Close();
+
+            if (OpenedFile.Handle)
+                OpenedFile.Seek(0);
+            mplayer.BeginStream();
+        }
+        
+        public function FullScreenToggled(Sender, EventData) {
+            FullScreen=fullscreentoggle.Checked;
+            this.Repaint();
+        }
+        
+        public function ShowPlaylistToggle(Sender, EventData) {
+            Playlist.Visible=ToolPlayListToggle.Checked;
+        }
+}

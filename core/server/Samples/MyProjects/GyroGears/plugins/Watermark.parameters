@@ -1,0 +1,6 @@
+Media member:mandatory,member
+Watermark:mandatory,string,res/watermark.png
+X Align:optional,number,0.5
+Y Align:optional,number,0.5
+Alpha:optional,number,0.5
+Apply on preview also:optional,boolean,false

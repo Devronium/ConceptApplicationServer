@@ -1,0 +1,51 @@
+include 'WebDocument.con'
+import 'standard.C.math'
+
+class Main {
+	function Main() {
+		var doc=new WebDocument();
+		doc.BeginDocument();
+
+		doc << '<html><head><title>Concept web application</title></head><body><center>';
+		doc << '<table border="0"  width="60%"><tr><td style="background-color:#8080FF"><font color="#FFFFFF">Salut din Concept Web</font></td>';
+		doc << '</tr><tr><td style="background-color:#ECE9D8">';
+
+		if (WebVar("numar")=="") {
+			doc << "Salut ! Eu sunt Concept Web, si rulez probabil pe serverul lui George, Venus.";
+	 		doc << "Daca ai vazut link-ul, probabil ca stii bine ce-i Concept, si ce face, asa ";
+	 		doc << "ca nu are rost sa-ti spun. A ... poate ar trebui sa te conving ca functionez ...";
+			doc << doc.endl << doc.endl;
+	 		doc << "Pai ... IP-ul tau este " << ServerVar("REMOTE_ADDR") << " ... ai nevoie de ceva mai convigator ?" << doc.endl;
+	 		doc << doc.endl;
+	 		doc << "Zi-mi un numar ... intre oricat si oricat" << doc.endl;
+
+	 		doc << '<center><form method="GET" action="' + ServerVar("PATH_INFO") + '">Numarul : <input type="text" name="numar" value="9"><br><br><input type="submit" value=" Ok ">';
+	 		doc << '</center></form>';
+		} else {
+			var numar=value WebVar("numar");
+			if (numar==9) {
+				doc << "Uff ... stiam ce George are prieteni destul de creativi ";
+				doc << "care sunt capabili sa schimbe numarul dintr-o casutza ";
+				doc << "si care nu vor sa mearga pe mana altora ... ce crezi ? ";
+				doc << "ca daca scrie acolo 9(noua) inseamna ca nu trebuie sa te mai gandesti ?!" << doc.endl;
+				doc << doc.endl << doc.endl;
+				doc << "Fii mai creativ !!!";
+			} else {
+				doc << "Hello world !!! (glumeam, asta nu-i aplicatie de Hello world)" << doc.endl << doc.endl;
+				doc << doc.endl << doc.endl;
+				doc << doc.endl;
+				doc << "Patratul sinusului numarului tau plus patratul cosinusului aceluiasi numar este 1" << doc.endl;
+				doc << doc.endl;
+				doc << "Glumeam, banuiesc ca stii deja ca e 1, daca nu stii, ai aflat acum." << doc.endl;
+				doc << doc.endl;
+				var rezultat=_cos(numar);
+				doc << "Tu ai introdus "+numar << ", iar radacina patrata a valorii absolute a acestui numar este "<< ""+_sqrt(_abs(numar));
+				doc << doc.endl;
+			}
+		}
+
+		doc << '</td></tr></table></center></body></html>';
+
+		doc.EndDocument();
+	}
+}

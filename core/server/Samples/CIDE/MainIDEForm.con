@@ -1,0 +1,3189 @@
+include RVBox.con
+include RHBox.con
+include RForm.con
+include RMenu.con
+include RNotebook.con
+include RMenuBar.con
+include RToolbar.con
+include RToolButton.con
+include RMenuToolButton.con
+include RToolSeparator.con
+include RHandleBox.con
+include RStatusbar.con
+include RTreeView.con
+include RVPaned.con
+include RHPaned.con
+include ExtraPanel.con
+include RImage.con
+include REditComboBox.con
+include ServerFileChooser.con
+include ServerFileSaver.con
+include RLabel.con
+include RTextView.con
+include ProgressWindow.con
+include NewProject.con
+include HELPPanel.con
+include HomePage.con
+include SearchForm.con
+include ReplaceForm.con
+include AboutForm.con
+include Serializable.con
+include HTMLPanel.con
+include RHSeparator.con
+include RDesigner.con
+include CodeGenerator.con
+include Lang.con
+include Constants.con
+include StockConstants.con
+include TeamChatPanel.con
+include EditorWindow.con
+// include SQLPanel.con
+
+import standard.C.io
+import standard.lib.str
+
+define CONNECTION_LIST	"ConnectionStrings.lst"
+define CONVERSION_LIST	"gtk2concept.lst"
+define CONVERSION_PROP	"gtk2concept.properties.lst"
+define CONVERSION_CONST	"gtk2concept.constants.lst"
+define CONVERSION_EVENT	"gtk2concept.events.lst"
+
+define IDE_CAPTION	"Concept IDE 2.0"
+define DEF_WIDTH	750
+define DEF_HEIGHT	500
+define USE_OVERRIDE     false
+
+
+define RES_DIR       "res"
+define GLADE_FILE    "project_forms.glade"
+define UI_FILE       "UI.xml"
+define UI_INCLUDE    "UI.con"
+
+define APP_TEMPLATE	"include Application.con\r\n\r\n// TO DO:\r\n// include your_app_form.con\r\n\r\n\r\nclass Main {\r\n	function Main() {\r\n			try {\r\n				var Application=new CApplication(new APPLICATION_FORM_TYPE(NULL));\r\n\r\n				Application.Init();\r\n				Application.Run();\r\n				Application.Done();\r\n			} catch (var Exception) {\r\n				echo Exception;\r\n			}\r\n	}\r\n}\r\n"
+define WEB_TEMPLATE	"pragma warnings off\r\n\r\ninclude DataBases.con\r\n// ^ for database access\r\ninclude SACKGenerator.con\r\n// ^ ajax forms\r\ninclude WebDocument.con\r\n// ^ session, and web related\r\n\r\nclass Main {\r\n	var doc;\r\n	function Main() {\r\n		doc=new WebDocument();\r\n		doc.UseSessions=true;\r\n		doc.BeginDocument();\r\n\r\n		// Your Code goes here\r\n		doc << \"Hello world form a concept application !\";\r\n\r\n		doc.EndDocument();\r\n	}\r\n}\r\n"
+define FORM_TEMPLATE	"// the standard project forms definition. If no UI is used, comment the next line.\ninclude UI.con\n\n// manually replace window1 with your UI window name\nclass myForm extends window1 {\n\n\tpublic function myForm(Owner, Lang S) {\n\t\tsuper(Owner, S);\n\n\t\t// TO DO:\n\t\t// put your code here\n\t}\n\n\t// Manually add your events here //\n}\n"
+
+define DEFAULT_PORT 8080
+define WEB_BROWSER "firefox"
+//define WEB_BROWSER "firefox"
+//define WEB_BROWSER ""
+
+class BreakPoint {
+	public var filename="";
+	public var line=-1;
+	public var ctl=null;
+}
+
+class MainIDEForm extends RForm {
+	private var SearchCombo;
+
+	private var GladeIsSaveAll;
+
+	private var[] breakpoints;
+
+	private var FirstEditor;
+	private var prec_glade="";
+
+	private var DEFAULT_GLADE="";
+
+	private var glade_view=false;
+	private var glade_project=0;
+
+	private var MasterBook;
+	private var Glade;
+
+	private var visible_projects=0;
+	private var hidden_projects=0;
+	private var ignore_switch=false;
+
+
+	private var OpenProject;
+
+	private var ResOpenDialog;
+	private var Notebook;
+	private var Infobook;
+	private var Propbook;
+
+	private var ClassImage;
+	private var MemberImage;
+	private var OpenDialog;
+	private var SaveDialog;
+	// private var SQLCOUNT;
+	private var NEWCOUNT;
+	//private var strings;
+	private var StatusLabel;
+	private var OutputScroll;
+	private var err_scroll;
+	private var Err;
+	private var Info;
+	private var ExecuteButton;
+	private var LastDebugCtl;
+	private var LastDebugLine;
+	private var InDebugTrap;
+	private var DebugInit;
+	private var RunProgress;
+	private var Watch;
+	private var chat;
+
+	private var HideAfterSave;
+	private var QuitPending;
+	private var[] index_to_save;
+	private var index_index;
+
+	private var WaitWindow;
+
+	public var _ProgressWindow;
+	public var NewPrj;
+	public var[] Images;
+
+	public var HELP_INDEX;
+	public var HELP_PAGE_INDEX;
+
+	public var ActiveProject;
+	public var ActiveProjectPath;
+	public var SearchDialog;
+	public var ReplaceDialog;
+	public var replacecount;
+	public var AboutDialog;
+	public var LastSearcString="";
+	private var start_page_index;
+
+	private var menu_bar;
+	private var Host;
+	private var Port=DEFAULT_PORT;
+	
+	private var CallStack;
+	private var Breaks;
+	private var GladeLoaded=false;
+
+	private var LastList="";
+
+	private var FunctionHints;
+
+	public function UpdateBreaks() {
+		Breaks.Clear();
+		
+		var bp=breakpoints;
+		var len=length bp;
+		for (var i=0;i<len;i++) {
+			if (bp[i])
+				Breaks.AddItem([bp[i].filename, bp[i].line]);
+		}
+	}
+
+	public function SyncBreakpoints(number SenderAPID) {
+		var bp=breakpoints;
+
+		// clear all breakpoints
+		SendAPMessage(SenderAPID,-0x107,"clear");
+
+		var len=length bp;
+		for (var i=0;i<len;i++) {
+			if (bp[i]) {
+				var bpoint=""+bp[i].filename+":"+(bp[i].line+1);
+				SendAPMessage(SenderAPID,-0x105,bpoint);
+			}
+		}
+		UpdateBreaks();
+	}
+
+	public function AddBreakpoint(string filename, number line, ctl) {
+		var bpoint=new BreakPoint();
+		bpoint.filename=filename;
+		bpoint.line=line;
+		bpoint.ctl=ctl;
+
+		breakpoints[length breakpoints]=bpoint;
+
+		if (InDebugTrap>0)
+			SyncBreakpoints(InDebugTrap);
+		else
+			UpdateBreaks();
+	}
+
+	public function RemoveBreakpoint(string filename, number line) {
+		var bp=breakpoints;
+
+		var len=length bp;
+		for (var i=0;i<len;i++) {
+			if ((bp[i]) && (bp[i].line==line) && (bp[i].filename==filename)) {
+				bp[i]=null;
+				return true;
+			}
+		}
+		return false;
+	}
+
+	public function RemoveBreakpointCtl(EditorWindow ctl, number line) {
+		var bp=breakpoints;
+
+		var len=length bp;
+		for (var i=0;i<len;i++) {
+			if ((bp[i]) && (bp[i].line==line) && (bp[i].ctl==ctl)) {
+				bp[i]=null;
+
+				if (InDebugTrap>0)
+					SyncBreakpoints(InDebugTrap);
+				else
+					UpdateBreaks();
+
+				return true;
+			}
+		}
+		return false;
+	}
+
+
+	public function ClearBreakpoints() {
+		breakpoints=new [];
+		Breaks.Clear();
+	}
+
+	public function SaveFile(Control, full_path, save_as_flag) {
+
+		var res;
+
+		if ((ActiveProject) && (ActiveProject.target=="gui")) {
+			if (GladeIsSaveAll!=2) {
+				if (GladeIsSaveAll==1)
+					GladeIsSaveAll=2;
+
+				if (GladeLoaded)
+					var content=Glade.Text;
+				else
+					content=ReadFile(Glade.UserData);
+
+				this.GenerateGladeSource(content);
+				var gfname = ActiveProjectPath+"/"+UI_FILE;
+				if ((content) && (/*Glade.UserData*/gfname)) {
+					_unlink(gfname+".backedup");
+					rename(gfname,gfname+".backedup");
+					res=WriteFile(content,gfname);
+				}
+			}
+		}
+
+		var txt=Control.Editor.Text;
+		_unlink(full_path+".backedup");
+		rename(full_path,full_path+".backedup");
+		res=WriteFile(txt, full_path);
+
+		if (res) {
+			if (save_as_flag)
+				Control.SavePath=full_path;
+			Control.SetSavePoint();
+
+			if ((!QuitPending) && (FirstEditor) && (classof Control=="EditorWindow")) {
+				var full_file=Control.SavePath;
+				full_file=StrReplace(full_file, Control.extra_path, "");
+				if (full_file)
+					FirstEditor.Editor.SendIncludedFile(full_file,txt);
+			}
+
+			if (index_index<(length index_to_save))
+				this.Save(index_to_save[index_index++].PageID);
+			else 
+			if (QuitPending)
+				Hide();
+
+			return true;
+		} else {
+			CApplication::Message("Cannot save file '$full_path'", "Error", MESSAGE_ERROR);
+			QuitPending=0;
+			index_to_save=&new [];
+			index_index=0;
+		}
+		return false;
+	}
+
+
+	public function NotebookSwitchPage(Sender, EventData) {
+		var page_index=value EventData;
+		
+		if ((page_index<0) || (page_index >= length Notebook.Pages))
+			return 0;
+
+		BeginUpdateSession();
+
+		var ctl=Notebook.Pages[page_index].Page;
+
+		if (page_index!=0)
+			chat.ChangeStatus("Working at "+Notebook.Pages[page_index].Caption);
+		else
+			chat.ChangeStatus("Available for chat");
+		EndUpdateSession();
+	}
+
+	public function MenuWatch(Sender, EventData) {
+		if (CApplication::Input(var text="", false, "Watch variable")==RESPONSE_OK) {
+			if (text!="") {
+				this.AddWatch(text);
+				Infobook.PageIndex=2;
+			}
+		}
+
+	}
+
+	public function MenuRemoveWatch(Sender, EventData) {
+		var index=Watch.RowIndex;
+		if (index!="-1")
+			Watch.DeleteItem(index);
+	}
+
+	public function MenuChangeValue(Sender, EventData) {
+		var index=Watch.RowIndex;
+		if ((index!="-1") && (InDebugTrap>0)) {
+			var row=Watch.Items.GetPath(index);
+			if (CApplication::Input(var text="", false, "New value for <b>${row[0]}</b>")==RESPONSE_OK)
+				this.AddWatchValue(row[0], text);
+		} else {
+			CApplication::Message("You cannot change a variable value \nduring execution.You can change it \nonly when the debugger is trapped.", "Warning", MESSAGE_WARNING);
+		}
+	}
+
+	private function DoMember(index, elem, pageindex) {
+		var arr=StrSplit(""+elem,";",1);
+		var acc=value (""+arr[0]);
+		var fun_type=value (""+arr[1]);
+		var item="";
+		var line_number=value (""+arr[5]);
+		var type="event";
+
+		// if not event
+		if (fun_type!=3)
+			type=arr[2];
+
+		/*if (acc==0)
+			item+="+";// public
+		else
+		if (acc==1)
+			item+="-";// private
+		else
+		if (acc==2)
+			item+="!";// protected*/
+		item+=arr[3];
+
+		// if function
+		if (fun_type==1)
+			item+="("+arr[4]+")";
+		//echo "$item\n";
+		Propbook.ClassExplorer.AddChild(index,[MemberImage, line_number, item, type, pageindex]);
+	}
+
+	private function DoClass(index,cls_elem,pageindex) {
+		var arr=StrSplit(""+cls_elem,":");
+		if (arr) {
+			Propbook.ClassExplorer.InsertItem(index,[ClassImage, " ", arr[0], " "," ",pageindex]);
+
+			if (arr[1]) {
+				var arr2=StrSplit(""+arr[1],"%");
+				var cnt=length arr2;
+
+				var[] res;
+				for (var i=0;i<cnt;i++) {
+					var e=arr2[i];
+					if (e) {
+						var e_arr = StrSplit(e, ";")[3];
+						if (e_arr) {
+							var mname = ToLower(e_arr)+e;
+							res[mname]=e;
+						}
+					}
+				}
+
+				arr2=KeySorted(res);
+				cnt=length arr2;
+				for (i=0;i<cnt;i++)
+					DoMember(index,arr2[i],pageindex);
+			}
+		}
+	}
+
+	public function DeleteByClass(string cls) {
+		var items=Propbook.ClassExplorer.Items;
+		var len=items.Count;
+		for (var i=0;i<len;i++) {
+			var item=items[i];
+			if (cls==item[2]) {
+				Propbook.ClassExplorer.DeleteItem("$i");
+				return i;
+			}
+		}
+		return -1;
+	}
+
+	public function OnClassListChanged(Sender, class_list) {
+		//Propbook.ClassExplorer.Clear();
+		if (class_list==LastList)
+			return;
+		LastList = class_list;
+
+		var arr=StrSplit(class_list,"|");
+		var cnt=length arr;
+		var pageindex=Notebook.PageIndex;
+		var[] res;
+		for (var i=0;i<cnt;i++) {
+			var e=arr[i];
+			res[e]=e;
+		}
+
+		arr = KeySorted(res);
+		cnt = length arr;
+
+		for (i=0;i<cnt;i++) {
+			var cls=arr[i];
+			var cls_name=StrSplit(cls, ":")[0];
+			res[cls_name]=cls;
+			if (cls_name)
+				DeleteByClass(cls_name);
+			res[cls_name];
+			DoClass(i,cls,pageindex);
+		}
+		//Propbook.ClassExplorer.ExpandAll();
+	}
+
+	public function ProgressTimer(Sender, EventData) {
+			RunProgress.Pulse();
+			if (RunProgress.Visible)
+				AddTimer(ProgressTimer,1000);
+	}
+
+	public function EditorSaveCallback(Sender) {
+		var response=CApplication::Message("File named '${Notebook.Pages[Sender.PageID].Caption}' is not saved.\nDo you want to save it ?\n", "Save file", MESSAGE_QUESTION, BUTTONS_YES_NO_CANCEL);
+		this.ConfirmSave(/*Notebook.UserData*/Notebook.Pages[Sender.PageID].Page, response);
+	}
+
+	public function OpenHTML(filename, path) {
+		var cur_page=length Notebook.Pages;
+		var nf=new HTMLPanel(Notebook);
+		nf.Editor.Text=ReadFile(path+filename);
+		nf.Editor.SciMessage(SCI_EMPTYUNDOBUFFER,0,0);
+		nf.SetSavePoint();
+		nf.SavePath=path+filename;
+		Notebook.Pages[cur_page].Caption=filename;
+		Notebook.Pages[cur_page].Header = this.CreateHeader(filename, nf.CloseSourceClicked);
+		nf.Show();
+	}
+
+	public function editor_destroy(Sender, EventData) {
+	}
+
+	public function CreateHeader(caption, deleg) {
+		var header=new RHBox(null);
+		header.LinkIfNotLinked(Notebook);
+
+		var label = new RLabel(header);
+		label.Caption = caption;
+		label.Show();
+
+		var closebutton = new REventBox(header);
+		closebutton.OnButtonRelease = deleg;
+		closebutton.Show();
+		header.Show();
+		return header;
+	}
+
+	public function OpenFile(filename, path) {
+		var cur_page=length Notebook.Pages;
+		var cur_page_master=MasterBook.PageIndex;
+
+		CApplication::BeginNonCritical();
+		if (cur_page_master) {
+			ignore_switch=true;
+			MasterBook.PageIndex=0;
+		}
+
+		MasterBook.PageIndex=0;
+		var children = Notebook.Childs;
+		var full_path = path + filename;
+		var nf;
+		for (var i = 0; i < length children; i++) {
+			var child = children[i];
+			if (child)
+				child = child.Page;
+			if ((classof child == "EditorWindow") && (child.SavePath==full_path) && (child.Visible)) {
+				nf = child;
+				cur_page = i;
+			}
+		}
+		if (!nf) {
+			nf=new EditorWindow(Notebook,EditorSaveCallback,cur_page);
+			Notebook.Pages[cur_page].Caption=filename;
+			Notebook.Pages[cur_page].Header = CreateHeader(filename, nf.CloseSourceClicked);
+			if (!FirstEditor) {
+				FirstEditor=nf;
+				nf.is_first=true;
+			}
+
+			nf.callback=editor_destroy;
+			nf.SetAutoHint(2, FunctionHints);
+			nf.Editor.__ConceptInteraction_ClassList=OnClassListChanged;
+			nf.Editor.Text=ReadFile(full_path);
+			nf.Editor.SciMessage(SCI_EMPTYUNDOBUFFER,0,0);
+			nf.SetSavePoint();
+			nf.SavePath=full_path;
+			nf.extra_path=path;
+			nf.Show();
+		}
+		Notebook.PageIndex=cur_page;
+		this.GrabFocus();
+
+		nf.GrabFocus();
+
+		CApplication::EndNonCritical();
+		return nf;
+		//EndUpdateSession();
+	}
+
+	public function NewFile(content) {
+		var cur_page=length Notebook.Pages;
+		var cur_page_master=MasterBook.PageIndex;
+
+		CApplication::BeginNonCritical();
+		if (cur_page_master) {
+			ignore_switch=true;
+			MasterBook.PageIndex=0;
+		}
+
+		var nf=new EditorWindow(Notebook,EditorSaveCallback,cur_page);
+		if (!FirstEditor) {
+			FirstEditor=nf;
+			nf.is_first=true;
+		}
+
+		nf.callback=editor_destroy;
+		nf.SetAutoHint(2, FunctionHints);
+		nf.Editor.__ConceptInteraction_ClassList=OnClassListChanged;
+		nf.Editor.Text=content;
+		nf.Editor.SciMessage(SCI_EMPTYUNDOBUFFER,0,0);
+		NEWCOUNT++;
+		Notebook.Pages[cur_page].Caption = "newfile"+NEWCOUNT;
+		Notebook.Pages[cur_page].Header = CreateHeader("newfile"+NEWCOUNT, nf.CloseSourceClicked);
+		nf.Show();
+		Notebook.PageIndex=cur_page;
+		this.GrabFocus();
+
+		nf.GrabFocus();
+		CApplication::EndNonCritical();
+	}
+
+	/*public function OpenSQL() {
+
+		CApplication::BeginNonCritical();
+		MasterBook.PageIndex=0;
+
+		var cur_page=length Notebook.Pages;
+		CApplication::BeginNonCritical();
+		var sql=new SQLPanel(Notebook,strings, cur_page);
+		SQLCOUNT++;
+		//Notebook.Pages[cur_page].Caption="SQL Query "+SQLCOUNT;
+		Notebook.Pages[cur_page].Header = CreateHeader("SQL Query "+SQLCOUNT, sql.CloseSourceClicked);
+		sql.Show();
+		Notebook.PageIndex=cur_page;
+		this.GrabFocus();
+		sql.GrabFocus();
+		CApplication::EndNonCritical();
+	}*/
+
+	public function OnOpenDialogFileSelected(Sender, filename) {
+		OpenFile(filename, Sender.Path);
+	}
+
+	public function OnSaveDialogFileSelected(Sender, filename) {
+		if (Ext(filename)=="")
+			filename+=".con";
+
+		var ctl=Notebook.Pages[SaveDialog.UserData].Page;
+		var path=SaveDialog.Path+filename;
+
+		if ((classof ctl=="EditorWindow") || (classof ctl=="HTMLPanel")) {
+			if (SaveFile(ctl, path, true)) {
+				Notebook.Pages[SaveDialog.UserData].Caption=filename;
+
+				if (HideAfterSave) {
+					ctl.Hide();
+				}
+			} else {
+				CApplication::Message("Cannot save file '$filename'", "Error", MESSAGE_ERROR);
+				QuitPending=0;
+			}
+			HideAfterSave=0;
+		}
+
+		if (ActiveProject) {
+			if (classof ctl=="EditorWindow") {
+				if (CApplication::MessageYesNo("Do you want to add '$filename' to the current project ?","Add to project")==RESPONSE_YES) {
+					this.OnResOpenDialogFileSelected(SaveDialog.Path, filename);
+				}
+			}
+		}
+	}
+
+	public function MenuClose(Sender, EventData) {
+		var pindex=Notebook.PageIndex;
+		if (pindex>=0) {
+			var ctl=Notebook.Pages[pindex].Page;
+
+			if (ctl) {
+				ctl.Hide();
+			}
+		}
+	}
+
+	public function MenuOpen(Sender, EventData) {
+		OpenDialog.Show();
+		OpenDialog.ListDirectory();
+	}
+
+	public function SaveAs(pindex) {
+		SaveDialog.Show();
+		SaveDialog.ListDirectory();
+		SaveDialog.UserData=pindex;
+		SaveDialog.Filename=Notebook.Pages[pindex].Caption;
+	}
+
+	public function MenuSaveAs(Sender, EventData) {
+		var pindex=Notebook.PageIndex;
+		if (pindex>=0) {
+			var ctl=Notebook.Pages[pindex].Page;
+			if (classof ctl=="EditorWindow") {
+				SaveAs(pindex);
+			}
+		}
+	}
+
+	public function Save(pindex) {
+
+		var ctl=Notebook.Pages[pindex].Page;
+		if ((classof ctl=="EditorWindow") || (classof ctl=="HTMLPanel"))  {
+			if (ctl.SavePath=="") {
+				SaveAs(pindex);
+			} else {
+				if (!SaveFile(ctl, ctl.SavePath, false)) {
+					QuitPending=0;
+				} else {
+					if (HideAfterSave)
+						ctl.Hide();
+				}
+			}
+			HideAfterSave=0;
+		}
+	}
+
+	public function MenuSave(Sender, EventData) {
+		var pindex=Notebook.PageIndex;
+		if (pindex>=0) {
+			Save(pindex);
+		}
+	}
+
+	public function MenuSaveAll(Sender, EventData) {
+		var len=length Notebook.Pages;
+
+		GladeIsSaveAll=1;
+		for (var i=0;i<len;i++) {
+			if (Notebook.Pages[i].Page.Visible)
+				Save(i);
+		}
+		GladeIsSaveAll=0;
+	}
+
+	public function CloseIDE() {
+		var len=length Notebook.Pages;
+		QuitPending=true;
+		index_to_save=&new [];
+		index_index=0;
+
+		var msg="There are unsaved files:\n";
+		var text="";
+		for (var i=0;i<len;i++) {
+			var ctl=&Notebook.Pages[i].Page;
+			if (classof ctl=="EditorWindow") {
+				if (ctl.IsModified()) {
+					index_to_save[length index_to_save]=ctl;
+					if (text)
+						text+=", ";
+					text+=""+Notebook.Pages[i].Caption;
+					if (length index_to_save%3==0)
+						text+="\n";
+				}
+
+			}
+		}
+		msg+=text;
+		msg+="\nSave ?";
+
+		if (!index_to_save)
+			return 1;
+
+		if (length index_to_save>1)
+			var response=CApplication::Message(msg, "Save files", MESSAGE_QUESTION, BUTTONS_YES_NO_CANCEL);
+		else
+			response=CApplication::Message("File named '${Notebook.Pages[index_to_save[0].PageID].Caption}' is not saved.\nDo you want to save it ?\n", "Save file", MESSAGE_QUESTION, BUTTONS_YES_NO_CANCEL);
+
+		this.ConfirmSave(Notebook.UserData, response);
+		if (response==RESPONSE_CANCEL) {
+			QuitPending=false;
+			return 0;
+		}
+
+		return 1;
+	}
+
+	public function MenuExit(Sender,extra) {
+		if (CloseIDE())
+			Hide();
+	}
+
+	public function MenuEdit(Sender,extra) {
+		Notebook.PageIndex=0;
+	}
+
+
+	public function MenuFullScreen(Sender,extra) {
+		FullScreen=!FullScreen;
+	}
+
+	public function MenuToggleBar(Sender,extra) {
+		Propbook.Visible=!Propbook.Visible;		
+	}
+
+	public function MenuToggleInfobook(Sender,extra) {
+		Infobook.Visible=!Infobook.Visible;
+	}
+
+	public function CreateChatPanel() {
+		var len=length Notebook.Pages;
+
+		chat=new TeamChatPanel(Notebook);
+
+		//Notebook.Pages[len].Caption="Team chat";
+		Notebook.Pages[len].Header=CreateHeader("Team chat", chat.CloseClicked);
+	}
+
+	public function MenuChat(Sender, EventData) {
+		MasterBook.PageIndex=0;
+		var vis=chat.Visible;
+		vis=!vis;
+		chat.Visible=vis;
+		if (vis) {
+			Notebook.PageIndex=0;
+		}
+	}
+
+	/*public function MenuSQL(Sender,extra) {
+		OpenSQL();
+	}*/
+
+	public function CopyProjArray(src, dest, entry_point="",public_name="") {
+		var len=length src;
+		for (var i=0;i<len;i++) {
+			var elem=src[i];
+			if (elem==entry_point)
+				elem=public_name;
+			dest[elem]=elem;
+		}
+	}
+
+	public function WriteFiles(path, names, content, entry_point, project_name) {
+		var len=length names;
+
+		for (var i=0;i<len;i++) {
+			var name=names[i];
+			var _content;
+			if (name==project_name)
+				_content=content[entry_point];
+			else
+				_content=content[name];
+
+			_unlink(path+name+".backedup");
+			rename(path+name,path+name+".backedup");
+			WriteFile(_content,path+name);
+		}
+	}
+
+	public function Sort(arr) {
+		var[] result;
+		var len=length arr;
+		for (var i=0;i<len;i++) {
+			var e=arr[i];
+			if (e) {
+				result[e+"#"+i]=e;
+			}
+		}
+		return KeySorted(result);
+	}
+
+	public function RenderProject(Prj) {
+		var projexplorer=Propbook.ProjectExplorer;
+		projexplorer.Clear();
+		
+		if (!Prj)
+			return 0;
+
+		projexplorer.AddItem([Images["category"], "Designable sources"]);
+		var arr=this.Sort(Prj.designablesources);
+		var len=length arr;
+		for (var i=0;i<len;i++) {
+			var src=arr[i];
+			projexplorer.AddChild([0],[Images["designablesource"], src, true]);
+		}
+
+		projexplorer.AddItem([Images["category"], "Sources", false]);
+		arr=this.Sort(Prj.sources);
+		len=length arr;
+		for (i=0;i<len;i++) {
+			src=arr[i];
+			projexplorer.AddChild([1],[Images["source"], src, false]);
+		}
+
+		projexplorer.AddItem([Images["category"], "Resources"]);
+		arr=this.Sort(Prj.resources);
+		len=length arr;
+		for (i=0;i<len;i++) {
+			src=arr[i];
+			projexplorer.AddChild([2],[Images["resource"], src]);
+		}
+
+		projexplorer.AddItem([Images["category"], "Templates"]);
+		arr=this.Sort(Prj.templates);
+		len=length arr;
+		for (i=0;i<len;i++) {
+			src=arr[i];
+			projexplorer.AddChild([3],[Images["resource"], src]);
+		}
+
+		projexplorer.ExpandAll();
+	}
+
+	public function LoadProject(project_name,path) {
+		this.Enabled=false;
+		this.Caption = project_name + " - " + IDE_CAPTION;
+		this.StatusLabel.Caption="Loading project <b>$project_name</b>...\n";
+		try {
+			var project=Serializable::UnSerialize(path+project_name);
+			if (project) {
+				prec_glade="";
+				ActiveProject=project;
+				OpenFile(ActiveProject.representative,path);
+				RenderProject(ActiveProject);
+				ActiveProjectPath=path;
+				ExecuteButton.Enabled=true;
+				menu_bar.Childs[3].Child.Childs[6].Enabled=true;
+				menu_bar.Childs[3].Child.Childs[1].Enabled=true;
+				menu_bar.Childs[3].Child.Childs[0].Enabled=true;
+
+				if (project.target=="gui") {
+					var arr=DirectoryList::ListByExt(path+"/"+RES_DIR, ["jpg","jpeg","png","gif","bmp","xpm"], true);
+					var len=length arr;
+					for (var i=0;i<len;i++)
+						CApplication::SendCookie(path+"/"+RES_DIR+"/"+arr[i]);
+
+					if ((!FileExists(path+"/"+UI_FILE)) && (FileExists(path+"/"+GLADE_FILE)))
+						this.OpenGlade(GLADE_FILE, path);
+					else
+						this.OpenGlade(UI_FILE, path);
+				}
+				ClearBreakpoints();
+				this.StatusLabel.Caption="<b>$project_name</b> loaded\n";
+			} else {
+				CApplication::MessageBox("Error loading '$project_name'","Error loading project");
+				this.StatusLabel.Caption="Error loading <b>$project_name</b>\n";
+			}
+		} catch (var Exception) {
+			CApplication::MessageBox("Error loading '$project_name': $Exception","Error loading project");
+			this.StatusLabel.Caption="Error loading <b>$project_name</b>\n";
+		}
+		this.Enabled=true;
+	}
+
+	public function NewProjectCallBack(template, project_name) {
+		var Template=template;
+		var dir=PROJECTS_CONTAINER+"/"+project_name;
+		if (_mkdir(dir)!=0) {
+			CApplication::MessageBox("Error creating '$project_name'\n\nPossible problems:\n\t- a project with that name already exists\n\t- Not enough rights\n\t- Device is readonly\n\t- Not enough free space","Error creating project ($dir)");
+			return false;
+		}
+		dir=PROJECTS_CONTAINER+"/"+project_name+"/"+RES_DIR;
+		if (_mkdir(dir)!=0) {
+			CApplication::MessageBox("Error creating resource directory for '$project_name'\n\nPossible problems:\n\t- a project with that name already exists\n\t- Not enough rights\n\t- Device is readonly\n\t- Not enough free space","Error creating project  ($dir)");
+			return false;
+		}
+
+		var path=PROJECTS_CONTAINER+"/"+project_name+"/";
+
+		if (Template.target=="gui") {
+			var glade_file=PROJECTS_CONTAINER+"/"+project_name+"/"+UI_FILE;
+			WriteFile(DEFAULT_GLADE,glade_file);
+			Glade.Show();
+		} else { 
+			Glade.Text="";
+			Glade.UserData="";
+			Glade.Hide();
+		}
+
+
+		ActiveProject=new Project();
+		ActiveProject.target=Template.target;
+		ActiveProject.description="From template: "+Template.description;
+		ActiveProject.name=project_name;
+		ActiveProject.entrypoint=Template.entrypoint;
+		project_name+="."+Ext(Template.entrypoint);
+
+		CopyProjArray(Template.sources, ActiveProject.sources, ActiveProject.entrypoint, project_name);
+		CopyProjArray(Template.designablesources, ActiveProject.designablesources, ActiveProject.entrypoint, project_name);
+		CopyProjArray(Template.resources, ActiveProject.resources, ActiveProject.entrypoint, project_name);
+		CopyProjArray(Template.templates, ActiveProject.templates, ActiveProject.entrypoint, project_name);
+
+		WriteFiles(path, ActiveProject.sources, Template.content, Template.entrypoint,project_name);
+		WriteFiles(path, ActiveProject.designablesources, Template.content, Template.entrypoint,project_name);
+		WriteFiles(path, ActiveProject.resources, Template.content, Template.entrypoint,project_name);
+		WriteFiles(path, ActiveProject.templates, Template.template_content, Template.entrypoint,project_name);
+
+		
+		ActiveProject.entrypoint=project_name;
+
+		ActiveProject.representative=Template.representative;
+
+		if (Template.representative==Template.entrypoint)
+			ActiveProject.representative=project_name;
+
+		//ActiveProject.Serialize(path+"info.xml");
+		ActiveProject.Serialize(path+ActiveProject.name+".pxml");
+
+		OpenFile(ActiveProject.representative,path);
+
+		var len=length ActiveProject.templates;
+        
+		for (var i=0;i<len;i++)
+			OpenHTML(ActiveProject.templates[i], path);
+
+		RenderProject(ActiveProject);
+		ActiveProjectPath=path;
+		ExecuteButton.Enabled=true;
+		menu_bar.Childs[3].Child.Childs[6].Enabled=true;
+		menu_bar.Childs[3].Child.Childs[1].Enabled=true;
+		menu_bar.Childs[3].Child.Childs[0].Enabled=true;
+
+		if (ActiveProject.target=="gui") {
+			if ((!FileExists(path+"/"+UI_FILE)) && (FileExists(path+"/"+GLADE_FILE)))
+				this.OpenGlade(GLADE_FILE, path);
+			else
+				this.OpenGlade(UI_FILE, path);
+		} else
+		if ((ActiveProject.target=="web"))
+			WriteFile(ActiveProject.name, PROJECTS_CONTAINER+"/"+ActiveProject.name+"/"+"generic.appkey");
+		
+		prec_glade="";
+		return true;
+	}
+
+	public function MenuNewProject(Sender, EventData) {
+		NewPrj.Show();
+	}
+
+	public function MenuNewApp(Sender,extra) {
+		var index=NEWCOUNT+1;
+		NewFile(APP_TEMPLATE);
+	}
+
+	public function MenuNewForm(Sender,extra) {
+		var index=NEWCOUNT+1;
+		NewFile(FORM_TEMPLATE);
+	}
+
+	public function MenuNewWeb(Sender,extra) {
+		var index=NEWCOUNT+1;
+		NewFile(WEB_TEMPLATE);
+	}
+
+	public function MenuNew(Sender,extra) {
+		NewFile("");
+	}
+
+
+	private function AddMenuToolItem(hint,icon,toolbar,deleg, menu_arr) {
+		var toolbutton=new RMenuToolButton(toolbar);
+
+		if (typeof icon=="numeric")
+			toolbutton.LoadStockIcon2(icon,ICON_SIZE_MENU);
+		else
+			toolbutton.LoadIcon(icon);
+
+		//toolbutton.MinWidth=57;
+		//toolbutton.MinHeight=28;
+		toolbutton.Tooltip=hint;
+		toolbutton.OnClicked=deleg;
+
+		var popup=new RMenu(null);
+		popup.LinkIfNotLinked(this);
+		popup.Accelerate(menu_arr);
+		popup.Show();
+
+		toolbutton.Menu=popup;
+		toolbutton.Show();
+		return toolbutton;
+	}
+
+	private function AddToolItem(hint,icon,toolbar,deleg) {
+		var toolbutton=new RToolButton(toolbar);
+
+		if (typeof icon=="numeric")
+			toolbutton.LoadStockIcon2(icon,ICON_SIZE_MENU);
+		else
+			toolbutton.LoadIcon(icon);
+		//toolbutton.MinWidth=28;
+		//toolbutton.MinHeight=28;
+		toolbutton.Tooltip=hint;
+		toolbutton.OnClicked=deleg;
+		toolbutton.Show();
+		return toolbutton;
+	}
+
+	public function FindWindow(filename) {
+		var len=length Notebook.Pages;
+
+		for (var i=0;i<len;i++) {
+			if (Notebook.Pages[i].Page.Visible) {
+				var ctl=&Notebook.Pages[i].Page;
+				if (classof ctl=="EditorWindow") {
+					if (Notebook.Pages[i].Caption==filename) {
+						Notebook.PageIndex=i;
+						return Notebook.Pages[i].Page;
+					}
+				}
+			}
+		}
+	}
+
+
+	public function MenuStepInto(Sender, EventData) {
+		if (InDebugTrap>0)
+			SendAPMessage(InDebugTrap,-0x100,"stepinto");
+		if (LastDebugCtl) {
+			LastDebugCtl.DebugLeave(LastDebugLine);
+			delete LastDebugCtl;
+		}
+		InDebugTrap=0;
+	}
+
+	public function MenuStepOver(Sender, EventData) {
+		if (InDebugTrap>0)
+			SendAPMessage(InDebugTrap,-0x100,"stepover");
+		if (LastDebugCtl) {
+			LastDebugCtl.DebugLeave(LastDebugLine);
+			delete LastDebugCtl;
+		}
+		InDebugTrap=0;
+	}
+
+	public function MenuRun(Sender, EventData) {
+		if (!ActiveProject) {
+			CApplication::MessageBox("No project opened");
+			return 0;
+		}
+		if (InDebugTrap>0)
+			SendAPMessage(InDebugTrap,-0x100,"run");
+
+		if (LastDebugCtl) {
+			LastDebugCtl.DebugLeave(LastDebugLine);
+			delete LastDebugCtl;
+		}
+
+		if ((ActiveProject) && (ActiveProject.target=="web")) {
+			var appkey=ReadFile(PROJECTS_CONTAINER+"/"+ActiveProject.name+"/"+"generic.appkey");
+			if (appkey)
+				CApplication::RemoveWebChild(appkey);
+		}
+
+		InDebugTrap=0;
+	}
+
+	public function MenuBreak(Sender, EventData) {
+		if (!ActiveProject) {
+			CApplication::MessageBox("No project opened");
+			return 0;
+		}
+		if (InDebugTrap>0)
+			SendAPMessage(InDebugTrap,-0x100,"break");
+		if (LastDebugCtl) {
+			LastDebugCtl.DebugLeave(LastDebugLine);
+			delete LastDebugCtl;
+		}
+		InDebugTrap=0;
+	}
+
+	public function MenuDebug(Sender, EventData) {
+		if (!ActiveProject) {
+			CApplication::MessageBox("No project opened");
+			return 0;
+		}
+		/*var pindex=Notebook.PageIndex;
+		if (pindex>=0) {
+			var ctl=Notebook.Pages[pindex].Page;
+			if (classof ctl=="EditorWindow") {
+				var filename=ctl.SavePath;
+				Err.Clear();
+				Info.Text="";
+				ExecuteButton.Enabled=false;
+				menu_bar.Childs[3].Child.Childs[6].Enabled=false;
+				menu_bar.Childs[3].Child.Childs[1].Enabled=false;
+				menu_bar.Childs[3].Child.Childs[0].Enabled=false;
+
+
+
+				RunProgress.Show();
+				ProgressTimer(0,0);
+				CApplication::ClientDebugShell(filename,GetAPID());
+				DebugInit=0;
+			}
+		}*/
+		var path=PROJECTS_CONTAINER+"/"+ActiveProject.name+"/"+ActiveProject.entrypoint;
+		if (FileExists(path+".accel")) {
+                	if (CApplication.Message("<b>Project named \"${ActiveProject.name}\" has a compiled version.\nDo you want to remove it ?</b>\n\n<i>If not removed, debugging will be impossbile.</i>","Question",MESSAGE_QUESTION,BUTTONS_YES_NO)==RESPONSE_YES) {
+				_unlink(path+".accel");
+			}
+		}
+
+		Err.Clear();
+		Info.Text="";
+		ExecuteButton.Enabled=false;
+		menu_bar.Childs[3].Child.Childs[6].Enabled=false;
+		menu_bar.Childs[3].Child.Childs[1].Enabled=false;		
+		menu_bar.Childs[3].Child.Childs[0].Enabled=false;
+
+
+		RunProgress.Show();
+		ProgressTimer(0,0);
+
+		if (ActiveProject.target=="web") {
+			if ((ActiveProject) && (ActiveProject.target=="web")) {
+				var appkey=ReadFile(PROJECTS_CONTAINER+"/"+ActiveProject.name+"/"+"generic.appkey");
+				if (appkey)
+					CApplication::RemoveWebChild(appkey);
+			}
+
+			if (appkey)
+				CApplication::RegisterDebugWebChild(appkey);
+			else
+				CApplication::MessageBox("The web project you're running has no appkey.\nPlease create a generic.appkey in your folder containing\na unique string. Eg: mywebap \n\nApplication will be run without the debugger.");
+
+			path=WEB_BROWSER+" \"http://"+Host+":"+Port+"/"+ActiveProject.name+"/"+ActiveProject.entrypoint+"\"";
+			CApplication::RemoteCommand(path);
+			//CApplication::ClientShell("WKB/WebKitTest.con?http://"+Host+":"+Port+"/"+ActiveProject.name+"/"+ActiveProject.entrypoint,GetAPID());
+		} else
+			CApplication::ClientDebugShell(path,GetAPID());
+		DebugInit=0;
+	}
+
+	public function ExecuteClick(Sender, EventData, profile=false) {
+		/*var pindex=Notebook.PageIndex;
+		if (pindex>=0) {
+			var ctl=Notebook.Pages[pindex].Page;
+			if (classof ctl=="EditorWindow") {
+				var filename=ctl.SavePath;
+				Err.Clear();
+				Info.Text="";
+				ExecuteButton.Enabled=false;
+				menu_bar.Childs[3].Child.Childs[6].Enabled=false;
+				menu_bar.Childs[3].Child.Childs[1].Enabled=false;
+				menu_bar.Childs[3].Child.Childs[0].Enabled=false;
+
+
+				RunProgress.Show();
+				ProgressTimer(0,0);
+				CApplication::ClientShell(filename,GetAPID());
+			}
+		}*/
+		if (!ActiveProject) {
+			CApplication::MessageBox("No project opened");
+			return 0;
+		}
+		var path=PROJECTS_CONTAINER+"/"+ActiveProject.name+"/"+ActiveProject.entrypoint;
+		if (FileExists(path+".accel")) {
+                	if (CApplication.Message("<b>Project named \"${ActiveProject.name}\" has a compiled version.\nDo you want to remove it and recompile the application ?</b>\n\n<i>If the application was modified, is recommended to remove the previous compiled version.</i>","Question",MESSAGE_QUESTION,BUTTONS_YES_NO)==RESPONSE_YES) {
+				_unlink(path+".accel");
+			} else
+				profile=false;
+		}
+		ExecuteButton.Enabled=false;
+		MenuSaveAll(null,null);
+
+		Err.Clear();
+		Info.Text="";
+		menu_bar.Childs[3].Child.Childs[6].Enabled=false;
+		menu_bar.Childs[3].Child.Childs[1].Enabled=false;
+		menu_bar.Childs[3].Child.Childs[0].Enabled=false;
+
+
+		RunProgress.Show();
+		ProgressTimer(0,0);
+
+		if (profile) {
+			if (ActiveProject.target=="gui") {
+				var prec_entry=PROJECTS_CONTAINER+"/"+ActiveProject.name+"/"+ActiveProject.entrypoint;
+				var prec_entry_data=ReadFile(prec_entry);
+				prec_entry_data=StrReplace(prec_entry_data, "include Application.con", "include ProfilerForm.con\ninclude Application.con");
+				prec_entry_data=StrReplace(prec_entry_data, "var Application=", "var __profilerhandler=new Profiler();var Application=");
+				prec_entry_data=StrReplace(prec_entry_data, "Application.Init()", "var __profiler_form=new ProfilerForm(Application.ApplicationForm, __profilerhandler);__profiler_form.Show();Application.Init()");
+				path+=".profile.con";
+				WriteFile(prec_entry_data, path);
+			} else {
+                        	CApplication::MessageBox("Profiler may be used only for concept:// applications (gui). For web applications see the <b>Profiler</b> class documentation. The application will now run without the profiler.");
+			}
+		}
+		
+		if (ActiveProject.target=="web") {
+		    path=WEB_BROWSER+" \"http://"+Host+":"+Port+"/"+ActiveProject.name+"/"+ActiveProject.entrypoint+"\"";
+		    //echo path;
+		    CApplication::RemoteCommand(path);
+                    //CApplication::ClientShell("WKB/WebKitTest.con?http://"+Host+":"+Port+"/"+ActiveProject.name+"/"+ActiveProject.entrypoint,GetAPID());
+		    ExecuteButton.Enabled=true;
+		    RunProgress.Hide();
+		    ProgressTimer(0,0);
+                    menu_bar.Childs[3].Child.Childs[6].Enabled=true;
+                    menu_bar.Childs[3].Child.Childs[1].Enabled=true;
+                    menu_bar.Childs[3].Child.Childs[0].Enabled=true;
+		} else
+		    CApplication::ClientShell(path,GetAPID());
+	}
+
+	public function ProfileClick(Sender, EventData) {
+                return this.ExecuteClick(Sender, EventData, true);
+	}
+
+	public function MenuBuild(Sender, EventData) {
+		if (!ActiveProject) {
+			CApplication::MessageBox("No project opened");
+			return 0;
+		}
+		MenuSaveAll(null,null);
+
+		var path=PROJECTS_CONTAINER+"/"+ActiveProject.name+"/"+ActiveProject.entrypoint+".accel";
+		if (FileExists(path))
+			_unlink(path);
+
+		Err.Clear();
+		Info.Text="Please wait while building project ...";
+		StatusLabel.Caption="Please wait while building project ...";
+
+		var dir=PROJECTS_CONTAINER+"/"+ActiveProject.name;
+		var dir_back="../..";
+		_chdir(dir);
+		this.Enabled=false;
+		CheckPoint(0);
+		WaitWindow.Show();
+		var res=system("accel \"${ActiveProject.entrypoint}\"");
+		_chdir(dir_back);
+		WaitWindow.Hide();
+		this.Enabled=true;
+		if (res) {
+			CApplication.Message("<b>Project named \"${ActiveProject.name}\" cannot be compiled due to errors.</b>\n\n<i>Please run the project from the menu: Project -> Run project or by pressing Ctrl-F5</i>","Error",MESSAGE_ERROR,BUTTONS_OK);
+			Info.Text="Error compiling project";
+			StatusLabel.Caption="Error compiling project";
+		} else {
+			StatusLabel.Caption="Project ${ActiveProject.name} successfully built";
+			Info.Text="Project ${ActiveProject.name} successfully built";
+		}
+	}
+
+	public function MenuUndo(Sender, EventData) {
+		if (!glade_view) {
+			var pindex=Notebook.PageIndex;
+			if (pindex>=0) {
+				var ctl=Notebook.Pages[pindex].Page;
+				if (HasMember(ctl,"Editor"))
+					ctl.Editor.SciMessage(SCI_UNDO,0,0);
+			}
+		}
+	}
+
+	public function MenuRedo(Sender, EventData) {
+		if (!glade_view) {
+			var pindex=Notebook.PageIndex;
+			if (pindex>=0) {
+				var ctl=Notebook.Pages[pindex].Page;
+				if (HasMember(ctl,"Editor"))
+					ctl.Editor.SciMessage(SCI_REDO,0,0);
+			}
+		}
+	}
+
+	public function MenuCut(Sender, EventData) {
+		if (glade_view) {
+			Glade.Cut();
+		} else {
+			var pindex=Notebook.PageIndex;
+			if (pindex>=0) {
+				var ctl=Notebook.Pages[pindex].Page;
+				if (HasMember(ctl,"Editor"))
+					ctl.Editor.SciMessage(SCI_CUT,0,0);
+			}
+		}
+	}
+
+	public function MenuCopy(Sender, EventData) {
+		if (glade_view) {
+			Glade.Copy();
+		} else {
+			var pindex=Notebook.PageIndex;
+			if (pindex>=0) {
+				var ctl=Notebook.Pages[pindex].Page;
+				if (HasMember(ctl,"Editor"))
+					ctl.Editor.SciMessage(SCI_COPY,0,0);
+			}
+		}
+	}
+
+	public function MenuPaste(Sender, EventData) {
+		if (glade_view) {
+			Glade.Paste();
+		} else {
+			var pindex=Notebook.PageIndex;
+			if (pindex>=0) {
+				var ctl=Notebook.Pages[pindex].Page;
+				if (HasMember(ctl,"Editor"))
+					ctl.Editor.SciMessage(SCI_PASTE,0,0);
+			}
+		}
+	}
+
+	public function MenuNext(Sender, EventData) {
+		var pages=length Notebook.Pages;
+		if (!pages)
+			return 0;
+
+		var pindex=Notebook.PageIndex;
+		if (pindex>=0) {
+			pindex++;
+			if (pindex >= pages)
+				pindex=0;
+
+			Notebook.PageIndex=pindex;
+		}
+	}
+
+	public function MenuPrev(Sender, EventData) {
+		var pages=length Notebook.Pages;
+		if (!pages)
+			return 0;
+
+		var pindex=Notebook.PageIndex;
+		if (pindex>=0) {
+			pindex--;
+			if (pindex < 0)
+				pindex=pages-1;
+			Notebook.PageIndex=pindex;
+		}
+	}
+
+	private function AddToolSeparator(toolbar) {
+		var toolsep=new RToolSeparator(toolbar);
+		toolsep.Show();
+	}
+
+	public function ErrSelectItem(Sender, EventData) {
+		var index=Sender.RowIndex;
+		if (index>-1) {
+			var arr=Sender.Items[index];
+			var line_number=(value arr[4]) - 1;
+			var filename=arr[3];
+
+			var len=length Notebook.Pages;
+			var found=false;
+
+			for (var i=0;i<len;i++) {
+				if (Notebook.Pages[i].Page.Visible) {
+					var ctl=&Notebook.Pages[i].Page;
+					if (classof ctl=="EditorWindow") {
+						if (Notebook.Pages[i].Caption==filename) {
+							Notebook.PageIndex=i;
+							Notebook.Pages[i].Page.ErrorOnLine(line_number);
+							Notebook.Pages[i].Page.Editor.GrabFocus();
+							found=true;
+							break;
+						}
+						
+					}
+				}
+			}
+			if ((!found) && (ActiveProject)) {
+				len=length ActiveProject.sources;
+				for (i=0;i<len;i++) {
+					if (filename==ActiveProject.sources[i]) {
+						found=true;
+						var nf=OpenFile(filename, ActiveProjectPath);
+						break;
+					}
+				}
+				if (!found) {
+					len=length ActiveProject.designablesources;
+					for (i=0;i<len;i++) {
+						if (filename==ActiveProject.designablesources[i]) {
+							found=true;
+						        nf=OpenFile(filename, ActiveProjectPath);
+							break;
+						}
+					}
+				}
+				if (nf) {
+					nf.ErrorOnLine(line_number);
+					nf.Editor.GrabFocus();
+				}
+			}
+		}
+	}
+
+
+	private function DoInfoBox(box) {
+		Infobook=new RNotebook(box);
+		Infobook.TabPos=POS_BOTTOM;
+		Infobook.MinHeight=50;
+		OutputScroll=new RScrolledWindow(Infobook);
+		OutputScroll.HScrollPolicy=POLICY_AUTOMATIC;
+		OutputScroll.VScrollPolicy=POLICY_AUTOMATIC;
+
+		Info=new RTextView(OutputScroll);
+		Info.ReadOnly=true;
+		Info.CursorVisible=false;
+		Info.Wrap=true;
+		Info.Tooltip="Application output";
+		Info.Show();
+		OutputScroll.Show();
+
+		var img = new RImage(null);
+		img.LoadResource("gtk-new");
+
+		Infobook.Pages[0].Header=img;//Caption="Output";
+
+		err_scroll=new RScrolledWindow(Infobook);
+		err_scroll.HScrollPolicy=POLICY_AUTOMATIC;
+		err_scroll.VScrollPolicy=POLICY_AUTOMATIC;
+		Err=new RTreeView(err_scroll);
+		Err.Model=MODEL_LISTVIEW;
+		Err.Tooltip="W stands for Warning, E for Error and\n RTE for Run-Time Error";
+		Err.AddColumn("ID",NORMAL_COLUMN);
+		Err.AddColumn("Text",NORMAL_COLUMN);
+		Err.AddColumn("Location",NORMAL_COLUMN);
+		Err.AddColumn("Filename",NORMAL_COLUMN);
+		Err.AddColumn("Line",NORMAL_COLUMN);
+		Err.Columns[0].AddAttribute("background"); 
+		Err.Columns[1].AddAttribute("font"); 
+		Err.HeadersVisible=false;
+		Err.OnRowActivated=ErrSelectItem;
+		Err.Tooltip="Warnings and errors";
+		Err.Show();
+		err_scroll.Show();
+
+		img = new RImage(null);
+		img.LoadResource("gtk-stop");
+
+		Infobook.Pages[1].Header=img;//Caption="Errors";
+
+		var popup_menu= [ 	"_Add variable",MenuWatch,ADD,
+					"_Remove variable",MenuRemoveWatch,DELETE,
+					"-",0,
+					"_Change variable value",MenuChangeValue,0
+				];
+
+		var popup=new RMenu(this);
+		popup.Accelerate(popup_menu);
+		popup.Show();
+
+		var watch_scroll=new RScrolledWindow(Infobook);
+		watch_scroll.HScrollPolicy=POLICY_AUTOMATIC;
+		watch_scroll.VScrollPolicy=POLICY_AUTOMATIC;
+
+		Watch=new RTreeView(watch_scroll);
+		Watch.Model=MODEL_LISTVIEW;
+		Watch.AddColumn("Variable",NORMAL_COLUMN);
+		Watch.AddColumn("Value",NORMAL_COLUMN);
+		Watch.PopupMenu=popup;
+		Watch.OnRowActivated=MenuChangeValue;
+		Watch.HeadersVisible=false;
+		Watch.Tooltip="Watched variables";
+		Watch.Show();
+		watch_scroll.Show();
+
+		img = new RImage(null);
+		img.LoadResource("gtk-find");
+		Infobook.Pages[2].Header = img;//Caption="Watch";
+
+		var breaks_scroll=new RScrolledWindow(Infobook);
+		breaks_scroll.HScrollPolicy=POLICY_AUTOMATIC;
+		breaks_scroll.VScrollPolicy=POLICY_AUTOMATIC;
+		Breaks=new RTreeView(breaks_scroll);
+		Breaks.Model=MODEL_LISTVIEW;
+		Breaks.AddColumn("Filename",NORMAL_COLUMN);
+		Breaks.AddColumn("Line",NORMAL_COLUMN);
+		//Breaks.OnRowActivated=BreakSelected;
+		Breaks.HeadersVisible=false;
+		Breaks.Tooltip="Breakpoints";
+		Breaks.Show();
+		breaks_scroll.Show();
+
+		img = new RImage(null);
+		img.LoadResource("gtk-jump-to");		
+		Infobook.Pages[3].Header = img;//Caption="Breakpoints";
+
+		var stack_scroll=new RScrolledWindow(Infobook);
+		stack_scroll.HScrollPolicy=POLICY_AUTOMATIC;
+		stack_scroll.VScrollPolicy=POLICY_AUTOMATIC;
+		CallStack=new RTreeView(stack_scroll);
+		CallStack.Show();
+		stack_scroll.Show();
+		CallStack.Model=MODEL_LISTVIEW;
+		CallStack.AddColumn("Member",NORMAL_COLUMN);
+		CallStack.AddColumn("Line number",NORMAL_COLUMN);
+		CallStack.HeadersVisible=false;
+		CallStack.Tooltip="Call stack";
+
+		img = new RImage(null);
+		img.LoadResource("gtk-dnd-multiple");
+		Infobook.Pages[4].Header = img;//Caption="Call Stack";
+
+		Infobook.ShowBorder=false;
+		Infobook.Scrollable=false;
+
+		var toolbar = new RToolbar(null);
+		toolbar.IconSize = 1;
+		toolbar.LinkIfNotLinked(this);
+
+		AddToolItem("Zoom in", ZOOM_IN, toolbar, this.ZoomInClicked);
+		AddToolItem("Zoom out", ZOOM_OUT, toolbar, this.ZoomOutClicked);
+		AddToolSeparator(toolbar);
+		AddToolItem("Go to line", GO_DOWN, toolbar, this.GoToClicked);
+		toolbar.Show();
+
+		Infobook.ActiveControlEnd = toolbar;
+
+		//toolbar.Height=24;
+
+		Infobook.Show();
+	}
+
+	public function ZoomInClicked(Sender, extra) {
+		var pindex=Notebook.PageIndex;
+		if (pindex>=0) {
+			var ctl=Notebook.Pages[pindex].Page;
+
+			if ((classof ctl=="EditorWindow") || (classof ctl=="HTMLPanel"))
+				ctl.ZoomInClicked(Sender, extra);
+		}		
+	}
+
+	public function ZoomOutClicked(Sender, extra) {
+		var pindex=Notebook.PageIndex;
+		if (pindex>=0) {
+			var ctl=Notebook.Pages[pindex].Page;
+
+			if ((classof ctl=="EditorWindow") || (classof ctl=="HTMLPanel"))
+				ctl.ZoomOutClicked(Sender, extra);
+		}				
+	}
+
+	public function GoToClicked(Sender, extra) {
+		var pindex=Notebook.PageIndex;
+		if (pindex>=0) {
+			var ctl=Notebook.Pages[pindex].Page;
+
+			if ((classof ctl=="EditorWindow") || (classof ctl=="HTMLPanel"))
+				ctl.GoToClicked(Sender, extra);
+		}
+	}
+
+	public function IDEOnDestroy(Sender, extra) {
+		if (CloseIDE()) {
+			ConfirmDelete();
+			Hide();
+		}
+	}
+
+	public function DummyEvent(Sender, extra) {
+		// nothing yet ...
+	}
+
+	private function ComputeElements(var szData, szPrefix) {
+		var arr=StrSplit(szData,"<:>",true);
+		var len=length arr;
+
+		for (var i=0;i<len;i+=7) {
+			var arr_item=&new [];
+			arr_item[0]=""+szPrefix+arr[i+4];
+			arr_item[1]=""+arr[i+5];
+			if (arr[i+6]!="")
+				arr_item[1]+="("+arr[i+6]+")";
+
+			arr_item[2]=""+arr[i+2];
+			if (arr[i+3]!="")
+				arr_item[2]+="."+arr[i+3];
+			arr_item[3]=""+arr[i];
+			arr_item[4]=""+arr[i+1];
+			var id=arr_item[0];
+			switch (id[0]) {
+				case "R":
+				case "E":
+					arr_item[5]="#FFA0A0";
+					arr_item[6]="bold";
+					break;
+				default:
+					arr_item[5]="#FFF078";
+					arr_item[6]="normal";
+			}
+			Err.AddItem(arr_item);
+			err_scroll.ScrollDown();
+		}
+	}
+
+	public function ClearDebugger() {
+		if (LastDebugCtl)
+			LastDebugCtl.DebugLeave(LastDebugLine);
+		LastDebugLine=0;
+
+		if ((ActiveProject) && (ActiveProject.target=="web"))
+			CApplication::RemoveWebChild(ActiveProject.name);
+
+		delete LastDebugCtl;
+	}
+
+	public function RegisterFiles(SenderAPID) {
+		var len=length Notebook.Pages;
+
+		for (var i=0;i<len;i++) {
+			if (Notebook.Pages[i].Page.Visible) {
+				var ctl=&Notebook.Pages[i].Page;
+				if (classof ctl=="EditorWindow") {
+					if (Notebook.Pages[i].Page.SavePath!="")
+						SendAPMessage(SenderAPID,-0x101, Notebook.Pages[i].Caption);
+				}
+			}
+		}
+	}
+
+	public function RequestVariables(SenderAPID) {
+		var items=Watch.Items;
+		var items_cnt=Watch.Items.Count;
+		for (var i=0;i<items_cnt;i++) {
+			SendAPMessage(SenderAPID, -0x102, ""+items[i][0]);
+		}
+	}
+
+	public function DebugerTrap(SenderAPID, szData) {
+		if (!DebugInit) {
+			//RegisterFiles(SenderAPID);
+			DebugInit=true;
+			SyncBreakpoints(SenderAPID);
+			StatusLabel.Caption="Going into DEBUG mode.";
+		}
+
+
+		RequestVariables(SenderAPID);
+		// get the call stack ...
+		SendAPMessage(InDebugTrap, -0x104, "dummyfill");
+
+		var arr=StrSplit(szData,"<:>",true);
+		var line=value (""+arr[1]) - 1;
+
+		if (LastDebugCtl)
+			LastDebugCtl.DebugLeave(LastDebugLine);
+		var ctl=FindWindow(arr[0]);
+
+		if (!ctl) {
+			var s=arr[0];
+			s=StrReplace(s, "\\", "/");
+			var arr2=StrSplit(s, "/");
+			if (arr2)
+				ctl=FindWindow(arr2[(length arr2) - 1]);
+		}
+
+		if (ctl) {
+			ctl.DebugEnter(line);
+			this.GrabFocus();
+			ctl.Editor.GrabFocus();
+			LastDebugCtl=&ctl;
+			LastDebugLine=&line;
+		} else {
+			//MenuStepOver(0,0);
+			if (breakpoints)
+				MenuRun(0,0);
+			else
+				MenuStepInto(0,0);
+		}
+	}
+
+	public function RequestOneVariable(szVariable) {
+		if (InDebugTrap)
+			SendAPMessage(InDebugTrap, -0x102, szVariable);
+	}
+
+	public function AddWatch(szVarname) {
+		var items=Watch.Items;
+		var items_cnt=Watch.Items.Count;
+		for (var i=0;i<items_cnt;i++) {
+			if (items[i][0]==szVarname) {
+				return 0;
+			}
+		}
+		Watch.AddItem([szVarname,"(Value not updated yet)"]);
+		if (InDebugTrap)
+			RequestOneVariable(szVarname);
+		return 1;
+	}
+
+	public function RegisterWatch(szData) {
+		var arr=StrSplit(szData,"<:>",true);
+
+		var var_name=arr[0];
+		var cnt=length arr;
+		var var_value="";
+		for (var i=1;i<cnt;i++) {
+			if (i>1)
+				var_value+="<:>";
+			var_value+=arr[i];
+		}
+
+		var items=Watch.Items;
+		var items_cnt=Watch.Items.Count;
+		for (i=0;i<items_cnt;i++) {
+			var row=&items.GetPath(""+i);
+			if (row[0]==var_name) {
+				row[1]=var_value;
+
+				Watch.UpdateItem(""+i,row);
+				break;
+			}
+		}
+	}
+
+	public function AddWatchValue(VarName, VarValue) {
+		if (InDebugTrap>0) {
+			SendAPMessage(InDebugTrap,-0x103,VarName+":"+VarValue);
+		}
+	}
+
+	public function SetCallStack(szData) {
+		CallStack.Clear();
+		var arr=StrSplit(szData, "\n");
+		var len=length arr;
+		for (var i=0;i<len;i++) {
+			var arr2=StrSplit(arr[i],":");
+
+			// if is the last element, do not show the line number (is rubish)
+			if (i==len-1)
+				arr2[1]=" ";
+ 
+			CallStack.AddItem(arr2);
+		}
+	}
+
+
+	public function DebugCallback(SenderAPID, MSGID, szData) {
+		//echo "$SenderAPID:$MSGID($szData)\n";
+		if (MSGID==-1)
+			StatusLabel.Caption="Peforming operation : $szData";
+		else
+		if (MSGID==-2) {
+			StatusLabel.Caption="There are RUN-TIME errors.";
+			ComputeElements(szData,"RTE");
+			ExecuteButton.Enabled=true;
+			menu_bar.Childs[3].Child.Childs[6].Enabled=true;
+			menu_bar.Childs[3].Child.Childs[1].Enabled=true;
+			menu_bar.Childs[3].Child.Childs[0].Enabled=true;
+
+
+			Infobook.PageIndex=1;
+			ClearDebugger();
+			RunProgress.Hide();
+		} else
+		if (MSGID==-3) {
+			StatusLabel.Caption="There are compiler errors.";
+			ComputeElements(szData,"E");
+			ExecuteButton.Enabled=true;
+			menu_bar.Childs[3].Child.Childs[6].Enabled=true;
+			menu_bar.Childs[3].Child.Childs[1].Enabled=true;
+			menu_bar.Childs[3].Child.Childs[0].Enabled=true;
+
+
+			Infobook.PageIndex=1;
+			RunProgress.Hide();
+		} else
+		if (MSGID==-4) {
+			StatusLabel.Caption="The application is now running.";
+			RunProgress.Hide();
+		} else
+		if (MSGID==-5) {
+			StatusLabel.Caption="There are warnings";
+			ComputeElements(szData,"W");
+		} else
+		if (MSGID==-6) {
+			StatusLabel.Caption="Done running application : $szData";
+			ExecuteButton.Enabled=true;
+			menu_bar.Childs[3].Child.Childs[6].Enabled=true;
+			menu_bar.Childs[3].Child.Childs[1].Enabled=true;
+			menu_bar.Childs[3].Child.Childs[0].Enabled=true;
+
+
+			ClearDebugger();
+			RunProgress.Hide();
+		} else
+		if (MSGID==-10) {
+			Info.AddText(szData);
+			var vadj=OutputScroll.VAdjustment;
+			vadj.Value=vadj.Upper-vadj.PageSize;
+		} else
+		if (MSGID==-0x100) {
+			InDebugTrap=SenderAPID;
+			DebugerTrap(SenderAPID,szData);
+		} else
+		if (MSGID==-0x102) {
+			RegisterWatch(szData);
+		} else
+		if (MSGID==-0x104) {
+			SetCallStack(szData);
+		} else
+		if (MSGID==0x200) {
+			chat.AddMessage(SenderAPID,szData);
+		} else
+		if (MSGID==0x201) {
+			chat.JoinUser(szData,SenderAPID);
+		} else
+		if (MSGID==0x202) {
+			chat.LeaveUser(SenderAPID);
+		} else
+		if (MSGID==0x203) {
+			chat.Sync(SenderAPID, szData);
+		} else
+		if (MSGID==0x204) {
+			chat.StatusChanged(SenderAPID, szData);
+		}
+	}
+
+	public function ConfirmSave(data, EventData) {
+		if (data) {
+			if (EventData==RESPONSE_YES) {
+				HideAfterSave=1;
+				Save(data.PageID);
+			} else
+			if (EventData==RESPONSE_NO) {
+				var ctl=data;
+				ctl.SetSavePoint();
+				ctl.Hide();
+
+				if (QuitPending) {
+					if (CloseIDE())
+						Hide();
+				}
+				HideAfterSave=0;
+			} else {
+				index_to_save=&new [];
+				index_index=0;
+				QuitPending=0;
+				HideAfterSave=0;
+			}
+		} else {
+
+			// avem lista ...
+			switch (EventData) {
+				case RESPONSE_YES:
+					if (index_index<(length index_to_save))
+						Save(index_to_save[index_index++].PageID);
+					else
+					if (QuitPending)
+						Hide();
+					break;
+				case RESPONSE_NO:
+					if (QuitPending)
+						Hide();
+					break;
+				default:
+					index_to_save=&new [];
+					index_index=0;
+					QuitPending=0;
+					HideAfterSave=0;
+			}
+		}
+	}
+
+	public function _VirtualEvent_OnFileShow(designable, szFilename, path) {
+		var len=length Notebook.Pages;
+		/*var out=false;
+		for (var i=0;i<len;i++) {
+			if (Notebook.Pages[i].Caption==szFilename) {
+				Notebook.Pages[i].Page.Show();
+				Notebook.PageIndex=i;
+				//return 0;
+				out=true;
+				break;
+			}
+		}
+
+		if (out)
+			return 0;*/
+
+		var arr=StrNumberSplit(path, ":");
+
+		if (length arr>1) {
+		    // este template ?
+		    if (arr[0]==3)
+		        OpenHTML(szFilename, ActiveProjectPath);
+		    else
+		        OpenFile(szFilename, ActiveProjectPath);
+		}
+	}
+
+	public function _VirtualEvent_OnMemberGoto(Filename, line_number, pindex) {
+		//var pindex=Notebook.PageIndex;
+		if (pindex>=0) {
+			if (typeof line_number=="string")
+				line_number=value line_number;
+
+			var ctl=Notebook.Pages[pindex].Page;
+			if (classof ctl=="EditorWindow") {
+				if (line_number<1)
+					line_number=1;
+				if (line_number==1)
+					ctl.Editor.SciMessage(SCI_GOTOLINE,line_number-1);
+				else {
+					ctl.ErrorOnLine(line_number-1, 31, 2000);
+					ctl.Editor.GrabFocus();
+				}
+				Notebook.PageIndex=pindex;
+			}
+		}
+	}
+
+	public function HomeCallback(index, project_name, path) {
+		if (ActiveProject)
+			this.MenuCloseproject(null, null);
+
+		if (index==0) {
+			MenuNewProject(this,"");
+		} else {
+			SaveDialog.Path=path;
+			OpenDialog.Path=path;
+			LoadProject(project_name, path+"/");
+		}
+	}
+
+	public function LoadFunctionHints() {
+		FunctionHints=ReadFile("Resources/hints.list");
+	}
+
+	public function LoadHomePage() {
+		var header=new RHBox(null);
+		var img=new RImage(header);
+		img.Filename="Resources/homepage.png";
+		img.Show();
+
+		var lbl=new RLabel(header);
+		lbl.Caption="  Home ";
+		lbl.Show();
+
+		var hp=new HomePage(Notebook, HomeCallback);
+		Notebook.Pages[length Notebook.Pages - 1].Header=header;
+		header.Show();
+		hp.Show();
+	}
+
+	public function HostTimer(Sender, EventData) {
+		Host=CApplication::Query("Host",false);
+		//echo "Host is ${Host}\n";
+	}
+
+	public function BackTimer(Sender, EventData) {
+		CApplication::BeginNonCritical();
+		LoadHomePage();
+		_chdir("..");
+
+		//echo "Setting up help interface ...\n";
+		HELP_INDEX=new HELPPanel(Notebook);
+		HELP_PAGE_INDEX=length Notebook.Pages - 1;
+		Notebook.Pages[HELP_PAGE_INDEX].Caption="Help index";
+		CApplication::EndNonCritical();
+		var arr=GLOBALS()["CIDE_OPEN"];
+		if (arr)
+			HomeCallback(arr[0], arr[1], arr[2]);
+	}
+
+	public function MenuReplace(Sender, EventData) {
+		ReplaceDialog.EditSearch.Text="";
+		ReplaceDialog.EditWith.Text="";
+		replacecount=0;
+		ReplaceDialog.Show();
+		start_page_index=Notebook.PageIndex;
+	}
+
+	public function FindEvent(Sender, EventData) {
+		SearchDialog.EditSearch.Text="";
+		//SearchDialog.Show();
+		SearchDialog.Popup();
+		start_page_index=Notebook.PageIndex;
+	}
+
+	public function MenuAbout(Sender, EventData) {
+		AboutDialog.Show();
+	}
+
+	public function MenuHelp(Sender, EventData) {
+		HELP_INDEX.Show();
+		Notebook.PageIndex=HELP_PAGE_INDEX;
+	}
+
+	public function GetSearchFlags() {
+		var flags=0;
+
+		if (SearchDialog._MatchCase)
+			flags=flags | SCFIND_MATCHCASE;
+
+		if (SearchDialog._WholeWord)
+			flags=flags | SCFIND_WHOLEWORD;
+
+		if (SearchDialog._WordStart)
+			flags=flags | SCFIND_WORDSTART;
+
+		if (SearchDialog._RegExp)
+			flags=flags | SCFIND_REGEXP;
+
+		return flags;
+	}
+
+	public function GetReplaceFlags() {
+		var flags=0;
+
+		if (ReplaceDialog._MatchCase)
+			flags=flags | SCFIND_MATCHCASE;
+
+		if (ReplaceDialog._WholeWord)
+			flags=flags | SCFIND_WHOLEWORD;
+
+		if (ReplaceDialog._WordStart)
+			flags=flags | SCFIND_WORDSTART;
+
+		if (ReplaceDialog._RegExp)
+			flags=flags | SCFIND_REGEXP;
+
+		return flags;
+	}
+
+	public function OnReplace(text, with, pageindex=-1, from_begin=false) {
+		LastSearcString=text;
+
+		var masterpage = MasterBook.PageIndex;
+		var ctl;
+		if (masterpage == 0) {
+			if (pageindex==-1)
+				var pindex=Notebook.PageIndex;
+			else
+				pindex=pageindex;
+		} else
+			ctl = this.Glade;
+
+
+		if ((pindex>=0) || (ctl)) {
+			if (!ctl)
+				ctl=Notebook.Pages[pindex].Page;
+			if (HasMember(ctl,"Editor")) {
+				if (!from_begin)/* && (!search_files))*/ {
+					var end=ctl.Editor.SciMessageReturnNumber(SCI_GETSELECTIONEND);
+					ctl.Editor.SciMessage(SCI_SETSELECTIONSTART,end);
+				} else
+					ctl.Editor.SciMessage(SCI_SETSELECTIONSTART,0);
+
+				ctl.Editor.SciMessage(SCI_SEARCHANCHOR,0,0);
+				var result=ctl.Editor.SciMessageReturnNumber(SCI_SEARCHNEXT,GetReplaceFlags(),text);
+				if (result!=-1) {
+					if (pageindex!=-1)
+						Notebook.PageIndex=pageindex;
+					ctl.Editor.SciMessage(SCI_SCROLLCARET);
+					/*ctl.Editor.SciMessage(SCI_SETTARGETSTART, start);
+					ctl.Editor.SciMessage(SCI_SETTARGETEND, end);
+					ctl.Editor.SciMessage(SCI_REPLACETARGET, length with, with);*/
+					ctl.Editor.SciMessage(SCI_REPLACESEL, null, with);
+				} else {
+					var count=length Notebook.Pages;
+					var search_files=ReplaceDialog._SearchInFiles.Checked;
+					if (search_files) {
+						for (var i=pindex+1;i<count;i++) {
+							if (i==start_page_index)
+								break;
+
+							ctl=Notebook.Pages[i].Page;
+							if ((ctl.Visible) && (HasMember(ctl,"Editor"))) {
+								ctl.Editor.SciMessage(SCI_SETSELECTIONSTART,0);
+								return OnReplace(text, with, i, true);
+							}
+						}
+						if (i!=start_page_index) {
+							for (i=0;i<count;i++) {
+								if (i==start_page_index)
+									break;
+
+								ctl=Notebook.Pages[i].Page;
+								if ((ctl.Visible) && (HasMember(ctl,"Editor"))) {
+									ctl.Editor.SciMessage(SCI_SETSELECTIONSTART,0);
+									return OnReplace(text, with, i, true);
+								}
+							}
+						}
+					}
+					CApplication::MessageBox("Search text not found","Replace");
+				}
+			}
+		}
+	}
+
+	public function OnReplaceAll(text, with, pageindex=-1, from_begin=false, p_search_files=-1) {
+		LastSearcString=text;
+
+		var masterpage = MasterBook.PageIndex;
+		var ctl;
+		if (masterpage == 0) {
+			if (pageindex==-1)
+				var pindex=Notebook.PageIndex;
+			else
+				pindex=pageindex;
+		} else
+			ctl = this.Glade;
+
+
+		if ((pindex>=0) || (ctl)) {
+			if (!ctl)
+				ctl=Notebook.Pages[pindex].Page;
+			if (HasMember(ctl,"Editor")) {
+				if (!from_begin)/* && (!search_files))*/ {
+					var end=ctl.Editor.SciMessageReturnNumber(SCI_GETSELECTIONEND);
+					ctl.Editor.SciMessage(SCI_SETSELECTIONSTART,end);
+				} else
+					ctl.Editor.SciMessage(SCI_SETSELECTIONSTART,0);
+
+				ctl.Editor.SciMessage(SCI_SEARCHANCHOR,0,0);
+				var flags=GetReplaceFlags();
+				do {
+					var result=ctl.Editor.SciMessageReturnNumber(SCI_SEARCHNEXT,flags,text);
+					if (result!=-1) {
+						if (pageindex!=-1)
+							Notebook.PageIndex=pageindex;
+
+						ctl.Editor.SciMessage(SCI_SCROLLCARET);
+						ctl.Editor.SciMessage(SCI_REPLACESEL, null, with);
+						ctl.Editor.SciMessage(SCI_SETSELECTIONSTART, result + length with);
+						ctl.Editor.SciMessage(SCI_SEARCHANCHOR,0,0);
+						replacecount++;
+					} //else {
+				} while (result!=-1);
+					var count=length Notebook.Pages;
+					if (p_search_files==-1)
+						var search_files=ReplaceDialog._SearchInFiles.Checked;
+					else
+						search_files=p_search_files;
+					if (search_files) {
+						for (var i=pindex+1;i<count;i++) {
+							if (i==start_page_index)
+								break;
+
+							ctl=Notebook.Pages[i].Page;
+							if ((ctl.Visible) && (HasMember(ctl,"Editor"))) {
+								ctl.Editor.SciMessage(SCI_SETSELECTIONSTART,0);
+								return OnReplaceAll(text, with, i, true, search_files);
+							}
+						}
+						if (i!=start_page_index) {
+							for (i=0;i<count;i++) {
+								if (i==start_page_index)
+									break;
+
+								ctl=Notebook.Pages[i].Page;
+								if ((ctl.Visible) && (HasMember(ctl,"Editor"))) {
+									ctl.Editor.SciMessage(SCI_SETSELECTIONSTART,0);
+									return OnReplaceAll(text, with, i, true, search_files);
+								}
+							}
+						}
+					}
+					if (!replacecount)
+						CApplication::MessageBox("Search text not found","Replace");
+					else {
+						CApplication::MessageBox("${replacecount} strings replaced","Replace");
+						replacecount=0;
+					}
+				//}
+			}
+		}
+	}
+
+	public function MenuFindNext(Sender, EventData) {
+		var pindex=Notebook.PageIndex;
+		if ((pindex>=0) && (LastSearcString!="")) {
+			this.SearchNext(LastSearcString, pindex);
+			/*var ctl=Notebook.Pages[pindex].Page;
+			if (HasMember(ctl,"Editor")) {
+				var end=ctl.Editor.SciMessageReturnNumber(SCI_GETSELECTIONEND);
+				ctl.Editor.SciMessage(SCI_SETSELECTIONSTART,end);
+
+				ctl.Editor.SciMessage(SCI_SEARCHANCHOR,0,0);
+				var result=ctl.Editor.SciMessageReturnNumber(SCI_SEARCHNEXT,GetSearchFlags(),LastSearcString);
+				if (result!=-1) {
+					ctl.Editor.SciMessage(SCI_SCROLLCARET);
+				} else {
+					CApplication::MessageBox("Search text not found","Search");
+				}
+
+				ctl.Editor.SciMessage(SCI_SCROLLCARET);
+			}*/
+		}
+
+		if (LastSearcString=="")
+			FindEvent(Sender, EventData);
+	}
+
+
+	public function SearchNext(text, pageindex=-1, from_begin=false) {
+		LastSearcString=text;
+
+		var masterpage = MasterBook.PageIndex;
+		var ctl;
+		if (masterpage == 0) {
+			if (pageindex==-1)
+				var pindex=Notebook.PageIndex;
+			else
+				pindex=pageindex;
+		} else
+			ctl = this.Glade;
+
+
+		if ((pindex>=0) || (ctl)) {
+			if (!ctl)
+				ctl=Notebook.Pages[pindex].Page;
+			if (HasMember(ctl,"Editor")) {
+				if (!from_begin)/* && (!search_files))*/ {
+					var end=ctl.Editor.SciMessageReturnNumber(SCI_GETSELECTIONEND);
+					ctl.Editor.SciMessage(SCI_SETSELECTIONSTART,end);
+				} else
+					ctl.Editor.SciMessage(SCI_SETSELECTIONSTART,0);
+
+				ctl.Editor.SciMessage(SCI_SEARCHANCHOR,0,0);
+				var result=ctl.Editor.SciMessageReturnNumber(SCI_SEARCHNEXT,GetSearchFlags(),text);
+				if (result!=-1) {
+					if (pageindex!=-1)
+						Notebook.PageIndex=pageindex;
+					ctl.Editor.SciMessage(SCI_SCROLLCARET);
+				} else {
+					var count=length Notebook.Pages;
+					var search_files=SearchDialog._SearchInFiles.Checked;
+					if (search_files) {
+						for (var i=pindex+1;i<count;i++) {
+							if (i==start_page_index)
+								break;
+
+							ctl=Notebook.Pages[i].Page;
+							if ((ctl.Visible) && (HasMember(ctl,"Editor"))) {
+								ctl.Editor.SciMessage(SCI_SETSELECTIONSTART,0);
+								return SearchNext(text, i, true);
+							}
+						}
+						if (i!=start_page_index) {
+							for (i=0;i<count;i++) {
+								if (i==start_page_index)
+									break;
+
+								ctl=Notebook.Pages[i].Page;
+								if ((ctl.Visible) && (HasMember(ctl,"Editor"))) {
+									ctl.Editor.SciMessage(SCI_SETSELECTIONSTART,0);
+									return SearchNext(text, i, true);
+								}
+							}
+						}
+					}
+					CApplication::MessageBox("Search text not found","Search");
+				}
+			}
+		}
+	}
+
+	/*public function SearchPrev(text) {
+		LastSearcString=text;
+		var pindex=Notebook.PageIndex;
+		if (pindex>=0) {
+			var ctl=Notebook.Pages[pindex].Page;
+			if (HasMember(ctl,"Editor")) {
+				var start=ctl.Editor.SciMessageReturnNumber(SCI_GETSELECTIONSTART);
+				ctl.Editor.SciMessage(SCI_SETSELECTIONEND,start);
+
+				ctl.Editor.SciMessage(SCI_SEARCHANCHOR,0,0);
+				var result=ctl.Editor.SciMessageReturnNumber(SCI_SEARCHPREV,GetSearchFlags(),text);
+				if (result!=-1) {
+					ctl.Editor.SciMessage(SCI_SCROLLCARET);
+				} else {
+					CApplication::MessageBox("Search text not found","Search");
+				}
+			}
+		}
+	}*/
+
+	public function SearchPrev(text, pageindex=-1, from_begin=false) {
+		LastSearcString=text;
+
+		var masterpage = MasterBook.PageIndex;
+		var ctl;
+		if (masterpage == 0) {
+			if (pageindex==-1)
+				var pindex=Notebook.PageIndex;
+			else
+				pindex=pageindex;
+		} else
+			ctl = this.Glade;
+
+
+		if ((pindex>=0) || (ctl)) {
+			if (!ctl)
+				ctl=Notebook.Pages[pindex].Page;
+			if (HasMember(ctl,"Editor")) {
+				if (!from_begin)/* && (!search_files))*/ {
+					var start=ctl.Editor.SciMessageReturnNumber(SCI_GETSELECTIONSTART);
+					ctl.Editor.SciMessage(SCI_SETSELECTIONEND,start);
+				} else {
+					var end=ctl.Editor.SciMessageReturnNumber(SCI_GETSELECTIONEND);
+					ctl.Editor.SciMessage(SCI_SETSELECTIONEND,end);
+				}
+
+				ctl.Editor.SciMessage(SCI_SEARCHANCHOR,0,0);
+				var result=ctl.Editor.SciMessageReturnNumber(SCI_SEARCHPREV,GetSearchFlags(),text);
+				if (result!=-1) {
+					if (pageindex!=-1)
+						Notebook.PageIndex=pageindex;
+					ctl.Editor.SciMessage(SCI_SCROLLCARET);
+				} else {
+					var count=length Notebook.Pages;
+					var search_files=SearchDialog._SearchInFiles.Checked;
+					if (search_files) {
+						for (var i=pindex-1;i>=0;i--) {
+							if (i==start_page_index)
+								break;
+
+							ctl=Notebook.Pages[i].Page;
+							if ((ctl.Visible) && (HasMember(ctl,"Editor"))) {
+								ctl.Editor.SciMessage(SCI_SETSELECTIONEND,0);
+								return SearchPrev(text, i, true);
+							}
+						}
+						if (i!=start_page_index) {
+							for (i=count-1;i>=0;i++) {
+								if (i==start_page_index)
+									break;
+
+								ctl=Notebook.Pages[i].Page;
+								if ((ctl.Visible) && (HasMember(ctl,"Editor"))) {
+									ctl.Editor.SciMessage(SCI_SETSELECTIONSTART,0);
+									return SearchPrev(text, i, true);
+								}
+							}
+						}
+					}
+					CApplication::MessageBox("Search text not found","Search");
+				}
+			}
+		}
+	}
+
+	public function MenuGoToLine(Sender, EventData) {
+		var masterpage = MasterBook.PageIndex;
+		var ctl;
+		if (masterpage == 0) {
+			var pindex=Notebook.PageIndex;
+		} else
+			ctl = this.Glade;
+
+		if ((pindex>=0) || (ctl)) {
+			if (!ctl)
+				ctl=Notebook.Pages[pindex].Page;
+			if (HasMember(ctl,"Editor")) {
+				if (CApplication::Input(var line="", false, "Go to line") == RESPONSE_OK) {
+					var line_number = value line;
+					if (line_number > 0)
+						ctl.Editor.SciMessage(SCI_GOTOLINE,line_number-1);
+				}
+			}
+		}
+	}
+
+	public function MenuAddClientRes(Sender, EventData) {
+		if (ActiveProject) {
+			Enabled=false;
+			if (CApplication::RequestFile(var FileName, var Content)) {
+				var real_name=RES_DIR+"/"+FileName;
+				WriteFile(Content,ActiveProjectPath+"/"+real_name);
+				// duplicate the file in the cookies directory;
+
+				ActiveProject.resources[real_name]=real_name;
+
+				var ext=Ext(FileName);
+				if ((ext=="jpg") || (ext=="png") || (ext=="xpm") || (ext=="gif") || (ext=="jpeg") || (ext=="bmp"))
+					CApplication::SendCookieContent(FileName, Content);
+			}
+			Enabled=true;
+		} else {
+			CApplication::MessageBox("No active project. Please open a project first.","Error");
+		}
+	}
+		
+	public function MenuNewClass(Sender, EventData) {
+	}
+
+	public function ContainsFile(arr, filename) {
+		if (!arr)
+			return false;
+
+		var len=length arr;
+		for (var i=0;i<len;i++) {
+			if (ToUpper(arr[i])==ToUpper(filename))
+				return true;
+		}
+		return false;
+	}
+
+	public function OnResOpenDialogFileSelected(Sender, EventData) {
+		if (ActiveProject) {
+			var filename=EventData;
+			var path;
+
+			if (typeof Sender=="class")
+				path=Sender.Path;
+			else
+				path=Sender;
+
+			var file_full=path+filename;
+
+			var new_path=ActiveProjectPath+filename;
+			var new_path_fxml=ActiveProjectPath+filename+".glade";
+
+			// is set to true, to ignore all checks
+			var same_path=(ActiveProjectPath==path);
+
+			if ((ContainsFile(ActiveProject.sources, filename)) || (ContainsFile(ActiveProject.designablesources, filename))) {
+				CApplication::MessageBox("This project already contains a file named $filename","Error");
+				return 0;
+			}
+
+			//var is_designable=FileExists(file_full+".glade");
+			var data=ReadFile(file_full);
+
+			var is_designable=(Pos(data, "include project_forms.glade.con")>0);
+
+			if (!same_path) {
+				WriteFile(data, new_path);
+
+				if (is_designable) {
+					data=ReadFile(file_full+".glade");
+					if (data)
+						WriteFile(data, new_path_fxml);
+				}
+			}
+
+			if (is_designable)
+				ActiveProject.designablesources[length ActiveProject.designablesources]=filename;
+			else
+				ActiveProject.sources[length ActiveProject.sources]=filename;
+
+			RenderProject(ActiveProject);
+			this.MenuSaveproject(null, null);
+		}
+	}
+
+	private function IsProjectFile(project, filename) {
+		var len=length project.sources;
+		for (var i=0;i<len;i++) {	
+			if (filename==project.sources[i])
+				return true;
+		}
+
+		len=length project.designablesources;
+		for (i=0;i<len;i++) {	
+			if (filename==project.designablesources[i])
+				return true;
+		}
+
+		len=length project.resources;
+		for (i=0;i<len;i++) {	
+			if (filename==project.resources[i])
+				return true;
+		}
+
+		len=length project.templates;
+		for (i=0;i<len;i++) {	
+			if (filename==project.templates[i])
+				return true;
+		}
+
+		return false;
+	}
+	
+	private function MenuCloseproject(Sender, EventData) {
+		this.Caption = IDE_CAPTION;
+		if (ActiveProject) {
+			var len=length Notebook.Pages;
+			for (var i=0;i<len;i++) {
+				var ctl=Notebook.Pages[i].Page;
+				if ((classof ctl=="EditorWindow") && (ctl.Visible)) {
+					var filename=Notebook.Pages[i].Caption;
+
+					if (IsProjectFile(ActiveProject, filename)) {
+						if (ctl.IsModified()) {
+							EditorSaveCallback(ctl);
+						} else
+							ctl.Hide();
+					}
+				}
+			}
+			Propbook.ClassExplorer.Clear();
+			Propbook.ProjectExplorer.Clear();
+			Info.Text="";
+			Err.Clear();
+
+			Glade.Text="";
+			Glade.UserData="";
+			Glade.Hide();
+
+			CApplication::RemoveWebChild(ActiveProject.name);
+			ClearBreakpoints();
+			ActiveProject=null;
+		} else {
+			CApplication::MessageBox("No opened project", "Error");
+		}
+	}
+
+	public function OnOpenProjectFileSelected(Sender, filename) {
+		if (Ext(filename)=="")
+			filename+=".pxml";
+
+		SaveDialog.Path=OpenProject.Path;
+		OpenDialog.Path=OpenProject.Path;
+
+		LoadProject(filename, OpenProject.Path+"/");
+	}
+
+	private function MenuOpenproject(Sender, EventData) {
+		if (ActiveProject)
+			this.MenuCloseproject(null, null);
+
+		OpenProject.Show();
+		OpenProject.ListDirectory();
+	}
+
+	private function MenuSaveproject(Sender, EventData) {
+		if (ActiveProject) {
+			//ActiveProject.Serialize(ActiveProjectPath+"info.xml");
+			ActiveProject.Serialize(ActiveProjectPath+ActiveProject.name+".pxml");
+			MenuSaveAll(Sender, EventData);
+			if (Sender)
+				CApplication::MessageBox("Active project and all open files saved", "Information");
+		} else {
+			CApplication::MessageBox("No opened project", "Error");
+		}
+	}
+
+	public function MenuAddSource(Sender, EventData) {
+		ResOpenDialog.Show();
+		ResOpenDialog.ListDirectory();
+	}
+
+	public function FilterEvents(var Editor, string section_name, array events) {
+		var text=Editor.Text;
+		var[] result;
+
+		var data="<CIDE section=\"$section_name\">";
+		var end_data="</CIDE>";
+
+		var pos=Pos(text, data);
+		if (pos>0) {
+			var subtext=SubStr(text, pos-1, (length text - pos + 1));
+			if (subtext) {
+				var len=length events;
+				for (var i=0;i<len;i++) {
+					if (Pos(subtext, events[i])<=0) {
+						result[events[i]]=events[i];
+					}
+				}
+			}
+		}
+		return result;
+	}
+
+	public function AddEvent(var Editor, string section_name, string text_data) {
+		Editor.SciMessage(SCI_SETTARGETSTART, 0);
+		var len=Editor.SciMessageReturnNumber(SCI_GETLENGTH);
+		Editor.SciMessage(SCI_SETTARGETEND, len);
+
+		var data="<CIDE section=\"$section_name\">";
+		var end_data="</CIDE>";
+
+		Editor.SciMessage(SCI_SEARCHINTARGET,length data, data);
+
+		var position=Editor.SciMessageReturnNumber(SCI_GETTARGETSTART);
+
+		if (position<0)
+			return 0;
+
+		Editor.SciMessage(SCI_SETTARGETSTART, position);
+		Editor.SciMessage(SCI_SETTARGETEND, len);
+
+		Editor.SciMessage(SCI_SEARCHINTARGET,length end_data, end_data);
+
+		var position_end=Editor.SciMessageReturnNumber(SCI_GETTARGETSTART);
+
+		var line=Editor.SciMessageReturnNumber(SCI_LINEFROMPOSITION, position);
+		var line_end=Editor.SciMessageReturnNumber(SCI_LINEFROMPOSITION, position_end);
+
+		if ((line>=0) && (line_end>0)) {
+			if (line_end<line)
+				line_end=line;
+
+			var end=Editor.SciMessageReturnNumber(SCI_POSITIONFROMLINE, line_end);
+
+			BeginUpdateSession();
+			Editor.SciMessage(SCI_SETTARGETSTART, end);
+			Editor.SciMessage(SCI_SETTARGETEND, end);
+			Editor.SciMessage(SCI_REPLACETARGET,length text_data,text_data);			
+			EndUpdateSession();
+		}
+	}
+
+	public function OpenGlade(filename, path) {
+		GladeLoaded=false;
+		Glade.Text="";
+
+		Glade.ActivePath=ActiveProjectPath+"/";
+
+		var prj_name=StrReplace(filename,"/","");
+		prj_name=StrReplace(prj_name,"\\","");
+		var full_name=path+filename;//+".glade";
+
+		if (!this.glade_view) {
+			Glade.UserData=full_name;//path+"/"+UI_FILE;
+			Glade.Show();
+			return;
+		}
+		var data=ReadFile(full_name);
+		if (!data)
+			data=DEFAULT_GLADE;
+
+		Glade.Text=data;
+		Glade.UserData=full_name;//path+"/"+UI_FILE;//full_name;
+		Glade.Show();
+
+		GladeLoaded=true;
+	}
+
+	public function OpenGlade2() {
+		GladeLoaded=true;
+		if (!Glade.UserData)
+			return;
+
+		var data=ReadFile(Glade.UserData);
+		if (!data)
+			data=DEFAULT_GLADE;
+
+		Glade.Show();
+		Glade.Text=data;
+	}
+
+
+	public function GenerateGladeSource(content="") {
+		if (content)
+			var data=content;
+		else {
+			if (GladeLoaded)
+				data=Glade.Text;
+			else
+				data=ReadFile(Glade.UserData);
+		}
+		var total_content="";
+		if (!ActiveProject) {
+			return;
+		}
+
+		//prec_glade=data;
+
+		if (data) {
+			var[] strings;
+			total_content = CodeGenerator::Do(data, strings);
+			if (ActiveProject) {
+				var lang=new Lang(ActiveProjectPath+"/string.table.xml");
+				lang.AddSymbols(strings);
+				WriteFile(lang.SaveString(), ActiveProjectPath+"/string.table.xml");
+			}			
+		}
+
+		if (ActiveProject) {
+			var res=WriteFile(total_content,ActiveProjectPath+"/"+UI_INCLUDE);
+			if ((FirstEditor) && (FirstEditor.Editor))
+				FirstEditor.Editor.SendIncludedFile(UI_INCLUDE,total_content);
+
+			if (!res)
+				CApplication::MessageBox("Error writing "+ActiveProjectPath+"/"+UI_INCLUDE,"Error writing file");
+			else
+			if (FileExists(ActiveProjectPath+"/"+GLADE_FILE+".con"))
+				WriteFile("include UI.con",ActiveProjectPath+"/"+GLADE_FILE+".con");
+		}
+	}
+
+	public function DebugForceEnd(Sender, EventData) {
+		ExecuteButton.Enabled=true;
+		RunProgress.Hide();
+		ProgressTimer(0,0);
+		menu_bar.Childs[3].Child.Childs[6].Enabled=true;
+		menu_bar.Childs[3].Child.Childs[1].Enabled=true;
+		menu_bar.Childs[3].Child.Childs[0].Enabled=true;
+		ClearDebugger();
+		StatusLabel.Caption="Done running application (forced).";
+	}
+
+	public function MasterSwitch(Sender, EventData) {
+		if (ignore_switch) {
+			ignore_switch=0;
+			return 0;
+		}
+		var pgindex=Sender.PageIndex;
+		if (ActiveProject) {
+			if (pgindex==0) {
+				this.glade_view=false;
+				GenerateGladeSource();
+			} else
+			if (pgindex==1) {
+				if (!GladeLoaded)
+					this.OpenGlade2();
+				this.glade_view=true;
+			}
+		}
+	}
+
+	public function MenuAddBreakpoint(Sender, EventData) {
+		//
+		var page_index=Notebook.PageIndex;
+		if (page_index>=0) {
+			var ctl=Notebook.Pages[page_index].Page;
+			if ((classof ctl)=="EditorWindow") {
+				if (!ctl.SavePath) {
+					CApplication::MessageBox("Breakpoints cannot be added on an unsaved source.", "Cannot add a breakpoint here");
+					return 0;
+				}
+
+				var pos=ctl.Editor.SciMessageReturnNumber(SCI_GETSELECTIONSTART);
+				var line=ctl.Editor.SciMessageReturnNumber(SCI_LINEFROMPOSITION, pos);
+				var filename=Notebook.Pages[page_index].Caption;
+
+				if ((line>=0) && (filename)) {
+					if (RemoveBreakpointCtl(ctl, line)) {
+						ctl.Editor.SciMessage(SCI_MARKERDELETE, line, 1);
+					} else {
+						AddBreakpoint(filename, line, ctl);
+						ctl.Editor.SciMessage(SCI_MARKERADD, line, 1);
+					}
+				}
+
+			} else {
+				CApplication::MessageBox("Breakpoints can be set only for Concept sources.", "Cannot add a breakpoint here");
+			}
+		} else {
+			CApplication::MessageBox("No concept source selected.\nPlease select a source in the current project, by opening it.", "Cannot add a breakpoint here");
+		}
+	}
+
+
+	public function MainIDEForm(Owner) {
+		//BeginUpdateSession();
+		super(Owner);
+		CApplication::BeginNonCritical();
+		this.CSS = ReadFile("css/cide.css");
+		this.OnDelete=IDEOnDestroy;
+
+		echo "Initializing IDE ...\n";
+		Width=DEF_WIDTH;
+		Height=DEF_HEIGHT;
+		Caption=IDE_CAPTION;
+		var vbox=new RVBox(this);
+		echo "Creating menus ...\n";
+		// put menus
+		var menu=[
+				"_File", [
+					"_New", [
+						"_Project",MenuNewProject,
+						"-",0,
+						"Application source",MenuNewApp,
+						"Form source",MenuNewForm,
+						"-",0,
+						"Web application source",MenuNewWeb,
+						"-",0,
+						"Empty source",MenuNew
+					],
+					"_Open", MenuOpen, OPEN,
+					"_Close", MenuClose, CLOSE,
+					"-",0,
+					"Open project", MenuOpenproject, OPEN,
+					"Save project", MenuSaveproject, SAVE,
+					"Close project", MenuCloseproject, CLOSE,
+					"-",0,
+					"_Save", MenuSave, SAVE,
+					"Save _as", MenuSaveAs, SAVE_AS,
+					"Save a_ll", MenuSaveAll, SAVE,
+					"-",0,
+					"E_xit", MenuExit, QUIT
+				],
+				"_Edit", [
+					"_Cut", MenuCut, CUT,
+					"_Copy", MenuCopy, COPY,
+					"_Paste", MenuPaste, PASTE,
+					"-",0,
+					"Find", FindEvent, FIND,
+					"Find next", MenuFindNext, FIND,
+					"Replace", MenuReplace, FIND_AND_REPLACE,
+					"-",0,
+					"Go to line", MenuGoToLine, "gtk-index"
+				],
+				"_View", [
+					"Toggle full screen",MenuFullScreen, FULLSCREEN,
+					"-",0,
+					"Show/Hide class&project explorer bar",MenuToggleBar,
+					"Show/Hide output & errors bar",MenuToggleInfobook
+				],
+				"_Debug", [
+					"_Start debugger", MenuDebug, "gtk-media-play",
+					"_Execute without debugging", ExecuteClick, "gtk-media-play",
+					"-",0,
+					"Step _over", MenuStepOver, 0,
+					"Step _into", MenuStepInto, 0,
+					"_Continue", MenuRun, 0,
+					"_Stop debugging", MenuBreak, 0,
+					"-",0,
+					"Detach debugger (application must be closed)", DebugForceEnd,0,
+					"-",0,
+					"Add _watch", MenuWatch, 0,
+					"-",0,
+					"Toggle _breakpoint", MenuAddBreakpoint, 0
+
+				],
+				"_Project", [
+				    "Add client resource", MenuAddClientRes,
+				    //"Add server resource", MenuAddServerRes,
+				    "-",0,
+				    //"Add new class", MenuNewClass,
+				    "Add existing source", MenuAddSource,
+				    "-",0,
+				    "Run project", ExecuteClick, "gtk-media-play",
+				    "Profile project", ProfileClick, "gtk-media-record",
+				    "-",0,
+				    "Build project (generate binary form)", MenuBuild, EXECUTE
+				],
+				"_Tools", [
+					//"New SQL Panel", MenuSQL, NEW,
+					"Team Chat Panel", MenuChat, 0,
+					"-",0,
+					"Reset application", DebugForceEnd,0
+				],
+				"_Help", [
+					"_Help", MenuHelp, HELP,
+					"-",0,
+					"_About Devronium CIDE", MenuAbout, ABOUT
+				]
+			];
+
+		menu_bar=new RMenuBar(vbox);
+		menu_bar.Accelerate(menu);
+		menu_bar.Show();
+
+		menu_bar.Childs[0].Child.Childs[1].AccelKey="<control>O";
+		menu_bar.Childs[0].Child.Childs[8].AccelKey="<control>S";
+
+		menu_bar.Childs[1].Child.Childs[4].AccelKey="<control>F";
+		menu_bar.Childs[1].Child.Childs[5].AccelKey="F3";
+		menu_bar.Childs[1].Child.Childs[6].AccelKey="<control>H";
+		menu_bar.Childs[1].Child.Childs[8].AccelKey="<control>G";
+
+
+		menu_bar.Childs[3].Child.Childs[0].AccelKey="F5";
+		menu_bar.Childs[3].Child.Childs[1].AccelKey="<control>F5";
+		menu_bar.Childs[3].Child.Childs[3].AccelKey="F8";
+		menu_bar.Childs[3].Child.Childs[4].AccelKey="F11";
+		menu_bar.Childs[3].Child.Childs[5].AccelKey="F9";
+		menu_bar.Childs[3].Child.Childs[6].AccelKey="<shift>F5";
+
+		menu_bar.Childs[3].Child.Childs[12].AccelKey="F6";
+		
+		var toolhbox=new RHBox(null);
+		toolhbox.LinkIfNotLinked(this);
+		toolhbox.Packing=PACK_SHRINK;
+		toolhbox.Show();
+
+		var toolbar=new RToolbar(toolhbox);
+		toolbar.IconSize = 1;
+		toolbar.Style=TOOLBAR_ICONS;
+		toolbar.Tooltips=true;
+		toolbar.ShowArrow=false;
+		//toolbar.Height=20;
+		toolbar.Packing=PACK_EXPAND_WIDGET;
+
+		//AddToolItem("New Concept source", NEW, toolbar, MenuNew);
+		//AddToolItem("Open remote file", OPEN, toolbar, MenuOpen);
+		//AddToolItem("Save to server", SAVE, toolbar, MenuSave);
+		//AddToolItem("Add file to server", ADD, toolbar, DummyEvent);
+
+		AddToolItem("New Concept source", "Resources/menus/filenew.png", toolbar, MenuNew);
+		AddToolItem("Open remote file", "Resources/menus/fileopen.png", toolbar, MenuOpen);
+		AddToolItem("Save to server", "Resources/menus/filesave.png", toolbar, MenuSave);
+		AddToolItem("Add file to server", "Resources/menus/add.png", toolbar, MenuAddClientRes);
+		AddToolSeparator(toolbar);
+
+		//AddToolItem("Cut", CUT, toolbar, MenuCut);
+		//AddToolItem("Copy", COPY, toolbar, MenuCopy);
+		//AddToolItem("Paste", PASTE, toolbar, MenuPaste);
+
+		AddToolItem("Cut", "Resources/menus/editcut.png", toolbar, MenuCut);
+		AddToolItem("Copy", "Resources/menus/editcopy.png", toolbar, MenuCopy);
+		AddToolItem("Paste", "Resources/menus/editpaste.png", toolbar, MenuPaste);
+		AddToolSeparator(toolbar);
+
+		//AddToolItem("Undo", UNDO, toolbar, MenuUndo);
+		//AddToolItem("Redo", REDO, toolbar, MenuRedo);
+		AddToolItem("Undo", "Resources/menus/undo.png", toolbar, MenuUndo);
+		AddToolItem("Redo", "Resources/menus/redo.png", toolbar, MenuRedo);
+		AddToolSeparator(toolbar);
+
+		//AddToolItem("Navigate forward", MEDIA_NEXT, toolbar, MenuNext);
+		//AddToolItem("Navigate backward", MEDIA_PREVIOUS, toolbar, MenuPrev);
+		//AddToolItem("Navigate forward", "Resources/menus/1rightarrow.png", toolbar, MenuNext);
+		//AddToolItem("Navigate backward", "Resources/menus/1leftarrow.png", toolbar, MenuPrev);
+		//AddToolSeparator(toolbar);
+
+		//ExecuteButton=AddToolItem("Execute program", MEDIA_PLAY, toolbar, ExecuteClick);
+
+		var execute_menu= [
+					"_Execute",ExecuteClick,"gtk-media-play",
+					"_Profile",ProfileClick,"gtk-media-record",
+					"_Debug",MenuDebug,0
+				];
+
+		ExecuteButton=AddMenuToolItem("Execute program", "Resources/menus/player_play.png", toolbar, ExecuteClick, execute_menu);
+		ExecuteButton.Enabled=false;
+
+		menu_bar.Childs[3].Child.Childs[6].Enabled=false;
+		menu_bar.Childs[3].Child.Childs[1].Enabled=false;
+		menu_bar.Childs[3].Child.Childs[0].Enabled=false;
+
+
+
+		AddToolSeparator(toolbar);
+
+		//AddToolItem("Find in files", FIND, toolbar, DummyEvent);
+		AddToolItem("Find in files", "Resources/menus/find.png", toolbar, FindEvent);
+		AddToolSeparator(toolbar);
+
+		/*var toolbar2=new RToolbar(vbox);
+		toolbar2.Style=TOOLBAR_ICONS;
+		toolbar2.Tooltips=true;*/
+
+		//toolbar2.Show();
+		//toolbar.PackType=PACK_EXPAND_WIDGET;
+		toolbar.Show();
+
+		this.SearchCombo=new REditComboBox(toolhbox);
+		this.SearchCombo.Packing=PACK_SHRINK;
+		this.SearchCombo.AddColumns(1,HIDDEN_COLUMN);
+		this.SearchCombo.TextColumn=0;
+		this.SearchCombo.MinWidth = 150;
+		this.SearchCombo.Height=22;
+		this.SearchCombo.Show();
+		this.SearchCombo.SuggestModel(this.SearchCombo, 0);
+		//this.SearchCombo.ActivateDefault=true;
+		
+		this.SearchCombo.SecondaryIconName="gtk-find";
+		this.SearchCombo.SecondaryIconTooltip="Find in current";
+		this.SearchCombo.SecondaryIconActivable=true;
+		this.SearchCombo.OnIconPress=this.QuickSearchClicked;
+		this.SearchCombo.OnActivate=this.QuickSearchClicked;
+
+		/*var sbutton=new RButton(toolhbox);
+		sbutton.Packing=PACK_SHRINK;
+		sbutton.LoadStockIcon("gtk-find");
+		sbutton.OnClicked=this.QuickSearchClicked;
+		sbutton.Show();*/
+
+		echo "Creating Remote Designer ... ";
+		MasterBook=new RNotebook(vbox);
+		MasterBook.TabPos=POS_BOTTOM;
+		MasterBook.OnSwitchPage=MasterSwitch;
+		MasterBook.ShowBorder=false;
+		MasterBook.Show();
+
+		var pane=new RHPaned(/*vbox*/MasterBook);
+		pane.PackType=PACK_EXPAND_WIDGET;
+
+		MasterBook.Pages[0].Caption=CODE_VIEW_CAPTION;
+
+
+		Glade=new RDesigner(MasterBook);
+		Glade.Packing=PACK_EXPAND_WIDGET;
+
+		MasterBook.Pages[1].Caption=DESIGN_VIEW_CAPTION;
+		echo "done\n";
+
+
+		//var hbox1=new RHBox(pane);
+		var hbox1=new RVPaned(pane);
+
+		echo "Loading project templates ...\n";
+		NewPrj=new NewProject(this,this.NewProjectCallBack);
+		NewPrj.LoadTemplates();
+
+		echo "Loading classes and static function hints ...\n";
+		LoadFunctionHints();
+
+		echo "Creating child windows ...\n";
+
+		_ProgressWindow=new ProgressWindow(this);
+
+		Notebook=new RNotebook(hbox1);
+		Notebook.Scrollable=true;
+		Notebook.Show();
+
+		Notebook.ActiveControlEnd = toolhbox;
+
+		pane.PackType=PACK_SHRINK;
+		hbox1.PackType=PACK_SHRINK;
+
+		DoInfoBox(hbox1);
+
+		pane.Show();
+
+		echo "Creating dialogs ...\n";
+
+		WaitWindow=new RForm(this);
+		WaitWindow.Position=WP_CENTER_ALWAYS;
+		WaitWindow.Opacity=0.95;
+		WaitWindow.Titlebar=false;
+		WaitWindow.Type=WT_SPLASHSCREEN;
+		var waitImg=new RImage(WaitWindow);
+		waitImg.Filename="Resources/compiling.gif";
+		waitImg.Show();
+
+		ResOpenDialog=new ServerFileChooser(this);
+		ResOpenDialog.Path="./";
+		ResOpenDialog.FileTypes=["All Concept sources:con,csp","Concept application file:con","Concept server page:csp","All files:*"];
+		ResOpenDialog.OnFileSelected=this.OnResOpenDialogFileSelected;
+
+
+		OpenDialog=new ServerFileChooser(this);
+		OpenDialog.Path="./";
+		OpenDialog.FileTypes=["All Concept sources:con,csp","Concept application file:con","Concept server page:csp","All files:*"];
+		OpenDialog.OnFileSelected=OnOpenDialogFileSelected;
+
+
+		OpenProject=new ServerFileChooser(this);
+		OpenProject.Path="./";
+		OpenProject.FileTypes=["CIDE Projects:pxml","All files:*"];
+		OpenProject.OnFileSelected=OnOpenProjectFileSelected;
+
+
+		SaveDialog=new ServerFileSaver(this);
+		SaveDialog.Path="./";
+		SaveDialog.FileTypes=["All Concept sources:con,csp","Concept application file:con","Concept server page:csp","All files:*"];
+		SaveDialog.OnFileSelected=OnSaveDialogFileSelected;
+
+		echo "Creating properties box ...\n";
+
+		/*pane.PackType=PACK_SHRINK;
+		var pane2=new RVPaned(pane);
+		pane2.Show();*/
+
+		Propbook=new ExtraWindow(/*pane2*/pane);
+		Propbook.SelectDelegate=_VirtualEvent_OnMemberGoto;
+		Propbook.SelectFileDelegate=_VirtualEvent_OnFileShow;
+		Propbook.Show();
+
+		pane.Position=-190;
+
+		ClassImage=new RImage(null);
+		//ClassImage.LoadResource(ABOUT,ICON_SIZE_SMALL_TOOLBAR);
+		ClassImage.Filename="Resources/class.png";
+
+		MemberImage=new RImage(null);
+		//MemberImage.LoadResource(INFO,ICON_SIZE_SMALL_TOOLBAR);
+		MemberImage.Filename="Resources/member.png";
+
+		//OpenFile("EditorWindow.con","./");
+		echo "Creating team chat ...\n";
+
+		CreateChatPanel();
+		//NewFile(FORM_TEMPLATE);
+		echo "Loading resources ...\n";
+
+		hbox1.Position=-130;
+		hbox1.Show();
+
+		//strings=ReadFile(CONNECTION_LIST);
+
+		DEFAULT_GLADE=ReadFile("Templates/form.xml");
+		//_chdir("..");
+
+		//echo "Creating backtimer for activeX controls ...\n";
+		//AddTimer(BackTimer, 10); // 10 miliseconds :)
+		this.OnRealize=BackTimer;
+
+		Images["source"]=new RImage(null);
+		Images["source"].Filename="Resources/source.png";
+
+		Images["designablesource"]=new RImage(null);
+		Images["designablesource"].Filename="Resources/designablesource.png";
+
+		Images["resource"]=new RImage(null);
+		Images["resource"].Filename="Resources/resource.png";
+
+		Images["category"]=new RImage(null);
+		Images["category"].Filename="Resources/category.png";
+
+		echo "Creating the 'about' dialog ...\n";
+		AboutDialog=new AboutForm(this);
+
+		echo "Finalizing ...\n";
+
+		SearchDialog=new SearchForm(this, SearchNext, SearchPrev);
+
+		ReplaceDialog=new ReplaceForm(this, OnReplace, OnReplaceAll);
+
+		var stbar=new RStatusbar(null);
+		stbar.LinkIfNotLinked(this);
+		stbar.MinHeight=22;
+		stbar.PackType=PACK_EXPAND_WIDGET;
+		stbar.Show();
+
+		MasterBook.ActiveControlEnd=stbar;
+
+		StatusLabel=new RLabel(stbar);
+		StatusLabel.Caption="Welcome to <b>Concept IDE 2.0</b> (c)2007-2016 Devronium Applications";
+		StatusLabel.UseMarkup=true;
+		StatusLabel.Show();
+
+		RunProgress=new RProgressBar(stbar);
+		RunProgress.Hide();		
+
+		Maximized=true;
+		//DefaultControl=chat.SendButton;
+		vbox.Show();
+		Notebook.OnSwitchPage=NotebookSwitchPage;
+		echo "Ready to go !\n";
+
+		//EndUpdateSession();
+		AddTimer(HostTimer, 1); // 10 miliseconds :)
+		
+		echo "Switching to GUI: Please wait ... (up to a minute)\n";
+		CApplication::EndNonCritical();
+		//EndUpdateSession();
+	}
+
+	public function QuickSearchClicked(Sender, EventData) {
+		var text=this.SearchCombo.Text;
+		if (text) {
+			if (this.SearchCombo.FindByData(text)==-1)
+				this.SearchCombo.InsertItem(0,text);
+			this.SearchNext(text);
+		}
+	}
+}

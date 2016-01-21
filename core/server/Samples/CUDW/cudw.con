@@ -1,0 +1,981 @@
+include Application.con
+include RForm.con
+include RVBox.con
+include RHBox.con
+include RLabel.con
+include REdit.con
+include RNotebook.con
+include RComboBox.con
+include RButton.con
+include RHButtonBox.con
+include RFrame.con
+include RCheckButton.con
+include RAlignment.con
+include RImage.con
+include RExpander.con
+include RScrolledWindow.con
+include RProgressBar.con
+include Updater.con
+
+include DataConnectionDialog.con
+
+import standard.lib.str
+import standard.lib.thread
+import standard.C.math
+
+define BUTTON_WIDTH		80
+define SHORTCUT_PATH		"../Shortcuts/"
+
+class MyForm extends RForm {
+	var WizBook;
+	var WizImage;
+	var DCReq;
+
+	var Server;
+	var Client;
+	var ClientKey;
+
+	var CheckPublic;
+	var CheckValidate;
+
+	var TreeUpdates;
+
+	var StatusStep2;
+	var StatusStep4;
+	var StatusStep5;
+
+	var NextButton1;
+	
+	var NextButton2;
+	var PrevButton2;
+
+	var NextButton3;
+	var PrevButton3;
+
+	var NextButton4;
+	var PrevButton4;
+
+	var FinishButton5;
+	var PrevButton5;
+
+	//var OverProgress;
+
+	var ServerList;
+	var[] Images;
+
+	var to_validate=false;
+	var to_public=false;
+	var to_server="";
+	var to_client="";
+	var url;
+	var thread_id=0;
+
+	var[] deployment;
+	var total_install=0;
+
+	var[] arr_install;
+
+	var total_size;
+	var target_path;
+
+	var install_wait=false;
+	var ignore_hide=false;
+
+	var has_errors=false;
+	public function on_write(Sender, size) {
+		if (target_path) {
+			total_size+=size;
+			var rec_size=url.ContentLength;
+			var item=StatusStep4.Items[target_path-1];
+
+			item[1]=number_format(total_size/1024,2,".", ",")+" Kb/";
+			item[1]+=number_format(rec_size/1024,2,".", ",")+" Kb";
+
+			if (rec_size)
+				item[2]=total_size/rec_size*100;
+
+			if (item)
+				StatusStep4.UpdateItem(target_path-1, item);
+		}
+		return false;
+	}
+
+	private function DoChildren(image, path, target_arr) {
+		var target_len=length target_arr;
+
+		for (var i=0;i<target_len;i++) {
+			var elem=target_arr[i];
+			var description="(none)";
+			/*if (length elem==3)
+				description=elem[2];
+			if (length elem==1)
+				elem[1]=elem[0];*/
+
+			if (elem["desc"])
+				description=elem["desc"];
+
+			if (length elem>=2) {
+				TreeUpdates.AddChild(path, [image,"NO",trim(""+elem[0]), description, elem["host"], elem["path"]]);
+			}
+		}
+	}
+
+	private function PackageSelected(Sender, EventData) {
+		var rowindex=EventData;
+		if (rowindex!="-1") {
+			var item=TreeUpdates.Items.GetPath(rowindex);
+			if (item) {
+				if (item[1]=="NO") {
+					item[1]="YES";
+					total_install++;
+					var to_install=item[4]+"/"+item[5];
+					arr_install[to_install]=[item[2],to_install,item[5]];
+					TreeUpdates.UpdateItem(rowindex, item);
+				} else
+				if (item[1]=="YES") {
+					total_install--;
+					item[1]="NO";
+					arr_install[to_install]=null;
+					TreeUpdates.UpdateItem(rowindex, item);
+				}
+			}
+			if (total_install) {
+				NextButton3.Enabled=true;
+			} else
+				NextButton3.Enabled=false;
+		}
+	}
+
+	private function ConnectThread() {
+
+		deployment=new [];
+		deployment[0]=new [];
+		deployment[1]=new [];
+		deployment[2]=new [];
+		deployment[3]=new [];
+
+		var delta=0;
+		// SERVER VALIDATION
+		if (to_validate) {
+			StatusStep2.AddItem(["Validating server", 0]);
+			var validate=url.ValidateServer(to_server);
+			if (!validate) {
+				if (url.IsSuccessful()) {
+					StatusStep2.UpdateItem(delta,["Error validating server", 100]);
+					CApplication::MessageBox("The selected server couldn't be verified by RadGs Software", "Error");
+				} else {
+					StatusStep2.UpdateItem(delta,["Error validating server", 100]);
+					CApplication::MessageBox("Could not verify the server.\nPlease check if the server is connected to the internet", "Error");
+				}
+				return 0;
+			}
+			StatusStep2.UpdateItem(delta,["Server validated", 100]);
+			delta++;
+		}
+
+		// PUBLIC APP LIST
+		if ((!to_client) || ((to_client) && (to_public))) {	
+			StatusStep2.AddItem(["Getting public application list", 0]);
+			var arr1=url.GetAppList(to_server+"/public");
+			deployment[0]=arr1;
+			var len1=0;
+			if (arr1)
+				len1=length arr1;
+			if (url.IsSuccessful())
+				StatusStep2.UpdateItem(delta,["Done, $len1 application(s)", 100]);
+			else
+				StatusStep2.UpdateItem(delta,["No public applications", 100]);
+			delta++;
+
+			StatusStep2.AddItem(["Getting public updates", 0]);
+
+			var arr=url.GetAppList(to_server+"/public_updates");
+			var len=0;
+			if (arr)
+				len=length arr;
+
+			deployment[1]=arr;
+			if (url.IsSuccessful())
+				StatusStep2.UpdateItem(delta,["Done, $len update(s)", 100]);
+			else
+				StatusStep2.UpdateItem(delta,["No public updates", 100]);
+			delta++;
+		}
+
+		// PRIVATE APP LIST
+		if (to_client) {	
+			StatusStep2.AddItem(["Getting private application list", 0]);
+			var arr2=url.GetAppList(to_server+"/private",to_client);
+			deployment[2]=arr2;
+			var len2=0;
+			if (arr2)
+				len2=length arr2;
+			if (url.IsSuccessful())
+				StatusStep2.UpdateItem(delta,["Done, $len2 application(s)", 100]);
+			else
+				StatusStep2.UpdateItem(delta,["No private applications for you", 100]);
+			delta++;
+
+			StatusStep2.AddItem(["Getting private updates", 0]);
+
+			var arr3=url.GetAppList(to_server+"/private_updates", to_client);
+			deployment[3]=arr3;
+			var len3=0;
+			if (arr3)
+				len3=length arr3;
+
+			if (url.IsSuccessful())
+				StatusStep2.UpdateItem(delta,["Done, $len3 private update(s)", 100]);
+			else
+				StatusStep2.UpdateItem(delta,["No private updates for you", 100]);
+			delta++;
+		}
+
+		TreeUpdates.Clear();
+		total_install=0;
+		TreeUpdates.AddItem([Images["apps"], " ", "Deployment","Full applications"]);
+		TreeUpdates.AddChild(0,[Images["privateapp"], " ", "Private", "Customer applications"]);
+		TreeUpdates.AddChild(0,[Images["publicapp"], " ", "Public", "General free applications"]);
+
+		TreeUpdates.AddItem([Images["updates"]," ","Updates","Updates for your applications"]);
+		TreeUpdates.AddChild(1,[Images["privateupdate"], " ", "Private", "Updates for customers"]);
+		TreeUpdates.AddChild(1,[Images["publicupdate"], " ", "Public", "General updates"]);
+
+		TreeUpdates.SearchColumn=2;
+
+		DoChildren(Images["itemapp"],[0,1],deployment[0]);
+		DoChildren(Images["itemapp"],[0,0],deployment[2]);
+		DoChildren(Images["itemupdate"],[1,1],deployment[1]);
+		DoChildren(Images["itemupdate"],[1,0],deployment[3]);
+
+		TreeUpdates.ExpandAll();
+		
+		thread_id=0;
+		PrevButton2.Enabled=true;
+		NextButton2.Enabled=true;
+	}
+
+	private function NextButton4Clicked(Sender, EventData) {
+		StatusStep5.Clear();
+		var len=length arr_install;
+		for (var i=0;i<len;i++) {
+			var item=arr_install[i];
+			if ((item) && (typeof item=="array")){
+				StatusStep5.AddItem([item[0], " "]);
+			}
+		}
+		PrevButton5.Enabled=false;
+		FinishButton5.Enabled=false;
+		RunThread(this.InstallThread);
+		WizBook.PageIndex=4;
+	}
+
+	private function FinishButton5Clicked(Sender, EventData) {
+		Hide();
+	}
+
+	private function BackButton5Clicked(Sender, EventData) {
+		WizBook.PageIndex=3;
+	}
+
+	private function BackButton4Clicked(Sender, EventData) {
+		WizBook.PageIndex=2;
+	}
+
+	private function BackButton3Clicked(Sender, EventData) {
+		WizBook.PageIndex=1;
+	}
+
+	private function BackButton2Clicked(Sender, EventData) {
+		WizBook.PageIndex=0;
+	}
+
+
+	private function DownloadThread() {
+		var len=length arr_install;
+		var index=0;
+
+		for (var i=0;i<len;i++) {
+			var item=arr_install[i];
+			if ((item) && (typeof item=="array")){
+				index++;
+				total_size=0;
+				target_path=index;
+
+				url.Get(item[1],"");
+				if (!url.IsSuccessful()) {
+					CApplication::MessageBox("Error downloading package ${item[0]}.\nTarget: ${item[1]}\nHTTP Code: ${url.Response}", "Error");
+				} else {
+					var name=arr_install[i][2];
+					name=StrReplace(name,"/","_");
+					name=StrReplace(name,"\\","_");
+					WriteFile(url.Data, "CUDW/updates/$name");
+				}
+			}
+		}
+		target_path=0;
+		PrevButton4.Enabled=true;
+		NextButton4.Enabled=true;
+	}
+
+	public function DSNSelected(Sender, EvetData) {
+		ignore_hide=true;
+		DCReq.Hide();
+
+		var contentarr=DCReq.UserData[0];
+		var scripts=DCReq.UserData[1];
+		var len=length scripts;
+
+		for (var i=0;i<len;i++) {
+			var script=scripts[i];
+			var data=ReadFile(script);
+			if (!data) {
+				CApplication::MessageBox("No data to execute for SQL query '$script'", "Warning");
+			} else {
+				var dataset=new ADODataSet(DCReq.DBCon);
+				dataset.CommandText=data;
+				dataset.ExecuteNonQuery();
+			}
+		}
+		var err=dataset.LastError();
+		if (err) {
+			has_errors=true;
+			CApplication::MessageBox("Errors/Warnings reported:\n$err","Error/Warning");
+		}
+
+		var index=DCReq.UserData[2]+1;
+
+		if (index<length contentarr) {
+			install_wait=true;
+
+			scripts=StrSplit(contentarr[index],",");
+			var len2=length scripts;
+			for (var j=0;j<len2;j++) {
+				scripts[j]=trim(scripts[j]);
+			}
+			DCReq.UserData=[contentarr, scripts, index];
+			DCReq.Show();
+		}
+
+	}
+
+	private function ProcessSQL(content) {
+		install_wait=true;
+		content=StrReplace(content,"\r","");
+		content=StrReplace(content,"\n","");
+
+		var contentarr=StrSplit(content,"SQL:");
+		var len=length contentarr;
+
+		if (len) {
+
+			var scripts=StrSplit(contentarr[0],",");
+			var len2=length scripts;
+			for (var j=0;j<len2;j++) {
+				scripts[j]=trim(scripts[j]);
+			}
+			DCReq.UserData=[contentarr, scripts, 0];
+			DCReq.Show();
+		}
+
+	}
+
+	public function DCReqOnHide(Sender, EventData) {
+		if (ignore_hide) {
+			ignore_hide=false;
+			return;
+		}
+
+		has_errors=true;
+		var contentarr=DCReq.UserData[0];
+		var index=DCReq.UserData[2]+1;
+
+		if (index<length contentarr) {
+			var scripts=StrSplit(contentarr[index],",");
+			var len2=length scripts;
+			for (var j=0;j<len2;j++) {
+				scripts[j]=trim(scripts[j]);
+			}
+			DCReq.UserData=[contentarr, scripts, index];
+			DCReq.Show();
+		} else {
+			install_wait=false;
+		}
+
+	}
+
+	public function InstallCallback(specialfilename, content) {
+		switch (specialfilename) {
+			case URL_RUN:
+			case CONSOLE_RUN:
+				system(specialfilename);
+				break;
+			case INFO_RUN:
+				echo "\n";
+				echo content;
+				break;
+			case CLIENT_RUN:
+				CApplication::ClientShell(specialfilename,GetAPID());
+				break;
+			case SQL_FILE_LIST:
+				ProcessSQL(content);
+				break;
+			default:
+				// is shortcut
+				WriteFile(content, SHORTCUT_PATH+specialfilename);
+		}
+	}
+
+	private function InstallThread() {
+		var len=length arr_install;
+		var index=0;
+		for (var i=0;i<len;i++) {
+			var item=arr_install[i];
+			if ((item) && (typeof item=="array")){
+				var name=arr_install[i][2];
+				name=StrReplace(name,"/","_");
+				name=StrReplace(name,"\\","_");
+
+				StatusStep5.UpdateItem(index, [arr_install[i][0],"Processing ..."]);
+				has_errors=false;
+				try {
+					Arc::UnZip("CUDW/updates/$name", InstallCallback);
+					if (install_wait) {
+						StatusStep5.UpdateItem(index, [arr_install[i][0],"Processing database"]);
+						while (install_wait)
+							Sleep(1000);
+					}
+					if (has_errors) {
+						StatusStep5.UpdateItem(index, [arr_install[i][0],"Installed, but database may be inconsistent"]);
+						has_errors=false;
+					} else
+						StatusStep5.UpdateItem(index, [arr_install[i][0],"Installed"]);
+				} catch (var exc) {
+					StatusStep5.UpdateItem(index, [arr_install[i][0],exc]);
+				}
+				index++;
+			}
+		}
+		PrevButton5.Enabled=true;
+		FinishButton5.Enabled=true;
+	}
+
+	private function NextButton3Clicked(Sender, EventData) {
+		StatusStep4.Clear();
+		var len=length arr_install;
+		for (var i=0;i<len;i++) {
+			var item=arr_install[i];
+			if ((item) && (typeof item=="array")){
+				StatusStep4.AddItem([item[0], "0 Kb", 0]);
+			}
+		}
+		PrevButton4.Enabled=false;
+		NextButton4.Enabled=false;
+		RunThread(DownloadThread);
+		WizBook.PageIndex=3;
+	}
+
+	private function NextButton2Clicked(Sender, EventData) {
+		WizBook.PageIndex=2;
+	}
+
+	private function NextButton1Clicked(Sender, EventData) {
+		if (thread_id) {
+			thread_id=0;
+		}
+
+
+		var index=Server.RowIndex;
+		if (index!=-1) {
+			to_validate=CheckValidate.Checked;
+			to_public=CheckPublic.Checked;
+			to_server=Server.Items[index][1];
+			to_client=Client.Text;
+			StatusStep2.Clear();
+			PrevButton2.Enabled=false;
+			NextButton2.Enabled=false;
+			NextButton3.Enabled=false;
+			arr_install=new [];
+			thread_id=RunThread(ConnectThread);
+		} else {
+			CApplication::MessageBox("No server selected", "Error");
+		}
+		WizBook.PageIndex=1;
+	}
+
+	public function LoadImages() {
+		var img1=new RImage(null);
+		img1.Filename="res/apps.png";
+		img1.Show();
+
+		var img2=new RImage(null);
+		img2.Filename="res/error.png";
+		img2.Show();
+
+		var img3=new RImage(null);
+		img3.Filename="res/ok.png";
+		img3.Show();
+
+		var img4=new RImage(null);
+		img4.Filename="res/privateapp.png";
+		img4.Show();
+
+		var img5=new RImage(null);
+		img5.Filename="res/privateupdate.png";
+		img5.Show();
+
+		var img6=new RImage(null);
+		img6.Filename="res/publicapp.png";
+		img6.Show();
+
+		var img7=new RImage(null);
+		img7.Filename="res/publicupdate.png";
+		img7.Show();
+
+		var img8=new RImage(null);
+		img8.Filename="res/updates.png";
+		img8.Show();
+
+		var img9=new RImage(null);
+		img9.Filename="res/itemapp.png";
+		img9.Show();
+
+		var img10=new RImage(null);
+		img10.Filename="res/updateitem.png";
+		img10.Show();
+
+		Images["apps"]=img1;
+		Images["error"]=img2;
+		Images["ok"]=img3;
+		Images["privateapp"]=img4;
+		Images["privateupdate"]=img5;
+		Images["publicapp"]=img6;
+		Images["publicupdate"]=img7;
+ 		Images["updates"]=img8;
+
+ 		Images["itemapp"]=img9;
+ 		Images["itemupdate"]=img10;
+	}
+
+	public function LoadServers() {
+		var data=ReadFile("data/servers.lst");
+		if (!data)
+			return [ ];
+		data=StrReplace(data, "\r","");
+		if (!data)
+			return [ ];
+		var data_arr=StrSplit(data,"\n");
+
+		var len=length data_arr;
+		var[] arr;
+
+		for (var i=0;i<len;i++) {
+			var elem=StrSplit(data_arr[i],":");
+			if (length elem==1)
+				elem[1]=elem[0];
+
+			if (length elem==2) {
+				arr[i]=[trim(elem[0]), trim(elem[1])];
+			}
+		}
+		return arr;
+	}
+
+	private function CreatePage1(owner) {
+		var vbox1=new RVBox(owner);
+		vbox1.PackType=PACK_SHRINK;
+		vbox1.Show();
+
+		var label0=new RLabel(vbox1);
+		label0.Caption="Step 1 of 5";
+		label0.Font.Name="Sans Bold 16";
+		label0.XAlign=0.95;
+
+		label0.Show();
+
+		var align0=new RAlignment(vbox1);
+		align0.MinHeight=30;
+		align0.Show();
+
+		var label1=new RLabel(vbox1);
+		label1.XAlign=0.00;
+		label1.Caption="Server:";
+		label1.Show();
+
+		Server=new RComboBox(vbox1);
+		Server.AddColumns(1);
+
+		ServerList=LoadServers();
+
+		var len=length ServerList;
+		for (var i=0;i<len;i++) {
+			Server.AddItem(ServerList[i]);
+		}
+		Server.RowIndex=0;
+		Server.Show();
+
+		CheckValidate=new RCheckButton(vbox1);
+		CheckValidate.Checked=true;
+		CheckValidate.Caption="Autentificate server";
+		CheckValidate.Show();
+
+		var hboxf=new RExpander(vbox1);
+		hboxf.Caption="Only for commercial applications";
+		hboxf.Show();
+
+		var frame1=new RFrame(hboxf);
+		//frame1.Caption="Only for commercial applications";
+		frame1.Show();
+
+		var vbox2=new RVBox(frame1);
+		vbox2.Show();
+
+		var hbox2=new RHBox(vbox2);
+		hbox2.PackType=PACK_SHRINK;
+		hbox2.Show();
+		
+		var label2=new RLabel(hbox2);
+		label2.MinWidth=80;
+		label2.XAlign=0.00;
+		label2.Caption="Customer";
+		label2.Show();
+
+		Client=new REdit(hbox2);
+		Client.Show();
+
+		var hbox3=new RHBox(vbox2);
+		hbox3.PackType=PACK_SHRINK;
+		hbox3.Show();
+		
+		var label3=new RLabel(hbox3);
+		label3.MinWidth=80;
+		label3.XAlign=0.00;
+		label3.Caption="Customer key";
+		label3.Show();
+
+		ClientKey=new REdit(hbox3);
+		ClientKey.Show();
+		
+		CheckPublic=new RCheckButton(vbox2);
+		CheckPublic.Checked=true;
+		CheckPublic.Caption="Also get the _public applications list";
+		CheckPublic.Show();
+
+		var align2=new RAlignment(vbox1);
+		align2.MinHeight=50;
+		align2.Show();
+
+		/*var align3=new RAlignment(vbox1);
+		align3.Packing=PACK_EXPAND_WIDGET;
+		align3.Show();*/
+
+		var label_info=new RLabel(vbox1);
+		label_info.Packing=PACK_EXPAND_PADDING;
+		label_info.Show();
+		var content=ReadFile("res/page1.txt");
+		if (content)
+			label_info.Caption=content;
+
+		var hbox4=new RHBox(vbox1);
+		hbox4.Show();
+
+		var align4=new RAlignment(hbox4);
+		align4.Packing=PACK_EXPAND_WIDGET;
+		align4.Show();
+
+		NextButton1=new RButton(hbox4);
+		NextButton1.Caption="_Next";
+		NextButton1.MinWidth=BUTTON_WIDTH;
+		NextButton1.OnClicked=NextButton1Clicked;
+		NextButton1.Packing=PACK_SHRINK;
+		NextButton1.Tooltip="Proceed to step 2";
+		NextButton1.Show();
+	}
+
+
+	public function CreatePage2(owner) {
+		var vbox1=new RVBox(owner);
+		vbox1.PackType=PACK_SHRINK;
+		vbox1.Show();
+
+		var label0=new RLabel(vbox1);
+		label0.Caption="Step 2 of 5";
+		label0.Font.Name="Sans Bold 16";
+		label0.XAlign=0.95;
+
+		label0.Show();
+
+
+		var label_info=new RLabel(vbox1);
+		label_info.Show();
+		var content=ReadFile("res/page2.txt");
+		if (content)
+			label_info.Caption=content;
+
+		var scroll=new RScrolledWindow(vbox1);
+		scroll.Packing=PACK_EXPAND_WIDGET;
+		scroll.HScrollPolicy=POLICY_AUTOMATIC;
+		scroll.VScrollPolicy=POLICY_AUTOMATIC;
+		scroll.Show();
+
+		StatusStep2=new RTreeView(scroll);
+		StatusStep2.Model=MODEL_LISTVIEW;
+		//StatusStep2.AddColumn(" ", IMAGE_COLUMN);
+		StatusStep2.AddColumn("Operation", NORMAL_COLUMN);
+		StatusStep2.AddColumn("Progress", PERCENT_COLUMN);
+		StatusStep2.Show();
+
+		var hbox4=new RHBox(vbox1);
+		hbox4.Show();
+
+		var align4=new RAlignment(hbox4);
+		align4.Packing=PACK_EXPAND_WIDGET;
+		align4.Show();
+
+		PrevButton2=new RButton(hbox4);
+		PrevButton2.MinWidth=BUTTON_WIDTH;
+		PrevButton2.Caption="_Back";
+		PrevButton2.OnClicked=BackButton2Clicked;
+		PrevButton2.Packing=PACK_SHRINK;
+		PrevButton2.Tooltip="Back to step 1";
+		PrevButton2.Enabled=false;
+		PrevButton2.Show();
+
+		NextButton2=new RButton(hbox4);
+		NextButton2.Caption="_Next";
+		NextButton2.MinWidth=BUTTON_WIDTH;
+		NextButton2.Enabled=false;
+		NextButton2.OnClicked=NextButton2Clicked;
+		NextButton2.Packing=PACK_SHRINK;
+		NextButton2.Tooltip="Proceed to step 3";
+		NextButton2.Show();
+	}
+
+
+	public function CreatePage3(owner) {
+		var vbox1=new RVBox(owner);
+		vbox1.PackType=PACK_SHRINK;
+		vbox1.Show();
+
+		var label0=new RLabel(vbox1);
+		label0.Caption="Step 3 of 5";
+		label0.Font.Name="Sans Bold 16";
+		label0.XAlign=0.95;
+
+		label0.Show();
+
+		var label_info=new RLabel(vbox1);
+		label_info.Show();
+		var content=ReadFile("res/page3.txt");
+		if (content)
+			label_info.Caption=content;
+
+
+		var scroll=new RScrolledWindow(vbox1);
+		scroll.Packing=PACK_EXPAND_WIDGET;
+		scroll.HScrollPolicy=POLICY_AUTOMATIC;
+		scroll.VScrollPolicy=POLICY_AUTOMATIC;
+		scroll.Show();
+
+		TreeUpdates=new RTreeView(scroll);
+		TreeUpdates.Model=MODEL_TREEVIEW;
+		TreeUpdates.AddColumn(" ", IMAGE_COLUMN);
+		TreeUpdates.AddColumn("Install", NORMAL_COLUMN);
+		TreeUpdates.AddColumn("Package", NORMAL_COLUMN);
+		TreeUpdates.AddColumn("Description", NORMAL_COLUMN);
+		TreeUpdates.OnRowActivated=PackageSelected;
+		TreeUpdates.Show();
+
+		var hbox4=new RHBox(vbox1);
+		hbox4.Show();
+
+		var align4=new RAlignment(hbox4);
+		align4.Packing=PACK_EXPAND_WIDGET;
+		align4.Show();
+
+		PrevButton3=new RButton(hbox4);
+		PrevButton3.MinWidth=BUTTON_WIDTH;
+		PrevButton3.Caption="_Back";
+		PrevButton3.OnClicked=BackButton3Clicked;
+		PrevButton3.Packing=PACK_SHRINK;
+		PrevButton3.OnClicked=BackButton3Clicked;
+		PrevButton3.Tooltip="Back to step 2";
+		PrevButton3.Show();
+
+		NextButton3=new RButton(hbox4);
+		NextButton3.Caption="_Next";
+		NextButton3.MinWidth=BUTTON_WIDTH;
+		NextButton3.Packing=PACK_SHRINK;
+		NextButton3.OnClicked=NextButton3Clicked;
+		NextButton3.Tooltip="Proceed to step 4";
+		NextButton3.Show();
+	}
+
+	public function CreatePage4(owner) {
+		var vbox1=new RVBox(owner);
+		vbox1.PackType=PACK_SHRINK;
+		vbox1.Show();
+
+		var label0=new RLabel(vbox1);
+		label0.Caption="Step 4 of 5";
+		label0.Font.Name="Sans Bold 16";
+		label0.XAlign=0.95;
+
+		label0.Show();
+
+		var label_info=new RLabel(vbox1);
+		label_info.Show();
+		var content=ReadFile("res/page4.txt");
+		if (content)
+			label_info.Caption=content;
+
+
+		var scroll=new RScrolledWindow(vbox1);
+		scroll.Packing=PACK_EXPAND_WIDGET;
+		scroll.HScrollPolicy=POLICY_AUTOMATIC;
+		scroll.VScrollPolicy=POLICY_AUTOMATIC;
+		scroll.Show();
+
+		StatusStep4=new RTreeView(scroll);
+		StatusStep4.Model=MODEL_LISTVIEW;
+		//StatusStep4.AddColumn(" ", /*IMAGE_COLUMN*/NORMAL_COLUMN);
+		StatusStep4.AddColumn("Downloading", NORMAL_COLUMN);
+		StatusStep4.AddColumn("Received", NORMAL_COLUMN);
+		StatusStep4.AddColumn("%", PERCENT_COLUMN);
+		StatusStep4.Show();
+
+		/*OverProgress=new RProgressBar(vbox1);
+		OverProgress.Show();*/
+
+		var hbox4=new RHBox(vbox1);
+		hbox4.Show();
+
+		var align4=new RAlignment(hbox4);
+		align4.Packing=PACK_EXPAND_WIDGET;
+		align4.Show();
+
+		PrevButton4=new RButton(hbox4);
+		PrevButton4.Caption="_Back";
+		PrevButton4.MinWidth=BUTTON_WIDTH;
+		PrevButton4.Packing=PACK_SHRINK;
+		PrevButton4.Tooltip="Back to step 3";
+		PrevButton4.Enabled=false;
+		PrevButton4.OnClicked=BackButton4Clicked;
+		PrevButton4.Show();
+
+		NextButton4=new RButton(hbox4);
+		NextButton4.MinWidth=BUTTON_WIDTH;
+		NextButton4.Caption="_Next";
+		NextButton4.Packing=PACK_SHRINK;
+		NextButton4.Tooltip="Proceed to step 5";
+		NextButton4.OnClicked=NextButton4Clicked;
+		NextButton4.Enabled=false;
+		NextButton4.Show();
+	}
+
+	public function CreatePage5(owner) {
+		var vbox1=new RVBox(owner);
+		vbox1.PackType=PACK_SHRINK;
+		vbox1.Show();
+
+		var label0=new RLabel(vbox1);
+		label0.Caption="Step 5 of 5";
+		label0.Font.Name="Sans Bold 16";
+		label0.XAlign=0.95;
+
+		label0.Show();
+
+		var label_info=new RLabel(vbox1);
+		label_info.Show();
+		var content=ReadFile("res/page5.txt");
+		if (content)
+			label_info.Caption=content;
+
+
+		var scroll=new RScrolledWindow(vbox1);
+		scroll.Packing=PACK_EXPAND_WIDGET;
+		scroll.HScrollPolicy=POLICY_AUTOMATIC;
+		scroll.VScrollPolicy=POLICY_AUTOMATIC;
+		scroll.Show();
+
+		StatusStep5=new RTreeView(scroll);
+		StatusStep5.Model=MODEL_LISTVIEW;
+		//StatusStep5.AddColumn(" ", IMAGE_COLUMN);
+		StatusStep5.AddColumn("Package", NORMAL_COLUMN);
+		StatusStep5.AddColumn("Status", NORMAL_COLUMN);
+		StatusStep5.Show();
+
+		var hbox4=new RHBox(vbox1);
+		hbox4.Show();
+
+		var align4=new RAlignment(hbox4);
+		align4.Packing=PACK_EXPAND_WIDGET;
+		align4.Show();
+
+		PrevButton5=new RButton(hbox4);
+		PrevButton5.MinWidth=BUTTON_WIDTH;
+		PrevButton5.Caption="_Back";
+		PrevButton5.Packing=PACK_SHRINK;
+		PrevButton5.Tooltip="Back to step 4";
+		PrevButton5.OnClicked=BackButton5Clicked;
+		PrevButton5.Show();
+
+		FinishButton5=new RButton(hbox4);
+		FinishButton5.Caption="_Finish";
+		FinishButton5.Packing=PACK_SHRINK;
+		FinishButton5.OnClicked=FinishButton5Clicked;
+		FinishButton5.MinWidth=BUTTON_WIDTH;
+		FinishButton5.Tooltip="Finish";
+		FinishButton5.Show();
+	}
+
+	public function MyForm(owner=null) {
+		super(owner);
+		BeginUpdateSession();
+		var hbox1=new RHBox(this);
+		hbox1.Show();
+
+		Caption="Concept Update & Deploy Wizard (CUDW) 1.0";
+
+		WizImage=new RImage(hbox1);
+		WizImage.Filename="res/wizlogo.png";
+		WizImage.Packing=PACK_SHRINK;
+		WizImage.Show();
+
+		WizBook=new RNotebook(hbox1);
+		LoadImages();
+		CreatePage1(WizBook);
+		CreatePage2(WizBook);
+		CreatePage3(WizBook);
+		CreatePage4(WizBook);
+		CreatePage5(WizBook);
+		WizBook.ShowTabs=false;
+		WizBook.Show();
+		url=new URL();
+		url.my_delegate=on_write;
+
+		Height=420;
+		Width=620;
+
+		DCReq=new DataConnectionDialog(this);
+		DCReq.OnHide=DCReqOnHide;
+		DCReq.OnDSNSelected=DSNSelected;
+		_chdir("..");
+
+		EndUpdateSession();
+	}
+}
+
+class Main {
+	function Main() {
+			try {
+				var Application=new CApplication(new MyForm(null));
+
+				Application.Init();
+				Application.Run();
+				Application.Done();
+			} catch (var Exception) {
+				echo Exception;
+			}
+	}
+}

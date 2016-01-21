@@ -1,0 +1,66 @@
+import standard.lib.thread
+
+class _tvar {
+	private var Semaphore;
+	private var _data=null;
+
+	public property Data { get GetData, set SetData }
+
+	public function _tvar(var data=null) {
+		var hh=semcreate();
+		seminit(hh, 1);
+		Semaphore=hh;
+		if ((typeof data!="numeric") || (data))
+			this=data;
+	}
+
+	public function GetData() {
+		semp(Semaphore);
+		if (typeof this._data!="string")
+			var data=&this._data;
+		else
+			data=""+this._data;
+		semv(Semaphore);
+		return data;
+	}
+
+	public function Lock() {
+		semp(Semaphore);
+	}
+
+	public function Unlock() {
+		semv(Semaphore);
+	}
+
+	public function SetData(var data) {
+		semp(Semaphore);
+		if (classof data=="_tvar") {
+			this._data=data.Data;
+		} else
+			this._data=data;
+		semv(Semaphore);
+		return data;
+	}
+
+	public operator = (var data) {
+		this.SetData(data);
+	}
+
+	public operator == (var data) {
+		var res=0;
+		semp(Semaphore);
+		if (classof data=="_tvar") {
+			res=(this._data==data.Data);
+		} else
+			res=(this._data==data);
+		semv(Semaphore);
+	}
+
+	public operator != (var data) {
+		return !(this==data);
+	}
+
+	public function finalize() {
+		semdone(Semaphore);
+	}
+}

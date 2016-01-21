@@ -1,0 +1,198 @@
+
+//=============================================================//
+include Lang.con
+include RForm.con
+include Application.con
+include RForm.con
+include RVBox.con
+include RImage.con
+include RTable.con
+include RLabel.con
+include RHBox.con
+include RCheckButton.con
+include REdit.con
+include RSpinButton.con
+include RHButtonBox.con
+include RButton.con
+include RScrolledWindow.con
+include RTextView.con
+include RStatusbar.con
+
+
+
+class MainWindow extends RForm {
+        // keep the string table
+        protected var S;
+
+        public var this_image_wrap;
+        public var vbox1;
+        public var image1;
+        public var table1;
+        public var label1;
+        public var label2;
+        public var label3;
+        public var label4;
+        public var hbox1;
+        public var CheckDebug;
+        public var EditDebugPath;
+        public var label5;
+        public var EditPort;
+        public var EditIndex;
+        public var EditCGIName;
+        public var EditDistPath;
+        public var label6;
+        public var hbuttonbox1;
+        public var InputButton;
+        public var GenerateButton;
+        public var scrolledwindow1;
+        public var textview1;
+        public var statusbar1;
+
+
+	public function on_InputButton_clicked(Sender, EventData);
+	public function on_GenerateButton_clicked(Sender, EventData);
+
+
+        // ========================================================================
+        // constructor;
+        // S is a Lang object used to translate strings using
+        // the default string table named string.table.xml
+        // Is your responsability to pass this object to other forms instantiated
+        // in this application
+        // ========================================================================
+
+        public function MainWindow(Owner, Lang S) {
+                super(Owner);
+                this.S=S;
+
+		CApplication::BeginNonCritical();
+
+                this.Caption=S<<"Apache Configurator";
+                this_image_wrap=new RImage(null);
+                this_image_wrap.Filename="res/small_feather.gif";
+                this_image_wrap.Show();
+                this.Icon=this_image_wrap;
+                this.Type=WT_DIALOG;
+
+                vbox1=new RVBox(this);
+                vbox1.Visible=true;
+
+                image1=new RImage(vbox1);
+                image1.Packing=PACK_SHRINK;
+                image1.Visible=true;
+                image1.Filename="res/httpd_logo_wide.png";
+
+                table1=new RTable(vbox1);
+                table1.Visible=true;
+                table1.Rows=5;
+                table1.Columns=2;
+
+                table1.AttachOptions(0, 1, 0, 1, SHRINK, SHRINK, 0, 0);
+                label1=new RLabel(table1);
+                label1.Visible=true;
+                label1.Caption=S<<"Concept distribution path";
+
+                table1.AttachOptions(0, 1, 1, 2, SHRINK, SHRINK, 0, 0);
+                label2=new RLabel(table1);
+                label2.Visible=true;
+                label2.Caption=S<<"Concept CGI name";
+
+                table1.AttachOptions(0, 1, 2, 3, SHRINK, SHRINK, 0, 0);
+                label3=new RLabel(table1);
+                label3.Visible=true;
+                label3.Caption=S<<"Index files";
+
+                table1.AttachOptions(0, 1, 3, 4, SHRINK, SHRINK, 0, 0);
+                label4=new RLabel(table1);
+                label4.Visible=true;
+                label4.Caption=S<<"Configure for CIDE/web debugging";
+
+                table1.AttachOptions(1, 2, 3, 4, FILL | EXPAND, FILL | EXPAND, 0, 0);
+                hbox1=new RHBox(table1);
+                hbox1.Visible=true;
+
+                CheckDebug=new RCheckButton(hbox1);
+                CheckDebug.Packing=PACK_SHRINK;
+                CheckDebug.Visible=true;
+                CheckDebug.Caption=S<<"Yes, Path:";
+                CheckDebug.Checked=true;
+
+                EditDebugPath=new REdit(hbox1);
+                EditDebugPath.Visible=true;
+
+                label5=new RLabel(hbox1);
+                label5.Packing=PACK_SHRINK;
+                label5.Visible=true;
+                label5.Caption=S<<" Port: ";
+
+                EditPort=new RSpinButton(hbox1);
+                EditPort.Packing=PACK_SHRINK;
+                EditPort.Visible=true;
+                EditPort.Adjustment.Value=8080;
+                EditPort.Adjustment.Lower=0;
+                EditPort.Adjustment.Upper=65535;
+                EditPort.Adjustment.Increment=1;
+                EditPort.Adjustment.PageIncrement=10;
+                EditPort.Adjustment.PageSize=10;
+                EditPort.Numeric=true;
+
+                table1.AttachOptions(1, 2, 2, 3, FILL | EXPAND, FILL | EXPAND, 0, 0);
+                EditIndex=new REdit(table1);
+                EditIndex.Visible=true;
+                EditIndex.Tooltip=S<<"Leave this field empty if you don't want to set it";
+                EditIndex.Text=S<<"index.csp index.con";
+
+                table1.AttachOptions(1, 2, 1, 2, FILL | EXPAND, FILL | EXPAND, 0, 0);
+                EditCGIName=new REdit(table1);
+                EditCGIName.Visible=true;
+                EditCGIName.Text=S<<"concept-cgi";
+
+                table1.AttachOptions(1, 2, 0, 1, FILL | EXPAND, FILL | EXPAND, 0, 0);
+                EditDistPath=new REdit(table1);
+                EditDistPath.Visible=true;
+
+                table1.AttachOptions(0, 1, 4, 5, SHRINK, SHRINK, 0, 0);
+                label6=new RLabel(table1);
+                label6.Visible=true;
+                label6.Caption=S<<"Actions";
+
+                table1.AttachOptions(1, 2, 4, 5, FILL | EXPAND, FILL | EXPAND, 0, 0);
+                hbuttonbox1=new RHButtonBox(table1);
+                hbuttonbox1.Visible=true;
+                hbuttonbox1.Layout=BUTTONBOX_SPREAD;
+
+                InputButton=new RButton(hbuttonbox1);
+                InputButton.Visible=true;
+                InputButton.Caption=S<<"Select input httpd.conf";
+                InputButton.OnClicked=this.on_InputButton_clicked;
+
+                GenerateButton=new RButton(hbuttonbox1);
+                GenerateButton.Visible=true;
+                GenerateButton.Enabled=false;
+                GenerateButton.Caption=S<<"Generate Concept-aware httpd.conf";
+                GenerateButton.OnClicked=this.on_GenerateButton_clicked;
+
+                scrolledwindow1=new RScrolledWindow(vbox1);
+                scrolledwindow1.Visible=true;
+                scrolledwindow1.HScrollPolicy=POLICY_AUTOMATIC;
+                scrolledwindow1.VScrollPolicy=POLICY_AUTOMATIC;
+                scrolledwindow1.ShadowType=SHADOW_IN;
+
+                textview1=new RTextView(scrolledwindow1);
+                textview1.Visible=true;
+                textview1.ReadOnly=true;
+                textview1.CursorVisible=false;
+
+                statusbar1=new RStatusbar(vbox1);
+                statusbar1.Packing=PACK_SHRINK;
+                statusbar1.Visible=true;
+                statusbar1.Spacing=2;
+
+		CApplication::EndNonCritical();
+        }
+
+	override on_InputButton_clicked;
+	override on_GenerateButton_clicked;
+
+}
+

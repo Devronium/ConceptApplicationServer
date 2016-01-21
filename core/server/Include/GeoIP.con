@@ -1,0 +1,79 @@
+import standard.net.geoip
+
+class GeoIP {
+	private var handle=null;
+	public property Handle { get handle }
+	public var HostnameMode=false;
+
+	public function GeoIP() {
+		// nothing
+	}
+
+	public function Create(number dbi=GEOIP_STANDARD) {
+		if (this.handle)
+			this.Close();
+		this.handle=GeoIP_new(dbi);
+	}
+
+	public function Open(string file, number dbi=GEOIP_STANDARD) {
+		if (this.handle)
+			this.Close();
+		this.handle=GeoIP_open(file, dbi);
+	}
+
+	public function OpenType(number type, number dbi) {
+		if (this.handle)
+			this.Close();
+		this.handle=GeoIP_open_type(type, dbi);
+	}
+
+	public function Close() {
+		if (this.handle)
+			GeoIP_delete(this.handle);
+		this.handle=0;
+	}
+
+	public function finalize() {
+		this.Close();
+	}
+
+	public function GetCountryCode(string ip) {
+		if (!this.handle)
+			throw "Invalid GeoIP handle or database. You must open a database first.";
+		if (this.HostnameMode)
+			return GeoIP_country_code_by_name(this.handle, ip);
+		return GeoIP_country_code_by_addr(this.handle, ip);
+	}
+
+	public function GetRecord(string ip) {
+		if (!this.handle)
+			throw "Invalid GeoIP handle or database. You must open a database first.";
+		if (this.HostnameMode)
+			return GeoIP_record_by_addr(this.handle, ip);
+		return GeoIP_record_by_name(this.handle, ip);
+	}
+
+	public function GetRegion(string ip) {
+		if (!this.handle)
+			throw "Invalid GeoIP handle or database. You must open a database first.";
+		if (this.HostnameMode)
+			return GeoIP_region_by_addr(this.handle, ip);
+		return GeoIP_region_by_name(this.handle, ip);
+	}
+
+	public operator [](string ip) {
+		return GetCountryCode(ip);
+	}
+
+	static function Country(string ip4, by_host=false) {
+		var res="";
+		var gi=GeoIP_new(GEOIP_STANDARD);
+		if (by_host)
+			res=GeoIP_country_code_by_name(gi, ip4);
+		else
+			res=GeoIP_country_code_by_addr(gi, ip4);
+		GeoIP_delete(gi);
+		return res;
+	}
+
+}

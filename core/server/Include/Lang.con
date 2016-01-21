@@ -1,0 +1,194 @@
+include XMLDocument.con
+include Serializable.con
+import standard.C.io
+import standard.lib.str
+
+
+class Lang {
+	private var[] string_table;
+	private var language="";
+
+	public property Language { get language, set SetLanguage }
+
+	public function SetLanguage(string lang) {
+		return (this.language=lang);
+	}
+
+	function Lang(string filename="string.table.xml") {
+		this.Load(filename);
+	}
+
+	operator << (string s) {
+		if (!language)
+			return s;
+
+		var key=language+'$'+s;
+		if (IsSet(string_table,key))
+			return string_table[key];
+
+		return s;
+	}
+
+	function LoadString(string str) {
+		var doc2=new XMLDocument();
+		doc2.LoadString(str);
+		var result=false;
+		if ((doc2.Root) && (doc2.Root.Name=="StringTable")) {
+			string_table=new [];
+			var node=doc2.Root.Child;
+			while (node) {
+				var name=node.Name;
+				if (name=="string") {
+					var msgid=node.GetProperty("msgid");
+					//var arr=new [];
+					var child=node.Child;
+					while (child) {
+						if (child.Name=="lang") {
+							var id=child.GetProperty("id");
+							//arr[id]=trim(child.Content);
+							string_table[id+'$'+msgid]=trim(child.Content);
+						}
+						child=child.Next;
+					}
+
+					//string_table[msgid]=arr;
+				} else
+				if (name=="default") {
+					if (!language)
+						language=node.GetProperty("langid");
+				}
+				node=node.Next;
+			}
+			result=true;
+		}
+		doc2.Free();
+		return result;
+	}
+	
+	function Load(string filename="string.table.xml") {
+		var data=ReadFile(filename);
+		if (data)
+			return LoadString(data);
+		else
+			return false;
+	}
+
+	function AddSymbol(string msgid) {
+		var key=language+'$'+msgid;
+		if (IsSet(string_table,key))
+			return true;
+
+		if (language)
+			string_table[key]=msgid;
+	}
+
+	function AddSymbols(array msgids) {
+		var len=length msgids;
+		for (var i=0;i<len;i++) {
+			var msgid=msgids[i];
+		    var key=language+'$'+msgid;
+
+			if (IsSet(string_table,key))
+				continue;
+
+			if (language)
+				string_table[key]=msgid;
+			else
+			    break;
+		}
+	}
+
+
+	function SaveString(filename="") {
+		var doc=new XMLDocument();
+		doc.Create();
+
+		var len=length string_table;
+
+		var node=doc.NewNode("StringTable");
+		doc.Root=node;
+
+
+		var opt=doc.NewNode("default");
+		if (language)
+			opt.SetProperty("langid",language);
+		else
+			opt.SetProperty("langid","en");
+
+		node.AddChild(opt);
+
+		if (len)
+			var keys=GetKeys(string_table);
+
+        var[] string_table2;
+		for (var i=0;i<len;i++) {
+		    var item=keys[i];
+		    if (item) {
+		        var len_k=length item;
+		        var item2="";
+		        var lang_id="";
+
+		        for (var k=0;k<len_k;k++) {
+		            var c=item[k];
+		            if (c=='$') {
+		                item2=SubStr(item, k+1, len_k-k);
+		                break;
+		            }
+		            lang_id+=c;
+		        }
+
+		        if ((item2) && (lang_id)) {
+		            var target=string_table2[item2];
+		            if (!target) {
+		                target=new [];
+		                string_table2[item2]=target;
+		            }
+		            target[lang_id]=string_table[item];
+		        }
+		    }
+		}
+
+		keys=GetKeys(string_table2);
+		len=length keys;
+
+		for (i=0;i<len;i++) {
+			var key=keys[i];
+			var str=doc.NewNode("string");
+			str.SetProperty("msgid",key);
+			var arr=string_table2[i];
+			if (arr) {
+				var len2=length arr;
+				if (len2)
+					var keys2=GetKeys(arr);
+
+				for (var j=0;j<len2;j++) {
+					var key2=keys2[j];
+
+					var child=doc.NewNode("lang");
+					child.SetProperty("id",key2);
+					child.Content=arr[j];
+
+					str.AddChild(child);
+				}
+			}
+			
+			node.AddChild(str);
+		}
+
+		var res="";
+
+		if (filename) {
+			doc.Filename=filename;
+			doc.Save();
+		} else
+			res=doc.SaveString();
+
+		doc.Free();
+		return res;
+	} 
+
+	function Save(string filename="string.table.xml") {
+		//return SaveString(filename);
+		return WriteFile(SaveString(), filename);
+	}
+}

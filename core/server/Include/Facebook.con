@@ -1,0 +1,477 @@
+import standard.lib.str
+import standard.lib.json
+import standard.coding.base64
+import standard.lib.cripto
+import standard.C.time
+import standard.lang.serialize
+import web.server.api
+
+include XMLDocument.con
+include URL.con
+
+define FACEBOOK_API		"https://api.facebook.com/"
+define FACEBOOK_API_READ	"https://api-read.facebook.com/"
+define FACEBOOK_GRAPH		"https://graph.facebook.com/"
+define FACEBOOK_WWW		"https://www.facebook.com/"
+define FACEBOOK_AGENT		"facebook-concept-2.0"
+
+class Facebook {
+	public var Version="2.1.2";
+
+	protected var _APPID;
+	protected var _APISECRET="";
+	protected var _APISESSION;
+	protected var _SIGNEDREQUEST="";
+	protected var _SESSIONLOADED=false;
+	protected var _COOKIESUPPORT=false;
+	protected var _BASEDOMAIN="";
+	protected var _FILEUPLOADSUPPORT="";
+	protected var[] _DOMAINMAP;
+
+	
+	public property AppId { get _APPID }
+	public property ApiSecret { get _APISECRET }
+	//public property SignedRequest { get _SIGNEDREQUEST }
+	public property SessionLoaded { get _SESSIONLOADED }
+	public property CookieSupport { get _COOKIESUPPORT }
+	public property BaseDomain { get _BASEDOMAIN }
+	public property FileUploadSupport { get _FILEUPLOADSUPPORT }
+
+	public property SignedRequest { get getSignedRequest }
+	public property AccessToken { get getAccessToken }
+	public property Session { get getSession }
+	public property User { get getUser }
+
+	public property LoginURL { get getLoginUrl }
+	public property LogoutURL { get getLogoutUrl }
+	public property LoginStatus { get getLoginStatus }
+
+	public function Facebook(string apid, string secret, number cookie=true, string domain="", fileupload=false) {
+		this._APPID=apid;
+		this._APISECRET=secret;
+		this._COOKIESUPPORT=cookie;
+		this._BASEDOMAIN=domain;
+		this._FILEUPLOADSUPPORT=fileupload;
+
+		this._DOMAINMAP["api"]		=	FACEBOOK_API;
+		this._DOMAINMAP["api_read"]	=	FACEBOOK_API_READ;
+		this._DOMAINMAP["graph"]	=	FACEBOOK_GRAPH;
+		this._DOMAINMAP["www"]		=	FACEBOOK_WWW;
+	}
+
+	protected function ArrayAdd(array array1, array array2) {
+		var keys2=GetKeys(array2);
+		var len=length keys2;
+		for (var i=0;i<len;i++) {
+			var key=keys2[i];
+			if (key)
+				array1[key]=array2[key];
+		}
+		return array1;
+	}
+
+	protected function ArrayMerge(array array1, array array2) {
+		var[] result;
+		this.ArrayAdd(result, array1);
+		this.ArrayAdd(result, array2);
+		return result;
+	}
+
+	public function api(array args) {
+		if (typeof args[0]=="array")
+			return this._restserver(args[0]);
+
+		return this._graph(args);
+	}
+
+	protected function _graph(params, method="GET") {
+		params['method']=method;
+		var path=params[0];
+		var result=JSONDeserialize(this._oauthRequest(this.getUrl('graph', path), params));
+		if ((typeof result=="array") && (result['error']))
+			throw result;
+		return result;
+	}
+
+	protected function makeRequest(url, params) {
+		var u=new URL();
+		var[] params2;
+		if (params) {
+			var keys=GetKeys(params);
+			var len=length keys;
+			for (var i=0;i<len;i++) {
+				var key=keys[i];
+				var val=params[key];
+				if ((key) && (val))
+					params2[key]=val;
+			}
+		}
+		u.Get(url, params2, true, FACEBOOK_AGENT);
+
+		if (!u.IsSuccessful())
+			throw ["Error in request $url: code ${u.Response}", JSONDeserialize(u.Data)];
+		return u.Data;
+	}
+
+	protected function _oauthRequest(url, params) {
+		if (!params['access_token'])
+			params['access_token']=this.getAccessToken();
+		var keys=GetKeys(params);
+		var len=length keys;
+		for (var i=0;i<len;i++) {
+			var key=keys[i];
+			var val=params[key];
+			if ((key) && (typeof val!="string")) {
+				params[key]=JSONSerialize(val);
+			}
+		}
+		return this.makeRequest(url, params);
+	}
+
+	protected function _restserver(params) {
+		params['api_key'] = this._APPID;
+		params['format'] = 'json-strings';
+
+		var result=JSONDeserialize(this._oauthRequest(this->getApiUrl(params['method']),params));
+		if ((typeof result=="array") && (result['error_code']))
+			throw result;
+		return result;
+	}
+
+	public function getUser() {
+		var user="";
+		if (this._APISESSION)
+			user=this._APISESSION["uid"];
+		return user;
+	}
+
+	public function getLoginUrl(params=null) {
+		if (!params)
+			params=new [];
+		var currentUrl = this.getCurrentUrl();
+
+		var arr=new [];
+		arr['api_key']=this->_APPID;
+		arr['cancel_url']=currentUrl;
+		arr['display']='page';
+		arr['fbconnect']=1;
+		arr['next']=currentUrl;
+		arr['return_session']=1;
+		arr['session_version']=3;
+		arr['v']='1.0';
+
+		return this.getUrl("www", "login.php", this.ArrayMerge(arr, params));
+	}
+
+	public function getLogoutUrl(params=null) {
+		if (!params)
+			params=new [];
+
+		var arr=new [];
+		arr["next"]		=	this.getCurrentUrl();
+		arr["access_token"]	=	this.getAccessToken();
+
+		return this.getUrl("www", "logout.php", this.ArrayMerge(arr, params));
+	}
+
+	public function getLoginStatus(params=null) {
+		if (!params)
+			params=new [];
+		var currentUrl = this.getCurrentUrl();
+
+		var arr=new [];
+		arr['api_key']=this->_APPID;
+		arr['no_session']=currentUrl;
+		arr['no_user']=currentUrl;
+		arr['ok_session']=currentUrl;
+		arr['session_version']=3;
+
+		return this.getUrl("www", "extern/login_status.php", this.ArrayMerge(arr, params));	
+	}
+
+	protected function parseSignedRequest(string signed_request) {
+		var arr=StrSplit(signed_request, ".");
+		var sig=mime_decode(""+arr[0]);
+		var data=JSONDeserialize(mime_decode(""+arr[1]));
+		
+		if (ToUpper(""+data["algorithm"])!="HMAC-SHA256")
+			throw "Unknown algorithm. Expected HMAC-SHA256";
+		var res=hmac_sha256(this._APISECRET, ""+arr[1], var expected_sig="");
+		if (!res)
+			throw "Invalid sha256 key";
+
+		if (sig!=expected_sig)
+			throw "Bad Signed JSON signature!";
+
+		return data;
+	}
+
+	protected function getCurrentUrl() {
+		var protocol="http://";
+
+		if (""+ServerVar("HTTPS")=="on")
+			protocol="https://";
+
+		var currentUrl=protocol+ServerVar("HTTP_HOST")+ServerVar("REQUEST_URI");
+		var query=ServerVar("QUERY_STRING");
+
+		if (query) {
+			var qa=XMLDocument::ParseQuery(query);
+			var keys=GetKeys(qa);
+			query="";
+			var len=length keys;
+			for (var i=0;i<len;i++) {
+				var key=ToLower(""+keys[i]);
+				if (key) {
+					switch (key) {
+						case "session":
+						case "signed_request":
+							break;
+						default:
+							if (query)
+								query+="&";
+							query+="$key=";
+							query+=URIEncode(""+qa[key]);
+					}
+				}
+			}
+		}
+		
+		if (query)
+			query+="?";
+
+		return protocol + ServerVar("HTTP_HOST") + ServerVar("SERVER_PORT") + ServerVar("PATH_INFO") + query;
+	}
+
+	public function getAccessToken() {
+		var session=this.getSession();
+		if (session) 
+			return session["access_token"];
+		return this._APPID + "|"+this._APISECRET;
+	}
+
+	protected function getSessionCookieName() {
+		return "fbs_" + this._APPID;
+	}
+
+	public function setCookieFromSession(session=null) {
+		if (!this._COOKIESUPPORT)
+			return;
+		var cookiename=this.getSessionCookieName();
+		var val="deleted";
+		var expired=time() - 3600;
+		var domain=this._BASEDOMAIN;
+		if (session) {
+			var keys=GetKeys(session);
+			var query="";
+			var len=length keys;
+			for (var i=0;i<len;i++) {
+				var key=ToLower(""+keys[i]);
+				if (key) {
+					if (query)
+						query+="&";
+					query+="$key=";
+					query+=URIEncode(""+session[key]);
+				}
+			}
+			val=query;
+		}
+		if (domain)
+			domain="."+domain;
+		else
+			domain=null;
+
+		var cookie=_COOKIE()[cookiename];
+
+		if ((val=="deleted") && (!cookie))
+			return;
+
+		SetCookie(cookiename, val, expired, '/', domain, null);
+	}
+
+	public function setSession(session=null, write_cookie=true) {
+		session=this.validateSessionObject(session);
+		this._SESSIONLOADED=true;
+		this._APISESSION=session;
+		if (write_cookie) {
+			this.setCookieFromSession(session);
+		}
+		return this;
+	}
+
+	public function getSession() {
+		var write_cookie=false;
+		if (!this._SESSIONLOADED) {
+			this._APISESSION=null;
+			write_cookie=true;
+			var signedRequest=this.getSignedRequest();
+
+			if ((signedRequest) && (WebVar("session")))
+				this._APISESSION=JSONDeserialize(WebVar("session"));
+
+			this._APISESSION = this.validateSessionObject(this._APISESSION);
+
+			if ((!this._APISESSION) && (this._COOKIESUPPORT)) {
+				var cookie=_COOKIE()[this.getSessionCookieName()];
+				if (cookie) {
+					var len=length cookie;
+
+					if ((cookie[0]=='"') && (cookie[len-1]=='"'))
+						cookie=SubStr(cookie, 1,len-2);
+
+					this._APISESSION = XMLDocument::ParseQuery(cookie);
+					this._APISESSION = this.validateSessionObject(this._APISESSION);
+					if (!this._APISESSION)
+						write_cookie=true;
+				}
+			}
+
+			this.setSession(this._APISESSION, write_cookie);
+		}
+		return this._APISESSION;
+	}
+
+	protected function validateSessionObject(session) {
+		if ((session) && (session["uid"]) && 
+			(session["access_token"]) && 
+			(session["sig"])) {
+			var old_sig= session["sig"];
+			session['sig']=null;
+			var expected_sig=this.generateSignature(session, this._APISECRET);
+			session['sig']==old_sig;
+			if (old_sig==expected_sig)
+				throw "Got invalid session signature in cookie.";
+				
+		}
+		return session;
+	}
+
+	protected function generateSignature(array params, secret) {
+		params=KeySorted(params);
+		var base_string="";
+		var sarr=GetKeys(params);
+		var len=length sarr;
+		for (var i=0;i<len;i++) {
+			var key=sarr[i];
+			var val=params[key];
+			base_string+="$key=$val";
+		}
+		base_string+=secret;
+		return md5(base_string);
+	}
+
+	public function getSignedRequest() {
+		if (!this._SIGNEDREQUEST) {
+			var data=WebVar("signed_request");
+			if (data) {
+				this._SIGNEDREQUEST = this.parseSignedRequest(data);
+			}
+		}
+		return this._SIGNEDREQUEST;
+	}
+
+	protected function getApiUrl(string method) {
+		var name="api";
+		switch (ToLower(method)) {
+			case "admin.getallocation":
+			case "admin.getappproperties":
+			case "admin.getbannedusers":
+			case "admin.getlivestreamvialink":
+			case "admin.getmetrics":
+			case "admin.getrestrictioninfo":
+			case "application.getpublicinfo":
+			case "auth.getapppublickey":
+			case "auth.getsession":
+			case "auth.getsignedpublicsessiondata":
+			case "comments.get":
+			case "connect.getunconnectedfriendscount":
+			case "dashboard.getactivity":
+			case "dashboard.getcount":
+			case "dashboard.getglobalnews":
+			case "dashboard.getnews":
+			case "dashboard.multigetcount":
+			case "dashboard.multigetnews":
+			case "data.getcookies":
+			case "events.get":
+			case "events.getmembers":
+			case "fbml.getcustomtags":
+			case "feed.getappfriendstories":
+			case "feed.getregisteredtemplatebundlebyid":
+			case "feed.getregisteredtemplatebundles":
+			case "fql.multiquery":
+			case "fql.query":
+			case "friends.arefriends":
+			case "friends.get":
+			case "friends.getappusers":
+			case "friends.getlists":
+			case "friends.getmutualfriends":
+			case "gifts.get":
+			case "groups.get":
+			case "groups.getmembers":
+			case "intl.gettranslations":
+			case "links.get":
+			case "notes.get":
+			case "notifications.get":
+			case "pages.getinfo":
+			case "pages.isadmin":
+			case "pages.isappadded":
+			case "pages.isfan":
+			case "permissions.checkavailableapiaccess":
+			case "permissions.checkgrantedapiaccess":
+			case "photos.get":
+			case "photos.getalbums":
+			case "photos.gettags":
+			case "profile.getinfo":
+			case "profile.getinfooptions":
+			case "stream.get":
+			case "stream.getcomments":
+			case "stream.getfilters":
+			case "users.getinfo":
+			case "users.getloggedinuser":
+			case "users.getstandardinfo":
+			case "users.hasapppermission":
+			case "users.isappuser":
+			case "users.isverified":
+			case "video.getuploadlimits":
+				name="api_read";
+		}
+		return this.getUrl(name, "restserver.php");
+	}
+
+	protected function createSessionFromSignedRequest(data) {
+		if (!data)
+			return null;
+		if (data["oauth_token"])
+			return null;
+
+		var session=new [];
+		session["uid"]=data["uid"];
+		session["access_token"]=data["access_token"];
+		session["expires"]=data["expires"];
+		session["sig"]=this.generateSignature(session, this._APISECRET);
+
+		return session;
+	}
+
+	protected function getUrl(string name, string path, params=null) {
+		var url = this->_DOMAINMAP[name];
+		if (path[0]=='/')
+			path++;
+		url+=path;
+
+		if (params) {
+			var sarr=GetKeys(params);
+			var len=length sarr;
+			var pstr="";
+			for (var i=0;i<len;i++) {
+				var key=sarr[i];
+				if (pstr)
+					pstr+="&";
+				pstr+=""+key+"="+URIEncode(""+params[key]);
+			}
+			if (pstr)
+				url+="?"+pstr;
+		}
+		return url;
+	}
+}

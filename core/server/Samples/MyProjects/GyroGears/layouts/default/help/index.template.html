@@ -1,0 +1,406 @@
+﻿<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" >
+<head>
+    <title>Documentation for {application} - Table of contents</title>
+</head>
+<body>
+
+<table width="100%" border="0" cellpadding="0" cellspacing="0">
+    <tr bgcolor="#660066"><td colspan="2"><h1><font color="#FFFFFF">{application}</font></h1></td></tr>
+    <tr bgcolor="#F3F3F3"><td>{description}</td><td align="right"><a href="javascript:if (history.length>1) history.go(-1); else window.location.href='internal://goback';"><img src="res/_back.png" alt="back" border="0"/></a>&nbsp;<a href="index.html"><img src="res/_home.png" alt="home" border="0"/></a>&nbsp;<a href="javascript:if (history.length>1) history.go(1); else window.location.href='internal://goforward';"><img src="res/_forward.png" alt="next" border="0"/></a></td></tr>
+    <tr bgcolor="#FFFFFF"><td colspan="2">
+        <h2>Table of contents</h2><br />
+        <strong>Introduction to <b>{application}</b></strong><br />
+        <i>You should read this first</i><br />
+        <table cellspacing="0" cellpadding="1" border="0" width="100%">
+        <tr bgcolor="#EAEAEA"><td><b>Topic</b></td><td><b>Details</b></td></tr>
+        <tr><td><a href="__buttons.html"><b>Buttons, menus and views</b></a></td><td><i>Introduction to operating controls</i></td></tr>
+        <tr><td><a href="__printpreview.html"><b>The print preview panel</b></a></td><td><i>Print preview - how to</i></td></tr>
+        <tr><td><a href="__calendarview.html"><b>The calendar view panel</b></a></td><td><i>Events introduction</i></td></tr>
+        </table>        
+        <br />
+        {if actions_length}
+        <strong>Actions and operations</strong><br />
+        <i>Available actions and operations</i><br />
+        <table cellspacing="0" cellpadding="1" border="0" width="100%">
+        <tr bgcolor="#EAEAEA"><td colspan="2"><b>Topic</b></td><td><b>Details</b></td></tr>
+        {foreach actions}
+        <tr><td valign="middle" align="center"><a href="action_{actions.PublicName}.html"><img border="0" src="res/{actions.Icon}" alt="{actions.Name} icon" /></a></td>
+        <td><strong><a href="action_{actions.PublicName}.html">{actions.Name}</a></strong><br />
+        {if actions.Comments}
+        <i>{actions.Comments}</i>
+        {endif}
+        </td><td>
+        <small>
+        {if actions.UserLevel}
+            You need to be at least {actions.UserLevel} level user to perform this operation.
+        {else}
+            Any user can perform this operation.
+        {endif}
+        </small>
+        </td></tr>
+        {endfor}
+        </table>
+        <br />
+        <br />
+        {endif}
+
+        {if base_length}
+        <strong>Independent forms</strong><br />
+        <i>Data that you can add it without opening a related form first</i><br />
+        <table cellspacing="0" cellpadding="1" border="0" width="100%">
+        <tr bgcolor="#EAEAEA"><td colspan="2"><b>Topic</b></td><td><b>Access</b></td><td><b>Access details</b></td></tr>
+        {foreach base}
+        {if base.colored_line}
+        <tr bgcolor="#F0F0F0">
+        {else}
+        <tr bgcolor="#FFFFFF">
+        {endif}
+        <td valign="middle" align="center"><a href="{base.Link}"><img border="0" src="res/{base.Icon}" alt="{base.Name} icon" /></a></td>
+        <td>
+        <strong><a href="{base.Link}">{base.Name}</a></strong><br />
+        {if base.Description}
+        <i>{base.Description}</i>
+        {endif}
+        </td>
+        <td>
+        {if base.Secured}
+            <img src="res/_lock.png" alt="Restricted access" />
+        {else}
+            <img src="res/_unlock.png" alt="Not restricted" />
+        {endif}
+
+        {if base.Owned}
+            <img src="res/_owned.png" alt="Linked to an owner" />
+        {endif}
+        </td>
+        <td>
+        <small>
+        {if base.Add}
+            {if base.AddLevel}
+                Added only by level {base.AddLevel} users or higher.
+            {else}
+                Added directly by any user.
+            {endif}
+            <br />
+        {endif}
+        {if base.Modify}
+            {if base.ModifyLevel}
+                {if base.ModifySame}
+                    Can be modified by level {base.ModifyLevel} users or higher.
+                {else}
+                    Can be modified by the user that owns (added) it or by level {base.ModifyLevel} users or higher.
+                {endif}
+            {else}
+                Can be modified by any user.
+            {endif}
+            <br />
+        {endif}
+        {if base.Delete}
+            {if base.DeleteLevel}
+                {if base.DeleteSame}
+                    Can be deleted by level {base.DeleteLevel} users or higher.
+                {else}
+                    Can be deleted by the user that owns (added) it or by level {base.DeleteLevel} users or higher.
+                {endif}
+            {else}
+                Can be deleted by any user.
+            {endif}
+            <br />
+        {endif}
+        {if base.List}
+            {if base.ListLevel}
+                {if base.ListSame}
+                    Can be listed/printed/reported by level {base.ListLevel} users or higher.
+                {else}
+                    Can be listed/printed by the user that owns (added) it or by level {base.ListLevel} users or higher.
+                {endif}
+            {else}
+                Can be listed (on screen or in reports) by any user
+            {endif}
+            <br />
+        {endif}
+        {if base.Find}
+            {if base.FindLevel}
+                {if base.FindSame}
+                    Only level {base.FindLevel} users or higher can search this.
+                {else}
+                    Only the user that owns (added) it or level {base.FindLevel} users or higher can search on this.
+                {endif}
+            {else}
+                Any user can perform searches on this.
+            {endif}
+            <br />
+        {endif}
+        <a href="{base.Link}">read more ...</a>
+        </small>
+        </td>
+        </tr>
+        {endfor}
+        </table>
+        <br /><br />
+        {endif}
+
+        {if linked_length}
+        <strong>Related forms</strong><br />
+        <i>Subforms of the independent forms</i><br />
+        <table cellspacing="0" cellpadding="1" border="0" width="100%">
+        <tr bgcolor="#EAEAEA"><td colspan="2"><b>Topic</b></td><td><b>Access</b></td><td><b>Access details</b></td></tr>
+        {foreach linked}
+        {if linked.colored_line}
+        <tr bgcolor="#F0F0F0">
+        {else}
+        <tr bgcolor="#FFFFFF">
+        {endif}
+        <td valign="middle" align="center"><a href="{linked.Link}"><img border="0" src="res/{linked.Icon}" alt="{linked.Name} icon" /></a></td>
+        <td>
+        <strong><a href="{linked.Link}">{linked.Name}</a></strong><br />
+        {if linked.Description}
+        <i>{linked.Description}</i>
+        {endif}
+        </td>
+        <td>
+        {if linked.Secured}
+            <img src="res/_lock.png" alt="Restricted access" />
+        {else}
+            <img src="res/_unlock.png" alt="Not restricted" />
+        {endif}
+
+        {if linked.Owned}
+            <img src="res/_owned.png" alt="Linked to an owner" />
+        {endif}
+        </td>
+        <td>
+        <small>
+        {if linked.Add}
+            {if linked.AddLevel}
+                Added only by level {linked.AddLevel} users or higher.
+            {else}
+                Added directly by any user.
+            {endif}
+            <br />
+        {endif}
+        {if linked.Modify}
+            {if linked.ModifyLevel}
+                {if linked.ModifySame}
+                    Can be modified by level {linked.ModifyLevel} users or higher.
+                {else}
+                    Can be modified by the user that owns (added) it or by level {linked.ModifyLevel} users or higher.
+                {endif}
+            {else}
+                Can be modified by any user.
+            {endif}
+            <br />
+        {endif}
+        {if linked.Delete}
+            {if linked.DeleteLevel}
+                {if linked.DeleteSame}
+                    Can be deleted by level {linked.DeleteLevel} users or higher.
+                {else}
+                    Can be deleted by the user that owns (added) it or by level {linked.DeleteLevel} users or higher.
+                {endif}
+            {else}
+                Can be deleted by any user.
+            {endif}
+            <br />
+        {endif}
+        {if linked.List}
+            {if linked.ListLevel}
+                {if linked.ListSame}
+                    Can be listed/printed/reported by level {linked.ListLevel} users or higher.
+                {else}
+                    Can be listed/printed by the user that owns (added) it or by level {linked.ListLevel} users or higher.
+                {endif}
+            {else}
+                Can be listed (on screen or in reports) by any user
+            {endif}
+            <br />
+        {endif}
+        {if linked.Find}
+            {if linked.FindLevel}
+                {if linked.FindSame}
+                    Only level {linked.FindLevel} users or higher can search this.
+                {else}
+                    Only the user that owns (added) it or level {linked.FindLevel} users or higher can search on this.
+                {endif}
+            {else}
+                Any user can perform searches on this.
+            {endif}
+            <br />
+        {endif}
+        <a href="{linked.Link}">read more ...</a>
+        </small>
+        </td>
+        </tr>
+        {endfor}
+        </table>
+        <br /><br />
+        {endif}
+
+        {if settings_length}
+        <strong>Settings</strong><br />
+        <i>General settings</i><br />
+        <table cellspacing="0" cellpadding="1" border="0" width="100%">
+        <tr bgcolor="#EAEAEA"><td colspan="2"><b>Topic</b></td><td><b>Access</b></td><td><b>Access details</b></td></tr>
+        {foreach settings}
+        {if settings.colored_line}
+        <tr bgcolor="#F0F0F0">
+        {else}
+        <tr bgcolor="#FFFFFF">
+        {endif}
+        <td valign="middle" align="center"><a href="{settings.Link}"><img border="0" src="res/{settings.Icon}" alt="{settings.Name} icon" /></a></td>
+        <td>
+        <strong><a href="{settings.Link}">{settings.Name}</a></strong><br />
+        {if settings.Description}
+        <i>{settings.Description}</i>
+        {endif}
+        </td>
+        <td>
+        {if settings.Secured}
+            <img src="res/_lock.png" alt="Restricted access" />
+        {else}
+            <img src="res/_unlock.png" alt="Not restricted" />
+        {endif}
+
+        {if settings.Owned}
+            <img src="res/_owned.png" alt="settings to an owner" />
+        {endif}
+        </td>
+        <td>
+        <small>
+        {if settings.Add}
+            {if settings.AddLevel}
+                Added only by level {settings.AddLevel} users or higher.
+            {else}
+                Added directly by any user.
+            {endif}
+            <br />
+        {endif}
+        {if settings.Modify}
+            {if settings.ModifyLevel}
+                {if settings.ModifySame}
+                    Can be modified by level {settings.ModifyLevel} users or higher.
+                {else}
+                    Can be modified by the user that owns (added) it or by level {settings.ModifyLevel} users or higher.
+                {endif}
+            {else}
+                Can be modified by any user.
+            {endif}
+            <br />
+        {endif}
+        {if settings.Delete}
+            {if settings.DeleteLevel}
+                {if settings.DeleteSame}
+                    Can be deleted by level {settings.DeleteLevel} users or higher.
+                {else}
+                    Can be deleted by the user that owns (added) it or by level {settings.DeleteLevel} users or higher.
+                {endif}
+            {else}
+                Can be deleted by any user.
+            {endif}
+            <br />
+        {endif}
+        {if settings.List}
+            {if settings.ListLevel}
+                {if settings.ListSame}
+                    Can be listed/printed/reported by level {settings.ListLevel} users or higher.
+                {else}
+                    Can be listed/printed by the user that owns (added) it or by level {settings.ListLevel} users or higher.
+                {endif}
+            {else}
+                Can be listed (on screen or in reports) by any user
+            {endif}
+            <br />
+        {endif}
+        {if settings.Find}
+            {if settings.FindLevel}
+                {if settings.FindSame}
+                    Only level {settings.FindLevel} users or higher can search this.
+                {else}
+                    Only the user that owns (added) it or level {settings.FindLevel} users or higher can search on this.
+                {endif}
+            {else}
+                Any user can perform searches on this.
+            {endif}
+            <br />
+        {endif}
+        <a href="{settings.Link}">read more ...</a>
+        </small>
+        </td>
+        </tr>
+        {endfor}
+        </table>
+        <br />
+        {endif}
+        
+
+        {if reports_length}
+        <strong>Advanced reports and statistics</strong><br />
+        <i>Available advanced reports</i><br />
+        <table cellspacing="0" cellpadding="1" border="0" width="100%">
+        <tr bgcolor="#EAEAEA"><td colspan="2"><b>Topic</b></td><td><b>Details</b></td></tr>
+        {foreach reports}
+        <tr><td valign="middle" align="center"><a href="report_{reports.PublicName}.html"><img border="0" src="res/{reports.Icon}" alt="{reports.Name} icon" /></a></td>
+        <td><strong><a href="report_{reports.PublicName}.html">{reports.Name}</a></strong><br />
+        {if reports.Comments}
+        <i>{reports.Comments}</i>
+        {endif}
+        </td><td>
+        <small>
+        {if reports.UserLevel}
+            You need to be at least {reports.UserLevel} level user to generate this report.
+        {else}
+            Any user can generate this report.
+        {endif}
+        </small>
+        </td></tr>
+        {endfor}
+        </table>
+        <br />
+        <br />
+        {endif}        
+        
+        
+        {if calendar_length}
+        <strong>Calendar view</strong><br />
+        <i>What you see in the calendar</i><br />
+        <table cellspacing="0" cellpadding="1" border="0">
+        <tr bgcolor="#EAEAEA"><td valign="middle"><img src="res/_calendar.png" alt="Calendar"/></td><td>In order to acces the calendar view you must double click on the desired day in the calendar control located in the main form (the one that appears after you log in). If the calendar is minimized you must expand it by clicking on the "Calendar" expander.<br />
+        When you click on a day, the whole week will be displayed, but only the selected day will be detailed.<br />
+        <br />
+        You can change the month or the year by clicking on the "&lt;" and "&gt;" arrows.
+        </td></tr>
+        </table>
+        <table cellspacing="0" cellpadding="1" border="0" width="100%">
+        <tr bgcolor="#EAEAEA"><td colspan="2"><b>Event</b></td><td><b>Details</b></td></tr>
+        {foreach calendar}
+        <tr><td valign="middle" align="center"><a href="event_{calendar.PublicName}.html"><img border="0" src="res/{calendar.Icon}" alt="{calendar.Name} icon" /></a></td>
+        <td><strong><a href="event_{calendar.PublicName}.html">{calendar.Name}</a></strong><br />
+        {if calendar.Comments}
+        <i>{calendar.Comments}</i>
+        {endif}
+        </td><td>
+        <small>
+        {if calendar.StartMember}
+            {if calendar.EndMember}
+                You can add/modify or delete from this calendar by using the <a href="{calendar.Entity.PublicName}.html">{calendar.Entity.Name} form</a>.<br />
+                On the calendar you will have "<b>{calendar.DescriptionMember}</b>" between "<b>{calendar.StartMember}</b>" and "<b>{calendar.EndMember}</b>".
+            {else}
+                You can add/modify or delete from this calendar by using the <a href="{calendar.Entity.PublicName}.html">{calendar.Entity.Name} form</a>.
+                On the calendar you will have "<b>{calendar.DescriptionMember}</b>" on "<b>{calendar.StartMember}</b>".
+            {endif}
+        {else}
+            You can add/modify or delete from this calendar by using the <a href="{calendar.Entity.PublicName}.html">{calendar.Entity.Name} form</a>.
+        {endif}
+        </small>
+        </td></tr>
+        {endfor}
+        </table>
+        <br />
+        {endif}        
+        <br />
+    </td></tr>
+    <tr bgcolor="#660066"><td colspan="2"><font color="#FFFFFF"><small>Help file generated at {time}</small></font></td></tr>
+</table>
+</body>
+</html>

@@ -1,0 +1,626 @@
+pragma warnings off
+
+include 'ActiveXControl.con'
+
+//////////////////////////////////////////////////////////////////////////
+// This file was generated automatically by AXInterfaceGenerator        //
+//                                          (c)2005 RadGs Software      //
+//                                                                      //
+//                   PLEASE DO NOT MODIFY THIS FILE !                   //
+//////////////////////////////////////////////////////////////////////////
+
+class IShockwaveFlash extends ActiveXControl {
+	public property ReadyState { get AX_GET_ReadyState }
+	public property TotalFrames { get AX_GET_TotalFrames }
+	public property Playing { get AX_GET_Playing, set AX_SET_Playing }
+	public property Quality { get AX_GET_Quality, set AX_SET_Quality }
+	public property ScaleMode { get AX_GET_ScaleMode, set AX_SET_ScaleMode }
+	public property AlignMode { get AX_GET_AlignMode, set AX_SET_AlignMode }
+	public property BackgroundColor { get AX_GET_BackgroundColor, set AX_SET_BackgroundColor }
+	public property Loop { get AX_GET_Loop, set AX_SET_Loop }
+	public property Movie { get AX_GET_Movie, set AX_SET_Movie }
+	public property FrameNum { get AX_GET_FrameNum, set AX_SET_FrameNum }
+	public property WMode { get AX_GET_WMode, set AX_SET_WMode }
+	public property SAlign { get AX_GET_SAlign, set AX_SET_SAlign }
+	public property Menu { get AX_GET_Menu, set AX_SET_Menu }
+	public property Base { get AX_GET_Base, set AX_SET_Base }
+	public property Scale { get AX_GET_Scale, set AX_SET_Scale }
+	public property DeviceFont { get AX_GET_DeviceFont, set AX_SET_DeviceFont }
+	public property EmbedMovie { get AX_GET_EmbedMovie, set AX_SET_EmbedMovie }
+	public property BGColor { get AX_GET_BGColor, set AX_SET_BGColor }
+	public property Quality2 { get AX_GET_Quality2, set AX_SET_Quality2 }
+	public property SWRemote { get AX_GET_SWRemote, set AX_SET_SWRemote }
+	public property FlashVars { get AX_GET_FlashVars, set AX_SET_FlashVars }
+	public property AllowScriptAccess { get AX_GET_AllowScriptAccess, set AX_SET_AllowScriptAccess }
+	public property MovieData { get AX_GET_MovieData, set AX_SET_MovieData }
+	public property InlineData { get AX_GET_InlineData, set AX_SET_InlineData }
+	public property SeamlessTabbing { get AX_GET_SeamlessTabbing, set AX_SET_SeamlessTabbing }
+
+	//Uncomment LICENCE_KEY if the control needs to be registered
+ 	function IShockwaveFlash(Owner/*, LICENCE_KEY*/) {
+		//this->ActiveXControl(Owner, "ShockwaveFlash.ShockwaveFlash", LICENCE_KEY);
+		this->ActiveXControl(Owner, "ShockwaveFlash.ShockwaveFlash", "");
+	}
+
+/*0*/	function /*{void}*/ QueryInterface(parameter0 /*{GUID*}*/, parameter1 /*{void**}*/)  {
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter0);
+		SendMessage(this->Name, MSG_AX_CALL_METHOD, "QueryInterface", "0");
+		SendMessage(this->Name, MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*1*/	function /*{ULONG}*/ AddRef()  {
+		SendMessage(this->Name, MSG_AX_CALL_METHOD, "AddRef", "0");
+		SendMessage(this->Name, MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*2*/	function /*{ULONG}*/ Release()  {
+		SendMessage(this->Name, MSG_AX_CALL_METHOD, "Release", "0");
+		SendMessage(this->Name, MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*3*/	function /*{void}*/ GetTypeInfoCount(parameter0 /*{UINT*}*/)  {
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter0);
+		SendMessage(this->Name, MSG_AX_CALL_METHOD, "GetTypeInfoCount", "0");
+		SendMessage(this->Name, MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*4*/	function /*{void}*/ GetTypeInfo(parameter0 /*{UINT}*/, parameter1 /*{ULONG}*/, parameter2 /*{void**}*/)  {
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter0);
+		SendMessage(this->Name, MSG_AX_CALL_METHOD, "GetTypeInfo", "0");
+		SendMessage(this->Name, MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*5*/	function /*{void}*/ GetIDsOfNames(parameter0 /*{GUID*}*/, parameter1 /*{char**}*/, parameter2 /*{UINT}*/, parameter3 /*{ULONG}*/, parameter4 /*{long*}*/)  {
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter0);
+		SendMessage(this->Name, MSG_AX_CALL_METHOD, "GetIDsOfNames", "0");
+		SendMessage(this->Name, MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*6*/	function /*{void}*/ Invoke(parameter0 /*{long}*/, parameter1 /*{GUID*}*/, parameter2 /*{ULONG}*/, parameter3 /*{USHORT}*/, parameter4 /*{DISPPARAMS*}*/, parameter5 /*{VARIANT*}*/, parameter6 /*{EXCEPINFO*}*/, parameter7 /*{UINT*}*/)  {
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter0);
+		SendMessage(this->Name, MSG_AX_CALL_METHOD, "Invoke", "0");
+		SendMessage(this->Name, MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*7*/	function /*{long}*/ AX_GET_ReadyState() /*{propget}*/ {
+		SendMessage(this->Name, MSG_AX_GET_PROPERTY, "ReadyState", "0");
+		SendMessage(this->Name, MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*8*/	function /*{long}*/ AX_GET_TotalFrames() /*{propget}*/ {
+		SendMessage(this->Name, MSG_AX_GET_PROPERTY, "TotalFrames", "0");
+		SendMessage(this->Name, MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*9*/	function /*{VARIANT_BOOL}*/ AX_GET_Playing() /*{propget}*/ {
+		SendMessage(this->Name, MSG_AX_GET_PROPERTY, "Playing", "0");
+		SendMessage(this->Name, MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*10*/	function /*{void}*/ AX_SET_Playing(parameter0 /*{VARIANT_BOOL}*/) /*{propput}*/ {
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter0);
+		SendMessage(this->Name, MSG_AX_SET_PROPERTY, "Playing", "0");
+	}
+
+/*11*/	function /*{int}*/ AX_GET_Quality() /*{propget}*/ {
+		SendMessage(this->Name, MSG_AX_GET_PROPERTY, "Quality", "0");
+		SendMessage(this->Name, MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*12*/	function /*{void}*/ AX_SET_Quality(parameter0 /*{int}*/) /*{propput}*/ {
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter0);
+		SendMessage(this->Name, MSG_AX_SET_PROPERTY, "Quality", "0");
+	}
+
+/*13*/	function /*{int}*/ AX_GET_ScaleMode() /*{propget}*/ {
+		SendMessage(this->Name, MSG_AX_GET_PROPERTY, "ScaleMode", "0");
+		SendMessage(this->Name, MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*14*/	function /*{void}*/ AX_SET_ScaleMode(parameter0 /*{int}*/) /*{propput}*/ {
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter0);
+		SendMessage(this->Name, MSG_AX_SET_PROPERTY, "ScaleMode", "0");
+	}
+
+/*15*/	function /*{int}*/ AX_GET_AlignMode() /*{propget}*/ {
+		SendMessage(this->Name, MSG_AX_GET_PROPERTY, "AlignMode", "0");
+		SendMessage(this->Name, MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*16*/	function /*{void}*/ AX_SET_AlignMode(parameter0 /*{int}*/) /*{propput}*/ {
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter0);
+		SendMessage(this->Name, MSG_AX_SET_PROPERTY, "AlignMode", "0");
+	}
+
+/*17*/	function /*{long}*/ AX_GET_BackgroundColor() /*{propget}*/ {
+		SendMessage(this->Name, MSG_AX_GET_PROPERTY, "BackgroundColor", "0");
+		SendMessage(this->Name, MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*18*/	function /*{void}*/ AX_SET_BackgroundColor(parameter0 /*{long}*/) /*{propput}*/ {
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter0);
+		SendMessage(this->Name, MSG_AX_SET_PROPERTY, "BackgroundColor", "0");
+	}
+
+/*19*/	function /*{VARIANT_BOOL}*/ AX_GET_Loop() /*{propget}*/ {
+		SendMessage(this->Name, MSG_AX_GET_PROPERTY, "Loop", "0");
+		SendMessage(this->Name, MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*20*/	function /*{void}*/ AX_SET_Loop(parameter0 /*{VARIANT_BOOL}*/) /*{propput}*/ {
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter0);
+		SendMessage(this->Name, MSG_AX_SET_PROPERTY, "Loop", "0");
+	}
+
+/*21*/	function /*{BSTR}*/ AX_GET_Movie() /*{propget}*/ {
+		SendMessage(this->Name, MSG_AX_GET_PROPERTY, "Movie", "0");
+		SendMessage(this->Name, MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*22*/	function /*{void}*/ AX_SET_Movie(parameter0 /*{BSTR}*/) /*{propput}*/ {
+		SendMessage(this->Name, MSG_AX_ADD_FILEPARAMETER, "0", parameter0);
+		SendMessage(this->Name, MSG_AX_SET_PROPERTY, "Movie", "0");
+	}
+
+/*23*/	function /*{long}*/ AX_GET_FrameNum() /*{propget}*/ {
+		SendMessage(this->Name, MSG_AX_GET_PROPERTY, "FrameNum", "0");
+		SendMessage(this->Name, MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*24*/	function /*{void}*/ AX_SET_FrameNum(parameter0 /*{long}*/) /*{propput}*/ {
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter0);
+		SendMessage(this->Name, MSG_AX_SET_PROPERTY, "FrameNum", "0");
+	}
+
+/*25*/	function /*{void}*/ SetZoomRect(parameter0 /*{long}*/, parameter1 /*{long}*/, parameter2 /*{long}*/, parameter3 /*{long}*/)  {
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter0);
+		SendMessage(this->Name, MSG_AX_CALL_METHOD, "SetZoomRect", "0");
+		SendMessage(this->Name, MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*26*/	function /*{void}*/ Zoom(parameter0 /*{int}*/)  {
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter0);
+		SendMessage(this->Name, MSG_AX_CALL_METHOD, "Zoom", "0");
+		SendMessage(this->Name, MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*27*/	function /*{void}*/ Pan(parameter0 /*{long}*/, parameter1 /*{long}*/, parameter2 /*{int}*/)  {
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter0);
+		SendMessage(this->Name, MSG_AX_CALL_METHOD, "Pan", "0");
+		SendMessage(this->Name, MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*28*/	function /*{void}*/ Play()  {
+		SendMessage(this->Name, MSG_AX_CALL_METHOD, "Play", "0");
+		SendMessage(this->Name, MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*29*/	function /*{void}*/ Stop()  {
+		SendMessage(this->Name, MSG_AX_CALL_METHOD, "Stop", "0");
+		SendMessage(this->Name, MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*30*/	function /*{void}*/ Back()  {
+		SendMessage(this->Name, MSG_AX_CALL_METHOD, "Back", "0");
+		SendMessage(this->Name, MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*31*/	function /*{void}*/ Forward()  {
+		SendMessage(this->Name, MSG_AX_CALL_METHOD, "Forward", "0");
+		SendMessage(this->Name, MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*32*/	function /*{void}*/ Rewind()  {
+		SendMessage(this->Name, MSG_AX_CALL_METHOD, "Rewind", "0");
+		SendMessage(this->Name, MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*33*/	function /*{void}*/ StopPlay()  {
+		SendMessage(this->Name, MSG_AX_CALL_METHOD, "StopPlay", "0");
+		SendMessage(this->Name, MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*34*/	function /*{void}*/ GotoFrame(parameter0 /*{long}*/)  {
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter0);
+		SendMessage(this->Name, MSG_AX_CALL_METHOD, "GotoFrame", "0");
+		SendMessage(this->Name, MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*35*/	function /*{long}*/ CurrentFrame()  {
+		SendMessage(this->Name, MSG_AX_CALL_METHOD, "CurrentFrame", "0");
+		SendMessage(this->Name, MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*36*/	function /*{VARIANT_BOOL}*/ IsPlaying()  {
+		SendMessage(this->Name, MSG_AX_CALL_METHOD, "IsPlaying", "0");
+		SendMessage(this->Name, MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*37*/	function /*{long}*/ PercentLoaded()  {
+		SendMessage(this->Name, MSG_AX_CALL_METHOD, "PercentLoaded", "0");
+		SendMessage(this->Name, MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*38*/	function /*{VARIANT_BOOL}*/ FrameLoaded(parameter0 /*{long}*/)  {
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter0);
+		SendMessage(this->Name, MSG_AX_CALL_METHOD, "FrameLoaded", "0");
+		SendMessage(this->Name, MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*39*/	function /*{long}*/ FlashVersion()  {
+		SendMessage(this->Name, MSG_AX_CALL_METHOD, "FlashVersion", "0");
+		SendMessage(this->Name, MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*40*/	function /*{BSTR}*/ AX_GET_WMode() /*{propget}*/ {
+		SendMessage(this->Name, MSG_AX_GET_PROPERTY, "WMode", "0");
+		SendMessage(this->Name, MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*41*/	function /*{void}*/ AX_SET_WMode(parameter0 /*{BSTR}*/) /*{propput}*/ {
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter0);
+		SendMessage(this->Name, MSG_AX_SET_PROPERTY, "WMode", "0");
+	}
+
+/*42*/	function /*{BSTR}*/ AX_GET_SAlign() /*{propget}*/ {
+		SendMessage(this->Name, MSG_AX_GET_PROPERTY, "SAlign", "0");
+		SendMessage(this->Name, MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*43*/	function /*{void}*/ AX_SET_SAlign(parameter0 /*{BSTR}*/) /*{propput}*/ {
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter0);
+		SendMessage(this->Name, MSG_AX_SET_PROPERTY, "SAlign", "0");
+	}
+
+/*44*/	function /*{VARIANT_BOOL}*/ AX_GET_Menu() /*{propget}*/ {
+		SendMessage(this->Name, MSG_AX_GET_PROPERTY, "Menu", "0");
+		SendMessage(this->Name, MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*45*/	function /*{void}*/ AX_SET_Menu(parameter0 /*{VARIANT_BOOL}*/) /*{propput}*/ {
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter0);
+		SendMessage(this->Name, MSG_AX_SET_PROPERTY, "Menu", "0");
+	}
+
+/*46*/	function /*{BSTR}*/ AX_GET_Base() /*{propget}*/ {
+		SendMessage(this->Name, MSG_AX_GET_PROPERTY, "Base", "0");
+		SendMessage(this->Name, MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*47*/	function /*{void}*/ AX_SET_Base(parameter0 /*{BSTR}*/) /*{propput}*/ {
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter0);
+		SendMessage(this->Name, MSG_AX_SET_PROPERTY, "Base", "0");
+	}
+
+/*48*/	function /*{BSTR}*/ AX_GET_Scale() /*{propget}*/ {
+		SendMessage(this->Name, MSG_AX_GET_PROPERTY, "Scale", "0");
+		SendMessage(this->Name, MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*49*/	function /*{void}*/ AX_SET_Scale(parameter0 /*{BSTR}*/) /*{propput}*/ {
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter0);
+		SendMessage(this->Name, MSG_AX_SET_PROPERTY, "Scale", "0");
+	}
+
+/*50*/	function /*{VARIANT_BOOL}*/ AX_GET_DeviceFont() /*{propget}*/ {
+		SendMessage(this->Name, MSG_AX_GET_PROPERTY, "DeviceFont", "0");
+		SendMessage(this->Name, MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*51*/	function /*{void}*/ AX_SET_DeviceFont(parameter0 /*{VARIANT_BOOL}*/) /*{propput}*/ {
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter0);
+		SendMessage(this->Name, MSG_AX_SET_PROPERTY, "DeviceFont", "0");
+	}
+
+/*52*/	function /*{VARIANT_BOOL}*/ AX_GET_EmbedMovie() /*{propget}*/ {
+		SendMessage(this->Name, MSG_AX_GET_PROPERTY, "EmbedMovie", "0");
+		SendMessage(this->Name, MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*53*/	function /*{void}*/ AX_SET_EmbedMovie(parameter0 /*{VARIANT_BOOL}*/) /*{propput}*/ {
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter0);
+		SendMessage(this->Name, MSG_AX_SET_PROPERTY, "EmbedMovie", "0");
+	}
+
+/*54*/	function /*{BSTR}*/ AX_GET_BGColor() /*{propget}*/ {
+		SendMessage(this->Name, MSG_AX_GET_PROPERTY, "BGColor", "0");
+		SendMessage(this->Name, MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*55*/	function /*{void}*/ AX_SET_BGColor(parameter0 /*{BSTR}*/) /*{propput}*/ {
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter0);
+		SendMessage(this->Name, MSG_AX_SET_PROPERTY, "BGColor", "0");
+	}
+
+/*56*/	function /*{BSTR}*/ AX_GET_Quality2() /*{propget}*/ {
+		SendMessage(this->Name, MSG_AX_GET_PROPERTY, "Quality2", "0");
+		SendMessage(this->Name, MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*57*/	function /*{void}*/ AX_SET_Quality2(parameter0 /*{BSTR}*/) /*{propput}*/ {
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter0);
+		SendMessage(this->Name, MSG_AX_SET_PROPERTY, "Quality2", "0");
+	}
+
+/*58*/	function /*{void}*/ LoadMovie(parameter0 /*{int}*/, parameter1 /*{BSTR}*/)  {
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter0);
+		SendMessage(this->Name, MSG_AX_CALL_METHOD, "LoadMovie", "0");
+		SendMessage(this->Name, MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*59*/	function /*{void}*/ TGotoFrame(parameter0 /*{BSTR}*/, parameter1 /*{long}*/)  {
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter0);
+		SendMessage(this->Name, MSG_AX_CALL_METHOD, "TGotoFrame", "0");
+		SendMessage(this->Name, MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*60*/	function /*{void}*/ TGotoLabel(parameter0 /*{BSTR}*/, parameter1 /*{BSTR}*/)  {
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter0);
+		SendMessage(this->Name, MSG_AX_CALL_METHOD, "TGotoLabel", "0");
+		SendMessage(this->Name, MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*61*/	function /*{long}*/ TCurrentFrame(parameter0 /*{BSTR}*/)  {
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter0);
+		SendMessage(this->Name, MSG_AX_CALL_METHOD, "TCurrentFrame", "0");
+		SendMessage(this->Name, MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*62*/	function /*{BSTR}*/ TCurrentLabel(parameter0 /*{BSTR}*/)  {
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter0);
+		SendMessage(this->Name, MSG_AX_CALL_METHOD, "TCurrentLabel", "0");
+		SendMessage(this->Name, MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*63*/	function /*{void}*/ TPlay(parameter0 /*{BSTR}*/)  {
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter0);
+		SendMessage(this->Name, MSG_AX_CALL_METHOD, "TPlay", "0");
+		SendMessage(this->Name, MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*64*/	function /*{void}*/ TStopPlay(parameter0 /*{BSTR}*/)  {
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter0);
+		SendMessage(this->Name, MSG_AX_CALL_METHOD, "TStopPlay", "0");
+		SendMessage(this->Name, MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*65*/	function /*{void}*/ SetVariable(parameter0 /*{BSTR}*/, parameter1 /*{BSTR}*/)  {
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter0);
+		SendMessage(this->Name, MSG_AX_CALL_METHOD, "SetVariable", "0");
+		SendMessage(this->Name, MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*66*/	function /*{BSTR}*/ GetVariable(parameter0 /*{BSTR}*/)  {
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter0);
+		SendMessage(this->Name, MSG_AX_CALL_METHOD, "GetVariable", "0");
+		SendMessage(this->Name, MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*67*/	function /*{void}*/ TSetProperty(parameter0 /*{BSTR}*/, parameter1 /*{int}*/, parameter2 /*{BSTR}*/)  {
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter0);
+		SendMessage(this->Name, MSG_AX_CALL_METHOD, "TSetProperty", "0");
+		SendMessage(this->Name, MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*68*/	function /*{BSTR}*/ TGetProperty(parameter0 /*{BSTR}*/, parameter1 /*{int}*/)  {
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter0);
+		SendMessage(this->Name, MSG_AX_CALL_METHOD, "TGetProperty", "0");
+		SendMessage(this->Name, MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*69*/	function /*{void}*/ TCallFrame(parameter0 /*{BSTR}*/, parameter1 /*{int}*/)  {
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter0);
+		SendMessage(this->Name, MSG_AX_CALL_METHOD, "TCallFrame", "0");
+		SendMessage(this->Name, MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*70*/	function /*{void}*/ TCallLabel(parameter0 /*{BSTR}*/, parameter1 /*{BSTR}*/)  {
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter0);
+		SendMessage(this->Name, MSG_AX_CALL_METHOD, "TCallLabel", "0");
+		SendMessage(this->Name, MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*71*/	function /*{void}*/ TSetPropertyNum(parameter0 /*{BSTR}*/, parameter1 /*{int}*/, parameter2 /*{double}*/)  {
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter0);
+		SendMessage(this->Name, MSG_AX_CALL_METHOD, "TSetPropertyNum", "0");
+		SendMessage(this->Name, MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*72*/	function /*{double}*/ TGetPropertyNum(parameter0 /*{BSTR}*/, parameter1 /*{int}*/)  {
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter0);
+		SendMessage(this->Name, MSG_AX_CALL_METHOD, "TGetPropertyNum", "0");
+		SendMessage(this->Name, MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*73*/	function /*{double}*/ TGetPropertyAsNumber(parameter0 /*{BSTR}*/, parameter1 /*{int}*/)  {
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter0);
+		SendMessage(this->Name, MSG_AX_CALL_METHOD, "TGetPropertyAsNumber", "0");
+		SendMessage(this->Name, MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*74*/	function /*{BSTR}*/ AX_GET_SWRemote() /*{propget}*/ {
+		SendMessage(this->Name, MSG_AX_GET_PROPERTY, "SWRemote", "0");
+		SendMessage(this->Name, MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*75*/	function /*{void}*/ AX_SET_SWRemote(parameter0 /*{BSTR}*/) /*{propput}*/ {
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter0);
+		SendMessage(this->Name, MSG_AX_SET_PROPERTY, "SWRemote", "0");
+	}
+
+/*76*/	function /*{BSTR}*/ AX_GET_FlashVars() /*{propget}*/ {
+		SendMessage(this->Name, MSG_AX_GET_PROPERTY, "FlashVars", "0");
+		SendMessage(this->Name, MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*77*/	function /*{void}*/ AX_SET_FlashVars(parameter0 /*{BSTR}*/) /*{propput}*/ {
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter0);
+		SendMessage(this->Name, MSG_AX_SET_PROPERTY, "FlashVars", "0");
+	}
+
+/*78*/	function /*{BSTR}*/ AX_GET_AllowScriptAccess() /*{propget}*/ {
+		SendMessage(this->Name, MSG_AX_GET_PROPERTY, "AllowScriptAccess", "0");
+		SendMessage(this->Name, MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*79*/	function /*{void}*/ AX_SET_AllowScriptAccess(parameter0 /*{BSTR}*/) /*{propput}*/ {
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter0);
+		SendMessage(this->Name, MSG_AX_SET_PROPERTY, "AllowScriptAccess", "0");
+	}
+
+/*80*/	function /*{BSTR}*/ AX_GET_MovieData() /*{propget}*/ {
+		SendMessage(this->Name, MSG_AX_GET_PROPERTY, "MovieData", "0");
+		SendMessage(this->Name, MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*81*/	function /*{void}*/ AX_SET_MovieData(parameter0 /*{BSTR}*/) /*{propput}*/ {
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter0);
+		SendMessage(this->Name, MSG_AX_SET_PROPERTY, "MovieData", "0");
+	}
+
+/*82*/	function /*{IUnknown*}*/ AX_GET_InlineData() /*{propget}*/ {
+		SendMessage(this->Name, MSG_AX_GET_PROPERTY, "InlineData", "0");
+		SendMessage(this->Name, MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*83*/	function /*{void}*/ AX_SET_InlineData(parameter0 /*{IUnknown*}*/) /*{propput}*/ {
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter0);
+		SendMessage(this->Name, MSG_AX_SET_PROPERTY, "InlineData", "0");
+	}
+
+/*84*/	function /*{VARIANT_BOOL}*/ AX_GET_SeamlessTabbing() /*{propget}*/ {
+		SendMessage(this->Name, MSG_AX_GET_PROPERTY, "SeamlessTabbing", "0");
+		SendMessage(this->Name, MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*85*/	function /*{void}*/ AX_SET_SeamlessTabbing(parameter0 /*{VARIANT_BOOL}*/) /*{propput}*/ {
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter0);
+		SendMessage(this->Name, MSG_AX_SET_PROPERTY, "SeamlessTabbing", "0");
+	}
+}

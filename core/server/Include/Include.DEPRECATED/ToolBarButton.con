@@ -1,0 +1,39 @@
+include 'Control.con'
+include 'ToolBarButton.con'
+
+class ConceptTBButton extends Control {
+	protected var _CAPTION;
+	protected var _IMAGEINDEX;
+	protected var _COMMANDID;
+
+	public property Text { set SetCaption, get _CAPTION }
+	public property ImageIndex { set SetImageIndex, get _IMAGEINDEX }
+	public property CommandID { set SetCommandID, get _COMMANDID }
+
+	protected function SetCommandID(x) {
+		this->_COMMANDID=x;
+                SendMessage(this->Name, MSG_CHANGED, P_TBCMDID, x);
+	}
+
+	public function ConceptTBButton(Owner) {
+		this->Control(/*Owner*/0, CLASS_TOOLBAR_BTN);
+	}
+
+	protected function SetImageIndex(x) {
+		if (typeof x==NUMERIC_TYPE)
+			this->_IMAGEINDEX=x;
+		else
+			throw new ControlException(EXC_INVALID_ARGUMENT_TYPE, this);
+
+                SendMessage(this->Name, MSG_CHANGED, P_IMAGEINDEX, x);
+	}
+
+	protected function SetCaption(x) {
+		if (typeof x==STRING_TYPE)
+			this->_CAPTION=x;
+		else
+		     	throw new ControlException(EXC_INVALID_ARGUMENT_TYPE, this);
+
+                SendMessage(this->Name, MSG_CHANGED, P_TEXT, x);
+	}
+}

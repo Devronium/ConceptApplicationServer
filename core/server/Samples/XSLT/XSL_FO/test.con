@@ -1,0 +1,13 @@
+import standard.lib.xslfo
+import standard.C.io
+
+class Main {
+	function Main() {
+		if (FOTransformString(ReadFile("table.fo"), "out2.pdf")) {
+			echo FOError();
+		}
+		if (FOTransform("table.fo", "out.pdf")) {
+			echo FOError();
+		}
+	}
+}

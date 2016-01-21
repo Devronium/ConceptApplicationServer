@@ -1,0 +1,27 @@
+include RCheckButton.con
+include DataBases.con
+
+class RADOCheckButton	extends RCheckButton
+			extends VirtualADOObject {
+
+	override __DataSetUpdateCommand;
+	public function __DataSetUpdateCommand(Sender) {
+		try {
+			var obj=Sender.FieldValues[this._DATAFIELD];
+			if (typeof obj == "class") {
+				var checked=obj.ToNumber();
+				if ((checked==true) || (checked==false))
+					this.Checked=checked;
+				else
+					this.Inconsistent=true;
+			} else
+				this.Inconsistent=true;
+		} catch (var exception) {
+			this.Inconsistent=true;
+		}
+	}
+
+	public function RADOCheckButton(OWNER) {
+		RCheckButton(OWNER);
+	}
+}

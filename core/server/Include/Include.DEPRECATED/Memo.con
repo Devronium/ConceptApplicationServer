@@ -1,0 +1,80 @@
+include 'VisibleControl.con'
+
+class ConceptMemo extends VisibleControl {
+	protected var _CAPTION;
+	protected var _READONLY;
+	public property Text { set SetCaption, get GetCaption }
+	public property ReadOnly { set SetReadOnly, get _READONLY }
+	public property LineCount { get GetLineCount }
+
+	public function GetLine(index) {
+        SendMessage(this->Name, MSG_GET_PROPERTY, P_GETMEMOLINE, index);
+        WaitMessage(var Sender, var MSG_ID=MSG_GET_PROPERTY, var Target, var VALUE);
+		return VALUE;
+	}
+
+	public function GetLineCount(index) {
+        SendMessage(this->Name, MSG_GET_PROPERTY, P_GETMEMOLINECOUNT, index);
+        WaitMessage(var Sender, var MSG_ID=MSG_GET_PROPERTY, var Target, var VALUE);
+		return value VALUE;
+	}
+
+	protected function SetReadOnly(x) {
+		if (typeof x==NUMERIC_TYPE)
+            this->_READONLY=x!=0;
+		else
+            throw new ControlException(EXC_INVALID_ARGUMENT_TYPE, this);
+
+        SendMessage(this->Name, MSG_CHANGED, P_EDIT_READONLY, this->_READONLY);
+	}
+
+	protected function SetCaption(x) {
+		if (typeof x==STRING_TYPE)
+			this->_CAPTION=x;
+		else
+            throw new ControlException(EXC_INVALID_ARGUMENT_TYPE, this);
+
+        SendMessage(this->Name, MSG_CHANGED, P_TEXT, x);
+	}
+
+	public function ConceptMemo(Owner) {
+		this->VisibleControl(Owner, CLASS_MEMO);
+	}
+
+	protected function GetCaption() {
+        SendMessage(this->Name, MSG_GET_PROPERTY, P_TEXT, 0);
+        WaitMessage(var Sender, var MSG_ID=MSG_GET_PROPERTY, var Target, var VALUE);
+		return VALUE;
+	}
+
+	/*
+	public function ConceptMemo_ProcessMessage(Sender, ID, Target, Value) {
+		// the memo control lost its focus ... notify update the data
+		// set ...
+		if ((ID==MSG_FOCUS_CHANGED) && (Value=="0")) {
+			if ((typeof DataSet==CLASS_TYPE) && (this->_DATAFIELD!="")) {
+				DataSet->FieldValues[this->_DATAFIELD]=this->_CAPTION;
+			}
+			this->_CAPTION="TEST!";
+		}
+		this->VisibleControl_ProcessMessage(Sender, ID, Target, Value);
+	}
+
+	override ProcessMessage;
+	public function ProcessMessage(Sender, ID, Target, Value) {
+		this->ConceptMemo_ProcessMessage(Sender,ID,Target,Value);
+	}*/
+
+	override __DataSetUpdateCommand;
+	public function __DataSetUpdateCommand(Sender) {
+		try {
+            var DataRecord=Sender->FieldValues[this->_DATAFIELD];
+            if (typeof DataRecord==CLASS_TYPE)
+                this->Text=DataRecord.ToString();
+            else
+                this->Text="";
+		} catch (var exception) {
+			this->Text="";
+		}
+	}
+}

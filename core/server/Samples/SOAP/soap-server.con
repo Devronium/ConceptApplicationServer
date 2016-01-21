@@ -1,0 +1,37 @@
+import standard.net.SOAP
+
+define URL	"/soap-server.con"
+define URN	"urn:examples"
+define METHOD	"sayHello"
+
+class Main {
+	function say_hello(req,res) {
+		// to do !
+		echo "Working !";
+	}
+
+	function Main() {
+		var err;
+		var router;
+
+		err=SOAPServerInitArgs();
+		if (err) {
+			echo SOAPError(err);
+			return -1;
+		}
+
+		router=SOAPRouterNew();
+		if (err) {
+			echo SOAPError(err);
+			return -1;
+		}
+
+		SOAPRouterRegisterService(router,say_hello,METHOD,URN);
+		SOAPServerRegisterRouter(router,URN);
+		SOAPServerRun();
+
+		SOAPServerDestroy();
+	
+	}
+}
+

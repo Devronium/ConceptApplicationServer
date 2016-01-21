@@ -1,0 +1,1138 @@
+pragma warnings off
+
+include 'ActiveXControl.con'
+
+//////////////////////////////////////////////////////////////////////////
+// This file was generated automatically by AXInterfaceGenerator        //
+//                                          (c)2005 RadGs Software      //
+//                                                                      //
+//                   PLEASE DO NOT MODIFY THIS FILE !                   //
+//////////////////////////////////////////////////////////////////////////
+
+class IDirectSR extends ActiveXControl {
+	public property debug { get AX_GET_debug, set AX_SET_debug }
+	public property Initialized { get AX_GET_Initialized, set AX_SET_Initialized }
+	public property LastHeard { get AX_GET_LastHeard, set AX_SET_LastHeard }
+	public property AutoGain { get AX_GET_AutoGain, set AX_SET_AutoGain }
+	public property MinAutoGain { get AX_GET_MinAutoGain }
+	public property MaxAutoGain { get AX_GET_MaxAutoGain }
+	public property Echo { get AX_GET_Echo, set AX_SET_Echo }
+	public property EnergyFloor { get AX_GET_EnergyFloor, set AX_SET_EnergyFloor }
+	public property MaxEnergyFloor { get AX_GET_MaxEnergyFloor }
+	public property MinEnergyFloor { get AX_GET_MinEnergyFloor }
+	public property Microphone { get AX_GET_Microphone, set AX_SET_Microphone }
+	public property Speaker { get AX_GET_Speaker, set AX_SET_Speaker }
+	public property RealTime { get AX_GET_RealTime, set AX_SET_RealTime }
+	public property MaxRealTime { get AX_GET_MaxRealTime }
+	public property MinRealTime { get AX_GET_MinRealTime }
+	public property Threshold { get AX_GET_Threshold, set AX_SET_Threshold }
+	public property MaxThreshold { get AX_GET_MaxThreshold }
+	public property MinThreshold { get AX_GET_MinThreshold }
+	public property CompleteTimeOut { get AX_GET_CompleteTimeOut, set AX_SET_CompleteTimeOut }
+	public property IncompleteTimeOut { get AX_GET_IncompleteTimeOut, set AX_SET_IncompleteTimeOut }
+	public property MaxCompleteTimeOut { get AX_GET_MaxCompleteTimeOut }
+	public property MinCompleteTimeOut { get AX_GET_MinCompleteTimeOut }
+	public property MaxIncompleteTimeOut { get AX_GET_MaxIncompleteTimeOut }
+	public property MinIncompleteTimeOut { get AX_GET_MinIncompleteTimeOut }
+	public property Wave { get AX_GET_Wave }
+	public property Phrase { get AX_GET_Phrase }
+	public property CreateResultsObject { get AX_GET_CreateResultsObject }
+	public property CountEngines { get AX_GET_CountEngines }
+	public property FileName { get AX_GET_FileName, set AX_SET_FileName }
+	public property FlagsGet { get AX_GET_FlagsGet }
+	public property Identify { get AX_GET_Identify }
+	public property ReEvaluate { get AX_GET_ReEvaluate }
+	public property GetPhraseScore { get AX_GET_GetPhraseScore }
+	public property LastError { get AX_GET_LastError, set AX_SET_LastError }
+	public property SuppressExceptions { get AX_GET_SuppressExceptions, set AX_SET_SuppressExceptions }
+	public property hwnd { get AX_GET_hwnd }
+	public property SRMode { get AX_GET_SRMode, set AX_SET_SRMode }
+	public property GetAllArcStrings { get AX_GET_GetAllArcStrings }
+	public property Attributes { get AX_GET_Attributes, set AX_SET_Attributes }
+	public property AttributeString { get AX_GET_AttributeString, set AX_SET_AttributeString }
+	public property AttributeMemory { get AX_GET_AttributeMemory, set AX_SET_AttributeMemory }
+	public property WaveEx { get AX_GET_WaveEx }
+	public property NodeStart { get AX_GET_NodeStart }
+	public property NodeEnd { get AX_GET_NodeEnd }
+	public property DataGetString { get AX_GET_DataGetString }
+	public property score { get AX_GET_score }
+	public property NodeGet { get AX_GET_NodeGet }
+	public property GraphDWORDGet { get AX_GET_GraphDWORDGet }
+	public property SpeakerInfoChanged { get AX_GET_SpeakerInfoChanged }
+
+	//Uncomment LICENCE_KEY if the control needs to be registered
+ 	function IDirectSR(Owner/*, LICENCE_KEY*/) {
+		//this->ActiveXControl(Owner, "ActiveListen.ActiveListen", LICENCE_KEY);
+		this->ActiveXControl(Owner, "ActiveListen.ActiveListen", "");
+	}
+
+/*0*/	function /*{void}*/ QueryInterface(var parameter0 /*{GUID*}*/, var parameter1 /*{void**}*/)  {
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter0);
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter1);
+		SendMessage(this->Name, MSG_AX_CALL_METHOD, "QueryInterface", "0");
+		SendMessage(this->Name, MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*1*/	function /*{ULONG}*/ AddRef()  {
+		SendMessage(this->Name, MSG_AX_CALL_METHOD, "AddRef", "0");
+		SendMessage(this->Name, MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*2*/	function /*{ULONG}*/ Release()  {
+		SendMessage(this->Name, MSG_AX_CALL_METHOD, "Release", "0");
+		SendMessage(this->Name, MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*3*/	function /*{void}*/ GetTypeInfoCount(var parameter0 /*{UINT*}*/)  {
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter0);
+		SendMessage(this->Name, MSG_AX_CALL_METHOD, "GetTypeInfoCount", "0");
+		SendMessage(this->Name, MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*4*/	function /*{void}*/ GetTypeInfo(parameter0 /*{UINT}*/, parameter1 /*{ULONG}*/, var parameter2 /*{void**}*/)  {
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter0);
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter1);
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter2);
+		SendMessage(this->Name, MSG_AX_CALL_METHOD, "GetTypeInfo", "0");
+		SendMessage(this->Name, MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*5*/	function /*{void}*/ GetIDsOfNames(var parameter0 /*{GUID*}*/, var parameter1 /*{char**}*/, parameter2 /*{UINT}*/, parameter3 /*{ULONG}*/, var parameter4 /*{long*}*/)  {
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter0);
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter1);
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter2);
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter3);
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter4);
+		SendMessage(this->Name, MSG_AX_CALL_METHOD, "GetIDsOfNames", "0");
+		SendMessage(this->Name, MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*6*/	function /*{void}*/ Invoke(parameter0 /*{long}*/, var parameter1 /*{GUID*}*/, parameter2 /*{ULONG}*/, parameter3 /*{USHORT}*/, var parameter4 /*{DISPPARAMS*}*/, var parameter5 /*{VARIANT*}*/, var parameter6 /*{EXCEPINFO*}*/, var parameter7 /*{UINT*}*/)  {
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter0);
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter1);
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter2);
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter3);
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter4);
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter5);
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter6);
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter7);
+		SendMessage(this->Name, MSG_AX_CALL_METHOD, "Invoke", "0");
+		SendMessage(this->Name, MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*7*/	function /*{short}*/ AX_GET_debug() /*{propget}*/ {
+		SendMessage(this->Name, MSG_AX_GET_PROPERTY, "debug", "0");
+		SendMessage(this->Name, MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*8*/	function /*{void}*/ AX_SET_debug(parameter0 /*{short}*/) /*{propput}*/ {
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter0);
+		SendMessage(this->Name, MSG_AX_SET_PROPERTY, "debug", "0");
+	}
+
+/*9*/	function /*{short}*/ AX_GET_Initialized() /*{propget}*/ {
+		SendMessage(this->Name, MSG_AX_GET_PROPERTY, "Initialized", "0");
+		SendMessage(this->Name, MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*10*/	function /*{void}*/ AX_SET_Initialized(parameter0 /*{short}*/) /*{propput}*/ {
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter0);
+		SendMessage(this->Name, MSG_AX_SET_PROPERTY, "Initialized", "0");
+	}
+
+/*11*/	function /*{void}*/ Deactivate()  {
+		SendMessage(this->Name, MSG_AX_CALL_METHOD, "Deactivate", "0");
+		SendMessage(this->Name, MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*12*/	function /*{void}*/ Activate()  {
+		SendMessage(this->Name, MSG_AX_CALL_METHOD, "Activate", "0");
+		SendMessage(this->Name, MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*13*/	function /*{BSTR}*/ AX_GET_LastHeard() /*{propget}*/ {
+		SendMessage(this->Name, MSG_AX_GET_PROPERTY, "LastHeard", "0");
+		SendMessage(this->Name, MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*14*/	function /*{void}*/ AX_SET_LastHeard(parameter0 /*{BSTR}*/) /*{propput}*/ {
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter0);
+		SendMessage(this->Name, MSG_AX_SET_PROPERTY, "LastHeard", "0");
+	}
+
+/*15*/	function /*{void}*/ GrammarFromString(parameter0 /*{BSTR}*/)  {
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter0);
+		SendMessage(this->Name, MSG_AX_CALL_METHOD, "GrammarFromString", "0");
+		SendMessage(this->Name, MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*16*/	function /*{void}*/ GrammarFromFile(parameter0 /*{BSTR}*/)  {
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter0);
+		SendMessage(this->Name, MSG_AX_CALL_METHOD, "GrammarFromFile", "0");
+		SendMessage(this->Name, MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*17*/	function /*{void}*/ GrammarFromResource(parameter0 /*{long}*/, parameter1 /*{long}*/)  {
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter0);
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter1);
+		SendMessage(this->Name, MSG_AX_CALL_METHOD, "GrammarFromResource", "0");
+		SendMessage(this->Name, MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*18*/	function /*{void}*/ GrammarFromStream(parameter0 /*{long}*/)  {
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter0);
+		SendMessage(this->Name, MSG_AX_CALL_METHOD, "GrammarFromStream", "0");
+		SendMessage(this->Name, MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*19*/	function /*{long}*/ AX_GET_AutoGain() /*{propget}*/ {
+		SendMessage(this->Name, MSG_AX_GET_PROPERTY, "AutoGain", "0");
+		SendMessage(this->Name, MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*20*/	function /*{void}*/ AX_SET_AutoGain(parameter0 /*{long}*/) /*{propput}*/ {
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter0);
+		SendMessage(this->Name, MSG_AX_SET_PROPERTY, "AutoGain", "0");
+	}
+
+/*21*/	function /*{long}*/ AX_GET_MinAutoGain() /*{propget}*/ {
+		SendMessage(this->Name, MSG_AX_GET_PROPERTY, "MinAutoGain", "0");
+		SendMessage(this->Name, MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*22*/	function /*{long}*/ AX_GET_MaxAutoGain() /*{propget}*/ {
+		SendMessage(this->Name, MSG_AX_GET_PROPERTY, "MaxAutoGain", "0");
+		SendMessage(this->Name, MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*23*/	function /*{short}*/ AX_GET_Echo() /*{propget}*/ {
+		SendMessage(this->Name, MSG_AX_GET_PROPERTY, "Echo", "0");
+		SendMessage(this->Name, MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*24*/	function /*{void}*/ AX_SET_Echo(parameter0 /*{short}*/) /*{propput}*/ {
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter0);
+		SendMessage(this->Name, MSG_AX_SET_PROPERTY, "Echo", "0");
+	}
+
+/*25*/	function /*{long}*/ AX_GET_EnergyFloor() /*{propget}*/ {
+		SendMessage(this->Name, MSG_AX_GET_PROPERTY, "EnergyFloor", "0");
+		SendMessage(this->Name, MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*26*/	function /*{void}*/ AX_SET_EnergyFloor(parameter0 /*{long}*/) /*{propput}*/ {
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter0);
+		SendMessage(this->Name, MSG_AX_SET_PROPERTY, "EnergyFloor", "0");
+	}
+
+/*27*/	function /*{long}*/ AX_GET_MaxEnergyFloor() /*{propget}*/ {
+		SendMessage(this->Name, MSG_AX_GET_PROPERTY, "MaxEnergyFloor", "0");
+		SendMessage(this->Name, MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*28*/	function /*{long}*/ AX_GET_MinEnergyFloor() /*{propget}*/ {
+		SendMessage(this->Name, MSG_AX_GET_PROPERTY, "MinEnergyFloor", "0");
+		SendMessage(this->Name, MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*29*/	function /*{BSTR}*/ AX_GET_Microphone() /*{propget}*/ {
+		SendMessage(this->Name, MSG_AX_GET_PROPERTY, "Microphone", "0");
+		SendMessage(this->Name, MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*30*/	function /*{void}*/ AX_SET_Microphone(parameter0 /*{BSTR}*/) /*{propput}*/ {
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter0);
+		SendMessage(this->Name, MSG_AX_SET_PROPERTY, "Microphone", "0");
+	}
+
+/*31*/	function /*{BSTR}*/ AX_GET_Speaker() /*{propget}*/ {
+		SendMessage(this->Name, MSG_AX_GET_PROPERTY, "Speaker", "0");
+		SendMessage(this->Name, MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*32*/	function /*{void}*/ AX_SET_Speaker(parameter0 /*{BSTR}*/) /*{propput}*/ {
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter0);
+		SendMessage(this->Name, MSG_AX_SET_PROPERTY, "Speaker", "0");
+	}
+
+/*33*/	function /*{long}*/ AX_GET_RealTime() /*{propget}*/ {
+		SendMessage(this->Name, MSG_AX_GET_PROPERTY, "RealTime", "0");
+		SendMessage(this->Name, MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*34*/	function /*{void}*/ AX_SET_RealTime(parameter0 /*{long}*/) /*{propput}*/ {
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter0);
+		SendMessage(this->Name, MSG_AX_SET_PROPERTY, "RealTime", "0");
+	}
+
+/*35*/	function /*{long}*/ AX_GET_MaxRealTime() /*{propget}*/ {
+		SendMessage(this->Name, MSG_AX_GET_PROPERTY, "MaxRealTime", "0");
+		SendMessage(this->Name, MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*36*/	function /*{long}*/ AX_GET_MinRealTime() /*{propget}*/ {
+		SendMessage(this->Name, MSG_AX_GET_PROPERTY, "MinRealTime", "0");
+		SendMessage(this->Name, MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*37*/	function /*{long}*/ AX_GET_Threshold() /*{propget}*/ {
+		SendMessage(this->Name, MSG_AX_GET_PROPERTY, "Threshold", "0");
+		SendMessage(this->Name, MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*38*/	function /*{void}*/ AX_SET_Threshold(parameter0 /*{long}*/) /*{propput}*/ {
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter0);
+		SendMessage(this->Name, MSG_AX_SET_PROPERTY, "Threshold", "0");
+	}
+
+/*39*/	function /*{long}*/ AX_GET_MaxThreshold() /*{propget}*/ {
+		SendMessage(this->Name, MSG_AX_GET_PROPERTY, "MaxThreshold", "0");
+		SendMessage(this->Name, MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*40*/	function /*{long}*/ AX_GET_MinThreshold() /*{propget}*/ {
+		SendMessage(this->Name, MSG_AX_GET_PROPERTY, "MinThreshold", "0");
+		SendMessage(this->Name, MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*41*/	function /*{long}*/ AX_GET_CompleteTimeOut() /*{propget}*/ {
+		SendMessage(this->Name, MSG_AX_GET_PROPERTY, "CompleteTimeOut", "0");
+		SendMessage(this->Name, MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*42*/	function /*{void}*/ AX_SET_CompleteTimeOut(parameter0 /*{long}*/) /*{propput}*/ {
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter0);
+		SendMessage(this->Name, MSG_AX_SET_PROPERTY, "CompleteTimeOut", "0");
+	}
+
+/*43*/	function /*{long}*/ AX_GET_IncompleteTimeOut() /*{propget}*/ {
+		SendMessage(this->Name, MSG_AX_GET_PROPERTY, "IncompleteTimeOut", "0");
+		SendMessage(this->Name, MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*44*/	function /*{void}*/ AX_SET_IncompleteTimeOut(parameter0 /*{long}*/) /*{propput}*/ {
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter0);
+		SendMessage(this->Name, MSG_AX_SET_PROPERTY, "IncompleteTimeOut", "0");
+	}
+
+/*45*/	function /*{long}*/ AX_GET_MaxCompleteTimeOut() /*{propget}*/ {
+		SendMessage(this->Name, MSG_AX_GET_PROPERTY, "MaxCompleteTimeOut", "0");
+		SendMessage(this->Name, MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*46*/	function /*{long}*/ AX_GET_MinCompleteTimeOut() /*{propget}*/ {
+		SendMessage(this->Name, MSG_AX_GET_PROPERTY, "MinCompleteTimeOut", "0");
+		SendMessage(this->Name, MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*47*/	function /*{long}*/ AX_GET_MaxIncompleteTimeOut() /*{propget}*/ {
+		SendMessage(this->Name, MSG_AX_GET_PROPERTY, "MaxIncompleteTimeOut", "0");
+		SendMessage(this->Name, MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*48*/	function /*{long}*/ AX_GET_MinIncompleteTimeOut() /*{propget}*/ {
+		SendMessage(this->Name, MSG_AX_GET_PROPERTY, "MinIncompleteTimeOut", "0");
+		SendMessage(this->Name, MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*49*/	function /*{void}*/ Pause()  {
+		SendMessage(this->Name, MSG_AX_CALL_METHOD, "Pause", "0");
+		SendMessage(this->Name, MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*50*/	function /*{void}*/ Resume()  {
+		SendMessage(this->Name, MSG_AX_CALL_METHOD, "Resume", "0");
+		SendMessage(this->Name, MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*51*/	function /*{void}*/ PosnGet(var parameter0 /*{long*}*/, var parameter1 /*{long*}*/)  {
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter0);
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter1);
+		SendMessage(this->Name, MSG_AX_CALL_METHOD, "PosnGet", "0");
+		SendMessage(this->Name, MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*52*/	function /*{void}*/ AboutDlg(parameter0 /*{long}*/, parameter1 /*{BSTR}*/)  {
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter0);
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter1);
+		SendMessage(this->Name, MSG_AX_CALL_METHOD, "AboutDlg", "0");
+		SendMessage(this->Name, MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*53*/	function /*{void}*/ GeneralDlg(parameter0 /*{long}*/, parameter1 /*{BSTR}*/)  {
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter0);
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter1);
+		SendMessage(this->Name, MSG_AX_CALL_METHOD, "GeneralDlg", "0");
+		SendMessage(this->Name, MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*54*/	function /*{void}*/ LexiconDlg(parameter0 /*{long}*/, parameter1 /*{BSTR}*/)  {
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter0);
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter1);
+		SendMessage(this->Name, MSG_AX_CALL_METHOD, "LexiconDlg", "0");
+		SendMessage(this->Name, MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*55*/	function /*{void}*/ TrainGeneralDlg(parameter0 /*{long}*/, parameter1 /*{BSTR}*/)  {
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter0);
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter1);
+		SendMessage(this->Name, MSG_AX_CALL_METHOD, "TrainGeneralDlg", "0");
+		SendMessage(this->Name, MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*56*/	function /*{void}*/ TrainMicDlg(parameter0 /*{long}*/, parameter1 /*{BSTR}*/)  {
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter0);
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter1);
+		SendMessage(this->Name, MSG_AX_CALL_METHOD, "TrainMicDlg", "0");
+		SendMessage(this->Name, MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*57*/	function /*{long}*/ AX_GET_Wave( /*{long}*/) /*{propget}*/ {
+		SendMessage(this->Name, MSG_AX_GET_PROPERTY, "Wave", "0");
+		SendMessage(this->Name, MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*58*/	function /*{BSTR}*/ AX_GET_Phrase( /*{long}*/  /*{long}*/) /*{propget}*/ {
+		SendMessage(this->Name, MSG_AX_GET_PROPERTY, "Phrase", "0");
+		SendMessage(this->Name, MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*59*/	function /*{long}*/ AX_GET_CreateResultsObject( /*{long}*/) /*{propget}*/ {
+		SendMessage(this->Name, MSG_AX_GET_PROPERTY, "CreateResultsObject", "0");
+		SendMessage(this->Name, MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*60*/	function /*{void}*/ DestroyResultsObject(parameter0 /*{long}*/)  {
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter0);
+		SendMessage(this->Name, MSG_AX_CALL_METHOD, "DestroyResultsObject", "0");
+		SendMessage(this->Name, MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*61*/	function /*{void}*/ Select(parameter0 /*{long}*/)  {
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter0);
+		SendMessage(this->Name, MSG_AX_CALL_METHOD, "Select", "0");
+		SendMessage(this->Name, MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*62*/	function /*{void}*/ Listen()  {
+		SendMessage(this->Name, MSG_AX_CALL_METHOD, "Listen", "0");
+		SendMessage(this->Name, MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*63*/	function /*{void}*/ SelectEngine(parameter0 /*{int}*/)  {
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter0);
+		SendMessage(this->Name, MSG_AX_CALL_METHOD, "SelectEngine", "0");
+		SendMessage(this->Name, MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*64*/	function /*{long}*/ FindEngine(parameter0 /*{BSTR}*/, parameter1 /*{BSTR}*/, parameter2 /*{BSTR}*/, parameter3 /*{BSTR}*/, parameter4 /*{BSTR}*/, parameter5 /*{long}*/, parameter6 /*{BSTR}*/, parameter7 /*{long}*/, parameter8 /*{long}*/, parameter9 /*{long}*/, parameter10 /*{long}*/, parameter11 /*{long}*/, parameter12 /*{long}*/, parameter13 /*{long}*/, parameter14 /*{long}*/, parameter15 /*{long}*/, parameter16 /*{long}*/, parameter17 /*{long}*/, parameter18 /*{long}*/, parameter19 /*{long}*/, parameter20 /*{long}*/, parameter21 /*{long}*/, parameter22 /*{long}*/, parameter23 /*{long}*/, parameter24 /*{long}*/, parameter25 /*{long}*/, parameter26 /*{long}*/, parameter27 /*{long}*/)  {
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter0);
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter1);
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter2);
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter3);
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter4);
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter5);
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter6);
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter7);
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter8);
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter9);
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter10);
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter11);
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter12);
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter13);
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter14);
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter15);
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter16);
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter17);
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter18);
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter19);
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter20);
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter21);
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter22);
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter23);
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter24);
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter25);
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter26);
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter27);
+		SendMessage(this->Name, MSG_AX_CALL_METHOD, "FindEngine", "0");
+		SendMessage(this->Name, MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*65*/	function /*{long}*/ AX_GET_CountEngines() /*{propget}*/ {
+		SendMessage(this->Name, MSG_AX_GET_PROPERTY, "CountEngines", "0");
+		SendMessage(this->Name, MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*66*/	function /*{BSTR}*/ ModeName(parameter0 /*{int}*/)  {
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter0);
+		SendMessage(this->Name, MSG_AX_CALL_METHOD, "ModeName", "0");
+		SendMessage(this->Name, MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*67*/	function /*{BSTR}*/ EngineId(parameter0 /*{int}*/)  {
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter0);
+		SendMessage(this->Name, MSG_AX_CALL_METHOD, "EngineId", "0");
+		SendMessage(this->Name, MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*68*/	function /*{BSTR}*/ MfgName(parameter0 /*{int}*/)  {
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter0);
+		SendMessage(this->Name, MSG_AX_CALL_METHOD, "MfgName", "0");
+		SendMessage(this->Name, MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*69*/	function /*{BSTR}*/ ProductName(parameter0 /*{int}*/)  {
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter0);
+		SendMessage(this->Name, MSG_AX_CALL_METHOD, "ProductName", "0");
+		SendMessage(this->Name, MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*70*/	function /*{BSTR}*/ ModeID(parameter0 /*{int}*/)  {
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter0);
+		SendMessage(this->Name, MSG_AX_CALL_METHOD, "ModeID", "0");
+		SendMessage(this->Name, MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*71*/	function /*{long}*/ Features(parameter0 /*{int}*/)  {
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter0);
+		SendMessage(this->Name, MSG_AX_CALL_METHOD, "Features", "0");
+		SendMessage(this->Name, MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*72*/	function /*{long}*/ Interfaces(parameter0 /*{int}*/)  {
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter0);
+		SendMessage(this->Name, MSG_AX_CALL_METHOD, "Interfaces", "0");
+		SendMessage(this->Name, MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*73*/	function /*{long}*/ EngineFeatures(parameter0 /*{int}*/)  {
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter0);
+		SendMessage(this->Name, MSG_AX_CALL_METHOD, "EngineFeatures", "0");
+		SendMessage(this->Name, MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*74*/	function /*{long}*/ LanguageID(parameter0 /*{int}*/)  {
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter0);
+		SendMessage(this->Name, MSG_AX_CALL_METHOD, "LanguageID", "0");
+		SendMessage(this->Name, MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*75*/	function /*{BSTR}*/ dialect(parameter0 /*{int}*/)  {
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter0);
+		SendMessage(this->Name, MSG_AX_CALL_METHOD, "dialect", "0");
+		SendMessage(this->Name, MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*76*/	function /*{long}*/ Sequencing(parameter0 /*{int}*/)  {
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter0);
+		SendMessage(this->Name, MSG_AX_CALL_METHOD, "Sequencing", "0");
+		SendMessage(this->Name, MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*77*/	function /*{long}*/ MaxWordsVocab(parameter0 /*{int}*/)  {
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter0);
+		SendMessage(this->Name, MSG_AX_CALL_METHOD, "MaxWordsVocab", "0");
+		SendMessage(this->Name, MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*78*/	function /*{long}*/ MaxWordsState(parameter0 /*{int}*/)  {
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter0);
+		SendMessage(this->Name, MSG_AX_CALL_METHOD, "MaxWordsState", "0");
+		SendMessage(this->Name, MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*79*/	function /*{long}*/ Grammars(parameter0 /*{int}*/)  {
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter0);
+		SendMessage(this->Name, MSG_AX_CALL_METHOD, "Grammars", "0");
+		SendMessage(this->Name, MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*80*/	function /*{void}*/ InitAudioSourceDirect(parameter0 /*{long}*/)  {
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter0);
+		SendMessage(this->Name, MSG_AX_CALL_METHOD, "InitAudioSourceDirect", "0");
+		SendMessage(this->Name, MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*81*/	function /*{void}*/ InitAudioSourceObject(parameter0 /*{long}*/)  {
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter0);
+		SendMessage(this->Name, MSG_AX_CALL_METHOD, "InitAudioSourceObject", "0");
+		SendMessage(this->Name, MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*82*/	function /*{BSTR}*/ AX_GET_FileName() /*{propget}*/ {
+		SendMessage(this->Name, MSG_AX_GET_PROPERTY, "FileName", "0");
+		SendMessage(this->Name, MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*83*/	function /*{void}*/ AX_SET_FileName(parameter0 /*{BSTR}*/) /*{propput}*/ {
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter0);
+		SendMessage(this->Name, MSG_AX_SET_PROPERTY, "FileName", "0");
+	}
+
+/*84*/	function /*{long}*/ AX_GET_FlagsGet( /*{long}*/  /*{long}*/) /*{propget}*/ {
+		SendMessage(this->Name, MSG_AX_GET_PROPERTY, "FlagsGet", "0");
+		SendMessage(this->Name, MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*85*/	function /*{BSTR}*/ AX_GET_Identify( /*{long}*/) /*{propget}*/ {
+		SendMessage(this->Name, MSG_AX_GET_PROPERTY, "Identify", "0");
+		SendMessage(this->Name, MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*86*/	function /*{void}*/ TimeGet(parameter0 /*{long}*/, var parameter1 /*{long*}*/, var parameter2 /*{long*}*/, var parameter3 /*{long*}*/, var parameter4 /*{long*}*/)  {
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter0);
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter1);
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter2);
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter3);
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter4);
+		SendMessage(this->Name, MSG_AX_CALL_METHOD, "TimeGet", "0");
+		SendMessage(this->Name, MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*87*/	function /*{void}*/ Correction(parameter0 /*{long}*/, parameter1 /*{BSTR}*/, parameter2 /*{short}*/)  {
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter0);
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter1);
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter2);
+		SendMessage(this->Name, MSG_AX_CALL_METHOD, "Correction", "0");
+		SendMessage(this->Name, MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*88*/	function /*{void}*/ Validate(parameter0 /*{long}*/, parameter1 /*{short}*/)  {
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter0);
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter1);
+		SendMessage(this->Name, MSG_AX_CALL_METHOD, "Validate", "0");
+		SendMessage(this->Name, MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*89*/	function /*{long}*/ AX_GET_ReEvaluate( /*{long}*/) /*{propget}*/ {
+		SendMessage(this->Name, MSG_AX_GET_PROPERTY, "ReEvaluate", "0");
+		SendMessage(this->Name, MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*90*/	function /*{long}*/ AX_GET_GetPhraseScore( /*{long}*/  /*{long}*/) /*{propget}*/ {
+		SendMessage(this->Name, MSG_AX_GET_PROPERTY, "GetPhraseScore", "0");
+		SendMessage(this->Name, MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*91*/	function /*{void}*/ Archive(parameter0 /*{long}*/, var parameter1 /*{long*}*/, var parameter2 /*{long*}*/)  {
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter0);
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter1);
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter2);
+		SendMessage(this->Name, MSG_AX_CALL_METHOD, "Archive", "0");
+		SendMessage(this->Name, MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*92*/	function /*{void}*/ DeleteArchive(parameter0 /*{long}*/)  {
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter0);
+		SendMessage(this->Name, MSG_AX_CALL_METHOD, "DeleteArchive", "0");
+		SendMessage(this->Name, MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*93*/	function /*{void}*/ GrammarFromMemory(parameter0 /*{long}*/, parameter1 /*{long}*/)  {
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter0);
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter1);
+		SendMessage(this->Name, MSG_AX_CALL_METHOD, "GrammarFromMemory", "0");
+		SendMessage(this->Name, MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*94*/	function /*{void}*/ GrammarDataSet(parameter0 /*{long}*/, parameter1 /*{long}*/)  {
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter0);
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter1);
+		SendMessage(this->Name, MSG_AX_CALL_METHOD, "GrammarDataSet", "0");
+		SendMessage(this->Name, MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*95*/	function /*{void}*/ GrammarToMemory(var parameter0 /*{long*}*/, var parameter1 /*{long*}*/)  {
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter0);
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter1);
+		SendMessage(this->Name, MSG_AX_CALL_METHOD, "GrammarToMemory", "0");
+		SendMessage(this->Name, MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*96*/	function /*{void}*/ ActivateAndAssignWindow(parameter0 /*{long}*/)  {
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter0);
+		SendMessage(this->Name, MSG_AX_CALL_METHOD, "ActivateAndAssignWindow", "0");
+		SendMessage(this->Name, MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*97*/	function /*{long}*/ AX_GET_LastError() /*{propget}*/ {
+		SendMessage(this->Name, MSG_AX_GET_PROPERTY, "LastError", "0");
+		SendMessage(this->Name, MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*98*/	function /*{void}*/ AX_SET_LastError(parameter0 /*{long}*/) /*{propput}*/ {
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter0);
+		SendMessage(this->Name, MSG_AX_SET_PROPERTY, "LastError", "0");
+	}
+
+/*99*/	function /*{long}*/ AX_GET_SuppressExceptions() /*{propget}*/ {
+		SendMessage(this->Name, MSG_AX_GET_PROPERTY, "SuppressExceptions", "0");
+		SendMessage(this->Name, MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*100*/	function /*{void}*/ AX_SET_SuppressExceptions(parameter0 /*{long}*/) /*{propput}*/ {
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter0);
+		SendMessage(this->Name, MSG_AX_SET_PROPERTY, "SuppressExceptions", "0");
+	}
+
+/*101*/	function /*{long}*/ AX_GET_hwnd() /*{propget}*/ {
+		SendMessage(this->Name, MSG_AX_GET_PROPERTY, "hwnd", "0");
+		SendMessage(this->Name, MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*102*/	function /*{long}*/ Find(parameter0 /*{BSTR}*/)  {
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter0);
+		SendMessage(this->Name, MSG_AX_CALL_METHOD, "Find", "0");
+		SendMessage(this->Name, MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*103*/	function /*{long}*/ AX_GET_SRMode() /*{propget}*/ {
+		SendMessage(this->Name, MSG_AX_GET_PROPERTY, "SRMode", "0");
+		SendMessage(this->Name, MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*104*/	function /*{void}*/ AX_SET_SRMode(parameter0 /*{long}*/) /*{propput}*/ {
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter0);
+		SendMessage(this->Name, MSG_AX_SET_PROPERTY, "SRMode", "0");
+	}
+
+/*105*/	function /*{BSTR}*/ AX_GET_GetAllArcStrings( /*{long}*/  /*{long}*/) /*{propget}*/ {
+		SendMessage(this->Name, MSG_AX_GET_PROPERTY, "GetAllArcStrings", "0");
+		SendMessage(this->Name, MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*106*/	function /*{long}*/ AX_GET_Attributes( /*{long}*/) /*{propget}*/ {
+		SendMessage(this->Name, MSG_AX_GET_PROPERTY, "Attributes", "0");
+		SendMessage(this->Name, MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*107*/	function /*{void}*/ AX_SET_Attributes(parameter0 /*{long}*/, parameter1 /*{long}*/) /*{propput}*/ {
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter0);
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter1);
+		SendMessage(this->Name, MSG_AX_SET_PROPERTY, "Attributes", "0");
+	}
+
+/*108*/	function /*{BSTR}*/ AX_GET_AttributeString( /*{long}*/) /*{propget}*/ {
+		SendMessage(this->Name, MSG_AX_GET_PROPERTY, "AttributeString", "0");
+		SendMessage(this->Name, MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*109*/	function /*{void}*/ AX_SET_AttributeString(parameter0 /*{long}*/, parameter1 /*{BSTR}*/) /*{propput}*/ {
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter0);
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter1);
+		SendMessage(this->Name, MSG_AX_SET_PROPERTY, "AttributeString", "0");
+	}
+
+/*110*/	function /*{long}*/ AX_GET_AttributeMemory( /*{long}*/  /*{long*}*/) /*{propget}*/ {
+		SendMessage(this->Name, MSG_AX_GET_PROPERTY, "AttributeMemory", "0");
+		SendMessage(this->Name, MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*111*/	function /*{void}*/ AX_SET_AttributeMemory(parameter0 /*{long}*/, var parameter1 /*{long*}*/, parameter2 /*{long}*/) /*{propput}*/ {
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter0);
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter1);
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter2);
+		SendMessage(this->Name, MSG_AX_SET_PROPERTY, "AttributeMemory", "0");
+	}
+
+/*112*/	function /*{long}*/ AX_GET_WaveEx( /*{long}*/  /*{long}*/  /*{long}*/  /*{long}*/  /*{long}*/) /*{propget}*/ {
+		SendMessage(this->Name, MSG_AX_GET_PROPERTY, "WaveEx", "0");
+		SendMessage(this->Name, MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*113*/	function /*{long}*/ AX_GET_NodeStart( /*{long}*/) /*{propget}*/ {
+		SendMessage(this->Name, MSG_AX_GET_PROPERTY, "NodeStart", "0");
+		SendMessage(this->Name, MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*114*/	function /*{long}*/ AX_GET_NodeEnd( /*{long}*/) /*{propget}*/ {
+		SendMessage(this->Name, MSG_AX_GET_PROPERTY, "NodeEnd", "0");
+		SendMessage(this->Name, MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*115*/	function /*{void}*/ ArcEnum(parameter0 /*{long}*/, parameter1 /*{long}*/, parameter2 /*{long}*/, var parameter3 /*{long*}*/, var parameter4 /*{long*}*/)  {
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter0);
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter1);
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter2);
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter3);
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter4);
+		SendMessage(this->Name, MSG_AX_CALL_METHOD, "ArcEnum", "0");
+		SendMessage(this->Name, MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*116*/	function /*{void}*/ BestPathEnum(parameter0 /*{long}*/, parameter1 /*{long}*/, var parameter2 /*{long*}*/, parameter3 /*{long}*/, var parameter4 /*{long*}*/, parameter5 /*{long}*/, parameter6 /*{long}*/, var parameter7 /*{long*}*/, var parameter8 /*{long*}*/)  {
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter0);
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter1);
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter2);
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter3);
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter4);
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter5);
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter6);
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter7);
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter8);
+		SendMessage(this->Name, MSG_AX_CALL_METHOD, "BestPathEnum", "0");
+		SendMessage(this->Name, MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*117*/	function /*{BSTR}*/ AX_GET_DataGetString( /*{long}*/  /*{long}*/  /*{BSTR}*/) /*{propget}*/ {
+		SendMessage(this->Name, MSG_AX_GET_PROPERTY, "DataGetString", "0");
+		SendMessage(this->Name, MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*118*/	function /*{void}*/ DataGetTime(parameter0 /*{long}*/, parameter1 /*{long}*/, parameter2 /*{BSTR}*/, var parameter3 /*{long*}*/, var parameter4 /*{long*}*/)  {
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter0);
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter1);
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter2);
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter3);
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter4);
+		SendMessage(this->Name, MSG_AX_CALL_METHOD, "DataGetTime", "0");
+		SendMessage(this->Name, MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*119*/	function /*{long}*/ AX_GET_score( /*{long}*/  /*{long}*/  /*{long*}*/  /*{long}*/  /*{long}*/  /*{long}*/) /*{propget}*/ {
+		SendMessage(this->Name, MSG_AX_GET_PROPERTY, "score", "0");
+		SendMessage(this->Name, MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*120*/	function /*{void}*/ GetAllArcs(parameter0 /*{long}*/, var parameter1 /*{long*}*/, var parameter2 /*{long*}*/)  {
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter0);
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter1);
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter2);
+		SendMessage(this->Name, MSG_AX_CALL_METHOD, "GetAllArcs", "0");
+		SendMessage(this->Name, MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*121*/	function /*{void}*/ GetAllNodes(parameter0 /*{long}*/, var parameter1 /*{long*}*/, var parameter2 /*{long*}*/)  {
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter0);
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter1);
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter2);
+		SendMessage(this->Name, MSG_AX_CALL_METHOD, "GetAllNodes", "0");
+		SendMessage(this->Name, MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*122*/	function /*{long}*/ AX_GET_NodeGet( /*{long}*/  /*{long}*/  /*{long}*/) /*{propget}*/ {
+		SendMessage(this->Name, MSG_AX_GET_PROPERTY, "NodeGet", "0");
+		SendMessage(this->Name, MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*123*/	function /*{long}*/ AX_GET_GraphDWORDGet( /*{long}*/  /*{long}*/  /*{BSTR}*/) /*{propget}*/ {
+		SendMessage(this->Name, MSG_AX_GET_PROPERTY, "GraphDWORDGet", "0");
+		SendMessage(this->Name, MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*124*/	function /*{void}*/ RenameSpeaker(parameter0 /*{BSTR}*/, parameter1 /*{BSTR}*/)  {
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter0);
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter1);
+		SendMessage(this->Name, MSG_AX_CALL_METHOD, "RenameSpeaker", "0");
+		SendMessage(this->Name, MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*125*/	function /*{void}*/ DeleteSpeaker(parameter0 /*{BSTR}*/)  {
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter0);
+		SendMessage(this->Name, MSG_AX_CALL_METHOD, "DeleteSpeaker", "0");
+		SendMessage(this->Name, MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*126*/	function /*{void}*/ CommitSpeaker()  {
+		SendMessage(this->Name, MSG_AX_CALL_METHOD, "CommitSpeaker", "0");
+		SendMessage(this->Name, MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*127*/	function /*{void}*/ RevertSpeaker(parameter0 /*{BSTR}*/)  {
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter0);
+		SendMessage(this->Name, MSG_AX_CALL_METHOD, "RevertSpeaker", "0");
+		SendMessage(this->Name, MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*128*/	function /*{long}*/ AX_GET_SpeakerInfoChanged( /*{long*}*/  /*{long*}*/) /*{propget}*/ {
+		SendMessage(this->Name, MSG_AX_GET_PROPERTY, "SpeakerInfoChanged", "0");
+		SendMessage(this->Name, MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*129*/	function /*{void}*/ TrainPhrasesDlg(parameter0 /*{long}*/, parameter1 /*{BSTR}*/)  {
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter0);
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter1);
+		SendMessage(this->Name, MSG_AX_CALL_METHOD, "TrainPhrasesDlg", "0");
+		SendMessage(this->Name, MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*130*/	function /*{void}*/ LexAddTo(parameter0 /*{ULONG}*/, parameter1 /*{long}*/, parameter2 /*{BSTR}*/, parameter3 /*{BSTR}*/, parameter4 /*{long}*/, parameter5 /*{long}*/, parameter6 /*{long}*/)  {
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter0);
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter1);
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter2);
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter3);
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter4);
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter5);
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter6);
+		SendMessage(this->Name, MSG_AX_CALL_METHOD, "LexAddTo", "0");
+		SendMessage(this->Name, MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*131*/	function /*{void}*/ LexGetFrom(parameter0 /*{long}*/, parameter1 /*{long}*/, parameter2 /*{BSTR}*/, parameter3 /*{long}*/, var parameter4 /*{BSTR*}*/, var parameter5 /*{long*}*/, var parameter6 /*{long*}*/, var parameter7 /*{long*}*/)  {
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter0);
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter1);
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter2);
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter3);
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter4);
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter5);
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter6);
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter7);
+		SendMessage(this->Name, MSG_AX_CALL_METHOD, "LexGetFrom", "0");
+		SendMessage(this->Name, MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*132*/	function /*{void}*/ LexRemoveFrom(parameter0 /*{long}*/, parameter1 /*{BSTR}*/, parameter2 /*{long}*/)  {
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter0);
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter1);
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter2);
+		SendMessage(this->Name, MSG_AX_CALL_METHOD, "LexRemoveFrom", "0");
+		SendMessage(this->Name, MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*133*/	function /*{void}*/ QueryLexicons(parameter0 /*{long}*/, var parameter1 /*{long*}*/)  {
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter0);
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter1);
+		SendMessage(this->Name, MSG_AX_CALL_METHOD, "QueryLexicons", "0");
+		SendMessage(this->Name, MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*134*/	function /*{void}*/ ChangeSpelling(parameter0 /*{long}*/, parameter1 /*{BSTR}*/, parameter2 /*{BSTR}*/)  {
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter0);
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter1);
+		SendMessage(this->Name, MSG_AX_ADD_PARAMETER, "0", parameter2);
+		SendMessage(this->Name, MSG_AX_CALL_METHOD, "ChangeSpelling", "0");
+		SendMessage(this->Name, MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+}

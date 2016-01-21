@@ -1,0 +1,16 @@
+include RemoteContainer.con
+include ClassID.con
+
+class RFixed extends RemoteContainer {
+	public function RFixed(OWNER) {
+		super(OWNER, CLASS_FIXED);
+	}
+
+	public function Move(ctrl,x,y) {
+		if (typeof ctrl!="class")
+			return 0;
+
+		Send(MSG_CUSTOM_MESSAGE1,""+ctrl.RID,x*0x10000+y);
+		return 1;
+	}
+}

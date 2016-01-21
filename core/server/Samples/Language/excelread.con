@@ -1,0 +1,26 @@
+import standard.lib.xls
+
+class Main {
+	function Main() {
+		var xls=xls_open("test.xls", "UTF-8");
+		if (xls) {
+			xls_parseWorkBook(xls);
+			var prop=xls_getWorkBookProperties(xls);
+			var sheets=prop["sheets"];
+			var len_sheets=length sheets;
+			for (var i=0;i<len_sheets;i++) {
+				var sheet=sheets[i];
+				echo "Sheet '"+sheet["name"]+"'\n";
+				echo "=================================\n";
+				var s=xls_getWorkSheet(xls, i);
+				xls_parseWorkSheet(s);
+				echo xls_getWorkSheetProperties(s);
+				//echo xls_matrix(s);
+				//echo xls_row
+				//echo xls_cell(s, 1,1);
+				echo "\n=================================\n";
+			}
+			xls_close(xls);
+		}
+	}
+}

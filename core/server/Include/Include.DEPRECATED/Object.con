@@ -1,0 +1,22 @@
+include 'StandardHeader.con'
+
+class Object {
+	protected var _DATA;
+	protected var _NAME;
+
+	public property Data { get _DATA, set SetData }
+	public property Name { get _NAME, set SetName }
+
+	protected function SetData(x) {
+		this->_DATA=x;
+	} 
+
+	protected function SetName(x) {
+		this->_NAME=x;
+	} 
+
+	function XMLSerialized() {
+		var XMLData='<Object _NAME="'+this->_NAME+'" _DATA="'+this->_DATA+'" />';
+		return XMLData;
+	}
+}

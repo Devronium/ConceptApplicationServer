@@ -1,0 +1,183 @@
+include RemoteObject.con
+
+define P_SAMPLERATE            "1000"
+define P_NUMCHANNELS           "1001"
+define P_RECORD                "1002"
+define P_ADDBUFFER             "1003"
+define P_BEGINPLAYBACK         "1004"
+define P_QUALITY               "1005"
+define P_USECOMPRESSION        "1006"
+define P_ADDBUFFER2            "1007"
+define P_CLEAR                 "1008"
+define P_BANDWIDTH             "1009"
+define P_BITRATE               "3725"
+
+define EVENT_ON_BUFFER         "350"
+
+define USE_SPEEX		1
+define USE_OPUS			2
+
+define BANDWIDTH_NARROWBAND	1
+define BANDWIDTH_MEDIUMBAND	2
+define BANDWIDTH_WIDEBAND	3
+define BANDWIDTH_SUPERWIDEBAND	4
+define BANDWIDTH_FULLBAND	5
+
+class RAudioStreamer extends RemoteObject {
+	protected var _SAMPLERATE=44100;
+	protected var _NUMCHANNELS=1;
+	protected var _QUALITY=8;
+	protected var _BITRATE=9000;
+	protected var _USECOMPRESSION=true;
+	protected var _in_use=false;
+	protected var _max_buffers=0;
+	protected var _frame_size=20;
+	protected var _miclevel=-1;
+	protected var _drm=false;
+	protected var _bandwidth = -1;
+
+	public property SampleRate { set SetSampleRate, get _SAMPLERATE }
+	public property Bitrate { set SetBitrate, get _BITRATE }
+	public property Channels { set SetChannels, get _NUMCHANNELS }
+	public property Quality { set SetQuality, get _QUALITY }
+	public property Compression { set SetCompression, get _USECOMPRESSION }
+	public property MaxBuffers { set SetMaxBuffers, get _max_buffers }
+	public property FrameSize { set SetFrameSize, get _frame_size }
+	public property MicLevel { set SetMicLevel, get _miclevel }
+	public property DRM { set SetDRM, get _drm }
+	public property BandWidth { set SetBandWidth, get _bandwidth }
+
+	//-------- Events ----------------//
+	public property OnBuffer { get GetOnBuffer, set SetOnBuffer }
+	private function GetOnBuffer() {
+		return _GET_REMOTE_EVENT(EVENT_ON_BUFFER);
+	}
+
+	private function SetOnBuffer(delegate deleg) {
+		return _MAP_REMOTE_EVENT(EVENT_ON_BUFFER, deleg);
+	}
+	//-------- End of Events ---------//
+
+	public function RAudioStreamer(RemoteObject Owner) {
+		super(null, "1016");
+		this.LinkIfNotLinked(Owner);
+	}
+
+	public function SetSampleRate(number srate) {
+		this.SetProperty(P_SAMPLERATE, srate);
+		this._SAMPLERATE=srate;
+		return srate;
+	}
+
+	public function SetBitrate(number srate) {
+		this.SetProperty(P_BITRATE, srate);
+		this._BITRATE=srate;
+		return srate;
+	}
+
+	public function Record(number device_id=-1) {
+		if (_in_use)
+			throw "RAudioStream.Play:Device already in use";
+		_in_use=true;
+		this.SetProperty(P_RECORD, device_id);
+	}
+
+	public function Play(number device_id=-1) {
+		if (_in_use)
+			throw "RAudioStream.Play: Device already in use";
+		_in_use=true;
+		this.SetProperty(P_BEGINPLAYBACK, device_id);
+	}
+
+	public function AddBuffer(var string data) {
+		this.SetProperty(P_ADDBUFFER, data);
+	}
+
+	public function AddSmallBuffer(var string data) {
+		this.SetProperty("", data);
+	}
+
+	public function AddBigBuffer(var string data) {
+		this.SetProperty(P_ADDBUFFER2, data);
+	}
+
+	public function Stop() {
+		if (!_in_use)
+			throw "RAudioStream.Stop: Device is not in use";
+		_in_use=false;
+		this.SetProperty(P_RECORD, -2);
+	}
+
+	public function Clear() {
+		this.SetProperty(P_CLEAR, 1);
+	}
+
+	public function SetChannels(number nchannels) {
+		if ((nchannels!=1) && (this._USECOMPRESSION) && (this._USECOMPRESSION))
+			throw "RAudioStreamer.SetChannels: set first the Compression property to false or USE_OPUS. Speex compression works only with one channel (mono).";
+		this.SetProperty(P_NUMCHANNELS, nchannels);
+		this._NUMCHANNELS=nchannels;
+		return nchannels;
+	}
+
+	public function SetQuality(number quality) {
+		this.SetProperty(P_QUALITY, quality);
+		this._QUALITY=quality;
+		return quality;
+	}
+
+	public function SetCompression(number compress) {
+		if (compress!=2)
+			compress=(compress != 0);
+
+		if ((compress) && (this._NUMCHANNELS!=1) && (compress!=2))
+			throw "RAudioStreamer.SetCompression: Compression can be set only for one channel (set Channels to 1 first).";
+
+		this.SetProperty(P_USECOMPRESSION, compress);
+		this._USECOMPRESSION=compress;
+		return compress;
+	}
+
+	public function SetMaxBuffers(number buffers) {
+		this._max_buffers=buffers;
+		this.SetProperty(P_MAXLEN, _max_buffers);
+		return buffers;
+	}
+
+	public function SetFrameSize(number framesize) {
+		if (framesize%10)
+			throw "Frame size should be a multiple of 10ms";
+
+		this._frame_size=framesize;
+		this.SetProperty(P_STEP, framesize);
+		return framesize;
+	}
+
+	public function SetMicLevel(number miclevel) {
+		if ((miclevel<0) || (miclevel>157))
+			throw "Microphone level must be between 0 and 157";
+		this._miclevel=miclevel;
+		this.SetProperty(P_VALUE, miclevel);
+		return miclevel;
+	}
+
+	public function SetDRM(number active) {
+		this._drm=active;
+		this.SetProperty(P_MASKED, active);
+		return active;
+	}
+
+	public function SetBandWidth(number bw) {
+		this._bandwidth=bw;
+		this.SetProperty(P_BANDWIDTH, bw);
+		return bw;
+	}
+
+	public function finalize() {
+		try {
+			this.Stop();
+		} catch (var exc) {
+			// ...
+		}
+	}
+}

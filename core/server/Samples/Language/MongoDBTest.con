@@ -1,0 +1,44 @@
+include MongoDataBase.con
+
+class Test {
+	var Name="Eduard";
+	var Age=28;
+	var[] data;
+}
+
+class Main {
+	function Main() {
+		try {
+			var mongo=new MongoConnection();
+			if (mongo.Connect("tutorial")) {
+				mongo.DropDb("tutorial");
+
+				var[] arr;
+				for (var i=0;i<10;i++) {
+					var t=new Test();
+					t.Age=i;
+					t.Name+=" "+i;
+					t.data=[1,2,3,4,5,"arraytest",[6,7,8],10];
+					arr[i]=t;
+				}
+
+				var dataset=new MongoDataSet(mongo,"people");
+				dataset.Insert(arr);
+
+				var cond=new [];
+				cond["Age"]=9;
+				dataset.Query=cond;
+
+				var res=dataset.Find();
+				if (res) {
+					while (res.Next())
+						echo res.FieldValues.Name;
+				}
+				echo "Elements: "+dataset.Count()+"\n";
+			}
+			mongo.Close();
+		} catch (var exc) {
+			echo exc;
+		}
+	}
+}

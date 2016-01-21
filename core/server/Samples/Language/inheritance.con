@@ -1,0 +1,38 @@
+include 'Spinach.con'
+
+class Main {
+      function Main() {
+               var test=new Spinach();
+               echo "---- Vegetable and Spinach ---\r\n";
+               echo "Color  : "+test->color+"\r\n";
+               var edible=test->is_edible();
+
+               if (!edible)
+                  edible="no";
+               else
+                  edible="yes";
+
+               echo "Edible : "+edible+"\r\n";
+               echo "-------- Only Spinach --------\r\n";
+
+               var cooked=test->is_cooked();
+
+               if (!cooked)
+                  cooked="no";
+               else
+                  cooked="yes";
+
+               echo "Cooked : "+cooked+"\r\n";
+               echo "Cooking ...\r\n";
+
+               test->cook_it();
+               cooked=test->is_cooked();
+
+               if (!cooked)
+                  cooked="no";
+               else
+                  cooked="yes";
+
+               echo "Cooked : "+cooked+"\r\n";
+       }
+}

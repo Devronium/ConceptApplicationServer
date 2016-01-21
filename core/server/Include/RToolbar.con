@@ -1,0 +1,106 @@
+include RemoteContainer.con
+include RemoteEvents.con
+include RemoteProperties.con
+include ClassID.con
+
+define ORIENTATION_HORIZONTAL	0
+define ORIENTATION_VERTICAL	1
+
+define TOOLBAR_ICONS		0
+define TOOLBAR_TEXT		1
+define TOOLBAR_BOTH		2
+define TOOLBAR_BOTH_HORIZ	3
+
+define RELIEF_NORMAL		0
+define RELIEF_HALF		1
+define RELIEF_NONE		2
+
+class RToolbar extends RemoteContainer {
+	protected var ICONSIZE;
+	protected var SHOWARROW;
+	protected var TOOLBARSTYLE;
+	protected var TOOLTIPS;
+	protected var ORIENTATION;
+	protected var RELIEFSTYLE;
+
+	public property IconSize { get GetIconSize, set SetIconSize }
+	public property ShowArrow { get SHOWARROW, set SetShowArrow }
+	public property Style { get TOOLBARSTYLE, set SetStyle }
+	public property Tooltips { get TOOLTIPS, set SetTooltips }
+	public property Orientation { get ORIENTATION, set SetOrientation }
+	public property ReliefStyle { get SetReliefStyle }
+
+	//---------------- EVENTS --------------------------------------------------------//
+	public property OnOrientationChanged { get GetOnOrientationChanged, set SetOnOrientationChanged }
+	public function GetOnOrientationChanged() {
+		return _GET_REMOTE_EVENT(EVENT_ON_ORIENTATIONCHANGED);
+	}
+
+	public function SetOnOrientationChanged(delegate deleg) {
+		return _MAP_REMOTE_EVENT(EVENT_ON_ORIENTATIONCHANGED, deleg);
+	}
+
+	public property OnPopupContextMenu { get GetOnPopupContextMenu, set SetOnPopupContextMenu }
+	public function GetOnPopupContextMenu() {
+		return _GET_REMOTE_EVENT(EVENT_ON_POPUPCONTEXTMENU);
+	}
+
+	public function SetOnPopupContextMenu(var delegate deleg) {
+		return _MAP_REMOTE_EVENT(EVENT_ON_POPUPCONTEXTMENU, deleg);
+	}
+
+	public property OnToolbarStyleChanged { get GetOnToolbarStyleChanged, set SetOnToolbarStyleChanged }
+	public function GetOnToolbarStyleChanged() {
+		return _GET_REMOTE_EVENT(EVENT_ON_TOOLBARSTYLECHANGED);
+	}
+
+	public function SetOnToolbarStyleChanged(var delegate deleg) {
+		return _MAP_REMOTE_EVENT(EVENT_ON_TOOLBARSTYLECHANGED, deleg);
+	}
+	//-------------------------------------------------------------------------------//
+
+	public function GetIconSize(argument) {
+		ICONSIZE=value GetProperty(P_ICONSIZE);
+		return ICONSIZE;
+	}
+
+	public function SetIconSize(argument) {
+		if (argument)
+			SetProperty(P_ICONSIZE, argument);
+		return ICONSIZE;
+	}
+
+	public function SetShowArrow(argument) {
+		SHOWARROW=(argument!=0);
+		return SetProperty(P_SHOWARROW,SHOWARROW);
+	}
+
+	public function SetStyle(argument) {
+		TOOLBARSTYLE=argument;
+		return SetProperty(P_TOOLBARSTYLE,argument);
+	}
+
+	public function SetTooltips(argument) {
+		TOOLTIPS=(argument!=0);
+		return SetProperty(P_TOOLTIPS,TOOLTIPS);
+	}
+	
+	public function SetOrientation(argument) {
+		ORIENTATION=argument;
+		return SetProperty(P_ORIENTATION,argument);
+	}
+
+	public function GetReliefStyle(argument) {
+		RELIEFSTYLE=value GetProperty(P_RELIEFSTYLE);
+		return RELIEFSTYLE;
+	}
+
+	public function SetReliefStyle(argument) {
+		RELIEFSTYLE=argument;
+		return SetProperty(P_RELIEFSTYLE,argument);
+	}
+
+	public function RToolbar(OWNER) {
+		super(OWNER, CLASS_TOOLBAR);
+	}
+}

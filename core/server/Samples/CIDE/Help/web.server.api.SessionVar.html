@@ -1,0 +1,133 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+  <title>web.server.api.SessionVar</title>
+  <link href="css/style.css" rel="stylesheet" type="text/css">
+  <meta http-equiv="Content-Type" content="text/html;charset=utf-8" >
+</head>
+<body bgcolor="#ffffff">
+<table border="0" width="100%" bgcolor="#F0F0FF">
+  <tr>
+    <td>Concept Framework 2.2 documentation</td>
+  	<td align="right"><a href="index.html">Contents</a> | <a href="index_fun.html">Index</a></td>
+  </tr>
+</table>
+<h2><a href="web.server.api.html">web.server.api</a>.SessionVar</h2>
+<table border="0" cellspacing="0" cellpadding="0" width="500" style="border-style:solid;border-width:1px;border-color:#D0D0D0;">
+  <tr bgcolor="#f0f0f0">
+     <td><i>Name</i></td>
+     <td><i>Version</i></td>
+     <td><i>Deprecated</i></td>
+  </tr>
+  <tr bgcolor="#fafafa">
+     <td><b>SessionVar</b></td>
+     <td>version 1.0</td>
+     <td>no</td>
+  </tr>
+</table>
+<br />
+<b>Prototype:</b><br />
+	<table bgcolor="#F0F0F0" width="100%" style="border-style:solid;border-width:1px;border-color:#D0D0D0;"><tr><td><b>string SessionVar(string varname)</b></td></tr></table>
+<br />
+
+<b>Parameters:</b><br />
+<table bgcolor="#FFFFFF" style="border-style:solid;border-width:1px;border-color:#D0D0D0;">
+
+	   <tr>
+	   	   <td>
+		   	   <i>varname</i>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+		   </td>
+	   	   <td>
+		   	   the session variable name
+		   </td>
+	   </tr>
+
+</table>
+
+<br />
+<b>Description:</b><br />
+<table width="100%" bgcolor="#FAFAFF" style="border-style:solid;border-width:1px;border-color:#D0D0D0;">
+<tr><td>
+Gets session value for the given variable name.
+</td></tr>
+</table>
+<br />
+
+<b>Example:</b>
+<table bgcolor="#F0F0FF" width="100%"  style="border-style:solid;border-width:1px;border-color:#D0D0D0;"><tr><td>
+<font color="#101060"><pre>import 'web.server.api'
+
+
+/////////////////////////////////////////////////////////////////////
+//
+// Settings for Apache ... copy the following paragraph to the end
+// of httpd.conf in your Apache installation directory, and replace
+// "C:/Distribution/Bin/" with your path to concept Disitrbution 
+//  directory
+//
+/////////////////////////////////////////////////////////////////////
+//
+// ScriptAlias /con/ "c:/Distribution/Bin/"
+// AddType application/x-httpd-con .con
+// AddType application/x-httpd-con .csp
+// Action application/x-httpd-con "/con/concept-cgi.exe"
+//
+/////////////////////////////////////////////////////////////////////
+
+class Main {
+	function Main() {
+		var SESSID=SessionStart();
+
+		if (WebVar("action")=="destroy")
+			SessionDestroy();
+		else {
+			ContentType("text/html");
+			echo "Server software : "+ ServerVar("SERVER_SOFTWARE") + "&lt;br&gt;";
+			echo "Server name : "+ ServerVar("SERVER_NAME") + "&lt;br&gt;";
+			echo "Gateway interface : "+ ServerVar("GATEWAY_INTERFACE") + "&lt;br&gt;";
+			echo "Server protocol : "+ ServerVar("SERVER_PROTOCOL") + "&lt;br&gt;";
+			echo "Server port : "+ ServerVar("SERVER_PORT") + "&lt;br&gt;";
+			echo "Request method : "+ ServerVar("REQUEST_METHOD") + "&lt;br&gt;";
+			echo "Path info : "+ ServerVar("PATH_INFO") + "&lt;br&gt;";
+			echo "Path translated : "+ ServerVar("PATH_TRANSLATED") + "&lt;br&gt;";
+			echo "Script name : "+ ServerVar("SCRIPT_NAME") + "&lt;br&gt;";
+			echo "Query string : "+ ServerVar("QUERY_STRING") + "&lt;br&gt;";
+			echo "Remote host : "+ ServerVar("REMOTE_HOST") + "&lt;br&gt;";
+			echo "Remote address : "+ ServerVar("REMOTE_ADDR") + "&lt;br&gt;";
+			echo "Authentification type : "+ ServerVar("AUTH_TYPE") + "&lt;br&gt;";
+			echo "Remote user : "+ ServerVar("REMOTE_USER") + "&lt;br&gt;";
+			echo "Remote ident : "+ ServerVar("REMOTE_IDENT") + "&lt;br&gt;";
+			echo "&lt;b&gt;Session ID&lt;/b&gt; : " + SESSID;
+			echo "&lt;br&gt;";
+			echo "&lt;b&gt;Action&lt;/b&gt;=" + WebVar("action");
+			echo "&lt;br&gt;";
+			echo "&lt;b&gt;Action (session)&lt;/b&gt;=" + SessionVar("Action");
+			SetSessionVar("Action",WebVar("action"));
+		}
+
+		SessionDone();
+	}
+}</pre></font>
+</td></tr></table>
+<br />
+
+<b>Returns:</b><br />
+Return session value for the given variable name.
+<br />
+<br />
+<!--
+  <p>
+    <a href="http://validator.w3.org/check?uri=referer"><img
+        src="http://www.w3.org/Icons/valid-html40"
+        alt="Valid HTML 4.0 Transitional" height="31" width="88" border="0"></a>
+ <a href="http://jigsaw.w3.org/css-validator/">
+  <img style="border:0;width:88px;height:31px"
+       src="http://jigsaw.w3.org/css-validator/images/vcss" 
+       alt="Valid CSS!" border="0"/>
+ </a>
+</p>
+-->
+<table bgcolor="#F0F0F0" width="100%"><tr><td>Documented by Eduard Suica, generation time: Sun Jan 27 18:15:18 2013
+ GMT</td><td align="right">(c)2013 <a href="http://www.devronium.com">Devronium Applications</a></td></tr></table>
+</body>
+</html>

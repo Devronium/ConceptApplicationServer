@@ -1,0 +1,395 @@
+include DirectoryList.con
+
+define BOOL_PROPS	["Visible" => 1, "Enabled" => 1, "Homogeneous" => 1, "SkipTaskbar" => 1, "SkipPages" => 1, "UseMarkup" => 1, "Checked" => 1, "UseStock" => 1, "Dragable" => 1, "ActivateDefault" => 1, "CapsWarning" => 1, "Overwrite" => 1, "PrimaryIconActivable"=>1, "SecondaryIconActivable"=>1, "ReadOnly"=>1, "Masked" => 1, "Inconsistent" => 1, "ShowTabs" => 1, "TabsVisible" => 1, "HeaderVisible" => 1, "AcceptTab" => 1, "CursorVisible" => 1, "IsReadOnly"=>1, "IsVisible" => 1, "Expanded" => 1, "Closeable" =>1, "FullScreen" => 1, "KeepAbove"=>1, "KeepBellow"=>1, "Maximized"=>1, "Minimized"=>1, "Modal"=>1, "Resizable" => 1, "SkipPage" =>1, "Urgent" => 1, "Titlebar" => 1, "IsTab" => 1, "IsImportant" => 1, "ShowArrow" => 1, "UseUnderline" => 1, "Selectable" => 1, "EnableSearch" => 1, "HeadersClickable" => 1, "HeadersVisible" => 1, "HoverSelection" => 1, "MultipleSelection" => 1, "Reorderable" => 1, "RulesHint" => 1, "ShowExpanders" => 1, "SortDescending" => 1, "Sorted" => 1, "ResizeParent" => 1, "Expand" => 1, "VisibleHorizontal" => 1, "VisibleVertical" =>1, "Editable"=>1, "Transparent" =>1, "MaintainBackForward" => 1, "CaseSensitive" => 1, "HighlightMatches" => 1, "ObeyChild" => 1, "AddTearoffs" => 1, "FocusOnClick" => 1, "Border" => 1, "KeepBelow" => 1, "SkipPager" => 1, "DrawValue" => 1, "Inverted" => 1, "SnapEdge" => 1, "IsDetached" => 1, "Scollable" => 1, "ShowBorder" => 1, "ReturnPropertyIndex" => 1, "Numeric" => 1, "SnapToTicks" => 1, "RSpinButton.Wrap" => 1, "FixedHeightMode" => 1, "HoverExpand" => 1, "TreeLines" => 1, "RightJustify" => 1, "AutoResize" => 1, "AutoScroll" => 1, "ClipText" => 1, "ColumnsResizable" => 1, "ColumnsSensitive" => 1, "GridVisible" => 1, "Locked" => 1, "RowsResizable" => 1, "RowsSensitive" => 1, "EnableAudio"=>1, "Focusable"=>1, "Stretch" => 1, "Compensable" => 1]
+define FLOAT_PROPS	["XAlign" => 1, "YAlign" => 1, "Scale" => 1, "Fraction" => 1, "Angle" => 1, "ProgressFraction" =>1, "Opacity" => 1, "Zoom" => 1, "FullContentZoom" => 1, "XScale" => 1, "YScale" => 1, "Ratio" => 1, "HTextAlign" => 1, "VTextAlign" => 1]
+define STRING_PROPS	["Caption" => 1, "Title" => 1, "Text" => 1, "Tooltip" => 1, "Markup" => 1, "DragData" => 1, "TooltipMarkup" => 1, "PrimaryIconName" => 1, "SecondaryIconName" => 1, "SecondaryIconTooltip" => 1, "PrimaryIconTooltip" => 1, "Suggest" => 1, "MaskedChar" => 1, "CSS" => 1, "Filename" => 1, "AccelKey" => 1, "Stock" => 1, "StockID"=>1, "Icon" => 1, "Pattern" => 1, "Tooltips" => 1, "URI"=>1, "Content" => 1, "InputFormat" => 1, "CurrentPageLabel" => 1]
+define OBJECT_PROPS	["MouseCursorImage" => 1, "PopupMenu" => 1, "DragIcon" => 1, "ActiveControlStart" => 1, "ActiveControlEnd" => 1, "PrimaryIcon" => 1, "SecondaryIcon" => 1, "Image" => 1, "RenderImage" => 1, "SubMenu" => 1, "ContainedObject" => 1, "TooltipWindow" => 1, "DefaultControl" => 1, "GroupWith" => 1, "SearchEntry" => 1, "IconView" => 1]
+define COMBO_PROPS	["Packing" => '["(not set)", "PACK_EXPAND_WIDGET", "PACK_EXPAND_PADDING", "PACK_SHRINK"]', "Orientation" => '["ORIENTATION_HORIZONTAL", "ORIENTATION_VERTICAL"]', "TabPos" => '["POS_LEFT", "POS_RIGHT", "POS_TOP", "POS_BOTTOM"]', "Style" => '["(not set)", "TOOLBAR_ICONS", "TOOLBAR_TEXT", "TOOLBAR_BOTH", "TOOLBAR_BOTH_HORIZ"]', "DropSite" => '["false", "DROP_STRINGS", "DROP_FILES", "DROP_BOTH"]', "ReliefStyle" => '["RELIEF_NORMAL", "RELIEF_HALF", "RELIEF_NONE"]', "Orientation" => '["ORIENTATION_HORIZONTAL", "ORIENTATION_VERTICAL"]', "ImagePosition" => '["POS_LEFT", "POS_RIGHT", "POS_TOP", "POS_BOTTOM"]', "RForm.Position" => '["WP_NONE", "WP_CENTER", "WP_MOUSE", "WP_CENTER_ALWAYS", "WP_CENTER_ON_PARENT"]', "Type" => '["WT_NORMAL", "WT_DIALOG", "WT_MENU", "WT_TOOLBAR", "WT_SPLASHSCREEN", "WT_UTILITY", "WT_DOCK", "WT_DESKTOP"]', "ShadowType" => '["SHADOW_NONE", "SHADOW_IN", "SHADOW_OUT", "SHADOW_ETCHED_IN", "SHADOW_ETCHED_OUT"]', "Layout" => '["BUTTONBOX_DEFAULT_STYLE", "BUTTONBOX_SPREAD", "BUTTONBOX_EDGE", "BUTTONBOX_START", "BUTTONBOX_END"]', "ValuePos" => '["POS_LEFT", "POS_RIGHT", "POS_TOP", "POS_BOTTOM"]', "HandlePosition" => '["POS_LEFT", "POS_RIGHT", "POS_TOP", "POS_BOTTOM"]', "Justify" => '["JUSTIFY_LEFT", "JUSTIFY_RIGHT", "JUSTIFY_CENTER", "JUSTIFY_FILL"]', "Wrap" => '["WRAP_NONE", "WRAP_CHAR", "WRAP_WORD", "WRAP_WORD_CHAR"]', "HScrollPolicy" => '["POLICY_ALWAYS", "POLICY_AUTOMATIC", "POLICY_NEVER"]', "VScrollPolicy" => '["POLICY_ALWAYS", "POLICY_AUTOMATIC", "POLICY_NEVER"]', "Placement" => '["CORNER_TOP_LEFT", "CORNER_BOTTOM_LEFT", "CORNER_TOP_RIGHT", "CORNER_BOTTOM_RIGHT"]', "Model" => '["MODEL_LISTVIEW", "MODEL_TREEVIEW"]', "GridLines" => '["TREE_VIEW_GRID_LINES_NONE", "TREE_VIEW_GRID_LINES_HORIZONTAL", "TREE_VIEW_GRID_LINES_VERTICAL", "TREE_VIEW_GRID_LINES_BOTH"]', "MouseCursor" => '["(not set)", "CURSOR_X_CURSOR", "CURSOR_ARROW", "CURSOR_BASED_ARROW_DOWN", "CURSOR_BASED_ARROW_UP", "CURSOR_BOAT", "CURSOR_BOGOSITY", "CURSOR_BOTTOM_LEFT_CORNER", "CURSOR_BOTTOM_RIGHT_CORNER", "CURSOR_BOTTOM_SIDE", "CURSOR_BOTTOM_TEE", "CURSOR_BOX_SPIRAL", "CURSOR_CENTER_PTR", "CURSOR_CIRCLE", "CURSOR_CLOCK", "CURSOR_COFFEE_MUG", "CURSOR_CROSS", "CURSOR_CROSS_REVERSE", "CURSOR_CROSSHAIR", "CURSOR_DIAMOND_CROSS", "CURSOR_DOT", "CURSOR_DOTBOX", "CURSOR_DOUBLE_ARROW", "CURSOR_DRAFT_LARGE", "CURSOR_DRAFT_SMALL", "CURSOR_DRAPED_BOX", "CURSOR_EXCHANGE", "CURSOR_FLEUR", "CURSOR_GOBBLER", "CURSOR_GUMBY", "CURSOR_HAND1", "CURSOR_HAND2", "CURSOR_HEART", "CURSOR_ICON", "CURSOR_IRON_CROSS", "CURSOR_LEFT_PTR", "CURSOR_LEFT_SIDE", "CURSOR_LEFT_TEE", "CURSOR_LEFTBUTTON", "CURSOR_LL_ANGLE", "CURSOR_LR_ANGLE", "CURSOR_MAN", "CURSOR_MIDDLEBUTTON", "CURSOR_MOUSE", "CURSOR_PENCIL", "CURSOR_PIRATE", "CURSOR_PLUS", "CURSOR_QUESTION_ARROW", "CURSOR_RIGHT_PTR", "CURSOR_RIGHT_SIDE", "CURSOR_RIGHT_TEE", "CURSOR_RIGHTBUTTON", "CURSOR_RTL_LOGO", "CURSOR_SAILBOAT", "CURSOR_SB_DOWN_ARROW", "CURSOR_SB_H_DOUBLE_ARROW", "CURSOR_SB_LEFT_ARROW", "CURSOR_SB_RIGHT_ARROW", "CURSOR_SB_UP_ARROW", "CURSOR_SB_V_DOUBLE_ARROW", "CURSOR_SHUTTLE", "CURSOR_SIZING", "CURSOR_SPIDER", "CURSOR_SPRAYCAN", "CURSOR_STAR", "CURSOR_TARGET", "CURSOR_TCROSS", "CURSOR_TOP_LEFT_ARROW", "CURSOR_TOP_LEFT_CORNER", "CURSOR_TOP_RIGHT_CORNER", "CURSOR_TOP_SIDE", "CURSOR_TOP_TEE", "CURSOR_TREK", "CURSOR_UL_ANGLE", "CURSOR_UMBRELLA", "CURSOR_UR_ANGLE", "CURSOR_WATCH", "CURSOR_XTERM", "CURSOR_LAST_CURSOR", "CURSOR_BLANK_CURSOR"]', "SelectMode"=>'["(not set)", "SELECTION_SINGLE", "SELECTION_BROWSE"]']
+
+define FREE_PROPS	["Decorations" => 1, "Properties" => 1]
+
+class Main {
+	var[] objects;
+
+	GetTitle(e) {
+		var res="";
+		if (e[0]=="R")
+			e++;
+
+		if (e==ToUpper(e))
+			return StrReplace(e, "2", "");
+
+		var len=length e;
+
+		for (var i=0;i<len;i++) {
+			if ((ord(e[i])>=ord('A')) && (ord(e[i])<=ord('Z')))
+				res+=" ";
+			res+=e[i];
+		}
+		res = ToLower(trim(res));
+		res[0] = ToUpper(res[0]);
+		res = StrReplace(res, "H ", "Horizontal ");
+		res = StrReplace(res, "V ", "Vertical ");
+		return trim(res);
+	}
+
+	GetData(path, e, var ext, var keywords, orig_path) {
+		var file = StrReplace(ReadFile(path+"/"+e), "\t", " ");
+		if (!file)
+			return [ ];
+
+		var cls = StrReplace(e, ".con", "");
+		if (cls=="Scintilla")
+			cls="RScintilla";
+		var[] properties;
+		var[] events;
+		ext="";
+		file=StrReplace(file, "\r", "");
+		var lines=StrSplit(file, "\n");
+		var len=length lines;
+		var start = false;
+		for (var i=0;i<len;i++) {
+			var line=lines[i];
+			if (Pos(line, " extends") > 0) {
+				var arr=StrSplit(line, " extends ");
+				ext=trim(StrReplace(arr[1], "{", ""));
+				if (Pos(line, "class $cls ")>0)
+					start=true;
+			}
+			if ((start) && (Pos(line, "property ") > 0) && (Pos(line, "set ") > 0)) {
+				var prop=StrSplit(StrSplit(line, "property ")[1], " ")[0];
+				if (prop!="PackType") {
+					if (Pos(keywords, " "+prop+" ")<=0) {
+						if (keywords)
+							keywords+=" ";
+						keywords+=prop;
+					}
+					if ((prop[0]+prop[1]=="On") || (prop[0]+prop[1]=="__"))
+						events[prop]=prop;
+					else
+						properties[prop]=prop;
+				}
+			}
+		}
+		if (cls=="VisibleRemoteObject")
+			properties["Compensable"] = "Compensable";
+		if (cls=="RImage")
+			properties["Stock"]="Stock";
+
+		var[] inherited;
+
+
+		if ((ext) && (ext!="RemoteObject"))
+			inherited = GetData(orig_path, ext+".con", var ref2, keywords, orig_path);
+
+		if (!objects[cls])
+			objects[cls] = [cls, KeySorted(properties), KeySorted(events), ext];
+
+		return [cls, properties, events, ext];
+	}
+
+	GetProp(p1, cls, is_event=false) {
+		if (p1=="Name")
+			return "";
+		var p2 = "$cls.$p1";
+
+		if ((is_event) || (STRING_PROPS[p1]))
+			return "				result[\"$p1\"] = [\"$p1\", UIDesignerHelper::GetTypeModifier(\"$p1\", values) * PROP_INSTANT, UIDesignerHelper::GetValue(\"$p1\", values, \"\"), \"$cls\"];\n";
+
+		if ((BOOL_PROPS[p1]) || (BOOL_PROPS[p2])) {
+			switch (p1) {
+				/*case "Visible":
+					return "				if (cls==\"RForm\")\n"+
+						"					result[\"$p1\"] = [\"$p1\", UIDesignerHelper::GetTypeModifier(\"$p1\", values) * PROP_BOOLEAN, UIDesignerHelper::GetValue(\"$p1\", values, \"0\", PROP_BOOLEAN), \"$cls\"];\n"+
+						"				else\n"+
+						"					result[\"$p1\"] = [\"$p1\", UIDesignerHelper::GetTypeModifier(\"$p1\", values) * PROP_BOOLEAN, UIDesignerHelper::GetValue(\"$p1\", values, \"1\", PROP_BOOLEAN), \"$cls\"];\n";*/
+				case "Enabled":
+				case "Numeric":
+				case "AcceptTab":
+				case "CursorVisible":
+				case "ColumnsResizable":
+				case "ColumnsSensitive":
+				case "GridVisible":
+				case "RowsResizable":
+				case "RowsSensitive":
+				case "Focusable":
+				case "EnableAudio":
+				case "ShowTabs":
+				case "ShowBorder":
+					return "				result[\"$p1\"] = [\"$p1\", UIDesignerHelper::GetTypeModifier(\"$p1\", values) * PROP_BOOLEAN, UIDesignerHelper::GetValue(\"$p1\", values, \"1\", PROP_BOOLEAN), \"$cls\"];\n";
+				default:
+					return "				result[\"$p1\"] = [\"$p1\", UIDesignerHelper::GetTypeModifier(\"$p1\", values) * PROP_BOOLEAN, UIDesignerHelper::GetValue(\"$p1\", values, \"\", PROP_BOOLEAN), \"$cls\"];\n";
+			}
+		}
+
+		if ((FLOAT_PROPS[p1]) || (FLOAT_PROPS[p2])) {
+			if (Pos(p1, "Align")>0)
+				return "				result[\"$p1\"] = [\"$p1\", UIDesignerHelper::GetTypeModifier(\"$p1\", values) * PROP_DECIMAL, UIDesignerHelper::GetValue(\"$p1\", values, \"0.5\"), \"$cls\"];\n";
+
+			return "				result[\"$p1\"] = [\"$p1\", UIDesignerHelper::GetTypeModifier(\"$p1\", values) * PROP_DECIMAL, UIDesignerHelper::GetValue(\"$p1\", values, \"\"), \"$cls\"];\n";
+		}
+
+		if (Pos(p1, "Color")>0)
+			return "				result[\"$p1\"] = [\"$p1\", UIDesignerHelper::GetTypeModifier(\"$p1\", values) * PROP_COLOR, UIDesignerHelper::GetValue(\"$p1\", values, \"\", PROP_COLOR), \"$cls\"];\n";
+
+		if ((OBJECT_PROPS[p1]) || (OBJECT_PROPS[p2]))
+			return "				result[\"$p1\"] = [\"$p1\", UIDesignerHelper::GetTypeModifier(\"$p1\", values) * PROP_INSTANT, UIDesignerHelper::GetValue(\"$p1\", values, \"\"), \"$cls\"];\n";
+		if (COMBO_PROPS[p1])
+			return "				result[\"$p1\"] = [\"$p1\", UIDesignerHelper::GetTypeModifier(\"$p1\", values) * PROP_OPTION, UIDesignerHelper::GetValue(\"$p1\", values, \"\"), ${COMBO_PROPS[p1]}, \"$cls\"];\n";
+
+		if (COMBO_PROPS[p2])
+			return "				result[\"$p1\"] = [\"$p1\", UIDesignerHelper::GetTypeModifier(\"$p1\", values) * PROP_OPTION, UIDesignerHelper::GetValue(\"$p1\", values, \"\"), ${COMBO_PROPS[p2]}, \"$cls\"];\n";
+
+		if ((FREE_PROPS[p1]) || (FREE_PROPS[p2])) {
+			return "				result[\"$p1\"] = [\"$p1\", UIDesignerHelper::GetTypeModifier(\"$p1\", values) * PROP_INSTANT, UIDesignerHelper::GetValue(\"$p1\", values, \"\"), \"$cls\"];\n";
+		}
+
+		return "				result[\"$p1\"] = [\"$p1\", UIDesignerHelper::GetTypeModifier(\"$p1\", values) * PROP_INTEGER, UIDesignerHelper::GetValue(\"$p1\", values, \"\"), \"$cls\"];\n";
+	}
+
+	DoRec(ext, var props, var events) {
+		var obj = objects[ext];
+		if (obj) {
+				var cls = obj[0];
+				var p = obj[1];
+				var ev = obj[2];
+				ext = obj[3];
+
+				var props2="";
+				var events2="";
+
+				if (ext)
+					DoRec(ext, props2, events2);
+
+				if (p) {
+					var len2=length p;
+					for (var j=0;j<len2;j++) {
+						var p1=p[j];
+						props += GetProp(p1, cls);
+					}
+				}
+
+				if (ev) {
+					len2=length ev;
+					for (j=0;j<len2;j++) {
+						p1=ev[j];
+						events += GetProp(p1, cls, true);
+					}
+				}
+				props+=props2;
+				events+=events2;
+		}
+	}
+
+	DoCls(obj, var props, var events) {
+			if (obj) {
+				var cls = obj[0];				
+				var p = obj[1];
+				var ev = obj[2];
+				var ext = obj[3];
+
+				var props2="";
+				var events2="";
+
+				if (ext)
+					DoRec(ext, props2, events2);
+
+				props += "			case \"$cls\":\n";
+				props += GetProp("Name", cls);
+
+				var len2=length p;
+				for (var j=0;j<len2;j++) {
+					var p1=p[j];
+					props += GetProp(p1, cls);
+				}
+				props+=props2;
+				props += "				break;\n";
+
+				events += "			case \"$cls\":\n";
+				if ((ev) || (events2)) {
+					len2=length ev;
+					for (j=0;j<len2;j++) {
+						p1=ev[j];
+						events += GetProp(p1, cls, true);
+					}
+					events+=events2;
+				}
+				events += "				break;\n";
+			}
+	}
+
+	DoEventsProps(var props, var events) {
+		events = "";
+		props = "";
+
+		var len = length objects;
+		for (var i=0;i<len;i++)
+			DoCls(objects[i], props, events);
+	}
+
+	Main() {
+		var path = "/Distribution/Include";
+		var keywords = "";
+
+		var arr = DirectoryList::ListByExt(path, ["con"]);
+
+		// static controls
+		arr["RSheet.con"]="Sheet/RSheet.con";
+		arr["RScintilla.con"]="Scintilla/Scintilla.con";
+		arr["RPDF2.con"]="PDF/RPDF2.con";
+		arr["RMedia.con"]="Media/RMedia.con";
+		
+		arr=KeySorted(arr);
+
+		var inc = "";
+		var create = "";
+		var len = length arr;
+		var add = "";
+		for (var i=0;i<len;i++) {
+			var e1 = arr[i];
+			var extra_path = "";
+			var e_arr = StrSplit(e1, "/");
+			if (length e_arr > 1) {
+				extra_path="/"+e_arr[0];
+				var e=e_arr[1];
+			} else
+				e=e1;
+			if ((e!=e1) || ((e[0]=='R') && 
+				(e!="RSA.con") && (e!="RAdjustment.con") &&
+				(e[0]+e[1]+e[2]+e[3]!="RADO") &&
+				(e!="RTreeViewColumnManager.con") &&
+				(e!="RTouchKeyboard.con") &&
+				(e!="RPrinter.con") &&
+				(e!="RBox.con") &&
+				(e!="RButtonBox.con") &&
+				(e!="RPaned.con") &&
+				(e!="RScale.con") &&
+				(e!="RClipboard.con") &&
+				(e!="RCanvas.con") &&
+				(e!="RItem.con") &&
+				(e!="RScrollbar.con") &&
+				(e!="RSeparator.con") &&
+				(e!="RToggleButton.con") &&
+				(e!="RMirrorContainer.con") &&
+				(ord(e[1])>=ord('A')) && (ord(e[1])<=ord('Z')))) {
+
+				var cls = StrReplace(e, ".con", "");
+				if (cls=="Scintilla")
+					cls="RScintilla";
+				inc+="include $e1\n";
+	
+				var properties = GetData(path+extra_path, e, var ext, keywords, path);
+				var title = GetTitle(cls);
+
+				create += "			case \"$cls\":\n";
+
+				add += "		DelegateObject.LoadControl(\"$cls\", \"$title\", \"$ext\");\n";
+				if (keywords)
+					keywords+=" ";
+				keywords+=cls;
+
+				if (cls=="RForm")
+					cls="RFormContainer";
+
+				if (cls=="RImageMenuItem")
+					create += "				obj = new $cls(parent, \"$title\", value UIDesignerHelper::GetValue(\"UseStock\", properties, \"0\", PROP_BOOLEAN));\n";
+				 else
+				if ((cls == "RCheckMenuItem") || (cls == "RRadioMenuItem") || (cls == "RImageMenuItem") || (cls == "RMenuItem"))
+					create += "				obj = new $cls(parent, \"$title\");\n";
+				else
+					create += "				obj = new $cls(parent);\n";
+
+				if (cls=="RImage")
+					create += "				obj.LoadResource(\"gtk-missing-image\", 1);\n";
+				if (cls!="RMenu") {
+					create += "				if (HasMember(obj, \"Caption\"))\n";
+					create += "					obj.Caption = name;\n";
+				}
+				create += "				break;\n";
+			}
+		}
+		echo inc;
+		echo "\n";
+		echo "class UIDesignerHelper {\n";
+		echo "	static LoadUI(DelegateObject) {\n";
+		echo add;
+		echo "	}\n\n";
+		echo "	static Create(DelegateObject, cls, parent, name, properties) {\n";
+		echo "		var obj;\n";
+		echo "		switch (cls) {\n";
+		echo create;
+		echo "		}\n";
+		echo "		return obj;\n";
+		echo "	}\n\n";
+
+		DoEventsProps(var props, var events);
+
+		echo "	static GetValue(key, values, def_value, type = -1) {\n";
+		echo "		if (IsSet(values, key)) {\n";
+		echo "			if (type==PROP_BOOLEAN) {\n";
+		echo "				var v = ToLower(\"\"+values[key]);\n";
+		echo "				if ((v==\"1\") || (v==\"true\") || (v==\"yes\"))\n";
+		echo "					return \"1\";\n";
+		echo "				return \"0\";\n";
+		echo "			} else\n";
+		echo "			if (type==PROP_COLOR)\n";
+		echo "				return \"\" + HexToNumber(values[key]);\n";
+		echo "			return values[key];\n";
+		echo "		}\n";
+		echo "		return def_value;\n";
+		echo "	}\n\n";
+				
+		echo "	static GetTypeModifier(key, values) {\n";
+		echo "		if (IsSet(values, key))\n";
+		echo "			return -1;\n";
+		echo "		return 1;\n";
+		echo "	}\n\n";
+
+		echo "	static Keywords() {\n";
+		echo "		return \"$keywords\";\n";
+		echo "	}\n\n";
+
+		echo "	static Properties(cls, values, parent=\"\") {\n";
+		echo "		var[] result;\n";
+		echo "		if (cls==\"RFormContainer\")\n";
+		echo "			cls=\"RForm\";\n\n";
+
+		echo "		result[\"Name\"] = [\"Name\", -PROP_INSTANT, UIDesignerHelper::GetValue(\"Name\", values, \"\"), \"\"];\n";
+		echo "		result[\"Needed\"] = [\"Needed\", UIDesignerHelper::GetTypeModifier(\"Needed\", values) * PROP_BOOLEAN, UIDesignerHelper::GetValue(\"Needed\", values, \"1\", PROP_BOOLEAN), \"\"];\n";
+		echo "		switch (parent) {\n";
+		echo "			case \"RTable\":\n";
+		echo "				result[\"LeftAttach\"] = [\"LeftAttach\", UIDesignerHelper::GetTypeModifier(\"LeftAttach\", values) * PROP_INTEGER, UIDesignerHelper::GetValue(\"LeftAttach\", values, \"\"), \"Parent(RTable) related\"];\n";
+		echo "				result[\"RightAttach\"] = [\"RightAttach\", UIDesignerHelper::GetTypeModifier(\"RightAttach\", values) * PROP_INTEGER, UIDesignerHelper::GetValue(\"RightAttach\", values, \"\"), \"Parent(RTable) related\"];\n";
+		echo "				result[\"TopAttach\"] = [\"TopAttach\", UIDesignerHelper::GetTypeModifier(\"TopAttach\", values) * PROP_INTEGER, UIDesignerHelper::GetValue(\"TopAttach\", values, \"\"), \"Parent(RTable) related\"];\n";
+		echo "				result[\"BottomAttach\"] = [\"BottomAttach\", UIDesignerHelper::GetTypeModifier(\"BottomAttach\", values) * PROP_INTEGER, UIDesignerHelper::GetValue(\"BottomAttach\", values, \"\"), \"Parent(RTable) related\"];\n";
+		echo "				result[\"XOptions\"] = [\"XOptions\", UIDesignerHelper::GetTypeModifier(\"XOptions\", values) * PROP_OPTION, UIDesignerHelper::GetValue(\"XOptions\", values, \"\"), [\"SHRINK\", \"SHRINK | FILL\", \"EXPAND\"], \"Parent(RTable) related\"];\n";
+		echo "				result[\"YOptions\"] = [\"YOptions\", UIDesignerHelper::GetTypeModifier(\"YOptions\", values) * PROP_OPTION, UIDesignerHelper::GetValue(\"YOptions\", values, \"\"), [\"SHRINK\", \"SHRINK | FILL\", \"EXPAND\"], \"Parent(RTable) related\"];\n";
+		echo "				result[\"XPadding\"] = [\"XPadding\", UIDesignerHelper::GetTypeModifier(\"XPadding\", values) * PROP_INTEGER, UIDesignerHelper::GetValue(\"XPadding\", values, \"\"), \"Parent(RTable) related\"];\n";
+		echo "				result[\"YPadding\"] = [\"YPadding\", UIDesignerHelper::GetTypeModifier(\"YPadding\", values) * PROP_INTEGER, UIDesignerHelper::GetValue(\"YPadding\", values, \"\"), \"Parent(RTable) related\"];\n";
+		echo "				break;\n";
+		echo "			case \"RNotebook\":\n";
+		echo "				result[\"PageCaption\"] = [\"PageCaption\", UIDesignerHelper::GetTypeModifier(\"PageCaption\", values) * PROP_INSTANT, UIDesignerHelper::GetValue(\"PageCaption\", values, \"\"), \"Parent(RNotebook) related\"];\n";
+		echo "				result[\"IsTab\"] = [\"IsTab\", UIDesignerHelper::GetTypeModifier(\"IsTab\", values) * PROP_BOOLEAN, UIDesignerHelper::GetValue(\"IsTab\", values, \"\", PROP_BOOLEAN), \"Parent(RNotebook) related\"];\n";
+		echo "				break;\n";
+		echo "		}\n";
+
+		echo "		switch (cls) {\n";
+		echo props;
+		echo "		}\n";
+		echo "		return result;\n";
+		echo "	}\n\n";
+
+
+		echo "	static Events(cls, values) {\n";
+		echo "		var[] result;\n";
+		echo "		if (cls==\"RFormContainer\")\n";
+		echo "			cls=\"RForm\";\n";
+		echo "		switch (cls) {\n";
+		echo events;
+		echo "		}\n";
+		echo "		return result;\n";
+		echo "	}\n";
+
+		echo "}\n";
+	}
+}

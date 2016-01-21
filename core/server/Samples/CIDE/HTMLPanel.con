@@ -1,0 +1,145 @@
+include Scintilla/Scintilla.con
+include RVBox.con
+include RToolbar.con
+include RScrolledWindow.con
+include RToolSeparator.con
+include Constants.con
+include RToolButton.con
+include StockConstants.con
+include Application.con
+
+define HTML_KEYWORDS "a abbr acronym address applet area b base basefont bdo big blockquote body br button caption center cite code col colgroup dd del dir div dfn dl dt em fieldset font form frame frameset h1 h2 h3 h4 h5 h6 head hr html i iframe img input ins isindex kbd label legend li link map menu meta noframes noscript object ol optgroup option p param pre q s samp script select small span strike strong style sub sup table tbody td textarea tfoot th thead title tr tt u ul var xmp"
+
+
+class HTMLPanel extends RVBox {
+	private var HTMLEdit;
+	private var toolbar;
+	public var SavePath;
+	public var Design=null;
+
+	public property Editor { get HTMLEdit }
+
+	public function IsModified() {
+		return HTMLEdit.SciMessageReturnNumber(SCI_GETMODIFY,0,0);
+	}
+	
+	public function SetSavePoint() {
+		HTMLEdit.SciMessage(SCI_SETSAVEPOINT,0,0);
+	}
+		
+	private function NewScintilla(box) {
+		var keywords=HTML_KEYWORDS;
+		var tst=new RScintilla(box);
+
+		tst.SciMessage(SCI_STYLECLEARALL,0,0);
+		tst.SciMessage(SCI_SETLEXER, SCLEX_HTML, 0);
+		tst.SciMessage(SCI_SETKEYWORDS, 0, keywords);
+
+		for (var i=0;i<20;i++) {
+			tst.SciMessage(SCI_STYLESETFONT, i, "Lucida Console");
+			tst.SciMessage(SCI_STYLESETSIZE, i, 10);
+		}
+
+		tst.SciMessage(SCI_CLEARDOCUMENTSTYLE, 0, 0);
+		tst.SciMessage(SCI_SETSTYLEBITS, 7, 0);
+		tst.SciMessage(SCI_SETTABWIDTH,4,0);
+		tst.SciMessage(SCI_SETINDENT,4,0);
+		tst.SciMessage(SCI_SETCARETPERIOD,400,0);
+		tst.SciMessage(SCI_SETMARGINMASKN, 2, SC_MASK_FOLDERS);
+
+		tst.SciMessage(SCI_STYLESETFORE, SCE_C_DEFAULT, 0x000000);
+		// comment
+		tst.SciMessage(SCI_STYLESETFORE, SCE_C_COMMENT, 0x008000);
+		tst.SciMessage(SCI_STYLESETFORE, SCE_C_COMMENTLINE, 0x008000);
+		tst.SciMessage(SCI_STYLESETFORE, SCE_C_COMMENTDOC, 0x008000);
+		// keyword
+		tst.SciMessage(SCI_STYLESETFORE, SCE_C_WORD, 0xC80000);
+		// strings
+		tst.SciMessage(SCI_STYLESETFORE, 6, 0x004000);
+   
+		tst.SciMessage(SCI_STYLESETFORE, 9, 0x0000FF);
+		// operators
+		tst.SciMessage(SCI_STYLESETFORE, 10, 0x400080);
+
+		tst.SciMessage(SCI_STYLESETFORE, 11, 0x000000);
+		// set the backgroundcolor of brace highlights
+		tst.SciMessage(SCI_STYLESETBACK, STYLE_BRACELIGHT, 0x00FF00);
+		// set end of line mode to CRLF
+		tst.SciMessage(SCI_CONVERTEOLS, SC_EOL_CRLF, 0);
+		tst.SciMessage(SCI_SETEOLMODE, SC_EOL_CRLF/*2*/, 0);
+
+		tst.SciMessage(SCI_SETMARGINWIDTHN, 1, 16);
+		tst.SciMessage(SCI_SETMARGINWIDTHN, 2, 16);
+
+		tst.SciMessage(SCI_SETUSETABS,0,0);
+
+		tst.SciMessage(SCI_SETBACKSPACEUNINDENTS, true, 0);
+		tst.SciMessage(SCI_SETINDENTATIONGUIDES, false, 0);
+		tst.Show();
+		return tst;
+	}
+
+	private function AddToolItem(hint,icon,toolbar,deleg) {
+		var toolbutton=new RToolButton(toolbar);
+		toolbutton.LoadStockIcon2(icon,ICON_SIZE_SMALL_TOOLBAR);
+		toolbutton.MinWidth=26;
+		toolbutton.MinHeight=26;
+		toolbutton.Tooltip=hint;
+		toolbutton.OnClicked=deleg;
+		toolbutton.Show();
+	}
+
+
+	private function AddToolSeparator(toolbar) {
+		var toolsep=new RToolSeparator(toolbar);
+		toolsep.Show();
+	}
+
+	public function DummyEvent(Sender, extra) {
+	}
+
+	public function CloseSourceClicked(Sender, extra) {
+		Hide();
+	}
+
+	public function ZoomInClicked(Sender, extra) {
+		HTMLEdit.SciMessage(SCI_ZOOMIN,0,0);
+	}
+
+	public function ZoomOutClicked(Sender, extra) {
+		HTMLEdit.SciMessage(SCI_ZOOMOUT,0,0);
+	}
+
+	public function GoToClicked(Sender, extra) {
+		if (CApplication::Input(var line="1", false, "Jump to <b>line</b> number:")==RESPONSE_OK)
+			HTMLEdit.SciMessage(SCI_GOTOLINE,(value line)-1);
+	}
+
+	public function HTMLPanel(owner) {
+		super(owner);
+
+
+		/*PackType=PACK_SHRINK;		
+
+		toolbar=new RToolbar(this);
+		toolbar.Style=TOOLBAR_ICONS;
+		toolbar.Tooltips=true;
+
+		AddToolItem("Close source", CLOSE, toolbar, CloseSourceClicked);
+		AddToolSeparator(toolbar);
+		//AddToolItem("Save template", SAVE, toolbar, DummyEvent);
+		//AddToolSeparator(toolbar);
+
+		toolbar.Show();*/
+
+		PackType=PACK_EXPAND_WIDGET;
+
+		var scroll=new RScrolledWindow(this);
+		scroll.HScrollPolicy=POLICY_AUTOMATIC;
+		scroll.VScrollPolicy=POLICY_AUTOMATIC;
+		scroll.Show();
+
+		HTMLEdit=NewScintilla(scroll);
+
+	}
+}

@@ -1,0 +1,27 @@
+include 'VisibleControl.con'
+include 'ToolBarButton.con'
+
+class ConceptToolBar extends VisibleControl {
+	protected var _IMAGELIST;
+	public property ImageList { set SetImageList, get _IMAGELIST }
+
+	protected function SetImageList(x) {
+		if (typeof x==CLASS_TYPE)
+			this->_IMAGELIST=x;
+		else
+		     	throw new ControlException(EXC_INVALID_ARGUMENT_TYPE, this);
+
+                SendMessage(this->Name, MSG_CHANGED, P_IMAGELIST, x->Name);
+	}
+
+	public function ConceptToolBar(Owner) {
+		this->VisibleControl(Owner, CLASS_TOOLBAR);
+	}
+
+	public function AddButton(index, tbbutton) {
+		if (typeof tbbutton == CLASS_TYPE)
+			SendMessage(this->Name, MSG_ITEM_ADD, ""+index, tbbutton->Name);
+		else
+		     	throw new ControlException(EXC_INVALID_ARGUMENT_TYPE, this);
+	}
+}

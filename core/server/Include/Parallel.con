@@ -1,0 +1,106 @@
+import standard.lang.parallel
+
+define	__parallel Parallel::Go
+define	__gpu Parallel::Go
+
+class Parallel {
+	protected var ctx;
+	protected var prog;
+	protected var kernel;
+	protected var kernelres;
+	protected var conceptname="";
+	protected var concepttypes="";
+
+	Parallel(device=CL_DEVICE_TYPE_DEFAULT) {
+		this.ctx=PPInit(device);
+	}
+
+	public LoadSource(string source, var errors=null, parameters="") {
+		if (!this.ctx)
+			throw "LoadSource: context not initialized";
+		prog=PPCompile(this.ctx, source, parameters, errors);
+		return (prog!=0);
+	}
+
+	public Use(delegate d, var errors=null, parameters="") {
+		if (!this.ctx)
+			throw "LoadSource: context not initialized";
+
+		var source=PPConcept(d, conceptname, concepttypes);
+		if (source)
+			prog=PPCompile(this.ctx, source, parameters, errors);
+		return (prog!=0);
+	}
+
+	public Run(array parameters) {
+		if (!this.prog)
+			throw "Run: no program source loaded";
+		if (this.kernelres)
+			this.Join();
+
+		kernel=PPKernel(this.prog, this.conceptname);
+		if (!kernel)
+			throw "Execute: invalid function";
+
+		kernelres=PPConceptGo(this.ctx, this.kernel, parameters, concepttypes);
+		if (kernelres)
+			return true;
+
+		return false;
+	}
+
+	public Execute(string func, array parameters, array outparamslen) {
+		if (!this.prog)
+			throw "Execute: no program source loaded";
+		if (this.kernelres)
+			this.Join();
+
+		kernel=PPKernel(this.prog, func);
+		if (!kernel)
+			throw "Execute: invalid function";
+
+		kernelres=PPGo(this.ctx, this.kernel, parameters, outparamslen);
+		if (kernelres)
+			return true;
+
+		return false;
+	}
+
+	public Join() {
+		if (!this.kernelres)
+			throw "Join: no function was called";
+		var res=PPFinish(this.kernelres);
+		this.kernelres=null;
+		PPReleaseKernel(this.kernel);
+		this.kernel=null;
+		return res;
+	}
+
+	public Unload() {
+		if (this.prog) {
+			if (this.kernelres)
+				this.Join();
+			PPRelease(prog);
+			this.prog=null;
+		}
+	}
+
+	static function Go(delegate d, array parameters) {
+		var[] res;
+		var p=new Parallel();
+		if (p.Use(d, var err)) {
+			p.Run(parameters);
+			res=p.Join();
+			p.Unload();
+		} else
+			throw err;
+		return res;
+	}
+
+	finalize() {
+		if (this.prog)
+			this.Unload();
+
+		PPDone(this.ctx);
+	}
+}

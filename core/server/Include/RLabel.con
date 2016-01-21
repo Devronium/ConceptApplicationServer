@@ -1,0 +1,133 @@
+include VisibleRemoteObject.con
+include ClassID.con
+include RemoteEvents.con
+
+define JUSTIFY_LEFT	0
+define JUSTIFY_RIGHT	1
+define JUSTIFY_CENTER	2
+define JUSTIFY_FILL	3
+
+define WRAP_NONE	0
+define WRAP_CHAR	1
+define WRAP_WORD	2
+define WRAP_WORD_CHAR	3
+
+class RLabel extends VisibleRemoteObject {
+	private var CAPTION = "";
+	private var SELECTABLE;
+	private var WRAP;
+	private var WRAPMODE;
+	private var ANGLE;
+	private var JUSTIFY;
+	private var PATTERN;
+	private var XALIGN;
+	private var YALIGN;
+	private var XPADDING;
+	private var YPADDING;
+	private var MARKUP;
+	private var USEUNDERLINE;
+	
+
+	public property Caption { get CAPTION, set SetCaption }
+	public property Wrap { get WRAP, set SetWrap }
+	public property Angle { get ANGLE, set SetAngle }
+	public property Selectable { get SELECTABLE, set SetSelectable }
+	public property Justify { get JUSTIFY, set SetJustify }
+	public property Pattern { get PATTERN, set SetPattern }
+	public property UseMarkup { get MARKUP, set SetUseMarkup }
+	public property UseUnderline { get USEUNDERLINE, set SetUseUnderline }
+
+	public property XAlign { get XALIGN, set SetXAlign }
+	public property YAlign { get YALIGN, set SetYAlign }
+	public property XPadding { get XPADDING, set SetXPadding }
+	public property YPadding { get YPADDING, set SetYPadding }
+
+	public property OnActivateLink { get GetOnActivateLink, set SetOnActivateLink }
+	public function GetOnActivateLink() {
+		return _GET_REMOTE_EVENT(EVENT_ON_CLICKED);
+	}
+
+	public function SetOnActivateLink(var delegate deleg) {
+		return _MAP_REMOTE_EVENT(EVENT_ON_CLICKED, deleg);
+	}
+
+	public function RLabel(OWNER) {
+		super(OWNER, CLASS_LABEL);
+	}
+
+	public function SetCaption(argument) {
+		SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_CAPTION,argument);
+		CAPTION=argument;
+		return argument;
+	}
+
+	public function SetAngle(argument) {
+		SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_ANGLE,argument);
+		ANGLE=argument;
+		return argument;
+	}
+
+	public function SetJustify(argument) {
+		SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_JUSTIFY,argument);
+		JUSTIFY=argument;
+		return argument;
+	}
+
+	public function SetSelectable(argument) {
+		argument=(argument!=0);
+		SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_SELECTABLE,argument);
+		SELECTABLE=argument;
+		return argument;
+	}
+
+	public function SetPattern(argument) {
+		SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_PATTERN,argument);
+		PATTERN=argument;
+		return argument;
+	}
+
+	public function SetWrap(argument) {
+		//argument=(argument!=0);
+		SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_WRAP,argument);
+		WRAP=argument;
+		return argument;
+	}
+
+	public function SetUseMarkup(argument) {
+		//argument=(argument!=0);
+		SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_MARKUP,argument);
+		MARKUP=argument;
+		return argument;
+	}
+
+	public function SetUseUnderline(argument) {
+		//argument=(argument!=0);
+		SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_USEUNDERLINE,argument);
+		USEUNDERLINE=argument;
+		return argument;
+	}
+
+	public function SetXPadding(argument) {
+		SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_XPADDING,argument);
+		XPADDING=argument;
+		return argument;
+	}
+
+	public function SetYPadding(argument) {
+		SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_YPADDING,argument);
+		YPADDING=argument;
+		return argument;
+	}
+
+	public function SetXAlign(argument) {
+		SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_XALIGN,argument);
+		XALIGN=argument;
+		return argument;
+	}
+
+	public function SetYAlign(argument) {
+		SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_YALIGN,argument);
+		YALIGN=argument;
+		return argument;
+	}
+}

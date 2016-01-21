@@ -1,0 +1,34 @@
+include RToggleToolButton.con
+
+class RRadioToolButton extends RToggleToolButton {
+	private var GROUPED_WITH;
+	
+	public property GroupWith { get GROUPED_WITH, set SetGroup }
+
+	//----------- EVENTS ----------------------------------------------------//	
+	public property OnGroupChanged { get GetOnGroupChanged, set SetOnGroupChanged }
+	public function GetOnGroupChanged() {
+		return _GET_REMOTE_EVENT(EVENT_ON_GROUPCHANGED);
+	}
+
+	public function SetOnGroupChanged(var delegate deleg) {
+		return _MAP_REMOTE_EVENT(EVENT_ON_GROUPCHANGED, deleg);
+	}
+	//-----------------------------------------------------------------------//	
+
+	public function RRadioToolButton(OWNER) {
+		// don't call super;
+		SingleContainer(OWNER, CLASS_RADIOTOOLBUTTON);
+	}
+
+	public function SetGroup(radio_object) {
+		if (classof radio_object=="RRadioToolButton") {
+			SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_GROUP,radio_object.RID);
+			GROUPED_WITH=radio_object;
+		} else {
+			SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_GROUP,"-1");
+			GROUPED_WITH=0;
+		}
+		return radio_object;
+	}
+}

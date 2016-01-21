@@ -1,0 +1,85 @@
+<?xml version="1.0"?>
+<StringTable>
+  <default langid="en"/>
+  <string msgid="Name">
+    <lang id="en">
+Name
+    </lang>
+    <lang id="ro">
+Nume
+    </lang>
+  </string>
+  <string msgid="Surname">
+    <lang id="en">
+Surname
+    </lang>
+    <lang id="ro">
+Prenume
+    </lang>
+  </string>
+  <string msgid="Apache Configurator">
+    <lang id="en">
+Apache Configurator
+    </lang>
+  </string>
+  <string msgid="Yes, Path:">
+    <lang id="en">
+Yes, Path:
+    </lang>
+  </string>
+  <string msgid=" Port: ">
+    <lang id="en">
+Port:
+    </lang>
+  </string>
+  <string msgid="Configure for CIDE/web debugging">
+    <lang id="en">
+Configure for CIDE/web debugging
+    </lang>
+  </string>
+  <string msgid="Index files">
+    <lang id="en">
+Index files
+    </lang>
+  </string>
+  <string msgid="Concept CGI name">
+    <lang id="en">
+Concept CGI name
+    </lang>
+  </string>
+  <string msgid="Concept distribution path">
+    <lang id="en">
+Concept distribution path
+    </lang>
+  </string>
+  <string msgid="concept-cgi">
+    <lang id="en">
+concept-cgi
+    </lang>
+  </string>
+  <string msgid="index.csp index.con">
+    <lang id="en">
+index.csp index.con
+    </lang>
+  </string>
+  <string msgid="Select input httpd.conf">
+    <lang id="en">
+Select input httpd.conf
+    </lang>
+  </string>
+  <string msgid="Generate Concept-aware httpd.conf">
+    <lang id="en">
+Generate Concept-aware httpd.conf
+    </lang>
+  </string>
+  <string msgid="Actions">
+    <lang id="en">
+Actions
+    </lang>
+  </string>
+  <string msgid="Leave this field empty if you don't want to set it">
+    <lang id="en">
+Leave this field empty if you don't want to set it
+    </lang>
+  </string>
+</StringTable>

@@ -1,0 +1,1467 @@
+include File.con
+include BTree.con
+
+import standard.lang.serialize
+import standard.C.casts
+import standard.net.socket
+import standard.lib.str
+
+define HEADER_SIZE		64
+define DEFAULT_MODULO_SIZE	64
+
+class TinQueryParser {
+	var min;
+	var min_mode = 0;
+	var max;
+	var max_mode = 0;
+	var additional_filter;
+	var reversed = false;
+	var owner;
+	var db;
+	var fetch = -1;
+
+	TinQueryParser(arr) {
+		if (IsSet(arr, ">")) {
+			min = arr[">"];
+			min_mode = 1;
+		} else
+		if (IsSet(arr, ">=")) {
+			min = arr[">="];
+			min_mode = 2;
+		}
+		if (IsSet(arr, "<")) {
+			max = arr["<"];
+			max_mode = 1;
+		} else
+		if (IsSet(arr, "<=")) {
+			max = arr["<="];
+			max_mode = 2;
+		}
+	}
+
+	CompareSimple(key, val) {
+		if (reversed) {
+			var t = key;
+			key = val;
+			val = t;
+		}
+
+		var min = this.min;
+		var max = this.max;
+
+		if (min_mode == 1) {
+			if (key <= min)
+				return false;
+		}
+		if (min_mode == 2) {
+			if (key < min)
+				return false;
+		}
+		if (max_mode == 1) {
+			if (key >= max)
+				return false;
+		}
+		if (max_mode == 2) {
+			if (key > max)
+				return false;
+		}
+		return true;
+	}
+
+	Compare(key, val, userdata = null, prec_result = 0) {
+		if (reversed) {
+			var t = key;
+			key = val;
+			val = t;
+		}
+
+		var min = this.min;
+		var max = this.max;
+
+		if (fetch == -1) {
+			if ((db) && (owner) && (typeof key == "string") && ((min_mode) || (max_mode)))
+				fetch = true;
+			else
+				fetch = false;
+		}
+
+		if (fetch) {
+			if (length key == 8) {
+				if (((typeof min == "string") && (length min > 8)) || ((typeof max == "string") && (length max > 8))) {
+					if (val < 0)
+						val = owner.GetValue(-val);
+					
+					var o = owner.ById(val, [db]);
+					key = o[db];
+				} else
+					fetch = false;
+			}
+		}
+
+		var result = prec_result;
+		if (min_mode == 1) {
+			if (key <= min)
+				result |= QUERY_LESS;
+		}
+		if (min_mode == 2) {
+			if (key < min)
+				result |= QUERY_LESS;
+		}
+		if (max_mode == 1) {
+			if (key >= max)
+				result |= QUERY_GREAT;
+		}
+		if (max_mode == 2) {
+			if (key > max)
+				result |= QUERY_GREAT;
+		}
+
+		if (!result)
+			result = QUERY_INTERVAL;
+
+		if ((result & QUERY_ELEMENT_VALID) && (additional_filter)) {
+			if (val >= 0) {
+				if (!additional_filter(key, val, userdata, result, null))
+					return QUERY_SKIP;
+			}
+		}
+		return result;
+	}
+}
+
+class BinIndex {
+	protected var f;
+	protected var _last_error;
+	protected var _name;
+	protected var _mode;
+	protected var _size;
+	protected var _cmp;
+	protected var _cmp_reversed;
+	protected var UserData;
+	protected var[] index_cache;
+
+	public var Unique = false;
+	public var Database = "";
+	public property LastError { get _last_error }
+	public property LastErrorString { get GetLastErrorString }
+
+	BinIndex(name, cmp_func, cmp_reversed, mode = "r+b") {
+		this._name = name;
+		this._mode = mode;
+		this._cmp = cmp_func;
+		this._cmp_reversed = cmp_reversed;
+	}
+
+	ResetCache() {
+		index_cache = new [];
+	}
+
+	GetIndex(idxname) {
+		idxname = this._name + "." + idxname + ".idx";
+		var idx = index_cache[idxname];
+		if (idx)
+			return idx;
+		var f = new File(_mode);
+		if (!FileExists(idxname))
+			WriteFile("", idxname);
+		f.Name = idxname;
+		if (f.Open()) {
+			if (Unique)
+				idx = new BTreeFile(f, this._cmp, this.Database, true);
+			else
+				idx = new BTreeFile(f, this._cmp_reversed, this.Database, false);
+			index_cache[idxname] = idx;
+			return idx;
+		}
+		return null;
+	}
+
+	Put(objid, db = "", cached_val = "dumybear") {
+		if (!db)
+			db = this.Database;
+
+		var btree = GetIndex(db);
+		if (!btree)
+			throw "Cannot open index (${@class}.${@member})";
+		btree.UserData = db;
+		if (Unique)
+			return btree.Add(objid, cached_val, Unique);
+		return btree.Add(cached_val, objid);
+	}
+
+	operator << (values) {
+		this.Put(values);
+		return this;
+	}
+
+	operator[](key) {
+		return this.Fetch(key);
+	}
+
+	Fetch(key, descending=false, start = -1, len = -1) {
+		var btree = GetIndex(this.Database);
+		if (!btree)
+			throw "Cannot open index (${@class}.${@member})";
+
+		if (typeof key == "string") {
+			var val = btree.Get(key, var found);
+			if ((!Unique) && (found)) {
+				// return all values
+				return btree.Query(null, null, descending, len, start, val);
+			}
+			if (found)
+				return val;
+			_last_error = 1;
+		}
+		return null;
+	}
+
+	_FetchMultiple(array keys, no_index_query = null, filter_func = null, owner = null, descending = false, start = 0, len = 0) {
+		_last_error = 0;
+		var databases = GetKeys(keys);
+
+		var[] result;
+		for (var i = 0; i < length databases; i++) {
+			var db = databases[i];
+			var key = keys[db];
+			var btree = GetIndex(db);
+			if (btree) {
+				var no_index_keys;
+				if (no_index_query) {
+					no_index_keys = GetKeys(no_index_query);
+					if (filter_func) {
+						for (var k = 0; k < length no_index_keys; k++) {
+							var ni_key = no_index_keys[k];
+							var ni_q = no_index_query[ni_key];
+							if ((typeof ni_q == "array") && (GetKeys(ni_q))) {
+								var ni_qp = new TinQueryParser(ni_q);
+								ni_qp.reversed = this.Unique;
+								no_index_query[ni_key] = ni_qp;
+							}
+						}
+					}
+					no_index_keys = [no_index_keys, no_index_query];
+				} else
+					filter_func = null;
+
+				if (typeof key == "array") {
+					var key_list = GetKeys(key);
+					if (key_list) {
+						if (len <= 0)
+							len = -1;
+						var qp = new TinQueryParser(key);
+						qp.owner = owner;
+						qp.db = db;
+						//var no_index_keys;
+						//if (no_index_query) {
+						//	no_index_keys = GetKeys(no_index_query);
+							if (no_index_keys) {
+								qp.reversed = this.Unique;
+								qp.additional_filter = filter_func;
+							}
+
+						//	no_index_keys = [no_index_keys, no_index_query];
+						//}
+						result = btree.Query(qp.Compare, no_index_keys, descending, len, start, filter_func);
+						return result;
+					}
+					for (var j = 0; j < length key; j++) {
+						var subkey = key[j];
+						var res = btree.Get(subkey, var found);
+						if (found) {
+							if (typeof res == "array") {
+								for (var i1 = 0; i1 < length res; i1++)
+									result += res[i1];
+							} else
+								result += res;
+						}
+					}
+				} else {
+					res = btree.Get(key, found, start, len, filter_func, no_index_keys);
+					if (found) {
+						if (typeof res == "array") {
+							if (result) {
+								for (i1 = 0; i1 < length res; i1++)
+									result += res[i1];
+							} else
+								result = res;
+						} else
+							result += res;
+					}
+				}
+			}
+		}
+		return result;
+	}
+
+
+	RemoveKey(key) {
+		var btree = GetIndex(this.Database);
+		if (!btree)
+			throw "Cannot open index (${@class}.${@member})";
+		btree.DeleteByKey(key);
+	}
+
+	Remove(key, val, database = "") {
+		if (!database)
+			database = this.Database;
+		var btree = GetIndex(database);
+		if (!btree)
+			throw "Cannot open index (${@class}.${@member})";
+		if (Unique)
+			return btree.Delete(key, val);
+		else
+			return btree.Delete(val, key);
+	}
+
+	Drop(database) {
+		if (_unlink(database))
+			return false;
+		return true;
+	}
+
+	Count(key="") {
+		return 0;
+	}
+
+
+	Close() {
+		_last_error = 0;
+	}
+
+	GetLastErrorString() {
+		if (_last_error)
+			return "Key not found";
+		return "";
+	}
+
+	Flush() {
+		for (var i = 0; i < length index_cache; i++) {
+			var idx = index_cache[i];	
+			if (idx) {
+				var f = idx.File;
+				if (f) {
+					try {
+						f.Flush();
+						f.DataSync();
+					} catch (var exc) {
+						echo "Index flush error: $exc\n";
+					}
+				}
+			}
+		}
+	}
+}
+
+class BinFile extends File {
+	protected var deleted_records = 0;
+	protected var _Index;
+	protected var cache_obj;
+	protected var cache_id;
+	protected var[] cache;
+	protected var has_garbage;
+
+	public var Compress = false;
+
+	public property DeletedRecords { get deleted_records }
+	public var[] Indexes;
+	protected var MODULO_SIZE = DEFAULT_MODULO_SIZE;
+
+	BinFile(filename, mode="r+b", default_block_size = DEFAULT_MODULO_SIZE) {
+		super(mode);
+		this.name  = filename;
+		_Index = new BinIndex(filename, this.CompareObjects, this.CompareObjectsReversed);
+		_Index.Unique = false;
+		var data = ReadFile(filename + ".idxn");
+		if (default_block_size > 16)
+			MODULO_SIZE = default_block_size;
+		if (data) {
+			Indexes = UnBinarizeObject(data);
+			if (!Indexes)
+				Indexes  = new [];
+		}
+	}
+
+	Check(repair = false, var repaired = false) {
+		repaired = false;
+		if (fseek(hFile, 0, SEEK_END))
+			return false;
+		var pos = ftell(hFile);
+		var payload_size = pos - HEADER_SIZE;
+		var record_size = MODULO_SIZE + 8;
+		var rem = payload_size % record_size;
+		if (rem) {
+			if (repair) {
+				var delta = record_size - rem;
+				var buf = pack(":$delta");
+				if (this.Write(buf) != length buf)
+					return false;
+				repaired = true;
+			} else
+				return false;
+		}
+		return true;
+	}
+
+	CompareObjects(a, a_val, b, b_val, btree, bottom_layer) {
+		if (a_val > b_val)
+			return 1;
+		if (a_val < b_val)
+			return -1;
+		var type = typeof a_val;
+		if ((typeof a_val == typeof b_val) && (type != "string"))
+			return 0;
+		return this.CompareObjectsNoCache(a, b, btree, bottom_layer);
+	}
+
+	CompareObjectsReversed(a_val, a, b_val, b, btree, bottom_layer) {
+		var b_val_orig = b_val;
+		if ((typeof b_val == "string") && (length b_val > 8))
+			b_val = SubStr(b_val, 0, 8);
+
+		if (a_val > b_val)
+			return 1;
+
+		if (a_val < b_val)
+			return -1;
+
+		var type = typeof a_val;
+		if ((typeof a_val == typeof b_val) && (type != "string"))
+			return 0;
+
+		if (a == b)
+			return 0;
+
+		if (a < -1)
+			a = btree.GetValue(-a);
+		if (b < -1)
+			b = btree.GetValue(-b);
+
+		if (a == b)
+			return 0;
+
+		if (b == -1)
+			return this.CompareSearchObject(a, b_val_orig, btree, bottom_layer);
+
+		return this.CompareObjectsNoCache(a, b, btree, bottom_layer);
+	}
+
+	CompareSearchObject(a, key_b, btree, bottom_layer) {
+		var obj_a;
+		var key = btree.UserData;
+
+		if (a == cache_id)
+			obj_a = cache_obj;
+		else
+			obj_a = this.ById(a, Indexes, !bottom_layer, cache);
+
+		if (obj_a) {
+			var key_a = obj_a[key];
+			if (key_a > key_b)
+				return 1;
+			if (key_a < key_b)
+				return -1;
+			return 0;
+		}
+		throw "Error in compare objects (non existing object) ($a), call stack:\n${_callstack()}";
+		// error
+		return -2;
+	}
+
+	CompareObjectsWith(a, b, btree, bottom_layer) {
+		var obj_a;
+		var obj_b;
+		var key = btree.UserData;
+
+		if (a == cache_id) {
+			obj_a = cache_obj;
+			obj_b = this.ById(b, Indexes, !bottom_layer, cache);
+		} else
+		if (b == cache_id) {
+			obj_b = cache_obj;
+			obj_a = this.ById(a, Indexes, !bottom_layer, cache);
+		} else {
+			var res = this.ById([a,b], Indexes, !bottom_layer, cache);
+			obj_a = res[0];
+			obj_b = res[1];
+		}
+
+		if ((obj_a) && (obj_b)) {
+			var key_a = obj_a[key];
+			var key_b = obj_b[key];
+			if (key_a > key_b)
+				return 1;
+			if (key_a < key_b)
+				return -1;
+			return 0;
+		}
+		throw "Error in compare objects (non existing object) ($a/$b), call stack:\n${_callstack()}";
+		// error
+		return -2;
+	}
+
+	CompareObjectsNoCache(a, b, btree, bottom_layer) {
+		var obj_a;
+		var obj_b;
+		var key = btree.UserData;
+
+		if (a == cache_id) {
+			obj_a = cache_obj;
+			obj_b = this.ById(b, Indexes, !bottom_layer, cache);
+		} else
+		if (b == cache_id) {
+			obj_b = cache_obj;
+			obj_a = this.ById(a, Indexes, !bottom_layer, cache);
+		} else {
+			var res = this.ById([a,b], Indexes, !bottom_layer, cache);
+			obj_a = res[0];
+			obj_b = res[1];
+		}
+
+		if ((obj_a) && (obj_b)) {
+			var key_a = obj_a[key];
+			var key_b = obj_b[key];
+
+			if (key_a > key_b)
+				return 1;
+			if (key_a < key_b)
+				return -1;
+			return 0;
+		}
+		throw "Error in compare objects (non existing object) ($a/$b), call stack:\n${_callstack()}";
+		// error
+		return -2;
+	}
+
+	ReloadIndex() {
+		var data = ReadFile(this.name + ".idxn");
+		Indexes = UnBinarizeObject(data);
+		if (!Indexes)
+			Indexes  = new [];
+	}
+
+	override Open;
+	Open() {
+		var file_size = filesize(this.name);
+		var valid_file = false;
+		if (file_size < HEADER_SIZE) {
+			WriteFile("", this.name);
+			file_size = 0;
+		} else
+			valid_file = true;
+
+		if (File::Open()) {
+			if (valid_file) {
+				//this.Read(var buf, 6);
+				fread(var buf, 1, 6, hFile);
+				if ((length buf != 6) || (buf != "CDB010")) {
+					this.Close();
+					throw "Invalid or corrupted data file";
+				}
+				this.Read(buf, 4);
+				fread(buf, 1, 4, hFile);
+				if (length buf == 4)
+					deleted_records = htonl(tounumber(buf, 32));
+				fread(buf, 1, 8, hFile);
+				if (length buf != 8)
+					throw @class + "." + @member + ": Corrupted header";
+
+				if (unpack("u64", buf)[0])
+					has_garbage = true;
+				fread(buf, 1, 4, hFile);
+				if (length buf != 4)
+					throw @class + "." + @member + ": Corrupted header";
+				var msize = unpack("u32", buf)[0];
+				if (msize > 16)
+					MODULO_SIZE = msize;
+			} else
+				this.WriteHeader();
+			return true;
+		}
+		return false;
+	}
+
+	ResetCache() {
+		cache = new [];
+	}
+
+	protected WriteHeader() {
+		var header = pack("su64u64u32:" + HEADER_SIZE, "CDB010", deleted_records, 0, MODULO_SIZE);
+		//this.Seek(0);	
+		fseek(hFile, 0, SEEK_SET);
+		this.Write(header);
+	}
+
+	protected WriteInfo() {
+		//this.Seek(6);
+		fseek(hFile, 6, SEEK_SET);
+		if (deleted_records < 0)
+			deleted_records = 0;
+		this.Write(pack("u64", deleted_records));
+	}
+
+	protected PushGarbage(offset) {
+		if (fseek(hFile, 14, SEEK_SET))
+			return false;
+		if (this.Read(var buf, 8) != 8)
+			throw @class + "." + @member + ": Corrupted header";
+
+		if (fseek(hFile, offset + MODULO_SIZE, SEEK_SET))
+			throw @class + "." + @member + ": Invalid garbage page";
+
+		this.Write(buf);
+
+		if (fseek(hFile, 14, SEEK_SET))
+			throw @class + "." + @member + ": Invalid writing header";
+
+		this.Write(pack("u64", offset));
+		has_garbage = true;
+	}
+
+	protected PopGarbage(var offset) {
+		if (fseek(hFile, 14, SEEK_SET))
+			return false;
+		if (this.Read(var buf, 8) != 8)
+			throw @class + "." + @member + ": Corrupted header";
+
+		offset = unpack("u64", buf)[0];
+		if (!offset)
+			return false;
+
+		if (fseek(hFile, offset + MODULO_SIZE, SEEK_SET))
+			return false;
+		if (this.Read(buf, 8) != 8)
+			return false;
+		var next_link = unpack("u64", buf)[0];
+
+		fseek(hFile, 14, SEEK_SET);
+		this.Write(pack("u64", next_link));
+
+		if (next_link)
+			has_garbage = true;
+		else
+			has_garbage = false;
+		return true;
+	}
+
+	protected _DeleteChain(offset) {
+		if (offset <= 0)
+			return false;
+		var pages = 0;
+		var next_block = offset;
+		do {
+			if (fseek(hFile, next_block, SEEK_SET))
+				throw @class + "." + @member + ": Corrupted database / seek error";
+			pages++;
+			this.Write("\x00");
+			fseek(hFile, next_block + MODULO_SIZE, SEEK_SET);
+			if (this.Read(var ref_block, 8) != 8)
+				throw @class + "." + @member + ": Corrupted database or invalid read offset";
+
+			this.PushGarbage(next_block);
+			var prec_next_block = next_block;
+			next_block = unpack("u64", ref_block)[0];
+			if (prec_next_block == next_block)
+				break;
+			this.deleted_records++;
+		} while (next_block);
+		this.WriteInfo();
+		return pages;
+	}
+
+	protected WriteBlock(var data, var id) {
+		var pos = 0;
+		var file_pos = 0;
+		var ref_id = -1;
+		var next_block = 0;
+
+		if (id >= HEADER_SIZE) {
+			//if (!this.Seek(id))
+			if (fseek(hFile, id, SEEK_SET))
+				throw @class + "." + @member + ": Seek error";
+		} else
+			id = -1;
+		var end_block = "\x0\x0\x0\x0\x0\x0\x0\x0";
+		var query_garbage = true;
+		var at_end = false;
+		if ((id < 0) && (!has_garbage)) {
+			if (length data > MODULO_SIZE) {
+				for (var i = MODULO_SIZE; i < length data; i += MODULO_SIZE)
+					data[i] = "\x00" + data[i];
+			}
+			var rem = length data % MODULO_SIZE;
+			if (rem) {
+				var padding = MODULO_SIZE - rem;
+				data += pack(":"+padding);
+			}
+			i = 0;
+
+			fseek(hFile, 0, SEEK_END);
+			ref_id = ftell(hFile);
+			while (i < length data) {
+				i += MODULO_SIZE;
+				if (i < length data) {
+					data[i] = pack("u64", ref_id + i + 8) + data[i];
+				} else {
+					data += end_block;
+					break;
+				}
+				i += 8;
+			}
+			Write(data);
+		} else
+		do {
+			if (pos) {
+				var buf = "\x00" + SubStr(data, pos, MODULO_SIZE - 1);
+				if (length buf == 1)
+					break;
+				
+				pos += length buf - 1;
+			} else {
+				buf = SubStr(data, pos, MODULO_SIZE);
+				pos += length buf;
+			}
+			if (!buf)
+				break;
+
+			if (id < 0) {
+				if ((query_garbage) && (this.PopGarbage(var offset))) {
+					//this.Seek(offset);
+					fseek(hFile, offset, SEEK_SET);
+				} else {
+					//this.Seek(0, SEEK_END);
+					fseek(hFile, 0, SEEK_END);
+					query_garbage = false;
+					at_end = true;
+				}
+				if (ref_id < 0)
+					ref_id = ftell(hFile);
+			}
+
+			if (length buf < MODULO_SIZE)
+				buf = pack("s:" + MODULO_SIZE, buf);
+
+			if (next_block) {
+				//if (!this.Seek(next_block))
+				if (fseek(hFile, next_block, SEEK_SET))
+					throw @class + "." + @member + ": Seek error";
+			} else
+			if (file_pos) {
+				var next_pos = ftell(hFile);
+				//this.Seek(file_pos - 8);
+				fseek(hFile, file_pos - 8, SEEK_SET);
+				this.Write(pack("u64", next_pos));
+				//this.Seek(next_pos);
+				fseek(hFile, next_pos, SEEK_SET);
+			}
+
+			if (id < 0) {
+				if ((at_end) && (pos < length data)) {
+					file_pos = ftell(hFile);
+					var full_buf = buf;
+					while (pos < length data) {
+						file_pos += MODULO_SIZE + 8;
+						full_buf += pack("u64", file_pos);
+						if (pos)
+							buf = "\x00" + SubStr(data, pos, MODULO_SIZE - 1);
+						else
+							buf = SubStr(data, pos, MODULO_SIZE);
+						if (length buf < MODULO_SIZE)
+							full_buf += pack("s:" + MODULO_SIZE, buf);
+						else
+							full_buf += buf;
+						pos += length buf;
+					}
+					full_buf += end_block;
+					// write all at once
+					this.Write(full_buf);
+					break;
+				} else
+					this.Write(buf + end_block);
+			} else {
+				this.Write(buf);
+
+				var current = ftell(hFile);
+				//this.Seek(0, SEEK_CUR);
+				fseek(hFile, 0, SEEK_CUR);
+
+				//if (this.Read(var buf2, 8) != 8)
+				var read_size = fread(var buf2, 1, 8, hFile);
+				if (read_size != 8) {
+					// end of file ?
+					if (read_size != 0)
+						throw @class + "." + @member + ": Corrupted database / page link error in update";
+					next_block = 0;
+					this.Write(end_block);
+				} else
+					next_block = unpack("u64", buf2)[0];
+				if (pos >= length data) {
+					if (next_block)
+						this._DeleteChain(next_block);
+					//this.Seek(-8, SEEK_CUR);
+					//fseek(hFile, -8, SEEK_CUR);
+					fseek(hFile, current, SEEK_SET);
+					this.Write(pack("u64", 0));
+				} else
+				if (!next_block) {
+					if ((!query_garbage) || (!this.PopGarbage(next_block))) {
+						//this.Seek(0, SEEK_END);
+						fseek(hFile, 0, SEEK_END);
+						next_block = ftell(hFile);
+						query_garbage = false;
+					}
+					fseek(hFile, current, SEEK_SET);
+					this.Write(pack("u64", next_block));
+					fseek(hFile, 0, SEEK_CUR);
+				}
+			}
+			file_pos = ftell(hFile);
+		} while (true);
+		if (id < 0)
+			id = ref_id;
+		return true;
+	}
+
+	protected _Store(var obj, update_index = true, id = -1, changed_keys = null) {
+		if (!hFile)
+			throw "Invalid file descriptor or no open file";
+		var data;
+		var c;
+		if (typeof obj == "array") {
+			if (IsSet(obj, '$')) {
+				var keys = GetKeys(obj);
+				c = new [];
+				for (var i = 0; i < length keys; i++) {
+					var k = keys[i];
+					if ((k) && (k != '$'))
+						c[k] = obj[k];
+				}
+				if (id < 0)
+					id = obj['$'];
+			} else
+				c = obj;
+		} else
+			c = ToArray(obj);
+
+		data = BinarizeObject(c);
+		if (data) {
+			var data_comp = "";
+			if (Compress) {
+				if (length data > MODULO_SIZE) {
+					data_comp = "\x06" + compress(data);
+					if (int32(length data_comp / MODULO_SIZE) >= int32(length data / MODULO_SIZE))
+						data_comp = "";
+				}
+			}
+			var orig_id = id;
+			if (data_comp)
+				var res = this.WriteBlock(data_comp, id);
+			else
+				res = this.WriteBlock(data, id);
+
+			if ((orig_id > 0) && (cache)) {
+				if (IsSet(cache, "" + orig_id))
+					cache = new [];
+			}
+				
+			if (res > 0) {
+				this.Flush();
+				if (update_index) {
+					if (changed_keys == null)
+						this.UpdateIndex(obj, id);
+					else
+						this.UpdateIndex(changed_keys, id);
+				}
+			}
+			return id;
+		}
+		return id;
+	}
+
+	UpdateIndex(obj, id) {
+		var c;
+		if (typeof obj == "array")
+			c = obj;
+		else
+			c = ToArray(obj);
+		var index_data = this.Indexes;
+		if (index_data) {
+			cache_id = id;
+			cache_obj = c;
+			for (var i = 0; i < length index_data; i++) {
+				var key = index_data[i];
+				if (key) {
+					if (IsSet(c, key)) {
+						if (!_Index.Put(id, key, c[key])) {
+							// to do
+							// this._Delete(id, false, false);
+						}
+					}
+				}
+			}
+			cache_id = -1;
+			cache_obj = null;
+		}
+	}
+
+	Store(var obj, update_index = true) {
+		return this._Store(obj, update_index);
+	}
+
+	protected GetOne(var id = null, strict = true, offset = -1) {
+		if (offset < 0)
+			id = ftell(hFile);
+		else
+			id = offset;
+		var buf = "";
+		var next_block;
+		var compressed = false;
+		var first_jump = 0;
+		do {
+			if ((next_block > 0) && (next_block != ftell(hFile))) {
+				//if (!this.Seek(next_block))
+				if (!first_jump)
+					first_jump = ftell(hFile);
+				if (fseek(hFile, next_block, SEEK_SET)) {
+					throw @class + "." + @member + ": Corrupted database / seek error";
+				}
+			}
+			var size = fread(var buf_block, 1, MODULO_SIZE, hFile);
+			//var size = this.Read(var buf_block, MODULO_SIZE);
+			if (size != MODULO_SIZE) {
+				if (buf)
+					throw @class + "." + @member + ": Corrupted database or invalid read offset (page read)";
+				return "";
+			}
+
+			var flag = buf_block[0];
+			if (!buf) {
+				if (flag == "\x06")
+					compressed = true;
+				else
+				if (flag != "\x05") {
+					if (strict)
+						return "";
+					// deleted block
+					next_block = -1;
+					fseek(hFile, 8, SEEK_CUR);
+					id = ftell(hFile);
+					continue;
+				}
+			} else
+			if (flag != "\x00") {
+				throw @class + "." + @member + ": Invalid buffer for id $id ($next_block)";
+				break;
+			}
+
+			if (buf)
+				buf += SubStr(buf_block, 1);
+			else
+				buf += buf_block;
+			//if (this.Read(var ref_block, 8) != 8)
+			if (fread(var ref_block, 1, 8, hFile) != 8)
+				throw @class + "." + @member + ": Corrupted database or invalid read offset";
+			next_block = unpack("u64", ref_block)[0];
+
+			if ((next_block) && (this.InvalidId(next_block)))
+				throw @class + "." + @member + ": Invalid offset for id $id ($next_block)";
+		} while (next_block);
+		if (first_jump)
+			fseek(hFile, first_jump, SEEK_SET);
+		if ((compressed) && (buf))
+			return uncompress(SubStr(buf, 1));
+		return buf;
+	}
+
+	FetchByIndex(addr, start = 0, len = -1) {
+		var[] result;
+		for (var i = 0; i < length addr; i++) {
+			var offset = addr[i] + HEADER_SIZE;
+			//this.Seek(offset);
+			fseek(hFile, offset, SEEK_SET);
+			var obj = this.GetOne(var id, true, offset);
+			if (obj) {
+				var o = UnBinarizeObject(obj);
+				if (o) {
+					o['$'] = id;
+					result[length result] = o;
+				}
+			}
+		}
+		return result;
+	}
+
+	InvalidId(id) {
+		if (id < HEADER_SIZE)
+			return true;
+		id -= HEADER_SIZE;
+		if (id % (MODULO_SIZE + 8))
+			return true;
+		return false;
+	}
+
+	InvalidOffset(rftell) {
+		if (rftell <= 0)
+			return false;
+
+		if ((rftell - HEADER_SIZE - MODULO_SIZE) % (MODULO_SIZE + 8))
+			return true;
+
+		return false;
+	}
+
+
+	ById(id, fields = null, do_cache = false, cache = null) {
+		if (typeof id == "array") {
+			var res_array = new [];
+			for (var i = 0; i < length id; i++) {
+				var _id = id[i];
+				if ((_id) && (!InvalidId(_id))) {
+					if (do_cache) {
+						var cache_key = "" + _id;
+						var cached_obj = cache[cache_key];
+						if (cached_obj) {
+							res_array[cache_key] = cached_obj;
+							continue;
+						}
+					}
+
+					if (fseek(hFile, _id, SEEK_SET))
+						continue;
+					var res = GetOne(null, true, _id);
+					if (res) {
+						if (fields)
+							var o = UnBinarizeObject(res, 0, fields);
+						else
+							o = UnBinarizeObject(res);
+						if (o) {
+							o['$'] = _id;
+							res_array["" + _id]  = o;
+							if (do_cache)
+								cache[cache_key] = o;
+						}
+					}
+				}
+			}
+			return res_array;
+		} else {
+			if (InvalidId(id))
+				return null;
+
+			if (do_cache) {
+				cache_key = "" + id;
+				cached_obj = cache[cache_key];
+				if (cached_obj)
+					return cached_obj;
+			}
+
+			//if (!this.Seek(id))
+			if (fseek(hFile, id, SEEK_SET))
+				return null;
+			res = GetOne(null, true, id);
+			if (res) {
+				if (fields)
+					o = UnBinarizeObject(res, 0, fields);
+				else
+					o = UnBinarizeObject(res);
+				if (o) {
+					o['$'] = id;
+
+					if (do_cache)
+						cache[cache_key] = o;
+				}
+				return o;
+			}
+			return null;
+		}
+	}
+
+	RemoveIndexes(o, id) {
+		if (o) {
+			var indexes = Indexes;
+			var Unique = _Index.Unique;
+			for (var i = 0; i < length indexes; i++) {
+				var index = indexes[i];
+				if ((index) && (IsSet(o, index))) {
+					var v = o[index];
+					if (Unique)
+						_Index.Remove(v, id, index);
+					else
+						_Index.Remove(id, v, index);
+				}
+			}
+		}
+	}
+
+	RemoveIndexesIfChanged(o, id) {
+		var changed = 0;
+		if (o) {
+			var indexes = Indexes;
+			var Unique = _Index.Unique;
+			for (var i = 0; i < length indexes; i++) {
+				var index = indexes[i];
+				if ((index) && (IsSet(o, index))) {
+					var v = o[index];
+					if (Unique)
+						_Index.Remove(v, id, index);
+					else
+						_Index.Remove(id, v, index);
+					changed++;
+				}
+			}
+		}
+		return changed;
+	}
+
+	RemoveIndexesByObjects(arr) {
+		for (var i = 0; i < length arr; i++) {
+			var obj = arr[i];
+			if ((obj) && (IsSet(obj, '$')))
+				this.RemoveIndexes(obj, obj['$']);
+		}
+	}
+
+
+	protected _Delete(id, strict = false, update_index = true) {
+		//if (!this.Seek(id))
+		if (InvalidId(id))
+			return false;
+
+		if (id <= 0)
+			return false;
+
+		if (fseek(hFile, id, SEEK_SET))
+			return false;
+
+
+		var obj = GetOne(null, true, id);
+		if (!obj)
+			return false;
+
+		try {
+			if ((Indexes) && (update_index))
+				this.RemoveIndexes(UnBinarizeObject(obj, 0, Indexes), id);
+		} catch (var exc) {
+			echo "Exception: $exc\n";
+			return false;
+		}
+
+		this._DeleteChain(id);
+		if (cache) {
+			if (IsSet(cache, "" + id))
+				cache = new [];
+		}
+		return true;
+	}
+
+	Delete(id, update_index = true) {
+		var strict = false;
+		if (typeof id == "array") {
+			if (IsSet(id, '$')) {
+				return this._Delete(id['$'], strict, update_index);
+			} else {
+				var cnt = 0;
+				for (var i = 0; i < length id; i++) {
+					var _id = id[i];
+					if (_id) {
+
+						if ((typeof _id == "array") && (IsSet(_id, '$'))) {
+							cnt += this._Delete(_id['$'], strict, update_index);
+						} else
+							cnt += this._Delete(_id, strict, update_index);
+					}
+				}
+				return cnt;
+			}
+		} else
+			return this._Delete(id, strict, update_index);
+	}
+
+	Update(o, var id, update_index = true, var old_bin = null, var new_bin = null) {
+		//old_bin = null;
+		new_bin = null;
+		//if (!this.Seek(id))
+		if (fseek(hFile, id, SEEK_SET))
+			return false;
+		var keys = GetKeys(o);	
+		if (keys) {
+			var res = GetOne(null, true, id);
+			if (res) {
+				var old = UnBinarizeObject(res);
+				if (old) {
+					var[] changed;
+					var[] new_values;
+					for (var i = 0; i < length keys; i++) {
+						var k = keys[i];
+						if ((k) && (k != '$')) {
+							var has_key = IsSet(old, k);
+							if ((!has_key) || (old[k] != o[k])) {
+								changed[k] = old[k];
+								old[k]  = o[k];
+								new_values[k] = o[k];
+							}
+						}
+					}
+
+					if (update_index)
+						update_index = this.RemoveIndexesIfChanged(changed, id);
+
+					//if (!this.Seek(id))
+					if (fseek(hFile, id, SEEK_SET))
+						return false;
+					this._Store(old, update_index, id, new_values);
+					if (!update_index)
+						new_bin  = old;
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+
+	Scan(callback, userdata = null) {
+		//this.Seek(HEADER_SIZE);
+		fseek(hFile, HEADER_SIZE, SEEK_SET);
+		while (var obj = this.GetOne(var id, false)) {
+			var o = UnBinarizeObject(obj);
+			if (o) {
+				o['$'] = id;
+				if (callback(o, id, userdata))
+					break;
+			}
+		}
+	}
+
+	RebuildIndex(string field) {
+		var prec_db = _Index.Database;
+		_Index.Database = field;
+		//this.Seek(HEADER_SIZE);
+		fseek(hFile, HEADER_SIZE, SEEK_SET);
+		Indexes[field] = field;
+		this.Scan(function(c, id, field) {
+			cache_id = id;
+			cache_obj = c;
+			var pos = ftell(hFile);
+			if (IsSet(c, field))
+				_Index.Put(id, field, c[field]);
+
+			//this.Seek(pos);
+			fseek(hFile, pos, SEEK_SET);
+		}, field);
+		//this.Seek(HEADER_SIZE);
+		fseek(hFile, HEADER_SIZE, SEEK_SET);
+		_Index.Database = prec_db;
+		cache = new [];
+		cache_id = -1;
+		cache_obj = null;
+	}
+
+	EnsureIndex(string field) {
+		for (var i = 0; i < length Indexes; i++) {
+			var index =  Indexes[i];
+			if ((index) && (field == index))
+				return true;
+		}
+		this.RebuildIndex(field);
+		this.FlushDB();
+		Indexes[field] = field;
+		WriteFile(BinarizeObject(Indexes), name + ".idxn");
+	}
+	
+	EnsureIndexes(array fields) {
+		for (var i = 0; i < length fields; i++) {
+			var field = fields[i];
+			if (field)
+				EnsureIndex(field);
+		}
+	}
+
+	static GetMin(var arr) {
+		var[] res;
+		var min = -1;
+		var min_pos = -1;
+		var keys = GetKeys(arr);
+		for (var i = 0; i < length arr; i++) {
+			var v = arr[i];	
+			if ((v < min) || (min == -1)) {
+				min = v;
+				min_pos = i;
+			}
+		}
+		if (min_pos >= 0) {
+			for (i = 0; i < length arr; i++) {
+				if (i != min_pos)
+					res[keys[i]] = arr[i];
+			}
+			arr = res;
+			return [keys[min_pos] => min];
+		}
+		return null;
+	}
+
+	protected ScanFilter(obj_key, obj_val, keys_data, prec_result, cached_o = null) {
+		var keys = keys_data[0];
+		var vals = keys_data[1];
+		var o = cached_o;
+
+		if (o == null)
+			o = this.ById(obj_val, keys, false, null);
+
+		if (o) {
+			var add_item = true;
+			for (var j = 0; j < length keys; j++) {
+				var key = keys[j];
+				if ((key) && (IsSet(o, key))) {
+					add_item = false;
+					var arr = vals[key];
+					var typeof_arr = typeof arr;
+					if (typeof_arr == "array") {
+						var v = o[key];
+						for (var i = 0; i < length arr; i++) {
+							if (arr[i] == v) {
+								add_item = true;
+								break;
+							}
+						}
+						if (!add_item)
+							return false;
+					} else
+					if (typeof_arr == "class") {
+						if (arr.CompareSimple(o[key], key)) {
+							add_item = true;
+						} else
+							return false;
+					} else
+					if (o[key] != vals[key])
+						return false;
+					else
+						add_item = true;
+				} else
+					return false;
+			}
+			return add_item;
+		}
+		return false;
+	}
+
+	Query(q = null, fields = null, descending = false, start = 0, len = 0) {
+		if (q == null)
+			q = new [];
+		var indexes = Indexes;
+		var keys = GetKeys(q);
+		var index_to_use = new [];
+		var index_counts = new [];
+		var result2;
+		for (var i = 0; i < length indexes; i++) {
+			var index = indexes[i];
+			if (index) {
+				if (IsSet(q, index)) {
+					_Index.Database = index;
+					index_to_use[index] = index;
+					index_counts[index] = length indexes - i;
+				}
+			}
+		}
+		var result = new [];
+		var filter_ids;
+		var filter_by_id = false;
+		if (IsSet(keys, '$')) {
+			filter_by_id = true;
+			var ref_filter_ids = keys['$'];
+			if (typeof ref_filter_ids != "array")
+				ref_filter_ids = [ref_filter_ids];
+
+			filter_ids = new [];
+			for (i = 0; i < length ref_filter_ids; i++) {
+				var fi = ref_filter_ids[i];
+				if (fi)
+					filter_ids["" + fi] = fi;
+			}
+			if (length keys == 1)
+				return this.ById(filter_ids);
+		}
+
+		if (index_to_use) {
+			var non_indexed_query = [ ];
+			var indexed_query = [ ];
+			for (i = 0; i < length keys; i++) {
+				var key = keys[i];
+				if ((indexed_query) || (!IsSet(index_to_use, key)))
+					non_indexed_query[key] = q[key];
+				else
+					indexed_query[key] = q[key];
+			}
+			var j;
+			var ids = _Index._FetchMultiple(indexed_query, non_indexed_query, this.ScanFilter, this, descending, start, len);
+			if (ids)
+				result = this.ById(ids, fields);
+		} else {
+			if (q) {
+				var Unique = false;
+				if (this._Index)
+					Unique = this._Index.Unique;
+				for (var k = 0; k < length keys; k++) {
+					var ni_key = keys[k];
+					var ni_q = q[ni_key];
+					if ((typeof ni_q == "array") && (GetKeys(ni_q))) {
+						var ni_qp = new TinQueryParser(ni_q);
+						ni_qp.reversed = Unique;
+						q[ni_key] = ni_qp;
+					}
+				}
+			}
+			var userdata = [keys, q, result, start, len, fields];//[result, q, GetKeys(q), start, len, 0];
+			this.Scan(function(o, id, var userdata) {
+				var result = userdata[2];
+				var start = userdata[3];
+				var len = userdata[4];
+				var fields = userdata[5];
+
+				if ((len > 0) && (start > 0)) {
+					start--;
+					userdata[3] = start;
+					return false;
+				}
+				if (userdata[0]) {
+					if (!this.ScanFilter(-1, -1, userdata, 0, o))
+						return false;
+				}
+				if (fields) {
+					var new_o = [ ];
+					for (var i = 0; i < length fields; i++) {
+						var field = fields[i];
+						if ((field) && (IsSet(o, field)))
+							new_o[field] = o[field];
+					}
+					o = new_o;
+				}
+				result[length result] = o;
+
+				// stop scanning ?
+				if ((len > 0) && (length result >= len))
+					return true;
+			}, userdata);
+			if ((result) && (descending)) {
+				result2 = new [];
+				var idx = length result - 1;
+				for (i = 0; i < length result; i++)
+					result2[idx--] = result[i];
+				result = result2;
+			}
+		}
+		return result;
+	}
+
+	FlushDB(flush_index = true) {
+		if (hFile) {
+			try {
+				this.Flush();
+				this.DataSync();
+			} catch (var exc) {
+				echo "FlushDB error: $exc\n";
+			}
+		}
+		if (flush_index)
+			_Index.Flush();
+	}
+}

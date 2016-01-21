@@ -1,0 +1,18 @@
+pragma warnings off
+
+include DataBases.con
+
+class Main {
+	function Main() {
+		var Connection=new ADOConnection();
+		var DataSet=new ADODataSet(Connection);
+
+		Connection.Open("Driver={SQL Server};Server=(local);Database=iadc;Uid=iadc;Pwd=iadc;");
+		echo Connection.ListTables();
+
+		echo Connection.ListColumns("sysobjects");
+
+		Connection.Close();
+		echo Connection.LastError();
+	}
+}

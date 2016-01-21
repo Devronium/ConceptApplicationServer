@@ -1,0 +1,178 @@
+import standard.net.snmp
+import standard.C.io
+import standard.lib.str
+include Serializable.con
+
+class SNMP {
+	private var handle=null;
+
+	public property Handle { get handle }
+	public property Error { get GetError }
+
+	static function InitMIB() {
+		netsnmp_init_mib();
+	}
+
+	static function AddMIBDir(string dir) {
+		add_mibdir(dir);
+	}
+
+	static function ReadMIB(string filename) {
+		return read_mib(filename);
+	}
+
+	public function Open(string host, name="public", snmp_version="1") {
+		if (handle)
+			this.Close();
+		var ss=snmp_open(["snmp_client_application", "-v$snmp_version", "-c", name, host]);
+		handle=ss;
+		return ss;
+	}
+
+	public function Read(array what, get_next=false) {
+		if (!handle)
+			throw "SNMP.Read must be called after a successfull call to SNMP.Open";
+
+		var[] res;
+		var len=length what;
+		var pdu;
+
+		if (get_next)
+			pdu=snmp_pdu_create(SNMP_MSG_GETNEXT);
+		else
+			pdu=snmp_pdu_create(SNMP_MSG_GET);
+
+		for (var i=0;i<len;i++) {
+			snmp_add_null_var(pdu, ""+what[i]);
+		}
+
+		var status = snmp_synch_response(handle, pdu, var response);
+		if (status==STAT_SUCCESS)
+			res=response;
+
+		return res;
+	}
+
+	public function Write(array what, val, stype_hint="") {
+		if (!handle)
+			throw "SNMP.Read must be called after a successfull call to SNMP.Open";
+
+		var[] res;
+		var len=length what;
+		var pdu=snmp_pdu_create(SNMP_MSG_SET);
+
+		var is_array=(typeof val=="array");
+		var t_is_array=(typeof stype_hint=="array");
+
+		var type_hint=0;
+		var ref_val;
+		var t_hint;
+		for (var i=0;i<len;i++) {
+			if (is_array)
+				ref_val = val[i];
+			else
+				ref_val = val;
+
+			if (t_is_array)
+				t_hint = stype_hint[i];
+			else
+				t_hint = stype_hint;
+
+			if (t_hint)
+				type_hint=ord(t_hint[0]);
+
+			if (typeof ref_val=="string") {
+				if (type_hint)
+					snmp_add_var(pdu, ""+what[i], type_hint, ref_val);
+				else
+					snmp_add_var(pdu, ""+what[i], 0x73, ref_val);
+			} else {
+				if (type_hint)
+					snmp_add_var(pdu, ""+what[i], type_hint, ""+ref_val);
+				else
+					snmp_add_var(pdu, ""+what[i], 0x69, ""+ref_val);
+			}
+		}
+
+		var status = snmp_synch_response(handle, pdu, var response);
+		if (status==STAT_SUCCESS)
+			res=response;
+
+		return res;
+	}
+
+	public function Walk(string target, string root="") {
+		var[] res;
+		while (true) {
+			var data2=this.Read([target], true);
+			if (!data2)
+				break;
+			var keys=GetKeys(data2);
+			if (keys)
+				target=keys[length keys - 1];
+			else
+				break;
+			if (root) {
+				if (Pos(target, root)!=1)
+					break;
+			} else {
+				root=StrSplit(target,"::")[0]+"::";
+			}
+			res[target]=data2[0];
+		}
+		return res;
+	}
+
+	public function Close() {
+		if (handle) {
+			snmp_close(handle);
+			handle=0;
+		}
+	}
+
+	public function GetError(var l_error=0, var p_error=0) {
+		l_error=-1;
+		p_error=-1;
+		var res="SNMP.Open wasn't called (or called successfully)";
+		if (handle)
+			res=snmp_sess_error(handle, l_error, p_error);
+		return res;
+	}
+
+	function ShowData(data_arr, spaces="", pre_addr="") {
+		var len=length data_arr;
+		var res="";
+		for (var i=0;i<len;i++) {
+			var data=data_arr[i];
+			var label=data["label"];
+			var hint=data["hint"];
+			var description=data["description"];
+			var variables=data["varbinds"];
+			var children=data["children"];
+			var sub_id=""+data["subid"];
+			var id=pre_addr+sub_id;
+			var line="$label/$id";
+			if (hint)
+				line+=" ($hint)";
+			if (description)
+				line+=" \"$description\" ";
+			if (variables) {
+				line+="\n";
+				var len2=length variables;
+				for (var j=0;j<len2;j++) {
+					line+="$spaces  variabila:${variables[j]}\n";
+				}
+			}
+			line+="\n";
+			res+=spaces+line;
+			if (children)
+				res+=ShowData(children, spaces+"    ", id+".");
+		}
+		return res;
+	}
+
+
+	public function finalize() {
+		this.Close();
+	}
+}

@@ -1,0 +1,25 @@
+//include 'Controls.con'
+
+class Father { 
+	function to_override() {
+		echo "Father function";
+	}
+}
+
+
+class Child extends Father {
+
+	override to_override;
+
+	function to_override() {
+		echo "Child function";
+	}
+}
+
+
+class Main {
+	function Main() {
+		var child=new Child();
+		child.to_override();
+	}
+}

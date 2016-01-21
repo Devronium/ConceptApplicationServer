@@ -1,0 +1,302 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+  <title>RColumnManager</title>
+  <link href="css/style.css" rel="stylesheet" type="text/css">
+  <meta http-equiv="Content-Type" content="text/html;charset=utf-8" >
+</head>
+<body bgcolor="#ffffff">
+<table border="0" width="100%" bgcolor="#F0F0FF">
+  <tr>
+    <td>Concept Framework 2.2 documentation</td>
+  	<td align="right"><a href="index.html">Contents</a> | <a href="index_fun.html">Index</a></td>
+  </tr>
+</table>
+<h2>RColumnManager</h2>
+<table border="0" cellspacing="0" cellpadding="0" width="400" style="border-style:solid;border-width:1px;border-color:#D0D0D0;">
+  <tr bgcolor="#f0f0f0">
+     <td><i>Name</i></td>
+     <td><i>Version</i></td>
+     <td><i>Deprecated</i></td>
+  </tr>
+  <tr bgcolor="#fafafa">
+     <td><b>RColumnManager</b></td>
+     <td>version 1.0</td>
+     <td>no</td>
+  </tr>
+</table>
+<br />
+<b>Defined in : </b>RColumnManager.con
+<br/><i>(this file must be included in your application in order to have access, unless you use a child class of RColumnManager that includes this file)</i><br /><br />
+
+
+<b>Description:</b><br />
+<table width="100%" bgcolor="#FAFAFF" style="border-style:solid;border-width:1px;border-color:#D0D0D0;">
+<tr><td>
+This class provides access to the <a href="RTreeView.html">RTreeView</a> columns.
+<br>
+<br>This class should not be used directly; it's used internally by the <a href="RTreeViewColumnManager.html">RTreeViewColumnManager</a> class that is later used by the <a href="RTreeView.html">RTreeView</a> control.
+<br>
+</td></tr>
+</table>
+<br />
+<br />
+
+
+<b>Properties:</b><br />
+<table bgcolor="#FFFFFF" width="100%" style="border-style:solid;border-width:1px;border-color:#D0D0D0;">
+
+	   <tr>
+	   	   <td>
+		   	   <a href="RColumnManager.Alignment.html">Alignment</a>
+		   </td>
+	   	   <td>
+		   	   Sets the horizontal alignment for the column
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="RColumnManager.Backcolor.html">Backcolor</a>
+		   </td>
+	   	   <td>
+		   	   Sets or gets the background color for a column as a hex number
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="RColumnManager.Caption.html">Caption</a>
+		   </td>
+	   	   <td>
+		   	   Sets or gets the text that appears in the column header
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="RColumnManager.Clickable.html">Clickable</a>
+		   </td>
+	   	   <td>
+		   	   If set to true, the user is able to click on the header of the column
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="RColumnManager.Expand.html">Expand</a>
+		   </td>
+	   	   <td>
+		   	   If set to true, the column is able to expands itself to fill any available space
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="RColumnManager.FixedWidth.html">FixedWidth</a>
+		   </td>
+	   	   <td>
+		   	   Sets or gets the fixed width of the column
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="RColumnManager.FontDescription.html">FontDescription</a>
+		   </td>
+	   	   <td>
+		   	   Set or gets the description of the font to use for the text column
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="RColumnManager.ForeColor.html">ForeColor</a>
+		   </td>
+	   	   <td>
+		   	   Sets or gets the foreground color for a column as a hex number
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="RColumnManager.MaxWidth.html">MaxWidth</a>
+		   </td>
+	   	   <td>
+		   	   Sets or gets the maximum width of the column or -1 if no maximum is set
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="RColumnManager.MinWidth.html">MinWidth</a>
+		   </td>
+	   	   <td>
+		   	   Sets or gets the minimum width of the column or -1 if no minimum is set
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="RColumnManager.Reorderable.html">Reorderable</a>
+		   </td>
+	   	   <td>
+		   	   If set to true, the user can reorder the column
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="RColumnManager.Resizable.html">Resizable</a>
+		   </td>
+	   	   <td>
+		   	   Making a column resizable will allow the user to resize the column (by setting to true)
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="RColumnManager.Sensitive.html">Sensitive</a>
+		   </td>
+	   	   <td>
+		   	   If set to true, the column header is sensitive when the mouse passes over the column header
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="RColumnManager.Sizing.html">Sizing</a>
+		   </td>
+	   	   <td>
+		   	   Sets or gets the sizing type of the column
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="RColumnManager.SortIndicator.html">SortIndicator</a>
+		   </td>
+	   	   <td>
+		   	   Shows(if true) or hides(if false) an arrow in the header button indicating that the column is sorted
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="RColumnManager.SortIndicatorType.html">SortIndicatorType</a>
+		   </td>
+	   	   <td>
+		   	   Sets or gets the direction of the sort indicator arrow
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="RColumnManager.Visible.html">Visible</a>
+		   </td>
+	   	   <td>
+		   	   Show (if true) or hide (false) a tree column
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="RColumnManager.Wrap.html">Wrap</a>
+		   </td>
+	   	   <td>
+		   	   Sets or gets the line wrapping for the text column
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="RColumnManager.XAlign.html">XAlign</a>
+		   </td>
+	   	   <td>
+		   	   Sets or gets the horizontal alignment for the text in column
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="RColumnManager.XPadding.html">XPadding</a>
+		   </td>
+	   	   <td>
+		   	   Sets or gets the amount of space to add on the left and right of the column text
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="RColumnManager.YAlign.html">YAlign</a>
+		   </td>
+	   	   <td>
+		   	   Sets or gets the vertical alignment for the text in the column
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="RColumnManager.YPadding.html">YPadding</a>
+		   </td>
+	   	   <td>
+		   	   Sets or gets the amount of space to add on the top and bottom of the text in the column
+		   </td>
+	   </tr>
+
+</table>
+<br />
+
+
+
+<b>Methods:</b><br />
+<table bgcolor="#FFFFFF" width="100%" style="border-style:solid;border-width:1px;border-color:#D0D0D0;">
+
+	   <tr>
+	   	   <td>
+		   	   <a href="RColumnManager.RColumnManager.html">RColumnManager</a>
+		   </td>
+	   	   <td>
+		   	   This is the standard contructor for this class and should not be used directly
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="RColumnManager.UseWidget.html">UseWidget</a>
+		   </td>
+	   	   <td>
+		   	   This function attaches a column header to a control
+		   </td>
+	   </tr>
+
+</table>
+<br />
+
+
+
+
+
+
+
+
+<br />
+
+<br />
+<br />
+<!--
+  <p>
+    <a href="http://validator.w3.org/check?uri=referer"><img
+        src="http://www.w3.org/Icons/valid-html40"
+        alt="Valid HTML 4.0 Transitional" height="31" width="88" border="0"></a>
+ <a href="http://jigsaw.w3.org/css-validator/">
+  <img style="border:0;width:88px;height:31px"
+       src="http://jigsaw.w3.org/css-validator/images/vcss" 
+       alt="Valid CSS!" border="0"/>
+ </a>
+</p>
+-->
+<table bgcolor="#F0F0F0" width="100%"><tr><td>Documented by Eduard Suica, generation time: Sun Jan 27 18:15:07 2013
+ GMT</td><td align="right">(c)2013 <a href="http://www.devronium.com">Devronium Applications</a></td></tr></table>
+</body>
+</html>

@@ -1,0 +1,349 @@
+include RForm.con
+include RTreeView.con
+include RButton.con
+include RComboBox.con
+include REdit.con
+include RVBox.con
+include RHBox.con
+include RScrolledWindow.con
+include RLabel.con
+include RHButtonBox.con
+include DirectoryList.con
+include RProgressBar.con
+include Constants.con
+include OptionDialog.con
+include Application.con
+
+import standard.C.time
+import standard.lib.str
+
+class ServerFileSaver extends RForm {
+	private var ItemsList;
+	private var ItemsCombo;
+	private var OkButton;
+	private var CancelButton;
+	private var FileNameEdit;
+	private var LabelFile;
+	private var LabelFileType;
+
+	private var ImageFolder;
+	private var ImageFile;
+
+	private var Progress;
+	private var vbox;
+
+	private var path;
+	private var ext_arr;
+	private var update;
+
+	private var first_file_index;
+	private var types;
+	private var ext_list;
+	private var dir_listed;
+	private var on_file_selected;
+	private var some_count;
+
+	public property Path {set SetPath, get path }
+	public property Filename { set SetFilename, get GetFilename }
+	public property FileTypes { set SetTypes, get types }
+	public property OnFileSelected { set SetOnFileSelected, get on_file_selected }
+
+
+	private function SetFilename(filename) {
+		FileNameEdit.Text=filename;
+	}
+
+	private function GetFilename() {
+		var filename=FileNameEdit.Text;
+		return filename;
+	}
+
+	private function SetOnFileSelected(delegate deleg) {
+		on_file_selected=deleg;
+	}
+
+	public function CancelButtonClick(Sender, extra) {
+		Hide();
+	}
+
+
+	public function OnOption(Sender, EventData) {
+		if (EventData==0) {
+			Hide();
+			if (on_file_selected)
+				on_file_selected(this, Filename);			
+		}
+	}
+
+	public function OkButtonClick(Sender, extra) {
+		var filename=GetFilename();
+		if (FileExists(path+filename)) {
+			if (CApplication::Message("File '$filename' already exists.\nDo you want to overwrite it ?", "Save file warning", MESSAGE_QUESTION, BUTTONS_YES_NO)!=RESPONSE_YES)
+				return 0;
+		}
+		Hide();
+		if (on_file_selected)
+			on_file_selected(this, filename);
+	}
+
+
+	private function BeginProgress() {
+		vbox.Hide();
+		Progress.Show();
+		some_count=0;
+	}
+
+	private function EndProgress() {
+		vbox.Show();
+		Progress.Hide();
+	}
+
+	private function SetPath(_path) {
+		return path=_path;
+	}
+
+	private function SetTypes(_types) {
+		types=types;
+		delete ext_arr;
+		
+		ext_arr=new [];
+		var cnt=length _types;
+
+		delete ext_list;
+		ext_list=new [];
+
+		ItemsCombo.Clear();
+		for (var i=0;i<cnt;i++) {
+			var arr=StrSplit(_types[i],":");
+			//ext_arr[i]=arr[1];
+			ext_list[i]=StrSplit(arr[1],",");
+			var item1=arr[0];
+			var item2="*."+arr[1];
+			ItemsCombo.AddItem([ item1, item2 ]);
+		}
+		ItemsCombo.RowIndex=0;
+		ext_arr=ext_list[0];
+	}
+
+	private function AddToFileList(filename,Image,directory) {
+		//ItemsList.AddItem([Image,filename,asctime(filelast_mod(directory+filename))]);
+		ItemsList.AddItem([Image,filename,StrReplace(ctime(filelast_mod(directory+filename)),'\n','')]);
+
+		some_count++;
+
+		if (some_count%10==0)
+			Progress.Pulse();
+	}
+
+
+	public function ListDirectory() {
+		FileNameEdit.Text="";
+		BeginProgress();
+		update=1;
+
+		ItemsList.Clear();
+
+		var dir=new DirectoryList();
+
+		var arr1=dir.ListByType(path,S_IFDIR);
+		var cnt=length arr1;
+		if ((cnt==0) && (ToLower(Ext(path))=="lnk")) {
+			var path2=SubStr(path, 1,length path-4);
+			arr1=dir.ListByType(path2,S_IFDIR);
+			cnt=length arr1;
+			if (cnt)
+				path=path2;
+		}
+
+		first_file_index=0;
+		for (var i=0;i<cnt;i++) {
+			var filename=arr1[i];
+			if ((filename!=".") && (filename!="..")) {
+				first_file_index++;
+				AddToFileList(filename,ImageFolder,path);
+			}
+		}
+
+		var arr2=dir.ListByExt(path,ext_arr,true);
+		cnt=length arr2;
+
+		for (i=0;i<cnt;i++) {
+			filename=arr2[i];
+			AddToFileList(filename,ImageFile,path);
+		}
+		update=0;
+		EndProgress();
+	}
+
+	public function DoPath(pth) {
+		if (pth=="..") {
+			var path=this.path;
+			var cnt=length path;
+			var final="";
+
+			for (var i=cnt-2;i>=0;i--) {
+				if (path[i]=="/") {
+					for (var j=0;j<=i;j++) {
+						final+=path[j];
+					}
+					return final;
+				}
+			}
+			return path;
+		} else
+			return this.path+pth+"/";
+	}
+
+	public function ItemsListChanged(Sender, extra) {
+		var index=ItemsList.RowIndex;
+		if ((!update) && (index!=-1)) {
+			var path=Sender.Items.GetPath(index)[1];
+			if (index<first_file_index) {
+				this.path=DoPath(path);
+				ListDirectory();
+			} else {
+				FileNameEdit.Text=path;
+				OkButtonClick(OkButton, "0");
+			}
+		}
+	}
+
+	public function ItemsListCursorChanged(Sender, extra) {
+		var index=ItemsList.RowIndex;
+		if ((!update) && (index!=-1)) {
+			var path=Sender.Items.GetPath(index)[1];
+			if (index>=first_file_index)
+				FileNameEdit.Text=path;
+		}
+	}
+
+	public function FileTypeChanged(Sender,extra) {
+		var index=ItemsCombo.RowIndex;
+		if ((index!=-1) && (dir_listed)) {
+			ext_arr=ext_list[index];
+			ListDirectory();
+		}
+		dir_listed=1;
+	}
+
+	public function OnUpClicked(Sender, EventData) {
+		if (!this.path)
+			return 0;
+		this.path=DoPath("..");
+		ListDirectory();
+	}
+
+	public function ServerFileSaver(owner) {
+		super(owner);
+		Caption="Save server file";
+		Top=200;
+		//Position=WP_CENTER_ON_PARENT;
+		Modal=true;
+		var main_box=new RVBox(this);
+
+		var upbutton=new RButton(main_box);
+		upbutton.Caption="gtk-go-up";
+		upbutton.Packing=PACK_SHRINK;
+		upbutton.ReliefStyle=RELIEF_NONE;
+		upbutton.UseStock=true;
+		upbutton.OnClicked=OnUpClicked;
+		upbutton.Show();
+		vbox=new RVBox(main_box);
+
+		var ScrolledWindow=new RScrolledWindow(vbox);
+		ScrolledWindow.MinHeight=420;
+		ScrolledWindow.MinWidth=360;
+
+		ItemsList=new RTreeView(ScrolledWindow);
+		ItemsList.Model=MODEL_LISTVIEW;
+		ItemsList.AddColumn(" ",IMAGE_COLUMN);
+		ItemsList.AddColumn("Name",NORMAL_COLUMN);
+		ItemsList.AddColumn("Date",NORMAL_COLUMN);
+		ItemsList.Columns[1].MinWidth=200;
+		ItemsList.Columns[2].XAlign=1;
+		ItemsList.OnRowActivated=ItemsListChanged;
+		ItemsList.OnCursorChanged=ItemsListCursorChanged;
+		ItemsList.RulesHint=true;
+
+		ItemsList.HeadersVisible=false;
+		ScrolledWindow.HScrollPolicy=POLICY_AUTOMATIC;
+		ScrolledWindow.VScrollPolicy=POLICY_AUTOMATIC;
+
+		ItemsList.Show();
+
+		vbox.PackType=PACK_SHRINK;
+		var vbox2=new RVBox(vbox);
+
+		var hbox2=new RHBox(vbox2);
+		hbox2.PackType=PACK_SHRINK;
+
+		LabelFile=new RLabel(hbox2);
+		LabelFile.Caption="File name :";
+		LabelFile.Show();
+		LabelFile.MinWidth=100;
+
+		hbox2.PackType=PACK_EXPAND_WIDGET;
+		FileNameEdit=new REdit(hbox2);
+		FileNameEdit.Show();
+		FileNameEdit.ActivateDefault=true;
+		ItemsList.SearchEntry=FileNameEdit;
+		FileNameEdit.SuggestModel=ItemsList;
+
+		hbox2.Show();
+
+		var hbox1=new RHBox(vbox2);
+
+		hbox1.PackType=PACK_SHRINK;
+		LabelFileType=new RLabel(hbox1);
+		LabelFileType.Caption="File type :";
+		LabelFileType.MinWidth=100;
+		LabelFileType.Show();
+
+		hbox1.PackType=PACK_EXPAND_WIDGET;
+		ItemsCombo=new RComboBox(hbox1);
+		ItemsCombo.AddColumns(2);
+		ItemsCombo.Show();
+		ItemsCombo.OnChanged=FileTypeChanged;
+
+		hbox1.Show();
+
+		var hbox3=new RHButtonBox(vbox2);
+		hbox3.Layout=BUTTONBOX_END;
+
+		OkButton=new RButton(hbox3);
+		OkButton.Caption="gtk-save";
+		OkButton.UseStock=true;
+		OkButton.OnClicked=OkButtonClick;
+		OkButton.Show();
+		DefaultControl = OkButton;
+
+		CancelButton=new RButton(hbox3);
+		CancelButton.Caption="gtk-cancel";
+		CancelButton.UseStock=true;
+		CancelButton.OnClicked=CancelButtonClick;
+		CancelButton.Show();
+		hbox3.Show();
+
+		ImageFolder=new RImage(null);
+		ImageFolder.LoadResource("gtk-directory",ICON_SIZE_SMALL_TOOLBAR);
+
+		ImageFile=new RImage(null);
+		ImageFile.LoadResource("gtk-file",ICON_SIZE_SMALL_TOOLBAR);
+		
+		ScrolledWindow.Show();
+		vbox2.Show();
+		vbox.Show();
+
+		main_box.PackType=PACK_EXPAND_PADDING;
+		Progress=new RProgressBar(main_box);
+		Progress.Hide();
+
+		main_box.Show();
+		Width=450;
+
+		KeepAbove=true;
+
+		FileNameEdit.OnActivate=OkButtonClick;
+
+	}
+}

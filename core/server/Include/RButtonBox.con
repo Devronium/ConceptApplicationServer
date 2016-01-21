@@ -1,0 +1,40 @@
+include RBox.con
+include ClassID.con
+
+define BUTTONBOX_DEFAULT_STYLE	0
+define BUTTONBOX_SPREAD		1
+define BUTTONBOX_EDGE		2
+define BUTTONBOX_START		3
+define BUTTONBOX_END		4
+
+class RButtonBox extends RBox {
+	private var XPADDING;
+	private var YPADDING;
+	private var LAYOUT;
+
+	public property XPadding { get XPADDING, set SetXPadding }
+	public property YPadding { get YPADDING, set SetYPadding }
+	public property Layout { get LAYOUT, set SetLayout }
+
+	public function RButtonBox(OWNER, CLASS) {
+		super(OWNER, CLASS);
+	}
+
+	public function SetXPadding(argument) {
+		SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_XPADDING,argument);
+		XPADDING=argument;
+		return argument;
+	}
+
+	public function SetYPadding(argument) {
+		SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_YPADDING,argument);
+		YPADDING=argument;
+		return argument;
+	}
+
+	public function SetLayout(argument) {
+		SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_LAYOUT,argument);
+		LAYOUT=argument;
+		return argument;
+	}
+}

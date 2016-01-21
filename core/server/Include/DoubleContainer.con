@@ -1,0 +1,48 @@
+include VisibleRemoteObject.con
+
+class DoubleContainer extends VisibleRemoteObject {
+	protected var CHILD1;
+	protected var CHILD2;
+	public property Child1 { get CHILD1 }
+	public property Child2 { get CHILD2 }
+
+	public function DoubleContainer(OWNER,CLASS_ID) {
+		super(OWNER, CLASS_ID);
+	}
+
+	public function Add(child) {
+		if (CHILD1) {
+			if (CHILD2)
+				throw "This class is derived from DoubleContainer, and can have only 2 children";
+			else
+				CHILD2=child;
+		} else {
+			CHILD1=child;
+		}
+		return child;
+	}
+
+	override DisposeObject;
+	public function DisposeObject(clean_child=true) {
+		if (CHILD1) {
+			if (HasMember(CHILD1,"DisposeObject"))
+				CHILD1.DisposeObject(false);
+			delete CHILD1;
+		}
+		if (CHILD2) {
+			if (HasMember(CHILD2,"DisposeObject"))
+				CHILD2.DisposeObject(false);
+			delete CHILD2;
+		}
+		VisibleRemoteObject::DisposeObject(clean_child);
+	}
+
+	override __QueryDispose;
+	public function __QueryDispose(object obj) {
+		if (obj.RID==CHILD1.RID)
+			delete CHILD1;
+		else
+		if (obj.RID==CHILD2.RID)
+			delete CHILD2;
+	}
+}

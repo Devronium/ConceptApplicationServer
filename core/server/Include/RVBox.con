@@ -1,0 +1,9 @@
+include RBox.con
+include ClassID.con
+
+class RVBox extends RBox {
+	public function RVBox(OWNER) {
+		super(OWNER, CLASS_VBOX);
+
+	}
+}

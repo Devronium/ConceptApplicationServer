@@ -1,0 +1,8 @@
+include RScrollbar.con
+include ClassID.con
+
+class RVScrollbar extends RScrollbar {
+	public function RVScrollbar(OWNER) {
+		super(OWNER, CLASS_VSCROLLBAR);
+	}
+}

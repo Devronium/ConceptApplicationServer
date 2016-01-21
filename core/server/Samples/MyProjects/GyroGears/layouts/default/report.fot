@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
+	xmlns:csp="http://www.devronium.com/csp"
+	extension-element-prefixes="csp"
+	version="1.0">
+  <xsl:output method="xml" indent="yes"/>
+
+  <xsl:template match="/">
+  <fo:root
+      xmlns:fn = "http://www.w3.org/2005/xpath-functions"
+      xmlns:fo = "http://www.w3.org/1999/XSL/Format"
+      xmlns:xdt = "http://www.w3.org/2005/xpath-datatypes"
+      xmlns:xs = "http://www.w3.org/2001/XMLSchema"
+      xmlns:xsi = "http://www.w3.org/2001/XMLSchema-instance">
+      <fo:layout-master-set>
+          <fo:simple-page-master
+              master-name = "default-page"
+
+  {if landscape}
+              page-height = "8.27in"
+              page-width = "11.69in"
+  {else}
+              page-height = "11.69in"
+              page-width = "8.27in"
+  {endif}
+              margin-left = "0.6in"
+              margin-right = "0.6in">
+              <fo:region-body margin-top = "1.2in" margin-bottom = "0.63in"/>
+              <fo:region-before extent = "0.79in"/>
+              <fo:region-after extent = "0.79in"/>
+          </fo:simple-page-master>
+      </fo:layout-master-set>
+
+      <fo:page-sequence
+          master-reference = "default-page"
+          initial-page-number = "1"
+          format = "1">
+          <fo:static-content flow-name = "xsl-region-before">
+              <fo:block>
+                  <fo:table
+                      table-layout = "fixed"
+                      width = "100%"
+                      border-spacing = "2pt">
+                      <fo:table-column column-width = "proportional-column-width(1)"/>
+                      <fo:table-column column-width = "proportional-column-width(1)"/>
+                      <fo:table-body start-indent = "0pt">
+                          <fo:table-row>
+                              <fo:table-cell
+                                  number-columns-spanned = "2"
+                                  padding = "0"
+                                  height = "30"
+                                  display-align = "center">
+                                  <fo:block>
+                                      {ldelim}HEADER_TEXT{rdelim}
+                                  </fo:block>
+                              </fo:table-cell>
+                          </fo:table-row>
+                          <fo:table-row>
+                              <fo:table-cell
+                                  number-columns-spanned = "2"
+                                  padding = "0"
+                                  display-align = "center">
+                                  <fo:block>
+                                      <fo:block text-align = "center">
+                                          <fo:leader
+                                              leader-pattern = "rule"
+                                              rule-thickness = "1"
+                                              leader-length = "100%"
+                                              color = "black"/>
+                                      </fo:block>
+                                  </fo:block>
+                              </fo:table-cell>
+                          </fo:table-row>
+                      </fo:table-body>
+                  </fo:table>
+              </fo:block>
+          </fo:static-content>
+          <fo:static-content flow-name = "xsl-region-after">
+              <fo:block>
+                  <fo:table
+                      table-layout = "fixed"
+                      width = "100%"
+                      border-spacing = "2pt">
+                      <fo:table-column column-width = "proportional-column-width(1)"/>
+                      <fo:table-column column-width = "150"/>
+                      <fo:table-body start-indent = "0pt">
+                          <fo:table-row>
+                              <fo:table-cell
+                                  number-columns-spanned = "2"
+                                  padding = "0"
+                                  display-align = "center">
+                                  <fo:block>
+                                      <fo:block text-align = "center">
+                                          <fo:leader
+                                              leader-pattern = "rule"
+                                              top = "-37pt"
+                                              rule-thickness = "1"
+                                              leader-length = "100%"
+                                              color = "black"/>
+                                      </fo:block>
+                                  </fo:block>
+                              </fo:table-cell>
+                          </fo:table-row>
+                          <fo:table-row>
+                              <fo:table-cell
+                                  font-size = "smaller"
+                                  padding = "0"
+                                  text-align = "left"
+                                  display-align = "center">
+                                  <fo:block>
+                                      <fo:inline font-weight = "bold">Document: <![CDATA[{REPORT_TITLE}, {ldelim}REPORT_DATE{rdelim}]]></fo:inline>
+                                  </fo:block>
+                              </fo:table-cell>
+                              <fo:table-cell
+                                  font-size = "smaller"
+                                  padding = "0"
+                                  text-align = "right"
+                                  display-align = "center">
+                                  <fo:block>
+                                      <fo:inline font-weight = "bold">Page:</fo:inline>
+                                      <fo:page-number font-weight = "bold"/>
+                                      <fo:inline font-weight = "bold">/</fo:inline>
+                                      <fo:page-number-citation ref-id = "SV_RefID_PageTotal" font-weight = "bold"/>
+                                  </fo:block>
+                              </fo:table-cell>
+                          </fo:table-row>
+                      </fo:table-body>
+                  </fo:table>
+              </fo:block>
+          </fo:static-content>
+          <fo:flow flow-name = "xsl-region-body">
+            {content}
+            <fo:block id = "SV_RefID_PageTotal"/>
+          </fo:flow>
+        </fo:page-sequence>
+      </fo:root>
+  </xsl:template>
+</xsl:stylesheet>

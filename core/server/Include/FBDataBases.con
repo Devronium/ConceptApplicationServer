@@ -1,0 +1,585 @@
+import standard.db.firebird
+import standard.lib.str
+import win32.base.messages
+
+
+define TRANSACTION_ROLLBACK		0
+define TRANSACTION_COMMIT		1
+
+class FBDataRecord {
+	public var DATA;
+	private var ORDER;
+	public var IsNull=false;
+
+	public operator = (string x) {
+		this.DATA=x;
+		return x;
+	}
+
+	public function ToBuffer() {
+		return this.DATA;
+	}
+
+	public function ToString() {
+		return this.DATA;
+	}
+
+	public function ToNumber() {
+		return value this.DATA;
+	}
+
+	function XMLSerialized() {
+		var XMLData;
+		if (typeof DATA=="class")
+			XMLData = "<ADODataRecord>" + this->DATA->XMLSerialized() + "\n</ADODataRecord>";
+		else
+			XMLData = "<ADODataRecord>" + this->DATA + "</ADODataRecord>";
+
+		return XMLData;
+	}
+
+	function FBDataRecord(ORD,LNK) {
+		this.ORDER=ORD;
+		//this.LINK=LNK;
+	}
+}
+
+
+class FBConnection {
+	protected var connection=0;
+	protected var result=0;
+
+	private var host="";
+	private var username="";
+	private var password="";
+	public var last_tran=0;
+
+	public property Connection { get connection }
+	
+	function FBConnection() {
+		this->connection=0;
+	}
+
+	public function InitError() {
+		return FBError(connection);
+	}
+
+	function Reopen() {
+		if (this->connection)
+			this.Close();
+		last_tran=null;
+		this->connection=FBConnect(host, username, password);
+		return this->connection;
+	}
+
+	function Open(string host, string username, string password) {
+		this.host=host;
+		this.username=username;
+		this.password=password;
+		this->connection=FBConnect(host, username, password);
+		this.last_tran=0;
+		return this->connection;
+	}
+
+	function DriverOpen(string db, string username="", string password="", string host="localhost", number port=3050, string tty="", flags="") {
+		return this->Open(host+"/"+port+":"+db, username, password);
+	}
+
+	function Close() {
+		if (this->connection)
+			FBDisconnect(this->connection);
+		this.last_tran=0;
+		return this->connection=0;
+	}
+
+	function StartTransaction(arr=null) {
+		if (arr)
+			last_tran=FBTransaction(this.Connection, arr);
+		else
+			last_tran=FBTransaction(this.Connection);
+		return last_tran;
+	}
+
+	function EndTransaction(MODE, retain=false, tr_handle=null) {
+		if (!tr_handle)
+			tr_handle=last_tran;
+		if (!tr_handle)
+			return -1;
+
+		if (!retain)
+			last_tran=null;
+
+		if (MODE==TRANSACTION_ROLLBACK)
+			return FBRollback(tr_handle, this.Connection, retain);
+		else
+			return FBCommit(tr_handle, this.Connection, retain);
+	}
+
+	function ListTables(string wildcard="") {
+		return 0;
+	}
+
+	function ListColumns(string table,string columns="") {
+		return 0;
+	}
+
+	static function ListDSN() {
+		return [ ];
+	}
+
+	function LastError() {
+		return this.InitError();
+	}
+}
+
+class VirtualADOObject {
+	protected var _DATASET;
+	protected var _DATAFIELD;
+
+	public property DataSet { set SetDataSet, get _DATASET }
+	public property DataField { set SetDataField, get _DATAFIELD }
+
+	// is pure virtual !
+	public function __DataSetUpdateCommand(Sender);
+	public function __DataSetNewQueryNotify(Sender);
+
+	public function __DataSetColumnUpdate(Sender,ColumnValue,rowindex);
+
+	protected function AddLinkedObject();
+	protected function SetDataSet(dataset) {
+		if (this->_DATASET) {
+			if (dataset) {
+				if (dataset==this->_DATASET)
+					return;
+			}
+		}
+
+		this->_DATASET=dataset;
+		dataset->AddLinkedObject(this);
+	}
+	override AddLinkedObject;
+
+	protected function SetDataField(x) {
+		this->_DATAFIELD=x;
+	}
+}
+
+class FBDataSet {
+	protected var _CONNECTION;
+	protected var _COMMANDTEXT;
+	protected var stmt=null;
+        protected var data_array;
+
+	protected var ADO_LINKED_OBJECTS;
+	protected var rowindex=0;
+	protected var status=0;
+
+	protected var old_rowindex=0;
+	protected var _columns=0;
+	protected var tran;
+	protected var transaction;
+
+	var[] parameters;
+
+	public property Columns { get _columns }
+	public property Connection { set SetConnection, get _CONNECTION }
+	public property CommandText { set SetCommandText, get _COMMANDTEXT }
+	public property FieldValues { get GetValues }
+	public property PreparedQuery { get _COMMANDTEXT, set SetCommandText }
+	public property RowIndex { get rowindex }
+	public property IsUpdateQuery { get status }
+
+	function First();
+
+
+	public function AddParameter(var parameter) {
+		parameters[length parameters]=""+parameter;
+	}
+
+	public function ClearParameters() {
+		parameters=new [];
+	}
+
+	function Text(); override Text;
+	function Checked(); override Checked;
+
+	private function ForcedNotify() {
+		var count=length this->ADO_LINKED_OBJECTS;
+		for (var i=0;i<count;i++) {
+			var object=&this->ADO_LINKED_OBJECTS[i];
+			object->__DataSetNewQueryNotify(this);
+		}
+	}
+
+	private function Syncronize() {
+		var count=length this->ADO_LINKED_OBJECTS;
+		for (var i=0;i<count;i++) {
+			var object=&this->ADO_LINKED_OBJECTS[i];
+			if 	((classof object=="RADOEdit") ||
+				(classof object=="RADOEditComboBox") ||
+				(classof object=="RADOTextView")) {
+					var field=object->DataField;
+					if (field!="")
+						FieldValues[field]=object->Text;
+			} else
+			if 	((classof object=="RADOCheckButton") ||
+				(classof object=="RADORadioButton")) {
+					field=object->DataField;
+					if (field!="")
+						FieldValues[field]=""+object->Checked;
+			}
+		}
+	}
+
+	function ExecuteQuery(); override ExecuteQuery;
+	function FetchByIndex(); override FetchByIndex;
+
+	public function Update() {
+		throw "Positional update not supported !";
+	}
+
+	public function Refresh() {
+		old_rowindex=rowindex;
+		this.ExecuteQuery();
+	}
+
+	public function Delete() {
+		throw "Positional delete not supported !";
+	}
+
+	public function FBDataSet(FBConnection _Connection, transaction=null) {
+		Connection=_Connection;
+		this->ADO_LINKED_OBJECTS=new [];
+		this->data_array=new [];
+		this->rowindex=-1;
+		this->_COMMANDTEXT="";
+		this->old_rowindex=-1;
+
+		var tr=transaction;
+		if (!tr)
+			tr=this->_CONNECTION->last_tran;
+		tran=tr;
+	}
+
+	protected function SetConnection(FBConnection x) {
+		this->_CONNECTION=x;
+	}
+
+	private function SetCommandText(string x) {
+		this->_COMMANDTEXT=x;
+		this.parameters=new [];
+		return x;
+	}
+
+	public function UpdateColumnList(Sender) {
+		try {
+			//var index=data_array->GetIndexByKey(Sender->DataField);
+			if (this._COMMANDTEXT)
+				this.ExecuteQuery();
+
+			if ((!_columns) || (!this->stmt))
+				return 0;
+
+			BeginUpdateSession();
+			var len=length _columns;
+
+			var arr=new [];
+			// init array 
+			for (var i=0;i<len;i++)
+				arr[_columns[i]]="";
+			do {
+				for (i=0;i<len;i++) {
+					arr[i]=FBGetValue(this->stmt, i);
+				}
+				Sender->__DataSetColumnUpdate(this,arr,-1);
+			} while (FBFetchForward(this->stmt));
+			EndUpdateSession();
+			this.ExecuteQuery();
+		} catch (var Exception) {
+		}
+	}
+
+	public function AfterQueryNotify() {
+		var ADO_COUNT=length this->ADO_LINKED_OBJECTS;
+		var OBJECTS=this->ADO_LINKED_OBJECTS;
+
+		for (var i=0;i<ADO_COUNT;i++) {
+			var ADO_ELEMENT=&OBJECTS[i];
+			ADO_ELEMENT->__DataSetNewQueryNotify(this);
+		}
+	}
+
+	private function CountParameters(string str) {
+		var arr=StrSplit(str, "?", true);
+
+		var count=length arr;
+		if (count<=1)
+			return 0;
+
+		return count-1;
+	}
+
+
+	function ExecuteNonQuery() {
+		this->rowindex=-1;
+		this->old_rowindex=-1;
+		var params=this.parameters;
+
+		delete _columns;
+
+		var conection_target=this->_CONNECTION->Connection;
+		if (!conection_target)
+			return -1;
+
+		this.CloseRead(false);
+
+		var query=ToLower(trim(StrReplace(this->_COMMANDTEXT, ";", "")));
+		switch (query) {
+			case "commit":
+				if (tran) {
+					this->_CONNECTION->EndTransaction(TRANSACTION_COMMIT, false, tran);
+					tran=null;
+				}
+				return true;
+			case "rollback":
+				if (tran) {
+					this->_CONNECTION->EndTransaction(TRANSACTION_ROLLBACK, false, tran);
+					tran=null;
+				}
+				return true;
+			case "start transaction":
+			case "begin transaction":
+			case "savepoint starttransaction":
+				if (tran)
+					this->_CONNECTION->EndTransaction(TRANSACTION_COMMIT, false, tran);
+				tran=this->_CONNECTION->StartTransaction();
+				return true;
+			case "rollback to savepoint starttransaction":
+				if (tran) {
+					this->_CONNECTION->EndTransaction(TRANSACTION_ROLLBACK, false, tran);
+					tran=null;
+				}
+				return true;
+		}
+
+		var transaction=tran;
+		var tr_created=false;
+		if (!transaction) {
+			transaction=FBTransaction(conection_target);
+			tr_created=true;
+		}
+
+		var res=0;		
+		res=FBQuery(this->_COMMANDTEXT, conection_target, transaction, parameters);
+		var fres=(FBErrorCode(this.Connection.Connection)!=0);
+		if (res) {
+			FBFreeResult(stmt);
+
+			if ((tr_created) && (transaction))
+				FBCommit(transaction, this.Connection.Connection, false);
+
+			stmt=0;
+			return fres;
+		}
+		if ((tr_created) && (transaction))
+			FBCommit(transaction, this.Connection.Connection, false);
+
+		return fres;
+	}
+
+	function ExecuteQuery(number client_processing=true) {
+		this->rowindex=-1;
+		delete _columns;
+		var params=this.parameters;
+
+		this.CloseRead(false);
+
+		var conection_target=this->_CONNECTION->Connection;
+		if (!conection_target)
+			return -1;
+
+		var transaction=tran;
+		var tr_created=false;
+		if (!transaction) {
+			transaction=FBTransaction(conection_target);
+			tr_created=true;
+			this.transaction=transaction;
+		}
+
+		stmt=FBQuery(this->_COMMANDTEXT, conection_target, transaction, parameters);
+
+		if (!stmt)
+			return 0;
+		this->data_array=new [];
+		var result=this->stmt;
+		var count=FBCountColumns(result);
+
+		if (count)
+			_columns=new [];
+
+		for (var i=0;i<count;i++) {
+			var name=FBColumnName(result, i);
+			_columns[i]=name;
+
+			//this->data_array->Add(0,name);
+			if (!this->data_array[name])
+				this->data_array[name]=new FBDataRecord(i,result);
+			else {
+				var tmp_index=2;
+				var temp_name="$name($tmp_index)";
+				while (this->data_array[temp_name]) {
+					temp_name="$name($tmp_index)";
+					tmp_index++;
+				}
+				this->data_array[temp_name]=new FBDataRecord(i,result);
+				_columns[i]=temp_name;
+			}
+		}
+		this->AfterQueryNotify();
+
+		if (old_rowindex==-1) {
+			this->rowindex=-1;
+		} else {
+			rowindex=-1;
+			this->FetchByIndex(old_rowindex);
+			old_rowindex=-1;
+		}
+		return result;
+	}
+
+	public function CountRows() {
+		return 0;
+	}
+
+	public function FetchByIndex(index) {
+		var read=0;
+		if (!this->stmt)
+			return 0;
+
+		if (this->rowindex==index-1) {
+			read=FBFetchForward(this->stmt);
+		} else
+			throw "Absolute positioning not supported";
+
+		if (!read) {
+			//this->CloseRead();
+			return 0;
+		}
+		this->rowindex=index;
+
+		var array=this->data_array;
+		var count=length array;
+
+		for (var i=0;i<count;i++) {
+			array[i]=FBGetValue(this->stmt, i);
+			array[i].IsNull=FBIsNull(this->stmt, i);
+		}
+
+		if (read) {
+			var ADO_COUNT=length this->ADO_LINKED_OBJECTS;
+			var OBJECTS=this->ADO_LINKED_OBJECTS;
+			BeginUpdateSession();
+			for (i=0;i<ADO_COUNT;i++) {
+				var ADO_ELEMENT=&OBJECTS[i];//->GetElementByIndex(i);
+				ADO_ELEMENT->__DataSetUpdateCommand(this);
+			}
+			EndUpdateSession();
+		}
+		
+		return read;
+	}
+
+	public function Next() {
+		return FetchByIndex(rowindex+1);
+	}
+
+	public function Prev() {
+		return FetchByIndex(rowindex-1);
+	}
+
+	public function Current() {
+		return FetchByIndex(rowindex);
+	}
+
+	override First;
+	public function First() {
+		return FetchByIndex(0);
+	}
+
+	public function FetchRow() {
+		if (stmt) {
+			var count=FBCountColumns(stmt);
+			var[] result;
+			for (var i=0;i<count;i++) {
+				var name=FBColumnName(stmt,i);
+				var data=FBGetValue(stmt, i);
+				if (name)
+					result[name]=""+data;
+				else
+					result[length result]=""+data;
+			}
+			return result;
+		} else
+			throw "No results to fetch rows from";
+	}
+
+	public function FetchForward() {
+		return this.Next();
+	}
+
+	public function AddLinkedObject(Object) {
+		this->ADO_LINKED_OBJECTS[length this->ADO_LINKED_OBJECTS]=Object;
+		Object->__DataSetNewQueryNotify(this);
+		Object->__DataSetUpdateCommand(this);
+	}
+
+	public function RemoveLinkedObject(Name) {
+		//this->ADO_LINKED_OBJECTS->DeleteElementByKey(Name);
+		var arr=this->ADO_LINKED_OBJECTS;
+		arr[Name]=null;
+
+		var []arr2;
+
+		var len=length arr;
+		for (var i=0;i<len;i++) {
+			if (arr[i])
+				arr2[length arr2]=arr[i];
+		}
+
+		this->ADO_LINKED_OBJECTS=arr2;
+	}
+
+	function GetValues() {
+		var array=this->data_array;
+		return array;
+	}
+
+	function CloseRead(number clear_parameters=true) {
+		if (this.transaction) {
+			FBCommit(this.transaction, this.Connection.Connection, false);
+			this.transaction=0;
+		}
+		if (this.stmt) {
+			FBFreeResult(stmt);
+			this.stmt=null;
+		}
+		if (clear_parameters)
+			this.ClearParameters();
+		this->old_rowindex=-1;
+	}
+
+	function finalize() {
+		if (this.transaction) {
+			FBCommit(this.transaction, this.Connection.Connection, false);
+			this.transaction=0;
+		}
+		if (this->stmt) {
+			FBFreeResult(stmt);
+			this.stmt=null;
+		}
+	}
+
+	function LastError() {
+		return FBError(this.Connection.Connection);
+	}
+}

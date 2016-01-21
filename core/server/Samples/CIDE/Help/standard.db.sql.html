@@ -1,0 +1,431 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+  <title>standard.db.sql</title>
+  <link href="css/style.css" rel="stylesheet" type="text/css">
+  <meta http-equiv="Content-Type" content="text/html;charset=utf-8" >
+</head>
+<body bgcolor="#ffffff">
+<table border="0" width="100%" bgcolor="#F0F0FF">
+  <tr>
+    <td>Concept Framework 2.2 documentation</td>
+  	<td align="right"><a href="index.html">Contents</a> | <a href="index_fun.html">Index</a></td>
+  </tr>
+</table>
+<h2>standard.db.sql</h2>
+<table border="0" cellspacing="0" cellpadding="0" width="400" style="border-style:solid;border-width:1px;border-color:#D0D0D0;">
+  <tr bgcolor="#f0f0f0">
+     <td><i>Static library name</i></td>
+     <td><i>Version</i></td>
+     <td><i>Deprecated</i></td>
+  </tr>
+  <tr bgcolor="#fafafa">
+     <td><b>standard.db.sql</b></td>
+     <td>version 1.0</td>
+     <td>no</td>
+  </tr>
+</table>
+<br />
+<b>Import library : </b>standard.db.sql<br />
+<i>(you must include this at the top of your source: "import standard.db.sql" (no quotes)</i><br />
+<br /><br />
+
+<b>Description:</b><br />
+<table width="100%" bgcolor="#FAFAFF" style="border-style:solid;border-width:1px;border-color:#D0D0D0;">
+<tr><td>
+ODBC library for database control. This is a low level library. Instead of this, is recommended that you use the <a href="ADOConnection.html">ADOConnection</a>, <a href="ADODataSet.html">ADODataSet</a> and <a href="ADODataRecord.html">ADODataRecord</a> objects.
+<br>
+<br>The ODBC (Open DataBase Connectivity ) is a standard for handling various types of database engine (including MS SQL and MySQL via MyODBC on both windows and penguins). 
+<br>
+<br>On linux or BSD systems (penguins) you should install the unixODBC or iODBC library before you compile this library. Concept doesn't provide data base specific libraries (like MySQLConnect or MSSQLConnect). Instead, you have this ODBC library that should provide access to most common used database engines.
+<br>
+</td></tr>
+</table>
+<br />
+<br />
+
+
+
+
+<b>Contained static functions:</b><br />
+<table bgcolor="#FFFFFF" width="100%" style="border-style:solid;border-width:1px;border-color:#D0D0D0;">
+
+	   <tr>
+	   	   <td>
+		   	   <a href="standard.db.sql.ODBCAddParameter.html">ODBCAddParameter</a>
+		   </td>
+	   	   <td>
+		   	   Add a parameter to a statement handle (same as result set)
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="standard.db.sql.ODBCAutoCommit.html">ODBCAutoCommit</a>
+		   </td>
+	   	   <td>
+		   	   Changes the default commit mode
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="standard.db.sql.ODBCBindResult.html">ODBCBindResult</a>
+		   </td>
+	   	   <td>
+		   	   Bind the results of a <a href="standard.db.sql.ODBCExecuteQuery.html">ODBCExecuteQuery</a> or <a href="standard.db.sql.ODBCExecute.html">ODBCExecute</a>
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="standard.db.sql.ODBCClearParameters.html">ODBCClearParameters</a>
+		   </td>
+	   	   <td>
+		   	   Clear the parameters added to a previously created statement with <a href="standard.db.sql.ODBCStatement.html">ODBCStatement</a>
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="standard.db.sql.ODBCColumnGet.html">ODBCColumnGet</a>
+		   </td>
+	   	   <td>
+		   	   Get the data on the given column index on the current record
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="standard.db.sql.ODBCColumnSet.html">ODBCColumnSet</a>
+		   </td>
+	   	   <td>
+		   	   Update data in a column
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="standard.db.sql.ODBCCommit.html">ODBCCommit</a>
+		   </td>
+	   	   <td>
+		   	   Commit the data
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="standard.db.sql.ODBCConnect.html">ODBCConnect</a>
+		   </td>
+	   	   <td>
+		   	   Connect to a database using a DSN(Data Source Name)
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="standard.db.sql.ODBCCountColumns.html">ODBCCountColumns</a>
+		   </td>
+	   	   <td>
+		   	   Get the number of columns in the current result set
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="standard.db.sql.ODBCCountRows.html">ODBCCountRows</a>
+		   </td>
+	   	   <td>
+		   	   Get the number of rows in the current result set
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="standard.db.sql.ODBCDelete.html">ODBCDelete</a>
+		   </td>
+	   	   <td>
+		   	   Delete the current row
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="standard.db.sql.ODBCDescribeCol.html">ODBCDescribeCol</a>
+		   </td>
+	   	   <td>
+		   	   Describe a column in a result set
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="standard.db.sql.ODBCDisconnect.html">ODBCDisconnect</a>
+		   </td>
+	   	   <td>
+		   	   Disconnects a previously connected driver
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="standard.db.sql.ODBCDriver.html">ODBCDriver</a>
+		   </td>
+	   	   <td>
+		   	   Get the name of the driver used for the given connection
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="standard.db.sql.ODBCDriverConnect.html">ODBCDriverConnect</a>
+		   </td>
+	   	   <td>
+		   	   Connects to a database using a connection string
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="standard.db.sql.ODBCError.html">ODBCError</a>
+		   </td>
+	   	   <td>
+		   	   Get the last encountered errors, as reported by the ODBC driver
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="standard.db.sql.ODBCExecute.html">ODBCExecute</a>
+		   </td>
+	   	   <td>
+		   	   Execute a prepared query
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="standard.db.sql.ODBCExecuteQuery.html">ODBCExecuteQuery</a>
+		   </td>
+	   	   <td>
+		   	   Create and executes a statement
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="standard.db.sql.ODBCFetchAbsolute.html">ODBCFetchAbsolute</a>
+		   </td>
+	   	   <td>
+		   	   Position the current record on the given row (by its index) in the given data set
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="standard.db.sql.ODBCFetchFirst.html">ODBCFetchFirst</a>
+		   </td>
+	   	   <td>
+		   	   Position the current record on the first row in the given data set
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="standard.db.sql.ODBCFetchForward.html">ODBCFetchForward</a>
+		   </td>
+	   	   <td>
+		   	   This function should be used only when working with MySQL and tables that contain big text fields
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="standard.db.sql.ODBCFetchLast.html">ODBCFetchLast</a>
+		   </td>
+	   	   <td>
+		   	   Position the current record on the last record in the given data set
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="standard.db.sql.ODBCFetchNext.html">ODBCFetchNext</a>
+		   </td>
+	   	   <td>
+		   	   Position the current record on the next row in the given data set
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="standard.db.sql.ODBCFetchPrior.html">ODBCFetchPrior</a>
+		   </td>
+	   	   <td>
+		   	   Position the current record on the previous row in the given data set
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="standard.db.sql.ODBCFirstDSN.html">ODBCFirstDSN</a>
+		   </td>
+	   	   <td>
+		   	   Get the name of the first system DSN(or user DSN, depending on the rights the application is using)
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="standard.db.sql.ODBCFreeQuery.html">ODBCFreeQuery</a>
+		   </td>
+	   	   <td>
+		   	   Free a result set
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="standard.db.sql.ODBCFreeResult.html">ODBCFreeResult</a>
+		   </td>
+	   	   <td>
+		   	   Free the result set
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="standard.db.sql.ODBCListColumns.html">ODBCListColumns</a>
+		   </td>
+	   	   <td>
+		   	   Get the list of column names in specified tables
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="standard.db.sql.ODBCListTables.html">ODBCListTables</a>
+		   </td>
+	   	   <td>
+		   	   Get the list of table, catalog, or schema names, and table types, stored in a specific data source
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="standard.db.sql.ODBCListTypes.html">ODBCListTypes</a>
+		   </td>
+	   	   <td>
+		   	   Get information about data types supported by the data source
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="standard.db.sql.ODBCLock.html">ODBCLock</a>
+		   </td>
+	   	   <td>
+		   	   Lock the access to a record
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="standard.db.sql.ODBCNextDSN.html">ODBCNextDSN</a>
+		   </td>
+	   	   <td>
+		   	   Get the name of the next system DSN(or user DSN, depending on the rights the application is using)
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="standard.db.sql.ODBCPosition.html">ODBCPosition</a>
+		   </td>
+	   	   <td>
+		   	   Get the absolute position of the current row
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="standard.db.sql.ODBCRollback.html">ODBCRollback</a>
+		   </td>
+	   	   <td>
+		   	   Roll back the data
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="standard.db.sql.ODBCSkip.html">ODBCSkip</a>
+		   </td>
+	   	   <td>
+		   	   Jump over a given number of rows
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="standard.db.sql.ODBCStatement.html">ODBCStatement</a>
+		   </td>
+	   	   <td>
+		   	   Create an empty result set
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="standard.db.sql.ODBCUnlock.html">ODBCUnlock</a>
+		   </td>
+	   	   <td>
+		   	   Unlock the access to a previously locked record
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="standard.db.sql.ODBCUpdate.html">ODBCUpdate</a>
+		   </td>
+	   	   <td>
+		   	   Update the current row
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="standard.db.sql.ODBCWarning.html">ODBCWarning</a>
+		   </td>
+	   	   <td>
+		   	   Get the last encountered warnings, as reported by the ODBC driver
+		   </td>
+	   </tr>
+
+</table>
+<br />
+
+
+
+
+
+
+<br />
+
+<br />
+<br />
+<!--
+  <p>
+    <a href="http://validator.w3.org/check?uri=referer"><img
+        src="http://www.w3.org/Icons/valid-html40"
+        alt="Valid HTML 4.0 Transitional" height="31" width="88" border="0"></a>
+ <a href="http://jigsaw.w3.org/css-validator/">
+  <img style="border:0;width:88px;height:31px"
+       src="http://jigsaw.w3.org/css-validator/images/vcss" 
+       alt="Valid CSS!" border="0"/>
+ </a>
+</p>
+-->
+<table bgcolor="#F0F0F0" width="100%"><tr><td>Documented by Eduard Suica, generation time: Sun Jan 27 18:15:19 2013
+ GMT</td><td align="right">(c)2013 <a href="http://www.devronium.com">Devronium Applications</a></td></tr></table>
+</body>
+</html>

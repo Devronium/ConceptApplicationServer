@@ -1,0 +1,8 @@
+include 'Form.con'
+
+class ConceptMDIForm extends ConceptForm {
+	public function ConceptMDIForm(Owner) {
+		this->Container(Owner, CLASS_MDIFORM);
+		this->BorderIcons=MINIMIZE_BUTTON | MAXIMIZE_BUTTON | SYSTEM_BUTTON;
+	}
+}

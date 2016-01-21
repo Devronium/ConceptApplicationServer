@@ -1,0 +1,8 @@
+include RButtonBox.con
+include ClassID.con
+
+class RVButtonBox extends RButtonBox {
+	public function RVButtonBox(OWNER) {
+		super(OWNER, CLASS_VBUTTONBOX);
+	}
+}

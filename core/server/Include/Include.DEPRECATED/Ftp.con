@@ -1,0 +1,165 @@
+import standard.net.ftp
+
+define TEXT_MODE	FTPLIB_ASCII
+define BINARY_MODE	FTPLIB_IMAGE
+
+class FtpFile {
+	var handle;
+
+	function FtpFile(id) {
+		handle=id;
+	}
+
+	function Read(size) {
+		return FtpRead(size,handle);
+	}
+
+	function write(buf) {
+		return FtpWrite(buf,handle);
+	}
+
+	function Close() {
+		return FtpClose(handle);
+	}
+}
+
+class FtpConnection {
+	private var con;
+	private var _host;
+	private var _user;
+	private var _pwd;
+	private var _mode;
+
+	public property Host {set SetHost, get _host }
+	public property User {set SetUser, get _user }
+	public property Password {set SetPwd, get _pwd }
+
+	public property Mode {set SetMode, get _mode }
+
+	public property LastResponse { get GetLastResponse }
+	public property System { get GetSystem }
+
+
+	public function ChDir(path) {
+		return FtpChdir(path,con);
+	}
+
+	public function MkDir(path) {
+		return FtpMkdir(path,con);
+	}
+
+	public function RmDir(path) {
+		return FtpMkdir(path,con);
+	}
+
+	public function Delete(path) {
+		return FtpDelete(path,con);
+	}
+
+	public function Rename(from,to) {
+		return FtpRename(from,to,con);
+	}
+
+	public function DownloadFileList(filename,path) {
+		return FtpDir(filename,path,con);
+	}
+
+	public function Download(filename,path) {
+		return FtpGet(filename,path,_mode,con);
+	}
+
+	public function Upload(filename,path) {
+		return FtpGet(filename,path,_mode,con);
+	}
+
+	public function CDUp() {
+		return FtpCDUp(con);
+	}
+
+	public function Pwd() {
+		return FtpPwd(con);
+	}
+
+	public function Site(cmd) {
+		return FtpSite(cmd,con);
+	}
+
+	public function FileSize(filename) {
+		return FtpSize(filename,_mode,con);
+	}
+
+	public function OpenFile(filename) {
+		var handle=FtpAccess(filename,FTPLIB_FILE_READ,_mode,con);
+		if (handle) {
+			return new FtpFile(handle);
+		}
+		return 0;
+	}
+
+	public function OpenDir(filename) {
+		var handle=FtpAccess(filename,FTPLIB_DIR,_mode,con);
+		if (handle) {
+			return new FtpFile(handle);
+		}
+		return 0;
+	}
+
+	public function CreateFileFile(filename) {
+		var handle=FtpAccess(filename,FTPLIB_FILE_WRITE,_mode,con);
+		if (handle) {
+			return new FtpFile(handle);
+		}
+		return 0;
+	}
+
+	public function FileTime(filename) {
+		return FtpModDate(filename,con);
+	}
+
+	function GetSystem() {
+		return FtpSysType(con);
+	}
+
+	function GetLastResponse() {
+		return FtpLastResponse(con);
+	}
+
+	function SetMode(x) {
+		_mode=x;
+	}
+
+	function SetHost(x) {
+		_host=""+x;
+	}
+
+	function SetUser(x) {
+		_user=""+x;
+	}
+
+	function SetPwd(x) {
+		_pwd=""+x;
+	}
+
+	function FtpConnection() {
+		_host="localhost";
+		_pwd="anonymus";
+		_user="anonymus";
+		_mode=BINARY_MODE;
+	}
+
+	function Open() {
+		con=FtpConnect(_host);
+		if (con) {
+			if (!FtpLogin(_user,_pwd,con)) {
+				FtpQuit(con);
+				return 0;
+			}
+			return 1;
+		}
+		return 0;
+	}
+
+	function Close() {
+		FtpQuit(con);
+	}
+}

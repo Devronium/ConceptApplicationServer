@@ -1,0 +1,788 @@
+import standard.db.pq
+import standard.lib.str
+import win32.base.messages
+
+
+define TRANSACTION_ROLLBACK		0
+define TRANSACTION_COMMIT		1
+
+
+class PQFile {
+	private var _HANDLE=-1;
+	private var _CONN=0;
+
+
+	public function PQFile(_CONN) {
+		this._CONN=_CONN;
+	}
+
+	public function Create(var oid=0, number mode=-1) {
+		if (mode<0)
+			mode=INV_READ | INV_WRITE;
+
+		oid=0;
+		var objid=lo_creat(this._CONN.Connection, INV_READ | INV_WRITE);
+
+		if (!objid)
+			throw "Error creating large object";
+
+		oid=objid;
+		return this.Open(objid, mode);
+	}
+
+	public function Open(number oid, number mode=INV_READ) {
+		this._HANDLE=lo_open(this._CONN.Connection, oid, mode);
+		return (this._HANDLE>=0);
+	}
+
+	public function Seek(number offset, number whence=PGSQL_SEEK_SET) {
+		if (this._HANDLE<0)
+			throw "Blob must be opened first";
+
+		return lo_lseek(this._CONN.Connection, this._HANDLE, offset, whence);		
+	}
+
+	public function Tell() {
+		if (this._HANDLE<0)
+			throw "Blob must be opened first";
+
+		return lo_tell(this._CONN.Connection, this._HANDLE);
+	}
+
+	public function Read(number bytes) {
+		if (this._HANDLE<0)
+			throw "Blob must be opened first";
+
+		var buffer="";
+		var res=lo_read(this._CONN.Connection, this._HANDLE, buffer, bytes);
+		return buffer;
+	}
+
+	public function Write(string what) {
+		if (this._HANDLE<0)
+			throw "Blob must be opened first";
+
+		var res=lo_write(this._CONN.Connection, this._HANDLE, what);
+		if (res<0)
+			throw "Blob cannot be written";
+
+		return res;
+	}
+
+	public function Close() {
+		if ((this._HANDLE>-1) && (this._CONN.Connection)) {
+			lo_close(this._CONN.Connection, this._HANDLE);
+			this._HANDLE=-1;
+		}
+	}
+
+	function finalize() {
+		this.Close();
+	}
+}
+
+
+class PQDataRecord {
+	public var DATA;
+	private var ORDER;
+	private var LNK;
+
+	public operator = (string x) {
+		this.DATA=x;
+		return x;
+	}
+
+	public function ToBuffer() {
+		return this.DATA;
+	}
+
+	public function LO() {
+		var f=new PQFile(this.LNK);
+		var oid=value (""+this.DATA);
+
+		if (!f.Open(oid, INV_READ))
+			throw "Error opening OID $oid";
+
+		f.Seek(0, PGSQL_SEEK_END);
+		var size=f.Tell();
+		f.Seek(0, PGSQL_SEEK_SET);
+
+		// destructor will close it
+		return f.Read(size);
+	}
+
+	public function ToString() {
+		return trim(""+this.DATA);
+	}
+
+	public function ToNumber() {
+		var result=value this.DATA;
+		if (result)
+			return result;
+		var lo_data=ToLower(this.DATA);
+		if ((lo_data=="true") || (lo_data=="t"))
+			return true;
+		if ((lo_data=="false") || (lo_data=="f"))
+			return false;
+		return result;
+	}
+
+	function XMLSerialized() {
+		var XMLData;
+		if (typeof DATA=="class")
+			XMLData = "<ADODataRecord>" + this->DATA->XMLSerialized() + "\n</ADODataRecord>";
+		else
+			XMLData = "<ADODataRecord>" + this->DATA + "</ADODataRecord>";
+
+		return XMLData;
+	}
+
+	function PQDataRecord(ORD,_CON) {
+		this.ORDER=ORD;
+		this.LNK=_CON;
+	}
+}
+
+
+class PQConnection {
+	protected var connection=0;
+	protected var result=0;
+
+	public var _LASTERR="";
+
+	public property Connection { get connection }
+	public property IsBlocking { get GetNonBlocking, set SetNonBlocking }
+	
+	function PQConnection() {
+		this->connection=0;
+	}
+
+	static function InitError() {
+		return PQError(null);
+	}
+
+	function Open2(string db, string username="", string password="", string host="localhost", number port=5432, string tty="", string flags="") {
+		this->connection=PQLogin(host, ""+port, flags, tty, db, username, password);
+		return this->connection;
+	}
+
+	function Open(string connection_string) {
+		this->connection=PQConnect(connection_string);
+		return this->connection;
+	}
+
+	function DriverOpen(string db, string username="", string password="", string host="localhost", number port=5432, string tty="", flags="") {
+		return this->Open2(db, username, password, host, port, tty, ""+flags);
+	}
+
+	function Close() {
+		if (this->connection)
+			PQDisconnect(this->connection);
+		return this->connection=0;
+	}
+
+	function SetNonBlocking(is_on=true) {
+		if (this->connection)
+			return PQsetnonblocking(this->connection, is_on);
+		return -1;
+	}
+
+	function GetNonBlocking() {
+		if (this->connection)
+			return PQisnonblocking(this->connection);
+		return -1;
+	}
+
+	private function _GetStmtElements(number res) {
+		var arr=0;
+		if (!res)
+			return arr;
+		if (PQCountRows(res)) {
+			var len=PQCountColumns(res);
+			var[] _columns;
+			for (var j=0;j<len;j++) {
+				PQDescribeCol(j+1,
+						var name,
+						var data_type,
+						var column_size,
+						res
+				);
+				_columns[name]=name;
+			}
+
+			arr=new [];
+			var len2=PQCountRows(res);
+			for (j=0;j<len2;j++) {
+
+				var arr2=new [];
+				for (var i=0;i<len;i++) {
+					arr2[_columns[i]]=PQGetValue(j, i, res);
+				}
+				arr[length arr]=arr2;
+				
+			}
+		}
+		return arr;
+	}
+
+	function ListTables(string wildcard="") {
+		/*var res=PQListTables(wildcard, connection);
+		if (res) {
+			var result=_GetStmtElements(res);
+			PQFreeResult(res);
+			return result;
+		}
+		return 0;*/
+		throw "Not implemented";
+	}
+
+	function ListColumns(string table,string columns="") {
+		/*var res=PQListColumns(table, columns, connection);
+		if (res) {
+			var result=_GetStmtElements(res);
+			PQFreeResult(res);
+			return result;
+		}
+		return 0;*/
+		throw "Not implemented";
+	}
+
+	static function ListDSN() {
+		return [ ];
+	}
+
+	function LastError() {
+		var err=PQError(this->connection);
+		if (_LASTERR) {
+			if (err)
+				err+="\n";
+			err+=_LASTERR;
+			_LASTERR="";
+		}
+		return err;
+	}
+}
+
+class VirtualPQObject {
+	protected var _DATASET;
+	protected var _DATAFIELD;
+
+	public property DataSet { set SetDataSet, get _DATASET }
+	public property DataField { set SetDataField, get _DATAFIELD }
+
+	// is pure virtual !
+	public function __DataSetUpdateCommand(Sender);
+	public function __DataSetNewQueryNotify(Sender);
+
+	public function __DataSetColumnUpdate(Sender,ColumnValue,rowindex);
+
+	protected function AddLinkedObject();
+	protected function SetDataSet(dataset) {
+		if (this->_DATASET) {
+			if (dataset) {
+				if (dataset==this->_DATASET)
+					return;
+			}
+		}
+
+		this->_DATASET=dataset;
+		dataset->AddLinkedObject(this);
+	}
+	override AddLinkedObject;
+
+	protected function SetDataField(x) {
+		this->_DATAFIELD=x;
+	}
+}
+
+class PQDataSet {
+	protected var _CONNECTION;
+	protected var _COMMANDTEXT;
+        protected var result=0;
+        protected var data_array;
+
+	protected var ADO_LINKED_OBJECTS;
+	protected var rowindex=0;
+	protected var prepared_query;
+	protected var status=0;
+
+	protected var old_rowindex=0;
+	protected var _columns=0;
+	protected var reset_error_flag=true;
+
+	var[] parameters;
+
+	public property Columns { get _columns }
+	public property Connection { set SetConnection, get _CONNECTION }
+	public property CommandText { set SetCommandText, get _COMMANDTEXT }
+	public property FieldValues { get GetValues }
+	public property PreparedQuery { get prepared_query, set SetPreparedQuery }
+	public property RowIndex { get rowindex }
+	public property IsUpdateQuery { get status }
+
+	function First();
+
+
+	public function SetPreparedQuery(string query) {
+		this->prepared_query=query;
+		this->_COMMANDTEXT="";
+	}
+
+	public function AddParameter(var parameter) {
+		parameters[length parameters]=""+parameter;//"'"+this.Escape(""+parameter)+"'";
+	}
+
+	public function ClearParameters() {
+		parameters=new [];
+	}
+
+	function Text(); override Text;
+	function Checked(); override Checked;
+
+	private function ForcedNotify() {
+		var count=length this->ADO_LINKED_OBJECTS;
+		for (var i=0;i<count;i++) {
+			var object=&this->ADO_LINKED_OBJECTS[i];
+			object->__DataSetNewQueryNotify(this);
+		}
+	}
+
+	private function Syncronize() {
+		var count=length this->ADO_LINKED_OBJECTS;
+		for (var i=0;i<count;i++) {
+			var object=&this->ADO_LINKED_OBJECTS[i];
+			if 	((classof object=="RADOEdit") ||
+				(classof object=="RADOEditComboBox") ||
+				(classof object=="RADOTextView")) {
+					var field=object->DataField;
+					if (field!="")
+						FieldValues[field]=object->Text;
+			} else
+			if 	((classof object=="RADOCheckButton") ||
+				(classof object=="RADORadioButton")) {
+					field=object->DataField;
+					if (field!="")
+						FieldValues[field]=""+object->Checked;
+			}
+		}
+	}
+
+	function ExecuteQuery(); override ExecuteQuery;
+	function FetchByIndex(); override FetchByIndex;
+
+	public function Update() {
+		throw "Positional update not supported !";
+	}
+
+	public function Refresh() {
+		old_rowindex=rowindex;
+		this.ExecuteQuery();
+	}
+
+	public function Delete() {
+		throw "Positional delete not supported !";
+	}
+
+	public function PQDataSet(PQConnection _Connection, number err_flag=true) {
+		Connection=_Connection;
+		this->ADO_LINKED_OBJECTS=new [];
+		this->data_array=new [];
+		this->rowindex=-1;
+		this->_COMMANDTEXT="";
+		this->prepared_query="";
+		this->old_rowindex=-1;
+		this->reset_error_flag=err_flag;
+	}
+
+	protected function SetConnection(PQConnection x) {
+		this->_CONNECTION=x;
+	}
+
+	private function SetCommandText(string x) {
+		this->_COMMANDTEXT=x;
+		this->prepared_query="";
+	}
+
+	public function UpdateColumnList(Sender) {
+		try {
+			//var index=data_array->GetIndexByKey(Sender->DataField);
+			if (!_columns)
+				return 0;
+
+			BeginUpdateSession();
+			var len2=PQCountRows(this->result);
+			if (len2>0) {
+				var len=length _columns;
+
+				var arr=new [];
+				// init array 
+				for (var i=0;i<len;i++)
+					arr[_columns[i]]="";
+
+				for (var j=0;j<len2;j++) {
+					for (i=0;i<len;i++) {
+						arr[i]=PQGetValue(j, i,this->result);
+					}
+					Sender->__DataSetColumnUpdate(this,arr,-1);
+				}
+			}
+			EndUpdateSession();
+
+		} catch (var Exception) {
+		}
+	}
+
+	public function AfterQueryNotify() {
+		var ADO_COUNT=length this->ADO_LINKED_OBJECTS;
+		var OBJECTS=this->ADO_LINKED_OBJECTS;
+
+		for (var i=0;i<ADO_COUNT;i++) {
+			var ADO_ELEMENT=&OBJECTS[i];
+			ADO_ELEMENT->__DataSetNewQueryNotify(this);
+		}
+	}
+
+	private function CountParameters(string str) {
+		var arr=StrSplit(str, "?", true);
+
+		var count=length arr;
+		if (count<=1)
+			return 0;
+
+		return count-1;
+	}
+
+	private function DoParameters(string query) {
+		var params=this.parameters;
+
+		var arr=StrSplit(query, "?", true);
+		var count=length arr;
+
+		var res="";
+		for (var i=0;i<count;i++) {
+			if (i) {
+				res+=params[i-1];
+			}
+			res+=arr[i];
+		}
+		this.ClearParameters();
+
+		return res;
+	}
+
+	function ExecuteNonQuery() {
+		this->rowindex=-1;
+		this->old_rowindex=-1;
+
+		delete _columns;
+
+		if (reset_error_flag)
+			this.LastError();
+
+		var conection_target=this->_CONNECTION->Connection;
+		if (!conection_target)
+			return -1;
+
+		this.CloseRead(false);
+
+		if (prepared_query!="") {
+			var res=PQQueryParams(prepared_query,parameters,conection_target);
+			var err=PQQueryError(res);
+			if ((!res) || (err)) {
+				this->_CONNECTION->_LASTERR=err;
+				return false;
+			}
+			PQFreeResult(res);
+			this.CloseRead();
+			return true;
+		} else {
+			res=PQQuery(this->_COMMANDTEXT,conection_target);
+			if ((!res) || (PQQueryError(res))) {
+				return false;
+			}
+			PQFreeResult(res);
+
+			return true;
+		}
+	}
+
+	function ExecuteQueryAsync() {
+		this->rowindex=-1;
+		delete _columns;
+
+		if (reset_error_flag)
+			this.LastError();
+
+		this.CloseRead(false);
+
+		var conection_target=this->_CONNECTION->Connection;
+		if (!conection_target)
+			return -1;
+
+		this->result=null;
+
+		var res;
+		if (prepared_query!="")
+			res=PQQueryParamsAsync(this->prepared_query,parameters,conection_target);
+		else
+			res=PQQueryAsync(this->_COMMANDTEXT,conection_target);
+		if (!res) {
+			var err=PQQueryError(conection_target);
+			if (err) {
+				this->_CONNECTION->_LASTERR=err;
+				return false;
+			}
+			return false;
+		}
+		return true;
+	}
+
+	function ConsumeInput() {
+		return PQconsumeInput(this->_CONNECTION->Connection);
+	}
+
+	function IsBusy() {
+		return PQisBusy(this->_CONNECTION->Connection);
+	}
+
+	function StopRequest() {
+		return PQrequestCancel(this->_CONNECTION->Connection);
+	}
+
+	function GetResult() {
+		this->result=PQgetResult(this->_CONNECTION->Connection);
+
+		if (!this->result)
+			return 0;
+
+		this->data_array=new [];
+		var count=PQCountColumns(this->result);
+		var result=this->result;
+
+		if (count)
+			_columns=new [];
+
+		for (var i=0;i<count;i++) {
+
+			PQDescribeCol(i+1,
+						var name,
+						var data_type,
+						var column_size,
+						result
+			);
+			_columns[i]=name;
+
+			//this->data_array->Add(0,name);
+			if (!this->data_array[name])
+				this->data_array[name]=new PQDataRecord(i,this->_CONNECTION);
+			else {
+				var tmp_index=2;
+				var temp_name="$name($tmp_index)";
+				while (this->data_array[temp_name]) {
+					temp_name="$name($tmp_index)";
+					tmp_index++;
+				}
+				this->data_array[temp_name]=new PQDataRecord(i,this->_CONNECTION);
+				_columns[i]=temp_name;
+			}
+		}
+		this->AfterQueryNotify();
+
+		if (old_rowindex==-1) {
+			//this->FetchForward();
+		} else {
+			rowindex=-1;
+			this->FetchByIndex(old_rowindex);
+			old_rowindex=-1;
+		}
+		return result;
+	}
+
+	function ExecuteQuery(number dummy=true) {
+		this->rowindex=-1;
+		delete _columns;
+
+		if (reset_error_flag)
+			this.LastError();
+
+		this.CloseRead(false);
+
+		var conection_target=this->_CONNECTION->Connection;
+		if (!conection_target)
+			return -1;
+
+		if (prepared_query!="") {
+			this->result=PQQueryParams(this->prepared_query,parameters,conection_target);
+		} else {
+			this->result=PQQuery(this->_COMMANDTEXT,conection_target);
+		}
+
+		if (!this->result)
+			return -1;
+
+		this->data_array=new [];
+		var count=PQCountColumns(this->result);
+		var result=this->result;
+
+		if (count)
+			_columns=new [];
+
+		for (var i=0;i<count;i++) {
+
+			PQDescribeCol(i+1,
+						var name,
+						var data_type,
+						var column_size,
+						result
+			);
+			_columns[i]=name;
+
+			//this->data_array->Add(0,name);
+			if (!this->data_array[name])
+				this->data_array[name]=new PQDataRecord(i,this->_CONNECTION);
+			else {
+				var tmp_index=2;
+				var temp_name="$name($tmp_index)";
+				while (this->data_array[temp_name]) {
+					temp_name="$name($tmp_index)";
+					tmp_index++;
+				}
+				this->data_array[temp_name]=new PQDataRecord(i,this->_CONNECTION);
+				_columns[i]=temp_name;
+			}
+		}
+		this->AfterQueryNotify();
+
+		if (old_rowindex==-1) {
+			//this->FetchForward();
+		} else {
+			rowindex=-1;
+			this->FetchByIndex(old_rowindex);
+			old_rowindex=-1;
+		}
+		return result;
+	}
+
+	public function CountRows() {
+		if (this->result)
+			return PQCountRows(this->result);
+		return 0;
+	}
+
+	public function Escape(string mystr) {
+		return PQEscape(mystr, this->_CONNECTION.Connection);
+	}
+
+	public function FetchByIndex(index) {
+		if (!this->result)
+			return 0;
+
+		var rows=PQCountRows(this->result);
+
+		if ((index>=rows) || (index<0))
+			return 0;
+
+		this->rowindex=index;
+
+		var array=this->data_array;
+		var count=length array;
+
+		for (var i=0;i<count;i++) {
+			var str=PQGetValue(index, i,this->result);
+			//array->ChangeValueByIndex(i,str);
+			array[i]=str;
+		}
+
+		var ADO_COUNT=length this->ADO_LINKED_OBJECTS;
+		var OBJECTS=this->ADO_LINKED_OBJECTS;
+		BeginUpdateSession();
+		for (i=0;i<ADO_COUNT;i++) {
+			var ADO_ELEMENT=&OBJECTS[i];//->GetElementByIndex(i);
+			ADO_ELEMENT->__DataSetUpdateCommand(this);
+		}
+		EndUpdateSession();
+
+		return true;
+	}
+
+	public function Next() {
+		return FetchByIndex(rowindex+1);
+	}
+
+	public function Prev() {
+		return FetchByIndex(rowindex-1);
+	}
+
+	public function Current() {
+		return FetchByIndex(rowindex);
+	}
+
+	override First;
+	public function First() {
+		return FetchByIndex(0);
+	}
+
+	public function FetchRow() {
+		var[] res;
+		if ((this.result) && (this->rowindex>-1)) {
+			var cols=PQCountColumns(this.result);
+			for (var i=0;i<cols;i++) {
+				res[cols]=PQGetValue(this->rowindex,i,this->result);
+			}
+		} else
+			throw "No results to fetch rows from";
+	}
+
+	public function FetchForward() {
+		return this.Next();
+	}
+
+	public function AddLinkedObject(Object) {
+		this->ADO_LINKED_OBJECTS[length this->ADO_LINKED_OBJECTS]=Object;
+		Object->__DataSetNewQueryNotify(this);
+		Object->__DataSetUpdateCommand(this);
+	}
+
+	public function RemoveLinkedObject(Name) {
+		//this->ADO_LINKED_OBJECTS->DeleteElementByKey(Name);
+		var arr=this->ADO_LINKED_OBJECTS;
+		arr[Name]=null;
+
+		var []arr2;
+
+		var len=length arr;
+		for (var i=0;i<len;i++) {
+			if (arr[i])
+				arr2[length arr2]=arr[i];
+		}
+
+		this->ADO_LINKED_OBJECTS=arr2;
+	}
+
+	function GetValues() {
+		var array=this->data_array;
+		return array;
+	}
+
+	function CloseRead(number clear_parameters=true) {
+		if (this->result) {
+			PQFreeResult(this->result);
+			this->result=0;
+		}
+		if (clear_parameters)
+			this.ClearParameters();
+		this->old_rowindex=-1;
+	}
+
+	function finalize() {
+		if (this->result)
+			PQFreeResult(this->result);
+	}
+
+	function LastError() {
+		this->_CONNECTION->_LASTERR="";
+		if (result)
+			return PQQueryError(result);
+		return this._CONNECTION.LastError();
+	}
+}

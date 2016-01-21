@@ -1,0 +1,412 @@
+include SIPTrunk.con
+include DirectoryList.con
+import standard.C.math
+
+define READ_KEYS_LEN	1
+define READ_KEYS_UNTIL	2
+define READ_KEY		3
+
+define DEFAULT_VALID_KEYS	"0123456789*#"
+
+class DATASession {
+	var StartTime;
+	var CreateTime;
+	var From;
+	var EndOnIVRFinished;
+	var RecordOnIVRFinished;
+	var RecordEscapeKey = "#";
+	var LastKey = "";
+	var LastTimestamp;
+	var sip;
+	var Get;
+	var Mode;
+	var Len = 8;
+	var Until = "#";
+	var ValidKeys = DEFAULT_VALID_KEYS;
+	var KeysRead = "";
+	var _Step = 0;
+	var[] StepHistory;
+	public property Step { get _Step, set SetStep };
+	var ClientData;
+	var Counter;
+	var StartRecordingTime;
+	var RecordTimeout = 60;
+	var Record = false;
+	var RecordedData = "";
+	var RecordUntil = "#";
+	var SkipUntil = 0;
+	var[] IVRHistory;
+	public property SkipSeconds { set SetSkipSeconds, get GetSkipSeconds }
+
+	SetSkipSeconds(number seconds) {
+		if (seconds == 0)
+			SkipUntil = 0;
+		else
+			SkipUntil = time() + seconds;
+
+		return SkipUntil;
+	}
+
+	GetSkipSeconds() {
+		var seconds = 0;
+		if (SkipUntil)
+			seconds = SkipUntil - time();
+		if (seconds < 1)
+			seconds = 0; 
+		return seconds;
+	}
+
+	StartRecording(timeout = 60) {
+		StartRecordingTime = time();
+		RecordedData = "";
+		RecordTimeout = timeout;
+		Record = true;
+		RecordOnIVRFinished = false;
+	}
+
+	SetStep(step) {
+		_Step = step;
+		StepHistory[length StepHistory] = step;
+	}
+
+	ClearHistory() {
+		IVRHistory = new [];
+	}
+
+	StopRecording() {
+		Record = false;
+		RecordOnIVRFinished = false;
+	}
+
+	ReadKey(valid_keys = DEFAULT_VALID_KEYS) {
+		KeysRead = "";
+		Mode = READ_KEY;
+		this.ValidKeys = valid_keys;
+	}
+
+	ReadKeys(len, valid_keys = DEFAULT_VALID_KEYS) {
+		KeysRead = "";
+		Mode = READ_KEYS_LEN;
+		this.Len = len;
+		this.ValidKeys = valid_keys;
+	}
+
+	ReadUntil(until, valid_keys = DEFAULT_VALID_KEYS) {
+		KeysRead = "";
+		Mode = READ_KEYS_UNTIL;
+		this.Until = until;
+		this.ValidKeys = valid_keys;
+	}
+
+	CloseRead() {
+		Mode = 0;
+	}
+
+	DATASession(get_cache, session, from) {
+		this.Get = get_cache;
+		this.sip = session;
+		this.StartTime = time();
+		this.CreateTime = time();
+		this.From = from;
+	}
+
+	ResetTime() {
+		this.StartTime = time();
+	}
+
+	Append(filename) {
+		this.sip.AppendVoice(Get(filename));
+		IVRHistory[length IVRHistory] = filename;
+	}
+
+	Load(filename) {
+		this.sip.LoadVoice(Get(filename));
+		IVRHistory = [filename];
+	}
+
+	RedoHistory() {
+		var history = IVRHistory;
+		if ((history) && (length history >= 1)) {
+			this.sip.LoadVoice(Get(history[0]));
+			for (var i = 1; i < length IVRHistory; i++)
+				this.sip.AppendVoice(Get(history[i]));
+		}
+	}
+
+	TimedOut(timeout = 60) {
+		if ((time() - StartTime) > timeout)
+			return true;
+		return false;
+	}
+
+	Expired(timeout = 300) {
+		if ((time() - CreateTime) >= timeout)
+			return true;
+		return false;
+	}
+
+	RecordingExpired() {
+		if (Record) {
+			if ((time() - StartRecordingTime) >= RecordTimeout)
+				return true;
+		}
+		return false;
+	}
+
+	Close() {
+		this.sip.Bye(true);
+	}
+}
+
+class IVR {
+	var stack;
+	var[] cache;
+	var Connection;
+	var LastTime;
+	var Greeting;
+	var Begin;
+	var End;
+	var EndRecording;
+	var DTMF;
+	var WrongKey;
+	var TimedOutMessage = "";
+	var Debug = false;
+
+	Get(key, format = "alaw", dir = "repository") {
+		var key2 = "$key.$format";
+		if (cache[key2])
+			return cache[key2];
+		var data = ReadFile("$dir/$format/$key2");
+		cache[key2] = data;
+		return data;
+	}
+
+	NotifyEndDTMF(session) {
+		session.UserData.CloseRead();
+		if (DTMF)
+			DTMF(session.UserData, session.UserData.KeysRead);
+	}
+
+	OnDTMF(session, key) {
+		if (Debug)
+			echo "Key pressed: $key\n";
+
+		if (session.UserData.SkipUntil) {
+			if (session.UserData.SkipUntil > time()) {
+				if (Debug)
+					echo "Skip key: $key\n";
+				
+				return;
+			}
+			session.UserData.SkipUntil = 0;
+		}
+
+		var last_key = session.UserData.LastKey;
+		var last_timestamp = session.UserData.LastTimestamp;
+
+		session.UserData.LastKey = key;
+		session.UserData.LastTimestamp = microseconds();
+
+		if ((last_timestamp) && (key == last_key)) {
+			var delta = abs(session.UserData.LastTimestamp - last_timestamp) / 1000;
+			if (delta < 420) {
+				session.ResetDTMF();
+				var history = SubStr(session.DTMFHistory, 0, length session.DTMFHistory - 1);
+				session.DTMFHistory = history;
+				if (Debug)
+					echo "Echo key ! ($key) $delta\n";
+				return;
+			}
+		}
+		session.UserData.ResetTime();
+		if (session.UserData.Mode) {
+			if (Pos(session.UserData.ValidKeys, key) > 0) {
+				session.UserData.KeysRead += key;
+				switch (session.UserData.Mode) {
+					case READ_KEYS_LEN:
+						if (length session.UserData.KeysRead >= session.UserData.Len)
+							NotifyEndDTMF(session);
+						break;
+					case READ_KEYS_UNTIL:
+						if (key == session.UserData.Until)
+							NotifyEndDTMF(session);
+						break;
+					case READ_KEY:
+						NotifyEndDTMF(session);
+						break;
+				}
+			} else {
+				if (WrongKey)
+					WrongKey(session.UserData, key, session.UserData.Mode == READ_KEY);
+				if (Debug)
+					echo "Unaccepted key: $key\n";
+			}
+		} else {
+			if ((session.UserData.Record) && (key == session.UserData.RecordUntil)) {
+				session.UserData.Record = false;
+				if (EndRecording)
+					EndRecording(session.UserData, session.UserData.RecordedData);
+			}
+		}
+	}
+
+	OnAudio(session, var buffer, type) {
+		// audio frame
+		if ((session) && (session.UserData)) {
+			if (session.UserData.Record) {
+				session.UserData.RecordedData += buffer;
+				if (session.UserData.RecordingExpired()) {
+					session.UserData.StopRecording();
+					if (EndRecording)
+						this.EndRecording(session.UserData, session.UserData.RecordedData);
+				}
+			}
+		
+			if ((session.UserData.TimedOut()) || (session.UserData.Expired())) {
+				session.UserData.ResetTime();
+				session.UserData.EndOnIVRFinished = true;
+				if (TimedOutMessage)
+					session.LoadVoice(Get(TimedOutMessage));
+				else
+					session.Bye(true);
+				return;
+			}
+		}
+	}
+
+	OnEnd(session, msg, reason) {
+		if (session.UserData) {
+			if (session.UserData.Record) {
+				session.UserData.StopRecording();
+				if (EndRecording)
+					EndRecording(session.UserData, session.UserData.RecordedData);
+			}
+			if (End)
+				End(session.UserData);
+		}
+		delete session.UserData;
+		if (Debug)
+			echo "Session closed ($reason), ${length stack.Sessions} sessions\n";
+	}
+
+	ParseArray(session, arr) {
+		for (var i = 0; i < length arr; i++) {
+			var key = "" + arr[i];
+			if (key) {
+				if (key == '!')
+					session.UserData.EndOnIVRFinished = true;
+				else
+					session.AppendVoice(Get(key));
+			}
+		}
+	}
+
+	OnInvite(session, msg) {
+		//if (Debug)
+		//	echo msg.ToString();
+		var from = "" + StrSplit("" + msg.Headers["from"], " ")[0];
+		if ((from) && ((from[0] == '"') && (from[length from - 1] == '"')))
+			from = SubStr(from, 1, length from - 2);
+
+		
+		var res;
+		if (Greeting)
+			 res = this.Greeting(from);
+		if (res) {
+			session.UserData = new DATASession(this.Get, session, from);
+			session.LoadVoice(Get("empty"));
+			this.ParseArray(session, res);
+			session.Accept();
+			if (Begin)
+				Begin(session.UserData);
+		} else {
+			session.Reject();
+		}
+	}
+
+	static HourAndDay(var hour, var day = null) {
+		var arr = localtime(time());
+		hour = arr["tm_hour"];
+		day = arr["tm_wday"];
+	}
+
+	static PrepareAudio(directory = "./repository") {
+		var files = DirectoryList::ListByExt(directory + "/original", ["*"]);
+		for (var i = 0; i < length files; i++) {
+			var file = files[i];
+			var file_no_ext = "";
+			var arr = StrSplit(file, ".", true);
+			var len = length arr - 1;
+
+			for (var j = 0; j < len; j++) {
+				if (file_no_ext)
+					file_no_ext += ".";
+				file_no_ext += arr[j];
+			}
+			if (!file_no_ext)
+				file_no_ext = file;
+
+			_unlink("$directory/alaw/$file_no_ext.alaw");
+			_unlink("$directory/ulaw/$file_no_ext.ulaw");
+			_system("ffmpeg -loglevel error -i $directory/original/$file -ac 1 -ar 8000 -f s8 -acodec pcm_alaw $directory/alaw/$file_no_ext.alaw");
+			_system("ffmpeg -loglevel error -i $directory/original/$file -ac 1 -ar 8000 -f s8 -acodec pcm_mulaw $directory/ulaw/$file_no_ext.ulaw");
+		}
+	}
+
+	IVR(ip, port = 5060, framesize = 120) {
+		this.LastTime = time();
+
+		if (port != 5060)
+			stack = new SIPStack(ip, port);
+		else
+			stack = new SIPStack(ip);
+		stack.FrameSize = framesize;
+		stack.OnDTMF = this.OnDTMF;
+		stack.OnAudio = this.OnAudio;
+		stack.OnEnd = this.OnEnd;
+		stack.OnInvite = this.OnInvite;
+
+		stack.OnIVRFinished = function(session) {
+			session.UserData.ResetTime();
+			if (session.UserData.RecordOnIVRFinished)
+				session.UserData.StartRecording(session.UserData.RecordTimeout);
+			if (session.UserData.EndOnIVRFinished)
+				session.Bye(true);
+		};
+
+		stack.OnNotUnderstood = function(msg) {
+			if (Debug) {
+				echo "Message not understood:\n==========================\n";
+				echo msg.ToString();
+				echo "\n==========================\n";
+			}
+		};
+
+		stack.OnResponse = function(msg) {
+			if (Debug)
+				echo "Server responded with ${msg.ServerCode} (${msg.ServerCodeText})\n";
+		};
+
+		stack.OnRinging = function(session, msg) {
+			if (Debug)
+				echo "Ringing!\n";
+		};
+	}
+
+	Start() {
+		while (true) {
+			var start = microseconds();
+			var ops = stack.Iterate();
+			var delta = (microseconds() - start) / 1000;
+			if (length stack.Sessions == 0) {
+				Sleep(5);
+			} else
+			if (!ops)
+				Sleep(1);
+			if ((delta > 10) && (Debug))
+				echo "DELTA: $delta\n";
+		}
+	}
+}
+
+

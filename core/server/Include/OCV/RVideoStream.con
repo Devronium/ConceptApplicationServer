@@ -1,0 +1,160 @@
+include RemoteObject.con
+
+define P_CAMERA                "1001"
+define P_RECORD                "1002"
+define P_ADDBUFFER             "1003"
+define P_QUALITY               "1005"
+define P_CODEC                 "1006"
+define P_CLEAR                 "1008"
+define P_ADDBUFFER3            "1009"
+define P_BITRATE               "3725"
+
+define EVENT_ON_BUFFER         "350"
+
+define CAMERA_BACK		0
+define CAMERA_FRONT		1
+
+define ORIENTATION_HORIZONTAL	0
+define ORIENTATION_VERTICAL	1
+
+define CODEC_H264	0
+define CODEC_AVC	CODEC_H264
+define CODEC_H265	1
+define CODEC_HEVC	CODEC_H265
+define CODEC_VP8	2
+define CODEC_VP9	3
+
+class RVideoStream extends RemoteObject {
+	private var _in_use = false;
+
+	protected var _QUALITY=4;
+	protected var _BITRATE=9000;
+	protected var _frame_size=0;
+	protected var _camera=CAMERA_BACK;
+	protected var _orientation;
+	protected var _ShowWith;
+	protected var _max_buffers=0;
+	protected var _codec=CODEC_H264;
+	protected var _drm=false;
+
+	public property Bitrate { set SetBitrate, get _BITRATE }
+	public property Quality { set SetQuality, get _QUALITY }
+	public property FrameSize { set SetFrameSize, get _frame_size }
+	public property Camera { set SetCamera, get _camera }
+	public property Orientation { set SetOrientation, get _orientation }
+	public property Preview { get _ShowWith, set SetPreview }
+	public property MaxBuffers { set SetMaxBuffers, get _max_buffers }
+	public property Codec { set SetCodec, get _codec }
+	public property DRM { set SetDRM, get _drm }
+	//-------- Events ----------------//
+	public property OnBuffer { get GetOnBuffer, set SetOnBuffer }
+	private function GetOnBuffer() {
+		return _GET_REMOTE_EVENT(EVENT_ON_BUFFER);
+	}
+
+	private function SetOnBuffer(delegate deleg) {
+		return _MAP_REMOTE_EVENT(EVENT_ON_BUFFER, deleg);
+	}
+	//-------- End of Events ---------//
+
+	public function RVideoStream(RemoteObject Owner) {
+		super(null, "1017");
+		this.LinkIfNotLinked(Owner);
+	}
+
+	public function Record(number device_id=-1) {
+		if (_in_use)
+			throw "RAudioStream.Play:Device already in use";
+		_in_use=true;
+		this.SetProperty(P_RECORD, device_id);
+	}
+
+	public function SetBitrate(number srate) {
+		this.SetProperty(P_BITRATE, srate);
+		this._BITRATE=srate;
+		return srate;
+	}
+
+	public function SetCodec(number codec) {
+		this.SetProperty(P_CODEC, codec);
+		this._codec=codec;
+		return codec;
+	}
+
+	public function SetQuality(number quality) {
+		this.SetProperty(P_QUALITY, quality);
+		this._QUALITY=quality;
+		return quality;
+	}
+
+	public function SetFrameSize(number framesize) {
+		//if (framesize%10)
+		//	throw "Frame size should be a multiple of 10ms";
+
+		this._frame_size=framesize;
+		this.SetProperty(P_STEP, framesize);
+		return framesize;
+	}
+
+	public function SetCamera(number camera) {
+		this.SetProperty(P_CAMERA, camera);
+		this._camera=camera;
+		return camera;
+	}
+
+	public function SetOrientation(number orientation) {
+		this.SetProperty(P_ORIENTATION, orientation);
+		this._orientation=orientation;
+		return orientation;
+	}
+
+	public function Stop() {
+		if (!_in_use)
+			throw "RVideoStream.Stop: Device is not in use";
+		_in_use=false;
+		this.SetProperty(P_RECORD, -2);
+	}
+
+	public function AddBuffer(var string data) {
+		if (length data < 65000)
+			this.SetProperty("", data);
+		else
+			this.SetProperty(P_ADDBUFFER, data);
+	}
+
+	public function SetPreview(fr) {
+		if (fr)
+			this.SetProperty(P_WIDGET,""+fr.RID);
+		else
+			this.SetProperty(P_WIDGET,"0");
+		_ShowWith = fr;
+	}
+
+	public function SetPreviewRect(x, y, width, height, reversed_coordinates = false) {
+		this.SetProperty(P_SIZING, "$x,$y,$width,$height,$reversed_coordinates");
+	}
+
+	public function SetMaxBuffers(number buffers) {
+		this._max_buffers=buffers;
+		this.SetProperty(P_MAXLEN, _max_buffers);
+		return buffers;
+	}
+
+	public function Clear() {
+		this.SetProperty(P_CLEAR, 1);
+	}
+
+	public function SetDRM(number active) {
+		this._drm=active;
+		this.SetProperty(P_MASKED, active);
+		return active;
+	}
+
+	public function finalize() {
+		try {
+			this.Stop();
+		} catch (var exc) {
+			// ...
+		}
+	}
+}

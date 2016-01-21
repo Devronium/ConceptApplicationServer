@@ -1,0 +1,34 @@
+include Lang.con
+include RForm.con
+include Application.con
+[INCLUDE]
+
+
+class [NAME] extends RForm {
+        // keep the string table
+        protected var S;
+
+[MEMBERS]
+
+[EVENTS]
+
+        // ========================================================================
+        // constructor;
+        // S is a Lang object used to translate strings using
+        // the default string table named string.table.xml
+        // Is your responsability to pass this object to other forms instantiated
+        // in this application
+        // ========================================================================
+
+        public function [NAME](Owner, Lang S) {
+                super(Owner);
+                this.S=S;
+
+		CApplication::BeginNonCritical();
+[CONSTRUCTOR]
+		CApplication::EndNonCritical();
+        }
+
+[OVERRIDE]
+}
+

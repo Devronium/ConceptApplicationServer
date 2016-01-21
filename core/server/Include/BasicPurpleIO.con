@@ -1,0 +1,212 @@
+import standard.net.im
+
+define CUSTOM_USER_DIRECTORY  "/dev/null"
+
+define CUSTOM_PLUGIN_PATH     ""
+define PLUGIN_SAVE_PREF       "/purple/nullclient/plugins/saved"
+
+define UI_ID                  "conceptnullclient" 
+
+class BasicPurpleIO {
+	protected var _ACCOUNT;
+	protected var _ON_MESSAGE;
+	protected var _ON_TRANSFER;
+	protected var _ON_SIGNEDON;
+	protected var _ON_SIGNEDOFF;
+	protected var _ON_BUDDY_IN;
+	protected var _ON_BUDDY_OUT;
+	protected var _ON_TRANSFER_FINISH;
+	protected var[] _BUDIES;
+
+	public property OnMessage { set SetOnMessage, get _ON_MESSAGE }
+	public property OnFinishTransfer { set SetOnFinishTransfer, get _ON_TRANSFER_FINISH }
+	public property OnFileTransfer { set SetOnTransfer, get _ON_TRANSFER }
+	public property OnSignedOn { set SetOnSignedOn, get _ON_SIGNEDON }
+	public property OnSignedOff { set SetOnSignedOff, get _ON_SIGNEDOFF }
+	public property OnBuddyIn { set SetOnBuddyIn, get _ON_BUDDY_IN }
+	public property OnBuddyOut { set SetOnBuddyOut, get _ON_BUDDY_OUT }
+	public property Protocols { get GetProtocols }
+	public property Account { get _ACCOUNT }
+	public property Buddies { get _BUDIES }
+
+	public function SetOnMessage(delegate d) {
+		this._ON_MESSAGE=d;
+		return d;
+	}
+
+	public function SetOnTransfer(delegate d) {
+		this._ON_TRANSFER=d;
+		return d;
+	}
+
+	public function SetOnFinishTransfer(delegate d) {
+		this._ON_TRANSFER_FINISH=d;
+		return d;
+	}
+
+	public function SetOnBuddyIn(delegate d) {
+		this._ON_BUDDY_IN=d;
+		return d;
+	}
+
+	public function SetOnBuddyOut(delegate d) {
+		this._ON_BUDDY_OUT=d;
+		return d;
+	}
+
+	public function SetOnSignedOn(delegate d) {
+		this._ON_SIGNEDON=d;
+		return d;
+	}
+
+	public function SetOnSignedOff(delegate d) {
+		this._ON_SIGNEDOFF=d;
+		return d;
+	}
+
+	protected function WriteConv(conv, who, alias, message, flags, mtime) {
+		if ((this._ON_MESSAGE) && (flags & PURPLE_MESSAGE_RECV))
+			this._ON_MESSAGE(conv, who, alias, message, flags, mtime);
+	}
+
+	protected function AddUsers(conv, buddies, new_arrivals) {
+		
+	}
+
+	protected function OnInit() {
+		var[] conv_uiops;
+		conv_uiops["write_conv"]=this.WriteConv;
+		conv_uiops["chat_add_users"]=this.AddUsers;
+		purple_conversations_set_ui_ops(conv_uiops);
+	}
+
+
+	static function Accept(xfer, string localfilename) {
+		purple_xfer_request_accepted(xfer, "");
+		purple_xfer_set_local_filename(xfer, localfilename);
+	}
+
+	static function Decline(xfer) {
+		purple_xfer_request_denied(xfer);
+	}
+
+
+	protected function FinishTransfer(xfer) {
+		if (this._ON_TRANSFER_FINISH)
+			this._ON_TRANSFER_FINISH(xfer);
+	}
+
+	protected function AddTransfer(xfer) {
+		var filename=purple_xfer_get_filename(xfer);
+		if (purple_xfer_get_status(xfer) != PURPLE_XFER_STATUS_ACCEPTED) {
+			if (this._ON_TRANSFER)
+				this._ON_TRANSFER(xfer, filename, purple_xfer_get_size(xfer));
+		}
+	}
+
+	private function Init(user_dir=CUSTOM_USER_DIRECTORY, plug_path=CUSTOM_PLUGIN_PATH, uiid=UI_ID, psp=PLUGIN_SAVE_PREF) {
+		var[] core_uiops;
+		core_uiops["ui_init"]=this.OnInit;
+
+		purple_util_set_user_dir(user_dir);
+
+		purple_debug_set_enabled(false);
+
+		purple_core_set_ui_ops(core_uiops);
+
+		purple_plugins_add_search_path(plug_path);
+
+		if (!purple_core_init(uiid)) {
+			return false;
+		}
+
+		purple_set_blist(purple_blist_new());
+		purple_blist_load();
+
+		purple_prefs_load();
+
+		purple_plugins_load_saved(psp);
+
+		purple_pounces_load();
+		return true;
+	}
+
+	public function GetProtocols() {
+		var[] result;
+		var protocols=purple_plugins_get_protocols();
+		var len=length protocols;
+		for (var i=0;i<len;i++) {
+			var protocol=protocols[i];
+			var name=purple_plugin_get_name(protocol);
+			var id=purple_plugin_get_id(protocol);
+			result[name]=[name, id];
+		}
+		return result;
+	}
+
+	public function BasicPurpleIO(user_dir=CUSTOM_USER_DIRECTORY, plug_path=CUSTOM_PLUGIN_PATH, uiid=UI_ID, psp=PLUGIN_SAVE_PREF) {
+		Init(user_dir, plug_path, uiid, psp);
+	}
+
+	public function Login(string protocol, string username, string password, t_status=PURPLE_STATUS_AVAILABLE) {
+		var account =purple_account_new(username, protocol);
+		purple_account_set_password(account, password);
+
+		purple_account_set_enabled(account, UI_ID, true);
+		var status = purple_savedstatus_new("", t_status);
+		purple_savedstatus_activate(status);
+		this._ACCOUNT=account;
+	}
+
+	protected function BuddySignedOn(buddy) {
+		if (this._ON_BUDDY_IN)
+			this._ON_BUDDY_IN(buddy);
+	}
+
+	protected function BuddySignedOff(buddy) {
+		if (this._ON_BUDDY_OUT)
+			this._ON_BUDDY_OUT(buddy);
+	}
+
+	public function Go() {
+		var handle;
+		purple_signal_connect(purple_connections_get_handle(), "signed-on", handle, this.SignedOn);
+		purple_signal_connect(purple_connections_get_handle(), "signed-off", handle, this.SignedOff);
+		purple_signal_connect(purple_blist_get_handle(), "buddy-signed-on", handle, this.BuddySignedOn);
+		purple_signal_connect(purple_blist_get_handle(), "buddy-signed-off", handle, this.BuddySignedOff);
+		purple_signal_connect(purple_xfers_get_handle(), "file-recv-request", handle, this.AddTransfer);
+		purple_signal_connect(purple_xfers_get_handle(), "file-recv-complete", handle, this.FinishTransfer);
+		purple_loop();
+	}
+
+	public function SendIm(string who, string message, number type=PURPLE_CONV_TYPE_IM) {
+		var pc=purple_conversation_new(type,this._ACCOUNT,who);
+		purple_conv_im_send(PURPLE_CONV_IM(pc),message);
+		purple_conversation_destroy(pc);
+	}
+
+	private function SignedOff(gc) {
+		if (this._ON_SIGNEDOFF)
+			this._ON_SIGNEDOFF(gc);
+	}
+
+	private function SignedOn(gc) {
+		var buds=purple_blist_get_buddies();
+		_BUDIES=new [];
+		if (buds) {
+			var len=length buds;
+			for (var i=0;i<len;i++) {
+				var bud=buds[i];
+				var grp=purple_buddy_get_group(bud);
+				var grp_name="";
+				
+				if (grp)
+					grp_name=purple_group_get_name(grp);
+			
+				_BUDIES[length 	_BUDIES]=[purple_buddy_get_name(bud), grp_name];
+			}
+		}
+		if (this._ON_SIGNEDON)
+			this._ON_SIGNEDON(gc);
+	}
+}

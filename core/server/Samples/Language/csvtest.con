@@ -1,0 +1,8 @@
+include CSV.con
+import standard.C.io
+
+class Main {
+	function Main() {
+		echo CSV::Do(ReadFile("test.csv"));
+	}
+}

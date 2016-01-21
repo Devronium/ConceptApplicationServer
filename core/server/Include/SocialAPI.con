@@ -1,0 +1,312 @@
+include URL.con
+include Serializable.con
+import standard.lib.json
+import standard.lib.cripto
+import standard.math.rand
+import standard.C.time
+import standard.coding.base64
+
+class SocialAPI {
+	private var appid;
+	private var appsecret;
+
+	public var AccessToken="";
+	public var LastError="";
+	public var State="";
+	public var Expires=0;
+
+	SocialAPI(string appid, string appsecret) {
+		this.appid = appid;
+		this.appsecret = appsecret;
+		this.State = md5(""+RandomInteger(0,0xFFFFFFFF));
+	}
+
+	function FacebookLogin(string redirecturi, encodeuri=true) {
+		if (encodeuri)
+			redirecturi=URIEncode(redirecturi);
+
+		return "https://www.facebook.com/dialog/oauth?client_id=${appid}&state=${this.State}&redirect_uri=$redirecturi";
+	}
+
+	function GoogleLogin(string scope="profile email", string extra_parameters="", string redirecturi="http://localhost", encodeuri=true) {
+		if (encodeuri)
+			redirecturi=URIEncode(redirecturi);
+		scope=URIEncode(scope);
+		if (extra_parameters)
+			extra_parameters="&"+extra_parameters;
+		return "https://accounts.google.com/o/oauth2/auth?client_id=${appid}&response_type=code&scope=${scope}&state=${this.State}&redirect_uri=$redirecturi$extra_parameters";
+	}
+
+	function LinkedInLogin(string scope="", string extra_parameters="", string redirecturi="http://localhost", encodeuri=true) {
+		if (encodeuri)
+			redirecturi=URIEncode(redirecturi);
+		scope=URIEncode(scope);
+		if (extra_parameters)
+			extra_parameters="&"+extra_parameters;
+
+		return "https://www.linkedin.com/uas/oauth2/authorization?client_id=${appid}&response_type=code&scope=${scope}&redirect_uri=$redirecturi&state=${this.State}$extra_parameters";
+	}
+
+	function GetFacebookAccess(string code, string redirecturi="https://www.facebook.com/connect/login_success.html", encodeuri=true) {
+		if (encodeuri)
+			redirecturi=URIEncode(redirecturi);
+
+		var surl="https://graph.facebook.com/oauth/access_token?client_id=${appid}&redirect_uri=$redirecturi&client_secret=${appsecret}&code=$code";
+		var url=new URL();
+		url.Get(surl, null, false);
+
+		var data=""+url.Data;
+
+		if (url.IsSuccessful()) {
+			var arr=StrSplit(data, "access_token=");
+			if (arr) {
+				data = arr[length arr - 1];
+				AccessToken=StrSplit(data, "&")[0];
+
+				arr=StrSplit(data, "expires=");
+				if (arr) {
+					var expires=value arr[0];
+					if (expires)
+						this.Expires=time()+expires;
+				}
+				return true;
+			}
+		}
+
+		LastError=url.Data;
+		return false;
+	}
+
+	function GetGoogleAccess(string code, string redirecturi="http://localhost") {
+		var surl="https://accounts.google.com/o/oauth2/token";
+
+		var url=new URL();
+		var parameters=new [];
+		parameters["code"]=code;
+		parameters["client_id"]=appid;
+		parameters["client_secret"]=appsecret;
+		parameters["redirect_uri"]=redirecturi;
+		parameters["grant_type"]="authorization_code";
+		//parameters["state"]=this.State;
+
+		url.Get(surl, parameters, false);
+
+		var data=""+url.Data;
+
+		if (url.IsSuccessful()) {
+			var arr=JSONDeserialize(data);
+			AccessToken=arr["access_token"];
+			var expires=arr["expires_in"];
+			if (expires)
+				this.Expires=time()+expires;
+			return true;
+		}
+
+		LastError=url.Data;
+		return false;
+	}
+
+	function GetLinkedInAccess(string code, string redirecturi="http://localhost") {
+		var surl="https://www.linkedin.com/uas/oauth2/accessToken";
+
+		var url=new URL();
+		var parameters="grant_type=authorization_code&code=$code&redirect_uri=${URIEncode(redirecturi)}&client_id=$appid&client_secret=$appsecret";
+		url.Get(surl, parameters, false, CURL_ROBOTID, false, ["Expect: ", "Content-Type: application/x-www-form-urlencoded"], [[CURLOPT_POST, 1]]);
+		var data=""+url.Data;
+		if (url.IsSuccessful()) {
+			var arr=JSONDeserialize(data);
+			AccessToken=arr["access_token"];
+			var expires=arr["expires_in"];
+			if (expires)
+				this.Expires=time()+expires;
+			return true;
+		}
+
+		LastError=data;
+		return false;
+	}
+
+	public function GetTwitterAccess() {
+		var surl="https://api.twitter.com/oauth2/token";
+
+		var url=new URL();
+		var access=mime_encode(URIEncode(appid)+":"+URIEncode(appsecret));
+		access=StrReplace(access, "\r", "");
+		access=StrReplace(access, "\n", "");
+
+		var parameters="grant_type=client_credentials";
+		url.Get(surl, parameters, false, CURL_ROBOTID, false, ["Authorization: Basic $access", "Expect: ", "Content-Type: application/x-www-form-urlencoded;charset=UTF-8"], [[CURLOPT_POST, 1]]);
+
+		var data=""+url.Data;
+
+		if (url.IsSuccessful()) {
+			var arr=JSONDeserialize(data);
+			AccessToken=arr["access_token"];
+			var expires=arr["expires_in"];
+			if (expires)
+				this.Expires=time()+expires;
+			return true;
+		}
+
+		LastError=data;
+		return false;
+	}
+
+	public function InvalidateTwitterToken() {
+		if (!AccessToken)
+			throw "No access token (please login first)";
+
+		var surl="https://api.twitter.com/oauth2/invalidate_token";
+
+		var url=new URL();
+		var access=mime_encode(URIEncode(appid)+":"+URIEncode(appsecret));
+		access=StrReplace(access, "\r", "");
+		access=StrReplace(access, "\n", "");
+
+		var parameters="access_token=${this.AccessToken}";
+		url.Get(surl, parameters, false, CURL_ROBOTID, false, ["Authorization: Basic $access", "Expect: ", "Content-Type: application/x-www-form-urlencoded"], [[CURLOPT_POST, 1]]);
+
+		var data=""+url.Data;
+
+		if (url.IsSuccessful()) {
+			var arr=JSONDeserialize(data);
+			var r_AccessToken=arr["access_token"];
+			if (r_AccessToken==AccessToken) {
+				AccessToken="";
+				return true;
+			}
+		}
+
+		LastError=data;
+		return false;
+	}
+
+	function API(string apiref, string api, parameters=null, string method="GET", var plain_res=null, access_token_param="access_token") {
+		plain_res="";
+		method = ToLower(method);
+
+		if (!AccessToken)
+			throw "No access token (please login first)";
+		if (!api)
+			throw "api parameters is empty";
+
+		if (api[0]!="/")
+			apiref+="/";
+
+		apiref+=api;
+
+		var url=new URL();
+		var headers=null;
+
+		if (access_token_param=="") {
+			headers=["Authorization: Bearer ${this.AccessToken}"];
+		}
+
+		var param_index=0;
+		if (method!="post") {
+			if (access_token_param)
+				apiref+="?$access_token_param=${AccessToken}";
+
+			if (parameters) {
+				var keys=GetKeys(parameters);
+				var len=length keys;
+				for (var i=0;i<len;i++) {
+					var k=keys[i];
+					if (k) {
+						if ((access_token_param) || (param_index))
+							apiref+="&";
+						else
+							apiref+="?";
+
+						apiref+=URIEncode(""+k)+"="+URIEncode(""+parameters[k]);
+						param_index++;
+					}
+				}
+			}
+			var extra_curl=null;
+			switch (method) {
+				case "put":
+					extra_curl=[["CURLPUT_UPLOAD", 1], ["CURLOPT_UPLOAD", 1]];
+					break;
+				case "delete":
+					extra_curl=[["CURLOPT_CUSTOMREQUEST", "DELETE"]];
+					break;
+			}
+			url.Get(apiref, null, false, CURL_ROBOTID, false, headers, extra_curl);
+		} else {
+			if (!parameters)
+				parameters=new [];
+			if (access_token_param)
+				parameters[access_token_param]=AccessToken;
+
+			url.Get(apiref, parameters, false, CURL_ROBOTID, false, headers);
+		}
+
+		plain_res = url.Data;
+
+		var res = new [];
+		if (Pos(ToLower(""+url.ContentType), "json")>0) {
+			res = JSONDeserialize(plain_res);
+		}
+
+		if (url.IsRedirect())
+			res["redirect"] = url.Location;
+
+		return res;
+	}
+
+	function FacebookAPI(string api, parameters=null, string method="GET", var plain_res=null) {
+		return this.API("https://graph.facebook.com", api, parameters, method, plain_res);
+	}
+
+	function GoogleAPI(string api, parameters=null, string method="GET", var plain_res=null) {
+		return this.API("https://www.googleapis.com", api, parameters, method, plain_res);
+	}
+
+	function LinkedInAPI(string api, parameters=null, string method="GET", var plain_res=null) {
+		if (!parameters)
+			parameters=new [];
+		if (!parameters["format"])
+			parameters["format"]="json";
+		return this.API("https://api.linkedin.com", api, parameters, method, plain_res, "oauth2_access_token");
+	}
+
+	function TwitterAPI(string api, parameters=null, string method="GET", var plain_res=null) {
+		return this.API("https://api.twitter.com", api, parameters, method, plain_res, "");
+	}
+
+	static Fetch(string address) {
+		var url=new URL();
+		url.Get(address, null, false);
+		var hops=0;
+		while (url.IsRedirect()) {
+			url.Get(url.Location);
+			hops++;
+			if (hops==10)
+				break;
+		}
+		return url.Data;
+	}
+
+	static FetchJSON(string address) {
+		var url=new URL();
+		url.Get(address, null, false);
+		var hops=0;
+		while (url.IsRedirect()) {
+			url.Get(url.Location);
+			hops++;
+			if (hops==10)
+				break;
+		}
+
+		var res = new [];
+		if (Pos(ToLower(""+url.ContentType), "json")>0) {
+			res = JSONDeserialize(url.Data);
+		}
+		return res;
+	}
+
+	static PicasaInfo(string username) {
+		return SocialAPI::FetchJSON("http://picasaweb.google.com/data/entry/api/user/$username?alt=json");
+	}
+}

@@ -1,0 +1,112 @@
+include VisibleRemoteObject.con
+
+define P_SETSTATUS              "10001"
+define P_SVGFREEZE		"10002"
+define P_SVGIMAGE               "10003"
+
+define EVENT_ON_SVG_MOTION	"350"
+define EVENT_ON_SVG_PRESSED	"351"
+define EVENT_ON_SVG_RELEASED	"352"
+define EVENT_ON_SVG_FOCUS	"353"
+define EVENT_ON_SVG_LOST_FOCUS	"354"
+
+
+class RSVGSurface extends VisibleRemoteObject {
+	public var[] Controls;
+	protected var _FREEZE;
+	public property Freeze { get _FREEZE, set SetFreeze }
+	public property SVG { get GetSVG }
+
+
+	//-------- Events ----------------//
+	public property OnMotion { get GetOnMotion, set SetOnMotion }
+	private function GetOnMotion() {
+		return _GET_REMOTE_EVENT(EVENT_ON_SVG_MOTION);
+	}
+
+	private function SetOnMotion(delegate deleg) {
+		return _MAP_REMOTE_EVENT(EVENT_ON_SVG_MOTION, deleg);
+	}
+
+	public property OnObjectPress { get GetOnObjectPress, set SetOnObjectPress }
+	private function GetOnObjectPress() {
+		return _GET_REMOTE_EVENT(EVENT_ON_SVG_PRESSED);
+	}
+
+	private function SetOnObjectPress(delegate deleg) {
+		return _MAP_REMOTE_EVENT(EVENT_ON_SVG_PRESSED, deleg);
+	}
+
+	public property OnObjectRelease { get GetOnObjectRelease, set SetOnObjectRelease }
+	private function GetOnObjectRelease() {
+		return _GET_REMOTE_EVENT(EVENT_ON_SVG_RELEASED);
+	}
+
+	private function SetOnObjectRelease(delegate deleg) {
+		return _MAP_REMOTE_EVENT(EVENT_ON_SVG_RELEASED, deleg);
+	}
+
+	public property OnObjectFocus { get GetOnObjectFocus, set SetOnObjectFocus }
+	private function GetOnObjectFocus() {
+		return _GET_REMOTE_EVENT(EVENT_ON_SVG_FOCUS);
+	}
+
+	private function SetOnObjectFocus(delegate deleg) {
+		return _MAP_REMOTE_EVENT(EVENT_ON_SVG_FOCUS, deleg);
+	}
+
+	public property OnObjectLostFocus { get GetOnObjectLostFocus, set SetOnObjectLostFocus }
+	private function GetOnObjectLostFocus() {
+		return _GET_REMOTE_EVENT(EVENT_ON_SVG_LOST_FOCUS);
+	}
+
+	private function SetOnObjectLostFocus(delegate deleg) {
+		return _MAP_REMOTE_EVENT(EVENT_ON_SVG_LOST_FOCUS, deleg);
+	}
+	//-------- End of Events ---------//
+	
+
+	public function RSVGSurface(OWNER, svg_base_data) {
+		this.PostString(svg_base_data);
+		super(OWNER, "1020");
+	}
+
+	public function SetStatus(string object_name, number status, number sync=1) {
+		return SetProperty(P_SETSTATUS, "$object_name,$status,$sync");
+	}
+
+	public function Register(string class_name, string data) {
+		SendMessage(REMOTE_ID_STR, MSG_PUT_STREAM, class_name, data);
+	}
+
+	public function AddControl(string parent, string class_name, string object_name, number left, number top, number width, number height) {
+		if (!class_name)
+			throw @class+"."+@member+": Invalid class name in '$object_name'";
+		if (!object_name)
+			throw @class+"."+@member+": Invalid object name for '$class_name'";
+
+		this.Controls[object_name]=object_name+":"+class_name;
+
+		SendMessage(REMOTE_ID_STR, MSG_PUT_SECONDARY_STREAM, parent, "$class_name,$object_name,$left,$top,$width,$height");
+	}
+
+	public function Set(string object_name, string path, val, is_attribute=false) {
+		this.PostString(object_name);
+		if (is_attribute)
+			SendMessage(REMOTE_ID_STR, MSG_CUSTOM_MESSAGE1, path, val);
+		else
+			SendMessage(REMOTE_ID_STR, MSG_CUSTOM_MESSAGE2, path, val);
+	}
+
+	public function SetFreeze(number freeze) {
+		freeze=freeze!=0;
+
+		this._FREEZE=freeze;
+		this.SetProperty(P_SVGFREEZE, freeze);
+		return freeze;
+	}
+
+	public function GetSVG() {
+		return this.GetProperty(P_SVGIMAGE);
+	}
+}

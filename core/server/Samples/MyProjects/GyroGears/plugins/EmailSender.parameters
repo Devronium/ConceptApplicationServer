@@ -1,0 +1,15 @@
+Servername:mandatory,string,localhost
+Port:mandatory,number,25
+Username:optional,string
+Password:optional,string
+From:mandatory,memberedit
+Email template:mandatory,longstring,"Hello world !!!"
+Use members (separated by comma):optional,memberedit
+To member:mandatory,memberedit
+Subject member:mandatory,memberedit
+Button caption:optional,string," by e-mail"
+TLS:optional,boolean,false
+TLS Trust file:optional,string,""
+Authentification method:optional,option,off;on;plain;login;cram-md5;external;gssapi;scram-sha-1;digest-md5;ntlm
+Send on write:optional,boolean,false
+Add headers:optional,boolean,true

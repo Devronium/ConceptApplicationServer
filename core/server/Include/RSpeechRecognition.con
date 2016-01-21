@@ -1,0 +1,89 @@
+include RemoteObject.con
+
+define P_STARTRECOGNITION	"1000"
+define P_SPEECHLANGUAGE		"1001"
+define P_SPEECHCONTINOUS	"1002"
+define P_SPEECHINTERIM		"1003"
+
+define EVENT_ON_SPEECHERROR	"350"
+define EVENT_ON_SPEECHSTART	"351"
+define EVENT_ON_SPEECHEND	"352"
+define EVENT_ON_SPEECHRESULT	"353"
+
+class RSpeechRecognition extends RemoteObject {
+	private var _LANG = "";
+	private var _CONT = true;
+	private var _INTERIM = true;
+
+	public property Lang { get _LANG, set SetLang }
+	public property Continous { get _CONT, set SetContinous }
+	public property InterimResults { get _INTERIM, set SetInterimResults }
+
+	public property OnError { get GetOnError, set SetOnError }
+	private function GetOnError() {
+		return _GET_REMOTE_EVENT(EVENT_ON_SPEECHERROR);
+	}
+
+	private function SetOnError(delegate deleg) {
+		return _MAP_REMOTE_EVENT(EVENT_ON_SPEECHERROR, deleg);
+	}
+
+	public property OnStart { get GetOnStart, set SetOnStart }
+	private function GetOnStart() {
+		return _GET_REMOTE_EVENT(EVENT_ON_SPEECHSTART);
+	}
+
+	private function SetOnStart(delegate deleg) {
+		return _MAP_REMOTE_EVENT(EVENT_ON_SPEECHSTART, deleg);
+	}
+
+	public property OnEnd { get GetOnEnd, set SetOnEnd }
+	private function GetOnEnd() {
+		return _GET_REMOTE_EVENT(EVENT_ON_SPEECHEND);
+	}
+
+	private function SetOnEnd(delegate deleg) {
+		return _MAP_REMOTE_EVENT(EVENT_ON_SPEECHEND, deleg);
+	}
+
+	public property OnResult { get GetOnResult, set SetOnResult }
+	private function GetOnResult() {
+		return _GET_REMOTE_EVENT(EVENT_ON_SPEECHRESULT);
+	}
+
+	private function SetOnResult(delegate deleg) {
+		return _MAP_REMOTE_EVENT(EVENT_ON_SPEECHRESULT, deleg);
+	}
+
+	RSpeechRecognition(Owner) {
+		super(null, "1018");
+		if (Owner)
+			this.LinkIfNotLinked(Owner);
+	}
+
+	Start() {
+		this.SetProperty(P_STARTRECOGNITION, "1");
+	}
+
+	Stop() {
+		this.SetProperty(P_STARTRECOGNITION, "0");
+	}
+
+	SetLang(string lang) {
+		this._LANG = lang;
+		this.SetProperty(P_SPEECHLANGUAGE, lang);
+		return lang;
+	}
+
+	SetContinous(number continous) {
+		this._CONT = continous;
+		this.SetProperty(P_SPEECHCONTINOUS, "" + continous);
+		return continous;
+	}
+
+	SetInterimResults(number interimresults) {
+		this._INTERIM = interimresults;
+		this.SetProperty(P_SPEECHINTERIM, "" + interimresults);
+		return interimresults;
+	}
+}

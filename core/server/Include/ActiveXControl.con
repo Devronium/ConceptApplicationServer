@@ -1,0 +1,78 @@
+include VisibleRemoteObject.con
+include ClassID.con
+import standard.lib.str
+
+class ActiveXControl extends VisibleRemoteObject {
+	protected var _CLSID;
+	protected var _LICENCE_KEY;
+
+	public property ClassID { get _CLSID }
+	public property LicenseKey { get _LICENCE_KEY }
+
+	protected var[] _AX_EVENTS;
+	// ------------------ EVENTS ----------------------- //
+	protected property OnMappedAXEvent { get GetOnMappedAXEvent, set SetOnMappedAXEvent }
+	protected function GetOnMappedAXEvent() {
+		return _GET_REMOTE_EVENT(EVENT_ACTIVEX_EVENT);
+	}
+
+	protected function SetOnMappedAXEvent(var delegate deleg) {
+		return _MAP_REMOTE_EVENT(EVENT_ACTIVEX_EVENT, deleg);
+	}
+	// ------------------------------------------------- //
+
+	public function __AX_FIRED_EVENT(Sender, EventData) {
+		var arr=StrSplit(EventData,":");
+		var event_id=value arr[0];
+		var deleg=_AX_EVENTS[event_id];
+
+		if (deleg) {
+			deleg(Sender, EventData);
+		}
+		Send(MSG_AX_AKNOWLEDGE_EVENT,"0",value arr[1]);
+	}
+
+	protected function __AX_SET_EVENTS() {
+		OnMappedAXEvent=__AX_FIRED_EVENT;
+	}
+	// ------------------------------------------------- //
+
+	public function ActiveXControl(Owner, CLSID, LICENCE_KEY="") {
+		super(Owner, CLASS_ACTIVEX);
+		this->_CLSID=_CLSID;
+		this->_LICENCE_KEY=LICENCE_KEY;
+
+		// make sure that the CLSID and LICENCE_KEY are of STATIC STRING type
+		Send(MSG_CREATE_ACTIVEX, ""+CLSID, ""+LICENCE_KEY);
+	}
+
+	public function AddEventID(id) {
+		Send(MSG_AX_ADD_EVENT, "0", id);
+	}
+
+	public function GetEventParameter(index) {
+		Send(MSG_AX_GET_EVENT_PARAM, "0", index);
+		WaitMessage(var SENDER=this.REMOTE_ID, var MSG_ID=MSG_AX_GET_EVENT_PARAM, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+	public function AknowledgeEvent(parameter_count) {
+		Send(MSG_AX_AKNOWLEDGE_EVENT, "0", parameter_count);
+	}
+
+	public function ClearEvents() {
+		Send(MSG_AX_CLEAR_EVENTS_DATA, "0", "0");
+	}
+
+	public function AddParameter(parameter) {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter);
+	}
+
+	public function ExecuteMethod(method_name) {
+		Send(MSG_AX_CALL_METHOD, method_name, "0");
+	}
+
+	public function SetAXProperty(property_name, property_value) {
+		Send(MSG_AX_SET_PROPERTY, property_name, property_value);
+	}
+}

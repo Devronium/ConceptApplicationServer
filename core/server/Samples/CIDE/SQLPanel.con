@@ -1,0 +1,690 @@
+include Scintilla/Scintilla.con
+include RVBox.con
+include REdit.con
+include RToolbar.con
+include DataConnectorDialog.con
+include DataBases.con
+include RTextView.con
+include RVPaned.con
+include RHPaned.con
+include RScrolledWindow.con
+include RTreeView.con
+include RToolSeparator.con
+include Constants.con
+include RHBox.con
+include RToolButton.con
+include StockConstants.con
+include Application.con
+include ServerFileChooser.con
+include ServerFileSaver.con
+include RNotebook.con
+
+define SQL_KEYWORDS1 "all into and is any join as left asc like avg local between match by max cast min corresponding natural count not create null cross on delete or desc order distinct outer drop right escape select except set exists some false sum from table full temporary global true group union having unique in unknown inner update insert using intersect values "
+define SQL_KEYWORDS2 "add all alter analyze and as asc asensitive before between bigint binary blob both by call cascade case change char character check collate column condition connection constraint continue convert create cross current_date current_time current_timestamp current_user cursor database databases day_hour day_microsecond day_minute day_second dec decimal declare default delayed delete desc describe deterministic distinct distinctrow div double drop dual each else elseif enclosed escaped exists exit explain false fetch float float4 float8 for force foreign from fulltext grant group having high_priority hour_microsecond hour_minute hour_second if ignore in index infile inner inout insensitive insert int int1 int2 int3 int4 int8 integer interval into is iterate join key keys kill leading leave left like limit lines load localtime localtimestamp lock long longblob longtext loop low_priority match mediumblob mediumint mediumtext middleint minute_microsecond minute_second mod modifies natural not no_write_to_binlog null numeric on optimize option optionally or order out outer outfile precision primary procedure purge raid0 read reads real references regexp release rename repeat replace require restrict return revoke right rlike schema schemas second_microsecond select sensitive separator set show smallint soname spatial specific sql sqlexception sqlstate sqlwarning sql_big_result sql_calc_found_rows sql_small_result ssl starting straight_join table terminated then tinyblob tinyint tinytext to trailing trigger true undo union unique unlock unsigned update upgrade usage use using utc_date utc_time utc_timestamp values varbinary varchar varcharacter varying when where while with write x509 xor year_month zerofill asensitive call condition connection continue cursor declare deterministic each elseif exit fetch goto inout insensitive iterate label leave loop modifies out reads release repeat return schema schemas sensitive specific sql sqlexception sqlstate sqlwarning trigger undo upgrade while "
+define SQL_KEYWORDS3 "add except percent all exec plan alter execute precision and exists primary any exit print as fetch proc asc file procedure authorization fillfactor public backup for raiserror begin foreign read between freetext readtext break freetexttable reconfigure browse from references bulk full replication by function restore cascade goto restrict case grant return check group revoke checkpoint having right close holdlock rollback clustered identity rowcount coalesce identity_insert rowguidcol collate identitycol rule column if save commit in schema compute index select constraint inner session_user contains insert set containstable intersect setuser continue into shutdown convert is some create join statistics cross key system_user current kill table current_date left textsize current_time like then current_timestamp lineno to current_user load top cursor national  tran database nocheck transaction dbcc nonclustered trigger deallocate not truncate declare null tsequal default nullif union delete of unique deny off update desc offsets updatetext disk on use distinct open user distributed opendatasource values double openquery varying drop openrowset view dummy openxml waitfor dump option when else or where end order while errlvl outer with escape over writetext "
+define SQL_KEYWORDS4 "absolute exec overlaps action execute pad ada exists partial add external pascal all extract position allocate false precision alter fetch prepare and first preserve any float primary are for prior as foreign privileges asc fortran procedure assertion found public at from read authorization full real avg get references begin global relative between go restrict bit goto revoke bit_length grant right both group rollback by having rows cascade hour schema cascaded identity scroll case immediate second cast in section catalog include select char index session char_length indicator session_user character initially set character_length inner size check input smallint close insensitive some coalesce insert space collate int sql collation integer sqlca column intersect sqlcode commit interval sqlerror connect into sqlstate connection is sqlwarning constraint isolation substring constraints join sum continue key system_user convert language table corresponding last temporary count leading then crdefine sql_keywords5 "
+define SQL_KEYWORDS5 "absolute found preserve action free prior admin general privileges after get reads aggregate global real alias go recursive allocate grouping ref are host referencing array hour relative assertion ignore result at immediate returns before indicator role binary initialize rollup bit initially routine blob inout row boolean input rows both int savepoint breadth integer scroll call interval scope cascaded isolation search cast iterate second catalog language section char large sequence character last session class lateral sets clob leading size collation less smallint completion level space connect limit specific connection local specifictype constraints localtime sql constructor localtimestamp sqlexception corresponding locator sqlstate cube map sqlwarning current_path match start current_role minute state cycle modifies statement data modify static date module structure day month temporary dec names terminate decimal natural than deferrable nchar time deferred nclob timestamp depth new timezone_hour deref next timezone_minute describe no trailing descriptor none translation destroy numeric treat destructor object true deterministic old under dictionary only unknown diagnostics operation unnest disconnect ordinality usage domain out using dynamic output value each pad varchar end-exec parameter variable equals parameters whenever every partial without exception path work external postfix write false prefix year first preorder zone float prepare "
+
+// all MySql, MS SQL, etc ...
+define SQL_KEYWORDS SQL_KEYWORDS1+SQL_KEYWORDS2+SQL_KEYWORDS3+SQL_KEYWORDS4+SQL_KEYWORDS5
+
+
+define MAX_FIELD_RENDER		40
+
+define DO_CLOSE		1
+define DO_NEW		2
+define DO_OPEN		3
+
+class SQLPanel extends RVBox {
+	private var OpenDialog;
+	private var SaveDialog;
+	private var filename="";
+	private var path="";
+
+	private var SQLEdit;
+	private var SQLResult;
+	private var SQLTable;
+	private var Dialog;
+
+	private var _Connection;
+	private var _DataSet;
+	private var memo;
+	private var scroll_memo;
+	private var scroll_tree;
+	private var tree;
+	private var toolbar;
+
+	private var objecttree;
+	private var parent_index;
+	private var after_save_do=0;
+
+	public property Editor { get SQLEdit }
+
+
+	private function NewScintilla(box) {
+		var keywords=SQL_KEYWORDS;
+		var tst=new RScintilla(box);
+
+		tst.SciMessage(SCI_STYLECLEARALL,0,0);
+		tst.SciMessage(SCI_SETLEXER, SCLEX_SQL, 0);
+		tst.SciMessage(SCI_SETKEYWORDS, 0, keywords);
+		for (var i=0;i<12;i++) {
+			tst.SciMessage(SCI_STYLESETFONT, i, "Lucida Console");
+			tst.SciMessage(SCI_STYLESETSIZE, i, 10);
+		}
+
+		tst.SciMessage(SCI_CLEARDOCUMENTSTYLE, 0, 0);
+		tst.SciMessage(SCI_SETSTYLEBITS, 7, 0);
+		tst.SciMessage(SCI_SETTABWIDTH,4,0);
+		tst.SciMessage(SCI_SETINDENT,4,0);
+		tst.SciMessage(SCI_SETCARETPERIOD,400,0);
+
+		tst.SciMessage(SCI_STYLESETFORE, SCE_C_DEFAULT, 0x000000);
+		// comment
+		tst.SciMessage(SCI_STYLESETFORE, SCE_C_COMMENT, 0x008000);
+		tst.SciMessage(SCI_STYLESETFORE, SCE_C_COMMENTLINE, 0x008000);
+		tst.SciMessage(SCI_STYLESETFORE, SCE_C_COMMENTDOC, 0x008000);
+		// keyword
+		tst.SciMessage(SCI_STYLESETFORE, SCE_C_WORD, 0xC80000);
+		// strings
+		tst.SciMessage(SCI_STYLESETFORE, 6, 0x004000);
+   
+		tst.SciMessage(SCI_STYLESETFORE, 9, 0x0000FF);
+		// operators
+		tst.SciMessage(SCI_STYLESETFORE, 10, 0x400080);
+
+		tst.SciMessage(SCI_STYLESETFORE, 11, 0x000000);
+		// set the backgroundcolor of brace highlights
+		tst.SciMessage(SCI_STYLESETBACK, STYLE_BRACELIGHT, 0x00FF00);
+		// set end of line mode to CRLF
+		tst.SciMessage(SCI_CONVERTEOLS, SC_EOL_CRLF, 0);
+		tst.SciMessage(SCI_SETEOLMODE, SC_EOL_CRLF/*2*/, 0);
+
+		tst.SciMessage(SCI_SETMARGINWIDTHN, 1, 16);
+
+		tst.SciMessage(SCI_SETUSETABS,0,0);
+
+		tst.SciMessage(SCI_SETBACKSPACEUNINDENTS, true, 0);
+		tst.SciMessage(SCI_SETINDENTATIONGUIDES, false, 0);
+
+		var lWidth = tst.SciMessageReturnNumber(SCI_TEXTWIDTH, STYLE_LINENUMBER, "9");
+		tst.SciMessage(SCI_SETMARGINWIDTHN, 0, lWidth*4);
+
+		tst.Show();
+		return tst;
+	}
+
+	private function AddToolItem(hint,icon,toolbar,deleg) {
+		var toolbutton=new RToolButton(toolbar);
+		toolbutton.LoadStockIcon2(icon,ICON_SIZE_SMALL_TOOLBAR);
+		toolbutton.MinWidth=35;
+		toolbutton.MinHeight=35;
+		toolbutton.Tooltip=hint;
+		toolbutton.OnClicked=deleg;
+		toolbutton.Show();
+	}
+
+	public function ExecuteQuery(Sender, extra) {
+		var query;
+		if (!_DataSet) {
+			CApplication::MessageBox("Not connected to a database","Error");
+			return;
+		}
+
+		if (extra=="0") {
+			query=SQLEdit.Text;
+			var sel_start = SQLEdit.SciMessageReturnNumber(SCI_GETSELECTIONSTART,0,0);
+			var sel_end   = SQLEdit.SciMessageReturnNumber(SCI_GETSELECTIONEND,0,0);
+
+			if (sel_start!=sel_end)
+				query=SubStr(query,sel_start,sel_end);
+		} else {
+			query=extra;
+		}
+
+		_DataSet.CommandText=query;
+		memo.Text="Please wait while executing query";
+		var result=_DataSet.ExecuteQuery(true);
+		toolbar.Enabled=false;
+		scroll_tree.Hide();
+		scroll_memo.Show();
+
+		if (result<=0) {
+			memo.Text=_DataSet.LastError();
+			//scroll_tree.Hide();
+			//scroll_memo.Show();
+		} else {
+			var columns=_DataSet.Columns;
+			
+			if (columns) {
+				memo.Text="Please wait while populating view";
+				var len=length columns;
+				tree.ClearColumns();
+				tree.Clear();
+				for (var i=0;i<len;i++) {
+					var col=StrReplace(columns[i],"_","__");
+					tree.AddColumn(col,NORMAL_COLUMN);
+				}
+				BeginUpdateSession();
+				if (_DataSet.FetchForward()) {
+					var arr;
+					do {
+						delete arr;
+						arr=new [];
+						for (i=0;i<len;i++) {
+							var str=_DataSet.FieldValues[columns[i]].ToString();
+							if (length str>MAX_FIELD_RENDER) {
+								str=SubStr(str,0,MAX_FIELD_RENDER-3);
+								str+="...";
+							}
+							arr[i]=str;
+						}
+						tree.AddItem(arr);
+					} while (_DataSet.FetchForward());
+				}
+				scroll_memo.Hide();
+				scroll_tree.Show();
+				EndUpdateSession();
+			} else {
+				memo.Text=""+_DataSet.CountRows()+" row(s) affected";
+				scroll_tree.Hide();
+				scroll_memo.Show();
+			}
+		}
+		_DataSet.CloseRead();
+		toolbar.Enabled=true;
+	}
+
+	public function SetHints(array hints) {
+		hints=KeySorted(hints);
+		var len=length hints;
+
+		var str_hints="";
+		for (var i=0;i<len;i++) {
+			if (i)
+				str_hints+=" ";
+			str_hints+=hints[i];
+		}
+
+		if (len) {
+			SQLEdit.SetAutoHints(3, str_hints);
+		}
+	}
+
+	public function PopulateObjectsMySQL() {
+		var DataSet=new ADODataSet(_Connection);
+		DataSet.CommandText="show databases;";
+		DataSet.ExecuteQuery(true);
+
+		var DataSet2=new ADODataSet(_Connection);
+
+		var DataSet3=new ADODataSet(_Connection);
+
+		var []databases;
+		var []total_objects;
+
+		if (DataSet.FetchForward()) {
+			do {
+				var data_base_name=DataSet.FieldValues[0].ToString();
+				if (data_base_name) {
+					total_objects[data_base_name]=data_base_name;
+
+					var arr=new [];
+					arr[0]=data_base_name;
+					arr[1]=new [];
+
+					DataSet2.CommandText="show tables from $data_base_name;";
+					DataSet2.ExecuteQuery(true);
+					if (DataSet2.FetchForward()) {
+						do {
+							var table_name=DataSet2.FieldValues[0].ToString();
+							if (table_name) {
+								total_objects[table_name]=table_name;
+
+								var arr2=new [];
+								arr2[0]=table_name;
+								arr2[1]=new [];
+
+								DataSet3.CommandText="show full columns from $table_name from $data_base_name;";
+								DataSet3.ExecuteQuery(true);
+								if (DataSet3.FetchForward()) {
+									do {
+										var field_name=DataSet3.FieldValues[0].ToString();
+										var field_type=DataSet3.FieldValues[1].ToString();
+
+										total_objects[field_name]=field_name;
+
+										if (DataSet3.FieldValues["Null"])
+											var nullable=(DataSet3.FieldValues["Null"].ToString()=="YES");
+
+										var arr3=new [];
+										arr3["COLUMN_NAME"]=field_name;
+										arr3["TYPE_NAME"]=field_type;
+										arr3["NULLABLE"]=nullable;
+
+										arr2[1][field_name]=arr3;
+
+									} while (DataSet3.FetchForward());
+									DataSet3.CloseRead();
+								}
+
+								arr[1][table_name]=arr2;
+							}
+
+						} while (DataSet2.FetchForward());
+						DataSet2.CloseRead();
+					}
+
+
+					databases[data_base_name]=arr;
+				}
+			} while (DataSet.FetchForward());
+			DataSet.CloseRead();
+		}
+
+		delete arr;
+		delete arr3;
+
+		DataSet.LastError();
+		if (databases) {
+			BeginUpdateSession();
+			databases=KeySorted(databases);
+			var len=length databases;
+
+			var image1=new RImage(null);
+			image1.LoadResource(HARDDISK,ICON_SIZE_MENU);
+			
+			var image2=new RImage(null);
+			image2.LoadResource(INDEX,ICON_SIZE_MENU);
+
+			var image3=new RImage(null);
+			image3.LoadResource(INFO,ICON_SIZE_MENU);
+
+			for (var i=0;i<len;i++) {
+				arr=databases[i];
+				objecttree.AddItem([image1,arr[0],"(database)"]);
+				arr[1]=KeySorted(arr[1]);
+				var len2=length arr[1];
+
+				for (var j=0;j<len2;j++) {
+					objecttree.AddChild(i, [image2,arr[0]+"."+arr[1][j][0],"(table)"]);
+					arr3=arr[1][j][1];//arr[2];
+
+					if (!arr3)
+						break;
+
+					var len3=length arr3;
+
+					for (var k=0;k<len3;k++) {
+						if (arr3[k]) {
+							var type=arr3[k]["TYPE_NAME"];
+							if (!arr3[k]["NULLABLE"])
+								type+=", not null";
+
+							objecttree.AddChild("$i:$j", [image3,arr3[k]["COLUMN_NAME"],type]);
+						}
+					}
+				}
+
+			}
+			SetHints(total_objects);
+			EndUpdateSession();
+			return true;
+
+		}
+		return false;
+	}
+
+	public function PopulateObjects() {
+
+		// is an mysql database 
+		if (PopulateObjectsMySQL())
+			return 0;
+
+		var elements=_Connection.ListTables("");
+		var[] databases;
+		var[] total_objects;
+
+		if (elements) {
+			var len=length elements;
+			for (var i=0;i<len;i++) {
+				var arr2=elements[i];
+				if (arr2) {
+					var data_base_name=arr2["TABLE_SCHEM"];
+					var table_name=arr2["TABLE_NAME"];
+					total_objects[table_name]=table_name;
+
+					if (!databases[data_base_name]) {
+						databases[data_base_name]=new [];
+						databases[data_base_name][0]=data_base_name;
+						databases[data_base_name][1]=new [];
+						total_objects[data_base_name]=data_base_name;
+					} else {
+						databases[data_base_name][1][table_name]=table_name;
+					}
+				}
+			}
+
+			BeginUpdateSession();
+
+			databases=KeySorted(databases);
+			len=length databases;
+
+			var image1=new RImage(null);
+			image1.LoadResource(HARDDISK,ICON_SIZE_MENU);
+			
+			var image2=new RImage(null);
+			image2.LoadResource(INDEX,ICON_SIZE_MENU);
+
+			var image3=new RImage(null);
+			image3.LoadResource(INFO,ICON_SIZE_MENU);
+
+			for (i=0;i<len;i++) {
+				var arr=databases[i];
+				if (arr[0])
+					objecttree.AddItem([image1,arr[0],"(database)"]);
+				else
+					objecttree.AddItem([image1,"(default)","(database)"]);
+
+				arr[1]=KeySorted(arr[1]);
+				var len2=length arr[1];
+
+				for (var j=0;j<len2;j++) {
+					if (arr[0])
+						objecttree.AddChild(i, [image2,arr[0]+"."+arr[1][j],"(table)"]);
+					else
+						objecttree.AddChild(i, [image2,arr[1][j],"(table)"]);
+
+					var arr3=_Connection.ListColumns(arr[1][j]);
+
+					if (!arr3)
+						break;
+
+					var len3=length arr3;
+
+					for (var k=0;k<len3;k++) {
+						if (arr3[k]) {
+							var type=arr3[k]["TYPE_NAME"];
+							if (""+arr3[k]["NULLABLE"]=="0")
+								type+=", not null";
+
+							var col_name=arr3[k]["COLUMN_NAME"];
+							total_objects[col_name]=col_name;
+
+							objecttree.AddChild("$i:$j", [image3,col_name,type]);
+						}
+					}
+				}
+			}
+			SetHints(total_objects);
+			EndUpdateSession();
+		}
+	}
+
+	public function ObjectSelected(Sender, EventData) {
+		var index=Sender.RowIndex;
+		var item=Sender.Items.GetPath(index);
+		if (item) {
+			var arr=StrSplit(index,":");
+			switch (length arr) {
+				case 1:
+					ExecuteQuery(null, "use ${item[1]};");
+					break;
+				case 2:
+					ExecuteQuery(null, "select * from ${item[1]};");
+					break;
+				default:
+					CApplication::MessageBox("Automatic query works only on tables and databases.\nDouble click on a table(to view) or database (to select).");
+			}
+		}
+	}
+
+	public function CallbackDelegate(Sender, ok_pressed_flag) {
+		if (ok_pressed_flag) {
+			var username;
+			var password;
+			var string;
+
+			var type=Sender.GetOptions(username, password, string);
+			if (type) {
+				if (!_Connection.OpenDSN(string,username,password))
+					Sender.MessageBox("Error connecting to database:\n"+_Connection.LastError());
+				else {
+					Sender.Hide();
+					memo.Text="Connected to server.\n";
+					PopulateObjects();
+					_DataSet=new ADODataSet(_Connection);
+				}
+			} else
+				if (!_Connection.Open(string))
+					Sender.MessageBox("Error connecting to database:\n"+_Connection.LastError());
+				else {
+					_DataSet=new ADODataSet(_Connection);
+					Sender.Hide();
+					memo.Text="Connected to server.\n";
+				}
+		} else {
+			Hide();
+		}
+	}
+
+	private function AddToolSeparator(toolbar) {
+		var toolsep=new RToolSeparator(toolbar);
+		toolsep.Show();
+	}
+
+	public function CheckSaved() {
+		var is_saved=!SQLEdit.SciMessageReturnNumber(SCI_GETMODIFY,0,0);
+		if (!is_saved) {
+			if (CApplication::MessageYesNo("Save the current SQL script ?","File not saved")==RESPONSE_YES)
+				return this.SaveSQL();
+		}
+
+		return true;
+	}
+
+	public function CloseSourceClicked(Sender=null, extra="") {
+		after_save_do=DO_CLOSE;
+		if (CheckSaved()) {
+			after_save_do=null;
+			filename="";
+			path="";
+			Hide();
+		}
+	}
+
+	public function NewSQL(Sender=null, EventData="") {
+		after_save_do=DO_NEW;
+		if (CheckSaved()) {
+			after_save_do=null;
+			filename="";
+			path="";
+			SQLEdit.Text="";
+			SQLEdit.SciMessage(SCI_SETSAVEPOINT,0,0);
+		}
+	}
+
+	public function OpenSQL(Sender=null, EventData="") {
+		after_save_do=DO_OPEN;
+		if (CheckSaved()) {
+			after_save_do=null;
+			OpenDialog.Show();
+			OpenDialog.ListDirectory();
+		}
+	}
+
+	public function OnOpenFileSelected(Sender, filename) {
+		if (CheckSaved()) {
+			path=OpenDialog.Path+filename;
+
+			SQLEdit.Text=ReadFile(/*filename*/path);
+			SQLEdit.SciMessage(SCI_SETSAVEPOINT,0,0);
+
+			this.filename=filename;
+			this.path=path;
+
+			if ((Parent) && (classof Parent=="RNotebook")) {
+				Parent.Pages[parent_index].Caption=filename;
+			}
+		}
+	}
+
+	public function OnSaveFileSelected(Sender, filename) {
+		if (Ext(filename)=="")
+			filename+=".sql";
+
+		var path=SaveDialog.Path+filename;
+
+		if (FileExists(path)) {
+			if (CApplication::MessageYesNo("File already exists. Do you want to replace it ?","File exists")!=RESPONSE_YES) {
+				SaveDialog.Show();
+				return 0;
+			}
+		}
+
+		this.filename=filename;
+		this.path=path;
+
+		this.SaveSQL();
+
+	}
+
+	public function SaveAsSQL(Sender=null, EventData="") {
+		SaveDialog.Show();
+		SaveDialog.ListDirectory();
+	}
+
+	public function SaveSQL(Sender=null, EventData="") {
+		if (/*filename*/path) {
+			if (!WriteFile(SQLEdit.Text, path/*filename*/)) {
+				CApplication::MessageBox("Error writing '$path'","Error");
+				return false;
+			}
+
+			if ((Parent) && (classof Parent=="RNotebook")) {
+				Parent.Pages[parent_index].Caption=filename;
+			}
+
+			SQLEdit.SciMessage(SCI_SETSAVEPOINT,0,0);
+
+			switch (after_save_do) {
+				case DO_CLOSE:
+					this.CloseSourceClicked();
+					break;
+				case DO_NEW:
+					this.NewSQL();
+					break;
+				case DO_OPEN:
+					this.OpenSQL();
+					break;
+			}
+			after_save_do=null;
+
+		} else {
+			SaveAsSQL();
+			return false;
+		}
+
+		return true;
+	}
+
+	public function SQLPanel(owner, strings, parent_index, path="./") {
+		super(owner);
+
+		this.parent_index=parent_index;
+
+		OpenDialog=new ServerFileChooser(this);
+		OpenDialog.Path=path;
+		OpenDialog.FileTypes=["SQL Scripts:sql","All files:*"];
+		OpenDialog.OnFileSelected=OnOpenFileSelected;
+
+		SaveDialog=new ServerFileSaver(this);
+		SaveDialog.Path=path;
+		SaveDialog.FileTypes=["SQL Scripts:sql","All files:*"];
+		SaveDialog.OnFileSelected=OnSaveFileSelected;
+
+		PackType=PACK_SHRINK;
+		Dialog=new DataConnectorDialog(this, CallbackDelegate, strings);
+		Dialog.Show();
+		_Connection=new ADOConnection();
+		
+
+		toolbar=new RToolbar(this);
+		toolbar.IconSize = 1;
+		toolbar.Height=20;
+		toolbar.Style=TOOLBAR_ICONS;
+		toolbar.Tooltips=true;
+
+		//AddToolItem("Close source", CLOSE, toolbar, CloseSourceClicked);
+		//AddToolSeparator(toolbar);
+		AddToolItem("New SQL script", NEW, toolbar, NewSQL);
+		AddToolItem("Open SQL script", OPEN, toolbar, OpenSQL);
+		AddToolItem("Save SQL script", SAVE, toolbar, SaveSQL);
+		AddToolSeparator(toolbar);
+		AddToolItem("Save As ...", SAVE_AS, toolbar, SaveSQL);
+		AddToolSeparator(toolbar);
+		AddToolItem("Execute query","gtk-media-play", toolbar, ExecuteQuery);
+
+		toolbar.Show();
+
+		PackType=PACK_EXPAND_WIDGET;
+
+		var hpane=new RHPaned(this);
+		hpane.Show();
+
+		var scroll=new RScrolledWindow(hpane);
+		scroll.HScrollPolicy=POLICY_AUTOMATIC;
+		scroll.VScrollPolicy=POLICY_AUTOMATIC;
+		scroll.Show();
+
+		objecttree=new RTreeView(scroll);
+		objecttree.Model=MODEL_TREEVIEW;
+		objecttree.AddColumn(" ",IMAGE_COLUMN);
+		objecttree.AddColumn("Object",NORMAL_COLUMN);
+		objecttree.AddColumn("Type",NORMAL_COLUMN);
+		objecttree.HoverSelection=true;
+		objecttree.SearchColumn=1;
+		objecttree.OnRowActivated=ObjectSelected;
+		//objecttree.ShowExpanders=false;
+		objecttree.TreeLines=true;
+		//objecttree.LevelIndentation=20;
+		objecttree.Show();
+
+		hpane.Position=200;
+
+
+		var pane=new RVPaned(hpane);
+
+		SQLEdit=NewScintilla(pane);
+		SQLEdit.SciMessage(SCI_SETSAVEPOINT,0,0);
+
+		PackType=PACK_SHRINK;
+		var vbox=new RVBox(pane);
+		scroll_memo=new RScrolledWindow(vbox);
+		scroll_memo.HScrollPolicy=POLICY_AUTOMATIC;
+		scroll_memo.VScrollPolicy=POLICY_AUTOMATIC;
+
+		memo=new RTextView(scroll_memo);
+		memo.ReadOnly=true;
+		memo.Wrap=true;
+		memo.CursorVisible=false;
+		memo.Show();
+
+
+		scroll_tree=new RScrolledWindow(vbox);
+		scroll_tree.HScrollPolicy=POLICY_AUTOMATIC;
+		scroll_tree.VScrollPolicy=POLICY_AUTOMATIC;
+
+		tree=new RTreeView(scroll_tree);
+		tree.Model=MODEL_LISTVIEW;
+		tree.HeadersVisible=true;
+		tree.Show();
+		tree.GridLines=TREE_VIEW_GRID_LINES_BOTH;
+		tree.MultipleSelection=true;
+
+		scroll_memo.Show();
+
+		vbox.Show();
+		pane.Show();
+	}
+}

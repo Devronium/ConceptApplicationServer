@@ -1,0 +1,144 @@
+<?xml version="1.0"?>
+<StringTable>
+  <default langid="en"/>
+  <string msgid="Name">
+    <lang id="en">
+Name
+    </lang>
+    <lang id="ro">
+Nume
+    </lang>
+  </string>
+  <string msgid="Surname">
+    <lang id="en">
+Surname
+    </lang>
+    <lang id="ro">
+Prenume
+    </lang>
+  </string>
+  <string msgid="Double click on an action\nDouble click on (Add service) to add new services">
+    <lang id="en">
+Double click on an action\nDouble click on (Add service) to add new services
+    </lang>
+  </string>
+  <string msgid="gtk-refresh">
+    <lang id="en">
+gtk-refresh
+    </lang>
+  </string>
+  <string msgid="&lt;b&gt;Service manager&lt;/b&gt;">
+    <lang id="en">
+&lt;b&gt;Service manager&lt;/b&gt;
+    </lang>
+  </string>
+  <string msgid="Concept 2.0 Horticultor BETA">
+    <lang id="en">
+Concept 2.0 Horticultor BETA
+    </lang>
+  </string>
+  <string msgid="&lt;b&gt;Cryptographic keys&lt;/b&gt;">
+    <lang id="en">
+&lt;b&gt;Cryptographic keys&lt;/b&gt;
+    </lang>
+  </string>
+  <string msgid="label">
+    <lang id="en">
+label
+    </lang>
+  </string>
+  <string msgid="Generate 256 bits certificate&#10;Generate 512 bits certificate&#10;Generate 1024 bits certificate&#10;Generate 2048 bits certificate&#10;Generate 4096 bits certificate">
+    <lang id="en">
+Generate 256 bits certificate
+Generate 512 bits certificate
+Generate 1024 bits certificate
+Generate 2048 bits certificate
+Generate 4096 bits certificate
+    </lang>
+  </string>
+  <string msgid="Generate 256 bits certificate">
+    <lang id="en">
+Generate 256 bits certificate
+    </lang>
+  </string>
+  <string msgid="Generate 512 bits certificate">
+    <lang id="en">
+Generate 512 bits certificate
+    </lang>
+  </string>
+  <string msgid="Generate 1024 bits certificate">
+    <lang id="en">
+Generate 1024 bits certificate
+    </lang>
+  </string>
+  <string msgid="Generate 2048 bits certificate">
+    <lang id="en">
+Generate 2048 bits certificate
+    </lang>
+  </string>
+  <string msgid="Generate 4096 bits certificate">
+    <lang id="en">
+Generate 4096 bits certificate
+    </lang>
+  </string>
+  <string msgid="gtk-execute">
+    <lang id="en">
+gtk-execute
+    </lang>
+  </string>
+  <string msgid="Generate 256 bits certificate&#10;Generate 512 bits certificate&#10;Generate 1024 bits certificate">
+    <lang id="en">
+Generate 256 bits certificate
+Generate 512 bits certificate
+Generate 1024 bits certificate
+    </lang>
+  </string>
+  <string msgid="Generate 256 bits certificate&#10;Generate 512 bits certificate&#10;Generate 1024 bits certificate&#10;Generate 2048 bits certificate">
+    <lang id="en">
+Generate 256 bits certificate
+Generate 512 bits certificate
+Generate 1024 bits certificate
+Generate 2048 bits certificate
+    </lang>
+  </string>
+  <string msgid="Concept 2.0 Horti BETA">
+    <lang id="en">
+Concept 2.0 Horti BETA
+    </lang>
+  </string>
+  <string msgid="&lt;b&gt;Server configuration&lt;/b&gt;">
+    <lang id="en">
+&lt;b&gt;Server configuration&lt;/b&gt;
+    </lang>
+  </string>
+  <string msgid="gtk-apply">
+    <lang id="en">
+gtk-apply
+    </lang>
+  </string>
+  <string msgid="Delete all log entries">
+    <lang id="en">
+Delete all log entries
+    </lang>
+  </string>
+  <string msgid="Show log">
+    <lang id="en">
+Show log
+    </lang>
+  </string>
+  <string msgid="Download log">
+    <lang id="en">
+Download log
+    </lang>
+  </string>
+  <string msgid="&lt;b&gt;Server logs&lt;/b&gt;">
+    <lang id="en">
+&lt;b&gt;Server logs&lt;/b&gt;
+    </lang>
+  </string>
+  <string msgid="Concept 2.0 BeeKeeper - Admin system">
+    <lang id="en">
+Concept 2.0 BeeKeeper - Admin system
+    </lang>
+  </string>
+</StringTable>

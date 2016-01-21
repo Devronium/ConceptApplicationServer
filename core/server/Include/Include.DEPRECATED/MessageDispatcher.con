@@ -1,0 +1,8 @@
+import 'win32.base.messages'
+
+define SendMessage send_message
+define GetMessage get_message
+define WaitMessage wait_message_ID
+
+define InitMessagingSystem init_messaging_system
+define DestroyMessagingSystem destroy_messaging_system

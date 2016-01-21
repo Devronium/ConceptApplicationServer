@@ -1,0 +1,42 @@
+import web.service.template
+import standard.C.io
+import standard.lib.str
+include WebDocument.con
+
+class Test {
+	var m1;
+	var m2;
+	var m3;
+}
+
+class Main {
+	function Main() {
+		var t=new Test();
+		t.m1="test a class member !";
+		t.m2=t;
+
+		var doc=new WebDocument();
+		doc.BeginDocument();
+
+		NewTemplateContext();
+		var var1="Sometime, Somewhere, somehow";
+		TBind("var1",var1);
+		//var var2=["bla bla", "Johnny B. Good", "Miss Eliot"];
+		var var2=["1", ["2", "3"], [ ], "4","5",0];
+		var2["cheie"]="ceva cu cheie";
+
+		TBind("var2",var2);
+		var content=ReadFile("test.tpl");
+		TBind("content",ReadFile("test3.csp"));
+                TBind("template",ToHTML(content));
+		TBind("object",t);
+		var var3=["test array","test array 2"];
+		TBind("array",var3);
+
+		TCompile(content);
+		doc << TExecute();
+		doc << TErrors();
+		doc.EndDocument();
+
+	}
+}

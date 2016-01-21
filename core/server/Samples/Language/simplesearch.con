@@ -1,0 +1,42 @@
+include Xapian.con
+import standard.lang.cli
+import standard.C.io
+import standard.lib.str
+
+class Main {
+	function Main() {
+		try {
+			var arg=CLArg();
+			if (length arg != 2) {
+				echo "Usage: simplesearch PATH_TO_DATABASE inputfile";
+				return -1;
+			}
+			
+			var db=new XapianDatabase(arg[0]);
+
+			var enquire=new XapianEnquire(db);
+
+			var qp=new XapianQueryParser();
+
+			var stemmer=new XapianStem("english");
+			qp.set_database(db);
+			qp.set_stemming_strategy(STEM_SOME);
+			var query=qp.parse_query(arg[1]);
+			echo "Parsed query is: "+query.get_description() +"\n";
+
+			enquire.set_query(query);
+			var matches=enquire.get_mset(0,10);
+
+			echo "" + matches.get_matches_estimated() + " result(s) found.\n";
+			echo "Matches 1-" + matches.size() + ":\n";
+
+			for (var i=matches.begin(); i!=matches.end(); i++) {
+				echo ""+ (i.get_rank() + 1) + ": " + i.get_percent() + "% docid=" + i.get_value();
+				echo " ["+i.get_document().get_data()+"]\n\n";
+			}
+
+		} catch (var exc) {
+			echo exc;
+		}
+	}
+}

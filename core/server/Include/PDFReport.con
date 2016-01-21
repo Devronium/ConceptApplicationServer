@@ -1,0 +1,497 @@
+import standard.lib.hpdf
+import standard.lib.str
+import standard.C.io
+import standard.C.string
+import standard.C.casts
+
+define PAGE_TITLE	""
+define OUTPUT_FILENAME	"-"
+
+define PDF_PNG		1
+define PDF_JPEG		2
+
+class PDFReport {
+	private var hpdf;
+	private var[] headers;
+	private var[] data;
+	private var[] margins;
+	private var _LineWidth=0.5;
+
+	private var _curpage;
+	private var _curfontname="Helvetica";
+	private var _curfont;
+	private var _cursize=12;
+	private var height;
+	private var width;
+	private var[] widths;
+
+	private var top=0;
+	private var left=0;
+	private var repeat_header=false;
+	private var on_begin_page=0;
+	private var on_end_page=0;
+	private var color=0;
+	private var linecolor=0;
+
+	public property Headers { set SetHeaders, get headers }
+	public property Data { set SetData, get data }
+	public property Margins { set SetMargins, get margins }
+	public property LineWidth { set SetLineWidth, get _LineWidth }
+	public property RepeatHeader { set SetRepeatHeader, get repeat_header }
+
+	public property OnBeginPage { set SetOnBeginPage, get on_begin_page }
+	public property OnEndPage { set SetOnEndPage, get on_end_page }
+
+	public property PageWidth { get width }
+	public property PageHeight { get height }
+	public property Handle { get hpdf }
+	public property PageHandle { get _curpage }
+	public property FontHandle { get _curfont }
+	public property Color { get color, set SetColor }
+	public property LineColor { get linecolor, set SetLineColor }
+
+	private function MK_COLOR(col, var r, var g, var b) {
+		r=uint32(col/0x10000);
+		col%=0x10000;
+
+		g=uint32(col/0x100);
+		col%=0x100;
+
+		b=col;
+
+		r/=0xFF;
+		g/=0xFF;
+		b/=0xFF;
+	}
+
+	function SetColor(col) {
+		color=col;
+		MK_COLOR(col, var r, var g, var b);
+		HPDF_Page_SetRGBFill(_curpage, r, g, b);
+	}
+
+	function SetLineColor(col) {
+		linecolor=col;
+		MK_COLOR(col, var r, var g, var b);
+		HPDF_Page_SetRGBStroke(_curpage, r, g, b);
+	}
+
+	function SetOnBeginPage(deleg) {
+		if (typeof deleg!="delegate")
+			throw "BeginPageDelegate is not a delegate";
+		on_begin_page=deleg;
+	}
+
+	function SetOnEndPage(deleg) {
+		if (typeof deleg!="delegate")
+			throw "EndPageDelegate is not a delegate";
+		on_end_page=deleg;
+	}
+
+	function SetRepeatHeader(arg) {
+		repeat_header=arg;
+	}
+
+	function error(err, detail) {
+		throw "Error no $err, detail no $detail";
+	}
+
+	function NewPage() {
+		if ((on_end_page) && (_curpage))
+			on_end_page(this, "");
+
+		_curpage = HPDF_AddPage (hpdf);
+		HPDF_Page_SetLineWidth (_curpage, _LineWidth);
+		if (!_curfont)
+			this.UseFont(_curfontname, _cursize);
+		else
+			HPDF_Page_SetFontAndSize (_curpage, _curfont, _cursize);
+
+    		height = HPDF_Page_GetHeight(_curpage);
+    		width = HPDF_Page_GetWidth(_curpage);
+		top=margins["top"];
+		left=margins["left"];
+
+		SetColor(color);
+		SetLineColor(linecolor);
+
+		if (on_begin_page)
+			on_begin_page(this, "");
+	}
+
+	function CenterText(text) {
+		var tw = HPDF_Page_TextWidth (_curpage, text);
+		HPDF_Page_BeginText (_curpage);
+		HPDF_Page_TextOut (_curpage, (width - tw) / 2, height - top, text);
+		HPDF_Page_EndText (_curpage);
+		top+=_cursize;
+	}
+
+	function WriteLine(text) {
+		if (height-top-_cursize<=margins["bottom"])
+			NewPage();
+
+		//var tw = HPDF_Page_TextWidth (_curpage, text);
+
+		HPDF_Page_BeginText (_curpage);
+		HPDF_Page_TextOut (_curpage, left, height-top, text);
+		HPDF_Page_EndText (_curpage);
+
+		top+=_cursize;
+		left=margins["left"];
+	}
+
+	function Move(top,left) {
+		top=margins["top"]+top;
+		left=margins["left"]+left;
+	}
+
+	function FooterText(text, font="", fontsize=8, _left_offset=0, _top_offset=0) {
+		HPDF_Page_BeginText (_curpage);
+		if (font) {
+    			var mfont = HPDF_GetFont (hpdf, font, "");
+			if (!mfont)
+				throw "Invalid font name";
+
+    			HPDF_Page_SetFontAndSize (_curpage, mfont, fontsize);
+		}
+		HPDF_Page_TextOut (_curpage, margins["left"]+_left_offset, margins["bottom"]+_top_offset, text);
+		HPDF_Page_EndText (_curpage);
+
+		if (font) {
+    			HPDF_Page_SetFontAndSize (_curpage, _curfont, _cursize);
+		}
+	}
+
+	function HeaderText(text, font="", fontsize=8, _left_offset=0, _top_offset=0) {
+		HPDF_Page_BeginText (_curpage);
+		if (font) {
+    			var mfont = HPDF_GetFont (hpdf, font, "");
+			if (!mfont)
+				throw "Invalid font name";
+
+    			HPDF_Page_SetFontAndSize (_curpage, mfont, fontsize);
+		}
+		HPDF_Page_TextOut (_curpage, margins["left"]+_left_offset, height - top + _cursize + _top_offset, text);
+		HPDF_Page_EndText (_curpage);
+
+		if (font) {
+    			HPDF_Page_SetFontAndSize (_curpage, _curfont, _cursize);
+		}
+	}
+
+	function Write(text) {
+		text=StrReplace(text, "\t", "    ");
+		var arr=StrSplit(text,"\n");
+		var len=length (arr);
+		for (var i=0;i<len;i++) {
+			WriteLine(arr[i]);
+		}
+	}
+
+	function PutPicture(filename, type=PDF_PNG, width=0, height=0) {
+		var image;
+		if (type == PDF_PNG)
+			 image = HPDF_LoadPngImageFromFile (hpdf, filename);
+		else
+			 image = HPDF_LoadJpegImageFromFile (hpdf, filename);
+
+		if (image) {
+			var iw = HPDF_Image_GetWidth (image);
+			var ih = HPDF_Image_GetHeight (image);
+		} else
+			throw "Cannot load image";
+
+		if (width!=0)
+			iw=width;
+
+		if (height!=0)
+			ih=height;
+
+		HPDF_Page_DrawImage (_curpage, image, margins["left"]+left, this.height-top-ih, iw, ih);
+	}
+
+	function PutPictureAbsolute(filename, type=PDF_PNG, x=0, y=0, width=0, height=0) {
+		var image;
+		if (type == PDF_PNG)
+			 image = HPDF_LoadPngImageFromFile (hpdf, filename);
+		else
+			 image = HPDF_LoadJpegImageFromFile (hpdf, filename);
+
+		if (image) {
+			var iw = HPDF_Image_GetWidth (image);
+			var ih = HPDF_Image_GetHeight (image);
+		} else
+			throw "Cannot load image";
+
+		if (width!=0)
+			iw=width;
+
+		if (height!=0)
+			ih=height;
+
+		HPDF_Page_DrawImage (_curpage, image, x, this.height-ih-y, iw, ih);
+	}
+
+	function PDFReport() {
+		HPDF_SetErrorHandler(error);
+
+		margins["left"]=50;
+		margins["right"]=50;
+		margins["top"]=50;
+		margins["bottom"]=50;
+
+		hpdf=HPDF_New();
+		if (hpdf) {
+			HPDF_SetCompressionMode (hpdf, HPDF_COMP_ALL);
+			NewPage();
+		}
+	}
+
+	function GetTextHeight(text, constraint_width) {
+		var tw = HPDF_Page_TextWidth (_curpage, text);
+		var height=0;
+
+		if (tw<constraint_width) {
+			height=_cursize;
+			return height;
+		}
+
+		var len=length text;
+
+		var zero_ord=ord('0');
+		var nine_ord=ord('9');
+		var a_ord=ord('a');
+		var z_ord=ord('z');
+		var Z_ord=ord('Z');
+		var A_ord=ord('A');
+		var under_ord=ord('_');
+
+		height=_cursize;
+
+		var buf="";
+		var prec_buf="";
+
+		for (var i=0;i<len;i++) {
+			var c_ord=ord(text[i]);
+
+			if 	(((c_ord>=zero_ord) && (c_ord<=nine_ord)) ||
+				((c_ord>=a_ord) && (c_ord<=z_ord)) ||
+				((c_ord>=A_ord) && (c_ord<=Z_ord)) ||
+				(c_ord==under_ord)) {
+					tw = HPDF_Page_TextWidth (_curpage, buf+text[i]);
+					if ((tw>=constraint_width) && (i!=len-1)) {
+						height+=_cursize;
+						//i--;
+						buf="";
+						prec_buf="";
+					} else
+						buf+=text[i];
+
+			} else {
+				buf+=text[i];
+				tw = HPDF_Page_TextWidth (_curpage, prec_buf+buf);
+				if (tw>=constraint_width) {
+					height+=_cursize;
+					prec_buf="";
+				}
+				prec_buf+=buf;
+				buf="";
+			}
+		}
+		if (buf)
+			height+=_cursize;
+		return height*1.2;
+	}
+
+	function DoHeaders() {
+		var len=length headers;
+		if (len) {
+			var _max_size=0;
+			for (var i=0;i<len;i++) {
+				var elem=headers[i];
+				var text;
+				var tw;
+				if (typeof elem=="array") {
+					text=elem[0];
+					tw=elem[1];
+					var _size=GetTextHeight(text, tw);
+				} else {
+					text=elem;
+					tw = HPDF_Page_TextWidth (_curpage, text);
+					_size=GetTextHeight(text, tw+1);
+				}
+				widths[i]=tw;
+				if (_size>_max_size)
+					_max_size=_size;
+			}
+
+			_size=_max_size;
+			for (i=0;i<len;i++) {
+				elem=headers[i];
+
+				if (typeof elem=="array") {
+					text=elem[0];
+					tw=elem[1];
+				} else {
+					text=elem;
+					tw = HPDF_Page_TextWidth (_curpage, text);
+				}
+
+
+				var m_top=height-top-_LineWidth-_size+_cursize;
+				var m_left=left-1;
+				var m_right=left+tw+2;
+				var m_bottom=m_top-_size+_LineWidth;
+
+				HPDF_Page_Rectangle(_curpage, m_left, m_top, m_right-m_left, m_top-m_bottom);
+				HPDF_Page_Stroke (_curpage);
+
+				HPDF_Page_BeginText (_curpage);
+				HPDF_Page_TextRect (_curpage,m_left+1, m_top+_size,m_right-1,m_bottom, text, 3, "");
+
+				HPDF_Page_EndText (_curpage);
+
+				left+=m_right-m_left;
+				widths[i]=m_right-m_left-3;
+			}
+			top+=_size;
+			left=margins["left"];
+		}
+
+	}
+
+	function DoData() {
+		var len2=length data;
+		for (var j=0;j<len2;j++) {
+			var _max_size=0;
+			var data_elem=data[j];
+
+			var len=length data_elem;
+			for (var i=0;i<len;i++) {
+				var elem=data_elem[i];
+
+				if (typeof elem=="array") {
+					var text=elem[0];
+					var tw=elem[1];
+					if (!tw) {
+						if (widths[i])
+							tw=widths[i];
+						else
+							tw = HPDF_Page_TextWidth (_curpage, text);
+					}
+					var _size=GetTextHeight(text, tw);
+				} else {
+					text=elem;
+					if (widths[i])
+						tw=widths[i];
+					else
+						tw = HPDF_Page_TextWidth (_curpage, text);
+					_size=GetTextHeight(text, tw+1);
+				}
+				if (_size>_max_size)
+					_max_size=_size;
+
+			}
+
+			_size=_max_size;
+			for (i=0;i<len;i++) {
+
+
+				elem=data_elem[i];
+				var align=3;
+
+				if (typeof elem=="array") {
+					text=elem[0];
+					tw=elem[1];
+					if (!tw) {
+						if (widths[i])
+							tw=widths[i];
+						else
+							tw = HPDF_Page_TextWidth (_curpage, text);
+					}
+					if (length elem>2)
+						align=elem[2];
+				} else {
+					text=elem;
+					if (widths[i])
+						tw=widths[i];
+					else
+						tw = HPDF_Page_TextWidth (_curpage, text);
+				}
+
+
+				var m_top=height-top-_LineWidth*2-_size+_cursize;
+				var m_left=left-1;
+				var m_right=left+tw+2;
+				var m_bottom=m_top-_size;
+
+				HPDF_Page_Rectangle(_curpage, m_left, m_top, m_right-m_left, m_top-m_bottom);
+				HPDF_Page_Stroke (_curpage);
+
+				HPDF_Page_BeginText (_curpage);
+				HPDF_Page_TextRect (_curpage,m_left+1, m_top+_size,m_right-1,m_bottom, text, align, "");
+
+				HPDF_Page_EndText (_curpage);
+
+				left+=tw+3;
+			}
+			top+=_size;
+			if (height-top-_cursize<=margins["bottom"]) {
+				NewPage();
+				if (repeat_header)
+					DoHeaders();
+			}
+
+			left=margins["left"];
+		}
+	}
+
+	function Do() {
+		DoHeaders();
+		DoData();
+	}
+
+	function UseFont(fontname, fontsize) {
+    		_curfont = HPDF_GetFont (hpdf, fontname, "");
+		_curfontname=fontname;
+		_cursize=fontsize;
+		if (!_curfont)
+			throw "Invalid font name";
+
+    		HPDF_Page_SetFontAndSize (_curpage, _curfont, fontsize);
+	}
+
+	function SetHeaders(headers) {
+		if (typeof headers!="array")
+			throw "Invalid headers";
+		this.headers=headers;
+	}
+
+	function SetData(data) {
+		if (typeof data!="array")
+			throw "Invalid data array";
+		this.data=data;
+	}
+
+	function SetMargins(margins) {
+		if (typeof margins!="array")
+			throw "Invalid margins array";
+		this.margins=margins;
+	}
+
+	function SetLineWidth(w) {
+		_LineWidth=w;
+		HPDF_Page_SetLineWidth (_curpage, _LineWidth);
+	}
+
+	function Save(output) {
+		if (hpdf)
+			HPDF_SaveToFile (hpdf, output);
+	}
+
+	function finalize() {
+		if (hpdf)
+			HPDF_Free (hpdf);
+	}
+}

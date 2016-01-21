@@ -1,0 +1,142 @@
+include Application.con
+include RForm.con
+include RFrame.con
+include RVBox.con
+include RHBox.con
+include RLabel.con
+include REdit.con
+include RButton.con
+include RComboBox.con
+include DataBases.con
+include RAlignment.con
+
+class DataConnectionDialog extends RForm {
+	var ComboDSN;
+	var EditUser;
+	var EditPass;
+	var DBCon;
+	var ButtonConnect;
+	var OnDSNSelected;
+
+	private function ListDSN() {
+		var dsn=ODBCFirstDSN();
+		var has_one=false;
+		while (dsn!="")  {
+			ComboDSN.AddItem([dsn]);
+			dsn=ODBCNextDSN();
+			has_one=true;
+		}
+		if (has_one)
+			ComboDSN.RowIndex=0;
+	}
+
+
+	function ButtonConnectClicked(Sender, EventData) {
+		var index=ComboDSN.RowIndex;
+		if (index>-1) {
+			ButtonConnect.Enabled=false;
+			var dsn=ComboDSN.Items[index][0];
+			var username=EditUser.Text;
+			var password=EditPass.Text;
+
+			DBCon=new ADOConnection();
+			if (!DBCon.OpenDSN(dsn,username,password)) {
+				CApplication::MessageBox("Error connecting to database:\n"+DBCon.LastError(),"Error");
+			} else {
+				if (OnDSNSelected) {
+					Enabled=false;
+					OnDSNSelected(this, dsn);
+					Enabled=true;
+				}
+				//Hide();
+			}
+			ButtonConnect.Enabled=true;
+		} else {
+			CApplication::MessageBox("No data source name (DSN) was selected", "Error");
+		}
+	}
+
+	function DataConnectionDialog(Owner) {
+		super(Owner);
+		BeginUpdateSession();
+		Caption="Installer requested a db connection";
+
+		var vbox0=new RVBox(this);
+		vbox0.PackType=PACK_SHRINK;
+		vbox0.Show();
+
+		var frame=new RFrame(vbox0);
+		frame.Caption="Select data source";
+		frame.PackType=PACK_SHRINK;
+		frame.Show();
+
+		var vbox=new RVBox(frame);
+		vbox.PackType=PACK_SHRINK;
+		vbox.Show();
+
+		var hbox1=new RVBox(vbox);
+		hbox1.PackType=PACK_SHRINK;
+		hbox1.Show();
+
+		var lbl1=new RLabel(hbox1);
+		lbl1.XAlign=0.00;
+		lbl1.MinWidth=80;
+		lbl1.Caption="DSN:";
+		lbl1.Show();
+
+		ComboDSN=new RComboBox(hbox1);
+		ComboDSN.AddColumns(1);
+		ComboDSN.Show();
+
+		var hbox2=new RVBox(vbox);
+		hbox2.PackType=PACK_SHRINK;
+		hbox2.Show();
+
+		var lbl2=new RLabel(hbox2);
+		lbl2.XAlign=0.00;
+		lbl2.MinWidth=80;
+		lbl2.Caption="Username:";
+		lbl2.Show();
+
+		EditUser=new REdit(hbox2);
+		EditUser.ActivateDefault=true;
+		EditUser.Show();
+
+		var hbox3=new RVBox(vbox);
+		hbox3.PackType=PACK_SHRINK;
+		hbox3.Show();
+
+		var lbl3=new RLabel(hbox3);
+		lbl3.XAlign=0.00;
+		lbl3.MinWidth=80;
+		lbl3.Caption="Password:";
+		lbl3.Show();
+
+		EditPass=new REdit(hbox3);
+		EditPass.Masked=true;
+		EditPass.ActivateDefault=true;
+		EditPass.Show();
+
+		var hbox4=new RHBox(vbox0);
+		hbox4.PackType=PACK_SHRINK;
+		hbox4.Show();
+
+		var align=new RAlignment(hbox4);
+		align.Packing=PACK_EXPAND_WIDGET;
+		align.Show();
+
+		ButtonConnect=new RButton(hbox3);
+		ButtonConnect.Caption="_Connect";
+		ButtonConnect.OnClicked=ButtonConnectClicked;
+		ButtonConnect.Show();
+
+		Modal=true;
+		Position=WP_CENTER_ON_PARENT;
+		Type=WT_DIALOG;
+		Decorations=DECOR_TITLE & DECOR_BORDER;
+
+		ListDSN();
+		DefaultControl=ButtonConnect;
+		EndUpdateSession();
+	}
+}

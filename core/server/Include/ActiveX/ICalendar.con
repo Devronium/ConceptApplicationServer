@@ -1,0 +1,496 @@
+include ActiveXControl.con
+
+//////////////////////////////////////////////////////////////////////////
+// This file was generated automatically by AXInterfaceGenerator        //
+//                                          (c)2006 RadGs Software      //
+//                                                                      //
+//                   PLEASE DO NOT MODIFY THIS FILE !                   //
+//////////////////////////////////////////////////////////////////////////
+
+class ICalendar extends ActiveXControl {
+	//Uncomment LICENCE_KEY if the control needs to be registered
+ 	function ICalendar(Owner/*, LICENCE_KEY*/) {
+		//super(Owner, "MSCAL.Calendar", LICENCE_KEY);
+		super(Owner, "MSCAL.Calendar", "");
+		__AX_SET_EVENTS();
+	}
+
+/*0*/	function /*{HRESULT}*/ AX_GET_BackColor( /*{OLE_COLOR*}*/) /*{propget}*/ {
+		Send(MSG_AX_GET_PROPERTY, "BackColor", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*1*/	function /*{HRESULT}*/ AX_SET_BackColor(parameter0 /*{OLE_COLOR}*/) /*{propput}*/ {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_SET_PROPERTY, "BackColor", "0");
+	}
+
+/*2*/	function /*{HRESULT}*/ AX_GET_Day( /*{short*}*/) /*{propget}*/ {
+		Send(MSG_AX_GET_PROPERTY, "Day", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*3*/	function /*{HRESULT}*/ AX_SET_Day(parameter0 /*{short}*/) /*{propput}*/ {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_SET_PROPERTY, "Day", "0");
+	}
+
+/*4*/	function /*{HRESULT}*/ AX_GET_DayFont( /*{IFontDisp**}*/) /*{propget}*/ {
+		Send(MSG_AX_GET_PROPERTY, "DayFont", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*5*/	function /*{HRESULT}*/ AX_SET_DayFont(var parameter0 /*{IFontDisp*}*/) /*{propput}*/ {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_SET_PROPERTY, "DayFont", "0");
+	}
+
+/*6*/	function /*{HRESULT}*/ AX_GET_DayFontColor( /*{OLE_COLOR*}*/) /*{propget}*/ {
+		Send(MSG_AX_GET_PROPERTY, "DayFontColor", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*7*/	function /*{HRESULT}*/ AX_SET_DayFontColor(parameter0 /*{OLE_COLOR}*/) /*{propput}*/ {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_SET_PROPERTY, "DayFontColor", "0");
+	}
+
+/*8*/	function /*{HRESULT}*/ AX_GET_DayLength( /*{short*}*/) /*{propget}*/ {
+		Send(MSG_AX_GET_PROPERTY, "DayLength", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*9*/	function /*{HRESULT}*/ AX_SET_DayLength(parameter0 /*{short}*/) /*{propput}*/ {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_SET_PROPERTY, "DayLength", "0");
+	}
+
+/*10*/	function /*{HRESULT}*/ AX_GET_FirstDay( /*{short*}*/) /*{propget}*/ {
+		Send(MSG_AX_GET_PROPERTY, "FirstDay", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*11*/	function /*{HRESULT}*/ AX_SET_FirstDay(parameter0 /*{short}*/) /*{propput}*/ {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_SET_PROPERTY, "FirstDay", "0");
+	}
+
+/*12*/	function /*{HRESULT}*/ AX_GET_GridCellEffect( /*{long*}*/) /*{propget}*/ {
+		Send(MSG_AX_GET_PROPERTY, "GridCellEffect", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*13*/	function /*{HRESULT}*/ AX_SET_GridCellEffect(parameter0 /*{long}*/) /*{propput}*/ {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_SET_PROPERTY, "GridCellEffect", "0");
+	}
+
+/*14*/	function /*{HRESULT}*/ AX_GET_GridFont( /*{IFontDisp**}*/) /*{propget}*/ {
+		Send(MSG_AX_GET_PROPERTY, "GridFont", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*15*/	function /*{HRESULT}*/ AX_SET_GridFont(var parameter0 /*{IFontDisp*}*/) /*{propput}*/ {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_SET_PROPERTY, "GridFont", "0");
+	}
+
+/*16*/	function /*{HRESULT}*/ AX_GET_GridFontColor( /*{OLE_COLOR*}*/) /*{propget}*/ {
+		Send(MSG_AX_GET_PROPERTY, "GridFontColor", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*17*/	function /*{HRESULT}*/ AX_SET_GridFontColor(parameter0 /*{OLE_COLOR}*/) /*{propput}*/ {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_SET_PROPERTY, "GridFontColor", "0");
+	}
+
+/*18*/	function /*{HRESULT}*/ AX_GET_GridLinesColor( /*{OLE_COLOR*}*/) /*{propget}*/ {
+		Send(MSG_AX_GET_PROPERTY, "GridLinesColor", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*19*/	function /*{HRESULT}*/ AX_SET_GridLinesColor(parameter0 /*{OLE_COLOR}*/) /*{propput}*/ {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_SET_PROPERTY, "GridLinesColor", "0");
+	}
+
+/*20*/	function /*{HRESULT}*/ AX_GET_Month( /*{short*}*/) /*{propget}*/ {
+		Send(MSG_AX_GET_PROPERTY, "Month", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*21*/	function /*{HRESULT}*/ AX_SET_Month(parameter0 /*{short}*/) /*{propput}*/ {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_SET_PROPERTY, "Month", "0");
+	}
+
+/*22*/	function /*{HRESULT}*/ AX_GET_MonthLength( /*{short*}*/) /*{propget}*/ {
+		Send(MSG_AX_GET_PROPERTY, "MonthLength", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*23*/	function /*{HRESULT}*/ AX_SET_MonthLength(parameter0 /*{short}*/) /*{propput}*/ {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_SET_PROPERTY, "MonthLength", "0");
+	}
+
+/*24*/	function /*{HRESULT}*/ AX_GET_ShowDateSelectors( /*{VARIANT_BOOL*}*/) /*{propget}*/ {
+		Send(MSG_AX_GET_PROPERTY, "ShowDateSelectors", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*25*/	function /*{HRESULT}*/ AX_SET_ShowDateSelectors(parameter0 /*{VARIANT_BOOL}*/) /*{propput}*/ {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_SET_PROPERTY, "ShowDateSelectors", "0");
+	}
+
+/*26*/	function /*{HRESULT}*/ AX_GET_ShowDays( /*{VARIANT_BOOL*}*/) /*{propget}*/ {
+		Send(MSG_AX_GET_PROPERTY, "ShowDays", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*27*/	function /*{HRESULT}*/ AX_SET_ShowDays(parameter0 /*{VARIANT_BOOL}*/) /*{propput}*/ {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_SET_PROPERTY, "ShowDays", "0");
+	}
+
+/*28*/	function /*{HRESULT}*/ AX_GET_ShowHorizontalGrid( /*{VARIANT_BOOL*}*/) /*{propget}*/ {
+		Send(MSG_AX_GET_PROPERTY, "ShowHorizontalGrid", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*29*/	function /*{HRESULT}*/ AX_SET_ShowHorizontalGrid(parameter0 /*{VARIANT_BOOL}*/) /*{propput}*/ {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_SET_PROPERTY, "ShowHorizontalGrid", "0");
+	}
+
+/*30*/	function /*{HRESULT}*/ AX_GET_ShowTitle( /*{VARIANT_BOOL*}*/) /*{propget}*/ {
+		Send(MSG_AX_GET_PROPERTY, "ShowTitle", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*31*/	function /*{HRESULT}*/ AX_SET_ShowTitle(parameter0 /*{VARIANT_BOOL}*/) /*{propput}*/ {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_SET_PROPERTY, "ShowTitle", "0");
+	}
+
+/*32*/	function /*{HRESULT}*/ AX_GET_ShowVerticalGrid( /*{VARIANT_BOOL*}*/) /*{propget}*/ {
+		Send(MSG_AX_GET_PROPERTY, "ShowVerticalGrid", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*33*/	function /*{HRESULT}*/ AX_SET_ShowVerticalGrid(parameter0 /*{VARIANT_BOOL}*/) /*{propput}*/ {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_SET_PROPERTY, "ShowVerticalGrid", "0");
+	}
+
+/*34*/	function /*{HRESULT}*/ AX_GET_TitleFont( /*{IFontDisp**}*/) /*{propget}*/ {
+		Send(MSG_AX_GET_PROPERTY, "TitleFont", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*35*/	function /*{HRESULT}*/ AX_SET_TitleFont(var parameter0 /*{IFontDisp*}*/) /*{propput}*/ {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_SET_PROPERTY, "TitleFont", "0");
+	}
+
+/*36*/	function /*{HRESULT}*/ AX_GET_TitleFontColor( /*{OLE_COLOR*}*/) /*{propget}*/ {
+		Send(MSG_AX_GET_PROPERTY, "TitleFontColor", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*37*/	function /*{HRESULT}*/ AX_SET_TitleFontColor(parameter0 /*{OLE_COLOR}*/) /*{propput}*/ {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_SET_PROPERTY, "TitleFontColor", "0");
+	}
+
+/*38*/	function /*{HRESULT}*/ AX_GET_Value( /*{VARIANT*}*/) /*{propget}*/ {
+		Send(MSG_AX_GET_PROPERTY, "Value", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*39*/	function /*{HRESULT}*/ AX_SET_Value(parameter0 /*{VARIANT}*/) /*{propput}*/ {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_SET_PROPERTY, "Value", "0");
+	}
+
+/*40*/	function /*{HRESULT}*/ AX_GET__Value( /*{VARIANT*}*/) /*{propget}*/ {
+		Send(MSG_AX_GET_PROPERTY, "_Value", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*41*/	function /*{HRESULT}*/ AX_SET__Value(parameter0 /*{VARIANT}*/) /*{propput}*/ {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_SET_PROPERTY, "_Value", "0");
+	}
+
+/*42*/	function /*{HRESULT}*/ AX_GET_ValueIsNull( /*{VARIANT_BOOL*}*/) /*{propget}*/ {
+		Send(MSG_AX_GET_PROPERTY, "ValueIsNull", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*43*/	function /*{HRESULT}*/ AX_SET_ValueIsNull(parameter0 /*{VARIANT_BOOL}*/) /*{propput}*/ {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_SET_PROPERTY, "ValueIsNull", "0");
+	}
+
+/*44*/	function /*{HRESULT}*/ AX_GET_Year( /*{short*}*/) /*{propget}*/ {
+		Send(MSG_AX_GET_PROPERTY, "Year", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*45*/	function /*{HRESULT}*/ AX_SET_Year(parameter0 /*{short}*/) /*{propput}*/ {
+		Send(MSG_AX_ADD_PARAMETER, "0", parameter0);
+		Send(MSG_AX_SET_PROPERTY, "Year", "0");
+	}
+
+/*46*/	function /*{HRESULT}*/ NextDay()  {
+		Send(MSG_AX_CALL_METHOD, "NextDay", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*47*/	function /*{HRESULT}*/ NextMonth()  {
+		Send(MSG_AX_CALL_METHOD, "NextMonth", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*48*/	function /*{HRESULT}*/ NextWeek()  {
+		Send(MSG_AX_CALL_METHOD, "NextWeek", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*49*/	function /*{HRESULT}*/ NextYear()  {
+		Send(MSG_AX_CALL_METHOD, "NextYear", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*50*/	function /*{HRESULT}*/ PreviousDay()  {
+		Send(MSG_AX_CALL_METHOD, "PreviousDay", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*51*/	function /*{HRESULT}*/ PreviousMonth()  {
+		Send(MSG_AX_CALL_METHOD, "PreviousMonth", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*52*/	function /*{HRESULT}*/ PreviousWeek()  {
+		Send(MSG_AX_CALL_METHOD, "PreviousWeek", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*53*/	function /*{HRESULT}*/ PreviousYear()  {
+		Send(MSG_AX_CALL_METHOD, "PreviousYear", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*54*/	function /*{HRESULT}*/ Refresh()  {
+		Send(MSG_AX_CALL_METHOD, "Refresh", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*55*/	function /*{HRESULT}*/ Today()  {
+		Send(MSG_AX_CALL_METHOD, "Today", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+/*56*/	function /*{HRESULT}*/ AboutBox()  {
+		Send(MSG_AX_CALL_METHOD, "AboutBox", "0");
+		Send(MSG_AX_GET_RESULT, "0", "0");
+		WaitMessage(var SENDER, var MSG_ID=MSG_AX_GET_RESULT, var TARGET, var VALUE);
+		return VALUE;
+	}
+
+//---------------- BEGIN OF EVENTS INTERFACE (info only) -----------------//
+	//Event syntax:void Click() 
+	public property _OnClick { get Get_OnClick, set Set_OnClick }
+	public function Get_OnClick() {
+		return _AX_EVENTS[1];
+	}
+
+	public function Set_OnClick(delegate deleg) {
+		_AX_EVENTS[1]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",1);
+	}
+
+	//Event syntax:void DblClick() 
+	public property _OnDblClick { get Get_OnDblClick, set Set_OnDblClick }
+	public function Get_OnDblClick() {
+		return _AX_EVENTS[2];
+	}
+
+	public function Set_OnDblClick(delegate deleg) {
+		_AX_EVENTS[2]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",2);
+	}
+
+	//Event syntax:void KeyDown(parameter0<short*>, parameter1<short>) 
+	public property _OnKeyDown { get Get_OnKeyDown, set Set_OnKeyDown }
+	public function Get_OnKeyDown() {
+		return _AX_EVENTS[3];
+	}
+
+	public function Set_OnKeyDown(delegate deleg) {
+		_AX_EVENTS[3]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",3);
+	}
+
+	//Event syntax:void KeyPress(parameter0<short*>) 
+	public property _OnKeyPress { get Get_OnKeyPress, set Set_OnKeyPress }
+	public function Get_OnKeyPress() {
+		return _AX_EVENTS[4];
+	}
+
+	public function Set_OnKeyPress(delegate deleg) {
+		_AX_EVENTS[4]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",4);
+	}
+
+	//Event syntax:void KeyUp(parameter0<short*>, parameter1<short>) 
+	public property _OnKeyUp { get Get_OnKeyUp, set Set_OnKeyUp }
+	public function Get_OnKeyUp() {
+		return _AX_EVENTS[5];
+	}
+
+	public function Set_OnKeyUp(delegate deleg) {
+		_AX_EVENTS[5]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",5);
+	}
+
+	//Event syntax:void BeforeUpdate(parameter0<short*>) 
+	public property _OnBeforeUpdate { get Get_OnBeforeUpdate, set Set_OnBeforeUpdate }
+	public function Get_OnBeforeUpdate() {
+		return _AX_EVENTS[6];
+	}
+
+	public function Set_OnBeforeUpdate(delegate deleg) {
+		_AX_EVENTS[6]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",6);
+	}
+
+	//Event syntax:void AfterUpdate() 
+	public property _OnAfterUpdate { get Get_OnAfterUpdate, set Set_OnAfterUpdate }
+	public function Get_OnAfterUpdate() {
+		return _AX_EVENTS[7];
+	}
+
+	public function Set_OnAfterUpdate(delegate deleg) {
+		_AX_EVENTS[7]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",7);
+	}
+
+	//Event syntax:void NewMonth() 
+	public property _OnNewMonth { get Get_OnNewMonth, set Set_OnNewMonth }
+	public function Get_OnNewMonth() {
+		return _AX_EVENTS[8];
+	}
+
+	public function Set_OnNewMonth(delegate deleg) {
+		_AX_EVENTS[8]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",8);
+	}
+
+	//Event syntax:void NewYear() 
+	public property _OnNewYear { get Get_OnNewYear, set Set_OnNewYear }
+	public function Get_OnNewYear() {
+		return _AX_EVENTS[9];
+	}
+
+	public function Set_OnNewYear(delegate deleg) {
+		_AX_EVENTS[9]=deleg;
+		Send(MSG_AX_ADD_EVENT,"0",9);
+	}
+
+//------------------ END OF EVENTS INTERFACE (info only) -----------------//
+
+	public property BackColor { get AX_GET_BackColor, set AX_SET_BackColor }
+	public property Day { get AX_GET_Day, set AX_SET_Day }
+	public property DayFont { get AX_GET_DayFont, set AX_SET_DayFont }
+	public property DayFontColor { get AX_GET_DayFontColor, set AX_SET_DayFontColor }
+	public property DayLength { get AX_GET_DayLength, set AX_SET_DayLength }
+	public property FirstDay { get AX_GET_FirstDay, set AX_SET_FirstDay }
+	public property GridCellEffect { get AX_GET_GridCellEffect, set AX_SET_GridCellEffect }
+	public property GridFont { get AX_GET_GridFont, set AX_SET_GridFont }
+	public property GridFontColor { get AX_GET_GridFontColor, set AX_SET_GridFontColor }
+	public property GridLinesColor { get AX_GET_GridLinesColor, set AX_SET_GridLinesColor }
+	public property Month { get AX_GET_Month, set AX_SET_Month }
+	public property MonthLength { get AX_GET_MonthLength, set AX_SET_MonthLength }
+	public property ShowDateSelectors { get AX_GET_ShowDateSelectors, set AX_SET_ShowDateSelectors }
+	public property ShowDays { get AX_GET_ShowDays, set AX_SET_ShowDays }
+	public property ShowHorizontalGrid { get AX_GET_ShowHorizontalGrid, set AX_SET_ShowHorizontalGrid }
+	public property ShowTitle { get AX_GET_ShowTitle, set AX_SET_ShowTitle }
+	public property ShowVerticalGrid { get AX_GET_ShowVerticalGrid, set AX_SET_ShowVerticalGrid }
+	public property TitleFont { get AX_GET_TitleFont, set AX_SET_TitleFont }
+	public property TitleFontColor { get AX_GET_TitleFontColor, set AX_SET_TitleFontColor }
+	public property Value { get AX_GET_Value, set AX_SET_Value }
+	public property _Value { get AX_GET__Value, set AX_SET__Value }
+	public property ValueIsNull { get AX_GET_ValueIsNull, set AX_SET_ValueIsNull }
+	public property Year { get AX_GET_Year, set AX_SET_Year }
+}

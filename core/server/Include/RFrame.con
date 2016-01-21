@@ -1,0 +1,60 @@
+include SingleContainer.con
+include ClassID.con
+
+define SHADOW_NONE		0
+define SHADOW_IN		1
+define SHADOW_OUT		2
+define SHADOW_ETCHED_IN		3
+define SHADOW_ETCHED_OUT	4
+
+class RFrame extends SingleContainer {
+	DEFINE_FIXED_CONTROL
+
+	private var CAPTION="";
+	private var SHADOWTYPE;
+	private var HTEXTALIGN;
+	private var VTEXTALIGN;
+	private var MARKUP;
+
+	public property Caption { get CAPTION, set SetCaption }
+	public property ShadowType { get SHADOWTYPE, set SetShadowType }
+	public property HTextAlign { get HTEXTALIGN, set SetHTextAlign }
+	public property VTextAlign { get VTEXTALIGN, set SetVTextAlign }
+	public property UseMarkup { get MARKUP, set SetUseMarkup }
+
+	
+	public function RFrame(OWNER) {
+		super(OWNER, CLASS_FRAME);
+	}
+
+	public function SetCaption(argument) {
+		SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_CAPTION,argument);
+		CAPTION=argument;
+		return argument;
+	}
+
+	public function SetShadowType(argument) {
+		SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_SHADOWTYPE,argument);
+		SHADOWTYPE=argument;
+		return argument;
+	}
+
+	public function SetHTextAlign(argument) {
+		SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_HTEXTALIGN,argument);
+		HTEXTALIGN=argument;
+		return argument;
+	}
+
+	public function SetVTextAlign(argument) {
+		SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_VTEXTALIGN,argument);
+		VTEXTALIGN=argument;
+		return argument;
+	}
+
+	public function SetUseMarkup(argument) {
+		//argument=(argument!=0);
+		SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_MARKUP,argument);
+		MARKUP=argument;
+		return argument;
+	}
+}

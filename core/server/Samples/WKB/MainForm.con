@@ -1,0 +1,344 @@
+// the standard project forms definition. If no glade is used, comment the next line.
+include project_forms.glade.con
+include RWebView.con
+include RScrolledWindow.con
+include RStatusbar.con
+
+// comment the next line if this is NOT the main application form
+define APPLICATION_FORM_TYPE	MainForm
+
+define HOME_PAGE                "http://www.radgs.com"
+define USER_AGENT               "Mozilla/5.0 (U; c) AppleWebKit/531.2+ (like Gecko) Safari/531.2+"
+
+class ExtraData {
+    var mainbox;
+    var index;
+    var webkit;
+    var title;
+    var statusbar;
+    var maintitle="";
+}
+
+// manually replace window1 with your glade window name
+class MainForm extends window1 {
+        // ========================================================================
+        // constructor;
+        // S is a Lang object used to translate strings using
+        // the default string table named string.table.xml
+        // Is your responsability to pass this object to other forms instantiated
+        // in this application
+        // ========================================================================
+        var webkit;
+        var invisible_webkit;
+        var visible_count=0;
+        var[] eds;
+
+        public function MainForm(Owner, Lang S) {
+                super(Owner, S);
+                this.DefaultControl=button1;
+                this.CreateNewPage("", false);
+                this.CreateNewPage(HOME_PAGE);
+        }
+
+        public function Limit(string s, number max_len=50, string after="..") {
+            var len=length s;
+            if (len<=max_len)
+                return s;
+            else
+                return SubStr(s, 0, max_len-(length after))+after;
+        }
+        
+        public function DoAddress(string adr) {
+            var adr_lo=ToLower(adr);
+            if ((Pos(adr_lo, "http://")!=1) && (Pos(adr_lo, "https://")!=1)){
+                adr="http://$adr";
+            }
+            return adr;
+        }
+
+        public function CreateNewPage(string address, number visible=true) {
+            var mainbox=new RVBox(this.notebook1);
+            if (visible)
+                mainbox.Show();
+
+            var scroll=new RScrolledWindow(mainbox);
+            scroll.HScrollPolicy=POLICY_AUTOMATIC;
+            scroll.VScrollPolicy=POLICY_AUTOMATIC;
+            
+            var statusbar=new RStatusbar(mainbox);
+            statusbar.Show();
+
+            var webkit;
+            webkit=new RWebView(scroll);
+            webkit.Set("user-agent", USER_AGENT);
+            webkit.Show();
+            webkit.URI=address;
+            //webkit.Editable=true;
+            if (visible)
+                editUrl.Text=address;
+            //webkit.Inspector=this.notebook1;
+            //webkit.Set("enable-developer-extras", true);
+
+            if (this.invisible_webkit)
+                webkit.NewWindowView=this.invisible_webkit;
+            
+            webkit.OnLoadFinished/*OnNavigationRequested*/=this.OnNavigationRequested;
+            webkit.OnDownloadRequested=this.OnDownloadRequested;
+            webkit.SetEventResponse(EVENT_ON_DOWNLOAD_REQUESTED, false);
+            webkit.MaintainBackForward=true;
+            webkit.OnTitleChanged=this.OnTitleChanged;
+            webkit.OnStatusTextChanged=this.OnStatusTextChanged;
+            webkit.OnProgressChanged=this.OnProgressChanged;
+            webkit.HighlightMatches=true;
+            webkit.OnHoverLink=this.HoverLink;
+            
+            webkit.OnCreateWebview=this.OnCreateWebView;
+            
+            scroll.Show();
+            
+            var ed=new ExtraData();
+            ed.mainbox=mainbox;
+            ed.statusbar=statusbar;
+            ed.index=(length notebook1.Pages)-1;
+            ed.webkit=webkit;
+
+            webkit.UserData=ed;
+            
+            var vbox=new RHBox(null);
+            notebook1.Pages[ed.index].SetHeader(vbox);
+
+            //vbox.Packing=PACK_SHRINK;
+            vbox.PackType=PACK_SHRINK;
+            vbox.Show();
+
+            var image2=new RImage(vbox);
+            image2.LoadResource("gtk-about",1);
+            image2.Show();
+            
+            var label=new RLabel(vbox);
+            label.Caption=" New tab ";
+            label.Show();
+            ed.title=label;
+            
+            var closebutton=new RButton(vbox);
+            closebutton.PackType=PACK_SHRINK;
+            closebutton.ReliefStyle=RELIEF_NONE;
+            closebutton.OnClicked=this.on_tab_close;
+            closebutton.UserData=webkit;
+            closebutton.Show();
+            
+            var image=new RImage(closebutton);
+            image.LoadResource("gtk-close",1);
+            image.Show();
+            
+            if (visible) {
+                visible_count++;
+                
+                if (visible_count==1) {
+                    notebook1.ShowTabs=false;
+                } else
+                    notebook1.ShowTabs=true;
+                    
+                this.webkit=webkit;
+                notebook1.PageIndex=ed.index;
+            } else
+                this.invisible_webkit=webkit;
+
+            eds[ed.index]=ed;
+        }
+        
+        public function on_tab_close(Sender, EventData) {
+            if (visible_count>1) {
+                var webkit=Sender.UserData;
+                if (webkit) {
+                    webkit.URI="";
+                    webkit.Stop();
+                    var ed=webkit.UserData;
+                    ed.mainbox.Hide();
+                    visible_count--;
+                    if (visible_count==1) {
+                        notebook1.ShowTabs=false;
+                    } else
+                        notebook1.ShowTabs=true;
+                }
+            } else {
+                CApplication.Message(S<<"<b>You must have at least one tab opened</b>", S<<"Warning", MESSAGE_WARNING);
+            }
+        }
+        
+        public function on_notebook1_switch_page(Sender, EventData) {
+            var pindex=notebook1.PageIndex;
+            var ed=eds[pindex];
+            if ((ed) && (ed.webkit)) {
+                webkit=ed.webkit;
+                if (ed.maintitle) {
+                    this.Caption=ed.maintitle+" - Concept WKB";
+                } else
+                    this.Caption="Concept WKB";
+                var uri=webkit.URI;
+                if (uri)
+                    this.editUrl.Text=uri;
+            }
+        }
+
+        // Manually add your events here //
+        public function OnNavigationRequested(Sender, EventData) {
+            var uri=this.webkit.URI;
+            if (!uri)
+                uri=EventData;
+            editUrl.Text=uri;//EventData;
+        }
+        
+        public function OnCreateWebView(Sender, EventData) {
+            this.webkit=invisible_webkit;
+            if (this.webkit) {
+
+                if (!this.webkit.UserData.mainbox.Visible) {
+                    this.webkit.UserData.mainbox.Show();
+                    this.notebook1.PageIndex=this.webkit.UserData.index;
+
+                    visible_count++;
+                    
+                    if (visible_count==1) {
+                        notebook1.ShowTabs=false;
+                    } else
+                        notebook1.ShowTabs=true;
+                }
+            }
+        }
+        
+        public function OnTitleChanged(Sender, EventData) {
+            if (Sender) {
+                var ed=Sender.UserData;
+                if (ed) {
+                    if (EventData)
+                        ed.title.Caption=" "+this.Limit(EventData)+" ";
+                    else
+                        ed.title.Caption=" No title ";
+
+                    ed.title.Tooltip=EventData;
+                    ed.maintitle=EventData;
+                    if (Sender==webkit) {
+                        if (ed.maintitle) {
+                            this.Caption=ed.maintitle+" - Concept WKB";
+                        } else
+                            this.Caption="Concept WKB";
+                    }
+                }
+            }
+        }
+        
+        public function OnProgressChanged(Sender, EventData) {
+            var val=value EventData;
+            if (val==100)
+                this.editUrl.ProgressFraction=0;
+            else
+                this.editUrl.ProgressFraction=val/100;
+        }
+
+        public function OnStatusTextChanged(Sender, EventData) {
+            if (Sender) {
+                var ed=Sender.UserData;
+                if (ed) {
+                    ed.statusbar.Caption=EventData;
+                }
+            }
+        }
+
+        public function OnDownloadRequested(Sender, EventData) {
+            CApplication.Message(S<<"<b>Downloads are disabled !</b>", S<<"Information");
+        }
+
+        public function on_button1_clicked(VisibleRemoteObject Sender, string EventData) {
+            var adr=this.DoAddress(editUrl.Text);
+            editUrl.Text=adr;
+            this.webkit.URI=adr;
+        }
+        
+        public function on_toolbutton1_clicked(VisibleRemoteObject Sender, string EventData) {
+            if (this.webkit)
+                this.webkit.Back();
+        }
+
+        public function on_toolbutton2_clicked(VisibleRemoteObject Sender, string EventData) {
+            if (this.webkit)
+                this.webkit.Forward();
+        }
+
+        public function on_toolbutton4_clicked(VisibleRemoteObject Sender, string EventData) {
+            if (this.webkit)
+                this.webkit.Reload();
+        }
+
+        public function on_toolbutton5_clicked(VisibleRemoteObject Sender, string EventData) {
+            if (this.webkit)
+                this.webkit.Stop();
+        }
+
+        public function on_toolbutton6_clicked(VisibleRemoteObject Sender, string EventData) {
+            if (this.webkit)
+                this.webkit.URI=HOME_PAGE;
+        }
+
+        public function on_toolbutton7_clicked(VisibleRemoteObject Sender, string EventData) {
+            this.CreateNewPage("about:blank");
+        }
+        
+        public function on_button2_clicked(Sender, EventData) {
+            var q=trim(editFind.Text);
+            if ((webkit) && (q)) {
+                webkit.URI="http://www.google.com/search?q=$q";
+            }
+        }
+
+        public function on_button3_clicked(Sender, EventData) {
+            var q=trim(entrySearchInPage.Text);
+            var case_sensitive=this.checkbutton1.Checked;
+            if ((webkit) && (q)) {
+                webkit.CaseSensitive=case_sensitive;
+                webkit.Search(q, true);
+            }
+        }
+
+        public function on_button4_clicked(Sender, EventData) {
+            var q=trim(entrySearchInPage.Text);
+            var case_sensitive=this.checkbutton1.Checked;
+            if ((webkit) && (q)) {
+                webkit.CaseSensitive=case_sensitive;
+                webkit.Search(q, false);
+            }
+        }
+
+        public function on_button5_clicked(Sender, EventData) {
+            var q=trim(entrySearchInPage.Text);
+            var case_sensitive=this.checkbutton1.Checked;
+            if ((webkit) && (q)) {
+                webkit.CaseSensitive=case_sensitive;
+                webkit.MarkText(q);
+            }
+        }
+
+        public function on_button6_clicked(Sender, EventData) {
+            if (webkit)
+                webkit.UnMarkText();
+        }
+        
+        public function on_button7_clicked(Sender, EventData) {
+            if (webkit)
+                webkit.Editable=!webkit.Editable;
+        }
+        
+        public function on_toolbutton8_clicked(Sender, EventData) {
+            if (webkit)
+                webkit.Print();
+        }
+
+        public function HoverLink(Sender, EventData) {
+            if (Sender) {
+                var ed=Sender.UserData;
+                if (ed) {
+                    ed.statusbar.Caption=EventData;
+                }
+            }
+        }
+}

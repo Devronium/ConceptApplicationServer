@@ -1,0 +1,19 @@
+include 'VisibleControl.con'
+
+class ConceptStatusBar extends VisibleControl {
+	public function ConceptStatusBar(Owner) {
+		this->VisibleControl(Owner, CLASS_STATUSBAR);
+	}
+
+	public function AddSection(width) {
+		SendMessage(this->Name, MSG_ITEM_ADD, "0", width);
+	}
+
+	public function RemoveSection(index) {
+		SendMessage(this->Name, MSG_ITEM_REMOVE, "0", index);
+	}
+
+	public function SetPartText(ID, text) {
+		SendMessage(this->Name, MSG_STATUS_BAR_TEXT, ""+ID, text);
+	}
+}

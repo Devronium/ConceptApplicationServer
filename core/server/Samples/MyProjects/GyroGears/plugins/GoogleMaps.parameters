@@ -1,0 +1,6 @@
+Key:optional,string
+Latitude member, or coordinates member (or constant):mandatory,memberedit
+Longitude member (or constant):optional,memberedit
+Title member:optional,memberedit
+Description member:optional,memberedit
+Address members (separated by comma):optional,memberedit

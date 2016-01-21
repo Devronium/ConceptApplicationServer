@@ -1,0 +1,12 @@
+include SingleContainer.con
+include ClassID.con
+
+class RMirrorContainer extends SingleContainer {
+	public function RMirrorContainer(OWNER) {
+		super(OWNER, CLASS_MIRRORCONTAINER);
+	}
+
+	public function BackgroundImage(object img) {
+		return SetProperty(P_BACKGROUNDIMAGE,img.RID);
+	}
+}

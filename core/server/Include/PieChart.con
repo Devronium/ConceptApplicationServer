@@ -1,0 +1,172 @@
+import standard.C.math
+import standard.lib.str
+import standard.C.casts
+
+class PieChart {
+	static function ToHex(n) {
+		var result=NumberToHex(n);
+		if (length result<2)
+			result="0"+result;
+		return result;
+	}
+
+	static function HSVtoRGB(h, s, v) {
+		var r,g,b;
+		var i;
+		var f, p, q, t;
+		if (s==0) {
+			r = g = b = v;
+			return "#"+PieChart::ToHex(r*0x100)+PieChart::ToHex(g*0x100)+PieChart::ToHex(b*0x100);
+		}
+ 
+		h /= 60;
+		i = floor(h);
+
+		f = h - i;
+ 
+		p = v * ( 1 - s );
+		q = v * ( 1 - s * f );
+		t = v * ( 1 - s * ( 1 - f ) );
+ 
+		switch (i) {
+			case 0:
+				r = v;
+				g = t;
+				b = p;
+				break;
+			case 1:
+				r = q;
+				g = v;
+				b = p;
+				break;
+			case 2:
+				r = p;
+				g = v;
+				b = t;
+				break;
+			case 3:
+				r = p;
+				g = q;
+				b = v;
+				break;
+			case 4:
+				r = t;
+				g = p;
+				b = v;
+				break;
+			default:
+				r = v;
+				g = p;
+				b = q;
+				break;
+		}
+		return "#"+PieChart::ToHex(r*0x100)+PieChart::ToHex(g*0x100)+PieChart::ToHex(b*0x100);
+	}
+
+	static function Do(array data, width=600, height=400, h=-1, s=0.90, v=0.60, embedable = false) {
+		var half=height/2;
+		var radius=half-20;
+		var result="";
+		if (!embedable) {
+			result += "<?xml version=\"1.0\" standalone=\"no\" ?>\n"+
+			"<!DOCTYPE svg PUBLIC \"-//W3C//DTD SVG 1.0//EN\"\n"+
+			"	\"http://www.w3.org/TR/2001/PR-SVG-20010719/DTD/svg10.dtd\">\n";
+		}
+		result += "<svg width=\"$width\" height=\"$height\">\n"+
+		"<defs>\n"+
+		"<filter id=\"dropshadow\" width=\"120%\" height=\"120%\">\n"+
+		"<feGaussianBlur stdDeviation=\"4\"/>\n"+
+		"</filter>\n"+
+		"</defs>\n"+
+		"<circle cx=\"${half+5}\" cy=\"${half+5}\" r=\"$radius\"\n"+
+		"	style=\"fill: black; fill-opacity:0.6; stroke:none;\n"+
+		"	filter:url(#dropshadow)\"/>\n";
+
+		var len=length data;
+		var total=0;
+		for (var i=0;i<len;i++) {
+			var e=data[i];
+			if (e)
+				total+=e[1];
+		}
+		var start=10;
+
+		if (total) {
+			var delta=360/len;
+			if (delta>30)
+				delta=30;
+
+			if (len<=3)
+				delta=120;
+			else
+			if (len<=6)
+				delta=60;
+
+			if (delta==360)
+				delta=180;
+
+			if (h<0)
+				h=int32((rand()%32768)/32767*(360-delta));
+
+			var start1=half;
+			var start2=20;
+			var val_here=0;
+
+
+			result+="<rect x=\"${height}\" y=\"$start\" width=\"${width-height-10}\" height=\"${len*15+15}\"\n"+
+				"	style=\"fill-opacity:0.1; stroke:gray;\n"+
+				"		fill: gray\"/>\n";
+			start+=10;
+
+			var half_total=total/2;
+			for (i=0;i<len;i++) {
+				e=data[i];
+				if (e) {
+					var val=e[1];
+					var big_flag=0;
+
+					if (val>half_total)
+						big_flag=1;
+
+					val_here+=val;
+
+					var new1=half+radius*sin(val_here*2*M_PI/total);
+					var new2=half-radius*cos(val_here*2*M_PI/total);
+
+					var fill=PieChart::HSVtoRGB(h, s, v);
+					h+=delta;
+					if (h>=360)
+						h=delta-(h-360);
+
+					result+="<path d=\"M$half,$half L$start1,$start2 A$radius,$radius 0 $big_flag,1 $new1,$new2 Z\"\n"+
+						"	style=\"fill: $fill;\n"+
+						"		stroke: black;\n"+
+						"		stroke-width: 2\"/>\n";
+
+					result+="<rect x=\"${height+5}\" y=\"$start\" width=\"20\" height=\"10\"\n"+
+						"	style=\"stroke-linejoin: round;\n"+
+						"		stroke-width: 1;\n"+
+						"		stroke: black;\n"+
+						"		fill: $fill\"/>\n";
+					result+="<text x=\"${height+35}\" y=\"${start+10}\"\n"+
+						"	style=\"font-family:verdana, arial, sans-serif;\n"+
+						"		font-size: 14;\n"+
+						"		fill: white;\n"+
+						"		stroke: gray\">\n"+
+						"	<![CDATA[${e[0]}]]>\n"+
+						"</text>\n";
+
+					start+=15;
+
+					start1=new1;
+					start2=new2;
+				}
+			}
+		}
+
+
+		result+="</svg>\n";
+
+		return result;
+	}
+}

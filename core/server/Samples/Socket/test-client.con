@@ -1,0 +1,19 @@
+import standard.net.socket
+
+class Main {
+	function Main() {
+		var s=SocketCreate();
+
+		echo "Connecting ... ";
+		if (SocketConnect(s,"localhost",3500)==-1) {
+			echo "Couldn't Connect :"+SocketError(s)+"\n";
+			return 0;
+		}
+
+		echo "Connected !\n";
+
+		for (var i=0;i<10;i++)
+			echo SocketWrite(s,"SUPERMAN $i !");
+		SocketClose(s);
+	}
+}

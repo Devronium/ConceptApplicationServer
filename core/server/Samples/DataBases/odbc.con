@@ -1,0 +1,91 @@
+import 'win32.databases.odbc'
+
+define	USERNAME			"iadc"
+define	DATABASE			"iadc"
+define	PASSWORD			"iadc"
+
+define	CONNECTION_STRING		"Driver={MySQL ODBC 3.52 Driver};Server=localhost;Database=sesal;Uid=radgs;Option=16;"
+define  QUERY				"select * from menu"
+
+//define	NON_QUERY			"insert into lectii values ('Concept II','Test Concept II', 1)"
+//define  QUERY				"select * from sysobjects"
+
+define	false				0
+define	true				1
+
+class Main {
+	function Main() {
+		var enviroment=odbc_create_enviroment();
+		if (!enviroment) {
+			echo "Error creating enviroment\r\n";
+			return 0;
+		} else
+			echo "Enviroment created (HANDLE : " + enviroment + " )\r\n";
+
+		var connection=odbc_connect("MYTEST","radgs","",enviroment);
+		if (!connection) {
+			echo "Error connecting to database\r\n";
+			echo odbc_error();
+			odbc_destroy_enviroment(enviroment);
+			return 0;
+		} else
+			echo "Connection made (HANDLE : " + connection + " )\r\n";
+
+		odbc_auto_commit(false,connection);
+
+		//var result=odbc_execute_query(NON_QUERY,connection);
+
+
+		var result=odbc_execute_query(QUERY,connection);
+
+		var stored_result=odbc_store_result(result);
+
+
+
+		var record_count=0;
+
+		var index=0;
+		var flag=0;
+
+		while (odbc_fetch_row(stored_result,index++)) {
+			record_count++;
+			//echo "\nRecord " + record_count + "\r\n";
+			//echo "-----------------------------------------------------\n";
+			echo "\n";
+			for (var i=0;i<odbc_count_columns(stored_result);i++) {
+
+				odbc_describe_col(i+1 ,result,
+							var name,
+							var name_len,
+							var data_type,
+							var column_size,
+							var decimal_digits,
+							var nullable
+				);
+
+				echo 	"Field " 					+ 
+					name + "(size: " + column_size +")"		+
+					" : " 						+ 
+					odbc_get_column_by_index(i,stored_result) 	+ 
+					"\r\n";
+				//echo name+"\n";
+
+				//echo odbc_get_column_by_index(i,stored_result) 	+ " ";
+				if (name=="txt") {
+					odbc_set_column_by_index(i,"xa",stored_result);
+					odbc_set_column_by_index(i+1,"y2",stored_result);
+					odbc_update(index-1,stored_result);
+					echo odbc_error();
+				}
+			}
+
+		}
+
+		odbc_free_result(stored_result);
+
+		odbc_commit(connection);
+
+		odbc_disconnect(connection);
+		odbc_destroy_enviroment(enviroment);
+	}
+}

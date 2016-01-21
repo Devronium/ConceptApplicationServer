@@ -1,0 +1,756 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+  <title>RTextTag</title>
+  <link href="css/style.css" rel="stylesheet" type="text/css">
+  <meta http-equiv="Content-Type" content="text/html;charset=utf-8" >
+</head>
+<body bgcolor="#ffffff">
+<table border="0" width="100%" bgcolor="#F0F0FF">
+  <tr>
+    <td>Concept Framework 2.2 documentation</td>
+  	<td align="right"><a href="index.html">Contents</a> | <a href="index_fun.html">Index</a></td>
+  </tr>
+</table>
+<h2>RTextTag</h2>
+<table border="0" cellspacing="0" cellpadding="0" width="400" style="border-style:solid;border-width:1px;border-color:#D0D0D0;">
+  <tr bgcolor="#f0f0f0">
+     <td><i>Name</i></td>
+     <td><i>Version</i></td>
+     <td><i>Deprecated</i></td>
+  </tr>
+  <tr bgcolor="#fafafa">
+     <td><b>RTextTag</b></td>
+     <td>version 1.0</td>
+     <td>no</td>
+  </tr>
+</table>
+<br />
+<b>Defined in : </b>RTextView.con
+<br/><i>(this file must be included in your application in order to have access, unless you use a child class of RTextTag that includes this file)</i><br /><br />
+
+<b>Inherits</b> : <a href="RemoteObject.html">RemoteObject</a>&nbsp;&nbsp;<a href="RemoteObject.html">RemoteObject</a>&nbsp;&nbsp;
+<br /><br />
+
+
+<b>Description:</b><br />
+<table width="100%" bgcolor="#FAFAFF" style="border-style:solid;border-width:1px;border-color:#D0D0D0;">
+<tr><td>
+Text in a <a href="RTextView.html">RTextView</a> can be marked with tags. A tag is an attribute that can be applied to some range of text. For example, a tag might be called "bold" and might make the text inside the tag bold. However, the tag concept is more general than that; tags don't have to affect appearance. They can instead affect the behavior of mouse and key presses, "lock" a range of text so the user can't edit it, or countless other things. One tag can be applied to any number of text ranges. 
+<br>Tags can have names, which is convenient sometimes (for example, you can name your tag that makes things bold "bold"), but they can also be anonymous (which is convenient if you're creating tags on-the-fly).
+<br>This objects should never be directly instantiated; it should be used through the <a href="RTextView.html">RTextView</a> control by calling the CreateStyle function.
+<br>
+</td></tr>
+</table>
+<br />
+<br />
+
+
+<b>Properties:</b><br />
+<table bgcolor="#FFFFFF" width="100%" style="border-style:solid;border-width:1px;border-color:#D0D0D0;">
+
+	   <tr>
+	   	   <td>
+		   	   <a href="RTextTag.BackColor.html">BackColor</a>
+		   </td>
+	   	   <td>
+		   	   This property sets or gets the background color of the tag
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="RTextTag.BackgroundFull.html">BackgroundFull</a>
+		   </td>
+	   	   <td>
+		   	   Sets or checks whether the background color fills the entire line height or only the height of the tagged characters
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="RTextTag.Direction.html">Direction</a>
+		   </td>
+	   	   <td>
+		   	   Controls the direction of the text in the current tag
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="RTextTag.FontFamily.html">FontFamily</a>
+		   </td>
+	   	   <td>
+		   	   Sets or gets the font family of the font used by the tag
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="RTextTag.FontName.html">FontName</a>
+		   </td>
+	   	   <td>
+		   	   Sets or gets the name of the tag font
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="RTextTag.FontScale.html">FontScale</a>
+		   </td>
+	   	   <td>
+		   	   Font size as a scale factor relative to the default font size
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="RTextTag.FontSize.html">FontSize</a>
+		   </td>
+	   	   <td>
+		   	   Sets or gets the size of the font used by the tag
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="RTextTag.FontStyle.html">FontStyle</a>
+		   </td>
+	   	   <td>
+		   	   Sets or gets the font style of the tag
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="RTextTag.FontWeight.html">FontWeight</a>
+		   </td>
+	   	   <td>
+		   	   Sets the font weight the text tag
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="RTextTag.ForeColor.html">ForeColor</a>
+		   </td>
+	   	   <td>
+		   	   This property sets or gets the color of the text in the tag
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="RTextTag.Indent.html">Indent</a>
+		   </td>
+	   	   <td>
+		   	   Sets or gets the amount to indent the paragraph
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="RTextTag.IsReadOnly.html">IsReadOnly</a>
+		   </td>
+	   	   <td>
+		   	   If set to true, the text inside the tag cannot be edited
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="RTextTag.IsVisible.html">IsVisible</a>
+		   </td>
+	   	   <td>
+		   	   Controls whether this text is hidden
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="RTextTag.Justification.html">Justification</a>
+		   </td>
+	   	   <td>
+		   	   Sets or gets the justification used by the text in the tag
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="RTextTag.Language.html">Language</a>
+		   </td>
+	   	   <td>
+		   	   Sets or gets the language of the text in the tag
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="RTextTag.LeftMargin.html">LeftMargin</a>
+		   </td>
+	   	   <td>
+		   	   Sets or gets the width of the left margin, in pixels
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="RTextTag.PixelsAbove.html">PixelsAbove</a>
+		   </td>
+	   	   <td>
+		   	   Sets or gets the number of pixels of blank space above paragraphs
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="RTextTag.PixelsBelow.html">PixelsBelow</a>
+		   </td>
+	   	   <td>
+		   	   Sets or gets the number of pixels of blank space below paragraphs
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="RTextTag.PixelsInside.html">PixelsInside</a>
+		   </td>
+	   	   <td>
+		   	   Sets or gets the number of pixels of blank space between wrapped lines in a paragraph
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="RTextTag.Priority.html">Priority</a>
+		   </td>
+	   	   <td>
+		   	   Sets or gets the priority of a text tag
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="RTextTag.RightMargin.html">RightMargin</a>
+		   </td>
+	   	   <td>
+		   	   Sets or gets the width of the right margin, in pixels
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="RTextTag.Rise.html">Rise</a>
+		   </td>
+	   	   <td>
+		   	   Offset of text above the baseline (below the baseline if rise is negative)
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="RTextTag.Stretch.html">Stretch</a>
+		   </td>
+	   	   <td>
+		   	   Sets the stretch type for tag
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="RTextTag.Strikethrough.html">Strikethrough</a>
+		   </td>
+	   	   <td>
+		   	   Set or gets whether to strike through the text
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="RTextTag.Underline.html">Underline</a>
+		   </td>
+	   	   <td>
+		   	   Sets or gets the underline type for this tag
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="RTextTag.WrapMode.html">WrapMode</a>
+		   </td>
+	   	   <td>
+		   	   Sets the line wrap mode for the tag
+		   </td>
+	   </tr>
+
+</table>
+<br />
+
+
+
+<b>Methods:</b><br />
+<table bgcolor="#FFFFFF" width="100%" style="border-style:solid;border-width:1px;border-color:#D0D0D0;">
+
+	   <tr>
+	   	   <td>
+		   	   <a href="RTextTag.RTextTag.html">RTextTag</a>
+		   </td>
+	   	   <td>
+		   	   This is the standard contructor for this class and should not be used directly
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="RTextTag.SetBackColor.html">SetBackColor</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="RTextTag.SetBackgroundFull.html">SetBackgroundFull</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="RTextTag.SetDirection.html">SetDirection</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="RTextTag.SetFontFamily.html">SetFontFamily</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="RTextTag.SetFontName.html">SetFontName</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="RTextTag.SetFontScale.html">SetFontScale</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="RTextTag.SetFontSize.html">SetFontSize</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="RTextTag.SetFontStyle.html">SetFontStyle</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="RTextTag.SetFontWeight.html">SetFontWeight</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="RTextTag.SetForeColor.html">SetForeColor</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="RTextTag.SetIndent.html">SetIndent</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="RTextTag.SetIsReadOnly.html">SetIsReadOnly</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="RTextTag.SetIsVisible.html">SetIsVisible</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="RTextTag.SetJustification.html">SetJustification</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="RTextTag.SetLanguage.html">SetLanguage</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="RTextTag.SetLeftMargin.html">SetLeftMargin</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="RTextTag.SetPixelsAbove.html">SetPixelsAbove</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="RTextTag.SetPixelsBelow.html">SetPixelsBelow</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="RTextTag.SetPixelsInside.html">SetPixelsInside</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="RTextTag.SetPriority.html">SetPriority</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="RTextTag.SetRightMargin.html">SetRightMargin</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="RTextTag.SetRise.html">SetRise</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="RTextTag.SetStretch.html">SetStretch</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="RTextTag.SetStrikeout.html">SetStrikeout</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="RTextTag.SetUnderline.html">SetUnderline</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="RTextTag.SetWrapMode.html">SetWrapMode</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+</table>
+<br />
+
+
+
+
+
+
+
+<b>Inherited from <a href="RemoteObject.html">RemoteObject</a>:</b><br />
+<br />
+
+
+<b>Inherited properties from <a href="RemoteObject.html">RemoteObject</a></b><br />
+<table bgcolor="#FFFFFF" width="100%" style="border-style:solid;border-width:1px;border-color:#D0D0D0;">
+
+	   <tr>
+	   	   <td>
+		   	   <a href="RemoteObject.Parent.html">Parent</a>
+		   </td>
+	   	   <td>
+		   	   This function returns the Parent for a specific Concept GUI Object
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="RemoteObject.RID.html">RID</a>
+		   </td>
+	   	   <td>
+		   	   The RID (Remote ID) for an object
+		   </td>
+	   </tr>
+
+</table>
+<br />
+
+
+
+
+<b>Inherited methods from <a href="RemoteObject.html">RemoteObject</a></b><br />
+<table bgcolor="#FFFFFF" width="100%" style="border-style:solid;border-width:1px;border-color:#D0D0D0;">
+
+	   <tr>
+	   	   <td>
+		   	   <a href="RemoteObject.Add.html">Add</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="RemoteObject.AddTimer.html">AddTimer</a>
+		   </td>
+	   	   <td>
+		   	   This function sets up a timer
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="RemoteObject.DisposeObject.html">DisposeObject</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="RemoteObject.GetObjectByID.html">GetObjectByID</a>
+		   </td>
+	   	   <td>
+		   	   This function finds the object corresponding to the ID parameter
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="RemoteObject.GetProperty.html">GetProperty</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="RemoteObject.LinkIfNotLinked.html">LinkIfNotLinked</a>
+		   </td>
+	   	   <td>
+		   	   This is a special function, wich should be used after a GUI object was created that has no parent
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="RemoteObject.Post.html">Post</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="RemoteObject.PostString.html">PostString</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="RemoteObject.RemoteObject.html">RemoteObject</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="RemoteObject.Repaint.html">Repaint</a>
+		   </td>
+	   	   <td>
+		   	   This member tells to the remote control to repaint itself(Queue for redraw)
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="RemoteObject.SetParent.html">SetParent</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="RemoteObject.SetProperty.html">SetProperty</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="RemoteObject._GET_REMOTE_EVENT.html">_GET_REMOTE_EVENT</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="RemoteObject._MAP_REMOTE_EVENT.html">_MAP_REMOTE_EVENT</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="RemoteObject.__QueryDispose.html">__QueryDispose</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="RemoteObject.__Recreate.html">__Recreate</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+</table>
+<br />
+
+
+
+
+
+
+
+
+
+
+
+<br />
+
+<br />
+<br />
+<!--
+  <p>
+    <a href="http://validator.w3.org/check?uri=referer"><img
+        src="http://www.w3.org/Icons/valid-html40"
+        alt="Valid HTML 4.0 Transitional" height="31" width="88" border="0"></a>
+ <a href="http://jigsaw.w3.org/css-validator/">
+  <img style="border:0;width:88px;height:31px"
+       src="http://jigsaw.w3.org/css-validator/images/vcss" 
+       alt="Valid CSS!" border="0"/>
+ </a>
+</p>
+-->
+<table bgcolor="#F0F0F0" width="100%"><tr><td>Documented by Eduard Suica, generation time: Sun Jan 27 18:15:11 2013
+ GMT</td><td align="right">(c)2013 <a href="http://www.devronium.com">Devronium Applications</a></td></tr></table>
+</body>
+</html>

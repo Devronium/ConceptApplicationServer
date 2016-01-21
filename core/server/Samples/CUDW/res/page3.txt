@@ -1,0 +1,1 @@
+You can select a package to install/not install by duble clicking on it.

@@ -1,0 +1,94 @@
+import standard.lib.str
+import standard.net.curl
+import standard.lang.serialize
+import standard.arch.zip
+import standard.C.io
+import standard.lib.preg
+
+define SQL_FILE_LIST		"cudw.autosql.lst"
+define CONSOLE_RUN		"cudw.console.autorun.con"
+define CLIENT_RUN		"cudw.gui.autorun.con"
+define URL_RUN			"cudw.autourl.url"
+define INFO_RUN			"cudw.autoinfo.txt"
+
+
+
+class Arc {
+	static function DoDirectory(path) {
+		var len=length path;
+		if (len<2)
+			return 0;
+		len--;
+		var base="";
+		for (var i=0;i<len;i++) {
+			base+=path[i]+"/";
+			_mkdir(base);
+		}
+		return true;
+	}
+
+	static function GetFilenameFromFullPath(path) {
+		var len=length path;
+		var result="";
+		for (var i=len-1;i>=0;i--) {
+			if ((path[i]=='\\') || (path[i]=='/'))
+				return result;
+			result=path[i]+result;
+		}
+		return result;
+	}
+
+	static function UnZip(filename, var callback=null) {
+		var zip=zip_open(filename,ZIP_CHECKCONS, var err);
+		if (!zip)
+			throw "Unzip failed with error code $err";
+
+		var num_files=zip_get_num_files(zip);
+		for (var i=0;i<num_files;i++) {
+			var name=zip_get_name(zip, i, 0);
+			var arr=StrSplit(name, "/");
+
+			if (length arr>1) {
+				Arc::DoDirectory(arr);
+			} else {
+				arr=StrSplit(name, "\\");
+				if (length arr>1)
+					Arc::DoDirectory(arr);
+			}
+
+
+			Arc::DoDirectory(arr);
+			if (name) {
+				var zf=zip_fopen_index(zip, i, 0);
+				if (zf) {
+					var data2="";
+					var amount=zip_fread(zf, var buf, 8192*1024*2);
+					if (amount>0)
+						data2=buf;
+
+					WriteFile(data2,name);
+					zip_fclose(zf);
+
+					var namel=ToLower(name);
+					switch (namel) {
+						case SQL_FILE_LIST:
+						case CONSOLE_RUN:
+						case CLIENT_RUN:
+						case INFO_RUN:
+						case URL_RUN:
+								if (callback)
+									callback(name, buf);
+								break;
+						default:
+							if ((callback) && (preg(namel, "[A-Za-z0-9_\\.\\-\\ ]+\\.ss\$")))
+								callback(Arc::GetFilenameFromFullPath(name), buf);
+					}
+				}
+
+			}
+		}
+
+		zip_close(zip);
+		return true;
+	}
+}

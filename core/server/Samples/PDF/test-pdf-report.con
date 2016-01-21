@@ -1,0 +1,61 @@
+include PDFReport.con
+
+class Main {
+	var pages=1;
+
+	function error(err, detail) {
+		echo "Error no $err, detail no $detail\n";
+	}
+
+	function OnBeginPage(Sender, EventData) {
+		pages++;
+		Sender.HeaderText("Pagina ${pages}","Courier-Bold",8);
+		//Sender.PutPicture("concept.jpg",PDF_JPEG);
+	}
+
+	function OnEndPage(Sender, EventData) {
+		Sender.FooterText("Pagina ${pages} >> Document demonstrativ. By RadGs Software.","Courier-Bold",8);
+		//Sender.PutPictureAbsolute("concept.jpg",PDF_JPEG, Sender.PageWidth-100, Sender.PageHeight-50, 80, 20);
+	}
+
+	function Main() {
+		var pdf=new PDFReport();
+
+		pdf.OnBeginPage=OnBeginPage;
+		pdf.OnEndPage=OnEndPage;
+
+		pdf.UseFont("Helvetica-Bold",10);
+		pdf.Color=0x0000A0;
+		pdf.CenterText("Raport de activitate");
+		pdf.UseFont("Helvetica",8);
+		pdf.Color=0xA00000;
+		pdf.CenterText("ianembrie 20014");
+		pdf.WriteLine("");
+
+		pdf.Color=0xA0A0A0;
+		pdf.UseFont("Helvetica",10);
+		pdf.LineColor=0x000000;
+
+		pdf.Headers=["Nr. Crt.",["Descrierea tuturor elementelor din baza de date si alte povesti",300], "Elemente"];
+
+		var[] arr;
+		for (var i=0;i<1000;i++) {
+			arr[i]=[ ["${i+1}",0, 2],"Element multiline ... ${i+1}", ["${1000-i}",0,1] ];
+		}
+		pdf.Data=arr;
+
+		/*pdf.Data=[
+				[ "1",	"Element 1", "3"],
+				[ "2",	"Element 2", "2"],
+				[ "3",	"Element 3", "1"]
+		];*/
+
+		try {
+			pdf.Do();
+			pdf.Save("out.pdf");
+		} catch (var exc) {
+			echo exc;
+		}
+	}
+
+}

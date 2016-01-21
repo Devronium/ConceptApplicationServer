@@ -1,0 +1,46 @@
+include 'VisibleControl.con'
+
+class ConceptProgressBar extends VisibleControl {
+	protected var _POSITION;
+	protected var _MAXIM;
+	/*protected*/public var _STEP;
+
+	public property Position { set SetPosition, get _POSITION }
+	public property Maxim { set SetMaxim, get _MAXIM }
+	public property Step { set SetStep, get _STEP }
+
+
+	public function SetMaxim(x) {
+		if (typeof x==NUMERIC_TYPE)
+			this->_MAXIM=x;
+		else
+		     	throw new ControlException(EXC_INVALID_ARGUMENT_TYPE, this);
+
+                SendMessage(this->Name, MSG_CHANGED, P_PROGRESSSETMAXIM, x);
+	}
+
+	public function SetStep(x) {
+		if (typeof x==NUMERIC_TYPE)
+			this->_STEP=x;
+		else
+		     	throw new ControlException(EXC_INVALID_ARGUMENT_TYPE, this);
+	}
+
+
+	public function SetPosition(x) {
+		if (typeof x==NUMERIC_TYPE)
+			this->_POSITION=x;
+		else
+		     	throw new ControlException(EXC_INVALID_ARGUMENT_TYPE, this);
+
+                SendMessage(this->Name, MSG_CHANGED, P_PROGRESSSETPOSITION, x);
+	}
+
+	public function Progress() {
+		this->Position+=this->_STEP;//Step;
+	}
+
+	public function ConceptProgressBar(Owner) {
+		this->VisibleControl(Owner, CLASS_PROGRESSBAR);
+	}
+}

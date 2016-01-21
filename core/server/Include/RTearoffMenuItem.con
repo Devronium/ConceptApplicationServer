@@ -1,0 +1,12 @@
+include RMenuItem.con
+include ClassID.con
+include RemoteEvents.con
+include RemoteProperties.con
+include RemoteMessages.con
+
+class RTearoffMenuItem extends RMenuItem {
+	public function RTearoffMenuItem(OWNER) {
+		// don't call super; Call RItem instead
+		RItem(OWNER, CLASS_TEAROFFMENUITEM);
+	}
+}

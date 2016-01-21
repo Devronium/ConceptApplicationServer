@@ -1,0 +1,81 @@
+include SingleContainer.con
+include ClassID.con
+
+
+define SHADOW_NONE		0
+define SHADOW_IN		1
+define SHADOW_OUT		2
+define SHADOW_ETCHED_IN		3
+define SHADOW_ETCHED_OUT	4
+
+define POS_LEFT		0
+define POS_RIGHT	1
+define POS_TOP		2
+define POS_BOTTOM	3
+
+class RHandleBox extends SingleContainer {
+	DEFINE_FIXED_CONTROL
+
+	private var SHADOWTYPE;
+	private var HANDLEPOSITION;
+	private var SNAPEDGE;
+
+	public property ShadowType { get SHADOWTYPE, set SetShadowType }
+	public property HandlePosition { get HANDLEPOSITION, set SetHandlePosition }
+	public property SnapEdge { get SNAPEDGE, set SetSnapEdge }
+	public property InDrag { get GetInDrag }
+	public property IsDetached { get GetIsDetached, set SetIsDetached }
+
+	//-------------------------------------------------------------------------------//
+	public property OnChildAttached { get GetOnChildAttached, set SetOnChildAttached }
+	public function GetOnChildAttached() {
+		return _GET_REMOTE_EVENT(EVENT_ON_CHILDATTACHED);
+	}
+
+	public function SetOnChildAttached(var delegate deleg) {
+		return _MAP_REMOTE_EVENT(EVENT_ON_CHILDATTACHED, deleg);
+	}
+
+	public property OnChildDetached { get GetOnChildDetached, set SetOnChildDetached }
+	public function GetOnChildDetached() {
+		return _GET_REMOTE_EVENT(EVENT_ON_CHILDDETACHED);
+	}
+
+	public function SetOnChildDetached(var delegate deleg) {
+		return _MAP_REMOTE_EVENT(EVENT_ON_CHILDDETACHED, deleg);
+	}
+	//-------------------------------------------------------------------------------//
+
+	public function RHandleBox(OWNER) {
+		super(OWNER, CLASS_HANDLEBOX);
+	}
+
+	public function SetShadowType(argument) {
+		SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_SHADOWTYPE,argument);
+		SHADOWTYPE=argument;
+		return argument;
+	}
+
+	public function SetHandlePosition(argument) {
+		HANDLEPOSITION=argument;
+		return SetProperty(P_HANDLEPOSITION, argument);
+	}
+
+	public function SetSnapEdge(argument) {
+		SNAPEDGE=argument;
+		return SetProperty(P_SNAPEDGE, argument);
+	}
+
+	public function GetInDrag() {
+		return value GetProperty(P_INDRAG);
+	}
+
+	public function GetIsDetached() {
+		return value GetProperty(P_ISDETACHED);
+	}
+
+
+	public function SetIsDetached(argument) {
+		return SetProperty(P_ISDETACHED, argument);
+	}
+}

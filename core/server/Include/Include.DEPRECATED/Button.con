@@ -1,0 +1,40 @@
+include 'VisibleControl.con'
+
+class ConceptButton extends VisibleControl {
+	protected var _CAPTION;
+	protected var _FLAT;
+
+	public property Caption { set SetCaption, get _CAPTION }
+	public property Flat    { set SetFlat, get _FLAT }
+
+	public function ConceptButton(Owner) {
+		this->VisibleControl(Owner, CLASS_BUTTON);		
+	}
+
+	public function SetCaption(x) {
+		if (typeof x==STRING_TYPE)
+			this->_CAPTION=x;
+		else
+		     	throw new ControlException(EXC_INVALID_ARGUMENT_TYPE, this);
+
+                SendMessage(this->Name, MSG_CHANGED, P_CAPTION, x);
+	}
+
+	public function SetFlat(x) {
+		if (typeof x==NUMERIC_TYPE)
+			this->_FLAT=x;
+		else
+		     	throw new ControlException(EXC_INVALID_ARGUMENT_TYPE, this);
+
+                SendMessage(this->Name, MSG_CHANGED, P_FLAT, x);
+	}
+
+	override __DataSetUpdateCommand;
+	public function __DataSetUpdateCommand(Sender) {
+		try {
+			this->Caption=Sender->FieldValues[this->_DATAFIELD].ToString();
+		} catch (var exception) {
+			this->Caption="";
+		}
+	}
+}

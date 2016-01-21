@@ -1,0 +1,14 @@
+import standard.lib.msword
+import standard.C.io
+
+class Main {
+	function Main() {
+		//var data=MSWRead("test.doc", var error);
+		//WriteFile(data, "out2.html");
+		echo MSWMeta("test.doc");
+
+		WriteFile(MSWRead("test.doc"),"out.html");
+		WriteFile(MSWRead("test.doc", var error, "", "", false, "", "", "wvText.xml"), "out.txt");
+		WriteFile(MSWRead("test.doc", error, "", "", false, "", "", "wvWml.xml"), "out.wml");
+	}
+}

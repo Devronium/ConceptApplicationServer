@@ -1,0 +1,73 @@
+import standard.C.io
+import standard.lib.str
+import standard.C.math
+import standard.C.time
+import standard.lang.serialize
+
+include File.con
+
+
+class CLWrap {
+	static function Run(string path, params=null, var out="", var string input_data="") {
+		var res=0;
+		var pstr="";
+		if (typeof params=="array") {
+			var len=length params;
+			for (var i=0;i<len;i++) {
+				var val=""+params[i];
+				if ((val) && (val[0]!='"') && (Pos(val," ")>0))
+					val='"'+val+'"';
+				if ((pstr) && (val))
+					pstr+=" ";
+				pstr+=val;
+			}
+		} else
+			pstr=params;
+
+		var temp=Env::Get("TEMP");
+		if (!temp)
+			temp=Env::Get("TMP");
+		if (!temp)
+			temp="temp";
+		len=length temp;
+		var c=temp[len-1];
+		if ((c!="/") && (c!="\\"))
+			temp+="/";
+
+		if (pstr) {
+			path+=" ";
+			path+=pstr;
+		}
+
+		srand(time());
+		var in_file=temp+rand()+VarPtr(temp)+"_in_file.dat";
+
+		var has_input=false;
+		if (input_data) {
+			WriteFile(input_data, in_file);
+			has_input=true;
+		}
+
+		var input_extra="";
+		if (input_data)
+			input_extra+=" < $in_file ";
+		input_extra+=" 2>&1";
+
+		var p=new File("r");
+		p.Name=path+input_extra;
+		out="";
+
+		if (p.POpen()) {
+			do {
+				p.Read(var buf, 1024);
+				out+=buf;
+			} while (!p.EOF);
+			res=p.Close();
+			_unlink(in_file);
+		} else {
+			_unlink(in_file);
+			throw "Error executing '$path'";
+		}
+		return res;
+	}
+}

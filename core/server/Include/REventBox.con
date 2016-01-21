@@ -1,0 +1,28 @@
+include SingleContainer.con
+include ClassID.con
+
+class REventBox extends SingleContainer {
+
+	DEFINE_FIXED_CONTROL
+
+/*	protected var POPUPMENU;
+
+	public property PopupMenu { get POPUPMENU, set SetPopupMenu }*/
+
+	public function REventBox(OWNER) {
+		super(OWNER, CLASS_EVENTBOX);
+	}
+
+
+	public function BackgroundImage(object img) {
+		return SetProperty(P_BACKGROUNDIMAGE,img.RID);
+	}
+
+/*	public function SetPopupMenu(argument) {
+		if (argument) {
+			SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_POPUPMENU,argument.RID);
+			POPUPMENU=argument;
+		}
+		return argument;
+	}*/
+}

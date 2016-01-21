@@ -1,0 +1,29 @@
+include RMenuItem.con
+include ClassID.con
+include RemoteEvents.con
+include RemoteProperties.con
+include RemoteMessages.con
+include RImage.con
+
+class RImageMenuItem extends RMenuItem {
+	private var IMAGE;
+
+	public property Image { get IMAGE, set SetImage }
+
+	public function RImageMenuItem(OWNER,CAPTION, number is_stock=false) {
+		PostString(CAPTION);
+		// don't call super; Call RItem instead
+		if (is_stock)
+			RItem(OWNER, CLASS_STOCKMENUITEM);
+		else
+			RItem(OWNER, CLASS_IMAGEMENUITEM);
+	}
+
+	public function SetImage(RImage argument) {
+		if (argument) {
+			SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_IMAGE,argument.RID);
+			IMAGE=argument;
+		}
+		return argument;
+	}
+}

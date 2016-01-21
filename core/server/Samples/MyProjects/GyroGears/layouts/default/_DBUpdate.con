@@ -1,0 +1,98 @@
+include Serializable.con
+include include/Utils.con
+
+
+class _DBUpdate extends Serializable {
+    private var[] DB;
+    private var DBNAME="";
+
+    private function ExecuteQueries(dc, array arr1, array arr2, var errors) {
+        var len=length arr1;
+        errors="";
+        for (var i=0;i<len;i++) {
+            var query=arr1[i];
+            var query2=arr2[i];
+            try {
+                if (query)
+                    Utils::Query(dc, query);
+            } catch (var exc) {
+                try {
+                    if (query2)
+                        Utils::Query(dc, query2);
+                    //else
+                    //    errors+="For alter query received : $exc\n";
+                } catch (var exc2) {
+                    errors+="For alter query received : $exc\n";
+                    errors+="For change query received: $exc2\n";
+                }
+            }
+        }
+    }
+    
+    static function UpdatePending(string path="data/pending.db.update.insxml") {
+        return FileExists(path);
+    }
+
+    static function Load(string path="data/pending.db.update.insxml") {
+        return Serializable::UnSerialize(path);
+    }
+
+    static function MarkUpdate(string errors, string path="data/pending.db.update.insxml") {
+        var i=0;
+        do {
+            i++;
+        } while (FileExists(path+".$i.updated"));
+        rename(path, path+".$i.updated");
+        if (!errors)
+            errors="No errors were reported";
+
+        WriteFile(errors, path+".$i.updated.log");
+    }
+
+    public function Update(dc, dbname="") {
+        var arr=this.DB;
+        //var app=GLOBALS()["app"];
+
+        var len=length arr;
+        var errors="";
+
+        if (dbname)
+            this.DBNAME=dbname;
+        
+        if (DBNAME) {
+            try {
+                Utils::Query(dc, "CREATE DATABASE [QUOTE]${this.DBNAME}[QUOTE];");
+            } catch (var noexc) {
+                // nothing ...
+            }
+            try {
+                Utils::Query(dc, "USE [QUOTE]${this.DBNAME}[QUOTE];");
+            } catch (noexc) {
+                // errors+="Database error: $noexc\n\n";
+            }
+        }
+        for (var i=0;i<len;i++) {
+            var data=arr[i];
+            var create_query=data[0];
+            var update_query=data[1];
+            var change_query=data[2];
+            try {
+                Utils::Query(dc, create_query);
+            } catch (var exc) {
+                // error ... maybe table exists !
+                var err2="";
+                this.ExecuteQueries(dc, update_query, change_query, err2);
+                if (err2) {
+                    errors+="==========================\n";
+                    errors+="Target query:\n\t$create_query\n";
+                    errors+="For create query received : $exc\n";
+                    errors+="Tried alternatives:\n";
+                    errors+="==========================\n";
+                    errors+=err2;
+                    errors+="==========================\n\n";
+                }
+            }
+        }
+        return errors;
+    }
+}

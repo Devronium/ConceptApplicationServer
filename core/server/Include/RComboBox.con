@@ -1,0 +1,253 @@
+include RemoteContainer.con
+include ClassID.con
+include RemoteProperties.con
+include RemoteEvents.con
+include RAdjustment.con
+include RTreeView.con
+include MultiItems.con
+
+define HIDDEN_COLUMN	0
+define NORMAL_COLUMN    1
+define PERCENT_COLUMN	2
+define IMAGE_COLUMN     5
+define MARKUP_COLUMN    7
+
+class RComboBox extends RemoteContainer {
+	protected var ITEMS;
+	private var ADDTEAROFFS;
+	private var FOCUSONCLICK;
+	private var WRAPWIDTH;
+	private var ROWSPANCOLUMN;
+	private var HASFRAME;
+	private var _SORTED=0;
+	private var _SORTCOLUMN=0;
+	private var _DESCENDING=0;
+
+	public property Items { get ITEMS }
+	public property RowIndex { get GetRowIndex, set SetRowIndex }
+	public property AddTearoffs { get ADDTEAROFFS, set SetAddTearoffs }
+	public property FocusOnClick { get FOCUSONCLICK, set SetFocusOnClick }
+	public property WrapWidth { get WRAPWIDTH, set SetWrapWidth }
+	public property RowSpanColumn { get ROWSPANCOLUMN, set SetRowSpanColumn }
+	public property Border { get HASFRAME, set SetBorder }
+	public property Sorted { get _SORTED, set SetSorted }
+	public property SortColumn { get _SORTCOLUMN, set SetSortColumn }
+	public property SortDescending { get _DESCENDING, set SetSortDescending }
+	public property SelectedItem { get GetSelectedItem }
+
+	// ------------------------- EVENTS ---------------------------------- //
+	public property OnChanged { get GetOnChanged, set SetOnChanged }
+	public function GetOnChanged() {
+		return _GET_REMOTE_EVENT(EVENT_ON_CHANGED);
+	}
+
+	public function SetOnChanged(var delegate deleg) {
+		return _MAP_REMOTE_EVENT(EVENT_ON_CHANGED, deleg);
+	}
+	// ------------------------------------------------------------------- //
+	public function SetAddTearoffs(argument) {
+		return ADDTEAROFFS=SetProperty(P_ADDTEAROFFS, argument);
+	}
+
+	public function SetFocusOnClick(argument) {
+		return FOCUSONCLICK=SetProperty(P_FOCUSONCLICK, argument);
+	}
+
+	public function FindByData(data) {
+		var cnt=ITEMS.Count;
+		for (var i=0;i<cnt;i++) {
+			if (ITEMS.Content[i].ITEM_DATA==data)
+				return i;
+		}
+		return -1;
+	}
+
+	public function SetWrapWidth(argument) {
+		return WRAPWIDTH=SetProperty(P_WRAPWIDTH, argument);
+	}
+
+	public function SetRowSpanColumn(argument) {
+		return ROWSPANCOLUMN=SetProperty(P_ROWSPANCOLUMN, argument);
+	}
+
+	public function SetBorder(argument) {
+		return HASFRAME=SetProperty(P_BORDER, argument);
+	}
+
+	public function GetRowIndex() {
+		return value GetProperty(P_CURSOR);
+	}
+
+	public function SetRowIndex(argument) {
+		return SetProperty(P_CURSOR, argument);
+	}
+
+
+	public function AddColumns(count,type=NORMAL_COLUMN) {
+		return Send(MSG_CUSTOM_MESSAGE1, ""+type, count);
+	}
+
+
+	public function UpdateItem(position, item) {
+		if (typeof position=="numeric") {
+			var count=ITEMS.GetCount();
+			if ((position<0) || (position>=count))
+				return -1;
+		}
+
+		if (_SORTED) {
+			this.DeleteItem(position);
+			return this.AddItem(item);
+		}
+
+		var type=typeof item;
+		if (type=="array") {
+			var len=length item;
+
+			for (var i=0;i<len;i++) {
+				var it=&item[i];
+				if (typeof it!="class")
+					Send(MSG_CUSTOM_MESSAGE3,0,it);
+				else
+					Send(MSG_CUSTOM_MESSAGE3,0,it.RID);
+
+			}
+
+		} else {
+			if (typeof item!="class")
+				Send(MSG_CUSTOM_MESSAGE3,0,item);
+			else
+				Send(MSG_CUSTOM_MESSAGE3,0,item.RID);
+		}
+
+		if (typeof position=="array") {
+			ITEMS.Update(position, item);
+			position=RTreeView::PathToStr(position);
+		} else
+		if (typeof position=="numeric")
+			ITEMS.Update([position],item);
+
+		Send(MSG_CUSTOM_MESSAGE6, 0, position);
+		return position;
+	}
+
+	private function __AddItem(item) {
+		var type=typeof item;
+		if (type=="array") {
+			var len=length item;
+
+			for (var i=0;i<len;i++) {
+				if (typeof item[i] != "class")
+					Send(MSG_CUSTOM_MESSAGE3,0,item[i]);
+				else
+					Send(MSG_CUSTOM_MESSAGE3,0,item[i].RID);
+			}
+
+		} else {
+			if (typeof item != "class")
+				Send(MSG_CUSTOM_MESSAGE3,0,item);
+			else
+				Send(MSG_CUSTOM_MESSAGE3,0,item.RID);
+		}
+
+		ITEMS.Add(item);
+		return Send(MSG_CUSTOM_MESSAGE2, 0, -1);
+	}
+
+	public function AddItem(item) {
+		if ((_SORTED) && (ITEMS.GetCount())) {
+			return this.InsertItem(0,item);
+		}
+		return __AddItem(item);
+	}
+
+	public function DeleteItem(item_index) {
+		ITEMS.Delete(item_index);
+		return Send(MSG_CUSTOM_MESSAGE2, 2, item_index);
+	}
+
+	public function Clear() {
+		if (ITEMS.GetCount()) {
+			ITEMS.Clear();
+			return Send(MSG_CUSTOM_MESSAGE2, 1, 0);
+		}
+	}
+
+	public function ClearItemsColumns() {
+		return Send(MSG_CUSTOM_MESSAGE2, 3, 0);
+	}
+
+
+	public function InsertItem(position, item) {
+		if (_SORTED)
+			position=MultiItems::FindSortedPlace(ITEMS.Content, _SORTCOLUMN, item, !_DESCENDING);
+
+		if (typeof position=="numeric") {
+			var count=ITEMS.GetCount();
+			if ((position<0) || (position>=count))
+				return __AddItem(item);
+		}
+	
+
+		var type=typeof item;
+		if (type=="array") {
+			var len=length item;
+
+			for (var i=0;i<len;i++) {
+				if (typeof item[i] != "class")
+					Send(MSG_CUSTOM_MESSAGE3,0,item[i]);
+				else
+					Send(MSG_CUSTOM_MESSAGE3,0,item[i].RID);
+			}
+		} else {
+			if (typeof item != "class")
+				Send(MSG_CUSTOM_MESSAGE3,0,item);
+			else
+				Send(MSG_CUSTOM_MESSAGE3,0,item.RID);
+		}
+
+		ITEMS.Insert(position,item);
+
+		return Send(MSG_CUSTOM_MESSAGE2, 0, position);
+	}
+
+	public function SetSorted(argument) {
+		argument=(argument!=0);
+
+		if ((!_SORTED) && (ITEMS.GetCount()) && (argument))
+			throw "You can't switch to sorted if the view (combobox) already contains items";
+
+		_SORTED=argument;
+		return _SORTED;
+	}
+
+	public function SetSortColumn(argument) {
+		if ((_SORTED) && (ITEMS.GetCount()) && (argument!=_SORTCOLUMN))
+			throw "You can't change the sort column if the view (combobox) already contains items";
+
+		_SORTCOLUMN=argument;
+		return argument;
+	}
+
+	public function SetSortDescending(argument) {
+		if ((_SORTED) && (ITEMS.GetCount()) && (argument!=_SORTCOLUMN))
+			throw "You can't change the sort direction if the view (combobox) already contains items";
+		_DESCENDING=(argument==true);
+		return _DESCENDING;
+	}
+
+	public function GetSelectedItem() {
+		if (ITEMS) {
+			var index=this.RowIndex;
+			if (index>-1) {
+				return ITEMS[index];
+			}
+		}
+		return null;
+	}
+
+	public function RComboBox(OWNER) {
+		super(OWNER, CLASS_COMBOBOX);
+		ITEMS=new MultiItems();
+	}
+}

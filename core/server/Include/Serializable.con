@@ -1,0 +1,11 @@
+import standard.lang.serialize
+
+class Serializable {
+	public function Serialize(filename="",encoding="UTF-8") {
+		return SerializeObject(this,filename,encoding);
+	}
+
+	static function UnSerialize(filename, is_buffer=false, var err=null) {
+		return UnSerializeObject(filename, is_buffer, err);
+	}
+}

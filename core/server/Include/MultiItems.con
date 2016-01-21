@@ -1,0 +1,351 @@
+import standard.lib.str
+import standard.C.casts
+
+
+class MultiItemsItem {
+	public var ITEM_DATA;
+	public var CHILDREN;
+}
+
+class MultiItems {
+	public var[] Content;
+	public property Count { get GetCount }
+
+	public function GetCount() {
+		return length Content;
+	}
+
+	static function FindSortedPlace(arr, sort_column, element, direction) {
+		var len=length arr;
+		var index=len;
+		var has_array=false;
+		var target_element;
+
+		if (typeof element=="array")
+			target_element=element[sort_column];
+		else
+			target_element=element;
+
+		if (!len) {
+			return 0;
+		}
+
+		var start=int32(len/2);
+		var delta=len-start;
+
+		while (true) {
+			if (start<0)
+				return 0;
+
+			if (start>=len)
+				return len;
+
+			//var order=strcmp(target_element, arr[start].ITEM_DATA[sort_column]);
+			var order=target_element >= arr[start].ITEM_DATA[sort_column];
+
+			if (!delta) {
+
+                		start+=order;//(order>=0);
+                		if (start<0)
+                    			start=0;
+                		else
+                		if (start>=len)
+                    			start=len;
+                		//return start;
+				break;
+			} else {
+				if (order/*>0*/) {
+					start+=delta;
+
+                			if (start>=len)
+                    				start=len-1;
+				} else {
+                			start-=delta;
+                			if (start<0)
+                    				start=0;
+				}
+			}
+
+			if (delta==1)
+				delta=0;
+			else
+				delta=int32(delta/2)+delta%2;
+
+		}
+
+		/*if (direction!=1)
+			start=len-start;*/
+
+		return start;
+	}
+
+	private function __Add(list,item_data) {
+		var where=length list;
+		var item=new MultiItemsItem;
+		item.ITEM_DATA=item_data;
+		list[where]=item;
+		return 0;
+	}
+
+	private function __IdentifyData(array_data) {
+		var len=length array_data;
+		var target=Content;
+		var item_data=0;
+		for (var i=0;i<len;i++) {
+			if (typeof target!="array") {
+				return 0;
+			}
+
+			var _value=&array_data[i];
+			var tlen=length target;
+
+
+			if ((_value<0) || (_value>=tlen))
+				return 0;
+
+			var item=&target[_value];
+
+			target=&item.CHILDREN;
+			item_data=&item.ITEM_DATA;
+		}
+		return item_data;
+	}
+
+	private function __IdentifyItem(array_data, var index) {
+		var len=length array_data;
+		var target=Content;
+		var item=0;
+		var prev_item;
+		index=-1;
+		for (var i=0;i<len;i++) {
+			prev_item=&item;
+
+			if (typeof target!="array") {
+				return prev_item;
+			}
+
+			var _value=&array_data[i];
+			var tlen=length target;
+
+			if ((_value<0) || (_value>=tlen))
+				return prev_item;
+
+			item=&target[_value];
+
+			target=&item.CHILDREN;
+		}
+		index=_value;
+		return prev_item;
+	}
+
+	private function __Identify(array_data) {
+		var len=length array_data;
+		var target=Content;
+		for (var i=0;i<len;i++) {
+			var _value=&array_data[i];
+			var tlen=length target;
+
+			if ((_value<0) || (_value>=tlen))
+				break;
+
+			var item=&target[_value];
+			if (typeof item.CHILDREN!="array")
+				item.CHILDREN=new [];
+			target=&item.CHILDREN;
+		}
+		return target;
+	}
+
+	public function Update(array_data,new_value) {
+		var len=length array_data;
+		var target=Content;
+		var item_data=0;
+
+		for (var i=0;i<len;i++) {
+			if (typeof target!="array") {
+				return 0;
+			}
+
+			var _value=&array_data[i];
+			var tlen=length target;
+
+
+			if ((_value<0) || (_value>=tlen))
+				return 0;
+
+			var item=&target[_value];
+			item_data=&item.ITEM_DATA;
+
+			if (i==len-1) {
+				if (item_data) {
+					if (typeof new_value!="array") {
+						item.ITEM_DATA=&new [];
+						item.ITEM_DATA[0]=new_value;
+					} else
+						item.ITEM_DATA=&new_value;
+					return 1;
+				}
+				return 0;
+			}
+
+			target=&item.CHILDREN;
+		}
+		return 0;
+	}
+
+	public function Add(item_data) {
+		return __Add(Content,item_data);
+	}
+
+	public function AddChild(path, item_data) {
+		var type=typeof path;
+		var where=length Content;
+		if (type=="string") {
+			var new_path=StrNumberSplit(path,":");
+			type=typeof new_path;
+			path=new_path;
+		}
+
+		if (type=="array") {
+			__Add(__Identify(path), item_data);
+		} else
+		if (type=="numeric") {
+			if ((path<0) || (path>=where))
+				Add(item_data);
+			else {
+				var item=Content[path];
+				if (typeof item.CHILDREN!="array")
+					item.CHILDREN=new [];
+				__Add(item.CHILDREN, item_data);
+			}
+		}
+	}
+
+	public function Clear() {
+		delete Content;
+		Content=new [];
+	}
+
+	public operator[] (index) {
+		if (typeof index=="string")
+			return this.GetPath(index);
+
+		var len=length Content;
+		if ((index<0) || (index>=len))
+			return 0;
+
+		return Content[index].ITEM_DATA;
+	}
+
+	public function GetPath(path) {
+		var type=typeof path;
+		if (type=="numeric")
+			return this[path];
+		else
+		if (type=="string") {
+			return __IdentifyData(StrNumberSplit(path,":"));
+		} else
+		if (type=="array")
+			return __IdentifyData(path);
+	}
+
+	public function GetChildren(path) {
+		var type=typeof path;
+		if (type=="numeric")
+			return __Identify([path]);
+		else
+		if (type=="string") {
+			return __Identify(StrNumberSplit(path,":"));
+		} else
+		if (type=="array")
+			return __Identify(path);
+	}
+
+	private function RemoveFromArray(var array _array, index) {
+		var[] array2;
+		var len=length _array;
+		var arr2_index=0;
+
+		for (var i=0;i<len;i++) {
+			if (i==index)
+				continue;
+			array2[arr2_index++]=_array[i];
+		}
+		delete _array;
+		_array=array2;
+	}
+
+	private function InsertIntoArray(var array _array, index, item_data) {
+		var[] array2;
+		var len=length _array;
+		var arr2_index=0;
+		if (index>=len) {
+			__Add(_array,item_data);
+			return 0;
+		}
+
+		for (var i=0;i<len;i++) {
+			if (i==index) {
+				__Add(array2,item_data);
+				arr2_index++;
+			}
+			array2[arr2_index++]=_array[i];
+		}
+		delete _array;
+		_array=array2;
+	}
+
+	public function Delete(path) {
+		var type=typeof path;
+		if (type=="string") {
+			var new_path=StrNumberSplit(path,":");
+			type=typeof new_path;
+			path=new_path;
+		}
+
+		if (type=="array") {
+			var item=__IdentifyItem(path,var index);
+			if (index==-1)
+				return 0;
+			if (item)
+				RemoveFromArray(item.CHILDREN,index);
+			else
+				RemoveFromArray(Content,index);
+		} else
+		if (type=="numeric")
+				RemoveFromArray(Content,path);
+		return 1;
+	}
+
+	public function Insert(path,item_value) {
+		var type=typeof path;
+		if (type=="string") {
+			var new_path=StrNumberSplit(path,":");
+			type=typeof new_path;
+			path=new_path;
+		}
+
+		if (type=="array") {
+			var item=__IdentifyItem(path,var index);
+
+			if (index==-1) {
+				if (item) {
+					if (typeof item.CHILDREN!="array")
+						item.CHILDREN=new [];
+					__Add(item.CHILDREN, item_value);
+					return 1;
+				}
+				return 0;
+			}
+
+			if (item) {
+				InsertIntoArray(item.CHILDREN,index,item_value);
+			} else {
+				InsertIntoArray(Content,index,item_value);
+			}
+		} else
+		if (type=="numeric")
+				InsertIntoArray(Content,path,item_value);
+		return 1;
+	}
+}

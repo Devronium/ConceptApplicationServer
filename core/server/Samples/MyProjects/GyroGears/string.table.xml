@@ -1,0 +1,1187 @@
+<?xml version="1.0"?>
+<StringTable>
+  <default langid="en"/>
+  <string msgid="Name">
+    <lang id="en">
+Name
+    </lang>
+    <lang id="ro">
+Nume
+    </lang>
+  </string>
+  <string msgid="Surname">
+    <lang id="en">
+Surname
+    </lang>
+    <lang id="ro">
+Prenume
+    </lang>
+  </string>
+  <string msgid="toolbutton1">
+    <lang id="en">
+toolbutton1
+    </lang>
+  </string>
+  <string msgid="toolbutton2">
+    <lang id="en">
+toolbutton2
+    </lang>
+  </string>
+  <string msgid="toolbutton3">
+    <lang id="en">
+toolbutton3
+    </lang>
+  </string>
+  <string msgid="toolbutton4">
+    <lang id="en">
+toolbutton4
+    </lang>
+  </string>
+  <string msgid="toolbutton5">
+    <lang id="en">
+toolbutton5
+    </lang>
+  </string>
+  <string msgid="Open">
+    <lang id="en">
+Open
+    </lang>
+  </string>
+  <string msgid="Save">
+    <lang id="en">
+Save
+    </lang>
+  </string>
+  <string msgid="Save as">
+    <lang id="en">
+Save as
+    </lang>
+  </string>
+  <string msgid="Run">
+    <lang id="en">
+Run
+    </lang>
+  </string>
+  <string msgid="Build">
+    <lang id="en">
+Build
+    </lang>
+  </string>
+  <string msgid="Write database">
+    <lang id="en">
+Write database
+    </lang>
+  </string>
+  <string msgid="toolbutton9">
+    <lang id="en">
+toolbutton9
+    </lang>
+  </string>
+  <string msgid="Embed modified files">
+    <lang id="en">
+Embed modified files
+    </lang>
+  </string>
+  <string msgid="GyroGears 2.0 Personal (c) 2008-2011 RadGs Software">
+    <lang id="en">
+GyroGears 2.0 Personal (c) 2008-2011 RadGs Software
+    </lang>
+  </string>
+  <string msgid="&lt;b&gt;Properties&lt;/b&gt;">
+    <lang id="en">
+&lt;b&gt;Properties&lt;/b&gt;
+    </lang>
+  </string>
+  <string msgid="&lt;b&gt;Select icon&lt;/b&gt;">
+    <lang id="en">
+&lt;b&gt;Select icon&lt;/b&gt;
+    </lang>
+  </string>
+  <string msgid="&lt;b&gt;Select header&lt;/b&gt;">
+    <lang id="en">
+&lt;b&gt;Select header&lt;/b&gt;
+    </lang>
+  </string>
+  <string msgid="&lt;b&gt;please select an element to view its properties&lt;/b&gt;">
+    <lang id="en">
+&lt;b&gt;please select an element to view its properties&lt;/b&gt;
+    </lang>
+  </string>
+  <string msgid="&lt;b&gt;Solution properties&lt;/b&gt;">
+    <lang id="en">
+&lt;b&gt;Solution properties&lt;/b&gt;
+    </lang>
+  </string>
+  <string msgid="&lt;b&gt;Entity properties&lt;/b&gt;">
+    <lang id="en">
+&lt;b&gt;Entity properties&lt;/b&gt;
+    </lang>
+  </string>
+  <string msgid="Triggers update on focus out">
+    <lang id="en">
+Triggers update on focus out
+    </lang>
+  </string>
+  <string msgid="&#10;                                              left&#10;                                              center&#10;                                              right&#10;                                            ">
+    <lang id="en">
+left
+                                              center
+                                              right
+    </lang>
+  </string>
+  <string msgid="                                              left">
+    <lang id="en">
+left
+    </lang>
+  </string>
+  <string msgid="                                              center">
+    <lang id="en">
+center
+    </lang>
+  </string>
+  <string msgid="                                              right">
+    <lang id="en">
+right
+    </lang>
+  </string>
+  <string msgid="                                            ">
+    <lang id="en">
+
+    </lang>
+  </string>
+  <string msgid="">
+    <lang id="en">
+
+    </lang>
+  </string>
+  <string msgid="Align labels (horizontal)">
+    <lang id="en">
+Align labels (horizontal)
+    </lang>
+  </string>
+  <string msgid="Comments/Description">
+    <lang id="en">
+Comments/Description
+    </lang>
+  </string>
+  <string msgid="Category">
+    <lang id="en">
+Category
+    </lang>
+  </string>
+  <string msgid="&lt;b&gt;Name&lt;/b&gt;">
+    <lang id="en">
+&lt;b&gt;Name&lt;/b&gt;
+    </lang>
+  </string>
+  <string msgid="Public name">
+    <lang id="en">
+Public name
+    </lang>
+  </string>
+  <string msgid="Align labels (vertical)">
+    <lang id="en">
+Align labels (vertical)
+    </lang>
+  </string>
+  <string msgid="&#10;                                              top&#10;                                              center&#10;                                              bottom&#10;                                            ">
+    <lang id="en">
+top
+                                              center
+                                              bottom
+    </lang>
+  </string>
+  <string msgid="                                              top">
+    <lang id="en">
+top
+    </lang>
+  </string>
+  <string msgid="                                              bottom">
+    <lang id="en">
+bottom
+    </lang>
+  </string>
+  <string msgid="Default value">
+    <lang id="en">
+Default value
+    </lang>
+  </string>
+  <string msgid="Validation">
+    <lang id="en">
+Validation
+    </lang>
+  </string>
+  <string msgid="Put labels above fields">
+    <lang id="en">
+Put labels above fields
+    </lang>
+  </string>
+  <string msgid="Init function">
+    <lang id="en">
+Init function
+    </lang>
+  </string>
+  <string msgid="Attached formula">
+    <lang id="en">
+Attached formula
+    </lang>
+  </string>
+  <string msgid="Relevance (index search)">
+    <lang id="en">
+Relevance (index search)
+    </lang>
+  </string>
+  <string msgid="Form field/hint provider function">
+    <lang id="en">
+Form field/hint provider function
+    </lang>
+  </string>
+  <string msgid="&lt;b&gt;Strings&lt;/b&gt;">
+    <lang id="en">
+&lt;b&gt;Strings&lt;/b&gt;
+    </lang>
+  </string>
+  <string msgid="&lt;b&gt;Numeric&lt;/b&gt;">
+    <lang id="en">
+&lt;b&gt;Numeric&lt;/b&gt;
+    </lang>
+  </string>
+  <string msgid="&lt;b&gt;Miscellaneous&lt;/b&gt;">
+    <lang id="en">
+&lt;b&gt;Miscellaneous&lt;/b&gt;
+    </lang>
+  </string>
+  <string msgid="&lt;b&gt;Value sets&lt;/b&gt;">
+    <lang id="en">
+&lt;b&gt;Value sets&lt;/b&gt;
+    </lang>
+  </string>
+  <string msgid="short string">
+    <lang id="en">
+short string
+    </lang>
+  </string>
+  <string msgid="long string">
+    <lang id="en">
+long string
+    </lang>
+  </string>
+  <string msgid="integer">
+    <lang id="en">
+integer
+    </lang>
+  </string>
+  <string msgid="decimal">
+    <lang id="en">
+decimal
+    </lang>
+  </string>
+  <string msgid="&lt;b&gt;Relational&lt;/b&gt;">
+    <lang id="en">
+&lt;b&gt;Relational&lt;/b&gt;
+    </lang>
+  </string>
+  <string msgid="date/time">
+    <lang id="en">
+date/time
+    </lang>
+  </string>
+  <string msgid="&lt;b&gt;Multimedia&lt;/b&gt;">
+    <lang id="en">
+&lt;b&gt;Multimedia&lt;/b&gt;
+    </lang>
+  </string>
+  <string msgid="choose combo">
+    <lang id="en">
+choose combo
+    </lang>
+  </string>
+  <string msgid="choose radio">
+    <lang id="en">
+choose radio
+    </lang>
+  </string>
+  <string msgid="picture">
+    <lang id="en">
+picture
+    </lang>
+  </string>
+  <string msgid="multimedia">
+    <lang id="en">
+multimedia
+    </lang>
+  </string>
+  <string msgid="file">
+    <lang id="en">
+file
+    </lang>
+  </string>
+  <string msgid="relation">
+    <lang id="en">
+relation
+    </lang>
+  </string>
+  <string msgid="&lt;b&gt;Advanced data types&lt;/b&gt;">
+    <lang id="en">
+&lt;b&gt;Advanced data types&lt;/b&gt;
+    </lang>
+  </string>
+  <string msgid="direct query">
+    <lang id="en">
+direct query
+    </lang>
+  </string>
+  <string msgid="custom function ">
+    <lang id="en">
+custom function
+    </lang>
+  </string>
+  <string msgid="secret field / password">
+    <lang id="en">
+secret field / password
+    </lang>
+  </string>
+  <string msgid="boolean (true or false)">
+    <lang id="en">
+boolean (true or false)
+    </lang>
+  </string>
+  <string msgid="non homogeneous relation">
+    <lang id="en">
+non homogeneous relation
+    </lang>
+  </string>
+  <string msgid="has suggested values (recommended for small sets of values)">
+    <lang id="en">
+has suggested values (recommended for small sets of values)
+    </lang>
+  </string>
+  <string msgid="   Short preview length">
+    <lang id="en">
+Short preview length
+    </lang>
+  </string>
+  <string msgid=" Modifier function">
+    <lang id="en">
+Modifier function
+    </lang>
+  </string>
+  <string msgid="&#10;                                                          ToUpper&#10;                                                          ToLower&#10;                                                        ">
+    <lang id="en">
+ToUpper
+                                                          ToLower
+    </lang>
+  </string>
+  <string msgid="                                                          ToUpper">
+    <lang id="en">
+ToUpper
+    </lang>
+  </string>
+  <string msgid="                                                          ToLower">
+    <lang id="en">
+ToLower
+    </lang>
+  </string>
+  <string msgid="                                                        ">
+    <lang id="en">
+
+    </lang>
+  </string>
+  <string msgid="&#10;                                                          Render as plain text&#10;                                                          Render as WYSIWYG&#10;                                                          Render as a sheet&#10;                                                        ">
+    <lang id="en">
+Render as plain text
+                                                          Render as WYSIWYG
+                                                          Render as a sheet
+    </lang>
+  </string>
+  <string msgid="                                                          Render as plain text">
+    <lang id="en">
+Render as plain text
+    </lang>
+  </string>
+  <string msgid="                                                          Render as WYSIWYG">
+    <lang id="en">
+Render as WYSIWYG
+    </lang>
+  </string>
+  <string msgid="                                                          Render as a sheet">
+    <lang id="en">
+Render as a sheet
+    </lang>
+  </string>
+  <string msgid="   Images source path">
+    <lang id="en">
+Images source path
+    </lang>
+  </string>
+  <string msgid="Decimails">
+    <lang id="en">
+Decimails
+    </lang>
+  </string>
+  <string msgid="Render as chart bar">
+    <lang id="en">
+Render as chart bar
+    </lang>
+  </string>
+  <string msgid="Default date (format YYYY-MM-DD)">
+    <lang id="en">
+Default date (format YYYY-MM-DD)
+    </lang>
+  </string>
+  <string msgid="attach time (HH:MM)">
+    <lang id="en">
+attach time (HH:MM)
+    </lang>
+  </string>
+  <string msgid="&lt;b&gt;Values separated by comma (,)&lt;/b&gt;">
+    <lang id="en">
+&lt;b&gt;Values separated by comma (,)&lt;/b&gt;
+    </lang>
+  </string>
+  <string msgid="Allow multi-select when searching">
+    <lang id="en">
+Allow multi-select when searching
+    </lang>
+  </string>
+  <string msgid="Resize">
+    <lang id="en">
+Resize
+    </lang>
+  </string>
+  <string msgid="&lt;b&gt;x&lt;/b&gt;">
+    <lang id="en">
+&lt;b&gt;x&lt;/b&gt;
+    </lang>
+  </string>
+  <string msgid="Thumb size">
+    <lang id="en">
+Thumb size
+    </lang>
+  </string>
+  <string msgid="Preview size">
+    <lang id="en">
+Preview size
+    </lang>
+  </string>
+  <string msgid="Format">
+    <lang id="en">
+Format
+    </lang>
+  </string>
+  <string msgid="&#10;                                                          JPEG&#10;                                                          PNG&#10;                                                        ">
+    <lang id="en">
+JPEG
+                                                          PNG
+    </lang>
+  </string>
+  <string msgid="                                                          JPEG">
+    <lang id="en">
+JPEG
+    </lang>
+  </string>
+  <string msgid="                                                          PNG">
+    <lang id="en">
+PNG
+    </lang>
+  </string>
+  <string msgid="Allow webcam capture">
+    <lang id="en">
+Allow webcam capture
+    </lang>
+  </string>
+  <string msgid="Autocrop thumbnail">
+    <lang id="en">
+Autocrop thumbnail
+    </lang>
+  </string>
+  <string msgid="Autocrop preview">
+    <lang id="en">
+Autocrop preview
+    </lang>
+  </string>
+  <string msgid="Autocrop original image">
+    <lang id="en">
+Autocrop original image
+    </lang>
+  </string>
+  <string msgid="Store on disk">
+    <lang id="en">
+Store on disk
+    </lang>
+  </string>
+  <string msgid="Normalization video size">
+    <lang id="en">
+Normalization video size
+    </lang>
+  </string>
+  <string msgid="Thumbnail size">
+    <lang id="en">
+Thumbnail size
+    </lang>
+  </string>
+  <string msgid="Compare at most (thumbs)">
+    <lang id="en">
+Compare at most (thumbs)
+    </lang>
+  </string>
+  <string msgid="Normalized video format">
+    <lang id="en">
+Normalized video format
+    </lang>
+  </string>
+  <string msgid="Video bitrate">
+    <lang id="en">
+Video bitrate
+    </lang>
+  </string>
+  <string msgid="Audio samplerate">
+    <lang id="en">
+Audio samplerate
+    </lang>
+  </string>
+  <string msgid="Mantain aspect ratio, File format:">
+    <lang id="en">
+Mantain aspect ratio, File format:
+    </lang>
+  </string>
+  <string msgid="download the file when clicked">
+    <lang id="en">
+download the file when clicked
+    </lang>
+  </string>
+  <string msgid="open the file when clicked">
+    <lang id="en">
+open the file when clicked
+    </lang>
+  </string>
+  <string msgid="Store on disk instead of database">
+    <lang id="en">
+Store on disk instead of database
+    </lang>
+  </string>
+  <string msgid="Store file on disk instead of database">
+    <lang id="en">
+Store file on disk instead of database
+    </lang>
+  </string>
+  <string msgid="&lt;b&gt;Relation with&lt;/b&gt;">
+    <lang id="en">
+&lt;b&gt;Relation with&lt;/b&gt;
+    </lang>
+  </string>
+  <string msgid="(None)">
+    <lang id="en">
+(None)
+    </lang>
+  </string>
+  <string msgid=", relation type">
+    <lang id="en">
+, relation type
+    </lang>
+  </string>
+  <string msgid="Use embeded window (if set for related entity)">
+    <lang id="en">
+Use embeded window (if set for related entity)
+    </lang>
+  </string>
+  <string msgid="Use a combobox">
+    <lang id="en">
+Use a combobox
+    </lang>
+  </string>
+  <string msgid="\n                                                          Use a combo box to render the relation\n                                                          This works only for many to one relations\n                                                        ">
+    <lang id="en">
+\n                                                          Use a combo box to render the relation\n                                                          This works only for many to one relations\n
+    </lang>
+  </string>
+  <string msgid="Filters (one per line)">
+    <lang id="en">
+Filters (one per line)
+    </lang>
+  </string>
+  <string msgid=", at least">
+    <lang id="en">
+, at least
+    </lang>
+  </string>
+  <string msgid="Custom relation, one/many to max">
+    <lang id="en">
+Custom relation, one/many to max
+    </lang>
+  </string>
+  <string msgid="Add by">
+    <lang id="en">
+Add by
+    </lang>
+  </string>
+  <string msgid="Set owner from related">
+    <lang id="en">
+Set owner from related
+    </lang>
+  </string>
+  <string msgid="Set group from related">
+    <lang id="en">
+Set group from related
+    </lang>
+  </string>
+  <string msgid="Accept multiple selection">
+    <lang id="en">
+Accept multiple selection
+    </lang>
+  </string>
+  <string msgid="Enable 'send to' option">
+    <lang id="en">
+Enable 'send to' option
+    </lang>
+  </string>
+  <string msgid="&lt;b&gt;Formula&lt;/b&gt;">
+    <lang id="en">
+&lt;b&gt;Formula&lt;/b&gt;
+    </lang>
+  </string>
+  <string msgid="&lt;b&gt;Function&lt;/b&gt;">
+    <lang id="en">
+&lt;b&gt;Function&lt;/b&gt;
+    </lang>
+  </string>
+  <string msgid="Called by pressing a button">
+    <lang id="en">
+Called by pressing a button
+    </lang>
+  </string>
+  <string msgid="Called by pressing a button (if not, will be called automatically)">
+    <lang id="en">
+Called by pressing a button (if not, will be called automatically)
+    </lang>
+  </string>
+  <string msgid="View in context menu">
+    <lang id="en">
+View in context menu
+    </lang>
+  </string>
+  <string msgid="&lt;b&gt;Choose icon&lt;/b&gt;">
+    <lang id="en">
+&lt;b&gt;Choose icon&lt;/b&gt;
+    </lang>
+  </string>
+  <string msgid="Requires confirmation">
+    <lang id="en">
+Requires confirmation
+    </lang>
+  </string>
+  <string msgid="&lt;i&gt;This type has no properties&lt;/i&gt;">
+    <lang id="en">
+&lt;i&gt;This type has no properties&lt;/i&gt;
+    </lang>
+  </string>
+  <string msgid="Reorderable">
+    <lang id="en">
+Reorderable
+    </lang>
+  </string>
+  <string msgid="Minimum items">
+    <lang id="en">
+Minimum items
+    </lang>
+  </string>
+  <string msgid="Maximum items">
+    <lang id="en">
+Maximum items
+    </lang>
+  </string>
+  <string msgid="Mixed list level">
+    <lang id="en">
+Mixed list level
+    </lang>
+  </string>
+  <string msgid="Add">
+    <lang id="en">
+Add
+    </lang>
+  </string>
+  <string msgid="Remove">
+    <lang id="en">
+Remove
+    </lang>
+  </string>
+  <string msgid="Pattern search">
+    <lang id="en">
+Pattern search
+    </lang>
+  </string>
+  <string msgid="Search fields containing 'value' instead of exactly 'value'. Same as '%value%'.">
+    <lang id="en">
+Search fields containing 'value' instead of exactly 'value'. Same as '%value%'.
+    </lang>
+  </string>
+  <string msgid="Trim">
+    <lang id="en">
+Trim
+    </lang>
+  </string>
+  <string msgid="Trim leading and ending spaces and tabs">
+    <lang id="en">
+Trim leading and ending spaces and tabs
+    </lang>
+  </string>
+  <string msgid="Generate programming interface">
+    <lang id="en">
+Generate programming interface
+    </lang>
+  </string>
+  <string msgid="Mandatory">
+    <lang id="en">
+Mandatory
+    </lang>
+  </string>
+  <string msgid="Unique">
+    <lang id="en">
+Unique
+    </lang>
+  </string>
+  <string msgid="Visible in PDF/printed forms">
+    <lang id="en">
+Visible in PDF/printed forms
+    </lang>
+  </string>
+  <string msgid="Visible in reports">
+    <lang id="en">
+Visible in reports
+    </lang>
+  </string>
+  <string msgid="Advanced search">
+    <lang id="en">
+Advanced search
+    </lang>
+  </string>
+  <string msgid="Use in sorting">
+    <lang id="en">
+Use in sorting
+    </lang>
+  </string>
+  <string msgid="Dragable">
+    <lang id="en">
+Dragable
+    </lang>
+  </string>
+  <string msgid="Generate quick statistic">
+    <lang id="en">
+Generate quick statistic
+    </lang>
+  </string>
+  <string msgid="Enforce user link">
+    <lang id="en">
+Enforce user link
+    </lang>
+  </string>
+  <string msgid="Unique check will be performed only for the logged user">
+    <lang id="en">
+Unique check will be performed only for the logged user
+    </lang>
+  </string>
+  <string msgid="Setable to all">
+    <lang id="en">
+Setable to all
+    </lang>
+  </string>
+  <string msgid="This option allows you to 'set to all' using this member.">
+    <lang id="en">
+This option allows you to 'set to all' using this member.
+    </lang>
+  </string>
+  <string msgid="Hide in views">
+    <lang id="en">
+Hide in views
+    </lang>
+  </string>
+  <string msgid="Hide the coresponding column in screen views">
+    <lang id="en">
+Hide the coresponding column in screen views
+    </lang>
+  </string>
+  <string msgid="Reload original unique data">
+    <lang id="en">
+Reload original unique data
+    </lang>
+  </string>
+  <string msgid="Indexable">
+    <lang id="en">
+Indexable
+    </lang>
+  </string>
+  <string msgid="Editable in views">
+    <lang id="en">
+Editable in views
+    </lang>
+  </string>
+  <string msgid="Read only">
+    <lang id="en">
+Read only
+    </lang>
+  </string>
+  <string msgid="Render using small widget">
+    <lang id="en">
+Render using small widget
+    </lang>
+  </string>
+  <string msgid="gtk-ok">
+    <lang id="en">
+gtk-ok
+    </lang>
+  </string>
+  <string msgid="gtk-cancel">
+    <lang id="en">
+gtk-cancel
+    </lang>
+  </string>
+  <string msgid="Icon">
+    <lang id="en">
+Icon
+    </lang>
+  </string>
+  <string msgid="Comments">
+    <lang id="en">
+Comments
+    </lang>
+  </string>
+  <string msgid="Touch filter">
+    <lang id="en">
+Touch filter
+    </lang>
+  </string>
+  <string msgid="Can be combined with other touch filter">
+    <lang id="en">
+Can be combined with other touch filter
+    </lang>
+  </string>
+  <string msgid="Save touch filter">
+    <lang id="en">
+Save touch filter
+    </lang>
+  </string>
+  <string msgid="New">
+    <lang id="en">
+New
+    </lang>
+  </string>
+  <string msgid="New touch filter">
+    <lang id="en">
+New touch filter
+    </lang>
+  </string>
+  <string msgid="Delete">
+    <lang id="en">
+Delete
+    </lang>
+  </string>
+  <string msgid="Delete touch filter">
+    <lang id="en">
+Delete touch filter
+    </lang>
+  </string>
+  <string msgid="&lt;b&gt;Touch filter&lt;/b&gt;">
+    <lang id="en">
+&lt;b&gt;Touch filter&lt;/b&gt;
+    </lang>
+  </string>
+  <string msgid="&lt;b&gt;Advanced reporting data&lt;/b&gt;">
+    <lang id="en">
+&lt;b&gt;Advanced reporting data&lt;/b&gt;
+    </lang>
+  </string>
+  <string msgid="Advanced reporting data">
+    <lang id="en">
+Advanced reporting data
+    </lang>
+  </string>
+  <string msgid="&lt;b&gt;Advanced search data&lt;/b&gt;">
+    <lang id="en">
+&lt;b&gt;Advanced search data&lt;/b&gt;
+    </lang>
+  </string>
+  <string msgid="Advanced search data">
+    <lang id="en">
+Advanced search data
+    </lang>
+  </string>
+  <string msgid="&lt;b&gt;Conditional data&lt;/b&gt;">
+    <lang id="en">
+&lt;b&gt;Conditional data&lt;/b&gt;
+    </lang>
+  </string>
+  <string msgid="Conditional data and workflows">
+    <lang id="en">
+Conditional data and workflows
+    </lang>
+  </string>
+  <string msgid="User level">
+    <lang id="en">
+User level
+    </lang>
+  </string>
+  <string msgid="Menu category">
+    <lang id="en">
+Menu category
+    </lang>
+  </string>
+  <string msgid="Trigger function">
+    <lang id="en">
+Trigger function
+    </lang>
+  </string>
+  <string msgid="Flags">
+    <lang id="en">
+Flags
+    </lang>
+  </string>
+  <string msgid="Show in menu">
+    <lang id="en">
+Show in menu
+    </lang>
+  </string>
+  <string msgid="Show in toolbar">
+    <lang id="en">
+Show in toolbar
+    </lang>
+  </string>
+  <string msgid="Has progressbar">
+    <lang id="en">
+Has progressbar
+    </lang>
+  </string>
+  <string msgid="Has secondary progressbar">
+    <lang id="en">
+Has secondary progressbar
+    </lang>
+  </string>
+  <string msgid="Has progress history">
+    <lang id="en">
+Has progress history
+    </lang>
+  </string>
+  <string msgid="&lt;b&gt;Trigger function&lt;/b&gt;">
+    <lang id="en">
+&lt;b&gt;Trigger function&lt;/b&gt;
+    </lang>
+  </string>
+  <string msgid="&lt;b&gt;Event description member&lt;/b&gt;">
+    <lang id="en">
+&lt;b&gt;Event description member&lt;/b&gt;
+    </lang>
+  </string>
+  <string msgid="End member">
+    <lang id="en">
+End member
+    </lang>
+  </string>
+  <string msgid="Begin member">
+    <lang id="en">
+Begin member
+    </lang>
+  </string>
+  <string msgid="&lt;b&gt;Entity&lt;/b&gt;">
+    <lang id="en">
+&lt;b&gt;Entity&lt;/b&gt;
+    </lang>
+  </string>
+  <string msgid="Sheet type">
+    <lang id="en">
+Sheet type
+    </lang>
+  </string>
+  <string msgid="Portrait&#10;Landscape">
+    <lang id="en">
+Portrait
+Landscape
+    </lang>
+  </string>
+  <string msgid="Portrait">
+    <lang id="en">
+Portrait
+    </lang>
+  </string>
+  <string msgid="Landscape">
+    <lang id="en">
+Landscape
+    </lang>
+  </string>
+  <string msgid="General information">
+    <lang id="en">
+General information
+    </lang>
+  </string>
+  <string msgid="Report XML definition">
+    <lang id="en">
+Report XML definition
+    </lang>
+  </string>
+  <string msgid="Optimize for touch screen">
+    <lang id="en">
+Optimize for touch screen
+    </lang>
+  </string>
+  <string msgid="Fullscreen">
+    <lang id="en">
+Fullscreen
+    </lang>
+  </string>
+  <string msgid="Additional login condition">
+    <lang id="en">
+Additional login condition
+    </lang>
+  </string>
+  <string msgid="Import solution">
+    <lang id="en">
+Import solution
+    </lang>
+  </string>
+  <string msgid="Create installer">
+    <lang id="en">
+Create installer
+    </lang>
+  </string>
+  <string msgid="Open in CIDE">
+    <lang id="en">
+Open in CIDE
+    </lang>
+  </string>
+  <string msgid="&lt;b&gt;Open server project&lt;/b&gt;">
+    <lang id="en">
+&lt;b&gt;Open server project&lt;/b&gt;
+    </lang>
+  </string>
+  <string msgid="&lt;b&gt;Open client project&lt;/b&gt;">
+    <lang id="en">
+&lt;b&gt;Open client project&lt;/b&gt;
+    </lang>
+  </string>
+  <string msgid="&lt;b&gt;Create a new solution&lt;/b&gt;">
+    <lang id="en">
+&lt;b&gt;Create a new solution&lt;/b&gt;
+    </lang>
+  </string>
+  <string msgid="ToUpper&#10;ToLower">
+    <lang id="en">
+ToUpper
+ToLower
+    </lang>
+  </string>
+  <string msgid="ToUpper">
+    <lang id="en">
+ToUpper
+    </lang>
+  </string>
+  <string msgid="ToLower">
+    <lang id="en">
+ToLower
+    </lang>
+  </string>
+  <string msgid="Render as plain text&#10;Render as WYSIWYG&#10;Render as a sheet">
+    <lang id="en">
+Render as plain text
+Render as WYSIWYG
+Render as a sheet
+    </lang>
+  </string>
+  <string msgid="Render as plain text">
+    <lang id="en">
+Render as plain text
+    </lang>
+  </string>
+  <string msgid="Render as WYSIWYG">
+    <lang id="en">
+Render as WYSIWYG
+    </lang>
+  </string>
+  <string msgid="Render as a sheet">
+    <lang id="en">
+Render as a sheet
+    </lang>
+  </string>
+  <string msgid="JPEG&#10;PNG">
+    <lang id="en">
+JPEG
+PNG
+    </lang>
+  </string>
+  <string msgid="JPEG">
+    <lang id="en">
+JPEG
+    </lang>
+  </string>
+  <string msgid="PNG">
+    <lang id="en">
+PNG
+    </lang>
+  </string>
+  <string msgid="left&#10;center&#10;right">
+    <lang id="en">
+left
+center
+right
+    </lang>
+  </string>
+  <string msgid="left">
+    <lang id="en">
+left
+    </lang>
+  </string>
+  <string msgid="center">
+    <lang id="en">
+center
+    </lang>
+  </string>
+  <string msgid="right">
+    <lang id="en">
+right
+    </lang>
+  </string>
+  <string msgid="top&#10;center&#10;bottom">
+    <lang id="en">
+top
+center
+bottom
+    </lang>
+  </string>
+  <string msgid="top">
+    <lang id="en">
+top
+    </lang>
+  </string>
+  <string msgid="bottom">
+    <lang id="en">
+bottom
+    </lang>
+  </string>
+  <string msgid="Generate Gyro diagram">
+    <lang id="en">
+Generate Gyro diagram
+    </lang>
+  </string>
+  <string msgid="Generate diagram">
+    <lang id="en">
+Generate diagram
+    </lang>
+  </string>
+  <string msgid="Save diagram as PNG">
+    <lang id="en">
+Save diagram as PNG
+    </lang>
+  </string>
+  <string msgid="Save diagram">
+    <lang id="en">
+Save diagram
+    </lang>
+  </string>
+  <string msgid="Refresh diagram">
+    <lang id="en">
+Refresh diagram
+    </lang>
+  </string>
+  <string msgid="Normal size">
+    <lang id="en">
+Normal size
+    </lang>
+  </string>
+</StringTable>

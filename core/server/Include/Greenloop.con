@@ -1,0 +1,28 @@
+import standard.lib.thread
+
+class Greenloop {
+	private var handle;
+	private var id;
+
+	public function Greenloop(id=0) {
+		this.id=id;
+	}
+
+	public function Add(delegate d) {
+		if (!this.handle)
+			throw "Greenlet loop is not running anymore (loop #{id})";
+		return GreenletAdd(this.handle, d);
+	}
+
+	public function Run(array greenlets) {
+		this.handle=Greenlets(greenlets);
+		var res = GreenLoop(this.handle);
+		handle=null;
+		return res;
+	}
+
+	static function Go(array greenlets) {
+		var g=new Greenloop("static");
+		return g.Run(greenlets);
+	}
+}

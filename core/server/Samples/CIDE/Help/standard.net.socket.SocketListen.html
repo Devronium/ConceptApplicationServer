@@ -1,0 +1,146 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+  <title>standard.net.socket.SocketListen</title>
+  <link href="css/style.css" rel="stylesheet" type="text/css">
+  <meta http-equiv="Content-Type" content="text/html;charset=utf-8" >
+</head>
+<body bgcolor="#ffffff">
+<table border="0" width="100%" bgcolor="#F0F0FF">
+  <tr>
+    <td>Concept Framework 2.2 documentation</td>
+  	<td align="right"><a href="index.html">Contents</a> | <a href="index_fun.html">Index</a></td>
+  </tr>
+</table>
+<h2><a href="standard.net.socket.html">standard.net.socket</a>.SocketListen</h2>
+<table border="0" cellspacing="0" cellpadding="0" width="500" style="border-style:solid;border-width:1px;border-color:#D0D0D0;">
+  <tr bgcolor="#f0f0f0">
+     <td><i>Name</i></td>
+     <td><i>Version</i></td>
+     <td><i>Deprecated</i></td>
+  </tr>
+  <tr bgcolor="#fafafa">
+     <td><b>SocketListen</b></td>
+     <td>version 1.0</td>
+     <td>no</td>
+  </tr>
+</table>
+<br />
+<b>Prototype:</b><br />
+	<table bgcolor="#F0F0F0" width="100%" style="border-style:solid;border-width:1px;border-color:#D0D0D0;"><tr><td><b>number SocketListen(number socket, number port, number max_connections_count=0x100)</b></td></tr></table>
+<br />
+
+<b>Parameters:</b><br />
+<table bgcolor="#FFFFFF" style="border-style:solid;border-width:1px;border-color:#D0D0D0;">
+
+	   <tr>
+	   	   <td>
+		   	   <i>socket</i>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+		   </td>
+	   	   <td>
+		   	   a valid and socket descriptor, as returned by <a href="standard.net.socket.SocketCreate.html">SocketCreate</a>
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <i>port</i>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+		   </td>
+	   	   <td>
+		   	   the port to listen to
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <i>max_connections_count</i>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+		   </td>
+	   	   <td>
+		   	   the maximum number of simultaneous connections
+		   </td>
+	   </tr>
+
+</table>
+
+<br />
+<b>Description:</b><br />
+<table width="100%" bgcolor="#FAFAFF" style="border-style:solid;border-width:1px;border-color:#D0D0D0;">
+<tr><td>
+Places a socket in a state in which it is listening for an incoming connection.
+</td></tr>
+</table>
+<br />
+
+<b>Example:</b>
+<table bgcolor="#F0F0FF" width="100%"  style="border-style:solid;border-width:1px;border-color:#D0D0D0;"><tr><td>
+<font color="#101060"><pre>import standard.net.socket
+import standard.lib.thread
+
+
+class ThreadClient {
+	var socket;
+
+	function ClientThread() {		
+		var info=SocketInfo(socket);
+		echo info;
+
+		var i=0;
+		while (SocketRead(socket, var buffer, 100)&gt;0) {
+			echo "Received: $buffer\n";
+
+			// read just half the messages ...
+			if (++i&gt;5)
+				break;
+		}
+
+		if (SocketHasData(socket)) {
+			echo "Socket still has data waiting to be read !!!";
+		}
+
+		echo "Bye !";
+		SocketClose(socket);
+	}
+}
+
+class Main {
+
+	function Main() {
+		var s=SocketCreate();
+
+		SocketListen(s,3500);
+
+		do {
+			var s_client=SocketAccept(s);
+			echo "Accepted !";
+			if (s_client&gt;=0) {
+				var cl=new ThreadClient();
+				cl.socket=s_client;
+
+				RunThread(cl.ClientThread);
+			}
+		} while (1);
+	}
+}</pre></font>
+</td></tr></table>
+<br />
+
+<b>Returns:</b><br />
+Returns 0 if succeeded, or -1 if failed. This function can fail, if there is already a socket listening to the same port, or a firewall is not allowing the specified port to be used. Also fails if socket binding fails.
+<br />
+<br />
+<!--
+  <p>
+    <a href="http://validator.w3.org/check?uri=referer"><img
+        src="http://www.w3.org/Icons/valid-html40"
+        alt="Valid HTML 4.0 Transitional" height="31" width="88" border="0"></a>
+ <a href="http://jigsaw.w3.org/css-validator/">
+  <img style="border:0;width:88px;height:31px"
+       src="http://jigsaw.w3.org/css-validator/images/vcss" 
+       alt="Valid CSS!" border="0"/>
+ </a>
+</p>
+-->
+<table bgcolor="#F0F0F0" width="100%"><tr><td>Documented by Eduard Suica, generation time: Sun Jan 27 18:15:17 2013
+ GMT</td><td align="right">(c)2013 <a href="http://www.devronium.com">Devronium Applications</a></td></tr></table>
+</body>
+</html>

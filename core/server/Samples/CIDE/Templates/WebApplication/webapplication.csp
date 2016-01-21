@@ -1,0 +1,73 @@
+include WebDocument.con
+include WebTemplate.con
+
+
+define TEMPLATE		"webapplication.ctp"
+
+class Main {
+	private var doc; // our WebDocument
+	private var t;   // t from template
+	
+	private var[] MyPOST; // the POST variables
+	private var[] MyGET;  // the GET variables
+
+
+	function PopulatePage() {
+		// TO DO !
+		// Put your code here.
+		// Remember that both doc and template are initialised.
+
+		t.Bind("title", "Replace me with your application name");
+	}
+
+
+	//==================================================================//
+	// Automatically generated code                                     //
+	//==================================================================//
+	function Main() {
+	    // load POST variables
+	    MyPOST=POST();
+	    // load GET variables
+	    MyGET=GET();
+	    
+		if (this.Create())
+			this.PopulatePage();
+		else
+			echo "Init failed.";
+	}
+	//==================================================================//
+	function Create() {
+		try {
+			doc=new WebDocument();
+			doc.UseSessions=true;
+			doc.BeginDocument();
+
+			t=new WebTemplate();
+		} catch (var exception) {
+			echo "Initialisation failed ";
+			echo exception;
+			return false;
+		}
+		return true;
+	}
+	//==================================================================//
+	public function finalize() {
+		t.TemplateFile=TEMPLATE;
+
+		if (t.Generate()) {
+			// all ok. Check for run-time errors in template.
+			if (t.Errors)
+				doc << "Run-time error in template: \n" << t.Errors << "<\pre>";
+			else
+				doc << t.Result; // ok, show results !
+		} else {
+			doc << "<pre>Error compiling template: \n" << t.Errors << "<\pre>";
+		}
+		try {
+			doc.EndDocument();
+		} catch (var exception) {
+			// an exception ...
+		}
+	}
+	//==================================================================//
+}

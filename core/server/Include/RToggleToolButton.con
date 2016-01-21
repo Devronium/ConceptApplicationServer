@@ -1,0 +1,30 @@
+include RToolButton.con
+
+class RToggleToolButton extends RToolButton {
+	public property Checked { get GetChecked, set SetChecked }
+
+	public function RToggleToolButton(OWNER) {
+		// don't call super !!!
+		SingleContainer(OWNER, CLASS_TOGGLETOOLBUTTON);
+	}
+
+	//----------- EVENTS ----------------------------------------------------//	
+	public property OnToggled { get GetOnToggled, set SetOnToggled }
+	public function GetOnToggled() {
+		return _GET_REMOTE_EVENT(EVENT_ON_TOGGLED);
+	}
+
+	public function SetOnToggled(var delegate deleg) {
+		return _MAP_REMOTE_EVENT(EVENT_ON_TOGGLED, deleg);
+	}
+	//-----------------------------------------------------------------------//	
+
+	public function GetChecked() {
+		return value GetProperty(P_CHECKED);
+	}
+
+	public function SetChecked(argument) {
+		SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_CHECKED,argument);
+		return argument;
+	}
+}

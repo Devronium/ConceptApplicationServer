@@ -1,0 +1,13 @@
+import standard.lang.serialize
+
+class ConceptException {
+	public var _NUMBER_DATA;
+	public var _STRING_DATA;
+	public var _CALL_STACK;
+
+	public function ConceptException(NUMBER_DATA,STRING_DATA) {
+		this->_NUMBER_DATA=NUMBER_DATA;
+		this->_STRING_DATA=STRING_DATA;
+		this->_CALL_STACK=_callstack();
+	}
+}

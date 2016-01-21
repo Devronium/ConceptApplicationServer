@@ -1,0 +1,365 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+  <title>RAdjustment</title>
+  <link href="css/style.css" rel="stylesheet" type="text/css">
+  <meta http-equiv="Content-Type" content="text/html;charset=utf-8" >
+</head>
+<body bgcolor="#ffffff">
+<table border="0" width="100%" bgcolor="#F0F0FF">
+  <tr>
+    <td>Concept framework 1.0 documentation</td>
+  	<td align="right"><a href="index.html">Contents</a> | <a href="index_fun.html">Index</a></td>
+  </tr>
+</table>
+<h2>RAdjustment</h2>
+<table border="0" cellspacing="0" cellpadding="0" width="400" style="border-style:solid;border-width:1px;border-color:#D0D0D0;">
+  <tr bgcolor="#f0f0f0">
+     <td><i>Name</i></td>
+     <td><i>Version</i></td>
+     <td><i>Deprecated</i></td>
+  </tr>
+  <tr bgcolor="#fafafa">
+     <td><b>RAdjustment</b></td>
+     <td>version 1.0</td>
+     <td>no</td>
+  </tr>
+</table>
+<br />
+<b>Defined in : </b>RAdjustment.con
+<br/><i>(this file must be included in your application in order to have access, unless you use a child class of RAdjustment that includes this file)</i><br /><br />
+
+<b>Inherits</b> : <a href="RemoteObject.html">RemoteObject</a>&nbsp;&nbsp;
+<br /><br />
+
+
+<b>Description:</b><br />
+<table width="100%" bgcolor="#FAFAFF" style="border-style:solid;border-width:1px;border-color:#D0D0D0;">
+<tr><td>
+A class representing an adjustable bounded value.
+<br>The RAdjustment object represents a value which has an associated lower and upper bound, together with step and page increments, and a page size. It is used within several controls, including <a href="RSpinButton.html">RSpinButton</a>, <a href="RViewPort.html">RViewPort</a>, and <a href="RVScrollbar.html">RVScrollbar</a>, <a href="RHScrollbar.html">RHScrollbar</a>, <a href="RVScale.html">RVScale</a>, <a href="RHScale.html">RHScale</a>.
+<br>
+</td></tr>
+</table>
+<br />
+<br />
+
+
+<b>Properties:</b><br />
+<table bgcolor="#FFFFFF" width="100%" style="border-style:solid;border-width:1px;border-color:#D0D0D0;">
+
+	   <tr>
+	   	   <td>
+		   	   <a href="RAdjustment.Increment.html">Increment</a>
+		   </td>
+	   	   <td>
+		   	   Sets the standard increment value
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="RAdjustment.Lower.html">Lower</a>
+		   </td>
+	   	   <td>
+		   	   Sets or gets the lower value for a RAdjustment
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="RAdjustment.PageIncrement.html">PageIncrement</a>
+		   </td>
+	   	   <td>
+		   	   Sets or gets the page increment
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="RAdjustment.PageSize.html">PageSize</a>
+		   </td>
+	   	   <td>
+		   	   Sets or gets the page size
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="RAdjustment.Upper.html">Upper</a>
+		   </td>
+	   	   <td>
+		   	   Sets or gets the upper value for a RAdjustment
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="RAdjustment.Value.html">Value</a>
+		   </td>
+	   	   <td>
+		   	   Sets or gets the value for a RAdjustment
+		   </td>
+	   </tr>
+
+</table>
+<br />
+
+
+
+<b>Methods:</b><br />
+<table bgcolor="#FFFFFF" width="100%" style="border-style:solid;border-width:1px;border-color:#D0D0D0;">
+
+	   <tr>
+	   	   <td>
+		   	   <a href="RAdjustment.RAdjustment.html">RAdjustment</a>
+		   </td>
+	   	   <td>
+		   	   This is the standard constructor and should not be called explicitly
+		   </td>
+	   </tr>
+
+</table>
+<br />
+
+
+
+
+<b>Events:</b><br />
+<table bgcolor="#FFFFFF" width="100%" style="border-style:solid;border-width:1px;border-color:#D0D0D0;">
+
+	   <tr>
+	   	   <td>
+		   	   <a href="RAdjustment.OnChanged.html">OnChanged</a>
+		   </td>
+	   	   <td>
+		   	   This event is raised when the RAdjustment parameters change
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="RAdjustment.OnValueChanged .html">OnValueChanged </a>
+		   </td>
+	   	   <td>
+		   	   This event is raised when the RAdjustment value changes
+		   </td>
+	   </tr>
+
+</table>
+<br />
+
+
+
+
+<b>Inherited from <a href="RemoteObject.html">RemoteObject</a>:</b><br />
+<br />
+
+
+<b>Inherited properties from <a href="RemoteObject.html">RemoteObject</a></b><br />
+<table bgcolor="#FFFFFF" width="100%" style="border-style:solid;border-width:1px;border-color:#D0D0D0;">
+
+	   <tr>
+	   	   <td>
+		   	   <a href="RemoteObject.Parent.html">Parent</a>
+		   </td>
+	   	   <td>
+		   	   This function returns the Parent for a specific Concept GUI Object
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="RemoteObject.RID.html">RID</a>
+		   </td>
+	   	   <td>
+		   	   The RID (Remote ID) for an object
+		   </td>
+	   </tr>
+
+</table>
+<br />
+
+
+
+
+<b>Inherited methods from <a href="RemoteObject.html">RemoteObject</a></b><br />
+<table bgcolor="#FFFFFF" width="100%" style="border-style:solid;border-width:1px;border-color:#D0D0D0;">
+
+	   <tr>
+	   	   <td>
+		   	   <a href="RemoteObject.Add.html">Add</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="RemoteObject.AddTimer.html">AddTimer</a>
+		   </td>
+	   	   <td>
+		   	   This function sets up a timer
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="RemoteObject.DisposeObject.html">DisposeObject</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="RemoteObject.GetObjectByID.html">GetObjectByID</a>
+		   </td>
+	   	   <td>
+		   	   This function finds the object corresponding to the ID parameter
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="RemoteObject.GetProperty.html">GetProperty</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="RemoteObject.LinkIfNotLinked.html">LinkIfNotLinked</a>
+		   </td>
+	   	   <td>
+		   	   This is a special function, wich should be used after a GUI object was created that has no parent
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="RemoteObject.Post.html">Post</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="RemoteObject.PostString.html">PostString</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="RemoteObject.RemoteObject.html">RemoteObject</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="RemoteObject.Repaint.html">Repaint</a>
+		   </td>
+	   	   <td>
+		   	   This member tells to the remote control to repaint itself(Queue for redraw)
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="RemoteObject.SetParent.html">SetParent</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="RemoteObject.SetProperty.html">SetProperty</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="RemoteObject._GET_REMOTE_EVENT.html">_GET_REMOTE_EVENT</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="RemoteObject._MAP_REMOTE_EVENT.html">_MAP_REMOTE_EVENT</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="RemoteObject.__QueryDispose.html">__QueryDispose</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+	   <tr>
+	   	   <td>
+		   	   <a href="RemoteObject.__Recreate.html">__Recreate</a>
+		   </td>
+	   	   <td>
+		   	   TODO: Document this
+		   </td>
+	   </tr>
+
+</table>
+<br />
+
+
+
+
+
+
+
+
+
+
+
+<br />
+
+<br />
+<br />
+<!--
+  <p>
+    <a href="http://validator.w3.org/check?uri=referer"><img
+        src="http://www.w3.org/Icons/valid-html40"
+        alt="Valid HTML 4.0 Transitional" height="31" width="88" border="0"></a>
+ <a href="http://jigsaw.w3.org/css-validator/">
+  <img style="border:0;width:88px;height:31px"
+       src="http://jigsaw.w3.org/css-validator/images/vcss" 
+       alt="Valid CSS!" border="0"/>
+ </a>
+</p>
+-->
+<table bgcolor="#F0F0F0" width="100%"><tr><td>Documented by Eduard Suica, generation time: Sun Jan 27 18:15:05 2013
+ GMT</td><td align="right">(c)2013 <a href="http://www.devronium.com">Devronium Applications</a></td></tr></table>
+</body>
+</html>

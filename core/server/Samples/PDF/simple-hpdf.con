@@ -1,0 +1,82 @@
+import standard.lib.hpdf
+
+define PAGE_TITLE	"Font demo"
+define OUTPUT_FILENAME	"sample.pdf"
+
+class Main {
+	function error(err, detail) {
+		echo "Error no $err, detail no $detail\n";
+	}
+
+	function Main() {
+		HPDF_SetErrorHandler(error);
+		var pdf=HPDF_New();
+
+		var font_list= [
+			"Courier",
+			"Courier-Bold",
+			"Courier-Oblique",
+			"Courier-BoldOblique",
+			"Helvetica",
+			"Helvetica-Bold",
+			"Helvetica-Oblique",
+			"Helvetica-BoldOblique",
+			"Times-Roman",
+			"Times-Bold", 
+			"Times-Italic",
+			"Times-BoldItalic",
+			"Symbol", 
+			"ZapfDingbats"
+		];
+
+		if (!pdf) {
+			echo "error creating pdf object";
+			return 1;
+		}
+		var page = HPDF_AddPage (pdf);
+    		var height = HPDF_Page_GetHeight (page);
+		var width = HPDF_Page_GetWidth (page);
+
+		HPDF_Page_SetLineWidth (page, 1);
+		HPDF_Page_Rectangle (page, 50, 50, width - 100, height - 110);
+		HPDF_Page_Stroke (page);
+
+		var def_font = HPDF_GetFont (pdf, "Helvetica", "");
+		HPDF_Page_SetFontAndSize (page, def_font, 24);
+
+		var tw = HPDF_Page_TextWidth (page, PAGE_TITLE);
+		HPDF_Page_BeginText (page);
+		HPDF_Page_TextOut (page, (width - tw) / 2, height - 50, PAGE_TITLE);
+		HPDF_Page_EndText (page);
+
+		HPDF_Page_BeginText (page);
+		HPDF_Page_SetFontAndSize (page, def_font, 16);
+		HPDF_Page_TextOut (page, 60, height - 80, "<Standard Type1 fonts samples>");
+		HPDF_Page_EndText (page);
+
+		HPDF_Page_BeginText (page);
+		HPDF_Page_MoveTextPos (page, 60, height - 105);
+
+		var len=length font_list;
+		var samp_text = 'abcdefgABCDEFG12345!#$%&+-@?';
+
+		for (var i=0; i<len; i++) {
+			var font = HPDF_GetFont(pdf, font_list[i], "");
+
+			/* print a label of text */
+			HPDF_Page_SetFontAndSize (page, def_font, 9);
+			HPDF_Page_ShowText (page, font_list[i]);
+			HPDF_Page_MoveTextPos (page, 0, -18);
+
+			/* print a sample text. */
+			HPDF_Page_SetFontAndSize (page, font, 20);
+			HPDF_Page_ShowText (page, samp_text);
+			HPDF_Page_MoveTextPos (page, 0, -20);			
+		}
+		HPDF_Page_EndText (page);
+		HPDF_SaveToFile (pdf, OUTPUT_FILENAME);
+
+		/* clean up */
+		HPDF_Free (pdf);
+	}
+}

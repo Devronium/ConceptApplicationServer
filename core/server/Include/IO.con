@@ -1,0 +1,65 @@
+import standard.C.io
+
+class Env {
+	static function Get(string varname) {
+		return _getenv(varname);
+	}
+
+	static function Put(string varexp) {
+		return _putenv(varexp);
+	}
+}
+
+class IO {
+	static function Error() {
+		return _errno();
+	}
+
+	static function ChDir(string szPath) {
+		return (_chdir(szPath)!=-1);
+	}
+
+	static function Erase(string filename) {
+		return _unlink(filename)!=-1;
+	}
+
+	static function RmDir(string szPath) {
+		return _rmdir(szPath)!=-1;
+	}
+
+	static function MkDir(string szPath) {
+		return _mkdir(szPath)!=-1;
+	}
+
+	static function Remove(string szPath) {
+		return remove(szPath)!=-1;
+	}
+
+	static function Exists(string szPath) {
+		if (FileExists(szPath))
+			return true;
+
+		if (DirectoryExists(szPath))
+			return true;
+
+		return false;
+	}
+
+	static function Exec(string szExecPath, arr_params=null) {
+		if (arr_params) {
+			if (typeof arr_params!="array") {
+				arr_params=[arr_params];
+			}
+
+			return exec(szExecPath,arr_params);
+		} else
+			return exec(szExecPath);
+	}
+
+	static function Stat(string szPath) {
+		var[] arr;
+
+		_stat(szPath, arr);
+		return arr;
+	}
+}

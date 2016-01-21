@@ -1,0 +1,86 @@
+include RWebView.con
+include Application.con
+include XMLDocument.con
+
+class RHTML2 extends RWebView {
+	protected var ONURL;
+	protected var CONTENT="";
+	private var img_arr;
+	private var ignore_next_url=false;
+
+	public property Magnification { get _ZOOM, set SetZoom }
+	public property OnUrl { get ONURL, set SetOnUrl }
+	override Content;
+	public property Content { get CONTENT, set SetContent }
+	public var OnImageRequest; // dummy property
+
+	public function RHTML2(Owner) {
+		super(Owner);
+		this.OnRequest2=this.OnRequestHandler;
+		this.OnNavigationRequested=this.NavigationRequested;
+	}
+
+	public function SetContent(var string content) {
+		this.SetEventResponse(EVENT_ON_NAVIGATION_REQUESTED, false);
+		this.OpenString(content);
+		this.SetEventResponse(EVENT_ON_NAVIGATION_REQUESTED, true);
+		CONTENT=content;
+		ignore_next_url=true;
+		return content;
+	}
+
+	public function NavigationRequested(Sender, EventData) {
+		if (ignore_next_url) {
+			ignore_next_url=false;
+			return;
+		}
+		if (this.ONURL)
+			this.ONURL(Sender, xmlURIUnescapeString(EventData));
+	}
+
+	public function SetOnUrl(delegate deleg) {
+		this.ONURL=deleg;
+		return deleg;
+	}
+
+    
+	public function OnRequestHandler(Sender, EventData) {
+		// nothing
+	}
+
+	private function GetResults(node) {
+		if (!node)
+			return 0;
+
+		do {
+			if (node.Child)
+				GetResults(node.Child);
+
+			var name=ToLower(trim(node.Name));
+			if (name=="img") {
+				var ref_base=trim(node.GetProperty("src"));
+				img_arr[ref_base]=ref_base;
+			}
+			node=node.Next;
+		} while (node);
+	}
+
+	public function GetImages(string content) {
+		var doc=new XMLDocument();
+		doc.LoadHTML(content);
+		img_arr=new [];
+		this.GetResults(doc.Root);
+		return img_arr;
+	}
+
+	public function LoadImages(string extra_path="") {
+		if (!img_arr)
+			return false;
+		var len=length img_arr;
+		for (var i=0;i<len;i++) {
+			var file=img_arr[i];
+			this.Cache(file, ReadFile(extra_path+file));
+		}
+		return true;
+	}
+}

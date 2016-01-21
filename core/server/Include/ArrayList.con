@@ -1,0 +1,229 @@
+//------------------------------------------------------------------------------
+// CLASSES :	
+//		CListNode		-	Node used by ArrayList
+//		ArrayList		-	Simple Dynamic List
+//------------------------------------------------------------------------------
+
+include 'Exceptions.con'
+
+
+class ArrayListNode {
+	public var _KEY;
+	public var _DATA;
+	public var _NEXT_NODE;
+
+	function XMLSerialized() {
+		var XMLData;
+		if (typeof _DATA=="class")
+			XMLData = "<ArrayListNode _KEY='" + this->_KEY + "'>\n" + this->_DATA->XMLSerialized() + "\n</ArrayListNode>";
+		else
+			XMLData = "<ArrayListNode _KEY='" + this->_KEY + "'>" + this->_DATA + "</ArrayListNode>";
+
+		return XMLData;
+	}
+}
+
+
+class ArrayList {
+	protected var FIRST_NODE;
+	protected var LAST_NODE;
+	protected var COUNT;
+
+	property Count { get FCount }
+
+	public function ArrayList() {
+		this->FIRST_NODE=0;
+		this->COUNT=0;
+	}
+
+	public function Add(DATA,KEY) {
+		var newNODE=new ArrayListNode();
+
+		newNODE->_KEY=KEY;
+		newNODE->_DATA=DATA;
+		newNODE->_NEXT_NODE=0;
+
+		if (!this->COUNT)
+			this->FIRST_NODE=&newNODE;
+		else
+			this->LAST_NODE->_NEXT_NODE=&newNODE;
+		this->LAST_NODE=&newNODE;
+		this->COUNT++;
+	}
+
+	public function AddElement(DATA) {
+		this->Add(DATA,this.COUNT);
+	}
+
+	protected function FCount() {
+		return this->COUNT;
+	}
+
+	public function DeleteElementByIndex( INDEX1 ) {
+		if ((INDEX1>=this->COUNT) || (INDEX1<0))
+			throw new ConceptException(1,"Invalid index.");
+
+		var DATA;
+
+		if (!INDEX1) {
+			DATA=&this->FIRST_NODE->_DATA;
+			var NODE=&this->FIRST_NODE->_NEXT_NODE;
+			delete this->FIRST_NODE;
+			this->FIRST_NODE=&NODE;
+			this->COUNT--;
+			return DATA;
+		}
+
+		var currentNODE=&this->FIRST_NODE;
+		var precNODE;
+
+		for (var i=0;i<INDEX1;i++) {
+			precNODE=&currentNODE;
+			currentNODE=&currentNODE->_NEXT_NODE;
+		}
+		precNODE->_NEXT_NODE=&currentNODE->_NEXT_NODE;
+
+		if (INDEX1==this->COUNT)
+			this->LAST_NODE=&precNODE;
+
+		DATA=&currentNODE->_DATA;
+		delete currentNODE;
+		this->COUNT--;
+
+		return DATA;
+	}
+
+	public function DeleteElementByKey(KEY) {
+		// TODO !!
+	}
+
+
+	public function GetElementByIndex(INDEX1) {
+		if ((INDEX1>=this->COUNT) || (INDEX1<0))
+			throw new ConceptException(1,"Invalid index.");
+
+		var currentNODE=&this->FIRST_NODE;
+		for (var i=0;i<INDEX1;i++) 
+			currentNODE=&currentNODE->_NEXT_NODE;
+		return currentNODE->_DATA;
+	}
+
+	public function GetElementByKey(KEY) {
+		var currentNODE=&this->FIRST_NODE;
+		var COUNT=this->COUNT;
+		
+		// parcurg lista element cu element
+		for (var i=0;i<COUNT;i++) {
+			// am gasit cheia
+			if (currentNODE->_KEY==KEY)
+				return currentNODE->_DATA;
+
+			currentNODE=&currentNODE->_NEXT_NODE;
+		}
+		// nu am gasit cheia 
+		throw new ConceptException(2,"Invalid key.");
+	}
+
+	public function GetIndexByKey(KEY) {
+		var currentNODE=&this->FIRST_NODE;
+		var COUNT=this->COUNT;
+		
+		// parcurg lista element cu element
+		for (var i=0;i<COUNT;i++) {
+			// am gasit cheia
+			if (currentNODE->_KEY==KEY)
+				return i;
+
+			currentNODE=&currentNODE->_NEXT_NODE;
+		}
+		// nu am gasit cheia 
+		throw new ConceptException(2,"Invalid key.");
+	}
+
+	operator [](INDEX1) {
+		var currentNODE=&this->FIRST_NODE;
+		var COUNT=this->COUNT;
+		var is_by_index=0;
+		var INDEXED_NODE=0;
+		if (typeof(INDEX1)=="numeric")
+			is_by_index=1;
+		
+		// parcurg lista element cu element
+		for (var i=0;i<COUNT;i++) {
+			// am gasit cheia
+			if (currentNODE->_KEY==INDEX1)
+				return currentNODE->_DATA;
+
+			// retin nodul ce corespunde la nod, in caz ca nu gasesc cheia ...
+			if ((is_by_index) && (i==INDEX1))
+				INDEXED_NODE=currentNODE;
+				
+			currentNODE=&currentNODE->_NEXT_NODE;
+		}
+
+		// returnez dupa index ...
+        if (typeof(INDEXED_NODE)=="class")
+			return INDEXED_NODE->_DATA;
+
+		// daca nici asa nu l-am gasit, il adaug ...
+		this->Add(0,INDEX1);
+
+		// returnez ce am gasit ...
+		return LAST_NODE->_DATA;
+	}
+
+	function ChangeValue(KEY,NEW_VALUE) {
+		var currentNODE=&this->FIRST_NODE;
+		var COUNT=this->COUNT;
+		
+		// parcurg lista element cu element
+		for (var i=0;i<COUNT;i++) {
+			// am gasit cheia
+			if (currentNODE->_KEY==KEY)
+				currentNODE->_DATA=&NEW_VALUE;
+
+			currentNODE=&currentNODE->_NEXT_NODE;
+		}
+		// nu am gasit cheia 
+		this->Add(NEW_VALUE,KEY);
+	}
+
+
+	function ChangeValueByIndex(INDEX1,NEW_VALUE) {
+		if ((INDEX1>=this->COUNT) || (INDEX1<0))
+			throw new ConceptException(1,"Invalid index.");
+
+		var currentNODE=&this->FIRST_NODE;
+		var COUNT=&this->COUNT;
+
+		// parcurg lista element cu element
+		for (var i=0;i<INDEX1;i++)
+			currentNODE=&currentNODE->_NEXT_NODE;
+
+		currentNODE->_DATA=&NEW_VALUE;
+	}
+
+
+	function Clear() {
+		// this is an O(n) operation
+		//while (this->COUNT)
+		//	this->DeleteElementByIndex(0);
+	
+		// this is based on the Concept features:
+		delete this->FIRST_NODE;
+		this->COUNT=0;
+	}
+
+	function XMLSerialized() {
+		var XMLData="<ArrayList>\n";
+
+		var currentNODE=&this->FIRST_NODE;
+
+		for (var i=0;i<this->COUNT;i++) {
+			XMLData+="\t"+currentNODE->XMLSerialized()+"\n";
+			currentNODE=&currentNODE->_NEXT_NODE;
+		}
+		XMLData+="</ArrayList>\n";
+		return XMLData;
+	}
+}

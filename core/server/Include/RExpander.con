@@ -1,0 +1,50 @@
+include SingleContainer.con
+include ClassID.con
+
+class RExpander extends SingleContainer {
+	DEFINE_FIXED_CONTROL
+
+	private var CAPTION;
+	private var EXPANDED;
+	private var MARKUP;
+	private var RESIZEPARENT;
+
+	public property Caption { get CAPTION, set SetCaption }
+	public property Expanded { get GetExpanded, set SetExpanded }
+	public property UseMarkup { get MARKUP, set SetUseMarkup }
+	public property ResizeParent { get RESIZEPARENT, set SetResizeParent }
+
+	public function RExpander(OWNER) {
+		super(OWNER, CLASS_EXPANDER);
+	}
+
+	public function SetCaption(argument) {
+		SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_CAPTION,argument);
+		CAPTION=argument;
+		return argument;
+	}
+
+	public function SetExpanded(argument) {
+		EXPANDED=(argument!=0);
+		return SetProperty(P_EXPANDED, EXPANDED);
+	}
+
+	public function GetExpanded() {
+		EXPANDED=value GetProperty(P_EXPANDED);
+		return EXPANDED;
+	}
+
+	public function SetUseMarkup(number argument) {
+		argument=(argument!=0);
+		SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_MARKUP,argument);
+		MARKUP=argument;
+		return argument;
+	}
+
+	public function SetResizeParent(number argument) {
+		argument=(argument!=0);
+		SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_PAGESIZE,argument);
+		MARKUP=argument;
+		return argument;
+	}
+}

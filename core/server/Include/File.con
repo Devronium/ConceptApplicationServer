@@ -1,0 +1,188 @@
+import standard.C.io
+include IO.con
+
+class File {
+	protected var hFile=0;
+	protected var name="";
+	protected var mode="rb";
+	protected var is_pipe=false;
+	protected var exit_status=0;
+
+	public property Handle { get hFile }
+	public property Descriptor { get GetDescriptor }
+	public property Name { get name, set SetName }
+	public property Mode { get mode, set SetMode }
+	public property Size { get GetSize }
+	public property EOF { get GetEOF }
+	public property ExitStatus { get exit_status }
+
+	public property ContentBuffer { set SetContentBuffer, get GetContentBuffer }
+
+	public function File(string mode="rb") {
+		this.mode=mode;
+	}
+
+	public function Open() {
+		if (hFile)
+			this.Close();
+		is_pipe=false;
+		hFile=fopen(name, mode);
+		return (hFile!=0);
+	}
+
+	public function POpen() {
+		if (hFile)
+			this.Close();
+		is_pipe=false;
+		hFile=popen(name, mode);
+		if (hFile)
+			is_pipe=true;
+		return (hFile!=0);
+	}
+
+	public function Close() {
+		this.exit_status=0;
+		if (!hFile)
+			throw "Invalid file descriptor or no open file";
+		if (is_pipe) {
+			var res=pclose(hFile);
+			this.exit_status=WEXITSTATUS(res);
+			res=(res==0);
+		} else
+			res=(fclose(hFile)==0);
+
+		hFile=0;
+		return res;
+	}
+
+	public function GetContentBuffer() {
+		return ReadFile(this.name);
+	}
+
+	public function SetContentBuffer(var string buffer) {
+		if (hFile)
+			throw "Can't set content buffer for an open file";
+		return WriteFile(buffer, this.name);
+	}
+
+	public function Seek(number offset, number origin=SEEK_SET) {
+		if (!hFile)
+			throw "Invalid file descriptor or no open file";
+		return (fseek(hFile, offset, origin)==0);
+	}
+
+	public function Flush() {
+		if (!hFile)
+			throw "Invalid file descriptor or no open file";
+		return (fflush(hFile)==0);
+	}
+
+	public function Tell() {
+		if (!hFile)
+			throw "Invalid file descriptor or no open file";
+
+		return ftell(hFile);
+	}
+
+	public function GetSize() {
+		if (!hFile)
+			throw "Invalid file descriptor or no open file";
+
+		return fsize(hFile);		
+	}
+
+	public function GetString(string separator="", number max_size=0xFF) {
+		if (!hFile)
+			throw "Invalid file descriptor or no open file";
+
+		if (separator)
+			return fgetstring(hFile, separator, max_size);
+		else
+			return fgets(hFile, separator, max_size);
+	}
+
+	public function Read(var buffer, number size) {
+		if (!hFile)
+			throw "Invalid file descriptor or no open file";
+
+		buffer=&"";
+
+		var read_size=fread(buffer, 1, size, hFile);
+
+		if (read_size<=0)
+			buffer="";
+
+		return read_size;
+	}
+
+	public function GetChar() {
+		if (!hFile)
+			throw "Invalid file descriptor or no open file";
+		return _fgetc(hFile);
+	}
+
+	public function Write(var string buffer, offset = 0) {
+		if (!hFile)
+			throw "Invalid file descriptor or no open file";
+
+		if (offset > 0)
+			var size=fwrite(buffer, 1, length buffer, hFile, offset);
+		else
+			size=fwrite(buffer, 1, length buffer, hFile);
+
+		return size;
+	}
+
+	function GetEOF() {
+		if (!hFile)
+			throw "Invalid file descriptor or no open file";
+
+		return (feof(hFile)!=0);
+	}
+
+	public function GetDescriptor() {
+		if (hFile)
+			return _fileno(hFile);
+		else
+			return -1;
+	}
+
+	public function SetMode(string mode) {
+		this.mode=mode;
+	}
+
+	public function SetName(string filename) {
+		this.name=filename;
+	}
+
+	public function Truncate(number pos) {
+		if (!hFile)
+			throw "Invalid file descriptor or no open file";
+
+		return (ftruncate(hFile, pos)!=0);
+	}
+
+	public function Sync() {
+		if (!hFile)
+			throw "Invalid file descriptor or no open file";
+
+		return (fsync2(hFile)!=0);
+	}
+
+	public function DataSync() {
+		if (!hFile)
+			throw "Invalid file descriptor or no open file";
+
+		return (fdatasync2(hFile)!=0);
+	}
+
+	public function finalize() {
+		if (hFile) {
+			if (is_pipe)
+				pclose(hFile);
+			else
+				fclose(hFile);
+		}
+	}
+
+}

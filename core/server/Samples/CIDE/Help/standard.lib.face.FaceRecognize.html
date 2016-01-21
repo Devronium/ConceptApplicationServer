@@ -1,0 +1,73 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+  <title>standard.lib.face.FaceRecognize</title>
+  <link href="css/style.css" rel="stylesheet" type="text/css">
+  <meta http-equiv="Content-Type" content="text/html;charset=utf-8" >
+</head>
+<body bgcolor="#ffffff">
+<table border="0" width="100%" bgcolor="#F0F0FF">
+  <tr>
+    <td>Concept Framework 2.2 documentation</td>
+  	<td align="right"><a href="index.html">Contents</a> | <a href="index_fun.html">Index</a></td>
+  </tr>
+</table>
+<h2><a href="standard.lib.face.html">standard.lib.face</a>.FaceRecognize</h2>
+<table border="0" cellspacing="0" cellpadding="0" width="500" style="border-style:solid;border-width:1px;border-color:#D0D0D0;">
+  <tr bgcolor="#f0f0f0">
+     <td><i>Name</i></td>
+     <td><i>Version</i></td>
+     <td><i>Deprecated</i></td>
+  </tr>
+  <tr bgcolor="#fafafa">
+     <td><b>FaceRecognize</b></td>
+     <td>version 2</td>
+     <td>no</td>
+  </tr>
+</table>
+<br />
+<b>Prototype:</b><br />
+	<table bgcolor="#F0F0F0" width="100%" style="border-style:solid;border-width:1px;border-color:#D0D0D0;"><tr><td><b>number FaceRecognize(string source, array trainig_data[, var number confidence, number type=OBJECT_FILE|OBJECT_CAMERA|OBJECT_BUFFER,  string training_filename="", var number out_handle=null]);<br/></b></td></tr></table>
+<br />
+
+<br />
+<b>Description:</b><br />
+<table width="100%" bgcolor="#FAFAFF" style="border-style:solid;border-width:1px;border-color:#D0D0D0;">
+<tr><td>
+Recognizes a face and returns its index. training_data must be an array of files in type format (file or streams). If training filename is specified and training_data is an empty array, the training data will be loaded from that file. If training_data is not empty, the training data will be saved to that file.
+<br/>out_handle caches all the used vectors, and you should use it only when heavy processing is done. Just pass a named variable to hold the vectors, and call CloseRecognize on it when you're done. 
+</td></tr>
+</table>
+<br />
+
+<b>Example:</b>
+<table bgcolor="#F0F0FF" width="100%"  style="border-style:solid;border-width:1px;border-color:#D0D0D0;"><tr><td>
+<font color="#101060"><pre>
+		var arr2=["out/out0.png", "out/out1.png", "out/out2.png"];
+		echo FaceRecognize("out/out3.png", arr2, var coef, OBJECT_FILE, "", var container);
+		echo "($coef)";
+		CloseRecognize(container);
+</pre></font>
+</td></tr></table>
+<br />
+
+<b>Returns:</b><br />
+Most probabile face.
+<br />
+<br />
+<!--
+  <p>
+    <a href="http://validator.w3.org/check?uri=referer"><img
+        src="http://www.w3.org/Icons/valid-html40"
+        alt="Valid HTML 4.0 Transitional" height="31" width="88" border="0"></a>
+ <a href="http://jigsaw.w3.org/css-validator/">
+  <img style="border:0;width:88px;height:31px"
+       src="http://jigsaw.w3.org/css-validator/images/vcss" 
+       alt="Valid CSS!" border="0"/>
+ </a>
+</p>
+-->
+<table bgcolor="#F0F0F0" width="100%"><tr><td>Documented by Devronium Autodocumenter Alpha, generation time: Sun Jan 27 18:15:35 2013
+ GMT</td><td align="right">(c)2013 <a href="http://www.devronium.com">Devronium Applications</a></td></tr></table>
+</body>
+</html>

@@ -1,0 +1,71 @@
+/*import standard.lib.regex
+
+class Main {
+	function Main() {
+		var string="radgs@go.ro";
+		var exp="^([A-Za-z0-9]+)@(.+)\\.(\\a+)$";
+		//var string = "This is a test";
+		//var exp = " is";
+		//var exp="[A-Za-z]+://[A-Za-z0-9]+/";
+		//var string="http://www.radgs.com/";
+
+		var arr=regex_match(string,exp);
+		echo arr;
+		arr=regex(string,exp);
+		for (var i=0;i<length arr;i++) {
+			echo arr[i]+"\n";
+		}
+	}
+}
+*/
+
+import standard.lib.preg
+import standard.lib.xml
+import standard.C.math
+
+class Main {
+	function createXML() {
+		var doc=xmlNewDoc("1.0");
+		var node=xmlNewNode(0,"root");
+		//var ns=xmlNewNs(node,"href","test");
+		//xmlNewNsProp(node,ns,"atribut","o valoare");
+		xmlNewProp(node,"atribut","o valoare");
+
+		xmlNodeSetContent(node,"content");
+                xmlDocSetRootElement(doc,node);
+		var str_doc=xmlDocDumpFormatMemory(doc,0);
+		xmlFreeDoc(doc);
+		return str_doc;
+	}
+
+	function readXML(str) {
+		echo str;
+		var doc=xmlReadMemory(str,"include.xml","",0);
+		if (doc) {
+			var node=xmlDocGetRootElement(doc);
+			var arr_node=xmlGetNodeArray(node);
+			echo "Atribut:"+xmlGetProp(node,"atribut")+"\n";
+			echo "Text:"+xmlNodeGetContent(node)+"\n";
+
+			var child=arr_node["children"];
+			var arr_child=xmlGetNodeArray(child);
+
+			echo arr_node;
+			echo "\n";
+			echo arr_child;
+			echo "\n";
+		}
+	}
+
+	function Main() {
+		var exp="^(http:\/\/)?([^\/]+)";
+		var str="http://www.php.net/index.html";
+		var m=preg(str,exp,PCRE_CASELESS);
+		echo m[2];
+
+		var doc=createXML();
+		readXML(doc);
+
+		echo "Radicalul lui 2 este ${sqrt(2)}";
+	}
+}

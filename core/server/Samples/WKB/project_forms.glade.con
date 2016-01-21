@@ -1,0 +1,288 @@
+
+//=============================================================//
+include Lang.con
+include RForm.con
+include Application.con
+include RForm.con
+include RVBox.con
+include RHBox.con
+include RToolbar.con
+include RToolButton.con
+include RToolSeparator.con
+include REdit.con
+include RButton.con
+include RImage.con
+include RExpander.con
+include RCheckButton.con
+include RLabel.con
+include RNotebook.con
+
+
+
+class window1 extends RForm {
+        // keep the string table
+        protected var S;
+
+        public var vbox1;
+        public var hbox2;
+        public var toolbar1;
+        public var toolbutton7;
+        public var separatortoolitem1;
+        public var toolbutton1;
+        public var toolbutton2;
+        public var toolbutton3;
+        public var toolbutton8;
+        public var toolbutton9;
+        public var toolbutton4;
+        public var toolbutton5;
+        public var toolbutton6;
+        public var editUrl;
+        public var button1;
+        public var image1;
+        public var editFind;
+        public var button2;
+        public var image2;
+        public var expander1;
+        public var hbox1;
+        public var button7;
+        public var entrySearchInPage;
+        public var checkbutton1;
+        public var button3;
+        public var button4;
+        public var button5;
+        public var button6;
+        public var notebook1;
+
+
+	public function on_toolbutton7_clicked(Sender, EventData);
+	public function on_toolbutton1_clicked(Sender, EventData);
+	public function on_toolbutton2_clicked(Sender, EventData);
+	public function on_toolbutton8_clicked(Sender, EventData);
+	public function on_toolbutton4_clicked(Sender, EventData);
+	public function on_toolbutton5_clicked(Sender, EventData);
+	public function on_toolbutton6_clicked(Sender, EventData);
+	public function on_button1_clicked(Sender, EventData);
+	public function on_button2_clicked(Sender, EventData);
+	public function on_button7_clicked(Sender, EventData);
+	public function on_button3_clicked(Sender, EventData);
+	public function on_button4_clicked(Sender, EventData);
+	public function on_button5_clicked(Sender, EventData);
+	public function on_button6_clicked(Sender, EventData);
+	public function on_notebook1_switch_page(Sender, EventData);
+
+
+        // ========================================================================
+        // constructor;
+        // S is a Lang object used to translate strings using
+        // the default string table named string.table.xml
+        // Is your responsability to pass this object to other forms instantiated
+        // in this application
+        // ========================================================================
+
+        public function window1(Owner, Lang S) {
+                super(Owner);
+                this.S=S;
+
+		CApplication::BeginNonCritical();
+
+                this.Caption=S<<"Concept WKB";
+                this.Width=600;
+                this.Height=600;
+
+                vbox1=new RVBox(this);
+                vbox1.Visible=true;
+
+                hbox2=new RHBox(vbox1);
+                hbox2.Packing=PACK_SHRINK;
+                hbox2.Visible=true;
+
+                toolbar1=new RToolbar(hbox2);
+                toolbar1.Packing=PACK_SHRINK;
+                toolbar1.Visible=true;
+                toolbar1.Style=TOOLBAR_ICONS;
+                toolbar1.ShowArrow=false;
+
+                toolbutton7=new RToolButton(toolbar1);
+                toolbutton7.Homogeneous=true;
+                toolbutton7.Expand=false;
+                toolbutton7.Visible=true;
+                toolbutton7.Caption=S<<"Add tab";
+                toolbutton7.StockID="gtk-add";
+                toolbutton7.OnClicked=this.on_toolbutton7_clicked;
+
+                separatortoolitem1=new RToolSeparator(toolbar1);
+                separatortoolitem1.Packing=PACK_SHRINK;
+                separatortoolitem1.Visible=true;
+
+                toolbutton1=new RToolButton(toolbar1);
+                toolbutton1.Homogeneous=true;
+                toolbutton1.Expand=false;
+                toolbutton1.Visible=true;
+                toolbutton1.Caption=S<<"Back";
+                toolbutton1.StockID="gtk-go-back";
+                toolbutton1.OnClicked=this.on_toolbutton1_clicked;
+
+                toolbutton2=new RToolButton(toolbar1);
+                toolbutton2.Homogeneous=true;
+                toolbutton2.Expand=false;
+                toolbutton2.Visible=true;
+                toolbutton2.Caption=S<<"Forward";
+                toolbutton2.StockID="gtk-go-forward";
+                toolbutton2.OnClicked=this.on_toolbutton2_clicked;
+
+                toolbutton3=new RToolSeparator(toolbar1);
+                toolbutton3.Packing=PACK_SHRINK;
+                toolbutton3.Visible=true;
+
+                toolbutton8=new RToolButton(toolbar1);
+                toolbutton8.Homogeneous=true;
+                toolbutton8.Expand=false;
+                toolbutton8.Visible=true;
+                toolbutton8.Caption=S<<"Print";
+                toolbutton8.StockID="gtk-print";
+                toolbutton8.OnClicked=this.on_toolbutton8_clicked;
+
+                toolbutton9=new RToolSeparator(toolbar1);
+                toolbutton9.Packing=PACK_SHRINK;
+                toolbutton9.Visible=true;
+
+                toolbutton4=new RToolButton(toolbar1);
+                toolbutton4.Homogeneous=true;
+                toolbutton4.Expand=false;
+                toolbutton4.Visible=true;
+                toolbutton4.Caption=S<<"Refresh";
+                toolbutton4.StockID="gtk-refresh";
+                toolbutton4.OnClicked=this.on_toolbutton4_clicked;
+
+                toolbutton5=new RToolButton(toolbar1);
+                toolbutton5.Homogeneous=true;
+                toolbutton5.Expand=false;
+                toolbutton5.Visible=true;
+                toolbutton5.Caption=S<<"Stop";
+                toolbutton5.StockID="gtk-stop";
+                toolbutton5.OnClicked=this.on_toolbutton5_clicked;
+
+                toolbutton6=new RToolButton(toolbar1);
+                toolbutton6.Homogeneous=true;
+                toolbutton6.Expand=false;
+                toolbutton6.Visible=true;
+                toolbutton6.Caption=S<<"Home";
+                toolbutton6.StockID="gtk-home";
+                toolbutton6.OnClicked=this.on_toolbutton6_clicked;
+
+                editUrl=new REdit(hbox2);
+                editUrl.Visible=true;
+                editUrl.MaskedChar="●";
+                editUrl.ActivateDefault=true;
+                editUrl.PrimaryIconName="gtk-about";
+
+                button1=new RButton(hbox2);
+                button1.Packing=PACK_SHRINK;
+                button1.Visible=true;
+                button1.ReliefStyle=RELIEF_NONE;
+                button1.OnClicked=this.on_button1_clicked;
+
+                image1=new RImage(button1);
+                image1.Visible=true;
+                image1.LoadResource("gtk-ok",1);
+
+                editFind=new REdit(hbox2);
+                editFind.Packing=PACK_SHRINK;
+                editFind.Visible=true;
+                editFind.MaskedChar="●";
+                editFind.PrimaryIconName="gtk-about";
+
+                button2=new RButton(hbox2);
+                button2.Packing=PACK_SHRINK;
+                button2.Visible=true;
+                button2.ReliefStyle=RELIEF_NONE;
+                button2.OnClicked=this.on_button2_clicked;
+
+                image2=new RImage(button2);
+                image2.Visible=true;
+                image2.LoadResource("gtk-find",1);
+
+                expander1=new RExpander(vbox1);
+                expander1.Packing=PACK_SHRINK;
+                expander1.Visible=true;
+
+                hbox1=new RHBox(expander1);
+                hbox1.Visible=true;
+
+                button7=new RButton(hbox1);
+                button7.Packing=PACK_SHRINK;
+                button7.Caption=S<<"gtk-edit";
+                button7.Visible=true;
+                button7.ReliefStyle=RELIEF_NONE;
+                button7.UseStock=true;
+                button7.OnClicked=this.on_button7_clicked;
+
+                entrySearchInPage=new REdit(hbox1);
+                entrySearchInPage.Packing=PACK_SHRINK;
+                entrySearchInPage.Visible=true;
+                entrySearchInPage.MaskedChar="●";
+                entrySearchInPage.PrimaryIconName="gtk-find";
+
+                checkbutton1=new RCheckButton(hbox1);
+                checkbutton1.Packing=PACK_SHRINK;
+                checkbutton1.Caption=S<<"case sensitive";
+                checkbutton1.Visible=true;
+
+                button3=new RButton(hbox1);
+                button3.Packing=PACK_SHRINK;
+                button3.Caption=S<<"gtk-go-down";
+                button3.Visible=true;
+                button3.ReliefStyle=RELIEF_NONE;
+                button3.UseStock=true;
+                button3.OnClicked=this.on_button3_clicked;
+
+                button4=new RButton(hbox1);
+                button4.Packing=PACK_SHRINK;
+                button4.Caption=S<<"gtk-go-up";
+                button4.Visible=true;
+                button4.ReliefStyle=RELIEF_NONE;
+                button4.UseStock=true;
+                button4.OnClicked=this.on_button4_clicked;
+
+                button5=new RButton(hbox1);
+                button5.Packing=PACK_SHRINK;
+                button5.Caption=S<<"gtk-find";
+                button5.ReliefStyle=RELIEF_NONE;
+                button5.UseStock=true;
+                button5.OnClicked=this.on_button5_clicked;
+
+                button6=new RButton(hbox1);
+                button6.Packing=PACK_SHRINK;
+                button6.Caption=S<<"gtk-clear";
+                button6.ReliefStyle=RELIEF_NONE;
+                button6.UseStock=true;
+                button6.OnClicked=this.on_button6_clicked;
+
+                expander1.Caption="Search & tools";
+
+                notebook1=new RNotebook(vbox1);
+                notebook1.Visible=true;
+                notebook1.Scrollable=true;
+                notebook1.OnSwitchPage=this.on_notebook1_switch_page;
+
+		CApplication::EndNonCritical();
+        }
+
+	override on_toolbutton7_clicked;
+	override on_toolbutton1_clicked;
+	override on_toolbutton2_clicked;
+	override on_toolbutton8_clicked;
+	override on_toolbutton4_clicked;
+	override on_toolbutton5_clicked;
+	override on_toolbutton6_clicked;
+	override on_button1_clicked;
+	override on_button2_clicked;
+	override on_button7_clicked;
+	override on_button3_clicked;
+	override on_button4_clicked;
+	override on_button5_clicked;
+	override on_button6_clicked;
+	override on_notebook1_switch_page;
+
+}
+

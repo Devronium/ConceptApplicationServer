@@ -1,0 +1,336 @@
+include 'Control.con'
+include 'Font.con'
+
+class VisibleControl 
+	extends Control 
+	extends VirtualADOObject {
+
+	protected var _WIDTH;
+	protected var _HEIGHT;
+	protected var _LEFT;
+	protected var _TOP;
+	protected var _TAB_ORDER;
+	protected var _TAB_STOP;
+	protected var _BK_COLOR;
+	protected var _VISIBLE;
+	protected var _BORDER;
+	protected var _FONT;
+	protected var _ANCHORS;
+	protected var _DOCKING;
+	protected var _ENABLED;
+
+	public property Width   { set SetWidth, get _WIDTH }
+	public property Height  { set SetHeight, get _HEIGHT }
+	public property Top     { set SetTop, get _TOP }
+	public property Left    { set SetLeft, get _LEFT }
+	public property TabOrder{ set SetTabOrder, get _TAB_ORDER }
+	public property TabStop { set SetTabStop, get _TAB_STOP }
+	public property BackColor { set SetBkColor, get _BK_COLOR }
+	public property Visible { set SetVisible, get _VISIBLE }
+	public property Border { set SetBorder, get _BORDER }
+	public property Font { set SetFont, get _FONT }
+	public property Anchors { set SetAnchors, get _ANCHORS }
+	public property Docking { set SetDocking, get _DOCKING }
+	public property Enabled { set SetEnabled, get _ENABLED }
+
+	event _OnSizeChanged triggers OnSizeChanged;
+	event _OnPositionChanged triggers OnPositionChanged;
+	event _OnShow triggers OnShow;
+	event _OnHide triggers OnHide;
+	event _OnCreate triggers OnCreate;
+	event _OnDestroy triggers OnDestroy;
+	event _OnActivate triggers OnActivate;
+	event _OnDeactivate triggers OnDeactivate;
+	event _OnClose triggers OnClose;
+	event _OnMaximize triggers OnMaximize;
+	event _OnMinimize triggers OnMinimize;
+	event _OnRestore triggers OnRestore;
+	event _OnEnable triggers OnEnable;
+	event _OnDisable triggers OnDisable;
+	event _OnKeyPressed triggers OnKeyPressed;
+	event _OnMouseEnter triggers OnMouseEnter;
+	event _OnMouseLeave triggers OnMouseLeave;
+	event _OnMouseClick triggers OnMouseClick;
+	event _OnMouseDbClick triggers OnMouseDbClick;
+	event _OnVerticalScroll triggers OnVerticalScroll;
+	event _OnHorizontalScroll triggers OnHorizontalScroll;
+	event _OnChanged triggers OnChanged;
+
+	// delegates
+	var F_OnSizeChanged;
+	var F_OnPositionChanged;
+	var F_OnShow;
+	var F_OnHide;
+	var F_OnCreate;
+	var F_OnDestroy;
+	var F_OnActivate;
+	var F_OnDeactivate;
+	var F_OnClose;
+	var F_OnMaximize;
+	var F_OnMinimize;
+	var F_OnRestore;
+	var F_OnEnable;
+	var F_OnDisable;
+	var F_OnKeyPressed;
+	var F_OnMouseEnter;
+	var F_OnMouseLeave;
+	var F_OnMouseClick;
+	var F_OnMouseDbClick;
+	var F_OnVerticalScroll;
+	var F_OnHorizontalScroll;
+	var F_OnChanged;
+
+
+	public function VerticalScroll(x) {
+                SendMessage(this->Name, MSG_SCROLL, ""+VERTICAL_SCROLL, ""+x);
+	}
+
+	public function HorizontalScroll(x) {
+                SendMessage(this->Name, MSG_SCROLL, ""+HORIZONTAL_SCROLL, ""+x);
+	}
+
+	public function MovePenTo(x,y) {
+                SendMessage(this->Name, MSG_GRAPH_MOVE_TO, ""+x, ""+y);
+	}
+
+	public function LineTo(x,y) {
+                SendMessage(this->Name, MSG_GRAPH_LINE_TO, ""+x, ""+y);
+	}
+
+	public function SetPenColor(r,g,b) {
+                SendMessage(this->Name, MSG_GRAPH_PEN_COLOR, "0", r*0x10000+g*0x100+b);
+	}
+
+	public function SetCanvasColor(r,g,b) {
+                SendMessage(this->Name, MSG_GRAPH_CANVAS_COLOR, "0", r*0x10000+g*0x100+b);
+	}
+
+	public function VisibleControl(Owner, Class) {
+		this->Control(Owner, Class);
+		this->Parent=&Owner;
+		if (typeof Owner==CLASS_TYPE)
+			this->Visible=Owner->Visible;
+		this->TabStop=true;
+
+		this->Font=new ConceptFont(Owner);
+		this->Font->FontName=DEFAULT_FONT;
+		this->Font->FontSize=-DEFAULT_SIZE;
+
+		this->Anchors = ANCHOR_LEFT | ANCHOR_TOP;
+		this->Docking = DOCK_CUSTOM;
+		this->_ENABLED=true;
+	}
+
+	protected function SetBorder(x) {
+		if (typeof x==NUMERIC_TYPE)
+			this->_BORDER=x;
+		else
+		     	throw new ControlException(EXC_INVALID_ARGUMENT_TYPE, this);
+
+                SendMessage(this->Name, MSG_CHANGED, P_BORDER, x);
+	}
+
+	protected function SetAnchors(x) {
+		if (typeof x==NUMERIC_TYPE)
+			this->_ANCHORS=x;
+		else
+		     	throw new ControlException(EXC_INVALID_ARGUMENT_TYPE, this);
+
+                SendMessage(this->Name, MSG_CHANGED, P_ANCHORS, x);
+	}
+
+	protected function SetDocking(x) {
+		if (typeof x==NUMERIC_TYPE)
+			this->_DOCKING=x;
+		else
+		     	throw new ControlException(EXC_INVALID_ARGUMENT_TYPE, this);
+
+                SendMessage(this->Name, MSG_CHANGED, P_DOCKING, x);
+	}
+
+	protected function SetBkColor(x) {
+		if (typeof x==NUMERIC_TYPE)
+			this->_BK_COLOR=x;
+		else
+			throw new ControlException(EXC_INVALID_ARGUMENT_TYPE, this);
+		SendMessage(this->Name, MSG_CHANGED, P_BACKCOLOR, x);
+	}
+
+	protected function SetVisible(x) {
+		if (typeof x==NUMERIC_TYPE)
+			this->_VISIBLE=x;
+		else
+			throw new ControlException(EXC_INVALID_ARGUMENT_TYPE, this);
+		SendMessage(this->Name, MSG_CHANGED, P_VISIBLE, x);
+	}
+
+	protected function SetEnabled(x) {
+		if (typeof x==NUMERIC_TYPE)
+			this->_VISIBLE=x!=0;
+		else
+			throw new ControlException(EXC_INVALID_ARGUMENT_TYPE, this);
+		SendMessage(this->Name, MSG_CHANGED, P_ENABLED, this->_VISIBLE);
+	}
+
+	protected function SetWidth(x) {
+		if (typeof x==NUMERIC_TYPE)
+			this->_WIDTH=x;
+		else
+			throw new ControlException(EXC_INVALID_ARGUMENT_TYPE, this);
+
+                SendMessage(this->Name, MSG_CHANGED, P_WIDTH, x);
+	}
+
+	protected function SetHeight(x) {
+		if (typeof x==NUMERIC_TYPE)
+			this->_HEIGHT=x;
+		else
+			throw new ControlException(EXC_INVALID_ARGUMENT_TYPE, this);
+                SendMessage(this->Name, MSG_CHANGED, P_HEIGHT, x);
+	}
+
+	protected function SetTop(x) {
+		if (typeof x==NUMERIC_TYPE)
+			this->_TOP=x;
+		else
+			throw new ControlException(EXC_INVALID_ARGUMENT_TYPE, this);
+                SendMessage(this->Name, MSG_CHANGED, P_TOP, x);
+	}
+
+	protected function SetLeft(x) {
+		if (typeof x==NUMERIC_TYPE)
+			this->_LEFT=x;
+		else
+			throw new ControlException(EXC_INVALID_ARGUMENT_TYPE, this);
+                SendMessage(this->Name, MSG_CHANGED, P_LEFT, x);
+	}
+
+	protected function SetTabOrder(x) {
+		if (typeof x==NUMERIC_TYPE)
+			this->_TAB_ORDER=x;
+		else
+			throw new ControlException(EXC_INVALID_ARGUMENT_TYPE, this);
+                SendMessage(this->Name, MSG_CHANGED, P_TABORDER, x);
+	}
+
+	protected function SetTabStop(x) {
+		if (typeof x==NUMERIC_TYPE)
+			this->_TAB_STOP=x;
+		else
+			throw new ControlException(EXC_INVALID_ARGUMENT_TYPE, this);
+                SendMessage(this->Name, MSG_CHANGED, P_TABSTOP, x);
+	}
+
+	override XMLSerialized;
+	function XMLSerialized() {
+		var XMLData=""; // no serialization !
+		return XMLData;
+	}
+
+	protected function VisibleControl_ProcessMessage(Sender, ID, Target, Value) {
+		if (Sender==this->_NAME) {
+			var event_handler;
+
+			if (ID==MSG_CREATE) {
+				event_handler=this->F_OnCreate;					
+				this->_OnCreate();
+			} else
+			if (ID==MSG_DESTROY) {
+				event_handler=this->F_OnDestroy;
+				this->_OnDestroy();
+			} else
+			if (ID==MSG_ACTIVATE) {
+				event_handler=this->F_OnActivate;
+				this->_OnActivate();
+			} else
+			if (ID==MSG_DEACTIVATE) {
+				event_handler=this->F_OnActivate;
+				this->_OnDeactivate();
+			} else
+			if (ID==MSG_CLOSE) {
+				event_handler=this->F_OnClose;
+				this->_OnClose();
+			} else
+			if (ID==MSG_MAXIMIZE) {
+				event_handler=this->F_OnMaximize;
+				this->_OnMaximize();
+			} else
+			if (ID==MSG_MINIMIZE) {
+				event_handler=this->F_OnMinimize;
+				this->_OnMinimize();
+			} else
+			if (ID==MSG_RESTORE) {
+				event_handler=this->F_OnRestore;
+				this->_OnRestore();
+			} else
+			if (ID==MSG_ENABLE) {
+				event_handler=this->F_OnEnable;
+				this->_OnEnable();
+			} else
+			if (ID==MSG_DISABLE) {
+				event_handler=this->F_OnDisable;
+				this->_OnDisable();
+			} else
+			if (ID==MSG_KEY_PRESSED) {
+				event_handler=this->F_OnKeyPressed;
+				this->_OnKeyPressed();
+			} else
+			if (ID==MSG_CHANGED) {
+				event_handler=this->F_OnChanged;
+				this->_OnChanged();
+			} else
+			if (ID==MSG_MOUSE_ENTER) {
+				event_handler=this->F_OnMouseEnter;
+				this->_OnMouseEnter();
+			} else
+			if (ID==MSG_MOUSE_LEAVE) {
+				event_handler=this->F_OnMouseLeave;
+				this->_OnMouseLeave();
+			} else
+			if (ID==MSG_LBUTTON_UP) {
+				event_handler=this->F_OnMouseClick;
+				this->_OnMouseClick();
+			} else
+			if (ID==MSG_LBUTTON_DBCLK) {
+				event_handler=this->F_OnMouseDbClick;
+				this->_OnMouseDbClick();
+			} else
+			if (ID==MSG_VERTICAL_SCROLL) {
+				event_handler=this->F_OnVerticalScroll;
+				this->_OnVerticalScroll();
+			} else
+			if (ID==MSG_HORIZONTAL_SCROLL) {
+				event_handler=this->F_OnHorizontalScroll;
+				this->_OnHorizontalScroll();
+			} else
+			if (ID==MSG_SIZE_CHANGED) {
+				this->_WIDTH=value Target;
+				this->_HEIGHT=value Value;
+				event_handler=this->F_OnSizeChanged;
+				this->_OnSizeChanged();
+			} else
+			if (ID==MSG_POSITION_CHANGED) {
+				this->_LEFT=value Target;
+				this->_TOP=value Value;
+				event_handler=this->F_OnPositionChanged;
+				this->_OnPositionChanged();
+			}
+
+			if (event_handler)
+				event_handler();
+		}
+	}
+
+	protected function SetFont(x) {
+		if (classof x=="ConceptFont")
+			this->_FONT=x;
+		else
+			throw new ControlException(EXC_INVALID_ARGUMENT_TYPE, this);
+                SendMessage(this->Name, MSG_CHANGED, P_FONT, x->Name);
+	}
+
+	override ProcessMessage;
+	public function ProcessMessage(Sender, ID, Target, Value) {
+		this->VisibleControl_ProcessMessage(Sender,ID,Target,Value);
+	}
+}

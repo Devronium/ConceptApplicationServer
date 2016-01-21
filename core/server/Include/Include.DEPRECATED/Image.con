@@ -1,0 +1,26 @@
+include 'VisibleControl.con'
+
+class ConceptImage extends VisibleControl {
+	protected var _PICTURE;
+	public property Picture { set SetPicture, get _PICTURE }
+
+	public function ConceptImage(Owner) {
+		this->VisibleControl(Owner, CLASS_IMAGE);
+	}
+
+	protected function SetPicture(x) {
+		if (typeof x==STRING_TYPE) {
+			var FILE=_fopen(x,"rb");
+			if (FILE) {
+				var DATA;
+				var size=_fread(DATA,1,_fsize(FILE),FILE);
+				_fclose(FILE);
+				this->_PICTURE=x;
+				DATA=mime_encode(DATA);
+                		SendMessage(this->Name, MSG_SETIMAGE, "0", DATA);
+			}
+		} else
+		     	throw new ControlException(EXC_INVALID_ARGUMENT_TYPE, this);
+
+	}
+}

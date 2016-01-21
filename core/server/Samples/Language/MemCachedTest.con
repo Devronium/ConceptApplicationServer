@@ -1,0 +1,19 @@
+import standard.net.memcached
+
+class Main {
+	function Main() {
+		var ctx=MemCachedCreate();
+		if (!ctx) {
+			echo "Error creating memcached client object\n";
+			return -1;
+		}
+		//var rc=MemCachedAddServer(ctx, "localhost", 11211);
+		var rc=MemCachedServerPush(ctx, [["localhost", 11211]]);
+		echo rc;
+		rc=MemCachedSet(ctx, "test", "some test value");
+		if (rc)
+			echo MemCachedError(ctx, rc);
+		echo MemCachedGet(ctx, "test");
+		MemCachedFree(ctx);
+	}
+}

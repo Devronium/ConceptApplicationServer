@@ -1,0 +1,44 @@
+import standard.lib.preg
+import standard.lib.str
+
+class RegExp {
+	var source;
+	var flags;
+
+	RegExp(string pattern) {
+		if ((pattern) && (pattern[0] == "/")) {
+			var i = length pattern - 1;
+			while ((i) && (pattern[i] != "/"))
+				i--;
+			if (i) {
+				var flags = SubStr(pattern, i + 1, length pattern);
+				pattern = SubStr(pattern, 1, i - 1);
+			}
+			if (flags) {
+				if (Pos(flags, "i"))
+					this.flags |= PCRE_CASELESS;
+				if (Pos(flags, "m"))
+					this.flags |= PCRE_MULTILINE;
+				if (Pos(flags, "g"))
+					this.flags |= PCRE_DOTALL;
+			}
+		}
+		this.source = pattern;
+	}
+
+	test(string str) {
+		return preg_match(str, source, flags);
+	}
+
+	operator << (string str) {
+		return preg_match(str, source, flags);
+	}
+
+	operator ^ (string str) {
+		return preg_match(str, source, flags);
+	}
+
+	exec(string str) {
+		return preg(str, source, flags);
+	}
+}

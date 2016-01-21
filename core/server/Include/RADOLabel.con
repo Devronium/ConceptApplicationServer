@@ -1,0 +1,23 @@
+include RLabel.con
+include DataBases.con
+
+class RADOLabel	extends RLabel
+		extends VirtualADOObject {
+
+	override __DataSetUpdateCommand;
+	public function __DataSetUpdateCommand(Sender) {
+		try {
+			var obj=Sender.FieldValues[this._DATAFIELD];
+			if (typeof obj == "class")
+				this.Caption=obj.ToString();
+			else
+				this.Caption="";
+		} catch (var exception) {
+			this.Caption="";
+		}
+	}
+
+	public function RADOLabel(Owner) {
+		RLabel(Owner);
+	}
+}

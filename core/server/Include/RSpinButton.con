@@ -1,0 +1,137 @@
+include VisibleRemoteObject.con
+include RAdjustment.con
+include RemoteEvents.con
+include ClassID.con
+
+class RSpinButton extends VisibleRemoteObject {
+	private var MIN;
+	private var MAX;
+	private var STEP;
+	private var PAGESIZE;
+	private var VALUE;
+	private var DIGITS;
+	private var WRAP;
+	private var NUMERIC;
+	private var SNAP;
+
+	public property Min { get MIN, set SetMin }
+	public property Max { get MAX, set SetMax }
+	public property Step { get STEP, set SetStep }
+	public property Value { get GetValue, set SetValue }
+	public property PageSize { get PAGESIZE, set SetPageSize }
+	public property Digits { get DIGITS, set SetDigits }
+	public property Wrap { get WRAP, set SetWrap }
+	public property Numeric { get NUMERIC, set SetNumeric }
+	public property SnapToTicks { get SNAP, set SetSnap }
+
+	private var _Adjustment;
+	public property Adjustment { get _Adjustment }
+
+	//----------- EVENTS ----------------------------------------------------//	
+	public property OnInput { get GetOnInput, set SetOnInput }
+	public function GetOnInput() {
+		return _GET_REMOTE_EVENT(EVENT_ON_INPUT);
+	}
+
+	public function SetOnInput(delegate deleg) {
+		return _MAP_REMOTE_EVENT(EVENT_ON_INPUT, deleg);
+	}
+
+	public property OnOutput { get GetOnOutput, set SetOnOutput }
+	public function GetOnOutput() {
+		return _GET_REMOTE_EVENT(EVENT_ON_OUTPUT);
+	}
+
+	public function SetOnOutput(delegate deleg) {
+		return _MAP_REMOTE_EVENT(EVENT_ON_OUTPUT, deleg);
+	}
+
+	public property OnValueChanged { get GetOnValueChanged, set SetOnValueChanged }
+	public function GetOnValueChanged() {
+		return _GET_REMOTE_EVENT(EVENT_ON_VALUECHANGED);
+	}
+
+	public function SetOnValueChanged(delegate deleg) {
+		return _MAP_REMOTE_EVENT(EVENT_ON_VALUECHANGED, deleg);
+	}
+	//-----------------------------------------------------------------------//
+
+	public function RSpinButton(OWNER) {
+		// create an adjustment object and post it before "remoting" thist object
+		MIN=0;
+		MAX=100;
+		STEP=10;
+
+		_Adjustment=new RAdjustment();
+		_Adjustment.SetLower(MIN);
+		_Adjustment.SetUpper(MAX);
+		_Adjustment.SetIncrement(STEP);
+		_Adjustment.Post();
+		super(OWNER, CLASS_SPINBUTTON);
+
+		//_Adjustment.__EVENTS_VECTOR=&__EVENTS_VECTOR;
+		//__EVENTS_VECTOR[_Adjustment.RID]=new[];
+		_Adjustment.LinkIfNotLinked(this);
+	}
+
+
+	public function SetMin(argument) {
+		MIN=argument;
+		_Adjustment.Lower=argument;
+		return argument;
+	}
+
+	public function SetMax(argument) {
+		MAX=argument;
+		_Adjustment.Upper=argument;
+		return argument;
+	}
+
+
+	public function SetStep(argument) {
+		STEP=argument;
+		_Adjustment.Increment=argument;
+		return argument;
+	}
+
+	public function SetPageSize(argument) {
+		PAGESIZE=argument;
+		_Adjustment.PageSize=argument;
+		return argument;
+	}
+
+	public function SetValue(argument) {
+		VALUE=argument;
+		_Adjustment.Value=argument;
+		return argument;
+	}
+
+	public function GetValue() {
+		VALUE=_Adjustment.Value;
+		return VALUE;
+	}
+
+	public function SetDigits(argument) {
+		SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_DIGITS,argument);
+		DIGITS=argument;
+		return argument;
+	}
+
+	public function SetWrap(argument) {
+		SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_WRAP,argument);
+		WRAP=(argument!=0);
+		return argument;
+	}
+
+	public function SetNumeric(argument) {
+		SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_NUMERIC,argument);
+		WRAP=(argument!=0);
+		return argument;
+	}
+
+	public function SetSnap(argument) {
+		SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_SNAPTOTICKS,argument);
+		WRAP=(argument!=0);
+		return argument;
+	}
+}

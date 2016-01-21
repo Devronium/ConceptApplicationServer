@@ -1,0 +1,101 @@
+import 'standard.net.soap'
+include 'WebDocument.con'
+
+define URL	"http://csoap.sourceforge.net/cgi-bin/csoapserver"
+//define URL	"http://localhost/soap-server.con"
+define URN	"urn:examples"
+define METHOD	"sayHello"
+
+class Main {
+	function PrintNodes(node) {
+		var result="";
+               	while (node) {
+			var childs=SOAPXMLGetChildren(node);
+			if (childs)
+				result+=PrintNodes(childs);
+			else
+				result+=SOAPXMLGetText(node)+"\n";
+			node=SOAPXMLGetNext(node);
+		}
+		return result;
+	}
+
+	function GetVariable(node) {
+		if (!node)
+			return 0;
+
+		var node_arr=SOAPXMLGetNodeArray(node);
+		var children=node_arr["children"];
+
+		echo node_arr["name"]+":"+node_arr["text"]+"\n";
+		delete node_arr;
+
+		do {
+			if (!children)
+				return 0;
+
+			node_arr=SOAPXMLGetNodeArray(children);
+			children=node_arr["next"];
+			echo node_arr["name"]+":"+node_arr["text"]+"\n";
+			delete node_arr;
+		} while (1);
+	}
+
+	function Main() {
+		var ctx;
+		var ctx2;
+		var err;
+		var env;
+
+		err=SOAPClientInitArgs();
+		if (err) {
+			echo SOAPError(err);
+			return -1;
+		}
+		err=SOAPCtxNewWithMethod(URN,METHOD,ctx);
+		if (err) {
+			echo SOAPError(err);
+			return -1;
+		}
+
+		env=SOAPGetEnv(ctx);
+		if (err) {
+			echo SOAPError(err);
+			return -1;
+		}
+
+		var name=WebVar("name");
+		if (!name)
+			name="Jonny B. Good";
+
+		SOAPEnvAddItem(env,"xsd:string","name",name);
+
+		err=SOAPClientInvoke(ctx,ctx2,URL,"");
+		if (err) {
+			echo SOAPError(err);
+			return -1;
+		}
+
+                var node=SOAPEnvGetMethod(SOAPGetEnv(ctx2));
+
+		GetVariable(node);
+
+		var doc=new WebDocument();
+		doc.BeginDocument();
+
+		doc << "Response from : " << URL << doc.endl << doc.endl;
+
+		doc << "<b>" << PrintNodes(node) << "</b>" << doc.endl << doc.endl;
+		
+		doc << "\n-- Received document --------------------------------------" << doc.endl << "\n\n\n";
+		SOAPXMLDocPrint(SOAPGetRootDoc(SOAPGetEnv(ctx2)));
+
+		SOAPXMLDocPrint(SOAPGetRootDoc(SOAPGetEnv(ctx)));
+
+		SOAPCtxFree(ctx2);
+		SOAPCtxFree(ctx);
+		SOAPClientDestroy();
+		doc.EndDocument();
+	}
+}
+

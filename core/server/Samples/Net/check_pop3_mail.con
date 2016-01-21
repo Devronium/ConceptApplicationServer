@@ -1,0 +1,34 @@
+import standard.net.mail
+
+define POP3_SERVER	"pop3server"
+define USERNAME		"username"
+define PASSWORD		"password"
+
+class Main {
+	function Main() {
+		echo "Connectiong to mail server ...";
+		var handle=pop3_open(POP3_SERVER,USERNAME,PASSWORD);
+		echo "done\n";
+		if (handle<0) {
+			echo pop3_error();
+			return -1;
+		} 
+		var messages=pop3_count_messages(handle);
+		if (messages) {
+			echo "You have $messages new message(s)\n";
+			for (var i=1;i<=messages;i++) {
+				echo "Message $i:\n";
+				echo "\n-------------------------------------------------------------------------------\n";
+				echo pop3_get_message(handle,i);
+				echo "\n-------------------------------------------------------------------------------\n";
+				echo "\n";
+				echo "Error: "+pop3_error();
+				//pop3_delete_message(handle,i);
+			}
+		} else
+			echo "You have no new messages... not one, none ! Not even from your mother\n";
+
+		if (!pop3_close(handle))
+			echo pop3_error();
+	}
+}

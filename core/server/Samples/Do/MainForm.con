@@ -1,0 +1,67 @@
+// the standard project forms definition. If no glade is used, comment the next line.
+include project_forms.glade.con
+import standard.lang.cli
+import standard.C.io
+
+include Installer.con
+
+// comment the next line if this is NOT the main application form
+define APPLICATION_FORM_TYPE	MainForm
+
+// manually replace window1 with your glade window name
+class MainForm extends window1 {
+        protected var InstallWhat;
+        protected var installer;
+
+        public function MainForm(Owner, Lang S) {
+            super(Owner, S);
+
+            InstallWhat=CLArg()[0];
+            if (InstallWhat=="0")
+                InstallWhat="";
+            _chdir("..");
+            installer=new Installer();
+            installer.OnRead=this.OnRead;
+        }
+        
+        public function OnRead(Sender, Size, TotalReceived) {
+            var len=Sender.ContentLength;
+            if (len) {
+                this.progressbar.Fraction=TotalReceived/len;
+            } else
+                this.progressbar.Pulse();
+        }
+
+        public function on_window1_realize(Sender, EventData) {            
+            if (!InstallWhat) {
+                if (CApplication.Input(var what="", false, "<b>Address</b>")==RESPONSE_OK) {
+                    InstallWhat=what;
+                }
+            }
+            if (!InstallWhat) {
+                CApplication.Message("<b>Nothing to install</b>");
+                this.Hide();
+                return MSG_APPLICATION_QUIT;
+            }
+            var sender_arr=StrSplit(InstallWhat, "/");
+            var provider=sender_arr[1];
+            if (!provider)
+                provider="(unknown)";
+            if (CApplication.Message("Are you sure you want to install this application provided by '<b>$provider</b>' ?\n\n<i>WARNING: You should install this application only if you trust its publisher. If you don't know the publisher, is recommended to decline</i>", "Question", MESSAGE_QUESTION, BUTTONS_YES_NO)==RESPONSE_YES) {
+                try {
+                    this.progressbar.Caption="Downloading ...";
+                    var data=installer.Get(InstallWhat);
+                    if (!data)
+                        throw "Package cannot be downloaded. Please check your internet connection or contact $provider for more information";
+                    this.progressbar.Caption="Installing ...";
+                    installer.Install(data);
+                    this.progressbar.Caption="Application installed";
+                    CApplication.Message("<b>Application installed successfuly</b>");
+                } catch (var exc) {
+                    CApplication.Message("The application cannot be installed:\n\n<b>$exc</b>", "Error", MESSAGE_ERROR);
+                }
+            }
+            this.Hide();
+            return MSG_APPLICATION_QUIT;
+        }
+}

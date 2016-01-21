@@ -1,0 +1,53 @@
+include VisibleRemoteObject.con
+
+define RMEDIA_CONTROL_ID       "1002"
+
+define P_MEDIA_ENABLE_AUDIO      "10003"
+
+define P_MEDIA_OPEN_FILE         "10006"
+define P_MEDIA_OPEN_STREAM       "10007"
+define P_MEDIA_CLOSE             "10008"
+
+define P_MEDIA_PLAY              "10009"
+define P_MEDIA_PAUSE             "10010"
+define P_MEDIA_STOP              "10011"
+
+define P_MEDIA_STEP              "10012"
+define P_MEDIA_SEEK              "10014"
+define P_MEDIA_SKIP              "10015"
+
+define P_MEDIA_VIDEO_WIDTH       "10015"
+define P_MEDIA_VIDEO_HEIGHT      "10016"
+
+define P_MEDIA_HAS_VIDEO         "10017"
+define P_MEDIA_HAS_AUDIO         "10018"
+define P_MEDIA_HAS_SUBTITLE      "10019"
+
+define P_MEDIA_INFO_TITLE        "10023"
+define P_MEDIA_INFO_AUTHOR       "10024"
+define P_MEDIA_INFO_COPYRIGHT    "10025"
+define P_MEDIA_INFO_COMMENT      "10026"
+define P_MEDIA_INFO_ALBUM        "10027"
+define P_MEDIA_INFO_YEAR         "10028"
+define P_MEDIA_INFO_TRACK        "10029"
+define P_MEDIA_INFO_GENRE        "10030"
+define P_MEDIA_INFO_OFFSET       "10031"
+define P_MEDIA_INFO_DURATION     "10032"
+define P_MEDIA_INFO_SIZE         "10033"
+define P_MEDIA_INFO_STARTTIME    "10034"
+define P_MEDIA_CURRENT_FPS       "10035"
+define P_MEDIA_CURRENT_TIME      "10036"
+define P_MEDIA_CODEC_NAME        "10037"
+define P_MEDIA_INFO_PACKETSIZE   "10038"
+define P_MEDIA_BUFFERS_COUNT     "10039"
+define P_MEDIA_MOUSECURSOR       "10040"
+define P_MEDIA_CLEAR_BUFFERS     "10041"
+define P_MEDIA_STRETCH           "10042"
+define P_MEDIA_FOCUSABLE         "10043"
+
+define EVENT_PLAY_VIDEORESIZE    "350"
+define EVENT_PLAY_KEYPRESS       "351"
+define EVENT_PLAY_MOUSE          "352"
+define EVENT_PLAY_FINISHED       "353"
+define EVENT_PLAY_ERROR          "354"
+define EVENT_PLAY_ERROR_FATAL    "355"

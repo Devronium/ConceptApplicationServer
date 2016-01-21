@@ -1,0 +1,35 @@
+include VisibleRemoteObject.con
+
+class SingleContainer extends VisibleRemoteObject {
+	protected var CHILD;
+	public property Child { get CHILD }
+
+	public function SingleContainer(OWNER,CLASS_ID) {
+		super(OWNER, CLASS_ID);
+	}
+
+	public function Add(child) {
+		if (CHILD)
+			throw "This class is derived from SingleContainer, and can have only a child";
+		CHILD=child;
+		return child;
+	}
+
+	override DisposeObject;
+	public function DisposeObject(clean_child=true) {
+		if (CHILD) {
+			if (HasMember(CHILD,"DisposeObject"))
+				CHILD.DisposeObject(false);
+			delete CHILD;
+		}
+		VisibleRemoteObject::DisposeObject(clean_child);
+	}
+
+	override __QueryDispose;
+	public function __QueryDispose(object obj) {
+		if (CHILD) {
+			if (obj.RID==CHILD.RID)
+				delete CHILD;
+		}
+	}
+}

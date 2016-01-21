@@ -1,0 +1,233 @@
+#!/usr/local/bin/concept -mt
+
+include TLSSocket.con
+include Serializable.con
+include Greenloop.con
+include UNIXSocket.con
+
+import standard.lib.str
+import standard.C.casts
+import standard.C.string
+import standard.C.io
+import standard.C.time
+
+class ConceptSSLProxyChild {
+	var Socket;
+	var Owner;
+
+	ConceptSSLProxyChild(owner, socket) {
+		this.Owner = owner;
+		this.Socket = socket;
+	}
+
+	Iterate() {
+		var SocketOut;
+		var info = Socket.Info;
+		var ip = "unknown";
+		if (info)
+			ip = info["address"];
+
+		Socket.SetOption(SOL_SOCKET, SO_RCVTIMEO, 2000);		
+		Socket.AcceptTLS();
+
+		if (!Socket.TLS) {
+			Socket.Close();
+			Owner.Log(@class, "Failed to negotiate a SSL session with $ip");
+			return;
+		}
+		// 3 seconds timeout - default
+		Socket.SetOption(SOL_SOCKET, SO_RCVTIMEO, 3000);
+
+
+		var not_started = true;
+		var exc;
+
+		var max_idle = value IniGet(Owner.IniFile, "Server", "MaxInitialIDLE", "10")*1000000;
+		if (max_idle < 1)
+			max_idle = 1;
+		max_idle += microseconds();
+		try {
+			while (true) {
+				var op = 0;
+				if ((this.Socket.HasData) || (this.Socket.TLSPending)) {
+					var data = this.Socket.Read();
+					if (data) {
+						if (not_started) {
+							if (!SocketOut) {
+								if (Owner.UnixAddress) {
+									SocketOut = new UNIXSocket();
+									if (!SocketOut.Connect(Owner.UnixAddress)) {
+										Owner.Log(@class, "Cannot connect to local Concept server on UNIX socket ${Owner.UnixAddress}");
+										Socket.Close();
+										return;
+									}
+								} else {
+									SocketOut = new TCPSocket();
+									if (!SocketOut.Connect("localhost", Owner.Port)) {
+										Owner.Log(@class, "Cannot connect to local Concept server on TCP port ${Owner.Port}");
+										Socket.Close();
+										return;
+									}
+								}
+							}
+							if (Pos(data, "\r\n\r\n"))
+								not_started = false;
+						}
+
+						SocketOut.Write(data);
+						op++;
+					} else
+						throw "Connection dropped";
+				}
+				if (SocketOut) {
+					if (SocketOut.HasData) {
+						data = SocketOut.Read();
+						if (data) {
+							Socket.Write(data);
+							op++;
+						} else
+							throw "Connection dropped";
+					}
+					if ((not_started) && (microseconds() >= max_idle)) {
+						Owner.Log(ip, "Protocol negotiation timed out");
+						break;
+					}
+					// give CPU time
+				}
+				if (!op) {
+					if (not_started)
+						Sleep(500);
+					else
+						Sleep(10);
+				}
+			}
+		} catch (exc) {
+			// nothing
+		}
+		SocketOut.Close();
+		Socket.Close();
+	}
+}
+
+class ConceptSSLProxyServer {
+	protected var SSLWSSocket;
+	public var SSLWSPort;
+	public var UnixAddress;
+	public var Port;
+
+	public var IniFile;
+	//protected var Loop;
+
+	public var LogFile;
+
+	ConceptSSLProxyServer(inifile="") {
+		var v6only=value IniGet(inifile, "Server", "IPv6", "0");
+		if (v6only) {
+			this.SSLWSSocket = new TLSSocket(-1, null, true);
+			this.SSLWSSocket.SetOption(IPPROTO_IPV6, IPV6_V6ONLY, 0);
+		} else {
+			this.SSLWSSocket = new TLSSocket();
+		}
+
+
+		this.SSLWSSocket.SetOption(IPPROTO_TCP, TCP_NODELAY, 1);
+		this.SSLWSPort = value IniGet(inifile, "Server", "SecureWebPort", "2681");
+
+		this.Port = value IniGet(inifile, "Server", "WebPort", "2680");
+		this.UnixAddress = IniGet(inifile, "Server", "SecureProxyUnixSocket", "");
+
+		this.IniFile = inifile;
+	}
+
+	LoadKeys() {
+		var public_key = IniGet(this.IniFile, "Server", "WebSocketCertificate", "ssl/publickey.cer");
+		var private_key = IniGet(this.IniFile, "Server", "WebSocketPrivateKey", "ssl/privatekey.pem");
+
+		if (this.SSLWSSocket.LoadKeys(public_key, private_key)) {
+			this.Log(@class, "Error loading TLS/SSL keys. Your server will not accept SSL/TLS connection (just plain connection).");
+			throw "Cannot start SSL proxy - invalid keys.";
+		}
+	}
+
+	private AcceptChild(socket) {
+		var child = new ConceptSSLProxyChild(this, socket);
+		RunThread(child.Iterate, true);
+		//loop.Add(child.Iterate);
+	}
+
+	Log(domain, text) {
+		var t=StrReplace(StrReplace(ctime(time()), "\r", ""), "\n", "");
+		var str="$t $domain: $text\n";
+		echo str;
+	}
+
+	BackgroundTasks() {
+		//var loop = this.Loop;
+
+		var sslwsocket =  this.SSLWSSocket;
+
+		while (true) {
+			try {
+				var s = sslwsocket.AcceptTCP();	
+				if ((s) && (s.Socket>0))
+					this.AcceptChild(s);
+				else
+					this.Log(@class, "Invalid socket in accept (secure websocket)");
+			} catch (var exc) {
+				this.Log(@class, exc);
+			}
+		}
+	}
+
+	Start() {
+		var max_connections = value IniGet(this.IniFile, "Server", "MaxConnections", "1024");
+		var interface = IniGet(this.IniFile, "Server", "Interface", "");
+
+		var max_fd=max_connections * 2 + 10;
+		if (setrlimit(RLIMIT_NOFILE, max_fd)) {
+			// try to set it as super user
+			if (setrlimit(RLIMIT_NOFILE, max_fd, max_fd))
+				this.Log(@class, "WARNING: cannot set the maximum connection count to $max_fd");
+		}
+
+		var user = IniGet(this.IniFile, "Server", "User", "concept");
+		var pwd  = IniGet(this.IniFile, "Server", "UserPassword", "");
+
+		if (!SetCurrentUser(user, pwd))
+			this.Log(@class, "WARNING: cannot change user to $user");
+		pwd = "";
+
+		if (SSLWSSocket.Listen(this.SSLWSPort, max_connections, interface))
+			throw "Error initializing Concept server SSL WS socket (port ${this.SSLWSPort} already in use)";
+		else
+			this.LoadKeys();
+
+		this.LogFile = IniGet(this.IniFile, "Paths", "LogFile", "");
+		//var loop = new Greenloop();
+		//this.Loop = loop;
+
+		//loop.Run([this.BackgroundTasks]);
+		this.BackgroundTasks();
+		throw "Broken socket";
+	}
+}
+
+class Main {
+	Main() {
+		var ini_file="/usr/local/etc/concept.ini";
+		if (!FileExists(ini_file))
+			ini_file="/usr/etc/concept.ini";
+		if (!FileExists(ini_file))
+			ini_file="/etc/concept.ini";
+		if (!FileExists(ini_file))
+			ini_file=getcwd()+"/concept.ini";
+		
+		var s=new ConceptSSLProxyServer(ini_file);
+		try {
+			s.Start();
+		} catch (var exc) {
+			s.Log("ConceptSSLProxyServer", exc);
+			return -1;
+		}
+	}
+}

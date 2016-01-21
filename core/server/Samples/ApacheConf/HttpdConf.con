@@ -1,0 +1,131 @@
+import standard.C.io
+import standard.lib.str
+
+class HttpdConf {
+	static function BuildPath(string concept_path) {
+		concept_path=StrReplace(concept_path, "\\","/");
+		if (concept_path) {
+			var last_char=concept_path[(length concept_path)-1];
+			if (last_char!="/")
+				concept_path+="/";
+		}
+		return concept_path;
+	}
+
+
+	static function BuildBlock(string concept_path, string concept_cgi="concept-cgi", number use_crlf=false) {
+		var end_line="\n";
+
+		if (use_crlf)
+			end_line="\r\n";
+			
+		var result="$end_line$end_line";
+
+		result+="    # Concept Web - autoconfigure for Apache$end_line";
+		result+="    ScriptAlias /con/ \"$concept_path\"$end_line";
+		result+="    AddType application/x-httpd-con .con$end_line";
+		result+="    AddType application/x-httpd-con .csp$end_line";
+		result+="    Action application/x-httpd-con \"/con/$concept_cgi\"$end_line";
+		result+="    <Directory \"$concept_path\">$end_line";
+		result+="        AllowOverride None$end_line";
+		result+="        Options None$end_line";
+		result+="        Order allow,deny$end_line";
+		result+="        Allow from all$end_line";
+		result+="    </Directory>$end_line";
+		result+="    # ^ end of Concept Web autoconfigure for Apache$end_line";
+
+		return result;
+	}
+
+
+	static function BuildDebug(string path, number port=8080, string directory_index="index.csp index.con", number use_crlf=false) {
+		var end_line="\n";
+
+		path=HttpdConf::BuildPath(path);
+
+		if (use_crlf)
+			end_line="\r\n";
+			
+		var result="$end_line$end_line";
+
+		result+="# Concept Web Debug - autoconfigure for Apache$end_line";
+		result+="NameVirtualHost *:$port$end_line$end_line";
+		result+="<VirtualHost _default_:8080>$end_line";
+		result+="    DocumentRoot \"$path\"$end_line";
+		result+="    ServerName localhost:8080$end_line";
+		result+="    <Directory \"$path\">$end_line";
+		result+="        AllowOverride None$end_line";
+		result+="        Options ExecCGI$end_line";
+		result+="        DirectoryIndex index.html $directory_index$end_line";
+		result+="        Order allow,deny$end_line";
+		result+="        Allow from all$end_line";
+		result+="    </Directory>$end_line";
+		result+="</VirtualHost>$end_line";
+		result+="# ^ end of Concept Web Debug - autoconfigure for Apache$end_line";
+
+		return result;
+	}
+
+	static function DoApache(string content, string concept_path, string concept_cgi, number do_index=true, string directory_index="", number do_debug=false, string debug_path="", number debug_port=8080) {
+		var arr=StrSplit(content, "\n", true);
+		var len=length arr;
+
+		concept_path=HttpdConf::BuildPath(concept_path);
+		directory_index=trim(directory_index);
+
+		var found=false;
+		for (var i=0;i<len;i++) {
+			var line_no_trim=ToLower(arr[i]);
+			var line=trim(line_no_trim);
+			if (Pos(line, "<ifmodule alias_module>")==1) {
+				found=true;
+			} else
+			if (found) {
+				if (Pos(line, "scriptalias /con/")>0) {
+					throw "Script already conceptized !";
+				}
+
+				if (Pos(line, "</ifmodule>")==1) {
+					if (i) {
+						var use_crlf=line_no_trim[(length line_no_trim)-1];
+						arr[i-1]+=HttpdConf::BuildBlock(concept_path,concept_cgi,use_crlf);
+					}
+					found=false;
+				}
+			}
+
+			if ((do_debug) && (Pos(line, "namevirtualhost *:$debug_port")>0)) {
+				throw "Script already has a virtual host on port $debug_port";
+				return 0;
+			}
+
+			if ((do_index) && (Pos(line, "directoryindex")==1)) {
+
+				if (Pos(arr[i], directory_index)>0) {
+					throw "Directory index already set";
+				} else {
+					var arr_elem=arr[i];
+					if (Pos(arr_elem, "\r")>0) {
+						arr_elem=SubStr(arr_elem, 0, (length arr_elem) - 1) + " $directory_index\r";
+					} else
+						arr_elem+=" $directory_index";
+
+					arr[i]=arr_elem;
+				}
+			}
+
+		}
+
+		var result="";
+		for (i=0;i<len;i++) {
+			result+=arr[i]+"\n";	
+		}
+
+		if (do_debug) {
+			result+=HttpdConf::BuildDebug(debug_path, debug_port, directory_index, use_crlf);
+		}
+
+
+		return result;
+	}
+}

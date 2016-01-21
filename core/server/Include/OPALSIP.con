@@ -1,0 +1,617 @@
+import standard.net.opal
+import standard.net.socket
+import standard.lib.thread
+import standard.lib.str
+import standard.arch.speex
+import standard.C.casts
+import standard.C.math
+import standard.C.time
+
+include Speex.con
+include Opus.con
+
+define CODEC_SPEEX	1
+define CODEC_OPUS	2
+define OPAL_CODEC_COEF
+
+class OPALSIP {
+	public property Quality { get _Quality, set SetQuality }
+	public property Bitrate { get _Bitrate, set SetBitrate }
+	public var Samplerate=8000;
+	public var _Bitrate=9000;
+	public var LocalRTPPort=10002;
+	public var MaxBuffer=500;
+	public var PacketSize=0;
+	public var FrameSize=20;
+	public var PortLimit=10;
+	public var SIPLocalInterface="";
+
+
+	public var Answered=true;
+	private var ConceptCodec=CODEC_SPEEX;
+	private var _STUNServer="";
+	public property STUNServer { get STUNServer, set SetSTUNServer }
+
+	private var sip;
+	var Username="";
+	var Password="";
+	var LocalIP="";
+	var ProxyHost="";
+	var frame_timestamp;
+	private var _Quality=8;
+	public var Codec=RTP_PCMA;
+	private var ringcount=0;
+	private var bufdata="";
+
+	var OnDTMF;
+	var OnEndCall;
+	var OnCall;
+	var OnVoice;
+	var OnRinging;
+	var OnRegister;
+	var OnAnswer;
+	var OnConnect;
+	var OnAdjustBuffer;
+
+	var Incoming=false;
+	var packet_count=0;
+	private var init=false;
+
+	var Encoder;
+	var Decoder;
+	//var output=false;
+	private var established=0;
+	private var timestamp=0;
+	private var cuts=0;
+	private var extra_buffer=0;
+	private var out_stream;
+	private var in_stream;
+	private var sem;
+	private var[] streams;
+
+	static function DoNoise(len=160, zero=false) {
+		var res="";
+		len/=2;
+		var j;
+		if (zero) {
+			for (j=0;j<len;j++)
+				res+="\0\0";
+			return res;
+		} else {
+			for (j=0;j<len;j++) {
+				res+=tobin(sin(j/(len-1)*M_PI*2)*1000, 16);
+			}
+			return res;
+		}
+
+		var[] contrib;
+		var genout;
+
+		var pA = [3.80240, 2.96940, 2.59700, 3.08700, 3.40060];
+		var pSum = [ 0.00198, 0.01478, 0.06378, 0.23378, 0.91578 ];
+		var pASum = 15.8564;
+
+		for (j=0;j<len;j++) {
+			var ur1 = rand() / 32767.0;
+			var ur2 = rand() / 32767.0;
+
+			for (var i = 0; i < 5; i++) {
+				if (ur1 < pSum[i]) {
+					genout -= contrib[i];
+					contrib[i] = 2 * (ur2 - 0.5) * pA[i];
+					genout += contrib[i];
+					break;
+        			}
+    			}
+			var p=genout / pASum;
+			/*
+			//if (p<0)
+			//	p=0x8000 | int32(-p*0x7FFF);
+			//else
+			//	p=int32(p*0x7FFF);
+			if (p<0) {
+				res+=chr(0x80);
+				p*=-1;
+			} else
+				res+='\0';
+			res+=chr(p*8);
+			*/
+			res+=tobin(p, 16);
+		}
+
+		return res;
+	}
+
+	function OnEstablishedCall(owner) {
+		var buf="";
+	
+		if (!sem)
+			return;
+		/*var delta=Samplerate/100 OPAL_CODEC_COEF;
+		for (var i=0;i<delta;i++)
+			buf+="\0\0";
+		semp(sem);
+		bufdata=buf;
+		semv(sem);*/
+		/*
+		semp(sem);
+		if (out_stream) {
+			var buf="";
+			var delta=Samplerate/100;
+			//for (var i=0;i<delta;i++)
+			//	buf+="\0\0";
+			buf=DoNoise(delta);
+
+			switch (Codec) {
+				case RTP_PCMA:
+					SIPMediaStreamWrite(out_stream, pcm2alaw(buf));
+					break;
+				case RTP_PCMU:
+					SIPMediaStreamWrite(out_stream, pcm2ulaw(buf));
+					break;
+				default:
+					SIPMediaStreamWrite(out_stream, buf);
+			}
+		}
+		semv(sem);*/
+		timestamp=microseconds()/1000;
+		if (OnAnswer)
+			OnAnswer(this.Parse(owner));
+		established=true;
+	}
+
+	public function OnMediaFrameRequest(type) {
+		if (type!=127)
+			return "";
+
+		//var delta=PacketSize;
+		//if (!delta)
+		var delta=Samplerate/50 OPAL_CODEC_COEF;
+		if (!sem)
+			return "";
+
+		if ((!frame_timestamp) || (packet_count<ringcount)) {
+			packet_count++;
+			frame_timestamp=microseconds();
+			var dnoise=DoNoise(delta, true);
+			return dnoise;
+		}
+
+		var d="";
+		semp(sem);
+		if (bufdata) {
+			d=""+bufdata;
+			if ((d) && (length d>=delta)) {
+				bufdata=SubStr(d, delta, length d);
+				semv(sem);
+
+				d=SubStr(d, 0, delta);
+				frame_timestamp=microseconds();
+			} else {
+				semv(sem);
+
+				var now=microseconds();
+				if (now>=frame_timestamp+FrameSize*1000-500) {
+					frame_timestamp=now;//microseconds();
+					d=DoNoise(delta, frame_timestamp==0);
+				}
+				//d=DoNoise(delta, frame_timestamp==0);
+				//frame_timestamp=microseconds();	
+			}
+		} else {
+			semv(sem);
+			now=microseconds();
+			if (now>=frame_timestamp+FrameSize*1000-500) {
+				frame_timestamp=now;//microseconds();
+				d=DoNoise(delta, frame_timestamp==0);
+			}
+		}
+		return d;
+	}
+
+	public function ResetBuffer() {
+		if (!sem)
+			return;
+		semp(sem);
+		//output=0;
+		bufdata="";
+		cuts=0;
+		extra_buffer=0;
+		semv(sem);
+	}
+
+	private function ClearStreams() {
+		bufdata="";
+		frame_timestamp=0;
+		packet_count=0;
+		//output=false;
+		out_stream=0;
+		in_stream=0;
+		PacketSize=0;
+		var str=streams;
+		streams=new [];
+		Answered=true;
+		cuts=0;
+		extra_buffer=0;
+		established=false;
+		var len=length str;
+		for (var i=0;i<len;i++) {
+			var stream=str[i];
+			if (stream)
+				SIPMediaStreamClose(stream);
+		}
+		ringcount=0;
+	}
+
+	private function Parse(owner) {
+		var str="";
+		var arr=StrSplit(trim(StrReplace(""+owner, "sip:", "")), " ");
+		if (arr) {
+			var s=arr[length arr - 1];
+			if (s) {
+				str=StrReplace(s, "<", "");
+				str=StrReplace(str, ">", "");
+				str=StrReplace(str, "\"", "");
+				str=StrSplit(str, "@")[0];
+			}
+		} else
+			str=""+owner;
+		return str;
+	}
+
+	function OnClearedCall(owner, reason) {
+		if ((Incoming) && (!Answered))
+			ringcount=1;
+		var now=microseconds()/1000;
+
+		if ((timestamp) && (now-timestamp>2000) && (Answered))
+			ringcount=1;
+
+		ringcount--;
+		if (ringcount<0)
+			ringcount=0;
+		if (ringcount>0)
+			return;
+
+		if (OnEndCall)
+			OnEndCall(this.Parse(owner), reason);
+
+		if (!sem)
+			return;
+		semp(sem);
+		in_stream=null;
+		out_stream=null;
+		this.ClearStreams();
+		semv(sem);
+	}
+
+	function OnShowIncoming(owner) {
+		ringcount++;
+		if (ringcount==1) {
+			timestamp=microseconds()/1000;
+			Incoming=true;
+			Answered=false;
+			if (OnCall)
+				OnCall(this.Parse(owner));
+		}
+	}
+
+	function OnConnectRequest(caller) {
+		if (OnConnect)
+			return OnConnect(caller);
+		return true;
+	}
+
+	function OnShowOutgoing(owner) {
+		ringcount++;
+		if (ringcount==1) {
+			Incoming=false;
+			if (OnRinging)
+				OnRinging(this.Parse(owner));
+		}
+	}
+
+
+	function OnUserInputText(text) {
+		if (this.OnDTMF)
+			this.OnDTMF(text);
+	}
+
+	function Write(payload2, chunk_size2) {
+		if ((!payload2) || (!chunk_size2))
+			return;
+		var is_opus=(ConceptCodec==CODEC_OPUS);
+		if (is_opus) {
+			var result="";
+			do {
+				var size=ord(payload2[0]);
+				payload2++;
+
+				var tmp=this.Decoder.Decode(SubStr(payload2, 0, size));
+				if (!tmp)
+					break;
+				result+=tmp;
+				if (length payload2 > size)
+					payload2=SubStr(payload2, size - 1, length payload2 - size);
+				else
+					break;
+			} while (payload2);
+			payload2=result;
+		} else
+			payload2=this.Decoder.Decode(payload2, chunk_size2);
+
+		if (!payload2)
+			return;
+
+		/*if (payload2) {
+			switch (Codec) {
+				case RTP_PCMA:
+					payload2=pcm2alaw(payload2);
+					break;
+				case RTP_PCMU:
+					payload2=pcm2ulaw(payload2);
+					break;
+			}
+		}*/
+
+		var res=0;
+		var max_size=0;
+		if (MaxBuffer)
+			max_size=Samplerate * MaxBuffer / 500; // 500 = 1000/sizeof(short)
+		if (!sem)
+			return;
+
+		var eb=extra_buffer;
+		if (eb)
+			max_size+=Samplerate * eb / 500;
+		
+		semp(sem);
+		if (bufdata) {
+			var lbuf=length bufdata;
+			if ((max_size) && (lbuf>max_size)) {
+				// reset only half a buffer
+				var delta=Samplerate/50 OPAL_CODEC_COEF;
+				var d2=max_size/4;
+
+				if (d2%delta)
+					d2=int32(d2/delta)*delta;
+
+				bufdata=SubStr(bufdata, d2, d2);
+				bufdata+=payload2;
+				cuts++;
+				if ((!eb) && (max_size) && (cuts>20) && (packet_count)) {
+					if ((established) && (OnAdjustBuffer) && (OnAdjustBuffer())) {
+						eb=MaxBuffer/3;
+						extra_buffer=eb;
+					}
+				}
+			} else
+				bufdata+=payload2;
+		} else
+			bufdata=""+payload2;
+		//if (out_stream)
+			//res=SIPMediaStreamWriteAll(out_stream, payload2);
+			
+		semv(sem);
+		return res;
+	}
+
+	function OnOpenMediaStreamDelegate(stream) {
+		if (!sem)
+			return;
+		semp(sem);
+		var arr=SIPMediaStreamFormat(stream);
+		var type=arr["PayloadType"];
+		streams[""+stream]=stream;
+		if ((type==RTP_PCMA) || (type==RTP_PCMU)) {
+			Codec=type;
+			if (SIPMediaStreamIsSink(stream)) {
+				//if (out_stream)
+				//	SIPMediaStreamNotUsed(out_stream);
+				out_stream=stream;
+				SIPMediaStreamSetDataSize(stream, 160000, 20);
+			} else {
+				//if (in_stream)
+				//	SIPMediaStreamNotUsed(in_stream);
+				in_stream=stream;
+				SIPMediaStreamSetDataSize(stream, 160000, 20);
+			}
+		}// else
+		//	SIPMediaStreamNotUsed(stream);
+		semv(sem);
+	}
+
+	function OnMediaFrame(var frame, type) {
+		if (OnVoice) {
+			// to do
+			if (type==RTP_PCMA)
+				var data=alaw2pcm(frame);
+			else
+			if (type==RTP_PCMU)
+				data=ulaw2pcm(frame);
+			else
+				data=frame;
+
+			if (!PacketSize)
+				PacketSize=length frame;
+
+			var payload=this.Encoder.Encode(data, var chunk_size);
+			if (payload)
+				this.OnVoice(payload, chunk_size);
+		}
+	}
+
+	function Reject() {
+		if (!sip)
+			return;
+		var rc=ringcount;
+		ringcount=1;
+		if (sem)
+			semp(sem);
+		var is_ans=Answered;
+		if ((OnEndCall) && (is_ans))
+			OnEndCall("", -1);
+		ClearStreams();
+		if (sem)
+			semv(sem);
+		if (is_ans)
+			SIPPhoneHangupCurrentCall(sip);
+		else {
+			SIPPhoneReject(sip);
+			if (rc>1)
+				SIPPhoneHangupAll(sip);
+		}
+	}
+
+	function RejectCall() {
+		return SIPPhoneReject(sip);
+	}
+
+	function Answer() {
+		Answered=true;
+		return SIPPhoneAnswer(sip);
+	}
+
+	function Transfer(string to) {
+		return SIPPhoneTransfer(sip, to);
+	}
+
+	function Forward(string to) {
+		return SIPPhoneForward(sip, to);
+	}
+
+	function SendTone(x) {
+		SIPPhoneSendTone(sip, ""+x);
+		return true;
+	}
+
+	function Hold() {
+		return SIPPhoneHoldRetrieveCall(sip);
+	}
+
+	function Hangup() {
+		return SIPPhoneHangupCurrentCall(sip);
+	}
+
+	function OPALSIP(codec=CODEC_SPEEX, portbase=-1) {
+		ConceptCodec=codec;
+		var sip=SIPPhoneCreate();
+		SIPPhoneOnEstablishedCall(sip, OnEstablishedCall);
+		SIPPhoneOnClearedCall(sip, OnClearedCall);
+		SIPPhoneOnShowIncoming(sip, OnShowIncoming);
+		SIPPhoneOnShowOutgoing(sip, OnShowOutgoing);
+		SIPPhoneOnAlerting(sip, OnShowOutgoing);
+		SIPPhoneOnUserInputString(sip, OnUserInputText);
+		//SIPPhoneOnOpenMediaStreamDelegate(sip, OnOpenMediaStreamDelegate);
+		SIPPhoneOnMediaFrame(sip, OnMediaFrame);
+		SIPPhoneOnMediaFrameRequest(sip, OnMediaFrameRequest);
+		if (portbase>0)
+			this.LocalRTPPort=portbase;
+
+		SIPPhoneSetPortBase(sip, LocalRTPPort, LocalRTPPort+PortLimit);
+		SIPPhoneOnConnectRequest(sip, OnConnectRequest);
+
+		this.sip=sip;
+
+		if (codec==CODEC_OPUS) {
+			this.Encoder=new OpusEncoder(this.Samplerate);
+			this.Encoder.Bitrate=this._Bitrate;
+			this.Encoder.Signal=OPUS_SIGNAL_VOICE;
+			this.Encoder.Bandwidth=OPUS_BANDWIDTH_NARROWBAND;
+			this.Decoder=new OpusDecoder(this.Samplerate);
+		} else {
+			this.Encoder=new SpeexEncoder();
+			this.Encoder.Quality=this._Quality;
+			this.Encoder.SampleRate=this.Samplerate;
+
+			this.Decoder=new SpeexDecoder();
+			this.Decoder.SampleRate=this.Samplerate;
+		}
+
+		sem=semcreate();
+		seminit(sem, 1);
+	}
+
+	function Register(timeout=1000) {
+		if (init) {
+			if (!SIPPhoneAddListener(sip, SIPLocalInterface))
+				return false;
+		} else {
+			init=true;
+			if (!SIPPhoneConnect(sip, Username, Password, ProxyHost, LocalIP, "", "", SIPLocalInterface))
+				return false;
+		}
+		var i=0;
+		while (!SIPPhoneIsRegistered(sip)) {
+			Sleep(10);
+			i+=10;
+			if (i>=timeout)
+				return false;
+		}
+
+		if (OnRegister)
+			OnRegister(0);
+		return true;
+	}
+
+	function Unregister() {
+		SIPPhoneUnregister(sip);
+	}
+
+	public function SetQuality(number qual) {
+		this._Quality=qual;
+		if (!sem)
+			return;
+		semp(sem);
+		if (this.Encoder)
+			this.Encoder.Quality=qual;
+		semv(sem);
+		return qual;
+	}
+
+	public function SetBitrate(number qual) {
+		this._Bitrate=qual;
+		if (!sem)
+			return;
+		semp(sem);
+		if (this.Encoder)
+			this.Encoder.Bitrate=qual;
+		semv(sem);
+		return qual;
+	}
+
+	public function Call(string phonenumber) {
+		if (Pos(phonenumber, "@")>1)
+			return SIPPhoneCall(sip, "<"+phonenumber+">");
+		return SIPPhoneCall(sip, "<"+phonenumber+"@"+ProxyHost+">");
+	}
+
+	public function GetCodecs() {
+		return SIPPhoneGetCodecs(sip);
+	}
+
+	public function SetCodecs(array order) {
+		if (order)
+			SIPPhoneSetCodecsOrder(sip, order);
+	}
+
+	public function SetSTUNServer(string stun) {
+		_STUNServer=stun;
+		SIPPhoneSetSTUNServer(sip, stun);
+	}
+
+	function finalize() {
+		if (!sem)
+			return;
+		sem=0;
+		//semp(sem);
+		in_stream=null;
+		out_stream=null;
+		ClearStreams();
+		//semv(sem);
+		if (sip) {
+			SIPPhoneDestroy(sip);
+			sip=0;
+		}
+	}
+}

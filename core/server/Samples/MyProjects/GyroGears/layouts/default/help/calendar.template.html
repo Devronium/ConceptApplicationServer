@@ -1,0 +1,64 @@
+﻿<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" >
+<head>
+    <title>Documentation for {event.Name}</title>
+</head>
+<body>
+
+<table width="100%" border="0" cellpadding="0" cellspacing="0">
+    <tr bgcolor="#660066"><td colspan="2"><h1><font color="#FFFFFF">{application}</font></h1></td></tr>
+    <tr bgcolor="#F3F3F3"><td>{description}</td><td align="right"><a href="javascript:if (history.length>1) history.go(-1); else window.location.href='internal://goback';"><img src="res/_back.png" alt="back" border="0"/></a>&nbsp;<a href="index.html"><img src="res/_home.png" alt="home" border="0"/></a>&nbsp;<a href="javascript:if (history.length>1) history.go(1); else window.location.href='internal://goforward';"><img src="res/_forward.png" alt="next" border="0"/></a></td></tr>
+    <tr bgcolor="#FFFFFF"><td colspan="2">
+        <br />
+        <table>
+        <tr>
+        <td valign="middle" align="center"><img src="res/{event_icon}" alt="{event.Name} icon" /></td>
+        <td>
+        <strong>{event.Name}</strong><br />
+        </td></tr></table>
+        <hr />
+        <br />
+        This event a representation of <a href="{event.Entity.PublicName}.html">{event.Entity.Name}</a> on a calendar.
+        <br />
+        <table><tr>
+        <td valign="middle"><img src="res/_info.png" alt="i"/> </td>
+        <td><i>To activate the calendar, you must first double click on wanted day in the calendar located on the right side of the main form.</i></td>
+        </tr></table>
+        <br />
+        
+        {if event.Comments}
+        <b>Description:</b><br />
+        {event.Comments}
+        <br /><br />
+        {endif}
+        {if event.StartMember}
+            {if event.EndMember}
+                This entry will pe desplayed on the calendar from <b>{event.StartMember}</b> to <b>{event.EndMember}</b>. <br />
+                The displayed text is from the <b>{event.DescriptionMember}</b> in <a href="{event.Entity.PublicName}.html">{event.Entity.Name}</a>.<br />
+            {else}
+                This entry will pe desplayed on the calendar on the specified <b>{event.StartMember}</b>. <br />
+                The displayed text is from the <b>{event.DescriptionMember}</b> in <a href="{event.Entity.PublicName}.html">{event.Entity.Name}</a>.<br />
+            {endif}
+        {endif}
+        <br />
+        If you have enough rights, you can edit '<a href="{event.Entity.PublicName}.html">{event.Entity.Name}</a>' by just double click it in the calendar view.<br />
+        Also, you can drag and drop it to the "Clipboard" or "Personal settings" just like you do with '<a href="{event.Entity.PublicName}.html">{event.Entity.Name}</a>'<br />
+        <br />
+        <table><tr>
+        <td valign="middle"><img src="res/_refreshcalendar.png" alt="calendar"/></td>
+        <td>
+        You can reload/refresh the calendar view by simply clicking on the refresh button.<br />
+        <table><tr>
+        <td valign="middle"><img src="res/_warning.png" alt="warning"/> </td>
+        <td border="1">The button size, color and icon depends on the used GTK skin on the client side and my vary.</td>
+        </tr></table>
+        </td>
+        </tr></table>
+        <br />
+        <br />
+        <br />
+    </td></tr>
+    <tr bgcolor="#660066"><td colspan="2"><font color="#FFFFFF"><small>Help file generated at {time}</small></font></td></tr>
+</table>
+</body>
+</html>

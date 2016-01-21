@@ -1,0 +1,77 @@
+include BinFile.con
+
+class TinBase {
+	protected var DB = "";
+	protected var[] tables;
+	public property Use { get DB, set SetDB }
+	public var NoIndexCached = false;
+	public var Mode = "r+b";
+
+	TinBase(dbname = "default") {
+		Use = dbname;
+	}
+
+	Flush(flush_index = true) {
+		for (var i = 0; i < length tables; i++) {
+			var t = tables[i];
+			if (t) {
+				t.FlushDB(flush_index);
+				t.ResetCache();
+			}
+		}
+	}
+
+	SetDB(string db) {
+		if (!db)
+			throw "Invalid database selected\n";
+		_mkdir(db);
+		this.DB = db;
+	}
+
+	Collection(string name, index_only = false) {
+		if (!DB)
+			throw "No database selected";
+		var key = "${DB}/$name";
+		if (NoIndexCached) { 
+			var t = new BinFile(key, this.Mode);
+			if ((!index_only) && (this.Mode != "r") && (this.Mode != "rb")) {
+				if (!t.Open())
+					throw "Cannot open $key\n";
+			}
+		} else {
+			t = tables[key];
+			if ((!t) || (!t.Handle)) {
+				t = new BinFile(key, this.Mode);
+				if ((!index_only) && (this.Mode != "r") && (this.Mode != "rb")) {
+					if (!t.Open())
+						throw "Cannot open $key\n";
+				}
+				tables[key] = t;
+			}
+		}
+		return t;
+	}
+
+	StoreHandler(string code) {
+		return WriteFile(code, "${DB}/handler.con");
+	}
+
+	ReadHandler() {
+		return ReadFile("${DB}/handler.con");
+	}
+
+	StoreTriggers(array triggers) {
+		return WriteFile(BinarizeObject(triggers), "${DB}/triggers.bin");
+	}
+
+	ReadTriggers() {
+		var data = ReadFile("${DB}/triggers.bin");
+		if (data)
+			return UnBinarizeObject(data);
+		return null;
+	}
+
+	operator[](string name) {
+		return Collection(name);
+	}
+}

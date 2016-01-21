@@ -1,0 +1,54 @@
+import 'web.server.api'
+
+
+/////////////////////////////////////////////////////////////////////
+//
+// Settings for Apache ... copy the following paragraph to the end
+// of httpd.conf in your Apache installation directory, and replace
+// "C:/Distribution/Bin/" with your path to concept Disitrbution 
+//  directory
+//
+/////////////////////////////////////////////////////////////////////
+//
+// ScriptAlias /con/ "c:/Distribution/Bin/"
+// AddType application/x-httpd-con .con
+// AddType application/x-httpd-con .csp
+// Action application/x-httpd-con "/con/concept-cgi.exe"
+//
+/////////////////////////////////////////////////////////////////////
+
+class Main {
+	function Main() {
+		echo "Cache-Control: no-store, no-cache, must-revalidate;";
+		var SESSID=SessionStart();
+
+		if (WebVar("action")=="destroy")
+			SessionDestroy();
+		else {
+			ContentType("text/html");
+			echo "Server software : "+ ServerVar("SERVER_SOFTWARE") + "<br>";
+			echo "Server name : "+ ServerVar("SERVER_NAME") + "<br>";
+			echo "Gateway interface : "+ ServerVar("GATEWAY_INTERFACE") + "<br>";
+			echo "Server protocol : "+ ServerVar("SERVER_PROTOCOL") + "<br>";
+			echo "Server port : "+ ServerVar("SERVER_PORT") + "<br>";
+			echo "Request method : "+ ServerVar("REQUEST_METHOD") + "<br>";
+			echo "Path info : "+ ServerVar("PATH_INFO") + "<br>";
+			echo "Path translated : "+ ServerVar("PATH_TRANSLATED") + "<br>";
+			echo "Script name : "+ ServerVar("SCRIPT_NAME") + "<br>";
+			echo "Query string : "+ ServerVar("QUERY_STRING") + "<br>";
+			echo "Remote host : "+ ServerVar("REMOTE_HOST") + "<br>";
+			echo "Remote address : "+ ServerVar("REMOTE_ADDR") + "<br>";
+			echo "Authentification type : "+ ServerVar("AUTH_TYPE") + "<br>";
+			echo "Remote user : "+ ServerVar("REMOTE_USER") + "<br>";
+			echo "Remote ident : "+ ServerVar("REMOTE_IDENT") + "<br>";
+			echo "<b>Session ID</b> : " + SESSID;
+			echo "<br>";
+			echo "<b>Action</b>=" + WebVar("action");
+			echo "<br>";
+			echo "<b>Action (session)</b>=" + SessionVar("Action");
+			SetSessionVar("Action",WebVar("action"));
+		}
+
+		SessionDone();
+	}
+}

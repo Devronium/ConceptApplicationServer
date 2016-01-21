@@ -1,0 +1,23 @@
+include REdit.con
+include DataBases.con
+
+class RADOEdit	extends REdit
+		extends VirtualADOObject {
+
+	override __DataSetUpdateCommand;
+	public function __DataSetUpdateCommand(Sender) {
+		try {
+			var obj=Sender.FieldValues[this._DATAFIELD];
+			if (typeof obj == "class")
+				this.Text=obj.ToString();
+			else
+				this.Text="";
+		} catch (var exception) {
+			this.Text="";
+		}
+	}
+
+	public function RADOEdit(Owner) {
+		REdit(Owner);
+	}
+}

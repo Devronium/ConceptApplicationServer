@@ -1,0 +1,100 @@
+include 'VisibleControl.con'
+
+class ConceptListBox extends VisibleControl {
+	//protected var _ITEMS;
+	protected var _ITEMINDEX;
+	protected var _SORTED;
+
+	public property ItemIndex { set SetItemIndex, get _ITEMINDEX }
+	//public property Items { get _ITEMS }
+	public property Sort { set SetSorted, get _SORTED }
+
+	protected function SetSorted(x) {
+		if (typeof x!=NUMERIC_TYPE)
+		     	throw new ControlException(EXC_INVALID_ARGUMENT_TYPE, this);
+		SendMessage(""+this->Name, MSG_CHANGED, P_SORT, x!=0);
+		this->_SORTED=x!=0;
+	}
+
+	public function Clear() {
+		//this->_ITEMS->Clear();
+                SendMessage(this->Name, MSG_ITEM_CLEAR, "0", 0);
+	}
+
+	public function GetItemText(index) {
+                SendMessage(this->Name, MSG_ITEM_GET, "0", index);
+		WaitMessage(var Sender, var MSG_ID=MSG_ITEM_GET, var Target, var VALUE);
+		return VALUE;
+	}
+
+	public function SetItemText(index,text) {
+                SendMessage(this->Name, MSG_ITEM_SET, ""+text, index);
+		return 0;
+	}
+
+	protected function SetItemIndex(x) {
+		if (typeof x==NUMERIC_TYPE)
+			;//this->_ITEMINDEX=x;
+		else
+		     	throw new ControlException(EXC_INVALID_ARGUMENT_TYPE, this);
+		SendMessage(""+this->Name, MSG_LIST_BOX_INDEX_CHANGED, "0", x);
+	}
+
+	public function AddItem(item) {
+		//this->_ITEMS->Add(item, this->_ITEMS->Count);
+                SendMessage(this->Name, MSG_ITEM_ADD, "0", item);
+	}
+
+	public function Remove(i_item) {
+                SendMessage(this->Name, MSG_ITEM_REMOVE, "0", i_item);
+	}
+
+	public function ConceptListBox(Owner) {
+		//this->_ITEMS=new ArrayList();
+		this->ItemIndex=-1;
+		this->VisibleControl(Owner, CLASS_LISTBOX);
+	}
+
+	public function ConceptListBox_ProcessMessage(Sender, ID, Target, Value) {
+		if ((this->Name==Sender) && (ID==MSG_LIST_BOX_INDEX_CHANGED)) {
+			var index=value Value;
+			this->_ITEMINDEX=index;
+			if (index>=0) {
+				if (typeof DataSet==CLASS_TYPE) {
+					DataSet->FetchByIndex(index);
+				}
+			}
+		}
+		this->VisibleControl_ProcessMessage(Sender, ID, Target, Value);
+	}
+
+	override ProcessMessage;
+	public function ProcessMessage(Sender, ID, Target, Value) {
+		this->ConceptListBox_ProcessMessage(Sender,ID,Target,Value);
+	}
+
+	override __DataSetUpdateCommand;
+	public function __DataSetUpdateCommand(Sender) {
+		try {
+			if (Sender->IsUpdateQuery)
+				this->SetItemText(DataSet->RowIndex, DataSet->FieldValues[this->DataField].ToString());
+			this->ItemIndex=DataSet->RowIndex;
+		} catch (var exception) {
+			// nothing ...
+		}
+	}
+
+	override __DataSetNewQueryNotify;
+	public function __DataSetNewQueryNotify(Sender) {
+		// to do ...
+		if (!Sender->IsUpdateQuery) {
+			Clear();
+			DataSet->UpdateColumnList(this);
+		}
+	}
+
+	override __DataSetColumnUpdate;
+	public function __DataSetColumnUpdate(Sender,ColumnValue,is_indexed) {
+		this->SetItemText(is_indexed, ColumnValue);
+	}
+}
