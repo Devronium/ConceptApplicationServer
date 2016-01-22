@@ -1,0 +1,57 @@
+bn_add.o: bn_openssl097beta1/bn_add.c
+	${CC} ${CFLAGS} -c bn_openssl097beta1/bn_add.c
+
+bn_asm.o: bn_openssl097beta1/bn_asm.c
+	${CC} ${CFLAGS} -c bn_openssl097beta1/bn_asm.c
+
+bn_ctx.o: bn_openssl097beta1/bn_ctx.c
+	${CC} ${CFLAGS} -c bn_openssl097beta1/bn_ctx.c
+
+bn_div.o: bn_openssl097beta1/bn_div.c
+	${CC} ${CFLAGS} -c bn_openssl097beta1/bn_div.c
+
+bn_exp.o: bn_openssl097beta1/bn_exp.c
+	${CC} ${CFLAGS} -c bn_openssl097beta1/bn_exp.c
+
+bn_exp2.o: bn_openssl097beta1/bn_exp2.c
+	${CC} ${CFLAGS} -c bn_openssl097beta1/bn_exp2.c
+
+bn_gcd.o: bn_openssl097beta1/bn_gcd.c
+	${CC} ${CFLAGS} -c bn_openssl097beta1/bn_gcd.c
+
+bn_lib.o: bn_openssl097beta1/bn_lib.c
+	${CC} ${CFLAGS} -c bn_openssl097beta1/bn_lib.c
+
+bn_mod.o: bn_openssl097beta1/bn_mod.c
+	${CC} ${CFLAGS} -c bn_openssl097beta1/bn_mod.c
+
+bn_mont.o: bn_openssl097beta1/bn_mont.c
+	${CC} ${CFLAGS} -c bn_openssl097beta1/bn_mont.c
+
+bn_mpi.o: bn_openssl097beta1/bn_mpi.c
+	${CC} ${CFLAGS} -c bn_openssl097beta1/bn_mpi.c
+
+bn_mul.o: bn_openssl097beta1/bn_mul.c
+	${CC} ${CFLAGS} -c bn_openssl097beta1/bn_mul.c
+
+bn_prime.o: bn_openssl097beta1/bn_prime.c
+	${CC} ${CFLAGS} -c bn_openssl097beta1/bn_prime.c
+
+bn_rand_hmf.o: bn_openssl097beta1/bn_rand_hmf.c
+	${CC} ${CFLAGS} -c bn_openssl097beta1/bn_rand_hmf.c
+
+bn_recp.o: bn_openssl097beta1/bn_recp.c
+	${CC} ${CFLAGS} -c bn_openssl097beta1/bn_recp.c
+
+bn_shift.o: bn_openssl097beta1/bn_shift.c
+	${CC} ${CFLAGS} -c bn_openssl097beta1/bn_shift.c
+
+bn_sqr.o: bn_openssl097beta1/bn_sqr.c
+	${CC} ${CFLAGS} -c bn_openssl097beta1/bn_sqr.c
+
+bn_word.o: bn_openssl097beta1/bn_word.c
+	${CC} ${CFLAGS} -c bn_openssl097beta1/bn_word.c
+
+hmf_rand.o: bn_openssl097beta1/hmf_rand.c
+	${CC} ${CFLAGS} -c bn_openssl097beta1/hmf_rand.c
+

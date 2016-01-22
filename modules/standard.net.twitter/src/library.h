@@ -1,0 +1,61 @@
+#ifndef __LIBRARY_H
+#define __LIBRARY_H
+
+#include "stdlibrary.h"
+
+extern "C" {
+CONCEPT_DLL_API ON_CREATE_CONTEXT  MANAGEMENT_PARAMETERS;
+CONCEPT_DLL_API ON_DESTROY_CONTEXT MANAGEMENT_PARAMETERS;
+
+CONCEPT_FUNCTION(Twitter_Create)
+CONCEPT_FUNCTION(Twitter_Destroy)
+
+CONCEPT_FUNCTION(Twitter_Auth)
+CONCEPT_FUNCTION(Twitter_getTwitterUsername)
+CONCEPT_FUNCTION(Twitter_getTwitterPassword)
+CONCEPT_FUNCTION(Twitter_setTwitterUsername)
+CONCEPT_FUNCTION(Twitter_setTwitterPassword)
+CONCEPT_FUNCTION(Twitter_search)
+CONCEPT_FUNCTION(Twitter_statusUpdate)
+CONCEPT_FUNCTION(Twitter_statusShowById)
+CONCEPT_FUNCTION(Twitter_statusDestroyById)
+CONCEPT_FUNCTION(Twitter_timelinePublicGet)
+CONCEPT_FUNCTION(Twitter_timelineFriendsGet)
+CONCEPT_FUNCTION(Twitter_timelineUserGet)
+CONCEPT_FUNCTION(Twitter_featuredUsersGet)
+CONCEPT_FUNCTION(Twitter_mentionsGet)
+CONCEPT_FUNCTION(Twitter_userGet)
+CONCEPT_FUNCTION(Twitter_friendsGet)
+CONCEPT_FUNCTION(Twitter_followersGet)
+CONCEPT_FUNCTION(Twitter_directMessageGet)
+CONCEPT_FUNCTION(Twitter_directMessageSend)
+CONCEPT_FUNCTION(Twitter_directMessageGetSent)
+CONCEPT_FUNCTION(Twitter_directMessageDestroyById)
+CONCEPT_FUNCTION(Twitter_friendshipCreate)
+CONCEPT_FUNCTION(Twitter_friendshipDestroy)
+CONCEPT_FUNCTION(Twitter_friendshipShow)
+CONCEPT_FUNCTION(Twitter_friendsIdsGet)
+CONCEPT_FUNCTION(Twitter_followersIdsGet)
+CONCEPT_FUNCTION(Twitter_accountRateLimitGet)
+CONCEPT_FUNCTION(Twitter_favoriteGet)
+CONCEPT_FUNCTION(Twitter_favoriteCreate)
+CONCEPT_FUNCTION(Twitter_favoriteDestroy)
+CONCEPT_FUNCTION(Twitter_blockCreate)
+CONCEPT_FUNCTION(Twitter_blockDestroy)
+CONCEPT_FUNCTION(Twitter_savedSearchGet)
+CONCEPT_FUNCTION(Twitter_savedSearchCreate)
+CONCEPT_FUNCTION(Twitter_savedSearchShow)
+CONCEPT_FUNCTION(Twitter_savedSearchDestroy)
+CONCEPT_FUNCTION(Twitter_isCurlInit)
+CONCEPT_FUNCTION(Twitter_getLastCurlError)
+CONCEPT_FUNCTION(Twitter_getLastWebResponse)
+CONCEPT_FUNCTION(Twitter_getProxyServerIp)
+CONCEPT_FUNCTION(Twitter_getProxyServerPort)
+CONCEPT_FUNCTION(Twitter_getProxyUserName)
+CONCEPT_FUNCTION(Twitter_getProxyPassword)
+CONCEPT_FUNCTION(Twitter_setProxyServerIp)
+CONCEPT_FUNCTION(Twitter_setProxyServerPort)
+CONCEPT_FUNCTION(Twitter_setProxyUserName)
+CONCEPT_FUNCTION(Twitter_setProxyPassword)
+}
+#endif // __LIBRARY_H

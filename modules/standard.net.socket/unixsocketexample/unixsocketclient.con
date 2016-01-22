@@ -1,0 +1,19 @@
+import standard.net.socket
+import standard.lib.str
+import standard.C.casts
+
+class Main {
+	Main() {
+		var socket=SocketCreate(PROTOCOL_UNIX);
+		if (socket<0) {
+			echo "Error";
+			return;
+		}
+
+		if (SocketConnect(socket, "./test.socket", -1)>-1) {
+		    SocketRead(socket, var buffer, 100);
+		    echo buffer;
+		}
+		SocketClose(socket);
+	}
+}

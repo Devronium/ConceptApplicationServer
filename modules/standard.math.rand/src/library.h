@@ -1,0 +1,14 @@
+#include "stdlibrary.h"
+#include <stdlib.h>
+#include <stdio.h>
+
+extern "C" {
+CONCEPT_DLL_API ON_CREATE_CONTEXT  MANAGEMENT_PARAMETERS;
+CONCEPT_DLL_API ON_DESTROY_CONTEXT MANAGEMENT_PARAMETERS;
+
+CONCEPT_FUNCTION(RandomSeed)
+CONCEPT_FUNCTION(RandomInteger)
+CONCEPT_FUNCTION(RandomIntegerX)
+CONCEPT_FUNCTION(RandomBit)
+CONCEPT_FUNCTION(RandomFloat)
+}

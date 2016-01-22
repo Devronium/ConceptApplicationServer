@@ -1,0 +1,51 @@
+#ifndef __LIBRARY_H
+#define __LIBRARY_H
+
+// user definition ...
+
+extern "C" {
+CONCEPT_DLL_API ON_CREATE_CONTEXT  MANAGEMENT_PARAMETERS;
+CONCEPT_DLL_API ON_DESTROY_CONTEXT MANAGEMENT_PARAMETERS;
+
+CONCEPT_FUNCTION(_SablotCreateDocument)
+CONCEPT_FUNCTION(_SablotParse)
+CONCEPT_FUNCTION(_SablotParseBuffer)
+CONCEPT_FUNCTION(_SablotParseStylesheet)
+CONCEPT_FUNCTION(_SablotParseStylesheetBuffer)
+CONCEPT_FUNCTION(_SablotLockDocument)
+CONCEPT_FUNCTION(_SablotDestroyDocument)
+CONCEPT_FUNCTION(_SablotAddParam)
+CONCEPT_FUNCTION(_SablotAddArgBuffer)
+CONCEPT_FUNCTION(_SablotAddArgTree)
+CONCEPT_FUNCTION(_SablotRunProcessorGen)
+CONCEPT_FUNCTION(_SablotRunProcessorExt)
+CONCEPT_FUNCTION(_SablotCreateSituation)
+CONCEPT_FUNCTION(_SablotSetOptions)
+CONCEPT_FUNCTION(_SablotGetOptions)
+CONCEPT_FUNCTION(_SablotClearSituation)
+//CONCEPT_FUNCTION(_SablotGetErrorURI)
+//CONCEPT_FUNCTION(_SablotGetErrorLine)
+//CONCEPT_FUNCTION(_SablotGetErrorMsg)
+CONCEPT_FUNCTION(_SablotDestroySituation)
+CONCEPT_FUNCTION(_SablotCreateProcessor)
+CONCEPT_FUNCTION(_SablotCreateProcessorForSituation)
+CONCEPT_FUNCTION(_SablotDestroyProcessor)
+CONCEPT_FUNCTION(_SablotRunProcessor)
+CONCEPT_FUNCTION(_SablotGetResultArg)
+CONCEPT_FUNCTION(_SablotFreeResultArgs)
+//CONCEPT_FUNCTION(_SablotRegHandler)
+//CONCEPT_FUNCTION(_SablotUnregHandler)
+CONCEPT_FUNCTION(_SablotSetBase)
+CONCEPT_FUNCTION(_SablotSetBaseForScheme)
+CONCEPT_FUNCTION(_SablotSetLog)
+CONCEPT_FUNCTION(_SablotProcess)
+CONCEPT_FUNCTION(_SablotProcessFiles)
+CONCEPT_FUNCTION(_SablotProcessStrings)
+CONCEPT_FUNCTION(_SablotProcessStringsWithBase)
+CONCEPT_FUNCTION(_SablotClearError)
+CONCEPT_FUNCTION(_SablotGetMsgText)
+CONCEPT_FUNCTION(_SablotSetInstanceData)
+CONCEPT_FUNCTION(_SablotGetInstanceData)
+CONCEPT_FUNCTION(_SablotSetEncoding)
+}
+#endif // __LIBRARY_H

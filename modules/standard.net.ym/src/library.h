@@ -1,0 +1,55 @@
+#ifndef __LIBRARY_H
+#define __LIBRARY_H
+
+// user definition ...
+
+extern "C" {
+CONCEPT_DLL_API ON_CREATE_CONTEXT  MANAGEMENT_PARAMETERS;
+CONCEPT_DLL_API ON_DESTROY_CONTEXT MANAGEMENT_PARAMETERS;
+
+CONCEPT_FUNCTION(_yahoo_login)
+CONCEPT_FUNCTION(_yahoo_logout)
+CONCEPT_FUNCTION(_yahoo_refresh)
+CONCEPT_FUNCTION(_yahoo_set_identity_status)
+CONCEPT_FUNCTION(_yahoo_get_list)
+CONCEPT_FUNCTION(_yahoo_get_yab)
+CONCEPT_FUNCTION(_yahoo_set_yab)
+CONCEPT_FUNCTION(_yahoo_keepalive)
+CONCEPT_FUNCTION(_yahoo_chat_keepalive)
+CONCEPT_FUNCTION(_yahoo_send_im)
+CONCEPT_FUNCTION(_yahoo_send_typing)
+CONCEPT_FUNCTION(_yahoo_set_away)
+CONCEPT_FUNCTION(_yahoo_add_buddy)
+CONCEPT_FUNCTION(_yahoo_confirm_buddy)
+CONCEPT_FUNCTION(_yahoo_remove_buddy)
+CONCEPT_FUNCTION(_yahoo_reject_buddy)
+CONCEPT_FUNCTION(_yahoo_ignore_buddy)
+CONCEPT_FUNCTION(_yahoo_change_buddy_group)
+CONCEPT_FUNCTION(_yahoo_group_rename)
+CONCEPT_FUNCTION(_yahoo_conference_invite)
+CONCEPT_FUNCTION(_yahoo_conference_addinvite)
+CONCEPT_FUNCTION(_yahoo_conference_decline)
+CONCEPT_FUNCTION(_yahoo_conference_message)
+CONCEPT_FUNCTION(_yahoo_conference_logon)
+CONCEPT_FUNCTION(_yahoo_conference_logoff)
+CONCEPT_FUNCTION(_yahoo_get_chatrooms)
+CONCEPT_FUNCTION(_yahoo_chat_logon)
+CONCEPT_FUNCTION(_yahoo_chat_message)
+CONCEPT_FUNCTION(_yahoo_chat_logoff)
+CONCEPT_FUNCTION(_yahoo_webcam_get_feed)
+CONCEPT_FUNCTION(_yahoo_webcam_close_feed)
+CONCEPT_FUNCTION(_yahoo_webcam_send_image)
+CONCEPT_FUNCTION(_yahoo_webcam_accept_viewer)
+CONCEPT_FUNCTION(_yahoo_webcam_invite)
+
+CONCEPT_FUNCTION(_yahoo_current_status)
+CONCEPT_FUNCTION(_yahoo_get_buddylist)
+CONCEPT_FUNCTION(_yahoo_get_ignorelist)
+CONCEPT_FUNCTION(_yahoo_get_identities)
+CONCEPT_FUNCTION(_yahoo_get_cookie)
+CONCEPT_FUNCTION(_yahoo_get_profile_url)
+
+CONCEPT_FUNCTION(_yahoo_set_callback)
+CONCEPT_FUNCTION(_yahoo_status_code)
+}
+#endif // __LIBRARY_H

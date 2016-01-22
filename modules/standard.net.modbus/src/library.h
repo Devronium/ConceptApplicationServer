@@ -1,0 +1,58 @@
+#ifndef __LIBRARY_H
+#define __LIBRARY_H
+
+#include "stdlibrary.h"
+
+extern "C" {
+CONCEPT_DLL_API ON_CREATE_CONTEXT  MANAGEMENT_PARAMETERS;
+CONCEPT_DLL_API ON_DESTROY_CONTEXT MANAGEMENT_PARAMETERS;
+
+CONCEPT_FUNCTION(modbus_set_slave)
+CONCEPT_FUNCTION(modbus_set_error_recovery)
+CONCEPT_FUNCTION(modbus_set_socket)
+CONCEPT_FUNCTION(modbus_get_socket)
+CONCEPT_FUNCTION(modbus_get_response_timeout)
+CONCEPT_FUNCTION(modbus_set_response_timeout)
+CONCEPT_FUNCTION(modbus_get_byte_timeout)
+CONCEPT_FUNCTION(modbus_set_byte_timeout)
+CONCEPT_FUNCTION(modbus_get_header_length)
+CONCEPT_FUNCTION(modbus_connect)
+CONCEPT_FUNCTION(modbus_close)
+CONCEPT_FUNCTION(modbus_free)
+CONCEPT_FUNCTION(modbus_flush)
+CONCEPT_FUNCTION(modbus_set_debug)
+CONCEPT_FUNCTION(modbus_strerror)
+CONCEPT_FUNCTION(modbus_read_bits)
+CONCEPT_FUNCTION(modbus_read_input_bits)
+CONCEPT_FUNCTION(modbus_read_registers)
+CONCEPT_FUNCTION(modbus_read_input_registers)
+CONCEPT_FUNCTION(modbus_write_bit)
+CONCEPT_FUNCTION(modbus_write_register)
+CONCEPT_FUNCTION(modbus_write_bits)
+CONCEPT_FUNCTION(modbus_write_registers)
+CONCEPT_FUNCTION(modbus_write_and_read_registers)
+CONCEPT_FUNCTION(modbus_report_slave_id)
+CONCEPT_FUNCTION(modbus_mapping_new)
+CONCEPT_FUNCTION(modbus_mapping_free)
+CONCEPT_FUNCTION(modbus_send_raw_request)
+CONCEPT_FUNCTION(modbus_receive)
+CONCEPT_FUNCTION(modbus_receive_from)
+CONCEPT_FUNCTION(modbus_receive_confirmation)
+CONCEPT_FUNCTION(modbus_reply)
+CONCEPT_FUNCTION(modbus_reply_exception)
+CONCEPT_FUNCTION(modbus_set_bits_from_byte)
+CONCEPT_FUNCTION(modbus_set_bits_from_bytes)
+CONCEPT_FUNCTION(modbus_get_byte_from_bits)
+CONCEPT_FUNCTION(modbus_get_float)
+CONCEPT_FUNCTION(modbus_set_float)
+CONCEPT_FUNCTION(modbus_new_rtu)
+CONCEPT_FUNCTION(modbus_rtu_set_serial_mode)
+CONCEPT_FUNCTION(modbus_rtu_get_serial_mode)
+CONCEPT_FUNCTION(modbus_new_tcp)
+CONCEPT_FUNCTION(modbus_tcp_listen)
+CONCEPT_FUNCTION(modbus_tcp_accept)
+CONCEPT_FUNCTION(modbus_new_tcp_pi)
+CONCEPT_FUNCTION(modbus_tcp_pi_listen)
+CONCEPT_FUNCTION(modbus_tcp_pi_accept)
+}
+#endif // __LIBRARY_H

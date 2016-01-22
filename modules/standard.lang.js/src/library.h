@@ -1,0 +1,32 @@
+#ifndef __LIBRARY_H
+#define __LIBRARY_H
+
+// user definition ...
+
+extern "C" {
+CONCEPT_DLL_API ON_CREATE_CONTEXT  MANAGEMENT_PARAMETERS;
+CONCEPT_DLL_API ON_DESTROY_CONTEXT MANAGEMENT_PARAMETERS;
+
+CONCEPT_FUNCTION(JSNewRuntime)
+CONCEPT_FUNCTION(JSNewContext)
+CONCEPT_FUNCTION(JSNewObject)
+
+CONCEPT_FUNCTION(JSLock)
+CONCEPT_FUNCTION(JSUnlock)
+
+CONCEPT_FUNCTION(JSDestroyContext)
+CONCEPT_FUNCTION(JSDestroyRuntime)
+CONCEPT_FUNCTION(JSShutDown)
+
+CONCEPT_FUNCTION(JSInitStandardClasses)
+
+CONCEPT_FUNCTION(JSSetErrorReporter)
+
+CONCEPT_FUNCTION(JSEvaluateScript)
+CONCEPT_FUNCTION(JSThrow)
+CONCEPT_FUNCTION(JSEval)
+//--------------------------------------------------------------//
+CONCEPT_FUNCTION(JSWrap)
+//--------------------------------------------------------------//
+}
+#endif // __LIBRARY_H

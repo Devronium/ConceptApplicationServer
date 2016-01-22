@@ -1,0 +1,76 @@
+#ifndef __LIBRARY_H
+#define __LIBRARY_H
+
+#include "stdlibrary.h"
+
+extern "C" {
+CONCEPT_DLL_API ON_CREATE_CONTEXT  MANAGEMENT_PARAMETERS;
+CONCEPT_DLL_API ON_DESTROY_CONTEXT MANAGEMENT_PARAMETERS;
+
+CONCEPT_FUNCTION(virError)
+CONCEPT_FUNCTION(virConnect)
+CONCEPT_FUNCTION(virInfo)
+CONCEPT_FUNCTION(virClose)
+
+CONCEPT_FUNCTION(virNumOfActiveDomains)
+CONCEPT_FUNCTION(virNumOfInactiveDomains)
+CONCEPT_FUNCTION(virListAllDomains)
+
+CONCEPT_FUNCTION(virDomainOpen)
+CONCEPT_FUNCTION(virDomainOpenUUID)
+CONCEPT_FUNCTION(virDomainOpenName)
+CONCEPT_FUNCTION(virDomainDone)
+
+CONCEPT_FUNCTION(virDomainMemoryPeek)
+CONCEPT_FUNCTION(virDomainShutdown)
+CONCEPT_FUNCTION(virDomainSetAutostart)
+CONCEPT_FUNCTION(virDomainDestroy)
+
+CONCEPT_FUNCTION(virDomainSuspend)
+CONCEPT_FUNCTION(virDomainResume)
+CONCEPT_FUNCTION(virDomainUndefine)
+
+CONCEPT_FUNCTION(virDomainReboot)
+CONCEPT_FUNCTION(virDomainCreate)
+CONCEPT_FUNCTION(virDomainCreateXML)
+
+CONCEPT_FUNCTION(virDomainScreenshot)
+CONCEPT_FUNCTION(virDomainSendKey)
+
+CONCEPT_FUNCTION(virDomainOpenConsole)
+CONCEPT_FUNCTION(virStreamClose)
+CONCEPT_FUNCTION(virStreamRead)
+CONCEPT_FUNCTION(virStreamWrite)
+
+CONCEPT_FUNCTION(virDomainGetCPUStats)
+CONCEPT_FUNCTION(virDomainInterfaceStats)
+CONCEPT_FUNCTION(virDomainMemoryStats)
+CONCEPT_FUNCTION(virDomainBlockStats)
+
+CONCEPT_FUNCTION(virDomainSnapshotCreate)
+CONCEPT_FUNCTION(virDomain)
+CONCEPT_FUNCTION(virDomainHasCurrentSnapshot)
+CONCEPT_FUNCTION(virDomainSnapshotList)
+CONCEPT_FUNCTION(virDomainSnapshot)
+CONCEPT_FUNCTION(virDomainRevertToSnapshot)
+CONCEPT_FUNCTION(virDomainSnapshotDelete)
+CONCEPT_FUNCTION(virDomainSnapshotListChildren)
+
+CONCEPT_FUNCTION(virDomainManagedSave)
+CONCEPT_FUNCTION(virDomainManagedSaveRemove)
+CONCEPT_FUNCTION(virDomainSave)
+CONCEPT_FUNCTION(virDomainHasManagedSaveImage)
+CONCEPT_FUNCTION(virDomainGetJobInfo)
+CONCEPT_FUNCTION(virDomainAttachDevice)
+CONCEPT_FUNCTION(virDomainBlockJobAbort)
+CONCEPT_FUNCTION(virDomainMigrate)
+
+CONCEPT_FUNCTION(virConnectListStoragePools)
+CONCEPT_FUNCTION(virConnectListDefinedStoragePools)
+CONCEPT_FUNCTION(virConnectListNetworks)
+CONCEPT_FUNCTION(virConnectListDefinedNetworks)
+
+CONCEPT_FUNCTION(virNodeListDevices)
+CONCEPT_FUNCTION(virDebug)
+}
+#endif // __LIBRARY_H

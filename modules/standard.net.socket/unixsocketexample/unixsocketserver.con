@@ -1,0 +1,23 @@
+import standard.net.socket
+import standard.lib.str
+import standard.C.casts
+
+class Main {
+	Main() {
+		var socket=SocketCreate(PROTOCOL_UNIX);
+		if (socket<0) {
+			echo "Error";
+			return;
+		}
+
+		if (SocketListen(socket, -1, 0x100, "./test.socket")>-1) {
+			echo "Listen";
+			while (true) {
+				var s=SocketAccept(socket);
+				echo "Accept !";
+				SocketWrite(s, "Hello world !");
+			}
+		}
+		SocketClose(socket);
+	}
+}

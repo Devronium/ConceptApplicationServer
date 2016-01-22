@@ -1,0 +1,83 @@
+#ifndef __LIBRARY_H
+#define __LIBRARY_H
+
+#include "stdlibrary.h"
+
+// user definition ...
+#define BUFFER_SIZE    0xFFFF       // 64k buffer
+
+extern "C" {
+CONCEPT_DLL_API ON_CREATE_CONTEXT  MANAGEMENT_PARAMETERS;
+CONCEPT_DLL_API ON_DESTROY_CONTEXT MANAGEMENT_PARAMETERS;
+
+
+// retrieve address and port
+CONCEPT_DLL_API CONCEPT_SocketInfo CONCEPT_API_PARAMETERS;
+
+// retrieve address and port
+CONCEPT_DLL_API CONCEPT_SocketHasData CONCEPT_API_PARAMETERS;
+
+//creates a socket
+CONCEPT_DLL_API CONCEPT_SocketCreate CONCEPT_API_PARAMETERS;
+
+// sets sockets options
+CONCEPT_DLL_API CONCEPT_SocketSetOption CONCEPT_API_PARAMETERS;
+
+// gets sockets options
+CONCEPT_DLL_API CONCEPT_SocketGetOption CONCEPT_API_PARAMETERS;
+
+// gets an error code
+CONCEPT_DLL_API CONCEPT_SocketError CONCEPT_API_PARAMETERS;
+
+// connects to a specified host
+CONCEPT_DLL_API CONCEPT_SocketConnect CONCEPT_API_PARAMETERS;
+
+// reads from a socket
+CONCEPT_DLL_API CONCEPT_SocketRead CONCEPT_API_PARAMETERS;
+
+// writes to a socket
+CONCEPT_DLL_API CONCEPT_SocketWrite CONCEPT_API_PARAMETERS;
+
+// switch to server mode
+CONCEPT_DLL_API CONCEPT_SocketListen CONCEPT_API_PARAMETERS;
+
+// bind UDP socket
+CONCEPT_DLL_API CONCEPT_SocketBindUDP CONCEPT_API_PARAMETERS;
+
+// accepts a new connection, when in server mode
+CONCEPT_DLL_API CONCEPT_SocketAccept CONCEPT_API_PARAMETERS;
+
+// closes a socket
+CONCEPT_DLL_API CONCEPT_SocketClose CONCEPT_API_PARAMETERS;
+
+CONCEPT_FUNCTION(WSParseHandshake)
+CONCEPT_FUNCTION(WSHandshakeAnswer)
+
+CONCEPT_FUNCTION(WSMakeFrame)
+CONCEPT_FUNCTION(WSParseFrame)
+
+CONCEPT_FUNCTION(GetHostName)
+CONCEPT_FUNCTION(GetDomainName)
+CONCEPT_FUNCTION(GetHostByAddr)
+CONCEPT_FUNCTION(GetHostByAddr6)
+CONCEPT_FUNCTION(GetHostByName)
+CONCEPT_FUNCTION(Ping)
+
+CONCEPT_FUNCTION(htonl)
+CONCEPT_FUNCTION(htons)
+CONCEPT_FUNCTION(ntohl)
+CONCEPT_FUNCTION(ntohs)
+
+CONCEPT_FUNCTION(ListInterfaces)
+CONCEPT_FUNCTION(MulticastSocket)
+
+CONCEPT_FUNCTION(MulticastJoin)
+CONCEPT_FUNCTION(MulticastDrop)
+
+CONCEPT_FUNCTION(SocketSetBlocking)
+CONCEPT_FUNCTION(SocketErrno)
+
+CONCEPT_FUNCTION(STUN)
+CONCEPT_FUNCTION(SocketPoll)
+}
+#endif // __LIBRARY_H
