@@ -643,8 +643,9 @@ INTEGER Invoke(INTEGER INVOKE_TYPE, ...) {
                 int       class_count = pif->ClassList->Count();
                 int       clsid       = -1;
                 ClassCode *CC         = 0;
+                ClassCode **StaticClassList = ((pif->parentPIF) && ((PIFAlizator *)pif->parentPIF)->StaticClassList) ? ((PIFAlizator *)pif->parentPIF)->StaticClassList : pif->StaticClassList;
                 for (int i = class_count - 1; i >= 0; i--) {
-                    CC = pif->StaticClassList[i];
+                    CC = StaticClassList[i];
                     if (CC->NAME == class_name) {
                         clsid = i;
                         break;
@@ -687,8 +688,9 @@ INTEGER Invoke(INTEGER INVOKE_TYPE, ...) {
                 int       class_count = pif->ClassList->Count();
                 int       clsid       = -1;
                 ClassCode *CC         = 0;
+                ClassCode **StaticClassList = ((pif->parentPIF) && ((PIFAlizator *)pif->parentPIF)->StaticClassList) ? ((PIFAlizator *)pif->parentPIF)->StaticClassList : pif->StaticClassList;
                 for (int i = class_count - 1; i >= 0; i--) {
-                    CC = pif->StaticClassList[i];
+                    CC = StaticClassList[i];
                     if (CC->NAME == class_name) {
                         clsid = i;
                         break;
@@ -1209,6 +1211,8 @@ INTEGER Invoke(INTEGER INVOKE_TYPE, ...) {
                 pif->CachedClasses[key] = pif->ClassList.Count();
 #endif
                 pif->SyncClassList();
+                if (pif->parentPIF)
+                    ((PIFAlizator *)pif->parentPIF)->SyncClassList();
             }
             break;
 
@@ -1779,8 +1783,9 @@ INTEGER Invoke(INTEGER INVOKE_TYPE, ...) {
                 if (name)
                     *name = 0;
 
+                ClassCode **StaticClassList = ((pif->parentPIF) && ((PIFAlizator *)pif->parentPIF)->StaticClassList) ? ((PIFAlizator *)pif->parentPIF)->StaticClassList : pif->StaticClassList;
                 if ((name) && (index > 0) && (pif->ClassList) && (index <= pif->ClassList->Count())) {
-                    ClassCode *CC = (ClassCode *)pif->StaticClassList[index - 1];
+                    ClassCode *CC = StaticClassList[index - 1];
                     if (CC)
                         *name = CC->NAME.c_str();
                 } else
@@ -1937,8 +1942,9 @@ INTEGER Invoke(INTEGER INVOKE_TYPE, ...) {
                 int       class_count = pif->ClassList->Count();
                 int       clsid       = -1;
                 ClassCode *CC         = 0;
+                ClassCode **StaticClassList = ((pif->parentPIF) && ((PIFAlizator *)pif->parentPIF)->StaticClassList) ? ((PIFAlizator *)pif->parentPIF)->StaticClassList : pif->StaticClassList;
                 for (int i = 0; i < class_count; i++) {
-                    CC = pif->StaticClassList[i];
+                    CC = StaticClassList[i];
                     if (CC->NAME == class_name) {
                         clsid = i;
                         break;
@@ -1996,8 +2002,9 @@ INTEGER Invoke(INTEGER INVOKE_TYPE, ...) {
                 int       class_count = pif->ClassList->Count();
                 int       clsid       = -1;
                 ClassCode *CC         = 0;
+                ClassCode **StaticClassList = ((pif->parentPIF) && ((PIFAlizator *)pif->parentPIF)->StaticClassList) ? ((PIFAlizator *)pif->parentPIF)->StaticClassList : pif->StaticClassList;
                 for (int i = 0; i < class_count; i++) {
-                    CC = pif->StaticClassList[i];
+                    CC = StaticClassList[i];
                     if (CC->NAME == class_name) {
                         clsid = i;
                         break;
@@ -2092,8 +2099,10 @@ INTEGER Invoke(INTEGER INVOKE_TYPE, ...) {
                         }
                     }
                     pif->Errors.Clear();
-                } else
-                    pif->SyncClassList();
+                }
+                pif->SyncClassList();
+                if (pif->parentPIF)
+                    ((PIFAlizator *)pif->parentPIF)->SyncClassList();
             }
             break;
 
