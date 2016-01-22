@@ -6,7 +6,6 @@ include UNIXSocket.con
 import standard.lib.cripto
 import standard.math.rand
 import standard.lang.cli
-include Profiler.con
 
 define READ_BUFFER	0xFFFF
 
@@ -278,7 +277,7 @@ pragma used
 	var[] managed_dbs;
 	var[] objects;
 	var[] members;
-	var[] triggers;
+	var[] _triggers;
 	var non_flushed_writes = 0;
 
 	GetDelegate(dbobject, db, name, var objects, var members, r = null) {
@@ -355,7 +354,7 @@ pragma used
 						code = "";
 						var t2 = db.ReadTriggers();
 						if (typeof t2 == "array")
-							triggers = t2;
+							_triggers = t2;
 					}
 				}
 				if ((obj.c) && ((Pos(obj.c, "/") > 0) || (Pos(obj.c, "\\") > 0)))
@@ -387,7 +386,7 @@ pragma used
 								t.Delete(items);
 								non_flushed_writes += length items;
 								obj.p = items;
-								trigger = triggers["${obj.d}.${obj.c}"];
+								trigger = _triggers["${obj.d}.${obj.c}"];
 								if ((trigger) && (trigger.OnDelete)) {
 									var deleg = this.GetDelegate(db, obj.d, trigger.OnDelete, objects, members);
 									if (deleg) {
@@ -410,7 +409,7 @@ pragma used
 								multi_insert = true;
 							var id = -1;
 							if (t) {
-								trigger = triggers["${obj.d}.${obj.c}"];
+								trigger = _triggers["${obj.d}.${obj.c}"];
 								if (multi_insert) {
 									id = new [];
 									for (var i = 0; i < length obj.p; i++) {
@@ -564,10 +563,10 @@ pragma used
 					case "*":
 						if ((obj.c) && (typeof obj.p == "array")) {
 							key = "${obj.d}.${obj.c}";
-							trigger = triggers[key];
+							trigger = _triggers[key];
 							if (!trigger) {
 								trigger = new Triggers();
-								triggers[key] = trigger;
+								_triggers[key] = trigger;
 							}
 							// insert
 							// update
@@ -593,7 +592,7 @@ pragma used
 									break;
 								}
 							}
-							db.StoreTriggers(triggers);
+							db.StoreTriggers(_triggers);
 						} else {
 							r.e = ERR_COLLECTION;
 							r.et = ERR_COLLECTION_S;
@@ -642,7 +641,7 @@ class TinDB {
 	protected var Socket;
 	protected var[] StorageWorkers;
 
-	TinDB(workers = 1, storage_workers = 1) {
+	TinDB(workers = 4, storage_workers = 4) {
 		var[] sworkers;
 		for (var i = 0; i < storage_workers; i++) {
 			StorageWorkers[i] = new Worker("StorageWorker", "");
