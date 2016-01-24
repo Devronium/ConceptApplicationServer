@@ -571,7 +571,7 @@ int deturnated_send(MetaContainer *mc, int CLIENT_SOCKET, char *buffer, int size
         if (size > CHUNK_SIZE)
             to_send = CHUNK_SIZE;
         if ((is_udp) && (RTSOCKET > 0) && (mc->RTCONFIRMED) && (mc->rt_send_enabled) && (mc->remote_conceptudpaddr.ss_family)) {
-#ifdef _WIN32
+#if defined(_WIN32) || !defined(MSG_NOSIGNAL)
             ssize = sendto(RTSOCKET, buffer, to_send, 0, (struct sockaddr *)&mc->remote_conceptudpaddr, mc->remote_len);
 #else
             ssize = sendto(RTSOCKET, buffer, to_send, MSG_NOSIGNAL, (struct sockaddr *)&mc->remote_conceptudpaddr, mc->remote_len);
@@ -604,7 +604,7 @@ int deturnated_send(MetaContainer *mc, int CLIENT_SOCKET, char *buffer, int size
                     ERR_print_errors_fp(stderr);
             } else
 #endif
-#ifdef _WIN32
+#if defined(_WIN32) || !defined(MSG_NOSIGNAL)
             ssize = send(CLIENT_SOCKET, buffer, to_send, 0);
 #else
             ssize = send(CLIENT_SOCKET, buffer, to_send, MSG_NOSIGNAL);
@@ -3681,7 +3681,7 @@ CONCEPT_FUNCTION_IMPL(WaitRTSocket, 1)
                 int rec_res = recvfrom(mc->RTSOCKET, buffer, 2, 0, (struct sockaddr *)&mc->remote_conceptudpaddr, &len);
                 if (rec_res == 1) {
                     mc->remote_len = len;
-#ifdef _WIN32
+#if defined(_WIN32) || !defined(MSG_NOSIGNAL)
                     if (sendto(mc->RTSOCKET, buffer, 1, 0, (struct sockaddr *)&mc->remote_conceptudpaddr, len) == 1) {
 #else
                     if (sendto(mc->RTSOCKET, buffer, 1, MSG_NOSIGNAL, (struct sockaddr *)&mc->remote_conceptudpaddr, len) == 1) {
