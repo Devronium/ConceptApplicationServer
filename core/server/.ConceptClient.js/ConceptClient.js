@@ -2040,7 +2040,6 @@ function ConceptClient(url, container, loading, absolute_paths) {
 		for (var i = 0; i < this.Controls.length; i++) {
 			var element = this.Controls[i];
 			try {
-console.log(element);
 				if ((element.ConceptProcessor) && (element.destination)) {
 					console.log("Closing audio");
 					element.ConceptProcessor.disconnect(element.destination);
