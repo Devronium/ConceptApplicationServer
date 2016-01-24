@@ -3,7 +3,7 @@
 #ifdef _WIN32
  #include <windows.h>
 #endif
-#include "ConceptPools.h";
+#include "ConceptPools.h"
 #include "SHManager.h"
 #include "AnsiString.h"
 #include "PIFAlizator.h"
