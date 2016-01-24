@@ -1311,7 +1311,7 @@ CONCEPT_DLL_API CONCEPT_SocketWrite CONCEPT_API_PARAMETERS {
             sent_size = sendto((int)sock, buffer, (int)nSize, 0, (struct sockaddr *)&host_address, addr_length);
         }
     } else {
-#ifdef _WIN32
+#if defined(_WIN32) || !defined(MSG_NOSIGNAL)
         sent_size = send((int)sock, buffer, (int)nSize, 0);
 #else
         sent_size = send((int)sock, buffer, (int)nSize, MSG_NOSIGNAL);
