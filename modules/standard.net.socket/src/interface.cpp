@@ -232,9 +232,11 @@ void print_af_link(struct ifaddrs *ifaddrs_ptr, DataHolder *d) {
     if (sdl->sdl_type == IFT_LOOP)
         d->mac = "00:00:00:00:00:00";
     else
+#ifdef IFT_USB
     if (sdl->sdl_type == IFT_USB)
         d->mac = "usb";
     else
+#endif
         d->mac = "";
 }
 
