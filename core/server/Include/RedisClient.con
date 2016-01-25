@@ -5,6 +5,7 @@ include TLSSocket.con
 import standard.lib.str
 import standard.lang.serialize
 import standard.C.math
+import standard.C.time
 
 define REDIS_PLAIN	1
 define REDIS_TLS	2
@@ -27,6 +28,9 @@ class RedisClient {
 	protected var internal_buf = "";
 	public var ConnectionType = REDIS_PLAIN;
 	public var LastError = "";
+	public var DefaultExpire = 0;
+	public var ReconnectSeconds = 3;
+	protected var connect_time = 0;
 	protected var callbacks;
 
 	RedisClient(ConnectionType = REDIS_PLAIN, host = "localhost", port = 6379) {
@@ -37,6 +41,9 @@ class RedisClient {
 
 	protected Connect() {
 		if (!socket) {
+			// try every 
+			if ((connect_time) && (time() - connect_time < ReconnectSeconds))
+				return null;
 			switch (ConnectionType) {
 				case REDIS_TLS:
 					socket = new TLSSocket();
@@ -48,8 +55,11 @@ class RedisClient {
 				default:
 					socket = new TCPSocket();
 			}	
-			if (!socket.Connect(host, port))
+			if (!socket.Connect(host, port)) {
+				connect_time = time();
 				socket = null;
+			} else
+				connect_time = 0;
 
 		}
 		return socket;
@@ -252,6 +262,8 @@ class RedisClient {
 	}
 
 	Set(key, val, seconds = 0, callback = null, userdata = null) {
+		if (seconds <= 0)
+			seconds = DefaultExpire;
 		if (seconds)
 			return this.BulkWrite("SETEX", [key, seconds, val], callback, userdata);
 		else
