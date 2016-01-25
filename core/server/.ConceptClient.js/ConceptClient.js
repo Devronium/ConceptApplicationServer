@@ -1932,6 +1932,7 @@ function ConceptClient(url, container, loading, absolute_paths) {
 	this.Ring = null;
 	this.isIE = false;
 	this.isFF = false;
+	this.isEDGE = false;
 	this.CompensatedMessages = [ ];
 	this.MediaListeners = [ ];
 	this.MediaAudio = false;
@@ -1943,12 +1944,17 @@ function ConceptClient(url, container, loading, absolute_paths) {
 	this.FPrefix = "D_" + container + "_";
 	this.zIndexIndex = 100;
 	this.InAudioContext = null;
+	this.LastAudioLevel = 0;
+	this.LastAudioLevel_tail = 0;
 
 	if (navigator.userAgent.toLowerCase().indexOf("trident") != -1)
 		this.isIE = true;
 	else
 	if (navigator.userAgent.toLowerCase().indexOf("firefox") != -1)
 		this.isFF = true;
+	else
+	if (navigator.userAgent.toLowerCase().indexOf("edge") != -1)
+		this.isEDGE = true;
 
 	this.PendingUpdate = null;
 	window[this.FPrefix + "IsClient"] = function() { return 1; };
@@ -2615,7 +2621,7 @@ function ConceptClient(url, container, loading, absolute_paths) {
 								f();
 							}
 							self.PendingCode = null;
-						}, 1000);
+						}, 1);
 				}
 				console.log("UI loading time: " + ((new Date().getTime() - this.StartTime)/1000) + " seconds");
 				break;
@@ -2908,7 +2914,7 @@ function ConceptClient(url, container, loading, absolute_paths) {
 						SendMessageFunction(Sender, MSG_ID, Target, "1", 0);
 						break;
 					case "codecs":
-						SendMessageFunction(Sender, MSG_ID, Target, "Speex;Opus;", 0);
+						SendMessageFunction(Sender, MSG_ID, Target, "Speex;Opus;H.264;", 0);
 						break;
 					case "ring":
 						if (parseInt(Value)) {
@@ -2979,6 +2985,36 @@ function ConceptClient(url, container, loading, absolute_paths) {
 				break;
 			case MSG_CONFIRM_EVENT:
 				// ignore this message
+				break;
+			case MSG_SET_CLIPBOARD:
+				if (parseInt(Target) == 2) {
+					var code = function() {
+						var input = document.createElement("input");
+						input.setAttribute("type", "text");
+						input.style.position = "absolute";
+						input.style.top = "0px";
+						document.body.appendChild(input);
+						input.setAttribute("value", "test");
+							input.value = Value;
+						input.setSelectionRange(0, input.value.length);
+						input.select();
+						document.execCommand("copy");
+						document.body.removeChild(input);
+					}
+
+					if (self.MainForm)
+						this.MainForm.addEventListener('click', code);
+					else {
+						var clipboard_function = function() {
+							code();
+							self.MainForm.removeEventListener('click', clipboard_function);
+						};
+
+						self.PendingCode.Clipboard = function() {
+							self.MainForm.addEventListener('click', clipboard_function);
+						}
+					}
+				}
 				break;
 			default:
 				SendMessageFunction(Sender, MSG_ID, Target, Value, 0);
@@ -3558,8 +3594,14 @@ function ConceptClient(url, container, loading, absolute_paths) {
 				case "SHA1":
 					pass = "" + CryptoJS.SHA1(challenge + CryptoJS.SHA1(pass).toString()).toString();
 					break;
+				case "SHA256":
+					pass = "" + CryptoJS.SHA256(challenge + CryptoJS.SHA256(pass).toString()).toString();
+					break;
 				case "PLAIN":
+					break;
 				default:
+					// fall back to SHA1
+					pass = "" + CryptoJS.SHA1(challenge + CryptoJS.SHA1(pass).toString()).toString();
 					break;
 			}
 			self.SendMessage("%CLIENT", MSG_MESSAGE_LOGIN, user, pass, 0);
@@ -6585,6 +6627,7 @@ function ConceptClient(url, container, loading, absolute_paths) {
 								output2.set(output[i], offset)
 								offset += output[i].length;
 							}
+console.log(output2);
 							return [output2];
 						}
 						break;
@@ -7217,7 +7260,8 @@ function ConceptClient(url, container, loading, absolute_paths) {
 		return newData;
 	}
 
-	this.AdjustSampleRate = function(arrin, in_rate, out_rate, element, agc) {
+	this.AdjustSampleRate = function(arrin, in_rate, out_rate, element, agc, is_in) {
+		var avg = 0;
 		if ((in_rate) && (out_rate) && (in_rate != out_rate)) {
 			var arrout = [];
 			var channels = arrin.length;
@@ -7264,9 +7308,20 @@ function ConceptClient(url, container, loading, absolute_paths) {
 					m_Gain = 1;
 				var limit = out_len - 1;
 				out[0] = floatin[0] * m_Gain;
+
+				var delta = 1 - this.LastAudioLevel * 4;
+				if (delta < 0)
+					delta = 0.05;
+
 				for (var i = 1; i < limit; i++) {
 					var level = floatin[Math.floor(i * coef)];
-					if (agc) {
+					if (!is_in) {
+						//if (delta > 0.4)
+						//	delta = 0.95;
+
+						level *= delta;
+					}
+					/*if (agc) {
 						var level_g = level * m_Gain;
 						if (level_g > 1) {
 							m_Gain = 1/level;
@@ -7277,8 +7332,9 @@ function ConceptClient(url, container, loading, absolute_paths) {
 						m_Gain += ref - level_g * level_g;
 						if (m_Gain > 3)
 							m_Gain = 3;
-					} else
+					} else*/
 						out[i] = level;
+					avg += Math.abs(level/limit);
 				}
 				out[limit] = floatin[floatin.length - 1] * m_Gain;
 				arrout[k] = out;
@@ -7319,8 +7375,29 @@ function ConceptClient(url, container, loading, absolute_paths) {
 				// slowest
 				// arrout[k] = this.interpolateArray(floatin, out_len);
 			}
+			if (is_in) {
+				if ((avg > this.LastAudioLevel) || (this.LastAudioLevel_tail <= 0)) {
+					this.LastAudioLevel_tail = 5;
+					this.LastAudioLevel = avg;
+				}
+			} else {
+				this.LastAudioLevel_tail--;
+				this.LastAudioOutLevel = avg;
+			}
 			return arrout;
 		}
+		var channels = arrin.length;
+		for (var k = 0; k < channels; k++) {
+			var floatin = arrin[k];
+
+			var len = floatin.length;
+			for (var i = 0; i < len; i++)
+				avg += Math.abs(floatin[i]/len);
+		}
+		if (is_in)
+			this.LastAudioLevel = avg;
+		else
+			this.LastAudioOutLevel = avg;
 		return arrin;
 	}
 
@@ -7407,7 +7484,7 @@ function ConceptClient(url, container, loading, absolute_paths) {
 					for (var i = 0; i < channels; i++)
 						output.push(audioProcessingEvent.inputBuffer.getChannelData(i));
 
-					audioContext.ConceptBufferFull(self.AdjustSampleRate(output, audioContext.sampleRate, audioContext.ConceptSampleRate, audioContext, 0), 2);
+					audioContext.ConceptBufferFull(self.AdjustSampleRate(output, audioContext.sampleRate, audioContext.ConceptSampleRate, audioContext, 0, false), 2);
 				}
 				if ((self.InAudioContext) && (self.InAudioContext.ConceptAudioPair))
 					self.InAudioContext.ConceptAudioPair.ConceptProcess(audioProcessingEvent);
@@ -7738,7 +7815,10 @@ function ConceptClient(url, container, loading, absolute_paths) {
 			this.MediaListeners = [ ];
 			return;
 		}
-		this.MediaObject = navigator.getUserMedia({"video": this.MediaVideo, "audio": this.MediaAudio}, function(stream) {
+		var params = {"audio": this.MediaAudio, "googEchoCancellation": true, "googNoiseSupression": true, "googAutoGainControl": true};
+		if ((this.MediaVideo) && (!this.isEDGE))
+			params["video"] = this.MediaVideo;
+		this.MediaObject = navigator.getUserMedia(params, function(stream) {
 				for (var i = 0; i < self.MediaListeners.length; i++) {
 					var listener = self.MediaListeners[i];
 					listener(stream);
@@ -8967,6 +9047,8 @@ function ConceptClient(url, container, loading, absolute_paths) {
 				break;
 			case P_RECORD:
 				if (cls_id == 1016) {
+					this.LastAudioLevel = 0;
+					this.LastAudioLevel_tail = 0;
 					if (parseInt(Value) != -2)
 						this.Record(element);
 					else
@@ -9115,7 +9197,7 @@ function ConceptClient(url, container, loading, absolute_paths) {
 									if ((element.ConceptMaxBuffers) && (element.ConceptMaxBuffers > 0) && (element.ConceptMaxBuffers.length > element.ConceptMaxBuffers))
 										element.ConceptBuffers = [];
 
-									element.ConceptBuffers.push(self.AdjustSampleRate(e.data, element.ConceptSampleRate, element.sampleRate, element, element.ConceptCompression));
+									element.ConceptBuffers.push(self.AdjustSampleRate(e.data, element.ConceptSampleRate, element.sampleRate, element, element.ConceptCompression, true));
 								}
 							}
 						}
@@ -9133,7 +9215,7 @@ function ConceptClient(url, container, loading, absolute_paths) {
 						if ((element.ConceptMaxBuffers) && (element.ConceptMaxBuffers > 0) && (element.ConceptMaxBuffers.length > element.ConceptMaxBuffers))
 							element.ConceptBuffers = [];
 
-						element.ConceptBuffers.push(this.AdjustSampleRate(buf, element.ConceptSampleRate, element.sampleRate, element, element.ConceptCompression));
+						element.ConceptBuffers.push(this.AdjustSampleRate(buf, element.ConceptSampleRate, element.sampleRate, element, element.ConceptCompression, true));
 					}
 				} else
 				if (cls_id == 1017)
@@ -10080,15 +10162,15 @@ function ConceptClient(url, container, loading, absolute_paths) {
 				break;
 			case P_SELECTABLE:
 				if (parseInt(Value)) {
-					element.style.userSelect = "";
-					element.style.webkitUserSelect = "";
-					element.style.mozUserSelect = "";
-					element.style.msUserSelect = "";
+					element.style.userSelect = "text";
+					element.style.webkitUserSelect = "text";
+					element.style.MozUserSelect = "text";
+					element.style.msUserSelect = "text";
 					element.style.cursor = "";
 				} else {
 					element.style.userSelect = "none";
 					element.style.webkitUserSelect = "none";
-					element.style.mozUserSelect = "none";
+					element.style.MozUserSelect = "none";
 					element.style.msUserSelect = "none";
 					element.style.cursor = "default";
 				}
@@ -11613,7 +11695,7 @@ function ConceptClient(url, container, loading, absolute_paths) {
 				canvasframe.height = 480;
 				control.ConceptCanvasFrame = canvasframe;
 				control.ConceptCanvasSmallFrame = document.createElement("canvas");
-				var videoObj = { "video": true };
+				var videoObj = { "video": true, "googEchoCancellation": true };
 
 				navigator.getUserMedia	=	navigator.getUserMedia ||
 								navigator.webkitGetUserMedia ||
@@ -11665,11 +11747,12 @@ function ConceptClient(url, container, loading, absolute_paths) {
 				control.ConceptCanvasSmallFrame = document.createElement("canvas");
 
 				control.onPictureDecoded = function(frame, width, height, info) {
-					if ((this.ConceptWidget) && (this.ConceptWidget.offsetWidth)) {
-						if (height > width)
-							this.canvas.style.height = "" + this.ConceptWidget.offsetHeight + "px";
-						else
-							this.canvas.style.width = "" + this.ConceptWidget.offsetWidth + "px";
+					if ((this.ConceptWidget) && (this.ConceptWidget.offsetWidth) && (width > 0) && (height > 0)) {
+						var w_ratio = this.ConceptWidget.offsetWidth / width;
+						var h_ratio = this.ConceptWidget.offsetHeight / height;
+						var ratio = Math.min(w_ratio, h_ratio);
+						this.canvas.style.width = "" + (width * ratio) + "px";
+						this.canvas.style.height = "" + (height * ratio) + "px";						
 					}
 				}
 				this.Controls[RID] = control;
