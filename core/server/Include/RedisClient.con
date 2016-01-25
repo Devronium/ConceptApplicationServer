@@ -72,14 +72,29 @@ class RedisClient {
 		var lines = 1;
 		var arr_result;
 		var is_array = false;
+		var to_read = 0;
 		do {
-			var has_new_line = Pos(internal_buf, "\r\n");
-			if (has_new_line)
-				buf = "";
-			else
-				buf = socket.Read(0xFFF);
+			if (to_read > 0) {
+				if (to_read > 0xFFFFF)
+					buf = socket.Read(0xFFFFF);
+				else
+					buf = socket.Read(to_read);
+			} else {
+				var has_new_line = Pos(internal_buf, "\r\n");
+				if (has_new_line)
+					buf = "";
+				else
+					buf = socket.Read(0xFFF);
+			}
+			
 			if ((buf) || (has_new_line)) {
-				internal_buf += buf;	
+				internal_buf += buf;
+				if (to_read) {
+					to_read -= length buf;
+					if (to_read > 0)
+						continue;
+					to_read = 0;
+				}
 				var pos = Pos(internal_buf, "\r\n");
 				if (pos > 0) {
 					var response = SubStr(internal_buf, 0, pos - 1);
@@ -94,8 +109,10 @@ class RedisClient {
 								}
 								is_null = true;
 							} else {
-								if (len + pos + 3 > length internal_buf)
+								to_read = len + pos + 3 - length internal_buf;
+								if (to_read > 0)//(len + pos + 3 > length internal_buf)
 									continue;
+
 								response = SubStr(internal_buf, pos + 1, len);
 								pos++;
 							}
@@ -136,6 +153,7 @@ class RedisClient {
 						arr_result[length arr_result] = response;
 					if (!lines)
 						return arr_result;
+					to_read = 0;
 				}
 			}
 		} while ((buf) || (has_new_line));
