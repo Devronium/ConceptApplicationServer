@@ -1,0 +1,432 @@
+include TCPSocket.con
+include UNIXSocket.con
+include TLSSocket.con
+
+import standard.lib.str
+import standard.lang.serialize
+import standard.C.math
+
+define REDIS_PLAIN	1
+define REDIS_TLS	2
+define REDIS_UNIX	3
+
+class RedisCallback {
+	var delegate;
+	var userdata;
+
+	RedisCallback(delegate, userdata) {
+		this.delegate = delegate;
+		this.userdata = userdata;
+	}
+}
+
+class RedisClient {
+	protected var host;
+	protected var port;
+	protected var socket;
+	protected var internal_buf = "";
+	public var ConnectionType = REDIS_PLAIN;
+	public var LastError = "";
+	protected var callbacks;
+
+	RedisClient(ConnectionType = REDIS_PLAIN, host = "localhost", port = 6379) {
+		this.ConnectionType = ConnectionType;
+		this.host = host;
+		this.port = port;
+	}
+
+	protected Connect() {
+		if (!socket) {
+			switch (ConnectionType) {
+				case REDIS_TLS:
+					socket = new TLSSocket();
+					break;
+				case REDIS_UNIX:
+					socket = new UNIXSocket();
+					break;
+				case REDIS_PLAIN:
+				default:
+					socket = new TCPSocket();
+			}	
+			if (!socket.Connect(host, port))
+				socket = null;
+
+		}
+		return socket;
+	}
+
+	Disconnect() {
+		if (socket) {
+			socket.Close();
+			socket = null;
+		}
+	}
+
+	Read(var err = null) {
+		LastError = "";
+		var buf = "";
+		if (!socket) {
+			err = "Not connected";
+			return buf;
+		}
+		var lines = 1;
+		var arr_result;
+		var is_array = false;
+		do {
+			var has_new_line = Pos(internal_buf, "\r\n");
+			if (has_new_line)
+				buf = "";
+			else
+				buf = socket.Read(0xFFF);
+			if ((buf) || (has_new_line)) {
+				internal_buf += buf;	
+				var pos = Pos(internal_buf, "\r\n");
+				if (pos > 0) {
+					var response = SubStr(internal_buf, 0, pos - 1);
+					var is_null = false;
+					switch (response[0]) {
+						case '$':
+							var len = value SubStr(response, 1);
+							if (len < 0) {
+								if (!is_array) {
+									internal_buf = SubStr(internal_buf, pos + 1);
+									return null;
+								}
+								is_null = true;
+							} else {
+								if (len + pos + 3 > length internal_buf)
+									continue;
+								response = SubStr(internal_buf, pos + 1, len);
+								pos++;
+							}
+							break;
+						case "-":
+							err = SubStr(response, 1);
+							break;
+						case "*":
+							// is array
+							var arr_len = value SubStr(response, 1);
+							if (arr_len < 0) {
+								internal_buf = SubStr(internal_buf, pos + 1);
+								return [ ];
+							}
+							lines = arr_len;
+							arr_result = new [];
+							is_array =  true;
+							internal_buf = SubStr(internal_buf, pos + 1);
+							continue;
+					}
+					lines--;
+					if (is_null)
+						internal_buf = SubStr(internal_buf, pos + 1);
+					else
+						internal_buf = SubStr(internal_buf, pos + length response + 2);
+					if (response[0] == ":")
+						response = value SubStr(response, 1);
+					else
+					if (response[0] == "+")
+						response = SubStr(response, 1);
+
+					if (!is_array)
+						return response;
+
+					if (is_null)
+						arr_result[length arr_result] = null;
+					else
+						arr_result[length arr_result] = response;
+					if (!lines)
+						return arr_result;
+				}
+			}
+		} while ((buf) || (has_new_line));
+		err = "Errro in socket read";
+		return "";
+	}
+
+	protected Write(var buf, callback = null, userdata = null) {
+		LastError = "";
+		if (!buf)
+			return "";
+
+		if (!socket)
+			Connect();
+
+		if (socket) {	
+			try {
+				if (socket.Write(buf) == length buf) {
+					if (callback) {
+						if (!callbacks)
+							callbacks = new [];
+						callbacks[length callbacks] = new RedisCallback(callback, userdata);
+						return "";
+					}
+					return this.Read(LastError);
+				}
+			} catch (var exc) {
+				LastError = exc;
+				Disconnect();
+			}
+		}
+		return "";
+	}
+
+	protected PopCallback() {
+		if (callbacks) {
+			var callback = callbacks[0];
+			var[] res;
+			for (var i = 1; i < length callbacks; i++)
+				res[length res] = callback[i];
+			callbacks = res;
+			return callback;
+		}
+		return null;
+	}
+
+	Iterate(timeout = 0) {
+		if (socket) {
+			if (socket.GetHasData(timeout)) {
+				if (callbacks) {
+					var callback = PopCallback();
+					var buf = this.Read();
+					if (callback)
+						callback.delegate(buf, callback.userdata);
+				}
+				return 1;
+			}
+		}
+		return 0;
+	}
+
+	Query(buf, params = null, callback = null, userdata = null) {
+		if (typeof params == "array")
+			return this.BulkWrite(buf, params, callback, userdata);
+
+		return this.Write(buf + "\r\n");
+	}
+
+	protected BuildOp(op, params) {
+		if (params) {
+			var res = "*" + (length params + 1) + "\r\n";
+			res += '$' + length op + "\r\n";
+			res += op + "\r\n";
+			for (var i = 0; i < length params; i++) {
+				var p = "" + params[i];
+				res += '$' + length p + "\r\n";
+				res += p + "\r\n";
+			}
+			return res;
+		}
+		return op + "\r\n";
+	}
+
+	protected BulkWrite(op, params, callback = null, userdata = null) {
+		return this.Write(this.BuildOp(op, params), callback, userdata);
+	}
+
+	protected BulkWrite1Param(op, param, callback = null, userdata = null) {
+		var p = "" + param;
+		var res = "*2\r\n";
+		res += '$' + length op + "\r\n";
+		res += op + "\r\n";
+		res += '$' + length p + "\r\n";
+		res += p + "\r\n";
+		return this.Write(res, callback, userdata);
+	}
+
+	Set(key, val, seconds = 0, callback = null, userdata = null) {
+		if (seconds)
+			return this.BulkWrite("SETEX", [key, seconds, val], callback, userdata);
+		else
+			return this.BulkWrite("SET", [key, val], callback, userdata);
+	}
+
+	MSet(array arr, callback = null, userdata = null) {
+		var keys = GetKeys(arr); 
+		if (!keys)
+			return "";
+
+		var[] key_val;
+		for (var i = 0; i < length keys; i++) {
+			var key = keys[i];
+			if (key) {
+				key_val[length key_val] = key;
+				key_val[length key_val] = arr[key];
+			}
+		}
+		if (key_val)
+			return this.BulkWrite("MSET", key_val, callback, userdata);
+		return "";
+	}
+
+	MGet(array arr, callback = null, userdata = null) {
+		if (arr)
+			return this.BulkWrite("MGET", arr, callback, userdata);
+		return null;
+	}
+
+	Get(key, callback = null, userdata = null) {
+		return this.BulkWrite1Param("GET", key, callback, userdata);
+	}
+
+	GetSet(key, callback = null, userdata = null) {
+		return this.BulkWrite1Param("GETSET", key, callback, userdata);
+	}
+
+	Inc(key, number val = 1, callback = null, userdata = null) {
+		if (val == 1)
+			return this.BulkWrite1Param("INCR", key, callback, userdata);
+		if (floor(val) == val)
+			return this.BulkWrite("INCRBY", [key, val], callback, userdata);
+		
+		return this.BulkWrite("INCRBYFLOAT", [key, val], callback, userdata);
+	}
+
+	Dec(key, number val = 1, callback = null, userdata = null) {
+		if (val == 1)
+			return this.BulkWrite1Param("DECR", key, callback, userdata);
+		if (floor(val) == val)
+			return this.BulkWrite("DECRBY", [key, val], callback, userdata);
+		
+		return this.BulkWrite("DECRFLOAT", [key, val], callback, userdata);
+	}
+
+	Exists(key, callback = null, userdata = null) {
+		return this.BulkWrite1Param("EXISTS", key, callback, userdata);
+	}
+
+	Delete(key, callback = null, userdata = null) {
+		return this.BulkWrite1Param("DEL", key, callback, userdata);
+	}
+
+	Type(key, callback = null, userdata = null) {
+		return this.BulkWrite1Param("TYPE", key, callback, userdata);
+	}
+
+	Rename(old_key, new_key, callback = null, userdata = null) {
+		return this.BulkWrite("RENAME", [old_key, new_key], callback, userdata);
+	}
+
+	Keys(pattern = "*", callback = null, userdata = null) {
+		return this.BulkWrite1Param("KEYS", pattern, callback, userdata);
+	}
+
+	Expire(key, seconds, callback = null, userdata = null) {
+		return this.BulkWrite("EXPIRE", [key, seconds], callback, userdata);
+	}
+
+	Echo(str, callback = null, userdata = null) {
+		return this.BulkWrite1Param("ECHO", str, callback, userdata);
+	}
+
+	ExpireAt(key, timestamp, callback = null, userdata = null) {
+		return this.BulkWrite("EXPIREAT", [key, timestamp], callback, userdata);
+	}
+
+	Push(key, val, callback = null, userdata = null) {
+		return this.BulkWrite("LPUSH", [key, val], callback, userdata);
+	}
+
+	Pop(key, callback = null, userdata = null) {
+		return this.BulkWrite1Param("LPOP", key, callback, userdata);
+	}
+
+	Range(key, start, end, callback = null, userdata = null) {
+		return this.BulkWrite("LRANGE", [key, start, end], callback, userdata);
+	}
+
+	Trim(key, start, end, callback = null, userdata = null) {
+		return this.BulkWrite("LTRIM", [key, start, end], callback, userdata);
+	}
+
+	Len(key, callback = null, userdata = null) {
+		return this.BulkWrite1Param("LLEN", key, callback, userdata);
+	}
+
+	LSet(key, pos, val, callback = null, userdata = null) {
+		return this.BulkWrite("LSET", [key, pos, val], callback, userdata);
+	}
+
+	LIndex(key, pos, callback = null, userdata = null) {
+		return this.BulkWrite("LINDEX", [key, pos], callback, userdata);
+	}
+
+	Use(db_index, callback = null, userdata = null) {
+		return this.Write("SELECT $db_index\r\n");
+	}
+
+	FlushAll(callback = null, userdata = null) {
+		return this.Write("FLUSHALL\r\n");
+	}
+
+	FlushDB(callback = null, userdata = null) {
+		return this.Write("FLUSHDB\r\n");
+	}
+
+	Save(background = false, callback = null, userdata = null) {
+		if (background)
+			return this.Write("BGSAVE\r\n");
+		return this.Write("SAVE\r\n");
+	}
+
+	LastSave(callback = null, userdata = null) {
+		return this.Write("LASTSAVE\r\n");
+	}
+
+	Shutdown(callback = null, userdata = null) {
+		return this.Write("SHUTDOWN\r\n");
+	}
+
+	Info(callback = null, userdata = null) {
+		return this.Write("INFO\r\n");
+	}
+
+	Monitor(callback = null, userdata = null) {
+		return this.Write("MONITOR\r\n");
+	}
+
+	Multi(callback = null, userdata = null) {
+		return this.Write("MULTI\r\n");
+	}
+
+	Exec(callback = null, userdata = null) {
+		return this.Write("EXEC\r\n");
+	}
+
+	Discard(callback = null, userdata = null) {
+		return this.Write("DISCARD\r\n");
+	}
+
+	Watch(key, callback = null, userdata = null) {
+		return this.BulkWrite1Param("WATCH", key, callback, userdata);
+	}
+
+	Unwatch(key, callback = null, userdata = null) {
+		return this.BulkWrite1Param("UNWATCH", key, callback, userdata);
+	}
+
+	TTL(key, callback = null, userdata = null) {
+		return this.BulkWrite1Param("TTL", key, callback, userdata);
+	}
+
+	Quit(callback = null, userdata = null) {
+		return this.Write("QUIT\r\n");
+	}
+
+	Config(params, callback = null, userdata = null) {
+		return this.BulkWrite("CONFIG", params, callback, userdata);
+	}
+
+	Auth(password, callback = null, userdata = null) {
+		return this.BulkWrite1Param("AUTH", password, callback, userdata);
+	}
+
+	operator[](key) {
+		if (typeof key == "array")
+			return MGet(key);
+		return Get(key);
+	}
+
+	finalize() {
+		Disconnect();
+	}
+}
