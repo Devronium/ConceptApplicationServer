@@ -47,9 +47,11 @@ class SIPSession {
 	var accept_bye = false;
 	var bye_set = false;
 	var chunk_size;
+	var timestamp;
 
 	SIPSession(s, msg, rtp_port, ip, port, chunk_size = 20, expire = 3600) {
 		packet_time = microseconds();
+		timestamp = RandomInteger(140, 140000) * 100;
 		rtp = new UDPSocket();
 		rtp.Bind(rtp_port);
 		this.rtp_port = rtp_port;
@@ -168,7 +170,8 @@ class SIPSession {
 	SimpleRTP(payload, profile = 8) {
 		var res = chr(0x80) + chr(profile);
 		res += toubin(htons(sequence_number), 16);
-		res += toubin(0, 32);
+		timestamp += length payload;
+		res += toubin(htonl(timestamp), 32);
 		res += toubin(htonl(ClsPtr(this)), 32);
 		res += payload;
 		sequence_number++;
@@ -245,7 +248,7 @@ class SIPSession {
 				if (s.OnDTMF) {
 					if (!d) {
 						d = new DTMFDetector();
-						d.Threshold = 600;
+						d.Threshold = 1000;
 					}
 					if (type == 8)
 						d.AddBuffer(alaw2pcm(data));
@@ -288,7 +291,7 @@ class SIPSession {
 							f_size = chunk_size / 1000 * 8;
 							var d_buf = SubStr(buf, 0, /*160*/f_size);
 							if (d_buf) {
-								buf = SubStr(buf, /*160*/f_size, length buf);
+								buf = SubStr(buf, /*160*/f_size);
 								if (this.s.OnAudioOut)
 									this.s.OnAudioOut(s, d_buf);
 								rtp.Write(SimpleRTP(d_buf), remote_host, remote_port);
@@ -302,7 +305,8 @@ class SIPSession {
 				if ((packet_time >= microseconds()) && (rtp)) {
 					if ((remote_host) && (remote_port > 0)) {
 						var str = "";
-						for (var i = 0; i < 16; i++)
+						var blocks = chunk_size / 1000 * 8 / 10;
+						for (var i = 0; i < blocks; i++)
 							str += '\0\0\0\0\0\0\0\0\0\0';
 						buf = str;
 						rtp.Write(this.SimpleRTP(str), remote_host, remote_port);

@@ -47,7 +47,6 @@ class CustomStatElement{
     var entity="";
     var[] stats;
     var chartfilename="";
-    var svg="";
 }
 
 class CustomStat {
@@ -853,7 +852,7 @@ class Utils {
 
             if ((!true_width) || (!true_height)) {
                 FreeImage_Unload(hBitmap);
-                _unlink(image_name);
+                _unlink("temp/"+image_name);
                 return false;
             }
 
@@ -945,7 +944,7 @@ class Utils {
         image_type=ToLower(image_type);
         
         if (type<0) {
-            _unlink("temp/" + image_name);
+            _unlink("temp/"+image_name);
             return "";
         }
 
@@ -1262,12 +1261,9 @@ class Utils {
         return result;
     }
 
-    static function DoLineChart(array data, string filename="chart.png", number width=260, height=240, type=0, as_svg = false) {
+    static function DoLineChart(array data, string filename="chart.png", number width=260, height=240, type=0) {
 	var svg=LineChart::Do(data, width, height, type, 2);
-	if (as_svg)
-		WriteFile(svg, filename);
-	else
-		WriteFile(SVG(svg), filename);
+	WriteFile(SVG(svg), filename);
 	return filename;
     }
 /*
@@ -1377,20 +1373,13 @@ class Utils {
     }	
 */
 
-    static function DoPie(array data, string filename="chart.gif", number width=460, height=240, as_svg = false) {
+    static function DoPie(array data, string filename="chart.gif", number width=460, height=240) {
 	var svgdata=PieChart::Do(data, width, height);
 	if (svgdata) {
-		if (as_svg)
-			WriteFile(svgdata, filename);
-		else
-			WriteFile(SVG(svgdata), filename);
+		WriteFile(SVG(svgdata), filename);
 		return filename;
 	}
 	return false;
-    }
-
-    static function DoSVGPie(array data, number width=460, height=240) {
-	return PieChart::Do(data, width, height, -1, 0.90, 0.60, true);
     }
 
     static function ValidateDate(var string date, date_null_val="0001-01-01") {

@@ -60,8 +60,8 @@ class TinBase {
 		return ReadFile("${DB}/handler.con");
 	}
 
-	StoreTriggers(array triggers) {
-		return WriteFile(BinarizeObject(triggers), "${DB}/triggers.bin");
+	StoreTriggers(array _triggers) {
+		return WriteFile(BinarizeObject(_triggers), "${DB}/triggers.bin");
 	}
 
 	ReadTriggers() {

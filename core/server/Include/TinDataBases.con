@@ -247,8 +247,8 @@ class TinDataSet {
 		this.Connection._Handle(q, callback, this.UserData);
 	}
 
-	Triggers(array triggers, callback = null) {
-		var q = new Q(triggers, Connection.Database, this.Collection, "*");
+	Triggers(array _triggers, callback = null) {
+		var q = new Q(_triggers, Connection.Database, this.Collection, "*");
 		this.Connection._Handle(q, callback, this.UserData);
 	}
 }

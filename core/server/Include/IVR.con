@@ -17,6 +17,7 @@ class DATASession {
 	var RecordEscapeKey = "#";
 	var LastKey = "";
 	var LastTimestamp;
+	var DTMFPushHistory = "";
 	var sip;
 	var Get;
 	var Mode;
@@ -353,7 +354,7 @@ class IVR {
 		}
 	}
 
-	IVR(ip, port = 5060, framesize = 120) {
+	IVR(ip, port = 5060, framesize = 40) {
 		this.LastTime = time();
 
 		if (port != 5060)
