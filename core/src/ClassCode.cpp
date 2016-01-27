@@ -273,7 +273,7 @@ ClassMember *ClassCode::MemberID(int mid) {
     int count = pMEMBERS_COUNT;
 
     do {
-        int reloc = RELOCATIONS [j++];
+        int reloc = Relocation(j++);
         if (j == mid) {
             return pMEMBERS [reloc - 1];
         }
@@ -291,10 +291,7 @@ ClassMember *ClassCode::MemberID(int mid) {
 
 int ClassCode::GetAbsoluteMemberID(int mid) {
     int j = 0;
-
-    while (RELOCATIONS [j++] != mid) {
-    }
-
+    while (Relocation(j++) != mid);
     return j;
 }
 
@@ -380,6 +377,17 @@ int ClassCode::GetSerialMembers(CompiledClass *CC, int max_members,
         }
     }
     return 0;
+}
+
+INTEGER ClassCode::Relocation(INTEGER mid) {
+    if (RELOCATIONS)
+        return RELOCATIONS[mid];
+    return 0;
+}
+
+void ClassCode::SetRelocation(INTEGER mid, INTEGER index) {
+    if (RELOCATIONS)
+        RELOCATIONS[mid] = index;
 }
 
 CompiledClass *ClassCode::CreateInstance(PIFAlizator *PIF, VariableDATA *Owner, RuntimeElement *AE, ParamList *FORMAL_PARAM, VariableDATA **SenderCTX, SCStack *PREV, char is_static) {
@@ -470,7 +478,7 @@ CompiledClass *ClassCode::CreateInstance(PIFAlizator *PIF, VariableDATA *Owner, 
 }
 
 void ClassCode::SetProperty(PIFAlizator *PIF, INTEGER i, VariableDATA *Owner, RuntimeElement *AE, INTEGER local, INTEGER VALUE, VariableDATA **SenderCTX, INTEGER CLSID, INTEGER LOCAL_CLSID, SCStack *PREV) {
-    int relocation = this->RELOCATIONS [i];
+    int relocation = this->Relocation(i);
 
     register ClassMember *pMEMBER_i = relocation ? pMEMBERS [relocation - 1] : 0;
 
@@ -603,7 +611,7 @@ VariableDATA *ClassCode::ExecuteDelegate(PIFAlizator *PIF, INTEGER i, VariableDA
 VariableDATA *ClassCode::ExecuteMember(PIFAlizator *PIF, INTEGER i, VariableDATA *Owner, RuntimeElement *AE, INTEGER local, ParamList *FORMAL_PARAM, VariableDATA **SenderCTX, char property, INTEGER CLSID, INTEGER LOCAL_CLSID, SCStack *PREV, char next_is_asg, VariableDATAPROPERTY **PROPERTIES, int dataLen, int result_id) {
     INTEGER      IS_PROPERTY = 0;
     VariableDATA *RESULT;
-    int          relocation = this->RELOCATIONS [i];
+    int          relocation = this->Relocation(i);
 
     register ClassMember *pMEMBER_i = relocation ? pMEMBERS [relocation - 1] : 0;
 
@@ -628,7 +636,7 @@ VariableDATA *ClassCode::ExecuteMember(PIFAlizator *PIF, INTEGER i, VariableDATA
 
         while (pMEMBER_i->IS_FUNCTION == 2) {
             i          = pMEMBER_i->MEMBER_GET - 1;
-            relocation = this->RELOCATIONS [i];
+            relocation = this->Relocation(i);
             pMEMBER_i  = relocation ? pMEMBERS [relocation - 1] : 0;
             if (!pMEMBER_i) {
                 return 0;
@@ -895,16 +903,16 @@ void ClassCode::GenerateCode(StaticList *GeneralMembers) {
         pMEMBERS [i] = LocalMember;
 
         //===================================================//
-        if ((LocalMember) && (!LocalMember->IS_FUNCTION)) {
+        if ((LocalMember) && (!LocalMember->IS_FUNCTION))
             RELOCATIONS2 [i] = ++var_index;
-        }
         //===================================================//
 
         for (INTEGER j = 0; j < GeneralMembersCount; j++) {
             char *GeneralMember = GeneralMembers->Item(j);
 
             if (!strcmp(LocalMember->NAME, GeneralMember)) {
-                RELOCATIONS [j] = i + 1;
+                //RELOCATIONS [j] = i + 1;
+                this->SetRelocation(j, i+1);
                 break;
             }
         }
@@ -937,7 +945,7 @@ int ClassCode::Serialize(PIFAlizator *PIF, FILE *out, bool is_lib) {
     for (INTEGER ii = 0; ii < members_count; ii++) {
         ClassMember *CM_TARGET = (ClassMember *)Members->Item(ii);
         for (INTEGER jj = 0; jj < GeneralMembersCount; jj++) {
-            int         reloc = RELOCATIONS [jj];
+            int         reloc = Relocation(jj);
             ClassMember *CM   = reloc ? pMEMBERS [reloc - 1] : 0;
             if ((CM) && (CM == CM_TARGET)) {
                 concept_fwrite_int(&jj, sizeof(jj), 1, out);
@@ -1007,7 +1015,6 @@ int ClassCode::ComputeSharedSize(concept_FILE *in, int general_members) {
 int ClassCode::Unserialize(PIFAlizator *PIF, concept_FILE *in, AnsiList *ClassList, bool is_lib, int *ClassNames, int *Relocation) {
     bool is_created = PIF->is_buffer ? 0 : SHIsCreated();
     bool is_pooled  = PIF->is_buffer ? 0 : SHIsPooled();
-
     if ((!is_lib) && (Members)) {
         delete Members;
         Members = 0;
@@ -1077,15 +1084,15 @@ int ClassCode::Unserialize(PIFAlizator *PIF, concept_FILE *in, AnsiList *ClassLi
     CLASS_MEMBERS_DOMAIN reloc_index = 0;
     for (INTEGER jj = 0; jj < members_count; jj++) {
         int index;
-        if (!concept_fread_int(&index, sizeof(index), 1, in)) {
+        if (!concept_fread_int(&index, sizeof(index), 1, in))
             return -1;
-        }
 
         if (is_lib) {
             index = Relocation [index];
         } else
         if ((!is_pooled) || (is_created)) {
-            RELOCATIONS [index] = jj + 1;
+            //RELOCATIONS [index] = jj + 1;
+            this->SetRelocation(index, jj+1);
         }
 
         char is_defined_in_this_class;
@@ -1141,7 +1148,7 @@ int ClassCode::Unserialize(PIFAlizator *PIF, concept_FILE *in, AnsiList *ClassLi
             if (is_lib) {
                 CM_inherited = (ClassMember *)CC_parent->Members->Item(CC_parent->HasMember(mem_name) - 1);
             } else {
-                int reloc = CC_parent->RELOCATIONS [index];
+                int reloc = CC_parent->Relocation(index);
 
                 CM_inherited = reloc ? CC_parent->pMEMBERS [reloc - 1] : 0;
             }
@@ -1266,7 +1273,7 @@ GreenThreadCycle *ClassCode::CreateThread(PIFAlizator *PIF, INTEGER i, VariableD
     if (pMEMBER_i) {
         while (pMEMBER_i->IS_FUNCTION == 2) {
             i = pMEMBER_i->MEMBER_GET - 1;
-            int relocation = this->RELOCATIONS [i];
+            int relocation = this->Relocation(i);
             pMEMBER_i = relocation ? pMEMBERS [relocation - 1] : 0;
             if (!pMEMBER_i) {
                 return 0;

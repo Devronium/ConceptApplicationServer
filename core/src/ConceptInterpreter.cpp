@@ -2962,7 +2962,7 @@ int ConceptInterpreter::StacklessInterpret(PIFAlizator *PIF, GreenThreadCycle *G
                                 ////////////////////////////////////////////////////////////
                                 pushed_type = LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE;
                                 ////////////////////////////////////////////////////////////
-                                if (!CCTEMP->_Class->RELOCATIONS [DEF_ASG]) {
+                                if (!CCTEMP->_Class->Relocation(DEF_ASG)) {
                                     // ------------------- //
                                     CLASS_CHECK_RESULT(LOCAL_CONTEXT [OE->Result_ID - 1])
                                     // ------------------- //
@@ -3836,7 +3836,7 @@ int ConceptInterpreter::StacklessInterpret(PIFAlizator *PIF, GreenThreadCycle *G
 
                             case KEY_EQU:
                                 CCTEMP = (CompiledClass *)LOCAL_CONTEXT [OE->OperandLeft.ID - 1]->CLASS_DATA;
-                                if (!CCTEMP->_Class->RELOCATIONS [DEF_EQU]) {
+                                if (!CCTEMP->_Class->Relocation(DEF_EQU)) {
                                     CLASS_CHECK_RESET(LOCAL_CONTEXT [OE->Result_ID - 1], pushed_type)
 
                                     switch (LOCAL_CONTEXT [OE->OperandRight.ID - 1]->TYPE) {
@@ -3857,7 +3857,7 @@ int ConceptInterpreter::StacklessInterpret(PIFAlizator *PIF, GreenThreadCycle *G
 
                             case KEY_NEQ:
                                 CCTEMP = (CompiledClass *)LOCAL_CONTEXT [OE->OperandLeft.ID - 1]->CLASS_DATA;
-                                if (!CCTEMP->_Class->RELOCATIONS [DEF_NEQ]) {
+                                if (!CCTEMP->_Class->Relocation(DEF_NEQ)) {
                                     //SMART_LOCK(LOCAL_CONTEXT [OE->Result_ID - 1])
                                     CLASS_CHECK_RESET(LOCAL_CONTEXT [OE->Result_ID - 1], pushed_type)
 
@@ -3891,7 +3891,7 @@ int ConceptInterpreter::StacklessInterpret(PIFAlizator *PIF, GreenThreadCycle *G
 
                             case KEY_BAN:
                                 CCTEMP = (CompiledClass *)LOCAL_CONTEXT [OE->OperandLeft.ID - 1]->CLASS_DATA;
-                                if (!CCTEMP->_Class->RELOCATIONS [DEF_BAN]) {
+                                if (!CCTEMP->_Class->Relocation(DEF_BAN)) {
                                     //SMART_LOCK(LOCAL_CONTEXT [OE->Result_ID - 1])
                                     CLASS_CHECK_RESET(LOCAL_CONTEXT [OE->Result_ID - 1], pushed_type)
                                     switch (LOCAL_CONTEXT [OE->OperandRight.ID - 1]->TYPE) {
@@ -3925,7 +3925,7 @@ int ConceptInterpreter::StacklessInterpret(PIFAlizator *PIF, GreenThreadCycle *G
 
                             case KEY_BOR:
                                 CCTEMP = (CompiledClass *)LOCAL_CONTEXT [OE->OperandLeft.ID - 1]->CLASS_DATA;
-                                if (!CCTEMP->_Class->RELOCATIONS [DEF_BOR]) {
+                                if (!CCTEMP->_Class->Relocation(DEF_BOR)) {
                                     //SMART_LOCK(LOCAL_CONTEXT [OE->Result_ID - 1])
                                     CLASS_CHECK_RESET(LOCAL_CONTEXT [OE->Result_ID - 1], pushed_type)
                                     LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = 1;
@@ -3979,7 +3979,7 @@ int ConceptInterpreter::StacklessInterpret(PIFAlizator *PIF, GreenThreadCycle *G
                             // unari !
                             case KEY_NOT:
                                 CCTEMP = (CompiledClass *)LOCAL_CONTEXT [OE->OperandLeft.ID - 1]->CLASS_DATA;
-                                if (!CCTEMP->_Class->RELOCATIONS [DEF_NOT]) {
+                                if (!CCTEMP->_Class->Relocation(DEF_NOT)) {
                                     //SMART_LOCK(LOCAL_CONTEXT [OE->Result_ID - 1])
                                     CLASS_CHECK_RESET(LOCAL_CONTEXT [OE->Result_ID - 1], pushed_type)
                                     LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = 0;
@@ -4569,14 +4569,7 @@ int ConceptInterpreter::StacklessInterpret(PIFAlizator *PIF, GreenThreadCycle *G
                                     CCTEMP = (CompiledClass *)LOCAL_CONTEXT [OE->OperandRight.ID - 1]->CLASS_DATA;
                                     PIF->out->Print(CCTEMP->_Class->NAME);
                                     PIF->out->Print("::");
-                                    PIF->out->Print(
-                                        CCTEMP->_Class->pMEMBERS [
-                                            CCTEMP->_Class->RELOCATIONS [
-                                                (INTEGER)LOCAL_CONTEXT [OE->OperandRight.ID - 1]->NUMBER_DATA
-                                            ]
-                                            - 1
-                                        ]->NAME
-                                        );
+                                    PIF->out->Print(CCTEMP->_Class->pMEMBERS [(INTEGER)LOCAL_CONTEXT [OE->OperandRight.ID - 1]->NUMBER_DATA - 1]->NAME);
                                     break;
                             }
                         }
@@ -4796,7 +4789,7 @@ VariableDATA *ConceptInterpreter::Interpret(PIFAlizator *PIF, VariableDATA **LOC
                             ////////////////////////////////////////////////////////////
                             pushed_type = LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE;
                             ////////////////////////////////////////////////////////////
-                            if (CCTEMP->_Class->RELOCATIONS [DEF_ASG]) {
+                            if (CCTEMP->_Class->Relocation(DEF_ASG)) {
                                 LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE = VARIABLE_CLASS;
                             } else {
                                 // ------------------- //
@@ -4839,7 +4832,7 @@ VariableDATA *ConceptInterpreter::Interpret(PIFAlizator *PIF, VariableDATA **LOC
 #ifndef SIMPLE_MULTI_THREADING
                         bool not_executed = true;
                         if ((FORMAL_PARAMETERS) && (CCTEMP->_Class == this->OWNER->Defined_In)) {
-                            int         relocation = CCTEMP->_Class->RELOCATIONS [OE->OperandRight.ID - 1];
+                            int         relocation = CCTEMP->_Class->Relocation(OE->OperandRight.ID - 1);
                             ClassMember *pMEMBER_i = relocation ? CCTEMP->_Class->pMEMBERS [relocation - 1] : 0;
                             if ((pMEMBER_i == this->OWNER) && (FORMAL_PARAMETERS->COUNT == pMEMBER_i->MUST_PARAMETERS_COUNT)) {
                                 not_executed = false;
@@ -6046,7 +6039,7 @@ VariableDATA *ConceptInterpreter::Interpret(PIFAlizator *PIF, VariableDATA **LOC
 
                         case KEY_EQU:
                             CCTEMP = (CompiledClass *)LOCAL_CONTEXT [OE->OperandLeft.ID - 1]->CLASS_DATA;
-                            if (!CCTEMP->_Class->RELOCATIONS [DEF_EQU]) {
+                            if (!CCTEMP->_Class->Relocation(DEF_EQU)) {
                                 //SMART_LOCK(LOCAL_CONTEXT [OE->Result_ID - 1])
                                 CLASS_CHECK_RESET(LOCAL_CONTEXT [OE->Result_ID - 1], pushed_type)
 
@@ -6068,7 +6061,7 @@ VariableDATA *ConceptInterpreter::Interpret(PIFAlizator *PIF, VariableDATA **LOC
 
                         case KEY_NEQ:
                             CCTEMP = (CompiledClass *)LOCAL_CONTEXT [OE->OperandLeft.ID - 1]->CLASS_DATA;
-                            if (!CCTEMP->_Class->RELOCATIONS [DEF_NEQ]) {
+                            if (!CCTEMP->_Class->Relocation(DEF_NEQ)) {
                                 //SMART_LOCK(LOCAL_CONTEXT [OE->Result_ID - 1])
                                 CLASS_CHECK_RESET(LOCAL_CONTEXT [OE->Result_ID - 1], pushed_type)
 
@@ -6102,7 +6095,7 @@ VariableDATA *ConceptInterpreter::Interpret(PIFAlizator *PIF, VariableDATA **LOC
 
                         case KEY_BAN:
                             CCTEMP = (CompiledClass *)LOCAL_CONTEXT [OE->OperandLeft.ID - 1]->CLASS_DATA;
-                            if (!CCTEMP->_Class->RELOCATIONS [DEF_BAN]) {
+                            if (!CCTEMP->_Class->Relocation(DEF_BAN)) {
                                 //SMART_LOCK(LOCAL_CONTEXT [OE->Result_ID - 1])
                                 CLASS_CHECK_RESET(LOCAL_CONTEXT [OE->Result_ID - 1], pushed_type)
                                 switch (LOCAL_CONTEXT [OE->OperandRight.ID - 1]->TYPE) {
@@ -6136,7 +6129,7 @@ VariableDATA *ConceptInterpreter::Interpret(PIFAlizator *PIF, VariableDATA **LOC
 
                         case KEY_BOR:
                             CCTEMP = (CompiledClass *)LOCAL_CONTEXT [OE->OperandLeft.ID - 1]->CLASS_DATA;
-                            if (!CCTEMP->_Class->RELOCATIONS [DEF_BOR]) {
+                            if (!CCTEMP->_Class->Relocation(DEF_BOR)) {
                                 //SMART_LOCK(LOCAL_CONTEXT [OE->Result_ID - 1])
                                 CLASS_CHECK_RESET(LOCAL_CONTEXT [OE->Result_ID - 1], pushed_type)
                                 LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = 1;
@@ -6190,7 +6183,7 @@ VariableDATA *ConceptInterpreter::Interpret(PIFAlizator *PIF, VariableDATA **LOC
                         // unari !
                         case KEY_NOT:
                             CCTEMP = (CompiledClass *)LOCAL_CONTEXT [OE->OperandLeft.ID - 1]->CLASS_DATA;
-                            if (!CCTEMP->_Class->RELOCATIONS [DEF_NOT]) {
+                            if (!CCTEMP->_Class->Relocation(DEF_NOT)) {
                                 //SMART_LOCK(LOCAL_CONTEXT [OE->Result_ID - 1])
                                 CLASS_CHECK_RESET(LOCAL_CONTEXT [OE->Result_ID - 1], pushed_type)
                                 LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = 0;
@@ -6718,14 +6711,7 @@ VariableDATA *ConceptInterpreter::Interpret(PIFAlizator *PIF, VariableDATA **LOC
                                 CCTEMP = (CompiledClass *)LOCAL_CONTEXT [OE->OperandRight.ID - 1]->CLASS_DATA;
                                 PIF->out->Print(CCTEMP->_Class->NAME);
                                 PIF->out->Print("::");
-                                PIF->out->Print(
-                                    CCTEMP->_Class->pMEMBERS [
-                                        CCTEMP->_Class->RELOCATIONS [
-                                            (INTEGER)LOCAL_CONTEXT [OE->OperandRight.ID - 1]->DELEGATE_DATA
-                                        ]
-                                        - 1
-                                    ]->NAME
-                                    );
+                                PIF->out->Print(CCTEMP->_Class->pMEMBERS [(INTEGER)LOCAL_CONTEXT [OE->OperandRight.ID - 1]->DELEGATE_DATA - 1]->NAME);
                                 break;
                         }
                     }

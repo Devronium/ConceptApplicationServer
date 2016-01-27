@@ -53,8 +53,6 @@ private:
     ClassMember *DESTRUCTOR_MEMBER;
 
     INTEGER     CLSID;
-    signed char NEEDED;
-    signed char DEFINED_LEVEL;
 
     STATIC_FLAG ParamList *EMPTY_PARAM_LIST;
 
@@ -65,6 +63,9 @@ private:
 
     CLASS_MEMBERS_DOMAIN *RELOCATIONS2;
     CLASS_MEMBERS_DOMAIN DataMembersCount;
+
+    signed char NEEDED;
+    signed char DEFINED_LEVEL;
 public:
     POOLED(ClassCode)
 
@@ -98,6 +99,8 @@ public:
 
     GreenThreadCycle *CreateThread(PIFAlizator *PIF, INTEGER i, VariableDATA *Owner);
     void BeforeDestructor(PIFAlizator *PIF);
+    INTEGER Relocation(INTEGER mid);
+    void SetRelocation(INTEGER mid, INTEGER index);
 
     ~ClassCode();
 

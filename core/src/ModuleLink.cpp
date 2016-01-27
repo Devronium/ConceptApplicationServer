@@ -1315,7 +1315,7 @@ INTEGER Invoke(INTEGER INVOKE_TYPE, ...) {
                     result = CANNOT_INVOKE_INTERFACE;
                     break;
                 }
-                int         mid = CC->_Class->RELOCATIONS [member_id];
+                int         mid = CC->_Class->Relocation(member_id);
                 ClassMember *CM = mid ? CC->_Class->pMEMBERS [mid - 1] : 0;
                 if (CM) {
                     *member = CM->NAME;
@@ -1516,7 +1516,7 @@ INTEGER Invoke(INTEGER INVOKE_TYPE, ...) {
                         if ((OE->Operator.TYPE == TYPE_OPERATOR) && ((OE->Operator.ID == KEY_DLL_CALL) || (OE->Operator.ID == KEY_SEL) || (OE->Operator.ID == KEY_NEW))) {
                             if ((OE->Operator.ID == KEY_SEL) && (OE->OperandLeft.ID == 1)) {
                                 int         i2          = (int)OE->OperandRight.ID - 1;
-                                int         relocation2 = CC->RELOCATIONS [i2];
+                                int         relocation2 = CC->Relocation(i2);
                                 ClassMember *pMEMBER_i2 = relocation2 ? CC->pMEMBERS [relocation2 - 1] : 0;
                                 if (pMEMBER_i2)
                                     reftc->Function = pMEMBER_i2->NAME;
