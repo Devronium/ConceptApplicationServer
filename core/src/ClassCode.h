@@ -13,10 +13,18 @@
 #include "ConceptPools.h"
 #include <stdio.h>
 
+#define MAP_RELOC
 #define THIS_CLASS    "this"
 
 class PIFAlizator;
 class CompiledClass;
+
+typedef struct {
+    // general member id
+    INTEGER mid;
+    // local member index
+    CLASS_MEMBERS_DOMAIN lid;
+} MemberLink;
 
 class ClassCode {
     friend class PIFAlizator;
@@ -59,13 +67,14 @@ private:
     ClassMember          **pMEMBERS;
     CLASS_MEMBERS_DOMAIN pMEMBERS_COUNT;
 
-    INTEGER *RELOCATIONS;
+    MemberLink *RELOCATIONS;
 
     CLASS_MEMBERS_DOMAIN *RELOCATIONS2;
     CLASS_MEMBERS_DOMAIN DataMembersCount;
 
     signed char NEEDED;
     signed char DEFINED_LEVEL;
+    void FindRelocation(INTEGER mid, INTEGER &i, MemberLink *&result, INTEGER limit);
 public:
     POOLED(ClassCode)
 
@@ -101,7 +110,6 @@ public:
     void BeforeDestructor(PIFAlizator *PIF);
     INTEGER Relocation(INTEGER mid);
     void SetRelocation(INTEGER mid, INTEGER index);
-
     ~ClassCode();
 
 #ifdef JIT_RUNTIME_CHECKS

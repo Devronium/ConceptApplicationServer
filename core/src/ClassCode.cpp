@@ -12,6 +12,38 @@ POOLED_IMPLEMENTATION(ClassCode)
 ParamList * ClassCode::EMPTY_PARAM_LIST = 0;
 #endif
 
+#define FIND_RELOCATION(mid, i, result, limit) \
+        result = NULL; \
+        if (limit > 5) { \
+            INTEGER start = 0; \
+            INTEGER end = limit - 1; \
+            INTEGER middle = end / 2;\
+            MemberLink *member; \
+            while (start <= end) { \
+                member = &RELOCATIONS[middle]; \
+                i = middle; \
+                if (member->mid < mid) \
+                    start = middle + 1;    \
+                else \
+                if (member->mid == mid) { \
+                    result = member; \
+                    break; \
+                } else\
+                    end = middle - 1; \
+                middle = (start + end) / 2; \
+            } \
+        } else \
+        if (limit) { \
+            for (i = 0; i < limit; i++) { \
+                if (mid == RELOCATIONS[i].mid) { \
+                    result = &RELOCATIONS[i]; \
+                    break; \
+                } \
+                if (mid < RELOCATIONS[i].mid) \
+                    break; \
+            } \
+        }
+
 ClassCode::ClassCode(char *name, PIFAlizator *P, char binary_form) {
     if (binary_form) {
         Members = 0;
@@ -380,14 +412,38 @@ int ClassCode::GetSerialMembers(CompiledClass *CC, int max_members,
 }
 
 INTEGER ClassCode::Relocation(INTEGER mid) {
-    if (RELOCATIONS)
-        return RELOCATIONS[mid];
+    if (RELOCATIONS) {
+        INTEGER index;
+        MemberLink *link;
+        FIND_RELOCATION(mid, index, link, pMEMBERS_COUNT);
+        if (link)
+            return link->lid + 1;
+    }
     return 0;
 }
 
+void ClassCode::FindRelocation(INTEGER mid, INTEGER &i, MemberLink *&result, INTEGER limit) {
+    FIND_RELOCATION(mid, i, result, limit);
+}
+
 void ClassCode::SetRelocation(INTEGER mid, INTEGER index) {
-    if (RELOCATIONS)
-        RELOCATIONS[mid] = index;
+    if (RELOCATIONS) {
+        INTEGER i = 0;
+        MemberLink *link;
+        index--;
+        FindRelocation(mid, i, link, index);
+        if ((i < index) && (RELOCATIONS[i].mid < mid))
+            i++;
+
+        if (i < index) {
+            for (int k = index - 1; k >= i; k--) {
+                RELOCATIONS[k + 1].mid = RELOCATIONS[k].mid;
+                RELOCATIONS[k + 1].lid = RELOCATIONS[k].lid;
+            }
+        }
+        RELOCATIONS[i].mid = mid;
+        RELOCATIONS[i].lid = index;
+    }
 }
 
 CompiledClass *ClassCode::CreateInstance(PIFAlizator *PIF, VariableDATA *Owner, RuntimeElement *AE, ParamList *FORMAL_PARAM, VariableDATA **SenderCTX, SCStack *PREV, char is_static) {
@@ -577,6 +633,7 @@ TinyString *ClassCode::GetFilename(PIFAlizator *PIF, INTEGER LOCAL_CLSID, TinySt
         CC = (ClassCode *)PIF->ClassList->Item(LOCAL_CLSID);
     if (CC)
         return &CC->_DEBUG_INFO_FILENAME;
+    return NULL;
 }
 
 VariableDATA *ClassCode::ExecuteDelegate(PIFAlizator *PIF, INTEGER i, VariableDATA *Owner, RuntimeElement *AE, ParamList *FORMAL_PARAM, VariableDATA **SenderCTX, INTEGER CLSID, INTEGER LOCAL_CLSID, SCStack *PREV) {
@@ -888,12 +945,16 @@ VariableDATA *ClassCode::ExecuteMember(PIFAlizator *PIF, INTEGER i, VariableDATA
 
 void ClassCode::GenerateCode(StaticList *GeneralMembers) {
     INTEGER GeneralMembersCount = GeneralMembers->Count();
-    INTEGER LocalMembersCount   = Members->Count();
+    INTEGER LocalMembersCount   = Members ? Members->Count() : 0;
+    pMEMBERS_COUNT   = LocalMembersCount;
 
-    RELOCATIONS  = new INTEGER [GeneralMembersCount];
+    if (!LocalMembersCount)
+        return;
+
+    RELOCATIONS  = new MemberLink [LocalMembersCount];
     RELOCATIONS2 = new CLASS_MEMBERS_DOMAIN[LocalMembersCount];
     memset(RELOCATIONS2, 0, sizeof(CLASS_MEMBERS_DOMAIN) * LocalMembersCount);
-    memset(RELOCATIONS, 0, sizeof(INTEGER) * GeneralMembersCount);
+    memset(RELOCATIONS, 0, sizeof(MemberLink) * LocalMembersCount);
 
     pMEMBERS = new ClassMember * [LocalMembersCount];
 
@@ -919,7 +980,6 @@ void ClassCode::GenerateCode(StaticList *GeneralMembers) {
     }
 
     DataMembersCount = var_index;
-    pMEMBERS_COUNT   = LocalMembersCount;
 }
 
 int ClassCode::Serialize(PIFAlizator *PIF, FILE *out, bool is_lib) {
@@ -987,7 +1047,7 @@ int ClassCode::ComputeSharedSize(concept_FILE *in, int general_members) {
     SKIP(sizeof(INTEGER) + sizeof(INTEGER), in);
 
     //RELOCATIONS
-    size += sizeof(INTEGER) * general_members;
+    size += sizeof(MemberLink) * members_count;
     //RELOCATIONS2
     size += sizeof(CLASS_MEMBERS_DOMAIN) * members_count;
 
@@ -1021,30 +1081,25 @@ int ClassCode::Unserialize(PIFAlizator *PIF, concept_FILE *in, AnsiList *ClassLi
     }
 
     concept_fread_int(&NEEDED, sizeof(NEEDED), 1, in);
-    if (!NEEDED) {
+    if (!NEEDED)
         return 0;
-    }
 
-    if (!concept_fread_int(&CLSID, sizeof(CLSID), 1, in)) {
+    if (!concept_fread_int(&CLSID, sizeof(CLSID), 1, in))
         return -1;
-    }
+
     NAME.Unserialize(in, SERIALIZE_16BIT_LENGTH);
 
-    if (is_lib) {
+    if (is_lib)
         ClassNames [CLSID] = ClassList->Count() - 1;
-    }
 
-    if (pMEMBERS) {
+    if (pMEMBERS)
         delete [] pMEMBERS;
-    }
 
-    if (RELOCATIONS) {
+    if (RELOCATIONS)
         delete [] RELOCATIONS;
-    }
 
-    if (RELOCATIONS2) {
+    if (RELOCATIONS2)
         delete [] RELOCATIONS2;
-    }
 
     INTEGER members_count;
     if (!concept_fread_int(&members_count, sizeof(members_count), 1, in)) {
@@ -1060,21 +1115,28 @@ int ClassCode::Unserialize(PIFAlizator *PIF, concept_FILE *in, AnsiList *ClassLi
         DESTRUCTOR = -1;
         return -1;
     }
-
+    if (!members_count) {
+        RELOCATIONS = NULL;
+        RELOCATIONS2 = NULL;
+        pMEMBERS_COUNT = 0;
+        pMEMBERS = NULL;
+        this->DEFINED_LEVEL = PIF->INCLUDE_LEVEL;
+        return 0;
+    }
     if (!is_lib) {
         INTEGER GeneralMembersCount = PIF->GeneralMembers->Count();
         if (is_pooled) {
-            RELOCATIONS  = (INTEGER *)SHAlloc(sizeof(INTEGER) * GeneralMembersCount);
+            RELOCATIONS  = (MemberLink *)SHAlloc(sizeof(MemberLink) * members_count);
             RELOCATIONS2 = (CLASS_MEMBERS_DOMAIN *)SHAlloc(sizeof(CLASS_MEMBERS_DOMAIN) * members_count);
             if (is_created) {
                 memset(RELOCATIONS2, 0, sizeof(CLASS_MEMBERS_DOMAIN) * members_count);
-                memset(RELOCATIONS, 0, sizeof(INTEGER) * GeneralMembersCount);
+                memset(RELOCATIONS, 0, sizeof(MemberLink) * members_count);
             }
         } else {
-            RELOCATIONS  = new INTEGER [GeneralMembersCount];
+            RELOCATIONS  = new MemberLink [members_count];
             RELOCATIONS2 = new CLASS_MEMBERS_DOMAIN [members_count];
             memset(RELOCATIONS2, 0, sizeof(CLASS_MEMBERS_DOMAIN) * members_count);
-            memset(RELOCATIONS, 0, sizeof(INTEGER) * GeneralMembersCount);
+            memset(RELOCATIONS, 0, sizeof(MemberLink) * members_count);
         }
 
         pMEMBERS       = new ClassMember * [members_count];
@@ -1192,15 +1254,13 @@ int ClassCode::Unserialize(PIFAlizator *PIF, concept_FILE *in, AnsiList *ClassLi
 }
 
 int ClassCode::Inherits(INTEGER CLSID) {
-    if (this->CLSID == CLSID) {
+    if (this->CLSID == CLSID)
         return 1;
-    }
 
     ClassCode *target_cc = (ClassCode *)this->first_parent;
     while (target_cc) {
-        if (target_cc->CLSID == CLSID) {
+        if (target_cc->CLSID == CLSID)
             return 1;
-        }
 
         target_cc = (ClassCode *)target_cc->first_parent;
     }
@@ -1208,9 +1268,8 @@ int ClassCode::Inherits(INTEGER CLSID) {
         for (int i = 0; i < this->pMEMBERS_COUNT; i++) {
             ClassMember *CM = this->pMEMBERS [i];
             if (CM) {
-                if (((ClassCode *)CM->Defined_In)->CLSID == CLSID) {
+                if (((ClassCode *)CM->Defined_In)->CLSID == CLSID)
                     return 1;
-                }
             }
         }
     }
@@ -1218,9 +1277,9 @@ int ClassCode::Inherits(INTEGER CLSID) {
 }
 
 void ClassCode::UpdateNeeded() {
-    if (NEEDED) {
+    if (NEEDED)
         return;
-    }
+
     for (int i = 0; i < this->pMEMBERS_COUNT; i++) {
         ClassMember *CM = this->pMEMBERS [i];
         if (CM) {

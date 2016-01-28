@@ -290,6 +290,7 @@ ARRAY_COUNT_TYPE Array::FindKey(char *KEY) {
 
     LastKey = -1;
 
+#ifdef PREVIOUS_SEARCH_VERSION
     ARRAY_COUNT_TYPE START = LocalKeysCount / 2;
     ARRAY_COUNT_TYPE DELTA = LocalKeysCount - START;
     while (1) {
@@ -329,7 +330,27 @@ ARRAY_COUNT_TYPE Array::FindKey(char *KEY) {
             return -1;
         }
     }
+#else
+    INTEGER start = 0;
+    INTEGER end = LocalKeysCount - 1;
+    INTEGER middle = end / 2;
+
+    int order = 0;
+    int last_middle = 0;
+    while (start <= end) {
+        order  = strcmp(str, Keys [middle].KEY);
+        last_middle = middle;
+        if (order > 0)
+            start = middle + 1;
+        else
+        if (!order) {
+            return Keys[middle].index;
+        } else
+            end = middle - 1;
+        middle = (start + end) / 2;
+    }
     return -1;
+#endif
 }
 #endif
 
@@ -372,7 +393,7 @@ ARRAY_COUNT_TYPE Array::FindPlace(char *KEY, ARRAY_COUNT_TYPE *in_dirty_zone) {
             return LocalKeysCount;
         }
     }
-
+#ifdef PREVIOUS_SEARCH_VERSION
     ARRAY_COUNT_TYPE START = LocalKeysCount / 2;
     ARRAY_COUNT_TYPE DELTA = LocalKeysCount - START;
     while (1) {
@@ -420,6 +441,29 @@ ARRAY_COUNT_TYPE Array::FindPlace(char *KEY, ARRAY_COUNT_TYPE *in_dirty_zone) {
         }
     }
     return START;
+#else
+    INTEGER start = 0;
+    INTEGER end = LocalKeysCount - 1;
+    INTEGER middle = end / 2;
+
+    int order = 0;
+    int last_middle = 0;
+    while (start <= end) {
+        order  = strcmp(str, TargetKeys [middle].KEY);
+        last_middle = middle;
+        if (order > 0)
+            start = middle + 1;
+        else
+        if (!order) {
+            return middle;
+        } else
+            end = middle - 1;
+        middle = (start + end) / 2;
+    }
+    if (order > 0)
+        last_middle++;
+    return last_middle;
+#endif
 }
 
 void Array::CleanIndex(bool forced) {
