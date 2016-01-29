@@ -4,8 +4,12 @@ import standard.lang.cli
 
 class SpellChecker {
 	public var Handle;
+	private var LazyLanguage = "";
 
 	function CheckSpell(string str, var misspelled_words=null, max_words=100) {
+		if (!this.Handle)
+			this.LazyInit();
+
 		misspelled_words="";
 		if (!str)
 			return "";
@@ -87,6 +91,9 @@ class SpellChecker {
 	}
 
 	function Check(string word, null_if_correct=true) {
+		if (!this.Handle)
+			this.LazyInit();
+
 		var handle=this.Handle;
 		if (!handle)
 			throw "SpellChecker was not initialized";
@@ -97,12 +104,22 @@ class SpellChecker {
 		return Hunspell_suggest(handle, word);
 	}
 
-	function SpellChecker(language_path) {
-		this.Handle=Hunspell_create("$language_path.aff", "$language_path.dic");
+	function SpellChecker(language_path, lazy = false) {
+		if (lazy)
+			this.LazyLanguage=language_path;
+		else
+			this.Handle=Hunspell_create("$language_path.aff", "$language_path.dic");
 	}
 
-	static function Static(language_path) {
-		var obj=new SpellChecker(language_path);
+	protected function LazyInit() {
+		if (LazyLanguage) {
+			this.Handle=Hunspell_create("${this.LazyLanguage}.aff", "${this.LazyLanguage}.dic");
+			LazyLanguage="";
+		}
+	}
+
+	static function Static(language_path, lazy = false) {
+		var obj=new SpellChecker(language_path, lazy);
 		GLOBALS()["application.SpellChecker"]=obj;
 		return obj;
 	}
