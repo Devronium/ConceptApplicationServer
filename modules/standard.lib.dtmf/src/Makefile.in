@@ -186,7 +186,7 @@ top_srcdir = @top_srcdir@
 
 # what flags you want to pass to the C compiler & linker
 AM_CFLAGS = --pedantic -Wall -std=c99 -O2 -fPIC
-AM_CXXFLAGS = --pedantic -Wall -std=c99 -O2 -fPIC
+AM_CXXFLAGS = --pedantic -Wall-O2 -fPIC
 AM_LDFLAGS = -shared
 standard_lib_dtmf_so_SOURCES = stdlibrary.cpp stdlibrary.h main.cpp AnsiTypes.h AnsiString.cpp AnsiString.h DtmfGenerator.cpp DtmfGenerator.hpp DtmfDetector.cpp DtmfDetector.hpp types_cpp.hpp
 all: all-am
@@ -514,3 +514,4 @@ uninstall-am: uninstall-libexecPROGRAMS
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
 .NOEXPORT:
+

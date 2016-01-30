@@ -187,7 +187,7 @@ top_srcdir = @top_srcdir@
 
 # what flags you want to pass to the C compiler & linker
 AM_CFLAGS = --pedantic -Wall -std=c99 -O2 -fPIC
-AM_CXXFLAGS = --pedantic -Wall -std=c99 -O2 -fPIC
+AM_CXXFLAGS = --pedantic -Wall-O2 -fPIC
 AM_LDFLAGS = -shared
 standard_net_socket_so_SOURCES = stdlibrary.cpp stdlibrary.h main.cpp AnsiTypes.h AnsiString.cpp AnsiString.h websocket.c websocket.h md5.c md5.h sha1.c sha1.h ping.cpp ping.h interface.cpp interface.h
 all: all-am
@@ -532,3 +532,4 @@ uninstall-am: uninstall-libexecPROGRAMS
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
 .NOEXPORT:
+
