@@ -20,6 +20,9 @@ extern "C" {
  #include <sys/stat.h>
  #include <fcntl.h>
 #endif
+#ifdef __linux__
+ #include <linux/random.h>
+#endif
 
 #define DEBUG_SAY_WHERE
 #define MAX_GET_TIMEOUT    3000
@@ -103,17 +106,43 @@ int CConceptClient::timedout_recv(SOCKET _socket, char *buffer, int size, int fl
 
 void CConceptClient::GenerateRandomAESKey(AnsiString *res, int len) {
     ResetMessages();
-    unsigned int init[4] = { time(NULL), time(NULL) >> 8, time(NULL) >> 16, time(NULL) >> 24 }, length = 4;
+    char key[0xFFF];
+    if (len > 0xFFF)
+        len = 0xFFF;
+#ifdef __APPLE__
+    for (int i = 0; i < len; i++) {
+        unsigned int v = arc4random() % 0x100;
+        key[i] = (char)v;
+    }
+#else
+    #ifdef __linux__
+    if (getrandom(key, len, 0) == len) {
+        res->LoadBuffer(key, len);
+        return;
+    }
+    #endif
+    FILE *fp = fopen("/dev/urandom", "r");
+    if (fp) {
+        int key_len = fread(key, 1, len, fp);
+        fclose(fp);
+        if (key_len == len) {
+            res->LoadBuffer(key, len);
+            return;
+        }
+    }
+
+    // NOT SAFE - this should not be reached
+    fprintf(stderr, "WARNING: Generated AES key is not safe");
+    unsigned int t = time(NULL);
+    t += (unsigned int)(intptr_t)res;
+    unsigned int init[4] = { t, t >> 8, t >> 16, t >> 24 }, length = 4;
     MTRand_int32 irand(init, length);
     char         str[sizeof(int) + 1];
 
     str[sizeof(int)] = 0;
-    char key[0xFFF];
-    if (len > 0xFFF)
-        len = 0xFFF;
-
     for (int i = 0; i < len; i++)
         key[i] = (char)(abs(irand()) % 0x100);
+#endif
     res->LoadBuffer(key, len);
 }
 
