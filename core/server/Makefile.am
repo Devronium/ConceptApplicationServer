@@ -19,12 +19,18 @@ install-data-hook:
 	chmod -R 755 @prefix@/etc/concept
 	cp ConceptServer.con @prefix@/sbin/
 	chmod 755 @prefix@/sbin/ConceptServer.con
+	cp ConceptServerSetup.con @prefix@/sbin/
+	chmod 755 @prefix@/sbin/ConceptServerSetup.con
+	cp ConceptSSLProxyServer.con @prefix@/sbin/
+	chmod 755 @prefix@/sbin/ConceptSSLProxyServer.con
+	cp ConceptSSLProxyServer.con.manifest @prefix@/sbin/
 
 uninstall-hook:
 	rm -rf @prefix@/etc/concept/Samples
 	rm -rf @prefix@/etc/concept/Include
 	rm -rf @prefix@/etc/concept/Certificates
 	rm @prefix@/sbin/ConceptServer.con
+	rm @prefix@/sbin/ConceptServerSetup.con
 	rm @prefix@/sbin/ConceptSSLProxyServer.con
 	rm @prefix@/sbin/ConceptSSLProxyServer.con.manifest
 
