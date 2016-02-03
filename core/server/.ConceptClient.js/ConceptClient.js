@@ -9110,7 +9110,7 @@ console.log(output2);
 										if (ev.data.length > 1)
 											self.SendMessage("" + OwnerID, MSG_EVENT_FIRED, "350", ev.data, 1);
 									}
-									// ~ 15 fps
+									// ~ 7 fps
 									var captureFrame = function() {
 										var canvas = element.ConceptCanvasSmallFrame;
 										if (canvas) {
@@ -9144,7 +9144,10 @@ console.log(output2);
 												}
 											}
 										}
-										element.ConceptFrameTimer = setTimeout(captureFrame, 140);
+										if ((element.ConceptFPS) && (element.ConceptFPS > 0))
+											element.ConceptFrameTimer = setTimeout(captureFrame, 1000/element.ConceptFPS);
+										else
+											element.ConceptFrameTimer = setTimeout(captureFrame, 140);
 										self.MediaTimer = element.ConceptFrameTimer;
 									}
 									element.ConceptFrameTimer = setTimeout(captureFrame, 1);
@@ -9224,6 +9227,9 @@ console.log(output2);
 			case P_SAMPLERATE:
 				if (cls_id == 1016)
 					element.ConceptSampleRate = parseInt(Value);
+				else
+				if (cls_id == 1017)
+					element.ConceptFPS = parseInt(Value);
 				else
 				if (cls_id == 1015)
 					element.ConceptLinkedImage = this.Controls[parseInt(Value)];
