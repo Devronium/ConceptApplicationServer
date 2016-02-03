@@ -1,5 +1,6 @@
 include RemoteObject.con
 
+define P_FPS                   "1000"
 define P_CAMERA                "1001"
 define P_RECORD                "1002"
 define P_ADDBUFFER             "1003"
@@ -36,6 +37,7 @@ class RVideoStream extends RemoteObject {
 	protected var _max_buffers=0;
 	protected var _codec=CODEC_H264;
 	protected var _drm=false;
+	protected var _fps=0;
 
 	public property Bitrate { set SetBitrate, get _BITRATE }
 	public property Quality { set SetQuality, get _QUALITY }
@@ -46,6 +48,7 @@ class RVideoStream extends RemoteObject {
 	public property MaxBuffers { set SetMaxBuffers, get _max_buffers }
 	public property Codec { set SetCodec, get _codec }
 	public property DRM { set SetDRM, get _drm }
+	public property MaxFPS { set SetMaxFPS, get _fps }
 	//-------- Events ----------------//
 	public property OnBuffer { get GetOnBuffer, set SetOnBuffer }
 	private function GetOnBuffer() {
@@ -148,6 +151,12 @@ class RVideoStream extends RemoteObject {
 		this._drm=active;
 		this.SetProperty(P_MASKED, active);
 		return active;
+	}
+
+	public function SetMaxFPS(number fps) {
+		this._fps=fps;
+		this.SetProperty(P_FPS, fps);
+		return fps;
 	}
 
 	public function finalize() {

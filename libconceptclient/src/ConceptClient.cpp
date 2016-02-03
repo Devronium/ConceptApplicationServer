@@ -116,20 +116,33 @@ void CConceptClient::GenerateRandomAESKey(AnsiString *res, int len) {
     }
 #else
     #ifdef __linux__
-    if (getrandom(key, len, 0) == len) {
-        res->LoadBuffer(key, len);
-        return;
-    }
-    #endif
-    FILE *fp = fopen("/dev/urandom", "r");
-    if (fp) {
-        int key_len = fread(key, 1, len, fp);
-        fclose(fp);
-        if (key_len == len) {
+        if (getrandom(key, len, 0) == len) {
             res->LoadBuffer(key, len);
             return;
         }
-    }
+    #else
+    #ifdef _WIN32
+        HCRYPTPROV hProvider = 0;
+        if (CryptAcquireContextW(&hProvider, 0, 0, PROV_RSA_FULL, CRYPT_VERIFYCONTEXT | CRYPT_SILENT)) {
+		    if (CryptGenRandom(hProvider, len, (BYTE *)key)) {
+                res->LoadBuffer(key, len);
+                CryptReleaseContext(hProvider, 0);
+                return;
+            }
+            CryptReleaseContext(hProvider, 0);
+        }
+    #else
+        FILE *fp = fopen("/dev/urandom", "r");
+        if (fp) {
+            int key_len = fread(key, 1, len, fp);
+            fclose(fp);
+            if (key_len == len) {
+                res->LoadBuffer(key, len);
+                return;
+            }
+        }
+    #endif
+#endif
 
     // NOT SAFE - this should not be reached
     fprintf(stderr, "WARNING: Generated AES key is not safe");

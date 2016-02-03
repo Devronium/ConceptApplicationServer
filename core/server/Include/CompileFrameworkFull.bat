@@ -215,3 +215,4 @@ accel TinBase.con
 accel TinDataBases.con
 accel IVR.con
 accel OCV/RVideoStream.con
+accel RedisClient.con
