@@ -34,6 +34,8 @@ THREADED_FLAG char       Optimizer::NO_WARNING_EMPTY;
 THREADED_FLAG char       Optimizer::NO_WARNING_ATTR;
 THREADED_FLAG char       Optimizer::_clean_condition;
 THREADED_FLAG INTEGER    Optimizer::CATCH_ELEMENT;
+THREADED_FLAG AnsiList   *Optimizer::OptimizedPIF = NULL;
+THREADED_FLAG AnsiList   *Optimizer::ParameterList = NULL;
 #endif
 
 #define END_WHILE_CYCLE(TEMP_ST_POS, NOT_TRUE_POS)                                                       \
@@ -131,8 +133,6 @@ Optimizer::Optimizer(PIFAlizator *P, DoubleList *_PIFList, DoubleList *_VDList, 
     paramCount           = 0;
     CATCH_ELEMENT        = 0;
     _DEBUG_INFO_FILENAME = Filename;
-    OptimizedPIF         = is_unserialized ? 0 : new AnsiList();
-    ParameterList        = is_unserialized ? 0 : new AnsiList();
     NO_WARNING_EMPTY     = 0;
     NO_WARNING_ATTR      = 0;
     _clean_condition     = 0;
@@ -1820,7 +1820,6 @@ INTEGER Optimizer::OptimizeAny(TempVariableManager *TVM, INTEGER ID, INTEGER TYP
     return 0;
 }
 
-static int temp_count = 0;
 int Optimizer::Optimize() {
     TempVariableManager TVM(this->VDList);
 
@@ -1953,12 +1952,6 @@ Optimizer::~Optimizer() {
     }
     if (INTERPRETER) {
         delete (ConceptInterpreter *)INTERPRETER;
-    }
-    if (OptimizedPIF) {
-        delete OptimizedPIF;
-    }
-    if (ParameterList) {
-        delete ParameterList;
     }
 }
 
@@ -2317,7 +2310,6 @@ int Optimizer::Unserialize(concept_FILE *in, AnsiList *ModuleList, bool is_lib, 
                         int l_res = PIFOwner->LinkStatic(funname);
                         if (!l_res)
                             PIFOwner->Errors.Add(new AnsiException(ERR870, 0, 870, OE->OperandRight._PARSE_DATA, _DEBUG_INFO_FILENAME, _CLASS->NAME, _MEMBER), DATA_EXCEPTION);
-
                     }
                 }
             }

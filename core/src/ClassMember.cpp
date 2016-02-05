@@ -31,15 +31,14 @@ ClassMember::ClassMember(void *DefinedIn, char *name,  char is_data_only, char _
             VD->value  = (char *)"0";
             VD->nValue = 0;
         }
-        VariableDescriptors = 0;
-        PIF_DATA            = 0;
+        this->CDATA           = 0;
+        //VariableDescriptors = 0;
+        //PIF_DATA            = 0;
     } else {
         if (_not_binary) {
-            PIF_DATA            = new DoubleList();
-            VariableDescriptors = new DoubleList();
+            CDATA               = new CompilerData();
         } else {
-            PIF_DATA            = 0;
-            VariableDescriptors = 0;
+            this->CDATA         = 0;
         }
     }
 }
@@ -195,12 +194,8 @@ ClassMember::~ClassMember(void) {
         }
     }
 
-    if (VariableDescriptors) {
-        delete VariableDescriptors;
-    }
-
-    if (PIF_DATA) {
-        delete PIF_DATA;
+    if (CDATA) {
+        delete CDATA;
     }
 
     if (VD) {

@@ -420,15 +420,17 @@ void TinyString::LoadBuffer(char *buffer, int size) {
 
     if (DataOffset) {
         Data = ((char *)(void *)this) + DataOffset;
+        free(Data);
     }
 
-    free(Data);
+    if (size > 0) {
+        Data = (char *)malloc(size + 1);
+        MEMCPY(Data, buffer, size);
+        Data [size] = 0;
 
-    Data = (char *)malloc(size + 1);
-    MEMCPY(Data, buffer, size);
-    Data [size] = 0;
-
-    DataOffset = (intptr_t)Data - (intptr_t) this;
+        DataOffset = (intptr_t)Data - (intptr_t) this;
+    } else
+        DataOffset = 0;
 }
 
 int TinyString::Serialize(FILE *out, int type) {

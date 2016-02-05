@@ -172,6 +172,7 @@ class IVR {
 	var WrongKey;
 	var TimedOutMessage = "";
 	var Debug = false;
+	var UserData;
 
 	Get(key, format = "alaw", dir = "repository") {
 		var key2 = "$key.$format";
@@ -394,13 +395,15 @@ class IVR {
 		};
 	}
 
-	Start() {
+	Start(on_idle = null) {
 		while (true) {
 			var start = microseconds();
 			var ops = stack.Iterate();
 			var delta = (microseconds() - start) / 1000;
 			if (length stack.Sessions == 0) {
 				Sleep(5);
+				if (on_idle)
+					on_idle();
 			} else
 			if (!ops)
 				Sleep(1);

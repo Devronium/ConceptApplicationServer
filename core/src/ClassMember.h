@@ -14,6 +14,25 @@
 #define ENOUGH_PARAMETERS(__CM, __FORMAL_PARAM)    ((__FORMAL_PARAM->COUNT >= __CM->MUST_PARAMETERS_COUNT) && (__FORMAL_PARAM->COUNT <= __CM->PARAMETERS_COUNT)) ? 1 : 0
 
 class ClassCode;
+
+class CompilerData {
+public:
+    DoubleList *PIF_DATA;
+    DoubleList *VariableDescriptors;
+
+    CompilerData() {
+        PIF_DATA = new DoubleList();
+        VariableDescriptors = new DoubleList();
+    }
+
+    ~CompilerData() {
+        if (PIF_DATA)
+            delete PIF_DATA;
+        if (VariableDescriptors)
+            delete VariableDescriptors;
+    }
+};
+
 class ClassMember {
     friend class ClassCode;
     friend class Optimizer;
@@ -35,8 +54,7 @@ private:
     void *Defined_In;
     SmallVariableDESCRIPTOR *VD;
 
-    DoubleList *PIF_DATA;
-    DoubleList *VariableDescriptors;
+    CompilerData *CDATA;
 
     void *OPTIMIZER;
 

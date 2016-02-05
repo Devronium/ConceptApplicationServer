@@ -1,6 +1,7 @@
 #define USE_LOCKS          1
 #define USE_DL_PREFIX
 #define NO_MALLOC_STATS    1
+#define INSECURE           1
 
 /*
    This is a version (aka dlmalloc) of malloc/free/realloc written by

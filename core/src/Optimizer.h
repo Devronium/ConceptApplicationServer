@@ -32,8 +32,8 @@ private:
     STATIC_FLAG char NO_WARNING_EMPTY;
     STATIC_FLAG char NO_WARNING_ATTR;
 
-    AnsiList *OptimizedPIF;
-    AnsiList *ParameterList;
+    STATIC_FLAG AnsiList *OptimizedPIF;
+    STATIC_FLAG AnsiList *ParameterList;
 
     void *INTERPRETER;
     RuntimeOptimizedElement *CODE;

@@ -183,20 +183,18 @@ int ClassCode::BoundMember(PIFAlizator *PIF, ClassMember *CM, ClassCode *Sender)
         COPY_SMALL_VD(CM2->VD, CM->VD);
     }
 
-    if (CM->VariableDescriptors) {
-        int len = CM->VariableDescriptors->Count();
+    if (CM->CDATA) {
+        int len = CM->CDATA->VariableDescriptors->Count();
         for (int i = 0; i < len; i++) {
-            VariableDESCRIPTOR *VD  = (VariableDESCRIPTOR *)CM->VariableDescriptors->Item(i);
+            VariableDESCRIPTOR *VD  = (VariableDESCRIPTOR *)CM->CDATA->VariableDescriptors->Item(i);
             VariableDESCRIPTOR *VD2 = new VariableDESCRIPTOR;
             COPY_VD(VD2, VD);
-            CM2->VariableDescriptors->Add(VD2, DATA_VAR_DESCRIPTOR);
+            CM2->CDATA->VariableDescriptors->Add(VD2, DATA_VAR_DESCRIPTOR);
         }
-    }
 
-    if (CM->PIF_DATA) {
-        int len = CM->PIF_DATA->Count();
+        len = CM->CDATA->PIF_DATA->Count();
         for (int i = 0; i < len; i++) {
-            AnalizerElement *AE  = (AnalizerElement *)CM->PIF_DATA->Item(i);
+            AnalizerElement *AE  = (AnalizerElement *)CM->CDATA->PIF_DATA->Item(i);
             AnalizerElement *AE2 = new AnalizerElement;
             AE2->_DEBUG_INFO_LINE = AE->_DEBUG_INFO_LINE;
             AE2->_HASH_DATA       = AE->_HASH_DATA;
@@ -205,7 +203,7 @@ int ClassCode::BoundMember(PIFAlizator *PIF, ClassMember *CM, ClassCode *Sender)
             AE2->ID   = AE->ID;
             AE2->TYPE = AE->TYPE;
 
-            CM2->PIF_DATA->Add(AE2, DATA_ANALIZER_ELEMENT);
+            CM2->CDATA->PIF_DATA->Add(AE2, DATA_ANALIZER_ELEMENT);
         }
     } else if ((CM->IS_FUNCTION == 1) && (CM->OPTIMIZER)) {
         CM2->OPTIMIZER  = CM->OPTIMIZER;

@@ -375,4 +375,3 @@ CompiledClass::~CompiledClass() {
     }
 #endif
 }
-

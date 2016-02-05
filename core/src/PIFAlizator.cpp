@@ -787,8 +787,8 @@ INTEGER PIFAlizator::BuildFunction(ClassCode *CC, AnsiParser *P, INTEGER on_line
             is_destructor         = true;
         }
     }
-    DoubleList            *PIFList = CM->PIF_DATA;
-    DoubleList            *VDList  = CM->VariableDescriptors;
+    DoubleList            *PIFList = CM->CDATA->PIF_DATA;
+    DoubleList            *VDList  = CM->CDATA->VariableDescriptors;
     std::map<double, int> NumberConstantMap;
 
     VariableDESCRIPTOR *VD = new VariableDESCRIPTOR;
@@ -2940,7 +2940,7 @@ void PIFAlizator::OptimizeMemoryUsage() {
         for (register INTEGER jj = 0; jj < members_count; jj++) {
             ClassMember *CM = (ClassMember *)CC->Members->Item(jj);
 
-            if ((CM->IS_FUNCTION) && (CM->Defined_In == CC) && (CM->OPTIMIZER) && (CM->PIF_DATA)) {
+            if ((CM->IS_FUNCTION) && (CM->Defined_In == CC) && (CM->OPTIMIZER) && (CM->CDATA)) {
                 ((Optimizer *)CM->OPTIMIZER)->OptimizeMemoryUsage();
             }
         }
@@ -2971,9 +2971,18 @@ void PIFAlizator::Optimize(int start, char use_compiled_code) {
             INTEGER LOCAL_CLASSID = ((ClassCode *)CM->Defined_In)->CLSID;
             if (!use_compiled_code) {
                 if ((CM->IS_FUNCTION == 1) && (CM->Defined_In == CC) && (!CM->OPTIMIZER)) {
-                    CM->OPTIMIZER = new Optimizer(this, CM->PIF_DATA, CM->VariableDescriptors, ((ClassCode *)(CM->Defined_In))->_DEBUG_INFO_FILENAME.c_str(), CC, CM->NAME);
+                    CM->OPTIMIZER = new Optimizer(this, CM->CDATA->PIF_DATA, CM->CDATA->VariableDescriptors, ((ClassCode *)(CM->Defined_In))->_DEBUG_INFO_FILENAME.c_str(), CC, CM->NAME);
+                    Optimizer::ParameterList = new AnsiList();
+                    Optimizer::OptimizedPIF = new AnsiList();
+
                     ((Optimizer *)CM->OPTIMIZER)->Optimize();
                     ((Optimizer *)CM->OPTIMIZER)->GenerateIntermediateCode();
+
+                    delete Optimizer::ParameterList;
+                    Optimizer::ParameterList = NULL;
+
+                    delete Optimizer::OptimizedPIF;
+                    Optimizer::OptimizedPIF = NULL;
                 }
             }
         }
@@ -3016,34 +3025,35 @@ AnsiString PIFAlizator::DEBUG_INFO() {
             if (CM->OPTIMIZER) {
                 res += ((Optimizer *)CM->OPTIMIZER)->DEBUG_INFO();
             }
+            if (CM->CDATA) {
+                DoubleList *PIFList = CM->CDATA->PIF_DATA;
+                DoubleList *VDList  = CM->CDATA->VariableDescriptors;
 
-            DoubleList *PIFList = CM->PIF_DATA;
-            DoubleList *VDList  = CM->VariableDescriptors;
+                res += AnsiString("In class member \"") + CM->NAME + AnsiString("\" :\n");
+                res += "------------ Program internal form ----------------------------------------\n";
+                for (INTEGER i = 0; i < PIFList->Count(); i++) {
+                    AnalizerElement *AE = (AnalizerElement *)(*PIFList) [i];
+                    AnsiString      strOperator;
+                    if ((AE->TYPE == TYPE_KEYWORD) || (AE->TYPE == TYPE_OPERATOR)) {
+                        strOperator = GetKeyWord(AE->ID);
+                    }
 
-            res += AnsiString("In class member \"") + CM->NAME + AnsiString("\" :\n");
-            res += "------------ Program internal form ----------------------------------------\n";
-            for (INTEGER i = 0; i < PIFList->Count(); i++) {
-                AnalizerElement *AE = (AnalizerElement *)(*PIFList) [i];
-                AnsiString      strOperator;
-                if ((AE->TYPE == TYPE_KEYWORD) || (AE->TYPE == TYPE_OPERATOR)) {
-                    strOperator = GetKeyWord(AE->ID);
+                    res += AnsiString(i) + AnsiString(". ") +
+                           AnsiString("\tID: ") + AnsiString(AE->ID) +
+                           AnsiString(" '") + strOperator +
+                           AnsiString("'\t\tTYPE:") + AnsiString(AE->TYPE) +
+                           AnsiString("\t\tLINE:") + AnsiString(AE->_DEBUG_INFO_LINE) +
+                           AnsiString("\n");
                 }
-
-                res += AnsiString(i) + AnsiString(". ") +
-                       AnsiString("\tID: ") + AnsiString(AE->ID) +
-                       AnsiString(" '") + strOperator +
-                       AnsiString("'\t\tTYPE:") + AnsiString(AE->TYPE) +
-                       AnsiString("\t\tLINE:") + AnsiString(AE->_DEBUG_INFO_LINE) +
-                       AnsiString("\n");
-            }
-            res += "------------ Variables/CT/DATA --------------------------------------------\n";
-            for (INTEGER j = 0; j < VDList->Count(); j++) {
-                VariableDESCRIPTOR *VD = (VariableDESCRIPTOR *)VDList->Item(j);
-                res += AnsiString(j) + AnsiString(". ") +
-                       AnsiString("\tName: ") + ((VD->name == NULL_STRING) ? AnsiString("(ct)") : VD->name) +
-                       AnsiString("\t\tType: ") + AnsiString(VD->TYPE) +
-                       AnsiString("\t\tValue: ") + ((VD->value.Length()) ? AnsiString("(null)") : AnsiString(VD->value.c_str())) +
-                       AnsiString("\n");
+                res += "------------ Variables/CT/DATA --------------------------------------------\n";
+                for (INTEGER j = 0; j < VDList->Count(); j++) {
+                    VariableDESCRIPTOR *VD = (VariableDESCRIPTOR *)VDList->Item(j);
+                    res += AnsiString(j) + AnsiString(". ") +
+                           AnsiString("\tName: ") + ((VD->name == NULL_STRING) ? AnsiString("(ct)") : VD->name) +
+                           AnsiString("\t\tType: ") + AnsiString(VD->TYPE) +
+                           AnsiString("\t\tValue: ") + ((VD->value.Length()) ? AnsiString("(null)") : AnsiString(VD->value.c_str())) +
+                           AnsiString("\n");
+                }
             }
         }
     }
