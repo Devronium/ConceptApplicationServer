@@ -98,6 +98,7 @@ typedef struct {
     int        is_buffer;
     int        increment;
     int        filter_set;
+    int        no_defaults;
 } RefContainer;
 
 INVOKE_CALL LocalInvoker;
@@ -572,7 +573,11 @@ void Serialize(RefContainer *rc, void *pData, XML_NODE_REF parent, char is_simpl
         //memset(nValues,0,members_count * sizeof(NUMBER));
 
         DEBUG2(class_name, "invoke");
-        int result = LocalInvoker(INVOKE_GET_SERIAL_CLASS, pData, members_count, &class_name, members, flags, access, types, (const char **)szValues, nValues, class_data, variable_data);
+        int result;
+        if (rc->no_defaults)
+            result = LocalInvoker(INVOKE_GET_SERIAL_CLASS_NO_DEFAULTS, pData, members_count, &class_name, members, flags, access, types, (const char **)szValues, nValues, class_data, variable_data);
+        else
+            result = LocalInvoker(INVOKE_GET_SERIAL_CLASS, pData, members_count, &class_name, members, flags, access, types, (const char **)szValues, nValues, class_data, variable_data);
         DEBUG2(class_name, "done invoke");
 
         if (result != 0) {
@@ -620,7 +625,7 @@ void Serialize(RefContainer *rc, void *pData, XML_NODE_REF parent, char is_simpl
 CONCEPT_DLL_API CONCEPT_SerializeObject CONCEPT_API_PARAMETERS {
     RESET_ERROR
 
-                                        PARAMETERS_CHECK_MIN_MAX(1, 3, "SerializeObject: SerializeObject(object_to_serialize,filename=\"\",encoding=\"UTF-8\")");
+    PARAMETERS_CHECK_MIN_MAX(1, 3, "SerializeObject: SerializeObject(object_to_serialize,filename=\"\",encoding=\"UTF-8\")");
 
     LOCAL_INIT;
     char *pData;
@@ -646,6 +651,7 @@ CONCEPT_DLL_API CONCEPT_SerializeObject CONCEPT_API_PARAMETERS {
     rc->top_variable   = NULL;
     rc->is_buffer      = 0;
     rc->err_ser        = 0;
+    rc->no_defaults    = 0;
 #ifdef WITH_LIBXML2
     void *old_ctx = xmlGenericErrorContext;
     xmlSetGenericErrorFunc(0, MyGenericErrorFunc);
@@ -1001,6 +1007,7 @@ CONCEPT_DLL_API CONCEPT_UnSerializeObject CONCEPT_API_PARAMETERS {
     rc->err_ser        = 0;
     rc->BACK_REF_COUNT = 0;
     rc->top_variable   = RESULT;
+    rc->no_defaults    = 0;
 #ifdef WITH_LIBXML2
     rc->doc = doc;
 #else
@@ -1335,6 +1342,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(ToXML, 1, 3)
     rc->top_variable   = NULL;
     rc->is_buffer      = 0;
     rc->err_ser        = 0;
+    rc->no_defaults    = 0;
 #ifdef WITH_LIBXML2
     void *old_ctx = xmlGenericErrorContext;
     xmlSetGenericErrorFunc(0, MyGenericErrorFunc);
@@ -1473,8 +1481,14 @@ void DoArray(RefContainer *rc, void *pData, void *variable_data) {
 
     if (ref_ptr) {
         void *arr = rc->BACK_REFERENCES2[ref_ptr - 1];
-        if (arr)
-            Invoke(INVOKE_SET_VARIABLE, variable_data, VARIABLE_ARRAY, (char *)arr, 0);
+        if (arr) {
+            INTEGER type;
+            char    *str = 0;
+            NUMBER  nvalue;
+
+            if (IS_OK(LocalInvoker(INVOKE_GET_VARIABLE, arr, &type, &str, &nvalue)))
+                Invoke(INVOKE_SET_VARIABLE, variable_data, type, (char *)str, (NUMBER)nvalue);
+        }
         return;
     } else {
         if ((rc->BACK_REF_COUNT > 0) && (rc->BACK_REF_COUNT <= MAX_OBJECTS))
@@ -1542,14 +1556,17 @@ void DoArray(RefContainer *rc, void *pData, void *variable_data) {
 //---------------------------------------------------------------------------
 void DoObject(RefContainer *rc, void *pData, void *parent) {
     INVOKE_CALL Invoke = LocalInvoker;
-
     char *class_name = 0;
     int  ref_ptr     = CheckBack(rc, pData);
-
     if (ref_ptr) {
         void *arr = rc->BACK_REFERENCES2[ref_ptr - 1];
-        if (arr)
-            Invoke(INVOKE_SET_VARIABLE, parent, VARIABLE_ARRAY, (char *)arr, (NUMBER)0);
+        if (arr) {
+            INTEGER type;
+            char    *str = 0;
+            NUMBER  nvalue;
+            if (IS_OK(LocalInvoker(INVOKE_GET_VARIABLE, arr, &type, &str, &nvalue)))
+                Invoke(INVOKE_SET_VARIABLE, parent, type, (char *)str, (NUMBER)nvalue);
+        }
         return;
     } else {
         if ((rc->BACK_REF_COUNT > 0) && (rc->BACK_REF_COUNT <= MAX_OBJECTS))
@@ -1568,7 +1585,7 @@ void DoObject(RefContainer *rc, void *pData, void *parent) {
         void   **class_data    = new void * [members_count];
         void   **variable_data = new void * [members_count];
 
-        int result = LocalInvoker(INVOKE_GET_SERIAL_CLASS, pData, members_count, &class_name, members, flags, access, types, (const char **)szValues, nValues, class_data, variable_data);
+        int result = LocalInvoker(rc->no_defaults ? INVOKE_GET_SERIAL_CLASS_NO_DEFAULTS : INVOKE_GET_SERIAL_CLASS, pData, members_count, &class_name, members, flags, access, types, (const char **)szValues, nValues, class_data, variable_data);
 
         if (result != 0) {
             rc->err_ser = (void *)"Error in serialization (bug ?)";
@@ -1592,9 +1609,15 @@ void DoObject(RefContainer *rc, void *pData, void *parent) {
 }
 
 //---------------------------------------------------------------------------
-CONCEPT_FUNCTION_IMPL(ToArray, 1)
+CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(ToArray, 1, 2)
     RESET_ERROR
-        T_OBJECT(0)
+    T_OBJECT(0)
+
+    int no_defaults = 0;
+    if (PARAMETERS_COUNT > 1) {
+        T_NUMBER(1)
+        no_defaults = PARAM_INT(1);
+    }
 
     CREATE_ARRAY(RESULT);
 
@@ -1603,6 +1626,7 @@ CONCEPT_FUNCTION_IMPL(ToArray, 1)
     rc->top_variable   = NULL;
     rc->is_buffer      = 0;
     rc->err_ser        = 0;
+    rc->no_defaults    = no_defaults;
     DoObject(rc, PARAM(0), RESULT);
     delete rc;
 END_IMPL
@@ -1760,14 +1784,20 @@ uint64_t bin_read_size(RefContainer *rc) {
 }
 
 //---------------------------------------------------------------------------
-CONCEPT_FUNCTION_IMPL(BinarizeObject, 1)
-//T_OBJECT(0)
+CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(BinarizeObject, 1, 2)
     char *szvar;
     void *var = LOCAL_CONTEXT[PARAMETERS->PARAM_INDEX[0] - 1];
+
+    int no_defaults = 0;
+    if (PARAMETERS_COUNT > 1) {
+        T_NUMBER(1)
+        no_defaults = PARAM_INT(1);
+    }
+
+    // need type
     GetVariable(var, &TYPE, &szvar, &nDUMMY_FILL);
     if ((TYPE != VARIABLE_CLASS) && (TYPE != VARIABLE_ARRAY))
         return (void *)"BinarizeObject: Parameter 1 must be an object or array";
-
 
     RefContainer *rc = new RefContainer();
     rc->BACK_REF_COUNT = 0;
@@ -1779,6 +1809,7 @@ CONCEPT_FUNCTION_IMPL(BinarizeObject, 1)
     rc->err_ser        = 0;
     rc->is_buffer      = 1;
     rc->increment      = 0;
+    rc->no_defaults    = no_defaults;
 
     bin_write_char(rc, TYPE);
     if (TYPE == VARIABLE_CLASS)
@@ -2052,6 +2083,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(UnBinarizeObject, 1, 3)
     rc->filters        = NULL;
     rc->filters_count  = 0;
     rc->filters_used   = 0;
+    rc->no_defaults    = 0;
     if (PARAMETERS_COUNT > 2) {
         T_ARRAY(2)
         rc->filters = GetCharList2(PARAMETER(2), &rc->filters_count, Invoke);
@@ -2909,5 +2941,12 @@ CONCEPT_FUNCTION_IMPL(__callstack, 0)
         RETURN_STRING("");
     }
     free(call_stack);
+END_IMPL
+//---------------------------------------------------------------------------
+CONCEPT_FUNCTION_IMPL(__object, 1)
+    T_STRING(0)
+    if (!IS_OK(LocalInvoker(INVOKE_CREATE_OBJECT_NOCONSTRUCTOR, PARAMETERS->HANDLER, RESULT, PARAM(0)))) {
+        RETURN_NUMBER(0);
+    }
 END_IMPL
 //---------------------------------------------------------------------------

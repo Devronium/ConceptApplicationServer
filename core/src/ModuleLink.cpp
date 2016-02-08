@@ -1263,6 +1263,7 @@ INTEGER Invoke(INTEGER INVOKE_TYPE, ...) {
             }
             break;
 
+        case INVOKE_GET_SERIAL_CLASS_NO_DEFAULTS:
         case INVOKE_GET_SERIAL_CLASS:
             {
                 CompiledClass *CC             = va_arg(ap, CompiledClass *);
@@ -1282,7 +1283,7 @@ INTEGER Invoke(INTEGER INVOKE_TYPE, ...) {
                     break;
                 }
                 *class_name = CC->_Class->NAME.c_str();
-                result      = CC->_Class->GetSerialMembers(CC, max_members, pmembers, flags, access, types, szValue, n_data, class_data, variable_data);
+                result      = CC->_Class->GetSerialMembers(CC, max_members, pmembers, flags, access, types, szValue, n_data, class_data, variable_data, (int)(INVOKE_TYPE == INVOKE_GET_SERIAL_CLASS));
             }
             break;
 

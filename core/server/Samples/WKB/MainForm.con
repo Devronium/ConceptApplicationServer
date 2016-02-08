@@ -2,12 +2,13 @@
 include project_forms.glade.con
 include RWebView.con
 include RScrolledWindow.con
+include RViewPort.con
 include RStatusbar.con
 
 // comment the next line if this is NOT the main application form
 define APPLICATION_FORM_TYPE	MainForm
 
-define HOME_PAGE                "http://www.radgs.com"
+define HOME_PAGE                "http://www.devronium.com"
 define USER_AGENT               "Mozilla/5.0 (U; c) AppleWebKit/531.2+ (like Gecko) Safari/531.2+"
 
 class ExtraData {
@@ -35,9 +36,16 @@ class MainForm extends window1 {
 
         public function MainForm(Owner, Lang S) {
                 super(Owner, S);
+                CApplication::BeginNonCritical();
                 this.DefaultControl=button1;
                 this.CreateNewPage("", false);
-                this.CreateNewPage(HOME_PAGE);
+                var arg=CLArg()[0];
+                if (arg=="0")
+                    arg="";
+                this.editUrl.OnActivate=this.on_button1_clicked;
+                this.CreateNewPage(this.DoAddress(arg ?? HOME_PAGE));
+                this.editFind.OnActivate=this.on_button2_clicked;
+                CApplication::EndNonCritical();
         }
 
         public function Limit(string s, number max_len=50, string after="..") {
@@ -61,15 +69,14 @@ class MainForm extends window1 {
             if (visible)
                 mainbox.Show();
 
-            var scroll=new RScrolledWindow(mainbox);
+            /*var scroll=new RScrolledWindow(mainbox);
             scroll.HScrollPolicy=POLICY_AUTOMATIC;
             scroll.VScrollPolicy=POLICY_AUTOMATIC;
+            var scroll2=new RViewPort(scroll);
+            scroll2.Show();*/
             
-            var statusbar=new RStatusbar(mainbox);
-            statusbar.Show();
-
             var webkit;
-            webkit=new RWebView(scroll);
+            webkit=new RWebView(/*scroll2*/mainbox);
             webkit.Set("user-agent", USER_AGENT);
             webkit.Show();
             webkit.URI=address;
@@ -93,8 +100,11 @@ class MainForm extends window1 {
             webkit.OnHoverLink=this.HoverLink;
             
             webkit.OnCreateWebview=this.OnCreateWebView;
+
+            var statusbar=new RStatusbar(mainbox);
+            statusbar.Show();
             
-            scroll.Show();
+            //scroll.Show();
             
             var ed=new ExtraData();
             ed.mainbox=mainbox;
@@ -106,6 +116,17 @@ class MainForm extends window1 {
             
             var vbox=new RHBox(null);
             notebook1.Pages[ed.index].SetHeader(vbox);
+
+            var closebutton=new RButton(vbox);
+            closebutton.PackType=PACK_SHRINK;
+            closebutton.ReliefStyle=RELIEF_NONE;
+            closebutton.OnClicked=this.on_tab_close;
+            closebutton.UserData=webkit;
+            closebutton.Show();
+
+            var image=new RImage(closebutton);
+            image.LoadResource("gtk-close",1);
+            image.Show();
 
             //vbox.Packing=PACK_SHRINK;
             vbox.PackType=PACK_SHRINK;
@@ -119,18 +140,7 @@ class MainForm extends window1 {
             label.Caption=" New tab ";
             label.Show();
             ed.title=label;
-            
-            var closebutton=new RButton(vbox);
-            closebutton.PackType=PACK_SHRINK;
-            closebutton.ReliefStyle=RELIEF_NONE;
-            closebutton.OnClicked=this.on_tab_close;
-            closebutton.UserData=webkit;
-            closebutton.Show();
-            
-            var image=new RImage(closebutton);
-            image.LoadResource("gtk-close",1);
-            image.Show();
-            
+                                    
             if (visible) {
                 visible_count++;
                 
@@ -286,9 +296,8 @@ class MainForm extends window1 {
         
         public function on_button2_clicked(Sender, EventData) {
             var q=trim(editFind.Text);
-            if ((webkit) && (q)) {
-                webkit.URI="http://www.google.com/search?q=$q";
-            }
+            if ((webkit) && (q))
+                webkit.URI="http://www.duckduckgo.com/?q=$q";
         }
 
         public function on_button3_clicked(Sender, EventData) {

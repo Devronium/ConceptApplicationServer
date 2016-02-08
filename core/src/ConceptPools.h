@@ -9,10 +9,9 @@
 #define JIT_RUNTIME_CHECKS
 #define OPTIONAL_SEPARATOR
 
-#ifdef _WIN32
-// use dlmalloc only on win32
+#if defined(_WIN32) || defined(__linux__)
+// use dlmalloc only on win32 and linux
 // on FreeBSD dlmalloc is the default memory allocator
-// and on Linux, already the default C memory allocator is fast
  #define USE_DLMALLOC
 #endif
 
@@ -64,8 +63,9 @@ int concept_fread_int(void *buf, size_t size, size_t len, CachedFILE *in);
 #define POOL_BLOCK_SIZE           127
 #define OBJECT_POOL_BLOCK_SIZE    124
 #define ARRAY_POOL_BLOCK_SIZE     124
-#define BLOCK_STACK_SIZE          1024
-#define POOOL_OFFSET(type, field)    ((uintptr_t)&(((type *)0)->field))
+// 8k * sizeof(void *) buffer
+#define BLOCK_STACK_SIZE          8192 //1024
+#define POOL_OFFSET(type, field)  ((uintptr_t)&(((type *)0)->field))
 
 void *AllocVAR(void *pif);
 void *GetPOOLContext(void *refVAR);

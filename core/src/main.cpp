@@ -56,7 +56,7 @@ void *GetPOOLContext(void *refVAR) {
     if ((!refVAR) || (((VariableDATA *)refVAR)->flags < 0))
         return 0;
 
-    VARPool *CURRENT = (VARPool *)((((uintptr_t)refVAR) - sizeof(VariableDATA) * (((VariableDATA *)refVAR)->flags) - POOOL_OFFSET(VARPool, POOL)));
+    VARPool *CURRENT = (VARPool *)((((uintptr_t)refVAR) - sizeof(VariableDATA) * (((VariableDATA *)refVAR)->flags) - POOL_OFFSET(VARPool, POOL)));
     if (CURRENT)
         return CURRENT->PIF;
 
@@ -102,7 +102,7 @@ void FreeMultipleVars(void **refVARs, int count) {
         VariableDATA *refVAR = CONTEXT[i];
         if ((refVAR) && (refVAR->LINKS <= 0)) {
             if (refVAR->flags >= 0) {
-                CURRENT = (VARPool *)(((uintptr_t)refVAR) - sizeof(VariableDATA) * (((VariableDATA *)refVAR)->flags) - POOOL_OFFSET(VARPool, POOL));
+                CURRENT = (VARPool *)(((uintptr_t)refVAR) - sizeof(VariableDATA) * (((VariableDATA *)refVAR)->flags) - POOL_OFFSET(VARPool, POOL));
                 if (((VariableDATA *)refVAR)->flags < CURRENT->FIRST_VAR)
                     CURRENT->FIRST_VAR = ((VariableDATA *)refVAR)->flags;
                 pif = (PIFAlizator *)CURRENT->PIF;
@@ -137,7 +137,7 @@ void FreeVAR(void *refVAR) {
         return;
     }
 
-    VARPool *CURRENT = (VARPool *)(((uintptr_t)refVAR) - sizeof(VariableDATA) * (((VariableDATA *)refVAR)->flags) - POOOL_OFFSET(VARPool, POOL));
+    VARPool *CURRENT = (VARPool *)(((uintptr_t)refVAR) - sizeof(VariableDATA) * (((VariableDATA *)refVAR)->flags) - POOL_OFFSET(VARPool, POOL));
     ((PIFAlizator *)CURRENT->PIF)->free_vars++;
     if (((VariableDATA *)refVAR)->flags < CURRENT->FIRST_VAR)
         CURRENT->FIRST_VAR = ((VariableDATA *)refVAR)->flags;
@@ -422,7 +422,7 @@ void FreeClassObject(void *refObject) {
     if (((CompiledClass *)refObject)->flags == -1)
         return;
 
-    ClassPool   *CURRENT = (ClassPool *)(((uintptr_t)refObject) - sizeof(CompiledClass) * (((CompiledClass *)refObject)->flags) - POOOL_OFFSET(ClassPool, POOL));
+    ClassPool   *CURRENT = (ClassPool *)(((uintptr_t)refObject) - sizeof(CompiledClass) * (((CompiledClass *)refObject)->flags) - POOL_OFFSET(ClassPool, POOL));
     PIFAlizator *PIF     = (PIFAlizator *)CURRENT->PIF;
     ALLOC_LOCK
         memset(refObject, 0, sizeof(CompiledClass));
@@ -564,7 +564,7 @@ void FreeArray(void *refObject) {
         return;
     }
 
-    ArrayPool   *CURRENT = (ArrayPool *)(((uintptr_t)refObject) - sizeof(Array) * (((Array *)refObject)->flags) - POOOL_OFFSET(ArrayPool, POOL));
+    ArrayPool   *CURRENT = (ArrayPool *)(((uintptr_t)refObject) - sizeof(Array) * (((Array *)refObject)->flags) - POOL_OFFSET(ArrayPool, POOL));
     PIFAlizator *PIF     = (PIFAlizator *)CURRENT->PIF;
     ALLOC_LOCK
         ((PIFAlizator *)PIF)->object_count--;

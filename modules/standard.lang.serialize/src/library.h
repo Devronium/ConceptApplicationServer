@@ -46,5 +46,6 @@ CONCEPT_FUNCTION(compress)
 CONCEPT_FUNCTION(uncompress)
 
 CONCEPT_FUNCTION(__callstack)
+CONCEPT_FUNCTION(__object)
 }
 #endif // __LIBRARY_H

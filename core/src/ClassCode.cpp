@@ -328,7 +328,7 @@ int ClassCode::GetAbsoluteMemberID(int mid) {
 int ClassCode::GetSerialMembers(CompiledClass *CC, int max_members,
                                 char **pmembers, unsigned char *flags, char *access,
                                 char *types, char **szValue,
-                                double *n_data, void **class_data, void **variable_data) {
+                                double *n_data, void **class_data, void **variable_data, int all_members) {
     if (!pMEMBERS) {
         return 0;
     }
@@ -355,8 +355,7 @@ int ClassCode::GetSerialMembers(CompiledClass *CC, int max_members,
                 class_data [index]    = 0;
                 variable_data [index] = 0;
                 int reloc = this->RELOCATIONS2 [i] - 1;
-
-                if ((CC->_CONTEXT) && (!CC->_CONTEXT [reloc])) {
+                if ((CC->_CONTEXT) && (!CC->_CONTEXT [reloc]) && (all_members)) {
                     if ((CM->VD) && ((CM->VD->TYPE != VARIABLE_NUMBER) || (CM->VD->nValue)))
                         CC->CreateVariable(reloc, CM);
                 }

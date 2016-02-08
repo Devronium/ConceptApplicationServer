@@ -33,6 +33,7 @@
 #define INVOKE_CREATE_OBJECT                  0x17
 #define INVOKE_GET_APPLICATION_INFO           0x18
 #define INVOKE_GET_SERIAL_CLASS               0x19
+#define INVOKE_GET_SERIAL_CLASS_NO_DEFAULTS   0x1A
 #define INVOKE_SET_SERIAL_CLASS               0x20
 #define INVOKE_GET_MEMBER_FROM_ID             0x21
 #define INVOKE_DYNAMIC_LOCK                   0x22
