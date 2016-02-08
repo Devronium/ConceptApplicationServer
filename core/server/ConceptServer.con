@@ -499,7 +499,7 @@ class ConceptChild {
 			this.UsingHost = hostapp.APID;
 			this.UsingPID = hostapp.PID;
 
-			if (AddChild(hostapp.ContextOut, shared_key, pipein1, pipein2, direct_pipe1, hostapp.PID)) {
+			if (AddChild(hostapp.ContextOut, shared_key, pipein1, pipeout2, direct_pipe1, hostapp.PID)) {
 				hostapp.ChildCount--;
 				hostapp.HostID = "";
 				this.UsingHost = -1;
@@ -553,7 +553,7 @@ class ConceptChild {
 				);
 				this.UsingPID = this.PID;
 				this.ChildCount=1;
-				AddChild(pr2, shared_key, pipein1, pipein2, direct_pipe1, this.UsingPID);
+				AddChild(pr2, shared_key, pipein1, pipeout2, direct_pipe1, this.UsingPID);
 
 				close(pr1);
 				close(pw2);
@@ -2872,11 +2872,6 @@ class ConceptServer {
 			return getcwd() + "/" + res;
 		return res;
 	}
-	
-	BrokenPipe(signum) {
-		echo "Broken pipe received $signum\n";
-		// nothing
-	}
 
 	Start() {
 		var max_connections = value IniGet(this.IniFile, "Server", "MaxConnections", "1024");
@@ -2914,7 +2909,7 @@ class ConceptServer {
 		signal(SIGQUIT, this.ServerCloses);
 		signal(SIGHUP, this.ServerCloses);
 		signal(SIGTERM, this.ServerCloses);
-		signal(SIGPIPE, this.BrokenPipe);
+
 		loop.Run([this.BackgroundTasks]);
 		if (Running)
 			throw "Broken socket";
