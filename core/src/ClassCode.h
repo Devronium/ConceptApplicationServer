@@ -84,7 +84,7 @@ public:
     int HasMember(char *name);
     int HasMemberInCompiled(char *name, INTEGER *is_variable = NULL);
     ClassMember *MemberID(int mid);
-    int GetSerialMembers(CompiledClass *CC, int max_members, char **pmembers, unsigned char *flags, char *access, char *types, char **szValue, double *n_data, void **class_data, void **variable_data);
+    int GetSerialMembers(CompiledClass *CC, int max_members, char **pmembers, unsigned char *flags, char *access, char *types, char **szValue, double *n_data, void **class_data, void **variable_data, int all_members = 1);
     int CanBeRunStatic(char *name);
 
     ClassCode(char *name, PIFAlizator *P, char binary_form = false);
