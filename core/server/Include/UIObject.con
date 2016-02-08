@@ -1,0 +1,11 @@
+import standard.lang.serialize
+
+class UIObject {
+	static ById(number REMOTE_ID, object_name = "VisibleRemoteObject") {
+		var obj = __object(object_name);
+		if (obj) {
+			SetMember(obj, "REMOTE_ID", REMOTE_ID);	
+			SetMember(obj, "REMOTE_ID_STR", "" + REMOTE_ID);
+		}
+	}
+}

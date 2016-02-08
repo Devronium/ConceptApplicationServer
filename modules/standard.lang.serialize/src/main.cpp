@@ -573,11 +573,7 @@ void Serialize(RefContainer *rc, void *pData, XML_NODE_REF parent, char is_simpl
         //memset(nValues,0,members_count * sizeof(NUMBER));
 
         DEBUG2(class_name, "invoke");
-        int result;
-        if (rc->no_defaults)
-            result = LocalInvoker(INVOKE_GET_SERIAL_CLASS_NO_DEFAULTS, pData, members_count, &class_name, members, flags, access, types, (const char **)szValues, nValues, class_data, variable_data);
-        else
-            result = LocalInvoker(INVOKE_GET_SERIAL_CLASS, pData, members_count, &class_name, members, flags, access, types, (const char **)szValues, nValues, class_data, variable_data);
+        int result = LocalInvoker(rc->no_defaults ? INVOKE_GET_SERIAL_CLASS_NO_DEFAULTS : INVOKE_GET_SERIAL_CLASS, pData, members_count, &class_name, members, flags, access, types, (const char **)szValues, nValues, class_data, variable_data);
         DEBUG2(class_name, "done invoke");
 
         if (result != 0) {
@@ -597,6 +593,26 @@ void Serialize(RefContainer *rc, void *pData, XML_NODE_REF parent, char is_simpl
 
         for (int i = 0; i < members_count; i++) {
             if (flags[i] == 0) {
+                if (rc->no_defaults) {
+                    if (types[i] == VARIABLE_DELEGATE)
+                        continue;
+                    // skip arrays
+                    if ((rc->no_defaults == 2) && (types[i] == VARIABLE_ARRAY))
+                        continue;
+
+                    // skip objects
+                    if ((rc->no_defaults == 3) && (types[i] == VARIABLE_CLASS))
+                        continue;
+
+                    // skip arrays and objects
+                    if ((rc->no_defaults == 4) && ((types[i] == VARIABLE_ARRAY) || (types[i] == VARIABLE_CLASS)))
+                        continue;
+
+                    if ((rc->no_defaults == 5) && (members[i]) && ((!strcmp(members[i], "__EVENTS_VECTOR")) || (!strcmp(members[i], "CHILDS")) || (!strcmp(members[i], "CHILD1")) || (!strcmp(members[i], "CHILD2")))) {
+                        // skip this
+                        continue;
+                    }
+                }
                 DEBUG3(class_name, "serialize", members[i]);
                 SerializeVariable(rc, members[i], types[i], szValues[i], nValues[i], class_data[i], variable_data[i], XML_REF(node), is_simple);
                 if (rc->err_ser)
