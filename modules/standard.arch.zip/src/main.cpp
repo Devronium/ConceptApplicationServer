@@ -1,4 +1,4 @@
-//#define NO_DEPENDECIES
+#define NO_DEPENDECIES
 #define __STDC_LIMIT_MACROS
 #ifdef _WIN32
  #define _WIN32_WINNT    0x0500
