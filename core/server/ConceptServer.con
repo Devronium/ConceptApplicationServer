@@ -2873,6 +2873,11 @@ class ConceptServer {
 		return res;
 	}
 
+	BrokenPipe(signum) {
+		echo "Broken pipe received $signum\n";
+		// nothing
+	}
+
 	Start() {
 		var max_connections = value IniGet(this.IniFile, "Server", "MaxConnections", "1024");
 		var interface = IniGet(this.IniFile, "Server", "Interface", "");
@@ -2909,7 +2914,7 @@ class ConceptServer {
 		signal(SIGQUIT, this.ServerCloses);
 		signal(SIGHUP, this.ServerCloses);
 		signal(SIGTERM, this.ServerCloses);
-
+		signal(SIGPIPE, this.BrokenPipe);
 		loop.Run([this.BackgroundTasks]);
 		if (Running)
 			throw "Broken socket";
