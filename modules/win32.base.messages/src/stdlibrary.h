@@ -69,6 +69,7 @@
 #define INVOKE_CURRENTGREENTHREAD           0x47
 #define INVOKE_GREENINSERT                  0x48
 #define INVOKE_SETSENDMESSAGEFUNCTION       0x49
+#define INVOKE_CREATE_VARIABLE_2            0x4A
 #define INVOKE_GETGLOBALS                   0x50
 #define INVOKE_GETID                        0x51
 #define INVOKE_GETPROTODATA                 0x52
@@ -78,6 +79,7 @@
 #define INVOKE_CLASS_NAME                   0x56
 #define INVOKE_COUNT_DELEGATE_PARAMS2       0x57
 #define INVOKE_MEMBER_INFO                  0x58
+#define INVOKE_GET_KEYS                     0x59
 
 #define     VARIABLE_CONSTANT               0x00
 #define     VARIABLE_UNDEFINED              0x01
