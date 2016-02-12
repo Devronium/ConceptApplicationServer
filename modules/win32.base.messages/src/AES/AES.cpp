@@ -1,10 +1,8 @@
-#define NO_DEBUGGING
-
 /* AES - Advanced Encryption Standard
 
-   source version 0.9, Nov 2, 2000
+   source version 1.0, June, 2005
 
-   Copyright (C) 2000 Chris Lomont
+   Copyright (C) 2000-2005 Chris Lomont
 
    This software is provided 'as-is', without any express or implied
    warranty.  In no event will the author be held liable for any damages
@@ -23,28 +21,23 @@
    3. This notice may not be removed or altered from any source distribution.
 
    Chris Lomont
-   clomont@math.purdue.edu
+   chris@lomont.org
 
    The AES Standard is maintained by NIST
-   http://csrc.nist.gov/encryption/aes/
+   http://csrc.nist.gov/publications/fips/fips197/fips-197.pdf
 
-   This legalese is patterened after the zlib compression library
+   This legalese is patterned after the zlib compression library
  */
 
 // code to implement Advanced Encryption Standard - Rijndael
 // speed optimized version
+#include "AES.h"
 #include <assert.h>
 #include <stdio.h>
 #include <fstream>
-#ifndef NO_DEBUGGING
- #include <iostream>
-#endif
-#include "AES.h"
+#include <iostream>
 
-//#ifndef _WIN32
-#define AES_rotl(X, n)    (((X) << (n % 32)) | ((X) >> (32 - (n % 32))))
-#define AES_rotr(X, n)    (((X) >> (n % 32)) | ((X) << (32 - (n % 32))))
-//#endif
+// todo - make faster 128 blocksize version with 128 blocksize hardcoded as necessary
 
 // internally data is stored in the state in order
 //   0  1  2  3
@@ -54,53 +47,64 @@
 // up to Nb of these
 // NOTE: thus rows and columns are interchanged from the paper
 
+// TODO - test against the attack at http://cr.yp.to/mac/variability1.html and make fixes if necessary
+
 using namespace std;
 
+namespace { // anonymous namespace for local linkage
 // tables for inverses, byte sub
-static unsigned char gf2_8_inv[256];
-static unsigned char byte_sub[256];
-static unsigned char inv_byte_sub[256];
+unsigned char gf2_8_inv[256];
+unsigned char byte_sub[256];
+unsigned char inv_byte_sub[256];
 
 // this table needs Nb*(Nr+1)/Nk entries - up to 8*(15)/4 = 60
 // todo - remove table, note cycles every 17(?) elements
-static AES_uint32 Rcon[60];
+unsigned int Rcon[60];
 
-// AES_int32 tables for encryption stuff
-static AES_uint32 T0[256];
-static AES_uint32 T1[256];
-static AES_uint32 T2[256];
-static AES_uint32 T3[256];
+// int tables for encryption stuff
+unsigned int T0[256];
+unsigned int T1[256];
+unsigned int T2[256];
+unsigned int T3[256];
 
-// AES_int32 tables for decryption stuff
-static AES_uint32 I0[256];
-static AES_uint32 I1[256];
-static AES_uint32 I2[256];
-static AES_uint32 I3[256];
+// int tables for decryption stuff
+unsigned int I0[256];
+unsigned int I1[256];
+unsigned int I2[256];
+unsigned int I3[256];
 
 // huge tables - todo - ifdef out
-static AES_uint32 T4[256];
-static AES_uint32 T5[256];
-static AES_uint32 T6[256];
-static AES_uint32 T7[256];
-static AES_uint32 I4[256];
-static AES_uint32 I5[256];
-static AES_uint32 I6[256];
-static AES_uint32 I7[256];
+unsigned int T4[256];
+unsigned int T5[256];
+unsigned int T6[256];
+unsigned int T7[256];
+unsigned int I4[256];
+unsigned int I5[256];
+unsigned int I6[256];
+unsigned int I7[256];
+
+// have the tables been initialized?
+bool tablesInitialized = false;
+
+#ifndef _WIN32
+ #define _rotl(X, n)    (((X) << (n % 32)) | ((X) >> (32 - (n % 32))))
+ #define _rotr(X, n)    (((X) >> (n % 32)) | ((X) << (32 - (n % 32))))
+#endif
 
 // define to mult a byte by x mod the proper poly
 // todo - move magic numbers out?
 #define xmult(a)            ((a) << 1) ^ (((a) & 128) ? 0x01B : 0)
 
 // make 4 bytes (LSB first) into a 4 byte vector
-#define VEC4(a, b, c, d)    (((AES_int32)(a)) | (((AES_int32)(b)) << 8) | (((AES_int32)(c)) << 16) | (((AES_int32)(d)) << 24))
+#define VEC4(a, b, c, d)    (((int)(a)) | (((int)(b)) << 8) | (((int)(c)) << 16) | (((int)(d)) << 24))
 
 // get byte 0 to 3 from word a
 #define GetByte(a, n)       ((unsigned char)((a) >> (n << 3)))
 
-//	bytes (a,b,c,d) -> (b,c,d,a)	so low becomes high
-#define RotByte(a)          AES_rotr(a, 8)
+//	bytes (a,b,c,d) -> (b,c,d,a) so low becomes high
+#define RotByte(a)          _rotr(a, 8)
 
-#define RotByteL(a)         AES_rotl(a, 8)
+#define RotByteL(a)         _rotl(a, 8)
 
 // mult 2 elements using gf2_8_poly as a reduction
 inline unsigned char GF2_8_mult(unsigned char a, unsigned char b) { // todo - make 4x4 table for nibbles, use lookup
@@ -124,7 +128,7 @@ inline unsigned char GF2_8_mult(unsigned char a, unsigned char b) { // todo - ma
     return result;
 }         // GF2_8_mult
 
-static bool CheckLargeTables(bool create) {
+bool CheckLargeTables(bool create) {
     unsigned int  i;
     unsigned char a1, a2, a3, b1, b2, b3, b4, b5;
 
@@ -198,7 +202,7 @@ static bool CheckLargeTables(bool create) {
 }         // CheckLargeTables
 
 // some functions to create/verify table integrity
-static bool CheckInverses(bool create) {
+bool CheckInverses(bool create) {
     // we'll brute force the inverse table
     assert(GF2_8_mult(0x57, 0x13) == 0xFE);    // test these first
     assert(GF2_8_mult(0x01, 0x01) == 0x01);
@@ -207,7 +211,7 @@ static bool CheckInverses(bool create) {
 
     unsigned int a, b;    // need int here to prevent wraps in loop
     if (create == true)
-        const_cast<unsigned char *>(gf2_8_inv)[0] = 0;
+        gf2_8_inv[0] = 0;
     else if (gf2_8_inv[0] != 0)
         return false;
     for (a = 1; a <= 255; a++) {
@@ -216,20 +220,20 @@ static bool CheckInverses(bool create) {
             b++;
 
         if (create == true)
-            const_cast<unsigned char *>(gf2_8_inv)[a] = b;
+            gf2_8_inv[a] = b;
         else if (gf2_8_inv[a] != b)
             return false;
     }
     return true;
-}                                                 // CheckInverses
+}                                          // CheckInverses
 
-static unsigned char BitSum(unsigned char byte) { // return the sum of bits mod 2
+unsigned char BitSum(unsigned char byte) { // return the sum of bits mod 2
     byte = (byte >> 4) ^ (byte & 15);
     byte = (byte >> 2) ^ (byte & 3);
     return (byte >> 1) ^ (byte & 1);
 }         // BitSum
 
-static bool CheckByteSub(bool create) {
+bool CheckByteSub(bool create) {
     if (CheckInverses(create) == false)
         return false;     // we cannot do this without inverses
 
@@ -242,14 +246,14 @@ static bool CheckByteSub(bool create) {
             (BitSum(y & 0x1F) << 4) | (BitSum(y & 0x3E) << 5) | (BitSum(y & 0x7C) << 6) | (BitSum(y & 0xF8) << 7);
         y = y ^ 0x63;
         if (create == true)
-            const_cast<unsigned char *>(byte_sub)[x] = y;
+            byte_sub[x] = y;
         else if (byte_sub[x] != y)
             return false;
     }
     return true;
 }         // CheckByteSub
 
-static bool CheckInvByteSub(bool create) {
+bool CheckInvByteSub(bool create) {
     if (CheckInverses(create) == false)
         return false;     // we cannot do this without inverses
     if (CheckByteSub(create) == false)
@@ -262,14 +266,14 @@ static bool CheckInvByteSub(bool create) {
         while (byte_sub[y] != x)
             y++;
         if (create == true)
-            const_cast<unsigned char *>(inv_byte_sub)[x] = y;
+            inv_byte_sub[x] = y;
         else if (inv_byte_sub[x] != y)
             return false;
     }
     return true;
 }         // CheckInvByteSub
 
-static bool CheckRcon(bool create) {
+bool CheckRcon(bool create) {
     unsigned char Ri = 1;     // start here
 
     if (create == true)
@@ -454,7 +458,7 @@ static bool CheckRcon(bool create) {
     compute_one_final_inv(d, s, 6, 1, 3, 4, 8); \
     compute_one_final_inv(d, s, 7, 1, 3, 4, 8);
 
-static AES_uint32 SubByte(AES_uint32 data) { // does the SBox on this 4 byte data
+unsigned int SubByte(unsigned int data) { // does the SBox on this 4 byte data
     unsigned result = 0;
 
     result   = byte_sub[data >> 24];
@@ -465,60 +469,9 @@ static AES_uint32 SubByte(AES_uint32 data) { // does the SBox on this 4 byte dat
     result <<= 8;
     result  |= byte_sub[data & 255];
     return result;
-}         // SubByte
+}                                                                                            // SubByte
 
-// Key expansion code - makes local copy
-void AES::KeyExpansion(const unsigned char *key) {
-    assert(Nk > 0);
-    int        i;
-    AES_uint32 temp, *Wb = (AES_uint32 *)W;      // todo not portable - Endian problems
-    if (Nk <= 6) {
-        // todo - memcpy
-        for (i = 0; i < 4 * Nk; i++)
-            W[i] = key[i];
-        for (i = Nk; i < Nb * (Nr + 1); i++) {
-            temp = Wb[i - 1];
-            if ((i % Nk) == 0)
-                temp = SubByte(RotByte(temp)) ^ Rcon[i / Nk];
-            Wb[i] = Wb[i - Nk] ^ temp;
-        }
-    } else {
-        // todo - memcpy
-        for (i = 0; i < 4 * Nk; i++)
-            W[i] = key[i];
-        for (i = Nk; i < Nb * (Nr + 1); i++) {
-            temp = Wb[i - 1];
-            if ((i % Nk) == 0)
-                temp = SubByte(RotByte(temp)) ^ Rcon[i / Nk];
-            else if ((i % Nk) == 4)
-                temp = SubByte(temp);
-            Wb[i] = Wb[i - Nk] ^ temp;
-        }
-    }
-}         // KeyExpansion
-
-void AES::SetParameters(int keylength, int blocklength) {
-    Nk = Nr = Nb = 0;     // default values
-
-    if ((keylength != 128) && (keylength != 192) && (keylength != 256))
-        return;         // nothing - todo - throw error?
-    if ((blocklength != 128) && (blocklength != 192) && (blocklength != 256))
-        return;         // nothing - todo - throw error?
-
-    static int const parameters[] = {
-//Nk*32 128     192     256
-        10, 12, 14,                  // Nb*32 = 128
-        12, 12, 14,                  // Nb*32 = 192
-        14, 14, 14,                  // Nb*32 = 256
-    };
-
-    // legal parameters, so fire it up
-    Nk = keylength / 32;
-    Nb = blocklength / 32;
-    Nr = parameters[((Nk - 4) / 2 + 3 * (Nb - 4) / 2)];
-}                                                                                                   // SetParameters
-
-static void DumpCharTable(ostream& out, const char *name, const unsigned char *table, int length) { // dump the contents of a table to a file
+void DumpCharTable(ostream& out, const char *name, const unsigned char *table, int length) { // dump the contents of a table to a file
     int pos;
 
     out << name << endl << hex;
@@ -526,14 +479,14 @@ static void DumpCharTable(ostream& out, const char *name, const unsigned char *t
         out << "0x";
         if (table[pos] < 16)
             out << '0';
-        out << (unsigned int)(table[pos]) << ',';
+        out << static_cast<unsigned int>(table[pos]) << ',';
         if ((pos % 16) == 15)
             out << endl;
     }
     out << dec;
-}                                                                                                // DumpCharTable
+}                                                                                           // DumpCharTable
 
-static void DumpLongTable(ostream& out, const char *name, const AES_uint32 *table, int length) { // dump te contents of a table to a file
+void DumpLongTable(ostream& out, const char *name, const unsigned int *table, int length) { // dump te contents of a table to a file
     int pos;
 
     out << name << endl << hex;
@@ -553,7 +506,7 @@ static void DumpLongTable(ostream& out, const char *name, const AES_uint32 *tabl
             out << '0';
         if (table[pos] < 16 * 16 * 16 * 16 * 16 * 16 * 16)
             out << '0';
-        out << (unsigned int)(table[pos]) << ',';
+        out << static_cast<unsigned int>(table[pos]) << ',';
         if ((pos % 8) == 7)
             out << endl;
     }
@@ -610,35 +563,88 @@ bool CreateAESTables(bool create, bool create_file) {
         }
     }
     return retval;
-}                                                             // CreateAESTables
+}                                                      // CreateAESTables
 
-static void DumpHex(const unsigned char *table, int length) { // dump some hex values for debugging
-#ifndef NO_DEBUGGING
+void DumpHex(const unsigned char *table, int length) { // dump some hex values for debugging
     int pos;
+
     cerr << hex;
     for (pos = 0; pos < length; pos++) {
         if (table[pos] < 16)
             cerr << '0';
-        cerr << (unsigned int)(table[pos]) << ' ';
+        cerr << static_cast<unsigned int>(table[pos]) << ' ';
         if ((pos % 16) == 15)
             cerr << endl;
     }
     cerr << dec;
-#endif
 }         // DumpHex
+}// end of anonymous namespace
+
+// Key expansion code - makes local copy
+void AES::KeyExpansion(const unsigned char *key) {
+    assert(Nk > 0);
+    int          i;
+    unsigned int temp, *Wb = reinterpret_cast<unsigned int *>(W);     // todo not portable - Endian problems
+    if (Nk <= 6) {
+        // todo - memcpy
+        for (i = 0; i < 4 * Nk; i++)
+            W[i] = key[i];
+        for (i = Nk; i < Nb * (Nr + 1); i++) {
+            temp = Wb[i - 1];
+            if ((i % Nk) == 0)
+                temp = SubByte(RotByte(temp)) ^ Rcon[i / Nk];
+            Wb[i] = Wb[i - Nk] ^ temp;
+        }
+    } else {
+        // todo - memcpy
+        for (i = 0; i < 4 * Nk; i++)
+            W[i] = key[i];
+        for (i = Nk; i < Nb * (Nr + 1); i++) {
+            temp = Wb[i - 1];
+            if ((i % Nk) == 0)
+                temp = SubByte(RotByte(temp)) ^ Rcon[i / Nk];
+            else if ((i % Nk) == 4)
+                temp = SubByte(temp);
+            Wb[i] = Wb[i - Nk] ^ temp;
+        }
+    }
+}         // KeyExpansion
+
+void AES::SetParameters(int keylength, int blocklength) {
+    Nk = Nr = Nb = 0;     // default values
+
+    if ((keylength != 128) && (keylength != 192) && (keylength != 256))
+        return;         // nothing - todo - throw error?
+    if ((blocklength != 128) && (blocklength != 192) && (blocklength != 256))
+        return;         // nothing - todo - throw error?
+    bsize = blocklength / 8;
+    static int const parameters[] = {
+//Nk*32 128     192     256
+        10, 12, 14,                  // Nb*32 = 128
+        12, 12, 14,                  // Nb*32 = 192
+        14, 14, 14,                  // Nb*32 = 256
+    };
+
+    // legal parameters, so fire it up
+    Nk = keylength / 32;
+    Nb = blocklength / 32;
+    Nr = parameters[((Nk - 4) / 2 + 3 * (Nb - 4) / 2)];
+}         // SetParameters
 
 void AES::StartEncryption(const unsigned char *key) {
     KeyExpansion(key);
-}                                                            // StartEncryption
+}                                                                               // StartEncryption
 
-void AES::Encrypt(AES_uint32 *datain, AES_uint32 *dataout) { // todo ? allow in place encryption
-                                                             // todo - clean up - lots of repeated macros
+void AES::EncryptBlock(const unsigned char *datain1, unsigned char *dataout1) { // todo ? allow in place encryption
+                                                                                // todo - clean up - lots of repeated macros
     // we only encrypt one block from now on
 
-    AES_uint32 state[8 * 2];   // 2 buffers
-    AES_uint32 *r_ptr = (AES_uint32 *)(W);
-    AES_uint32 *dest  = state;
-    AES_uint32 *src   = state;
+    unsigned int       state[8 * 2]; // 2 buffers
+    unsigned int       *r_ptr   = reinterpret_cast<unsigned int *>(W);
+    unsigned int       *dest    = state;
+    unsigned int       *src     = state;
+    const unsigned int *datain  = reinterpret_cast<const unsigned int *>(datain1);
+    unsigned int       *dataout = reinterpret_cast<unsigned int *>(dataout1);
 
     if (Nb == 4) {
         AddRoundKey4(dest, datain);
@@ -706,7 +712,41 @@ void AES::Encrypt(AES_uint32 *datain, AES_uint32 *dataout) { // todo ? allow in 
     }     // end switch on Nb
 }         // Encrypt
 
-void AES::StartDecryption(unsigned char *key) {
+// call this to encrypt any size block
+void AES::Encrypt(const unsigned char *datain, unsigned char *dataout, unsigned int numBlocks, BlockMode mode) {
+    if (0 == numBlocks)
+        return;
+    unsigned int blocksize = Nb * 4;
+    switch (mode) {
+        case ECB:
+            while (numBlocks) {
+                EncryptBlock(datain, dataout);
+                datain  += blocksize;
+                dataout += blocksize;
+                --numBlocks;
+            }
+            break;
+
+		case CBC:
+			{
+			    while (numBlocks) {
+				    for (unsigned int pos = 0; pos < blocksize; ++pos)
+					    buffer[pos] ^= *datain++;
+				    EncryptBlock(buffer,dataout);
+				    memcpy(buffer,dataout,blocksize);
+				    dataout  += blocksize;
+				    --numBlocks;
+				}
+			}
+			break;
+
+        default:
+            assert(!"Unknown mode!");
+            break;
+    }
+}         // Encrypt
+
+void AES::StartDecryption(const unsigned char *key) {
     KeyExpansion(key);
 
     unsigned char a0, a1, a2, a3, b0, b1, b2, b3, *W_ptr = W;
@@ -733,17 +773,20 @@ void AES::StartDecryption(unsigned char *key) {
     }
 
     // we reverse the rounds to make decryption faster
-    AES_uint32 *WL = (AES_uint32 *)W;
+    unsigned int *WL = reinterpret_cast<unsigned int *>(W);
     for (int pos = 0; pos < Nr / 2; pos++)
         for (int col = 0; col < Nb; col++)
             swap(WL[col + pos * Nb], WL[col + (Nr - pos) * Nb]);
 }         // StartDecryption
 
-void AES::Decrypt(AES_uint32 *datain, AES_uint32 *dataout) {
-    AES_uint32 state[8 * 2];   // 2 buffers
-    AES_uint32 *r_ptr = (AES_uint32 *)(W);
-    AES_uint32 *dest  = state;
-    AES_uint32 *src   = state;
+void AES::DecryptBlock(const unsigned char *datain1, unsigned char *dataout1) {
+    unsigned int state[8 * 2];   // 2 buffers
+    unsigned int *r_ptr = reinterpret_cast<unsigned int *>(W);
+    unsigned int *dest  = state;
+    unsigned int *src   = state;
+
+    const unsigned int *datain  = reinterpret_cast<const unsigned int *>(datain1);
+    unsigned int       *dataout = reinterpret_cast<unsigned int *>(dataout1);
 
     if (Nb == 4) {
         AddRoundKey4(dest, datain);
@@ -810,5 +853,56 @@ void AES::Decrypt(AES_uint32 *datain, AES_uint32 *dataout) {
         InvFinalRound8(dataout, dest);
     }     // end switch on Nb
 }         // Decrypt
+
+// call this to decrypt any size block
+void AES::Decrypt(const unsigned char *datain, unsigned char *dataout, unsigned int numBlocks, BlockMode mode) {
+    if (0 == numBlocks)
+        return;
+    unsigned int blocksize = Nb * 4;
+    switch (mode) {
+        case ECB:
+            while (numBlocks) {
+                DecryptBlock(datain, dataout);
+                datain  += blocksize;
+                dataout += blocksize;
+                --numBlocks;
+            }
+            break;
+
+		case CBC:
+			{
+                const unsigned char *last_input = datain;
+			    DecryptBlock(datain,dataout); // do first block
+			    for (unsigned int pos = 0; pos < blocksize; ++pos)
+				    *dataout++ ^= buffer[pos];
+			    datain += blocksize;
+			    numBlocks--;
+
+			    while (numBlocks) {
+                    last_input = datain;
+				    DecryptBlock(datain,dataout);
+				    for (unsigned int pos = 0; pos < blocksize; ++pos)
+					    *dataout++ ^= *(datain-blocksize+pos);
+				    datain  += blocksize;
+				    --numBlocks;
+				}
+                memcpy(buffer, last_input, blocksize);
+			}
+			break;
+
+        default:
+            assert(!"Unknown mode!");
+    }
+}         // Decrypt
+
+// the constructor - makes sure local things are initialized
+AES::AES(void) {
+    bsize = 16;
+    if (false == tablesInitialized)
+        tablesInitialized = CreateAESTables(true, false);
+    if (false == tablesInitialized)
+        throw "Tables failed to initialize";
+	memset(buffer, 0, 64); // clear out - todo - allow setting the Initialization Vector - needed for security
+}
 
 // end - AES.cpp

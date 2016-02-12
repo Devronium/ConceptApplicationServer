@@ -110,7 +110,7 @@ int is_writeable(int fd) {
     MetaContainer * mc = NULL;                                                           \
     Invoke(INVOKE_GETPROTODATA, PARAMETERS->HANDLER, (int)0, &mc);                       \
     if (!mc) {                                                                           \
-        mc = new MetaContainer();                                                        \
+        mc = new MetaContainer(REMOTE_PUBLIC_KEY);                                       \
         Invoke(INVOKE_SETPROTODATA, PARAMETERS->HANDLER, (int)0, mc, destroy_metadata);  \
         /*if ((REMOTE_PUBLIC_KEY) && (REMOTE_PUBLIC_KEY[0]))                          */ \
         /*    RestoreSession(mc, CLIENT_SOCKET, REMOTE_PUBLIC_KEY);                   */ \
@@ -120,11 +120,10 @@ int is_writeable(int fd) {
     MetaContainer * mc = NULL;                                                                        \
     LocalInvoker(INVOKE_GETPROTODATA, handler, (int)0, &mc);                                          \
     if (!mc) {                                                                                        \
-        mc = new MetaContainer();                                                                     \
+        char *REMOTE_PUBLIC_KEY = NULL;                                                               \
+        LocalInvoker(INVOKE_GET_KEYS, handler, (char **)NULL, (char **)NULL, &REMOTE_PUBLIC_KEY);     \
+        mc = new MetaContainer(REMOTE_PUBLIC_KEY);                                                    \
         LocalInvoker(INVOKE_SETPROTODATA, handler, (int)0, mc, destroy_metadata);                     \
-        /*char *REMOTE_PUBLIC_KEY = NULL;                                             */              \
-        /*LocalInvoker(INVOKE_GET_KEYS, handler, (char **)NULL, (char **)NULL, &REMOTE_PUBLIC_KEY)*/; \
-        /*if ((REMOTE_PUBLIC_KEY) && (REMOTE_PUBLIC_KEY[0]))                          */              \
         /*    RestoreSession(mc, CLIENT_SOCKET, REMOTE_PUBLIC_KEY);                   */              \
     }
 
@@ -206,6 +205,11 @@ static signed char ref_isWebSocket  = 0;
 
 class MetaContainer {
 public:
+#ifdef __WITH_INTEL_LIB
+    unsigned char in_init_vector[32];
+    unsigned char out_init_vector[32];
+#endif
+    const char *REMOTE_KEY;
     AnsiList BufferedMessages;
     AnsiList ThreadedMessages;
 
@@ -237,6 +241,7 @@ public:
 
     AES         EncryptAes;
     AES         DecryptAes;
+
     signed char En_inited;
     signed char Dec_inited;
 
@@ -252,11 +257,12 @@ public:
 
     void *ConnectionChangedDelegate;
 
-    MetaContainer() {
+    MetaContainer(const char *REMOTE_PUBLIC_KEY) {
 #ifndef NOSSL
         sslctx = NULL;
         ssl    = NULL;
 #endif
+        REMOTE_KEY        = REMOTE_PUBLIC_KEY;
         ConnectionChangedDelegate = NULL;
         has_debug         = 0;
         is_cached         = 0;
@@ -277,6 +283,10 @@ public:
         seminit(sem_bufferlist, 1);
         memset(&remote_conceptaddr, 0, sizeof(remote_conceptaddr));
         memset(&remote_conceptudpaddr, 0, sizeof(remote_conceptudpaddr));
+        #ifdef __WITH_INTEL_LIB
+            memset(in_init_vector, 0, 32);
+            memset(out_init_vector, 0, 32);
+        #endif
         force_exit      = 0;
         En_inited       = 0;
         Dec_inited      = 0;
@@ -559,7 +569,7 @@ int deturnated_recv(MetaContainer *mc, int CLIENT_SOCKET, char *buffer, int size
     return res;
 }
 
-int deturnated_send(MetaContainer *mc, int CLIENT_SOCKET, char *buffer, int size, int extra = 0, int is_udp = 0) {
+int deturnated_send(MetaContainer *mc, int CLIENT_SOCKET, char *buffer, int size, int extra = 0, int is_udp = 0, int encrypted = 0) {
     int ssize     = 0;
     int orig_size = size;
 
@@ -590,6 +600,8 @@ int deturnated_send(MetaContainer *mc, int CLIENT_SOCKET, char *buffer, int size
                         //ResetConceptPeer(mc, CLIENT_SOCKET);
                         RTSOCKET = -1;
                     }
+                    if (encrypted)
+                        return 0;
                     continue;
                 }
             } else {
@@ -703,10 +715,21 @@ int FlushCache(MetaContainer *mc, int CLIENT_SOCKET) {
 static char *empty_char = (char *)"\0";
 static char *def_msg    = "350";
 int DeSerializeBuffer2(char *buffer, int size, char **Owner, int *owner_len, int *message, char **Target, int *len_target, char **Value, int *len_value, unsigned int compressed = 0, char *buf_owner = 0) {
+    int available_bytes =  size;
+
+    *Owner = NULL;
+    *owner_len = 0;
+    *Target = NULL;
+    *len_target = 0;
+    *Value = 0;
+    *len_value = 0;
+
     if (compressed) {
         compressed &= 0xF0000000;
         unsigned int owner   = compressed >> 16;
         int          val_len = compressed & 0xFFFF;
+        if (val_len > size)
+            return 0;
 
         //*Owner=(long)owner;
         // event fired
@@ -722,12 +745,17 @@ int DeSerializeBuffer2(char *buffer, int size, char **Owner, int *owner_len, int
         *len_target = 3;
         *Value      = buffer;
         *len_value  = val_len;
-        return 1;
+        return 0;
     }
     // OWNER poate avea maxim 256 octeti
     char          *ptr       = buffer;
     unsigned char owner_size = *(unsigned char *)buffer;
     buffer++;
+    available_bytes -= owner_size + 7;
+    if (available_bytes < 0) {
+        *message = 0;
+        return -1;
+    }
     *owner_len = owner_size;
     if (owner_size) {
         *Owner  = buffer;
@@ -739,7 +767,14 @@ int DeSerializeBuffer2(char *buffer, int size, char **Owner, int *owner_len, int
     buffer  += sizeof(int);
     unsigned short target_size = ntohs(*(unsigned short *)buffer);
     buffer     += sizeof(short);
+    available_bytes -= target_size;
+    if (available_bytes < 0) {
+        *message = 0;
+        return -1;
+    }
+
     *len_target = target_size;
+
     if (target_size) {
         *Target = buffer;
         buffer += target_size;
@@ -753,7 +788,7 @@ int DeSerializeBuffer2(char *buffer, int size, char **Owner, int *owner_len, int
         *Value     = empty_char;
         *len_value = 0;
     }
-    return 1;
+    return 0;
 }
 
 //-----------------------------------------------------------------------------------
@@ -762,6 +797,8 @@ int DeSerializeBuffer(char *buffer, int size, AnsiString *Owner, int *message, A
         compressed &= 0x0FFFFFFF;
         int owner   = compressed >> 16;
         int val_len = compressed & 0xFFFF;
+        if (val_len > size)
+            return 0;
 
         *Owner = (long)owner;
         // event fired
@@ -769,12 +806,18 @@ int DeSerializeBuffer(char *buffer, int size, AnsiString *Owner, int *message, A
         // on buffer
         Target->LoadBuffer("350", 3);
         Value->LoadBuffer(buffer, val_len);
-        return 1;
+        return 0;
     }
+    int bytes_available = size;
     // OWNER poate avea maxim 256 octeti
     char          *ptr       = buffer;
     unsigned char owner_size = *(unsigned char *)buffer;
     buffer++;
+    bytes_available -= owner_size + 7;
+    if (bytes_available < 0) {
+        fprintf(stderr, "Broken packet %i bytes missing (packet size: %i)\n", -bytes_available, size);
+        return -1;
+    }
     if (owner_size) {
         Owner->LoadBuffer(buffer, owner_size);
         buffer += owner_size;
@@ -784,6 +827,11 @@ int DeSerializeBuffer(char *buffer, int size, AnsiString *Owner, int *message, A
     *message = ntohl(*(int *)buffer);
     buffer  += sizeof(int);
     unsigned short target_size = ntohs(*(unsigned short *)buffer);
+    bytes_available -= target_size;
+    if (bytes_available < 0) {
+        fprintf(stderr, "Sender: %s, MSG_ID: %i, Broken packet / invalid target parameter %i bytes missing (packet size: %i)\n", Owner->c_str(), *message, -bytes_available, size);
+        return -1;
+    }
     buffer += sizeof(short);
     if (target_size) {
         Target->LoadBuffer(buffer, target_size);
@@ -796,7 +844,7 @@ int DeSerializeBuffer(char *buffer, int size, AnsiString *Owner, int *message, A
         Value->LoadBuffer(buffer, last_size);
     else
         *Value = (char *)"";
-    return 1;
+    return 0;
 }
 
 //-----------------------------------------------------------------------------------
@@ -1034,8 +1082,10 @@ char *SerializeBuffer(MetaContainer *mc, char **buffer, int *size, AnsiString *O
                 unsigned int owner = Owner->ToInt();
                 if (owner <= 0xFFF) {
                     // max udp size
-                    if ((is_udp) && (vlen <= 0xFFFF))
-                        *is_udp = 1;
+                    if ((is_udp) && (vlen <= 0xFFFF)) {
+                        if ((is_udp) && (mc->RTSOCKET > 0) && (mc->RTCONFIRMED) && (mc->rt_send_enabled) && (mc->remote_conceptudpaddr.ss_family))
+                            *is_udp = 1;
+                    }
                     *size = vlen;
                     char *ptr = new char[*size + sizeof(int)];
                     *(unsigned int *)ptr = htonl(((unsigned int)*size) | (unsigned int)0xF0000000 | (owner << 16));
@@ -1080,7 +1130,7 @@ char *SerializeBuffer(MetaContainer *mc, char **buffer, int *size, AnsiString *O
 }
 
 //-----------------------------------------------------------------------------------
-unsigned int AES_encrypt(MetaContainer *mc, char *in_buffer, unsigned int in_buffer_size, char *out_buffer, unsigned int out_buffer_size, char *key, unsigned int key_size) {
+unsigned int AES_encrypt(MetaContainer *mc, char *in_buffer, unsigned int in_buffer_size, char *out_buffer, unsigned int out_buffer_size, char *key, unsigned int key_size, bool cbc = false) {
 #ifdef __WITH_INTEL_LIB
     if (hardware_aes) {
         unsigned char buf[32];
@@ -1089,42 +1139,64 @@ unsigned int AES_encrypt(MetaContainer *mc, char *in_buffer, unsigned int in_buf
 
         out_buffer[0] = 'x';
         out_buffer++;
-        *(AES_int32 *)out_buffer = in_buffer_size;
+        *(AES_int32 *)out_buffer = htonl(in_buffer_size);
         out_buffer += sizeof(AES_int32);
+        blocks = in_buffer_size / key_size;
 
         switch (key_size) {
             case 16:
-                blocks = in_buffer_size / key_size;
-                intel_AES_enc128((unsigned char *)in_buffer, (unsigned char *)out_buffer, (unsigned char *)key, blocks);
+                if (blocks) {
+                    if (cbc)
+                        intel_AES_enc128_CBC((unsigned char *)in_buffer, (unsigned char *)out_buffer, (unsigned char *)key, blocks, mc->out_init_vector);
+                    else
+                        intel_AES_enc128((unsigned char *)in_buffer, (unsigned char *)out_buffer, (unsigned char *)key, blocks);
+                }
                 remainder = in_buffer_size % key_size;
                 if (remainder) {
                     memset(buf, 0, key_size);
                     memcpy(buf, in_buffer + blocks * key_size, remainder);
-                    intel_AES_enc128(buf, (unsigned char *)out_buffer + blocks * key_size, (unsigned char *)key, 1);
+                    if (cbc)
+                        intel_AES_enc128_CBC(buf, (unsigned char *)out_buffer + blocks * key_size, (unsigned char *)key, 1, mc->out_init_vector);
+                    else
+                        intel_AES_enc128(buf, (unsigned char *)out_buffer + blocks * key_size, (unsigned char *)key, 1);
                     blocks++;
                 }
                 return blocks * key_size + sizeof(AES_int32) + 1;
 
             case 24:
-                blocks = in_buffer_size / key_size;
-                intel_AES_enc192((unsigned char *)in_buffer, (unsigned char *)out_buffer, (unsigned char *)key, blocks);
+                if (blocks) {
+                    if (cbc)
+                        intel_AES_enc192_CBC((unsigned char *)in_buffer, (unsigned char *)out_buffer, (unsigned char *)key, blocks, mc->out_init_vector);
+                    else
+                        intel_AES_enc192((unsigned char *)in_buffer, (unsigned char *)out_buffer, (unsigned char *)key, blocks);
+                }
                 remainder = in_buffer_size % key_size;
                 if (remainder) {
                     memset(buf, 0, key_size);
                     memcpy(buf, in_buffer + blocks * key_size, remainder);
-                    intel_AES_enc192(buf, (unsigned char *)out_buffer + blocks * key_size, (unsigned char *)key, 1);
+                    if (cbc)
+                        intel_AES_enc192_CBC(buf, (unsigned char *)out_buffer + blocks * key_size, (unsigned char *)key, 1, mc->out_init_vector);
+                    else
+                        intel_AES_enc192(buf, (unsigned char *)out_buffer + blocks * key_size, (unsigned char *)key, 1);
                     blocks++;
                 }
                 return blocks * key_size + sizeof(AES_int32) + 1;
 
             case 32:
-                blocks = in_buffer_size / key_size;
-                intel_AES_enc256((unsigned char *)in_buffer, (unsigned char *)out_buffer, (unsigned char *)key, blocks);
+                if (blocks) {
+                    if (cbc)
+                        intel_AES_enc256_CBC((unsigned char *)in_buffer, (unsigned char *)out_buffer, (unsigned char *)key, blocks, mc->out_init_vector);
+                    else
+                        intel_AES_enc256((unsigned char *)in_buffer, (unsigned char *)out_buffer, (unsigned char *)key, blocks);
+                }
                 remainder = in_buffer_size % key_size;
                 if (remainder) {
                     memset(buf, 0, key_size);
                     memcpy(buf, in_buffer + blocks * key_size, remainder);
-                    intel_AES_enc256(buf, (unsigned char *)out_buffer + blocks * key_size, (unsigned char *)key, 1);
+                    if (cbc)
+                        intel_AES_enc256_CBC(buf, (unsigned char *)out_buffer + blocks * key_size, (unsigned char *)key, 1, mc->out_init_vector);
+                    else
+                        intel_AES_enc256(buf, (unsigned char *)out_buffer + blocks * key_size, (unsigned char *)key, 1);
                     blocks++;
                 }
                 return blocks * key_size + sizeof(AES_int32) + 1;
@@ -1135,36 +1207,48 @@ unsigned int AES_encrypt(MetaContainer *mc, char *in_buffer, unsigned int in_buf
     if (!mc->En_inited)
         mc->En_inited = encrypt_init(&mc->EncryptAes, key, key_size);
 
-    return encrypt(&mc->EncryptAes, in_buffer, in_buffer_size, out_buffer, out_buffer_size);
+    return encrypt(&mc->EncryptAes, in_buffer, in_buffer_size, out_buffer, out_buffer_size, cbc ? AES::CBC : AES::ECB);
 }
 
 //-----------------------------------------------------------------------------------
-unsigned int AES_decrypt(MetaContainer *mc, char *in_buffer, unsigned int in_buffer_size, char *out_buffer, unsigned int out_buffer_size, char *key, unsigned int key_size) {
+unsigned int AES_decrypt(MetaContainer *mc, char *in_buffer, unsigned int in_buffer_size, char *out_buffer, unsigned int out_buffer_size, char *key, unsigned int key_size, bool cbc = false) {
+    if (in_buffer_size < key_size + 5)
+        return 0;
+
+    if (*in_buffer != 'x')
+        return 0;
 #ifdef __WITH_INTEL_LIB
     if (hardware_aes) {
-        if (*in_buffer != 'x')
-            return 0;
-
         in_buffer++;
-        AES_int32 size = *(AES_int32 *)in_buffer;
+        AES_int32 size = ntohl(*(AES_int32 *)in_buffer);
+        if (size > in_buffer_size - 5)
+            return 0;
         in_buffer      += sizeof(AES_int32);
         in_buffer_size -= sizeof(AES_int32) + 1;
-        int blocks;
+        int blocks = in_buffer_size / key_size;
+        if (!blocks)
+            return 0;
 
         switch (key_size) {
             case 16:
-                blocks = in_buffer_size / key_size;
-                intel_AES_dec128((unsigned char *)in_buffer, (unsigned char *)out_buffer, (unsigned char *)key, blocks);
+                if (cbc)
+                    intel_AES_dec128_CBC((unsigned char *)in_buffer, (unsigned char *)out_buffer, (unsigned char *)key, blocks, mc->in_init_vector);
+                else
+                    intel_AES_dec128((unsigned char *)in_buffer, (unsigned char *)out_buffer, (unsigned char *)key, blocks);
                 return size;
 
             case 24:
-                blocks = in_buffer_size / key_size;
-                intel_AES_dec192((unsigned char *)in_buffer, (unsigned char *)out_buffer, (unsigned char *)key, blocks);
+                if (cbc)
+                    intel_AES_dec192_CBC((unsigned char *)in_buffer, (unsigned char *)out_buffer, (unsigned char *)key, blocks, mc->in_init_vector);
+                else
+                    intel_AES_dec192((unsigned char *)in_buffer, (unsigned char *)out_buffer, (unsigned char *)key, blocks);
                 return size;
 
             case 32:
-                blocks = in_buffer_size / key_size;
-                intel_AES_dec256((unsigned char *)in_buffer, (unsigned char *)out_buffer, (unsigned char *)key, blocks);
+                if (cbc)
+                    intel_AES_dec256_CBC((unsigned char *)in_buffer, (unsigned char *)out_buffer, (unsigned char *)key, blocks, mc->in_init_vector);
+                else
+                    intel_AES_dec256((unsigned char *)in_buffer, (unsigned char *)out_buffer, (unsigned char *)key, blocks);
                 return size;
         }
     }
@@ -1172,7 +1256,7 @@ unsigned int AES_decrypt(MetaContainer *mc, char *in_buffer, unsigned int in_buf
     if (!mc->Dec_inited)
         mc->Dec_inited = decrypt_init(&mc->DecryptAes, key, key_size);
 
-    return decrypt(&mc->DecryptAes, in_buffer, in_buffer_size, out_buffer, out_buffer_size);
+    return decrypt(&mc->DecryptAes, in_buffer, in_buffer_size, out_buffer, out_buffer_size, cbc ? AES::CBC : AES::ECB);
 }
 
 //-----------------------------------------------------------------------------------
@@ -1675,7 +1759,7 @@ void send_message_function(char *Owner, char *Target, int message, char *Value, 
 
     val.LoadBuffer(Value, len);
     GET_METACONTAINER2
-        send_message2(mc, Owner, Target, message, Value, NULL, CLIENT_SOCKET);
+    send_message2(mc, Owner, Target, message, Value, (char *)NULL, CLIENT_SOCKET);
 }
 
 #ifdef __GNUC__
@@ -1981,20 +2065,17 @@ void send_message2(MetaContainer *mc, AnsiString Owner, AnsiString Target, int m
     } else {
         if (REMOTE_PUBLIC_KEY) {
             // criptez query-ul ...
-            int  out_content_size = (in_content_size / 16 + 1) * 16 + 5;//(((in_content_size / 48) + 1) * 64) + 256;
+            int  out_content_size = (in_content_size / 16 + 1) * 16 + 5;
             char *ptr             = new char[out_content_size + sizeof(int)];
 
             char *out_content = ptr + sizeof(int);
 
             semp(mc->sem_send);
-            int encrypt_result = AES_encrypt(mc,
-                                             buffer, in_content_size,
-                                             out_content, out_content_size,
-                                             REMOTE_PUBLIC_KEY, 16);
+            int encrypt_result = AES_encrypt(mc, buffer, in_content_size, out_content, out_content_size, REMOTE_PUBLIC_KEY, 16, true);
             semv(mc->sem_send);
 
             if (!encrypt_result) {
-                delete[] ptr;    //out_content;
+                delete[] ptr;
                 delete[] (buffer - sizeof(int));
                 return;
             }
@@ -2002,7 +2083,7 @@ void send_message2(MetaContainer *mc, AnsiString Owner, AnsiString Target, int m
             int size = encrypt_result;
             *(int *)ptr = htonl(size);
             deturnated_send(mc, CLIENT_SOCKET, ptr, size + sizeof(int), 0);
-            delete[] ptr;//out_content;
+            delete[] ptr;
         } else
             deturnated_send(mc, CLIENT_SOCKET, buffer - sizeof(int), in_content_size + sizeof(int), 0);
         delete[] (buffer - sizeof(int));
@@ -2011,11 +2092,8 @@ void send_message2(MetaContainer *mc, AnsiString Owner, AnsiString Target, int m
 
 //-----------------------------------------------------------------------------------
 CONCEPT_DLL_API CONCEPT_send_message CONCEPT_API_PARAMETERS {
-    // send_message( TargetName, MESSAGE_ID, MESSAGE_RESERVED, MESSAGE_DATA)
     if (PARAMETERS->COUNT != 4)
         return (void *)"send_message: function takes 4 parameters(usage: send_message [static string OWNER_NAME, static number MESSAGE_ID, string TARGET, static any MESSAGE_DATA)]";
-    //if ((PARAMETERS->COUNT<4) || (PARAMETERS->COUNT>5))
-    //    return (void *)"send_message: function takes 4 or 5 parameters(usage: send_message [static string OWNER_NAME, static number MESSAGE_ID, string TARGET, static any MESSAGE_DATA[, boolean threaded=false])]";
 
     char    *SENDER_NAME;
     char    *MESSAGE_DATA;
@@ -2088,10 +2166,7 @@ CONCEPT_DLL_API CONCEPT_send_message CONCEPT_API_PARAMETERS {
             char *out_content = ptr + sizeof(int);
 
             semp(mc->sem_send);
-            int encrypt_result = AES_encrypt(mc,
-                                             buffer, in_content_size,
-                                             out_content, out_content_size,
-                                             REMOTE_PUBLIC_KEY, 16);
+            int encrypt_result = AES_encrypt(mc, buffer, in_content_size, out_content, out_content_size, REMOTE_PUBLIC_KEY, 16, !is_udp);
             semv(mc->sem_send);
 
             if (!encrypt_result) {
@@ -2106,9 +2181,9 @@ CONCEPT_DLL_API CONCEPT_send_message CONCEPT_API_PARAMETERS {
             if ((mc->is_cached) && (!is_udp)) {
                 Cache(mc, out_content, size);
             } else {
-                res = deturnated_send(mc, CLIENT_SOCKET, ptr, size + sizeof(int), 0, is_udp);
+                res = deturnated_send(mc, CLIENT_SOCKET, ptr, size + sizeof(int), 0, is_udp, 1);
             }
-            delete[] ptr;    //out_content;
+            delete[] ptr;
         } else {
             if (mc->is_cached) {
                 Cache(mc, buffer, in_content_size);
@@ -2396,9 +2471,6 @@ CONCEPT_DLL_API CONCEPT_wait_message_ID CONCEPT_API_PARAMETERS {
                 SetVariable(LOCAL_CONTEXT[PARAMETERS->PARAM_INDEX[3] - 1], VARIABLE_STRING, "", 0);
                 SetVariable(RESULT, VARIABLE_NUMBER, "", 0);
 
-                //SetVariable(LOCAL_CONTEXT[PARAMETERS->PARAM_INDEX[1]-1],VARIABLE_NUMBER,"",0x500);
-                //SetVariable(RESULT,VARIABLE_NUMBER,"",0);
-                //return (void *)"wait_message_ID: socket disconnected or host down";
                 mc->force_exit = 1;
                 return 0;
             }
@@ -2407,10 +2479,7 @@ CONCEPT_DLL_API CONCEPT_wait_message_ID CONCEPT_API_PARAMETERS {
             if (LOCAL_PRIVATE_KEY) {
                 out_content  = new char[size * 2];
                 buffer[size] = 0;
-                int decrypt_result = AES_decrypt(mc,
-                                                 buffer, size,
-                                                 out_content, size,
-                                                 LOCAL_PRIVATE_KEY, /*strlen(LOCAL_PRIVATE_KEY)*/ 16);
+                int decrypt_result = AES_decrypt(mc, buffer, size, out_content, size, LOCAL_PRIVATE_KEY, 16, true);
                 out_content[decrypt_result] = 0;
                 if (!decrypt_result) {
                     delete[] out_content;
@@ -2435,7 +2504,25 @@ CONCEPT_DLL_API CONCEPT_wait_message_ID CONCEPT_API_PARAMETERS {
         int is_looked = 1;
 
         char buf_tmp[0xFF];
-        DeSerializeBuffer2(out_content ? out_content : buffer, size, &Owner, &OwnerLen, &message_id, &Target, &TargetLen, &Value, &ValueLen, size2, buf_tmp);
+        if (DeSerializeBuffer2(out_content ? out_content : buffer, size, &Owner, &OwnerLen, &message_id, &Target, &TargetLen, &Value, &ValueLen, size2, buf_tmp) < 0) {
+            if (out_content) {
+                delete[] out_content;
+                out_content = 0;
+            }
+
+            if (buffer) {
+                delete[] buffer;
+                buffer = 0;
+            }
+            mc->force_exit = 1;
+            mc->send_failed = 1;
+            SetVariable(LOCAL_CONTEXT[PARAMETERS->PARAM_INDEX[1] - 1], VARIABLE_NUMBER, "", 0);
+            SetVariable(LOCAL_CONTEXT[PARAMETERS->PARAM_INDEX[2] - 1], VARIABLE_STRING, "", 0);
+            SetVariable(LOCAL_CONTEXT[PARAMETERS->PARAM_INDEX[3] - 1], VARIABLE_STRING, "", 0);
+            SetVariable(RESULT, VARIABLE_NUMBER, "", -1);
+            return 0;
+        }
+
         if ((message_id == MSG_ID) && (OWNER > 0)) {
             if (OwnerLen) {
                 temp.LoadBuffer(Owner, OwnerLen);
@@ -2631,7 +2718,7 @@ int peek_UDP_message(MetaContainer *mc, ParamList *PARAMETERS, VariableDATA **LO
     if (LOCAL_PRIVATE_KEY) {
         out_content  = (char *)malloc(size * 2);
         buffer[size] = 0;
-        int decrypt_result = AES_decrypt(mc, buffer, size, out_content, size, LOCAL_PRIVATE_KEY, 16);
+        int decrypt_result = AES_decrypt(mc, buffer, size, out_content, size, LOCAL_PRIVATE_KEY, 16, false);
         out_content[decrypt_result] = 0;
         if (!decrypt_result) {
             free(out_content);
@@ -2646,6 +2733,7 @@ int peek_UDP_message(MetaContainer *mc, ParamList *PARAMETERS, VariableDATA **LO
     int        message_id;
 
     DeSerializeBuffer(out_content ? out_content : buffer, size, &Owner, &message_id, &Target, &Value, size2);
+
     int valid_stream_message = 0;
     if ((message_id == 0x1001) && (Target == def_msg)) {
         valid_stream_message = 1;
@@ -3142,10 +3230,7 @@ CONCEPT_DLL_API CONCEPT_get_message CONCEPT_API_PARAMETERS {
         if (LOCAL_PRIVATE_KEY) {
             out_content  = (char *)malloc(size * 2);
             buffer[size] = 0;
-            int decrypt_result = AES_decrypt(mc,
-                                             buffer, size,
-                                             out_content, size,
-                                             LOCAL_PRIVATE_KEY, /*strlen(LOCAL_PRIVATE_KEY)*/ 16);
+            int decrypt_result = AES_decrypt(mc, buffer, size, out_content, size, LOCAL_PRIVATE_KEY, 16, true);
             out_content[decrypt_result] = 0;
             if (!decrypt_result) {
                 free(out_content);
@@ -3159,7 +3244,10 @@ CONCEPT_DLL_API CONCEPT_get_message CONCEPT_API_PARAMETERS {
     AnsiString Value;
     int        message_id;
 
-    DeSerializeBuffer(out_content ? out_content : buffer, size, &Owner, &message_id, &Target, &Value, size2);
+    if (DeSerializeBuffer(out_content ? out_content : buffer, size, &Owner, &message_id, &Target, &Value, size2)) {
+        message_id = 0x500;
+        mc->force_exit = 1;
+    }
 
     SetVariable(
         LOCAL_CONTEXT[PARAMETERS->PARAM_INDEX[0] - 1],
@@ -3210,7 +3298,7 @@ CONCEPT_DLL_API CONCEPT_confirm_message CONCEPT_API_PARAMETERS {
         return (void *)"confirm_message: 1st parameter should be of STATIC NUMBER type";
 
     GET_METACONTAINER
-        deturnated_send(mc, CLIENT_SOCKET, (char *)&NUMBER_DATA, sizeof(NUMBER), 0);
+    deturnated_send(mc, CLIENT_SOCKET, (char *)&NUMBER_DATA, sizeof(NUMBER), 0);
 
     return 0;
 }
@@ -5671,5 +5759,25 @@ CONCEPT_FUNCTION_IMPL(HasNewProtoSocket, 0)
     } else {
         RETURN_NUMBER(0)
     }
+END_IMPL
+//------------------------------------------------------------------------
+CONCEPT_FUNCTION_IMPL(SetInitializationVectors, 2)
+    T_STRING(0)
+    T_STRING(1)
+
+    GET_METACONTAINER
+
+    int len_send = PARAM_LEN(0);
+    if (len_send > 32)
+        len_send = 32;
+    int len_recv = PARAM_LEN(1);
+    if (len_recv > 32)
+        len_recv = 32;
+#ifdef __WITH_INTEL_LIB
+    memcpy(mc->out_init_vector, PARAM(0), len_send);
+    memcpy(mc->in_init_vector, PARAM(1), len_recv);
+#endif
+    memcpy(mc->EncryptAes.buffer, PARAM(0), len_send);
+    memcpy(mc->EncryptAes.buffer, PARAM(1), len_recv);
 END_IMPL
 //------------------------------------------------------------------------
