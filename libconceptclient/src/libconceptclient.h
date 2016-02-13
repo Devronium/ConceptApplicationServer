@@ -56,6 +56,7 @@ extern "C" {
 
     DLL_EXPORT int CompensateCode(void *client, char *code, int len);
     DLL_EXPORT int NotifyEvent(void *client, char *entry_point, int Sender, char *EventData, int len);
+    DLL_EXPORT void SetVectors(void *client, unsigned char *v_send, int v_send_len, unsigned char *v_recv, int v_recv_len); 
 #ifdef __cplusplus
 }
 #endif

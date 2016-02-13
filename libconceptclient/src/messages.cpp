@@ -356,7 +356,7 @@ int DeSerializeBuffer(char *buffer, int size, AnsiString *Owner, int *message, A
 }
 
 //-----------------------------------------------------------------------------------
-char *SerializeBuffer(char **buffer, int *size, AnsiString *Owner, int message, AnsiString *Target, AnsiString *Value, bool buferize, FILE **file_buffer, int *fsize, char no_key, int *is_realtime) {
+char *SerializeBuffer(CConceptClient *Client, char **buffer, int *size, AnsiString *Owner, int message, AnsiString *Target, AnsiString *Value, bool buferize, FILE **file_buffer, int *fsize, char no_key, int *is_realtime) {
     // OWNER poate avea maxim 256 octeti
     int vsize = Value->Length();
     int tlen  = Target->Length();
@@ -380,8 +380,10 @@ char *SerializeBuffer(char **buffer, int *size, AnsiString *Owner, int message, 
         if ((no_key) && (vsize) && (vsize <= 0x9FFF)) {
             unsigned int owner = Owner->ToInt();
             if (owner <= 0xFFF) {
-                if (vsize <= 0xFFFF)
-                    *is_realtime = 1;
+                if (vsize <= 65000) {
+                    if ((is_realtime) && (Client) && (Client->RTSOCKET > 0) && (Client->LinkContainer.serveraddr.ss_family))
+                        *is_realtime = 1;
+                }
                 *size = vsize;
                 char *ptr = new char[*size + sizeof(int)];
                 write_network_uint(ptr, ((unsigned int)*size) | (unsigned int)0xF0000000 | (owner << 16));
@@ -440,23 +442,22 @@ char *SerializeBuffer(char **buffer, int *size, AnsiString *Owner, int message, 
 }
 
 //-----------------------------------------------------------------------------------
-unsigned int AES_encrypt(char *in_buffer, unsigned int in_buffer_size, char *out_buffer, unsigned int out_buffer_size, char *key, unsigned int key_size) {
+unsigned int AES_encrypt(char *in_buffer, unsigned int in_buffer_size, char *out_buffer, unsigned int out_buffer_size, char *key, unsigned int key_size, bool cbc = false) {
     if (!En_inited)
         encrypt_init(key, key_size);
 
-    return encrypt(in_buffer, in_buffer_size, out_buffer, out_buffer_size);
+    return encrypt(in_buffer, in_buffer_size, out_buffer, out_buffer_size, cbc);
 }
 
 //-----------------------------------------------------------------------------------
-unsigned int AES_decrypt(char *in_buffer, unsigned int in_buffer_size, char *out_buffer, unsigned int out_buffer_size, char *key, unsigned int key_size, char ignore_size = 0) {
+unsigned int AES_decrypt(char *in_buffer, unsigned int in_buffer_size, char *out_buffer, unsigned int out_buffer_size, char *key, unsigned int key_size, char ignore_size = 0, bool cbc = false) {
     if (!Dec_inited)
         decrypt_init(key, key_size);
 
-    return decrypt(in_buffer, in_buffer_size, out_buffer, out_buffer_size, ignore_size);
+    return decrypt(in_buffer, in_buffer_size, out_buffer, out_buffer_size, ignore_size, cbc);
 }
 
-//-----------------------------------------------------------------------------------
-
+//----------------------------------------------------------------------------------- 
 int send_message(CConceptClient *OWNER, AnsiString SENDER_NAME, int MESSAGE_ID, AnsiString MESSAGE_TARGET, AnsiString& MESSAGE_DATA, SOCKET CLIENT_SOCKET, char *REMOTE_PUBLIC_KEY, PROGRESS_API notify_parent, bool idle_call) {
     INTEGER res              = 0;
     char    *buffer          = 0;
@@ -470,7 +471,7 @@ int send_message(CConceptClient *OWNER, AnsiString SENDER_NAME, int MESSAGE_ID, 
         MESSAGE_ID     = 0x110;
         MESSAGE_TARGET = "";
     }
-    char *base_ptr = SerializeBuffer(&buffer, &in_content_size, &SENDER_NAME, MESSAGE_ID, &MESSAGE_TARGET, &MESSAGE_DATA, buferize, &in, &file_buffer_size, !REMOTE_PUBLIC_KEY, &is_realtime);
+    char *base_ptr = SerializeBuffer(OWNER, &buffer, &in_content_size, &SENDER_NAME, MESSAGE_ID, &MESSAGE_TARGET, &MESSAGE_DATA, buferize, &in, &file_buffer_size, !REMOTE_PUBLIC_KEY, &is_realtime);
     int  size_n;
 
 
@@ -479,9 +480,7 @@ int send_message(CConceptClient *OWNER, AnsiString SENDER_NAME, int MESSAGE_ID, 
         int  out_content_size = (in_content_size / RANDOM_KEY_SIZE + 1) * RANDOM_KEY_SIZE + 5; //(((in_content_size / 48) + 1) * 64) + 256;
         char *out_content     = new char[out_content_size];
 
-        int encrypt_result = AES_encrypt(buffer, in_content_size,
-                                         out_content, out_content_size,
-                                         REMOTE_PUBLIC_KEY, RANDOM_KEY_SIZE);
+        int encrypt_result = AES_encrypt(buffer, in_content_size, out_content, out_content_size, REMOTE_PUBLIC_KEY, RANDOM_KEY_SIZE, true);
         if (!encrypt_result) {
             delete[] out_content;
             return 0;
@@ -592,9 +591,7 @@ int AES_recv_exact(CConceptClient *OWNER, SOCKET CLIENT_SOCKET, char *buffer, in
     } while ((rec > 0) && (remaining > 0));
     if ((!remaining) && (size)) {
         char *out_content   = new char[size + 1];
-        int  decrypt_result = AES_decrypt(buffer, size,
-                                          out_content, size,
-                                          LOCAL_PRIVATE_KEY, RANDOM_KEY_SIZE, 1);
+        int  decrypt_result = AES_decrypt(buffer, size, out_content, size, LOCAL_PRIVATE_KEY, RANDOM_KEY_SIZE, 1, true);
         out_content[decrypt_result] = 0;
         if (!decrypt_result)
             delete[] out_content;
@@ -667,7 +664,7 @@ int get_message(CConceptClient *OWNER, TParameters *PARAM, SOCKET CLIENT_SOCKET,
             if (LOCAL_PRIVATE_KEY) {
                 out_content    = new char[size * 2];
                 buffer[size]   = 0;
-                decrypt_result = AES_decrypt(buffer, size, out_content, size, LOCAL_PRIVATE_KEY, RANDOM_KEY_SIZE);
+                decrypt_result = AES_decrypt(buffer, size, out_content, size, LOCAL_PRIVATE_KEY, RANDOM_KEY_SIZE, 0, false);
 
                 out_content[decrypt_result] = 0;
                 if (!decrypt_result) {
@@ -788,7 +785,7 @@ int get_message(CConceptClient *OWNER, TParameters *PARAM, SOCKET CLIENT_SOCKET,
                     PARAM->Target = (char *)"";
                     if (LOCAL_PRIVATE_KEY) {
                         buffer[rec_count] = 0;
-                        decrypt_result    = AES_decrypt(buffer, rec_count, out_content2, rec_count, LOCAL_PRIVATE_KEY, RANDOM_KEY_SIZE);
+                        decrypt_result    = AES_decrypt(buffer, rec_count, out_content2, rec_count, LOCAL_PRIVATE_KEY, RANDOM_KEY_SIZE, 0, true);
                         if (decrypt_result) {
                             decrypt_result = rec_count - 5;
                             out_content2[decrypt_result] = 0;
@@ -849,9 +846,7 @@ int get_message(CConceptClient *OWNER, TParameters *PARAM, SOCKET CLIENT_SOCKET,
         if (LOCAL_PRIVATE_KEY) {
             out_content    = new char[size * 2];
             buffer[size]   = 0;
-            decrypt_result = AES_decrypt(buffer, size,
-                                         out_content, size,
-                                         LOCAL_PRIVATE_KEY, RANDOM_KEY_SIZE);
+            decrypt_result = AES_decrypt(buffer, size, out_content, size, LOCAL_PRIVATE_KEY, RANDOM_KEY_SIZE, 0, true);
 
             out_content[decrypt_result] = 0;
             if (!decrypt_result) {
@@ -1349,3 +1344,13 @@ AnsiString SwitchP2P(CConceptClient *owner, char *host) {
     sendto(owner->RTSOCKET, "hi", 2, 0, (struct sockaddr *)&owner->LinkContainer.p2paddr, owner->LinkContainer.p2paddr_len);
     return result;
 }
+
+void SetVectors(void *client, unsigned char *v_send, int v_send_len, unsigned char *v_recv, int v_recv_len) {
+    if (v_send_len > 64)
+        v_send_len = 64;
+    memcpy(EncryptAes.buffer, v_send, v_send_len);
+
+    if (v_recv_len > 64)
+        v_recv_len = 64;
+    memcpy(DecryptAes.buffer, v_recv, v_recv_len);
+} 

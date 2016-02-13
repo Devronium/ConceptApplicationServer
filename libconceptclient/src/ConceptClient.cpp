@@ -13,6 +13,7 @@ extern "C" {
   #define IPV6_V6ONLY    27
  #endif
  #define SHUT_RDWR       SD_BOTH
+ #include <wincrypt.h>
 #else
  #include <sys/select.h>
  #include <time.h>
