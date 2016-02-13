@@ -193,7 +193,7 @@ int session_send(CConceptClient *OWNER, int CLIENT_SOCKET, char *buf, int size, 
                         RTSOCKET        = INVALID_SOCKET;
                         fprintf(stderr, "Dropping RT socket (send) (errno: %i, size: %i)\n", (int)errno, size);
                     }
-                    continue;
+                    return size;
                 }
             }
         } else
@@ -480,7 +480,7 @@ int send_message(CConceptClient *OWNER, AnsiString SENDER_NAME, int MESSAGE_ID, 
         int  out_content_size = (in_content_size / RANDOM_KEY_SIZE + 1) * RANDOM_KEY_SIZE + 5; //(((in_content_size / 48) + 1) * 64) + 256;
         char *out_content     = new char[out_content_size];
 
-        int encrypt_result = AES_encrypt(buffer, in_content_size, out_content, out_content_size, REMOTE_PUBLIC_KEY, RANDOM_KEY_SIZE, true);
+        int encrypt_result = AES_encrypt(buffer, in_content_size, out_content, out_content_size, REMOTE_PUBLIC_KEY, RANDOM_KEY_SIZE, !is_realtime);
         if (!encrypt_result) {
             delete[] out_content;
             return 0;
