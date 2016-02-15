@@ -14,7 +14,7 @@
 int get_message(CConceptClient *OWNER, TParameters *PARAM, SOCKET CLIENT_SOCKET, char *LOCAL_PRIVATE_KEY, PROGRESS_API notify_parent = 0, bool idle_call = false);
 int send_message(CConceptClient *OWNER, AnsiString SENDER_NAME, int MESSAGE_ID, AnsiString MESSAGE_TARGET, AnsiString& MESSAGE_DATA, SOCKET CLIENT_SOCKET, char *REMOTE_PUBLIC_KEY, PROGRESS_API notify_parent = 0, bool idle_call = false);
 void set_next_post_filename(char *filename);
-void ResetMessages();
+void ResetMessages(CConceptClient *OWNER);
 int wait_message(CConceptClient *OWNER, TParameters *PARAM, int MESSAGE_ID, SOCKET CLIENT_SOCKET, char *LOCAL_PRIVATE_KEY, PROGRESS_API notify_parent = 0);
 int have_messages(CConceptClient *OWNER, SOCKET CLIENT_SOCKET);
 void InitUDP(CConceptClient *owner, int port);

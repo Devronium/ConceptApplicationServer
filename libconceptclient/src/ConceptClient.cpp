@@ -106,7 +106,7 @@ int CConceptClient::timedout_recv(SOCKET _socket, char *buffer, int size, int fl
 }
 
 void CConceptClient::GenerateRandomAESKey(AnsiString *res, int len) {
-    ResetMessages();
+    ResetMessages(this);
     char key[0xFFF];
     if (len > 0xFFF)
         len = 0xFFF;

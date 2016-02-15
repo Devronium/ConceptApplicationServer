@@ -54,6 +54,7 @@ extern "C" {
 #include "AnsiList.h"
 #include "CompensationParser.h"
 #include "semhh.h"
+#include "AES/aes.h"
 
 typedef void (*PROGRESS_API)(void *client, int how_much, int message);
 typedef int (*VERIFY_API)(void *clinet, int code, void *ssl, int flags);
@@ -94,6 +95,11 @@ public:
     struct sockaddr_storage lastaddr;
     socklen_t lastaddr_len;
     int       is_p2p;
+    AES  EncryptAes;
+    AES  DecryptAes;
+    char En_inited;
+    char Dec_inited;
+
 
     MessageDataContainer() {
         PostFile = NULL;
@@ -101,6 +107,8 @@ public:
         p2paddr_len = 0;
         lastaddr_len = 0;
         is_p2p = 0;
+        En_inited = 0;
+        Dec_inited = 0;
     }
 
     ~MessageDataContainer() {
