@@ -23,7 +23,7 @@ include REdit.con
 include CSV.con
 include Application.con
 include WebDocument.con
-include MemCached.con
+include RedisClient.con
 
 include HTMLTrimmer.con
 include _AllPlugins.con
@@ -2912,7 +2912,7 @@ class Utils {
 		return "09:00";
 	}
 
-	static function Cache(string app, string key, val, timeout=-1) {
+	static function Cache(string app, string key, val, timeout=0) {
 		var m=GLOBALS()["application.MemCached"];
 		if (m) {
 			var data;
@@ -2926,13 +2926,10 @@ class Utils {
 				case "delegate":
 					throw "Don't know how to store a delegate in memcached";
 				default:
-					var data2=new _MemCachedDataContainer();
-					data2.Data=val;
-					data=data2.Serialize("");
+					data=BinarizeObject([val]);
 			}
-			key=sha1(key);
 			try {
-				m.SetByKey(app, key, data, timeout);
+				m.Set(app + "/" + key, data, timeout);
 			} catch (var exc) {
 				return -1;
 			}
@@ -2946,15 +2943,19 @@ class Utils {
 		result=null;
 		if (m) {
 			try {
-				key=sha1(key);
-				var data=m.GetByKey(app, key);
+				var master_key = app + "/" + key;
+				if (!m.Exists(master_key))
+					return false;
+				var data=m.Get(master_key);
+
 				if (need_object) {
-					if (data)
-						data=Serializable.UnSerialize(data, true);
-					if (data)
-						result=data.Data;
-				} else
-					result=data;
+					if (data) {
+						data = UnBinarizeObject(data);
+						if (data)
+							data = data[0];
+					}
+				}
+				result=data;
 			} catch (var exc) {
 				// nothing;
 				return false;

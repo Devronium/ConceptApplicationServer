@@ -218,7 +218,7 @@ Application date: {application_time}, Client version: {client_version}
 			        <p class="courier">Statistics taken on {statistics_time} (<a href="internal://gorefresh">click here to refresh statistics</a>)</p>
 			</td></tr>
             		<tr>
-                		<td>This application was created using GyroGears 2.0 &copy;2008-2016 Devronium Applications. <br />For more details please visit <a href="http://www.devronium.com">http://www.devronium.com</a>. </td>
+                		<td>This application was created using GyroGears 2.0 &copy;2008-2015 Devronium Applications. <br />For more details please visit <a href="http://www.devronium.com">http://www.devronium.com</a>. </td>
         		</tr>
 		</table>
 </body>

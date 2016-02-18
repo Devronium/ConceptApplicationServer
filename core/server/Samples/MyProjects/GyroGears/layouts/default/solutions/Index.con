@@ -77,7 +77,7 @@ class MainForm extends RForm {
         this.Position=WP_CENTER;
         this.Width=450;
         this.Height=330;
-        this.Type=WT_DIALOG;
+        //this.Type=WT_DIALOG;
 
         vbox1=new RVBox(this);
         vbox1.Visible=true;
@@ -116,6 +116,7 @@ class MainForm extends RForm {
 
         var mbutton=new RButton(mbox);
         mbutton.ReliefStyle=RELIEF_NONE;
+	mbutton.Packing=PACK_SHRINK;
         mbutton.OnClicked=this.on_master_clicked;
         mbutton.Show();
 

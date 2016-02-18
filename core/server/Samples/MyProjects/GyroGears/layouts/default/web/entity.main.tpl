@@ -196,7 +196,7 @@
 </div>
 <div id="footer">
   Do you like this application?<br/>
-  It was created in only a few minutes using <a href="http://devronium.com/GyroGears.html">GyroGears</a> &#xA9; 2008-2014 <a href="http://devronium.com">Devronium Applications</a>.
+  It was created in only a few minutes using <a href="http://devronium.com/GyroGears.html">GyroGears</a> &#xA9; 2008-2016 <a href="http://devronium.com">Devronium Applications</a>.
 </div>
 </div>
 </body>

@@ -23,7 +23,7 @@ include REdit.con
 include CSV.con
 include Application.con
 include WebDocument.con
-include MemCached.con
+include RedisClient.con
 
 include HTMLTrimmer.con
 include _AllPlugins.con
@@ -47,6 +47,7 @@ class CustomStatElement{
     var entity="";
     var[] stats;
     var chartfilename="";
+    var svg="";
 }
 
 class CustomStat {
@@ -111,10 +112,6 @@ class _PlugInDataContainer {
 
 	var Handler=null;
 	var UserData=null;
-}
-
-class _MemCachedDataContainer extends Serializable {
-	var Data;
 }
 
 class ReportXML extends Serializable {
@@ -852,7 +849,7 @@ class Utils {
 
             if ((!true_width) || (!true_height)) {
                 FreeImage_Unload(hBitmap);
-                _unlink("temp/"+image_name);
+                _unlink(image_name);
                 return false;
             }
 
@@ -944,7 +941,7 @@ class Utils {
         image_type=ToLower(image_type);
         
         if (type<0) {
-            _unlink("temp/"+image_name);
+            _unlink("temp/" + image_name);
             return "";
         }
 
@@ -1261,9 +1258,12 @@ class Utils {
         return result;
     }
 
-    static function DoLineChart(array data, string filename="chart.png", number width=260, height=240, type=0) {
+    static function DoLineChart(array data, string filename="chart.png", number width=260, height=240, type=0, as_svg = false) {
 	var svg=LineChart::Do(data, width, height, type, 2);
-	WriteFile(SVG(svg), filename);
+	if (as_svg)
+		WriteFile(svg, filename);
+	else
+		WriteFile(SVG(svg), filename);
 	return filename;
     }
 /*
@@ -1373,13 +1373,20 @@ class Utils {
     }	
 */
 
-    static function DoPie(array data, string filename="chart.gif", number width=460, height=240) {
+    static function DoPie(array data, string filename="chart.gif", number width=460, height=240, as_svg = false) {
 	var svgdata=PieChart::Do(data, width, height);
 	if (svgdata) {
-		WriteFile(SVG(svgdata), filename);
+		if (as_svg)
+			WriteFile(svgdata, filename);
+		else
+			WriteFile(SVG(svgdata), filename);
 		return filename;
 	}
 	return false;
+    }
+
+    static function DoSVGPie(array data, number width=460, height=240) {
+	return PieChart::Do(data, width, height, -1, 0.90, 0.60, true);
     }
 
     static function ValidateDate(var string date, date_null_val="0001-01-01") {
@@ -2790,7 +2797,7 @@ class Utils {
 		return "09:00";
 	}
 
-	static function Cache(string app, string key, val, timeout=-1) {
+	static function Cache(string app, string key, val, timeout=0) {
 		var m=GLOBALS()["application.MemCached"];
 		if (m) {
 			var data;
@@ -2804,13 +2811,10 @@ class Utils {
 				case "delegate":
 					throw "Don't know how to store a delegate in memcached";
 				default:
-					var data2=new _MemCachedDataContainer();
-					data2.Data=val;
-					data=data2.Serialize("");
+					data=BinarizeObject([val]);
 			}
-			key=sha1(key);
 			try {
-				m.SetByKey(app, key, data, timeout);
+				m.Set(app + "/" + key, data, timeout);
 			} catch (var exc) {
 				return -1;
 			}
@@ -2824,15 +2828,19 @@ class Utils {
 		result=null;
 		if (m) {
 			try {
-				key=sha1(key);
-				var data=m.GetByKey(app, key);
+				var master_key = app + "/" + key;
+				if (!m.Exists(master_key))
+					return false;
+				var data=m.Get(master_key);
+
 				if (need_object) {
-					if (data)
-						data=Serializable.UnSerialize(data, true);
-					if (data)
-						result=data.Data;
-				} else
-					result=data;
+					if (data) {
+						data = UnBinarizeObject(data);
+						if (data)
+							data = data[0];
+					}
+				}
+				result=data;
 			} catch (var exc) {
 				// nothing;
 				return false;

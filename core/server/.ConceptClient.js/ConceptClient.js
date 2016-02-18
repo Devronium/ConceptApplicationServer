@@ -10828,7 +10828,7 @@ console.log(output2);
 
 				control.appendChild(image);
 				control.appendChild(blabel);
-				packing = PACK_EXPAND_WIDGET;
+				packing = PACK_SHRINK;
 				break;
 			case CLASS_TOOLBUTTON:
 			case CLASS_RADIOTOOLBUTTON:
