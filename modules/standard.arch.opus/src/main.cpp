@@ -14,6 +14,7 @@
 // Local variables         //
 //-------------------------//
 #define MAX_IN_SAMPLES    640
+#define USE_ALTERNATIVE_G711
 extern "C" {
 unsigned char linear2alaw(int pcm_val);
 int alaw2linear(unsigned char a_val);
@@ -22,6 +23,59 @@ int ulaw2linear(unsigned char u_val);
 unsigned char alaw2ulaw(unsigned char aval);
 unsigned char ulaw2alaw(unsigned char uval);
 }
+
+#ifdef USE_ALTERNATIVE_G711
+#define         SIGN_BIT        (0x80)
+#define         QUANT_MASK      (0xf)
+#define         NSEGS           (8)
+#define         SEG_SHIFT       (4)
+#define         SEG_MASK        (0x70)
+#define         BIAS            (0x84)
+
+static unsigned char *linear_to_alaw = NULL;
+static unsigned char *linear_to_ulaw = NULL;
+
+static int ffmpeg_alaw2linear(unsigned char a_val) {
+    int t;
+    int seg;
+    a_val ^= 0x55;
+    t = a_val & QUANT_MASK;
+    seg = ((unsigned)a_val & SEG_MASK) >> SEG_SHIFT;
+    if (seg)
+        t= (t + t + 1 + 32) << (seg + 2);
+    else
+        t= (t + t + 1     ) << 3;
+    return (a_val & SIGN_BIT) ? t : -t;
+}
+
+static int ffmpeg_ulaw2linear(unsigned char u_val) {
+    int t;
+    u_val = ~u_val;
+    t = ((u_val & QUANT_MASK) << 3) + BIAS;
+    t <<= ((unsigned)u_val & SEG_MASK) >> SEG_SHIFT;
+    return (u_val & SIGN_BIT) ? (BIAS - t) : (t - BIAS);
+}
+
+static void build_xlaw_table(unsigned char *linear_to_xlaw, int (*xlaw2linear)(unsigned char), int mask) {
+    int i, j, v, v1, v2;
+    j = 0;
+    for(i=0;i<128;i++) {
+        if (i != 127) {
+            v1 = xlaw2linear(i ^ mask);
+            v2 = xlaw2linear((i + 1) ^ mask);
+            v = (v1 + v2 + 4) >> 3;
+        } else {
+            v = 8192;
+        }
+        for(;j<v;j++) {
+            linear_to_xlaw[8192 + j] = (i ^ mask);
+            if (j > 0)
+                linear_to_xlaw[8192 - j] = (i ^ (mask ^ 0x80));
+        }
+    }
+    linear_to_xlaw[0] = linear_to_xlaw[1];
+}
+#endif
 
 INVOKE_CALL InvokePtr = 0;
 //-----------------------------------------------------//
@@ -448,29 +502,54 @@ END_IMPL
 CONCEPT_FUNCTION_IMPL(pcm2ulaw, 1)
     T_STRING(0)
     unsigned char *output = 0;
+#ifdef USE_ALTERNATIVE_G711
+    int v;
+    if (!linear_to_ulaw) {
+        linear_to_ulaw = (unsigned char *)malloc(16384);
+        build_xlaw_table(linear_to_ulaw, ffmpeg_ulaw2linear, 0xff);
+    }
+#endif
     int byte_len = PARAM_LEN(0);
     int length   = byte_len / 2;
     CORE_NEW(length + 1, output);
     output[length] = 0;
 
     short *input = (short *)PARAM(0);
-    for (int i = 0; i < length; i++)
+    for (int i = 0; i < length; i++) {
+#ifdef USE_ALTERNATIVE_G711
+        v = input[i];
+        output[i] = linear_to_ulaw[(v + 32768) >> 2];
+#else
         output[i] = linear2ulaw(input[i]);
-
+#endif
+    }
     SetVariable(RESULT, -1, (char *)output, length);
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(pcm2alaw, 1)
     T_STRING(0)
     unsigned char *output = 0;
+#ifdef USE_ALTERNATIVE_G711
+    int v;
+    if (!linear_to_alaw) {
+        linear_to_alaw = (unsigned char *)malloc(16384);
+        build_xlaw_table(linear_to_alaw, ffmpeg_alaw2linear, 0xd5);
+    }
+#endif
     int byte_len = PARAM_LEN(0);
     int length   = byte_len / 2;
     CORE_NEW(length + 1, output);
     output[length] = 0;
 
     short *input = (short *)PARAM(0);
-    for (int i = 0; i < length; i++)
+    for (int i = 0; i < length; i++) {
+#ifdef USE_ALTERNATIVE_G711
+        v = input[i];
+        output[i] = linear_to_alaw[(v + 32768) >> 2];
+#else
         output[i] = linear2alaw(input[i]);
+#endif
+    }
 
     SetVariable(RESULT, -1, (char *)output, length);
 END_IMPL
