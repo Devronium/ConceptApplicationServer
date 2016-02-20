@@ -102,12 +102,19 @@ struct json_object *do_array(void *arr, bool as_object) {
     void *newpData;
     char *key;
 
-    if (as_object) {
+    int count = InvokePtr(INVOKE_GET_ARRAY_COUNT, arr);
+
+    bool local_as_object = as_object;
+    if ((count > 0) && (as_object)) {
+        InvokePtr(INVOKE_GET_ARRAY_KEY, arr, 0, &key);
+        if ((!key) || (!key[0]))
+            local_as_object = false;
+    }
+
+    if (local_as_object) {
         my_obj = json_object_new_object();
     } else
         my_obj = json_object_new_array();
-
-    int count = InvokePtr(INVOKE_GET_ARRAY_COUNT, arr);
 
     for (int i = 0; i < count; i++) {
         newpData = 0;
@@ -120,7 +127,7 @@ struct json_object *do_array(void *arr, bool as_object) {
             NUMBER             nData;
             struct json_object *my_elem = 0;
 
-            if ((as_object) && (!key))
+            if ((local_as_object) && (!key))
                 continue;
 
             InvokePtr(INVOKE_GET_VARIABLE, newpData, &type, &szData, &nData);
@@ -148,7 +155,7 @@ struct json_object *do_array(void *arr, bool as_object) {
             }
 
             if (my_elem) {
-                if (as_object)
+                if (local_as_object)
                     json_object_object_add(my_obj, key, my_elem);
                 else
                     json_object_array_add(my_obj, my_elem);
