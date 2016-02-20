@@ -1,0 +1,111 @@
+import standard.lang.serialize
+
+class __DBDummy {
+	var CommandText;
+	var PreparedQuery;
+	var ExecuteQuery;
+	var ExecuteNonQuery;
+	var CloseRead;
+	var AddParameter;
+	var LastError;
+	var FieldValues;
+	var ToString;	
+	var ToNumber;
+	var ToBuffer;
+	var FetchForward;
+}
+
+class Db {
+	static query(object Connection, string q, params = null, discard_result = false) {
+		var type = classof Connection;
+		var prefix = type[0] + type[1];
+		if (prefix == "Da")
+			prefix = "ADO";
+		else
+		if (prefix == "Nu")
+			prefix = "Nuo";
+
+		var dataset_name = prefix + "DataSet";
+		var dataset = CreateObject2(dataset_name, Connection);
+		if (!dataset)
+			throw @class + "." + @member + ": Unsupported dataset";
+		if ((params) && (length params)) {
+			dataset.PreparedQuery = q;
+			for (var i = 0; i < length params; i++)
+				dataset.AddParameter("" + params[i]);
+		} else
+			dataset.CommandText = q;
+		var err = dataset.LastError();
+		if (err)
+			throw @class + "." + @member + ": query prepare error $q\nerror: $err";
+		if (discard_result)
+			dataset.ExecuteNonQuery();
+		else
+			dataset.ExecuteQuery(true);
+		err = dataset.LastError();
+		if (err)
+			throw @class + "." + @member + ": query error $q\nerror: $err";
+		if (discard_result)
+			return;
+		return dataset;
+	}
+
+	static next(object dataset) {
+		if (dataset.FetchForward()) {
+			var keys = GetKeys(dataset.FieldValues);
+			var record = new [];
+			for (var i = 0; i < length keys; i++) {
+				var k = keys[i];
+				record[k] = dataset.FieldValues[k].ToBuffer();
+			}
+			return record;
+		}
+		return null;
+	}
+
+	static foreach(object dataset, callback, userdata = null) {
+		while (dataset.FetchForward()) {
+			var keys = GetKeys(dataset.FieldValues);
+			var record = new [];
+			for (var i = 0; i < length keys; i++) {
+				var k = keys[i];
+				record[k] = dataset.FieldValues[k].ToBuffer();
+			}
+			if (userdata)
+				callback(record, userdata);
+			else
+				callback(record);
+		}
+		return null;
+	}
+
+	static upsert(object Connection, string q, params = null) {
+		Db::query(Connection, q, params, true);
+	}
+
+	static array(object Connection, string q, params = null) {		
+		var dataset = Db::query(Connection, q, params);
+		var[] arr;
+
+		if (dataset) {
+			var keys;
+			while (dataset.FetchForward()) {
+				if (!keys)
+					keys = GetKeys(dataset.FieldValues);
+
+				var record = new [];
+				for (var i = 0; i < length keys; i++) {
+					var k = keys[i];
+					record[k] = dataset.FieldValues[k].ToBuffer();
+				}
+				arr[length arr] = record;
+			}
+		}
+		return arr;
+	}
+
+	static done(dataset) {
+		if (dataset)
+			dataset.CloseRead();
+	}
+}
