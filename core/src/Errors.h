@@ -126,7 +126,7 @@
 #define ERR1208     "Formal parameter type is different from the default value type"
 #define ERR1209     "Invalid special constant (special constants are @line, @filename, @path, @time, @class and @member)"
 #define ERR1210     "Unexpected end of file / unmatch '{' with '}'"
-#define ERR1220     "Left of '::' is not a class"
+#define ERR1220     "Right of '::' is not a valid class member or left of '::' is not a class"
 #define ERR1230     "Class was implicitly declared (used before its declaration) and cannot be extended with a class declared (explicitly or implicitly) after the first reference to this class"
 #define ERR1240     "A class may not extend itself"
 #define ERR1250     "A class cannot have more than 65535 members."

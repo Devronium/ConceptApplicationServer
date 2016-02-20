@@ -916,7 +916,7 @@ INTEGER Optimizer::OptimizeExpression(TempVariableManager *TVM, INTEGER ID, INTE
 
             OE->Result_ID = newAE->ID;
 
-            // elimin STANGA operator DREAPTA
+            // remove LEFT operator RIGHT
             int idx             = FIRST_OPERATOR - 1;
             AnalizerElement *a1 = (AnalizerElement *)PIFList->Remove(idx);
             AnalizerElement *a2 = (AnalizerElement *)PIFList->Remove(idx);
@@ -936,15 +936,15 @@ INTEGER Optimizer::OptimizeExpression(TempVariableManager *TVM, INTEGER ID, INTE
                 if ((Parameter) && (Parameter->TYPE == TYPE_PARAM_LIST)) {
                     if ((OE->OperandLeft.ID != STATIC_CLASS_DLL) &&
                         (OE->OperandLeft.ID != STATIC_CLASS_DELEGATE)) {
-                        char *static_name = PIFOwner->GeneralMembers->Item(OE->OperandRight.ID - 1);
                         if (OE->OperandLeft.TYPE == TYPE_CLASS) {
+                            char *static_name = PIFOwner->GeneralMembers->Item(OE->OperandRight.ID - 1);
                             if (!((ClassCode *)PIFOwner->ClassList->Item(OE->OperandLeft.ID - 1))->CanBeRunStatic(static_name)) {
                                 AE = 0;
                                 PIFOwner->Errors.Add(new AnsiException(ERR950, AE ? AE->_DEBUG_INFO_LINE : LAST_LINE, 950, AnsiString(static_name), _DEBUG_INFO_FILENAME, _CLASS->NAME, _MEMBER), DATA_EXCEPTION);
                             }
                         } else {
                             AE = 0;
-                            PIFOwner->Errors.Add(new AnsiException(ERR1220, AE ? AE->_DEBUG_INFO_LINE : LAST_LINE, 1220, AnsiString(static_name), _DEBUG_INFO_FILENAME, _CLASS->NAME, _MEMBER), DATA_EXCEPTION);
+                            PIFOwner->Errors.Add(new AnsiException(ERR1220, AE ? AE->_DEBUG_INFO_LINE : LAST_LINE, 1220, AnsiString(""), _DEBUG_INFO_FILENAME, _CLASS->NAME, _MEMBER), DATA_EXCEPTION);
                         }
                     }
                     CopyElement(Parameter, &OE->OperandReserved);

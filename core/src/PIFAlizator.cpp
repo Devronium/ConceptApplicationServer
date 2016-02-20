@@ -1141,9 +1141,9 @@ INTEGER PIFAlizator::BuildFunction(ClassCode *CC, AnsiParser *P, INTEGER on_line
             }
         } else
 #ifdef CACHED_VARIABLES
-        if (((PREC_TYPE != TYPE_OPERATOR) || (PREC_ID != KEY_SEL)) && (TYPE == TYPE_METHOD) && (VariableIsDescribed(sPARSE, VDList, &CachedVariables, 1))) {
+        if (((PREC_TYPE != TYPE_OPERATOR) || ((PREC_ID != KEY_SEL) && (PREC_ID != KEY_DLL_CALL))) && (TYPE == TYPE_METHOD) && (VariableIsDescribed(sPARSE, VDList, &CachedVariables, 1))) {
 #else
-        if (((PREC_TYPE != TYPE_OPERATOR) || (PREC_ID != KEY_SEL)) && (TYPE == TYPE_METHOD) && (VariableIsDescribed(sPARSE, VDList))) {
+        if (((PREC_TYPE != TYPE_OPERATOR) || ((PREC_ID != KEY_SEL) && (PREC_ID != KEY_DLL_CALL))) && (TYPE == TYPE_METHOD) && (VariableIsDescribed(sPARSE, VDList))) {
 #endif
             TYPE = TYPE_VARIABLE;
         }
