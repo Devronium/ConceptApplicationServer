@@ -9,6 +9,8 @@ define TRANSACTION_COMMIT		1
 class SLDataRecord {
 	public var DATA;
 	private var ORDER;
+	private var TYPE;
+	public property Type { get TYPE }
 
 	public operator = (string x) {
 		this.DATA=x;
@@ -27,19 +29,19 @@ class SLDataRecord {
 		return value this.DATA;
 	}
 
-	function XMLSerialized() {
-		var XMLData;
-		if (typeof DATA=="class")
-			XMLData = "<ADODataRecord>" + this->DATA->XMLSerialized() + "\n</ADODataRecord>";
-		else
-			XMLData = "<ADODataRecord>" + this->DATA + "</ADODataRecord>";
 
-		return XMLData;
+	public function Value() {
+		switch (this.TYPE) {
+			case SQLITE_INTEGER:
+			case SQLITE_FLOAT:
+				return value this.DATA;
+		}
+		return this.DATA;
 	}
 
-	function SLDataRecord(ORD,LNK) {
+	function SLDataRecord(ORD,LNK,TYPE=-1) {
 		this.ORDER=ORD;
-		//this.LINK=LNK;
+		this.TYPE=TYPE;
 	}
 }
 
@@ -462,7 +464,7 @@ class SLDataSet {
 
 			//this->data_array->Add(0,name);
 			if (!this->data_array[name])
-				this->data_array[name]=new SLDataRecord(i,result);
+				this->data_array[name]=new SLDataRecord(i,result,DBColumnType(i));
 			else {
 				var tmp_index=2;
 				var temp_name="$name($tmp_index)";
@@ -470,7 +472,7 @@ class SLDataSet {
 					temp_name="$name($tmp_index)";
 					tmp_index++;
 				}
-				this->data_array[temp_name]=new SLDataRecord(i,result);
+				this->data_array[temp_name]=new SLDataRecord(i,result,DBColumnType(i));
 				_columns[i]=temp_name;
 			}
 		}

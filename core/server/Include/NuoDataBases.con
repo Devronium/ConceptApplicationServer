@@ -28,6 +28,10 @@ class NuoDataRecord {
 		return value this.DATA;
 	}
 
+	public function Value() {
+		return this.DATA;
+	}
+
 	function XMLSerialized() {
 		var XMLData;
 		if (typeof DATA=="class")

@@ -86,6 +86,8 @@ class PQDataRecord {
 	public var DATA;
 	private var ORDER;
 	private var LNK;
+	private var TYPE;
+	public property Type { get TYPE }
 
 	public operator = (string x) {
 		this.DATA=x;
@@ -127,19 +129,29 @@ class PQDataRecord {
 		return result;
 	}
 
-	function XMLSerialized() {
-		var XMLData;
-		if (typeof DATA=="class")
-			XMLData = "<ADODataRecord>" + this->DATA->XMLSerialized() + "\n</ADODataRecord>";
-		else
-			XMLData = "<ADODataRecord>" + this->DATA + "</ADODataRecord>";
-
-		return XMLData;
+	public function Value() {
+		switch (this.TYPE) {
+			case BOOLOID:
+			case INT8OID:
+			case INT2OID:
+			case INT4OID:
+			case FLOAT4OID:
+			case FLOAT8OID:
+			case ABSTIMEOID:
+			case RELTIMEOID:
+				return this.ToNumber();
+			case OIDOID:
+				return this.LO();
+			// case TEXTOID:
+			//	return this.ToString(this.DATA);
+		}
+		return this.DATA;
 	}
 
-	function PQDataRecord(ORD,_CON) {
+	function PQDataRecord(ORD,_CON,TYPE=-1) {
 		this.ORDER=ORD;
 		this.LNK=_CON;
+		this.TYPE=TYPE;
 	}
 }
 

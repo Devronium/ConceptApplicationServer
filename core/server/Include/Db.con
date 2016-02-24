@@ -9,9 +9,7 @@ class __DBDummy {
 	var AddParameter;
 	var LastError;
 	var FieldValues;
-	var ToString;	
-	var ToNumber;
-	var ToBuffer;
+	var Value;
 	var FetchForward;
 }
 
@@ -56,7 +54,7 @@ class Db {
 			var record = new [];
 			for (var i = 0; i < length keys; i++) {
 				var k = keys[i];
-				record[k] = dataset.FieldValues[k].ToBuffer();
+				record[k] = dataset.FieldValues[k].Value();
 			}
 			return record;
 		}
@@ -69,7 +67,7 @@ class Db {
 			var record = new [];
 			for (var i = 0; i < length keys; i++) {
 				var k = keys[i];
-				record[k] = dataset.FieldValues[k].ToBuffer();
+				record[k] = dataset.FieldValues[k].Value();
 			}
 			if (userdata)
 				callback(record, userdata);
@@ -96,7 +94,7 @@ class Db {
 				var record = new [];
 				for (var i = 0; i < length keys; i++) {
 					var k = keys[i];
-					record[k] = dataset.FieldValues[k].ToBuffer();
+					record[k] = dataset.FieldValues[k].Value();
 				}
 				arr[length arr] = record;
 			}

@@ -5,7 +5,7 @@ class Binarizable extends Serializable {
 		return BinarizeObject(this);
 	}
 
-	static function UnBinarize(var buffer, var err = null) {
-		return UnBinarizeObject(buffer, err);
+	static function UnBinarize(var buffer, var offset = 0) {
+		return UnBinarizeObject(buffer, offset);
 	}
 }

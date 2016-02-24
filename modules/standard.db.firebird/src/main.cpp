@@ -1379,9 +1379,7 @@ END_IMPL
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(FBTransaction, 1, 2)
     T_HANDLE(0)
 
-    static char isc_tbp[] = {
-        isc_tpb_version3, isc_tpb_write, isc_tpb_concurrency, isc_tpb_wait
-    }
+    static char isc_tbp[] = { isc_tpb_version3, isc_tpb_write, isc_tpb_concurrency, isc_tpb_wait };
 
     char           *p_isc_tbp = isc_tbp;
     char           options[0xFF];
@@ -2261,9 +2259,9 @@ CONCEPT_FUNCTION_IMPL(FBAffectedRows, 1)
     RETURN_NUMBER(res);
 END_IMPL
 //------------------------------------------------------------------------
-CONCEPT_FUNCTION_IMPL(FBColumnName, 2)
-    T_HANDLE(0);
-    T_NUMBER(1);
+CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(FBColumnName, 2, 3)
+    T_HANDLE(0)
+    T_NUMBER(1)
     QUERY *q  = (QUERY *)PARAM_INT(0);
     int   col = PARAM_INT(1);
     int   res = 0;
@@ -2278,7 +2276,11 @@ CONCEPT_FUNCTION_IMPL(FBColumnName, 2)
         } else {
             RETURN_STRING("");
         }
+        if (PARAMETERS_COUNT > 2)
+            SET_NUMBER(2, dtype);
     } else {
+        if (PARAMETERS_COUNT > 2)
+            SET_NUMBER(2, -1);
         RETURN_STRING("");
     }
 END_IMPL

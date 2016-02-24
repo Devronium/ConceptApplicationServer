@@ -10,7 +10,8 @@ define TRANSACTION_COMMIT		1
 class MyDataRecord {
 	public var DATA;
 	private var ORDER;
-	//private var LINK;
+	private var TYPE;
+	public property Type { get TYPE }
 
 	public operator = (string x) {
 		this.DATA=x;
@@ -29,19 +30,27 @@ class MyDataRecord {
 		return value this.DATA;
 	}
 
-	function XMLSerialized() {
-		var XMLData;
-		if (typeof DATA=="class")
-			XMLData = "<ADODataRecord>" + this->DATA->XMLSerialized() + "\n</ADODataRecord>";
-		else
-			XMLData = "<ADODataRecord>" + this->DATA + "</ADODataRecord>";
-
-		return XMLData;
+	public function Value() {
+		switch (this.TYPE) {
+			case MYSQL_TYPE_DECIMAL:
+			case MYSQL_TYPE_TINY:
+			case MYSQL_TYPE_SHORT:
+			case MYSQL_TYPE_LONG:
+			case MYSQL_TYPE_FLOAT:
+			case MYSQL_TYPE_DOUBLE:
+			case MYSQL_TYPE_NULL:
+			case MYSQL_TYPE_TIMESTAMP:
+			case MYSQL_TYPE_LONGLONG:
+			case MYSQL_TYPE_INT24:
+			case MYSQL_TYPE_NEWDECIMAL:
+				return value this.DATA;
+		}
+		return this.DATA;
 	}
 
-	function MyDataRecord(ORD,LNK) {
+	function MyDataRecord(ORD,LNK,TYPE=-1) {
 		this.ORDER=ORD;
-		//this.LINK=LNK;
+		this.TYPE=TYPE;
 	}
 }
 
@@ -526,7 +535,7 @@ class MyDataSet {
 
 			//this->data_array->Add(0,name);
 			if (!this->data_array[name])
-				this->data_array[name]=new MyDataRecord(i,result);
+				this->data_array[name]=new MyDataRecord(i,result,data_type);
 			else {
 				var tmp_index=2;
 				var temp_name="$name($tmp_index)";
@@ -534,7 +543,7 @@ class MyDataSet {
 					temp_name="$name($tmp_index)";
 					tmp_index++;
 				}
-				this->data_array[temp_name]=new MyDataRecord(i,result);
+				this->data_array[temp_name]=new MyDataRecord(i,result,data_type);
 				_columns[i]=temp_name;
 			}
 		}
@@ -618,7 +627,7 @@ class MyDataSet {
 
 			//this->data_array->Add(0,name);
 			if (!this->data_array[name])
-				this->data_array[name]=new MyDataRecord(i,result);
+				this->data_array[name]=new MyDataRecord(i,result,data_type);
 			else {
 				var tmp_index=2;
 				var temp_name="$name($tmp_index)";
@@ -626,7 +635,7 @@ class MyDataSet {
 					temp_name="$name($tmp_index)";
 					tmp_index++;
 				}
-				this->data_array[temp_name]=new MyDataRecord(i,result);
+				this->data_array[temp_name]=new MyDataRecord(i,result,data_type);
 				_columns[i]=temp_name;
 			}
 		}

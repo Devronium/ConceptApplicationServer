@@ -10,6 +10,8 @@ class ADODataRecord {
 	public var DATA;
 	private var ORDER;
 	private var LINK;
+	private var TYPE;
+	public property Type { get TYPE }
 
 	public operator = (x) {
 		this.DATA=""+x;
@@ -29,19 +31,33 @@ class ADODataRecord {
 		return value this.DATA;
 	}
 
-	function XMLSerialized() {
-		var XMLData;
-		if (typeof DATA=="class")
-			XMLData = "<ADODataRecord>" + this->DATA->XMLSerialized() + "\n</ADODataRecord>";
-		else
-			XMLData = "<ADODataRecord>" + String(this->DATA) + "</ADODataRecord>";
-
-		return XMLData;
+	public function Value() {
+		switch (this.TYPE) {
+			case ODBC_DECIMAL:
+			case ODBC_NUMERIC:
+			case ODBC_SMALLINT:
+			case ODBC_INTEGER:
+			case ODBC_REAL:
+			case ODBC_FLOAT:
+			case ODBC_DOUBLE:
+			case ODBC_BIT:
+			case ODBC_TINYINT:
+			case ODBC_BIGINT:
+				return value this.DATA;
+			case ODBC_CHAR:
+			case ODBC_VARCHAR:
+			case ODBC_LONGVARCHAR:
+			case ODBC_TYPE_DATE:
+			case ODBC_TYPE_TIME:
+				return String(this.DATA);
+		}
+		return this.DATA;
 	}
 
-	function ADODataRecord(ORD,LNK) {
+	function ADODataRecord(ORD,LNK,TYPE=-1) {
 		this.ORDER=ORD;
 		this.LINK=LNK;
+		this.TYPE=TYPE;
 	}
 }
 
@@ -456,7 +472,7 @@ class ADODataSet {
 
 			//this->data_array->Add(0,name);
 			if (!this->data_array[name])
-			    this->data_array[name]=new ADODataRecord(i,result);
+			    this->data_array[name]=new ADODataRecord(i,result,data_type);
             else {
                 var tmp_index=2;
                 var temp_name="$name($tmp_index)";
@@ -464,7 +480,7 @@ class ADODataSet {
                     temp_name="$name($tmp_index)";
                     tmp_index++;
                 }
-			    this->data_array[temp_name]=new ADODataRecord(i,result);
+			    this->data_array[temp_name]=new ADODataRecord(i,result,data_type);
 			    _columns[i]=temp_name;
             }
 		}
