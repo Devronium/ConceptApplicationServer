@@ -464,7 +464,7 @@ class SLDataSet {
 
 			//this->data_array->Add(0,name);
 			if (!this->data_array[name])
-				this->data_array[name]=new SLDataRecord(i,result,DBColumnType(i));
+				this->data_array[name]=new SLDataRecord(i,result,DBColumnType(result, i));
 			else {
 				var tmp_index=2;
 				var temp_name="$name($tmp_index)";
@@ -472,7 +472,7 @@ class SLDataSet {
 					temp_name="$name($tmp_index)";
 					tmp_index++;
 				}
-				this->data_array[temp_name]=new SLDataRecord(i,result,DBColumnType(i));
+				this->data_array[temp_name]=new SLDataRecord(i,result,DBColumnType(result, i));
 				_columns[i]=temp_name;
 			}
 		}
