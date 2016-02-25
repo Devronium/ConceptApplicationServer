@@ -45,7 +45,6 @@ class SLDataRecord {
 	}
 }
 
-
 class SLConnection {
 	protected var connection=0;
 	protected var result=0;

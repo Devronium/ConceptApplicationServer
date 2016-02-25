@@ -830,225 +830,6 @@ class ConceptChild {
 		return res;
 	}
 
-	/*DoWSHeader(header, var step) {
-		var len=length header;
-		var ws=false;
-		var ws_key="";
-		var app="";
-		var origin="";
-		var session_to_restore="";
-		var parent=-1;
-		var host="";
-		if (len) {
-			var line=StrSplit(header[0], " ");
-			if (length line > 1) {
-				var method=ToUpper(line[0]);
-				app=line[1];
-				if (method=="GET") {
-					for (var i=1;i<len;i++) {
-						line=header[i];
-						var arr=StrSplit(line, ":", true);
-						if (length arr>1) {
-							var key=ToLower(arr[0]);
-							switch (key) {
-								case "upgrade":
-									if (Pos(ToLower(arr[1]), "websocket")>0)
-										ws=true;
-									break;
-								case "sec-websocket-key":
-									ws_key=trim(arr[1]);
-									break;
-								case "origin":
-									var orig="";
-									var len2=length arr;
-									for (var j=1;j<len2;j++) {
-										if (j>1)
-											orig+=":";
-										orig+=arr[j];
-									}
-									origin=trim(orig);
-									break;
-								case "host":
-									len2=length arr;
-									for (j=1;j<len2;j++) {
-										if (j>1)
-											host+=":";
-										host+=arr[j];
-									}
-									if (len>1)
-										ServerName = trim(arr[1]);
-									else
-										ServerName = trim(host);
-									break;
-								case "concept-parent":
-									parent=value arr[1];
-									break;
-								case "concept-session":
-									orig="";
-									len2=length arr;
-									for (j=1;j<len2;j++) {
-										if (j>1)
-											orig+=":";
-										orig+=arr[j];
-									}
-									session_to_restore=trim(orig);
-									break;
-							}
-						}
-					}
-				}
-			}
-		}
-
-		if ((ws) && (ws_key)) {
-			var ret_key=WebSocket::AcceptKey(ws_key);
-			if (!app)
-				app="start.con";
-			var extra_header="";
-
-			if (origin)
-				extra_header="Access-Control-Allow-Credentials: true\r\nAccess-Control-Allow-Headers: content-type\r\nAccess-Control-Allow-Headers: authorization\r\nAccess-Control-Allow-Headers: x-websocket-extensions\r\nAccess-Control-Allow-Headers: x-websocket-version\r\nAccess-Control-Allow-Headers: x-websocket-protocol\r\nAccess-Control-Allow-Origin: $origin\r\n";
-			var tstamp=StrReplace(StrReplace(asctime(time()), "\r", ""), "\n", "")+" GMT";
-
-			var sess = "";
-			var sessChild = null;
-			if (session_to_restore) {
-				sessChild = RestoreWS_Step1(session_to_restore);
-				if (sessChild)
-					sess = session_to_restore;
-			}
-
-			if (!sess) {
-				sess = ""+NumberToHex(ClsPtr(this))+"#"+RandomString(80);
-				this.Session = sess;
-				if (parent > 0)
-					this.Parent = parent;
-			}
-
-			var header_response="HTTP/1.1 101 Web Socket Protocol Handshake\r\n${extra_header}Connection: Upgrade\r\nDate: $tstamp\r\nSec-WebSocket-Accept: $ret_key\r\nServer: Concept Application Server 4.1WS\r\nUpgrade: websocket\r\nConcept-Session: ${this.Session}\r\n\r\n";
-			if (length header_response > MAX_WS_HEADER) {
-				step=4;
-				return false;
-			}
-			if (WriteExact(header_response)==length header_response) {
-				if ((sessChild) && (RestoreWS_Step2(sessChild))) {
-					step=4;
-					return false;
-				} else {
-					this.RunApplication(app, step, "", "", "", false, true);
-					return true;
-				}
-			}
-		} else
-		if ((method) && (method=="GET")) {
-			tstamp=StrReplace(StrReplace(asctime(time()), "\r", ""), "\n", "")+" GMT";
-			if (app == "/")
-				app = "/index.html";
-			var ok = false;
-			var err = 404;
-			if (value IniGet(Owner.IniFile, "Server", "HandleWebResources", "1") == 0) {
-				app = "";
-				err = 503;
-			}
-			if (app) {
-				var pparam=Pos(app, "?");
-				var params="";
-				if (pparam>0) {
-					params = SubStr(app, pparam, length app - pparam);
-					app = SubStr(app, 0, pparam - 1);
-				}
-				var ext = ToLower(Ext(app));
-				var content_type = "application/octet-stream";
-				if (IsSet(this.Owner.mimetypes, ext))
-					content_type = this.Owner.mimetypes[ext];
-
-				var target_app = "start.con";
-				if (content_type == "application/concept") {
-					target_app = trim(app);
-					app = "/index.html";
-					content_type = "text/html";
-				}
-
-				var is_root = false;
-				if (ToLower(app) == "/index.html")
-					is_root = true;
-
-				var path = this.NormalizeFilename(app, var directory);
-				app = directory + path;
-				app = Owner.ConceptClient + app;
-				if (FileExists(app)) {
-					var data = ReadFile(app);
-					if (is_root) {
-						if (params)
-							data = StrReplace(data, "{APP}", target_app + "?" + params);
-						else
-							data = StrReplace(data, "{APP}", target_app);
-
-						var secured = this.TLS;
-						if ((!secured) && (Pos(host, ":" + Owner.SSLWSPort) > 0))
-							secured = true;
-						data = StrReplace(data, "{HOST}", trim(host));
-						if (secured)
-							data = StrReplace(data, "{PROTOCOL}", "concepts");
-						else
-							data = StrReplace(data, "{PROTOCOL}", "concept");
-					}
-					var buffer = "HTTP/1.1 200 OK\r\nDate: $tstamp\r\nConnection: close\r\nContent-Type: $content_type\r\nServer: Concept Application Server 4.0W\r\n\r\n" + data;
-					var buf_len = length buffer;
-					SocketSetBlocking(Socket.Socket, false);
-					while (buf_len > 0) {
-						try {
-							var written = Socket.Write(buffer);
-						} catch (var exc) {
-							// EAGAIN
-							var err = SocketErrno();
-							if ((err != 11) && (err != 35))
-								break;
-							continue;
-						}
-						if (written <= 0)
-							break;
-
-						buf_len -= written;
-						if (buf_len > 0)
-							buffer = SubStr(buffer, written, buf_len);
-					}
-					//WriteExact("HTTP/1.1 200 OK\r\nDate: $tstamp\r\nConnection: close\r\nContent-Type: $content_type\r\nServer: Concept Application Server 4.0W\r\n\r\n" + data);
-					ok = true;
-				}
-			}
-			if (!ok) {
-				data =  ReadFile(Owner.ConceptClient + "/$err.html");
-				if (!data)
-					data = "Error $err in processing your request.";
-
-				buffer = "HTTP/1.1 $err\r\nDate: $tstamp\r\nConnection: close\r\nContent-Type: text/html\r\nServer: Concept Application Server 4.0W\r\n\r\n" + data;
-				buf_len = length buffer;
-				SocketSetBlocking(Socket.Socket, false);
-				while (buf_len > 0) {
-					try {
-						written = Socket.Write(buffer);
-					} catch (exc) {
-						// EAGAIN
-						var err = SocketErrno();
-						if ((err != 11) && (err != 35))
-							break;
-						continue;
-					}
-					if (written <= 0)
-						break;
-
-					buf_len -= written;
-					if (buf_len > 0)
-						buffer = SubStr(buffer, written, buf_len);
-				}
-				//WriteExact("HTTP/1.1 $err\r\nDate: $tstamp\r\nConnection: close\r\nContent-Type: text/html\r\nServer: Concept Application Server 4.0W\r\n\r\n" + data);
-			}
-		}
-		step=4;
-		return false;
-	}*/
-
 	Iterate() {
 		var step = 0;
 		var exc;
@@ -1084,6 +865,7 @@ class ConceptChild {
 		// this.Socket may be changed if a session restore takes place
 		try {
 			if (this.IsWebSocket) {
+				var force_tls = value IniGet(Owner.IniFile, "Server", "WebTLSOnly", "0");
 				step = 2;
 				while (step <= 2) {
 					if (Socket.HasData) {
@@ -1153,7 +935,11 @@ class ConceptChild {
 															ServerName = trim(host);
 														break;
 													case "concept-parent":
-														parent=value arr[1];
+														parent = value arr[1];
+														break;
+													case "concept-tls":
+														if (!this.TLS)
+															this.TLS = value arr[1];
 														break;
 													case "concept-session":
 														orig="";
@@ -1174,6 +960,7 @@ class ConceptChild {
 									}
 								}
 							}
+							var orig_app = app;
 							if ((ws) && (ws_key)) {
 								var ret_key=WebSocket::AcceptKey(ws_key);
 								if (!app)
@@ -1253,8 +1040,17 @@ class ConceptChild {
 									app = Owner.ConceptClient + app;
 									if (FileExists(app)) {
 										var last_mod = rtrim(asctime(_filelast_mod(app))) + " GMT";
+										if ((!TLS) && (force_tls)) {
+											var location = "https://" + ServerName;
+											if (Owner.SSLWSPort != 443)
+												location += ":" + Owner.SSLWSPort;
+											if ((orig_app) && (orig_app[0] != "/"))
+												location += "/";
+											location += orig_app;
+											var buffer = "HTTP/1.1 302 Found\r\nDate: $tstamp\r\nConnection: close\r\nLocation: $location\r\nServer: Concept Application Server 4.0W\r\n\r\n";
+										} else
 										if ((!is_root) && (if_modified==last_mod)) {
-											var buffer = "HTTP/1.1 304 Not Modified\r\nDate: $tstamp\r\nConnection: close\r\nContent-Type: $content_type\r\nCache-Control: max-age=86400\r\nLast-Modified: $last_mod\r\nServer: Concept Application Server 4.0W\r\n\r\n";
+											buffer = "HTTP/1.1 304 Not Modified\r\nDate: $tstamp\r\nConnection: close\r\nContent-Type: $content_type\r\nCache-Control: max-age=86400\r\nLast-Modified: $last_mod\r\nServer: Concept Application Server 4.0W\r\n\r\n";
 										} else {
 											data = ReadFile(app);
 											if (is_root) {
@@ -2809,7 +2605,7 @@ class ConceptServer {
 						this.Iterations++;
 						s = sslwsocket.Accept();
 						if ((s) && (s.Socket>0))
-							AcceptChild(loop, s, true);
+							AcceptChild(loop, s, true, true);
 						else
 							this.Log("ConceptServer", "Invalid socket in accept (websocket)");
 					}

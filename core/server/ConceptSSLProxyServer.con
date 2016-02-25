@@ -49,6 +49,7 @@ class ConceptSSLProxyChild {
 		try {
 			while (true) {
 				var op = 0;
+				var last_chars = "";
 				if ((this.Socket.HasData) || (this.Socket.TLSPending)) {
 					var data = this.Socket.Read();
 					if (data) {
@@ -70,8 +71,10 @@ class ConceptSSLProxyChild {
 									}
 								}
 							}
-							if (Pos(data, "\r\n\r\n"))
+							if (Pos(last_chars + data, "\r\n\r\n"))
 								not_started = false;
+							else
+								last_chars = SubStr(data, length data - 4);
 						}
 
 						SocketOut.Write(data);
@@ -104,7 +107,8 @@ class ConceptSSLProxyChild {
 		} catch (exc) {
 			// nothing
 		}
-		SocketOut.Close();
+		if (SocketOut)
+			SocketOut.Close();
 		Socket.Close();
 	}
 }
