@@ -146,6 +146,10 @@ class ConceptSSLProxyServer {
 	LoadKeys() {
 		var public_key = IniGet(this.IniFile, "Server", "WebSocketCertificate", "ssl/publickey.cer");
 		var private_key = IniGet(this.IniFile, "Server", "WebSocketPrivateKey", "ssl/privatekey.pem");
+		var chain = IniGet(this.IniFile, "Server", "WebSocketChain", "");
+
+		if (chain)
+			this.SSLWSSocket.LoadChain(chain);
 
 		if (this.SSLWSSocket.LoadKeys(public_key, private_key)) {
 			this.Log(@class, "Error loading TLS/SSL keys. Your server will not accept SSL/TLS connection (just plain connection).");

@@ -164,7 +164,7 @@ class SIPSession {
 	}
 
 	Refer(address) {
-		this.s.Refer(msg, address);
+		return this.s.Refer(msg, address);
 	}
 
 	SimpleRTP(payload, profile = 8) {
@@ -316,6 +316,8 @@ class SIPSession {
 				}
 				started = true;
 			}
+			if (Expired())
+				throw "Session expired !\n";
 		} catch (exc) {
 			this.s.RemoveSessionByRef(this);
 			this.Bye();
@@ -429,7 +431,7 @@ class SIPStack {
 	var rtp_port_index = RTP_START_PORT;
 	var realm = "";
 	var[] Sessions;
-
+	var MaxTime = 3600;
 	var OnDTMF;
 	var OnAudio;
 	var OnAudioOut;
@@ -438,6 +440,7 @@ class SIPStack {
 	var OnRinging;
 	var OnIVRFinished;
 	var OnNotify;
+	var OnAfterNotify;
 	var OnResponse;
 	var OnNotUnderstood;
 	var OnRegister;
@@ -887,7 +890,7 @@ class SIPStack {
 
 		var msg2 = null;
 		if (contact)
-			msg2 = PerformUDP("REFER", msg.Headers["to"], contact, "", "", max_forwards, msg, ["Refer-To" => address], ip, port);
+			msg2 = PerformUDP("REFER", msg.Headers["to"], contact, "", "", max_forwards, msg, ["Refer-To" => address, "Referred-By" => contact], ip, port);
 
 		return msg2;
 	}
@@ -938,7 +941,7 @@ class SIPStack {
 		if (id) {
 			if (Sessions[id])
 				return false;
-			var session = new SIPSession(this, msg, rtp_port_index++, ip, port, this.FrameSize);
+			var session = new SIPSession(this, msg, rtp_port_index++, ip, port, this.FrameSize, MaxTime);
 			if (rtp_port_index > RTP_END_PORT)
 				rtp_port_index = RTP_START_PORT;
 			Sessions[id] = session;
@@ -1202,6 +1205,8 @@ class SIPStack {
 					if (this.OnNotify)
 						code = this.OnNotify(msg);
 					this.ResponseUDP(code, msg, msg.Headers["from"]);
+					if (this.OnAfterNotify)
+						this.OnAfterNotify(msg);
 					break;
 				case "CANCEL":
 				case "BYE":

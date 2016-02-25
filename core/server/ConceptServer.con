@@ -934,6 +934,13 @@ class ConceptChild {
 														else
 															ServerName = trim(host);
 														break;
+													case "referer":
+													case "origin":
+														if (!this.TLS) {
+															if (ToLower(trim(""+StrSplit(""+arr[1], "://")[0])) == "https")
+																this.TLS = true;
+														}
+														break;
 													case "concept-parent":
 														parent = value arr[1];
 														break;
