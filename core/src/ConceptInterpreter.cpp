@@ -6876,7 +6876,7 @@ VariableDATA **ConceptInterpreter::CreateEnviroment(PIFAlizator *PIF, VariableDA
             if (sndr->TYPE == VARIABLE_CLASS) {
                 INTEGER CLS_ID = (INTEGER)TARGET->nValue - 1;
                 if (CLS_ID >= 0) {
-                    if ((!sndr->CLASS_DATA) || ((CLS_ID > 0) && (!((CompiledClass *)sndr->CLASS_DATA)->_Class->Inherits(CLS_ID)))) {
+                    if ((!sndr->CLASS_DATA) || (!((CompiledClass *)sndr->CLASS_DATA)->_Class->Inherits(CLS_ID))) {
                         VariableDATA *sender = SenderCTX [0];
                         if ((sender) && (sender->TYPE == VARIABLE_CLASS) && (sender->CLASS_DATA)) {
                             CompiledClass *cc = (CompiledClass *)sender->CLASS_DATA;

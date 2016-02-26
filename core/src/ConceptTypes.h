@@ -558,7 +558,7 @@ struct GreenThreadCycle {
     if (is_validator) {                                                   \
         if (is_lib) {                                                     \
             if (VD->TYPE == VARIABLE_CLASS) {                             \
-                VD->nValue = ClassNames [cls_object - 1] + 1; }           \
+                VD->nValue = cls_object > 0 ? ClassNames [cls_object - 1] + 1 : 0; }           \
             else                                                          \
             if (VD->TYPE == VARIABLE_ARRAY)                               \
                 VD->nValue = cls_object;                                  \
