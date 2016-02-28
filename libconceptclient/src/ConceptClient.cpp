@@ -115,6 +115,8 @@ void CConceptClient::GenerateRandomAESKey(AnsiString *res, int len) {
         unsigned int v = arc4random() % 0x100;
         key[i] = (char)v;
     }
+    res->LoadBuffer(key, len);
+    return;
 #else
     #ifdef __linux__
         if (getrandom(key, len, 0) == len) {
