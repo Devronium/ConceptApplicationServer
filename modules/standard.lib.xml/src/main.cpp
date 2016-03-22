@@ -25,7 +25,7 @@ void MyxmlErrorFunc(void *arg, const char *msg, xmlParserSeverities severity, xm
         void *RES       = 0;
         void *EXCEPTION = 0;
 
-        InvokePtr(INVOKE_CALL_DELEGATE, arg, &RES, &EXCEPTION, (INTEGER)3,
+        InvokePtr(INVOKE_CALL_DELEGATE, arg, &RES, &EXCEPTION, (INTEGER)4,
                   (INTEGER)VARIABLE_NUMBER, (char *)"", (double)(SYS_INT)arg,
                   (INTEGER)VARIABLE_STRING, (char *)msg, (double)0,
                   (INTEGER)VARIABLE_NUMBER, (char *)"", (double)(SYS_INT)severity,
