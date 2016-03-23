@@ -208,6 +208,45 @@ CONCEPT_FUNCTION_IMPL(TLSERead, 3)
     RETURN_NUMBER(res);
 END_IMPL
 //------------------------------------------------------------------------
+int CopyCertificateInfo(INVOKE_CALL Invoke, void *certificates, TLSCertificate **certificate_chain, int len) {
+    if (!IS_OK(Invoke(INVOKE_CREATE_ARRAY, certificates)))
+        return -1;
+    INTEGER index = 0;
+    for (int i = 0; i < len; i++) {
+        TLSCertificate *certificate = certificate_chain[i];
+        if (certificate) {
+            void *data = 0;
+            Invoke(INVOKE_ARRAY_VARIABLE, certificates, index++, &data);
+            if (data) {
+                CREATE_ARRAY(data);
+                Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, data, "algorithm", (INTEGER)VARIABLE_NUMBER, (char *)"", (NUMBER)certificate->algorithm);
+                Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, data, "key_algorithm", (INTEGER)VARIABLE_NUMBER, (char *)"", (NUMBER)certificate->key_algorithm);
+                Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, data, "ec_algorithm", (INTEGER)VARIABLE_NUMBER, (char *)"", (NUMBER)certificate->ec_algorithm);
+                Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, data, "exponent", (INTEGER)VARIABLE_STRING, (char *)certificate->exponent, (NUMBER)certificate->exponent_len); 
+                Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, data, "pk", (INTEGER)VARIABLE_STRING, (char *)certificate->pk, (NUMBER)certificate->pk_len); 
+                Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, data, "priv", (INTEGER)VARIABLE_STRING, (char *)certificate->pk, (NUMBER)certificate->priv_len); 
+                Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, data, "issuer_country", (INTEGER)VARIABLE_STRING, (char *)certificate->issuer_country, (NUMBER)0); 
+                Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, data, "issuer_state", (INTEGER)VARIABLE_STRING, (char *)certificate->issuer_state, (NUMBER)0); 
+                Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, data, "issuer_location", (INTEGER)VARIABLE_STRING, (char *)certificate->issuer_location, (NUMBER)0); 
+                Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, data, "issuer_entity", (INTEGER)VARIABLE_STRING, (char *)certificate->issuer_entity, (NUMBER)0); 
+                Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, data, "issuer_subject", (INTEGER)VARIABLE_STRING, (char *)certificate->issuer_subject, (NUMBER)0); 
+                Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, data, "not_before", (INTEGER)VARIABLE_STRING, (char *)certificate->not_before, (NUMBER)0); 
+                Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, data, "not_after", (INTEGER)VARIABLE_STRING, (char *)certificate->not_after, (NUMBER)0); 
+                Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, data, "country", (INTEGER)VARIABLE_STRING, (char *)certificate->country, (NUMBER)0); 
+                Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, data, "state", (INTEGER)VARIABLE_STRING, (char *)certificate->state, (NUMBER)0); 
+                Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, data, "location", (INTEGER)VARIABLE_STRING, (char *)certificate->location, (NUMBER)0); 
+                Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, data, "entity", (INTEGER)VARIABLE_STRING, (char *)certificate->entity, (NUMBER)0); 
+                Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, data, "subject", (INTEGER)VARIABLE_STRING, (char *)certificate->subject, (NUMBER)0); 
+                Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, data, "serial_number", (INTEGER)VARIABLE_STRING, (char *)certificate->serial_number, (NUMBER)certificate->serial_len); 
+                Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, data, "sign_key", (INTEGER)VARIABLE_STRING, (char *)certificate->sign_key, (NUMBER)certificate->sign_len); 
+                Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, data, "der_bytes", (INTEGER)VARIABLE_STRING, (char *)certificate->der_bytes, (NUMBER)certificate->der_len); 
+                Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, data, "bytes", (INTEGER)VARIABLE_STRING, (char *)certificate->bytes, (NUMBER)certificate->len); 
+            }
+        }
+    }
+    return len;
+}
+
 int certificate_verify(TLSContext *context, TLSCertificate **certificate_chain, int len) {
     if (context->user_data) {
         void *RES       = 0;
@@ -221,55 +260,23 @@ int certificate_verify(TLSContext *context, TLSCertificate **certificate_chain, 
 
         void *certificates = NULL;
         CREATE_VARIABLE(certificates);
-        if (!IS_OK(Invoke(INVOKE_CREATE_ARRAY, certificates)))
-            return res;
-        INTEGER index = 0;
-        for (int i = 0; i < len; i++) {
-            TLSCertificate *certificate = certificate_chain[i];
-            if (certificate) {
-                void *data = 0;
-                Invoke(INVOKE_ARRAY_VARIABLE, certificates, index++, &data);
-                if (data) {
-                    CREATE_ARRAY(data);
-                    Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, data, "algorithm", (INTEGER)VARIABLE_NUMBER, (char *)"", (NUMBER)certificate->algorithm);
-                    Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, data, "key_algorithm", (INTEGER)VARIABLE_NUMBER, (char *)"", (NUMBER)certificate->key_algorithm);
-                    Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, data, "ec_algorithm", (INTEGER)VARIABLE_NUMBER, (char *)"", (NUMBER)certificate->ec_algorithm);
-                    Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, data, "exponent", (INTEGER)VARIABLE_STRING, (char *)certificate->exponent, (NUMBER)certificate->exponent_len); 
-                    Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, data, "pk", (INTEGER)VARIABLE_STRING, (char *)certificate->pk, (NUMBER)certificate->pk_len); 
-                    Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, data, "priv", (INTEGER)VARIABLE_STRING, (char *)certificate->pk, (NUMBER)certificate->priv_len); 
-                    Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, data, "issuer_country", (INTEGER)VARIABLE_STRING, (char *)certificate->issuer_country, (NUMBER)0); 
-                    Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, data, "issuer_state", (INTEGER)VARIABLE_STRING, (char *)certificate->issuer_state, (NUMBER)0); 
-                    Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, data, "issuer_location", (INTEGER)VARIABLE_STRING, (char *)certificate->issuer_location, (NUMBER)0); 
-                    Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, data, "issuer_entity", (INTEGER)VARIABLE_STRING, (char *)certificate->issuer_entity, (NUMBER)0); 
-                    Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, data, "issuer_subject", (INTEGER)VARIABLE_STRING, (char *)certificate->issuer_subject, (NUMBER)0); 
-                    Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, data, "not_before", (INTEGER)VARIABLE_STRING, (char *)certificate->not_before, (NUMBER)0); 
-                    Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, data, "not_after", (INTEGER)VARIABLE_STRING, (char *)certificate->not_after, (NUMBER)0); 
-                    Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, data, "country", (INTEGER)VARIABLE_STRING, (char *)certificate->country, (NUMBER)0); 
-                    Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, data, "state", (INTEGER)VARIABLE_STRING, (char *)certificate->state, (NUMBER)0); 
-                    Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, data, "location", (INTEGER)VARIABLE_STRING, (char *)certificate->location, (NUMBER)0); 
-                    Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, data, "entity", (INTEGER)VARIABLE_STRING, (char *)certificate->entity, (NUMBER)0); 
-                    Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, data, "subject", (INTEGER)VARIABLE_STRING, (char *)certificate->subject, (NUMBER)0); 
-                    Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, data, "serial_number", (INTEGER)VARIABLE_STRING, (char *)certificate->serial_number, (NUMBER)certificate->serial_len); 
-                    Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, data, "sign_key", (INTEGER)VARIABLE_STRING, (char *)certificate->sign_key, (NUMBER)certificate->sign_len); 
-                    Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, data, "der_bytes", (INTEGER)VARIABLE_STRING, (char *)certificate->der_bytes, (NUMBER)certificate->der_len); 
-                    Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, data, "bytes", (INTEGER)VARIABLE_STRING, (char *)certificate->bytes, (NUMBER)certificate->len); 
-                }
+        if (certificates) {
+            CopyCertificateInfo(Invoke, certificates, certificate_chain, len);
+            Invoke(INVOKE_GET_VARIABLE, certificates, &type, &szData, &nData);
+            Invoke(INVOKE_CALL_DELEGATE, context->user_data, &RES, &EXCEPTION, (INTEGER)2,
+                 (INTEGER)VARIABLE_NUMBER, (char *)"", (NUMBER)(SYS_INT)context,
+                 (INTEGER)type, szData, nData
+            );
+            if (RES) {
+                Invoke(INVOKE_GET_VARIABLE, RES, &type, &szData, &nData);
+                if (type == VARIABLE_NUMBER)
+                    res = (int)nData;
+                Invoke(INVOKE_FREE_VARIABLE, RES);
             }
+            if (EXCEPTION)
+                Invoke(INVOKE_FREE_VARIABLE, EXCEPTION);
+            Invoke(INVOKE_FREE_VARIABLE, certificates);
         }
-        Invoke(INVOKE_GET_VARIABLE, certificates, &type, &szData, &nData);
-        Invoke(INVOKE_CALL_DELEGATE, context->user_data, &RES, &EXCEPTION, (INTEGER)2,
-             (INTEGER)VARIABLE_NUMBER, (char *)"", (NUMBER)(SYS_INT)context,
-             (INTEGER)type, szData, nData
-        );
-        if (RES) {
-            Invoke(INVOKE_GET_VARIABLE, RES, &type, &szData, &nData);
-            if (type == VARIABLE_NUMBER)
-                res = (int)nData;
-            Invoke(INVOKE_FREE_VARIABLE, RES);
-        }
-        if (EXCEPTION)
-            Invoke(INVOKE_FREE_VARIABLE, EXCEPTION);
-        Invoke(INVOKE_FREE_VARIABLE, certificates);
         return res;
     }
     int i;
@@ -329,6 +336,13 @@ CONCEPT_FUNCTION_IMPL(TLSEPending, 1)
     } else {
         RETURN_STRING("");
     }
+END_IMPL
+//------------------------------------------------------------------------
+CONCEPT_FUNCTION_IMPL(TLSEReadBufferSize, 1)
+    T_HANDLE(0)
+    TLSContext *context = (TLSContext *)(SYS_INT)PARAM(0);
+    unsigned int res = context->application_buffer_len;
+    RETURN_NUMBER(res);
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(TLSESent, 2)
@@ -444,7 +458,7 @@ CONCEPT_FUNCTION_IMPL(TLSEImport, 1)
     RETURN_NUMBER((SYS_INT)context);
 END_IMPL
 //------------------------------------------------------------------------
-CONCEPT_FUNCTION_IMPL(TLSGetSNI, 1)
+CONCEPT_FUNCTION_IMPL(TLSEGetSNI, 1)
     T_HANDLE(0)
 
     TLSContext *context = (TLSContext *)(SYS_INT)PARAM(0);
@@ -456,7 +470,7 @@ CONCEPT_FUNCTION_IMPL(TLSGetSNI, 1)
     }
 END_IMPL
 //------------------------------------------------------------------------
-CONCEPT_FUNCTION_IMPL(TLSSetSNI, 2)
+CONCEPT_FUNCTION_IMPL(TLSESetSNI, 2)
     T_HANDLE(0)
     T_STRING(1)
 
@@ -465,7 +479,7 @@ CONCEPT_FUNCTION_IMPL(TLSSetSNI, 2)
     RETURN_NUMBER(res);
 END_IMPL
 //------------------------------------------------------------------------
-CONCEPT_FUNCTION_IMPL(TLSSetVerify, 2)
+CONCEPT_FUNCTION_IMPL(TLSESetVerify, 2)
     T_HANDLE(0)
     T_DELEGATE(1)
 
@@ -476,5 +490,37 @@ CONCEPT_FUNCTION_IMPL(TLSSetVerify, 2)
     context->user_data = PARAMETER(1);
     Invoke(INVOKE_LOCK_VARIABLE, context->user_data);
     RETURN_NUMBER(0);
+END_IMPL
+//------------------------------------------------------------------------
+CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(TLSECertificateInfo, 1, 2)
+    T_HANDLE(0)
+
+    int cert_list = 0;
+    if (PARAMETERS_COUNT > 1) {
+        T_NUMBER(1)
+        cert_list = PARAM_INT(1);
+    }
+    TLSContext *context = (TLSContext *)(SYS_INT)PARAM(0);
+    switch (cert_list) {
+        case 0:
+            CopyCertificateInfo(Invoke, RESULT, context->certificates, context->certificates_count);
+            break;
+        case 1:
+            CopyCertificateInfo(Invoke, RESULT, context->client_certificates, context->client_certificates_count);
+            break;
+        case 2:
+            CopyCertificateInfo(Invoke, RESULT, context->root_certificates, context->root_count);
+            break;
+        default:
+            CREATE_ARRAY(RESULT);
+    }
+END_IMPL
+//------------------------------------------------------------------------
+CONCEPT_FUNCTION_IMPL(TLSEConnect, 1)
+    T_HANDLE(0)
+
+    TLSContext *context = (TLSContext *)(SYS_INT)PARAM(0);
+    int res = tls_client_connect(context);
+    RETURN_NUMBER(res);
 END_IMPL
 //------------------------------------------------------------------------

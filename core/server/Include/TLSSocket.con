@@ -188,6 +188,8 @@ class TLSSocket extends TCPSocket {
 
 		var res = TLSAccept(parent_tls, Socket, var child_tls);
 		if (child_tls) {
+			if (this.tls)
+				TLSDone(this.tls);
 			this.tls = child_tls;
 			return true;
 		}
