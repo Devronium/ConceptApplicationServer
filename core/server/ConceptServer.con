@@ -1075,7 +1075,7 @@ class ConceptChild {
 												else
 													data = StrReplace(data, "{PROTOCOL}", "concept");
 											}
-											buffer = "HTTP/1.1 200 OK\r\nDate: $tstamp\r\nConnection: close\r\nContent-Type: $content_type\r\nCache-Control: max-age=86400\r\nLast-Modified: $last_mod\r\nServer: Concept Application Server 4.0W\r\n\r\n" + data;
+											buffer = "HTTP/1.1 200 OK\r\nDate: $tstamp\r\nConnection: close\r\nContent-Type: $content_type\r\nCache-Control: max-age=86400\r\nLast-Modified: $last_mod\r\nServer: Concept Application Server 4.0W\r\nStrict-Transport-Security: max-age=31536000; includeSubDomains; preload\r\nContent-Length: ${length data}\r\n\r\n" + data;
 										}
 										var buf_len = length buffer;
 										SocketSetBlocking(Socket.Socket, false);
@@ -2736,7 +2736,7 @@ class Main {
 			ini_file=getcwd()+"/concept.ini";
 		
 		var s=new ConceptServer(ini_file);
-		if (ExecuteProcess("concept", ".", ["-mt", "ConceptSSLProxyServer.con"], [ ], false) < 0)
+		if (ExecuteProcess("concept", ".", ["-mt", "ConceptTLSProxyServer.con"], [ ], false) < 0)
 			s.Log("ConceptServer", "Error initializing Concept SSL proxy");
 		try {
 			s.Start();

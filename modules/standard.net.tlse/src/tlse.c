@@ -196,7 +196,7 @@
 #define __TLS_MAX_HASH_SIZE __TLS_MAX_SHA_SIZE
 #define __TLS_MAX_RSA_KEY   2048    // 16kbits
 
-#define __TLS_MAX_TLS_APP_SIZE      65000
+#define __TLS_MAX_TLS_APP_SIZE      0x4000
 // max 1 second sleep
 #define __TLS_MAX_ERROR_SLEEP_uS    1000000
 
@@ -1844,7 +1844,7 @@ int tls_certificate_valid_subject(TLSCertificate *cert, const char *subject) {
     if (!strcmp((const char *)cert->subject, subject))
         return 0;
 
-    char *wildcard = strchr((const char *)cert->subject, '*');
+    const char *wildcard = strchr((const char *)cert->subject, '*');
     if (wildcard) {
         if (!wildcard[0]) {
             // subject is [*]
@@ -1854,7 +1854,7 @@ int tls_certificate_valid_subject(TLSCertificate *cert, const char *subject) {
             return bad_certificate;
         }
         wildcard++;
-        char *match = strstr(subject, wildcard);
+        const char *match = strstr(subject, wildcard);
         if ((!match) && (wildcard[0] == '.')) {
             // check *.domain.com agains domain.com
             wildcard++;
@@ -3598,7 +3598,7 @@ TLSPacket *tls_build_hello(TLSContext *context) {
 
                 int extension_len = 0;
 #ifdef TLS_CLIENT_ECDHE
-                extension_len += 14;
+                extension_len += 12;
 #endif
                 if (sni_len)
                     extension_len += sni_len + 9;
@@ -3622,11 +3622,10 @@ TLSPacket *tls_build_hello(TLSContext *context) {
                 // supported groups
                 tls_packet_uint16(packet, 0x0A);
                 // 4 curves x 2 bytes
-                tls_packet_uint16(packet, 10);
                 tls_packet_uint16(packet, 8);
+                tls_packet_uint16(packet, 6);
                 tls_packet_uint16(packet, secp256r1.iana);
                 tls_packet_uint16(packet, secp384r1.iana);
-                tls_packet_uint16(packet, secp521r1.iana);
                 tls_packet_uint16(packet, secp224r1.iana);
 #endif
             }
@@ -3870,10 +3869,11 @@ int tls_parse_hello(TLSContext *context, const unsigned char *buf, int buf_len, 
                                     context->curve = &secp384r1;
                                     selected = 1;
                                     break;
-                                case 25:
-                                    context->curve = &secp521r1;
-                                    selected = 1;
-                                    break;
+                                // do not use it anymore
+                                // case 25:
+                                //    context->curve = &secp521r1;
+                                //    selected = 1;
+                                //    break;
                             }
                             if (selected) {
                                 DEBUG_PRINT("SELECTED CURVE %s\n", context->curve->name);
@@ -5512,7 +5512,12 @@ int tls_load_private_key(TLSContext *context, const unsigned char *pem_buffer, i
         if ((!data) || (!len))
             break;
         TLSCertificate *cert = asn1_parse(context, data, len, -1);
-        TLS_FREE(data);
+        if (!cert->der_len) {
+            TLS_FREE(cert->der_bytes);
+            cert->der_bytes = data;
+            cert->der_len = len;
+        } else
+            TLS_FREE(data);
         if (cert) {
             if ((cert) && (cert->priv) && (cert->priv_len)) {
                 DEBUG_PRINT("Loaded private key\n");
