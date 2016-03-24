@@ -882,6 +882,59 @@ unsigned char *__private_tls_encrypt_rsa(TLSContext *context, const unsigned cha
     return out;
 }
 
+#ifdef TLS_LEGACY_SUPPORT
+int __private_rsa_verify_hash_md5sha1(const unsigned char *sig, unsigned long siglen, unsigned char *hash, unsigned long hashlen, int *stat, rsa_key *key) {
+    unsigned long modulus_bitlen, modulus_bytelen, x;
+    int           err;
+    unsigned char *tmpbuf = NULL;
+
+    if ((hash == NULL) || (sig == NULL) || (stat == NULL) || (key == NULL) || (!siglen) || (!hashlen))
+        return TLS_GENERIC_ERROR;
+
+    *stat = 0;
+
+    modulus_bitlen = mp_count_bits((key->N));
+
+    modulus_bytelen = mp_unsigned_bin_size((key->N));
+    if (modulus_bytelen != siglen)
+        return TLS_GENERIC_ERROR;
+
+    tmpbuf = (unsigned char *)TLS_MALLOC(siglen);
+    if (!tmpbuf)
+        return TLS_GENERIC_ERROR;
+
+    x = siglen;
+    if ((err = ltc_mp.rsa_me(sig, siglen, tmpbuf, &x, PK_PUBLIC, key)) != CRYPT_OK) {
+        TLS_FREE(tmpbuf);
+        return err;
+    }
+
+    if (x != siglen) {
+        TLS_FREE(tmpbuf);
+        return CRYPT_INVALID_PACKET;
+    }
+    unsigned long out_len = siglen;
+    unsigned char *out = (unsigned char *)TLS_MALLOC(siglen);
+    if (!out) {
+        TLS_FREE(tmpbuf);
+        return TLS_GENERIC_ERROR;
+    }
+
+    int decoded = 0;
+    err = pkcs_1_v1_5_decode(tmpbuf, x, LTC_LTC_PKCS_1_EMSA, modulus_bitlen, out, &out_len, &decoded);
+    if (decoded) {
+        if (out_len == hashlen) {
+            if (!memcmp(out, hash, hashlen))
+                *stat = 1;
+        }
+    }
+
+    TLS_FREE(tmpbuf);
+    TLS_FREE(out);
+    return err;
+}
+#endif
+
 int __private_tls_verify_rsa(TLSContext *context, unsigned int hash_type, const unsigned char *buffer, unsigned int len, const unsigned char *message, unsigned int message_len) {
     init_dependencies();
     rsa_key key;
@@ -961,12 +1014,43 @@ int __private_tls_verify_rsa(TLSContext *context, unsigned int hash_type, const 
             }
             hash_len = 64;
             break;
+#ifdef TLS_LEGACY_SUPPORT
+        case __md5_sha1:
+            hash_idx = find_hash("md5");
+            err = md5_init(&state);
+            if (!err) {
+                err = md5_process(&state, message, message_len);
+                if (!err)
+                    err = md5_done(&state, hash);
+            }
+            hash_idx = find_hash("sha1");
+            err = sha1_init(&state);
+            if (!err) {
+                err = sha1_process(&state, message, message_len);
+                if (!err)
+                    err = sha1_done(&state, hash + 16);
+            }
+            hash_len = 36;
+            err = sha1_init(&state);
+            if (!err) {
+                err = sha1_process(&state, message, message_len);
+                if (!err)
+                    err = sha1_done(&state, hash + 16);
+            }
+            hash_len = 36;
+            break;
+#endif
     }
     if ((hash_idx < 0) || (err)) {
         DEBUG_PRINT("Unsupported hash type: %i\n", hash_type);
         return TLS_GENERIC_ERROR;
     }
     int rsa_stat = 0;
+#ifdef TLS_LEGACY_SUPPORT
+    if (hash_type == __md5_sha1)
+        err = __private_rsa_verify_hash_md5sha1(buffer, len, hash, hash_len, &rsa_stat, &key);
+    else
+#endif
     err = rsa_verify_hash_ex(buffer, len, hash, hash_len, LTC_LTC_PKCS_1_V1_5, hash_idx, 0, &rsa_stat, &key);
     rsa_free(&key);
     if (err)
@@ -2578,9 +2662,19 @@ int __private_tls_update_hash(TLSContext *context, const unsigned char *in, unsi
         return 0;
     TLSHash *hash = __private_tls_ensure_hash(context);
     if (context->version >= TLS_V12) {
-        if (!hash->created)
+        if (!hash->created) {
             __private_tls_create_hash(context);
-        
+#ifdef TLS_LEGACY_SUPPORT
+            // cache first hello in case of protocol downgrade
+            if ((!context->is_server) && (!context->cached_handshake) && (!context->request_client_certificate) && (len)) {
+                context->cached_handshake = (unsigned char *)TLS_MALLOC(len);
+                if (context->cached_handshake) {
+                    memcpy(context->cached_handshake, in, len);
+                    context->cached_handshake_len = len;
+                }
+            }
+#endif
+        }
         int hash_size = __private_tls_mac_length(context);
         if (hash_size == __TLS_SHA384_MAC_SIZE) {
             sha384_process(&hash->hash, in, len);
@@ -2608,6 +2702,23 @@ int __private_tls_update_hash(TLSContext *context, const unsigned char *in, unsi
     }
     return 0;
 }
+
+#ifdef TLS_LEGACY_SUPPORT
+int __private_tls_change_hash_type(TLSContext *context) {
+    if (!context)
+        return 0;
+    TLSHash *hash = __private_tls_ensure_hash(context);
+    if ((hash) && (hash->created) && (context->cached_handshake) && (context->cached_handshake_len)) {
+        __private_tls_destroy_hash(context);
+        int res = __private_tls_update_hash(context, context->cached_handshake, context->cached_handshake_len);
+        TLS_FREE(context->cached_handshake);
+        context->cached_handshake = NULL;
+        context->cached_handshake_len = 0;
+        return res;
+    }
+    return 0;
+}
+#endif
 
 int __private_tls_done_hash(TLSContext *context, unsigned char *hout) {
     if (!context)
@@ -3554,6 +3665,7 @@ TLSPacket *tls_build_hello(TLSContext *context) {
 #ifndef STRICT_TLS
             if (context->version >= TLS_V12) {
 #endif
+#ifdef TLS_FORWARD_SECRECY
 #ifdef TLS_CLIENT_ECDHE
                 // sizeof ciphers (14 ciphers * 2 bytes)
                 tls_packet_uint16(packet, 28);
@@ -3574,6 +3686,9 @@ TLSPacket *tls_build_hello(TLSContext *context) {
                 tls_packet_uint16(packet, TLS_DHE_RSA_WITH_AES_128_CBC_SHA256);
                 tls_packet_uint16(packet, TLS_DHE_RSA_WITH_AES_256_CBC_SHA);
                 tls_packet_uint16(packet, TLS_DHE_RSA_WITH_AES_128_CBC_SHA);
+#else
+                tls_packet_uint16(packet, 10);
+#endif
                 // tls_packet_uint16(packet, TLS_RSA_WITH_AES_256_GCM_SHA384);
                 tls_packet_uint16(packet, TLS_RSA_WITH_AES_128_GCM_SHA256);
                 tls_packet_uint16(packet, TLS_RSA_WITH_AES_256_CBC_SHA256);
@@ -3582,7 +3697,20 @@ TLSPacket *tls_build_hello(TLSContext *context) {
                 tls_packet_uint16(packet, TLS_RSA_WITH_AES_128_CBC_SHA);
 #ifndef STRICT_TLS
             } else {
+#ifdef TLS_FORWARD_SECRECY
+#ifdef TLS_CLIENT_ECDHE
+                tls_packet_uint16(packet, 14);
+                tls_packet_uint16(packet, TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA);
+                tls_packet_uint16(packet, TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA);
+#else
+                tls_packet_uint16(packet, 10);
+#endif
+                tls_packet_uint16(packet, TLS_DHE_RSA_WITH_AES_256_CBC_SHA);
+                tls_packet_uint16(packet, TLS_DHE_RSA_WITH_AES_256_CBC_SHA);
+                tls_packet_uint16(packet, TLS_DHE_RSA_WITH_AES_128_CBC_SHA);
+#else
                 tls_packet_uint16(packet, 4);
+#endif
                 tls_packet_uint16(packet, TLS_RSA_WITH_AES_256_CBC_SHA);
                 tls_packet_uint16(packet, TLS_RSA_WITH_AES_128_CBC_SHA);
             }
@@ -3618,6 +3746,7 @@ TLSPacket *tls_build_hello(TLSContext *context) {
                     tls_packet_uint16(packet, sni_len);
                     tls_packet_append(packet, (unsigned char *)context->sni, sni_len);
                 }
+#ifdef TLS_FORWARD_SECRECY
 #ifdef TLS_CLIENT_ECDHE
                 // supported groups
                 tls_packet_uint16(packet, 0x0A);
@@ -3627,6 +3756,7 @@ TLSPacket *tls_build_hello(TLSContext *context) {
                 tls_packet_uint16(packet, secp256r1.iana);
                 tls_packet_uint16(packet, secp384r1.iana);
                 tls_packet_uint16(packet, secp224r1.iana);
+#endif
 #endif
             }
         }
@@ -3751,6 +3881,8 @@ int tls_parse_hello(TLSContext *context, const unsigned char *buf, int buf_len, 
     if (context->version > version) {
         context->version = version;
         downgraded = 1;
+        if (!context->is_server)
+            __private_tls_change_hash_type(context);
     }
 #endif
 #endif
@@ -3850,6 +3982,7 @@ int tls_parse_hello(TLSContext *context, const unsigned char *buf, int buf_len, 
                     }
                 }
             } else
+#ifdef TLS_FORWARD_SECRECY
             if (extension_type == 0x0A) {
                 // supported groups
                 if (buf_len - res > 2) {
@@ -3883,6 +4016,7 @@ int tls_parse_hello(TLSContext *context, const unsigned char *buf, int buf_len, 
                     }
                 }
             } else
+#endif
             if (extension_type == 0x0D) {
                 // supported signatures
                 DEBUG_DUMP_HEX_LABEL("SUPPORTED SIGNATURES", &buf[res], extension_len);

@@ -323,6 +323,10 @@ CONCEPT_FUNCTION_IMPL(TLSEstablished, 1)
     T_HANDLE(0)
     TLSContext *context = (TLSContext *)(SYS_INT)PARAM(0);
     int res = tls_established(context);
+    if ((context->user_data) && (res)) {
+        Invoke(INVOKE_FREE_VARIABLE, context->user_data);
+        context->user_data = NULL;
+    }
     RETURN_NUMBER(res);
 END_IMPL
 //------------------------------------------------------------------------

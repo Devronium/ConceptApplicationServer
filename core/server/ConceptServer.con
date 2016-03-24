@@ -892,7 +892,8 @@ class ConceptChild {
 							var session_to_restore="";
 							var parent=-1;
 							var done = true;
-							var if_modified="";
+							var if_modified = "";
+							var keep_alive = false;
 							if (len) {
 								var line=StrSplit(header[0], " ");
 								if (length line > 1) {
@@ -960,6 +961,12 @@ class ConceptChild {
 														break;
 													case "if-modified-since":
 														if_modified = trim(SubStr(line, 18));
+														break;
+													case "connection":
+														if (ToLower(trim(""+arr[1])) == "keep-alive")
+															keep_alive = true;
+														else
+															keep_alive = false;
 														break;
 												}
 											}
@@ -1046,6 +1053,11 @@ class ConceptChild {
 									app = directory + path;
 									app = Owner.ConceptClient + app;
 									if (FileExists(app)) {
+										var connection_policy;
+										if (keep_alive)
+											connection_policy = "keep-alive";
+										else
+											connection_policy = "close";
 										var last_mod = rtrim(asctime(_filelast_mod(app))) + " GMT";
 										if ((!TLS) && (force_tls)) {
 											var location = "https://" + ServerName;
@@ -1057,7 +1069,7 @@ class ConceptChild {
 											var buffer = "HTTP/1.1 302 Found\r\nDate: $tstamp\r\nConnection: close\r\nLocation: $location\r\nServer: Concept Application Server 4.0W\r\n\r\n";
 										} else
 										if ((!is_root) && (if_modified==last_mod)) {
-											buffer = "HTTP/1.1 304 Not Modified\r\nDate: $tstamp\r\nConnection: close\r\nContent-Type: $content_type\r\nCache-Control: max-age=86400\r\nLast-Modified: $last_mod\r\nServer: Concept Application Server 4.0W\r\n\r\n";
+											buffer = "HTTP/1.1 304 Not Modified\r\nDate: $tstamp\r\nConnection: $connection_policy\r\nContent-Type: $content_type\r\nCache-Control: max-age=86400\r\nLast-Modified: $last_mod\r\nServer: Concept Application Server 4.0W\r\n\r\n";
 										} else {
 											data = ReadFile(app);
 											if (is_root) {
@@ -1075,7 +1087,7 @@ class ConceptChild {
 												else
 													data = StrReplace(data, "{PROTOCOL}", "concept");
 											}
-											buffer = "HTTP/1.1 200 OK\r\nDate: $tstamp\r\nConnection: close\r\nContent-Type: $content_type\r\nCache-Control: max-age=86400\r\nLast-Modified: $last_mod\r\nServer: Concept Application Server 4.0W\r\nStrict-Transport-Security: max-age=31536000; includeSubDomains; preload\r\nContent-Length: ${length data}\r\n\r\n" + data;
+											buffer = "HTTP/1.1 200 OK\r\nDate: $tstamp\r\nConnection: $connection_policy\r\nContent-Type: $content_type\r\nCache-Control: max-age=86400\r\nLast-Modified: $last_mod\r\nServer: Concept Application Server 4.0W\r\nStrict-Transport-Security: max-age=31536000; includeSubDomains; preload\r\nContent-Length: ${length data}\r\n\r\n" + data;
 										}
 										var buf_len = length buffer;
 										SocketSetBlocking(Socket.Socket, false);
@@ -1098,6 +1110,12 @@ class ConceptChild {
 										}
 										//WriteExact("HTTP/1.1 200 OK\r\nDate: $tstamp\r\nConnection: close\r\nContent-Type: $content_type\r\nServer: Concept Application Server 4.0W\r\n\r\n" + data);
 										ok = true;
+										if ((keep_alive) && (written > 0)) {
+											step = 2;
+											received_data = "";
+											host="";
+											continue;
+										}
 									}
 								}
 								if (!ok) {
