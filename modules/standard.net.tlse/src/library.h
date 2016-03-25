@@ -33,5 +33,6 @@ extern "C" {
     CONCEPT_FUNCTION(TLSESetVerify)
     CONCEPT_FUNCTION(TLSECertificateInfo)
     CONCEPT_FUNCTION(TLSEShutdown)
+    CONCEPT_FUNCTION(TLSEError)
 }
 #endif // __LIBRARY_H

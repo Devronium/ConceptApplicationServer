@@ -1,0 +1,400 @@
+include TCPSocket.con
+
+import standard.net.tlse
+import standard.C.io
+import standard.C.time
+
+class TLSESocket extends TCPSocket {
+	protected var tls;
+	private var parent_tls;
+
+	public property TLS { get tls }
+	public property CertificateInfo { get GetCertificateInfo }
+	public property TLSError { get GetTLSError }
+	public property TLSWritePending { get GetTLSWritePending }
+	public property Cipher { get GetCipher }
+	public property CipherName { get GetCipherName }
+	public var OnVerify;
+	public var RequestCertificate = false;
+	public var Timeout = -1;
+	public var OnAfterAccept;
+	protected var _certdata = "";
+
+	public TLSESocket(number sock=-1, ref_tls=null, ipv6=false) {
+		super(sock, ipv6);
+		this.tls = ref_tls;
+	}
+
+	protected __Verify(context, certificates) {
+		if (OnVerify)
+			return OnVerify(this, certificates);
+		return no_error;
+	}
+
+	override Listen;
+	public function Listen(port, max_connections=0x100, interface="") {
+		var res=TCPSocket::Listen(port, max_connections, interface);
+		if (!res) {
+			tls = TLSEServer();
+			if (!tls) {
+				this.Close();
+				return -1;
+			}
+		}
+		return res;
+	}
+
+	public function LoadKeys(string cert_filename, string key_filename, string chain = "") {
+		var cert = ReadFile(cert_filename);
+		var key = ReadFile(key_filename);
+		if ((!cert) || (!key))
+			return -1;
+		if (chain)
+			cert += "\n" + ReadFile(chain);
+		
+		return this.LoadKeysBuffer(cert, key);
+	}
+
+	public function LoadKeysBuffer(var string cert, var string key) {
+		if (!tls)
+			throw "TLS Context not initialized";
+
+		return TLSELoadKeys(tls, cert, key);
+	}
+
+	protected __Handshake(socket, child_tls, handshake_timeout_ms) {
+		var start = microseconds() / 1000;
+		var established = false;
+		do {
+			if (SocketHasData(socket, handshake_timeout_ms)) {
+				var res = SocketRead(socket, var buffer, 0xFFFF);
+				if (res <= 0)
+					break;
+
+				if (res > 0) {
+					res = TLSEConsume(child_tls, buffer);
+					if (res >= 0) {
+						do {
+							buffer = TLSEPending(child_tls);
+							if (buffer) {
+								res = SocketWrite(socket, buffer);
+								if (res > 0)
+									TLSESent(child_tls, res);
+								if (res < 0)
+									break;
+							}
+						} while (buffer);
+					}
+					if (res < 0)
+						break;
+				}
+				established = TLSEstablished(child_tls);
+			}
+			var now = microseconds() / 1000;
+			if (now - start >= handshake_timeout_ms)
+				break;
+		} while (established == 0);
+		return established;
+	}
+
+	override Connect;
+	public Connect(host, port, handshake_timeout_ms = 5000) {
+		var res=TCPSocket::Connect(host, port);
+		if (res) {
+			tls=TLSEClient();
+			if (!tls) {
+				this.Close();
+				throw "Error creating TLS/SSL context";
+			}
+			if (_certdata) {
+				if (TLSELoadRootCA(tls, _certdata) <= 0) {
+					this.Close();
+					throw "Error loading CA data";
+				}
+
+				_certdata = "";
+			}
+			TLSESetSNI(tls, host);
+			if (!TLSEConnect(tls)) {
+				this.Close();
+				return -1;
+			}
+			this.WritePending();
+			if (OnVerify)
+				TLSESetVerify(tls, __Verify);
+			var established = this.__Handshake(this.Socket, tls, handshake_timeout_ms);
+			if (established != 1)
+				this.Close();
+
+			return established;
+		}
+		return res;
+	}
+
+	override Accept;
+	public Accept(return_tls_socket=false, handshake_timeout_ms = 5000) {
+		if (!tls)
+			throw "Invalid TLS context (Accept)";
+
+		var socket = TCPSocket::Accept(true);
+		if (socket < 0)
+			throw "Broken socket (Accept)";
+
+		var child_tls = TLSEAccept(tls);
+		if (!child_tls)
+			throw "Broken TLS socket (Accept)";
+
+		if (RequestCertificate)
+			TLSERequestClientCertificate(child_tls);
+
+		if (OnVerify)
+			TLSESetVerify(child_tls, __Verify);
+
+		if (this.__Handshake(socket, child_tls, handshake_timeout_ms) != 1) {
+			if (child_tls)
+				TLSEDone(child_tls);
+			SocketClose(socket);
+			return null;
+		}
+		this.WritePending();
+		if (return_tls_socket)
+			return child_tls;
+		var context = new TLSESocket(socket, child_tls, _ipv6);
+		if (RequestCertificate)
+			context.RequestCertificate = true;
+		return context;
+	}
+
+	public AcceptTCP(return_tls_socket=false) {
+		if (!tls)
+			throw "Invalid TLS context (AcceptTCP)";
+
+		var socket = TCPSocket::Accept(true);
+		if (socket < 0)
+			throw "Broken socket (Accept)";
+
+		var tls_sock = new TLSESocket(socket, null, _ipv6);
+		if (RequestCertificate) {
+			tls_sock.RequestCertificate = true;
+			TLSERequestClientCertificate(tls_sock.tls);
+		}
+		tls_sock.parent_tls = tls;
+		if (OnVerify) {
+			tls_sock.OnVerify = OnVerify;
+			TLSESetVerify(tls_sock.tls, tls_sock.OnVerify);
+		}
+		return tls_sock;
+	}
+
+	public AcceptTLS(handshake_timeout_ms = 5000) {
+		if (tls)
+			throw "AcceptTLS: TLS context already set";
+		if (!parent_tls)
+			throw "AcceptTLS: Invalid TLS socket";
+
+		var child_tls = TLSEAccept(parent_tls);
+		if (child_tls) {
+			if (RequestCertificate)
+				TLSERequestClientCertificate(child_tls);
+
+			if (this.tls)
+				TLSEDone(this.tls);
+			this.tls = child_tls;
+			if (this.__Handshake(this.Socket, this.tls, handshake_timeout_ms) != 1)
+				this.Close(true);
+			return true;
+		}
+		return false;
+	}
+
+	override Read;
+	public Read(number max_size=0xFFFF) {
+		if (Socket<=0)
+			throw "Invalid TLS socket (Read)";
+		if (_islisten)
+			throw "Invalid TLS socket type (Read)";
+		if (!tls)
+			throw "Invalid TLS context (Read)";
+		if (TLSEBroken(tls))
+			throw "Broken TLS socket (Read)\n";
+		if (!TLSEReadBufferSize(tls)) {
+			var data = super::Read(max_size);
+			if (!data)
+				throw "Broken TLS socket (Read/consume)";
+
+			if (TLSEConsume(tls, data) < 0)
+				throw "Broken TLS socket (Read/consume)";
+
+		}
+		var res=TLSERead(tls, var buffer = "", max_size);
+		if (res>0)
+			return buffer;
+		else
+		if (res==0)
+			return "";
+
+		throw "Broken TLS socket (Read)";
+	}
+	
+	override Write;
+	public Write(var string buffer) {
+		if (Socket<=0)
+			throw "Invalid TLS socket (Write)";
+		if (_islisten)
+			throw "Invalid TLS socket type (Write)";
+		if (!tls)
+			throw "Invalid TLS context (Write)";
+
+		if (TLSEBroken(tls))
+			throw "Broken TLS socket (Write)\n";
+
+		if (length buffer) {
+			var written = 0;
+			do {
+				var res=TLSEWrite(tls, buffer, written);
+				if (res<0)
+					throw "Broken TLS socket (Write)";
+				written += res;
+				// limit buffer to 256k
+				if (written > 0x3FFFF)
+					this.WritePending();
+			} while (written < length buffer);
+			this.WritePending();
+			return res;
+		}
+		return 0;
+	}
+
+	public WritePending() {
+		if (!tls)
+			throw "Invalid TLS context (WritePending)";
+		var written = 0;
+		do {
+			var buffer = TLSEPending(tls);
+			if (buffer) {
+				var res = super::Write(buffer);
+				if (res > 0)
+					TLSESent(tls, res);
+				if (res <= 0) {
+					throw "Broken socket (WritePending)";
+					//written = res;
+					//break;
+				}
+				written += res;
+			}
+		} while (buffer);
+		return written;
+	}
+
+	override GetHasData;
+	public function GetHasData(var timeout=0) {
+		if (Socket<=0)
+			throw "Invalid socket (GetHasData)";
+
+		if ((tls) && (TLSEReadBufferSize(tls)))
+			return true;
+
+		if (timeout<=0)
+			var res=SocketHasData(Socket);
+		else
+			res=SocketHasData(Socket, timeout);
+
+		if (res<0)
+			throw "Broken socket (GetHasData)";
+
+		if ((res) && (!_islisten)) {
+			if (tls) {
+				var data = super::Read();
+				if (data) {
+					res = TLSEConsume(tls, data);
+					if (TLSEReadBufferSize(tls))
+						return true;
+					if (res < 0)
+						return false;
+				}
+				return false;
+			}
+		}
+
+		return res;
+	}
+
+	public function GetTLSWritePending() {
+		if (Socket<=0)
+			throw "Invalid TLS socket (GetTLSPending)";
+		if (!tls)
+			throw "Invalid TLS context (GetTLSPending)";
+		if (_islisten)
+			throw "Invalid TLS socket type (GetTLSPending)";
+		var res=TLSEPending(tls);
+		if (res<0)
+			throw "Broken TLS socket (GetTLSPending)";
+		return res;
+	}
+	
+	public GetCertificateInfo(var client = 0) {
+		if (!tls)
+			return new [];
+
+		return TLSECertificateInfo(tls, client);
+	}
+
+	public AddCA(string certdata) {
+		if (!tls) {
+			this._certdata = certdata;
+			return 1;
+		}
+		return TLSELoadRootCA(tls, certdata);
+	}
+
+	public GetTLSError() {
+		if (!tls)
+			return -1;
+		return TLSEError(tls);
+	}
+
+	override Close;
+	public Close(force = false) {
+		if (tls) {
+			TLSEDone(tls);
+			tls=null;
+		}
+		TCPSocket::Close(force);
+	}
+
+	public Shutdown() {
+		if (tls) {
+			TLSEShutdown(tls);
+			TLSEDone(tls);
+			tls=null;
+		}
+	}
+
+	public Save() {
+		if (!tls)
+			return "TLS not initialized";
+		return TLSEExport(tls);
+	}
+
+	public Restore(buf) {
+		if (!tls)
+			return "TLS not initialized";
+		return TLSEImport(tls, buf);
+	}
+
+	public GetCipherName() {
+		if (!tls)
+			return "TLS not initialized";
+		return TLSEChipherName(tls);
+	}
+
+	public GetCipher() {
+		if (!tls)
+			return "TLS not initialized";
+		return TLSEChipher(tls);
+	}
+
+	public finalize() {
+		this.Close();
+	}
+}

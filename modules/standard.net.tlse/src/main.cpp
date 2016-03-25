@@ -528,3 +528,10 @@ CONCEPT_FUNCTION_IMPL(TLSEConnect, 1)
     RETURN_NUMBER(res);
 END_IMPL
 //------------------------------------------------------------------------
+CONCEPT_FUNCTION_IMPL(TLSEError, 1)
+    T_HANDLE(0)
+
+    TLSContext *context = (TLSContext *)(SYS_INT)PARAM(0);
+    RETURN_NUMBER(context->error_code);
+END_IMPL
+//------------------------------------------------------------------------
