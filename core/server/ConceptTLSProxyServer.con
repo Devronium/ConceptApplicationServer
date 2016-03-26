@@ -29,22 +29,23 @@ class ConceptTLSProxyChild {
 
 		Socket.SetOption(SOL_SOCKET, SO_RCVTIMEO, 3000);
 		Socket.SetOption(IPPROTO_TCP, TCP_NODELAY, 1);
-		Socket.AcceptTLS();
-
-		if (!Socket.TLS) {
-			Socket.Close();
-			Owner.Log(@class, "Failed to negotiate a TLS session with $ip");
-			return;
-		}
-
-		var not_started = true;
-		var exc;
-
-		var max_idle = value IniGet(Owner.IniFile, "Server", "MaxInitialIDLE", "10")*1000000;
-		if (max_idle < 1)
-			max_idle = 1;
-		max_idle += microseconds();
 		try {
+			Socket.AcceptTLS();
+
+			if (!Socket.TLS) {
+				Socket.Close();
+				Owner.Log(@class, "Failed to negotiate a TLS session with $ip");
+				return;
+			}
+
+			var not_started = true;
+			var exc;
+
+			var max_idle = value IniGet(Owner.IniFile, "Server", "MaxInitialIDLE", "10")*1000000;
+			if (max_idle < 1)
+				max_idle = 1;
+			max_idle += microseconds();
+
 			while (true) {
 				var op = 0;
 				var last_chars = "";

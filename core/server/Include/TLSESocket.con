@@ -14,6 +14,7 @@ class TLSESocket extends TCPSocket {
 	public property TLSWritePending { get GetTLSWritePending }
 	public property Cipher { get GetCipher }
 	public property CipherName { get GetCipherName }
+	public property Established { get GetEstablished }
 	public var OnVerify;
 	public var RequestCertificate = false;
 	public var Timeout = -1;
@@ -80,8 +81,8 @@ class TLSESocket extends TCPSocket {
 								res = SocketWrite(socket, buffer);
 								if (res > 0)
 									TLSESent(child_tls, res);
-								if (res < 0)
-									break;
+								if (res <= 0)
+									throw "Broken socket (Handshake)";
 							}
 						} while (buffer);
 					}
@@ -255,12 +256,12 @@ class TLSESocket extends TCPSocket {
 				if (res<0)
 					throw "Broken TLS socket (Write)";
 				written += res;
-				// limit buffer to 256k
-				if (written > 0x3FFFF)
+				// limit buffer to 64k
+				if (written > 0xFFFF)
 					this.WritePending();
 			} while (written < length buffer);
 			this.WritePending();
-			return res;
+			return written;
 		}
 		return 0;
 	}
@@ -319,6 +320,21 @@ class TLSESocket extends TCPSocket {
 		return res;
 	}
 
+	public Iterate() {
+		if (!tls)
+			return false;
+		if (SocketHasData(Socket)) {
+			this.WritePending();
+			var buffer = super::Read(0xFFFF);
+			if (buffer) {
+				if (TLSEConsume(tls, buffer) < 0)
+					return false;
+			}
+		}
+		this.WritePending();
+		return true;
+	}
+
 	public function GetTLSWritePending() {
 		if (Socket<=0)
 			throw "Invalid TLS socket (GetTLSPending)";
@@ -330,6 +346,13 @@ class TLSESocket extends TCPSocket {
 		if (res<0)
 			throw "Broken TLS socket (GetTLSPending)";
 		return res;
+	}
+
+	public function GetEstablished() {
+		if (!tls)
+			return false;
+
+		return TLSEstablished(tls);
 	}
 	
 	public GetCertificateInfo(var client = 0) {
