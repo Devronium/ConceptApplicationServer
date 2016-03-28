@@ -117,6 +117,11 @@ public:
         pos++;
         return res;
     }
+    
+    ~TempVariableManager() {
+        if (variables)
+            free(variables);
+    }
 };
 
 Optimizer::Optimizer(PIFAlizator *P, DoubleList *_PIFList, DoubleList *_VDList, char *Filename, ClassCode *cls, char *member, bool is_unserialized) {
@@ -216,7 +221,7 @@ bool Optimizer::TryCheckParameters(OptimizedElement *OE, int p_count, int *minp,
 void Optimizer::BuildParameterList(INTEGER START_POS, AnalizerElement *METHOD) {
     AnalizerElement *AE = 0;
 
-    AnsiList *LocalParamList = new AnsiList();
+    AnsiList *LocalParamList = new AnsiList(false);
 
     ParameterList->Add(LocalParamList, DATA_LIST);
     bool prec_is_comma      = false;
@@ -240,9 +245,11 @@ void Optimizer::BuildParameterList(INTEGER START_POS, AnalizerElement *METHOD) {
 
     for (INTEGER i = START_POS; i < PIF_POSITION; i++) {
         AE = (AnalizerElement *)PIFList->Item(i);
+        bool no_delete = true;
         if ((AE->TYPE == TYPE_OPERATOR) && (AE->ID == KEY_COMMA) && (!prec_is_comma) && (at_least_one) && (i != last)) {
             prec_is_comma      = true;
             parameter_expected = true;
+            no_delete          = false;
         } else
         if ((AE->TYPE == TYPE_VARIABLE) && (parameter_expected)) {
             prec_is_comma      = false;
@@ -258,10 +265,7 @@ void Optimizer::BuildParameterList(INTEGER START_POS, AnalizerElement *METHOD) {
                 Require(AE);
             }
             //============================================//
-
-            INTEGER *ID = new INTEGER;
-            *ID = AE->ID;
-            LocalParamList->Add(ID, DATA_32_BIT);
+            LocalParamList->Add((void *)AE->ID, DATA_32_BIT);
         } else {
             PIFOwner->Errors.Add(new AnsiException(ERR200, AE->_DEBUG_INFO_LINE, 200, AE->_PARSE_DATA, _DEBUG_INFO_FILENAME, _CLASS->NAME, _MEMBER), DATA_EXCEPTION);
         }
@@ -270,7 +274,7 @@ void Optimizer::BuildParameterList(INTEGER START_POS, AnalizerElement *METHOD) {
             ((void **)METHOD->_HASH_DATA) [index] = 0;
         }
 
-        if (delta) {
+        if ((delta) && (no_delete)) {
             PIFList->Remove(i);
         } else {
             PIFList->Delete(i);
@@ -2030,7 +2034,7 @@ void Optimizer::GenerateIntermediateCode() {
         if (LocalParaCount) {
             PARAMS [k].PARAM_INDEX = (INTEGER *)DELTA_REF(&PARAMS [k], new INTEGER [LocalParaCount]);
             for (INTEGER l = 0; l < LocalParaCount; l++) {
-                DELTA_UNREF(&PARAMS [k], PARAMS [k].PARAM_INDEX) [l] = *(INTEGER *)LocalList->Item(l);
+                DELTA_UNREF(&PARAMS [k], PARAMS [k].PARAM_INDEX) [l] = (INTEGER)LocalList->Item(l);
             }
         } else {
             PARAMS [k].PARAM_INDEX = 0;
@@ -2453,4 +2457,3 @@ void Optimizer::AddProfilerCode(int code) {
         OptimizedPIF->Add(OEProfiler, DATA_OPTIMIZED_ELEMENT);
     }
 }
-
