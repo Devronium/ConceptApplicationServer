@@ -55,6 +55,9 @@
 #define TLS_CLIENT_ECDHE
 // suport ecdsa
 #define TLS_ECDSA_SUPPORTED
+// TLS renegotiation is disabled by default (secured or not)
+// do not uncomment next line!
+// #define TLS_ACCEPT_SECURE_RENEGOTIATION
 
 #define TLS_DH_DEFAULT_P            "87A8E61DB4B6663CFFBBD19C651959998CEEF608660DD0F25D2CEED4435E3B00E00DF8F1D61957D4FAF7DF4561B2AA3016C3D91134096FAA3BF4296D830E9A7C209E0C6497517ABD5A8A9D306BCF67ED91F9E6725B4758C022E0B1EF4275BF7B6C5BFC11D45F9088B941F54EB1E59BB8BC39A0BF12307F5C4FDB70C581B23F76B63ACAE1CAA6B7902D52526735488A0EF13C6D9A51BFA4AB3AD8347796524D8EF6A167B5A41825D967E144E5140564251CCACB83E6B486F6B3CA3F7971506026C0B857F689962856DED4010ABD0BE621C3A3960A54E710C375F26375D7014103A4B54330C198AF126116D2276E11715F693877FAD7EF09CADB094AE91E1A1597"
 #define TLS_DH_DEFAULT_G            "3FB32C9B73134D0B2E77506660EDBD484CA7B18F21EF205407F4793A1A0BA12510DBC15077BE463FFF4FED4AAC0BB555BE3A6C1B0C6B47B1BC3773BF7E8C6F62901228F8C28CBB18A55AE31341000A650196F931C77A57F2DDF463E5E9EC144B777DE62AAAB8A8628AC376D282D6ED3864E67982428EBC831D14348F6F2F9193B5045AF2767164E1DFC967C1FB3F2E55A4BD1BFFE83B9C80D052B985D182EA0ADB2A3B7313D3FE14C8484B1E052588B9B7D2BBD2DF016199ECD06E1557CD0915B3353BBB64E0EC377FD028370DF92B52C7891428CDC67EB6184B523D1DB246C32F63078490F00EF8D647D148D47954515E2327CFEF98C582664B4C0F6CC41659"
@@ -113,6 +116,7 @@
 #define TLS_BROKEN_CONNECTION   -13
 #define TLS_BAD_CERTIFICATE     -14
 #define TLS_UNSUPPORTED_CERTIFICATE -15
+#define TLS_NO_RENEGOTIATION    -16
 
 #define __TLS_CLIENT_HELLO_MINSIZE  41
 #define __TLS_CLIENT_RANDOM_SIZE    32
@@ -550,6 +554,10 @@ typedef struct {
     void *user_data;
     TLSCertificate **root_certificates;
     unsigned int root_count;
+#ifdef TLS_ACCEPT_SECURE_RENEGOTIATION
+    unsigned char *verify_data;
+    unsigned char verify_len;
+#endif
 } TLSContext;
 
 typedef struct {
@@ -3106,8 +3114,76 @@ void tls_destroy_context(TLSContext *context) {
     __private_tls_dhe_free(context);
     __private_tls_ecc_dhe_free(context);
 #endif
+#ifdef TLS_ACCEPT_SECURE_RENEGOTIATION
+    TLS_FREE(context->verify_data);
+#endif
     TLS_FREE(context);
 }
+
+#ifdef TLS_ACCEPT_SECURE_RENEGOTIATION
+void __private_tls_reset_context(TLSContext *context) {
+    unsigned int i;
+    if (!context)
+        return;
+    if (!context->is_child) {
+        if (context->certificates) {
+            for (i = 0; i < context->certificates_count; i++)
+                tls_destroy_certificate(context->certificates[i]);
+        }
+        context->certificates = NULL;
+        if (context->private_key) {
+            tls_destroy_certificate(context->private_key);
+            context->private_key = NULL;
+        }
+#ifdef TLS_ECDSA_SUPPORTED
+        if (context->ec_private_key) {
+            tls_destroy_certificate(context->ec_private_key);
+            context->ec_private_key = NULL;
+        }
+#endif
+        TLS_FREE(context->certificates);
+        context->certificates = NULL;
+#ifdef TLS_FORWARD_SECRECY
+        TLS_FREE(context->default_dhe_p);
+        TLS_FREE(context->default_dhe_g);
+        context->default_dhe_p = NULL;
+        context->default_dhe_g = NULL;
+#endif
+    }
+    if (context->client_certificates) {
+        for (i = 0; i < context->client_certificates_count; i++)
+            tls_destroy_certificate(context->client_certificates[i]);
+        TLS_FREE(context->client_certificates);
+    }
+    context->client_certificates = NULL;
+    TLS_FREE(context->master_key);
+    context->master_key = NULL;
+    TLS_FREE(context->premaster_key);
+    context->premaster_key = NULL;
+    if (context->crypto.created)
+        __private_tls_crypto_done(context);
+    __private_tls_done_hash(context, NULL);
+    __private_tls_destroy_hash(context);
+    TLS_FREE(context->application_buffer);
+    context->application_buffer = NULL;
+    // zero out the keys before free
+    if ((context->exportable_keys) && (context->exportable_size))
+        memset(context->exportable_keys, 0, context->exportable_size);
+    TLS_FREE(context->exportable_keys);
+    context->exportable_keys =  NULL;
+    TLS_FREE(context->sni);
+    context->sni = NULL;
+    TLS_FREE(context->dtls_cookie);
+    context->dtls_cookie = NULL;
+    TLS_FREE(context->cached_handshake);
+    context->cached_handshake = NULL;
+    context->connection_status = 0;
+#ifdef TLS_FORWARD_SECRECY
+    __private_tls_dhe_free(context);
+    __private_tls_ecc_dhe_free(context);
+#endif
+}
+#endif
 
 int tls_cipher_supported(TLSContext *context, unsigned short cipher) {
     if (!context)
@@ -3708,8 +3784,18 @@ TLSPacket *tls_build_hello(TLSContext *context) {
                 // secure renegotation
                 // advertise it, but refuse renegotiation
                 tls_packet_uint16(packet, 0xff01);
+#ifdef TLS_ACCEPT_SECURE_RENEGOTIATION
+                // a little defensive
+                if ((context->verify_len) && (!context->verify_data))
+                        context->verify_len = 0;
+                tls_packet_uint16(packet, context->verify_len + 1);
+                tls_packet_uint8(packet, context->verify_len);
+                if (context->verify_len)
+                    tls_packet_append(packet, (unsigned char *)context->verify_data, context->verify_len);
+#else
                 tls_packet_uint16(packet, 1);
                 tls_packet_uint8(packet, 0);
+#endif
             }
 #endif
         } else {
@@ -4053,11 +4139,11 @@ int tls_parse_hello(TLSContext *context, const unsigned char *buf, int buf_len, 
                                     context->curve = &secp384r1;
                                     selected = 1;
                                     break;
-                                    // do not use it anymore
-                                    // case 25:
-                                    //    context->curve = &secp521r1;
-                                    //    selected = 1;
-                                    //    break;
+                                // do not use it anymore
+                                // case 25:
+                                //    context->curve = &secp521r1;
+                                //    selected = 1;
+                                //    break;
                             }
                             if (selected) {
                                 DEBUG_PRINT("SELECTED CURVE %s\n", context->curve->name);
@@ -4543,11 +4629,31 @@ int tls_parse_finished(TLSContext *context, const unsigned char *buf, int buf_le
         return TLS_NOT_VERIFIED;
     }
     TLS_FREE(out);
-    res += size;
     if (context->is_server)
         *write_packets = 3;
     else
         context->connection_status = 0xFF;
+#ifdef TLS_ACCEPT_SECURE_RENEGOTIATION
+    if (size) {
+        if (context->is_server) {
+            TLS_FREE(context->verify_data);
+            context->verify_data = (unsigned char *)TLS_MALLOC(size);
+            if (context->verify_data) {
+                memcpy(context->verify_data, out, size);
+                context->verify_len = size;
+            }
+        } else {
+            // concatenate client verify and server verify
+            context->verify_data = (unsigned char *)TLS_REALLOC(context->verify_data, size);
+            if (context->verify_data) {
+                memcpy(context->verify_data + context->verify_len, out, size);
+                context->verify_len += size;
+            } else
+                context->verify_len = 0;
+        }
+    }
+#endif
+    res += size;
     return res;
 }
 
@@ -4593,9 +4699,11 @@ int tls_parse_verify(TLSContext *context, const unsigned char *buf, int buf_len)
 int tls_parse_payload(TLSContext *context, const unsigned char *buf, int buf_len, tls_validation_function certificate_verify) {
     int orig_len = buf_len;
     if (context->connection_status == 0xFF) {
+#ifndef TLS_ACCEPT_SECURE_RENEGOTIATION
         // renegotiation disabled (emit warning alert)
         __private_tls_write_packet(tls_build_alert(context, 0, no_renegotiation));
         return 1;
+#endif
     }
     while ((buf_len >= 4) && (!context->critical_error)) {
         int payload_res = 0;
@@ -4611,6 +4719,23 @@ int tls_parse_payload(TLSContext *context, const unsigned char *buf, int buf_len
                 DEBUG_PRINT(" => HELLO REQUEST (RENEGOTIATION?)\n");
                 if (context->is_server)
                     payload_res = TLS_UNEXPECTED_MESSAGE;
+                else {
+                    if (context->connection_status == 0xFF) {
+                        // renegotiation
+#ifdef TLS_ACCEPT_SECURE_RENEGOTIATION
+                        if (context->critical_error)
+                            payload_res = TLS_UNEXPECTED_MESSAGE;
+                        else {
+                            __private_tls_reset_context(context);
+                            __private_tls_write_packet(tls_build_hello(context));
+                            return 1;
+                        }
+#else
+                        payload_res = TLS_NO_RENEGOTIATION;
+#endif
+                    } else
+                        payload_res = TLS_UNEXPECTED_MESSAGE;
+                }
                 // no payload
                 break;
                 // client hello
@@ -4752,11 +4877,12 @@ int tls_parse_payload(TLSContext *context, const unsigned char *buf, int buf_len
                     __private_tls_write_packet(tls_build_alert(context, 1, bad_record_mac));
                     break;
                 case TLS_BAD_CERTIFICATE:
-                    __private_tls_write_packet(tls_build_alert(context, 1, bad_certificate));
                     if (context->is_server) {
                         // bad client certificate, continue
+                        __private_tls_write_packet(tls_build_alert(context, 0, bad_certificate));
                         payload_res = 0;
-                    }
+                    } else
+                        __private_tls_write_packet(tls_build_alert(context, 1, bad_certificate));
                     break;
                 case TLS_UNSUPPORTED_CERTIFICATE:
                     __private_tls_write_packet(tls_build_alert(context, 1, unsupported_certificate));
@@ -4766,6 +4892,10 @@ int tls_parse_payload(TLSContext *context, const unsigned char *buf, int buf_len
                     break;
                 case TLS_NOT_UNDERSTOOD:
                     __private_tls_write_packet(tls_build_alert(context, 1, internal_error));
+                    break;
+                case TLS_NO_RENEGOTIATION:
+                    __private_tls_write_packet(tls_build_alert(context, 0, no_renegotiation));
+                    payload_res = 0;
                     break;
             }
             if (payload_res < 0)
@@ -5808,6 +5938,24 @@ TLSPacket *tls_build_finished(TLSContext *context) {
     }
     tls_packet_append(packet, out, __TLS_MIN_FINISHED_OPAQUE_LEN);
     tls_packet_update(packet);
+#ifdef TLS_ACCEPT_SECURE_RENEGOTIATION
+    if (context->is_server) {
+        // concatenate client verify and server verify
+        context->verify_data = (unsigned char *)TLS_REALLOC(context->verify_data, __TLS_MIN_FINISHED_OPAQUE_LEN);
+        if (context->verify_data) {
+            memcpy(context->verify_data + context->verify_len, out, __TLS_MIN_FINISHED_OPAQUE_LEN);
+            context->verify_len += __TLS_MIN_FINISHED_OPAQUE_LEN;
+        } else
+            context->verify_len = 0;
+    } else {
+        TLS_FREE(context->verify_data);
+        context->verify_data = (unsigned char *)TLS_MALLOC(__TLS_MIN_FINISHED_OPAQUE_LEN);
+        if (context->verify_data) {
+            memcpy(context->verify_data, out, __TLS_MIN_FINISHED_OPAQUE_LEN);
+            context->verify_len = __TLS_MIN_FINISHED_OPAQUE_LEN;
+        }
+    }
+#endif
     return packet;
 }
 
