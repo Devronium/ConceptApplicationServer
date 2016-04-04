@@ -29,6 +29,33 @@
         VAR_FREE(VARIABLE);                                                                    \
     }
 
+#ifdef SIMPLE_MULTI_THREADING
+#define FREE_VARIABLE_TS(VARIABLE)                                                              \
+    VARIABLE->LINKS--;                                                                         \
+    if (VARIABLE->LINKS < 1) {                                                                 \
+        if (VARIABLE->CLASS_DATA) {                                                            \
+            if (VARIABLE->TYPE == VARIABLE_STRING) {                                           \
+                delete (AnsiString *)VARIABLE->CLASS_DATA;                                     \
+            } else                                                                             \
+            if ((VARIABLE->TYPE == VARIABLE_CLASS) || (VARIABLE->TYPE == VARIABLE_DELEGATE)) { \
+                if (!--((CompiledClass *)VARIABLE->CLASS_DATA)->LINKS) {                       \
+                    WRITE_UNLOCK                                                               \
+                    delete (CompiledClass *)VARIABLE->CLASS_DATA;                              \
+                }                                                                              \
+            } else                                                                             \
+            if (VARIABLE->TYPE == VARIABLE_ARRAY) {                                            \
+                if (!--((Array *)VARIABLE->CLASS_DATA)->LINKS) {                               \
+                    WRITE_UNLOCK                                                               \
+                    delete (Array *)VARIABLE->CLASS_DATA;                                      \
+                }                                                                              \
+            }                                                                                  \
+        }                                                                                      \
+        VAR_FREE(VARIABLE);                                                                    \
+    }
+#else
+#define FREE_VARIABLE_TS    FREE_VARIABLE
+#endif
+
 #define FREE_VARIABLE_RESET(VARIABLE, pushed_type)                                       \
     VARIABLE->LINKS--;                                                                   \
     if (VARIABLE->LINKS < 1) {                                                           \

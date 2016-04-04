@@ -1931,7 +1931,7 @@ INTEGER PIFAlizator::BuildEvent(ClassCode *CC, AnsiParser *P, INTEGER on_line, I
     _ID  = GetID(sPARSE);
 
     if ((TYPE != TYPE_SEPARATOR) && (_ID != KEY_SEP)) {
-        Errors.Add(new AnsiException(ERR340, on_line ? on_line : P->LastLine(), 340, sPARSE, FileName, CC->NAME, CM->NAME)c, DATA_EXCEPTION);
+        Errors.Add(new AnsiException(ERR340, on_line ? on_line : P->LastLine(), 340, sPARSE, FileName, CC->NAME, CM->NAME), DATA_EXCEPTION);
         return 1;
     }
 #endif

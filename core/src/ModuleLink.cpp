@@ -965,7 +965,7 @@ INTEGER Invoke(INTEGER INVOKE_TYPE, ...) {
                 char thread_created = 0;
                 if (((INVOKE_TYPE == INVOKE_CALL_DELEGATE_THREAD) || (INVOKE_TYPE == INVOKE_CALL_DELEGATE_THREAD_SAFE)) && (target->TYPE == VARIABLE_DELEGATE) && (target->CLASS_DATA)) {
                     NEW_THREAD
-                        thread_created = 1;
+                    thread_created = 1;
                 }
 #endif
                 if ((PIF) && (INVOKE_TYPE == INVOKE_CALL_DELEGATE_THREAD_SAFE)) {

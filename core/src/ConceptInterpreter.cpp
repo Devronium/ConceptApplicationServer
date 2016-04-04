@@ -2653,7 +2653,7 @@ int ConceptInterpreter::StacklessInterpret(PIFAlizator *PIF, GreenThreadCycle *G
                                 LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = 0;
                             }
                             if (RESULT) {
-                                FREE_VARIABLE(LOCAL_CONTEXT [OE->Result_ID - 1]);
+                                FREE_VARIABLE_TS(LOCAL_CONTEXT [OE->Result_ID - 1]);
                                 LOCAL_CONTEXT [OE->Result_ID - 1] = RESULT;
                                 RESULT->LINKS++;
                             } else {
@@ -2788,7 +2788,7 @@ int ConceptInterpreter::StacklessInterpret(PIFAlizator *PIF, GreenThreadCycle *G
                                     continue;
                                 }
                                 if (RESULT) {
-                                    FREE_VARIABLE(LOCAL_CONTEXT [OE->Result_ID - 1]);
+                                    FREE_VARIABLE_TS(LOCAL_CONTEXT [OE->Result_ID - 1]);
                                     LOCAL_CONTEXT [OE->Result_ID - 1] = RESULT;
                                     RESULT->LINKS++;
                                 }
@@ -2884,7 +2884,7 @@ int ConceptInterpreter::StacklessInterpret(PIFAlizator *PIF, GreenThreadCycle *G
                                     LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = 0;
                                 }
                                 if (RESULT) {
-                                    FREE_VARIABLE(LOCAL_CONTEXT [OE->Result_ID - 1]);
+                                    FREE_VARIABLE_TS(LOCAL_CONTEXT [OE->Result_ID - 1]);
                                     LOCAL_CONTEXT [OE->Result_ID - 1] = RESULT;
                                     RESULT->LINKS++;
                                 } else {
@@ -4052,7 +4052,7 @@ int ConceptInterpreter::StacklessInterpret(PIFAlizator *PIF, GreenThreadCycle *G
                                 LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = 0;
                             }
                             if (RESULT) {
-                                FREE_VARIABLE(LOCAL_CONTEXT [OE->Result_ID - 1]);
+                                FREE_VARIABLE_TS(LOCAL_CONTEXT [OE->Result_ID - 1]);
                                 LOCAL_CONTEXT [OE->Result_ID - 1] = RESULT;
                                 RESULT->LINKS++;
                             } else {
@@ -4858,12 +4858,13 @@ VariableDATA *ConceptInterpreter::Interpret(PIFAlizator *PIF, VariableDATA **LOC
                             continue;
                         }
                         if (((RESULT) && ((RESULT->TYPE == VARIABLE_CLASS) || (RESULT->TYPE == VARIABLE_DELEGATE)) && (!RESULT->CLASS_DATA)) || (!RESULT)) {
+                            WRITE_UNLOCK
                             CLASS_CHECK(LOCAL_CONTEXT [OE->Result_ID - 1]);
                             LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
                             LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = 0;
                         }
                         if (RESULT) {
-                            FREE_VARIABLE(LOCAL_CONTEXT [OE->Result_ID - 1]);
+                            FREE_VARIABLE_TS(LOCAL_CONTEXT [OE->Result_ID - 1]);
                             LOCAL_CONTEXT [OE->Result_ID - 1] = RESULT;
                             RESULT->LINKS++;
                         } else {
@@ -4969,7 +4970,7 @@ VariableDATA *ConceptInterpreter::Interpret(PIFAlizator *PIF, VariableDATA **LOC
                                 continue;
                             }
                             if (RESULT) {
-                                FREE_VARIABLE(LOCAL_CONTEXT [OE->Result_ID - 1]);
+                                FREE_VARIABLE_TS(LOCAL_CONTEXT [OE->Result_ID - 1]);
                                 LOCAL_CONTEXT [OE->Result_ID - 1] = RESULT;
                                 RESULT->LINKS++;
                             }
@@ -5061,7 +5062,7 @@ VariableDATA *ConceptInterpreter::Interpret(PIFAlizator *PIF, VariableDATA **LOC
                                 LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = 0;
                             }
                             if (RESULT) {
-                                FREE_VARIABLE(LOCAL_CONTEXT [OE->Result_ID - 1]);
+                                FREE_VARIABLE_TS(LOCAL_CONTEXT [OE->Result_ID - 1]);
                                 LOCAL_CONTEXT [OE->Result_ID - 1] = RESULT;
                                 RESULT->LINKS++;
                             } else {
@@ -6259,7 +6260,7 @@ VariableDATA *ConceptInterpreter::Interpret(PIFAlizator *PIF, VariableDATA **LOC
                             LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = 0;
                         }
                         if (RESULT) {
-                            FREE_VARIABLE(LOCAL_CONTEXT [OE->Result_ID - 1]);
+                            FREE_VARIABLE_TS(LOCAL_CONTEXT [OE->Result_ID - 1]);
                             LOCAL_CONTEXT [OE->Result_ID - 1] = RESULT;
                             RESULT->LINKS++;
                         } else {

@@ -28,8 +28,8 @@
  #define WRITE_UNLOCK    if (IsWriteLocked) { IsWriteLocked = 0; PIF->MasterLock = 0; semv(PIF->WriteLock); }
  #define NEW_THREAD      semp(PIF->InternalLock); PIF->ThreadsCount++; semv(PIF->InternalLock);
  #define DONE_THREAD     semp(PIF->InternalLock); PIF->ThreadsCount--; semv(PIF->InternalLock);
- #define INTERNAL_LOCK(PIF)      semp(PIF->InternalLock);
- #define INTERNAL_UNLOCK(PIF)    semv(PIF->InternalLock);
+#define INTERNAL_LOCK(PIF)      semp(PIF->InternalLock);
+#define INTERNAL_UNLOCK(PIF)    semv(PIF->InternalLock);
 
  #define ALLOC_LOCK      semp(((PIFAlizator *)PIF)->AllocLock);
  #define ALLOC_UNLOCK    semv(((PIFAlizator *)PIF)->AllocLock);

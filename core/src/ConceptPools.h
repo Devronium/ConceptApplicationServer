@@ -5,9 +5,9 @@
 #include <stdint.h>
 #include "semhh.h"
 
-//#define SIMPLE_MULTI_THREADING
+// #define SIMPLE_MULTI_THREADING
 #define JIT_RUNTIME_CHECKS
-#define OPTIONAL_SEPARATOR
+// #define OPTIONAL_SEPARATOR
 
 #if defined(_WIN32) || defined(__linux__)
 // use dlmalloc only on win32 and linux
