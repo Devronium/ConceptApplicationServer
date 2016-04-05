@@ -31,11 +31,12 @@ AC_FUNC_SELECT_ARGTYPES
 AC_CHECK_FUNCS([memset select strstr])
 
 # Checks for libraries.
-pkg_modules="libssl >= 0.9.8"
-PKG_CHECK_MODULES(SSL, [$pkg_modules])
+# OpenSSL is optional now, switched to TLSe
+# pkg_modules="libssl >= 0.9.8"
+# PKG_CHECK_MODULES(SSL, [$pkg_modules])
 
-AC_SUBST(SSL_CFLAGS)
-AC_SUBST(SSL_LIBS)
+# AC_SUBST(SSL_CFLAGS)
+# AC_SUBST(SSL_LIBS)
 
 AC_CONFIG_FILES([Makefile
                  src/Makefile])

@@ -63,7 +63,7 @@ CONFIG_CLEAN_VPATH_FILES =
 am__installdirs = "$(DESTDIR)$(libexecdir)"
 PROGRAMS = $(libexec_PROGRAMS)
 am_win32_base_messages_so_OBJECTS = AES.$(OBJEXT) AnsiList.$(OBJEXT) \
-	AnsiString.$(OBJEXT) main.$(OBJEXT) sha256.$(OBJEXT) \
+	AnsiString.$(OBJEXT) tlse.$(OBJEXT) main.$(OBJEXT) \
 	stdlibrary.$(OBJEXT)
 win32_base_messages_so_OBJECTS = $(am_win32_base_messages_so_OBJECTS)
 win32_base_messages_so_LDADD = $(LDADD)
@@ -133,13 +133,8 @@ PACKAGE_TARNAME = @PACKAGE_TARNAME@
 PACKAGE_URL = @PACKAGE_URL@
 PACKAGE_VERSION = @PACKAGE_VERSION@
 PATH_SEPARATOR = @PATH_SEPARATOR@
-PKG_CONFIG = @PKG_CONFIG@
-PKG_CONFIG_LIBDIR = @PKG_CONFIG_LIBDIR@
-PKG_CONFIG_PATH = @PKG_CONFIG_PATH@
 SET_MAKE = @SET_MAKE@
 SHELL = @SHELL@
-SSL_CFLAGS = @SSL_CFLAGS@
-SSL_LIBS = @SSL_LIBS@
 STRIP = @STRIP@
 VERSION = @VERSION@
 abs_builddir = @abs_builddir@
@@ -190,10 +185,10 @@ top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 
 # what flags you want to pass to the C compiler & linker
-AM_CFLAGS = -O2 @SSL_CFLAGS@ -fPIC
-AM_CXXFLAGS = -O2 @SSL_CFLAGS@ -fPIC
-AM_LDFLAGS = -shared @SSL_LIBS@ -lpthread
-win32_base_messages_so_SOURCES = AES/AES.cpp AES/AES.h AnsiList.cpp AnsiList.h AnsiString.cpp AnsiString.h AnsiTypes.h INTERFACE_TO_AES.h library.h main.cpp sha256.c sha256.h stdlibrary.cpp stdlibrary.h
+AM_CFLAGS = -O2 -fPIC -DTLS_AMALGAMATION
+AM_CXXFLAGS = -O2 -fPIC -DTLS_AMALGAMATION
+AM_LDFLAGS = -shared -lpthread
+win32_base_messages_so_SOURCES = AES/AES.cpp AES/AES.h AnsiList.cpp AnsiList.h AnsiString.cpp AnsiString.h AnsiTypes.h INTERFACE_TO_AES.h library.h tlse.c tlse.h main.cpp stdlibrary.cpp stdlibrary.h
 all: all-am
 
 .SUFFIXES:
@@ -282,8 +277,8 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/AnsiList.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/AnsiString.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/sha256.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/stdlibrary.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/tlse.Po@am__quote@
 
 .c.o:
 @am__fastdepCC_TRUE@	$(COMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<

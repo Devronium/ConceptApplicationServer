@@ -14,9 +14,14 @@
 
 #ifndef NOSSL
 extern "C" {
+#ifdef WITH_OPENSSL
  #include <openssl/bio.h>
  #include <openssl/ssl.h>
  #include <openssl/err.h>
+#else
+ #include "tlse.h"
+ #define ERR_print_errors_fp(err)   fprintf(stderr, "TLS error in %s:%i\n", __FILE__, __LINE__)
+#endif
 }
 #endif
 
@@ -140,6 +145,7 @@ extern "C" {
 #endif
 
 #ifndef NOSSL
+#ifdef WITH_OPENSSL
  #if defined(WIN32)
   #define MUTEX_TYPE    HANDLE
   #define MUTEX_SETUP(x)      (x) = CreateMutex(NULL, FALSE, NULL)
@@ -196,6 +202,7 @@ int thread_cleanup(void) {
     mutex_buf = NULL;
     return 1;
 }
+#endif
 #endif
 
 static INVOKE_CALL LocalInvoker     = NULL;
@@ -1727,12 +1734,13 @@ int SetSSL(MetaContainer *mc, SYSTEM_SOCKET CLIENT_SOCKET, char *cert_file, char
     if (mc->sslctx)
         SSL_CTX_free(mc->sslctx);
 
-    mc->sslctx = SSL_CTX_new(SSLv23_server_method());
+    mc->sslctx = SSL_CTX_new(SSLv3_server_method());
     if (mc->sslctx) {
+#ifdef WITH_OPENSSL
         SSL_CTX_set_options(mc->sslctx, SSL_OP_SINGLE_DH_USE);
         if ((trustfile) || (trustpath))
             SSL_CTX_load_verify_locations(mc->sslctx, trustfile, trustpath);
-
+#endif
         int res = 0;
         if ((SSL_CTX_use_certificate_file(mc->sslctx, cert_file, SSL_FILETYPE_PEM)) && (SSL_CTX_use_PrivateKey_file(mc->sslctx, priv_file, SSL_FILETYPE_PEM)) && (SSL_CTX_check_private_key(mc->sslctx))) {
             mc->ssl = SSL_new(mc->sslctx);
@@ -1802,14 +1810,18 @@ CONCEPT_DLL_API ON_CREATE_CONTEXT MANAGEMENT_PARAMETERS {
     else
         ref_isWebSocket = 0;
 #ifndef NOSSL
+#ifdef WITH_OPENSSL
     thread_setup();
+#endif
 #endif
     return 0;
 }
 //---------------------------------------------------------------------------
 CONCEPT_DLL_API ON_DESTROY_CONTEXT MANAGEMENT_PARAMETERS {
 #ifndef NOSSL
+#ifdef WITH_OPENSSL
     thread_cleanup();
+#endif
 #endif
 #ifndef _WIN32
     return (void *)"No unload";
