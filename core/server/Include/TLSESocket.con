@@ -365,6 +365,55 @@ class TLSESocket extends TCPSocket {
 		return written;
 	}
 
+	public WriteIterate() {
+		if (!tls)
+			throw "Invalid TLS context (WritePending)";
+
+		var buffer = TLSEPending(tls);
+		if (buffer) {
+			try {
+				var res = super::Write(buffer);
+			} catch (var exc) {
+				var err = SocketErrno();
+				if ((err != 11) && (err != 35))
+					throw exc;
+				return true;
+			}
+			if (res > 0)
+				TLSESent(tls, res);
+			if (res <= 0)
+				throw "Broken socket (WritePending)";
+
+			if (TLSEPending(tls))
+				return true;
+		}
+		return false;
+	}
+
+	public WritePrepare(var string buffer) {
+		if (Socket<=0)
+			throw "Invalid TLS socket (WritePrepare)";
+		if (_islisten)
+			throw "Invalid TLS socket type (WritePrepare)";
+		if (!tls)
+			throw "Invalid TLS context (WritePrepare)";
+
+		if (TLSEBroken(tls))
+			throw "Broken TLS socket (WritePrepare)\n";
+
+		if (length buffer) {
+			var written = 0;
+			do {
+				var res = TLSEWrite(tls, buffer, written);
+				if (res<0)
+					throw "Broken TLS socket (WritePrepare)";
+				written += res;
+			} while (written < length buffer);
+			return written;
+		}
+		return 0;
+	}
+
 	override GetHasData;
 	public function GetHasData(var timeout=0) {
 		if (Socket<=0)

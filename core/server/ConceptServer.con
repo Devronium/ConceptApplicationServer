@@ -1102,6 +1102,11 @@ class ConceptChild {
 										}
 										var buf_len = length buffer;
 										SocketSetBlocking(Socket.Socket, false);
+										if ((this.TLS == 2) && (buf_len)) {
+											Socket.WritePrepare(buffer);
+											while (Socket.WriteIterate())
+												yield();
+										} else
 										while (buf_len > 0) {
 											try {
 												var written = Socket.Write(buffer);
@@ -1137,6 +1142,11 @@ class ConceptChild {
 									buffer = "HTTP/1.1 $err\r\nDate: $tstamp\r\nConnection: close\r\nContent-Type: text/html\r\nServer: Concept Application Server 4.0W\r\n\r\n" + data;
 									buf_len = length buffer;
 									SocketSetBlocking(Socket.Socket, false);
+									if ((this.TLS == 2) && (buf_len)) {
+										Socket.WritePrepare(buffer);
+										while (Socket.WriteIterate())
+											yield();
+									} else
 									while (buf_len > 0) {
 										try {
 											written = Socket.Write(buffer);
