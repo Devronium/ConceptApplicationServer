@@ -1033,6 +1033,7 @@ class ConceptChild {
 									app = "/index.html";
 								var ok = false;
 								var err = 404;
+								var written = 0;
 								if (value IniGet(Owner.IniFile, "Server", "HandleWebResources", "1") == 0) {
 									app = "";
 									err = 503;
@@ -1106,10 +1107,11 @@ class ConceptChild {
 											Socket.WritePrepare(buffer);
 											while (Socket.WriteIterate())
 												yield();
+											written = buf_len;
 										} else
 										while (buf_len > 0) {
 											try {
-												var written = Socket.Write(buffer);
+												written = Socket.Write(buffer);
 											} catch (exc) {
 												// EAGAIN
 												err = SocketErrno();
@@ -1146,6 +1148,7 @@ class ConceptChild {
 										Socket.WritePrepare(buffer);
 										while (Socket.WriteIterate())
 											yield();
+										written = buf_len;
 									} else
 									while (buf_len > 0) {
 										try {
