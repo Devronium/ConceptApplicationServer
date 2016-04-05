@@ -63,6 +63,52 @@ class TLSESocket extends TCPSocket {
 		return TLSELoadKeys(tls, cert, key);
 	}
 
+	public MakeExportable() {
+		if (!tls)
+			throw "TLS Context not initialized";
+
+		return TLSESetExportable(tls);
+	}
+
+	public HandshakeIterate() {
+		if (Socket<=0)
+			throw "Invalid TLS socket (HandshakeIterate)";
+		if (!tls)
+			throw "Invalid TLS context (HandshakeIterate)";
+		var child_tls = tls;
+		var socket = this.Socket;
+		var established = TLSEstablished(child_tls);
+		if (established < 0)
+			throw "Broken socket (Handshake)";
+		if (SocketHasData(socket)) {
+			var res = SocketRead(socket, var buffer, 0xFFFF);
+			if (res <= 0)
+				throw "Broken socket (Handshake)";
+
+			if (res > 0) {
+				res = TLSEConsume(child_tls, buffer);
+				if (res >= 0) {
+					do {
+						buffer = TLSEPending(child_tls);
+						if (buffer) {
+							res = SocketWrite(socket, buffer);
+							if (res > 0)
+								TLSESent(child_tls, res);
+							if (res <= 0)
+								throw "Broken socket (Handshake)";
+						}
+					} while (buffer);
+				}
+				if (res < 0)
+					throw "Broken socket (Handshake)";
+			}
+			established = TLSEstablished(child_tls);
+		}
+		if (established < 0)
+			throw "Broken socket (Handshake)";
+		return established;
+	}
+
 	protected __Handshake(socket, child_tls, handshake_timeout_ms) {
 		var start = microseconds() / 1000;
 		var established = false;
@@ -203,6 +249,25 @@ class TLSESocket extends TCPSocket {
 			this.tls = child_tls;
 			if (this.__Handshake(this.Socket, this.tls, handshake_timeout_ms) != 1)
 				this.Close(true);
+			return true;
+		}
+		return false;
+	}
+
+	public PrepareAcceptTLS() {
+		if (tls)
+			throw "AcceptTLS: TLS context already set";
+		if (!parent_tls)
+			throw "AcceptTLS: Invalid TLS socket";
+
+		var child_tls = TLSEAccept(parent_tls);
+		if (child_tls) {
+			if (RequestCertificate)
+				TLSERequestClientCertificate(child_tls);
+
+			if (this.tls)
+				TLSEDone(this.tls);
+			this.tls = child_tls;
 			return true;
 		}
 		return false;

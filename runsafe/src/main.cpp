@@ -1182,7 +1182,7 @@ void *RunClone(void *d) {
         key = (char *)malloc(data->csize + 1);
         key[data->csize] = 0;
         memcpy(key, data->key, data->csize);
-        if ((data->csize <= 16) || (memcmp(data->key, "----SSL DATA----", 16))) {
+        if ((data->csize <= 16) || (!memcmp(data->key, "----SSL DATA----", 16))) {
             if (data->secured) {
                 CLIENT_PUBLIC_KEY  = key;
                 SERVER_PRIVATE_KEY = key;
@@ -1471,10 +1471,10 @@ int main3(int argc, char **argv) {
     return 0;
 }
 
-char *hex_to_string(char *str, char *ref, int max_len = 0x100) {
+char *hex_to_string(char *str, char *ref, int max_len = 0x1FFF) {
     int len = strlen(str);
 
-    if (len / 2 > 0x100)
+    if (len / 2 > max_len)
         return NULL;
     int           idx  = 0;
     unsigned char *res = (unsigned char *)ref;
@@ -1561,7 +1561,6 @@ int main2(int argc, char **argv) {
     char *SERVER_PRIVATE_KEY = 0;
     char *CLIENT_PUBLIC_KEY  = 0;
 
-    char NON_HEX_KEY[16];
     int  autocompile = 0;
 
     int secured = 0;
@@ -1591,20 +1590,6 @@ int main2(int argc, char **argv) {
         SERVER_PRIVATE_KEY = (argc > 11) && (argv[11][0]) ? hex_to_string(argv[11], sprk) : 0;
         CLIENT_PUBLIC_KEY  = (argc > 12) && (argv[12][0]) ? hex_to_string(argv[12], cpbk) : 0;
 
-        /*if (SERVER_PUBLIC_KEY) {
-            temp1             = AnsiString(SERVER_PUBLIC_KEY).Replace("%20", " ");
-            SERVER_PUBLIC_KEY = temp1.c_str();
-           }
-
-           if (SERVER_PRIVATE_KEY) {
-            temp2 = AnsiString(SERVER_PRIVATE_KEY).Replace("%20", " ");
-            SERVER_PRIVATE_KEY = temp2.c_str();
-           }
-
-           if (CLIENT_PUBLIC_KEY) {
-            temp3             = AnsiString(CLIENT_PUBLIC_KEY).Replace("%20", " ");
-            CLIENT_PUBLIC_KEY = temp3.c_str();
-           }*/
         if ((SERVER_PUBLIC_KEY) && (SERVER_PRIVATE_KEY) && (CLIENT_PUBLIC_KEY))
             secured = 1;
     }

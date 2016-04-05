@@ -2,6 +2,7 @@
 
 include Greenloop.con
 include TCPSocket.con
+include TLSESocket.con
 include UNIXSocket.con
 include Serializable.con
 include WebSocket.con
@@ -17,6 +18,7 @@ import standard.coding.base64
 
 define MAX_RECV_BUFFER		0xFFFF
 define MAX_WS_HEADER		0xFFF
+define USE_TLS_PROXY		false
 
 class ConceptChild {
 	protected var Socket;
@@ -441,12 +443,12 @@ class ConceptChild {
 			this.MaxChilds = multiple_host;
 		}
 
-		/*if (this.TLS) {
+		if (this.TLS == 2) {
 			private_key="";
 			public_key="";
 			// padding => > 16 bytes
-			//shared_key = "----SSL DATA----" + StrReplace(StrReplace(mime_encode(Socket.Serialize()), "\r", ""), "\n", "");
-		}*/
+			shared_key = "----SSL DATA----" + Socket.Save();
+		}
 
 		if ((debug) || (!multiple_host)) {
 			var shared_hex = StringToHex(shared_key);
@@ -864,6 +866,15 @@ class ConceptChild {
 		// don't use local variable socket after this point
 		// this.Socket may be changed if a session restore takes place
 		try {
+			if (this.TLS == 2) {
+				socket.PrepareAcceptTLS();
+				socket.MakeExportable();
+				var start_time = time();
+				while (!socket.HandshakeIterate()) {
+					if (time() - start_time > 5)
+						throw "Handshake timeout error";
+				}
+			}
 			if (this.IsWebSocket) {
 				var force_tls = value IniGet(Owner.IniFile, "Server", "WebTLSOnly", "0");
 				step = 2;
@@ -1066,7 +1077,7 @@ class ConceptChild {
 											if ((orig_app) && (orig_app[0] != "/"))
 												location += "/";
 											location += orig_app;
-											var buffer = "HTTP/1.1 302 Found\r\nDate: $tstamp\r\nConnection: close\r\nLocation: $location\r\nServer: Concept Application Server 4.0W\r\n\r\n";
+											var buffer = "HTTP/1.1 302 Found\r\nDate: $tstamp\r\nConnection: $connection_policy\r\nLocation: $location\r\nServer: Concept Application Server 4.0W\r\n\r\n";
 										} else
 										if ((!is_root) && (if_modified==last_mod)) {
 											buffer = "HTTP/1.1 304 Not Modified\r\nDate: $tstamp\r\nConnection: $connection_policy\r\nContent-Type: $content_type\r\nCache-Control: max-age=86400\r\nLast-Modified: $last_mod\r\nServer: Concept Application Server 4.0W\r\n\r\n";
@@ -1344,6 +1355,7 @@ class ConceptChild {
 class ConceptServer {
 	protected var Socket;
 	protected var WSSocket;
+	protected var TLSWSSocket;
 	protected var SSLWSSocket;
 	protected var SSLWSSocketName = "";
 
@@ -1365,6 +1377,7 @@ class ConceptServer {
 	public var mimetypes;
 	public var threads=0;
 	public var Running = true;
+	public var ShuttingDown = false;
 
 	ConceptServer(inifile="") {
 		this.mimetypes = [
@@ -2362,9 +2375,15 @@ class ConceptServer {
 
 			this.WSSocket = new TCPSocket(-1, true);
 			this.WSSocket.SetOption(IPPROTO_IPV6, IPV6_V6ONLY, 0);
+
+			if (!USE_TLS_PROXY) {
+				this.TLSWSSocket = new TLSESocket(-1, null, true);
+				this.TLSWSSocket.SetOption(IPPROTO_IPV6, IPV6_V6ONLY, 0);
+			}
 		} else {
 			this.Socket = new TCPSocket();
 			this.WSSocket = new TCPSocket();
+			this.TLSWSSocket = new TLSESocket();
 		}
 		this.SSLWSSocketName = IniGet(inifile, "Server", "SecureProxyUnixSocket", "");
 		if (this.SSLWSSocketName) {
@@ -2373,8 +2392,11 @@ class ConceptServer {
 			this.SSLWSSocket.SetOption(IPPROTO_TCP, TCP_NODELAY, 1);
 		}
 
+
 		this.Socket.SetOption(IPPROTO_TCP, TCP_NODELAY, 1);
 		this.WSSocket.SetOption(IPPROTO_TCP, TCP_NODELAY, 1);
+		if (this.TLSWSSocket)
+			this.TLSWSSocket.SetOption(IPPROTO_TCP, TCP_NODELAY, 1);
 
 		this.Port = value IniGet(inifile, "Server", "Port", "2662");
 		this.WSPort = value IniGet(inifile, "Server", "WebPort", "2680");
@@ -2387,8 +2409,8 @@ class ConceptServer {
 		var public_key = IniGet(this.IniFile, "Server", "WebSocketCertificate", "ssl/publickey.cer");
 		var private_key = IniGet(this.IniFile, "Server", "WebSocketPrivateKey", "ssl/privatekey.pem");
 
-		if (this.SSLWSSocket.LoadKeys(public_key, private_key))
-			this.Log("ConceptServer", "Error loading TLS/SSL keys");
+		if (!this.TLSWSSocket.LoadKeys(public_key, private_key))
+			this.Log("ConceptServer", "Warning: Error loading TLS/SSL keys. HTTPS/WSS will not be supported.");
 	}
 
 	NormalizeName(name, var hash_base) {
@@ -2590,7 +2612,8 @@ class ConceptServer {
 
 		var socket = this.Socket;
 		var wsocket =  this.WSSocket;
-		var sslwsocket =  this.SSLWSSocket;
+		var sslwsocket = this.SSLWSSocket;
+		var tlswssocket = this.TLSWSSocket;
 
 		var iterations;
 		var timeout = 0;
@@ -2599,9 +2622,14 @@ class ConceptServer {
 		var wsock_fd = wsocket.Socket;
 		var sockets = [sock_fd, wsock_fd];
 		var sslsock_fd = -1;
+		var tlssock_fd = -1;
 		if (sslwsocket) {
 			sslsock_fd = sslwsocket.Socket;
 			sockets[2] = sslsock_fd;
+		}
+		if (tlswssocket) {
+			tlssock_fd = tlswssocket.Socket;
+			sockets[3] = tlssock_fd;
 		}
 		while (Running) {
 			try {
@@ -2631,6 +2659,14 @@ class ConceptServer {
 						s = sslwsocket.Accept();
 						if ((s) && (s.Socket>0))
 							AcceptChild(loop, s, true, true);
+						else
+							this.Log("ConceptServer", "Invalid socket in accept (websocket)");
+					}
+					if ((outsockets[0] == tlssock_fd) || (outsockets[1] == tlssock_fd) || (outsockets[2] == tlssock_fd)) {
+						this.Iterations++;
+						s = tlswssocket.AcceptTCP();
+						if ((s) && (s.Socket>0))
+							AcceptChild(loop, s, true, 2);
 						else
 							this.Log("ConceptServer", "Invalid socket in accept (websocket)");
 					}
@@ -2668,6 +2704,11 @@ class ConceptServer {
 	}
 
 	CloseClients() {
+		if (ShuttingDown) {
+			echo "Please wait while shutting down ...\n";
+			return;
+		}
+		ShuttingDown = true;
 		var connections = this.Connections;
 		for (var i = 0; i < length connections; i++) {
 			var client = connections[i];	
@@ -2720,6 +2761,13 @@ class ConceptServer {
 		if ((SSLWSSocket) && (SSLWSSocket.Listen(this.SSLWSSocketName, max_connections)))
 			throw "Error initializing Concept server SSL WS socket (port ${this.SSLWSSocketName} already in use)";
 
+		if (TLSWSSocket) {
+			if (TLSWSSocket.Listen(this.SSLWSPort, max_connections, interface))
+				throw "Error initializing Concept server TLS WS socket (port ${this.SSLWSPort} already in use)";
+			else
+				this.LoadKeys();
+		}
+
 		var user = IniGet(this.IniFile, "Server", "User", "concept");
 		var pwd  = IniGet(this.IniFile, "Server", "UserPassword", "");
 
@@ -2754,8 +2802,10 @@ class Main {
 			ini_file=getcwd()+"/concept.ini";
 		
 		var s=new ConceptServer(ini_file);
-		if (ExecuteProcess("concept", ".", ["-mt", "ConceptTLSProxyServer.con"], [ ], false) < 0)
-			s.Log("ConceptServer", "Error initializing Concept SSL proxy");
+		if (USE_TLS_PROXY) {
+			if (ExecuteProcess("concept", ".", ["-mt", "ConceptTLSProxyServer.con"], [ ], false) < 0)
+				s.Log("ConceptServer", "Error initializing Concept SSL proxy");
+		}
 		try {
 			s.Start();
 		} catch (var exc) {

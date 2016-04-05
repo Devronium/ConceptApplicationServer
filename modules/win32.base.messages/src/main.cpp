@@ -115,7 +115,7 @@ int is_writeable(int fd) {
     MetaContainer * mc = NULL;                                                           \
     Invoke(INVOKE_GETPROTODATA, PARAMETERS->HANDLER, (int)0, &mc);                       \
     if (!mc) {                                                                           \
-        mc = new MetaContainer(REMOTE_PUBLIC_KEY);                                       \
+        mc = new MetaContainer(REMOTE_PUBLIC_KEY, CLIENT_SOCKET);                        \
         Invoke(INVOKE_SETPROTODATA, PARAMETERS->HANDLER, (int)0, mc, destroy_metadata);  \
         /*if ((REMOTE_PUBLIC_KEY) && (REMOTE_PUBLIC_KEY[0]))                          */ \
         /*    RestoreSession(mc, CLIENT_SOCKET, REMOTE_PUBLIC_KEY);                   */ \
@@ -127,7 +127,7 @@ int is_writeable(int fd) {
     if (!mc) {                                                                                        \
         char *REMOTE_PUBLIC_KEY = NULL;                                                               \
         LocalInvoker(INVOKE_GET_KEYS, handler, (char **)NULL, (char **)NULL, &REMOTE_PUBLIC_KEY);     \
-        mc = new MetaContainer(REMOTE_PUBLIC_KEY);                                                    \
+        mc = new MetaContainer(REMOTE_PUBLIC_KEY, CLIENT_SOCKET);                                     \
         LocalInvoker(INVOKE_SETPROTODATA, handler, (int)0, mc, destroy_metadata);                     \
         /*    RestoreSession(mc, CLIENT_SOCKET, REMOTE_PUBLIC_KEY);                   */              \
     }
@@ -264,10 +264,22 @@ public:
 
     void *ConnectionChangedDelegate;
 
-    MetaContainer(const char *REMOTE_PUBLIC_KEY) {
+    MetaContainer(const char *REMOTE_PUBLIC_KEY, int socket) {
 #ifndef NOSSL
         sslctx = NULL;
         ssl    = NULL;
+#ifndef WITH_OPENSSL
+        if ((ref_isWebSocket) && (REMOTE_PUBLIC_KEY)) {
+            if (!memcmp(REMOTE_PUBLIC_KEY, "----SSL DATA----", 16)) {
+                // is wss://
+                unsigned char *ptr = (unsigned char *)REMOTE_PUBLIC_KEY + 16;
+                unsigned short size = ntohs(*(unsigned short *)&ptr[3]) + 5;
+                ssl = tls_import_context(ptr, size);
+                if (ssl)
+                    SSL_set_fd(ssl, socket);
+            }
+        }
+#endif
 #endif
         REMOTE_KEY        = REMOTE_PUBLIC_KEY;
         ConnectionChangedDelegate = NULL;

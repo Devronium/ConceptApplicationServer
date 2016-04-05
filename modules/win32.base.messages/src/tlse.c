@@ -2245,7 +2245,7 @@ int __private_tls_crypto_create(struct TLSContext *context, int key_length, int 
         }
         context->crypto.created = 0;
     }
-    
+    init_dependencies();
     int cipherID = find_cipher("aes");
     DEBUG_PRINT("Using cipher ID: %x\n", (int)context->cipher);
     if (__private_tls_is_aead(context)) {
