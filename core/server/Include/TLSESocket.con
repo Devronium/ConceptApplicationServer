@@ -94,8 +94,11 @@ class TLSESocket extends TCPSocket {
 							res = SocketWrite(socket, buffer);
 							if (res > 0)
 								TLSESent(child_tls, res);
-							if (res <= 0)
-								throw "Broken socket (Handshake)";
+							if (res <= 0) {
+								var err = SocketErrno();
+								if ((err != 11) && (err != 35))
+									throw "Broken socket (Handshake)";
+							}
 						}
 					} while (buffer);
 				}
@@ -127,8 +130,11 @@ class TLSESocket extends TCPSocket {
 								res = SocketWrite(socket, buffer);
 								if (res > 0)
 									TLSESent(child_tls, res);
-								if (res <= 0)
-									throw "Broken socket (Handshake)";
+								if (res <= 0) {
+									var err = SocketErrno();
+									if ((err != 11) && (err != 35))
+										throw "Broken socket (Handshake)";
+								}
 							}
 						} while (buffer);
 					}
@@ -338,7 +344,14 @@ class TLSESocket extends TCPSocket {
 		do {
 			var buffer = TLSEPending(tls);
 			if (buffer) {
-				var res = super::Write(buffer);
+				try {
+					var res = super::Write(buffer);
+				} catch (var exc) {
+					var err = SocketErrno();
+					if ((err != 11) && (err != 35))
+						throw exc;
+					continue;
+				}
 				if (res > 0)
 					TLSESent(tls, res);
 				if (res <= 0) {
