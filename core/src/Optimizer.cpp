@@ -2034,7 +2034,7 @@ void Optimizer::GenerateIntermediateCode() {
         if (LocalParaCount) {
             PARAMS [k].PARAM_INDEX = (INTEGER *)DELTA_REF(&PARAMS [k], new INTEGER [LocalParaCount]);
             for (INTEGER l = 0; l < LocalParaCount; l++) {
-                DELTA_UNREF(&PARAMS [k], PARAMS [k].PARAM_INDEX) [l] = (INTEGER)LocalList->Item(l);
+                DELTA_UNREF(&PARAMS [k], PARAMS [k].PARAM_INDEX) [l] = (INTEGER)(uintptr_t)LocalList->Item(l);
             }
         } else {
             PARAMS [k].PARAM_INDEX = 0;

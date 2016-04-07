@@ -6211,6 +6211,7 @@ TLSContext *tls_import_context(unsigned char *buffer, unsigned int buf_len) {
         return NULL;
     }
     // create a context object
+    init_dependencies();
     TLSContext *context = tls_create_context(0, TLS_V12);
     if (context) {
         unsigned char temp[0xFF];
