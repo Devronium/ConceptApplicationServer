@@ -325,8 +325,9 @@ var CLASS_SEARCHBAR                   = 62;
 var CLASS_CALENDARTIME                = 63;
 var CLASS_TOGGLEBUTTON                = 64;
 var CLASS_IMAGEBUTTON                 = 65;
+var CLASS_CLIENTCHART                 = 66;
 
-// general (window) messages;
+// general (window) messages
 var P_CAPTION                         = 100;
 var P_RESIZABLE                       = 101;
 var P_HEIGHT                          = 102;
@@ -362,14 +363,14 @@ var P_KEEPBELOW                       = 126;
 var P_SKIPPAGER                       = 127;
 var P_PACKTYPE                        = 128;
 var P_FOCUS                           = 129;
-// special message:;
+// special message:
 var P_FIXED                           = 130;
 var P_DISPOSE                         = 131;
 var P_PACKING                         = 132;
 var P_PARENT                          = 133;
 var P_MOUSECURSOR                     = 134;
 var P_MOUSECURSORIMAGE                = 135;
-// window;
+// window
 var P_CLOSEABLE                       = 136;
 var P_URGENT                          = 137;
 var P_TYPE                            = 138;
@@ -389,14 +390,14 @@ var P_CLIENTHANDLE                    = 163;
 var P_SCREEN                          = 164;
 var P_COOLSYSTEMWINDOW                = 165;
 
-// button messages;
+// button messages
 var P_RELIEFSTYLE                     = 200;
 var P_IMAGE                           = 201;
 var P_LAYOUT                          = 202;
 var P_USESTOCK                        = 203;
 var P_IMAGEPOSITION                   = 204;
 
-//box;
+//box
 var P_SPACING                         = 300;
 var P_HOMOGENEOUS                     = 301;
 var P_XPADDING                        = 302;
@@ -405,7 +406,7 @@ var P_MINHEIGHT                       = 304;
 var P_MINWIDTH                        = 305;
 var P_STYLE                           = 306;
 
-//edit;
+//edit
 var P_MASKED                          = 400;
 var P_MASKEDCHAR                      = 401;
 var P_MAXLEN                          = 402;
@@ -423,17 +424,17 @@ var P_PRIMARYACTIVABLE                = 413;
 var P_SECONDARYACTIVABLE              = 414;
 var P_PRIMARYTOOLTIP                  = 415;
 var P_SECONDARYTOOLTIP                = 416;
-// same ID;
+// same ID
 var P_ABSOLUTE                        = 417;
 var P_FORMAT                          = 418;
 
 
-// radio & check;
+// radio & check
 var P_CHECKED              = 500;
 var P_INCONSISTENT         = 501;
 var P_GROUP                = 502;
 
-// label;
+// label
 var P_ANGLE                = 600;
 var P_SELECTABLE           = 601;
 var P_WRAP                 = 602;
@@ -442,20 +443,20 @@ var P_PATTERN              = 604;
 var P_MARKUP               = 605;
 var P_USEUNDERLINE         = 606;
 
-// frame;
+// frame
 var P_SHADOWTYPE           = 700;
 var P_VTEXTALIGN           = 701;
 var P_HTEXTALIGN           = 702;
 
-// progress bar;
+// progress bar
 var P_FRACTION             = 800;
 var P_ORIENTATION          = 801;
 var P_STEP                 = 802;
 
-// paned;
+// paned
 var P_POSITION             = 803;
 
-// Adjustment;
+// Adjustment
 var P_LOWER                = 900;
 var P_UPPER                = 901;
 var P_VALUE                = 902;
@@ -463,19 +464,19 @@ var P_INCREMENT            = 903;
 var P_PAGEINCREMENT        = 904;
 var P_PAGESIZE             = 905;
 
-// v/h scale;
+// v/h scale
 var P_DIGITS               = 1001;
 var P_DRAWVALUE            = 1002;
 var P_VALUEPOS             = 1003;
 
-//scrollbar;
+//scrollbar
 var P_INVERTED             = 1100;
 
-//spinbutton;
+//spinbutton
 var P_SNAPTOTICKS          = 1200;
 var P_NUMERIC              = 1201;
 
-//textview;
+//textview
 var P_ACCEPTTAB            = 1300;
 var P_CURSORVISIBLE        = 1301;
 var P_INDENT               = 1302;
@@ -490,7 +491,7 @@ var P_PRINT                = 1310;
 var P_SELECTIONSTART       = 1311;
 var P_SELECTIONLENGTH      = 1312;
 
-//alignment;
+//alignment
 var P_XSCALE               = 1401;
 var P_YSCALE               = 1402;
 var P_XALIGN               = 1403;
@@ -500,7 +501,7 @@ var P_LEFTPADDING          = 1406;
 var P_RIGHTPADDING         = 1407;
 var P_BOTTOMPADDING        = 1408;
 
-//notebook;
+//notebook
 var P_PAGE                 = 1500;
 var P_SCROLLABLE           = 1501;
 var P_SHOWBORDER           = 1502;
@@ -519,33 +520,33 @@ var P_PLACEMENT            = 1602;
 var P_HSCROLLBARPOLICY     = 1603;
 var P_VSCROLLBARPOLICY     = 1604;
 
-//aspect frame;
+//aspect frame
 var P_OBEYCHILD            = 1700;
 var P_RATIO                = 1701;
 
-//drag & drop;
+//drag & drop
 var P_DRAGOBJECT           = 1801;
 var P_DROPSITE             = 1802;
 var P_DRAGDATA             = 1803;
 var P_DRAGICON             = 1804;
 
-// item properties;
+// item properties
 var P_SELECTED             = 1900;
 var P_TOGGLE               = 1901;
 
-// menuitem;
+// menuitem
 var P_SUBMENU              = 2000;
 var P_RIGHTJUSTIFIED       = 2001;
 var P_ACCELKEY             = 2002;
 var P_MENUOBJECT           = 2003;
 
-// checked menuitem;
+// checked menuitem
 var P_DRAWASRADIO          = 2100;
 
-// expander;
+// expander
 var P_EXPANDED             = 2200;
 
-// handlebox;
+// handlebox
 var P_INDRAG               = 2300;
 var P_ISDETACHED           = 2301;
 var P_HANDLEPOSITION       = 2302;
@@ -557,17 +558,17 @@ var P_SHOWARROW            = 2401;
 var P_TOOLBARSTYLE         = 2402;
 var P_TOOLTIPS             = 2403;
 
-// toobutton;
+// toobutton
 var P_ISIMPORTANT          = 2500;
 var P_VISIBLEVERTICAL      = 2501;
 var P_VISIBLEHORIZONTAL    = 2502;
 var P_ICON                 = 2503;
 var P_EXPAND               = 2504;
 
-// menutoolbar;
+// menutoolbar
 var P_MENU                 = 2600;
 
-// treeview !!!;
+// treeview !!!
 var P_ENABLESEARCH         = 2701;
 var P_EXPANDERCOLUMN       = 2702;
 var P_FIXEDHEIGHTMODE      = 2703;
@@ -593,7 +594,7 @@ var P_SCROLLTOROW          = 2721;
 var P_SELECT               = 2722;
 var P_UNSELECT             = 2733;
 
-// combobox;
+// combobox
 //P_CURSOR;
 var P_ADDTEAROFFS      = 2800;
 var P_FOCUSONCLICK     = 2801;
@@ -601,10 +602,10 @@ var P_WRAPWIDTH        = 2802;
 var P_ROWSPANCOLUMN    = 2803;
 //P_HASFRAME;
 
-// comboboxentry;
+// comboboxentry
 var P_TEXTCOLUMN           = 2900;
 
-// font;
+// font
 var P_FONTFAMILY           = 3000;
 var P_FONTSTYLE            = 3001;
 var P_FONTVARIANT          = 3002;
@@ -613,12 +614,12 @@ var P_FONTSTRETCH          = 3004;
 var P_FONTSIZE             = 3005;
 var P_FONTNAME             = 3006;
 
-// calendar;
+// calendar
 var P_DAY                  = 3100;
 var P_MONTH                = 3101;
 var P_YEAR                 = 3102;
 
-// text tag;
+// text tag
 var P_PRIORITY             = 3201;
 var P_UNDERLINE            = 3202;
 var P_STRIKEOUT            = 3203;
@@ -632,7 +633,7 @@ var P_FORECOLOR            = 3210;
 var P_BACKCOLOR            = 3211;
 var P_DIRECTION            = 3212;
 
-// tree column;
+// tree column
 var P_ALIGNMENT            = 3301;
 var P_CLICKABLE            = 3302;
 var P_FIXEDWIDTH           = 3303;
@@ -644,7 +645,7 @@ var P_SORTINDICATORTYPE    = 3308;
 var P_WIDGET               = 3309;
 var P_SENSITIVE            = 3310;
 
-// table;
+// table
 var P_COLUMNS              = 3400;
 var P_ROWS                 = 3401;
 var P_ROWSPACING           = 3402;
@@ -658,16 +659,16 @@ var P_ATTVOPT              = 3409;
 var P_ATTHSPACING          = 3410;
 var P_ATTVSPACING          = 3411;
 
-// properties box;
+// properties box
 var P_PROPERTIES           = 3500;
 var P_CHANGEDPROPERTIES    = 3501;
 
-// IDE look properties !!!;
+// IDE look properties !!!
 var P_USERRESIZABLE        = 3600;
 var P_DOTTED               = 3601;
 
 
-// printer;
+// printer
 var P_UNIT             = 3700;
 var P_BOTTOMMARGIN     = 3701;
 var P_TOPMARGIN        = 3702;
@@ -702,13 +703,13 @@ var P_USECOLOR         = 3729;
 var P_CURRENTPAGE      = 3730;
 var P_CAPABILITES      = 3731;
 
-// IconView;
+// IconView
 var P_IMAGECOLUMN      = 3800;
 var P_MARKUPCOLUMN     = 3801;
 var P_ITEMWIDTH        = 3803;
 var P_TOOLTIPCOLUMN    = 3804;
 
-// mobile properties;
+// mobile properties
 var P_FILLVERTICALLY      = 8001;
 var P_FILLHORIZONTICALLY  = 8002;
 var P_WRAPVERTICALLY      = 8003;
@@ -902,6 +903,7 @@ var PROP_DATETIME   = 0x0C;
 var PROP_INTEGER    = 0x0D;
 var PROP_DECIMAL    = 0x0E;
 
+var js_flags = [];
 var mimeTypes	=	{
 				"ez" : "application/andrew-inset",
 				"aw" : "application/applixware",
@@ -5035,6 +5037,89 @@ function ConceptClient(url, container, loading, absolute_paths) {
 									element.appendChild(document.createTextNode(p2));
 								}
 							}
+						}
+						break;
+					case CLASS_CLIENTCHART:
+						var set_data_function = function() {
+							var data = google.visualization.arrayToDataTable(JSON.parse(Value));
+							var chart;
+							switch (Target.toLowerCase()) {
+								case "pie":
+									chart = new google.visualization.PieChart(element);
+									break;
+								case "bar":
+									chart = new google.visualization.BarChart(element);
+									break;
+								case "area":
+									chart = new google.visualization.AreaChart(element);
+									break;
+								case "bubble":
+									chart = new google.visualization.BubbleChart(element);
+									break;
+								case "candlestick":
+									chart = new google.visualization.CandlestickChart(element);
+									break;
+								case "column":
+									chart = new google.visualization.ColumnChart(element);
+									break;
+								case "combo":
+									chart = new google.visualization.ComboChart(element);
+									break;
+								case "donut":
+									chart = new google.visualization.DonutChart(element);
+									break;
+								case "scatter":
+									chart = new google.visualization.ScatterChart(element);
+									break;
+								case "steppedarea":
+									chart = new google.visualization.SteppedChart(element);
+									break;
+								case "gauge":
+									chart = new google.visualization.Gauge(element);
+									break;
+								case "gantt":
+									chart = new google.visualization.Gantt(element);
+									break;
+								case "geo":
+									chart = new google.visualization.GeoChart(element);
+									break;
+								case "histogram":
+									chart = new google.visualization.Histogram(element);
+									break;
+								case "line":
+									chart = new google.visualization.LineChart(element);
+									break;
+								case "map":
+									chart = new google.visualization.Map(element);
+									break;
+								case "org":
+									chart = new google.visualization.OrgChart(element);
+									break;
+								case "table":
+									chart = new google.visualization.Table(element);
+									break;
+								case "timeline":
+									chart = new google.visualization.Timeline(element);
+									break;
+								case "treemap":
+									chart = new google.visualization.TreeMap(element);
+									break;
+								case "wordtree":
+									chart = new google.visualization.WordTree(element);
+									break;
+							}
+							if (chart)
+								chart.draw(data, element.ConceptOptions);
+							else
+								console.warn("Unknown chart type: " + Target);
+						}
+						if (js_flags["charts"] == 2)
+							set_data_function();
+						else {
+							if (js_flags["charts_pending"])
+								js_flags["charts_pending"].push(set_data_function);
+							else
+								js_flags["charts_pending"] = [ set_data_function ];
 						}
 						break;
 					case 1000:
@@ -10136,7 +10221,9 @@ console.log(output2);
 						$(label).mask(str, {placeholder: arr[1]});
 					else
 						$(label).mask(str);
-				}
+				} else
+				if (cls_id == CLASS_CLIENTCHART)
+					element.ConceptOptions = JSON.parse(Value);
 				break;
 			case P_READONLY:
 				switch (cls_id) {
@@ -11681,6 +11768,24 @@ console.log(output2);
 					if (control.ConceptMoveSlider)
 						self.SendMessage(control.id.substring(1), MSG_EVENT_FIRED, "" + EVENT_ON_MOVESLIDER, "" + control.ConceptHAdjustment.ConceptValue, 0);
 				});
+				break;
+			case CLASS_CLIENTCHART:
+				if (!("charts" in js_flags)) {
+					js_flags["charts"] = 1;
+					google.charts.load('current', {'packages':['corechart', 'gauge', 'gantt', 'geochart', 'orgchart', 'table', 'timeline', 'treemap', 'wordtree', 'map']});
+					google.charts.setOnLoadCallback(function() {
+						js_flags["charts"] = 2;
+						if ("charts_pending" in js_flags) {
+							var pending = js_flags["charts_pending"];
+							for (var i = 0; i < pending.length; i++)
+								pending[i]();
+
+							delete js_flags["charts_pending"];
+						}
+					});
+				}
+				control = document.createElement("div");
+				control.className = "RChart";
 				break;
 			case 1000:
 				control = document.createElement("pre");

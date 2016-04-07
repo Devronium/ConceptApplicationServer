@@ -2867,6 +2867,8 @@ int ConceptInterpreter::StacklessInterpret(PIFAlizator *PIF, GreenThreadCycle *G
                                     DECLARE_PATH(0x20);
                                     Exc = new AnsiException(ERR700, OE->OperandLeft._DEBUG_INFO_LINE, 700, AnsiString(OE->OperandLeft._PARSE_DATA.c_str()) + AnsiString(": ") + AnsiString(STATIC_ERROR), ((ClassCode *)(THIS_REF->OWNER->Defined_In))->_DEBUG_INFO_FILENAME, ((ClassCode *)(THIS_REF->OWNER->Defined_In))->NAME, THIS_REF->OWNER->NAME);
                                     PIF->AcknoledgeRunTimeError(STACK_TRACE, Exc);
+                                    RESET_VARIABLE(LOCAL_CONTEXT [OE->Result_ID - 1]);
+                                    LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = 0;
                                 }
                             }
                         } else {
@@ -5047,6 +5049,8 @@ VariableDATA *ConceptInterpreter::Interpret(PIFAlizator *PIF, VariableDATA **LOC
                                 DECLARE_PATH(0x20);
                                 Exc = new AnsiException(ERR700, OE->OperandLeft._DEBUG_INFO_LINE, 700, AnsiString(OE->OperandLeft._PARSE_DATA.c_str()) + AnsiString(": ") + AnsiString(STATIC_ERROR), ((ClassCode *)(OWNER->Defined_In))->_DEBUG_INFO_FILENAME, ((ClassCode *)(OWNER->Defined_In))->NAME, OWNER->NAME);
                                 PIF->AcknoledgeRunTimeError(STACK_TRACE, Exc);
+                                RESET_VARIABLE(LOCAL_CONTEXT [OE->Result_ID - 1]);
+                                LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = 0;
                             }
                         }
                     } else {
