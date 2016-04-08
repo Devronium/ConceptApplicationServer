@@ -1,0 +1,23 @@
+include VisibleRemoteObject.con
+include ClassID.con
+include RemoteEvents.con
+import standard.lib.json
+
+class RChart extends VisibleRemoteObject {
+	protected var OPTIONS = "";
+	public property Options { get OPTIONS, set SetOptions }
+
+	public function RChart(OWNER) {
+		super(OWNER, CLASS_CLIENTCHART);
+	}
+
+	public function Render(array rows, type = "Bar") {
+		return Send(MSG_CUSTOM_MESSAGE3, type, JSONSerialize(rows, true));
+	}
+
+	public function SetOptions(array argument) {
+		SetProperty(P_FORMAT,JSONSerialize(argument, true));
+		OPTIONS=argument;
+		return argument;
+	}
+}
