@@ -326,6 +326,7 @@ var CLASS_CALENDARTIME                = 63;
 var CLASS_TOGGLEBUTTON                = 64;
 var CLASS_IMAGEBUTTON                 = 65;
 var CLASS_CLIENTCHART                 = 66;
+var CLASS_HTMLSNAP                    = 67;
 
 // general (window) messages
 var P_CAPTION                         = 100;
@@ -903,7 +904,7 @@ var PROP_DATETIME   = 0x0C;
 var PROP_INTEGER    = 0x0D;
 var PROP_DECIMAL    = 0x0E;
 
-var js_flags = [];
+var js_flags = { };
 var mimeTypes	=	{
 				"ez" : "application/andrew-inset",
 				"aw" : "application/applixware",
@@ -2934,6 +2935,47 @@ function ConceptClient(url, container, loading, absolute_paths) {
 						break;
 					case "network":
 						SendMessageFunction(Sender, MSG_ID, Target, "1.0", 0);
+						break;
+					case "html":
+						var data = JSON.parse(Value);
+						if (data) {
+							if (data.header) {
+								var head = document.getElementsByTagName('head')[0];
+								if (head) {
+									var div = document.createElement('div');
+									div.innerHTML = data.header;
+									var elements = div.childNodes;
+
+									for (var  i = 0; i < elements.length; i++) {
+										var node = elements[i];
+										var node_name = node.nodeName.toLowerCase();
+										switch (node_name) {
+											case "script":
+											case "link":
+												var script = document.createElement(node_name);
+												if (node.src)
+													script.src = node.src;
+												if (node.href)
+													script.href = node.href;
+												if (node.rel)
+													script.rel = node.rel;
+												script.innerHTML = node.innerHTML;
+												if (node.type)
+													script.type = node.type;
+												if (node.onload)
+													script.onload = node.onload;
+												head.appendChild(script);
+												break;
+											default:
+												head.appendChild(node.cloneNode(true));
+										}
+									}
+								} else
+									console.warn("Error appending to head element");
+							}
+							js_flags["snap." + Sender] = data.html;
+						}
+						SendMessageFunction(Sender, MSG_ID, Target, "1", 0);
 						break;
 					case "ping":
 					default:
@@ -5122,6 +5164,25 @@ function ConceptClient(url, container, loading, absolute_paths) {
 								js_flags["charts_pending"] = [ set_data_function ];
 						}
 						break;
+					case CLASS_HTMLSNAP:
+						if (element.ConceptHTMLClass) {
+							var set_name = element.ConceptHTMLClass + "Set";
+							var fn = window[set_name];
+							if (fn) {
+								try {
+
+									fn({ "Client": this, "RID": "" + OwnerID, "Object": element }, Value);
+								} catch (e) {
+									console.error("Error in " + set_name);
+									console.error(e);
+								}
+							} else {
+								console.error("Function " + set_name + " is not defined.");
+							}
+						} else {
+							console.error("Cannot use Set/Get for unregistered RSnap objects");
+						}
+						break;
 					case 1000:
 						if (element.ConceptEditor) {
 							var msg = parseInt(this.POST_STRING)
@@ -5196,6 +5257,40 @@ function ConceptClient(url, container, loading, absolute_paths) {
 							href.innerHTML = "";
 							header.style.display = "";
 							href.appendChild(header);
+						}
+						break;
+					case CLASS_HTMLSNAP:
+						if (element.ConceptHTMLClass) {
+							var get_name = element.ConceptHTMLClass + "Get";
+							var eval_result = "";
+							var fn = window[get_name];
+							if (fn) {
+								try {
+									eval_result = fn({ "Client": this, "RID": "" + OwnerID, "Object": element}, Value);
+								} catch (e) {
+									console.error("Error in " + set_name);
+									console.error(e);
+								}
+							} else {
+								console.error("Function " + get_name + " is not defined.");
+							}
+
+							switch (typeof eval_result) {
+								case "string":
+									self.SendMessage("" + OwnerID, MSG_ID, "0", eval_result, 0);
+									break;
+								case "number":
+									self.SendMessage("" + OwnerID, MSG_ID, "0", "" + eval_result, 0);
+									break;
+								default:
+									if (eval_result)
+										self.SendMessage("" + OwnerID, MSG_ID, "1", JSON.stringify(eval_result), 0);
+									else
+										self.SendMessage("" + OwnerID, MSG_ID, "0", "", 0);
+							}
+						} else {
+							self.SendMessage("" + OwnerID, MSG_ID, "0", "", 0);
+							console.error("Cannot use Set/Get for unregistered RSnap objects");
 						}
 						break;
 				}
@@ -6501,6 +6596,27 @@ function ConceptClient(url, container, loading, absolute_paths) {
 					self.SendMessage("" + OwnerID, MSG_EVENT_FIRED, "" + EVENT_ON_KEYRELEASE, "" + code, 0);
 				}
 				break;
+			case EVENT_ON_EVENT:
+				if (cls_id == CLASS_HTMLSNAP) {
+					if (element.ConceptHTMLClass) {
+						var event_name = element.ConceptHTMLClass + "Event";
+						var fn = window[event_name];
+						if (fn) {
+							try {
+
+								fn({ "Client": this, "RID": "" + OwnerID, "Object": element });
+							} catch (e) {
+								console.error("Error in " + event_name);
+								console.error(e);
+							}
+						} else {
+							console.error("Function " + event_name + " is not defined.");
+						}
+					} else {
+						console.error("Cannot use events for unregistered RSnap objects");
+					}
+				}
+				break;
 			case 350:
 				// first custom event
 				switch (cls_id) {
@@ -6581,6 +6697,20 @@ function ConceptClient(url, container, loading, absolute_paths) {
 				}
 				break;
 		}
+	}
+
+	this.Fire = function(RID, parameter) {
+		var data = "";
+		switch (typeof parameter) {
+			case "string":
+			case "number":
+				data = "" +parameter;
+				break;
+			default:
+				if (parameter)
+					data = JSON.stringify(parameter);
+		}
+		this.SendMessage("" + RID, MSG_EVENT_FIRED, "21", data, 0);
 	}
 
 	this.SpeexCompress = function(element, data) {
@@ -6712,7 +6842,6 @@ function ConceptClient(url, container, loading, absolute_paths) {
 								output2.set(output[i], offset)
 								offset += output[i].length;
 							}
-console.log(output2);
 							return [output2];
 						}
 						break;
@@ -6753,6 +6882,7 @@ console.log(output2);
 			case P_CAPTION:
 				switch (cls_id) {
 					case CLASS_LABEL:
+					case CLASS_HTMLSNAP:
 						result = element.innerHTML;
 						break;
 					case CLASS_TEXTVIEW:
@@ -8156,6 +8286,9 @@ console.log(output2);
 								label.appendChild(document.createTextNode(Value));
 							}
 						}
+						break;
+					case CLASS_HTMLSNAP:
+						element.innerHTML = Value;
 						break;
 					case 1001:
 					case 1012:
@@ -11786,6 +11919,14 @@ console.log(output2);
 				}
 				control = document.createElement("div");
 				control.className = "RChart";
+				break;
+			case CLASS_HTMLSNAP:
+				control = document.createElement("div");
+				control.className = "RSnap";
+				var key = "snap." + this.POST_STRING;
+				control.ConceptHTMLClass = this.POST_STRING;
+				if (key in js_flags)
+					control.innerHTML = js_flags[key];
 				break;
 			case 1000:
 				control = document.createElement("pre");
