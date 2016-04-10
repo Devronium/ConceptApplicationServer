@@ -16,6 +16,11 @@ class RSnap extends VisibleRemoteObject {
 		SendMessage(class_name, MSG_CLIENT_QUERY, "HTML", data);
 	}
 
+	static function HTML(string class_name, string html) {
+		var data = JSONSerialize(["content" => html], true);
+		SendMessage(class_name, MSG_CLIENT_QUERY, "HTML", data);
+	}
+
 	public function Set(string prop_name, argument) {
 		if ((typeof argument == "array") || (typeof argument == "class")) {
 			var data = JSONSerialize(argument, true);

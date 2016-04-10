@@ -2939,6 +2939,21 @@ function ConceptClient(url, container, loading, absolute_paths) {
 					case "html":
 						var data = JSON.parse(Value);
 						if (data) {
+							if (data.content) {
+								var html = document.createElement('html');
+								html.innerHTML = data.content;
+								var elements = html.childNodes;
+								console.log(elements);
+								for (var  i = 0; i < elements.length; i++) {
+									var node = elements[i];
+									var node_name = node.nodeName.toLowerCase();
+									if (node_name == "head")
+										data.header = node.innerHTML;
+									else
+									if (node_name == "body")
+										data.html = node.innerHTML;
+								}
+							}
 							if (data.header) {
 								var head = document.getElementsByTagName('head')[0];
 								if (head) {
