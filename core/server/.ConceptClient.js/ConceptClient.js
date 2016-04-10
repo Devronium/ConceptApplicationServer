@@ -2943,7 +2943,6 @@ function ConceptClient(url, container, loading, absolute_paths) {
 								var html = document.createElement('html');
 								html.innerHTML = data.content;
 								var elements = html.childNodes;
-								console.log(elements);
 								for (var  i = 0; i < elements.length; i++) {
 									var node = elements[i];
 									var node_name = node.nodeName.toLowerCase();
