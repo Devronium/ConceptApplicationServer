@@ -17,13 +17,12 @@ class RSnap extends VisibleRemoteObject {
 	}
 
 	public function Set(string prop_name, argument) {
-		var data;
-		if ((typeof argument == "array") || (typeof argument == "class"))
-			data = JSONSerialize(argument, true);
-		else
-			data = argument;
-
-		Send(MSG_CUSTOM_MESSAGE3, prop_name, data);
+		if ((typeof argument == "array") || (typeof argument == "class")) {
+			var data = JSONSerialize(argument, true);
+			Send(MSG_CUSTOM_MESSAGE3, prop_name, data);
+		} else {
+			Send(MSG_CUSTOM_MESSAGE5, prop_name, argument);
+		}
 	}
 
 	public function Get(string prop_name, argument = null) {

@@ -5171,7 +5171,7 @@ function ConceptClient(url, container, loading, absolute_paths) {
 							if (fn) {
 								try {
 
-									fn({ "Client": this, "RID": "" + OwnerID, "Object": element }, Value);
+									fn({ "Client": this, "RID": "" + OwnerID, "Object": element }, JSON.parse(Value));
 								} catch (e) {
 									console.error("Error in " + set_name);
 									console.error(e);
@@ -5315,6 +5315,24 @@ function ConceptClient(url, container, loading, absolute_paths) {
 							// collapse path
 							this.Expand(element.firstChild, Value.split(":"), false);
 							break;
+					}
+				} else
+				if (cls_id == CLASS_HTMLSNAP) {
+					if (element.ConceptHTMLClass) {
+						var set_name = element.ConceptHTMLClass + "Set";
+						var fn = window[set_name];
+						if (fn) {
+							try {
+								fn({ "Client": this, "RID": "" + OwnerID, "Object": element }, Value);
+							} catch (e) {
+								console.error("Error in " + set_name);
+								console.error(e);
+							}
+						} else {
+							console.error("Function " + set_name + " is not defined.");
+						}
+					} else {
+						console.error("Cannot use Set/Get for unregistered RSnap objects");
 					}
 				}
 				break;
