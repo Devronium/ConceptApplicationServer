@@ -705,7 +705,7 @@ VariableDATA *ClassCode::ExecuteMember(PIFAlizator *PIF, INTEGER i, VariableDATA
                     VariableDATA *deleg = (VariableDATA *)VAR_ALLOC(PIF);
                     deleg->CLASS_DATA = (CompiledClass *)Owner->CLASS_DATA;
                     CC_WRITE_LOCK(PIF)
-                        ((CompiledClass *)Owner->CLASS_DATA)->LINKS++;
+                    ((CompiledClass *)Owner->CLASS_DATA)->LINKS++;
                     CC_WRITE_UNLOCK(PIF)
                     deleg->IS_PROPERTY_RESULT = 0;
                     deleg->LINKS         = 0;
@@ -779,7 +779,7 @@ VariableDATA *ClassCode::ExecuteMember(PIFAlizator *PIF, INTEGER i, VariableDATA
                     if ((FORMAL_PARAM) && ((!property) || (FORMAL_PARAM->COUNT))) {
                         if (RESULT->TYPE == VARIABLE_DELEGATE) {
                             CC_WRITE_LOCK(PIF)
-                                ((CompiledClass *)RESULT->CLASS_DATA)->LINKS++;
+                            ((CompiledClass *)RESULT->CLASS_DATA)->LINKS++;
                             CC_WRITE_UNLOCK(PIF)
                             VariableDATA * lOwner = 0;
                             try {
@@ -864,12 +864,12 @@ VariableDATA *ClassCode::ExecuteMember(PIFAlizator *PIF, INTEGER i, VariableDATA
                         //----------------------------------------------
                         if ((IMAGE->TYPE == VARIABLE_CLASS) || (IMAGE->TYPE == VARIABLE_DELEGATE)) {
                             CC_WRITE_LOCK(PIF)
-                                ((CompiledClass *)IMAGE->CLASS_DATA)->LINKS++;
+                            ((CompiledClass *)IMAGE->CLASS_DATA)->LINKS++;
                             CC_WRITE_UNLOCK(PIF)
                         } else
                         if (IMAGE->TYPE == VARIABLE_ARRAY) {
                             CC_WRITE_LOCK(PIF)
-                                ((Array *)IMAGE->CLASS_DATA)->LINKS++;
+                            ((Array *)IMAGE->CLASS_DATA)->LINKS++;
                             CC_WRITE_UNLOCK(PIF)
                         }
                         //----------------------------------------------

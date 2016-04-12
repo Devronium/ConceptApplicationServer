@@ -19,11 +19,10 @@
 #ifdef SIMPLE_MULTI_THREADING
 
  #define CC_WRITE_LOCK(PIF)       bool IsWriteLocked = false; if (PIF->ThreadsCount > 0) { PIF->MasterLock = 1; semp(PIF->WriteLock); IsWriteLocked = true; }
- #define CC_WRITE_LOCK2(PIF)      IsWriteLocked      = false; if (PIF->ThreadsCount > 0) { PIF->MasterLock = 1; semp(PIF->WriteLock); IsWriteLocked = true; }
+ //#define CC_WRITE_LOCK2(PIF)      IsWriteLocked      = false; if (PIF->ThreadsCount > 0) { PIF->MasterLock = 1; semp(PIF->WriteLock); IsWriteLocked = true; }
+ #define CC_WRITE_LOCK2(PIF)      if ((!IsWriteLocked) && (PIF->ThreadsCount > 0)) { PIF->MasterLock = 1; semp(PIF->WriteLock); IsWriteLocked = true; }
  #define CC_WRITE_UNLOCK(PIF)     if (IsWriteLocked) { semv(PIF->WriteLock); PIF->MasterLock = 0; IsWriteLocked = false; }
- #define CC_WRITE_LOCK3(PIF)      PIF->MasterLock = 1; semp(PIF->WriteLock);
- #define CC_WRITE_UNLOCK3(PIF)    PIF->MasterLock = 0; semv(PIF->WriteLock);
-
+ 
  #define WRITE_LOCK      if ((!IsWriteLocked) && (PIF->ThreadsCount > 0)) { semp(PIF->WriteLock); PIF->MasterLock = 1; IsWriteLocked = 1; }
  #define WRITE_UNLOCK    if (IsWriteLocked) { IsWriteLocked = 0; PIF->MasterLock = 0; semv(PIF->WriteLock); }
  #define NEW_THREAD      semp(PIF->InternalLock); PIF->ThreadsCount++; semv(PIF->InternalLock);
