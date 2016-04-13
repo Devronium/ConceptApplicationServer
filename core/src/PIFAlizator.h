@@ -17,21 +17,104 @@
 #include "semhh.h"
 
 #ifdef SIMPLE_MULTI_THREADING
+    class Semaphore {
+        private:
+#ifdef USE_SPINLOCKS
+            LONG volatile sem;
+#else
+            HHSEM sem;
+#endif
+        public:
+            char MasterLock;
+            int held_at;
+            int threadid;
 
- #define CC_WRITE_LOCK(PIF)       bool IsWriteLocked = false; if (PIF->ThreadsCount > 0) { PIF->MasterLock = 1; semp(PIF->WriteLock); IsWriteLocked = true; }
+            Semaphore() {
+#ifdef USE_SPINLOCKS
+                sem = 0;
+#else
+                seminit(sem, 1);
+#endif
+                held_at = 0;
+                threadid = 0;
+                MasterLock = 0;
+            }
+
+            void Lock(int line_no) {
+#ifdef _WIN32
+                int new_threadid = GetCurrentThreadId();
+#else
+                int new_threadid = pthread_self();
+#endif
+                if ((MasterLock) && (new_threadid == threadid))
+                    return;
+#ifdef USE_SPINLOCKS
+                do {
+                    InterlockedCompareExchange(&sem, new_threadid, 0);
+                } while (sem != new_threadid);
+#else
+                semp(sem);
+#endif
+                held_at = line_no;
+                threadid = new_threadid;
+
+                MasterLock = 1;
+            }
+
+            void Unlock(int line_no) {
+                if (MasterLock) {
+#ifdef _WIN32
+                    int new_threadid = GetCurrentThreadId();
+#else
+                    int new_threadid = pthread_self();
+#endif
+                    // wrong thread ?
+                    if (new_threadid != threadid)
+                        return;
+
+                    MasterLock = 0;
+                    held_at = 0;
+#ifdef USE_SPINLOCKS
+                    sem = 0;
+#else
+                    semv(sem);
+#endif
+                }
+            }
+
+#ifndef USE_SPINLOCKS
+            ~Semaphore() {
+                semdel(sem);
+            }
+#endif
+    };
+
+ //#define CC_WRITE_LOCK(PIF)       bool IsWriteLocked = false; if (PIF->ThreadsCount > 0) { PIF->MasterLock = 1; semp(PIF->WriteLock); IsWriteLocked = true; }
  //#define CC_WRITE_LOCK2(PIF)      IsWriteLocked      = false; if (PIF->ThreadsCount > 0) { PIF->MasterLock = 1; semp(PIF->WriteLock); IsWriteLocked = true; }
- #define CC_WRITE_LOCK2(PIF)      if ((!IsWriteLocked) && (PIF->ThreadsCount > 0)) { PIF->MasterLock = 1; semp(PIF->WriteLock); IsWriteLocked = true; }
- #define CC_WRITE_UNLOCK(PIF)     if (IsWriteLocked) { semv(PIF->WriteLock); PIF->MasterLock = 0; IsWriteLocked = false; }
+ //#define CC_WRITE_UNLOCK(PIF)     if (IsWriteLocked) { semv(PIF->WriteLock); PIF->MasterLock = 0; IsWriteLocked = false; }
  
- #define WRITE_LOCK      if ((!IsWriteLocked) && (PIF->ThreadsCount > 0)) { semp(PIF->WriteLock); PIF->MasterLock = 1; IsWriteLocked = 1; }
- #define WRITE_UNLOCK    if (IsWriteLocked) { IsWriteLocked = 0; PIF->MasterLock = 0; semv(PIF->WriteLock); }
+ /*#define WRITE_LOCK      if ((!IsWriteLocked) && (PIF->ThreadsCount > 0)) { semp(PIF->WriteLock); PIF->MasterLock = 1; IsWriteLocked = 1; }
+ #define WRITE_UNLOCK    if (IsWriteLocked) { IsWriteLocked = 0; PIF->MasterLock = 0; semv(PIF->WriteLock); }*/
  #define NEW_THREAD      semp(PIF->InternalLock); PIF->ThreadsCount++; semv(PIF->InternalLock);
  #define DONE_THREAD     semp(PIF->InternalLock); PIF->ThreadsCount--; semv(PIF->InternalLock);
-#define INTERNAL_LOCK(PIF)      semp(PIF->InternalLock);
-#define INTERNAL_UNLOCK(PIF)    semv(PIF->InternalLock);
+ #define INTERNAL_LOCK(PIF)      semp(PIF->InternalLock);
+ #define INTERNAL_UNLOCK(PIF)    semv(PIF->InternalLock);
+
+#define CC_WRITE_LOCK(PIF)      PIF->WriteLock.Lock(__LINE__);
+#define CC_WRITE_LOCK2(PIF)     PIF->WriteLock.Lock(__LINE__);
+#define CC_WRITE_UNLOCK(PIF)    PIF->WriteLock.Unlock(__LINE__);
+
+#define WRITE_LOCK              if ((!IsWriteLocked) && (PIF->ThreadsCount > 0)) { PIF->WriteLock.Lock(__LINE__); IsWriteLocked = 1; }
+#define WRITE_UNLOCK            if (IsWriteLocked) { PIF->WriteLock.Unlock(__LINE__); IsWriteLocked = 0; }
+
+#define LOCK_IF1(var)               if (var->LINKS > 1) { WRITE_LOCK }
+#define LOCK_IF2(var1, var2)        if ((var1->LINKS > 1) || (var2->LINKS > 1)) { WRITE_LOCK }
+#define LOCK_IF3(var1, var2, var3)  if ((var1->LINKS > 1) || (var2->LINKS > 1) || (var3->LINKS > 1)) { WRITE_LOCK }
 
  #define ALLOC_LOCK      semp(((PIFAlizator *)PIF)->AllocLock);
  #define ALLOC_UNLOCK    semv(((PIFAlizator *)PIF)->AllocLock);
+
+ #define THREAD_CREATION_LOCKS      , INTEGER *thread_lock
 
  #define SMART_LOCK(VARIABLE)                                                                                                                        \
     if (VARIABLE->LINKS > 1) {                                                                                                                       \
@@ -58,6 +141,8 @@
  #define INTERNAL_UNLOCK(PIF)
  #define ALLOC_LOCK
  #define ALLOC_UNLOCK
+ #define THREAD_CREATION_LOCKS
+ #define THREAD_CREATION_LOCKS_DEF
 
  #define SMART_LOCK(VARIABLE)
 #endif
@@ -240,9 +325,9 @@ class PIFAlizator {
 #endif
 
 #ifdef SIMPLE_MULTI_THREADING
-    HHSEM WriteLock;
-    char  MasterLock;
-
+    //HHSEM WriteLock;
+    //char  MasterLock;
+    Semaphore WriteLock;
     HHSEM     InternalLock;
     uintptr_t ThreadsCount;
 #endif

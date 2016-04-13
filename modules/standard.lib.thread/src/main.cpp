@@ -9,20 +9,28 @@
 #else
  #include <pthread.h>
  #include <unistd.h>
+ #include <sched.h>
  #define DWORD     long
  #define LPVOID    void *
+ #define POSIX_SEMAPHORES
 #endif
+
 #include "AnsiString.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "semhh.h"
 #include <vector>
 #include <queue>
+#include "semhh.h"
+
+#ifdef POSIX_SEMAPHORES
+ #include <semaphore.h>
+#endif
 
 struct Container {
     void *DELEGATE;
     void *CONTEXT;
+    INTEGER *SPINLOCK;
 };
 
 struct WorkerContainer {
@@ -140,12 +148,13 @@ LPVOID ThreadFunction(LPVOID DPARAM) {
     Container *cdc      = (Container *)DPARAM;
     void      *DELEGATE = cdc->DELEGATE;
     void      *context  = cdc->CONTEXT;
+    INTEGER   *spin_lock = cdc->SPINLOCK;
     delete cdc;
 
     void *RES       = 0;
     void *EXCEPTION = 0;
     LocalInvoker(INVOKE_SET_THREAD_DATA, context);
-    LocalInvoker(INVOKE_CALL_DELEGATE_THREAD, DELEGATE, &RES, &EXCEPTION, (INTEGER)0);
+    LocalInvoker(INVOKE_CALL_DELEGATE_THREAD_SPINLOCK, DELEGATE, &RES, &EXCEPTION, spin_lock, (INTEGER)0);
     LocalInvoker(INVOKE_FREE_VARIABLE, RES);
     LocalInvoker(INVOKE_FREE_VARIABLE, EXCEPTION);
     LocalInvoker(INVOKE_FREE_VARIABLE, DELEGATE);
@@ -170,17 +179,20 @@ CONCEPT_DLL_API CONCEPT_RunThread CONCEPT_API_PARAMETERS {
         GET_CHECK_NUMBER(1, ndetachable, "RunThread : detached should be of NUMBER type");
     }
 
-    Container *cdc = new Container();
-
-    //LocalInvoker(INVOKE_DYNAMIC_LOCK,PARAMETER(0));
+    // LocalInvoker(INVOKE_DYNAMIC_LOCK,PARAMETER(0));
     LocalInvoker(INVOKE_LOCK_VARIABLE, PARAMETER(0));
     LocalInvoker(INVOKE_GET_THREAD_DATA, &context);
 
+    Container *cdc = new Container();
+    INTEGER spin_lock = 1;
     cdc->DELEGATE = PARAMETER(0);
     cdc->CONTEXT  = context;
+    cdc->SPINLOCK = &spin_lock;
 #ifdef _WIN32
     DWORD  threadID = 0;
     HANDLE thandle  = CreateThread(NULL, 0, ThreadFunction, (LPVOID)cdc, 0, &threadID);
+    if (!thandle)
+        spin_lock = 0;
     if ((thandle) && ((int)ndetachable))
         CloseHandle(thandle);
     threadID = (long)thandle;
@@ -191,13 +203,26 @@ CONCEPT_DLL_API CONCEPT_RunThread CONCEPT_API_PARAMETERS {
         pthread_attr_init(&attr);
         pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
 
-        if (pthread_create(&threadID, &attr, ThreadFunction, (LPVOID)cdc))
+        if (pthread_create(&threadID, &attr, ThreadFunction, (LPVOID)cdc)) {
             threadID = 0;
+            spin_lock = 0;
+        }
     } else {
-        if (pthread_create(&threadID, NULL, ThreadFunction, (LPVOID)cdc))
+        if (pthread_create(&threadID, NULL, ThreadFunction, (LPVOID)cdc)) {
             threadID = 0;
+            spin_lock = 0;
+        }
     }
 #endif
+    while (spin_lock == 1) {
+#ifdef _WIN32
+        // ugly windows (should use YieldProcessor() instead)
+        Sleep(1);
+#else
+        sched_yield();
+#endif
+    }
+
     RETURN_NUMBER((double)(long)threadID);
     return 0;
 }
@@ -285,16 +310,25 @@ CONCEPT_DLL_API CONCEPT__Sleep CONCEPT_API_PARAMETERS {
 }
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_semcreate, 0)
-    HHSEM * sm = new HHSEM;
-    RETURN_NUMBER((long)sm)
+#ifdef POSIX_SEMAPHORES
+    sem_t * sm = (sem_t *)malloc(sizeof(sem_t));
+#else
+    HHSEM *sm = (HHSEM *)malloc(sizeof(HHSEM));
+#endif
+    RETURN_NUMBER((uintptr_t)sm)
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_semdone, 1)
     T_HANDLE(0)
-
-    HHSEM * sm = (HHSEM *)PARAM_INT(0);
+#ifdef POSIX_SEMAPHORES
+    sem_t * sm = (sem_t *)(uintptr_t)PARAM(0);
+    sem_destroy(sm);
+#else
+    HHSEM *sm = (HHSEM *)(uintptr_t)PARAM(0);
     semdel((*sm));
-    delete sm;
+#endif
+    free(sm);
+    SET_NUMBER(0, 0)
 
     RETURN_NUMBER(0)
 END_IMPL
@@ -302,32 +336,43 @@ END_IMPL
 CONCEPT_FUNCTION_IMPL(_seminit, 2)
     T_HANDLE(0)
     T_NUMBER(1)
-
-    HHSEM * sm = (HHSEM *)PARAM_INT(0);
-
+#ifdef POSIX_SEMAPHORES
+    sem_t *sm = (sem_t *)(uintptr_t)PARAM(0);
+    int err = sem_init(sm, 0, 1);
+    RETURN_NUMBER(err);
+#else
+    HHSEM *sm = (HHSEM *)(uintptr_t)PARAM(0);
     seminit((*sm), PARAM_INT(1));
-
     RETURN_NUMBER(0)
+#endif
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_semp, 1)
     T_HANDLE(0)
 
-    HHSEM * sm = (HHSEM *)PARAM_INT(0);
-
+#ifdef POSIX_SEMAPHORES
+    sem_t *sm = (sem_t *)(uint64_t)PARAM(0);
+    int err = sem_wait(sm);
+    RETURN_NUMBER(err);
+#else
+    HHSEM *sm = (HHSEM *)(uintptr_t)PARAM(0);
     semp((*sm));
-
     RETURN_NUMBER(0)
+#endif
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_semv, 1)
     T_HANDLE(0)
 
-    HHSEM * sm = (HHSEM *)PARAM_INT(0);
-
+#ifdef POSIX_SEMAPHORES
+    sem_t * sm = (sem_t *)(SYS_INT)PARAM(0);
+    int err = sem_post(sm);
+    RETURN_NUMBER(err);
+#else
+    HHSEM *sm = (HHSEM *)(uintptr_t)PARAM(0);
     semv((*sm));
-
     RETURN_NUMBER(0)
+#endif
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(IsThreaded, 0)

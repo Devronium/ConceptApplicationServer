@@ -564,6 +564,24 @@ INTEGER Invoke(INTEGER INVOKE_TYPE, ...) {
             }
             break;
 
+        case INVOKE_DYNAMIC_UNLOCK:
+            {
+                VariableDATA *target = va_arg(ap, VariableDATA *);
+                if (target) {
+                    if ((target->TYPE == VARIABLE_CLASS) || (target->TYPE == VARIABLE_DELEGATE)) {
+                        ((CompiledClass *)target->CLASS_DATA)->LINKS--;
+                    } else
+                    if (target->TYPE == VARIABLE_ARRAY) {
+                        ((Array *)target->CLASS_DATA)->LINKS--;
+                    } else {
+                        result = INVALID_INVOKE_PARAMETER;
+                    }
+                } else {
+                    result = INVALID_INVOKE_PARAMETER;
+                }
+            }
+            break;
+
         case INVOKE_CREATE_VARIABLE:
             {
                 VariableDATA **target = va_arg(ap, VariableDATA * *);
@@ -951,19 +969,29 @@ INTEGER Invoke(INTEGER INVOKE_TYPE, ...) {
         case INVOKE_CALL_DELEGATE:
         case INVOKE_CALL_DELEGATE_THREAD:
         case INVOKE_CALL_DELEGATE_THREAD_SAFE:
+        case INVOKE_CALL_DELEGATE_THREAD_SPINLOCK:
             {
                 VariableDATA *target            = va_arg(ap, VariableDATA *);
                 VariableDATA **SENDER_RESULT    = va_arg(ap, VariableDATA * *);
                 VariableDATA **SENDER_EXCEPTION = va_arg(ap, VariableDATA * *);
+#ifdef SIMPLE_MULTI_THREADING
+                INTEGER *spin_lock = NULL;
+                if (INVOKE_TYPE == INVOKE_CALL_DELEGATE_THREAD_SPINLOCK)
+                    spin_lock  = va_arg(ap, INTEGER *);
+#endif
 
                 if ((!target) || (target->TYPE != VARIABLE_DELEGATE) || (!target->CLASS_DATA)) {
+#ifdef SIMPLE_MULTI_THREADING
+                    if (spin_lock)
+                        *spin_lock = 0;
+#endif
                     result = INVALID_INVOKE_PARAMETER;
                     break;
                 }
                 PIFAlizator *PIF = GET_PIF(((CompiledClass *)target->CLASS_DATA));
 #ifdef SIMPLE_MULTI_THREADING
                 char thread_created = 0;
-                if (((INVOKE_TYPE == INVOKE_CALL_DELEGATE_THREAD) || (INVOKE_TYPE == INVOKE_CALL_DELEGATE_THREAD_SAFE)) && (target->TYPE == VARIABLE_DELEGATE) && (target->CLASS_DATA)) {
+                if (((INVOKE_TYPE == INVOKE_CALL_DELEGATE_THREAD) || (INVOKE_TYPE == INVOKE_CALL_DELEGATE_THREAD_SAFE) || (INVOKE_TYPE == INVOKE_CALL_DELEGATE_THREAD_SPINLOCK)) && (target->TYPE == VARIABLE_DELEGATE) && (target->CLASS_DATA)) {
                     NEW_THREAD
                     thread_created = 1;
                 }
@@ -1034,13 +1062,20 @@ INTEGER Invoke(INTEGER INVOKE_TYPE, ...) {
                                                                                                         CTX,
                                                                                                         ((CompiledClass *)RESULT->CLASS_DATA)->_Class->CLSID,
                                                                                                         ((CompiledClass *)RESULT->CLASS_DATA)->_Class->CLSID,
+#ifdef SIMPLE_MULTI_THREADING
+                                                                                                        NULL, spin_lock);
+#else
                                                                                                         NULL);
+#endif
                         FREE_VARIABLE(lOwner);
                     } catch (VariableDATA *LAST_THROW) {
                         FREE_VARIABLE(lOwner);
                         *SENDER_EXCEPTION = LAST_THROW;
                     }
-
+#ifdef SIMPLE_MULTI_THREADING
+                    if (spin_lock)
+                        *spin_lock = 0;
+#endif
                     if ((CTX) && ((intptr_t)CTX != -1)) {
                         for (int i = 0; i < parameters; i++) {
                             FREE_VARIABLE(CTX [i]);

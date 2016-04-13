@@ -211,9 +211,9 @@ PIFAlizator::PIFAlizator(AnsiString INC_DIR, AnsiString LIB_DIR, AnsiString *S, 
     this->PROFILE_DRIVEN_ID = 0;
 
 #ifdef SIMPLE_MULTI_THREADING
-    seminit(this->WriteLock, 1);
+    //seminit(this->WriteLock, 1);
     seminit(this->InternalLock, 1);
-    this->MasterLock   = 0;
+    //this->MasterLock   = 0;
     this->ThreadsCount = 0;
     seminit(this->AllocLock, 1);
 #endif
@@ -328,7 +328,7 @@ PIFAlizator::~PIFAlizator(void) {
     }
 
 #ifdef SIMPLE_MULTI_THREADING
-    semdel(WriteLock);
+    //semdel(WriteLock);
     semdel(InternalLock);
     semdel(AllocLock)
 #endif

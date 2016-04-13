@@ -7,6 +7,9 @@
 #include <time.h>
 #include <map>
 #include <math.h>
+#ifndef _WIN32
+    #include <unistd.h>
+#endif
 
 #if defined(USE_JIT) || defined(USE_JIT_TRACE)
 //#define ARM_PATCH
@@ -161,7 +164,7 @@ static TinyString DLL_MEMBER = "STATIC_FUNCTION";
             } else                                                                             \
             if ((VARIABLE->TYPE == VARIABLE_CLASS) || (VARIABLE->TYPE == VARIABLE_DELEGATE)) { \
                 if (!--((CompiledClass *)VARIABLE->CLASS_DATA)->LINKS) {                       \
-                    if (IsWriteLocked) {                                                       \
+                    if (PIF->WriteLock.MasterLock) {                                           \
                         WRITE_UNLOCK                                                           \
                         delete (CompiledClass *)VARIABLE->CLASS_DATA;                          \
                         WRITE_LOCK                                                             \
@@ -171,7 +174,7 @@ static TinyString DLL_MEMBER = "STATIC_FUNCTION";
             } else                                                                             \
             if (VARIABLE->TYPE == VARIABLE_ARRAY) {                                            \
                 if (!--((Array *)VARIABLE->CLASS_DATA)->LINKS) {                               \
-                    if (IsWriteLocked) {                                                       \
+                    if (PIF->WriteLock.MasterLock) {                                           \
                         WRITE_UNLOCK                                                           \
                         delete (Array *)VARIABLE->CLASS_DATA;                                  \
                         WRITE_LOCK                                                             \
@@ -4840,11 +4843,6 @@ VariableDATA *ConceptInterpreter::Interpret(PIFAlizator *PIF, VariableDATA **LOC
                             PROPERTY_CODE(this, PROPERTIES)
                             continue;
                         }
-#ifdef SIMPLE_MULTI_THREADING
-                        if (LOCAL_CONTEXT [OE->Result_ID - 1]->LINKS == 1) {
-                            WRITE_UNLOCK;
-                        }
-#endif
                     }
                     break;
 
@@ -6003,7 +6001,7 @@ VariableDATA *ConceptInterpreter::Interpret(PIFAlizator *PIF, VariableDATA **LOC
                         case KEY_BY_REF:
                             //---------------------------//
                             if (LOCAL_CONTEXT [OE->OperandLeft.ID - 1]->CLASS_DATA != LOCAL_CONTEXT [OE->OperandRight.ID - 1]->CLASS_DATA) {
-                                CLASS_CHECK(LOCAL_CONTEXT [OE->OperandLeft.ID - 1])
+                                CLASS_CHECK_TS(LOCAL_CONTEXT [OE->OperandLeft.ID - 1])
                             } else {
                                 if (LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA == LOCAL_CONTEXT [OE->OperandRight.ID - 1]->CLASS_DATA) {
                                     ((CompiledClass *)LOCAL_CONTEXT [OE->OperandLeft.ID - 1]->CLASS_DATA)->LINKS -= 2;
@@ -7021,6 +7019,16 @@ void ConceptInterpreter::DestroyEnviroment(PIFAlizator *PIF, VariableDATA **LOCA
     register INTEGER data_count = OPT->dataCount;
 #ifndef FAST_EXIT_NO_GC_CALL
     if (static_call_main) {
+#ifdef SIMPLE_MULTI_THREADING
+        // wait for the threads to end
+        while (PIF->ThreadsCount > 1) {
+#ifdef _WIN32
+            Sleep(100);
+#else
+            usleep(100000);
+#endif
+        }
+#endif
         GarbageCollector __gc_obj;
         GarbageCollector __gc_array;
         GarbageCollector __gc_vars;

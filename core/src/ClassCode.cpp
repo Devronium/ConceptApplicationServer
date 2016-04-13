@@ -633,7 +633,7 @@ TinyString *ClassCode::GetFilename(PIFAlizator *PIF, INTEGER LOCAL_CLSID, TinySt
     return NULL;
 }
 
-VariableDATA *ClassCode::ExecuteDelegate(PIFAlizator *PIF, INTEGER i, VariableDATA *Owner, RuntimeElement *AE, ParamList *FORMAL_PARAM, VariableDATA **SenderCTX, INTEGER CLSID, INTEGER LOCAL_CLSID, SCStack *PREV) {
+VariableDATA *ClassCode::ExecuteDelegate(PIFAlizator *PIF, INTEGER i, VariableDATA *Owner, RuntimeElement *AE, ParamList *FORMAL_PARAM, VariableDATA **SenderCTX, INTEGER CLSID, INTEGER LOCAL_CLSID, SCStack *PREV THREAD_CREATION_LOCKS) {
     VariableDATA         *RESULT;
     register ClassMember *pMEMBER_i = i ? pMEMBERS [i - 1] : 0;
 
@@ -650,7 +650,11 @@ VariableDATA *ClassCode::ExecuteDelegate(PIFAlizator *PIF, INTEGER i, VariableDA
         VariableDATA *THROW_DATA = 0;
 
         STACK(PREV, AE ? AE->_DEBUG_INFO_LINE : 0)
+#ifdef SIMPLE_MULTI_THREADING
+        RESULT = pMEMBER_i->Execute(PIF, this->CLSID, Owner, FORMAL_PARAM, SenderCTX, THROW_DATA, PREV, 0, thread_lock);
+#else
         RESULT = pMEMBER_i->Execute(PIF, this->CLSID, Owner, FORMAL_PARAM, SenderCTX, THROW_DATA, PREV);
+#endif
         UNSTACK;
 
         if (THROW_DATA) {
@@ -789,14 +793,12 @@ VariableDATA *ClassCode::ExecuteMember(PIFAlizator *PIF, INTEGER i, VariableDATA
                                 lOwner->LINKS = 1;
                                 lOwner->TYPE = VARIABLE_CLASS;
 
-                                RESULT = ((CompiledClass *)RESULT->CLASS_DATA)->_Class->ExecuteMember(PIF,
+                                RESULT = ((CompiledClass *)RESULT->CLASS_DATA)->_Class->ExecuteDelegate(PIF,
                                                                                                       (INTEGER)RESULT->DELEGATE_DATA,
                                                                                                       lOwner,
                                                                                                       AE,
-                                                                                                      1,
                                                                                                       FORMAL_PARAM,
                                                                                                       SenderCTX,
-                                                                                                      0,
                                                                                                       CLSID,
                                                                                                       LOCAL_CLSID,
                                                                                                       PREV

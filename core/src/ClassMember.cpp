@@ -208,7 +208,7 @@ static int STACK_HIT = 0;
  #define MAX_RECURSIVE_CALL    2100
 #endif
 
-VariableDATA *ClassMember::Execute(void *PIF, intptr_t CONCEPT_CLASS_ID, VariableDATA *Owner, ParamList *FORMAL_PARAM, VariableDATA **SenderCTX, VariableDATA *& THROW_DATA, SCStack *PREV, char is_main) {
+VariableDATA *ClassMember::Execute(void *PIF, intptr_t CONCEPT_CLASS_ID, VariableDATA *Owner, ParamList *FORMAL_PARAM, VariableDATA **SenderCTX, VariableDATA *& THROW_DATA, SCStack *PREV, char is_main THREAD_CREATION_LOCKS) {
 #ifdef EMPIRIC_STACK_CHECK
     if (++STACK_HIT > MAX_RECURSIVE_CALL) {
         ((PIFAlizator *)PIF)->Errors.Add(new AnsiException(ERR840, _DEBUG_STARTLINE, 840, NAME, _DEBUG_FILENAME), DATA_EXCEPTION);
@@ -251,6 +251,10 @@ VariableDATA *ClassMember::Execute(void *PIF, intptr_t CONCEPT_CLASS_ID, Variabl
     if (!PREV)
         AddGCRoot(PIF, &STACK_TRACE);
 
+#ifdef SIMPLE_MULTI_THREADING
+    if (thread_lock)
+        *thread_lock = 0;
+#endif
     VariableDATA *RESULT = NULL;
     if (can_run)
         RESULT = ((ConceptInterpreter *)INTERPRETER)->Interpret((PIFAlizator *)PIF, CONTEXT, CONCEPT_CLASS_ID, THROW_DATA, &STACK_TRACE);

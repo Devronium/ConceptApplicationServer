@@ -258,22 +258,8 @@ CompiledClass::~CompiledClass() {
         return;
 
     if (_Class->DESTRUCTOR) {
-#ifdef SIMPLE_MULTI_THREADING
         PIFAlizator *PIF          = GET_PIF(this);
-        char        master_lock   = PIF->MasterLock;
-        char        IsWriteLocked = master_lock;
-        if (master_lock) {
-            WRITE_UNLOCK
-        }
-#endif
-
-        Destroy( GET_PIF(this));
-
-#ifdef SIMPLE_MULTI_THREADING
-        if (master_lock) {
-            WRITE_LOCK
-        }
-#endif
+        Destroy(PIF);
     }
 
     this->LINKS = -1;
