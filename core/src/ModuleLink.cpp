@@ -564,6 +564,7 @@ INTEGER Invoke(INTEGER INVOKE_TYPE, ...) {
             }
             break;
 
+#ifdef ALLOW_UNSAFE_APIS
         case INVOKE_DYNAMIC_UNLOCK:
             {
                 VariableDATA *target = va_arg(ap, VariableDATA *);
@@ -581,6 +582,7 @@ INTEGER Invoke(INTEGER INVOKE_TYPE, ...) {
                 }
             }
             break;
+#endif
 
         case INVOKE_CREATE_VARIABLE:
             {

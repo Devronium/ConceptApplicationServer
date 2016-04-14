@@ -2581,30 +2581,30 @@ function ConceptClient(url, container, loading, absolute_paths) {
 				this.MSG_CUSTOM_MESSAGE(parseInt(Sender), MSG_ID, Target, Value, SendMessageFunction);
 				break;
 			case MSG_MESSAGE_BOX:
-				client.ModalAlert(Target, Value, 0, BUTTONS_OK, 0);
+				this.ModalAlert(Target, Value, 0, BUTTONS_OK, 0);
 				break;
 			case MSG_MESSAGE_BOX_YESNO:
-				client.ModalAlert(Target, Value, 0, BUTTONS_YES_NO, MSG_MESSAGE_BOX_YESNO);
+				this.ModalAlert(Target, Value, 0, BUTTONS_YES_NO, MSG_MESSAGE_BOX_YESNO);
 				break;
 			case MSG_MESSAGE_BOX_GENERIC:
 				var param = parseInt(this.POST_STRING);
-				client.ModalAlert(Target, Value, Math.floor(param / 0x100), param % 0x100, MSG_MESSAGE_BOX_GENERIC);
+				this.ModalAlert(Target, Value, Math.floor(param / 0x100), param % 0x100, MSG_MESSAGE_BOX_GENERIC);
 				break;
 			case MSG_RAISE_ERROR:
 				var title = Target;
 				if (title[0] == "%")
 					title = "Concept run-time error";
 
-				client.ModalAlert(title, Value, MESSAGE_ERROR, BUTTONS_OK, 0);
+				this.ModalAlert(title, Value, MESSAGE_ERROR, BUTTONS_OK, 0);
 				console.error(Value);
 				this.NotifyLoading("Concept run-time error");
 				break;
 			case MSG_MESSAGE_REQUESTINPUT:
-				client.ModalInput(this.POST_STRING, Target, parseInt(Value));
+				this.ModalInput(this.POST_STRING, Target, parseInt(Value));
 				break;
 			case MSG_MESSAGE_LOGIN:
 				this.NotifyLoading("login required");
-				client.ModalLogin(Target, Value, this.POST_STRING, Sender.toUpperCase(), this.POST_TARGET);
+				this.ModalLogin(Target, Value, this.POST_STRING, Sender.toUpperCase(), this.POST_TARGET);
 				break;
 			case MSG_APPLICATION_RUN:
 				this.NotifyLoading("application initialized");
@@ -5185,7 +5185,7 @@ function ConceptClient(url, container, loading, absolute_paths) {
 							if (fn) {
 								try {
 
-									fn({ "Client": this, "RID": "" + OwnerID, "Object": element }, JSON.parse(Value));
+									fn({ "Client": this, "RID": "" + OwnerID, "Object": element }, Target, JSON.parse(Value));
 								} catch (e) {
 									console.error("Error in " + set_name);
 									console.error(e);
@@ -5280,7 +5280,7 @@ function ConceptClient(url, container, loading, absolute_paths) {
 							var fn = window[get_name];
 							if (fn) {
 								try {
-									eval_result = fn({ "Client": this, "RID": "" + OwnerID, "Object": element}, Value);
+									eval_result = fn({ "Client": this, "RID": "" + OwnerID, "Object": element}, Target, Value);
 								} catch (e) {
 									console.error("Error in " + set_name);
 									console.error(e);
@@ -5337,7 +5337,7 @@ function ConceptClient(url, container, loading, absolute_paths) {
 						var fn = window[set_name];
 						if (fn) {
 							try {
-								fn({ "Client": this, "RID": "" + OwnerID, "Object": element }, Value);
+								fn({ "Client": this, "RID": "" + OwnerID, "Object": element }, Target, Value);
 							} catch (e) {
 								console.error("Error in " + set_name);
 								console.error(e);
