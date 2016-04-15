@@ -970,8 +970,10 @@ INTEGER Invoke(INTEGER INVOKE_TYPE, ...) {
 
         case INVOKE_CALL_DELEGATE:
         case INVOKE_CALL_DELEGATE_THREAD:
+#ifdef SIMPLE_MULTI_THREADING
         case INVOKE_CALL_DELEGATE_THREAD_SAFE:
         case INVOKE_CALL_DELEGATE_THREAD_SPINLOCK:
+#endif
             {
                 VariableDATA *target            = va_arg(ap, VariableDATA *);
                 VariableDATA **SENDER_RESULT    = va_arg(ap, VariableDATA * *);

@@ -324,13 +324,6 @@ class PIFAlizator {
     std::map<HASH_TYPE, unsigned int> CachedClasses;
 #endif
 
-#ifdef SIMPLE_MULTI_THREADING
-    //HHSEM WriteLock;
-    //char  MasterLock;
-    Semaphore WriteLock;
-    HHSEM     InternalLock;
-    uintptr_t ThreadsCount;
-#endif
     HHSEM DelegateLock;
 
     Array        *var_globals;
@@ -341,6 +334,14 @@ class PIFAlizator {
 public:
 #ifdef SIMPLE_MULTI_THREADING
     HHSEM AllocLock;
+#endif
+
+#ifdef SIMPLE_MULTI_THREADING
+    //HHSEM WriteLock;
+    //char  MasterLock;
+    Semaphore WriteLock;
+    HHSEM     InternalLock;
+    uintptr_t ThreadsCount;
 #endif
 
     VARPool * POOL;

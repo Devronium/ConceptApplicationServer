@@ -10,6 +10,7 @@
 
 #define CONCEPT_STRING(VARIABLE)    (VARIABLE->CLASS_DATA ? (*((AnsiString *)VARIABLE->CLASS_DATA)) : *((AnsiString *)(VARIABLE->CLASS_DATA = new AnsiString())))
 //---------------------------------------------------------
+#ifdef INLINE_COMMON_CALLS
 #define FREE_VARIABLE(VARIABLE)                                                                \
     VARIABLE->LINKS--;                                                                         \
     if (VARIABLE->LINKS < 1) {                                                                 \
@@ -28,6 +29,9 @@
         }                                                                                      \
         VAR_FREE(VARIABLE);                                                                    \
     }
+#else
+void FREE_VARIABLE(VariableDATA *VARIABLE);
+#endif
 
 #ifdef SIMPLE_MULTI_THREADING
 #define FREE_VARIABLE_TS(VARIABLE)                                                              \
@@ -176,6 +180,11 @@ private:
     char callcount;
     void **jittracecode;
     void AnalizeInstructionPath(Optimizer *OPT);
+#endif
+#ifdef SIMPLE_MULTI_THREADING
+    int EvalNumberExpression(PIFAlizator *PIF, VariableDATA **LOCAL_CONTEXT, RuntimeOptimizedElement *OE, VariableDATAPROPERTY * &PROPERTIES, intptr_t ClassID, VariableDATA *& THROW_DATA, SCStack *STACK_TRACE, INTEGER &INSTRUCTION_POINTER, INTEGER &CATCH_INSTRUCTION_POINTER, INTEGER &CATCH_VARIABLE, INTEGER &PREVIOUS_TRY, char &IsWriteLocked, char pushed_type);
+#else
+    int EvalNumberExpression(PIFAlizator *PIF, VariableDATA **LOCAL_CONTEXT, RuntimeOptimizedElement *OE, VariableDATAPROPERTY * &PROPERTIES, intptr_t ClassID, VariableDATA *& THROW_DATA, SCStack *STACK_TRACE, INTEGER &INSTRUCTION_POINTER, INTEGER &CATCH_INSTRUCTION_POINTER, INTEGER &CATCH_VARIABLE, INTEGER &PREVIOUS_TRY, char pushed_type);    
 #endif
 public:
     POOLED(ConceptInterpreter)
