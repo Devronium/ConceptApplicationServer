@@ -216,7 +216,7 @@ class ConceptChild {
 				break;
 			case "session":
 				if (!this.Session)
-					this.Session=""+NumberToHex(ClsPtr(this))+"#"+RandomString(80);
+					this.Session=this.GenerateSession();//sha256(""+NumberToHex(ClsPtr(this))+"#"+RandomString(80);
 				this.WriteExact("${this.Session}\r\n", false, true);
 				break;
 			case "restore":
@@ -832,6 +832,26 @@ class ConceptChild {
 		return res;
 	}
 
+	GenerateSession(string seed = "") {
+		var common = sha256(CryptoRandom(80));
+		if (seed)
+			return SubStr(seed, 0, length seed - length common) + common;
+		return sha1(""+NumberToHex(ClsPtr(this))+"#"+CryptoRandom(80)) + "-" + common;
+	}
+
+	GetCookie(key, cookie_str) {
+		var arr = StrSplit(cookie_str, ";");
+		for (var i = 0; i < length arr; i++) {
+			var k = arr[i];
+			var a2 = StrSplit(k, "=");
+			if ((a2) && (length a2 == 2)) {
+				if (trim(a2[0]) == key)
+					return trim(a2[1]);
+			}
+		}
+		return "";
+	}
+
 	Iterate() {
 		var step = 0;
 		var exc;
@@ -960,6 +980,11 @@ class ConceptChild {
 														if (!this.TLS)
 															this.TLS = value arr[1];
 														break;
+													case "cookie":
+														var cookie = this.GetCookie("_s", arr[1]);
+														if (cookie)
+															session_to_restore = cookie;
+														break;
 													case "concept-session":
 														orig="";
 														len2=length arr;
@@ -995,22 +1020,30 @@ class ConceptChild {
 
 								if (origin)
 									extra_header="Access-Control-Allow-Credentials: true\r\nAccess-Control-Allow-Headers: content-type\r\nAccess-Control-Allow-Headers: authorization\r\nAccess-Control-Allow-Headers: x-websocket-extensions\r\nAccess-Control-Allow-Headers: x-websocket-version\r\nAccess-Control-Allow-Headers: x-websocket-protocol\r\nAccess-Control-Allow-Origin: $origin\r\n";
+
 								var tstamp=StrReplace(StrReplace(asctime(time()), "\r", ""), "\n", "")+" GMT";
+
+								// cookie valid for 3 days
+								var expires=StrReplace(StrReplace(asctime(time() + 259200), "\r", ""), "\n", "")+" GMT";
 
 								var sess = "";
 								var sessChild = null;
 								if (session_to_restore) {
 									sessChild = RestoreWS_Step1(session_to_restore);
+									// generare a new session id (safer)
 									if (sessChild)
-										sess = session_to_restore;
+										sess = this.GenerateSession(session_to_restore);
 								}
 
 								if (!sess) {
-									sess = ""+NumberToHex(ClsPtr(this))+"#"+RandomString(80);
+									sess = this.GenerateSession();
 									this.Session = sess;
 									if (parent > 0)
 										this.Parent = parent;
 								}
+								extra_header += "Set-Cookie: _s=$sess; Expires=$expires\r\n";
+								if (sessChild)
+									extra_header += "Concept-Replace: $session_to_restore;\r\n";
 
 								var header_response="HTTP/1.1 101 Web Socket Protocol Handshake\r\n${extra_header}Connection: Upgrade\r\nDate: $tstamp\r\nSec-WebSocket-Accept: $ret_key\r\nServer: Concept Application Server 4.0WS\r\nUpgrade: websocket\r\nConcept-Session: ${this.Session}\r\n\r\n";
 								if (length header_response > MAX_WS_HEADER) {

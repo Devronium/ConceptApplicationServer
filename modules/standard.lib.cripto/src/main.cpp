@@ -39,6 +39,10 @@ extern "C" {
 }
 static int hardware_aes = 0;
 #endif
+#ifdef _WIN32
+#include <windows.h>
+#include <wincrypt.h>
+#endif
 //---------------------------------------------------------------------------
 #define BLOCKMODE_CTR    BLOCKMODE_CRT
 CONCEPT_DLL_API ON_CREATE_CONTEXT MANAGEMENT_PARAMETERS {
@@ -2345,6 +2349,56 @@ CONCEPT_FUNCTION_IMPL(ECCRSAErrorExplain, 1)
     } else {
         RETURN_STRING("");
     }
+END_IMPL
+//---------------------------------------------------------------------------
+CONCEPT_FUNCTION_IMPL(CryptoRandom, 1)
+    T_NUMBER(0)
+
+    int len = PARAM_INT(0);
+    if (len <= 0) {
+        RETURN_STRING("");
+        return 0;
+    }
+    char *key = NULL;
+    CORE_NEW(len + 1, key);
+    if (!key) {
+        RETURN_STRING("");
+        return 0;
+    }
+    key[len] = 0;
+#ifdef __APPLE__
+    for (int i = 0; i < len; i++) {
+        unsigned int v = arc4random() % 0x100;
+        key[i] = (char)v;
+    }
+    SetVariable(RESULT, -1, key, len);
+#else
+#ifdef _WIN32
+    HCRYPTPROV hProvider = 0;
+    if (CryptAcquireContext(&hProvider, 0, 0, PROV_RSA_FULL, CRYPT_VERIFYCONTEXT | CRYPT_SILENT)) {
+        if (CryptGenRandom(hProvider, len, (BYTE *)key)) {
+            CryptReleaseContext(hProvider, 0);
+            SetVariable(RESULT, -1, key, len);
+            return 0;
+        }
+        CryptReleaseContext(hProvider, 0);
+    }
+#else
+    FILE *fp = fopen("/dev/urandom", "r");
+    if (fp) {
+        int key_len = fread(key, 1, len, fp);
+        fclose(fp);
+        if (key_len == len) {
+            SetVariable(RESULT, -1, key, len);
+            return 0;
+        }
+    }
+#endif
+    if (key) {
+        CORE_DELETE(key);
+    }
+    RETURN_STRING("");
+#endif
 END_IMPL
 //---------------------------------------------------------------------------
 #endif

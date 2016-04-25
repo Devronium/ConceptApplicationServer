@@ -88,7 +88,7 @@
 #define __TLS_CLIENT_HELLO_MINSIZE  41
 #define __TLS_CLIENT_RANDOM_SIZE    32
 #define __TLS_SERVER_RANDOM_SIZE    32
-#define __TLS_MAX_SESSION_ID        0xFF
+#define __TLS_MAX_SESSION_ID        32
 #define __TLS_SHA256_MAC_SIZE       32
 #define __TLS_SHA1_MAC_SIZE         20
 #define __TLS_SHA384_MAC_SIZE       48
@@ -3608,6 +3608,13 @@ struct TLSPacket *tls_build_server_key_exchange(struct TLSContext *context, int 
     return packet;
 }
 
+void __private_tls_set_session_id(struct TLSContext *context) {
+    if (tls_random(context->session, __TLS_MAX_SESSION_ID))
+        context->session_size = __TLS_MAX_SESSION_ID;
+    else
+        context->session_size = 0;
+}
+
 struct TLSPacket *tls_build_hello(struct TLSContext *context) {
     if (!tls_random(context->local_random, __TLS_SERVER_RANDOM_SIZE))
         return NULL;
@@ -3629,9 +3636,18 @@ struct TLSPacket *tls_build_hello(struct TLSContext *context) {
             tls_packet_append(packet, context->local_random, __TLS_SERVER_RANDOM_SIZE);
         else
             tls_packet_append(packet, context->local_random, __TLS_CLIENT_RANDOM_SIZE);
-        
+
+#ifdef IGNORE_SESSION_ID
         // session size
         tls_packet_uint8(packet, 0);
+#else
+        __private_tls_set_session_id(context);
+        // session size
+        tls_packet_uint8(packet, context->session_size);
+        if (context->session_size)
+            tls_packet_append(packet, context->session, context->session_size);
+#endif
+
         // ciphers
         if (context->is_server) {
             // fallback ... this should never happen
@@ -3892,11 +3908,13 @@ int tls_parse_hello(struct TLSContext *context, const unsigned char *buf, int bu
     
     unsigned char session_len = buf[res++];
     CHECK_SIZE(session_len, buf_len - res, TLS_NEED_MORE_DATA)
-    context->session_size = session_len;
-    if (session_len) {
+    if ((session_len) && (session_len <= __TLS_MAX_SESSION_ID)) {
         memcpy(context->session, &buf[res], session_len);
-        res += session_len;
-    }
+        context->session_size = session_len;
+    } else
+        context->session_size = 0;
+
+    res += session_len;
     CHECK_SIZE(2, buf_len - res, TLS_NEED_MORE_DATA)
     if (context->is_server) {
         unsigned short cipher_len = ntohs(*(unsigned short *)&buf[res]);
