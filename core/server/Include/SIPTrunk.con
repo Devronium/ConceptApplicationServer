@@ -13,6 +13,7 @@ include Speex.con
 
 define SIP_CODES	["100" => "Trying", "180" => "Ringing", "181" => "Call Is Being Forwarded", "182" => "Queued", "200" => "OK", "300" => "Multiple Choices", "301" => "Moved Permanently", "302" => "Moved Temporarily", "303" => "See Other", "305" => "Use Proxy", "380" => "Alternative Service", "400" => "Bad Request", "401" => "Unauthorized", "402" => "Payment Required", "403" => "Forbidden", "404" => "Not Found", "405" => "Method Not Allowed", "406" => "Not Acceptable", "407" => "Proxy Authentication Required", "408" => "Request Timeout", "409" => "Conflict", "410" => "Gone", "411" => "Length Required", "413" => "Request Entity Too Large", "414" => "Request-URI Too Large", "415" => "Unsupported Media Type", "420" => "Bad Extension", "480" => "Temporarily not available", "481" => "Call Leg/Transaction Does Not Exist", "482" => "Loop Detected", "483" => "Too Many Hops", "484" => "Address Incomplete", "485" => "Ambiguous", "486" => "Busy Here", "500" => "Internal Server Error", "501" => "Not Implemented", "502" => "Bad Gateway", "503" => "Service Unavailable", "504" => "Gateway Time-out", "505" => "SIP Version not supported", "600" => "Busy Everywhere", "603" => "Decline", "604" => "Does not exist anywhere", "606" => "Not Acceptable"]
 define SIP_ALLOW	"REGISTER,INVITE,ACK,CANCEL,BYE,REFER,NOTIFY"
+define SIP_SUPPORTED	"replaces, 100rel, timer, tdialog"
 define RTP_START_PORT	16000
 define RTP_END_PORT	32000
 
@@ -22,7 +23,7 @@ class SIPSession {
 	public var UserData;
 
 	private var Expire = 0;
-	private var msg;
+	public var msg;
 	private var s;
 	private var sequence_number;
 	private var rtp_port;
@@ -49,6 +50,20 @@ class SIPSession {
 	var chunk_size;
 	var timestamp;
 
+	var[] out_stack;
+
+	var[] Children;
+	var Parent;
+
+	var sdp_in = "";
+	var sdp_out = "";
+
+	var OnMessage;
+	var OnReferError;
+
+	var _private_data;
+	var Referred;
+
 	SIPSession(s, msg, rtp_port, ip, port, chunk_size = 20, expire = 3600) {
 		packet_time = microseconds();
 		timestamp = RandomInteger(140, 140000) * 100;
@@ -72,6 +87,7 @@ class SIPSession {
 
 	UpdateMedia(msg) {
 		var payload = msg.Payload;
+		sdp_in = msg.PayloadBlob;
 		for (var i = 0; i < length payload; i++) {
 			var line = payload[i];
 			switch (line[0] + line[1]) {
@@ -182,22 +198,33 @@ class SIPSession {
 		type = -1;
 		if (length data > 12) {
 			type = tounumber(data[1], 8) & 0x7F;
-			var sequence_number = ntohs(tounumber(data[2] + data[3], 16));
-			var ssrc_id = (tounumber(data[8] + data[9] + data[10] + data[11], 32));
+			// not used: var sequence_number = ntohs(tounumber(data[2] + data[3], 16));
+			// not used: var ssrc_id = (tounumber(data[8] + data[9] + data[10] + data[11], 32));
 			var payload = SubStr(data, 12, length data);
 			return payload;
 		}
 		return "";
 	}
 
-	GetSDP(codec = 8) {
+	GetSDP(codec = 8, extra = "") {
 		var res = "v=0\r\no=somebody ${ClsPtr(this)} ${VarPtr(this)} IN IP4 ${s.localhost}\t\ns=Concept\r\nc=IN IP4 ${s.localhost}\r\nt=0 0\r\nm=audio ${rtp_port} RTP/AVP $codec\r\na=rtpmap:$codec PCMA/8000\r\n";
+		if (extra)
+			res += "a=$extra\r\n";
+		sdp_out = res;
 		return res;
 	}
 
 	finalize() {
 		if (rtp)
 			rtp.Close();
+		for (var i = 0; i < length Children; i++) {
+			var sess = Children[i];
+			if (sess) {
+				sess.Parent = null;
+				Children[i] = null;
+				this.s.RemoveSessionByRef(sess);
+			}
+		}
 	}
 
 	CheckAudio(var type = null) {
@@ -206,13 +233,13 @@ class SIPSession {
 		return "";
 	}
 
-	LoadVoice(voice) {
+	LoadVoice(var voice) {
 		ivr = voice;
 		ivr_chunk = 0;
 		packet_time = microseconds();
 	}
 
-	AppendVoice(voice) {
+	AppendVoice(var voice) {
 		ivr += voice;
 	}
 
@@ -220,8 +247,27 @@ class SIPSession {
 		buf = "";
 	}
 
-	Write(payload) {
+	ResetBuffers() {
+		buf = "";
+		ivr = "";
+	}
+
+	AddChild(session) {
+		if (session) {
+			Children[length Children] = session;
+			session.Parent = this;
+		}
+	}
+
+	Write(payload, max_frames = 0) {
 		if ((remote_host) && (remote_port > 0)) {
+			if (max_frames > 0) {
+				var max_size = chunk_size / 1000 * 8 * max_frames;
+				if (length buf > max_size) {
+					// jitter
+					buf = "";
+				}
+			}
 			buf+=payload;
 			return length buf;
 		}
@@ -235,6 +281,45 @@ class SIPSession {
 		}
 	}
 
+	PushFront(msg) {
+		var[] new_stack;
+		if (out_stack) {
+			for (var i = 0; i < length out_stack; i++)
+				new_stack[i + 1] = out_stack[i];
+		}
+		new_stack[0] = msg;
+		out_stack = new_stack;
+
+		return length new_stack;
+	}
+
+	Push(msg) {
+		out_stack[length out_stack] = msg;
+		return length out_stack;
+	}
+
+	ClearStack() {
+		out_stack = new [];
+	}
+
+	Pop() {
+		if (out_stack) {
+			var[] new_stack;
+			var e = out_stack[0];
+			for (var i = 1; i < length out_stack; i++)
+				new_stack[i - 1] = out_stack[i];
+			out_stack = new_stack;
+			return e;
+		}
+		return null;
+	}
+
+	Head() {
+		if (out_stack)
+			return out_stack[0];
+		return null;
+	}
+
 	Iterate() {
 		var exc;
 		var ops = 0;
@@ -245,6 +330,16 @@ class SIPSession {
 				if (s.OnAudio)
 					s.OnAudio(this, data, type);
 				started = true;
+				if (Children) {
+					for (var i = 0; i < length Children; i++) {
+						var child = Children[i];
+						if (child)
+							child.Write(data, 10);
+					}
+				} else
+				if (Parent) {
+					Parent.Write(data, 10);
+				} else
 				if (s.OnDTMF) {
 					if (!d) {
 						d = new DTMFDetector();
@@ -306,7 +401,7 @@ class SIPSession {
 					if ((remote_host) && (remote_port > 0)) {
 						var str = "";
 						var blocks = chunk_size / 1000 * 8 / 10;
-						for (var i = 0; i < blocks; i++)
+						for (i = 0; i < blocks; i++)
 							str += '\0\0\0\0\0\0\0\0\0\0';
 						buf = str;
 						rtp.Write(this.SimpleRTP(str), remote_host, remote_port);
@@ -339,6 +434,8 @@ class SIPMessage {
 	var[] Headers;
 	var[] Payload;
 	var PayloadBlob = "";
+	var ParentCallID = "";
+	var Local = false;
 
 	GenerateResponse(code) {
 		var msg = new SIPMessage();
@@ -352,7 +449,7 @@ class SIPMessage {
 		msg.Destination = this.Destination;
 		msg.Method = this.Method;
 		msg.Branch = this.Branch;
-
+		msg.Local = true;
 		return msg;
 	}
 
@@ -483,7 +580,12 @@ class SIPStack {
 					// is server response
 					message.FromServer = true;
 					message.ServerCode = value first_line_arr[1];
-					message.ServerCodeText = first_line_arr[2];
+					message.ServerCodeText = "";
+					for (var i = 2; i < length first_line_arr; i++) {
+						if (i > 2)
+							message.ServerCodeText += " ";
+						message.ServerCodeText += first_line_arr[i];
+					}
 					message.Protocol = sipid;
 				} else {
 					switch (sipid) {
@@ -513,7 +615,7 @@ class SIPStack {
 				
 				var headers = new [];
 				var need_payload = false;
-				for (var i = 1; i < len; i++) {
+				for (i = 1; i < len; i++) {
 					var line = arr[i];
 					if (line) {
 						var pos = Pos(line, ":");
@@ -540,14 +642,18 @@ class SIPStack {
 				}
 				var payload = new [];
 				if (need_payload) {
+					message.PayloadBlob = "";
 					while (i < len) {
 						line = arr[i++];
-						if (line)
+						if (line) {
 							payload[length payload] = line;
+							message.PayloadBlob += line + "\r\n";
+						}
 					}
 				}
 				message.Headers = headers;
 				message.Payload = payload;
+				message.Local = false;
 			}
 		}
 		return message;
@@ -709,7 +815,7 @@ class SIPStack {
 		return null;
 	}
 
-	PerformUDP(method, from, destination, payload = "", payload_type = "application/sdp", max_forwards = 70, parent_msg = null, extra_headers = null, ip = "", port = 0) {
+	PerformUDP(method, from, destination, payload = "", payload_type = "application/sdp", max_forwards = 70, parent_msg = null, extra_headers = null, ip = "", port = 0, cache_session = null, validation_delegate = null) {
 		var msg = new SIPMessage();
 		destination = ParseDestination(destination);
 		msg.Destination = destination;
@@ -750,7 +856,12 @@ class SIPStack {
 				msg.Headers["From"] = parent_msg.Headers["from"];
 				msg.Headers["To"] = parent_msg.Headers["to"];
 			} else {
-				msg.Headers["Via"] = parent_msg.Headers["via"];
+				// =============== to check this ===================//
+				branch = "z9hG4bK" + this.RandomString(14);
+				msg.Headers["Via"] = "SIP/2.0/UDP " + full_host + ";rport;branch=" + branch;
+				// =================================================//
+				// msg.Headers["Via"] = parent_msg.Headers["via"];
+
 				msg.Headers["Max-Forwards"] = max_forwards;
 
 				msg.Headers["From"] = parent_msg.Headers["to"];
@@ -774,13 +885,21 @@ class SIPStack {
 			msg.Headers["CSeq"] = "1 " + msg.Method;
 		if ((method != "ACK") && (method != "CANCEL")) {
 			msg.Headers["Contact"] = from;//"<sip:" + username + "@" + localhost + ">";
-			msg.Headers["Allow"] = SIP_ALLOW;;
+			msg.Headers["Allow"] = SIP_ALLOW;
 		}
 		msg.Headers["Content-Length"] = length payload;
 
 		if ((payload_type) && (payload)) {
 			msg.Headers["Content-Type"] = payload_type;
 			msg.PayloadBlob = payload;
+		}
+
+		if (cache_session) {
+			if (validation_delegate)
+				cache_session.Push([validation_delegate, msg]);
+			else
+				cache_session.Push(msg);
+			return msg;
 		}
 
 		try {
@@ -798,6 +917,42 @@ class SIPStack {
 			// nothing
 		}
 		return null;
+	}
+
+	WriteMessage(msg, ip = "", port = 0) {
+		if (msg) {
+			try {
+				if (!port)
+					port = 5060;
+				if (!ip) {
+					var destination;
+					if (IsSet(msg.Headers, "To"))
+						destination = msg.Headers["To"];
+					else
+						destination = msg.Headers["to"];
+					destination = ParseDestination(destination);
+					var server = "";
+					var server_port = 0;
+					var arr = StrSplit(destination, "@");
+					if (length arr == 2)
+						this.ParseHost(arr[1], server, server_port);
+					if (server) {
+						ip = server;
+						port = server_port;
+					}
+
+					if (this.OnSend)
+						this.OnSend(msg, ip, port);
+				}
+
+				if (udpclientsocket.Write(msg.ToString(), ip, port) <= 0)
+					return false;
+				return true;
+			} catch (var exc) {
+				// nothing
+			}
+		}
+		return false;
 	}
 
 	ResponseUDP(code, parent_msg, destination, payload = "", payload_type = "application/sdp", max_forwards = 70, extra_headers = null, contact = "", ip = "", port = 0) {
@@ -842,7 +997,8 @@ class SIPStack {
 		msg.Headers["Max-Forwards"] = max_forwards;
 
 		msg.Headers["Call-ID"] = callid;	
-		msg.Headers["Allow"] = SIP_ALLOW;;
+		msg.Headers["Allow"] = SIP_ALLOW;
+		msg.Headers["Supported"] = SIP_SUPPORTED;
 		if (parent_msg) {
 			var cseq = value (parent_msg.Headers["cseq"]);
 			msg.Headers["CSeq"] = "$cseq " + parent_msg.Method;
@@ -883,7 +1039,7 @@ class SIPStack {
 		return msg2;
 	}
 
-	public Refer(msg, address, ip = "", port = 0, max_forwards = 70) {
+	public ReferSimple(msg, address, ip = "", port = 0, max_forwards = 70) {
 		var contact = msg.Headers["contact"];
 		if (!contact)
 			contact = msg.Headers["from"];
@@ -892,6 +1048,85 @@ class SIPStack {
 		if (contact)
 			msg2 = PerformUDP("REFER", msg.Headers["to"], contact, "", "", max_forwards, msg, ["Refer-To" => address, "Referred-By" => contact], ip, port);
 
+		return msg2;
+	}
+
+	public ReferProxy(msg, address, max_forwards = 70) {
+		if (!msg)
+			return null;
+
+		var contact;
+		if (msg.Local) {
+			contact = msg.Headers["to"];
+		} else {
+			contact = msg.Headers["contact"];
+			if (!contact)
+				contact = msg.Headers["from"];
+		}
+
+		if (contact) {
+			var session = this.GetSession(msg);
+			if (session) {
+				var child_session = this.Invite(address, contact, max_forwards);
+				if (child_session) {
+					child_session._private_data = session.CallID;
+					session.AddChild(child_session);
+					child_session.OnMessage = function(child_session, msg, parent_session) {
+						var session = this.GetSessionById(child_session._private_data);
+						if (!session)
+							session = parent_session;
+						if (session) {
+							if ((msg.ServerCode >= 200) && (msg.ServerCode < 300)) {
+								session.ResetBuffers();
+								child_session._private_data = null;
+								child_session.ResetBuffers();
+								child_session.OnMessage = null;
+								session.Referred = true;
+							} else
+							if (msg.ServerCode >= 300) {
+								// busy/redirect/etc
+								child_session.Cancel(true);
+								child_session.OnMessage = null;
+								if (session.OnReferError) {
+									if (session.OnReferError(session, msg))
+										return;
+								}
+								session.Bye(true);
+							}
+						}
+					};
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+
+	public Refer(msg, address, max_forwards = 70) {
+		return this.ReferProxy(msg, address, max_forwards);
+	}
+
+	public ReferHold(msg, address, ip = "", port = 0, max_forwards = 70) {
+		var contact = msg.Headers["contact"];
+		if (!contact)
+			contact = msg.Headers["from"];
+
+		var msg2 = null;
+		if (contact) {
+			var session = this.GetSession(msg);
+			this.Reinvite(msg.Headers["from"], msg.Headers["to"], msg.Headers["call-id"], "", "", "sendonly");
+			msg2 = PerformUDP("REFER", msg.Headers["to"], contact, "", "", 70, msg, ["Refer-To" => address, "Referred-By" => contact], "", 0, session, function(msg, new_msg) {
+				if ((msg.ServerCode >= 200) && (msg.ServerCode < 300))
+					return true;
+				else
+				if ((msg.ServerCode < 100) && (msg.ServerCode >= 300)) {
+					var session = this.GetSession(msg);
+					if (session)
+						session.ClearStack();
+				}
+				return false;
+			});
+		}
 		return msg2;
 	}
 
@@ -963,6 +1198,7 @@ class SIPStack {
 						new_sessions[sess.CallID] = sess;
 				}
 				Sessions = new_sessions;
+				this.CleanSession(res);
 				return res;
 			}
 		}
@@ -978,9 +1214,31 @@ class SIPStack {
 		return null;
 	}
 
-	RemoveSessionByRef(session) {
+	GetSessionById(id) {
+		if (id) {
+			if (IsSet(Sessions, id))
+				return Sessions[id];
+		}
+		return null;
+	}
+
+	CleanSession(session) {
 		if (session) {
+			session.Parent = null;
+			for (var i = 0; i < length session.Children; i++) {
+				var child = session.Children[i];
+				if (child._private_data)
+					child.Cancel(true);
+				else
+					child.Bye(true);
+			}
+		}
+	}
+
+	RemoveSessionByRef(session) {
+		if ((session) && (IsSet(Sessions, session.CallID))) {
 			var sessions = Sessions;
+
 			var new_sessions = new [];
 			var id = session.CallID;
 			for (var i = 0; i < length sessions; i++) {
@@ -989,6 +1247,7 @@ class SIPStack {
 					new_sessions[sess.CallID] = sess;
 			}
 			Sessions = new_sessions;
+			CleanSession(session);
 			return true;
 		}
 		return false;
@@ -1020,7 +1279,7 @@ class SIPStack {
 		}
 	}
 
-	Invite(destination, username, max_forwards = 70) {
+	Invite(destination, username, max_forwards = 70, parent_session = null, validation_delegate = null) {
 		var msg = new SIPMessage();
 		msg.Method = "INVITE";
 
@@ -1034,8 +1293,14 @@ class SIPStack {
 		else
 			full_server = server;
 
-		msg.Destination = destination;
-		//msg.Destination = "sip:${target_user}@${full_host}";
+		if (Pos(username, "@") > 0) {
+			var user_destination = username;
+			ParseFullDestination(user_destination, var username2, var local_server, var local_port);
+			username = username2;
+		}
+
+		//msg.Destination = destination;
+		msg.Destination = "sip:${target_user}@${full_server}";
 
 		var branch = "z9hG4bK" + this.RandomString(14);
 		var callid = this.RandomString(32) + "@" + localhost;
@@ -1044,18 +1309,22 @@ class SIPStack {
 		msg.Headers["max-forwards"] = max_forwards;
 
 		msg.Headers["from"] = "sip:" + username + "@" + this.localhost + ";tag="+this.RandomString(20);
-		msg.Headers["to"] = "sip:${target_user}@${localhost}";//destination;
+		msg.Headers["to"] = "sip:${target_user}@${full_server}";//"sip:${target_user}@${localhost}";//destination;
 		msg.Headers["contact"] = "<sip:" + username + "@" + this.full_host + ">";
 
 		msg.Headers["call-id"] = callid;
-		msg.Headers["cseq"] = "1 " + msg.Method;
+		if (parent_session)
+			msg.Headers["cseq"] = "3 " + msg.Method;
+		else
+			msg.Headers["cseq"] = "1 " + msg.Method;
 		msg.Headers["supported"] = "outbound";
 
 		msg.Headers["allow"] = SIP_ALLOW;
 
-		var sess = this.CreateSession(msg, server, server_port);
-		msg.Headers["supported"] = "100rel, timer";
+		msg.Headers["supported"] = SIP_SUPPORTED;
 		msg.Headers["session-expires"] = "3600;refresher=uac";
+
+		var sess = this.CreateSession(msg, server, server_port);
 		if (sess) {
 			var payload = sess.GetSDP();
 			var payload_type = "application/sdp";
@@ -1063,6 +1332,14 @@ class SIPStack {
 			msg.Headers["content-type"] = payload_type;
 			msg.PayloadBlob = payload;
 
+			if (parent_session) {
+				msg.ParentCallID = parent_session.CallID;
+				if (validation_delegate)
+					parent_session.Push([validation_delegate, msg]);
+				else
+					parent_session.Push(msg);
+				return sess;
+			}
 			try {
 				if (this.OnSend)
 					this.OnSend(msg, server, server_port);
@@ -1076,6 +1353,77 @@ class SIPStack {
 		}
 		return null;
 	}
+
+	Reinvite(destination, from, callid, branch = "", ftag = "", extra_sdp = "", sdp_payload = "", max_forwards = 70, parent_session = null, validation_delegate = null) {
+		var msg = new SIPMessage();
+		msg.Method = "INVITE";
+
+		var server = "";
+		var server_port = 0;
+		var full_server = "";
+
+		ParseFullDestination(destination, var target_user, server, server_port);
+		if (server_port != 5060)
+			full_server = server + ":" + server_port;
+		else
+			full_server = server;
+
+		msg.Destination = "sip:" + target_user + "@" + full_server;
+
+		if (!branch)
+		    branch = "z9hG4bK" + this.RandomString(14);
+
+		msg.Headers["via"] = "SIP/2.0/UDP " + this.full_host + ";rport;branch=" + branch;
+		msg.Headers["max-forwards"] = max_forwards;
+
+
+		msg.Headers["from"] = from;
+		msg.Headers["to"] = destination;
+		if (ftag)
+			msg.Headers["to"] += ";tag=$ftag";
+		if ((extra_sdp == "sendonly") || (extra_sdp == "recvonly"))
+			msg.Headers["contact"] = from + ";+sip.rendering=\"no\"";
+		else
+			msg.Headers["contact"] = from;
+
+		msg.Headers["call-id"] = callid;
+		msg.Headers["cseq"] = "2 " + msg.Method;
+		msg.Headers["supported"] = "outbound";
+
+		msg.Headers["allow"] = SIP_ALLOW;
+
+		msg.Headers["supported"] = SIP_SUPPORTED;
+		msg.Headers["session-expires"] = "3600;refresher=uac";
+    		
+		var sess = parent_session ?? GetSession(msg);
+		if (sess) {
+			var payload = sdp_payload ?? sess.GetSDP(8, extra_sdp);
+			var payload_type = "application/sdp";
+			msg.Headers["content-length"] = length payload;
+			msg.Headers["content-type"] = payload_type;
+			msg.PayloadBlob = payload;
+
+			if (parent_session) {
+				if (validation_delegate)
+					parent_session.Push([validation_delegate, msg]);
+				else
+					parent_session.Push(msg);
+				return msg;
+			}
+			try {
+				if (this.OnSend)
+					this.OnSend(msg, server, server_port);
+
+				if (udpclientsocket.Write(msg.ToString(), server, server_port) <= 0)
+					return null;
+				return msg;
+			} catch (var exc) {
+				// nothing
+			}
+		}
+		return null;
+	}
+
 
 	KeepAlive(ip, port) {
 		try {
@@ -1224,6 +1572,7 @@ class SIPStack {
 					// ignore it
 					break;
 				default:
+					var parent = null;
 					if (msg.FromServer) {
 						var ctype = msg.Headers["content-type"];
 						sess = null;
@@ -1258,6 +1607,7 @@ class SIPStack {
 								sess = GetSession(msg);
 
 							if (sess) {
+								parent = sess.Parent;
 								sess.Bye();
 								this.RemoveSessionByRef(sess);
 								if (this.OnEnd)
@@ -1267,6 +1617,36 @@ class SIPStack {
 					} else {
 						if (this.OnNotUnderstood)
 							this.OnNotUnderstood(msg);
+					}
+					if (!sess)
+						sess = GetSession(msg);
+
+					if ((sess) && (sess.OnMessage))
+						sess.OnMessage(sess, msg, parent);
+
+					if (sess)
+						var popped_msg = sess.Head();
+					if (popped_msg) {
+						if (typeof popped_msg == "array") {
+							var start = 0;
+							var validation_delegate = null;
+							if (typeof popped_msg[0] == "delegate") {
+								validation_delegate = popped_msg[0];
+								start = 1;
+							}
+							for (var i2 = start; i2 < length popped_msg; i2++) {
+								var popped_msg_i = popped_msg[i2];
+								if (popped_msg_i) {
+									if ((!validation_delegate) || (validation_delegate(msg, popped_msg_i))) {
+										sess.Pop();
+										WriteMessage(popped_msg_i);
+									}
+								}
+							}
+						} else {
+							sess.Pop();
+							WriteMessage(popped_msg);
+						}
 					}
 					break;
 			}

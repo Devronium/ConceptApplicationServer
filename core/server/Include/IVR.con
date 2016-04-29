@@ -154,6 +154,10 @@ class DATASession {
 		return false;
 	}
 
+	Refer(address) {
+		return this.sip.Refer(address);
+	}
+
 	Close() {
 		this.sip.Bye(true);
 	}
@@ -173,6 +177,7 @@ class IVR {
 	var TimedOutMessage = "";
 	var Debug = false;
 	var UserData;
+	var ReferError;
 
 	Get(key, format = "alaw", dir = "repository") {
 		var key2 = "$key.$format";
@@ -264,7 +269,7 @@ class IVR {
 				}
 			}
 		
-			if ((session.UserData.TimedOut()) || (session.UserData.Expired())) {
+			if (((!session.Referred) && (session.UserData.TimedOut())) || (session.UserData.Expired())) {
 				session.UserData.ResetTime();
 				session.UserData.EndOnIVRFinished = true;
 				if (TimedOutMessage)
@@ -303,6 +308,13 @@ class IVR {
 		}
 	}
 
+	OnReferError(session, msg) {
+		if (ReferError)
+			return ReferError(session.UserData, msg.ServerCode);
+
+		return false;
+	}
+
 	OnInvite(session, msg) {
 		//if (Debug)
 		//	echo msg.ToString();
@@ -316,6 +328,7 @@ class IVR {
 			 res = this.Greeting(from);
 		if (res) {
 			session.UserData = new DATASession(this.Get, session, from);
+			session.OnReferError = this.OnReferError;
 			session.LoadVoice(Get("empty"));
 			this.ParseArray(session, res);
 			session.Accept();
@@ -326,10 +339,11 @@ class IVR {
 		}
 	}
 
-	static HourAndDay(var hour, var day = null) {
+	static HourAndDay(var hour, var day = null, var minute = null) {
 		var arr = localtime(time());
 		hour = arr["tm_hour"];
 		day = arr["tm_wday"];
+		minute = arr["tm_min"];
 	}
 
 	static PrepareAudio(directory = "./repository") {
