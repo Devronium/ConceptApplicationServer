@@ -366,6 +366,9 @@ class BinFile extends File {
 	public property DeletedRecords { get deleted_records }
 	public var[] Indexes;
 	protected var MODULO_SIZE = DEFAULT_MODULO_SIZE;
+	public var Debug = false;
+	public var[] __debug_block_info;
+
 
 	BinFile(filename, mode="r+b", default_block_size = DEFAULT_MODULO_SIZE) {
 		super(mode);
@@ -630,9 +633,14 @@ class BinFile extends File {
 
 		if (fseek(hFile, offset + MODULO_SIZE, SEEK_SET))
 			return false;
+
 		if (this.Read(buf, 8) != 8)
 			return false;
+
 		var next_link = unpack("u64", buf)[0];
+
+		if (next_link == offset)
+			next_link = 0;
 
 		fseek(hFile, 14, SEEK_SET);
 		this.Write(pack("u64", next_link));
@@ -641,7 +649,66 @@ class BinFile extends File {
 			has_garbage = true;
 		else
 			has_garbage = false;
+
+		//this.Seek(offset + MODULO_SIZE);
+		//this.Write(pack("u64", 0));
+		this.Seek(offset);
+		this.Write(this._EmptyBlock());
 		return true;
+	}
+
+	public GetGarbageBlocks() {
+		var pos = 14;
+		var[] res;
+
+		if (fseek(hFile, pos, SEEK_SET))
+			return res;
+
+		if (this.Read(var buf, 8) != 8)
+			throw @class + "." + @member + ": Corrupted header";
+
+		var offset = unpack("u64", buf)[0];
+		if (!offset)
+			return res;
+
+		pos = offset + MODULO_SIZE;
+		res[length res]  = offset;
+
+		while (pos > 0) {
+			buf = "";
+			if (fseek(hFile, pos, SEEK_SET))
+				return res;
+
+			if (this.Read(buf, 8) != 8)
+				throw @class + "." + @member + ": Corrupted header";
+
+			offset = unpack("u64", buf)[0];
+
+			if (!offset)
+				return res;
+
+			if (fseek(hFile, offset + MODULO_SIZE, SEEK_SET))
+				return res;
+
+			var prec_pos = pos;
+			pos = offset + MODULO_SIZE;
+			if (prec_pos == pos)
+				break;
+
+			res[length res]  = offset;
+		}
+
+		return res;
+	}
+
+	protected _EmptyBlock() {
+		var empty_block = "";
+
+		var block_size = MODULO_SIZE + 8;
+		for (var i = 0; i < block_size; i++)
+			empty_block += "\x00";
+
+		return empty_block;
 	}
 
 	protected _DeleteChain(offset) {
@@ -649,14 +716,19 @@ class BinFile extends File {
 			return false;
 		var pages = 0;
 		var next_block = offset;
+
+		var empty_block = this._EmptyBlock();
+
 		do {
-			if (fseek(hFile, next_block, SEEK_SET))
-				throw @class + "." + @member + ": Corrupted database / seek error";
-			pages++;
-			this.Write("\x00");
 			fseek(hFile, next_block + MODULO_SIZE, SEEK_SET);
 			if (this.Read(var ref_block, 8) != 8)
 				throw @class + "." + @member + ": Corrupted database or invalid read offset";
+
+			if (fseek(hFile, next_block, SEEK_SET))
+				throw @class + "." + @member + ": Corrupted database / seek error";
+			pages++;
+			// this.Write("\x00");
+			this.Write(empty_block);
 
 			this.PushGarbage(next_block);
 			var prec_next_block = next_block;
@@ -674,6 +746,7 @@ class BinFile extends File {
 		var file_pos = 0;
 		var ref_id = -1;
 		var next_block = 0;
+		var popped = false;
 
 		if (id >= HEADER_SIZE) {
 			//if (!this.Seek(id))
@@ -728,6 +801,7 @@ class BinFile extends File {
 				if ((query_garbage) && (this.PopGarbage(var offset))) {
 					//this.Seek(offset);
 					fseek(hFile, offset, SEEK_SET);
+					popped = true;
 				} else {
 					//this.Seek(0, SEEK_END);
 					fseek(hFile, 0, SEEK_END);
@@ -793,8 +867,9 @@ class BinFile extends File {
 						throw @class + "." + @member + ": Corrupted database / page link error in update";
 					next_block = 0;
 					this.Write(end_block);
-				} else
+				} else {
 					next_block = unpack("u64", buf2)[0];
+				}
 				if (pos >= length data) {
 					if (next_block)
 						this._DeleteChain(next_block);
@@ -809,7 +884,9 @@ class BinFile extends File {
 						fseek(hFile, 0, SEEK_END);
 						next_block = ftell(hFile);
 						query_garbage = false;
-					}
+					} else
+						popped = true;
+
 					fseek(hFile, current, SEEK_SET);
 					this.Write(pack("u64", next_block));
 					fseek(hFile, 0, SEEK_CUR);
@@ -908,6 +985,17 @@ class BinFile extends File {
 		return this._Store(obj, update_index);
 	}
 
+	protected __Debug(id) {
+		var key = "" + ftell(hFile);
+		if (typeof __debug_block_info[key] == "array") {
+			__debug_block_info[key] += id;
+		} else
+		if (__debug_block_info[key]) {
+			__debug_block_info[key] = [__debug_block_info[key], id];
+		} else
+			__debug_block_info[key] = id;
+	}
+
 	protected GetOne(var id = null, strict = true, offset = -1) {
 		if (offset < 0)
 			id = ftell(hFile);
@@ -915,9 +1003,12 @@ class BinFile extends File {
 			id = offset;
 		var buf = "";
 		var next_block;
+		var prev_block;
 		var compressed = false;
 		var first_jump = 0;
+		var blocks = 0;
 		do {
+			prev_block = next_block;
 			if ((next_block > 0) && (next_block != ftell(hFile))) {
 				//if (!this.Seek(next_block))
 				if (!first_jump)
@@ -926,6 +1017,7 @@ class BinFile extends File {
 					throw @class + "." + @member + ": Corrupted database / seek error";
 				}
 			}
+
 			var size = fread(var buf_block, 1, MODULO_SIZE, hFile);
 			//var size = this.Read(var buf_block, MODULO_SIZE);
 			if (size != MODULO_SIZE) {
@@ -933,6 +1025,7 @@ class BinFile extends File {
 					throw @class + "." + @member + ": Corrupted database or invalid read offset (page read)";
 				return "";
 			}
+			blocks++;
 
 			var flag = buf_block[0];
 			if (!buf) {
@@ -953,6 +1046,8 @@ class BinFile extends File {
 				throw @class + "." + @member + ": Invalid buffer for id $id ($next_block)";
 				break;
 			}
+			if (Debug)
+				this.__Debug(id);
 
 			if (buf)
 				buf += SubStr(buf_block, 1);
@@ -965,6 +1060,8 @@ class BinFile extends File {
 
 			if ((next_block) && (this.InvalidId(next_block)))
 				throw @class + "." + @member + ": Invalid offset for id $id ($next_block)";
+			if ((next_block) && (next_block == prev_block))
+				throw @class + "." + @member + ": Circular offset for id $id ($next_block) after $blocks read";
 		} while (next_block);
 		if (first_jump)
 			fseek(hFile, first_jump, SEEK_SET);
@@ -1391,7 +1488,6 @@ class BinFile extends File {
 				else
 					indexed_query[key] = q[key];
 			}
-			var j;
 			var ids = _Index._FetchMultiple(indexed_query, non_indexed_query, this.ScanFilter, this, descending, start, len);
 			if (ids)
 				result = this.ById(ids, fields);
