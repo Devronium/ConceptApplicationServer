@@ -96,7 +96,7 @@ class TLSESocket extends TCPSocket {
 								TLSESent(child_tls, res);
 							if (res <= 0) {
 								var err = SocketErrno();
-								if ((err != 11) && (err != 35))
+								if ((err != 11) && (err != 35) && (err != 10035))
 									throw "Broken socket (Handshake)";
 							}
 						}
@@ -132,7 +132,7 @@ class TLSESocket extends TCPSocket {
 									TLSESent(child_tls, res);
 								if (res <= 0) {
 									var err = SocketErrno();
-									if ((err != 11) && (err != 35))
+									if ((err != 11) && (err != 35) && (err != 10035))
 										throw "Broken socket (Handshake)";
 								}
 							}
@@ -348,7 +348,7 @@ class TLSESocket extends TCPSocket {
 					var res = super::Write(buffer);
 				} catch (var exc) {
 					var err = SocketErrno();
-					if ((err != 11) && (err != 35))
+					if ((err != 11) && (err != 35) && (err != 10035))
 						throw exc;
 					continue;
 				}
@@ -375,7 +375,7 @@ class TLSESocket extends TCPSocket {
 				var res = super::Write(buffer);
 			} catch (var exc) {
 				var err = SocketErrno();
-				if ((err != 11) && (err != 35))
+				if ((err != 11) && (err != 35) && (err != 10035))
 					throw exc;
 				return true;
 			}
@@ -520,6 +520,13 @@ class TLSESocket extends TCPSocket {
 		}
 	}
 
+	public Done() {
+		if (tls) {
+			TLSEDone(tls);
+			tls=null;
+		}
+	}
+
 	public Save() {
 		if (!tls)
 			return "TLS not initialized";
@@ -527,9 +534,12 @@ class TLSESocket extends TCPSocket {
 	}
 
 	public Restore(buf) {
-		if (!tls)
-			return "TLS not initialized";
-		return TLSEImport(tls, buf);
+		if (tls)
+			return "TLS is already initialized";
+		tls = TLSEImport(buf);
+		if (tls)
+			return true;
+		return false;
 	}
 
 	public GetCipherName() {

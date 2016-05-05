@@ -167,7 +167,7 @@ accel Scintilla/Scintilla.con
 accel Sheet/RSheet.con
 accel Speech/RJulius.con
 accel SVG/RSVGSurface.con
-accel Metar.con
+accel METAR.con
 accel Speex.con
 accel PieChart.con
 accel WolframAlpha.con
@@ -179,6 +179,7 @@ accel DocX.con
 accel SIPPhone.con
 accel SpellChecker.con
 accel MongoDataBase.con
+accel MongoDataBase2.con
 accel TCPSocket.con
 accel OPALSIP.con
 accel Opus.con
@@ -219,3 +220,5 @@ accel RedisClient.con
 accel UIObject.con
 accel Db.con
 accel TLSESocket.con
+accel RChart.con
+accel RSnap.con

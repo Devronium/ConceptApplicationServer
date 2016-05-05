@@ -904,6 +904,7 @@ var PROP_DATETIME   = 0x0C;
 var PROP_INTEGER    = 0x0D;
 var PROP_DECIMAL    = 0x0E;
 
+var res_prefix = "/@";
 var js_flags = { };
 var mimeTypes	=	{
 				"ez" : "application/andrew-inset",
@@ -1893,10 +1894,11 @@ var mimeTypes	=	{
 				"csp" : "application/concept"
 			};
 
-function ConceptClient(url, container, loading, absolute_paths) {
+function ConceptClient(url, container, loading, absolute_paths, debug) {
 	this.Connected = false;
+
 	if (absolute_paths)
-		this.ResourceRoot = "/resources";
+		this.ResourceRoot = res_prefix + "/resources";
 	else
 		this.ResourceRoot = "resources";
 
@@ -1973,7 +1975,10 @@ function ConceptClient(url, container, loading, absolute_paths) {
 
 	this.URL = url;
 
-	this.ConceptSocket = new WebSocket(url);
+	if (debug)
+		this.ConceptSocket = new WebSocket(url, debug);
+	else
+		this.ConceptSocket = new WebSocket(url);
 	this.ConceptSocket.binaryType = "arraybuffer";
 	this.ConceptSocket.onopen = function() {
 		self.Connected = true;
@@ -9353,7 +9358,7 @@ function ConceptClient(url, container, loading, absolute_paths) {
 										control.src = stream;
 									control.play();
 
-									element.ConceptEncoder = new Worker("/js/openh264/openh264_encoder.js");
+									element.ConceptEncoder = new Worker(res_prefix + "/js/openh264/openh264_encoder.js");
 									self.MediaWorkers.push(element.ConceptEncoder);
 									element.ConceptEncoder.Initialized = false;
 									element.ConceptEncoder.onmessage = function(ev) {
@@ -12019,7 +12024,7 @@ function ConceptClient(url, container, loading, absolute_paths) {
 				// not an UI object !
 				return;
 			case 1017:
-				control = new Player({webgl: false, useWorker: true, workerFile: "/js/avc.js"});
+				control = new Player({webgl: false, useWorker: true, workerFile: res_prefix + "/js/avc.js"});
 				control.ConceptClassID = 1017;
 				control.canvas.className = "RVideoCanvas";
 

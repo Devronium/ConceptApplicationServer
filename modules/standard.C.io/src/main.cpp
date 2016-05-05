@@ -1663,8 +1663,10 @@ CONCEPT_DLL_API CONCEPT__ReadFile CONCEPT_API_PARAMETERS {
 //                char *buffer=new char[size];
             char *buffer = 0;
             CORE_NEW((size + 1), buffer);
-            if (!buffer)
+            if (!buffer) {
+                fclose(FIN);
                 return (void *)"ReadFile: Not enough memory";
+            }
             buffer[0] = buffer[size] = 0;
             fread(buffer, 1, size, FIN);
 #if 0

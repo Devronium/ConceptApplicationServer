@@ -7,6 +7,7 @@ include UNIXSocket.con
 include Serializable.con
 include WebSocket.con
 include File.con
+include Worker.con
 
 import standard.C.io
 import standard.C.time
@@ -17,8 +18,48 @@ import standard.math.rand
 import standard.coding.base64
 
 define MAX_RECV_BUFFER		0xFFFF
+define READ_BUFFER		0xFFFFF
 define MAX_WS_HEADER		0xFFF
 define USE_TLS_PROXY		false
+define DEFAULT_CGI_WORKERS	4
+define PIPE_READ_CPU_TIME_US	2000
+define MAX_HEADER_PARAMETERS	0xFF
+define SERVER_NAME		"CAS5WS"
+define SERVER_SOFTWARE		"Concept Application Server (TLSe,ws/wss/http/https/concept/deprecated concepts/cgi1.1)"
+
+class WDataContainer {
+pragma used
+	var socket;
+	var app;
+	var headers;
+	var tls;
+	var query;
+	var snippet;
+	var method;
+	var hostname;
+	var path;
+	var port;
+	var cgihandler;
+
+	WDataContainer(socket, app, var headers, var query, var snippet, method, hostname, path, port, cgihandler) {
+		this.socket = socket.Socket;
+		this.app = app;
+		this.headers = headers;
+		this.query = query;
+		this.snippet = snippet;
+		this.method = method;
+		this.hostname = hostname;
+		this.path = path;
+		this.port = port;
+		this.cgihandler = cgihandler;
+
+		if (classof socket == "TLSESocket") {
+			tls = socket.Save();
+			socket.Done();
+		}
+		socket.Socket = -1;
+	}
+}
 
 class ConceptChild {
 	protected var Socket;
@@ -852,6 +893,95 @@ class ConceptChild {
 		return "";
 	}
 
+	ParseHeader(header, var ws, var ws_key, var origin, var host, var session_to_restore, var if_modified, var keep_alive, var parent, var debug) {
+		var len = length header;
+		if (len > MAX_HEADER_PARAMETERS)
+			len = MAX_HEADER_PARAMETERS;
+		for (var i=1;i<len;i++) {
+			var line=header[i];
+			var arr=StrSplit(line, ":", true);
+			if (length arr>1) {
+				var key=ToLower(arr[0]);
+				switch (key) {
+					case "upgrade":
+						if (Pos(ToLower(arr[1]), "websocket")>0)
+							ws=true;
+						break;
+					case "sec-websocket-key":
+						ws_key=trim(arr[1]);
+						break;
+					case "origin":
+						var orig="";
+						var len2=length arr;
+						for (var j=1;j<len2;j++) {
+							if (j>1)
+								orig+=":";
+							orig+=arr[j];
+						}
+						origin=trim(orig);
+						break;
+					case "host":
+						len2=length arr;
+						for (j=1;j<len2;j++) {
+							if (j>1)
+								host+=":";
+							host+=arr[j];
+						}
+						if (len>1)
+							ServerName = trim(arr[1]);
+						else
+							ServerName = trim(host);
+						break;
+					case "referer":
+					case "origin":
+						if (!this.TLS) {
+							if (ToLower(trim(""+StrSplit(""+arr[1], "://")[0])) == "https")
+								this.TLS = true;
+						}
+						break;
+					case "concept-parent":
+						parent = value arr[1];
+						break;
+					case "concept-tls":
+						if (!this.TLS)
+							this.TLS = value arr[1];
+						break;
+					case "cookie":
+						var cookie = this.GetCookie("_s", arr[1]);
+						if (cookie)
+							session_to_restore = cookie;
+						break;
+					case "concept-session":
+						orig="";
+						len2=length arr;
+						for (j=1;j<len2;j++) {
+							if (j>1)
+								orig+=":";
+							orig+=arr[j];
+						}
+						session_to_restore=trim(orig);
+						break;
+					case "if-modified-since":
+						if_modified = trim(SubStr(line, 18));
+						break;
+					case "connection":
+						if (ToLower(trim(""+arr[1])) == "keep-alive")
+							keep_alive = true;
+						else
+							keep_alive = false;
+						break;
+					case "sec-websocket-protocol":
+						var proto_description = StrSplit(ToLower("" + arr[1]), "_", true);
+						if (proto_description) {
+							parent = value proto_description[0];
+							debug = value proto_description[1];
+						}
+						break;
+				}
+			}
+		}
+	}
+
 	Iterate() {
 		var step = 0;
 		var exc;
@@ -868,9 +998,11 @@ class ConceptChild {
 
 		this.MaxBuffer = max_iap;
 
-		if (max_idle<1)
-			max_idle = 1;
+		if (max_idle < 1000000)
+			max_idle = 1000000;
 
+		var orig_idle = max_idle;
+		var keep_alive_header = "Keep-Alive: timeout=${max_idle/1000}";
 		max_idle += microseconds();
 
 		var info=socket.Info;
@@ -891,8 +1023,10 @@ class ConceptChild {
 				socket.MakeExportable();
 				var start_time = time();
 				while (!socket.HandshakeIterate()) {
-					if (time() - start_time > 5)
+					if (time() - start_time > 5) {
+						echo "Handshake timeout error";
 						throw "Handshake timeout error";
+					}
 				}
 			}
 			if (this.IsWebSocket) {
@@ -910,9 +1044,9 @@ class ConceptChild {
 						if (length received_data > MAX_RECV_BUFFER)
 							throw "Data too big";
 
-						if (Pos(received_data, "\r\n\r\n")>0) {
+						var pos = Pos(received_data, "\r\n\r\n");
+						if (pos > 0) {
 							Socket.SetOption(SOL_SOCKET, SO_RCVTIMEO, 600000);
-
 							var header = StrSplit(received_data, "\r\n");
 							//DoWSHeader(StrSplit(received_data, "\r\n"), step);
 							var len=length header;
@@ -925,91 +1059,17 @@ class ConceptChild {
 							var done = true;
 							var if_modified = "";
 							var keep_alive = false;
+							var debug = false;
 							if (len) {
 								var line=StrSplit(header[0], " ");
 								if (length line > 1) {
 									var method=ToUpper(line[0]);
 									app=line[1];
-									if (method=="GET") {
-										for (var i=1;i<len;i++) {
-											line=header[i];
-											var arr=StrSplit(line, ":", true);
-											if (length arr>1) {
-												var key=ToLower(arr[0]);
-												switch (key) {
-													case "upgrade":
-														if (Pos(ToLower(arr[1]), "websocket")>0)
-															ws=true;
-														break;
-													case "sec-websocket-key":
-														ws_key=trim(arr[1]);
-														break;
-													case "origin":
-														var orig="";
-														var len2=length arr;
-														for (var j=1;j<len2;j++) {
-															if (j>1)
-																orig+=":";
-															orig+=arr[j];
-														}
-														origin=trim(orig);
-														break;
-													case "host":
-														len2=length arr;
-														for (j=1;j<len2;j++) {
-															if (j>1)
-																host+=":";
-															host+=arr[j];
-														}
-														if (len>1)
-															ServerName = trim(arr[1]);
-														else
-															ServerName = trim(host);
-														break;
-													case "referer":
-													case "origin":
-														if (!this.TLS) {
-															if (ToLower(trim(""+StrSplit(""+arr[1], "://")[0])) == "https")
-																this.TLS = true;
-														}
-														break;
-													case "concept-parent":
-														parent = value arr[1];
-														break;
-													case "concept-tls":
-														if (!this.TLS)
-															this.TLS = value arr[1];
-														break;
-													case "cookie":
-														var cookie = this.GetCookie("_s", arr[1]);
-														if (cookie)
-															session_to_restore = cookie;
-														break;
-													case "concept-session":
-														orig="";
-														len2=length arr;
-														for (j=1;j<len2;j++) {
-															if (j>1)
-																orig+=":";
-															orig+=arr[j];
-														}
-														session_to_restore=trim(orig);
-														break;
-													case "if-modified-since":
-														if_modified = trim(SubStr(line, 18));
-														break;
-													case "connection":
-														if (ToLower(trim(""+arr[1])) == "keep-alive")
-															keep_alive = true;
-														else
-															keep_alive = false;
-														break;
-												}
-											}
-										}
-									}
+									if ((method=="GET") || (method == "POST") || (method == "PUT"))
+										ParseHeader(header, ws, ws_key, origin, host, session_to_restore, if_modified, keep_alive, parent, debug);
 								}
 							}
+
 							var orig_app = app;
 							if ((ws) && (ws_key)) {
 								var ret_key=WebSocket::AcceptKey(ws_key);
@@ -1045,7 +1105,7 @@ class ConceptChild {
 								if (sessChild)
 									extra_header += "Concept-Replace: $session_to_restore;\r\n";
 
-								var header_response="HTTP/1.1 101 Web Socket Protocol Handshake\r\n${extra_header}Connection: Upgrade\r\nDate: $tstamp\r\nSec-WebSocket-Accept: $ret_key\r\nServer: Concept Application Server 4.0WS\r\nUpgrade: websocket\r\nConcept-Session: ${this.Session}\r\n\r\n";
+								var header_response="HTTP/1.1 101 Web Socket Protocol Handshake\r\n${extra_header}Connection: Upgrade\r\nDate: $tstamp\r\nSec-WebSocket-Accept: $ret_key\r\nServer: " + SERVER_NAME + "\r\nUpgrade: websocket\r\nConcept-Session: ${this.Session}\r\n\r\n";
 								if (length header_response > MAX_WS_HEADER) {
 									step=4;
 									done=true;
@@ -1055,15 +1115,16 @@ class ConceptChild {
 										step=4;
 										done=true;
 									} else {
-										this.RunApplication(app, step, "", "", "", false, true);
+										this.RunApplication(app, step, "", "", "", debug, true);
 										done=true;
 									}
 								}
 							} else
-							if ((method) && (method=="GET")) {
+							if ((method) && ((method=="GET") || (method=="POST"))) {
 								tstamp=StrReplace(StrReplace(asctime(time()), "\r", ""), "\n", "")+" GMT";
-								if (app == "/")
-									app = "/index.html";
+								//if (app == "/") {
+								//	app = "/index.html";
+								//}
 								var ok = false;
 								var err = 404;
 								var written = 0;
@@ -1086,80 +1147,209 @@ class ConceptChild {
 									var target_app = "start.con";
 									if (content_type == "application/concept") {
 										target_app = trim(app);
-										app = "/index.html";
+										app = "/@/index.html";
 										content_type = "text/html";
 									}
 
 									var is_root = false;
-									if (ToLower(app) == "/index.html")
+									if (ToLower(app) == "/@/index.html")
 										is_root = true;
 
+									var is_server_page = false;
+									if (content_type == "application/concept-server-page")
+										is_server_page = true;
+
 									var path = this.NormalizeFilename(app, var directory);
+									var client_resource = (directory[0] + directory[1] + directory[2] == "/@/");
+									if (client_resource)
+										directory = SubStr(directory, 2);
+
 									app = directory + path;
-									app = Owner.ConceptClient + app;
+									var requested_path = app;
+
+									if (client_resource) {
+										app = Owner.ConceptClient + app;
+									} else {
+										var empty_request = false;
+										if (app == "/")
+											empty_request = true;
+										var host_root = this.Owner.IniGetPath("Paths", "ServerRoot", "");
+										if (this.ServerName)
+											host_root = this.Owner.IniGetPath("Paths", "HostRoot(${this.ServerName})", host_root);
+										app = host_root + app;
+										if ((app) && (DirectoryExists(app))) {
+											empty_request = true;
+											if (app[length app - 1] != "/")
+												app += "/";
+										}
+										if (empty_request) {
+											if (FileExists(app + "start.con")) {
+												content_type = "text/html";
+												target_app = "start.con";
+												app = Owner.ConceptClient + "/index.html";
+												is_root = true;
+											} else
+											if (FileExists(app + "index.csp")) {
+												content_type = "application/concept-server-page";
+												app += "index.csp";
+											} else
+											if (FileExists(app + "index.html")) {
+												content_type = "text/html";
+												app += "index.html";
+											}
+										}
+
+									}
+
 									if (FileExists(app)) {
-										var connection_policy;
-										if (keep_alive)
-											connection_policy = "keep-alive";
-										else
-											connection_policy = "close";
-										var last_mod = rtrim(asctime(_filelast_mod(app))) + " GMT";
-										if ((!TLS) && (force_tls)) {
-											var location = "https://" + ServerName;
-											if (Owner.SSLWSPort != 443)
-												location += ":" + Owner.SSLWSPort;
-											if ((orig_app) && (orig_app[0] != "/"))
-												location += "/";
-											location += orig_app;
-											var buffer = "HTTP/1.1 302 Found\r\nDate: $tstamp\r\nConnection: $connection_policy\r\nLocation: $location\r\nServer: Concept Application Server 4.0W\r\n\r\n";
-										} else
-										if ((!is_root) && (if_modified==last_mod)) {
-											buffer = "HTTP/1.1 304 Not Modified\r\nDate: $tstamp\r\nConnection: $connection_policy\r\nContent-Type: $content_type\r\nCache-Control: max-age=86400\r\nLast-Modified: $last_mod\r\nServer: Concept Application Server 4.0W\r\n\r\n";
+										var worker = null;
+										if (content_type == "application/concept-server-page")
+											worker = Owner.ChooseWorker();
+										if (worker) {
+											var port = Owner.WSPort;
+											if (TLS)
+												port = Owner.SSLWSPort;
+											var cgi = this.Owner.IniGetPath("Paths", "CGIHandler", "conceptcgi");
+											var w = new WDataContainer(Socket, app, SubStr(received_data, 0, pos), params, SubStr(received_data, pos + 2), method, this.ServerName, requested_path, port, cgi);
+											worker.AddData(BinarizeObject(w));
+											keep_alive = false;
+											break;
 										} else {
-											data = ReadFile(app);
-											if (is_root) {
-												if (params)
-													data = StrReplace(data, "{APP}", target_app + "?" + params);
-												else
-													data = StrReplace(data, "{APP}", target_app);
+											var connection_policy;
+											if (keep_alive) {
+												connection_policy = "keep-alive";
+												connection_policy += "\r\n" + keep_alive_header;
+											} else
+												connection_policy = "close";
+											var last_mod = rtrim(asctime(_filelast_mod(app))) + " GMT";
+											data = "";
+											var skip_content = false;
+											if ((!TLS) && (force_tls)) {
+												var location = "https://" + ServerName;
+												if (Owner.SSLWSPort != 443)
+													location += ":" + Owner.SSLWSPort;
+												if ((orig_app) && (orig_app[0] != "/"))
+													location += "/";
+												location += orig_app;
+												var buffer = "HTTP/1.1 302 Found\r\nDate: $tstamp\r\nConnection: $connection_policy\r\nLocation: $location\r\nServer: " + SERVER_NAME + "\r\n\r\n";
+												skip_content = true;
+											} else
+											if ((!is_root) && (if_modified == last_mod)) {
+												buffer = "HTTP/1.1 304 Not Modified\r\nDate: $tstamp\r\nConnection: $connection_policy\r\nContent-Type: $content_type\r\nCache-Control: max-age=86400\r\nLast-Modified: $last_mod\r\nServer: " + SERVER_NAME + "\r\n\r\n";
+												skip_content = true;
+											} else {
+												var content_length = 0;
+												if (is_root) {
+													data = ReadFile(app);
+													content_length = length data;
+													if (params)
+														data = StrReplace(data, "{APP}", target_app + "?" + params);
+													else
+														data = StrReplace(data, "{APP}", target_app);
 
-												var secured = this.TLS;
-												if ((!secured) && (Pos(host, ":" + Owner.SSLWSPort) > 0))
-													secured = true;
-												data = StrReplace(data, "{HOST}", trim(host));
-												if (secured)
-													data = StrReplace(data, "{PROTOCOL}", "concepts");
-												else
-													data = StrReplace(data, "{PROTOCOL}", "concept");
+													var secured = this.TLS;
+													if ((!secured) && (Pos(host, ":" + Owner.SSLWSPort) > 0))
+														secured = true;
+													data = StrReplace(data, "{HOST}", trim(host));
+													if (secured)
+														data = StrReplace(data, "{PROTOCOL}", "concepts");
+													else
+														data = StrReplace(data, "{PROTOCOL}", "concept");
+												} else
+													content_length = _filesize(app);
+												buffer = "HTTP/1.1 200 OK\r\nDate: $tstamp\r\nConnection: $connection_policy\r\nContent-Type: $content_type\r\nCache-Control: max-age=86400\r\nLast-Modified: $last_mod\r\nServer: " + SERVER_NAME + "\r\nStrict-Transport-Security: max-age=31536000; includeSubDomains; preload\r\nContent-Length: $content_length\r\n\r\n" + data;
 											}
-											buffer = "HTTP/1.1 200 OK\r\nDate: $tstamp\r\nConnection: $connection_policy\r\nContent-Type: $content_type\r\nCache-Control: max-age=86400\r\nLast-Modified: $last_mod\r\nServer: Concept Application Server 4.0W\r\nStrict-Transport-Security: max-age=31536000; includeSubDomains; preload\r\nContent-Length: ${length data}\r\n\r\n" + data;
-										}
-										var buf_len = length buffer;
-										SocketSetBlocking(Socket.Socket, false);
-										if ((this.TLS == 2) && (buf_len)) {
-											Socket.WritePrepare(buffer);
-											while (Socket.WriteIterate())
-												yield();
-											written = buf_len;
-										} else
-										while (buf_len > 0) {
-											try {
-												written = Socket.Write(buffer);
-											} catch (exc) {
-												// EAGAIN
-												err = SocketErrno();
-												if ((err != 11) && (err != 35))
-													break;
-												continue;
-											}
-											if (written <= 0)
-												break;
+											SocketSetBlocking(Socket.Socket, false);
+											var buf_len = length buffer;
+											if (data) {
+												if ((this.TLS == 2) && (buf_len)) {
+													Socket.WritePrepare(buffer);
+													while (Socket.WriteIterate())
+														yield();
+													written = buf_len;
+												} else
+												while (buf_len > 0) {
+													try {
+														written = Socket.Write(buffer);
+													} catch (exc) {
+														// EAGAIN
+														err = SocketErrno();
+														if ((err != 11) && (err != 35) && (err != 10035))
+															break;
+														continue;
+													}
+													if (written <= 0)
+														break;
 
-											buf_len -= written;
-											if (buf_len > 0)
-												buffer = SubStr(buffer, written, buf_len);
+													buf_len -= written;
+													if (buf_len > 0)
+														buffer = SubStr(buffer, written, buf_len);
+												}
+											} else {
+												if (!skip_content) {
+													var file = new File("rb");
+													file.Name = app;
+													if (!file.Open())
+														delete file;
+												}
+												if ((this.TLS == 2) && (buf_len)) {
+													Socket.WritePrepare(buffer);
+													while ((Socket.WriteIterate()) || (file)) {
+														if (file) {
+															if (file.Read(var buf2, READ_BUFFER) > 0) {
+																Socket.WritePrepare(buf2);
+															} else {
+																file.Close();
+																file = null;
+															}
+														}
+														yield();
+													}
+													written = buf_len;
+												} else
+												while ((buf_len > 0) || (file)) {
+													if (file) {
+														if (file.Read(buf2, READ_BUFFER) > 0) {
+															buffer += buf2;
+															buf_len += length buf2;
+														} else {
+															file.Close();
+															file = null;
+															if (!buf_len)
+																break;
+														}
+													}
+													try {
+														written = Socket.Write(buffer);
+													} catch (exc) {
+														// EAGAIN
+														err = SocketErrno();
+														if ((err != 11) && (err != 35) && (err != 10035)) {
+															if (file) {
+																file.Close();
+																file = null;
+															}
+															break;
+														}
+														continue;
+													}
+													if (written <= 0)
+														break;
+
+													buf_len -= written;
+													if (buf_len > 0)
+														buffer = SubStr(buffer, written, buf_len);
+													else
+														buffer = "";
+
+												}
+												if (file) {
+													file.Close();
+													file = null;
+												}
+											}
 										}
-										//WriteExact("HTTP/1.1 200 OK\r\nDate: $tstamp\r\nConnection: close\r\nContent-Type: $content_type\r\nServer: Concept Application Server 4.0W\r\n\r\n" + data);
+										//WriteExact("HTTP/1.1 200 OK\r\nDate: $tstamp\r\nConnection: close\r\nContent-Type: $content_type\r\nServer: " + SERVER_NAME + "\r\n\r\n" + data);
 										ok = true;
 										if ((keep_alive) && (written > 0)) {
 											step = 2;
@@ -1170,11 +1360,11 @@ class ConceptChild {
 									}
 								}
 								if (!ok) {
-									data =  ReadFile(Owner.ConceptClient + "/$err.html");
+									data =  ReadFile(Owner.ConceptClient + "/errors/$err.html");
 									if (!data)
 										data = "Error $err in processing your request.";
 
-									buffer = "HTTP/1.1 $err\r\nDate: $tstamp\r\nConnection: close\r\nContent-Type: text/html\r\nServer: Concept Application Server 4.0W\r\n\r\n" + data;
+									buffer = "HTTP/1.1 $err\r\nDate: $tstamp\r\nConnection: close\r\nContent-Type: text/html\r\nServer: " + SERVER_NAME + "\r\n\r\n" + data;
 									buf_len = length buffer;
 									SocketSetBlocking(Socket.Socket, false);
 									if ((this.TLS == 2) && (buf_len)) {
@@ -1189,7 +1379,7 @@ class ConceptChild {
 										} catch (exc) {
 											// EAGAIN
 											err = SocketErrno();
-											if ((err != 11) && (err != 35))
+											if ((err != 11) && (err != 35) && (err != 10035))
 												break;
 											continue;
 										}
@@ -1200,8 +1390,9 @@ class ConceptChild {
 										if (buf_len > 0)
 											buffer = SubStr(buffer, written, buf_len);
 									}
-									//WriteExact("HTTP/1.1 $err\r\nDate: $tstamp\r\nConnection: close\r\nContent-Type: text/html\r\nServer: Concept Application Server 4.0W\r\n\r\n" + data);
+									//WriteExact("HTTP/1.1 $err\r\nDate: $tstamp\r\nConnection: close\r\nContent-Type: text/html\r\nServer: " + SERVER_NAME + "\r\n\r\n" + data);
 								}
+								max_idle = microseconds() + orig_idle;
 							}
 							if (!done)
 								step=4;
@@ -1209,8 +1400,9 @@ class ConceptChild {
 						}
 					}
 
-					if (microseconds()>=max_idle) {
-						Owner.Log(ip, "Protocol negotiation timed out");
+					var delta_ms = microseconds() - max_idle;
+					if (delta_ms > 0) {
+						Owner.Log(ip, "Protocol negotiation timed out (${delta_ms/1000}ms)");
 						break;
 					}
 					if (step==-1) {
@@ -1367,6 +1559,10 @@ class ConceptChild {
 			close(this.ContextOut);
 			this.ContextOut = -1;
 		}
+		if (file) {
+			file.Close();
+			file = null;
+		}
 		this.Owner.threads--;
 	}
 
@@ -1398,6 +1594,285 @@ class ConceptChild {
 	}
 }
 
+class ConceptCGIChild {
+	var std_out;
+	var std_in;
+	var Socket;
+	var pid;
+	var std_in_buffer = "";
+	var std_out_buffer = "";
+
+	ConceptCGIChild(Socket, std_out, std_in, pid, buffer) {
+		this.std_out = 	std_out;
+		this.std_in = std_in;
+		this.Socket = Socket;
+		this.pid = pid;
+		this.std_in_buffer = buffer;
+
+		SetNonBlocking(std_out, true);
+		SetNonBlocking(std_in, true);
+		SocketSetBlocking(Socket.Socket, false);
+	}
+
+	Close() {
+		if (pid > 0) {
+			if (ExecuteIsRunning(pid))
+				kill(__PID(pid), SIGKILL);
+
+			ExecuteJoin(pid);
+			pid = 0;
+		}
+		std_in_buffer = "";
+		std_out_buffer = "";
+		if (Socket) {
+			try {
+				Socket.Close();
+				delete Socket;
+			} catch (var exc) {
+				echo "ConceptCGIChild/Socket close error: $exc\n";
+			}
+		}
+
+		if (std_out > 0) {
+			close(std_out);
+			std_out = 0;
+		}
+		if (std_in) {
+			close(std_in);
+			std_in = 0;
+		}
+	}
+
+	Iterate(var ops) {
+		var running = ExecuteIsRunning(pid);
+		if (running) {
+			try {
+				if (Socket.HasData) {
+					std_in_buffer += Socket.Read(MAX_RECV_BUFFER);
+					ops ++;
+				}
+			} catch (var exc) {
+				// socket closed
+				return true;
+			}
+
+			if ((std_in) && (std_in_buffer)) {
+				var res = write(std_in, std_in_buffer);
+				if (res > 0) {
+					ops ++;
+					std_in_buffer = SubStr(std_in_buffer, res);
+				}
+			}
+		}
+
+		if (std_out) {
+			var iterations;
+			var s = microseconds();
+			var bytes_read = 0;
+			do {
+				res = read(std_out, var buffer, MAX_RECV_BUFFER);
+				if (res > 0) {
+					bytes_read += res;
+					std_out_buffer += buffer;
+					ops ++;
+					// CPU time
+					if ((microseconds() - s > PIPE_READ_CPU_TIME_US) || (bytes_read >= MAX_RECV_BUFFER))
+						break;
+				}
+			} while (res > 0);
+		}
+
+		if ((Socket) && (std_out_buffer)) {
+			try {
+				res = Socket.Write(std_out_buffer);
+				if (res > 0) {
+					std_out_buffer = SubStr(std_out_buffer, res);
+					ops ++;
+				}
+			} catch (exc) {
+				// EAGAIN ?
+				var err = SocketErrno();
+				if ((err != 11) && (err != 35) && (err != 10035))
+					return true;
+			}
+		}
+		if ((!std_out_buffer) && (!running)) {
+			// process exited, buffers are empty
+			return true;
+		}
+		return false;
+	}
+
+	finalize() {
+		Close();
+	}
+}
+
+class ConceptWorker {
+
+pragma used
+	protected var WorkerName;
+	protected var[] Children;
+	protected var Placeholders;
+
+	GetHeader(job, header_name, var headers_lowercase) {
+		var cookie = "";
+		var needle = "\n$header_name:";
+		var pos = Pos(headers_lowercase, needle);
+		if (pos) {
+			cookie = trim(SubStr(job.headers, pos + length needle));
+			pos = Pos(cookie, "\n");
+			if (pos > 0)
+				cookie = trim(SubStr(cookie, 0, pos));
+		}
+		return cookie;
+	}
+
+	Create(Socket, job, var err_text) {
+		if (pipe(var std_out_r, var std_out_w)) {
+			err_text = "ConceptWorker: Error creating pipe (stdout)";
+			return null;
+		}
+		if (pipe(var std_in_r, var std_in_w)) {
+			close(std_out_r);
+			close(std_out_w);
+			err_text = "ConceptWorker: Error creating pipe (stdout)";
+			return null;
+		}
+		var cgi_handler_path = job.cgihandler;
+
+		var info = Socket.Info;
+		var address = info["address"];
+		var port = info["port"];
+		var headers_lowercase = ToLower(job.headers);
+		var env = [
+				"DOCUMENT_ROOT=",
+				"GATEWAY_INTERFACE=CGI/1.1",
+				"HTTP_COOKIE=" + this.GetHeader(job, "cookie", headers_lowercase),
+				"HTTP_HOST=" + job.hostname,
+				"HTTP_REFERER=",
+				"HTTP_USER_AGENT=" + this.GetHeader(job, "user-agent", headers_lowercase),
+				"PATH_INFO=" + job.path,
+				"PATH_TRANSLATED=" + job.app,
+				"QUERY_STRING=" + job.query,
+				"REMOTE_ADDR=" + address,
+				"REMOTE_HOST=" + address,
+				"REMOTE_PORT=" + port,
+				"REMOTE_USER=",
+				"REQUEST_METHOD=" + job.method,
+				"REQUEST_URI=" + job.path,
+				"SCRIPT_FILENAME=",
+				"SCRIPT_NAME=" + cgi_handler_path,
+				"SERVER_ADMIN=",
+				"SERVER_NAME=" + job.hostname,
+				"SERVER_PORT=" + job.port,
+				"SERVER_PROTOCOL=HTTP/1.1",
+				"SERVER_SOFTWARE=" + SERVER_SOFTWARE,
+
+				"CONTENT_LENGTH=" + this.GetHeader(job, "content-length", headers_lowercase),
+				"CONTENT_TYPE=" + this.GetHeader(job, "content-type", headers_lowercase),
+				"HTTP_ACCEPT_LANGUAGE=" + this.GetHeader(job, "accept-language", headers_lowercase),
+				"HTTP_ACCEPT_ENCODING=" + this.GetHeader(job, "accept-encoding", headers_lowercase),
+				"HTTP_REFERER=" + this.GetHeader(job, "referer", headers_lowercase)
+		];
+		if (classof Socket == "TLSESocket") {
+			env[length env] = "HTTPS=on";
+			env[length env] = "HTTPS_CIPHER=" + Socket.CipherName;
+		}
+
+		var pid = ExecuteProcess(cgi_handler_path, "", [job.app], env, false, std_out_w, std_in_r);
+
+		close(std_out_w);
+		close(std_in_r);
+
+		if (pid <= 0) {
+			close(std_out_r);
+			close(std_in_w);
+			if (!err_text)
+				err_text = "ConceptWorker: Error creating process\n";
+			return null;
+		}
+
+		return new ConceptCGIChild(Socket, std_out_r, std_in_w, pid, job.snippet);
+	}
+
+	AddChild(child) {
+		Children[length Children] = child;
+	}
+
+	Clean() {
+		var new_children = new [];
+		var children = this.Children;
+		if (Placeholders == length children) {
+			this.Children = new_children;
+			Placeholders = 0;
+			return;
+		}
+		var res = 0;
+		for (var i = 0; i < length children; i++) {
+			var child = children[i];
+			if (child)
+				new_children[length new_children] = child;
+		}
+		Placeholders = 0;
+	}
+
+	Iterate() {
+		var children = this.Children;
+		var res = 0;
+		for (var i = 0; i < length children; i++) {
+			var child = children[i];
+			if (child) {
+				if (child.Iterate(res)) {
+					child.Close();
+					children[i] = null;
+					Placeholders ++;
+				}
+			}
+		}
+		if (Placeholders >= 20)
+			this.Clean();
+		return res;
+	}
+
+	ConceptWorker(n) {
+		WorkerName = n;
+		while (true) {
+			var work_count = 0;
+			if (Worker::Pending(var data)) {
+				work_count++;
+				var job = UnBinarizeObject(data);
+				if (job) {
+					var Socket;
+					try {
+						if (job.tls) {
+							Socket = new TLSESocket(job.socket);
+							Socket.Restore(job.tls);
+						} else
+							Socket = new TCPSocket(job.socket);
+
+						var child = this.Create(Socket, job, var err_text);
+						if (child) {
+							Socket.Write("HTTP/1.1 200 OK\r\nServer: " + SERVER_NAME + "\r\n");
+							AddChild(child);
+						} else {
+							Socket.Write("HTTP/1.1 503 Service unavailable\r\nServer: " + SERVER_NAME + "\r\nContent-Type: text/html\r\n\r\n<html><head><title>HTTP 503 Service unavailable</title></head><body><h1>HTTP 503 Service unavailable</h1><br/>$err_text</body></html>");
+							Socket.Close();
+						}
+					} catch (var exc) {
+						echo "Exc: $exc\n";
+						delete Socket;
+					}
+				}
+			}
+			work_count += this.Iterate();
+			if (!work_count) {
+				Sleep(10);
+			}
+		}
+	}
+}
+
 class ConceptServer {
 	protected var Socket;
 	protected var WSSocket;
@@ -1405,8 +1880,8 @@ class ConceptServer {
 	protected var SSLWSSocket;
 	protected var SSLWSSocketName = "";
 
-	protected var Port;
-	protected var WSPort;
+	public var Port;
+	public var WSPort;
 	public var SSLWSPort;
 
 	public var IniFile;
@@ -1424,6 +1899,8 @@ class ConceptServer {
 	public var threads=0;
 	public var Running = true;
 	public var ShuttingDown = false;
+	protected var[] Workers;
+	protected var TargetWorker = 0;
 
 	ConceptServer(inifile="") {
 		this.mimetypes = [
@@ -2411,7 +2888,7 @@ class ConceptServer {
 				"ice" => "x-conference/x-cooltalk",
 				"php" => "application/php",
 				"con" => "application/concept",
-				"csp" => "application/concept"
+				"csp" => "application/concept-server-page"
 		];
 
 		var v6only=value IniGet(inifile, "Server", "IPv6", "0");
@@ -2449,6 +2926,9 @@ class ConceptServer {
 		this.SSLWSPort = value IniGet(inifile, "Server", "SecureWebPort", "2681");
 
 		this.IniFile = inifile;
+
+		for (var i = 0; i < DEFAULT_CGI_WORKERS; i++)
+			Workers[i] = new Worker("ConceptWorker", "Worker${i+1}");
 	}
 
 	LoadKeys() {
@@ -2651,6 +3131,16 @@ class ConceptServer {
 		}
 	}
 
+	ChooseWorker() {
+		if (Workers) {
+			if (TargetWorker >= length Workers)
+				TargetWorker = 0;
+			return Workers[TargetWorker++];
+		}
+		return null;
+	}
+
+
 	BackgroundTasks() {
 		var loop = this.Loop;
 
@@ -2825,17 +3315,16 @@ class ConceptServer {
 		var loop = new Greenloop();
 		this.Loop = loop;
 
-		signal(SIGINT, this.ServerCloses);
-		signal(SIGQUIT, this.ServerCloses);
-		signal(SIGHUP, this.ServerCloses);
-		signal(SIGTERM, this.ServerCloses);
+		// signal(SIGINT, this.ServerCloses);
+		// signal(SIGQUIT, this.ServerCloses);
+		// signal(SIGHUP, this.ServerCloses);
+		// signal(SIGTERM, this.ServerCloses);
 		signal(SIGPIPE, this.BrokenPipe);
 		loop.Run([this.BackgroundTasks]);
 		if (Running)
 			throw "Broken socket";
 	}
 }
-
 
 class Main {
 	Main() {
