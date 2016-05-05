@@ -1666,7 +1666,6 @@ class ConceptCGIChild {
 		}
 
 		if (std_out) {
-			var iterations;
 			var s = microseconds();
 			var bytes_read = 0;
 			do {
@@ -1808,7 +1807,7 @@ pragma used
 			Placeholders = 0;
 			return;
 		}
-		var res = 0;
+
 		for (var i = 0; i < length children; i++) {
 			var child = children[i];
 			if (child)

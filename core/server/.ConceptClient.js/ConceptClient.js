@@ -9447,7 +9447,7 @@ function ConceptClient(url, container, loading, absolute_paths, debug) {
 					var buf = ValueBuffer;
 					if ((element.ConceptCompression == 2) && (Worker)) {
 						if (!element.ConceptWorker) {
-							element.ConceptWorker = new Worker("/ConceptWorker.js");
+							element.ConceptWorker = new Worker(res_prefix + "/ConceptWorker.js");
 							self.MediaWorkers.push(element.ConceptWorker);
 							element.ConceptWorker.postMessage({"IsInit": 1, "SampleRate": element.ConceptSampleRate, "Channels": element.ConceptChannels});
 							element.ConceptWorker.onmessage = function(e) {
