@@ -17,6 +17,8 @@ import standard.lib.cripto
 import standard.math.rand
 import standard.coding.base64
 
+define WS_SESSION_RESTORE	false
+
 define MAX_RECV_BUFFER		0xFFFF
 define READ_BUFFER		0xFFFFF
 define MAX_WS_HEADER		0xFFF
@@ -1089,7 +1091,7 @@ class ConceptChild {
 
 								var sess = "";
 								var sessChild = null;
-								if (session_to_restore) {
+								if ((session_to_restore) && (WS_SESSION_RESTORE)) {
 									sessChild = RestoreWS_Step1(session_to_restore);
 									// generare a new session id (safer)
 									if (sessChild)
@@ -1140,21 +1142,36 @@ class ConceptChild {
 										params = SubStr(app, pparam, length app - pparam);
 										app = SubStr(app, 0, pparam - 1);
 									}
+
+									var path = this.NormalizeFilename(app, var directory);
+									var client_resource = (directory[0] + directory[1] + directory[2] == "/@/");
+									if (client_resource)
+										directory = SubStr(directory, 2);
+									app = directory + path;
+
+									var rewrite = this.Owner.Rewrite;
+									if (rewrite)
+										app = rewrite(app, params);
+
 									var ext = ToLower(Ext(app));
 									var content_type = "application/octet-stream";
 									if (IsSet(this.Owner.mimetypes, ext))
 										content_type = this.Owner.mimetypes[ext];
 
+									var is_root = false;
 									var target_app = "start.con";
 									if (content_type == "application/concept") {
 										target_app = trim(app);
-										app = "/@/index.html";
+										app = "/index.html";
 										content_type = "text/html";
+										is_root = true;
+										client_resource = true;
 									}
 
-									var is_root = false;
 									if (ToLower(app) == "/@/index.html")
 										is_root = true;
+
+									var requested_path = app;
 
 									var is_server_page = false;
 									var cgi;
@@ -1168,14 +1185,6 @@ class ConceptChild {
 											cgi = this.Owner.cgiother[content_type];
 										}
 									}
-
-									var path = this.NormalizeFilename(app, var directory);
-									var client_resource = (directory[0] + directory[1] + directory[2] == "/@/");
-									if (client_resource)
-										directory = SubStr(directory, 2);
-
-									app = directory + path;
-									var requested_path = app;
 
 									if (client_resource) {
 										app = Owner.ConceptClient + app;
@@ -1928,6 +1937,7 @@ class ConceptServer {
 	public var ShuttingDown = false;
 	public var cgi = "";
 	public var[] cgiother;
+	public var Rewrite;
 	protected var[] Workers;
 	protected var TargetWorker = 0;
 
@@ -3378,6 +3388,13 @@ class Main {
 			ini_file=getcwd()+"/concept.ini";
 		
 		var s=new ConceptServer(ini_file);
+
+		// ========= rewrite rules ======== //
+		// uncomment if needed
+		// s.Rewrite = function(app, var parameters) {
+		// 	return app;
+		// };
+		// ======= end rewrite rules ====== //
 		if (USE_TLS_PROXY) {
 			if (ExecuteProcess("concept", ".", ["-mt", "ConceptTLSProxyServer.con"], [ ], false) < 0)
 				s.Log("ConceptServer", "Error initializing Concept SSL proxy");
