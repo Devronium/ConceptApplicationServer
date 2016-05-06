@@ -40,8 +40,9 @@ pragma used
 	var path;
 	var port;
 	var cgihandler;
+	var root;
 
-	WDataContainer(socket, app, var headers, var query, var snippet, method, hostname, path, port, cgihandler) {
+	WDataContainer(socket, app, var headers, var query, var snippet, method, hostname, path, port, cgihandler, root) {
 		this.socket = socket.Socket;
 		this.app = app;
 		this.headers = headers;
@@ -52,7 +53,7 @@ pragma used
 		this.path = path;
 		this.port = port;
 		this.cgihandler = cgihandler;
-
+		this.root = root;
 		if (classof socket == "TLSESocket") {
 			tls = socket.Save();
 			socket.Done();
@@ -1156,8 +1157,17 @@ class ConceptChild {
 										is_root = true;
 
 									var is_server_page = false;
-									if (content_type == "application/concept-server-page")
+									var cgi;
+									if (content_type == "application/concept-server-page") {
 										is_server_page = true;
+										cgi = this.Owner.cgi;
+									} else
+									if (this.Owner.cgiother) {
+										if (IsSet(this.Owner.cgiother, content_type)) {
+											is_server_page = true;
+											cgi = this.Owner.cgiother[content_type];
+										}
+									}
 
 									var path = this.NormalizeFilename(app, var directory);
 									var client_resource = (directory[0] + directory[1] + directory[2] == "/@/");
@@ -1203,14 +1213,13 @@ class ConceptChild {
 
 									if (FileExists(app)) {
 										var worker = null;
-										if (content_type == "application/concept-server-page")
+										if ((is_server_page) && (cgi))//(content_type == "application/concept-server-page")
 											worker = Owner.ChooseWorker();
 										if (worker) {
 											var port = Owner.WSPort;
 											if (TLS)
 												port = Owner.SSLWSPort;
-											var cgi = this.Owner.IniGetPath("Paths", "CGIHandler", "conceptcgi");
-											var w = new WDataContainer(Socket, app, SubStr(received_data, 0, pos), params, SubStr(received_data, pos + 2), method, this.ServerName, requested_path, port, cgi);
+											var w = new WDataContainer(Socket, app, SubStr(received_data, 0, pos), params, SubStr(received_data, pos + 2), method, this.ServerName, requested_path, port, cgi, host_root);
 											worker.AddData(BinarizeObject(w));
 											keep_alive = false;
 											break;
@@ -1745,11 +1754,10 @@ pragma used
 		var port = info["port"];
 		var headers_lowercase = ToLower(job.headers);
 		var env = [
-				"DOCUMENT_ROOT=",
+				"DOCUMENT_ROOT=" + job.root,
 				"GATEWAY_INTERFACE=CGI/1.1",
 				"HTTP_COOKIE=" + this.GetHeader(job, "cookie", headers_lowercase),
 				"HTTP_HOST=" + job.hostname,
-				"HTTP_REFERER=",
 				"HTTP_USER_AGENT=" + this.GetHeader(job, "user-agent", headers_lowercase),
 				"PATH_INFO=" + job.path,
 				"PATH_TRANSLATED=" + job.app,
@@ -1760,14 +1768,15 @@ pragma used
 				"REMOTE_USER=",
 				"REQUEST_METHOD=" + job.method,
 				"REQUEST_URI=" + job.path,
-				"SCRIPT_FILENAME=",
+				"SCRIPT_FILENAME=" + job.app,
 				"SCRIPT_NAME=" + cgi_handler_path,
 				"SERVER_ADMIN=",
 				"SERVER_NAME=" + job.hostname,
 				"SERVER_PORT=" + job.port,
 				"SERVER_PROTOCOL=HTTP/1.1",
 				"SERVER_SOFTWARE=" + SERVER_SOFTWARE,
-
+				"REDIRECT_STATUS=200",
+				"REDIRECT_STATUS=CGI",
 				"CONTENT_LENGTH=" + this.GetHeader(job, "content-length", headers_lowercase),
 				"CONTENT_TYPE=" + this.GetHeader(job, "content-type", headers_lowercase),
 				"HTTP_ACCEPT_LANGUAGE=" + this.GetHeader(job, "accept-language", headers_lowercase),
@@ -1834,6 +1843,23 @@ pragma used
 		return res;
 	}
 
+	RealPath(path) {
+		var res = "";
+		var arr = StrSplit(path, "/");
+		for (var i = length arr - 1; i >= 0; i--) {
+			var e = arr[i];
+			if (e == "..") {
+				i--;
+			} else {
+				if (res)
+					res = arr[i] + "/" + res;
+				else
+					res = arr[i];
+			}
+		}
+		return res;
+	}
+
 	ConceptWorker(n) {
 		WorkerName = n;
 		while (true) {
@@ -1842,6 +1868,8 @@ pragma used
 				work_count++;
 				var job = UnBinarizeObject(data);
 				if (job) {
+					if (Pos(job.app, ".."))
+						job.app = this.RealPath(StrReplace(job.app, "\\", "/"));
 					var Socket;
 					try {
 						if (job.tls) {
@@ -1898,6 +1926,8 @@ class ConceptServer {
 	public var threads=0;
 	public var Running = true;
 	public var ShuttingDown = false;
+	public var cgi = "";
+	public var[] cgiother;
 	protected var[] Workers;
 	protected var TargetWorker = 0;
 
@@ -2886,6 +2916,7 @@ class ConceptServer {
 				"smv" => "video/x-smv",
 				"ice" => "x-conference/x-cooltalk",
 				"php" => "application/php",
+				"rb" => "application/ruby",
 				"con" => "application/concept",
 				"csp" => "application/concept-server-page"
 		];
@@ -3279,7 +3310,18 @@ class ConceptServer {
 		var max_connections = value IniGet(this.IniFile, "Server", "MaxConnections", "1024");
 		var interface = IniGet(this.IniFile, "Server", "Interface", "");
 		this.ConceptClient = this.IniGetPath("Paths", "ConceptClient", "./ConceptClient.js");
-
+		this.cgi = this.IniGetPath("Paths", "CGIHandler", "conceptcgi");
+		var cgi_other = IniGet(this.IniFile, "Paths", "OtherCGI", "");
+		if (cgi_other) {
+			var arr = StrSplit(cgi_other, ";");
+			for (var i = 0; i < length arr; i++) {
+				var e = StrSplit("" + arr[i], "=");
+				var type = trim(e[0]);
+				var val = trim(e[1]);
+				if ((length e == 2) && (type) && (val))
+					this.cgiother[type] = val;
+			}
+		}
 		var max_fd=max_connections*5+10;
 		if (setrlimit(RLIMIT_NOFILE, max_fd)) {
 			// try to set it as super user
