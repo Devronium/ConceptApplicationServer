@@ -1224,7 +1224,16 @@ class SIPStack {
 
 	CleanSession(session) {
 		if (session) {
-			session.Parent = null;
+			var parent = session.Parent;
+			if (parent) {
+				session.Parent = null;
+				echo "Close parent!\n";
+				if (parent._private_data)
+					parent.Cancel(true);
+				else
+					parent.Bye(true);
+			}
+
 			for (var i = 0; i < length session.Children; i++) {
 				var child = session.Children[i];
 				if (child._private_data)
