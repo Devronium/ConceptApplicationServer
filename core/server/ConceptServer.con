@@ -1067,7 +1067,7 @@ class ConceptChild {
 								var line=StrSplit(header[0], " ");
 								if (length line > 1) {
 									var method=ToUpper(line[0]);
-									app=line[1];
+									app=URIDecode(line[1]);
 									if ((method=="GET") || (method == "POST") || (method == "PUT"))
 										ParseHeader(header, ws, ws_key, origin, host, session_to_restore, if_modified, keep_alive, parent, debug);
 								}
@@ -1148,7 +1148,6 @@ class ConceptChild {
 									if (client_resource)
 										directory = SubStr(directory, 2);
 									app = directory + path;
-
 									var rewrite = this.Owner.Rewrite;
 									if (rewrite)
 										app = rewrite(app, params);

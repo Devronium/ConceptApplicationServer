@@ -2797,6 +2797,10 @@ function ConceptClient(url, container, loading, absolute_paths, debug) {
 						this.ChildApp = new ConceptClient(Value, this.Container, this.LoadingContainer);
 						SendMessageFunction(Sender, MSG_ID, Target, "1", 0);
 						break;
+					case "openurl":
+						window.open(Value, '_blank');
+						SendMessageFunction(Sender, MSG_ID, Target, "1", 0);
+						break;						
 					case "defaultdisplay":
 						SendMessageFunction(Sender, MSG_ID, Target, "0", 0);
 						break;

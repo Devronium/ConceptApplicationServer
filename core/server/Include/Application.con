@@ -162,8 +162,11 @@ class CApplication {
 		return value Value;
 	}
 
-	static function OpenLink(string link) {
-		SendMessage("%APP%",MSG_CLIENT_QUERY,"OpenLink", link);
+	static function OpenLink(string link, is_generic = false) {
+		if (is_generic)
+			SendMessage("%APP%",MSG_CLIENT_QUERY,"OpenURL", link);
+		else
+			SendMessage("%APP%",MSG_CLIENT_QUERY,"OpenLink", link);
 		WaitMessage(var Sender, MSG_CLIENT_QUERY, var Target, var Value);
 		Value=value Value;
 		return (!Value);
