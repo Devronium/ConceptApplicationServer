@@ -222,3 +222,7 @@ accel Db.con
 accel TLSESocket.con
 accel RChart.con
 accel RSnap.con
+accel PDFGenerator.con
+accel PDFFontMetric.con
+accel PDFFontMetricByName.con
+accel PDFFontMetricKerning.con

@@ -1,10 +1,13 @@
 import standard.lib.str
 import standard.lang.serialize
+import standard.C.math
+
+include PDFFontMetric.con
 
 define PDF_A4_W			595
 define PDF_A4_H			842
 define PDF_A4			595, 842
-define PDF_STANDARD_FONTS	["Times-Roman", "Times-Italic", "Times-Bold", "Times-BoldItalic", "Helvetica", "Helvetica-Oblique", "Helvetica-Bold", "Helvetica-BoldOblique", "Courier", "Courier-Oblique", "Courier-Bold", "Courier-BoldOblique", "Symbol"]
+define PDF_STANDARD_FONTS	["Times-Roman", "Times-Italic", "Times-Bold", "Times-BoldItalic", "Helvetica", "Helvetica-Oblique", "Helvetica-Bold", "Helvetica-BoldOblique", "Courier", "Courier-Oblique", "Courier-Bold", "Courier-BoldOblique", "Symbol", "ZapfDingbats"]
 
 class PDFText {
 	var font;
@@ -48,10 +51,72 @@ class PDFPage {
 	protected var CurrentColor = "";
 	protected var CurrentLineWidth = -1;
 
+	public var Font = "Helvetica";
+	public var FontSize = 12;
+
+	public var MarginTop = 20;
+	public var MarginBottom = 20;
+	public var MarginLeft = 20;
+	public var MarginRight = 20;
+
+	protected var TextX;
+	protected var TextY;
+	protected var __lastwidth;
+
 	PDFPage(Owner, Width, Height) {
 		this.Width = Width;
 		this.Height = Height;
 		this.Owner = Owner;
+
+		this.TextX = MarginLeft;
+		this.TextY = Height - MarginTop - MarginBottom;
+	}
+
+	protected __NewPage() {
+		var page = this.Owner.NewPage(Width, Height);
+		page.Font = Font;
+		page.FontSize = FontSize;
+		page.MarginTop = MarginTop;
+		page.MarginBottom = MarginBottom;
+		page.MarginLeft = MarginLeft;
+		page.MarginBottom = MarginBottom;
+		page.StrokeColor = StrokeColor;
+		page.FillColor = FillColor;
+		page.LineWidth = LineWidth;
+		return page;
+	}
+
+	protected __AppendLines(lines) {
+		var last_line = length lines - 1;
+		for (var i = 0; i < length lines; i++) {
+			var line = lines[i];
+			this.Print(TextX, TextY, line, FontSize, Font);
+			TextX = MarginLeft;
+			if (i < last_line) {
+				TextY -= FontSize;
+				if (TextY < MarginBottom) {
+					var lines2 = new [];
+					for (var j = i + 1; j < length lines; j++)
+						lines2[length lines2] = lines[j];
+					if (lines2) {
+						var page = this.__NewPage();
+						return page.__AppendLines(lines2);
+					}
+				}
+			}
+			
+		}
+		if (lines)
+			TextX = MarginLeft + __lastwidth;
+		return this;
+	}
+
+	Append(text) {
+		return __AppendLines(this.Owner.Wrap(text, Font, FontSize, Width - MarginLeft - MarginRight, __lastwidth));
+	}
+
+	operator << (text) {
+		return this.Append(text);
 	}
 
 	SetStrokeColor(string color) {
@@ -205,10 +270,102 @@ class PDFGenerator {
 	protected var[] FontOffsets;
 	protected var[] Blobs;
 	var[] Images;
+	var Metrics;
 
 	PDFGenerator(DefaultPageWidth = PDF_A4_W, DefaultPageHeight = PDF_A4_H) {
 		this.DefaultPageWidth = DefaultPageWidth;
 		this.DefaultPageHeight = DefaultPageHeight;
+		this.Metrics = PDF_FONT_METRIC;
+	}
+
+	Measure(string text, string fontname, number size) {
+		if (text) {
+			fontname = ToLower(fontname);
+			if (!IsSet(this.Metrics, fontname))
+				throw "${@class}.${@member}: Unsupported font $fontname";
+			var arr = this.Metrics[fontname];
+			var w_size = 0;
+			for (var i = 0; i < length text; i++)
+				w_size += arr[ord(text[i])] * size;
+			return w_size;
+		}
+		return 0;
+	}
+
+	Wrap(string text, string fontname, number size, width, var last_width = 0) {
+		var[] res;
+		if (text) {
+			fontname = ToLower(fontname);
+			if (!IsSet(this.Metrics, fontname))
+				throw "${@class}.${@member}: Unsupported font $fontname";
+
+			var arr = this.Metrics[fontname];
+			var w_size = last_width;
+			var last_line = "";
+			var line = "";
+			var last_separator = 0;
+
+			for (var i = 0; i < length text; i++) {
+				var l = text[i];
+				if (l == "\t") {
+					text[i] = "    ";
+					l = " ";
+				}
+				if (l == "\r")
+					continue;
+				if (l == "\n") {
+					res[length res] = line;
+					last_line = "";
+					line = "";
+					w_size = 0;
+					continue;
+				} else {
+					w_size += arr[ord(l)] * size;
+					if ((ceil(w_size) >= width) && (last_line)) {
+						i = last_separator;
+						line = "";
+						res[length res] = last_line;
+						last_line = "";
+						w_size = 0;
+						continue;
+					}
+					line += l;
+				}
+
+				switch (l) {
+					case " ":
+					case ".":
+					case ",":
+					case "-":
+					case "#":
+					case "!":
+					case "?":
+					case ";":
+					case ":":
+					case ")":
+					case "(":
+					case "[":
+					case "]":
+					case "/":
+					case "\\":
+					case "{":
+					case "}":
+					case "+":
+					case "=":
+					case "\t":
+					case "\n":
+					case "\r":
+						last_separator = i;
+						last_line = line;
+						break;
+				}
+			}
+			if ((line) || (l == "\n"))
+				res[length res] = line;
+			last_width = w_size;
+			return res;
+		}
+		return res;
 	}
 
 	NewPage(Width = 0, Height = 0) {
@@ -335,6 +492,10 @@ class PDFGenerator {
 		}
 	}
 
+	Done() {
+		Pages = new [];
+	}
+
 	Generate() {
 		if (!Pages)
 			throw "PDFGenerator.Generate: no pages defined";
@@ -380,6 +541,7 @@ class PDFGenerator {
 		pdf += "startxref\r\n";
 		pdf += "" + offset + "\r\n";
 		pdf += "%%EOF";
+		Done();
 		return pdf;
 	}
 }
