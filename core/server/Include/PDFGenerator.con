@@ -8,6 +8,7 @@ define PDF_A4_W			595
 define PDF_A4_H			842
 define PDF_A4			595, 842
 define PDF_STANDARD_FONTS	["Times-Roman", "Times-Italic", "Times-Bold", "Times-BoldItalic", "Helvetica", "Helvetica-Oblique", "Helvetica-Bold", "Helvetica-BoldOblique", "Courier", "Courier-Oblique", "Courier-Bold", "Courier-BoldOblique", "Symbol", "ZapfDingbats"]
+define PDF_DEFAULT_FONT		"helvetica"
 
 class PDFText {
 	var font;
@@ -15,13 +16,15 @@ class PDFText {
 	var y;
 	var text;
 	var size;
+	var color;
 
-	PDFText(x, y, text, fontsize, fontname) {
+	PDFText(x, y, text, fontsize, fontname, color) {
 		this.x = x;
 		this.y = y;
 		this.size =fontsize;
 		this.font = fontname;
 		this.text = StrReplace(StrReplace(StrReplace(text, "\\", "\\\\"), ")", "\\)"), "(", "\\(");
+		this.color = color;
 	}
 }
 
@@ -43,7 +46,7 @@ class PDFPage {
 	var[] UsedImages;
 	var[] ImageIndex;
 
-	var StrokeColor = "";
+	var Color = "";
 	var FillColor = "";
 	var LineWidth = 1;
 
@@ -80,7 +83,7 @@ class PDFPage {
 		page.MarginBottom = MarginBottom;
 		page.MarginLeft = MarginLeft;
 		page.MarginBottom = MarginBottom;
-		page.StrokeColor = StrokeColor;
+		page.Color = Color;
 		page.FillColor = FillColor;
 		page.LineWidth = LineWidth;
 		return page;
@@ -119,21 +122,17 @@ class PDFPage {
 		return this.Append(text);
 	}
 
-	SetStrokeColor(string color) {
-		StrokeColor = color;
-	}
-
 	Print(number x, number y, text, fontsize = 12, fontname = "") {
 		fontname = trim(fontname);
-		Elements[length Elements] = new PDFText(x, y, text, fontsize, fontname);
+		Elements[length Elements] = new PDFText(x, y, text, fontsize, fontname, Color);
 		if (fontname)
 			Fonts[ToLower(fontname)] = this.Owner.__UseFont(fontname);
 	}
 
 	UpdateParams() {
 		var str = "";
-		if (CurrentColor != StrokeColor) {
-			CurrentColor = StrokeColor;
+		if (CurrentColor != Color) {
+			CurrentColor = Color;
 			str += "" + CurrentColor + " RG";
 		}
 		if (CurrentFillColor != FillColor) {
@@ -184,25 +183,20 @@ class PDFPage {
 	__resources() {
 		var resources = "";
 		if (Fonts) {
-			resources += "/Font <<";
+			resources += "/Font<<";
 			for (var i = 0; i < length Fonts; i++) {
 				var name = Fonts[i];
 				var offset = this.Owner.__getfont(name) + 1;
-				if (i)
-					resources += " ";
 				resources += "/$name $offset 0 R";
 			}
-			resources += ">> ";
+			resources += ">>";
 		}
 		if (UsedImages) {
-			resources += "/ProcSet [/PDF /ImageB] /XObject <<";
+			resources += "/ProcSet[/PDF/ImageB]/XObject <<";
 			for (i = 0; i < length UsedImages; i++) {
 				var img = UsedImages[i];
-				if (img) {
-					if (i)
-						resources += " ";
+				if (img)
 					resources += "/Im$i ${img.obj_id} 0 R";
-				}
 			}
 			resources += ">>";
 		}
@@ -212,17 +206,33 @@ class PDFPage {
 	__render(offsets, var pdf) {
 		var stream = "";
 		if (Elements) {
+			var current_color = "";
+			var current_font = "";
+			var current_size = 0;
 			for (var i = 0; i < length Elements; i++) {
 				var element = Elements[i];	
 				if (stream)
 					stream += "\r\n";
+				var font_data = "";
 				switch (classof element) {
 					case "PDFText":
-						if (element.font) {
-							var fontname = Fonts[ToLower(element.font)];
-							stream += "BT /$fontname ${element.size} Tf ${element.x} ${element.y} Td(${element.text})Tj ET";
-						} else
-							stream += "BT ${element.x} ${element.y} Td(${element.text})Tj ET";
+						if (current_color != element.color) {
+							current_color = element.color;
+							stream += "${current_color} rg\r\n";
+						}
+						if (element.text) {
+							if ((current_font != element.font) || (current_size != element.size)) {
+								if (element.font)
+									current_font = element.font;
+								if (element.size)
+									current_size = element.size;
+								if ((current_font) && (current_size)) {
+									var fontname = Fonts[ToLower(current_font)];
+									font_data = "/$fontname ${current_size} Tf";
+								}
+							}
+							stream += "BT$font_data ${element.x} ${element.y} Td(${element.text})Tj ET";
+						}
 						break;
 					case "PDFPath":
 						stream += element.path;
@@ -263,6 +273,13 @@ class PDFGenerator {
 	var DefaultPageWidth;
 	var DefaultPageHeight;
 	var UseCompression = true;
+	var Lang = "(EN-US)";
+	var Title = "";
+	var Creator = "";
+	var Producer = "";
+	var Author = "";
+	var Subject = "";
+	var Keywords = "";
 
 	protected var[] Pages;
 	protected var[] Fonts;
@@ -282,7 +299,7 @@ class PDFGenerator {
 		if (text) {
 			fontname = ToLower(fontname);
 			if (!IsSet(this.Metrics, fontname))
-				throw "${@class}.${@member}: Unsupported font $fontname";
+				fontname = PDF_DEFAULT_FONT;
 			var arr = this.Metrics[fontname];
 			var w_size = 0;
 			for (var i = 0; i < length text; i++)
@@ -297,7 +314,7 @@ class PDFGenerator {
 		if (text) {
 			fontname = ToLower(fontname);
 			if (!IsSet(this.Metrics, fontname))
-				throw "${@class}.${@member}: Unsupported font $fontname";
+				fontname = PDF_DEFAULT_FONT;
 
 			var arr = this.Metrics[fontname];
 			var w_size = last_width;
@@ -393,7 +410,7 @@ class PDFGenerator {
 		return offset;
 	}
 
-	protected __xref(offsets, var pdf, root) {
+	protected __xref(offsets, var pdf, root, info_id) {
 		var offset = length pdf;
 		var obj_count = length offsets + 1;
 		pdf += "xref\r\n";
@@ -402,7 +419,10 @@ class PDFGenerator {
 		pdf += "0000000000 65535 f\r\n";
 		for (var i = 0; i < length offsets; i++)
 			pdf += offsets[i] + " 00000 n\r\n";
-		pdf += "trailer <</Size $obj_count/Root $root 0 R>>\r\n";
+		if (info_id)
+			pdf += "trailer <</Size $obj_count/Root $root 0 R/Info $info_id 0 R>>\r\n";
+		else
+			pdf += "trailer <</Size $obj_count/Root $root 0 R>>\r\n";
 		return offset;
 	}
 
@@ -421,7 +441,7 @@ class PDFGenerator {
 	protected __stream(offsets, var pdf, object_data) {
 		var extra = "";
 		if (UseCompression) {
-			extra = "/Filter /FlateDecode";
+			extra = "/Filter/FlateDecode";
 			object_data = compress(object_data);
 		}
 		return this.__object(offsets, pdf, "<</Length ${length object_data}$extra>>\r\nstream\r\n$object_data\r\nendstream");
@@ -434,7 +454,7 @@ class PDFGenerator {
 			if (font) {
 				var reg_name = FontNames[i];
 				FontOffsets[reg_name] = length offsets;// + 1;
-				this.__object(offsets, pdf, "<</Type /Font /Subtype /Type1 /BaseFont /$font>>");
+				this.__object(offsets, pdf, "<</Type/Font/Subtype/Type1/BaseFont/$font>>");
 			}
 		}
 	}
@@ -461,11 +481,11 @@ class PDFGenerator {
 			var blob = Blobs[i];
 			if (blob) {
 				var file_id = length offsets + 2;
-				this.__object(offsets, pdf, "<</Type /Filespec /F(${blob.name}) /EF <</F $file_id 0 R>> >> ");
-				var bdata = "<</Type /EmbeddedFile /Size ${length blob.content}";
+				this.__object(offsets, pdf, "<</Type/Filespec/F(${blob.name})/EF<</F $file_id 0 R>>>> ");
+				var bdata = "<</Type/EmbeddedFile/Size ${length blob.content}";
 				if (blob.type)
-					bdata += " /Subtype /" + StrReplace(blob.type, "/", "#2F");
-				bdata += " /Length ${length blob.content}>>\r\nstream\r\n";
+					bdata += "/Subtype/" + StrReplace(blob.type, "/", "#2F");
+				bdata += "/Length ${length blob.content}>>\r\nstream\r\n";
 				bdata += blob.content;
 				bdata += "\r\nendstream";
 				this.__object(offsets, pdf, bdata);
@@ -483,11 +503,11 @@ class PDFGenerator {
 			if (image) {
 				var size = "";
 				if (image.width)
-					size += "/Width ${image.width} ";
+					size += "/Width ${image.width}";
 				if (image.height)
-					size += "/Height ${image.height} ";
+					size += "/Height ${image.height}";
 				image.obj_id = length offsets + 1;
-				this.__object(offsets, pdf, "<</Type /XObject /Subtype /Image /ColorSpace /DeviceRGB /Length ${length image.content} $size/Filter /DCTDecode /BitsPerComponent 8>>\r\nstream\r\n${image.content}\r\nendstream");
+				this.__object(offsets, pdf, "<</Type/XObject/Subtype/Image/ColorSpace/DeviceRGB/Length ${length image.content}$size/Filter/DCTDecode/BitsPerComponent 8>>\r\nstream\r\n${image.content}\r\nendstream");
 			}
 		}
 	}
@@ -496,12 +516,42 @@ class PDFGenerator {
 		Pages = new [];
 	}
 
+	__wide(str) {
+		var res = "<feff";
+		for (var i = 0; i < length str; i++) {
+			var s = NumberToHex(ord(str[i]));
+			if (length s == 1)
+				s = "0" + s;
+			res += "00" + s;
+		}
+		res += ">";
+		return res;
+	}
+
 	Generate() {
 		if (!Pages)
 			throw "PDFGenerator.Generate: no pages defined";
 		var[] offsets;
-		var pdf = "%PDF-1.4\r\n";
+		var pdf = "%PDF-1.6\r\n";
+		var title_id = 0;
+		var info = "";
+		if (Title)
+			info += "/Title" + this.__wide(Title);
+		if (Creator)
+			info += "/Creator" + this.__wide(Creator);
+		if (Author)
+			info += "/Author" + this.__wide(Author);
+		if (Subject)
+			info += "/Subject" + this.__wide(Subject);
+		if (Producer)
+			info += "/Producer" + this.__wide(Producer);
+		if (Keywords)
+			info += "/Keywords" + this.__wide(Keywords);
 
+		if (info) {
+			title_id = length offsets + 1;
+			this.__object(offsets, pdf, "<<$info>>");
+		}
 		__register_fonts(offsets, pdf);
 		var public_files = __embed(offsets, pdf);
 		__embed_images(offsets, pdf);
@@ -520,9 +570,9 @@ class PDFGenerator {
 		}
 		var attachments = "";
 		if (public_files)
-			attachments = " /Names <</EmbeddedFiles << /Names [$public_files] >> >>";
-		this.__object(offsets, pdf, "<</Type /Catalog /Pages $pages_id 0 R$attachments>>");
-		this.__object(offsets, pdf, "<</Type /Pages /Kids [$kids] /Count ${length Pages}>>");
+			attachments = "/Names<</EmbeddedFiles<</Names[$public_files]>>>>";
+		this.__object(offsets, pdf, "<</Type/Catalog/Lang ${Lang}/Pages $pages_id 0 R$attachments>>/ViewerPreferences<</DisplayDocTitle true>>");
+		this.__object(offsets, pdf, "<</Type/Pages/Kids[$kids]/Count ${length Pages}>>");
 
 		for (i = 0; i < length Pages; i++) {
 			page = Pages[i];
@@ -530,14 +580,14 @@ class PDFGenerator {
 				var res_data = page.__resources();
 				var resources = length offsets + 2;
 				var contents = length offsets + 3;
-				this.__object(offsets, pdf, "<</Type /Page /Parent $pages_id 0 R /Resources $resources 0 R /MediaBox [0 0 ${page.Width} ${page.Height}] /Contents $contents 0 R>>");
+				this.__object(offsets, pdf, "<</Type/Page/Parent $pages_id 0 R/Resources $resources 0 R/MediaBox[0 0 ${page.Width} ${page.Height}]/Contents $contents 0 R>>");
 				var stream = page.__render(offsets, pdf);
 				this.__object(offsets, pdf, "<<$res_data>>");
 				__stream(offsets, pdf, stream);
 			}
 		}
 
-		var offset = __xref(offsets, pdf, root);
+		var offset = __xref(offsets, pdf, root, title_id);
 		pdf += "startxref\r\n";
 		pdf += "" + offset + "\r\n";
 		pdf += "%%EOF";
