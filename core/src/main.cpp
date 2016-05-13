@@ -689,11 +689,34 @@ int MarkRecursive(void *PIF, CompiledClass *CC, signed char reach_id_flag) {
 }
 
 int CheckReachability(void *PIF) {
-    if ((!PIF) || (!((PIFAlizator *)PIF)->RootInstance))
+    if ((!PIF) || (!((PIFAlizator *)PIF)->RootInstance) || (((PIFAlizator *)PIF)->in_gc))
         return 0;
 
+    ((PIFAlizator *)PIF)->in_gc = 1;
     int res = 0;
     //ALLOC_LOCK
+    // ============================================================================== //
+    // check if garbage collector may run
+    // do this before entering the loop (and modifying states)
+    GCRoot *root = ((PIFAlizator *)PIF)->GCROOT;
+    while (root) {
+        SCStack *STACK_TRACE = (SCStack *)((SCStack *)root->STACK_TRACE)->ROOT;
+        if (STACK_TRACE)
+            STACK_TRACE = (SCStack *)STACK_TRACE->TOP;
+
+        while (STACK_TRACE) {
+            if (STACK_TRACE->len == -1) {
+                // concurrent write, abort
+                //ALLOC_UNLOCK
+                ((PIFAlizator *)PIF)->in_gc = 0;
+                return 0;
+            }
+            STACK_TRACE = (SCStack *)STACK_TRACE->PREV;
+        }
+        root = (GCRoot *)root->NEXT;
+    }
+    // ============================================================================== //
+
     CompiledClass *CC_ROOT      = (CompiledClass *)((PIFAlizator *)PIF)->RootInstance;
     signed char   reach_id_flag = CC_ROOT->reachable & 0x1F;
 
@@ -707,18 +730,13 @@ int CheckReachability(void *PIF) {
     if (((PIFAlizator *)PIF)->var_globals)
         MarkRecursive(PIF, (Array *)((PIFAlizator *)PIF)->var_globals, reach_id_flag);
 
-    GCRoot *root = ((PIFAlizator *)PIF)->GCROOT;
+    root = ((PIFAlizator *)PIF)->GCROOT;
     while (root) {
         SCStack *STACK_TRACE = (SCStack *)((SCStack *)root->STACK_TRACE)->ROOT;
         if (STACK_TRACE)
             STACK_TRACE = (SCStack *)STACK_TRACE->TOP;
 
         while (STACK_TRACE) {
-            if (STACK_TRACE->len == -1) {
-                // concurrent write, abort
-                //ALLOC_UNLOCK
-                return 0;
-            }
             VariableDATA **context = (VariableDATA **)STACK_TRACE->LOCAL_CONTEXT;
             if (context) {
                 for (int i = 0; i < STACK_TRACE->len; i++) {
@@ -763,6 +781,8 @@ int CheckReachability(void *PIF) {
         }
         POOL = (ClassPool *)POOL->NEXT;
     }
+
+    int arr = 0;
     ArrayPool *ARRAYPOOL = (ArrayPool *)((PIFAlizator *)PIF)->ARRAYPOOL;
     while (ARRAYPOOL) {
         if (ARRAYPOOL->POOL_VARS < ARRAY_POOL_BLOCK_SIZE) {
@@ -783,8 +803,9 @@ int CheckReachability(void *PIF) {
     __gc_obj.EndOfExecution_SayBye_Objects();
     __gc_array.EndOfExecution_SayBye_Arrays();
     __gc_vars.EndOfExecution_SayBye_Variables();
-    ((PIFAlizator *)PIF)->last_gc_run = ((PIFAlizator *)PIF)->object_count;
     //ALLOC_UNLOCK
+    ((PIFAlizator *)PIF)->in_gc = 0;
+    ((PIFAlizator *)PIF)->last_gc_run = ((PIFAlizator *)PIF)->object_count;
     return res;
 }
 

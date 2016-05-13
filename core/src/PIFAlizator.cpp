@@ -242,6 +242,7 @@ PIFAlizator::PIFAlizator(AnsiString INC_DIR, AnsiString LIB_DIR, AnsiString *S, 
     this->last_result        = 0;
     this->is_buffer          = 0;
     this->fixed_class_count  = 0;
+    this->in_gc              = 0;
 }
 
 void PIFAlizator::SetPipe(int pipein, int pipeout, int apid, int papid, int direct_pipe) {

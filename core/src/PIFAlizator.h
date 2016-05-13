@@ -361,6 +361,7 @@ public:
     GCRoot *GCROOT;
     int    dirty_limit;
     int    last_gc_run;
+    char   in_gc;
 
     static int refSOCKET;
     POOLED(PIFAlizator)

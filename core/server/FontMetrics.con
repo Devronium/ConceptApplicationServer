@@ -1,0 +1,115 @@
+#/!usr/local/bin/concept
+import standard.C.io
+import standard.lang.cli
+import standard.lib.str
+include DirectoryList.con
+
+class Main {
+	Do(arg, var out_metrics = "", var out_names = "", var out_kerning = "") {
+		var data = StrReplace(ReadFile(arg), "\r", "");
+		var arr = StrSplit(data, "\n");
+		var[] chars;
+		var[] names;
+		var[] kerning;
+		var sum = 0;
+		var items = 0;
+		for (var i = 0; i < length arr; i++) {
+			var line = arr[i];
+			var e = StrSplit(line, " ");
+			switch (e[0]) {
+				case "C":
+					var ord = value e[1];
+					var wx = value ("0." + e[4]);
+					sum += value e[4];
+					items++;
+					var name = e[7];
+					if (ord >= 0)
+						chars[ord] = wx;
+					names[name] = wx;
+					// echo "$ord: $wx\n";
+					break;
+				case "KPX":
+					var key = e[1] + "." + e[2];
+					kerning[key] = value e[3] / 1000;
+					break;
+			}
+		}
+		var font_name = StrReplace(arg, ".afm", "");
+
+		var prefix = StrReplace(ToUpper(arg), ".AFM", "");
+		prefix = "PDF_" + StrReplace(prefix, "-", "_");
+
+		out_metrics += "define ${prefix}_METRIC\t[";
+		for (i = 0; i < length chars; i++) {
+			if (i)
+				out_metrics += ", ";
+			out_metrics += chars[i];
+		}
+		out_metrics += "]\n";
+		if (items)
+			out_metrics += "define ${prefix}_METRIC_AVG\t ${sum/items/1000}\n";
+
+		out_names += "define ${prefix}_NAMES\t[";
+		var keys = GetKeys(names);
+		for (i = 0; i < length names; i++) {
+			if (i)
+				out_names += ",";
+			out_names += "\"" + keys[i] + "\":" + names[i];
+		}
+
+		out_kerning += "define ${prefix}_KERNING\t [";
+		keys = GetKeys(kerning);
+		for (i = 0; i < length kerning; i++) {
+			if (i)
+				out_kerning += ",";
+			out_kerning += "\"" + keys[i] + "\":" + kerning[i];
+		}
+		if (!kerning)
+			out_kerning += " ";
+		out_kerning += "]\n\n";
+		return [font_name, prefix];
+	}
+	
+	Main() {
+		var arg = CLArg()[0];
+		if (!arg) {
+			echo "Usage: FontMetrics.con filename.afm\n";
+			return 0;
+		}
+		var out_metrics = "";
+		var out_names = "";
+		var out_kerning = "";
+		var[] arr;
+		if (arg == ".") {
+			var files = DirectoryList::ListByExt(arg, ["afm"]);
+			for (var i = 0; i < length files; i++)
+				arr[length arr] = Do(files[i], out_metrics, out_names, out_kerning);
+		} else
+			Do(arg, out_metrics, out_names, out_kerning);
+
+		out_metrics += "define PDF_FONT_METRIC	[";
+		out_names += "define PDF_FONT_NAMES	[";
+		out_kerning += "define PDF_FONT_KERNING	[";
+		for (i = 0; i < length arr; i++) {
+			var font_name = ToLower(arr[i][0]);
+			var prefix = arr[i][1];
+			if (i) {
+				out_metrics += ", ";
+				out_names += ", ";
+				out_kerning += ", ";
+			}
+			out_metrics += "\"$font_name\" => ${prefix}_METRIC";
+			out_names += "\"$font_name\" => ${prefix}_NAMES";
+			out_kerning += "\"$font_name\" => ${prefix}_KERNING";
+		}
+		if (length arr == 0)
+			out_metrics += " ";
+		out_metrics += "]\n";
+		out_names += "]\n";
+		out_kerning += "]\n";
+
+		WriteFile(out_metrics, "PDFFontMetric.con");
+		WriteFile(out_names, "PDFFontMetricByName.con");
+		WriteFile(out_kerning, "PDFFontMetricKerning.con");
+	}
+}

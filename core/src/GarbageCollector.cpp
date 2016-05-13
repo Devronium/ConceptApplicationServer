@@ -160,4 +160,3 @@ GarbageCollector::~GarbageCollector() {
     }
 #endif
 }
-
