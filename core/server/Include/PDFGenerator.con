@@ -18,12 +18,15 @@ class PDFText {
 	var size;
 	var color;
 
-	PDFText(x, y, text, fontsize, fontname, color) {
+	PDFText(x, y, text, fontsize, fontname, color, escape) {
 		this.x = x;
 		this.y = y;
 		this.size =fontsize;
 		this.font = fontname;
-		this.text = StrReplace(StrReplace(StrReplace(text, "\\", "\\\\"), ")", "\\)"), "(", "\\(");
+		if (escape)
+			this.text = StrReplace(StrReplace(StrReplace(text, "\\", "\\\\"), ")", "\\)"), "(", "\\(");
+		else
+			this.text = text;
 		this.color = color;
 	}
 }
@@ -122,9 +125,9 @@ class PDFPage {
 		return this.Append(text);
 	}
 
-	Print(number x, number y, text, fontsize = 12, fontname = "") {
+	Print(number x, number y, text, fontsize = 12, fontname = "", escape = true) {
 		fontname = trim(fontname);
-		Elements[length Elements] = new PDFText(x, y, text, fontsize, fontname, Color);
+		Elements[length Elements] = new PDFText(x, y, text, fontsize, fontname, Color, escape);
 		if (fontname)
 			Fonts[ToLower(fontname)] = this.Owner.__UseFont(fontname);
 	}
@@ -280,12 +283,14 @@ class PDFGenerator {
 	var Author = "";
 	var Subject = "";
 	var Keywords = "";
+	var Unicode = false;
 
 	protected var[] Pages;
 	protected var[] Fonts;
 	protected var[] FontNames;
 	protected var[] FontOffsets;
 	protected var[] Blobs;
+	protected var[] EmbeddedFonts;
 	var[] Images;
 	var Metrics;
 
@@ -395,6 +400,10 @@ class PDFGenerator {
 		return page;
 	}
 
+	EmbedFont(fontname, ttfdata) {
+		EmbeddedFonts[fontname] = ttfdata;
+	}
+
 	protected __offset(offset) {
 		var res = "" + offset;
 		while (length res < 10)
@@ -449,12 +458,38 @@ class PDFGenerator {
 
 	protected __register_fonts(offsets, var pdf) {
 		FontOffsets = new [];
-		for (var i = 0; i < length Fonts; i++) {
+		var unicode_str = "";
+		if (EmbeddedFonts) {
+			var keys = GetKeys(EmbeddedFonts);
+			if (keys) {
+				for (var i = 0; i < length EmbeddedFonts; i++) {
+					var font_name = keys[i];	
+					var font_data = EmbeddedFonts[i];
+					if ((font_name) && (font_data)) {
+						var font_id = length offsets + 3;
+						var font_desc_id = length offsets + 2;
+						this.__object(offsets, pdf, "<</Type/Font/SubType/TrueType $font_desc_id 0 R");
+						this.__object(offsets, pdf, "<</Type/FontDescriptor/FontName /$font_name/FontFile2 $font_id 0 R");
+						this.__stream(offsets, pdf, font_data);
+					}
+				}
+			}
+		}
+		if (Unicode) {
+			this.__stream(offsets, pdf, "/CIDInit /ProcSet findresource begin 12 dict begin begincmap /CIDSystemInfo << /Registry (Adobe) /Ordering (UCS) /Supplement 0 >> def /CMapName /Adobe-Identity-UCS def /CMapType 2 def 1 begincodespacerange <0000> <FFFF> endcodespacerange 1 beginbfrange <0000> <FFFF> <0000> endbfrange endcmap CMapName currentdict /CMap defineresource pop end end");
+			var unicode_id = length offsets;
+			unicode_str = "/ToUnicode $unicode_id 0 R/Encoding/Identity-H";
+		}
+		for (i = 0; i < length Fonts; i++) {
 			var font = Fonts[i];
 			if (font) {
 				var reg_name = FontNames[i];
-				FontOffsets[reg_name] = length offsets;// + 1;
-				this.__object(offsets, pdf, "<</Type/Font/Subtype/Type1/BaseFont/$font>>");
+				FontOffsets[reg_name] = length offsets;
+				if (unicode_str) {
+					this.__object(offsets, pdf, "<</Type/Font/Subtype/Type0/BaseFont/$font$unicode_str/DescendantFonts [${length offsets + 2} 0 R]>>");
+					this.__object(offsets, pdf, "<</Type/Font/Subtype/CIDFontType2/BaseFont/$font/CIDToGIDMap/Identity/CIDSystemInfo<</Registry (Adobe)/Ordering (USC)/Supplement 0>>>>");
+				} else
+					this.__object(offsets, pdf, "<</Type/Font/Subtype/Type1/BaseFont/$font$unicode_str>>");
 			}
 		}
 	}
@@ -553,6 +588,7 @@ class PDFGenerator {
 			this.__object(offsets, pdf, "<<$info>>");
 		}
 		__register_fonts(offsets, pdf);
+
 		var public_files = __embed(offsets, pdf);
 		__embed_images(offsets, pdf);
 		var root = length offsets + 1;
