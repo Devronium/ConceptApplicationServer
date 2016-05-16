@@ -3,11 +3,14 @@ import standard.lang.serialize
 import standard.C.math
 
 include PDFFontMetric.con
+include PDFFontEncoding.con
+include PDFFontMetricEncoding.con
 
 define PDF_A4_W			595
 define PDF_A4_H			842
 define PDF_A4			595, 842
 define PDF_STANDARD_FONTS	["Times-Roman", "Times-Italic", "Times-Bold", "Times-BoldItalic", "Helvetica", "Helvetica-Oblique", "Helvetica-Bold", "Helvetica-BoldOblique", "Courier", "Courier-Oblique", "Courier-Bold", "Courier-BoldOblique", "Symbol", "ZapfDingbats"]
+define PDF_STANDARD_ENCODINGS	["cp1251", "iso-8859-4", "cp1255", "iso-8859-11", "cp1257", "cp1258", "cp1253", "cp874", "iso-8859-2", "cp1250", "iso-8859-7", "iso-8859-9", "cp1252", "cp1254", "iso-8859-1", "iso-8859-15", "iso-8859-5", "koi8-r", "iso-8859-16", "koi8-u", "symbol"]
 define PDF_DEFAULT_FONT		"helvetica"
 
 class PDFText {
@@ -283,32 +286,64 @@ class PDFGenerator {
 	var Author = "";
 	var Subject = "";
 	var Keywords = "";
-	var Unicode = false;
+	protected var Unicode = false;
+	var Encoding = "";
 
 	protected var[] Pages;
 	protected var[] Fonts;
+	protected var[] FontsMetric;
 	protected var[] FontNames;
 	protected var[] FontOffsets;
 	protected var[] Blobs;
 	protected var[] EmbeddedFonts;
 	var[] Images;
 	var Metrics;
+	var EncodingMetrics;
 
 	PDFGenerator(DefaultPageWidth = PDF_A4_W, DefaultPageHeight = PDF_A4_H) {
 		this.DefaultPageWidth = DefaultPageWidth;
 		this.DefaultPageHeight = DefaultPageHeight;
 		this.Metrics = PDF_FONT_METRIC;
+		this.EncodingMetrics = PDF_FONT_ENCODING_METRIC;
+	}
+
+	protected LoadEncodingMetrics(fontname_lo) {
+		var metrics = this.EncodingMetrics;
+		var res = metrics[fontname_lo];
+		if (res) {
+			var encoding = ToLower(this.Encoding);
+			if (!encoding)
+				encoding = "iso-8859-1";
+			if (res) {
+				res = res[encoding];
+				if (res)
+					FontsMetric[fontname_lo] = res;
+			}
+		}
+		return res;
+	}
+
+	protected WVector(fontname) {
+		if (this.Encoding)
+			var arr = this.FontsMetric[fontname] ?? LoadEncodingMetrics(fontname);
+
+		if (!arr) {
+			if (!IsSet(this.Metrics, fontname))
+				fontname = PDF_DEFAULT_FONT;
+			arr = this.Metrics[fontname];
+		}
+		return arr;
 	}
 
 	Measure(string text, string fontname, number size) {
 		if (text) {
 			fontname = ToLower(fontname);
-			if (!IsSet(this.Metrics, fontname))
-				fontname = PDF_DEFAULT_FONT;
-			var arr = this.Metrics[fontname];
+			var arr = this.WVector(fontname);
+
 			var w_size = 0;
 			for (var i = 0; i < length text; i++)
-				w_size += arr[ord(text[i])] * size;
+				w_size += (arr[ord(text[i])] ?? 0.6) * size;
+
 			return w_size;
 		}
 		return 0;
@@ -459,6 +494,83 @@ class PDFGenerator {
 	protected __register_fonts(offsets, var pdf) {
 		FontOffsets = new [];
 		var unicode_str = "";
+		var encoding = "";
+		var encoding_ref = "";
+		var charset = ToLower(this.Encoding);
+		switch (charset) {
+			case "":
+				break;
+			case "iso-8859-1":
+				encoding_ref = PDF_ISO_8859_1;
+				break;
+			case "iso-8859-2":
+				encoding_ref = PDF_ISO_8859_2;
+				break;
+			case "cp1251":
+				encoding_ref = PDF_CP1251;
+				break;
+			case "iso-8859-4":
+				encoding_ref = PDF_ISO_8859_4;
+				break;
+			case "cp1255":
+				encoding_ref = PDF_CP1255;
+				break;
+			case "iso-8859-11":
+				encoding_ref = PDF_ISO_8859_11;
+				break;
+			case "cp1257":
+				encoding_ref = PDF_CP1257;
+				break;
+			case "cp1258":
+				encoding_ref = PDF_CP1258;
+				break;
+			case "cp1253":
+				encoding_ref = PDF_CP1253;
+				break;
+			case "cp874":
+				encoding_ref = PDF_CP874;
+				break;
+			case "cp1250":
+				encoding_ref = PDF_CP1250;
+				break;
+			case "iso-8859-7":
+				encoding_ref = PDF_ISO_8859_7;
+				break;
+			case "iso-8859-9":
+				encoding_ref = PDF_ISO_8859_9;
+				break;
+			case "cp1252":
+				encoding_ref = PDF_CP1252;
+				break;
+			case "cp1254":
+				encoding_ref = PDF_CP1254;
+				break;
+			case "iso-8859-15":
+				encoding_ref = PDF_ISO_8859_15;
+				break;
+			case "iso-8859-5":
+				encoding_ref = PDF_ISO_8859_5;
+				break;
+			case "koi8-r":
+				encoding_ref = PDF_KOI8_R;
+				break;
+			case "iso-8859-16":
+				encoding_ref = PDF_ISO_8859_16;
+				break;
+			case "koi8-u":
+				encoding_ref = PDF_KOI8_U;
+				break;
+			case "symbol":
+				encoding_ref = PDF_SYMBOL;
+				break;
+			default:
+				throw "Unsupported encoding ${this.Encoding}";
+		}
+		if (encoding_ref) {
+			this.__object(offsets, pdf, "<</Type/Encoding/Differences[$encoding_ref]>>");
+			encoding = "/Encoding ${length offsets} 0 R";
+		}
+
 		if (EmbeddedFonts) {
 			var keys = GetKeys(EmbeddedFonts);
 			if (keys) {
@@ -469,7 +581,8 @@ class PDFGenerator {
 						var font_id = length offsets + 3;
 						var font_desc_id = length offsets + 2;
 						this.__object(offsets, pdf, "<</Type/Font/SubType/TrueType $font_desc_id 0 R");
-						this.__object(offsets, pdf, "<</Type/FontDescriptor/FontName /$font_name/FontFile2 $font_id 0 R");
+						var font_flags = 32;
+						this.__object(offsets, pdf, "<</Type/FontDescriptor/FontName/$font_name/Flags $font_flags/FontFile2 $font_id 0 R");
 						this.__stream(offsets, pdf, font_data);
 					}
 				}
@@ -480,6 +593,7 @@ class PDFGenerator {
 			var unicode_id = length offsets;
 			unicode_str = "/ToUnicode $unicode_id 0 R/Encoding/Identity-H";
 		}
+
 		for (i = 0; i < length Fonts; i++) {
 			var font = Fonts[i];
 			if (font) {
@@ -488,8 +602,37 @@ class PDFGenerator {
 				if (unicode_str) {
 					this.__object(offsets, pdf, "<</Type/Font/Subtype/Type0/BaseFont/$font$unicode_str/DescendantFonts [${length offsets + 2} 0 R]>>");
 					this.__object(offsets, pdf, "<</Type/Font/Subtype/CIDFontType2/BaseFont/$font/CIDToGIDMap/Identity/CIDSystemInfo<</Registry (Adobe)/Ordering (USC)/Supplement 0>>>>");
-				} else
-					this.__object(offsets, pdf, "<</Type/Font/Subtype/Type1/BaseFont/$font$unicode_str>>");
+				} else {
+					if (encoding) {
+						var fontname_lo = ToLower(font);
+						if ((fontname_lo != "symbol") && (fontname_lo != "zapfdingbats")) {
+							var widths = "";
+							if (encoding_ref) {
+								var arr = this.WVector(fontname_lo);
+								if (arr) {
+
+									var wvector = "";
+									var start = -1;
+									for (var j = 0; j <= 255; j++) {
+										var wsize = arr[j];
+										if ((start == -1) && (wsize))
+											start = j;
+										if (start >= 0) {
+											if (wvector)
+												wvector += " ";
+											wvector += arr[j] * 1000;
+										}
+									}
+									if (wvector)
+										widths = "/FirstChar $start/LastChar 255/Widths [$wvector]";
+								}
+							}
+							this.__object(offsets, pdf, "<</Type/Font/Subtype/Type1/BaseFont/$font$unicode_str$encoding$widths>>");
+						} else
+							this.__object(offsets, pdf, "<</Type/Font/Subtype/Type1/BaseFont/$font$unicode_str>>");
+					} else
+						this.__object(offsets, pdf, "<</Type/Font/Subtype/Type1/BaseFont/$font$unicode_str>>");
+				}
 			}
 		}
 	}
