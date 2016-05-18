@@ -3,9 +3,24 @@ import standard.C.io
 import standard.lang.cli
 import standard.lib.str
 include DirectoryList.con
+include PDFFontEncoding.con
 
 class Main {
-    Do(arg, var out_metrics = "", var out_names = "", var out_kerning = "") {
+    var[] encodings;
+
+    LoadISO(charset) {
+        var[] res;
+
+        var arr = StrSplit(charset, " ");
+        for (var i = 0; i < length arr; i++) {
+             var e = StrSplit(arr[i], "/");
+             if (length e == 2)
+                 res[e[1]] = value e[0];
+        }
+        return res;
+    }
+
+    Do(arg, var out_metrics = "", var out_names = "", var out_kerning = "", var enc_lens = "") {
         var data = StrReplace(ReadFile(arg), "\r", "");
         var arr = StrSplit(data, "\n");
         var[] chars;
@@ -13,10 +28,16 @@ class Main {
         var[] kerning;
         var sum = 0;
         var items = 0;
+	var[] index;
+        var char_height = 0;
         for (var i = 0; i < length arr; i++) {
             var line = arr[i];
             var e = StrSplit(line, " ");
             switch (e[0]) {
+                case "FontBBox":
+                    if (length e == 5)
+			char_height = (value e[4] - value e[2]) / 1000;
+                    break;
                 case "C":
                     var ord = value e[1];
                     var wx = value ("0." + e[4]);
@@ -26,6 +47,7 @@ class Main {
                     if (ord >= 0)
                         chars[ord] = wx;
                     names[name] = wx;
+                    index[name] = ord;
                     // echo "$ord: $wx\n";
                     break;
                 case "KPX":
@@ -47,10 +69,79 @@ class Main {
         }
         out_metrics += "]\n";
         if (items)
-            out_metrics += "define ${prefix}_METRIC_AVG\t ${sum/items/1000}\n";
+            out_metrics += "define ${prefix}_METRIC_AVG\t${sum/items/1000}\n";
+
+        out_metrics += "define ${prefix}_HEIGHT\t${char_height}\n";
 
         out_names += "define ${prefix}_NAMES\t[";
         var keys = GetKeys(names);
+
+	var enc_names = GetKeys(encodings);
+	var enc_font_lens = new [];
+	for (i = 0; i < length keys; i++) {
+		var k = keys[i];
+		for (var j = 0; j < length encodings; j++) {
+			var enc_k = enc_names[j];
+			var enc = encodings[enc_k];
+			// var idx = index[k];
+			if (IsSet(enc, k)) {
+				var arr_e = enc_font_lens[enc_k];
+				if (!arr_e) {
+					arr_e = new [];
+					enc_font_lens[enc_k] = arr_e;
+				}
+				arr_e[enc[k]] = names[k];
+			}
+		}
+	}
+
+	var choose_metric = "";
+	var enc_keys = GetKeys(enc_font_lens);
+	for (i = 0; i < length enc_font_lens; i++) {
+		k = enc_keys[i];
+		arr_e = enc_font_lens[k];
+		if ((arr_e) && (length arr_e > 1)) {
+			var len_name = "${prefix}_" + StrReplace(k, "PDF_", "") + "_METRIC";
+			var enc_name = ToLower(StrReplace(StrReplace(k, "PDF_", ""), "_" , "-"));
+			if (choose_metric)
+				choose_metric += ",";
+			choose_metric += "\"$enc_name\":$len_name";
+
+			var e_len_prec = -1;
+			var all_equal = true;
+			for (j = 0; j < 255; j++) {
+				var e_len = arr_e[j] ?? chars[j];
+				if (e_len) {
+					if (e_len_prec == -1)
+						e_len_prec = e_len;
+					if (e_len != e_len_prec) {
+						all_equal = false;
+						break;
+					}
+				}
+			}
+
+			if ((all_equal) && (e_len_prec != -1)) {
+				enc_lens += "define $len_name\t$e_len_prec\n";
+			} else {
+				enc_lens += "define $len_name\t[";
+				var count = 0;
+				for (j = 0; j < 255; j++) {
+					e_len = arr_e[j] ?? chars[j];
+					if (e_len) {
+						if (count)
+							enc_lens += ",";
+						enc_lens += "$j:" + e_len;
+						count++;
+					}
+				}
+				enc_lens += "]\n";
+			}
+		}
+	}
+	choose_metric = "define ${prefix}_ENCODING_METRIC	[$choose_metric]\n";
+	enc_lens += choose_metric;
+
         for (i = 0; i < length names; i++) {
             if (i)
                 out_names += ",";
@@ -58,7 +149,7 @@ class Main {
         }
 	out_names += "\n\n";
 
-        out_kerning += "define ${prefix}_KERNING\t [";
+        out_kerning += "define ${prefix}_KERNING\t[";
         keys = GetKeys(kerning);
         for (i = 0; i < length kerning; i++) {
             if (i)
@@ -76,42 +167,60 @@ class Main {
     Main() {
         var arg = CLArg()[0];
         if (!arg) {
-            echo "Usage: FontMetrics.con filename.afm\n";
+            echo "Usage: FontMetrics.con afm_directory\n";
             return 0;
         }
+
+	var enc = PDF_ENCODINGS_KEY;
+	var enc_key = GetKeys(enc);
+	for (var i = 0; i < length enc_key; i++) {
+		var k = enc_key[i];
+		encodings[k] =  LoadISO(enc[k]);
+	}
+
 	var out_metrics = "";
 	var out_names = "";
 	var out_kerning = "";
+	var out_enc_lens = "";
 	var[] arr;
         if (arg == ".") {
             var files = DirectoryList::ListByExt(arg, ["afm"]);
-            for (var i = 0; i < length files; i++)
-                arr[length arr] = Do(files[i], out_metrics, out_names, out_kerning);
+            for (i = 0; i < length files; i++)
+                arr[length arr] = Do(files[i], out_metrics, out_names, out_kerning, out_enc_lens);
         } else
-            Do(arg, out_metrics, out_names, out_kerning);
+            Do(arg, out_metrics, out_names, out_kerning, out_enc_lens);
 
 	out_metrics += "define PDF_FONT_METRIC	[";
 	out_names += "define PDF_FONT_NAMES	[";
 	out_kerning += "define PDF_FONT_KERNING	[";
+	var out_heights = "define PDF_FONT_HEIGHTS	[";
+	var out_metrics_enc = "define PDF_FONT_ENCODING_METRIC	[";
 	for (i = 0; i < length arr; i++) {
 		var font_name = ToLower(arr[i][0]);
 		var prefix = arr[i][1];
 		if (i) {
-			out_metrics += ", ";
-			out_names += ", ";
-			out_kerning += ", ";
+			out_metrics += ",";
+			out_names += ",";
+			out_kerning += ",";
+			out_metrics_enc += ",";
+			out_heights += ",";
 		}
-		out_metrics += "\"$font_name\" => ${prefix}_METRIC";
-		out_names += "\"$font_name\" => ${prefix}_NAMES";
-		out_kerning += "\"$font_name\" => ${prefix}_KERNING";
+		out_metrics += "\"$font_name\":${prefix}_METRIC";
+		out_names += "\"$font_name\":${prefix}_NAMES";
+		out_kerning += "\"$font_name\":${prefix}_KERNING";
+		out_metrics_enc += "\"$font_name\":${prefix}_ENCODING_METRIC";
+		out_heights += "\"$font_name\":${prefix}_HEIGHT";
 	}
 	if (length arr == 0)
 		out_metrics += " ";
 	out_metrics += "]\n";
 	out_names += "]\n";
 	out_kerning += "]\n";
+	out_metrics_enc += "]\n";
+	out_heights += "]\n";
 
-	WriteFile(out_metrics, "PDFFontMetric.con");
+	WriteFile(out_metrics + "\n" + out_heights, "PDFFontMetric.con");
+	WriteFile(out_enc_lens + "\n\n" + out_metrics_enc, "PDFFontMetricEncoding.con");
 	WriteFile(out_names, "PDFFontMetricByName.con");
 	WriteFile(out_kerning, "PDFFontMetricKerning.con");
     }

@@ -19,9 +19,8 @@ class PDFText {
 	var y;
 	var text;
 	var size;
-	var color;
 
-	PDFText(x, y, text, fontsize, fontname, color, escape) {
+	PDFText(x, y, text, fontsize, fontname, escape) {
 		this.x = x;
 		this.y = y;
 		this.size =fontsize;
@@ -30,7 +29,6 @@ class PDFText {
 			this.text = StrReplace(StrReplace(StrReplace(text, "\\", "\\\\"), ")", "\\)"), "(", "\\(");
 		else
 			this.text = text;
-		this.color = color;
 	}
 }
 
@@ -40,6 +38,38 @@ class PDFPath {
 	PDFPath(path) {
 		this.path = path;
 	}
+}
+
+class PDFColumn {
+	var caption;
+	var width;
+	var align;
+	var computed_width;
+
+	PDFColumn(caption, width, align) {
+		this.caption = caption;
+		this.width = width;
+		this.align = align;
+	}
+}
+
+class PDFTable {
+	var columns;
+	var data;
+	var x;
+	var y;
+	var width;
+	var logical_width;
+
+	PDFTable(columns, data, x, y, width, logical_width) {
+		this.columns = columns;
+		this.data = data;
+		this.x = x;
+		this.y = y;
+		this.width = width;
+		this.logical_width = logical_width;
+	}
+
 }
 
 class PDFPage {
@@ -52,9 +82,11 @@ class PDFPage {
 	var[] UsedImages;
 	var[] ImageIndex;
 
-	var Color = "";
-	var FillColor = "";
+	var Color = "0 0 0";
+	var FillColor = "0 0 0";
 	var LineWidth = 1;
+
+	protected var[] Stack;
 
 	protected var CurrentFillColor = "";
 	protected var CurrentColor = "";
@@ -68,17 +100,58 @@ class PDFPage {
 	public var MarginLeft = 20;
 	public var MarginRight = 20;
 
-	protected var TextX;
-	protected var TextY;
+	var TextX;
+	var TextY;
 	protected var __lastwidth;
 
-	PDFPage(Owner, Width, Height) {
+	PDFPage(Owner, Width, Height, MarginTop, MarginBottom, MarginLeft, MarginRight, inherit_header_footer = true) {
 		this.Width = Width;
 		this.Height = Height;
 		this.Owner = Owner;
+		this.MarginTop = MarginTop;
+		this.MarginBottom = MarginBottom;
+		this.MarginLeft = MarginLeft;
+		this.MarginRight = MarginRight;
 
 		this.TextX = MarginLeft;
 		this.TextY = Height - MarginTop - MarginBottom;
+
+		if (inherit_header_footer) {
+			var header = Owner.Header;
+			if (header) {
+				this.__CloneElements(header.Elements);
+				this.__Clone(header.UsedImages, this.UsedImages);
+				this.__Clone(header.Fonts, this.Fonts);
+
+				if (this.TextY > header.TextY)
+					this.TextY = header.TextY - header.FontSize;
+			}
+			var footer = Owner.Footer;
+			if (footer) {
+				this.__CloneElements(footer.Elements);
+				this.__Clone(footer.UsedImages, this.UsedImages);
+				this.__Clone(footer.Fonts, this.Fonts);
+			}
+		}
+	}
+
+	protected __CloneElements(elements) {
+		for (var i = 0; i < length elements; i++) {
+			var e = elements[i];
+			if (classof e == "PDFText") {
+				var text = StrReplace(e.text, "[#]", "" + (length Owner.Pages + 1));
+				e = new PDFText(e.x, e.y, text, e.size, e.font, false);
+			}
+			Elements[length Elements] = e;
+		}
+	}
+
+	protected __Clone(arr, clone) {
+		var keys = GetKeys(arr);
+		for (var i = 0; i < length keys; i++) {
+			var k = keys[i];
+			clone[k] = arr[k];
+		}
 	}
 
 	protected __NewPage() {
@@ -124,30 +197,273 @@ class PDFPage {
 		return __AppendLines(this.Owner.Wrap(text, Font, FontSize, Width - MarginLeft - MarginRight, __lastwidth));
 	}
 
+	Rule(dashed_param = "") {
+		TextY -= floor(FontSize/2);
+		this.Line(MarginLeft, TextY, Width - MarginRight, TextY, dashed_param);
+		TextY -= FontSize;
+		TextX = MarginLeft;
+		return this;
+	}
+
 	operator << (text) {
 		return this.Append(text);
 	}
 
-	Print(number x, number y, text, fontsize = 12, fontname = "", escape = true) {
-		fontname = trim(fontname);
-		Elements[length Elements] = new PDFText(x, y, text, fontsize, fontname, Color, escape);
-		if (fontname)
-			Fonts[ToLower(fontname)] = this.Owner.__UseFont(fontname);
+	protected  __ComputeRowHeight(row, table, var wrapped_rows) {
+		var columns = table.columns;
+		wrapped_rows = new [];
+		var max = 0;
+		for (var i = 0; i < length row; i++) {
+			var caption = "" + row[i];
+			var column = columns[i];
+			if ((column) && (caption)) {
+				var lines = this.Owner.Wrap(caption, Font, FontSize, column.computed_width);
+				if (lines) {
+
+					wrapped_rows[i] = lines;
+					if (length lines > max)
+						max = length lines;
+				}
+			}
+		}
+		return max;
 	}
 
-	UpdateParams() {
+	protected __style(style, key, default_value) {
+		if ((style) && (IsSet(style, key)))
+			return style[key];
+		return default_value;
+	}
+
+	Push() {
+		Stack[length Stack] = [Color, FillColor, LineWidth];
+	}
+
+	Pop() {
+		if (Stack) {
+			var len = length Stack - 1;
+			var last = Stack[len];
+			var r_stack = new [];
+			for (var i = 0; i < len; i++)
+				r_stack[i] = Stack[i];
+			Stack = r_stack;
+			if (last) {
+				Color = last[0];
+				FillColor = last[1];
+				LineWidth = last[2];
+			}
+		}
+	}
+
+	Table(array header, array data, style = null, data_offset = 0, table_width = -1, table_x = -1, table_y = -1) {
+		var total_width = 0;
+		var padding = this.__style(style, "padding", 2);
+		if (padding < 0)
+			padding = 0;
+		var border = this.__style(style, "border", 1);
+		if (border < 0)
+			border = 0;
+		var auto_pos = false;
+		var header_style = this.__style(style, "header", null);
+		var header_color = "";
+		var header_background = "";
+		var header_border_color = "";
+		var header_text_color = "";
+		var header_visible = true;
+		if ((header_style) && (typeof header_style == "array")) {
+			header_color = this.__style(header_style, "color", "");
+			header_background = this.__style(header_style, "background", "");
+			header_border_color = this.__style(header_style, "border-color", "");
+			header_text_color = this.__style(header_style, "text-color", "");
+			header_visible = this.__style(header_style, "visible", true);
+		}
+		var max_row_size;
+		var font_height_coef = PDF_FONT_HEIGHTS[ToLower(Font)];
+		if (!font_height_coef)
+			font_height_coef = 1;
+			//font_height_coef = 1/font_height_coef;
+
+		if (table_y < 0) {
+			table_y = TextY - border - FontSize/2;
+			auto_pos = true;
+			max_row_size = Height - MarginTop - MarginBottom;
+			max_row_size *= 0.95;
+		}
+		if (table_x < 0)
+			table_x = MarginLeft;
+		if (table_width < 0)
+			table_width = Width - MarginLeft - MarginRight;
+
+		var[] columns;
+		var[] headers;
+		var table_width_no_padding;
+
+		var font_line_size = round(this.FontSize / font_height_coef, 3);
+		for (var i = 0; i < length header; i++) {
+			var e = header[i];
+			if (e) {
+				var width = 1;
+				var caption;
+				var align = 0;
+				if (typeof e == "array") {
+					caption = "" + e[0];
+					width = e[1];
+					align = e[2];
+					if (align > 1)
+						align = 1;
+					if (align < 0)
+						align = 0;
+				} else
+					caption = "" + e;
+
+				if (width <= 0)
+					width = 1;
+				total_width += width;
+				columns[length columns] = new PDFColumn(caption, width, align);
+				headers[length headers] = caption;
+			}
+		}
+		table_width_no_padding = table_width - (length columns + 1) * (padding + border);
+		for (i = 0; i < length columns; i++) {
+			var column = columns[i];
+			column.computed_width = round(column.width/total_width * table_width, 2);
+		}
+		var table = new PDFTable(columns, data, table_x, table_y, table_width_no_padding, total_width);
+		var header_height = 0;
+
+		this.Push();
+		this.LineWidth = border;
+
+		if (header_visible) {
+			this.Push();
+			var x = table_x;
+			var line_width = 0;
+			padding += border/2;
+
+			header_height = this.__ComputeRowHeight(headers, table, var out_rows) * FontSize * font_height_coef;
+			var filled = false;
+
+			for (i = 0; i < length columns; i++) {
+				var y = table_y - padding - line_width;
+				caption = out_rows[i];
+				column = columns[i];
+				if (!column)
+					break;
+
+				if (caption) {
+					if ((border) || (header_background) || (header_color)) {
+						filled = false;
+						if (header_style) {
+							if (header_background) {
+								filled = true;
+								this.FillColor = header_background;
+							}
+							if (header_color) {
+								if (border)
+									this.Color = header_color;
+								else
+								if (header_background)
+									this.Color = header_background;
+							}
+						}
+
+						this.Rectangle(x, table_y - header_height - padding * 2, column.computed_width - line_width * 2, header_height + padding * 2, filled);
+					}
+					if ((header_color) || (header_text_color))
+						this.FillColor = header_text_color ?? header_color;
+
+					for (var j = 0; j < length caption; j++) {
+						var line = caption[j];
+						if (line) {
+							var delta = 0;
+							if (column.align > 0) {
+								var len = this.Owner.Measure(line, Font, FontSize);
+								var delta_ref = column.computed_width - padding * 2 - len;
+								if (delta_ref > 0)
+									delta = column.align * delta_ref;
+							}
+							this.Print(round(x + padding + delta, 3), round(y - font_line_size, 3), line, FontSize, Font);
+						}
+						y -= FontSize;
+					}
+				}
+				x += column.computed_width;
+			}
+
+			this.Pop();
+			if (auto_pos)
+				max_row_size -= header_height;
+		}
+		var row_y = table_y;
+		if (header_visible)
+		 	row_y = row_y - header_height - padding * 2 - border;
+		else
+			row_y -= border/2;
+
+		for (i = data_offset; i < length data; i++) {
+			x = table_x;
+			var row = data[i];
+			if (row) {
+				var row_height = this.__ComputeRowHeight(row, table, out_rows) * FontSize * font_height_coef;
+
+				if ((auto_pos) && (row_y - row_height <= MarginBottom) && (row_height < max_row_size)) {
+					var page = this.__NewPage();
+					return page.Table(header, data, style,  i);
+				}
+
+				for (var k = 0; k < length out_rows; k++) {
+					if (row_height) {
+						caption = out_rows[k];
+						column = columns[k];
+						if (!column)
+							continue;
+						y = row_y;
+						if (border)
+							this.Rectangle(x, y - row_height - padding * 2, column.computed_width - line_width * 2, row_height + padding * 2, false);
+						if (caption) {
+							for (j = 0; j < length caption; j++) {
+								line = caption[j];
+								if (line) {
+									delta = 0;
+									if (column.align > 0) {
+										len = this.Owner.Measure(line, Font, FontSize);
+										delta_ref = column.computed_width - padding * 2 - len;
+										if (delta_ref > 0)
+											delta = column.align * delta_ref;
+									}
+									this.Print(round(x + padding + delta, 3), round(y - padding - font_line_size, 3), line, FontSize, Font);
+								}
+								y -= FontSize;
+							}
+						}
+						x += column.computed_width;
+					}
+				}
+				row_y -= row_height + padding * 2;
+			}
+		}
+		this.Pop();
+
+		if (auto_pos) {
+			this.TextX = MarginLeft;
+			this.TextY = row_y - font_line_size - border * 2;
+		}
+		return this;
+	}
+
+	UpdateParams(forced = false) {
 		var str = "";
-		if (CurrentColor != Color) {
+		if ((CurrentColor != Color) || (forced)) {
 			CurrentColor = Color;
 			str += "" + CurrentColor + " RG";
 		}
-		if (CurrentFillColor != FillColor) {
+		if ((CurrentFillColor != FillColor) || (forced)) {
 			CurrentFillColor = FillColor;
 			if (str)	
 				str += " ";
 			str += "" + CurrentFillColor + " rg";
 		}
-		if (CurrentLineWidth != LineWidth) {
+		if ((CurrentLineWidth != LineWidth) || (forced)) {
 			CurrentLineWidth = LineWidth;
 			if (str)	
 				str += " ";
@@ -157,11 +473,20 @@ class PDFPage {
 			Elements[length Elements] = new PDFPath(str);
 	}
 
+	Print(number x, number y, text, fontsize = 12, fontname = "", escape = true) {
+		UpdateParams();
+		fontname = trim(fontname);
+		Elements[length Elements] = new PDFText(x, y, text, fontsize, fontname, escape);
+		if (fontname)
+			Fonts[ToLower(fontname)] = this.Owner.__UseFont(fontname);
+	}
+
 	Rectangle(number x, number y, number width, number height, fill = false) {
 		UpdateParams();
-		var fill_str = "S";
-		if (fill_str)
-			fill_str = "B";
+		var fill_str = "s";
+		if (fill)
+			fill_str = "b";
+
 		Elements[length Elements] = new PDFPath("$x $y m $x $y $width $height re h $fill_str");
 	}
 
@@ -212,7 +537,6 @@ class PDFPage {
 	__render(offsets, var pdf) {
 		var stream = "";
 		if (Elements) {
-			var current_color = "";
 			var current_font = "";
 			var current_size = 0;
 			for (var i = 0; i < length Elements; i++) {
@@ -222,10 +546,6 @@ class PDFPage {
 				var font_data = "";
 				switch (classof element) {
 					case "PDFText":
-						if (current_color != element.color) {
-							current_color = element.color;
-							stream += "${current_color} rg\r\n";
-						}
 						if (element.text) {
 							if ((current_font != element.font) || (current_size != element.size)) {
 								if (element.font)
@@ -237,7 +557,7 @@ class PDFPage {
 									font_data = "/$fontname ${current_size} Tf";
 								}
 							}
-							stream += "BT$font_data ${element.x} ${element.y} Td(${element.text})Tj ET";
+							stream += "BT $font_data ${element.x} ${element.y} Td(${element.text})Tj ET";
 						}
 						break;
 					case "PDFPath":
@@ -246,6 +566,7 @@ class PDFPage {
 				}
 			}
 		}
+
 		return stream;
 	}
 }
@@ -278,6 +599,11 @@ class PDFImage {
 class PDFGenerator {
 	var DefaultPageWidth;
 	var DefaultPageHeight;
+	var MarginTop = 20;
+	var MarginBottom = 20;
+	var MarginLeft = 20;
+	var MarginRight = 20;
+
 	var UseCompression = true;
 	var Lang = "(EN-US)";
 	var Title = "";
@@ -289,7 +615,9 @@ class PDFGenerator {
 	protected var Unicode = false;
 	var Encoding = "";
 
-	protected var[] Pages;
+	protected var _Footer;
+	protected var _Header;
+	var[] Pages;
 	protected var[] Fonts;
 	protected var[] FontsMetric;
 	protected var[] FontNames;
@@ -299,6 +627,9 @@ class PDFGenerator {
 	var[] Images;
 	var Metrics;
 	var EncodingMetrics;
+
+	public property Footer { get GetFooter }
+	public property Header { get GetHeader }
 
 	PDFGenerator(DefaultPageWidth = PDF_A4_W, DefaultPageHeight = PDF_A4_H) {
 		this.DefaultPageWidth = DefaultPageWidth;
@@ -339,11 +670,17 @@ class PDFGenerator {
 		if (text) {
 			fontname = ToLower(fontname);
 			var arr = this.WVector(fontname);
+			var fixed_size;
+			if (typeof arr != "array")
+				fixed_size = true;
 
 			var w_size = 0;
-			for (var i = 0; i < length text; i++)
-				w_size += (arr[ord(text[i])] ?? 0.6) * size;
-
+			if (fixed_size) {
+				w_size = length text * arr * size;
+			} else {
+				for (var i = 0; i < length text; i++)
+					w_size += (arr[ord(text[i])] ?? 0.6) * size;
+			}
 			return w_size;
 		}
 		return 0;
@@ -430,9 +767,25 @@ class PDFGenerator {
 			Width = DefaultPageWidth;
 		if (Height <= 0)
 			Height = DefaultPageHeight;
-		var page = new PDFPage(this, Width, Height);
+		var page = new PDFPage(this, Width, Height, MarginTop, MarginBottom, MarginLeft, MarginRight);
 		Pages[length Pages] = page;
 		return page;
+	}
+
+	GetHeader() {
+		if (!_Header) {
+			_Header = new PDFPage(this, DefaultPageWidth, DefaultPageHeight, MarginTop, MarginBottom, MarginLeft, MarginRight, false);
+			_Header.FontSize = 8;
+		}
+		return _Header;
+	}
+
+	GetFooter() {
+		if (!_Footer) {
+			_Footer = new PDFPage(this, DefaultPageWidth, DefaultPageHeight, MarginTop, MarginBottom, MarginLeft, MarginRight, false);
+			_Footer.FontSize = 8;
+		}
+		return _Footer;
 	}
 
 	EmbedFont(fontname, ttfdata) {
@@ -610,17 +963,27 @@ class PDFGenerator {
 							if (encoding_ref) {
 								var arr = this.WVector(fontname_lo);
 								if (arr) {
-
 									var wvector = "";
 									var start = -1;
-									for (var j = 0; j <= 255; j++) {
-										var wsize = arr[j];
+									var is_fixed_font = false;
+									var first_char = 0;
+									if (typeof arr != "array") {
+										is_fixed_font = true;
+										first_char = 32;
+									}
+									for (var j = first_char; j <= 255; j++) {
+										var wsize;
+										if (is_fixed_font)
+											wsize = arr;
+										else
+											wsize = arr[j];
+
 										if ((start == -1) && (wsize))
 											start = j;
 										if (start >= 0) {
 											if (wvector)
 												wvector += " ";
-											wvector += arr[j] * 1000;
+											wvector += wsize * 1000;
 										}
 									}
 									if (wvector)
