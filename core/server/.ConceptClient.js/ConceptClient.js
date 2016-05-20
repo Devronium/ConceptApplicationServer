@@ -1934,6 +1934,7 @@ function ConceptClient(url, container, loading, absolute_paths, debug) {
 	this.POST_FILENAME = "";
 	this.Cookies = { };
 	this.AudioObjects = { };
+	this.MasterAudioContext = null;
 	this.Ring = null;
 	this.isIE = false;
 	this.isFF = false;
@@ -7728,7 +7729,7 @@ function ConceptClient(url, container, loading, absolute_paths, debug) {
 				}
 			}
 			this.MediaAudio = true;
-			var script = audioContext.createScriptProcessor(this.GetBufferSize(audioContext), audioContext.ConceptChannels, audioContext.ConceptChannels);
+			var script = audioContext.ref.createScriptProcessor(this.GetBufferSize(audioContext), audioContext.ConceptChannels, audioContext.ConceptChannels);
 			audioContext.ConceptProcessor = script;
 			if (audioContext.ConceptCompression)
 				this.InAudioContext = audioContext;
@@ -7747,10 +7748,10 @@ function ConceptClient(url, container, loading, absolute_paths, debug) {
 			}
 
 			this.MediaListeners.push(function(stream) {
-				var microphone = audioContext.createMediaStreamSource(stream);
+				var microphone = audioContext.ref.createMediaStreamSource(stream);
 				microphone.connect(script);
 				audioContext.ConceptMicrophone = microphone;
-				script.connect(audioContext.destination);
+				script.connect(audioContext.ref.destination);
 			});
 
 			if (this.MediaTimer)
@@ -7903,17 +7904,10 @@ function ConceptClient(url, container, loading, absolute_paths, debug) {
 			}
 		}
 
-		//if ((this.InAudioContext) && (this.InAudioContext.ConceptCompression == audioContext.ConceptCompression) && (this.InAudioContext.ConceptSampleRate == audioContext.ConceptSampleRate)) {
-		//	audioContext.ConceptProcess = processFunction;
-		//	this.InAudioContext.ConceptAudioPair = audioContext;
-		//	audioContext.ConceptProcessor = this.InAudioContext.ConceptProcessor;
-		//	return;
-		//}
-
-		var script = audioContext.createScriptProcessor(this.GetBufferSize(audioContext), 0, audioContext.ConceptChannels);
+		var script = audioContext.ref.createScriptProcessor(this.GetBufferSize(audioContext), 0, audioContext.ConceptChannels);
 		audioContext.ConceptProcessor = script;
 		script.onaudioprocess = processFunction;
-		script.connect(audioContext.destination);
+		script.connect(audioContext.ref.destination);
 	}
 
 	this.UpdateYAlign = function(element) {
@@ -8065,7 +8059,7 @@ function ConceptClient(url, container, loading, absolute_paths, debug) {
 
 	this.getUserMediaDo = function() {
 		delete this.MediaTimer;
-		navigator.getUserMedia	= navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia || navigator.msGetUserMedia;
+		navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia || navigator.msGetUserMedia;
 		if (!navigator.getUserMedia) {
 			console.error("getUserMedia not supported on this browser");
 			this.MediaListeners = [ ];
@@ -9439,8 +9433,8 @@ function ConceptClient(url, container, loading, absolute_paths, debug) {
 
 							while (element.ConceptBuffers.length >= total)
 								element.ConceptBuffers.pop();*/
+							console.warn("Jitter: " + element.ConceptBuffers.length + " (max buffers: " + element.ConceptMaxBuffers + ")");
 							element.ConceptBuffers = [];
-							console.warn("Jitter");
 						}
 					}
 					if (!element.ConceptSampleRate)
@@ -12017,13 +12011,16 @@ function ConceptClient(url, container, loading, absolute_paths, debug) {
 			case 1016:
 				window.AudioContext = window.AudioContext || window.webkitAudioContext;
 				try {
-					control = new AudioContext();
+					if (!this.MasterAudioContext)
+						this.MasterAudioContext = new AudioContext();
+					control = { ref: this.MasterAudioContext };
 					control.ConceptChannels = 2;
 					control.ConceptClassID = 1016;
 					control.ConceptBuffers = [];
 					this.Controls[RID] = control;
 				} catch (e) {
 					console.error("Audio API is not supported in this browser");
+					console.error(e);
 				}
 				// not an UI object !
 				return;

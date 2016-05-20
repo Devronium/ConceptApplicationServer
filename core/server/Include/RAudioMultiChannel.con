@@ -1,0 +1,108 @@
+include OCV/RAudioStream.con
+
+class RAudioMultiChannel {
+	public var audio_in;
+	public var[] audio_out_array;
+	protected var Running = false;
+	public var OnStart;
+	public var OnStop;
+	public var OnBuffer;
+
+	public property IsRunning { get Running }
+
+	RAudioMultiChannel(owner, channels = 1, sample_rate = 16000, bitrate = 20000, frame_size = 40, max_buffers = 10, bandwidth = BANDWIDTH_MEDIUMBAND) {
+		audio_in = new RAudioStreamer(owner);
+		audio_in.SampleRate = sample_rate;
+		audio_in.Channels = 1;
+		audio_in.Quality = 8;
+		audio_in.Bitrate = bitrate;
+		audio_in.FrameSize = frame_size;
+		audio_in.Compression = USE_OPUS;
+		audio_in.BandWidth = bandwidth;
+		audio_in.OnBuffer = this.OnBufferReceived;
+
+		for (var i = 0; i < channels; i++) {
+			var audio_out = new RAudioStreamer(owner);
+			audio_out.SampleRate = sample_rate;
+			audio_out.Channels = 1;
+			audio_out.Quality = audio_in.Quality;
+			audio_out.Compression = USE_OPUS;
+			audio_out.MaxBuffers = max_buffers;
+			audio_out_array[length audio_out_array] = audio_out;
+		}
+	}
+
+	OnBufferReceived(Sender, var EventData) {
+		try {
+			this.OnBuffer(EventData);
+		} catch (var exc) {
+			this.Stop();
+		}
+	}
+
+	UpdateParams(bitrate, framesize, max_buffers) {
+		if (audio_in.Bitrate != bitrate)
+			audio_in.Bitrate = bitrate;
+		if (audio_in.FrameSize != framesize)
+			audio_in.FrameSize = framesize;
+		if (audio_in.MaxBuffers != max_buffers) {
+			audio_in.MaxBuffers = max_buffers;
+			for (var i = 0; i < length audio_out_array; i++)
+				audio_out_array[i].MaxBuffers = max_buffers;
+		}
+	}
+
+	UpdateBuffers(max_buffers) {
+		if (audio_in.MaxBuffers != max_buffers) {
+			audio_in.MaxBuffers = max_buffers;
+			for (var i = 0; i < length audio_out_array; i++)
+				audio_out_array[i].MaxBuffers = max_buffers;
+		}
+	}
+
+	Write(channel, var buf) {
+		if (Running) {
+			if ((channel >= 0) && (channel < length audio_out_array)) {
+				var audio_out = audio_out_array[channel];
+				if (audio_out) {
+echo "WRITE ${length buf}\n";
+					audio_out.AddSmallBuffer(buf);
+				}
+			}
+		}
+	}
+
+	Start() {
+		if (!Running) {
+			try {
+				audio_in.Record();
+			} catch (var exc) {
+			}
+			try {
+				for (var i = 0; i < length audio_out_array; i++)
+					audio_out_array[i].Play();
+			} catch (exc) {
+			}
+			Running = true;
+			if (OnStart)
+				this.OnStart();
+		}
+	}
+
+	Stop() {
+		if (Running) {
+			try {
+				audio_in.Stop();
+			} catch (var exc) {
+			}
+			try {
+				for (var i = 0; i < length audio_out_array; i++)
+					audio_out_array[i].Stop();
+			} catch (exc) {
+			}
+			Running = false;
+			if (OnStop)
+				this.OnStop();
+		}
+	}
+}
