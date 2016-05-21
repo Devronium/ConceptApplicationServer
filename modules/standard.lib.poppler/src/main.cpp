@@ -94,10 +94,16 @@ CONCEPT_FUNCTION_IMPL(PDFPageText, 2)
         if (buf.to_utf8().size()) {
 #if __cplusplus <= 199711L
             char *buf_ptr = &buf.to_utf8().front();
-            RETURN_STRING(buf_ptr);
 #else
-            RETURN_STRING(buf.to_utf8().data());
+            char *buf_ptr = &buf.to_utf8().data();
 #endif
+            int size = buf.to_utf8().size();
+
+            if (size > 0) {
+                RETURN_BUFFER(buf_ptr, size);
+            } else {
+                RETURN_STRING("");
+            }
         } else {
             RETURN_STRING("");
         }
