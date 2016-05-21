@@ -7,7 +7,7 @@ function init(callback) {
 					token = subscription.endpoint + "/" + subscription.subscriptionId;
 				else
 					token = subscription.endpoint;
-				callback("/@msg.csp?token=" + token);
+				callback("/@msg.csp?token=" + encodeURIComponent(token));
 			}
 		});
 	}
