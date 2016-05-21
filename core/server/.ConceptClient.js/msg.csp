@@ -8,7 +8,7 @@ class Main {
 		doc.Content = "application/json";
 		doc.PutHeader("Access-Control-Allow-Origin: *");
 		doc.BeginDocument();
-		doc << "{ \"notification\": { \"title\": \"Hello!\", \"message\": \"Hello world!\", \"icon\": \"img/icon-192x192.png\" } }";
+		doc << "{ \"notification\": { \"title\": \"Hello!\", \"message\": \"You can override this message, by adding your own @msg.csp to your project directory!\", \"icon\": \"/@/img/icon-192x192.png\" } }";
 		doc.EndDocument();
 	}
 }

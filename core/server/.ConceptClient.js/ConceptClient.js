@@ -2875,10 +2875,10 @@ function ConceptClient(url, container, loading, absolute_paths, debug) {
 						break;
 					case "token":
 						if ('serviceWorker' in navigator) {
-							navigator.serviceWorker.register('ConceptServiceWorker.js', {scope: './'}).then(function(registration) {
+							navigator.serviceWorker.register("/@ConceptServiceWorker.js", {scope: '/'}).then(function(registration) {
 								navigator.serviceWorker.ready.then(function(serviceWorkerRegistration) {
 									if (serviceWorkerRegistration.pushManager) {
-										serviceWorkerRegistration.pushManager.subscribe().then(function(subscription) {
+										serviceWorkerRegistration.pushManager.subscribe({userVisibleOnly:true}).then(function(subscription) {
 											if ((subscription.subscriptionId) && (subscription.endpoint.indexOf(subscription.subscriptionId) < 0))
 												SendMessageFunction(Sender, MSG_ID, Target, subscription.endpoint + "/" + subscription.subscriptionId, 0);
 											else

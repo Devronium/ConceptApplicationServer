@@ -7,7 +7,7 @@ function init(callback) {
 					token = subscription.endpoint + "/" + subscription.subscriptionId;
 				else
 					token = subscription.endpoint;
-				callback("http://push.devronium.com/msg.csp?token=" + token);
+				callback("/@msg.csp?token=" + token);
 			}
 		});
 	}
@@ -33,7 +33,7 @@ function do_notify(url) {
 
 					var title = 'Concept Client';
 					var body = 'Your attention is needed.';
-					var icon = '/img/icon-192x192.png';
+					var icon = '/@/img/icon-192x192.png';
 					var notificationTag = 'concept-client-notification-tag';
 
 					if (data.notification.title)

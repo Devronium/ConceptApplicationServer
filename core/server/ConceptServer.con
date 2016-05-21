@@ -1219,7 +1219,13 @@ class ConceptChild {
 
 									}
 
-									if (FileExists(app)) {
+									var exists = FileExists(app);
+
+									if ((!exists) && (path[0] == "@")) {
+										app = Owner.ConceptClient + "/" + SubStr(path, 1);
+										exists = FileExists(app);
+									}
+									if (exists) {
 										var worker = null;
 										if ((is_server_page) && (cgi))//(content_type == "application/concept-server-page")
 											worker = Owner.ChooseWorker();
@@ -1258,7 +1264,6 @@ class ConceptChild {
 												var content_length = 0;
 												if (is_root) {
 													data = ReadFile(app);
-													content_length = length data;
 													if (params)
 														data = StrReplace(data, "{APP}", target_app + "?" + params);
 													else
@@ -1272,6 +1277,7 @@ class ConceptChild {
 														data = StrReplace(data, "{PROTOCOL}", "concepts");
 													else
 														data = StrReplace(data, "{PROTOCOL}", "concept");
+													content_length = length data;
 												} else
 													content_length = _filesize(app);
 												buffer = "HTTP/1.1 200 OK\r\nDate: $tstamp\r\nConnection: $connection_policy\r\nContent-Type: $content_type\r\nCache-Control: max-age=86400\r\nLast-Modified: $last_mod\r\nServer: " + SERVER_NAME + "\r\nStrict-Transport-Security: max-age=31536000; includeSubDomains; preload\r\nContent-Length: $content_length\r\n\r\n" + data;
