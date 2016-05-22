@@ -22,6 +22,7 @@ define WS_SESSION_RESTORE	false
 define MAX_RECV_BUFFER		0xFFFF
 define READ_BUFFER		0xFFFFF
 define MAX_WS_HEADER		0xFFF
+define MAX_WS_HEADER_BUF	0xFFF
 define USE_TLS_PROXY		false
 define DEFAULT_CGI_WORKERS	4
 define PIPE_READ_CPU_TIME_US	2000
@@ -896,8 +897,9 @@ class ConceptChild {
 		return "";
 	}
 
-	ParseHeader(header, var ws, var ws_key, var origin, var host, var session_to_restore, var if_modified, var keep_alive, var parent, var debug) {
+	ParseHeader(header, var ws, var ws_key, var origin, var host, var session_to_restore, var if_modified, var keep_alive, var parent, var debug, var content_length) {
 		var len = length header;
+		content_length = 0;
 		if (len > MAX_HEADER_PARAMETERS)
 			len = MAX_HEADER_PARAMETERS;
 		for (var i=1;i<len;i++) {
@@ -980,6 +982,13 @@ class ConceptChild {
 							debug = value proto_description[1];
 						}
 						break;
+					case "content-length":
+						content_length = value arr[1];
+						break;
+					case "transfer-encoding":
+						if (ToLower("" + value arr[1]) == "chunked")
+							content_length = -1;
+						break;
 				}
 			}
 		}
@@ -1005,7 +1014,7 @@ class ConceptChild {
 			max_idle = 1000000;
 
 		var orig_idle = max_idle;
-		var keep_alive_header = "Keep-Alive: timeout=${max_idle/1000}";
+		var keep_alive_header = "Keep-Alive: timeout=${max_idle/1000000}";
 		max_idle += microseconds();
 
 		var info=socket.Info;
@@ -1017,7 +1026,7 @@ class ConceptChild {
 		var received_data="";
 		var disconnected=false;
 		var host="";
-
+		var requests_served = 0;
 		// don't use local variable socket after this point
 		// this.Socket may be changed if a session restore takes place
 		try {
@@ -1035,13 +1044,19 @@ class ConceptChild {
 			if (this.IsWebSocket) {
 				var force_tls = value IniGet(Owner.IniFile, "Server", "WebTLSOnly", "0");
 				step = 2;
+				var remainder = "";
 				while (step <= 2) {
-					if (Socket.HasData) {
-						var data = Socket.Read();
+					if ((Socket.HasData) || (remainder)) {
+						if (remainder) {
+							var data = remainder;
+							remainder = "";
+						} else
+							data = Socket.Read(MAX_WS_HEADER_BUF);
+
 						if (!data)
 							break;
 
-						received_data+=data;
+						received_data += data;
 						Owner.Iterations++;
 
 						if (length received_data > MAX_RECV_BUFFER)
@@ -1049,9 +1064,11 @@ class ConceptChild {
 
 						var pos = Pos(received_data, "\r\n\r\n");
 						if (pos > 0) {
+							//pos--;
+							requests_served++;
 							Socket.SetOption(SOL_SOCKET, SO_RCVTIMEO, 600000);
-							var header = StrSplit(received_data, "\r\n");
-							//DoWSHeader(StrSplit(received_data, "\r\n"), step);
+							var header = StrSplit(SubStr(received_data, 0, pos), "\r\n");
+							// DoWSHeader(StrSplit(received_data, "\r\n"), step);
 							var len=length header;
 							var ws=false;
 							var ws_key="";
@@ -1063,16 +1080,32 @@ class ConceptChild {
 							var if_modified = "";
 							var keep_alive = false;
 							var debug = false;
+							var in_content_length = 0;
 							if (len) {
 								var line=StrSplit(header[0], " ");
 								if (length line > 1) {
 									var method=ToUpper(line[0]);
 									app=URIDecode(line[1]);
 									if ((method=="GET") || (method == "POST") || (method == "PUT"))
-										ParseHeader(header, ws, ws_key, origin, host, session_to_restore, if_modified, keep_alive, parent, debug);
+										ParseHeader(header, ws, ws_key, origin, host, session_to_restore, if_modified, keep_alive, parent, debug, in_content_length);
 								}
 							}
-
+							/*var content_offset = pos + 4;
+							if (in_content_length) {
+								if (in_content_length < 0) {
+									// content is chunked
+									keep_alive = false;
+								} else {
+									var content_len = length received_data - pos;
+									if (content_len > 0) {
+										remainder = SubStr(received_data, pos + content_len);
+										received_data = SubStr(received_data, 0, pos + content_len);
+									}
+								}
+							} else {
+								remainder = SubStr(received_data, content_offset);
+								received_data = SubStr(received_data, 0, content_offset);
+							}*/
 							var orig_app = app;
 							if ((ws) && (ws_key)) {
 								var ret_key=WebSocket::AcceptKey(ws_key);
@@ -1225,6 +1258,7 @@ class ConceptChild {
 										app = Owner.ConceptClient + "/" + SubStr(path, 1);
 										exists = FileExists(app);
 									}
+
 									if (exists) {
 										var worker = null;
 										if ((is_server_page) && (cgi))//(content_type == "application/concept-server-page")
@@ -1239,14 +1273,14 @@ class ConceptChild {
 											break;
 										} else {
 											var connection_policy;
-											if (keep_alive) {
-												connection_policy = "keep-alive";
-												connection_policy += "\r\n" + keep_alive_header;
-											} else
+											if (keep_alive)
+												connection_policy = "keep-alive\r\n" + keep_alive_header;
+											else
 												connection_policy = "close";
 											var last_mod = rtrim(asctime(_filelast_mod(app))) + " GMT";
 											data = "";
 											var skip_content = false;
+											var content_length = 0;
 											if ((!TLS) && (force_tls)) {
 												var location = "https://" + ServerName;
 												if (Owner.SSLWSPort != 443)
@@ -1254,6 +1288,8 @@ class ConceptChild {
 												if ((orig_app) && (orig_app[0] != "/"))
 													location += "/";
 												location += orig_app;
+												connection_policy = "close";
+												keep_alive = false;
 												var buffer = "HTTP/1.1 302 Found\r\nDate: $tstamp\r\nConnection: $connection_policy\r\nLocation: $location\r\nServer: " + SERVER_NAME + "\r\n\r\n";
 												skip_content = true;
 											} else
@@ -1261,7 +1297,6 @@ class ConceptChild {
 												buffer = "HTTP/1.1 304 Not Modified\r\nDate: $tstamp\r\nConnection: $connection_policy\r\nContent-Type: $content_type\r\nCache-Control: max-age=86400\r\nLast-Modified: $last_mod\r\nServer: " + SERVER_NAME + "\r\n\r\n";
 												skip_content = true;
 											} else {
-												var content_length = 0;
 												if (is_root) {
 													data = ReadFile(app);
 													if (params)
@@ -1278,8 +1313,9 @@ class ConceptChild {
 													else
 														data = StrReplace(data, "{PROTOCOL}", "concept");
 													content_length = length data;
-												} else
+												} else {
 													content_length = _filesize(app);
+												}
 												buffer = "HTTP/1.1 200 OK\r\nDate: $tstamp\r\nConnection: $connection_policy\r\nContent-Type: $content_type\r\nCache-Control: max-age=86400\r\nLast-Modified: $last_mod\r\nServer: " + SERVER_NAME + "\r\nStrict-Transport-Security: max-age=31536000; includeSubDomains; preload\r\nContent-Length: $content_length\r\n\r\n" + data;
 											}
 											SocketSetBlocking(Socket.Socket, false);
@@ -1315,6 +1351,7 @@ class ConceptChild {
 													if (!file.Open())
 														delete file;
 												}
+
 												if ((this.TLS == 2) && (buf_len)) {
 													Socket.WritePrepare(buffer);
 													while ((Socket.WriteIterate()) || (file)) {
@@ -1358,13 +1395,11 @@ class ConceptChild {
 													}
 													if (written <= 0)
 														break;
-
 													buf_len -= written;
 													if (buf_len > 0)
 														buffer = SubStr(buffer, written, buf_len);
 													else
 														buffer = "";
-
 												}
 												if (file) {
 													file.Close();
@@ -1422,7 +1457,6 @@ class ConceptChild {
 							break;
 						}
 					}
-
 					var delta_ms = microseconds() - max_idle;
 					if (delta_ms > 0) {
 						Owner.Log(ip, "Protocol negotiation timed out (${delta_ms/1000}ms)");
@@ -1671,7 +1705,10 @@ class ConceptCGIChild {
 		if (running) {
 			try {
 				if (Socket.HasData) {
-					std_in_buffer += Socket.Read(MAX_RECV_BUFFER);
+					var buf = Socket.Read(MAX_RECV_BUFFER);
+					if (!buf)
+						return true;
+					std_in_buffer += buf;
 					ops ++;
 				}
 			} catch (var exc) {
@@ -1703,7 +1740,6 @@ class ConceptCGIChild {
 				}
 			} while (res > 0);
 		}
-
 		if ((Socket) && (std_out_buffer)) {
 			try {
 				res = Socket.Write(std_out_buffer);
@@ -1731,7 +1767,6 @@ class ConceptCGIChild {
 }
 
 class ConceptWorker {
-
 pragma used
 	protected var WorkerName;
 	protected var[] Children;

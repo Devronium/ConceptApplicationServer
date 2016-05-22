@@ -529,7 +529,7 @@ class TLSESocket extends TCPSocket {
 
 	public Save() {
 		if (!tls)
-			return "TLS not initialized";
+			return "";
 		return TLSEExport(tls);
 	}
 

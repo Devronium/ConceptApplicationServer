@@ -451,7 +451,20 @@ CONCEPT_FUNCTION_IMPL(TLSEExport, 1)
     if (size > 0) {
         RETURN_BUFFER((char *)buffer, size);
     } else {
-        RETURN_STRING("");
+        int new_size = sizeof(buffer) - size;
+        char *out;
+        CORE_NEW(new_size + 1, out);
+        if (out) {
+            size = tls_export_context(context, (unsigned char *)out, new_size, 1);
+            if (size > 0) {
+                SetVariable(RESULT, -1, out, size);
+            } else {
+                CORE_DELETE(out);
+                RETURN_STRING("");
+            }
+        } else {
+            RETURN_STRING("");
+        }
     }
 END_IMPL
 //------------------------------------------------------------------------

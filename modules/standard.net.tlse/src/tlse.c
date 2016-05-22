@@ -6078,8 +6078,9 @@ int tls_export_context(struct TLSContext *context, unsigned char *buffer, unsign
     unsigned int size = packet->len;
     if ((buffer) && (buf_len)) {
         if (size > buf_len) {
+            tls_destroy_packet(packet);
             DEBUG_PRINT("EXPORT BUFFER TO SMALL\n");
-            return -1;
+            return (int)buf_len - (int)size;
         }
         memcpy(buffer, packet->buf, size);
     }
