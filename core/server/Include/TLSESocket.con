@@ -70,6 +70,7 @@ class TLSESocket extends TCPSocket {
 		return TLSESetExportable(tls);
 	}
 
+
 	public HandshakeIterate() {
 		if (Socket<=0)
 			throw "Invalid TLS socket (HandshakeIterate)";
@@ -80,6 +81,9 @@ class TLSESocket extends TCPSocket {
 		var established = TLSEstablished(child_tls);
 		if (established < 0)
 			throw "Broken socket (Handshake)";
+
+		this.WritePending();
+
 		if (SocketHasData(socket)) {
 			var res = SocketRead(socket, var buffer, 0xFFFF);
 			if (res <= 0)
@@ -87,23 +91,9 @@ class TLSESocket extends TCPSocket {
 
 			if (res > 0) {
 				res = TLSEConsume(child_tls, buffer);
-				if (res >= 0) {
-					do {
-						buffer = TLSEPending(child_tls);
-						if (buffer) {
-							res = SocketWrite(socket, buffer);
-							if (res > 0)
-								TLSESent(child_tls, res);
-							if (res <= 0) {
-								var err = SocketErrno();
-								if ((err != 11) && (err != 35) && (err != 10035))
-									throw "Broken socket (Handshake)";
-							}
-						}
-					} while (buffer);
-				}
 				if (res < 0)
 					throw "Broken socket (Handshake)";
+				this.WritePending();
 			}
 			established = TLSEstablished(child_tls);
 		}
