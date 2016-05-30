@@ -1243,8 +1243,8 @@ class ConceptChild {
 											if (FileExists(app + "index.csp")) {
 												content_type = "application/concept-server-page";
 												app += "index.csp";
-											} else
-											if (FileExists(app + "index.html")) {
+											} else {
+												// if (FileExists(app + "index.html")) {
 												content_type = "text/html";
 												app += "index.html";
 											}

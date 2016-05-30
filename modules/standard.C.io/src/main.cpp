@@ -2327,7 +2327,11 @@ CONCEPT_DLL_API CONCEPT__filesize CONCEPT_API_PARAMETERS {
     struct stat buf;
     int         res = stat(szParam0, &buf);
     if (!res) {
-        RETURN_NUMBER(buf.st_size);
+        if (S_ISDIR(buf.st_mode)) {
+            RETURN_NUMBER(0);
+        } else {
+            RETURN_NUMBER(buf.st_size);
+        }
     } else {
         RETURN_NUMBER(-1);
     }
