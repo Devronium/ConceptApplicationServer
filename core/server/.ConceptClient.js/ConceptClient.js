@@ -2633,6 +2633,11 @@ function ConceptClient(url, container, loading, absolute_paths, debug) {
 						}, 1);
 				}
 				console.log("UI loading time: " + ((new Date().getTime() - this.StartTime)/1000) + " seconds");
+				if ("sessionStorage" in window) {
+					var sessionid = getCookie("_s");
+					if (sessionid)
+						window.sessionStorage.setItem("_s", sessionid);
+				}
 				break;
 			case MSG_SAVE_FILE:
 				var re = /(?:\.([^.]+))?$/;
@@ -7741,7 +7746,7 @@ function ConceptClient(url, container, loading, absolute_paths, debug) {
 					for (var i = 0; i < channels; i++)
 						output.push(audioProcessingEvent.inputBuffer.getChannelData(i));
 
-					audioContext.ConceptBufferFull(self.AdjustSampleRate(output, audioContext.sampleRate, audioContext.ConceptSampleRate, audioContext, 0, false), 2);
+					audioContext.ConceptBufferFull(self.AdjustSampleRate(output, audioContext.ref.sampleRate, audioContext.ConceptSampleRate, audioContext, 0, false), 2);
 				}
 				if ((self.InAudioContext) && (self.InAudioContext.ConceptAudioPair))
 					self.InAudioContext.ConceptAudioPair.ConceptProcess(audioProcessingEvent);
@@ -9347,6 +9352,9 @@ function ConceptClient(url, container, loading, absolute_paths, debug) {
 							this.MediaVideo = true;
 							var control = element.ConceptPreviewControl;
 							this.MediaListeners.push(function(stream) {
+									if (window.URL)
+										control.src = window.URL.createObjectURL(stream);
+									else
 									if (navigator.webkitGetUserMedia)
 										control.src = window.webkitURL.createObjectURL(stream);
 									else
@@ -9438,7 +9446,7 @@ function ConceptClient(url, container, loading, absolute_paths, debug) {
 						}
 					}
 					if (!element.ConceptSampleRate)
-						element.ConceptSampleRate = element.sampleRate;
+						element.ConceptSampleRate = element.ref.sampleRate;
 					if (!element.ConceptChannels)
 						element.ConceptChannels = 1;
 
@@ -9453,7 +9461,7 @@ function ConceptClient(url, container, loading, absolute_paths, debug) {
 									if ((element.ConceptMaxBuffers) && (element.ConceptMaxBuffers > 0) && (element.ConceptMaxBuffers.length > element.ConceptMaxBuffers))
 										element.ConceptBuffers = [];
 
-									element.ConceptBuffers.push(self.AdjustSampleRate(e.data, element.ConceptSampleRate, element.sampleRate, element, element.ConceptCompression, true));
+									element.ConceptBuffers.push(self.AdjustSampleRate(e.data, element.ConceptSampleRate, element.ref.sampleRate, element, element.ConceptCompression, true));
 								}
 							}
 						}
@@ -9471,7 +9479,7 @@ function ConceptClient(url, container, loading, absolute_paths, debug) {
 						if ((element.ConceptMaxBuffers) && (element.ConceptMaxBuffers > 0) && (element.ConceptMaxBuffers.length > element.ConceptMaxBuffers))
 							element.ConceptBuffers = [];
 
-						element.ConceptBuffers.push(this.AdjustSampleRate(buf, element.ConceptSampleRate, element.sampleRate, element, element.ConceptCompression, true));
+						element.ConceptBuffers.push(this.AdjustSampleRate(buf, element.ConceptSampleRate, element.ref.sampleRate, element, element.ConceptCompression, true));
 					}
 				} else
 				if (cls_id == 1017)
@@ -11991,6 +11999,8 @@ function ConceptClient(url, container, loading, absolute_paths, debug) {
 
 				if (navigator.getUserMedia) { 
 					navigator.getUserMedia(videoObj, function(stream) {
+							if (window.URL)
+								control.src = window.URL.createObjectURL(stream);
 							if (navigator.webkitGetUserMedia)
 								control.src = window.webkitURL.createObjectURL(stream);
 							else
