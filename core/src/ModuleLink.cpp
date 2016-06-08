@@ -1482,7 +1482,7 @@ INTEGER Invoke(INTEGER INVOKE_TYPE, ...) {
         case INVOKE_GET_PROTO_SOCKET:
             {
                 PIFAlizator *PIF = va_arg(ap, PIFAlizator *);
-                if ((PIF->direct_pipe > 0) && (eof(PIF->direct_pipe) == 0)) {
+                if ((PIF) && (PIF->direct_pipe > 0) && (eof(PIF->direct_pipe) == 0)) {
 #ifdef _WIN32
                     long new_sock = 0;
                     if (read(PIF->direct_pipe, &new_sock, sizeof(new_sock)) == sizeof(new_sock)) {
@@ -1497,6 +1497,16 @@ INTEGER Invoke(INTEGER INVOKE_TYPE, ...) {
                     }
                 }
                 result = PIF->out->sock;
+            }
+            break;
+
+        case INVOKE_GET_DIRECT_PIPE:
+            {
+                PIFAlizator *PIF = va_arg(ap, PIFAlizator *);
+                if (PIF)
+                    result = PIF->direct_pipe;
+                else
+                    result = -1;
             }
             break;
 

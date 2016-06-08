@@ -17,7 +17,7 @@ import standard.lib.cripto
 import standard.math.rand
 import standard.coding.base64
 
-define WS_SESSION_RESTORE	false
+define WS_SESSION_RESTORE	true
 
 define MAX_RECV_BUFFER		0xFFFF
 define READ_BUFFER		0xFFFFF
@@ -219,6 +219,8 @@ class ConceptChild {
 				if (child.DirectPipe>0) {
 					var size = DescriptorWrite(child.DirectPipe, this.Socket.Socket, child.UsingPID);
 					if (size > 0) {
+						// no tls key
+						// write(child.DirectPipe, "\0\0\0\0");
 						var prev_socket = child.Socket;
 						child.Socket = this.Socket;
 						this.WriteExact("1\r\n", false, true);
@@ -240,13 +242,27 @@ class ConceptChild {
 	}
 
 	RestoreWS_Step2(child) {
-		if ((child) && (child.DirectPipe > 0)) {
+		if ((child) && (child.DirectPipe > 0) && (classof child.Socket == classof this.Socket)) {
 			var size = DescriptorWrite(child.DirectPipe, this.Socket.Socket, child.UsingPID);
 			if (size > 0) {
+				var buf = "";
+				var tls_buf = "";
+				if ((TLS) && (classof this.Socket == "TLSESocket"))
+				 	tls_buf = this.Socket.Save();
+
+				buf = pack("U32", length tls_buf) + tls_buf;
+
+				while (buf) {
+					var written = write(child.DirectPipe, buf);
+					if (written <= 0) {
+						echo "Error in DirectPipe write\n";
+						return false;
+					}
+
+					buf = SubStr(buf, written);
+				}
 				var prev_socket = child.Socket;
-
 				child.Socket = this.Socket;
-
 				this.Socket = prev_socket;
 				return true;
 			}
@@ -897,7 +913,7 @@ class ConceptChild {
 		return "";
 	}
 
-	ParseHeader(header, var ws, var ws_key, var origin, var host, var session_to_restore, var if_modified, var keep_alive, var parent, var debug, var content_length) {
+	ParseHeader(header, var ws, var ws_key, var origin, var host, var session_to_restore, var if_modified, var keep_alive, var parent, var debug, var content_length, var protocol) {
 		var len = length header;
 		content_length = 0;
 		if (len > MAX_HEADER_PARAMETERS)
@@ -976,7 +992,8 @@ class ConceptChild {
 							keep_alive = false;
 						break;
 					case "sec-websocket-protocol":
-						var proto_description = StrSplit(ToLower("" + arr[1]), "_", true);
+						protocol = trim(ToLower("" + arr[1]));
+						var proto_description = StrSplit(protocol, "_", true);
 						if (proto_description) {
 							parent = value proto_description[0];
 							debug = value proto_description[1];
@@ -1076,18 +1093,19 @@ class ConceptChild {
 							var origin="";
 							var session_to_restore="";
 							var parent=-1;
-							var done = true;
-							var if_modified = "";
-							var keep_alive = false;
-							var debug = false;
-							var in_content_length = 0;
+							var done=true;
+							var if_modified="";
+							var keep_alive=false;
+							var debug=false;
+							var in_content_length=0;
+							var protocol="";
 							if (len) {
 								var line=StrSplit(header[0], " ");
 								if (length line > 1) {
 									var method=ToUpper(line[0]);
 									app=URIDecode(line[1]);
 									if ((method=="GET") || (method == "POST") || (method == "PUT"))
-										ParseHeader(header, ws, ws_key, origin, host, session_to_restore, if_modified, keep_alive, parent, debug, in_content_length);
+										ParseHeader(header, ws, ws_key, origin, host, session_to_restore, if_modified, keep_alive, parent, debug, in_content_length, protocol);
 								}
 							}
 							/*var content_offset = pos + 4;
@@ -1124,35 +1142,42 @@ class ConceptChild {
 
 								var sess = "";
 								var sessChild = null;
-								if ((session_to_restore) && (WS_SESSION_RESTORE)) {
+								var sessChildError = false;
+								// limit session restore to https
+								if ((session_to_restore) && (WS_SESSION_RESTORE) && (TLS) && (protocol=="restore")) {
 									sessChild = RestoreWS_Step1(session_to_restore);
-									// generare a new session id (safer)
-									if (sessChild)
-										sess = this.GenerateSession(session_to_restore);
+									if (!sessChild)
+										sessChildError = true;
 								}
-
-								if (!sess) {
-									sess = this.GenerateSession();
-									this.Session = sess;
-									if (parent > 0)
-										this.Parent = parent;
-								}
-								extra_header += "Set-Cookie: _s=$sess; Expires=$expires\r\n";
-								if (sessChild)
-									extra_header += "Concept-Replace: $session_to_restore;\r\n";
-
-								var header_response="HTTP/1.1 101 Web Socket Protocol Handshake\r\n${extra_header}Connection: Upgrade\r\nDate: $tstamp\r\nSec-WebSocket-Accept: $ret_key\r\nServer: " + SERVER_NAME + "\r\nUpgrade: websocket\r\nConcept-Session: ${this.Session}\r\n\r\n";
-								if (length header_response > MAX_WS_HEADER) {
+								if (sessChildError) {
+									var header_response="HTTP/1.1 403 Forbidden\r\nServer: " + SERVER_NAME + "\r\n\r\n";
+									WriteExact(header_response);
 									step=4;
 									done=true;
-								} else
-								if (WriteExact(header_response)==length header_response) {
-									if ((sessChild) && (RestoreWS_Step2(sessChild))) {
+								} else {
+									if (!sess) {
+										sess = this.GenerateSession();
+										this.Session = sess;
+										if (parent > 0)
+											this.Parent = parent;
+									}
+									extra_header += "Set-Cookie: _s=$sess;Expires=$expires\r\n";
+									if (sessChild)
+										extra_header += "Concept-Replace: $session_to_restore;\r\n";
+
+									header_response="HTTP/1.1 101 Web Socket Protocol Handshake\r\n${extra_header}Connection: Upgrade\r\nDate: $tstamp\r\nSec-WebSocket-Accept: $ret_key\r\nServer: " + SERVER_NAME + "\r\nUpgrade: websocket\r\nConcept-Session: ${this.Session}\r\n\r\n";
+									if (length header_response > MAX_WS_HEADER) {
 										step=4;
 										done=true;
-									} else {
-										this.RunApplication(app, step, "", "", "", debug, true);
-										done=true;
+									} else
+									if (WriteExact(header_response)==length header_response) {
+										if ((sessChild) && (RestoreWS_Step2(sessChild))) {
+											step=4;
+											done=true;
+										} else {
+											this.RunApplication(app, step, "", "", "", debug, true);
+											done=true;
+										}
 									}
 								}
 							} else

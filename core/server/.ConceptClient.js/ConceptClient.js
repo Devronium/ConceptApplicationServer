@@ -1976,50 +1976,69 @@ function ConceptClient(url, container, loading, absolute_paths, debug) {
 
 	this.URL = url;
 
-	if (debug)
-		this.ConceptSocket = new WebSocket(url, debug);
-	else
-		this.ConceptSocket = new WebSocket(url);
-	this.ConceptSocket.binaryType = "arraybuffer";
-	this.ConceptSocket.onopen = function() {
-		self.Connected = true;
-	};
+	this.CreateSocket = function(url, debug, restore) {
+		if (debug)
+			this.ConceptSocket = new WebSocket(url, debug);
+		else
+		if (restore)
+			this.ConceptSocket = new WebSocket(url, "restore");
+		else
+			this.ConceptSocket = new WebSocket(url);
 
-	this.ConceptSocket.onerror = function(evt) {
-		if (self.Container)
-			self.Container.style.display = "none";
+		this.ConceptSocket.binaryType = "arraybuffer";
+		this.ConceptSocket.onopen = function() {
+			self.Connected = true;
+		};
 
-		if (self.Connected) {
-			if (self.LoadingContainer)
-				self.LoadingContainer.style.display = "block";
-
-			self.NotifyLoading("[application closed]");
-		} else {
-			if ((evt) && (evt.data))
-				self.NotifyLoading("error connecting to the server [" + evt.data + "]");
-			else
-				self.NotifyLoading("error connecting to the server");
-		}
-		self.Connected = false;
-		self.MainForm = null;
-		if (self.MediaObject) {
-			self.MediaObject.stop();
-			delete self.MediaObject;
-		}
-		self.TerminateWorkers();
-	};
-
-	this.ConceptSocket.onclose = function() {
-		if (self.Connected) {
+		this.ConceptSocket.onerror = function(evt) {
 			if (self.Container)
 				self.Container.style.display = "none";
-			if (self.LoadingContainer)
-				self.LoadingContainer.style.display = "block";
 
-			self.NotifyLoading("[application closed]");
-		}
-		self.MainForm = null;
+			if (self.Connected) {
+				if (self.LoadingContainer)
+					self.LoadingContainer.style.display = "block";
+
+				self.NotifyLoading("[application closed]");
+			} else {
+				if ((evt) && (evt.data))
+					self.NotifyLoading("error connecting to the server [" + evt.data + "]");
+				else
+					self.NotifyLoading("error connecting to the server");
+			}
+			self.Connected = false;
+			self.MainForm = null;
+			if (self.MediaObject) {
+				self.MediaObject.stop();
+				delete self.MediaObject;
+			}
+			self.TerminateWorkers();
+		};
+
+		this.ConceptSocket.onclose = function() {
+			if (self.Connected) {
+				if (self.Container)
+					self.Container.style.display = "none";
+				if (self.LoadingContainer)
+					self.LoadingContainer.style.display = "block";
+
+				self.NotifyLoading("[application closed]");
+			}
+			self.MainForm = null;
+		};
+
+		this.ConceptSocket.onmessage = function(evt) {
+			if (evt.data instanceof ArrayBuffer) {
+				self.ParseResponse(evt.data);
+			} else {
+				var fileReader = new FileReader();
+				fileReader.onload = function() {
+					self.ParseResponse(this.result);
+				};
+				fileReader.readAsArrayBuffer(evt.data);
+			}
+		};
 	};
+	this.CreateSocket(url, debug, false);
 
 	window.addEventListener("resize", function() {
 		self.UpdateScrolledWindowSize(1);
@@ -2419,18 +2438,6 @@ function ConceptClient(url, container, loading, absolute_paths, debug) {
 			self.CONCEPT_CALLBACK(sender, msg_id, target, val, /*this.*/result.slice(val_index), self.SendMessage);
 	}
 
-	this.ConceptSocket.onmessage = function(evt) {
-		if (evt.data instanceof ArrayBuffer) {
-			self.ParseResponse(evt.data);
-		} else {
-			var fileReader = new FileReader();
-			fileReader.onload = function() {
-				self.ParseResponse(this.result);
-			};
-			fileReader.readAsArrayBuffer(evt.data);
-		}
-	}
-
 	this.SendMessage = function(sender, msg_id, target, val, is_buffer) {
 		var size = sender.length + target.length + 7;
 		var max = 0;
@@ -2633,11 +2640,6 @@ function ConceptClient(url, container, loading, absolute_paths, debug) {
 						}, 1);
 				}
 				console.log("UI loading time: " + ((new Date().getTime() - this.StartTime)/1000) + " seconds");
-				if ("sessionStorage" in window) {
-					var sessionid = getCookie("_s");
-					if (sessionid)
-						window.sessionStorage.setItem("_s", sessionid);
-				}
 				break;
 			case MSG_SAVE_FILE:
 				var re = /(?:\.([^.]+))?$/;

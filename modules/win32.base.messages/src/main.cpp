@@ -88,7 +88,7 @@ int is_writeable(int fd) {
             SetVariable(RESULT, VARIABLE_NUMBER, "", 1);                                        \
             ResetConceptPeer(mc, new_socket);                                                   \
             UpdateTLSSocket(mc, new_socket);                                                    \
-            mc->ConnectionChanged(Invoke);                                                      \
+            mc->ConnectionChanged(Invoke, new_socket);                                          \
             return 0;                                                                           \
         }                                                                                       \
     }
@@ -107,7 +107,7 @@ int is_writeable(int fd) {
         SetVariable(RESULT, VARIABLE_NUMBER, "", 1);                                        \
         ResetConceptPeer(mc, new_socket);                                                   \
         UpdateTLSSocket(mc, new_socket);                                                    \
-        mc->ConnectionChanged(Invoke);                                                      \
+        mc->ConnectionChanged(Invoke, new_socket);                                          \
         return 0;                                                                           \
     }                                                                                       \
 
@@ -115,7 +115,7 @@ int is_writeable(int fd) {
     MetaContainer * mc = NULL;                                                           \
     Invoke(INVOKE_GETPROTODATA, PARAMETERS->HANDLER, (int)0, &mc);                       \
     if (!mc) {                                                                           \
-        mc = new MetaContainer(REMOTE_PUBLIC_KEY, CLIENT_SOCKET);                        \
+        mc = new MetaContainer(REMOTE_PUBLIC_KEY, CLIENT_SOCKET, Invoke(INVOKE_GET_DIRECT_PIPE, PARAMETERS->HANDLER));\
         Invoke(INVOKE_SETPROTODATA, PARAMETERS->HANDLER, (int)0, mc, destroy_metadata);  \
         /*if ((REMOTE_PUBLIC_KEY) && (REMOTE_PUBLIC_KEY[0]))                          */ \
         /*    RestoreSession(mc, CLIENT_SOCKET, REMOTE_PUBLIC_KEY);                   */ \
@@ -127,7 +127,7 @@ int is_writeable(int fd) {
     if (!mc) {                                                                                        \
         char *REMOTE_PUBLIC_KEY = NULL;                                                               \
         LocalInvoker(INVOKE_GET_KEYS, handler, (char **)NULL, (char **)NULL, &REMOTE_PUBLIC_KEY);     \
-        mc = new MetaContainer(REMOTE_PUBLIC_KEY, CLIENT_SOCKET);                                     \
+        mc = new MetaContainer(REMOTE_PUBLIC_KEY, CLIENT_SOCKET, LocalInvoker(INVOKE_GET_DIRECT_PIPE, handler));\
         LocalInvoker(INVOKE_SETPROTODATA, handler, (int)0, mc, destroy_metadata);                     \
         /*    RestoreSession(mc, CLIENT_SOCKET, REMOTE_PUBLIC_KEY);                   */              \
     }
@@ -228,6 +228,7 @@ public:
     int  cached_size;
     int  alloc_cached_size;
     int  RTSOCKET;
+    int  direct_pipe;
     struct sockaddr_storage remote_conceptaddr;
     struct sockaddr_storage remote_conceptudpaddr;
     socklen_t   remote_len;
@@ -264,7 +265,7 @@ public:
 
     void *ConnectionChangedDelegate;
 
-    MetaContainer(const char *REMOTE_PUBLIC_KEY, int socket) {
+    MetaContainer(const char *REMOTE_PUBLIC_KEY, int socket, int direct_pipe) {
 #ifndef NOSSL
         sslctx = NULL;
         ssl    = NULL;
@@ -316,6 +317,7 @@ public:
         rt_in           = 0;
         rt_out          = 0;
         rt_send_enabled = 1;
+        this->direct_pipe = direct_pipe;
     }
 
     void ResetSocket(int socket) {
@@ -353,7 +355,7 @@ public:
         return 1;
     }
 
-    void ConnectionChanged(INVOKE_CALL Invoke) {
+    void ConnectionChanged(INVOKE_CALL Invoke, int new_socket) {
         if (ConnectionChangedDelegate) {
             void *RES       = NULL;
             void *EXCEPTION = NULL;
@@ -363,6 +365,8 @@ public:
             if (RES)
                 Invoke(INVOKE_FREE_VARIABLE, RES);
         }
+        
+        this->LoadNewContextFromPipe(new_socket);
     }
 
     void RemoveLooper(int pos, INVOKE_CALL Invoke) {
@@ -395,6 +399,60 @@ public:
                 }
             }
         }
+    }
+
+#ifndef WITH_OPENSSL
+    int LoadNewContext(int socket, unsigned char *ptr, int size) {
+        if ((ref_isWebSocket) && (ptr) && (size > 0)) {
+            if (ssl)
+                SSL_free(ssl);
+
+            ssl = tls_import_context(ptr, size);
+            if (ssl) {
+                SSL_set_fd(ssl, socket);
+                return 0;
+            }
+        }
+        return -1;
+    }
+#endif
+
+    int LoadNewContextFromPipe(int socket) {
+        if ((ref_isWebSocket) && (direct_pipe > 0)) {
+            int size = 0;
+            if (read(direct_pipe, &size, sizeof(int)) != sizeof(int))
+                return -1;
+#ifndef WITH_OPENSSL
+            size = ntohl(size);
+
+            if ((size > 0) && (size < 0x7FFFF)) {
+                unsigned char *ptr = (unsigned char *)malloc(size);
+                if (ptr) {
+                    int rem = size;
+                    int processed = 0;
+                    unsigned char *ptr_pos = ptr;
+                    do {
+                        processed = read(direct_pipe, ptr_pos, rem);
+                        if (processed > 0) {
+                            rem -= processed;
+                            ptr_pos += processed;
+                            if (rem <= 0)
+                                break;
+                        }
+                    } while (processed > 0);
+
+                    int res = -1;
+                    if (processed > 0)
+                        res = LoadNewContext(socket, ptr, size);
+
+                    free(ptr);
+                    return res;
+                }
+            } else
+#endif
+                return 0;
+        }
+        return -2;
     }
 
     ~MetaContainer() {
@@ -2247,7 +2305,7 @@ CONCEPT_DLL_API CONCEPT_wait_message_ID CONCEPT_API_PARAMETERS {
             ResetConceptPeer(mc, new_socket);
             UpdateTLSSocket(mc, new_socket);
             mc->send_failed = 0;
-            mc->ConnectionChanged(Invoke);
+            mc->ConnectionChanged(Invoke, new_socket);
         }
     }
     if (mc->is_cached)
@@ -2826,7 +2884,7 @@ CONCEPT_DLL_API CONCEPT_get_message CONCEPT_API_PARAMETERS {
             UpdateTLSSocket(mc, new_socket);
             mc->send_failed = 0;
             mc->echo_sent   = 0;
-            mc->ConnectionChanged(Invoke);
+            mc->ConnectionChanged(Invoke, new_socket);
         } else
         if (mc->send_failed) {
             SetVariable(LOCAL_CONTEXT[PARAMETERS->PARAM_INDEX[1] - 1], VARIABLE_NUMBER, "", 0x500);
@@ -3009,7 +3067,7 @@ CONCEPT_DLL_API CONCEPT_get_message CONCEPT_API_PARAMETERS {
                     ResetConceptPeer(mc, new_socket);
                     UpdateTLSSocket(mc, new_socket);
                     mc->send_failed = 0;
-                    mc->ConnectionChanged(Invoke);
+                    mc->ConnectionChanged(Invoke, new_socket);
                 }
 
                 if ((mc->event_timeout > 0) && (mc->last_msg_seconds)) {
@@ -5778,7 +5836,7 @@ CONCEPT_FUNCTION_IMPL(HasNewProtoSocket, 0)
         mc->send_failed = 0;
         mc->echo_sent   = 0;
         mc->force_exit  = 0;
-        mc->ConnectionChanged(Invoke);
+        mc->ConnectionChanged(Invoke, new_socket);
         RETURN_NUMBER(1)
     } else {
         RETURN_NUMBER(0)
