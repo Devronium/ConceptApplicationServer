@@ -1952,6 +1952,9 @@ function ConceptClient(url, container, loading, absolute_paths, debug) {
 	this.InAudioContext = null;
 	this.LastAudioLevel = 0;
 	this.LastAudioLevel_tail = 0;
+	this.Debug = debug;
+	this.ReconnectCount = 0;
+	this.CleanClose = true;
 
 	if (navigator.userAgent.toLowerCase().indexOf("trident") != -1)
 		this.isIE = true;
@@ -1988,9 +1991,18 @@ function ConceptClient(url, container, loading, absolute_paths, debug) {
 		this.ConceptSocket.binaryType = "arraybuffer";
 		this.ConceptSocket.onopen = function() {
 			self.Connected = true;
+			if (self.ReconnectCount > 0) {
+				self.ReconnectCount = 0;
+				console.log("Session restored");
+				self.Container.disabled = false;
+				self.Alerts.style.display = "none";
+			}
 		};
 
 		this.ConceptSocket.onerror = function(evt) {
+			if (!self.CleanClose)
+				return;
+
 			if (self.Container)
 				self.Container.style.display = "none";
 
@@ -2014,7 +2026,13 @@ function ConceptClient(url, container, loading, absolute_paths, debug) {
 			self.TerminateWorkers();
 		};
 
-		this.ConceptSocket.onclose = function() {
+		this.ConceptSocket.onclose = function(evt) {
+			if (!self.CleanClose) {
+				if (self.ReconnectCount <= 10) {
+					self.ReconnectWithTimeout(1000);
+					return;
+				}
+			}
 			if (self.Connected) {
 				if (self.Container)
 					self.Container.style.display = "none";
@@ -2038,6 +2056,24 @@ function ConceptClient(url, container, loading, absolute_paths, debug) {
 			}
 		};
 	};
+
+	this.Reconnect = function() {
+		if ((this.URL) && (!this.Debug)) {
+			this.Container.disabled = true;
+			this.ReconnectCount++;
+			console.log("Reconnect attempt #" + this.ReconnectCount);
+			this.AlertsLabel.innerHTML = "&#x1f4e1; Connection lost. Reconnecting (#" + this.ReconnectCount + ")";
+			this.Alerts.style.display = "block";
+			this.CreateSocket(url, this.Debug, true);
+		}
+	};
+
+	this.ReconnectWithTimeout = function(timeout) {
+		setTimeout(function() {
+			self.Reconnect();
+		}, timeout);
+	};
+
 	this.CreateSocket(url, debug, false);
 
 	window.addEventListener("resize", function() {
@@ -2439,6 +2475,14 @@ function ConceptClient(url, container, loading, absolute_paths, debug) {
 	}
 
 	this.SendMessage = function(sender, msg_id, target, val, is_buffer) {
+		if (!self.Connected) {
+			console.warn('ConceptClient is not connected');
+			return;
+		} else
+		if (self.ReconnectCount > 0) {
+			console.warn('ConceptClient is trying to reconnect ...');
+			return;
+		}
 		var size = sender.length + target.length + 7;
 		var max = 0;
 		if (is_buffer >= 2) {
@@ -2629,6 +2673,7 @@ function ConceptClient(url, container, loading, absolute_paths, debug) {
 					this.MainForm.style.display = "";//this.MainForm.getAttribute("OrigDisplay");
 					this.MainForm.style.height = "100%";
 					this.MainForm.style.width = "100%";
+					this.CleanClose = false;
 				}
 				if (this.PendingCode) {
 						setTimeout(function() {
@@ -3020,6 +3065,7 @@ function ConceptClient(url, container, loading, absolute_paths, debug) {
 					self.Container.style.display = "block";
 				self.MainForm = null;
 				self.NotifyLoading("Done");
+				self.CleanClose = true;
 				self.ConceptSocket.close();
 				if (this.MediaObject) {
 					this.MediaObject.stop();
@@ -8154,6 +8200,7 @@ function ConceptClient(url, container, loading, absolute_paths, debug) {
 						if (self.LoadingContainer)
 							self.Container.style.display = "block";
 						self.MainForm = null;
+						self.CleanClose = true;
 						self.NotifyLoading("Done");
 						self.ConceptSocket.close();
 					}
