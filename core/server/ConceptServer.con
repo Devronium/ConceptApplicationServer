@@ -1144,8 +1144,9 @@ class ConceptChild {
 								var sessChild = null;
 								var sessChildError = false;
 								// limit session restore to https
-								if ((session_to_restore) && (WS_SESSION_RESTORE) && (TLS) && (protocol=="restore")) {
-									sessChild = RestoreWS_Step1(session_to_restore);
+								if ((session_to_restore) && (WS_SESSION_RESTORE) && (protocol=="restore")) {
+									if (TLS)
+										sessChild = RestoreWS_Step1(session_to_restore);
 									if (!sessChild)
 										sessChildError = true;
 								}
