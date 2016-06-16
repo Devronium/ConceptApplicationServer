@@ -1108,7 +1108,7 @@ class ConceptChild {
 										ParseHeader(header, ws, ws_key, origin, host, session_to_restore, if_modified, keep_alive, parent, debug, in_content_length, protocol);
 								}
 							}
-							/*var content_offset = pos + 4;
+							var content_offset = pos + 4;
 							if (in_content_length) {
 								if (in_content_length < 0) {
 									// content is chunked
@@ -1123,7 +1123,7 @@ class ConceptChild {
 							} else {
 								remainder = SubStr(received_data, content_offset);
 								received_data = SubStr(received_data, 0, content_offset);
-							}*/
+							}
 							var orig_app = app;
 							if ((ws) && (ws_key)) {
 								var ret_key=WebSocket::AcceptKey(ws_key);
@@ -1319,7 +1319,7 @@ class ConceptChild {
 												skip_content = true;
 											} else
 											if ((!is_root) && (if_modified == last_mod)) {
-												buffer = "HTTP/1.1 304 Not Modified\r\nDate: $tstamp\r\nConnection: $connection_policy\r\nContent-Type: $content_type\r\nCache-Control: max-age=86400\r\nLast-Modified: $last_mod\r\nServer: " + SERVER_NAME + "\r\n\r\n";
+												buffer = "HTTP/1.1 304 Not Modified\r\nDate: $tstamp\r\nConnection: $connection_policy\r\nContent-Type: $content_type\r\nCache-Control: max-age=31536000\r\nLast-Modified: $last_mod\r\nServer: " + SERVER_NAME + "\r\n\r\n";
 												skip_content = true;
 											} else {
 												if (is_root) {
@@ -1341,7 +1341,7 @@ class ConceptChild {
 												} else {
 													content_length = _filesize(app);
 												}
-												buffer = "HTTP/1.1 200 OK\r\nDate: $tstamp\r\nConnection: $connection_policy\r\nContent-Type: $content_type\r\nCache-Control: max-age=86400\r\nLast-Modified: $last_mod\r\nServer: " + SERVER_NAME + "\r\nStrict-Transport-Security: max-age=31536000; includeSubDomains; preload\r\nContent-Length: $content_length\r\n\r\n" + data;
+												buffer = "HTTP/1.1 200 OK\r\nDate: $tstamp\r\nConnection: $connection_policy\r\nContent-Type: $content_type\r\nCache-Control: max-age=31536000\r\nLast-Modified: $last_mod\r\nServer: " + SERVER_NAME + "\r\nStrict-Transport-Security: max-age=31536000; includeSubDomains; preload\r\nContent-Length: $content_length\r\n\r\n" + data;
 											}
 											SocketSetBlocking(Socket.Socket, false);
 											var buf_len = length buffer;
