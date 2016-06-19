@@ -16,6 +16,12 @@
  #include <ws2tcpip.h>
  #include <map>
 
+#ifndef IPPROTO_SCTP
+    #define IPPROTO_SCTP    132
+#endif
+
+#define WITHOUT_LIBSCTP
+
 std::map<SYS_INT, int> UnixSocketEmulation;
 const char *inet_ntop(int af, const void *src, char *dst, socklen_t cnt) {
     if (af == AF_INET) {
@@ -157,6 +163,9 @@ int getdomainname(char *const domain, unsigned int dsize) {
  #include <signal.h>
  #include <errno.h>
  #include <fcntl.h>
+ #ifndef WITHOUT_LIBSCTP
+    #include <netinet/sctp.h>
+ #endif
 
  #define INVALID_SOCKET    -1
 
@@ -170,6 +179,12 @@ int getdomainname(char *const domain, unsigned int dsize) {
 #ifndef IPV6_V6ONLY
  #define IPV6_V6ONLY    27
 #endif
+
+#define COPY_MEMBER(arr, events, eventname, member_type) \
+    Invoke(INVOKE_GET_ARRAY_ELEMENT_BY_KEY, arr, #eventname, &type, &str, &nr); \
+    if (type == VARIABLE_NUMBER) \
+        events->eventname = (member_type)nr;
+
 //=====================================================================================//
 #ifdef _WIN32
  #   if defined (EWOULDBLOCK) && (EWOULDBLOCK != WSAEWOULDBLOCK)
@@ -409,6 +424,7 @@ int getdomainname(char *const domain, unsigned int dsize) {
  #define POLLNVAL    0x0020
 #endif
 
+
 CONCEPT_DLL_API ON_CREATE_CONTEXT MANAGEMENT_PARAMETERS {
 #ifdef _WIN32
     WSADATA wsaData;
@@ -422,6 +438,8 @@ CONCEPT_DLL_API ON_CREATE_CONTEXT MANAGEMENT_PARAMETERS {
     Invoke(INVOKE_DEFINE_CONSTANT, HANDLER, "PROTOCOL_UDP", "1");
     Invoke(INVOKE_DEFINE_CONSTANT, HANDLER, "PROTOCOL_UNIX", "2");
     Invoke(INVOKE_DEFINE_CONSTANT, HANDLER, "PROTOCOL_UNIXDGRAM", "3");
+    Invoke(INVOKE_DEFINE_CONSTANT, HANDLER, "PROTOCOL_SCTP", "4");
+    Invoke(INVOKE_DEFINE_CONSTANT, HANDLER, "PROTOCOL_SCTP_SEQPACKET", "5");
 
     DEFINE_ECONSTANT(WS_ERROR_FRAME)
     DEFINE_ECONSTANT(WS_INCOMPLETE_FRAME)
@@ -511,6 +529,15 @@ CONCEPT_DLL_API ON_CREATE_CONTEXT MANAGEMENT_PARAMETERS {
     DEFINE_ECONSTANT(POLLERR)
     DEFINE_ECONSTANT(POLLHUP)
     DEFINE_ECONSTANT(POLLNVAL)
+
+#ifndef WITHOUT_LIBSCTP
+    DEFINE_ICONSTANT("SCTP_UNORDERED", SCTP_UNORDERED)
+    DEFINE_ICONSTANT("SCTP_ABORT", SCTP_ABORT)
+    DEFINE_ICONSTANT("SCTP_EOF", SCTP_EOF)
+#endif
+#ifdef MSG_NOSIGNAL
+    DEFINE_ECONSTANT(MSG_NOSIGNAL)
+#endif
     return 0;
 }
 //=====================================================================================//
@@ -565,7 +592,23 @@ CONCEPT_DLL_API CONCEPT_SocketCreate CONCEPT_API_PARAMETERS {
 #else
         sock = socket(PF_UNIX, SOCK_DGRAM, 0);
 #endif
+    } 
+#ifdef IPPROTO_SCTP
+    else
+    if ((int)type == 4) {
+        sock = socket(family, SOCK_STREAM, IPPROTO_SCTP);
+// #ifdef SCTP_LISTEN_FIX
+        // if (sock > 0) {
+        //    // apple fix?
+        //    const int on = 1;
+        //    setsockopt(sock, IPPROTO_SCTP, SCTP_LISTEN_FIX, &on, sizeof(int));
+        // }
+// #endif
+    } else
+    if ((int)type == 5) {
+        sock = socket(family, SOCK_SEQPACKET, IPPROTO_SCTP);
     }
+#endif
     if ((int)type == 0) {
         int flag = 1;
         setsockopt(sock,
@@ -2116,6 +2159,198 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(SocketPoll, 1, 3)
     }
     free(ufds);
 #endif
+    RETURN_NUMBER(res);
+END_IMPL
+//=====================================================================================//
+#ifndef WITHOUT_LIBSCTP
+void GetEvents(INVOKE_CALL Invoke, void *arr, struct sctp_event_subscribe *events) {
+    INTEGER type = 0;
+    char    *str = 0;
+    NUMBER  nr   = 0;
+
+    COPY_MEMBER(arr, events, sctp_data_io_event, unsigned char);
+    COPY_MEMBER(arr, events, sctp_association_event, unsigned char);
+    COPY_MEMBER(arr, events, sctp_address_event, unsigned char);
+    COPY_MEMBER(arr, events, sctp_send_failure_event, unsigned char);
+    COPY_MEMBER(arr, events, sctp_peer_error_event, unsigned char);
+    COPY_MEMBER(arr, events, sctp_shutdown_event, unsigned char);
+    COPY_MEMBER(arr, events, sctp_partial_delivery_event, unsigned char);
+    COPY_MEMBER(arr, events, sctp_adaptation_layer_event, unsigned char);
+    COPY_MEMBER(arr, events, sctp_authentication_event, unsigned char);
+    // COPY_MEMBER(arr, events, sctp_sender_dry_event, unsigned char);
+}
+#endif
+
+CONCEPT_FUNCTION_IMPL(SCTPSubscribe, 2)
+    T_NUMBER(0)
+    T_ARRAY(1)
+#ifdef WITHOUT_LIBSCTP
+    RETURN_NUMBER(-1);
+#else
+    int socket = PARAM_INT(0);
+    if (socket < 0) {
+        RETURN_NUMBER(-1);
+        return 0;
+    }
+    struct sctp_event_subscribe events;
+    memset((void *)&events, 0, sizeof(events));
+    GetEvents(Invoke, PARAMETER(1), &events);
+    int res = setsockopt(socket, SOL_SCTP, SCTP_EVENTS, (const void *)&events, sizeof(events));
+    RETURN_NUMBER(res);
+#endif
+END_IMPL
+//=====================================================================================//
+#ifndef WITHOUT_LIBSCTP
+void GetInit(INVOKE_CALL Invoke, void *arr, struct sctp_initmsg *init) {
+    INTEGER type = 0;
+    char    *str = 0;
+    NUMBER  nr   = 0;
+
+    COPY_MEMBER(arr, init, sinit_num_ostreams, unsigned short);
+    COPY_MEMBER(arr, init, sinit_max_instreams, unsigned short);
+    COPY_MEMBER(arr, init, sinit_max_attempts, unsigned short);
+    COPY_MEMBER(arr, init, sinit_max_init_timeo, unsigned short);
+}
+#endif
+
+CONCEPT_FUNCTION_IMPL(SCTPInit, 2)
+    T_NUMBER(0)
+    T_ARRAY(1)
+#ifdef WITHOUT_LIBSCTP
+    RETURN_NUMBER(-1);
+#else
+    int socket = PARAM_INT(0);
+    if (socket < 0) {
+        RETURN_NUMBER(-1);
+        return 0;
+    }
+
+    struct sctp_initmsg init;
+    memset((void *)&init, 0, sizeof(init));
+    GetInit(Invoke, PARAMETER(1), &init);
+    int res = setsockopt(socket, IPPROTO_SCTP, SCTP_INITMSG, &init, sizeof(init));
+    RETURN_NUMBER(res);
+#endif
+END_IMPL
+//=====================================================================================//
+CONCEPT_DLL_API CONCEPT_SCTPWrite CONCEPT_API_PARAMETERS {
+    PARAMETERS_CHECK_MIN_MAX(2, 8, "SCTPWrite: SCTPWrite(nSocket, anyBuffer[stream_no = 0, ttl = 0, ppid = 0, flags = 0, offset = 0, max_size = 0])");
+
+    LOCAL_INIT;
+
+    NUMBER sock = INVALID_SOCKET;
+    char   *buffer;
+    NUMBER nSize     = 0;
+    NUMBER offset    = 0;
+
+    GET_CHECK_NUMBER(0, sock, "SocketWrite: parameter 1 should be a number");
+    GET_CHECK_BUFFER(1, buffer, nSize, "SocketWrite: parameter 2 should be a string buffer");
+
+    int sent_size = 0;
+    NUMBER stream_no = 0;
+    NUMBER ttl = 0;
+    NUMBER flags = 0;
+    NUMBER ppid = 0;
+    unsigned int ref_flags = 0;
+    if (PARAMETERS_COUNT > 2) {
+        GET_CHECK_NUMBER(2, stream_no, "SocketWrite: parameter 3 should be a number");
+    }
+    if (PARAMETERS_COUNT > 3) {
+        GET_CHECK_NUMBER(3, ttl, "SocketWrite: parameter 4 should be a number");
+    }
+    if (PARAMETERS_COUNT > 4) {
+        GET_CHECK_NUMBER(4, ppid, "SocketWrite: parameter 5 should be a number");
+    }
+    if (PARAMETERS_COUNT > 5) {
+        GET_CHECK_NUMBER(5, flags, "SocketWrite: parameter 6 should be a number");
+        ref_flags = (unsigned int)flags;
+    }
+    if (PARAMETERS_COUNT > 6) {
+        GET_CHECK_NUMBER(6, offset, "SocketWrite: parameter 7 should be a number");
+
+        buffer += (int)offset;
+        nSize  -= (int)offset;
+        if (nSize <= 0) {
+            RETURN_NUMBER(0);
+            return 0;
+        }
+    }
+    if (PARAMETERS_COUNT > 7) {
+        NUMBER max_size = 0;
+        GET_CHECK_NUMBER(7, max_size, "SocketWrite: parameter 8 should be a number");
+        if ((nSize > max_size) && (max_size > 0))
+            nSize = max_size;
+        if (nSize <= 0) {
+            RETURN_NUMBER(0);
+            return 0;
+        }
+    }
+#ifdef WITHOUT_LIBSCTP
+    #if defined(_WIN32) || !defined(MSG_NOSIGNAL)
+        sent_size = send((int)sock, buffer, (int)nSize, 0);
+    #else
+        sent_size = send((int)sock, buffer, (int)nSize, MSG_NOSIGNAL);
+    #endif
+#else
+    sent_size = sctp_sendmsg((int)sock, buffer, (int)nSize, NULL, 0, (unsigned int)ppid, ref_flags, (unsigned short)stream_no, (unsigned int)ttl, 0);
+#endif
+
+    RETURN_NUMBER(sent_size);
+    return 0;
+}
+//=====================================================================================//
+CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(SCTPRead, 3, 4)
+    T_NUMBER(0)
+    T_NUMBER(2)
+    int sock = PARAM_INT(0);
+    int max_size = PARAM_INT(2);
+    int res = -1;
+    if (PARAMETERS_COUNT > 3) {
+        Invoke(INVOKE_CREATE_ARRAY, PARAMETER(3), 0);
+    }
+    if ((sock < 0) || (max_size < 0)) {
+        SET_STRING(1, "")
+        RETURN_NUMBER(-1);
+        return 0;
+    }
+    if (!max_size) {
+        SET_STRING(1, "")
+        RETURN_NUMBER(0);
+        return 0;
+    }
+    char *buffer = 0;
+    CORE_NEW(max_size + 1, buffer);
+    if (!buffer) {
+        RETURN_NUMBER(-3);
+        return 0;
+    }
+    buffer[max_size] = 0;
+
+#ifdef WITHOUT_LIBSCTP
+    res = recv((int)sock, buffer, max_size, 0);
+#else
+    int flags = 0;
+    struct sctp_sndrcvinfo sinfo;
+    memset(&sinfo, 0, sizeof(sinfo));
+    res = sctp_recvmsg((int)sock, buffer, max_size, NULL, 0, &sinfo, &flags);
+    if (PARAMETERS_COUNT > 3) {
+        Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, PARAMETER(3), "sinfo_stream", (INTEGER)VARIABLE_NUMBER, (char *)NULL, (NUMBER)sinfo.sinfo_stream);
+        Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, PARAMETER(3), "sinfo_ssn", (INTEGER)VARIABLE_NUMBER, (char *)NULL, (NUMBER)sinfo.sinfo_ssn);
+        Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, PARAMETER(3), "sinfo_flags", (INTEGER)VARIABLE_NUMBER, (char *)NULL, (NUMBER)sinfo.sinfo_flags);
+        Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, PARAMETER(3), "sinfo_ppid", (INTEGER)VARIABLE_NUMBER, (char *)NULL, (NUMBER)sinfo.sinfo_ppid);
+        Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, PARAMETER(3), "sinfo_context", (INTEGER)VARIABLE_NUMBER, (char *)NULL, (NUMBER)sinfo.sinfo_context);
+        Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, PARAMETER(3), "sinfo_timetolive", (INTEGER)VARIABLE_NUMBER, (char *)NULL, (NUMBER)sinfo.sinfo_timetolive);
+        Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, PARAMETER(3), "sinfo_tsn", (INTEGER)VARIABLE_NUMBER, (char *)NULL, (NUMBER)sinfo.sinfo_tsn);
+        Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, PARAMETER(3), "sinfo_cumtsn", (INTEGER)VARIABLE_NUMBER, (char *)NULL, (NUMBER)sinfo.sinfo_cumtsn);
+        Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, PARAMETER(3), "sinfo_assoc_id", (INTEGER)VARIABLE_NUMBER, (char *)NULL, (NUMBER)sinfo.sinfo_assoc_id);
+    }
+#endif
+    if (res <= 0) {
+        CORE_DELETE(buffer);
+        SET_STRING(1, "");
+    } else {
+        SetVariable(PARAMETER(1), -1, buffer, res);
+    }
     RETURN_NUMBER(res);
 END_IMPL
 //=====================================================================================//
