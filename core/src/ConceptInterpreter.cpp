@@ -256,10 +256,10 @@ void FREE_VARIABLE(VariableDATA *VARIABLE) {
 #define EVAL_INTEGER_EXPRESSION(THISREF, OPERATOR)                                                                                                                                                                                                                                                   \
     switch (LOCAL_CONTEXT [OE->OperandRight.ID - 1]->TYPE) {                                                                                                                                                                                                                                         \
         case VARIABLE_NUMBER:                                                                                                                                                                                                                                                                        \
-            LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = (INTEGER)LOCAL_CONTEXT [OE->OperandLeft.ID - 1]->NUMBER_DATA OPERATOR(INTEGER) LOCAL_CONTEXT [OE->OperandRight.ID - 1]->NUMBER_DATA;                                                                                                    \
+            LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = (unsigned INTEGER)LOCAL_CONTEXT [OE->OperandLeft.ID - 1]->NUMBER_DATA OPERATOR(unsigned INTEGER) LOCAL_CONTEXT [OE->OperandRight.ID - 1]->NUMBER_DATA;                                                                                  \
             break;                                                                                                                                                                                                                                                                                   \
         case VARIABLE_STRING:                                                                                                                                                                                                                                                                        \
-            LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = (INTEGER)LOCAL_CONTEXT [OE->OperandLeft.ID - 1]->NUMBER_DATA OPERATOR(INTEGER)(CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandRight.ID - 1]).ToFloat());                                                                                      \
+            LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = (unsigned INTEGER)LOCAL_CONTEXT [OE->OperandLeft.ID - 1]->NUMBER_DATA OPERATOR(unsigned INTEGER)(CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandRight.ID - 1]).ToFloat());                                                                    \
             break;                                                                                                                                                                                                                                                                                   \
         default:                                                                                                                                                                                                                                                                                     \
             PIF->AcknoledgeRunTimeError(STACK_TRACE, new AnsiException(ERR1204, OE->OperandRight._DEBUG_INFO_LINE, 1204, OE->OperandRight._PARSE_DATA, ((ClassCode *)(THISREF->OWNER->Defined_In))->_DEBUG_INFO_FILENAME, ((ClassCode *)(THISREF->OWNER->Defined_In))->NAME, THISREF->OWNER->NAME)); \
@@ -268,10 +268,10 @@ void FREE_VARIABLE(VariableDATA *VARIABLE) {
 #define EVAL_ASG_INTEGER_EXPRESSION(THISREF, OPERATOR)                                                                                                                                                                                                                                               \
     switch (LOCAL_CONTEXT [OE->OperandRight.ID - 1]->TYPE) {                                                                                                                                                                                                                                         \
         case VARIABLE_NUMBER:                                                                                                                                                                                                                                                                        \
-            LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = LOCAL_CONTEXT [OE->OperandLeft.ID - 1]->NUMBER_DATA = (INTEGER)LOCAL_CONTEXT [OE->OperandLeft.ID - 1]->NUMBER_DATA OPERATOR(INTEGER) LOCAL_CONTEXT [OE->OperandRight.ID - 1]->NUMBER_DATA;                                              \
+            LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = LOCAL_CONTEXT [OE->OperandLeft.ID - 1]->NUMBER_DATA = (unsigned INTEGER)LOCAL_CONTEXT [OE->OperandLeft.ID - 1]->NUMBER_DATA OPERATOR(unsigned INTEGER) LOCAL_CONTEXT [OE->OperandRight.ID - 1]->NUMBER_DATA;                            \
             break;                                                                                                                                                                                                                                                                                   \
         case VARIABLE_STRING:                                                                                                                                                                                                                                                                        \
-            LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = LOCAL_CONTEXT [OE->OperandLeft.ID - 1]->NUMBER_DATA = (INTEGER)LOCAL_CONTEXT [OE->OperandLeft.ID - 1]->NUMBER_DATA OPERATOR(INTEGER)(CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandRight.ID - 1]).ToFloat());                                \
+            LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = LOCAL_CONTEXT [OE->OperandLeft.ID - 1]->NUMBER_DATA = (unsigned INTEGER)LOCAL_CONTEXT [OE->OperandLeft.ID - 1]->NUMBER_DATA OPERATOR(unsigned INTEGER)(CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandRight.ID - 1]).ToFloat());              \
             break;                                                                                                                                                                                                                                                                                   \
         default:                                                                                                                                                                                                                                                                                     \
             PIF->AcknoledgeRunTimeError(STACK_TRACE, new AnsiException(ERR1204, OE->OperandRight._DEBUG_INFO_LINE, 1204, OE->OperandRight._PARSE_DATA, ((ClassCode *)(THISREF->OWNER->Defined_In))->_DEBUG_INFO_FILENAME, ((ClassCode *)(THISREF->OWNER->Defined_In))->NAME, THISREF->OWNER->NAME)); \
@@ -797,62 +797,62 @@ static sljit_sw SLJIT_CALL c_modVD2(VariableDATA *left, VariableDATA *right, Var
 }
 
 static sljit_sw SLJIT_CALL c_AANVD(VariableDATA *left, VariableDATA *right, VariableDATA *result) {
-    left->NUMBER_DATA   = (INTEGER)left->NUMBER_DATA & (INTEGER)right->NUMBER_DATA;
+    left->NUMBER_DATA   = (unsigned INTEGER)left->NUMBER_DATA & (unsigned INTEGER)right->NUMBER_DATA;
     result->NUMBER_DATA = left->NUMBER_DATA;
     return 0;
 }
 
 static sljit_sw SLJIT_CALL c_AXOVD(VariableDATA *left, VariableDATA *right, VariableDATA *result) {
-    left->NUMBER_DATA   = (INTEGER)left->NUMBER_DATA ^ (INTEGER)right->NUMBER_DATA;
+    left->NUMBER_DATA   = (unsigned INTEGER)left->NUMBER_DATA ^ (unsigned INTEGER)right->NUMBER_DATA;
     result->NUMBER_DATA = left->NUMBER_DATA;
     return 0;
 }
 
 static sljit_sw SLJIT_CALL c_AORVD(VariableDATA *left, VariableDATA *right, VariableDATA *result) {
-    left->NUMBER_DATA   = (INTEGER)left->NUMBER_DATA | (INTEGER)right->NUMBER_DATA;
+    left->NUMBER_DATA   = (unsigned INTEGER)left->NUMBER_DATA | (unsigned INTEGER)right->NUMBER_DATA;
     result->NUMBER_DATA = left->NUMBER_DATA;
     return 0;
 }
 
 static sljit_sw SLJIT_CALL c_ASLVD(VariableDATA *left, VariableDATA *right, VariableDATA *result) {
-    left->NUMBER_DATA   = (INTEGER)left->NUMBER_DATA << (INTEGER)right->NUMBER_DATA;
+    left->NUMBER_DATA   = (unsigned INTEGER)left->NUMBER_DATA << (unsigned INTEGER)right->NUMBER_DATA;
     result->NUMBER_DATA = left->NUMBER_DATA;
     return 0;
 }
 
 static sljit_sw SLJIT_CALL c_ASRVD(VariableDATA *left, VariableDATA *right, VariableDATA *result) {
-    left->NUMBER_DATA   = (INTEGER)left->NUMBER_DATA >> (INTEGER)right->NUMBER_DATA;
+    left->NUMBER_DATA   = (unsigned INTEGER)left->NUMBER_DATA >> (unsigned INTEGER)right->NUMBER_DATA;
     result->NUMBER_DATA = left->NUMBER_DATA;
     return 0;
 }
 
 static sljit_sw SLJIT_CALL c_COMVD(VariableDATA *left, VariableDATA *result) {
-    result->NUMBER_DATA = ~(INTEGER)left->NUMBER_DATA;
+    result->NUMBER_DATA = ~(unsigned INTEGER)left->NUMBER_DATA;
     return 0;
 }
 
 static sljit_sw SLJIT_CALL c_SHLVD(VariableDATA *left, VariableDATA *right, VariableDATA *result) {
-    result->NUMBER_DATA = (INTEGER)left->NUMBER_DATA << (INTEGER)right->NUMBER_DATA;
+    result->NUMBER_DATA = (unsigned INTEGER)left->NUMBER_DATA << (unsigned INTEGER)right->NUMBER_DATA;
     return 0;
 }
 
 static sljit_sw SLJIT_CALL c_SHRVD(VariableDATA *left, VariableDATA *right, VariableDATA *result) {
-    result->NUMBER_DATA = (INTEGER)left->NUMBER_DATA >> (INTEGER)right->NUMBER_DATA;
+    result->NUMBER_DATA = (unsigned INTEGER)left->NUMBER_DATA >> (unsigned INTEGER)right->NUMBER_DATA;
     return 0;
 }
 
 static sljit_sw SLJIT_CALL c_ANDVD(VariableDATA *left, VariableDATA *right, VariableDATA *result) {
-    result->NUMBER_DATA = (INTEGER)left->NUMBER_DATA & (INTEGER)right->NUMBER_DATA;
+    result->NUMBER_DATA = (unsigned INTEGER)left->NUMBER_DATA & (unsigned INTEGER)right->NUMBER_DATA;
     return 0;
 }
 
 static sljit_sw SLJIT_CALL c_XORVD(VariableDATA *left, VariableDATA *right, VariableDATA *result) {
-    result->NUMBER_DATA = (INTEGER)left->NUMBER_DATA ^ (INTEGER)right->NUMBER_DATA;
+    result->NUMBER_DATA = (unsigned INTEGER)left->NUMBER_DATA ^ (unsigned INTEGER)right->NUMBER_DATA;
     return 0;
 }
 
 static sljit_sw SLJIT_CALL c_ORVD(VariableDATA *left, VariableDATA *right, VariableDATA *result) {
-    result->NUMBER_DATA = (INTEGER)left->NUMBER_DATA | (INTEGER)right->NUMBER_DATA;
+    result->NUMBER_DATA = (unsigned INTEGER)left->NUMBER_DATA | (unsigned INTEGER)right->NUMBER_DATA;
     return 0;
 }
  #endif
@@ -3306,7 +3306,7 @@ int ConceptInterpreter::StacklessInterpret(PIFAlizator *PIF, GreenThreadCycle *G
                                 continue;
 
                             case KEY_COM:
-                                LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = ~(INTEGER)LOCAL_CONTEXT [OE->OperandLeft.ID - 1]->NUMBER_DATA;
+                                LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = ~(unsigned INTEGER)LOCAL_CONTEXT [OE->OperandLeft.ID - 1]->NUMBER_DATA;
                                 continue;
 
                             case KEY_POZ:
@@ -5102,7 +5102,7 @@ int ConceptInterpreter::EvalNumberExpression(PIFAlizator *PIF, VariableDATA **LO
             return 1;
 
         case KEY_COM:
-            LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = ~(INTEGER)LOCAL_CONTEXT [OE->OperandLeft.ID - 1]->NUMBER_DATA;
+            LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = ~(unsigned INTEGER)LOCAL_CONTEXT [OE->OperandLeft.ID - 1]->NUMBER_DATA;
             return 1;
 
         case KEY_POZ:
@@ -5989,7 +5989,7 @@ VariableDATA *ConceptInterpreter::Interpret(PIFAlizator *PIF, VariableDATA **LOC
                             continue;
 
                         case KEY_COM:
-                            LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = ~(INTEGER)LOCAL_CONTEXT [OE->OperandLeft.ID - 1]->NUMBER_DATA;
+                            LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = ~(unsigned INTEGER)LOCAL_CONTEXT [OE->OperandLeft.ID - 1]->NUMBER_DATA;
                             continue;
 
                         case KEY_POZ:
