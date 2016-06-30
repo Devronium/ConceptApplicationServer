@@ -36,12 +36,15 @@ class SCTPSocket {
 		return SocketInfo(Socket);
 	}
 
-	public function Connect(host, port) {
+	public function Connect(host, port, var assoc_id = -1) {
+		assoc_id = -1;
 		if (Socket<=0)
 			throw "Invalid socket (connect operation)";
-		if (_ipv6)
-			return !SocketConnect(Socket, host, port, true);
-		return !SocketConnect(Socket, host, port);
+
+		if (typeof host == "array")
+			return !SCTPConnectx(Socket, host, assoc_id, port, _ipv6);
+
+		return !SocketConnect(Socket, host, port, _ipv6);
 	}
 	
 	public function Listen(port, max_connections=0x100, interface="") {

@@ -164,7 +164,11 @@ int getdomainname(char *const domain, unsigned int dsize) {
  #include <errno.h>
  #include <fcntl.h>
  #ifndef WITHOUT_LIBSCTP
-    #include <netinet/sctp.h>
+    #ifdef __APPLE__
+        #include <netinet/in.h>
+    #else
+        #include <netinet/sctp.h>
+    #endif
  #endif
 
  #define INVALID_SOCKET    -1
@@ -534,6 +538,8 @@ CONCEPT_DLL_API ON_CREATE_CONTEXT MANAGEMENT_PARAMETERS {
     DEFINE_ICONSTANT("SCTP_UNORDERED", SCTP_UNORDERED)
     DEFINE_ICONSTANT("SCTP_ABORT", SCTP_ABORT)
     DEFINE_ICONSTANT("SCTP_EOF", SCTP_EOF)
+    DEFINE_ICONSTANT("SCTP_BINDX_ADD_ADDR", SCTP_BINDX_ADD_ADDR);
+    DEFINE_ICONSTANT("SCTP_BINDX_REM_ADDR", SCTP_BINDX_REM_ADDR);
 #endif
 #ifdef MSG_NOSIGNAL
     DEFINE_ECONSTANT(MSG_NOSIGNAL)
@@ -2351,6 +2357,146 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(SCTPRead, 3, 4)
     } else {
         SetVariable(PARAMETER(1), -1, buffer, res);
     }
+    RETURN_NUMBER(res);
+END_IMPL
+//=====================================================================================//
+CONCEPT_FUNCTION_IMPL(SCTPBindx, 4)
+    T_NUMBER(0)
+    T_ARRAY(1)
+    T_NUMBER(2)
+    T_NUMBER(3)
+
+    int res = -1;
+    int  count = Invoke(INVOKE_GET_ARRAY_COUNT, PARAMETER(1));
+    void *newpData;
+    if (count <= 0) {
+        // nothing to do
+        RETURN_NUMBER(0)
+        return 0;
+    }
+#ifndef WITHOUT_LIBSCTP
+    int family = PARAM_INT(3) ? AF_INET6 : AF_INET;
+    unsigned char *ref_addr = (unsigned char *)malloc(sizeof(struct sockaddr) * count);
+    struct sockaddr *addr = (struct sockaddr *)ref_addr;
+    if (addr) {
+        memset(addr, 0, sizeof(struct sockaddr) * count);
+        int addr_index = 0;
+        for (int i = 0; i < count; i++) {
+            Invoke(INVOKE_ARRAY_VARIABLE, PARAMETER(1), i, &newpData);
+            if (newpData) {
+                char    *szData;
+                INTEGER type;
+                NUMBER  nData;
+
+                Invoke(INVOKE_GET_VARIABLE, newpData, &type, &szData, &nData);
+                if (type == VARIABLE_STRING) {
+                    if (family == AF_INET6) {
+                        // sockaddr array is packed!
+                        struct sockaddr_in6 *sin = (struct sockaddr_in6 *)ref_addr;//&addr[addr_index];
+                        if ((szData) && (szData[0]))
+                            inet_pton(AF_INET6, szData, (void *)sin->sin6_addr.s6_addr);
+                        else
+                            sin->sin6_addr = in6addr_any;
+
+                        sin->sin6_family = AF_INET6;
+                        sin->sin6_port   = htons(0);
+                        ref_addr +=  sizeof(struct sockaddr_in6);
+                    } else {
+                        struct sockaddr_in *sin = (struct sockaddr_in *)ref_addr;//&addr[addr_index];
+                        if ((szData) && (szData[0]))
+                            sin->sin_addr.s_addr = inet_addr(szData);
+                        else
+                            sin->sin_addr.s_addr = INADDR_ANY;
+                        sin->sin_family = AF_INET;
+                        sin->sin_port   = htons(0);
+                        ref_addr += sizeof(struct sockaddr_in);
+                    }
+                    addr_index++;
+                }
+            }
+        }
+        if (addr_index > 0)
+            res = sctp_bindx(PARAM_INT(0), addr, addr_index, PARAM_INT(2));
+        free(addr);
+    }
+#endif
+    RETURN_NUMBER(res);
+END_IMPL
+//=====================================================================================//
+CONCEPT_FUNCTION_IMPL(SCTPConnectx, 5)
+    T_NUMBER(0)
+    T_ARRAY(1)
+    T_NUMBER(3)
+    T_NUMBER(4)
+    SET_NUMBER(2, -1);  
+
+    int res = -1;
+    int  count = Invoke(INVOKE_GET_ARRAY_COUNT, PARAMETER(1));
+    void *newpData;
+    if (count <= 0) {
+        // nothing to do
+        RETURN_NUMBER(0)
+        return 0;
+    }
+#ifndef WITHOUT_LIBSCTP
+    int family = PARAM_INT(4) ? AF_INET6 : AF_INET;
+    unsigned char *ref_addr = (unsigned char *)malloc(sizeof(struct sockaddr) * count);
+    struct sockaddr *addr = (struct sockaddr *)ref_addr;
+    if (addr) {
+        memset(addr, 0, sizeof(struct sockaddr) * count);
+        int addr_index = 0;
+        for (int i = 0; i < count; i++) {
+            Invoke(INVOKE_ARRAY_VARIABLE, PARAMETER(1), i, &newpData);
+            if (newpData) {
+                char    *szData;
+                INTEGER type;
+                NUMBER  nData;
+
+                Invoke(INVOKE_GET_VARIABLE, newpData, &type, &szData, &nData);
+                if (type == VARIABLE_STRING) {
+                    struct addrinfo hints;
+                    struct addrinfo *res, *result;
+
+                    memset(&hints, 0, sizeof hints);
+                    hints.ai_family   = AF_UNSPEC;
+                    hints.ai_socktype = SOCK_STREAM;
+
+                    if (getaddrinfo(szData, NULL, &hints, &result) != 0) {
+                        RETURN_NUMBER(-2);
+                        return 0;
+                    }
+
+                    for (res = result; res != NULL; res = res->ai_next) {
+                        char hostname[NI_MAXHOST] = "";
+                        if ((family == res->ai_family) || ((family == AF_INET6) && ((res->ai_family == AF_INET) || (res->ai_family == AF_INET6)))) {
+                            int error = getnameinfo(res->ai_addr, res->ai_addrlen, szData, NI_MAXHOST, NULL, 0, 0);
+                            if (!error) {
+                                memcpy(ref_addr, res->ai_addr, res->ai_addrlen);
+                                if (res->ai_family == AF_INET6) {
+                                    ((struct sockaddr_in6 *)ref_addr)->sin6_port = htons(PARAM_INT(3));
+                                } else {
+                                    ((struct sockaddr_in *)ref_addr)->sin_port = htons(PARAM_INT(3));
+                                }
+                                ref_addr += res->ai_addrlen;
+                                addr_index++;
+                            }
+                        }
+                    }
+
+                    if (result)
+                        freeaddrinfo(result);
+                    
+                }
+            }
+        }
+        if (addr_index > 0) {
+            sctp_assoc_t id = 0;
+            res = sctp_connectx(PARAM_INT(0), addr, addr_index, &id);
+            SET_NUMBER(2, id);
+        }
+        free(addr);
+    }
+#endif
     RETURN_NUMBER(res);
 END_IMPL
 //=====================================================================================//
