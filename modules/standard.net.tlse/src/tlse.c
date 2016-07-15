@@ -30,6 +30,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdint.h>
+#include <time.h>
 #ifdef _WIN32
 #include <windows.h>
 #include <wincrypt.h>
@@ -116,6 +117,8 @@
 #define __TLS_MAX_TLS_APP_SIZE      0x4000
 // max 1 second sleep
 #define __TLS_MAX_ERROR_SLEEP_uS    1000000
+// max 5 seconds context sleep
+#define __TLS_MAX_ERROR_IDLE_S      5
 
 #define VERSION_SUPPORTED(version, err)  if ((version != TLS_V12) && (version != TLS_V11) && (version != TLS_V10) && (version != DTLS_V12) && (version != DTLS_V10)) { DEBUG_PRINT("UNSUPPORTED TLS VERSION %x\n", (int)version); return err; }
 #define CHECK_SIZE(size, buf_size, err)  if (((int)size > (int)buf_size) || ((int)buf_size < 0)) return err;
@@ -1101,6 +1104,7 @@ struct TLSContext {
     char **alpn;
     unsigned char alpn_count;
     char *negotiated_alpn;
+    unsigned int sleep_until;
 };
 
 struct TLSPacket {
@@ -2225,8 +2229,11 @@ void __private_tls_sleep(unsigned int microseconds) {
 #endif
 }
 
-void __private_random_sleep(int max_microseconds) {
-    __private_tls_sleep(__private_tls_random_int(max_microseconds));
+void __private_random_sleep(struct TLSContext *context, int max_microseconds) {
+    if (context)
+        context->sleep_until = time(NULL) + __private_tls_random_int(max_microseconds/1000000 * __TLS_MAX_ERROR_IDLE_S);
+    else
+        __private_tls_sleep(__private_tls_random_int(max_microseconds));
 }
 
 void __private_tls_prf_helper(  int hash_idx, unsigned char *output, unsigned int outlen, const unsigned char *secret, const unsigned int secret_len,
@@ -3722,6 +3729,14 @@ const unsigned char *tls_get_write_buffer(struct TLSContext *context, unsigned i
         *outlen = 0;
         return NULL;
     }
+    // check if any error
+    if (context->sleep_until) {
+        if (context->sleep_until < time(NULL)) {
+            *outlen = 0;
+            return NULL;
+        }
+        context->sleep_until = 0;
+    }
     *outlen = context->tls_buffer_len;
     return context->tls_buffer;
 }
@@ -3737,6 +3752,14 @@ const unsigned char *tls_get_message(struct TLSContext *context, unsigned int *o
     if (offset >= context->tls_buffer_len) {
         *outlen = 0;
         return NULL;
+    }
+    // check if any error
+    if (context->sleep_until) {
+        if (context->sleep_until < time(NULL)) {
+            *outlen = 0;
+            return NULL;
+        }
+        context->sleep_until = 0;
     }
     unsigned char *tls_buffer = &context->tls_buffer[offset];
     unsigned int tls_buffer_len = context->tls_buffer_len - offset;
@@ -6338,13 +6361,13 @@ int tls_parse_message(struct TLSContext *context, unsigned char *buf, int buf_le
         DEBUG_DUMP_HEX_LABEL("encrypted", &buf[header_size], length);
         if (!context->crypto.created) {
             DEBUG_PRINT("Encryption context not created\n");
-            __private_random_sleep(__TLS_MAX_ERROR_SLEEP_uS);
+            __private_random_sleep(context, __TLS_MAX_ERROR_SLEEP_uS);
             return TLS_BROKEN_PACKET;
         }
         pt = (unsigned char *)TLS_MALLOC(length);
         if (!pt) {
             DEBUG_PRINT("Error in TLS_MALLOC (%i bytes)\n", (int)length);
-            __private_random_sleep(__TLS_MAX_ERROR_SLEEP_uS);
+            __private_random_sleep(context, __TLS_MAX_ERROR_SLEEP_uS);
             return TLS_NO_MEMORY;
         }
         unsigned char aad[16];
@@ -6353,7 +6376,7 @@ int tls_parse_message(struct TLSContext *context, unsigned char *buf, int buf_le
             if (pt_length < 0) {
                 DEBUG_PRINT("Invalid packet length");
                 TLS_FREE(pt);
-                __private_random_sleep(__TLS_MAX_ERROR_SLEEP_uS);
+                __private_random_sleep(context, __TLS_MAX_ERROR_SLEEP_uS);
                 return TLS_BROKEN_PACKET;
             }
             // build aad and iv
@@ -6382,7 +6405,7 @@ int tls_parse_message(struct TLSContext *context, unsigned char *buf, int buf_le
             int res3 = gcm_done(&context->crypto.aes_gcm_remote, tag, &taglen);
             if ((res0) || (res1) || (res2) || (res3) || (taglen != __TLS_GCM_TAG_LEN)) {
                 DEBUG_PRINT("ERROR: gcm_add_iv: %i, gcm_add_aad: %i, gcm_process: %i, gcm_done: %i\n", res0, res1, res2, res3);
-                __private_random_sleep(__TLS_MAX_ERROR_SLEEP_uS);
+                __private_random_sleep(context, __TLS_MAX_ERROR_SLEEP_uS);
                 return TLS_BROKEN_PACKET;
             }
             DEBUG_DUMP_HEX_LABEL("decrypted", pt, pt_length);
@@ -6393,7 +6416,7 @@ int tls_parse_message(struct TLSContext *context, unsigned char *buf, int buf_le
                 DEBUG_DUMP_HEX_LABEL("TAG RECEIVED", buf + header_size + 8 + pt_length, taglen);
                 DEBUG_DUMP_HEX_LABEL("TAG COMPUTED", tag, taglen);
                 TLS_FREE(pt);
-                __private_random_sleep(__TLS_MAX_ERROR_SLEEP_uS);
+                __private_random_sleep(context, __TLS_MAX_ERROR_SLEEP_uS);
                 __private_tls_write_packet(tls_build_alert(context, 1, bad_record_mac));
                 return TLS_INTEGRITY_FAILED;
             }
@@ -6411,7 +6434,7 @@ int tls_parse_message(struct TLSContext *context, unsigned char *buf, int buf_le
             if (pt_length < 0) {
                 DEBUG_PRINT("Invalid packet length");
                 TLS_FREE(pt);
-                __private_random_sleep(__TLS_MAX_ERROR_SLEEP_uS);
+                __private_random_sleep(context, __TLS_MAX_ERROR_SLEEP_uS);
                 return TLS_BROKEN_PACKET;
             }
             if (context->dtls)
@@ -6456,7 +6479,12 @@ int tls_parse_message(struct TLSContext *context, unsigned char *buf, int buf_le
                 DEBUG_DUMP_HEX_LABEL("POLY1305 TAG RECEIVED", buf + header_size + pt_length, POLY1305_TAGLEN);
                 DEBUG_DUMP_HEX_LABEL("POLY1305 TAG COMPUTED", mac_tag, POLY1305_TAGLEN);
                 TLS_FREE(pt);
-                __private_random_sleep(__TLS_MAX_ERROR_SLEEP_uS);
+
+                // silently ignore packet for DTLS
+                if (context->dtls)
+                    return header_size + length;
+
+                __private_random_sleep(context, __TLS_MAX_ERROR_SLEEP_uS);
                 __private_tls_write_packet(tls_build_alert(context, 1, bad_record_mac));
                 return TLS_INTEGRITY_FAILED;
             }
@@ -6466,7 +6494,7 @@ int tls_parse_message(struct TLSContext *context, unsigned char *buf, int buf_le
             if (err) {
                 TLS_FREE(pt);
                 DEBUG_PRINT("Decryption error %i\n", (int)err);
-                __private_random_sleep(__TLS_MAX_ERROR_SLEEP_uS);
+                __private_random_sleep(context, __TLS_MAX_ERROR_SLEEP_uS);
                 return TLS_BROKEN_PACKET;
             }
             unsigned char padding_byte = pt[length - 1];
@@ -6481,7 +6509,7 @@ int tls_parse_message(struct TLSContext *context, unsigned char *buf, int buf_le
                     if (pt[i] != padding_byte) {
                         TLS_FREE(pt);
                         DEBUG_PRINT("BROKEN PACKET (POODLE ?)\n");
-                        __private_random_sleep(__TLS_MAX_ERROR_SLEEP_uS);
+                        __private_random_sleep(context, __TLS_MAX_ERROR_SLEEP_uS);
                         __private_tls_write_packet(tls_build_alert(context, 1, decrypt_error));
                         return TLS_BROKEN_PACKET;
                     }
@@ -6511,7 +6539,7 @@ int tls_parse_message(struct TLSContext *context, unsigned char *buf, int buf_le
             if ((length < mac_size) || (!mac_size)) {
                 TLS_FREE(pt);
                 DEBUG_PRINT("BROKEN PACKET\n");
-                __private_random_sleep(__TLS_MAX_ERROR_SLEEP_uS);
+                __private_random_sleep(context, __TLS_MAX_ERROR_SLEEP_uS);
                 __private_tls_write_packet(tls_build_alert(context, 1, decrypt_error));
                 return TLS_BROKEN_PACKET;
             }
@@ -6529,8 +6557,14 @@ int tls_parse_message(struct TLSContext *context, unsigned char *buf, int buf_le
                 DEBUG_DUMP_HEX_LABEL("HMAC RECEIVED", message_hmac, mac_size);
                 DEBUG_DUMP_HEX_LABEL("HMAC COMPUTED", hmac_out, hmac_out_len);
                 TLS_FREE(pt);
-                __private_random_sleep(__TLS_MAX_ERROR_SLEEP_uS);
+
+                // silently ignore packet for DTLS
+                if (context->dtls)
+                    return header_size + length;
+
+                __private_random_sleep(context, __TLS_MAX_ERROR_SLEEP_uS);
                 __private_tls_write_packet(tls_build_alert(context, 1, bad_record_mac));
+
                 return TLS_INTEGRITY_FAILED;
             }
         }

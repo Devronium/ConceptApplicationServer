@@ -981,7 +981,7 @@ void IgnoreBytes(MetaContainer *mc, int CLIENT_SOCKET, int size, bool masked = t
     } while ((rec_count < size) && (received > 0));
 }
 
-long WSGetPacketSize(MetaContainer *mc, int CLIENT_SOCKET, int *code) {
+long WSGetPacketSize(MetaContainer *mc, int CLIENT_SOCKET, int *code, int *masked) {
     int           received  = 0;
     int           rec_count = 0;
     unsigned char buf[9];
@@ -1035,6 +1035,7 @@ long WSGetPacketSize(MetaContainer *mc, int CLIENT_SOCKET, int *code) {
     }
 
     char s_buf = buf[1] & 0x7F;
+    *masked = buf[1] & 0x80;
     switch (s_buf) {
         case 126:
             do {
@@ -1091,21 +1092,23 @@ long WSGetPacketSize(MetaContainer *mc, int CLIENT_SOCKET, int *code) {
     return -1;
 }
 
-long WSReceive(MetaContainer *mc, int CLIENT_SOCKET, char *buffer, int size, int flags = 0) {
+long WSReceive(MetaContainer *mc, int CLIENT_SOCKET, char *buffer, int size, int masked) {
     char mask[4];
     int  received  = 0;
     int  rec_count = 0;
 
-    do {
-        received   = deturnated_recv(mc, CLIENT_SOCKET, (char *)&mask + rec_count, 4 - rec_count, 0);
-        rec_count += received;
-    } while ((rec_count < 4) && (received > 0));
+    if (masked) {
+        do {
+            received   = deturnated_recv(mc, CLIENT_SOCKET, (char *)&mask + rec_count, 4 - rec_count, 0);
+            rec_count += received;
+        } while ((rec_count < 4) && (received > 0));
 
-    if (received <= 0)
-        return -1;
-    if (size == 0)
-        return 0;
-    rec_count = 0;
+        if (received <= 0)
+            return -1;
+        if (size == 0)
+            return 0;
+        rec_count = 0;
+    }
     do {
         received   = deturnated_recv(mc, CLIENT_SOCKET, (char *)buffer + rec_count, size - rec_count, 0);
         rec_count += received;
@@ -1114,9 +1117,10 @@ long WSReceive(MetaContainer *mc, int CLIENT_SOCKET, char *buffer, int size, int
     if (received <= 0)
         return -1;
 
-    for (int i = 0; i < size; i++)
-        buffer[i] = buffer[i] ^ mask[i % 4];
-
+    if (masked) {
+        for (int i = 0; i < size; i++)
+            buffer[i] = buffer[i] ^ mask[i % 4];
+    }
     return size;
 }
 
@@ -2431,9 +2435,9 @@ CONCEPT_DLL_API CONCEPT_wait_message_ID CONCEPT_API_PARAMETERS {
 
         if (ref_isWebSocket) {
             int code;
+            int masked;
             semp(mc->sem_recv);
-            size = WSGetPacketSize(mc, CLIENT_SOCKET, &code);
-
+            size = WSGetPacketSize(mc, CLIENT_SOCKET, &code, &masked);
             if ((size <= 0) && (code)) {
                 semv(mc->sem_recv);
                 if (code > 0) {
@@ -2460,7 +2464,7 @@ CONCEPT_DLL_API CONCEPT_wait_message_ID CONCEPT_API_PARAMETERS {
             if (size <= 0) {
                 if (size == 0) {
                     // flush mask buffer
-                    WSReceive(mc, CLIENT_SOCKET, NULL, 0);
+                    WSReceive(mc, CLIENT_SOCKET, NULL, 0, masked);
                     SetVariable(LOCAL_CONTEXT[PARAMETERS->PARAM_INDEX[1] - 1], VARIABLE_NUMBER, "", 0x500);
                 } else
                     SetVariable(LOCAL_CONTEXT[PARAMETERS->PARAM_INDEX[1] - 1], VARIABLE_NUMBER, "", 0);
@@ -2482,7 +2486,7 @@ CONCEPT_DLL_API CONCEPT_wait_message_ID CONCEPT_API_PARAMETERS {
                 SetVariable(RESULT, VARIABLE_NUMBER, "", 0);
                 return 0;
             }
-            received = WSReceive(mc, CLIENT_SOCKET, buffer, size);
+            received = WSReceive(mc, CLIENT_SOCKET, buffer, size, masked);
             semv(mc->sem_recv);
             if (received != size) {
                 mc->force_exit = 1;
@@ -3172,7 +3176,8 @@ CONCEPT_DLL_API CONCEPT_get_message CONCEPT_API_PARAMETERS {
     if (ref_isWebSocket) {
         semp(mc->sem_recv);
         int code;
-        size = WSGetPacketSize(mc, CLIENT_SOCKET, &code);
+        int masked;
+        size = WSGetPacketSize(mc, CLIENT_SOCKET, &code, &masked);
         if ((size <= 0) && (code)) {
             semv(mc->sem_recv);
             if (code > 0) {
@@ -3198,7 +3203,7 @@ CONCEPT_DLL_API CONCEPT_get_message CONCEPT_API_PARAMETERS {
         if (size <= 0) {
             if (size == 0) {
                 // flush mask buffer
-                WSReceive(mc, CLIENT_SOCKET, NULL, 0);
+                WSReceive(mc, CLIENT_SOCKET, NULL, 0, masked);
                 SetVariable(LOCAL_CONTEXT[PARAMETERS->PARAM_INDEX[1] - 1], VARIABLE_NUMBER, "", 0x500);
             } else
                 SetVariable(LOCAL_CONTEXT[PARAMETERS->PARAM_INDEX[1] - 1], VARIABLE_NUMBER, "", 0);
@@ -3219,7 +3224,7 @@ CONCEPT_DLL_API CONCEPT_get_message CONCEPT_API_PARAMETERS {
             SetVariable(RESULT, VARIABLE_NUMBER, "", 0);
             return 0;
         }
-        received = WSReceive(mc, CLIENT_SOCKET, buffer, size);
+        received = WSReceive(mc, CLIENT_SOCKET, buffer, size, masked);
         semv(mc->sem_recv);
         if (received != size) {
             SetVariable(LOCAL_CONTEXT[PARAMETERS->PARAM_INDEX[1] - 1], VARIABLE_NUMBER, "", 0);
