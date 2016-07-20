@@ -25,7 +25,7 @@ AES_uint32 encrypt_init(char *key, AES_uint32 key_size) {
             CreateAESTables(true);
             tables_created=1;
        }*/
-    EncryptAes.SetParameters(key_size * 8, key_size * 8);
+    EncryptAes.SetParameters(key_size * 8, 128);
     EncryptAes.StartEncryption((unsigned char *)key);
     En_inited = 1;
     return 1;
@@ -40,7 +40,7 @@ AES_uint32 decrypt_init(char *key, AES_uint32 key_size) {
             CreateAESTables(true);
             tables_created=1;
        }*/
-    DecryptAes.SetParameters(key_size * 8, key_size * 8);
+    DecryptAes.SetParameters(key_size * 8, 128);
     DecryptAes.StartDecryption((unsigned char *)key);
     Dec_inited = 1;
     return 1;
@@ -51,7 +51,7 @@ AES_uint32 decrypt_init(char *key, AES_uint32 key_size) {
 AES *encrypt_init2(char *key, AES_uint32 key_size) {
     AES *EncryptAes2 = new AES();
 
-    EncryptAes2->SetParameters(key_size * 8, key_size * 8);
+    EncryptAes2->SetParameters(key_size * 8, 128);
     EncryptAes2->StartEncryption((unsigned char *)key);
     return EncryptAes2;
 }
@@ -59,7 +59,7 @@ AES *encrypt_init2(char *key, AES_uint32 key_size) {
 AES *decrypt_init2(char *key, AES_uint32 key_size) {
     AES *Aes2 = new AES();
 
-    Aes2->SetParameters(key_size * 8, key_size * 8);
+    Aes2->SetParameters(key_size * 8, 128);
     Aes2->StartDecryption((unsigned char *)key);
     return Aes2;
 }

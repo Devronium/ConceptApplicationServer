@@ -263,6 +263,7 @@ class ConceptChild {
 				}
 				var prev_socket = child.Socket;
 				child.Socket = this.Socket;
+				child.Session = this.Session;
 				this.Socket = prev_socket;
 				return true;
 			}
@@ -513,6 +514,7 @@ class ConceptChild {
 
 		if ((debug) || (!multiple_host)) {
 			var shared_hex = StringToHex(shared_key);
+
 			this.PID = ExecuteProcess(safe_run, host_root,
 					// parameters
 					["Direct pipe"	=> ""+direct_pipe1,
@@ -913,7 +915,7 @@ class ConceptChild {
 		return "";
 	}
 
-	ParseHeader(header, var ws, var ws_key, var origin, var host, var session_to_restore, var if_modified, var keep_alive, var parent, var debug, var content_length, var protocol) {
+	ParseHeader(header, var ws, var ws_key, var origin, var host, var session_to_restore, var if_modified, var keep_alive, var parent, var debug, var content_length, var protocol, var extension) {
 		var len = length header;
 		content_length = 0;
 		if (len > MAX_HEADER_PARAMETERS)
@@ -960,28 +962,28 @@ class ConceptChild {
 								this.TLS = true;
 						}
 						break;
-					case "concept-parent":
-						parent = value arr[1];
-						break;
-					case "concept-tls":
-						if (!this.TLS)
-							this.TLS = value arr[1];
-						break;
+					//case "concept-parent":
+					//	parent = value arr[1];
+					//	break;
+					//case "concept-tls":
+					//	if (!this.TLS)
+					//		this.TLS = value arr[1];
+					//	break;
 					case "cookie":
 						var cookie = this.GetCookie("_s", arr[1]);
 						if (cookie)
 							session_to_restore = cookie;
 						break;
-					case "concept-session":
-						orig="";
-						len2=length arr;
-						for (j=1;j<len2;j++) {
-							if (j>1)
-								orig+=":";
-							orig+=arr[j];
-						}
-						session_to_restore=trim(orig);
-						break;
+					// case "concept-session":
+					// 	orig="";
+					// 	len2=length arr;
+					// 	for (j=1;j<len2;j++) {
+					// 		if (j>1)
+					// 			orig+=":";
+					// 		orig+=arr[j];
+					// 	}
+					// 	session_to_restore=trim(orig);
+					// 	break;
 					case "if-modified-since":
 						if_modified = trim(SubStr(line, 18));
 						break;
@@ -1006,10 +1008,14 @@ class ConceptChild {
 						if (ToLower("" + value arr[1]) == "chunked")
 							content_length = -1;
 						break;
+					case "sec-websocket-extensions":
+						extension=trim(arr[1]);
+						break;
 				}
 			}
 		}
 	}
+
 
 	Iterate() {
 		var step = 0;
@@ -1074,6 +1080,7 @@ class ConceptChild {
 							break;
 
 						received_data += data;
+
 						Owner.Iterations++;
 
 						if (length received_data > MAX_RECV_BUFFER)
@@ -1099,13 +1106,14 @@ class ConceptChild {
 							var debug=false;
 							var in_content_length=0;
 							var protocol="";
+							var extension="";
 							if (len) {
 								var line=StrSplit(header[0], " ");
 								if (length line > 1) {
 									var method=ToUpper(line[0]);
 									app=URIDecode(line[1]);
 									if ((method=="GET") || (method == "POST") || (method == "PUT"))
-										ParseHeader(header, ws, ws_key, origin, host, session_to_restore, if_modified, keep_alive, parent, debug, in_content_length, protocol);
+										ParseHeader(header, ws, ws_key, origin, host, session_to_restore, if_modified, keep_alive, parent, debug, in_content_length, protocol, extension);
 								}
 							}
 							var content_offset = pos + 4;
@@ -1126,67 +1134,74 @@ class ConceptChild {
 							}
 							var orig_app = app;
 							if ((ws) && (ws_key)) {
-								var ret_key=WebSocket::AcceptKey(ws_key);
-								if (!app)
-									app="start.con";
-
-								var extra_header="";
-
-								if (origin)
-									extra_header="Access-Control-Allow-Credentials: true\r\nAccess-Control-Allow-Headers: content-type\r\nAccess-Control-Allow-Headers: authorization\r\nAccess-Control-Allow-Headers: x-websocket-extensions\r\nAccess-Control-Allow-Headers: x-websocket-version\r\nAccess-Control-Allow-Headers: x-websocket-protocol\r\nAccess-Control-Allow-Origin: $origin\r\n";
-
-								var tstamp=StrReplace(StrReplace(asctime(time()), "\r", ""), "\n", "")+" GMT";
-
-								// cookie valid for 3 days
-								var expires=StrReplace(StrReplace(asctime(time() + 259200), "\r", ""), "\n", "")+" GMT";
-
-								var sess = "";
-								var sessChild = null;
-								var sessChildError = false;
-								// limit session restore to https
-								if ((session_to_restore) && (WS_SESSION_RESTORE) && (protocol=="restore")) {
-									if (TLS)
-										sessChild = RestoreWS_Step1(session_to_restore);
-									if (!sessChild)
-										sessChildError = true;
-								}
-								if (sessChildError) {
-									var header_response="HTTP/1.1 403 Forbidden\r\nServer: " + SERVER_NAME + "\r\n\r\n";
-									WriteExact(header_response);
+								if ((!TLS) && (force_tls)) {
+									WriteExact(Owner.RedirectHeader(orig_app, ServerName));
+									keep_alive = false;
 									step=4;
 									done=true;
 								} else {
-									if (!sess) {
-										sess = this.GenerateSession();
-										this.Session = sess;
-										if (parent > 0)
-											this.Parent = parent;
-									}
-									extra_header += "Set-Cookie: _s=$sess;Expires=$expires\r\n";
-									if (sessChild)
-										extra_header += "Concept-Replace: $session_to_restore;\r\n";
+									var ret_key=WebSocket::AcceptKey(ws_key);
+									if (!app)
+										app="start.con";
 
-									header_response="HTTP/1.1 101 Web Socket Protocol Handshake\r\n${extra_header}Connection: Upgrade\r\nDate: $tstamp\r\nSec-WebSocket-Accept: $ret_key\r\nServer: " + SERVER_NAME + "\r\nUpgrade: websocket\r\nConcept-Session: ${this.Session}\r\n\r\n";
-									if (length header_response > MAX_WS_HEADER) {
+									var extra_header="";
+									var tstamp = StrReplace(StrReplace(asctime(time()), "\r", ""), "\n", "")+" GMT";
+
+									if (origin)
+										extra_header="Access-Control-Allow-Credentials: true\r\nAccess-Control-Allow-Headers: content-type\r\nAccess-Control-Allow-Headers: authorization\r\nAccess-Control-Allow-Headers: x-websocket-extensions\r\nAccess-Control-Allow-Headers: x-websocket-version\r\nAccess-Control-Allow-Headers: x-websocket-protocol\r\nAccess-Control-Allow-Origin: $origin\r\n";
+
+
+									// cookie valid for 3 days
+									var expires=StrReplace(StrReplace(asctime(time() + 259200), "\r", ""), "\n", "")+" GMT";
+
+									var sess = "";
+									var sessChild = null;
+									var sessChildError = false;
+									// limit session restore to https
+									if ((session_to_restore) && (WS_SESSION_RESTORE) && (protocol=="restore")) {
+										if (TLS)
+											sessChild = RestoreWS_Step1(session_to_restore);
+										if (!sessChild)
+											sessChildError = true;
+									}
+
+									if (sessChildError) {
+										var header_response="HTTP/1.1 403 Forbidden\r\nServer: " + SERVER_NAME + "\r\n\r\n";
+										WriteExact(header_response);
 										step=4;
 										done=true;
-									} else
-									if (WriteExact(header_response)==length header_response) {
-										if ((sessChild) && (RestoreWS_Step2(sessChild))) {
+									} else {
+										if (!sess) {
+											sess = this.GenerateSession();
+											this.Session = sess;
+											if (parent > 0)
+												this.Parent = parent;
+										}
+										extra_header += "Set-Cookie: _s=$sess;Expires=$expires\r\n";
+										if (extension) {
+											if (Pos(extension, "rtc") > 0)
+												extra_header += "Sec-WebSocket-Extensions: rtc\r\n";
+										}
+
+										header_response="HTTP/1.1 101 Switching Protocols\r\n${extra_header}Connection: Upgrade\r\nDate: $tstamp\r\nSec-WebSocket-Accept: $ret_key\r\nServer: " + SERVER_NAME + "\r\nUpgrade: websocket\r\n\r\n";
+										if (length header_response > MAX_WS_HEADER) {
 											step=4;
 											done=true;
-										} else {
-											this.RunApplication(app, step, "", "", "", debug, true);
-											done=true;
+										} else
+										if (WriteExact(header_response)==length header_response) {
+											if ((sessChild) && (RestoreWS_Step2(sessChild))) {
+												step=4;
+												done=true;
+											} else {
+												this.RunApplication(app, step, "", "", "", debug, true);
+												done=true;
+											}
 										}
 									}
 								}
 							} else
 							if ((method) && ((method=="GET") || (method=="POST"))) {
 								tstamp=StrReplace(StrReplace(asctime(time()), "\r", ""), "\n", "")+" GMT";
-								//if (app == "/") {
-								//	app = "/index.html";
-								//}
 								var ok = false;
 								var err = 404;
 								var written = 0;
@@ -1308,15 +1323,9 @@ class ConceptChild {
 											var skip_content = false;
 											var content_length = 0;
 											if ((!TLS) && (force_tls)) {
-												var location = "https://" + ServerName;
-												if (Owner.SSLWSPort != 443)
-													location += ":" + Owner.SSLWSPort;
-												if ((orig_app) && (orig_app[0] != "/"))
-													location += "/";
-												location += orig_app;
+												var buffer = Owner.RedirectHeader(orig_app, ServerName) ;
 												connection_policy = "close";
 												keep_alive = false;
-												var buffer = "HTTP/1.1 302 Found\r\nDate: $tstamp\r\nConnection: $connection_policy\r\nLocation: $location\r\nServer: " + SERVER_NAME + "\r\n\r\n";
 												skip_content = true;
 											} else
 											if ((!is_root) && (if_modified == last_mod)) {
@@ -3380,6 +3389,17 @@ class ConceptServer {
 	BrokenPipe(signum) {
 		echo "Broken pipe received $signum\n";
 		// nothing
+	}
+
+	RedirectHeader(var orig_app, var ServerName) {
+		var tstamp = StrReplace(StrReplace(asctime(time()), "\r", ""), "\n", "")+" GMT";
+		var location = "https://" + ServerName;
+		if (SSLWSPort != 443)
+			location += ":" + SSLWSPort;
+		if ((orig_app) && (orig_app[0] != "/"))
+			location += "/";
+		location += orig_app;
+		return "HTTP/1.1 302 Found\r\nDate: $tstamp\r\nConnection: close\r\nLocation: $location\r\nServer: " + SERVER_NAME + "\r\n\r\n";
 	}
 
 	Start() {

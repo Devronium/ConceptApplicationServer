@@ -1589,8 +1589,7 @@ int main2(int argc, char **argv) {
         SERVER_PUBLIC_KEY  = (argc > 10) && (argv[10][0]) ? hex_to_string(argv[10], spbk) : 0;
         SERVER_PRIVATE_KEY = (argc > 11) && (argv[11][0]) ? hex_to_string(argv[11], sprk) : 0;
         CLIENT_PUBLIC_KEY  = (argc > 12) && (argv[12][0]) ? hex_to_string(argv[12], cpbk) : 0;
-
-        if ((SERVER_PUBLIC_KEY) && (SERVER_PRIVATE_KEY) && (CLIENT_PUBLIC_KEY))
+        if ((SERVER_PRIVATE_KEY) && (CLIENT_PUBLIC_KEY))
             secured = 1;
     }
 

@@ -43,6 +43,18 @@ static int hardware_aes = 0;
 #include <windows.h>
 #include <wincrypt.h>
 #endif
+
+const char *default_dhe_p = "87A8E61DB4B6663CFFBBD19C651959998CEEF608660DD0F25D2CEED4435E3B00E00DF8F1D61957D4FAF7DF4561B2AA3016C3D91134096FAA3BF4296D830E9A7C209E0C6497517ABD5A8A9D306BCF67ED91F9E6725B4758C022E0B1EF4275BF7B6C5BFC11D45F9088B941F54EB1E59BB8BC39A0BF12307F5C4FDB70C581B23F76B63ACAE1CAA6B7902D52526735488A0EF13C6D9A51BFA4AB3AD8347796524D8EF6A167B5A41825D967E144E5140564251CCACB83E6B486F6B3CA3F7971506026C0B857F689962856DED4010ABD0BE621C3A3960A54E710C375F26375D7014103A4B54330C198AF126116D2276E11715F693877FAD7EF09CADB094AE91E1A1597";
+const char *default_dhe_g = "3FB32C9B73134D0B2E77506660EDBD484CA7B18F21EF205407F4793A1A0BA12510DBC15077BE463FFF4FED4AAC0BB555BE3A6C1B0C6B47B1BC3773BF7E8C6F62901228F8C28CBB18A55AE31341000A650196F931C77A57F2DDF463E5E9EC144B777DE62AAAB8A8628AC376D282D6ED3864E67982428EBC831D14348F6F2F9193B5045AF2767164E1DFC967C1FB3F2E55A4BD1BFFE83B9C80D052B985D182EA0ADB2A3B7313D3FE14C8484B1E052588B9B7D2BBD2DF016199ECD06E1557CD0915B3353BBB64E0EC377FD028370DF92B52C7891428CDC67EB6184B523D1DB246C32F63078490F00EF8D647D148D47954515E2327CFEF98C582664B4C0F6CC41659";
+static const ltc_ecc_set_type ecc256 = {
+    32,
+    "ECC-256",
+    "FFFFFFFF00000001000000000000000000000000FFFFFFFFFFFFFFFFFFFFFFFF",
+    "5AC635D8AA3A93E7B3EBBD55769886BC651D06B0CC53B0F63BCE3C3E27D2604B",
+    "FFFFFFFF00000000FFFFFFFFFFFFFFFFBCE6FAADA7179E84F3B9CAC2FC632551",
+    "6B17D1F2E12C4247F8BCE6E563A440F277037D812DEB33A0F4A13945D898C296",
+    "4FE342E2FE1A7F9B8EE7EB4A7C0F9E162BCE33576B315ECECBB6406837BF51F5",
+};
 //---------------------------------------------------------------------------
 #define BLOCKMODE_CTR    BLOCKMODE_CRT
 CONCEPT_DLL_API ON_CREATE_CONTEXT MANAGEMENT_PARAMETERS {
@@ -727,7 +739,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(AESEncrypt, 2, 4)
 #endif
 
     int iSize      = PARAM_LEN(1);
-    int iRoundSize = AesRoundSize(iSize, /*16*/ keySize);
+    int iRoundSize = AesRoundSize(iSize, 16);
     if (!iRoundSize) {
         RETURN_STRING("");
         return 0;
@@ -737,10 +749,10 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(AESEncrypt, 2, 4)
     if (PARAMETERS_COUNT > 3) {
         T_NUMBER(3)
         if ((iRoundSize == iSize) && (PARAM_INT(3)))
-            iRoundSize += keySize; //16;
+            iRoundSize += 16;
     } else
     if (iRoundSize == iSize)
-        iRoundSize += keySize; //16;
+        iRoundSize += 16;
 
     char *filled = 0;
     char is_new  = 0;
@@ -753,7 +765,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(AESEncrypt, 2, 4)
     } else
         filled = PARAM(1);
 
-    long num_blocks = iRoundSize / keySize;/*/16*/
+    long num_blocks = iRoundSize / 16;
 
     char *out;
     CORE_NEW(iRoundSize + 1, out);
@@ -830,7 +842,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(AESDecrypt, 2, 4)
     keySize = context->bsize;
 #endif
 
-    if (iSize % keySize)
+    if (iSize % 16)
         return (void *)"AESDecrypt: string is not a multiple of AES block size";
 
     int iRoundSize = iSize;
@@ -869,9 +881,9 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(AESDecrypt, 2, 4)
                 break;
         }
     } else
-        context->Decrypt((const unsigned char *)PARAM(1), (unsigned char *)out, iSize / keySize /*16*/, mode);
+        context->Decrypt((const unsigned char *)PARAM(1), (unsigned char *)out, iSize / 16, mode);
 #else
-    context->Decrypt((const unsigned char *)PARAM(1), (unsigned char *)out, iSize / keySize /*16*/, mode);
+    context->Decrypt((const unsigned char *)PARAM(1), (unsigned char *)out, iSize / 16, mode);
 #endif
     if (PARAMETERS_COUNT > 3) {
         T_NUMBER(3)
@@ -879,7 +891,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(AESDecrypt, 2, 4)
         if (PARAM_INT(3)) {
             // padding ?
             int padding = out[iRoundSize - 1];
-            if ((padding > 0) && (padding <= /*16*/ keySize))
+            if ((padding > 0) && (padding <= 16))
                 iRoundSize -= padding;
         }
     }
@@ -2399,6 +2411,276 @@ CONCEPT_FUNCTION_IMPL(CryptoRandom, 1)
     }
     RETURN_STRING("");
 #endif
+END_IMPL
+//---------------------------------------------------------------------------
+typedef struct {
+    void *x;
+    void *y;
+    void *p;
+    void *g;
+} DHKey;
+
+void __private_dh_clear_key(DHKey *key) {
+    mp_clear_multi(key->g, key->p, key->x, key->y, NULL);
+    key->g = NULL;
+    key->p = NULL;
+    key->x = NULL;
+    key->y = NULL;
+}
+
+int __private_dh_make_key(int keysize, DHKey *key, const char *pbuf, const char *gbuf, int pbuf_len, int gbuf_len) {
+    unsigned char *buf;
+    int err;
+    
+    static prng_state prng;
+    int wprng = find_prng("sprng");
+    if ((err = prng_is_valid(wprng)) != CRYPT_OK)
+        return err;
+
+    buf = (unsigned char *)malloc(keysize);
+    if (!buf)
+        return -1;
+    
+    if (rng_make_prng(keysize, wprng, &prng, NULL) != CRYPT_OK) {
+        free(buf);
+        return -1;
+    }
+    
+    if (prng_descriptor[wprng].read(buf, keysize, &prng) != (unsigned long)keysize) {
+        free(buf);
+        return -1;
+    }
+    
+    if ((err = mp_init_multi(&key->g, &key->p, &key->x, &key->y, NULL)) != CRYPT_OK) {
+        free(buf);
+        return -1;
+    }
+    
+    if (gbuf_len <= 0) {
+        if ((err = mp_read_radix(key->g, gbuf, 16)) != CRYPT_OK) {
+            free(buf);
+            __private_dh_clear_key(key);
+            return -1;
+        }
+    } else {
+        if ((err = mp_read_unsigned_bin(key->g, (unsigned char *)gbuf, gbuf_len)) != CRYPT_OK) {
+            free(buf);
+            __private_dh_clear_key(key);
+            return -1;
+        }
+    }
+    
+    if (pbuf_len <= 0) {
+        if ((err = mp_read_radix(key->p, pbuf, 16)) != CRYPT_OK) {
+            free(buf);
+            __private_dh_clear_key(key);
+            return -1;
+        }
+    } else {
+        if ((err = mp_read_unsigned_bin(key->p, (unsigned char *)pbuf, pbuf_len)) != CRYPT_OK) {
+            free(buf);
+            __private_dh_clear_key(key);
+            return -1;
+        }
+    }
+    
+    if ((err = mp_read_unsigned_bin(key->x, buf, keysize)) != CRYPT_OK) {
+        free(buf);
+        __private_dh_clear_key(key);
+        return -1;
+    }
+    
+    if ((err = mp_exptmod(key->g, key->x, key->p, key->y)) != CRYPT_OK) {
+        free(buf);
+        __private_dh_clear_key(key);
+        return -1;
+    }
+    
+    free(buf);
+    return 0;
+}
+
+int __private_dh_shared_secret(const char *private_x, const char *private_p, const char *public_y, unsigned char *out, unsigned long *outlen) {
+    void *tmp;
+    void *px, *pp, *pub_y;
+    unsigned long x;
+    int err;
+    
+    
+    /* compute y^x mod p */
+    if ((err = mp_init_multi(&tmp, &px, &pp, &pub_y, NULL)) != CRYPT_OK)
+        return err;
+    
+    if ((err = mp_read_radix(px, private_x, 16)) != CRYPT_OK) {
+        mp_clear_multi(tmp, px, pp, pub_y, NULL);
+        return -1;
+    }
+    if ((err = mp_read_radix(pp, private_p, 16)) != CRYPT_OK) {
+        mp_clear_multi(tmp, px, pp, pub_y, NULL);
+        return -1;
+    }
+    if ((err = mp_read_radix(pub_y, public_y, 16)) != CRYPT_OK) {
+        mp_clear_multi(tmp, px, pp, pub_y, NULL);
+        return -1;
+    }
+    if ((err = mp_exptmod(pub_y, px, pp, tmp)) != CRYPT_OK) {
+        mp_clear_multi(tmp, px, pp, pub_y, NULL);
+        return err;
+    }
+    
+    x = (unsigned long)mp_unsigned_bin_size(tmp);
+    if (*outlen < x) {
+        err = CRYPT_BUFFER_OVERFLOW;
+        mp_clear_multi(tmp, px, pp, pub_y, NULL);
+        return err;
+    }
+    
+    if ((err = mp_to_unsigned_bin(tmp, out)) != CRYPT_OK) {
+        mp_clear_multi(tmp, px, pp, pub_y, NULL);
+        return err;
+    }
+    *outlen = x;
+    mp_clear_multi(tmp, px, pp, pub_y, NULL);
+    return 0;
+}
+//---------------------------------------------------------------------------
+int __private_eccdh_shared_secret(const ltc_ecc_set_type *dp, const char *pub_key_x, const char *pub_key_y, const char *pub_key_z, const char *priv_key, unsigned char *out, unsigned long *outlen) {
+    int err;
+ 
+    ecc_key public_key;
+    ecc_key private_key;
+
+    memset(&public_key, 0, sizeof(ecc_key));
+    memset(&private_key, 0, sizeof(ecc_key));
+
+    if (mp_init_multi(&public_key.pubkey.x, &public_key.pubkey.y, &public_key.pubkey.z, &private_key.k, NULL))
+        return -1;
+    
+    if ((err = mp_read_radix(public_key.pubkey.x, pub_key_x, 16)) != CRYPT_OK) {
+        mp_clear_multi(public_key.pubkey.x, public_key.pubkey.y, public_key.pubkey.z, private_key.k, NULL);
+        return -1;
+    }
+    if ((err = mp_read_radix(public_key.pubkey.y, pub_key_y, 16)) != CRYPT_OK) {
+        mp_clear_multi(public_key.pubkey.x, public_key.pubkey.y, public_key.pubkey.z, private_key.k, NULL);
+        return -1;
+    }
+    if ((err = mp_read_radix(public_key.pubkey.z, pub_key_z, 16)) != CRYPT_OK) {
+        mp_clear_multi(public_key.pubkey.x, public_key.pubkey.y, public_key.pubkey.z, private_key.k, NULL);
+        return -1;
+    }
+    if ((err = mp_read_radix(private_key.k, priv_key, 16)) != CRYPT_OK) {
+        mp_clear_multi(public_key.pubkey.x, public_key.pubkey.y, public_key.pubkey.z, private_key.k, NULL);
+        return -1;
+    }
+
+    public_key.idx = -1;
+    public_key.dp = dp;
+    public_key.type = PK_PUBLIC;
+
+    private_key.idx = -1;
+    private_key.dp = dp;
+    private_key.type = PK_PRIVATE;
+
+    err = ecc_shared_secret(&private_key, &public_key, out, outlen);
+    mp_clear_multi(public_key.pubkey.x, public_key.pubkey.y, public_key.pubkey.z, private_key.k, NULL);
+    return err;
+}
+//---------------------------------------------------------------------------
+CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(DHMakeKey, 0, 3)
+    int key_size = 2048;
+    const char *dhe_p = default_dhe_p;
+    const char *dhe_g = default_dhe_g;
+
+    if (PARAMETERS_COUNT > 0) {
+        T_NUMBER(0)
+        key_size = PARAM_INT(0);
+    }
+    if (PARAMETERS_COUNT > 1) {
+        T_STRING(1)
+        dhe_p = PARAM(1);
+    }
+    if (PARAMETERS_COUNT > 1) {
+        T_STRING(2)
+        dhe_g = PARAM(2);
+    }
+    DHKey dhe;
+    memset(&dhe, 0, sizeof(dhe));
+    CREATE_ARRAY(RESULT);
+    if (!__private_dh_make_key(key_size/8, &dhe, dhe_p, dhe_g, 0, 0)) {
+        Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, RESULT, "p", (INTEGER)VARIABLE_STRING, (char *)dhe_p, (NUMBER)0);
+        Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, RESULT, "g", (INTEGER)VARIABLE_STRING, (char *)dhe_g, (NUMBER)0);
+        char str[0xFFF];
+        str[0] = 0;
+        mp_toradix(dhe.y, str, 16);
+        Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, RESULT, "y", (INTEGER)VARIABLE_STRING, (char *)str, (NUMBER)0);
+        str[0] = 0;
+        mp_toradix(dhe.x, str, 16);
+        Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, RESULT, "key", (INTEGER)VARIABLE_STRING, (char *)str, (NUMBER)0);
+        __private_dh_clear_key(&dhe);
+    }
+END_IMPL
+//---------------------------------------------------------------------------
+CONCEPT_FUNCTION_IMPL(ECDHMakeKey, 0)
+    ecc_key ecc_dhe;
+
+    CREATE_ARRAY(RESULT);
+    if (!ecc_make_key_ex(NULL, find_prng("sprng"), &ecc_dhe, &ecc256)) {
+        char str[0xFFF];
+        str[0] = 0;
+        mp_toradix(ecc_dhe.pubkey.x, str, 16);
+        Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, RESULT, "x", (INTEGER)VARIABLE_STRING, (char *)str, (NUMBER)0);
+        str[0] = 0;
+        mp_toradix(ecc_dhe.pubkey.y, str, 16);
+        Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, RESULT, "y", (INTEGER)VARIABLE_STRING, (char *)str, (NUMBER)0);
+        str[0] = 0;
+        mp_toradix(ecc_dhe.pubkey.z, str, 16);
+        Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, RESULT, "z", (INTEGER)VARIABLE_STRING, (char *)str, (NUMBER)0);
+        str[0] = 0;
+        mp_toradix(ecc_dhe.k, str, 16);
+        Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, RESULT, "key", (INTEGER)VARIABLE_STRING, (char *)str, (NUMBER)0);
+        ecc_free(&ecc_dhe);
+    }
+END_IMPL
+//---------------------------------------------------------------------------
+CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(DHSecret, 2, 3)
+    // y
+    T_STRING(0)
+    // x
+    T_STRING(1)
+
+    const char *dhe_p = default_dhe_p;
+
+    if (PARAMETERS_COUNT > 2) {
+        T_STRING(2)
+        dhe_p = PARAM(2);
+    }
+
+    unsigned char out[0xFFF];
+    unsigned long out_len = sizeof(out);
+    if (!__private_dh_shared_secret(PARAM(1), dhe_p, PARAM(0), out, &out_len)) {
+        RETURN_BUFFER((const char *)out, out_len);
+    } else {
+        RETURN_STRING("");
+    }
+END_IMPL
+//---------------------------------------------------------------------------
+CONCEPT_FUNCTION_IMPL(ECDHSecret, 4)
+    // pubkey.x
+    T_STRING(0)
+    // pubkey.y
+    T_STRING(1)
+    // pubkey.z
+    T_STRING(2)
+    // privkey.y
+    T_STRING(3)
+
+    unsigned char out[0xFFF];
+    unsigned long out_len = sizeof(out);
+    if (!__private_eccdh_shared_secret(&ecc256, PARAM(0), PARAM(1), PARAM(2), PARAM(3), out, &out_len)) {
+        RETURN_BUFFER((const char *)out, out_len);
+    } else {
+        RETURN_STRING("");
+    }
 END_IMPL
 //---------------------------------------------------------------------------
 #endif

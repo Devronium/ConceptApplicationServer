@@ -27,6 +27,8 @@ extern "C" {
 
 #define CACHE_SIZE       0xFFFF
 #define CHUNK_SIZE       0x80000
+#define MAX_RT_SIZE      0x9FFF
+
 
 #ifdef _WIN32
  #define _WIN32_WINNT    0x0501
@@ -674,17 +676,17 @@ int deturnated_send(MetaContainer *mc, int CLIENT_SOCKET, char *buffer, int size
                         fprintf(stderr, "Fall back to TCP socket (errno: %i, size: %i)\n", (int)errno, size);
                         RTSOCKET = -1;
                     } else {
-                        //ResetConceptPeer(mc, CLIENT_SOCKET);
                         RTSOCKET = -1;
                     }
-                    if (encrypted)
+                    if ((encrypted) && (!ref_isWebSocket))
                         return 0;
-                    continue;
                 }
             } else {
                 mc->rt_out += ssize;
                 break;
             }
+            if (ref_isWebSocket)
+                return size;
         } else {
 #ifndef NOSSL
             if (mc->ssl) {
@@ -802,26 +804,39 @@ int DeSerializeBuffer2(char *buffer, int size, char **Owner, int *owner_len, int
     *len_value = 0;
 
     if (compressed) {
-        compressed &= 0xF0000000;
-        unsigned int owner   = compressed >> 16;
-        int          val_len = compressed & 0xFFFF;
-        if (val_len > size)
+        if (ref_isWebSocket) {
+            if (buf_owner) {
+                buf_owner[0] = 0;
+                sprintf(buf_owner, "%i", (unsigned int)ntohs(*(unsigned short *)buffer));
+                *Owner     = buf_owner;
+                *owner_len = strlen(buf_owner);
+            }
+            *message = 0x1001;
+            *Target = def_msg;
+            *len_target = 3;
+            *Value = buffer + 2;
+            *len_value = size - 2;
             return 0;
+        } else {
+            compressed &= 0xF0000000;
+            unsigned int owner   = compressed >> 16;
+            int          val_len = compressed & 0xFFFF;
+            if (val_len > size)
+                return 0;
 
-        //*Owner=(long)owner;
-        // event fired
-        if (buf_owner) {
-            buf_owner[0] = 0;
-            sprintf(buf_owner, "%i", owner);
-            *Owner     = buf_owner;
-            *owner_len = strlen(buf_owner);
+            if (buf_owner) {
+                buf_owner[0] = 0;
+                sprintf(buf_owner, "%i", owner);
+                *Owner     = buf_owner;
+                *owner_len = strlen(buf_owner);
+            }
+            *message = 0x1001;
+            // on buffer
+            *Target     = def_msg;
+            *len_target = 3;
+            *Value      = buffer;
+            *len_value  = val_len;
         }
-        *message = 0x1001;
-        // on buffer
-        *Target     = def_msg;
-        *len_target = 3;
-        *Value      = buffer;
-        *len_value  = val_len;
         return 0;
     }
     // OWNER poate avea maxim 256 octeti
@@ -871,18 +886,26 @@ int DeSerializeBuffer2(char *buffer, int size, char **Owner, int *owner_len, int
 //-----------------------------------------------------------------------------------
 int DeSerializeBuffer(char *buffer, int size, AnsiString *Owner, int *message, AnsiString *Target, AnsiString *Value, unsigned int compressed = 0) {
     if (compressed) {
-        compressed &= 0x0FFFFFFF;
-        int owner   = compressed >> 16;
-        int val_len = compressed & 0xFFFF;
-        if (val_len > size)
+        if (ref_isWebSocket) {
+            *Owner = (long)ntohs(*(unsigned short *)buffer);
+            *message = 0x1001;
+            Target->LoadBuffer(def_msg, 3);
+            Value->LoadBuffer(buffer + 2, size - 2);
             return 0;
+        } else {
+            compressed &= 0x0FFFFFFF;
+            int owner   = compressed >> 16;
+            int val_len = compressed & 0xFFFF;
+            if (val_len > size)
+                return 0;
 
-        *Owner = (long)owner;
-        // event fired
-        *message = 0x1001;
-        // on buffer
-        Target->LoadBuffer("350", 3);
-        Value->LoadBuffer(buffer, val_len);
+            *Owner = (long)owner;
+            // event fired
+            *message = 0x1001;
+            // on buffer
+            Target->LoadBuffer("350", 3);
+            Value->LoadBuffer(buffer, val_len);
+        }
         return 0;
     }
     int bytes_available = size;
@@ -1008,6 +1031,8 @@ long WSGetPacketSize(MetaContainer *mc, int CLIENT_SOCKET, int *code, int *maske
             *code = 0;
             break;
 
+        case 0x0D:
+            // private rtc-extension frame
         case 0x02:
             // binary frame
             *code = 0;
@@ -1124,12 +1149,52 @@ long WSReceive(MetaContainer *mc, int CLIENT_SOCKET, char *buffer, int size, int
     return size;
 }
 
-char *SerializeBuffer(MetaContainer *mc, char **buffer, int *size, AnsiString *Owner, int message, AnsiString *Target, AnsiString *Value, char *key, int *is_udp = NULL) {
+char *SerializeBuffer(MetaContainer *mc, char **buffer, int *size, AnsiString *Owner, int message, AnsiString *Target, AnsiString *Value, char *key, int *is_udp = NULL, int *remaining = NULL) {
     // OWNER poate avea maxim 256 octeti
     int vlen = Value->Length();
     int tlen = Target->Length();
 
     if (ref_isWebSocket) {
+        if ((message == 0x110) && (!tlen)) {
+            if (vlen > 0) {
+                unsigned int owner = Owner->ToInt();
+                if ((is_udp) && (mc->RTSOCKET > 0) && (mc->RTCONFIRMED) && (mc->rt_send_enabled) && (mc->remote_conceptudpaddr.ss_family) && (owner <= 0xFFFF) && (owner >= 0)) {
+                    *is_udp = 1;
+                    int offset = 0;
+                    if (remaining)
+                        offset = *remaining;
+                    int vsize2 = vlen - offset;
+                    if (vsize2 < 0)
+                        vsize2 = 0;
+                    if (vsize2 > MAX_RT_SIZE) {
+                        vsize2 = MAX_RT_SIZE;
+
+                        if (remaining)
+                            *remaining += vsize2;
+                    } else {
+                        if (remaining)
+                            *remaining = 0;
+                    }
+                    *size = vsize2 + sizeof(short);
+                    char *ptr = new char[*size];
+                    *(unsigned short *)ptr = htons((unsigned short)owner);
+                    char *buf = ptr + sizeof(short);
+                    memcpy(buf, Value->c_str() + offset, vsize2);
+                    *buffer = ptr;
+                    return ptr;
+                } else {
+                    message = 0x1001;
+                    *Target = (char *)"350";
+                    tlen    = Target->Length();
+                }
+            } else {
+                message = 0x1001;
+                *Target = (char *)"350";
+                tlen    = Target->Length();
+            }
+        }
+        if (remaining)
+            *remaining = 0;
         *size = sizeof(char) + Owner->Length() + sizeof(int) + sizeof(short) + tlen + vlen;
         //  8 bits packet type + max 64 bits size
         char *ptr = new char[*size + 10];
@@ -1159,7 +1224,7 @@ char *SerializeBuffer(MetaContainer *mc, char **buffer, int *size, AnsiString *O
         return ptr;
     } else {
         if ((message == 0x110) && (!tlen)) {
-            if ((!key) && (vlen) && (vlen <= 0x9FFF)) {
+            if ((!key) && (vlen) && (vlen <= MAX_RT_SIZE)) {
                 unsigned int owner = Owner->ToInt();
                 if (owner <= 0xFFF) {
                     // max udp size
@@ -2236,49 +2301,52 @@ CONCEPT_DLL_API CONCEPT_send_message CONCEPT_API_PARAMETERS {
     int     in_content_size = 0;
     int     is_udp          = 0;
     int     message         = (int)MESSAGE_ID;
-    SerializeBuffer(mc, &buffer, &in_content_size, &Owner, message, &Target, &message_data, REMOTE_PUBLIC_KEY, &is_udp);
-    if (ref_isWebSocket) {
-        if (mc->is_cached)
-            Cache(mc, buffer, in_content_size);
-        else
-            res = deturnated_send(mc, CLIENT_SOCKET, buffer, in_content_size, 0, is_udp);
-        delete[] buffer;
-    } else {
-        if (REMOTE_PUBLIC_KEY) {
-            // criptez query-ul ...
-            int  out_content_size = (in_content_size / 16 + 1) * 16 + 5;//(((in_content_size / 48) + 1) * 64) + 256;
-            char *ptr             = new char[out_content_size + sizeof(int)];
-
-            char *out_content = ptr + sizeof(int);
-
-            semp(mc->sem_send);
-            int encrypt_result = AES_encrypt(mc, buffer, in_content_size, out_content, out_content_size, REMOTE_PUBLIC_KEY, 16, !is_udp);
-            semv(mc->sem_send);
-
-            if (!encrypt_result) {
-                delete[] ptr;            //out_content;
-                delete[] (buffer - sizeof(int));
-                return (void *)"send_message: <<AES_encrypt>> error encrypting message.";
-            }
-
-            int size = encrypt_result;
-            *(int *)ptr = htonl(size);
-
-            if ((mc->is_cached) && (!is_udp)) {
-                Cache(mc, out_content, size);
-            } else {
-                res = deturnated_send(mc, CLIENT_SOCKET, ptr, size + sizeof(int), 0, is_udp, 1);
-            }
-            delete[] ptr;
-        } else {
-            if (mc->is_cached) {
+    int     remaining       = 0;
+    do {
+        SerializeBuffer(mc, &buffer, &in_content_size, &Owner, message, &Target, &message_data, REMOTE_PUBLIC_KEY, &is_udp, &remaining);
+        if (ref_isWebSocket) {
+            if ((mc->is_cached) && (!is_udp))
                 Cache(mc, buffer, in_content_size);
+            else
+                res = deturnated_send(mc, CLIENT_SOCKET, buffer, in_content_size, 0, is_udp);
+            delete[] buffer;
+        } else {
+            if (REMOTE_PUBLIC_KEY) {
+                // criptez query-ul ...
+                int  out_content_size = (in_content_size / 16 + 1) * 16 + 5;//(((in_content_size / 48) + 1) * 64) + 256;
+                char *ptr             = new char[out_content_size + sizeof(int)];
+
+                char *out_content = ptr + sizeof(int);
+
+                semp(mc->sem_send);
+                int encrypt_result = AES_encrypt(mc, buffer, in_content_size, out_content, out_content_size, REMOTE_PUBLIC_KEY, 16, !is_udp);
+                semv(mc->sem_send);
+
+                if (!encrypt_result) {
+                    delete[] ptr;            //out_content;
+                    delete[] (buffer - sizeof(int));
+                    return (void *)"send_message: <<AES_encrypt>> error encrypting message.";
+                }
+
+                int size = encrypt_result;
+                *(int *)ptr = htonl(size);
+
+                if ((mc->is_cached) && (!is_udp)) {
+                    Cache(mc, out_content, size);
+                } else {
+                    res = deturnated_send(mc, CLIENT_SOCKET, ptr, size + sizeof(int), 0, is_udp, 1);
+                }
+                delete[] ptr;
             } else {
-                res = deturnated_send(mc, CLIENT_SOCKET, buffer - sizeof(int), in_content_size + sizeof(int), 0, is_udp);
+                if (mc->is_cached) {
+                    Cache(mc, buffer, in_content_size);
+                } else {
+                    res = deturnated_send(mc, CLIENT_SOCKET, buffer - sizeof(int), in_content_size + sizeof(int), 0, is_udp);
+                }
             }
+            delete[] (buffer - sizeof(int));
         }
-        delete[] (buffer - sizeof(int));
-    }
+    } while (remaining > 0);
     SetVariable(RESULT, VARIABLE_NUMBER, "", 0);
     return 0;
 }
@@ -2776,30 +2844,38 @@ int peek_UDP_message(MetaContainer *mc, ParamList *PARAMETERS, VariableDATA **LO
     semp(mc->sem_recv);
     received = recv2(mc, CLIENT_SOCKET, buf_temp, sizeof(buf_temp), 0);
     semv(mc->sem_recv);
-    size = *(unsigned int *)buf_temp;
+    if (ref_isWebSocket) {
+        size = received;
+        size2 = size;
+    } else {
+        size = *(unsigned int *)buf_temp;
+        if (!LOCAL_PRIVATE_KEY) {
+            size2 = ntohl(*(unsigned int *)&size);
+            if (size2 & 0xF0000000) {
+                size = size2 & 0xFFFF;
+            } else {
+                size  = ntohl(size);
+                size2 = 0;
+            }
+        } else
+            size = ntohl(size);
 
-    if (!LOCAL_PRIVATE_KEY) {
-        size2 = ntohl(*(unsigned int *)&size);
-        if (size2 & 0xF0000000) {
-            size = size2 & 0xFFFF;
-        } else {
-            size  = ntohl(size);
-            size2 = 0;
-        }
-    } else
-        size = ntohl(size);
-    if ((size <= 0) || (size > 0xFFFF))
-        return 0;
+        if ((size <= 0) || (size > 0xFFFF))
+            return 0;
 
-    if (size >= received - sizeof(int))
-        size = received - sizeof(int);
+        if (size >= received - sizeof(int))
+            size = received - sizeof(int);
+    }
 
     if (received <= 0)
         return -1;
 
-    if (size)
-        buffer = buf_temp + sizeof(int);
-
+    if (size) {
+        if (ref_isWebSocket)
+            buffer = buf_temp;
+        else
+            buffer = buf_temp + sizeof(int);
+    }
     char *out_content = 0;
     if (LOCAL_PRIVATE_KEY) {
         out_content  = (char *)malloc(size * 2);
