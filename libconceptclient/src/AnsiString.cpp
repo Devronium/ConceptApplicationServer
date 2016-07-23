@@ -272,7 +272,7 @@ AnsiString::operator char *() {
 
 char *AnsiString::c_str() {
     if ((!Data) || (!_LENGTH))
-        return NULL;
+        return (char *)"";
     return Data;
 }
 
@@ -281,7 +281,6 @@ void AnsiString::operator +=(char *value) {
 }
 
 void AnsiString::operator +=(const char *value) {
-    char   *newdata;
     size_t len;
     size_t len_value;
 
@@ -300,7 +299,6 @@ void AnsiString::operator +=(const char *value) {
 }
 
 void AnsiString::operator +=(AnsiString& S) {
-    char   *newdata;
     size_t len;
     size_t len_value = S.Length();
 
@@ -501,6 +499,25 @@ void AnsiString::LoadBuffer(const char *buffer, int size, int offset) {
     } else
         MEMCPY(Data, buffer, size);
     Data[size] = 0;
+}
+
+void AnsiString::AddBuffer(const char *buffer, int len_value) {
+    size_t len;
+
+    if (!len_value)
+        return;
+
+    if ((Data) && (len_value)) {
+        len = _LENGTH;
+
+        _LENGTH = len + len_value;
+        if (_DATA_SIZE < _LENGTH + 1) {
+            _DATA_SIZE = ((_LENGTH + 1) / BLOCK_SIZE) * BLOCK_SIZE + BLOCK_SIZE;
+            Data       = (char *)realloc(Data, _DATA_SIZE);
+        }
+        MEMCPY(Data + len, buffer, len_value + 1);
+    } else
+        LoadBuffer(buffer, len_value);
 }
 
 int AnsiString::Serialize(FILE *out, int type) {

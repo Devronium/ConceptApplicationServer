@@ -9,7 +9,7 @@ int callback(void *client, char *Sender, unsigned short Sender_len, int MSG_ID, 
 }
 
 int main() {
-    void *client = CreateClient(callback, NULL, "concept://localhost:2662/test.con", 0, -1);
+    void *client = CreateClient(callback, NULL, "concept://localhost:2680/test.con", 0, -1);
     if (client) {
         fprintf(stderr, "CONNECTED !\n");
         while (1)

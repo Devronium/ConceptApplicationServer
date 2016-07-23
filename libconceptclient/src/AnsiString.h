@@ -77,6 +77,7 @@ public:
     int LoadFile(char *filename);
     int SaveFile(char *filename);
     void LoadBuffer(const char *buffer, int size, int offset = 0);
+    void AddBuffer(const char *buffer, int size);
 
     long Length();
 

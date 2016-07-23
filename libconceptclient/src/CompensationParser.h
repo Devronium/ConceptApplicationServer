@@ -2195,6 +2195,12 @@ public:
         }
     }
 
+    void SetCallbacks(PROTOCOL_MESSAGE_CB send, PROTOCOL_MESSAGE_CB wait, void *userdata = NULL) {
+        send_message = send;
+        wait_message = wait;
+        UserData     = userdata;
+    }
+
     void AddFunction(Function *f) {
         if (f_index % FUNC_BLOCK == 0)
             FList = (Function **)realloc(FList, (f_index + FUNC_BLOCK) * sizeof(Function *));

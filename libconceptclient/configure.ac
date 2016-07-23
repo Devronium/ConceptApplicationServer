@@ -2,9 +2,9 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ(2.59)
-AC_INIT(onceptclient, 4.0, eduard@devronium.com)
-AM_INIT_AUTOMAKE(conceptclient, 4.0)
-AC_CONFIG_SRCDIR([src/main.cpp])
+AC_INIT(conceptclient, 5.0, eduard.suica@gmail.com)
+AM_INIT_AUTOMAKE(conceptclient, 5.0)
+AC_CONFIG_SRCDIR([src/libconceptclient.cpp])
 AC_CONFIG_HEADER([config.h])
 
 # Checks for programs.
@@ -22,12 +22,6 @@ AC_HEADER_STDBOOL
 AC_C_CONST
 AC_C_INLINE
 AC_TYPE_SIZE_T
-
-pkg_modules="libssl >= 0.9.8"
-PKG_CHECK_MODULES(SSL, [$pkg_modules])
-
-AC_SUBST(SSL_CFLAGS)
-AC_SUBST(SSL_LIBS)
 
 # Checks for library functions.
 AC_FUNC_MALLOC

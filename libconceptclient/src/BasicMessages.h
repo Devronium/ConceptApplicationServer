@@ -323,6 +323,8 @@
 #define CLASS_CALENDARTIME                63
 #define CLASS_TOGGLEBUTTON                64
 #define CLASS_IMAGEBUTTON                 65
+#define CLASS_CLIENTCHART                 66
+#define CLASS_HTMLSNAP                    67
 
 // general (window) messages
 #define P_CAPTION                         100

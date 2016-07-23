@@ -4,11 +4,12 @@
 #include <time.h>
 #include <errno.h>
 
-#include "INTERFACE_TO_AES.h"
-
 #define CHECK_RECONNECT(val)
 #define PACKED_ATTR
 #define LESS_CHECKS_FOR_SPEED
+#define MAX_RT_SIZE     0x9FFF
+
+static signed char is_little_endian = 1;
 
 #ifdef _WIN32
  #include <winsock.h>
@@ -38,6 +39,210 @@ const char *inet_ntop(int af, const void *src, char *dst, socklen_t cnt) {
  #include <netinet/in.h>
 #endif
 
+uint64_t htonll2(uint64_t a) {
+    if (is_little_endian)
+        a = ((a & 0x00000000000000FFULL) << 56) |
+            ((a & 0x000000000000FF00ULL) << 40) |
+            ((a & 0x0000000000FF0000ULL) << 24) |
+            ((a & 0x00000000FF000000ULL) << 8) |
+            ((a & 0x000000FF00000000ULL) >> 8) |
+            ((a & 0x0000FF0000000000ULL) >> 24) |
+            ((a & 0x00FF000000000000ULL) >> 40) |
+            ((a & 0xFF00000000000000ULL) >> 56);
+    return a;
+}
+
+void WSFrame(char *data_in, int data_len, char *out_frame, int *out_len, int rtc = 0) {
+    uint64_t tmp      = data_len;
+    int      size_len = 0;
+
+    // rtc
+    if (rtc)
+        out_frame[0] = '\x8D';
+    else
+        out_frame[0] = '\x82';
+    out_frame++;
+    if (tmp <= 0x7D) {
+        *out_frame = tmp;
+        size_len++;
+        out_frame++;
+    } else
+    if (tmp < 0xFFFF) {
+        *out_frame = 0x7E;
+        out_frame++;
+        *(unsigned short *)out_frame = htons((unsigned short)tmp);
+        size_len  += 3;
+        out_frame += 2;
+    } else {
+        *out_frame = 0x7F;
+        out_frame++;
+        *(uint64_t *)out_frame = htonll2(tmp);
+        size_len  += 9;
+        out_frame += 8;
+    }
+    if (out_frame != data_in)
+        memmove(out_frame, data_in, data_len);
+    *out_len = data_len + size_len + 1;
+}
+
+void IgnoreBytes(CConceptClient *OWNER, int size, bool masked = true) {
+    if (size < 0)
+        return;
+    unsigned char buf;
+    int           received  = 0;
+    int           rec_count = 0;
+    if (masked)
+        size += 4;
+    do {
+        received   = OWNER->Recv((char *)&buf, 1);
+        rec_count += received;
+    } while ((rec_count < size) && (received > 0));
+}
+
+long WSGetPacketSize(CConceptClient *OWNER, int *code, int *masked) {
+    int           received  = 0;
+    int           rec_count = 0;
+    unsigned char buf[9];
+
+    do {
+        received   = OWNER->Recv((char *)buf + rec_count, 2 - rec_count);
+        rec_count += received;
+    } while ((rec_count < 2) && (received > 0));
+    if (received <= 0) {
+        // connection drop
+        *code = -2;
+        return -1;
+    }
+    rec_count = 0;
+    // buf[0] is packet marker
+    switch (buf[0] & 0x0F) {
+        case 0x0:
+            // continuation frame
+            *code = 0;
+            break;
+
+        case 0x1:
+            // text frame;
+            *code = 0;
+            break;
+
+        case 0x02:
+            // binary frame
+            *code = 0;
+            break;
+
+        case 0x08:
+            // connection close
+            *code = -1;
+            break;
+
+        case 0x09:
+            // ping
+            *code = 1;
+            break;
+
+        case 0x0A:
+            // pong
+            *code = 2;
+            break;
+
+        default:
+            // unknown message type, drop it
+            *code = 2;
+            break;
+    }
+
+    char s_buf = buf[1] & 0x7F;
+    *masked = buf[1] & 0x80;
+    switch (s_buf) {
+        case 126:
+            do {
+                received   = OWNER->Recv((char *)buf + rec_count, 2 - rec_count);
+                rec_count += received;
+            } while ((rec_count < 2) && (received > 0));
+            if (received <= 0)
+                return -1;
+
+            // ping or pong
+            if (*code > 0) {
+                IgnoreBytes(OWNER, ntohs(*(unsigned short *)buf));
+                if (*code == 1) {
+                    // ping, must send pong
+                    char pong[6];
+                    pong[0] = 0x8A;
+                    pong[1] = 0x04;
+                    pong[2] = 'P';
+                    pong[3] = 'o';
+                    pong[4] = 'n';
+                    pong[5] = 'g';
+                    OWNER->BlockingSend(pong, 6);
+                    return 0;
+                }
+                return -1;
+            }
+            return ntohs(*(unsigned short *)buf);
+            break;
+
+        case 127:
+            do {
+                received   = OWNER->Recv((char *)buf + rec_count, 8 - rec_count);
+                rec_count += received;
+            } while ((rec_count < 8) && (received > 0));
+            if (received <= 0)
+                return -1;
+
+            // ping or pong
+            if (*code > 0) {
+                IgnoreBytes(OWNER, (long)htonll2(*(uint64_t *)buf));
+                return -1;
+            }
+            return (long)htonll2(*(uint64_t *)buf);
+            break;
+
+        default:
+            if (s_buf <= 0x7D) {
+                if (*code > 0) {
+                    exit(0);
+                    IgnoreBytes(OWNER, s_buf);
+                    return -1;
+                }
+                return s_buf;
+            }
+    }
+    return -1;
+}
+
+long WSReceive(CConceptClient *OWNER, char *buffer, int size, int masked = 0) {
+    char mask[4];
+    int  received  = 0;
+    int  rec_count = 0;
+
+    if (masked) {
+        do {
+            received   = OWNER->Recv((char *)&mask + rec_count, 4 - rec_count);
+            rec_count += received;
+        } while ((rec_count < 4) && (received > 0));
+
+        if (received <= 0)
+            return -1;
+        if (size == 0)
+            return 0;
+        rec_count = 0;
+    }
+    do {
+        received   = OWNER->Recv((char *)buffer + rec_count, size - rec_count);
+        rec_count += received;
+    } while ((rec_count < size) && (received > 0));
+
+    if (received <= 0)
+        return -1;
+
+    if (masked) {
+        for (int i = 0; i < size; i++)
+            buffer[i] = buffer[i] ^ mask[i % 4];
+    }
+    return size;
+} 
 //-----------------------------------------------------------------------------------
 int sock_eof_timeout(int stream, int timeoutms) {
     if ((stream == INVALID_SOCKET) || (stream < 0))
@@ -96,7 +301,11 @@ int peek(CConceptClient *OWNER, int socket) {
     char      buffer[65535];
 
     int res = recvfrom(socket, buffer, sizeof(buffer), MSG_PEEK, (struct sockaddr *)&cliaddr, &len);
-
+    if ((res > 0) && (res <= 2)) {
+        // ignore "hi" messages
+        recvfrom(socket, buffer, sizeof(buffer), 0, (struct sockaddr *)&cliaddr, &len);
+        return 0;
+    }
     if (res > 0) {
         if (!check_clientaddr(&cliaddr, &OWNER->LinkContainer.serveraddr)) {
             int res = recvfrom(socket, buffer, sizeof(buffer), 0, (struct sockaddr *)&cliaddr, &len);
@@ -126,8 +335,6 @@ int recv2(CConceptClient *OWNER, int socket, char *buffer, int size, int flags) 
                 connect_ip[0] = 0;
 
                 inet_ntop(AF_INET, &((struct sockaddr_in *)&OWNER->LinkContainer.p2paddr)->sin_addr, connect_ip, INET6_ADDRSTRLEN + 1);
-                //connect_port = ntohs(((struct sockaddr_in *)&OWNER->LinkContainer.p2paddr)->sin_port);
-
                 return 0;
             }
             if (!OWNER->LinkContainer.is_p2p) {
@@ -161,16 +368,13 @@ void set_next_post_filename(CConceptClient *OWNER, char *filename) {
 }
 
 //-----------------------------------------------------------------------------------
-int session_send(CConceptClient *OWNER, int CLIENT_SOCKET, char *buf, int size, int flags, int is_realtime = 0) {
+int session_send(CConceptClient *OWNER, char *buf, int size, int flags, int is_realtime = 0) {
     int nsent;
     int len      = size;
     int RTSOCKET = OWNER->RTSOCKET;
 
-    if ((is_realtime) && (size > 65000))
-        is_realtime = 0;
-    while (len > 0) {
-        if ((is_realtime) && (OWNER) && (RTSOCKET > 0) && (OWNER->LinkContainer.serveraddr.ss_family)) {
-            //nsent=sendto(RTSOCKET, buf, len, 0, (struct sockaddr *)&OWNER->LinkContainer.serveraddr, OWNER->LinkContainer.server_len);
+    if (is_realtime) {
+        if ((OWNER) && (RTSOCKET > 0) && (OWNER->LinkContainer.serveraddr.ss_family)) {
             if ((OWNER->LinkContainer.is_p2p == 2) && (OWNER->LinkContainer.p2paddr.ss_family)) {
                 nsent = sendto(RTSOCKET, buf, len, 0, (struct sockaddr *)&OWNER->LinkContainer.p2paddr, OWNER->LinkContainer.p2paddr_len);
             } else {
@@ -187,16 +391,17 @@ int session_send(CConceptClient *OWNER, int CLIENT_SOCKET, char *buf, int size, 
                         fprintf(stderr, "Fall back to TCP socket (errno: %i, size: %i)\n", (int)errno, size);
                         RTSOCKET = -1;
                     } else {
-                        //closesocket(OWNER->RTSOCKET);
-                        //OWNER->RTSOCKET = INVALID_SOCKET;
                         RTSOCKET        = INVALID_SOCKET;
                         fprintf(stderr, "Dropping RT socket (send) (errno: %i, size: %i)\n", (int)errno, size);
                     }
-                    return size;
                 }
             }
-        } else
-            nsent = OWNER->Send(buf, len);
+        }
+        return size;
+    }
+
+    while (len > 0) {
+        nsent = OWNER->Send(buf, len);
 
         if (nsent < 0) {
             if (errno == EAGAIN) {          // || EWOULDBLOCK !!!!!!
@@ -234,24 +439,13 @@ inline void post_done(CConceptClient *OWNER) {
 //-----------------------------------------------------------------------------------
 #define ADJUST_SIZE(s)    size2 -= s; if (size2 < 0) { return -1; }
 int read_network_int(char *buffer, int base = 0) {
-    /*char PACKET_ATTR *temp=new char[4];
-
-       temp[0]=buffer[base+0];
-       temp[1]=buffer[base+1];
-       temp[2]=buffer[base+2];
-       temp[3]=buffer[base+3];
-
-       int res=ntohl(*(int *)temp);
-       delete[] temp;
-       return res;*/
     int Int32;
 
     Int32  = (int)(unsigned char)buffer[base + 0] * 0x1000000;
     Int32 += (int)(unsigned char)buffer[base + 1] * 0x10000;
     Int32 += (int)(unsigned char)buffer[base + 2] * 0x100;
     Int32 += (int)(unsigned char)buffer[base + 3];
-    //printf("Buffer: %x %x %x %x", (int)buffer[base+0], (int)buffer[base+1], (int)buffer[base+2], (int)buffer[base+3]);
-    return Int32;    //ntohl(Int32);
+    return Int32;
 }
 
 unsigned short read_network_short(char *buffer, int base = 0) {
@@ -301,14 +495,11 @@ int DeSerializeBuffer(char *buffer, int size, AnsiString *Owner, int *message, A
     char *orig = buffer;
 
     if (compressed) {
-        compressed &= 0x0FFFFFFF;
-        unsigned int owner   = compressed >> 16;
-        int          val_len = compressed & 0xFFFF;
-
+        unsigned short owner = read_network_short(orig);
         *Owner   = (long)owner;
         *message = 0x110;
         Target->LoadBuffer("1003", 4);
-        Value->LoadBuffer(buffer, val_len);
+        Value->LoadBuffer(buffer + 2, size - 2);
         return res;
     }
 
@@ -341,9 +532,12 @@ int DeSerializeBuffer(char *buffer, int size, AnsiString *Owner, int *message, A
         //Target->LoadBuffer(orig, proc_size, target_size);
         buffer    += target_size;
         proc_size += target_size;
-    } else
-        *Target = (char *)"";
-
+    } else {
+        if (*message == 0x110)
+            *Target = (char *)"1003";
+        else
+            *Target = (char *)"";
+    }
     int last_size = size - proc_size; //(buffer-ptr);
     if (last_size > 0) {
         Value->LoadBuffer(buffer, last_size);
@@ -355,7 +549,7 @@ int DeSerializeBuffer(char *buffer, int size, AnsiString *Owner, int *message, A
 }
 
 //-----------------------------------------------------------------------------------
-char *SerializeBuffer(CConceptClient *Client, char **buffer, int *size, AnsiString *Owner, int message, AnsiString *Target, AnsiString *Value, bool buferize, FILE **file_buffer, int *fsize, char no_key, int *is_realtime) {
+char *SerializeBuffer(CConceptClient *Client, char **buffer, int *size, AnsiString *Owner, int message, AnsiString *Target, AnsiString *Value, bool buferize, FILE **file_buffer, int *fsize, char no_key, int *is_realtime, int *remaining) {
     // OWNER poate avea maxim 256 octeti
     int vsize = Value->Length();
     int tlen  = Target->Length();
@@ -376,19 +570,31 @@ char *SerializeBuffer(CConceptClient *Client, char **buffer, int *size, AnsiStri
         }
     }
     if ((message == 0x110) && (!tlen)) {
-        if ((no_key) && (vsize) && (vsize <= 0x9FFF)) {
+        if ((no_key) && (vsize > 0)) {
             unsigned int owner = Owner->ToInt();
-            if (owner <= 0xFFF) {
-                if (vsize <= 65000) {
-                    if ((is_realtime) && (Client) && (Client->RTSOCKET > 0) && (Client->LinkContainer.serveraddr.ss_family))
-                        *is_realtime = 1;
+            if ((Client) && (Client->RTSOCKET > 0) && (Client->LinkContainer.serveraddr.ss_family) && (owner <= 0xFFFF) && (owner >= 0) && (is_realtime)) {
+                *is_realtime = 1;
+                int offset = 0;
+                if (remaining)
+                    offset = *remaining;
+                int vsize2 = vsize - offset;
+                if (vsize2 < 0)
+                    vsize2 = 0;
+                if (vsize2 > MAX_RT_SIZE) {
+                    vsize2 = MAX_RT_SIZE;
+
+                    if (remaining)
+                        *remaining += vsize2;
+                } else {
+                    if (remaining)
+                        *remaining = 0;
                 }
-                *size = vsize;
-                char *ptr = new char[*size + sizeof(int)];
-                write_network_uint(ptr, ((unsigned int)*size) | (unsigned int)0xF0000000 | (owner << 16));
-                char *buf = ptr + sizeof(int);
-                *buffer = buf;
-                memcpy(buf, Value->c_str(), vsize);
+                *size = vsize2 + sizeof(short);
+                char *ptr = new char[*size];
+                write_network_short(ptr, owner);
+                char *buf = ptr + sizeof(short);
+                *buffer = ptr;
+                memcpy(buf, Value->c_str() + offset, vsize2);
                 return ptr;
             } else {
                 message = 0x1001;
@@ -401,10 +607,12 @@ char *SerializeBuffer(CConceptClient *Client, char **buffer, int *size, AnsiStri
             tlen    = Target->Length();
         }
     }
+    if (remaining)
+        *remaining = 0;
     *size = sizeof(char) + Owner->Length() + sizeof(int) + sizeof(short) + tlen + vsize;
-    char *ptr = new char[*size + sizeof(int)];
+    char *ptr = new char[*size + 10];
     write_network_int(ptr, *size + *fsize);
-    char *buf = ptr + sizeof(int);
+    char *buf = ptr + 10;
     *buffer = buf;
 
     *(unsigned char *)buf = (unsigned char)Owner->Length();
@@ -414,10 +622,8 @@ char *SerializeBuffer(CConceptClient *Client, char **buffer, int *size, AnsiStri
     buf += Owner->Length();
 
     write_network_int(buf, message);
-    //*(int *)buf = htonl(message);
     buf += sizeof(int);
 
-    //*(unsigned short *)buf = htons((unsigned short)Target->Length());
     write_network_short(buf, (unsigned short)tlen);
     buf += sizeof(short);
 
@@ -437,83 +643,32 @@ char *SerializeBuffer(CConceptClient *Client, char **buffer, int *size, AnsiStri
             *file_buffer = in;
     } else
         memcpy(buf, Value->c_str(), Value->Length());
+
+    WSFrame(ptr + 10, *size, ptr, size);
+    *buffer = ptr;
+
     return ptr;
 }
-
-//-----------------------------------------------------------------------------------
-unsigned int AES_encrypt(CConceptClient *OWNER, char *in_buffer, unsigned int in_buffer_size, char *out_buffer, unsigned int out_buffer_size, char *key, unsigned int key_size, bool cbc = false) {
-    if (!OWNER->LinkContainer.En_inited)
-        encrypt_init(OWNER, key, key_size);
-
-    return encrypt(OWNER, in_buffer, in_buffer_size, out_buffer, out_buffer_size, cbc);
-}
-
-//-----------------------------------------------------------------------------------
-unsigned int AES_decrypt(CConceptClient *OWNER, char *in_buffer, unsigned int in_buffer_size, char *out_buffer, unsigned int out_buffer_size, char *key, unsigned int key_size, char ignore_size = 0, bool cbc = false) {
-    if (!OWNER->LinkContainer.Dec_inited)
-        decrypt_init(OWNER, key, key_size);
-
-    return decrypt(OWNER, in_buffer, in_buffer_size, out_buffer, out_buffer_size, ignore_size, cbc);
-}
-
 //----------------------------------------------------------------------------------- 
-int send_message(CConceptClient *OWNER, AnsiString SENDER_NAME, int MESSAGE_ID, AnsiString MESSAGE_TARGET, AnsiString& MESSAGE_DATA, SOCKET CLIENT_SOCKET, char *REMOTE_PUBLIC_KEY, PROGRESS_API notify_parent, bool idle_call) {
+int send_message(CConceptClient *OWNER, AnsiString SENDER_NAME, int MESSAGE_ID, AnsiString MESSAGE_TARGET, AnsiString& MESSAGE_DATA, PROGRESS_API notify_parent) {
     INTEGER res              = 0;
     char    *buffer          = 0;
     int     in_content_size  = 0;
     FILE    *in              = 0;
     int     file_buffer_size = 0;
-    bool    buferize         = REMOTE_PUBLIC_KEY ? true : false;
     int     is_realtime      = 0;
+    int     remaining        = 0;
+    bool    big_message      = false;
+    int     total_sent       = 0;
 
     if ((MESSAGE_ID == 0x1001) && (MESSAGE_TARGET == (char *)"350")) {
         MESSAGE_ID     = 0x110;
         MESSAGE_TARGET = "";
     }
-    char *base_ptr = SerializeBuffer(OWNER, &buffer, &in_content_size, &SENDER_NAME, MESSAGE_ID, &MESSAGE_TARGET, &MESSAGE_DATA, buferize, &in, &file_buffer_size, !REMOTE_PUBLIC_KEY, &is_realtime);
-    int  size_n;
+    do {
+        char *base_ptr = SerializeBuffer(OWNER, &buffer, &in_content_size, &SENDER_NAME, MESSAGE_ID, &MESSAGE_TARGET, &MESSAGE_DATA, true, &in, &file_buffer_size, true, &is_realtime, &remaining);
 
-
-    if (REMOTE_PUBLIC_KEY) {
-        // criptez query-ul ...
-        int  out_content_size = (in_content_size / RANDOM_KEY_SIZE + 1) * RANDOM_KEY_SIZE + 5; //(((in_content_size / 48) + 1) * 64) + 256;
-        char *out_content     = new char[out_content_size];
-
-        int encrypt_result = AES_encrypt(OWNER, buffer, in_content_size, out_content, out_content_size, REMOTE_PUBLIC_KEY, RANDOM_KEY_SIZE, !is_realtime);
-        if (!encrypt_result) {
-            delete[] out_content;
-            return 0;
-        }
-
-        int size = encrypt_result;
-        size_n = htonl(size);
-
-        session_send(OWNER, CLIENT_SOCKET, (char *)&size_n, sizeof(int), 0);
-
-        //----------------------------------------//
-        if ((size >= BIG_MESSAGE) && (notify_parent)) {
-            notify_parent(OWNER, -1, 1);
-            int chunks = size / CHUNK_SIZE;
-            if (size % CHUNK_SIZE)
-                chunks++;
-            for (int i = 0; i < chunks; i++) {
-                int chunk_size = (i < chunks - 1) ? CHUNK_SIZE : size % CHUNK_SIZE;
-                res = session_send(OWNER, CLIENT_SOCKET, out_content + (i * CHUNK_SIZE), chunk_size, 0);
-                if (res != chunk_size) {
-                    notify_parent(OWNER, -1, 2);
-                    break;
-                }
-                notify_parent(OWNER, (int)(((double)(i * CHUNK_SIZE + res) / size) * 100), 0);
-            }
-        } else
-            res = session_send(OWNER, CLIENT_SOCKET, out_content, size, 0);
-        delete[] out_content;
-    } else {
-        size_n = htonl(in_content_size + file_buffer_size);
-        bool big_message = false;
-        int  total_sent  = 0;
         if ((in_content_size + file_buffer_size >= BIG_MESSAGE) && (notify_parent)) {
-            session_send(OWNER, CLIENT_SOCKET, (char *)&size_n, sizeof(int), 0);
             // notify big message !
             big_message = true;
             notify_parent(OWNER, -1, 1);
@@ -523,7 +678,7 @@ int send_message(CConceptClient *OWNER, AnsiString SENDER_NAME, int MESSAGE_ID, 
             for (int i = 0; i < chunks; i++) {
                 int chunk_size = (i < chunks - 1) ? CHUNK_SIZE : in_content_size % CHUNK_SIZE;
                 int to_send    = chunk_size;
-                res = session_send(OWNER, CLIENT_SOCKET, buffer + (i * CHUNK_SIZE), chunk_size, 0);
+                res = OWNER->BlockingSend(buffer + (i * CHUNK_SIZE), chunk_size);
                 if (res != to_send) {
                     notify_parent(OWNER, -1, 2);
                     if (in) {
@@ -539,74 +694,40 @@ int send_message(CConceptClient *OWNER, AnsiString SENDER_NAME, int MESSAGE_ID, 
                 notify_parent(OWNER, 101, 0);
             // done big message !
         } else {
-            res = session_send(OWNER, CLIENT_SOCKET, base_ptr, in_content_size + sizeof(int), 0, is_realtime);
+            session_send(OWNER, base_ptr, in_content_size, 0, is_realtime);
         }
+        if (base_ptr)
+            delete[] base_ptr;
+    } while (remaining > 0);
 
-        if (in) {
-            int  r          = 0;
-            char *file_buf  = new char[RBUF_SIZE];
-            int  chunk_size = 0;
-            do {
-                chunk_size = fread(file_buf, 1, RBUF_SIZE, in);
-                if (chunk_size > 0) {
-                    res = session_send(OWNER, CLIENT_SOCKET, file_buf, chunk_size, 0);
-                    if (res != chunk_size) {
-                        if (big_message)
-                            notify_parent(OWNER, -1, 2);
-                        break;
-                    }
-                    total_sent += res;
+    if (in) {
+        int  r          = 0;
+        char *file_buf  = new char[RBUF_SIZE];
+        int  chunk_size = 0;
+        do {
+            chunk_size = fread(file_buf, 1, RBUF_SIZE, in);
+            if (chunk_size > 0) {
+                res = OWNER->BlockingSend(file_buf, chunk_size);
+                if (res != chunk_size) {
                     if (big_message)
-                        notify_parent(OWNER, (int)(((double)(total_sent) / (in_content_size + file_buffer_size)) * 100), 0);
+                        notify_parent(OWNER, -1, 2);
+                    break;
                 }
-            } while (chunk_size == RBUF_SIZE);
-            delete[] file_buf;
-            fclose(in);
-            in = NULL;
-            if (big_message)
-                notify_parent(OWNER, 101, 0);
-        }
+                total_sent += res;
+                if (big_message)
+                    notify_parent(OWNER, (int)(((double)(total_sent) / (in_content_size + file_buffer_size)) * 100), 0);
+            }
+        } while (chunk_size == RBUF_SIZE);
+        delete[] file_buf;
+        fclose(in);
+        in = NULL;
+        if (big_message)
+            notify_parent(OWNER, 101, 0);
     }
-    if (base_ptr)
-        delete[] base_ptr;
-    return 0;
+    return res;
 }
-
 //---------------------------------------------------------------------------
-int AES_recv_exact(CConceptClient *OWNER, SOCKET CLIENT_SOCKET, char *buffer, int remaining, int flags, char *LOCAL_PRIVATE_KEY) {
-    int size = remaining;
-
-    remaining = (remaining / RANDOM_KEY_SIZE) * RANDOM_KEY_SIZE;
-    int total = 0;
-    int rec   = 0;
-    do {
-        rec = OWNER->Recv(buffer + total, remaining);
-        if (rec > 0) {
-            total     += rec;
-            remaining -= rec;
-        } else {
-            CHECK_RECONNECT(rec);
-        }
-    } while ((rec > 0) && (remaining > 0));
-    if ((!remaining) && (size)) {
-        char *out_content   = new char[size + 1];
-        int  decrypt_result = AES_decrypt(OWNER, buffer, size, out_content, size, LOCAL_PRIVATE_KEY, RANDOM_KEY_SIZE, 1, true);
-        out_content[decrypt_result] = 0;
-        if (!decrypt_result)
-            delete[] out_content;
-        else {
-            memcpy(buffer, out_content, decrypt_result);
-            size = decrypt_result;
-            delete[] out_content;
-        }
-    } else
-        size = -1;
-
-    return size;
-}
-
-//---------------------------------------------------------------------------
-int get_message(CConceptClient *OWNER, TParameters *PARAM, SOCKET CLIENT_SOCKET, char *LOCAL_PRIVATE_KEY, PROGRESS_API notify_parent, bool idle_call) {
+int get_message(CConceptClient *OWNER, TParameters *PARAM, PROGRESS_API notify_parent) {
     unsigned int size2          = 0;
     int          size           = 0;
     int          received       = 0;
@@ -618,7 +739,6 @@ int get_message(CConceptClient *OWNER, TParameters *PARAM, SOCKET CLIENT_SOCKET,
     int          filemarker     = 0;
     int          MSG_ID         = 0;
     int          remaining      = 0;
-    int          decrypt_result = 0;
     char         buf_temp[0xFFFF];
 
     if (OWNER->LinkContainer.BufferedMessages.Count()) {
@@ -627,63 +747,29 @@ int get_message(CConceptClient *OWNER, TParameters *PARAM, SOCKET CLIENT_SOCKET,
         PARAM->ID     = clone->ID;
         PARAM->Target = clone->Target;
         PARAM->Value  = clone->Value;
-        //PARAM->Owner=clone->Owner;
         delete clone;
         return 1;
     }
     if (OWNER->RTSOCKET != INVALID_SOCKET) {
         if (sock_eof_timeout(OWNER->RTSOCKET, 0) == 0) {
             received = recv2(OWNER, OWNER->RTSOCKET, buf_temp, sizeof(buf_temp), 0);
-            size     = *(unsigned int *)buf_temp;
-            if (!LOCAL_PRIVATE_KEY) {
-                size2 = ntohl(*(unsigned int *)&size);
-                if (size2 & 0xF0000000) {
-                    size = size2 & 0xFFFF;
-                } else {
-                    size  = ntohl(size);
-                    size2 = 0;
-                }
-            } else
-                size = ntohl(size);
 
-            if ((received <= 0) || (size <= 0) /*|| (size>0xFFFF)*/) {
+            if (received <= 0) {
                 PARAM->Sender = (char *)"";
                 PARAM->ID     = 0;
                 PARAM->Target = (char *)"";
                 PARAM->Value  = (char *)"";
                 return 1;
             }
-            if (size > received - 4)
-                size = received - 4;
 
-            if (size)
-                buffer = buf_temp + sizeof(int);
-            char *out_content = 0;
-
-            if (LOCAL_PRIVATE_KEY) {
-                out_content    = new char[size * 2];
-                buffer[size]   = 0;
-                decrypt_result = AES_decrypt(OWNER, buffer, size, out_content, size, LOCAL_PRIVATE_KEY, RANDOM_KEY_SIZE, 0, false);
-
-                out_content[decrypt_result] = 0;
-                if (!decrypt_result) {
-                    delete[] out_content;
-                    out_content = 0;
-                } else
-                    size = decrypt_result;
-            }
-
-            if (out_content)
-                DeSerializeBuffer(out_content, size, &PARAM->Sender, &MSG_ID, &PARAM->Target, &PARAM->Value, size2);
-            else
-                DeSerializeBuffer(buffer, size, &PARAM->Sender, &MSG_ID, &PARAM->Target, &PARAM->Value, size2);
+            DeSerializeBuffer(buf_temp, received, &PARAM->Sender, &MSG_ID, &PARAM->Target, &PARAM->Value, 1);
             // just for safety
             switch (MSG_ID) {
                 case 0x1001:
                     // event on buffer
                     if (PARAM->Target == (char *)"350") {
                         MSG_ID        = 0x110;
-                        PARAM->Target = (char *)"103";
+                        PARAM->Target = (char *)"1003";
                     } else
                         MSG_ID = -0x1001;
                     break;
@@ -697,47 +783,23 @@ int get_message(CConceptClient *OWNER, TParameters *PARAM, SOCKET CLIENT_SOCKET,
                     MSG_ID = -0x1000;
             }
             PARAM->ID = MSG_ID;
-            if (out_content)
-                delete[] out_content;
-            return size;
+
+            return received;
         }
     }
 
-    do {
-        //received   = recv(CLIENT_SOCKET, (char *)&size + rec_count, sizeof(int) - rec_count, 0);
-        received = OWNER->Recv((char *)&size + rec_count, sizeof(int) - rec_count);
-        if (received > 0) {
-            rec_count += received;
-        } else {
-#ifdef _WIN32
-            if (WSAGetLastError() == WSAETIMEDOUT)
-#else
-            if (errno == ETIMEDOUT)
-#endif
-                return -2;
-            CHECK_RECONNECT(received);
+    int code;
+    int masked;
+    size = WSGetPacketSize(OWNER, &code, &masked);
+    if (size <= 0) {
+        if (code) {
+            if (OWNER->LinkContainer.PostFile)
+                post_done(OWNER);
         }
-    } while ((rec_count < sizeof(int)) && (received > 0));
-
-    if (!LOCAL_PRIVATE_KEY) {
-        size2 = ntohl(*(unsigned int *)&size);
-        if (size2 & 0xF0000000) {
-            size = size2 & 0xFFFF;
-        } else {
-            size  = ntohl(size);
-            size2 = 0;
-        }
-    } else
-        size = ntohl(size);
-
-    if (received <= 0) {
-        if (OWNER->LinkContainer.PostFile)
-            post_done(OWNER);
         return 0;
     }
 
     buf_size = size;
-    char *out_content2 = 0;
     int  initial_buf   = 0;
 
     if (size) {
@@ -747,8 +809,6 @@ int get_message(CConceptClient *OWNER, TParameters *PARAM, SOCKET CLIENT_SOCKET,
                 initial_buf = buf_size + 5;
             else
                 initial_buf = buf_size;
-            if (LOCAL_PRIVATE_KEY)
-                out_content2 = new char[buf_size * 2];
         }
         buffer = new char[buf_size + 1];
     }
@@ -765,14 +825,9 @@ int get_message(CConceptClient *OWNER, TParameters *PARAM, SOCKET CLIENT_SOCKET,
                 remaining = size - rec_count;
                 if (remaining > buf_size)
                     remaining = buf_size;
-                if (LOCAL_PRIVATE_KEY)
-                    received = AES_recv_exact(OWNER, CLIENT_SOCKET, buffer, remaining, 0, LOCAL_PRIVATE_KEY);
-                else
-                    received = OWNER->Recv(buffer, remaining);
-                //received = recv(CLIENT_SOCKET, buffer, remaining, 0);
+                received = OWNER->Recv(buffer, remaining);
             } else
                 received = OWNER->Recv(buffer + rec_count, initial_buf - rec_count);
-            //received = recv(CLIENT_SOCKET, buffer + rec_count, initial_buf - rec_count, 0);
 
             rec_count += received;
             if (received > 0) {
@@ -782,26 +837,12 @@ int get_message(CConceptClient *OWNER, TParameters *PARAM, SOCKET CLIENT_SOCKET,
                 if (rec_count == initial_buf) {
                     PARAM->Sender = (char *)"";
                     PARAM->Target = (char *)"";
-                    if (LOCAL_PRIVATE_KEY) {
-                        buffer[rec_count] = 0;
-                        decrypt_result    = AES_decrypt(OWNER, buffer, rec_count, out_content2, rec_count, LOCAL_PRIVATE_KEY, RANDOM_KEY_SIZE, 0, true);
-                        if (decrypt_result) {
-                            decrypt_result = rec_count - 5;
-                            out_content2[decrypt_result] = 0;
-                        }
-                    }
                     int fpos = 0;
-                    if (decrypt_result > 0) {
-                        fpos = DeSerializeBuffer(out_content2, decrypt_result, &PARAM->Sender, &MSG_ID, &PARAM->Target, &PARAM->Value);
-                        if ((fpos > 0) && (fpos < decrypt_result))
-                            post_write(OWNER, out_content2 + fpos, decrypt_result - fpos);
-                        delete[] out_content2;
-                        out_content2 = 0;
-                    } else {
-                        fpos = DeSerializeBuffer(buffer, rec_count, &PARAM->Sender, &MSG_ID, &PARAM->Target, &PARAM->Value);
-                        if ((fpos > 0) && (fpos < rec_count))
-                            post_write(OWNER, buffer + fpos, rec_count - fpos);
-                    }
+
+                    fpos = DeSerializeBuffer(buffer, rec_count, &PARAM->Sender, &MSG_ID, &PARAM->Target, &PARAM->Value);
+                    if ((fpos > 0) && (fpos < rec_count))
+                        post_write(OWNER, buffer + fpos, rec_count - fpos);
+
                     PARAM->ID = MSG_ID;
                     PARAM->Value.LoadBuffer(0, 0);
                     filemarker = 1;
@@ -822,11 +863,6 @@ int get_message(CConceptClient *OWNER, TParameters *PARAM, SOCKET CLIENT_SOCKET,
             notify_parent(OWNER, (int)(((double)rec_count / size) * 100), 0);
     } while ((received > 0) && (rec_count < size));
 
-    if (out_content2) {
-        delete[] out_content2;
-        out_content2 = 0;
-    }
-
     if ((size >= BIG_MESSAGE) && (notify_parent))
         notify_parent(OWNER, 101, 0);
     // done big message !
@@ -840,29 +876,8 @@ int get_message(CConceptClient *OWNER, TParameters *PARAM, SOCKET CLIENT_SOCKET,
     if (OWNER->LinkContainer.PostFile)
         post_done(OWNER);
     else {
-        char *out_content = 0;
-
-        if (LOCAL_PRIVATE_KEY) {
-            out_content    = new char[size * 2];
-            buffer[size]   = 0;
-            decrypt_result = AES_decrypt(OWNER, buffer, size, out_content, size, LOCAL_PRIVATE_KEY, RANDOM_KEY_SIZE, 0, true);
-
-            out_content[decrypt_result] = 0;
-            if (!decrypt_result) {
-                delete[] out_content;
-                out_content = 0;
-            } else
-                size = decrypt_result;
-        }
-
-        if (out_content)
-            DeSerializeBuffer(out_content, size, &PARAM->Sender, &MSG_ID, &PARAM->Target, &PARAM->Value, size2);
-        else
-            DeSerializeBuffer(buffer, size, &PARAM->Sender, &MSG_ID, &PARAM->Target, &PARAM->Value, size2);
+        DeSerializeBuffer(buffer, size, &PARAM->Sender, &MSG_ID, &PARAM->Target, &PARAM->Value, size2);
         PARAM->ID = MSG_ID;
-
-        if (out_content)
-            delete[] out_content;
     }
     if (buffer)
         delete[] buffer;
@@ -871,16 +886,16 @@ int get_message(CConceptClient *OWNER, TParameters *PARAM, SOCKET CLIENT_SOCKET,
 }
 
 //---------------------------------------------------------------------------
-int have_messages(CConceptClient *OWNER, SOCKET CLIENT_SOCKET) {
+int have_messages(CConceptClient *OWNER) {
     return !OWNER->IsEOF();
 }
 
 //---------------------------------------------------------------------------
-int wait_message(CConceptClient *OWNER, TParameters *PARAM, int MESSAGE_ID, SOCKET CLIENT_SOCKET, char *LOCAL_PRIVATE_KEY, PROGRESS_API notify_parent) {
+int wait_message(CConceptClient *OWNER, TParameters *PARAM, int MESSAGE_ID, PROGRESS_API notify_parent) {
     int res = 0;
 
     do {
-        res = get_message(OWNER, PARAM, CLIENT_SOCKET, LOCAL_PRIVATE_KEY, notify_parent, false);
+        res = get_message(OWNER, PARAM, notify_parent);
         if (res <= 0)
             break;
         if ((PARAM) && (PARAM->ID == MESSAGE_ID))
@@ -911,7 +926,11 @@ void InitUDP(CConceptClient *owner, int port) {
         return;
 
     if (owner->RTSOCKET) {
+#ifdef _WIN32
         closesocket(owner->RTSOCKET);
+#else
+        close(owner->RTSOCKET);
+#endif
         owner->RTSOCKET = INVALID_SOCKET;
     }
 
@@ -1091,12 +1110,18 @@ AnsiString InitUDP2(CConceptClient *owner, char *host) {
     AnsiString result;
 
     if (owner->RTSOCKET) {
+#ifdef _WIN32
         closesocket(owner->RTSOCKET);
+#else
+        close(owner->RTSOCKET);
+#endif
         owner->RTSOCKET = INVALID_SOCKET;
     }
-    int s_len = strlen(host);
-    if ((!owner) || (!host) || (!s_len))
+
+    if ((!owner) || (!host) || (!host[0]))
         return result;
+
+    int s_len = strlen(host);
 
     char *stun_server = host;
     char *p_str       = strchr(host, ',');
@@ -1161,7 +1186,11 @@ AnsiString InitUDP2(CConceptClient *owner, char *host) {
     } else {
         int res = STUN(socket, stun_server, p_str, connect_ip, &connect_port);
         if (!res) {
+#ifdef _WIN32
             closesocket(socket);
+#else
+            close(socket);
+#endif
             return result;
         }
     }
@@ -1178,7 +1207,11 @@ AnsiString InitUDP3(CConceptClient *owner, char *host) {
     if ((owner) && (owner->RTSOCKET)) {
         char *p_str = strchr(host, ',');
         if ((!p_str) || (p_str[1] == '-')) {
+#ifdef _WIN32
             closesocket(owner->RTSOCKET);
+#else
+            close(owner->RTSOCKET);
+#endif
             owner->RTSOCKET = INVALID_SOCKET;
             return result;
         }
@@ -1201,21 +1234,29 @@ AnsiString InitUDP3(CConceptClient *owner, char *host) {
             err += p_str;
             err += (char *)" ";
             err += (char *)gai_strerror(gerr);
+#ifdef _WIN32
             closesocket(owner->RTSOCKET);
+#else
+            close(owner->RTSOCKET);
+#endif
             owner->RTSOCKET = INVALID_SOCKET;
             return result;
         }
 
         if ((res->ai_family != AF_INET) && (res->ai_family != AF_INET6)) {
             freeaddrinfo(res);
+#ifdef _WIN32
             closesocket(owner->RTSOCKET);
+#else
+            close(owner->RTSOCKET);
+#endif
             owner->RTSOCKET = INVALID_SOCKET;
             return result;
         }
         memcpy(&owner->LinkContainer.serveraddr, res->ai_addr, res->ai_addrlen);
         owner->LinkContainer.server_len = res->ai_addrlen;
 
-        if (sendto(owner->RTSOCKET, "", 1, 0, (struct sockaddr *)&owner->LinkContainer.serveraddr, owner->LinkContainer.server_len) >= 0)
+        if (sendto(owner->RTSOCKET, "hi", 2, 0, (struct sockaddr *)&owner->LinkContainer.serveraddr, owner->LinkContainer.server_len) >= 0)
             result = (char *)"1";
         freeaddrinfo(res);
     }
@@ -1254,9 +1295,10 @@ AnsiString SwitchP2P(CConceptClient *owner, char *host) {
     if (owner->RTSOCKET <= 0)
         return result;
 
-    int s_len = strlen(host);
-    if ((!owner) || (!host) || (!s_len))
+    if ((!owner) || (!host) || (!host[0]))
         return result;
+
+    int s_len = strlen(host);
 
     char *stun_server = host;
     char *p_str       = strchr(host, ',');
@@ -1345,14 +1387,4 @@ AnsiString SwitchP2P(CConceptClient *owner, char *host) {
 }
 
 void SetVectors(void *client, unsigned char *v_send, int v_send_len, unsigned char *v_recv, int v_recv_len) {
-    if (!client)
-        return;
-    CConceptClient *OWNER = (CConceptClient *)client;
-    if (v_send_len > 64)
-        v_send_len = 64;
-    memcpy(OWNER->LinkContainer.EncryptAes.buffer, v_send, v_send_len);
-
-    if (v_recv_len > 64)
-        v_recv_len = 64;
-    memcpy(OWNER->LinkContainer.DecryptAes.buffer, v_recv, v_recv_len);
 } 

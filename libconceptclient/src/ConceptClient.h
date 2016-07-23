@@ -1,9 +1,6 @@
 #ifndef __CONCEPT_CLIENT_H
 #define __CONCEPT_CLIENT_H
 
-#ifdef __WITH_TOMCRYPT
- #include "tomcrypt/tomcrypt.h"
-#endif
 #ifdef _WIN32
  #ifdef _WIN32_WINNT
   #undef _WIN32_WINNT
@@ -41,48 +38,48 @@
  #define Sleep(x)    usleep(x * 1000)
 #endif
 
-#ifndef NOSSL
-extern "C" {
- #include <openssl/bio.h>
- #include <openssl/ssl.h>
- #include <openssl/err.h>
- #include <openssl/x509.h>
-}
-#endif
-
 #include "AnsiString.h"
 #include "AnsiList.h"
+#include "Parameters.h"
 #include "CompensationParser.h"
-#include "semhh.h"
-#include "AES/aes.h"
+
+#ifdef MULTITHREADED
+    #include "semhh.h"
+    #define SEMAPHORE_TYPE         HHSEM
+    #define SEMAPHORE_INIT(x)      seminit(x, 1)
+    #define SEMAPHORE_DONE(x)      semdel(x)
+    #define SEMAPHORE_LOCK(x)      semp(x)
+    #define SEMAPHORE_UNLOCK(x)    semv(x)
+#else
+#ifdef SEMAPHORE_INCLUDE
+    #include SEMAPHORE_INCLUDE
+#endif
+#ifndef SEMAPHORE_INIT
+    #define SEMAPHORE_INIT(x)
+    #define SEMAPHORE_DONE(x)
+    #define SEMAPHORE_LOCK(x)
+    #define SEMAPHORE_UNLOCK(x)
+#endif
+#endif
+
+extern "C" {
+    #include "tlse.h"
+}
 
 typedef void (*PROGRESS_API)(void *client, int how_much, int message);
 typedef int (*VERIFY_API)(void *clinet, int code, void *ssl, int flags);
 typedef int (*CALLBACK_FUNC)(void *client, char *Sender, unsigned short Sender_len, int MSG_ID, char *Target, unsigned short Target_len, char *Value, unsigned long Value_len);
+typedef int (*NON_OPAQUE_CALLBACK_FUNC)(TParameters *PARAM);
+typedef int (*CONNECT_CALLBACK)(int socket, const char *host, int port, int is_reconnect, unsigned char *secured);
+typedef int (*RECV_CALLBACK)(int socket, void *buffer, size_t length, int flags);
+typedef int (*SEND_CALLBACK)(int socket, const void *buffer, size_t length, int flags);
+typedef int (*SOCK_EOF_CALLBACK)(int socket, int timeout);
+typedef int (*CLOSE_CALLBACK)(int socket);
 
-typedef int (*CONNECT_CALLBACK)(SOCKET socket, const struct sockaddr *address, socklen_t address_len);
-typedef int (*RECV_CALLBACK)(SOCKET socket, void *buffer, size_t length, int flags);
-typedef int (*SEND_CALLBACK)(SOCKET socket, const void *buffer, size_t length, int flags);
-typedef int (*SOCK_EOF_CALLBACK)(SOCKET socket, int timeout);
-typedef int (*CLOSE_CALLBACK)(SOCKET socket);
-
-#define DEFAULT_PORT              2662
+#define DEFAULT_PORT              80
+#define DEFAULT_TLS_PORT          443
 
 #define INTEGER                   int
-
-#define RANDOM_KEY_SIZE       16
-
-class CConceptClient;
-
-typedef struct Parameters {
-    AnsiString     Sender;
-    int            ID;
-    AnsiString     Target;
-    AnsiString     Value;
-    CConceptClient *Owner;
-    signed char     Flags;
-    void           *UserData;
-} TParameters;
 
 class MessageDataContainer {
 public:
@@ -95,11 +92,13 @@ public:
     struct sockaddr_storage lastaddr;
     socklen_t lastaddr_len;
     int       is_p2p;
-    AES  EncryptAes;
-    AES  DecryptAes;
     char En_inited;
     char Dec_inited;
 
+    AnsiString ecdhe_x;
+    AnsiString ecdhe_y;
+    AnsiString ecdhe_z;
+    AnsiString ecdhe_k;
 
     MessageDataContainer() {
         PostFile = NULL;
@@ -121,84 +120,73 @@ public:
 
 class CConceptClient {
 private:
-    AnsiString REMOTE_PUBLIC_KEY;
+    struct TLSContext *tls;
     AnsiString SessionID;
     int        debug;
 
-    int NON_CRITICAL_SECTION;
-
-    HHSEM         sem;
+#ifdef MULTITHREADED
+    SEMAPHORE_TYPE sem;
+#endif
     AnsiList      MessageStack;
 
     bool         connection_err;
 
     int        PORT;
-#ifndef NOSSL
-    bool    in_ssl_neg;
-    SSL_CTX *sslctx;
-    SSL     *ssl;
-#endif
 
     struct sockaddr last_addr;
     socklen_t       last_length;
 
     static int sock_eof2(int stream, int sec);
     static int connect2(int socket, struct sockaddr *addr, socklen_t length);
-
+    int ParseCode(const char *buf);
 public:
     CALLBACK_FUNC CONCEPT_CALLBACK;
+    NON_OPAQUE_CALLBACK_FUNC NON_OPAQUE_CONCEPT_CALLBACK;
     SOCKET CLIENT_SOCKET;
     SOCKET RTSOCKET;
 
     AnsiString Called_HOST;
     AnsiString lastHOST;
     AnsiString lastApp;
+    AnsiString lastRedirect;
+
     CompensationParser *parser;
     void *UserData;
     PROGRESS_API notify;
 
-    AnsiString LOCAL_PUBLIC_KEY;
-    AnsiString LOCAL_PRIVATE_KEY;
-    int        secured;
+    unsigned char  secured;
+    unsigned char  ManageTLS;
+
     MessageDataContainer LinkContainer;
 
     static int timedout_recv(SOCKET _socket, char *buffer, int size, int flags, int timeout = 5);
 
-    void        SetCritical(int status);
-
-    int         Connect(char *HOST, int PORT = DEFAULT_PORT);
+    int         Connect(const char *HOST, int PORT = DEFAULT_PORT);
     int         CheckReconnect();
 
     int         Disconnect();
-    int         Run(char *app_name, int pipe = -1);
+    int         Run(const char *app_name, int pipe = -1, char *previous_session = NULL);
 
     void        QueueMessage(char *sender, unsigned char sender_len, int MSG, char *target, unsigned short target_len, char *value, unsigned long value_len);
     long        SendFileMessage(char *sender, int MSG, char *target, char *filename, char force = 0);
     int         SendPending();
-    AnsiString  Encrypt(char *buf, int size, AnsiString *key);
 
-    void        GenerateRandomAESKey(AnsiString *, int);
-
-    int         NoErrors();
     int         Dump(char *);
 
-    int         InitTLS(VERIFY_API verify, int flags = 2);
-    void        ResetTLS();
-    int         Send(char *buf, int len);
+    int         Send(char *buf, int len, bool real_time = false);
+    int         BlockingSend(char *buf, int len, bool real_time = false);
     int         Recv(char *buf, int len);
     int         RecvTimeout(char *buffer, int size, int timeout = 5);
     int         IsEOF();
+    int         StackLen();
 
     CConceptClient(CALLBACK_FUNC cb, int secured, int debug, PROGRESS_API _notify = 0);
     virtual ~CConceptClient();
 
-    static CONNECT_CALLBACK connect3;
-    static RECV_CALLBACK recv3;
-    static SEND_CALLBACK send3;
-    static SOCK_EOF_CALLBACK eof3;
-    static CLOSE_CALLBACK close3;
-
-    static int mod_send(SOCKET socket, const char *buffer, size_t length, int flags);
-    static int mod_eof(SOCKET socket);
+    static CONNECT_CALLBACK connect;
+    static RECV_CALLBACK recv;
+    static SEND_CALLBACK send;
+    static SOCK_EOF_CALLBACK eof;
+    static CLOSE_CALLBACK close;
 };
 #endif // __CONCEPT_CLIENT_H
