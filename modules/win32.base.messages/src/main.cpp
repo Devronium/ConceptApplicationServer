@@ -1183,14 +1183,12 @@ char *SerializeBuffer(MetaContainer *mc, char **buffer, int *size, AnsiString *O
                     *buffer = ptr;
                     return ptr;
                 } else {
-                    message = 0x1001;
-                    *Target = (char *)"350";
-                    tlen    = Target->Length();
+                    *Target = (char *)"1003";
+                    tlen    = 4;
                 }
             } else {
-                message = 0x1001;
-                *Target = (char *)"350";
-                tlen    = Target->Length();
+                *Target = (char *)"1003";
+                tlen    = 4;
             }
         }
         if (remaining)
