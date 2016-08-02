@@ -157,6 +157,7 @@ class BinIndex {
 	}
 
 	GetIndex(idxname) {
+		var origname = idxname;
 		idxname = this._name + "." + idxname + ".idx";
 		var idx = index_cache[idxname];
 		if (idx)
@@ -165,11 +166,12 @@ class BinIndex {
 		if (!FileExists(idxname))
 			WriteFile("", idxname);
 		f.Name = idxname;
+
 		if (f.Open()) {
 			if (Unique)
-				idx = new BTreeFile(f, this._cmp, this.Database, true);
+				idx = new BTreeFile(f, this._cmp, /*this.Database*/origname, true);
 			else
-				idx = new BTreeFile(f, this._cmp_reversed, this.Database, false);
+				idx = new BTreeFile(f, this._cmp_reversed, /*this.Database*/origname, false);
 			index_cache[idxname] = idx;
 			return idx;
 		}
@@ -968,6 +970,14 @@ class BinFile extends File {
 			for (var i = 0; i < length index_data; i++) {
 				var key = index_data[i];
 				if (key) {
+					if (typeof key == "array") {
+						// to do
+						var string_val = this.GetObjectFieldsAsString(c, key[1], var field_count);
+						if ((field_count) && (!_Index.Put(id, key[0], string_val))) {
+							// to do
+							// this._Delete(id, false, false);
+						}
+					} else
 					if (IsSet(c, key)) {
 						if (!_Index.Put(id, key, c[key])) {
 							// to do
@@ -1179,12 +1189,23 @@ class BinFile extends File {
 			var Unique = _Index.Unique;
 			for (var i = 0; i < length indexes; i++) {
 				var index = indexes[i];
-				if ((index) && (IsSet(o, index))) {
-					var v = o[index];
-					if (Unique)
-						_Index.Remove(v, id, index);
-					else
-						_Index.Remove(id, v, index);
+				if (index) { 
+					if (typeof index == "array") {
+						var string_val = this.GetObjectFieldsAsString(o, index[1], var field_count);
+						if (field_count) {
+							if (Unique)
+								_Index.Remove(string_val, id, index[0]);
+							else
+								_Index.Remove(id, string_val, index[0]);
+						}
+					} else
+					if (IsSet(o, index)) {
+						var v = o[index];
+						if (Unique)
+							_Index.Remove(v, id, index);
+						else
+							_Index.Remove(id, v, index);
+					}
 				}
 			}
 		}
@@ -1197,13 +1218,24 @@ class BinFile extends File {
 			var Unique = _Index.Unique;
 			for (var i = 0; i < length indexes; i++) {
 				var index = indexes[i];
-				if ((index) && (IsSet(o, index))) {
-					var v = o[index];
-					if (Unique)
-						_Index.Remove(v, id, index);
-					else
-						_Index.Remove(id, v, index);
-					changed++;
+				if (index) {
+					if (typeof index == "array") {
+						var string_val = this.GetObjectFieldsAsString(o, index[1], var field_count);
+						if (field_count) {
+							if (Unique)
+								_Index.Remove(string_val, id, index[0]);
+							else
+								_Index.Remove(id, string_val, index[0]);
+						}
+					} else
+					if (IsSet(o, index)) {
+						var v = o[index];
+						if (Unique)
+							_Index.Remove(v, id, index);
+						else
+							_Index.Remove(id, v, index);
+						changed++;
+					}
 				}
 			}
 		}
@@ -1332,7 +1364,6 @@ class BinFile extends File {
 	RebuildIndex(string field) {
 		var prec_db = _Index.Database;
 		_Index.Database = field;
-		//this.Seek(HEADER_SIZE);
 		fseek(hFile, HEADER_SIZE, SEEK_SET);
 		Indexes[field] = field;
 		this.Scan(function(c, id, field) {
@@ -1345,7 +1376,6 @@ class BinFile extends File {
 			//this.Seek(pos);
 			fseek(hFile, pos, SEEK_SET);
 		}, field);
-		//this.Seek(HEADER_SIZE);
 		fseek(hFile, HEADER_SIZE, SEEK_SET);
 		_Index.Database = prec_db;
 		cache = new [];
@@ -1353,9 +1383,70 @@ class BinFile extends File {
 		cache_obj = null;
 	}
 
-	EnsureIndex(string field) {
+	GetObjectFields(obj, fields) {
+		var[] indexed_object;
+
+		for (var i = 0; i < length fields; i++) {
+			var field = fields[i];
+			if ((field) && (IsSet(obj, field)))
+				indexed_object[field] = obj[field];
+		}
+		return indexed_object;
+	}
+
+	GetObjectFieldsAsString(obj, fields, var field_count = null) {
+		var indexed_object = "";
+		field_count = 0;
+		for (var i = 0; i < length fields; i++) {
+			var field = fields[i];
+			if ((field) && (IsSet(obj, field))) {
+				field_count++;
+				indexed_object += obj[field];
+				indexed_object += "|";
+			}
+		}
+		return indexed_object;
+	}
+
+	RebuildCompositeIndex(array fields) {
+		var index_name = this.IndexName(fields);
+		if (!index_name)
+			return;
+		var prec_db = _Index.Database;
+		_Index.Database = index_name;
+		fseek(hFile, HEADER_SIZE, SEEK_SET);
+		Indexes[index_name] = fields;
+		this.Scan(function(c, id, userdata) {
+			cache_id = id;
+			cache_obj = c;
+			var fields = userdata[0];
+			var index_name = userdata[1];
+			var pos = ftell(hFile);
+			for (var i = 0; i < length fields; i++) {
+				var field = fields[i];
+				if ((field) && (IsSet(c, field))) {
+					_Index.Put(id, index_name, GetObjectFieldsAsString(c, fields));
+					break;
+				}
+			}
+			fseek(hFile, pos, SEEK_SET);
+		}, [fields, index_name]);
+		fseek(hFile, HEADER_SIZE, SEEK_SET);
+		_Index.Database = prec_db;
+		cache = new [];
+		cache_id = -1;
+		cache_obj = null;
+	}
+
+	EnsureIndex(field) {
+		if (typeof field == "array")
+			return this.EnsureCompositeIndex(field);
+		else
+		if (typeof field != "string")
+			return false;
+
 		for (var i = 0; i < length Indexes; i++) {
-			var index =  Indexes[i];
+			var index = Indexes[i];
 			if ((index) && (field == index))
 				return true;
 		}
@@ -1364,7 +1455,44 @@ class BinFile extends File {
 		Indexes[field] = field;
 		WriteFile(BinarizeObject(Indexes), name + ".idxn");
 	}
+
+	IndexName(fields) {
+		if (typeof fields == "array") {
+			var index_name = "";
+			for (var i = 0; i < length fields; i++) {
+				var field = fields[i];
+				if (field) {
+					if (index_name)
+						index_name += ".";
+					index_name += field;
+				}
+			}
+			if (index_name)
+				index_name = "composite." + index_name;
+			return index_name;
+		}
+		return fields;
+	}
 	
+	EnsureCompositeIndex(array fields) {
+		if (!fields)
+			return false;
+
+		var index_name = this.IndexName(fields);
+		if (!index_name)
+			return false;
+
+		for (var i = 0; i < length Indexes; i++) {
+			var index =  Indexes[i];
+			if ((index) && (typeof index == "array") && (index_name == index[0]))
+				return true;
+		}
+		this.RebuildCompositeIndex(fields);
+		this.FlushDB();
+		Indexes[index_name] = [index_name, fields];
+		WriteFile(BinarizeObject(Indexes), name + ".idxn");
+	}
+
 	EnsureIndexes(array fields) {
 		for (var i = 0; i < length fields; i++) {
 			var field = fields[i];
@@ -1441,6 +1569,34 @@ class BinFile extends File {
 		return false;
 	}
 
+	protected CompositeIndexQuery(array keys, array q) {
+		if ((!keys) || (!q))
+			return false;
+
+		for (var i = 0; i < length keys; i++) {
+			var index_key = keys[i];
+			if (!IsSet(q, index_key))
+				return false;
+		}
+		return true;
+	}
+
+	protected CompositeFilterKeys(array index_keys, array keys) {
+		var[] new_keys;
+		var[] ignore;
+		for (var i = 0; i < length index_keys; i++) {
+			var key = index_keys[i];
+			if (key)
+				ignore[key] = true;
+		}
+		for (i = 0; i < length keys; i++) {
+			key = keys[i];
+			if ((key) && (!ignore[key]))
+				new_keys[length new_keys] = key;
+		}
+		return new_keys;
+	}
+
 	Query(q = null, fields = null, descending = false, start = 0, len = 0) {
 		if (q == null)
 			q = new [];
@@ -1448,10 +1604,23 @@ class BinFile extends File {
 		var keys = GetKeys(q);
 		var index_to_use = new [];
 		var index_counts = new [];
+		var indexed_query = [ ];
 		var result2;
 		for (var i = 0; i < length indexes; i++) {
 			var index = indexes[i];
 			if (index) {
+				if (typeof index == "array") {
+					if (CompositeIndexQuery(index[1], q)) {
+						var index_name = index[0];
+						if (index_name) {
+							_Index.Database = index_name;
+							index_to_use[index_name] = index_name;
+							index_counts[index_name] = length indexes - i;
+							indexed_query[index_name] = this.GetObjectFieldsAsString(q, index[1]);
+							keys = CompositeFilterKeys(index[1], keys);
+						}
+					}
+				} else
 				if (IsSet(q, index)) {
 					_Index.Database = index;
 					index_to_use[index] = index;
@@ -1480,7 +1649,6 @@ class BinFile extends File {
 
 		if (index_to_use) {
 			var non_indexed_query = [ ];
-			var indexed_query = [ ];
 			for (i = 0; i < length keys; i++) {
 				var key = keys[i];
 				if ((indexed_query) || (!IsSet(index_to_use, key)))
