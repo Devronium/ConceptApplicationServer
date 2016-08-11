@@ -8,6 +8,8 @@
 #define TLS_LEGACY_SUPPORT
 // SSL_* style blocking APIs
 #define SSL_COMPATIBLE_INTERFACE
+// support ChaCha20/Poly1305
+#define TLS_WITH_CHACHA20_POLY1305
 // support forward secrecy (Diffie-Hellman ephemeral)
 #define TLS_FORWARD_SECRECY
 // support client-side ECDHE
@@ -15,8 +17,7 @@
 // suport ecdsa
 #define TLS_ECDSA_SUPPORTED
 // suport ecdsa client-side
-#define TLS_CLIENT_ECDSA
-#define TLS_WITH_CHACHA20_POLY1305
+// #define TLS_CLIENT_ECDSA
 // TLS renegotiation is disabled by default (secured or not)
 // do not uncomment next line!
 // #define TLS_ACCEPT_SECURE_RENEGOTIATION
@@ -245,6 +246,8 @@ const char *tls_alpn(struct TLSContext *context);
     typedef struct {
         int fd;
         tls_validation_function certificate_verify;
+        void *recv;
+        void *send;
         void *user_data;
     } SSLUserData;
 
@@ -276,6 +279,7 @@ const char *tls_alpn(struct TLSContext *context);
     int SSL_write(struct TLSContext *context, void *buf, unsigned int len);
     int SSL_read(struct TLSContext *context, void *buf, unsigned int len);
     int SSL_pending(struct TLSContext *context);
+    int SSL_set_io(struct TLSContext *context, void *recv, void *send);
 #endif
 
 #endif

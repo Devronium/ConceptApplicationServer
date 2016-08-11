@@ -17,6 +17,7 @@ class TinQueryParser {
 	var additional_filter;
 	var reversed = false;
 	var owner;
+	var btree;
 	var db;
 	var fetch = -1;
 
@@ -84,15 +85,18 @@ class TinQueryParser {
 			else
 				fetch = false;
 		}
-
 		if (fetch) {
 			if (length key == 8) {
 				if (((typeof min == "string") && (length min > 8)) || ((typeof max == "string") && (length max > 8))) {
-					if (val < 0)
-						val = owner.GetValue(-val);
-					
-					var o = owner.ById(val, [db]);
-					key = o[db];
+					if (val < 0) {
+						if (btree)
+							val = btree.GetValue(-val);
+					}
+					if (val >= 0) {
+						var o = owner.ById(val, [db]);
+						key = o[db];
+					} else
+						fetch = false;
 				} else
 					fetch = false;
 			}
@@ -238,6 +242,7 @@ class BinIndex {
 							if ((typeof ni_q == "array") && (GetKeys(ni_q))) {
 								var ni_qp = new TinQueryParser(ni_q);
 								ni_qp.reversed = this.Unique;
+								ni_qp.btree = btree;
 								no_index_query[ni_key] = ni_qp;
 							}
 						}
@@ -248,12 +253,13 @@ class BinIndex {
 
 				if (typeof key == "array") {
 					var key_list = GetKeys(key);
-					if (key_list) {
+					if ((key_list) && (key_list[0])) {
 						if (len <= 0)
 							len = -1;
 						var qp = new TinQueryParser(key);
 						qp.owner = owner;
 						qp.db = db;
+						qp.btree = btree;
 						//var no_index_keys;
 						//if (no_index_query) {
 						//	no_index_keys = GetKeys(no_index_query);
@@ -1399,9 +1405,11 @@ class BinFile extends File {
 		field_count = 0;
 		for (var i = 0; i < length fields; i++) {
 			var field = fields[i];
-			if ((field) && (IsSet(obj, field))) {
-				field_count++;
-				indexed_object += obj[field];
+			if (field) {
+				if (IsSet(obj, field)) {
+					field_count++;
+					indexed_object += obj[field];
+				}
 				indexed_object += "|";
 			}
 		}
@@ -1459,8 +1467,15 @@ class BinFile extends File {
 	IndexName(fields) {
 		if (typeof fields == "array") {
 			var index_name = "";
+			var[] fields2;
 			for (var i = 0; i < length fields; i++) {
 				var field = fields[i];
+				if (field)
+					fields2[field] = field;
+			}
+			fields = KeySorted(fields2);
+			for (i = 0; i < length fields; i++) {
+				field = fields[i];
 				if (field) {
 					if (index_name)
 						index_name += ".";
@@ -1577,6 +1592,9 @@ class BinFile extends File {
 			var index_key = keys[i];
 			if (!IsSet(q, index_key))
 				return false;
+			// do not use index for OR values
+			if (typeof q[index_key] == "array")
+				return false;
 		}
 		return true;
 	}
@@ -1597,9 +1615,19 @@ class BinFile extends File {
 		return new_keys;
 	}
 
+	Count(q = null) {
+		return this.Query(['#' => q])[0];
+	}
+
 	Query(q = null, fields = null, descending = false, start = 0, len = 0) {
+		var count;
+		if ((q) && (IsSet(q, '#'))) {
+			q = q['#'];
+			count = true;
+		}
 		if (q == null)
 			q = new [];
+
 		var indexes = Indexes;
 		var keys = GetKeys(q);
 		var index_to_use = new [];
@@ -1657,8 +1685,11 @@ class BinFile extends File {
 					indexed_query[key] = q[key];
 			}
 			var ids = _Index._FetchMultiple(indexed_query, non_indexed_query, this.ScanFilter, this, descending, start, len);
-			if (ids)
+			if (ids) {
+				if (count)
+					return [length ids];
 				result = this.ById(ids, fields);
+			}
 		} else {
 			if (q) {
 				var Unique = false;
@@ -1667,19 +1698,23 @@ class BinFile extends File {
 				for (var k = 0; k < length keys; k++) {
 					var ni_key = keys[k];
 					var ni_q = q[ni_key];
-					if ((typeof ni_q == "array") && (GetKeys(ni_q))) {
-						var ni_qp = new TinQueryParser(ni_q);
-						ni_qp.reversed = Unique;
-						q[ni_key] = ni_qp;
+					if (typeof ni_q == "array") {
+						var key_list = GetKeys(ni_q);
+						if ((key_list) && (key_list[0])) {
+							var ni_qp = new TinQueryParser(ni_q);
+							ni_qp.reversed = Unique;
+							q[ni_key] = ni_qp;
+						}
 					}
 				}
 			}
-			var userdata = [keys, q, result, start, len, fields];//[result, q, GetKeys(q), start, len, 0];
+			var userdata = [keys, q, result, start, len, fields, count];//[result, q, GetKeys(q), start, len, 0];
 			this.Scan(function(o, id, var userdata) {
 				var result = userdata[2];
 				var start = userdata[3];
 				var len = userdata[4];
 				var fields = userdata[5];
+				var count = userdata[6];
 
 				if ((len > 0) && (start > 0)) {
 					start--;
@@ -1699,7 +1734,10 @@ class BinFile extends File {
 					}
 					o = new_o;
 				}
-				result[length result] = o;
+				if (count)
+					result[0]++;
+				else
+					result[length result] = o;
 
 				// stop scanning ?
 				if ((len > 0) && (length result >= len))

@@ -229,3 +229,4 @@ accel PDFFontMetricByName.con
 accel PDFFontMetricKerning.con
 accel PDFFontMetricEncoding.con
 accel SCTPSocket.con
+accel HTTP2.con

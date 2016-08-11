@@ -47,5 +47,8 @@ CONCEPT_FUNCTION(uncompress)
 
 CONCEPT_FUNCTION(__callstack)
 CONCEPT_FUNCTION(__object)
+
+CONCEPT_FUNCTION(hpack)
+CONCEPT_FUNCTION(hunpack)
 }
 #endif // __LIBRARY_H

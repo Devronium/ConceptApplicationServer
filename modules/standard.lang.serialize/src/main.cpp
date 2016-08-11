@@ -72,6 +72,40 @@ public:
 #endif
 #include "miniz.c"
 
+typedef struct {
+    unsigned int val;
+    unsigned char bits;
+} HuffCode;
+
+typedef struct {
+    unsigned int val;
+    unsigned char symbol;
+} HuffChar;
+
+static const HuffCode HuffTable[] = {{0x1ff8, 13}, {0x7fffd8, 23}, {0xfffffe2, 28}, {0xfffffe3, 28}, {0xfffffe4, 28}, {0xfffffe5, 28}, {0xfffffe6, 28}, {0xfffffe7, 28}, {0xfffffe8, 28}, {0xffffea, 24}, {0x3ffffffc, 30}, {0xfffffe9, 28}, {0xfffffea, 28}, {0x3ffffffd, 30}, {0xfffffeb, 28}, {0xfffffec, 28}, {0xfffffed, 28}, {0xfffffee, 28}, {0xfffffef, 28}, {0xffffff0, 28}, {0xffffff1, 28}, {0xffffff2, 28}, {0x3ffffffe, 30}, {0xffffff3, 28}, {0xffffff4, 28}, {0xffffff5, 28}, {0xffffff6, 28}, {0xffffff7, 28}, {0xffffff8, 28}, {0xffffff9, 28}, {0xffffffa, 28}, {0xffffffb, 28}, {0x14, 6}, {0x3f8, 10}, {0x3f9, 10}, {0xffa, 12}, {0x1ff9, 13}, {0x15, 6}, {0xf8, 8}, {0x7fa, 11}, {0x3fa, 10}, {0x3fb, 10}, {0xf9, 8}, {0x7fb, 11}, {0xfa, 8}, {0x16, 6}, {0x17, 6}, {0x18, 6}, {0x0, 5}, {0x1, 5}, {0x2, 5}, {0x19, 6}, {0x1a, 6}, {0x1b, 6}, {0x1c, 6}, {0x1d, 6}, {0x1e, 6}, {0x1f, 6}, {0x5c, 7}, {0xfb, 8}, {0x7ffc, 15}, {0x20, 6}, {0xffb, 12}, {0x3fc, 10}, {0x1ffa, 13}, {0x21, 6}, {0x5d, 7}, {0x5e, 7}, {0x5f, 7}, {0x60, 7}, {0x61, 7}, {0x62, 7}, {0x63, 7}, {0x64, 7}, {0x65, 7}, {0x66, 7}, {0x67, 7}, {0x68, 7}, {0x69, 7}, {0x6a, 7}, {0x6b, 7}, {0x6c, 7}, {0x6d, 7}, {0x6e, 7}, {0x6f, 7}, {0x70, 7}, {0x71, 7}, {0x72, 7}, {0xfc, 8}, {0x73, 7}, {0xfd, 8}, {0x1ffb, 13}, {0x7fff0, 19}, {0x1ffc, 13}, {0x3ffc, 14}, {0x22, 6}, {0x7ffd, 15}, {0x3, 5}, {0x23, 6}, {0x4, 5}, {0x24, 6}, {0x5, 5}, {0x25, 6}, {0x26, 6}, {0x27, 6}, {0x6, 5}, {0x74, 7}, {0x75, 7}, {0x28, 6}, {0x29, 6}, {0x2a, 6}, {0x7, 5}, {0x2b, 6}, {0x76, 7}, {0x2c, 6}, {0x8, 5}, {0x9, 5}, {0x2d, 6}, {0x77, 7}, {0x78, 7}, {0x79, 7}, {0x7a, 7}, {0x7b, 7}, {0x7ffe, 15}, {0x7fc, 11}, {0x3ffd, 14}, {0x1ffd, 13}, {0xffffffc, 28}, {0xfffe6, 20}, {0x3fffd2, 22}, {0xfffe7, 20}, {0xfffe8, 20}, {0x3fffd3, 22}, {0x3fffd4, 22}, {0x3fffd5, 22}, {0x7fffd9, 23}, {0x3fffd6, 22}, {0x7fffda, 23}, {0x7fffdb, 23}, {0x7fffdc, 23}, {0x7fffdd, 23}, {0x7fffde, 23}, {0xffffeb, 24}, {0x7fffdf, 23}, {0xffffec, 24}, {0xffffed, 24}, {0x3fffd7, 22}, {0x7fffe0, 23}, {0xffffee, 24}, {0x7fffe1, 23}, {0x7fffe2, 23}, {0x7fffe3, 23}, {0x7fffe4, 23}, {0x1fffdc, 21}, {0x3fffd8, 22}, {0x7fffe5, 23}, {0x3fffd9, 22}, {0x7fffe6, 23}, {0x7fffe7, 23}, {0xffffef, 24}, {0x3fffda, 22}, {0x1fffdd, 21}, {0xfffe9, 20}, {0x3fffdb, 22}, {0x3fffdc, 22}, {0x7fffe8, 23}, {0x7fffe9, 23}, {0x1fffde, 21}, {0x7fffea, 23}, {0x3fffdd, 22}, {0x3fffde, 22}, {0xfffff0, 24}, {0x1fffdf, 21}, {0x3fffdf, 22}, {0x7fffeb, 23}, {0x7fffec, 23}, {0x1fffe0, 21}, {0x1fffe1, 21}, {0x3fffe0, 22}, {0x1fffe2, 21}, {0x7fffed, 23}, {0x3fffe1, 22}, {0x7fffee, 23}, {0x7fffef, 23}, {0xfffea, 20}, {0x3fffe2, 22}, {0x3fffe3, 22}, {0x3fffe4, 22}, {0x7ffff0, 23}, {0x3fffe5, 22}, {0x3fffe6, 22}, {0x7ffff1, 23}, {0x3ffffe0, 26}, {0x3ffffe1, 26}, {0xfffeb, 20}, {0x7fff1, 19}, {0x3fffe7, 22}, {0x7ffff2, 23}, {0x3fffe8, 22}, {0x1ffffec, 25}, {0x3ffffe2, 26}, {0x3ffffe3, 26}, {0x3ffffe4, 26}, {0x7ffffde, 27}, {0x7ffffdf, 27}, {0x3ffffe5, 26}, {0xfffff1, 24}, {0x1ffffed, 25}, {0x7fff2, 19}, {0x1fffe3, 21}, {0x3ffffe6, 26}, {0x7ffffe0, 27}, {0x7ffffe1, 27}, {0x3ffffe7, 26}, {0x7ffffe2, 27}, {0xfffff2, 24}, {0x1fffe4, 21}, {0x1fffe5, 21}, {0x3ffffe8, 26}, {0x3ffffe9, 26}, {0xffffffd, 28}, {0x7ffffe3, 27}, {0x7ffffe4, 27}, {0x7ffffe5, 27}, {0xfffec, 20}, {0xfffff3, 24}, {0xfffed, 20}, {0x1fffe6, 21}, {0x3fffe9, 22}, {0x1fffe7, 21}, {0x1fffe8, 21}, {0x7ffff3, 23}, {0x3fffea, 22}, {0x3fffeb, 22}, {0x1ffffee, 25}, {0x1ffffef, 25}, {0xfffff4, 24}, {0xfffff5, 24}, {0x3ffffea, 26}, {0x7ffff4, 23}, {0x3ffffeb, 26}, {0x7ffffe6, 27}, {0x3ffffec, 26}, {0x3ffffed, 26}, {0x7ffffe7, 27}, {0x7ffffe8, 27}, {0x7ffffe9, 27}, {0x7ffffea, 27}, {0x7ffffeb, 27}, {0xffffffe, 28}, {0x7ffffec, 27}, {0x7ffffed, 27}, {0x7ffffee, 27}, {0x7ffffef, 27}, {0x7fffff0, 27}, {0x3ffffee, 26}, {0x3fffffff, 30}}; 
+static const int HuffLengths[] = {5, 6, 7, 8, 10, 11, 12, 13, 14, 15, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 30, 0};
+static const unsigned short HuffQuickVals[] = {0x530, 0x531, 0x532, 0x561, 0x563, 0x565, 0x569, 0x56f, 0x573, 0x574, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0x620, 0x625, 0x62d, 0x62e, 0x62f, 0x633, 0x634, 0x635, 0x636, 0x637, 0x638, 0x639, 0x63d, 0x641, 0x65f, 0x662, 0x664, 0x666, 0x667, 0x668, 0x66c, 0x66d, 0x66e, 0x670, 0x672, 0x675, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0x73a, 0x742, 0x743, 0x744, 0x745, 0x746, 0x747, 0x748, 0x749, 0x74a, 0x74b, 0x74c, 0x74d, 0x74e, 0x74f, 0x750, 0x751, 0x752, 0x753, 0x754, 0x755, 0x756, 0x757, 0x759, 0x76a, 0x76b, 0x771, 0x776, 0x777, 0x778, 0x779, 0x77a, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0x826, 0x82a, 0x82c, 0x83b, 0x858, 0x85a, 0, 0};
+
+static const HuffChar slow_values_10[] = {{0x3f8, 33}, {0x3f9, 34}, {0x3fa, 40}, {0x3fb, 41}, {0x3fc, 63}, {0, 0}};
+static const HuffChar slow_values_11[] = {{0x7fa, 39}, {0x7fb, 43}, {0x7fc, 124}, {0, 0}};
+static const HuffChar slow_values_12[] = {{0xffa, 35}, {0xffb, 62}, {0, 0}};
+static const HuffChar slow_values_13[] = {{0x1ff8, 0}, {0x1ff9, 36}, {0x1ffa, 64}, {0x1ffb, 91}, {0x1ffc, 93}, {0x1ffd, 126}, {0, 0}};
+static const HuffChar slow_values_14[] = {{0x3ffc, 94}, {0x3ffd, 125}, {0, 0}};
+static const HuffChar slow_values_15[] = {{0x7ffc, 60}, {0x7ffd, 96}, {0x7ffe, 123}, {0, 0}};
+static const HuffChar slow_values_19[] = {{0x7fff0, 92}, {0x7fff1, 195}, {0x7fff2, 208}, {0, 0}};
+static const HuffChar slow_values_20[] = {{0xfffe6, 128}, {0xfffe7, 130}, {0xfffe8, 131}, {0xfffe9, 162}, {0xfffea, 184}, {0xfffeb, 194}, {0xfffec, 224}, {0xfffed, 226}, {0, 0}};
+static const HuffChar slow_values_21[] = {{0x1fffdc, 153}, {0x1fffdd, 161}, {0x1fffde, 167}, {0x1fffdf, 172}, {0x1fffe0, 176}, {0x1fffe1, 177}, {0x1fffe2, 179}, {0x1fffe3, 209}, {0x1fffe4, 216}, {0x1fffe5, 217}, {0x1fffe6, 227}, {0x1fffe7, 229}, {0x1fffe8, 230}, {0, 0}};
+static const HuffChar slow_values_22[] = {{0x3fffd2, 129}, {0x3fffd3, 132}, {0x3fffd4, 133}, {0x3fffd5, 134}, {0x3fffd6, 136}, {0x3fffd7, 146}, {0x3fffd8, 154}, {0x3fffd9, 156}, {0x3fffda, 160}, {0x3fffdb, 163}, {0x3fffdc, 164}, {0x3fffdd, 169}, {0x3fffde, 170}, {0x3fffdf, 173}, {0x3fffe0, 178}, {0x3fffe1, 181}, {0x3fffe2, 185}, {0x3fffe3, 186}, {0x3fffe4, 187}, {0x3fffe5, 189}, {0x3fffe6, 190}, {0x3fffe7, 196}, {0x3fffe8, 198}, {0x3fffe9, 228}, {0x3fffea, 232}, {0x3fffeb, 233}, {0, 0}};
+static const HuffChar slow_values_23[] = {{0x7fffd8, 1}, {0x7fffd9, 135}, {0x7fffda, 137}, {0x7fffdb, 138}, {0x7fffdc, 139}, {0x7fffdd, 140}, {0x7fffde, 141}, {0x7fffdf, 143}, {0x7fffe0, 147}, {0x7fffe1, 149}, {0x7fffe2, 150}, {0x7fffe3, 151}, {0x7fffe4, 152}, {0x7fffe5, 155}, {0x7fffe6, 157}, {0x7fffe7, 158}, {0x7fffe8, 165}, {0x7fffe9, 166}, {0x7fffea, 168}, {0x7fffeb, 174}, {0x7fffec, 175}, {0x7fffed, 180}, {0x7fffee, 182}, {0x7fffef, 183}, {0x7ffff0, 188}, {0x7ffff1, 191}, {0x7ffff2, 197}, {0x7ffff3, 231}, {0x7ffff4, 239}, {0, 0}};
+static const HuffChar slow_values_24[] = {{0xffffea, 9}, {0xffffeb, 142}, {0xffffec, 144}, {0xffffed, 145}, {0xffffee, 148}, {0xffffef, 159}, {0xfffff0, 171}, {0xfffff1, 206}, {0xfffff2, 215}, {0xfffff3, 225}, {0xfffff4, 236}, {0xfffff5, 237}, {0, 0}};
+static const HuffChar slow_values_25[] = {{0x1ffffec, 199}, {0x1ffffed, 207}, {0x1ffffee, 234}, {0x1ffffef, 235}, {0, 0}};
+static const HuffChar slow_values_26[] = {{0x3ffffe0, 192}, {0x3ffffe1, 193}, {0x3ffffe2, 200}, {0x3ffffe3, 201}, {0x3ffffe4, 202}, {0x3ffffe5, 205}, {0x3ffffe6, 210}, {0x3ffffe7, 213}, {0x3ffffe8, 218}, {0x3ffffe9, 219}, {0x3ffffea, 238}, {0x3ffffeb, 240}, {0x3ffffec, 242}, {0x3ffffed, 243}, {0x3ffffee, 255}, {0, 0}};
+static const HuffChar slow_values_27[] = {{0x7ffffde, 203}, {0x7ffffdf, 204}, {0x7ffffe0, 211}, {0x7ffffe1, 212}, {0x7ffffe2, 214}, {0x7ffffe3, 221}, {0x7ffffe4, 222}, {0x7ffffe5, 223}, {0x7ffffe6, 241}, {0x7ffffe7, 244}, {0x7ffffe8, 245}, {0x7ffffe9, 246}, {0x7ffffea, 247}, {0x7ffffeb, 248}, {0x7ffffec, 250}, {0x7ffffed, 251}, {0x7ffffee, 252}, {0x7ffffef, 253}, {0x7fffff0, 254}, {0, 0}};
+static const HuffChar slow_values_28[] = {{0xfffffe2, 2}, {0xfffffe3, 3}, {0xfffffe4, 4}, {0xfffffe5, 5}, {0xfffffe6, 6}, {0xfffffe7, 7}, {0xfffffe8, 8}, {0xfffffe9, 11}, {0xfffffea, 12}, {0xfffffeb, 14}, {0xfffffec, 15}, {0xfffffed, 16}, {0xfffffee, 17}, {0xfffffef, 18}, {0xffffff0, 19}, {0xffffff1, 20}, {0xffffff2, 21}, {0xffffff3, 23}, {0xffffff4, 24}, {0xffffff5, 25}, {0xffffff6, 26}, {0xffffff7, 27}, {0xffffff8, 28}, {0xffffff9, 29}, {0xffffffa, 30}, {0xffffffb, 31}, {0xffffffc, 127}, {0xffffffd, 220}, {0xffffffe, 249}, {0, 0}};
+static const HuffChar slow_values_30[] = {{0x3ffffffc, 10}, {0x3ffffffd, 13}, {0x3ffffffe, 22}, {0, 0}};
+
+static const HuffChar *slow_table[] = {slow_values_10, slow_values_11, slow_values_12, slow_values_13, slow_values_14, slow_values_15, NULL, NULL, NULL, slow_values_19, slow_values_20, slow_values_21, slow_values_22, slow_values_23, slow_values_24, slow_values_25, slow_values_26, slow_values_27, slow_values_28, NULL, slow_values_30};
+
 #define TOINT(a)    (a ? atol(a) : 0)
 
 #define MAX_OBJECTS    0x1FFFF
@@ -2291,11 +2325,11 @@ CONCEPT_FUNCTION_IMPL_VARIABLE_PARAMS(pack, 1)
                     // valid data
                     if (TYPE == VARIABLE_ARRAY) {
                         PACK_ARRAY(1,
-                                   if ((f == 'i') || (f == 'I'))
-                                       buf[buf_index++] = (char)nDUMMY_FILL;
-                                   else
-                                       ((unsigned char *)buf)[buf_index++] = (unsigned char)nDUMMY_FILL;
-                                   );
+                            if ((f == 'i') || (f == 'I'))
+                                buf[buf_index++] = (char)nDUMMY_FILL;
+                            else
+                                ((unsigned char *)buf)[buf_index++] = (unsigned char)nDUMMY_FILL;
+                        );
                     } else {
                         PACK_ENSURE_BUFFER(1)
                         if ((f == 'i') || (f == 'I'))
@@ -2314,18 +2348,18 @@ CONCEPT_FUNCTION_IMPL_VARIABLE_PARAMS(pack, 1)
                     // valid data
                     if (TYPE == VARIABLE_ARRAY) {
                         PACK_ARRAY(2,
-                                   if (((f == 'i') && (is_little_endian)) || ((f == 'I') && (!is_little_endian))) {
-                        *(int16_t *)(&buf[buf_index]) = (int16_t)nDUMMY_FILL;
-                    } else
-                                   if (((f == 'i') && (!is_little_endian)) || ((f == 'I') && (is_little_endian))) {
-                        *(int16_t *)(&buf[buf_index]) = swap_int16((int16_t)nDUMMY_FILL);
-                    } else
-                                   if (((f == 'u') && (is_little_endian)) || ((f == 'U') && (!is_little_endian))) {
-                        *(uint16_t *)(&buf[buf_index]) = (uint16_t)nDUMMY_FILL;
-                    } else
-                                       *(uint16_t *)(&buf[buf_index]) = swap_uint16((uint16_t)nDUMMY_FILL);
-                                   buf_index += 2;
-                                   );
+                            if (((f == 'i') && (is_little_endian)) || ((f == 'I') && (!is_little_endian))) {
+                                *(int16_t *)(&buf[buf_index]) = (int16_t)nDUMMY_FILL;
+                            } else
+                            if (((f == 'i') && (!is_little_endian)) || ((f == 'I') && (is_little_endian))) {
+                                *(int16_t *)(&buf[buf_index]) = swap_int16((int16_t)nDUMMY_FILL);
+                            } else
+                            if (((f == 'u') && (is_little_endian)) || ((f == 'U') && (!is_little_endian))) {
+                                *(uint16_t *)(&buf[buf_index]) = (uint16_t)nDUMMY_FILL;
+                            } else
+                                *(uint16_t *)(&buf[buf_index]) = swap_uint16((uint16_t)nDUMMY_FILL);
+                            buf_index += 2;
+                        );
                     } else {
                         PACK_ENSURE_BUFFER(2)
                         if (((f == 'i') && (is_little_endian)) || ((f == 'I') && (!is_little_endian))) {
@@ -2351,18 +2385,18 @@ CONCEPT_FUNCTION_IMPL_VARIABLE_PARAMS(pack, 1)
                     // valid data
                     if (TYPE == VARIABLE_ARRAY) {
                         PACK_ARRAY(4,
-                                   if (((f == 'i') && (is_little_endian)) || ((f == 'I') && (!is_little_endian))) {
-                        *(int32_t *)(&buf[buf_index]) = (int32_t)nDUMMY_FILL;
-                    } else
-                                   if (((f == 'i') && (!is_little_endian)) || ((f == 'I') && (is_little_endian))) {
-                        *(int32_t *)(&buf[buf_index]) = swap_int32((int32_t)nDUMMY_FILL);
-                    } else
-                                   if (((f == 'u') && (is_little_endian)) || ((f == 'U') && (!is_little_endian))) {
-                        *(uint32_t *)(&buf[buf_index]) = (uint32_t)nDUMMY_FILL;
-                    } else
-                                       *(uint32_t *)(&buf[buf_index]) = swap_uint32((uint32_t)nDUMMY_FILL);
-                                   buf_index += 4;
-                                   );
+                            if (((f == 'i') && (is_little_endian)) || ((f == 'I') && (!is_little_endian))) {
+                                *(int32_t *)(&buf[buf_index]) = (int32_t)nDUMMY_FILL;
+                            } else
+                            if (((f == 'i') && (!is_little_endian)) || ((f == 'I') && (is_little_endian))) {
+                                *(int32_t *)(&buf[buf_index]) = swap_int32((int32_t)nDUMMY_FILL);
+                            } else
+                            if (((f == 'u') && (is_little_endian)) || ((f == 'U') && (!is_little_endian))) {
+                                *(uint32_t *)(&buf[buf_index]) = (uint32_t)nDUMMY_FILL;
+                            } else
+                                *(uint32_t *)(&buf[buf_index]) = swap_uint32((uint32_t)nDUMMY_FILL);
+                            buf_index += 4;
+                        );
                     } else {
                         PACK_ENSURE_BUFFER(4)
                         if (((f == 'i') && (is_little_endian)) || ((f == 'I') && (!is_little_endian))) {
@@ -2388,18 +2422,18 @@ CONCEPT_FUNCTION_IMPL_VARIABLE_PARAMS(pack, 1)
                     // valid data
                     if (TYPE == VARIABLE_ARRAY) {
                         PACK_ARRAY(8,
-                                   if (((f == 'i') && (is_little_endian)) || ((f == 'I') && (!is_little_endian))) {
-                        *(int64_t *)(&buf[buf_index]) = (int64_t)nDUMMY_FILL;
-                    } else
-                                   if (((f == 'i') && (!is_little_endian)) || ((f == 'I') && (is_little_endian))) {
-                        *(int64_t *)(&buf[buf_index]) = swap_int64((int64_t)nDUMMY_FILL);
-                    } else
-                                   if (((f == 'u') && (is_little_endian)) || ((f == 'U') && (!is_little_endian))) {
-                        *(uint64_t *)(&buf[buf_index]) = (uint64_t)nDUMMY_FILL;
-                    } else
-                                       *(uint64_t *)(&buf[buf_index]) = swap_uint64((uint64_t)nDUMMY_FILL);
-                                   buf_index += 8;
-                                   );
+                            if (((f == 'i') && (is_little_endian)) || ((f == 'I') && (!is_little_endian))) {
+                                *(int64_t *)(&buf[buf_index]) = (int64_t)nDUMMY_FILL;
+                            } else
+                            if (((f == 'i') && (!is_little_endian)) || ((f == 'I') && (is_little_endian))) {
+                                *(int64_t *)(&buf[buf_index]) = swap_int64((int64_t)nDUMMY_FILL);
+                            } else
+                            if (((f == 'u') && (is_little_endian)) || ((f == 'U') && (!is_little_endian))) {
+                                *(uint64_t *)(&buf[buf_index]) = (uint64_t)nDUMMY_FILL;
+                            } else
+                                *(uint64_t *)(&buf[buf_index]) = swap_uint64((uint64_t)nDUMMY_FILL);
+                            buf_index += 8;
+                        );
                     } else {
                         PACK_ENSURE_BUFFER(8)
                         if (((f == 'i') && (is_little_endian)) || ((f == 'I') && (!is_little_endian))) {
@@ -2414,6 +2448,50 @@ CONCEPT_FUNCTION_IMPL_VARIABLE_PARAMS(pack, 1)
                             *(uint64_t *)(&buf[buf_index]) = swap_uint64((uint64_t)nDUMMY_FILL);
                         buf_index += 8;
                     }
+                } else
+                if (size == 2) {
+                    i++;
+                    CHECK_PACK_SIZE(i, len);
+                    size = format[i] - '0';
+                    if (size != 4) {
+                        RAISE_PACK_ERROR(-3);
+                    }
+                    if (TYPE == VARIABLE_ARRAY) {
+                        PACK_ARRAY(3,
+                            unsigned int i = (unsigned int)nDUMMY_FILL;
+                            if (((f == 'u') && (is_little_endian)) || ((f == 'U') && (!is_little_endian))) {
+                                buf[buf_index + 2] = i / 0x10000;
+                                i %= 0x10000;
+                                buf[buf_index + 1] = i / 0x100;
+                                i %= 0x100;
+                                buf[buf_index] = i;
+                            } else {
+                                buf[buf_index] = i / 0x10000;
+                                i %= 0x10000;
+                                buf[buf_index + 1] = i / 0x100;
+                                i %= 0x100;
+                                buf[buf_index + 2] = i;
+                            }
+                            buf_index += 3;
+                        );
+                    } else {
+                        PACK_ENSURE_BUFFER(3)
+                        unsigned int i = (unsigned int)nDUMMY_FILL;
+                        if (((f == 'u') && (is_little_endian)) || ((f == 'U') && (!is_little_endian))) {
+                            buf[buf_index + 2] = i / 0x10000;
+                            i %= 0x10000;
+                            buf[buf_index + 1] = i / 0x100;
+                            i %= 0x100;
+                            buf[buf_index] = i;
+                        } else {
+                            buf[buf_index] = i / 0x10000;
+                            i %= 0x10000;
+                            buf[buf_index + 1] = i / 0x100;
+                            i %= 0x100;
+                            buf[buf_index + 2] = i;
+                        }
+                        buf_index += 3;
+                    }
                 } else {
                     RAISE_PACK_ERROR(-3)
                 }
@@ -2426,9 +2504,9 @@ CONCEPT_FUNCTION_IMPL_VARIABLE_PARAMS(pack, 1)
                 } else
                 if (TYPE == VARIABLE_ARRAY) {
                     PACK_ARRAY(4,
-                               *(float *)(&buf[buf_index]) = (float)nDUMMY_FILL;
-                               buf_index += 4;
-                               )
+                        *(float *)(&buf[buf_index]) = (float)nDUMMY_FILL;
+                        buf_index += 4;
+                    )
                 } else
                 if (TYPE != VARIABLE_NUMBER)
                     PACK_PANIC
@@ -2451,14 +2529,14 @@ CONCEPT_FUNCTION_IMPL_VARIABLE_PARAMS(pack, 1)
                                buf_index += 8;
                                )
                 } else
-                if (TYPE != VARIABLE_NUMBER)
+                if (TYPE != VARIABLE_NUMBER) {
                     PACK_PANIC
-                    else {
-                        PACK_ENSURE_BUFFER(8)
-                        // valid data
-                        * (double *)(&buf[buf_index]) = (double)nDUMMY_FILL;
-                        buf_index += 8;
-                    }
+                } else {
+                    PACK_ENSURE_BUFFER(8)
+                    // valid data
+                    * (double *)(&buf[buf_index]) = (double)nDUMMY_FILL;
+                    buf_index += 8;
+                }
                 break;
 
             case 's':
@@ -2536,13 +2614,6 @@ CONCEPT_FUNCTION_IMPL_VARIABLE_PARAMS(pack, 1)
                     }
                 } else
                 if (TYPE == VARIABLE_STRING) {
-                    /*tmp_len = (size_t)nDUMMY_FILL;
-                       if ((size > 0) && (tmp_len > size))
-                        tmp_len = size;
-
-                       PACK_ENSURE_BUFFER(tmp_len)
-                       memcpy(&buf[buf_index], szDUMMY_FILL, tmp_len);
-                       buf_index += tmp_len;*/
                     tmp_len = (size_t)nDUMMY_FILL;
                     if (size > 0) {
                         if (tmp_len >= size)
@@ -2562,11 +2633,6 @@ CONCEPT_FUNCTION_IMPL_VARIABLE_PARAMS(pack, 1)
                     AnsiString tmp(nDUMMY_FILL);
                     int        tmp_len = tmp.Length();
 
-                    /*if ((size > 0) && (tmp_len > size))
-                        tmp_len = size;
-                       PACK_ENSURE_BUFFER(tmp_len)
-                       memcpy(&buf[buf_index], tmp.c_str(), tmp_len);
-                       buf_index += tmp_len;*/
                     if (size > 0) {
                         if (tmp_len >= size)
                             tmp_len = size;
@@ -2769,6 +2835,24 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(unpack, 2, 3)
                     Invoke(INVOKE_SET_ARRAY_ELEMENT, RESULT, (INTEGER)index, VARIABLE_NUMBER, "", (NUMBER)nDUMMY_FILL);
                     index++;
                 } else
+                if (size == 2) {
+                    i++;
+                    if (i >= len)
+                        return 0;
+                    size = format[i] - '0';
+                    if ((size != 4) || (in_len < 3))
+                        return 0;
+
+                    if (((f == 'u') && (is_little_endian)) || ((f == 'U') && (!is_little_endian)))
+                        nDUMMY_FILL = (unsigned char)buffer[2] * 0x10000 + (unsigned char)buffer[1] * 0x100 + (unsigned char)buffer[0];
+                    else
+                        nDUMMY_FILL = (unsigned char)buffer[0] * 0x10000 + (unsigned char)buffer[1] * 0x100 + (unsigned char)buffer[2];
+
+                    buffer += 3;
+                    in_len -= 3;
+                    Invoke(INVOKE_SET_ARRAY_ELEMENT, RESULT, (INTEGER)index, VARIABLE_NUMBER, "", (NUMBER)nDUMMY_FILL);
+                    index++;
+                } else
                     return 0;
                 break;
 
@@ -2963,6 +3047,172 @@ CONCEPT_FUNCTION_IMPL(__object, 1)
     T_STRING(0)
     if (!IS_OK(LocalInvoker(INVOKE_CREATE_OBJECT_NOCONSTRUCTOR, PARAMETERS->HANDLER, RESULT, PARAM(0)))) {
         RETURN_NUMBER(0);
+    }
+END_IMPL
+//---------------------------------------------------------------------------
+CONCEPT_FUNCTION_IMPL(hpack, 1)
+    T_STRING(0)
+    int len = PARAM_LEN(0);
+
+    char *out_buf = NULL;
+    const unsigned char *buffer = (const unsigned char *)PARAM(0);
+    int max_len = len * 4;
+    CORE_NEW(max_len + 5, out_buf);
+    int bit_len = 0;
+    if (out_buf) {
+        char tmp[5];
+        for (int i = 0; i < len; i++) {
+            unsigned char index = buffer[i];
+            unsigned int val = HuffTable[index].val;
+            unsigned char bits = HuffTable[index].bits;
+
+            int target_index = bit_len / 8;
+            int target_offset = bit_len % 8;
+
+            // this should never happen
+            // but just to be sure
+            if (target_index >= max_len)
+                break;
+
+            int available_bits = 8 - target_offset;
+            bit_len += bits;
+            int iteration = 0;
+            do {
+                if (!target_offset)
+                    out_buf[target_index] = 0;
+
+                if (bits <= available_bits) {
+                    if (bits == available_bits)
+                        out_buf[target_index] |= val;
+                    else
+                        out_buf[target_index] |= val << (available_bits - bits);
+                    break;
+                } else {
+                    bits -= available_bits;
+                    out_buf[target_index] |= val >> bits;
+                    val &= (1 << bits) - 1;                   
+                    target_index++;
+
+                    target_offset = 0;
+                    available_bits = 8;
+                }
+                iteration++;
+            } while (true);
+        }
+        int len = bit_len / 8;
+        int target_offset = bit_len % 8;
+        if (target_offset) {
+            out_buf[len] |= (1 << (8 - target_offset)) - 1;
+            len++;
+        }
+        out_buf[len] = 0;
+        SetVariable(RESULT, -1, out_buf, len);
+    } else {
+        RETURN_STRING("");
+    }
+END_IMPL
+//---------------------------------------------------------------------------
+unsigned int AddBits(unsigned int &hufvalue, const unsigned char *in_buffer, int bit_pos, int bits) {
+    int bit_start = bit_pos / 8;
+    int bit_offset = bit_pos % 8;
+
+    while (bits > 0) {
+        int remaining_bits = 8 - bit_offset;
+        int tmp_bits = bits;
+        if (tmp_bits > remaining_bits)
+            tmp_bits = remaining_bits;
+        bit_pos += tmp_bits;
+        unsigned int temp = in_buffer[bit_start];
+
+        if (bit_offset)
+            temp &= (1 << remaining_bits) - 1;
+
+        temp >>= (remaining_bits - tmp_bits);
+        bits -= tmp_bits;
+        if (bits) {
+            bit_start++;
+            bit_offset = 0;
+            hufvalue |= temp << (bits);
+        } else
+            hufvalue |= temp;
+    }
+    return bit_pos;
+}
+
+int SlowLookup(const HuffChar *slow_values, unsigned int val) {
+    while (slow_values->val) {
+        if (slow_values->val == val)
+            return slow_values->symbol;
+        slow_values++;
+    }
+    return -1;
+}
+
+CONCEPT_FUNCTION_IMPL(hunpack, 1)
+    T_STRING(0)
+    int len = PARAM_LEN(0);
+    int bit_len = len * 8;
+    int bit_pos = 0;
+
+    const unsigned char *in_buffer = (const unsigned char *)PARAM(0);
+    char *out_buf = NULL;
+    int max_len = len * 2;
+    CORE_NEW(max_len + 1, out_buf);
+    int data_len = 0;
+    if (out_buf) {
+        while (bit_pos < bit_len) {
+            int idx = 0;
+            int read_bits;
+
+            do {
+                unsigned int hufvalue = 0;
+                read_bits = HuffLengths[idx++];
+                if (!read_bits) {
+                    // error
+                    RETURN_STRING("");
+                    CORE_DELETE(out_buf);
+                    return 0;
+                }
+                if (bit_pos + read_bits > bit_len) {
+                    AddBits(hufvalue, in_buffer, bit_pos, bit_len - bit_pos);
+                    if (hufvalue != ((1 << (bit_len - bit_pos)) - 1)) {
+                        
+                        RETURN_STRING("");
+                        CORE_DELETE(out_buf);
+                        return 0;
+                    }
+                    bit_pos = bit_len;
+                    // end of buffer;
+                    break;
+                }
+
+                int temp_pos = AddBits(hufvalue, in_buffer, bit_pos, read_bits);
+                if ((read_bits <= 8) && (hufvalue < 0x100)) {
+                    unsigned int c = HuffQuickVals[hufvalue];
+                    if ((c) && ((c >> 8) == read_bits)) {
+                        out_buf[data_len++] = c & 0xFF;
+                        bit_pos += read_bits;
+                        break;
+                    }
+                }
+                if (read_bits >= 10) {
+                    const HuffChar *slow_values = slow_table[read_bits - 10];
+                    if (slow_values) {
+                        int c = SlowLookup(slow_values, hufvalue);
+                        if (c >= 0) {
+                            out_buf[data_len++] = c;
+                            bit_pos += read_bits;
+                            break;
+                        }
+                    }
+                }
+            } while (true);
+            out_buf[data_len] = 0;
+        }
+        out_buf[data_len] = 0;
+        SetVariable(RESULT, -1, out_buf, data_len);
+    } else {
+        RETURN_STRING("");
     }
 END_IMPL
 //---------------------------------------------------------------------------

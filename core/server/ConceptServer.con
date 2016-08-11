@@ -29,6 +29,7 @@ define PIPE_READ_CPU_TIME_US	2000
 define MAX_HEADER_PARAMETERS	0xFF
 define SERVER_NAME		"CAS5WS"
 define SERVER_SOFTWARE		"Concept Application Server (TLSe,ws/wss/http/https/concept/deprecated concepts/cgi1.1)"
+define EXTRA_HEADER		"X-Frame-Options: SAMEORIGIN\r\nX-XSS-Protection: 1; mode=block\r\nX-Content-Type-Options: nosniff\r\n"
 
 class WDataContainer {
 pragma used
@@ -1144,12 +1145,11 @@ class ConceptChild {
 									if (!app)
 										app="start.con";
 
-									var extra_header="";
+									var extra_header = "";
 									var tstamp = StrReplace(StrReplace(asctime(time()), "\r", ""), "\n", "")+" GMT";
 
 									if (origin)
-										extra_header="Access-Control-Allow-Credentials: true\r\nAccess-Control-Allow-Headers: content-type\r\nAccess-Control-Allow-Headers: authorization\r\nAccess-Control-Allow-Headers: x-websocket-extensions\r\nAccess-Control-Allow-Headers: x-websocket-version\r\nAccess-Control-Allow-Headers: x-websocket-protocol\r\nAccess-Control-Allow-Origin: $origin\r\n";
-
+										extra_header+="Access-Control-Allow-Credentials: true\r\nAccess-Control-Allow-Headers: content-type\r\nAccess-Control-Allow-Headers: authorization\r\nAccess-Control-Allow-Headers: x-websocket-extensions\r\nAccess-Control-Allow-Headers: x-websocket-version\r\nAccess-Control-Allow-Headers: x-websocket-protocol\r\nAccess-Control-Allow-Origin: $origin\r\n";
 
 									// cookie valid for 3 days
 									var expires=StrReplace(StrReplace(asctime(time() + 259200), "\r", ""), "\n", "")+" GMT";
@@ -1182,7 +1182,6 @@ class ConceptChild {
 											if (Pos(extension, "rtc") > 0)
 												extra_header += "Sec-WebSocket-Extensions: rtc\r\n";
 										}
-
 										header_response="HTTP/1.1 101 Switching Protocols\r\n${extra_header}Connection: Upgrade\r\nDate: $tstamp\r\nSec-WebSocket-Accept: $ret_key\r\nServer: " + SERVER_NAME + "\r\nUpgrade: websocket\r\n\r\n";
 										if (length header_response > MAX_WS_HEADER) {
 											step=4;
@@ -1329,10 +1328,13 @@ class ConceptChild {
 												skip_content = true;
 											} else
 											if ((!is_root) && (if_modified == last_mod)) {
-												buffer = "HTTP/1.1 304 Not Modified\r\nDate: $tstamp\r\nConnection: $connection_policy\r\nContent-Type: $content_type\r\nCache-Control: max-age=31536000\r\nLast-Modified: $last_mod\r\nServer: " + SERVER_NAME + "\r\n\r\n";
+												buffer = "HTTP/1.1 304 Not Modified\r\nDate: $tstamp\r\nConnection: $connection_policy\r\nContent-Type: $content_type\r\nCache-Control: max-age=31536000\r\nLast-Modified: $last_mod\r\n" + EXTRA_HEADER + "Server: " + SERVER_NAME + "\r\n\r\n";
 												skip_content = true;
 											} else {
+												var extra_origin = "";
 												if (is_root) {
+													host = trim(host);
+
 													data = ReadFile(app);
 													if (params)
 														data = StrReplace(data, "{APP}", target_app + "?" + params);
@@ -1348,10 +1350,12 @@ class ConceptChild {
 													else
 														data = StrReplace(data, "{PROTOCOL}", "concept");
 													content_length = length data;
+													if (secured)
+														extra_origin += "Content-Security-Policy: connect-src wss://$host\r\n";
 												} else {
 													content_length = _filesize(app);
 												}
-												buffer = "HTTP/1.1 200 OK\r\nDate: $tstamp\r\nConnection: $connection_policy\r\nContent-Type: $content_type\r\nCache-Control: max-age=31536000\r\nLast-Modified: $last_mod\r\nServer: " + SERVER_NAME + "\r\nStrict-Transport-Security: max-age=31536000; includeSubDomains; preload\r\nContent-Length: $content_length\r\n\r\n" + data;
+												buffer = "HTTP/1.1 200 OK\r\nDate: $tstamp\r\nConnection: $connection_policy\r\nContent-Type: $content_type\r\nCache-Control: max-age=31536000\r\nLast-Modified: $last_mod\r\nServer: " + SERVER_NAME + "\r\n" + EXTRA_HEADER + extra_origin + "Strict-Transport-Security: max-age=31536000; includeSubDomains; preload\r\nContent-Length: $content_length\r\n\r\n" + data;
 											}
 											SocketSetBlocking(Socket.Socket, false);
 											var buf_len = length buffer;
@@ -1457,7 +1461,7 @@ class ConceptChild {
 									if (!data)
 										data = "Error $err in processing your request.";
 
-									buffer = "HTTP/1.1 $err\r\nDate: $tstamp\r\nConnection: close\r\nContent-Type: text/html\r\nServer: " + SERVER_NAME + "\r\n\r\n" + data;
+									buffer = "HTTP/1.1 $err\r\nDate: $tstamp\r\nConnection: close\r\nContent-Type: text/html\r\n" + EXTRA_HEADER + "Server: " + SERVER_NAME + "\r\n\r\n" + data;
 									buf_len = length buffer;
 									SocketSetBlocking(Socket.Socket, false);
 									if ((this.TLS == 2) && (buf_len)) {

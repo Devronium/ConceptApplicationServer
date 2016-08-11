@@ -1623,7 +1623,7 @@ INTEGER Optimizer::OptimizeSwitch(TempVariableManager *TVM) {
     AnalizerElement *tempAE    = (AnalizerElement *)PIFList->Item(PIF_POSITION);
     AnalizerElement *newAE     = 0;
     AnalizerElement *EXPR_ELEM = 0;
-
+    unsigned short _DEBUG_INFO_LINE = 0;
     if ((!tempAE) || (tempAE->TYPE != TYPE_OPERATOR) || (tempAE->ID != KEY_P_OPEN)) {
         PIFOwner->Errors.Add(new AnsiException(ERR1201, tempAE ? tempAE->_DEBUG_INFO_LINE : 0, 1201, (tempAE ? tempAE->_PARSE_DATA : AnsiString((char *)"")), _DEBUG_INFO_FILENAME, _CLASS->NAME, _MEMBER), DATA_EXCEPTION);
         if (!tempAE) {
@@ -1660,11 +1660,12 @@ INTEGER Optimizer::OptimizeSwitch(TempVariableManager *TVM) {
             PIFOwner->Errors.Add(new AnsiException(ERR1202, AE ? AE->_DEBUG_INFO_LINE : 0, 1202, (AE ? AE->_PARSE_DATA : AnsiString((char *)"")), _DEBUG_INFO_FILENAME, _CLASS->NAME, _MEMBER), DATA_EXCEPTION);
             break;
         }
+        _DEBUG_INFO_LINE = AE->_DEBUG_INFO_LINE;
         switch (AE->ID) {
             case KEY_CASE:
                 if (prec_is_case) {
                     OEgoto = new OptimizedElement;
-                    OEgoto->Operator._DEBUG_INFO_LINE = AE->_DEBUG_INFO_LINE;
+                    OEgoto->Operator._DEBUG_INFO_LINE = _DEBUG_INFO_LINE;
                     OEgoto->Operator.TYPE        = TYPE_OPTIMIZED_KEYWORD;
                     OEgoto->Operator.ID          = KEY_OPTIMIZED_GOTO;
                     OEgoto->Result_ID            = 0;
@@ -1687,7 +1688,7 @@ INTEGER Optimizer::OptimizeSwitch(TempVariableManager *TVM) {
                 newAE->TYPE             = TYPE_OPERATOR;
                 newAE->_PARSE_DATA      = (char *)EQU;
                 newAE->_HASH_DATA       = 0;
-                newAE->_DEBUG_INFO_LINE = AE->_DEBUG_INFO_LINE;
+                newAE->_DEBUG_INFO_LINE = _DEBUG_INFO_LINE;
                 newAE->_INFO_OPTIMIZED  = 0;
 
                 PIFList->Insert(newAE, PIF_POSITION + 1, DATA_ANALIZER_ELEMENT);
@@ -1697,7 +1698,7 @@ INTEGER Optimizer::OptimizeSwitch(TempVariableManager *TVM) {
                 EXPR_ELEM = (AnalizerElement *)PIFList->Item(PIF_POSITION - 1);
 
                 OE = new OptimizedElement;
-                OE->Operator._DEBUG_INFO_LINE = AE->_DEBUG_INFO_LINE;
+                OE->Operator._DEBUG_INFO_LINE = _DEBUG_INFO_LINE;
                 OE->Operator.TYPE = TYPE_OPTIMIZED_KEYWORD;
                 OE->Operator.ID   = KEY_OPTIMIZED_IF;
                 MAKE_NULL(OE->OperandLeft);

@@ -15,6 +15,7 @@ class TLSESocket extends TCPSocket {
 	public property Cipher { get GetCipher }
 	public property CipherName { get GetCipherName }
 	public property Established { get GetEstablished }
+	public property ALPN { get GetALPN }
 	public var OnVerify;
 	public var RequestCertificate = false;
 	public var Timeout = -1;
@@ -30,6 +31,18 @@ class TLSESocket extends TCPSocket {
 		if (OnVerify)
 			return OnVerify(this, certificates);
 		return no_error;
+	}
+
+	public function AddALPN(string alpn) {
+		if (!tls)
+			throw "TLS Context not initialized";
+		return TLSEAddALPN(tls, alpn) == 0;
+	}
+
+	public function GetALPN() {
+		if (!tls)
+			throw "TLS Context not initialized";
+		return TLSEALPN(tls);
 	}
 
 	override Listen;
@@ -141,13 +154,20 @@ class TLSESocket extends TCPSocket {
 	}
 
 	override Connect;
-	public Connect(host, port, handshake_timeout_ms = 5000) {
+	public Connect(host, port, handshake_timeout_ms = 5000, alpn = null) {
 		var res=TCPSocket::Connect(host, port);
 		if (res) {
 			tls=TLSEClient();
 			if (!tls) {
 				this.Close();
 				throw "Error creating TLS/SSL context";
+			}
+			if (alpn) {
+				if (typeof alpn == "array") {
+					for (var i = 0; i < length alpn; i++)
+						AddALPN(alpn[i]);
+				} else
+					AddALPN(alpn);
 			}
 			if (_certdata) {
 				if (TLSELoadRootCA(tls, _certdata) <= 0) {
@@ -429,7 +449,8 @@ class TLSESocket extends TCPSocket {
 						return true;
 					if (res < 0)
 						return false;
-				}
+				} else
+					throw "Broken socket (GetHasData)";
 				return false;
 			}
 		}

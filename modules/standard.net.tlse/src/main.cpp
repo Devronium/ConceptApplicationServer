@@ -550,3 +550,24 @@ CONCEPT_FUNCTION_IMPL(TLSEError, 1)
     RETURN_NUMBER(context->error_code);
 END_IMPL
 //------------------------------------------------------------------------
+CONCEPT_FUNCTION_IMPL(TLSEAddALPN, 2)
+    T_HANDLE(0)
+    T_STRING(1)
+
+    TLSContext *context = (TLSContext *)(SYS_INT)PARAM(0);
+    int err = tls_add_alpn(context, PARAM(1));
+    RETURN_NUMBER(err);
+END_IMPL
+//------------------------------------------------------------------------
+CONCEPT_FUNCTION_IMPL(TLSEALPN, 1)
+    T_HANDLE(0)
+
+    TLSContext *context = (TLSContext *)(SYS_INT)PARAM(0);
+    const char *alpn = tls_alpn(context);
+    if (alpn) {
+        RETURN_STRING(alpn);
+    } else {
+        RETURN_STRING("");
+    }
+END_IMPL
+//------------------------------------------------------------------------
