@@ -2073,22 +2073,36 @@ pragma used
 
 					path = ConceptChild::NormalizeFilename(path, var directory);
 					var client_resource = (directory[0] + directory[1] + directory[2] == "/@/");
+					var root_buffer = "";
+					var content_type = "application/octet-stream";
+
+					var ext = ToLower(Ext(path));
+					if (IsSet(this.mimetypes, ext))
+						content_type = this.mimetypes[ext];
+
 					if (client_resource) {
 						directory = SubStr(directory, 2);
 						app = ConceptClient + directory + path;
-					} else
-						app = root + directory + path;
+					} else {
+						if (content_type == "application/concept") {
+							app = ConceptClient + "/index.html";
+							content_type = "text/html";
+							root_buffer = ReadFile(app);
+							root_buffer = StrReplace(root_buffer, "{PROTOCOL}", "wss");
+							root_buffer = StrReplace(root_buffer, "{HOST}", server);
+							var concept_app = directory + path;
+							if (concept_app[0] == "/")
+								concept_app = SubStr(concept_app, 1);
+							root_buffer = StrReplace(root_buffer, "{APP}", concept_app);
+							client_resource = true;
+						} else
+							app = root + directory + path;
+					}
 
 					var last_mod = rtrim(asctime(_filelast_mod(app))) + " GMT";
 					var file = new File("rb");
 					file.Name = app;
 					if (file.Open()) {
-						var content_type = "application/octet-stream";
-						var ext = ToLower(Ext(path));
-						if (IsSet(this.mimetypes, ext))
-							content_type = this.mimetypes[ext];
-
-						var if_modified = stream.Headers["if-modified-since"];
 						var headers = [
 							":status" => 200,
 							"server" => "CAS5WS",
@@ -2097,14 +2111,20 @@ pragma used
 							"content-type" => content_type
 						];
 						var no_content = false;
-						if (last_mod == if_modified) {
-							headers[":status"] = 304;
-							file.Close();
-							delete file;
-							no_content = true;
+						if (root_buffer) {
+							stream.Response(h2, headers, no_content);
+							stream.Write(h2, root_buffer, true);
+						} else {
+							var if_modified = stream.Headers["if-modified-since"];
+							if (last_mod == if_modified) {
+								headers[":status"] = 304;
+								file.Close();
+								delete file;
+								no_content = true;
+							}
+							stream.Response(h2, headers, no_content);
 						}
-						stream.Response(h2, headers, no_content);
-	
+
 						if (file)
 							stream.ResponseFile = file;
 					} else {
