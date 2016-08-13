@@ -2060,6 +2060,7 @@ pragma used
 			var method = stream.Headers[":method"];
 			var path = stream.Headers[":path"];
 			var server = stream.Headers[":authority"];
+			var app;
 			switch (method) {
 				case "GET":
 				case "POST":
@@ -2071,7 +2072,12 @@ pragma used
 						path += "index.html";
 
 					path = ConceptChild::NormalizeFilename(path, var directory);
-					var app = root + directory + path;
+					var client_resource = (directory[0] + directory[1] + directory[2] == "/@/");
+					if (client_resource) {
+						directory = SubStr(directory, 2);
+						app = ConceptClient + directory + path;
+					} else
+						app = root + directory + path;
 
 					var last_mod = rtrim(asctime(_filelast_mod(app))) + " GMT";
 					var file = new File("rb");
