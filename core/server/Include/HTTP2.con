@@ -1,4 +1,5 @@
 include TLSESocket.con
+include File.con
 
 import standard.lib.str
 import standard.lang.serialize
@@ -220,11 +221,24 @@ class HTTP2 {
 			headers[e_val] = val;
 	}
 
-	static ParseHeaders(payload) {
+	static GetStaticTable() {
+		return H2_STATIC_TABLE;
+	}
+
+	static TableSize(arr) {
+		var len = 0;
+		for (var i = 0; i < length arr; i++) {
+			var e = arr[i];	
+			// rfc7541#4.1
+			if (e)
+				len += length e[1] + length e[2] + 32;
+		}
+	}
+
+	static ParseHeaders(payload, static_table = null) {
 		var pos = 0;
-		var arr = H2_STATIC_TABLE;
+		var arr = static_table ?? HTTP2::GetStaticTable();
 		var[] headers;
-		var dynamic_table = "";
 
 		while (pos < length payload) {
 			var index = unpack("U8", payload, pos++)[0];
@@ -236,9 +250,15 @@ class HTTP2 {
 					return headers;
 
 				i2--;
+
+				// dynamic table is first in / first out
+				// rfc7541#2.3.2
+				if (i2 >= H2_STATIC_TABLE_SIZE)
+					i2 = H2_STATIC_TABLE_SIZE + length arr - 1 - i2;
+
 				var e = arr[i2];
 				if (e)
-					HTTP2::SetHeader(headers, e[0], e[1]);//headers[e[0]] = e[1];
+					HTTP2::SetHeader(headers, e[0], e[1]);
 			} else
 			if (index & 0x40) {
 				// literal header field with incremental indexing
@@ -249,35 +269,41 @@ class HTTP2 {
 					e = null;
 					var e_val = null;
 					if ((i2 < length arr) && (i2 >= 0)) {
+						if (i2 >= H2_STATIC_TABLE_SIZE)
+							i2 = H2_STATIC_TABLE_SIZE + length arr - 1 - i2;
+
 						e = arr[i2];
-						if (e) {
-							dynamic_table = e[0];
-							e_val = dynamic_table;
-						}
-					} else {
-						if (dynamic_table)
-							e_val = dynamic_table;
+						if (e)
+							e_val = e[0];
 					}
-					if (e_val)
+					if (e_val) {
+						arr[length arr] = [e_val, val];
 						HTTP2::SetHeader(headers, e_val, val);
+					}
 				} else {
 					var name = HTTP2::DecodeString(payload, pos);
 					val = HTTP2::DecodeString(payload, pos);
 					HTTP2::SetHeader(headers, name, val);
-					//headers[name] = val;
-					dynamic_table = name;
+					arr[length arr ] = [name, val];
 				}
 			} else
+			if (index & 0x20) {
+				var max_size = HTTP2::DecodeInt(payload, 5, index, pos);
+			} else
 			if ((index >> 5) == 0) {
-				// literal header field without incremental indexing
+				// literal header field without incremental indexing or never indexed
 				// no altering of dynamic table
+				// var never_indexed = (index & 0x10);
 				if ((index & 0xF) != 0) {
 					i2 = HTTP2::DecodeInt(payload, 4, index, pos);
 					val = HTTP2::DecodeString(payload, pos);
 					i2--;
-					if ((i2 < length arr) && (i2 >= 0)) {
-						e = arr[i2];
 
+					if ((i2 < length arr) && (i2 >= 0)) {
+						if (i2 >= H2_STATIC_TABLE_SIZE)
+							i2 = H2_STATIC_TABLE_SIZE + length arr - 1 - i2;
+
+						e = arr[i2];
 						if (e)
 							HTTP2::SetHeader(headers, e[0], val);//headers[e[0]] = val;
 					}
@@ -285,16 +311,14 @@ class HTTP2 {
 					name = HTTP2::DecodeString(payload, pos);
 					val = HTTP2::DecodeString(payload, pos);
 					HTTP2::SetHeader(headers, name, val);
-					//headers[name] = val;
 				}
-			} else
-				break;
+			}
 		}
 
 		return headers;
 	}
 
-	static ParseFrame(string buffer, var streamid, var payload, var type, var flags = null, var len = null, var complete = false) {
+	static ParseFrame(string buffer, var streamid, var payload, var type, var flags = null, var len = null, var complete = false, static_table = null) {
 		len = 0;
 		payload = "";
 		streamid = 0;
@@ -340,7 +364,7 @@ class HTTP2 {
 				break;
 			case H2_HEADERS:
 				if (flags & FLAG_ENDHEADERS)
-					payload = HTTP2::ParseHeaders(payload);
+					payload = HTTP2::ParseHeaders(payload, static_table);
 				else
 					complete = false;
 				break;
@@ -357,7 +381,7 @@ class HTTP2 {
 			case H2_PUSHPROMISE:
 				var push_streamid = unpack("U32", payload);
 				if (flags & FLAG_ENDHEADERS) {
-					payload = HTTP2::ParseHeaders(SubStr(payload, 4));
+					payload = HTTP2::ParseHeaders(SubStr(payload, 4), static_table);
 					if (payload)
 						payload["#"] = push_streamid;
 				} else
@@ -394,6 +418,8 @@ class HTTP2Stream {
 	public var StreamID;
 	public var PendingBuffer = "";
 	public var IncompleteBuffer = "";
+	public var ResponseFile;
+	public var UserData;
 
 	HTTP2Stream(StreamID, headers) {
 		this.StreamID = StreamID;
@@ -415,6 +441,7 @@ class HTTP2Stream {
 	Write(socket, var buf, close = false) {
 		if (Status != 2)
 			throw "HTTP2Stream/Write: Cannot write on a closed stream";
+
 		var len = length buf;
 		if (len > H2_MAX_LEN) {
 			len = H2_MAX_LEN;
@@ -430,6 +457,21 @@ class HTTP2Stream {
 		return len;
 	}
 
+	FileWrite(socket) {
+		if (ResponseFile) {	
+			var size = ResponseFile.Read(var buffer, H2_MAX_LEN);
+			if (size < 0)
+				throw "HTTP2Stream/FileWrite: Error reading file";
+			var eof = ResponseFile.EOF;
+			if (eof) {
+				ResponseFile.Close();
+				ResponseFile = null;
+			}
+			return Write(socket, buffer, eof);
+		}
+		return 0;
+	}
+
 	Reopen() {
 		if (Status == 3)
 			Status = 2;
@@ -440,6 +482,10 @@ class HTTP2Stream {
 
 	Clear() {
 		PendingBuffer = "";
+		if (ResponseFile) {
+			ResponseFile.Close();
+			ResponseFile = null;
+		}
 	}
 
 	Read() {
@@ -456,17 +502,20 @@ class HTTP2Socket {
 	protected var OutBuffer = "";
 	protected var InBuffer = "";
 	protected var Status = 0;
-	protected var[] Streams;
+	public var[] Streams;
 	protected var LastPing;
 	protected var LastFrameType;
 	protected var HeaderBuf = "";
 	public var RemoteSettings;
+	protected var LastHeaders;
+	protected var static_table;
 	
 	HTTP2Socket(Socket, client = false) {
 		this.Socket = Socket;
 		this.IsClient = client;
 		if (client)
 			Status++;
+		static_table = H2_STATIC_TABLE;
 	}
 
 	GetStream(streamid) {
@@ -506,6 +555,11 @@ class HTTP2Socket {
 		return length InBuffer;
 	}
 
+	AppendReadBuffer(var buf) {
+		InBuffer += buf;
+		return length buf;
+	}
+
 	Reset(status = -1) {
 		Streams = [ ];
 		Status = status;
@@ -513,7 +567,22 @@ class HTTP2Socket {
 		OutBuffer = "";
 	}
 
-	Consume(var created_stream = null, OnRequest = null) {
+	UpdateHeaders(headers) {
+		if (LastHeaders) {
+			if (headers) {
+				var keys = GetKeys(headers);
+				for (var i = 0; i < length keys; i++) {
+					var k = keys[i];
+					LastHeaders[k] = headers[k];
+				}
+			}
+			return LastHeaders;
+		} else
+			LastHeaders = headers;
+		return LastHeaders;
+	}
+
+	Consume(OnRequest = null) {
 		if (length InBuffer) {
 			var processed = 0;
 
@@ -531,7 +600,7 @@ class HTTP2Socket {
 					}
 					break;
 				case 1:
-					var len = HTTP2::ParseFrame(InBuffer, var streamid, var payload, var type, var flags, null, var complete);
+					var len = HTTP2::ParseFrame(InBuffer, var streamid, var payload, var type, var flags, null, var complete, static_table);
 					// need more data
 					if (!len)
 						return 0;
@@ -563,7 +632,7 @@ class HTTP2Socket {
 							}
 							var headers;
 							if (complete)
-								headers = payload;
+								headers = payload;//UpdateHeaders(payload);
 							else
 								headers = [ ];
 							stream = new HTTP2Stream(streamid, headers);
@@ -571,7 +640,6 @@ class HTTP2Socket {
 							if (complete) {
 								if (OnRequest)
 									OnRequest(this, stream);
-								created_stream = stream;
 							} else {
 								stream.IncompleteBuffer = payload;
 								stream.Status = 0;
@@ -623,12 +691,11 @@ class HTTP2Socket {
 							stream.IncompleteBuffer += payload;
 							if (complete) {
 								stream.Status = 1;
-								payload = HTTP2::ParseHeaders(stream.IncompleteBuffer);
+								payload = HTTP2::ParseHeaders(stream.IncompleteBuffer, static_table);//UpdateHeaders();
 								stream.Headers = payload;
 								if (OnRequest)
 									OnRequest(this, stream);
 								stream.IncompleteBuffer = "";
-								created_stream = stream;
 							}
 							break;
 					}
@@ -668,14 +735,31 @@ class HTTP2Socket {
 		return length OutBuffer;
 	}
 
-	Iterate(var created_stream = null, OnRequest = null) {
+	Iterate(OnRequest = null) {
 		var data_read = false;
 		if (this.Socket.HasData) {
 			this.ReadPending();
 			data_read = true;
 		}
+		var streams = this.Streams;
+		for (var i = 0; i < length streams; i++) {
+			var stream = streams[i];
+			if ((stream) && (stream.ResponseFile) && (stream.Status == 2))
+				stream.FileWrite(this);
+		}
 		if (data_read)
-			while (Consume(created_stream, OnRequest) > 0);
+			while (Consume(OnRequest) > 0);
 		WritePending();
+
+		if ((data_read) || (OutBuffer))
+			return true;
+		return false;
+	}
+
+	Close(send_go_away = false, go_away_err_code = H2_ERR_NO_ERROR, debug_data = "") {
+		if ((send_go_away) && (Status >= 0))
+			this.AddBuffer(HTTP2::Frame(0, pack("U32", go_away_err_code) + debug_data, H2_GOAWAY));
+
+		this.Socket.Close();
 	}
 }

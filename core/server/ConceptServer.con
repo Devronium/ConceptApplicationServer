@@ -8,6 +8,7 @@ include Serializable.con
 include WebSocket.con
 include File.con
 include Worker.con
+include HTTP2.con
 
 import standard.C.io
 import standard.C.time
@@ -25,11 +26,26 @@ define MAX_WS_HEADER		0xFFF
 define MAX_WS_HEADER_BUF	0xFFF
 define USE_TLS_PROXY		false
 define DEFAULT_CGI_WORKERS	4
+define DEFAULT_H2_WORKERS	4
 define PIPE_READ_CPU_TIME_US	2000
 define MAX_HEADER_PARAMETERS	0xFF
 define SERVER_NAME		"CAS5WS"
-define SERVER_SOFTWARE		"Concept Application Server (TLSe,ws/wss/http/https/concept/deprecated concepts/cgi1.1)"
+define SERVER_SOFTWARE		"Concept Application Server (TLSe,ws/wss/http/https/concept/deprecated concepts/cgi1.1/http2)"
 define EXTRA_HEADER		"X-Frame-Options: SAMEORIGIN\r\nX-XSS-Protection: 1; mode=block\r\nX-Content-Type-Options: nosniff\r\n"
+
+class H2Container {
+	var socket;
+	var tls = "";
+
+	H2Container(socket) {
+		this.socket = socket.Socket;
+		if (classof socket == "TLSESocket") {
+			tls = socket.Save();
+			socket.Done();
+		}
+		socket.Socket = -1;
+	}
+}
 
 class WDataContainer {
 pragma used
@@ -866,7 +882,7 @@ class ConceptChild {
 			close(this.PipeOut);
 	}
 
-	NormalizeFilename(filename, var directory) {
+	static NormalizeFilename(filename, var directory) {
 		filename=StrReplace(filename, "\\", "/");
 		var arr=StrSplit(filename, "/");
 		var len=length arr;
@@ -1062,6 +1078,15 @@ class ConceptChild {
 					if (time() - start_time > 5) {
 						echo "Handshake timeout error";
 						throw "Handshake timeout error";
+					}
+				}
+				if (socket.ALPN == "h2") {
+					// is HTTP/2
+					var h2worker = Owner.ChooseH2Worker();
+					if (h2worker) {
+						h2worker.AddData(BinarizeObject(new H2Container(socket)));
+						// not really an exception, just an ugly goto
+						throw null;
 					}
 				}
 			}
@@ -1913,6 +1938,7 @@ pragma used
 		Placeholders = 0;
 	}
 
+
 	Iterate() {
 		var children = this.Children;
 		var res = 0;
@@ -1981,11 +2007,176 @@ pragma used
 				}
 			}
 			work_count += this.Iterate();
-			if (!work_count) {
+			if (!work_count)
 				Sleep(10);
+		}
+	}
+}
+
+class ConceptH2Worker {
+pragma used
+	protected var WorkerName;
+	protected var[] Children;
+	protected var Placeholders;
+	protected var IniFile;
+	protected var ConceptClient;
+	protected var mimetypes;
+
+	AddChild(child) {
+		Children[length Children] = child;
+	}
+
+	Clean() {
+		var new_children = new [];
+		var children = this.Children;
+		if (Placeholders == length children) {
+			this.Children = new_children;
+			Placeholders = 0;
+			return;
+		}
+
+		for (var i = 0; i < length children; i++) {
+			var child = children[i];
+			if (child)
+				new_children[length new_children] = child;
+		}
+		Placeholders = 0;
+	}
+
+	GetRoot(servername) {
+		var host_root="";
+
+		if (servername)
+			host_root = IniGet(IniFile, "Paths", "HostRoot($servername)", "");
+
+		if (!host_root)
+			host_root = IniGet(IniFile, "Paths", "ServerRoot", "");
+
+		return host_root;
+	}
+
+	OnRequest(h2, stream) {
+		if (stream.Headers) {
+			var method = stream.Headers[":method"];
+			var path = stream.Headers[":path"];
+			var server = stream.Headers[":authority"];
+			switch (method) {
+				case "GET":
+				case "POST":
+					if (!path)
+						throw "Invalid request";
+					var root = GetRoot(server);
+
+					if (path[length path - 1] == "/")
+						path += "index.html";
+
+					path = ConceptChild::NormalizeFilename(path, var directory);
+					var app = root + directory + path;
+
+					var last_mod = rtrim(asctime(_filelast_mod(app))) + " GMT";
+					var file = new File("rb");
+					file.Name = app;
+					if (file.Open()) {
+						var content_type = "application/octet-stream";
+						var ext = ToLower(Ext(path));
+						if (IsSet(this.mimetypes, ext))
+							content_type = this.mimetypes[ext];
+
+						var if_modified = stream.Headers["if-modified-since"];
+						var headers = [
+							":status" => 200,
+							"server" => "CAS5WS",
+							"cache-control" => "max-age=31536000",
+							"last-modified" => last_mod,
+							"content-type" => content_type
+						];
+						var no_content = false;
+						if (last_mod == if_modified) {
+							headers[":status"] = 304;
+							file.Close();
+							delete file;
+							no_content = true;
+						}
+						stream.Response(h2, headers, no_content);
+	
+						if (file)
+							stream.ResponseFile = file;
+					} else {
+						stream.Response(h2, [
+							":status" => "404",
+							"server" => "CAS5WS",
+							"content-type" => "text/html"
+						]);
+
+						var data =  ReadFile(ConceptClient + "/errors/404.html");
+						if (!data)
+							data = "Error 404 in processing your request.";
+						
+						stream.Write(h2, data, true);
+						delete file;
+					}
+					break;
+				default:
+					throw "Unsupported method";
+					break;
 			}
 		}
 	}
+
+	Iterate() {
+		var children = this.Children;
+		var res = 0;
+		var exc;
+		for (var i = 0; i < length children; i++) {
+			var child = children[i];
+			if (child) {
+				try {
+					if (child.Iterate(this.OnRequest))
+						res++;
+				} catch (exc) {
+					child.Close();
+					children[i] = null;
+					Placeholders ++;
+				}
+			}
+		}
+		if (Placeholders >= 20)
+			this.Clean();
+		return res;
+	}
+
+	ConceptH2Worker(n) {
+		var init_data = UnBinarizeObject(n);
+		IniFile = init_data[0];
+		ConceptClient = init_data[1];
+		mimetypes = init_data[2];		
+		var exc;
+		while (true) {
+			var work_count = 0;
+			var Socket = null;
+			if (Worker::Pending(var data)) {
+				work_count++;
+				var job = UnBinarizeObject(data);
+				if (job) {
+					try {
+						if (job.tls) {
+							Socket = new TLSESocket(job.socket);
+							if (!Socket.Restore(job.tls))
+								Socket = null;
+						} else
+							Socket = new TCPSocket(job.socket);
+
+						if (Socket)
+							this.AddChild(HTTP2::Socket(Socket));
+					} catch (exc) {
+						delete Socket;
+					}
+				}
+			}
+			work_count += this.Iterate();
+			if (!work_count)
+				Sleep(10);
+		}	}
 }
 
 class ConceptServer {
@@ -2019,6 +2210,8 @@ class ConceptServer {
 	public var Rewrite;
 	protected var[] Workers;
 	protected var TargetWorker = 0;
+	protected var[] H2Workers;
+	protected var TargetH2Worker = 0;
 
 	ConceptServer(inifile="") {
 		this.mimetypes = [
@@ -3259,6 +3452,14 @@ class ConceptServer {
 		return null;
 	}
 
+	ChooseH2Worker() {
+		if (H2Workers) {
+			if (TargetH2Worker >= length H2Workers)
+				TargetH2Worker = 0;
+			return H2Workers[TargetH2Worker++];
+		}
+		return null;
+	}
 
 	BackgroundTasks() {
 		var loop = this.Loop;
@@ -3439,10 +3640,17 @@ class ConceptServer {
 			throw "Error initializing Concept server SSL WS socket (port ${this.SSLWSSocketName} already in use)";
 
 		if (TLSWSSocket) {
-			if (TLSWSSocket.Listen(this.SSLWSPort, max_connections, interface))
+			if (TLSWSSocket.Listen(this.SSLWSPort, max_connections, interface)) {
 				throw "Error initializing Concept server TLS WS socket (port ${this.SSLWSPort} already in use)";
-			else
+			} else {
 				this.LoadKeys();
+				if (value IniGet(this.IniFile, "Server", "HTTP2", "0")) {
+					TLSWSSocket.AddALPN("h2");
+					var h2worker_init_parameters = BinarizeObject([this.IniFile, this.ConceptClient, this.mimetypes]);
+					for (i = 0; i < DEFAULT_H2_WORKERS; i++)
+						H2Workers[i] = new Worker("ConceptH2Worker", h2worker_init_parameters);
+				}
+			}
 		}
 
 		var user = IniGet(this.IniFile, "Server", "User", "concept");
