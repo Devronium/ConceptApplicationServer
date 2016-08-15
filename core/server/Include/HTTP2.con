@@ -446,6 +446,7 @@ class HTTP2Stream {
 	public var ResponseFile;
 	public var UserData;
 	public var TotalReceived = 0;
+	public var TotalSent = 0;
 	public var WindowSize = H2_INITIAL_WINDOW;
 
 	HTTP2Stream(StreamID, headers) {
@@ -484,17 +485,20 @@ class HTTP2Stream {
 			throw "HTTP2Stream/Write: Cannot write on a closed stream";
 
 		var len = length buf;
+		var frame;
 		if (len > H2_MAX_LEN) {
 			len = H2_MAX_LEN;
-			socket.AddBuffer(HTTP2::Frame(StreamID, SubStr(buf, 0, len), H2_DATA));
+			frame = HTTP2::Frame(StreamID, SubStr(buf, 0, len), H2_DATA);
 		} else {
 			var flags = 0;
 			if (close) {
 				flags = FLAG_ENDSTREAM;
 				Status = 3;
 			}
-			socket.AddBuffer(HTTP2::Frame(StreamID, buf, H2_DATA, flags));
+			frame = HTTP2::Frame(StreamID, buf, H2_DATA, flags);
 		}
+		socket.AddBuffer(frame, true);
+		TotalSent += length frame;
 		return len;
 	}
 
@@ -556,6 +560,7 @@ class HTTP2Socket {
 	protected var static_table;
 	protected var WindowSize = H2_INITIAL_WINDOW;
 	protected var TotalReceived = 0;
+	protected var TotalSent = 0;
 
 	HTTP2Socket(Socket, client = false) {
 		this.Socket = Socket;
@@ -596,7 +601,9 @@ class HTTP2Socket {
 		//return false;
 	}
 
-	AddBuffer(var buf) {
+	AddBuffer(var buf, is_data = false) {
+		if (is_data)
+			TotalSent += length buf;
 		if (Status < 0)
 			throw "HTTP2Socket/AddBuffer: Connection is no longer active";
 
@@ -770,7 +777,7 @@ class HTTP2Socket {
 							}
 							if (streamid) {
 								stream = Streams["" + streamid];
-								if ((!stream) || (stream.Status))
+								if (!stream)
 									throw "HTTP2Socket/Invalid stream id $streamid";
 								stream.WindowSize = payload;
 							} else
@@ -846,6 +853,7 @@ class HTTP2Socket {
 			data_read = true;
 		}
 		var streams = this.Streams;
+
 		for (var i = 0; i < length streams; i++) {
 			var stream = streams[i];
 			if ((stream) && (stream.ResponseFile) && (stream.Status == 2))
