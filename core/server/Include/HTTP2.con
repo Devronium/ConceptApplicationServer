@@ -464,12 +464,32 @@ class HTTP2Stream {
 			flags = FLAG_ENDSTREAM;
 		}
 		socket.AddBuffer(HTTP2::Headers(StreamID, headers, flags));
+		if (close)
+			this.Remove(socket);
 	}
 	
+	Remove(socket) {
+		if (ResponseFile) {
+			var exc;
+			try {
+				ResponseFile.Close();
+			} catch (exc) {
+				// nothing
+			}
+			ResponseFile = null;
+		}
+		if (Status != -4) {
+			socket.RemoveStream(this.StreamID);
+			Status = -4;
+		}
+	}
+
 	Close(socket, err_code = 0) {
-		if (Status <= 2)
-			socket.AddBuffer(HTTP2::Frame(StreamID, pack("U32", err_code), H2_RSTSTREAM, 0));
-		socket.RemoveStream(this.StreamID);
+		if (Status != -4) {
+			if (Status <= 2)
+				socket.AddBuffer(HTTP2::Frame(StreamID, pack("U32", err_code), H2_RSTSTREAM, 0));
+			this.Remove(socket);
+		}
 	}
 
 	AtomicWriteSize(len) {
@@ -499,6 +519,8 @@ class HTTP2Stream {
 		}
 		socket.AddBuffer(frame, true);
 		TotalSent += length frame;
+		if (close)
+			this.Remove(socket);
 		return len;
 	}
 
@@ -512,7 +534,10 @@ class HTTP2Stream {
 				ResponseFile.Close();
 				ResponseFile = null;
 			}
-			return Write(socket, buffer, eof);
+			var written = Write(socket, buffer, eof);
+			if (eof)
+				this.Remove(socket);
+			return written;
 		}
 		return 0;
 	}
@@ -552,6 +577,7 @@ class HTTP2Socket {
 	protected var InBuffer = "";
 	protected var Status = 0;
 	public var[] Streams;
+	public var StreamCount = 0;
 	protected var LastPing;
 	protected var LastFrameType;
 	protected var HeaderBuf = "";
@@ -561,6 +587,8 @@ class HTTP2Socket {
 	protected var WindowSize = H2_INITIAL_WINDOW;
 	protected var TotalReceived = 0;
 	protected var TotalSent = 0;
+	protected var RemoteMaxStreamID;
+	public var IdleSince;
 
 	HTTP2Socket(Socket, client = false) {
 		this.Socket = Socket;
@@ -568,6 +596,7 @@ class HTTP2Socket {
 		if (client)
 			Status++;
 		static_table = H2_STATIC_TABLE;
+		IdleSince = time();
 	}
 
 	GetStream(streamid) {
@@ -575,7 +604,11 @@ class HTTP2Socket {
 	}
 
 	RemoveStream(streamid) {
-		Streams["" + streamid] = null;
+		var key = "" + streamid;
+		if (Streams[key]) {
+			Streams[key] = null;
+			this.StreamCount++;
+		}
 	}
 
 	GetStreams() {
@@ -716,7 +749,7 @@ class HTTP2Socket {
 							// waiting response;
 							if (!streamid) {
 								this.Reset(-3);
-								throw "HTTP2Socket/Invalid stream id $streamid";
+								throw "HTTP2Socket/Invalid stream id $streamid (headers)";
 							}
 							var headers;
 							if (complete)
@@ -724,7 +757,10 @@ class HTTP2Socket {
 							else
 								headers = [ ];
 							stream = new HTTP2Stream(streamid, headers);
+							this.StreamCount++;
 							Streams["" + streamid] = stream;
+							if (RemoteMaxStreamID < streamid)
+								RemoteMaxStreamID = streamid;
 							if (complete) {
 								if (OnRequest)
 									OnRequest(this, stream);
@@ -748,7 +784,7 @@ class HTTP2Socket {
 								throw "HTTP2Socket/Invalid stream id $streamid";
 							}
 							// reset stream
-							Streams["" + streamid] = null;
+							RemoveStream(streamid);
 							break;
 						case H2_SETTINGS:
 							// aknowledge settings
@@ -776,22 +812,22 @@ class HTTP2Socket {
 								throw "HTTP2Socket/Invalid window size $payload";
 							}
 							if (streamid) {
+								if (streamid > this.RemoteMaxStreamID)
+									throw "HTTP2Socket/Invalid stream id $streamid (window update)";
 								stream = Streams["" + streamid];
-								if (!stream)
-									throw "HTTP2Socket/Invalid stream id $streamid";
-								stream.WindowSize = payload;
+								if (stream)
+									stream.WindowSize = payload;
 							} else
 								this.WindowSize = payload;
 							break;
 						case H2_CONTINUATION:
 							if (!streamid) {
 								this.Reset(-3);
-								throw "HTTP2Socket/Invalid stream id $streamid";
+								throw "HTTP2Socket/Invalid stream id $streamid (continuation)";
 							}
-							// not implemented
 							stream = Streams["" + streamid];
 							if ((!stream) || (stream.Status))
-								throw "HTTP2Socket/Invalid stream id $streamid";
+								throw "HTTP2Socket/Invalid stream id $streamid (continuation)";
 							stream.IncompleteBuffer += payload;
 							if (complete) {
 								stream.Status = 1;
@@ -815,10 +851,21 @@ class HTTP2Socket {
 					throw "HTTP2Socket/Invalid connection status (no longer active?)";
 					break;
 			}
+			IdleSince = time();
 			InBuffer = SubStr(InBuffer, processed);
 			return length InBuffer;
 		}
 		return 0;
+	}
+
+	IdleSeconds() {
+		return time() - IdleSince;
+	}
+
+	IsBroken() {
+		if (OutBuffer)
+			return false;
+		return (Status >= 0);
 	}
 
 	WritePending() {
@@ -832,6 +879,7 @@ class HTTP2Socket {
 			try {
 				var len = this.Socket.Write(OutBuffer);
 				if (len > 0) {
+					IdleSince = time();
 					if (len >= length OutBuffer)
 						OutBuffer = "";
 					else
@@ -844,6 +892,24 @@ class HTTP2Socket {
 			}
 		}
 		return length OutBuffer;
+	}
+
+	CleanStreams() {
+		var new_children = new [];
+		var children = this.Streams;
+		if (!StreamCount) {
+			this.Streams = new_children;
+			return;
+		}
+		var keys = GetKeys(children);
+		for (var i = 0; i < length keys; i++) {
+			var key = keys[i];
+			if (key) {
+				var child = children[key];
+				if (child)
+					new_children[key] = child;
+			}
+		}
 	}
 
 	Iterate(OnRequest = null) {
@@ -865,6 +931,9 @@ class HTTP2Socket {
 
 		if ((data_read) || (OutBuffer))
 			return true;
+
+		if (length Streams - StreamCount > 64)
+			CleanStreams();
 		return false;
 	}
 

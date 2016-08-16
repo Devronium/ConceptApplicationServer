@@ -33,6 +33,20 @@ define SERVER_NAME		"CAS5WS"
 define SERVER_SOFTWARE		"Concept Application Server (TLSe,ws/wss/http/https/concept/deprecated concepts/cgi1.1/http2)"
 define EXTRA_HEADER		"X-Frame-Options: SAMEORIGIN\r\nX-XSS-Protection: 1; mode=block\r\nX-Content-Type-Options: nosniff\r\n"
 define H2_EXTRA_HEADER		"strict-transport-security" => "max-age=31536000; includeSubDomains; preload", "x-frame-options" => "SAMEORIGIN", "x-xss-protection" => "1; mode=block", "x-content-type-options" => "nosniff"
+define H2_MAX_IDLE_SECONDS	10
+
+class RewriteContainer {
+	var Rewrite;
+
+	RewriteContainer() {
+		// ========= rewrite rules ======== //
+		// uncomment if needed
+		// Rewrite = function(app, var parameters) {
+		// 	return app;
+		// };
+		// ======= end rewrite rules ====== //
+	}
+}
 
 class H2Container {
 	var socket;
@@ -2114,7 +2128,7 @@ pragma used
 	}
 }
 
-class ConceptH2Worker {
+class ConceptH2Worker extends RewriteContainer {
 pragma used
 	protected var WorkerName;
 	protected var[] Children;
@@ -2311,6 +2325,9 @@ pragma used
 			switch (method) {
 				case "GET":
 				case "POST":
+					if (this.Rewrite)
+						path = this.Rewrite(path, params);
+
 					if (!path)
 						throw "Invalid request";
 					var root = GetRoot(server);
@@ -2360,23 +2377,25 @@ pragma used
 					var is_cgi = this.IsCGI(content_type);
 					if (is_cgi) {
 						app = ConceptWorker::RealPath(StrReplace(app, "\\", "/"));
-						var default_header = [
-							":status" => "200",
-							"server" => "CAS5WS",
-							"content-type" => "text/html"
-						];
-						var cgi = this.CreateCGI(h2, stream, is_cgi, root, orig_path, app, params, server, var err_text);
-						cgi.h2headers = default_header;
-						if (!cgi)
-							throw err_text;
-						return;
+						if (FileExists(app)) {
+							var default_header = [
+								":status" => "200",
+								"server" => "CAS5WS",
+								"content-type" => "text/html"
+							];
+							var cgi = this.CreateCGI(h2, stream, is_cgi, root, orig_path, app, params, server, var err_text);
+							cgi.h2headers = default_header;
+							if (!cgi)
+								throw err_text;
+							return;
+						}
 					}
 
 					var tstamp = StrReplace(StrReplace(asctime(time()), "\r", ""), "\n", "")+" GMT";
 					var last_mod = rtrim(asctime(_filelast_mod(app))) + " GMT";
 					var file = new File("rb");
 					file.Name = app;
-					if (file.Open()) {
+					if ((!is_cgi) && (file.Open())) {
 						var headers = [
 							":status" => 200,
 							"server" => "CAS5WS",
@@ -2439,7 +2458,6 @@ pragma used
 						CGIPlaceholders ++;
 					}
 				} catch (exc) {
-
 					child.Close();
 					children[i] = null;
 					CGIPlaceholders ++;
@@ -2451,17 +2469,42 @@ pragma used
 		return res;
 	}
 
+	CleanCGIChildren(h2) {
+		var children = this.CGIChildren;
+		var exc;
+		for (var i = 0; i < length children; i++) {
+			var child = children[i];
+			if ((child) && (child.h2 == h2)) {
+				try {
+					child.Close();
+					children[i] = null;
+					CGIPlaceholders++;
+				} catch (exc) {
+					// nothing
+				}
+			}
+		}
+		if (CGIPlaceholders >= 20)
+			this.CGIChildren = this.Clean(this.CGIChildren, CGIPlaceholders);
+	}
+
 	Iterate() {
 		var children = this.Children;
 		var res = 0;
 		var exc;
+		var t = time();
+
 		for (var i = 0; i < length children; i++) {
 			var child = children[i];
 			if (child) {
 				try {
 					if (child.Iterate(this.OnRequest))
 						res++;
+					else
+					if (t - child.IdleSince > H2_MAX_IDLE_SECONDS)
+						throw "Dropping connection (idle for maximum seconds)";
 				} catch (exc) {
+					CleanCGIChildren(child);
 					child.Close();
 					children[i] = null;
 					Placeholders ++;
@@ -2474,6 +2517,8 @@ pragma used
 	}
 
 	ConceptH2Worker(n) {
+		super();
+
 		var init_data = UnBinarizeObject(n);
 		IniFile = init_data[0];
 		ConceptClient = init_data[1];
@@ -2481,6 +2526,7 @@ pragma used
 		conceptcgi = init_data[3];
 		cgiother = init_data[4];
 		var exc;
+
 		while (true) {
 			var work_count = 0;
 			var Socket = null;
@@ -2513,7 +2559,7 @@ pragma used
 	}
 }
 
-class ConceptServer {
+class ConceptServer extends RewriteContainer {
 	protected var Socket;
 	protected var WSSocket;
 	protected var TLSWSSocket;
@@ -2541,13 +2587,14 @@ class ConceptServer {
 	public var ShuttingDown = false;
 	public var cgi = "";
 	public var[] cgiother;
-	public var Rewrite;
+
 	protected var[] Workers;
 	protected var TargetWorker = 0;
 	protected var[] H2Workers;
 	protected var TargetH2Worker = 0;
 
 	ConceptServer(inifile="") {
+		super();
 		this.mimetypes = [
 				"ez" => "application/andrew-inset",
 				"aw" => "application/applixware",
@@ -4020,13 +4067,6 @@ class Main {
 			ini_file=getcwd()+"/concept.ini";
 		
 		var s=new ConceptServer(ini_file);
-
-		// ========= rewrite rules ======== //
-		// uncomment if needed
-		// s.Rewrite = function(app, var parameters) {
-		// 	return app;
-		// };
-		// ======= end rewrite rules ====== //
 		if (USE_TLS_PROXY) {
 			if (ExecuteProcess("concept", ".", ["-mt", "ConceptTLSProxyServer.con"], [ ], false) < 0)
 				s.Log("ConceptServer", "Error initializing Concept SSL proxy");
