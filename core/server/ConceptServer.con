@@ -33,7 +33,10 @@ define SERVER_NAME		"CAS5WS"
 define SERVER_SOFTWARE		"Concept Application Server (TLSe,ws/wss/http/https/concept/deprecated concepts/cgi1.1/http2)"
 define EXTRA_HEADER		"X-Frame-Options: SAMEORIGIN\r\nX-XSS-Protection: 1; mode=block\r\nX-Content-Type-Options: nosniff\r\n"
 define H2_EXTRA_HEADER		"strict-transport-security" => "max-age=31536000; includeSubDomains; preload", "x-frame-options" => "SAMEORIGIN", "x-xss-protection" => "1; mode=block", "x-content-type-options" => "nosniff"
-define H2_MAX_IDLE_SECONDS	10
+define H2_MAX_IDLE_SECONDS	30
+define IDLE_SLEEP_MS		10
+define IDLE_SLEEP_THRESHOLD	200
+define IDLE_SLEEP_MS2		50
 
 class RewriteContainer {
 	var Rewrite;
@@ -1756,8 +1759,20 @@ class ConceptCGIChild {
 		SocketSetBlocking(Socket.Socket, false);
 	}
 
+	Join() {
+		if (pid > 0) {
+			if (ExecuteIsRunning(pid))
+				kill(__PID(pid), SIGKILL);
+
+			ExecuteJoin(pid);
+			pid = 0;
+		}
+	}
+
 	H2Close() {
 		if ((h2) && (stream)) {
+			Join();
+			h2.UserData--;
 			var exc;
 			try {
 				if (stream.Status == 2)
@@ -1772,13 +1787,7 @@ class ConceptCGIChild {
 	}
 
 	Close() {
-		if (pid > 0) {
-			if (ExecuteIsRunning(pid))
-				kill(__PID(pid), SIGKILL);
-
-			ExecuteJoin(pid);
-			pid = 0;
-		}
+		Join();
 		std_in_buffer = "";
 		std_out_buffer = "";
 		if ((h2) && (stream)) {
@@ -2091,6 +2100,7 @@ pragma used
 
 	ConceptWorker(n) {
 		WorkerName = n;
+		var empty_iterations = 0;
 		while (true) {
 			var work_count = 0;
 			if (Worker::Pending(var data)) {
@@ -2122,8 +2132,18 @@ pragma used
 				}
 			}
 			work_count += this.Iterate();
-			if (!work_count)
-				Sleep(10);
+			if (work_count) {
+				empty_iterations = 0;
+			} else {
+				empty_iterations++;
+				if (empty_iterations > IDLE_SLEEP_THRESHOLD)
+					Sleep(IDLE_SLEEP_MS2);
+				else
+					Sleep(IDLE_SLEEP_MS);
+			}
+
+			// if (!work_count)
+			//	Sleep(IDLE_SLEEP_MS);
 		}
 	}
 }
@@ -2228,8 +2248,10 @@ pragma used
 		}
 
 		var cgi = new ConceptCGIChild(Socket, std_out_r, std_in_w, pid, "", h2, stream);
-		if (cgi)
+		if (cgi) {
 			CGIChildren[length CGIChildren] = cgi;
+			h2.UserData++;
+		}
 		return cgi;
 	}
 
@@ -2313,11 +2335,26 @@ pragma used
 		return "";
 	}
 
+	InternalError(h2, stream, err_code) {
+		stream.Response(h2, [
+			":status" => "$err_code",
+			"server" => "CAS5WS",
+			"content-type" => "text/html"
+		]);
+
+		var data =  ReadFile(ConceptClient + "/errors/$err_code.html");
+		if (!data)
+			data = "Error $err_code in processing your request.";			
+		stream.Write(h2, data, true);
+	}
+
 	OnRequest(h2, stream) {
 		if (stream.Headers) {
 			var method = stream.Headers[":method"];
 			var path = stream.Headers[":path"];
-			var server = stream.Headers[":authority"];
+			if (!path)
+				return InternalError(h2, stream, 503);
+			var server = stream.Headers[":authority"] ?? "";
 			var app;
 			var params = SplitPath(path);
 			var empty_request = false;
@@ -2377,7 +2414,12 @@ pragma used
 					var is_cgi = this.IsCGI(content_type);
 					if (is_cgi) {
 						app = ConceptWorker::RealPath(StrReplace(app, "\\", "/"));
-						if (FileExists(app)) {
+						var exists = FileExists(app);
+						if ((!exists) && (path[0] == "@")) {
+							app = this.ConceptClient + "/" + SubStr(path, 1);
+							exists = FileExists(app);
+						}
+						if (exists) {
 							var default_header = [
 								":status" => "200",
 								"server" => "CAS5WS",
@@ -2410,6 +2452,7 @@ pragma used
 							stream.Response(h2, headers, no_content);
 							stream.Write(h2, root_buffer, true);
 						} else {
+
 							var if_modified = stream.Headers["if-modified-since"];
 							if (last_mod == if_modified) {
 								headers[":status"] = 304;
@@ -2438,9 +2481,12 @@ pragma used
 					}
 					break;
 				default:
+					InternalError(h2, stream, 501);
 					throw "Unsupported method";
 					break;
 			}
+		} else {
+			InternalError(h2, stream, 503);
 		}
 	}
 	
@@ -2501,7 +2547,7 @@ pragma used
 					if (child.Iterate(this.OnRequest))
 						res++;
 					else
-					if (t - child.IdleSince > H2_MAX_IDLE_SECONDS)
+					if ((t - child.IdleSince > H2_MAX_IDLE_SECONDS) && (child.UserData <= 0))
 						throw "Dropping connection (idle for maximum seconds)";
 				} catch (exc) {
 					CleanCGIChildren(child);
@@ -2526,7 +2572,7 @@ pragma used
 		conceptcgi = init_data[3];
 		cgiother = init_data[4];
 		var exc;
-
+		var empty_iterations = 0;
 		while (true) {
 			var work_count = 0;
 			var Socket = null;
@@ -2553,8 +2599,15 @@ pragma used
 			}
 			work_count += this.Iterate();
 			work_count += this.IterateCGI();
-			if (!work_count)
-				Sleep(10);
+			if (work_count) {
+				empty_iterations = 0;
+			} else {
+				empty_iterations++;
+				if (empty_iterations > IDLE_SLEEP_THRESHOLD)
+					Sleep(IDLE_SLEEP_MS2);
+				else
+					Sleep(IDLE_SLEEP_MS);
+			}
 		}
 	}
 }
@@ -3620,8 +3673,10 @@ class ConceptServer extends RewriteContainer {
 
 		this.IniFile = inifile;
 
-		for (var i = 0; i < DEFAULT_CGI_WORKERS; i++)
+		for (var i = 0; i < DEFAULT_CGI_WORKERS; i++) {
 			Workers[i] = new Worker("ConceptWorker", "Worker${i+1}");
+			Sleep(100);
+		}
 	}
 
 	LoadKeys() {
@@ -4028,8 +4083,10 @@ class ConceptServer extends RewriteContainer {
 				if (value IniGet(this.IniFile, "Server", "HTTP2", "0")) {
 					TLSWSSocket.AddALPN("h2");
 					var h2worker_init_parameters = BinarizeObject([this.IniFile, this.ConceptClient, this.mimetypes, this.cgi, this.cgiother]);
-					for (i = 0; i < DEFAULT_H2_WORKERS; i++)
+					for (i = 0; i < DEFAULT_H2_WORKERS; i++) {
 						H2Workers[i] = new Worker("ConceptH2Worker", h2worker_init_parameters);
+						Sleep(100);
+					}
 				}
 			}
 		}

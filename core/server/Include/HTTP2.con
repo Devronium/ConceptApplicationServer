@@ -589,6 +589,7 @@ class HTTP2Socket {
 	protected var TotalSent = 0;
 	protected var RemoteMaxStreamID;
 	public var IdleSince;
+	public var UserData;
 
 	HTTP2Socket(Socket, client = false) {
 		this.Socket = Socket;
@@ -620,7 +621,7 @@ class HTTP2Socket {
 	}
 
 	ResizeTable() {
-		if (length static_table < H2_DYNAMIC_CLEAN)
+		if (length static_table < H2_STATIC_TABLE_SIZE + H2_DYNAMIC_CLEAN)
 			return false;
 		//var start = HTTP2::LimitTableSize(static_table, H2_STATIC_TABLE_MAX);
 		var start = H2_STATIC_TABLE_SIZE + H2_DYNAMIC_CLEAN / 2;
