@@ -44,6 +44,8 @@ define H2_SEND_WINDOWUPDATE	32767
 define H2_INITIAL_WINDOW	0xFFFF
 define H2_WINDOWUPDATE_VALUE	0xFFFF
 
+define H2_FILE_READ_BUFFER	0xFFFFF
+
 define H2_X_INITIAL_WINDOW_SIZE	7FFFF
 define H2_X_INITIAL_WINDOW_SIZE_VAL	1048576
 
@@ -506,15 +508,27 @@ class HTTP2Stream {
 
 		var len = length buf;
 		var frame;
+		var flags = 0;
+		if (close) {
+			flags = FLAG_ENDSTREAM;
+			Status = 3;
+		}
 		if (len > H2_MAX_LEN) {
-			len = H2_MAX_LEN;
-			frame = HTTP2::Frame(StreamID, SubStr(buf, 0, len), H2_DATA);
-		} else {
-			var flags = 0;
-			if (close) {
-				flags = FLAG_ENDSTREAM;
-				Status = 3;
+			frame = "";
+			var start = 0;
+			var remaining = len;
+			var use_flags = 0;
+			while (remaining > 0) {
+				var chunk_len = H2_MAX_LEN;
+				if (chunk_len >= remaining) {
+					chunk_len = remaining;
+					use_flags = flags;
+				}
+				frame += HTTP2::Frame(StreamID, SubStr(buf, start, chunk_len), H2_DATA, use_flags);
+				start += H2_MAX_LEN;
+				remaining -= chunk_len;
 			}
+		} else {
 			frame = HTTP2::Frame(StreamID, buf, H2_DATA, flags);
 		}
 		socket.AddBuffer(frame, true);
@@ -526,7 +540,7 @@ class HTTP2Stream {
 
 	FileWrite(socket) {
 		if (ResponseFile) {	
-			var size = ResponseFile.Read(var buffer, H2_MAX_LEN);
+			var size = ResponseFile.Read(var buffer, H2_FILE_READ_BUFFER);
 			if (size < 0)
 				throw "HTTP2Stream/FileWrite: Error reading file";
 			var eof = ResponseFile.EOF;
