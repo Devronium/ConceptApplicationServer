@@ -2411,14 +2411,14 @@ pragma used
 						} else
 							app = root + directory + path;
 					}
+					var exists = FileExists(app);
+					if ((!exists) && (path[0] == "@")) {
+						app = this.ConceptClient + "/" + SubStr(path, 1);
+						exists = FileExists(app);
+					}
 					var is_cgi = this.IsCGI(content_type);
 					if (is_cgi) {
 						app = ConceptWorker::RealPath(StrReplace(app, "\\", "/"));
-						var exists = FileExists(app);
-						if ((!exists) && (path[0] == "@")) {
-							app = this.ConceptClient + "/" + SubStr(path, 1);
-							exists = FileExists(app);
-						}
 						if (exists) {
 							var default_header = [
 								":status" => "200",

@@ -9,8 +9,8 @@
 #define JIT_RUNTIME_CHECKS
 #define OPTIONAL_SEPARATOR
 
-#if defined(_WIN32) || defined(__linux__)
-// use dlmalloc only on win32 and linux
+#if defined(_WIN32) /*|| defined(__linux__) */
+// use dlmalloc only on win32
 // on FreeBSD dlmalloc is the default memory allocator
  #define USE_DLMALLOC
 #endif
