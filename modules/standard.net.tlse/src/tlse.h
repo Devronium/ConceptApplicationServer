@@ -22,6 +22,7 @@
 // do not uncomment next line!
 // #define TLS_ACCEPT_SECURE_RENEGOTIATION
 
+#define SSL_V30                 0x0300
 #define TLS_V10                 0x0301
 #define TLS_V11                 0x0302
 #define TLS_V12                 0x0303
