@@ -52,6 +52,7 @@ class RewriteContainer {
 }
 
 class H2Container {
+pragma used
 	var socket;
 	var tls = "";
 
@@ -1743,8 +1744,10 @@ class ConceptCGIChild {
 	var h2;
 	var stream;
 	var h2headers;
+	var is_post;
 
-	ConceptCGIChild(Socket, std_out, std_in, pid, buffer, h2 = null, stream = null, default_h2_header = null) {
+	ConceptCGIChild(method, Socket, std_out, std_in, pid, buffer, h2 = null, stream = null, default_h2_header = null) {
+		this.is_post = true;//(method != "GET");
 		this.std_out = 	std_out;
 		this.std_in = std_in;
 		this.Socket = Socket;
@@ -1840,15 +1843,18 @@ class ConceptCGIChild {
 			try {
 				if (stream) {
 					if (stream.HasData()) {
-						std_in_buffer += stream.Read();
+						var buf = stream.Read();
+						if (this.is_post)
+							std_in_buffer += buf;
 						ops++;
 					}
 				} else
 				if (Socket.HasData) {
-					var buf = Socket.Read(MAX_RECV_BUFFER);
+					buf = Socket.Read(MAX_RECV_BUFFER);
 					if (!buf)
 						return true;
-					std_in_buffer += buf;
+					if (this.is_post)
+						std_in_buffer += buf;
 					ops ++;
 				}
 			} catch (var exc) {
@@ -1861,6 +1867,13 @@ class ConceptCGIChild {
 				if (res > 0) {
 					ops ++;
 					std_in_buffer = SubStr(std_in_buffer, res);
+				}
+				if (res < 0) {
+					var pipe_err = _errno();
+					if ((pipe_err != 11) && (pipe_err != 35) && (pipe_err != 28) && (pipe_err != 22)) {
+						echo "CGI pipe write error: $pipe_err\n";
+						return true;
+					}
 				}
 			}
 		}
@@ -1879,6 +1892,14 @@ class ConceptCGIChild {
 						break;
 				}
 			} while (res > 0);
+			if (res < 0) {
+				pipe_err = _errno();
+				if ((pipe_err != 11) && (pipe_err != 35) && (pipe_err != 28) && (pipe_err != 22)) {
+					echo "CGI pipe read error: $pipe_err\n";
+					return true;
+				}
+			}
+
 		}
 		if (std_out_buffer) {
 			if (stream) {
@@ -1913,8 +1934,7 @@ class ConceptCGIChild {
 							std_out_buffer = SubStr(std_out_buffer, res);
 							ops ++;
 						}
-					} else
-						echo "NO WRITE!\n";
+					}
 				} catch (exc) {
 					return true;
 				}
@@ -1943,11 +1963,11 @@ class ConceptCGIChild {
 	}
 
 	static CreatePipes(var std_out_r, var std_out_w, var std_in_r, var std_in_w, var err_text) {
-		if (pipe(std_out_r, std_out_w)) {
+		if (socketpair(std_out_r, std_out_w)) {
 			err_text = "ConceptCGIChild: Error creating pipe (stdout)";
 			return -1;
 		}
-		if (pipe(std_in_r, std_in_w)) {
+		if (socketpair(std_in_r, std_in_w)) {
 			close(std_out_r);
 			close(std_out_w);
 			err_text = "ConceptCGIChild: Error creating pipe (stdin)";
@@ -2038,7 +2058,7 @@ pragma used
 			return null;
 		}
 
-		return new ConceptCGIChild(Socket, std_out_r, std_in_w, pid, job.snippet);
+		return new ConceptCGIChild(job.method, Socket, std_out_r, std_in_w, pid, job.snippet);
 	}
 
 	AddChild(child) {
@@ -2198,6 +2218,7 @@ pragma used
 			}
 		} else
 			hostname = hostname_port;
+		var method = this.GetHeader(":method", headers) ?? "GET";
 		var env = [
 				"DOCUMENT_ROOT=" + root,
 				"GATEWAY_INTERFACE=CGI/1.1",
@@ -2211,7 +2232,7 @@ pragma used
 				"REMOTE_HOST=" + address,
 				"REMOTE_PORT=" + port,
 				"REMOTE_USER=",
-				"REQUEST_METHOD=" + this.GetHeader(":method", headers),
+				"REQUEST_METHOD=" + method,
 				"REQUEST_URI=" + path,
 				"SCRIPT_FILENAME=" + app,
 				"SCRIPT_NAME=" + cgi_handler_path,
@@ -2247,7 +2268,7 @@ pragma used
 			return null;
 		}
 
-		var cgi = new ConceptCGIChild(Socket, std_out_r, std_in_w, pid, "", h2, stream);
+		var cgi = new ConceptCGIChild(method, Socket, std_out_r, std_in_w, pid, "", h2, stream);
 		if (cgi) {
 			CGIChildren[length CGIChildren] = cgi;
 			h2.UserData++;
