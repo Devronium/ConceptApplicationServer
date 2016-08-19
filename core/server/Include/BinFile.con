@@ -996,13 +996,12 @@ class BinFile extends File {
 				if (IsSet(cache, "" + orig_id))
 					cache = new [];
 			}
-				
 			if (res > 0) {
 				this.Flush();
 				if (update_index) {
-					if (changed_keys == null)
+					if (changed_keys == null) {
 						this.UpdateIndex(obj, id);
-					else
+					} else
 						this.UpdateIndex(changed_keys, id, obj);
 				}
 			}
@@ -1033,8 +1032,14 @@ class BinFile extends File {
 							// this._Delete(id, false, false);
 						}
 					} else
-					if (IsSet(c, key)) {//(this.IsSet2(c, StrSplit(key, "."), var v)) {
+					if (IsSet(c, key)) {
 						if (!_Index.Put(id, key, c[key])) {
+							// to do
+							// this._Delete(id, false, false);
+						}
+					} else
+					if (this.IsSet2(c, StrSplit(key, "."), var v)) {
+						if (!_Index.Put(id, key, v)) {
 							// to do
 							// this._Delete(id, false, false);
 						}
