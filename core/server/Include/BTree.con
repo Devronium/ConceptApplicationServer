@@ -974,6 +974,7 @@ class BTreeFile {
 					cmp = compare(node, node_val, val, -1, this, false);
 				else
 					STATIC_COMPARE_CODE
+
 				if (!cmp) {
 					found = true;
 					if ((!ReverseKeyVal) && (node_val < 0))
