@@ -172,6 +172,9 @@ class BinIndex {
 		f.Name = idxname;
 
 		if (f.Open()) {
+			if (Pos(origname, "composite.") == 1) {
+				origname = StrSplit(SubStr(origname, 10), "&");
+			}
 			if (Unique)
 				idx = new BTreeFile(f, this._cmp, /*this.Database*/origname, true);
 			else
@@ -373,6 +376,7 @@ class BinFile extends File {
 
 	public property DeletedRecords { get deleted_records }
 	public var[] Indexes;
+	protected var[] LookForFields;
 	protected var MODULO_SIZE = DEFAULT_MODULO_SIZE;
 	public var Debug = false;
 	public var[] __debug_block_info;
@@ -390,6 +394,24 @@ class BinFile extends File {
 			Indexes = UnBinarizeObject(data);
 			if (!Indexes)
 				Indexes  = new [];
+			this.SyncIndexes();
+		}
+	}
+
+	SyncIndexes() {
+		LookForFields = new [];
+		for (var i = 0; i < length Indexes; i++) {
+			var index = Indexes[i];
+			if (index) {
+				var arr;
+				if (typeof index != "array")
+					arr = [index];
+				else
+					arr = index[1];
+
+				for (var j = 0; j < length arr; j++)
+					LookForFields += StrSplit(arr[j], ".");
+			}
 		}
 	}
 
@@ -463,11 +485,16 @@ class BinFile extends File {
 
 		if (a == cache_id)
 			obj_a = cache_obj;
-		else
-			obj_a = this.ById(a, Indexes, !bottom_layer, cache);
+		else {
+			obj_a = this.ById(a, LookForFields, !bottom_layer, cache);
+		}
+		if (obj_a != null) {
+			var key_a;
+			if (typeof key == "array")
+				key_a = this.GetObjectFieldsAsString(obj_a, key);
+			else
+				key_a = obj_a[key];
 
-		if (obj_a) {
-			var key_a = obj_a[key];
 			if (key_a > key_b)
 				return 1;
 			if (key_a < key_b)
@@ -497,9 +524,16 @@ class BinFile extends File {
 			obj_b = res[1];
 		}
 
-		if ((obj_a) && (obj_b)) {
-			var key_a = obj_a[key];
-			var key_b = obj_b[key];
+		if ((obj_a != null) && (obj_b != null)) {
+			var key_a;
+			var key_b;
+			if (typeof key == "array") {
+				key_a = this.GetObjectFieldsAsString(obj_a, key);
+				key_b = this.GetObjectFieldsAsString(obj_b, key);
+			} else {
+				key_a = obj_a[key];
+				key_b = obj_b[key];
+			}
 			if (key_a > key_b)
 				return 1;
 			if (key_a < key_b)
@@ -529,9 +563,16 @@ class BinFile extends File {
 			obj_b = res[1];
 		}
 
-		if ((obj_a) && (obj_b)) {
-			var key_a = obj_a[key];
-			var key_b = obj_b[key];
+		if ((obj_a != null) && (obj_b != null)) {
+			var key_a;
+			var key_b;
+			if (typeof key == "array") {
+				key_a = this.GetObjectFieldsAsString(obj_a, key);
+				key_b = this.GetObjectFieldsAsString(obj_b, key);
+			} else {
+				key_a = obj_a[key];
+				key_b = obj_b[key];
+			}
 
 			if (key_a > key_b)
 				return 1;
@@ -1376,10 +1417,10 @@ class BinFile extends File {
 			cache_id = id;
 			cache_obj = c;
 			var pos = ftell(hFile);
-			if (IsSet(c, field))
-				_Index.Put(id, field, c[field]);
+			if (this.IsSet2(c, StrSplit(field, "."), var v))
+			//if (IsSet(c, field))
+				_Index.Put(id, field, /*c[field]*/v);
 
-			//this.Seek(pos);
 			fseek(hFile, pos, SEEK_SET);
 		}, field);
 		fseek(hFile, HEADER_SIZE, SEEK_SET);
@@ -1394,8 +1435,8 @@ class BinFile extends File {
 
 		for (var i = 0; i < length fields; i++) {
 			var field = fields[i];
-			if ((field) && (IsSet(obj, field)))
-				indexed_object[field] = obj[field];
+			if ((field) && (this.IsSet2(obj, StrSplit(field, "."), var v)))
+				indexed_object[field] = v;//obj[field];
 		}
 		return indexed_object;
 	}
@@ -1403,12 +1444,17 @@ class BinFile extends File {
 	GetObjectFieldsAsString(obj, fields, var field_count = null) {
 		var indexed_object = "";
 		field_count = 0;
+
 		for (var i = 0; i < length fields; i++) {
 			var field = fields[i];
 			if (field) {
 				if (IsSet(obj, field)) {
 					field_count++;
 					indexed_object += obj[field];
+				} else
+				if (this.IsSet2(obj, StrSplit(field, "."), var v)) {
+					field_count++;
+					indexed_object += v;
 				}
 				indexed_object += "|";
 			}
@@ -1432,7 +1478,7 @@ class BinFile extends File {
 			var pos = ftell(hFile);
 			for (var i = 0; i < length fields; i++) {
 				var field = fields[i];
-				if ((field) && (IsSet(c, field))) {
+				if ((field) && (this.IsSet2(c, StrSplit(field, "."), null))) {
 					_Index.Put(id, index_name, GetObjectFieldsAsString(c, fields));
 					break;
 				}
@@ -1455,13 +1501,14 @@ class BinFile extends File {
 
 		for (var i = 0; i < length Indexes; i++) {
 			var index = Indexes[i];
-			if ((index) && (field == index))
+			if ((typeof index == "string") && (field == index))
 				return true;
 		}
 		this.RebuildIndex(field);
 		this.FlushDB();
 		Indexes[field] = field;
 		WriteFile(BinarizeObject(Indexes), name + ".idxn");
+		this.SyncIndexes();
 	}
 
 	IndexName(fields) {
@@ -1478,7 +1525,7 @@ class BinFile extends File {
 				field = fields[i];
 				if (field) {
 					if (index_name)
-						index_name += ".";
+						index_name += "&";
 					index_name += field;
 				}
 			}
@@ -1506,6 +1553,7 @@ class BinFile extends File {
 		this.FlushDB();
 		Indexes[index_name] = [index_name, fields];
 		WriteFile(BinarizeObject(Indexes), name + ".idxn");
+		this.SyncIndexes();
 	}
 
 	EnsureIndexes(array fields) {
@@ -1539,9 +1587,32 @@ class BinFile extends File {
 		return null;
 	}
 
+	protected IsSet2(o, key_arr, var v) {
+		var last = length key_arr - 1;
+		for (var i = 0; i < length key_arr; i++) {
+			var key = key_arr[i];
+			if ((key) && (IsSet(o, key))) {
+				o = o[key];
+				if (i != last) {
+					var type = typeof o;
+					if ((type != "array") && (type != "class"))
+						return false;
+				} else
+					v = o;
+			} else
+				return false;
+		}
+		return true;
+	}
+
 	protected ScanFilter(obj_key, obj_val, keys_data, prec_result, cached_o = null) {
 		var keys = keys_data[0];
 		var vals = keys_data[1];
+		var cache = keys_data[7];
+		if (!cache) {
+			cache = new [];
+			keys_data[7] = cache;
+		}
 		var o = cached_o;
 
 		if (o == null)
@@ -1551,12 +1622,18 @@ class BinFile extends File {
 			var add_item = true;
 			for (var j = 0; j < length keys; j++) {
 				var key = keys[j];
-				if ((key) && (IsSet(o, key))) {
+				var key_arr = cache[j];
+				if (!key_arr) {
+					key_arr = StrSplit(key, ".");
+					cache[j] = key_arr;
+				}
+				if ((key) && (IsSet2(o, key_arr, var v))) {
+				//if ((key) && (IsSet(o, key))) {
 					add_item = false;
 					var arr = vals[key];
 					var typeof_arr = typeof arr;
+					//var v = o[key];
 					if (typeof_arr == "array") {
-						var v = o[key];
 						for (var i = 0; i < length arr; i++) {
 							if (arr[i] == v) {
 								add_item = true;
@@ -1567,12 +1644,12 @@ class BinFile extends File {
 							return false;
 					} else
 					if (typeof_arr == "class") {
-						if (arr.CompareSimple(o[key], key)) {
+						if (arr.CompareSimple(v, key)) {
 							add_item = true;
 						} else
 							return false;
 					} else
-					if (o[key] != vals[key])
+					if (v != vals[key])
 						return false;
 					else
 						add_item = true;
@@ -1587,7 +1664,6 @@ class BinFile extends File {
 	protected CompositeIndexQuery(array keys, array q) {
 		if ((!keys) || (!q))
 			return false;
-
 		for (var i = 0; i < length keys; i++) {
 			var index_key = keys[i];
 			if (!IsSet(q, index_key))
@@ -1708,7 +1784,7 @@ class BinFile extends File {
 					}
 				}
 			}
-			var userdata = [keys, q, result, start, len, fields, count];//[result, q, GetKeys(q), start, len, 0];
+			var userdata = [keys, q, result, start, len, fields, count, null]; // null is cache //[result, q, GetKeys(q), start, len, 0];
 			this.Scan(function(o, id, var userdata) {
 				var result = userdata[2];
 				var start = userdata[3];

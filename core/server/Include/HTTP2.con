@@ -604,6 +604,9 @@ class HTTP2Socket {
 	protected var RemoteMaxStreamID;
 	public var IdleSince;
 	public var UserData;
+	public var MaxOutputBuffer;
+	public var MaxErrorTimeout;
+	protected var last_err_time;
 
 	HTTP2Socket(Socket, client = false) {
 		this.Socket = Socket;
@@ -891,6 +894,9 @@ class HTTP2Socket {
 			return 0;
 
 		if (OutBuffer) {
+			if ((MaxOutputBuffer) && (length OutBuffer > MaxOutputBuffer))
+				throw "HTTP2Socket/WritePendig: buffer overflow";
+
 			try {
 				var len = this.Socket.Write(OutBuffer);
 				if (len > 0) {
@@ -899,11 +905,15 @@ class HTTP2Socket {
 						OutBuffer = "";
 					else
 						OutBuffer = SubStr(OutBuffer, len);
+					last_err_time = 0;
 				}
 			} catch (var exc) {
 				var err = SocketErrno();
 				if ((err != 11) && (err != 35) && (err != 10035))
 					throw "HTTP2Socket/WritePendig: $exc";
+				if ((MaxErrorTimeout) && (time() - last_err_time >= MaxErrorTimeout))
+					throw "HTTP2Socket/WritePendig: Congestion";
+				last_err_time = time();
 			}
 		}
 		return length OutBuffer;

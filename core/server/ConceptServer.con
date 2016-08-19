@@ -37,6 +37,12 @@ define H2_MAX_IDLE_SECONDS	30
 define IDLE_SLEEP_MS		10
 define IDLE_SLEEP_THRESHOLD	200
 define IDLE_SLEEP_MS2		50
+define CGI_MAX_RETRY_SECONDS	5
+
+// 2Mb stdout buffer
+define CGI_MAX_STDOUT_BUFFER	0x200000
+// 8Mb stdout buffer for http/2
+define H2_MAX_STDOUT_BUFFER	0x800000
 
 class RewriteContainer {
 	var Rewrite;
@@ -1745,6 +1751,9 @@ class ConceptCGIChild {
 	var stream;
 	var h2headers;
 	var is_post;
+	var last_err_time;
+	var last_pipe_err_time;
+	var last_pipe_err_time_read;
 
 	ConceptCGIChild(method, Socket, std_out, std_in, pid, buffer, h2 = null, stream = null, default_h2_header = null) {
 		this.is_post = true;//(method != "GET");
@@ -1760,6 +1769,9 @@ class ConceptCGIChild {
 		SetNonBlocking(std_out, true);
 		SetNonBlocking(std_in, true);
 		SocketSetBlocking(Socket.Socket, false);
+
+		if (h2)
+			h2.MaxOutputBuffer = H2_MAX_STDOUT_BUFFER;
 	}
 
 	Join() {
@@ -1867,6 +1879,7 @@ class ConceptCGIChild {
 				if (res > 0) {
 					ops ++;
 					std_in_buffer = SubStr(std_in_buffer, res);
+					last_pipe_err_time = 0;
 				}
 				if (res < 0) {
 					var pipe_err = _errno();
@@ -1874,6 +1887,11 @@ class ConceptCGIChild {
 						echo "CGI pipe write error: $pipe_err\n";
 						return true;
 					}
+					if ((last_pipe_err_time) && (time() - last_pipe_err_time >= CGI_MAX_RETRY_SECONDS)) {
+						echo "CGI write congestion\n";
+						return true;
+					}
+					last_pipe_err_time = time();
 				}
 			}
 		}
@@ -1887,6 +1905,7 @@ class ConceptCGIChild {
 					bytes_read += res;
 					std_out_buffer += buffer;
 					ops ++;
+					last_pipe_err_time_read = 0;
 					// CPU time
 					if ((microseconds() - s > PIPE_READ_CPU_TIME_US) || (bytes_read >= MAX_RECV_BUFFER))
 						break;
@@ -1898,6 +1917,11 @@ class ConceptCGIChild {
 					echo "CGI pipe read error: $pipe_err\n";
 					return true;
 				}
+				if ((last_pipe_err_time_read) && (time() - last_pipe_err_time_read >= CGI_MAX_RETRY_SECONDS)) {
+					echo "CGI pipe congestion\n";
+					return true;
+				}
+				last_pipe_err_time_read = time();
 			}
 
 		}
@@ -1945,12 +1969,23 @@ class ConceptCGIChild {
 					if (res > 0) {
 						std_out_buffer = SubStr(std_out_buffer, res);
 						ops ++;
+						if (length std_out_buffer > CGI_MAX_STDOUT_BUFFER) {
+							echo "CGI stdout buffer overflow\n";
+							return true;
+						}
+						last_err_time = 0;
 					}
 				} catch (exc) {
 					// EAGAIN ?
 					var err = SocketErrno();
 					if ((err != 11) && (err != 35) && (err != 10035))
 						return true;
+
+					if ((last_err_time) && (time() - last_err_time >= CGI_MAX_RETRY_SECONDS)) {
+						echo "CGI write congestion\n";
+						return true;
+					}
+					last_err_time = time();
 				}
 			}
 		}
@@ -1958,7 +1993,6 @@ class ConceptCGIChild {
 			H2Close();
 			return true;
 		}
-
 		return false;
 	}
 
@@ -2277,6 +2311,7 @@ pragma used
 	}
 
 	AddChild(child) {
+		child.MaxErrorTimeout = CGI_MAX_RETRY_SECONDS;
 		Children[length Children] = child;
 	}
 
