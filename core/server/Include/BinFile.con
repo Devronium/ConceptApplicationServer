@@ -1011,6 +1011,7 @@ class BinFile extends File {
 		else
 			c = ToArray(obj);
 		var index_data = this.Indexes;
+
 		if (index_data) {
 			cache_id = id;
 			cache_obj = c;
@@ -1025,7 +1026,7 @@ class BinFile extends File {
 							// this._Delete(id, false, false);
 						}
 					} else
-					if (IsSet(c, key)) {
+					if (IsSet(c, key)) {//(this.IsSet2(c, StrSplit(key, "."), var v)) {
 						if (!_Index.Put(id, key, c[key])) {
 							// to do
 							// this._Delete(id, false, false);
@@ -1353,6 +1354,43 @@ class BinFile extends File {
 			return this._Delete(id, strict, update_index);
 	}
 
+	protected SetKey(o, key_path, var v, var first_key, var prec_value, add_key = false) {
+		var key_arr = StrSplit(key_path, ".");
+		var last = length key_arr - 1;
+		first_key = "";
+
+		for (var i = 0; i < length key_arr; i++) {
+			var key = key_arr[i];
+			if (key) {
+				if (i != last) {
+					if (!IsSet(o, key))
+						o[key] = new [];
+
+					o = o[key];
+					var type = typeof o;
+					if ((type != "array") && (type != "class"))
+						return false;
+				} else {
+					if ((!IsSet(o, key)) || (o[key] != v) || (add_key)) {
+						first_key = key_arr[0];
+						prec_value = o[key];
+						if (add_key) {
+							if (typeof prec_value != "array")
+								o[key] = [prec_value];
+
+							o[key][length o[key]] = v;
+						} else
+							o[key] = v;
+						return true;
+					}
+					return false;
+				}
+			} else
+				return false;
+		}
+		return false;
+	}
+
 	Update(o, var id, update_index = true, var old_bin = null, var new_bin = null) {
 		//old_bin = null;
 		new_bin = null;
@@ -1370,11 +1408,36 @@ class BinFile extends File {
 					for (var i = 0; i < length keys; i++) {
 						var k = keys[i];
 						if ((k) && (k != '$')) {
-							var has_key = IsSet(old, k);
-							if ((!has_key) || (old[k] != o[k])) {
-								changed[k] = old[k];
-								old[k]  = o[k];
-								new_values[k] = o[k];
+							// add to array
+							var val = o[k];
+							if (k[0] == "+") {
+								k++;
+								/*var has_key = IsSet(old, k);
+								if (!has_key) {
+									old[k] = [o["+" + k]];
+								} else {
+									if (typeof old[k] != "array")
+										old[k] = [old[k]];
+
+									old[k][length old[k]] = o["+" + k];
+								}
+								new_values[k] = old[k];
+								// changed[k] = [ ];*/
+								if (SetKey(old, k, val, var first_key, var prec_value, true)) {
+									changed[k] = prec_value;
+									new_values[k] = val;
+								}
+							} else {
+								/*has_key = IsSet(old, k);
+								if ((!has_key) || (old[k] != o[k])) {
+									changed[k] = old[k];
+									old[k]  = o[k];
+									new_values[k] = o[k];
+								}*/
+								if (SetKey(old, k, val, first_key, prec_value)) {
+									changed[k] = prec_value;
+									new_values[/*first_key*/k] = val;
+								}
 							}
 						}
 					}

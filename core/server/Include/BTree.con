@@ -1191,7 +1191,6 @@ class BTreeFile {
 				var node = page[i];
 				var node_val = page[i + NODE_VAL_OFFSET];
 				var cmp;
-
 				if (compare)
 					cmp = compare(node, node_val, stored_val, val, this, false);
 				else
