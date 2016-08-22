@@ -483,3 +483,12 @@ bool ClassMember::FastOptimizedExecute(void *PIF, void *ref, ParamList *FORMAL_P
     return false;
 }
 
+void ClassMember::EnsureThreadSafe() {
+    if (this->IS_FUNCTION == 1) {
+        ConceptInterpreter *INTERPRETER = (ConceptInterpreter *)((Optimizer *)this->OPTIMIZER)->INTERPRETER;
+        if (!INTERPRETER) {
+            INTERPRETER = new ConceptInterpreter((Optimizer *)OPTIMIZER, ((ClassCode *)Defined_In)->CLSID, this);
+            ((Optimizer *)this->OPTIMIZER)->INTERPRETER = INTERPRETER;
+        }
+    }
+}

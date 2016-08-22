@@ -473,6 +473,18 @@ void AnsiList::Insert(void *data, int i, signed char data_type, signed char no_c
     }
 }
 
+void AnsiList::ToStatic(void **ptr, int max_elements) {
+    Node *Cursor = First;
+    int index = 0;
+    if (!ptr)
+        return;
+    while ((Cursor) && (max_elements > 0)) {
+        ptr[index++] = Cursor->_DATA;
+        max_elements--;
+        Cursor = (Node *)Cursor->_NextNode;
+    }
+}
+
 void AnsiList::GetFromList(AnsiList *other) {
     if (!other)
         return;
@@ -498,4 +510,3 @@ void AnsiList::GetFromList(AnsiList *other) {
 AnsiList::~AnsiList(void) {
     Clear();
 }
-

@@ -135,6 +135,13 @@ PIFAlizator::PIFAlizator(AnsiString INC_DIR, AnsiString LIB_DIR, AnsiString *S, 
     if (sibling) {
         this->parentPIF = sibling;
         this->ClassList = sibling->ClassList;
+        // new AnsiList(0);
+        //this->ClassList->GetFromList(sibling->ClassList);
+        this->USE_WARN = sibling->USE_WARN;
+        this->USE_EXC = sibling->USE_EXC;
+        this->USE_IMPLICIT = sibling->USE_IMPLICIT;
+        this->STRICT_MODE = sibling->STRICT_MODE;
+
         this->ModuleList       = sibling->ModuleList;
         this->IncludedList     = sibling->IncludedList;
         this->StaticLinks      = sibling->StaticLinks;
@@ -243,6 +250,8 @@ PIFAlizator::PIFAlizator(AnsiString INC_DIR, AnsiString LIB_DIR, AnsiString *S, 
     this->is_buffer          = 0;
     this->fixed_class_count  = 0;
     this->in_gc              = 0;
+    this->TSClassCount       = 0;
+    this->Workers            = 0;
 }
 
 void PIFAlizator::SetPipe(int pipein, int pipeout, int apid, int papid, int direct_pipe) {
@@ -1211,9 +1220,14 @@ INTEGER PIFAlizator::BuildFunction(ClassCode *CC, AnsiParser *P, INTEGER on_line
             if (strip.Length()) {
                 VD->value.LoadBuffer(strip.c_str(), strip.Length());
             }
-            VD->nValue = VD->value.ToFloat();
             VD->USED   = 1;
-            VD->TYPE   = (TYPE == TYPE_STRING) ? VARIABLE_STRING : VARIABLE_NUMBER;
+            if (TYPE == TYPE_STRING) {
+                VD->TYPE = VARIABLE_STRING;
+                VD->nValue = 0;
+            } else {
+                VD->TYPE   = VARIABLE_NUMBER;
+                VD->nValue = VD->value.ToFloat();
+            }
             VD->BY_REF = 2;
 
             VDList->Add(VD, DATA_VAR_DESCRIPTOR);
@@ -2542,8 +2556,9 @@ void PIFAlizator::SyncClassList() {
         int count = this->ClassList->Count();
         if (count) {
             this->StaticClassList = (ClassCode **)realloc(this->StaticClassList, count * sizeof(ClassCode *));
-            for (int i = 0; i < count; i++)
-                this->StaticClassList[i] = (ClassCode *)ClassList->Item(i);
+            this->ClassList->ToStatic((void **)this->StaticClassList, count);
+            // for (int i = 0; i < count; i++)
+            //    this->StaticClassList[i] = (ClassCode *)ClassList->Item(i);
         }
     }
 }
@@ -3267,6 +3282,20 @@ void PIFAlizator::RegisterVariableName(void *key, char *name, INTEGER val) {
     len += sizeof(void *);
     DebugVarNames[hash_func(buf, len)] = val + 1;
 #endif
+}
+
+void PIFAlizator::EnsureThreadSafe() {
+    INTEGER Count = ClassList->Count();
+
+    if ((!StaticClassList) || (TSClassCount == Count))
+        return;
+
+    TSClassCount = Count;
+    for (INTEGER i = 0; i < Count; i++) {
+        ClassCode *CC = StaticClassList [i];
+        if (CC)
+            CC->EnsureThreadSafe();
+    }
 }
 
 void PIFAlizator::Hibernate() {

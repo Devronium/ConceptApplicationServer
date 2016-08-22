@@ -329,7 +329,8 @@ class PIFAlizator {
     Array        *var_globals;
     unsigned int IDGenerator;
     void         *static_result;
-
+    unsigned int Workers;
+    unsigned int TSClassCount;
     ProtoData PDATA[PDATA_ITEMS];
 public:
 #ifdef SIMPLE_MULTI_THREADING
@@ -414,8 +415,9 @@ public:
     void RegisterVariableName(void *key, char *name, INTEGER val);
 
     void Clear();
-
     ~PIFAlizator(void);
+
+    void EnsureThreadSafe();
 };
 #endif //__PIFALIZATOR_H
 

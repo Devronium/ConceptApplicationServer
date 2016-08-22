@@ -998,8 +998,12 @@ INTEGER Invoke(INTEGER INVOKE_TYPE, ...) {
                 if (((INVOKE_TYPE == INVOKE_CALL_DELEGATE_THREAD) || (INVOKE_TYPE == INVOKE_CALL_DELEGATE_THREAD_SAFE) || (INVOKE_TYPE == INVOKE_CALL_DELEGATE_THREAD_SPINLOCK)) && (target->TYPE == VARIABLE_DELEGATE) && (target->CLASS_DATA)) {
                     NEW_THREAD
                     thread_created = 1;
+
+                    if (PIF)
+                        PIF->EnsureThreadSafe();
                 }
 #endif
+
                 if ((PIF) && (INVOKE_TYPE == INVOKE_CALL_DELEGATE_THREAD_SAFE)) {
                     semp(PIF->DelegateLock);
                 }
@@ -1948,6 +1952,8 @@ INTEGER Invoke(INTEGER INVOKE_TYPE, ...) {
                     while (ref_pif->parentPIF)
                         ref_pif = (PIFAlizator *)ref_pif->parentPIF;
                     semp(ref_pif->DelegateLock);
+                    ref_pif->Workers++;
+                    ref_pif->EnsureThreadSafe();
                     AnsiString S;
                     if (PIF->parentPIF)
                         PIF = (PIFAlizator *)PIF->parentPIF;
@@ -1968,6 +1974,13 @@ INTEGER Invoke(INTEGER INVOKE_TYPE, ...) {
             {
                 PIFAlizator *PIF = va_arg(ap, PIFAlizator *);
                 if (PIF) {
+                    PIFAlizator *ref_pif = PIF;
+                    while (ref_pif->parentPIF)
+                        ref_pif = (PIFAlizator *)ref_pif->parentPIF;
+                    semp(ref_pif->DelegateLock);
+                    if (ref_pif)
+                        ref_pif->Workers--;
+                    semv(ref_pif->DelegateLock);
                     delete PIF;
                 } else
                     result = INVALID_INVOKE_PARAMETER;
@@ -2151,6 +2164,8 @@ INTEGER Invoke(INTEGER INVOKE_TYPE, ...) {
                     pif->Errors.Clear();
                 }
                 pif->SyncClassList();
+                if (ref_pif->Workers)
+                    ref_pif->EnsureThreadSafe();
                 if (pif->parentPIF)
                     ((PIFAlizator *)pif->parentPIF)->SyncClassList();
             }

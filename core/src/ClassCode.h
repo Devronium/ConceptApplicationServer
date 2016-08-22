@@ -120,6 +120,7 @@ public:
     inline const char *GetName() { return NAME.c_str(); }
     inline INTEGER GetCLSID() { return CLSID; }
 #endif
+    void EnsureThreadSafe();
 };
 #endif // __CLASSCODE
 

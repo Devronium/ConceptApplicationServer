@@ -1361,7 +1361,7 @@ CONCEPT_DLL_API CONCEPT__GetKeys CONCEPT_API_PARAMETERS {
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(ToXML, 1, 3)
     RESET_ERROR
-        T_OBJECT(0)
+    T_OBJECT(ToXML, 0)
     char *pData = PARAM(0);
 #ifdef WITH_LIBXML2
     char *encoding = "UTF-8";
@@ -1372,18 +1372,18 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(ToXML, 1, 3)
     int  format    = 1;
 
     if (PARAMETERS_COUNT > 1) {
-        T_NUMBER(1);
+        T_NUMBER(ToXML, 1);
         if (PARAM_INT(1) != 0)
             is_simple = 2;
     }
 
     if (PARAMETERS_COUNT > 2) {
-        T_NUMBER(2);
+        T_NUMBER(ToXML, 2);
         format = PARAM_INT(2);
     }
 
     if (PARAMETERS_COUNT > 3) {
-        T_STRING(3);
+        T_STRING(ToXML, 3);
         encoding = PARAM(3);
     }
 
@@ -1661,11 +1661,11 @@ void DoObject(RefContainer *rc, void *pData, void *parent) {
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(ToArray, 1, 2)
     RESET_ERROR
-    T_OBJECT(0)
+    T_OBJECT(ToArray, 0)
 
     int no_defaults = 0;
     if (PARAMETERS_COUNT > 1) {
-        T_NUMBER(1)
+        T_NUMBER(ToArray, 1)
         no_defaults = PARAM_INT(1);
     }
 
@@ -1840,7 +1840,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(BinarizeObject, 1, 2)
 
     int no_defaults = 0;
     if (PARAMETERS_COUNT > 1) {
-        T_NUMBER(1)
+        T_NUMBER(BinarizeObject, 1)
         no_defaults = PARAM_INT(1);
     }
 
@@ -2109,14 +2109,14 @@ char **GetCharList2(void *arr, int *outcount, INVOKE_CALL _Invoke) {
 
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(UnBinarizeObject, 1, 3)
-    T_STRING(0)
+    T_STRING(UnBinarizeObject, 0)
 
     RETURN_NUMBER(0);
 
     uint64_t offset = 0;
 
     if (PARAMETERS_COUNT > 1) {
-        T_NUMBER(1)
+        T_NUMBER(UnBinarizeObject, 1)
         offset = (SYS_INT)PARAM(1);
         if ((offset < 0) || (offset >= PARAM_LEN(0)))
             return (void *)"UnBinarizeObject: invalid offset";
@@ -2135,7 +2135,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(UnBinarizeObject, 1, 3)
     rc->filters_used   = 0;
     rc->no_defaults    = 0;
     if (PARAMETERS_COUNT > 2) {
-        T_ARRAY(2)
+        T_ARRAY(UnBinarizeObject, 2)
         rc->filters = GetCharList2(PARAMETER(2), &rc->filters_count, Invoke);
         if (rc->filters)
             rc->filter_set = 1;
@@ -2156,7 +2156,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(UnBinarizeObject, 1, 3)
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(ToSize, 1)
-    T_NUMBER(0)
+    T_NUMBER(ToSize, 0)
 
     uint64_t tmp = (uint64_t)PARAM(0);
     char buffer[0xF];
@@ -2182,7 +2182,7 @@ CONCEPT_FUNCTION_IMPL(ToSize, 1)
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(FromSize, 1, 2)
-    T_STRING(0)
+    T_STRING(FromSize, 0)
 
     char *buf_in = PARAM(0);
     int buf_len = PARAM_LEN(0);
@@ -2243,7 +2243,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(FromSize, 1, 2)
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL_VARIABLE_PARAMS(CreateObject2, 1)
-    T_STRING(0)
+    T_STRING(CreateObject2, 0)
     int cnt = PARAMETERS_COUNT;
     if (cnt > 1) {
         RETURN_NUMBER(0);
@@ -2263,7 +2263,7 @@ CONCEPT_FUNCTION_IMPL_VARIABLE_PARAMS(CreateObject2, 1)
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL_VARIABLE_PARAMS(pack, 1)
-    T_STRING(0)
+    T_STRING(pack, 0)
     char *format = PARAM(0);
     int         len = PARAM_LEN(0);
     size_t      size;
@@ -2715,8 +2715,8 @@ CONCEPT_FUNCTION_IMPL_VARIABLE_PARAMS(pack, 1)
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(unpack, 2, 3)
-    T_STRING(0)
-    T_STRING(1)
+    T_STRING(unpack, 0)
+    T_STRING(unpack, 1)
     CREATE_ARRAY(RESULT);
     char        *format = PARAM(0);
     int         len     = PARAM_LEN(0);
@@ -2728,7 +2728,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(unpack, 2, 3)
     char        size_buf[11];
     int         size_pos;
     if (PARAMETERS_COUNT > 2) {
-        T_NUMBER(2)
+        T_NUMBER(unpack, 2)
         int offset = PARAM_INT(2);
         if (offset < 0)
             offset = 0;
@@ -2976,15 +2976,15 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(unpack, 2, 3)
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(compress, 1, 3)
-    T_STRING(0)
+    T_STRING(compress, 0)
     mz_ulong max_len = compressBound(PARAM_LEN(0));
     int level = -1;
     if (PARAMETERS_COUNT > 1) {
-        T_NUMBER(1);
+        T_NUMBER(compress, 1);
         level = PARAM_INT(1);
     }
     if (PARAMETERS_COUNT > 2) {
-        T_NUMBER(2)
+        T_NUMBER(compress, 2)
         max_len = PARAM_INT(2);
     }
     char *out_buf;
@@ -3008,10 +3008,10 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(compress, 1, 3)
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(uncompress, 1, 2)
-    T_STRING(0)
+    T_STRING(uncompress, 0)
     mz_ulong max_len = PARAM_LEN(0) * 20;
     if (PARAMETERS_COUNT > 1) {
-        T_NUMBER(1)
+        T_NUMBER(uncompress, 1)
         max_len = PARAM_INT(1);
     }
     char *out_buf;
@@ -3044,14 +3044,14 @@ CONCEPT_FUNCTION_IMPL(__callstack, 0)
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(__object, 1)
-    T_STRING(0)
+    T_STRING(__object, 0)
     if (!IS_OK(LocalInvoker(INVOKE_CREATE_OBJECT_NOCONSTRUCTOR, PARAMETERS->HANDLER, RESULT, PARAM(0)))) {
         RETURN_NUMBER(0);
     }
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(hpack, 1)
-    T_STRING(0)
+    T_STRING(hpack, 0)
     int len = PARAM_LEN(0);
 
     char *out_buf = NULL;
@@ -3149,7 +3149,7 @@ int SlowLookup(const HuffChar *slow_values, unsigned int val) {
 }
 
 CONCEPT_FUNCTION_IMPL(hunpack, 1)
-    T_STRING(0)
+    T_STRING(hunpack, 0)
     int len = PARAM_LEN(0);
     int bit_len = len * 8;
     int bit_pos = 0;
@@ -3216,3 +3216,4 @@ CONCEPT_FUNCTION_IMPL(hunpack, 1)
     }
 END_IMPL
 //---------------------------------------------------------------------------
+

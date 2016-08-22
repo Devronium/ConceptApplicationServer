@@ -319,7 +319,7 @@ CONCEPT_FUNCTION_IMPL(_semcreate, 0)
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_semdone, 1)
-    T_HANDLE(0)
+    T_HANDLE(_semdone, 0)
 #ifdef POSIX_SEMAPHORES
     sem_t * sm = (sem_t *)(uintptr_t)PARAM(0);
     sem_destroy(sm);
@@ -334,8 +334,8 @@ CONCEPT_FUNCTION_IMPL(_semdone, 1)
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_seminit, 2)
-    T_HANDLE(0)
-    T_NUMBER(1)
+    T_HANDLE(_seminit, 0)
+    T_NUMBER(_seminit, 1)
 #ifdef POSIX_SEMAPHORES
     sem_t *sm = (sem_t *)(uintptr_t)PARAM(0);
     int err = sem_init(sm, 0, 1);
@@ -348,7 +348,7 @@ CONCEPT_FUNCTION_IMPL(_seminit, 2)
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_semp, 1)
-    T_HANDLE(0)
+    T_HANDLE(_semp, 0)
 
 #ifdef POSIX_SEMAPHORES
     sem_t *sm = (sem_t *)(uint64_t)PARAM(0);
@@ -362,7 +362,7 @@ CONCEPT_FUNCTION_IMPL(_semp, 1)
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_semv, 1)
-    T_HANDLE(0)
+    T_HANDLE(_semv, 0)
 
 #ifdef POSIX_SEMAPHORES
     sem_t * sm = (sem_t *)(SYS_INT)PARAM(0);
@@ -381,7 +381,7 @@ CONCEPT_FUNCTION_IMPL(IsThreaded, 0)
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(Greenlets, 1)
-    T_ARRAY(0)
+    T_ARRAY(Greenlets, 0)
 
     std::vector<void *> *items = new std::vector<void *>;
     INTEGER count  = Invoke(INVOKE_GET_ARRAY_COUNT, PARAMETER(0));
@@ -418,8 +418,8 @@ CONCEPT_FUNCTION_IMPL(Greenlets, 1)
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(GreenletAdd, 2)
-    T_HANDLE(0)
-    T_DELEGATE(1)
+    T_HANDLE(GreenletAdd, 0)
+    T_DELEGATE(GreenletAdd, 1)
 
     std::vector<void *> *items = (std::vector<void *> *)(SYS_INT) PARAM(0);
     void *ref = 0;
@@ -442,7 +442,7 @@ CONCEPT_FUNCTION_IMPL(GreenletAdd, 2)
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(GreenLoop, 1)
-    T_HANDLE(0)
+    T_HANDLE(GreenLoop, 0)
 
     std::vector<void *> *items = (std::vector<void *> *)(SYS_INT) PARAM(0);
     void *first = items->front();
@@ -489,9 +489,9 @@ LPVOID WorkerFunction(LPVOID DPARAM) {
 
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(CreateWorker, 3)
-    T_STRING(0)
+    T_STRING(CreateWorker, 0)
     SET_NUMBER(1, 0);
-    T_STRING(2)
+    T_STRING(CreateWorker, 2)
     void *worker = NULL;
     Invoke(INVOKE_CREATE_WORKER, PARAMETERS->HANDLER, &worker);
     if (worker) {
@@ -527,8 +527,8 @@ CONCEPT_FUNCTION_IMPL(CreateWorker, 3)
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(AddWorkerData, 2)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(AddWorkerData, 0)
+    T_STRING(AddWorkerData, 1)
 
     void *worker = (void *)(SYS_INT)PARAM(0);
     ThreadMetaContainer *tmc = NULL;
@@ -541,7 +541,7 @@ CONCEPT_FUNCTION_IMPL(AddWorkerData, 2)
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(AddWorkerResultData, 1)
-    T_STRING(0)
+    T_STRING(AddWorkerResultData, 0)
 
     ThreadMetaContainer * tmc = NULL;
     Invoke(INVOKE_GETPROTODATA, PARAMETERS->HANDLER, (int)2, &tmc);
@@ -552,7 +552,7 @@ CONCEPT_FUNCTION_IMPL(AddWorkerResultData, 1)
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(GetWorkerResultData, 2)
-    T_HANDLE(0)
+    T_HANDLE(GetWorkerResultData, 0)
 
     void *worker = (void *)(SYS_INT)PARAM(0);
     ThreadMetaContainer *tmc = NULL;
@@ -591,7 +591,7 @@ CONCEPT_FUNCTION_IMPL(GetWorkerData, 1)
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(FreeWorker, 1)
-    T_NUMBER(0)
+    T_NUMBER(FreeWorker, 0)
 
     void *worker = (void *)(SYS_INT)PARAM(0);
     if (worker) {
@@ -609,3 +609,4 @@ CONCEPT_FUNCTION_IMPL(CurrentWorker, 0)
     RETURN_NUMBER((SYS_INT)tmc->worker);
 END_IMPL
 //---------------------------------------------------------------------------
+

@@ -474,7 +474,7 @@ CompiledClass *ClassCode::CreateInstance(PIFAlizator *PIF, VariableDATA *Owner, 
             return 0;
         }
 
-        if (is_static)
+        if (!PIF->RootInstance) // if (is_static)
             PIF->RootInstance = res;
         VariableDATA *THROW_DATA = 0;
         STACK(PREV, AE ? AE->_DEBUG_INFO_LINE : 0)
@@ -1350,3 +1350,15 @@ GreenThreadCycle *ClassCode::CreateThread(PIFAlizator *PIF, INTEGER i, VariableD
     return 0;
 }
 
+void ClassCode::EnsureThreadSafe() {
+    INTEGER Count = pMEMBERS_COUNT;
+
+    if (!pMEMBERS)
+        return;
+
+    for (INTEGER i = 0; i < Count; i++) {
+        ClassMember *CM = pMEMBERS [i];
+        if ((CM) && (CM->IS_FUNCTION == 1))
+            CM->EnsureThreadSafe();
+    }
+}

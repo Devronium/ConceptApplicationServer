@@ -889,7 +889,7 @@ void ConceptInterpreter::AnalizeInstructionPath(Optimizer *OPT) {
     int dataCount           = OPT->dataCount;
     int instruction_pointer = 1;
     RuntimeOptimizedElement *OE;
-    jittracecode = (void **)malloc(sizeof(void *) * count);
+    void **jittracecode = (void **)malloc(sizeof(void *) * count);
     memset(jittracecode, 0, sizeof(void *) * count);
     static sljit_d d_true     = 1;
     static sljit_d d_false    = 0;
@@ -2562,6 +2562,7 @@ void ConceptInterpreter::AnalizeInstructionPath(Optimizer *OPT) {
         free(dataflags);
     if (usedflags)
         free(usedflags);
+    this->jittracecode = jittracecode;
 }
 #endif
 

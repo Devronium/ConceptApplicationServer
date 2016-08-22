@@ -113,7 +113,7 @@ CONCEPT_DLL_API ON_DESTROY_CONTEXT MANAGEMENT_PARAMETERS {
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(TLSEServer, 0, 1)
     int version = TLS_V12;
     if (PARAMETERS_COUNT > 0) {
-        T_NUMBER(0);
+        T_NUMBER(TLSEServer, 0);
         version = PARAM_INT(0);
     }
     TLSContext *context = tls_create_context(1, version);
@@ -123,7 +123,7 @@ END_IMPL
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(TLSEClient, 0, 1)
     int version = TLS_V12;
     if (PARAMETERS_COUNT > 0) {
-        T_NUMBER(0);
+        T_NUMBER(TLSEClient, 0);
         version = PARAM_INT(0);
     }
     TLSContext *context = tls_create_context(0, version);
@@ -131,7 +131,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(TLSEClient, 0, 1)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(TLSEDone, 1)
-    T_NUMBER(0)
+    T_NUMBER(TLSEDone, 0)
 
     TLSContext *context = (TLSContext *)(SYS_INT)PARAM(0);
     if (context) {
@@ -144,7 +144,7 @@ CONCEPT_FUNCTION_IMPL(TLSEDone, 1)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(TLSEAccept, 1)
-    T_HANDLE(0)
+    T_HANDLE(TLSEAccept, 0)
 
     TLSContext *context = (TLSContext *)(SYS_INT)PARAM(0);
     TLSContext *res = tls_accept(context);
@@ -152,7 +152,7 @@ CONCEPT_FUNCTION_IMPL(TLSEAccept, 1)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(TLSERequestClientCertificate, 1)
-    T_HANDLE(0)
+    T_HANDLE(TLSERequestClientCertificate, 0)
 
     TLSContext *context = (TLSContext *)(SYS_INT)PARAM(0);
     int res = tls_request_client_certificate(context);
@@ -160,12 +160,12 @@ CONCEPT_FUNCTION_IMPL(TLSERequestClientCertificate, 1)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(TLSEWrite, 2, 3)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(TLSEWrite, 0)
+    T_STRING(TLSEWrite, 1)
     int offset = 0;
     int len = PARAM_LEN(1);
     if (PARAMETERS_COUNT > 2) {
-        T_NUMBER(2)
+        T_NUMBER(TLSEWrite, 2)
         offset = PARAM_INT(2);
         if (offset < 0)
             offset = 0;
@@ -182,8 +182,8 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(TLSEWrite, 2, 3)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(TLSERead, 3)
-    T_HANDLE(0)
-    T_NUMBER(2)
+    T_HANDLE(TLSERead, 0)
+    T_NUMBER(TLSERead, 2)
     TLSContext *context = (TLSContext *)(SYS_INT)PARAM(0);
     int size = PARAM_INT(2);
     if (size <= 0) {
@@ -313,8 +313,8 @@ int certificate_verify(TLSContext *context, TLSCertificate **certificate_chain, 
 }
 
 CONCEPT_FUNCTION_IMPL(TLSEConsume, 2)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(TLSEConsume, 0)
+    T_STRING(TLSEConsume, 1)
     TLSContext *context = (TLSContext *)(SYS_INT)PARAM(0);
 
     int res = tls_consume_stream(context, (unsigned char *)PARAM(1), PARAM_LEN(1), certificate_verify);
@@ -322,7 +322,7 @@ CONCEPT_FUNCTION_IMPL(TLSEConsume, 2)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(TLSEstablished, 1)
-    T_HANDLE(0)
+    T_HANDLE(TLSEstablished, 0)
     TLSContext *context = (TLSContext *)(SYS_INT)PARAM(0);
     int res = tls_established(context);
     if ((context->user_data) && (res)) {
@@ -333,7 +333,7 @@ CONCEPT_FUNCTION_IMPL(TLSEstablished, 1)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(TLSEPending, 1)
-    T_HANDLE(0)
+    T_HANDLE(TLSEPending, 0)
     TLSContext *context = (TLSContext *)(SYS_INT)PARAM(0);
     unsigned int out_buffer_len = 0;
     const unsigned char *out_buffer = tls_get_write_buffer(context, &out_buffer_len);
@@ -345,15 +345,15 @@ CONCEPT_FUNCTION_IMPL(TLSEPending, 1)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(TLSEReadBufferSize, 1)
-    T_HANDLE(0)
+    T_HANDLE(TLSEReadBufferSize, 0)
     TLSContext *context = (TLSContext *)(SYS_INT)PARAM(0);
     unsigned int res = context->application_buffer_len;
     RETURN_NUMBER(res);
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(TLSESent, 2)
-    T_HANDLE(0)
-    T_NUMBER(1)
+    T_HANDLE(TLSESent, 0)
+    T_NUMBER(TLSESent, 1)
 
     int sent_size = PARAM_INT(1);
     if (sent_size <= 0) {
@@ -377,9 +377,9 @@ CONCEPT_FUNCTION_IMPL(TLSESent, 2)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(TLSELoadKeys, 3)
-    T_HANDLE(0)
-    T_STRING(1)
-    T_STRING(2)
+    T_HANDLE(TLSELoadKeys, 0)
+    T_STRING(TLSELoadKeys, 1)
+    T_STRING(TLSELoadKeys, 2)
 
     TLSContext *context = (TLSContext *)(SYS_INT)PARAM(0);
     int res = tls_load_certificates(context, (unsigned char *)PARAM(1), PARAM_LEN(1));
@@ -393,8 +393,8 @@ CONCEPT_FUNCTION_IMPL(TLSELoadKeys, 3)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(TLSELoadRootCA, 2)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(TLSELoadRootCA, 0)
+    T_STRING(TLSELoadRootCA, 1)
 
     TLSContext *context = (TLSContext *)(SYS_INT)PARAM(0);
     int res = tls_load_root_certificates(context, (unsigned char *)PARAM(1), PARAM_LEN(1));
@@ -402,14 +402,14 @@ CONCEPT_FUNCTION_IMPL(TLSELoadRootCA, 2)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(TLSEChipher, 1)
-    T_HANDLE(0)
+    T_HANDLE(TLSEChipher, 0)
 
     TLSContext *context = (TLSContext *)(SYS_INT)PARAM(0);
     RETURN_NUMBER(context->cipher);
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(TLSEChipherName, 1)
-    T_HANDLE(0)
+    T_HANDLE(TLSEChipherName, 0)
 
     TLSContext *context = (TLSContext *)(SYS_INT)PARAM(0);
     const char *cipher_name = tls_cipher_name(context);
@@ -417,7 +417,7 @@ CONCEPT_FUNCTION_IMPL(TLSEChipherName, 1)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(TLSEShutdown, 1)
-    T_HANDLE(0)
+    T_HANDLE(TLSEShutdown, 0)
 
     TLSContext *context = (TLSContext *)(SYS_INT)PARAM(0);
     tls_close_notify(context);
@@ -425,7 +425,7 @@ CONCEPT_FUNCTION_IMPL(TLSEShutdown, 1)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(TLSEBroken, 1)
-    T_HANDLE(0)
+    T_HANDLE(TLSEBroken, 0)
 
     TLSContext *context = (TLSContext *)(SYS_INT)PARAM(0);
 
@@ -433,10 +433,10 @@ CONCEPT_FUNCTION_IMPL(TLSEBroken, 1)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(TLSESetExportable, 1, 2)
-    T_HANDLE(0)
+    T_HANDLE(TLSESetExportable, 0)
     int exportable = 1;
     if (PARAMETERS_COUNT > 1) {
-        T_NUMBER(1)
+        T_NUMBER(TLSESetExportable, 1)
         exportable = PARAM_INT(1);
     }
     TLSContext *context = (TLSContext *)(SYS_INT)PARAM(0);
@@ -445,7 +445,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(TLSESetExportable, 1, 2)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(TLSEExport, 1)
-    T_HANDLE(0)
+    T_HANDLE(TLSEExport, 0)
 
     TLSContext *context = (TLSContext *)(SYS_INT)PARAM(0);
     unsigned char buffer[0xFFF];
@@ -471,14 +471,14 @@ CONCEPT_FUNCTION_IMPL(TLSEExport, 1)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(TLSEImport, 1)
-    T_STRING(0)
+    T_STRING(TLSEImport, 0)
 
     TLSContext *context = tls_import_context((unsigned char *)PARAM(0), PARAM_LEN(0));
     RETURN_NUMBER((SYS_INT)context);
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(TLSEGetSNI, 1)
-    T_HANDLE(0)
+    T_HANDLE(TLSEGetSNI, 0)
 
     TLSContext *context = (TLSContext *)(SYS_INT)PARAM(0);
     const char *sni = context->sni;
@@ -490,8 +490,8 @@ CONCEPT_FUNCTION_IMPL(TLSEGetSNI, 1)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(TLSESetSNI, 2)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(TLSESetSNI, 0)
+    T_STRING(TLSESetSNI, 1)
 
     TLSContext *context = (TLSContext *)(SYS_INT)PARAM(0);
     int res = tls_sni_set(context, PARAM(1));
@@ -499,8 +499,8 @@ CONCEPT_FUNCTION_IMPL(TLSESetSNI, 2)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(TLSESetVerify, 2)
-    T_HANDLE(0)
-    T_DELEGATE(1)
+    T_HANDLE(TLSESetVerify, 0)
+    T_DELEGATE(TLSESetVerify, 1)
 
     TLSContext *context = (TLSContext *)(SYS_INT)PARAM(0);
     if (context->user_data)
@@ -512,11 +512,11 @@ CONCEPT_FUNCTION_IMPL(TLSESetVerify, 2)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(TLSECertificateInfo, 1, 2)
-    T_HANDLE(0)
+    T_HANDLE(TLSECertificateInfo, 0)
 
     int cert_list = 0;
     if (PARAMETERS_COUNT > 1) {
-        T_NUMBER(1)
+        T_NUMBER(TLSECertificateInfo, 1)
         cert_list = PARAM_INT(1);
     }
     TLSContext *context = (TLSContext *)(SYS_INT)PARAM(0);
@@ -536,7 +536,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(TLSECertificateInfo, 1, 2)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(TLSEConnect, 1)
-    T_HANDLE(0)
+    T_HANDLE(TLSEConnect, 0)
 
     TLSContext *context = (TLSContext *)(SYS_INT)PARAM(0);
     int res = tls_client_connect(context);
@@ -544,15 +544,15 @@ CONCEPT_FUNCTION_IMPL(TLSEConnect, 1)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(TLSEError, 1)
-    T_HANDLE(0)
+    T_HANDLE(TLSEError, 0)
 
     TLSContext *context = (TLSContext *)(SYS_INT)PARAM(0);
     RETURN_NUMBER(context->error_code);
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(TLSEAddALPN, 2)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(TLSEAddALPN, 0)
+    T_STRING(TLSEAddALPN, 1)
 
     TLSContext *context = (TLSContext *)(SYS_INT)PARAM(0);
     int err = tls_add_alpn(context, PARAM(1));
@@ -560,7 +560,7 @@ CONCEPT_FUNCTION_IMPL(TLSEAddALPN, 2)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(TLSEALPN, 1)
-    T_HANDLE(0)
+    T_HANDLE(TLSEALPN, 0)
 
     TLSContext *context = (TLSContext *)(SYS_INT)PARAM(0);
     const char *alpn = tls_alpn(context);
@@ -571,3 +571,4 @@ CONCEPT_FUNCTION_IMPL(TLSEALPN, 1)
     }
 END_IMPL
 //------------------------------------------------------------------------
+

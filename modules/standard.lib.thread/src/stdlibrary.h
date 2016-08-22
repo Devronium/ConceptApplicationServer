@@ -192,54 +192,49 @@ typedef INTEGER (*CALL_BACK_CLASS_MEMBER_SET)(void *CLASS_PTR, char *class_membe
 #define GET_CHECK_BUFFER(param_index, szvariable, nlength, error_return)                      GET_BUFFER(param_index, szvariable, nlength); CHECK_STRING(error_return);
 
 #define DEFINE_SCONSTANT(constant_name, constant_value)                                       Invoke(INVOKE_DEFINE_CONSTANT, (void *)HANDLER, (char *)constant_name, (char *)constant_value);
-#define DEFINE_ICONSTANT(constant_name, constant_value)                                       Invoke(INVOKE_DEFINE_CONSTANT, (void *)HANDLER, (char *)constant_name, AnsiString((long)constant_value).c_str());
-#define DEFINE_FCONSTANT(constant_name, constant_value)                                       Invoke(INVOKE_DEFINE_CONSTANT, (void *)HANDLER, (char *)constant_name, AnsiString((NUMBER)constant_value).c_str());
+#define DEFINE_ICONSTANT(constant_name, constant_value)                                       Invoke(INVOKE_DEFINE_CONSTANT, (void *)HANDLER, (char *)constant_name, #constant_value);
+#define DEFINE_FCONSTANT(constant_name, constant_value)                                       Invoke(INVOKE_DEFINE_CONSTANT, (void *)HANDLER, (char *)constant_name, #constant_value);
 
 #define DEFINE_ECONSTANT(constant_name)                                                       Invoke(INVOKE_DEFINE_CONSTANT, (void *)HANDLER, #constant_name, AnsiString((long)constant_name).c_str());
 #define DEFINE_ESCONSTANT(constant_name)                                                      Invoke(INVOKE_DEFINE_CONSTANT, (void *)HANDLER, #constant_name, constant_name);
 
 
 #define CONCEPT_FUNCTION(function_name)                                                       CONCEPT_DLL_API CONCEPT_ ## function_name CONCEPT_API_PARAMETERS;
-#define CONCEPT_FUNCTION_IMPL(function_name, parameters_count)                                CONCEPT_DLL_API CONCEPT_ ## function_name CONCEPT_API_PARAMETERS { static AnsiString error; if (PARAMETERS->COUNT != parameters_count) { error = AnsiString(#function_name) + " takes " + AnsiString(parameters_count) + " parameters. There were " + AnsiString((long)PARAMETERS->COUNT) + " parameters received."; return (void *)error.c_str(); } LOCAL_INIT; char *func_name =#function_name;
+#define CONCEPT_FUNCTION_IMPL(function_name, parameters_count)                                CONCEPT_DLL_API CONCEPT_ ## function_name CONCEPT_API_PARAMETERS { if (PARAMETERS->COUNT != parameters_count) { return (void *)(#function_name " takes " #parameters_count " parameters");  } LOCAL_INIT;
 
-#define CONCEPT_FUNCTION_IMPL_VARIABLE_PARAMS(function_name, parameters_count)                CONCEPT_DLL_API CONCEPT_ ## function_name CONCEPT_API_PARAMETERS { static AnsiString error; if (PARAMETERS->COUNT < parameters_count) { error = AnsiString(#function_name) + " takes at least " + AnsiString(parameters_count) + " parameters. There were " + AnsiString((long)PARAMETERS->COUNT) + " parameters received."; return (void *)error.c_str(); } LOCAL_INIT; char *func_name =#function_name;
-#define CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(function_name, parameters_min, parameters_max)    CONCEPT_DLL_API CONCEPT_ ## function_name CONCEPT_API_PARAMETERS { static AnsiString error; if ((PARAMETERS->COUNT < parameters_min) || (PARAMETERS->COUNT > parameters_max)) { error = AnsiString(#function_name) + " takes at least " + AnsiString(parameters_min) + ", at most " + AnsiString(parameters_max) + " parameters. There were " + AnsiString((long)PARAMETERS->COUNT) + " parameters received."; return (void *)error.c_str(); } LOCAL_INIT; char *func_name =#function_name;
+#define CONCEPT_FUNCTION_IMPL_VARIABLE_PARAMS(function_name, parameters_count)                CONCEPT_DLL_API CONCEPT_ ## function_name CONCEPT_API_PARAMETERS { if (PARAMETERS->COUNT < parameters_count) { return (void *)(#function_name " takes at least " #parameters_count " parameters."); } LOCAL_INIT;
+#define CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(function_name, parameters_min, parameters_max)    CONCEPT_DLL_API CONCEPT_ ## function_name CONCEPT_API_PARAMETERS { if ((PARAMETERS->COUNT < parameters_min) || (PARAMETERS->COUNT > parameters_max)) { return (void *)(#function_name " takes at least " #parameters_min ", at most " #parameters_max " parameters."); } LOCAL_INIT;
 
 #define __INTERNAL_PARAMETER_DECL(type, name, index)                                          type name ## index = 0
 #define __INTERNAL_PARAMETER(name, index)                                                     name ## index
 
-#define __PARAM_ERR_MSG(fname, param_index, type)                                             (AnsiString(fname) + AnsiString((char *)": parameter ") + AnsiString((long)param_index) + AnsiString(" should be a ") + (char *)type)
+#define __PARAM_ERR_MSG(fname, param_index, type)                                             (#fname ": parameter " #param_index " should be a " type)
 
-#define T_STRING(parameter_index)                                                                                                     \
+#define T_STRING(func_name, parameter_index)                                                                                          \
     __INTERNAL_PARAMETER_DECL(char *, bind, parameter_index);                                                                         \
     __INTERNAL_PARAMETER_DECL(NUMBER, bind_len, parameter_index);                                                                     \
-    error = (AnsiString(func_name) + AnsiString((char *)": parameter ") + AnsiString((long)parameter_index) + " should be a string"); \
-    GET_CHECK_BUFFER(parameter_index, __INTERNAL_PARAMETER(bind, parameter_index), __INTERNAL_PARAMETER(bind_len, parameter_index), /*__PARAM_ERR_MSG(func_name,parameter_index,"string")*/ error.c_str());
+    GET_CHECK_BUFFER(parameter_index, __INTERNAL_PARAMETER(bind, parameter_index), __INTERNAL_PARAMETER(bind_len, parameter_index), __PARAM_ERR_MSG(func_name,parameter_index,"string"));
 
-#define T_NUMBER(parameter_index)                                                                                                     \
+#define T_NUMBER(func_name, parameter_index)                                                                                          \
     __INTERNAL_PARAMETER_DECL(NUMBER, bind, parameter_index);                                                                         \
     __INTERNAL_PARAMETER_DECL(INTEGER, bind_len, parameter_index);                                                                    \
-    error = (AnsiString(func_name) + AnsiString((char *)": parameter ") + AnsiString((long)parameter_index) + " should be a number"); \
-    GET_CHECK_NUMBER(parameter_index, __INTERNAL_PARAMETER(bind, parameter_index), /*__PARAM_ERR_MSG(func_name,parameter_index,"number")*/ error.c_str());
+    GET_CHECK_NUMBER(parameter_index, __INTERNAL_PARAMETER(bind, parameter_index), __PARAM_ERR_MSG(func_name,parameter_index,"number"));
 
-#define T_ARRAY(parameter_index)                                                                                                      \
+#define T_ARRAY(func_name, parameter_index)                                                                                           \
     __INTERNAL_PARAMETER_DECL(char *, bind, parameter_index);                                                                         \
     __INTERNAL_PARAMETER_DECL(NUMBER, bind_len, parameter_index);                                                                     \
-    error = (AnsiString(func_name) + AnsiString((char *)": parameter ") + AnsiString((long)parameter_index) + " should be an array"); \
-    GET_CHECK_ARRAY(parameter_index, __INTERNAL_PARAMETER(bind, parameter_index), /*__PARAM_ERR_MSG(func_name,parameter_index,"string")*/ error.c_str());
+    GET_CHECK_ARRAY(parameter_index, __INTERNAL_PARAMETER(bind, parameter_index), __PARAM_ERR_MSG(func_name,parameter_index,"string"));
 
-#define T_DELEGATE(parameter_index)                                                                                                     \
+#define T_DELEGATE(func_name, parameter_index)                                                                                          \
     __INTERNAL_PARAMETER_DECL(char *, bind, parameter_index);                                                                           \
     __INTERNAL_PARAMETER_DECL(NUMBER, bind_len, parameter_index);                                                                       \
-    error = (AnsiString(func_name) + AnsiString((char *)": parameter ") + AnsiString((long)parameter_index) + " should be a delegate"); \
-    GET_CHECK_DELEGATE(parameter_index, __INTERNAL_PARAMETER(bind, parameter_index), __INTERNAL_PARAMETER(bind_len, parameter_index), /*__PARAM_ERR_MSG(func_name,parameter_index,"string")*/ error.c_str());
+    GET_CHECK_DELEGATE(parameter_index, __INTERNAL_PARAMETER(bind, parameter_index), __INTERNAL_PARAMETER(bind_len, parameter_index), __PARAM_ERR_MSG(func_name,parameter_index,"string"));
 
-#define T_OBJECT(parameter_index)                                                                                                      \
+#define T_OBJECT(func_name, parameter_index)                                                                                           \
     __INTERNAL_PARAMETER_DECL(char *, bind, parameter_index);                                                                          \
     __INTERNAL_PARAMETER_DECL(NUMBER, bind_len, parameter_index);                                                                      \
-    error = (AnsiString(func_name) + AnsiString((char *)": parameter ") + AnsiString((long)parameter_index) + " should be an object"); \
-    CHECK_CLASS(parameter_index, __INTERNAL_PARAMETER(bind, parameter_index), __INTERNAL_PARAMETER(bind_len, parameter_index), /*__PARAM_ERR_MSG(func_name,parameter_index,"string")*/ error.c_str());
-
+    GET_CHECK_OBJECT(parameter_index, __INTERNAL_PARAMETER(bind, parameter_index), __INTERNAL_PARAMETER(bind_len, parameter_index), __PARAM_ERR_MSG(func_name,parameter_index,"string"));
+ 
 #define PARAM(index)        __INTERNAL_PARAMETER(bind, index)
 
 #define PARAM_INT(index)    (long)__INTERNAL_PARAMETER(bind, index)
@@ -281,24 +276,20 @@ typedef INTEGER (*CALL_BACK_CLASS_MEMBER_SET)(void *CLASS_PTR, char *class_membe
     if (!(PARAM_LEN(parameter_index))) \
         __INTERNAL_PARAMETER(bind, parameter_index) = 0;
 
-#define T_HANDLE(parameter_index)                                                                                                                          \
-    T_NUMBER(parameter_index)                                                                                                                              \
-    if (!(PARAM_INT(parameter_index))) {                                                                                                                   \
-        error = (AnsiString(func_name) + AnsiString((char *)": parameter ") + AnsiString((long)parameter_index) + " should be a valid handle (not null)"); \
-        return (void *)error.c_str();                                                                                                                      \
-    }
+#define T_HANDLE(func_name, parameter_index)                                                                                                               \
+    T_NUMBER(func_name, parameter_index)                                                                                                                              \
+    if (!(PARAM_INT(parameter_index)))                                                                                                                     \
+        return (void *)__PARAM_ERR_MSG(func_name,parameter_index,"valid handle (not null)");
 
-#define T_HANDLE2(parameter_index, HANDLE_TYPE)                                                                                                            \
+#define T_HANDLE2(func_name, parameter_index, HANDLE_TYPE)                                                                                                 \
     __INTERNAL_PARAMETER_DECL(NUMBER, bind_internal, parameter_index);                                                                                     \
     __INTERNAL_PARAMETER_DECL(HANDLE_TYPE, bind, parameter_index);                                                                                         \
-    error = (AnsiString(func_name) + AnsiString((char *)": parameter ") + AnsiString((long)parameter_index) + " should be a handle");                      \
-    GET_CHECK_NUMBER(parameter_index, __INTERNAL_PARAMETER(bind_internal, parameter_index), error.c_str());                                                \
+    GET_CHECK_NUMBER(parameter_index, __INTERNAL_PARAMETER(bind_internal, parameter_index), __PARAM_ERR_MSG(func_name,parameter_index,"should be a handle"); \
     if (!(__INTERNAL_PARAMETER(bind_internal, parameter_index))) {                                                                                         \
-        error = (AnsiString(func_name) + AnsiString((char *)": parameter ") + AnsiString((long)parameter_index) + " should be a valid handle (not null)"); \
-        return (void *)error.c_str();                                                                                                                      \
+        return (void *)__PARAM_ERR_MSG(func_name,parameter_index," should be a valid handle (not null)");                                                  \
     } else {                                                                                                                                               \
         __INTERNAL_PARAMETER(bind, parameter_index) = (HANDLE_TYPE)(long)__INTERNAL_PARAMETER(bind_internal, parameter_index);                             \
-    }
+    } 
 
 
 #define CORE_NEW(SIZE, VARIABLE)    Invoke(INVOKE_NEW_BUFFER, (INTEGER)SIZE, & VARIABLE)

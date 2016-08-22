@@ -8,60 +8,106 @@
 
 #include "AnsiTypes.h"
 
-#define INVOKE_SET_VARIABLE                0x01
-#define INVOKE_GET_VARIABLE                0x02
-#define INVOKE_SET_CLASS_MEMBER            0x03
-#define INVOKE_GET_CLASS_MEMBER            0x04
-#define INVOKE_FREE_VARIABLE               0x05
-#define INVOKE_CREATE_ARRAY                0x06
-#define INVOKE_GET_ARRAY_ELEMENT           0x07
-#define INVOKE_SET_ARRAY_ELEMENT           0x08
-#define INVOKE_GET_ARRAY_COUNT             0x09
-#define INVOKE_GET_ARRAY_ELEMENT_BY_KEY    0x0A
-#define INVOKE_SET_ARRAY_ELEMENT_BY_KEY    0x0B
-#define INVOKE_CALL_DELEGATE               0x0C
-#define INVOKE_COUNT_DELEGATE_PARAMS       0x0D
-#define INVOKE_LOCK_VARIABLE               0x0E
-#define INVOKE_GET_ARRAY_KEY               0x0F
-#define INVOKE_GET_ARRAY_INDEX             0x10
-#define INVOKE_CREATE_VARIABLE             0x11
-#define INVOKE_DEFINE_CONSTANT             0x12
-#define INVOKE_ARRAY_VARIABLE              0x13
-#define INVOKE_ARRAY_VARIABLE_BY_KEY       0x14
-#define INVOKE_GET_CLASS_VARIABLE          0x15
-#define INVOKE_DEFINE_CLASS                0x16
-#define INVOKE_CREATE_OBJECT               0x17
-#define INVOKE_GET_APPLICATION_INFO        0x18
-#define INVOKE_GET_SERIAL_CLASS            0x19
-#define INVOKE_SET_SERIAL_CLASS            0x20
-#define INVOKE_GET_MEMBER_FROM_ID          0x21
-#define INVOKE_DYNAMIC_LOCK                0x22
-#define INVOKE_HAS_MEMBER                  0x23
-#define INVOKE_OBJECT_LINKS                0x24
-#define INVOKE_VAR_LINKS                   0x25
-#define INVOKE_CLI_ARGUMENTS               0x26
-#define INVOKE_SORT_ARRAY_BY_KEYS          0x27
-#define INVOKE_CHECK_POINT                 0x28
-#define INVOKE_ARRAY_ELEMENT_IS_SET        0x29
-#define INVOKE_GET_DELEGATE_NAMES          0x2A
-#define INVOKE_GET_USERDATA                0x2B
-#define INVOKE_GET_THREAD_DATA             0x2C
-#define INVOKE_SET_THREAD_DATA             0x2D
-#define INVOKE_HIBERNATE                   0x2E
-#define INVOKE_NEW_BUFFER                  0x2F
-#define INVOKE_DELETE_BUFFER               0x30
+#define INVOKE_SET_VARIABLE                   0x01
+#define INVOKE_GET_VARIABLE                   0x02
+#define INVOKE_SET_CLASS_MEMBER               0x03
+#define INVOKE_GET_CLASS_MEMBER               0x04
+#define INVOKE_FREE_VARIABLE                  0x05
+#define INVOKE_CREATE_ARRAY                   0x06
+#define INVOKE_GET_ARRAY_ELEMENT              0x07
+#define INVOKE_SET_ARRAY_ELEMENT              0x08
+#define INVOKE_GET_ARRAY_COUNT                0x09
+#define INVOKE_GET_ARRAY_ELEMENT_BY_KEY       0x0A
+#define INVOKE_SET_ARRAY_ELEMENT_BY_KEY       0x0B
+#define INVOKE_CALL_DELEGATE                  0x0C
+#define INVOKE_COUNT_DELEGATE_PARAMS          0x0D
+#define INVOKE_LOCK_VARIABLE                  0x0E
+#define INVOKE_GET_ARRAY_KEY                  0x0F
+#define INVOKE_GET_ARRAY_INDEX                0x10
+#define INVOKE_CREATE_VARIABLE                0x11
+#define INVOKE_DEFINE_CONSTANT                0x12
+#define INVOKE_ARRAY_VARIABLE                 0x13
+#define INVOKE_ARRAY_VARIABLE_BY_KEY          0x14
+#define INVOKE_GET_CLASS_VARIABLE             0x15
+#define INVOKE_DEFINE_CLASS                   0x16
+#define INVOKE_CREATE_OBJECT                  0x17
+#define INVOKE_GET_APPLICATION_INFO           0x18
+#define INVOKE_GET_SERIAL_CLASS               0x19
+#define INVOKE_GET_SERIAL_CLASS_NO_DEFAULTS   0x1A
+#define INVOKE_SET_SERIAL_CLASS               0x20
+#define INVOKE_GET_MEMBER_FROM_ID             0x21
+#define INVOKE_DYNAMIC_LOCK                   0x22
+#define INVOKE_HAS_MEMBER                     0x23
+#define INVOKE_OBJECT_LINKS                   0x24
+#define INVOKE_VAR_LINKS                      0x25
+#define INVOKE_CLI_ARGUMENTS                  0x26
+#define INVOKE_SORT_ARRAY_BY_KEYS             0x27
+#define INVOKE_CHECK_POINT                    0x28
+#define INVOKE_ARRAY_ELEMENT_IS_SET           0x29
+#define INVOKE_GET_DELEGATE_NAMES             0x2A
+#define INVOKE_GET_USERDATA                   0x2B
+#define INVOKE_GET_THREAD_DATA                0x2C
+#define INVOKE_SET_THREAD_DATA                0x2D
+#define INVOKE_HIBERNATE                      0x2E
+#define INVOKE_NEW_BUFFER                     0x2F
+#define INVOKE_DELETE_BUFFER                  0x30
+#define INVOKE_PRINT                          0x31
+#define INVOKE_CALL_DELEGATE_THREAD           0x32
+#define INVOKE_CREATE_DELEGATE                0x33
+#define INVOKE_FREE_VARIABLE_REFERENCE        0x34
+#define INVOKE_CALL_DELEGATE_THREAD_SAFE      0x35
+#define INVOKE_THREAD_LOCK                    0x36
+#define INVOKE_EXTERNAL_THREADING             0x37
+#define INVOKE_GET_PROTO_SOCKET               0x38
+#define INVOKE_DELEGATE_BYTECODE              0x39
+#define INVOKE_GET_RELOC_MEMBER_FROM_ID       0x3A
+#define INVOKE_CREATE_OBJECT_NOCONSTRUCTOR    0x3B
+#define INVOKE_DYNAMIC_UNLOCK                 0x3C
+#define INVOKE_CALL_DELEGATE_THREAD_SPINLOCK  0x3D
+#define INVOKE_GET_DIRECT_PIPE                0x3E
+#define INVOKE_BYTECODE_FREE                  0x40
+#define INVOKE_PROFILER                       0x41
+#define INVOKE_MULTITHREADED                  0x42
+#define INVOKE_GREENTHREAD                    0x43
+#define INVOKE_FREEGREENTHREAD                0x44
+#define INVOKE_GREENLOOP                      0x45
+#define INVOKE_GREENLINK                      0x46
+#define INVOKE_CURRENTGREENTHREAD             0x47
+#define INVOKE_GREENINSERT                    0x48
+#define INVOKE_SETSENDMESSAGEFUNCTION         0x49
+#define INVOKE_CREATE_VARIABLE_2              0x4A
+#define INVOKE_DYNAMIC_INCLUDE                0x4B
+#define INVOKE_DYNAMIC_REMOVE_CLASS           0x4C
+#define INVOKE_CREATE_OBJECT_3                0x4D
+#define INVOKE_CHECK_REACHABILITY             0x4E
+#define INVOKE_GET_CALLSTACK                  0x4F
+#define INVOKE_GETGLOBALS                     0x50
+#define INVOKE_GETID                          0x51
+#define INVOKE_GETPROTODATA                   0x52
+#define INVOKE_SETPROTODATA                   0x53
+#define INVOKE_EXECUTECODE                    0x54
+#define INVOKE_MEMBER_NAME                    0x55
+#define INVOKE_CLASS_NAME                     0x56
+#define INVOKE_COUNT_DELEGATE_PARAMS2         0x57
+#define INVOKE_MEMBER_INFO                    0x58
+#define INVOKE_GET_KEYS                       0x59
+#define INVOKE_PROFILE_MEMORY                 0x60
+#define INVOKE_CREATE_WORKER                  0x61
+#define INVOKE_FREE_WORKER                    0x62
+#define INVOKE_CREATE_OBJECT_2                0x63
+#define INVOKE_ARRAY_KEYS                     0x64
 
-#define     VARIABLE_CONSTANT              0x00
-#define     VARIABLE_UNDEFINED             0x01
-#define     VARIABLE_NUMBER                0x02
-#define     VARIABLE_STRING                0x03
-#define     VARIABLE_CLASS                 0x04
-#define     VARIABLE_ARRAY                 0x05
-#define     VARIABLE_DELEGATE              0x06
+#define     VARIABLE_CONSTANT                 0x00
+#define     VARIABLE_UNDEFINED                0x01
+#define     VARIABLE_NUMBER                   0x02
+#define     VARIABLE_STRING                   0x03
+#define     VARIABLE_CLASS                    0x04
+#define     VARIABLE_ARRAY                    0x05
+#define     VARIABLE_DELEGATE                 0x06
 
-#define     GET_LOCAL_CERTIFICATE          -1
-#define     GET_LOCAL_KEY                  -2
-#define     GET_REMOTE_CERTIFICATE         -3
+#define     GET_LOCAL_CERTIFICATE             -1
+#define     GET_LOCAL_KEY                     -2
+#define     GET_REMOTE_CERTIFICATE            -3
 
 
 #ifdef _WIN32
@@ -140,6 +186,7 @@ typedef INTEGER (*CALL_BACK_CLASS_MEMBER_SET)(void *CLASS_PTR, char *class_membe
 
 #define CHECK_STRING(error_return)                                                            if (TYPE != VARIABLE_STRING) return (void *)error_return;
 #define CHECK_NUMBER(error_return)                                                            if (TYPE != VARIABLE_NUMBER) return (void *)error_return;
+
 #define CHECK_CLASS(error_return)                                                             if (TYPE != VARIABLE_CLASS) return (void *)error_return;
 #define CHECK_ARRAY(error_return)                                                             if (TYPE != VARIABLE_ARRAY) return (void *)error_return;
 #define CHECK_DELEGATE(error_return)                                                          if (TYPE != VARIABLE_DELEGATE) return (void *)error_return;
@@ -151,58 +198,53 @@ typedef INTEGER (*CALL_BACK_CLASS_MEMBER_SET)(void *CLASS_PTR, char *class_membe
 #define GET_CHECK_NUMBER(param_index, nvariable, error_return)                                GET_NUMBER(param_index, nvariable);  CHECK_NUMBER(error_return);
 #define GET_CHECK_ARRAY(param_index, darray, error_return)                                    GET_ARRAY(param_index, darray); CHECK_ARRAY(error_return);
 #define GET_CHECK_DELEGATE(param_index, dclass, dmember, error_return)                        GET_DELEGATE(param_index, dclass, dmember); CHECK_DELEGATE(error_return);
-#define GET_CHECK_OBJECT(param_index, dclass, dmember, error_return)                          GET_CLASS(param_index, dclass, dmember); CHECK_CLASS(error_return);
+#define GET_CHECK_OBJECT(param_index, dclass, dmember, error_return)                          GET_CLASS(param_index, dclass); CHECK_CLASS(error_return);
 
 #define GET_CHECK_BUFFER(param_index, szvariable, nlength, error_return)                      GET_BUFFER(param_index, szvariable, nlength); CHECK_STRING(error_return);
 
 #define DEFINE_SCONSTANT(constant_name, constant_value)                                       Invoke(INVOKE_DEFINE_CONSTANT, (void *)HANDLER, (char *)constant_name, (char *)constant_value);
-#define DEFINE_ICONSTANT(constant_name, constant_value)                                       Invoke(INVOKE_DEFINE_CONSTANT, (void *)HANDLER, (char *)constant_name, AnsiString((long)constant_value).c_str());
-#define DEFINE_FCONSTANT(constant_name, constant_value)                                       Invoke(INVOKE_DEFINE_CONSTANT, (void *)HANDLER, (char *)constant_name, AnsiString((NUMBER)constant_value).c_str());
+#define DEFINE_ICONSTANT(constant_name, constant_value)                                       Invoke(INVOKE_DEFINE_CONSTANT, (void *)HANDLER, (char *)constant_name, #constant_value);
+#define DEFINE_FCONSTANT(constant_name, constant_value)                                       Invoke(INVOKE_DEFINE_CONSTANT, (void *)HANDLER, (char *)constant_name, #constant_value);
 
 #define DEFINE_ECONSTANT(constant_name)                                                       Invoke(INVOKE_DEFINE_CONSTANT, (void *)HANDLER, #constant_name, AnsiString((long)constant_name).c_str());
 #define DEFINE_ESCONSTANT(constant_name)                                                      Invoke(INVOKE_DEFINE_CONSTANT, (void *)HANDLER, #constant_name, constant_name);
 
 
 #define CONCEPT_FUNCTION(function_name)                                                       CONCEPT_DLL_API CONCEPT_ ## function_name CONCEPT_API_PARAMETERS;
-#define CONCEPT_FUNCTION_IMPL(function_name, parameters_count)                                CONCEPT_DLL_API CONCEPT_ ## function_name CONCEPT_API_PARAMETERS { static AnsiString error; if (PARAMETERS->COUNT != parameters_count) { error = AnsiString(#function_name) + " takes " + AnsiString(parameters_count) + " parameters. There were " + AnsiString((long)PARAMETERS->COUNT) + " parameters received."; return (void *)error.c_str(); } LOCAL_INIT; char *func_name =#function_name;
+#define CONCEPT_FUNCTION_IMPL(function_name, parameters_count)                                CONCEPT_DLL_API CONCEPT_ ## function_name CONCEPT_API_PARAMETERS { if (PARAMETERS->COUNT != parameters_count) { return (void *)(#function_name " takes " #parameters_count " parameters");  } LOCAL_INIT;
 
-#define CONCEPT_FUNCTION_IMPL_VARIABLE_PARAMS(function_name, parameters_count)                CONCEPT_DLL_API CONCEPT_ ## function_name CONCEPT_API_PARAMETERS { static AnsiString error; if (PARAMETERS->COUNT < parameters_count) { error = AnsiString(#function_name) + " takes at least " + AnsiString(parameters_count) + " parameters. There were " + AnsiString((long)PARAMETERS->COUNT) + " parameters received."; return (void *)error.c_str(); } LOCAL_INIT; char *func_name =#function_name;
-#define CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(function_name, parameters_min, parameters_max)    CONCEPT_DLL_API CONCEPT_ ## function_name CONCEPT_API_PARAMETERS { static AnsiString error; if ((PARAMETERS->COUNT < parameters_min) || (PARAMETERS->COUNT > parameters_max)) { error = AnsiString(#function_name) + " takes at least " + AnsiString(parameters_min) + ", at most " + AnsiString(parameters_max) + " parameters. There were " + AnsiString((long)PARAMETERS->COUNT) + " parameters received."; return (void *)error.c_str(); } LOCAL_INIT; char *func_name =#function_name;
+#define CONCEPT_FUNCTION_IMPL_VARIABLE_PARAMS(function_name, parameters_count)                CONCEPT_DLL_API CONCEPT_ ## function_name CONCEPT_API_PARAMETERS { if (PARAMETERS->COUNT < parameters_count) { return (void *)(#function_name " takes at least " #parameters_count " parameters."); } LOCAL_INIT;
+#define CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(function_name, parameters_min, parameters_max)    CONCEPT_DLL_API CONCEPT_ ## function_name CONCEPT_API_PARAMETERS { if ((PARAMETERS->COUNT < parameters_min) || (PARAMETERS->COUNT > parameters_max)) { return (void *)(#function_name " takes at least " #parameters_min ", at most " #parameters_max " parameters."); } LOCAL_INIT;
 
 #define __INTERNAL_PARAMETER_DECL(type, name, index)                                          type name ## index = 0
 #define __INTERNAL_PARAMETER(name, index)                                                     name ## index
 
-#define __PARAM_ERR_MSG(fname, param_index, type)                                             (AnsiString(fname) + AnsiString((char *)": parameter ") + AnsiString((long)param_index) + AnsiString(" should be a ") + (char *)type)
+#define __PARAM_ERR_MSG(fname, param_index, type)                                             (#fname ": parameter " #param_index " should be a " type)
 
-#define T_STRING(parameter_index)                                                                                                     \
+#define T_STRING(func_name, parameter_index)                                                                                          \
     __INTERNAL_PARAMETER_DECL(char *, bind, parameter_index);                                                                         \
     __INTERNAL_PARAMETER_DECL(NUMBER, bind_len, parameter_index);                                                                     \
-    error = (AnsiString(func_name) + AnsiString((char *)": parameter ") + AnsiString((long)parameter_index) + " should be a string"); \
-    GET_CHECK_BUFFER(parameter_index, __INTERNAL_PARAMETER(bind, parameter_index), __INTERNAL_PARAMETER(bind_len, parameter_index), /*__PARAM_ERR_MSG(func_name,parameter_index,"string")*/ error.c_str());
+    GET_CHECK_BUFFER(parameter_index, __INTERNAL_PARAMETER(bind, parameter_index), __INTERNAL_PARAMETER(bind_len, parameter_index), __PARAM_ERR_MSG(func_name,parameter_index,"string"));
 
-#define T_NUMBER(parameter_index)                                                                                                     \
+#define T_NUMBER(func_name, parameter_index)                                                                                          \
     __INTERNAL_PARAMETER_DECL(NUMBER, bind, parameter_index);                                                                         \
     __INTERNAL_PARAMETER_DECL(INTEGER, bind_len, parameter_index);                                                                    \
-    error = (AnsiString(func_name) + AnsiString((char *)": parameter ") + AnsiString((long)parameter_index) + " should be a number"); \
-    GET_CHECK_NUMBER(parameter_index, __INTERNAL_PARAMETER(bind, parameter_index), /*__PARAM_ERR_MSG(func_name,parameter_index,"number")*/ error.c_str());
+    GET_CHECK_NUMBER(parameter_index, __INTERNAL_PARAMETER(bind, parameter_index), __PARAM_ERR_MSG(func_name,parameter_index,"number"));
 
-#define T_ARRAY(parameter_index)                                                                                                      \
+#define T_ARRAY(func_name, parameter_index)                                                                                           \
     __INTERNAL_PARAMETER_DECL(char *, bind, parameter_index);                                                                         \
     __INTERNAL_PARAMETER_DECL(NUMBER, bind_len, parameter_index);                                                                     \
-    error = (AnsiString(func_name) + AnsiString((char *)": parameter ") + AnsiString((long)parameter_index) + " should be an array"); \
-    GET_CHECK_ARRAY(parameter_index, __INTERNAL_PARAMETER(bind, parameter_index), /*__PARAM_ERR_MSG(func_name,parameter_index,"string")*/ error.c_str());
+    GET_CHECK_ARRAY(parameter_index, __INTERNAL_PARAMETER(bind, parameter_index), __PARAM_ERR_MSG(func_name,parameter_index,"string"));
 
-#define T_DELEGATE(parameter_index)                                                                                                     \
+#define T_DELEGATE(func_name, parameter_index)                                                                                          \
     __INTERNAL_PARAMETER_DECL(char *, bind, parameter_index);                                                                           \
     __INTERNAL_PARAMETER_DECL(NUMBER, bind_len, parameter_index);                                                                       \
-    error = (AnsiString(func_name) + AnsiString((char *)": parameter ") + AnsiString((long)parameter_index) + " should be a delegate"); \
-    GET_CHECK_DELEGATE(parameter_index, __INTERNAL_PARAMETER(bind, parameter_index), __INTERNAL_PARAMETER(bind_len, parameter_index), /*__PARAM_ERR_MSG(func_name,parameter_index,"string")*/ error.c_str());
+    GET_CHECK_DELEGATE(parameter_index, __INTERNAL_PARAMETER(bind, parameter_index), __INTERNAL_PARAMETER(bind_len, parameter_index), __PARAM_ERR_MSG(func_name,parameter_index,"string"));
 
-#define T_OBJECT(parameter_index)                                                                                                      \
+#define T_OBJECT(func_name, parameter_index)                                                                                           \
     __INTERNAL_PARAMETER_DECL(char *, bind, parameter_index);                                                                          \
     __INTERNAL_PARAMETER_DECL(NUMBER, bind_len, parameter_index);                                                                      \
-    error = (AnsiString(func_name) + AnsiString((char *)": parameter ") + AnsiString((long)parameter_index) + " should be an object"); \
-    CHECK_CLASS(parameter_index, __INTERNAL_PARAMETER(bind, parameter_index), __INTERNAL_PARAMETER(bind_len, parameter_index), /*__PARAM_ERR_MSG(func_name,parameter_index,"string")*/ error.c_str());
+    GET_CHECK_OBJECT(parameter_index, __INTERNAL_PARAMETER(bind, parameter_index), __INTERNAL_PARAMETER(bind_len, parameter_index), __PARAM_ERR_MSG(func_name,parameter_index,"string"));
 
 #define PARAM(index)        __INTERNAL_PARAMETER(bind, index)
 
@@ -245,34 +287,29 @@ typedef INTEGER (*CALL_BACK_CLASS_MEMBER_SET)(void *CLASS_PTR, char *class_membe
     if (!(PARAM_LEN(parameter_index))) \
         __INTERNAL_PARAMETER(bind, parameter_index) = 0;
 
-#define T_HANDLE(parameter_index)                                                                                                                          \
-    T_NUMBER(parameter_index)                                                                                                                              \
-    if (!(PARAM_INT(parameter_index))) {                                                                                                                   \
-        error = (AnsiString(func_name) + AnsiString((char *)": parameter ") + AnsiString((long)parameter_index) + " should be a valid handle (not null)"); \
-        return (void *)error.c_str();                                                                                                                      \
-    }
+#define T_HANDLE(func_name, parameter_index)                                                                                                               \
+    T_NUMBER(func_name, parameter_index)                                                                                                                              \
+    if (!(PARAM_INT(parameter_index)))                                                                                                                     \
+        return (void *)__PARAM_ERR_MSG(func_name,parameter_index,"valid handle (not null)");
 
-#define T_HANDLE2(parameter_index, HANDLE_TYPE)                                                                                                            \
+#define T_HANDLE2(func_name, parameter_index, HANDLE_TYPE)                                                                                                 \
     __INTERNAL_PARAMETER_DECL(NUMBER, bind_internal, parameter_index);                                                                                     \
     __INTERNAL_PARAMETER_DECL(HANDLE_TYPE, bind, parameter_index);                                                                                         \
-    error = (AnsiString(func_name) + AnsiString((char *)": parameter ") + AnsiString((long)parameter_index) + " should be a handle");                      \
-    GET_CHECK_NUMBER(parameter_index, __INTERNAL_PARAMETER(bind_internal, parameter_index), error.c_str());                                                \
+    GET_CHECK_NUMBER(parameter_index, __INTERNAL_PARAMETER(bind_internal, parameter_index), __PARAM_ERR_MSG(func_name,parameter_index,"should be a handle"); \
     if (!(__INTERNAL_PARAMETER(bind_internal, parameter_index))) {                                                                                         \
-        error = (AnsiString(func_name) + AnsiString((char *)": parameter ") + AnsiString((long)parameter_index) + " should be a valid handle (not null)"); \
-        return (void *)error.c_str();                                                                                                                      \
+        return (void *)__PARAM_ERR_MSG(func_name,parameter_index," should be a valid handle (not null)");                                                  \
     } else {                                                                                                                                               \
         __INTERNAL_PARAMETER(bind, parameter_index) = (HANDLE_TYPE)(long)__INTERNAL_PARAMETER(bind_internal, parameter_index);                             \
     }
-
-
-#define CORE_NEW(SIZE, VARIABLE)    Invoke(INVOKE_NEW_BUFFER, (INTEGER)SIZE, & VARIABLE)
-#define CORE_DELETE(VARIABLE)       Invoke(INVOKE_DELETE_BUFFER, VARIABLE)
 
 float *GetFloatList(void *arr, INVOKE_CALL _Invoke);
 char **GetCharList(void *arr, INVOKE_CALL _Invoke);
 int *GetIntList(void *arr, INVOKE_CALL _Invoke);
 bool *GetBoolList(void *arr, INVOKE_CALL _Invoke);
 double *GetDoubleList(void *arr, INVOKE_CALL _Invoke);
+
+#define CORE_NEW(SIZE, VARIABLE)    Invoke(INVOKE_NEW_BUFFER, (INTEGER)SIZE, &VARIABLE)
+#define CORE_DELETE(VARIABLE)       Invoke(INVOKE_DELETE_BUFFER, VARIABLE)
 
 //-------------------------------------------------------------------------------------------------------------
 #endif //__STDLIBRARY_H

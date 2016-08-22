@@ -3587,7 +3587,7 @@ CONCEPT_FUNCTION_IMPL(HaveMessage, 0)
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(Hibernate, 1)
-    T_NUMBER(0)
+    T_NUMBER(Hibernate, 0)
 
     char c = (char)PARAM_INT(0);
 
@@ -3597,7 +3597,7 @@ CONCEPT_FUNCTION_IMPL(Hibernate, 1)
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(SetApplicationEventTimeout, 1)
-    T_NUMBER(0);
+    T_NUMBER(SetApplicationEventTimeout, 0);
 
     GET_METACONTAINER
 // in seconds
@@ -3682,11 +3682,11 @@ void *LocalThread(void *P) {
 
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(LocalTimer, 2, 3)
-    T_NUMBER(0)
-    T_NUMBER(1)
+    T_NUMBER(LocalTimer, 0)
+    T_NUMBER(LocalTimer, 1)
     int repeat = 0;
     if (PARAMETERS_COUNT > 2) {
-        T_NUMBER(2)
+        T_NUMBER(LocalTimer, 2)
         repeat = PARAM_INT(2);
     }
 
@@ -3795,7 +3795,7 @@ CONCEPT_FUNCTION_IMPL(CloseRTSocket, 0)
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(CreateRTSocket, 1, 2)
-    T_NUMBER(0)
+    T_NUMBER(CreateRTSocket, 0)
     int port = PARAM_INT(0);
     int sockfd = -1;
 
@@ -3820,7 +3820,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(CreateRTSocket, 1, 2)
     }
     int ipv6 = 0;
     if (PARAMETERS_COUNT > 1) {
-        T_NUMBER(1);
+        T_NUMBER(CreateRTSocket, 1);
         ipv6 = PARAM_INT(1);
     }
     if (ipv6)
@@ -3871,8 +3871,8 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(CreateRTSocket, 1, 2)
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(ConfirmRTSocket, 2)
-    T_STRING(0)
-    T_NUMBER(1)
+    T_STRING(ConfirmRTSocket, 0)
+    T_NUMBER(ConfirmRTSocket, 1)
     GET_METACONTAINER
     if (mc->RTSOCKET > 0) {
         struct addrinfo hints;
@@ -3919,7 +3919,7 @@ CONCEPT_FUNCTION_IMPL(WaitRTSocket, 1)
     struct sockaddr_storage cliaddr;
     socklen_t len = sizeof(cliaddr);
 
-    T_NUMBER(0)
+    T_NUMBER(WaitRTSocket, 0)
 
     GET_METACONTAINER
     if (mc->RTSOCKET > 0) {
@@ -3981,8 +3981,8 @@ CONCEPT_FUNCTION_IMPL(ConceptProtocolSecured, 0)
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(UpgradeTLS, 2, 4)
-    T_STRING(0)
-    T_STRING(1);
+    T_STRING(UpgradeTLS, 0)
+    T_STRING(UpgradeTLS, 1);
     char *cert_file = PARAM(0);
     char *priv_file = PARAM(1);
     GET_METACONTAINER
@@ -3990,11 +3990,11 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(UpgradeTLS, 2, 4)
     char *trustfile = 0;
     char *trustpath = 0;
     if (PARAMETERS_COUNT > 2) {
-        T_STRING(2);
+        T_STRING(UpgradeTLS, 2);
         if (PARAM_LEN(2) > 0)
             trustfile = PARAM(2);
         if (PARAMETERS_COUNT > 3) {
-            T_STRING(3)
+            T_STRING(UpgradeTLS, 3)
             if (PARAM_LEN(3) > 0)
                 trustpath = PARAM(3);
         }
@@ -5763,7 +5763,7 @@ AnsiString GenerateCode(int level, void *THIS_REF, void *THIS_VAR, void *pifHand
 
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(MetaCode, 1, 3)
-    T_DELEGATE(0)
+    T_DELEGATE(MetaCode, 0)
 
     static AnsiString err;
     AnsiString cl_funcname;
@@ -5785,7 +5785,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(MetaCode, 1, 3)
         SetVariable(THIS_VAR, VARIABLE_CLASS, cdata, 0);
     }
     if (PARAMETERS_COUNT > 1) {
-        T_NUMBER(1)
+        T_NUMBER(MetaCode, 1)
         level = PARAM_INT(1);
     }
     std::map<unsigned int, int> mapped_functions;
@@ -5819,21 +5819,21 @@ CONCEPT_FUNCTION_IMPL(IsClient, 0)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(RegisterLooper, 1)
-    T_DELEGATE(0)
+    T_DELEGATE(RegisterLooper, 0)
     GET_METACONTAINER
     int res = mc->AddLooper(PARAMETER(0), Invoke);
     RETURN_NUMBER(res);
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(SetOnConnectionChanged, 1)
-    T_DELEGATE(0)
+    T_DELEGATE(SetOnConnectionChanged, 0)
     GET_METACONTAINER
     int res = mc->SetOnConnectionChanged(PARAMETER(0), Invoke);
     RETURN_NUMBER(res);
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(UnregisterLooper, 1)
-    T_NUMBER(0)
+    T_NUMBER(UnregisterLooper, 0)
     GET_METACONTAINER
     mc->RemoveLooper(PARAM_INT(0) - 1, Invoke);
     RETURN_NUMBER(0)
@@ -5894,7 +5894,7 @@ CONCEPT_FUNCTION_IMPL(GetRTPeer, 0)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(EnableRTSend, 1)
-    T_NUMBER(0)
+    T_NUMBER(EnableRTSend, 0)
 
     GET_METACONTAINER
     mc->rt_send_enabled = PARAM_INT(0);
@@ -5923,8 +5923,8 @@ CONCEPT_FUNCTION_IMPL(HasNewProtoSocket, 0)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(SetInitializationVectors, 2)
-    T_STRING(0)
-    T_STRING(1)
+    T_STRING(SetInitializationVectors, 0)
+    T_STRING(SetInitializationVectors, 1)
 
     GET_METACONTAINER
 
@@ -5942,3 +5942,4 @@ CONCEPT_FUNCTION_IMPL(SetInitializationVectors, 2)
     memcpy(mc->EncryptAes.buffer, PARAM(1), len_recv);
 END_IMPL
 //------------------------------------------------------------------------
+

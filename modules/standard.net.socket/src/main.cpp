@@ -1514,7 +1514,7 @@ CONCEPT_DLL_API CONCEPT_SocketHasData CONCEPT_API_PARAMETERS {
 }
 //=====================================================================================//
 CONCEPT_FUNCTION_IMPL(WSParseHandshake, 1)
-    T_STRING(0)
+    T_STRING(WSParseHandshake, 0)
     struct handshake hs;
     ws_frame_type    frame_type = ws_parse_handshake((uint8_t *)PARAM(0), PARAM_LEN(0), &hs);
     CREATE_ARRAY(RESULT);
@@ -1533,7 +1533,7 @@ CONCEPT_FUNCTION_IMPL(WSParseHandshake, 1)
 END_IMPL
 //=====================================================================================//
 CONCEPT_FUNCTION_IMPL(WSHandshakeAnswer, 1)
-    T_ARRAY(0)
+    T_ARRAY(WSHandshakeAnswer, 0)
     struct handshake hs;
     nullhandshake(&hs);
     INTEGER type  = 0;
@@ -1586,11 +1586,11 @@ CONCEPT_FUNCTION_IMPL(WSHandshakeAnswer, 1)
 END_IMPL
 //=====================================================================================//
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(WSMakeFrame, 1, 2)
-    T_STRING(0)
+    T_STRING(WSMakeFrame, 0)
 
     ws_frame_type ft_orig = WS_TEXT_FRAME;
     if (PARAMETERS_COUNT > 1) {
-        T_NUMBER(1)
+        T_NUMBER(WSMakeFrame, 1)
         ft_orig = (ws_frame_type)PARAM_INT(1);
     }
     char   *buffer = 0;
@@ -1606,7 +1606,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(WSMakeFrame, 1, 2)
 END_IMPL
 //=====================================================================================//
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(WSParseFrame, 1, 2)
-    T_STRING(0)
+    T_STRING(WSParseFrame, 0)
 
     ws_frame_type ft_orig = WS_BINARY_FRAME;
     char   *buffer = 0;
@@ -1647,7 +1647,7 @@ CONCEPT_FUNCTION_IMPL(GetDomainName, 0)
 END_IMPL
 //=====================================================================================//
 CONCEPT_FUNCTION_IMPL(GetHostByAddr, 1)
-    T_STRING(0);
+    T_STRING(GetHostByAddr, 0);
     struct hostent *he;
 #ifdef _WIN32
     struct in_addr addr = {
@@ -1677,7 +1677,7 @@ CONCEPT_FUNCTION_IMPL(GetHostByAddr, 1)
 END_IMPL
 //=====================================================================================//
 CONCEPT_FUNCTION_IMPL(GetHostByAddr6, 1)
-    T_STRING(0);
+    T_STRING(GetHostByAddr6, 0);
     struct hostent *he;
 #ifdef _WIN32
     struct in_addr6 addr = {
@@ -1708,7 +1708,7 @@ CONCEPT_FUNCTION_IMPL(GetHostByAddr6, 1)
 END_IMPL
 //=====================================================================================//
 CONCEPT_FUNCTION_IMPL(GetHostByName, 1)
-    T_STRING(0);
+    T_STRING(GetHostByName, 0);
     struct hostent *he;
     he = gethostbyname(PARAM(0));
 #ifdef _WIN32
@@ -1747,22 +1747,22 @@ CONCEPT_FUNCTION_IMPL(GetHostByName, 1)
 END_IMPL
 //=====================================================================================//
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(Ping, 1, 5)
-    T_STRING(0);
+    T_STRING(Ping, 0);
 // count, timeout, message size (last 2 reversed);
     int nCount       = 4;
     int nMessageSize = 32;
     int nTimeOut     = 5000;
 
     if (PARAMETERS_COUNT > 2) {
-        T_NUMBER(2)
+        T_NUMBER(Ping, 2)
         nCount = PARAM_INT(2);
     }
     if (PARAMETERS_COUNT > 3) {
-        T_NUMBER(3)
+        T_NUMBER(Ping, 3)
         nTimeOut = PARAM_INT(3);
     }
     if (PARAMETERS_COUNT > 4) {
-        T_NUMBER(4)
+        T_NUMBER(Ping, 4)
         nMessageSize = PARAM_INT(4);
     }
     CREATE_ARRAY(RESULT);
@@ -1774,25 +1774,25 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(Ping, 1, 5)
 END_IMPL
 //=====================================================================================//
 CONCEPT_FUNCTION_IMPL(htonl, 1)
-    T_NUMBER(0)
+    T_NUMBER(htonl, 0)
     int res = htonl((unsigned int)PARAM(0));
     RETURN_NUMBER(res);
 END_IMPL
 //=====================================================================================//
 CONCEPT_FUNCTION_IMPL(htons, 1)
-    T_NUMBER(0)
+    T_NUMBER(htons, 0)
     int res = htons((unsigned short)PARAM(0));
     RETURN_NUMBER(res);
 END_IMPL
 //=====================================================================================//
 CONCEPT_FUNCTION_IMPL(ntohl, 1)
-    T_NUMBER(0)
+    T_NUMBER(ntohl, 0)
     int res = ntohl((unsigned int)PARAM(0));
     RETURN_NUMBER(res);
 END_IMPL
 //=====================================================================================//
 CONCEPT_FUNCTION_IMPL(ntohs, 1)
-    T_NUMBER(0)
+    T_NUMBER(ntohs, 0)
     int res = ntohs((unsigned short)PARAM(0));
     RETURN_NUMBER(res);
 END_IMPL
@@ -1870,19 +1870,19 @@ int MCAST(char *addr, int port) {
 }
 
 CONCEPT_FUNCTION_IMPL(MulticastSocket, 2)
-    T_STRING(0)
-    T_NUMBER(1)
+    T_STRING(MulticastSocket, 0)
+    T_NUMBER(MulticastSocket, 1)
 
     int res = MCAST(PARAM(0), PARAM_INT(1));
     RETURN_NUMBER(res);
 END_IMPL
 //=====================================================================================//
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(MulticastJoin, 2, 3)
-    T_NUMBER(0)
-    T_STRING(1)
+    T_NUMBER(MulticastJoin, 0)
+    T_STRING(MulticastJoin, 1)
     char *iface = NULL;
     if (PARAMETERS_COUNT > 2) {
-        T_STRING(2)
+        T_STRING(MulticastJoin, 2)
         iface = PARAM(2);
     }
 
@@ -1904,11 +1904,11 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(MulticastJoin, 2, 3)
 END_IMPL
 //=====================================================================================//
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(MulticastDrop, 2, 3)
-    T_NUMBER(0)
-    T_STRING(1)
+    T_NUMBER(MulticastDrop, 0)
+    T_STRING(MulticastDrop, 1)
     char *iface = NULL;
     if (PARAMETERS_COUNT > 2) {
-        T_STRING(2)
+        T_STRING(MulticastDrop, 2)
         iface = PARAM(2);
     }
 
@@ -1930,8 +1930,8 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(MulticastDrop, 2, 3)
 END_IMPL
 //=====================================================================================//
 CONCEPT_FUNCTION_IMPL(SocketSetBlocking, 2)
-    T_NUMBER(0)
-    T_NUMBER(1)
+    T_NUMBER(SocketSetBlocking, 0)
+    T_NUMBER(SocketSetBlocking, 1)
 
     int fd = PARAM_INT(0);
     if (fd < 0)
@@ -2052,9 +2052,9 @@ int STUN(int sockfd, char *stun_server, char *stun_port, char *return_ip, unsign
 }
 
 CONCEPT_FUNCTION_IMPL(STUN, 3)
-    T_NUMBER(0)
-    T_STRING(1)
-    T_NUMBER(2)
+    T_NUMBER(STUN, 0)
+    T_STRING(STUN, 1)
+    T_NUMBER(STUN, 2)
 
     char return_ip[0xFF];
     unsigned short return_port = 0;
@@ -2070,13 +2070,13 @@ CONCEPT_FUNCTION_IMPL(STUN, 3)
 END_IMPL
 //=====================================================================================//
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(SocketPoll, 1, 3)
-    T_ARRAY(0)
+    T_ARRAY(SocketPoll, 0)
     int timeout = 0;
     if (PARAMETERS_COUNT > 1) {
         CREATE_ARRAY(PARAMETER(1));
 
         if (PARAMETERS_COUNT > 2) {
-            T_NUMBER(2)
+            T_NUMBER(SocketPoll, 2)
             timeout = (int)PARAM_INT(2);
         }
     }
@@ -2188,8 +2188,8 @@ void GetEvents(INVOKE_CALL Invoke, void *arr, struct sctp_event_subscribe *event
 #endif
 
 CONCEPT_FUNCTION_IMPL(SCTPSubscribe, 2)
-    T_NUMBER(0)
-    T_ARRAY(1)
+    T_NUMBER(SCTPSubscribe, 0)
+    T_ARRAY(SCTPSubscribe, 1)
 #ifdef WITHOUT_LIBSCTP
     RETURN_NUMBER(-1);
 #else
@@ -2220,8 +2220,8 @@ void GetInit(INVOKE_CALL Invoke, void *arr, struct sctp_initmsg *init) {
 #endif
 
 CONCEPT_FUNCTION_IMPL(SCTPInit, 2)
-    T_NUMBER(0)
-    T_ARRAY(1)
+    T_NUMBER(SCTPInit, 0)
+    T_ARRAY(SCTPInit, 1)
 #ifdef WITHOUT_LIBSCTP
     RETURN_NUMBER(-1);
 #else
@@ -2306,8 +2306,8 @@ CONCEPT_DLL_API CONCEPT_SCTPWrite CONCEPT_API_PARAMETERS {
 }
 //=====================================================================================//
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(SCTPRead, 3, 4)
-    T_NUMBER(0)
-    T_NUMBER(2)
+    T_NUMBER(SCTPRead, 0)
+    T_NUMBER(SCTPRead, 2)
     int sock = PARAM_INT(0);
     int max_size = PARAM_INT(2);
     int res = -1;
@@ -2361,10 +2361,10 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(SCTPRead, 3, 4)
 END_IMPL
 //=====================================================================================//
 CONCEPT_FUNCTION_IMPL(SCTPBindx, 4)
-    T_NUMBER(0)
-    T_ARRAY(1)
-    T_NUMBER(2)
-    T_NUMBER(3)
+    T_NUMBER(SCTPBindx, 0)
+    T_ARRAY(SCTPBindx, 1)
+    T_NUMBER(SCTPBindx, 2)
+    T_NUMBER(SCTPBindx, 3)
 
     int res = -1;
     int  count = Invoke(INVOKE_GET_ARRAY_COUNT, PARAMETER(1));
@@ -2424,10 +2424,10 @@ CONCEPT_FUNCTION_IMPL(SCTPBindx, 4)
 END_IMPL
 //=====================================================================================//
 CONCEPT_FUNCTION_IMPL(SCTPConnectx, 5)
-    T_NUMBER(0)
-    T_ARRAY(1)
-    T_NUMBER(3)
-    T_NUMBER(4)
+    T_NUMBER(SCTPConnectx, 0)
+    T_ARRAY(SCTPConnectx, 1)
+    T_NUMBER(SCTPConnectx, 3)
+    T_NUMBER(SCTPConnectx, 4)
     SET_NUMBER(2, -1);  
 
     int res = -1;
@@ -2500,3 +2500,4 @@ CONCEPT_FUNCTION_IMPL(SCTPConnectx, 5)
     RETURN_NUMBER(res);
 END_IMPL
 //=====================================================================================//
+

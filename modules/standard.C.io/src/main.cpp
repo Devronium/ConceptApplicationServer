@@ -2496,13 +2496,13 @@ CONCEPT_DLL_API CONCEPT___errno CONCEPT_API_PARAMETERS {
 }
 //-----------------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(__getenv, 1)
-    T_STRING(0)
+    T_STRING(__getenv, 0)
 
     RETURN_STRING(getenv(PARAM(0)))
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(__putenv, 1)
-    T_STRING(0)
+    T_STRING(__putenv, 0)
 #ifdef _WIN32
     RETURN_NUMBER(_putenv(PARAM(0)))
 #else
@@ -2511,25 +2511,25 @@ CONCEPT_FUNCTION_IMPL(__putenv, 1)
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_system, 1)
-    T_STRING(0)
+    T_STRING(_system, 0)
 
     RETURN_NUMBER(system(PARAM(0)))
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(rename, 2)
-    T_STRING(0)
-    T_STRING(1)
+    T_STRING(rename, 0)
+    T_STRING(rename, 1)
 
     RETURN_NUMBER(rename(PARAM(0), PARAM(1)))
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(IniGet, 3, 4)
-    T_STRING(0)
-    T_STRING(1)
-    T_STRING(2)
+    T_STRING(IniGet, 0)
+    T_STRING(IniGet, 1)
+    T_STRING(IniGet, 2)
 
     if (PARAMETERS_COUNT > 3) {
-        T_STRING(3)
+        T_STRING(IniGet, 3)
         RETURN_STRING(GetKey(PARAM(0), PARAM(1), PARAM(2), PARAM(3)).c_str());
     } else {
         RETURN_STRING(GetKey(PARAM(0), PARAM(1), PARAM(2), "").c_str());
@@ -2537,23 +2537,23 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(IniGet, 3, 4)
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(IniSet, 4)
-    T_STRING(0)
-    T_STRING(1)
-    T_STRING(2)
-    T_STRING(3)
+    T_STRING(IniSet, 0)
+    T_STRING(IniSet, 1)
+    T_STRING(IniSet, 2)
+    T_STRING(IniSet, 3)
 
     RETURN_NUMBER(SetKey(PARAM(0), PARAM(1), PARAM(2), PARAM(3)));
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(popen, 2)
-    T_STRING(0)
-    T_STRING(1)
+    T_STRING(popen, 0)
+    T_STRING(popen, 1)
 
     RETURN_NUMBER((SYS_INT)popen(PARAM(0), PARAM(1)))
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(pclose, 1)
-    T_NUMBER(0)
+    T_NUMBER(pclose, 0)
     if (PARAM_INT(0)) {
         RETURN_NUMBER(pclose((FILE *)PARAM_INT(0)))
     } else {
@@ -2562,7 +2562,7 @@ CONCEPT_FUNCTION_IMPL(pclose, 1)
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_WEXITSTATUS, 1)
-    T_NUMBER(0)
+    T_NUMBER(_WEXITSTATUS, 0)
 #ifdef _WIN32
     RETURN_NUMBER(PARAM_INT(0))
 #else
@@ -2585,7 +2585,7 @@ CONCEPT_FUNCTION_IMPL(_BITS, 0)
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(IsSymlink, 1)
-    T_STRING(0)
+    T_STRING(IsSymlink, 0)
 #ifdef _WIN32
     RETURN_NUMBER(0)
 #else
@@ -2605,9 +2605,9 @@ CONCEPT_FUNCTION_IMPL(IsSymlink, 1)
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(utime, 3)
-    T_STRING(0)
-    T_NUMBER(1)
-    T_NUMBER(2)
+    T_STRING(utime, 0)
+    T_NUMBER(utime, 1)
+    T_NUMBER(utime, 2)
 
     utimbuf buf;
     buf.actime  = (time_t)PARAM_INT(1);
@@ -2617,28 +2617,28 @@ CONCEPT_FUNCTION_IMPL(utime, 3)
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(dup, 1)
-    T_NUMBER(0)
+    T_NUMBER(dup, 0)
 
     RETURN_NUMBER(dup(PARAM_INT(0)));
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(dup2, 2)
-    T_NUMBER(0)
-    T_NUMBER(1)
+    T_NUMBER(dup2, 0)
+    T_NUMBER(dup2, 1)
 
     RETURN_NUMBER(dup2(PARAM_INT(0), PARAM_INT(1)));
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(fdopen, 2)
-    T_NUMBER(0)
-    T_STRING(1)
+    T_NUMBER(fdopen, 0)
+    T_STRING(fdopen, 1)
 
     RETURN_NUMBER((SYS_INT)fdopen(PARAM_INT(0), PARAM(1)));
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(pipe, 2)
-    T_NUMBER(0)
-    T_NUMBER(1)
+    T_NUMBER(pipe, 0)
+    T_NUMBER(pipe, 1)
 
     int p[2];
     p[0] = PARAM_INT(0);
@@ -2657,8 +2657,8 @@ CONCEPT_FUNCTION_IMPL(pipe, 2)
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(socketpair, 2)
-    T_NUMBER(0)
-    T_NUMBER(1)
+    T_NUMBER(socketpair, 0)
+    T_NUMBER(socketpair, 1)
 
     int p[2];
     p[0] = PARAM_INT(0);
@@ -2679,7 +2679,7 @@ CONCEPT_FUNCTION_IMPL(socketpair, 2)
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(close, 1)
-    T_NUMBER(0)
+    T_NUMBER(close, 0)
     RETURN_NUMBER(close(PARAM_INT(0)))
 END_IMPL
 //---------------------------------------------------------------------------
@@ -2759,22 +2759,22 @@ int remap_pipe_stdin_stdout(int rpipe, int wpipe) {
 
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(remap_pipe_stdin_stdout, 2)
-    T_NUMBER(0)
-    T_NUMBER(1)
+    T_NUMBER(remap_pipe_stdin_stdout, 0)
+    T_NUMBER(remap_pipe_stdin_stdout, 1)
 
     RETURN_NUMBER(remap_pipe_stdin_stdout(PARAM_INT(0), PARAM_INT(1)))
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(write, 2)
-    T_NUMBER(0)
-    T_STRING(1)
+    T_NUMBER(write, 0)
+    T_STRING(write, 1)
 
     RETURN_NUMBER(write(PARAM_INT(0), PARAM(1), PARAM_LEN(1)));
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(read, 3)
-    T_NUMBER(0)
-    T_NUMBER(2)
+    T_NUMBER(read, 0)
+    T_NUMBER(read, 2)
 
     int size = PARAM_INT(2);
     char *c = 0;
@@ -2796,36 +2796,36 @@ CONCEPT_FUNCTION_IMPL(read, 3)
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(seek, 3)
-    T_NUMBER(0)
-    T_NUMBER(1)
-    T_NUMBER(2)
+    T_NUMBER(seek, 0)
+    T_NUMBER(seek, 1)
+    T_NUMBER(seek, 2)
 
     RETURN_NUMBER(lseek(PARAM_INT(0), PARAM_INT(1), PARAM_INT(2)))
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(umask, 1)
-    T_NUMBER(0)
+    T_NUMBER(umask, 0)
 
     mode_t res = umask(PARAM_INT(0));
     RETURN_NUMBER(res)
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(chmod, 2)
-    T_STRING(0)
-    T_NUMBER(1)
+    T_STRING(chmod, 0)
+    T_NUMBER(chmod, 1)
 
     int res = chmod(PARAM(0), PARAM_INT(1));
     RETURN_NUMBER(res)
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(strerror, 1)
-    T_NUMBER(0)
+    T_NUMBER(strerror, 0)
     char *res = strerror(PARAM_INT(0));
     RETURN_STRING(res)
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(panicexit, 1)
-    T_NUMBER(0)
+    T_NUMBER(panicexit, 0)
     exit(PARAM_INT(0));
     RETURN_NUMBER(0);
 END_IMPL
@@ -2849,8 +2849,8 @@ CONCEPT_FUNCTION_IMPL(getpgrp, 0)
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(kill, 2)
-    T_NUMBER(0)
-    T_NUMBER(1)
+    T_NUMBER(kill, 0)
+    T_NUMBER(kill, 1)
 #ifdef _WIN32
     int res = -1;
     switch (PARAM_INT(1)) {
@@ -2919,7 +2919,7 @@ char **GetCharList2(void *arr, INVOKE_CALL _Invoke) {
 
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(ExecuteProcess, 1, 8)
-    T_STRING(0)
+    T_STRING(ExecuteProcess, 0)
     int do_wait = 1;
     SYS_INT res      = -1;
     int     n_stdout = -1;
@@ -2927,21 +2927,21 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(ExecuteProcess, 1, 8)
     int     n_stderr = -1;
     char    *path    = 0;
     if (PARAMETERS_COUNT > 1) {
-        T_STRING(1);
+        T_STRING(ExecuteProcess, 1);
         if (PARAM_LEN(1) > 0)
             path = PARAM(1);
     }
 
     if (PARAMETERS_COUNT > 5) {
-        T_NUMBER(5)
+        T_NUMBER(ExecuteProcess, 5)
         n_stdout = PARAM_INT(5);
     }
     if (PARAMETERS_COUNT > 6) {
-        T_NUMBER(6)
+        T_NUMBER(ExecuteProcess, 6)
         n_stdin = PARAM_INT(6);
     }
     if (PARAMETERS_COUNT > 7) {
-        T_NUMBER(7)
+        T_NUMBER(ExecuteProcess, 7)
         n_stderr = PARAM_INT(7);
     }
     char *dummy_param[2];
@@ -2959,7 +2959,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(ExecuteProcess, 1, 8)
 #endif
 
     if (PARAMETERS_COUNT > 2) {
-        T_ARRAY(2)
+        T_ARRAY(ExecuteProcess, 2)
 #ifdef _WIN32
         if (use_mod_version)
             parameters = GetCharList(PARAMETER(2), Invoke);
@@ -2972,7 +2972,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(ExecuteProcess, 1, 8)
 #endif
     }
     if (PARAMETERS_COUNT > 3) {
-        T_ARRAY(3)
+        T_ARRAY(ExecuteProcess, 3)
 #ifdef _WIN32
         if (use_mod_version)
             env = GetCharList(PARAMETER(3), Invoke);
@@ -2983,7 +2983,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(ExecuteProcess, 1, 8)
 #endif
     }
     if (PARAMETERS_COUNT > 4) {
-        T_NUMBER(4);
+        T_NUMBER(ExecuteProcess, 4);
         do_wait = PARAM_INT(4);
     }
 
@@ -3129,7 +3129,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(ExecuteProcess, 1, 8)
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(ExecuteJoin, 1)
-    T_HANDLE(0)
+    T_HANDLE(ExecuteJoin, 0)
     SYS_INT pid = PARAM_INT(0);
     int res = 0;
     if (pid > 0) {
@@ -3147,7 +3147,7 @@ CONCEPT_FUNCTION_IMPL(ExecuteJoin, 1)
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(ExecuteIsRunning, 1)
-    T_HANDLE(0)
+    T_HANDLE(ExecuteIsRunning, 0)
     SYS_INT pid = PARAM_INT(0);
     int res = 0;
     if (pid > 0) {
@@ -3176,10 +3176,10 @@ CONCEPT_FUNCTION_IMPL(ExecuteIsRunning, 1)
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(mkfifo, 1, 2)
-    T_STRING(0)
+    T_STRING(mkfifo, 0)
     int rights = 0666;
     if (PARAMETERS_COUNT > 1) {
-        T_NUMBER(1)
+        T_NUMBER(mkfifo, 1)
         rights = PARAM_INT(1);
     }
     int res = -1;
@@ -3197,11 +3197,11 @@ CONCEPT_FUNCTION_IMPL(getcwd, 0)
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(Duplicate, 1, 2)
-    T_HANDLE(0)
+    T_HANDLE(Duplicate, 0)
 
     SYS_INT phandle = 0;
     if (PARAMETERS_COUNT > 1) {
-        T_NUMBER(1)
+        T_NUMBER(Duplicate, 1)
         phandle = (SYS_INT)PARAM(1);
         //if (phandle)
         //    phandle = (SYS_INT)OpenProcess(PROCESS_DUP_HANDLE, TRUE, GetProcessId((HANDLE)phandle));
@@ -3242,7 +3242,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(Duplicate, 1, 2)
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(setuid, 1)
-    T_NUMBER(0)
+    T_NUMBER(setuid, 0)
 #ifdef _WIN32
     RETURN_NUMBER(-2);
 #else
@@ -3252,7 +3252,7 @@ CONCEPT_FUNCTION_IMPL(setuid, 1)
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(setgid, 1)
-    T_NUMBER(0)
+    T_NUMBER(setgid, 0)
 #ifdef _WIN32
     RETURN_NUMBER(-2);
 #else
@@ -3262,7 +3262,7 @@ CONCEPT_FUNCTION_IMPL(setgid, 1)
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(getpwnam, 1)
-    T_STRING(0)
+    T_STRING(getpwnam, 0)
 
     CREATE_ARRAY(RESULT);
 #ifndef _WIN32
@@ -3285,7 +3285,7 @@ CONCEPT_FUNCTION_IMPL(getpwnam, 1)
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(getpwuid, 1)
-    T_NUMBER(0)
+    T_NUMBER(getpwuid, 0)
 
     CREATE_ARRAY(RESULT);
 #ifndef _WIN32
@@ -3308,12 +3308,12 @@ CONCEPT_FUNCTION_IMPL(getpwuid, 1)
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(SetCurrentUser, 2, 3)
-    T_STRING(0)
-    T_STRING(1)
+    T_STRING(SetCurrentUser, 0)
+    T_STRING(SetCurrentUser, 1)
 
     AnsiString domain(".");
     if (PARAMETERS_COUNT > 2) {
-        T_STRING(2)
+        T_STRING(SetCurrentUser, 2)
 
         domain = PARAM(2);
     }
@@ -3355,15 +3355,15 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(SetCurrentUser, 2, 3)
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(setrlimit, 2, 3)
-    T_NUMBER(0)
-    T_NUMBER(1)
+    T_NUMBER(setrlimit, 0)
+    T_NUMBER(setrlimit, 1)
 
     int t = PARAM_INT(0);
 
     int soft_limit = PARAM_INT(1);
     int hard_limit = -1;
     if (PARAMETERS_COUNT > 2) {
-        T_NUMBER(2)
+        T_NUMBER(setrlimit, 2)
         hard_limit = PARAM_INT(2);
     }
 #ifdef _WIN32
@@ -3416,7 +3416,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(setrlimit, 2, 3)
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(getrlimit, 1)
-    T_NUMBER(0)
+    T_NUMBER(getrlimit, 0)
 
     int t = PARAM_INT(0);
     CREATE_ARRAY(RESULT);
@@ -3495,8 +3495,8 @@ int set_nonblocking_flag(int desc, bool value) {
 #endif
 
 CONCEPT_FUNCTION_IMPL(SetNonBlocking, 2)
-    T_NUMBER(0)
-    T_NUMBER(1)
+    T_NUMBER(SetNonBlocking, 0)
+    T_NUMBER(SetNonBlocking, 1)
     int fd = PARAM_INT(0);
 #ifdef _WIN32
     int res = -2;
@@ -3527,15 +3527,15 @@ CONCEPT_FUNCTION_IMPL(SetNonBlocking, 2)
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(DescriptorWrite, 2, 3)
-    T_NUMBER(0)
-    T_NUMBER(1)
+    T_NUMBER(DescriptorWrite, 0)
+    T_NUMBER(DescriptorWrite, 1)
 
     int sock = PARAM_INT(0);
     int fd = PARAM_INT(1);
 
     SYS_INT refPID = -1;
     if (PARAMETERS_COUNT > 2) {
-        T_NUMBER(2)
+        T_NUMBER(DescriptorWrite, 2)
         refPID = (SYS_INT)PARAM(2);
     }
 #ifdef _WIN32
@@ -3604,7 +3604,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(DescriptorWrite, 2, 3)
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(DescriptorRead, 2)
-    T_NUMBER(0)
+    T_NUMBER(DescriptorRead, 0)
     SET_NUMBER(1, -1)
 
     int sock = PARAM_INT(0);
@@ -3736,11 +3736,11 @@ int getrusage(SYS_INT who, struct rusage *usage) {
 }
 #endif
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(getrusage, 1, 2)
-    T_NUMBER(0);
+    T_NUMBER(getrusage, 0);
 
     bool is_process_handle = true;
     if (PARAMETERS_COUNT > 1) {
-        T_NUMBER(1);
+        T_NUMBER(getrusage, 1);
         if (!PARAM_INT(1))
             is_process_handle = false;
     }
@@ -3785,7 +3785,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(getrusage, 1, 2)
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(sysconf, 1)
-    T_NUMBER(0)
+    T_NUMBER(sysconf, 0)
 #ifdef _WIN32
     int param = PARAM_INT(0);
     long        res = -1;
@@ -3817,7 +3817,7 @@ CONCEPT_FUNCTION_IMPL(sysconf, 1)
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(__PID, 1)
-    T_NUMBER(0)
+    T_NUMBER(__PID, 0)
 #ifdef _WIN32
     DWORD pid = PARAM_INT(0);
     if (PARAM_INT(0) > 0)
@@ -3829,7 +3829,7 @@ CONCEPT_FUNCTION_IMPL(__PID, 1)
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(__cpuid, 1)
-    T_NUMBER(0)
+    T_NUMBER(__cpuid, 0)
 
     unsigned int CPUInfo[4];
     __cpuid(CPUInfo, PARAM_INT(0));
@@ -3842,8 +3842,8 @@ CONCEPT_FUNCTION_IMPL(__cpuid, 1)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(ftruncate, 2)
-    T_HANDLE(0)
-    T_NUMBER(1)
+    T_HANDLE(ftruncate, 0)
+    T_NUMBER(ftruncate, 1)
     FILE * file = (FILE *)(SYS_INT)PARAM(0);
     int fd = fileno(file);
 #ifdef _WIN32
@@ -3855,19 +3855,19 @@ CONCEPT_FUNCTION_IMPL(ftruncate, 2)
 END_IMPL
 //-----------------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(LockFileBytes, 4, 6)
-    T_HANDLE(0)
-    T_NUMBER(1) // lock_type
-    T_NUMBER(2) // start
-    T_NUMBER(3) // len
+    T_HANDLE(LockFileBytes, 0)
+    T_NUMBER(LockFileBytes, 1) // lock_type
+    T_NUMBER(LockFileBytes, 2) // start
+    T_NUMBER(LockFileBytes, 3) // len
 
     int f_lock_flags = F_SETLK;
     int whence = SEEK_SET;
     if (PARAMETERS_COUNT > 3) {
-        T_NUMBER(4)
+        T_NUMBER(LockFileBytes, 4)
         whence = PARAM_INT(4);
     }
     if (PARAMETERS_COUNT > 5) {
-        T_NUMBER(5)
+        T_NUMBER(LockFileBytes, 5)
         f_lock_flags = PARAM_INT(5);
     }
 
@@ -3908,7 +3908,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(LockFileBytes, 4, 6)
 END_IMPL
 //-----------------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(__ProcessTitle, 1)
-    T_STRING(0)
+    T_STRING(__ProcessTitle, 0)
     int res = -2;
 #ifdef _WIN32
     res = 0;
@@ -3927,12 +3927,12 @@ END_IMPL
 //-----------------------------------------------------------------------------------
 #ifdef WITH_MMAP_FUNCTIONS
 CONCEPT_FUNCTION_IMPL(mmap, 6)
-    T_NUMBER(0)
-    T_NUMBER(1)
-    T_NUMBER(2)
-    T_NUMBER(3)
-    T_NUMBER(4)
-    T_NUMBER(5)
+    T_NUMBER(mmap, 0)
+    T_NUMBER(mmap, 1)
+    T_NUMBER(mmap, 2)
+    T_NUMBER(mmap, 3)
+    T_NUMBER(mmap, 4)
+    T_NUMBER(mmap, 5)
 
     void *addr = (void *)(SYS_INT)PARAM(0);
     size_t len     = (SYS_INT)PARAM(1);
@@ -3945,8 +3945,8 @@ CONCEPT_FUNCTION_IMPL(mmap, 6)
 END_IMPL
 //-----------------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(munmap, 2)
-    T_HANDLE(0)
-    T_NUMBER(1)
+    T_HANDLE(munmap, 0)
+    T_NUMBER(munmap, 1)
     void *addr = (void *)(SYS_INT)PARAM(0);
     size_t len = (SYS_INT)PARAM(1);
     int    res = munmap(addr, len);
@@ -3954,9 +3954,9 @@ CONCEPT_FUNCTION_IMPL(munmap, 2)
 END_IMPL
 //-----------------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(mprotect, 3)
-    T_HANDLE(0)
-    T_NUMBER(1)
-    T_NUMBER(2)
+    T_HANDLE(mprotect, 0)
+    T_NUMBER(mprotect, 1)
+    T_NUMBER(mprotect, 2)
     void *addr = (void *)(SYS_INT)PARAM(0);
     size_t len  = (SYS_INT)PARAM(1);
     int    prot = PARAM_INT(2);
@@ -3965,9 +3965,9 @@ CONCEPT_FUNCTION_IMPL(mprotect, 3)
 END_IMPL
 //-----------------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(msync, 3)
-    T_HANDLE(0)
-    T_NUMBER(1)
-    T_NUMBER(2)
+    T_HANDLE(msync, 0)
+    T_NUMBER(msync, 1)
+    T_NUMBER(msync, 2)
     void *addr = (void *)(SYS_INT)PARAM(0);
     size_t len   = (SYS_INT)PARAM(1);
     int    flags = PARAM_INT(2);
@@ -3976,8 +3976,8 @@ CONCEPT_FUNCTION_IMPL(msync, 3)
 END_IMPL
 //-----------------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(mlock, 2)
-    T_HANDLE(0)
-    T_NUMBER(1)
+    T_HANDLE(mlock, 0)
+    T_NUMBER(mlock, 1)
     void *addr = (void *)(SYS_INT)PARAM(0);
     size_t len = (SYS_INT)PARAM(1);
     int    res = mlock(addr, len);
@@ -3985,8 +3985,8 @@ CONCEPT_FUNCTION_IMPL(mlock, 2)
 END_IMPL
 //-----------------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(munlock, 2)
-    T_HANDLE(0)
-    T_NUMBER(1)
+    T_HANDLE(munlock, 0)
+    T_NUMBER(munlock, 1)
     void *addr = (void *)(SYS_INT)PARAM(0);
     size_t len = (SYS_INT)PARAM(1);
     int    res = munlock(addr, len);
@@ -3994,9 +3994,9 @@ CONCEPT_FUNCTION_IMPL(munlock, 2)
 END_IMPL
 //-----------------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(mread, 3)
-    T_HANDLE(0)
-    T_NUMBER(1)
-    T_NUMBER(2)
+    T_HANDLE(mread, 0)
+    T_NUMBER(mread, 1)
+    T_NUMBER(mread, 2)
     void *addr = (void *)(SYS_INT)PARAM(0);
     SYS_INT offset = (SYS_INT)PARAM(1);
     SYS_INT len    = PARAM_INT(2);
@@ -4008,9 +4008,9 @@ CONCEPT_FUNCTION_IMPL(mread, 3)
 END_IMPL
 //-----------------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(mwrite, 3)
-    T_HANDLE(0)
-    T_NUMBER(1)
-    T_STRING(2)
+    T_HANDLE(mwrite, 0)
+    T_NUMBER(mwrite, 1)
+    T_STRING(mwrite, 2)
     void *addr = (void *)(SYS_INT)PARAM(0);
     SYS_INT offset = (SYS_INT)PARAM(1);
     memcpy((char *)addr + offset, PARAM(2), PARAM_LEN(2));
@@ -4019,20 +4019,20 @@ END_IMPL
 #endif
 //-----------------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(fsync2, 1)
-    T_HANDLE(0)
+    T_HANDLE(fsync2, 0)
     FILE * f = (FILE *)(SYS_INT)PARAM(0);
     int res = fsync(fileno(f));
     RETURN_NUMBER(res)
 END_IMPL
 //-----------------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(fsync, 1)
-    T_NUMBER(0)
+    T_NUMBER(fsync, 0)
     int res = fsync(PARAM_INT(0));
     RETURN_NUMBER(res)
 END_IMPL
 //-----------------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(fdatasync2, 1)
-    T_HANDLE(0)
+    T_HANDLE(fdatasync2, 0)
     FILE * f = (FILE *)(SYS_INT)PARAM(0);
 #if _POSIX_C_SOURCE >= 199309L || _XOPEN_SOURCE >= 500
     int res = fdatasync(fileno(f));
@@ -4043,7 +4043,7 @@ CONCEPT_FUNCTION_IMPL(fdatasync2, 1)
 END_IMPL
 //-----------------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(fdatasync, 1)
-    T_NUMBER(0)
+    T_NUMBER(fdatasync, 0)
 #if _POSIX_C_SOURCE >= 199309L || _XOPEN_SOURCE >= 500
     int res = fdatasync(PARAM_INT(0));
 #else
@@ -4053,7 +4053,7 @@ CONCEPT_FUNCTION_IMPL(fdatasync, 1)
 END_IMPL
 //-----------------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(availablespace, 1)
-    T_STRING(0)
+    T_STRING(availablespace, 0)
     NUMBER free_space = -1;
 #ifdef _WIN32
     ULARGE_INTEGER lpFreeBytesAvailable;
@@ -4103,8 +4103,8 @@ void signal_handler(int signum) {
 #endif
 
 CONCEPT_FUNCTION_IMPL(signal, 2)
-    T_NUMBER(0)
-    T_DELEGATE(1)
+    T_NUMBER(signal, 0)
+    T_DELEGATE(signal, 1)
     int res = -1;
     int signum = PARAM_INT(0);
 #ifdef _WIN32
@@ -4147,7 +4147,7 @@ CONCEPT_FUNCTION_IMPL(signal, 2)
 END_IMPL
 //-----------------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(alarm, 1)
-    T_NUMBER(0)
+    T_NUMBER(alarm, 0)
 #ifdef _WIN32
     RETURN_NUMBER(-1);
 #else
@@ -4213,3 +4213,4 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(getpassword, 0, 1)
     }
 END_IMPL
 //-----------------------------------------------------------------------------------
+

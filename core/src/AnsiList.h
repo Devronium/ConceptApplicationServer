@@ -49,6 +49,7 @@ public:
     void *Item(int i);
     void *Delete(int i);
     void *Remove(int i);
+    void ToStatic(void **ptr, int max_elements);
     void Clear();
     void Insert(void *data, int i, signed char data_type, signed char no_clean = 0);
     int Count();
@@ -57,4 +58,3 @@ public:
     ~AnsiList(void);
 };
 #endif
-

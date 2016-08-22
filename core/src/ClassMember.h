@@ -93,6 +93,6 @@ public:
     inline void *GetClass() { return Defined_In; }
     inline const char *GetName() { return NAME; }
 #endif
+    void EnsureThreadSafe();
 };
 #endif // __CLASSMEMBER
-

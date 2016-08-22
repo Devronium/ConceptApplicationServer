@@ -625,7 +625,7 @@ CONCEPT_DLL_API CONCEPT_HexToNumber CONCEPT_API_PARAMETERS {
 }
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(HexToString, 1)
-    T_STRING(0)
+    T_STRING(HexToString, 0)
     unsigned char *str = (unsigned char *)PARAM(0);
     int len = PARAM_LEN(0);
     if (len > 1) {
@@ -669,7 +669,7 @@ CONCEPT_FUNCTION_IMPL(HexToString, 1)
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(StringToHex, 1)
-    T_STRING(0)
+    T_STRING(StringToHex, 0)
     unsigned char *str = (unsigned char *)PARAM(0);
     int len = PARAM_LEN(0);
     if (len > 0) {
@@ -1128,7 +1128,7 @@ CONCEPT_DLL_API CONCEPT_StrFrom CONCEPT_API_PARAMETERS {
 }
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(URIEncode, 1)
-    T_STRING(0)
+    T_STRING(URIEncode, 0)
     std::string in((const char *)PARAM(0), PARAM_LEN(0));
 
     std::string out = UriEncode(in);
@@ -1137,7 +1137,7 @@ CONCEPT_FUNCTION_IMPL(URIEncode, 1)
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(URIDecode, 1)
-    T_STRING(0)
+    T_STRING(URIDecode, 0)
     std::string in((const char *)PARAM(0), PARAM_LEN(0));
 
     std::string out = UriDecode(in);
@@ -1146,7 +1146,7 @@ CONCEPT_FUNCTION_IMPL(URIDecode, 1)
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(UTF8ToWide, 1)
-    T_STRING(0)
+    T_STRING(UTF8ToWide, 0)
     if (PARAM_LEN(0) <= 0) {
         RETURN_STRING("");
         return 0;
@@ -1162,7 +1162,7 @@ CONCEPT_FUNCTION_IMPL(UTF8ToWide, 1)
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(WideToUTF8, 1)
-    T_STRING(0)
+    T_STRING(WideToUTF8, 0)
     if (PARAM_LEN(0) <= 0) {
         RETURN_STRING("");
         return 0;
@@ -1178,8 +1178,8 @@ CONCEPT_FUNCTION_IMPL(WideToUTF8, 1)
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(UTF8Offset, 2)
-    T_STRING(0)
-    T_NUMBER(1)
+    T_STRING(UTF8Offset, 0)
+    T_NUMBER(UTF8Offset, 1)
     if (PARAM_LEN(0) <= 0) {
         RETURN_NUMBER(-1);
         return 0;
@@ -1189,8 +1189,8 @@ CONCEPT_FUNCTION_IMPL(UTF8Offset, 2)
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(UTF8Charnum, 2)
-    T_STRING(0)
-    T_NUMBER(1)
+    T_STRING(UTF8Charnum, 0)
+    T_NUMBER(UTF8Charnum, 1)
 
     if (PARAM_LEN(0) <= 0) {
         RETURN_NUMBER(-1);
@@ -1201,8 +1201,8 @@ CONCEPT_FUNCTION_IMPL(UTF8Charnum, 2)
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(UTF8NextChar, 2)
-    T_STRING(0)
-    T_NUMBER(1)
+    T_STRING(UTF8NextChar, 0)
+    T_NUMBER(UTF8NextChar, 1)
 
     int i = PARAM_INT(1);
     RETURN_NUMBER(u8_nextchar(PARAM(0), &i, PARAM_LEN(0)));
@@ -1210,8 +1210,8 @@ CONCEPT_FUNCTION_IMPL(UTF8NextChar, 2)
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(UTF8Next, 2)
-    T_STRING(0)
-    T_NUMBER(1)
+    T_STRING(UTF8Next, 0)
+    T_NUMBER(UTF8Next, 1)
 
     int i = PARAM_INT(1);
     u8_inc(PARAM(0), &i);
@@ -1220,8 +1220,8 @@ CONCEPT_FUNCTION_IMPL(UTF8Next, 2)
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(UTF8Prev, 2)
-    T_STRING(0)
-    T_NUMBER(1)
+    T_STRING(UTF8Prev, 0)
+    T_NUMBER(UTF8Prev, 1)
 
     int i = PARAM_INT(1);
     u8_dec(PARAM(0), &i);
@@ -1230,7 +1230,7 @@ CONCEPT_FUNCTION_IMPL(UTF8Prev, 2)
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(UTF8Escape, 1)
-    T_STRING(0)
+    T_STRING(UTF8Escape, 0)
     if (PARAM_LEN(0) <= 0) {
         RETURN_STRING("");
         return 0;
@@ -1245,7 +1245,7 @@ CONCEPT_FUNCTION_IMPL(UTF8Escape, 1)
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(UTF8Unescape, 1)
-    T_STRING(0)
+    T_STRING(UTF8Unescape, 0)
     if (PARAM_LEN(0) <= 0) {
         RETURN_STRING("");
         return 0;
@@ -1260,7 +1260,7 @@ CONCEPT_FUNCTION_IMPL(UTF8Unescape, 1)
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(UTF8Length, 1)
-    T_STRING(0)
+    T_STRING(UTF8Length, 0)
 
     if (PARAM_LEN(0) > 0) {
         RETURN_NUMBER((NUMBER)u8_strlen(PARAM(0), PARAM_LEN(0)));
@@ -15214,10 +15214,10 @@ int toUpper(char *str, int length, char *out, bool turkic = false) {
 
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(UTF8ToLower, 1, 2)
-    T_STRING(0)
+    T_STRING(UTF8ToLower, 0)
     bool turkic = false;
     if (PARAMETERS_COUNT > 1) {
-        T_NUMBER(1)
+        T_NUMBER(UTF8ToLower, 1)
         turkic = (bool)PARAM_INT(1);
     }
 
@@ -15238,10 +15238,10 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(UTF8ToLower, 1, 2)
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(UTF8ToUpper, 1, 2)
-    T_STRING(0)
+    T_STRING(UTF8ToUpper, 0)
     bool turkic = false;
     if (PARAMETERS_COUNT > 1) {
-        T_NUMBER(1)
+        T_NUMBER(UTF8ToUpper, 1)
         turkic = (bool)PARAM_INT(1);
     }
     INTEGER blen = PARAM_LEN(0);
@@ -15261,7 +15261,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(UTF8ToUpper, 1, 2)
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(Soundex, 1)
-    T_STRING(0)
+    T_STRING(Soundex, 0)
     char *in = PARAM(0);
     static int code[] =
     { 0, 1, 2, 3, 0, 1, 2, 0, 0, 2, 2, 4, 5, 5, 0, 1, 2, 6, 2, 3, 0, 1, 0, 2, 0, 2 };
@@ -15549,7 +15549,7 @@ void phonetic(char *name, char *metaph, int metalen) {
 }
 
 CONCEPT_FUNCTION_IMPL(Metaphone, 1)
-    T_STRING(0)
+    T_STRING(Metaphone, 0)
     char *name = PARAM(0);
     char metaph[0xFFF];
 
@@ -16567,7 +16567,7 @@ DoubleMetaphone(char *str, int length, char **codes) {
 
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(DoubleMetaphone, 1, 2)
-    T_STRING(0)
+    T_STRING(DoubleMetaphone, 0)
     char *name = PARAM(0);
     char *codes[2];
     codes[0] = 0;
@@ -16593,7 +16593,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(DoubleMetaphone, 1, 2)
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(calc, 1, 2)
-    T_STRING(0)
+    T_STRING(calc, 0)
     double result = 0;
     ExprEval eval;
     double   res = eval.Eval(PARAM(0));
@@ -16670,7 +16670,7 @@ int ucs2_to_utf8(int ucs2, char **utf8) {  /* Convert UCS-2 to UTF-8 */
 }
 
 CONCEPT_FUNCTION_IMPL(U_, 1)
-    T_NUMBER(0)
+    T_NUMBER(U_, 0)
 
     char *utf;
     int len = ucs2_to_utf8(PARAM_INT(0), &utf);
@@ -16681,3 +16681,4 @@ CONCEPT_FUNCTION_IMPL(U_, 1)
     }
 END_IMPL
 //---------------------------------------------------------------------------
+

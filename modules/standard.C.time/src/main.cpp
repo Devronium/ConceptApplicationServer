@@ -500,7 +500,7 @@ CONCEPT_DLL_API CONCEPT__microseconds CONCEPT_API_PARAMETERS {
     struct timeval tv;
     gettimeofday(&tv, NULL);
     tv.tv_sec -= base_time;
-    SetVariable(RESULT, VARIABLE_NUMBER, "", (uint64_t)(tv.tv_sec * 1000000 + tv.tv_usec));
+    SetVariable(RESULT, VARIABLE_NUMBER, "", (uint64_t)((uint64_t)tv.tv_sec * 1000000 + (uint64_t)tv.tv_usec));
     return 0;
 }
 //-----------------------------------------------------------------------------------
@@ -751,8 +751,8 @@ CONCEPT_DLL_API CONCEPT__mktime CONCEPT_API_PARAMETERS {
 }
 //-----------------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(setlocale, 2)
-    T_NUMBER(0)
-    T_STRING(1)
+    T_NUMBER(setlocale, 0)
+    T_STRING(setlocale, 1)
 
     RETURN_STRING(setlocale(PARAM_INT(0), PARAM(1)))
 END_IMPL
@@ -850,8 +850,8 @@ CONCEPT_DLL_API CONCEPT__slocaltime CONCEPT_API_PARAMETERS {
 }
 //-----------------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(strftime, 2)
-    T_ARRAY(0)
-    T_STRING(1)
+    T_ARRAY(strftime, 0)
+    T_STRING(strftime, 1)
     char res[0xFFF];
     res[0xFFE] = 0;
 
@@ -864,8 +864,8 @@ CONCEPT_FUNCTION_IMPL(strftime, 2)
 END_IMPL
 //-----------------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(strftime2, 2)
-    T_NUMBER(0)
-    T_STRING(1)
+    T_NUMBER(strftime2, 0)
+    T_STRING(strftime2, 1)
     char res[0xFFF];
     res[0xFFE] = 0;
 
@@ -880,8 +880,8 @@ CONCEPT_FUNCTION_IMPL(strftime2, 2)
 END_IMPL
 //-----------------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(strptime, 2, 3)
-    T_STRING(0)
-    T_STRING(1)
+    T_STRING(strptime, 0)
+    T_STRING(strptime, 1)
 
     struct tm timeinfo2;
     memset(&timeinfo2, 0, sizeof(timeinfo2));
@@ -922,8 +922,8 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(strptime, 2, 3)
 END_IMPL
 //-----------------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(strptime2, 2, 3)
-    T_STRING(0)
-    T_STRING(1)
+    T_STRING(strptime2, 0)
+    T_STRING(strptime2, 1)
 
     struct tm timeinfo2;
     memset(&timeinfo2, 0, sizeof(timeinfo2));
@@ -952,3 +952,4 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(strptime2, 2, 3)
     RETURN_NUMBER(res);
 END_IMPL
 //-----------------------------------------------------------------------------------
+
