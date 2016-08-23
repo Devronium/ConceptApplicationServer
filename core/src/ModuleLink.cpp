@@ -1963,6 +1963,7 @@ INTEGER Invoke(INTEGER INVOKE_TYPE, ...) {
                     (*worker)->pipe_read   = -1;
                     (*worker)->pipe_write  = -1;
                     (*worker)->direct_pipe = -1;
+                    (*worker)->Workers     = ref_pif->Workers;
                     semv(ref_pif->DelegateLock);
                 } else
                     result = INVALID_INVOKE_PARAMETER;

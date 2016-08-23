@@ -17,6 +17,11 @@
   #define DELTA_EPOCH_IN_MICROSECS    11644473600000000ULL
  #endif
 
+#define localtime_r(a,b)    localtime(a)
+#define gmtime_r(a,b)       gmtime(a)
+#define ctime_r(a,b)        ctime(a)
+#define asctime_r(a,b)      asctime(a)
+
 struct timezone {
     int tz_minuteswest; /* minutes W of Greenwich */
     int tz_dsttime;     /* type of dst correction */
@@ -526,9 +531,11 @@ CONCEPT_DLL_API CONCEPT__asctime CONCEPT_API_PARAMETERS {
 
     // function call
     time_t    timevar = (time_t)nParam0;
-    struct tm *ptm    = gmtime(&timevar);
+    struct tm tmbuf;
+    struct tm *ptm    = gmtime_r(&timevar, &tmbuf);
+    char buffer[28];
     if (ptm) {
-        _C_call_result = (char *)asctime(ptm);
+        _C_call_result = (char *)asctime_r(ptm, buffer);
     } else
         _C_call_result = "";
 
@@ -557,8 +564,9 @@ CONCEPT_DLL_API CONCEPT__ctime CONCEPT_API_PARAMETERS {
         return (void *)"ctime: parameter 1 should be of STATIC NUMBER type";
 
     // function call
+    char buffer[28];
     time_t tempp = (time_t)nParam0;
-    _C_call_result = (char *)ctime(&tempp);
+    _C_call_result = (char *)ctime_r(&tempp, buffer);
 
     SetVariable(RESULT, VARIABLE_STRING, _C_call_result, 0);
     return 0;
@@ -619,8 +627,8 @@ CONCEPT_DLL_API CONCEPT__localtime CONCEPT_API_PARAMETERS {
     // function call
     time_t    tempp = (time_t)nParam0;
     struct tm *timeinfo;
-
-    timeinfo = localtime(&tempp);
+    struct tm tmbuf;
+    timeinfo = localtime_r(&tempp, &tmbuf);
 
     if (!IS_OK(Invoke(INVOKE_CREATE_ARRAY, RESULT)))
         return (void *)"Failed to INVOKE_CREATE_ARRAY";
@@ -662,8 +670,8 @@ CONCEPT_DLL_API CONCEPT__gmtime CONCEPT_API_PARAMETERS {
     // function call
     time_t    tempp = (time_t)nParam0;
     struct tm *timeinfo;
-
-    timeinfo = gmtime(&tempp);
+    struct tm tmbuf;
+    timeinfo = gmtime_r(&tempp, &tmbuf);
 
     if (!IS_OK(Invoke(INVOKE_CREATE_ARRAY, RESULT)))
         return (void *)"Failed to INVOKE_CREATE_ARRAY";
@@ -836,8 +844,9 @@ CONCEPT_DLL_API CONCEPT__slocaltime CONCEPT_API_PARAMETERS {
     // function call
     time_t    tempp = (time_t)nParam0;
     struct tm *timeinfo;
+    struct tm tmbuf;
 
-    timeinfo = localtime(&tempp);
+    timeinfo = localtime_r(&tempp, &tmbuf);
 
     char buffer [80];
     if (timeinfo)
@@ -870,7 +879,8 @@ CONCEPT_FUNCTION_IMPL(strftime2, 2)
     res[0xFFE] = 0;
 
     time_t          t         = time(0);
-    const struct tm *timeinfo = localtime(&t);
+    struct tm tmbuf;
+    const struct tm *timeinfo = localtime_r(&t, &tmbuf);
     if (timeinfo)
         strftime(res, 0xFFE, PARAM(1), timeinfo);
     else

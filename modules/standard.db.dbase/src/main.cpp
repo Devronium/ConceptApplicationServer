@@ -253,7 +253,7 @@ CONCEPT_FUNCTION_IMPL(DBFValue, 2)
     T_NUMBER(1)
 
     DBF_HANDLE handle = (DBF_HANDLE)PARAM_INT(0);
-    static char temp[0xFFFF];
+    char temp[0xFFFF];
 
     int len = dbf_getfield(handle, dbf_getfieldptr(handle, PARAM_INT(1)), temp, sizeof(temp), DBF_DATA_TYPE_ANY);
     if (len > 0) {
@@ -268,7 +268,7 @@ CONCEPT_FUNCTION_IMPL(DBFGet, 2)
     T_NUMBER(1)
 
     DBF_HANDLE handle = (DBF_HANDLE)PARAM_INT(0);
-    static char temp[0xFFFF];
+    char temp[0xFFFF];
 
     int len = dbf_getfield(handle, dbf_getfieldptr(handle, PARAM_INT(1)), temp, sizeof(temp), DBF_DATA_TYPE_ANY);
     if (len > 0) {
@@ -283,7 +283,7 @@ CONCEPT_FUNCTION_IMPL(DBFGetName, 2)
     T_STRING(1)
 
     DBF_HANDLE handle = (DBF_HANDLE)PARAM_INT(0);
-    static char temp[0xFFFF];
+    char temp[0xFFFF];
 
     int len = dbf_getfield(handle, dbf_getfieldptr_name(handle, PARAM(1)), temp, sizeof(temp), DBF_DATA_TYPE_ANY);
     if (len > 0) {

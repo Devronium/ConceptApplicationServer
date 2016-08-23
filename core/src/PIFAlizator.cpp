@@ -2818,8 +2818,8 @@ int PIFAlizator::Unserialize(char *filename, bool is_lib) {
                 return -3;
             }
 
-            AnsiString ct_name;
-            AnsiString ct_value;
+            StaticString ct_name;
+            StaticString ct_value;
             for (INTEGER i = 0; i < constant_list; i++) {
                 ct_name.Unserialize(in, SERIALIZE_8BIT_LENGTH);
                 ct_value.Unserialize(in, SERIALIZE_16BIT_LENGTH);
@@ -2849,7 +2849,7 @@ int PIFAlizator::Unserialize(char *filename, bool is_lib) {
                 Classes = new int [class_list];
             }
 
-            AnsiString class_name;
+            StaticString class_name;
             for (INTEGER i = 0; i < class_list; i++) {
                 class_name.Unserialize(in, SERIALIZE_16BIT_LENGTH);
                 Classes [i] = ClassExists(class_name.c_str()) - 1;

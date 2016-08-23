@@ -15266,7 +15266,7 @@ CONCEPT_FUNCTION_IMPL(Soundex, 1)
     static int code[] =
     { 0, 1, 2, 3, 0, 1, 2, 0, 0, 2, 2, 4, 5, 5, 0, 1, 2, 6, 2, 3, 0, 1, 0, 2, 0, 2 };
 /* a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z */
-    static char   key[5];
+    char   key[5];
     register char ch;
     register int  last;
     register int  count;
@@ -16611,8 +16611,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(calc, 1, 2)
     RETURN_NUMBER(result);
 END_IMPL
 //---------------------------------------------------------------------------
-int ucs2_to_utf8(int ucs2, char **utf8) {  /* Convert UCS-2 to UTF-8 */
-    static char         utf8return[8]    = { 0, 0, 0, 0, 0, 0, 0, 0 };
+int ucs2_to_utf8(int ucs2, char **utf8, char *utf8return) {  /* Convert UCS-2 to UTF-8 */
     static char         firstByteMark[7] = { 0x00, 0x00, 0xC0, 0xE0, 0xF0, 0xF8, 0xFC };
     const unsigned long byteMask         = 0xBF;
     const unsigned long byteMark         = 0x80;
@@ -16673,7 +16672,8 @@ CONCEPT_FUNCTION_IMPL(U_, 1)
     T_NUMBER(U_, 0)
 
     char *utf;
-    int len = ucs2_to_utf8(PARAM_INT(0), &utf);
+    char utf8buffer[8] = { 0, 0, 0, 0, 0, 0, 0, 0 };
+    int len = ucs2_to_utf8(PARAM_INT(0), &utf, utf8buffer);
     if (len > 0) {
         RETURN_BUFFER(utf, len);
     } else {

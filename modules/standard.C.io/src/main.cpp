@@ -787,12 +787,12 @@ long MySetPrivateProfileString(char *section, char *key, char *value, char *ini_
 
 //#endif
 //-----------------------------------------------------------------------------------
-AnsiString GetKey(char *ini_name, char *section, char *key, char *def) {
+void GetKey(char *ini_name, char *section, char *key, char *def, AnsiString *val) {
     char value[4096];
 
     value[0] = 0;
-    MyGetPrivateProfileString(section, key, def, value, 4096, ini_name);
-    return AnsiString(value);
+    MyGetPrivateProfileString(section, key, def, value, 4095, ini_name);
+    *val = value;
 }
 
 //-----------------------------------------------------------------------------------
@@ -2528,12 +2528,14 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(IniGet, 3, 4)
     T_STRING(IniGet, 1)
     T_STRING(IniGet, 2)
 
+    AnsiString keyval;
     if (PARAMETERS_COUNT > 3) {
         T_STRING(IniGet, 3)
-        RETURN_STRING(GetKey(PARAM(0), PARAM(1), PARAM(2), PARAM(3)).c_str());
+        GetKey(PARAM(0), PARAM(1), PARAM(2), PARAM(3), &keyval);
     } else {
-        RETURN_STRING(GetKey(PARAM(0), PARAM(1), PARAM(2), "").c_str());
+        GetKey(PARAM(0), PARAM(1), PARAM(2), "", &keyval);
     }
+    RETURN_STRING(keyval.c_str());
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(IniSet, 4)

@@ -490,5 +490,11 @@ void ClassMember::EnsureThreadSafe() {
             INTERPRETER = new ConceptInterpreter((Optimizer *)OPTIMIZER, ((ClassCode *)Defined_In)->CLSID, this);
             ((Optimizer *)this->OPTIMIZER)->INTERPRETER = INTERPRETER;
         }
+#ifdef USE_JIT_TRACE
+        if (!INTERPRETER->jittracecode) {
+            INTERPRETER->callcount = 1;
+            INTERPRETER->AnalizeInstructionPath((Optimizer *)this->OPTIMIZER);
+        }
+#endif
     }
 }

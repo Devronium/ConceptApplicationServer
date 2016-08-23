@@ -12,6 +12,8 @@
 #if defined(_WIN32) /*|| defined(__linux__) */
 // use dlmalloc only on win32
 // on FreeBSD dlmalloc is the default memory allocator
+// dlmalloc broken on linux (valgrind --tool=drd + crash)
+// works when using posix locks instead of spin locks
  #define USE_DLMALLOC
 #endif
 

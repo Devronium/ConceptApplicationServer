@@ -1,6 +1,3 @@
-// (c) 2005 RadGs Software
-// Author : Suica Eduard
-
 #ifndef __ANSISTRING_H
 #define __ANSISTRING_H
 

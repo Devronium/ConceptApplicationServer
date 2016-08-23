@@ -20,7 +20,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include <vector>
+#ifdef USE_STD_QUEUE
 #include <queue>
+#endif
 #include "semhh.h"
 
 #ifdef POSIX_SEMAPHORES
@@ -41,12 +43,89 @@ struct WorkerContainer {
     INVOKE_CALL Invoke;
 };
 
+#ifdef POSIX_SEMAPHORES
+#define QUEUE_LOCK(sm)      if (sem_wait(&sm)) perror("sem_wait");
+#define QUEUE_UNLOCK(sm)    if (sem_post(&sm)) perror("sem_post");
+#define QUEUE_DONE(sm)      sem_destroy(&sm)
+#define QUEUE_CREATE(sm)    if (sem_init(&sm, 0, 1)) perror("sem_init");
+#define QUEUE_SEMAPHORE     sem_t
+#else
+#define QUEUE_LOCK(sm)      semp(sm)
+#define QUEUE_UNLOCK(sm)    semv(sm)
+#define QUEUE_DONE(sm)      semdel(sm)
+#define QUEUE_CREATE(sm)    seminit(sm, 1)
+#define QUEUE_SEMAPHORE     HHSEM
+#endif
+
+#ifndef USE_STD_QUEUE
+struct SimpleQueueNODE {
+    void *DATA;
+    void *NEXT;
+};
+
+class SimpleQueue {
+    SimpleQueueNODE *ROOT;
+    SimpleQueueNODE *LAST;
+    int node_count;
+public:
+    SimpleQueue() {
+        ROOT = NULL;
+        LAST = NULL;
+        node_count = 0;
+    }
+
+    void push(void *data) {
+        SimpleQueueNODE *NODE = new SimpleQueueNODE();
+        NODE->NEXT = NULL;
+        NODE->DATA = data;
+        if (LAST)
+            LAST->NEXT = NODE;
+        else
+            ROOT = NODE;
+        LAST = NODE;
+        node_count++;
+    }
+
+    void *front() {
+        if (ROOT)
+            return ROOT->DATA;
+        return NULL;
+    }
+
+    int size() {
+        return node_count;
+    }
+
+    int empty() {
+        if (node_count <= 0)
+            return 1;
+        return 0;
+    }
+
+    void pop() {
+        if (ROOT) {
+            node_count--;
+            SimpleQueueNODE *NODE = ROOT;
+            ROOT = (SimpleQueueNODE *)ROOT->NEXT;
+            if (LAST == NODE)
+                LAST = NULL;
+            delete NODE;
+        }
+    }
+};
+#endif
+
 class ThreadMetaContainer {
 private:
+#ifdef USE_STD_QUEUE
     std::queue<AnsiString *> input_data;
     std::queue<AnsiString *> output_data;
-    HHSEM input_lock;
-    HHSEM output_lock;
+#else
+    SimpleQueue input_data;
+    SimpleQueue output_data;
+#endif
+    QUEUE_SEMAPHORE input_lock;
+    QUEUE_SEMAPHORE output_lock;
 public:
     void *worker;
 
@@ -54,10 +133,10 @@ public:
         AnsiString *temp = new AnsiString();
 
         temp->LoadBuffer(S, len);
-        semp(input_lock);
+        QUEUE_LOCK(input_lock);
         input_data.push(temp);
         int size = input_data.size();
-        semv(input_lock);
+        QUEUE_UNLOCK(input_lock);
         return size;
     }
 
@@ -65,60 +144,60 @@ public:
         AnsiString *temp = new AnsiString();
 
         temp->LoadBuffer(S, len);
-        semp(output_lock);
+        QUEUE_LOCK(output_lock);
         output_data.push(temp);
         int size = output_data.size();
-        semv(output_lock);
+        QUEUE_UNLOCK(output_lock);
         return size;
     }
 
     int GetInput(AnsiString **S) {
+        QUEUE_LOCK(input_lock);
         int size = input_data.size();
 
         if (size > 0) {
-            semp(input_lock);
-            *S = input_data.front();
+            *S = (AnsiString *)input_data.front();
             input_data.pop();
-            semv(input_lock);
         }
+        QUEUE_UNLOCK(input_lock);
         return size;
     }
 
     int GetOutput(AnsiString **S) {
+        QUEUE_LOCK(output_lock);
         int size = output_data.size();
 
         if (size > 0) {
-            semp(output_lock);
-            *S = output_data.front();
+            *S = (AnsiString *)output_data.front();
             output_data.pop();
-            semv(output_lock);
         }
+        QUEUE_UNLOCK(output_lock);
         return size;
     }
 
     ThreadMetaContainer(void *worker) {
-        seminit(input_lock, 1);
-        seminit(output_lock, 1);
+        QUEUE_CREATE(input_lock);
+        QUEUE_CREATE(output_lock);
         this->worker = worker;
     }
 
     ~ThreadMetaContainer() {
-        semp(input_lock);
+        QUEUE_LOCK(input_lock);
         while (!output_data.empty()) {
-            AnsiString *S = output_data.front();
+            AnsiString *S = (AnsiString *)output_data.front();
             output_data.pop();
             if (S)
                 delete S;
         }
         while (!input_data.empty()) {
-            AnsiString *S = input_data.front();
+            AnsiString *S = (AnsiString *)input_data.front();
             input_data.pop();
             if (S)
                 delete S;
         }
-        semv(input_lock);
-        semdel(input_lock);
-        semdel(output_lock);
+        QUEUE_UNLOCK(input_lock);
+        QUEUE_DONE(input_lock);
+        QUEUE_DONE(output_lock);
     }
 };
 
@@ -365,7 +444,7 @@ CONCEPT_FUNCTION_IMPL(_semv, 1)
     T_HANDLE(_semv, 0)
 
 #ifdef POSIX_SEMAPHORES
-    sem_t * sm = (sem_t *)(SYS_INT)PARAM(0);
+    sem_t * sm = (sem_t *)(uintptr_t)PARAM(0);
     int err = sem_post(sm);
     RETURN_NUMBER(err);
 #else
@@ -414,14 +493,14 @@ CONCEPT_FUNCTION_IMPL(Greenlets, 1)
         }
     }
 
-    RETURN_NUMBER((SYS_INT)items);
+    RETURN_NUMBER((uintptr_t)items);
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(GreenletAdd, 2)
     T_HANDLE(GreenletAdd, 0)
     T_DELEGATE(GreenletAdd, 1)
 
-    std::vector<void *> *items = (std::vector<void *> *)(SYS_INT) PARAM(0);
+    std::vector<void *> *items = (std::vector<void *> *)(uintptr_t) PARAM(0);
     void *ref = 0;
     int  res  = Invoke(INVOKE_GREENTHREAD, PARAMETER(1), &ref);
     if (ref) {
@@ -444,7 +523,7 @@ END_IMPL
 CONCEPT_FUNCTION_IMPL(GreenLoop, 1)
     T_HANDLE(GreenLoop, 0)
 
-    std::vector<void *> *items = (std::vector<void *> *)(SYS_INT) PARAM(0);
+    std::vector<void *> *items = (std::vector<void *> *)(uintptr_t) PARAM(0);
     void *first = items->front();
     void *last  = items->back();
     int  res    = -2;
@@ -511,26 +590,37 @@ CONCEPT_FUNCTION_IMPL(CreateWorker, 3)
             DWORD  threadID = 0;
             HANDLE thandle  = CreateThread(NULL, 0, WorkerFunction, (LPVOID)cdc, 0, &threadID);
             threadID = (long)thandle;
+            if (!thandle) {
+                delete cdc;
+                cdc = NULL;
+                LocalInvoker(INVOKE_FREE_VARIABLE, variable);
+                variable = NULL;
+            }
 #else
             pthread_t threadID = 0;
-            if (pthread_create(&threadID, NULL, WorkerFunction, (LPVOID)cdc))
+            if (pthread_create(&threadID, NULL, WorkerFunction, (LPVOID)cdc)) {
                 threadID = 0;
+                delete cdc;
+                cdc = NULL;
+                LocalInvoker(INVOKE_FREE_VARIABLE, variable);
+                variable = NULL;
+            }
 #endif
-            SET_NUMBER(1, (SYS_INT)threadID);
+            SET_NUMBER(1, (uintptr_t)threadID);
         }
         if (!variable) {
             Invoke(INVOKE_FREE_WORKER, worker);
             return (void *)"CreateWorker: Class not found";
         }
     }
-    RETURN_NUMBER((SYS_INT)worker);
+    RETURN_NUMBER((uintptr_t)worker);
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(AddWorkerData, 2)
     T_HANDLE(AddWorkerData, 0)
     T_STRING(AddWorkerData, 1)
 
-    void *worker = (void *)(SYS_INT)PARAM(0);
+    void *worker = (void *)(uintptr_t)PARAM(0);
     ThreadMetaContainer *tmc = NULL;
     Invoke(INVOKE_GETPROTODATA, worker, (int)2, &tmc);
     if (!tmc)
@@ -554,7 +644,7 @@ END_IMPL
 CONCEPT_FUNCTION_IMPL(GetWorkerResultData, 2)
     T_HANDLE(GetWorkerResultData, 0)
 
-    void *worker = (void *)(SYS_INT)PARAM(0);
+    void *worker = (void *)(uintptr_t)PARAM(0);
     ThreadMetaContainer *tmc = NULL;
     Invoke(INVOKE_GETPROTODATA, worker, (int)2, &tmc);
     if (!tmc)
@@ -593,7 +683,7 @@ END_IMPL
 CONCEPT_FUNCTION_IMPL(FreeWorker, 1)
     T_NUMBER(FreeWorker, 0)
 
-    void *worker = (void *)(SYS_INT)PARAM(0);
+    void *worker = (void *)(uintptr_t)PARAM(0);
     if (worker) {
         Invoke(INVOKE_FREE_WORKER, worker);
         SET_NUMBER(0, 0);
@@ -606,7 +696,7 @@ CONCEPT_FUNCTION_IMPL(CurrentWorker, 0)
     Invoke(INVOKE_GETPROTODATA, PARAMETERS->HANDLER, (int)2, &tmc);
     if (!tmc)
         return (void *)"Using a worker function on a non-worker";
-    RETURN_NUMBER((SYS_INT)tmc->worker);
+    RETURN_NUMBER((uintptr_t)tmc->worker);
 END_IMPL
 //---------------------------------------------------------------------------
 

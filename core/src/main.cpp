@@ -192,10 +192,8 @@ void AllocMultipleVars(void **context, void *PIF, int count, int offset) {
                         context[offset++] = &NEXT_POOL->POOL[i];
                         count--;
                         NEXT_POOL->FIRST_VAR = i + 1;
-                        if (!count) {
-
+                        if (!count)
                             return;
-                        }
                     }
                 }
             }
@@ -425,7 +423,7 @@ void FreeClassObject(void *refObject) {
     ClassPool   *CURRENT = (ClassPool *)(((uintptr_t)refObject) - sizeof(CompiledClass) * (((CompiledClass *)refObject)->flags) - POOL_OFFSET(ClassPool, POOL));
     PIFAlizator *PIF     = (PIFAlizator *)CURRENT->PIF;
     ALLOC_LOCK
-        memset(refObject, 0, sizeof(CompiledClass));
+    memset(refObject, 0, sizeof(CompiledClass));
     ((PIFAlizator *)PIF)->object_count--;
     PIF->free_class_objects++;
     if (((CompiledClass *)refObject)->flags < CURRENT->FIRST_VAR)

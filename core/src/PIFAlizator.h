@@ -345,7 +345,7 @@ public:
     uintptr_t ThreadsCount;
 #endif
 
-    VARPool * POOL;
+    VARPool *POOL;
     VARPool *CACHEDPOOL;
 
     void *CLASSPOOL;

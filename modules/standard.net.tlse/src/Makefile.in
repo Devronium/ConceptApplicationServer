@@ -333,8 +333,8 @@ top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 
 # what flags you want to pass to the C compiler & linker
-AM_CFLAGS = -O2 -fPIC -I. -I./tomcrypt -DTLS_WITH_CHACHA20_POLY1305
-AM_CXXFLAGS = -O2 -fPIC -I. -I./tomcrypt -DTLS_WITH_CHACHA20_POLY1305
+AM_CFLAGS = -O2 -fPIC -I. -I./tomcrypt -DTLS_WITH_CHACHA20_POLY1305 -DLTC_PTHREAD
+AM_CXXFLAGS = -O2 -fPIC -I. -I./tomcrypt -DTLS_WITH_CHACHA20_POLY1305 -DLTC_PTHREAD
 AM_LDFLAGS = -shared
 standard_net_tlse_so_SOURCES = stdlibrary.cpp stdlibrary.h main.cpp \
 	AnsiTypes.h AnsiString.cpp AnsiString.h tomcrypt/bn_error.c \

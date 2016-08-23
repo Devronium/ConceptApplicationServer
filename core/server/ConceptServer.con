@@ -1722,8 +1722,8 @@ class ConceptChild {
 			this.PipeIn = -1;
 		}
 		if (this.PipeOut>0) {
-			this.PipeOut = -1;
 			close(this.PipeOut);
+			this.PipeOut = -1;
 		}
 
 		if (this.Socket) {
@@ -1828,7 +1828,7 @@ class ConceptCGIChild {
 			close(std_out);
 			std_out = 0;
 		}
-		if (std_in) {
+		if (std_in > 0) {
 			close(std_in);
 			std_in = 0;
 		}
@@ -2474,7 +2474,11 @@ pragma used
 					}
 					var is_cgi = this.IsCGI(content_type);
 					if (is_cgi) {
-						app = ConceptWorker::RealPath(StrReplace(app, "\\", "/"));
+						if (Pos(app, ".."))
+							app = ConceptWorker::RealPath(StrReplace(app, "\\", "/"));
+						else
+							app = StrReplace(app, "\\", "/");
+
 						if (exists) {
 							var default_header = [
 								":status" => "200",
