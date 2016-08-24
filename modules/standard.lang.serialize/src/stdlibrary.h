@@ -205,6 +205,8 @@ typedef INTEGER (*CALL_BACK_CLASS_MEMBER_SET)(void *CLASS_PTR, char *class_membe
 
 #define STR_HELPER(x) #x
 #define NTOSTR(x) STR_HELPER(x)
+#define STR_HELPER(x) #x
+#define NTOSTR(x) STR_HELPER(x)
 #define DEFINE_ECONSTANT(constant_name)                                                       Invoke(INVOKE_DEFINE_CONSTANT, (void *)HANDLER, (const char*)#constant_name, (const char *)NTOSTR(constant_name));
 #define DEFINE_ESCONSTANT(constant_name)                                                      Invoke(INVOKE_DEFINE_CONSTANT, (void *)HANDLER, #constant_name, constant_name);
 
@@ -312,4 +314,5 @@ double *GetDoubleList(void *arr, INVOKE_CALL _Invoke);
 
 //-------------------------------------------------------------------------------------------------------------
 #endif //__STDLIBRARY_H
+
 

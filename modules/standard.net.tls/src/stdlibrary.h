@@ -161,6 +161,8 @@ typedef INTEGER (*CALL_BACK_CLASS_MEMBER_SET)(void *CLASS_PTR, char *class_membe
 
 #define STR_HELPER(x) #x
 #define NTOSTR(x) STR_HELPER(x)
+#define STR_HELPER(x) #x
+#define NTOSTR(x) STR_HELPER(x)
 #define DEFINE_ECONSTANT(constant_name)                                                       Invoke(INVOKE_DEFINE_CONSTANT, (void *)HANDLER, (const char*)#constant_name, (const char *)NTOSTR(constant_name));
 #define DEFINE_ESCONSTANT(constant_name)                                                      Invoke(INVOKE_DEFINE_CONSTANT, (void *)HANDLER, #constant_name, constant_name);
 
@@ -250,7 +252,7 @@ typedef INTEGER (*CALL_BACK_CLASS_MEMBER_SET)(void *CLASS_PTR, char *class_membe
 #define T_HANDLE2(func_name, parameter_index, HANDLE_TYPE)                                                                                                  \
     __INTERNAL_PARAMETER_DECL(NUMBER, bind_internal, parameter_index);                                                                                      \
     __INTERNAL_PARAMETER_DECL(HANDLE_TYPE, bind, parameter_index);                                                                                          \
-    GET_CHECK_NUMBER(parameter_index, __INTERNAL_PARAMETER(bind_internal, parameter_index), __PARAM_ERR_MSG(func_name,parameter_index,"handle");\
+    GET_CHECK_NUMBER(parameter_index, __INTERNAL_PARAMETER(bind_internal, parameter_index), __PARAM_ERR_MSG(func_name,parameter_index,"handle"));           \
     if (!(__INTERNAL_PARAMETER(bind_internal, parameter_index))) {                                                                                          \
         return (void *)__PARAM_ERR_MSG(func_name,parameter_index,"valid handle (not null)");                                                    \
     } else {                                                                                                                                                \
@@ -269,4 +271,5 @@ double *GetDoubleList(void *arr, INVOKE_CALL _Invoke);
 
 //-------------------------------------------------------------------------------------------------------------
 #endif //__STDLIBRARY_H
+
 
