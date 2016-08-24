@@ -147,7 +147,7 @@ CONCEPT_DLL_API ON_DESTROY_CONTEXT MANAGEMENT_PARAMETERS {
 }
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(NuoDisconnect, 1)
-    T_NUMBER(0) // pq
+    T_NUMBER(NuoDisconnect, 0) // pq
     LastError = "";
 
     RETURN_NUMBER(0);
@@ -159,8 +159,8 @@ CONCEPT_FUNCTION_IMPL(NuoDisconnect, 1)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(NuoConnect, 2, 3)
-    T_STRING(0)
-    T_ARRAY(1)
+    T_STRING(NuoConnect, 0)
+    T_ARRAY(NuoConnect, 1)
 
     Connection * connection = createConnection();
     if (PARAMETERS_COUNT > 2) {
@@ -207,9 +207,9 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(NuoConnect, 2, 3)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(NuoConnectCreate, 3, 4)
-    T_STRING(0)
-    T_STRING(1)
-    T_ARRAY(2)
+    T_STRING(NuoConnectCreate, 0)
+    T_STRING(NuoConnectCreate, 1)
+    T_ARRAY(NuoConnectCreate, 2)
 
     Connection * connection = createConnection();
     if (PARAMETERS_COUNT > 3) {
@@ -257,7 +257,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(NuoConnectCreate, 3, 4)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(NuoGetAutoCommit, 1)
-    T_HANDLE(0) // con
+    T_HANDLE(NuoGetAutoCommit, 0) // con
 
     LastError = "";
     int        result      = 0;
@@ -271,8 +271,8 @@ CONCEPT_FUNCTION_IMPL(NuoGetAutoCommit, 1)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(NuoSetAutoCommit, 2)
-    T_HANDLE(0) // con
-    T_NUMBER(1)
+    T_HANDLE(NuoSetAutoCommit, 0) // con
+    T_NUMBER(NuoSetAutoCommit, 1)
 
     LastError = "";
     bool       result      = PARAM_INT(1) ? true : false;
@@ -286,7 +286,7 @@ CONCEPT_FUNCTION_IMPL(NuoSetAutoCommit, 2)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(NuoPrepareTransaction, 1)
-    T_HANDLE(0) // con
+    T_HANDLE(NuoPrepareTransaction, 0) // con
 
     LastError = "";
     Connection *connection = (Connection *)PARAM_INT(0);
@@ -299,7 +299,7 @@ CONCEPT_FUNCTION_IMPL(NuoPrepareTransaction, 1)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(NuoGetIsolationLevel, 1)
-    T_HANDLE(0) // con
+    T_HANDLE(NuoGetIsolationLevel, 0) // con
 
     LastError = "";
     int        result      = 0;
@@ -313,8 +313,8 @@ CONCEPT_FUNCTION_IMPL(NuoGetIsolationLevel, 1)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(NuoSetIsolationLevel, 2)
-    T_HANDLE(0) // con
-    T_NUMBER(1)
+    T_HANDLE(NuoSetIsolationLevel, 0) // con
+    T_NUMBER(NuoSetIsolationLevel, 1)
 
     LastError = "";
     int        result      = PARAM_INT(1);
@@ -328,7 +328,7 @@ CONCEPT_FUNCTION_IMPL(NuoSetIsolationLevel, 2)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(NuoRollback, 1)
-    T_HANDLE(0) // con
+    T_HANDLE(NuoRollback, 0) // con
 
     LastError = "";
     Connection *connection = (Connection *)PARAM_INT(0);
@@ -341,7 +341,7 @@ CONCEPT_FUNCTION_IMPL(NuoRollback, 1)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(NuoCommit, 1)
-    T_HANDLE(0) // con
+    T_HANDLE(NuoCommit, 0) // con
 
     LastError = "";
     Connection *connection = (Connection *)PARAM_INT(0);
@@ -358,8 +358,8 @@ CONCEPT_FUNCTION_IMPL(NuoError, 0)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(NuoQuery, 2)
-    T_STRING(0) // query
-    T_HANDLE(1) // con
+    T_STRING(NuoQuery, 0) // query
+    T_HANDLE(NuoQuery, 1) // con
 
     LastError = "";
     if (PARAM_INT(1)) {
@@ -391,12 +391,12 @@ CONCEPT_FUNCTION_IMPL(NuoQuery, 2)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(NuoPrepared, 2, 3)
-    T_STRING(0) // query
-    T_HANDLE(1) // con
+    T_STRING(NuoPrepared, 0) // query
+    T_HANDLE(NuoPrepared, 1) // con
 
     bool auto_gen_keys = false;
     if (PARAMETERS_COUNT > 2) {
-        T_NUMBER(2)
+        T_NUMBER(NuoPrepared, 2)
         auto_gen_keys = PARAM_INT(2) ? true : false;
     }
 
@@ -419,9 +419,9 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(NuoPrepared, 2, 3)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(NuoSetParameter, 3)
-    T_HANDLE(0)
-    T_NUMBER(1)
-    T_STRING(2)
+    T_HANDLE(NuoSetParameter, 0)
+    T_NUMBER(NuoSetParameter, 1)
+    T_STRING(NuoSetParameter, 2)
 
     LastError = "";
     if (PARAM_INT(0)) {
@@ -455,9 +455,9 @@ CONCEPT_FUNCTION_IMPL(NuoSetParameter, 3)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(NuoSetBlob, 3)
-    T_HANDLE(0)
-    T_NUMBER(1)
-    T_HANDLE(2)
+    T_HANDLE(NuoSetBlob, 0)
+    T_NUMBER(NuoSetBlob, 1)
+    T_HANDLE(NuoSetBlob, 2)
 
     LastError = "";
     if (PARAM_INT(0)) {
@@ -476,9 +476,9 @@ CONCEPT_FUNCTION_IMPL(NuoSetBlob, 3)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(NuoSetClob, 3)
-    T_HANDLE(0)
-    T_NUMBER(1)
-    T_HANDLE(2)
+    T_HANDLE(NuoSetClob, 0)
+    T_NUMBER(NuoSetClob, 1)
+    T_HANDLE(NuoSetClob, 2)
 
     LastError = "";
     if (PARAM_INT(0)) {
@@ -497,7 +497,7 @@ CONCEPT_FUNCTION_IMPL(NuoSetClob, 3)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(NuoParameterCount, 1)
-    T_HANDLE(0)
+    T_HANDLE(NuoParameterCount, 0)
 
     LastError = "";
     PreparedStatement *result = (PreparedStatement *)PARAM_INT(0);
@@ -513,8 +513,8 @@ CONCEPT_FUNCTION_IMPL(NuoParameterCount, 1)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(NuoParameterMeta, 2)
-    T_HANDLE(0)
-    T_NUMBER(1)
+    T_HANDLE(NuoParameterMeta, 0)
+    T_NUMBER(NuoParameterMeta, 1)
 
     LastError = "";
     CREATE_ARRAY(RESULT);
@@ -546,8 +546,8 @@ CONCEPT_FUNCTION_IMPL(NuoParameterMeta, 2)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(NuoSetNull, 2)
-    T_HANDLE(0)
-    T_NUMBER(1)
+    T_HANDLE(NuoSetNull, 0)
+    T_NUMBER(NuoSetNull, 1)
 
     LastError = "";
     if (PARAM_INT(0)) {
@@ -565,7 +565,7 @@ CONCEPT_FUNCTION_IMPL(NuoSetNull, 2)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(NuoBlobCreate, 1)
-    T_HANDLE(0)
+    T_HANDLE(NuoBlobCreate, 0)
     LastError = "";
     try {
         Blob *result = ((Connection *)PARAM_INT(0))->createBlob();
@@ -577,7 +577,7 @@ CONCEPT_FUNCTION_IMPL(NuoBlobCreate, 1)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(NuoClobCreate, 1)
-    T_HANDLE(0)
+    T_HANDLE(NuoClobCreate, 0)
     LastError = "";
     try {
         Clob *result = ((Connection *)PARAM_INT(0))->createClob();
@@ -589,8 +589,8 @@ CONCEPT_FUNCTION_IMPL(NuoClobCreate, 1)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(NuoBlobWrite, 2)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(NuoBlobWrite, 0)
+    T_STRING(NuoBlobWrite, 1)
 
     try {
         ((Blob *)PARAM_INT(0))->appendBytes(PARAM_LEN(1), (unsigned char *)PARAM(1));
@@ -602,8 +602,8 @@ CONCEPT_FUNCTION_IMPL(NuoBlobWrite, 2)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(NuoClobWrite, 2)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(NuoClobWrite, 0)
+    T_STRING(NuoClobWrite, 1)
 
     try {
         ((Clob *)PARAM_INT(0))->appendChars(PARAM_LEN(1), PARAM(1));
@@ -615,9 +615,9 @@ CONCEPT_FUNCTION_IMPL(NuoClobWrite, 2)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(NuoSetCursorName, 3)
-    T_HANDLE(0)
-    T_NUMBER(1)
-    T_STRING(2)
+    T_HANDLE(NuoSetCursorName, 0)
+    T_NUMBER(NuoSetCursorName, 1)
+    T_STRING(NuoSetCursorName, 2)
 
     LastError = "";
     if (PARAM_INT(0)) {
@@ -635,7 +635,7 @@ CONCEPT_FUNCTION_IMPL(NuoSetCursorName, 3)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(NuoExecute, 1)
-    T_HANDLE(0) // con
+    T_HANDLE(NuoExecute, 0) // con
 
     LastError = "";
     if (PARAM_INT(0)) {
@@ -665,7 +665,7 @@ CONCEPT_FUNCTION_IMPL(NuoExecute, 1)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(NuoFinish, 1)
-    T_NUMBER(0) // con
+    T_NUMBER(NuoFinish, 0) // con
 
 //LastError="";
     if (PARAM_INT(0)) {
@@ -684,8 +684,8 @@ CONCEPT_FUNCTION_IMPL(NuoFinish, 1)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(NuoAnalyze, 2)
-    T_HANDLE(0) // con
-    T_NUMBER(1)
+    T_HANDLE(NuoAnalyze, 0) // con
+    T_NUMBER(NuoAnalyze, 1)
 
 //LastError="";
     const char *res = "";
@@ -706,7 +706,7 @@ CONCEPT_FUNCTION_IMPL(NuoAnalyze, 2)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(NuoCountRows, 1)
-    T_HANDLE(0) // con
+    T_HANDLE(NuoCountRows, 0) // con
 
 //LastError="";
     int res = 0;
@@ -723,8 +723,8 @@ CONCEPT_FUNCTION_IMPL(NuoCountRows, 1)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(NuoNonQuery, 2)
-    T_STRING(0) // query
-    T_HANDLE(1) // con
+    T_STRING(NuoNonQuery, 0) // query
+    T_HANDLE(NuoNonQuery, 1) // con
 
     LastError = "";
     if (PARAM_INT(1)) {
@@ -746,7 +746,7 @@ CONCEPT_FUNCTION_IMPL(NuoNonQuery, 2)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(NuoCountColumns, 1)
-    T_NUMBER(0)
+    T_NUMBER(NuoCountColumns, 0)
 
     LastError = "";
     RETURN_NUMBER(0)
@@ -763,8 +763,8 @@ CONCEPT_FUNCTION_IMPL(NuoCountColumns, 1)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(NuoColumnInfo, 2)
-    T_HANDLE(0) // con
-    T_NUMBER(1)
+    T_HANDLE(NuoColumnInfo, 0) // con
+    T_NUMBER(NuoColumnInfo, 1)
 
     LastError = "";
     if (PARAM_INT(0)) {
@@ -829,7 +829,7 @@ CONCEPT_FUNCTION_IMPL(NuoColumnInfo, 2)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(NuoInfo, 1)
-    T_HANDLE(0) // con
+    T_HANDLE(NuoInfo, 0) // con
 
     LastError = "";
     if (PARAM_INT(0)) {
@@ -1319,8 +1319,8 @@ CONCEPT_FUNCTION_IMPL(NuoInfo, 1)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(NuoValue, 2)
-    T_HANDLE(0)
-    T_NUMBER(1)
+    T_HANDLE(NuoValue, 0)
+    T_NUMBER(NuoValue, 1)
 
     LastError = "";
 
@@ -1376,8 +1376,8 @@ CONCEPT_FUNCTION_IMPL(NuoValue, 2)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(NuoValueByName, 2)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(NuoValueByName, 0)
+    T_STRING(NuoValueByName, 1)
 
     LastError = "";
 
@@ -1428,10 +1428,10 @@ CONCEPT_FUNCTION_IMPL(NuoValueByName, 2)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(NuoBlob, 4)
-    T_HANDLE(0)
-    T_NUMBER(1)
-    T_NUMBER(2)
-    T_NUMBER(3)
+    T_HANDLE(NuoBlob, 0)
+    T_NUMBER(NuoBlob, 1)
+    T_NUMBER(NuoBlob, 2)
+    T_NUMBER(NuoBlob, 3)
 
     LastError = "";
 
@@ -1471,10 +1471,10 @@ CONCEPT_FUNCTION_IMPL(NuoBlob, 4)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(NuoBlobByName, 4)
-    T_HANDLE(0)
-    T_STRING(1)
-    T_NUMBER(2)
-    T_NUMBER(3)
+    T_HANDLE(NuoBlobByName, 0)
+    T_STRING(NuoBlobByName, 1)
+    T_NUMBER(NuoBlobByName, 2)
+    T_NUMBER(NuoBlobByName, 3)
 
     LastError = "";
 
@@ -1511,10 +1511,10 @@ CONCEPT_FUNCTION_IMPL(NuoBlobByName, 4)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(NuoClob, 4)
-    T_HANDLE(0)
-    T_NUMBER(1)
-    T_NUMBER(2)
-    T_NUMBER(3)
+    T_HANDLE(NuoClob, 0)
+    T_NUMBER(NuoClob, 1)
+    T_NUMBER(NuoClob, 2)
+    T_NUMBER(NuoClob, 3)
 
     LastError = "";
 
@@ -1554,10 +1554,10 @@ CONCEPT_FUNCTION_IMPL(NuoClob, 4)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(NuoClobByName, 4)
-    T_HANDLE(0)
-    T_STRING(1)
-    T_NUMBER(2)
-    T_NUMBER(3)
+    T_HANDLE(NuoClobByName, 0)
+    T_STRING(NuoClobByName, 1)
+    T_NUMBER(NuoClobByName, 2)
+    T_NUMBER(NuoClobByName, 3)
 
     LastError = "";
 
@@ -1594,7 +1594,7 @@ CONCEPT_FUNCTION_IMPL(NuoClobByName, 4)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(NuoValues, 1)
-    T_HANDLE(0)
+    T_HANDLE(NuoValues, 0)
 
     LastError = "";
     CREATE_ARRAY(RESULT);
@@ -1659,7 +1659,7 @@ CONCEPT_FUNCTION_IMPL(NuoValues, 1)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(NuoNext, 1)
-    T_HANDLE(0)
+    T_HANDLE(NuoNext, 0)
 
     LastError = "";
     try {
@@ -1672,7 +1672,7 @@ CONCEPT_FUNCTION_IMPL(NuoNext, 1)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(NuoFirst, 1)
-    T_HANDLE(0)
+    T_HANDLE(NuoFirst, 0)
 
     LastError = "";
     try {
@@ -1685,8 +1685,8 @@ CONCEPT_FUNCTION_IMPL(NuoFirst, 1)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(NuoAbsolute, 2)
-    T_HANDLE(0)
-    T_NUMBER(1)
+    T_HANDLE(NuoAbsolute, 0)
+    T_NUMBER(NuoAbsolute, 1)
 
     LastError = "";
     try {
@@ -1699,7 +1699,7 @@ CONCEPT_FUNCTION_IMPL(NuoAbsolute, 2)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(NuoLast, 1)
-    T_HANDLE(0)
+    T_HANDLE(NuoLast, 0)
 
     LastError = "";
     try {
@@ -1712,7 +1712,7 @@ CONCEPT_FUNCTION_IMPL(NuoLast, 1)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(NuoPrevious, 1)
-    T_HANDLE(0)
+    T_HANDLE(NuoPrevious, 0)
 
     LastError = "";
     try {
@@ -1725,7 +1725,7 @@ CONCEPT_FUNCTION_IMPL(NuoPrevious, 1)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(NuoRefresh, 1)
-    T_HANDLE(0)
+    T_HANDLE(NuoRefresh, 0)
 
     LastError = "";
     try {
@@ -1738,7 +1738,7 @@ CONCEPT_FUNCTION_IMPL(NuoRefresh, 1)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(NuoFreeResult, 1)
-    T_NUMBER(0) // result
+    T_NUMBER(NuoFreeResult, 0) // result
 
 //LastError="";
     if (PARAM_INT(0)) {
@@ -1758,3 +1758,4 @@ CONCEPT_FUNCTION_IMPL(NuoFreeResult, 1)
     RETURN_NUMBER(0)
 END_IMPL
 //-----------------------------------------------------//
+

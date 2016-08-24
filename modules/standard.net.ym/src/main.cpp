@@ -2892,9 +2892,9 @@ CONCEPT_DLL_API ON_DESTROY_CONTEXT MANAGEMENT_PARAMETERS {
 }
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_yahoo_login, 3)
-    T_STRING(0)
-    T_STRING(1)
-    T_NUMBER(2)
+    T_STRING(_yahoo_login, 0)
+    T_STRING(_yahoo_login, 1)
+    T_NUMBER(_yahoo_login, 2)
 
     log_in(PARAM(0), PARAM(1), PARAM_INT(2));
 
@@ -2917,8 +2917,8 @@ CONCEPT_FUNCTION_IMPL(_yahoo_refresh, 0)
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_yahoo_set_identity_status, 2)
-    T_STRING(0)
-    T_NUMBER(1)
+    T_STRING(_yahoo_set_identity_status, 0)
+    T_NUMBER(_yahoo_set_identity_status, 1)
 
     TEST_YLAD
 
@@ -2946,15 +2946,15 @@ CONCEPT_FUNCTION_IMPL(_yahoo_get_yab, 0)
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_yahoo_set_yab, 9)
-    T_STRING(0)
-    T_STRING(1)
-    T_STRING(2)
-    T_STRING(3)
-    T_STRING(4)
-    T_STRING(5)
-    T_STRING(6)
-    T_STRING(7)
-    T_NUMBER(8)
+    T_STRING(_yahoo_set_yab, 0)
+    T_STRING(_yahoo_set_yab, 1)
+    T_STRING(_yahoo_set_yab, 2)
+    T_STRING(_yahoo_set_yab, 3)
+    T_STRING(_yahoo_set_yab, 4)
+    T_STRING(_yahoo_set_yab, 5)
+    T_STRING(_yahoo_set_yab, 6)
+    T_STRING(_yahoo_set_yab, 7)
+    T_NUMBER(_yahoo_set_yab, 8)
 
     TEST_YLAD
 
@@ -2994,10 +2994,10 @@ CONCEPT_FUNCTION_IMPL(_yahoo_chat_keepalive, 0)
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_yahoo_send_im, 4)
-    T_STRING(0)
-    T_STRING(1)
-    T_NUMBER(2)
-    T_NUMBER(3)
+    T_STRING(_yahoo_send_im, 0)
+    T_STRING(_yahoo_send_im, 1)
+    T_NUMBER(_yahoo_send_im, 2)
+    T_NUMBER(_yahoo_send_im, 3)
 
     TEST_YLAD
 
@@ -3007,8 +3007,8 @@ CONCEPT_FUNCTION_IMPL(_yahoo_send_im, 4)
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_yahoo_send_typing, 2)
-    T_STRING(0)
-    T_NUMBER(1)
+    T_STRING(_yahoo_send_typing, 0)
+    T_NUMBER(_yahoo_send_typing, 1)
 
     TEST_YLAD
 
@@ -3018,9 +3018,9 @@ CONCEPT_FUNCTION_IMPL(_yahoo_send_typing, 2)
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_yahoo_set_away, 3)
-    T_NUMBER(0)
-    T_STRING(1)
-    T_NUMBER(2)
+    T_NUMBER(_yahoo_set_away, 0)
+    T_STRING(_yahoo_set_away, 1)
+    T_NUMBER(_yahoo_set_away, 2)
 
     TEST_YLAD
 
@@ -3030,9 +3030,9 @@ CONCEPT_FUNCTION_IMPL(_yahoo_set_away, 3)
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_yahoo_add_buddy, 3)
-    T_STRING(0)
-    T_STRING(1)
-    T_STRING(2)
+    T_STRING(_yahoo_add_buddy, 0)
+    T_STRING(_yahoo_add_buddy, 1)
+    T_STRING(_yahoo_add_buddy, 2)
 
     TEST_YLAD
 
@@ -3042,8 +3042,8 @@ CONCEPT_FUNCTION_IMPL(_yahoo_add_buddy, 3)
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_yahoo_remove_buddy, 2)
-    T_STRING(0)
-    T_STRING(1)
+    T_STRING(_yahoo_remove_buddy, 0)
+    T_STRING(_yahoo_remove_buddy, 1)
 
     TEST_YLAD
 
@@ -3053,8 +3053,8 @@ CONCEPT_FUNCTION_IMPL(_yahoo_remove_buddy, 2)
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_yahoo_reject_buddy, 2)
-    T_STRING(0)
-    T_STRING(1)
+    T_STRING(_yahoo_reject_buddy, 0)
+    T_STRING(_yahoo_reject_buddy, 1)
 
     TEST_YLAD
 
@@ -3064,8 +3064,8 @@ CONCEPT_FUNCTION_IMPL(_yahoo_reject_buddy, 2)
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_yahoo_confirm_buddy, 2)
-    T_STRING(0)
-    T_STRING(1)
+    T_STRING(_yahoo_confirm_buddy, 0)
+    T_STRING(_yahoo_confirm_buddy, 1)
 
     TEST_YLAD
 
@@ -3075,8 +3075,8 @@ CONCEPT_FUNCTION_IMPL(_yahoo_confirm_buddy, 2)
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_yahoo_ignore_buddy, 2)
-    T_STRING(0)
-    T_NUMBER(1)
+    T_STRING(_yahoo_ignore_buddy, 0)
+    T_NUMBER(_yahoo_ignore_buddy, 1)
 
     TEST_YLAD
 
@@ -3086,9 +3086,9 @@ CONCEPT_FUNCTION_IMPL(_yahoo_ignore_buddy, 2)
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_yahoo_change_buddy_group, 3)
-    T_STRING(0)
-    T_STRING(1)
-    T_STRING(2)
+    T_STRING(_yahoo_change_buddy_group, 0)
+    T_STRING(_yahoo_change_buddy_group, 1)
+    T_STRING(_yahoo_change_buddy_group, 2)
 
     TEST_YLAD
 
@@ -3098,8 +3098,8 @@ CONCEPT_FUNCTION_IMPL(_yahoo_change_buddy_group, 3)
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_yahoo_group_rename, 2)
-    T_STRING(0)
-    T_STRING(1)
+    T_STRING(_yahoo_group_rename, 0)
+    T_STRING(_yahoo_group_rename, 1)
 
     TEST_YLAD
 
@@ -3109,8 +3109,8 @@ CONCEPT_FUNCTION_IMPL(_yahoo_group_rename, 2)
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_yahoo_conference_invite, 3)
-    T_STRING(1)
-    T_STRING(2)
+    T_STRING(_yahoo_conference_invite, 1)
+    T_STRING(_yahoo_conference_invite, 2)
 
     char *darray;
     GET_CHECK_ARRAY(0, darray, "yahoo_conference_invite: parameter 1 should be an array")
@@ -3130,10 +3130,10 @@ CONCEPT_FUNCTION_IMPL(_yahoo_conference_invite, 3)
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_yahoo_conference_addinvite, 4)
-    T_STRING(0)
-    T_STRING(1)
+    T_STRING(_yahoo_conference_addinvite, 0)
+    T_STRING(_yahoo_conference_addinvite, 1)
 
-    T_STRING(3)
+    T_STRING(_yahoo_conference_addinvite, 3)
 
     char *darray;
     GET_CHECK_ARRAY(2, darray, "yahoo_conference_addinvite: parameter 3 should be an array")
@@ -3153,8 +3153,8 @@ CONCEPT_FUNCTION_IMPL(_yahoo_conference_addinvite, 4)
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_yahoo_conference_decline, 3)
-    T_STRING(1)
-    T_STRING(2)
+    T_STRING(_yahoo_conference_decline, 1)
+    T_STRING(_yahoo_conference_decline, 2)
 
     char *darray;
     GET_CHECK_ARRAY(0, darray, "yahoo_conference_decline: parameter 1 should be an array")
@@ -3174,9 +3174,9 @@ CONCEPT_FUNCTION_IMPL(_yahoo_conference_decline, 3)
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_yahoo_conference_message, 4)
-    T_STRING(1)
-    T_STRING(2)
-    T_NUMBER(3)
+    T_STRING(_yahoo_conference_message, 1)
+    T_STRING(_yahoo_conference_message, 2)
+    T_NUMBER(_yahoo_conference_message, 3)
 
     char *darray;
     GET_CHECK_ARRAY(0, darray, "yahoo_conference_message: parameter 1 should be an array")
@@ -3196,7 +3196,7 @@ CONCEPT_FUNCTION_IMPL(_yahoo_conference_message, 4)
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_yahoo_conference_logon, 2)
-    T_STRING(1)
+    T_STRING(_yahoo_conference_logon, 1)
 
     char *darray;
     GET_CHECK_ARRAY(0, darray, "yahoo_conference_logon: parameter 1 should be an array")
@@ -3216,7 +3216,7 @@ CONCEPT_FUNCTION_IMPL(_yahoo_conference_logon, 2)
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_yahoo_conference_logoff, 2)
-    T_STRING(1)
+    T_STRING(_yahoo_conference_logoff, 1)
 
     char *darray;
     GET_CHECK_ARRAY(0, darray, "yahoo_conference_logoff: parameter 1 should be an array")
@@ -3236,7 +3236,7 @@ CONCEPT_FUNCTION_IMPL(_yahoo_conference_logoff, 2)
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_yahoo_get_chatrooms, 1)
-    T_NUMBER(0)
+    T_NUMBER(_yahoo_get_chatrooms, 0)
 
     TEST_YLAD
 
@@ -3246,8 +3246,8 @@ CONCEPT_FUNCTION_IMPL(_yahoo_get_chatrooms, 1)
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_yahoo_chat_logon, 2)
-    T_STRING(0)
-    T_STRING(1)
+    T_STRING(_yahoo_chat_logon, 0)
+    T_STRING(_yahoo_chat_logon, 1)
 
     TEST_YLAD
 
@@ -3266,10 +3266,10 @@ CONCEPT_FUNCTION_IMPL(_yahoo_chat_logoff, 0)
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_yahoo_chat_message, 4)
-    T_STRING(0)
-    T_STRING(1)
-    T_NUMBER(2)
-    T_NUMBER(3)
+    T_STRING(_yahoo_chat_message, 0)
+    T_STRING(_yahoo_chat_message, 1)
+    T_NUMBER(_yahoo_chat_message, 2)
+    T_NUMBER(_yahoo_chat_message, 3)
 
     TEST_YLAD
 
@@ -3279,7 +3279,7 @@ CONCEPT_FUNCTION_IMPL(_yahoo_chat_message, 4)
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_yahoo_webcam_get_feed, 1)
-    T_STRING(0)
+    T_STRING(_yahoo_webcam_get_feed, 0)
 
     TEST_YLAD
 
@@ -3289,7 +3289,7 @@ CONCEPT_FUNCTION_IMPL(_yahoo_webcam_get_feed, 1)
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_yahoo_webcam_close_feed, 1)
-    T_STRING(0)
+    T_STRING(_yahoo_webcam_close_feed, 0)
 
     TEST_YLAD
 
@@ -3299,8 +3299,8 @@ CONCEPT_FUNCTION_IMPL(_yahoo_webcam_close_feed, 1)
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_yahoo_webcam_send_image, 2)
-    T_STRING(0)
-    T_NUMBER(1)
+    T_STRING(_yahoo_webcam_send_image, 0)
+    T_NUMBER(_yahoo_webcam_send_image, 1)
 
     TEST_YLAD
 
@@ -3310,8 +3310,8 @@ CONCEPT_FUNCTION_IMPL(_yahoo_webcam_send_image, 2)
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_yahoo_webcam_accept_viewer, 2)
-    T_STRING(0)
-    T_NUMBER(1)
+    T_STRING(_yahoo_webcam_accept_viewer, 0)
+    T_NUMBER(_yahoo_webcam_accept_viewer, 1)
 
     TEST_YLAD
 
@@ -3321,7 +3321,7 @@ CONCEPT_FUNCTION_IMPL(_yahoo_webcam_accept_viewer, 2)
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_yahoo_webcam_invite, 1)
-    T_STRING(0)
+    T_STRING(_yahoo_webcam_invite, 0)
 
     TEST_YLAD
 
@@ -3342,7 +3342,7 @@ CONCEPT_FUNCTION_IMPL(_yahoo_get_profile_url, 0)
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_yahoo_get_cookie, 1)
-    T_STRING(0)
+    T_STRING(_yahoo_get_cookie, 0)
 
     TEST_YLAD
 
@@ -3374,7 +3374,7 @@ CONCEPT_FUNCTION_IMPL(_yahoo_get_identities, 0)
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_yahoo_set_callback, 2)
-    T_NUMBER(0)
+    T_NUMBER(_yahoo_set_callback, 0)
 
     NUMBER mem_id;
     char *cls_id;
@@ -3397,8 +3397,9 @@ CONCEPT_FUNCTION_IMPL(_yahoo_set_callback, 2)
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_yahoo_status_code, 1)
-    T_NUMBER(0)
+    T_NUMBER(_yahoo_status_code, 0)
 
     RETURN_STRING(yahoo_status_code((yahoo_status)PARAM_INT(0)))
 END_IMPL
 //---------------------------------------------------------------------------
+

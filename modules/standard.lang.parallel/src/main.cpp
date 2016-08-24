@@ -49,7 +49,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(PPInit, 0, 1)
     cl_device_type device_type = CL_DEVICE_TYPE_ALL;
 
     if (PARAMETERS_COUNT > 0) {
-        T_NUMBER(0)
+        T_NUMBER(PPInit, 0)
         device_type = (cl_device_type)PARAM_INT(0);
     }
 
@@ -81,7 +81,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(PPInit, 0, 1)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(PPDone, 1)
-    T_NUMBER(0)
+    T_NUMBER(PPDone, 0)
     cl_command_queue context = (cl_command_queue)(SYS_INT)PARAM(0);
     if (context) {
         clReleaseCommandQueue(context);
@@ -91,8 +91,8 @@ CONCEPT_FUNCTION_IMPL(PPDone, 1)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(PPCompile, 2, 4)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(PPCompile, 0)
+    T_STRING(PPCompile, 1)
 
     cl_command_queue cw = (cl_command_queue)(SYS_INT)PARAM(0);
     cl_context context = 0;
@@ -111,7 +111,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(PPCompile, 2, 4)
     cl_program prog     = clCreateProgramWithSource(context, 1, &srcptr, &srcsize, &clerror);
     char       *options = "";
     if (PARAMETERS_COUNT > 2) {
-        T_STRING(2)
+        T_STRING(PPCompile, 2)
         options = PARAM(2);
     }
     clerror = clBuildProgram(prog, 0, NULL, options, NULL, NULL);
@@ -136,8 +136,8 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(PPCompile, 2, 4)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(PPKernel, 2)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(PPKernel, 0)
+    T_STRING(PPKernel, 1)
 
     cl_int clerror;
     cl_program prog     = (cl_program)(SYS_INT)PARAM(0);
@@ -150,7 +150,7 @@ CONCEPT_FUNCTION_IMPL(PPKernel, 2)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(PPReleaseKernel, 1)
-    T_NUMBER(0)
+    T_NUMBER(PPReleaseKernel, 0)
     cl_kernel k_kernel = (cl_kernel)(SYS_INT)PARAM(0);
     if (k_kernel) {
         clReleaseKernel(k_kernel);
@@ -160,7 +160,7 @@ CONCEPT_FUNCTION_IMPL(PPReleaseKernel, 1)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(PPRelease, 1)
-    T_NUMBER(0)
+    T_NUMBER(PPRelease, 0)
     cl_program k_kernel = (cl_program)(SYS_INT)PARAM(0);
     if (k_kernel) {
         clReleaseProgram(k_kernel);
@@ -170,10 +170,10 @@ CONCEPT_FUNCTION_IMPL(PPRelease, 1)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(PPGo, 4)
-    T_HANDLE(0)
-    T_HANDLE(1)
-    T_ARRAY(2)
-    T_ARRAY(3)
+    T_HANDLE(PPGo, 0)
+    T_HANDLE(PPGo, 1)
+    T_ARRAY(PPGo, 2)
+    T_ARRAY(PPGo, 3)
 
     cl_command_queue cw = (cl_command_queue)(SYS_INT)PARAM(0);
     cl_context context = 0;
@@ -313,7 +313,7 @@ CONCEPT_FUNCTION_IMPL(PPGo, 4)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(PPFinish, 1)
-    T_HANDLE(0)
+    T_HANDLE(PPFinish, 0)
 
     cl_int clerror;
     FunctionCall *call = (FunctionCall *)(SYS_INT)PARAM(0);
@@ -1910,7 +1910,7 @@ AnsiString GenerateCode(void *DELEGATE, INVOKE_CALL Invoke, AnsiString& err, std
 }
 
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(PPConcept, 1, 3)
-    T_DELEGATE(0)
+    T_DELEGATE(PPConcept, 0)
 
     static AnsiString err;
     AnsiString cl_funcname;
@@ -1934,10 +1934,10 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(PPConcept, 1, 3)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(PPConceptGo, 4)
-    T_HANDLE(0)
-    T_HANDLE(1)
-    T_ARRAY(2)
-    T_STRING(3)
+    T_HANDLE(PPConceptGo, 0)
+    T_HANDLE(PPConceptGo, 1)
+    T_ARRAY(PPConceptGo, 2)
+    T_STRING(PPConceptGo, 3)
 
     cl_command_queue cw = (cl_command_queue)(SYS_INT)PARAM(0);
     cl_context context = 0;
@@ -2178,32 +2178,32 @@ CONCEPT_FUNCTION_IMPL(PPConceptGo, 4)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(get_global_id, 1)
-    T_NUMBER(0)
+    T_NUMBER(get_global_id, 0)
     RETURN_NUMBER(0);
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(get_local_id, 1)
-    T_NUMBER(0)
+    T_NUMBER(get_local_id, 0)
     RETURN_NUMBER(0);
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(get_global_size, 1)
-    T_NUMBER(0)
+    T_NUMBER(get_global_size, 0)
     RETURN_NUMBER(0);
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(get_local_size, 1)
-    T_NUMBER(0)
+    T_NUMBER(get_local_size, 0)
     RETURN_NUMBER(0);
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(barrier, 1)
-    T_NUMBER(0)
+    T_NUMBER(barrier, 0)
     RETURN_NUMBER(0);
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(PPNative, 1)
-    T_STRING(0)
+    T_STRING(PPNative, 0)
     RETURN_NUMBER(0);
 END_IMPL
 //------------------------------------------------------------------------
@@ -2212,17 +2212,18 @@ CONCEPT_FUNCTION_IMPL(get_work_dim, 0)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(get_num_groups, 1)
-    T_NUMBER(0)
+    T_NUMBER(get_num_groups, 0)
     RETURN_NUMBER(0);
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(get_group_id, 1)
-    T_NUMBER(0)
+    T_NUMBER(get_group_id, 0)
     RETURN_NUMBER(0);
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(get_global_offset, 1)
-    T_NUMBER(0)
+    T_NUMBER(get_global_offset, 0)
     RETURN_NUMBER(0);
 END_IMPL
 //------------------------------------------------------------------------
+

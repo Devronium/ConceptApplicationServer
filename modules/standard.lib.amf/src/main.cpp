@@ -401,7 +401,7 @@ void process_object(void *RESULT, amf::amf_object *obj) {
 
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(UnAMF, 1)
-    T_STRING(0)
+    T_STRING(UnAMF, 0)
 
     amf::amf_object * obj = new amf::amf_object();
     int ret = obj->decode(PARAM(0), PARAM_LEN(0));
@@ -415,3 +415,4 @@ CONCEPT_FUNCTION_IMPL(UnAMF, 1)
     } else
         process_object(RESULT, obj);
 END_IMPL
+

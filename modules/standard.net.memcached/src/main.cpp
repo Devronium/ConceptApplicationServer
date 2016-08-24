@@ -154,7 +154,7 @@ CONCEPT_FUNCTION_IMPL(MemCachedCreate, 0)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MemCachedFree, 1)
-    T_NUMBER(0)
+    T_NUMBER(MemCachedFree, 0)
     memcached_st * memc = (memcached_st *)PARAM_INT(0);
     if (memc) {
         memcached_quit(memc);
@@ -165,41 +165,41 @@ CONCEPT_FUNCTION_IMPL(MemCachedFree, 1)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MemCachedResetServers, 1)
-    T_HANDLE(0)
+    T_HANDLE(MemCachedResetServers, 0)
     memcached_st * memc = (memcached_st *)PARAM_INT(0);
     memcached_servers_reset(memc);
     RETURN_NUMBER(0)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MemCachedAddServer, 3)
-    T_HANDLE(0)
-    T_STRING(1)
-    T_NUMBER(2)
+    T_HANDLE(MemCachedAddServer, 0)
+    T_STRING(MemCachedAddServer, 1)
+    T_NUMBER(MemCachedAddServer, 2)
 
     memcached_st * memc = (memcached_st *)PARAM_INT(0);
     RETURN_NUMBER(memcached_server_add(memc, PARAM(1), PARAM_INT(2)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MemCachedAddServerUDP, 3)
-    T_HANDLE(0)
-    T_STRING(1)
-    T_NUMBER(2)
+    T_HANDLE(MemCachedAddServerUDP, 0)
+    T_STRING(MemCachedAddServerUDP, 1)
+    T_NUMBER(MemCachedAddServerUDP, 2)
 
     memcached_st * memc = (memcached_st *)PARAM_INT(0);
     RETURN_NUMBER(memcached_server_add_udp(memc, PARAM(1), PARAM_INT(2)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MemCachedAddServerUnixSocket, 2)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(MemCachedAddServerUnixSocket, 0)
+    T_STRING(MemCachedAddServerUnixSocket, 1)
 
     memcached_st * memc = (memcached_st *)PARAM_INT(0);
     RETURN_NUMBER(memcached_server_add_unix_socket(memc, PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MemCachedServerPush, 2)
-    T_HANDLE(0)
-    T_ARRAY(1)
+    T_HANDLE(MemCachedServerPush, 0)
+    T_ARRAY(MemCachedServerPush, 1)
 
     memcached_st * memc = (memcached_st *)PARAM_INT(0);
     memcached_server_st *servers = NULL;
@@ -239,18 +239,18 @@ CONCEPT_FUNCTION_IMPL(MemCachedServerPush, 2)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(MemCachedSet, 3, 5)
-    T_HANDLE(0)
-    T_STRING(1)
-    T_STRING(2)
+    T_HANDLE(MemCachedSet, 0)
+    T_STRING(MemCachedSet, 1)
+    T_STRING(MemCachedSet, 2)
 
     time_t settime = 0;
     unsigned int flags = 0;
     if (PARAMETERS_COUNT > 3) {
-        T_NUMBER(3)
+        T_NUMBER(MemCachedSet, 3)
         settime = PARAM_INT(3);
     }
     if (PARAMETERS_COUNT > 4) {
-        T_NUMBER(4)
+        T_NUMBER(MemCachedSet, 4)
         flags = PARAM_INT(4);
     }
 
@@ -260,18 +260,18 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(MemCachedSet, 3, 5)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(MemCachedAdd, 3, 5)
-    T_HANDLE(0)
-    T_STRING(1)
-    T_STRING(2)
+    T_HANDLE(MemCachedAdd, 0)
+    T_STRING(MemCachedAdd, 1)
+    T_STRING(MemCachedAdd, 2)
 
     time_t settime = 0;
     unsigned int flags = 0;
     if (PARAMETERS_COUNT > 3) {
-        T_NUMBER(3)
+        T_NUMBER(MemCachedAdd, 3)
         settime = PARAM_INT(3);
     }
     if (PARAMETERS_COUNT > 4) {
-        T_NUMBER(4)
+        T_NUMBER(MemCachedAdd, 4)
         flags = PARAM_INT(4);
     }
 
@@ -281,18 +281,18 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(MemCachedAdd, 3, 5)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(MemCachedReplace, 3, 5)
-    T_HANDLE(0)
-    T_STRING(1)
-    T_STRING(2)
+    T_HANDLE(MemCachedReplace, 0)
+    T_STRING(MemCachedReplace, 1)
+    T_STRING(MemCachedReplace, 2)
 
     time_t settime = 0;
     unsigned int flags = 0;
     if (PARAMETERS_COUNT > 3) {
-        T_NUMBER(3)
+        T_NUMBER(MemCachedReplace, 3)
         settime = PARAM_INT(3);
     }
     if (PARAMETERS_COUNT > 4) {
-        T_NUMBER(4)
+        T_NUMBER(MemCachedReplace, 4)
         flags = PARAM_INT(4);
     }
 
@@ -302,18 +302,18 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(MemCachedReplace, 3, 5)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(MemCachedPrepend, 3, 5)
-    T_HANDLE(0)
-    T_STRING(1)
-    T_STRING(2)
+    T_HANDLE(MemCachedPrepend, 0)
+    T_STRING(MemCachedPrepend, 1)
+    T_STRING(MemCachedPrepend, 2)
 
     time_t settime = 0;
     unsigned int flags = 0;
     if (PARAMETERS_COUNT > 3) {
-        T_NUMBER(3)
+        T_NUMBER(MemCachedPrepend, 3)
         settime = PARAM_INT(3);
     }
     if (PARAMETERS_COUNT > 4) {
-        T_NUMBER(4)
+        T_NUMBER(MemCachedPrepend, 4)
         flags = PARAM_INT(4);
     }
 
@@ -323,18 +323,18 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(MemCachedPrepend, 3, 5)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(MemCachedAppend, 3, 5)
-    T_HANDLE(0)
-    T_STRING(1)
-    T_STRING(2)
+    T_HANDLE(MemCachedAppend, 0)
+    T_STRING(MemCachedAppend, 1)
+    T_STRING(MemCachedAppend, 2)
 
     time_t settime = 0;
     unsigned int flags = 0;
     if (PARAMETERS_COUNT > 3) {
-        T_NUMBER(3)
+        T_NUMBER(MemCachedAppend, 3)
         settime = PARAM_INT(3);
     }
     if (PARAMETERS_COUNT > 4) {
-        T_NUMBER(4)
+        T_NUMBER(MemCachedAppend, 4)
         flags = PARAM_INT(4);
     }
 
@@ -344,19 +344,19 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(MemCachedAppend, 3, 5)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(MemCachedSetByKey, 4, 6)
-    T_HANDLE(0)
-    T_STRING(1)
-    T_STRING(2)
-    T_STRING(3)
+    T_HANDLE(MemCachedSetByKey, 0)
+    T_STRING(MemCachedSetByKey, 1)
+    T_STRING(MemCachedSetByKey, 2)
+    T_STRING(MemCachedSetByKey, 3)
 
     time_t settime = 0;
     unsigned int flags = 0;
     if (PARAMETERS_COUNT > 4) {
-        T_NUMBER(4)
+        T_NUMBER(MemCachedSetByKey, 4)
         settime = PARAM_INT(4);
     }
     if (PARAMETERS_COUNT > 5) {
-        T_NUMBER(5)
+        T_NUMBER(MemCachedSetByKey, 5)
         flags = PARAM_INT(5);
     }
 
@@ -366,19 +366,19 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(MemCachedSetByKey, 4, 6)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(MemCachedAddByKey, 4, 6)
-    T_HANDLE(0)
-    T_STRING(1)
-    T_STRING(2)
-    T_STRING(3)
+    T_HANDLE(MemCachedAddByKey, 0)
+    T_STRING(MemCachedAddByKey, 1)
+    T_STRING(MemCachedAddByKey, 2)
+    T_STRING(MemCachedAddByKey, 3)
 
     time_t settime = 0;
     unsigned int flags = 0;
     if (PARAMETERS_COUNT > 4) {
-        T_NUMBER(4)
+        T_NUMBER(MemCachedAddByKey, 4)
         settime = PARAM_INT(4);
     }
     if (PARAMETERS_COUNT > 5) {
-        T_NUMBER(5)
+        T_NUMBER(MemCachedAddByKey, 5)
         flags = PARAM_INT(5);
     }
 
@@ -388,19 +388,19 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(MemCachedAddByKey, 4, 6)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(MemCachedReplaceByKey, 4, 6)
-    T_HANDLE(0)
-    T_STRING(1)
-    T_STRING(2)
-    T_STRING(3)
+    T_HANDLE(MemCachedReplaceByKey, 0)
+    T_STRING(MemCachedReplaceByKey, 1)
+    T_STRING(MemCachedReplaceByKey, 2)
+    T_STRING(MemCachedReplaceByKey, 3)
 
     time_t settime = 0;
     unsigned int flags = 0;
     if (PARAMETERS_COUNT > 4) {
-        T_NUMBER(4)
+        T_NUMBER(MemCachedReplaceByKey, 4)
         settime = PARAM_INT(4);
     }
     if (PARAMETERS_COUNT > 5) {
-        T_NUMBER(5)
+        T_NUMBER(MemCachedReplaceByKey, 5)
         flags = PARAM_INT(5);
     }
 
@@ -410,19 +410,19 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(MemCachedReplaceByKey, 4, 6)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(MemCachedPrependByKey, 4, 6)
-    T_HANDLE(0)
-    T_STRING(1)
-    T_STRING(2)
-    T_STRING(3)
+    T_HANDLE(MemCachedPrependByKey, 0)
+    T_STRING(MemCachedPrependByKey, 1)
+    T_STRING(MemCachedPrependByKey, 2)
+    T_STRING(MemCachedPrependByKey, 3)
 
     time_t settime = 0;
     unsigned int flags = 0;
     if (PARAMETERS_COUNT > 4) {
-        T_NUMBER(4)
+        T_NUMBER(MemCachedPrependByKey, 4)
         settime = PARAM_INT(4);
     }
     if (PARAMETERS_COUNT > 5) {
-        T_NUMBER(5)
+        T_NUMBER(MemCachedPrependByKey, 5)
         flags = PARAM_INT(5);
     }
 
@@ -432,19 +432,19 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(MemCachedPrependByKey, 4, 6)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(MemCachedAppendByKey, 4, 6)
-    T_HANDLE(0)
-    T_STRING(1)
-    T_STRING(2)
-    T_STRING(3)
+    T_HANDLE(MemCachedAppendByKey, 0)
+    T_STRING(MemCachedAppendByKey, 1)
+    T_STRING(MemCachedAppendByKey, 2)
+    T_STRING(MemCachedAppendByKey, 3)
 
     time_t settime = 0;
     unsigned int flags = 0;
     if (PARAMETERS_COUNT > 4) {
-        T_NUMBER(4)
+        T_NUMBER(MemCachedAppendByKey, 4)
         settime = PARAM_INT(4);
     }
     if (PARAMETERS_COUNT > 5) {
-        T_NUMBER(5)
+        T_NUMBER(MemCachedAppendByKey, 5)
         flags = PARAM_INT(5);
     }
 
@@ -454,12 +454,12 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(MemCachedAppendByKey, 4, 6)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(MemCachedGet, 2, 4)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(MemCachedGet, 0)
+    T_STRING(MemCachedGet, 1)
 
     unsigned int flags = 0;
     if (PARAMETERS_COUNT > 2) {
-        T_NUMBER(2)
+        T_NUMBER(MemCachedGet, 2)
         flags = PARAM_INT(2);
     }
 
@@ -483,8 +483,8 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(MemCachedGet, 2, 4)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MemCachedMGet, 2)
-    T_HANDLE(0)
-    T_ARRAY(1)
+    T_HANDLE(MemCachedMGet, 0)
+    T_ARRAY(MemCachedMGet, 1)
 
     memcached_st * memc = (memcached_st *)PARAM_INT(0);
     void *arr  = PARAMETER(1);
@@ -534,9 +534,9 @@ CONCEPT_FUNCTION_IMPL(MemCachedMGet, 2)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MemCachedMGetByKey, 3)
-    T_HANDLE(0)
-    T_STRING(1)
-    T_ARRAY(2)
+    T_HANDLE(MemCachedMGetByKey, 0)
+    T_STRING(MemCachedMGetByKey, 1)
+    T_ARRAY(MemCachedMGetByKey, 2)
 
     memcached_st * memc = (memcached_st *)PARAM_INT(0);
     void *arr  = PARAMETER(2);
@@ -586,13 +586,13 @@ CONCEPT_FUNCTION_IMPL(MemCachedMGetByKey, 3)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(MemCachedGetByKey, 3, 5)
-    T_HANDLE(0)
-    T_STRING(1)
-    T_STRING(2)
+    T_HANDLE(MemCachedGetByKey, 0)
+    T_STRING(MemCachedGetByKey, 1)
+    T_STRING(MemCachedGetByKey, 2)
 
     unsigned int flags = 0;
     if (PARAMETERS_COUNT > 3) {
-        T_NUMBER(3)
+        T_NUMBER(MemCachedGetByKey, 3)
         flags = PARAM_INT(3);
     }
 
@@ -616,12 +616,12 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(MemCachedGetByKey, 3, 5)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(MemCachedDelete, 2, 3)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(MemCachedDelete, 0)
+    T_STRING(MemCachedDelete, 1)
 
     time_t del_time = 0;
     if (PARAMETERS_COUNT > 2) {
-        T_NUMBER(2)
+        T_NUMBER(MemCachedDelete, 2)
         del_time = PARAM_INT(2);
     }
 
@@ -630,13 +630,13 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(MemCachedDelete, 2, 3)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(MemCachedDeleteByKey, 3, 4)
-    T_HANDLE(0)
-    T_STRING(1)
-    T_STRING(2)
+    T_HANDLE(MemCachedDeleteByKey, 0)
+    T_STRING(MemCachedDeleteByKey, 1)
+    T_STRING(MemCachedDeleteByKey, 2)
 
     time_t del_time = 0;
     if (PARAMETERS_COUNT > 3) {
-        T_NUMBER(3)
+        T_NUMBER(MemCachedDeleteByKey, 3)
         del_time = PARAM_INT(3);
     }
 
@@ -645,20 +645,20 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(MemCachedDeleteByKey, 3, 4)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MemCachedError, 2)
-    T_HANDLE(0)
-    T_NUMBER(1)
+    T_HANDLE(MemCachedError, 0)
+    T_NUMBER(MemCachedError, 1)
 
     memcached_st * memc = (memcached_st *)PARAM_INT(0);
     RETURN_STRING(memcached_strerror(memc, (memcached_return_t)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(MemCachedIncrement, 2, 3)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(MemCachedIncrement, 0)
+    T_STRING(MemCachedIncrement, 1)
 
     unsigned int offset = 1;
     if (PARAMETERS_COUNT > 2) {
-        T_NUMBER(2)
+        T_NUMBER(MemCachedIncrement, 2)
         offset = PARAM_INT(2);
     }
     unsigned long long value;
@@ -667,12 +667,12 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(MemCachedIncrement, 2, 3)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(MemCachedDecrement, 2, 3)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(MemCachedDecrement, 0)
+    T_STRING(MemCachedDecrement, 1)
 
     unsigned int offset = 1;
     if (PARAMETERS_COUNT > 2) {
-        T_NUMBER(2)
+        T_NUMBER(MemCachedDecrement, 2)
         offset = PARAM_INT(2);
     }
     unsigned long long value;
@@ -681,27 +681,28 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(MemCachedDecrement, 2, 3)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MemCachedFlush, 2)
-    T_HANDLE(0)
-    T_NUMBER(1)
+    T_HANDLE(MemCachedFlush, 0)
+    T_NUMBER(MemCachedFlush, 1)
 
     memcached_st * memc = (memcached_st *)PARAM_INT(0);
     RETURN_NUMBER(memcached_flush(memc, (time_t)PARAM_INT(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MemCachedBehaviorSet, 3)
-    T_HANDLE(0)
-    T_NUMBER(1)
-    T_NUMBER(2)
+    T_HANDLE(MemCachedBehaviorSet, 0)
+    T_NUMBER(MemCachedBehaviorSet, 1)
+    T_NUMBER(MemCachedBehaviorSet, 2)
 
     memcached_st * memc = (memcached_st *)PARAM_INT(0);
     RETURN_NUMBER(memcached_behavior_set(memc, (memcached_behavior_t)PARAM(1), (unsigned long long)PARAM(2)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MemCachedBehaviorGet, 2)
-    T_HANDLE(0)
-    T_NUMBER(1)
+    T_HANDLE(MemCachedBehaviorGet, 0)
+    T_NUMBER(MemCachedBehaviorGet, 1)
 
     memcached_st * memc = (memcached_st *)PARAM_INT(0);
     RETURN_NUMBER(memcached_behavior_get(memc, (memcached_behavior_t)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
+

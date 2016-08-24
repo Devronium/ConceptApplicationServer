@@ -402,15 +402,15 @@ CONCEPT_FUNCTION_IMPL(MD5Init, 0)
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MD5Update, 2)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(MD5Update, 0)
+    T_STRING(MD5Update, 1)
     MD5_CTX * CTX = (MD5_CTX *)PARAM_INT(0);
     MD5Update(CTX, (unsigned char *)PARAM(1), (long)PARAM_LEN(1));
     RETURN_NUMBER(0);
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MD5Final, 1)
-    T_HANDLE(0)
+    T_HANDLE(MD5Final, 0)
     MD5_CTX * CTX = (MD5_CTX *)PARAM_INT(0);
     unsigned char md5_sum[16];
     MD5Final(md5_sum, CTX);
@@ -481,15 +481,15 @@ CONCEPT_FUNCTION_IMPL(SHA1Init, 0)
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(SHA1Update, 2)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(SHA1Update, 0)
+    T_STRING(SHA1Update, 1)
     SHA1Context * CTX = (SHA1Context *)PARAM_INT(0);
     SHA1Input(CTX, (unsigned char *)PARAM(1), (long)PARAM_LEN(1));
     RETURN_NUMBER(0);
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(SHA1Final, 1)
-    T_HANDLE(0)
+    T_HANDLE(SHA1Final, 0)
     SHA1Context * CTX = (SHA1Context *)PARAM_INT(0);
 
     if (!SHA1Result(CTX)) {
@@ -638,15 +638,15 @@ CONCEPT_FUNCTION_IMPL(SHA256Init, 0)
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(SHA256Update, 2)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(SHA256Update, 0)
+    T_STRING(SHA256Update, 1)
     sha256 * CTX = (sha256 *)PARAM_INT(0);
     sha256_update(CTX, (unsigned char *)PARAM(1), (long)PARAM_LEN(1));
     RETURN_NUMBER(0);
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(SHA256Final, 1)
-    T_HANDLE(0)
+    T_HANDLE(SHA256Final, 0)
     sha256 * CTX = (sha256 *)PARAM_INT(0);
 
     sha256_finalize(CTX, 0, 0);
@@ -677,7 +677,7 @@ CONCEPT_FUNCTION_IMPL(SHA256Final, 1)
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(AESEncryptInit, 1)
-    T_STRING(0)
+    T_STRING(AESEncryptInit, 0)
     unsigned long length2 = PARAM_LEN(0);
     if ((length2 != 16) && (length2 != 24) && (length2 != 32))
         return (void *)"AESEncryptInit: invalid key size. Key size should have 128, 192 or 256 bits (16, 24 or 32 bytes in length)";
@@ -695,7 +695,7 @@ CONCEPT_FUNCTION_IMPL(AESEncryptInit, 1)
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(AESDecryptInit, 1)
-    T_STRING(0)
+    T_STRING(AESDecryptInit, 0)
     unsigned long length2 = PARAM_LEN(0);
     if ((length2 != 16) && (length2 != 24) && (length2 != 32))
         return (void *)"AESDecryptInit: invalid key size. Key size should have 128, 192 or 256 bits (16, 24 or 32 bytes in length)";
@@ -713,12 +713,12 @@ CONCEPT_FUNCTION_IMPL(AESDecryptInit, 1)
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(AESEncrypt, 2, 4)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(AESEncrypt, 0)
+    T_STRING(AESEncrypt, 1)
 
     AES::BlockMode mode = AES::ECB;
     if (PARAMETERS_COUNT > 2) {
-        T_NUMBER(2)
+        T_NUMBER(AESEncrypt, 2)
         mode = (AES::BlockMode)PARAM_INT(2);
     }
 
@@ -747,7 +747,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(AESEncrypt, 2, 4)
 
 // force PCKS7 padding for complete streams
     if (PARAMETERS_COUNT > 3) {
-        T_NUMBER(3)
+        T_NUMBER(AESEncrypt, 3)
         if ((iRoundSize == iSize) && (PARAM_INT(3)))
             iRoundSize += 16;
     } else
@@ -811,12 +811,12 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(AESEncrypt, 2, 4)
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(AESDecrypt, 2, 4)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(AESDecrypt, 0)
+    T_STRING(AESDecrypt, 1)
 
     AES::BlockMode mode = AES::ECB;
     if (PARAMETERS_COUNT > 2) {
-        T_NUMBER(2)
+        T_NUMBER(AESDecrypt, 2)
         mode = (AES::BlockMode)PARAM_INT(2);
     }
 
@@ -886,7 +886,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(AESDecrypt, 2, 4)
     context->Decrypt((const unsigned char *)PARAM(1), (unsigned char *)out, iSize / 16, mode);
 #endif
     if (PARAMETERS_COUNT > 3) {
-        T_NUMBER(3)
+        T_NUMBER(AESDecrypt, 3)
 
         if (PARAM_INT(3)) {
             // padding ?
@@ -899,7 +899,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(AESDecrypt, 2, 4)
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(AESRelease, 1)
-    T_NUMBER(0);
+    T_NUMBER(AESRelease, 0);
     void *a = (void *)PARAM_INT(0);
     if (a) {
         SET_NUMBER(0, 0);
@@ -914,15 +914,15 @@ CONCEPT_FUNCTION_IMPL(AESRelease, 1)
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(aes_encrypt, 2, 3)
-    T_STRING(0)
-    T_STRING(1)
+    T_STRING(aes_encrypt, 0)
+    T_STRING(aes_encrypt, 1)
     AES::BlockMode mode = AES::ECB;
 
     unsigned long length2 = PARAM_LEN(1);
     unsigned long length  = PARAM_LEN(0);
 
     if (PARAMETERS_COUNT > 2) {
-        T_NUMBER(2)
+        T_NUMBER(aes_encrypt, 2)
         mode = (AES::BlockMode)PARAM_INT(2);
     }
 
@@ -954,15 +954,15 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(aes_encrypt, 2, 3)
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(aes_decrypt, 2, 3)
-    T_STRING(0)
-    T_STRING(1)
+    T_STRING(aes_decrypt, 0)
+    T_STRING(aes_decrypt, 1)
     AES::BlockMode mode = AES::ECB;
 
     unsigned long length2 = PARAM_LEN(1);
     unsigned long length  = PARAM_LEN(0);
 
     if (PARAMETERS_COUNT > 2) {
-        T_NUMBER(2)
+        T_NUMBER(aes_decrypt, 2)
         mode = (AES::BlockMode)PARAM_INT(2);
     }
 
@@ -1190,8 +1190,8 @@ unsigned get_value(unsigned char c1) {
 
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(hmac_md5, 3)
-    T_STRING(0)
-    T_STRING(1)
+    T_STRING(hmac_md5, 0)
+    T_STRING(hmac_md5, 1)
 
     unsigned char buf[16];
 
@@ -1236,8 +1236,8 @@ CONCEPT_FUNCTION_IMPL(hmac_md5, 3)
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(hmac_sha1, 3)
-    T_STRING(0)
-    T_STRING(1)
+    T_STRING(hmac_sha1, 0)
+    T_STRING(hmac_sha1, 1)
 
     unsigned char buf[20];
 
@@ -1282,11 +1282,11 @@ CONCEPT_FUNCTION_IMPL(hmac_sha1, 3)
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(hmac_sha256, 3, 4)
-    T_STRING(0)
-    T_STRING(1)
+    T_STRING(hmac_sha256, 0)
+    T_STRING(hmac_sha256, 1)
     int raw = 0;
     if (PARAMETERS_COUNT > 3) {
-        T_NUMBER(3)
+        T_NUMBER(hmac_sha256, 3)
         raw = PARAM_INT(3);
     }
 
@@ -1383,7 +1383,7 @@ unsigned int murmur_hash(const void *key, long len) {
 }
 
 CONCEPT_FUNCTION_IMPL(Murmur, 1)
-    T_STRING(0)
+    T_STRING(Murmur, 0)
 
     unsigned int res = murmur_hash(PARAM(0), PARAM_LEN(0));
     RETURN_NUMBER(res)
@@ -1445,10 +1445,10 @@ uint32_t murmur3_32(const char *key, uint32_t len, uint32_t seed) {
 }
 
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(Murmur3, 1, 2)
-    T_STRING(0)
+    T_STRING(Murmur3, 0)
     uint32_t seed = 0;
     if (PARAMETERS_COUNT > 1) {
-        T_NUMBER(1)
+        T_NUMBER(Murmur3, 1)
         seed = PARAM(1);
     }
 
@@ -1513,15 +1513,15 @@ int pkcs5_pbkdf2(const char *pass, size_t pass_len, const char *salt, size_t sal
 }
 
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(PBKDF2, 2, 4)
-    T_STRING(0)
-    T_STRING(1)
+    T_STRING(PBKDF2, 0)
+    T_STRING(PBKDF2, 1)
     int n_rounds = 1000;
     int key_size = 16;
     if (PARAMETERS_COUNT > 2) {
-        T_NUMBER(2)
+        T_NUMBER(PBKDF2, 2)
         key_size = PARAM_INT(2);
         if (PARAMETERS_COUNT > 3) {
-            T_NUMBER(3)
+            T_NUMBER(PBKDF2, 3)
             n_rounds = PARAM_INT(3);
         }
     }
@@ -1548,7 +1548,7 @@ END_IMPL
 //---------------------------------------------------------------------------
 #ifdef _USE_SECONDARY_AES
 CONCEPT_FUNCTION_IMPL(AesDone, 1)
-    T_NUMBER(0)
+    T_NUMBER(AesDone, 0)
     AesCtx * context = (AesCtx *)PARAM_INT(0);
     if (context) {
         delete context;
@@ -1557,8 +1557,8 @@ CONCEPT_FUNCTION_IMPL(AesDone, 1)
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(AesSetKey, 2, 3)
-    T_STRING(1)
-    T_NUMBER(0)
+    T_STRING(AesSetKey, 1)
+    T_NUMBER(AesSetKey, 0)
 
     AesCtx * context = new AesCtx;
     char             *init_vector = 0;
@@ -1568,7 +1568,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(AesSetKey, 2, 3)
     }
     char *key = PARAM(1);
     if (PARAMETERS_COUNT > 2) {
-        T_STRING(2);
+        T_STRING(AesSetKey, 2);
         int vlen = PARAM_LEN(2);
         if (vlen) {
             if (vlen != 16)
@@ -1582,8 +1582,8 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(AesSetKey, 2, 3)
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(AesSetInitVector, 2)
-    T_HANDLE(0)
-    T_STRING(1);
+    T_HANDLE(AesSetInitVector, 0)
+    T_STRING(AesSetInitVector, 1);
 
     AesCtx *context     = (AesCtx *)PARAM_INT(0);
     char   *init_vector = 0;
@@ -1598,16 +1598,16 @@ CONCEPT_FUNCTION_IMPL(AesSetInitVector, 2)
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(AesSetFeedbackSize, 2)
-    T_HANDLE(0)
-    T_NUMBER(1)
+    T_HANDLE(AesSetFeedbackSize, 0)
+    T_NUMBER(AesSetFeedbackSize, 1)
     AesCtx * context = (AesCtx *)PARAM_INT(0);
     AesSetFeedbackSize(context, PARAM_INT(1));
     RETURN_NUMBER(0);
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(AesEncryptECB, 2, 3)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(AesEncryptECB, 0)
+    T_STRING(AesEncryptECB, 1)
 
     int iSize = PARAM_LEN(1);
     if (!iSize) {
@@ -1623,7 +1623,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(AesEncryptECB, 2, 3)
 
 // force PCKS7 padding for complete streams
     if (PARAMETERS_COUNT > 2) {
-        T_NUMBER(2)
+        T_NUMBER(AesEncryptECB, 2)
         if ((iRoundSize == iSize) && (PARAM_INT(2)))
             iRoundSize += 16;
     } else
@@ -1656,8 +1656,8 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(AesEncryptECB, 2, 3)
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(AesEncryptCBC, 2, 3)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(AesEncryptCBC, 0)
+    T_STRING(AesEncryptCBC, 1)
 
     int iSize = PARAM_LEN(1);
     if (!iSize) {
@@ -1673,7 +1673,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(AesEncryptCBC, 2, 3)
 
 // force PCKS7 padding for complete streams
     if (PARAMETERS_COUNT > 2) {
-        T_NUMBER(2)
+        T_NUMBER(AesEncryptCBC, 2)
         if ((iRoundSize == iSize) && (PARAM_INT(2)))
             iRoundSize += 16;
     } else
@@ -1706,8 +1706,8 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(AesEncryptCBC, 2, 3)
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(AesEncryptPCBC, 2, 3)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(AesEncryptPCBC, 0)
+    T_STRING(AesEncryptPCBC, 1)
 
     int iSize = PARAM_LEN(1);
     if (!iSize) {
@@ -1723,7 +1723,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(AesEncryptPCBC, 2, 3)
 
 // force PCKS7 padding for complete streams
     if (PARAMETERS_COUNT > 2) {
-        T_NUMBER(2)
+        T_NUMBER(AesEncryptPCBC, 2)
         if ((iRoundSize == iSize) && (PARAM_INT(2)))
             iRoundSize += 16;
     } else
@@ -1756,8 +1756,8 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(AesEncryptPCBC, 2, 3)
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(AesEncryptCRT, 2, 3)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(AesEncryptCRT, 0)
+    T_STRING(AesEncryptCRT, 1)
 
     int iSize = PARAM_LEN(1);
     if (!iSize) {
@@ -1773,7 +1773,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(AesEncryptCRT, 2, 3)
 
 // force PCKS7 padding for complete streams
     if (PARAMETERS_COUNT > 2) {
-        T_NUMBER(2)
+        T_NUMBER(AesEncryptCRT, 2)
         if ((iRoundSize == iSize) && (PARAM_INT(2)))
             iRoundSize += 16;
     } else
@@ -1806,8 +1806,8 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(AesEncryptCRT, 2, 3)
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(AesEncryptOFB, 2, 3)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(AesEncryptOFB, 0)
+    T_STRING(AesEncryptOFB, 1)
 
     int iSize = PARAM_LEN(1);
     if (!iSize) {
@@ -1823,7 +1823,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(AesEncryptOFB, 2, 3)
 
 // force PCKS7 padding for complete streams
     if (PARAMETERS_COUNT > 2) {
-        T_NUMBER(2)
+        T_NUMBER(AesEncryptOFB, 2)
         if ((iRoundSize == iSize) && (PARAM_INT(2)))
             iRoundSize += 16;
     } else
@@ -1856,8 +1856,8 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(AesEncryptOFB, 2, 3)
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(AesEncryptCFB, 2, 3)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(AesEncryptCFB, 0)
+    T_STRING(AesEncryptCFB, 1)
 
     int iSize = PARAM_LEN(1);
     if (!iSize) {
@@ -1873,7 +1873,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(AesEncryptCFB, 2, 3)
 
 // force PCKS7 padding for complete streams
     if (PARAMETERS_COUNT > 2) {
-        T_NUMBER(2)
+        T_NUMBER(AesEncryptCFB, 2)
         if ((iRoundSize == iSize) && (PARAM_INT(2)))
             iRoundSize += 16;
     } else
@@ -1906,8 +1906,8 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(AesEncryptCFB, 2, 3)
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(AesDecryptECB, 2, 3)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(AesDecryptECB, 0)
+    T_STRING(AesDecryptECB, 1)
 
     int iSize = PARAM_LEN(1);
     if (!iSize) {
@@ -1933,7 +1933,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(AesDecryptECB, 2, 3)
     AesCtx *context = (AesCtx *)PARAM_INT(0);
     AesDecryptECB(context, out, PARAM(1), iRoundSize);
     if (PARAMETERS_COUNT > 2) {
-        T_NUMBER(2)
+        T_NUMBER(AesDecryptECB, 2)
 
         if (PARAM_INT(2)) {
             // padding ?
@@ -1946,8 +1946,8 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(AesDecryptECB, 2, 3)
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(AesDecryptCBC, 2, 3)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(AesDecryptCBC, 0)
+    T_STRING(AesDecryptCBC, 1)
 
     int iSize = PARAM_LEN(1);
     if (!iSize) {
@@ -1973,7 +1973,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(AesDecryptCBC, 2, 3)
     AesCtx *context = (AesCtx *)PARAM_INT(0);
     AesDecryptCBC(context, out, PARAM(1), iRoundSize);
     if (PARAMETERS_COUNT > 2) {
-        T_NUMBER(2)
+        T_NUMBER(AesDecryptCBC, 2)
 
         if (PARAM_INT(2)) {
             // padding ?
@@ -1986,8 +1986,8 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(AesDecryptCBC, 2, 3)
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(AesDecryptPCBC, 2, 3)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(AesDecryptPCBC, 0)
+    T_STRING(AesDecryptPCBC, 1)
 
     int iSize = PARAM_LEN(1);
     if (!iSize) {
@@ -2013,7 +2013,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(AesDecryptPCBC, 2, 3)
     AesCtx *context = (AesCtx *)PARAM_INT(0);
     AesDecryptPCBC(context, out, PARAM(1), iRoundSize);
     if (PARAMETERS_COUNT > 2) {
-        T_NUMBER(2)
+        T_NUMBER(AesDecryptPCBC, 2)
 
         if (PARAM_INT(2)) {
             // padding ?
@@ -2026,8 +2026,8 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(AesDecryptPCBC, 2, 3)
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(AesDecryptCRT, 2, 3)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(AesDecryptCRT, 0)
+    T_STRING(AesDecryptCRT, 1)
 
     int iSize = PARAM_LEN(1);
     if (!iSize) {
@@ -2053,7 +2053,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(AesDecryptCRT, 2, 3)
     AesCtx *context = (AesCtx *)PARAM_INT(0);
     AesDecryptCRT(context, out, PARAM(1), iRoundSize);
     if (PARAMETERS_COUNT > 2) {
-        T_NUMBER(2)
+        T_NUMBER(AesDecryptCRT, 2)
 
         if (PARAM_INT(2)) {
             // padding ?
@@ -2066,8 +2066,8 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(AesDecryptCRT, 2, 3)
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(AesDecryptOFB, 2, 3)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(AesDecryptOFB, 0)
+    T_STRING(AesDecryptOFB, 1)
 
     int iSize = PARAM_LEN(1);
     if (!iSize) {
@@ -2093,7 +2093,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(AesDecryptOFB, 2, 3)
     AesCtx *context = (AesCtx *)PARAM_INT(0);
     AesDecryptOFB(context, out, PARAM(1), iRoundSize);
     if (PARAMETERS_COUNT > 2) {
-        T_NUMBER(2)
+        T_NUMBER(AesDecryptOFB, 2)
 
         if (PARAM_INT(2)) {
             // padding ?
@@ -2106,8 +2106,8 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(AesDecryptOFB, 2, 3)
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(AesDecryptCFB, 2, 3)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(AesDecryptCFB, 0)
+    T_STRING(AesDecryptCFB, 1)
 
     int iSize = PARAM_LEN(1);
     if (!iSize) {
@@ -2133,7 +2133,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(AesDecryptCFB, 2, 3)
     AesCtx *context = (AesCtx *)PARAM_INT(0);
     AesDecryptCFB(context, out, PARAM(1), iRoundSize);
     if (PARAMETERS_COUNT > 2) {
-        T_NUMBER(2)
+        T_NUMBER(AesDecryptCFB, 2)
 
         if (PARAM_INT(2)) {
             // padding ?
@@ -2148,7 +2148,7 @@ END_IMPL
 #endif
 #ifdef __WITH_TOMCRYPT
 CONCEPT_FUNCTION_IMPL(ECCKeys, 3)
-    T_NUMBER(0)
+    T_NUMBER(ECCKeys, 0)
     ecc_key key;
     SET_STRING(1, "");
     SET_STRING(2, "");
@@ -2171,8 +2171,8 @@ CONCEPT_FUNCTION_IMPL(ECCKeys, 3)
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(ECCEncrypt, 2, 3)
-    T_STRING(0)
-    T_STRING(1)
+    T_STRING(ECCEncrypt, 0)
+    T_STRING(ECCEncrypt, 1)
     unsigned long size = PARAM_LEN(0) + 8192;
     char    *out = 0;
     int     err;
@@ -2210,8 +2210,8 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(ECCEncrypt, 2, 3)
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(ECCDecrypt, 2, 3)
-    T_STRING(0)
-    T_STRING(1)
+    T_STRING(ECCDecrypt, 0)
+    T_STRING(ECCDecrypt, 1)
     unsigned long size = PARAM_LEN(0) + 1;
     char    *out = 0;
     int     err;
@@ -2247,7 +2247,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(ECCDecrypt, 2, 3)
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(RSAKeys, 3)
-    T_NUMBER(0)
+    T_NUMBER(RSAKeys, 0)
     rsa_key key;
     SET_STRING(1, "");
     SET_STRING(2, "");
@@ -2270,8 +2270,8 @@ CONCEPT_FUNCTION_IMPL(RSAKeys, 3)
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(RSAEncrypt, 2, 3)
-    T_STRING(0)
-    T_STRING(1)
+    T_STRING(RSAEncrypt, 0)
+    T_STRING(RSAEncrypt, 1)
     unsigned long size = PARAM_LEN(0) + 8192;
     char    *out = 0;
     int     err;
@@ -2309,8 +2309,8 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(RSAEncrypt, 2, 3)
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(RSADecrypt, 2, 4)
-    T_STRING(0)
-    T_STRING(1)
+    T_STRING(RSADecrypt, 0)
+    T_STRING(RSADecrypt, 1)
     unsigned long size = PARAM_LEN(0) + 1;
     char    *out = 0;
     int     err;
@@ -2354,7 +2354,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(RSADecrypt, 2, 4)
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(ECCRSAErrorExplain, 1)
-    T_NUMBER(0)
+    T_NUMBER(ECCRSAErrorExplain, 0)
     char *err = (char *)error_to_string(PARAM_INT(0));
     if (err) {
         RETURN_STRING(err);
@@ -2364,7 +2364,7 @@ CONCEPT_FUNCTION_IMPL(ECCRSAErrorExplain, 1)
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(CryptoRandom, 1)
-    T_NUMBER(0)
+    T_NUMBER(CryptoRandom, 0)
 
     int len = PARAM_INT(0);
     if (len <= 0) {
@@ -2592,15 +2592,15 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(DHMakeKey, 0, 3)
     const char *dhe_g = default_dhe_g;
 
     if (PARAMETERS_COUNT > 0) {
-        T_NUMBER(0)
+        T_NUMBER(DHMakeKey, 0)
         key_size = PARAM_INT(0);
     }
     if (PARAMETERS_COUNT > 1) {
-        T_STRING(1)
+        T_STRING(DHMakeKey, 1)
         dhe_p = PARAM(1);
     }
     if (PARAMETERS_COUNT > 1) {
-        T_STRING(2)
+        T_STRING(DHMakeKey, 2)
         dhe_g = PARAM(2);
     }
     DHKey dhe;
@@ -2644,14 +2644,14 @@ END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(DHSecret, 2, 3)
     // y
-    T_STRING(0)
+    T_STRING(DHSecret, 0)
     // x
-    T_STRING(1)
+    T_STRING(DHSecret, 1)
 
     const char *dhe_p = default_dhe_p;
 
     if (PARAMETERS_COUNT > 2) {
-        T_STRING(2)
+        T_STRING(DHSecret, 2)
         dhe_p = PARAM(2);
     }
 
@@ -2666,13 +2666,13 @@ END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(ECDHSecret, 4)
     // pubkey.x
-    T_STRING(0)
+    T_STRING(ECDHSecret, 0)
     // pubkey.y
-    T_STRING(1)
+    T_STRING(ECDHSecret, 1)
     // pubkey.z
-    T_STRING(2)
+    T_STRING(ECDHSecret, 2)
     // privkey.y
-    T_STRING(3)
+    T_STRING(ECDHSecret, 3)
 
     unsigned char out[0xFFF];
     unsigned long out_len = sizeof(out);
@@ -2684,3 +2684,4 @@ CONCEPT_FUNCTION_IMPL(ECDHSecret, 4)
 END_IMPL
 //---------------------------------------------------------------------------
 #endif
+

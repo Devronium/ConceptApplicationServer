@@ -181,7 +181,7 @@ static int authCb(virConnectCredentialPtr cred, unsigned int ncred, void *cbdata
 
 //=====================================================================================//
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(virConnect, 1, 4)
-    T_STRING(0)
+    T_STRING(virConnect, 0)
     int read_only = 0;
     char       *username   = NULL;
     char       *password   = NULL;
@@ -192,13 +192,13 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(virConnect, 1, 4)
     struct virtContainerData LoginData;
 
     if (PARAMETERS_COUNT > 1) {
-        T_STRING(1);
+        T_STRING(virConnect, 1);
         username = PARAM(1);
         if (PARAMETERS_COUNT > 2) {
-            T_STRING(2);
+            T_STRING(virConnect, 2);
             password = PARAM(2);
             if (PARAMETERS_COUNT > 3) {
-                T_NUMBER(3);
+                T_NUMBER(virConnect, 3);
                 read_only = PARAM_INT(3);
             }
         }
@@ -223,7 +223,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(virConnect, 1, 4)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(virClose, 1)
-    T_HANDLE(0)
+    T_HANDLE(virClose, 0)
 
     virConnectPtr conn = (virConnectPtr)(SYS_INT)PARAM(0);
     virConnectClose(conn);
@@ -232,7 +232,7 @@ CONCEPT_FUNCTION_IMPL(virClose, 1)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(virInfo, 1)
-    T_HANDLE(0)
+    T_HANDLE(virInfo, 0)
 
     virConnectPtr conn = (virConnectPtr)(SYS_INT)PARAM(0);
     unsigned long hvVer   = 0, major = 0, minor = 0, release = 0;
@@ -268,28 +268,28 @@ CONCEPT_FUNCTION_IMPL(virInfo, 1)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(virNumOfActiveDomains, 1)
-    T_HANDLE(0)
+    T_HANDLE(virNumOfActiveDomains, 0)
 
     virConnectPtr conn = (virConnectPtr)(SYS_INT)PARAM(0);
     RETURN_NUMBER(virConnectNumOfDomains(conn));
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(virNumOfInactiveDomains, 1)
-    T_HANDLE(0)
+    T_HANDLE(virNumOfInactiveDomains, 0)
 
     virConnectPtr conn = (virConnectPtr)(SYS_INT)PARAM(0);
     RETURN_NUMBER(virConnectNumOfDefinedDomains(conn));
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(virListAllDomains, 1, 2)
-    T_HANDLE(0)
+    T_HANDLE(virListAllDomains, 0)
     int flags = VIR_CONNECT_LIST_DOMAINS_ACTIVE | VIR_CONNECT_LIST_DOMAINS_INACTIVE;
     char         buf[VIR_UUID_STRING_BUFLEN + 1];
     virDomainPtr *nameList = NULL;
 
     virConnectPtr conn = (virConnectPtr)(SYS_INT)PARAM(0);
     if (PARAMETERS_COUNT > 1) {
-        T_NUMBER(1)
+        T_NUMBER(virListAllDomains, 1)
         flags = PARAM_INT(1);
     }
     INTEGER numNames = virConnectListAllDomains(conn, &nameList, flags);
@@ -327,8 +327,8 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(virListAllDomains, 1, 2)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(virDomainOpen, 2)
-    T_HANDLE(0)
-    T_NUMBER(1)
+    T_HANDLE(virDomainOpen, 0)
+    T_NUMBER(virDomainOpen, 1)
 
     virConnectPtr conn = (virConnectPtr)(SYS_INT)PARAM(0);
     virDomainPtr domain = virDomainLookupByID(conn, PARAM_INT(1));
@@ -336,8 +336,8 @@ CONCEPT_FUNCTION_IMPL(virDomainOpen, 2)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(virDomainOpenName, 2)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(virDomainOpenName, 0)
+    T_STRING(virDomainOpenName, 1)
 
     virConnectPtr conn = (virConnectPtr)(SYS_INT)PARAM(0);
     virDomainPtr domain = virDomainLookupByName(conn, PARAM(1));
@@ -345,8 +345,8 @@ CONCEPT_FUNCTION_IMPL(virDomainOpenName, 2)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(virDomainOpenUUID, 2)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(virDomainOpenUUID, 0)
+    T_STRING(virDomainOpenUUID, 1)
 
     virConnectPtr conn = (virConnectPtr)(SYS_INT)PARAM(0);
     virDomainPtr domain = virDomainLookupByUUIDString(conn, PARAM(1));
@@ -354,7 +354,7 @@ CONCEPT_FUNCTION_IMPL(virDomainOpenUUID, 2)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(virDomainDone, 1)
-    T_HANDLE(0)
+    T_HANDLE(virDomainDone, 0)
     virDomainPtr domain = (virDomainPtr)(SYS_INT)PARAM(0);
     virDomainFree(domain);
     SET_NUMBER(0, 0);
@@ -362,10 +362,10 @@ CONCEPT_FUNCTION_IMPL(virDomainDone, 1)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(virDomainMemoryPeek, 5)
-    T_HANDLE(0)
-    T_NUMBER(1)
-    T_NUMBER(2)
-    T_NUMBER(4)
+    T_HANDLE(virDomainMemoryPeek, 0)
+    T_NUMBER(virDomainMemoryPeek, 1)
+    T_NUMBER(virDomainMemoryPeek, 2)
+    T_NUMBER(virDomainMemoryPeek, 4)
     virDomainPtr domain = (virDomainPtr)(SYS_INT)PARAM(0);
     int flags = PARAM_INT(4);
 
@@ -385,10 +385,10 @@ CONCEPT_FUNCTION_IMPL(virDomainMemoryPeek, 5)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(virDomainShutdown, 1, 2)
-    T_HANDLE(0)
+    T_HANDLE(virDomainShutdown, 0)
     int flags = VIR_DOMAIN_SHUTDOWN_DEFAULT;
     if (PARAMETERS_COUNT > 1) {
-        T_NUMBER(1)
+        T_NUMBER(virDomainShutdown, 1)
         flags = PARAM_INT(1);
     }
 
@@ -398,18 +398,18 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(virDomainShutdown, 1, 2)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(virDomainSetAutostart, 2)
-    T_HANDLE(0)
-    T_NUMBER(1)
+    T_HANDLE(virDomainSetAutostart, 0)
+    T_NUMBER(virDomainSetAutostart, 1)
     virDomainPtr domain = (virDomainPtr)(SYS_INT)PARAM(0);
     int res = virDomainSetAutostart(domain, PARAM_INT(1));
     RETURN_NUMBER(res);
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(virDomainDestroy, 1, 2)
-    T_HANDLE(0)
+    T_HANDLE(virDomainDestroy, 0)
     int flags = VIR_DOMAIN_DESTROY_DEFAULT;
     if (PARAMETERS_COUNT > 1) {
-        T_NUMBER(1)
+        T_NUMBER(virDomainDestroy, 1)
         flags = PARAM_INT(1);
     }
 
@@ -419,10 +419,10 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(virDomainDestroy, 1, 2)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(virDomainUndefine, 1, 2)
-    T_HANDLE(0)
+    T_HANDLE(virDomainUndefine, 0)
     int flags = VIR_DOMAIN_UNDEFINE_MANAGED_SAVE;
     if (PARAMETERS_COUNT > 1) {
-        T_NUMBER(1)
+        T_NUMBER(virDomainUndefine, 1)
         flags = PARAM_INT(1);
     }
 
@@ -432,7 +432,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(virDomainUndefine, 1, 2)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(virDomainSuspend, 1)
-    T_HANDLE(0)
+    T_HANDLE(virDomainSuspend, 0)
 
     virDomainPtr domain = (virDomainPtr)(SYS_INT)PARAM(0);
     int res = virDomainSuspend(domain);
@@ -440,7 +440,7 @@ CONCEPT_FUNCTION_IMPL(virDomainSuspend, 1)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(virDomainResume, 1)
-    T_HANDLE(0)
+    T_HANDLE(virDomainResume, 0)
 
     virDomainPtr domain = (virDomainPtr)(SYS_INT)PARAM(0);
     int res = virDomainResume(domain);
@@ -448,7 +448,7 @@ CONCEPT_FUNCTION_IMPL(virDomainResume, 1)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(virDomainCreate, 1)
-    T_HANDLE(0)
+    T_HANDLE(virDomainCreate, 0)
 
     virDomainPtr domain = (virDomainPtr)(SYS_INT)PARAM(0);
     int res = virDomainCreate(domain);
@@ -456,11 +456,11 @@ CONCEPT_FUNCTION_IMPL(virDomainCreate, 1)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(virDomainCreateXML, 2, 3)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(virDomainCreateXML, 0)
+    T_STRING(virDomainCreateXML, 1)
     int flags = VIR_DOMAIN_NONE;
     if (PARAMETERS_COUNT > 2) {
-        T_NUMBER(2)
+        T_NUMBER(virDomainCreateXML, 2)
         flags = PARAM_INT(2);
     }
 
@@ -470,13 +470,13 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(virDomainCreateXML, 2, 3)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(virDomainScreenshot, 1, 3)
-    T_HANDLE(0)
+    T_HANDLE(virDomainScreenshot, 0)
 
     virDomainPtr domain = (virDomainPtr)(SYS_INT)PARAM(0);
 
     int screen = 0;
     if (PARAMETERS_COUNT > 1) {
-        T_NUMBER(1)
+        T_NUMBER(virDomainScreenshot, 1)
         screen = PARAM_INT(1);
     }
 
@@ -509,8 +509,8 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(virDomainScreenshot, 1, 3)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(virDomainSendKey, 2, 4)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(virDomainSendKey, 0)
+    T_STRING(virDomainSendKey, 1)
 
     virDomainPtr domain = (virDomainPtr)(SYS_INT)PARAM(0);
 
@@ -522,11 +522,11 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(virDomainSendKey, 2, 4)
     int timeout = 50;
     int keyset  = VIR_KEYCODE_SET_LINUX;
     if (PARAMETERS_COUNT > 2) {
-        T_NUMBER(2)
+        T_NUMBER(virDomainSendKey, 2)
         timeout = PARAM_INT(2);
 
         if (PARAMETERS_COUNT > 3) {
-            T_NUMBER(3)
+            T_NUMBER(virDomainSendKey, 3)
             keyset = PARAM_INT(3);
         }
     }
@@ -540,17 +540,17 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(virDomainSendKey, 2, 4)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(virDomainOpenConsole, 1, 3)
-    T_HANDLE(0)
+    T_HANDLE(virDomainOpenConsole, 0)
     virDomainPtr domain = (virDomainPtr)(SYS_INT)PARAM(0);
 
     char *dev_name = NULL;
     int  flags     = VIR_DOMAIN_CONSOLE_SAFE;
     if (PARAMETERS_COUNT > 1) {
-        T_STRING(1)
+        T_STRING(virDomainOpenConsole, 1)
         if (PARAM_LEN(1) > 0)
             dev_name = PARAM(1);
         if (PARAMETERS_COUNT > 2) {
-            T_NUMBER(2)
+            T_NUMBER(virDomainOpenConsole, 2)
             flags = PARAM_INT(2);
         }
     }
@@ -564,7 +564,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(virDomainOpenConsole, 1, 3)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(virStreamClose, 1)
-    T_HANDLE(0)
+    T_HANDLE(virStreamClose, 0)
     virStreamPtr stream = (virStreamPtr)(SYS_INT)PARAM(0);
     virStreamFinish(stream);
     int res = virStreamFree(stream);
@@ -573,16 +573,16 @@ CONCEPT_FUNCTION_IMPL(virStreamClose, 1)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(virStreamWrite, 2)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(virStreamWrite, 0)
+    T_STRING(virStreamWrite, 1)
     virStreamPtr stream = (virStreamPtr)(SYS_INT)PARAM(0);
     int res = virStreamSend(stream, PARAM(1), PARAM_LEN(1));
     RETURN_NUMBER(res);
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(virStreamRead, 3)
-    T_HANDLE(0)
-    T_NUMBER(2)
+    T_HANDLE(virStreamRead, 0)
+    T_NUMBER(virStreamRead, 2)
 
     virStreamPtr stream = (virStreamPtr)(SYS_INT)PARAM(0);
     char *buffer;
@@ -620,7 +620,7 @@ CONCEPT_FUNCTION_IMPL(virError, 0)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(virDebug, 1)
-    T_NUMBER(0)
+    T_NUMBER(virDebug, 0)
     if (PARAM_INT(0))
         virSetErrorFunc(NULL, NULL);
     else
@@ -628,10 +628,10 @@ CONCEPT_FUNCTION_IMPL(virDebug, 1)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(virDomainGetCPUStats, 4)
-    T_HANDLE(0)
-    T_NUMBER(1)
-    T_NUMBER(2)
-    T_NUMBER(3)
+    T_HANDLE(virDomainGetCPUStats, 0)
+    T_NUMBER(virDomainGetCPUStats, 1)
+    T_NUMBER(virDomainGetCPUStats, 2)
+    T_NUMBER(virDomainGetCPUStats, 3)
 
     virDomainPtr domain = (virDomainPtr)(SYS_INT)PARAM(0);
 
@@ -694,8 +694,8 @@ CONCEPT_FUNCTION_IMPL(virDomainGetCPUStats, 4)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(virDomainInterfaceStats, 2)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(virDomainInterfaceStats, 0)
+    T_STRING(virDomainInterfaceStats, 1)
 
     virDomainPtr domain = (virDomainPtr)(SYS_INT)PARAM(0);
     struct _virDomainInterfaceStats stats;
@@ -713,7 +713,7 @@ CONCEPT_FUNCTION_IMPL(virDomainInterfaceStats, 2)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(virDomainMemoryStats, 1)
-    T_HANDLE(0)
+    T_HANDLE(virDomainMemoryStats, 0)
 
     virDomainPtr domain = (virDomainPtr)(SYS_INT)PARAM(0);
     struct _virDomainMemoryStat stats[VIR_DOMAIN_MEMORY_STAT_NR];
@@ -741,8 +741,8 @@ CONCEPT_FUNCTION_IMPL(virDomainMemoryStats, 1)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(virDomainBlockStats, 2)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(virDomainBlockStats, 0)
+    T_STRING(virDomainBlockStats, 1)
 
     virDomainPtr domain = (virDomainPtr)(SYS_INT)PARAM(0);
     struct _virDomainBlockStats stats;
@@ -757,16 +757,16 @@ CONCEPT_FUNCTION_IMPL(virDomainBlockStats, 2)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(virDomainSnapshotCreate, 1, 3)
-    T_HANDLE(0)
+    T_HANDLE(virDomainSnapshotCreate, 0)
     int flags = 0;
     char *str = "<domainsnapshot/>";
     if (PARAMETERS_COUNT > 1) {
-        T_STRING(1)
+        T_STRING(virDomainSnapshotCreate, 1)
         if (PARAM_LEN(1) > 0)
             str = PARAM(1);
 
         if (PARAMETERS_COUNT > 2) {
-            T_NUMBER(2)
+            T_NUMBER(virDomainSnapshotCreate, 2)
             flags = PARAM_INT(2);
         }
     }
@@ -782,7 +782,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(virDomainSnapshotCreate, 1, 3)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(virDomain, 1)
-    T_HANDLE(0)
+    T_HANDLE(virDomain, 0)
     char buf[VIR_UUID_STRING_BUFLEN + 1];
     virDomainPtr domain = (virDomainPtr)(SYS_INT)PARAM(0);
     CREATE_ARRAY(RESULT);
@@ -809,17 +809,17 @@ CONCEPT_FUNCTION_IMPL(virDomain, 1)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(virDomainHasCurrentSnapshot, 1)
-    T_HANDLE(0)
+    T_HANDLE(virDomainHasCurrentSnapshot, 0)
     virDomainPtr domain = (virDomainPtr)(SYS_INT)PARAM(0);
     int res = virDomainHasCurrentSnapshot(domain, 0);
     RETURN_NUMBER(res);
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(virDomainSnapshotList, 1, 2)
-    T_HANDLE(0)
+    T_HANDLE(virDomainSnapshotList, 0)
     int flags = 0;
     if (PARAMETERS_COUNT > 1) {
-        T_NUMBER(1)
+        T_NUMBER(virDomainSnapshotList, 1)
         flags = PARAM_INT(1);
     }
     virDomainPtr domain = (virDomainPtr)(SYS_INT)PARAM(0);
@@ -837,8 +837,8 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(virDomainSnapshotList, 1, 2)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(virDomainSnapshot, 2)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(virDomainSnapshot, 0)
+    T_STRING(virDomainSnapshot, 1)
 
     virDomainPtr domain = (virDomainPtr)(SYS_INT)PARAM(0);
     virDomainSnapshotPtr snapshot = virDomainSnapshotLookupByName(domain, PARAM(1), 0);
@@ -864,12 +864,12 @@ CONCEPT_FUNCTION_IMPL(virDomainSnapshot, 2)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(virDomainRevertToSnapshot, 2, 3)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(virDomainRevertToSnapshot, 0)
+    T_STRING(virDomainRevertToSnapshot, 1)
 
     int flags = VIR_DOMAIN_SNAPSHOT_REVERT_RUNNING;
     if (PARAMETERS_COUNT > 2) {
-        T_NUMBER(2)
+        T_NUMBER(virDomainRevertToSnapshot, 2)
         flags = PARAM_INT(2);
     }
 
@@ -884,12 +884,12 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(virDomainRevertToSnapshot, 2, 3)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(virDomainSnapshotDelete, 2, 3)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(virDomainSnapshotDelete, 0)
+    T_STRING(virDomainSnapshotDelete, 1)
 
     int flags = VIR_DOMAIN_SNAPSHOT_DELETE_CHILDREN;
     if (PARAMETERS_COUNT > 2) {
-        T_NUMBER(2)
+        T_NUMBER(virDomainSnapshotDelete, 2)
         flags = PARAM_INT(2);
     }
 
@@ -904,10 +904,10 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(virDomainSnapshotDelete, 2, 3)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(virDomainSnapshotListChildren, 1, 2)
-    T_HANDLE(0)
+    T_HANDLE(virDomainSnapshotListChildren, 0)
     int flags = 0;
     if (PARAMETERS_COUNT > 1) {
-        T_NUMBER(1)
+        T_NUMBER(virDomainSnapshotListChildren, 1)
         flags = PARAM_INT(1);
     }
     virDomainSnapshotPtr domain = (virDomainSnapshotPtr)(SYS_INT)PARAM(0);
@@ -925,10 +925,10 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(virDomainSnapshotListChildren, 1, 2)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(virDomainManagedSave, 1, 2)
-    T_HANDLE(0)
+    T_HANDLE(virDomainManagedSave, 0)
     int flags = 0;
     if (PARAMETERS_COUNT > 1) {
-        T_NUMBER(1)
+        T_NUMBER(virDomainManagedSave, 1)
         flags = PARAM_INT(1);
     }
     virDomainPtr domain = (virDomainPtr)(SYS_INT)PARAM(0);
@@ -937,10 +937,10 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(virDomainManagedSave, 1, 2)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(virDomainManagedSaveRemove, 1, 2)
-    T_HANDLE(0)
+    T_HANDLE(virDomainManagedSaveRemove, 0)
     int flags = 0;
     if (PARAMETERS_COUNT > 1) {
-        T_NUMBER(1)
+        T_NUMBER(virDomainManagedSaveRemove, 1)
         flags = PARAM_INT(1);
     }
     virDomainPtr domain = (virDomainPtr)(SYS_INT)PARAM(0);
@@ -949,22 +949,22 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(virDomainManagedSaveRemove, 1, 2)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(virDomainSave, 2)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(virDomainSave, 0)
+    T_STRING(virDomainSave, 1)
     virDomainPtr domain = (virDomainPtr)(SYS_INT)PARAM(0);
     int res = virDomainSave(domain, PARAM(1));
     RETURN_NUMBER(res);
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(virDomainHasManagedSaveImage, 1)
-    T_HANDLE(0)
+    T_HANDLE(virDomainHasManagedSaveImage, 0)
     virDomainPtr domain = (virDomainPtr)(SYS_INT)PARAM(0);
     int res = virDomainHasManagedSaveImage(domain, 0);
     RETURN_NUMBER(res);
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(virConnectListStoragePools, 1)
-    T_HANDLE(0)
+    T_HANDLE(virConnectListStoragePools, 0)
     virConnectPtr conn = (virConnectPtr)(SYS_INT)PARAM(0);
     int len = virConnectNumOfStoragePools(conn);
 
@@ -979,7 +979,7 @@ CONCEPT_FUNCTION_IMPL(virConnectListStoragePools, 1)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(virConnectListDefinedStoragePools, 1)
-    T_HANDLE(0)
+    T_HANDLE(virConnectListDefinedStoragePools, 0)
     virConnectPtr conn = (virConnectPtr)(SYS_INT)PARAM(0);
     int len = virConnectNumOfDefinedStoragePools(conn);
 
@@ -994,7 +994,7 @@ CONCEPT_FUNCTION_IMPL(virConnectListDefinedStoragePools, 1)
 END_IMPL
 //-----------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(virConnectListNetworks, 1)
-    T_HANDLE(0)
+    T_HANDLE(virConnectListNetworks, 0)
     virConnectPtr conn = (virConnectPtr)(SYS_INT)PARAM(0);
     int len = virConnectNumOfNetworks(conn);
 
@@ -1009,7 +1009,7 @@ CONCEPT_FUNCTION_IMPL(virConnectListNetworks, 1)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(virConnectListDefinedNetworks, 1)
-    T_HANDLE(0)
+    T_HANDLE(virConnectListDefinedNetworks, 0)
     virConnectPtr conn = (virConnectPtr)(SYS_INT)PARAM(0);
     int len = virConnectNumOfDefinedNetworks(conn);
 
@@ -1024,7 +1024,7 @@ CONCEPT_FUNCTION_IMPL(virConnectListDefinedNetworks, 1)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(virDomainGetJobInfo, 1)
-    T_HANDLE(0)
+    T_HANDLE(virDomainGetJobInfo, 0)
     virDomainPtr domain = (virDomainPtr)(SYS_INT)PARAM(0);
     virDomainJobInfo info;
     int res = virDomainGetJobInfo(domain, &info);
@@ -1046,12 +1046,12 @@ CONCEPT_FUNCTION_IMPL(virDomainGetJobInfo, 1)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(virDomainAttachDevice, 2, 3)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(virDomainAttachDevice, 0)
+    T_STRING(virDomainAttachDevice, 1)
 
     int flags = VIR_DOMAIN_AFFECT_CURRENT;
     if (PARAMETERS_COUNT > 2) {
-        T_NUMBER(2)
+        T_NUMBER(virDomainAttachDevice, 2)
         flags = PARAM_INT(2);
     }
     virDomainPtr domain = (virDomainPtr)(SYS_INT)PARAM(0);
@@ -1060,12 +1060,12 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(virDomainAttachDevice, 2, 3)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(virDomainBlockJobAbort, 2, 3)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(virDomainBlockJobAbort, 0)
+    T_STRING(virDomainBlockJobAbort, 1)
 
     int flags = VIR_DOMAIN_BLOCK_JOB_ABORT_ASYNC;
     if (PARAMETERS_COUNT > 2) {
-        T_NUMBER(2)
+        T_NUMBER(virDomainBlockJobAbort, 2)
         flags = PARAM_INT(2);
     }
     virDomainPtr domain = (virDomainPtr)(SYS_INT)PARAM(0);
@@ -1074,12 +1074,12 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(virDomainBlockJobAbort, 2, 3)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(virDomainDetachDeviceFlags, 2, 3)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(virDomainDetachDeviceFlags, 0)
+    T_STRING(virDomainDetachDeviceFlags, 1)
 
     int flags = VIR_DOMAIN_DEVICE_MODIFY_CURRENT;
     if (PARAMETERS_COUNT > 2) {
-        T_NUMBER(2)
+        T_NUMBER(virDomainDetachDeviceFlags, 2)
         flags = PARAM_INT(2);
     }
     virDomainPtr domain = (virDomainPtr)(SYS_INT)PARAM(0);
@@ -1088,10 +1088,10 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(virDomainDetachDeviceFlags, 2, 3)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(virNodeListDevices, 1, 2)
-    T_HANDLE(0)
+    T_HANDLE(virNodeListDevices, 0)
     char *cap = NULL;
     if (PARAMETERS_COUNT > 1) {
-        T_STRING(1)
+        T_STRING(virNodeListDevices, 1)
         if (PARAM_LEN(1))
             cap = PARAM(1);
     }
@@ -1110,8 +1110,8 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(virNodeListDevices, 1, 2)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(virDomainMigrate, 2, 6)
-    T_HANDLE(0)
-    T_HANDLE(1)
+    T_HANDLE(virDomainMigrate, 0)
+    T_HANDLE(virDomainMigrate, 1)
 
     virDomainPtr domain = (virDomainPtr)(SYS_INT)PARAM(0);
     virConnectPtr conn = (virConnectPtr)(SYS_INT)PARAM(1);
@@ -1122,20 +1122,20 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(virDomainMigrate, 2, 6)
     unsigned long bandwidth = 0;
 
     if (PARAMETERS_COUNT > 2) {
-        T_NUMBER(2)
+        T_NUMBER(virDomainMigrate, 2)
         flags = PARAM_INT(2);
         if (PARAMETERS_COUNT > 3) {
-            T_STRING(3)
+            T_STRING(virDomainMigrate, 3)
             if (PARAM_LEN(3) > 0)
                 dname = PARAM(3);
 
             if (PARAMETERS_COUNT > 4) {
-                T_STRING(4)
+                T_STRING(virDomainMigrate, 4)
                 if (PARAM_LEN(4) > 0)
                     uri = PARAM(4);
 
                 if (PARAMETERS_COUNT > 5) {
-                    T_NUMBER(5)
+                    T_NUMBER(virDomainMigrate, 5)
                     bandwidth = PARAM_INT(5);
                 }
             }
@@ -1150,3 +1150,4 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(virDomainMigrate, 2, 6)
     }
 END_IMPL
 //------------------------------------------------------------------------
+

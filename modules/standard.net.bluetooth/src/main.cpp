@@ -281,11 +281,11 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(BTSocketCreate, 0, 2)
     int type = SOCK_STREAM;
     int proto = BTPROTO_RFCOMM;
     if (PARAMETERS_COUNT > 0) {
-        T_NUMBER(0)
+        T_NUMBER(BTSocketCreate, 0)
         proto = PARAM_INT(0);
     }
     if (PARAMETERS_COUNT > 1) {
-        T_NUMBER(1)
+        T_NUMBER(BTSocketCreate, 1)
         type = PARAM_INT(1);
     }
     int sock = socket(AF_BTH, type, proto);
@@ -325,7 +325,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(BTSocketCreate, 0, 2)
 END_IMPL
 //=====================================================================================//
 CONCEPT_FUNCTION_IMPL(BTSocketClose, 1)
-    T_NUMBER(0)
+    T_NUMBER(BTSocketClose, 0)
 
     int sock = PARAM_INT(0);
     if (sock > -1) {
@@ -341,7 +341,7 @@ CONCEPT_FUNCTION_IMPL(BTSocketClose, 1)
 END_IMPL
 //=====================================================================================//
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(BTSocketListen, 1, 5)
-    T_NUMBER(0)
+    T_NUMBER(BTSocketListen, 0)
     int sock = PARAM_INT(0);
     int  nMaxCon  = 0x100;
     int  nPort    = BT_PORT_ANY;
@@ -350,19 +350,19 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(BTSocketListen, 1, 5)
     char *iface   = 0;
 
     if (PARAMETERS_COUNT > 1) {
-        T_NUMBER(1)
+        T_NUMBER(BTSocketListen, 1)
         nPort = PARAM_INT(1);
     }
     if (PARAMETERS_COUNT > 2) {
-        T_NUMBER(2)
+        T_NUMBER(BTSocketListen, 2)
         nMaxCon = PARAM_INT(2);
     }
     if (PARAMETERS_COUNT > 3) {
-        T_NUMBER(3)
+        T_NUMBER(BTSocketListen, 3)
         is_l2cap = PARAM_INT(3);
     }
     if (PARAMETERS_COUNT > 4) {
-        T_STRING(4)
+        T_STRING(BTSocketListen, 4)
         if (PARAM_LEN(4))
             iface = PARAM(4);
     }
@@ -440,7 +440,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(BTSocketListen, 1, 5)
     }
 //=====================================================================================//
     CONCEPT_FUNCTION_IMPL(BTSocketAccept, 1)
-        T_NUMBER(0)
+        T_NUMBER(BTSocketAccept, 0)
         int sock = PARAM_INT(0);
 
         RETURN_NUMBER(accept((int)sock, NULL, NULL));
@@ -453,7 +453,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(BTSocketListen, 1, 5)
         GUID protocol = L2CAP_PROTOCOL_UUID;
 
         if (PARAMETERS_COUNT > 0) {
-            T_STRING(0);
+            T_STRING(BTDiscover, 0);
             StringToUUID(PARAM(0), &protocol);
         }
         memset(&queryset, 0, sizeof(WSAQUERYSET));
@@ -570,7 +570,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(BTSocketListen, 1, 5)
 
         uuid_t svc_uuid;
         if (PARAMETERS_COUNT > 0) {
-            T_STRING(0);
+            T_STRING(BTDiscover, 0);
             StringToUUID(PARAM(0), &svc_uuid);
         } else
             StringToUUID("{00001000-0000-1000-8000-00805F9B34FB}", &svc_uuid);
@@ -663,15 +663,15 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(BTSocketListen, 1, 5)
     END_IMPL
 //=====================================================================================//
     CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(BTSocketConnect, 3, 4)
-        T_NUMBER(0)
-        T_STRING(1)
-        T_STRING(2)
+        T_NUMBER(BTSocketConnect, 0)
+        T_STRING(BTSocketConnect, 1)
+        T_STRING(BTSocketConnect, 2)
 
         int sock = PARAM_INT(0);
         int port     = 1;
         int is_l2cap = 0;
         if (PARAMETERS_COUNT > 3) {
-            T_NUMBER(3)
+            T_NUMBER(BTSocketConnect, 3)
             is_l2cap = PARAM_INT(3);
         }
 #ifdef _WIN32
@@ -720,12 +720,12 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(BTSocketListen, 1, 5)
     END_IMPL
 //=====================================================================================//
     CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(BTRegister, 2, 4)
-        T_STRING(0)
-        T_STRING(1)
+        T_STRING(BTRegister, 0)
+        T_STRING(BTRegister, 1)
         int port = BT_PORT_ANY;
 
         if (PARAMETERS_COUNT > 2) {
-            T_NUMBER(2)
+            T_NUMBER(BTRegister, 2)
             port = PARAM_INT(2);
         }
 #ifdef _WIN32
@@ -739,7 +739,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(BTSocketListen, 1, 5)
         service.lpszServiceInstanceName = PARAM(0);
 
         if (PARAMETERS_COUNT > 3) {
-            T_STRING(3)
+            T_STRING(BTRegister, 3)
             service.lpszComment = PARAM(3);
         }
 
@@ -774,7 +774,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(BTSocketListen, 1, 5)
         const char *service_name = PARAM(0);
         const char *service_dsc  = NULL;
         if (PARAMETERS_COUNT > 2) {
-            T_STRING(3)
+            T_STRING(BTRegister, 3)
             service_dsc = PARAM(3);
         }
         bdaddr_t bd_any   = { { 0, 0, 0, 0, 0, 0 } };
@@ -840,12 +840,12 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(BTSocketListen, 1, 5)
     END_IMPL
 //=====================================================================================//
     CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(BTUnregister, 2, 4)
-        T_STRING(0)
-        T_STRING(1)
+        T_STRING(BTUnregister, 0)
+        T_STRING(BTUnregister, 1)
         int port = BT_PORT_ANY;
 
         if (PARAMETERS_COUNT > 2) {
-            T_NUMBER(2)
+            T_NUMBER(BTUnregister, 2)
             port = PARAM_INT(2);
         }
 #ifdef _WIN32
@@ -859,7 +859,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(BTSocketListen, 1, 5)
         service.lpszServiceInstanceName = PARAM(0);
 
         if (PARAMETERS_COUNT > 3) {
-            T_STRING(3)
+            T_STRING(BTUnregister, 3)
             service.lpszComment = PARAM(3);
         }
 
@@ -909,12 +909,12 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(BTSocketListen, 1, 5)
     END_IMPL
 //=====================================================================================//
     CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(BTSocketInfo, 1, 2)
-        T_NUMBER(0)
+        T_NUMBER(BTSocketInfo, 0)
         int socket = PARAM_INT(0);
         CREATE_ARRAY(RESULT);
         int is_l2cap = 0;
         if (PARAMETERS_COUNT > 1) {
-            T_NUMBER(1)
+            T_NUMBER(BTSocketInfo, 1)
             is_l2cap = PARAM_INT(1);
         }
 #ifdef _WIN32
@@ -953,3 +953,4 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(BTSocketListen, 1, 5)
         }
 #endif
     END_IMPL
+

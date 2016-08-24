@@ -263,8 +263,8 @@ CONCEPT_FUNCTION_IMPL(MySQLLibraryDone, 0)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(MySQLLibraryInit, 2)
-    T_ARRAY(0)
-    T_ARRAY(1)
+    T_ARRAY(MySQLLibraryInit, 0)
+    T_ARRAY(MySQLLibraryInit, 1)
 
     int num_elements = Invoke(INVOKE_GET_ARRAY_COUNT, PARAMETER(0));
     char **server_options = GetCharList(PARAMETER(0), Invoke);
@@ -289,14 +289,14 @@ CONCEPT_FUNCTION_IMPL(MySQLLibraryInit, 2)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(MySQLOptions, 3)
-    T_NUMBER(0)
+    T_NUMBER(MySQLOptions, 0)
 
     MYSQL * mysql;
     int          param_index = 0;
     mysql_option mopt;
 
 //if (PARAMETERS_COUNT==3) {
-    T_NUMBER(1)
+    T_NUMBER(MySQLOptions, 1)
     param_index = 1;
     mysql       = (MYSQL *)(SYS_INT)PARAM(0);
     mopt        = (mysql_option)(PARAM_INT(1));
@@ -312,7 +312,7 @@ CONCEPT_FUNCTION_IMPL(MySQLOptions, 3)
         case MYSQL_SET_CHARSET_NAME:
         case MYSQL_SHARED_MEMORY_BASE_NAME:
             {
-                T_STRING(param_index);
+                T_STRING(MySQLOptions, param_index);
                 RETURN_NUMBER(mysql_options(mysql, mopt, (const char *)PARAM(param_index)));
             }
             break;
@@ -325,7 +325,7 @@ CONCEPT_FUNCTION_IMPL(MySQLOptions, 3)
         case MYSQL_OPT_USE_REMOTE_CONNECTION:
         case MYSQL_OPT_USE_RESULT:
             {
-                T_NUMBER(param_index);
+                T_NUMBER(MySQLOptions, param_index);
                 RETURN_NUMBER(mysql_options(mysql, mopt, (const char *)PARAM_INT(param_index)));
             }
             break;
@@ -335,7 +335,7 @@ CONCEPT_FUNCTION_IMPL(MySQLOptions, 3)
         case MYSQL_OPT_READ_TIMEOUT:
         case MYSQL_OPT_WRITE_TIMEOUT:
             {
-                T_NUMBER(param_index);
+                T_NUMBER(MySQLOptions, param_index);
                 unsigned int param = PARAM_INT(param_index);
                 RETURN_NUMBER(mysql_options(mysql, mopt, (const char *)&param));
                 SET_NUMBER(param_index, param);
@@ -347,7 +347,7 @@ CONCEPT_FUNCTION_IMPL(MySQLOptions, 3)
         case MYSQL_REPORT_DATA_TRUNCATION:
         case MYSQL_SECURE_AUTH:
             {
-                T_NUMBER(param_index);
+                T_NUMBER(MySQLOptions, param_index);
                 my_bool param = (my_bool)PARAM_INT(param_index);
                 RETURN_NUMBER(mysql_options(mysql, mopt, (const char *)&param));
                 SET_NUMBER(param_index, param);
@@ -358,13 +358,13 @@ CONCEPT_FUNCTION_IMPL(MySQLOptions, 3)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(MySQLConnect, 8)
-    T_STRING(0) // host
-    T_STRING(1) // user
-    T_STRING(2) // password
-    T_STRING(3) // db
-    T_NUMBER(4) // port
-    T_STRING(5) // unix socket
-    T_NUMBER(6) // client_flag
+    T_STRING(MySQLConnect, 0) // host
+    T_STRING(MySQLConnect, 1) // user
+    T_STRING(MySQLConnect, 2) // password
+    T_STRING(MySQLConnect, 3) // db
+    T_NUMBER(MySQLConnect, 4) // port
+    T_STRING(MySQLConnect, 5) // unix socket
+    T_NUMBER(MySQLConnect, 6) // client_flag
 
 #ifdef _WIN32
     if (!is_init) {
@@ -393,7 +393,7 @@ CONCEPT_FUNCTION_IMPL(MySQLConnect, 8)
 
 //MYSQL *r_mysql=master_mysql;
 //if (PARAMETERS_COUNT==8) {
-    T_NUMBER(7)
+    T_NUMBER(MySQLConnect, 7)
     MYSQL * r_mysql = (MYSQL *)(SYS_INT)PARAM(7);
 //}
     if (!r_mysql) {
@@ -414,7 +414,7 @@ CONCEPT_FUNCTION_IMPL(MySQLConnect, 8)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(MySQLDisconnect, 1)
-    T_NUMBER(0) // mysql
+    T_NUMBER(MySQLDisconnect, 0) // mysql
 
     RETURN_NUMBER(0);
 
@@ -428,8 +428,8 @@ CONCEPT_FUNCTION_IMPL(MySQLDisconnect, 1)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(MySQLAutoCommit, 2)
-    T_NUMBER(0) // flag
-    T_NUMBER(1) // mysql
+    T_NUMBER(MySQLAutoCommit, 0) // flag
+    T_NUMBER(MySQLAutoCommit, 1) // mysql
 
 
     if (PARAM_INT(1)) {
@@ -441,7 +441,7 @@ CONCEPT_FUNCTION_IMPL(MySQLAutoCommit, 2)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(MySQLCommit, 1)
-    T_NUMBER(0) // mysql
+    T_NUMBER(MySQLCommit, 0) // mysql
 
     if (PARAM_INT(0)) {
         RETURN_NUMBER(mysql_commit((MYSQL *)(SYS_INT)PARAM(0)));
@@ -451,7 +451,7 @@ CONCEPT_FUNCTION_IMPL(MySQLCommit, 1)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(MySQLRollback, 1)
-    T_NUMBER(0) // mysql
+    T_NUMBER(MySQLRollback, 0) // mysql
 
 
     if (PARAM_INT(0)) {
@@ -462,7 +462,7 @@ CONCEPT_FUNCTION_IMPL(MySQLRollback, 1)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(MySQLError, 1)
-    T_NUMBER(0) // mysql
+    T_NUMBER(MySQLError, 0) // mysql
 
     if (PARAM_INT(0)) {
         RETURN_STRING(mysql_error((MYSQL *)(SYS_INT)PARAM(0)));
@@ -476,7 +476,7 @@ CONCEPT_FUNCTION_IMPL(MySQLError, 1)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(MySQLSTMTError, 1)
-    T_NUMBER(0) // mysql
+    T_NUMBER(MySQLSTMTError, 0) // mysql
 
     if (PARAM_INT(0)) {
         //WrappedSTMT stmt=new WrappedSTMT;
@@ -488,7 +488,7 @@ CONCEPT_FUNCTION_IMPL(MySQLSTMTError, 1)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(MySQLWarningCount, 1)
-    T_NUMBER(0) // mysql
+    T_NUMBER(MySQLWarningCount, 0) // mysql
 
     if (PARAM_INT(0)) {
         RETURN_NUMBER(mysql_warning_count((MYSQL *)(SYS_INT)PARAM(0)));
@@ -498,8 +498,8 @@ CONCEPT_FUNCTION_IMPL(MySQLWarningCount, 1)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(MySQLListTables, 2)
-    T_STRING(0) // wildcard
-    T_NUMBER(1) // mysql
+    T_STRING(MySQLListTables, 0) // wildcard
+    T_NUMBER(MySQLListTables, 1) // mysql
 
     if (PARAM_INT(1)) {
         if (PARAM_LEN(0)) {
@@ -513,9 +513,9 @@ CONCEPT_FUNCTION_IMPL(MySQLListTables, 2)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(MySQLListColumns, 3)
-    T_STRING(0) // table
-    T_STRING(1) // wildcard
-    T_NUMBER(2) // mysql
+    T_STRING(MySQLListColumns, 0) // table
+    T_STRING(MySQLListColumns, 1) // wildcard
+    T_NUMBER(MySQLListColumns, 2) // mysql
 
     if (PARAM_INT(2)) {
         char *table = NULL;
@@ -533,8 +533,8 @@ CONCEPT_FUNCTION_IMPL(MySQLListColumns, 3)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(MySQLListDatabases, 2)
-    T_STRING(0) // wildcard
-    T_NUMBER(1) // mysql
+    T_STRING(MySQLListDatabases, 0) // wildcard
+    T_NUMBER(MySQLListDatabases, 1) // mysql
 
     if (PARAM_INT(1)) {
         RETURN_NUMBER((long)mysql_list_dbs((MYSQL *)(SYS_INT)PARAM(1), PARAM(0)));
@@ -544,7 +544,7 @@ CONCEPT_FUNCTION_IMPL(MySQLListDatabases, 2)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(MySQLFreeResult, 1)
-    T_NUMBER(0) // mysql result
+    T_NUMBER(MySQLFreeResult, 0) // mysql result
 
 /*if (mybind) {
         delete[] mybind;
@@ -563,7 +563,7 @@ CONCEPT_FUNCTION_IMPL(MySQLFreeResult, 1)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(MySQLCountColumns, 1)
-    T_NUMBER(0) // mysql result
+    T_NUMBER(MySQLCountColumns, 0) // mysql result
 
     if (PARAM_INT(0)) {
         RETURN_NUMBER(mysql_num_fields((MYSQL_RES *)(SYS_INT)PARAM(0)));
@@ -573,7 +573,7 @@ CONCEPT_FUNCTION_IMPL(MySQLCountColumns, 1)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(MySQLCountRows, 1)
-    T_NUMBER(0) // mysql result
+    T_NUMBER(MySQLCountRows, 0) // mysql result
 
     if (PARAM_INT(0)) {
         RETURN_NUMBER(mysql_num_rows((MYSQL_RES *)(SYS_INT)PARAM(0)));
@@ -583,8 +583,8 @@ CONCEPT_FUNCTION_IMPL(MySQLCountRows, 1)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(MySQLDescribeCol, 7)
-    T_NUMBER(0) // index
-    T_NUMBER(6) // mysql result
+    T_NUMBER(MySQLDescribeCol, 0) // index
+    T_NUMBER(MySQLDescribeCol, 6) // mysql result
 
     if (PARAM_INT(6)) {
         int  res        = 0;
@@ -611,8 +611,8 @@ CONCEPT_FUNCTION_IMPL(MySQLDescribeCol, 7)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(MySQLDescribeCol2, 7)
-    T_NUMBER(0) // index
-    T_NUMBER(6) // mysql result
+    T_NUMBER(MySQLDescribeCol2, 0) // index
+    T_NUMBER(MySQLDescribeCol2, 6) // mysql result
 
     if (PARAM_INT(6)) {
         int  res        = 0;
@@ -639,7 +639,7 @@ CONCEPT_FUNCTION_IMPL(MySQLDescribeCol2, 7)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(MySQLStatement, 1)
-    T_NUMBER(0) // mysql
+    T_NUMBER(MySQLStatement, 0) // mysql
 
     if (PARAM_INT(0)) {
         WrappedSTMT *ws = new WrappedSTMT;
@@ -662,7 +662,7 @@ CONCEPT_FUNCTION_IMPL(MySQLStatement, 1)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(MySQLFreeQuery, 1)
-    T_NUMBER(0) // stmt
+    T_NUMBER(MySQLFreeQuery, 0) // stmt
 
 /*if (mybind) {
         delete[] mybind;
@@ -682,8 +682,8 @@ CONCEPT_FUNCTION_IMPL(MySQLFreeQuery, 1)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(MySQLExecute, 2)
-    T_STRING(0) // query
-    T_NUMBER(1) // stmt
+    T_STRING(MySQLExecute, 0) // query
+    T_NUMBER(MySQLExecute, 1) // stmt
 
     if (PARAM_INT(1)) {
         int res = mysql_stmt_prepare(((WrappedSTMT *)(SYS_INT)PARAM(1))->stmt, PARAM(0), PARAM_LEN(0));
@@ -700,8 +700,8 @@ CONCEPT_FUNCTION_IMPL(MySQLExecute, 2)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(MySQLPrepare, 2)
-    T_STRING(0) // query
-    T_NUMBER(1) // stmt
+    T_STRING(MySQLPrepare, 0) // query
+    T_NUMBER(MySQLPrepare, 1) // stmt
 
     if (PARAM_INT(1)) {
         int res = mysql_stmt_prepare(((WrappedSTMT *)(SYS_INT)PARAM(1))->stmt, PARAM(0), PARAM_LEN(0));
@@ -713,7 +713,7 @@ CONCEPT_FUNCTION_IMPL(MySQLPrepare, 2)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(MySQLCountParams, 1)
-    T_NUMBER(0) // stmt
+    T_NUMBER(MySQLCountParams, 0) // stmt
 
     if (PARAM_INT(0)) {
         int res = mysql_stmt_param_count(((WrappedSTMT *)(SYS_INT)PARAM(0))->stmt);
@@ -725,7 +725,7 @@ CONCEPT_FUNCTION_IMPL(MySQLCountParams, 1)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(MySQLPreparedExecute, 1)
-    T_NUMBER(0) // stmt
+    T_NUMBER(MySQLPreparedExecute, 0) // stmt
 
     if (PARAM_INT(0)) {
         int res = mysql_stmt_execute(((WrappedSTMT *)(SYS_INT)PARAM(0))->stmt);
@@ -737,8 +737,8 @@ CONCEPT_FUNCTION_IMPL(MySQLPreparedExecute, 1)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(MySQLBindParameters, 2)
-    T_NUMBER(0) // stmt
-    T_ARRAY(1)
+    T_NUMBER(MySQLBindParameters, 0) // stmt
+    T_ARRAY(MySQLBindParameters, 1)
 
     void *pData = PARAMETER(1);
 
@@ -847,11 +847,11 @@ CONCEPT_FUNCTION_IMPL(MySQLBindParameters, 2)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(MySQLBindStatement, 1, 2)
-    T_NUMBER(0) // stmt
+    T_NUMBER(MySQLBindStatement, 0) // stmt
 
     int store_result = 0;
     if (PARAMETERS_COUNT == 2) {
-        T_NUMBER(1)
+        T_NUMBER(MySQLBindStatement, 1)
         store_result = PARAM_INT(1);
     }
 
@@ -913,7 +913,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(MySQLBindStatement, 1, 2)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(MySQLSTMTResult, 1)
-    T_NUMBER(0) // stmt
+    T_NUMBER(MySQLSTMTResult, 0) // stmt
 
     if (PARAM_INT(0)) {
         RETURN_NUMBER((long)mysql_stmt_result_metadata(((WrappedSTMT *)(SYS_INT)PARAM(0))->stmt));
@@ -925,8 +925,8 @@ END_IMPL
 
 /*
    CONCEPT_FUNCTION_IMPL(ODBCFetchAbsolute, 2)
-    T_NUMBER(0) // row index
-    T_NUMBER(1) // stmt
+    T_NUMBER(ODBCFetchAbsolute, 0) // row index
+    T_NUMBER(ODBCFetchAbsolute, 1) // stmt
 
     if (PARAM_INT(1)) {
         INTEGER index=PARAM_INT(0);
@@ -945,7 +945,7 @@ END_IMPL
    END_IMPL
    //-----------------------------------------------------//
    CONCEPT_FUNCTION_IMPL(MySQLPosition, 1)
-    T_NUMBER(0) // stmt
+    T_NUMBER(MySQLPosition, 0) // stmt
 
     if (PARAM_INT(0)) {
         RETURN_NUMBER((long)mysql_stmt_row_tell((MYSQL_STMT *)PARAM_INT(0)));
@@ -955,7 +955,7 @@ END_IMPL
    END_IMPL*/
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(MySQLFetchForward, 1)
-    T_NUMBER(0) // stmt
+    T_NUMBER(MySQLFetchForward, 0) // stmt
 
     if (PARAM_INT(0)) {
         WrappedSTMT *ws    = (WrappedSTMT *)(SYS_INT)PARAM(0);
@@ -990,8 +990,8 @@ END_IMPL
 /*
    //-----------------------------------------------------//
    CONCEPT_FUNCTION_IMPL(MySQLQuery,2)
-    T_STRING(0) // query
-    T_NUMBER(1) // mysql
+    T_STRING(MySQLQuery, 0) // query
+    T_NUMBER(MySQLQuery, 1) // mysql
 
     if (PARAM_INT(1)) {
         int result=mysql_real_query(((MYSQL *)PARAM_INT(1)), PARAM(0), PARAM_LEN(0));
@@ -1003,8 +1003,8 @@ END_IMPL
    //-----------------------------------------------------//
 
    CONCEPT_FUNCTION_IMPL(MySQLColumnGet, 2)
-    T_NUMBER(0) // col index
-    T_NUMBER(1) // stmt
+    T_NUMBER(MySQLColumnGet, 0) // col index
+    T_NUMBER(MySQLColumnGet, 1) // stmt
 
     if (PARAM_INT(1)) {
         INTEGER index=PARAM_INT(0);
@@ -1055,8 +1055,8 @@ END_IMPL
  */
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(MySQLQuery, 2)
-    T_STRING(0) // query
-    T_NUMBER(1) // mysql
+    T_STRING(MySQLQuery, 0) // query
+    T_NUMBER(MySQLQuery, 1) // mysql
 
     if (PARAM_INT(1)) {
         int result = mysql_real_query(((MYSQL *)(SYS_INT)PARAM(1)), PARAM(0), PARAM_LEN(0));
@@ -1068,8 +1068,8 @@ CONCEPT_FUNCTION_IMPL(MySQLQuery, 2)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(MySQLSendQuery, 2)
-    T_STRING(0) // query
-    T_NUMBER(1) // mysql
+    T_STRING(MySQLSendQuery, 0) // query
+    T_NUMBER(MySQLSendQuery, 1) // mysql
 
     if (PARAM_INT(1)) {
         int result = mysql_send_query(((MYSQL *)(SYS_INT)PARAM(1)), PARAM(0), PARAM_LEN(0));
@@ -1081,7 +1081,7 @@ CONCEPT_FUNCTION_IMPL(MySQLSendQuery, 2)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(MySQLFetchRow, 1)
-    T_NUMBER(0)
+    T_NUMBER(MySQLFetchRow, 0)
     MYSQL_ROW row;
     MYSQL_RES    *result    = (MYSQL_RES *)(SYS_INT)PARAM(0);
     unsigned int num_fields = mysql_num_fields(result);
@@ -1105,7 +1105,7 @@ CONCEPT_FUNCTION_IMPL(MySQLFetchRow, 1)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(MySQLStoreResult, 1)
-    T_NUMBER(0) // mysql
+    T_NUMBER(MySQLStoreResult, 0) // mysql
 
     if (PARAM_INT(0)) {
         RETURN_NUMBER((long)mysql_store_result((MYSQL *)(SYS_INT)PARAM(0)));
@@ -1115,7 +1115,7 @@ CONCEPT_FUNCTION_IMPL(MySQLStoreResult, 1)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(MySQLUseResult, 1)
-    T_NUMBER(0) // mysql
+    T_NUMBER(MySQLUseResult, 0) // mysql
 
     if (PARAM_INT(0)) {
         RETURN_NUMBER((long)mysql_use_result((MYSQL *)(SYS_INT)PARAM(0)));
@@ -1125,7 +1125,7 @@ CONCEPT_FUNCTION_IMPL(MySQLUseResult, 1)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(MySQLReadQueryResult, 1)
-    T_NUMBER(0) // mysql
+    T_NUMBER(MySQLReadQueryResult, 0) // mysql
 
     if (PARAM_INT(0)) {
         RETURN_NUMBER((long)mysql_read_query_result((MYSQL *)(SYS_INT)PARAM(0)));
@@ -1135,8 +1135,8 @@ CONCEPT_FUNCTION_IMPL(MySQLReadQueryResult, 1)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(MySQLColumnGet, 2)
-    T_NUMBER(0) // col index
-    T_NUMBER(1) // mysql res
+    T_NUMBER(MySQLColumnGet, 0) // col index
+    T_NUMBER(MySQLColumnGet, 1) // mysql res
 
     if (PARAM_INT(1)) {
         INTEGER   index = PARAM_INT(0);
@@ -1181,8 +1181,8 @@ CONCEPT_FUNCTION_IMPL(MySQLColumnGet, 2)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(MySQLSTMTColumnGet, 2)
-    T_NUMBER(0) // col index
-    T_NUMBER(1) // mysql stmt
+    T_NUMBER(MySQLSTMTColumnGet, 0) // col index
+    T_NUMBER(MySQLSTMTColumnGet, 1) // mysql stmt
 
     if (PARAM_INT(1)) {
         INTEGER     index = PARAM_INT(0);
@@ -1215,8 +1215,8 @@ END_IMPL
 //-----------------------------------------------------//
 
 /*CONCEPT_FUNCTION_IMPL(ODBCFetchAbsolute, 2)
-    T_NUMBER(0) // row index
-    T_NUMBER(1) // stmt
+    T_NUMBER(MySQLSTMTColumnGet, 0) // row index
+    T_NUMBER(MySQLSTMTColumnGet, 1) // stmt
 
     if (PARAM_INT(1)) {
         INTEGER index=PARAM_INT(0);
@@ -1235,7 +1235,7 @@ END_IMPL
    END_IMPL
    //-----------------------------------------------------//
    CONCEPT_FUNCTION_IMPL(MySQLPosition, 1)
-    T_NUMBER(0) // mysql
+    T_NUMBER(MySQLPosition, 0) // mysql
 
     if (PARAM_INT(0)) {
         RETURN_NUMBER((long)mysql_row_tell((MYSQL_RES *)PARAM_INT(0)));
@@ -1245,7 +1245,7 @@ END_IMPL
    END_IMPL*/
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(MySQLFetchFirst, 1)
-    T_NUMBER(0) // mysql res
+    T_NUMBER(MySQLFetchFirst, 0) // mysql res
 
     if (PARAM_INT(0)) {
         int index = mysql_num_rows((MYSQL_RES *)(SYS_INT)PARAM(0));
@@ -1262,7 +1262,7 @@ CONCEPT_FUNCTION_IMPL(MySQLFetchFirst, 1)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(MySQLFetchLast, 1)
-    T_NUMBER(0) // mysql res
+    T_NUMBER(MySQLFetchLast, 0) // mysql res
 
     if (PARAM_INT(0)) {
         int index = mysql_num_rows((MYSQL_RES *)(SYS_INT)PARAM(0));
@@ -1279,8 +1279,8 @@ CONCEPT_FUNCTION_IMPL(MySQLFetchLast, 1)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(MySQLFetchAbsolute, 2)
-    T_NUMBER(1) // index
-    T_NUMBER(0) // mysql res
+    T_NUMBER(MySQLFetchAbsolute, 1) // index
+    T_NUMBER(MySQLFetchAbsolute, 0) // mysql res
 
     if (PARAM_INT(1)) {
         int total = mysql_num_rows((MYSQL_RES *)(SYS_INT)PARAM(1));
@@ -1298,7 +1298,7 @@ CONCEPT_FUNCTION_IMPL(MySQLFetchAbsolute, 2)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(MySQLFetchNext, 1)
-    T_NUMBER(0) // mysql res
+    T_NUMBER(MySQLFetchNext, 0) // mysql res
 
     if (PARAM_INT(0)) {
         MYSQL_ROW row = mysql_fetch_row((MYSQL_RES *)(SYS_INT)PARAM(0));
@@ -1322,8 +1322,8 @@ CONCEPT_FUNCTION_IMPL(MySQLFetchNext, 1)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(MySQLEscape, 2)
-    T_STRING(0) // mysql res
-    T_NUMBER(1) // mysql
+    T_STRING(MySQLEscape, 0) // mysql res
+    T_NUMBER(MySQLEscape, 1) // mysql
 
     if (!PARAM_INT(1)) {
         RETURN_STRING("");
@@ -1340,7 +1340,7 @@ CONCEPT_FUNCTION_IMPL(MySQLEscape, 2)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(MySQLFD, 1)
-    T_NUMBER(0) // mysql res
+    T_NUMBER(MySQLFD, 0) // mysql res
 
     MYSQL * mysql = (MYSQL *)(SYS_INT)PARAM(0);
     if (mysql) {
@@ -1350,3 +1350,4 @@ CONCEPT_FUNCTION_IMPL(MySQLFD, 1)
     }
 END_IMPL
 //-----------------------------------------------------//
+

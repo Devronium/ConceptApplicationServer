@@ -22,14 +22,14 @@ CONCEPT_DLL_API ON_DESTROY_CONTEXT MANAGEMENT_PARAMETERS {
 }
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(WKPDF, 1, 3)
-    T_STRING(0)
+    T_STRING(WKPDF, 0)
     wkhtmltopdf_global_settings * gs;
     wkhtmltopdf_object_settings *os;
     wkhtmltopdf_converter       *c;
 
     gs = wkhtmltopdf_create_global_settings();
     if (PARAMETERS_COUNT > 1) {
-        T_ARRAY(1)
+        T_ARRAY(WKPDF, 1)
 
         int count = Invoke(INVOKE_GET_ARRAY_COUNT, PARAMETER(1));
         AnsiString val;
@@ -58,7 +58,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(WKPDF, 1, 3)
     os = wkhtmltopdf_create_object_settings();
     wkhtmltopdf_set_object_setting(os, "page", PARAM(0));
     if (PARAMETERS_COUNT > 2) {
-        T_ARRAY(2)
+        T_ARRAY(WKPDF, 2)
 
         int count = Invoke(INVOKE_GET_ARRAY_COUNT, PARAMETER(2));
         AnsiString val;
@@ -102,7 +102,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(WKPDF, 1, 3)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(WKImg, 1, 2)
-    T_STRING(0)
+    T_STRING(WKImg, 0)
     wkhtmltoimage_global_settings * gs;
     wkhtmltoimage_converter *c;
 
@@ -110,7 +110,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(WKImg, 1, 2)
     wkhtmltoimage_set_global_setting(gs, "in", PARAM(0));
     wkhtmltoimage_set_global_setting(gs, "fmt", "png");
     if (PARAMETERS_COUNT > 1) {
-        T_ARRAY(1)
+        T_ARRAY(WKImg, 1)
 
         int count = Invoke(INVOKE_GET_ARRAY_COUNT, PARAMETER(1));
         AnsiString val;
@@ -151,3 +151,4 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(WKImg, 1, 2)
     wkhtmltoimage_destroy_converter(c);
 END_IMPL
 //-----------------------------------------------------//
+

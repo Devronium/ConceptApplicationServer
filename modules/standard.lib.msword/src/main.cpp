@@ -1619,7 +1619,7 @@ CONCEPT_DLL_API ON_CREATE_CONTEXT MANAGEMENT_PARAMETERS {
 // string MSWConvert(filename_in [,var error][, password][, charset][, nographics][, dir][, basename][, configfile][, xml][, var err_stream])
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(MSWRead, 1, 10)
-    T_STRING(0) // filename_in
+    T_STRING(MSWRead, 0) // filename_in
 
     wvParseStruct ps;
     state_data  myhandle;
@@ -1649,32 +1649,32 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(MSWRead, 1, 10)
         }
     }
     if (PARAMETERS_COUNT > 2) {
-        T_STRING(2); // password
+        T_STRING(MSWRead, 2); // password
         if (PARAM_LEN(2))
             password = PARAM(2);
         else
             password = NULL;
     }
     if (PARAMETERS_COUNT > 3) {
-        T_STRING(3); // charset
+        T_STRING(MSWRead, 3); // charset
         if (PARAM_LEN(3))
             charset = PARAM(3);
         else
             charset = NULL;
     }
     if (PARAMETERS_COUNT > 4) {
-        T_NUMBER(4); // nographics
+        T_NUMBER(MSWRead, 4); // nographics
         no_graphics = (PARAM_INT(4) != 0);
     }
     if (PARAMETERS_COUNT > 5) {
-        T_STRING(5); // dir
+        T_STRING(MSWRead, 5); // dir
         if (PARAM_LEN(5))
             dir = PARAM(5);
         else
             dir = NULL;
     }
     if (PARAMETERS_COUNT > 6) {
-        T_STRING(6); // basename
+        T_STRING(MSWRead, 6); // basename
         if (PARAM_LEN(6))
             wv_arg_basename = PARAM(6);
         else
@@ -1682,14 +1682,14 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(MSWRead, 1, 10)
     }
 
     if (PARAMETERS_COUNT > 7) {
-        T_STRING(7); // configfile
+        T_STRING(MSWRead, 7); // configfile
         if (PARAM_LEN(7))
             config = PARAM(7);
         else
             config = NULL;
     }
     if (PARAMETERS_COUNT > 8) {
-        T_NUMBER(8); // nographics
+        T_NUMBER(MSWRead, 8); // nographics
         if (PARAM_INT(8)) {
             config     = "wvXml.xml";
             charset    = "utf-8";
@@ -1821,7 +1821,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(MSWRead, 1, 10)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(MSWMeta, 1, 2)
-    T_STRING(0) // filename_in
+    T_STRING(MSWMeta, 0) // filename_in
     GHashTable * human_readable_keys;
     int i;
 
@@ -1878,3 +1878,4 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(MSWMeta, 1, 2)
     wvShutdown();
 
 END_IMPL
+

@@ -59,9 +59,9 @@ CONCEPT_FUNCTION_IMPL(__profile, 3)
     GET_METACONTAINER
 
     if (mc->DELEGATE) {
-        T_NUMBER(0)
-        T_STRING(1)
-        T_STRING(2)
+        T_NUMBER(__profile, 0)
+        T_STRING(__profile, 1)
+        T_STRING(__profile, 2)
 
         // avoid recursive call
         if ((strcmp(PARAM(2), mc->deleg_member) || (strcmp(PARAM(1), mc->deleg_class)))) {
@@ -81,7 +81,7 @@ CONCEPT_FUNCTION_IMPL(__profile, 3)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(ProfilerDelegate, 1)
-    T_DELEGATE(0)
+    T_DELEGATE(ProfilerDelegate, 0)
 
     GET_METACONTAINER
 
@@ -108,3 +108,4 @@ CONCEPT_FUNCTION_IMPL(CoreMemoryInfo, 0)
     Invoke(INVOKE_PROFILE_MEMORY, PARAMETERS->HANDLER, RESULT);
 END_IMPL
 //------------------------------------------------------------------------
+

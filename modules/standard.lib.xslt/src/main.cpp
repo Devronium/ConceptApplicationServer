@@ -69,7 +69,7 @@ CONCEPT_DLL_API ON_DESTROY_CONTEXT MANAGEMENT_PARAMETERS {
 }
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_SablotCreateDocument, 2)
-    T_NUMBER(0)     // SablotSituation
+    T_NUMBER(_SablotCreateDocument, 0)     // SablotSituation
 
 // ... parameter 1 is by reference (SDOM_Document*)
     SDOM_Document local_parameter_1;
@@ -79,8 +79,8 @@ CONCEPT_FUNCTION_IMPL(_SablotCreateDocument, 2)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_SablotParse, 3)
-    T_NUMBER(0)     // SablotSituation
-    T_STRING(1)     // char*
+    T_NUMBER(_SablotParse, 0)     // SablotSituation
+    T_STRING(_SablotParse, 1)     // char*
 
 // ... parameter 2 is by reference (SDOM_Document*)
     SDOM_Document local_parameter_2;
@@ -90,8 +90,8 @@ CONCEPT_FUNCTION_IMPL(_SablotParse, 3)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_SablotParseBuffer, 3)
-    T_NUMBER(0)     // SablotSituation
-    T_STRING(1)     // char*
+    T_NUMBER(_SablotParseBuffer, 0)     // SablotSituation
+    T_STRING(_SablotParseBuffer, 1)     // char*
 
 // ... parameter 2 is by reference (SDOM_Document*)
     SDOM_Document local_parameter_2;
@@ -101,8 +101,8 @@ CONCEPT_FUNCTION_IMPL(_SablotParseBuffer, 3)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_SablotParseStylesheet, 3)
-    T_NUMBER(0)     // SablotSituation
-    T_STRING(1)     // char*
+    T_NUMBER(_SablotParseStylesheet, 0)     // SablotSituation
+    T_STRING(_SablotParseStylesheet, 1)     // char*
 
 // ... parameter 2 is by reference (SDOM_Document*)
     SDOM_Document local_parameter_2;
@@ -112,8 +112,8 @@ CONCEPT_FUNCTION_IMPL(_SablotParseStylesheet, 3)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_SablotParseStylesheetBuffer, 3)
-    T_NUMBER(0)     // SablotSituation
-    T_STRING(1)     // char*
+    T_NUMBER(_SablotParseStylesheetBuffer, 0)     // SablotSituation
+    T_STRING(_SablotParseStylesheetBuffer, 1)     // char*
 
 // ... parameter 2 is by reference (SDOM_Document*)
     SDOM_Document local_parameter_2;
@@ -123,62 +123,62 @@ CONCEPT_FUNCTION_IMPL(_SablotParseStylesheetBuffer, 3)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_SablotLockDocument, 2)
-    T_NUMBER(0)     // SablotSituation
-    T_NUMBER(1)     // SDOM_Document
+    T_NUMBER(_SablotLockDocument, 0)     // SablotSituation
+    T_NUMBER(_SablotLockDocument, 1)     // SDOM_Document
 
     RETURN_NUMBER(SablotLockDocument((SablotSituation)(long)PARAM(0), (SDOM_Document)(long)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_SablotDestroyDocument, 2)
-    T_NUMBER(0)     // SablotSituation
-    T_NUMBER(1)     // SDOM_Document
+    T_NUMBER(_SablotDestroyDocument, 0)     // SablotSituation
+    T_NUMBER(_SablotDestroyDocument, 1)     // SDOM_Document
 
     RETURN_NUMBER(SablotDestroyDocument((SablotSituation)(long)PARAM(0), (SDOM_Document)(long)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_SablotAddParam, 4)
-    T_NUMBER(0)     // SablotSituation
-    T_NUMBER(1)     // void*
-    T_STRING(2)     // char*
-    T_STRING(3)     // char*
+    T_NUMBER(_SablotAddParam, 0)     // SablotSituation
+    T_NUMBER(_SablotAddParam, 1)     // void*
+    T_STRING(_SablotAddParam, 2)     // char*
+    T_STRING(_SablotAddParam, 3)     // char*
 
     RETURN_NUMBER(SablotAddParam((SablotSituation)(long)PARAM(0), (void *)(long)PARAM(1), PARAM(2), PARAM(3)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_SablotAddArgBuffer, 4)
-    T_NUMBER(0)     // SablotSituation
-    T_NUMBER(1)     // void*
-    T_STRING(2)     // char*
-    T_STRING(3)     // char*
+    T_NUMBER(_SablotAddArgBuffer, 0)     // SablotSituation
+    T_NUMBER(_SablotAddArgBuffer, 1)     // void*
+    T_STRING(_SablotAddArgBuffer, 2)     // char*
+    T_STRING(_SablotAddArgBuffer, 3)     // char*
 
     RETURN_NUMBER(SablotAddArgBuffer((SablotSituation)(long)PARAM(0), (void *)(long)PARAM(1), PARAM(2), PARAM(3)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_SablotAddArgTree, 4)
-    T_NUMBER(0)     // SablotSituation
-    T_NUMBER(1)     // void*
-    T_STRING(2)     // char*
-    T_NUMBER(3)     // SDOM_Document
+    T_NUMBER(_SablotAddArgTree, 0)     // SablotSituation
+    T_NUMBER(_SablotAddArgTree, 1)     // void*
+    T_STRING(_SablotAddArgTree, 2)     // char*
+    T_NUMBER(_SablotAddArgTree, 3)     // SDOM_Document
 
     RETURN_NUMBER(SablotAddArgTree((SablotSituation)(long)PARAM(0), (void *)(long)PARAM(1), PARAM(2), (SDOM_Document)(long)PARAM(3)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_SablotRunProcessorGen, 5)
-    T_NUMBER(0)     // SablotSituation
-    T_NUMBER(1)     // void*
-    T_STRING(2)     // char*
-    T_STRING(3)     // char*
-    T_STRING(4)     // char*
+    T_NUMBER(_SablotRunProcessorGen, 0)     // SablotSituation
+    T_NUMBER(_SablotRunProcessorGen, 1)     // void*
+    T_STRING(_SablotRunProcessorGen, 2)     // char*
+    T_STRING(_SablotRunProcessorGen, 3)     // char*
+    T_STRING(_SablotRunProcessorGen, 4)     // char*
 
     RETURN_NUMBER(SablotRunProcessorGen((SablotSituation)(long)PARAM(0), (void *)(long)PARAM(1), PARAM(2), PARAM(3), PARAM(4)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_SablotRunProcessorExt, 5)
-    T_NUMBER(0)     // SablotSituation
-    T_NUMBER(1)     // void*
-    T_STRING(2)     // char*
-    T_STRING(3)     // char*
-    T_NUMBER(4)     // NodeHandle
+    T_NUMBER(_SablotRunProcessorExt, 0)     // SablotSituation
+    T_NUMBER(_SablotRunProcessorExt, 1)     // void*
+    T_STRING(_SablotRunProcessorExt, 2)     // char*
+    T_STRING(_SablotRunProcessorExt, 3)     // char*
+    T_NUMBER(_SablotRunProcessorExt, 4)     // NodeHandle
 
     RETURN_NUMBER(SablotRunProcessorExt((SablotSituation)(long)PARAM(0), (void *)(long)PARAM(1), PARAM(2), PARAM(3), (NodeHandle)(long)PARAM(4)))
 END_IMPL
@@ -193,45 +193,45 @@ CONCEPT_FUNCTION_IMPL(_SablotCreateSituation, 1)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_SablotSetOptions, 2)
-    T_NUMBER(0)     // SablotSituation
-    T_NUMBER(1)     // int
+    T_NUMBER(_SablotSetOptions, 0)     // SablotSituation
+    T_NUMBER(_SablotSetOptions, 1)     // int
 
     RETURN_NUMBER(SablotSetOptions((SablotSituation)(long)PARAM(0), (int)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_SablotGetOptions, 1)
-    T_NUMBER(0)     // SablotSituation
+    T_NUMBER(_SablotGetOptions, 0)     // SablotSituation
 
     RETURN_NUMBER(SablotGetOptions((SablotSituation)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_SablotClearSituation, 1)
-    T_NUMBER(0)     // SablotSituation
+    T_NUMBER(_SablotClearSituation, 0)     // SablotSituation
 
     RETURN_NUMBER(SablotClearSituation((SablotSituation)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 
 /*CONCEPT_FUNCTION_IMPL(_SablotGetErrorURI,1)
-        T_NUMBER(0) // SablotSituation
+        T_NUMBER(_SablotClearSituation, 0) // SablotSituation
 
         RETURN_STRING((char*)SablotGetErrorURI((SablotSituation)(long)PARAM(0)))
    END_IMPL
    //------------------------------------------------------------------------
    CONCEPT_FUNCTION_IMPL(_SablotGetErrorLine,1)
-        T_NUMBER(0) // SablotSituation
+        T_NUMBER(_SablotGetErrorLine, 0) // SablotSituation
 
         RETURN_NUMBER(SablotGetErrorLine((SablotSituation)(long)PARAM(0)))
    END_IMPL
    //------------------------------------------------------------------------
    CONCEPT_FUNCTION_IMPL(_SablotGetErrorMsg,1)
-        T_NUMBER(0) // SablotSituation
+        T_NUMBER(_SablotGetErrorMsg, 0) // SablotSituation
 
         RETURN_STRING((char*)SablotGetErrorMsg((SablotSituation)(long)PARAM(0)))
    END_IMPL*/
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_SablotDestroySituation, 1)
-    T_NUMBER(0)     // SablotSituation
+    T_NUMBER(_SablotDestroySituation, 0)     // SablotSituation
 
     RETURN_NUMBER(SablotDestroySituation((SablotSituation)(long)PARAM(0)))
 END_IMPL
@@ -246,7 +246,7 @@ CONCEPT_FUNCTION_IMPL(_SablotCreateProcessor, 1)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_SablotCreateProcessorForSituation, 2)
-    T_NUMBER(0)     // SablotSituation
+    T_NUMBER(_SablotCreateProcessorForSituation, 0)     // SablotSituation
 
 // ... parameter 1 is by reference (void**)
     void *local_parameter_1 = 0;
@@ -256,16 +256,16 @@ CONCEPT_FUNCTION_IMPL(_SablotCreateProcessorForSituation, 2)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_SablotDestroyProcessor, 1)
-    T_NUMBER(0)     // SablotHandle
+    T_NUMBER(_SablotDestroyProcessor, 0)     // SablotHandle
 
     RETURN_NUMBER(SablotDestroyProcessor((SablotHandle)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_SablotRunProcessor, 6)
-    T_NUMBER(0)     // SablotHandle
-    T_STRING(1)     // char*
-    T_STRING(2)     // char*
-    T_STRING(3)     // char*
+    T_NUMBER(_SablotRunProcessor, 0)     // SablotHandle
+    T_STRING(_SablotRunProcessor, 1)     // char*
+    T_STRING(_SablotRunProcessor, 2)     // char*
+    T_STRING(_SablotRunProcessor, 3)     // char*
 
     char *data4 = 0;
     char *data5 = 0;
@@ -289,8 +289,8 @@ CONCEPT_FUNCTION_IMPL(_SablotRunProcessor, 6)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_SablotGetResultArg, 3)
-    T_NUMBER(0)     // SablotHandle
-    T_STRING(1)     // char*
+    T_NUMBER(_SablotGetResultArg, 0)     // SablotHandle
+    T_STRING(_SablotGetResultArg, 1)     // char*
 
 // ... parameter 2 is by reference (char**)
     char *local_parameter_2 = 0;
@@ -307,49 +307,49 @@ CONCEPT_FUNCTION_IMPL(_SablotGetResultArg, 3)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_SablotFreeResultArgs, 1)
-    T_NUMBER(0)     // SablotHandle
+    T_NUMBER(_SablotFreeResultArgs, 0)     // SablotHandle
 
     RETURN_NUMBER(SablotFreeResultArgs((SablotHandle)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 
 /*CONCEPT_FUNCTION_IMPL(_SablotRegHandler,4)
-        T_NUMBER(0) // SablotHandle
-        T_NUMBER(1) // HandlerType
-        T_NUMBER(2) // void*
-        T_NUMBER(3) // void*
+        T_NUMBER(_SablotFreeResultArgs, 0) // SablotHandle
+        T_NUMBER(_SablotFreeResultArgs, 1) // HandlerType
+        T_NUMBER(_SablotFreeResultArgs, 2) // void*
+        T_NUMBER(_SablotFreeResultArgs, 3) // void*
 
         RETURN_NUMBER(SablotRegHandler((SablotHandle)(long)PARAM(0), (HandlerType)PARAM(1), (void *)(long)PARAM(2), (void *)(long)PARAM(3)))
    END_IMPL
    //------------------------------------------------------------------------
    CONCEPT_FUNCTION_IMPL(_SablotUnregHandler,4)
-        T_NUMBER(0) // SablotHandle
-        T_NUMBER(1) // HandlerType
-        T_NUMBER(2) // void*
-        T_NUMBER(3) // void*
+        T_NUMBER(_SablotUnregHandler, 0) // SablotHandle
+        T_NUMBER(_SablotUnregHandler, 1) // HandlerType
+        T_NUMBER(_SablotUnregHandler, 2) // void*
+        T_NUMBER(_SablotUnregHandler, 3) // void*
 
         RETURN_NUMBER(SablotUnregHandler((SablotHandle)(long)PARAM(0), (HandlerType)PARAM(1), (void *)(long)PARAM(2), (void *)(long)PARAM(3)))
    END_IMPL*/
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_SablotSetBase, 2)
-    T_NUMBER(0)     // SablotHandle
-    T_STRING(1)     // char*
+    T_NUMBER(_SablotSetBase, 0)     // SablotHandle
+    T_STRING(_SablotSetBase, 1)     // char*
 
     RETURN_NUMBER(SablotSetBase((SablotHandle)(long)PARAM(0), PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_SablotSetBaseForScheme, 3)
-    T_NUMBER(0)     // void*
-    T_STRING(1)     // char*
-    T_STRING(2)     // char*
+    T_NUMBER(_SablotSetBaseForScheme, 0)     // void*
+    T_STRING(_SablotSetBaseForScheme, 1)     // char*
+    T_STRING(_SablotSetBaseForScheme, 2)     // char*
 
     RETURN_NUMBER(SablotSetBaseForScheme((void *)(long)PARAM(0), PARAM(1), PARAM(2)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_SablotSetLog, 3)
-    T_NUMBER(0)     // SablotHandle
-    T_STRING(1)     // char*
-    T_NUMBER(2)     // int
+    T_NUMBER(_SablotSetLog, 0)     // SablotHandle
+    T_STRING(_SablotSetLog, 1)     // char*
+    T_NUMBER(_SablotSetLog, 2)     // int
 
     RETURN_NUMBER(SablotSetLog((SablotHandle)(long)PARAM(0), PARAM(1), (int)PARAM(2)))
 END_IMPL
@@ -407,9 +407,9 @@ int SablotProcess2(const char *sheetURI, const char *inputURI,
 }
 
 CONCEPT_FUNCTION_IMPL(_SablotProcess, 6)
-    T_STRING(0)     // char*
-    T_STRING(1)     // char*
-    T_STRING(2)     // char*
+    T_STRING(_SablotProcess, 0)     // char*
+    T_STRING(_SablotProcess, 1)     // char*
+    T_STRING(_SablotProcess, 2)     // char*
 
     char *data3 = 0;
     char *data4 = 0;
@@ -437,16 +437,16 @@ CONCEPT_FUNCTION_IMPL(_SablotProcess, 6)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_SablotProcessFiles, 3)
-    T_STRING(0)     // char*
-    T_STRING(1)     // char*
-    T_STRING(2)     // char*
+    T_STRING(_SablotProcessFiles, 0)     // char*
+    T_STRING(_SablotProcessFiles, 1)     // char*
+    T_STRING(_SablotProcessFiles, 2)     // char*
 
     RETURN_NUMBER(SablotProcessFiles(PARAM(0), PARAM(1), PARAM(2)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_SablotProcessStrings, 3)
-    T_STRING(0)     // char*
-    T_STRING(1)     // char*
+    T_STRING(_SablotProcessStrings, 0)     // char*
+    T_STRING(_SablotProcessStrings, 1)     // char*
 
 // ... parameter 2 is by reference (char**)
     char *local_parameter_2 = 0;
@@ -456,9 +456,9 @@ CONCEPT_FUNCTION_IMPL(_SablotProcessStrings, 3)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_SablotProcessStringsWithBase, 4)
-    T_STRING(0)     // char*
-    T_STRING(1)     // char*
-    T_STRING(3)     // char*
+    T_STRING(_SablotProcessStringsWithBase, 0)     // char*
+    T_STRING(_SablotProcessStringsWithBase, 1)     // char*
+    T_STRING(_SablotProcessStringsWithBase, 3)     // char*
 
 // ... parameter 2 is by reference (char**)
     char *local_parameter_2 = 0;
@@ -468,13 +468,13 @@ CONCEPT_FUNCTION_IMPL(_SablotProcessStringsWithBase, 4)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_SablotClearError, 1)
-    T_NUMBER(0)     // SablotHandle
+    T_NUMBER(_SablotClearError, 0)     // SablotHandle
 
     RETURN_NUMBER(SablotClearError((SablotHandle)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_SablotGetMsgText, 1)
-    T_NUMBER(0)     // int
+    T_NUMBER(_SablotGetMsgText, 0)     // int
 
     if (sablot_err.Length()) {
         AnsiString res = "<pre>\n";
@@ -490,23 +490,24 @@ CONCEPT_FUNCTION_IMPL(_SablotGetMsgText, 1)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_SablotSetInstanceData, 2)
-    T_NUMBER(0)     // SablotHandle
-    T_NUMBER(1)     // void*
+    T_NUMBER(_SablotSetInstanceData, 0)     // SablotHandle
+    T_NUMBER(_SablotSetInstanceData, 1)     // void*
 
     SablotSetInstanceData((SablotHandle)(long)PARAM(0), (void *)(long)PARAM(1));
     RETURN_NUMBER(0)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_SablotGetInstanceData, 1)
-    T_NUMBER(0)     // SablotHandle
+    T_NUMBER(_SablotGetInstanceData, 0)     // SablotHandle
 
     RETURN_NUMBER((long)SablotGetInstanceData((SablotHandle)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_SablotSetEncoding, 2)
-    T_NUMBER(0)     // SablotHandle
-    T_STRING(1)     // char*
+    T_NUMBER(_SablotSetEncoding, 0)     // SablotHandle
+    T_STRING(_SablotSetEncoding, 1)     // char*
 
     SablotSetEncoding((SablotHandle)(long)PARAM(0), PARAM(1));
     RETURN_NUMBER(0)
 END_IMPL
+

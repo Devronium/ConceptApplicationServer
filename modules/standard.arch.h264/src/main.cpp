@@ -261,7 +261,7 @@ CONCEPT_DLL_API ON_DESTROY_CONTEXT MANAGEMENT_PARAMETERS {
 }
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(H264Encoder, 1)
-    T_ARRAY(0)
+    T_ARRAY(H264Encoder, 0)
     ISVCEncoder * encoder = NULL;
     WelsCreateSVCEncoder(&encoder);
 
@@ -338,7 +338,7 @@ CONCEPT_FUNCTION_IMPL(H264Encoder, 1)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(H264EncoderDone, 1)
-    T_HANDLE(0)
+    T_HANDLE(H264EncoderDone, 0)
     ISVCEncoder * encoder = (ISVCEncoder *)(SYS_INT)PARAM(0);
     encoder->Uninitialize();
     WelsDestroySVCEncoder(encoder);
@@ -347,9 +347,9 @@ CONCEPT_FUNCTION_IMPL(H264EncoderDone, 1)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(H264EncoderSet, 3)
-    T_HANDLE(0)
-    T_NUMBER(1)
-    T_NUMBER(2)
+    T_HANDLE(H264EncoderSet, 0)
+    T_NUMBER(H264EncoderSet, 1)
+    T_NUMBER(H264EncoderSet, 2)
 
     ISVCEncoder * encoder = (ISVCEncoder *)(SYS_INT)PARAM(0);
 
@@ -359,9 +359,9 @@ CONCEPT_FUNCTION_IMPL(H264EncoderSet, 3)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(H264EncoderGet, 3)
-    T_HANDLE(0)
-    T_NUMBER(1)
-    T_NUMBER(2)
+    T_HANDLE(H264EncoderGet, 0)
+    T_NUMBER(H264EncoderGet, 1)
+    T_NUMBER(H264EncoderGet, 2)
 
     ISVCEncoder * encoder = (ISVCEncoder *)(SYS_INT)PARAM(0);
 
@@ -371,10 +371,10 @@ CONCEPT_FUNCTION_IMPL(H264EncoderGet, 3)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(H264Encode, 5, 8)
-    T_HANDLE(0)
-    T_STRING(1)
-    T_NUMBER(2)
-    T_NUMBER(3)
+    T_HANDLE(H264Encode, 0)
+    T_STRING(H264Encode, 1)
+    T_NUMBER(H264Encode, 2)
+    T_NUMBER(H264Encode, 3)
 
     ISVCEncoder * encoder = (ISVCEncoder *)(SYS_INT)PARAM(0);
     int width  = PARAM_INT(2);
@@ -383,14 +383,14 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(H264Encode, 5, 8)
     long long        timestamp = 0;
     bool             idr_frame = false;
     if (PARAMETERS_COUNT > 5) {
-        T_NUMBER(5)
+        T_NUMBER(H264Encode, 5)
         format = (EVideoFormatType)PARAM_INT(5);
         if (PARAMETERS_COUNT > 6) {
-            T_NUMBER(6)
+            T_NUMBER(H264Encode, 6)
             timestamp = (long long)PARAM(6);
         }
         if (PARAMETERS_COUNT > 7) {
-            T_NUMBER(7)
+            T_NUMBER(H264Encode, 7)
             if (PARAM_INT(7))
                 idr_frame = true;
         }
@@ -449,7 +449,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(H264Encode, 5, 8)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(H264Decoder, 1)
-    T_ARRAY(0)
+    T_ARRAY(H264Decoder, 0)
 
     DecoderContext * dec = (DecoderContext *)malloc(sizeof(DecoderContext));
     memset(dec, 0, sizeof(dec));
@@ -506,7 +506,7 @@ CONCEPT_FUNCTION_IMPL(H264Decoder, 1)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(H264DecoderDone, 1)
-    T_HANDLE(0)
+    T_HANDLE(H264DecoderDone, 0)
     DecoderContext * decoder = (DecoderContext *)(SYS_INT)PARAM(0);
     decoder->decoder->Uninitialize();
     WelsDestroyDecoder(decoder->decoder);
@@ -517,9 +517,9 @@ CONCEPT_FUNCTION_IMPL(H264DecoderDone, 1)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(H264DecoderSet, 3)
-    T_HANDLE(0)
-    T_NUMBER(1)
-    T_NUMBER(2)
+    T_HANDLE(H264DecoderSet, 0)
+    T_NUMBER(H264DecoderSet, 1)
+    T_NUMBER(H264DecoderSet, 2)
 
     DecoderContext * decoder = (DecoderContext *)(SYS_INT)PARAM(0);
 
@@ -529,9 +529,9 @@ CONCEPT_FUNCTION_IMPL(H264DecoderSet, 3)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(H264DecoderGet, 3)
-    T_HANDLE(0)
-    T_NUMBER(1)
-    T_NUMBER(2)
+    T_HANDLE(H264DecoderGet, 0)
+    T_NUMBER(H264DecoderGet, 1)
+    T_NUMBER(H264DecoderGet, 2)
 
     DecoderContext * decoder = (DecoderContext *)(SYS_INT)PARAM(0);
 
@@ -592,8 +592,8 @@ static int write_yuv(unsigned char *buf,
 }
 
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(H264Decode, 3, 7)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(H264Decode, 0)
+    T_STRING(H264Decode, 1)
 
     DecoderContext * decoder = (DecoderContext *)(SYS_INT)PARAM(0);
 
@@ -614,7 +614,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(H264Decode, 3, 7)
     int rv              = -1;
     int multiple_frames = 0;
     if (PARAMETERS_COUNT > 3) {
-        T_NUMBER(3)
+        T_NUMBER(H264Decode, 3)
         multiple_frames = PARAM_INT(3);
     }
     INTEGER frame_idx = 0;
@@ -749,14 +749,14 @@ void memcpy_except_value(unsigned char *dest, unsigned char *src, char *dest_u, 
 }
 
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(YUV420Overlay, 8, 9)
-    T_STRING(0) // target
-    T_NUMBER(1) // width
-    T_NUMBER(2) // height
-    T_STRING(3) // source
-    T_NUMBER(4) // source width
-    T_NUMBER(5) // source height
-    T_NUMBER(6) // target left
-    T_NUMBER(7) // target top
+    T_STRING(YUV420Overlay, 0) // target
+    T_NUMBER(YUV420Overlay, 1) // width
+    T_NUMBER(YUV420Overlay, 2) // height
+    T_STRING(YUV420Overlay, 3) // source
+    T_NUMBER(YUV420Overlay, 4) // source width
+    T_NUMBER(YUV420Overlay, 5) // source height
+    T_NUMBER(YUV420Overlay, 6) // target left
+    T_NUMBER(YUV420Overlay, 7) // target top
 
     char *target = PARAM(0);
     int width  = PARAM_INT(1);
@@ -771,7 +771,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(YUV420Overlay, 8, 9)
 
     int transparency = -1;
     if (PARAMETERS_COUNT > 8) {
-        T_NUMBER(8)
+        T_NUMBER(YUV420Overlay, 8)
         transparency = PARAM_INT(8);
     }
 
@@ -865,3 +865,4 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(YUV420Overlay, 8, 9)
     RETURN_NUMBER(0)
 END_IMPL
 //------------------------------------------------------------------------
+

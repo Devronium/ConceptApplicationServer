@@ -23,7 +23,7 @@ CONCEPT_DLL_API ON_DESTROY_CONTEXT MANAGEMENT_PARAMETERS {
 }
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(InitMBR, 1)
-    T_STRING(0)
+    T_STRING(InitMBR, 0)
 
     RETURN_NUMBER(init_MBR(PARAM(0)))
 END_IMPL
@@ -39,13 +39,13 @@ CONCEPT_FUNCTION_IMPL(ResetMBR, 0)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(WriteMBR, 1)
-    T_STRING(0)
+    T_STRING(WriteMBR, 0)
 
     RETURN_NUMBER(write_MBR(PARAM(0)))
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(ReadMBR, 2)
-    T_NUMBER(1)
+    T_NUMBER(ReadMBR, 1)
     SET_STRING(0, "")
 
     int len = PARAM_INT(1);
@@ -63,7 +63,7 @@ CONCEPT_FUNCTION_IMPL(ReadMBR, 2)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(SetFreqMBR, 1)
-    T_NUMBER(0)
+    T_NUMBER(SetFreqMBR, 0)
 
     setFreq_MBR(PARAM_INT(0));
     RETURN_NUMBER(0)
@@ -74,7 +74,7 @@ CONCEPT_FUNCTION_IMPL(GetFreqMBR, 0)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(SetVolumeRatioMBR, 1)
-    T_NUMBER(0)
+    T_NUMBER(SetVolumeRatioMBR, 0)
 
     setVolumeRatio_MBR(PARAM_INT(0));
     RETURN_NUMBER(0)
@@ -99,3 +99,4 @@ END_IMPL
 CONCEPT_FUNCTION_IMPL(LastErrorMBR, 0)
     RETURN_NUMBER(lastError_MBR())
 END_IMPL
+

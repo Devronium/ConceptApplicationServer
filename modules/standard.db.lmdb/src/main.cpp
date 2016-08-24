@@ -101,27 +101,27 @@ CONCEPT_DLL_API ON_CREATE_CONTEXT MANAGEMENT_PARAMETERS {
 }
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(MapOpen, 1, 6)
-    T_STRING(0)
+    T_STRING(MapOpen, 0)
     size_t map_size = 10485760;
     if (PARAMETERS_COUNT > 1) {
-        T_NUMBER(1)
+        T_NUMBER(MapOpen, 1)
         map_size = PARAM(1);
     }
     int flags = 0;
     if (PARAMETERS_COUNT > 2) {
-        T_NUMBER(2)
+        T_NUMBER(MapOpen, 2)
         flags = PARAM_INT(2);
     }
 
     int maxdbs = 10;
     if (PARAMETERS_COUNT > 3) {
-        T_NUMBER(3)
+        T_NUMBER(MapOpen, 3)
         maxdbs = PARAM_INT(3);
     }
 
     int maxreaders = 8;
     if (PARAMETERS_COUNT > 4) {
-        T_NUMBER(4)
+        T_NUMBER(MapOpen, 4)
         maxreaders = PARAM_INT(4);
     }
 
@@ -153,7 +153,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(MapOpen, 1, 6)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MapClose, 1)
-    T_HANDLE(0)
+    T_HANDLE(MapClose, 0)
 
     MDB_env * env = (MDB_env *)(SYS_INT)PARAM(0);
     mdb_env_close(env);
@@ -161,28 +161,28 @@ CONCEPT_FUNCTION_IMPL(MapClose, 1)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(MapPut, 2, 6)
-    T_HANDLE(0)
-    T_ARRAY(1)
+    T_HANDLE(MapPut, 0)
+    T_ARRAY(MapPut, 1)
     char *database = NULL;
     int db_flags = MDB_DUPSORT;
     if (PARAMETERS_COUNT > 2) {
-        T_NUMBER(2)
+        T_NUMBER(MapPut, 2)
         db_flags = PARAM(2);
     }
 
     if (PARAMETERS_COUNT > 3) {
-        T_STRING(3)
+        T_STRING(MapPut, 3)
         if (PARAM_LEN(3))
             database = PARAM(3);
     }
     int flags = 0;
     if (PARAMETERS_COUNT > 4) {
-        T_NUMBER(4)
+        T_NUMBER(MapPut, 4)
         flags = PARAM_INT(4);
     }
     int use_int = 0;
     if (PARAMETERS_COUNT > 5) {
-        T_NUMBER(5)
+        T_NUMBER(MapPut, 5)
         use_int = PARAM_INT(5);
     }
 
@@ -266,28 +266,28 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(MapPut, 2, 6)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(MapPutMultiple, 2, 6)
-    T_HANDLE(0)
-    T_ARRAY(1)
+    T_HANDLE(MapPutMultiple, 0)
+    T_ARRAY(MapPutMultiple, 1)
     char *database = NULL;
     int db_flags = MDB_DUPSORT;
     if (PARAMETERS_COUNT > 2) {
-        T_NUMBER(2)
+        T_NUMBER(MapPutMultiple, 2)
         db_flags = PARAM(2);
     }
 
     if (PARAMETERS_COUNT > 3) {
-        T_STRING(3)
+        T_STRING(MapPutMultiple, 3)
         if (PARAM_LEN(3))
             database = PARAM(3);
     }
     int flags = 0;
     if (PARAMETERS_COUNT > 4) {
-        T_NUMBER(4)
+        T_NUMBER(MapPutMultiple, 4)
         flags = PARAM_INT(4);
     }
     int use_int = 0;
     if (PARAMETERS_COUNT > 5) {
-        T_NUMBER(5)
+        T_NUMBER(MapPutMultiple, 5)
         use_int = PARAM_INT(5);
     }
 
@@ -378,11 +378,11 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(MapPutMultiple, 2, 6)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(MapGet, 3, 4)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(MapGet, 0)
+    T_STRING(MapGet, 1)
     char *database = NULL;
     if (PARAMETERS_COUNT > 3) {
-        T_STRING(3)
+        T_STRING(MapGet, 3)
         if (PARAM_LEN(3))
             database = PARAM(3);
     }
@@ -428,11 +428,11 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(MapGet, 3, 4)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(MapGetNumber, 3, 4)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(MapGetNumber, 0)
+    T_STRING(MapGetNumber, 1)
     char *database = NULL;
     if (PARAMETERS_COUNT > 3) {
-        T_STRING(3)
+        T_STRING(MapGetNumber, 3)
         if (PARAM_LEN(3))
             database = PARAM(3);
     }
@@ -478,11 +478,11 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(MapGetNumber, 3, 4)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(MapGetInt, 3, 4)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(MapGetInt, 0)
+    T_STRING(MapGetInt, 1)
     char *database = NULL;
     if (PARAMETERS_COUNT > 3) {
-        T_STRING(3)
+        T_STRING(MapGetInt, 3)
         if (PARAM_LEN(3))
             database = PARAM(3);
     }
@@ -528,11 +528,11 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(MapGetInt, 3, 4)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(MapRemove, 2, 3)
-    T_HANDLE(0)
-    T_ARRAY(1)
+    T_HANDLE(MapRemove, 0)
+    T_ARRAY(MapRemove, 1)
     char *database = NULL;
     if (PARAMETERS_COUNT > 2) {
-        T_STRING(2)
+        T_STRING(MapRemove, 2)
         if (PARAM_LEN(2))
             database = PARAM(2);
     }
@@ -583,7 +583,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(MapRemove, 2, 3)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MapError, 1)
-    T_NUMBER(0)
+    T_NUMBER(MapError, 0)
     char *res = mdb_strerror(PARAM_INT(0));
     if (res) {
         RETURN_STRING(res);
@@ -593,7 +593,7 @@ CONCEPT_FUNCTION_IMPL(MapError, 1)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MapInfo, 1)
-    T_HANDLE(0)
+    T_HANDLE(MapInfo, 0)
     MDB_env * env = (MDB_env *)(SYS_INT)PARAM(0);
     MDB_stat    mst;
     MDB_envinfo mei;
@@ -617,17 +617,17 @@ CONCEPT_FUNCTION_IMPL(MapInfo, 1)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(MapRemoveValue, 2, 4)
-    T_HANDLE(0)
-    T_ARRAY(1)
+    T_HANDLE(MapRemoveValue, 0)
+    T_ARRAY(MapRemoveValue, 1)
     char *database = NULL;
     if (PARAMETERS_COUNT > 2) {
-        T_STRING(2)
+        T_STRING(MapRemoveValue, 2)
         if (PARAM_LEN(2))
             database = PARAM(2);
     }
     int use_int = 0;
     if (PARAMETERS_COUNT > 3) {
-        T_NUMBER(3)
+        T_NUMBER(MapRemoveValue, 3)
         use_int = PARAM_INT(3);
     }
 
@@ -713,8 +713,8 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(MapRemoveValue, 2, 4)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(MapGetAll, 2, 8)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(MapGetAll, 0)
+    T_STRING(MapGetAll, 1)
     char *database = NULL;
 
     size_t        len    = 0;
@@ -728,7 +728,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(MapGetAll, 2, 8)
     int cmp_flag = -1;
 
     if (PARAMETERS_COUNT > 2) {
-        T_NUMBER(2)
+        T_NUMBER(MapGetAll, 2)
         if (PARAM_INT(2)) {
             op       = MDB_PREV_DUP;
             op2      = MDB_PREV;
@@ -737,26 +737,26 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(MapGetAll, 2, 8)
     }
 
     if (PARAMETERS_COUNT > 3) {
-        T_STRING(3)
+        T_STRING(MapGetAll, 3)
         if (PARAM_LEN(3))
             database = PARAM(3);
     }
 
     if (PARAMETERS_COUNT > 4) {
-        T_NUMBER(4)
+        T_NUMBER(MapGetAll, 4)
         len = PARAM(4);
     }
     if (PARAMETERS_COUNT > 5) {
-        T_NUMBER(5)
+        T_NUMBER(MapGetAll, 5)
         start = PARAM_INT(5);
     }
     if (PARAMETERS_COUNT > 6) {
-        T_NUMBER(6)
+        T_NUMBER(MapGetAll, 6)
         if (PARAM_INT(6))
             set_op = MDB_SET_RANGE;
     }
     if (PARAMETERS_COUNT > 7) {
-        T_STRING(7)
+        T_STRING(MapGetAll, 7)
         limit_key.mv_data = PARAM(7);
         limit_key.mv_size = PARAM_LEN(7);
     }
@@ -847,8 +847,8 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(MapGetAll, 2, 8)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(MapGetAllNumber, 2, 9)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(MapGetAllNumber, 0)
+    T_STRING(MapGetAllNumber, 1)
     char *database = NULL;
     size_t        len    = 0;
     size_t        start  = 0;
@@ -861,7 +861,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(MapGetAllNumber, 2, 9)
     int cmp_flag = -1;
 
     if (PARAMETERS_COUNT > 2) {
-        T_NUMBER(2)
+        T_NUMBER(MapGetAllNumber, 2)
         if (PARAM_INT(2)) {
             op       = MDB_PREV;
             op2      = MDB_PREV;
@@ -870,32 +870,32 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(MapGetAllNumber, 2, 9)
     }
 
     if (PARAMETERS_COUNT > 3) {
-        T_STRING(3)
+        T_STRING(MapGetAllNumber, 3)
         if (PARAM_LEN(3))
             database = PARAM(3);
     }
 
     if (PARAMETERS_COUNT > 4) {
-        T_NUMBER(4)
+        T_NUMBER(MapGetAllNumber, 4)
         len = PARAM(4);
     }
     if (PARAMETERS_COUNT > 5) {
-        T_NUMBER(5)
+        T_NUMBER(MapGetAllNumber, 5)
         start = PARAM_INT(5);
     }
     if (PARAMETERS_COUNT > 6) {
-        T_NUMBER(6)
+        T_NUMBER(MapGetAllNumber, 6)
         if (PARAM_INT(6))
             set_op = MDB_SET_RANGE;
     }
     if (PARAMETERS_COUNT > 7) {
-        T_STRING(7)
+        T_STRING(MapGetAllNumber, 7)
         limit_key.mv_data = PARAM(7);
         limit_key.mv_size = PARAM_LEN(7);
     }
     int use_int = 0;
     if (PARAMETERS_COUNT > 8) {
-        T_NUMBER(8)
+        T_NUMBER(MapGetAllNumber, 8)
         use_int = PARAM_INT(8);
     }
 
@@ -1065,9 +1065,9 @@ int ParseKey(MDB_val *start_key, MDB_val *end_key, char *key, int len, int rever
 }
 
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(MapGetAllNumberMI, 3, 7)
-    T_HANDLE(0)
-    T_ARRAY(1)
-    T_ARRAY(2)
+    T_HANDLE(MapGetAllNumberMI, 0)
+    T_ARRAY(MapGetAllNumberMI, 1)
+    T_ARRAY(MapGetAllNumberMI, 2)
 
     CREATE_ARRAY(RESULT);
 //char *database = NULL;
@@ -1090,7 +1090,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(MapGetAllNumberMI, 3, 7)
         return 0;
 
     if (PARAMETERS_COUNT > 3) {
-        T_NUMBER(3)
+        T_NUMBER(MapGetAllNumberMI, 3)
         if (PARAM_INT(3)) {
             op       = MDB_PREV_DUP;
             op2      = MDB_PREV;
@@ -1099,18 +1099,18 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(MapGetAllNumberMI, 3, 7)
     }
 
     if (PARAMETERS_COUNT > 4) {
-        T_NUMBER(4)
+        T_NUMBER(MapGetAllNumberMI, 4)
         len = PARAM(4);
     }
     if (PARAMETERS_COUNT > 5) {
-        T_NUMBER(5)
+        T_NUMBER(MapGetAllNumberMI, 5)
         start = PARAM_INT(5);
     }
     int use_int  = 0;
     int datasize = sizeof(NUMBER);
 
     if (PARAMETERS_COUNT > 6) {
-        T_NUMBER(6)
+        T_NUMBER(MapGetAllNumberMI, 6)
         use_int  = PARAM_INT(6);
         datasize = sizeof(MDB_INT_VAL_TYPE);
     }
@@ -1331,8 +1331,8 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(MapGetAllNumberMI, 3, 7)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MapDrop, 2)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(MapDrop, 0)
+    T_STRING(MapDrop, 1)
     MDB_txn * txn;
     MDB_dbi dbi;
 
@@ -1356,12 +1356,12 @@ CONCEPT_FUNCTION_IMPL(MapDrop, 2)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(MapCount, 2, 3)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(MapCount, 0)
+    T_STRING(MapCount, 1)
     char *database = NULL;
 
     if (PARAMETERS_COUNT > 2) {
-        T_STRING(2)
+        T_STRING(MapCount, 2)
         if (PARAM_LEN(2))
             database = PARAM(2);
     }
@@ -1412,3 +1412,4 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(MapCount, 2, 3)
     }
 END_IMPL
 //------------------------------------------------------------------------
+

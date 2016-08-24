@@ -93,7 +93,7 @@ char *run_tesseract2(const char *language, const char *imagedata /*, int size*/)
 #endif
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(OCRDebugFile, 1)
-    T_STRING(0)
+    T_STRING(OCRDebugFile, 0)
 #ifdef OLD_TESSERACT
     debug_file.set_value(PARAM(0));
 #endif
@@ -102,23 +102,23 @@ END_IMPL
 //------------------------------------------------------------------------
 // OCR(image_filename, var out_text, language="eng", datapath="", configfile="")
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(OCR, 2, 5)
-    T_STRING(0)
+    T_STRING(OCR, 0)
     AnsiString lang = "eng";
 #ifdef OLD_TESSERACT
     char *datapath   = NULL;
     char *configfile = NULL;
 
     if (PARAMETERS_COUNT > 2) {
-        T_STRING(2);
+        T_STRING(OCR, 2);
         lang = PARAM(2);
     }
     if (PARAMETERS_COUNT > 3) {
-        T_STRING(3);
+        T_STRING(OCR, 3);
         if (PARAM_LEN(3))
             datapath = PARAM(3);
     }
     if (PARAMETERS_COUNT > 4) {
-        T_STRING(4);
+        T_STRING(OCR, 4);
         if (PARAM_LEN(4))
             configfile = PARAM(4);
     }
@@ -147,7 +147,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(OCR, 2, 5)
         delete[] res;
 #else
     if (PARAMETERS_COUNT > 2) {
-        T_STRING(2);
+        T_STRING(OCR, 2);
         lang = PARAM(2);
     }
 
@@ -161,3 +161,4 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(OCR, 2, 5)
 #endif
     RETURN_NUMBER(0)
 END_IMPL
+

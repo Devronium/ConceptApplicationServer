@@ -152,9 +152,9 @@ static inline int align2(int i) {
 
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(opus_decoder_create, 2, 3)
-    T_NUMBER(0)
-    T_NUMBER(1)
-    T_NUMBER(2)
+    T_NUMBER(opus_decoder_create, 0)
+    T_NUMBER(opus_decoder_create, 1)
+    T_NUMBER(opus_decoder_create, 2)
     char *ptr = (char *)malloc(opus_decoder_get_size(PARAM_INT(1)) + align2(2));
     char *orig = ptr;
     ptr[0] = PARAM_INT(1);
@@ -172,9 +172,9 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(opus_decoder_create, 2, 3)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(opus_encoder_create, 3, 4)
-    T_NUMBER(0)
-    T_NUMBER(1)
-    T_NUMBER(2)
+    T_NUMBER(opus_encoder_create, 0)
+    T_NUMBER(opus_encoder_create, 1)
+    T_NUMBER(opus_encoder_create, 2)
     char *ptr = (char *)malloc(opus_encoder_get_size(PARAM_INT(1)) + align2(2));
     char *orig = ptr;
     ptr[0] = PARAM_INT(1);
@@ -193,7 +193,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(opus_encoder_create, 3, 4)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(opus_encoder_destroy, 1)
-    T_NUMBER(0)
+    T_NUMBER(opus_encoder_destroy, 0)
     OpusEncoder * dec = (OpusEncoder *)(SYS_INT)PARAM_INT(0);
     if (dec) {
         //opus_encoder_destroy(dec);
@@ -204,7 +204,7 @@ CONCEPT_FUNCTION_IMPL(opus_encoder_destroy, 1)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(opus_decoder_destroy, 1)
-    T_NUMBER(0)
+    T_NUMBER(opus_decoder_destroy, 0)
     OpusDecoder * dec = (OpusDecoder *)(SYS_INT)PARAM_INT(0);
     if (dec) {
         //opus_decoder_destroy(dec);
@@ -215,8 +215,8 @@ CONCEPT_FUNCTION_IMPL(opus_decoder_destroy, 1)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(opus_encode, 3)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(opus_encode, 0)
+    T_STRING(opus_encode, 1)
     char *ptr = (char *)(SYS_INT)PARAM_INT(0);
     ptr      -= align2(2);
     int channels = ptr[0];
@@ -239,12 +239,12 @@ CONCEPT_FUNCTION_IMPL(opus_encode, 3)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(opus_decode, 4, 5)
-    T_HANDLE(0)
-    T_STRING(1)
-    T_NUMBER(3)
+    T_HANDLE(opus_decode, 0)
+    T_STRING(opus_decode, 1)
+    T_NUMBER(opus_decode, 3)
     int fec = 0;
     if (PARAMETERS_COUNT > 4) {
-        T_NUMBER(4)
+        T_NUMBER(opus_decode, 4)
         fec = PARAM_INT(4);
         if (fec)
             fec = 1;
@@ -273,42 +273,42 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(opus_decode, 4, 5)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(opus_packet_get_bandwidth, 1)
-    T_STRING(0)
+    T_STRING(opus_packet_get_bandwidth, 0)
     int res = opus_packet_get_bandwidth((unsigned char *)PARAM(0));
     RETURN_NUMBER(res);
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(opus_packet_get_nb_channels, 1)
-    T_STRING(0)
+    T_STRING(opus_packet_get_nb_channels, 0)
     int res = opus_packet_get_nb_channels((unsigned char *)PARAM(0));
     RETURN_NUMBER(res);
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(opus_packet_get_nb_frames, 1)
-    T_STRING(0)
+    T_STRING(opus_packet_get_nb_frames, 0)
     int res = opus_packet_get_nb_frames((unsigned char *)PARAM(0), PARAM_LEN(0));
     RETURN_NUMBER(res);
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(opus_packet_get_nb_samples, 2)
-    T_STRING(0)
-    T_NUMBER(1)
+    T_STRING(opus_packet_get_nb_samples, 0)
+    T_NUMBER(opus_packet_get_nb_samples, 1)
     int res = opus_packet_get_nb_samples((unsigned char *)PARAM(0), PARAM_LEN(0), PARAM_INT(1));
     RETURN_NUMBER(res);
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(opus_decoder_get_nb_samples, 2)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(opus_decoder_get_nb_samples, 0)
+    T_STRING(opus_decoder_get_nb_samples, 1)
     OpusDecoder * dec = (OpusDecoder *)PARAM_INT(0);
     int res = opus_decoder_get_nb_samples(dec, (unsigned char *)PARAM(1), PARAM_LEN(1));
     RETURN_NUMBER(res);
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(opus_encoder_ctl, 3)
-    T_HANDLE(0)
-    T_NUMBER(1)
-    T_NUMBER(2)
+    T_HANDLE(opus_encoder_ctl, 0)
+    T_NUMBER(opus_encoder_ctl, 1)
+    T_NUMBER(opus_encoder_ctl, 2)
     OpusEncoder * enc = (OpusEncoder *)PARAM_INT(0);
     opus_int32 i   = PARAM_INT(2);
     int        res = -1;
@@ -343,9 +343,9 @@ CONCEPT_FUNCTION_IMPL(opus_encoder_ctl, 3)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(opus_decoder_ctl, 3)
-    T_HANDLE(0)
-    T_NUMBER(1)
-    T_NUMBER(2)
+    T_HANDLE(opus_decoder_ctl, 0)
+    T_NUMBER(opus_decoder_ctl, 1)
+    T_NUMBER(opus_decoder_ctl, 2)
     OpusDecoder * dec = (OpusDecoder *)PARAM_INT(0);
     opus_int32 i   = PARAM_INT(2);
     int        res = -1;
@@ -385,7 +385,7 @@ CONCEPT_FUNCTION_IMPL(opus_repacketizer_create, 0)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(opus_repacketizer_destroy, 1)
-    T_NUMBER(0)
+    T_NUMBER(opus_repacketizer_destroy, 0)
     OpusRepacketizer * rp = (OpusRepacketizer *)PARAM_INT(0);
     if (rp) {
         opus_repacketizer_destroy(rp);
@@ -395,18 +395,18 @@ CONCEPT_FUNCTION_IMPL(opus_repacketizer_destroy, 1)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(opus_repacketizer_cat, 2)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(opus_repacketizer_cat, 0)
+    T_STRING(opus_repacketizer_cat, 1)
     OpusRepacketizer * rp = (OpusRepacketizer *)PARAM_INT(0);
     int res = opus_repacketizer_cat(rp, (unsigned char *)PARAM(1), PARAM_LEN(1));
     RETURN_NUMBER(res);
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(opus_repacketizer_out_range, 5)
-    T_HANDLE(0)
-    T_NUMBER(1)
-    T_NUMBER(2)
-    T_NUMBER(4)
+    T_HANDLE(opus_repacketizer_out_range, 0)
+    T_NUMBER(opus_repacketizer_out_range, 1)
+    T_NUMBER(opus_repacketizer_out_range, 2)
+    T_NUMBER(opus_repacketizer_out_range, 4)
     OpusRepacketizer * rp = (OpusRepacketizer *)PARAM_INT(0);
     char *output = 0;
     int  length  = PARAM_INT(4);
@@ -422,15 +422,15 @@ CONCEPT_FUNCTION_IMPL(opus_repacketizer_out_range, 5)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(opus_repacketizer_get_nb_frames, 1)
-    T_HANDLE(0)
+    T_HANDLE(opus_repacketizer_get_nb_frames, 0)
     OpusRepacketizer * rp = (OpusRepacketizer *)PARAM_INT(0);
     int res = opus_repacketizer_get_nb_frames(rp);
     RETURN_NUMBER(res);
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(opus_repacketizer_out, 3)
-    T_HANDLE(0)
-    T_NUMBER(2)
+    T_HANDLE(opus_repacketizer_out, 0)
+    T_NUMBER(opus_repacketizer_out, 2)
     OpusRepacketizer * rp = (OpusRepacketizer *)PARAM_INT(0);
     char *output = 0;
     int  length  = PARAM_INT(2);
@@ -446,7 +446,7 @@ CONCEPT_FUNCTION_IMPL(opus_repacketizer_out, 3)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(alaw2ulaw, 1)
-    T_STRING(0)
+    T_STRING(alaw2ulaw, 0)
     unsigned char *output = 0;
     int length = PARAM_LEN(0);
     CORE_NEW(length + 1, output);
@@ -460,7 +460,7 @@ CONCEPT_FUNCTION_IMPL(alaw2ulaw, 1)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(ulaw2alaw, 1)
-    T_STRING(0)
+    T_STRING(ulaw2alaw, 0)
     unsigned char *output = 0;
     int length = PARAM_LEN(0);
     CORE_NEW(length + 1, output);
@@ -473,7 +473,7 @@ CONCEPT_FUNCTION_IMPL(ulaw2alaw, 1)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(alaw2pcm, 1)
-    T_STRING(0)
+    T_STRING(alaw2pcm, 0)
     short *output = 0;
     int length   = PARAM_LEN(0);
     int byte_len = length * 2;
@@ -487,7 +487,7 @@ CONCEPT_FUNCTION_IMPL(alaw2pcm, 1)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(ulaw2pcm, 1)
-    T_STRING(0)
+    T_STRING(ulaw2pcm, 0)
     short *output = 0;
     int length   = PARAM_LEN(0);
     int byte_len = length * 2;
@@ -500,7 +500,7 @@ CONCEPT_FUNCTION_IMPL(ulaw2pcm, 1)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(pcm2ulaw, 1)
-    T_STRING(0)
+    T_STRING(pcm2ulaw, 0)
     unsigned char *output = 0;
 #ifdef USE_ALTERNATIVE_G711
     int v;
@@ -527,7 +527,7 @@ CONCEPT_FUNCTION_IMPL(pcm2ulaw, 1)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(pcm2alaw, 1)
-    T_STRING(0)
+    T_STRING(pcm2alaw, 0)
     unsigned char *output = 0;
 #ifdef USE_ALTERNATIVE_G711
     int v;
@@ -584,8 +584,8 @@ int downsample(const short *in, short *out, int len, const int *divs, int divs_l
 
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(downsample44k, 2)
-    T_STRING(0)
-    T_NUMBER(1)
+    T_STRING(downsample44k, 0)
+    T_NUMBER(downsample44k, 1)
 
     int new_rate = PARAM_INT(1);
     short     *output = 0;
@@ -631,3 +631,4 @@ CONCEPT_FUNCTION_IMPL(downsample44k, 2)
     SetVariable(RESULT, -1, (char *)output, size * sizeof(short));
 END_IMPL
 //------------------------------------------------------------------------
+

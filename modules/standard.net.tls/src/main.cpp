@@ -177,7 +177,7 @@ CONCEPT_FUNCTION_IMPL(TLSServerContext, 0)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(TLSClientContext, 1)
-    T_NUMBER(0)
+    T_NUMBER(TLSClientContext, 0)
     int socket = PARAM_INT(0);
     if (socket < 0) {
         RETURN_NUMBER(0);
@@ -201,11 +201,11 @@ CONCEPT_FUNCTION_IMPL(TLSClientContext, 1)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(TLSCertificateFile, 2, 3)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(TLSCertificateFile, 0)
+    T_STRING(TLSCertificateFile, 1)
     int type = SSL_FILETYPE_PEM;
     if (PARAMETERS_COUNT > 2) {
-        T_NUMBER(2)
+        T_NUMBER(TLSCertificateFile, 2)
         type = PARAM_INT(2);
     }
 
@@ -215,16 +215,16 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(TLSCertificateFile, 2, 3)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(TLSChainFile, 2)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(TLSChainFile, 0)
+    T_STRING(TLSChainFile, 1)
     SSLContainer * container = (SSLContainer *)(SYS_INT)PARAM(0);
     int use_cert = SSL_CTX_use_certificate_chain_file(container->sslctx, PARAM(1));
     RETURN_NUMBER(use_cert);
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(TLSAddCA, 2)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(TLSAddCA, 0)
+    T_STRING(TLSAddCA, 1)
     SSLContainer * container = (SSLContainer *)(SYS_INT)PARAM(0);
     if (!container->ssl) {
         RETURN_NUMBER(-1);
@@ -246,8 +246,8 @@ CONCEPT_FUNCTION_IMPL(TLSAddCA, 2)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(TLSTrust, 2)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(TLSTrust, 0)
+    T_STRING(TLSTrust, 1)
 
     SSLContainer * container = (SSLContainer *)(SYS_INT)PARAM(0);
     int res = SSL_CTX_load_verify_locations(container->sslctx, PARAM(1), NULL);
@@ -256,8 +256,8 @@ CONCEPT_FUNCTION_IMPL(TLSTrust, 2)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(TLSTrustBuffer, 2)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(TLSTrustBuffer, 0)
+    T_STRING(TLSTrustBuffer, 1)
 
     SSLContainer * container = (SSLContainer *)(SYS_INT)PARAM(0);
     int res = -1;
@@ -277,8 +277,8 @@ CONCEPT_FUNCTION_IMPL(TLSTrustBuffer, 2)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(TLSTrustLocation, 2)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(TLSTrustLocation, 0)
+    T_STRING(TLSTrustLocation, 1)
 
     SSLContainer * container = (SSLContainer *)(SYS_INT)PARAM(0);
     int res = SSL_CTX_load_verify_locations(container->sslctx, NULL, PARAM(1));
@@ -287,8 +287,8 @@ CONCEPT_FUNCTION_IMPL(TLSTrustLocation, 2)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(TLSSetCAFile, 2)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(TLSSetCAFile, 0)
+    T_STRING(TLSSetCAFile, 1)
     SSLContainer * container = (SSLContainer *)(SYS_INT)PARAM(0);
 
     SSL_CTX_set_client_CA_list(container->sslctx, SSL_load_client_CA_file(PARAM(1)));
@@ -307,8 +307,8 @@ int pem_passwd_cb(char *buf, int size, int rwflag, void *password) {
 }
 
 CONCEPT_FUNCTION_IMPL(TLSPassphrase, 2)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(TLSPassphrase, 0)
+    T_STRING(TLSPassphrase, 1)
     SSLContainer * container = (SSLContainer *)(SYS_INT)PARAM(0);
 
     if ((container) && (container->sslctx)) {
@@ -320,8 +320,8 @@ CONCEPT_FUNCTION_IMPL(TLSPassphrase, 2)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(TLSCertificate, 2)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(TLSCertificate, 0)
+    T_STRING(TLSCertificate, 1)
     SSLContainer * container = (SSLContainer *)(SYS_INT)PARAM(0);
     int res = 0;
     BIO *bio;
@@ -339,11 +339,11 @@ CONCEPT_FUNCTION_IMPL(TLSCertificate, 2)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(TLSPrivateKeyFile, 2, 3)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(TLSPrivateKeyFile, 0)
+    T_STRING(TLSPrivateKeyFile, 1)
     int type = SSL_FILETYPE_PEM;
     if (PARAMETERS_COUNT > 2) {
-        T_NUMBER(2)
+        T_NUMBER(TLSPrivateKeyFile, 2)
         type = PARAM_INT(2);
     }
     SSLContainer *container = (SSLContainer *)(SYS_INT)PARAM(0);
@@ -352,8 +352,8 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(TLSPrivateKeyFile, 2, 3)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(TLSPrivateKey, 2)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(TLSPrivateKey, 0)
+    T_STRING(TLSPrivateKey, 1)
     SSLContainer * container = (SSLContainer *)(SYS_INT)PARAM(0);
     int res = 0;
     BIO *bio;
@@ -371,16 +371,16 @@ CONCEPT_FUNCTION_IMPL(TLSPrivateKey, 2)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(TLSSet, 2)
-    T_HANDLE(0)
-    T_NUMBER(1)
+    T_HANDLE(TLSSet, 0)
+    T_NUMBER(TLSSet, 1)
     SSLContainer * container = (SSLContainer *)(SYS_INT)PARAM(0);
     int res = SSL_CTX_set_options(container->sslctx, PARAM_INT(1));
     RETURN_NUMBER(res);
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(TLSAccept, 3)
-    T_HANDLE(0)
-    T_NUMBER(1)
+    T_HANDLE(TLSAccept, 0)
+    T_NUMBER(TLSAccept, 1)
 
     SET_NUMBER(2, 0);
 
@@ -420,7 +420,7 @@ CONCEPT_FUNCTION_IMPL(TLSAccept, 3)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(TLSConnect, 1)
-    T_HANDLE(0)
+    T_HANDLE(TLSConnect, 0)
     SSLContainer * container = (SSLContainer *)(SYS_INT)PARAM(0);
     if (!container->ssl) {
         RETURN_NUMBER(-1);
@@ -431,7 +431,7 @@ CONCEPT_FUNCTION_IMPL(TLSConnect, 1)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(TLSDone, 1)
-    T_NUMBER(0)
+    T_NUMBER(TLSDone, 0)
     SSLContainer * container = (SSLContainer *)(SYS_INT)PARAM(0);
     if (container) {
         /*if (container->proxy) {
@@ -465,8 +465,8 @@ CONCEPT_FUNCTION_IMPL(TLSDone, 1)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(TLSWrite, 2)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(TLSWrite, 0)
+    T_STRING(TLSWrite, 1)
     SSLContainer * container = (SSLContainer *)(SYS_INT)PARAM(0);
     int res = -1;
     if (container->ssl)
@@ -475,8 +475,8 @@ CONCEPT_FUNCTION_IMPL(TLSWrite, 2)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(TLSRead, 3)
-    T_HANDLE(0)
-    T_NUMBER(2)
+    T_HANDLE(TLSRead, 0)
+    T_NUMBER(TLSRead, 2)
     SSLContainer * container = (SSLContainer *)(SYS_INT)PARAM(0);
     int res  = -1;
     int size = PARAM_INT(2);
@@ -501,7 +501,7 @@ CONCEPT_FUNCTION_IMPL(TLSRead, 3)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(TLSPending, 1)
-    T_HANDLE(0)
+    T_HANDLE(TLSPending, 0)
     SSLContainer * container = (SSLContainer *)(SYS_INT)PARAM(0);
     int res = -1;
     if (container->ssl)
@@ -520,8 +520,8 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(TLSError, 0, 1)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(TLSGetError, 2)
-    T_HANDLE(0)
-    T_NUMBER(1)
+    T_HANDLE(TLSGetError, 0)
+    T_NUMBER(TLSGetError, 1)
     SSLContainer * container = (SSLContainer *)(SYS_INT)PARAM(0);
     int res = SSL_ERROR_NONE;
     if (container->ssl)
@@ -530,14 +530,14 @@ CONCEPT_FUNCTION_IMPL(TLSGetError, 2)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(TLSCheck, 1)
-    T_HANDLE(0)
+    T_HANDLE(TLSCheck, 0)
     SSLContainer * container = (SSLContainer *)(SYS_INT)PARAM(0);
     int res = SSL_CTX_check_private_key(container->sslctx);
     RETURN_NUMBER(res);
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(TLSVerify, 1)
-    T_HANDLE(0)
+    T_HANDLE(TLSVerify, 0)
     SSLContainer * container = (SSLContainer *)(SYS_INT)PARAM(0);
     int res = -1;
 //if (container->sslctx)
@@ -570,7 +570,7 @@ void AddKey(X509_NAME *name, void *RESULT, INVOKE_CALL Invoke, char *key) {
 }
 
 CONCEPT_FUNCTION_IMPL(TLSCertificateInfo, 1)
-    T_HANDLE(0)
+    T_HANDLE(TLSCertificateInfo, 0)
     SSLContainer * container = (SSLContainer *)(SYS_INT)PARAM(0);
     char *line;
     char hashbuf[0xFF];
@@ -634,7 +634,7 @@ CONCEPT_FUNCTION_IMPL(TLSCertificateInfo, 1)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(TLSLocalInfo, 1)
-    T_STRING(0)
+    T_STRING(TLSLocalInfo, 0)
 
     char *line;
     char hashbuf[0xFF];
@@ -703,7 +703,7 @@ CONCEPT_FUNCTION_IMPL(TLSLocalInfo, 1)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(TLSSave, 1)
-    T_HANDLE(0)
+    T_HANDLE(TLSSave, 0)
 
     SSLContainer * container = (SSLContainer *)(SYS_INT)PARAM(0);
     if ((container) && (container->ssl)) {
@@ -733,8 +733,8 @@ CONCEPT_FUNCTION_IMPL(TLSSave, 1)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(TLSRestore, 2)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(TLSRestore, 0)
+    T_STRING(TLSRestore, 1)
 
     SSLContainer * container = (SSLContainer *)(SYS_INT)PARAM(0);
     if ((container) && (container->ssl)) {
@@ -1014,7 +1014,7 @@ END_IMPL
    }
 
    CONCEPT_FUNCTION_IMPL(TLSSerialize, 1)
-    T_HANDLE(0)
+    T_HANDLE(TLSSerialize, 0)
 
     SSLContainer *container=(SSLContainer *)(SYS_INT)PARAM(0);
     if ((container) && (container->ssl)) {
@@ -1306,17 +1306,17 @@ END_IMPL
    END_IMPL
    //------------------------------------------------------------------------
    CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(TLSUnserialize, 1, 3)
-    T_STRING(0)
+    T_STRING(TLSUnserialize, 0)
 
     SSLContainer *container=NULL;
     SSLContainer *container_orig=NULL;
 
     int sock = -1;
     if (PARAMETERS_COUNT > 1) {
-        T_NUMBER(1)
+        T_NUMBER(TLSUnserialize, 1)
         container = (SSLContainer *)(SYS_INT)PARAM(1);
         if (PARAMETERS_COUNT > 2) {
-            T_NUMBER(2)
+            T_NUMBER(TLSUnserialize, 2)
             sock = PARAM_INT(2);
         }
     }
@@ -1634,7 +1634,7 @@ END_IMPL
    END_IMPL*/
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(TLSRenegotiate, 1)
-    T_HANDLE(0)
+    T_HANDLE(TLSRenegotiate, 0)
 
     SSLContainer * container = (SSLContainer *)(SYS_INT)PARAM(0);
     if ((container) && (container->ssl)) {
@@ -1772,9 +1772,9 @@ END_IMPL
    }
 
    CONCEPT_FUNCTION_IMPL(TLSProxy, 3)
-    T_HANDLE(0)
-    T_NUMBER(1) // fd_in
-    T_NUMBER(2) // fd_out
+    T_HANDLE(TLSProxy, 0)
+    T_NUMBER(TLSProxy, 1) // fd_in
+    T_NUMBER(TLSProxy, 2) // fd_out
     SSLContainer *container=(SSLContainer *)(SYS_INT)PARAM(0);
     if (container->proxy)
         RETURN_NUMBER(-1);
@@ -1793,3 +1793,4 @@ END_IMPL
     RETURN_NUMBER(0);
    END_IMPL*/
 //--------------------------------------
+

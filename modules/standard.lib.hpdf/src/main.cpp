@@ -658,53 +658,53 @@ CONCEPT_FUNCTION_IMPL(_HPDF_SetErrorHandler, 1)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_Free, 1)
-    T_NUMBER(0)     // HPDF_HANDLE
+    T_NUMBER(_HPDF_Free, 0)     // HPDF_HANDLE
 
     HPDF_Free((HPDF_HANDLE)(long)PARAM(0));
     RETURN_NUMBER(0)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_NewDoc, 1)
-    T_NUMBER(0)     // HPDF_HANDLE
+    T_NUMBER(_HPDF_NewDoc, 0)     // HPDF_HANDLE
 
     RETURN_NUMBER(HPDF_NewDoc((HPDF_HANDLE)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_FreeDoc, 1)
-    T_NUMBER(0)     // HPDF_HANDLE
+    T_NUMBER(_HPDF_FreeDoc, 0)     // HPDF_HANDLE
 
     HPDF_FreeDoc((HPDF_HANDLE)(long)PARAM(0));
     RETURN_NUMBER(0)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_HasDoc, 1)
-    T_NUMBER(0)     // HPDF_HANDLE
+    T_NUMBER(_HPDF_HasDoc, 0)     // HPDF_HANDLE
 
     RETURN_NUMBER(HPDF_HasDoc((HPDF_HANDLE)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_FreeDocAll, 1)
-    T_NUMBER(0)     // HPDF_HANDLE
+    T_NUMBER(_HPDF_FreeDocAll, 0)     // HPDF_HANDLE
 
     HPDF_FreeDocAll((HPDF_HANDLE)(long)PARAM(0));
     RETURN_NUMBER(0)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_SaveToStream, 1)
-    T_NUMBER(0)     // HPDF_HANDLE
+    T_NUMBER(_HPDF_SaveToStream, 0)     // HPDF_HANDLE
 
     RETURN_NUMBER(HPDF_SaveToStream((HPDF_HANDLE)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_GetStreamSize, 1)
-    T_NUMBER(0)     // HPDF_HANDLE
+    T_NUMBER(_HPDF_GetStreamSize, 0)     // HPDF_HANDLE
 
     RETURN_NUMBER(HPDF_GetStreamSize((HPDF_HANDLE)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_ReadFromStream, 3)
-    T_NUMBER(0)     // HPDF_HANDLE
-    T_STRING(1)     // char*
+    T_NUMBER(_HPDF_ReadFromStream, 0)     // HPDF_HANDLE
+    T_STRING(_HPDF_ReadFromStream, 1)     // char*
 
 // ... parameter 2 is by reference (int*)
     HPDF_UINT32 local_parameter_2;
@@ -714,149 +714,149 @@ CONCEPT_FUNCTION_IMPL(_HPDF_ReadFromStream, 3)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_ResetStream, 1)
-    T_NUMBER(0)     // HPDF_HANDLE
+    T_NUMBER(_HPDF_ResetStream, 0)     // HPDF_HANDLE
 
     RETURN_NUMBER(HPDF_ResetStream((HPDF_HANDLE)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_SaveToFile, 2)
-    T_NUMBER(0)     // HPDF_HANDLE
-    T_STRING(1)     // char*
+    T_NUMBER(_HPDF_SaveToFile, 0)     // HPDF_HANDLE
+    T_STRING(_HPDF_SaveToFile, 1)     // char*
 
     RETURN_NUMBER(HPDF_SaveToFile((HPDF_HANDLE)(long)PARAM(0), PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_GetError, 1)
-    T_NUMBER(0)     // HPDF_HANDLE
+    T_NUMBER(_HPDF_GetError, 0)     // HPDF_HANDLE
 
     RETURN_NUMBER(HPDF_GetError((HPDF_HANDLE)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_GetErrorDetail, 1)
-    T_NUMBER(0)     // HPDF_HANDLE
+    T_NUMBER(_HPDF_GetErrorDetail, 0)     // HPDF_HANDLE
 
     RETURN_NUMBER(HPDF_GetErrorDetail((HPDF_HANDLE)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_ResetError, 1)
-    T_NUMBER(0)     // HPDF_HANDLE
+    T_NUMBER(_HPDF_ResetError, 0)     // HPDF_HANDLE
 
     HPDF_ResetError((HPDF_HANDLE)(long)PARAM(0));
     RETURN_NUMBER(0)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_SetPagesConfiguration, 2)
-    T_NUMBER(0)     // HPDF_HANDLE
-    T_NUMBER(1)     // int
+    T_NUMBER(_HPDF_SetPagesConfiguration, 0)     // HPDF_HANDLE
+    T_NUMBER(_HPDF_SetPagesConfiguration, 1)     // int
 
     RETURN_NUMBER(HPDF_SetPagesConfiguration((HPDF_HANDLE)(long)PARAM(0), (int)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_GetPageByIndex, 2)
-    T_NUMBER(0)     // HPDF_HANDLE
-    T_NUMBER(1)     // int
+    T_NUMBER(_HPDF_GetPageByIndex, 0)     // HPDF_HANDLE
+    T_NUMBER(_HPDF_GetPageByIndex, 1)     // int
 
     RETURN_NUMBER((long)HPDF_GetPageByIndex((HPDF_HANDLE)(long)PARAM(0), (int)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_GetPageLayout, 1)
-    T_NUMBER(0)     // HPDF_HANDLE
+    T_NUMBER(_HPDF_GetPageLayout, 0)     // HPDF_HANDLE
 
     RETURN_NUMBER(HPDF_GetPageLayout((HPDF_HANDLE)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_SetPageLayout, 2)
-    T_NUMBER(0)     // HPDF_HANDLE
-    T_NUMBER(1)     // HPDF_PageLayout
+    T_NUMBER(_HPDF_SetPageLayout, 0)     // HPDF_HANDLE
+    T_NUMBER(_HPDF_SetPageLayout, 1)     // HPDF_PageLayout
 
     RETURN_NUMBER(HPDF_SetPageLayout((HPDF_HANDLE)(long)PARAM(0), (HPDF_PageLayout)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_GetPageMode, 1)
-    T_NUMBER(0)     // HPDF_HANDLE
+    T_NUMBER(_HPDF_GetPageMode, 0)     // HPDF_HANDLE
 
     RETURN_NUMBER(HPDF_GetPageMode((HPDF_HANDLE)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_SetPageMode, 2)
-    T_NUMBER(0)     // HPDF_HANDLE
-    T_NUMBER(1)     // HPDF_PageMode
+    T_NUMBER(_HPDF_SetPageMode, 0)     // HPDF_HANDLE
+    T_NUMBER(_HPDF_SetPageMode, 1)     // HPDF_PageMode
 
     RETURN_NUMBER(HPDF_SetPageMode((HPDF_HANDLE)(long)PARAM(0), (HPDF_PageMode)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_GetViewerPreference, 1)
-    T_NUMBER(0)     // HPDF_HANDLE
+    T_NUMBER(_HPDF_GetViewerPreference, 0)     // HPDF_HANDLE
 
     RETURN_NUMBER(HPDF_GetViewerPreference((HPDF_HANDLE)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_SetViewerPreference, 2)
-    T_NUMBER(0)     // HPDF_HANDLE
-    T_NUMBER(1)     // int
+    T_NUMBER(_HPDF_SetViewerPreference, 0)     // HPDF_HANDLE
+    T_NUMBER(_HPDF_SetViewerPreference, 1)     // int
 
     RETURN_NUMBER(HPDF_SetViewerPreference((HPDF_HANDLE)(long)PARAM(0), (int)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_SetOpenAction, 2)
-    T_NUMBER(0)     // HPDF_HANDLE
-    T_NUMBER(1)     // HPDF_HANDLE
+    T_NUMBER(_HPDF_SetOpenAction, 0)     // HPDF_HANDLE
+    T_NUMBER(_HPDF_SetOpenAction, 1)     // HPDF_HANDLE
 
     RETURN_NUMBER(HPDF_SetOpenAction((HPDF_HANDLE)(long)PARAM(0), (HPDF_HANDLE)(long)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_GetCurrentPage, 1)
-    T_NUMBER(0)     // HPDF_HANDLE
+    T_NUMBER(_HPDF_GetCurrentPage, 0)     // HPDF_HANDLE
 
     RETURN_NUMBER((long)HPDF_GetCurrentPage((HPDF_HANDLE)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_AddPage, 1)
-    T_NUMBER(0)     // HPDF_HANDLE
+    T_NUMBER(_HPDF_AddPage, 0)     // HPDF_HANDLE
 
     RETURN_NUMBER((long)HPDF_AddPage((HPDF_HANDLE)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_InsertPage, 2)
-    T_NUMBER(0)     // HPDF_HANDLE
-    T_NUMBER(1)     // HPDF_HANDLE
+    T_NUMBER(_HPDF_InsertPage, 0)     // HPDF_HANDLE
+    T_NUMBER(_HPDF_InsertPage, 1)     // HPDF_HANDLE
 
     RETURN_NUMBER((long)HPDF_InsertPage((HPDF_HANDLE)(long)PARAM(0), (HPDF_HANDLE)(long)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_Page_SetWidth, 2)
-    T_NUMBER(0)     // HPDF_HANDLE
-    T_NUMBER(1)     // float
+    T_NUMBER(_HPDF_Page_SetWidth, 0)     // HPDF_HANDLE
+    T_NUMBER(_HPDF_Page_SetWidth, 1)     // float
 
     RETURN_NUMBER(HPDF_Page_SetWidth((HPDF_HANDLE)(long)PARAM(0), (float)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_Page_SetHeight, 2)
-    T_NUMBER(0)     // HPDF_HANDLE
-    T_NUMBER(1)     // float
+    T_NUMBER(_HPDF_Page_SetHeight, 0)     // HPDF_HANDLE
+    T_NUMBER(_HPDF_Page_SetHeight, 1)     // float
 
     RETURN_NUMBER(HPDF_Page_SetHeight((HPDF_HANDLE)(long)PARAM(0), (float)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_Page_SetSize, 3)
-    T_NUMBER(0)     // HPDF_HANDLE
-    T_NUMBER(1)     // HPDF_PageSizes
-    T_NUMBER(2)     // HPDF_PageDirection
+    T_NUMBER(_HPDF_Page_SetSize, 0)     // HPDF_HANDLE
+    T_NUMBER(_HPDF_Page_SetSize, 1)     // HPDF_PageSizes
+    T_NUMBER(_HPDF_Page_SetSize, 2)     // HPDF_PageDirection
 
     RETURN_NUMBER(HPDF_Page_SetSize((HPDF_HANDLE)(long)PARAM(0), (HPDF_PageSizes)PARAM(1), (HPDF_PageDirection)PARAM(2)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_Page_SetRotate, 2)
-    T_NUMBER(0)     // HPDF_HANDLE
-    T_NUMBER(1)     // int
+    T_NUMBER(_HPDF_Page_SetRotate, 0)     // HPDF_HANDLE
+    T_NUMBER(_HPDF_Page_SetRotate, 1)     // int
 
     RETURN_NUMBER(HPDF_Page_SetRotate((HPDF_HANDLE)(long)PARAM(0), (int)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_GetFont, 3)
-    T_NUMBER(0)     // HPDF_HANDLE
-    T_STRING(1)     // char*
-    T_STRING(2)     // char*
+    T_NUMBER(_HPDF_GetFont, 0)     // HPDF_HANDLE
+    T_STRING(_HPDF_GetFont, 1)     // char*
+    T_STRING(_HPDF_GetFont, 2)     // char*
 
     char *enc = PARAM(2);
     if ((enc) && (!enc[0]))
@@ -866,327 +866,327 @@ CONCEPT_FUNCTION_IMPL(_HPDF_GetFont, 3)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_LoadType1FontFromFile, 3)
-    T_NUMBER(0)     // HPDF_HANDLE
-    T_STRING(1)     // char*
-    T_STRING(2)     // char*
+    T_NUMBER(_HPDF_LoadType1FontFromFile, 0)     // HPDF_HANDLE
+    T_STRING(_HPDF_LoadType1FontFromFile, 1)     // char*
+    T_STRING(_HPDF_LoadType1FontFromFile, 2)     // char*
 
     RETURN_STRING((char *)HPDF_LoadType1FontFromFile((HPDF_HANDLE)(long)PARAM(0), PARAM(1), PARAM(2)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_LoadTTFontFromFile, 3)
-    T_NUMBER(0)     // HPDF_HANDLE
-    T_STRING(1)     // char*
-    T_NUMBER(2)     // int
+    T_NUMBER(_HPDF_LoadTTFontFromFile, 0)     // HPDF_HANDLE
+    T_STRING(_HPDF_LoadTTFontFromFile, 1)     // char*
+    T_NUMBER(_HPDF_LoadTTFontFromFile, 2)     // int
 
     RETURN_STRING((char *)HPDF_LoadTTFontFromFile((HPDF_HANDLE)(long)PARAM(0), PARAM(1), (int)PARAM(2)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_LoadTTFontFromFile2, 4)
-    T_NUMBER(0)     // HPDF_HANDLE
-    T_STRING(1)     // char*
-    T_NUMBER(2)     // int
-    T_NUMBER(3)     // int
+    T_NUMBER(_HPDF_LoadTTFontFromFile2, 0)     // HPDF_HANDLE
+    T_STRING(_HPDF_LoadTTFontFromFile2, 1)     // char*
+    T_NUMBER(_HPDF_LoadTTFontFromFile2, 2)     // int
+    T_NUMBER(_HPDF_LoadTTFontFromFile2, 3)     // int
 
     RETURN_STRING((char *)HPDF_LoadTTFontFromFile2((HPDF_HANDLE)(long)PARAM(0), PARAM(1), (int)PARAM(2), (int)PARAM(3)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_AddPageLabel, 5)
-    T_NUMBER(0)     // HPDF_HANDLE
-    T_NUMBER(1)     // int
-    T_NUMBER(2)     // HPDF_PageNumStyle
-    T_NUMBER(3)     // int
-    T_STRING(4)     // char*
+    T_NUMBER(_HPDF_AddPageLabel, 0)     // HPDF_HANDLE
+    T_NUMBER(_HPDF_AddPageLabel, 1)     // int
+    T_NUMBER(_HPDF_AddPageLabel, 2)     // HPDF_PageNumStyle
+    T_NUMBER(_HPDF_AddPageLabel, 3)     // int
+    T_STRING(_HPDF_AddPageLabel, 4)     // char*
 
     RETURN_NUMBER(HPDF_AddPageLabel((HPDF_HANDLE)(long)PARAM(0), (int)PARAM(1), (HPDF_PageNumStyle)PARAM(2), (int)PARAM(3), PARAM(4)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_UseJPFonts, 1)
-    T_NUMBER(0)     // HPDF_HANDLE
+    T_NUMBER(_HPDF_UseJPFonts, 0)     // HPDF_HANDLE
 
     RETURN_NUMBER(HPDF_UseJPFonts((HPDF_HANDLE)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_UseKRFonts, 1)
-    T_NUMBER(0)     // HPDF_HANDLE
+    T_NUMBER(_HPDF_UseKRFonts, 0)     // HPDF_HANDLE
 
     RETURN_NUMBER(HPDF_UseKRFonts((HPDF_HANDLE)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_UseCNSFonts, 1)
-    T_NUMBER(0)     // HPDF_HANDLE
+    T_NUMBER(_HPDF_UseCNSFonts, 0)     // HPDF_HANDLE
 
     RETURN_NUMBER(HPDF_UseCNSFonts((HPDF_HANDLE)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_UseCNTFonts, 1)
-    T_NUMBER(0)     // HPDF_HANDLE
+    T_NUMBER(_HPDF_UseCNTFonts, 0)     // HPDF_HANDLE
 
     RETURN_NUMBER(HPDF_UseCNTFonts((HPDF_HANDLE)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_CreateOutline, 4)
-    T_NUMBER(0)     // HPDF_HANDLE
-    T_NUMBER(1)     // HPDF_HANDLE
-    T_STRING(2)     // char*
-    T_NUMBER(3)     // HPDF_HANDLE
+    T_NUMBER(_HPDF_CreateOutline, 0)     // HPDF_HANDLE
+    T_NUMBER(_HPDF_CreateOutline, 1)     // HPDF_HANDLE
+    T_STRING(_HPDF_CreateOutline, 2)     // char*
+    T_NUMBER(_HPDF_CreateOutline, 3)     // HPDF_HANDLE
 
     RETURN_NUMBER((long)HPDF_CreateOutline((HPDF_HANDLE)(long)PARAM(0), (HPDF_HANDLE)(long)PARAM(1), PARAM(2), (HPDF_HANDLE)(long)PARAM(3)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_Outline_SetOpened, 2)
-    T_NUMBER(0)     // HPDF_HANDLE
-    T_NUMBER(1)     // int
+    T_NUMBER(_HPDF_Outline_SetOpened, 0)     // HPDF_HANDLE
+    T_NUMBER(_HPDF_Outline_SetOpened, 1)     // int
 
     RETURN_NUMBER(HPDF_Outline_SetOpened((HPDF_HANDLE)(long)PARAM(0), (int)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_Outline_SetDestination, 2)
-    T_NUMBER(0)     // HPDF_HANDLE
-    T_NUMBER(1)     // HPDF_HANDLE
+    T_NUMBER(_HPDF_Outline_SetDestination, 0)     // HPDF_HANDLE
+    T_NUMBER(_HPDF_Outline_SetDestination, 1)     // HPDF_HANDLE
 
     RETURN_NUMBER(HPDF_Outline_SetDestination((HPDF_HANDLE)(long)PARAM(0), (HPDF_HANDLE)(long)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_Page_CreateDestination, 1)
-    T_NUMBER(0)     // HPDF_HANDLE
+    T_NUMBER(_HPDF_Page_CreateDestination, 0)     // HPDF_HANDLE
 
     RETURN_NUMBER((long)HPDF_Page_CreateDestination((HPDF_HANDLE)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_Destination_SetXYZ, 4)
-    T_NUMBER(0)     // HPDF_HANDLE
-    T_NUMBER(1)     // float
-    T_NUMBER(2)     // float
-    T_NUMBER(3)     // float
+    T_NUMBER(_HPDF_Destination_SetXYZ, 0)     // HPDF_HANDLE
+    T_NUMBER(_HPDF_Destination_SetXYZ, 1)     // float
+    T_NUMBER(_HPDF_Destination_SetXYZ, 2)     // float
+    T_NUMBER(_HPDF_Destination_SetXYZ, 3)     // float
 
     RETURN_NUMBER(HPDF_Destination_SetXYZ((HPDF_HANDLE)(long)PARAM(0), (float)PARAM(1), (float)PARAM(2), (float)PARAM(3)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_Destination_SetFit, 1)
-    T_NUMBER(0)     // HPDF_HANDLE
+    T_NUMBER(_HPDF_Destination_SetFit, 0)     // HPDF_HANDLE
 
     RETURN_NUMBER(HPDF_Destination_SetFit((HPDF_HANDLE)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_Destination_SetFitH, 2)
-    T_NUMBER(0)     // HPDF_HANDLE
-    T_NUMBER(1)     // float
+    T_NUMBER(_HPDF_Destination_SetFitH, 0)     // HPDF_HANDLE
+    T_NUMBER(_HPDF_Destination_SetFitH, 1)     // float
 
     RETURN_NUMBER(HPDF_Destination_SetFitH((HPDF_HANDLE)(long)PARAM(0), (float)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_Destination_SetFitV, 2)
-    T_NUMBER(0)     // HPDF_HANDLE
-    T_NUMBER(1)     // float
+    T_NUMBER(_HPDF_Destination_SetFitV, 0)     // HPDF_HANDLE
+    T_NUMBER(_HPDF_Destination_SetFitV, 1)     // float
 
     RETURN_NUMBER(HPDF_Destination_SetFitV((HPDF_HANDLE)(long)PARAM(0), (float)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_Destination_SetFitR, 5)
-    T_NUMBER(0)     // HPDF_HANDLE
-    T_NUMBER(1)     // float
-    T_NUMBER(2)     // float
-    T_NUMBER(3)     // float
-    T_NUMBER(4)     // float
+    T_NUMBER(_HPDF_Destination_SetFitR, 0)     // HPDF_HANDLE
+    T_NUMBER(_HPDF_Destination_SetFitR, 1)     // float
+    T_NUMBER(_HPDF_Destination_SetFitR, 2)     // float
+    T_NUMBER(_HPDF_Destination_SetFitR, 3)     // float
+    T_NUMBER(_HPDF_Destination_SetFitR, 4)     // float
 
     RETURN_NUMBER(HPDF_Destination_SetFitR((HPDF_HANDLE)(long)PARAM(0), (float)PARAM(1), (float)PARAM(2), (float)PARAM(3), (float)PARAM(4)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_Destination_SetFitB, 1)
-    T_NUMBER(0)     // HPDF_HANDLE
+    T_NUMBER(_HPDF_Destination_SetFitB, 0)     // HPDF_HANDLE
 
     RETURN_NUMBER(HPDF_Destination_SetFitB((HPDF_HANDLE)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_Destination_SetFitBH, 2)
-    T_NUMBER(0)     // HPDF_HANDLE
-    T_NUMBER(1)     // float
+    T_NUMBER(_HPDF_Destination_SetFitBH, 0)     // HPDF_HANDLE
+    T_NUMBER(_HPDF_Destination_SetFitBH, 1)     // float
 
     RETURN_NUMBER(HPDF_Destination_SetFitBH((HPDF_HANDLE)(long)PARAM(0), (float)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_Destination_SetFitBV, 2)
-    T_NUMBER(0)     // HPDF_HANDLE
-    T_NUMBER(1)     // float
+    T_NUMBER(_HPDF_Destination_SetFitBV, 0)     // HPDF_HANDLE
+    T_NUMBER(_HPDF_Destination_SetFitBV, 1)     // float
 
     RETURN_NUMBER(HPDF_Destination_SetFitBV((HPDF_HANDLE)(long)PARAM(0), (float)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_GetEncoder, 2)
-    T_NUMBER(0)     // HPDF_HANDLE
-    T_STRING(1)     // char*
+    T_NUMBER(_HPDF_GetEncoder, 0)     // HPDF_HANDLE
+    T_STRING(_HPDF_GetEncoder, 1)     // char*
 
     RETURN_NUMBER((long)HPDF_GetEncoder((HPDF_HANDLE)(long)PARAM(0), PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_GetCurrentEncoder, 1)
-    T_NUMBER(0)     // HPDF_HANDLE
+    T_NUMBER(_HPDF_GetCurrentEncoder, 0)     // HPDF_HANDLE
 
     RETURN_NUMBER((long)HPDF_GetCurrentEncoder((HPDF_HANDLE)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_SetCurrentEncoder, 2)
-    T_NUMBER(0)     // HPDF_HANDLE
-    T_STRING(1)     // char*
+    T_NUMBER(_HPDF_SetCurrentEncoder, 0)     // HPDF_HANDLE
+    T_STRING(_HPDF_SetCurrentEncoder, 1)     // char*
 
     RETURN_NUMBER(HPDF_SetCurrentEncoder((HPDF_HANDLE)(long)PARAM(0), PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_Encoder_GetType, 1)
-    T_NUMBER(0)     // HPDF_HANDLE
+    T_NUMBER(_HPDF_Encoder_GetType, 0)     // HPDF_HANDLE
 
     RETURN_NUMBER(HPDF_Encoder_GetType((HPDF_HANDLE)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_Encoder_GetByteType, 3)
-    T_NUMBER(0)     // HPDF_HANDLE
-    T_STRING(1)     // char*
-    T_NUMBER(2)     // int
+    T_NUMBER(_HPDF_Encoder_GetByteType, 0)     // HPDF_HANDLE
+    T_STRING(_HPDF_Encoder_GetByteType, 1)     // char*
+    T_NUMBER(_HPDF_Encoder_GetByteType, 2)     // int
 
     RETURN_NUMBER(HPDF_Encoder_GetByteType((HPDF_HANDLE)(long)PARAM(0), PARAM(1), (int)PARAM(2)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_Encoder_GetUnicode, 2)
-    T_NUMBER(0)     // HPDF_HANDLE
-    T_NUMBER(1)     // int
+    T_NUMBER(_HPDF_Encoder_GetUnicode, 0)     // HPDF_HANDLE
+    T_NUMBER(_HPDF_Encoder_GetUnicode, 1)     // int
 
     RETURN_NUMBER(HPDF_Encoder_GetUnicode((HPDF_HANDLE)(long)PARAM(0), (int)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_Encoder_GetWritingMode, 1)
-    T_NUMBER(0)     // HPDF_HANDLE
+    T_NUMBER(_HPDF_Encoder_GetWritingMode, 0)     // HPDF_HANDLE
 
     RETURN_NUMBER(HPDF_Encoder_GetWritingMode((HPDF_HANDLE)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_UseJPEncodings, 1)
-    T_NUMBER(0)     // HPDF_HANDLE
+    T_NUMBER(_HPDF_UseJPEncodings, 0)     // HPDF_HANDLE
 
     RETURN_NUMBER(HPDF_UseJPEncodings((HPDF_HANDLE)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_UseKREncodings, 1)
-    T_NUMBER(0)     // HPDF_HANDLE
+    T_NUMBER(_HPDF_UseKREncodings, 0)     // HPDF_HANDLE
 
     RETURN_NUMBER(HPDF_UseKREncodings((HPDF_HANDLE)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_UseCNSEncodings, 1)
-    T_NUMBER(0)     // HPDF_HANDLE
+    T_NUMBER(_HPDF_UseCNSEncodings, 0)     // HPDF_HANDLE
 
     RETURN_NUMBER(HPDF_UseCNSEncodings((HPDF_HANDLE)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_UseCNTEncodings, 1)
-    T_NUMBER(0)     // HPDF_HANDLE
+    T_NUMBER(_HPDF_UseCNTEncodings, 0)     // HPDF_HANDLE
 
     RETURN_NUMBER(HPDF_UseCNTEncodings((HPDF_HANDLE)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_Page_CreateTextAnnot, 4)
-    T_NUMBER(0)     // HPDF_HANDLE
+    T_NUMBER(_HPDF_Page_CreateTextAnnot, 0)     // HPDF_HANDLE
 //T_NUMBER(1) // HPDF_Rect
     char *data = 0;
     GET_CHECK_ARRAY(1, data, "Parameter 1 should be an array");
-    T_STRING(2)     // char*
-    T_NUMBER(3)     // HPDF_HANDLE
+    T_STRING(_HPDF_Page_CreateTextAnnot, 2)     // char*
+    T_NUMBER(_HPDF_Page_CreateTextAnnot, 3)     // HPDF_HANDLE
 
     RETURN_NUMBER((long)HPDF_Page_CreateTextAnnot((HPDF_HANDLE)(long)PARAM(0), (HPDF_Rect)Get_Rect(PARAMETER(1)), PARAM(2), (HPDF_HANDLE)(long)PARAM(3)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_Page_CreateLinkAnnot, 3)
-    T_NUMBER(0)     // HPDF_HANDLE
+    T_NUMBER(_HPDF_Page_CreateLinkAnnot, 0)     // HPDF_HANDLE
 //T_NUMBER(1) // HPDF_Rect
     char *data = 0;
     GET_CHECK_ARRAY(1, data, "Parameter 1 should be an array");
-    T_NUMBER(2)     // HPDF_HANDLE
+    T_NUMBER(_HPDF_Page_CreateLinkAnnot, 2)     // HPDF_HANDLE
 
     RETURN_NUMBER((long)HPDF_Page_CreateLinkAnnot((HPDF_HANDLE)(long)PARAM(0), (HPDF_Rect)Get_Rect(PARAMETER(1)), (HPDF_HANDLE)(long)PARAM(2)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_Page_CreateURILinkAnnot, 3)
-    T_NUMBER(0)     // HPDF_HANDLE
+    T_NUMBER(_HPDF_Page_CreateURILinkAnnot, 0)     // HPDF_HANDLE
 //T_NUMBER(1) // HPDF_Rect
     char *data = 0;
     GET_CHECK_ARRAY(1, data, "Parameter 1 should be an array");
-    T_STRING(2)     // char*
+    T_STRING(_HPDF_Page_CreateURILinkAnnot, 2)     // char*
 
     RETURN_NUMBER((long)HPDF_Page_CreateURILinkAnnot((HPDF_HANDLE)(long)PARAM(0), (HPDF_Rect)Get_Rect(PARAMETER(1)), PARAM(2)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_LinkAnnot_SetBorderStyle, 4)
-    T_NUMBER(0)     // HPDF_HANDLE
-    T_NUMBER(1)     // float
-    T_NUMBER(2)     // int
-    T_NUMBER(3)     // int
+    T_NUMBER(_HPDF_LinkAnnot_SetBorderStyle, 0)     // HPDF_HANDLE
+    T_NUMBER(_HPDF_LinkAnnot_SetBorderStyle, 1)     // float
+    T_NUMBER(_HPDF_LinkAnnot_SetBorderStyle, 2)     // int
+    T_NUMBER(_HPDF_LinkAnnot_SetBorderStyle, 3)     // int
 
     RETURN_NUMBER(HPDF_LinkAnnot_SetBorderStyle((HPDF_HANDLE)(long)PARAM(0), (float)PARAM(1), (int)PARAM(2), (int)PARAM(3)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_TextAnnot_SetIcon, 2)
-    T_NUMBER(0)     // HPDF_HANDLE
-    T_NUMBER(1)     // HPDF_AnnotIcon
+    T_NUMBER(_HPDF_TextAnnot_SetIcon, 0)     // HPDF_HANDLE
+    T_NUMBER(_HPDF_TextAnnot_SetIcon, 1)     // HPDF_AnnotIcon
 
     RETURN_NUMBER(HPDF_TextAnnot_SetIcon((HPDF_HANDLE)(long)PARAM(0), (HPDF_AnnotIcon)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_TextAnnot_SetOpened, 2)
-    T_NUMBER(0)     // HPDF_HANDLE
-    T_NUMBER(1)     // int
+    T_NUMBER(_HPDF_TextAnnot_SetOpened, 0)     // HPDF_HANDLE
+    T_NUMBER(_HPDF_TextAnnot_SetOpened, 1)     // int
 
     RETURN_NUMBER(HPDF_TextAnnot_SetOpened((HPDF_HANDLE)(long)PARAM(0), (int)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_LoadPngImageFromFile, 2)
-    T_NUMBER(0)     // HPDF_HANDLE
-    T_STRING(1)     // char*
+    T_NUMBER(_HPDF_LoadPngImageFromFile, 0)     // HPDF_HANDLE
+    T_STRING(_HPDF_LoadPngImageFromFile, 1)     // char*
 
     RETURN_NUMBER((long)HPDF_LoadPngImageFromFile((HPDF_HANDLE)(long)PARAM(0), PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_LoadPngImageFromFile2, 2)
-    T_NUMBER(0)     // HPDF_HANDLE
-    T_STRING(1)     // char*
+    T_NUMBER(_HPDF_LoadPngImageFromFile2, 0)     // HPDF_HANDLE
+    T_STRING(_HPDF_LoadPngImageFromFile2, 1)     // char*
 
     RETURN_NUMBER((long)HPDF_LoadPngImageFromFile2((HPDF_HANDLE)(long)PARAM(0), PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_LoadJpegImageFromFile, 2)
-    T_NUMBER(0)     // HPDF_HANDLE
-    T_STRING(1)     // char*
+    T_NUMBER(_HPDF_LoadJpegImageFromFile, 0)     // HPDF_HANDLE
+    T_STRING(_HPDF_LoadJpegImageFromFile, 1)     // char*
 
     RETURN_NUMBER((long)HPDF_LoadJpegImageFromFile((HPDF_HANDLE)(long)PARAM(0), PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_LoadRawImageFromFile, 5)
-    T_NUMBER(0)     // HPDF_HANDLE
-    T_STRING(1)     // char*
-    T_NUMBER(2)     // int
-    T_NUMBER(3)     // int
-    T_NUMBER(4)     // HPDF_ColorSpace
+    T_NUMBER(_HPDF_LoadRawImageFromFile, 0)     // HPDF_HANDLE
+    T_STRING(_HPDF_LoadRawImageFromFile, 1)     // char*
+    T_NUMBER(_HPDF_LoadRawImageFromFile, 2)     // int
+    T_NUMBER(_HPDF_LoadRawImageFromFile, 3)     // int
+    T_NUMBER(_HPDF_LoadRawImageFromFile, 4)     // HPDF_ColorSpace
 
     RETURN_NUMBER((long)HPDF_LoadRawImageFromFile((HPDF_HANDLE)(long)PARAM(0), PARAM(1), (int)PARAM(2), (int)PARAM(3), (HPDF_ColorSpace)PARAM(4)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_LoadRawImageFromMem, 6)
-    T_NUMBER(0)     // HPDF_HANDLE
-    T_STRING(1)     // char*
-    T_NUMBER(2)     // int
-    T_NUMBER(3)     // int
-    T_NUMBER(4)     // HPDF_ColorSpace
-    T_NUMBER(5)     // int
+    T_NUMBER(_HPDF_LoadRawImageFromMem, 0)     // HPDF_HANDLE
+    T_STRING(_HPDF_LoadRawImageFromMem, 1)     // char*
+    T_NUMBER(_HPDF_LoadRawImageFromMem, 2)     // int
+    T_NUMBER(_HPDF_LoadRawImageFromMem, 3)     // int
+    T_NUMBER(_HPDF_LoadRawImageFromMem, 4)     // HPDF_ColorSpace
+    T_NUMBER(_HPDF_LoadRawImageFromMem, 5)     // int
 
     RETURN_NUMBER((long)HPDF_LoadRawImageFromMem((HPDF_HANDLE)(long)PARAM(0), (HPDF_BYTE *)PARAM(1), (int)PARAM(2), (int)PARAM(3), (HPDF_ColorSpace)PARAM(4), (int)PARAM(5)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_Image_GetSize, 1)
-    T_NUMBER(0)     // HPDF_HANDLE
+    T_NUMBER(_HPDF_Image_GetSize, 0)     // HPDF_HANDLE
 
     Do_Point(RESULT, HPDF_Image_GetSize((HPDF_HANDLE)(long)PARAM(0)));
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_Image_GetSize2, 2)
-    T_NUMBER(0)     // HPDF_HANDLE
+    T_NUMBER(_HPDF_Image_GetSize2, 0)     // HPDF_HANDLE
 
 // ... parameter 1 is by reference (HPDF_Point*)
     HPDF_Point local_parameter_1;
@@ -1197,66 +1197,66 @@ CONCEPT_FUNCTION_IMPL(_HPDF_Image_GetSize2, 2)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_Image_GetWidth, 1)
-    T_NUMBER(0)     // HPDF_HANDLE
+    T_NUMBER(_HPDF_Image_GetWidth, 0)     // HPDF_HANDLE
 
     RETURN_NUMBER(HPDF_Image_GetWidth((HPDF_HANDLE)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_Image_GetHeight, 1)
-    T_NUMBER(0)     // HPDF_HANDLE
+    T_NUMBER(_HPDF_Image_GetHeight, 0)     // HPDF_HANDLE
 
     RETURN_NUMBER(HPDF_Image_GetHeight((HPDF_HANDLE)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_Image_GetBitsPerComponent, 1)
-    T_NUMBER(0)     // HPDF_HANDLE
+    T_NUMBER(_HPDF_Image_GetBitsPerComponent, 0)     // HPDF_HANDLE
 
     RETURN_NUMBER(HPDF_Image_GetBitsPerComponent((HPDF_HANDLE)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_Image_GetColorSpace, 1)
-    T_NUMBER(0)     // HPDF_HANDLE
+    T_NUMBER(_HPDF_Image_GetColorSpace, 0)     // HPDF_HANDLE
 
     RETURN_STRING((char *)HPDF_Image_GetColorSpace((HPDF_HANDLE)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_Image_SetColorMask, 7)
-    T_NUMBER(0)     // HPDF_HANDLE
-    T_NUMBER(1)     // int
-    T_NUMBER(2)     // int
-    T_NUMBER(3)     // int
-    T_NUMBER(4)     // int
-    T_NUMBER(5)     // int
-    T_NUMBER(6)     // int
+    T_NUMBER(_HPDF_Image_SetColorMask, 0)     // HPDF_HANDLE
+    T_NUMBER(_HPDF_Image_SetColorMask, 1)     // int
+    T_NUMBER(_HPDF_Image_SetColorMask, 2)     // int
+    T_NUMBER(_HPDF_Image_SetColorMask, 3)     // int
+    T_NUMBER(_HPDF_Image_SetColorMask, 4)     // int
+    T_NUMBER(_HPDF_Image_SetColorMask, 5)     // int
+    T_NUMBER(_HPDF_Image_SetColorMask, 6)     // int
 
     RETURN_NUMBER(HPDF_Image_SetColorMask((HPDF_HANDLE)(long)PARAM(0), (int)PARAM(1), (int)PARAM(2), (int)PARAM(3), (int)PARAM(4), (int)PARAM(5), (int)PARAM(6)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_Image_SetMaskImage, 2)
-    T_NUMBER(0)     // HPDF_HANDLE
-    T_NUMBER(1)     // HPDF_HANDLE
+    T_NUMBER(_HPDF_Image_SetMaskImage, 0)     // HPDF_HANDLE
+    T_NUMBER(_HPDF_Image_SetMaskImage, 1)     // HPDF_HANDLE
 
     RETURN_NUMBER(HPDF_Image_SetMaskImage((HPDF_HANDLE)(long)PARAM(0), (HPDF_HANDLE)(long)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_SetInfoAttr, 3)
-    T_NUMBER(0)     // HPDF_HANDLE
-    T_NUMBER(1)     // HPDF_InfoType
-    T_STRING(2)     // char*
+    T_NUMBER(_HPDF_SetInfoAttr, 0)     // HPDF_HANDLE
+    T_NUMBER(_HPDF_SetInfoAttr, 1)     // HPDF_InfoType
+    T_STRING(_HPDF_SetInfoAttr, 2)     // char*
 
     RETURN_NUMBER(HPDF_SetInfoAttr((HPDF_HANDLE)(long)PARAM(0), (HPDF_InfoType)PARAM(1), PARAM(2)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_GetInfoAttr, 2)
-    T_NUMBER(0)     // HPDF_HANDLE
-    T_NUMBER(1)     // HPDF_InfoType
+    T_NUMBER(_HPDF_GetInfoAttr, 0)     // HPDF_HANDLE
+    T_NUMBER(_HPDF_GetInfoAttr, 1)     // HPDF_InfoType
 
     RETURN_STRING((char *)HPDF_GetInfoAttr((HPDF_HANDLE)(long)PARAM(0), (HPDF_InfoType)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_SetInfoDateAttr, 3)
-    T_NUMBER(0)     // HPDF_HANDLE
-    T_NUMBER(1)     // HPDF_InfoType
+    T_NUMBER(_HPDF_SetInfoDateAttr, 0)     // HPDF_HANDLE
+    T_NUMBER(_HPDF_SetInfoDateAttr, 1)     // HPDF_InfoType
 //T_NUMBER(2) // HPDF_Date
     char *data = 0;
     GET_CHECK_ARRAY(2, data, "Parameter 2 should be an array");
@@ -1266,101 +1266,101 @@ CONCEPT_FUNCTION_IMPL(_HPDF_SetInfoDateAttr, 3)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_SetPassword, 3)
-    T_NUMBER(0)     // HPDF_HANDLE
-    T_STRING(1)     // char*
-    T_STRING(2)     // char*
+    T_NUMBER(_HPDF_SetPassword, 0)     // HPDF_HANDLE
+    T_STRING(_HPDF_SetPassword, 1)     // char*
+    T_STRING(_HPDF_SetPassword, 2)     // char*
 
     RETURN_NUMBER(HPDF_SetPassword((HPDF_HANDLE)(long)PARAM(0), PARAM(1), PARAM(2)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_SetPermission, 2)
-    T_NUMBER(0)     // HPDF_HANDLE
-    T_NUMBER(1)     // int
+    T_NUMBER(_HPDF_SetPermission, 0)     // HPDF_HANDLE
+    T_NUMBER(_HPDF_SetPermission, 1)     // int
 
     RETURN_NUMBER(HPDF_SetPermission((HPDF_HANDLE)(long)PARAM(0), (int)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_SetEncryptionMode, 3)
-    T_NUMBER(0)     // HPDF_HANDLE
-    T_NUMBER(1)     // HPDF_EncryptMode
-    T_NUMBER(2)     // int
+    T_NUMBER(_HPDF_SetEncryptionMode, 0)     // HPDF_HANDLE
+    T_NUMBER(_HPDF_SetEncryptionMode, 1)     // HPDF_EncryptMode
+    T_NUMBER(_HPDF_SetEncryptionMode, 2)     // int
 
     RETURN_NUMBER(HPDF_SetEncryptionMode((HPDF_HANDLE)(long)PARAM(0), (HPDF_EncryptMode)PARAM(1), (int)PARAM(2)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_SetCompressionMode, 2)
-    T_NUMBER(0)     // HPDF_HANDLE
-    T_NUMBER(1)     // int
+    T_NUMBER(_HPDF_SetCompressionMode, 0)     // HPDF_HANDLE
+    T_NUMBER(_HPDF_SetCompressionMode, 1)     // int
 
     RETURN_NUMBER(HPDF_SetCompressionMode((HPDF_HANDLE)(long)PARAM(0), (int)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_Font_GetFontName, 1)
-    T_NUMBER(0)     // HPDF_HANDLE
+    T_NUMBER(_HPDF_Font_GetFontName, 0)     // HPDF_HANDLE
 
     RETURN_STRING((char *)HPDF_Font_GetFontName((HPDF_HANDLE)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_Font_GetEncodingName, 1)
-    T_NUMBER(0)     // HPDF_HANDLE
+    T_NUMBER(_HPDF_Font_GetEncodingName, 0)     // HPDF_HANDLE
 
     RETURN_STRING((char *)HPDF_Font_GetEncodingName((HPDF_HANDLE)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_Font_GetUnicodeWidth, 2)
-    T_NUMBER(0)     // HPDF_HANDLE
-    T_NUMBER(1)     // HPDF_UNICODE
+    T_NUMBER(_HPDF_Font_GetUnicodeWidth, 0)     // HPDF_HANDLE
+    T_NUMBER(_HPDF_Font_GetUnicodeWidth, 1)     // HPDF_UNICODE
 
     RETURN_NUMBER(HPDF_Font_GetUnicodeWidth((HPDF_HANDLE)(long)PARAM(0), (HPDF_UNICODE)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_Font_GetBBox, 1)
-    T_NUMBER(0)     // HPDF_HANDLE
+    T_NUMBER(_HPDF_Font_GetBBox, 0)     // HPDF_HANDLE
 
     Do_Box(RESULT, HPDF_Font_GetBBox((HPDF_HANDLE)(long)PARAM(0)));
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_Font_GetAscent, 1)
-    T_NUMBER(0)     // HPDF_HANDLE
+    T_NUMBER(_HPDF_Font_GetAscent, 0)     // HPDF_HANDLE
 
     RETURN_NUMBER(HPDF_Font_GetAscent((HPDF_HANDLE)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_Font_GetDescent, 1)
-    T_NUMBER(0)     // HPDF_HANDLE
+    T_NUMBER(_HPDF_Font_GetDescent, 0)     // HPDF_HANDLE
 
     RETURN_NUMBER(HPDF_Font_GetDescent((HPDF_HANDLE)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_Font_GetXHeight, 1)
-    T_NUMBER(0)     // HPDF_HANDLE
+    T_NUMBER(_HPDF_Font_GetXHeight, 0)     // HPDF_HANDLE
 
     RETURN_NUMBER(HPDF_Font_GetXHeight((HPDF_HANDLE)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_Font_GetCapHeight, 1)
-    T_NUMBER(0)     // HPDF_HANDLE
+    T_NUMBER(_HPDF_Font_GetCapHeight, 0)     // HPDF_HANDLE
 
     RETURN_NUMBER(HPDF_Font_GetCapHeight((HPDF_HANDLE)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_Font_TextWidth, 3)
-    T_NUMBER(0)     // HPDF_HANDLE
-    T_STRING(1)     // char*
-    T_NUMBER(2)     // int
+    T_NUMBER(_HPDF_Font_TextWidth, 0)     // HPDF_HANDLE
+    T_STRING(_HPDF_Font_TextWidth, 1)     // char*
+    T_NUMBER(_HPDF_Font_TextWidth, 2)     // int
 
     Do_TextWidth(RESULT, HPDF_Font_TextWidth((HPDF_HANDLE)(long)PARAM(0), (HPDF_BYTE *)PARAM(1), (int)PARAM(2)));
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_Font_MeasureText, 9)
-    T_NUMBER(0)     // HPDF_HANDLE
-    T_STRING(1)     // char*
-    T_NUMBER(2)     // int
-    T_NUMBER(3)     // float
-    T_NUMBER(4)     // float
-    T_NUMBER(5)     // float
-    T_NUMBER(6)     // float
-    T_NUMBER(7)     // int
+    T_NUMBER(_HPDF_Font_MeasureText, 0)     // HPDF_HANDLE
+    T_STRING(_HPDF_Font_MeasureText, 1)     // char*
+    T_NUMBER(_HPDF_Font_MeasureText, 2)     // int
+    T_NUMBER(_HPDF_Font_MeasureText, 3)     // float
+    T_NUMBER(_HPDF_Font_MeasureText, 4)     // float
+    T_NUMBER(_HPDF_Font_MeasureText, 5)     // float
+    T_NUMBER(_HPDF_Font_MeasureText, 6)     // float
+    T_NUMBER(_HPDF_Font_MeasureText, 7)     // int
 
 // ... parameter 8 is by reference (float*)
     float local_parameter_8;
@@ -1370,44 +1370,44 @@ CONCEPT_FUNCTION_IMPL(_HPDF_Font_MeasureText, 9)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_CreateExtGState, 1)
-    T_NUMBER(0)     // HPDF_HANDLE
+    T_NUMBER(_HPDF_CreateExtGState, 0)     // HPDF_HANDLE
 
     RETURN_NUMBER((long)HPDF_CreateExtGState((HPDF_HANDLE)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_ExtGState_SetAlphaStroke, 2)
-    T_NUMBER(0)     // HPDF_HANDLE
-    T_NUMBER(1)     // float
+    T_NUMBER(_HPDF_ExtGState_SetAlphaStroke, 0)     // HPDF_HANDLE
+    T_NUMBER(_HPDF_ExtGState_SetAlphaStroke, 1)     // float
 
     RETURN_NUMBER(HPDF_ExtGState_SetAlphaStroke((HPDF_HANDLE)(long)PARAM(0), (float)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_ExtGState_SetAlphaFill, 2)
-    T_NUMBER(0)     // HPDF_HANDLE
-    T_NUMBER(1)     // float
+    T_NUMBER(_HPDF_ExtGState_SetAlphaFill, 0)     // HPDF_HANDLE
+    T_NUMBER(_HPDF_ExtGState_SetAlphaFill, 1)     // float
 
     RETURN_NUMBER(HPDF_ExtGState_SetAlphaFill((HPDF_HANDLE)(long)PARAM(0), (float)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_ExtGState_SetBlendMode, 2)
-    T_NUMBER(0)     // HPDF_HANDLE
-    T_NUMBER(1)     // HPDF_BlendMode
+    T_NUMBER(_HPDF_ExtGState_SetBlendMode, 0)     // HPDF_HANDLE
+    T_NUMBER(_HPDF_ExtGState_SetBlendMode, 1)     // HPDF_BlendMode
 
     RETURN_NUMBER(HPDF_ExtGState_SetBlendMode((HPDF_HANDLE)(long)PARAM(0), (HPDF_BlendMode)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_Page_TextWidth, 2)
-    T_NUMBER(0)     // HPDF_HANDLE
-    T_STRING(1)     // char*
+    T_NUMBER(_HPDF_Page_TextWidth, 0)     // HPDF_HANDLE
+    T_STRING(_HPDF_Page_TextWidth, 1)     // char*
 
     RETURN_NUMBER(HPDF_Page_TextWidth((HPDF_HANDLE)(long)PARAM(0), PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_Page_MeasureText, 5)
-    T_NUMBER(0)     // HPDF_HANDLE
-    T_STRING(1)     // char*
-    T_NUMBER(2)     // float
-    T_NUMBER(3)     // int
+    T_NUMBER(_HPDF_Page_MeasureText, 0)     // HPDF_HANDLE
+    T_STRING(_HPDF_Page_MeasureText, 1)     // char*
+    T_NUMBER(_HPDF_Page_MeasureText, 2)     // float
+    T_NUMBER(_HPDF_Page_MeasureText, 3)     // int
 
 // ... parameter 4 is by reference (float*)
     float local_parameter_4;
@@ -1417,31 +1417,31 @@ CONCEPT_FUNCTION_IMPL(_HPDF_Page_MeasureText, 5)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_Page_GetWidth, 1)
-    T_NUMBER(0)     // HPDF_HANDLE
+    T_NUMBER(_HPDF_Page_GetWidth, 0)     // HPDF_HANDLE
 
     RETURN_NUMBER(HPDF_Page_GetWidth((HPDF_HANDLE)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_Page_GetHeight, 1)
-    T_NUMBER(0)     // HPDF_HANDLE
+    T_NUMBER(_HPDF_Page_GetHeight, 0)     // HPDF_HANDLE
 
     RETURN_NUMBER(HPDF_Page_GetHeight((HPDF_HANDLE)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_Page_GetGMode, 1)
-    T_NUMBER(0)     // HPDF_HANDLE
+    T_NUMBER(_HPDF_Page_GetGMode, 0)     // HPDF_HANDLE
 
     RETURN_NUMBER(HPDF_Page_GetGMode((HPDF_HANDLE)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_Page_GetCurrentPos, 1)
-    T_NUMBER(0)     // HPDF_HANDLE
+    T_NUMBER(_HPDF_Page_GetCurrentPos, 0)     // HPDF_HANDLE
 
     Do_Point(RESULT, HPDF_Page_GetCurrentPos((HPDF_HANDLE)(long)PARAM(0)));
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_Page_GetCurrentPos2, 2)
-    T_NUMBER(0)     // HPDF_HANDLE
+    T_NUMBER(_HPDF_Page_GetCurrentPos2, 0)     // HPDF_HANDLE
 
 // ... parameter 1 is by reference (HPDF_Point*)
     HPDF_Point local_parameter_1;
@@ -1452,13 +1452,13 @@ CONCEPT_FUNCTION_IMPL(_HPDF_Page_GetCurrentPos2, 2)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_Page_GetCurrentTextPos, 1)
-    T_NUMBER(0)     // HPDF_HANDLE
+    T_NUMBER(_HPDF_Page_GetCurrentTextPos, 0)     // HPDF_HANDLE
 
     Do_Point(RESULT, HPDF_Page_GetCurrentTextPos((HPDF_HANDLE)(long)PARAM(0)));
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_Page_GetCurrentTextPos2, 2)
-    T_NUMBER(0)     // HPDF_HANDLE
+    T_NUMBER(_HPDF_Page_GetCurrentTextPos2, 0)     // HPDF_HANDLE
 
 // ... parameter 1 is by reference (HPDF_Point*)
     HPDF_Point local_parameter_1;
@@ -1468,194 +1468,194 @@ CONCEPT_FUNCTION_IMPL(_HPDF_Page_GetCurrentTextPos2, 2)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_Page_GetCurrentFont, 1)
-    T_NUMBER(0)     // HPDF_HANDLE
+    T_NUMBER(_HPDF_Page_GetCurrentFont, 0)     // HPDF_HANDLE
 
     RETURN_NUMBER((long)HPDF_Page_GetCurrentFont((HPDF_HANDLE)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_Page_GetCurrentFontSize, 1)
-    T_NUMBER(0)     // HPDF_HANDLE
+    T_NUMBER(_HPDF_Page_GetCurrentFontSize, 0)     // HPDF_HANDLE
 
     RETURN_NUMBER(HPDF_Page_GetCurrentFontSize((HPDF_HANDLE)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_Page_GetTransMatrix, 1)
-    T_NUMBER(0)     // HPDF_HANDLE
+    T_NUMBER(_HPDF_Page_GetTransMatrix, 0)     // HPDF_HANDLE
 
     Do_TransMatrix(RESULT, HPDF_Page_GetTransMatrix((HPDF_HANDLE)(long)PARAM(0)));
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_Page_GetLineWidth, 1)
-    T_NUMBER(0)     // HPDF_HANDLE
+    T_NUMBER(_HPDF_Page_GetLineWidth, 0)     // HPDF_HANDLE
 
     RETURN_NUMBER(HPDF_Page_GetLineWidth((HPDF_HANDLE)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_Page_GetLineCap, 1)
-    T_NUMBER(0)     // HPDF_HANDLE
+    T_NUMBER(_HPDF_Page_GetLineCap, 0)     // HPDF_HANDLE
 
     RETURN_NUMBER(HPDF_Page_GetLineCap((HPDF_HANDLE)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_Page_GetLineJoin, 1)
-    T_NUMBER(0)     // HPDF_HANDLE
+    T_NUMBER(_HPDF_Page_GetLineJoin, 0)     // HPDF_HANDLE
 
     RETURN_NUMBER(HPDF_Page_GetLineJoin((HPDF_HANDLE)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_Page_GetMiterLimit, 1)
-    T_NUMBER(0)     // HPDF_HANDLE
+    T_NUMBER(_HPDF_Page_GetMiterLimit, 0)     // HPDF_HANDLE
 
     RETURN_NUMBER(HPDF_Page_GetMiterLimit((HPDF_HANDLE)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 
 /*CONCEPT_FUNCTION_IMPL(_HPDF_Page_GetDash,1)
-        T_NUMBER(0) // HPDF_HANDLE
+        T_NUMBER(_HPDF_Page_GetMiterLimit, 0) // HPDF_HANDLE
 
         RETURN_NUMBER(HPDF_Page_GetDash((HPDF_HANDLE)(long)PARAM(0)))
    END_IMPL*/
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_Page_GetFlat, 1)
-    T_NUMBER(0)     // HPDF_HANDLE
+    T_NUMBER(_HPDF_Page_GetFlat, 0)     // HPDF_HANDLE
 
     RETURN_NUMBER(HPDF_Page_GetFlat((HPDF_HANDLE)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_Page_GetCharSpace, 1)
-    T_NUMBER(0)     // HPDF_HANDLE
+    T_NUMBER(_HPDF_Page_GetCharSpace, 0)     // HPDF_HANDLE
 
     RETURN_NUMBER(HPDF_Page_GetCharSpace((HPDF_HANDLE)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_Page_GetWordSpace, 1)
-    T_NUMBER(0)     // HPDF_HANDLE
+    T_NUMBER(_HPDF_Page_GetWordSpace, 0)     // HPDF_HANDLE
 
     RETURN_NUMBER(HPDF_Page_GetWordSpace((HPDF_HANDLE)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_Page_GetHorizontalScalling, 1)
-    T_NUMBER(0)     // HPDF_HANDLE
+    T_NUMBER(_HPDF_Page_GetHorizontalScalling, 0)     // HPDF_HANDLE
 
     RETURN_NUMBER(HPDF_Page_GetHorizontalScalling((HPDF_HANDLE)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_Page_GetTextLeading, 1)
-    T_NUMBER(0)     // HPDF_HANDLE
+    T_NUMBER(_HPDF_Page_GetTextLeading, 0)     // HPDF_HANDLE
 
     RETURN_NUMBER(HPDF_Page_GetTextLeading((HPDF_HANDLE)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_Page_GetTextRenderingMode, 1)
-    T_NUMBER(0)     // HPDF_HANDLE
+    T_NUMBER(_HPDF_Page_GetTextRenderingMode, 0)     // HPDF_HANDLE
 
     RETURN_NUMBER(HPDF_Page_GetTextRenderingMode((HPDF_HANDLE)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_Page_GetTextRaise, 1)
-    T_NUMBER(0)     // HPDF_HANDLE
+    T_NUMBER(_HPDF_Page_GetTextRaise, 0)     // HPDF_HANDLE
 
     RETURN_NUMBER(HPDF_Page_GetTextRaise((HPDF_HANDLE)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_Page_GetTextRise, 1)
-    T_NUMBER(0)     // HPDF_HANDLE
+    T_NUMBER(_HPDF_Page_GetTextRise, 0)     // HPDF_HANDLE
 
     RETURN_NUMBER(HPDF_Page_GetTextRise((HPDF_HANDLE)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_Page_GetRGBFill, 1)
-    T_NUMBER(0)     // HPDF_HANDLE
+    T_NUMBER(_HPDF_Page_GetRGBFill, 0)     // HPDF_HANDLE
 
     Do_RGBColor(RESULT, HPDF_Page_GetRGBFill((HPDF_HANDLE)(long)PARAM(0)));
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_Page_GetRGBStroke, 1)
-    T_NUMBER(0)     // HPDF_HANDLE
+    T_NUMBER(_HPDF_Page_GetRGBStroke, 0)     // HPDF_HANDLE
 
     Do_RGBColor(RESULT, HPDF_Page_GetRGBStroke((HPDF_HANDLE)(long)PARAM(0)));
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_Page_GetCMYKFill, 1)
-    T_NUMBER(0)     // HPDF_HANDLE
+    T_NUMBER(_HPDF_Page_GetCMYKFill, 0)     // HPDF_HANDLE
 
     Do_CMYKColor(RESULT, HPDF_Page_GetCMYKFill((HPDF_HANDLE)(long)PARAM(0)));
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_Page_GetCMYKStroke, 1)
-    T_NUMBER(0)     // HPDF_HANDLE
+    T_NUMBER(_HPDF_Page_GetCMYKStroke, 0)     // HPDF_HANDLE
 
     Do_CMYKColor(RESULT, HPDF_Page_GetCMYKStroke((HPDF_HANDLE)(long)PARAM(0)));
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_Page_GetGrayFill, 1)
-    T_NUMBER(0)     // HPDF_HANDLE
+    T_NUMBER(_HPDF_Page_GetGrayFill, 0)     // HPDF_HANDLE
 
     RETURN_NUMBER(HPDF_Page_GetGrayFill((HPDF_HANDLE)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_Page_GetGrayStroke, 1)
-    T_NUMBER(0)     // HPDF_HANDLE
+    T_NUMBER(_HPDF_Page_GetGrayStroke, 0)     // HPDF_HANDLE
 
     RETURN_NUMBER(HPDF_Page_GetGrayStroke((HPDF_HANDLE)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_Page_GetStrokingColorSpace, 1)
-    T_NUMBER(0)     // HPDF_HANDLE
+    T_NUMBER(_HPDF_Page_GetStrokingColorSpace, 0)     // HPDF_HANDLE
 
     RETURN_NUMBER(HPDF_Page_GetStrokingColorSpace((HPDF_HANDLE)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_Page_GetFillingColorSpace, 1)
-    T_NUMBER(0)     // HPDF_HANDLE
+    T_NUMBER(_HPDF_Page_GetFillingColorSpace, 0)     // HPDF_HANDLE
 
     RETURN_NUMBER(HPDF_Page_GetFillingColorSpace((HPDF_HANDLE)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_Page_GetTextMatrix, 1)
-    T_NUMBER(0)     // HPDF_HANDLE
+    T_NUMBER(_HPDF_Page_GetTextMatrix, 0)     // HPDF_HANDLE
 
     Do_TransMatrix(RESULT, HPDF_Page_GetTextMatrix((HPDF_HANDLE)(long)PARAM(0)));
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_Page_GetGStateDepth, 1)
-    T_NUMBER(0)     // HPDF_HANDLE
+    T_NUMBER(_HPDF_Page_GetGStateDepth, 0)     // HPDF_HANDLE
 
     RETURN_NUMBER(HPDF_Page_GetGStateDepth((HPDF_HANDLE)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_Page_SetLineWidth, 2)
-    T_NUMBER(0)     // HPDF_HANDLE
-    T_NUMBER(1)     // float
+    T_NUMBER(_HPDF_Page_SetLineWidth, 0)     // HPDF_HANDLE
+    T_NUMBER(_HPDF_Page_SetLineWidth, 1)     // float
 
     RETURN_NUMBER(HPDF_Page_SetLineWidth((HPDF_HANDLE)(long)PARAM(0), (float)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_Page_SetLineCap, 2)
-    T_NUMBER(0)     // HPDF_HANDLE
-    T_NUMBER(1)     // HPDF_LineCap
+    T_NUMBER(_HPDF_Page_SetLineCap, 0)     // HPDF_HANDLE
+    T_NUMBER(_HPDF_Page_SetLineCap, 1)     // HPDF_LineCap
 
     RETURN_NUMBER(HPDF_Page_SetLineCap((HPDF_HANDLE)(long)PARAM(0), (HPDF_LineCap)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_Page_SetLineJoin, 2)
-    T_NUMBER(0)     // HPDF_HANDLE
-    T_NUMBER(1)     // HPDF_LineJoin
+    T_NUMBER(_HPDF_Page_SetLineJoin, 0)     // HPDF_HANDLE
+    T_NUMBER(_HPDF_Page_SetLineJoin, 1)     // HPDF_LineJoin
 
     RETURN_NUMBER(HPDF_Page_SetLineJoin((HPDF_HANDLE)(long)PARAM(0), (HPDF_LineJoin)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_Page_SetMiterLimit, 2)
-    T_NUMBER(0)     // HPDF_HANDLE
-    T_NUMBER(1)     // float
+    T_NUMBER(_HPDF_Page_SetMiterLimit, 0)     // HPDF_HANDLE
+    T_NUMBER(_HPDF_Page_SetMiterLimit, 1)     // float
 
     RETURN_NUMBER(HPDF_Page_SetMiterLimit((HPDF_HANDLE)(long)PARAM(0), (float)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_Page_SetDash, 4)
-    T_NUMBER(0)     // HPDF_HANDLE
-    T_NUMBER(2)     // int
-    T_NUMBER(3)     // int
+    T_NUMBER(_HPDF_Page_SetDash, 0)     // HPDF_HANDLE
+    T_NUMBER(_HPDF_Page_SetDash, 2)     // int
+    T_NUMBER(_HPDF_Page_SetDash, 3)     // int
 
 // ... parameter 1 is by reference (int*)
     HPDF_UINT16 local_parameter_1;
@@ -1665,416 +1665,416 @@ CONCEPT_FUNCTION_IMPL(_HPDF_Page_SetDash, 4)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_Page_SetFlat, 2)
-    T_NUMBER(0)     // HPDF_HANDLE
-    T_NUMBER(1)     // float
+    T_NUMBER(_HPDF_Page_SetFlat, 0)     // HPDF_HANDLE
+    T_NUMBER(_HPDF_Page_SetFlat, 1)     // float
 
     RETURN_NUMBER(HPDF_Page_SetFlat((HPDF_HANDLE)(long)PARAM(0), (float)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_Page_SetExtGState, 2)
-    T_NUMBER(0)     // HPDF_HANDLE
-    T_NUMBER(1)     // HPDF_HANDLE
+    T_NUMBER(_HPDF_Page_SetExtGState, 0)     // HPDF_HANDLE
+    T_NUMBER(_HPDF_Page_SetExtGState, 1)     // HPDF_HANDLE
 
     RETURN_NUMBER(HPDF_Page_SetExtGState((HPDF_HANDLE)(long)PARAM(0), (HPDF_HANDLE)(long)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_Page_GSave, 1)
-    T_NUMBER(0)     // HPDF_HANDLE
+    T_NUMBER(_HPDF_Page_GSave, 0)     // HPDF_HANDLE
 
     RETURN_NUMBER(HPDF_Page_GSave((HPDF_HANDLE)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_Page_GRestore, 1)
-    T_NUMBER(0)     // HPDF_HANDLE
+    T_NUMBER(_HPDF_Page_GRestore, 0)     // HPDF_HANDLE
 
     RETURN_NUMBER(HPDF_Page_GRestore((HPDF_HANDLE)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_Page_Concat, 7)
-    T_NUMBER(0)     // HPDF_HANDLE
-    T_NUMBER(1)     // float
-    T_NUMBER(2)     // float
-    T_NUMBER(3)     // float
-    T_NUMBER(4)     // float
-    T_NUMBER(5)     // float
-    T_NUMBER(6)     // float
+    T_NUMBER(_HPDF_Page_Concat, 0)     // HPDF_HANDLE
+    T_NUMBER(_HPDF_Page_Concat, 1)     // float
+    T_NUMBER(_HPDF_Page_Concat, 2)     // float
+    T_NUMBER(_HPDF_Page_Concat, 3)     // float
+    T_NUMBER(_HPDF_Page_Concat, 4)     // float
+    T_NUMBER(_HPDF_Page_Concat, 5)     // float
+    T_NUMBER(_HPDF_Page_Concat, 6)     // float
 
     RETURN_NUMBER(HPDF_Page_Concat((HPDF_HANDLE)(long)PARAM(0), (float)PARAM(1), (float)PARAM(2), (float)PARAM(3), (float)PARAM(4), (float)PARAM(5), (float)PARAM(6)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_Page_MoveTo, 3)
-    T_NUMBER(0)     // HPDF_HANDLE
-    T_NUMBER(1)     // float
-    T_NUMBER(2)     // float
+    T_NUMBER(_HPDF_Page_MoveTo, 0)     // HPDF_HANDLE
+    T_NUMBER(_HPDF_Page_MoveTo, 1)     // float
+    T_NUMBER(_HPDF_Page_MoveTo, 2)     // float
 
     RETURN_NUMBER(HPDF_Page_MoveTo((HPDF_HANDLE)(long)PARAM(0), (float)PARAM(1), (float)PARAM(2)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_Page_LineTo, 3)
-    T_NUMBER(0)     // HPDF_HANDLE
-    T_NUMBER(1)     // float
-    T_NUMBER(2)     // float
+    T_NUMBER(_HPDF_Page_LineTo, 0)     // HPDF_HANDLE
+    T_NUMBER(_HPDF_Page_LineTo, 1)     // float
+    T_NUMBER(_HPDF_Page_LineTo, 2)     // float
 
     RETURN_NUMBER(HPDF_Page_LineTo((HPDF_HANDLE)(long)PARAM(0), (float)PARAM(1), (float)PARAM(2)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_Page_CurveTo, 7)
-    T_NUMBER(0)     // HPDF_HANDLE
-    T_NUMBER(1)     // float
-    T_NUMBER(2)     // float
-    T_NUMBER(3)     // float
-    T_NUMBER(4)     // float
-    T_NUMBER(5)     // float
-    T_NUMBER(6)     // float
+    T_NUMBER(_HPDF_Page_CurveTo, 0)     // HPDF_HANDLE
+    T_NUMBER(_HPDF_Page_CurveTo, 1)     // float
+    T_NUMBER(_HPDF_Page_CurveTo, 2)     // float
+    T_NUMBER(_HPDF_Page_CurveTo, 3)     // float
+    T_NUMBER(_HPDF_Page_CurveTo, 4)     // float
+    T_NUMBER(_HPDF_Page_CurveTo, 5)     // float
+    T_NUMBER(_HPDF_Page_CurveTo, 6)     // float
 
     RETURN_NUMBER(HPDF_Page_CurveTo((HPDF_HANDLE)(long)PARAM(0), (float)PARAM(1), (float)PARAM(2), (float)PARAM(3), (float)PARAM(4), (float)PARAM(5), (float)PARAM(6)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_Page_CurveTo2, 5)
-    T_NUMBER(0)     // HPDF_HANDLE
-    T_NUMBER(1)     // float
-    T_NUMBER(2)     // float
-    T_NUMBER(3)     // float
-    T_NUMBER(4)     // float
+    T_NUMBER(_HPDF_Page_CurveTo2, 0)     // HPDF_HANDLE
+    T_NUMBER(_HPDF_Page_CurveTo2, 1)     // float
+    T_NUMBER(_HPDF_Page_CurveTo2, 2)     // float
+    T_NUMBER(_HPDF_Page_CurveTo2, 3)     // float
+    T_NUMBER(_HPDF_Page_CurveTo2, 4)     // float
 
     RETURN_NUMBER(HPDF_Page_CurveTo2((HPDF_HANDLE)(long)PARAM(0), (float)PARAM(1), (float)PARAM(2), (float)PARAM(3), (float)PARAM(4)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_Page_CurveTo3, 5)
-    T_NUMBER(0)     // HPDF_HANDLE
-    T_NUMBER(1)     // float
-    T_NUMBER(2)     // float
-    T_NUMBER(3)     // float
-    T_NUMBER(4)     // float
+    T_NUMBER(_HPDF_Page_CurveTo3, 0)     // HPDF_HANDLE
+    T_NUMBER(_HPDF_Page_CurveTo3, 1)     // float
+    T_NUMBER(_HPDF_Page_CurveTo3, 2)     // float
+    T_NUMBER(_HPDF_Page_CurveTo3, 3)     // float
+    T_NUMBER(_HPDF_Page_CurveTo3, 4)     // float
 
     RETURN_NUMBER(HPDF_Page_CurveTo3((HPDF_HANDLE)(long)PARAM(0), (float)PARAM(1), (float)PARAM(2), (float)PARAM(3), (float)PARAM(4)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_Page_ClosePath, 1)
-    T_NUMBER(0)     // HPDF_HANDLE
+    T_NUMBER(_HPDF_Page_ClosePath, 0)     // HPDF_HANDLE
 
     RETURN_NUMBER(HPDF_Page_ClosePath((HPDF_HANDLE)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_Page_Rectangle, 5)
-    T_NUMBER(0)     // HPDF_HANDLE
-    T_NUMBER(1)     // float
-    T_NUMBER(2)     // float
-    T_NUMBER(3)     // float
-    T_NUMBER(4)     // float
+    T_NUMBER(_HPDF_Page_Rectangle, 0)     // HPDF_HANDLE
+    T_NUMBER(_HPDF_Page_Rectangle, 1)     // float
+    T_NUMBER(_HPDF_Page_Rectangle, 2)     // float
+    T_NUMBER(_HPDF_Page_Rectangle, 3)     // float
+    T_NUMBER(_HPDF_Page_Rectangle, 4)     // float
 
     RETURN_NUMBER(HPDF_Page_Rectangle((HPDF_HANDLE)(long)PARAM(0), (float)PARAM(1), (float)PARAM(2), (float)PARAM(3), (float)PARAM(4)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_Page_Stroke, 1)
-    T_NUMBER(0)     // HPDF_HANDLE
+    T_NUMBER(_HPDF_Page_Stroke, 0)     // HPDF_HANDLE
 
     RETURN_NUMBER(HPDF_Page_Stroke((HPDF_HANDLE)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_Page_ClosePathStroke, 1)
-    T_NUMBER(0)     // HPDF_HANDLE
+    T_NUMBER(_HPDF_Page_ClosePathStroke, 0)     // HPDF_HANDLE
 
     RETURN_NUMBER(HPDF_Page_ClosePathStroke((HPDF_HANDLE)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_Page_Fill, 1)
-    T_NUMBER(0)     // HPDF_HANDLE
+    T_NUMBER(_HPDF_Page_Fill, 0)     // HPDF_HANDLE
 
     RETURN_NUMBER(HPDF_Page_Fill((HPDF_HANDLE)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_Page_Eofill, 1)
-    T_NUMBER(0)     // HPDF_HANDLE
+    T_NUMBER(_HPDF_Page_Eofill, 0)     // HPDF_HANDLE
 
     RETURN_NUMBER(HPDF_Page_Eofill((HPDF_HANDLE)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_Page_FillStroke, 1)
-    T_NUMBER(0)     // HPDF_HANDLE
+    T_NUMBER(_HPDF_Page_FillStroke, 0)     // HPDF_HANDLE
 
     RETURN_NUMBER(HPDF_Page_FillStroke((HPDF_HANDLE)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_Page_EofillStroke, 1)
-    T_NUMBER(0)     // HPDF_HANDLE
+    T_NUMBER(_HPDF_Page_EofillStroke, 0)     // HPDF_HANDLE
 
     RETURN_NUMBER(HPDF_Page_EofillStroke((HPDF_HANDLE)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_Page_ClosePathFillStroke, 1)
-    T_NUMBER(0)     // HPDF_HANDLE
+    T_NUMBER(_HPDF_Page_ClosePathFillStroke, 0)     // HPDF_HANDLE
 
     RETURN_NUMBER(HPDF_Page_ClosePathFillStroke((HPDF_HANDLE)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_Page_ClosePathEofillStroke, 1)
-    T_NUMBER(0)     // HPDF_HANDLE
+    T_NUMBER(_HPDF_Page_ClosePathEofillStroke, 0)     // HPDF_HANDLE
 
     RETURN_NUMBER(HPDF_Page_ClosePathEofillStroke((HPDF_HANDLE)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_Page_EndPath, 1)
-    T_NUMBER(0)     // HPDF_HANDLE
+    T_NUMBER(_HPDF_Page_EndPath, 0)     // HPDF_HANDLE
 
     RETURN_NUMBER(HPDF_Page_EndPath((HPDF_HANDLE)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_Page_Clip, 1)
-    T_NUMBER(0)     // HPDF_HANDLE
+    T_NUMBER(_HPDF_Page_Clip, 0)     // HPDF_HANDLE
 
     RETURN_NUMBER(HPDF_Page_Clip((HPDF_HANDLE)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_Page_Eoclip, 1)
-    T_NUMBER(0)     // HPDF_HANDLE
+    T_NUMBER(_HPDF_Page_Eoclip, 0)     // HPDF_HANDLE
 
     RETURN_NUMBER(HPDF_Page_Eoclip((HPDF_HANDLE)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_Page_BeginText, 1)
-    T_NUMBER(0)     // HPDF_HANDLE
+    T_NUMBER(_HPDF_Page_BeginText, 0)     // HPDF_HANDLE
 
     RETURN_NUMBER(HPDF_Page_BeginText((HPDF_HANDLE)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_Page_EndText, 1)
-    T_NUMBER(0)     // HPDF_HANDLE
+    T_NUMBER(_HPDF_Page_EndText, 0)     // HPDF_HANDLE
 
     RETURN_NUMBER(HPDF_Page_EndText((HPDF_HANDLE)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_Page_SetCharSpace, 2)
-    T_NUMBER(0)     // HPDF_HANDLE
-    T_NUMBER(1)     // float
+    T_NUMBER(_HPDF_Page_SetCharSpace, 0)     // HPDF_HANDLE
+    T_NUMBER(_HPDF_Page_SetCharSpace, 1)     // float
 
     RETURN_NUMBER(HPDF_Page_SetCharSpace((HPDF_HANDLE)(long)PARAM(0), (float)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_Page_SetWordSpace, 2)
-    T_NUMBER(0)     // HPDF_HANDLE
-    T_NUMBER(1)     // float
+    T_NUMBER(_HPDF_Page_SetWordSpace, 0)     // HPDF_HANDLE
+    T_NUMBER(_HPDF_Page_SetWordSpace, 1)     // float
 
     RETURN_NUMBER(HPDF_Page_SetWordSpace((HPDF_HANDLE)(long)PARAM(0), (float)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_Page_SetHorizontalScalling, 2)
-    T_NUMBER(0)     // HPDF_HANDLE
-    T_NUMBER(1)     // float
+    T_NUMBER(_HPDF_Page_SetHorizontalScalling, 0)     // HPDF_HANDLE
+    T_NUMBER(_HPDF_Page_SetHorizontalScalling, 1)     // float
 
     RETURN_NUMBER(HPDF_Page_SetHorizontalScalling((HPDF_HANDLE)(long)PARAM(0), (float)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_Page_SetTextLeading, 2)
-    T_NUMBER(0)     // HPDF_HANDLE
-    T_NUMBER(1)     // float
+    T_NUMBER(_HPDF_Page_SetTextLeading, 0)     // HPDF_HANDLE
+    T_NUMBER(_HPDF_Page_SetTextLeading, 1)     // float
 
     RETURN_NUMBER(HPDF_Page_SetTextLeading((HPDF_HANDLE)(long)PARAM(0), (float)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_Page_SetFontAndSize, 3)
-    T_NUMBER(0)     // HPDF_HANDLE
-    T_NUMBER(1)     // HPDF_HANDLE
-    T_NUMBER(2)     // float
+    T_NUMBER(_HPDF_Page_SetFontAndSize, 0)     // HPDF_HANDLE
+    T_NUMBER(_HPDF_Page_SetFontAndSize, 1)     // HPDF_HANDLE
+    T_NUMBER(_HPDF_Page_SetFontAndSize, 2)     // float
 
     RETURN_NUMBER(HPDF_Page_SetFontAndSize((HPDF_HANDLE)(long)PARAM(0), (HPDF_HANDLE)(long)PARAM(1), (float)PARAM(2)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_Page_SetTextRenderingMode, 2)
-    T_NUMBER(0)     // HPDF_HANDLE
-    T_NUMBER(1)     // HPDF_TextRenderingMode
+    T_NUMBER(_HPDF_Page_SetTextRenderingMode, 0)     // HPDF_HANDLE
+    T_NUMBER(_HPDF_Page_SetTextRenderingMode, 1)     // HPDF_TextRenderingMode
 
     RETURN_NUMBER(HPDF_Page_SetTextRenderingMode((HPDF_HANDLE)(long)PARAM(0), (HPDF_TextRenderingMode)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_Page_SetTextRise, 2)
-    T_NUMBER(0)     // HPDF_HANDLE
-    T_NUMBER(1)     // float
+    T_NUMBER(_HPDF_Page_SetTextRise, 0)     // HPDF_HANDLE
+    T_NUMBER(_HPDF_Page_SetTextRise, 1)     // float
 
     RETURN_NUMBER(HPDF_Page_SetTextRise((HPDF_HANDLE)(long)PARAM(0), (float)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_Page_SetTextRaise, 2)
-    T_NUMBER(0)     // HPDF_HANDLE
-    T_NUMBER(1)     // float
+    T_NUMBER(_HPDF_Page_SetTextRaise, 0)     // HPDF_HANDLE
+    T_NUMBER(_HPDF_Page_SetTextRaise, 1)     // float
 
     RETURN_NUMBER(HPDF_Page_SetTextRaise((HPDF_HANDLE)(long)PARAM(0), (float)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_Page_MoveTextPos, 3)
-    T_NUMBER(0)     // HPDF_HANDLE
-    T_NUMBER(1)     // float
-    T_NUMBER(2)     // float
+    T_NUMBER(_HPDF_Page_MoveTextPos, 0)     // HPDF_HANDLE
+    T_NUMBER(_HPDF_Page_MoveTextPos, 1)     // float
+    T_NUMBER(_HPDF_Page_MoveTextPos, 2)     // float
 
     RETURN_NUMBER(HPDF_Page_MoveTextPos((HPDF_HANDLE)(long)PARAM(0), (float)PARAM(1), (float)PARAM(2)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_Page_MoveTextPos2, 3)
-    T_NUMBER(0)     // HPDF_HANDLE
-    T_NUMBER(1)     // float
-    T_NUMBER(2)     // float
+    T_NUMBER(_HPDF_Page_MoveTextPos2, 0)     // HPDF_HANDLE
+    T_NUMBER(_HPDF_Page_MoveTextPos2, 1)     // float
+    T_NUMBER(_HPDF_Page_MoveTextPos2, 2)     // float
 
     RETURN_NUMBER(HPDF_Page_MoveTextPos2((HPDF_HANDLE)(long)PARAM(0), (float)PARAM(1), (float)PARAM(2)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_Page_SetTextMatrix, 7)
-    T_NUMBER(0)     // HPDF_HANDLE
-    T_NUMBER(1)     // float
-    T_NUMBER(2)     // float
-    T_NUMBER(3)     // float
-    T_NUMBER(4)     // float
-    T_NUMBER(5)     // float
-    T_NUMBER(6)     // float
+    T_NUMBER(_HPDF_Page_SetTextMatrix, 0)     // HPDF_HANDLE
+    T_NUMBER(_HPDF_Page_SetTextMatrix, 1)     // float
+    T_NUMBER(_HPDF_Page_SetTextMatrix, 2)     // float
+    T_NUMBER(_HPDF_Page_SetTextMatrix, 3)     // float
+    T_NUMBER(_HPDF_Page_SetTextMatrix, 4)     // float
+    T_NUMBER(_HPDF_Page_SetTextMatrix, 5)     // float
+    T_NUMBER(_HPDF_Page_SetTextMatrix, 6)     // float
 
     RETURN_NUMBER(HPDF_Page_SetTextMatrix((HPDF_HANDLE)(long)PARAM(0), (float)PARAM(1), (float)PARAM(2), (float)PARAM(3), (float)PARAM(4), (float)PARAM(5), (float)PARAM(6)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_Page_MoveToNextLine, 1)
-    T_NUMBER(0)     // HPDF_HANDLE
+    T_NUMBER(_HPDF_Page_MoveToNextLine, 0)     // HPDF_HANDLE
 
     RETURN_NUMBER(HPDF_Page_MoveToNextLine((HPDF_HANDLE)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_Page_ShowText, 2)
-    T_NUMBER(0)     // HPDF_HANDLE
-    T_STRING(1)     // char*
+    T_NUMBER(_HPDF_Page_ShowText, 0)     // HPDF_HANDLE
+    T_STRING(_HPDF_Page_ShowText, 1)     // char*
 
     RETURN_NUMBER(HPDF_Page_ShowText((HPDF_HANDLE)(long)PARAM(0), PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_Page_ShowTextNextLine, 2)
-    T_NUMBER(0)     // HPDF_HANDLE
-    T_STRING(1)     // char*
+    T_NUMBER(_HPDF_Page_ShowTextNextLine, 0)     // HPDF_HANDLE
+    T_STRING(_HPDF_Page_ShowTextNextLine, 1)     // char*
 
     RETURN_NUMBER(HPDF_Page_ShowTextNextLine((HPDF_HANDLE)(long)PARAM(0), PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_Page_ShowTextNextLineEx, 4)
-    T_NUMBER(0)     // HPDF_HANDLE
-    T_NUMBER(1)     // float
-    T_NUMBER(2)     // float
-    T_STRING(3)     // char*
+    T_NUMBER(_HPDF_Page_ShowTextNextLineEx, 0)     // HPDF_HANDLE
+    T_NUMBER(_HPDF_Page_ShowTextNextLineEx, 1)     // float
+    T_NUMBER(_HPDF_Page_ShowTextNextLineEx, 2)     // float
+    T_STRING(_HPDF_Page_ShowTextNextLineEx, 3)     // char*
 
     RETURN_NUMBER(HPDF_Page_ShowTextNextLineEx((HPDF_HANDLE)(long)PARAM(0), (float)PARAM(1), (float)PARAM(2), PARAM(3)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_Page_SetGrayFill, 2)
-    T_NUMBER(0)     // HPDF_HANDLE
-    T_NUMBER(1)     // float
+    T_NUMBER(_HPDF_Page_SetGrayFill, 0)     // HPDF_HANDLE
+    T_NUMBER(_HPDF_Page_SetGrayFill, 1)     // float
 
     RETURN_NUMBER(HPDF_Page_SetGrayFill((HPDF_HANDLE)(long)PARAM(0), (float)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_Page_SetGrayStroke, 2)
-    T_NUMBER(0)     // HPDF_HANDLE
-    T_NUMBER(1)     // float
+    T_NUMBER(_HPDF_Page_SetGrayStroke, 0)     // HPDF_HANDLE
+    T_NUMBER(_HPDF_Page_SetGrayStroke, 1)     // float
 
     RETURN_NUMBER(HPDF_Page_SetGrayStroke((HPDF_HANDLE)(long)PARAM(0), (float)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_Page_SetRGBFill, 4)
-    T_NUMBER(0)     // HPDF_HANDLE
-    T_NUMBER(1)     // float
-    T_NUMBER(2)     // float
-    T_NUMBER(3)     // float
+    T_NUMBER(_HPDF_Page_SetRGBFill, 0)     // HPDF_HANDLE
+    T_NUMBER(_HPDF_Page_SetRGBFill, 1)     // float
+    T_NUMBER(_HPDF_Page_SetRGBFill, 2)     // float
+    T_NUMBER(_HPDF_Page_SetRGBFill, 3)     // float
 
     RETURN_NUMBER(HPDF_Page_SetRGBFill((HPDF_HANDLE)(long)PARAM(0), (float)PARAM(1), (float)PARAM(2), (float)PARAM(3)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_Page_SetRGBStroke, 4)
-    T_NUMBER(0)     // HPDF_HANDLE
-    T_NUMBER(1)     // float
-    T_NUMBER(2)     // float
-    T_NUMBER(3)     // float
+    T_NUMBER(_HPDF_Page_SetRGBStroke, 0)     // HPDF_HANDLE
+    T_NUMBER(_HPDF_Page_SetRGBStroke, 1)     // float
+    T_NUMBER(_HPDF_Page_SetRGBStroke, 2)     // float
+    T_NUMBER(_HPDF_Page_SetRGBStroke, 3)     // float
 
     RETURN_NUMBER(HPDF_Page_SetRGBStroke((HPDF_HANDLE)(long)PARAM(0), (float)PARAM(1), (float)PARAM(2), (float)PARAM(3)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_Page_SetCMYKFill, 5)
-    T_NUMBER(0)     // HPDF_HANDLE
-    T_NUMBER(1)     // float
-    T_NUMBER(2)     // float
-    T_NUMBER(3)     // float
-    T_NUMBER(4)     // float
+    T_NUMBER(_HPDF_Page_SetCMYKFill, 0)     // HPDF_HANDLE
+    T_NUMBER(_HPDF_Page_SetCMYKFill, 1)     // float
+    T_NUMBER(_HPDF_Page_SetCMYKFill, 2)     // float
+    T_NUMBER(_HPDF_Page_SetCMYKFill, 3)     // float
+    T_NUMBER(_HPDF_Page_SetCMYKFill, 4)     // float
 
     RETURN_NUMBER(HPDF_Page_SetCMYKFill((HPDF_HANDLE)(long)PARAM(0), (float)PARAM(1), (float)PARAM(2), (float)PARAM(3), (float)PARAM(4)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_Page_SetCMYKStroke, 5)
-    T_NUMBER(0)     // HPDF_HANDLE
-    T_NUMBER(1)     // float
-    T_NUMBER(2)     // float
-    T_NUMBER(3)     // float
-    T_NUMBER(4)     // float
+    T_NUMBER(_HPDF_Page_SetCMYKStroke, 0)     // HPDF_HANDLE
+    T_NUMBER(_HPDF_Page_SetCMYKStroke, 1)     // float
+    T_NUMBER(_HPDF_Page_SetCMYKStroke, 2)     // float
+    T_NUMBER(_HPDF_Page_SetCMYKStroke, 3)     // float
+    T_NUMBER(_HPDF_Page_SetCMYKStroke, 4)     // float
 
     RETURN_NUMBER(HPDF_Page_SetCMYKStroke((HPDF_HANDLE)(long)PARAM(0), (float)PARAM(1), (float)PARAM(2), (float)PARAM(3), (float)PARAM(4)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_Page_ExecuteXObject, 2)
-    T_NUMBER(0)     // HPDF_HANDLE
-    T_NUMBER(1)     // HPDF_HANDLE
+    T_NUMBER(_HPDF_Page_ExecuteXObject, 0)     // HPDF_HANDLE
+    T_NUMBER(_HPDF_Page_ExecuteXObject, 1)     // HPDF_HANDLE
 
     RETURN_NUMBER(HPDF_Page_ExecuteXObject((HPDF_HANDLE)(long)PARAM(0), (HPDF_HANDLE)(long)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_Page_DrawImage, 6)
-    T_NUMBER(0)     // HPDF_HANDLE
-    T_NUMBER(1)     // HPDF_HANDLE
-    T_NUMBER(2)     // float
-    T_NUMBER(3)     // float
-    T_NUMBER(4)     // float
-    T_NUMBER(5)     // float
+    T_NUMBER(_HPDF_Page_DrawImage, 0)     // HPDF_HANDLE
+    T_NUMBER(_HPDF_Page_DrawImage, 1)     // HPDF_HANDLE
+    T_NUMBER(_HPDF_Page_DrawImage, 2)     // float
+    T_NUMBER(_HPDF_Page_DrawImage, 3)     // float
+    T_NUMBER(_HPDF_Page_DrawImage, 4)     // float
+    T_NUMBER(_HPDF_Page_DrawImage, 5)     // float
 
     RETURN_NUMBER(HPDF_Page_DrawImage((HPDF_HANDLE)(long)PARAM(0), (HPDF_HANDLE)(long)PARAM(1), (float)PARAM(2), (float)PARAM(3), (float)PARAM(4), (float)PARAM(5)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_Page_Circle, 4)
-    T_NUMBER(0)     // HPDF_HANDLE
-    T_NUMBER(1)     // float
-    T_NUMBER(2)     // float
-    T_NUMBER(3)     // float
+    T_NUMBER(_HPDF_Page_Circle, 0)     // HPDF_HANDLE
+    T_NUMBER(_HPDF_Page_Circle, 1)     // float
+    T_NUMBER(_HPDF_Page_Circle, 2)     // float
+    T_NUMBER(_HPDF_Page_Circle, 3)     // float
 
     RETURN_NUMBER(HPDF_Page_Circle((HPDF_HANDLE)(long)PARAM(0), (float)PARAM(1), (float)PARAM(2), (float)PARAM(3)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_Page_Ellipse, 5)
-    T_NUMBER(0)     // HPDF_HANDLE
-    T_NUMBER(1)     // float
-    T_NUMBER(2)     // float
-    T_NUMBER(3)     // float
-    T_NUMBER(4)     // float
+    T_NUMBER(_HPDF_Page_Ellipse, 0)     // HPDF_HANDLE
+    T_NUMBER(_HPDF_Page_Ellipse, 1)     // float
+    T_NUMBER(_HPDF_Page_Ellipse, 2)     // float
+    T_NUMBER(_HPDF_Page_Ellipse, 3)     // float
+    T_NUMBER(_HPDF_Page_Ellipse, 4)     // float
 
     RETURN_NUMBER(HPDF_Page_Ellipse((HPDF_HANDLE)(long)PARAM(0), (float)PARAM(1), (float)PARAM(2), (float)PARAM(3), (float)PARAM(4)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_Page_Arc, 6)
-    T_NUMBER(0)     // HPDF_HANDLE
-    T_NUMBER(1)     // float
-    T_NUMBER(2)     // float
-    T_NUMBER(3)     // float
-    T_NUMBER(4)     // float
-    T_NUMBER(5)     // float
+    T_NUMBER(_HPDF_Page_Arc, 0)     // HPDF_HANDLE
+    T_NUMBER(_HPDF_Page_Arc, 1)     // float
+    T_NUMBER(_HPDF_Page_Arc, 2)     // float
+    T_NUMBER(_HPDF_Page_Arc, 3)     // float
+    T_NUMBER(_HPDF_Page_Arc, 4)     // float
+    T_NUMBER(_HPDF_Page_Arc, 5)     // float
 
     RETURN_NUMBER(HPDF_Page_Arc((HPDF_HANDLE)(long)PARAM(0), (float)PARAM(1), (float)PARAM(2), (float)PARAM(3), (float)PARAM(4), (float)PARAM(5)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_Page_TextOut, 4)
-    T_NUMBER(0)     // HPDF_HANDLE
-    T_NUMBER(1)     // float
-    T_NUMBER(2)     // float
-    T_STRING(3)     // char*
+    T_NUMBER(_HPDF_Page_TextOut, 0)     // HPDF_HANDLE
+    T_NUMBER(_HPDF_Page_TextOut, 1)     // float
+    T_NUMBER(_HPDF_Page_TextOut, 2)     // float
+    T_STRING(_HPDF_Page_TextOut, 3)     // char*
 
     RETURN_NUMBER(HPDF_Page_TextOut((HPDF_HANDLE)(long)PARAM(0), (float)PARAM(1), (float)PARAM(2), PARAM(3)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_Page_TextRect, 8)
-    T_NUMBER(0)     // HPDF_HANDLE
-    T_NUMBER(1)     // float
-    T_NUMBER(2)     // float
-    T_NUMBER(3)     // float
-    T_NUMBER(4)     // float
-    T_STRING(5)     // char*
-    T_NUMBER(6)     // HPDF_TextAlignment
+    T_NUMBER(_HPDF_Page_TextRect, 0)     // HPDF_HANDLE
+    T_NUMBER(_HPDF_Page_TextRect, 1)     // float
+    T_NUMBER(_HPDF_Page_TextRect, 2)     // float
+    T_NUMBER(_HPDF_Page_TextRect, 3)     // float
+    T_NUMBER(_HPDF_Page_TextRect, 4)     // float
+    T_STRING(_HPDF_Page_TextRect, 5)     // char*
+    T_NUMBER(_HPDF_Page_TextRect, 6)     // HPDF_TextAlignment
 
 // ... parameter 7 is by reference (int*)
     HPDF_UINT local_parameter_7;
@@ -2084,10 +2084,11 @@ CONCEPT_FUNCTION_IMPL(_HPDF_Page_TextRect, 8)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_HPDF_Page_SetSlideShow, 4)
-    T_NUMBER(0)     // HPDF_HANDLE
-    T_NUMBER(1)     // HPDF_TransitionStyle
-    T_NUMBER(2)     // float
-    T_NUMBER(3)     // float
+    T_NUMBER(_HPDF_Page_SetSlideShow, 0)     // HPDF_HANDLE
+    T_NUMBER(_HPDF_Page_SetSlideShow, 1)     // HPDF_TransitionStyle
+    T_NUMBER(_HPDF_Page_SetSlideShow, 2)     // float
+    T_NUMBER(_HPDF_Page_SetSlideShow, 3)     // float
 
     RETURN_NUMBER(HPDF_Page_SetSlideShow((HPDF_HANDLE)(long)PARAM(0), (HPDF_TransitionStyle)PARAM(1), (float)PARAM(2), (float)PARAM(3)))
 END_IMPL
+

@@ -17,7 +17,7 @@ CONCEPT_DLL_API ON_DESTROY_CONTEXT MANAGEMENT_PARAMETERS {
 }
 //=====================================================================================//
 CONCEPT_FUNCTION_IMPL(VRConfInit, 1)
-    T_ARRAY(0)
+    T_ARRAY(VRConfInit, 0)
 
     cmd_ln_t * config = cmd_ln_init(NULL, ps_args(), TRUE, NULL);
 
@@ -44,7 +44,7 @@ CONCEPT_FUNCTION_IMPL(VRConfInit, 1)
 END_IMPL
 //=====================================================================================//
 CONCEPT_FUNCTION_IMPL(VRConfDone, 1)
-    T_NUMBER(0)
+    T_NUMBER(VRConfDone, 0)
 
     cmd_ln_t * config = (cmd_ln_t *)(SYS_INT)PARAM(0);
     if (config) {
@@ -54,7 +54,7 @@ CONCEPT_FUNCTION_IMPL(VRConfDone, 1)
 END_IMPL
 //=====================================================================================//
 CONCEPT_FUNCTION_IMPL(VRInit, 1)
-    T_HANDLE(0)
+    T_HANDLE(VRInit, 0)
     cmd_ln_t * config = (cmd_ln_t *)(SYS_INT)PARAM(0);
 
     ps_decoder_t *ps = ps_init(config);
@@ -62,7 +62,7 @@ CONCEPT_FUNCTION_IMPL(VRInit, 1)
 END_IMPL
 //=====================================================================================//
 CONCEPT_FUNCTION_IMPL(VRDone, 1)
-    T_NUMBER(0)
+    T_NUMBER(VRDone, 0)
     ps_decoder_t * ps = (ps_decoder_t *)(SYS_INT)PARAM(0);
     if (ps) {
         ps_free(ps);
@@ -71,8 +71,8 @@ CONCEPT_FUNCTION_IMPL(VRDone, 1)
 END_IMPL
 //=====================================================================================//
 CONCEPT_FUNCTION_IMPL(VRAddBuffer, 2)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(VRAddBuffer, 0)
+    T_STRING(VRAddBuffer, 1)
 
     ps_decoder_t * ps = (ps_decoder_t *)(SYS_INT)PARAM(0);
     int16 *buf    = (int16 *)PARAM(1);
@@ -82,7 +82,7 @@ CONCEPT_FUNCTION_IMPL(VRAddBuffer, 2)
 END_IMPL
 //=====================================================================================//
 CONCEPT_FUNCTION_IMPL(VRStart, 1)
-    T_HANDLE(0)
+    T_HANDLE(VRStart, 0)
 
     ps_decoder_t * ps = (ps_decoder_t *)(SYS_INT)PARAM(0);
     int rv = ps_start_utt(ps);
@@ -90,7 +90,7 @@ CONCEPT_FUNCTION_IMPL(VRStart, 1)
 END_IMPL
 //=====================================================================================//
 CONCEPT_FUNCTION_IMPL(VREnd, 1)
-    T_HANDLE(0)
+    T_HANDLE(VREnd, 0)
 
     ps_decoder_t * ps = (ps_decoder_t *)(SYS_INT)PARAM(0);
     int rv = ps_end_utt(ps);
@@ -98,7 +98,7 @@ CONCEPT_FUNCTION_IMPL(VREnd, 1)
 END_IMPL
 //=====================================================================================//
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(VRResult, 1, 2)
-    T_HANDLE(0)
+    T_HANDLE(VRResult, 0)
 
     int32 score = 0;
     ps_decoder_t *ps = (ps_decoder_t *)(SYS_INT)PARAM(0);
@@ -114,3 +114,4 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(VRResult, 1, 2)
     }
 END_IMPL
 //=====================================================================================//
+

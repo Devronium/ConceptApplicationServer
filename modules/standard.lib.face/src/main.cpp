@@ -111,13 +111,13 @@ CONCEPT_DLL_API ON_DESTROY_CONTEXT MANAGEMENT_PARAMETERS {
 }
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(LoadObject, 1)
-    T_STRING(0)
+    T_STRING(LoadObject, 0)
     CvHaarClassifierCascade * cascade = (CvHaarClassifierCascade *)cvLoad(PARAM(0), 0, 0, 0);
     RETURN_NUMBER((SYS_INT)cascade);
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(CloseObject, 1)
-    T_NUMBER(0)
+    T_NUMBER(CloseObject, 0)
     CvHaarClassifierCascade * cascade = (CvHaarClassifierCascade *)PARAM_INT(0);
     if (cascade) {
         SET_NUMBER(0, 0)
@@ -127,16 +127,16 @@ CONCEPT_FUNCTION_IMPL(CloseObject, 1)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(ObjectDetect, 2, 8)
-    T_STRING(0)
+    T_STRING(ObjectDetect, 0)
     CHECK_STATIC_PARAM(1, "ObjectDetect: second parameter must be an object handle or a filename");
     char *cascade_name = 0;
     CvHaarClassifierCascade *cascade2 = 0;
     if (TYPE == VARIABLE_STRING) {
-        T_STRING(1)
+        T_STRING(ObjectDetect, 1)
         cascade_name = PARAM(1);
     } else
     if (TYPE == VARIABLE_NUMBER) {
-        T_NUMBER(1)
+        T_NUMBER(ObjectDetect, 1)
         cascade2 = (CvHaarClassifierCascade *)PARAM_INT(1);
         if (!cascade2) {
             RETURN_NUMBER(-2);
@@ -153,12 +153,12 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(ObjectDetect, 2, 8)
     char       *format        = 0;
 
     if (PARAMETERS_COUNT > 2) {
-        T_NUMBER(2)
+        T_NUMBER(ObjectDetect, 2)
         type = PARAM_INT(2);
     }
 
     if (PARAMETERS_COUNT > 4) {
-        T_STRING(4)
+        T_STRING(ObjectDetect, 4)
         if (PARAM_LEN(4)) {
             fmt    += PARAM(4);
             format  = fmt.c_str();
@@ -167,12 +167,12 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(ObjectDetect, 2, 8)
     }
 
     if (PARAMETERS_COUNT > 3) {
-        T_NUMBER(3)
+        T_NUMBER(ObjectDetect, 3)
         biggest_object = PARAM_INT(3);
     }
 
     if (PARAMETERS_COUNT > 5) {
-        T_NUMBER(5)
+        T_NUMBER(ObjectDetect, 5)
         width = PARAM_INT(5);
         if (width < 2)
             width = 2;
@@ -180,14 +180,14 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(ObjectDetect, 2, 8)
     }
 
     if (PARAMETERS_COUNT > 6) {
-        T_NUMBER(6)
+        T_NUMBER(ObjectDetect, 6)
         height = PARAM_INT(6);
         if (height < 4)
             height = 4;
     }
 
     if (PARAMETERS_COUNT > 7) {
-        T_NUMBER(7)
+        T_NUMBER(ObjectDetect, 7)
         r_iterations = PARAM_INT(7);
         if (r_iterations < 0)
             r_iterations = 0;
@@ -291,7 +291,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(ObjectDetect, 2, 8)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(CloseRecognize, 1)
-    T_NUMBER(0)
+    T_NUMBER(CloseRecognize, 0)
     TrainingContainer * tc = (TrainingContainer *)PARAM_INT(0);
     if (tc) {
         DoneTrainingContainer(tc);
@@ -301,8 +301,8 @@ CONCEPT_FUNCTION_IMPL(CloseRecognize, 1)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(FaceRecognize, 2, 6)
-    T_STRING(0)
-    T_ARRAY(1)
+    T_STRING(FaceRecognize, 0)
+    T_ARRAY(FaceRecognize, 1)
     int type = OBJECT_FILE;
     IplImage *frame    = 0;
     IplImage *training = 0;
@@ -325,7 +325,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(FaceRecognize, 2, 6)
     RETURN_NUMBER(-1)
 
     if (PARAMETERS_COUNT > 5) {
-        T_NUMBER(5)
+        T_NUMBER(FaceRecognize, 5)
         owner_tc = (TrainingContainer *)PARAM_INT(5);
         if (owner_tc) {
             if (nTrainFaces != owner_tc->nTrainFaces) {
@@ -353,12 +353,12 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(FaceRecognize, 2, 6)
     }
 
     if (PARAMETERS_COUNT > 3) {
-        T_NUMBER(3)
+        T_NUMBER(FaceRecognize, 3)
         type = PARAM_INT(3);
     }
 
     if (PARAMETERS_COUNT > 4) {
-        T_STRING(4)
+        T_STRING(FaceRecognize, 4)
         if (PARAM_LEN(4)) {
             filename = PARAM(4);
         }
@@ -548,16 +548,16 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(ReadCamera, 0, 3)
     AnsiString format = (char *)".png";
     int        delay  = 0;
     if (PARAMETERS_COUNT > 0) {
-        T_NUMBER(0)
+        T_NUMBER(ReadCamera, 0)
         camera = PARAM_INT(0);
     }
     if (PARAMETERS_COUNT > 1) {
-        T_STRING(1)
+        T_STRING(ReadCamera, 1)
         format  = (char *)".";
         format += PARAM(1);
     }
     if (PARAMETERS_COUNT > 2) {
-        T_NUMBER(2)
+        T_NUMBER(ReadCamera, 2)
         delay = PARAM_INT(2);
     }
     CvCapture *capture = cvCaptureFromCAM(camera);
@@ -590,17 +590,17 @@ END_IMPL
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(OpenCamera, 0, 3)
     int camera = CV_CAP_ANY;
     if (PARAMETERS_COUNT > 0) {
-        T_NUMBER(0)
+        T_NUMBER(OpenCamera, 0)
         camera = PARAM_INT(0);
     }
     CvCapture *capture = cvCaptureFromCAM(camera);
     if (capture) {
         if (PARAMETERS_COUNT > 1) {
-            T_NUMBER(1)
+            T_NUMBER(OpenCamera, 1)
             cvSetCaptureProperty(capture, CV_CAP_PROP_FRAME_WIDTH, PARAM(1));
         }
         if (PARAMETERS_COUNT > 2) {
-            T_NUMBER(2)
+            T_NUMBER(OpenCamera, 2)
             cvSetCaptureProperty(capture, CV_CAP_PROP_FRAME_HEIGHT, PARAM(2));
         }
     }
@@ -608,7 +608,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(OpenCamera, 0, 3)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(CloseCamera, 1)
-    T_NUMBER(0)
+    T_NUMBER(CloseCamera, 0)
 
     CvCapture * capture = (CvCapture *)PARAM_INT(0);
     if (capture) {
@@ -619,10 +619,10 @@ CONCEPT_FUNCTION_IMPL(CloseCamera, 1)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(CameraFrame, 1, 2)
-    T_HANDLE(0)
+    T_HANDLE(CameraFrame, 0)
     AnsiString format = (char *)".png";
     if (PARAMETERS_COUNT > 1) {
-        T_STRING(1)
+        T_STRING(CameraFrame, 1)
         format  = (char *)".";
         format += PARAM(1);
     }
@@ -897,3 +897,4 @@ IplImage *resizeImage(const IplImage *origImg, int newWidth, int newHeight, bool
     }
     return outImg;
 }
+

@@ -69,37 +69,37 @@ CONCEPT_DLL_API ON_DESTROY_CONTEXT MANAGEMENT_PARAMETERS {
 //------------------------------------------------------------------------
 // xmlfile, outfile, [format_mode, xsltfile, compat, validation, continue_after_error]
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(FOTransform, 2, 7)
-    T_STRING(0)
-    T_STRING(1)
+    T_STRING(FOTransform, 0)
+    T_STRING(FOTransform, 1)
 
     FoFlagsFormat format_mode = FO_FLAG_FORMAT_AUTO; //FO_ENUM_FORMAT_UNKNOWN;
     FoWarningFlag warning_mode = FO_WARNING_NONE;    //FO_WARNING_FO | FO_WARNING_PROPERTY;
 
     if (PARAMETERS_COUNT > 2) {
-        T_NUMBER(2)
+        T_NUMBER(FOTransform, 2)
         format_mode = (FoFlagsFormat)PARAM_INT(2);
     }
 
     char validation = 0;
     if (PARAMETERS_COUNT > 5) {
-        T_NUMBER(5)
+        T_NUMBER(FOTransform, 5)
         validation = (char)PARAM_INT(5);
     }
     char continue_after_error = true;
     if (PARAMETERS_COUNT > 6) {
-        T_NUMBER(6)
+        T_NUMBER(FOTransform, 6)
         continue_after_error = (char)PARAM_INT(6);
     }
     char compat = false;
     if (PARAMETERS_COUNT > 4) {
-        T_NUMBER(4)
+        T_NUMBER(FOTransform, 4)
         compat = (char)PARAM_INT(4);
     }
 
     gchar *out_file  = PARAM(1); //"layout.pdf";
     gchar *xslt_file = NULL;
     if (PARAMETERS_COUNT > 3) {
-        T_STRING(3)
+        T_STRING(FOTransform, 3)
         xslt_file = PARAM(3);
         if (!PARAM_LEN(3))
             xslt_file = 0;
@@ -198,30 +198,30 @@ END_IMPL
 //------------------------------------------------------------------------
 // xmlfile, outfile, [format_mode, xsltfile, compat, validation, continue_after_error]
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(FOTransformString, 2, 7)
-    T_STRING(0)
-    T_STRING(1)
+    T_STRING(FOTransformString, 0)
+    T_STRING(FOTransformString, 1)
 
     FoFlagsFormat format_mode = FO_FLAG_FORMAT_AUTO; //FO_ENUM_FORMAT_UNKNOWN;
     FoWarningFlag warning_mode = FO_WARNING_NONE;    //FO_WARNING_FO | FO_WARNING_PROPERTY;
 
     if (PARAMETERS_COUNT > 2) {
-        T_NUMBER(2)
+        T_NUMBER(FOTransformString, 2)
         format_mode = (FoFlagsFormat)PARAM_INT(2);
     }
 
     char validation = 0;
     if (PARAMETERS_COUNT > 5) {
-        T_NUMBER(5)
+        T_NUMBER(FOTransformString, 5)
         validation = (char)PARAM_INT(5);
     }
     char continue_after_error = true;
     if (PARAMETERS_COUNT > 6) {
-        T_NUMBER(6)
+        T_NUMBER(FOTransformString, 6)
         continue_after_error = (char)PARAM_INT(6);
     }
     char compat = false;
     if (PARAMETERS_COUNT > 4) {
-        T_NUMBER(4)
+        T_NUMBER(FOTransformString, 4)
         compat = (char)PARAM_INT(4);
     }
 
@@ -229,7 +229,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(FOTransformString, 2, 7)
     gchar *xslt_file = NULL;
     int   xslt_len   = 0;
     if (PARAMETERS_COUNT > 3) {
-        T_STRING(3)
+        T_STRING(FOTransformString, 3)
         xslt_file = PARAM(3);
         xslt_len  = PARAM_LEN(3);
         if (!xslt_len)
@@ -327,3 +327,4 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(FOTransformString, 2, 7)
     RETURN_NUMBER(0);
 END_IMPL
 //------------------------------------------------------------------------
+

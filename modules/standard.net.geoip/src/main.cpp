@@ -90,31 +90,31 @@ CONCEPT_DLL_API ON_DESTROY_CONTEXT MANAGEMENT_PARAMETERS {
 }
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(GeoIP_open_type, 2)
-    T_NUMBER(0)
-    T_NUMBER(1)
+    T_NUMBER(GeoIP_open_type, 0)
+    T_NUMBER(GeoIP_open_type, 1)
 
     GeoIP * gi = GeoIP_open_type(PARAM_INT(0), PARAM_INT(1));
     RETURN_NUMBER((SYS_INT)gi)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(GeoIP_open, 2)
-    T_STRING(0)
-    T_NUMBER(1)
+    T_STRING(GeoIP_open, 0)
+    T_NUMBER(GeoIP_open, 1)
 
     GeoIP * gi = GeoIP_open(PARAM(0), PARAM_INT(1));
     RETURN_NUMBER((SYS_INT)gi)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(GeoIP_new, 1)
-    T_NUMBER(0)
+    T_NUMBER(GeoIP_new, 0)
 
     GeoIP * gi = GeoIP_new(PARAM_INT(0));
     RETURN_NUMBER((SYS_INT)gi)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(GeoIP_country_code_by_name, 2)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(GeoIP_country_code_by_name, 0)
+    T_STRING(GeoIP_country_code_by_name, 1)
 
     const char *s = GeoIP_country_code_by_name((GeoIP *)PARAM_INT(0), PARAM(1));
     if (s) {
@@ -125,20 +125,20 @@ CONCEPT_FUNCTION_IMPL(GeoIP_country_code_by_name, 2)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(GeoIP_setup_custom_directory, 1)
-    T_STRING(0)     // char*
+    T_STRING(GeoIP_setup_custom_directory, 0)     // char*
 
     GeoIP_setup_custom_directory((char *)PARAM(0));
     RETURN_NUMBER(0)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(GeoIP_db_avail, 1)
-    T_NUMBER(0)     // int
+    T_NUMBER(GeoIP_db_avail, 0)     // int
 
     RETURN_NUMBER(GeoIP_db_avail((int)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(GeoIP_delete, 1)
-    T_NUMBER(0)     // GeoIP*
+    T_NUMBER(GeoIP_delete, 0)     // GeoIP*
 
     if (PARAM_INT(0))
         GeoIP_delete((GeoIP *)(long)PARAM_INT(0));
@@ -146,64 +146,64 @@ CONCEPT_FUNCTION_IMPL(GeoIP_delete, 1)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(GeoIP_country_code_by_addr, 2)
-    T_HANDLE(0)     // GeoIP*
-    T_STRING(1)     // char*
+    T_HANDLE(GeoIP_country_code_by_addr, 0)     // GeoIP*
+    T_STRING(GeoIP_country_code_by_addr, 1)     // char*
 
     RETURN_STRING((char *)GeoIP_country_code_by_addr((GeoIP *)(long)PARAM(0), (char *)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(GeoIP_country_code3_by_addr, 2)
-    T_HANDLE(0)     // GeoIP*
-    T_STRING(1)     // char*
+    T_HANDLE(GeoIP_country_code3_by_addr, 0)     // GeoIP*
+    T_STRING(GeoIP_country_code3_by_addr, 1)     // char*
 
     RETURN_STRING((char *)GeoIP_country_code3_by_addr((GeoIP *)(long)PARAM(0), (char *)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(GeoIP_country_code3_by_name, 2)
-    T_HANDLE(0)     // GeoIP*
-    T_STRING(1)     // char*
+    T_HANDLE(GeoIP_country_code3_by_name, 0)     // GeoIP*
+    T_STRING(GeoIP_country_code3_by_name, 1)     // char*
 
     RETURN_STRING((char *)GeoIP_country_code3_by_name((GeoIP *)(long)PARAM(0), (char *)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(GeoIP_country_name_by_addr, 2)
-    T_HANDLE(0)     // GeoIP*
-    T_STRING(1)     // char*
+    T_HANDLE(GeoIP_country_name_by_addr, 0)     // GeoIP*
+    T_STRING(GeoIP_country_name_by_addr, 1)     // char*
 
     RETURN_STRING((char *)GeoIP_country_name_by_addr((GeoIP *)(long)PARAM(0), (char *)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(GeoIP_country_name_by_name, 2)
-    T_HANDLE(0)     // GeoIP*
-    T_STRING(1)     // char*
+    T_HANDLE(GeoIP_country_name_by_name, 0)     // GeoIP*
+    T_STRING(GeoIP_country_name_by_name, 1)     // char*
 
     RETURN_STRING((char *)GeoIP_country_name_by_name((GeoIP *)(long)PARAM(0), (char *)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(GeoIP_country_name_by_ipnum, 2)
-    T_HANDLE(0)     // GeoIP*
-    T_NUMBER(1)     // unsigned
+    T_HANDLE(GeoIP_country_name_by_ipnum, 0)     // GeoIP*
+    T_NUMBER(GeoIP_country_name_by_ipnum, 1)     // unsigned
 
     RETURN_STRING((char *)GeoIP_country_name_by_ipnum((GeoIP *)(long)PARAM(0), PARAM_INT(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(GeoIP_country_code_by_ipnum, 2)
-    T_HANDLE(0)     // GeoIP*
-    T_NUMBER(1)     // unsigned
+    T_HANDLE(GeoIP_country_code_by_ipnum, 0)     // GeoIP*
+    T_NUMBER(GeoIP_country_code_by_ipnum, 1)     // unsigned
 
     RETURN_STRING((char *)GeoIP_country_code_by_ipnum((GeoIP *)(long)PARAM(0), PARAM_INT(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(GeoIP_country_code3_by_ipnum, 2)
-    T_HANDLE(0)     // GeoIP*
-    T_NUMBER(1)     // unsigned
+    T_HANDLE(GeoIP_country_code3_by_ipnum, 0)     // GeoIP*
+    T_NUMBER(GeoIP_country_code3_by_ipnum, 1)     // unsigned
 
     RETURN_STRING((char *)GeoIP_country_code3_by_ipnum((GeoIP *)(long)PARAM(0), PARAM_INT(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(GeoIP_country_name_by_ipnum_v6, 2)
-    T_HANDLE(0)     // GeoIP*
-    T_STRING(1)     // geoipv6_t
+    T_HANDLE(GeoIP_country_name_by_ipnum_v6, 0)     // GeoIP*
+    T_STRING(GeoIP_country_name_by_ipnum_v6, 1)     // geoipv6_t
 
     CONVERT_ADDR
 
@@ -211,59 +211,59 @@ CONCEPT_FUNCTION_IMPL(GeoIP_country_name_by_ipnum_v6, 2)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(GeoIP_country_code_by_ipnum_v6, 2)
-    T_HANDLE(0)     // GeoIP*
-    T_STRING(1)     // geoipv6_t
+    T_HANDLE(GeoIP_country_code_by_ipnum_v6, 0)     // GeoIP*
+    T_STRING(GeoIP_country_code_by_ipnum_v6, 1)     // geoipv6_t
 
     CONVERT_ADDR
         RETURN_STRING((char *)GeoIP_country_code_by_ipnum_v6((GeoIP *)(long)PARAM(0), st))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(GeoIP_country_code3_by_ipnum_v6, 2)
-    T_HANDLE(0)     // GeoIP*
-    T_STRING(1)     // geoipv6_t
+    T_HANDLE(GeoIP_country_code3_by_ipnum_v6, 0)     // GeoIP*
+    T_STRING(GeoIP_country_code3_by_ipnum_v6, 1)     // geoipv6_t
 
     CONVERT_ADDR
         RETURN_STRING((char *)GeoIP_country_code3_by_ipnum_v6((GeoIP *)(long)PARAM(0), st))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(GeoIP_id_by_addr, 2)
-    T_HANDLE(0)     // GeoIP*
-    T_STRING(1)     // char*
+    T_HANDLE(GeoIP_id_by_addr, 0)     // GeoIP*
+    T_STRING(GeoIP_id_by_addr, 1)     // char*
 
     RETURN_NUMBER(GeoIP_id_by_addr((GeoIP *)(long)PARAM(0), (char *)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(GeoIP_id_by_name, 2)
-    T_HANDLE(0)     // GeoIP*
-    T_STRING(1)     // char*
+    T_HANDLE(GeoIP_id_by_name, 0)     // GeoIP*
+    T_STRING(GeoIP_id_by_name, 1)     // char*
 
     RETURN_NUMBER(GeoIP_id_by_name((GeoIP *)(long)PARAM(0), (char *)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(GeoIP_id_by_ipnum, 2)
-    T_HANDLE(0)     // GeoIP*
-    T_NUMBER(1)     // unsigned
+    T_HANDLE(GeoIP_id_by_ipnum, 0)     // GeoIP*
+    T_NUMBER(GeoIP_id_by_ipnum, 1)     // unsigned
 
     RETURN_NUMBER(GeoIP_id_by_ipnum((GeoIP *)(long)PARAM(0), PARAM_INT(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(GeoIP_id_by_addr_v6, 2)
-    T_HANDLE(0)     // GeoIP*
-    T_STRING(1)     // char*
+    T_HANDLE(GeoIP_id_by_addr_v6, 0)     // GeoIP*
+    T_STRING(GeoIP_id_by_addr_v6, 1)     // char*
 
     RETURN_NUMBER(GeoIP_id_by_addr_v6((GeoIP *)(long)PARAM(0), (char *)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(GeoIP_id_by_name_v6, 2)
-    T_HANDLE(0)     // GeoIP*
-    T_STRING(1)     // char*
+    T_HANDLE(GeoIP_id_by_name_v6, 0)     // GeoIP*
+    T_STRING(GeoIP_id_by_name_v6, 1)     // char*
 
     RETURN_NUMBER(GeoIP_id_by_name_v6((GeoIP *)(long)PARAM(0), (char *)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(GeoIP_id_by_ipnum_v6, 2)
-    T_HANDLE(0)     // GeoIP*
-    T_STRING(1)     // geoipv6_t
+    T_HANDLE(GeoIP_id_by_ipnum_v6, 0)     // GeoIP*
+    T_STRING(GeoIP_id_by_ipnum_v6, 1)     // geoipv6_t
 
     CONVERT_ADDR
 
@@ -271,8 +271,8 @@ CONCEPT_FUNCTION_IMPL(GeoIP_id_by_ipnum_v6, 2)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(GeoIP_region_by_addr, 2)
-    T_HANDLE(0)     // GeoIP*
-    T_STRING(1)     // char*
+    T_HANDLE(GeoIP_region_by_addr, 0)     // GeoIP*
+    T_STRING(GeoIP_region_by_addr, 1)     // char*
 
     GeoIPRegion * reg = GeoIP_region_by_addr((GeoIP *)(long)PARAM(0), (char *)PARAM(1));
 
@@ -285,8 +285,8 @@ CONCEPT_FUNCTION_IMPL(GeoIP_region_by_addr, 2)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(GeoIP_region_by_name, 2)
-    T_HANDLE(0)     // GeoIP*
-    T_STRING(1)     // char*
+    T_HANDLE(GeoIP_region_by_name, 0)     // GeoIP*
+    T_STRING(GeoIP_region_by_name, 1)     // char*
 
 
     GeoIPRegion * reg = GeoIP_region_by_name((GeoIP *)(long)PARAM(0), (char *)PARAM(1));
@@ -300,8 +300,8 @@ CONCEPT_FUNCTION_IMPL(GeoIP_region_by_name, 2)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(GeoIP_region_by_ipnum, 2)
-    T_HANDLE(0)     // GeoIP
-    T_NUMBER(1)     // unsigned
+    T_HANDLE(GeoIP_region_by_ipnum, 0)     // GeoIP
+    T_NUMBER(GeoIP_region_by_ipnum, 1)     // unsigned
 
     GeoIPRegion * reg = GeoIP_region_by_ipnum((GeoIP *)PARAM_INT(0), PARAM_INT(1));
     Invoke(INVOKE_CREATE_ARRAY, RESULT);
@@ -313,8 +313,8 @@ CONCEPT_FUNCTION_IMPL(GeoIP_region_by_ipnum, 2)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(GeoIP_region_by_addr_v6, 2)
-    T_HANDLE(0)     // GeoIP*
-    T_STRING(1)     // char*
+    T_HANDLE(GeoIP_region_by_addr_v6, 0)     // GeoIP*
+    T_STRING(GeoIP_region_by_addr_v6, 1)     // char*
 
     GeoIPRegion * reg = GeoIP_region_by_addr_v6((GeoIP *)(long)PARAM(0), (char *)PARAM(1));
     Invoke(INVOKE_CREATE_ARRAY, RESULT);
@@ -326,8 +326,8 @@ CONCEPT_FUNCTION_IMPL(GeoIP_region_by_addr_v6, 2)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(GeoIP_region_by_name_v6, 2)
-    T_HANDLE(0)     // GeoIP*
-    T_STRING(1)     // char*
+    T_HANDLE(GeoIP_region_by_name_v6, 0)     // GeoIP*
+    T_STRING(GeoIP_region_by_name_v6, 1)     // char*
 
     GeoIPRegion * reg = GeoIP_region_by_name_v6((GeoIP *)(long)PARAM(0), (char *)PARAM(1));
     Invoke(INVOKE_CREATE_ARRAY, RESULT);
@@ -339,8 +339,8 @@ CONCEPT_FUNCTION_IMPL(GeoIP_region_by_name_v6, 2)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(GeoIP_region_by_ipnum_v6, 2)
-    T_HANDLE(0)     // GeoIP*
-    T_STRING(1)     // geoipv6_t
+    T_HANDLE(GeoIP_region_by_ipnum_v6, 0)     // GeoIP*
+    T_STRING(GeoIP_region_by_ipnum_v6, 1)     // geoipv6_t
 
     CONVERT_ADDR
 
@@ -354,29 +354,29 @@ CONCEPT_FUNCTION_IMPL(GeoIP_region_by_ipnum_v6, 2)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(GeoIP_name_by_ipnum, 2)
-    T_HANDLE(0)     // GeoIP*
-    T_NUMBER(1)     // unsigned
+    T_HANDLE(GeoIP_name_by_ipnum, 0)     // GeoIP*
+    T_NUMBER(GeoIP_name_by_ipnum, 1)     // unsigned
 
     RETURN_STRING((char *)GeoIP_name_by_ipnum((GeoIP *)(long)PARAM(0), PARAM_INT(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(GeoIP_name_by_addr, 2)
-    T_HANDLE(0)     // GeoIP*
-    T_STRING(1)     // char*
+    T_HANDLE(GeoIP_name_by_addr, 0)     // GeoIP*
+    T_STRING(GeoIP_name_by_addr, 1)     // char*
 
     RETURN_STRING((char *)GeoIP_name_by_addr((GeoIP *)(long)PARAM(0), (char *)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(GeoIP_name_by_name, 2)
-    T_HANDLE(0)     // GeoIP*
-    T_STRING(1)     // char*
+    T_HANDLE(GeoIP_name_by_name, 0)     // GeoIP*
+    T_STRING(GeoIP_name_by_name, 1)     // char*
 
     RETURN_STRING((char *)GeoIP_name_by_name((GeoIP *)(long)PARAM(0), (char *)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(GeoIP_name_by_ipnum_v6, 2)
-    T_HANDLE(0)     // GeoIP*
-    T_STRING(1)     // geoipv6_t
+    T_HANDLE(GeoIP_name_by_ipnum_v6, 0)     // GeoIP*
+    T_STRING(GeoIP_name_by_ipnum_v6, 1)     // geoipv6_t
 
     CONVERT_ADDR
 
@@ -384,45 +384,45 @@ CONCEPT_FUNCTION_IMPL(GeoIP_name_by_ipnum_v6, 2)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(GeoIP_name_by_addr_v6, 2)
-    T_HANDLE(0)     // GeoIP*
-    T_STRING(1)     // char*
+    T_HANDLE(GeoIP_name_by_addr_v6, 0)     // GeoIP*
+    T_STRING(GeoIP_name_by_addr_v6, 1)     // char*
 
     RETURN_STRING((char *)GeoIP_name_by_addr_v6((GeoIP *)(long)PARAM(0), (char *)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(GeoIP_name_by_name_v6, 2)
-    T_HANDLE(0)     // GeoIP*
-    T_STRING(1)     // char*
+    T_HANDLE(GeoIP_name_by_name_v6, 0)     // GeoIP*
+    T_STRING(GeoIP_name_by_name_v6, 1)     // char*
 
     RETURN_STRING((char *)GeoIP_name_by_name_v6((GeoIP *)(long)PARAM(0), (char *)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(GeoIP_code_by_id, 1)
-    T_NUMBER(0)     // int
+    T_NUMBER(GeoIP_code_by_id, 0)     // int
 
     RETURN_STRING((char *)GeoIP_code_by_id((int)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(GeoIP_code3_by_id, 1)
-    T_NUMBER(0)     // int
+    T_NUMBER(GeoIP_code3_by_id, 0)     // int
 
     RETURN_STRING((char *)GeoIP_code3_by_id((int)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(GeoIP_name_by_id, 1)
-    T_NUMBER(0)     // int
+    T_NUMBER(GeoIP_name_by_id, 0)     // int
 
     RETURN_STRING((char *)GeoIP_name_by_id((int)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(GeoIP_continent_by_id, 1)
-    T_NUMBER(0)     // int
+    T_NUMBER(GeoIP_continent_by_id, 0)     // int
 
     RETURN_STRING((char *)GeoIP_continent_by_id((int)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(GeoIP_id_by_code, 1)
-    T_STRING(0)     // char*
+    T_STRING(GeoIP_id_by_code, 0)     // char*
 
     RETURN_NUMBER(GeoIP_id_by_code((char *)PARAM(0)))
 END_IMPL
@@ -433,77 +433,77 @@ CONCEPT_FUNCTION_IMPL(GeoIP_num_countries, 0)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(GeoIP_database_info, 1)
-    T_HANDLE(0)     // GeoIP*
+    T_HANDLE(GeoIP_database_info, 0)     // GeoIP*
 
     RETURN_STRING((char *)GeoIP_database_info((GeoIP *)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(GeoIP_database_edition, 1)
-    T_HANDLE(0)     // GeoIP*
+    T_HANDLE(GeoIP_database_edition, 0)     // GeoIP*
 
     RETURN_NUMBER(GeoIP_database_edition((GeoIP *)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(GeoIP_charset, 1)
-    T_HANDLE(0)     // GeoIP*
+    T_HANDLE(GeoIP_charset, 0)     // GeoIP*
 
     RETURN_NUMBER(GeoIP_charset((GeoIP *)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(GeoIP_set_charset, 2)
-    T_HANDLE(0)     // GeoIP*
-    T_NUMBER(1)     // int
+    T_HANDLE(GeoIP_set_charset, 0)     // GeoIP*
+    T_NUMBER(GeoIP_set_charset, 1)     // int
 
     RETURN_NUMBER(GeoIP_set_charset((GeoIP *)(long)PARAM(0), (int)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(GeoIP_last_netmask, 1)
-    T_HANDLE(0)     // GeoIP*
+    T_HANDLE(GeoIP_last_netmask, 0)     // GeoIP*
 
     RETURN_NUMBER(GeoIP_last_netmask((GeoIP *)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(GeoIP_region_name_by_code, 2)
-    T_STRING(0)     // char*
-    T_STRING(1)     // char*
+    T_STRING(GeoIP_region_name_by_code, 0)     // char*
+    T_STRING(GeoIP_region_name_by_code, 1)     // char*
 
     RETURN_STRING((char *)GeoIP_region_name_by_code((char *)PARAM(0), (char *)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(GeoIP_time_zone_by_country_and_region, 2)
-    T_STRING(0)     // char*
-    T_STRING(1)     // char*
+    T_STRING(GeoIP_time_zone_by_country_and_region, 0)     // char*
+    T_STRING(GeoIP_time_zone_by_country_and_region, 1)     // char*
 
     RETURN_STRING((char *)GeoIP_time_zone_by_country_and_region((char *)PARAM(0), (char *)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(GeoIP_record_by_ipnum, 2)
-    T_HANDLE(0)     // GeoIP*
-    T_NUMBER(1)     // unsigned
+    T_HANDLE(GeoIP_record_by_ipnum, 0)     // GeoIP*
+    T_NUMBER(GeoIP_record_by_ipnum, 1)     // unsigned
 
     GeoIPRecord * rec = GeoIP_record_by_ipnum((GeoIP *)(long)PARAM(0), PARAM_INT(1));
     RETURN_RECORD(rec);
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(GeoIP_record_by_addr, 2)
-    T_HANDLE(0)     // GeoIP*
-    T_STRING(1)     // char*
+    T_HANDLE(GeoIP_record_by_addr, 0)     // GeoIP*
+    T_STRING(GeoIP_record_by_addr, 1)     // char*
 
     GeoIPRecord * rec = GeoIP_record_by_addr((GeoIP *)(long)PARAM(0), (char *)PARAM(1));
     RETURN_RECORD(rec);
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(GeoIP_record_by_name, 2)
-    T_HANDLE(0)     // GeoIP*
-    T_STRING(1)     // char*
+    T_HANDLE(GeoIP_record_by_name, 0)     // GeoIP*
+    T_STRING(GeoIP_record_by_name, 1)     // char*
 
     GeoIPRecord * rec = GeoIP_record_by_name((GeoIP *)(long)PARAM(0), (char *)PARAM(1));
     RETURN_RECORD(rec);
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(GeoIP_record_by_ipnum_v6, 2)
-    T_HANDLE(0)     // GeoIP*
-    T_STRING(1)     // geoipv6_t
+    T_HANDLE(GeoIP_record_by_ipnum_v6, 0)     // GeoIP*
+    T_STRING(GeoIP_record_by_ipnum_v6, 1)     // geoipv6_t
 
     CONVERT_ADDR
 
@@ -512,32 +512,33 @@ CONCEPT_FUNCTION_IMPL(GeoIP_record_by_ipnum_v6, 2)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(GeoIP_record_by_addr_v6, 2)
-    T_HANDLE(0)     // GeoIP*
-    T_STRING(1)     // char*
+    T_HANDLE(GeoIP_record_by_addr_v6, 0)     // GeoIP*
+    T_STRING(GeoIP_record_by_addr_v6, 1)     // char*
 
     GeoIPRecord * rec = GeoIP_record_by_addr_v6((GeoIP *)(long)PARAM(0), (char *)PARAM(1));
     RETURN_RECORD(rec);
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(GeoIP_record_by_name_v6, 2)
-    T_HANDLE(0)     // GeoIP*
-    T_STRING(1)     // char*
+    T_HANDLE(GeoIP_record_by_name_v6, 0)     // GeoIP*
+    T_STRING(GeoIP_record_by_name_v6, 1)     // char*
 
     GeoIPRecord * rec = GeoIP_record_by_name_v6((GeoIP *)(long)PARAM(0), (char *)PARAM(1));
     RETURN_RECORD(rec);
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(GeoIP_record_id_by_addr, 2)
-    T_HANDLE(0)     // GeoIP*
-    T_STRING(1)     // char*
+    T_HANDLE(GeoIP_record_id_by_addr, 0)     // GeoIP*
+    T_STRING(GeoIP_record_id_by_addr, 1)     // char*
 
     RETURN_NUMBER(GeoIP_record_id_by_addr((GeoIP *)(long)PARAM(0), (char *)PARAM(1)));
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(GeoIP_record_id_by_addr_v6, 2)
-    T_HANDLE(0)     // GeoIP*
-    T_STRING(1)     // char*
+    T_HANDLE(GeoIP_record_id_by_addr_v6, 0)     // GeoIP*
+    T_STRING(GeoIP_record_id_by_addr_v6, 1)     // char*
 
     RETURN_NUMBER(GeoIP_record_id_by_addr_v6((GeoIP *)(long)PARAM(0), (char *)PARAM(1)));
 END_IMPL
 //------------------------------------------------------------------------
+

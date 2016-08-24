@@ -1867,8 +1867,8 @@ CONCEPT_DLL_API CONCEPT__xmlNodeIsText CONCEPT_API_PARAMETERS {
 }
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_xmlCopyNode, 2)
-    T_NUMBER(0)
-    T_NUMBER(1)
+    T_NUMBER(_xmlCopyNode, 0)
+    T_NUMBER(_xmlCopyNode, 1)
 
     RETURN_NUMBER((SYS_INT)xmlCopyNode((xmlNodePtr)PARAM_INT(0), PARAM_INT(1)))
 END_IMPL
@@ -1876,42 +1876,42 @@ END_IMPL
 // BEGIN OF HTML FUNCTIONS
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_htmlCreateMemoryParserCtxt, 1)
-    T_STRING(0)
+    T_STRING(_htmlCreateMemoryParserCtxt, 0)
 
     RETURN_NUMBER((SYS_INT)htmlCreateMemoryParserCtxt(PARAM(0), PARAM_LEN(0)))
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_htmlCtxtReadDoc, 5)
-    T_NUMBER(0)
-    T_STRING(1)
-    T_STRING(2)
-    T_STRING(3)
-    T_NUMBER(4)
+    T_NUMBER(_htmlCtxtReadDoc, 0)
+    T_STRING(_htmlCtxtReadDoc, 1)
+    T_STRING(_htmlCtxtReadDoc, 2)
+    T_STRING(_htmlCtxtReadDoc, 3)
+    T_NUMBER(_htmlCtxtReadDoc, 4)
 
     RETURN_NUMBER((SYS_INT)htmlCtxtReadDoc((htmlParserCtxtPtr)PARAM_INT(0), BAD_CAST PARAM(1), PARAM(2), PARAM(3), PARAM_INT(4)))
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_htmlCtxtReadFile, 4)
-    T_NUMBER(0)
-    T_STRING(1)
-    T_STRING(2)
-    T_NUMBER(3)
+    T_NUMBER(_htmlCtxtReadFile, 0)
+    T_STRING(_htmlCtxtReadFile, 1)
+    T_STRING(_htmlCtxtReadFile, 2)
+    T_NUMBER(_htmlCtxtReadFile, 3)
 
     RETURN_NUMBER((SYS_INT)htmlCtxtReadFile((htmlParserCtxtPtr)PARAM_INT(0), PARAM(1), PARAM(2), PARAM_INT(3)))
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_htmlCtxtReadMemory, 5)
-    T_NUMBER(0)
-    T_STRING(1)
-    T_STRING(2)
-    T_STRING(3)
-    T_NUMBER(4)
+    T_NUMBER(_htmlCtxtReadMemory, 0)
+    T_STRING(_htmlCtxtReadMemory, 1)
+    T_STRING(_htmlCtxtReadMemory, 2)
+    T_STRING(_htmlCtxtReadMemory, 3)
+    T_NUMBER(_htmlCtxtReadMemory, 4)
 
     RETURN_NUMBER((SYS_INT)htmlCtxtReadMemory((htmlParserCtxtPtr)PARAM_INT(0), PARAM(1), PARAM_LEN(1), PARAM(2), PARAM(3), PARAM_INT(4)))
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_htmlCtxtReset, 1)
-    T_NUMBER(0)
+    T_NUMBER(_htmlCtxtReset, 0)
 
     htmlCtxtReset((htmlParserCtxtPtr)PARAM_INT(0));
 
@@ -1919,28 +1919,28 @@ CONCEPT_FUNCTION_IMPL(_htmlCtxtReset, 1)
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_htmlCtxtUseOptions, 2)
-    T_NUMBER(0)
-    T_NUMBER(1)
+    T_NUMBER(_htmlCtxtUseOptions, 0)
+    T_NUMBER(_htmlCtxtUseOptions, 1)
 
     RETURN_NUMBER(htmlCtxtUseOptions((htmlParserCtxtPtr)PARAM_INT(0), PARAM_INT(1)))
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_htmlElementAllowedHere, 2)
-    T_NUMBER(0)
-    T_STRING(1)
+    T_NUMBER(_htmlElementAllowedHere, 0)
+    T_STRING(_htmlElementAllowedHere, 1)
 
     RETURN_NUMBER(htmlElementAllowedHere((htmlElemDesc *)PARAM_INT(0), BAD_CAST PARAM(1)))
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_htmlElementStatusHere, 2)
-    T_NUMBER(0)
-    T_NUMBER(1)
+    T_NUMBER(_htmlElementStatusHere, 0)
+    T_NUMBER(_htmlElementStatusHere, 1)
 
     RETURN_NUMBER(htmlElementStatusHere((htmlElemDesc *)PARAM_INT(0), (htmlElemDesc *)PARAM_INT(1)))
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_htmlFreeParserCtxt, 1)
-    T_NUMBER(0)
+    T_NUMBER(_htmlFreeParserCtxt, 0)
 
     htmlFreeParserCtxt((htmlParserCtxtPtr)PARAM_INT(0));
 
@@ -1948,20 +1948,20 @@ CONCEPT_FUNCTION_IMPL(_htmlFreeParserCtxt, 1)
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_htmlHandleOmittedElem, 1)
-    T_NUMBER(0)
+    T_NUMBER(_htmlHandleOmittedElem, 0)
 
     RETURN_NUMBER(htmlHandleOmittedElem(PARAM_INT(0)))
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_htmlIsAutoClosed, 2)
-    T_NUMBER(0)
-    T_NUMBER(1)
+    T_NUMBER(_htmlIsAutoClosed, 0)
+    T_NUMBER(_htmlIsAutoClosed, 1)
 
     RETURN_NUMBER(htmlIsAutoClosed((htmlDocPtr)PARAM_INT(0), (htmlNodePtr)PARAM_INT(1)))
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_htmlIsScriptAttribute, 1)
-    T_STRING(0)
+    T_STRING(_htmlIsScriptAttribute, 0)
 
     RETURN_NUMBER(htmlIsScriptAttribute(BAD_CAST PARAM_INT(0)))
 END_IMPL
@@ -1972,41 +1972,41 @@ END_IMPL
    END_IMPL*/
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_htmlNodeStatus, 2)
-    T_NUMBER(0)
-    T_NUMBER(1)
+    T_NUMBER(_htmlNodeStatus, 0)
+    T_NUMBER(_htmlNodeStatus, 1)
 
     RETURN_NUMBER(htmlNodeStatus((htmlNodePtr)PARAM_INT(0), PARAM_INT(1)))
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_htmlParseCharRef, 1)
-    T_NUMBER(0)
+    T_NUMBER(_htmlParseCharRef, 0)
 
     RETURN_NUMBER(htmlParseCharRef((htmlParserCtxtPtr)PARAM_INT(0)))
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_htmlParseChunk, 3)
-    T_NUMBER(0)
-    T_STRING(1)
-    T_NUMBER(2)
+    T_NUMBER(_htmlParseChunk, 0)
+    T_STRING(_htmlParseChunk, 1)
+    T_NUMBER(_htmlParseChunk, 2)
 
     RETURN_NUMBER(htmlParseChunk((htmlParserCtxtPtr)PARAM_INT(0), PARAM(1), PARAM_LEN(1), PARAM_INT(2)))
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_htmlParseDoc, 2)
-    T_STRING(0)
-    T_STRING(1)
+    T_STRING(_htmlParseDoc, 0)
+    T_STRING(_htmlParseDoc, 1)
 
     RETURN_NUMBER((SYS_INT)htmlParseDoc(BAD_CAST PARAM(0), PARAM(1)))
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_htmlParseDocument, 1)
-    T_NUMBER(0)
+    T_NUMBER(_htmlParseDocument, 0)
 
     RETURN_NUMBER(htmlParseDocument((htmlParserCtxtPtr)PARAM_INT(0)))
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_htmlParseElement, 1)
-    T_NUMBER(0)
+    T_NUMBER(_htmlParseElement, 0)
 
     htmlParseElement((htmlParserCtxtPtr)PARAM_INT(0));
 
@@ -2014,40 +2014,40 @@ CONCEPT_FUNCTION_IMPL(_htmlParseElement, 1)
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_htmlParseFile, 2)
-    T_STRING(0)
-    T_STRING(1)
+    T_STRING(_htmlParseFile, 0)
+    T_STRING(_htmlParseFile, 1)
 
     RETURN_NUMBER((SYS_INT)htmlParseFile(PARAM(0), PARAM(1)))
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_htmlReadDoc, 4)
-    T_STRING(0)
-    T_STRING(1)
-    T_STRING(2)
-    T_NUMBER(3)
+    T_STRING(_htmlReadDoc, 0)
+    T_STRING(_htmlReadDoc, 1)
+    T_STRING(_htmlReadDoc, 2)
+    T_NUMBER(_htmlReadDoc, 3)
 
     RETURN_NUMBER((SYS_INT)htmlReadDoc(BAD_CAST PARAM(0), PARAM(1), PARAM(2), PARAM_INT(3)))
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_htmlReadFile, 3)
-    T_STRING(0)
-    T_STRING(1)
-    T_NUMBER(2)
+    T_STRING(_htmlReadFile, 0)
+    T_STRING(_htmlReadFile, 1)
+    T_NUMBER(_htmlReadFile, 2)
 
     RETURN_NUMBER((SYS_INT)htmlReadFile(PARAM(0), PARAM(1), PARAM_INT(2)))
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_htmlReadMemory, 4)
-    T_STRING(0)
-    T_STRING(1)
-    T_STRING(2)
-    T_NUMBER(3)
+    T_STRING(_htmlReadMemory, 0)
+    T_STRING(_htmlReadMemory, 1)
+    T_STRING(_htmlReadMemory, 2)
+    T_NUMBER(_htmlReadMemory, 3)
 
     RETURN_NUMBER((SYS_INT)htmlReadMemory(PARAM(0), PARAM_LEN(0), PARAM(1), PARAM(2), PARAM_INT(3)))
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_htmlDocDumpMemory, 1)
-    T_NUMBER(0)
+    T_NUMBER(_htmlDocDumpMemory, 0)
 
     xmlChar * buf = 0;
     int size = 0;
@@ -2060,58 +2060,58 @@ CONCEPT_FUNCTION_IMPL(_htmlDocDumpMemory, 1)
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_htmlGetMetaEncoding, 1)
-    T_NUMBER(0)
+    T_NUMBER(_htmlGetMetaEncoding, 0)
 
     RETURN_STRING((char *)htmlGetMetaEncoding((htmlDocPtr)PARAM_INT(0)))
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_htmlIsBooleanAttr, 1)
-    T_STRING(0)
+    T_STRING(_htmlIsBooleanAttr, 0)
 
     RETURN_NUMBER(htmlIsBooleanAttr(BAD_CAST PARAM(0)))
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_htmlNewDoc, 2)
-    T_STRING(0)
-    T_STRING(1)
+    T_STRING(_htmlNewDoc, 0)
+    T_STRING(_htmlNewDoc, 1)
 
     RETURN_NUMBER((SYS_INT)htmlNewDoc(BAD_CAST PARAM(0), BAD_CAST PARAM(1)))
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_htmlNewDocNoDtD, 2)
-    T_STRING(0)
-    T_STRING(1)
+    T_STRING(_htmlNewDocNoDtD, 0)
+    T_STRING(_htmlNewDocNoDtD, 1)
 
     RETURN_NUMBER((SYS_INT)htmlNewDocNoDtD(BAD_CAST PARAM(0), BAD_CAST PARAM(1)))
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_htmlSaveFile, 2)
-    T_STRING(0)
-    T_NUMBER(1)
+    T_STRING(_htmlSaveFile, 0)
+    T_NUMBER(_htmlSaveFile, 1)
 
     RETURN_NUMBER(htmlSaveFile(PARAM(0), (xmlDocPtr)PARAM_INT(1)))
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_htmlSaveFileEnc, 3)
-    T_STRING(0)
-    T_NUMBER(1)
-    T_STRING(2)
+    T_STRING(_htmlSaveFileEnc, 0)
+    T_NUMBER(_htmlSaveFileEnc, 1)
+    T_STRING(_htmlSaveFileEnc, 2)
 
     RETURN_NUMBER(htmlSaveFileEnc(PARAM(0), (xmlDocPtr)PARAM_INT(1), PARAM(2)))
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_htmlSaveFileFormat, 4)
-    T_STRING(0)
-    T_NUMBER(1)
-    T_STRING(2)
-    T_NUMBER(3)
+    T_STRING(_htmlSaveFileFormat, 0)
+    T_NUMBER(_htmlSaveFileFormat, 1)
+    T_STRING(_htmlSaveFileFormat, 2)
+    T_NUMBER(_htmlSaveFileFormat, 3)
 
     RETURN_NUMBER(htmlSaveFileFormat(PARAM(0), (xmlDocPtr)PARAM_INT(1), PARAM(2), PARAM_INT(3)))
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_htmlSetMetaEncoding, 2)
-    T_NUMBER(0)
-    T_STRING(1)
+    T_NUMBER(_htmlSetMetaEncoding, 0)
+    T_STRING(_htmlSetMetaEncoding, 1)
 
     RETURN_NUMBER(htmlSetMetaEncoding((htmlDocPtr)PARAM_INT(0), BAD_CAST PARAM(1)))
 END_IMPL
@@ -2120,7 +2120,7 @@ END_IMPL
 
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_htmlElemDescArray, 1)
-    T_NUMBER(0)
+    T_NUMBER(_htmlElemDescArray, 0)
     htmlElemDesc * ent = (htmlElemDesc *)PARAM_INT(0);
 
     if (!ent) {
@@ -2145,7 +2145,7 @@ CONCEPT_FUNCTION_IMPL(_htmlElemDescArray, 1)
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_htmlEntityDescArray, 1)
-    T_NUMBER(0)
+    T_NUMBER(_htmlEntityDescArray, 0)
 
     htmlEntityDesc * ent = (htmlEntityDesc *)PARAM_INT(0);
 
@@ -2162,8 +2162,8 @@ CONCEPT_FUNCTION_IMPL(_htmlEntityDescArray, 1)
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(xmlTextReaderSetErrorHandler, 2)
-    T_NUMBER(0)
-    T_DELEGATE(1)
+    T_NUMBER(xmlTextReaderSetErrorHandler, 0)
+    T_DELEGATE(xmlTextReaderSetErrorHandler, 1)
 
     xmlTextReaderPtr reader = (xmlTextReaderPtr)PARAM_INT(0);
     if (!reader) {
@@ -2176,7 +2176,7 @@ CONCEPT_FUNCTION_IMPL(xmlTextReaderSetErrorHandler, 2)
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(xmlSetGenericErrorFunc, 2)
-    T_NUMBER(0)
+    T_NUMBER(xmlSetGenericErrorFunc, 0)
 
     char *dclass = 0;
     NUMBER dmember = 0;
@@ -2185,7 +2185,7 @@ CONCEPT_FUNCTION_IMPL(xmlSetGenericErrorFunc, 2)
     void *ctx = (void *)PARAM_INT(0);
 
     if ((TYPE != VARIABLE_DELEGATE) && (TYPE != VARIABLE_NUMBER)) {
-        T_DELEGATE(1)
+        T_DELEGATE(xmlSetGenericErrorFunc, 1)
     }
 
     if (TYPE == VARIABLE_NUMBER) {
@@ -2200,7 +2200,7 @@ CONCEPT_FUNCTION_IMPL(xmlSetGenericErrorFunc, 2)
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(xmlSetStructuredErrorFunc, 2)
-    T_NUMBER(0)
+    T_NUMBER(xmlSetStructuredErrorFunc, 0)
 
     char *dclass = 0;
     NUMBER dmember = 0;
@@ -2209,7 +2209,7 @@ CONCEPT_FUNCTION_IMPL(xmlSetStructuredErrorFunc, 2)
     void *ctx = (void *)PARAM_INT(0);
 
     if ((TYPE != VARIABLE_DELEGATE) && (TYPE != VARIABLE_NUMBER)) {
-        T_DELEGATE(1)
+        T_DELEGATE(xmlSetStructuredErrorFunc, 1)
     }
 
     if (TYPE == VARIABLE_NUMBER) {
@@ -2224,10 +2224,10 @@ CONCEPT_FUNCTION_IMPL(xmlSetStructuredErrorFunc, 2)
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(xmlURIEscapeStr, 1, 2)
-    T_STRING(0)
+    T_STRING(xmlURIEscapeStr, 0)
     char *exceptions = "";
     if (PARAMETERS_COUNT > 1) {
-        T_STRING(1)
+        T_STRING(xmlURIEscapeStr, 1)
         exceptions = PARAM(0);
     }
     xmlChar *res = xmlURIEscapeStr((xmlChar *)PARAM(0), (xmlChar *)exceptions);
@@ -2236,14 +2236,14 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(xmlURIEscapeStr, 1, 2)
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(xmlURIUnescapeString, 1)
-    T_STRING(0)
+    T_STRING(xmlURIUnescapeString, 0)
     char *res = xmlURIUnescapeString(PARAM(0), PARAM_LEN(0), NULL);
     RETURN_STRING(res)
     xmlFree(res);
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(xmlFreeNode, 1)
-    T_NUMBER(0)
+    T_NUMBER(xmlFreeNode, 0)
 
     xmlNodePtr node = (xmlNodePtr)PARAM_INT(0);
     if (node) {
@@ -2254,8 +2254,8 @@ CONCEPT_FUNCTION_IMPL(xmlFreeNode, 1)
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(xmlNewCDataBlock, 2)
-    T_NUMBER(0)
-    T_STRING(1)
+    T_NUMBER(xmlNewCDataBlock, 0)
+    T_STRING(xmlNewCDataBlock, 1)
 
     xmlDocPtr doc = (xmlDocPtr)(SYS_INT)PARAM(0);
     if (!doc) {
@@ -2268,9 +2268,9 @@ CONCEPT_FUNCTION_IMPL(xmlNewCDataBlock, 2)
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(xmlParseInNodeContext, 4)
-    T_HANDLE(0)
-    T_STRING(1)
-    T_NUMBER(2)
+    T_HANDLE(xmlParseInNodeContext, 0)
+    T_STRING(xmlParseInNodeContext, 1)
+    T_NUMBER(xmlParseInNodeContext, 2)
 
     xmlNodePtr node = (xmlNodePtr)(SYS_INT)PARAM(0);
 
@@ -2281,10 +2281,10 @@ CONCEPT_FUNCTION_IMPL(xmlParseInNodeContext, 4)
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(xmlNodeDump, 5)
-    T_NUMBER(1)
-    T_HANDLE(2)
-    T_NUMBER(3)
-    T_NUMBER(4)
+    T_NUMBER(xmlNodeDump, 1)
+    T_HANDLE(xmlNodeDump, 2)
+    T_NUMBER(xmlNodeDump, 3)
+    T_NUMBER(xmlNodeDump, 4)
 
     xmlBufferPtr buf = xmlBufferCreate();
     xmlDocPtr  doc  = (xmlDocPtr)(SYS_INT)PARAM(1);
@@ -2298,7 +2298,7 @@ CONCEPT_FUNCTION_IMPL(xmlNodeDump, 5)
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(xmlChildElementCount, 1)
-    T_HANDLE(0)
+    T_HANDLE(xmlChildElementCount, 0)
 
     xmlNodePtr node = (xmlNodePtr)(SYS_INT)PARAM(0);
 
@@ -2306,3 +2306,4 @@ CONCEPT_FUNCTION_IMPL(xmlChildElementCount, 1)
     RETURN_NUMBER((SYS_INT)count);
 END_IMPL
 //---------------------------------------------------------------------------
+

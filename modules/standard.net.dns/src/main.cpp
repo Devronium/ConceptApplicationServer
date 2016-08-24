@@ -388,7 +388,7 @@ void main_loop(ares_channel& channel, int timeout = 1000) {
 }
 
 CONCEPT_FUNCTION_IMPL(DNSReversed, 1)
-    T_STRING(0)
+    T_STRING(DNSReversed, 0)
     ares_channel channel;
     struct in_addr ip;
     int            res;
@@ -407,7 +407,7 @@ CONCEPT_FUNCTION_IMPL(DNSReversed, 1)
 END_IMPL
 //=====================================================================================//
 CONCEPT_FUNCTION_IMPL(DNSResolve, 1)
-    T_STRING(0)
+    T_STRING(DNSResolve, 0)
     ares_channel channel;
     int res;
 
@@ -421,18 +421,18 @@ CONCEPT_FUNCTION_IMPL(DNSResolve, 1)
 END_IMPL
 //=====================================================================================//
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(DNSQuery, 1, 3)
-    T_STRING(0)
+    T_STRING(DNSQuery, 0)
     ares_channel channel;
     int      res;
     ns_class cls = ns_c_any;
     ns_type  typ = ns_t_any;
 
     if (PARAMETERS_COUNT > 1) {
-        T_NUMBER(1)
+        T_NUMBER(DNSQuery, 1)
         cls = (ns_class)PARAM_INT(1);
     }
     if (PARAMETERS_COUNT > 2) {
-        T_NUMBER(1)
+        T_NUMBER(DNSQuery, 1)
         typ = (ns_type)PARAM_INT(1);
     }
 
@@ -445,3 +445,4 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(DNSQuery, 1, 3)
     ares_destroy(channel);
 END_IMPL
 //=====================================================================================//
+

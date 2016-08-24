@@ -179,13 +179,13 @@ int create_cairo(svgtiny_diagram *diagram, float scale, AnsiString *res) {
 
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(SVGT, 1, 2)
-    T_STRING(0)
+    T_STRING(SVGT, 0)
 
 
 
     float scale = 1;
     if (PARAMETERS_COUNT > 1) {
-        T_NUMBER(1)
+        T_NUMBER(SVGT, 1)
         scale = PARAM(1);
     }
 
@@ -212,3 +212,4 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(SVGT, 1, 2)
     RETURN_BUFFER(res.c_str(), res.Length());
 END_IMPL
 //-----------------------------------------------------//
+

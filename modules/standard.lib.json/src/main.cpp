@@ -176,7 +176,7 @@ CONCEPT_FUNCTION_IMPL_VARIABLE_PARAMS(_JSONSerialize, 1)
         return (void *)"JSONSerialize: invalid parameters count: object, array_as_objects=false";
     } else
     if (PARAMETERS_COUNT == 2) {
-        T_NUMBER(1)
+        T_NUMBER(_JSONSerialize, 1)
 
         as_object = (int)PARAM_INT(1);
     }
@@ -300,7 +300,7 @@ void deserialize_object(struct json_object *obj, void *RESULT, json_type mtype) 
 
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(_JSONDeserialize, 1)
-    T_STRING(0)
+    T_STRING(_JSONDeserialize, 0)
 
     struct json_tokener *tok = json_tokener_new(); //json_tokener_parse(PARAM(0)
     struct json_object  *obj = json_tokener_parse_ex(tok, PARAM(0), PARAM_LEN(0));
@@ -341,3 +341,4 @@ CONCEPT_FUNCTION_IMPL(_JSONDeserialize, 1)
         json_tokener_free(tok);
 END_IMPL
 //-----------------------------------------------------//
+

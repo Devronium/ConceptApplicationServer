@@ -33,15 +33,15 @@ CONCEPT_DLL_API ON_DESTROY_CONTEXT MANAGEMENT_PARAMETERS {
 }
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(SVG, 1, 4)
-    T_STRING(0)
+    T_STRING(SVG, 0)
     char *type = "png";
     double dpi = -1;
     if (PARAMETERS_COUNT > 1) {
-        T_STRING(1)
+        T_STRING(SVG, 1)
         type = PARAM(1);
     }
     if (PARAMETERS_COUNT > 2) {
-        T_NUMBER(2)
+        T_NUMBER(SVG, 2)
         dpi = PARAM(2);
     }
     if (PARAMETERS_COUNT > 3) {
@@ -126,3 +126,4 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(SVG, 1, 4)
 #endif
 END_IMPL
 //-----------------------------------------------------//
+

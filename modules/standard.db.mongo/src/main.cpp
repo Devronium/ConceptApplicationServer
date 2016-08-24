@@ -668,11 +668,11 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(MongoConnect, 0, 3)
     char *host = "127.0.0.1";
     int port = 27017;
     if (PARAMETERS_COUNT > 1) {
-        T_STRING(1)
+        T_STRING(MongoConnect, 1)
         host = PARAM(1);
     }
     if (PARAMETERS_COUNT > 2) {
-        T_NUMBER(2)
+        T_NUMBER(MongoConnect, 2)
         port = PARAM_INT(2);
     }
     mongo *conn = (mongo *)malloc(sizeof(mongo));
@@ -696,8 +696,8 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(MongoConnect, 0, 3)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(MongoConnectReplica, 3)
-    T_STRING(1)
-    T_ARRAY(2)
+    T_STRING(MongoConnectReplica, 1)
+    T_ARRAY(MongoConnectReplica, 2)
 
     mongo * conn = (mongo *)malloc(sizeof(mongo));
     mongo_replica_set_init(conn, PARAM(1));
@@ -754,7 +754,7 @@ CONCEPT_FUNCTION_IMPL(MongoConnectReplica, 3)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(MongoDisconnect, 1)
-    T_NUMBER(0)
+    T_NUMBER(MongoDisconnect, 0)
     mongo * conn = (mongo *)PARAM_INT(0);
 //lasterror=(char *)"";
     if (conn) {
@@ -769,7 +769,7 @@ END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(MongoError, 0, 1)
     if (PARAMETERS_COUNT > 0) {
-        T_NUMBER(0);
+        T_NUMBER(MongoError, 0);
         mongo *conn = (mongo *)PARAM_INT(0);
         if (conn) {
             RETURN_STRING(conn->lasterrstr);
@@ -781,8 +781,8 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(MongoError, 0, 1)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(MongoDropDb, 2)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(MongoDropDb, 0)
+    T_STRING(MongoDropDb, 1)
 //lasterror=(char *)"";
     mongo * conn = (mongo *)PARAM_INT(0);
     int res = mongo_cmd_drop_db(conn, PARAM(1));
@@ -790,10 +790,10 @@ CONCEPT_FUNCTION_IMPL(MongoDropDb, 2)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(MongoAddUser, 4)
-    T_HANDLE(0)
-    T_STRING(1)
-    T_STRING(2)
-    T_STRING(3)
+    T_HANDLE(MongoAddUser, 0)
+    T_STRING(MongoAddUser, 1)
+    T_STRING(MongoAddUser, 2)
+    T_STRING(MongoAddUser, 3)
 //lasterror=(char *)"";
     mongo * conn = (mongo *)PARAM_INT(0);
     int res = mongo_cmd_add_user(conn, PARAM(1), PARAM(2), PARAM(3));
@@ -801,10 +801,10 @@ CONCEPT_FUNCTION_IMPL(MongoAddUser, 4)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(MongoAuthenticate, 4)
-    T_HANDLE(0)
-    T_STRING(1)
-    T_STRING(2)
-    T_STRING(3)
+    T_HANDLE(MongoAuthenticate, 0)
+    T_STRING(MongoAuthenticate, 1)
+    T_STRING(MongoAuthenticate, 2)
+    T_STRING(MongoAuthenticate, 3)
 //lasterror=(char *)"";
     mongo * conn = (mongo *)PARAM_INT(0);
     int res = mongo_cmd_authenticate(conn, PARAM(1), PARAM(2), PARAM(3));
@@ -812,8 +812,8 @@ CONCEPT_FUNCTION_IMPL(MongoAuthenticate, 4)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(MongoInsert, 3, 6)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(MongoInsert, 0)
+    T_STRING(MongoInsert, 1)
 
     int res = -2;
 //lasterror=(char *)"";
@@ -821,7 +821,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(MongoInsert, 3, 6)
     bool  keep_object_types = true;
 
     if (PARAMETERS_COUNT > 3) {
-        T_NUMBER(3)
+        T_NUMBER(MongoInsert, 3)
         keep_object_types = (bool)PARAM_INT(3);
     }
     char    *szData;
@@ -829,7 +829,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(MongoInsert, 3, 6)
     NUMBER  nData;
     char    *key = "_id";
     if (PARAMETERS_COUNT > 4) {
-        T_STRING(4)
+        T_STRING(MongoInsert, 4)
         key = PARAM(4);
     }
     if (PARAMETERS_COUNT > 5) {
@@ -924,8 +924,8 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(MongoInsert, 3, 6)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(MongoSetOpTimeout, 2)
-    T_HANDLE(0)
-    T_NUMBER(1)
+    T_HANDLE(MongoSetOpTimeout, 0)
+    T_NUMBER(MongoSetOpTimeout, 1)
 //lasterror=(char *)"";
     mongo * conn = (mongo *)PARAM_INT(0);
     int res = mongo_set_op_timeout(conn, PARAM_INT(1));
@@ -933,16 +933,16 @@ CONCEPT_FUNCTION_IMPL(MongoSetOpTimeout, 2)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(MongoCheckConnection, 1)
-    T_HANDLE(0)
+    T_HANDLE(MongoCheckConnection, 0)
     mongo * conn = (mongo *)PARAM_INT(0);
     int res = mongo_check_connection(conn);
     RETURN_NUMBER(res);
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(MongoCount, 4)
-    T_HANDLE(0)
-    T_STRING(1)
-    T_STRING(2)
+    T_HANDLE(MongoCount, 0)
+    T_STRING(MongoCount, 1)
+    T_STRING(MongoCount, 2)
 //T_ARRAY(3)
     char *arr_data = 0;
     bool is_array = false;
@@ -974,8 +974,8 @@ CONCEPT_FUNCTION_IMPL(MongoCount, 4)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(MongoUpdate, 4, 6)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(MongoUpdate, 0)
+    T_STRING(MongoUpdate, 1)
 //T_ARRAY(2)
     char *arr_data = 0;
     bool is_array  = false;
@@ -986,14 +986,14 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(MongoUpdate, 4, 6)
     else
     if (TYPE != VARIABLE_STRING)
         return (void *)"MongoUpdate: parameter 3 should be an array or an id (string)";
-    T_ARRAY(3)
+    T_ARRAY(MongoUpdate, 3)
     int flags = MONGO_UPDATE_MULTI;
     if (PARAMETERS_COUNT > 4) {
-        T_NUMBER(4)
+        T_NUMBER(MongoUpdate, 4)
         flags = PARAM_INT(4);
     }
     if (PARAMETERS_COUNT > 5) {
-        T_NUMBER(5)
+        T_NUMBER(MongoUpdate, 5)
         as_object = (bool)PARAM_INT(5);
     }
     mongo *conn = (mongo *)PARAM_INT(0);
@@ -1026,8 +1026,8 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(MongoUpdate, 4, 6)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(MongoUpdateType, 4, 8)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(MongoUpdateType, 0)
+    T_STRING(MongoUpdateType, 1)
 //T_ARRAY(2)
     char *arr_data = 0;
     bool is_array = false;
@@ -1038,18 +1038,18 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(MongoUpdateType, 4, 8)
     if (TYPE != VARIABLE_STRING)
         return (void *)"MongoUpdate: parameter 3 should be an array or an id (string)";
 
-    T_STRING(3)
-    T_NUMBER(4)
+    T_STRING(MongoUpdateType, 3)
+    T_NUMBER(MongoUpdateType, 4)
 //T_STRING(5)
     bool keep_types = false;
     if (PARAMETERS_COUNT > 6) {
-        T_NUMBER(6)
+        T_NUMBER(MongoUpdateType, 6)
         keep_types = PARAM_INT(6);
     }
 
     int flags = MONGO_UPDATE_MULTI;
     if (PARAMETERS_COUNT > 7) {
-        T_NUMBER(7)
+        T_NUMBER(MongoUpdateType, 7)
         flags = PARAM_INT(7);
     }
     mongo *conn = (mongo *)PARAM_INT(0);
@@ -1079,21 +1079,21 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(MongoUpdateType, 4, 8)
 
         case BSON_DOUBLE:
             {
-                T_NUMBER(5)
+                T_NUMBER(MongoUpdateType, 5)
                 bson_append_double(b2, str, PARAM(5));
             }
             break;
 
         case BSON_STRING:
             {
-                T_STRING(5)
+                T_STRING(MongoUpdateType, 5)
                 bson_append_string_n(b2, str, PARAM(5), (int)PARAM_LEN(5));
             }
             break;
 
         case BSON_OBJECT:
             {
-                T_OBJECT(5)
+                T_OBJECT(MongoUpdateType, 5)
                 bson_append_start_object(b2, str);
                 do_object(b2, PARAM(5), keep_types);
                 bson_append_finish_object(b2);
@@ -1102,7 +1102,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(MongoUpdateType, 4, 8)
 
         case BSON_ARRAY:
             {
-                T_ARRAY(5);
+                T_ARRAY(MongoUpdateType, 5);
                 bson_append_start_array(b2, str);
                 do_array(b2, PARAMETER(5), false, false, keep_types);
                 bson_append_finish_array(b2);
@@ -1111,14 +1111,14 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(MongoUpdateType, 4, 8)
 
         case BSON_BINDATA:
             {
-                T_STRING(5)
+                T_STRING(MongoUpdateType, 5)
                 bson_append_binary(b2, str, PARAM_INT(4), PARAM(5), PARAM_LEN(5));
             }
             break;
 
         case BSON_OID:
             {
-                T_STRING(5)
+                T_STRING(MongoUpdateType, 5)
                 bson_oid_t oid[1];
                 if (PARAM_LEN(5))
                     bson_oid_from_string(oid, PARAM(5));
@@ -1128,14 +1128,14 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(MongoUpdateType, 4, 8)
 
         case BSON_BOOL:
             {
-                T_NUMBER(5)
+                T_NUMBER(MongoUpdateType, 5)
                 bson_append_bool(b2, str, (bson_bool_t)PARAM_INT(5));
             }
             break;
 
         case BSON_DATE:
             {
-                T_NUMBER(5)
+                T_NUMBER(MongoUpdateType, 5)
                 bson_append_date(b2, str, (bson_date_t)PARAM_INT(5));
             }
             break;
@@ -1146,7 +1146,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(MongoUpdateType, 4, 8)
 
         case BSON_REGEX:
             {
-                T_STRING(5)
+                T_STRING(MongoUpdateType, 5)
                 bson_append_regex(b2, str, PARAM(5), "");
             }
             break;
@@ -1156,14 +1156,14 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(MongoUpdateType, 4, 8)
 
         case BSON_CODE:
             {
-                T_STRING(5)
+                T_STRING(MongoUpdateType, 5)
                 bson_append_code_n(b2, str, PARAM(5), (int)PARAM_LEN(5));
             }
             break;
 
         case BSON_SYMBOL:
             {
-                T_STRING(5)
+                T_STRING(MongoUpdateType, 5)
                 bson_append_symbol_n(b2, str, PARAM(5), (int)PARAM_LEN(5));
             }
             break;
@@ -1173,21 +1173,21 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(MongoUpdateType, 4, 8)
 
         case BSON_INT:
             {
-                T_NUMBER(5)
+                T_NUMBER(MongoUpdateType, 5)
                 bson_append_int(b2, str, PARAM_INT(5));
             }
             break;
 
         case BSON_TIMESTAMP:
             {
-                T_NUMBER(5)
+                T_NUMBER(MongoUpdateType, 5)
                 bson_append_time_t(b2, str, (time_t)PARAM_INT(5));
             }
             break;
 
         case BSON_LONG:
             {
-                T_NUMBER(5)
+                T_NUMBER(MongoUpdateType, 5)
                 bson_append_long(b2, str, (int64_t)PARAM(5));
             }
             break;
@@ -1208,8 +1208,8 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(MongoUpdateType, 4, 8)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(MongoUpdateObject, 4, 6)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(MongoUpdateObject, 0)
+    T_STRING(MongoUpdateObject, 1)
     char *arr_data = 0;
     bool is_array = false;
     GET_ARRAY(2, arr_data);
@@ -1220,16 +1220,16 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(MongoUpdateObject, 4, 6)
         return (void *)"MongoUpdateObject: parameter 3 should be an array or an id (string)";
 
 //T_ARRAY(2)
-    T_OBJECT(3)
+    T_OBJECT(MongoUpdateObject, 3)
     bool as_object = false;
     if (PARAMETERS_COUNT > 4) {
-        T_NUMBER(4)
+        T_NUMBER(MongoUpdateObject, 4)
         as_object = (bool)PARAM_INT(4);
     }
 
     int flags = MONGO_UPDATE_MULTI;
     if (PARAMETERS_COUNT > 5) {
-        T_NUMBER(5)
+        T_NUMBER(MongoUpdateObject, 5)
         flags = PARAM_INT(5);
     }
     mongo *conn = (mongo *)PARAM_INT(0);
@@ -1264,8 +1264,8 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(MongoUpdateObject, 4, 6)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(MongoRemove, 3)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(MongoRemove, 0)
+    T_STRING(MongoRemove, 1)
     char *arr_data = 0;
     bool is_array = false;
     GET_ARRAY(2, arr_data);
@@ -1300,8 +1300,8 @@ CONCEPT_FUNCTION_IMPL(MongoRemove, 3)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(MongoFind, 3, 7)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(MongoFind, 0)
+    T_STRING(MongoFind, 1)
     char *arr_data = 0;
     bool is_array = false;
     GET_ARRAY(2, arr_data);
@@ -1321,22 +1321,22 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(MongoFind, 3, 7)
     bson *pb2 = 0;
 
     if (PARAMETERS_COUNT > 3) {
-        T_ARRAY(3)
+        T_ARRAY(MongoFind, 3)
         if (BuildFields(b2, PARAMETER(3), true, true))
             pb2 = b2;
     }
     bson_finish(b2);
 
     if (PARAMETERS_COUNT > 4) {
-        T_NUMBER(4)
+        T_NUMBER(MongoFind, 4)
         limit = PARAM_INT(4);
     }
     if (PARAMETERS_COUNT > 5) {
-        T_NUMBER(5)
+        T_NUMBER(MongoFind, 5)
         skip = PARAM_INT(5);
     }
     if (PARAMETERS_COUNT > 6) {
-        T_NUMBER(6)
+        T_NUMBER(MongoFind, 6)
         flags = PARAM_INT(6);
     }
     mongo *conn = (mongo *)PARAM_INT(0);
@@ -1365,7 +1365,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(MongoFind, 3, 7)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(MongoNext, 1)
-    T_HANDLE(0)
+    T_HANDLE(MongoNext, 0)
     mongo_cursor * cursor = (mongo_cursor *)PARAM_INT(0);
 
     int res = mongo_cursor_next(cursor);
@@ -1373,7 +1373,7 @@ CONCEPT_FUNCTION_IMPL(MongoNext, 1)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(MongoClose, 1)
-    T_HANDLE(0)
+    T_HANDLE(MongoClose, 0)
     mongo_cursor * cursor = (mongo_cursor *)PARAM_INT(0);
 
     int res = mongo_cursor_destroy(cursor);
@@ -1555,10 +1555,10 @@ void DoBSON(void *ConceptHandler, void *ARR, bson_iterator *i, bool use_type = f
 
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(MongoData, 1, 2)
-    T_HANDLE(0)
+    T_HANDLE(MongoData, 0)
     bool use_type = false;
     if (PARAMETERS_COUNT > 1) {
-        T_NUMBER(1)
+        T_NUMBER(MongoData, 1)
         use_type = (bool)PARAM_INT(1);
     }
     mongo_cursor  *cursor = (mongo_cursor *)PARAM_INT(0);
@@ -1569,8 +1569,8 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(MongoData, 1, 2)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(MongoFindOne, 3, 6)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(MongoFindOne, 0)
+    T_STRING(MongoFindOne, 1)
     char *arr_data = 0;
     bool is_array = false;
     GET_ARRAY(2, arr_data);
@@ -1583,7 +1583,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(MongoFindOne, 3, 6)
 
     bool use_type = false;
     if (PARAMETERS_COUNT > 5) {
-        T_NUMBER(5);
+        T_NUMBER(MongoFindOne, 5);
         use_type = (bool)PARAM_INT(5);
     }
 
@@ -1591,7 +1591,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(MongoFindOne, 3, 6)
     bson_init(b2);
     bson *pb2 = 0;
     if (PARAMETERS_COUNT > 3) {
-        T_ARRAY(3)
+        T_ARRAY(MongoFindOne, 3)
         if (BuildFields(b2, PARAMETER(3), true, use_type))
             pb2 = b2;
     }
@@ -1634,7 +1634,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(MongoFindOne, 3, 6)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(MongoIsMaster, 1, 2)
-    T_HANDLE(0)
+    T_HANDLE(MongoIsMaster, 0)
     mongo * conn = (mongo *)PARAM_INT(0);
     bson out[1];
     int  res = mongo_cmd_ismaster(conn, out);
@@ -1649,8 +1649,8 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(MongoIsMaster, 1, 2)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(MongoLastError, 2, 3)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(MongoLastError, 0)
+    T_STRING(MongoLastError, 1)
     mongo * conn = (mongo *)PARAM_INT(0);
     bson out;
     int  res = mongo_cmd_get_last_error(conn, PARAM(1), &out);
@@ -1665,8 +1665,8 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(MongoLastError, 2, 3)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(MongoPrevError, 2, 3)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(MongoPrevError, 0)
+    T_STRING(MongoPrevError, 1)
     mongo * conn = (mongo *)PARAM_INT(0);
     bson out;
     int  res = mongo_cmd_get_prev_error(conn, PARAM(1), &out);
@@ -1681,9 +1681,9 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(MongoPrevError, 2, 3)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(MongoDropCollection, 3, 4)
-    T_HANDLE(0)
-    T_STRING(1)
-    T_STRING(2)
+    T_HANDLE(MongoDropCollection, 0)
+    T_STRING(MongoDropCollection, 1)
+    T_STRING(MongoDropCollection, 2)
     mongo * conn = (mongo *)PARAM_INT(0);
     bson out[1];
     int  res = mongo_cmd_drop_collection(conn, PARAM(1), PARAM(2), out);
@@ -1698,9 +1698,9 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(MongoDropCollection, 3, 4)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(MongoSimpleCommand, 4, 6)
-    T_HANDLE(0)
-    T_STRING(1)
-    T_STRING(2)
+    T_HANDLE(MongoSimpleCommand, 0)
+    T_STRING(MongoSimpleCommand, 1)
+    T_STRING(MongoSimpleCommand, 2)
 
     bool is_number = true;
 
@@ -1725,7 +1725,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(MongoSimpleCommand, 4, 6)
     if (PARAMETERS_COUNT > 4) {
         bool use_types = false;
         if (PARAMETERS_COUNT > 5) {
-            T_NUMBER(5)
+            T_NUMBER(MongoSimpleCommand, 5)
             use_types = (bool)PARAM_INT(5);
         }
 
@@ -1738,9 +1738,9 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(MongoSimpleCommand, 4, 6)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(MongoCommand, 3, 5)
-    T_HANDLE(0)
-    T_STRING(1)
-    T_ARRAY(2)
+    T_HANDLE(MongoCommand, 0)
+    T_STRING(MongoCommand, 1)
+    T_ARRAY(MongoCommand, 2)
 
     mongo * conn = (mongo *)PARAM_INT(0);
     bson b[1];
@@ -1755,7 +1755,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(MongoCommand, 3, 5)
     if (PARAMETERS_COUNT > 3) {
         bool use_types = false;
         if (PARAMETERS_COUNT > 4) {
-            T_NUMBER(4)
+            T_NUMBER(MongoCommand, 4)
             use_types = (bool)PARAM_INT(4);
         }
         bson_iterator i[1];
@@ -1767,12 +1767,12 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(MongoCommand, 3, 5)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(MongoIndex, 3, 5)
-    T_HANDLE(0)
-    T_STRING(1)
-    T_ARRAY(2)
+    T_HANDLE(MongoIndex, 0)
+    T_STRING(MongoIndex, 1)
+    T_ARRAY(MongoIndex, 2)
     int flags = 0;
     if (PARAMETERS_COUNT > 3) {
-        T_NUMBER(3);
+        T_NUMBER(MongoIndex, 3);
         flags = PARAM_INT(3);
     }
 
@@ -1797,12 +1797,12 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(MongoIndex, 3, 5)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(MongoSimpleIndex, 3, 5)
-    T_HANDLE(0)
-    T_STRING(1)
-    T_STRING(2)
+    T_HANDLE(MongoSimpleIndex, 0)
+    T_STRING(MongoSimpleIndex, 1)
+    T_STRING(MongoSimpleIndex, 2)
     int flags = 0;
     if (PARAMETERS_COUNT > 3) {
-        T_NUMBER(3);
+        T_NUMBER(MongoSimpleIndex, 3);
         flags = PARAM_INT(3);
     }
 
@@ -1822,9 +1822,9 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(MongoSimpleIndex, 3, 5)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(GridFSInit, 3)
-    T_HANDLE(0)
-    T_STRING(1)
-    T_STRING(2)
+    T_HANDLE(GridFSInit, 0)
+    T_STRING(GridFSInit, 1)
+    T_STRING(GridFSInit, 2)
 
     mongo * conn = (mongo *)PARAM_INT(0);
     gridfs *gfs = (gridfs *)malloc(sizeof(gridfs));
@@ -1837,7 +1837,7 @@ CONCEPT_FUNCTION_IMPL(GridFSInit, 3)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(GridFSDone, 1)
-    T_HANDLE(0)
+    T_HANDLE(GridFSDone, 0)
 
     gridfs * gfs = (gridfs *)PARAM_INT(0);
     gridfs_destroy(gfs);
@@ -1847,14 +1847,14 @@ CONCEPT_FUNCTION_IMPL(GridFSDone, 1)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(GridFSStore, 3, 4)
-    T_HANDLE(0)
-    T_STRING(1)
-    T_STRING(2)
+    T_HANDLE(GridFSStore, 0)
+    T_STRING(GridFSStore, 1)
+    T_STRING(GridFSStore, 2)
     char *type = "application/octet-stream";
 
     gridfs *gfs = (gridfs *)PARAM_INT(0);
     if (PARAMETERS_COUNT > 3) {
-        T_STRING(3)
+        T_STRING(GridFSStore, 3)
         type = PARAM(3);
     }
     if (PARAM_LEN(1) > 0) {
@@ -1867,8 +1867,8 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(GridFSStore, 3, 4)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(GridFSGet, 2)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(GridFSGet, 0)
+    T_STRING(GridFSGet, 1)
     gridfs * gfs = (gridfs *)PARAM_INT(0);
     gridfile gfile[1];
     if (gridfs_find_filename(gfs, PARAM(1), gfile) == MONGO_OK) {
@@ -1898,16 +1898,16 @@ CONCEPT_FUNCTION_IMPL(GridFSGet, 2)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(GridFSRemove, 2)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(GridFSRemove, 0)
+    T_STRING(GridFSRemove, 1)
     gridfs * gfs = (gridfs *)PARAM_INT(0);
     gridfs_remove_filename(gfs, PARAM(1));
     RETURN_NUMBER(0);
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(GridFSExists, 2)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(GridFSExists, 0)
+    T_STRING(GridFSExists, 1)
     gridfs * gfs = (gridfs *)PARAM_INT(0);
     gridfile gfile[1];
     int      res = 0;
@@ -1919,8 +1919,8 @@ CONCEPT_FUNCTION_IMPL(GridFSExists, 2)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(GridFSSize, 2)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(GridFSSize, 0)
+    T_STRING(GridFSSize, 1)
     gridfs * gfs = (gridfs *)PARAM_INT(0);
     gridfile gfile[1];
     RETURN_NUMBER(0);
@@ -1932,8 +1932,8 @@ CONCEPT_FUNCTION_IMPL(GridFSSize, 2)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(GridFSType, 2)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(GridFSType, 0)
+    T_STRING(GridFSType, 1)
     gridfs * gfs = (gridfs *)PARAM_INT(0);
     gridfile gfile[1];
     RETURN_STRING("");
@@ -1947,8 +1947,8 @@ CONCEPT_FUNCTION_IMPL(GridFSType, 2)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(GridFSDate, 2)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(GridFSDate, 0)
+    T_STRING(GridFSDate, 1)
     gridfs * gfs = (gridfs *)PARAM_INT(0);
     gridfile gfile[1];
     RETURN_NUMBER(0);
@@ -1960,8 +1960,8 @@ CONCEPT_FUNCTION_IMPL(GridFSDate, 2)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(GridFSMD5, 2)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(GridFSMD5, 0)
+    T_STRING(GridFSMD5, 1)
     gridfs * gfs = (gridfs *)PARAM_INT(0);
     gridfile gfile[1];
     RETURN_STRING("");
@@ -1974,3 +1974,4 @@ CONCEPT_FUNCTION_IMPL(GridFSMD5, 2)
     }
 END_IMPL
 //-----------------------------------------------------//
+

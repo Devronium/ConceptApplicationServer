@@ -1295,9 +1295,9 @@ CONCEPT_DLL_API ON_DESTROY_CONTEXT MANAGEMENT_PARAMETERS {
 }
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(FBConnect, 3)
-    T_STRING(0)
-    T_STRING(1)
-    T_STRING(2)
+    T_STRING(FBConnect, 0)
+    T_STRING(FBConnect, 1)
+    T_STRING(FBConnect, 2)
 // db, user, password
     DBHandle * handle = (DBHandle *)malloc(sizeof(DBHandle));
 
@@ -1329,7 +1329,7 @@ CONCEPT_FUNCTION_IMPL(FBConnect, 3)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(FBDisconnect, 1)
-    T_NUMBER(0)
+    T_NUMBER(FBDisconnect, 0)
     DBHandle * handle = (DBHandle *)(SYS_INT)PARAM(0);
     if (handle) {
         isc_detach_database(handle->status_vector, &handle->handle);
@@ -1339,7 +1339,7 @@ CONCEPT_FUNCTION_IMPL(FBDisconnect, 1)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(FBErrorCode, 1)
-    T_NUMBER(0)
+    T_NUMBER(FBErrorCode, 0)
 
     DBHandle * handle = (DBHandle *)(SYS_INT)PARAM(0);
 
@@ -1354,7 +1354,7 @@ CONCEPT_FUNCTION_IMPL(FBErrorCode, 1)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(FBError, 1)
-    T_NUMBER(0)
+    T_NUMBER(FBError, 0)
 
     DBHandle * handle = (DBHandle *)(SYS_INT)PARAM(0);
     if (!handle) {
@@ -1377,7 +1377,7 @@ CONCEPT_FUNCTION_IMPL(FBError, 1)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(FBTransaction, 1, 2)
-    T_HANDLE(0)
+    T_HANDLE(FBTransaction, 0)
 
     static char isc_tbp[] = { isc_tpb_version3, isc_tpb_write, isc_tpb_concurrency, isc_tpb_wait };
 
@@ -1385,7 +1385,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(FBTransaction, 1, 2)
     char           options[0xFF];
     unsigned short size = (unsigned short)sizeof(isc_tbp);
     if (PARAMETERS_COUNT > 1) {
-        T_ARRAY(1)
+        T_ARRAY(FBTransaction, 1)
 
         float *arr = GetFloatList(PARAMETER(1), Invoke);
         if (arr) {
@@ -1414,15 +1414,15 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(FBTransaction, 1, 2)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(FBCommit, 2, 3)
-    T_NUMBER(0)
-    T_HANDLE(1)
+    T_NUMBER(FBCommit, 0)
+    T_HANDLE(FBCommit, 1)
 
     isc_tr_handle tr_handle = (isc_tr_handle)(SYS_INT)PARAM(0);
     DBHandle *handle = (DBHandle *)(SYS_INT)PARAM(1);
 
     int retaining = 0;
     if (PARAMETERS_COUNT > 1) {
-        T_NUMBER(1);
+        T_NUMBER(FBCommit, 1);
         retaining = PARAM_INT(1);
     }
     if ((tr_handle) && (handle)) {
@@ -1438,15 +1438,15 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(FBCommit, 2, 3)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(FBRollback, 1, 2)
-    T_NUMBER(0)
-    T_HANDLE(1)
+    T_NUMBER(FBRollback, 0)
+    T_HANDLE(FBRollback, 1)
 
     isc_tr_handle tr_handle = (isc_tr_handle)(SYS_INT)PARAM(0);
     DBHandle *handle = (DBHandle *)(SYS_INT)PARAM(1);
 
     int retaining = 0;
     if (PARAMETERS_COUNT > 1) {
-        T_NUMBER(1);
+        T_NUMBER(FBRollback, 1);
         retaining = PARAM_INT(1);
     }
     if ((tr_handle) && (handle)) {
@@ -1632,9 +1632,9 @@ XSQLDA *GetParameters(void *arr, INVOKE_CALL _Invoke, isc_stmt_handle stmt, DBHa
 
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(FBNonQuery, 3)
-    T_STRING(0)
-    T_HANDLE(1)
-    T_NUMBER(2)
+    T_STRING(FBNonQuery, 0)
+    T_HANDLE(FBNonQuery, 1)
+    T_NUMBER(FBNonQuery, 2)
 
     DBHandle * handle = (DBHandle *)(SYS_INT)PARAM(1);
     isc_tr_handle tr_handle = (isc_tr_handle)PARAM_INT(2);
@@ -1644,9 +1644,9 @@ CONCEPT_FUNCTION_IMPL(FBNonQuery, 3)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(FBQuery, 3, 4)
-    T_STRING(0)
-    T_HANDLE(1)
-    T_NUMBER(2)
+    T_STRING(FBQuery, 0)
+    T_HANDLE(FBQuery, 1)
+    T_NUMBER(FBQuery, 2)
 
     XSQLDA * in_sqlda = NULL;
     DBHandle      *handle   = (DBHandle *)(SYS_INT)PARAM(1);
@@ -1690,7 +1690,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(FBQuery, 3, 4)
         }
     }
     if (PARAMETERS_COUNT > 3) {
-        T_ARRAY(3);
+        T_ARRAY(FBQuery, 3);
 
         in_sqlda = GetParameters(PARAMETER(3), Invoke, stmt, handle, tr_handle);
     }
@@ -1802,7 +1802,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(FBQuery, 3, 4)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(FBFreeResult, 1)
-    T_NUMBER(0)
+    T_NUMBER(FBFreeResult, 0)
     QUERY * q = (QUERY *)PARAM_INT(0);
     if (q) {
         SET_NUMBER(0, 0);
@@ -1823,7 +1823,7 @@ CONCEPT_FUNCTION_IMPL(FBFreeResult, 1)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(FBFetchForward, 1)
-    T_HANDLE(0);
+    T_HANDLE(FBFetchForward, 0);
     QUERY *q = (QUERY *)PARAM_INT(0);
     if ((q->row) && (q->row->sqld > 0)) {
         ISC_STATUS fetch_stat = isc_dsql_fetch(q->db_handle->status_vector, &q->stmt, 1, q->row);
@@ -1840,8 +1840,8 @@ CONCEPT_FUNCTION_IMPL(FBFetchForward, 1)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(FBGetValue, 2)
-    T_HANDLE(0);
-    T_NUMBER(1);
+    T_HANDLE(FBGetValue, 0);
+    T_NUMBER(FBGetValue, 1);
     QUERY     *q  = (QUERY *)PARAM_INT(0);
     int       col = PARAM_INT(1);
     struct tm timevar;
@@ -1969,8 +1969,8 @@ CONCEPT_FUNCTION_IMPL(FBGetValue, 2)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(FBGetBlobId, 2)
-    T_HANDLE(0);
-    T_NUMBER(1);
+    T_HANDLE(FBGetBlobId, 0);
+    T_NUMBER(FBGetBlobId, 1);
     QUERY *q  = (QUERY *)PARAM_INT(0);
     int   col = PARAM_INT(1);
 
@@ -1991,8 +1991,8 @@ CONCEPT_FUNCTION_IMPL(FBGetBlobId, 2)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(FBIsNull, 2)
-    T_HANDLE(0);
-    T_NUMBER(1);
+    T_HANDLE(FBIsNull, 0);
+    T_NUMBER(FBIsNull, 1);
     QUERY *q  = (QUERY *)PARAM_INT(0);
     int   col = PARAM_INT(1);
     int   res = -1;
@@ -2003,8 +2003,8 @@ CONCEPT_FUNCTION_IMPL(FBIsNull, 2)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(FBIsBlob, 2)
-    T_HANDLE(0);
-    T_NUMBER(1);
+    T_HANDLE(FBIsBlob, 0);
+    T_NUMBER(FBIsBlob, 1);
     QUERY *q  = (QUERY *)PARAM_INT(0);
     int   col = PARAM_INT(1);
     int   res = 0;
@@ -2017,8 +2017,8 @@ CONCEPT_FUNCTION_IMPL(FBIsBlob, 2)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(FBDescribeCol, 2)
-    T_HANDLE(0);
-    T_NUMBER(1);
+    T_HANDLE(FBDescribeCol, 0);
+    T_NUMBER(FBDescribeCol, 1);
     QUERY *q  = (QUERY *)PARAM_INT(0);
     int   col = PARAM_INT(1);
     int   res = 0;
@@ -2038,14 +2038,14 @@ CONCEPT_FUNCTION_IMPL(FBDescribeCol, 2)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(FBCountColumns, 1)
-    T_HANDLE(0);
+    T_HANDLE(FBCountColumns, 0);
     QUERY *q = (QUERY *)(SYS_INT)PARAM(0);
     RETURN_NUMBER(q->row->sqld);
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(FBBlobOpen, 2)
-    T_HANDLE(0)
-    T_HANDLE(1)
+    T_HANDLE(FBBlobOpen, 0)
+    T_HANDLE(FBBlobOpen, 1)
     QUERY * q = (QUERY *)PARAM_INT(0);
     ISC_QUAD *blob_id = (ISC_QUAD *)(SYS_INT)PARAM(1);
 
@@ -2060,8 +2060,8 @@ CONCEPT_FUNCTION_IMPL(FBBlobOpen, 2)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(FBBlobRead, 1)
-    T_HANDLE(0)
-    T_HANDLE(1)
+    T_HANDLE(FBBlobRead, 0)
+    T_HANDLE(FBBlobRead, 1)
 
     DBHandle * handle = (DBHandle *)(SYS_INT)PARAM(0);
 
@@ -2080,8 +2080,8 @@ CONCEPT_FUNCTION_IMPL(FBBlobRead, 1)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(FBBlobClose, 1)
-    T_HANDLE(0)
-    T_HANDLE(1)
+    T_HANDLE(FBBlobClose, 0)
+    T_HANDLE(FBBlobClose, 1)
 
     DBHandle * handle = (DBHandle *)(SYS_INT)PARAM(0);
     isc_blob_handle blob_handle = (isc_blob_handle)(SYS_INT)PARAM(1);
@@ -2093,10 +2093,10 @@ CONCEPT_FUNCTION_IMPL(FBBlobClose, 1)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(FBBlobSeek, 4)
-    T_HANDLE(0)
-    T_HANDLE(1)
-    T_NUMBER(2)
-    T_NUMBER(3)
+    T_HANDLE(FBBlobSeek, 0)
+    T_HANDLE(FBBlobSeek, 1)
+    T_NUMBER(FBBlobSeek, 2)
+    T_NUMBER(FBBlobSeek, 3)
 
     DBHandle * handle = (DBHandle *)(SYS_INT)PARAM(0);
     isc_blob_handle blob_handle = (isc_blob_handle)(SYS_INT)PARAM(1);
@@ -2109,9 +2109,9 @@ CONCEPT_FUNCTION_IMPL(FBBlobSeek, 4)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(FBBlobWrite, 3)
-    T_HANDLE(0)
-    T_HANDLE(1)
-    T_STRING(2)
+    T_HANDLE(FBBlobWrite, 0)
+    T_HANDLE(FBBlobWrite, 1)
+    T_STRING(FBBlobWrite, 2)
 
     DBHandle * handle = (DBHandle *)(SYS_INT)PARAM(0);
     isc_blob_handle blob_handle = (isc_blob_handle)(SYS_INT)PARAM(1);
@@ -2135,9 +2135,9 @@ CONCEPT_FUNCTION_IMPL(FBBlobWrite, 3)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(FBBlobCreate, 4)
-    T_HANDLE(0)
-    T_HANDLE(1)
-    T_HANDLE(2)
+    T_HANDLE(FBBlobCreate, 0)
+    T_HANDLE(FBBlobCreate, 1)
+    T_HANDLE(FBBlobCreate, 2)
 
     DBHandle * handle = (DBHandle *)(SYS_INT)PARAM(0);
     isc_tr_handle tr_handle = (isc_tr_handle)(SYS_INT)PARAM(1);
@@ -2155,7 +2155,7 @@ CONCEPT_FUNCTION_IMPL(FBBlobCreate, 4)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(FBAffectedRows, 1)
-    T_HANDLE(0)
+    T_HANDLE(FBAffectedRows, 0)
     QUERY * q = (QUERY *)PARAM_INT(0);
 
     int  length, type, res = 0;
@@ -2260,8 +2260,8 @@ CONCEPT_FUNCTION_IMPL(FBAffectedRows, 1)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(FBColumnName, 2, 3)
-    T_HANDLE(0)
-    T_NUMBER(1)
+    T_HANDLE(FBColumnName, 0)
+    T_NUMBER(FBColumnName, 1)
     QUERY *q  = (QUERY *)PARAM_INT(0);
     int   col = PARAM_INT(1);
     int   res = 0;
@@ -2285,3 +2285,4 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(FBColumnName, 2, 3)
     }
 END_IMPL
 //------------------------------------------------------------------------
+

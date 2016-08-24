@@ -100,8 +100,8 @@ CONCEPT_DLL_API ON_DESTROY_CONTEXT MANAGEMENT_PARAMETERS {
 }
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_zip_open, 3)
-    T_STRING(0)
-    T_NUMBER(1)
+    T_STRING(_zip_open, 0)
+    T_NUMBER(_zip_open, 1)
 
     int errorp = 0;
 
@@ -112,9 +112,9 @@ CONCEPT_FUNCTION_IMPL(_zip_open, 3)
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(__zip_name_locate, 3)
-    T_NUMBER(0)
-    T_STRING(1)
-    T_NUMBER(2)
+    T_NUMBER(__zip_name_locate, 0)
+    T_STRING(__zip_name_locate, 1)
+    T_NUMBER(__zip_name_locate, 2)
 
     if (!(PARAM_INT(0)))
         FAIL_ERROR("_zip_name_locate: Invalid parameter");
@@ -123,9 +123,9 @@ CONCEPT_FUNCTION_IMPL(__zip_name_locate, 3)
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_zip_fopen, 3)
-    T_NUMBER(0)
-    T_STRING(1)
-    T_NUMBER(2)
+    T_NUMBER(_zip_fopen, 0)
+    T_STRING(_zip_fopen, 1)
+    T_NUMBER(_zip_fopen, 2)
 
     if (!(PARAM_INT(0)))
         FAIL_ERROR("_zip_fopen: Invalid parameter");
@@ -134,9 +134,9 @@ CONCEPT_FUNCTION_IMPL(_zip_fopen, 3)
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_zip_fopen_index, 3)
-    T_NUMBER(0)
-    T_NUMBER(1)
-    T_NUMBER(2)
+    T_NUMBER(_zip_fopen_index, 0)
+    T_NUMBER(_zip_fopen_index, 1)
+    T_NUMBER(_zip_fopen_index, 2)
 
     if (!(PARAM_INT(0)))
         FAIL_ERROR("_zip_fopen_index: Invalid parameter");
@@ -145,9 +145,9 @@ CONCEPT_FUNCTION_IMPL(_zip_fopen_index, 3)
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_zip_fread, 3)
-    T_NUMBER(0)
+    T_NUMBER(_zip_fread, 0)
 //T_NUMBER(1)
-    T_NUMBER(2)
+    T_NUMBER(_zip_fread, 2)
 
     if ((!(PARAM_INT(0))) || (PARAM_INT(2) <= 0))
         FAIL_ERROR("_zip_fread: Invalid parameter");
@@ -170,7 +170,7 @@ CONCEPT_FUNCTION_IMPL(_zip_fread, 3)
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_zip_fclose, 1)
-    T_NUMBER(0)
+    T_NUMBER(_zip_fclose, 0)
 
     if (!(PARAM_INT(0)))
         FAIL_ERROR("_zip_fclose: Invalid parameter");
@@ -179,7 +179,7 @@ CONCEPT_FUNCTION_IMPL(_zip_fclose, 1)
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_zip_close, 1)
-    T_NUMBER(0)
+    T_NUMBER(_zip_close, 0)
 
     if (!(PARAM_INT(0)))
         FAIL_ERROR("_zip_close: Invalid parameter");
@@ -188,9 +188,9 @@ CONCEPT_FUNCTION_IMPL(_zip_close, 1)
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_zip_stat, 4)
-    T_NUMBER(0)
-    T_STRING(1)
-    T_NUMBER(2)
+    T_NUMBER(_zip_stat, 0)
+    T_STRING(_zip_stat, 1)
+    T_NUMBER(_zip_stat, 2)
 //T_ARRAY(3)
 
     if (!(PARAM_INT(0)))
@@ -214,8 +214,8 @@ CONCEPT_FUNCTION_IMPL(_zip_stat, 4)
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_zip_get_archive_comment, 2)
-    T_NUMBER(0)
-    T_NUMBER(1)
+    T_NUMBER(_zip_get_archive_comment, 0)
+    T_NUMBER(_zip_get_archive_comment, 1)
 
     if (!(PARAM_INT(0)))
         FAIL_ERROR("_zip_get_archive_comment: Invalid parameter");
@@ -230,9 +230,9 @@ CONCEPT_FUNCTION_IMPL(_zip_get_archive_comment, 2)
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_zip_get_file_comment, 3)
-    T_NUMBER(0)
-    T_NUMBER(1)
-    T_NUMBER(2)
+    T_NUMBER(_zip_get_file_comment, 0)
+    T_NUMBER(_zip_get_file_comment, 1)
+    T_NUMBER(_zip_get_file_comment, 2)
 
     if (!(PARAM_INT(0)))
         FAIL_ERROR("_zip_get_file_comment: Invalid parameter");
@@ -247,9 +247,9 @@ CONCEPT_FUNCTION_IMPL(_zip_get_file_comment, 3)
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(__zip_get_name, 3)
-    T_NUMBER(0)
-    T_NUMBER(1)
-    T_NUMBER(2)
+    T_NUMBER(__zip_get_name, 0)
+    T_NUMBER(__zip_get_name, 1)
+    T_NUMBER(__zip_get_name, 2)
 
     if (!(PARAM_INT(0)))
         FAIL_ERROR("__zip_get_name: Invalid parameter");
@@ -258,7 +258,7 @@ CONCEPT_FUNCTION_IMPL(__zip_get_name, 3)
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_zip_get_num_files, 1)
-    T_NUMBER(0)
+    T_NUMBER(_zip_get_num_files, 0)
 
     if (!(PARAM_INT(0)))
         FAIL_ERROR("_zip_get_num_files: Invalid parameter");
@@ -267,9 +267,9 @@ CONCEPT_FUNCTION_IMPL(_zip_get_num_files, 1)
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_zip_add, 3)
-    T_NUMBER(0)
-    T_STRING(1)
-    T_NUMBER(2)
+    T_NUMBER(_zip_add, 0)
+    T_STRING(_zip_add, 1)
+    T_NUMBER(_zip_add, 2)
 
     if (!(PARAM_INT(0)))
         FAIL_ERROR("_zip_add: Invalid parameter (1)");
@@ -281,9 +281,9 @@ CONCEPT_FUNCTION_IMPL(_zip_add, 3)
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(__zip_replace, 3)
-    T_NUMBER(0)
-    T_NUMBER(1)
-    T_NUMBER(2)
+    T_NUMBER(__zip_replace, 0)
+    T_NUMBER(__zip_replace, 1)
+    T_NUMBER(__zip_replace, 2)
 
     if (!(PARAM_INT(0)))
         FAIL_ERROR("__zip_replace: Invalid parameter (1)");
@@ -295,9 +295,9 @@ CONCEPT_FUNCTION_IMPL(__zip_replace, 3)
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_zip_set_file_comment, 3)
-    T_NUMBER(0)
-    T_NUMBER(1)
-    T_STRING(2)
+    T_NUMBER(_zip_set_file_comment, 0)
+    T_NUMBER(_zip_set_file_comment, 1)
+    T_STRING(_zip_set_file_comment, 2)
 
     if (!(PARAM_INT(0)))
         FAIL_ERROR("_zip_set_file_comment: Invalid parameter (1)");
@@ -306,8 +306,8 @@ CONCEPT_FUNCTION_IMPL(_zip_set_file_comment, 3)
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_zip_source_buffer, 2)
-    T_NUMBER(0)
-    T_STRING(1)
+    T_NUMBER(_zip_source_buffer, 0)
+    T_STRING(_zip_source_buffer, 1)
 
     if (!(PARAM_INT(0)))
         FAIL_ERROR("_zip_source_buffer: Invalid parameter (1)");
@@ -325,10 +325,10 @@ CONCEPT_FUNCTION_IMPL(_zip_source_buffer, 2)
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_zip_source_file, 4)
-    T_NUMBER(0)
-    T_STRING(1)
-    T_NUMBER(2)
-    T_NUMBER(3)
+    T_NUMBER(_zip_source_file, 0)
+    T_STRING(_zip_source_file, 1)
+    T_NUMBER(_zip_source_file, 2)
+    T_NUMBER(_zip_source_file, 3)
 
     if (!(PARAM_INT(0)))
         FAIL_ERROR("_zip_source_file: Invalid parameter (1)");
@@ -337,10 +337,10 @@ CONCEPT_FUNCTION_IMPL(_zip_source_file, 4)
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_zip_source_filep, 4)
-    T_NUMBER(0)
-    T_NUMBER(1)
-    T_NUMBER(2)
-    T_NUMBER(3)
+    T_NUMBER(_zip_source_filep, 0)
+    T_NUMBER(_zip_source_filep, 1)
+    T_NUMBER(_zip_source_filep, 2)
+    T_NUMBER(_zip_source_filep, 3)
 
     if (!(PARAM_INT(0)))
         FAIL_ERROR("_zip_source_filep: Invalid parameter (1)");
@@ -352,12 +352,12 @@ CONCEPT_FUNCTION_IMPL(_zip_source_filep, 4)
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_zip_source_zip, 6)
-    T_NUMBER(0)
-    T_NUMBER(1)
-    T_NUMBER(2)
-    T_NUMBER(3)
-    T_NUMBER(4)
-    T_NUMBER(5)
+    T_NUMBER(_zip_source_zip, 0)
+    T_NUMBER(_zip_source_zip, 1)
+    T_NUMBER(_zip_source_zip, 2)
+    T_NUMBER(_zip_source_zip, 3)
+    T_NUMBER(_zip_source_zip, 4)
+    T_NUMBER(_zip_source_zip, 5)
 
     if (!(PARAM_INT(0)))
         FAIL_ERROR("_zip_source_zip: Invalid parameter (1)");
@@ -369,7 +369,7 @@ CONCEPT_FUNCTION_IMPL(_zip_source_zip, 6)
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_zip_source_free, 1)
-    T_NUMBER(0)
+    T_NUMBER(_zip_source_free, 0)
 
     if (!(PARAM_INT(0)))
         FAIL_ERROR("_zip_source_free: Invalid parameter");
@@ -379,9 +379,9 @@ CONCEPT_FUNCTION_IMPL(_zip_source_free, 1)
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_zip_rename, 3)
-    T_NUMBER(0)
-    T_NUMBER(1)
-    T_STRING(2)
+    T_NUMBER(_zip_rename, 0)
+    T_NUMBER(_zip_rename, 1)
+    T_STRING(_zip_rename, 2)
 
     if (!(PARAM_INT(0)))
         FAIL_ERROR("_zip_rename: Invalid parameter");
@@ -390,8 +390,8 @@ CONCEPT_FUNCTION_IMPL(_zip_rename, 3)
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_zip_delete, 2)
-    T_NUMBER(0)
-    T_NUMBER(1)
+    T_NUMBER(_zip_delete, 0)
+    T_NUMBER(_zip_delete, 1)
 
     if (!(PARAM_INT(0)))
         FAIL_ERROR("_zip_delete: Invalid parameter");
@@ -400,8 +400,8 @@ CONCEPT_FUNCTION_IMPL(_zip_delete, 2)
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(__zip_unchange, 2)
-    T_NUMBER(0)
-    T_NUMBER(1)
+    T_NUMBER(__zip_unchange, 0)
+    T_NUMBER(__zip_unchange, 1)
 
     if (!(PARAM_INT(0)))
         FAIL_ERROR("__zip_unchange: Invalid parameter");
@@ -410,7 +410,7 @@ CONCEPT_FUNCTION_IMPL(__zip_unchange, 2)
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_zip_unchange_all, 1)
-    T_NUMBER(0)
+    T_NUMBER(_zip_unchange_all, 0)
 
     if (!(PARAM_INT(0)))
         FAIL_ERROR("_zip_unchange_all: Invalid parameter");
@@ -419,7 +419,7 @@ CONCEPT_FUNCTION_IMPL(_zip_unchange_all, 1)
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_zip_unchange_archive, 1)
-    T_NUMBER(0)
+    T_NUMBER(_zip_unchange_archive, 0)
 
     if (!(PARAM_INT(0)))
         FAIL_ERROR("_zip_unchange_archive: Invalid parameter");
@@ -428,8 +428,8 @@ CONCEPT_FUNCTION_IMPL(_zip_unchange_archive, 1)
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_zip_set_archive_comment, 2)
-    T_NUMBER(0)
-    T_STRING(1)
+    T_NUMBER(_zip_set_archive_comment, 0)
+    T_STRING(_zip_set_archive_comment, 1)
 
     if (!(PARAM_INT(0)))
         FAIL_ERROR("_zip_set_archive_comment: Invalid parameter (1)");
@@ -438,7 +438,7 @@ CONCEPT_FUNCTION_IMPL(_zip_set_archive_comment, 2)
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_zip_strerror, 1)
-    T_NUMBER(0)
+    T_NUMBER(_zip_strerror, 0)
 
     if (!(PARAM_INT(0)))
         FAIL_ERROR("_zip_strerror: Invalid parameter");
@@ -447,7 +447,7 @@ CONCEPT_FUNCTION_IMPL(_zip_strerror, 1)
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_zip_file_strerror, 1)
-    T_NUMBER(0)
+    T_NUMBER(_zip_file_strerror, 0)
 
     if (!(PARAM_INT(0)))
         FAIL_ERROR("_zip_file_strerror: Invalid parameter");
@@ -455,3 +455,4 @@ CONCEPT_FUNCTION_IMPL(_zip_file_strerror, 1)
     RETURN_STRING((char *)zip_file_strerror((zip_file *)PARAM_INT(0)))
 END_IMPL
 //---------------------------------------------------------------------------
+

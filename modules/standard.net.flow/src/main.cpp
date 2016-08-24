@@ -241,11 +241,11 @@ void FreeCHTPLHandle(std::map<unsigned short, CachedTemplate *> *map) {
 
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(ParseNetflowPacket, 1, 2)
-    T_STRING(0)
+    T_STRING(ParseNetflowPacket, 0)
 
     std::map<unsigned short, CachedTemplate *> *handle = 0;
     if (PARAMETERS_COUNT > 1) {
-        T_NUMBER(1)
+        T_NUMBER(ParseNetflowPacket, 1)
         handle = (std::map<unsigned short, CachedTemplate *> *)(SYS_INT) PARAM(1);
     }
 
@@ -629,7 +629,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(ParseNetflowPacket, 1, 2)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(DoneNetflowPacket, 1)
-    T_NUMBER(0)
+    T_NUMBER(DoneNetflowPacket, 0)
     std::map<unsigned short, CachedTemplate *> *handle = 0;
     handle = (std::map<unsigned short, CachedTemplate *> *)(SYS_INT) PARAM(0);
     if (handle) {
@@ -639,3 +639,4 @@ CONCEPT_FUNCTION_IMPL(DoneNetflowPacket, 1)
     RETURN_NUMBER(0);
 END_IMPL
 //-----------------------------------------------------//
+

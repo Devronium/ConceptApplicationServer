@@ -325,7 +325,7 @@ CONCEPT_FUNCTION_IMPL(osip_init, 1)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_release, 1)
-    T_NUMBER(0)
+    T_NUMBER(osip_release, 0)
     osip_t * osip = (osip_t *)PARAM_INT(0);
     if (osip) {
         if (osip->application_context) {
@@ -339,69 +339,69 @@ CONCEPT_FUNCTION_IMPL(osip_release, 1)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_ict_execute, 1)
-    T_HANDLE(0)
+    T_HANDLE(osip_ict_execute, 0)
     osip_t * osip = (osip_t *)PARAM_INT(0);
     int res = osip_ict_execute(osip);
     RETURN_NUMBER(res);
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_ist_execute, 1)
-    T_HANDLE(0)
+    T_HANDLE(osip_ist_execute, 0)
     osip_t * osip = (osip_t *)PARAM_INT(0);
     int res = osip_ist_execute(osip);
     RETURN_NUMBER(res);
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_nict_execute, 1)
-    T_HANDLE(0)
+    T_HANDLE(osip_nict_execute, 0)
     osip_t * osip = (osip_t *)PARAM_INT(0);
     int res = osip_nict_execute(osip);
     RETURN_NUMBER(res);
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_nist_execute, 1)
-    T_HANDLE(0)
+    T_HANDLE(osip_nist_execute, 0)
     osip_t * osip = (osip_t *)PARAM_INT(0);
     int res = osip_nist_execute(osip);
     RETURN_NUMBER(res);
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_timers_ict_execute, 1)
-    T_HANDLE(0)
+    T_HANDLE(osip_timers_ict_execute, 0)
     osip_t * osip = (osip_t *)PARAM_INT(0);
     osip_timers_ict_execute(osip);
     RETURN_NUMBER(0);
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_timers_ist_execute, 1)
-    T_HANDLE(0)
+    T_HANDLE(osip_timers_ist_execute, 0)
     osip_t * osip = (osip_t *)PARAM_INT(0);
     osip_timers_ist_execute(osip);
     RETURN_NUMBER(0);
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_timers_nict_execute, 1)
-    T_HANDLE(0)
+    T_HANDLE(osip_timers_nict_execute, 0)
     osip_t * osip = (osip_t *)PARAM_INT(0);
     osip_timers_nict_execute(osip);
     RETURN_NUMBER(0);
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_timers_nist_execute, 1)
-    T_HANDLE(0)
+    T_HANDLE(osip_timers_nist_execute, 0)
     osip_t * osip = (osip_t *)PARAM_INT(0);
     osip_timers_nist_execute(osip);
     RETURN_NUMBER(0);
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_parse, 1)
-    T_STRING(0)
+    T_STRING(osip_parse, 0)
     osip_event_t * evt = osip_parse(PARAM(0), PARAM_LEN(0));
     RETURN_NUMBER((SYS_INT)evt);
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_event_free, 1)
-    T_NUMBER(0)
+    T_NUMBER(osip_event_free, 0)
     osip_event_t * evt = (osip_event_t *)PARAM_INT(0);
     if (evt) {
         osip_event_free(evt);
@@ -411,8 +411,8 @@ CONCEPT_FUNCTION_IMPL(osip_event_free, 1)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_find_transaction_and_add_event, 2)
-    T_HANDLE(0)
-    T_HANDLE(1)
+    T_HANDLE(osip_find_transaction_and_add_event, 0)
+    T_HANDLE(osip_find_transaction_and_add_event, 1)
     osip_t * osip = (osip_t *)PARAM_INT(0);
     osip_event_t *evt = (osip_event_t *)PARAM_INT(1);
     int          res  = osip_find_transaction_and_add_event(osip, evt);
@@ -420,8 +420,8 @@ CONCEPT_FUNCTION_IMPL(osip_find_transaction_and_add_event, 2)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_create_transaction, 2)
-    T_HANDLE(0)
-    T_HANDLE(1)
+    T_HANDLE(osip_create_transaction, 0)
+    T_HANDLE(osip_create_transaction, 1)
     osip_t * osip = (osip_t *)PARAM_INT(0);
     osip_event_t       *evt = (osip_event_t *)PARAM_INT(1);
     osip_transaction_t *t   = osip_create_transaction(osip, evt);
@@ -429,14 +429,14 @@ CONCEPT_FUNCTION_IMPL(osip_create_transaction, 2)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_retransmissions_execute, 2)
-    T_HANDLE(0)
+    T_HANDLE(osip_retransmissions_execute, 0)
     osip_t * osip = (osip_t *)PARAM_INT(0);
     osip_retransmissions_execute(osip);
     RETURN_NUMBER(0);
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_transaction_free, 1)
-    T_NUMBER(0)
+    T_NUMBER(osip_transaction_free, 0)
     osip_transaction_t * evt = (osip_transaction_t *)PARAM_INT(0);
     int res = 0;
     if (evt) {
@@ -447,7 +447,7 @@ CONCEPT_FUNCTION_IMPL(osip_transaction_free, 1)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_transaction_free2, 1)
-    T_NUMBER(0)
+    T_NUMBER(osip_transaction_free2, 0)
     osip_transaction_t * evt = (osip_transaction_t *)PARAM_INT(0);
     int res = 0;
     if (evt) {
@@ -458,8 +458,8 @@ CONCEPT_FUNCTION_IMPL(osip_transaction_free2, 1)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_transaction_add_event, 2)
-    T_HANDLE(0)
-    T_HANDLE(1)
+    T_HANDLE(osip_transaction_add_event, 0)
+    T_HANDLE(osip_transaction_add_event, 1)
     osip_transaction_t * osip = (osip_transaction_t *)PARAM_INT(0);
     osip_event_t *evt = (osip_event_t *)PARAM_INT(1);
     int          res  = osip_transaction_add_event(osip, evt);
@@ -468,9 +468,9 @@ END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_transaction_init, 4)
 //T_HANDLE(0)
-    T_NUMBER(1)
-    T_HANDLE(2)
-    T_HANDLE(3)
+    T_NUMBER(osip_transaction_init, 1)
+    T_HANDLE(osip_transaction_init, 2)
+    T_HANDLE(osip_transaction_init, 3)
 
     osip_transaction_t * t = NULL;
     osip_t         *osip    = (osip_t *)PARAM_INT(2);
@@ -486,8 +486,8 @@ CONCEPT_FUNCTION_IMPL(osip_transaction_init, 4)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_transaction_execute, 2)
-    T_HANDLE(0)
-    T_HANDLE(1)
+    T_HANDLE(osip_transaction_execute, 0)
+    T_HANDLE(osip_transaction_execute, 1)
 
     osip_transaction_t * osip = (osip_transaction_t *)PARAM_INT(0);
     osip_event_t *request = (osip_event_t *)PARAM_INT(1);
@@ -497,30 +497,30 @@ CONCEPT_FUNCTION_IMPL(osip_transaction_execute, 2)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_transaction_set_out_socket, 2)
-    T_HANDLE(0)
-    T_NUMBER(1)
+    T_HANDLE(osip_transaction_set_out_socket, 0)
+    T_NUMBER(osip_transaction_set_out_socket, 1)
 
     int res = osip_transaction_set_out_socket((osip_transaction_t *)PARAM_INT(0), PARAM_INT(1));
     RETURN_NUMBER(res);
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_transaction_set_your_instance, 2)
-    T_HANDLE(0)
-    T_NUMBER(1)
+    T_HANDLE(osip_transaction_set_your_instance, 0)
+    T_NUMBER(osip_transaction_set_your_instance, 1)
 
     int res = osip_transaction_set_your_instance((osip_transaction_t *)PARAM_INT(0), (void *)PARAM_INT(1));
     RETURN_NUMBER(res);
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_transaction_get_your_instance, 1)
-    T_HANDLE(0)
+    T_HANDLE(osip_transaction_get_your_instance, 0)
 
     SYS_INT res = (SYS_INT)osip_transaction_get_your_instance((osip_transaction_t *)PARAM_INT(0));
     RETURN_NUMBER(res);
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_transaction_get_destination, 3)
-    T_HANDLE(0)
+    T_HANDLE(osip_transaction_get_destination, 0)
 
     char *ip = "";
     int port = 0;
@@ -531,16 +531,16 @@ CONCEPT_FUNCTION_IMPL(osip_transaction_get_destination, 3)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_nict_set_destination, 3)
-    T_HANDLE(0)
-    T_STRING(1)
-    T_NUMBER(2)
+    T_HANDLE(osip_nict_set_destination, 0)
+    T_STRING(osip_nict_set_destination, 1)
+    T_NUMBER(osip_nict_set_destination, 2)
 
     int res = osip_nict_set_destination((osip_nict_t *)PARAM_INT(0), PARAM(1), PARAM_INT(2));
     RETURN_NUMBER(res);
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_event_describe, 1)
-    T_HANDLE(0)
+    T_HANDLE(osip_event_describe, 0)
 
     osip_event_t * evt = (osip_event_t *)PARAM_INT(0);
     CREATE_ARRAY(RESULT);
@@ -558,7 +558,7 @@ CONCEPT_FUNCTION_IMPL(osip_message_init, 1)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_message_free, 1)
-    T_NUMBER(0)
+    T_NUMBER(osip_message_free, 0)
     osip_message_t * evt = (osip_message_t *)PARAM_INT(0);
     if (evt) {
         osip_message_free(evt);
@@ -642,8 +642,8 @@ void do_osip_set_transport_error_callback(int type, osip_transaction_t *tr, int 
 }
 
 CONCEPT_FUNCTION_IMPL(osip_set_cb_send_message, 2)
-    T_HANDLE(0)
-    T_DELEGATE(1)
+    T_HANDLE(osip_set_cb_send_message, 0)
+    T_DELEGATE(osip_set_cb_send_message, 1)
 
     osip_t * osip = (osip_t *)PARAM_INT(0);
     Invoke(INVOKE_LOCK_VARIABLE, PARAMETER(1));
@@ -656,9 +656,9 @@ CONCEPT_FUNCTION_IMPL(osip_set_cb_send_message, 2)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_set_message_callback, 3)
-    T_HANDLE(0)
-    T_NUMBER(1)
-    T_DELEGATE(2)
+    T_HANDLE(osip_set_message_callback, 0)
+    T_NUMBER(osip_set_message_callback, 1)
+    T_DELEGATE(osip_set_message_callback, 2)
 
     osip_t * osip = (osip_t *)PARAM_INT(0);
     Invoke(INVOKE_LOCK_VARIABLE, PARAMETER(2));
@@ -670,9 +670,9 @@ CONCEPT_FUNCTION_IMPL(osip_set_message_callback, 3)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_set_kill_transaction_callback, 3)
-    T_HANDLE(0)
-    T_NUMBER(1)
-    T_DELEGATE(2)
+    T_HANDLE(osip_set_kill_transaction_callback, 0)
+    T_NUMBER(osip_set_kill_transaction_callback, 1)
+    T_DELEGATE(osip_set_kill_transaction_callback, 2)
 
     osip_t * osip = (osip_t *)PARAM_INT(0);
 //EventsMap[2][PARAM_INT(1)]=PARAMETER(2);
@@ -685,9 +685,9 @@ CONCEPT_FUNCTION_IMPL(osip_set_kill_transaction_callback, 3)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_set_transport_error_callback, 3)
-    T_HANDLE(0)
-    T_NUMBER(1)
-    T_DELEGATE(2)
+    T_HANDLE(osip_set_transport_error_callback, 0)
+    T_NUMBER(osip_set_transport_error_callback, 1)
+    T_DELEGATE(osip_set_transport_error_callback, 2)
 
     osip_t * osip = (osip_t *)PARAM_INT(0);
 //EventsMap[3][PARAM_INT(1)]=PARAMETER(2);
@@ -700,7 +700,7 @@ CONCEPT_FUNCTION_IMPL(osip_set_transport_error_callback, 3)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_message_to_str, 2)
-    T_HANDLE(0)
+    T_HANDLE(osip_message_to_str, 0)
     SET_STRING(1, "");
     osip_message_t *sip   = (osip_message_t *)PARAM_INT(0);
     char           *msgP  = 0;
@@ -722,7 +722,7 @@ CONCEPT_FUNCTION_IMPL(osip_via_init, 1)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_via_free, 1)
-    T_NUMBER(0)
+    T_NUMBER(osip_via_free, 0)
     osip_via_t * evt = (osip_via_t *)PARAM_INT(0);
     if (evt) {
         osip_via_free(evt);
@@ -732,8 +732,8 @@ CONCEPT_FUNCTION_IMPL(osip_via_free, 1)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_via_parse, 2)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(osip_via_parse, 0)
+    T_STRING(osip_via_parse, 1)
 
     osip_via_t * header = (osip_via_t *)PARAM_INT(0);
     int res = osip_via_parse(header, PARAM(1));
@@ -741,7 +741,7 @@ CONCEPT_FUNCTION_IMPL(osip_via_parse, 2)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_via_to_str, 2)
-    T_HANDLE(0)
+    T_HANDLE(osip_via_to_str, 0)
 //T_STRING(1)
     SET_STRING(1, "");
 
@@ -756,7 +756,7 @@ CONCEPT_FUNCTION_IMPL(osip_via_to_str, 2)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_via_clone, 2)
-    T_HANDLE(0)
+    T_HANDLE(osip_via_clone, 0)
     osip_via_t * header = (osip_via_t *)PARAM_INT(0);
     osip_via_t *clone = 0;
     int        res    = osip_via_clone(header, &clone);
@@ -765,8 +765,8 @@ CONCEPT_FUNCTION_IMPL(osip_via_clone, 2)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(via_set_version, 2)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(via_set_version, 0)
+    T_STRING(via_set_version, 1)
 
     osip_via_t * header = (osip_via_t *)PARAM_INT(0);
     via_set_version(header, osip_strdup(PARAM(1)));
@@ -774,7 +774,7 @@ CONCEPT_FUNCTION_IMPL(via_set_version, 2)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(via_get_version, 1)
-    T_HANDLE(0)
+    T_HANDLE(via_get_version, 0)
     osip_via_t * header = (osip_via_t *)PARAM_INT(0);
     char *res = via_get_version(header);
     if (res) {
@@ -785,8 +785,8 @@ CONCEPT_FUNCTION_IMPL(via_get_version, 1)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(via_set_protocol, 2)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(via_set_protocol, 0)
+    T_STRING(via_set_protocol, 1)
 
     osip_via_t * header = (osip_via_t *)PARAM_INT(0);
     via_set_protocol(header, osip_strdup(PARAM(1)));
@@ -794,7 +794,7 @@ CONCEPT_FUNCTION_IMPL(via_set_protocol, 2)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(via_get_protocol, 1)
-    T_HANDLE(0)
+    T_HANDLE(via_get_protocol, 0)
     osip_via_t * header = (osip_via_t *)PARAM_INT(0);
     char *res = via_get_protocol(header);
     if (res) {
@@ -805,8 +805,8 @@ CONCEPT_FUNCTION_IMPL(via_get_protocol, 1)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(via_set_host, 2)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(via_set_host, 0)
+    T_STRING(via_set_host, 1)
 
     osip_via_t * header = (osip_via_t *)PARAM_INT(0);
     via_set_host(header, osip_strdup(PARAM(1)));
@@ -814,7 +814,7 @@ CONCEPT_FUNCTION_IMPL(via_set_host, 2)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(via_get_host, 1)
-    T_HANDLE(0)
+    T_HANDLE(via_get_host, 0)
     osip_via_t * header = (osip_via_t *)PARAM_INT(0);
     char *res = via_get_host(header);
     if (res) {
@@ -825,8 +825,8 @@ CONCEPT_FUNCTION_IMPL(via_get_host, 1)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(via_set_port, 2)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(via_set_port, 0)
+    T_STRING(via_set_port, 1)
 
     osip_via_t * header = (osip_via_t *)PARAM_INT(0);
     via_set_port(header, osip_strdup(PARAM(1)));
@@ -834,7 +834,7 @@ CONCEPT_FUNCTION_IMPL(via_set_port, 2)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(via_get_port, 1)
-    T_HANDLE(0)
+    T_HANDLE(via_get_port, 0)
     osip_via_t * header = (osip_via_t *)PARAM_INT(0);
     char *res = via_get_port(header);
     if (res) {
@@ -845,8 +845,8 @@ CONCEPT_FUNCTION_IMPL(via_get_port, 1)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(via_set_comment, 2)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(via_set_comment, 0)
+    T_STRING(via_set_comment, 1)
 
     osip_via_t * header = (osip_via_t *)PARAM_INT(0);
     via_set_comment(header, osip_strdup(PARAM(1)));
@@ -854,7 +854,7 @@ CONCEPT_FUNCTION_IMPL(via_set_comment, 2)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(via_get_comment, 1)
-    T_HANDLE(0)
+    T_HANDLE(via_get_comment, 0)
     osip_via_t * header = (osip_via_t *)PARAM_INT(0);
     char *res = via_get_comment(header);
     if (res) {
@@ -865,8 +865,8 @@ CONCEPT_FUNCTION_IMPL(via_get_comment, 1)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_via_set_ttl, 2)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(osip_via_set_ttl, 0)
+    T_STRING(osip_via_set_ttl, 1)
 
     osip_via_t * header = (osip_via_t *)PARAM_INT(0);
     osip_via_set_ttl(header, osip_strdup(PARAM(1)));
@@ -874,8 +874,8 @@ CONCEPT_FUNCTION_IMPL(osip_via_set_ttl, 2)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_via_set_maddr, 2)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(osip_via_set_maddr, 0)
+    T_STRING(osip_via_set_maddr, 1)
 
     osip_via_t * header = (osip_via_t *)PARAM_INT(0);
     osip_via_set_maddr(header, osip_strdup(PARAM(1)));
@@ -883,8 +883,8 @@ CONCEPT_FUNCTION_IMPL(osip_via_set_maddr, 2)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_via_set_received, 2)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(osip_via_set_received, 0)
+    T_STRING(osip_via_set_received, 1)
 
     osip_via_t * header = (osip_via_t *)PARAM_INT(0);
     osip_via_set_received(header, osip_strdup(PARAM(1)));
@@ -892,8 +892,8 @@ CONCEPT_FUNCTION_IMPL(osip_via_set_received, 2)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_via_set_branch, 2)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(osip_via_set_branch, 0)
+    T_STRING(osip_via_set_branch, 1)
 
     osip_via_t * header = (osip_via_t *)PARAM_INT(0);
     osip_via_set_branch(header, osip_strdup(PARAM(1)));
@@ -901,9 +901,9 @@ CONCEPT_FUNCTION_IMPL(osip_via_set_branch, 2)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_via_param_add, 3)
-    T_HANDLE(0)
-    T_STRING(1)
-    T_STRING(2)
+    T_HANDLE(osip_via_param_add, 0)
+    T_STRING(osip_via_param_add, 1)
+    T_STRING(osip_via_param_add, 2)
 
     osip_via_t * header = (osip_via_t *)PARAM_INT(0);
     osip_via_param_add(header, osip_strdup(PARAM(1)), osip_strdup(PARAM(2)));
@@ -911,8 +911,8 @@ CONCEPT_FUNCTION_IMPL(osip_via_param_add, 3)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_via_match, 2)
-    T_HANDLE(0)
-    T_HANDLE(1)
+    T_HANDLE(osip_via_match, 0)
+    T_HANDLE(osip_via_match, 1)
 
     osip_via_t * header = (osip_via_t *)PARAM_INT(0);
     osip_via_t *target = (osip_via_t *)PARAM_INT(1);
@@ -923,8 +923,8 @@ CONCEPT_FUNCTION_IMPL(osip_via_match, 2)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_message_parse, 2)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(osip_message_parse, 0)
+    T_STRING(osip_message_parse, 1)
     osip_message_t * message = (osip_message_t *)PARAM_INT(0);
     int res = osip_message_parse(message, PARAM(1), PARAM_LEN(1));
     RETURN_NUMBER(res)
@@ -932,8 +932,8 @@ END_IMPL
 //-----------------------------------------------------//
 
 /*CONCEPT_FUNCTION_IMPL(osip_message_parse_sipfrag, 2)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(osip_message_parse, 0)
+    T_STRING(osip_message_parse, 1)
     osip_message_t *message=(osip_message_t *)PARAM_INT(0);
     int res=osip_message_parse_sipfrag(message, PARAM(1), PARAM_LEN(1));
 
@@ -941,7 +941,7 @@ END_IMPL
    END_IMPL
    //-----------------------------------------------------//
    CONCEPT_FUNCTION_IMPL(osip_message_to_str_sipfrag, 1)
-    T_HANDLE(0)
+    T_HANDLE(osip_message_to_str_sipfrag, 0)
     SET_STRING(1,"");
     osip_message_t *sip=(osip_message_t *)PARAM_INT(0);
     char *msgP=0;
@@ -956,7 +956,7 @@ END_IMPL
    END_IMPL*/
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_message_clone, 2)
-    T_HANDLE(0)
+    T_HANDLE(osip_message_clone, 0)
 
     osip_message_t * message = (osip_message_t *)PARAM_INT(0);
     osip_message_t *clone = 0;
@@ -967,8 +967,8 @@ CONCEPT_FUNCTION_IMPL(osip_message_clone, 2)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_message_set_reason_phrase, 2)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(osip_message_set_reason_phrase, 0)
+    T_STRING(osip_message_set_reason_phrase, 1)
     osip_message_t * message = (osip_message_t *)PARAM_INT(0);
     osip_message_set_reason_phrase(message, osip_strdup(PARAM(1)));
 
@@ -976,7 +976,7 @@ CONCEPT_FUNCTION_IMPL(osip_message_set_reason_phrase, 2)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_message_get_reason_phrase, 1)
-    T_HANDLE(0)
+    T_HANDLE(osip_message_get_reason_phrase, 0)
     osip_message_t * message = (osip_message_t *)PARAM_INT(0);
 
     char *res = osip_message_get_reason_phrase(message);
@@ -988,15 +988,15 @@ CONCEPT_FUNCTION_IMPL(osip_message_get_reason_phrase, 1)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_message_set_status_code, 2)
-    T_HANDLE(0)
-    T_NUMBER(1)
+    T_HANDLE(osip_message_set_status_code, 0)
+    T_NUMBER(osip_message_set_status_code, 1)
     osip_message_t * message = (osip_message_t *)PARAM_INT(0);
     osip_message_set_status_code(message, PARAM_INT(1));
     RETURN_NUMBER(0)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_message_get_status_code, 1)
-    T_HANDLE(0)
+    T_HANDLE(osip_message_get_status_code, 0)
     osip_message_t * message = (osip_message_t *)PARAM_INT(0);
     int res = osip_message_get_status_code(message);
 
@@ -1004,8 +1004,8 @@ CONCEPT_FUNCTION_IMPL(osip_message_get_status_code, 1)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_message_set_method, 2)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(osip_message_set_method, 0)
+    T_STRING(osip_message_set_method, 1)
     osip_message_t * message = (osip_message_t *)PARAM_INT(0);
 
     osip_message_set_method(message, osip_strdup(PARAM(1)));
@@ -1013,7 +1013,7 @@ CONCEPT_FUNCTION_IMPL(osip_message_set_method, 2)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_message_get_method, 1)
-    T_HANDLE(0)
+    T_HANDLE(osip_message_get_method, 0)
     osip_message_t * message = (osip_message_t *)PARAM_INT(0);
 
     char *res = osip_message_get_method(message);
@@ -1025,8 +1025,8 @@ CONCEPT_FUNCTION_IMPL(osip_message_get_method, 1)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_message_set_version, 2)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(osip_message_set_version, 0)
+    T_STRING(osip_message_set_version, 1)
     osip_message_t * message = (osip_message_t *)PARAM_INT(0);
 
     osip_message_set_version(message, osip_strdup(PARAM(1)));
@@ -1034,7 +1034,7 @@ CONCEPT_FUNCTION_IMPL(osip_message_set_version, 2)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_message_get_version, 1)
-    T_HANDLE(0)
+    T_HANDLE(osip_message_get_version, 0)
     osip_message_t * message = (osip_message_t *)PARAM_INT(0);
 
     char *res = osip_message_get_version(message);
@@ -1046,8 +1046,8 @@ CONCEPT_FUNCTION_IMPL(osip_message_get_version, 1)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_message_set_uri, 2)
-    T_HANDLE(0)
-    T_HANDLE(1)
+    T_HANDLE(osip_message_set_uri, 0)
+    T_HANDLE(osip_message_set_uri, 1)
     osip_message_t * message = (osip_message_t *)PARAM_INT(0);
     osip_uri_t *uri = (osip_uri_t *)PARAM_INT(1);
 
@@ -1056,7 +1056,7 @@ CONCEPT_FUNCTION_IMPL(osip_message_set_uri, 2)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_message_get_uri, 1)
-    T_HANDLE(0)
+    T_HANDLE(osip_message_get_uri, 0)
     osip_message_t * message = (osip_message_t *)PARAM_INT(0);
     osip_uri_t *url = osip_message_get_uri(message);
     RETURN_NUMBER((SYS_INT)url)
@@ -1070,7 +1070,7 @@ CONCEPT_FUNCTION_IMPL(osip_uri_init, 1)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_uri_free, 1)
-    T_NUMBER(0)
+    T_NUMBER(osip_uri_free, 0)
     osip_uri_t * url = (osip_uri_t *)PARAM_INT(0);
     if (url) {
         osip_uri_free(url);
@@ -1080,15 +1080,15 @@ CONCEPT_FUNCTION_IMPL(osip_uri_free, 1)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_uri_parse, 2)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(osip_uri_parse, 0)
+    T_STRING(osip_uri_parse, 1)
     osip_uri_t * url = (osip_uri_t *)PARAM_INT(0);
     int res = osip_uri_parse(url, PARAM(1));
     RETURN_NUMBER(res);
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_uri_to_str, 2)
-    T_HANDLE(0)
+    T_HANDLE(osip_uri_to_str, 0)
     SET_STRING(1, "");
 
     osip_uri_t *url  = (osip_uri_t *)PARAM_INT(0);
@@ -1102,7 +1102,7 @@ CONCEPT_FUNCTION_IMPL(osip_uri_to_str, 2)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_uri_clone, 2)
-    T_HANDLE(0)
+    T_HANDLE(osip_uri_clone, 0)
     osip_uri_t * url = (osip_uri_t *)PARAM_INT(0);
     osip_uri_t *clone = 0;
     int        res    = osip_uri_clone(url, &clone);
@@ -1111,123 +1111,123 @@ CONCEPT_FUNCTION_IMPL(osip_uri_clone, 2)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_uri_set_scheme, 2)
-    T_HANDLE(0)
+    T_HANDLE(osip_uri_set_scheme, 0)
     osip_uri_t * url = (osip_uri_t *)PARAM_INT(0);
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_uri_get_scheme, 1)
-    T_HANDLE(0)
+    T_HANDLE(osip_uri_get_scheme, 0)
     osip_uri_t * url = (osip_uri_t *)PARAM_INT(0);
     char *res = osip_uri_get_scheme(url);
     RETURN_STRING(res);
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_uri_set_host, 2)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(osip_uri_set_host, 0)
+    T_STRING(osip_uri_set_host, 1)
     osip_uri_t * url = (osip_uri_t *)PARAM_INT(0);
     osip_uri_set_host(url, osip_strdup(PARAM(1)));
     RETURN_NUMBER(0);
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_uri_get_host, 1)
-    T_HANDLE(0)
+    T_HANDLE(osip_uri_get_host, 0)
     osip_uri_t * url = (osip_uri_t *)PARAM_INT(0);
     char *res = osip_uri_get_host(url);
     RETURN_STRING(res);
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_uri_set_username, 2)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(osip_uri_set_username, 0)
+    T_STRING(osip_uri_set_username, 1)
     osip_uri_t * url = (osip_uri_t *)PARAM_INT(0);
     osip_uri_set_username(url, osip_strdup(PARAM(1)));
     RETURN_NUMBER(0);
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_uri_get_username, 1)
-    T_HANDLE(0)
+    T_HANDLE(osip_uri_get_username, 0)
     osip_uri_t * url = (osip_uri_t *)PARAM_INT(0);
     char *res = osip_uri_get_username(url);
     RETURN_STRING(res);
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_uri_set_password, 2)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(osip_uri_set_password, 0)
+    T_STRING(osip_uri_set_password, 1)
     osip_uri_t * url = (osip_uri_t *)PARAM_INT(0);
     osip_uri_set_password(url, osip_strdup(PARAM(1)));
     RETURN_NUMBER(0);
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_uri_get_password, 1)
-    T_HANDLE(0)
+    T_HANDLE(osip_uri_get_password, 0)
     osip_uri_t * url = (osip_uri_t *)PARAM_INT(0);
     char *res = osip_uri_get_password(url);
     RETURN_STRING(res);
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_uri_set_port, 2)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(osip_uri_set_port, 0)
+    T_STRING(osip_uri_set_port, 1)
     osip_uri_t * url = (osip_uri_t *)PARAM_INT(0);
     osip_uri_set_port(url, osip_strdup(PARAM(1)));
     RETURN_NUMBER(0);
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_uri_get_port, 1)
-    T_HANDLE(0)
+    T_HANDLE(osip_uri_get_port, 0)
     osip_uri_t * url = (osip_uri_t *)PARAM_INT(0);
     char *res = osip_uri_get_port(url);
     RETURN_STRING(res);
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_uri_set_transport_udp, 1)
-    T_HANDLE(0)
+    T_HANDLE(osip_uri_set_transport_udp, 0)
     osip_uri_t * url = (osip_uri_t *)PARAM_INT(0);
     osip_uri_set_transport_udp(url);
     RETURN_NUMBER(0)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_uri_set_transport_tcp, 1)
-    T_HANDLE(0)
+    T_HANDLE(osip_uri_set_transport_tcp, 0)
     osip_uri_t * url = (osip_uri_t *)PARAM_INT(0);
     osip_uri_set_transport_tcp(url);
     RETURN_NUMBER(0)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_uri_set_transport_sctp, 1)
-    T_HANDLE(0)
+    T_HANDLE(osip_uri_set_transport_sctp, 0)
     osip_uri_t * url = (osip_uri_t *)PARAM_INT(0);
     osip_uri_set_transport_sctp(url);
     RETURN_NUMBER(0)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_uri_set_transport_tls, 1)
-    T_HANDLE(0)
+    T_HANDLE(osip_uri_set_transport_tls, 0)
     osip_uri_t * url = (osip_uri_t *)PARAM_INT(0);
     osip_uri_set_transport_tls(url);
     RETURN_NUMBER(0)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_message_force_update, 1)
-    T_HANDLE(0)
+    T_HANDLE(osip_message_force_update, 0)
     osip_message_t * message = (osip_message_t *)PARAM_INT(0);
     int res = osip_message_force_update(message);
     RETURN_NUMBER(res)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_message_set_date, 2)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(osip_message_set_date, 0)
+    T_STRING(osip_message_set_date, 1)
     osip_message_t * message = (osip_message_t *)PARAM_INT(0);
     osip_message_set_date(message, PARAM(1));
     RETURN_NUMBER(0)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_message_get_date, 3)
-    T_HANDLE(0)
-    T_NUMBER(1)
+    T_HANDLE(osip_message_get_date, 0)
+    T_NUMBER(osip_message_get_date, 1)
     osip_header_t * header = 0;
     osip_message_t *message = (osip_message_t *)PARAM_INT(0);
     int            res      = osip_message_get_date(message, PARAM_INT(1), &header);
@@ -1236,16 +1236,16 @@ CONCEPT_FUNCTION_IMPL(osip_message_get_date, 3)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_message_set_encryption, 2)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(osip_message_set_encryption, 0)
+    T_STRING(osip_message_set_encryption, 1)
     osip_message_t * message = (osip_message_t *)PARAM_INT(0);
     osip_message_set_encryption(message, PARAM(1));
     RETURN_NUMBER(0)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_message_get_encryption, 3)
-    T_HANDLE(0)
-    T_NUMBER(1)
+    T_HANDLE(osip_message_get_encryption, 0)
+    T_NUMBER(osip_message_get_encryption, 1)
     osip_header_t * header = 0;
     osip_message_t *message = (osip_message_t *)PARAM_INT(0);
     int            res      = osip_message_get_encryption(message, PARAM_INT(1), &header);
@@ -1254,16 +1254,16 @@ CONCEPT_FUNCTION_IMPL(osip_message_get_encryption, 3)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_message_set_organization, 2)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(osip_message_set_organization, 0)
+    T_STRING(osip_message_set_organization, 1)
     osip_message_t * message = (osip_message_t *)PARAM_INT(0);
     osip_message_set_organization(message, PARAM(1));
     RETURN_NUMBER(0)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_message_get_organization, 3)
-    T_HANDLE(0)
-    T_NUMBER(1)
+    T_HANDLE(osip_message_get_organization, 0)
+    T_NUMBER(osip_message_get_organization, 1)
     osip_header_t * header = 0;
     osip_message_t *message = (osip_message_t *)PARAM_INT(0);
     int            res      = osip_message_get_organization(message, PARAM_INT(1), &header);
@@ -1272,16 +1272,16 @@ CONCEPT_FUNCTION_IMPL(osip_message_get_organization, 3)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_message_set_require, 2)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(osip_message_set_require, 0)
+    T_STRING(osip_message_set_require, 1)
     osip_message_t * message = (osip_message_t *)PARAM_INT(0);
     osip_message_set_require(message, PARAM(1));
     RETURN_NUMBER(0)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_message_get_require, 3)
-    T_HANDLE(0)
-    T_NUMBER(1)
+    T_HANDLE(osip_message_get_require, 0)
+    T_NUMBER(osip_message_get_require, 1)
     osip_header_t * header = 0;
     osip_message_t *message = (osip_message_t *)PARAM_INT(0);
     int            res      = osip_message_get_require(message, PARAM_INT(1), &header);
@@ -1290,16 +1290,16 @@ CONCEPT_FUNCTION_IMPL(osip_message_get_require, 3)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_message_set_supported, 2)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(osip_message_set_supported, 0)
+    T_STRING(osip_message_set_supported, 1)
     osip_message_t * message = (osip_message_t *)PARAM_INT(0);
     osip_message_set_supported(message, PARAM(1));
     RETURN_NUMBER(0)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_message_get_supported, 3)
-    T_HANDLE(0)
-    T_NUMBER(1)
+    T_HANDLE(osip_message_get_supported, 0)
+    T_NUMBER(osip_message_get_supported, 1)
     osip_header_t * header = 0;
     osip_message_t *message = (osip_message_t *)PARAM_INT(0);
     int            res      = osip_message_get_supported(message, PARAM_INT(1), &header);
@@ -1308,16 +1308,16 @@ CONCEPT_FUNCTION_IMPL(osip_message_get_supported, 3)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_message_set_timestamp, 2)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(osip_message_set_timestamp, 0)
+    T_STRING(osip_message_set_timestamp, 1)
     osip_message_t * message = (osip_message_t *)PARAM_INT(0);
     osip_message_set_timestamp(message, PARAM(1));
     RETURN_NUMBER(0)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_message_get_timestamp, 3)
-    T_HANDLE(0)
-    T_NUMBER(1)
+    T_HANDLE(osip_message_get_timestamp, 0)
+    T_NUMBER(osip_message_get_timestamp, 1)
     osip_header_t * header = 0;
     osip_message_t *message = (osip_message_t *)PARAM_INT(0);
     int            res      = osip_message_get_timestamp(message, PARAM_INT(1), &header);
@@ -1326,16 +1326,16 @@ CONCEPT_FUNCTION_IMPL(osip_message_get_timestamp, 3)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_message_set_user_agent, 2)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(osip_message_set_user_agent, 0)
+    T_STRING(osip_message_set_user_agent, 1)
     osip_message_t * message = (osip_message_t *)PARAM_INT(0);
     osip_message_set_user_agent(message, PARAM(1));
     RETURN_NUMBER(0)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_message_get_user_agent, 3)
-    T_HANDLE(0)
-    T_NUMBER(1)
+    T_HANDLE(osip_message_get_user_agent, 0)
+    T_NUMBER(osip_message_get_user_agent, 1)
     osip_header_t * header = 0;
     osip_message_t *message = (osip_message_t *)PARAM_INT(0);
     int            res      = osip_message_get_user_agent(message, PARAM_INT(1), &header);
@@ -1344,16 +1344,16 @@ CONCEPT_FUNCTION_IMPL(osip_message_get_user_agent, 3)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_message_set_content_language, 2)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(osip_message_set_content_language, 0)
+    T_STRING(osip_message_set_content_language, 1)
     osip_message_t * message = (osip_message_t *)PARAM_INT(0);
     osip_message_set_content_language(message, PARAM(1));
     RETURN_NUMBER(0)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_message_get_content_language, 3)
-    T_HANDLE(0)
-    T_NUMBER(1)
+    T_HANDLE(osip_message_get_content_language, 0)
+    T_NUMBER(osip_message_get_content_language, 1)
     osip_header_t * header = 0;
     osip_message_t *message = (osip_message_t *)PARAM_INT(0);
     int            res      = osip_message_get_content_language(message, PARAM_INT(1), &header);
@@ -1362,16 +1362,16 @@ CONCEPT_FUNCTION_IMPL(osip_message_get_content_language, 3)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_message_set_expires, 2)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(osip_message_set_expires, 0)
+    T_STRING(osip_message_set_expires, 1)
     osip_message_t * message = (osip_message_t *)PARAM_INT(0);
     osip_message_set_expires(message, PARAM(1));
     RETURN_NUMBER(0)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_message_get_expires, 3)
-    T_HANDLE(0)
-    T_NUMBER(1)
+    T_HANDLE(osip_message_get_expires, 0)
+    T_NUMBER(osip_message_get_expires, 1)
     osip_header_t * header = 0;
     osip_message_t *message = (osip_message_t *)PARAM_INT(0);
     int            res      = osip_message_get_expires(message, PARAM_INT(1), &header);
@@ -1380,16 +1380,16 @@ CONCEPT_FUNCTION_IMPL(osip_message_get_expires, 3)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_message_set_in_reply_to, 2)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(osip_message_set_in_reply_to, 0)
+    T_STRING(osip_message_set_in_reply_to, 1)
     osip_message_t * message = (osip_message_t *)PARAM_INT(0);
     osip_message_set_in_reply_to(message, PARAM(1));
     RETURN_NUMBER(0)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_message_get_in_reply_to, 3)
-    T_HANDLE(0)
-    T_NUMBER(1)
+    T_HANDLE(osip_message_get_in_reply_to, 0)
+    T_NUMBER(osip_message_get_in_reply_to, 1)
     osip_header_t * header = 0;
     osip_message_t *message = (osip_message_t *)PARAM_INT(0);
     int            res      = osip_message_get_in_reply_to(message, PARAM_INT(1), &header);
@@ -1398,16 +1398,16 @@ CONCEPT_FUNCTION_IMPL(osip_message_get_in_reply_to, 3)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_message_set_max_forwards, 2)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(osip_message_set_max_forwards, 0)
+    T_STRING(osip_message_set_max_forwards, 1)
     osip_message_t * message = (osip_message_t *)PARAM_INT(0);
     osip_message_set_max_forwards(message, PARAM(1));
     RETURN_NUMBER(0)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_message_get_max_forwards, 3)
-    T_HANDLE(0)
-    T_NUMBER(1)
+    T_HANDLE(osip_message_get_max_forwards, 0)
+    T_NUMBER(osip_message_get_max_forwards, 1)
     osip_header_t * header = 0;
     osip_message_t *message = (osip_message_t *)PARAM_INT(0);
     int            res      = osip_message_get_max_forwards(message, PARAM_INT(1), &header);
@@ -1416,16 +1416,16 @@ CONCEPT_FUNCTION_IMPL(osip_message_get_max_forwards, 3)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_message_set_priority, 2)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(osip_message_set_priority, 0)
+    T_STRING(osip_message_set_priority, 1)
     osip_message_t * message = (osip_message_t *)PARAM_INT(0);
     osip_message_set_priority(message, PARAM(1));
     RETURN_NUMBER(0)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_message_get_priority, 3)
-    T_HANDLE(0)
-    T_NUMBER(1)
+    T_HANDLE(osip_message_get_priority, 0)
+    T_NUMBER(osip_message_get_priority, 1)
     osip_header_t * header = 0;
     osip_message_t *message = (osip_message_t *)PARAM_INT(0);
     int            res      = osip_message_get_priority(message, PARAM_INT(1), &header);
@@ -1434,16 +1434,16 @@ CONCEPT_FUNCTION_IMPL(osip_message_get_priority, 3)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_message_set_proxy_require, 2)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(osip_message_set_proxy_require, 0)
+    T_STRING(osip_message_set_proxy_require, 1)
     osip_message_t * message = (osip_message_t *)PARAM_INT(0);
     osip_message_set_proxy_require(message, PARAM(1));
     RETURN_NUMBER(0)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_message_get_proxy_require, 3)
-    T_HANDLE(0)
-    T_NUMBER(1)
+    T_HANDLE(osip_message_get_proxy_require, 0)
+    T_NUMBER(osip_message_get_proxy_require, 1)
     osip_header_t * header = 0;
     osip_message_t *message = (osip_message_t *)PARAM_INT(0);
     int            res      = osip_message_get_proxy_require(message, PARAM_INT(1), &header);
@@ -1452,16 +1452,16 @@ CONCEPT_FUNCTION_IMPL(osip_message_get_proxy_require, 3)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_message_set_response_key, 2)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(osip_message_set_response_key, 0)
+    T_STRING(osip_message_set_response_key, 1)
     osip_message_t * message = (osip_message_t *)PARAM_INT(0);
     osip_message_set_response_key(message, PARAM(1));
     RETURN_NUMBER(0)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_message_get_response_key, 3)
-    T_HANDLE(0)
-    T_NUMBER(1)
+    T_HANDLE(osip_message_get_response_key, 0)
+    T_NUMBER(osip_message_get_response_key, 1)
     osip_header_t * header = 0;
     osip_message_t *message = (osip_message_t *)PARAM_INT(0);
     int            res      = osip_message_get_response_key(message, PARAM_INT(1), &header);
@@ -1470,16 +1470,16 @@ CONCEPT_FUNCTION_IMPL(osip_message_get_response_key, 3)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_message_set_subject, 2)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(osip_message_set_subject, 0)
+    T_STRING(osip_message_set_subject, 1)
     osip_message_t * message = (osip_message_t *)PARAM_INT(0);
     osip_message_set_subject(message, PARAM(1));
     RETURN_NUMBER(0)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_message_get_subject, 3)
-    T_HANDLE(0)
-    T_NUMBER(1)
+    T_HANDLE(osip_message_get_subject, 0)
+    T_NUMBER(osip_message_get_subject, 1)
     osip_header_t * header = 0;
     osip_message_t *message = (osip_message_t *)PARAM_INT(0);
     int            res      = osip_message_get_subject(message, PARAM_INT(1), &header);
@@ -1488,16 +1488,16 @@ CONCEPT_FUNCTION_IMPL(osip_message_get_subject, 3)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_message_set_retry_after, 2)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(osip_message_set_retry_after, 0)
+    T_STRING(osip_message_set_retry_after, 1)
     osip_message_t * message = (osip_message_t *)PARAM_INT(0);
     osip_message_set_retry_after(message, PARAM(1));
     RETURN_NUMBER(0)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_message_get_retry_after, 3)
-    T_HANDLE(0)
-    T_NUMBER(1)
+    T_HANDLE(osip_message_get_retry_after, 0)
+    T_NUMBER(osip_message_get_retry_after, 1)
     osip_header_t * header = 0;
     osip_message_t *message = (osip_message_t *)PARAM_INT(0);
     int            res      = osip_message_get_retry_after(message, PARAM_INT(1), &header);
@@ -1506,16 +1506,16 @@ CONCEPT_FUNCTION_IMPL(osip_message_get_retry_after, 3)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_message_set_server, 2)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(osip_message_set_server, 0)
+    T_STRING(osip_message_set_server, 1)
     osip_message_t * message = (osip_message_t *)PARAM_INT(0);
     osip_message_set_server(message, PARAM(1));
     RETURN_NUMBER(0)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_message_get_server, 3)
-    T_HANDLE(0)
-    T_NUMBER(1)
+    T_HANDLE(osip_message_get_server, 0)
+    T_NUMBER(osip_message_get_server, 1)
     osip_header_t * header = 0;
     osip_message_t *message = (osip_message_t *)PARAM_INT(0);
     int            res      = osip_message_get_server(message, PARAM_INT(1), &header);
@@ -1524,16 +1524,16 @@ CONCEPT_FUNCTION_IMPL(osip_message_get_server, 3)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_message_set_unsupported, 2)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(osip_message_set_unsupported, 0)
+    T_STRING(osip_message_set_unsupported, 1)
     osip_message_t * message = (osip_message_t *)PARAM_INT(0);
     osip_message_set_unsupported(message, PARAM(1));
     RETURN_NUMBER(0)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_message_get_unsupported, 3)
-    T_HANDLE(0)
-    T_NUMBER(1)
+    T_HANDLE(osip_message_get_unsupported, 0)
+    T_NUMBER(osip_message_get_unsupported, 1)
     osip_header_t * header = 0;
     osip_message_t *message = (osip_message_t *)PARAM_INT(0);
     int            res      = osip_message_get_unsupported(message, PARAM_INT(1), &header);
@@ -1542,16 +1542,16 @@ CONCEPT_FUNCTION_IMPL(osip_message_get_unsupported, 3)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_message_set_warning, 2)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(osip_message_set_warning, 0)
+    T_STRING(osip_message_set_warning, 1)
     osip_message_t * message = (osip_message_t *)PARAM_INT(0);
     osip_message_set_warning(message, PARAM(1));
     RETURN_NUMBER(0)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_message_get_warning, 3)
-    T_HANDLE(0)
-    T_NUMBER(1)
+    T_HANDLE(osip_message_get_warning, 0)
+    T_NUMBER(osip_message_get_warning, 1)
     osip_header_t * header = 0;
     osip_message_t *message = (osip_message_t *)PARAM_INT(0);
     int            res      = osip_message_get_warning(message, PARAM_INT(1), &header);
@@ -1561,35 +1561,35 @@ END_IMPL
 //-----------------------------------------------------//
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(osip_message_fix_last_via_header, 3)
-    T_HANDLE(0)     // osip_message_t*
-    T_STRING(1)     // char*
-    T_NUMBER(2)     // int
+    T_HANDLE(osip_message_fix_last_via_header, 0)     // osip_message_t*
+    T_STRING(osip_message_fix_last_via_header, 1)     // char*
+    T_NUMBER(osip_message_fix_last_via_header, 2)     // int
 
     RETURN_NUMBER(osip_message_fix_last_via_header((osip_message_t *)(long)PARAM(0), PARAM(1), (int)PARAM(2)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(osip_message_get__property, 1)
-    T_HANDLE(0)     // osip_message_t*
+    T_HANDLE(osip_message_get__property, 0)     // osip_message_t*
 
     RETURN_NUMBER(osip_message_get__property((osip_message_t *)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(osip_message_get_reason, 1)
-    T_NUMBER(0)     // int
+    T_NUMBER(osip_message_get_reason, 0)     // int
 
     RETURN_STRING((char *)osip_message_get_reason((int)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(osip_message_set_accept, 2)
-    T_HANDLE(0)     // osip_message_t*
-    T_STRING(1)     // char*
+    T_HANDLE(osip_message_set_accept, 0)     // osip_message_t*
+    T_STRING(osip_message_set_accept, 1)     // char*
 
     RETURN_NUMBER(osip_message_set_accept((osip_message_t *)(long)PARAM(0), PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(osip_message_get_accept, 3)
-    T_HANDLE(0)     // osip_message_t*
-    T_NUMBER(1)     // int
+    T_HANDLE(osip_message_get_accept, 0)     // osip_message_t*
+    T_NUMBER(osip_message_get_accept, 1)     // int
 
 // ... parameter 2 is by reference (osip_accept_t**)
     osip_accept_t * local_parameter_2 = 0;
@@ -1599,15 +1599,15 @@ CONCEPT_FUNCTION_IMPL(osip_message_get_accept, 3)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(osip_message_set_accept_encoding, 2)
-    T_HANDLE(0)     // osip_message_t*
-    T_STRING(1)     // char*
+    T_HANDLE(osip_message_set_accept_encoding, 0)     // osip_message_t*
+    T_STRING(osip_message_set_accept_encoding, 1)     // char*
 
     RETURN_NUMBER(osip_message_set_accept_encoding((osip_message_t *)(long)PARAM(0), PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(osip_message_get_accept_encoding, 3)
-    T_HANDLE(0)     // osip_message_t*
-    T_NUMBER(1)     // int
+    T_HANDLE(osip_message_get_accept_encoding, 0)     // osip_message_t*
+    T_NUMBER(osip_message_get_accept_encoding, 1)     // int
 
 // ... parameter 2 is by reference (osip_accept_encoding_t**)
     osip_accept_encoding_t * local_parameter_2 = 0;
@@ -1617,15 +1617,15 @@ CONCEPT_FUNCTION_IMPL(osip_message_get_accept_encoding, 3)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(osip_message_set_accept_language, 2)
-    T_HANDLE(0)     // osip_message_t*
-    T_STRING(1)     // char*
+    T_HANDLE(osip_message_set_accept_language, 0)     // osip_message_t*
+    T_STRING(osip_message_set_accept_language, 1)     // char*
 
     RETURN_NUMBER(osip_message_set_accept_language((osip_message_t *)(long)PARAM(0), PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(osip_message_get_accept_language, 3)
-    T_HANDLE(0)     // osip_message_t*
-    T_NUMBER(1)     // int
+    T_HANDLE(osip_message_get_accept_language, 0)     // osip_message_t*
+    T_NUMBER(osip_message_get_accept_language, 1)     // int
 
 // ... parameter 2 is by reference (osip_accept_language_t**)
     osip_accept_language_t * local_parameter_2 = 0;
@@ -1635,15 +1635,15 @@ CONCEPT_FUNCTION_IMPL(osip_message_get_accept_language, 3)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(osip_message_set_alert_info, 2)
-    T_HANDLE(0)     // osip_message_t*
-    T_STRING(1)     // char*
+    T_HANDLE(osip_message_set_alert_info, 0)     // osip_message_t*
+    T_STRING(osip_message_set_alert_info, 1)     // char*
 
     RETURN_NUMBER(osip_message_set_alert_info((osip_message_t *)(long)PARAM(0), PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(osip_message_get_alert_info, 3)
-    T_HANDLE(0)     // osip_message_t*
-    T_NUMBER(1)     // int
+    T_HANDLE(osip_message_get_alert_info, 0)     // osip_message_t*
+    T_NUMBER(osip_message_get_alert_info, 1)     // int
 
 // ... parameter 2 is by reference (osip_alert_info_t**)
     osip_alert_info_t * local_parameter_2 = 0;
@@ -1653,15 +1653,15 @@ CONCEPT_FUNCTION_IMPL(osip_message_get_alert_info, 3)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(osip_message_set_allow, 2)
-    T_HANDLE(0)     // osip_message_t*
-    T_STRING(1)     // char*
+    T_HANDLE(osip_message_set_allow, 0)     // osip_message_t*
+    T_STRING(osip_message_set_allow, 1)     // char*
 
     RETURN_NUMBER(osip_message_set_allow((osip_message_t *)(long)PARAM(0), PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(osip_message_get_allow, 3)
-    T_HANDLE(0)     // osip_message_t*
-    T_NUMBER(1)     // int
+    T_HANDLE(osip_message_get_allow, 0)     // osip_message_t*
+    T_NUMBER(osip_message_get_allow, 1)     // int
 
 // ... parameter 2 is by reference (osip_allow_t**)
     osip_allow_t * local_parameter_2 = 0;
@@ -1671,15 +1671,15 @@ CONCEPT_FUNCTION_IMPL(osip_message_get_allow, 3)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(osip_message_set_authentication_info, 2)
-    T_HANDLE(0)     // osip_message_t*
-    T_STRING(1)     // char*
+    T_HANDLE(osip_message_set_authentication_info, 0)     // osip_message_t*
+    T_STRING(osip_message_set_authentication_info, 1)     // char*
 
     RETURN_NUMBER(osip_message_set_authentication_info((osip_message_t *)(long)PARAM(0), PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(osip_message_get_authentication_info, 3)
-    T_HANDLE(0)     // osip_message_t*
-    T_NUMBER(1)     // int
+    T_HANDLE(osip_message_get_authentication_info, 0)     // osip_message_t*
+    T_NUMBER(osip_message_get_authentication_info, 1)     // int
 
 // ... parameter 2 is by reference (osip_authentication_info_t**)
     osip_authentication_info_t * local_parameter_2 = 0;
@@ -1689,15 +1689,15 @@ CONCEPT_FUNCTION_IMPL(osip_message_get_authentication_info, 3)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(osip_message_set_authorization, 2)
-    T_HANDLE(0)     // osip_message_t*
-    T_STRING(1)     // char*
+    T_HANDLE(osip_message_set_authorization, 0)     // osip_message_t*
+    T_STRING(osip_message_set_authorization, 1)     // char*
 
     RETURN_NUMBER(osip_message_set_authorization((osip_message_t *)(long)PARAM(0), PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(osip_message_get_authorization, 3)
-    T_HANDLE(0)     // osip_message_t*
-    T_NUMBER(1)     // int
+    T_HANDLE(osip_message_get_authorization, 0)     // osip_message_t*
+    T_NUMBER(osip_message_get_authorization, 1)     // int
 
 // ... parameter 2 is by reference (osip_authorization_t**)
     osip_authorization_t * local_parameter_2 = 0;
@@ -1707,28 +1707,28 @@ CONCEPT_FUNCTION_IMPL(osip_message_get_authorization, 3)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(osip_message_set_call_id, 2)
-    T_HANDLE(0)     // osip_message_t*
-    T_STRING(1)     // char*
+    T_HANDLE(osip_message_set_call_id, 0)     // osip_message_t*
+    T_STRING(osip_message_set_call_id, 1)     // char*
 
     RETURN_NUMBER(osip_message_set_call_id((osip_message_t *)(long)PARAM(0), PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(osip_message_get_call_id, 1)
-    T_HANDLE(0)     // osip_message_t*
+    T_HANDLE(osip_message_get_call_id, 0)     // osip_message_t*
 
     RETURN_NUMBER((SYS_INT)osip_message_get_call_id((osip_message_t *)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(osip_message_set_call_info, 2)
-    T_HANDLE(0)     // osip_message_t*
-    T_STRING(1)     // char*
+    T_HANDLE(osip_message_set_call_info, 0)     // osip_message_t*
+    T_STRING(osip_message_set_call_info, 1)     // char*
 
     RETURN_NUMBER(osip_message_set_call_info((osip_message_t *)(long)PARAM(0), PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(osip_message_get_call_info, 3)
-    T_HANDLE(0)     // osip_message_t*
-    T_NUMBER(1)     // int
+    T_HANDLE(osip_message_get_call_info, 0)     // osip_message_t*
+    T_NUMBER(osip_message_get_call_info, 1)     // int
 
 // ... parameter 2 is by reference (osip_call_info_t**)
     osip_call_info_t * local_parameter_2 = 0;
@@ -1738,15 +1738,15 @@ CONCEPT_FUNCTION_IMPL(osip_message_get_call_info, 3)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(osip_message_set_contact, 2)
-    T_HANDLE(0)     // osip_message_t*
-    T_STRING(1)     // char*
+    T_HANDLE(osip_message_set_contact, 0)     // osip_message_t*
+    T_STRING(osip_message_set_contact, 1)     // char*
 
     RETURN_NUMBER(osip_message_set_contact((osip_message_t *)(long)PARAM(0), PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(osip_message_get_contact, 3)
-    T_HANDLE(0)     // osip_message_t*
-    T_NUMBER(1)     // int
+    T_HANDLE(osip_message_get_contact, 0)     // osip_message_t*
+    T_NUMBER(osip_message_get_contact, 1)     // int
 
 // ... parameter 2 is by reference (osip_contact_t**)
     osip_contact_t * local_parameter_2 = 0;
@@ -1756,15 +1756,15 @@ CONCEPT_FUNCTION_IMPL(osip_message_get_contact, 3)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(osip_message_set_content_encoding, 2)
-    T_HANDLE(0)     // osip_message_t*
-    T_STRING(1)     // char*
+    T_HANDLE(osip_message_set_content_encoding, 0)     // osip_message_t*
+    T_STRING(osip_message_set_content_encoding, 1)     // char*
 
     RETURN_NUMBER(osip_message_set_content_encoding((osip_message_t *)(long)PARAM(0), PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(osip_message_get_content_encoding, 3)
-    T_HANDLE(0)     // osip_message_t*
-    T_NUMBER(1)     // int
+    T_HANDLE(osip_message_get_content_encoding, 0)     // osip_message_t*
+    T_NUMBER(osip_message_get_content_encoding, 1)     // int
 
 // ... parameter 2 is by reference (osip_content_encoding_t**)
     osip_content_encoding_t * local_parameter_2 = 0;
@@ -1774,54 +1774,54 @@ CONCEPT_FUNCTION_IMPL(osip_message_get_content_encoding, 3)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(osip_message_set_content_length, 2)
-    T_HANDLE(0)     // osip_message_t*
-    T_STRING(1)     // char*
+    T_HANDLE(osip_message_set_content_length, 0)     // osip_message_t*
+    T_STRING(osip_message_set_content_length, 1)     // char*
 
     RETURN_NUMBER(osip_message_set_content_length((osip_message_t *)(long)PARAM(0), PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(osip_message_get_content_length, 1)
-    T_HANDLE(0)     // osip_message_t*
+    T_HANDLE(osip_message_get_content_length, 0)     // osip_message_t*
 
     RETURN_NUMBER((SYS_INT)osip_message_get_content_length((osip_message_t *)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(osip_message_set_content_type, 2)
-    T_HANDLE(0)     // osip_message_t*
-    T_STRING(1)     // char*
+    T_HANDLE(osip_message_set_content_type, 0)     // osip_message_t*
+    T_STRING(osip_message_set_content_type, 1)     // char*
 
     RETURN_NUMBER(osip_message_set_content_type((osip_message_t *)(long)PARAM(0), PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(osip_message_get_content_type, 1)
-    T_HANDLE(0)     // osip_message_t*
+    T_HANDLE(osip_message_get_content_type, 0)     // osip_message_t*
 
     RETURN_NUMBER((SYS_INT)osip_message_get_content_type((osip_message_t *)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(osip_message_set_cseq, 2)
-    T_HANDLE(0)     // osip_message_t*
-    T_STRING(1)     // char*
+    T_HANDLE(osip_message_set_cseq, 0)     // osip_message_t*
+    T_STRING(osip_message_set_cseq, 1)     // char*
 
     RETURN_NUMBER(osip_message_set_cseq((osip_message_t *)(long)PARAM(0), PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(osip_message_get_cseq, 1)
-    T_HANDLE(0)     // osip_message_t*
+    T_HANDLE(osip_message_get_cseq, 0)     // osip_message_t*
 
     RETURN_NUMBER((SYS_INT)osip_message_get_cseq((osip_message_t *)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(osip_message_set_error_info, 2)
-    T_HANDLE(0)     // osip_message_t*
-    T_STRING(1)     // char*
+    T_HANDLE(osip_message_set_error_info, 0)     // osip_message_t*
+    T_STRING(osip_message_set_error_info, 1)     // char*
 
     RETURN_NUMBER(osip_message_set_error_info((osip_message_t *)(long)PARAM(0), PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(osip_message_get_error_info, 3)
-    T_HANDLE(0)     // osip_message_t*
-    T_NUMBER(1)     // int
+    T_HANDLE(osip_message_get_error_info, 0)     // osip_message_t*
+    T_NUMBER(osip_message_get_error_info, 1)     // int
 
 // ... parameter 2 is by reference (osip_error_info_t**)
     osip_error_info_t * local_parameter_2 = 0;
@@ -1831,41 +1831,41 @@ CONCEPT_FUNCTION_IMPL(osip_message_get_error_info, 3)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(osip_message_set_from, 2)
-    T_HANDLE(0)     // osip_message_t*
-    T_STRING(1)     // char*
+    T_HANDLE(osip_message_set_from, 0)     // osip_message_t*
+    T_STRING(osip_message_set_from, 1)     // char*
 
     RETURN_NUMBER(osip_message_set_from((osip_message_t *)(long)PARAM(0), PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(osip_message_get_from, 1)
-    T_HANDLE(0)     // osip_message_t*
+    T_HANDLE(osip_message_get_from, 0)     // osip_message_t*
 
     RETURN_NUMBER((SYS_INT)osip_message_get_from((osip_message_t *)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(osip_message_set_mime_version, 2)
-    T_HANDLE(0)     // osip_message_t*
-    T_STRING(1)     // char*
+    T_HANDLE(osip_message_set_mime_version, 0)     // osip_message_t*
+    T_STRING(osip_message_set_mime_version, 1)     // char*
 
     RETURN_NUMBER(osip_message_set_mime_version((osip_message_t *)(long)PARAM(0), PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(osip_message_get_mime_version, 1)
-    T_HANDLE(0)     // osip_message_t*
+    T_HANDLE(osip_message_get_mime_version, 0)     // osip_message_t*
 
     RETURN_NUMBER((SYS_INT)osip_message_get_mime_version((osip_message_t *)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(osip_message_set_proxy_authenticate, 2)
-    T_HANDLE(0)     // osip_message_t*
-    T_STRING(1)     // char*
+    T_HANDLE(osip_message_set_proxy_authenticate, 0)     // osip_message_t*
+    T_STRING(osip_message_set_proxy_authenticate, 1)     // char*
 
     RETURN_NUMBER(osip_message_set_proxy_authenticate((osip_message_t *)(long)PARAM(0), PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(osip_message_get_proxy_authenticate, 3)
-    T_HANDLE(0)     // osip_message_t*
-    T_NUMBER(1)     // int
+    T_HANDLE(osip_message_get_proxy_authenticate, 0)     // osip_message_t*
+    T_NUMBER(osip_message_get_proxy_authenticate, 1)     // int
 
 // ... parameter 2 is by reference (osip_proxy_authenticate_t**)
     osip_proxy_authenticate_t * local_parameter_2 = 0;
@@ -1875,15 +1875,15 @@ CONCEPT_FUNCTION_IMPL(osip_message_get_proxy_authenticate, 3)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(osip_message_set_proxy_authorization, 2)
-    T_HANDLE(0)     // osip_message_t*
-    T_STRING(1)     // char*
+    T_HANDLE(osip_message_set_proxy_authorization, 0)     // osip_message_t*
+    T_STRING(osip_message_set_proxy_authorization, 1)     // char*
 
     RETURN_NUMBER(osip_message_set_proxy_authorization((osip_message_t *)(long)PARAM(0), PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(osip_message_get_proxy_authorization, 3)
-    T_HANDLE(0)     // osip_message_t*
-    T_NUMBER(1)     // int
+    T_HANDLE(osip_message_get_proxy_authorization, 0)     // osip_message_t*
+    T_NUMBER(osip_message_get_proxy_authorization, 1)     // int
 
 // ... parameter 2 is by reference (osip_proxy_authorization_t**)
     osip_proxy_authorization_t * local_parameter_2 = 0;
@@ -1893,15 +1893,15 @@ CONCEPT_FUNCTION_IMPL(osip_message_get_proxy_authorization, 3)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(osip_message_set_proxy_authentication_info, 2)
-    T_HANDLE(0)     // osip_message_t*
-    T_STRING(1)     // char*
+    T_HANDLE(osip_message_set_proxy_authentication_info, 0)     // osip_message_t*
+    T_STRING(osip_message_set_proxy_authentication_info, 1)     // char*
 
     RETURN_NUMBER(osip_message_set_proxy_authentication_info((osip_message_t *)(long)PARAM(0), PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(osip_message_get_proxy_authentication_info, 3)
-    T_HANDLE(0)     // osip_message_t*
-    T_NUMBER(1)     // int
+    T_HANDLE(osip_message_get_proxy_authentication_info, 0)     // osip_message_t*
+    T_NUMBER(osip_message_get_proxy_authentication_info, 1)     // int
 
 // ... parameter 2 is by reference (osip_proxy_authentication_info_t**)
     osip_proxy_authentication_info_t * local_parameter_2 = 0;
@@ -1911,15 +1911,15 @@ CONCEPT_FUNCTION_IMPL(osip_message_get_proxy_authentication_info, 3)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(osip_message_set_record_route, 2)
-    T_HANDLE(0)     // osip_message_t*
-    T_STRING(1)     // char*
+    T_HANDLE(osip_message_set_record_route, 0)     // osip_message_t*
+    T_STRING(osip_message_set_record_route, 1)     // char*
 
     RETURN_NUMBER(osip_message_set_record_route((osip_message_t *)(long)PARAM(0), PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(osip_message_get_record_route, 3)
-    T_HANDLE(0)     // osip_message_t*
-    T_NUMBER(1)     // int
+    T_HANDLE(osip_message_get_record_route, 0)     // osip_message_t*
+    T_NUMBER(osip_message_get_record_route, 1)     // int
 
 // ... parameter 2 is by reference (osip_record_route_t**)
     osip_record_route_t * local_parameter_2 = 0;
@@ -1929,15 +1929,15 @@ CONCEPT_FUNCTION_IMPL(osip_message_get_record_route, 3)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(osip_message_set_route, 2)
-    T_HANDLE(0)     // osip_message_t*
-    T_STRING(1)     // char*
+    T_HANDLE(osip_message_set_route, 0)     // osip_message_t*
+    T_STRING(osip_message_set_route, 1)     // char*
 
     RETURN_NUMBER(osip_message_set_route((osip_message_t *)(long)PARAM(0), PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(osip_message_get_route, 3)
-    T_HANDLE(0)     // osip_message_t*
-    T_NUMBER(1)     // int
+    T_HANDLE(osip_message_get_route, 0)     // osip_message_t*
+    T_NUMBER(osip_message_get_route, 1)     // int
 
 // ... parameter 2 is by reference (osip_route_t**)
     osip_route_t * local_parameter_2 = 0;
@@ -1947,36 +1947,36 @@ CONCEPT_FUNCTION_IMPL(osip_message_get_route, 3)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(osip_message_set_to, 2)
-    T_HANDLE(0)     // osip_message_t*
-    T_STRING(1)     // char*
+    T_HANDLE(osip_message_set_to, 0)     // osip_message_t*
+    T_STRING(osip_message_set_to, 1)     // char*
 
     RETURN_NUMBER(osip_message_set_to((osip_message_t *)(long)PARAM(0), PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(osip_message_get_to, 1)
-    T_HANDLE(0)     // osip_message_t*
+    T_HANDLE(osip_message_get_to, 0)     // osip_message_t*
 
     RETURN_NUMBER((SYS_INT)osip_message_get_to((osip_message_t *)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(osip_message_set_via, 2)
-    T_HANDLE(0)     // osip_message_t*
-    T_STRING(1)     // char*
+    T_HANDLE(osip_message_set_via, 0)     // osip_message_t*
+    T_STRING(osip_message_set_via, 1)     // char*
 
     RETURN_NUMBER(osip_message_set_via((osip_message_t *)(long)PARAM(0), PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 
 /*CONCEPT_FUNCTION_IMPL(osip_message_append_via,2)
-        T_HANDLE(0) // osip_message_t*
-        T_STRING(1) // char*
+        T_HANDLE(osip_message_set_via, 0) // osip_message_t*
+        T_STRING(osip_message_set_via, 1) // char*
 
         RETURN_NUMBER(osip_message_append_via((osip_message_t*)(long)PARAM(0), PARAM(1)))
    END_IMPL*/
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(osip_message_get_via, 3)
-    T_HANDLE(0)     // osip_message_t*
-    T_NUMBER(1)     // int
+    T_HANDLE(osip_message_get_via, 0)     // osip_message_t*
+    T_NUMBER(osip_message_get_via, 1)     // int
 
 // ... parameter 2 is by reference (osip_via_t**)
     osip_via_t * local_parameter_2 = 0;
@@ -1986,15 +1986,15 @@ CONCEPT_FUNCTION_IMPL(osip_message_get_via, 3)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(osip_message_set_www_authenticate, 2)
-    T_HANDLE(0)     // osip_message_t*
-    T_STRING(1)     // char*
+    T_HANDLE(osip_message_set_www_authenticate, 0)     // osip_message_t*
+    T_STRING(osip_message_set_www_authenticate, 1)     // char*
 
     RETURN_NUMBER(osip_message_set_www_authenticate((osip_message_t *)(long)PARAM(0), PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(osip_message_get_www_authenticate, 3)
-    T_HANDLE(0)     // osip_message_t*
-    T_NUMBER(1)     // int
+    T_HANDLE(osip_message_get_www_authenticate, 0)     // osip_message_t*
+    T_NUMBER(osip_message_get_www_authenticate, 1)     // int
 
 // ... parameter 2 is by reference (osip_www_authenticate_t**)
     osip_www_authenticate_t * local_parameter_2 = 0;
@@ -2004,34 +2004,34 @@ CONCEPT_FUNCTION_IMPL(osip_message_get_www_authenticate, 3)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(osip_message_set_header, 3)
-    T_HANDLE(0)     // osip_message_t*
-    T_STRING(1)     // char*
-    T_STRING(2)     // char*
+    T_HANDLE(osip_message_set_header, 0)     // osip_message_t*
+    T_STRING(osip_message_set_header, 1)     // char*
+    T_STRING(osip_message_set_header, 2)     // char*
 
     RETURN_NUMBER(osip_message_set_header((osip_message_t *)(long)PARAM(0), PARAM(1), PARAM(2)))
 END_IMPL
 //------------------------------------------------------------------------
 
 /*CONCEPT_FUNCTION_IMPL(osip_message_replace_header,3)
-        T_HANDLE(0) // osip_message_t*
-        T_STRING(1) // char*
-        T_STRING(2) // char*
+        T_HANDLE(osip_message_set_header, 0) // osip_message_t*
+        T_STRING(osip_message_set_header, 1) // char*
+        T_STRING(osip_message_set_header, 2) // char*
 
         RETURN_NUMBER(osip_message_replace_header((osip_message_t*)(long)PARAM(0), PARAM(1), PARAM(2)))
    END_IMPL*/
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(osip_message_set_topheader, 3)
-    T_HANDLE(0)     // osip_message_t*
-    T_STRING(1)     // char*
-    T_STRING(2)     // char*
+    T_HANDLE(osip_message_set_topheader, 0)     // osip_message_t*
+    T_STRING(osip_message_set_topheader, 1)     // char*
+    T_STRING(osip_message_set_topheader, 2)     // char*
 
     RETURN_NUMBER(osip_message_set_topheader((osip_message_t *)(long)PARAM(0), PARAM(1), PARAM(2)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(osip_message_header_get_byname, 4)
-    T_HANDLE(0)     // osip_message_t*
-    T_STRING(1)     // char*
-    T_NUMBER(2)     // int
+    T_HANDLE(osip_message_header_get_byname, 0)     // osip_message_t*
+    T_STRING(osip_message_header_get_byname, 1)     // char*
+    T_NUMBER(osip_message_header_get_byname, 2)     // int
 
 // ... parameter 3 is by reference (osip_header_t**)
     osip_header_t * local_parameter_3 = 0;
@@ -2041,8 +2041,8 @@ CONCEPT_FUNCTION_IMPL(osip_message_header_get_byname, 4)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(osip_message_get_header, 3)
-    T_HANDLE(0)     // osip_message_t*
-    T_NUMBER(1)     // int
+    T_HANDLE(osip_message_get_header, 0)     // osip_message_t*
+    T_NUMBER(osip_message_get_header, 1)     // int
 
 // ... parameter 2 is by reference (osip_header_t**)
     osip_header_t * local_parameter_2 = 0;
@@ -2052,22 +2052,22 @@ CONCEPT_FUNCTION_IMPL(osip_message_get_header, 3)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(osip_message_set_body, 2)
-    T_HANDLE(0)     // osip_message_t*
-    T_STRING(1)     // char*
+    T_HANDLE(osip_message_set_body, 0)     // osip_message_t*
+    T_STRING(osip_message_set_body, 1)     // char*
 
     RETURN_NUMBER(osip_message_set_body((osip_message_t *)(long)PARAM(0), PARAM(1), (size_t)PARAM_LEN(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(osip_message_set_body_mime, 2)
-    T_HANDLE(0)     // osip_message_t*
-    T_STRING(1)     // char*
+    T_HANDLE(osip_message_set_body_mime, 0)     // osip_message_t*
+    T_STRING(osip_message_set_body_mime, 1)     // char*
 
     RETURN_NUMBER(osip_message_set_body_mime((osip_message_t *)(long)PARAM(0), PARAM(1), (size_t)PARAM_LEN(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(osip_message_get_body, 3)
-    T_HANDLE(0)     // osip_message_t*
-    T_NUMBER(1)     // int
+    T_HANDLE(osip_message_get_body, 0)     // osip_message_t*
+    T_NUMBER(osip_message_get_body, 1)     // int
 
 // ... parameter 2 is by reference (osip_body_t**)
     osip_body_t * local_parameter_2 = 0;
@@ -2077,7 +2077,7 @@ CONCEPT_FUNCTION_IMPL(osip_message_get_body, 3)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_message_describe, 1)
-    T_HANDLE(0)
+    T_HANDLE(osip_message_describe, 0)
 
     osip_message_t * msg = (osip_message_t *)PARAM_INT(0);
     CREATE_ARRAY(RESULT);
@@ -2125,9 +2125,9 @@ CONCEPT_FUNCTION_IMPL(osip_message_describe, 1)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_list_add, 3)
-    T_HANDLE(0)
-    T_HANDLE(1)
-    T_NUMBER(2)
+    T_HANDLE(osip_list_add, 0)
+    T_HANDLE(osip_list_add, 1)
+    T_NUMBER(osip_list_add, 2)
     osip_list_t * list = (osip_list_t *)PARAM_INT(0);
     void *handle = (void *)PARAM_INT(1);
     int  res     = osip_list_add(list, handle, PARAM_INT(2));
@@ -2135,9 +2135,9 @@ CONCEPT_FUNCTION_IMPL(osip_list_add, 3)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_list_add_string, 3)
-    T_HANDLE(0)
-    T_STRING(1)
-    T_NUMBER(2)
+    T_HANDLE(osip_list_add_string, 0)
+    T_STRING(osip_list_add_string, 1)
+    T_NUMBER(osip_list_add_string, 2)
     osip_list_t * list = (osip_list_t *)PARAM_INT(0);
 
     int res = osip_list_add(list, osip_strdup(PARAM(1)), PARAM_INT(2));
@@ -2145,31 +2145,31 @@ CONCEPT_FUNCTION_IMPL(osip_list_add_string, 3)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_list_size, 1)
-    T_HANDLE(0)
+    T_HANDLE(osip_list_size, 0)
     osip_list_t * list = (osip_list_t *)PARAM_INT(0);
     int res = osip_list_size(list);
     RETURN_NUMBER(res)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_list_remove, 2)
-    T_HANDLE(0)
-    T_NUMBER(1)
+    T_HANDLE(osip_list_remove, 0)
+    T_NUMBER(osip_list_remove, 1)
     osip_list_t * list = (osip_list_t *)PARAM_INT(0);
     int res = osip_list_remove(list, PARAM_INT(1));
     RETURN_NUMBER(res)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_list_eol, 2)
-    T_HANDLE(0)
-    T_NUMBER(1)
+    T_HANDLE(osip_list_eol, 0)
+    T_NUMBER(osip_list_eol, 1)
     osip_list_t * list = (osip_list_t *)PARAM_INT(0);
     int res = osip_list_eol(list, PARAM_INT(1));
     RETURN_NUMBER(res)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_list_get, 2)
-    T_HANDLE(0)
-    T_NUMBER(1)
+    T_HANDLE(osip_list_get, 0)
+    T_NUMBER(osip_list_get, 1)
     osip_list_t * list = (osip_list_t *)PARAM_INT(0);
     SYS_INT res = (SYS_INT)osip_list_get(list, PARAM_INT(1));
     RETURN_NUMBER(res)
@@ -2183,7 +2183,7 @@ CONCEPT_FUNCTION_IMPL(osip_from_init, 1)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_from_free, 1)
-    T_NUMBER(0)
+    T_NUMBER(osip_from_free, 0)
     osip_from_t * evt = (osip_from_t *)PARAM_INT(0);
     if (evt) {
         osip_from_free(evt);
@@ -2193,8 +2193,8 @@ CONCEPT_FUNCTION_IMPL(osip_from_free, 1)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_from_parse, 2)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(osip_from_parse, 0)
+    T_STRING(osip_from_parse, 1)
     osip_from_t * from = (osip_from_t *)PARAM_INT(0);
 
     int res = osip_from_parse(from, PARAM(1));
@@ -2202,7 +2202,7 @@ CONCEPT_FUNCTION_IMPL(osip_from_parse, 2)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_from_to_str, 2)
-    T_HANDLE(0)
+    T_HANDLE(osip_from_to_str, 0)
     SET_STRING(1, "");
 
     osip_from_t *from  = (osip_from_t *)PARAM_INT(0);
@@ -2217,7 +2217,7 @@ CONCEPT_FUNCTION_IMPL(osip_from_to_str, 2)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_from_clone, 2)
-    T_HANDLE(0)
+    T_HANDLE(osip_from_clone, 0)
     osip_from_t * from = (osip_from_t *)PARAM_INT(0);
     osip_from_t *clone = 0;
     int         res    = osip_from_clone(from, &clone);
@@ -2226,23 +2226,23 @@ CONCEPT_FUNCTION_IMPL(osip_from_clone, 2)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_from_set_displayname, 2)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(osip_from_set_displayname, 0)
+    T_STRING(osip_from_set_displayname, 1)
     osip_from_t * from = (osip_from_t *)PARAM_INT(0);
     osip_from_set_displayname(from, osip_strdup(PARAM(1)));
     RETURN_NUMBER(0)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_from_get_displayname, 1)
-    T_HANDLE(0)
+    T_HANDLE(osip_from_get_displayname, 0)
     osip_from_t * from = (osip_from_t *)PARAM_INT(0);
     char *res = osip_from_get_displayname(from);
     RETURN_STRING(res);
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_from_set_url, 2)
-    T_HANDLE(0)
-    T_HANDLE(1)
+    T_HANDLE(osip_from_set_url, 0)
+    T_HANDLE(osip_from_set_url, 1)
     osip_from_t * from = (osip_from_t *)PARAM_INT(0);
     osip_uri_t *url = (osip_uri_t *)PARAM_INT(1);
     osip_from_set_url(from, url);
@@ -2250,30 +2250,30 @@ CONCEPT_FUNCTION_IMPL(osip_from_set_url, 2)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_from_get_url, 1)
-    T_HANDLE(0)
+    T_HANDLE(osip_from_get_url, 0)
     osip_from_t * from = (osip_from_t *)PARAM_INT(0);
     osip_uri_t *url = osip_from_get_url(from);
     RETURN_NUMBER((SYS_INT)url);
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_from_get_tag, 1)
-    T_HANDLE(0)
+    T_HANDLE(osip_from_get_tag, 0)
     osip_from_t * from = (osip_from_t *)PARAM_INT(0);
     osip_uri_t *res = osip_from_get_url(from);
     RETURN_NUMBER((SYS_INT)res);
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_from_set_tag, 2)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(osip_from_set_tag, 0)
+    T_STRING(osip_from_set_tag, 1)
     osip_from_t * from = (osip_from_t *)PARAM_INT(0);
     osip_from_set_tag(from, osip_strdup(PARAM(1)));
     RETURN_NUMBER(0)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_from_compare, 2)
-    T_HANDLE(0)
-    T_HANDLE(1)
+    T_HANDLE(osip_from_compare, 0)
+    T_HANDLE(osip_from_compare, 1)
     osip_from_t * from = (osip_from_t *)PARAM_INT(0);
     osip_from_t *other = (osip_from_t *)PARAM_INT(0);
     int         res    = osip_from_compare(from, other);
@@ -2281,8 +2281,8 @@ CONCEPT_FUNCTION_IMPL(osip_from_compare, 2)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_from_tag_match, 2)
-    T_HANDLE(0)
-    T_HANDLE(1)
+    T_HANDLE(osip_from_tag_match, 0)
+    T_HANDLE(osip_from_tag_match, 1)
     osip_from_t * from = (osip_from_t *)PARAM_INT(0);
     osip_from_t *other = (osip_from_t *)PARAM_INT(0);
     int         res    = osip_from_compare(from, other);
@@ -2290,7 +2290,7 @@ CONCEPT_FUNCTION_IMPL(osip_from_tag_match, 2)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_from_message, 2)
-    T_HANDLE(1)
+    T_HANDLE(osip_from_message, 1)
     osip_message_t * msg = (osip_message_t *)PARAM_INT(1);
     int res = osip_from_init(&msg->from);
     SET_NUMBER(0, (SYS_INT)msg->from);
@@ -2298,7 +2298,7 @@ CONCEPT_FUNCTION_IMPL(osip_from_message, 2)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_to_message, 2)
-    T_HANDLE(1)
+    T_HANDLE(osip_to_message, 1)
     osip_message_t * msg = (osip_message_t *)PARAM_INT(1);
     int res = osip_to_init(&msg->to);
     SET_NUMBER(0, (SYS_INT)msg->to);
@@ -2313,7 +2313,7 @@ CONCEPT_FUNCTION_IMPL(osip_to_init, 1)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_to_free, 1)
-    T_NUMBER(0)
+    T_NUMBER(osip_to_free, 0)
     osip_to_t * evt = (osip_to_t *)PARAM_INT(0);
     if (evt) {
         osip_to_free(evt);
@@ -2323,8 +2323,8 @@ CONCEPT_FUNCTION_IMPL(osip_to_free, 1)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_to_parse, 2)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(osip_to_parse, 0)
+    T_STRING(osip_to_parse, 1)
     osip_to_t * to = (osip_to_t *)PARAM_INT(0);
 
     int res = osip_to_parse(to, PARAM(1));
@@ -2332,7 +2332,7 @@ CONCEPT_FUNCTION_IMPL(osip_to_parse, 2)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_to_to_str, 2)
-    T_HANDLE(0)
+    T_HANDLE(osip_to_to_str, 0)
     SET_STRING(1, "");
 
     osip_to_t *to    = (osip_to_t *)PARAM_INT(0);
@@ -2347,7 +2347,7 @@ CONCEPT_FUNCTION_IMPL(osip_to_to_str, 2)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_to_clone, 2)
-    T_HANDLE(0)
+    T_HANDLE(osip_to_clone, 0)
     osip_to_t * to = (osip_to_t *)PARAM_INT(0);
     osip_to_t *clone = 0;
     int       res    = osip_to_clone(to, &clone);
@@ -2356,23 +2356,23 @@ CONCEPT_FUNCTION_IMPL(osip_to_clone, 2)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_to_set_displayname, 2)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(osip_to_set_displayname, 0)
+    T_STRING(osip_to_set_displayname, 1)
     osip_to_t * to = (osip_to_t *)PARAM_INT(0);
     osip_to_set_displayname(to, osip_strdup(PARAM(1)));
     RETURN_NUMBER(0)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_to_get_displayname, 1)
-    T_HANDLE(0)
+    T_HANDLE(osip_to_get_displayname, 0)
     osip_to_t * to = (osip_to_t *)PARAM_INT(0);
     char *res = osip_to_get_displayname(to);
     RETURN_STRING(res);
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_to_set_url, 2)
-    T_HANDLE(0)
-    T_HANDLE(1)
+    T_HANDLE(osip_to_set_url, 0)
+    T_HANDLE(osip_to_set_url, 1)
     osip_to_t * to = (osip_to_t *)PARAM_INT(0);
     osip_uri_t *url = (osip_uri_t *)PARAM_INT(1);
     osip_to_set_url(to, url);
@@ -2380,30 +2380,30 @@ CONCEPT_FUNCTION_IMPL(osip_to_set_url, 2)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_to_get_url, 1)
-    T_HANDLE(0)
+    T_HANDLE(osip_to_get_url, 0)
     osip_to_t * to = (osip_to_t *)PARAM_INT(0);
     osip_uri_t *url = osip_to_get_url(to);
     RETURN_NUMBER((SYS_INT)url);
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_to_get_tag, 1)
-    T_HANDLE(0)
+    T_HANDLE(osip_to_get_tag, 0)
     osip_to_t * to = (osip_to_t *)PARAM_INT(0);
     osip_uri_t *res = osip_to_get_url(to);
     RETURN_NUMBER((SYS_INT)res);
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_to_set_tag, 2)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(osip_to_set_tag, 0)
+    T_STRING(osip_to_set_tag, 1)
     osip_to_t * to = (osip_to_t *)PARAM_INT(0);
     osip_to_set_tag(to, osip_strdup(PARAM(1)));
     RETURN_NUMBER(0)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_to_compare, 2)
-    T_HANDLE(0)
-    T_HANDLE(1)
+    T_HANDLE(osip_to_compare, 0)
+    T_HANDLE(osip_to_compare, 1)
     osip_to_t * to = (osip_to_t *)PARAM_INT(0);
     osip_to_t *other = (osip_to_t *)PARAM_INT(0);
     int       res    = osip_to_compare(to, other);
@@ -2411,8 +2411,8 @@ CONCEPT_FUNCTION_IMPL(osip_to_compare, 2)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_to_tag_match, 2)
-    T_HANDLE(0)
-    T_HANDLE(1)
+    T_HANDLE(osip_to_tag_match, 0)
+    T_HANDLE(osip_to_tag_match, 1)
     osip_to_t * to = (osip_to_t *)PARAM_INT(0);
     osip_to_t *other = (osip_to_t *)PARAM_INT(0);
     int       res    = osip_to_compare(to, other);
@@ -2427,7 +2427,7 @@ CONCEPT_FUNCTION_IMPL(osip_call_id_init, 1)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_call_id_free, 1)
-    T_NUMBER(0)
+    T_NUMBER(osip_call_id_free, 0)
     osip_call_id_t * handle = (osip_call_id_t *)PARAM_INT(0);
     if (handle) {
         osip_call_id_free(handle);
@@ -2437,15 +2437,15 @@ CONCEPT_FUNCTION_IMPL(osip_call_id_free, 1)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_call_id_parse, 2)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(osip_call_id_parse, 0)
+    T_STRING(osip_call_id_parse, 1)
     osip_call_id_t * handle = (osip_call_id_t *)PARAM_INT(0);
     int res = osip_call_id_parse(handle, PARAM(1));
     RETURN_NUMBER(res);
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_call_id_clone, 2)
-    T_HANDLE(0)
+    T_HANDLE(osip_call_id_clone, 0)
     osip_call_id_t * handle = (osip_call_id_t *)PARAM_INT(0);
     osip_call_id_t *clone = 0;
     int            res    = osip_call_id_clone(handle, &clone);
@@ -2454,8 +2454,8 @@ CONCEPT_FUNCTION_IMPL(osip_call_id_clone, 2)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_call_id_match, 2)
-    T_HANDLE(0)
-    T_HANDLE(1)
+    T_HANDLE(osip_call_id_match, 0)
+    T_HANDLE(osip_call_id_match, 1)
     osip_call_id_t * handle = (osip_call_id_t *)PARAM_INT(0);
     osip_call_id_t *handle2 = (osip_call_id_t *)PARAM_INT(1);
     int            res      = osip_call_id_match(handle, handle2);
@@ -2470,7 +2470,7 @@ CONCEPT_FUNCTION_IMPL(osip_call_info_init, 1)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_call_info_free, 1)
-    T_NUMBER(0)
+    T_NUMBER(osip_call_info_free, 0)
     osip_call_info_t * handle = (osip_call_info_t *)PARAM_INT(0);
     if (handle) {
         osip_call_info_free(handle);
@@ -2480,15 +2480,15 @@ CONCEPT_FUNCTION_IMPL(osip_call_info_free, 1)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_call_info_parse, 2)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(osip_call_info_parse, 0)
+    T_STRING(osip_call_info_parse, 1)
     osip_call_info_t * handle = (osip_call_info_t *)PARAM_INT(0);
     int res = osip_call_info_parse(handle, PARAM(1));
     RETURN_NUMBER(res);
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_call_info_clone, 2)
-    T_HANDLE(0)
+    T_HANDLE(osip_call_info_clone, 0)
     osip_call_info_t * handle = (osip_call_info_t *)PARAM_INT(0);
     osip_call_info_t *clone = 0;
     int res = osip_call_info_clone(handle, &clone);
@@ -2497,7 +2497,7 @@ CONCEPT_FUNCTION_IMPL(osip_call_info_clone, 2)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_accept_free, 1)
-    T_NUMBER(0)
+    T_NUMBER(osip_accept_free, 0)
     osip_accept_t * handle = (osip_accept_t *)PARAM_INT(0);
     if (handle) {
         osip_accept_free(handle);
@@ -2507,15 +2507,15 @@ CONCEPT_FUNCTION_IMPL(osip_accept_free, 1)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_accept_parse, 2)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(osip_accept_parse, 0)
+    T_STRING(osip_accept_parse, 1)
     osip_accept_t * handle = (osip_accept_t *)PARAM_INT(0);
     int res = osip_accept_parse(handle, PARAM(1));
     RETURN_NUMBER(res);
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_accept_clone, 2)
-    T_HANDLE(0)
+    T_HANDLE(osip_accept_clone, 0)
     osip_accept_t * handle = (osip_accept_t *)PARAM_INT(0);
     osip_accept_t *clone = 0;
     int           res    = osip_accept_clone(handle, &clone);
@@ -2531,7 +2531,7 @@ CONCEPT_FUNCTION_IMPL(osip_accept_encoding_init, 1)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_accept_encoding_free, 1)
-    T_NUMBER(0)
+    T_NUMBER(osip_accept_encoding_free, 0)
     osip_accept_encoding_t * handle = (osip_accept_encoding_t *)PARAM_INT(0);
     if (handle) {
         osip_accept_encoding_free(handle);
@@ -2541,15 +2541,15 @@ CONCEPT_FUNCTION_IMPL(osip_accept_encoding_free, 1)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_accept_encoding_parse, 2)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(osip_accept_encoding_parse, 0)
+    T_STRING(osip_accept_encoding_parse, 1)
     osip_accept_encoding_t * handle = (osip_accept_encoding_t *)PARAM_INT(0);
     int res = osip_accept_encoding_parse(handle, PARAM(1));
     RETURN_NUMBER(res);
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_accept_encoding_clone, 2)
-    T_HANDLE(0)
+    T_HANDLE(osip_accept_encoding_clone, 0)
     osip_accept_encoding_t * handle = (osip_accept_encoding_t *)PARAM_INT(0);
     osip_accept_encoding_t *clone = 0;
     int res = osip_accept_encoding_clone(handle, &clone);
@@ -2565,7 +2565,7 @@ CONCEPT_FUNCTION_IMPL(osip_accept_language_init, 1)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_accept_language_free, 1)
-    T_NUMBER(0)
+    T_NUMBER(osip_accept_language_free, 0)
     osip_accept_language_t * handle = (osip_accept_language_t *)PARAM_INT(0);
     if (handle) {
         osip_accept_language_free(handle);
@@ -2575,15 +2575,15 @@ CONCEPT_FUNCTION_IMPL(osip_accept_language_free, 1)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_accept_language_parse, 2)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(osip_accept_language_parse, 0)
+    T_STRING(osip_accept_language_parse, 1)
     osip_accept_language_t * handle = (osip_accept_language_t *)PARAM_INT(0);
     int res = osip_accept_language_parse(handle, PARAM(1));
     RETURN_NUMBER(res);
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_accept_language_clone, 2)
-    T_HANDLE(0)
+    T_HANDLE(osip_accept_language_clone, 0)
     osip_accept_language_t * handle = (osip_accept_language_t *)PARAM_INT(0);
     osip_accept_language_t *clone = 0;
     int res = osip_accept_language_clone(handle, &clone);
@@ -2599,7 +2599,7 @@ CONCEPT_FUNCTION_IMPL(osip_alert_info_init, 1)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_alert_info_free, 1)
-    T_NUMBER(0)
+    T_NUMBER(osip_alert_info_free, 0)
     osip_alert_info_t * handle = (osip_alert_info_t *)PARAM_INT(0);
     if (handle) {
         osip_alert_info_free(handle);
@@ -2609,15 +2609,15 @@ CONCEPT_FUNCTION_IMPL(osip_alert_info_free, 1)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_alert_info_parse, 2)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(osip_alert_info_parse, 0)
+    T_STRING(osip_alert_info_parse, 1)
     osip_alert_info_t * handle = (osip_alert_info_t *)PARAM_INT(0);
     int res = osip_alert_info_parse(handle, PARAM(1));
     RETURN_NUMBER(res);
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_alert_info_clone, 2)
-    T_HANDLE(0)
+    T_HANDLE(osip_alert_info_clone, 0)
     osip_alert_info_t * handle = (osip_alert_info_t *)PARAM_INT(0);
     osip_alert_info_t *clone = 0;
     int res = osip_alert_info_clone(handle, &clone);
@@ -2633,7 +2633,7 @@ CONCEPT_FUNCTION_IMPL(osip_allow_init, 1)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_allow_free, 1)
-    T_NUMBER(0)
+    T_NUMBER(osip_allow_free, 0)
     osip_allow_t * handle = (osip_allow_t *)PARAM_INT(0);
     if (handle) {
         osip_allow_free(handle);
@@ -2643,15 +2643,15 @@ CONCEPT_FUNCTION_IMPL(osip_allow_free, 1)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_allow_parse, 2)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(osip_allow_parse, 0)
+    T_STRING(osip_allow_parse, 1)
     osip_allow_t * handle = (osip_allow_t *)PARAM_INT(0);
     int res = osip_allow_parse(handle, PARAM(1));
     RETURN_NUMBER(res);
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_allow_clone, 2)
-    T_HANDLE(0)
+    T_HANDLE(osip_allow_clone, 0)
     osip_allow_t * handle = (osip_allow_t *)PARAM_INT(0);
     osip_allow_t *clone = 0;
     int          res    = osip_allow_clone(handle, &clone);
@@ -2667,7 +2667,7 @@ CONCEPT_FUNCTION_IMPL(osip_authentication_info_init, 1)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_authentication_info_free, 1)
-    T_NUMBER(0)
+    T_NUMBER(osip_authentication_info_free, 0)
     osip_authentication_info_t * handle = (osip_authentication_info_t *)PARAM_INT(0);
     if (handle) {
         osip_authentication_info_free(handle);
@@ -2677,15 +2677,15 @@ CONCEPT_FUNCTION_IMPL(osip_authentication_info_free, 1)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_authentication_info_parse, 2)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(osip_authentication_info_parse, 0)
+    T_STRING(osip_authentication_info_parse, 1)
     osip_authentication_info_t * handle = (osip_authentication_info_t *)PARAM_INT(0);
     int res = osip_authentication_info_parse(handle, PARAM(1));
     RETURN_NUMBER(res);
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_authentication_info_clone, 2)
-    T_HANDLE(0)
+    T_HANDLE(osip_authentication_info_clone, 0)
     osip_authentication_info_t * handle = (osip_authentication_info_t *)PARAM_INT(0);
     osip_authentication_info_t *clone = 0;
     int res = osip_authentication_info_clone(handle, &clone);
@@ -2701,7 +2701,7 @@ CONCEPT_FUNCTION_IMPL(osip_authorization_init, 1)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_authorization_free, 1)
-    T_NUMBER(0)
+    T_NUMBER(osip_authorization_free, 0)
     osip_authorization_t * handle = (osip_authorization_t *)PARAM_INT(0);
     if (handle) {
         osip_authorization_free(handle);
@@ -2711,15 +2711,15 @@ CONCEPT_FUNCTION_IMPL(osip_authorization_free, 1)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_authorization_parse, 2)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(osip_authorization_parse, 0)
+    T_STRING(osip_authorization_parse, 1)
     osip_authorization_t * handle = (osip_authorization_t *)PARAM_INT(0);
     int res = osip_authorization_parse(handle, PARAM(1));
     RETURN_NUMBER(res);
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_authorization_clone, 2)
-    T_HANDLE(0)
+    T_HANDLE(osip_authorization_clone, 0)
     osip_authorization_t * handle = (osip_authorization_t *)PARAM_INT(0);
     osip_authorization_t *clone = 0;
     int res = osip_authorization_clone(handle, &clone);
@@ -2735,7 +2735,7 @@ CONCEPT_FUNCTION_IMPL(osip_contact_init, 1)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_contact_free, 1)
-    T_NUMBER(0)
+    T_NUMBER(osip_contact_free, 0)
     osip_contact_t * handle = (osip_contact_t *)PARAM_INT(0);
     if (handle) {
         osip_contact_free(handle);
@@ -2745,15 +2745,15 @@ CONCEPT_FUNCTION_IMPL(osip_contact_free, 1)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_contact_parse, 2)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(osip_contact_parse, 0)
+    T_STRING(osip_contact_parse, 1)
     osip_contact_t * handle = (osip_contact_t *)PARAM_INT(0);
     int res = osip_contact_parse(handle, PARAM(1));
     RETURN_NUMBER(res);
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_contact_clone, 2)
-    T_HANDLE(0)
+    T_HANDLE(osip_contact_clone, 0)
     osip_contact_t * handle = (osip_contact_t *)PARAM_INT(0);
     osip_contact_t *clone = 0;
     int            res    = osip_contact_clone(handle, &clone);
@@ -2769,7 +2769,7 @@ CONCEPT_FUNCTION_IMPL(osip_content_disposition_init, 1)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_content_disposition_free, 1)
-    T_NUMBER(0)
+    T_NUMBER(osip_content_disposition_free, 0)
     osip_content_disposition_t * handle = (osip_content_disposition_t *)PARAM_INT(0);
     if (handle) {
         osip_content_disposition_free(handle);
@@ -2779,15 +2779,15 @@ CONCEPT_FUNCTION_IMPL(osip_content_disposition_free, 1)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_content_disposition_parse, 2)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(osip_content_disposition_parse, 0)
+    T_STRING(osip_content_disposition_parse, 1)
     osip_content_disposition_t * handle = (osip_content_disposition_t *)PARAM_INT(0);
     int res = osip_content_disposition_parse(handle, PARAM(1));
     RETURN_NUMBER(res);
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_content_disposition_clone, 2)
-    T_HANDLE(0)
+    T_HANDLE(osip_content_disposition_clone, 0)
     osip_content_disposition_t * handle = (osip_content_disposition_t *)PARAM_INT(0);
     osip_content_disposition_t *clone = 0;
     int res = osip_content_disposition_clone(handle, &clone);
@@ -2803,7 +2803,7 @@ CONCEPT_FUNCTION_IMPL(osip_content_encoding_init, 1)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_content_encoding_free, 1)
-    T_NUMBER(0)
+    T_NUMBER(osip_content_encoding_free, 0)
     osip_content_encoding_t * handle = (osip_content_encoding_t *)PARAM_INT(0);
     if (handle) {
         osip_content_encoding_free(handle);
@@ -2813,15 +2813,15 @@ CONCEPT_FUNCTION_IMPL(osip_content_encoding_free, 1)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_content_encoding_parse, 2)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(osip_content_encoding_parse, 0)
+    T_STRING(osip_content_encoding_parse, 1)
     osip_content_encoding_t * handle = (osip_content_encoding_t *)PARAM_INT(0);
     int res = osip_content_encoding_parse(handle, PARAM(1));
     RETURN_NUMBER(res);
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_content_encoding_clone, 2)
-    T_HANDLE(0)
+    T_HANDLE(osip_content_encoding_clone, 0)
     osip_content_encoding_t * handle = (osip_content_encoding_t *)PARAM_INT(0);
     osip_content_encoding_t *clone = 0;
     int res = osip_content_encoding_clone(handle, &clone);
@@ -2837,7 +2837,7 @@ CONCEPT_FUNCTION_IMPL(osip_content_length_init, 1)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_content_length_free, 1)
-    T_NUMBER(0)
+    T_NUMBER(osip_content_length_free, 0)
     osip_content_length_t * handle = (osip_content_length_t *)PARAM_INT(0);
     if (handle) {
         osip_content_length_free(handle);
@@ -2847,15 +2847,15 @@ CONCEPT_FUNCTION_IMPL(osip_content_length_free, 1)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_content_length_parse, 2)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(osip_content_length_parse, 0)
+    T_STRING(osip_content_length_parse, 1)
     osip_content_length_t * handle = (osip_content_length_t *)PARAM_INT(0);
     int res = osip_content_length_parse(handle, PARAM(1));
     RETURN_NUMBER(res);
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_content_length_clone, 2)
-    T_HANDLE(0)
+    T_HANDLE(osip_content_length_clone, 0)
     osip_content_length_t * handle = (osip_content_length_t *)PARAM_INT(0);
     osip_content_length_t *clone = 0;
     int res = osip_content_length_clone(handle, &clone);
@@ -2871,7 +2871,7 @@ CONCEPT_FUNCTION_IMPL(osip_content_type_init, 1)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_content_type_free, 1)
-    T_NUMBER(0)
+    T_NUMBER(osip_content_type_free, 0)
     osip_content_type_t * handle = (osip_content_type_t *)PARAM_INT(0);
     if (handle) {
         osip_content_type_free(handle);
@@ -2881,15 +2881,15 @@ CONCEPT_FUNCTION_IMPL(osip_content_type_free, 1)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_content_type_parse, 2)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(osip_content_type_parse, 0)
+    T_STRING(osip_content_type_parse, 1)
     osip_content_type_t * handle = (osip_content_type_t *)PARAM_INT(0);
     int res = osip_content_type_parse(handle, PARAM(1));
     RETURN_NUMBER(res);
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_content_type_clone, 2)
-    T_HANDLE(0)
+    T_HANDLE(osip_content_type_clone, 0)
     osip_content_type_t * handle = (osip_content_type_t *)PARAM_INT(0);
     osip_content_type_t *clone = 0;
     int res = osip_content_type_clone(handle, &clone);
@@ -2905,7 +2905,7 @@ CONCEPT_FUNCTION_IMPL(osip_cseq_init, 1)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_cseq_message, 2)
-    T_HANDLE(1)
+    T_HANDLE(osip_cseq_message, 1)
     osip_message_t * msg = (osip_message_t *)PARAM_INT(1);
     int res = osip_cseq_init(&msg->cseq);
     SET_NUMBER(0, (SYS_INT)msg->cseq);
@@ -2913,7 +2913,7 @@ CONCEPT_FUNCTION_IMPL(osip_cseq_message, 2)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_call_id_message, 2)
-    T_HANDLE(1)
+    T_HANDLE(osip_call_id_message, 1)
     osip_message_t * msg = (osip_message_t *)PARAM_INT(1);
     int res = osip_call_id_init(&msg->call_id);
     SET_NUMBER(0, (SYS_INT)msg->call_id);
@@ -2921,7 +2921,7 @@ CONCEPT_FUNCTION_IMPL(osip_call_id_message, 2)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_cseq_free, 1)
-    T_NUMBER(0)
+    T_NUMBER(osip_cseq_free, 0)
     osip_cseq_t * handle = (osip_cseq_t *)PARAM_INT(0);
     if (handle) {
         osip_cseq_free(handle);
@@ -2931,15 +2931,15 @@ CONCEPT_FUNCTION_IMPL(osip_cseq_free, 1)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_cseq_parse, 2)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(osip_cseq_parse, 0)
+    T_STRING(osip_cseq_parse, 1)
     osip_cseq_t * handle = (osip_cseq_t *)PARAM_INT(0);
     int res = osip_cseq_parse(handle, PARAM(1));
     RETURN_NUMBER(res);
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_cseq_clone, 2)
-    T_HANDLE(0)
+    T_HANDLE(osip_cseq_clone, 0)
     osip_cseq_t * handle = (osip_cseq_t *)PARAM_INT(0);
     osip_cseq_t *clone = 0;
     int         res    = osip_cseq_clone(handle, &clone);
@@ -2948,8 +2948,8 @@ CONCEPT_FUNCTION_IMPL(osip_cseq_clone, 2)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_cseq_match, 2)
-    T_HANDLE(0)
-    T_HANDLE(1)
+    T_HANDLE(osip_cseq_match, 0)
+    T_HANDLE(osip_cseq_match, 1)
     osip_cseq_t * handle = (osip_cseq_t *)PARAM_INT(0);
     osip_cseq_t *handle2 = (osip_cseq_t *)PARAM_INT(1);
     int         res      = osip_cseq_match(handle, handle2);
@@ -2964,7 +2964,7 @@ CONCEPT_FUNCTION_IMPL(osip_error_info_init, 1)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_error_info_free, 1)
-    T_NUMBER(0)
+    T_NUMBER(osip_error_info_free, 0)
     osip_error_info_t * handle = (osip_error_info_t *)PARAM_INT(0);
     if (handle) {
         osip_error_info_free(handle);
@@ -2974,15 +2974,15 @@ CONCEPT_FUNCTION_IMPL(osip_error_info_free, 1)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_error_info_parse, 2)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(osip_error_info_parse, 0)
+    T_STRING(osip_error_info_parse, 1)
     osip_error_info_t * handle = (osip_error_info_t *)PARAM_INT(0);
     int res = osip_error_info_parse(handle, PARAM(1));
     RETURN_NUMBER(res);
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_error_info_clone, 2)
-    T_HANDLE(0)
+    T_HANDLE(osip_error_info_clone, 0)
     osip_error_info_t * handle = (osip_error_info_t *)PARAM_INT(0);
     osip_error_info_t *clone = 0;
     int res = osip_error_info_clone(handle, &clone);
@@ -2998,7 +2998,7 @@ CONCEPT_FUNCTION_IMPL(osip_header_init, 1)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_header_free, 1)
-    T_NUMBER(0)
+    T_NUMBER(osip_header_free, 0)
     osip_header_t * handle = (osip_header_t *)PARAM_INT(0);
     if (handle) {
         osip_header_free(handle);
@@ -3008,7 +3008,7 @@ CONCEPT_FUNCTION_IMPL(osip_header_free, 1)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_header_clone, 2)
-    T_HANDLE(0)
+    T_HANDLE(osip_header_clone, 0)
     osip_header_t * handle = (osip_header_t *)PARAM_INT(0);
     osip_header_t *clone = 0;
     int           res    = osip_header_clone(handle, &clone);
@@ -3024,7 +3024,7 @@ CONCEPT_FUNCTION_IMPL(osip_mime_version_init, 1)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_mime_version_free, 1)
-    T_NUMBER(0)
+    T_NUMBER(osip_mime_version_free, 0)
     osip_mime_version_t * handle = (osip_mime_version_t *)PARAM_INT(0);
     if (handle) {
         osip_mime_version_free(handle);
@@ -3034,15 +3034,15 @@ CONCEPT_FUNCTION_IMPL(osip_mime_version_free, 1)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_mime_version_parse, 2)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(osip_mime_version_parse, 0)
+    T_STRING(osip_mime_version_parse, 1)
     osip_mime_version_t * handle = (osip_mime_version_t *)PARAM_INT(0);
     int res = osip_mime_version_parse(handle, PARAM(1));
     RETURN_NUMBER(res);
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_mime_version_clone, 2)
-    T_HANDLE(0)
+    T_HANDLE(osip_mime_version_clone, 0)
     osip_mime_version_t * handle = (osip_mime_version_t *)PARAM_INT(0);
     osip_mime_version_t *clone = 0;
     int res = osip_mime_version_clone(handle, &clone);
@@ -3058,7 +3058,7 @@ CONCEPT_FUNCTION_IMPL(osip_proxy_authenticate_init, 1)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_proxy_authenticate_free, 1)
-    T_NUMBER(0)
+    T_NUMBER(osip_proxy_authenticate_free, 0)
     osip_proxy_authenticate_t * handle = (osip_proxy_authenticate_t *)PARAM_INT(0);
     if (handle) {
         osip_proxy_authenticate_free(handle);
@@ -3068,15 +3068,15 @@ CONCEPT_FUNCTION_IMPL(osip_proxy_authenticate_free, 1)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_proxy_authenticate_parse, 2)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(osip_proxy_authenticate_parse, 0)
+    T_STRING(osip_proxy_authenticate_parse, 1)
     osip_proxy_authenticate_t * handle = (osip_proxy_authenticate_t *)PARAM_INT(0);
     int res = osip_proxy_authenticate_parse(handle, PARAM(1));
     RETURN_NUMBER(res);
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_proxy_authenticate_clone, 2)
-    T_HANDLE(0)
+    T_HANDLE(osip_proxy_authenticate_clone, 0)
     osip_proxy_authenticate_t * handle = (osip_proxy_authenticate_t *)PARAM_INT(0);
     osip_proxy_authenticate_t *clone = 0;
     int res = osip_proxy_authenticate_clone(handle, &clone);
@@ -3092,7 +3092,7 @@ CONCEPT_FUNCTION_IMPL(osip_proxy_authentication_info_init, 1)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_proxy_authentication_info_free, 1)
-    T_NUMBER(0)
+    T_NUMBER(osip_proxy_authentication_info_free, 0)
     osip_proxy_authentication_info_t * handle = (osip_proxy_authentication_info_t *)PARAM_INT(0);
     if (handle) {
         osip_proxy_authentication_info_free(handle);
@@ -3102,15 +3102,15 @@ CONCEPT_FUNCTION_IMPL(osip_proxy_authentication_info_free, 1)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_proxy_authentication_info_parse, 2)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(osip_proxy_authentication_info_parse, 0)
+    T_STRING(osip_proxy_authentication_info_parse, 1)
     osip_proxy_authentication_info_t * handle = (osip_proxy_authentication_info_t *)PARAM_INT(0);
     int res = osip_proxy_authentication_info_parse(handle, PARAM(1));
     RETURN_NUMBER(res);
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_proxy_authentication_info_clone, 2)
-    T_HANDLE(0)
+    T_HANDLE(osip_proxy_authentication_info_clone, 0)
     osip_proxy_authentication_info_t * handle = (osip_proxy_authentication_info_t *)PARAM_INT(0);
     osip_proxy_authentication_info_t *clone = 0;
     int res = osip_proxy_authentication_info_clone(handle, &clone);
@@ -3126,7 +3126,7 @@ CONCEPT_FUNCTION_IMPL(osip_proxy_authorization_init, 1)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_proxy_authorization_free, 1)
-    T_NUMBER(0)
+    T_NUMBER(osip_proxy_authorization_free, 0)
     osip_proxy_authorization_t * handle = (osip_proxy_authorization_t *)PARAM_INT(0);
     if (handle) {
         osip_proxy_authorization_free(handle);
@@ -3136,15 +3136,15 @@ CONCEPT_FUNCTION_IMPL(osip_proxy_authorization_free, 1)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_proxy_authorization_parse, 2)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(osip_proxy_authorization_parse, 0)
+    T_STRING(osip_proxy_authorization_parse, 1)
     osip_proxy_authorization_t * handle = (osip_proxy_authorization_t *)PARAM_INT(0);
     int res = osip_proxy_authorization_parse(handle, PARAM(1));
     RETURN_NUMBER(res);
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_proxy_authorization_clone, 2)
-    T_HANDLE(0)
+    T_HANDLE(osip_proxy_authorization_clone, 0)
     osip_proxy_authorization_t * handle = (osip_proxy_authorization_t *)PARAM_INT(0);
     osip_proxy_authorization_t *clone = 0;
     int res = osip_proxy_authorization_clone(handle, &clone);
@@ -3160,7 +3160,7 @@ CONCEPT_FUNCTION_IMPL(osip_record_route_init, 1)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_record_route_free, 1)
-    T_NUMBER(0)
+    T_NUMBER(osip_record_route_free, 0)
     osip_record_route_t * handle = (osip_record_route_t *)PARAM_INT(0);
     if (handle) {
         osip_record_route_free(handle);
@@ -3170,15 +3170,15 @@ CONCEPT_FUNCTION_IMPL(osip_record_route_free, 1)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_record_route_parse, 2)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(osip_record_route_parse, 0)
+    T_STRING(osip_record_route_parse, 1)
     osip_record_route_t * handle = (osip_record_route_t *)PARAM_INT(0);
     int res = osip_record_route_parse(handle, PARAM(1));
     RETURN_NUMBER(res);
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_record_route_clone, 2)
-    T_HANDLE(0)
+    T_HANDLE(osip_record_route_clone, 0)
     osip_record_route_t * handle = (osip_record_route_t *)PARAM_INT(0);
     osip_record_route_t *clone = 0;
     int res = osip_record_route_clone(handle, &clone);
@@ -3194,7 +3194,7 @@ CONCEPT_FUNCTION_IMPL(osip_route_init, 1)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_route_free, 1)
-    T_NUMBER(0)
+    T_NUMBER(osip_route_free, 0)
     osip_route_t * handle = (osip_route_t *)PARAM_INT(0);
     if (handle) {
         osip_route_free(handle);
@@ -3204,15 +3204,15 @@ CONCEPT_FUNCTION_IMPL(osip_route_free, 1)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_route_parse, 2)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(osip_route_parse, 0)
+    T_STRING(osip_route_parse, 1)
     osip_route_t * handle = (osip_route_t *)PARAM_INT(0);
     int res = osip_route_parse(handle, PARAM(1));
     RETURN_NUMBER(res);
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_route_clone, 2)
-    T_HANDLE(0)
+    T_HANDLE(osip_route_clone, 0)
     osip_route_t * handle = (osip_route_t *)PARAM_INT(0);
     osip_route_t *clone = 0;
     int          res    = osip_route_clone(handle, &clone);
@@ -3228,7 +3228,7 @@ CONCEPT_FUNCTION_IMPL(osip_www_authenticate_init, 1)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_www_authenticate_free, 1)
-    T_NUMBER(0)
+    T_NUMBER(osip_www_authenticate_free, 0)
     osip_www_authenticate_t * handle = (osip_www_authenticate_t *)PARAM_INT(0);
     if (handle) {
         osip_www_authenticate_free(handle);
@@ -3238,15 +3238,15 @@ CONCEPT_FUNCTION_IMPL(osip_www_authenticate_free, 1)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_www_authenticate_parse, 2)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(osip_www_authenticate_parse, 0)
+    T_STRING(osip_www_authenticate_parse, 1)
     osip_www_authenticate_t * handle = (osip_www_authenticate_t *)PARAM_INT(0);
     int res = osip_www_authenticate_parse(handle, PARAM(1));
     RETURN_NUMBER(res);
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_www_authenticate_clone, 2)
-    T_HANDLE(0)
+    T_HANDLE(osip_www_authenticate_clone, 0)
     osip_www_authenticate_t * handle = (osip_www_authenticate_t *)PARAM_INT(0);
     osip_www_authenticate_t *clone = 0;
     int res = osip_www_authenticate_clone(handle, &clone);
@@ -3262,7 +3262,7 @@ CONCEPT_FUNCTION_IMPL(sdp_message_init, 1)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(sdp_message_free, 1)
-    T_NUMBER(0)
+    T_NUMBER(sdp_message_free, 0)
     sdp_message_t * handle = (sdp_message_t *)PARAM_INT(0);
     if (handle) {
         sdp_message_free(handle);
@@ -3272,15 +3272,15 @@ CONCEPT_FUNCTION_IMPL(sdp_message_free, 1)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(sdp_message_parse, 2)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(sdp_message_parse, 0)
+    T_STRING(sdp_message_parse, 1)
     sdp_message_t * handle = (sdp_message_t *)PARAM_INT(0);
     int res = sdp_message_parse(handle, PARAM(1));
     RETURN_NUMBER(res);
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(sdp_message_clone, 2)
-    T_HANDLE(0)
+    T_HANDLE(sdp_message_clone, 0)
     sdp_message_t * handle = (sdp_message_t *)PARAM_INT(0);
     sdp_message_t *clone = 0;
     int           res    = sdp_message_clone(handle, &clone);
@@ -3289,7 +3289,7 @@ CONCEPT_FUNCTION_IMPL(sdp_message_clone, 2)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(sdp_message_to_str, 2)
-    T_HANDLE(0);
+    T_HANDLE(sdp_message_to_str, 0);
     SET_STRING(1, "");
     sdp_message_t *to    = (sdp_message_t *)PARAM_INT(0);
     char          *msgP  = 0;
@@ -3303,84 +3303,84 @@ CONCEPT_FUNCTION_IMPL(sdp_message_to_str, 2)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_call_id_set_host, 2)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(osip_call_id_set_host, 0)
+    T_STRING(osip_call_id_set_host, 1)
     osip_call_id_t * handle = (osip_call_id_t *)PARAM_INT(0);
     osip_call_id_set_host(handle, osip_strdup(PARAM(1)));
     RETURN_NUMBER(0);
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_call_id_get_host, 1)
-    T_HANDLE(0)
+    T_HANDLE(osip_call_id_get_host, 0)
     osip_call_id_t * handle = (osip_call_id_t *)PARAM_INT(0);
     char *res = osip_call_id_get_host(handle);
     RETURN_STRING(res);
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_call_id_set_number, 2)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(osip_call_id_set_number, 0)
+    T_STRING(osip_call_id_set_number, 1)
     osip_call_id_t * handle = (osip_call_id_t *)PARAM_INT(0);
     osip_call_id_set_number(handle, osip_strdup(PARAM(1)));
     RETURN_NUMBER(0);
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_call_id_get_number, 1)
-    T_HANDLE(0)
+    T_HANDLE(osip_call_id_get_number, 0)
     osip_call_id_t * handle = (osip_call_id_t *)PARAM_INT(0);
     char *res = osip_call_id_get_number(handle);
     RETURN_STRING(res);
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_cseq_set_number, 2)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(osip_cseq_set_number, 0)
+    T_STRING(osip_cseq_set_number, 1)
     osip_cseq_t * handle = (osip_cseq_t *)PARAM_INT(0);
     osip_cseq_set_number(handle, osip_strdup(PARAM(1)));
     RETURN_NUMBER(0);
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_cseq_get_number, 1)
-    T_HANDLE(0)
+    T_HANDLE(osip_cseq_get_number, 0)
     osip_cseq_t * handle = (osip_cseq_t *)PARAM_INT(0);
     char *res = osip_cseq_get_number(handle);
     RETURN_STRING(res);
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_cseq_set_method, 2)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(osip_cseq_set_method, 0)
+    T_STRING(osip_cseq_set_method, 1)
     osip_cseq_t * handle = (osip_cseq_t *)PARAM_INT(0);
     osip_cseq_set_method(handle, osip_strdup(PARAM(1)));
     RETURN_NUMBER(0);
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_cseq_get_method, 1)
-    T_HANDLE(0)
+    T_HANDLE(osip_cseq_get_method, 0)
     osip_cseq_t * handle = (osip_cseq_t *)PARAM_INT(0);
     char *res = osip_cseq_get_method(handle);
     RETURN_STRING(res);
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_contact_set_displayname, 2)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(osip_contact_set_displayname, 0)
+    T_STRING(osip_contact_set_displayname, 1)
     osip_contact_t * handle = (osip_contact_t *)PARAM_INT(0);
     osip_contact_set_displayname(handle, osip_strdup(PARAM(1)));
     RETURN_NUMBER(0);
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_contact_get_displayname, 1)
-    T_HANDLE(0)
+    T_HANDLE(osip_contact_get_displayname, 0)
     osip_contact_t * handle = (osip_contact_t *)PARAM_INT(0);
     char *res = osip_contact_get_displayname(handle);
     RETURN_STRING(res);
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_contact_param_add, 3)
-    T_HANDLE(0)
-    T_STRING(1)
-    T_STRING(2)
+    T_HANDLE(osip_contact_param_add, 0)
+    T_STRING(osip_contact_param_add, 1)
+    T_STRING(osip_contact_param_add, 2)
     osip_contact_t * handle = (osip_contact_t *)PARAM_INT(0);
     int res = osip_contact_param_add(handle, osip_strdup(PARAM(1)), osip_strdup(PARAM(2)));
     RETURN_NUMBER(res);
@@ -3394,7 +3394,7 @@ CONCEPT_FUNCTION_IMPL(sdp_attribute_init, 1)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(sdp_attribute_free, 1)
-    T_NUMBER(0)
+    T_NUMBER(sdp_attribute_free, 0)
     sdp_attribute_t * handle = (sdp_attribute_t *)PARAM_INT(0);
     if (handle) {
         sdp_attribute_free(handle);
@@ -3411,7 +3411,7 @@ CONCEPT_FUNCTION_IMPL(sdp_connection_init, 1)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(sdp_connection_free, 1)
-    T_NUMBER(0)
+    T_NUMBER(sdp_connection_free, 0)
     sdp_connection_t * handle = (sdp_connection_t *)PARAM_INT(0);
     if (handle) {
         sdp_connection_free(handle);
@@ -3428,7 +3428,7 @@ CONCEPT_FUNCTION_IMPL(sdp_media_init, 1)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(sdp_media_free, 1)
-    T_NUMBER(0)
+    T_NUMBER(sdp_media_free, 0)
     sdp_media_t * handle = (sdp_media_t *)PARAM_INT(0);
     if (handle) {
         sdp_media_free(handle);
@@ -3439,421 +3439,421 @@ END_IMPL
 //-----------------------------------------------------//
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(sdp_message_v_version_set, 2)
-    T_HANDLE(0)     // sdp_message_t*
-    T_STRING(1)     // char*
+    T_HANDLE(sdp_message_v_version_set, 0)     // sdp_message_t*
+    T_STRING(sdp_message_v_version_set, 1)     // char*
 
     RETURN_NUMBER(sdp_message_v_version_set((sdp_message_t *)(long)PARAM(0), osip_strdup(PARAM(1))))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(sdp_message_v_version_get, 1)
-    T_HANDLE(0)     // sdp_message_t*
+    T_HANDLE(sdp_message_v_version_get, 0)     // sdp_message_t*
 
     RETURN_STRING((char *)sdp_message_v_version_get((sdp_message_t *)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(sdp_message_o_origin_set, 7)
-    T_HANDLE(0)     // sdp_message_t*
-    T_STRING(1)     // char*
-    T_STRING(2)     // char*
-    T_STRING(3)     // char*
-    T_STRING(4)     // char*
-    T_STRING(5)     // char*
-    T_STRING(6)     // char*
+    T_HANDLE(sdp_message_o_origin_set, 0)     // sdp_message_t*
+    T_STRING(sdp_message_o_origin_set, 1)     // char*
+    T_STRING(sdp_message_o_origin_set, 2)     // char*
+    T_STRING(sdp_message_o_origin_set, 3)     // char*
+    T_STRING(sdp_message_o_origin_set, 4)     // char*
+    T_STRING(sdp_message_o_origin_set, 5)     // char*
+    T_STRING(sdp_message_o_origin_set, 6)     // char*
 
     RETURN_NUMBER(sdp_message_o_origin_set((sdp_message_t *)(long)PARAM(0), osip_strdup(PARAM(1)), osip_strdup(PARAM(2)), osip_strdup(PARAM(3)), osip_strdup(PARAM(4)), osip_strdup(PARAM(5)), osip_strdup(PARAM(6))))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(sdp_message_o_username_get, 1)
-    T_HANDLE(0)     // sdp_message_t*
+    T_HANDLE(sdp_message_o_username_get, 0)     // sdp_message_t*
 
     RETURN_STRING((char *)sdp_message_o_username_get((sdp_message_t *)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(sdp_message_o_sess_id_get, 1)
-    T_HANDLE(0)     // sdp_message_t*
+    T_HANDLE(sdp_message_o_sess_id_get, 0)     // sdp_message_t*
 
     RETURN_STRING((char *)sdp_message_o_sess_id_get((sdp_message_t *)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(sdp_message_o_sess_version_get, 1)
-    T_HANDLE(0)     // sdp_message_t*
+    T_HANDLE(sdp_message_o_sess_version_get, 0)     // sdp_message_t*
 
     RETURN_STRING((char *)sdp_message_o_sess_version_get((sdp_message_t *)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(sdp_message_o_nettype_get, 1)
-    T_HANDLE(0)     // sdp_message_t*
+    T_HANDLE(sdp_message_o_nettype_get, 0)     // sdp_message_t*
 
     RETURN_STRING((char *)sdp_message_o_nettype_get((sdp_message_t *)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(sdp_message_o_addrtype_get, 1)
-    T_HANDLE(0)     // sdp_message_t*
+    T_HANDLE(sdp_message_o_addrtype_get, 0)     // sdp_message_t*
 
     RETURN_STRING((char *)sdp_message_o_addrtype_get((sdp_message_t *)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(sdp_message_o_addr_get, 1)
-    T_HANDLE(0)     // sdp_message_t*
+    T_HANDLE(sdp_message_o_addr_get, 0)     // sdp_message_t*
 
     RETURN_STRING((char *)sdp_message_o_addr_get((sdp_message_t *)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(sdp_message_s_name_set, 2)
-    T_HANDLE(0)     // sdp_message_t*
-    T_STRING(1)     // char*
+    T_HANDLE(sdp_message_s_name_set, 0)     // sdp_message_t*
+    T_STRING(sdp_message_s_name_set, 1)     // char*
 
     RETURN_NUMBER(sdp_message_s_name_set((sdp_message_t *)(long)PARAM(0), osip_strdup(PARAM(1))))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(sdp_message_s_name_get, 1)
-    T_HANDLE(0)     // sdp_message_t*
+    T_HANDLE(sdp_message_s_name_get, 0)     // sdp_message_t*
 
     RETURN_STRING((char *)sdp_message_s_name_get((sdp_message_t *)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(sdp_message_i_info_set, 3)
-    T_HANDLE(0)     // sdp_message_t*
-    T_NUMBER(1)     // int
-    T_STRING(2)     // char*
+    T_HANDLE(sdp_message_i_info_set, 0)     // sdp_message_t*
+    T_NUMBER(sdp_message_i_info_set, 1)     // int
+    T_STRING(sdp_message_i_info_set, 2)     // char*
 
     RETURN_NUMBER(sdp_message_i_info_set((sdp_message_t *)(long)PARAM(0), (int)PARAM(1), osip_strdup(PARAM(2))))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(sdp_message_i_info_get, 2)
-    T_HANDLE(0)     // sdp_message_t*
-    T_NUMBER(1)     // int
+    T_HANDLE(sdp_message_i_info_get, 0)     // sdp_message_t*
+    T_NUMBER(sdp_message_i_info_get, 1)     // int
 
     RETURN_STRING((char *)sdp_message_i_info_get((sdp_message_t *)(long)PARAM(0), (int)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(sdp_message_u_uri_set, 2)
-    T_HANDLE(0)     // sdp_message_t*
-    T_STRING(1)     // char*
+    T_HANDLE(sdp_message_u_uri_set, 0)     // sdp_message_t*
+    T_STRING(sdp_message_u_uri_set, 1)     // char*
 
     RETURN_NUMBER(sdp_message_u_uri_set((sdp_message_t *)(long)PARAM(0), osip_strdup(PARAM(1))))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(sdp_message_u_uri_get, 1)
-    T_HANDLE(0)     // sdp_message_t*
+    T_HANDLE(sdp_message_u_uri_get, 0)     // sdp_message_t*
 
     RETURN_STRING((char *)sdp_message_u_uri_get((sdp_message_t *)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(sdp_message_e_email_add, 2)
-    T_HANDLE(0)     // sdp_message_t*
-    T_STRING(1)     // char*
+    T_HANDLE(sdp_message_e_email_add, 0)     // sdp_message_t*
+    T_STRING(sdp_message_e_email_add, 1)     // char*
 
     RETURN_NUMBER(sdp_message_e_email_add((sdp_message_t *)(long)PARAM(0), osip_strdup(PARAM(1))))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(sdp_message_e_email_get, 2)
-    T_HANDLE(0)     // sdp_message_t*
-    T_NUMBER(1)     // int
+    T_HANDLE(sdp_message_e_email_get, 0)     // sdp_message_t*
+    T_NUMBER(sdp_message_e_email_get, 1)     // int
 
     RETURN_STRING((char *)sdp_message_e_email_get((sdp_message_t *)(long)PARAM(0), (int)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(sdp_message_p_phone_add, 2)
-    T_HANDLE(0)     // sdp_message_t*
-    T_STRING(1)     // char*
+    T_HANDLE(sdp_message_p_phone_add, 0)     // sdp_message_t*
+    T_STRING(sdp_message_p_phone_add, 1)     // char*
 
     RETURN_NUMBER(sdp_message_p_phone_add((sdp_message_t *)(long)PARAM(0), osip_strdup(PARAM(1))))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(sdp_message_p_phone_get, 2)
-    T_HANDLE(0)     // sdp_message_t*
-    T_NUMBER(1)     // int
+    T_HANDLE(sdp_message_p_phone_get, 0)     // sdp_message_t*
+    T_NUMBER(sdp_message_p_phone_get, 1)     // int
 
     RETURN_STRING((char *)sdp_message_p_phone_get((sdp_message_t *)(long)PARAM(0), (int)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(sdp_message_c_connection_add, 7)
-    T_HANDLE(0)     // sdp_message_t*
-    T_NUMBER(1)     // int
-    T_STRING(2)     // char*
-    T_STRING(3)     // char*
-    T_STRING(4)     // char*
-    T_STRING(5)     // char*
-    T_STRING(6)     // char*
+    T_HANDLE(sdp_message_c_connection_add, 0)     // sdp_message_t*
+    T_NUMBER(sdp_message_c_connection_add, 1)     // int
+    T_STRING(sdp_message_c_connection_add, 2)     // char*
+    T_STRING(sdp_message_c_connection_add, 3)     // char*
+    T_STRING(sdp_message_c_connection_add, 4)     // char*
+    T_STRING(sdp_message_c_connection_add, 5)     // char*
+    T_STRING(sdp_message_c_connection_add, 6)     // char*
 
     RETURN_NUMBER(sdp_message_c_connection_add((sdp_message_t *)(long)PARAM(0), (int)PARAM(1), det_osip_strdup(PARAM(2)), det_osip_strdup(PARAM(3)), det_osip_strdup(PARAM(4)), det_osip_strdup(PARAM(5)), det_osip_strdup(PARAM(6))))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(sdp_message_c_nettype_get, 3)
-    T_HANDLE(0)     // sdp_message_t*
-    T_NUMBER(1)     // int
-    T_NUMBER(2)     // int
+    T_HANDLE(sdp_message_c_nettype_get, 0)     // sdp_message_t*
+    T_NUMBER(sdp_message_c_nettype_get, 1)     // int
+    T_NUMBER(sdp_message_c_nettype_get, 2)     // int
 
     RETURN_STRING((char *)sdp_message_c_nettype_get((sdp_message_t *)(long)PARAM(0), (int)PARAM(1), (int)PARAM(2)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(sdp_message_c_addrtype_get, 3)
-    T_HANDLE(0)     // sdp_message_t*
-    T_NUMBER(1)     // int
-    T_NUMBER(2)     // int
+    T_HANDLE(sdp_message_c_addrtype_get, 0)     // sdp_message_t*
+    T_NUMBER(sdp_message_c_addrtype_get, 1)     // int
+    T_NUMBER(sdp_message_c_addrtype_get, 2)     // int
 
     RETURN_STRING((char *)sdp_message_c_addrtype_get((sdp_message_t *)(long)PARAM(0), (int)PARAM(1), (int)PARAM(2)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(sdp_message_c_addr_get, 3)
-    T_HANDLE(0)     // sdp_message_t*
-    T_NUMBER(1)     // int
-    T_NUMBER(2)     // int
+    T_HANDLE(sdp_message_c_addr_get, 0)     // sdp_message_t*
+    T_NUMBER(sdp_message_c_addr_get, 1)     // int
+    T_NUMBER(sdp_message_c_addr_get, 2)     // int
 
     RETURN_STRING((char *)sdp_message_c_addr_get((sdp_message_t *)(long)PARAM(0), (int)PARAM(1), (int)PARAM(2)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(sdp_message_c_addr_multicast_ttl_get, 3)
-    T_HANDLE(0)     // sdp_message_t*
-    T_NUMBER(1)     // int
-    T_NUMBER(2)     // int
+    T_HANDLE(sdp_message_c_addr_multicast_ttl_get, 0)     // sdp_message_t*
+    T_NUMBER(sdp_message_c_addr_multicast_ttl_get, 1)     // int
+    T_NUMBER(sdp_message_c_addr_multicast_ttl_get, 2)     // int
 
     RETURN_STRING((char *)sdp_message_c_addr_multicast_ttl_get((sdp_message_t *)(long)PARAM(0), (int)PARAM(1), (int)PARAM(2)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(sdp_message_c_addr_multicast_int_get, 3)
-    T_HANDLE(0)     // sdp_message_t*
-    T_NUMBER(1)     // int
-    T_NUMBER(2)     // int
+    T_HANDLE(sdp_message_c_addr_multicast_int_get, 0)     // sdp_message_t*
+    T_NUMBER(sdp_message_c_addr_multicast_int_get, 1)     // int
+    T_NUMBER(sdp_message_c_addr_multicast_int_get, 2)     // int
 
     RETURN_STRING((char *)sdp_message_c_addr_multicast_int_get((sdp_message_t *)(long)PARAM(0), (int)PARAM(1), (int)PARAM(2)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(sdp_message_b_bandwidth_add, 4)
-    T_HANDLE(0)     // sdp_message_t*
-    T_NUMBER(1)     // int
-    T_STRING(2)     // char*
-    T_STRING(3)     // char*
+    T_HANDLE(sdp_message_b_bandwidth_add, 0)     // sdp_message_t*
+    T_NUMBER(sdp_message_b_bandwidth_add, 1)     // int
+    T_STRING(sdp_message_b_bandwidth_add, 2)     // char*
+    T_STRING(sdp_message_b_bandwidth_add, 3)     // char*
 
     RETURN_NUMBER(sdp_message_b_bandwidth_add((sdp_message_t *)(long)PARAM(0), (int)PARAM(1), det_osip_strdup(PARAM(2)), det_osip_strdup(PARAM(3))))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(sdp_message_bandwidth_get, 3)
-    T_HANDLE(0)     // sdp_message_t*
-    T_NUMBER(1)     // int
-    T_NUMBER(2)     // int
+    T_HANDLE(sdp_message_bandwidth_get, 0)     // sdp_message_t*
+    T_NUMBER(sdp_message_bandwidth_get, 1)     // int
+    T_NUMBER(sdp_message_bandwidth_get, 2)     // int
 
     RETURN_NUMBER((SYS_INT)sdp_message_bandwidth_get((sdp_message_t *)(long)PARAM(0), (int)PARAM(1), (int)PARAM(2)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(sdp_message_b_bwtype_get, 3)
-    T_HANDLE(0)     // sdp_message_t*
-    T_NUMBER(1)     // int
-    T_NUMBER(2)     // int
+    T_HANDLE(sdp_message_b_bwtype_get, 0)     // sdp_message_t*
+    T_NUMBER(sdp_message_b_bwtype_get, 1)     // int
+    T_NUMBER(sdp_message_b_bwtype_get, 2)     // int
 
     RETURN_STRING((char *)sdp_message_b_bwtype_get((sdp_message_t *)(long)PARAM(0), (int)PARAM(1), (int)PARAM(2)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(sdp_message_b_bandwidth_get, 3)
-    T_HANDLE(0)     // sdp_message_t*
-    T_NUMBER(1)     // int
-    T_NUMBER(2)     // int
+    T_HANDLE(sdp_message_b_bandwidth_get, 0)     // sdp_message_t*
+    T_NUMBER(sdp_message_b_bandwidth_get, 1)     // int
+    T_NUMBER(sdp_message_b_bandwidth_get, 2)     // int
 
     RETURN_STRING((char *)sdp_message_b_bandwidth_get((sdp_message_t *)(long)PARAM(0), (int)PARAM(1), (int)PARAM(2)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(sdp_message_t_time_descr_add, 3)
-    T_HANDLE(0)     // sdp_message_t*
-    T_STRING(1)     // char*
-    T_STRING(2)     // char*
+    T_HANDLE(sdp_message_t_time_descr_add, 0)     // sdp_message_t*
+    T_STRING(sdp_message_t_time_descr_add, 1)     // char*
+    T_STRING(sdp_message_t_time_descr_add, 2)     // char*
 
     RETURN_NUMBER(sdp_message_t_time_descr_add((sdp_message_t *)(long)PARAM(0), det_osip_strdup(PARAM(1)), det_osip_strdup(PARAM(2))))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(sdp_message_t_start_time_get, 2)
-    T_HANDLE(0)     // sdp_message_t*
-    T_NUMBER(1)     // int
+    T_HANDLE(sdp_message_t_start_time_get, 0)     // sdp_message_t*
+    T_NUMBER(sdp_message_t_start_time_get, 1)     // int
 
     RETURN_STRING((char *)sdp_message_t_start_time_get((sdp_message_t *)(long)PARAM(0), (int)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(sdp_message_t_stop_time_get, 2)
-    T_HANDLE(0)     // sdp_message_t*
-    T_NUMBER(1)     // int
+    T_HANDLE(sdp_message_t_stop_time_get, 0)     // sdp_message_t*
+    T_NUMBER(sdp_message_t_stop_time_get, 1)     // int
 
     RETURN_STRING((char *)sdp_message_t_stop_time_get((sdp_message_t *)(long)PARAM(0), (int)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(sdp_message_r_repeat_add, 3)
-    T_HANDLE(0)     // sdp_message_t*
-    T_NUMBER(1)     // int
-    T_STRING(2)     // char*
+    T_HANDLE(sdp_message_r_repeat_add, 0)     // sdp_message_t*
+    T_NUMBER(sdp_message_r_repeat_add, 1)     // int
+    T_STRING(sdp_message_r_repeat_add, 2)     // char*
 
     RETURN_NUMBER(sdp_message_r_repeat_add((sdp_message_t *)(long)PARAM(0), (int)PARAM(1), osip_strdup(PARAM(2))))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(sdp_message_r_repeat_get, 3)
-    T_HANDLE(0)     // sdp_message_t*
-    T_NUMBER(1)     // int
-    T_NUMBER(2)     // int
+    T_HANDLE(sdp_message_r_repeat_get, 0)     // sdp_message_t*
+    T_NUMBER(sdp_message_r_repeat_get, 1)     // int
+    T_NUMBER(sdp_message_r_repeat_get, 2)     // int
 
     RETURN_STRING((char *)sdp_message_r_repeat_get((sdp_message_t *)(long)PARAM(0), (int)PARAM(1), (int)PARAM(2)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(sdp_message_z_adjustments_set, 2)
-    T_HANDLE(0)     // sdp_message_t*
-    T_STRING(1)     // char*
+    T_HANDLE(sdp_message_z_adjustments_set, 0)     // sdp_message_t*
+    T_STRING(sdp_message_z_adjustments_set, 1)     // char*
 
     RETURN_NUMBER(sdp_message_z_adjustments_set((sdp_message_t *)(long)PARAM(0), osip_strdup(PARAM(1))))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(sdp_message_z_adjustments_get, 1)
-    T_HANDLE(0)     // sdp_message_t*
+    T_HANDLE(sdp_message_z_adjustments_get, 0)     // sdp_message_t*
 
     RETURN_STRING((char *)sdp_message_z_adjustments_get((sdp_message_t *)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(sdp_message_k_key_set, 4)
-    T_HANDLE(0)     // sdp_message_t*
-    T_NUMBER(1)     // int
-    T_STRING(2)     // char*
-    T_STRING(3)     // char*
+    T_HANDLE(sdp_message_k_key_set, 0)     // sdp_message_t*
+    T_NUMBER(sdp_message_k_key_set, 1)     // int
+    T_STRING(sdp_message_k_key_set, 2)     // char*
+    T_STRING(sdp_message_k_key_set, 3)     // char*
 
     RETURN_NUMBER(sdp_message_k_key_set((sdp_message_t *)(long)PARAM(0), (int)PARAM(1), osip_strdup(PARAM(2)), osip_strdup(PARAM(3))))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(sdp_message_k_keytype_get, 2)
-    T_HANDLE(0)     // sdp_message_t*
-    T_NUMBER(1)     // int
+    T_HANDLE(sdp_message_k_keytype_get, 0)     // sdp_message_t*
+    T_NUMBER(sdp_message_k_keytype_get, 1)     // int
 
     RETURN_STRING((char *)sdp_message_k_keytype_get((sdp_message_t *)(long)PARAM(0), (int)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(sdp_message_k_keydata_get, 2)
-    T_HANDLE(0)     // sdp_message_t*
-    T_NUMBER(1)     // int
+    T_HANDLE(sdp_message_k_keydata_get, 0)     // sdp_message_t*
+    T_NUMBER(sdp_message_k_keydata_get, 1)     // int
 
     RETURN_STRING((char *)sdp_message_k_keydata_get((sdp_message_t *)(long)PARAM(0), (int)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(sdp_message_a_attribute_add, 4)
-    T_HANDLE(0)     // sdp_message_t*
-    T_NUMBER(1)     // int
-    T_STRING(2)     // char*
-    T_STRING(3)     // char*
+    T_HANDLE(sdp_message_a_attribute_add, 0)     // sdp_message_t*
+    T_NUMBER(sdp_message_a_attribute_add, 1)     // int
+    T_STRING(sdp_message_a_attribute_add, 2)     // char*
+    T_STRING(sdp_message_a_attribute_add, 3)     // char*
 
     RETURN_NUMBER(sdp_message_a_attribute_add((sdp_message_t *)(long)PARAM(0), (int)PARAM(1), osip_strdup(PARAM(2)), osip_strdup(PARAM(3))))
 END_IMPL
 //------------------------------------------------------------------------
 
 /*CONCEPT_FUNCTION_IMPL(sdp_message_a_attribute_del,3)
-        T_HANDLE(0) // sdp_message_t*
-        T_NUMBER(1) // int
-        T_STRING(2) // char*
+        T_HANDLE(sdp_message_a_attribute_add, 0) // sdp_message_t*
+        T_NUMBER(sdp_message_a_attribute_add, 1) // int
+        T_STRING(sdp_message_a_attribute_add, 2) // char*
 
         RETURN_NUMBER(sdp_message_a_attribute_del((sdp_message_t*)(long)PARAM(0), (int)PARAM(1), osip_strdup(PARAM(2))))
    END_IMPL
    //------------------------------------------------------------------------
    CONCEPT_FUNCTION_IMPL(sdp_message_a_attribute_del_at_index,4)
-        T_HANDLE(0) // sdp_message_t*
-        T_NUMBER(1) // int
-        T_STRING(2) // char*
-        T_NUMBER(3) // int
+        T_HANDLE(sdp_message_a_attribute_del_at_index, 0) // sdp_message_t*
+        T_NUMBER(sdp_message_a_attribute_del_at_index, 1) // int
+        T_STRING(sdp_message_a_attribute_del_at_index, 2) // char*
+        T_NUMBER(sdp_message_a_attribute_del_at_index, 3) // int
 
         RETURN_NUMBER(sdp_message_a_attribute_del_at_index((sdp_message_t*)(long)PARAM(0), (int)PARAM(1), osip_strdup(PARAM(2)), (int)PARAM(3)))
    END_IMPL
  */
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(sdp_message_attribute_get, 3)
-    T_HANDLE(0)     // sdp_message_t*
-    T_NUMBER(1)     // int
-    T_NUMBER(2)     // int
+    T_HANDLE(sdp_message_attribute_get, 0)     // sdp_message_t*
+    T_NUMBER(sdp_message_attribute_get, 1)     // int
+    T_NUMBER(sdp_message_attribute_get, 2)     // int
 
     RETURN_NUMBER((SYS_INT)sdp_message_attribute_get((sdp_message_t *)(long)PARAM(0), (int)PARAM(1), (int)PARAM(2)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(sdp_message_a_att_field_get, 3)
-    T_HANDLE(0)     // sdp_message_t*
-    T_NUMBER(1)     // int
-    T_NUMBER(2)     // int
+    T_HANDLE(sdp_message_a_att_field_get, 0)     // sdp_message_t*
+    T_NUMBER(sdp_message_a_att_field_get, 1)     // int
+    T_NUMBER(sdp_message_a_att_field_get, 2)     // int
 
     RETURN_STRING((char *)sdp_message_a_att_field_get((sdp_message_t *)(long)PARAM(0), (int)PARAM(1), (int)PARAM(2)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(sdp_message_a_att_value_get, 3)
-    T_HANDLE(0)     // sdp_message_t*
-    T_NUMBER(1)     // int
-    T_NUMBER(2)     // int
+    T_HANDLE(sdp_message_a_att_value_get, 0)     // sdp_message_t*
+    T_NUMBER(sdp_message_a_att_value_get, 1)     // int
+    T_NUMBER(sdp_message_a_att_value_get, 2)     // int
 
     RETURN_STRING((char *)sdp_message_a_att_value_get((sdp_message_t *)(long)PARAM(0), (int)PARAM(1), (int)PARAM(2)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(sdp_message_endof_media, 2)
-    T_HANDLE(0)     // sdp_message_t*
-    T_NUMBER(1)     // int
+    T_HANDLE(sdp_message_endof_media, 0)     // sdp_message_t*
+    T_NUMBER(sdp_message_endof_media, 1)     // int
 
     RETURN_NUMBER(sdp_message_endof_media((sdp_message_t *)(long)PARAM(0), (int)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(sdp_message_m_media_add, 5)
-    T_HANDLE(0)     // sdp_message_t*
-    T_STRING(1)     // char*
-    T_STRING(2)     // char*
-    T_STRING(3)     // char*
-    T_STRING(4)     // char*
+    T_HANDLE(sdp_message_m_media_add, 0)     // sdp_message_t*
+    T_STRING(sdp_message_m_media_add, 1)     // char*
+    T_STRING(sdp_message_m_media_add, 2)     // char*
+    T_STRING(sdp_message_m_media_add, 3)     // char*
+    T_STRING(sdp_message_m_media_add, 4)     // char*
 
     RETURN_NUMBER(sdp_message_m_media_add((sdp_message_t *)(long)PARAM(0), det_osip_strdup(PARAM(1)), det_osip_strdup(PARAM(2)), det_osip_strdup(PARAM(3)), det_osip_strdup(PARAM(4))))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(sdp_message_m_media_get, 2)
-    T_HANDLE(0)     // sdp_message_t*
-    T_NUMBER(1)     // int
+    T_HANDLE(sdp_message_m_media_get, 0)     // sdp_message_t*
+    T_NUMBER(sdp_message_m_media_get, 1)     // int
 
     RETURN_STRING((char *)sdp_message_m_media_get((sdp_message_t *)(long)PARAM(0), (int)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(sdp_message_m_port_get, 2)
-    T_HANDLE(0)     // sdp_message_t*
-    T_NUMBER(1)     // int
+    T_HANDLE(sdp_message_m_port_get, 0)     // sdp_message_t*
+    T_NUMBER(sdp_message_m_port_get, 1)     // int
 
     RETURN_STRING((char *)sdp_message_m_port_get((sdp_message_t *)(long)PARAM(0), (int)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 
 /*CONCEPT_FUNCTION_IMPL(sdp_message_m_port_set,3)
-        T_HANDLE(0) // sdp_message_t*
-        T_NUMBER(1) // int
-        T_STRING(2) // char*
+        T_HANDLE(sdp_message_m_port_get, 0) // sdp_message_t*
+        T_NUMBER(sdp_message_m_port_get, 1) // int
+        T_STRING(sdp_message_m_port_get, 2) // char*
 
         RETURN_NUMBER(sdp_message_m_port_set((sdp_message_t*)(long)PARAM(0), (int)PARAM(1), osip_strdup(PARAM(2))))
    END_IMPL*/
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(sdp_message_m_number_of_port_get, 2)
-    T_HANDLE(0)     // sdp_message_t*
-    T_NUMBER(1)     // int
+    T_HANDLE(sdp_message_m_number_of_port_get, 0)     // sdp_message_t*
+    T_NUMBER(sdp_message_m_number_of_port_get, 1)     // int
 
     RETURN_STRING((char *)sdp_message_m_number_of_port_get((sdp_message_t *)(long)PARAM(0), (int)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(sdp_message_m_proto_get, 2)
-    T_HANDLE(0)     // sdp_message_t*
-    T_NUMBER(1)     // int
+    T_HANDLE(sdp_message_m_proto_get, 0)     // sdp_message_t*
+    T_NUMBER(sdp_message_m_proto_get, 1)     // int
 
     RETURN_STRING((char *)sdp_message_m_proto_get((sdp_message_t *)(long)PARAM(0), (int)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(sdp_message_m_payload_add, 3)
-    T_HANDLE(0)     // sdp_message_t*
-    T_NUMBER(1)     // int
-    T_STRING(2)     // char*
+    T_HANDLE(sdp_message_m_payload_add, 0)     // sdp_message_t*
+    T_NUMBER(sdp_message_m_payload_add, 1)     // int
+    T_STRING(sdp_message_m_payload_add, 2)     // char*
 
     RETURN_NUMBER(sdp_message_m_payload_add((sdp_message_t *)(long)PARAM(0), (int)PARAM(1), osip_strdup(PARAM(2))))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(sdp_message_m_payload_get, 3)
-    T_HANDLE(0)     // sdp_message_t*
-    T_NUMBER(1)     // int
-    T_NUMBER(2)     // int
+    T_HANDLE(sdp_message_m_payload_get, 0)     // sdp_message_t*
+    T_NUMBER(sdp_message_m_payload_get, 1)     // int
+    T_NUMBER(sdp_message_m_payload_get, 2)     // int
 
     RETURN_STRING((char *)sdp_message_m_payload_get((sdp_message_t *)(long)PARAM(0), (int)PARAM(1), (int)PARAM(2)))
 END_IMPL
 //------------------------------------------------------------------------
 
 /*CONCEPT_FUNCTION_IMPL(sdp_message_m_payload_del,3)
-        T_HANDLE(0) // sdp_message_t*
-        T_NUMBER(1) // int
-        T_NUMBER(2) // int
+        T_HANDLE(sdp_message_m_payload_get, 0) // sdp_message_t*
+        T_NUMBER(sdp_message_m_payload_get, 1) // int
+        T_NUMBER(sdp_message_m_payload_get, 2) // int
 
         RETURN_NUMBER(sdp_message_m_payload_del((sdp_message_t*)(long)PARAM(0), (int)PARAM(1), (int)PARAM(2)))
    END_IMPL*/
@@ -3866,7 +3866,7 @@ CONCEPT_FUNCTION_IMPL(sdp_bandwidth_init, 1)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(sdp_bandwidth_free, 1)
-    T_NUMBER(0)
+    T_NUMBER(sdp_bandwidth_free, 0)
     sdp_bandwidth_t * handle = (sdp_bandwidth_t *)PARAM_INT(0);
     if (handle) {
         sdp_bandwidth_free(handle);
@@ -3876,7 +3876,7 @@ CONCEPT_FUNCTION_IMPL(sdp_bandwidth_free, 1)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(sdp_message_describe, 1)
-    T_HANDLE(0)
+    T_HANDLE(sdp_message_describe, 0)
 
     sdp_media_t * msg = (sdp_media_t *)PARAM_INT(0);
     CREATE_ARRAY(RESULT);
@@ -3894,7 +3894,7 @@ CONCEPT_FUNCTION_IMPL(sdp_message_describe, 1)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(sdp_media_describe, 1)
-    T_HANDLE(0)
+    T_HANDLE(sdp_media_describe, 0)
 
     sdp_message_t * msg = (sdp_message_t *)PARAM_INT(0);
     CREATE_ARRAY(RESULT);
@@ -3921,7 +3921,7 @@ CONCEPT_FUNCTION_IMPL(sdp_media_describe, 1)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(sdp_attribute_describe, 1)
-    T_HANDLE(0)
+    T_HANDLE(sdp_attribute_describe, 0)
 
     sdp_attribute_t * msg = (sdp_attribute_t *)PARAM_INT(0);
     CREATE_ARRAY(RESULT);
@@ -3931,7 +3931,7 @@ CONCEPT_FUNCTION_IMPL(sdp_attribute_describe, 1)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(sdp_connection_describe, 1)
-    T_HANDLE(0)
+    T_HANDLE(sdp_connection_describe, 0)
 
     sdp_connection_t * msg = (sdp_connection_t *)PARAM_INT(0);
     CREATE_ARRAY(RESULT);
@@ -3944,7 +3944,7 @@ CONCEPT_FUNCTION_IMPL(sdp_connection_describe, 1)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(sdp_bandwidth_describe, 1)
-    T_HANDLE(0)
+    T_HANDLE(sdp_bandwidth_describe, 0)
 
     sdp_bandwidth_t * msg = (sdp_bandwidth_t *)PARAM_INT(0);
     CREATE_ARRAY(RESULT);
@@ -3954,8 +3954,8 @@ CONCEPT_FUNCTION_IMPL(sdp_bandwidth_describe, 1)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_contact_set_url, 2)
-    T_HANDLE(0)
-    T_HANDLE(1)
+    T_HANDLE(osip_contact_set_url, 0)
+    T_HANDLE(osip_contact_set_url, 1)
     osip_from_t * from = (osip_from_t *)PARAM_INT(0);
     osip_uri_t *url = (osip_uri_t *)PARAM_INT(1);
     osip_contact_set_url(from, url);
@@ -3963,14 +3963,14 @@ CONCEPT_FUNCTION_IMPL(osip_contact_set_url, 2)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_contact_get_url, 1)
-    T_HANDLE(0)
+    T_HANDLE(osip_contact_get_url, 0)
     osip_contact_t * from = (osip_contact_t *)PARAM_INT(0);
     osip_uri_t *url = osip_contact_get_url(from);
     RETURN_NUMBER((SYS_INT)url);
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_contact_to_str, 2)
-    T_HANDLE(0)
+    T_HANDLE(osip_contact_to_str, 0)
     SET_STRING(1, "");
 
     osip_contact_t *from  = (osip_contact_t *)PARAM_INT(0);
@@ -3992,7 +3992,7 @@ CONCEPT_FUNCTION_IMPL(osip_body_init, 1)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_body_free, 1)
-    T_NUMBER(0)
+    T_NUMBER(osip_body_free, 0)
     osip_body_t * handle = (osip_body_t *)PARAM_INT(0);
     if (handle) {
         osip_body_free(handle);
@@ -4002,23 +4002,23 @@ CONCEPT_FUNCTION_IMPL(osip_body_free, 1)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_body_parse, 2)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(osip_body_parse, 0)
+    T_STRING(osip_body_parse, 1)
     osip_body_t * handle = (osip_body_t *)PARAM_INT(0);
     int res = osip_body_parse(handle, PARAM(1), PARAM_LEN(1));
     RETURN_NUMBER(res);
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_body_parse_mime, 2)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(osip_body_parse_mime, 0)
+    T_STRING(osip_body_parse_mime, 1)
     osip_body_t * handle = (osip_body_t *)PARAM_INT(0);
     int res = osip_body_parse_mime(handle, PARAM(1), PARAM_LEN(1));
     RETURN_NUMBER(res);
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_body_clone, 2)
-    T_HANDLE(0)
+    T_HANDLE(osip_body_clone, 0)
     osip_body_t * handle = (osip_body_t *)PARAM_INT(0);
     osip_body_t *clone = 0;
     int         res    = osip_body_clone(handle, &clone);
@@ -4027,7 +4027,7 @@ CONCEPT_FUNCTION_IMPL(osip_body_clone, 2)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_body_to_str, 2)
-    T_HANDLE(0);
+    T_HANDLE(osip_body_to_str, 0);
     SET_STRING(1, "");
     osip_body_t *to    = (osip_body_t *)PARAM_INT(0);
     char        *msgP  = 0;
@@ -4043,579 +4043,579 @@ CONCEPT_FUNCTION_IMPL(osip_body_to_str, 2)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_body_set_header, 3)
-    T_HANDLE(0)
-    T_STRING(1)
-    T_STRING(2)
+    T_HANDLE(osip_body_set_header, 0)
+    T_STRING(osip_body_set_header, 1)
+    T_STRING(osip_body_set_header, 2)
     osip_body_t * handle = (osip_body_t *)PARAM_INT(0);
     int res = osip_body_set_header(handle, osip_strdup(PARAM(1)), osip_strdup(PARAM(2)));
     RETURN_NUMBER(res);
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_body_set_contenttype, 2)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(osip_body_set_contenttype, 0)
+    T_STRING(osip_body_set_contenttype, 1)
     osip_body_t * handle = (osip_body_t *)PARAM_INT(0);
     int res = osip_body_set_contenttype(handle, osip_strdup(PARAM(1)));
     RETURN_NUMBER(res);
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_proxy_authenticate_set_auth_type, 2)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(osip_proxy_authenticate_set_auth_type, 0)
+    T_STRING(osip_proxy_authenticate_set_auth_type, 1)
     osip_proxy_authenticate_t * handle = (osip_proxy_authenticate_t *)PARAM_INT(0);
     osip_proxy_authenticate_set_auth_type(handle, osip_strdup(PARAM(1)));
     RETURN_NUMBER(0);
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_proxy_authenticate_get_auth_type, 1)
-    T_HANDLE(0)
+    T_HANDLE(osip_proxy_authenticate_get_auth_type, 0)
     osip_proxy_authenticate_t * handle = (osip_proxy_authenticate_t *)PARAM_INT(0);
     char *res = osip_proxy_authenticate_get_auth_type(handle);
     RETURN_STRING(res);
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_proxy_authenticate_set_realm, 2)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(osip_proxy_authenticate_set_realm, 0)
+    T_STRING(osip_proxy_authenticate_set_realm, 1)
     osip_proxy_authenticate_t * handle = (osip_proxy_authenticate_t *)PARAM_INT(0);
     osip_proxy_authenticate_set_realm(handle, osip_strdup(PARAM(1)));
     RETURN_NUMBER(0);
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_proxy_authenticate_get_realm, 1)
-    T_HANDLE(0)
+    T_HANDLE(osip_proxy_authenticate_get_realm, 0)
     osip_proxy_authenticate_t * handle = (osip_proxy_authenticate_t *)PARAM_INT(0);
     char *res = osip_proxy_authenticate_get_realm(handle);
     RETURN_STRING(res);
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_proxy_authenticate_set_domain, 2)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(osip_proxy_authenticate_set_domain, 0)
+    T_STRING(osip_proxy_authenticate_set_domain, 1)
     osip_proxy_authenticate_t * handle = (osip_proxy_authenticate_t *)PARAM_INT(0);
     osip_proxy_authenticate_set_domain(handle, osip_strdup(PARAM(1)));
     RETURN_NUMBER(0);
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_proxy_authenticate_get_domain, 1)
-    T_HANDLE(0)
+    T_HANDLE(osip_proxy_authenticate_get_domain, 0)
     osip_proxy_authenticate_t * handle = (osip_proxy_authenticate_t *)PARAM_INT(0);
     char *res = osip_proxy_authenticate_get_domain(handle);
     RETURN_STRING(res);
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_proxy_authenticate_set_nonce, 2)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(osip_proxy_authenticate_set_nonce, 0)
+    T_STRING(osip_proxy_authenticate_set_nonce, 1)
     osip_proxy_authenticate_t * handle = (osip_proxy_authenticate_t *)PARAM_INT(0);
     osip_proxy_authenticate_set_nonce(handle, osip_strdup(PARAM(1)));
     RETURN_NUMBER(0);
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_proxy_authenticate_get_nonce, 1)
-    T_HANDLE(0)
+    T_HANDLE(osip_proxy_authenticate_get_nonce, 0)
     osip_proxy_authenticate_t * handle = (osip_proxy_authenticate_t *)PARAM_INT(0);
     char *res = osip_proxy_authenticate_get_nonce(handle);
     RETURN_STRING(res);
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_proxy_authenticate_set_opaque, 2)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(osip_proxy_authenticate_set_opaque, 0)
+    T_STRING(osip_proxy_authenticate_set_opaque, 1)
     osip_proxy_authenticate_t * handle = (osip_proxy_authenticate_t *)PARAM_INT(0);
     osip_proxy_authenticate_set_opaque(handle, osip_strdup(PARAM(1)));
     RETURN_NUMBER(0);
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_proxy_authenticate_get_opaque, 1)
-    T_HANDLE(0)
+    T_HANDLE(osip_proxy_authenticate_get_opaque, 0)
     osip_proxy_authenticate_t * handle = (osip_proxy_authenticate_t *)PARAM_INT(0);
     char *res = osip_proxy_authenticate_get_opaque(handle);
     RETURN_STRING(res);
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_proxy_authenticate_set_stale, 2)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(osip_proxy_authenticate_set_stale, 0)
+    T_STRING(osip_proxy_authenticate_set_stale, 1)
     osip_proxy_authenticate_t * handle = (osip_proxy_authenticate_t *)PARAM_INT(0);
     osip_proxy_authenticate_set_stale(handle, osip_strdup(PARAM(1)));
     RETURN_NUMBER(0);
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_proxy_authenticate_get_stale, 1)
-    T_HANDLE(0)
+    T_HANDLE(osip_proxy_authenticate_get_stale, 0)
     osip_proxy_authenticate_t * handle = (osip_proxy_authenticate_t *)PARAM_INT(0);
     char *res = osip_proxy_authenticate_get_stale(handle);
     RETURN_STRING(res);
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_proxy_authenticate_set_algorithm, 2)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(osip_proxy_authenticate_set_algorithm, 0)
+    T_STRING(osip_proxy_authenticate_set_algorithm, 1)
     osip_proxy_authenticate_t * handle = (osip_proxy_authenticate_t *)PARAM_INT(0);
     osip_proxy_authenticate_set_algorithm(handle, osip_strdup(PARAM(1)));
     RETURN_NUMBER(0);
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_proxy_authenticate_get_algorithm, 1)
-    T_HANDLE(0)
+    T_HANDLE(osip_proxy_authenticate_get_algorithm, 0)
     osip_proxy_authenticate_t * handle = (osip_proxy_authenticate_t *)PARAM_INT(0);
     char *res = osip_proxy_authenticate_get_algorithm(handle);
     RETURN_STRING(res);
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_proxy_authenticate_set_qop_options, 2)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(osip_proxy_authenticate_set_qop_options, 0)
+    T_STRING(osip_proxy_authenticate_set_qop_options, 1)
     osip_proxy_authenticate_t * handle = (osip_proxy_authenticate_t *)PARAM_INT(0);
     osip_proxy_authenticate_set_qop_options(handle, osip_strdup(PARAM(1)));
     RETURN_NUMBER(0);
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_proxy_authenticate_get_qop_options, 1)
-    T_HANDLE(0)
+    T_HANDLE(osip_proxy_authenticate_get_qop_options, 0)
     osip_proxy_authenticate_t * handle = (osip_proxy_authenticate_t *)PARAM_INT(0);
     char *res = osip_proxy_authenticate_get_qop_options(handle);
     RETURN_STRING(res);
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_authorization_set_auth_type, 2)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(osip_authorization_set_auth_type, 0)
+    T_STRING(osip_authorization_set_auth_type, 1)
     osip_authorization_t * handle = (osip_authorization_t *)PARAM_INT(0);
     osip_authorization_set_auth_type(handle, osip_strdup(PARAM(1)));
     RETURN_NUMBER(0);
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_authorization_get_auth_type, 1)
-    T_HANDLE(0)
+    T_HANDLE(osip_authorization_get_auth_type, 0)
     osip_authorization_t * handle = (osip_authorization_t *)PARAM_INT(0);
     char *res = osip_authorization_get_auth_type(handle);
     RETURN_STRING(res);
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_authorization_set_realm, 2)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(osip_authorization_set_realm, 0)
+    T_STRING(osip_authorization_set_realm, 1)
     osip_authorization_t * handle = (osip_authorization_t *)PARAM_INT(0);
     osip_authorization_set_realm(handle, osip_strdup(PARAM(1)));
     RETURN_NUMBER(0);
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_authorization_get_realm, 1)
-    T_HANDLE(0)
+    T_HANDLE(osip_authorization_get_realm, 0)
     osip_authorization_t * handle = (osip_authorization_t *)PARAM_INT(0);
     char *res = osip_authorization_get_realm(handle);
     RETURN_STRING(res);
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_authorization_set_nonce, 2)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(osip_authorization_set_nonce, 0)
+    T_STRING(osip_authorization_set_nonce, 1)
     osip_authorization_t * handle = (osip_authorization_t *)PARAM_INT(0);
     osip_authorization_set_nonce(handle, osip_strdup(PARAM(1)));
     RETURN_NUMBER(0);
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_authorization_get_nonce, 1)
-    T_HANDLE(0)
+    T_HANDLE(osip_authorization_get_nonce, 0)
     osip_authorization_t * handle = (osip_authorization_t *)PARAM_INT(0);
     char *res = osip_authorization_get_nonce(handle);
     RETURN_STRING(res);
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_authorization_set_opaque, 2)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(osip_authorization_set_opaque, 0)
+    T_STRING(osip_authorization_set_opaque, 1)
     osip_authorization_t * handle = (osip_authorization_t *)PARAM_INT(0);
     osip_authorization_set_opaque(handle, osip_strdup(PARAM(1)));
     RETURN_NUMBER(0);
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_authorization_get_opaque, 1)
-    T_HANDLE(0)
+    T_HANDLE(osip_authorization_get_opaque, 0)
     osip_authorization_t * handle = (osip_authorization_t *)PARAM_INT(0);
     char *res = osip_authorization_get_opaque(handle);
     RETURN_STRING(res);
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_authorization_set_algorithm, 2)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(osip_authorization_set_algorithm, 0)
+    T_STRING(osip_authorization_set_algorithm, 1)
     osip_authorization_t * handle = (osip_authorization_t *)PARAM_INT(0);
     osip_authorization_set_algorithm(handle, osip_strdup(PARAM(1)));
     RETURN_NUMBER(0);
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_authorization_get_algorithm, 1)
-    T_HANDLE(0)
+    T_HANDLE(osip_authorization_get_algorithm, 0)
     osip_authorization_t * handle = (osip_authorization_t *)PARAM_INT(0);
     char *res = osip_authorization_get_algorithm(handle);
     RETURN_STRING(res);
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_authorization_set_username, 2)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(osip_authorization_set_username, 0)
+    T_STRING(osip_authorization_set_username, 1)
     osip_authorization_t * handle = (osip_authorization_t *)PARAM_INT(0);
     osip_authorization_set_username(handle, osip_strdup(PARAM(1)));
     RETURN_NUMBER(0);
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_authorization_get_username, 1)
-    T_HANDLE(0)
+    T_HANDLE(osip_authorization_get_username, 0)
     osip_authorization_t * handle = (osip_authorization_t *)PARAM_INT(0);
     char *res = osip_authorization_get_username(handle);
     RETURN_STRING(res);
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_authorization_set_uri, 2)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(osip_authorization_set_uri, 0)
+    T_STRING(osip_authorization_set_uri, 1)
     osip_authorization_t * handle = (osip_authorization_t *)PARAM_INT(0);
     osip_authorization_set_uri(handle, osip_strdup(PARAM(1)));
     RETURN_NUMBER(0);
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_authorization_get_uri, 1)
-    T_HANDLE(0)
+    T_HANDLE(osip_authorization_get_uri, 0)
     osip_authorization_t * handle = (osip_authorization_t *)PARAM_INT(0);
     char *res = osip_authorization_get_uri(handle);
     RETURN_STRING(res);
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_authorization_set_response, 2)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(osip_authorization_set_response, 0)
+    T_STRING(osip_authorization_set_response, 1)
     osip_authorization_t * handle = (osip_authorization_t *)PARAM_INT(0);
     osip_authorization_set_response(handle, osip_strdup(PARAM(1)));
     RETURN_NUMBER(0);
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_authorization_get_response, 1)
-    T_HANDLE(0)
+    T_HANDLE(osip_authorization_get_response, 0)
     osip_authorization_t * handle = (osip_authorization_t *)PARAM_INT(0);
     char *res = osip_authorization_get_response(handle);
     RETURN_STRING(res);
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_authorization_set_digest, 2)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(osip_authorization_set_digest, 0)
+    T_STRING(osip_authorization_set_digest, 1)
     osip_authorization_t * handle = (osip_authorization_t *)PARAM_INT(0);
     osip_authorization_set_digest(handle, osip_strdup(PARAM(1)));
     RETURN_NUMBER(0);
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_authorization_get_digest, 1)
-    T_HANDLE(0)
+    T_HANDLE(osip_authorization_get_digest, 0)
     osip_authorization_t * handle = (osip_authorization_t *)PARAM_INT(0);
     char *res = osip_authorization_get_digest(handle);
     RETURN_STRING(res);
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_authorization_set_cnonce, 2)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(osip_authorization_set_cnonce, 0)
+    T_STRING(osip_authorization_set_cnonce, 1)
     osip_authorization_t * handle = (osip_authorization_t *)PARAM_INT(0);
     osip_authorization_set_cnonce(handle, osip_strdup(PARAM(1)));
     RETURN_NUMBER(0);
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_authorization_get_cnonce, 1)
-    T_HANDLE(0)
+    T_HANDLE(osip_authorization_get_cnonce, 0)
     osip_authorization_t * handle = (osip_authorization_t *)PARAM_INT(0);
     char *res = osip_authorization_get_cnonce(handle);
     RETURN_STRING(res);
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_authorization_set_message_qop, 2)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(osip_authorization_set_message_qop, 0)
+    T_STRING(osip_authorization_set_message_qop, 1)
     osip_authorization_t * handle = (osip_authorization_t *)PARAM_INT(0);
     osip_authorization_set_message_qop(handle, osip_strdup(PARAM(1)));
     RETURN_NUMBER(0);
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_authorization_get_message_qop, 1)
-    T_HANDLE(0)
+    T_HANDLE(osip_authorization_get_message_qop, 0)
     osip_authorization_t * handle = (osip_authorization_t *)PARAM_INT(0);
     char *res = osip_authorization_get_message_qop(handle);
     RETURN_STRING(res);
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_authorization_set_nonce_count, 2)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(osip_authorization_set_nonce_count, 0)
+    T_STRING(osip_authorization_set_nonce_count, 1)
     osip_authorization_t * handle = (osip_authorization_t *)PARAM_INT(0);
     osip_authorization_set_nonce_count(handle, osip_strdup(PARAM(1)));
     RETURN_NUMBER(0);
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_authorization_get_nonce_count, 1)
-    T_HANDLE(0)
+    T_HANDLE(osip_authorization_get_nonce_count, 0)
     osip_authorization_t * handle = (osip_authorization_t *)PARAM_INT(0);
     char *res = osip_authorization_get_nonce_count(handle);
     RETURN_STRING(res);
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_authentication_info_set_nextnonce, 2)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(osip_authentication_info_set_nextnonce, 0)
+    T_STRING(osip_authentication_info_set_nextnonce, 1)
     osip_authentication_info_t * handle = (osip_authentication_info_t *)PARAM_INT(0);
     osip_authentication_info_set_nextnonce(handle, osip_strdup(PARAM(1)));
     RETURN_NUMBER(0);
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_authentication_info_get_nextnonce, 1)
-    T_HANDLE(0)
+    T_HANDLE(osip_authentication_info_get_nextnonce, 0)
     osip_authentication_info_t * handle = (osip_authentication_info_t *)PARAM_INT(0);
     char *res = osip_authentication_info_get_nextnonce(handle);
     RETURN_STRING(res);
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_authentication_info_set_cnonce, 2)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(osip_authentication_info_set_cnonce, 0)
+    T_STRING(osip_authentication_info_set_cnonce, 1)
     osip_authentication_info_t * handle = (osip_authentication_info_t *)PARAM_INT(0);
     osip_authentication_info_set_cnonce(handle, osip_strdup(PARAM(1)));
     RETURN_NUMBER(0);
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_authentication_info_get_cnonce, 1)
-    T_HANDLE(0)
+    T_HANDLE(osip_authentication_info_get_cnonce, 0)
     osip_authentication_info_t * handle = (osip_authentication_info_t *)PARAM_INT(0);
     char *res = osip_authentication_info_get_cnonce(handle);
     RETURN_STRING(res);
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_authentication_info_set_qop_options, 2)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(osip_authentication_info_set_qop_options, 0)
+    T_STRING(osip_authentication_info_set_qop_options, 1)
     osip_authentication_info_t * handle = (osip_authentication_info_t *)PARAM_INT(0);
     osip_authentication_info_set_qop_options(handle, osip_strdup(PARAM(1)));
     RETURN_NUMBER(0);
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_authentication_info_get_qop_options, 1)
-    T_HANDLE(0)
+    T_HANDLE(osip_authentication_info_get_qop_options, 0)
     osip_authentication_info_t * handle = (osip_authentication_info_t *)PARAM_INT(0);
     char *res = osip_authentication_info_get_qop_options(handle);
     RETURN_STRING(res);
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_authentication_info_set_rspauth, 2)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(osip_authentication_info_set_rspauth, 0)
+    T_STRING(osip_authentication_info_set_rspauth, 1)
     osip_authentication_info_t * handle = (osip_authentication_info_t *)PARAM_INT(0);
     osip_authentication_info_set_rspauth(handle, osip_strdup(PARAM(1)));
     RETURN_NUMBER(0);
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_authentication_info_get_rspauth, 1)
-    T_HANDLE(0)
+    T_HANDLE(osip_authentication_info_get_rspauth, 0)
     osip_authentication_info_t * handle = (osip_authentication_info_t *)PARAM_INT(0);
     char *res = osip_authentication_info_get_rspauth(handle);
     RETURN_STRING(res);
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_authentication_info_set_nonce_count, 2)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(osip_authentication_info_set_nonce_count, 0)
+    T_STRING(osip_authentication_info_set_nonce_count, 1)
     osip_authentication_info_t * handle = (osip_authentication_info_t *)PARAM_INT(0);
     osip_authentication_info_set_nonce_count(handle, osip_strdup(PARAM(1)));
     RETURN_NUMBER(0);
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_authentication_info_get_nonce_count, 1)
-    T_HANDLE(0)
+    T_HANDLE(osip_authentication_info_get_nonce_count, 0)
     osip_authentication_info_t * handle = (osip_authentication_info_t *)PARAM_INT(0);
     char *res = osip_authentication_info_get_nonce_count(handle);
     RETURN_STRING(res);
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_proxy_authorization_set_auth_type, 2)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(osip_proxy_authorization_set_auth_type, 0)
+    T_STRING(osip_proxy_authorization_set_auth_type, 1)
     osip_proxy_authorization_t * handle = (osip_proxy_authorization_t *)PARAM_INT(0);
     osip_proxy_authorization_set_auth_type(handle, osip_strdup(PARAM(1)));
     RETURN_NUMBER(0);
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_proxy_authorization_get_auth_type, 1)
-    T_HANDLE(0)
+    T_HANDLE(osip_proxy_authorization_get_auth_type, 0)
     osip_proxy_authorization_t * handle = (osip_proxy_authorization_t *)PARAM_INT(0);
     char *res = osip_proxy_authorization_get_auth_type(handle);
     RETURN_STRING(res);
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_proxy_authorization_set_username, 2)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(osip_proxy_authorization_set_username, 0)
+    T_STRING(osip_proxy_authorization_set_username, 1)
     osip_proxy_authorization_t * handle = (osip_proxy_authorization_t *)PARAM_INT(0);
     osip_proxy_authorization_set_username(handle, osip_strdup(PARAM(1)));
     RETURN_NUMBER(0);
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_proxy_authorization_get_username, 1)
-    T_HANDLE(0)
+    T_HANDLE(osip_proxy_authorization_get_username, 0)
     osip_proxy_authorization_t * handle = (osip_proxy_authorization_t *)PARAM_INT(0);
     char *res = osip_proxy_authorization_get_username(handle);
     RETURN_STRING(res);
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_proxy_authorization_set_realm, 2)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(osip_proxy_authorization_set_realm, 0)
+    T_STRING(osip_proxy_authorization_set_realm, 1)
     osip_proxy_authorization_t * handle = (osip_proxy_authorization_t *)PARAM_INT(0);
     osip_proxy_authorization_set_realm(handle, osip_strdup(PARAM(1)));
     RETURN_NUMBER(0);
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_proxy_authorization_get_realm, 1)
-    T_HANDLE(0)
+    T_HANDLE(osip_proxy_authorization_get_realm, 0)
     osip_proxy_authorization_t * handle = (osip_proxy_authorization_t *)PARAM_INT(0);
     char *res = osip_proxy_authorization_get_realm(handle);
     RETURN_STRING(res);
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_proxy_authorization_set_nonce, 2)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(osip_proxy_authorization_set_nonce, 0)
+    T_STRING(osip_proxy_authorization_set_nonce, 1)
     osip_proxy_authorization_t * handle = (osip_proxy_authorization_t *)PARAM_INT(0);
     osip_proxy_authorization_set_nonce(handle, osip_strdup(PARAM(1)));
     RETURN_NUMBER(0);
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_proxy_authorization_get_nonce, 1)
-    T_HANDLE(0)
+    T_HANDLE(osip_proxy_authorization_get_nonce, 0)
     osip_proxy_authorization_t * handle = (osip_proxy_authorization_t *)PARAM_INT(0);
     char *res = osip_proxy_authorization_get_nonce(handle);
     RETURN_STRING(res);
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_proxy_authorization_set_uri, 2)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(osip_proxy_authorization_set_uri, 0)
+    T_STRING(osip_proxy_authorization_set_uri, 1)
     osip_proxy_authorization_t * handle = (osip_proxy_authorization_t *)PARAM_INT(0);
     osip_proxy_authorization_set_uri(handle, osip_strdup(PARAM(1)));
     RETURN_NUMBER(0);
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_proxy_authorization_get_uri, 1)
-    T_HANDLE(0)
+    T_HANDLE(osip_proxy_authorization_get_uri, 0)
     osip_proxy_authorization_t * handle = (osip_proxy_authorization_t *)PARAM_INT(0);
     char *res = osip_proxy_authorization_get_uri(handle);
     RETURN_STRING(res);
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_proxy_authorization_set_response, 2)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(osip_proxy_authorization_set_response, 0)
+    T_STRING(osip_proxy_authorization_set_response, 1)
     osip_proxy_authorization_t * handle = (osip_proxy_authorization_t *)PARAM_INT(0);
     osip_proxy_authorization_set_response(handle, osip_strdup(PARAM(1)));
     RETURN_NUMBER(0);
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_proxy_authorization_get_response, 1)
-    T_HANDLE(0)
+    T_HANDLE(osip_proxy_authorization_get_response, 0)
     osip_proxy_authorization_t * handle = (osip_proxy_authorization_t *)PARAM_INT(0);
     char *res = osip_proxy_authorization_get_response(handle);
     RETURN_STRING(res);
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_proxy_authorization_set_digest, 2)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(osip_proxy_authorization_set_digest, 0)
+    T_STRING(osip_proxy_authorization_set_digest, 1)
     osip_proxy_authorization_t * handle = (osip_proxy_authorization_t *)PARAM_INT(0);
     osip_proxy_authorization_set_digest(handle, osip_strdup(PARAM(1)));
     RETURN_NUMBER(0);
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_proxy_authorization_get_digest, 1)
-    T_HANDLE(0)
+    T_HANDLE(osip_proxy_authorization_get_digest, 0)
     osip_proxy_authorization_t * handle = (osip_proxy_authorization_t *)PARAM_INT(0);
     char *res = osip_proxy_authorization_get_digest(handle);
     RETURN_STRING(res);
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_proxy_authorization_set_algorithm, 2)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(osip_proxy_authorization_set_algorithm, 0)
+    T_STRING(osip_proxy_authorization_set_algorithm, 1)
     osip_proxy_authorization_t * handle = (osip_proxy_authorization_t *)PARAM_INT(0);
     osip_proxy_authorization_set_algorithm(handle, osip_strdup(PARAM(1)));
     RETURN_NUMBER(0);
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_proxy_authorization_get_algorithm, 1)
-    T_HANDLE(0)
+    T_HANDLE(osip_proxy_authorization_get_algorithm, 0)
     osip_proxy_authorization_t * handle = (osip_proxy_authorization_t *)PARAM_INT(0);
     char *res = osip_proxy_authorization_get_algorithm(handle);
     RETURN_STRING(res);
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_proxy_authorization_set_cnonce, 2)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(osip_proxy_authorization_set_cnonce, 0)
+    T_STRING(osip_proxy_authorization_set_cnonce, 1)
     osip_proxy_authorization_t * handle = (osip_proxy_authorization_t *)PARAM_INT(0);
     osip_proxy_authorization_set_cnonce(handle, osip_strdup(PARAM(1)));
     RETURN_NUMBER(0);
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_proxy_authorization_get_cnonce, 1)
-    T_HANDLE(0)
+    T_HANDLE(osip_proxy_authorization_get_cnonce, 0)
     osip_proxy_authorization_t * handle = (osip_proxy_authorization_t *)PARAM_INT(0);
     char *res = osip_proxy_authorization_get_cnonce(handle);
     RETURN_STRING(res);
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_proxy_authorization_set_opaque, 2)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(osip_proxy_authorization_set_opaque, 0)
+    T_STRING(osip_proxy_authorization_set_opaque, 1)
     osip_proxy_authorization_t * handle = (osip_proxy_authorization_t *)PARAM_INT(0);
     osip_proxy_authorization_set_opaque(handle, osip_strdup(PARAM(1)));
     RETURN_NUMBER(0);
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_proxy_authorization_get_opaque, 1)
-    T_HANDLE(0)
+    T_HANDLE(osip_proxy_authorization_get_opaque, 0)
     osip_proxy_authorization_t * handle = (osip_proxy_authorization_t *)PARAM_INT(0);
     char *res = osip_proxy_authorization_get_opaque(handle);
     RETURN_STRING(res);
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_proxy_authorization_set_message_qop, 2)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(osip_proxy_authorization_set_message_qop, 0)
+    T_STRING(osip_proxy_authorization_set_message_qop, 1)
     osip_proxy_authorization_t * handle = (osip_proxy_authorization_t *)PARAM_INT(0);
     osip_proxy_authorization_set_message_qop(handle, osip_strdup(PARAM(1)));
     RETURN_NUMBER(0);
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_proxy_authorization_get_message_qop, 1)
-    T_HANDLE(0)
+    T_HANDLE(osip_proxy_authorization_get_message_qop, 0)
     osip_proxy_authorization_t * handle = (osip_proxy_authorization_t *)PARAM_INT(0);
     char *res = osip_proxy_authorization_get_message_qop(handle);
     RETURN_STRING(res);
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_proxy_authorization_set_nonce_count, 2)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(osip_proxy_authorization_set_nonce_count, 0)
+    T_STRING(osip_proxy_authorization_set_nonce_count, 1)
     osip_proxy_authorization_t * handle = (osip_proxy_authorization_t *)PARAM_INT(0);
     osip_proxy_authorization_set_nonce_count(handle, osip_strdup(PARAM(1)));
     RETURN_NUMBER(0);
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_proxy_authorization_get_nonce_count, 1)
-    T_HANDLE(0)
+    T_HANDLE(osip_proxy_authorization_get_nonce_count, 0)
     osip_proxy_authorization_t * handle = (osip_proxy_authorization_t *)PARAM_INT(0);
     char *res = osip_proxy_authorization_get_nonce_count(handle);
     RETURN_STRING(res);
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_dialog_init_as_uac, 2)
-    T_HANDLE(1)
+    T_HANDLE(osip_dialog_init_as_uac, 1)
     osip_message_t * request = (osip_message_t *)PARAM_INT(1);
     osip_dialog_t *dialog = 0;
     int           res     = osip_dialog_init_as_uac(&dialog, request);
@@ -4624,8 +4624,8 @@ CONCEPT_FUNCTION_IMPL(osip_dialog_init_as_uac, 2)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_dialog_init_as_uac_with_remote_request, 3)
-    T_HANDLE(1)
-    T_NUMBER(2)
+    T_HANDLE(osip_dialog_init_as_uac_with_remote_request, 1)
+    T_NUMBER(osip_dialog_init_as_uac_with_remote_request, 2)
     osip_message_t * request = (osip_message_t *)PARAM_INT(1);
     osip_dialog_t *dialog = 0;
     int           res     = osip_dialog_init_as_uac_with_remote_request(&dialog, request, PARAM_INT(2));
@@ -4634,8 +4634,8 @@ CONCEPT_FUNCTION_IMPL(osip_dialog_init_as_uac_with_remote_request, 3)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_dialog_init_as_uas, 3)
-    T_HANDLE(1)
-    T_HANDLE(2)
+    T_HANDLE(osip_dialog_init_as_uas, 1)
+    T_HANDLE(osip_dialog_init_as_uas, 2)
     osip_message_t * request = (osip_message_t *)PARAM_INT(1);
     osip_message_t *request2 = (osip_message_t *)PARAM_INT(2);
     osip_dialog_t  *dialog   = 0;
@@ -4645,7 +4645,7 @@ CONCEPT_FUNCTION_IMPL(osip_dialog_init_as_uas, 3)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_dialog_free, 1)
-    T_NUMBER(0)
+    T_NUMBER(osip_dialog_free, 0)
     osip_dialog_t * evt = (osip_dialog_t *)PARAM_INT(0);
     if (evt) {
         osip_dialog_free(evt);
@@ -4655,16 +4655,16 @@ CONCEPT_FUNCTION_IMPL(osip_dialog_free, 1)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_dialog_set_state, 2)
-    T_HANDLE(0)
-    T_NUMBER(1)
+    T_HANDLE(osip_dialog_set_state, 0)
+    T_NUMBER(osip_dialog_set_state, 1)
     osip_dialog_t * dialog = (osip_dialog_t *)PARAM_INT(0);
     osip_dialog_set_state(dialog, (state_t)PARAM_INT(1));
     RETURN_NUMBER(0);
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_dialog_update_route_set_as_uas, 2)
-    T_HANDLE(0)
-    T_HANDLE(1)
+    T_HANDLE(osip_dialog_update_route_set_as_uas, 0)
+    T_HANDLE(osip_dialog_update_route_set_as_uas, 1)
     osip_dialog_t * dialog = (osip_dialog_t *)PARAM_INT(0);
     osip_message_t *request = (osip_message_t *)PARAM_INT(1);
     int            res      = osip_dialog_update_route_set_as_uas(dialog, request);
@@ -4672,8 +4672,8 @@ CONCEPT_FUNCTION_IMPL(osip_dialog_update_route_set_as_uas, 2)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_dialog_update_osip_cseq_as_uas, 2)
-    T_HANDLE(0)
-    T_HANDLE(1)
+    T_HANDLE(osip_dialog_update_osip_cseq_as_uas, 0)
+    T_HANDLE(osip_dialog_update_osip_cseq_as_uas, 1)
     osip_dialog_t * dialog = (osip_dialog_t *)PARAM_INT(0);
     osip_message_t *request = (osip_message_t *)PARAM_INT(1);
     int            res      = osip_dialog_update_osip_cseq_as_uas(dialog, request);
@@ -4681,8 +4681,8 @@ CONCEPT_FUNCTION_IMPL(osip_dialog_update_osip_cseq_as_uas, 2)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_dialog_match_as_uac, 2)
-    T_HANDLE(0)
-    T_HANDLE(1)
+    T_HANDLE(osip_dialog_match_as_uac, 0)
+    T_HANDLE(osip_dialog_match_as_uac, 1)
     osip_dialog_t * dialog = (osip_dialog_t *)PARAM_INT(0);
     osip_message_t *request = (osip_message_t *)PARAM_INT(1);
     int            res      = osip_dialog_match_as_uac(dialog, request);
@@ -4690,8 +4690,8 @@ CONCEPT_FUNCTION_IMPL(osip_dialog_match_as_uac, 2)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_dialog_update_tag_as_uac, 2)
-    T_HANDLE(0)
-    T_HANDLE(1)
+    T_HANDLE(osip_dialog_update_tag_as_uac, 0)
+    T_HANDLE(osip_dialog_update_tag_as_uac, 1)
     osip_dialog_t * dialog = (osip_dialog_t *)PARAM_INT(0);
     osip_message_t *request = (osip_message_t *)PARAM_INT(1);
     int            res      = osip_dialog_update_tag_as_uac(dialog, request);
@@ -4699,8 +4699,8 @@ CONCEPT_FUNCTION_IMPL(osip_dialog_update_tag_as_uac, 2)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_dialog_update_route_set_as_uac, 2)
-    T_HANDLE(0)
-    T_HANDLE(1)
+    T_HANDLE(osip_dialog_update_route_set_as_uac, 0)
+    T_HANDLE(osip_dialog_update_route_set_as_uac, 1)
     osip_dialog_t * dialog = (osip_dialog_t *)PARAM_INT(0);
     osip_message_t *request = (osip_message_t *)PARAM_INT(1);
     int            res      = osip_dialog_update_route_set_as_uac(dialog, request);
@@ -4708,8 +4708,8 @@ CONCEPT_FUNCTION_IMPL(osip_dialog_update_route_set_as_uac, 2)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_dialog_match_as_uas, 2)
-    T_HANDLE(0)
-    T_HANDLE(1)
+    T_HANDLE(osip_dialog_match_as_uas, 0)
+    T_HANDLE(osip_dialog_match_as_uas, 1)
     osip_dialog_t * dialog = (osip_dialog_t *)PARAM_INT(0);
     osip_message_t *request = (osip_message_t *)PARAM_INT(1);
     int            res      = osip_dialog_match_as_uas(dialog, request);
@@ -4718,24 +4718,24 @@ END_IMPL
 //-----------------------------------------------------//
 
 /*CONCEPT_FUNCTION_IMPL(osip_dialog_is_originator, 1)
-    T_HANDLE(0)
+    T_HANDLE(osip_dialog_match_as_uas, 0)
     osip_dialog_t *dialog=(osip_dialog_t *)PARAM_INT(0);
     int res=osip_dialog_is_originator(dialog);
     RETURN_NUMBER(res);
    END_IMPL
    //-----------------------------------------------------//
    CONCEPT_FUNCTION_IMPL(osip_dialog_is_callee, 1)
-    T_HANDLE(0)
+    T_HANDLE(osip_dialog_is_callee, 0)
     osip_dialog_t *dialog=(osip_dialog_t *)PARAM_INT(0);
     int res=osip_dialog_is_callee(dialog);
     RETURN_NUMBER(res);
    END_IMPL*/
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_start_200ok_retransmissions, 4)
-    T_HANDLE(0)
-    T_HANDLE(1)
-    T_HANDLE(2)
-    T_NUMBER(3)
+    T_HANDLE(osip_start_200ok_retransmissions, 0)
+    T_HANDLE(osip_start_200ok_retransmissions, 1)
+    T_HANDLE(osip_start_200ok_retransmissions, 2)
+    T_NUMBER(osip_start_200ok_retransmissions, 3)
     osip_t * osip = (osip_t *)PARAM_INT(0);
     osip_dialog_t  *dialog   = (osip_dialog_t *)PARAM_INT(1);
     osip_message_t *msg200ok = (osip_message_t *)PARAM_INT(2);
@@ -4744,12 +4744,12 @@ CONCEPT_FUNCTION_IMPL(osip_start_200ok_retransmissions, 4)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_start_ack_retransmissions, 6)
-    T_HANDLE(0)
-    T_HANDLE(1)
-    T_HANDLE(2)
-    T_STRING(3)
-    T_NUMBER(4)
-    T_NUMBER(5)
+    T_HANDLE(osip_start_ack_retransmissions, 0)
+    T_HANDLE(osip_start_ack_retransmissions, 1)
+    T_HANDLE(osip_start_ack_retransmissions, 2)
+    T_STRING(osip_start_ack_retransmissions, 3)
+    T_NUMBER(osip_start_ack_retransmissions, 4)
+    T_NUMBER(osip_start_ack_retransmissions, 5)
     osip_t * osip = (osip_t *)PARAM_INT(0);
     osip_dialog_t  *dialog = (osip_dialog_t *)PARAM_INT(1);
     osip_message_t *ack    = (osip_message_t *)PARAM_INT(2);
@@ -4758,8 +4758,8 @@ CONCEPT_FUNCTION_IMPL(osip_start_ack_retransmissions, 6)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_stop_200ok_retransmissions, 2)
-    T_HANDLE(0)
-    T_HANDLE(1)
+    T_HANDLE(osip_stop_200ok_retransmissions, 0)
+    T_HANDLE(osip_stop_200ok_retransmissions, 1)
     osip_t * osip = (osip_t *)PARAM_INT(0);
     osip_message_t *ack = (osip_message_t *)PARAM_INT(1);
     osip_dialog    *res = osip_stop_200ok_retransmissions(osip, ack);
@@ -4767,8 +4767,8 @@ CONCEPT_FUNCTION_IMPL(osip_stop_200ok_retransmissions, 2)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_stop_retransmissions_from_dialog, 2)
-    T_HANDLE(0)
-    T_HANDLE(1)
+    T_HANDLE(osip_stop_retransmissions_from_dialog, 0)
+    T_HANDLE(osip_stop_retransmissions_from_dialog, 1)
     osip_t * osip = (osip_t *)PARAM_INT(0);
     osip_dialog_t *dialog = (osip_dialog_t *)PARAM_INT(1);
     osip_stop_retransmissions_from_dialog(osip, dialog);
@@ -4776,14 +4776,14 @@ CONCEPT_FUNCTION_IMPL(osip_stop_retransmissions_from_dialog, 2)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_new_outgoing_sipmessage, 1)
-    T_HANDLE(0)
+    T_HANDLE(osip_new_outgoing_sipmessage, 0)
     osip_message_t * request = (osip_message_t *)PARAM_INT(0);
     osip_event_t *evt = osip_new_outgoing_sipmessage(request);
     RETURN_NUMBER((SYS_INT)evt);
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_cseq_to_str, 2)
-    T_HANDLE(0);
+    T_HANDLE(osip_cseq_to_str, 0);
     SET_STRING(1, "");
     osip_cseq_t *to    = (osip_cseq_t *)PARAM_INT(0);
     char        *msgP  = 0;
@@ -4797,7 +4797,7 @@ CONCEPT_FUNCTION_IMPL(osip_cseq_to_str, 2)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_call_id_to_str, 2)
-    T_HANDLE(0);
+    T_HANDLE(osip_call_id_to_str, 0);
     SET_STRING(1, "");
     osip_call_id_t *to    = (osip_call_id_t *)PARAM_INT(0);
     char           *msgP  = 0;
@@ -4811,9 +4811,9 @@ CONCEPT_FUNCTION_IMPL(osip_call_id_to_str, 2)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_message_get_header_str, 3)
-    T_HANDLE(0)     // osip_message_t*
-    T_STRING(1)
-    T_NUMBER(2)
+    T_HANDLE(osip_message_get_header_str, 0)     // osip_message_t*
+    T_STRING(osip_message_get_header_str, 1)
+    T_NUMBER(osip_message_get_header_str, 2)
 
 // ... parameter 2 is by reference (osip_header_t**)
     osip_header_t * local_parameter_2 = 0;
@@ -4834,7 +4834,7 @@ CONCEPT_FUNCTION_IMPL(osip_message_get_header_str, 3)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(osip_transaction_describe, 1)
-    T_HANDLE(0)
+    T_HANDLE(osip_transaction_describe, 0)
 
     osip_transaction_t * tran = (osip_transaction_t *)PARAM_INT(0);
     CREATE_ARRAY(RESULT);
@@ -4865,8 +4865,8 @@ CONCEPT_FUNCTION_IMPL(osip_transaction_describe, 1)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(osip_remove_transaction, 2)
-    T_HANDLE(0)
-    T_HANDLE(1)
+    T_HANDLE(osip_remove_transaction, 0)
+    T_HANDLE(osip_remove_transaction, 1)
 
     osip_t * osip = (osip_t *)PARAM_INT(0);
     osip_transaction_t *tran = (osip_transaction_t *)PARAM_INT(1);
@@ -4875,3 +4875,4 @@ CONCEPT_FUNCTION_IMPL(osip_remove_transaction, 2)
     RETURN_NUMBER(res);
 END_IMPL
 //-----------------------------------------------------//
+

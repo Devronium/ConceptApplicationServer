@@ -54,7 +54,7 @@ CONCEPT_DLL_API ON_DESTROY_CONTEXT MANAGEMENT_PARAMETERS {
 }
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(H265Encoder, 1)
-    T_ARRAY(0)
+    T_ARRAY(H265Encoder, 0)
 
     x265_param * pParam = x265_param_alloc();
     x265_param_default(pParam);
@@ -199,7 +199,7 @@ CONCEPT_FUNCTION_IMPL(H265Encoder, 1)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(H265EncoderDone, 1)
-    T_HANDLE(0)
+    T_HANDLE(H265EncoderDone, 0)
     x265_encoder * ectx = (x265_encoder *)(SYS_INT)PARAM(0);
     x265_encoder_close(ectx);
     SET_NUMBER(0, 0);
@@ -208,7 +208,7 @@ END_IMPL
 //------------------------------------------------------------------------
 #ifdef __WITH_DE265
 CONCEPT_FUNCTION_IMPL(H265DecoderDone, 1)
-    T_HANDLE(0)
+    T_HANDLE(H265DecoderDone, 0)
     de265_decoder_context * dctx = (de265_decoder_context *)(SYS_INT)PARAM(0);
     de265_free_decoder(dctx);
     SET_NUMBER(0, 0);
@@ -216,15 +216,15 @@ CONCEPT_FUNCTION_IMPL(H265DecoderDone, 1)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(H265Decoder, 1)
-    T_ARRAY(0)
+    T_ARRAY(H265Decoder, 0)
     de265_decoder_context * dctx = de265_new_decoder();
     de265_set_parameter_bool(dctx, DE265_DECODER_PARAM_SUPPRESS_FAULTY_PICTURES, false);
     RETURN_NUMBER((SYS_INT)dctx);
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(H265Decode, 3)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(H265Decode, 0)
+    T_STRING(H265Decode, 1)
 
     de265_decoder_context * dctx = de265_new_decoder();
     int pos  = 0;
@@ -270,10 +270,10 @@ END_IMPL
 //------------------------------------------------------------------------
 #endif
 CONCEPT_FUNCTION_IMPL(H265Encode, 5)
-    T_HANDLE(0)
-    T_STRING(1)
-    T_NUMBER(2)
-    T_NUMBER(3)
+    T_HANDLE(H265Encode, 0)
+    T_STRING(H265Encode, 1)
+    T_NUMBER(H265Encode, 2)
+    T_NUMBER(H265Encode, 3)
     x265_encoder * ectx = (x265_encoder *)(SYS_INT)PARAM(0);
 
     int      width  = PARAM_INT(2);
@@ -348,3 +348,4 @@ CONCEPT_FUNCTION_IMPL(H265Encode, 5)
     RETURN_NUMBER(res);
 END_IMPL
 //------------------------------------------------------------------------
+

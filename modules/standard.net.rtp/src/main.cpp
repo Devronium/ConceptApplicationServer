@@ -44,7 +44,7 @@ CONCEPT_DLL_API ON_DESTROY_CONTEXT MANAGEMENT_PARAMETERS {
 }
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(RTPCreate, 2)
-    T_ARRAY(0)
+    T_ARRAY(RTPCreate, 0)
 
     RTPSession * sess = new RTPSession();
 
@@ -239,7 +239,7 @@ CONCEPT_FUNCTION_IMPL(RTPCreate, 2)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(RTPError, 1)
-    T_NUMBER(0)
+    T_NUMBER(RTPError, 0)
     std::string err = RTPGetErrorString(PARAM_INT(0));
     if (err.size()) {
         RETURN_STRING(err.c_str());
@@ -249,9 +249,9 @@ CONCEPT_FUNCTION_IMPL(RTPError, 1)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(RTPBYEDestroy, 3)
-    T_NUMBER(0)
-    T_NUMBER(1)
-    T_STRING(2)
+    T_NUMBER(RTPBYEDestroy, 0)
+    T_NUMBER(RTPBYEDestroy, 1)
+    T_STRING(RTPBYEDestroy, 2)
     RTPSession * sess = (RTPSession *)PARAM_INT(0);
     if (sess) {
         int ms = PARAM_INT(1);
@@ -263,7 +263,7 @@ CONCEPT_FUNCTION_IMPL(RTPBYEDestroy, 3)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(RTPDestroy, 1)
-    T_NUMBER(0)
+    T_NUMBER(RTPDestroy, 0)
     RTPSession * sess = (RTPSession *)PARAM_INT(0);
     if (sess) {
         sess->Destroy();
@@ -274,22 +274,22 @@ CONCEPT_FUNCTION_IMPL(RTPDestroy, 1)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(RTPSend, 2, 5)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(RTPSend, 0)
+    T_STRING(RTPSend, 1)
     RTPSession * sess = (RTPSession *)PARAM_INT(0);
     uint8_t  pt     = 0;
     bool     mark   = false;
     uint32_t tstamp = 10;
     if (PARAMETERS_COUNT > 2) {
-        T_NUMBER(2)
+        T_NUMBER(RTPSend, 2)
         pt = PARAM_INT(2);
     }
     if (PARAMETERS_COUNT > 3) {
-        T_NUMBER(3)
+        T_NUMBER(RTPSend, 3)
         mark = (bool)PARAM_INT(3);
     }
     if (PARAMETERS_COUNT > 4) {
-        T_NUMBER(4)
+        T_NUMBER(RTPSend, 4)
         tstamp = PARAM_INT(4);
     }
     int res = sess->SendPacket(PARAM(1), PARAM_LEN(1), pt, mark, tstamp);
@@ -297,19 +297,19 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(RTPSend, 2, 5)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(RTPBeginDataAccess, 1)
-    T_HANDLE(0)
+    T_HANDLE(RTPBeginDataAccess, 0)
     RTPSession * sess = (RTPSession *)PARAM_INT(0);
     RETURN_NUMBER(sess->BeginDataAccess());
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(RTPEndDataAccess, 1)
-    T_HANDLE(0)
+    T_HANDLE(RTPEndDataAccess, 0)
     RTPSession * sess = (RTPSession *)PARAM_INT(0);
     RETURN_NUMBER(sess->EndDataAccess());
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(RTPGetNextPacket, 1)
-    T_HANDLE(0)
+    T_HANDLE(RTPGetNextPacket, 0)
     RTPSession * sess = (RTPSession *)PARAM_INT(0);
     RTPPacket *pack = sess->GetNextPacket();
     CREATE_ARRAY(RESULT);
@@ -337,25 +337,25 @@ CONCEPT_FUNCTION_IMPL(RTPGetNextPacket, 1)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(RTPGotoFirstSourceWithData, 1)
-    T_HANDLE(0)
+    T_HANDLE(RTPGotoFirstSourceWithData, 0)
     RTPSession * sess = (RTPSession *)PARAM_INT(0);
     RETURN_NUMBER(sess->GotoFirstSourceWithData());
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(RTPGotoNextSourceWithData, 1)
-    T_HANDLE(0)
+    T_HANDLE(RTPGotoNextSourceWithData, 0)
     RTPSession * sess = (RTPSession *)PARAM_INT(0);
     RETURN_NUMBER(sess->GotoNextSourceWithData());
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(RTPGotoPreviousSourceWithData, 1)
-    T_HANDLE(0)
+    T_HANDLE(RTPGotoPreviousSourceWithData, 0)
     RTPSession * sess = (RTPSession *)PARAM_INT(0);
     RETURN_NUMBER(sess->GotoPreviousSourceWithData());
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(RTPCurrentSourceReceivedBYE, 1)
-    T_HANDLE(0)
+    T_HANDLE(RTPCurrentSourceReceivedBYE, 0)
     RTPSession * sess = (RTPSession *)PARAM_INT(0);
     int           res   = 0;
     RTPSourceData *data = sess->GetCurrentSourceInfo();
@@ -366,11 +366,11 @@ CONCEPT_FUNCTION_IMPL(RTPCurrentSourceReceivedBYE, 1)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(RTPGetCurrentSourceInfo, 1, 2)
-    T_HANDLE(0)
+    T_HANDLE(RTPGetCurrentSourceInfo, 0)
 
     bool full_info = false;
     if (PARAMETERS_COUNT > 1) {
-        T_NUMBER(1);
+        T_NUMBER(RTPGetCurrentSourceInfo, 1);
         full_info = PARAM_INT(1);
     }
     RTPSession    *sess = (RTPSession *)PARAM_INT(0);
@@ -456,15 +456,15 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(RTPGetCurrentSourceInfo, 1, 2)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(RTPPoll, 1)
-    T_HANDLE(0)
+    T_HANDLE(RTPPoll, 0)
     RTPSession * sess = (RTPSession *)PARAM_INT(0);
     RETURN_NUMBER(sess->Poll());
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(RTPAddDestination, 3)
-    T_HANDLE(0)
-    T_STRING(1)
-    T_NUMBER(2)
+    T_HANDLE(RTPAddDestination, 0)
+    T_STRING(RTPAddDestination, 1)
+    T_NUMBER(RTPAddDestination, 2)
 
     RTPSession * sess = (RTPSession *)PARAM_INT(0);
     char         *str = PARAM(1);
@@ -477,9 +477,9 @@ CONCEPT_FUNCTION_IMPL(RTPAddDestination, 3)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(RTPDeleteDestination, 3)
-    T_HANDLE(0)
-    T_STRING(1)
-    T_NUMBER(2)
+    T_HANDLE(RTPDeleteDestination, 0)
+    T_STRING(RTPDeleteDestination, 1)
+    T_NUMBER(RTPDeleteDestination, 2)
 
     RTPSession * sess = (RTPSession *)PARAM_INT(0);
     char         *str = PARAM(1);
@@ -492,7 +492,7 @@ CONCEPT_FUNCTION_IMPL(RTPDeleteDestination, 3)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(RTPClearDestinations, 1)
-    T_HANDLE(0)
+    T_HANDLE(RTPClearDestinations, 0)
 
     RTPSession * sess = (RTPSession *)PARAM_INT(0);
     sess->ClearDestinations();
@@ -501,64 +501,64 @@ CONCEPT_FUNCTION_IMPL(RTPClearDestinations, 1)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(RTPSetDefaultPayloadType, 2)
-    T_HANDLE(0)
-    T_NUMBER(1)
+    T_HANDLE(RTPSetDefaultPayloadType, 0)
+    T_NUMBER(RTPSetDefaultPayloadType, 1)
     RTPSession * sess = (RTPSession *)PARAM_INT(0);
     sess->SetDefaultPayloadType(PARAM(1));
     RETURN_NUMBER(0)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(RTPSetDefaultMark, 2)
-    T_HANDLE(0)
-    T_NUMBER(1)
+    T_HANDLE(RTPSetDefaultMark, 0)
+    T_NUMBER(RTPSetDefaultMark, 1)
     RTPSession * sess = (RTPSession *)PARAM_INT(0);
     sess->SetDefaultMark(PARAM(1));
     RETURN_NUMBER(0)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(RTPSetDefaultTimestampIncrement, 2)
-    T_HANDLE(0)
-    T_NUMBER(1)
+    T_HANDLE(RTPSetDefaultTimestampIncrement, 0)
+    T_NUMBER(RTPSetDefaultTimestampIncrement, 1)
     RTPSession * sess = (RTPSession *)PARAM_INT(0);
     sess->SetDefaultTimestampIncrement(PARAM(1));
     RETURN_NUMBER(0)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(RTPIncrementTimestamp, 2)
-    T_HANDLE(0)
-    T_NUMBER(1)
+    T_HANDLE(RTPIncrementTimestamp, 0)
+    T_NUMBER(RTPIncrementTimestamp, 1)
     RTPSession * sess = (RTPSession *)PARAM_INT(0);
     sess->IncrementTimestamp(PARAM(1));
     RETURN_NUMBER(0)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(RTPIncrementTimestampDefault, 1)
-    T_HANDLE(0)
-    T_NUMBER(1)
+    T_HANDLE(RTPIncrementTimestampDefault, 0)
+    T_NUMBER(RTPIncrementTimestampDefault, 1)
     RTPSession * sess = (RTPSession *)PARAM_INT(0);
     sess->IncrementTimestampDefault();
     RETURN_NUMBER(0)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(RTPSetPreTransmissionDelay, 2)
-    T_HANDLE(0)
-    T_NUMBER(1)
+    T_HANDLE(RTPSetPreTransmissionDelay, 0)
+    T_NUMBER(RTPSetPreTransmissionDelay, 1)
     RTPSession * sess = (RTPSession *)PARAM_INT(0);
     sess->SetPreTransmissionDelay(PARAM(1));
     RETURN_NUMBER(0)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(RTPSetReceiveMode, 2)
-    T_HANDLE(0)
-    T_NUMBER(1)
+    T_HANDLE(RTPSetReceiveMode, 0)
+    T_NUMBER(RTPSetReceiveMode, 1)
     RTPSession * sess = (RTPSession *)PARAM_INT(0);
     sess->SetReceiveMode((RTPTransmitter::ReceiveMode)PARAM_INT(1));
     RETURN_NUMBER(0)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(RTPAddToIgnoreList, 2)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(RTPAddToIgnoreList, 0)
+    T_STRING(RTPAddToIgnoreList, 1)
     RTPSession * sess = (RTPSession *)PARAM_INT(0);
     char         *str = PARAM(1);
     unsigned int ip   = str ? inet_addr(str) : -1;
@@ -572,8 +572,8 @@ CONCEPT_FUNCTION_IMPL(RTPAddToIgnoreList, 2)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(RTPDeleteFromIgnoreList, 2)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(RTPDeleteFromIgnoreList, 0)
+    T_STRING(RTPDeleteFromIgnoreList, 1)
     RTPSession * sess = (RTPSession *)PARAM_INT(0);
     char         *str = PARAM(1);
     unsigned int ip   = str ? inet_addr(str) : -1;
@@ -586,15 +586,15 @@ CONCEPT_FUNCTION_IMPL(RTPDeleteFromIgnoreList, 2)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(RTPClearIgnoreList, 1)
-    T_HANDLE(0)
+    T_HANDLE(RTPClearIgnoreList, 0)
     RTPSession * sess = (RTPSession *)PARAM_INT(0);
     sess->ClearIgnoreList();
     RETURN_NUMBER(0)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(RTPAddToAcceptList, 2)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(RTPAddToAcceptList, 0)
+    T_STRING(RTPAddToAcceptList, 1)
     RTPSession * sess = (RTPSession *)PARAM_INT(0);
     char         *str = PARAM(1);
     unsigned int ip   = str ? inet_addr(str) : -1;
@@ -608,8 +608,8 @@ CONCEPT_FUNCTION_IMPL(RTPAddToAcceptList, 2)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(RTPDeleteFromAcceptList, 2)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(RTPDeleteFromAcceptList, 0)
+    T_STRING(RTPDeleteFromAcceptList, 1)
     RTPSession * sess = (RTPSession *)PARAM_INT(0);
     char         *str = PARAM(1);
     unsigned int ip   = str ? inet_addr(str) : -1;
@@ -622,129 +622,130 @@ CONCEPT_FUNCTION_IMPL(RTPDeleteFromAcceptList, 2)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(RTPSetMaximumPacketSize, 2)
-    T_HANDLE(0)
-    T_NUMBER(1)
+    T_HANDLE(RTPSetMaximumPacketSize, 0)
+    T_NUMBER(RTPSetMaximumPacketSize, 1)
     RTPSession * sess = (RTPSession *)PARAM_INT(0);
     sess->SetMaximumPacketSize(PARAM_INT(1));
     RETURN_NUMBER(0)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(RTPSetSessionBandwidth, 2)
-    T_HANDLE(0)
-    T_NUMBER(1)
+    T_HANDLE(RTPSetSessionBandwidth, 0)
+    T_NUMBER(RTPSetSessionBandwidth, 1)
     RTPSession * sess = (RTPSession *)PARAM_INT(0);
     sess->SetSessionBandwidth(PARAM(1));
     RETURN_NUMBER(0)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(RTPSetTimestampUnit, 2)
-    T_HANDLE(0)
-    T_NUMBER(1)
+    T_HANDLE(RTPSetTimestampUnit, 0)
+    T_NUMBER(RTPSetTimestampUnit, 1)
     RTPSession * sess = (RTPSession *)PARAM_INT(0);
     sess->SetTimestampUnit(PARAM(1));
     RETURN_NUMBER(0)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(RTPSetNameInterval, 2)
-    T_HANDLE(0)
-    T_NUMBER(1)
+    T_HANDLE(RTPSetNameInterval, 0)
+    T_NUMBER(RTPSetNameInterval, 1)
     RTPSession * sess = (RTPSession *)PARAM_INT(0);
     sess->SetNameInterval(PARAM(1));
     RETURN_NUMBER(0)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(RTPSetEMailInterval, 2)
-    T_HANDLE(0)
-    T_NUMBER(1)
+    T_HANDLE(RTPSetEMailInterval, 0)
+    T_NUMBER(RTPSetEMailInterval, 1)
     RTPSession * sess = (RTPSession *)PARAM_INT(0);
     sess->SetEMailInterval(PARAM(1));
     RETURN_NUMBER(0)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(RTPSetLocationInterval, 2)
-    T_HANDLE(0)
-    T_NUMBER(1)
+    T_HANDLE(RTPSetLocationInterval, 0)
+    T_NUMBER(RTPSetLocationInterval, 1)
     RTPSession * sess = (RTPSession *)PARAM_INT(0);
     sess->SetLocationInterval(PARAM(1));
     RETURN_NUMBER(0)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(RTPSetPhoneInterval, 2)
-    T_HANDLE(0)
-    T_NUMBER(1)
+    T_HANDLE(RTPSetPhoneInterval, 0)
+    T_NUMBER(RTPSetPhoneInterval, 1)
     RTPSession * sess = (RTPSession *)PARAM_INT(0);
     sess->SetPhoneInterval(PARAM(1));
     RETURN_NUMBER(0)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(RTPSetToolInterval, 2)
-    T_HANDLE(0)
-    T_NUMBER(1)
+    T_HANDLE(RTPSetToolInterval, 0)
+    T_NUMBER(RTPSetToolInterval, 1)
     RTPSession * sess = (RTPSession *)PARAM_INT(0);
     sess->SetToolInterval(PARAM(1));
     RETURN_NUMBER(0)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(RTPSetNoteInterval, 2)
-    T_HANDLE(0)
-    T_NUMBER(1)
+    T_HANDLE(RTPSetNoteInterval, 0)
+    T_NUMBER(RTPSetNoteInterval, 1)
     RTPSession * sess = (RTPSession *)PARAM_INT(0);
     sess->SetNoteInterval(PARAM(1));
     RETURN_NUMBER(0)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(RTPSetLocalName, 2)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(RTPSetLocalName, 0)
+    T_STRING(RTPSetLocalName, 1)
     RTPSession * sess = (RTPSession *)PARAM_INT(0);
     sess->SetLocalName(PARAM(1), PARAM_LEN(1));
     RETURN_NUMBER(0)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(RTPSetLocalEMail, 2)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(RTPSetLocalEMail, 0)
+    T_STRING(RTPSetLocalEMail, 1)
     RTPSession * sess = (RTPSession *)PARAM_INT(0);
     sess->SetLocalEMail(PARAM(1), PARAM_LEN(1));
     RETURN_NUMBER(0)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(RTPSetLocalLocation, 2)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(RTPSetLocalLocation, 0)
+    T_STRING(RTPSetLocalLocation, 1)
     RTPSession * sess = (RTPSession *)PARAM_INT(0);
     sess->SetLocalLocation(PARAM(1), PARAM_LEN(1));
     RETURN_NUMBER(0)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(RTPSetLocalPhone, 2)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(RTPSetLocalPhone, 0)
+    T_STRING(RTPSetLocalPhone, 1)
     RTPSession * sess = (RTPSession *)PARAM_INT(0);
     sess->SetLocalPhone(PARAM(1), PARAM_LEN(1));
     RETURN_NUMBER(0)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(RTPSetLocalTool, 2)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(RTPSetLocalTool, 0)
+    T_STRING(RTPSetLocalTool, 1)
     RTPSession * sess = (RTPSession *)PARAM_INT(0);
     sess->SetLocalTool(PARAM(1), PARAM_LEN(1));
     RETURN_NUMBER(0)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(RTPSetLocalNote, 2)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(RTPSetLocalNote, 0)
+    T_STRING(RTPSetLocalNote, 1)
     RTPSession * sess = (RTPSession *)PARAM_INT(0);
     sess->SetLocalNote(PARAM(1), PARAM_LEN(1));
     RETURN_NUMBER(0)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(RTPWait, 1)
-    T_NUMBER(0)
+    T_NUMBER(RTPWait, 0)
     int ms = PARAM_INT(0);
     RTPTime::Wait(RTPTime(ms / 1000, (ms % 1000) * 1000));
     RETURN_NUMBER(0);
 END_IMPL
 //-----------------------------------------------------//
+

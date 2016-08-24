@@ -52,7 +52,7 @@ CONCEPT_DLL_API ON_DESTROY_CONTEXT MANAGEMENT_PARAMETERS {
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(CSVCreate, 0, 1)
     int flags = 0;
     if (PARAMETERS_COUNT) {
-        T_NUMBER(0)
+        T_NUMBER(CSVCreate, 0)
         flags = PARAM_INT(0);
     }
 
@@ -62,7 +62,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(CSVCreate, 0, 1)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(CSVDone, 1)
-    T_NUMBER(0)
+    T_NUMBER(CSVDone, 0)
     struct csv_parser *cp = (struct csv_parser *)PARAM_INT(0);
     if (cp) {
         csv_free(cp);
@@ -100,11 +100,11 @@ void cb2(int c, void *p) {
 }
 
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(CSVParse, 2, 3)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(CSVParse, 0)
+    T_STRING(CSVParse, 1)
     int last_chunk = 0;
     if (PARAMETERS_COUNT == 3) {
-        T_NUMBER(2);
+        T_NUMBER(CSVParse, 2);
         last_chunk = PARAM_INT(2);
     }
     struct csv_parser *cp = (struct csv_parser *)PARAM_INT(0);
@@ -116,20 +116,20 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(CSVParse, 2, 3)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(CSVError, 1)
-    T_HANDLE(0)
+    T_HANDLE(CSVError, 0)
     struct csv_parser *cp = (struct csv_parser *)PARAM_INT(0);
 
     RETURN_NUMBER(csv_error(cp))
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(CSVErrorExplain, 1)
-    T_NUMBER(0)
+    T_NUMBER(CSVErrorExplain, 0)
     RETURN_STRING(csv_strerror(PARAM_INT(0)))
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(CSVSetDelim, 2)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(CSVSetDelim, 0)
+    T_STRING(CSVSetDelim, 1)
     struct csv_parser *cp = (struct csv_parser *)PARAM_INT(0);
     char              *s  = PARAM(1);
     char              c   = 0;
@@ -141,8 +141,8 @@ CONCEPT_FUNCTION_IMPL(CSVSetDelim, 2)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(CSVSetQuote, 2)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(CSVSetQuote, 0)
+    T_STRING(CSVSetQuote, 1)
     struct csv_parser *cp = (struct csv_parser *)PARAM_INT(0);
     char              *s  = PARAM(1);
     char              c   = 0;
@@ -153,3 +153,4 @@ CONCEPT_FUNCTION_IMPL(CSVSetQuote, 2)
     RETURN_NUMBER(0)
 END_IMPL
 //-----------------------------------------------------//
+

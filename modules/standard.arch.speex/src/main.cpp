@@ -164,7 +164,7 @@ CONCEPT_FUNCTION_IMPL(speex_bits_init_buffer, 2)
     if (!bits)
         return (void *)"speex_bits_init_buffer: not enough memory";
 
-    T_STRING(1) // void* buff
+    T_STRING(speex_bits_init_buffer, 1) // void* buff
     void *buff = (void *)PARAM(1);
     int buf_size = (int)PARAM_LEN(1);
 
@@ -176,10 +176,10 @@ END_IMPL
 // void speex_bits_set_bit_buffer(SpeexBits* bits, void* buff, int buf_size)
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(speex_bits_set_bit_buffer, 2)
-    T_HANDLE(0) // SpeexBits* bits
+    T_HANDLE(speex_bits_set_bit_buffer, 0) // SpeexBits* bits
     SpeexBits * bits = (SpeexBits *)PARAM_INT(0);
 
-    T_STRING(1) // void* buff
+    T_STRING(speex_bits_set_bit_buffer, 1) // void* buff
     void *buff = (void *)PARAM(1);
 
     int buf_size = (int)PARAM_LEN(1);
@@ -191,7 +191,7 @@ END_IMPL
 // void speex_bits_destroy(SpeexBits* bits)
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(speex_bits_destroy, 1)
-    T_HANDLE(0) // SpeexBits* bits
+    T_HANDLE(speex_bits_destroy, 0) // SpeexBits* bits
     SpeexBits * bits = (SpeexBits *)PARAM_INT(0);
 
     speex_bits_destroy(bits);
@@ -203,7 +203,7 @@ END_IMPL
 // void speex_bits_reset(SpeexBits* bits)
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(speex_bits_reset, 1)
-    T_HANDLE(0) // SpeexBits* bits
+    T_HANDLE(speex_bits_reset, 0) // SpeexBits* bits
     SpeexBits * bits = (SpeexBits *)PARAM_INT(0);
 
     speex_bits_reset(bits);
@@ -213,7 +213,7 @@ END_IMPL
 // void speex_bits_rewind(SpeexBits* bits)
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(speex_bits_rewind, 1)
-    T_HANDLE(0) // SpeexBits* bits
+    T_HANDLE(speex_bits_rewind, 0) // SpeexBits* bits
     SpeexBits * bits = (SpeexBits *)PARAM_INT(0);
 
     speex_bits_rewind(bits);
@@ -223,10 +223,10 @@ END_IMPL
 // void speex_bits_read_from(SpeexBits* bits, char* bytes, int len)
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(speex_bits_read_from, 2)
-    T_HANDLE(0) // SpeexBits* bits
+    T_HANDLE(speex_bits_read_from, 0) // SpeexBits* bits
     SpeexBits * bits = (SpeexBits *)PARAM_INT(0);
 
-    T_STRING(1) // char* bytes
+    T_STRING(speex_bits_read_from, 1) // char* bytes
     char *bytes = (char *)PARAM(1);
     int len = (int)PARAM_LEN(1);
 
@@ -237,10 +237,10 @@ END_IMPL
 // void speex_bits_read_whole_bytes(SpeexBits* bits, char* bytes, int len)
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(speex_bits_read_whole_bytes, 2)
-    T_HANDLE(0) // SpeexBits* bits
+    T_HANDLE(speex_bits_read_whole_bytes, 0) // SpeexBits* bits
     SpeexBits * bits = (SpeexBits *)PARAM_INT(0);
 
-    T_STRING(1) // char* bytes
+    T_STRING(speex_bits_read_whole_bytes, 1) // char* bytes
     char *bytes = (char *)PARAM(1);
     int len = (int)PARAM_LEN(1);
 
@@ -251,10 +251,10 @@ END_IMPL
 // int speex_bits_write(SpeexBits* bits, char* bytes, int max_len)
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(speex_bits_write, 3)
-    T_HANDLE(0) // SpeexBits* bits
+    T_HANDLE(speex_bits_write, 0) // SpeexBits* bits
     SpeexBits * bits = (SpeexBits *)PARAM_INT(0);
 
-    T_NUMBER(2) // char* bytes
+    T_NUMBER(speex_bits_write, 2) // char* bytes
     int max_len = (int)PARAM_INT(2);
 
     char *bytes = new char[max_len + 1];
@@ -273,10 +273,10 @@ END_IMPL
 // int speex_bits_write_whole_bytes(SpeexBits* bits, char* bytes, int max_len)
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(speex_bits_write_whole_bytes, 3)
-    T_HANDLE(0) // SpeexBits* bits
+    T_HANDLE(speex_bits_write_whole_bytes, 0) // SpeexBits* bits
     SpeexBits * bits = (SpeexBits *)PARAM_INT(0);
 
-    T_NUMBER(2) // char* bytes
+    T_NUMBER(speex_bits_write_whole_bytes, 2) // char* bytes
     int max_len = (int)PARAM_INT(2);
 
     char *bytes = new char[max_len + 1];
@@ -295,13 +295,13 @@ END_IMPL
 // void speex_bits_pack(SpeexBits* bits, int data, int nbBits)
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(speex_bits_pack, 3)
-    T_HANDLE(0) // SpeexBits* bits
+    T_HANDLE(speex_bits_pack, 0) // SpeexBits* bits
     SpeexBits * bits = (SpeexBits *)PARAM_INT(0);
 
-    T_NUMBER(1) // int data
+    T_NUMBER(speex_bits_pack, 1) // int data
     int data = (int)PARAM(1);
 
-    T_NUMBER(2) // int nbBits
+    T_NUMBER(speex_bits_pack, 2) // int nbBits
     int nbBits = (int)PARAM(2);
 
     speex_bits_pack(bits, data, nbBits);
@@ -311,10 +311,10 @@ END_IMPL
 // int speex_bits_unpack_signed(SpeexBits* bits, int nbBits)
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(speex_bits_unpack_signed, 2)
-    T_HANDLE(0) // SpeexBits* bits
+    T_HANDLE(speex_bits_unpack_signed, 0) // SpeexBits* bits
     SpeexBits * bits = (SpeexBits *)PARAM_INT(0);
 
-    T_NUMBER(1) // int nbBits
+    T_NUMBER(speex_bits_unpack_signed, 1) // int nbBits
     int nbBits = (int)PARAM(1);
 
     RETURN_NUMBER(speex_bits_unpack_signed(bits, nbBits))
@@ -323,10 +323,10 @@ END_IMPL
 // unsigned int speex_bits_unpack_unsigned(SpeexBits* bits, int nbBits)
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(speex_bits_unpack_unsigned, 2)
-    T_HANDLE(0) // SpeexBits* bits
+    T_HANDLE(speex_bits_unpack_unsigned, 0) // SpeexBits* bits
     SpeexBits * bits = (SpeexBits *)PARAM_INT(0);
 
-    T_NUMBER(1) // int nbBits
+    T_NUMBER(speex_bits_unpack_unsigned, 1) // int nbBits
     int nbBits = (int)PARAM(1);
 
     RETURN_NUMBER(speex_bits_unpack_unsigned(bits, nbBits))
@@ -335,7 +335,7 @@ END_IMPL
 // int speex_bits_nbytes(SpeexBits* bits)
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(speex_bits_nbytes, 1)
-    T_HANDLE(0) // SpeexBits* bits
+    T_HANDLE(speex_bits_nbytes, 0) // SpeexBits* bits
     SpeexBits * bits = (SpeexBits *)PARAM_INT(0);
 
     RETURN_NUMBER(speex_bits_nbytes(bits))
@@ -344,10 +344,10 @@ END_IMPL
 // unsigned int speex_bits_peek_unsigned(SpeexBits* bits, int nbBits)
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(speex_bits_peek_unsigned, 2)
-    T_HANDLE(0) // SpeexBits* bits
+    T_HANDLE(speex_bits_peek_unsigned, 0) // SpeexBits* bits
     SpeexBits * bits = (SpeexBits *)PARAM_INT(0);
 
-    T_NUMBER(1) // int nbBits
+    T_NUMBER(speex_bits_peek_unsigned, 1) // int nbBits
     int nbBits = (int)PARAM(1);
 
     RETURN_NUMBER(speex_bits_peek_unsigned(bits, nbBits))
@@ -356,7 +356,7 @@ END_IMPL
 // int speex_bits_peek(SpeexBits* bits)
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(speex_bits_peek, 1)
-    T_HANDLE(0) // SpeexBits* bits
+    T_HANDLE(speex_bits_peek, 0) // SpeexBits* bits
     SpeexBits * bits = (SpeexBits *)PARAM_INT(0);
 
     RETURN_NUMBER(speex_bits_peek(bits))
@@ -365,10 +365,10 @@ END_IMPL
 // void speex_bits_advance(SpeexBits* bits, int n)
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(speex_bits_advance, 2)
-    T_HANDLE(0) // SpeexBits* bits
+    T_HANDLE(speex_bits_advance, 0) // SpeexBits* bits
     SpeexBits * bits = (SpeexBits *)PARAM_INT(0);
 
-    T_NUMBER(1) // int n
+    T_NUMBER(speex_bits_advance, 1) // int n
     int n = (int)PARAM(1);
 
     speex_bits_advance(bits, n);
@@ -378,7 +378,7 @@ END_IMPL
 // int speex_bits_remaining(SpeexBits* bits)
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(speex_bits_remaining, 1)
-    T_HANDLE(0) // SpeexBits* bits
+    T_HANDLE(speex_bits_remaining, 0) // SpeexBits* bits
     SpeexBits * bits = (SpeexBits *)PARAM_INT(0);
 
     RETURN_NUMBER(speex_bits_remaining(bits))
@@ -387,7 +387,7 @@ END_IMPL
 // void speex_bits_insert_terminator(SpeexBits* bits)
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(speex_bits_insert_terminator, 1)
-    T_HANDLE(0) // SpeexBits* bits
+    T_HANDLE(speex_bits_insert_terminator, 0) // SpeexBits* bits
     SpeexBits * bits = (SpeexBits *)PARAM_INT(0);
 
     speex_bits_insert_terminator(bits);
@@ -397,7 +397,7 @@ END_IMPL
 // void* speex_encoder_init(SpeexMode* mode)
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(speex_encoder_init, 1)
-    T_NUMBER(0) // SpeexMode* mode
+    T_NUMBER(speex_encoder_init, 0) // SpeexMode* mode
     const SpeexMode * mode;
     switch (PARAM_INT(0)) {
         case 1:
@@ -419,7 +419,7 @@ END_IMPL
 // void speex_encoder_destroy(void* state)
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(speex_encoder_destroy, 1)
-    T_HANDLE(0) // void* state
+    T_HANDLE(speex_encoder_destroy, 0) // void* state
     void *state = (void *)PARAM_INT(0);
 
     speex_encoder_destroy(state);
@@ -430,10 +430,10 @@ END_IMPL
 // int speex_encode_int(void* state, spx_int16_t* in, SpeexBits* bits)
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(speex_encode_int, 3)
-    T_HANDLE(0) // void* state
+    T_HANDLE(speex_encode_int, 0) // void* state
     void *state = (void *)PARAM_INT(0);
 
-    T_STRING(1) // spx_int16_t* in
+    T_STRING(speex_encode_int, 1) // spx_int16_t* in
     spx_int16_t * in = (spx_int16_t *)PARAM(1);
     spx_int32_t N = 0;
     spx_int16_t short_out[MAX_IN_SAMPLES];
@@ -441,7 +441,7 @@ CONCEPT_FUNCTION_IMPL(speex_encode_int, 3)
     if (PARAM_LEN(1) < N * sizeof(spx_int16_t))
         return (void *)"speex_encode_int: invalid buffer received (size is less than framesize)";
 
-    T_HANDLE(2) // SpeexBits* bits
+    T_HANDLE(speex_encode_int, 2) // SpeexBits* bits
     SpeexBits * bits = (SpeexBits *)PARAM_INT(2);
 
     RETURN_NUMBER(speex_encode_int(state, in, bits))
@@ -450,10 +450,10 @@ END_IMPL
 // int speex_encoder_ctl(void* state, int request, void* ptr)
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(speex_encoder_ctl, 3)
-    T_HANDLE(0) // void* state
+    T_HANDLE(speex_encoder_ctl, 0) // void* state
     void *state = (void *)PARAM_INT(0);
 
-    T_NUMBER(1) // int request
+    T_NUMBER(speex_encoder_ctl, 1) // int request
     int request = (int)PARAM(1);
     spx_int32_t ptr1;
     spx_int16_t ptr2;
@@ -469,7 +469,7 @@ CONCEPT_FUNCTION_IMPL(speex_encoder_ctl, 3)
         case SPEEX_SET_SAMPLING_RATE:
             //case SPEEX_SET_WIDEBAND:
             {
-                T_NUMBER(2)
+                T_NUMBER(speex_encoder_ctl, 2)
                 ptr1 = PARAM_INT(2);
                 RETURN_NUMBER(speex_encoder_ctl(state, request, &ptr1))
             }
@@ -492,7 +492,7 @@ CONCEPT_FUNCTION_IMPL(speex_encoder_ctl, 3)
 
         /*case SPEEX_SET_INNOVATION_SAVE:
             {
-                T_NUMBER(2)
+                T_NUMBER(speex_encoder_ctl, 2)
                 ptr2=PARAM_INT(2);
                 RETURN_NUMBER(speex_encoder_ctl(state, request, &ptr2))
             }
@@ -510,7 +510,7 @@ END_IMPL
 // void* speex_decoder_init(SpeexMode* mode)
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(speex_decoder_init, 1)
-    T_NUMBER(0) // SpeexMode* mode
+    T_NUMBER(speex_decoder_init, 0) // SpeexMode* mode
     const SpeexMode * mode;
     switch (PARAM_INT(0)) {
         case 1:
@@ -532,7 +532,7 @@ END_IMPL
 // void speex_decoder_destroy(void* state)
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(speex_decoder_destroy, 1)
-    T_HANDLE(0) // void* state
+    T_HANDLE(speex_decoder_destroy, 0) // void* state
     void *state = (void *)PARAM_INT(0);
 
     speex_decoder_destroy(state);
@@ -543,10 +543,10 @@ END_IMPL
 // int speex_decode_int(void* state, SpeexBits* bits, spx_int16_t* out)
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(speex_decode_int, 3)
-    T_HANDLE(0) // void* state
+    T_HANDLE(speex_decode_int, 0) // void* state
     void *state = (void *)PARAM_INT(0);
 
-    T_HANDLE(1) // SpeexBits* bits
+    T_HANDLE(speex_decode_int, 1) // SpeexBits* bits
     SpeexBits * bits = (SpeexBits *)PARAM_INT(1);
 
     spx_int32_t N = 0;
@@ -566,10 +566,10 @@ END_IMPL
 // int speex_decoder_ctl(void* state, int request, void* ptr)
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(speex_decoder_ctl, 3)
-    T_HANDLE(0) // void* state
+    T_HANDLE(speex_decoder_ctl, 0) // void* state
     void *state = (void *)PARAM_INT(0);
 
-    T_NUMBER(1) // int request
+    T_NUMBER(speex_decoder_ctl, 1) // int request
     int request = (int)PARAM(1);
     spx_int32_t ptr1;
     spx_int16_t ptr2;
@@ -585,7 +585,7 @@ CONCEPT_FUNCTION_IMPL(speex_decoder_ctl, 3)
         case SPEEX_SET_HIGHPASS:
             //case SPEEX_SET_WIDEBAND:
             {
-                T_NUMBER(2)
+                T_NUMBER(speex_decoder_ctl, 2)
                 ptr1 = PARAM_INT(2);
                 RETURN_NUMBER(speex_decoder_ctl(state, request, &ptr1))
             }
@@ -607,7 +607,7 @@ CONCEPT_FUNCTION_IMPL(speex_decoder_ctl, 3)
 
         /*case SPEEX_SET_INNOVATION_SAVE:
             {
-                T_NUMBER(2)
+                T_NUMBER(speex_decoder_ctl, 2)
                 ptr1=PARAM_INT(2);
                 RETURN_NUMBER(speex_decoder_ctl(state, request, &ptr2))
             }
@@ -624,7 +624,7 @@ END_IMPL
 // int speex_mode_query(SpeexMode* mode, int request, void* ptr)
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(speex_mode_query, 3)
-    T_NUMBER(0) // SpeexMode* mode
+    T_NUMBER(speex_mode_query, 0) // SpeexMode* mode
 //SpeexMode* mode=(SpeexMode*)PARAM_INT(0);
     const SpeexMode * mode;
     switch (PARAM_INT(0)) {
@@ -642,7 +642,7 @@ CONCEPT_FUNCTION_IMPL(speex_mode_query, 3)
     }
 
 
-    T_NUMBER(1) // int request
+    T_NUMBER(speex_mode_query, 1) // int request
     int request = (int)PARAM(1);
 
     int ptr = 0;
@@ -653,7 +653,7 @@ END_IMPL
 // int speex_lib_ctl(int request, void* ptr)
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(speex_lib_ctl, 2)
-    T_NUMBER(0) // int request
+    T_NUMBER(speex_lib_ctl, 0) // int request
     int request = (int)PARAM(0);
 
 //T_STRING(1) // void* ptr
@@ -681,7 +681,7 @@ END_IMPL
 // SpeexMode* speex_lib_get_mode(int mode)
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(speex_lib_get_mode, 1)
-    T_NUMBER(0) // int mode
+    T_NUMBER(speex_lib_get_mode, 0) // int mode
     int mode = (int)PARAM_INT(0);
 
     int res = 0;
@@ -696,7 +696,7 @@ CONCEPT_FUNCTION_IMPL(speex_lib_get_mode, 1)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(alaw2ulaw, 1)
-    T_STRING(0)
+    T_STRING(alaw2ulaw, 0)
     unsigned char *output = 0;
     int length = PARAM_LEN(0);
     CORE_NEW(length + 1, output);
@@ -710,7 +710,7 @@ CONCEPT_FUNCTION_IMPL(alaw2ulaw, 1)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(ulaw2alaw, 1)
-    T_STRING(0)
+    T_STRING(ulaw2alaw, 0)
     unsigned char *output = 0;
     int length = PARAM_LEN(0);
     CORE_NEW(length + 1, output);
@@ -723,7 +723,7 @@ CONCEPT_FUNCTION_IMPL(ulaw2alaw, 1)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(alaw2pcm, 1)
-    T_STRING(0)
+    T_STRING(alaw2pcm, 0)
 /*unsigned */ short *output = 0;
     int length   = PARAM_LEN(0);
     int byte_len = length * 2;
@@ -737,7 +737,7 @@ CONCEPT_FUNCTION_IMPL(alaw2pcm, 1)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(ulaw2pcm, 1)
-    T_STRING(0)
+    T_STRING(ulaw2pcm, 0)
     short *output = 0;
     int length   = PARAM_LEN(0);
     int byte_len = length * 2;
@@ -750,7 +750,7 @@ CONCEPT_FUNCTION_IMPL(ulaw2pcm, 1)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(pcm2ulaw, 1)
-    T_STRING(0)
+    T_STRING(pcm2ulaw, 0)
     unsigned char *output = 0;
     int byte_len = PARAM_LEN(0);
     int length   = byte_len / 2;
@@ -765,7 +765,7 @@ CONCEPT_FUNCTION_IMPL(pcm2ulaw, 1)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(pcm2alaw, 1)
-    T_STRING(0)
+    T_STRING(pcm2alaw, 0)
     unsigned char *output = 0;
     int byte_len = PARAM_LEN(0);
     int length   = byte_len / 2;
@@ -780,7 +780,7 @@ CONCEPT_FUNCTION_IMPL(pcm2alaw, 1)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(s162alaw, 1)
-    T_STRING(0)
+    T_STRING(s162alaw, 0)
     unsigned char *output = 0;
     int byte_len = PARAM_LEN(0);
     int length   = byte_len / 2;
@@ -795,7 +795,7 @@ CONCEPT_FUNCTION_IMPL(s162alaw, 1)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(alaw2s16, 1)
-    T_STRING(0)
+    T_STRING(alaw2s16, 0)
     short *output = 0;
     int length   = PARAM_LEN(0);
     int byte_len = length * 2;
@@ -837,8 +837,8 @@ int downsample(const short *in, short *out, int len, const int *divs, int divs_l
 
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(downsample44k, 2)
-    T_STRING(0)
-    T_NUMBER(1)
+    T_STRING(downsample44k, 0)
+    T_NUMBER(downsample44k, 1)
 
     int new_rate = PARAM_INT(1);
     short     *output = 0;
@@ -890,12 +890,12 @@ struct EchoContainer {
 };
 
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(speex_echo_state_init, 2, 3)
-    T_NUMBER(0)
-    T_NUMBER(1)
+    T_NUMBER(speex_echo_state_init, 0)
+    T_NUMBER(speex_echo_state_init, 1)
 
     int r = 8000;
     if (PARAMETERS_COUNT == 3) {
-        T_NUMBER(2)
+        T_NUMBER(speex_echo_state_init, 2)
         r = PARAM_INT(2);
     }
     EchoContainer *echo = (EchoContainer *)malloc(sizeof(EchoContainer));
@@ -910,7 +910,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(speex_echo_state_init, 2, 3)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(speex_echo_state_destroy, 1)
-    T_NUMBER(0)
+    T_NUMBER(speex_echo_state_destroy, 0)
     EchoContainer * echo = (EchoContainer *)(PARAM_INT(0));
     if (echo) {
         speex_echo_state_destroy(echo->echo_state);
@@ -921,7 +921,7 @@ CONCEPT_FUNCTION_IMPL(speex_echo_state_destroy, 1)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(speex_echo_state_reset, 1)
-    T_NUMBER(0)
+    T_NUMBER(speex_echo_state_reset, 0)
     EchoContainer * echo_state = (EchoContainer *)(PARAM_INT(0));
     if (echo_state)
         speex_echo_state_reset(echo_state->echo_state);
@@ -930,9 +930,9 @@ CONCEPT_FUNCTION_IMPL(speex_echo_state_reset, 1)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(speex_echo_cancellation, 4)
-    T_HANDLE(0)
-    T_STRING(1)
-    T_STRING(2)
+    T_HANDLE(speex_echo_cancellation, 0)
+    T_STRING(speex_echo_cancellation, 1)
+    T_STRING(speex_echo_cancellation, 2)
 
     EchoContainer * echo_state = (EchoContainer *)(PARAM_INT(0));
 
@@ -952,8 +952,8 @@ CONCEPT_FUNCTION_IMPL(speex_echo_cancellation, 4)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(speex_echo_playback, 2)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(speex_echo_playback, 0)
+    T_STRING(speex_echo_playback, 1)
     EchoContainer * echo_state = (EchoContainer *)(PARAM_INT(0));
     spx_int16_t *echo_frame = (spx_int16_t *)PARAM(1);
 
@@ -962,8 +962,8 @@ CONCEPT_FUNCTION_IMPL(speex_echo_playback, 2)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(speex_echo_capture, 3)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(speex_echo_capture, 0)
+    T_STRING(speex_echo_capture, 1)
 
     EchoContainer * echo_state = (EchoContainer *)(PARAM_INT(0));
     spx_int16_t *input_frame  = (spx_int16_t *)PARAM(1);
@@ -981,3 +981,4 @@ CONCEPT_FUNCTION_IMPL(speex_echo_capture, 3)
     RETURN_NUMBER(0)
 END_IMPL
 //------------------------------------------------------------------------
+

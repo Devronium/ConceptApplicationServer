@@ -255,19 +255,19 @@ CONCEPT_DLL_API ON_DESTROY_CONTEXT MANAGEMENT_PARAMETERS {
 }
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(PQConnect, 1)
-    T_STRING(0)
+    T_STRING(PQConnect, 0)
 
     RETURN_NUMBER((SYS_INT)PQconnectdb(PARAM(0)))
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(PQLogin, 7)
-    T_STRING(0) // host
-    T_STRING(1) // port
-    T_STRING(2) // options
-    T_STRING(3) // tty
-    T_STRING(4) // db
-    T_STRING(5) // user
-    T_STRING(6) // password
+    T_STRING(PQLogin, 0) // host
+    T_STRING(PQLogin, 1) // port
+    T_STRING(PQLogin, 2) // options
+    T_STRING(PQLogin, 3) // tty
+    T_STRING(PQLogin, 4) // db
+    T_STRING(PQLogin, 5) // user
+    T_STRING(PQLogin, 6) // password
 
     char *host = PARAM_LEN(0) ? PARAM(0) : 0;
     char *port     = PARAM_LEN(1) ? PARAM(1) : 0;
@@ -281,7 +281,7 @@ CONCEPT_FUNCTION_IMPL(PQLogin, 7)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(PQDisconnect, 1)
-    T_NUMBER(0) // pq
+    T_NUMBER(PQDisconnect, 0) // pq
 
     RETURN_NUMBER(0);
 
@@ -292,7 +292,7 @@ CONCEPT_FUNCTION_IMPL(PQDisconnect, 1)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(PQError, 1)
-    T_NUMBER(0) // conn
+    T_NUMBER(PQError, 0) // conn
 
     if (PARAM_INT(0)) {
         RETURN_STRING(PQerrorMessage((PGconn *)PARAM_INT(0)));
@@ -302,7 +302,7 @@ CONCEPT_FUNCTION_IMPL(PQError, 1)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(PQQueryError, 1)
-    T_NUMBER(0)
+    T_NUMBER(PQQueryError, 0)
 
     if (PARAM_INT(0)) {
         RETURN_STRING(PQresultErrorMessage((PGresult *)PARAM_INT(0)));
@@ -312,7 +312,7 @@ CONCEPT_FUNCTION_IMPL(PQQueryError, 1)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(PQAffectedRows, 1)
-    T_NUMBER(0)
+    T_NUMBER(PQAffectedRows, 0)
 
     if (PARAM_INT(0)) {
         RETURN_STRING(PQcmdTuples((PGresult *)PARAM_INT(0)));
@@ -322,8 +322,8 @@ CONCEPT_FUNCTION_IMPL(PQAffectedRows, 1)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(PQQuery, 2)
-    T_STRING(0) // query
-    T_NUMBER(1) // con
+    T_STRING(PQQuery, 0) // query
+    T_NUMBER(PQQuery, 1) // con
 
     if (PARAM_INT(1)) {
         PGresult *result = PQexec((PGconn *)PARAM_INT(1), PARAM(0));
@@ -335,9 +335,9 @@ CONCEPT_FUNCTION_IMPL(PQQuery, 2)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(PQQueryParams, 3)
-    T_STRING(0) // query
-    T_ARRAY(1)  // params
-    T_NUMBER(2) // con
+    T_STRING(PQQueryParams, 0) // query
+    T_ARRAY(PQQueryParams, 1)  // params
+    T_NUMBER(PQQueryParams, 2) // con
 
     INTEGER type = 0;
     NUMBER nr        = 0;
@@ -393,7 +393,7 @@ CONCEPT_FUNCTION_IMPL(PQQueryParams, 3)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(PQFreeResult, 1)
-    T_NUMBER(0) // mysql result
+    T_NUMBER(PQFreeResult, 0) // mysql result
 
     if (PARAM_INT(0)) {
         PQclear((PGresult *)PARAM_INT(0));
@@ -404,7 +404,7 @@ CONCEPT_FUNCTION_IMPL(PQFreeResult, 1)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(PQCountColumns, 1)
-    T_NUMBER(0) // mysql result
+    T_NUMBER(PQCountColumns, 0) // mysql result
 
     if (PARAM_INT(0)) {
         RETURN_NUMBER(PQnfields((PGresult *)PARAM_INT(0)));
@@ -414,7 +414,7 @@ CONCEPT_FUNCTION_IMPL(PQCountColumns, 1)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(PQCountRows, 1)
-    T_NUMBER(0) // mysql result
+    T_NUMBER(PQCountRows, 0) // mysql result
 
     if (PARAM_INT(0)) {
         RETURN_NUMBER(PQntuples((PGresult *)PARAM_INT(0)));
@@ -424,8 +424,8 @@ CONCEPT_FUNCTION_IMPL(PQCountRows, 1)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(PQDescribeCol, 5)
-    T_NUMBER(0) // index
-    T_NUMBER(4) // mysql result
+    T_NUMBER(PQDescribeCol, 0) // index
+    T_NUMBER(PQDescribeCol, 4) // mysql result
 
     if (PARAM_INT(4)) {
         int  res        = 0;
@@ -448,9 +448,9 @@ CONCEPT_FUNCTION_IMPL(PQDescribeCol, 5)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(PQIsNull, 3)
-    T_NUMBER(0) // index
-    T_NUMBER(1) // index
-    T_NUMBER(2) // mysql result
+    T_NUMBER(PQIsNull, 0) // index
+    T_NUMBER(PQIsNull, 1) // index
+    T_NUMBER(PQIsNull, 2) // mysql result
 
     if (PARAM_INT(2)) {
         RETURN_NUMBER(PQgetisnull((PGresult *)PARAM_INT(2), PARAM_INT(0), PARAM_INT(1)))
@@ -460,9 +460,9 @@ CONCEPT_FUNCTION_IMPL(PQIsNull, 3)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(PQLength, 3)
-    T_NUMBER(0) // index
-    T_NUMBER(1) // index
-    T_NUMBER(2) // mysql result
+    T_NUMBER(PQLength, 0) // index
+    T_NUMBER(PQLength, 1) // index
+    T_NUMBER(PQLength, 2) // mysql result
 
     if (PARAM_INT(2)) {
         RETURN_NUMBER(PQgetlength((PGresult *)PARAM_INT(2), PARAM_INT(0), PARAM_INT(1)))
@@ -472,9 +472,9 @@ CONCEPT_FUNCTION_IMPL(PQLength, 3)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(PQGetValue, 3)
-    T_NUMBER(0) // index
-    T_NUMBER(1) // index
-    T_NUMBER(2) // mysql result
+    T_NUMBER(PQGetValue, 0) // index
+    T_NUMBER(PQGetValue, 1) // index
+    T_NUMBER(PQGetValue, 2) // mysql result
 
     if (PARAM_INT(2)) {
         int  len  = PQgetlength((PGresult *)PARAM_INT(2), PARAM_INT(0), PARAM_INT(1));
@@ -504,8 +504,8 @@ CONCEPT_FUNCTION_IMPL(PQGetValue, 3)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(PQTable, 2)
-    T_NUMBER(0)
-    T_NUMBER(1) // mysql result
+    T_NUMBER(PQTable, 0)
+    T_NUMBER(PQTable, 1) // mysql result
 
     if (PARAM_INT(1)) {
         RETURN_NUMBER(PQftable((PGresult *)PARAM_INT(1), PARAM_INT(0)))
@@ -515,8 +515,8 @@ CONCEPT_FUNCTION_IMPL(PQTable, 2)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(PQTableCol, 2)
-    T_NUMBER(0)
-    T_NUMBER(1) // mysql result
+    T_NUMBER(PQTableCol, 0)
+    T_NUMBER(PQTableCol, 1) // mysql result
 
     if (PARAM_INT(1)) {
         RETURN_NUMBER(PQftablecol((PGresult *)PARAM_INT(1), PARAM_INT(0)))
@@ -526,8 +526,8 @@ CONCEPT_FUNCTION_IMPL(PQTableCol, 2)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(PQEscape, 2)
-    T_STRING(0) // mysql res
-    T_NUMBER(1) // mysql
+    T_STRING(PQEscape, 0) // mysql res
+    T_NUMBER(PQEscape, 1) // mysql
 
     if (!PARAM_INT(1)) {
         RETURN_STRING("");
@@ -549,33 +549,33 @@ CONCEPT_FUNCTION_IMPL(PQEscape, 2)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(PQEncryptPassword, 2)
-    T_STRING(0)
-    T_STRING(1)
+    T_STRING(PQEncryptPassword, 0)
+    T_STRING(PQEncryptPassword, 1)
 
     RETURN_STRING(PQencryptPassword(PARAM(0), PARAM(1)));
 END_IMPL
 //-----------------------------------------------------//
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(lo_open, 3)
-    T_HANDLE(0)     // void*
-    T_NUMBER(1)     // int
-    T_NUMBER(2)     // int
+    T_HANDLE(lo_open, 0)     // void*
+    T_NUMBER(lo_open, 1)     // int
+    T_NUMBER(lo_open, 2)     // int
 
     RETURN_NUMBER((SYS_INT)lo_open((PGconn *)PARAM_INT(0), (unsigned int)PARAM(1), PARAM_INT(2)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(lo_close, 2)
-    T_HANDLE(0)     // void*
-    T_NUMBER(1)     // int
+    T_HANDLE(lo_close, 0)     // void*
+    T_NUMBER(lo_close, 1)     // int
 
     RETURN_NUMBER(lo_close((PGconn *)PARAM_INT(0), (int)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(lo_read, 4)
-    T_HANDLE(0)     // void*
-    T_NUMBER(1)     // int
-    T_STRING(2)     // char*
-    T_NUMBER(3)     // size_t
+    T_HANDLE(lo_read, 0)     // void*
+    T_NUMBER(lo_read, 1)     // int
+    T_STRING(lo_read, 2)     // char*
+    T_NUMBER(lo_read, 3)     // size_t
 
     int len = PARAM_INT(3);
     char *buf = 0;
@@ -596,127 +596,127 @@ CONCEPT_FUNCTION_IMPL(lo_read, 4)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(lo_write, 3)
-    T_HANDLE(0)     // void*
-    T_NUMBER(1)     // int
-    T_STRING(2)     // char*
+    T_HANDLE(lo_write, 0)     // void*
+    T_NUMBER(lo_write, 1)     // int
+    T_STRING(lo_write, 2)     // char*
 
     RETURN_NUMBER(lo_write((PGconn *)PARAM_INT(0), (int)PARAM(1), (char *)PARAM(2), (size_t)PARAM_LEN(2)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(lo_lseek, 4)
-    T_HANDLE(0)     // void*
-    T_NUMBER(1)     // int
-    T_NUMBER(2)     // int
-    T_NUMBER(3)     // int
+    T_HANDLE(lo_lseek, 0)     // void*
+    T_NUMBER(lo_lseek, 1)     // int
+    T_NUMBER(lo_lseek, 2)     // int
+    T_NUMBER(lo_lseek, 3)     // int
 
     RETURN_NUMBER(lo_lseek((PGconn *)PARAM_INT(0), (int)PARAM(1), (int)PARAM(2), (int)PARAM(3)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(lo_creat, 2)
-    T_HANDLE(0)     // void*
-    T_NUMBER(1)     // int
+    T_HANDLE(lo_creat, 0)     // void*
+    T_NUMBER(lo_creat, 1)     // int
 
     RETURN_NUMBER(lo_creat((PGconn *)PARAM_INT(0), (int)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(lo_create, 2)
-    T_HANDLE(0)     // void*
-    T_NUMBER(1)     // int
+    T_HANDLE(lo_create, 0)     // void*
+    T_NUMBER(lo_create, 1)     // int
 
     RETURN_NUMBER(lo_create((PGconn *)PARAM_INT(0), (int)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(lo_tell, 2)
-    T_HANDLE(0)     // void*
-    T_NUMBER(1)     // int
+    T_HANDLE(lo_tell, 0)     // void*
+    T_NUMBER(lo_tell, 1)     // int
 
     RETURN_NUMBER(lo_tell((PGconn *)PARAM_INT(0), (int)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(lo_truncate, 3)
-    T_HANDLE(0)     // void*
-    T_NUMBER(1)     // int
-    T_NUMBER(2)     // size_t
+    T_HANDLE(lo_truncate, 0)     // void*
+    T_NUMBER(lo_truncate, 1)     // int
+    T_NUMBER(lo_truncate, 2)     // size_t
 
     RETURN_NUMBER(lo_truncate((PGconn *)PARAM_INT(0), (int)PARAM(1), (size_t)PARAM(2)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(lo_unlink, 2)
-    T_HANDLE(0)     // void*
-    T_NUMBER(1)     // int
+    T_HANDLE(lo_unlink, 0)     // void*
+    T_NUMBER(lo_unlink, 1)     // int
 
     RETURN_NUMBER(lo_unlink((PGconn *)PARAM_INT(0), (int)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(lo_import, 2)
-    T_HANDLE(0)     // void*
-    T_STRING(1)     // char*
+    T_HANDLE(lo_import, 0)     // void*
+    T_STRING(lo_import, 1)     // char*
 
     RETURN_NUMBER(lo_import((PGconn *)PARAM_INT(0), (char *)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(lo_import_with_oid, 3)
-    T_HANDLE(0)     // void*
-    T_STRING(1)     // char*
-    T_NUMBER(2)     // int
+    T_HANDLE(lo_import_with_oid, 0)     // void*
+    T_STRING(lo_import_with_oid, 1)     // char*
+    T_NUMBER(lo_import_with_oid, 2)     // int
 
     RETURN_NUMBER(lo_import_with_oid((PGconn *)PARAM_INT(0), (char *)PARAM(1), (int)PARAM(2)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(lo_export, 3)
-    T_HANDLE(0)     // void*
-    T_NUMBER(1)     // int
-    T_STRING(2)     // char*
+    T_HANDLE(lo_export, 0)     // void*
+    T_NUMBER(lo_export, 1)     // int
+    T_STRING(lo_export, 2)     // char*
 
     RETURN_NUMBER(lo_export((PGconn *)PARAM_INT(0), (int)PARAM(1), (char *)PARAM(2)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(PQsetnonblocking, 2)
-    T_HANDLE(0) // void*
-    T_NUMBER(1) // int
+    T_HANDLE(PQsetnonblocking, 0) // void*
+    T_NUMBER(PQsetnonblocking, 1) // int
     RETURN_NUMBER(PQsetnonblocking((PGconn *)PARAM_INT(0), (int)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(PQisnonblocking, 1)
-    T_HANDLE(0)     // void*
+    T_HANDLE(PQisnonblocking, 0)     // void*
     RETURN_NUMBER(PQisnonblocking((PGconn *)PARAM_INT(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(PQgetResult, 1)
-    T_HANDLE(0)     // void*
+    T_HANDLE(PQgetResult, 0)     // void*
     PGresult * result = PQgetResult((PGconn *)PARAM_INT(0));
     RETURN_NUMBER((SYS_INT)result);
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(PQconsumeInput, 1)
-    T_HANDLE(0)     // void*
+    T_HANDLE(PQconsumeInput, 0)     // void*
     RETURN_NUMBER(PQconsumeInput((PGconn *)PARAM_INT(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(PQisBusy, 1)
-    T_HANDLE(0)     // void*
+    T_HANDLE(PQisBusy, 0)     // void*
     RETURN_NUMBER(PQisBusy((PGconn *)PARAM_INT(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(PQflush, 1)
-    T_HANDLE(0)     // void*
+    T_HANDLE(PQflush, 0)     // void*
     RETURN_NUMBER(PQflush((PGconn *)PARAM_INT(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(PQsocket, 1)
-    T_HANDLE(0)     // void*
+    T_HANDLE(PQsocket, 0)     // void*
     RETURN_NUMBER(PQsocket((PGconn *)PARAM_INT(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(PQrequestCancel, 1)
-    T_HANDLE(0)     // void*
+    T_HANDLE(PQrequestCancel, 0)     // void*
     RETURN_NUMBER(PQrequestCancel((PGconn *)PARAM_INT(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(PQQueryParamsAsync, 3)
-    T_STRING(0) // query
-    T_ARRAY(1)  // params
-    T_NUMBER(2) // con
+    T_STRING(PQQueryParamsAsync, 0) // query
+    T_ARRAY(PQQueryParamsAsync, 1)  // params
+    T_NUMBER(PQQueryParamsAsync, 2) // con
 
     INTEGER type = 0;
     NUMBER nr        = 0;
@@ -772,8 +772,8 @@ CONCEPT_FUNCTION_IMPL(PQQueryParamsAsync, 3)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(PQQueryAsync, 2)
-    T_STRING(0) // query
-    T_NUMBER(1) // con
+    T_STRING(PQQueryAsync, 0) // query
+    T_NUMBER(PQQueryAsync, 1) // con
 
     if (PARAM_INT(1)) {
         int res = PQsendQuery((PGconn *)PARAM_INT(1), PARAM(0));
@@ -784,3 +784,4 @@ CONCEPT_FUNCTION_IMPL(PQQueryAsync, 2)
     }
 END_IMPL
 //-----------------------------------------------------//
+

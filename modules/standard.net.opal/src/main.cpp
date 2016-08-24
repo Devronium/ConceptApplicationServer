@@ -112,8 +112,8 @@ CONCEPT_FUNCTION_IMPL(SIPPhoneCreate, 0)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(SIPPhoneSetNoMediaTimeout, 2)
-    T_HANDLE(0)
-    T_NUMBER(1)
+    T_HANDLE(SIPPhoneSetNoMediaTimeout, 0)
+    T_NUMBER(SIPPhoneSetNoMediaTimeout, 1)
 
     MyManager * opal = (MyManager *)PARAM_INT(0);
     PTimeInterval i;
@@ -123,7 +123,7 @@ CONCEPT_FUNCTION_IMPL(SIPPhoneSetNoMediaTimeout, 2)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(SIPPhoneGetNoMediaTimeout, 1)
-    T_HANDLE(0)
+    T_HANDLE(SIPPhoneGetNoMediaTimeout, 0)
 
     MyManager * opal = (MyManager *)PARAM_INT(0);
     int i = opal->GetNoMediaTimeout().GetMilliSeconds();
@@ -131,7 +131,7 @@ CONCEPT_FUNCTION_IMPL(SIPPhoneGetNoMediaTimeout, 1)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(SIPPhoneDestroy, 1)
-    T_NUMBER(0)
+    T_NUMBER(SIPPhoneDestroy, 0)
     MyManager * opal = (MyManager *)PARAM_INT(0);
     if (opal) {
         opal->ShutDownEndpoints();
@@ -142,55 +142,55 @@ CONCEPT_FUNCTION_IMPL(SIPPhoneDestroy, 1)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(SIPPhoneSetPortBase, 3)
-    T_HANDLE(0)
-    T_NUMBER(1)
-    T_NUMBER(2)
+    T_HANDLE(SIPPhoneSetPortBase, 0)
+    T_NUMBER(SIPPhoneSetPortBase, 1)
+    T_NUMBER(SIPPhoneSetPortBase, 2)
     MyManager * opal = (MyManager *)PARAM_INT(0);
     opal->SetPortBase(PARAM_INT(1), PARAM_INT(2));
     RETURN_NUMBER(0);
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(SIPPhoneSetSilenceDetector, 2)
-    T_HANDLE(0)
-    T_NUMBER(1)
+    T_HANDLE(SIPPhoneSetSilenceDetector, 0)
+    T_NUMBER(SIPPhoneSetSilenceDetector, 1)
     MyManager * opal = (MyManager *)PARAM_INT(0);
     opal->SetSilenceDetector(PARAM_INT(1));
     RETURN_NUMBER(0);
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(SIPPhoneSetJitter, 3)
-    T_HANDLE(0)
-    T_NUMBER(1)
-    T_NUMBER(2)
+    T_HANDLE(SIPPhoneSetJitter, 0)
+    T_NUMBER(SIPPhoneSetJitter, 1)
+    T_NUMBER(SIPPhoneSetJitter, 2)
     MyManager * opal = (MyManager *)PARAM_INT(0);
     int res = opal->SetJitter(PARAM_INT(1), PARAM_INT(2));
     RETURN_NUMBER(res);
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(SIPPhoneConnect, 4, 8)
-    T_HANDLE(0)
-    T_STRING(1)
-    T_STRING(2)
-    T_STRING(3)
+    T_HANDLE(SIPPhoneConnect, 0)
+    T_STRING(SIPPhoneConnect, 1)
+    T_STRING(SIPPhoneConnect, 2)
+    T_STRING(SIPPhoneConnect, 3)
 
     PString ua = "";
     PString domain   = "";
     PString endpoint = "";
     if (PARAMETERS_COUNT > 4) {
-        T_STRING(4)
+        T_STRING(SIPPhoneConnect, 4)
         endpoint = PARAM(4);
     }
     if (PARAMETERS_COUNT > 5) {
-        T_STRING(5)
+        T_STRING(SIPPhoneConnect, 5)
         domain = PARAM(5);
     }
     if (PARAMETERS_COUNT > 6) {
-        T_STRING(6)
+        T_STRING(SIPPhoneConnect, 6)
         ua = PARAM(6);
     }
     PString iface = "";
     if (PARAMETERS_COUNT > 7) {
-        T_STRING(7)
+        T_STRING(SIPPhoneConnect, 7)
         iface = PARAM(7);
     }
     MyManager *opal = (MyManager *)PARAM_INT(0);
@@ -199,15 +199,15 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(SIPPhoneConnect, 4, 8)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(SIPPhoneAddListener, 2)
-    T_HANDLE(0)
-    T_STRING(1);
+    T_HANDLE(SIPPhoneAddListener, 0)
+    T_STRING(SIPPhoneAddListener, 1);
     MyManager *opal = (MyManager *)PARAM_INT(0);
     int       res   = opal->StartListener(PARAM(1));
     RETURN_NUMBER(res);
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(SIPPhoneUnregister, 0)
-    T_HANDLE(0)
+    T_HANDLE(SIPPhoneUnregister, 0)
 
     MyManager * opal = (MyManager *)PARAM_INT(0);
     opal->Unregister();
@@ -215,78 +215,78 @@ CONCEPT_FUNCTION_IMPL(SIPPhoneUnregister, 0)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(SIPPhoneRemoveListener, 2)
-    T_HANDLE(0)
-    T_STRING(1);
+    T_HANDLE(SIPPhoneRemoveListener, 0)
+    T_STRING(SIPPhoneRemoveListener, 1);
     MyManager *opal = (MyManager *)PARAM_INT(0);
     int       res   = opal->StopListener(PARAM(1));
     RETURN_NUMBER(res);
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(SIPPhoneCall, 2)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(SIPPhoneCall, 0)
+    T_STRING(SIPPhoneCall, 1)
     MyManager * opal = (MyManager *)PARAM_INT(0);
     int res = opal->StartCall(PARAM(1));
     RETURN_NUMBER(res);
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(SIPPhoneHoldRetrieveCall, 1)
-    T_HANDLE(0)
+    T_HANDLE(SIPPhoneHoldRetrieveCall, 0)
     MyManager * opal = (MyManager *)PARAM_INT(0);
     int res = opal->HoldRetrieveCall();
     RETURN_NUMBER(res);
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(SIPPhoneHangupCurrentCall, 1)
-    T_HANDLE(0)
+    T_HANDLE(SIPPhoneHangupCurrentCall, 0)
     MyManager * opal = (MyManager *)PARAM_INT(0);
     opal->HangupCurrentCall();
     RETURN_NUMBER(0);
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(SIPPhoneAnswer, 1)
-    T_HANDLE(0)
+    T_HANDLE(SIPPhoneAnswer, 0)
     MyManager * opal = (MyManager *)PARAM_INT(0);
     int res = opal->Answer();
     RETURN_NUMBER(res);
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(SIPPhoneTransfer, 2)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(SIPPhoneTransfer, 0)
+    T_STRING(SIPPhoneTransfer, 1)
     MyManager * opal = (MyManager *)PARAM_INT(0);
     int res = opal->Transfer(PARAM(1));
     RETURN_NUMBER(res);
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(SIPPhoneForward, 2)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(SIPPhoneForward, 0)
+    T_STRING(SIPPhoneForward, 1)
     MyManager * opal = (MyManager *)PARAM_INT(0);
     int res = opal->ForwardCall(PARAM(1));
     RETURN_NUMBER(res);
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(SIPPhoneIsRegistered, 1)
-    T_HANDLE(0)
+    T_HANDLE(SIPPhoneIsRegistered, 0)
     MyManager * opal = (MyManager *)PARAM_INT(0);
     int res = (int)opal->isRegistered();
     RETURN_NUMBER(res);
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(SIPPhoneSetSTUNServer, 2)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(SIPPhoneSetSTUNServer, 0)
+    T_STRING(SIPPhoneSetSTUNServer, 1)
     MyManager * opal = (MyManager *)PARAM_INT(0);
     int res = opal->SetSTUNServer(PARAM(1));
     RETURN_NUMBER(res);
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(SIPPhoneReject, 1, 2)
-    T_HANDLE(0)
+    T_HANDLE(SIPPhoneReject, 0)
     OpalConnection::CallEndReason code = OpalConnection::EndedByAnswerDenied;
     if (PARAMETERS_COUNT > 1) {
-        T_NUMBER(1)
+        T_NUMBER(SIPPhoneReject, 1)
         code = (OpalConnection::CallEndReason)PARAM_INT(1);
     }
     MyManager *opal = (MyManager *)PARAM_INT(0);
@@ -295,10 +295,10 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(SIPPhoneReject, 1, 2)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(SIPPhoneHangupAll, 1, 2)
-    T_HANDLE(0)
+    T_HANDLE(SIPPhoneHangupAll, 0)
     OpalConnection::CallEndReason code = OpalConnection::EndedByLocalUser;
     if (PARAMETERS_COUNT > 1) {
-        T_NUMBER(1)
+        T_NUMBER(SIPPhoneHangupAll, 1)
         code = (OpalConnection::CallEndReason)PARAM_INT(1);
     }
     MyManager *opal = (MyManager *)PARAM_INT(0);
@@ -307,8 +307,8 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(SIPPhoneHangupAll, 1, 2)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(SIPPhoneSendTone, 2)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(SIPPhoneSendTone, 0)
+    T_STRING(SIPPhoneSendTone, 1)
     char *s = PARAM(1);
     MyManager *opal = (MyManager *)PARAM_INT(0);
     if (s)
@@ -317,8 +317,8 @@ CONCEPT_FUNCTION_IMPL(SIPPhoneSendTone, 2)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(SIPPhoneOnConnectRequest, 2)
-    T_HANDLE(0)
-    T_DELEGATE(1)
+    T_HANDLE(SIPPhoneOnConnectRequest, 0)
+    T_DELEGATE(SIPPhoneOnConnectRequest, 1)
 
     MyManager * opal = (MyManager *)PARAM_INT(0);
     Invoke(INVOKE_EXTERNAL_THREADING, PARAMETER(1));
@@ -330,8 +330,8 @@ CONCEPT_FUNCTION_IMPL(SIPPhoneOnConnectRequest, 2)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(SIPPhoneOnEstablishedCall, 2)
-    T_HANDLE(0)
-    T_DELEGATE(1)
+    T_HANDLE(SIPPhoneOnEstablishedCall, 0)
+    T_DELEGATE(SIPPhoneOnEstablishedCall, 1)
 
     MyManager * opal = (MyManager *)PARAM_INT(0);
     Invoke(INVOKE_EXTERNAL_THREADING, PARAMETER(1));
@@ -343,8 +343,8 @@ CONCEPT_FUNCTION_IMPL(SIPPhoneOnEstablishedCall, 2)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(SIPPhoneOnClearedCall, 2)
-    T_HANDLE(0)
-    T_DELEGATE(1)
+    T_HANDLE(SIPPhoneOnClearedCall, 0)
+    T_DELEGATE(SIPPhoneOnClearedCall, 1)
 
     MyManager * opal = (MyManager *)PARAM_INT(0);
     Invoke(INVOKE_EXTERNAL_THREADING, PARAMETER(1));
@@ -356,8 +356,8 @@ CONCEPT_FUNCTION_IMPL(SIPPhoneOnClearedCall, 2)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(SIPPhoneOnShowIncoming, 2)
-    T_HANDLE(0)
-    T_DELEGATE(1)
+    T_HANDLE(SIPPhoneOnShowIncoming, 0)
+    T_DELEGATE(SIPPhoneOnShowIncoming, 1)
 
     MyManager * opal = (MyManager *)PARAM_INT(0);
     Invoke(INVOKE_EXTERNAL_THREADING, PARAMETER(1));
@@ -369,8 +369,8 @@ CONCEPT_FUNCTION_IMPL(SIPPhoneOnShowIncoming, 2)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(SIPPhoneOnShowOutgoing, 2)
-    T_HANDLE(0)
-    T_DELEGATE(1)
+    T_HANDLE(SIPPhoneOnShowOutgoing, 0)
+    T_DELEGATE(SIPPhoneOnShowOutgoing, 1)
 
     MyManager * opal = (MyManager *)PARAM_INT(0);
     Invoke(INVOKE_EXTERNAL_THREADING, PARAMETER(1));
@@ -382,8 +382,8 @@ CONCEPT_FUNCTION_IMPL(SIPPhoneOnShowOutgoing, 2)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(SIPPhoneOnMediaFrame, 2)
-    T_HANDLE(0)
-    T_DELEGATE(1)
+    T_HANDLE(SIPPhoneOnMediaFrame, 0)
+    T_DELEGATE(SIPPhoneOnMediaFrame, 1)
 
     MyManager * opal = (MyManager *)PARAM_INT(0);
     Invoke(INVOKE_EXTERNAL_THREADING, PARAMETER(1));
@@ -395,8 +395,8 @@ CONCEPT_FUNCTION_IMPL(SIPPhoneOnMediaFrame, 2)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(SIPPhoneOnMediaFrameRequest, 2)
-    T_HANDLE(0)
-    T_DELEGATE(1)
+    T_HANDLE(SIPPhoneOnMediaFrameRequest, 0)
+    T_DELEGATE(SIPPhoneOnMediaFrameRequest, 1)
 
     MyManager * opal = (MyManager *)PARAM_INT(0);
     Invoke(INVOKE_EXTERNAL_THREADING, PARAMETER(1));
@@ -408,8 +408,8 @@ CONCEPT_FUNCTION_IMPL(SIPPhoneOnMediaFrameRequest, 2)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(SIPPhoneOnUserInputString, 2)
-    T_HANDLE(0)
-    T_DELEGATE(1)
+    T_HANDLE(SIPPhoneOnUserInputString, 0)
+    T_DELEGATE(SIPPhoneOnUserInputString, 1)
 
     MyManager * opal = (MyManager *)PARAM_INT(0);
     Invoke(INVOKE_EXTERNAL_THREADING, PARAMETER(1));
@@ -421,8 +421,8 @@ CONCEPT_FUNCTION_IMPL(SIPPhoneOnUserInputString, 2)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(SIPPhoneOnAlerting, 2)
-    T_HANDLE(0)
-    T_DELEGATE(1)
+    T_HANDLE(SIPPhoneOnAlerting, 0)
+    T_DELEGATE(SIPPhoneOnAlerting, 1)
 
     MyManager * opal = (MyManager *)PARAM_INT(0);
     Invoke(INVOKE_EXTERNAL_THREADING, PARAMETER(1));
@@ -434,8 +434,8 @@ CONCEPT_FUNCTION_IMPL(SIPPhoneOnAlerting, 2)
 END_IMPL
 //-----------------------------------------------------
 CONCEPT_FUNCTION_IMPL(SIPPhoneOnOpenMediaStreamDelegate, 2)
-    T_HANDLE(0)
-    T_DELEGATE(1)
+    T_HANDLE(SIPPhoneOnOpenMediaStreamDelegate, 0)
+    T_DELEGATE(SIPPhoneOnOpenMediaStreamDelegate, 1)
 
     MyManager * opal = (MyManager *)PARAM_INT(0);
     Invoke(INVOKE_EXTERNAL_THREADING, PARAMETER(1));
@@ -447,8 +447,8 @@ CONCEPT_FUNCTION_IMPL(SIPPhoneOnOpenMediaStreamDelegate, 2)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(SIPMediaStreamRead, 3)
-    T_HANDLE(0)
-    T_NUMBER(2)
+    T_HANDLE(SIPMediaStreamRead, 0)
+    T_NUMBER(SIPMediaStreamRead, 2)
     OpalMediaStream * stream = (OpalMediaStream *)PARAM_INT(0);
     int len    = PARAM_INT(2);
     int length = -1;
@@ -476,36 +476,36 @@ CONCEPT_FUNCTION_IMPL(SIPMediaStreamRead, 3)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(SIPMediaStreamIsOpen, 1)
-    T_HANDLE(0)
+    T_HANDLE(SIPMediaStreamIsOpen, 0)
     OpalMediaStream * stream = (OpalMediaStream *)PARAM_INT(0);
     int res = stream->IsOpen();
     RETURN_NUMBER(res);
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(SIPMediaStreamIsSource, 1)
-    T_HANDLE(0)
+    T_HANDLE(SIPMediaStreamIsSource, 0)
     OpalMediaStream * stream = (OpalMediaStream *)PARAM_INT(0);
     int res = stream->IsSource();
     RETURN_NUMBER(res);
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(SIPMediaStreamIsPaused, 1)
-    T_HANDLE(0)
+    T_HANDLE(SIPMediaStreamIsPaused, 0)
     OpalMediaStream * stream = (OpalMediaStream *)PARAM_INT(0);
     int res = stream->IsPaused();
     RETURN_NUMBER(res);
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(SIPMediaStreamIsSynchronous, 1)
-    T_HANDLE(0)
+    T_HANDLE(SIPMediaStreamIsSynchronous, 0)
     OpalMediaStream * stream = (OpalMediaStream *)PARAM_INT(0);
     int res = stream->IsSynchronous();
     RETURN_NUMBER(res);
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(SIPMediaStreamWrite, 2)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(SIPMediaStreamWrite, 0)
+    T_STRING(SIPMediaStreamWrite, 1)
     OpalMediaStream * stream = (OpalMediaStream *)PARAM_INT(0);
     int length = -1;
     if (stream->IsOpen()) {
@@ -516,8 +516,8 @@ CONCEPT_FUNCTION_IMPL(SIPMediaStreamWrite, 2)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(SIPMediaStreamWriteAll, 2)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(SIPMediaStreamWriteAll, 0)
+    T_STRING(SIPMediaStreamWriteAll, 1)
     OpalMediaStream * stream = (OpalMediaStream *)PARAM_INT(0);
     int length = -1;
     if (stream->IsOpen()) {
@@ -543,7 +543,7 @@ CONCEPT_FUNCTION_IMPL(SIPMediaStreamWriteAll, 2)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(SIPMediaStreamClose, 1)
-    T_NUMBER(0)
+    T_NUMBER(SIPMediaStreamClose, 0)
     OpalMediaStream * stream = (OpalMediaStream *)PARAM_INT(0);
     if (stream) {
         if (stream->IsOpen())
@@ -555,7 +555,7 @@ CONCEPT_FUNCTION_IMPL(SIPMediaStreamClose, 1)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(SIPMediaStreamNotUsed, 1)
-    T_NUMBER(0)
+    T_NUMBER(SIPMediaStreamNotUsed, 0)
     OpalMediaStream * stream = (OpalMediaStream *)PARAM_INT(0);
     if (stream)
         stream->SafeDereference();
@@ -563,31 +563,31 @@ CONCEPT_FUNCTION_IMPL(SIPMediaStreamNotUsed, 1)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(SIPMediaStreamIsSink, 1)
-    T_HANDLE(0)
+    T_HANDLE(SIPMediaStreamIsSink, 0)
     OpalMediaStream * stream = (OpalMediaStream *)PARAM_INT(0);
     int res = stream->IsSink();
     RETURN_NUMBER(res);
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(SIPMediaStreamGetDataSize, 1)
-    T_HANDLE(0)
+    T_HANDLE(SIPMediaStreamGetDataSize, 0)
     OpalMediaStream * stream = (OpalMediaStream *)PARAM_INT(0);
     int res = stream->GetDataSize();
     RETURN_NUMBER(res);
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(SIPMediaStreamSetDataSize, 3)
-    T_HANDLE(0)
-    T_NUMBER(1)
-    T_NUMBER(2)
+    T_HANDLE(SIPMediaStreamSetDataSize, 0)
+    T_NUMBER(SIPMediaStreamSetDataSize, 1)
+    T_NUMBER(SIPMediaStreamSetDataSize, 2)
     OpalMediaStream * stream = (OpalMediaStream *)PARAM_INT(0);
     int res = stream->SetDataSize(PARAM_INT(1), PARAM_INT(2));
     RETURN_NUMBER(res);
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(SIPMediaStreamPause, 2)
-    T_HANDLE(0)
-    T_NUMBER(1)
+    T_HANDLE(SIPMediaStreamPause, 0)
+    T_NUMBER(SIPMediaStreamPause, 1)
     OpalMediaStream * stream = (OpalMediaStream *)PARAM_INT(0);
 
     stream->SetPaused(PARAM_INT(1));
@@ -595,14 +595,14 @@ CONCEPT_FUNCTION_IMPL(SIPMediaStreamPause, 2)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(SIPMediaStreamStart, 1)
-    T_HANDLE(0)
+    T_HANDLE(SIPMediaStreamStart, 0)
     OpalMediaStream * stream = (OpalMediaStream *)PARAM_INT(0);
     int res = stream->Start();
     RETURN_NUMBER(res);
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(SIPMediaStreamFormat, 1)
-    T_HANDLE(0)
+    T_HANDLE(SIPMediaStreamFormat, 0)
     OpalMediaStream * stream = (OpalMediaStream *)PARAM_INT(0);
     OpalMediaFormat fmt = stream->GetMediaFormat();
     CREATE_ARRAY(RESULT);
@@ -627,7 +627,7 @@ CONCEPT_FUNCTION_IMPL(SIPMediaStreamFormat, 1)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(SIPPhoneGetCodecs, 1)
-    T_HANDLE(0)
+    T_HANDLE(SIPPhoneGetCodecs, 0)
 
     MyManager * opal = (MyManager *)PARAM_INT(0);
     CREATE_ARRAY(RESULT);
@@ -644,8 +644,8 @@ CONCEPT_FUNCTION_IMPL(SIPPhoneGetCodecs, 1)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(SIPPhoneSetCodecsOrder, 2)
-    T_HANDLE(0)
-    T_ARRAY(1)
+    T_HANDLE(SIPPhoneSetCodecsOrder, 0)
+    T_ARRAY(SIPPhoneSetCodecsOrder, 1)
 
     MyManager * opal = (MyManager *)PARAM_INT(0);
     PStringArray order;
@@ -664,3 +664,4 @@ CONCEPT_FUNCTION_IMPL(SIPPhoneSetCodecsOrder, 2)
     opal->SetMediaFormatOrder(order);
     RETURN_NUMBER(0);
 END_IMPL
+

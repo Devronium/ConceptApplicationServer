@@ -420,7 +420,7 @@ CONCEPT_FUNCTION_IMPL(shutdown_mib, 0)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(add_mibdir, 1)
-    T_STRING(0) // pq
+    T_STRING(add_mibdir, 0) // pq
     int res = add_mibdir(PARAM(0));
     RETURN_NUMBER(res);
 END_IMPL
@@ -519,14 +519,14 @@ void do_tree(void *PARENT, INVOKE_CALL Invoke, struct tree *tree_head) {
 
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(read_mib, 1)
-    T_STRING(0) // pq
+    T_STRING(read_mib, 0) // pq
     struct tree *res = read_mib(PARAM(0));
     CREATE_ARRAY(RESULT);
     do_tree(RESULT, Invoke, res);
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(snmp_error, 1, 3)
-    T_HANDLE(0)
+    T_HANDLE(snmp_error, 0)
 
     netsnmp_session * ss = (netsnmp_session *)PARAM_INT(0);
     int  p_clib_errorno = 0;
@@ -549,7 +549,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(snmp_error, 1, 3)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(snmp_sess_error, 1, 3)
-    T_HANDLE(0)
+    T_HANDLE(snmp_sess_error, 0)
 
     netsnmp_session * ss = (netsnmp_session *)PARAM_INT(0);
     int        p_clib_errorno = 0;
@@ -586,7 +586,7 @@ static void optProc(int argc, char *const *argv, int opt) {
 }
 
 CONCEPT_FUNCTION_IMPL(snmp_open, 1)
-    T_ARRAY(0)
+    T_ARRAY(snmp_open, 0)
     static netsnmp_session session; //=(netsnmp_session *)malloc(sizeof(netsnmp_session));
     netsnmp_session *ss = 0;
 
@@ -605,7 +605,7 @@ CONCEPT_FUNCTION_IMPL(snmp_open, 1)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(snmp_close, 1)
-    T_HANDLE(0)
+    T_HANDLE(snmp_close, 0)
     netsnmp_session * ss = (netsnmp_session *)PARAM_INT(0);
 
     RETURN_NUMBER(0);
@@ -616,35 +616,35 @@ CONCEPT_FUNCTION_IMPL(snmp_close, 1)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(netsnmp_ds_set_string, 3)
-    T_NUMBER(0)
-    T_NUMBER(1)
-    T_STRING(2)
+    T_NUMBER(netsnmp_ds_set_string, 0)
+    T_NUMBER(netsnmp_ds_set_string, 1)
+    T_STRING(netsnmp_ds_set_string, 2)
 
     int res = netsnmp_ds_set_string(PARAM_INT(0), PARAM_INT(1), PARAM(2));
     RETURN_NUMBER(res);
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(netsnmp_ds_set_int, 3)
-    T_NUMBER(0)
-    T_NUMBER(1)
-    T_NUMBER(2)
+    T_NUMBER(netsnmp_ds_set_int, 0)
+    T_NUMBER(netsnmp_ds_set_int, 1)
+    T_NUMBER(netsnmp_ds_set_int, 2)
 
     int res = netsnmp_ds_set_int(PARAM_INT(0), PARAM_INT(1), PARAM_INT(2));
     RETURN_NUMBER(res);
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(netsnmp_ds_set_boolean, 3)
-    T_NUMBER(0)
-    T_NUMBER(1)
-    T_NUMBER(2)
+    T_NUMBER(netsnmp_ds_set_boolean, 0)
+    T_NUMBER(netsnmp_ds_set_boolean, 1)
+    T_NUMBER(netsnmp_ds_set_boolean, 2)
 
     int res = netsnmp_ds_set_boolean(PARAM_INT(0), PARAM_INT(1), PARAM_INT(2));
     RETURN_NUMBER(res);
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(netsnmp_ds_get_string, 2)
-    T_NUMBER(0)
-    T_NUMBER(1)
+    T_NUMBER(netsnmp_ds_get_string, 0)
+    T_NUMBER(netsnmp_ds_get_string, 1)
 
     char *str = netsnmp_ds_get_string(PARAM_INT(0), PARAM_INT(1));
     if (str) {
@@ -655,38 +655,38 @@ CONCEPT_FUNCTION_IMPL(netsnmp_ds_get_string, 2)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(netsnmp_ds_get_int, 3)
-    T_NUMBER(0)
-    T_NUMBER(1)
+    T_NUMBER(netsnmp_ds_get_int, 0)
+    T_NUMBER(netsnmp_ds_get_int, 1)
 
     int res = netsnmp_ds_get_int(PARAM_INT(0), PARAM_INT(1));
     RETURN_NUMBER(res);
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(netsnmp_ds_get_boolean, 2)
-    T_NUMBER(0)
-    T_NUMBER(1)
+    T_NUMBER(netsnmp_ds_get_boolean, 0)
+    T_NUMBER(netsnmp_ds_get_boolean, 1)
 
     int res = netsnmp_ds_get_boolean(PARAM_INT(0), PARAM_INT(1));
     RETURN_NUMBER(res);
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(netsnmp_ds_toggle_boolean, 2)
-    T_NUMBER(0)
-    T_NUMBER(1)
+    T_NUMBER(netsnmp_ds_toggle_boolean, 0)
+    T_NUMBER(netsnmp_ds_toggle_boolean, 1)
 
     int res = netsnmp_ds_toggle_boolean(PARAM_INT(0), PARAM_INT(1));
     RETURN_NUMBER(res);
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(snmp_pdu_create, 1)
-    T_NUMBER(0)
+    T_NUMBER(snmp_pdu_create, 0)
 
     snmp_pdu * res = snmp_pdu_create(PARAM_INT(0));
     RETURN_NUMBER((SYS_INT)res);
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(snmp_free_pdu, 1)
-    T_HANDLE(0)
+    T_HANDLE(snmp_free_pdu, 0)
     snmp_pdu * ss = (snmp_pdu *)PARAM_INT(0);
 
     RETURN_NUMBER(0);
@@ -697,8 +697,8 @@ CONCEPT_FUNCTION_IMPL(snmp_free_pdu, 1)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(snmp_fix_pdu, 2)
-    T_HANDLE(0)
-    T_NUMBER(1)
+    T_HANDLE(snmp_fix_pdu, 0)
+    T_NUMBER(snmp_fix_pdu, 1)
     snmp_pdu * ss = (snmp_pdu *)PARAM_INT(0);
     snmp_pdu *res = 0;
 
@@ -709,7 +709,7 @@ CONCEPT_FUNCTION_IMPL(snmp_fix_pdu, 2)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(snmp_clone_pdu, 1)
-    T_HANDLE(0)
+    T_HANDLE(snmp_clone_pdu, 0)
     snmp_pdu * ss = (snmp_pdu *)PARAM_INT(0);
     snmp_pdu *res = 0;
 
@@ -720,8 +720,8 @@ CONCEPT_FUNCTION_IMPL(snmp_clone_pdu, 1)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(snmp_synch_response, 3)
-    T_HANDLE(0)
-    T_HANDLE(1)
+    T_HANDLE(snmp_synch_response, 0)
+    T_HANDLE(snmp_synch_response, 1)
     SET_NUMBER(2, 0)
 
     netsnmp_session * ss = (netsnmp_session *)PARAM_INT(0);
@@ -839,8 +839,8 @@ CONCEPT_FUNCTION_IMPL(snmp_synch_response, 3)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(snmp_add_null_var, 2)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(snmp_add_null_var, 0)
+    T_STRING(snmp_add_null_var, 1)
 
     oid name[MAX_OID_LEN];
     size_t   name_length       = MAX_OID_LEN;
@@ -856,10 +856,10 @@ CONCEPT_FUNCTION_IMPL(snmp_add_null_var, 2)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(snmp_add_var, 4)
-    T_HANDLE(0)
-    T_STRING(1)
-    T_NUMBER(2)
-    T_STRING(3)
+    T_HANDLE(snmp_add_var, 0)
+    T_STRING(snmp_add_var, 1)
+    T_NUMBER(snmp_add_var, 2)
+    T_STRING(snmp_add_var, 3)
 
     oid name[MAX_OID_LEN];
     size_t   name_length;
@@ -875,3 +875,4 @@ CONCEPT_FUNCTION_IMPL(snmp_add_var, 4)
     RETURN_NUMBER((SYS_INT)res);
 END_IMPL
 //-----------------------------------------------------//
+

@@ -27,13 +27,13 @@ CONCEPT_DLL_API ON_DESTROY_CONTEXT MANAGEMENT_PARAMETERS {
 }
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(ROSConnect, 3, 4)
-    T_STRING(0) // username
-    T_STRING(1) // password
-    T_STRING(2) // host
+    T_STRING(ROSConnect, 0) // username
+    T_STRING(ROSConnect, 1) // password
+    T_STRING(ROSConnect, 2) // host
 
     int port = 8728;
     if (PARAMETERS_COUNT > 3) {
-        T_NUMBER(3);
+        T_NUMBER(ROSConnect, 3);
         port = PARAM_INT(3);
     }
 
@@ -51,7 +51,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(ROSConnect, 3, 4)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(ROSDisconnect, 1)
-    T_NUMBER(0)
+    T_NUMBER(ROSDisconnect, 0)
 
     int sock = PARAM_INT(0);
     if (sock > 0) {
@@ -62,8 +62,8 @@ CONCEPT_FUNCTION_IMPL(ROSDisconnect, 1)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(ROSQuery, 2)
-    T_NUMBER(0)
-    T_ARRAY(1)
+    T_NUMBER(ROSQuery, 0)
+    T_ARRAY(ROSQuery, 1)
 
     struct Sentence stSentence;
     struct Block    stBlock;
@@ -94,7 +94,7 @@ CONCEPT_FUNCTION_IMPL(ROSQuery, 2)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(ROSResult, 1)
-    T_NUMBER(0)
+    T_NUMBER(ROSResult, 0)
 
     CREATE_ARRAY(RESULT);
     struct Block stBlock;
@@ -136,3 +136,4 @@ CONCEPT_FUNCTION_IMPL(ROSResult, 1)
     }
 END_IMPL
 //-----------------------------------------------------//
+

@@ -90,22 +90,22 @@ CONCEPT_DLL_API ON_DESTROY_CONTEXT MANAGEMENT_PARAMETERS {
    END_IMPL*/
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(DBFOpen, 1, 4)
-    T_STRING(0)
+    T_STRING(DBFOpen, 0)
 
     BOOL editable = FALSE;
     dbf_charconv charconv    = ENUM_dbf_charconv_oem_host;
     char         *table_name = PARAM(0);
     if (PARAMETERS_COUNT > 1) {
-        T_NUMBER(1)
+        T_NUMBER(DBFOpen, 1)
         editable = (BOOL)PARAM_INT(1);
 
         if (PARAMETERS_COUNT > 2) {
-            T_NUMBER(2)
+            T_NUMBER(DBFOpen, 2)
             charconv = (dbf_charconv)PARAM_INT(2);
         }
 
         if (PARAMETERS_COUNT > 3) {
-            T_STRING(3)
+            T_STRING(DBFOpen, 3)
             table_name = (char *)PARAM(3);
         }
     }
@@ -115,7 +115,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(DBFOpen, 1, 4)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(DBFClose, 1)
-    T_HANDLE(0)
+    T_HANDLE(DBFClose, 0)
     DBF_HANDLE handle = (DBF_HANDLE)PARAM_INT(0);
     dbf_close(&handle);
     SET_NUMBER(0, 0);
@@ -123,8 +123,8 @@ CONCEPT_FUNCTION_IMPL(DBFClose, 1)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(DBFMove, 2)
-    T_HANDLE(0)
-    T_NUMBER(1)
+    T_HANDLE(DBFMove, 0)
+    T_NUMBER(DBFMove, 1)
 
     DBF_HANDLE handle = (DBF_HANDLE)PARAM_INT(0);
     BOOL res = dbf_setposition(handle, PARAM_INT(1));
@@ -133,8 +133,8 @@ CONCEPT_FUNCTION_IMPL(DBFMove, 2)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(DBFPutRecord, 2)
-    T_HANDLE(0)
-    T_NUMBER(1)
+    T_HANDLE(DBFPutRecord, 0)
+    T_NUMBER(DBFPutRecord, 1)
 
     DBF_HANDLE handle = (DBF_HANDLE)PARAM_INT(0);
     BOOL res = dbf_putrecord(handle, PARAM_INT(1));
@@ -143,8 +143,8 @@ CONCEPT_FUNCTION_IMPL(DBFPutRecord, 2)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(DBFInsertRecord, 2)
-    T_HANDLE(0)
-    T_NUMBER(1)
+    T_HANDLE(DBFInsertRecord, 0)
+    T_NUMBER(DBFInsertRecord, 1)
 
     DBF_HANDLE handle = (DBF_HANDLE)PARAM_INT(0);
     BOOL res = dbf_putrecord(handle, PARAM_INT(1));
@@ -153,7 +153,7 @@ CONCEPT_FUNCTION_IMPL(DBFInsertRecord, 2)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(DBFAddRecord, 1)
-    T_HANDLE(0)
+    T_HANDLE(DBFAddRecord, 0)
     DBF_HANDLE handle = (DBF_HANDLE)PARAM_INT(0);
 
     BOOL res = dbf_addrecord(handle);
@@ -161,7 +161,7 @@ CONCEPT_FUNCTION_IMPL(DBFAddRecord, 1)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(DBFIsDeleted, 1)
-    T_HANDLE(0)
+    T_HANDLE(DBFIsDeleted, 0)
     DBF_HANDLE handle = (DBF_HANDLE)PARAM_INT(0);
 
     BOOL res = dbf_isrecorddeleted(handle);
@@ -169,8 +169,8 @@ CONCEPT_FUNCTION_IMPL(DBFIsDeleted, 1)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(DBFDelete, 2)
-    T_HANDLE(0)
-    T_NUMBER(1)
+    T_HANDLE(DBFDelete, 0)
+    T_NUMBER(DBFDelete, 1)
     DBF_HANDLE handle = (DBF_HANDLE)PARAM_INT(0);
 
     BOOL res = dbf_deleterecord(handle, PARAM_INT(1));
@@ -178,8 +178,8 @@ CONCEPT_FUNCTION_IMPL(DBFDelete, 2)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(DBFFindField, 2)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(DBFFindField, 0)
+    T_STRING(DBFFindField, 1)
     DBF_HANDLE handle = (DBF_HANDLE)PARAM_INT(0);
 
     int res = dbf_findfield(handle, PARAM(1));
@@ -187,7 +187,7 @@ CONCEPT_FUNCTION_IMPL(DBFFindField, 2)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(DBFLastError, 1)
-    T_HANDLE(0)
+    T_HANDLE(DBFLastError, 0)
     DBF_HANDLE handle = (DBF_HANDLE)PARAM_INT(0);
 
     int res = dbf_getlasterror(handle);
@@ -195,7 +195,7 @@ CONCEPT_FUNCTION_IMPL(DBFLastError, 1)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(DBFLastErrorString, 1)
-    T_HANDLE(0)
+    T_HANDLE(DBFLastErrorString, 0)
     DBF_HANDLE handle = (DBF_HANDLE)PARAM_INT(0);
 
     const char *s = dbf_getlasterror_str(handle);
@@ -203,14 +203,14 @@ CONCEPT_FUNCTION_IMPL(DBFLastErrorString, 1)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(DBFType, 1)
-    T_NUMBER(0)
+    T_NUMBER(DBFType, 0)
 
     const char *s = dbf_gettypetext((enum dbf_data_type)PARAM_INT(0));
     RETURN_STRING(s);
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(DBFInfo, 1)
-    T_HANDLE(0)
+    T_HANDLE(DBFInfo, 0)
 
     DBF_HANDLE handle = (DBF_HANDLE)PARAM_INT(0);
 
@@ -232,8 +232,8 @@ CONCEPT_FUNCTION_IMPL(DBFInfo, 1)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(DBFFieldInfo, 2)
-    T_HANDLE(0)
-    T_NUMBER(1)
+    T_HANDLE(DBFFieldInfo, 0)
+    T_NUMBER(DBFFieldInfo, 1)
 
     DBF_HANDLE handle = (DBF_HANDLE)PARAM_INT(0);
 
@@ -249,8 +249,8 @@ CONCEPT_FUNCTION_IMPL(DBFFieldInfo, 2)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(DBFValue, 2)
-    T_HANDLE(0)
-    T_NUMBER(1)
+    T_HANDLE(DBFValue, 0)
+    T_NUMBER(DBFValue, 1)
 
     DBF_HANDLE handle = (DBF_HANDLE)PARAM_INT(0);
     char temp[0xFFFF];
@@ -264,8 +264,8 @@ CONCEPT_FUNCTION_IMPL(DBFValue, 2)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(DBFGet, 2)
-    T_HANDLE(0)
-    T_NUMBER(1)
+    T_HANDLE(DBFGet, 0)
+    T_NUMBER(DBFGet, 1)
 
     DBF_HANDLE handle = (DBF_HANDLE)PARAM_INT(0);
     char temp[0xFFFF];
@@ -279,8 +279,8 @@ CONCEPT_FUNCTION_IMPL(DBFGet, 2)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(DBFGetName, 2)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(DBFGetName, 0)
+    T_STRING(DBFGetName, 1)
 
     DBF_HANDLE handle = (DBF_HANDLE)PARAM_INT(0);
     char temp[0xFFFF];
@@ -294,9 +294,9 @@ CONCEPT_FUNCTION_IMPL(DBFGetName, 2)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(DBFUpdate, 3)
-    T_HANDLE(0)
-    T_NUMBER(1)
-    T_STRING(2)
+    T_HANDLE(DBFUpdate, 0)
+    T_NUMBER(DBFUpdate, 1)
+    T_STRING(DBFUpdate, 2)
 
     DBF_HANDLE handle = (DBF_HANDLE)PARAM_INT(0);
     BOOL res = dbf_putfield(handle, dbf_getfieldptr(handle, PARAM_INT(1)), PARAM(2));
@@ -305,9 +305,9 @@ CONCEPT_FUNCTION_IMPL(DBFUpdate, 3)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(DBFUpdateName, 3)
-    T_HANDLE(0)
-    T_STRING(1)
-    T_STRING(2)
+    T_HANDLE(DBFUpdateName, 0)
+    T_STRING(DBFUpdateName, 1)
+    T_STRING(DBFUpdateName, 2)
 
     DBF_HANDLE handle = (DBF_HANDLE)PARAM_INT(0);
 
@@ -317,8 +317,8 @@ CONCEPT_FUNCTION_IMPL(DBFUpdateName, 3)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(DBFNull, 2)
-    T_HANDLE(0)
-    T_NUMBER(1)
+    T_HANDLE(DBFNull, 0)
+    T_NUMBER(DBFNull, 1)
 
     DBF_HANDLE handle = (DBF_HANDLE)PARAM_INT(0);
 
@@ -328,8 +328,8 @@ CONCEPT_FUNCTION_IMPL(DBFNull, 2)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(DBFNullName, 2)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(DBFNullName, 0)
+    T_STRING(DBFNullName, 1)
 
     DBF_HANDLE handle = (DBF_HANDLE)PARAM_INT(0);
 
@@ -338,3 +338,4 @@ CONCEPT_FUNCTION_IMPL(DBFNullName, 2)
     RETURN_NUMBER((BOOL)res);
 END_IMPL
 //-----------------------------------------------------//
+

@@ -24,15 +24,15 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(DTMFGeneratorInit, 0, 3)
     int duration_push  = 70;
     int duration_pause = 50;
     if (PARAMETERS_COUNT > 0) {
-        T_NUMBER(0)
+        T_NUMBER(DTMFGeneratorInit, 0)
         frame_size = PARAM_INT(0);
     }
     if (PARAMETERS_COUNT > 1) {
-        T_NUMBER(1)
+        T_NUMBER(DTMFGeneratorInit, 1)
         duration_push = PARAM_INT(1);
     }
     if (PARAMETERS_COUNT > 2) {
-        T_NUMBER(2)
+        T_NUMBER(DTMFGeneratorInit, 2)
         duration_pause = PARAM_INT(2);
     }
     gen = new DtmfGenerator(frame_size, duration_push, duration_pause);
@@ -40,7 +40,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(DTMFGeneratorInit, 0, 3)
 END_IMPL
 //=====================================================================================//
 CONCEPT_FUNCTION_IMPL(DTMFGeneratorDone, 1)
-    T_NUMBER(0)
+    T_NUMBER(DTMFGeneratorDone, 0)
     DtmfGenerator * gen = (DtmfGenerator *)(SYS_INT)PARAM(0);
     if (gen)
         delete gen;
@@ -48,7 +48,7 @@ CONCEPT_FUNCTION_IMPL(DTMFGeneratorDone, 1)
 END_IMPL
 //=====================================================================================//
 CONCEPT_FUNCTION_IMPL(DTMFGeneratorGenerate, 1)
-    T_HANDLE(0)
+    T_HANDLE(DTMFGeneratorGenerate, 0)
 
     DtmfGenerator * gen = (DtmfGenerator *)(SYS_INT)PARAM(0);
     INT16 *buf = (INT16 *)malloc(gen->sizeOfFrame * sizeof(INT16));
@@ -60,15 +60,15 @@ CONCEPT_FUNCTION_IMPL(DTMFGeneratorGenerate, 1)
 END_IMPL
 //=====================================================================================//
 CONCEPT_FUNCTION_IMPL(DTMFGeneratorTransmit, 2)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(DTMFGeneratorTransmit, 0)
+    T_STRING(DTMFGeneratorTransmit, 1)
     DtmfGenerator * gen = (DtmfGenerator *)(SYS_INT)PARAM(0);
     gen->transmitNewDialButtonsArray(PARAM(1), PARAM_LEN(1));
     RETURN_NUMBER(1)
 END_IMPL
 //=====================================================================================//
 CONCEPT_FUNCTION_IMPL(DTMFGeneratorReady, 1)
-    T_HANDLE(0)
+    T_HANDLE(DTMFGeneratorReady, 0)
 
     DtmfGenerator * gen = (DtmfGenerator *)(SYS_INT)PARAM(0);
     int res = gen->getReadyFlag();
@@ -76,7 +76,7 @@ CONCEPT_FUNCTION_IMPL(DTMFGeneratorReady, 1)
 END_IMPL
 //=====================================================================================//
 CONCEPT_FUNCTION_IMPL(DTMFGeneratorReset, 1)
-    T_HANDLE(0)
+    T_HANDLE(DTMFGeneratorReset, 0)
 
     DtmfGenerator * gen = (DtmfGenerator *)(SYS_INT)PARAM(0);
     gen->dtmfGeneratorReset();
@@ -86,7 +86,7 @@ END_IMPL
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(DTMFDetectorInit, 0, 1)
     int frame_size = 160;
     if (PARAMETERS_COUNT > 0) {
-        T_NUMBER(0)
+        T_NUMBER(DTMFDetectorInit, 0)
         frame_size = PARAM_INT(0);
     }
     DtmfDetector *det = new DtmfDetector(frame_size);
@@ -94,7 +94,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(DTMFDetectorInit, 0, 1)
 END_IMPL
 //=====================================================================================//
 CONCEPT_FUNCTION_IMPL(DTMFDetectorDone, 1)
-    T_NUMBER(0)
+    T_NUMBER(DTMFDetectorDone, 0)
     DtmfDetector * det = (DtmfDetector *)(SYS_INT)PARAM(0);
     if (det)
         delete det;
@@ -102,7 +102,7 @@ CONCEPT_FUNCTION_IMPL(DTMFDetectorDone, 1)
 END_IMPL
 //=====================================================================================//
 CONCEPT_FUNCTION_IMPL(DTMFDetectorReset, 1)
-    T_HANDLE(0)
+    T_HANDLE(DTMFDetectorReset, 0)
 
     DtmfDetector * det = (DtmfDetector *)(SYS_INT)PARAM(0);
     det->zerosIndexDialButton();
@@ -110,8 +110,8 @@ CONCEPT_FUNCTION_IMPL(DTMFDetectorReset, 1)
 END_IMPL
 //=====================================================================================//
 CONCEPT_FUNCTION_IMPL(DTMFDetectorDetect, 2)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(DTMFDetectorDetect, 0)
+    T_STRING(DTMFDetectorDetect, 1)
 
     DtmfDetector * det = (DtmfDetector *)(SYS_INT)PARAM(0);
     if ((PARAM_LEN(1)) / 2 >= det->frameSize) {
@@ -123,7 +123,7 @@ CONCEPT_FUNCTION_IMPL(DTMFDetectorDetect, 2)
 END_IMPL
 //=====================================================================================//
 CONCEPT_FUNCTION_IMPL(DTMFDetectorButtons, 1)
-    T_HANDLE(0)
+    T_HANDLE(DTMFDetectorButtons, 0)
 
     DtmfDetector * det = (DtmfDetector *)(SYS_INT)PARAM(0);
     char *s  = det->getDialButtonsArray();
@@ -136,11 +136,12 @@ CONCEPT_FUNCTION_IMPL(DTMFDetectorButtons, 1)
 END_IMPL
 //=====================================================================================//
 CONCEPT_FUNCTION_IMPL(DTMFDetectorThreshold, 2)
-    T_HANDLE(0)
-    T_NUMBER(1)
+    T_HANDLE(DTMFDetectorThreshold, 0)
+    T_NUMBER(DTMFDetectorThreshold, 1)
 
     DtmfDetector * det  = (DtmfDetector *)(SYS_INT)PARAM(0);
     det->powerThreshold = PARAM_INT(1);
     RETURN_NUMBER(0);
 END_IMPL
 //=====================================================================================//
+

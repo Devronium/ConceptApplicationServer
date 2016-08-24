@@ -708,10 +708,10 @@ AnsiString math_number_format(double d, int dec, char dec_point, char thousand_s
 
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_number_format, 4)
-    T_NUMBER(0)
-    T_NUMBER(1)
-    T_STRING(2)
-    T_STRING(3)
+    T_NUMBER(_number_format, 0)
+    T_NUMBER(_number_format, 1)
+    T_STRING(_number_format, 2)
+    T_STRING(_number_format, 3)
 
     char dec_point = 0;
     char thousand_sep = 0;
@@ -824,11 +824,11 @@ float *GetFloatList2(void *arr, INVOKE_CALL _Invoke) {
 }
 
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(FFT, 1, 2)
-    T_ARRAY(0)
+    T_ARRAY(FFT, 0)
 
     int sign = -1;
     if (PARAMETERS_COUNT > 1) {
-        T_NUMBER(1);
+        T_NUMBER(FFT, 1);
         if (PARAM_INT(1))
             sign = 1;
     }
@@ -845,10 +845,10 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(FFT, 1, 2)
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(Mix, 1, 2)
-    T_ARRAY(0)
+    T_ARRAY(Mix, 0)
     int is_char = 0;
     if (PARAMETERS_COUNT > 1) {
-        T_NUMBER(1)
+        T_NUMBER(Mix, 1)
         is_char = PARAM_INT(1);
     }
     int count = Invoke(INVOKE_GET_ARRAY_COUNT, PARAMETER(0));
@@ -933,10 +933,10 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(Mix, 1, 2)
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(PCMAvg, 1, 2)
-    T_STRING(0)
+    T_STRING(PCMAvg, 0)
     int is_char = 0;
     if (PARAMETERS_COUNT > 1) {
-        T_NUMBER(1)
+        T_NUMBER(PCMAvg, 1)
         is_char = PARAM_INT(1);
     }
     double res = 0;
@@ -968,12 +968,12 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(PCMAvg, 1, 2)
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(PCMAmplify, 2, 3)
-    T_STRING(0)
-    T_NUMBER(1)
+    T_STRING(PCMAmplify, 0)
+    T_NUMBER(PCMAmplify, 1)
 
     int is_char = 0;
     if (PARAMETERS_COUNT > 2) {
-        T_NUMBER(2)
+        T_NUMBER(PCMAmplify, 2)
         is_char = PARAM_INT(2);
     }
 
@@ -1007,3 +1007,4 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(PCMAmplify, 2, 3)
     RETURN_NUMBER(len)
 END_IMPL
 //---------------------------------------------------------------------------
+

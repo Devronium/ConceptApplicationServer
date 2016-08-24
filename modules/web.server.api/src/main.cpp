@@ -110,8 +110,8 @@ int CONCEPT_AWARE_header2N(const char *key, const char *value) {
 
 //-----------------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(SetHeader, 2)
-    T_STRING(0)
-    T_STRING(1)
+    T_STRING(SetHeader, 0)
+    T_STRING(SetHeader, 1)
 
     if (ec) {
         RETURN_NUMBER(ec->header(PARAM(0), PARAM(1), ec))
@@ -188,14 +188,14 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(SessionStart, 0, 2)
     char *ses = NULL;
 
     if (PARAMETERS_COUNT >= 1) {
-        T_STRING(0);
+        T_STRING(SessionStart, 0);
 
         path = PARAM(0);
         if (path[0] == 0)
             path = NULL;
 
         if (PARAMETERS_COUNT == 2) {
-            T_STRING(1)
+            T_STRING(SessionStart, 1)
             ses = PARAM(1);
             if (ses[0] == 0)
                 ses = NULL;
@@ -525,8 +525,8 @@ CONCEPT_FUNCTION_IMPL(_VARS, 0)
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_PutString, 2)
-    T_NUMBER(0)
-    T_STRING(1)
+    T_NUMBER(_PutString, 0)
+    T_STRING(_PutString, 1)
 
     qPuts(PARAM_INT(0), PARAM(1));
 
@@ -538,3 +538,4 @@ CONCEPT_DLL_API ON_DESTROY_CONTEXT MANAGEMENT_PARAMETERS {
     return 0;
 }
 //---------------------------------------------------------------------------
+

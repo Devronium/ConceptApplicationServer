@@ -496,14 +496,14 @@ CONCEPT_DLL_API ON_DESTROY_CONTEXT MANAGEMENT_PARAMETERS {
 }
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(JSNewRuntime, 1)
-    T_NUMBER(0)     // uint32
+    T_NUMBER(JSNewRuntime, 0)     // uint32
     _SetVariable = SetVariable;
 
     RETURN_NUMBER((long)JS_NewRuntime((uint32)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(JSDestroyRuntime, 1)
-    T_NUMBER(0)     // JSRuntime*
+    T_NUMBER(JSDestroyRuntime, 0)     // JSRuntime*
 
     JS_DestroyRuntime((JSRuntime *)(long)PARAM(0));
     RETURN_NUMBER(0)
@@ -516,45 +516,45 @@ CONCEPT_FUNCTION_IMPL(JSShutDown, 0)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(JSLock, 1)
-    T_NUMBER(0)     // JSRuntime*
+    T_NUMBER(JSLock, 0)     // JSRuntime*
 
     JS_Lock((JSRuntime *)(long)PARAM(0));
     RETURN_NUMBER(0)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(JSUnlock, 1)
-    T_NUMBER(0)     // JSRuntime*
+    T_NUMBER(JSUnlock, 0)     // JSRuntime*
 
     JS_Unlock((JSRuntime *)(long)PARAM(0));
     RETURN_NUMBER(0)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(JSNewContext, 2)
-    T_NUMBER(0)     // JSRuntime*
-    T_NUMBER(1)     // size_t
+    T_NUMBER(JSNewContext, 0)     // JSRuntime*
+    T_NUMBER(JSNewContext, 1)     // size_t
     _SetVariable = SetVariable;
 
     RETURN_NUMBER((long)JS_NewContext((JSRuntime *)(long)PARAM(0), (size_t)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(JSDestroyContext, 1)
-    T_NUMBER(0)     // JSContext*
+    T_NUMBER(JSDestroyContext, 0)     // JSContext*
 
     JS_DestroyContext((JSContext *)(long)PARAM(0));
     RETURN_NUMBER(0)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(JSInitStandardClasses, 2)
-    T_NUMBER(0)     // JSContext*
-    T_NUMBER(1)
+    T_NUMBER(JSInitStandardClasses, 0)     // JSContext*
+    T_NUMBER(JSInitStandardClasses, 1)
     _SetVariable = SetVariable;
 
     RETURN_NUMBER(JS_InitStandardClasses((JSContext *)(long)PARAM(0), (JSObject *)(long)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(JSSetErrorReporter, 2)
-    T_NUMBER(0)     // JSContext*
-    T_DELEGATE(1)
+    T_NUMBER(JSSetErrorReporter, 0)     // JSContext*
+    T_DELEGATE(JSSetErrorReporter, 1)
 
     if (ERR_DELEGATE)
         FREE_VARIABLE(ERR_DELEGATE);
@@ -569,21 +569,21 @@ CONCEPT_FUNCTION_IMPL(JSSetErrorReporter, 2)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(JSNewObject, 4)
-    T_NUMBER(0) // JSContext*
-    T_NUMBER(1) // JSClass*
-    T_NUMBER(2) // JSObject*
-    T_NUMBER(3) // JSObject*
+    T_NUMBER(JSNewObject, 0) // JSContext*
+    T_NUMBER(JSNewObject, 1) // JSClass*
+    T_NUMBER(JSNewObject, 2) // JSObject*
+    T_NUMBER(JSNewObject, 3) // JSObject*
 
 
     RETURN_NUMBER((SYS_INT)JS_NewObject((JSContext *)PARAM_INT(0), (JSClass *)PARAM_INT(1), (JSObject *)PARAM_INT(2), (JSObject *)PARAM_INT(3)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(JSEvaluateScript, 6)
-    T_NUMBER(0)     // JSContext*
-    T_NUMBER(1)
-    T_STRING(2)     // char*
-    T_STRING(3)     // char*
-    T_NUMBER(4)     // uintN
+    T_NUMBER(JSEvaluateScript, 0)     // JSContext*
+    T_NUMBER(JSEvaluateScript, 1)
+    T_STRING(JSEvaluateScript, 2)     // char*
+    T_STRING(JSEvaluateScript, 3)     // char*
+    T_NUMBER(JSEvaluateScript, 4)     // uintN
 
 // ... parameter 6 is by reference (jsval*)
     jsval rval;
@@ -615,16 +615,16 @@ CONCEPT_FUNCTION_IMPL(JSEvaluateScript, 6)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(JSThrow, 3)
-    T_NUMBER(0)     // JSContext*
-    T_NUMBER(1)
-    T_STRING(2)
+    T_NUMBER(JSThrow, 0)     // JSContext*
+    T_NUMBER(JSThrow, 1)
+    T_STRING(JSThrow, 2)
     _SetVariable = SetVariable;
 
     RETURN_NUMBER(ejs_throw_error((JSContext *)(long)PARAM(0), (JSObject *)(long)PARAM(1), PARAM(2)));
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(JSEval, 1)
-    T_STRING(0)
+    T_STRING(JSEval, 0)
 
     JSRuntime * runtime = NULL;
     JSContext *context = NULL;
@@ -672,10 +672,10 @@ CONCEPT_FUNCTION_IMPL(JSEval, 1)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(JSWrap, 4)
-    T_NUMBER(0) // JSContext*
-    T_NUMBER(1) // JSObject*
-    T_DELEGATE(2)
-    T_STRING(3) // function name
+    T_NUMBER(JSWrap, 0) // JSContext*
+    T_NUMBER(JSWrap, 1) // JSObject*
+    T_DELEGATE(JSWrap, 2)
+    T_STRING(JSWrap, 3) // function name
     _SetVariable = SetVariable;
 
     AddFunction(PARAM(3), PARAMETER(2), (JSContext *)PARAM_INT(0), (JSObject *)PARAM_INT(1));
@@ -684,3 +684,4 @@ CONCEPT_FUNCTION_IMPL(JSWrap, 4)
     RETURN_NUMBER((JS_DefineFunction((JSContext *)PARAM_INT(0), (JSObject *)PARAM_INT(1), PARAM(3), function_handler, param_count, 0) != 0));
 END_IMPL
 //------------------------------------------------------------------------
+

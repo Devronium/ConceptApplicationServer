@@ -846,7 +846,7 @@ CONCEPT_DLL_API ON_DESTROY_CONTEXT MANAGEMENT_PARAMETERS {
 }
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(MagickRelinquishMemory, 1)
-    T_NUMBER(0)
+    T_NUMBER(MagickRelinquishMemory, 0)
 
     if (PARAM_INT(0)) {
         RETURN_NUMBER((SYS_INT)MagickRelinquishMemory((void *)PARAM_INT(0)))
@@ -857,7 +857,7 @@ CONCEPT_FUNCTION_IMPL(MagickRelinquishMemory, 1)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(MagickGetException, 1, 2)
-    T_HANDLE(0)
+    T_HANDLE(MagickGetException, 0)
 
     if (PARAMETERS_COUNT > 1) {
         SET_NUMBER(1, 0);
@@ -881,29 +881,29 @@ CONCEPT_FUNCTION_IMPL(NewMagickWand, 0)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(MagickResizeImage, 4, 5)
-    T_HANDLE(0)
-    T_NUMBER(1)
-    T_NUMBER(2)
-    T_NUMBER(3)
+    T_HANDLE(MagickResizeImage, 0)
+    T_NUMBER(MagickResizeImage, 1)
+    T_NUMBER(MagickResizeImage, 2)
+    T_NUMBER(MagickResizeImage, 3)
 
     float blur = 1;
     if (PARAMETERS_COUNT > 3) {
-        T_NUMBER(4)
+        T_NUMBER(MagickResizeImage, 4)
         blur = PARAM(4);
     }
     RETURN_NUMBER(MagickResizeImage((MagickWand *)PARAM_INT(0), PARAM_INT(1), PARAM_INT(2), (FilterTypes)PARAM_INT(3), blur))
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(MagickWriteImages, 1, 3)
-    T_HANDLE(0)
+    T_HANDLE(MagickWriteImages, 0)
     char *filename = 0;
     MagickBooleanType join_images = MagickFalse;
     if (PARAMETERS_COUNT > 1) {
-        T_STRING(1)
+        T_STRING(MagickWriteImages, 1)
         filename = PARAM(1);
     }
     if (PARAMETERS_COUNT > 2) {
-        T_NUMBER(2)
+        T_NUMBER(MagickWriteImages, 2)
         join_images = (MagickBooleanType)PARAM_INT(2);
     }
 
@@ -911,402 +911,402 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(MagickWriteImages, 1, 3)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(MagickResetIterator, 1)
-    T_HANDLE(0)
+    T_HANDLE(MagickResetIterator, 0)
     MagickResetIterator((MagickWand *)PARAM_INT(0));
     RETURN_NUMBER(0)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(MagickSetIteratorIndex, 2)
-    T_HANDLE(0)
-    T_NUMBER(1)
+    T_HANDLE(MagickSetIteratorIndex, 0)
+    T_NUMBER(MagickSetIteratorIndex, 1)
     RETURN_NUMBER(MagickSetIteratorIndex((MagickWand *)PARAM_INT(0), PARAM_INT(1)))
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(MagickGetIteratorIndex, 1)
-    T_HANDLE(0)
+    T_HANDLE(MagickGetIteratorIndex, 0)
     RETURN_NUMBER(MagickGetIteratorIndex((MagickWand *)PARAM_INT(0)))
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(MagickSetFirstIterator, 1)
-    T_HANDLE(0)
+    T_HANDLE(MagickSetFirstIterator, 0)
     MagickSetFirstIterator((MagickWand *)PARAM_INT(0));
     RETURN_NUMBER(0)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(MagickSetLastIterator, 1)
-    T_HANDLE(0)
+    T_HANDLE(MagickSetLastIterator, 0)
     MagickSetLastIterator((MagickWand *)PARAM_INT(0));
     RETURN_NUMBER(0)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(DestroyMagickWand, 1)
-    T_HANDLE(0)
+    T_HANDLE(DestroyMagickWand, 0)
 
     RETURN_NUMBER((SYS_INT)DestroyMagickWand((MagickWand *)PARAM_INT(0)))
     SET_NUMBER(0, 0)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(ClearMagickWand, 1)
-    T_HANDLE(0)
+    T_HANDLE(ClearMagickWand, 0)
     ClearMagickWand((MagickWand *)PARAM_INT(0));
     RETURN_NUMBER(0)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(NewMagickWandFromImage, 1)
-    T_HANDLE(0)
+    T_HANDLE(NewMagickWandFromImage, 0)
     RETURN_NUMBER((SYS_INT)NewMagickWandFromImage((Image *)PARAM_INT(0)))
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(CloneMagickWand, 1)
-    T_HANDLE(0)
+    T_HANDLE(CloneMagickWand, 0)
     RETURN_NUMBER((SYS_INT)CloneMagickWand((MagickWand *)PARAM_INT(0)))
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(IsMagickWand, 1)
-    T_HANDLE(0)
+    T_HANDLE(IsMagickWand, 0)
     RETURN_NUMBER((SYS_INT)IsMagickWand((MagickWand *)PARAM_INT(0)))
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(MagickGetExceptionType, 1)
-    T_HANDLE(0)
+    T_HANDLE(MagickGetExceptionType, 0)
     RETURN_NUMBER((SYS_INT)MagickGetExceptionType((MagickWand *)PARAM_INT(0)))
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(MagickClearException, 1)
-    T_HANDLE(0)
+    T_HANDLE(MagickClearException, 0)
     RETURN_NUMBER((SYS_INT)MagickClearException((MagickWand *)PARAM_INT(0)))
 END_IMPL
 //-----------------------------------------------------//
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickAdaptiveBlurImage, 3)
-    T_HANDLE(0)     // MagickWand*
-    T_NUMBER(1)     // double
-    T_NUMBER(2)     // double
+    T_HANDLE(MagickAdaptiveBlurImage, 0)     // MagickWand*
+    T_NUMBER(MagickAdaptiveBlurImage, 1)     // double
+    T_NUMBER(MagickAdaptiveBlurImage, 2)     // double
 
     RETURN_NUMBER(MagickAdaptiveBlurImage((MagickWand *)(long)PARAM(0), (double)PARAM(1), (double)PARAM(2)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickAdaptiveBlurImageChannel, 4)
-    T_HANDLE(0)     // MagickWand*
-    T_NUMBER(1)     // ChannelType
-    T_NUMBER(2)     // double
-    T_NUMBER(3)     // double
+    T_HANDLE(MagickAdaptiveBlurImageChannel, 0)     // MagickWand*
+    T_NUMBER(MagickAdaptiveBlurImageChannel, 1)     // ChannelType
+    T_NUMBER(MagickAdaptiveBlurImageChannel, 2)     // double
+    T_NUMBER(MagickAdaptiveBlurImageChannel, 3)     // double
 
     RETURN_NUMBER(MagickAdaptiveBlurImageChannel((MagickWand *)(long)PARAM(0), (ChannelType)PARAM(1), (double)PARAM(2), (double)PARAM(3)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickAdaptiveResizeImage, 3)
-    T_HANDLE(0)     // MagickWand*
-    T_NUMBER(1)     // size_t
-    T_NUMBER(2)     // size_t
+    T_HANDLE(MagickAdaptiveResizeImage, 0)     // MagickWand*
+    T_NUMBER(MagickAdaptiveResizeImage, 1)     // size_t
+    T_NUMBER(MagickAdaptiveResizeImage, 2)     // size_t
 
     RETURN_NUMBER(MagickAdaptiveResizeImage((MagickWand *)(long)PARAM(0), (size_t)PARAM(1), (size_t)PARAM(2)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickAdaptiveSharpenImage, 3)
-    T_HANDLE(0)     // MagickWand*
-    T_NUMBER(1)     // double
-    T_NUMBER(2)     // double
+    T_HANDLE(MagickAdaptiveSharpenImage, 0)     // MagickWand*
+    T_NUMBER(MagickAdaptiveSharpenImage, 1)     // double
+    T_NUMBER(MagickAdaptiveSharpenImage, 2)     // double
 
     RETURN_NUMBER(MagickAdaptiveSharpenImage((MagickWand *)(long)PARAM(0), (double)PARAM(1), (double)PARAM(2)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickAdaptiveSharpenImageChannel, 4)
-    T_HANDLE(0)     // MagickWand*
-    T_NUMBER(1)     // ChannelType
-    T_NUMBER(2)     // double
-    T_NUMBER(3)     // double
+    T_HANDLE(MagickAdaptiveSharpenImageChannel, 0)     // MagickWand*
+    T_NUMBER(MagickAdaptiveSharpenImageChannel, 1)     // ChannelType
+    T_NUMBER(MagickAdaptiveSharpenImageChannel, 2)     // double
+    T_NUMBER(MagickAdaptiveSharpenImageChannel, 3)     // double
 
     RETURN_NUMBER(MagickAdaptiveSharpenImageChannel((MagickWand *)(long)PARAM(0), (ChannelType)PARAM(1), (double)PARAM(2), (double)PARAM(3)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickAdaptiveThresholdImage, 4)
-    T_HANDLE(0)     // MagickWand*
-    T_NUMBER(1)     // size_t
-    T_NUMBER(2)     // size_t
-    T_NUMBER(3)     // ssize_t
+    T_HANDLE(MagickAdaptiveThresholdImage, 0)     // MagickWand*
+    T_NUMBER(MagickAdaptiveThresholdImage, 1)     // size_t
+    T_NUMBER(MagickAdaptiveThresholdImage, 2)     // size_t
+    T_NUMBER(MagickAdaptiveThresholdImage, 3)     // ssize_t
 
     RETURN_NUMBER(MagickAdaptiveThresholdImage((MagickWand *)(long)PARAM(0), (size_t)PARAM(1), (size_t)PARAM(2), (ssize_t)PARAM(3)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickAddImage, 2)
-    T_HANDLE(0)     // MagickWand*
-    T_HANDLE(1)     // MagickWand*
+    T_HANDLE(MagickAddImage, 0)     // MagickWand*
+    T_HANDLE(MagickAddImage, 1)     // MagickWand*
 
     RETURN_NUMBER(MagickAddImage((MagickWand *)(long)PARAM(0), (MagickWand *)(long)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickAddNoiseImage, 2)
-    T_HANDLE(0)     // MagickWand*
-    T_NUMBER(1)     // NoiseType
+    T_HANDLE(MagickAddNoiseImage, 0)     // MagickWand*
+    T_NUMBER(MagickAddNoiseImage, 1)     // NoiseType
 
     RETURN_NUMBER(MagickAddNoiseImage((MagickWand *)(long)PARAM(0), (NoiseType)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickAddNoiseImageChannel, 3)
-    T_HANDLE(0)     // MagickWand*
-    T_NUMBER(1)     // ChannelType
-    T_NUMBER(2)     // NoiseType
+    T_HANDLE(MagickAddNoiseImageChannel, 0)     // MagickWand*
+    T_NUMBER(MagickAddNoiseImageChannel, 1)     // ChannelType
+    T_NUMBER(MagickAddNoiseImageChannel, 2)     // NoiseType
 
     RETURN_NUMBER(MagickAddNoiseImageChannel((MagickWand *)(long)PARAM(0), (ChannelType)PARAM(1), (NoiseType)PARAM(2)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickAffineTransformImage, 2)
-    T_HANDLE(0)     // MagickWand*
-    T_HANDLE(1)     // DrawingWand*
+    T_HANDLE(MagickAffineTransformImage, 0)     // MagickWand*
+    T_HANDLE(MagickAffineTransformImage, 1)     // DrawingWand*
 
     RETURN_NUMBER(MagickAffineTransformImage((MagickWand *)(long)PARAM(0), (DrawingWand *)(long)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickAnnotateImage, 6)
-    T_HANDLE(0)     // MagickWand*
-    T_HANDLE(1)     // DrawingWand*
-    T_NUMBER(2)     // double
-    T_NUMBER(3)     // double
-    T_NUMBER(4)     // double
-    T_STRING(5)     // char*
+    T_HANDLE(MagickAnnotateImage, 0)     // MagickWand*
+    T_HANDLE(MagickAnnotateImage, 1)     // DrawingWand*
+    T_NUMBER(MagickAnnotateImage, 2)     // double
+    T_NUMBER(MagickAnnotateImage, 3)     // double
+    T_NUMBER(MagickAnnotateImage, 4)     // double
+    T_STRING(MagickAnnotateImage, 5)     // char*
 
     RETURN_NUMBER(MagickAnnotateImage((MagickWand *)(long)PARAM(0), (DrawingWand *)(long)PARAM(1), (double)PARAM(2), (double)PARAM(3), (double)PARAM(4), (char *)PARAM(5)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickAnimateImages, 2)
-    T_HANDLE(0)     // MagickWand*
-    T_STRING(1)     // char*
+    T_HANDLE(MagickAnimateImages, 0)     // MagickWand*
+    T_STRING(MagickAnimateImages, 1)     // char*
 
     RETURN_NUMBER(MagickAnimateImages((MagickWand *)(long)PARAM(0), (char *)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickAutoGammaImage, 1)
-    T_HANDLE(0)     // MagickWand*
+    T_HANDLE(MagickAutoGammaImage, 0)     // MagickWand*
 
     RETURN_NUMBER(MagickAutoGammaImage((MagickWand *)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickAutoGammaImageChannel, 2)
-    T_HANDLE(0)     // MagickWand*
-    T_NUMBER(1)     // ChannelType
+    T_HANDLE(MagickAutoGammaImageChannel, 0)     // MagickWand*
+    T_NUMBER(MagickAutoGammaImageChannel, 1)     // ChannelType
 
     RETURN_NUMBER(MagickAutoGammaImageChannel((MagickWand *)(long)PARAM(0), (ChannelType)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickAutoLevelImage, 1)
-    T_HANDLE(0)     // MagickWand*
+    T_HANDLE(MagickAutoLevelImage, 0)     // MagickWand*
 
     RETURN_NUMBER(MagickAutoLevelImage((MagickWand *)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickAutoLevelImageChannel, 2)
-    T_HANDLE(0)     // MagickWand*
-    T_NUMBER(1)     // ChannelType
+    T_HANDLE(MagickAutoLevelImageChannel, 0)     // MagickWand*
+    T_NUMBER(MagickAutoLevelImageChannel, 1)     // ChannelType
 
     RETURN_NUMBER(MagickAutoLevelImageChannel((MagickWand *)(long)PARAM(0), (ChannelType)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickBlackThresholdImage, 2)
-    T_HANDLE(0)     // MagickWand*
-    T_HANDLE(1)     // PixelWand*
+    T_HANDLE(MagickBlackThresholdImage, 0)     // MagickWand*
+    T_HANDLE(MagickBlackThresholdImage, 1)     // PixelWand*
 
     RETURN_NUMBER(MagickBlackThresholdImage((MagickWand *)(long)PARAM(0), (PixelWand *)(long)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickBlueShiftImage, 2)
-    T_HANDLE(0)     // MagickWand*
-    T_NUMBER(1)     // double
+    T_HANDLE(MagickBlueShiftImage, 0)     // MagickWand*
+    T_NUMBER(MagickBlueShiftImage, 1)     // double
 
     RETURN_NUMBER(MagickBlueShiftImage((MagickWand *)(long)PARAM(0), (double)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickBlurImage, 3)
-    T_HANDLE(0)     // MagickWand*
-    T_NUMBER(1)     // double
-    T_NUMBER(2)     // double
+    T_HANDLE(MagickBlurImage, 0)     // MagickWand*
+    T_NUMBER(MagickBlurImage, 1)     // double
+    T_NUMBER(MagickBlurImage, 2)     // double
 
     RETURN_NUMBER(MagickBlurImage((MagickWand *)(long)PARAM(0), (double)PARAM(1), (double)PARAM(2)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickBlurImageChannel, 4)
-    T_HANDLE(0)     // MagickWand*
-    T_NUMBER(1)     // ChannelType
-    T_NUMBER(2)     // double
-    T_NUMBER(3)     // double
+    T_HANDLE(MagickBlurImageChannel, 0)     // MagickWand*
+    T_NUMBER(MagickBlurImageChannel, 1)     // ChannelType
+    T_NUMBER(MagickBlurImageChannel, 2)     // double
+    T_NUMBER(MagickBlurImageChannel, 3)     // double
 
     RETURN_NUMBER(MagickBlurImageChannel((MagickWand *)(long)PARAM(0), (ChannelType)PARAM(1), (double)PARAM(2), (double)PARAM(3)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickBorderImage, 4)
-    T_HANDLE(0)     // MagickWand*
-    T_HANDLE(1)     // PixelWand*
-    T_NUMBER(2)     // size_t
-    T_NUMBER(3)     // size_t
+    T_HANDLE(MagickBorderImage, 0)     // MagickWand*
+    T_HANDLE(MagickBorderImage, 1)     // PixelWand*
+    T_NUMBER(MagickBorderImage, 2)     // size_t
+    T_NUMBER(MagickBorderImage, 3)     // size_t
 
     RETURN_NUMBER(MagickBorderImage((MagickWand *)(long)PARAM(0), (PixelWand *)(long)PARAM(1), (size_t)PARAM(2), (size_t)PARAM(3)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickBrightnessContrastImage, 3)
-    T_HANDLE(0)     // MagickWand*
-    T_NUMBER(1)     // double
-    T_NUMBER(2)     // double
+    T_HANDLE(MagickBrightnessContrastImage, 0)     // MagickWand*
+    T_NUMBER(MagickBrightnessContrastImage, 1)     // double
+    T_NUMBER(MagickBrightnessContrastImage, 2)     // double
 
     RETURN_NUMBER(MagickBrightnessContrastImage((MagickWand *)(long)PARAM(0), (double)PARAM(1), (double)PARAM(2)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickBrightnessContrastImageChannel, 4)
-    T_HANDLE(0)     // MagickWand*
-    T_NUMBER(1)     // ChannelType
-    T_NUMBER(2)     // double
-    T_NUMBER(3)     // double
+    T_HANDLE(MagickBrightnessContrastImageChannel, 0)     // MagickWand*
+    T_NUMBER(MagickBrightnessContrastImageChannel, 1)     // ChannelType
+    T_NUMBER(MagickBrightnessContrastImageChannel, 2)     // double
+    T_NUMBER(MagickBrightnessContrastImageChannel, 3)     // double
 
     RETURN_NUMBER(MagickBrightnessContrastImageChannel((MagickWand *)(long)PARAM(0), (ChannelType)PARAM(1), (double)PARAM(2), (double)PARAM(3)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickCharcoalImage, 3)
-    T_HANDLE(0)     // MagickWand*
-    T_NUMBER(1)     // double
-    T_NUMBER(2)     // double
+    T_HANDLE(MagickCharcoalImage, 0)     // MagickWand*
+    T_NUMBER(MagickCharcoalImage, 1)     // double
+    T_NUMBER(MagickCharcoalImage, 2)     // double
 
     RETURN_NUMBER(MagickCharcoalImage((MagickWand *)(long)PARAM(0), (double)PARAM(1), (double)PARAM(2)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickChopImage, 5)
-    T_HANDLE(0)     // MagickWand*
-    T_NUMBER(1)     // size_t
-    T_NUMBER(2)     // size_t
-    T_NUMBER(3)     // ssize_t
-    T_NUMBER(4)     // ssize_t
+    T_HANDLE(MagickChopImage, 0)     // MagickWand*
+    T_NUMBER(MagickChopImage, 1)     // size_t
+    T_NUMBER(MagickChopImage, 2)     // size_t
+    T_NUMBER(MagickChopImage, 3)     // ssize_t
+    T_NUMBER(MagickChopImage, 4)     // ssize_t
 
     RETURN_NUMBER(MagickChopImage((MagickWand *)(long)PARAM(0), (size_t)PARAM(1), (size_t)PARAM(2), (ssize_t)PARAM(3), (ssize_t)PARAM(4)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickClampImage, 1)
-    T_HANDLE(0)     // MagickWand*
+    T_HANDLE(MagickClampImage, 0)     // MagickWand*
 
     RETURN_NUMBER(MagickClampImage((MagickWand *)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickClampImageChannel, 2)
-    T_HANDLE(0)     // MagickWand*
-    T_NUMBER(1)     // ChannelType
+    T_HANDLE(MagickClampImageChannel, 0)     // MagickWand*
+    T_NUMBER(MagickClampImageChannel, 1)     // ChannelType
 
     RETURN_NUMBER(MagickClampImageChannel((MagickWand *)(long)PARAM(0), (ChannelType)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickClipImage, 1)
-    T_HANDLE(0)     // MagickWand*
+    T_HANDLE(MagickClipImage, 0)     // MagickWand*
 
     RETURN_NUMBER(MagickClipImage((MagickWand *)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickClipImagePath, 3)
-    T_HANDLE(0)     // MagickWand*
-    T_STRING(1)     // char*
-    T_NUMBER(2)     // MagickBooleanType
+    T_HANDLE(MagickClipImagePath, 0)     // MagickWand*
+    T_STRING(MagickClipImagePath, 1)     // char*
+    T_NUMBER(MagickClipImagePath, 2)     // MagickBooleanType
 
     RETURN_NUMBER(MagickClipImagePath((MagickWand *)(long)PARAM(0), (char *)PARAM(1), (MagickBooleanType)PARAM(2)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickClutImage, 2)
-    T_HANDLE(0)     // MagickWand*
-    T_HANDLE(1)     // MagickWand*
+    T_HANDLE(MagickClutImage, 0)     // MagickWand*
+    T_HANDLE(MagickClutImage, 1)     // MagickWand*
 
     RETURN_NUMBER(MagickClutImage((MagickWand *)(long)PARAM(0), (MagickWand *)(long)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickClutImageChannel, 3)
-    T_HANDLE(0)     // MagickWand*
-    T_NUMBER(1)     // ChannelType
-    T_HANDLE(2)     // MagickWand*
+    T_HANDLE(MagickClutImageChannel, 0)     // MagickWand*
+    T_NUMBER(MagickClutImageChannel, 1)     // ChannelType
+    T_HANDLE(MagickClutImageChannel, 2)     // MagickWand*
 
     RETURN_NUMBER(MagickClutImageChannel((MagickWand *)(long)PARAM(0), (ChannelType)PARAM(1), (MagickWand *)(long)PARAM(2)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickColorDecisionListImage, 2)
-    T_HANDLE(0)     // MagickWand*
-    T_STRING(1)     // char*
+    T_HANDLE(MagickColorDecisionListImage, 0)     // MagickWand*
+    T_STRING(MagickColorDecisionListImage, 1)     // char*
 
     RETURN_NUMBER(MagickColorDecisionListImage((MagickWand *)(long)PARAM(0), (char *)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickColorizeImage, 3)
-    T_HANDLE(0)     // MagickWand*
-    T_HANDLE(1)     // PixelWand*
-    T_HANDLE(2)     // PixelWand*
+    T_HANDLE(MagickColorizeImage, 0)     // MagickWand*
+    T_HANDLE(MagickColorizeImage, 1)     // PixelWand*
+    T_HANDLE(MagickColorizeImage, 2)     // PixelWand*
 
     RETURN_NUMBER(MagickColorizeImage((MagickWand *)(long)PARAM(0), (PixelWand *)(long)PARAM(1), (PixelWand *)(long)PARAM(2)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickColorMatrixImage, 2)
-    T_HANDLE(0)     // MagickWand*
-    T_HANDLE(1)     // KernelInfo*
+    T_HANDLE(MagickColorMatrixImage, 0)     // MagickWand*
+    T_HANDLE(MagickColorMatrixImage, 1)     // KernelInfo*
 
     RETURN_NUMBER(MagickColorMatrixImage((MagickWand *)(long)PARAM(0), (KernelInfo *)(long)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickCommentImage, 2)
-    T_HANDLE(0)     // MagickWand*
-    T_STRING(1)     // char*
+    T_HANDLE(MagickCommentImage, 0)     // MagickWand*
+    T_STRING(MagickCommentImage, 1)     // char*
 
     RETURN_NUMBER(MagickCommentImage((MagickWand *)(long)PARAM(0), (char *)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickCompositeImage, 5)
-    T_HANDLE(0)     // MagickWand*
-    T_HANDLE(1)     // MagickWand*
-    T_NUMBER(2)     // CompositeOperator
-    T_NUMBER(3)     // ssize_t
-    T_NUMBER(4)     // ssize_t
+    T_HANDLE(MagickCompositeImage, 0)     // MagickWand*
+    T_HANDLE(MagickCompositeImage, 1)     // MagickWand*
+    T_NUMBER(MagickCompositeImage, 2)     // CompositeOperator
+    T_NUMBER(MagickCompositeImage, 3)     // ssize_t
+    T_NUMBER(MagickCompositeImage, 4)     // ssize_t
 
     RETURN_NUMBER(MagickCompositeImage((MagickWand *)(long)PARAM(0), (MagickWand *)(long)PARAM(1), (CompositeOperator)PARAM(2), (ssize_t)PARAM(3), (ssize_t)PARAM(4)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickCompositeImageChannel, 6)
-    T_HANDLE(0)     // MagickWand*
-    T_NUMBER(1)     // ChannelType
-    T_HANDLE(2)     // MagickWand*
-    T_NUMBER(3)     // CompositeOperator
-    T_NUMBER(4)     // ssize_t
-    T_NUMBER(5)     // ssize_t
+    T_HANDLE(MagickCompositeImageChannel, 0)     // MagickWand*
+    T_NUMBER(MagickCompositeImageChannel, 1)     // ChannelType
+    T_HANDLE(MagickCompositeImageChannel, 2)     // MagickWand*
+    T_NUMBER(MagickCompositeImageChannel, 3)     // CompositeOperator
+    T_NUMBER(MagickCompositeImageChannel, 4)     // ssize_t
+    T_NUMBER(MagickCompositeImageChannel, 5)     // ssize_t
 
     RETURN_NUMBER(MagickCompositeImageChannel((MagickWand *)(long)PARAM(0), (ChannelType)PARAM(1), (MagickWand *)(long)PARAM(2), (CompositeOperator)PARAM(3), (ssize_t)PARAM(4), (ssize_t)PARAM(5)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickConstituteImage, 6)
-    T_HANDLE(0)     // MagickWand*
-    T_NUMBER(1)     // size_t
-    T_NUMBER(2)     // size_t
-    T_STRING(3)     // char*
-    T_NUMBER(4)     // StorageType
-    T_NUMBER(5)     // void*
+    T_HANDLE(MagickConstituteImage, 0)     // MagickWand*
+    T_NUMBER(MagickConstituteImage, 1)     // size_t
+    T_NUMBER(MagickConstituteImage, 2)     // size_t
+    T_STRING(MagickConstituteImage, 3)     // char*
+    T_NUMBER(MagickConstituteImage, 4)     // StorageType
+    T_NUMBER(MagickConstituteImage, 5)     // void*
 
     RETURN_NUMBER(MagickConstituteImage((MagickWand *)(long)PARAM(0), (size_t)PARAM(1), (size_t)PARAM(2), (char *)PARAM(3), (StorageType)PARAM(4), (void *)(long)PARAM(5)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickContrastImage, 2)
-    T_HANDLE(0)     // MagickWand*
-    T_NUMBER(1)     // MagickBooleanType
+    T_HANDLE(MagickContrastImage, 0)     // MagickWand*
+    T_NUMBER(MagickContrastImage, 1)     // MagickBooleanType
 
     RETURN_NUMBER(MagickContrastImage((MagickWand *)(long)PARAM(0), (MagickBooleanType)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickContrastStretchImage, 3)
-    T_HANDLE(0)     // MagickWand*
-    T_NUMBER(1)     // double
-    T_NUMBER(2)     // double
+    T_HANDLE(MagickContrastStretchImage, 0)     // MagickWand*
+    T_NUMBER(MagickContrastStretchImage, 1)     // double
+    T_NUMBER(MagickContrastStretchImage, 2)     // double
 
     RETURN_NUMBER(MagickContrastStretchImage((MagickWand *)(long)PARAM(0), (double)PARAM(1), (double)PARAM(2)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickContrastStretchImageChannel, 4)
-    T_HANDLE(0)     // MagickWand*
-    T_NUMBER(1)     // ChannelType
-    T_NUMBER(2)     // double
-    T_NUMBER(3)     // double
+    T_HANDLE(MagickContrastStretchImageChannel, 0)     // MagickWand*
+    T_NUMBER(MagickContrastStretchImageChannel, 1)     // ChannelType
+    T_NUMBER(MagickContrastStretchImageChannel, 2)     // double
+    T_NUMBER(MagickContrastStretchImageChannel, 3)     // double
 
     RETURN_NUMBER(MagickContrastStretchImageChannel((MagickWand *)(long)PARAM(0), (ChannelType)PARAM(1), (double)PARAM(2), (double)PARAM(3)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickConvolveImage, 3)
-    T_HANDLE(0)     // MagickWand*
-    T_NUMBER(1)     // size_t
+    T_HANDLE(MagickConvolveImage, 0)     // MagickWand*
+    T_NUMBER(MagickConvolveImage, 1)     // size_t
 
 // ... parameter 2 is by reference (double*)
     double local_parameter_2;
@@ -1316,9 +1316,9 @@ CONCEPT_FUNCTION_IMPL(MagickConvolveImage, 3)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickConvolveImageChannel, 4)
-    T_HANDLE(0)     // MagickWand*
-    T_NUMBER(1)     // ChannelType
-    T_NUMBER(2)     // size_t
+    T_HANDLE(MagickConvolveImageChannel, 0)     // MagickWand*
+    T_NUMBER(MagickConvolveImageChannel, 1)     // ChannelType
+    T_NUMBER(MagickConvolveImageChannel, 2)     // size_t
 
 // ... parameter 3 is by reference (double*)
     double local_parameter_3;
@@ -1328,61 +1328,61 @@ CONCEPT_FUNCTION_IMPL(MagickConvolveImageChannel, 4)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickCropImage, 5)
-    T_HANDLE(0)     // MagickWand*
-    T_NUMBER(1)     // size_t
-    T_NUMBER(2)     // size_t
-    T_NUMBER(3)     // ssize_t
-    T_NUMBER(4)     // ssize_t
+    T_HANDLE(MagickCropImage, 0)     // MagickWand*
+    T_NUMBER(MagickCropImage, 1)     // size_t
+    T_NUMBER(MagickCropImage, 2)     // size_t
+    T_NUMBER(MagickCropImage, 3)     // ssize_t
+    T_NUMBER(MagickCropImage, 4)     // ssize_t
 
     RETURN_NUMBER(MagickCropImage((MagickWand *)(long)PARAM(0), (size_t)PARAM(1), (size_t)PARAM(2), (ssize_t)PARAM(3), (ssize_t)PARAM(4)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickCycleColormapImage, 2)
-    T_HANDLE(0)     // MagickWand*
-    T_NUMBER(1)     // ssize_t
+    T_HANDLE(MagickCycleColormapImage, 0)     // MagickWand*
+    T_NUMBER(MagickCycleColormapImage, 1)     // ssize_t
 
     RETURN_NUMBER(MagickCycleColormapImage((MagickWand *)(long)PARAM(0), (ssize_t)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickDecipherImage, 2)
-    T_HANDLE(0)     // MagickWand*
-    T_STRING(1)     // char*
+    T_HANDLE(MagickDecipherImage, 0)     // MagickWand*
+    T_STRING(MagickDecipherImage, 1)     // char*
 
     RETURN_NUMBER(MagickDecipherImage((MagickWand *)(long)PARAM(0), (char *)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickDeskewImage, 2)
-    T_HANDLE(0)     // MagickWand*
-    T_NUMBER(1)     // double
+    T_HANDLE(MagickDeskewImage, 0)     // MagickWand*
+    T_NUMBER(MagickDeskewImage, 1)     // double
 
     RETURN_NUMBER(MagickDeskewImage((MagickWand *)(long)PARAM(0), (double)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickDespeckleImage, 1)
-    T_HANDLE(0)     // MagickWand*
+    T_HANDLE(MagickDespeckleImage, 0)     // MagickWand*
 
     RETURN_NUMBER(MagickDespeckleImage((MagickWand *)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickDisplayImage, 2)
-    T_HANDLE(0)     // MagickWand*
-    T_STRING(1)     // char*
+    T_HANDLE(MagickDisplayImage, 0)     // MagickWand*
+    T_STRING(MagickDisplayImage, 1)     // char*
 
     RETURN_NUMBER(MagickDisplayImage((MagickWand *)(long)PARAM(0), (char *)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickDisplayImages, 2)
-    T_HANDLE(0)     // MagickWand*
-    T_STRING(1)     // char*
+    T_HANDLE(MagickDisplayImages, 0)     // MagickWand*
+    T_STRING(MagickDisplayImages, 1)     // char*
 
     RETURN_NUMBER(MagickDisplayImages((MagickWand *)(long)PARAM(0), (char *)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickDistortImage, 5)
-    T_HANDLE(0)     // MagickWand*
-    T_NUMBER(1)     // DistortImageMethod
-    T_NUMBER(2)     // size_t
-    T_NUMBER(4)     // MagickBooleanType
+    T_HANDLE(MagickDistortImage, 0)     // MagickWand*
+    T_NUMBER(MagickDistortImage, 1)     // DistortImageMethod
+    T_NUMBER(MagickDistortImage, 2)     // size_t
+    T_NUMBER(MagickDistortImage, 4)     // MagickBooleanType
 
 // ... parameter 3 is by reference (double*)
     double local_parameter_3;
@@ -1392,155 +1392,155 @@ CONCEPT_FUNCTION_IMPL(MagickDistortImage, 5)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickDrawImage, 2)
-    T_HANDLE(0)     // MagickWand*
-    T_HANDLE(1)     // DrawingWand*
+    T_HANDLE(MagickDrawImage, 0)     // MagickWand*
+    T_HANDLE(MagickDrawImage, 1)     // DrawingWand*
 
     RETURN_NUMBER(MagickDrawImage((MagickWand *)(long)PARAM(0), (DrawingWand *)(long)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickEdgeImage, 2)
-    T_HANDLE(0)     // MagickWand*
-    T_NUMBER(1)     // double
+    T_HANDLE(MagickEdgeImage, 0)     // MagickWand*
+    T_NUMBER(MagickEdgeImage, 1)     // double
 
     RETURN_NUMBER(MagickEdgeImage((MagickWand *)(long)PARAM(0), (double)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickEmbossImage, 3)
-    T_HANDLE(0)     // MagickWand*
-    T_NUMBER(1)     // double
-    T_NUMBER(2)     // double
+    T_HANDLE(MagickEmbossImage, 0)     // MagickWand*
+    T_NUMBER(MagickEmbossImage, 1)     // double
+    T_NUMBER(MagickEmbossImage, 2)     // double
 
     RETURN_NUMBER(MagickEmbossImage((MagickWand *)(long)PARAM(0), (double)PARAM(1), (double)PARAM(2)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickEncipherImage, 2)
-    T_HANDLE(0)     // MagickWand*
-    T_STRING(1)     // char*
+    T_HANDLE(MagickEncipherImage, 0)     // MagickWand*
+    T_STRING(MagickEncipherImage, 1)     // char*
 
     RETURN_NUMBER(MagickEncipherImage((MagickWand *)(long)PARAM(0), (char *)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickEnhanceImage, 1)
-    T_HANDLE(0)     // MagickWand*
+    T_HANDLE(MagickEnhanceImage, 0)     // MagickWand*
 
     RETURN_NUMBER(MagickEnhanceImage((MagickWand *)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickEqualizeImage, 1)
-    T_HANDLE(0)     // MagickWand*
+    T_HANDLE(MagickEqualizeImage, 0)     // MagickWand*
 
     RETURN_NUMBER(MagickEqualizeImage((MagickWand *)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickEqualizeImageChannel, 2)
-    T_HANDLE(0)     // MagickWand*
-    T_NUMBER(1)     // ChannelType
+    T_HANDLE(MagickEqualizeImageChannel, 0)     // MagickWand*
+    T_NUMBER(MagickEqualizeImageChannel, 1)     // ChannelType
 
     RETURN_NUMBER(MagickEqualizeImageChannel((MagickWand *)(long)PARAM(0), (ChannelType)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickEvaluateImage, 3)
-    T_HANDLE(0)     // MagickWand*
-    T_NUMBER(1)     // MagickEvaluateOperator
-    T_NUMBER(2)     // double
+    T_HANDLE(MagickEvaluateImage, 0)     // MagickWand*
+    T_NUMBER(MagickEvaluateImage, 1)     // MagickEvaluateOperator
+    T_NUMBER(MagickEvaluateImage, 2)     // double
 
     RETURN_NUMBER(MagickEvaluateImage((MagickWand *)(long)PARAM(0), (MagickEvaluateOperator)PARAM(1), (double)PARAM(2)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickEvaluateImageChannel, 4)
-    T_HANDLE(0)     // MagickWand*
-    T_NUMBER(1)     // ChannelType
-    T_NUMBER(2)     // MagickEvaluateOperator
-    T_NUMBER(3)     // double
+    T_HANDLE(MagickEvaluateImageChannel, 0)     // MagickWand*
+    T_NUMBER(MagickEvaluateImageChannel, 1)     // ChannelType
+    T_NUMBER(MagickEvaluateImageChannel, 2)     // MagickEvaluateOperator
+    T_NUMBER(MagickEvaluateImageChannel, 3)     // double
 
     RETURN_NUMBER(MagickEvaluateImageChannel((MagickWand *)(long)PARAM(0), (ChannelType)PARAM(1), (MagickEvaluateOperator)PARAM(2), (double)PARAM(3)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickExportImagePixels, 8)
-    T_HANDLE(0)     // MagickWand*
-    T_NUMBER(1)     // ssize_t
-    T_NUMBER(2)     // ssize_t
-    T_NUMBER(3)     // size_t
-    T_NUMBER(4)     // size_t
-    T_STRING(5)     // char*
-    T_NUMBER(6)     // StorageType
-    T_NUMBER(7)     // void*
+    T_HANDLE(MagickExportImagePixels, 0)     // MagickWand*
+    T_NUMBER(MagickExportImagePixels, 1)     // ssize_t
+    T_NUMBER(MagickExportImagePixels, 2)     // ssize_t
+    T_NUMBER(MagickExportImagePixels, 3)     // size_t
+    T_NUMBER(MagickExportImagePixels, 4)     // size_t
+    T_STRING(MagickExportImagePixels, 5)     // char*
+    T_NUMBER(MagickExportImagePixels, 6)     // StorageType
+    T_NUMBER(MagickExportImagePixels, 7)     // void*
 
     RETURN_NUMBER(MagickExportImagePixels((MagickWand *)(long)PARAM(0), (ssize_t)PARAM(1), (ssize_t)PARAM(2), (size_t)PARAM(3), (size_t)PARAM(4), (char *)PARAM(5), (StorageType)PARAM(6), (void *)(long)PARAM(7)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickExtentImage, 5)
-    T_HANDLE(0)     // MagickWand*
-    T_NUMBER(1)     // size_t
-    T_NUMBER(2)     // size_t
-    T_NUMBER(3)     // ssize_t
-    T_NUMBER(4)     // ssize_t
+    T_HANDLE(MagickExtentImage, 0)     // MagickWand*
+    T_NUMBER(MagickExtentImage, 1)     // size_t
+    T_NUMBER(MagickExtentImage, 2)     // size_t
+    T_NUMBER(MagickExtentImage, 3)     // ssize_t
+    T_NUMBER(MagickExtentImage, 4)     // ssize_t
 
     RETURN_NUMBER(MagickExtentImage((MagickWand *)(long)PARAM(0), (size_t)PARAM(1), (size_t)PARAM(2), (ssize_t)PARAM(3), (ssize_t)PARAM(4)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickFilterImage, 2)
-    T_HANDLE(0)     // MagickWand*
-    T_HANDLE(1)     // KernelInfo*
+    T_HANDLE(MagickFilterImage, 0)     // MagickWand*
+    T_HANDLE(MagickFilterImage, 1)     // KernelInfo*
 
     RETURN_NUMBER(MagickFilterImage((MagickWand *)(long)PARAM(0), (KernelInfo *)(long)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickFilterImageChannel, 3)
-    T_HANDLE(0)     // MagickWand*
-    T_NUMBER(1)     // ChannelType
-    T_HANDLE(2)     // KernelInfo*
+    T_HANDLE(MagickFilterImageChannel, 0)     // MagickWand*
+    T_NUMBER(MagickFilterImageChannel, 1)     // ChannelType
+    T_HANDLE(MagickFilterImageChannel, 2)     // KernelInfo*
 
     RETURN_NUMBER(MagickFilterImageChannel((MagickWand *)(long)PARAM(0), (ChannelType)PARAM(1), (KernelInfo *)(long)PARAM(2)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickFlipImage, 1)
-    T_HANDLE(0)     // MagickWand*
+    T_HANDLE(MagickFlipImage, 0)     // MagickWand*
 
     RETURN_NUMBER(MagickFlipImage((MagickWand *)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickFloodfillPaintImage, 8)
-    T_HANDLE(0)     // MagickWand*
-    T_NUMBER(1)     // ChannelType
-    T_HANDLE(2)     // PixelWand*
-    T_NUMBER(3)     // double
-    T_HANDLE(4)     // PixelWand*
-    T_NUMBER(5)     // ssize_t
-    T_NUMBER(6)     // ssize_t
-    T_NUMBER(7)     // MagickBooleanType
+    T_HANDLE(MagickFloodfillPaintImage, 0)     // MagickWand*
+    T_NUMBER(MagickFloodfillPaintImage, 1)     // ChannelType
+    T_HANDLE(MagickFloodfillPaintImage, 2)     // PixelWand*
+    T_NUMBER(MagickFloodfillPaintImage, 3)     // double
+    T_HANDLE(MagickFloodfillPaintImage, 4)     // PixelWand*
+    T_NUMBER(MagickFloodfillPaintImage, 5)     // ssize_t
+    T_NUMBER(MagickFloodfillPaintImage, 6)     // ssize_t
+    T_NUMBER(MagickFloodfillPaintImage, 7)     // MagickBooleanType
 
     RETURN_NUMBER(MagickFloodfillPaintImage((MagickWand *)(long)PARAM(0), (ChannelType)PARAM(1), (PixelWand *)(long)PARAM(2), (double)PARAM(3), (PixelWand *)(long)PARAM(4), (ssize_t)PARAM(5), (ssize_t)PARAM(6), (MagickBooleanType)PARAM(7)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickFlopImage, 1)
-    T_HANDLE(0)     // MagickWand*
+    T_HANDLE(MagickFlopImage, 0)     // MagickWand*
 
     RETURN_NUMBER(MagickFlopImage((MagickWand *)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickForwardFourierTransformImage, 2)
-    T_HANDLE(0)     // MagickWand*
-    T_NUMBER(1)     // MagickBooleanType
+    T_HANDLE(MagickForwardFourierTransformImage, 0)     // MagickWand*
+    T_NUMBER(MagickForwardFourierTransformImage, 1)     // MagickBooleanType
 
     RETURN_NUMBER(MagickForwardFourierTransformImage((MagickWand *)(long)PARAM(0), (MagickBooleanType)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickFrameImage, 6)
-    T_HANDLE(0)     // MagickWand*
-    T_HANDLE(1)     // PixelWand*
-    T_NUMBER(2)     // size_t
-    T_NUMBER(3)     // size_t
-    T_NUMBER(4)     // ssize_t
-    T_NUMBER(5)     // ssize_t
+    T_HANDLE(MagickFrameImage, 0)     // MagickWand*
+    T_HANDLE(MagickFrameImage, 1)     // PixelWand*
+    T_NUMBER(MagickFrameImage, 2)     // size_t
+    T_NUMBER(MagickFrameImage, 3)     // size_t
+    T_NUMBER(MagickFrameImage, 4)     // ssize_t
+    T_NUMBER(MagickFrameImage, 5)     // ssize_t
 
     RETURN_NUMBER(MagickFrameImage((MagickWand *)(long)PARAM(0), (PixelWand *)(long)PARAM(1), (size_t)PARAM(2), (size_t)PARAM(3), (ssize_t)PARAM(4), (ssize_t)PARAM(5)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickFunctionImage, 4)
-    T_HANDLE(0)     // MagickWand*
-    T_NUMBER(1)     // MagickFunction
-    T_NUMBER(2)     // size_t
+    T_HANDLE(MagickFunctionImage, 0)     // MagickWand*
+    T_NUMBER(MagickFunctionImage, 1)     // MagickFunction
+    T_NUMBER(MagickFunctionImage, 2)     // size_t
 
 // ... parameter 3 is by reference (double*)
     double local_parameter_3;
@@ -1550,10 +1550,10 @@ CONCEPT_FUNCTION_IMPL(MagickFunctionImage, 4)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickFunctionImageChannel, 5)
-    T_HANDLE(0)     // MagickWand*
-    T_NUMBER(1)     // ChannelType
-    T_NUMBER(2)     // MagickFunction
-    T_NUMBER(3)     // size_t
+    T_HANDLE(MagickFunctionImageChannel, 0)     // MagickWand*
+    T_NUMBER(MagickFunctionImageChannel, 1)     // ChannelType
+    T_NUMBER(MagickFunctionImageChannel, 2)     // MagickFunction
+    T_NUMBER(MagickFunctionImageChannel, 3)     // size_t
 
 // ... parameter 4 is by reference (double*)
     double local_parameter_4;
@@ -1563,52 +1563,52 @@ CONCEPT_FUNCTION_IMPL(MagickFunctionImageChannel, 5)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickGammaImage, 2)
-    T_HANDLE(0)     // MagickWand*
-    T_NUMBER(1)     // double
+    T_HANDLE(MagickGammaImage, 0)     // MagickWand*
+    T_NUMBER(MagickGammaImage, 1)     // double
 
     RETURN_NUMBER(MagickGammaImage((MagickWand *)(long)PARAM(0), (double)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickGammaImageChannel, 3)
-    T_HANDLE(0)     // MagickWand*
-    T_NUMBER(1)     // ChannelType
-    T_NUMBER(2)     // double
+    T_HANDLE(MagickGammaImageChannel, 0)     // MagickWand*
+    T_NUMBER(MagickGammaImageChannel, 1)     // ChannelType
+    T_NUMBER(MagickGammaImageChannel, 2)     // double
 
     RETURN_NUMBER(MagickGammaImageChannel((MagickWand *)(long)PARAM(0), (ChannelType)PARAM(1), (double)PARAM(2)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickGaussianBlurImage, 3)
-    T_HANDLE(0)     // MagickWand*
-    T_NUMBER(1)     // double
-    T_NUMBER(2)     // double
+    T_HANDLE(MagickGaussianBlurImage, 0)     // MagickWand*
+    T_NUMBER(MagickGaussianBlurImage, 1)     // double
+    T_NUMBER(MagickGaussianBlurImage, 2)     // double
 
     RETURN_NUMBER(MagickGaussianBlurImage((MagickWand *)(long)PARAM(0), (double)PARAM(1), (double)PARAM(2)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickGaussianBlurImageChannel, 4)
-    T_HANDLE(0)     // MagickWand*
-    T_NUMBER(1)     // ChannelType
-    T_NUMBER(2)     // double
-    T_NUMBER(3)     // double
+    T_HANDLE(MagickGaussianBlurImageChannel, 0)     // MagickWand*
+    T_NUMBER(MagickGaussianBlurImageChannel, 1)     // ChannelType
+    T_NUMBER(MagickGaussianBlurImageChannel, 2)     // double
+    T_NUMBER(MagickGaussianBlurImageChannel, 3)     // double
 
     RETURN_NUMBER(MagickGaussianBlurImageChannel((MagickWand *)(long)PARAM(0), (ChannelType)PARAM(1), (double)PARAM(2), (double)PARAM(3)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickGetImageAlphaChannel, 1)
-    T_HANDLE(0)     // MagickWand*
+    T_HANDLE(MagickGetImageAlphaChannel, 0)     // MagickWand*
 
     RETURN_NUMBER(MagickGetImageAlphaChannel((MagickWand *)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickGetImageBackgroundColor, 2)
-    T_HANDLE(0)     // MagickWand*
-    T_HANDLE(1)     // PixelWand*
+    T_HANDLE(MagickGetImageBackgroundColor, 0)     // MagickWand*
+    T_HANDLE(MagickGetImageBackgroundColor, 1)     // PixelWand*
 
     RETURN_NUMBER(MagickGetImageBackgroundColor((MagickWand *)(long)PARAM(0), (PixelWand *)(long)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickGetImageBluePrimary, 3)
-    T_HANDLE(0)     // MagickWand*
+    T_HANDLE(MagickGetImageBluePrimary, 0)     // MagickWand*
 
 // ... parameter 1 is by reference (double*)
     double local_parameter_1;
@@ -1621,17 +1621,17 @@ CONCEPT_FUNCTION_IMPL(MagickGetImageBluePrimary, 3)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickGetImageBorderColor, 2)
-    T_HANDLE(0)     // MagickWand*
-    T_HANDLE(1)     // PixelWand*
+    T_HANDLE(MagickGetImageBorderColor, 0)     // MagickWand*
+    T_HANDLE(MagickGetImageBorderColor, 1)     // PixelWand*
 
     RETURN_NUMBER(MagickGetImageBorderColor((MagickWand *)(long)PARAM(0), (PixelWand *)(long)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickGetImageChannelDistortion, 5)
-    T_HANDLE(0)     // MagickWand*
-    T_HANDLE(1)     // MagickWand*
-    T_NUMBER(2)     // ChannelType
-    T_NUMBER(3)     // MetricType
+    T_HANDLE(MagickGetImageChannelDistortion, 0)     // MagickWand*
+    T_HANDLE(MagickGetImageChannelDistortion, 1)     // MagickWand*
+    T_NUMBER(MagickGetImageChannelDistortion, 2)     // ChannelType
+    T_NUMBER(MagickGetImageChannelDistortion, 3)     // MetricType
 
 // ... parameter 4 is by reference (double*)
     double local_parameter_4;
@@ -1641,8 +1641,8 @@ CONCEPT_FUNCTION_IMPL(MagickGetImageChannelDistortion, 5)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickGetImageChannelKurtosis, 4)
-    T_HANDLE(0)     // MagickWand*
-    T_NUMBER(1)     // ChannelType
+    T_HANDLE(MagickGetImageChannelKurtosis, 0)     // MagickWand*
+    T_NUMBER(MagickGetImageChannelKurtosis, 1)     // ChannelType
 
 // ... parameter 2 is by reference (double*)
     double local_parameter_2;
@@ -1655,8 +1655,8 @@ CONCEPT_FUNCTION_IMPL(MagickGetImageChannelKurtosis, 4)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickGetImageChannelMean, 4)
-    T_HANDLE(0)     // MagickWand*
-    T_NUMBER(1)     // ChannelType
+    T_HANDLE(MagickGetImageChannelMean, 0)     // MagickWand*
+    T_NUMBER(MagickGetImageChannelMean, 1)     // ChannelType
 
 // ... parameter 2 is by reference (double*)
     double local_parameter_2;
@@ -1669,8 +1669,8 @@ CONCEPT_FUNCTION_IMPL(MagickGetImageChannelMean, 4)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickGetImageChannelRange, 4)
-    T_HANDLE(0)     // MagickWand*
-    T_NUMBER(1)     // ChannelType
+    T_HANDLE(MagickGetImageChannelRange, 0)     // MagickWand*
+    T_NUMBER(MagickGetImageChannelRange, 1)     // ChannelType
 
 // ... parameter 2 is by reference (double*)
     double local_parameter_2;
@@ -1683,17 +1683,17 @@ CONCEPT_FUNCTION_IMPL(MagickGetImageChannelRange, 4)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickGetImageColormapColor, 3)
-    T_HANDLE(0)     // MagickWand*
-    T_NUMBER(1)     // size_t
-    T_HANDLE(2)     // PixelWand*
+    T_HANDLE(MagickGetImageColormapColor, 0)     // MagickWand*
+    T_NUMBER(MagickGetImageColormapColor, 1)     // size_t
+    T_HANDLE(MagickGetImageColormapColor, 2)     // PixelWand*
 
     RETURN_NUMBER(MagickGetImageColormapColor((MagickWand *)(long)PARAM(0), (size_t)PARAM(1), (PixelWand *)(long)PARAM(2)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickGetImageDistortion, 4)
-    T_HANDLE(0)     // MagickWand*
-    T_HANDLE(1)     // MagickWand*
-    T_NUMBER(2)     // MetricType
+    T_HANDLE(MagickGetImageDistortion, 0)     // MagickWand*
+    T_HANDLE(MagickGetImageDistortion, 1)     // MagickWand*
+    T_NUMBER(MagickGetImageDistortion, 2)     // MetricType
 
 // ... parameter 3 is by reference (double*)
     double local_parameter_3;
@@ -1703,7 +1703,7 @@ CONCEPT_FUNCTION_IMPL(MagickGetImageDistortion, 4)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickGetImageGreenPrimary, 3)
-    T_HANDLE(0)     // MagickWand*
+    T_HANDLE(MagickGetImageGreenPrimary, 0)     // MagickWand*
 
 // ... parameter 1 is by reference (double*)
     double local_parameter_1;
@@ -1716,14 +1716,14 @@ CONCEPT_FUNCTION_IMPL(MagickGetImageGreenPrimary, 3)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickGetImageMatteColor, 2)
-    T_HANDLE(0)     // MagickWand*
-    T_HANDLE(1)     // PixelWand*
+    T_HANDLE(MagickGetImageMatteColor, 0)     // MagickWand*
+    T_HANDLE(MagickGetImageMatteColor, 1)     // PixelWand*
 
     RETURN_NUMBER(MagickGetImageMatteColor((MagickWand *)(long)PARAM(0), (PixelWand *)(long)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickGetImageLength, 2)
-    T_HANDLE(0)     // MagickWand*
+    T_HANDLE(MagickGetImageLength, 0)     // MagickWand*
 
 // ... parameter 1 is by reference (MagickSizeType*)
     MagickSizeType local_parameter_1;
@@ -1733,7 +1733,7 @@ CONCEPT_FUNCTION_IMPL(MagickGetImageLength, 2)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickGetImagePage, 5)
-    T_HANDLE(0)     // MagickWand*
+    T_HANDLE(MagickGetImagePage, 0)     // MagickWand*
 
 // ... parameter 1 is by reference (size_t*)
     size_t local_parameter_1;
@@ -1752,16 +1752,16 @@ CONCEPT_FUNCTION_IMPL(MagickGetImagePage, 5)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickGetImagePixelColor, 4)
-    T_HANDLE(0)     // MagickWand*
-    T_NUMBER(1)     // ssize_t
-    T_NUMBER(2)     // ssize_t
-    T_HANDLE(3)     // PixelWand*
+    T_HANDLE(MagickGetImagePixelColor, 0)     // MagickWand*
+    T_NUMBER(MagickGetImagePixelColor, 1)     // ssize_t
+    T_NUMBER(MagickGetImagePixelColor, 2)     // ssize_t
+    T_HANDLE(MagickGetImagePixelColor, 3)     // PixelWand*
 
     RETURN_NUMBER(MagickGetImagePixelColor((MagickWand *)(long)PARAM(0), (ssize_t)PARAM(1), (ssize_t)PARAM(2), (PixelWand *)(long)PARAM(3)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickGetImageRange, 3)
-    T_HANDLE(0)     // MagickWand*
+    T_HANDLE(MagickGetImageRange, 0)     // MagickWand*
 
 // ... parameter 1 is by reference (double*)
     double local_parameter_1;
@@ -1774,7 +1774,7 @@ CONCEPT_FUNCTION_IMPL(MagickGetImageRange, 3)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickGetImageRedPrimary, 3)
-    T_HANDLE(0)     // MagickWand*
+    T_HANDLE(MagickGetImageRedPrimary, 0)     // MagickWand*
 
 // ... parameter 1 is by reference (double*)
     double local_parameter_1;
@@ -1787,7 +1787,7 @@ CONCEPT_FUNCTION_IMPL(MagickGetImageRedPrimary, 3)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickGetImageResolution, 3)
-    T_HANDLE(0)     // MagickWand*
+    T_HANDLE(MagickGetImageResolution, 0)     // MagickWand*
 
 // ... parameter 1 is by reference (double*)
     double local_parameter_1;
@@ -1800,7 +1800,7 @@ CONCEPT_FUNCTION_IMPL(MagickGetImageResolution, 3)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickGetImageWhitePoint, 3)
-    T_HANDLE(0)     // MagickWand*
+    T_HANDLE(MagickGetImageWhitePoint, 0)     // MagickWand*
 
 // ... parameter 1 is by reference (double*)
     double local_parameter_1;
@@ -1813,892 +1813,892 @@ CONCEPT_FUNCTION_IMPL(MagickGetImageWhitePoint, 3)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickHaldClutImage, 2)
-    T_HANDLE(0)     // MagickWand*
-    T_HANDLE(1)     // MagickWand*
+    T_HANDLE(MagickHaldClutImage, 0)     // MagickWand*
+    T_HANDLE(MagickHaldClutImage, 1)     // MagickWand*
 
     RETURN_NUMBER(MagickHaldClutImage((MagickWand *)(long)PARAM(0), (MagickWand *)(long)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickHaldClutImageChannel, 3)
-    T_HANDLE(0)     // MagickWand*
-    T_NUMBER(1)     // ChannelType
-    T_HANDLE(2)     // MagickWand*
+    T_HANDLE(MagickHaldClutImageChannel, 0)     // MagickWand*
+    T_NUMBER(MagickHaldClutImageChannel, 1)     // ChannelType
+    T_HANDLE(MagickHaldClutImageChannel, 2)     // MagickWand*
 
     RETURN_NUMBER(MagickHaldClutImageChannel((MagickWand *)(long)PARAM(0), (ChannelType)PARAM(1), (MagickWand *)(long)PARAM(2)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickHasNextImage, 1)
-    T_HANDLE(0)     // MagickWand*
+    T_HANDLE(MagickHasNextImage, 0)     // MagickWand*
 
     RETURN_NUMBER(MagickHasNextImage((MagickWand *)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickHasPreviousImage, 1)
-    T_HANDLE(0)     // MagickWand*
+    T_HANDLE(MagickHasPreviousImage, 0)     // MagickWand*
 
     RETURN_NUMBER(MagickHasPreviousImage((MagickWand *)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickImplodeImage, 2)
-    T_HANDLE(0)     // MagickWand*
-    T_NUMBER(1)     // double
+    T_HANDLE(MagickImplodeImage, 0)     // MagickWand*
+    T_NUMBER(MagickImplodeImage, 1)     // double
 
     RETURN_NUMBER(MagickImplodeImage((MagickWand *)(long)PARAM(0), (double)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickImportImagePixels, 8)
-    T_HANDLE(0)     // MagickWand*
-    T_NUMBER(1)     // ssize_t
-    T_NUMBER(2)     // ssize_t
-    T_NUMBER(3)     // size_t
-    T_NUMBER(4)     // size_t
-    T_STRING(5)     // char*
-    T_NUMBER(6)     // StorageType
-    T_NUMBER(7)     // void*
+    T_HANDLE(MagickImportImagePixels, 0)     // MagickWand*
+    T_NUMBER(MagickImportImagePixels, 1)     // ssize_t
+    T_NUMBER(MagickImportImagePixels, 2)     // ssize_t
+    T_NUMBER(MagickImportImagePixels, 3)     // size_t
+    T_NUMBER(MagickImportImagePixels, 4)     // size_t
+    T_STRING(MagickImportImagePixels, 5)     // char*
+    T_NUMBER(MagickImportImagePixels, 6)     // StorageType
+    T_NUMBER(MagickImportImagePixels, 7)     // void*
 
     RETURN_NUMBER(MagickImportImagePixels((MagickWand *)(long)PARAM(0), (ssize_t)PARAM(1), (ssize_t)PARAM(2), (size_t)PARAM(3), (size_t)PARAM(4), (char *)PARAM(5), (StorageType)PARAM(6), (void *)(long)PARAM(7)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickInverseFourierTransformImage, 3)
-    T_HANDLE(0)     // MagickWand*
-    T_HANDLE(1)     // MagickWand*
-    T_NUMBER(2)     // MagickBooleanType
+    T_HANDLE(MagickInverseFourierTransformImage, 0)     // MagickWand*
+    T_HANDLE(MagickInverseFourierTransformImage, 1)     // MagickWand*
+    T_NUMBER(MagickInverseFourierTransformImage, 2)     // MagickBooleanType
 
     RETURN_NUMBER(MagickInverseFourierTransformImage((MagickWand *)(long)PARAM(0), (MagickWand *)(long)PARAM(1), (MagickBooleanType)PARAM(2)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickLabelImage, 2)
-    T_HANDLE(0)     // MagickWand*
-    T_STRING(1)     // char*
+    T_HANDLE(MagickLabelImage, 0)     // MagickWand*
+    T_STRING(MagickLabelImage, 1)     // char*
 
     RETURN_NUMBER(MagickLabelImage((MagickWand *)(long)PARAM(0), (char *)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickLevelImage, 4)
-    T_HANDLE(0)     // MagickWand*
-    T_NUMBER(1)     // double
-    T_NUMBER(2)     // double
-    T_NUMBER(3)     // double
+    T_HANDLE(MagickLevelImage, 0)     // MagickWand*
+    T_NUMBER(MagickLevelImage, 1)     // double
+    T_NUMBER(MagickLevelImage, 2)     // double
+    T_NUMBER(MagickLevelImage, 3)     // double
 
     RETURN_NUMBER(MagickLevelImage((MagickWand *)(long)PARAM(0), (double)PARAM(1), (double)PARAM(2), (double)PARAM(3)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickLevelImageChannel, 5)
-    T_HANDLE(0)     // MagickWand*
-    T_NUMBER(1)     // ChannelType
-    T_NUMBER(2)     // double
-    T_NUMBER(3)     // double
-    T_NUMBER(4)     // double
+    T_HANDLE(MagickLevelImageChannel, 0)     // MagickWand*
+    T_NUMBER(MagickLevelImageChannel, 1)     // ChannelType
+    T_NUMBER(MagickLevelImageChannel, 2)     // double
+    T_NUMBER(MagickLevelImageChannel, 3)     // double
+    T_NUMBER(MagickLevelImageChannel, 4)     // double
 
     RETURN_NUMBER(MagickLevelImageChannel((MagickWand *)(long)PARAM(0), (ChannelType)PARAM(1), (double)PARAM(2), (double)PARAM(3), (double)PARAM(4)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickLinearStretchImage, 3)
-    T_HANDLE(0)     // MagickWand*
-    T_NUMBER(1)     // double
-    T_NUMBER(2)     // double
+    T_HANDLE(MagickLinearStretchImage, 0)     // MagickWand*
+    T_NUMBER(MagickLinearStretchImage, 1)     // double
+    T_NUMBER(MagickLinearStretchImage, 2)     // double
 
     RETURN_NUMBER(MagickLinearStretchImage((MagickWand *)(long)PARAM(0), (double)PARAM(1), (double)PARAM(2)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickLiquidRescaleImage, 5)
-    T_HANDLE(0)     // MagickWand*
-    T_NUMBER(1)     // size_t
-    T_NUMBER(2)     // size_t
-    T_NUMBER(3)     // double
-    T_NUMBER(4)     // double
+    T_HANDLE(MagickLiquidRescaleImage, 0)     // MagickWand*
+    T_NUMBER(MagickLiquidRescaleImage, 1)     // size_t
+    T_NUMBER(MagickLiquidRescaleImage, 2)     // size_t
+    T_NUMBER(MagickLiquidRescaleImage, 3)     // double
+    T_NUMBER(MagickLiquidRescaleImage, 4)     // double
 
     RETURN_NUMBER(MagickLiquidRescaleImage((MagickWand *)(long)PARAM(0), (size_t)PARAM(1), (size_t)PARAM(2), (double)PARAM(3), (double)PARAM(4)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickMagnifyImage, 1)
-    T_HANDLE(0)     // MagickWand*
+    T_HANDLE(MagickMagnifyImage, 0)     // MagickWand*
 
     RETURN_NUMBER(MagickMagnifyImage((MagickWand *)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickMedianFilterImage, 2)
-    T_HANDLE(0)     // MagickWand*
-    T_NUMBER(1)     // double
+    T_HANDLE(MagickMedianFilterImage, 0)     // MagickWand*
+    T_NUMBER(MagickMedianFilterImage, 1)     // double
 
     RETURN_NUMBER(MagickMedianFilterImage((MagickWand *)(long)PARAM(0), (double)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickMinifyImage, 1)
-    T_HANDLE(0)     // MagickWand*
+    T_HANDLE(MagickMinifyImage, 0)     // MagickWand*
 
     RETURN_NUMBER(MagickMinifyImage((MagickWand *)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickModulateImage, 4)
-    T_HANDLE(0)     // MagickWand*
-    T_NUMBER(1)     // double
-    T_NUMBER(2)     // double
-    T_NUMBER(3)     // double
+    T_HANDLE(MagickModulateImage, 0)     // MagickWand*
+    T_NUMBER(MagickModulateImage, 1)     // double
+    T_NUMBER(MagickModulateImage, 2)     // double
+    T_NUMBER(MagickModulateImage, 3)     // double
 
     RETURN_NUMBER(MagickModulateImage((MagickWand *)(long)PARAM(0), (double)PARAM(1), (double)PARAM(2), (double)PARAM(3)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickMorphologyImage, 4)
-    T_HANDLE(0)     // MagickWand*
-    T_NUMBER(1)     // MorphologyMethod
-    T_NUMBER(2)     // ssize_t
-    T_HANDLE(3)     // KernelInfo*
+    T_HANDLE(MagickMorphologyImage, 0)     // MagickWand*
+    T_NUMBER(MagickMorphologyImage, 1)     // MorphologyMethod
+    T_NUMBER(MagickMorphologyImage, 2)     // ssize_t
+    T_HANDLE(MagickMorphologyImage, 3)     // KernelInfo*
 
     RETURN_NUMBER(MagickMorphologyImage((MagickWand *)(long)PARAM(0), (MorphologyMethod)PARAM(1), (ssize_t)PARAM(2), (KernelInfo *)(long)PARAM(3)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickMorphologyImageChannel, 5)
-    T_HANDLE(0)     // MagickWand*
-    T_NUMBER(1)     // ChannelType
-    T_NUMBER(2)     // MorphologyMethod
-    T_NUMBER(3)     // ssize_t
-    T_HANDLE(4)     // KernelInfo*
+    T_HANDLE(MagickMorphologyImageChannel, 0)     // MagickWand*
+    T_NUMBER(MagickMorphologyImageChannel, 1)     // ChannelType
+    T_NUMBER(MagickMorphologyImageChannel, 2)     // MorphologyMethod
+    T_NUMBER(MagickMorphologyImageChannel, 3)     // ssize_t
+    T_HANDLE(MagickMorphologyImageChannel, 4)     // KernelInfo*
 
     RETURN_NUMBER(MagickMorphologyImageChannel((MagickWand *)(long)PARAM(0), (ChannelType)PARAM(1), (MorphologyMethod)PARAM(2), (ssize_t)PARAM(3), (KernelInfo *)(long)PARAM(4)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickMotionBlurImage, 4)
-    T_HANDLE(0)     // MagickWand*
-    T_NUMBER(1)     // double
-    T_NUMBER(2)     // double
-    T_NUMBER(3)     // double
+    T_HANDLE(MagickMotionBlurImage, 0)     // MagickWand*
+    T_NUMBER(MagickMotionBlurImage, 1)     // double
+    T_NUMBER(MagickMotionBlurImage, 2)     // double
+    T_NUMBER(MagickMotionBlurImage, 3)     // double
 
     RETURN_NUMBER(MagickMotionBlurImage((MagickWand *)(long)PARAM(0), (double)PARAM(1), (double)PARAM(2), (double)PARAM(3)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickMotionBlurImageChannel, 5)
-    T_HANDLE(0)     // MagickWand*
-    T_NUMBER(1)     // ChannelType
-    T_NUMBER(2)     // double
-    T_NUMBER(3)     // double
-    T_NUMBER(4)     // double
+    T_HANDLE(MagickMotionBlurImageChannel, 0)     // MagickWand*
+    T_NUMBER(MagickMotionBlurImageChannel, 1)     // ChannelType
+    T_NUMBER(MagickMotionBlurImageChannel, 2)     // double
+    T_NUMBER(MagickMotionBlurImageChannel, 3)     // double
+    T_NUMBER(MagickMotionBlurImageChannel, 4)     // double
 
     RETURN_NUMBER(MagickMotionBlurImageChannel((MagickWand *)(long)PARAM(0), (ChannelType)PARAM(1), (double)PARAM(2), (double)PARAM(3), (double)PARAM(4)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickNegateImage, 2)
-    T_HANDLE(0)     // MagickWand*
-    T_NUMBER(1)     // MagickBooleanType
+    T_HANDLE(MagickNegateImage, 0)     // MagickWand*
+    T_NUMBER(MagickNegateImage, 1)     // MagickBooleanType
 
     RETURN_NUMBER(MagickNegateImage((MagickWand *)(long)PARAM(0), (MagickBooleanType)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickNegateImageChannel, 3)
-    T_HANDLE(0)     // MagickWand*
-    T_NUMBER(1)     // ChannelType
-    T_NUMBER(2)     // MagickBooleanType
+    T_HANDLE(MagickNegateImageChannel, 0)     // MagickWand*
+    T_NUMBER(MagickNegateImageChannel, 1)     // ChannelType
+    T_NUMBER(MagickNegateImageChannel, 2)     // MagickBooleanType
 
     RETURN_NUMBER(MagickNegateImageChannel((MagickWand *)(long)PARAM(0), (ChannelType)PARAM(1), (MagickBooleanType)PARAM(2)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickNewImage, 4)
-    T_HANDLE(0)     // MagickWand*
-    T_NUMBER(1)     // size_t
-    T_NUMBER(2)     // size_t
-    T_HANDLE(3)     // PixelWand*
+    T_HANDLE(MagickNewImage, 0)     // MagickWand*
+    T_NUMBER(MagickNewImage, 1)     // size_t
+    T_NUMBER(MagickNewImage, 2)     // size_t
+    T_HANDLE(MagickNewImage, 3)     // PixelWand*
 
     RETURN_NUMBER(MagickNewImage((MagickWand *)(long)PARAM(0), (size_t)PARAM(1), (size_t)PARAM(2), (PixelWand *)(long)PARAM(3)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickNextImage, 1)
-    T_HANDLE(0)     // MagickWand*
+    T_HANDLE(MagickNextImage, 0)     // MagickWand*
 
     RETURN_NUMBER(MagickNextImage((MagickWand *)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickNormalizeImage, 1)
-    T_HANDLE(0)     // MagickWand*
+    T_HANDLE(MagickNormalizeImage, 0)     // MagickWand*
 
     RETURN_NUMBER(MagickNormalizeImage((MagickWand *)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickNormalizeImageChannel, 2)
-    T_HANDLE(0)     // MagickWand*
-    T_NUMBER(1)     // ChannelType
+    T_HANDLE(MagickNormalizeImageChannel, 0)     // MagickWand*
+    T_NUMBER(MagickNormalizeImageChannel, 1)     // ChannelType
 
     RETURN_NUMBER(MagickNormalizeImageChannel((MagickWand *)(long)PARAM(0), (ChannelType)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickOilPaintImage, 2)
-    T_HANDLE(0)     // MagickWand*
-    T_NUMBER(1)     // double
+    T_HANDLE(MagickOilPaintImage, 0)     // MagickWand*
+    T_NUMBER(MagickOilPaintImage, 1)     // double
 
     RETURN_NUMBER(MagickOilPaintImage((MagickWand *)(long)PARAM(0), (double)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickOpaquePaintImage, 5)
-    T_HANDLE(0)     // MagickWand*
-    T_HANDLE(1)     // PixelWand*
-    T_HANDLE(2)     // PixelWand*
-    T_NUMBER(3)     // double
-    T_NUMBER(4)     // MagickBooleanType
+    T_HANDLE(MagickOpaquePaintImage, 0)     // MagickWand*
+    T_HANDLE(MagickOpaquePaintImage, 1)     // PixelWand*
+    T_HANDLE(MagickOpaquePaintImage, 2)     // PixelWand*
+    T_NUMBER(MagickOpaquePaintImage, 3)     // double
+    T_NUMBER(MagickOpaquePaintImage, 4)     // MagickBooleanType
 
     RETURN_NUMBER(MagickOpaquePaintImage((MagickWand *)(long)PARAM(0), (PixelWand *)(long)PARAM(1), (PixelWand *)(long)PARAM(2), (double)PARAM(3), (MagickBooleanType)PARAM(4)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickOpaquePaintImageChannel, 6)
-    T_HANDLE(0)     // MagickWand*
-    T_NUMBER(1)     // ChannelType
-    T_HANDLE(2)     // PixelWand*
-    T_HANDLE(3)     // PixelWand*
-    T_NUMBER(4)     // double
-    T_NUMBER(5)     // MagickBooleanType
+    T_HANDLE(MagickOpaquePaintImageChannel, 0)     // MagickWand*
+    T_NUMBER(MagickOpaquePaintImageChannel, 1)     // ChannelType
+    T_HANDLE(MagickOpaquePaintImageChannel, 2)     // PixelWand*
+    T_HANDLE(MagickOpaquePaintImageChannel, 3)     // PixelWand*
+    T_NUMBER(MagickOpaquePaintImageChannel, 4)     // double
+    T_NUMBER(MagickOpaquePaintImageChannel, 5)     // MagickBooleanType
 
     RETURN_NUMBER(MagickOpaquePaintImageChannel((MagickWand *)(long)PARAM(0), (ChannelType)PARAM(1), (PixelWand *)(long)PARAM(2), (PixelWand *)(long)PARAM(3), (double)PARAM(4), (MagickBooleanType)PARAM(5)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickOrderedPosterizeImage, 2)
-    T_HANDLE(0)     // MagickWand*
-    T_STRING(1)     // char*
+    T_HANDLE(MagickOrderedPosterizeImage, 0)     // MagickWand*
+    T_STRING(MagickOrderedPosterizeImage, 1)     // char*
 
     RETURN_NUMBER(MagickOrderedPosterizeImage((MagickWand *)(long)PARAM(0), (char *)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickOrderedPosterizeImageChannel, 3)
-    T_HANDLE(0)     // MagickWand*
-    T_NUMBER(1)     // ChannelType
-    T_STRING(2)     // char*
+    T_HANDLE(MagickOrderedPosterizeImageChannel, 0)     // MagickWand*
+    T_NUMBER(MagickOrderedPosterizeImageChannel, 1)     // ChannelType
+    T_STRING(MagickOrderedPosterizeImageChannel, 2)     // char*
 
     RETURN_NUMBER(MagickOrderedPosterizeImageChannel((MagickWand *)(long)PARAM(0), (ChannelType)PARAM(1), (char *)PARAM(2)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickTransparentPaintImage, 5)
-    T_HANDLE(0)     // MagickWand*
-    T_HANDLE(1)     // PixelWand*
-    T_NUMBER(2)     // double
-    T_NUMBER(3)     // double
-    T_NUMBER(4)     // MagickBooleanType
+    T_HANDLE(MagickTransparentPaintImage, 0)     // MagickWand*
+    T_HANDLE(MagickTransparentPaintImage, 1)     // PixelWand*
+    T_NUMBER(MagickTransparentPaintImage, 2)     // double
+    T_NUMBER(MagickTransparentPaintImage, 3)     // double
+    T_NUMBER(MagickTransparentPaintImage, 4)     // MagickBooleanType
 
     RETURN_NUMBER(MagickTransparentPaintImage((MagickWand *)(long)PARAM(0), (PixelWand *)(long)PARAM(1), (double)PARAM(2), (double)PARAM(3), (MagickBooleanType)PARAM(4)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickPingImage, 2)
-    T_HANDLE(0)     // MagickWand*
-    T_STRING(1)     // char*
+    T_HANDLE(MagickPingImage, 0)     // MagickWand*
+    T_STRING(MagickPingImage, 1)     // char*
 
     RETURN_NUMBER(MagickPingImage((MagickWand *)(long)PARAM(0), (char *)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickPingImageBlob, 2)
-    T_HANDLE(0)     // MagickWand*
-    T_STRING(1)     // void*
+    T_HANDLE(MagickPingImageBlob, 0)     // MagickWand*
+    T_STRING(MagickPingImageBlob, 1)     // void*
 
     RETURN_NUMBER(MagickPingImageBlob((MagickWand *)(long)PARAM(0), (void *)PARAM(1), (size_t)PARAM_LEN(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickPingImageFile, 2)
-    T_HANDLE(0)     // MagickWand*
-    T_HANDLE(1)     // FILE*
+    T_HANDLE(MagickPingImageFile, 0)     // MagickWand*
+    T_HANDLE(MagickPingImageFile, 1)     // FILE*
 
     RETURN_NUMBER(MagickPingImageFile((MagickWand *)(long)PARAM(0), (FILE *)(long)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickPolaroidImage, 3)
-    T_HANDLE(0)     // MagickWand*
-    T_HANDLE(1)     // DrawingWand*
-    T_NUMBER(2)     // double
+    T_HANDLE(MagickPolaroidImage, 0)     // MagickWand*
+    T_HANDLE(MagickPolaroidImage, 1)     // DrawingWand*
+    T_NUMBER(MagickPolaroidImage, 2)     // double
 
     RETURN_NUMBER(MagickPolaroidImage((MagickWand *)(long)PARAM(0), (DrawingWand *)(long)PARAM(1), (double)PARAM(2)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickPosterizeImage, 3)
-    T_HANDLE(0)     // MagickWand*
-    T_NUMBER(1)     // size_t
-    T_NUMBER(2)     // MagickBooleanType
+    T_HANDLE(MagickPosterizeImage, 0)     // MagickWand*
+    T_NUMBER(MagickPosterizeImage, 1)     // size_t
+    T_NUMBER(MagickPosterizeImage, 2)     // MagickBooleanType
 
     RETURN_NUMBER(MagickPosterizeImage((MagickWand *)(long)PARAM(0), (size_t)PARAM(1), (MagickBooleanType)PARAM(2)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickPreviousImage, 1)
-    T_HANDLE(0)     // MagickWand*
+    T_HANDLE(MagickPreviousImage, 0)     // MagickWand*
 
     RETURN_NUMBER(MagickPreviousImage((MagickWand *)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickQuantizeImage, 6)
-    T_HANDLE(0)     // MagickWand*
-    T_NUMBER(1)     // size_t
-    T_NUMBER(2)     // ColorspaceType
-    T_NUMBER(3)     // size_t
-    T_NUMBER(4)     // MagickBooleanType
-    T_NUMBER(5)     // MagickBooleanType
+    T_HANDLE(MagickQuantizeImage, 0)     // MagickWand*
+    T_NUMBER(MagickQuantizeImage, 1)     // size_t
+    T_NUMBER(MagickQuantizeImage, 2)     // ColorspaceType
+    T_NUMBER(MagickQuantizeImage, 3)     // size_t
+    T_NUMBER(MagickQuantizeImage, 4)     // MagickBooleanType
+    T_NUMBER(MagickQuantizeImage, 5)     // MagickBooleanType
 
     RETURN_NUMBER(MagickQuantizeImage((MagickWand *)(long)PARAM(0), (size_t)PARAM(1), (ColorspaceType)PARAM(2), (size_t)PARAM(3), (MagickBooleanType)PARAM(4), (MagickBooleanType)PARAM(5)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickQuantizeImages, 6)
-    T_HANDLE(0)     // MagickWand*
-    T_NUMBER(1)     // size_t
-    T_NUMBER(2)     // ColorspaceType
-    T_NUMBER(3)     // size_t
-    T_NUMBER(4)     // MagickBooleanType
-    T_NUMBER(5)     // MagickBooleanType
+    T_HANDLE(MagickQuantizeImages, 0)     // MagickWand*
+    T_NUMBER(MagickQuantizeImages, 1)     // size_t
+    T_NUMBER(MagickQuantizeImages, 2)     // ColorspaceType
+    T_NUMBER(MagickQuantizeImages, 3)     // size_t
+    T_NUMBER(MagickQuantizeImages, 4)     // MagickBooleanType
+    T_NUMBER(MagickQuantizeImages, 5)     // MagickBooleanType
 
     RETURN_NUMBER(MagickQuantizeImages((MagickWand *)(long)PARAM(0), (size_t)PARAM(1), (ColorspaceType)PARAM(2), (size_t)PARAM(3), (MagickBooleanType)PARAM(4), (MagickBooleanType)PARAM(5)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickRadialBlurImage, 2)
-    T_HANDLE(0)     // MagickWand*
-    T_NUMBER(1)     // double
+    T_HANDLE(MagickRadialBlurImage, 0)     // MagickWand*
+    T_NUMBER(MagickRadialBlurImage, 1)     // double
 
     RETURN_NUMBER(MagickRadialBlurImage((MagickWand *)(long)PARAM(0), (double)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickRadialBlurImageChannel, 3)
-    T_HANDLE(0)     // MagickWand*
-    T_NUMBER(1)     // ChannelType
-    T_NUMBER(2)     // double
+    T_HANDLE(MagickRadialBlurImageChannel, 0)     // MagickWand*
+    T_NUMBER(MagickRadialBlurImageChannel, 1)     // ChannelType
+    T_NUMBER(MagickRadialBlurImageChannel, 2)     // double
 
     RETURN_NUMBER(MagickRadialBlurImageChannel((MagickWand *)(long)PARAM(0), (ChannelType)PARAM(1), (double)PARAM(2)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickRaiseImage, 6)
-    T_HANDLE(0)     // MagickWand*
-    T_NUMBER(1)     // size_t
-    T_NUMBER(2)     // size_t
-    T_NUMBER(3)     // ssize_t
-    T_NUMBER(4)     // ssize_t
-    T_NUMBER(5)     // MagickBooleanType
+    T_HANDLE(MagickRaiseImage, 0)     // MagickWand*
+    T_NUMBER(MagickRaiseImage, 1)     // size_t
+    T_NUMBER(MagickRaiseImage, 2)     // size_t
+    T_NUMBER(MagickRaiseImage, 3)     // ssize_t
+    T_NUMBER(MagickRaiseImage, 4)     // ssize_t
+    T_NUMBER(MagickRaiseImage, 5)     // MagickBooleanType
 
     RETURN_NUMBER(MagickRaiseImage((MagickWand *)(long)PARAM(0), (size_t)PARAM(1), (size_t)PARAM(2), (ssize_t)PARAM(3), (ssize_t)PARAM(4), (MagickBooleanType)PARAM(5)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickRandomThresholdImage, 3)
-    T_HANDLE(0)     // MagickWand*
-    T_NUMBER(1)     // double
-    T_NUMBER(2)     // double
+    T_HANDLE(MagickRandomThresholdImage, 0)     // MagickWand*
+    T_NUMBER(MagickRandomThresholdImage, 1)     // double
+    T_NUMBER(MagickRandomThresholdImage, 2)     // double
 
     RETURN_NUMBER(MagickRandomThresholdImage((MagickWand *)(long)PARAM(0), (double)PARAM(1), (double)PARAM(2)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickRandomThresholdImageChannel, 4)
-    T_HANDLE(0)     // MagickWand*
-    T_NUMBER(1)     // ChannelType
-    T_NUMBER(2)     // double
-    T_NUMBER(3)     // double
+    T_HANDLE(MagickRandomThresholdImageChannel, 0)     // MagickWand*
+    T_NUMBER(MagickRandomThresholdImageChannel, 1)     // ChannelType
+    T_NUMBER(MagickRandomThresholdImageChannel, 2)     // double
+    T_NUMBER(MagickRandomThresholdImageChannel, 3)     // double
 
     RETURN_NUMBER(MagickRandomThresholdImageChannel((MagickWand *)(long)PARAM(0), (ChannelType)PARAM(1), (double)PARAM(2), (double)PARAM(3)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickReadImage, 2)
-    T_HANDLE(0)     // MagickWand*
-    T_STRING(1)     // char*
+    T_HANDLE(MagickReadImage, 0)     // MagickWand*
+    T_STRING(MagickReadImage, 1)     // char*
 
     RETURN_NUMBER(MagickReadImage((MagickWand *)(long)PARAM(0), (char *)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickReadImageBlob, 2)
-    T_HANDLE(0)     // MagickWand*
-    T_STRING(1)     // void*
+    T_HANDLE(MagickReadImageBlob, 0)     // MagickWand*
+    T_STRING(MagickReadImageBlob, 1)     // void*
 
     RETURN_NUMBER(MagickReadImageBlob((MagickWand *)(long)PARAM(0), (void *)PARAM(1), (size_t)PARAM_LEN(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickReadImageFile, 2)
-    T_HANDLE(0)     // MagickWand*
-    T_HANDLE(1)     // FILE*
+    T_HANDLE(MagickReadImageFile, 0)     // MagickWand*
+    T_HANDLE(MagickReadImageFile, 1)     // FILE*
 
     RETURN_NUMBER(MagickReadImageFile((MagickWand *)(long)PARAM(0), (FILE *)(long)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickReduceNoiseImage, 2)
-    T_HANDLE(0)     // MagickWand*
-    T_NUMBER(1)     // double
+    T_HANDLE(MagickReduceNoiseImage, 0)     // MagickWand*
+    T_NUMBER(MagickReduceNoiseImage, 1)     // double
 
     RETURN_NUMBER(MagickReduceNoiseImage((MagickWand *)(long)PARAM(0), (double)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickRemapImage, 3)
-    T_HANDLE(0)     // MagickWand*
-    T_HANDLE(1)     // MagickWand*
-    T_NUMBER(2)     // DitherMethod
+    T_HANDLE(MagickRemapImage, 0)     // MagickWand*
+    T_HANDLE(MagickRemapImage, 1)     // MagickWand*
+    T_NUMBER(MagickRemapImage, 2)     // DitherMethod
 
     RETURN_NUMBER(MagickRemapImage((MagickWand *)(long)PARAM(0), (MagickWand *)(long)PARAM(1), (DitherMethod)PARAM(2)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickRemoveImage, 1)
-    T_HANDLE(0)     // MagickWand*
+    T_HANDLE(MagickRemoveImage, 0)     // MagickWand*
 
     RETURN_NUMBER(MagickRemoveImage((MagickWand *)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickResampleImage, 5)
-    T_HANDLE(0)     // MagickWand*
-    T_NUMBER(1)     // double
-    T_NUMBER(2)     // double
-    T_NUMBER(3)     // FilterTypes
-    T_NUMBER(4)     // double
+    T_HANDLE(MagickResampleImage, 0)     // MagickWand*
+    T_NUMBER(MagickResampleImage, 1)     // double
+    T_NUMBER(MagickResampleImage, 2)     // double
+    T_NUMBER(MagickResampleImage, 3)     // FilterTypes
+    T_NUMBER(MagickResampleImage, 4)     // double
 
     RETURN_NUMBER(MagickResampleImage((MagickWand *)(long)PARAM(0), (double)PARAM(1), (double)PARAM(2), (FilterTypes)PARAM(3), (double)PARAM(4)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickResetImagePage, 2)
-    T_HANDLE(0)     // MagickWand*
-    T_STRING(1)     // char*
+    T_HANDLE(MagickResetImagePage, 0)     // MagickWand*
+    T_STRING(MagickResetImagePage, 1)     // char*
 
     RETURN_NUMBER(MagickResetImagePage((MagickWand *)(long)PARAM(0), (char *)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickRollImage, 3)
-    T_HANDLE(0)     // MagickWand*
-    T_NUMBER(1)     // ssize_t
-    T_NUMBER(2)     // ssize_t
+    T_HANDLE(MagickRollImage, 0)     // MagickWand*
+    T_NUMBER(MagickRollImage, 1)     // ssize_t
+    T_NUMBER(MagickRollImage, 2)     // ssize_t
 
     RETURN_NUMBER(MagickRollImage((MagickWand *)(long)PARAM(0), (ssize_t)PARAM(1), (ssize_t)PARAM(2)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickRotateImage, 3)
-    T_HANDLE(0)     // MagickWand*
-    T_HANDLE(1)     // PixelWand*
-    T_NUMBER(2)     // double
+    T_HANDLE(MagickRotateImage, 0)     // MagickWand*
+    T_HANDLE(MagickRotateImage, 1)     // PixelWand*
+    T_NUMBER(MagickRotateImage, 2)     // double
 
     RETURN_NUMBER(MagickRotateImage((MagickWand *)(long)PARAM(0), (PixelWand *)(long)PARAM(1), (double)PARAM(2)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickSampleImage, 3)
-    T_HANDLE(0)     // MagickWand*
-    T_NUMBER(1)     // size_t
-    T_NUMBER(2)     // size_t
+    T_HANDLE(MagickSampleImage, 0)     // MagickWand*
+    T_NUMBER(MagickSampleImage, 1)     // size_t
+    T_NUMBER(MagickSampleImage, 2)     // size_t
 
     RETURN_NUMBER(MagickSampleImage((MagickWand *)(long)PARAM(0), (size_t)PARAM(1), (size_t)PARAM(2)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickScaleImage, 3)
-    T_HANDLE(0)     // MagickWand*
-    T_NUMBER(1)     // size_t
-    T_NUMBER(2)     // size_t
+    T_HANDLE(MagickScaleImage, 0)     // MagickWand*
+    T_NUMBER(MagickScaleImage, 1)     // size_t
+    T_NUMBER(MagickScaleImage, 2)     // size_t
 
     RETURN_NUMBER(MagickScaleImage((MagickWand *)(long)PARAM(0), (size_t)PARAM(1), (size_t)PARAM(2)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickSegmentImage, 5)
-    T_HANDLE(0)     // MagickWand*
-    T_NUMBER(1)     // ColorspaceType
-    T_NUMBER(2)     // MagickBooleanType
-    T_NUMBER(3)     // double
-    T_NUMBER(4)     // double
+    T_HANDLE(MagickSegmentImage, 0)     // MagickWand*
+    T_NUMBER(MagickSegmentImage, 1)     // ColorspaceType
+    T_NUMBER(MagickSegmentImage, 2)     // MagickBooleanType
+    T_NUMBER(MagickSegmentImage, 3)     // double
+    T_NUMBER(MagickSegmentImage, 4)     // double
 
     RETURN_NUMBER(MagickSegmentImage((MagickWand *)(long)PARAM(0), (ColorspaceType)PARAM(1), (MagickBooleanType)PARAM(2), (double)PARAM(3), (double)PARAM(4)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickSelectiveBlurImage, 4)
-    T_HANDLE(0)     // MagickWand*
-    T_NUMBER(1)     // double
-    T_NUMBER(2)     // double
-    T_NUMBER(3)     // double
+    T_HANDLE(MagickSelectiveBlurImage, 0)     // MagickWand*
+    T_NUMBER(MagickSelectiveBlurImage, 1)     // double
+    T_NUMBER(MagickSelectiveBlurImage, 2)     // double
+    T_NUMBER(MagickSelectiveBlurImage, 3)     // double
 
     RETURN_NUMBER(MagickSelectiveBlurImage((MagickWand *)(long)PARAM(0), (double)PARAM(1), (double)PARAM(2), (double)PARAM(3)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickSelectiveBlurImageChannel, 5)
-    T_HANDLE(0)     // MagickWand*
-    T_NUMBER(1)     // ChannelType
-    T_NUMBER(2)     // double
-    T_NUMBER(3)     // double
-    T_NUMBER(4)     // double
+    T_HANDLE(MagickSelectiveBlurImageChannel, 0)     // MagickWand*
+    T_NUMBER(MagickSelectiveBlurImageChannel, 1)     // ChannelType
+    T_NUMBER(MagickSelectiveBlurImageChannel, 2)     // double
+    T_NUMBER(MagickSelectiveBlurImageChannel, 3)     // double
+    T_NUMBER(MagickSelectiveBlurImageChannel, 4)     // double
 
     RETURN_NUMBER(MagickSelectiveBlurImageChannel((MagickWand *)(long)PARAM(0), (ChannelType)PARAM(1), (double)PARAM(2), (double)PARAM(3), (double)PARAM(4)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickSeparateImageChannel, 2)
-    T_HANDLE(0)     // MagickWand*
-    T_NUMBER(1)     // ChannelType
+    T_HANDLE(MagickSeparateImageChannel, 0)     // MagickWand*
+    T_NUMBER(MagickSeparateImageChannel, 1)     // ChannelType
 
     RETURN_NUMBER(MagickSeparateImageChannel((MagickWand *)(long)PARAM(0), (ChannelType)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickSepiaToneImage, 2)
-    T_HANDLE(0)     // MagickWand*
-    T_NUMBER(1)     // double
+    T_HANDLE(MagickSepiaToneImage, 0)     // MagickWand*
+    T_NUMBER(MagickSepiaToneImage, 1)     // double
 
     RETURN_NUMBER(MagickSepiaToneImage((MagickWand *)(long)PARAM(0), (double)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickSetImage, 2)
-    T_HANDLE(0)     // MagickWand*
-    T_HANDLE(1)     // MagickWand*
+    T_HANDLE(MagickSetImage, 0)     // MagickWand*
+    T_HANDLE(MagickSetImage, 1)     // MagickWand*
 
     RETURN_NUMBER(MagickSetImage((MagickWand *)(long)PARAM(0), (MagickWand *)(long)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickSetImageAlphaChannel, 2)
-    T_HANDLE(0)     // MagickWand*
-    T_NUMBER(1)     // AlphaChannelType
+    T_HANDLE(MagickSetImageAlphaChannel, 0)     // MagickWand*
+    T_NUMBER(MagickSetImageAlphaChannel, 1)     // AlphaChannelType
 
     RETURN_NUMBER(MagickSetImageAlphaChannel((MagickWand *)(long)PARAM(0), (AlphaChannelType)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickSetImageBackgroundColor, 2)
-    T_HANDLE(0)     // MagickWand*
-    T_HANDLE(1)     // PixelWand*
+    T_HANDLE(MagickSetImageBackgroundColor, 0)     // MagickWand*
+    T_HANDLE(MagickSetImageBackgroundColor, 1)     // PixelWand*
 
     RETURN_NUMBER(MagickSetImageBackgroundColor((MagickWand *)(long)PARAM(0), (PixelWand *)(long)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickSetImageBias, 2)
-    T_HANDLE(0)     // MagickWand*
-    T_NUMBER(1)     // double
+    T_HANDLE(MagickSetImageBias, 0)     // MagickWand*
+    T_NUMBER(MagickSetImageBias, 1)     // double
 
     RETURN_NUMBER(MagickSetImageBias((MagickWand *)(long)PARAM(0), (double)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickSetImageBluePrimary, 3)
-    T_HANDLE(0)     // MagickWand*
-    T_NUMBER(1)     // double
-    T_NUMBER(2)     // double
+    T_HANDLE(MagickSetImageBluePrimary, 0)     // MagickWand*
+    T_NUMBER(MagickSetImageBluePrimary, 1)     // double
+    T_NUMBER(MagickSetImageBluePrimary, 2)     // double
 
     RETURN_NUMBER(MagickSetImageBluePrimary((MagickWand *)(long)PARAM(0), (double)PARAM(1), (double)PARAM(2)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickSetImageBorderColor, 2)
-    T_HANDLE(0)     // MagickWand*
-    T_HANDLE(1)     // PixelWand*
+    T_HANDLE(MagickSetImageBorderColor, 0)     // MagickWand*
+    T_HANDLE(MagickSetImageBorderColor, 1)     // PixelWand*
 
     RETURN_NUMBER(MagickSetImageBorderColor((MagickWand *)(long)PARAM(0), (PixelWand *)(long)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickSetImageChannelDepth, 3)
-    T_HANDLE(0)     // MagickWand*
-    T_NUMBER(1)     // ChannelType
-    T_NUMBER(2)     // size_t
+    T_HANDLE(MagickSetImageChannelDepth, 0)     // MagickWand*
+    T_NUMBER(MagickSetImageChannelDepth, 1)     // ChannelType
+    T_NUMBER(MagickSetImageChannelDepth, 2)     // size_t
 
     RETURN_NUMBER(MagickSetImageChannelDepth((MagickWand *)(long)PARAM(0), (ChannelType)PARAM(1), (size_t)PARAM(2)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickSetImageClipMask, 2)
-    T_HANDLE(0)     // MagickWand*
-    T_HANDLE(1)     // MagickWand*
+    T_HANDLE(MagickSetImageClipMask, 0)     // MagickWand*
+    T_HANDLE(MagickSetImageClipMask, 1)     // MagickWand*
 
     RETURN_NUMBER(MagickSetImageClipMask((MagickWand *)(long)PARAM(0), (MagickWand *)(long)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickSetImageColor, 2)
-    T_HANDLE(0)     // MagickWand*
-    T_HANDLE(1)     // PixelWand*
+    T_HANDLE(MagickSetImageColor, 0)     // MagickWand*
+    T_HANDLE(MagickSetImageColor, 1)     // PixelWand*
 
     RETURN_NUMBER(MagickSetImageColor((MagickWand *)(long)PARAM(0), (PixelWand *)(long)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickSetImageColormapColor, 3)
-    T_HANDLE(0)     // MagickWand*
-    T_NUMBER(1)     // size_t
-    T_HANDLE(2)     // PixelWand*
+    T_HANDLE(MagickSetImageColormapColor, 0)     // MagickWand*
+    T_NUMBER(MagickSetImageColormapColor, 1)     // size_t
+    T_HANDLE(MagickSetImageColormapColor, 2)     // PixelWand*
 
     RETURN_NUMBER(MagickSetImageColormapColor((MagickWand *)(long)PARAM(0), (size_t)PARAM(1), (PixelWand *)(long)PARAM(2)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickSetImageColorspace, 2)
-    T_HANDLE(0)     // MagickWand*
-    T_NUMBER(1)     // ColorspaceType
+    T_HANDLE(MagickSetImageColorspace, 0)     // MagickWand*
+    T_NUMBER(MagickSetImageColorspace, 1)     // ColorspaceType
 
     RETURN_NUMBER(MagickSetImageColorspace((MagickWand *)(long)PARAM(0), (ColorspaceType)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickSetImageCompose, 2)
-    T_HANDLE(0)     // MagickWand*
-    T_NUMBER(1)     // CompositeOperator
+    T_HANDLE(MagickSetImageCompose, 0)     // MagickWand*
+    T_NUMBER(MagickSetImageCompose, 1)     // CompositeOperator
 
     RETURN_NUMBER(MagickSetImageCompose((MagickWand *)(long)PARAM(0), (CompositeOperator)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickSetImageCompression, 2)
-    T_HANDLE(0)     // MagickWand*
-    T_NUMBER(1)     // CompressionType
+    T_HANDLE(MagickSetImageCompression, 0)     // MagickWand*
+    T_NUMBER(MagickSetImageCompression, 1)     // CompressionType
 
     RETURN_NUMBER(MagickSetImageCompression((MagickWand *)(long)PARAM(0), (CompressionType)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickSetImageDelay, 2)
-    T_HANDLE(0)     // MagickWand*
-    T_NUMBER(1)     // size_t
+    T_HANDLE(MagickSetImageDelay, 0)     // MagickWand*
+    T_NUMBER(MagickSetImageDelay, 1)     // size_t
 
     RETURN_NUMBER(MagickSetImageDelay((MagickWand *)(long)PARAM(0), (size_t)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickSetImageDepth, 2)
-    T_HANDLE(0)     // MagickWand*
-    T_NUMBER(1)     // size_t
+    T_HANDLE(MagickSetImageDepth, 0)     // MagickWand*
+    T_NUMBER(MagickSetImageDepth, 1)     // size_t
 
     RETURN_NUMBER(MagickSetImageDepth((MagickWand *)(long)PARAM(0), (size_t)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickSetImageDispose, 2)
-    T_HANDLE(0)     // MagickWand*
-    T_NUMBER(1)     // DisposeType
+    T_HANDLE(MagickSetImageDispose, 0)     // MagickWand*
+    T_NUMBER(MagickSetImageDispose, 1)     // DisposeType
 
     RETURN_NUMBER(MagickSetImageDispose((MagickWand *)(long)PARAM(0), (DisposeType)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickSetImageCompressionQuality, 2)
-    T_HANDLE(0)     // MagickWand*
-    T_NUMBER(1)     // size_t
+    T_HANDLE(MagickSetImageCompressionQuality, 0)     // MagickWand*
+    T_NUMBER(MagickSetImageCompressionQuality, 1)     // size_t
 
     RETURN_NUMBER(MagickSetImageCompressionQuality((MagickWand *)(long)PARAM(0), (size_t)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickSetImageExtent, 3)
-    T_HANDLE(0)     // MagickWand*
-    T_NUMBER(1)     // size_t
-    T_NUMBER(2)     // size_t
+    T_HANDLE(MagickSetImageExtent, 0)     // MagickWand*
+    T_NUMBER(MagickSetImageExtent, 1)     // size_t
+    T_NUMBER(MagickSetImageExtent, 2)     // size_t
 
     RETURN_NUMBER(MagickSetImageExtent((MagickWand *)(long)PARAM(0), (size_t)PARAM(1), (size_t)PARAM(2)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickSetImageFilename, 2)
-    T_HANDLE(0)     // MagickWand*
-    T_STRING(1)     // char*
+    T_HANDLE(MagickSetImageFilename, 0)     // MagickWand*
+    T_STRING(MagickSetImageFilename, 1)     // char*
 
     RETURN_NUMBER(MagickSetImageFilename((MagickWand *)(long)PARAM(0), (char *)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickSetImageFormat, 2)
-    T_HANDLE(0)     // MagickWand*
-    T_STRING(1)     // char*
+    T_HANDLE(MagickSetImageFormat, 0)     // MagickWand*
+    T_STRING(MagickSetImageFormat, 1)     // char*
 
     RETURN_NUMBER(MagickSetImageFormat((MagickWand *)(long)PARAM(0), (char *)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickSetImageFuzz, 2)
-    T_HANDLE(0)     // MagickWand*
-    T_NUMBER(1)     // double
+    T_HANDLE(MagickSetImageFuzz, 0)     // MagickWand*
+    T_NUMBER(MagickSetImageFuzz, 1)     // double
 
     RETURN_NUMBER(MagickSetImageFuzz((MagickWand *)(long)PARAM(0), (double)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickSetImageGamma, 2)
-    T_HANDLE(0)     // MagickWand*
-    T_NUMBER(1)     // double
+    T_HANDLE(MagickSetImageGamma, 0)     // MagickWand*
+    T_NUMBER(MagickSetImageGamma, 1)     // double
 
     RETURN_NUMBER(MagickSetImageGamma((MagickWand *)(long)PARAM(0), (double)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickSetImageGravity, 2)
-    T_HANDLE(0)     // MagickWand*
-    T_NUMBER(1)     // GravityType
+    T_HANDLE(MagickSetImageGravity, 0)     // MagickWand*
+    T_NUMBER(MagickSetImageGravity, 1)     // GravityType
 
     RETURN_NUMBER(MagickSetImageGravity((MagickWand *)(long)PARAM(0), (GravityType)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickSetImageGreenPrimary, 3)
-    T_HANDLE(0)     // MagickWand*
-    T_NUMBER(1)     // double
-    T_NUMBER(2)     // double
+    T_HANDLE(MagickSetImageGreenPrimary, 0)     // MagickWand*
+    T_NUMBER(MagickSetImageGreenPrimary, 1)     // double
+    T_NUMBER(MagickSetImageGreenPrimary, 2)     // double
 
     RETURN_NUMBER(MagickSetImageGreenPrimary((MagickWand *)(long)PARAM(0), (double)PARAM(1), (double)PARAM(2)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickSetImageInterlaceScheme, 2)
-    T_HANDLE(0)     // MagickWand*
-    T_NUMBER(1)     // InterlaceType
+    T_HANDLE(MagickSetImageInterlaceScheme, 0)     // MagickWand*
+    T_NUMBER(MagickSetImageInterlaceScheme, 1)     // InterlaceType
 
     RETURN_NUMBER(MagickSetImageInterlaceScheme((MagickWand *)(long)PARAM(0), (InterlaceType)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickSetImageInterpolateMethod, 2)
-    T_HANDLE(0)     // MagickWand*
-    T_NUMBER(1)     // InterpolatePixelMethod
+    T_HANDLE(MagickSetImageInterpolateMethod, 0)     // MagickWand*
+    T_NUMBER(MagickSetImageInterpolateMethod, 1)     // InterpolatePixelMethod
 
     RETURN_NUMBER(MagickSetImageInterpolateMethod((MagickWand *)(long)PARAM(0), (InterpolatePixelMethod)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickSetImageIterations, 2)
-    T_HANDLE(0)     // MagickWand*
-    T_NUMBER(1)     // size_t
+    T_HANDLE(MagickSetImageIterations, 0)     // MagickWand*
+    T_NUMBER(MagickSetImageIterations, 1)     // size_t
 
     RETURN_NUMBER(MagickSetImageIterations((MagickWand *)(long)PARAM(0), (size_t)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickSetImageMatte, 2)
-    T_HANDLE(0)     // MagickWand*
-    T_NUMBER(1)     // MagickBooleanType
+    T_HANDLE(MagickSetImageMatte, 0)     // MagickWand*
+    T_NUMBER(MagickSetImageMatte, 1)     // MagickBooleanType
 
     RETURN_NUMBER(MagickSetImageMatte((MagickWand *)(long)PARAM(0), (MagickBooleanType)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickSetImageMatteColor, 2)
-    T_HANDLE(0)     // MagickWand*
-    T_HANDLE(1)     // PixelWand*
+    T_HANDLE(MagickSetImageMatteColor, 0)     // MagickWand*
+    T_HANDLE(MagickSetImageMatteColor, 1)     // PixelWand*
 
     RETURN_NUMBER(MagickSetImageMatteColor((MagickWand *)(long)PARAM(0), (PixelWand *)(long)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickSetImageOpacity, 2)
-    T_HANDLE(0)     // MagickWand*
-    T_NUMBER(1)     // double
+    T_HANDLE(MagickSetImageOpacity, 0)     // MagickWand*
+    T_NUMBER(MagickSetImageOpacity, 1)     // double
 
     RETURN_NUMBER(MagickSetImageOpacity((MagickWand *)(long)PARAM(0), (double)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickSetImageOrientation, 2)
-    T_HANDLE(0)     // MagickWand*
-    T_NUMBER(1)     // OrientationType
+    T_HANDLE(MagickSetImageOrientation, 0)     // MagickWand*
+    T_NUMBER(MagickSetImageOrientation, 1)     // OrientationType
 
     RETURN_NUMBER(MagickSetImageOrientation((MagickWand *)(long)PARAM(0), (OrientationType)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickSetImagePage, 5)
-    T_HANDLE(0)     // MagickWand*
-    T_NUMBER(1)     // size_t
-    T_NUMBER(2)     // size_t
-    T_NUMBER(3)     // ssize_t
-    T_NUMBER(4)     // ssize_t
+    T_HANDLE(MagickSetImagePage, 0)     // MagickWand*
+    T_NUMBER(MagickSetImagePage, 1)     // size_t
+    T_NUMBER(MagickSetImagePage, 2)     // size_t
+    T_NUMBER(MagickSetImagePage, 3)     // ssize_t
+    T_NUMBER(MagickSetImagePage, 4)     // ssize_t
 
     RETURN_NUMBER(MagickSetImagePage((MagickWand *)(long)PARAM(0), (size_t)PARAM(1), (size_t)PARAM(2), (ssize_t)PARAM(3), (ssize_t)PARAM(4)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickSetImageRedPrimary, 3)
-    T_HANDLE(0)     // MagickWand*
-    T_NUMBER(1)     // double
-    T_NUMBER(2)     // double
+    T_HANDLE(MagickSetImageRedPrimary, 0)     // MagickWand*
+    T_NUMBER(MagickSetImageRedPrimary, 1)     // double
+    T_NUMBER(MagickSetImageRedPrimary, 2)     // double
 
     RETURN_NUMBER(MagickSetImageRedPrimary((MagickWand *)(long)PARAM(0), (double)PARAM(1), (double)PARAM(2)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickSetImageRenderingIntent, 2)
-    T_HANDLE(0)     // MagickWand*
-    T_NUMBER(1)     // RenderingIntent
+    T_HANDLE(MagickSetImageRenderingIntent, 0)     // MagickWand*
+    T_NUMBER(MagickSetImageRenderingIntent, 1)     // RenderingIntent
 
     RETURN_NUMBER(MagickSetImageRenderingIntent((MagickWand *)(long)PARAM(0), (RenderingIntent)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickSetImageResolution, 3)
-    T_HANDLE(0)     // MagickWand*
-    T_NUMBER(1)     // double
-    T_NUMBER(2)     // double
+    T_HANDLE(MagickSetImageResolution, 0)     // MagickWand*
+    T_NUMBER(MagickSetImageResolution, 1)     // double
+    T_NUMBER(MagickSetImageResolution, 2)     // double
 
     RETURN_NUMBER(MagickSetImageResolution((MagickWand *)(long)PARAM(0), (double)PARAM(1), (double)PARAM(2)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickSetImageScene, 2)
-    T_HANDLE(0)     // MagickWand*
-    T_NUMBER(1)     // size_t
+    T_HANDLE(MagickSetImageScene, 0)     // MagickWand*
+    T_NUMBER(MagickSetImageScene, 1)     // size_t
 
     RETURN_NUMBER(MagickSetImageScene((MagickWand *)(long)PARAM(0), (size_t)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickSetImageTicksPerSecond, 2)
-    T_HANDLE(0)     // MagickWand*
-    T_NUMBER(1)     // ssize_t
+    T_HANDLE(MagickSetImageTicksPerSecond, 0)     // MagickWand*
+    T_NUMBER(MagickSetImageTicksPerSecond, 1)     // ssize_t
 
     RETURN_NUMBER(MagickSetImageTicksPerSecond((MagickWand *)(long)PARAM(0), (ssize_t)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickSetImageType, 2)
-    T_HANDLE(0)     // MagickWand*
-    T_NUMBER(1)     // ImageType
+    T_HANDLE(MagickSetImageType, 0)     // MagickWand*
+    T_NUMBER(MagickSetImageType, 1)     // ImageType
 
     RETURN_NUMBER(MagickSetImageType((MagickWand *)(long)PARAM(0), (ImageType)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickSetImageUnits, 2)
-    T_HANDLE(0)     // MagickWand*
-    T_NUMBER(1)     // ResolutionType
+    T_HANDLE(MagickSetImageUnits, 0)     // MagickWand*
+    T_NUMBER(MagickSetImageUnits, 1)     // ResolutionType
 
     RETURN_NUMBER(MagickSetImageUnits((MagickWand *)(long)PARAM(0), (ResolutionType)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickSetImageWhitePoint, 3)
-    T_HANDLE(0)     // MagickWand*
-    T_NUMBER(1)     // double
-    T_NUMBER(2)     // double
+    T_HANDLE(MagickSetImageWhitePoint, 0)     // MagickWand*
+    T_NUMBER(MagickSetImageWhitePoint, 1)     // double
+    T_NUMBER(MagickSetImageWhitePoint, 2)     // double
 
     RETURN_NUMBER(MagickSetImageWhitePoint((MagickWand *)(long)PARAM(0), (double)PARAM(1), (double)PARAM(2)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickShadeImage, 4)
-    T_HANDLE(0)     // MagickWand*
-    T_NUMBER(1)     // MagickBooleanType
-    T_NUMBER(2)     // double
-    T_NUMBER(3)     // double
+    T_HANDLE(MagickShadeImage, 0)     // MagickWand*
+    T_NUMBER(MagickShadeImage, 1)     // MagickBooleanType
+    T_NUMBER(MagickShadeImage, 2)     // double
+    T_NUMBER(MagickShadeImage, 3)     // double
 
     RETURN_NUMBER(MagickShadeImage((MagickWand *)(long)PARAM(0), (MagickBooleanType)PARAM(1), (double)PARAM(2), (double)PARAM(3)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickShadowImage, 5)
-    T_HANDLE(0)     // MagickWand*
-    T_NUMBER(1)     // double
-    T_NUMBER(2)     // double
-    T_NUMBER(3)     // ssize_t
-    T_NUMBER(4)     // ssize_t
+    T_HANDLE(MagickShadowImage, 0)     // MagickWand*
+    T_NUMBER(MagickShadowImage, 1)     // double
+    T_NUMBER(MagickShadowImage, 2)     // double
+    T_NUMBER(MagickShadowImage, 3)     // ssize_t
+    T_NUMBER(MagickShadowImage, 4)     // ssize_t
 
     RETURN_NUMBER(MagickShadowImage((MagickWand *)(long)PARAM(0), (double)PARAM(1), (double)PARAM(2), (ssize_t)PARAM(3), (ssize_t)PARAM(4)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickSharpenImage, 3)
-    T_HANDLE(0)     // MagickWand*
-    T_NUMBER(1)     // double
-    T_NUMBER(2)     // double
+    T_HANDLE(MagickSharpenImage, 0)     // MagickWand*
+    T_NUMBER(MagickSharpenImage, 1)     // double
+    T_NUMBER(MagickSharpenImage, 2)     // double
 
     RETURN_NUMBER(MagickSharpenImage((MagickWand *)(long)PARAM(0), (double)PARAM(1), (double)PARAM(2)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickSharpenImageChannel, 4)
-    T_HANDLE(0)     // MagickWand*
-    T_NUMBER(1)     // ChannelType
-    T_NUMBER(2)     // double
-    T_NUMBER(3)     // double
+    T_HANDLE(MagickSharpenImageChannel, 0)     // MagickWand*
+    T_NUMBER(MagickSharpenImageChannel, 1)     // ChannelType
+    T_NUMBER(MagickSharpenImageChannel, 2)     // double
+    T_NUMBER(MagickSharpenImageChannel, 3)     // double
 
     RETURN_NUMBER(MagickSharpenImageChannel((MagickWand *)(long)PARAM(0), (ChannelType)PARAM(1), (double)PARAM(2), (double)PARAM(3)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickShaveImage, 3)
-    T_HANDLE(0)     // MagickWand*
-    T_NUMBER(1)     // size_t
-    T_NUMBER(2)     // size_t
+    T_HANDLE(MagickShaveImage, 0)     // MagickWand*
+    T_NUMBER(MagickShaveImage, 1)     // size_t
+    T_NUMBER(MagickShaveImage, 2)     // size_t
 
     RETURN_NUMBER(MagickShaveImage((MagickWand *)(long)PARAM(0), (size_t)PARAM(1), (size_t)PARAM(2)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickShearImage, 4)
-    T_HANDLE(0)     // MagickWand*
-    T_HANDLE(1)     // PixelWand*
-    T_NUMBER(2)     // double
-    T_NUMBER(3)     // double
+    T_HANDLE(MagickShearImage, 0)     // MagickWand*
+    T_HANDLE(MagickShearImage, 1)     // PixelWand*
+    T_NUMBER(MagickShearImage, 2)     // double
+    T_NUMBER(MagickShearImage, 3)     // double
 
     RETURN_NUMBER(MagickShearImage((MagickWand *)(long)PARAM(0), (PixelWand *)(long)PARAM(1), (double)PARAM(2), (double)PARAM(3)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickSigmoidalContrastImage, 4)
-    T_HANDLE(0)     // MagickWand*
-    T_NUMBER(1)     // MagickBooleanType
-    T_NUMBER(2)     // double
-    T_NUMBER(3)     // double
+    T_HANDLE(MagickSigmoidalContrastImage, 0)     // MagickWand*
+    T_NUMBER(MagickSigmoidalContrastImage, 1)     // MagickBooleanType
+    T_NUMBER(MagickSigmoidalContrastImage, 2)     // double
+    T_NUMBER(MagickSigmoidalContrastImage, 3)     // double
 
     RETURN_NUMBER(MagickSigmoidalContrastImage((MagickWand *)(long)PARAM(0), (MagickBooleanType)PARAM(1), (double)PARAM(2), (double)PARAM(3)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickSigmoidalContrastImageChannel, 5)
-    T_HANDLE(0)     // MagickWand*
-    T_NUMBER(1)     // ChannelType
-    T_NUMBER(2)     // MagickBooleanType
-    T_NUMBER(3)     // double
-    T_NUMBER(4)     // double
+    T_HANDLE(MagickSigmoidalContrastImageChannel, 0)     // MagickWand*
+    T_NUMBER(MagickSigmoidalContrastImageChannel, 1)     // ChannelType
+    T_NUMBER(MagickSigmoidalContrastImageChannel, 2)     // MagickBooleanType
+    T_NUMBER(MagickSigmoidalContrastImageChannel, 3)     // double
+    T_NUMBER(MagickSigmoidalContrastImageChannel, 4)     // double
 
     RETURN_NUMBER(MagickSigmoidalContrastImageChannel((MagickWand *)(long)PARAM(0), (ChannelType)PARAM(1), (MagickBooleanType)PARAM(2), (double)PARAM(3), (double)PARAM(4)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickSketchImage, 4)
-    T_HANDLE(0)     // MagickWand*
-    T_NUMBER(1)     // double
-    T_NUMBER(2)     // double
-    T_NUMBER(3)     // double
+    T_HANDLE(MagickSketchImage, 0)     // MagickWand*
+    T_NUMBER(MagickSketchImage, 1)     // double
+    T_NUMBER(MagickSketchImage, 2)     // double
+    T_NUMBER(MagickSketchImage, 3)     // double
 
     RETURN_NUMBER(MagickSketchImage((MagickWand *)(long)PARAM(0), (double)PARAM(1), (double)PARAM(2), (double)PARAM(3)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickSolarizeImage, 2)
-    T_HANDLE(0)     // MagickWand*
-    T_NUMBER(1)     // double
+    T_HANDLE(MagickSolarizeImage, 0)     // MagickWand*
+    T_NUMBER(MagickSolarizeImage, 1)     // double
 
     RETURN_NUMBER(MagickSolarizeImage((MagickWand *)(long)PARAM(0), (double)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickSparseColorImage, 5)
-    T_HANDLE(0)     // MagickWand*
-    T_NUMBER(1)     // ChannelType
-    T_NUMBER(2)     // SparseColorMethod
-    T_NUMBER(3)     // size_t
+    T_HANDLE(MagickSparseColorImage, 0)     // MagickWand*
+    T_NUMBER(MagickSparseColorImage, 1)     // ChannelType
+    T_NUMBER(MagickSparseColorImage, 2)     // SparseColorMethod
+    T_NUMBER(MagickSparseColorImage, 3)     // size_t
 
 // ... parameter 4 is by reference (double*)
     double local_parameter_4;
@@ -2708,161 +2708,161 @@ CONCEPT_FUNCTION_IMPL(MagickSparseColorImage, 5)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickSpliceImage, 5)
-    T_HANDLE(0)     // MagickWand*
-    T_NUMBER(1)     // size_t
-    T_NUMBER(2)     // size_t
-    T_NUMBER(3)     // ssize_t
-    T_NUMBER(4)     // ssize_t
+    T_HANDLE(MagickSpliceImage, 0)     // MagickWand*
+    T_NUMBER(MagickSpliceImage, 1)     // size_t
+    T_NUMBER(MagickSpliceImage, 2)     // size_t
+    T_NUMBER(MagickSpliceImage, 3)     // ssize_t
+    T_NUMBER(MagickSpliceImage, 4)     // ssize_t
 
     RETURN_NUMBER(MagickSpliceImage((MagickWand *)(long)PARAM(0), (size_t)PARAM(1), (size_t)PARAM(2), (ssize_t)PARAM(3), (ssize_t)PARAM(4)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickSpreadImage, 2)
-    T_HANDLE(0)     // MagickWand*
-    T_NUMBER(1)     // double
+    T_HANDLE(MagickSpreadImage, 0)     // MagickWand*
+    T_NUMBER(MagickSpreadImage, 1)     // double
 
     RETURN_NUMBER(MagickSpreadImage((MagickWand *)(long)PARAM(0), (double)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickStripImage, 1)
-    T_HANDLE(0)     // MagickWand*
+    T_HANDLE(MagickStripImage, 0)     // MagickWand*
 
     RETURN_NUMBER(MagickStripImage((MagickWand *)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickSwirlImage, 2)
-    T_HANDLE(0)     // MagickWand*
-    T_NUMBER(1)     // double
+    T_HANDLE(MagickSwirlImage, 0)     // MagickWand*
+    T_NUMBER(MagickSwirlImage, 1)     // double
 
     RETURN_NUMBER(MagickSwirlImage((MagickWand *)(long)PARAM(0), (double)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickTintImage, 3)
-    T_HANDLE(0)     // MagickWand*
-    T_HANDLE(1)     // PixelWand*
-    T_HANDLE(2)     // PixelWand*
+    T_HANDLE(MagickTintImage, 0)     // MagickWand*
+    T_HANDLE(MagickTintImage, 1)     // PixelWand*
+    T_HANDLE(MagickTintImage, 2)     // PixelWand*
 
     RETURN_NUMBER(MagickTintImage((MagickWand *)(long)PARAM(0), (PixelWand *)(long)PARAM(1), (PixelWand *)(long)PARAM(2)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickTransformImageColorspace, 2)
-    T_HANDLE(0)     // MagickWand*
-    T_NUMBER(1)     // ColorspaceType
+    T_HANDLE(MagickTransformImageColorspace, 0)     // MagickWand*
+    T_NUMBER(MagickTransformImageColorspace, 1)     // ColorspaceType
 
     RETURN_NUMBER(MagickTransformImageColorspace((MagickWand *)(long)PARAM(0), (ColorspaceType)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickTransposeImage, 1)
-    T_HANDLE(0)     // MagickWand*
+    T_HANDLE(MagickTransposeImage, 0)     // MagickWand*
 
     RETURN_NUMBER(MagickTransposeImage((MagickWand *)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickTransverseImage, 1)
-    T_HANDLE(0)     // MagickWand*
+    T_HANDLE(MagickTransverseImage, 0)     // MagickWand*
 
     RETURN_NUMBER(MagickTransverseImage((MagickWand *)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickThresholdImage, 2)
-    T_HANDLE(0)     // MagickWand*
-    T_NUMBER(1)     // double
+    T_HANDLE(MagickThresholdImage, 0)     // MagickWand*
+    T_NUMBER(MagickThresholdImage, 1)     // double
 
     RETURN_NUMBER(MagickThresholdImage((MagickWand *)(long)PARAM(0), (double)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickThresholdImageChannel, 3)
-    T_HANDLE(0)     // MagickWand*
-    T_NUMBER(1)     // ChannelType
-    T_NUMBER(2)     // double
+    T_HANDLE(MagickThresholdImageChannel, 0)     // MagickWand*
+    T_NUMBER(MagickThresholdImageChannel, 1)     // ChannelType
+    T_NUMBER(MagickThresholdImageChannel, 2)     // double
 
     RETURN_NUMBER(MagickThresholdImageChannel((MagickWand *)(long)PARAM(0), (ChannelType)PARAM(1), (double)PARAM(2)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickThumbnailImage, 3)
-    T_HANDLE(0)     // MagickWand*
-    T_NUMBER(1)     // size_t
-    T_NUMBER(2)     // size_t
+    T_HANDLE(MagickThumbnailImage, 0)     // MagickWand*
+    T_NUMBER(MagickThumbnailImage, 1)     // size_t
+    T_NUMBER(MagickThumbnailImage, 2)     // size_t
 
     RETURN_NUMBER(MagickThumbnailImage((MagickWand *)(long)PARAM(0), (size_t)PARAM(1), (size_t)PARAM(2)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickTrimImage, 2)
-    T_HANDLE(0)     // MagickWand*
-    T_NUMBER(1)     // double
+    T_HANDLE(MagickTrimImage, 0)     // MagickWand*
+    T_NUMBER(MagickTrimImage, 1)     // double
 
     RETURN_NUMBER(MagickTrimImage((MagickWand *)(long)PARAM(0), (double)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickUniqueImageColors, 1)
-    T_HANDLE(0)     // MagickWand*
+    T_HANDLE(MagickUniqueImageColors, 0)     // MagickWand*
 
     RETURN_NUMBER(MagickUniqueImageColors((MagickWand *)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickUnsharpMaskImage, 5)
-    T_HANDLE(0)     // MagickWand*
-    T_NUMBER(1)     // double
-    T_NUMBER(2)     // double
-    T_NUMBER(3)     // double
-    T_NUMBER(4)     // double
+    T_HANDLE(MagickUnsharpMaskImage, 0)     // MagickWand*
+    T_NUMBER(MagickUnsharpMaskImage, 1)     // double
+    T_NUMBER(MagickUnsharpMaskImage, 2)     // double
+    T_NUMBER(MagickUnsharpMaskImage, 3)     // double
+    T_NUMBER(MagickUnsharpMaskImage, 4)     // double
 
     RETURN_NUMBER(MagickUnsharpMaskImage((MagickWand *)(long)PARAM(0), (double)PARAM(1), (double)PARAM(2), (double)PARAM(3), (double)PARAM(4)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickUnsharpMaskImageChannel, 6)
-    T_HANDLE(0)     // MagickWand*
-    T_NUMBER(1)     // ChannelType
-    T_NUMBER(2)     // double
-    T_NUMBER(3)     // double
-    T_NUMBER(4)     // double
-    T_NUMBER(5)     // double
+    T_HANDLE(MagickUnsharpMaskImageChannel, 0)     // MagickWand*
+    T_NUMBER(MagickUnsharpMaskImageChannel, 1)     // ChannelType
+    T_NUMBER(MagickUnsharpMaskImageChannel, 2)     // double
+    T_NUMBER(MagickUnsharpMaskImageChannel, 3)     // double
+    T_NUMBER(MagickUnsharpMaskImageChannel, 4)     // double
+    T_NUMBER(MagickUnsharpMaskImageChannel, 5)     // double
 
     RETURN_NUMBER(MagickUnsharpMaskImageChannel((MagickWand *)(long)PARAM(0), (ChannelType)PARAM(1), (double)PARAM(2), (double)PARAM(3), (double)PARAM(4), (double)PARAM(5)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickVignetteImage, 5)
-    T_HANDLE(0)     // MagickWand*
-    T_NUMBER(1)     // double
-    T_NUMBER(2)     // double
-    T_NUMBER(3)     // ssize_t
-    T_NUMBER(4)     // ssize_t
+    T_HANDLE(MagickVignetteImage, 0)     // MagickWand*
+    T_NUMBER(MagickVignetteImage, 1)     // double
+    T_NUMBER(MagickVignetteImage, 2)     // double
+    T_NUMBER(MagickVignetteImage, 3)     // ssize_t
+    T_NUMBER(MagickVignetteImage, 4)     // ssize_t
 
     RETURN_NUMBER(MagickVignetteImage((MagickWand *)(long)PARAM(0), (double)PARAM(1), (double)PARAM(2), (ssize_t)PARAM(3), (ssize_t)PARAM(4)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickWaveImage, 3)
-    T_HANDLE(0)     // MagickWand*
-    T_NUMBER(1)     // double
-    T_NUMBER(2)     // double
+    T_HANDLE(MagickWaveImage, 0)     // MagickWand*
+    T_NUMBER(MagickWaveImage, 1)     // double
+    T_NUMBER(MagickWaveImage, 2)     // double
 
     RETURN_NUMBER(MagickWaveImage((MagickWand *)(long)PARAM(0), (double)PARAM(1), (double)PARAM(2)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickWhiteThresholdImage, 2)
-    T_HANDLE(0)     // MagickWand*
-    T_HANDLE(1)     // PixelWand*
+    T_HANDLE(MagickWhiteThresholdImage, 0)     // MagickWand*
+    T_HANDLE(MagickWhiteThresholdImage, 1)     // PixelWand*
 
     RETURN_NUMBER(MagickWhiteThresholdImage((MagickWand *)(long)PARAM(0), (PixelWand *)(long)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickWriteImage, 2)
-    T_HANDLE(0)     // MagickWand*
-    T_STRING(1)     // char*
+    T_HANDLE(MagickWriteImage, 0)     // MagickWand*
+    T_STRING(MagickWriteImage, 1)     // char*
 
     RETURN_NUMBER(MagickWriteImage((MagickWand *)(long)PARAM(0), (char *)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickWriteImageFile, 2)
-    T_HANDLE(0)     // MagickWand*
-    T_HANDLE(1)     // FILE*
+    T_HANDLE(MagickWriteImageFile, 0)     // MagickWand*
+    T_HANDLE(MagickWriteImageFile, 1)     // FILE*
 
     RETURN_NUMBER(MagickWriteImageFile((MagickWand *)(long)PARAM(0), (FILE *)(long)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickWriteImagesFile, 2)
-    T_HANDLE(0)     // MagickWand*
-    T_HANDLE(1)     // FILE*
+    T_HANDLE(MagickWriteImagesFile, 0)     // MagickWand*
+    T_HANDLE(MagickWriteImagesFile, 1)     // FILE*
 
     RETURN_NUMBER(MagickWriteImagesFile((MagickWand *)(long)PARAM(0), (FILE *)(long)PARAM(1)))
 END_IMPL
@@ -2870,8 +2870,8 @@ END_IMPL
 //------------------------------------------------------------------------
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickGetImageChannelFeatures, 2)
-    T_HANDLE(0)     // MagickWand*
-    T_NUMBER(1)     // size_t
+    T_HANDLE(MagickGetImageChannelFeatures, 0)     // MagickWand*
+    T_NUMBER(MagickGetImageChannelFeatures, 1)     // size_t
 
     ChannelFeatures * cf = MagickGetImageChannelFeatures((MagickWand *)(long)PARAM(0), (size_t)PARAM(1));
     Invoke(INVOKE_CREATE_ARRAY, RESULT, 0);
@@ -2935,7 +2935,7 @@ CONCEPT_FUNCTION_IMPL(MagickGetImageChannelFeatures, 2)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickGetImageChannelStatistics, 1)
-    T_HANDLE(0)     // MagickWand*
+    T_HANDLE(MagickGetImageChannelStatistics, 0)     // MagickWand*
 
     ChannelStatistics * cs = MagickGetImageChannelStatistics((MagickWand *)(long)PARAM(0));
 
@@ -2956,57 +2956,57 @@ CONCEPT_FUNCTION_IMPL(MagickGetImageChannelStatistics, 1)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickGetImageFilename, 1)
-    T_HANDLE(0)     // MagickWand*
+    T_HANDLE(MagickGetImageFilename, 0)     // MagickWand*
 
     RETURN_STRING2((char *)MagickGetImageFilename((MagickWand *)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickGetImageFormat, 1)
-    T_HANDLE(0)     // MagickWand*
+    T_HANDLE(MagickGetImageFormat, 0)     // MagickWand*
 
     RETURN_STRING2((char *)MagickGetImageFormat((MagickWand *)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickGetImageSignature, 1)
-    T_HANDLE(0)     // MagickWand*
+    T_HANDLE(MagickGetImageSignature, 0)     // MagickWand*
 
     RETURN_STRING2((char *)MagickGetImageSignature((MagickWand *)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickIdentifyImage, 1)
-    T_HANDLE(0)     // MagickWand*
+    T_HANDLE(MagickIdentifyImage, 0)     // MagickWand*
 
     RETURN_STRING2((char *)MagickIdentifyImage((MagickWand *)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickGetImageColorspace, 1)
-    T_HANDLE(0)     // MagickWand*
+    T_HANDLE(MagickGetImageColorspace, 0)     // MagickWand*
 
     RETURN_NUMBER(MagickGetImageColorspace((MagickWand *)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickGetImageCompose, 1)
-    T_HANDLE(0)     // MagickWand*
+    T_HANDLE(MagickGetImageCompose, 0)     // MagickWand*
 
     RETURN_NUMBER(MagickGetImageCompose((MagickWand *)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickGetImageCompression, 1)
-    T_HANDLE(0)     // MagickWand*
+    T_HANDLE(MagickGetImageCompression, 0)     // MagickWand*
 
     RETURN_NUMBER(MagickGetImageCompression((MagickWand *)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickGetImageDispose, 1)
-    T_HANDLE(0)     // MagickWand*
+    T_HANDLE(MagickGetImageDispose, 0)     // MagickWand*
 
     RETURN_NUMBER(MagickGetImageDispose((MagickWand *)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickGetImageChannelDistortions, 3)
-    T_HANDLE(0)     // MagickWand*
-    T_HANDLE(1)     // MagickWand*
-    T_NUMBER(2)     // MetricType
+    T_HANDLE(MagickGetImageChannelDistortions, 0)     // MagickWand*
+    T_HANDLE(MagickGetImageChannelDistortions, 1)     // MagickWand*
+    T_NUMBER(MagickGetImageChannelDistortions, 2)     // MetricType
 
     double *ret = MagickGetImageChannelDistortions((MagickWand *)(long)PARAM(0), (MagickWand *)(long)PARAM(1), (MetricType)PARAM(2));
     Invoke(INVOKE_CREATE_ARRAY, RESULT, 0);
@@ -3017,84 +3017,84 @@ CONCEPT_FUNCTION_IMPL(MagickGetImageChannelDistortions, 3)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickGetImageFuzz, 1)
-    T_HANDLE(0)     // MagickWand*
+    T_HANDLE(MagickGetImageFuzz, 0)     // MagickWand*
 
     RETURN_NUMBER(MagickGetImageFuzz((MagickWand *)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickGetImageGamma, 1)
-    T_HANDLE(0)     // MagickWand*
+    T_HANDLE(MagickGetImageGamma, 0)     // MagickWand*
 
     RETURN_NUMBER(MagickGetImageGamma((MagickWand *)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickGetImageTotalInkDensity, 1)
-    T_HANDLE(0)     // MagickWand*
+    T_HANDLE(MagickGetImageTotalInkDensity, 0)     // MagickWand*
 
     RETURN_NUMBER(MagickGetImageTotalInkDensity((MagickWand *)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickGetImageGravity, 1)
-    T_HANDLE(0)     // MagickWand*
+    T_HANDLE(MagickGetImageGravity, 0)     // MagickWand*
 
     RETURN_NUMBER(MagickGetImageGravity((MagickWand *)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickDestroyImage, 1)
-    T_HANDLE(0)
+    T_HANDLE(MagickDestroyImage, 0)
 
     RETURN_NUMBER((long)MagickDestroyImage((Image *)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(GetImageFromMagickWand, 1)
-    T_HANDLE(0)     // MagickWand*
+    T_HANDLE(GetImageFromMagickWand, 0)     // MagickWand*
 
     RETURN_NUMBER((long)GetImageFromMagickWand((MagickWand *)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickGetImageType, 1)
-    T_HANDLE(0)     // MagickWand*
+    T_HANDLE(MagickGetImageType, 0)     // MagickWand*
 
     RETURN_NUMBER(MagickGetImageType((MagickWand *)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickGetImageInterlaceScheme, 1)
-    T_HANDLE(0)     // MagickWand*
+    T_HANDLE(MagickGetImageInterlaceScheme, 0)     // MagickWand*
 
     RETURN_NUMBER(MagickGetImageInterlaceScheme((MagickWand *)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickGetImageInterpolateMethod, 1)
-    T_HANDLE(0)     // MagickWand*
+    T_HANDLE(MagickGetImageInterpolateMethod, 0)     // MagickWand*
 
     RETURN_NUMBER(MagickGetImageInterpolateMethod((MagickWand *)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickAppendImages, 2)
-    T_HANDLE(0)     // MagickWand*
-    T_NUMBER(1)     // MagickBooleanType
+    T_HANDLE(MagickAppendImages, 0)     // MagickWand*
+    T_NUMBER(MagickAppendImages, 1)     // MagickBooleanType
 
     RETURN_NUMBER((long)MagickAppendImages((MagickWand *)(long)PARAM(0), (MagickBooleanType)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickCoalesceImages, 1)
-    T_HANDLE(0)     // MagickWand*
+    T_HANDLE(MagickCoalesceImages, 0)     // MagickWand*
 
     RETURN_NUMBER((long)MagickCoalesceImages((MagickWand *)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickCombineImages, 2)
-    T_HANDLE(0)     // MagickWand*
-    T_NUMBER(1)     // ChannelType
+    T_HANDLE(MagickCombineImages, 0)     // MagickWand*
+    T_NUMBER(MagickCombineImages, 1)     // ChannelType
 
     RETURN_NUMBER((long)MagickCombineImages((MagickWand *)(long)PARAM(0), (ChannelType)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickCompareImageChannels, 5)
-    T_HANDLE(0)     // MagickWand*
-    T_HANDLE(1)     // MagickWand*
-    T_NUMBER(2)     // ChannelType
-    T_NUMBER(3)     // MetricType
+    T_HANDLE(MagickCompareImageChannels, 0)     // MagickWand*
+    T_HANDLE(MagickCompareImageChannels, 1)     // MagickWand*
+    T_NUMBER(MagickCompareImageChannels, 2)     // ChannelType
+    T_NUMBER(MagickCompareImageChannels, 3)     // MetricType
 
 // ... parameter 4 is by reference (double*)
     double local_parameter_4;
@@ -3104,9 +3104,9 @@ CONCEPT_FUNCTION_IMPL(MagickCompareImageChannels, 5)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickCompareImages, 4)
-    T_HANDLE(0)     // MagickWand*
-    T_HANDLE(1)     // MagickWand*
-    T_NUMBER(2)     // MetricType
+    T_HANDLE(MagickCompareImages, 0)     // MagickWand*
+    T_HANDLE(MagickCompareImages, 1)     // MagickWand*
+    T_NUMBER(MagickCompareImages, 2)     // MetricType
 
 // ... parameter 3 is by reference (double*)
     double local_parameter_3;
@@ -3116,103 +3116,103 @@ CONCEPT_FUNCTION_IMPL(MagickCompareImages, 4)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickCompareImageLayers, 2)
-    T_HANDLE(0)     // MagickWand*
-    T_NUMBER(1)     // ImageLayerMethod
+    T_HANDLE(MagickCompareImageLayers, 0)     // MagickWand*
+    T_NUMBER(MagickCompareImageLayers, 1)     // ImageLayerMethod
 
     RETURN_NUMBER((long)MagickCompareImageLayers((MagickWand *)(long)PARAM(0), (ImageLayerMethod)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickDeconstructImages, 1)
-    T_HANDLE(0)     // MagickWand*
+    T_HANDLE(MagickDeconstructImages, 0)     // MagickWand*
 
     RETURN_NUMBER((long)MagickDeconstructImages((MagickWand *)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickEvaluateImages, 2)
-    T_HANDLE(0)     // MagickWand*
-    T_NUMBER(1)     // MagickEvaluateOperator
+    T_HANDLE(MagickEvaluateImages, 0)     // MagickWand*
+    T_NUMBER(MagickEvaluateImages, 1)     // MagickEvaluateOperator
 
     RETURN_NUMBER((long)MagickEvaluateImages((MagickWand *)(long)PARAM(0), (MagickEvaluateOperator)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickFxImage, 2)
-    T_HANDLE(0)     // MagickWand*
-    T_STRING(1)     // char*
+    T_HANDLE(MagickFxImage, 0)     // MagickWand*
+    T_STRING(MagickFxImage, 1)     // char*
 
     RETURN_NUMBER((long)MagickFxImage((MagickWand *)(long)PARAM(0), (char *)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickFxImageChannel, 3)
-    T_HANDLE(0)     // MagickWand*
-    T_NUMBER(1)     // ChannelType
-    T_STRING(2)     // char*
+    T_HANDLE(MagickFxImageChannel, 0)     // MagickWand*
+    T_NUMBER(MagickFxImageChannel, 1)     // ChannelType
+    T_STRING(MagickFxImageChannel, 2)     // char*
 
     RETURN_NUMBER((long)MagickFxImageChannel((MagickWand *)(long)PARAM(0), (ChannelType)PARAM(1), (char *)PARAM(2)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickGetImage, 1)
-    T_HANDLE(0)     // MagickWand*
+    T_HANDLE(MagickGetImage, 0)     // MagickWand*
 
     RETURN_NUMBER((long)MagickGetImage((MagickWand *)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickGetImageClipMask, 1)
-    T_HANDLE(0)     // MagickWand*
+    T_HANDLE(MagickGetImageClipMask, 0)     // MagickWand*
 
     RETURN_NUMBER((long)MagickGetImageClipMask((MagickWand *)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickGetImageRegion, 5)
-    T_HANDLE(0)     // MagickWand*
-    T_NUMBER(1)     // size_t
-    T_NUMBER(2)     // size_t
-    T_NUMBER(3)     // ssize_t
-    T_NUMBER(4)     // ssize_t
+    T_HANDLE(MagickGetImageRegion, 0)     // MagickWand*
+    T_NUMBER(MagickGetImageRegion, 1)     // size_t
+    T_NUMBER(MagickGetImageRegion, 2)     // size_t
+    T_NUMBER(MagickGetImageRegion, 3)     // ssize_t
+    T_NUMBER(MagickGetImageRegion, 4)     // ssize_t
 
     RETURN_NUMBER((long)MagickGetImageRegion((MagickWand *)(long)PARAM(0), (size_t)PARAM(1), (size_t)PARAM(2), (ssize_t)PARAM(3), (ssize_t)PARAM(4)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickMergeImageLayers, 2)
-    T_HANDLE(0)     // MagickWand*
-    T_NUMBER(1)     // ImageLayerMethod
+    T_HANDLE(MagickMergeImageLayers, 0)     // MagickWand*
+    T_NUMBER(MagickMergeImageLayers, 1)     // ImageLayerMethod
 
     RETURN_NUMBER((long)MagickMergeImageLayers((MagickWand *)(long)PARAM(0), (ImageLayerMethod)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickMorphImages, 2)
-    T_HANDLE(0)     // MagickWand*
-    T_NUMBER(1)     // size_t
+    T_HANDLE(MagickMorphImages, 0)     // MagickWand*
+    T_NUMBER(MagickMorphImages, 1)     // size_t
 
     RETURN_NUMBER((long)MagickMorphImages((MagickWand *)(long)PARAM(0), (size_t)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickMontageImage, 6)
-    T_HANDLE(0)     // MagickWand*
-    T_HANDLE(1)     // DrawingWand*
-    T_STRING(2)     // char*
-    T_STRING(3)     // char*
-    T_NUMBER(4)     // MontageMode
-    T_STRING(5)     // char*
+    T_HANDLE(MagickMontageImage, 0)     // MagickWand*
+    T_HANDLE(MagickMontageImage, 1)     // DrawingWand*
+    T_STRING(MagickMontageImage, 2)     // char*
+    T_STRING(MagickMontageImage, 3)     // char*
+    T_NUMBER(MagickMontageImage, 4)     // MontageMode
+    T_STRING(MagickMontageImage, 5)     // char*
 
     RETURN_NUMBER((long)MagickMontageImage((MagickWand *)(long)PARAM(0), (DrawingWand *)(long)PARAM(1), (char *)PARAM(2), (char *)PARAM(3), (MontageMode)PARAM(4), (char *)PARAM(5)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickOptimizeImageLayers, 1)
-    T_HANDLE(0)     // MagickWand*
+    T_HANDLE(MagickOptimizeImageLayers, 0)     // MagickWand*
 
     RETURN_NUMBER((long)MagickOptimizeImageLayers((MagickWand *)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickPreviewImages, 2)
-    T_HANDLE(0)     // MagickWand*
-    T_NUMBER(1)     // PreviewType
+    T_HANDLE(MagickPreviewImages, 0)     // MagickWand*
+    T_NUMBER(MagickPreviewImages, 1)     // PreviewType
 
     RETURN_NUMBER((long)MagickPreviewImages((MagickWand *)(long)PARAM(0), (PreviewType)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickSimilarityImage, 4)
-    T_HANDLE(0)     // MagickWand*
-    T_HANDLE(1)     // MagickWand*
+    T_HANDLE(MagickSimilarityImage, 0)     // MagickWand*
+    T_HANDLE(MagickSimilarityImage, 1)     // MagickWand*
 
 // ... parameter 2 is by reference (RectangleInfo*)
     RectangleInfo local_parameter_2;
@@ -3231,43 +3231,43 @@ CONCEPT_FUNCTION_IMPL(MagickSimilarityImage, 4)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickSteganoImage, 3)
-    T_HANDLE(0)     // MagickWand*
-    T_HANDLE(1)     // MagickWand*
-    T_NUMBER(2)     // ssize_t
+    T_HANDLE(MagickSteganoImage, 0)     // MagickWand*
+    T_HANDLE(MagickSteganoImage, 1)     // MagickWand*
+    T_NUMBER(MagickSteganoImage, 2)     // ssize_t
 
     RETURN_NUMBER((long)MagickSteganoImage((MagickWand *)(long)PARAM(0), (MagickWand *)(long)PARAM(1), (ssize_t)PARAM(2)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickStereoImage, 2)
-    T_HANDLE(0)     // MagickWand*
-    T_HANDLE(1)     // MagickWand*
+    T_HANDLE(MagickStereoImage, 0)     // MagickWand*
+    T_HANDLE(MagickStereoImage, 1)     // MagickWand*
 
     RETURN_NUMBER((long)MagickStereoImage((MagickWand *)(long)PARAM(0), (MagickWand *)(long)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickTextureImage, 2)
-    T_HANDLE(0)     // MagickWand*
-    T_HANDLE(1)     // MagickWand*
+    T_HANDLE(MagickTextureImage, 0)     // MagickWand*
+    T_HANDLE(MagickTextureImage, 1)     // MagickWand*
 
     RETURN_NUMBER((long)MagickTextureImage((MagickWand *)(long)PARAM(0), (MagickWand *)(long)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickTransformImage, 3)
-    T_HANDLE(0)     // MagickWand*
-    T_STRING(1)     // char*
-    T_STRING(2)     // char*
+    T_HANDLE(MagickTransformImage, 0)     // MagickWand*
+    T_STRING(MagickTransformImage, 1)     // char*
+    T_STRING(MagickTransformImage, 2)     // char*
 
     RETURN_NUMBER((long)MagickTransformImage((MagickWand *)(long)PARAM(0), (char *)PARAM(1), (char *)PARAM(2)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickGetImageOrientation, 1)
-    T_HANDLE(0)     // MagickWand*
+    T_HANDLE(MagickGetImageOrientation, 0)     // MagickWand*
 
     RETURN_NUMBER(MagickGetImageOrientation((MagickWand *)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickGetImageHistogram, 1)
-    T_HANDLE(0)     // MagickWand*
+    T_HANDLE(MagickGetImageHistogram, 0)     // MagickWand*
 
     size_t local_parameter_1;
 
@@ -3280,86 +3280,86 @@ CONCEPT_FUNCTION_IMPL(MagickGetImageHistogram, 1)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickGetImageRenderingIntent, 1)
-    T_HANDLE(0)     // MagickWand*
+    T_HANDLE(MagickGetImageRenderingIntent, 0)     // MagickWand*
 
     RETURN_NUMBER(MagickGetImageRenderingIntent((MagickWand *)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickGetImageUnits, 1)
-    T_HANDLE(0)     // MagickWand*
+    T_HANDLE(MagickGetImageUnits, 0)     // MagickWand*
 
     RETURN_NUMBER(MagickGetImageUnits((MagickWand *)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickGetImageColors, 1)
-    T_HANDLE(0)     // MagickWand*
+    T_HANDLE(MagickGetImageColors, 0)     // MagickWand*
 
     RETURN_NUMBER(MagickGetImageColors((MagickWand *)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickGetImageCompressionQuality, 1)
-    T_HANDLE(0)     // MagickWand*
+    T_HANDLE(MagickGetImageCompressionQuality, 0)     // MagickWand*
 
     RETURN_NUMBER(MagickGetImageCompressionQuality((MagickWand *)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickGetImageDelay, 1)
-    T_HANDLE(0)     // MagickWand*
+    T_HANDLE(MagickGetImageDelay, 0)     // MagickWand*
 
     RETURN_NUMBER(MagickGetImageDelay((MagickWand *)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickGetImageChannelDepth, 2)
-    T_HANDLE(0)     // MagickWand*
-    T_NUMBER(1)     // ChannelType
+    T_HANDLE(MagickGetImageChannelDepth, 0)     // MagickWand*
+    T_NUMBER(MagickGetImageChannelDepth, 1)     // ChannelType
 
     RETURN_NUMBER(MagickGetImageChannelDepth((MagickWand *)(long)PARAM(0), (ChannelType)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickGetImageDepth, 1)
-    T_HANDLE(0)     // MagickWand*
+    T_HANDLE(MagickGetImageDepth, 0)     // MagickWand*
 
     RETURN_NUMBER(MagickGetImageDepth((MagickWand *)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickGetImageHeight, 1)
-    T_HANDLE(0)     // MagickWand*
+    T_HANDLE(MagickGetImageHeight, 0)     // MagickWand*
 
     RETURN_NUMBER(MagickGetImageHeight((MagickWand *)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickGetImageIterations, 1)
-    T_HANDLE(0)     // MagickWand*
+    T_HANDLE(MagickGetImageIterations, 0)     // MagickWand*
 
     RETURN_NUMBER(MagickGetImageIterations((MagickWand *)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickGetImageScene, 1)
-    T_HANDLE(0)     // MagickWand*
+    T_HANDLE(MagickGetImageScene, 0)     // MagickWand*
 
     RETURN_NUMBER(MagickGetImageScene((MagickWand *)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickGetImageTicksPerSecond, 1)
-    T_HANDLE(0)     // MagickWand*
+    T_HANDLE(MagickGetImageTicksPerSecond, 0)     // MagickWand*
 
     RETURN_NUMBER(MagickGetImageTicksPerSecond((MagickWand *)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickGetImageWidth, 1)
-    T_HANDLE(0)     // MagickWand*
+    T_HANDLE(MagickGetImageWidth, 0)     // MagickWand*
 
     RETURN_NUMBER(MagickGetImageWidth((MagickWand *)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickGetNumberImages, 1)
-    T_HANDLE(0)     // MagickWand*
+    T_HANDLE(MagickGetNumberImages, 0)     // MagickWand*
 
     RETURN_NUMBER(MagickGetNumberImages((MagickWand *)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickGetImageBlob, 1)
-    T_HANDLE(0)     // MagickWand*
+    T_HANDLE(MagickGetImageBlob, 0)     // MagickWand*
 
 // ... parameter 1 is by reference (size_t*)
     size_t local_parameter_1;
@@ -3371,7 +3371,7 @@ CONCEPT_FUNCTION_IMPL(MagickGetImageBlob, 1)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickGetImagesBlob, 1)
-    T_HANDLE(0)     // MagickWand*
+    T_HANDLE(MagickGetImagesBlob, 0)     // MagickWand*
 
 // ... parameter 1 is by reference (size_t*)
     size_t local_parameter_1;
@@ -3383,14 +3383,14 @@ CONCEPT_FUNCTION_IMPL(MagickGetImagesBlob, 1)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickGetImageVirtualPixelMethod, 1)
-    T_HANDLE(0)     // MagickWand*
+    T_HANDLE(MagickGetImageVirtualPixelMethod, 0)     // MagickWand*
 
     RETURN_NUMBER(MagickGetImageVirtualPixelMethod((MagickWand *)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickSetImageVirtualPixelMethod, 2)
-    T_HANDLE(0)     // MagickWand*
-    T_NUMBER(1)     // VirtualPixelMethod
+    T_HANDLE(MagickSetImageVirtualPixelMethod, 0)     // MagickWand*
+    T_NUMBER(MagickSetImageVirtualPixelMethod, 1)     // VirtualPixelMethod
 
     RETURN_NUMBER(MagickSetImageVirtualPixelMethod((MagickWand *)(long)PARAM(0), (VirtualPixelMethod)PARAM(1)))
 END_IMPL
@@ -3398,19 +3398,19 @@ END_IMPL
 //------------------------------------------------------------------------
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(DrawGetTextAlignment, 1)
-    T_HANDLE(0)     // DrawingWand*
+    T_HANDLE(DrawGetTextAlignment, 0)     // DrawingWand*
 
     RETURN_NUMBER(DrawGetTextAlignment((DrawingWand *)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(DrawGetClipPath, 1)
-    T_HANDLE(0)     // DrawingWand*
+    T_HANDLE(DrawGetClipPath, 0)     // DrawingWand*
 
     RETURN_STRING2((char *)DrawGetClipPath((DrawingWand *)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(DrawGetException, 2)
-    T_HANDLE(0)     // DrawingWand*
+    T_HANDLE(DrawGetException, 0)     // DrawingWand*
 
 // ... parameter 1 is by reference (ExceptionType*)
     ExceptionType local_parameter_1;
@@ -3420,61 +3420,61 @@ CONCEPT_FUNCTION_IMPL(DrawGetException, 2)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(DrawGetFont, 1)
-    T_HANDLE(0)     // DrawingWand*
+    T_HANDLE(DrawGetFont, 0)     // DrawingWand*
 
     RETURN_STRING2((char *)DrawGetFont((DrawingWand *)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(DrawGetFontFamily, 1)
-    T_HANDLE(0)     // DrawingWand*
+    T_HANDLE(DrawGetFontFamily, 0)     // DrawingWand*
 
     RETURN_STRING2((char *)DrawGetFontFamily((DrawingWand *)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(DrawGetTextEncoding, 1)
-    T_HANDLE(0)     // DrawingWand*
+    T_HANDLE(DrawGetTextEncoding, 0)     // DrawingWand*
 
     RETURN_STRING2((char *)DrawGetTextEncoding((DrawingWand *)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(DrawGetVectorGraphics, 1)
-    T_HANDLE(0)     // DrawingWand*
+    T_HANDLE(DrawGetVectorGraphics, 0)     // DrawingWand*
 
     RETURN_STRING2((char *)DrawGetVectorGraphics((DrawingWand *)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(DrawGetClipUnits, 1)
-    T_HANDLE(0)     // DrawingWand*
+    T_HANDLE(DrawGetClipUnits, 0)     // DrawingWand*
 
     RETURN_NUMBER(DrawGetClipUnits((DrawingWand *)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(DrawGetTextDecoration, 1)
-    T_HANDLE(0)     // DrawingWand*
+    T_HANDLE(DrawGetTextDecoration, 0)     // DrawingWand*
 
     RETURN_NUMBER(DrawGetTextDecoration((DrawingWand *)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(DrawGetFillOpacity, 1)
-    T_HANDLE(0)     // DrawingWand*
+    T_HANDLE(DrawGetFillOpacity, 0)     // DrawingWand*
 
     RETURN_NUMBER(DrawGetFillOpacity((DrawingWand *)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(DrawGetFontSize, 1)
-    T_HANDLE(0)     // DrawingWand*
+    T_HANDLE(DrawGetFontSize, 0)     // DrawingWand*
 
     RETURN_NUMBER(DrawGetFontSize((DrawingWand *)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(DrawGetOpacity, 1)
-    T_HANDLE(0)     // DrawingWand*
+    T_HANDLE(DrawGetOpacity, 0)     // DrawingWand*
 
     RETURN_NUMBER(DrawGetOpacity((DrawingWand *)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(DrawGetStrokeDashArray, 2)
-    T_HANDLE(0)     // DrawingWand*
+    T_HANDLE(DrawGetStrokeDashArray, 0)     // DrawingWand*
 
 // ... parameter 1 is by reference (size_t*)
     size_t local_parameter_1;
@@ -3484,62 +3484,62 @@ CONCEPT_FUNCTION_IMPL(DrawGetStrokeDashArray, 2)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(DrawGetStrokeDashOffset, 1)
-    T_HANDLE(0)     // DrawingWand*
+    T_HANDLE(DrawGetStrokeDashOffset, 0)     // DrawingWand*
 
     RETURN_NUMBER(DrawGetStrokeDashOffset((DrawingWand *)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(DrawGetStrokeOpacity, 1)
-    T_HANDLE(0)     // DrawingWand*
+    T_HANDLE(DrawGetStrokeOpacity, 0)     // DrawingWand*
 
     RETURN_NUMBER(DrawGetStrokeOpacity((DrawingWand *)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(DrawGetStrokeWidth, 1)
-    T_HANDLE(0)     // DrawingWand*
+    T_HANDLE(DrawGetStrokeWidth, 0)     // DrawingWand*
 
     RETURN_NUMBER(DrawGetStrokeWidth((DrawingWand *)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(DrawGetTextKerning, 1)
-    T_HANDLE(0)     // DrawingWand*
+    T_HANDLE(DrawGetTextKerning, 0)     // DrawingWand*
 
     RETURN_NUMBER(DrawGetTextKerning((DrawingWand *)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(DrawGetTextInterlineSpacing, 1)
-    T_HANDLE(0)     // DrawingWand*
+    T_HANDLE(DrawGetTextInterlineSpacing, 0)     // DrawingWand*
 
     RETURN_NUMBER(DrawGetTextInterlineSpacing((DrawingWand *)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(DrawGetTextInterwordSpacing, 1)
-    T_HANDLE(0)     // DrawingWand*
+    T_HANDLE(DrawGetTextInterwordSpacing, 0)     // DrawingWand*
 
     RETURN_NUMBER(DrawGetTextInterwordSpacing((DrawingWand *)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(PeekDrawingWand, 1)
-    T_HANDLE(0)     // DrawingWand*
+    T_HANDLE(PeekDrawingWand, 0)     // DrawingWand*
 
     RETURN_NUMBER((long)PeekDrawingWand((DrawingWand *)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(CloneDrawingWand, 1)
-    T_HANDLE(0)     // DrawingWand*
+    T_HANDLE(CloneDrawingWand, 0)     // DrawingWand*
 
     RETURN_NUMBER((long)CloneDrawingWand((DrawingWand *)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(DestroyDrawingWand, 1)
-    T_HANDLE(0)     // DrawingWand*
+    T_HANDLE(DestroyDrawingWand, 0)     // DrawingWand*
 
     RETURN_NUMBER((long)DestroyDrawingWand((DrawingWand *)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(DrawAllocateWand, 2)
-    T_NUMBER(0)
-    T_HANDLE(1)     // Image*
+    T_NUMBER(DrawAllocateWand, 0)
+    T_HANDLE(DrawAllocateWand, 1)     // Image*
 
     DrawInfo * local_parameter_0 = (DrawInfo *)PARAM_INT(0);
 
@@ -3551,61 +3551,61 @@ CONCEPT_FUNCTION_IMPL(NewDrawingWand, 0)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(DrawGetExceptionType, 1)
-    T_HANDLE(0)     // DrawingWand*
+    T_HANDLE(DrawGetExceptionType, 0)     // DrawingWand*
 
     RETURN_NUMBER(DrawGetExceptionType((DrawingWand *)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(DrawGetClipRule, 1)
-    T_HANDLE(0)     // DrawingWand*
+    T_HANDLE(DrawGetClipRule, 0)     // DrawingWand*
 
     RETURN_NUMBER(DrawGetClipRule((DrawingWand *)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(DrawGetFillRule, 1)
-    T_HANDLE(0)     // DrawingWand*
+    T_HANDLE(DrawGetFillRule, 0)     // DrawingWand*
 
     RETURN_NUMBER(DrawGetFillRule((DrawingWand *)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(DrawGetGravity, 1)
-    T_HANDLE(0)     // DrawingWand*
+    T_HANDLE(DrawGetGravity, 0)     // DrawingWand*
 
     RETURN_NUMBER(DrawGetGravity((DrawingWand *)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(DrawGetStrokeLineCap, 1)
-    T_HANDLE(0)     // DrawingWand*
+    T_HANDLE(DrawGetStrokeLineCap, 0)     // DrawingWand*
 
     RETURN_NUMBER(DrawGetStrokeLineCap((DrawingWand *)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(DrawGetStrokeLineJoin, 1)
-    T_HANDLE(0)     // DrawingWand*
+    T_HANDLE(DrawGetStrokeLineJoin, 0)     // DrawingWand*
 
     RETURN_NUMBER(DrawGetStrokeLineJoin((DrawingWand *)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(DrawClearException, 1)
-    T_HANDLE(0)     // DrawingWand*
+    T_HANDLE(DrawClearException, 0)     // DrawingWand*
 
     RETURN_NUMBER(DrawClearException((DrawingWand *)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(DrawComposite, 7)
-    T_HANDLE(0)     // DrawingWand*
-    T_NUMBER(1)     // CompositeOperator
-    T_NUMBER(2)     // double
-    T_NUMBER(3)     // double
-    T_NUMBER(4)     // double
-    T_NUMBER(5)     // double
-    T_HANDLE(6)     // MagickWand*
+    T_HANDLE(DrawComposite, 0)     // DrawingWand*
+    T_NUMBER(DrawComposite, 1)     // CompositeOperator
+    T_NUMBER(DrawComposite, 2)     // double
+    T_NUMBER(DrawComposite, 3)     // double
+    T_NUMBER(DrawComposite, 4)     // double
+    T_NUMBER(DrawComposite, 5)     // double
+    T_HANDLE(DrawComposite, 6)     // MagickWand*
 
     RETURN_NUMBER(DrawComposite((DrawingWand *)(long)PARAM(0), (CompositeOperator)PARAM(1), (double)PARAM(2), (double)PARAM(3), (double)PARAM(4), (double)PARAM(5), (MagickWand *)(long)PARAM(6)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(DrawGetFontResolution, 3)
-    T_HANDLE(0)     // DrawingWand*
+    T_HANDLE(DrawGetFontResolution, 0)     // DrawingWand*
 
 // ... parameter 1 is by reference (double*)
     double local_parameter_1;
@@ -3618,79 +3618,79 @@ CONCEPT_FUNCTION_IMPL(DrawGetFontResolution, 3)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(DrawGetStrokeAntialias, 1)
-    T_HANDLE(0)     // DrawingWand*
+    T_HANDLE(DrawGetStrokeAntialias, 0)     // DrawingWand*
 
     RETURN_NUMBER(DrawGetStrokeAntialias((DrawingWand *)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(DrawGetTextAntialias, 1)
-    T_HANDLE(0)     // DrawingWand*
+    T_HANDLE(DrawGetTextAntialias, 0)     // DrawingWand*
 
     RETURN_NUMBER(DrawGetTextAntialias((DrawingWand *)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(DrawPopPattern, 1)
-    T_HANDLE(0)     // DrawingWand*
+    T_HANDLE(DrawPopPattern, 0)     // DrawingWand*
 
     RETURN_NUMBER(DrawPopPattern((DrawingWand *)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(DrawPushPattern, 6)
-    T_HANDLE(0)     // DrawingWand*
-    T_STRING(1)     // char*
-    T_NUMBER(2)     // double
-    T_NUMBER(3)     // double
-    T_NUMBER(4)     // double
-    T_NUMBER(5)     // double
+    T_HANDLE(DrawPushPattern, 0)     // DrawingWand*
+    T_STRING(DrawPushPattern, 1)     // char*
+    T_NUMBER(DrawPushPattern, 2)     // double
+    T_NUMBER(DrawPushPattern, 3)     // double
+    T_NUMBER(DrawPushPattern, 4)     // double
+    T_NUMBER(DrawPushPattern, 5)     // double
 
     RETURN_NUMBER(DrawPushPattern((DrawingWand *)(long)PARAM(0), (char *)PARAM(1), (double)PARAM(2), (double)PARAM(3), (double)PARAM(4), (double)PARAM(5)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(DrawRender, 1)
-    T_HANDLE(0)     // DrawingWand*
+    T_HANDLE(DrawRender, 0)     // DrawingWand*
 
     RETURN_NUMBER(DrawRender((DrawingWand *)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(DrawSetClipPath, 2)
-    T_HANDLE(0)     // DrawingWand*
-    T_STRING(1)     // char*
+    T_HANDLE(DrawSetClipPath, 0)     // DrawingWand*
+    T_STRING(DrawSetClipPath, 1)     // char*
 
     RETURN_NUMBER(DrawSetClipPath((DrawingWand *)(long)PARAM(0), (char *)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(DrawSetFillPatternURL, 2)
-    T_HANDLE(0)     // DrawingWand*
-    T_STRING(1)     // char*
+    T_HANDLE(DrawSetFillPatternURL, 0)     // DrawingWand*
+    T_STRING(DrawSetFillPatternURL, 1)     // char*
 
     RETURN_NUMBER(DrawSetFillPatternURL((DrawingWand *)(long)PARAM(0), (char *)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(DrawSetFont, 2)
-    T_HANDLE(0)     // DrawingWand*
-    T_STRING(1)     // char*
+    T_HANDLE(DrawSetFont, 0)     // DrawingWand*
+    T_STRING(DrawSetFont, 1)     // char*
 
     RETURN_NUMBER(DrawSetFont((DrawingWand *)(long)PARAM(0), (char *)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(DrawSetFontFamily, 2)
-    T_HANDLE(0)     // DrawingWand*
-    T_STRING(1)     // char*
+    T_HANDLE(DrawSetFontFamily, 0)     // DrawingWand*
+    T_STRING(DrawSetFontFamily, 1)     // char*
 
     RETURN_NUMBER(DrawSetFontFamily((DrawingWand *)(long)PARAM(0), (char *)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(DrawSetFontResolution, 3)
-    T_HANDLE(0)     // DrawingWand*
-    T_NUMBER(1)     // double
-    T_NUMBER(2)     // double
+    T_HANDLE(DrawSetFontResolution, 0)     // DrawingWand*
+    T_NUMBER(DrawSetFontResolution, 1)     // double
+    T_NUMBER(DrawSetFontResolution, 2)     // double
 
     RETURN_NUMBER(DrawSetFontResolution((DrawingWand *)(long)PARAM(0), (double)PARAM(1), (double)PARAM(2)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(DrawSetStrokeDashArray, 3)
-    T_HANDLE(0)     // DrawingWand*
-    T_NUMBER(1)     // size_t
+    T_HANDLE(DrawSetStrokeDashArray, 0)     // DrawingWand*
+    T_NUMBER(DrawSetStrokeDashArray, 1)     // size_t
 
 // ... parameter 2 is by reference (double*)
     double local_parameter_2;
@@ -3700,76 +3700,76 @@ CONCEPT_FUNCTION_IMPL(DrawSetStrokeDashArray, 3)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(DrawSetStrokePatternURL, 2)
-    T_HANDLE(0)     // DrawingWand*
-    T_STRING(1)     // char*
+    T_HANDLE(DrawSetStrokePatternURL, 0)     // DrawingWand*
+    T_STRING(DrawSetStrokePatternURL, 1)     // char*
 
     RETURN_NUMBER(DrawSetStrokePatternURL((DrawingWand *)(long)PARAM(0), (char *)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(DrawSetVectorGraphics, 2)
-    T_HANDLE(0)     // DrawingWand*
-    T_STRING(1)     // char*
+    T_HANDLE(DrawSetVectorGraphics, 0)     // DrawingWand*
+    T_STRING(DrawSetVectorGraphics, 1)     // char*
 
     RETURN_NUMBER(DrawSetVectorGraphics((DrawingWand *)(long)PARAM(0), (char *)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(IsDrawingWand, 1)
-    T_HANDLE(0)     // DrawingWand*
+    T_HANDLE(IsDrawingWand, 0)     // DrawingWand*
 
     RETURN_NUMBER(IsDrawingWand((DrawingWand *)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(PopDrawingWand, 1)
-    T_HANDLE(0)     // DrawingWand*
+    T_HANDLE(PopDrawingWand, 0)     // DrawingWand*
 
     RETURN_NUMBER(PopDrawingWand((DrawingWand *)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(PushDrawingWand, 1)
-    T_HANDLE(0)     // DrawingWand*
+    T_HANDLE(PushDrawingWand, 0)     // DrawingWand*
 
     RETURN_NUMBER(PushDrawingWand((DrawingWand *)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(DrawGetFontStretch, 1)
-    T_HANDLE(0)     // DrawingWand*
+    T_HANDLE(DrawGetFontStretch, 0)     // DrawingWand*
 
     RETURN_NUMBER(DrawGetFontStretch((DrawingWand *)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(DrawGetFontStyle, 1)
-    T_HANDLE(0)     // DrawingWand*
+    T_HANDLE(DrawGetFontStyle, 0)     // DrawingWand*
 
     RETURN_NUMBER(DrawGetFontStyle((DrawingWand *)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(DrawGetFontWeight, 1)
-    T_HANDLE(0)     // DrawingWand*
+    T_HANDLE(DrawGetFontWeight, 0)     // DrawingWand*
 
     RETURN_NUMBER(DrawGetFontWeight((DrawingWand *)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(DrawGetStrokeMiterLimit, 1)
-    T_HANDLE(0)     // DrawingWand*
+    T_HANDLE(DrawGetStrokeMiterLimit, 0)     // DrawingWand*
 
     RETURN_NUMBER(DrawGetStrokeMiterLimit((DrawingWand *)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(ClearDrawingWand, 1)
-    T_HANDLE(0)     // DrawingWand*
+    T_HANDLE(ClearDrawingWand, 0)     // DrawingWand*
 
     ClearDrawingWand((DrawingWand *)(long)PARAM(0));
     RETURN_NUMBER(0)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(DrawAffine, 7)
-    T_HANDLE(0)     // DrawingWand*
-    T_NUMBER(1)
-    T_NUMBER(2)
-    T_NUMBER(3)
-    T_NUMBER(4)
-    T_NUMBER(5)
-    T_NUMBER(6)
+    T_HANDLE(DrawAffine, 0)     // DrawingWand*
+    T_NUMBER(DrawAffine, 1)
+    T_NUMBER(DrawAffine, 2)
+    T_NUMBER(DrawAffine, 3)
+    T_NUMBER(DrawAffine, 4)
+    T_NUMBER(DrawAffine, 5)
+    T_NUMBER(DrawAffine, 6)
 
     AffineMatrix local_parameter_1;
     local_parameter_1.sx = PARAM(1);
@@ -3784,31 +3784,31 @@ CONCEPT_FUNCTION_IMPL(DrawAffine, 7)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(DrawAnnotation, 4)
-    T_HANDLE(0)     // DrawingWand*
-    T_NUMBER(1)     // double
-    T_NUMBER(2)     // double
-    T_STRING(3)     // unsigned
+    T_HANDLE(DrawAnnotation, 0)     // DrawingWand*
+    T_NUMBER(DrawAnnotation, 1)     // double
+    T_NUMBER(DrawAnnotation, 2)     // double
+    T_STRING(DrawAnnotation, 3)     // unsigned
 
     DrawAnnotation((DrawingWand *)(long)PARAM(0), (double)PARAM(1), (double)PARAM(2), (unsigned char *)PARAM(3));
     RETURN_NUMBER(0)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(DrawArc, 7)
-    T_HANDLE(0)     // DrawingWand*
-    T_NUMBER(1)     // double
-    T_NUMBER(2)     // double
-    T_NUMBER(3)     // double
-    T_NUMBER(4)     // double
-    T_NUMBER(5)     // double
-    T_NUMBER(6)     // double
+    T_HANDLE(DrawArc, 0)     // DrawingWand*
+    T_NUMBER(DrawArc, 1)     // double
+    T_NUMBER(DrawArc, 2)     // double
+    T_NUMBER(DrawArc, 3)     // double
+    T_NUMBER(DrawArc, 4)     // double
+    T_NUMBER(DrawArc, 5)     // double
+    T_NUMBER(DrawArc, 6)     // double
 
     DrawArc((DrawingWand *)(long)PARAM(0), (double)PARAM(1), (double)PARAM(2), (double)PARAM(3), (double)PARAM(4), (double)PARAM(5), (double)PARAM(6));
     RETURN_NUMBER(0)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(DrawBezier, 2)
-    T_HANDLE(0)     // DrawingWand*
-    T_ARRAY(1)
+    T_HANDLE(DrawBezier, 0)     // DrawingWand*
+    T_ARRAY(DrawBezier, 1)
 
     void *arr = PARAMETER(1);
     int count = Invoke(INVOKE_GET_ARRAY_COUNT, arr);
@@ -3850,341 +3850,341 @@ CONCEPT_FUNCTION_IMPL(DrawBezier, 2)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(DrawGetBorderColor, 2)
-    T_HANDLE(0)     // DrawingWand*
-    T_HANDLE(1)     // PixelWand*
+    T_HANDLE(DrawGetBorderColor, 0)     // DrawingWand*
+    T_HANDLE(DrawGetBorderColor, 1)     // PixelWand*
 
     DrawGetBorderColor((DrawingWand *)(long)PARAM(0), (PixelWand *)(long)PARAM(1));
     RETURN_NUMBER(0)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(DrawCircle, 5)
-    T_HANDLE(0)     // DrawingWand*
-    T_NUMBER(1)     // double
-    T_NUMBER(2)     // double
-    T_NUMBER(3)     // double
-    T_NUMBER(4)     // double
+    T_HANDLE(DrawCircle, 0)     // DrawingWand*
+    T_NUMBER(DrawCircle, 1)     // double
+    T_NUMBER(DrawCircle, 2)     // double
+    T_NUMBER(DrawCircle, 3)     // double
+    T_NUMBER(DrawCircle, 4)     // double
 
     DrawCircle((DrawingWand *)(long)PARAM(0), (double)PARAM(1), (double)PARAM(2), (double)PARAM(3), (double)PARAM(4));
     RETURN_NUMBER(0)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(DrawColor, 4)
-    T_HANDLE(0)     // DrawingWand*
-    T_NUMBER(1)     // double
-    T_NUMBER(2)     // double
-    T_NUMBER(3)     // PaintMethod
+    T_HANDLE(DrawColor, 0)     // DrawingWand*
+    T_NUMBER(DrawColor, 1)     // double
+    T_NUMBER(DrawColor, 2)     // double
+    T_NUMBER(DrawColor, 3)     // PaintMethod
 
     DrawColor((DrawingWand *)(long)PARAM(0), (double)PARAM(1), (double)PARAM(2), (PaintMethod)PARAM(3));
     RETURN_NUMBER(0)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(DrawComment, 2)
-    T_HANDLE(0)     // DrawingWand*
-    T_STRING(1)     // char*
+    T_HANDLE(DrawComment, 0)     // DrawingWand*
+    T_STRING(DrawComment, 1)     // char*
 
     DrawComment((DrawingWand *)(long)PARAM(0), (char *)PARAM(1));
     RETURN_NUMBER(0)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(DrawEllipse, 7)
-    T_HANDLE(0)     // DrawingWand*
-    T_NUMBER(1)     // double
-    T_NUMBER(2)     // double
-    T_NUMBER(3)     // double
-    T_NUMBER(4)     // double
-    T_NUMBER(5)     // double
-    T_NUMBER(6)     // double
+    T_HANDLE(DrawEllipse, 0)     // DrawingWand*
+    T_NUMBER(DrawEllipse, 1)     // double
+    T_NUMBER(DrawEllipse, 2)     // double
+    T_NUMBER(DrawEllipse, 3)     // double
+    T_NUMBER(DrawEllipse, 4)     // double
+    T_NUMBER(DrawEllipse, 5)     // double
+    T_NUMBER(DrawEllipse, 6)     // double
 
     DrawEllipse((DrawingWand *)(long)PARAM(0), (double)PARAM(1), (double)PARAM(2), (double)PARAM(3), (double)PARAM(4), (double)PARAM(5), (double)PARAM(6));
     RETURN_NUMBER(0)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(DrawGetFillColor, 2)
-    T_HANDLE(0)     // DrawingWand*
-    T_HANDLE(1)     // PixelWand*
+    T_HANDLE(DrawGetFillColor, 0)     // DrawingWand*
+    T_HANDLE(DrawGetFillColor, 1)     // PixelWand*
 
     DrawGetFillColor((DrawingWand *)(long)PARAM(0), (PixelWand *)(long)PARAM(1));
     RETURN_NUMBER(0)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(DrawGetStrokeColor, 2)
-    T_HANDLE(0)     // DrawingWand*
-    T_HANDLE(1)     // PixelWand*
+    T_HANDLE(DrawGetStrokeColor, 0)     // DrawingWand*
+    T_HANDLE(DrawGetStrokeColor, 1)     // PixelWand*
 
     DrawGetStrokeColor((DrawingWand *)(long)PARAM(0), (PixelWand *)(long)PARAM(1));
     RETURN_NUMBER(0)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(DrawSetTextKerning, 2)
-    T_HANDLE(0)     // DrawingWand*
-    T_NUMBER(1)     // double
+    T_HANDLE(DrawSetTextKerning, 0)     // DrawingWand*
+    T_NUMBER(DrawSetTextKerning, 1)     // double
 
     DrawSetTextKerning((DrawingWand *)(long)PARAM(0), (double)PARAM(1));
     RETURN_NUMBER(0)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(DrawSetTextInterlineSpacing, 2)
-    T_HANDLE(0)     // DrawingWand*
-    T_NUMBER(1)     // double
+    T_HANDLE(DrawSetTextInterlineSpacing, 0)     // DrawingWand*
+    T_NUMBER(DrawSetTextInterlineSpacing, 1)     // double
 
     DrawSetTextInterlineSpacing((DrawingWand *)(long)PARAM(0), (double)PARAM(1));
     RETURN_NUMBER(0)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(DrawSetTextInterwordSpacing, 2)
-    T_HANDLE(0)     // DrawingWand*
-    T_NUMBER(1)     // double
+    T_HANDLE(DrawSetTextInterwordSpacing, 0)     // DrawingWand*
+    T_NUMBER(DrawSetTextInterwordSpacing, 1)     // double
 
     DrawSetTextInterwordSpacing((DrawingWand *)(long)PARAM(0), (double)PARAM(1));
     RETURN_NUMBER(0)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(DrawGetTextUnderColor, 2)
-    T_HANDLE(0)     // DrawingWand*
-    T_HANDLE(1)     // PixelWand*
+    T_HANDLE(DrawGetTextUnderColor, 0)     // DrawingWand*
+    T_HANDLE(DrawGetTextUnderColor, 1)     // PixelWand*
 
     DrawGetTextUnderColor((DrawingWand *)(long)PARAM(0), (PixelWand *)(long)PARAM(1));
     RETURN_NUMBER(0)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(DrawLine, 5)
-    T_HANDLE(0)     // DrawingWand*
-    T_NUMBER(1)     // double
-    T_NUMBER(2)     // double
-    T_NUMBER(3)     // double
-    T_NUMBER(4)     // double
+    T_HANDLE(DrawLine, 0)     // DrawingWand*
+    T_NUMBER(DrawLine, 1)     // double
+    T_NUMBER(DrawLine, 2)     // double
+    T_NUMBER(DrawLine, 3)     // double
+    T_NUMBER(DrawLine, 4)     // double
 
     DrawLine((DrawingWand *)(long)PARAM(0), (double)PARAM(1), (double)PARAM(2), (double)PARAM(3), (double)PARAM(4));
     RETURN_NUMBER(0)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(DrawMatte, 4)
-    T_HANDLE(0)     // DrawingWand*
-    T_NUMBER(1)     // double
-    T_NUMBER(2)     // double
-    T_NUMBER(3)     // PaintMethod
+    T_HANDLE(DrawMatte, 0)     // DrawingWand*
+    T_NUMBER(DrawMatte, 1)     // double
+    T_NUMBER(DrawMatte, 2)     // double
+    T_NUMBER(DrawMatte, 3)     // PaintMethod
 
     DrawMatte((DrawingWand *)(long)PARAM(0), (double)PARAM(1), (double)PARAM(2), (PaintMethod)PARAM(3));
     RETURN_NUMBER(0)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(DrawPathClose, 1)
-    T_HANDLE(0)     // DrawingWand*
+    T_HANDLE(DrawPathClose, 0)     // DrawingWand*
 
     DrawPathClose((DrawingWand *)(long)PARAM(0));
     RETURN_NUMBER(0)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(DrawPathCurveToAbsolute, 7)
-    T_HANDLE(0)     // DrawingWand*
-    T_NUMBER(1)     // double
-    T_NUMBER(2)     // double
-    T_NUMBER(3)     // double
-    T_NUMBER(4)     // double
-    T_NUMBER(5)     // double
-    T_NUMBER(6)     // double
+    T_HANDLE(DrawPathCurveToAbsolute, 0)     // DrawingWand*
+    T_NUMBER(DrawPathCurveToAbsolute, 1)     // double
+    T_NUMBER(DrawPathCurveToAbsolute, 2)     // double
+    T_NUMBER(DrawPathCurveToAbsolute, 3)     // double
+    T_NUMBER(DrawPathCurveToAbsolute, 4)     // double
+    T_NUMBER(DrawPathCurveToAbsolute, 5)     // double
+    T_NUMBER(DrawPathCurveToAbsolute, 6)     // double
 
     DrawPathCurveToAbsolute((DrawingWand *)(long)PARAM(0), (double)PARAM(1), (double)PARAM(2), (double)PARAM(3), (double)PARAM(4), (double)PARAM(5), (double)PARAM(6));
     RETURN_NUMBER(0)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(DrawPathCurveToRelative, 7)
-    T_HANDLE(0)     // DrawingWand*
-    T_NUMBER(1)     // double
-    T_NUMBER(2)     // double
-    T_NUMBER(3)     // double
-    T_NUMBER(4)     // double
-    T_NUMBER(5)     // double
-    T_NUMBER(6)     // double
+    T_HANDLE(DrawPathCurveToRelative, 0)     // DrawingWand*
+    T_NUMBER(DrawPathCurveToRelative, 1)     // double
+    T_NUMBER(DrawPathCurveToRelative, 2)     // double
+    T_NUMBER(DrawPathCurveToRelative, 3)     // double
+    T_NUMBER(DrawPathCurveToRelative, 4)     // double
+    T_NUMBER(DrawPathCurveToRelative, 5)     // double
+    T_NUMBER(DrawPathCurveToRelative, 6)     // double
 
     DrawPathCurveToRelative((DrawingWand *)(long)PARAM(0), (double)PARAM(1), (double)PARAM(2), (double)PARAM(3), (double)PARAM(4), (double)PARAM(5), (double)PARAM(6));
     RETURN_NUMBER(0)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(DrawPathCurveToQuadraticBezierAbsolute, 5)
-    T_HANDLE(0)     // DrawingWand*
-    T_NUMBER(1)     // double
-    T_NUMBER(2)     // double
-    T_NUMBER(3)     // double
-    T_NUMBER(4)     // double
+    T_HANDLE(DrawPathCurveToQuadraticBezierAbsolute, 0)     // DrawingWand*
+    T_NUMBER(DrawPathCurveToQuadraticBezierAbsolute, 1)     // double
+    T_NUMBER(DrawPathCurveToQuadraticBezierAbsolute, 2)     // double
+    T_NUMBER(DrawPathCurveToQuadraticBezierAbsolute, 3)     // double
+    T_NUMBER(DrawPathCurveToQuadraticBezierAbsolute, 4)     // double
 
     DrawPathCurveToQuadraticBezierAbsolute((DrawingWand *)(long)PARAM(0), (double)PARAM(1), (double)PARAM(2), (double)PARAM(3), (double)PARAM(4));
     RETURN_NUMBER(0)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(DrawPathCurveToQuadraticBezierRelative, 5)
-    T_HANDLE(0)     // DrawingWand*
-    T_NUMBER(1)     // double
-    T_NUMBER(2)     // double
-    T_NUMBER(3)     // double
-    T_NUMBER(4)     // double
+    T_HANDLE(DrawPathCurveToQuadraticBezierRelative, 0)     // DrawingWand*
+    T_NUMBER(DrawPathCurveToQuadraticBezierRelative, 1)     // double
+    T_NUMBER(DrawPathCurveToQuadraticBezierRelative, 2)     // double
+    T_NUMBER(DrawPathCurveToQuadraticBezierRelative, 3)     // double
+    T_NUMBER(DrawPathCurveToQuadraticBezierRelative, 4)     // double
 
     DrawPathCurveToQuadraticBezierRelative((DrawingWand *)(long)PARAM(0), (double)PARAM(1), (double)PARAM(2), (double)PARAM(3), (double)PARAM(4));
     RETURN_NUMBER(0)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(DrawPathCurveToQuadraticBezierSmoothAbsolute, 3)
-    T_HANDLE(0)     // DrawingWand*
-    T_NUMBER(1)     // double
-    T_NUMBER(2)     // double
+    T_HANDLE(DrawPathCurveToQuadraticBezierSmoothAbsolute, 0)     // DrawingWand*
+    T_NUMBER(DrawPathCurveToQuadraticBezierSmoothAbsolute, 1)     // double
+    T_NUMBER(DrawPathCurveToQuadraticBezierSmoothAbsolute, 2)     // double
 
     DrawPathCurveToQuadraticBezierSmoothAbsolute((DrawingWand *)(long)PARAM(0), (double)PARAM(1), (double)PARAM(2));
     RETURN_NUMBER(0)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(DrawPathCurveToQuadraticBezierSmoothRelative, 3)
-    T_HANDLE(0)     // DrawingWand*
-    T_NUMBER(1)     // double
-    T_NUMBER(2)     // double
+    T_HANDLE(DrawPathCurveToQuadraticBezierSmoothRelative, 0)     // DrawingWand*
+    T_NUMBER(DrawPathCurveToQuadraticBezierSmoothRelative, 1)     // double
+    T_NUMBER(DrawPathCurveToQuadraticBezierSmoothRelative, 2)     // double
 
     DrawPathCurveToQuadraticBezierSmoothRelative((DrawingWand *)(long)PARAM(0), (double)PARAM(1), (double)PARAM(2));
     RETURN_NUMBER(0)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(DrawPathCurveToSmoothAbsolute, 5)
-    T_HANDLE(0)     // DrawingWand*
-    T_NUMBER(1)     // double
-    T_NUMBER(2)     // double
-    T_NUMBER(3)     // double
-    T_NUMBER(4)     // double
+    T_HANDLE(DrawPathCurveToSmoothAbsolute, 0)     // DrawingWand*
+    T_NUMBER(DrawPathCurveToSmoothAbsolute, 1)     // double
+    T_NUMBER(DrawPathCurveToSmoothAbsolute, 2)     // double
+    T_NUMBER(DrawPathCurveToSmoothAbsolute, 3)     // double
+    T_NUMBER(DrawPathCurveToSmoothAbsolute, 4)     // double
 
     DrawPathCurveToSmoothAbsolute((DrawingWand *)(long)PARAM(0), (double)PARAM(1), (double)PARAM(2), (double)PARAM(3), (double)PARAM(4));
     RETURN_NUMBER(0)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(DrawPathCurveToSmoothRelative, 5)
-    T_HANDLE(0)     // DrawingWand*
-    T_NUMBER(1)     // double
-    T_NUMBER(2)     // double
-    T_NUMBER(3)     // double
-    T_NUMBER(4)     // double
+    T_HANDLE(DrawPathCurveToSmoothRelative, 0)     // DrawingWand*
+    T_NUMBER(DrawPathCurveToSmoothRelative, 1)     // double
+    T_NUMBER(DrawPathCurveToSmoothRelative, 2)     // double
+    T_NUMBER(DrawPathCurveToSmoothRelative, 3)     // double
+    T_NUMBER(DrawPathCurveToSmoothRelative, 4)     // double
 
     DrawPathCurveToSmoothRelative((DrawingWand *)(long)PARAM(0), (double)PARAM(1), (double)PARAM(2), (double)PARAM(3), (double)PARAM(4));
     RETURN_NUMBER(0)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(DrawPathEllipticArcAbsolute, 8)
-    T_HANDLE(0)     // DrawingWand*
-    T_NUMBER(1)     // double
-    T_NUMBER(2)     // double
-    T_NUMBER(3)     // double
-    T_NUMBER(4)     // MagickBooleanType
-    T_NUMBER(5)     // MagickBooleanType
-    T_NUMBER(6)     // double
-    T_NUMBER(7)     // double
+    T_HANDLE(DrawPathEllipticArcAbsolute, 0)     // DrawingWand*
+    T_NUMBER(DrawPathEllipticArcAbsolute, 1)     // double
+    T_NUMBER(DrawPathEllipticArcAbsolute, 2)     // double
+    T_NUMBER(DrawPathEllipticArcAbsolute, 3)     // double
+    T_NUMBER(DrawPathEllipticArcAbsolute, 4)     // MagickBooleanType
+    T_NUMBER(DrawPathEllipticArcAbsolute, 5)     // MagickBooleanType
+    T_NUMBER(DrawPathEllipticArcAbsolute, 6)     // double
+    T_NUMBER(DrawPathEllipticArcAbsolute, 7)     // double
 
     DrawPathEllipticArcAbsolute((DrawingWand *)(long)PARAM(0), (double)PARAM(1), (double)PARAM(2), (double)PARAM(3), (MagickBooleanType)PARAM(4), (MagickBooleanType)PARAM(5), (double)PARAM(6), (double)PARAM(7));
     RETURN_NUMBER(0)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(DrawPathEllipticArcRelative, 8)
-    T_HANDLE(0)     // DrawingWand*
-    T_NUMBER(1)     // double
-    T_NUMBER(2)     // double
-    T_NUMBER(3)     // double
-    T_NUMBER(4)     // MagickBooleanType
-    T_NUMBER(5)     // MagickBooleanType
-    T_NUMBER(6)     // double
-    T_NUMBER(7)     // double
+    T_HANDLE(DrawPathEllipticArcRelative, 0)     // DrawingWand*
+    T_NUMBER(DrawPathEllipticArcRelative, 1)     // double
+    T_NUMBER(DrawPathEllipticArcRelative, 2)     // double
+    T_NUMBER(DrawPathEllipticArcRelative, 3)     // double
+    T_NUMBER(DrawPathEllipticArcRelative, 4)     // MagickBooleanType
+    T_NUMBER(DrawPathEllipticArcRelative, 5)     // MagickBooleanType
+    T_NUMBER(DrawPathEllipticArcRelative, 6)     // double
+    T_NUMBER(DrawPathEllipticArcRelative, 7)     // double
 
     DrawPathEllipticArcRelative((DrawingWand *)(long)PARAM(0), (double)PARAM(1), (double)PARAM(2), (double)PARAM(3), (MagickBooleanType)PARAM(4), (MagickBooleanType)PARAM(5), (double)PARAM(6), (double)PARAM(7));
     RETURN_NUMBER(0)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(DrawPathFinish, 1)
-    T_HANDLE(0)     // DrawingWand*
+    T_HANDLE(DrawPathFinish, 0)     // DrawingWand*
 
     DrawPathFinish((DrawingWand *)(long)PARAM(0));
     RETURN_NUMBER(0)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(DrawPathLineToAbsolute, 3)
-    T_HANDLE(0)     // DrawingWand*
-    T_NUMBER(1)     // double
-    T_NUMBER(2)     // double
+    T_HANDLE(DrawPathLineToAbsolute, 0)     // DrawingWand*
+    T_NUMBER(DrawPathLineToAbsolute, 1)     // double
+    T_NUMBER(DrawPathLineToAbsolute, 2)     // double
 
     DrawPathLineToAbsolute((DrawingWand *)(long)PARAM(0), (double)PARAM(1), (double)PARAM(2));
     RETURN_NUMBER(0)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(DrawPathLineToRelative, 3)
-    T_HANDLE(0)     // DrawingWand*
-    T_NUMBER(1)     // double
-    T_NUMBER(2)     // double
+    T_HANDLE(DrawPathLineToRelative, 0)     // DrawingWand*
+    T_NUMBER(DrawPathLineToRelative, 1)     // double
+    T_NUMBER(DrawPathLineToRelative, 2)     // double
 
     DrawPathLineToRelative((DrawingWand *)(long)PARAM(0), (double)PARAM(1), (double)PARAM(2));
     RETURN_NUMBER(0)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(DrawPathLineToHorizontalAbsolute, 2)
-    T_HANDLE(0)     // DrawingWand*
-    T_NUMBER(1)     // double
+    T_HANDLE(DrawPathLineToHorizontalAbsolute, 0)     // DrawingWand*
+    T_NUMBER(DrawPathLineToHorizontalAbsolute, 1)     // double
 
     DrawPathLineToHorizontalAbsolute((DrawingWand *)(long)PARAM(0), (double)PARAM(1));
     RETURN_NUMBER(0)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(DrawPathLineToHorizontalRelative, 2)
-    T_HANDLE(0)     // DrawingWand*
-    T_NUMBER(1)     // double
+    T_HANDLE(DrawPathLineToHorizontalRelative, 0)     // DrawingWand*
+    T_NUMBER(DrawPathLineToHorizontalRelative, 1)     // double
 
     DrawPathLineToHorizontalRelative((DrawingWand *)(long)PARAM(0), (double)PARAM(1));
     RETURN_NUMBER(0)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(DrawPathLineToVerticalAbsolute, 2)
-    T_HANDLE(0)     // DrawingWand*
-    T_NUMBER(1)     // double
+    T_HANDLE(DrawPathLineToVerticalAbsolute, 0)     // DrawingWand*
+    T_NUMBER(DrawPathLineToVerticalAbsolute, 1)     // double
 
     DrawPathLineToVerticalAbsolute((DrawingWand *)(long)PARAM(0), (double)PARAM(1));
     RETURN_NUMBER(0)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(DrawPathLineToVerticalRelative, 2)
-    T_HANDLE(0)     // DrawingWand*
-    T_NUMBER(1)     // double
+    T_HANDLE(DrawPathLineToVerticalRelative, 0)     // DrawingWand*
+    T_NUMBER(DrawPathLineToVerticalRelative, 1)     // double
 
     DrawPathLineToVerticalRelative((DrawingWand *)(long)PARAM(0), (double)PARAM(1));
     RETURN_NUMBER(0)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(DrawPathMoveToAbsolute, 3)
-    T_HANDLE(0)     // DrawingWand*
-    T_NUMBER(1)     // double
-    T_NUMBER(2)     // double
+    T_HANDLE(DrawPathMoveToAbsolute, 0)     // DrawingWand*
+    T_NUMBER(DrawPathMoveToAbsolute, 1)     // double
+    T_NUMBER(DrawPathMoveToAbsolute, 2)     // double
 
     DrawPathMoveToAbsolute((DrawingWand *)(long)PARAM(0), (double)PARAM(1), (double)PARAM(2));
     RETURN_NUMBER(0)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(DrawPathMoveToRelative, 3)
-    T_HANDLE(0)     // DrawingWand*
-    T_NUMBER(1)     // double
-    T_NUMBER(2)     // double
+    T_HANDLE(DrawPathMoveToRelative, 0)     // DrawingWand*
+    T_NUMBER(DrawPathMoveToRelative, 1)     // double
+    T_NUMBER(DrawPathMoveToRelative, 2)     // double
 
     DrawPathMoveToRelative((DrawingWand *)(long)PARAM(0), (double)PARAM(1), (double)PARAM(2));
     RETURN_NUMBER(0)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(DrawPathStart, 1)
-    T_HANDLE(0)     // DrawingWand*
+    T_HANDLE(DrawPathStart, 0)     // DrawingWand*
 
     DrawPathStart((DrawingWand *)(long)PARAM(0));
     RETURN_NUMBER(0)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(DrawPoint, 3)
-    T_HANDLE(0)     // DrawingWand*
-    T_NUMBER(1)     // double
-    T_NUMBER(2)     // double
+    T_HANDLE(DrawPoint, 0)     // DrawingWand*
+    T_NUMBER(DrawPoint, 1)     // double
+    T_NUMBER(DrawPoint, 2)     // double
 
     DrawPoint((DrawingWand *)(long)PARAM(0), (double)PARAM(1), (double)PARAM(2));
     RETURN_NUMBER(0)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(DrawPolygon, 2)
-    T_HANDLE(0)     // DrawingWand*
-    T_ARRAY(1)
+    T_HANDLE(DrawPolygon, 0)     // DrawingWand*
+    T_ARRAY(DrawPolygon, 1)
 
     void *arr = PARAMETER(1);
     int count = Invoke(INVOKE_GET_ARRAY_COUNT, arr);
@@ -4225,8 +4225,8 @@ CONCEPT_FUNCTION_IMPL(DrawPolygon, 2)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(DrawPolyline, 2)
-    T_HANDLE(0)     // DrawingWand*
-    T_ARRAY(1)
+    T_HANDLE(DrawPolyline, 0)     // DrawingWand*
+    T_ARRAY(DrawPolyline, 1)
 
     void *arr = PARAMETER(1);
     int count = Invoke(INVOKE_GET_ARRAY_COUNT, arr);
@@ -4267,313 +4267,313 @@ CONCEPT_FUNCTION_IMPL(DrawPolyline, 2)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(DrawPopClipPath, 1)
-    T_HANDLE(0)     // DrawingWand*
+    T_HANDLE(DrawPopClipPath, 0)     // DrawingWand*
 
     DrawPopClipPath((DrawingWand *)(long)PARAM(0));
     RETURN_NUMBER(0)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(DrawPopDefs, 1)
-    T_HANDLE(0)     // DrawingWand*
+    T_HANDLE(DrawPopDefs, 0)     // DrawingWand*
 
     DrawPopDefs((DrawingWand *)(long)PARAM(0));
     RETURN_NUMBER(0)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(DrawPushClipPath, 2)
-    T_HANDLE(0)     // DrawingWand*
-    T_STRING(1)     // char*
+    T_HANDLE(DrawPushClipPath, 0)     // DrawingWand*
+    T_STRING(DrawPushClipPath, 1)     // char*
 
     DrawPushClipPath((DrawingWand *)(long)PARAM(0), (char *)PARAM(1));
     RETURN_NUMBER(0)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(DrawPushDefs, 1)
-    T_HANDLE(0)     // DrawingWand*
+    T_HANDLE(DrawPushDefs, 0)     // DrawingWand*
 
     DrawPushDefs((DrawingWand *)(long)PARAM(0));
     RETURN_NUMBER(0)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(DrawRectangle, 5)
-    T_HANDLE(0)     // DrawingWand*
-    T_NUMBER(1)     // double
-    T_NUMBER(2)     // double
-    T_NUMBER(3)     // double
-    T_NUMBER(4)     // double
+    T_HANDLE(DrawRectangle, 0)     // DrawingWand*
+    T_NUMBER(DrawRectangle, 1)     // double
+    T_NUMBER(DrawRectangle, 2)     // double
+    T_NUMBER(DrawRectangle, 3)     // double
+    T_NUMBER(DrawRectangle, 4)     // double
 
     DrawRectangle((DrawingWand *)(long)PARAM(0), (double)PARAM(1), (double)PARAM(2), (double)PARAM(3), (double)PARAM(4));
     RETURN_NUMBER(0)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(DrawResetVectorGraphics, 1)
-    T_HANDLE(0)     // DrawingWand*
+    T_HANDLE(DrawResetVectorGraphics, 0)     // DrawingWand*
 
     DrawResetVectorGraphics((DrawingWand *)(long)PARAM(0));
     RETURN_NUMBER(0)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(DrawRotate, 2)
-    T_HANDLE(0)     // DrawingWand*
-    T_NUMBER(1)     // double
+    T_HANDLE(DrawRotate, 0)     // DrawingWand*
+    T_NUMBER(DrawRotate, 1)     // double
 
     DrawRotate((DrawingWand *)(long)PARAM(0), (double)PARAM(1));
     RETURN_NUMBER(0)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(DrawRoundRectangle, 7)
-    T_HANDLE(0)     // DrawingWand*
-    T_NUMBER(1)     // double
-    T_NUMBER(2)     // double
-    T_NUMBER(3)     // double
-    T_NUMBER(4)     // double
-    T_NUMBER(5)     // double
-    T_NUMBER(6)     // double
+    T_HANDLE(DrawRoundRectangle, 0)     // DrawingWand*
+    T_NUMBER(DrawRoundRectangle, 1)     // double
+    T_NUMBER(DrawRoundRectangle, 2)     // double
+    T_NUMBER(DrawRoundRectangle, 3)     // double
+    T_NUMBER(DrawRoundRectangle, 4)     // double
+    T_NUMBER(DrawRoundRectangle, 5)     // double
+    T_NUMBER(DrawRoundRectangle, 6)     // double
 
     DrawRoundRectangle((DrawingWand *)(long)PARAM(0), (double)PARAM(1), (double)PARAM(2), (double)PARAM(3), (double)PARAM(4), (double)PARAM(5), (double)PARAM(6));
     RETURN_NUMBER(0)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(DrawScale, 3)
-    T_HANDLE(0)     // DrawingWand*
-    T_NUMBER(1)     // double
-    T_NUMBER(2)     // double
+    T_HANDLE(DrawScale, 0)     // DrawingWand*
+    T_NUMBER(DrawScale, 1)     // double
+    T_NUMBER(DrawScale, 2)     // double
 
     DrawScale((DrawingWand *)(long)PARAM(0), (double)PARAM(1), (double)PARAM(2));
     RETURN_NUMBER(0)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(DrawSetBorderColor, 2)
-    T_HANDLE(0)     // DrawingWand*
-    T_HANDLE(1)     // PixelWand*
+    T_HANDLE(DrawSetBorderColor, 0)     // DrawingWand*
+    T_HANDLE(DrawSetBorderColor, 1)     // PixelWand*
 
     DrawSetBorderColor((DrawingWand *)(long)PARAM(0), (PixelWand *)(long)PARAM(1));
     RETURN_NUMBER(0)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(DrawSetClipRule, 2)
-    T_HANDLE(0)     // DrawingWand*
-    T_NUMBER(1)     // FillRule
+    T_HANDLE(DrawSetClipRule, 0)     // DrawingWand*
+    T_NUMBER(DrawSetClipRule, 1)     // FillRule
 
     DrawSetClipRule((DrawingWand *)(long)PARAM(0), (FillRule)PARAM(1));
     RETURN_NUMBER(0)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(DrawSetClipUnits, 2)
-    T_HANDLE(0)     // DrawingWand*
-    T_NUMBER(1)     // ClipPathUnits
+    T_HANDLE(DrawSetClipUnits, 0)     // DrawingWand*
+    T_NUMBER(DrawSetClipUnits, 1)     // ClipPathUnits
 
     DrawSetClipUnits((DrawingWand *)(long)PARAM(0), (ClipPathUnits)PARAM(1));
     RETURN_NUMBER(0)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(DrawSetFillColor, 2)
-    T_HANDLE(0)     // DrawingWand*
-    T_HANDLE(1)     // PixelWand*
+    T_HANDLE(DrawSetFillColor, 0)     // DrawingWand*
+    T_HANDLE(DrawSetFillColor, 1)     // PixelWand*
 
     DrawSetFillColor((DrawingWand *)(long)PARAM(0), (PixelWand *)(long)PARAM(1));
     RETURN_NUMBER(0)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(DrawSetFillOpacity, 2)
-    T_HANDLE(0)     // DrawingWand*
-    T_NUMBER(1)     // double
+    T_HANDLE(DrawSetFillOpacity, 0)     // DrawingWand*
+    T_NUMBER(DrawSetFillOpacity, 1)     // double
 
     DrawSetFillOpacity((DrawingWand *)(long)PARAM(0), (double)PARAM(1));
     RETURN_NUMBER(0)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(DrawSetFillRule, 2)
-    T_HANDLE(0)     // DrawingWand*
-    T_NUMBER(1)     // FillRule
+    T_HANDLE(DrawSetFillRule, 0)     // DrawingWand*
+    T_NUMBER(DrawSetFillRule, 1)     // FillRule
 
     DrawSetFillRule((DrawingWand *)(long)PARAM(0), (FillRule)PARAM(1));
     RETURN_NUMBER(0)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(DrawSetFontSize, 2)
-    T_HANDLE(0)     // DrawingWand*
-    T_NUMBER(1)     // double
+    T_HANDLE(DrawSetFontSize, 0)     // DrawingWand*
+    T_NUMBER(DrawSetFontSize, 1)     // double
 
     DrawSetFontSize((DrawingWand *)(long)PARAM(0), (double)PARAM(1));
     RETURN_NUMBER(0)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(DrawSetFontStretch, 2)
-    T_HANDLE(0)     // DrawingWand*
-    T_NUMBER(1)     // StretchType
+    T_HANDLE(DrawSetFontStretch, 0)     // DrawingWand*
+    T_NUMBER(DrawSetFontStretch, 1)     // StretchType
 
     DrawSetFontStretch((DrawingWand *)(long)PARAM(0), (StretchType)PARAM(1));
     RETURN_NUMBER(0)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(DrawSetFontStyle, 2)
-    T_HANDLE(0)     // DrawingWand*
-    T_NUMBER(1)     // StyleType
+    T_HANDLE(DrawSetFontStyle, 0)     // DrawingWand*
+    T_NUMBER(DrawSetFontStyle, 1)     // StyleType
 
     DrawSetFontStyle((DrawingWand *)(long)PARAM(0), (StyleType)PARAM(1));
     RETURN_NUMBER(0)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(DrawSetFontWeight, 2)
-    T_HANDLE(0)     // DrawingWand*
-    T_NUMBER(1)     // size_t
+    T_HANDLE(DrawSetFontWeight, 0)     // DrawingWand*
+    T_NUMBER(DrawSetFontWeight, 1)     // size_t
 
     DrawSetFontWeight((DrawingWand *)(long)PARAM(0), (size_t)PARAM(1));
     RETURN_NUMBER(0)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(DrawSetGravity, 2)
-    T_HANDLE(0)     // DrawingWand*
-    T_NUMBER(1)     // GravityType
+    T_HANDLE(DrawSetGravity, 0)     // DrawingWand*
+    T_NUMBER(DrawSetGravity, 1)     // GravityType
 
     DrawSetGravity((DrawingWand *)(long)PARAM(0), (GravityType)PARAM(1));
     RETURN_NUMBER(0)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(DrawSetOpacity, 2)
-    T_HANDLE(0)     // DrawingWand*
-    T_NUMBER(1)     // double
+    T_HANDLE(DrawSetOpacity, 0)     // DrawingWand*
+    T_NUMBER(DrawSetOpacity, 1)     // double
 
     DrawSetOpacity((DrawingWand *)(long)PARAM(0), (double)PARAM(1));
     RETURN_NUMBER(0)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(DrawSetStrokeAntialias, 2)
-    T_HANDLE(0)     // DrawingWand*
-    T_NUMBER(1)     // MagickBooleanType
+    T_HANDLE(DrawSetStrokeAntialias, 0)     // DrawingWand*
+    T_NUMBER(DrawSetStrokeAntialias, 1)     // MagickBooleanType
 
     DrawSetStrokeAntialias((DrawingWand *)(long)PARAM(0), (MagickBooleanType)PARAM(1));
     RETURN_NUMBER(0)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(DrawSetStrokeColor, 2)
-    T_HANDLE(0)     // DrawingWand*
-    T_HANDLE(1)     // PixelWand*
+    T_HANDLE(DrawSetStrokeColor, 0)     // DrawingWand*
+    T_HANDLE(DrawSetStrokeColor, 1)     // PixelWand*
 
     DrawSetStrokeColor((DrawingWand *)(long)PARAM(0), (PixelWand *)(long)PARAM(1));
     RETURN_NUMBER(0)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(DrawSetStrokeDashOffset, 2)
-    T_HANDLE(0)     // DrawingWand*
-    T_NUMBER(1)     // double
+    T_HANDLE(DrawSetStrokeDashOffset, 0)     // DrawingWand*
+    T_NUMBER(DrawSetStrokeDashOffset, 1)     // double
 
     DrawSetStrokeDashOffset((DrawingWand *)(long)PARAM(0), (double)PARAM(1));
     RETURN_NUMBER(0)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(DrawSetStrokeLineCap, 2)
-    T_HANDLE(0)     // DrawingWand*
-    T_NUMBER(1)     // LineCap
+    T_HANDLE(DrawSetStrokeLineCap, 0)     // DrawingWand*
+    T_NUMBER(DrawSetStrokeLineCap, 1)     // LineCap
 
     DrawSetStrokeLineCap((DrawingWand *)(long)PARAM(0), (LineCap)PARAM(1));
     RETURN_NUMBER(0)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(DrawSetStrokeLineJoin, 2)
-    T_HANDLE(0)     // DrawingWand*
-    T_NUMBER(1)     // LineJoin
+    T_HANDLE(DrawSetStrokeLineJoin, 0)     // DrawingWand*
+    T_NUMBER(DrawSetStrokeLineJoin, 1)     // LineJoin
 
     DrawSetStrokeLineJoin((DrawingWand *)(long)PARAM(0), (LineJoin)PARAM(1));
     RETURN_NUMBER(0)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(DrawSetStrokeMiterLimit, 2)
-    T_HANDLE(0)     // DrawingWand*
-    T_NUMBER(1)     // size_t
+    T_HANDLE(DrawSetStrokeMiterLimit, 0)     // DrawingWand*
+    T_NUMBER(DrawSetStrokeMiterLimit, 1)     // size_t
 
     DrawSetStrokeMiterLimit((DrawingWand *)(long)PARAM(0), (size_t)PARAM(1));
     RETURN_NUMBER(0)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(DrawSetStrokeOpacity, 2)
-    T_HANDLE(0)     // DrawingWand*
-    T_NUMBER(1)     // double
+    T_HANDLE(DrawSetStrokeOpacity, 0)     // DrawingWand*
+    T_NUMBER(DrawSetStrokeOpacity, 1)     // double
 
     DrawSetStrokeOpacity((DrawingWand *)(long)PARAM(0), (double)PARAM(1));
     RETURN_NUMBER(0)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(DrawSetStrokeWidth, 2)
-    T_HANDLE(0)     // DrawingWand*
-    T_NUMBER(1)     // double
+    T_HANDLE(DrawSetStrokeWidth, 0)     // DrawingWand*
+    T_NUMBER(DrawSetStrokeWidth, 1)     // double
 
     DrawSetStrokeWidth((DrawingWand *)(long)PARAM(0), (double)PARAM(1));
     RETURN_NUMBER(0)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(DrawSetTextAlignment, 2)
-    T_HANDLE(0)     // DrawingWand*
-    T_NUMBER(1)     // AlignType
+    T_HANDLE(DrawSetTextAlignment, 0)     // DrawingWand*
+    T_NUMBER(DrawSetTextAlignment, 1)     // AlignType
 
     DrawSetTextAlignment((DrawingWand *)(long)PARAM(0), (AlignType)PARAM(1));
     RETURN_NUMBER(0)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(DrawSetTextAntialias, 2)
-    T_HANDLE(0)     // DrawingWand*
-    T_NUMBER(1)     // MagickBooleanType
+    T_HANDLE(DrawSetTextAntialias, 0)     // DrawingWand*
+    T_NUMBER(DrawSetTextAntialias, 1)     // MagickBooleanType
 
     DrawSetTextAntialias((DrawingWand *)(long)PARAM(0), (MagickBooleanType)PARAM(1));
     RETURN_NUMBER(0)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(DrawSetTextDecoration, 2)
-    T_HANDLE(0)     // DrawingWand*
-    T_NUMBER(1)     // DecorationType
+    T_HANDLE(DrawSetTextDecoration, 0)     // DrawingWand*
+    T_NUMBER(DrawSetTextDecoration, 1)     // DecorationType
 
     DrawSetTextDecoration((DrawingWand *)(long)PARAM(0), (DecorationType)PARAM(1));
     RETURN_NUMBER(0)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(DrawSetTextEncoding, 2)
-    T_HANDLE(0)     // DrawingWand*
-    T_STRING(1)     // char*
+    T_HANDLE(DrawSetTextEncoding, 0)     // DrawingWand*
+    T_STRING(DrawSetTextEncoding, 1)     // char*
 
     DrawSetTextEncoding((DrawingWand *)(long)PARAM(0), (char *)PARAM(1));
     RETURN_NUMBER(0)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(DrawSetTextUnderColor, 2)
-    T_HANDLE(0)     // DrawingWand*
-    T_HANDLE(1)     // PixelWand*
+    T_HANDLE(DrawSetTextUnderColor, 0)     // DrawingWand*
+    T_HANDLE(DrawSetTextUnderColor, 1)     // PixelWand*
 
     DrawSetTextUnderColor((DrawingWand *)(long)PARAM(0), (PixelWand *)(long)PARAM(1));
     RETURN_NUMBER(0)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(DrawSetViewbox, 5)
-    T_HANDLE(0)     // DrawingWand*
-    T_NUMBER(1)     // ssize_t
-    T_NUMBER(2)     // ssize_t
-    T_NUMBER(3)     // ssize_t
-    T_NUMBER(4)     // ssize_t
+    T_HANDLE(DrawSetViewbox, 0)     // DrawingWand*
+    T_NUMBER(DrawSetViewbox, 1)     // ssize_t
+    T_NUMBER(DrawSetViewbox, 2)     // ssize_t
+    T_NUMBER(DrawSetViewbox, 3)     // ssize_t
+    T_NUMBER(DrawSetViewbox, 4)     // ssize_t
 
     DrawSetViewbox((DrawingWand *)(long)PARAM(0), (ssize_t)PARAM(1), (ssize_t)PARAM(2), (ssize_t)PARAM(3), (ssize_t)PARAM(4));
     RETURN_NUMBER(0)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(DrawSkewX, 2)
-    T_HANDLE(0)     // DrawingWand*
-    T_NUMBER(1)     // double
+    T_HANDLE(DrawSkewX, 0)     // DrawingWand*
+    T_NUMBER(DrawSkewX, 1)     // double
 
     DrawSkewX((DrawingWand *)(long)PARAM(0), (double)PARAM(1));
     RETURN_NUMBER(0)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(DrawSkewY, 2)
-    T_HANDLE(0)     // DrawingWand*
-    T_NUMBER(1)     // double
+    T_HANDLE(DrawSkewY, 0)     // DrawingWand*
+    T_NUMBER(DrawSkewY, 1)     // double
 
     DrawSkewY((DrawingWand *)(long)PARAM(0), (double)PARAM(1));
     RETURN_NUMBER(0)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(DrawTranslate, 3)
-    T_HANDLE(0)     // DrawingWand*
-    T_NUMBER(1)     // double
-    T_NUMBER(2)     // double
+    T_HANDLE(DrawTranslate, 0)     // DrawingWand*
+    T_NUMBER(DrawTranslate, 1)     // double
+    T_NUMBER(DrawTranslate, 2)     // double
 
     DrawTranslate((DrawingWand *)(long)PARAM(0), (double)PARAM(1), (double)PARAM(2));
     RETURN_NUMBER(0)
@@ -4582,19 +4582,19 @@ END_IMPL
 //------------------------------------------------------------------------
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(PixelGetColorAsNormalizedString, 1)
-    T_HANDLE(0)     // PixelWand*
+    T_HANDLE(PixelGetColorAsNormalizedString, 0)     // PixelWand*
 
     RETURN_STRING2((char *)PixelGetColorAsNormalizedString((PixelWand *)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(PixelGetColorAsString, 1)
-    T_HANDLE(0)     // PixelWand*
+    T_HANDLE(PixelGetColorAsString, 0)     // PixelWand*
 
     RETURN_STRING2((char *)PixelGetColorAsString((PixelWand *)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(PixelGetException, 2)
-    T_HANDLE(0)     // PixelWand*
+    T_HANDLE(PixelGetException, 0)     // PixelWand*
 
 // ... parameter 1 is by reference (ExceptionType*)
     ExceptionType local_parameter_1;
@@ -4604,113 +4604,113 @@ CONCEPT_FUNCTION_IMPL(PixelGetException, 2)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(PixelGetAlpha, 1)
-    T_HANDLE(0)     // PixelWand*
+    T_HANDLE(PixelGetAlpha, 0)     // PixelWand*
 
     RETURN_NUMBER(PixelGetAlpha((PixelWand *)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(PixelGetBlack, 1)
-    T_HANDLE(0)     // PixelWand*
+    T_HANDLE(PixelGetBlack, 0)     // PixelWand*
 
     RETURN_NUMBER(PixelGetBlack((PixelWand *)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(PixelGetBlue, 1)
-    T_HANDLE(0)     // PixelWand*
+    T_HANDLE(PixelGetBlue, 0)     // PixelWand*
 
     RETURN_NUMBER(PixelGetBlue((PixelWand *)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(PixelGetCyan, 1)
-    T_HANDLE(0)     // PixelWand*
+    T_HANDLE(PixelGetCyan, 0)     // PixelWand*
 
     RETURN_NUMBER(PixelGetCyan((PixelWand *)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(PixelGetFuzz, 1)
-    T_HANDLE(0)     // PixelWand*
+    T_HANDLE(PixelGetFuzz, 0)     // PixelWand*
 
     RETURN_NUMBER(PixelGetFuzz((PixelWand *)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(PixelGetGreen, 1)
-    T_HANDLE(0)     // PixelWand*
+    T_HANDLE(PixelGetGreen, 0)     // PixelWand*
 
     RETURN_NUMBER(PixelGetGreen((PixelWand *)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(PixelGetMagenta, 1)
-    T_HANDLE(0)     // PixelWand*
+    T_HANDLE(PixelGetMagenta, 0)     // PixelWand*
 
     RETURN_NUMBER(PixelGetMagenta((PixelWand *)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(PixelGetOpacity, 1)
-    T_HANDLE(0)     // PixelWand*
+    T_HANDLE(PixelGetOpacity, 0)     // PixelWand*
 
     RETURN_NUMBER(PixelGetOpacity((PixelWand *)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(PixelGetRed, 1)
-    T_HANDLE(0)     // PixelWand*
+    T_HANDLE(PixelGetRed, 0)     // PixelWand*
 
     RETURN_NUMBER(PixelGetRed((PixelWand *)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(PixelGetYellow, 1)
-    T_HANDLE(0)     // PixelWand*
+    T_HANDLE(PixelGetYellow, 0)     // PixelWand*
 
     RETURN_NUMBER(PixelGetYellow((PixelWand *)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(PixelGetExceptionType, 1)
-    T_HANDLE(0)     // PixelWand*
+    T_HANDLE(PixelGetExceptionType, 0)     // PixelWand*
 
     RETURN_NUMBER(PixelGetExceptionType((PixelWand *)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(PixelGetIndex, 1)
-    T_HANDLE(0)     // PixelWand*
+    T_HANDLE(PixelGetIndex, 0)     // PixelWand*
 
     RETURN_NUMBER(PixelGetIndex((PixelWand *)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(IsPixelWand, 1)
-    T_HANDLE(0)     // PixelWand*
+    T_HANDLE(IsPixelWand, 0)     // PixelWand*
 
     RETURN_NUMBER(IsPixelWand((PixelWand *)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(IsPixelWandSimilar, 3)
-    T_HANDLE(0)     // PixelWand*
-    T_HANDLE(1)     // PixelWand*
-    T_NUMBER(2)     // double
+    T_HANDLE(IsPixelWandSimilar, 0)     // PixelWand*
+    T_HANDLE(IsPixelWandSimilar, 1)     // PixelWand*
+    T_NUMBER(IsPixelWandSimilar, 2)     // double
 
     RETURN_NUMBER(IsPixelWandSimilar((PixelWand *)(long)PARAM(0), (PixelWand *)(long)PARAM(1), (double)PARAM(2)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(PixelClearException, 1)
-    T_HANDLE(0)     // PixelWand*
+    T_HANDLE(PixelClearException, 0)     // PixelWand*
 
     RETURN_NUMBER(PixelClearException((PixelWand *)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(PixelSetColor, 2)
-    T_HANDLE(0)     // PixelWand*
-    T_STRING(1)     // char*
+    T_HANDLE(PixelSetColor, 0)     // PixelWand*
+    T_STRING(PixelSetColor, 1)     // char*
 
     RETURN_NUMBER(PixelSetColor((PixelWand *)(long)PARAM(0), (char *)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(ClonePixelWand, 1)
-    T_HANDLE(0)     // PixelWand*
+    T_HANDLE(ClonePixelWand, 0)     // PixelWand*
 
     RETURN_NUMBER((long)ClonePixelWand((PixelWand *)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 
 /*CONCEPT_FUNCTION_IMPL(ClonePixelWands,2)
-        T_NUMBER(1) // size_t
+        T_NUMBER(ClonePixelWand, 1) // size_t
 
         // ... parameter 0 is by reference (PixelWand**)
         PixelWand* local_parameter_0;
@@ -4720,7 +4720,7 @@ END_IMPL
    END_IMPL*/
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(DestroyPixelWand, 1)
-    T_HANDLE(0)     // PixelWand*
+    T_HANDLE(DestroyPixelWand, 0)     // PixelWand*
 
     RETURN_NUMBER((long)DestroyPixelWand((PixelWand *)(long)PARAM(0)))
     SET_NUMBER(0, 0)
@@ -4728,7 +4728,7 @@ END_IMPL
 //------------------------------------------------------------------------
 
 /*CONCEPT_FUNCTION_IMPL(DestroyPixelWands,2)
-        T_NUMBER(1) // size_t
+        T_NUMBER(DestroyPixelWand, 1) // size_t
 
         // ... parameter 0 is by reference (PixelWand**)
         PixelWand* local_parameter_0;
@@ -4743,80 +4743,80 @@ END_IMPL
 //------------------------------------------------------------------------
 
 /*CONCEPT_FUNCTION_IMPL(NewPixelWands,1)
-        T_NUMBER(0) // size_t
+        T_NUMBER(NewPixelWand, 0) // size_t
 
         RETURN_NUMBER((long)NewPixelWands((size_t)PARAM(0)))
    END_IMPL*/
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(PixelGetAlphaQuantum, 1)
-    T_HANDLE(0)     // PixelWand*
+    T_HANDLE(PixelGetAlphaQuantum, 0)     // PixelWand*
 
     RETURN_NUMBER(PixelGetAlphaQuantum((PixelWand *)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(PixelGetBlackQuantum, 1)
-    T_HANDLE(0)     // PixelWand*
+    T_HANDLE(PixelGetBlackQuantum, 0)     // PixelWand*
 
     RETURN_NUMBER(PixelGetBlackQuantum((PixelWand *)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(PixelGetBlueQuantum, 1)
-    T_HANDLE(0)     // PixelWand*
+    T_HANDLE(PixelGetBlueQuantum, 0)     // PixelWand*
 
     RETURN_NUMBER(PixelGetBlueQuantum((PixelWand *)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(PixelGetCyanQuantum, 1)
-    T_HANDLE(0)     // PixelWand*
+    T_HANDLE(PixelGetCyanQuantum, 0)     // PixelWand*
 
     RETURN_NUMBER(PixelGetCyanQuantum((PixelWand *)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(PixelGetGreenQuantum, 1)
-    T_HANDLE(0)     // PixelWand*
+    T_HANDLE(PixelGetGreenQuantum, 0)     // PixelWand*
 
     RETURN_NUMBER(PixelGetGreenQuantum((PixelWand *)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(PixelGetMagentaQuantum, 1)
-    T_HANDLE(0)     // PixelWand*
+    T_HANDLE(PixelGetMagentaQuantum, 0)     // PixelWand*
 
     RETURN_NUMBER(PixelGetMagentaQuantum((PixelWand *)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(PixelGetOpacityQuantum, 1)
-    T_HANDLE(0)     // PixelWand*
+    T_HANDLE(PixelGetOpacityQuantum, 0)     // PixelWand*
 
     RETURN_NUMBER(PixelGetOpacityQuantum((PixelWand *)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(PixelGetRedQuantum, 1)
-    T_HANDLE(0)     // PixelWand*
+    T_HANDLE(PixelGetRedQuantum, 0)     // PixelWand*
 
     RETURN_NUMBER(PixelGetRedQuantum((PixelWand *)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(PixelGetYellowQuantum, 1)
-    T_HANDLE(0)     // PixelWand*
+    T_HANDLE(PixelGetYellowQuantum, 0)     // PixelWand*
 
     RETURN_NUMBER(PixelGetYellowQuantum((PixelWand *)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(PixelGetColorCount, 1)
-    T_HANDLE(0)     // PixelWand*
+    T_HANDLE(PixelGetColorCount, 0)     // PixelWand*
 
     RETURN_NUMBER(PixelGetColorCount((PixelWand *)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(ClearPixelWand, 1)
-    T_HANDLE(0)     // PixelWand*
+    T_HANDLE(ClearPixelWand, 0)     // PixelWand*
 
     ClearPixelWand((PixelWand *)(long)PARAM(0));
     RETURN_NUMBER(0)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(PixelGetHSL, 4)
-    T_HANDLE(0)     // PixelWand*
+    T_HANDLE(PixelGetHSL, 0)     // PixelWand*
 
 // ... parameter 1 is by reference (double*)
     double local_parameter_1;
@@ -4833,7 +4833,7 @@ CONCEPT_FUNCTION_IMPL(PixelGetHSL, 4)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(PixelGetQuantumColor, 5)
-    T_HANDLE(0)     // PixelWand*
+    T_HANDLE(PixelGetQuantumColor, 0)     // PixelWand*
 
     PixelPacket local_parameter_1;
 
@@ -4846,155 +4846,155 @@ CONCEPT_FUNCTION_IMPL(PixelGetQuantumColor, 5)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(PixelSetAlpha, 2)
-    T_HANDLE(0)     // PixelWand*
-    T_NUMBER(1)     // double
+    T_HANDLE(PixelSetAlpha, 0)     // PixelWand*
+    T_NUMBER(PixelSetAlpha, 1)     // double
 
     PixelSetAlpha((PixelWand *)(long)PARAM(0), (double)PARAM(1));
     RETURN_NUMBER(0)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(PixelSetAlphaQuantum, 2)
-    T_HANDLE(0)     // PixelWand*
-    T_NUMBER(1)     // Quantum
+    T_HANDLE(PixelSetAlphaQuantum, 0)     // PixelWand*
+    T_NUMBER(PixelSetAlphaQuantum, 1)     // Quantum
 
     PixelSetAlphaQuantum((PixelWand *)(long)PARAM(0), (Quantum)PARAM(1));
     RETURN_NUMBER(0)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(PixelSetBlack, 2)
-    T_HANDLE(0)     // PixelWand*
-    T_NUMBER(1)     // double
+    T_HANDLE(PixelSetBlack, 0)     // PixelWand*
+    T_NUMBER(PixelSetBlack, 1)     // double
 
     PixelSetBlack((PixelWand *)(long)PARAM(0), (double)PARAM(1));
     RETURN_NUMBER(0)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(PixelSetBlackQuantum, 2)
-    T_HANDLE(0)     // PixelWand*
-    T_NUMBER(1)     // Quantum
+    T_HANDLE(PixelSetBlackQuantum, 0)     // PixelWand*
+    T_NUMBER(PixelSetBlackQuantum, 1)     // Quantum
 
     PixelSetBlackQuantum((PixelWand *)(long)PARAM(0), (Quantum)PARAM(1));
     RETURN_NUMBER(0)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(PixelSetBlue, 2)
-    T_HANDLE(0)     // PixelWand*
-    T_NUMBER(1)     // double
+    T_HANDLE(PixelSetBlue, 0)     // PixelWand*
+    T_NUMBER(PixelSetBlue, 1)     // double
 
     PixelSetBlue((PixelWand *)(long)PARAM(0), (double)PARAM(1));
     RETURN_NUMBER(0)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(PixelSetBlueQuantum, 2)
-    T_HANDLE(0)     // PixelWand*
-    T_NUMBER(1)     // Quantum
+    T_HANDLE(PixelSetBlueQuantum, 0)     // PixelWand*
+    T_NUMBER(PixelSetBlueQuantum, 1)     // Quantum
 
     PixelSetBlueQuantum((PixelWand *)(long)PARAM(0), (Quantum)PARAM(1));
     RETURN_NUMBER(0)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(PixelSetColorFromWand, 2)
-    T_HANDLE(0)     // PixelWand*
-    T_HANDLE(1)     // PixelWand*
+    T_HANDLE(PixelSetColorFromWand, 0)     // PixelWand*
+    T_HANDLE(PixelSetColorFromWand, 1)     // PixelWand*
 
     PixelSetColorFromWand((PixelWand *)(long)PARAM(0), (PixelWand *)(long)PARAM(1));
     RETURN_NUMBER(0)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(PixelSetColorCount, 2)
-    T_HANDLE(0)     // PixelWand*
-    T_NUMBER(1)     // size_t
+    T_HANDLE(PixelSetColorCount, 0)     // PixelWand*
+    T_NUMBER(PixelSetColorCount, 1)     // size_t
 
     PixelSetColorCount((PixelWand *)(long)PARAM(0), (size_t)PARAM(1));
     RETURN_NUMBER(0)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(PixelSetCyan, 2)
-    T_HANDLE(0)     // PixelWand*
-    T_NUMBER(1)     // double
+    T_HANDLE(PixelSetCyan, 0)     // PixelWand*
+    T_NUMBER(PixelSetCyan, 1)     // double
 
     PixelSetCyan((PixelWand *)(long)PARAM(0), (double)PARAM(1));
     RETURN_NUMBER(0)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(PixelSetCyanQuantum, 2)
-    T_HANDLE(0)     // PixelWand*
-    T_NUMBER(1)     // Quantum
+    T_HANDLE(PixelSetCyanQuantum, 0)     // PixelWand*
+    T_NUMBER(PixelSetCyanQuantum, 1)     // Quantum
 
     PixelSetCyanQuantum((PixelWand *)(long)PARAM(0), (Quantum)PARAM(1));
     RETURN_NUMBER(0)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(PixelSetFuzz, 2)
-    T_HANDLE(0)     // PixelWand*
-    T_NUMBER(1)     // double
+    T_HANDLE(PixelSetFuzz, 0)     // PixelWand*
+    T_NUMBER(PixelSetFuzz, 1)     // double
 
     PixelSetFuzz((PixelWand *)(long)PARAM(0), (double)PARAM(1));
     RETURN_NUMBER(0)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(PixelSetGreen, 2)
-    T_HANDLE(0)     // PixelWand*
-    T_NUMBER(1)     // double
+    T_HANDLE(PixelSetGreen, 0)     // PixelWand*
+    T_NUMBER(PixelSetGreen, 1)     // double
 
     PixelSetGreen((PixelWand *)(long)PARAM(0), (double)PARAM(1));
     RETURN_NUMBER(0)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(PixelSetGreenQuantum, 2)
-    T_HANDLE(0)     // PixelWand*
-    T_NUMBER(1)     // Quantum
+    T_HANDLE(PixelSetGreenQuantum, 0)     // PixelWand*
+    T_NUMBER(PixelSetGreenQuantum, 1)     // Quantum
 
     PixelSetGreenQuantum((PixelWand *)(long)PARAM(0), (Quantum)PARAM(1));
     RETURN_NUMBER(0)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(PixelSetHSL, 4)
-    T_HANDLE(0)     // PixelWand*
-    T_NUMBER(1)     // double
-    T_NUMBER(2)     // double
-    T_NUMBER(3)     // double
+    T_HANDLE(PixelSetHSL, 0)     // PixelWand*
+    T_NUMBER(PixelSetHSL, 1)     // double
+    T_NUMBER(PixelSetHSL, 2)     // double
+    T_NUMBER(PixelSetHSL, 3)     // double
 
     PixelSetHSL((PixelWand *)(long)PARAM(0), (double)PARAM(1), (double)PARAM(2), (double)PARAM(3));
     RETURN_NUMBER(0)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(PixelSetIndex, 2)
-    T_HANDLE(0)     // PixelWand*
-    T_NUMBER(1)     // IndexPacket
+    T_HANDLE(PixelSetIndex, 0)     // PixelWand*
+    T_NUMBER(PixelSetIndex, 1)     // IndexPacket
 
     PixelSetIndex((PixelWand *)(long)PARAM(0), (IndexPacket)PARAM(1));
     RETURN_NUMBER(0)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(PixelSetMagenta, 2)
-    T_HANDLE(0)     // PixelWand*
-    T_NUMBER(1)     // double
+    T_HANDLE(PixelSetMagenta, 0)     // PixelWand*
+    T_NUMBER(PixelSetMagenta, 1)     // double
 
     PixelSetMagenta((PixelWand *)(long)PARAM(0), (double)PARAM(1));
     RETURN_NUMBER(0)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(PixelSetMagentaQuantum, 2)
-    T_HANDLE(0)     // PixelWand*
-    T_NUMBER(1)     // Quantum
+    T_HANDLE(PixelSetMagentaQuantum, 0)     // PixelWand*
+    T_NUMBER(PixelSetMagentaQuantum, 1)     // Quantum
 
     PixelSetMagentaQuantum((PixelWand *)(long)PARAM(0), (Quantum)PARAM(1));
     RETURN_NUMBER(0)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(PixelSetMagickColor, 11)
-    T_HANDLE(0)     // PixelWand*
-    T_NUMBER(1)
-    T_NUMBER(2)
-    T_NUMBER(3)
-    T_NUMBER(4)
-    T_NUMBER(5)
-    T_NUMBER(6)
-    T_NUMBER(7)
-    T_NUMBER(8)
-    T_NUMBER(9)
-    T_NUMBER(10)
+    T_HANDLE(PixelSetMagickColor, 0)     // PixelWand*
+    T_NUMBER(PixelSetMagickColor, 1)
+    T_NUMBER(PixelSetMagickColor, 2)
+    T_NUMBER(PixelSetMagickColor, 3)
+    T_NUMBER(PixelSetMagickColor, 4)
+    T_NUMBER(PixelSetMagickColor, 5)
+    T_NUMBER(PixelSetMagickColor, 6)
+    T_NUMBER(PixelSetMagickColor, 7)
+    T_NUMBER(PixelSetMagickColor, 8)
+    T_NUMBER(PixelSetMagickColor, 9)
+    T_NUMBER(PixelSetMagickColor, 10)
 
     MagickPixelPacket local_parameter_1;
     local_parameter_1.storage_class = (ClassType)PARAM(1);
@@ -5013,27 +5013,27 @@ CONCEPT_FUNCTION_IMPL(PixelSetMagickColor, 11)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(PixelSetOpacity, 2)
-    T_HANDLE(0)     // PixelWand*
-    T_NUMBER(1)     // double
+    T_HANDLE(PixelSetOpacity, 0)     // PixelWand*
+    T_NUMBER(PixelSetOpacity, 1)     // double
 
     PixelSetOpacity((PixelWand *)(long)PARAM(0), (double)PARAM(1));
     RETURN_NUMBER(0)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(PixelSetOpacityQuantum, 2)
-    T_HANDLE(0)     // PixelWand*
-    T_NUMBER(1)     // Quantum
+    T_HANDLE(PixelSetOpacityQuantum, 0)     // PixelWand*
+    T_NUMBER(PixelSetOpacityQuantum, 1)     // Quantum
 
     PixelSetOpacityQuantum((PixelWand *)(long)PARAM(0), (Quantum)PARAM(1));
     RETURN_NUMBER(0)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(PixelSetQuantumColor, 5)
-    T_HANDLE(0)     // PixelWand*
-    T_NUMBER(1)
-    T_NUMBER(2)
-    T_NUMBER(3)
-    T_NUMBER(4)
+    T_HANDLE(PixelSetQuantumColor, 0)     // PixelWand*
+    T_NUMBER(PixelSetQuantumColor, 1)
+    T_NUMBER(PixelSetQuantumColor, 2)
+    T_NUMBER(PixelSetQuantumColor, 3)
+    T_NUMBER(PixelSetQuantumColor, 4)
 
     PixelPacket local_parameter_1;
     local_parameter_1.red     = (Quantum)PARAM(1);
@@ -5046,32 +5046,32 @@ CONCEPT_FUNCTION_IMPL(PixelSetQuantumColor, 5)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(PixelSetRed, 2)
-    T_HANDLE(0)     // PixelWand*
-    T_NUMBER(1)     // double
+    T_HANDLE(PixelSetRed, 0)     // PixelWand*
+    T_NUMBER(PixelSetRed, 1)     // double
 
     PixelSetRed((PixelWand *)(long)PARAM(0), (double)PARAM(1));
     RETURN_NUMBER(0)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(PixelSetRedQuantum, 2)
-    T_HANDLE(0)     // PixelWand*
-    T_NUMBER(1)     // Quantum
+    T_HANDLE(PixelSetRedQuantum, 0)     // PixelWand*
+    T_NUMBER(PixelSetRedQuantum, 1)     // Quantum
 
     PixelSetRedQuantum((PixelWand *)(long)PARAM(0), (Quantum)PARAM(1));
     RETURN_NUMBER(0)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(PixelSetYellow, 2)
-    T_HANDLE(0)     // PixelWand*
-    T_NUMBER(1)     // double
+    T_HANDLE(PixelSetYellow, 0)     // PixelWand*
+    T_NUMBER(PixelSetYellow, 1)     // double
 
     PixelSetYellow((PixelWand *)(long)PARAM(0), (double)PARAM(1));
     RETURN_NUMBER(0)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(PixelSetYellowQuantum, 2)
-    T_HANDLE(0)     // PixelWand*
-    T_NUMBER(1)     // Quantum
+    T_HANDLE(PixelSetYellowQuantum, 0)     // PixelWand*
+    T_NUMBER(PixelSetYellowQuantum, 1)     // Quantum
 
     PixelSetYellowQuantum((PixelWand *)(long)PARAM(0), (Quantum)PARAM(1));
     RETURN_NUMBER(0)
@@ -5079,19 +5079,19 @@ END_IMPL
 //------------------------------------------------------------------------
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickGetFilename, 1)
-    T_HANDLE(0)     // MagickWand*
+    T_HANDLE(MagickGetFilename, 0)     // MagickWand*
 
     RETURN_STRING2((char *)MagickGetFilename((MagickWand *)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickGetFormat, 1)
-    T_HANDLE(0)     // MagickWand*
+    T_HANDLE(MagickGetFormat, 0)     // MagickWand*
 
     RETURN_STRING2((char *)MagickGetFormat((MagickWand *)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickGetFont, 1)
-    T_HANDLE(0)     // MagickWand*
+    T_HANDLE(MagickGetFont, 0)     // MagickWand*
 
     RETURN_STRING2((char *)MagickGetFont((MagickWand *)(long)PARAM(0)))
 END_IMPL
@@ -5102,15 +5102,15 @@ CONCEPT_FUNCTION_IMPL(MagickGetHomeURL, 0)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickGetImageArtifact, 2)
-    T_HANDLE(0)     // MagickWand*
-    T_STRING(1)     // char*
+    T_HANDLE(MagickGetImageArtifact, 0)     // MagickWand*
+    T_STRING(MagickGetImageArtifact, 1)     // char*
 
     RETURN_STRING2((char *)MagickGetImageArtifact((MagickWand *)(long)PARAM(0), (char *)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickGetImageArtifacts, 2)
-    T_HANDLE(0)     // MagickWand*
-    T_STRING(1)     // char*
+    T_HANDLE(MagickGetImageArtifacts, 0)     // MagickWand*
+    T_STRING(MagickGetImageArtifacts, 1)     // char*
 
     size_t local_parameter_2;
 
@@ -5125,8 +5125,8 @@ CONCEPT_FUNCTION_IMPL(MagickGetImageArtifacts, 2)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickGetImageProfiles, 2)
-    T_HANDLE(0)     // MagickWand*
-    T_STRING(1)     // char*
+    T_HANDLE(MagickGetImageProfiles, 0)     // MagickWand*
+    T_STRING(MagickGetImageProfiles, 1)     // char*
 
 // ... parameter 2 is by reference (size_t*)
     size_t local_parameter_2;
@@ -5142,15 +5142,15 @@ CONCEPT_FUNCTION_IMPL(MagickGetImageProfiles, 2)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickGetImageProperty, 2)
-    T_HANDLE(0)     // MagickWand*
-    T_STRING(1)     // char*
+    T_HANDLE(MagickGetImageProperty, 0)     // MagickWand*
+    T_STRING(MagickGetImageProperty, 1)     // char*
 
     RETURN_STRING2((char *)MagickGetImageProperty((MagickWand *)(long)PARAM(0), (char *)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickGetImageProperties, 2)
-    T_HANDLE(0)     // MagickWand*
-    T_STRING(1)     // char*
+    T_HANDLE(MagickGetImageProperties, 0)     // MagickWand*
+    T_STRING(MagickGetImageProperties, 1)     // char*
 
 // ... parameter 2 is by reference (size_t*)
     size_t local_parameter_2;
@@ -5166,15 +5166,15 @@ CONCEPT_FUNCTION_IMPL(MagickGetImageProperties, 2)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickGetOption, 2)
-    T_HANDLE(0)     // MagickWand*
-    T_STRING(1)     // char*
+    T_HANDLE(MagickGetOption, 0)     // MagickWand*
+    T_STRING(MagickGetOption, 1)     // char*
 
     RETURN_STRING2((char *)MagickGetOption((MagickWand *)(long)PARAM(0), (char *)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickGetOptions, 2)
-    T_HANDLE(0)     // MagickWand*
-    T_STRING(1)     // char*
+    T_HANDLE(MagickGetOptions, 0)     // MagickWand*
+    T_STRING(MagickGetOptions, 1)     // char*
 
 // ... parameter 2 is by reference (size_t*)
     size_t local_parameter_2;
@@ -5190,13 +5190,13 @@ CONCEPT_FUNCTION_IMPL(MagickGetOptions, 2)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickQueryConfigureOption, 1)
-    T_STRING(0)     // char*
+    T_STRING(MagickQueryConfigureOption, 0)     // char*
 
     RETURN_STRING2((char *)MagickQueryConfigureOption((char *)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickQueryConfigureOptions, 1)
-    T_STRING(0)     // char*
+    T_STRING(MagickQueryConfigureOptions, 0)     // char*
 
 // ... parameter 1 is by reference (size_t*)
     size_t local_parameter_1;
@@ -5212,7 +5212,7 @@ CONCEPT_FUNCTION_IMPL(MagickQueryConfigureOptions, 1)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickQueryFonts, 1)
-    T_STRING(0)     // char*
+    T_STRING(MagickQueryFonts, 0)     // char*
 
 // ... parameter 1 is by reference (size_t*)
     size_t local_parameter_1;
@@ -5228,7 +5228,7 @@ CONCEPT_FUNCTION_IMPL(MagickQueryFonts, 1)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickQueryFormats, 1)
-    T_STRING(0)     // char*
+    T_STRING(MagickQueryFormats, 0)     // char*
 
 // ... parameter 1 is by reference (size_t*)
     size_t local_parameter_1;
@@ -5244,13 +5244,13 @@ CONCEPT_FUNCTION_IMPL(MagickQueryFormats, 1)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickGetColorspace, 1)
-    T_HANDLE(0)     // MagickWand*
+    T_HANDLE(MagickGetColorspace, 0)     // MagickWand*
 
     RETURN_NUMBER(MagickGetColorspace((MagickWand *)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickGetCompression, 1)
-    T_HANDLE(0)     // MagickWand*
+    T_HANDLE(MagickGetCompression, 0)     // MagickWand*
 
     RETURN_NUMBER(MagickGetCompression((MagickWand *)(long)PARAM(0)))
 END_IMPL
@@ -5298,13 +5298,13 @@ CONCEPT_FUNCTION_IMPL(MagickGetVersion, 1)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickGetPointsize, 1)
-    T_HANDLE(0)     // MagickWand*
+    T_HANDLE(MagickGetPointsize, 0)     // MagickWand*
 
     RETURN_NUMBER(MagickGetPointsize((MagickWand *)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickGetSamplingFactors, 1)
-    T_HANDLE(0)     // MagickWand*
+    T_HANDLE(MagickGetSamplingFactors, 0)     // MagickWand*
 
 // ... parameter 1 is by reference (size_t*)
     size_t local_parameter_1;
@@ -5318,9 +5318,9 @@ CONCEPT_FUNCTION_IMPL(MagickGetSamplingFactors, 1)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickQueryFontMetrics, 3)
-    T_HANDLE(0)     // MagickWand*
-    T_HANDLE(1)     // DrawingWand*
-    T_STRING(2)     // char*
+    T_HANDLE(MagickQueryFontMetrics, 0)     // MagickWand*
+    T_HANDLE(MagickQueryFontMetrics, 1)     // DrawingWand*
+    T_STRING(MagickQueryFontMetrics, 2)     // char*
 
     double *ret = MagickQueryFontMetrics((MagickWand *)(long)PARAM(0), (DrawingWand *)(long)PARAM(1), (char *)PARAM(2));
     Invoke(INVOKE_CREATE_ARRAY, RESULT, 0);
@@ -5331,9 +5331,9 @@ CONCEPT_FUNCTION_IMPL(MagickQueryFontMetrics, 3)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickQueryMultilineFontMetrics, 3)
-    T_HANDLE(0)     // MagickWand*
-    T_HANDLE(1)     // DrawingWand*
-    T_STRING(2)     // char*
+    T_HANDLE(MagickQueryMultilineFontMetrics, 0)     // MagickWand*
+    T_HANDLE(MagickQueryMultilineFontMetrics, 1)     // DrawingWand*
+    T_STRING(MagickQueryMultilineFontMetrics, 2)     // char*
 
     double *ret = MagickQueryMultilineFontMetrics((MagickWand *)(long)PARAM(0), (DrawingWand *)(long)PARAM(1), (char *)PARAM(2));
     Invoke(INVOKE_CREATE_ARRAY, RESULT, 0);
@@ -5344,64 +5344,64 @@ CONCEPT_FUNCTION_IMPL(MagickQueryMultilineFontMetrics, 3)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickGetGravity, 1)
-    T_HANDLE(0)     // MagickWand*
+    T_HANDLE(MagickGetGravity, 0)     // MagickWand*
 
     RETURN_NUMBER(MagickGetGravity((MagickWand *)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickGetType, 1)
-    T_HANDLE(0)     // MagickWand*
+    T_HANDLE(MagickGetType, 0)     // MagickWand*
 
     RETURN_NUMBER(MagickGetType((MagickWand *)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickGetInterlaceScheme, 1)
-    T_HANDLE(0)     // MagickWand*
+    T_HANDLE(MagickGetInterlaceScheme, 0)     // MagickWand*
 
     RETURN_NUMBER(MagickGetInterlaceScheme((MagickWand *)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickGetInterpolateMethod, 1)
-    T_HANDLE(0)     // MagickWand*
+    T_HANDLE(MagickGetInterpolateMethod, 0)     // MagickWand*
 
     RETURN_NUMBER(MagickGetInterpolateMethod((MagickWand *)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickGetOrientation, 1)
-    T_HANDLE(0)     // MagickWand*
+    T_HANDLE(MagickGetOrientation, 0)     // MagickWand*
 
     RETURN_NUMBER(MagickGetOrientation((MagickWand *)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickDeleteImageArtifact, 2)
-    T_HANDLE(0)     // MagickWand*
-    T_STRING(1)     // char*
+    T_HANDLE(MagickDeleteImageArtifact, 0)     // MagickWand*
+    T_STRING(MagickDeleteImageArtifact, 1)     // char*
 
     RETURN_NUMBER(MagickDeleteImageArtifact((MagickWand *)(long)PARAM(0), (char *)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickDeleteImageProperty, 2)
-    T_HANDLE(0)     // MagickWand*
-    T_STRING(1)     // char*
+    T_HANDLE(MagickDeleteImageProperty, 0)     // MagickWand*
+    T_STRING(MagickDeleteImageProperty, 1)     // char*
 
     RETURN_NUMBER(MagickDeleteImageProperty((MagickWand *)(long)PARAM(0), (char *)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickDeleteOption, 2)
-    T_HANDLE(0)     // MagickWand*
-    T_STRING(1)     // char*
+    T_HANDLE(MagickDeleteOption, 0)     // MagickWand*
+    T_STRING(MagickDeleteOption, 1)     // char*
 
     RETURN_NUMBER(MagickDeleteOption((MagickWand *)(long)PARAM(0), (char *)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickGetAntialias, 1)
-    T_HANDLE(0)     // MagickWand*
+    T_HANDLE(MagickGetAntialias, 0)     // MagickWand*
 
     RETURN_NUMBER(MagickGetAntialias((MagickWand *)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickGetPage, 5)
-    T_HANDLE(0)     // MagickWand*
+    T_HANDLE(MagickGetPage, 0)     // MagickWand*
 
 // ... parameter 1 is by reference (size_t*)
     size_t local_parameter_1;
@@ -5420,7 +5420,7 @@ CONCEPT_FUNCTION_IMPL(MagickGetPage, 5)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickGetResolution, 3)
-    T_HANDLE(0)     // MagickWand*
+    T_HANDLE(MagickGetResolution, 0)     // MagickWand*
 
 // ... parameter 1 is by reference (double*)
     double local_parameter_1;
@@ -5433,7 +5433,7 @@ CONCEPT_FUNCTION_IMPL(MagickGetResolution, 3)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickGetSize, 3)
-    T_HANDLE(0)     // MagickWand*
+    T_HANDLE(MagickGetSize, 0)     // MagickWand*
 
 // ... parameter 1 is by reference (size_t*)
     size_t local_parameter_1;
@@ -5446,7 +5446,7 @@ CONCEPT_FUNCTION_IMPL(MagickGetSize, 3)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickGetSizeOffset, 2)
-    T_HANDLE(0)     // MagickWand*
+    T_HANDLE(MagickGetSizeOffset, 0)     // MagickWand*
 
 // ... parameter 1 is by reference (ssize_t*)
     ssize_t local_parameter_1;
@@ -5456,187 +5456,187 @@ CONCEPT_FUNCTION_IMPL(MagickGetSizeOffset, 2)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickProfileImage, 4)
-    T_HANDLE(0)     // MagickWand*
-    T_STRING(1)     // char*
-    T_NUMBER(2)     // void*
-    T_NUMBER(3)     // size_t
+    T_HANDLE(MagickProfileImage, 0)     // MagickWand*
+    T_STRING(MagickProfileImage, 1)     // char*
+    T_NUMBER(MagickProfileImage, 2)     // void*
+    T_NUMBER(MagickProfileImage, 3)     // size_t
 
     RETURN_NUMBER(MagickProfileImage((MagickWand *)(long)PARAM(0), (char *)PARAM(1), (void *)(long)PARAM(2), (size_t)PARAM(3)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickSetAntialias, 2)
-    T_HANDLE(0)     // MagickWand*
-    T_NUMBER(1)     // MagickBooleanType
+    T_HANDLE(MagickSetAntialias, 0)     // MagickWand*
+    T_NUMBER(MagickSetAntialias, 1)     // MagickBooleanType
 
     RETURN_NUMBER(MagickSetAntialias((MagickWand *)(long)PARAM(0), (MagickBooleanType)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickSetBackgroundColor, 2)
-    T_HANDLE(0)     // MagickWand*
-    T_HANDLE(1)     // PixelWand*
+    T_HANDLE(MagickSetBackgroundColor, 0)     // MagickWand*
+    T_HANDLE(MagickSetBackgroundColor, 1)     // PixelWand*
 
     RETURN_NUMBER(MagickSetBackgroundColor((MagickWand *)(long)PARAM(0), (PixelWand *)(long)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickSetColorspace, 2)
-    T_HANDLE(0)     // MagickWand*
-    T_NUMBER(1)     // ColorspaceType
+    T_HANDLE(MagickSetColorspace, 0)     // MagickWand*
+    T_NUMBER(MagickSetColorspace, 1)     // ColorspaceType
 
     RETURN_NUMBER(MagickSetColorspace((MagickWand *)(long)PARAM(0), (ColorspaceType)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickSetCompression, 2)
-    T_HANDLE(0)     // MagickWand*
-    T_NUMBER(1)     // CompressionType
+    T_HANDLE(MagickSetCompression, 0)     // MagickWand*
+    T_NUMBER(MagickSetCompression, 1)     // CompressionType
 
     RETURN_NUMBER(MagickSetCompression((MagickWand *)(long)PARAM(0), (CompressionType)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickSetCompressionQuality, 2)
-    T_HANDLE(0)     // MagickWand*
-    T_NUMBER(1)     // size_t
+    T_HANDLE(MagickSetCompressionQuality, 0)     // MagickWand*
+    T_NUMBER(MagickSetCompressionQuality, 1)     // size_t
 
     RETURN_NUMBER(MagickSetCompressionQuality((MagickWand *)(long)PARAM(0), (size_t)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickSetDepth, 2)
-    T_HANDLE(0)     // MagickWand*
-    T_NUMBER(1)     // size_t
+    T_HANDLE(MagickSetDepth, 0)     // MagickWand*
+    T_NUMBER(MagickSetDepth, 1)     // size_t
 
     RETURN_NUMBER(MagickSetDepth((MagickWand *)(long)PARAM(0), (size_t)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickSetExtract, 2)
-    T_HANDLE(0)     // MagickWand*
-    T_STRING(1)     // char*
+    T_HANDLE(MagickSetExtract, 0)     // MagickWand*
+    T_STRING(MagickSetExtract, 1)     // char*
 
     RETURN_NUMBER(MagickSetExtract((MagickWand *)(long)PARAM(0), (char *)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickSetFilename, 2)
-    T_HANDLE(0)     // MagickWand*
-    T_STRING(1)     // char*
+    T_HANDLE(MagickSetFilename, 0)     // MagickWand*
+    T_STRING(MagickSetFilename, 1)     // char*
 
     RETURN_NUMBER(MagickSetFilename((MagickWand *)(long)PARAM(0), (char *)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickSetFormat, 2)
-    T_HANDLE(0)     // MagickWand*
-    T_STRING(1)     // char*
+    T_HANDLE(MagickSetFormat, 0)     // MagickWand*
+    T_STRING(MagickSetFormat, 1)     // char*
 
     RETURN_NUMBER(MagickSetFormat((MagickWand *)(long)PARAM(0), (char *)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickSetFont, 2)
-    T_HANDLE(0)     // MagickWand*
-    T_STRING(1)     // char*
+    T_HANDLE(MagickSetFont, 0)     // MagickWand*
+    T_STRING(MagickSetFont, 1)     // char*
 
     RETURN_NUMBER(MagickSetFont((MagickWand *)(long)PARAM(0), (char *)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickSetGravity, 2)
-    T_HANDLE(0)     // MagickWand*
-    T_NUMBER(1)     // GravityType
+    T_HANDLE(MagickSetGravity, 0)     // MagickWand*
+    T_NUMBER(MagickSetGravity, 1)     // GravityType
 
     RETURN_NUMBER(MagickSetGravity((MagickWand *)(long)PARAM(0), (GravityType)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickSetImageArtifact, 3)
-    T_HANDLE(0)     // MagickWand*
-    T_STRING(1)     // char*
-    T_STRING(2)     // char*
+    T_HANDLE(MagickSetImageArtifact, 0)     // MagickWand*
+    T_STRING(MagickSetImageArtifact, 1)     // char*
+    T_STRING(MagickSetImageArtifact, 2)     // char*
 
     RETURN_NUMBER(MagickSetImageArtifact((MagickWand *)(long)PARAM(0), (char *)PARAM(1), (char *)PARAM(2)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickSetImageProfile, 4)
-    T_HANDLE(0)     // MagickWand*
-    T_STRING(1)     // char*
-    T_NUMBER(2)     // void*
-    T_NUMBER(3)     // size_t
+    T_HANDLE(MagickSetImageProfile, 0)     // MagickWand*
+    T_STRING(MagickSetImageProfile, 1)     // char*
+    T_NUMBER(MagickSetImageProfile, 2)     // void*
+    T_NUMBER(MagickSetImageProfile, 3)     // size_t
 
     RETURN_NUMBER(MagickSetImageProfile((MagickWand *)(long)PARAM(0), (char *)PARAM(1), (void *)(long)PARAM(2), (size_t)PARAM(3)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickSetImageProperty, 3)
-    T_HANDLE(0)     // MagickWand*
-    T_STRING(1)     // char*
-    T_STRING(2)     // char*
+    T_HANDLE(MagickSetImageProperty, 0)     // MagickWand*
+    T_STRING(MagickSetImageProperty, 1)     // char*
+    T_STRING(MagickSetImageProperty, 2)     // char*
 
     RETURN_NUMBER(MagickSetImageProperty((MagickWand *)(long)PARAM(0), (char *)PARAM(1), (char *)PARAM(2)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickSetInterlaceScheme, 2)
-    T_HANDLE(0)     // MagickWand*
-    T_NUMBER(1)     // InterlaceType
+    T_HANDLE(MagickSetInterlaceScheme, 0)     // MagickWand*
+    T_NUMBER(MagickSetInterlaceScheme, 1)     // InterlaceType
 
     RETURN_NUMBER(MagickSetInterlaceScheme((MagickWand *)(long)PARAM(0), (InterlaceType)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickSetInterpolateMethod, 2)
-    T_HANDLE(0)     // MagickWand*
-    T_NUMBER(1)     // InterpolatePixelMethod
+    T_HANDLE(MagickSetInterpolateMethod, 0)     // MagickWand*
+    T_NUMBER(MagickSetInterpolateMethod, 1)     // InterpolatePixelMethod
 
     RETURN_NUMBER(MagickSetInterpolateMethod((MagickWand *)(long)PARAM(0), (InterpolatePixelMethod)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickSetOption, 3)
-    T_HANDLE(0)     // MagickWand*
-    T_STRING(1)     // char*
-    T_STRING(2)     // char*
+    T_HANDLE(MagickSetOption, 0)     // MagickWand*
+    T_STRING(MagickSetOption, 1)     // char*
+    T_STRING(MagickSetOption, 2)     // char*
 
     RETURN_NUMBER(MagickSetOption((MagickWand *)(long)PARAM(0), (char *)PARAM(1), (char *)PARAM(2)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickSetOrientation, 2)
-    T_HANDLE(0)     // MagickWand*
-    T_NUMBER(1)     // OrientationType
+    T_HANDLE(MagickSetOrientation, 0)     // MagickWand*
+    T_NUMBER(MagickSetOrientation, 1)     // OrientationType
 
     RETURN_NUMBER(MagickSetOrientation((MagickWand *)(long)PARAM(0), (OrientationType)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickSetPage, 5)
-    T_HANDLE(0)     // MagickWand*
-    T_NUMBER(1)     // size_t
-    T_NUMBER(2)     // size_t
-    T_NUMBER(3)     // ssize_t
-    T_NUMBER(4)     // ssize_t
+    T_HANDLE(MagickSetPage, 0)     // MagickWand*
+    T_NUMBER(MagickSetPage, 1)     // size_t
+    T_NUMBER(MagickSetPage, 2)     // size_t
+    T_NUMBER(MagickSetPage, 3)     // ssize_t
+    T_NUMBER(MagickSetPage, 4)     // ssize_t
 
     RETURN_NUMBER(MagickSetPage((MagickWand *)(long)PARAM(0), (size_t)PARAM(1), (size_t)PARAM(2), (ssize_t)PARAM(3), (ssize_t)PARAM(4)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickSetPassphrase, 2)
-    T_HANDLE(0)     // MagickWand*
-    T_STRING(1)     // char*
+    T_HANDLE(MagickSetPassphrase, 0)     // MagickWand*
+    T_STRING(MagickSetPassphrase, 1)     // char*
 
     RETURN_NUMBER(MagickSetPassphrase((MagickWand *)(long)PARAM(0), (char *)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickSetPointsize, 2)
-    T_HANDLE(0)     // MagickWand*
-    T_NUMBER(1)     // double
+    T_HANDLE(MagickSetPointsize, 0)     // MagickWand*
+    T_NUMBER(MagickSetPointsize, 1)     // double
 
     RETURN_NUMBER(MagickSetPointsize((MagickWand *)(long)PARAM(0), (double)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickSetResolution, 3)
-    T_HANDLE(0)     // MagickWand*
-    T_NUMBER(1)     // double
-    T_NUMBER(2)     // double
+    T_HANDLE(MagickSetResolution, 0)     // MagickWand*
+    T_NUMBER(MagickSetResolution, 1)     // double
+    T_NUMBER(MagickSetResolution, 2)     // double
 
     RETURN_NUMBER(MagickSetResolution((MagickWand *)(long)PARAM(0), (double)PARAM(1), (double)PARAM(2)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickSetResourceLimit, 2)
-    T_NUMBER(0)     // ResourceType
-    T_NUMBER(1)     // MagickSizeType
+    T_NUMBER(MagickSetResourceLimit, 0)     // ResourceType
+    T_NUMBER(MagickSetResourceLimit, 1)     // MagickSizeType
 
     RETURN_NUMBER(MagickSetResourceLimit((ResourceType)PARAM(0), (MagickSizeType)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickSetSamplingFactors, 3)
-    T_HANDLE(0)     // MagickWand*
-    T_NUMBER(1)     // size_t
+    T_HANDLE(MagickSetSamplingFactors, 0)     // MagickWand*
+    T_NUMBER(MagickSetSamplingFactors, 1)     // size_t
 
 // ... parameter 2 is by reference (double*)
     double local_parameter_2;
@@ -5646,59 +5646,59 @@ CONCEPT_FUNCTION_IMPL(MagickSetSamplingFactors, 3)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickSetSize, 3)
-    T_HANDLE(0)     // MagickWand*
-    T_NUMBER(1)     // size_t
-    T_NUMBER(2)     // size_t
+    T_HANDLE(MagickSetSize, 0)     // MagickWand*
+    T_NUMBER(MagickSetSize, 1)     // size_t
+    T_NUMBER(MagickSetSize, 2)     // size_t
 
     RETURN_NUMBER(MagickSetSize((MagickWand *)(long)PARAM(0), (size_t)PARAM(1), (size_t)PARAM(2)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickSetSizeOffset, 4)
-    T_HANDLE(0)     // MagickWand*
-    T_NUMBER(1)     // size_t
-    T_NUMBER(2)     // size_t
-    T_NUMBER(3)     // ssize_t
+    T_HANDLE(MagickSetSizeOffset, 0)     // MagickWand*
+    T_NUMBER(MagickSetSizeOffset, 1)     // size_t
+    T_NUMBER(MagickSetSizeOffset, 2)     // size_t
+    T_NUMBER(MagickSetSizeOffset, 3)     // ssize_t
 
     RETURN_NUMBER(MagickSetSizeOffset((MagickWand *)(long)PARAM(0), (size_t)PARAM(1), (size_t)PARAM(2), (ssize_t)PARAM(3)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickSetType, 2)
-    T_HANDLE(0)     // MagickWand*
-    T_NUMBER(1)     // ImageType
+    T_HANDLE(MagickSetType, 0)     // MagickWand*
+    T_NUMBER(MagickSetType, 1)     // ImageType
 
     RETURN_NUMBER(MagickSetType((MagickWand *)(long)PARAM(0), (ImageType)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 
 /*CONCEPT_FUNCTION_IMPL(MagickSetProgressMonitor,3)
-        T_HANDLE(0) // MagickWand*
-        T_NUMBER(1) // MagickProgressMonitor
-        T_NUMBER(2) // void*
+        T_HANDLE(MagickSetType, 0) // MagickWand*
+        T_NUMBER(MagickSetType, 1) // MagickProgressMonitor
+        T_NUMBER(MagickSetType, 2) // void*
 
         RETURN_NUMBER(MagickSetProgressMonitor((MagickWand*)(long)PARAM(0), (MagickProgressMonitor)PARAM(1), (void *)(long)PARAM(2)))
    END_IMPL*/
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickGetResource, 1)
-    T_NUMBER(0)     // ResourceType
+    T_NUMBER(MagickGetResource, 0)     // ResourceType
 
     RETURN_NUMBER(MagickGetResource((ResourceType)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickGetResourceLimit, 1)
-    T_NUMBER(0)     // ResourceType
+    T_NUMBER(MagickGetResourceLimit, 0)     // ResourceType
 
     RETURN_NUMBER(MagickGetResourceLimit((ResourceType)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickGetBackgroundColor, 1)
-    T_HANDLE(0)     // MagickWand*
+    T_HANDLE(MagickGetBackgroundColor, 0)     // MagickWand*
 
     RETURN_NUMBER((long)MagickGetBackgroundColor((MagickWand *)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickGetImageProfile, 3)
-    T_HANDLE(0)     // MagickWand*
-    T_STRING(1)     // char*
+    T_HANDLE(MagickGetImageProfile, 0)     // MagickWand*
+    T_STRING(MagickGetImageProfile, 1)     // char*
 
 // ... parameter 2 is by reference (size_t*)
     size_t local_parameter_2;
@@ -5708,8 +5708,8 @@ CONCEPT_FUNCTION_IMPL(MagickGetImageProfile, 3)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(MagickRemoveImageProfile, 3)
-    T_HANDLE(0)     // MagickWand*
-    T_STRING(1)     // char*
+    T_HANDLE(MagickRemoveImageProfile, 0)     // MagickWand*
+    T_STRING(MagickRemoveImageProfile, 1)     // char*
 
 // ... parameter 2 is by reference (size_t*)
     size_t local_parameter_2;
@@ -5719,7 +5719,7 @@ CONCEPT_FUNCTION_IMPL(MagickRemoveImageProfile, 3)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(PixelGetIteratorException, 2)
-    T_HANDLE(0)     // PixelIterator*
+    T_HANDLE(PixelGetIteratorException, 0)     // PixelIterator*
 
 // ... parameter 1 is by reference (ExceptionType*)
     ExceptionType local_parameter_1;
@@ -5729,66 +5729,66 @@ CONCEPT_FUNCTION_IMPL(PixelGetIteratorException, 2)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(PixelGetIteratorExceptionType, 1)
-    T_HANDLE(0)     // PixelIterator*
+    T_HANDLE(PixelGetIteratorExceptionType, 0)     // PixelIterator*
 
     RETURN_NUMBER(PixelGetIteratorExceptionType((PixelIterator *)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(IsPixelIterator, 1)
-    T_HANDLE(0)     // PixelIterator*
+    T_HANDLE(IsPixelIterator, 0)     // PixelIterator*
 
     RETURN_NUMBER(IsPixelIterator((PixelIterator *)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(PixelClearIteratorException, 1)
-    T_HANDLE(0)     // PixelIterator*
+    T_HANDLE(PixelClearIteratorException, 0)     // PixelIterator*
 
     RETURN_NUMBER(PixelClearIteratorException((PixelIterator *)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(PixelSetIteratorRow, 2)
-    T_HANDLE(0)     // PixelIterator*
-    T_NUMBER(1)     // ssize_t
+    T_HANDLE(PixelSetIteratorRow, 0)     // PixelIterator*
+    T_NUMBER(PixelSetIteratorRow, 1)     // ssize_t
 
     RETURN_NUMBER(PixelSetIteratorRow((PixelIterator *)(long)PARAM(0), (ssize_t)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(PixelSyncIterator, 1)
-    T_HANDLE(0)     // PixelIterator*
+    T_HANDLE(PixelSyncIterator, 0)     // PixelIterator*
 
     RETURN_NUMBER(PixelSyncIterator((PixelIterator *)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(ClonePixelIterator, 1)
-    T_HANDLE(0)     // PixelIterator*
+    T_HANDLE(ClonePixelIterator, 0)     // PixelIterator*
 
     RETURN_NUMBER((long)ClonePixelIterator((PixelIterator *)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(DestroyPixelIterator, 1)
-    T_HANDLE(0)     // PixelIterator*
+    T_HANDLE(DestroyPixelIterator, 0)     // PixelIterator*
 
     RETURN_NUMBER((long)DestroyPixelIterator((PixelIterator *)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(NewPixelIterator, 1)
-    T_HANDLE(0)     // MagickWand*
+    T_HANDLE(NewPixelIterator, 0)     // MagickWand*
 
     RETURN_NUMBER((long)NewPixelIterator((MagickWand *)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(NewPixelRegionIterator, 5)
-    T_HANDLE(0)     // MagickWand*
-    T_NUMBER(1)     // ssize_t
-    T_NUMBER(2)     // ssize_t
-    T_NUMBER(3)     // size_t
-    T_NUMBER(4)     // size_t
+    T_HANDLE(NewPixelRegionIterator, 0)     // MagickWand*
+    T_NUMBER(NewPixelRegionIterator, 1)     // ssize_t
+    T_NUMBER(NewPixelRegionIterator, 2)     // ssize_t
+    T_NUMBER(NewPixelRegionIterator, 3)     // size_t
+    T_NUMBER(NewPixelRegionIterator, 4)     // size_t
 
     RETURN_NUMBER((long)NewPixelRegionIterator((MagickWand *)(long)PARAM(0), (ssize_t)PARAM(1), (ssize_t)PARAM(2), (size_t)PARAM(3), (size_t)PARAM(4)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(PixelGetCurrentIteratorRow, 1)
-    T_HANDLE(0)     // PixelIterator*
+    T_HANDLE(PixelGetCurrentIteratorRow, 0)     // PixelIterator*
 
     size_t local_parameter_1;
 
@@ -5801,7 +5801,7 @@ CONCEPT_FUNCTION_IMPL(PixelGetCurrentIteratorRow, 1)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(PixelGetNextIteratorRow, 1)
-    T_HANDLE(0)     // PixelIterator*
+    T_HANDLE(PixelGetNextIteratorRow, 0)     // PixelIterator*
 
     size_t local_parameter_1;
 
@@ -5814,7 +5814,7 @@ CONCEPT_FUNCTION_IMPL(PixelGetNextIteratorRow, 1)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(PixelGetPreviousIteratorRow, 1)
-    T_HANDLE(0)     // PixelIterator*
+    T_HANDLE(PixelGetPreviousIteratorRow, 0)     // PixelIterator*
 
     size_t local_parameter_1;
 
@@ -5827,35 +5827,36 @@ CONCEPT_FUNCTION_IMPL(PixelGetPreviousIteratorRow, 1)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(PixelGetIteratorRow, 1)
-    T_HANDLE(0)     // PixelIterator*
+    T_HANDLE(PixelGetIteratorRow, 0)     // PixelIterator*
 
     RETURN_NUMBER(PixelGetIteratorRow((PixelIterator *)(long)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(ClearPixelIterator, 1)
-    T_HANDLE(0)     // PixelIterator*
+    T_HANDLE(ClearPixelIterator, 0)     // PixelIterator*
 
     ClearPixelIterator((PixelIterator *)(long)PARAM(0));
     RETURN_NUMBER(0)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(PixelResetIterator, 1)
-    T_HANDLE(0)     // PixelIterator*
+    T_HANDLE(PixelResetIterator, 0)     // PixelIterator*
 
     PixelResetIterator((PixelIterator *)(long)PARAM(0));
     RETURN_NUMBER(0)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(PixelSetFirstIteratorRow, 1)
-    T_HANDLE(0)     // PixelIterator*
+    T_HANDLE(PixelSetFirstIteratorRow, 0)     // PixelIterator*
 
     PixelSetFirstIteratorRow((PixelIterator *)(long)PARAM(0));
     RETURN_NUMBER(0)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(PixelSetLastIteratorRow, 1)
-    T_HANDLE(0)     // PixelIterator*
+    T_HANDLE(PixelSetLastIteratorRow, 0)     // PixelIterator*
 
     PixelSetLastIteratorRow((PixelIterator *)(long)PARAM(0));
     RETURN_NUMBER(0)
 END_IMPL
+

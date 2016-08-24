@@ -1540,7 +1540,7 @@ CONCEPT_DLL_API CONCEPT__curl_getdate CONCEPT_API_PARAMETERS {
 }
 //=====================================================================================//
 CONCEPT_FUNCTION_IMPL(_curl_formnew, 1)
-    T_ARRAY(0)
+    T_ARRAY(_curl_formnew, 0)
 
     struct curl_httppost *mypost = NULL;
     struct curl_httppost *last   = NULL;
@@ -1587,7 +1587,7 @@ CONCEPT_FUNCTION_IMPL(_curl_formnew, 1)
 END_IMPL
 //=====================================================================================//
 CONCEPT_FUNCTION_IMPL(_curl_formfree, 1)
-    T_NUMBER(0)
+    T_NUMBER(_curl_formfree, 0)
 
     if (PARAM_INT(0)) {
         curl_formfree((struct curl_httppost *)PARAM_INT(0));
@@ -1597,8 +1597,8 @@ CONCEPT_FUNCTION_IMPL(_curl_formfree, 1)
 END_IMPL
 //=====================================================================================//
 CONCEPT_FUNCTION_IMPL(_curl_easy_send, 3)
-    T_NUMBER(0)
-    T_STRING(1)
+    T_NUMBER(_curl_easy_send, 0)
+    T_STRING(_curl_easy_send, 1)
     SET_NUMBER(2, 0);
 
     CURL *handle;
@@ -1615,8 +1615,8 @@ CONCEPT_FUNCTION_IMPL(_curl_easy_send, 3)
 END_IMPL
 //=====================================================================================//
 CONCEPT_FUNCTION_IMPL(_curl_easy_recv, 4)
-    T_NUMBER(0)
-    T_NUMBER(2)
+    T_NUMBER(_curl_easy_recv, 0)
+    T_NUMBER(_curl_easy_recv, 2)
     SET_NUMBER(3, -1);
     SET_STRING(1, "");
 
@@ -1641,3 +1641,4 @@ CONCEPT_FUNCTION_IMPL(_curl_easy_recv, 4)
     }
 END_IMPL
 //=====================================================================================//
+

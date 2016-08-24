@@ -19,12 +19,12 @@ CONCEPT_DLL_API ON_CREATE_CONTEXT MANAGEMENT_PARAMETERS {
 }
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(PDFLoadBuffer, 1, 3)
-    T_STRING(0)
+    T_STRING(PDFLoadBuffer, 0)
 
     char *password = NULL;
 
     if (PARAMETERS_COUNT > 1) {
-        T_STRING(1)
+        T_STRING(PDFLoadBuffer, 1)
         password = PARAM(1);
     }
     if (PARAMETERS_COUNT > 2) {
@@ -42,12 +42,12 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(PDFLoadBuffer, 1, 3)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(PDFLoad, 1, 3)
-    T_STRING(0)
+    T_STRING(PDFLoad, 0)
 
     char *password = NULL;
 
     if (PARAMETERS_COUNT > 1) {
-        T_STRING(1)
+        T_STRING(PDFLoad, 1)
         password = PARAM(1);
     }
     if (PARAMETERS_COUNT > 2) {
@@ -65,7 +65,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(PDFLoad, 1, 3)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(PDFClose, 1)
-    T_NUMBER(0)
+    T_NUMBER(PDFClose, 0)
     poppler::document * pdoc = (poppler::document *)(SYS_INT)PARAM(0);
 
     if (pdoc) {
@@ -76,15 +76,15 @@ CONCEPT_FUNCTION_IMPL(PDFClose, 1)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(PDFPageCount, 1)
-    T_HANDLE(0)
+    T_HANDLE(PDFPageCount, 0)
     poppler::document * pdoc = (poppler::document *)(SYS_INT)PARAM(0);
 
     RETURN_NUMBER(pdoc->pages())
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(PDFPageText, 2)
-    T_HANDLE(0)
-    T_NUMBER(1)
+    T_HANDLE(PDFPageText, 0)
+    T_NUMBER(PDFPageText, 1)
 
     poppler::document * pdoc = (poppler::document *)PARAM_INT(0);
 
@@ -115,9 +115,9 @@ CONCEPT_FUNCTION_IMPL(PDFPageText, 2)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(PDFFindText, 3)
-    T_HANDLE(0)
-    T_NUMBER(1)
-    T_STRING(2)
+    T_HANDLE(PDFFindText, 0)
+    T_NUMBER(PDFFindText, 1)
+    T_STRING(PDFFindText, 2)
 
     poppler::document * pdoc = (poppler::document *)PARAM_INT(0);
     int index = 0;
@@ -144,12 +144,12 @@ CONCEPT_FUNCTION_IMPL(PDFFindText, 3)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(PDFPageImageBuffer, 2, 5)
-    T_HANDLE(0)
-    T_NUMBER(1)
+    T_HANDLE(PDFPageImageBuffer, 0)
+    T_NUMBER(PDFPageImageBuffer, 1)
 
     const char *type = "png";
     if (PARAMETERS_COUNT > 2) {
-        T_STRING(2);
+        T_STRING(PDFPageImageBuffer, 2);
         type = PARAM(2);
     }
 
@@ -163,7 +163,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(PDFPageImageBuffer, 2, 5)
         poppler::image         image;
         poppler::page_renderer renderer;
         if (PARAMETERS_COUNT > 3) {
-            T_NUMBER(3);
+            T_NUMBER(PDFPageImageBuffer, 3);
             NUMBER         thumb_zoom = PARAM(3);
             poppler::rectf rect       = page->page_rect();
             image = renderer.render_page(page, 72.0 * thumb_zoom, 72.0 * thumb_zoom);
@@ -206,13 +206,13 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(PDFPageImageBuffer, 2, 5)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(PDFPageImage, 3, 6)
-    T_HANDLE(0)
-    T_NUMBER(1)
-    T_STRING(2)
+    T_HANDLE(PDFPageImage, 0)
+    T_NUMBER(PDFPageImage, 1)
+    T_STRING(PDFPageImage, 2)
 
     const char *type = "png";
     if (PARAMETERS_COUNT > 3) {
-        T_STRING(3);
+        T_STRING(PDFPageImage, 3);
         type = PARAM(3);
     }
 
@@ -226,7 +226,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(PDFPageImage, 3, 6)
         poppler::image         image;
         poppler::page_renderer renderer;
         if (PARAMETERS_COUNT > 4) {
-            T_NUMBER(4);
+            T_NUMBER(PDFPageImage, 4);
             NUMBER         thumb_zoom = PARAM(4);
             poppler::rectf rect       = page->page_rect();
             image = renderer.render_page(page, 72.0 * thumb_zoom, 72.0 * thumb_zoom);
@@ -298,7 +298,7 @@ const char *getVectorData(poppler::ustring buf) {
 }
 
 CONCEPT_FUNCTION_IMPL(PDFAttachments, 1)
-    T_HANDLE(0)
+    T_HANDLE(PDFAttachments, 0)
 
     poppler::document * pdoc = (poppler::document *)PARAM_INT(0);
     CREATE_ARRAY(RESULT);
@@ -334,3 +334,4 @@ CONCEPT_FUNCTION_IMPL(PDFAttachments, 1)
     }
 END_IMPL
 //------------------------------------------------------------------------
+

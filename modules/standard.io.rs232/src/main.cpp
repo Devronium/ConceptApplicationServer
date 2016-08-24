@@ -11,11 +11,11 @@ CONCEPT_DLL_API ON_CREATE_CONTEXT MANAGEMENT_PARAMETERS {
 }
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(OpenComport, 2, 3)
-    T_NUMBER(0)
-    T_NUMBER(1)
+    T_NUMBER(OpenComport, 0)
+    T_NUMBER(OpenComport, 1)
     int bits = 8;
     if (PARAMETERS_COUNT > 2) {
-        T_NUMBER(2)
+        T_NUMBER(OpenComport, 2)
         bits = PARAM_INT(2);
         if ((bits != 7) && (bits != 8)) {
             return (void *)"OpenComport: parameter 3 (bits) must be 7 or 8";
@@ -26,8 +26,8 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(OpenComport, 2, 3)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(PollComport, 3)
-    T_NUMBER(0)
-    T_NUMBER(2)
+    T_NUMBER(PollComport, 0)
+    T_NUMBER(PollComport, 2)
 
     int len = PARAM_INT(2);
     unsigned char *buf = (unsigned char *)malloc(len + 1);
@@ -42,15 +42,16 @@ CONCEPT_FUNCTION_IMPL(PollComport, 3)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(SendComport, 2)
-    T_NUMBER(0)
-    T_STRING(1)
+    T_NUMBER(SendComport, 0)
+    T_STRING(SendComport, 1)
 
     RETURN_NUMBER(SendBuf(PARAM_INT(0), (unsigned char *)PARAM(1), PARAM_LEN(1)));
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(CloseComport, 1)
-    T_NUMBER(0)
+    T_NUMBER(CloseComport, 0)
     CloseComport(PARAM_INT(0));
     RETURN_NUMBER(0)
 END_IMPL
 //------------------------------------------------------------------------
+

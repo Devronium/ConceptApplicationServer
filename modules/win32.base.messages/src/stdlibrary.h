@@ -203,10 +203,12 @@ typedef INTEGER (*CALL_BACK_CLASS_MEMBER_SET)(void *CLASS_PTR, char *class_membe
 #define GET_CHECK_BUFFER(param_index, szvariable, nlength, error_return)                      GET_BUFFER(param_index, szvariable, nlength); CHECK_STRING(error_return);
 
 #define DEFINE_SCONSTANT(constant_name, constant_value)                                       Invoke(INVOKE_DEFINE_CONSTANT, (void *)HANDLER, (char *)constant_name, (char *)constant_value);
-#define DEFINE_ICONSTANT(constant_name, constant_value)                                       Invoke(INVOKE_DEFINE_CONSTANT, (void *)HANDLER, (char *)constant_name, #constant_value);
-#define DEFINE_FCONSTANT(constant_name, constant_value)                                       Invoke(INVOKE_DEFINE_CONSTANT, (void *)HANDLER, (char *)constant_name, #constant_value);
+#define DEFINE_ICONSTANT(constant_name, constant_value)                                       Invoke(INVOKE_DEFINE_CONSTANT, (void *)HANDLER, (char *)constant_name, (const char *)#constant_value);
+#define DEFINE_FCONSTANT(constant_name, constant_value)                                       Invoke(INVOKE_DEFINE_CONSTANT, (void *)HANDLER, (char *)constant_name, (const char *)#constant_value);
 
-#define DEFINE_ECONSTANT(constant_name)                                                       Invoke(INVOKE_DEFINE_CONSTANT, (void *)HANDLER, #constant_name, AnsiString((long)constant_name).c_str());
+#define STR_HELPER(x) #x
+#define NTOSTR(x) STR_HELPER(x)
+#define DEFINE_ECONSTANT(constant_name)                                                       Invoke(INVOKE_DEFINE_CONSTANT, (void *)HANDLER, (const char*)#constant_name, (const char *)NTOSTR(constant_name));
 #define DEFINE_ESCONSTANT(constant_name)                                                      Invoke(INVOKE_DEFINE_CONSTANT, (void *)HANDLER, #constant_name, constant_name);
 
 
@@ -282,9 +284,9 @@ typedef INTEGER (*CALL_BACK_CLASS_MEMBER_SET)(void *CLASS_PTR, char *class_membe
 #define CONCEPT_INIT       CONCEPT_DLL_API ON_CREATE_CONTEXT MANAGEMENT_PARAMETERS
 #define CONCEPT_DESTROY    CONCEPT_DLL_API ON_DESTROY_CONTEXT MANAGEMENT_PARAMETERS
 
-#define T_STRING_NULL(parameter_index) \
-    T_STRING(parameter_index)          \
-    if (!(PARAM_LEN(parameter_index))) \
+#define T_STRING_NULL(func_name, parameter_index)                                                                                      \
+    T_STRING(func_name,parameter_index)                                                                                                \
+    if (!(PARAM_LEN(parameter_index)))                                                                                                 \
         __INTERNAL_PARAMETER(bind, parameter_index) = 0;
 
 #define T_HANDLE(func_name, parameter_index)                                                                                                               \
@@ -313,3 +315,4 @@ double *GetDoubleList(void *arr, INVOKE_CALL _Invoke);
 
 //-------------------------------------------------------------------------------------------------------------
 #endif //__STDLIBRARY_H
+

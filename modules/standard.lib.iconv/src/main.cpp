@@ -26,8 +26,8 @@ CONCEPT_DLL_API ON_DESTROY_CONTEXT MANAGEMENT_PARAMETERS {
 }
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(iconv_open, 2)
-    T_STRING(0)
-    T_STRING(1)
+    T_STRING(iconv_open, 0)
+    T_STRING(iconv_open, 1)
 
     RETURN_NUMBER((long)iconv_open((const char *)PARAM(0), (const char *)PARAM(1)));
 
@@ -35,9 +35,9 @@ END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(iconv2, 3, 4)
 //CONCEPT_FUNCTION_IMPL(iconv2,3)
-    T_STRING(0)
-    T_STRING(1)
-    T_STRING(2)
+    T_STRING(iconv2, 0)
+    T_STRING(iconv2, 1)
+    T_STRING(iconv2, 2)
 
     iconv_t cd = iconv_open((const char *)PARAM(0), (const char *)PARAM(1));
     if (cd == (iconv_t)(-1)) {
@@ -55,7 +55,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(iconv2, 3, 4)
     int val = 1;
     iconvctl(cd, ICONV_SET_DISCARD_ILSEQ, &val);
     if (PARAMETERS_COUNT == 4) {
-        T_NUMBER(3)
+        T_NUMBER(iconv2, 3)
 
         val = PARAM_INT(3);
         iconvctl(cd, ICONV_SET_TRANSLITERATE, &val);
@@ -72,8 +72,8 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(iconv2, 3, 4)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(iconv, 3)
-    T_NUMBER(0)
-    T_STRING(1)
+    T_NUMBER(iconv, 0)
+    T_STRING(iconv, 1)
 
     iconv_t cd = (iconv_t)PARAM_INT(0);
     if (cd == (iconv_t)(-1)) {
@@ -101,14 +101,14 @@ CONCEPT_FUNCTION_IMPL(iconv, 3)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(iconv_close, 1)
-    T_NUMBER(0)
+    T_NUMBER(iconv_close, 0)
 
     RETURN_NUMBER((long)iconv_close((iconv_t)PARAM_INT(0)));
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(iconvctl, 3)
-    T_NUMBER(0)
-    T_NUMBER(1)
+    T_NUMBER(iconvctl, 0)
+    T_NUMBER(iconvctl, 1)
     int result = -1;
 
     iconv_t cd = (iconv_t)PARAM_INT(0);
@@ -131,7 +131,7 @@ CONCEPT_FUNCTION_IMPL(iconvctl, 3)
         case ICONV_SET_TRANSLITERATE:
         case ICONV_SET_DISCARD_ILSEQ:
             {
-                T_NUMBER(2)
+                T_NUMBER(iconvctl, 2)
 
                 int arg = (const int)PARAM_INT(2);
                 result  = iconvctl(cd, PARAM_INT(1), &arg);
@@ -141,3 +141,4 @@ CONCEPT_FUNCTION_IMPL(iconvctl, 3)
     RETURN_NUMBER(result);
 END_IMPL
 //-----------------------------------------------------//
+

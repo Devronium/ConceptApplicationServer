@@ -542,13 +542,13 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(XSLTRegister, 1, 3)
     GetVariablePtr = GetVariable;
     xmlChar *ref = (xmlChar *)"http://www.devronium.com/csp";
     if (PARAMETERS_COUNT > 2) {
-        T_STRING(2)
+        T_STRING(XSLTRegister, 2)
         ref = (xmlChar *)PARAM(2);
     }
-    T_OBJECT(0);
+    T_OBJECT(XSLTRegister, 0);
     char *orig_name = 0;
     if (PARAMETERS_COUNT > 1) {
-        T_STRING(1);
+        T_STRING(XSLTRegister, 1);
         orig_name = PARAM(1);
     }
     int res = -1;
@@ -617,8 +617,8 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(XSLTRegister, 1, 3)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(XSLTProcess, 2, 3)
-    T_STRING(0)
-    T_STRING(1)
+    T_STRING(XSLTProcess, 0)
+    T_STRING(XSLTProcess, 1)
 
     xsltStylesheetPtr cur = NULL;
     xmlDocPtr doc, res, docstyle;
@@ -629,7 +629,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(XSLTProcess, 2, 3)
 
     const char **params2 = 0;
     if (PARAMETERS_COUNT > 2) {
-        T_ARRAY(2);
+        T_ARRAY(XSLTProcess, 2);
         params2 = (const char **)GetCharList(PARAMETER(2));
     }
 
@@ -683,3 +683,4 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(XSLTProcess, 2, 3)
     }
 END_IMPL
 //------------------------------------------------------------------------
+

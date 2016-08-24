@@ -28,7 +28,7 @@ CONCEPT_DLL_API ON_DESTROY_CONTEXT MANAGEMENT_PARAMETERS {
 }
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(DetectLanguage, 1, 3)
-    T_STRING(0)
+    T_STRING(DetectLanguage, 0)
 
     bool is_plain_text = true;
     bool       do_allow_extended_languages = true;
@@ -87,3 +87,4 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(DetectLanguage, 1, 3)
     }
 END_IMPL
 //-----------------------------------------------------//
+

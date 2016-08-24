@@ -23,11 +23,11 @@ CONCEPT_DLL_API ON_DESTROY_CONTEXT MANAGEMENT_PARAMETERS {
 //=====================================================================================//
 CONCEPT_FUNCTION_IMPL(Twitter_Auth, 6)
     T_HANDLE2(0, twitCurl *)
-    T_STRING(1) // public key file
-    T_STRING(2) // private key file
-    T_STRING(3) // twitter provided pin
-    T_STRING(4) // twitter provided pin
-    T_STRING(5) // twitter provided pin
+    T_STRING(Twitter_Auth, 1) // public key file
+    T_STRING(Twitter_Auth, 2) // private key file
+    T_STRING(Twitter_Auth, 3) // twitter provided pin
+    T_STRING(Twitter_Auth, 4) // twitter provided pin
+    T_STRING(Twitter_Auth, 5) // twitter provided pin
 
     twitCurl * twitterObj = PARAM(0);
 /* OAuth flow begins */
@@ -127,7 +127,7 @@ END_IMPL
 //=====================================================================================//
 CONCEPT_FUNCTION_IMPL(Twitter_setTwitterUsername, 2)
     T_HANDLE2(0, twitCurl *)
-    T_STRING(1)
+    T_STRING(Twitter_setTwitterUsername, 1)
     twitCurl * inst = PARAM(0);
     std::string tmp = PARAM(1);
 
@@ -137,7 +137,7 @@ END_IMPL
 //=====================================================================================//
 CONCEPT_FUNCTION_IMPL(Twitter_setTwitterPassword, 2)
     T_HANDLE2(0, twitCurl *)
-    T_STRING(1)
+    T_STRING(Twitter_setTwitterPassword, 1)
     twitCurl * inst = PARAM(0);
     std::string tmp = PARAM(1);
 
@@ -147,7 +147,7 @@ END_IMPL
 //=====================================================================================//
 CONCEPT_FUNCTION_IMPL(Twitter_search, 2)
     T_HANDLE2(0, twitCurl *)
-    T_STRING(1)
+    T_STRING(Twitter_search, 1)
     twitCurl * inst = PARAM(0);
     std::string tmp = PARAM(1);
 
@@ -156,7 +156,7 @@ END_IMPL
 //=====================================================================================//
 CONCEPT_FUNCTION_IMPL(Twitter_statusUpdate, 2)
     T_HANDLE2(0, twitCurl *)
-    T_STRING(1)
+    T_STRING(Twitter_statusUpdate, 1)
     twitCurl * inst = PARAM(0);
     std::string tmp = PARAM(1);
 
@@ -165,7 +165,7 @@ END_IMPL
 //=====================================================================================//
 CONCEPT_FUNCTION_IMPL(Twitter_statusShowById, 2)
     T_HANDLE2(0, twitCurl *)
-    T_STRING(1)
+    T_STRING(Twitter_statusShowById, 1)
     std::string tmp = PARAM(1);
     twitCurl *inst = PARAM(0);
 
@@ -174,7 +174,7 @@ END_IMPL
 //=====================================================================================//
 CONCEPT_FUNCTION_IMPL(Twitter_statusDestroyById, 2)
     T_HANDLE2(0, twitCurl *)
-    T_STRING(1)
+    T_STRING(Twitter_statusDestroyById, 1)
     twitCurl * inst = PARAM(0);
     std::string tmp = PARAM(1);
 
@@ -197,19 +197,19 @@ END_IMPL
 //=====================================================================================//
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(Twitter_timelineUserGet, 3, 5)
     T_HANDLE2(0, twitCurl *)
-    T_STRING(1)
-    T_NUMBER(2)
+    T_STRING(Twitter_timelineUserGet, 1)
+    T_NUMBER(Twitter_timelineUserGet, 2)
     std::string tmp = PARAM(1);
     twitCurl *inst = PARAM(0);
 
     bool retwits = false;
     if (PARAMETERS_COUNT > 3) {
-        T_NUMBER(3)
+        T_NUMBER(Twitter_timelineUserGet, 3)
         retwits = (bool)PARAM_INT(3);
     }
     int count = 200;
     if (PARAMETERS_COUNT > 4) {
-        T_NUMBER(4)
+        T_NUMBER(Twitter_timelineUserGet, 4)
         count = PARAM_INT(4);
     }
 
@@ -233,8 +233,8 @@ END_IMPL
 CONCEPT_FUNCTION_IMPL(Twitter_userGet, 3)
     T_HANDLE2(0, twitCurl *)
     twitCurl * inst = PARAM(0);
-    T_STRING(1)
-    T_NUMBER(2)
+    T_STRING(Twitter_userGet, 1)
+    T_NUMBER(Twitter_userGet, 2)
     std::string tmp = PARAM(1);
 
     RETURN_NUMBER(inst->userGet(tmp, PARAM_INT(2)));
@@ -243,8 +243,8 @@ END_IMPL
 CONCEPT_FUNCTION_IMPL(Twitter_friendsGet, 3)
     T_HANDLE2(0, twitCurl *)
     twitCurl * inst = PARAM(0);
-    T_STRING(1)
-    T_NUMBER(2)
+    T_STRING(Twitter_friendsGet, 1)
+    T_NUMBER(Twitter_friendsGet, 2)
     std::string tmp = PARAM(1);
 
     RETURN_NUMBER(inst->friendsGet(tmp, PARAM_INT(2)));
@@ -253,8 +253,8 @@ END_IMPL
 CONCEPT_FUNCTION_IMPL(Twitter_followersGet, 3)
     T_HANDLE2(0, twitCurl *)
     twitCurl * inst = PARAM(0);
-    T_STRING(1)
-    T_NUMBER(2)
+    T_STRING(Twitter_followersGet, 1)
+    T_NUMBER(Twitter_followersGet, 2)
     std::string tmp = PARAM(1);
 
     RETURN_NUMBER(inst->followersGet(tmp, PARAM_INT(2)));
@@ -270,11 +270,11 @@ END_IMPL
 CONCEPT_FUNCTION_IMPL(Twitter_directMessageSend, 4)
     T_HANDLE2(0, twitCurl *)
     twitCurl * inst = PARAM(0);
-    T_STRING(1)
+    T_STRING(Twitter_directMessageSend, 1)
     std::string tmp = PARAM(1);
-    T_STRING(2)
+    T_STRING(Twitter_directMessageSend, 2)
     std::string tmp2 = PARAM(2);
-    T_NUMBER(3)
+    T_NUMBER(Twitter_directMessageSend, 3)
 
     RETURN_NUMBER(inst->directMessageSend(tmp, tmp2, PARAM_INT(3)));
 END_IMPL
@@ -289,7 +289,7 @@ END_IMPL
 CONCEPT_FUNCTION_IMPL(Twitter_directMessageDestroyById, 2)
     T_HANDLE2(0, twitCurl *)
     twitCurl * inst = PARAM(0);
-    T_STRING(1)
+    T_STRING(Twitter_directMessageDestroyById, 1)
     std::string tmp = PARAM(1);
 
     RETURN_NUMBER(inst->directMessageDestroyById(tmp));
@@ -298,8 +298,8 @@ END_IMPL
 CONCEPT_FUNCTION_IMPL(Twitter_friendshipCreate, 3)
     T_HANDLE2(0, twitCurl *)
     twitCurl * inst = PARAM(0);
-    T_STRING(1)
-    T_NUMBER(2)
+    T_STRING(Twitter_friendshipCreate, 1)
+    T_NUMBER(Twitter_friendshipCreate, 2)
     std::string tmp = PARAM(1);
 
     RETURN_NUMBER(inst->friendshipCreate(tmp, PARAM_INT(2)));
@@ -308,8 +308,8 @@ END_IMPL
 CONCEPT_FUNCTION_IMPL(Twitter_friendshipDestroy, 3)
     T_HANDLE2(0, twitCurl *)
     twitCurl * inst = PARAM(0);
-    T_STRING(1)
-    T_NUMBER(2)
+    T_STRING(Twitter_friendshipDestroy, 1)
+    T_NUMBER(Twitter_friendshipDestroy, 2)
     std::string tmp = PARAM(1);
 
     RETURN_NUMBER(inst->friendshipDestroy(tmp, PARAM_INT(2)));
@@ -318,8 +318,8 @@ END_IMPL
 CONCEPT_FUNCTION_IMPL(Twitter_friendshipShow, 3)
     T_HANDLE2(0, twitCurl *)
     twitCurl * inst = PARAM(0);
-    T_STRING(1)
-    T_NUMBER(2)
+    T_STRING(Twitter_friendshipShow, 1)
+    T_NUMBER(Twitter_friendshipShow, 2)
     std::string tmp = PARAM(1);
 
     RETURN_NUMBER(inst->friendshipShow(tmp, PARAM_INT(2)));
@@ -328,8 +328,8 @@ END_IMPL
 CONCEPT_FUNCTION_IMPL(Twitter_friendsIdsGet, 3)
     T_HANDLE2(0, twitCurl *)
     twitCurl * inst = PARAM(0);
-    T_STRING(1)
-    T_NUMBER(2)
+    T_STRING(Twitter_friendsIdsGet, 1)
+    T_NUMBER(Twitter_friendsIdsGet, 2)
     std::string tmp = PARAM(1);
 
     RETURN_NUMBER(inst->friendsIdsGet(tmp, PARAM_INT(2)));
@@ -338,8 +338,8 @@ END_IMPL
 CONCEPT_FUNCTION_IMPL(Twitter_followersIdsGet, 3)
     T_HANDLE2(0, twitCurl *)
     twitCurl * inst = PARAM(0);
-    T_STRING(1)
-    T_NUMBER(2)
+    T_STRING(Twitter_followersIdsGet, 1)
+    T_NUMBER(Twitter_followersIdsGet, 2)
     std::string tmp = PARAM(1);
 
     RETURN_NUMBER(inst->followersIdsGet(tmp, PARAM_INT(2)));
@@ -362,7 +362,7 @@ END_IMPL
 CONCEPT_FUNCTION_IMPL(Twitter_favoriteCreate, 2)
     T_HANDLE2(0, twitCurl *)
     twitCurl * inst = PARAM(0);
-    T_STRING(1)
+    T_STRING(Twitter_favoriteCreate, 1)
     std::string tmp = PARAM(1);
 
     RETURN_NUMBER(inst->favoriteCreate(tmp));
@@ -371,7 +371,7 @@ END_IMPL
 CONCEPT_FUNCTION_IMPL(Twitter_favoriteDestroy, 2)
     T_HANDLE2(0, twitCurl *)
     twitCurl * inst = PARAM(0);
-    T_STRING(1)
+    T_STRING(Twitter_favoriteDestroy, 1)
     std::string tmp = PARAM(1);
 
     RETURN_NUMBER(inst->favoriteDestroy(tmp));
@@ -380,7 +380,7 @@ END_IMPL
 CONCEPT_FUNCTION_IMPL(Twitter_blockCreate, 2)
     T_HANDLE2(0, twitCurl *)
     twitCurl * inst = PARAM(0);
-    T_STRING(1)
+    T_STRING(Twitter_blockCreate, 1)
     std::string tmp = PARAM(1);
 
     RETURN_NUMBER(inst->blockCreate(tmp));
@@ -389,7 +389,7 @@ END_IMPL
 CONCEPT_FUNCTION_IMPL(Twitter_blockDestroy, 2)
     T_HANDLE2(0, twitCurl *)
     twitCurl * inst = PARAM(0);
-    T_STRING(1)
+    T_STRING(Twitter_blockDestroy, 1)
     std::string tmp = PARAM(1);
 
     RETURN_NUMBER(inst->blockDestroy(tmp));
@@ -405,7 +405,7 @@ END_IMPL
 CONCEPT_FUNCTION_IMPL(Twitter_savedSearchCreate, 2)
     T_HANDLE2(0, twitCurl *)
     twitCurl * inst = PARAM(0);
-    T_STRING(1)
+    T_STRING(Twitter_savedSearchCreate, 1)
     std::string tmp = PARAM(1);
 
     RETURN_NUMBER(inst->savedSearchCreate(tmp));
@@ -414,7 +414,7 @@ END_IMPL
 CONCEPT_FUNCTION_IMPL(Twitter_savedSearchShow, 2)
     T_HANDLE2(0, twitCurl *)
     twitCurl * inst = PARAM(0);
-    T_STRING(1)
+    T_STRING(Twitter_savedSearchShow, 1)
     std::string tmp = PARAM(1);
 
     RETURN_NUMBER(inst->savedSearchShow(tmp));
@@ -423,7 +423,7 @@ END_IMPL
 CONCEPT_FUNCTION_IMPL(Twitter_savedSearchDestroy, 2)
     T_HANDLE2(0, twitCurl *)
     twitCurl * inst = PARAM(0);
-    T_STRING(1)
+    T_STRING(Twitter_savedSearchDestroy, 1)
     std::string tmp = PARAM(1);
 
     RETURN_NUMBER(inst->savedSearchDestroy(tmp));
@@ -485,7 +485,7 @@ END_IMPL
 CONCEPT_FUNCTION_IMPL(Twitter_setProxyServerIp, 2)
     T_HANDLE2(0, twitCurl *)
     twitCurl * inst = PARAM(0);
-    T_STRING(1)
+    T_STRING(Twitter_setProxyServerIp, 1)
     std::string tmp = PARAM(1);
 
     inst->setProxyServerIp(tmp);
@@ -496,7 +496,7 @@ END_IMPL
 CONCEPT_FUNCTION_IMPL(Twitter_setProxyServerPort, 2)
     T_HANDLE2(0, twitCurl *)
     twitCurl * inst = PARAM(0);
-    T_STRING(1)
+    T_STRING(Twitter_setProxyServerPort, 1)
     std::string tmp = PARAM(1);
 
     inst->setProxyServerPort(tmp);
@@ -507,7 +507,7 @@ END_IMPL
 CONCEPT_FUNCTION_IMPL(Twitter_setProxyUserName, 2)
     T_HANDLE2(0, twitCurl *)
     twitCurl * inst = PARAM(0);
-    T_STRING(1)
+    T_STRING(Twitter_setProxyUserName, 1)
     std::string tmp = PARAM(1);
 
     inst->setProxyUserName(tmp);
@@ -518,7 +518,7 @@ END_IMPL
 CONCEPT_FUNCTION_IMPL(Twitter_setProxyPassword, 2)
     T_HANDLE2(0, twitCurl *)
     twitCurl * inst = PARAM(0);
-    T_STRING(1)
+    T_STRING(Twitter_setProxyPassword, 1)
     std::string tmp = PARAM(1);
 
     inst->setProxyPassword(tmp);
@@ -526,3 +526,4 @@ CONCEPT_FUNCTION_IMPL(Twitter_setProxyPassword, 2)
     RETURN_NUMBER(0);
 END_IMPL
 //=====================================================================================//
+

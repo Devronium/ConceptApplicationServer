@@ -222,7 +222,7 @@ CONCEPT_DLL_API ON_DESTROY_CONTEXT MANAGEMENT_PARAMETERS {
 }
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(DBOpen, 1)
-    T_STRING(0)
+    T_STRING(DBOpen, 0)
 
     SQLDB * db = new SQLDB();
     if (db->Open(PARAM(0))) {
@@ -233,7 +233,7 @@ CONCEPT_FUNCTION_IMPL(DBOpen, 1)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(DBClose, 1)
-    T_NUMBER(0)
+    T_NUMBER(DBClose, 0)
 
     SQLDB * db = (SQLDB *)PARAM_INT(0);
 
@@ -246,7 +246,7 @@ CONCEPT_FUNCTION_IMPL(DBClose, 1)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(DBError, 1)
-    T_NUMBER(0)
+    T_NUMBER(DBError, 0)
 
     SQLDB * db = (SQLDB *)PARAM_INT(0);
 
@@ -259,7 +259,7 @@ CONCEPT_FUNCTION_IMPL(DBError, 1)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(DBErrorCode, 1)
-    T_NUMBER(0)
+    T_NUMBER(DBErrorCode, 0)
 
     SQLDB * db = (SQLDB *)PARAM_INT(0);
 
@@ -271,7 +271,7 @@ CONCEPT_FUNCTION_IMPL(DBErrorCode, 1)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(DBChanges, 1)
-    T_NUMBER(0)
+    T_NUMBER(DBChanges, 0)
 
     SQLDB * db = (SQLDB *)PARAM_INT(0);
 
@@ -283,7 +283,7 @@ CONCEPT_FUNCTION_IMPL(DBChanges, 1)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(DBLastRowID, 1)
-    T_NUMBER(0)
+    T_NUMBER(DBLastRowID, 0)
 
     SQLDB * db = (SQLDB *)PARAM_INT(0);
 
@@ -295,7 +295,7 @@ CONCEPT_FUNCTION_IMPL(DBLastRowID, 1)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(DBNewStmt, 1)
-    T_NUMBER(0)
+    T_NUMBER(DBNewStmt, 0)
 
     SQLDB * db = (SQLDB *)PARAM_INT(0);
 
@@ -308,7 +308,7 @@ CONCEPT_FUNCTION_IMPL(DBNewStmt, 1)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(DBFree, 1)
-    T_NUMBER(0)
+    T_NUMBER(DBFree, 0)
 
     SQLSTMT * stmt = (SQLSTMT *)PARAM_INT(0);
 
@@ -321,7 +321,7 @@ CONCEPT_FUNCTION_IMPL(DBFree, 1)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(DBColumns, 1)
-    T_NUMBER(0)
+    T_NUMBER(DBColumns, 0)
 
     SQLSTMT * stmt = (SQLSTMT *)PARAM_INT(0);
 
@@ -333,7 +333,7 @@ CONCEPT_FUNCTION_IMPL(DBColumns, 1)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(DBFirst, 1)
-    T_NUMBER(0)
+    T_NUMBER(DBFirst, 0)
 
     SQLSTMT * stmt = (SQLSTMT *)PARAM_INT(0);
     if (!stmt) {
@@ -345,7 +345,7 @@ CONCEPT_FUNCTION_IMPL(DBFirst, 1)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(DBReset, 1)
-    T_NUMBER(0)
+    T_NUMBER(DBReset, 0)
 
     SQLSTMT * stmt = (SQLSTMT *)PARAM_INT(0);
 
@@ -357,7 +357,7 @@ CONCEPT_FUNCTION_IMPL(DBReset, 1)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(DBNext, 1)
-    T_NUMBER(0)
+    T_NUMBER(DBNext, 0)
 
     SQLSTMT * stmt = (SQLSTMT *)PARAM_INT(0);
 
@@ -369,8 +369,8 @@ CONCEPT_FUNCTION_IMPL(DBNext, 1)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(DBData, 2)
-    T_NUMBER(0)
-    T_NUMBER(1)
+    T_NUMBER(DBData, 0)
+    T_NUMBER(DBData, 1)
 
     SQLSTMT * stmt = (SQLSTMT *)PARAM_INT(0);
 
@@ -407,12 +407,12 @@ CONCEPT_FUNCTION_IMPL(DBData, 2)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(DBDataRead, 6)
-    T_NUMBER(0)
-    T_NUMBER(1)
-    T_NUMBER(2)
+    T_NUMBER(DBDataRead, 0)
+    T_NUMBER(DBDataRead, 1)
+    T_NUMBER(DBDataRead, 2)
 //T_NUMBER(3)
-    T_NUMBER(4)
-    T_NUMBER(5)
+    T_NUMBER(DBDataRead, 4)
+    T_NUMBER(DBDataRead, 5)
 
     SQLSTMT * stmt = (SQLSTMT *)PARAM_INT(0);
 
@@ -430,11 +430,11 @@ CONCEPT_FUNCTION_IMPL(DBDataRead, 6)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(DBDataWrite, 5)
-    T_NUMBER(0)
-    T_NUMBER(1)
-    T_NUMBER(2)
-    T_STRING(3)
-    T_NUMBER(4)
+    T_NUMBER(DBDataWrite, 0)
+    T_NUMBER(DBDataWrite, 1)
+    T_NUMBER(DBDataWrite, 2)
+    T_STRING(DBDataWrite, 3)
+    T_NUMBER(DBDataWrite, 4)
 
     SQLSTMT * stmt = (SQLSTMT *)PARAM_INT(0);
 
@@ -446,8 +446,8 @@ CONCEPT_FUNCTION_IMPL(DBDataWrite, 5)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(DBQuery, 2)
-    T_NUMBER(0)
-    T_STRING(1)
+    T_NUMBER(DBQuery, 0)
+    T_STRING(DBQuery, 1)
 
     SQLSTMT * stmt = (SQLSTMT *)PARAM_INT(0);
 
@@ -459,7 +459,7 @@ CONCEPT_FUNCTION_IMPL(DBQuery, 2)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(DBClearBindings, 1)
-    T_NUMBER(0)
+    T_NUMBER(DBClearBindings, 0)
 
     SQLSTMT * stmt = (SQLSTMT *)PARAM_INT(0);
 
@@ -471,8 +471,8 @@ CONCEPT_FUNCTION_IMPL(DBClearBindings, 1)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(DBColumnDeclType, 2)
-    T_NUMBER(0)
-    T_NUMBER(1)
+    T_NUMBER(DBColumnDeclType, 0)
+    T_NUMBER(DBColumnDeclType, 1)
 
     SQLSTMT * stmt = (SQLSTMT *)PARAM_INT(0);
 
@@ -485,8 +485,8 @@ CONCEPT_FUNCTION_IMPL(DBColumnDeclType, 2)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(DBColumnName, 2)
-    T_NUMBER(0)
-    T_NUMBER(1)
+    T_NUMBER(DBColumnName, 0)
+    T_NUMBER(DBColumnName, 1)
 
     SQLSTMT * stmt = (SQLSTMT *)PARAM_INT(0);
 
@@ -499,8 +499,8 @@ CONCEPT_FUNCTION_IMPL(DBColumnName, 2)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(DBColumnType, 2)
-    T_NUMBER(0)
-    T_NUMBER(1)
+    T_NUMBER(DBColumnType, 0)
+    T_NUMBER(DBColumnType, 1)
 
     SQLSTMT * stmt = (SQLSTMT *)PARAM_INT(0);
 
@@ -512,8 +512,8 @@ CONCEPT_FUNCTION_IMPL(DBColumnType, 2)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(DBWrap, 2)
-    T_NUMBER(0)
-    T_DELEGATE(1)
+    T_NUMBER(DBWrap, 0)
+    T_DELEGATE(DBWrap, 1)
 
     SQLDB * db = (SQLDB *)PARAM_INT(0);
 
@@ -533,9 +533,9 @@ CONCEPT_FUNCTION_IMPL(DBWrap, 2)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(DBBind, 3)
-    T_NUMBER(0)
-    T_NUMBER(1)
-    T_STRING(2)
+    T_NUMBER(DBBind, 0)
+    T_NUMBER(DBBind, 1)
+    T_STRING(DBBind, 2)
 
     SQLSTMT * stmt = (SQLSTMT *)PARAM_INT(0);
 
@@ -547,9 +547,9 @@ CONCEPT_FUNCTION_IMPL(DBBind, 3)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(DBNameBind, 3)
-    T_NUMBER(0)
-    T_STRING(1)
-    T_STRING(2)
+    T_NUMBER(DBNameBind, 0)
+    T_STRING(DBNameBind, 1)
+    T_STRING(DBNameBind, 2)
 
     SQLSTMT * stmt = (SQLSTMT *)PARAM_INT(0);
 
@@ -561,9 +561,9 @@ CONCEPT_FUNCTION_IMPL(DBNameBind, 3)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(DBBLOBBind, 3)
-    T_NUMBER(0)
-    T_NUMBER(1)
-    T_NUMBER(2)
+    T_NUMBER(DBBLOBBind, 0)
+    T_NUMBER(DBBLOBBind, 1)
+    T_NUMBER(DBBLOBBind, 2)
 
     SQLSTMT * stmt = (SQLSTMT *)PARAM_INT(0);
 
@@ -575,7 +575,7 @@ CONCEPT_FUNCTION_IMPL(DBBLOBBind, 3)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(DBParamCount, 1)
-    T_NUMBER(0)
+    T_NUMBER(DBParamCount, 0)
 
     SQLSTMT * stmt = (SQLSTMT *)PARAM_INT(0);
 
@@ -587,9 +587,9 @@ CONCEPT_FUNCTION_IMPL(DBParamCount, 1)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(DBBLOBNameBind, 3)
-    T_NUMBER(0)
-    T_STRING(1)
-    T_NUMBER(2)
+    T_NUMBER(DBBLOBNameBind, 0)
+    T_STRING(DBBLOBNameBind, 1)
+    T_NUMBER(DBBLOBNameBind, 2)
 
     SQLSTMT * stmt = (SQLSTMT *)PARAM_INT(0);
 
@@ -601,9 +601,9 @@ CONCEPT_FUNCTION_IMPL(DBBLOBNameBind, 3)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(DBBLOBNameDataBind, 3)
-    T_NUMBER(0)
-    T_STRING(1)
-    T_STRING(2)
+    T_NUMBER(DBBLOBNameDataBind, 0)
+    T_STRING(DBBLOBNameDataBind, 1)
+    T_STRING(DBBLOBNameDataBind, 2)
 
     SQLSTMT * stmt = (SQLSTMT *)PARAM_INT(0);
 
@@ -615,9 +615,9 @@ CONCEPT_FUNCTION_IMPL(DBBLOBNameDataBind, 3)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(DBBLOBDataBind, 3)
-    T_NUMBER(0)
-    T_NUMBER(1)
-    T_STRING(2)
+    T_NUMBER(DBBLOBDataBind, 0)
+    T_NUMBER(DBBLOBDataBind, 1)
+    T_STRING(DBBLOBDataBind, 2)
 
     SQLSTMT * stmt = (SQLSTMT *)PARAM_INT(0);
 
@@ -629,8 +629,8 @@ CONCEPT_FUNCTION_IMPL(DBBLOBDataBind, 3)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(DBTimeout, 2)
-    T_NUMBER(0)
-    T_NUMBER(1)
+    T_NUMBER(DBTimeout, 0)
+    T_NUMBER(DBTimeout, 1)
 
     SQLDB * db = (SQLDB *)PARAM_INT(0);
 
@@ -641,3 +641,4 @@ CONCEPT_FUNCTION_IMPL(DBTimeout, 2)
     }
 END_IMPL
 //-----------------------------------------------------//
+

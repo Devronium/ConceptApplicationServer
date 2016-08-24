@@ -68,7 +68,7 @@ CONCEPT_DLL_API ON_DESTROY_CONTEXT MANAGEMENT_PARAMETERS {
 }
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(SSHConnect, 1, 2)
-    T_NUMBER(0)
+    T_NUMBER(SSHConnect, 0)
     LIBSSH2_SESSION * session = libssh2_session_init();
     int sock = PARAM_INT(0);
     int rc   = 0;
@@ -99,9 +99,9 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(SSHConnect, 1, 2)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(SSHAuth, 3)
-    T_HANDLE(0)
-    T_STRING(1)
-    T_STRING(2)
+    T_HANDLE(SSHAuth, 0)
+    T_STRING(SSHAuth, 1)
+    T_STRING(SSHAuth, 2)
     LIBSSH2_SESSION * session = (LIBSSH2_SESSION *)PARAM_INT(0);
     int rc = 0;
     while ((rc = libssh2_userauth_password(session, PARAM(1), PARAM(2))) == LIBSSH2_ERROR_EAGAIN) {
@@ -115,11 +115,11 @@ CONCEPT_FUNCTION_IMPL(SSHAuth, 3)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(SSHAuthPublicKey, 3)
-    T_HANDLE(0)
-    T_STRING(1)
-    T_STRING(2)
-    T_STRING(3)
-    T_STRING(4)
+    T_HANDLE(SSHAuthPublicKey, 0)
+    T_STRING(SSHAuthPublicKey, 1)
+    T_STRING(SSHAuthPublicKey, 2)
+    T_STRING(SSHAuthPublicKey, 3)
+    T_STRING(SSHAuthPublicKey, 4)
     LIBSSH2_SESSION * session = (LIBSSH2_SESSION *)PARAM_INT(0);
     int rc = 0;
     while ((rc = libssh2_userauth_publickey_fromfile(session, PARAM(1), PARAM(2), PARAM(3), PARAM(4))) == LIBSSH2_ERROR_EAGAIN) {
@@ -134,7 +134,7 @@ END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(SSHChannelOpen, 1)
     LIBSSH2_CHANNEL * channel = 0;
-    T_HANDLE(0)
+    T_HANDLE(SSHChannelOpen, 0)
     LIBSSH2_SESSION * session = (LIBSSH2_SESSION *)PARAM_INT(0);
 
     while ((channel = libssh2_channel_open_session(session)) == NULL && libssh2_session_last_error(session, NULL, NULL, 0) == LIBSSH2_ERROR_EAGAIN) {
@@ -148,7 +148,7 @@ CONCEPT_FUNCTION_IMPL(SSHChannelOpen, 1)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(SSHFingerprint, 1)
-    T_HANDLE(0)
+    T_HANDLE(SSHFingerprint, 0)
     LIBSSH2_SESSION * session = (LIBSSH2_SESSION *)PARAM_INT(0);
 
     size_t     len  = 0;
@@ -162,14 +162,14 @@ CONCEPT_FUNCTION_IMPL(SSHFingerprint, 1)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(SSHLastError, 1)
-    T_HANDLE(0)
+    T_HANDLE(SSHLastError, 0)
     LIBSSH2_SESSION * session = (LIBSSH2_SESSION *)PARAM_INT(0);
     int rc = libssh2_session_last_error(session, NULL, NULL, 0);
     RETURN_NUMBER(rc);
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(SSHLastErrorString, 1)
-    T_HANDLE(0)
+    T_HANDLE(SSHLastErrorString, 0)
     LIBSSH2_SESSION * session = (LIBSSH2_SESSION *)PARAM_INT(0);
     char *msg = 0;
     int  len  = 0;
@@ -182,8 +182,8 @@ CONCEPT_FUNCTION_IMPL(SSHLastErrorString, 1)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(SSHExec, 2)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(SSHExec, 0)
+    T_STRING(SSHExec, 1)
     LIBSSH2_CHANNEL * channel = (LIBSSH2_CHANNEL *)PARAM_INT(0);
     int rc = 0;
     while ((rc = libssh2_channel_exec(channel, PARAM(1))) == LIBSSH2_ERROR_EAGAIN) {
@@ -197,12 +197,12 @@ CONCEPT_FUNCTION_IMPL(SSHExec, 2)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(SSHRead, 2, 4)
-    T_HANDLE(0)
-    T_NUMBER(1)
+    T_HANDLE(SSHRead, 0)
+    T_NUMBER(SSHRead, 1)
     LIBSSH2_CHANNEL * channel = (LIBSSH2_CHANNEL *)PARAM_INT(0);
     int is_stderr = 0;
     if (PARAMETERS_COUNT > 2) {
-        T_NUMBER(2)
+        T_NUMBER(SSHRead, 2)
         is_stderr = PARAM_INT(2);
     }
     char *buffer = 0;
@@ -226,13 +226,13 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(SSHRead, 2, 4)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(SSHWrite, 2, 3)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(SSHWrite, 0)
+    T_STRING(SSHWrite, 1)
     LIBSSH2_CHANNEL * channel = (LIBSSH2_CHANNEL *)PARAM_INT(0);
 
     int is_stderr = 0;
     if (PARAMETERS_COUNT > 2) {
-        T_NUMBER(2)
+        T_NUMBER(SSHWrite, 2)
         is_stderr = PARAM_INT(2);
     }
     int rc = 0;
@@ -245,7 +245,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(SSHWrite, 2, 3)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(SSHShell, 1)
-    T_HANDLE(0)
+    T_HANDLE(SSHShell, 0)
     LIBSSH2_CHANNEL * channel = (LIBSSH2_CHANNEL *)PARAM_INT(0);
 
     int rc = libssh2_channel_shell(channel);
@@ -253,9 +253,9 @@ CONCEPT_FUNCTION_IMPL(SSHShell, 1)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(SSHProcess, 3)
-    T_HANDLE(0)
-    T_STRING(1)
-    T_STRING(2)
+    T_HANDLE(SSHProcess, 0)
+    T_STRING(SSHProcess, 1)
+    T_STRING(SSHProcess, 2)
     LIBSSH2_CHANNEL * channel = (LIBSSH2_CHANNEL *)PARAM_INT(0);
 
     int rc = libssh2_channel_process_startup(channel, PARAM(1), PARAM_LEN(1), PARAM_LEN(2) ? PARAM(2) : NULL, PARAM_LEN(2));
@@ -263,7 +263,7 @@ CONCEPT_FUNCTION_IMPL(SSHProcess, 3)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(SSHSendEOF, 1)
-    T_HANDLE(0)
+    T_HANDLE(SSHSendEOF, 0)
     LIBSSH2_CHANNEL * channel = (LIBSSH2_CHANNEL *)PARAM_INT(0);
 
     int rc = libssh2_channel_send_eof(channel);
@@ -271,7 +271,7 @@ CONCEPT_FUNCTION_IMPL(SSHSendEOF, 1)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(SSHChannelClose, 1)
-    T_HANDLE(0)
+    T_HANDLE(SSHChannelClose, 0)
     LIBSSH2_CHANNEL * channel = (LIBSSH2_CHANNEL *)PARAM_INT(0);
     int rc = 0;
     while ((rc = libssh2_channel_close(channel)) == LIBSSH2_ERROR_EAGAIN) {
@@ -289,7 +289,7 @@ CONCEPT_FUNCTION_IMPL(SSHChannelClose, 1)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(SSHDisconnect, 1)
-    T_HANDLE(0)
+    T_HANDLE(SSHDisconnect, 0)
     LIBSSH2_SESSION * session = (LIBSSH2_SESSION *)PARAM_INT(0);
     int rc = libssh2_session_disconnect(session, "Normal Shutdown");
     if (rc == 0) {
@@ -300,8 +300,8 @@ CONCEPT_FUNCTION_IMPL(SSHDisconnect, 1)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(SSHSetBlocking, 2)
-    T_HANDLE(0)
-    T_NUMBER(1)
+    T_HANDLE(SSHSetBlocking, 0)
+    T_NUMBER(SSHSetBlocking, 1)
     LIBSSH2_SESSION * session = (LIBSSH2_SESSION *)PARAM_INT(0);
 
     libssh2_session_set_blocking(session, PARAM_INT(1));
@@ -309,7 +309,7 @@ CONCEPT_FUNCTION_IMPL(SSHSetBlocking, 2)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(SSHSendKeepAlive, 2)
-    T_HANDLE(0)
+    T_HANDLE(SSHSendKeepAlive, 0)
     LIBSSH2_SESSION * session = (LIBSSH2_SESSION *)PARAM_INT(0);
     int seconds = 0;
     int rc      = libssh2_keepalive_send(session, &seconds);
@@ -318,9 +318,9 @@ CONCEPT_FUNCTION_IMPL(SSHSendKeepAlive, 2)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(SSHSetKeepAlive, 3)
-    T_HANDLE(0)
-    T_NUMBER(1)
-    T_NUMBER(2)
+    T_HANDLE(SSHSetKeepAlive, 0)
+    T_NUMBER(SSHSetKeepAlive, 1)
+    T_NUMBER(SSHSetKeepAlive, 2)
     LIBSSH2_SESSION * session = (LIBSSH2_SESSION *)PARAM_INT(0);
 
     libssh2_keepalive_config(session, PARAM_INT(1), PARAM_INT(2));
@@ -328,26 +328,27 @@ CONCEPT_FUNCTION_IMPL(SSHSetKeepAlive, 3)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(SSHChannelEOF, 1)
-    T_HANDLE(0)
+    T_HANDLE(SSHChannelEOF, 0)
     LIBSSH2_CHANNEL * channel = (LIBSSH2_CHANNEL *)PARAM_INT(0);
     int rc = libssh2_channel_eof(channel);
     RETURN_NUMBER(rc);
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(SSHChannelPTY, 2)
-    T_HANDLE(0)
-    T_STRING(1)
+    T_HANDLE(SSHChannelPTY, 0)
+    T_STRING(SSHChannelPTY, 1)
     LIBSSH2_CHANNEL * channel = (LIBSSH2_CHANNEL *)PARAM_INT(0);
     int rc = libssh2_channel_request_pty(channel, PARAM(1));
     RETURN_NUMBER(rc);
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(SSHChannelSetEnv, 3)
-    T_HANDLE(0)
-    T_STRING(1)
-    T_STRING(2)
+    T_HANDLE(SSHChannelSetEnv, 0)
+    T_STRING(SSHChannelSetEnv, 1)
+    T_STRING(SSHChannelSetEnv, 2)
     LIBSSH2_CHANNEL * channel = (LIBSSH2_CHANNEL *)PARAM_INT(0);
     int rc = libssh2_channel_setenv(channel, PARAM(1), PARAM(2));
     RETURN_NUMBER(rc);
 END_IMPL
 //------------------------------------------------------------------------
+

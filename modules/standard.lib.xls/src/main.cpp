@@ -17,20 +17,20 @@ CONCEPT_FUNCTION_IMPL(xls_getVersion, 0)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(xls_open, 2)
-    T_STRING(0)
-    T_STRING(1)
+    T_STRING(xls_open, 0)
+    T_STRING(xls_open, 1)
     RETURN_NUMBER((long)xls_open(PARAM(0), PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(xls_close, 1)
-    T_HANDLE(0)
+    T_HANDLE(xls_close, 0)
     xlsWorkBook * wb = (xlsWorkBook *)PARAM_INT(0);
     xls_close(wb);
     RETURN_NUMBER(0);
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(xls_parseWorkBook, 1)
-    T_HANDLE(0)
+    T_HANDLE(xls_parseWorkBook, 0)
     xlsWorkBook * wb = (xlsWorkBook *)PARAM_INT(0);
     xls_parseWorkBook(wb);
 
@@ -38,7 +38,7 @@ CONCEPT_FUNCTION_IMPL(xls_parseWorkBook, 1)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(xls_parseWorkSheet, 1)
-    T_HANDLE(0)
+    T_HANDLE(xls_parseWorkSheet, 0)
     xlsWorkSheet * ws = (xlsWorkSheet *)PARAM_INT(0);
     xls_parseWorkSheet(ws);
 
@@ -46,8 +46,8 @@ CONCEPT_FUNCTION_IMPL(xls_parseWorkSheet, 1)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(xls_getWorkSheet, 2)
-    T_HANDLE(0)
-    T_NUMBER(1)
+    T_HANDLE(xls_getWorkSheet, 0)
+    T_NUMBER(xls_getWorkSheet, 1)
     xlsWorkBook * wb = (xlsWorkBook *)PARAM_INT(0);
     int sheet = PARAM_INT(1);
     if ((sheet >= 0) && (sheet < wb->sheets.count)) {
@@ -58,9 +58,9 @@ CONCEPT_FUNCTION_IMPL(xls_getWorkSheet, 2)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(xls_cell, 3)
-    T_HANDLE(0)
-    T_NUMBER(1)
-    T_NUMBER(2)
+    T_HANDLE(xls_cell, 0)
+    T_NUMBER(xls_cell, 1)
+    T_NUMBER(xls_cell, 2)
     xlsWorkSheet * pWS = (xlsWorkSheet *)PARAM_INT(0);
 
     int irow  = PARAM_INT(1);
@@ -82,21 +82,21 @@ CONCEPT_FUNCTION_IMPL(xls_cell, 3)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(xls_getLastRow, 1)
-    T_HANDLE(0)
+    T_HANDLE(xls_getLastRow, 0)
     xlsWorkSheet * pWS = (xlsWorkSheet *)PARAM_INT(0);
     RETURN_NUMBER(pWS->rows.lastrow)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(xls_getLastCol, 1)
-    T_HANDLE(0)
+    T_HANDLE(xls_getLastCol, 0)
     xlsWorkSheet * pWS = (xlsWorkSheet *)PARAM_INT(0);
     RETURN_NUMBER(pWS->rows.lastcol)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(xls_getCellProperties, 3)
-    T_HANDLE(0)
-    T_NUMBER(1)
-    T_NUMBER(2)
+    T_HANDLE(xls_getCellProperties, 0)
+    T_NUMBER(xls_getCellProperties, 1)
+    T_NUMBER(xls_getCellProperties, 2)
     xlsWorkSheet * pWS = (xlsWorkSheet *)PARAM_INT(0);
 
     int irow  = PARAM_INT(1);
@@ -123,8 +123,8 @@ CONCEPT_FUNCTION_IMPL(xls_getCellProperties, 3)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(xls_getRowProperties, 2)
-    T_HANDLE(0)
-    T_NUMBER(1)
+    T_HANDLE(xls_getRowProperties, 0)
+    T_NUMBER(xls_getRowProperties, 1)
     xlsWorkSheet * pWS = (xlsWorkSheet *)PARAM_INT(0);
 
     int irow = PARAM_INT(1);
@@ -145,8 +145,8 @@ CONCEPT_FUNCTION_IMPL(xls_getRowProperties, 2)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(xls_row, 2)
-    T_HANDLE(0)
-    T_NUMBER(1)
+    T_HANDLE(xls_row, 0)
+    T_NUMBER(xls_row, 1)
     xlsWorkSheet * pWS = (xlsWorkSheet *)PARAM_INT(0);
 
     int irow = PARAM_INT(1);
@@ -175,7 +175,7 @@ CONCEPT_FUNCTION_IMPL(xls_row, 2)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(xls_matrix, 1)
-    T_HANDLE(0)
+    T_HANDLE(xls_matrix, 0)
     xlsWorkSheet * pWS = (xlsWorkSheet *)PARAM_INT(0);
 
     CREATE_ARRAY(RESULT);
@@ -205,7 +205,7 @@ CONCEPT_FUNCTION_IMPL(xls_matrix, 1)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(xls_getWorkSheetProperties, 1)
-    T_HANDLE(0)
+    T_HANDLE(xls_getWorkSheetProperties, 0)
     xlsWorkSheet * pWS = (xlsWorkSheet *)PARAM_INT(0);
 
     CREATE_ARRAY(RESULT);
@@ -216,7 +216,7 @@ CONCEPT_FUNCTION_IMPL(xls_getWorkSheetProperties, 1)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(xls_getWorkBookProperties, 1)
-    T_HANDLE(0)
+    T_HANDLE(xls_getWorkBookProperties, 0)
     xlsWorkBook * pWB = (xlsWorkBook *)PARAM_INT(0);
 
     CREATE_ARRAY(RESULT);
@@ -308,3 +308,4 @@ CONCEPT_FUNCTION_IMPL(xls_getWorkBookProperties, 1)
 
 END_IMPL
 //------------------------------------------------------------------------
+

@@ -116,48 +116,48 @@ CONCEPT_DLL_API ON_DESTROY_CONTEXT MANAGEMENT_PARAMETERS {
 }
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(_GDCPIE_BGColor, 1)
-    T_NUMBER(0)
+    T_NUMBER(_GDCPIE_BGColor, 0)
     RETURN_NUMBER(GDCPIE_BGColor = PARAM_INT(0));
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(_GDCPIE_PlotColor, 1)
-    T_NUMBER(0)
+    T_NUMBER(_GDCPIE_PlotColor, 0)
     RETURN_NUMBER(GDCPIE_PlotColor = PARAM_INT(0));
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(_GDCPIE_LineColor, 1)
-    T_NUMBER(0)
+    T_NUMBER(_GDCPIE_LineColor, 0)
     RETURN_NUMBER(GDCPIE_LineColor = PARAM_INT(0));
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(_GDCPIE_EdgeColor, 1)
-    T_NUMBER(0)
+    T_NUMBER(_GDCPIE_EdgeColor, 0)
     RETURN_NUMBER(GDCPIE_EdgeColor = PARAM_INT(0));
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(_GDCPIE_other_threshold, 1)
-    T_NUMBER(0)
+    T_NUMBER(_GDCPIE_other_threshold, 0)
     RETURN_NUMBER(GDCPIE_other_threshold = (char)PARAM_INT(0));
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(_GDCPIE_3d_angle, 1)
-    T_NUMBER(0)
+    T_NUMBER(_GDCPIE_3d_angle, 0)
     RETURN_NUMBER(GDCPIE_3d_angle = (short)PARAM_INT(0));
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(_GDCPIE_3d_depth, 1)
-    T_NUMBER(0)
+    T_NUMBER(_GDCPIE_3d_depth, 0)
     RETURN_NUMBER(GDCPIE_3d_depth = (short)PARAM_INT(0));
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(_GDCPIE_label_dist, 1)
-    T_NUMBER(0)
+    T_NUMBER(_GDCPIE_label_dist, 0)
     RETURN_NUMBER(GDCPIE_label_dist = (int)PARAM_INT(0));
 END_IMPL
 //-----------------------------------------------------//
 AnsiString str;
 CONCEPT_FUNCTION_IMPL(_GDCPIE_title, 1)
-    T_STRING(0)
+    T_STRING(_GDCPIE_title, 0)
 
     str = PARAM(0);
 
@@ -167,27 +167,27 @@ CONCEPT_FUNCTION_IMPL(_GDCPIE_title, 1)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(_GDCPIE_label_line, 1)
-    T_NUMBER(0)
+    T_NUMBER(_GDCPIE_label_line, 0)
     RETURN_NUMBER(GDCPIE_label_line = (unsigned char)PARAM_INT(0));
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(_GDCPIE_title_size, 1)
-    T_NUMBER(0)
+    T_NUMBER(_GDCPIE_title_size, 0)
     RETURN_NUMBER(GDCPIE_title_size = (GDC_font_size)PARAM_INT(0));
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(_GDCPIE_label_size, 1)
-    T_NUMBER(0)
+    T_NUMBER(_GDCPIE_label_size, 0)
     RETURN_NUMBER(GDCPIE_label_size = (GDC_font_size)PARAM_INT(0));
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(_GDCPIE_percent_labels, 1)
-    T_NUMBER(0)
+    T_NUMBER(_GDCPIE_percent_labels, 0)
     RETURN_NUMBER(GDCPIE_percent_labels = (GDCPIE_PCT_TYPE)PARAM_INT(0));
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(_GDCPIE_explode, 1)
-    T_ARRAY(0)
+    T_ARRAY(_GDCPIE_explode, 0)
 
     if (GDCPIE_explode)
         delete[] (int *)GDCPIE_explode;
@@ -197,7 +197,7 @@ CONCEPT_FUNCTION_IMPL(_GDCPIE_explode, 1)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(_GDCPIE_Color, 1)
-    T_ARRAY(0)
+    T_ARRAY(_GDCPIE_Color, 0)
 
     if (GDCPIE_Color)
         delete[] (int *)GDCPIE_Color;
@@ -207,7 +207,7 @@ CONCEPT_FUNCTION_IMPL(_GDCPIE_Color, 1)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(_GDCPIE_missing, 1)
-    T_ARRAY(0)
+    T_ARRAY(_GDCPIE_missing, 0)
 
     if (GDCPIE_missing)
         delete[] (bool *)GDCPIE_missing;
@@ -219,7 +219,7 @@ END_IMPL
 //-----------------------------------------------------//
 AnsiString yt;
 CONCEPT_FUNCTION_IMPL(_GDC_ytitle, 1)
-    T_STRING(0)
+    T_STRING(_GDC_ytitle, 0)
 
     yt         = PARAM(0);
     GDC_ytitle = yt.c_str();
@@ -229,7 +229,7 @@ END_IMPL
 //-----------------------------------------------------//
 AnsiString xt;
 CONCEPT_FUNCTION_IMPL(_GDC_xtitle, 1)
-    T_STRING(0)
+    T_STRING(_GDC_xtitle, 0)
 
     xt         = PARAM(0);
     GDC_xtitle = xt.c_str();
@@ -239,7 +239,7 @@ END_IMPL
 //-----------------------------------------------------//
 AnsiString yt2;
 CONCEPT_FUNCTION_IMPL(_GDC_ytitle2, 1)
-    T_STRING(0)
+    T_STRING(_GDC_ytitle2, 0)
 
     yt2         = PARAM(0);
     GDC_ytitle2 = yt2.c_str();
@@ -249,7 +249,7 @@ END_IMPL
 //-----------------------------------------------------//
 AnsiString title;
 CONCEPT_FUNCTION_IMPL(_GDC_title, 1)
-    T_STRING(0)
+    T_STRING(_GDC_title, 0)
 
     title     = PARAM(0);
     GDC_title = title.c_str();
@@ -258,38 +258,38 @@ CONCEPT_FUNCTION_IMPL(_GDC_title, 1)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(_GDC_title_size, 1)
-    T_NUMBER(0)
+    T_NUMBER(_GDC_title_size, 0)
     RETURN_NUMBER(GDC_title_size = (GDC_font_size)PARAM_INT(0));
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(_GDC_xtitle_size, 1)
-    T_NUMBER(0)
+    T_NUMBER(_GDC_xtitle_size, 0)
     RETURN_NUMBER(GDC_xtitle_size = (GDC_font_size)PARAM_INT(0));
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(_GDC_ytitle_size, 1)
-    T_NUMBER(0)
+    T_NUMBER(_GDC_ytitle_size, 0)
     RETURN_NUMBER(GDC_ytitle_size = (GDC_font_size)PARAM_INT(0));
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(_GDC_yaxisfont_size, 1)
-    T_NUMBER(0)
+    T_NUMBER(_GDC_yaxisfont_size, 0)
     RETURN_NUMBER(GDC_yaxisfont_size = (GDC_font_size)PARAM_INT(0));
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(_GDC_xaxis_angle, 1)
-    T_NUMBER(0)
+    T_NUMBER(_GDC_xaxis_angle, 0)
     RETURN_NUMBER(GDC_xaxis_angle = PARAM_INT(0));
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(_GDC_xaxisfont_size, 1)
-    T_NUMBER(0)
+    T_NUMBER(_GDC_xaxisfont_size, 0)
     RETURN_NUMBER(GDC_xaxisfont_size = (GDC_font_size)PARAM_INT(0));
 END_IMPL
 //-----------------------------------------------------//
 AnsiString ylabel_fmt;
 CONCEPT_FUNCTION_IMPL(_GDC_ylabel_fmt, 1)
-    T_STRING(0)
+    T_STRING(_GDC_ylabel_fmt, 0)
 
     ylabel_fmt     = PARAM(0);
     GDC_ylabel_fmt = ylabel_fmt.c_str();
@@ -299,7 +299,7 @@ END_IMPL
 //-----------------------------------------------------//
 AnsiString ylabel2_fmt;
 CONCEPT_FUNCTION_IMPL(_GDC_ylabel2_fmt, 1)
-    T_STRING(0)
+    T_STRING(_GDC_ylabel2_fmt, 0)
 
     ylabel2_fmt     = PARAM(0);
     GDC_ylabel2_fmt = ylabel2_fmt.c_str();
@@ -308,37 +308,37 @@ CONCEPT_FUNCTION_IMPL(_GDC_ylabel2_fmt, 1)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(_GDC_xlabel_spacing, 1)
-    T_NUMBER(0)
+    T_NUMBER(_GDC_xlabel_spacing, 0)
     RETURN_NUMBER(GDC_xlabel_spacing = (short)PARAM_INT(0));
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(_GDC_ylabel_density, 1)
-    T_NUMBER(0)
+    T_NUMBER(_GDC_ylabel_density, 0)
     RETURN_NUMBER(GDC_ylabel_density = (char)PARAM_INT(0));
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(_GDC_requested_ymin, 1)
-    T_NUMBER(0)
+    T_NUMBER(_GDC_requested_ymin, 0)
     RETURN_NUMBER(GDC_requested_ymin = (float)PARAM(0));
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(_GDC_requested_ymax, 1)
-    T_NUMBER(0)
+    T_NUMBER(_GDC_requested_ymax, 0)
     RETURN_NUMBER(GDC_requested_ymax = (float)PARAM(0));
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(_GDC_requested_yinterval, 1)
-    T_NUMBER(0)
+    T_NUMBER(_GDC_requested_yinterval, 0)
     RETURN_NUMBER(GDC_requested_yinterval = (float)PARAM(0));
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(_GDC_0Shelf, 1)
-    T_NUMBER(0)
+    T_NUMBER(_GDC_0Shelf, 0)
     RETURN_NUMBER(GDC_0Shelf = (char)PARAM_INT(0));
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(_GDC_grid, 1)
-    T_NUMBER(0)
+    T_NUMBER(_GDC_grid, 0)
 //#ifndef _WIN32
     RETURN_NUMBER(GDC_grid = (GDC_TICK_T)PARAM_INT(0));
 
@@ -348,59 +348,59 @@ CONCEPT_FUNCTION_IMPL(_GDC_grid, 1)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(_GDC_xaxis, 1)
-    T_NUMBER(0)
+    T_NUMBER(_GDC_xaxis, 0)
     RETURN_NUMBER(GDC_xaxis = (char)PARAM_INT(0));
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(_GDC_yaxis, 1)
-    T_NUMBER(0)
+    T_NUMBER(_GDC_yaxis, 0)
     RETURN_NUMBER(GDC_yaxis = (char)PARAM_INT(0));
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(_GDC_yaxis2, 1)
-    T_NUMBER(0)
+    T_NUMBER(_GDC_yaxis2, 0)
     RETURN_NUMBER(GDC_yaxis2 = (char)PARAM_INT(0));
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(_GDC_yval_style, 1)
-    T_NUMBER(0)
+    T_NUMBER(_GDC_yval_style, 0)
     RETURN_NUMBER(GDC_yval_style = (char)PARAM_INT(0));
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(_GDC_stack_type, 1)
-    T_NUMBER(0)
+    T_NUMBER(_GDC_stack_type, 0)
     RETURN_NUMBER(GDC_stack_type = (GDC_STACK_T)PARAM_INT(0));
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(_GDC_3d_depth, 1)
-    T_NUMBER(0)
+    T_NUMBER(_GDC_3d_depth, 0)
     RETURN_NUMBER(GDC_3d_depth = (float)PARAM(0));
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(_GDC_3d_angle, 1)
-    T_NUMBER(0)
+    T_NUMBER(_GDC_3d_angle, 0)
     RETURN_NUMBER(GDC_3d_angle = (unsigned char)PARAM_INT(0));
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(_GDC_bar_width, 1)
-    T_NUMBER(0)
+    T_NUMBER(_GDC_bar_width, 0)
     RETURN_NUMBER(GDC_bar_width = (unsigned char)PARAM_INT(0));
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(_GDC_HLC_style, 1)
-    T_NUMBER(0)
+    T_NUMBER(_GDC_HLC_style, 0)
     RETURN_NUMBER(GDC_HLC_style = (GDC_HLC_STYLE_T)PARAM_INT(0));
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(_GDC_HLC_cap_width, 1)
-    T_NUMBER(0)
+    T_NUMBER(_GDC_HLC_cap_width, 0)
     RETURN_NUMBER(GDC_HLC_cap_width = (unsigned char)PARAM_INT(0));
 END_IMPL
 //-----------------------------------------------------//
 //EXTERND GDC_ANNOTATION_T	*GDC_annotation		DEFAULTO( (GDC_ANNOTATION_T*)NULL );
 CONCEPT_FUNCTION_IMPL(_GDC_annotation_font, 1)
 //T_NUMBER(0)
-    T_STRING(0)
+    T_STRING(_GDC_annotation_font, 0)
 //#ifndef _WIN32
     RETURN_STRING((char *)(GDC_annotation_font = PARAM(0)));
 
@@ -411,119 +411,119 @@ END_IMPL
 
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(_GDCPIE_title_font, 1)
-    T_STRING(0)
+    T_STRING(_GDCPIE_title_font, 0)
 
     RETURN_STRING((char *)(GDCPIE_title_font = PARAM(0)));
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(_GDCPIE_label_font, 1)
-    T_STRING(0)
+    T_STRING(_GDCPIE_label_font, 0)
 
     RETURN_STRING((char *)(GDCPIE_label_font = PARAM(0)));
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(_GDCPIE_title_ptsize, 1)
-    T_NUMBER(0)
+    T_NUMBER(_GDCPIE_title_ptsize, 0)
 
     RETURN_NUMBER((INTEGER)(GDCPIE_title_ptsize = PARAM(0)));
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(_GDCPIE_label_ptsize, 1)
-    T_NUMBER(0)
+    T_NUMBER(_GDCPIE_label_ptsize, 0)
 
     RETURN_NUMBER((INTEGER)(GDCPIE_label_ptsize = PARAM(0)));
 END_IMPL
 //-----------------------------------------------------//
 
 CONCEPT_FUNCTION_IMPL(_GDC_annotation_ptsize, 1)
-    T_NUMBER(0)
+    T_NUMBER(_GDC_annotation_ptsize, 0)
 
     RETURN_NUMBER((INTEGER)(GDC_annotation_ptsize = PARAM(0)));
 END_IMPL
 //-----------------------------------------------------//
 
 CONCEPT_FUNCTION_IMPL(_GDC_image_type, 1)
-    T_NUMBER(0)
+    T_NUMBER(_GDC_image_type, 0)
 
     RETURN_NUMBER((INTEGER)(GDC_image_type = (GDC_image_type_t)PARAM_INT(0)));
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(_GDC_title_ptsize, 1)
-    T_NUMBER(0)
+    T_NUMBER(_GDC_title_ptsize, 0)
 
     RETURN_NUMBER((INTEGER)(GDC_title_ptsize = PARAM(0)));
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(_GDC_title_font, 1)
-    T_STRING(0)
+    T_STRING(_GDC_title_font, 0)
 
     RETURN_STRING((char *)(GDC_title_font = PARAM(0)));
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(_GDC_ytitle_ptsize, 1)
-    T_NUMBER(0)
+    T_NUMBER(_GDC_ytitle_ptsize, 0)
 
     RETURN_NUMBER((INTEGER)(GDC_ytitle_ptsize = PARAM(0)));
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(_GDC_ytitle_font, 1)
-    T_STRING(0)
+    T_STRING(_GDC_ytitle_font, 0)
 
     RETURN_STRING((char *)(GDC_ytitle_font = PARAM(0)));
     GDC_ytitle_ptsize = 12;
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(_GDC_xtitle_ptsize, 1)
-    T_NUMBER(0)
+    T_NUMBER(_GDC_xtitle_ptsize, 0)
 
     RETURN_NUMBER((INTEGER)(GDC_xtitle_ptsize = PARAM(0)));
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(_GDC_xtitle_font, 1)
-    T_STRING(0)
+    T_STRING(_GDC_xtitle_font, 0)
 
     RETURN_STRING((char *)(GDC_xtitle_font = PARAM(0)));
     GDC_xtitle_ptsize = 12;
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(_GDC_yaxis_ptsize, 1)
-    T_NUMBER(0)
+    T_NUMBER(_GDC_yaxis_ptsize, 0)
 
     RETURN_NUMBER((INTEGER)(GDC_yaxis_ptsize = PARAM(0)));
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(_GDC_yaxis_font, 1)
-    T_STRING(0)
+    T_STRING(_GDC_yaxis_font, 0)
 
     RETURN_STRING((char *)(GDC_yaxis_font = PARAM(0)));
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(_GDC_xaxis_ptsize, 1)
-    T_NUMBER(0)
+    T_NUMBER(_GDC_xaxis_ptsize, 0)
 
     RETURN_NUMBER((INTEGER)(GDC_xaxis_ptsize = PARAM(0)));
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(_GDC_xaxis_font, 1)
-    T_STRING(0)
+    T_STRING(_GDC_xaxis_font, 0)
 
     RETURN_STRING((char *)(GDC_xaxis_font = PARAM(0)));
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(_GDC_num_scatter_pts, 1)
-    T_NUMBER(0)
+    T_NUMBER(_GDC_num_scatter_pts, 0)
     RETURN_NUMBER(GDC_num_scatter_pts = (int)PARAM_INT(0));
 END_IMPL
 //-----------------------------------------------------//
 //EXTERND GDC_SCATTER_T		*GDC_scatter		DEFAULTO( (GDC_SCATTER_T*)NULL );
 CONCEPT_FUNCTION_IMPL(_GDC_thumbnail, 1)
-    T_NUMBER(0)
+    T_NUMBER(_GDC_thumbnail, 0)
     RETURN_NUMBER(GDC_thumbnail = (char)PARAM_INT(0));
 END_IMPL
 //-----------------------------------------------------//
 AnsiString thumblabel;
 CONCEPT_FUNCTION_IMPL(_GDC_thumblabel, 1)
-    T_STRING(0)
+    T_STRING(_GDC_thumblabel, 0)
 
     thumblabel     = PARAM(0);
     GDC_thumblabel = thumblabel.c_str();
@@ -532,12 +532,12 @@ CONCEPT_FUNCTION_IMPL(_GDC_thumblabel, 1)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(_GDC_thumbval, 1)
-    T_NUMBER(0)
+    T_NUMBER(_GDC_thumbval, 0)
     RETURN_NUMBER(GDC_thumbval = (float)PARAM(0));
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(_GDC_border, 1)
-    T_NUMBER(0)
+    T_NUMBER(_GDC_border, 0)
 //#ifndef _WIN32
     RETURN_NUMBER(GDC_border = (GDC_BORDER_T)PARAM_INT(0));
 
@@ -547,67 +547,67 @@ CONCEPT_FUNCTION_IMPL(_GDC_border, 1)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(_GDC_BGColor, 1)
-    T_NUMBER(0)
+    T_NUMBER(_GDC_BGColor, 0)
     RETURN_NUMBER(GDC_BGColor = PARAM_INT(0));
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(_GDC_GridColor, 1)
-    T_NUMBER(0)
+    T_NUMBER(_GDC_GridColor, 0)
     RETURN_NUMBER(GDC_GridColor = PARAM_INT(0));
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(_GDC_LineColor, 1)
-    T_NUMBER(0)
+    T_NUMBER(_GDC_LineColor, 0)
     RETURN_NUMBER(GDC_LineColor = PARAM_INT(0));
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(_GDC_PlotColor, 1)
-    T_NUMBER(0)
+    T_NUMBER(_GDC_PlotColor, 0)
     RETURN_NUMBER(GDC_PlotColor = PARAM_INT(0));
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(_GDC_VolColor, 1)
-    T_NUMBER(0)
+    T_NUMBER(_GDC_VolColor, 0)
     RETURN_NUMBER(GDC_VolColor = PARAM_INT(0));
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(_GDC_TitleColor, 1)
-    T_NUMBER(0)
+    T_NUMBER(_GDC_TitleColor, 0)
     RETURN_NUMBER(GDC_TitleColor = PARAM_INT(0));
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(_GDC_XTitleColor, 1)
-    T_NUMBER(0)
+    T_NUMBER(_GDC_XTitleColor, 0)
     RETURN_NUMBER(GDC_XTitleColor = PARAM_INT(0));
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(_GDC_YTitleColor, 1)
-    T_NUMBER(0)
+    T_NUMBER(_GDC_YTitleColor, 0)
     RETURN_NUMBER(GDC_YTitleColor = PARAM_INT(0));
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(_GDC_YTitle2Color, 1)
-    T_NUMBER(0)
+    T_NUMBER(_GDC_YTitle2Color, 0)
     RETURN_NUMBER(GDC_YTitle2Color = PARAM_INT(0));
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(_GDC_XLabelColor, 1)
-    T_NUMBER(0)
+    T_NUMBER(_GDC_XLabelColor, 0)
     RETURN_NUMBER(GDC_XLabelColor = PARAM_INT(0));
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(_GDC_YLabelColor, 1)
-    T_NUMBER(0)
+    T_NUMBER(_GDC_YLabelColor, 0)
     RETURN_NUMBER(GDC_YLabelColor = PARAM_INT(0));
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(_GDC_YLabel2Color, 1)
-    T_NUMBER(0)
+    T_NUMBER(_GDC_YLabel2Color, 0)
     RETURN_NUMBER(GDC_YLabel2Color = PARAM_INT(0));
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(_GDC_ExtVolColor, 1)
-    T_ARRAY(0)
+    T_ARRAY(_GDC_ExtVolColor, 0)
 
     if (GDC_ExtVolColor)
         delete[] (int *)GDC_ExtVolColor;
@@ -618,7 +618,7 @@ CONCEPT_FUNCTION_IMPL(_GDC_ExtVolColor, 1)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(_GDC_SetColor, 1)
-    T_ARRAY(0)
+    T_ARRAY(_GDC_SetColor, 0)
 
     if (GDC_SetColor)
         delete[] (int *)GDC_SetColor;
@@ -629,7 +629,7 @@ CONCEPT_FUNCTION_IMPL(_GDC_SetColor, 1)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(_GDC_ExtColor, 1)
-    T_ARRAY(0)
+    T_ARRAY(_GDC_ExtColor, 0)
 
     if (GDC_ExtColor)
         delete[] (int *)GDC_ExtColor;
@@ -640,18 +640,18 @@ CONCEPT_FUNCTION_IMPL(_GDC_ExtColor, 1)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(_GDC_transparent_bg, 1)
-    T_NUMBER(0)
+    T_NUMBER(_GDC_transparent_bg, 0)
     RETURN_NUMBER(GDC_transparent_bg = (char)PARAM_INT(0));
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(_pie_gif, 7)
-    T_NUMBER(0)
-    T_NUMBER(1)
-    T_NUMBER(2)
-    T_NUMBER(3)
-    T_NUMBER(4)
-    T_ARRAY(5)
-    T_ARRAY(6)
+    T_NUMBER(_pie_gif, 0)
+    T_NUMBER(_pie_gif, 1)
+    T_NUMBER(_pie_gif, 2)
+    T_NUMBER(_pie_gif, 3)
+    T_NUMBER(_pie_gif, 4)
+    T_ARRAY(_pie_gif, 5)
+    T_ARRAY(_pie_gif, 6)
 
     char **labels = GetCharList(PARAMETER(5), Invoke);
     float *data = GetFloatList(PARAMETER(6), Invoke);
@@ -671,13 +671,13 @@ CONCEPT_FUNCTION_IMPL(_pie_gif, 7)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL_VARIABLE_PARAMS(_out_graph, 7)
-    T_NUMBER(0)
-    T_NUMBER(1)
-    T_NUMBER(2)
-    T_NUMBER(3)
-    T_NUMBER(4)
-    T_ARRAY(5)
-    T_NUMBER(6)
+    T_NUMBER(_out_graph, 0)
+    T_NUMBER(_out_graph, 1)
+    T_NUMBER(_out_graph, 2)
+    T_NUMBER(_out_graph, 3)
+    T_NUMBER(_out_graph, 4)
+    T_ARRAY(_out_graph, 5)
+    T_NUMBER(_out_graph, 6)
 
     short gifwidth = (short)PARAM_INT(0);
     short       gifheight  = (short)PARAM_INT(1);
@@ -703,7 +703,7 @@ CONCEPT_FUNCTION_IMPL_VARIABLE_PARAMS(_out_graph, 7)
 
                 for (int i = 0; i < num_sets; i++) {
                     int param = 7 + i;
-                    T_ARRAY(param)
+                    T_ARRAY(_out_graph, param)
 
                     vals[i] = GetFloatList(PARAMETER(7 + i), Invoke);
                 }
@@ -738,7 +738,7 @@ CONCEPT_FUNCTION_IMPL_VARIABLE_PARAMS(_out_graph, 7)
 
                 for (int i = 0; i < total; i++) {
                     int param = 7 + i;
-                    T_ARRAY(param)
+                    T_ARRAY(_out_graph, param)
 
                     vals[i] = GetFloatList(PARAMETER(7 + i), Invoke);
                 }
@@ -775,7 +775,7 @@ CONCEPT_FUNCTION_IMPL_VARIABLE_PARAMS(_out_graph, 7)
 
                 for (int i = 0; i < total; i++) {
                     int param = 7 + i;
-                    T_ARRAY(param)
+                    T_ARRAY(_out_graph, param)
 
                     vals[i] = GetFloatList(PARAMETER(7 + i), Invoke);
                 }
@@ -812,7 +812,7 @@ CONCEPT_FUNCTION_IMPL_VARIABLE_PARAMS(_out_graph, 7)
 
                 for (int i = 0; i < total; i++) {
                     int param = 7 + i;
-                    T_ARRAY(param)
+                    T_ARRAY(_out_graph, param)
 
                     vals[i] = GetFloatList(PARAMETER(7 + i), Invoke);
                 }
@@ -847,15 +847,16 @@ CONCEPT_FUNCTION_IMPL_VARIABLE_PARAMS(_out_graph, 7)
 END_IMPL
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(_out_err, 6)
-    T_NUMBER(0)
-    T_NUMBER(1)
-    T_NUMBER(2)
-    T_NUMBER(3)
-    T_NUMBER(4)
-    T_STRING(5)
+    T_NUMBER(_out_err, 0)
+    T_NUMBER(_out_err, 1)
+    T_NUMBER(_out_err, 2)
+    T_NUMBER(_out_err, 3)
+    T_NUMBER(_out_err, 4)
+    T_STRING(_out_err, 5)
 
     out_err(PARAM_INT(0), PARAM_INT(1), (FILE *)PARAM_INT(2), PARAM_INT(3), PARAM_INT(4), PARAM(5));
 
     RETURN_NUMBER(0)
 END_IMPL
 //-----------------------------------------------------//
+

@@ -30,7 +30,7 @@ CONCEPT_DLL_API ON_DESTROY_CONTEXT MANAGEMENT_PARAMETERS {
 }
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(RandomSeed, 1)
-    T_NUMBER(0)
+    T_NUMBER(RandomSeed, 0)
     InitRandomEngine();
     if (!RanGen)
         return (void *)"RandomSeed: Random number generator initialisation failed";
@@ -39,8 +39,8 @@ CONCEPT_FUNCTION_IMPL(RandomSeed, 1)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(RandomInteger, 2)
-    T_NUMBER(0)
-    T_NUMBER(1)
+    T_NUMBER(RandomInteger, 0)
+    T_NUMBER(RandomInteger, 1)
 
     InitRandomEngine();
     if (!RanGen)
@@ -50,8 +50,8 @@ CONCEPT_FUNCTION_IMPL(RandomInteger, 2)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(RandomIntegerX, 2)
-    T_NUMBER(0)
-    T_NUMBER(1)
+    T_NUMBER(RandomIntegerX, 0)
+    T_NUMBER(RandomIntegerX, 1)
 
     InitRandomEngine();
     if (!RanGen)
@@ -76,3 +76,4 @@ CONCEPT_FUNCTION_IMPL(RandomBit, 0)
     RETURN_NUMBER(RanGen->BRandom())
 END_IMPL
 //------------------------------------------------------------------------
+
