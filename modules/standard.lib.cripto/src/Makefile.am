@@ -1,6 +1,6 @@
 # what flags you want to pass to the C compiler & linker
-AM_CFLAGS = -O2 -fPIC -I. -I./tomcrypt -D__WITH_TOMCRYPT
-AM_CXXFLAGS = -O2 -fPIC -I. -I./tomcrypt -D__WITH_TOMCRYPT
+AM_CFLAGS = -O2 -fPIC -I. -I./tomcrypt -D__WITH_TOMCRYPT -DLTC_PTHREAD
+AM_CXXFLAGS = -O2 -fPIC -I. -I./tomcrypt -D__WITH_TOMCRYPT -DLTC_PTHREAD
 AM_LDFLAGS = -shared
 
 # this lists the binaries to produce, the (non-PHONY, binary) targets in
