@@ -7,6 +7,8 @@
 #define NUMBER           double
 #define SYSTEM_SOCKET    INTEGER
 
+#include <stdint.h>
+
 typedef void   VariableDATA;
 
 typedef struct {

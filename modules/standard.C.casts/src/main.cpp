@@ -278,8 +278,8 @@ CONCEPT_DLL_API CONCEPT__uint64 CONCEPT_API_PARAMETERS {
 }
 //-----------------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_tobin, 2)
-    T_NUMBER(0, _tobin)
-    T_NUMBER(1, _tobin)
+    T_NUMBER(_tobin, 0)
+    T_NUMBER(_tobin, 1)
 
     char vint8 = (char)PARAM_INT(0);
     short int vint16 = (short int )PARAM_INT(0);
@@ -310,8 +310,8 @@ CONCEPT_FUNCTION_IMPL(_tobin, 2)
 END_IMPL
 //-----------------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_toubin, 2)
-    T_NUMBER(0, _toubin)
-    T_NUMBER(1, _toubin)
+    T_NUMBER(_toubin, 0)
+    T_NUMBER(_toubin, 1)
 
     unsigned char vint8 = (unsigned char)PARAM_INT(0);
     unsigned short int vint16 = (unsigned short int )PARAM_INT(0);
@@ -342,8 +342,8 @@ CONCEPT_FUNCTION_IMPL(_toubin, 2)
 END_IMPL
 //-----------------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_tounumber, 2)
-    T_STRING(0, _tounumber)
-    T_NUMBER(1, _tounumber)
+    T_STRING(_tounumber, 0)
+    T_NUMBER(_tounumber, 1)
     switch (PARAM_INT(1)) {
         case 8:
             {
@@ -390,8 +390,8 @@ CONCEPT_FUNCTION_IMPL(_tounumber, 2)
 END_IMPL
 //-----------------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(_tonumber, 2)
-    T_STRING(0, _tonumber)
-    T_NUMBER(1, _tonumber)
+    T_STRING(_tonumber, 0)
+    T_NUMBER(_tonumber, 1)
     switch (PARAM_INT(1)) {
         case 8:
             {
@@ -438,8 +438,8 @@ CONCEPT_FUNCTION_IMPL(_tonumber, 2)
 END_IMPL
 //-----------------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(CreateStaticArray, 2)
-    T_NUMBER(0, CreateStaticArray)
-    T_NUMBER(1, CreateStaticArray)
+    T_NUMBER(CreateStaticArray, 0)
+    T_NUMBER(CreateStaticArray, 1)
 
     void *arr = 0;
     int e_size = PARAM_INT(0);
@@ -456,7 +456,7 @@ CONCEPT_FUNCTION_IMPL(CreateStaticArray, 2)
 END_IMPL
 //---------------------------------
 CONCEPT_FUNCTION_IMPL(FreeStaticArray, 1)
-    T_NUMBER(0, FreeStaticArray)
+    T_NUMBER(FreeStaticArray, 0)
     void *arr = (void *)(SYS_INT)PARAM(0);
     if (arr) {
         free(arr);
@@ -467,9 +467,9 @@ CONCEPT_FUNCTION_IMPL(FreeStaticArray, 1)
 END_IMPL
 //---------------------------------
 CONCEPT_FUNCTION_IMPL(GetStaticArray, 3)
-    T_NUMBER(0, GetStaticArray)
-    T_NUMBER(1, GetStaticArray)
-    T_NUMBER(2, GetStaticArray)
+    T_NUMBER(GetStaticArray, 0)
+    T_NUMBER(GetStaticArray, 1)
+    T_NUMBER(GetStaticArray, 2)
 
     NUMBER res = 0;
     void *arr    = (void *)(SYS_INT)PARAM(0);
@@ -515,10 +515,10 @@ CONCEPT_FUNCTION_IMPL(GetStaticArray, 3)
 END_IMPL
 //---------------------------------
 CONCEPT_FUNCTION_IMPL(SetStaticArray, 4)
-    T_NUMBER(0, SetStaticArray)
-    T_NUMBER(1, SetStaticArray)
-    T_NUMBER(2, SetStaticArray)
-    T_NUMBER(3, SetStaticArray)
+    T_NUMBER(SetStaticArray, 0)
+    T_NUMBER(SetStaticArray, 1)
+    T_NUMBER(SetStaticArray, 2)
+    T_NUMBER(SetStaticArray, 3)
 
     void *arr = (void *)(SYS_INT)PARAM(0);
     int size    = PARAM_INT(1);
@@ -567,10 +567,10 @@ CONCEPT_FUNCTION_IMPL(SetStaticArray, 4)
 END_IMPL
 //---------------------------------
 CONCEPT_FUNCTION_IMPL(FillStaticArray, 4)
-    T_NUMBER(0, FillStaticArray)
-    T_NUMBER(1, FillStaticArray)
-    T_NUMBER(2, FillStaticArray)
-    T_NUMBER(3, FillStaticArray)
+    T_NUMBER(FillStaticArray, 0)
+    T_NUMBER(FillStaticArray, 1)
+    T_NUMBER(FillStaticArray, 2)
+    T_NUMBER(FillStaticArray, 3)
 
     void *arr = (void *)(SYS_INT)PARAM(0);
     int size        = PARAM_INT(1);

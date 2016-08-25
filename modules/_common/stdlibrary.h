@@ -176,12 +176,12 @@ typedef INTEGER (*CALL_BACK_CLASS_MEMBER_SET)(void *CLASS_PTR, char *class_membe
 #define PARAMETER(param_index)                                                                LOCAL_CONTEXT[PARAMETERS->PARAM_INDEX[param_index] - 1]
 
 #define RETURN_STRING(szvariable)                                                             SetVariable(RESULT, VARIABLE_STRING, (char *)(szvariable ? szvariable : ""), 0);
-#define RETURN_NUMBER(nvariable)                                                              SetVariable(RESULT, VARIABLE_NUMBER, "", nvariable);
+#define RETURN_NUMBER(nvariable)                                                              SetVariable(RESULT, VARIABLE_NUMBER, (char *)"", nvariable);
 #define RETURN_BUFFER(szvariable, len)                                                        SetVariable(RESULT, VARIABLE_STRING, (char *)((szvariable && len) ? szvariable : ""), len);
 #define RETURN_ARRAY(ptrvariable)                                                             SetVariable(RESULT, VARIABLE_ARRAY, (char *)ptrvariable, 0);
 
 #define SET_STRING(param_index, szvariable)                                                   SetVariable(LOCAL_CONTEXT[PARAMETERS->PARAM_INDEX[param_index] - 1], VARIABLE_STRING, (char *)(szvariable ? szvariable : ""), 0);
-#define SET_NUMBER(param_index, nvariable)                                                    SetVariable(LOCAL_CONTEXT[PARAMETERS->PARAM_INDEX[param_index] - 1], VARIABLE_NUMBER, "", nvariable);
+#define SET_NUMBER(param_index, nvariable)                                                    SetVariable(LOCAL_CONTEXT[PARAMETERS->PARAM_INDEX[param_index] - 1], VARIABLE_NUMBER, (char *)"", nvariable);
 #define SET_BUFFER(param_index, szvariable, len)                                              SetVariable(LOCAL_CONTEXT[PARAMETERS->PARAM_INDEX[param_index] - 1], VARIABLE_STRING, (char *)((szvariable && len) ? szvariable : ""), len);
 
 #define CHECK_STRING(error_return)                                                            if (TYPE != VARIABLE_STRING) return (void *)error_return;
@@ -204,9 +204,9 @@ typedef INTEGER (*CALL_BACK_CLASS_MEMBER_SET)(void *CLASS_PTR, char *class_membe
 
 #define STR_HELPER(x) #x
 #define DEFINE_SCONSTANT(constant_name, constant_value)                                       Invoke(INVOKE_DEFINE_CONSTANT, (void *)HANDLER, (char *)constant_name, (char *)constant_value);
-#define DEFINE_ICONSTANT(constant_name, constant_value)                                       Invoke(INVOKE_DEFINE_CONSTANT, (void *)HANDLER, (char *)constant_name, (const char *)AnsiString((INTEGER)constant_value).c_str());
+#define DEFINE_ICONSTANT(constant_name, constant_value)                                       Invoke(INVOKE_DEFINE_CONSTANT, (void *)HANDLER, (char *)constant_name, (const char *)AnsiString((long)constant_value).c_str());
 #define DEFINE_FCONSTANT(constant_name, constant_value)                                       Invoke(INVOKE_DEFINE_CONSTANT, (void *)HANDLER, (char *)constant_name, (const char *)AnsiString((NUMBER)constant_value).c_str());
-#define DEFINE_ECONSTANT(constant_name)                                                       Invoke(INVOKE_DEFINE_CONSTANT, (void *)HANDLER, (const char*)#constant_name, (const char *)AnsiString((NUMBER)constant_name).c_str());
+#define DEFINE_ECONSTANT(constant_name)                                                       Invoke(INVOKE_DEFINE_CONSTANT, (void *)HANDLER, (const char*)#constant_name, (const char *)AnsiString((long)constant_name).c_str());
 #define DEFINE_ESCONSTANT(constant_name)                                                      Invoke(INVOKE_DEFINE_CONSTANT, (void *)HANDLER, #constant_name, constant_name);
 
 #define CONCEPT_FUNCTION(function_name)                                                       CONCEPT_DLL_API CONCEPT_ ## function_name CONCEPT_API_PARAMETERS;
@@ -259,11 +259,12 @@ typedef INTEGER (*CALL_BACK_CLASS_MEMBER_SET)(void *CLASS_PTR, char *class_membe
 #define CREATE_VARIABLE(VARIABLE)                         Invoke(INVOKE_CREATE_VARIABLE, & VARIABLE)
 #define CREATE_ARRAY(VARIABLE)                            Invoke(INVOKE_CREATE_ARRAY, VARIABLE)
 #define FREE_VARIABLE(VARIABLE)                           Invoke(INVOKE_FREE_VARIABLE, VARIABLE)
+#define FREE_VARIABLE_REFERENCE(VARIABLE)                 Invoke(INVOKE_FREE_VARIABLE_REFERENCE, VARIABLE)
 #define CREATE_OBJECT(VARIABLE, class_name)               IS_OK(Invoke(INVOKE_CREATE_OBJECT, HANDLER, VARIABLE, class_name))
 #define GET_MEMBER_VAR(VARIABLE, member_name, MEM_PTR)    Invoke(INVOKE_GET_CLASS_VARIABLE, VARIABLE, member_name, & MEM_PTR)
 
 #define SET_STRING_VARIABLE(VARIABLE, szvariable)         SetVariable(VARIABLE, VARIABLE_STRING, (char *)(szvariable ? szvariable : ""), 0);
-#define SET_NUMBER_VARIABLE(VARIABLE, nvariable)          SetVariable(VARIABLE, VARIABLE_NUMBER, "", nvariable);
+#define SET_NUMBER_VARIABLE(VARIABLE, nvariable)          SetVariable(VARIABLE, VARIABLE_NUMBER, (char *)"", nvariable);
 #define SET_BUFFER_VARIABLE(VARIABLE, szvariable, len)    SetVariable(VARIABLE, VARIABLE_STRING, (char *)((szvariable && len) ? szvariable : ""), len);
 #define LOCK_VARIABLE(VARIABLE)                           Invoke(INVOKE_LOCK_VARIABLE, VARIABLE)
 
@@ -294,7 +295,7 @@ typedef INTEGER (*CALL_BACK_CLASS_MEMBER_SET)(void *CLASS_PTR, char *class_membe
 #define T_HANDLE2(func_name, parameter_index, HANDLE_TYPE)                                                                                                 \
     __INTERNAL_PARAMETER_DECL(NUMBER, bind_internal, parameter_index);                                                                                     \
     __INTERNAL_PARAMETER_DECL(HANDLE_TYPE, bind, parameter_index);                                                                                         \
-    GET_CHECK_NUMBER(parameter_index, __INTERNAL_PARAMETER(bind_internal, parameter_index), __PARAM_ERR_MSG(func_name,parameter_index,"should be a handle"); \
+    GET_CHECK_NUMBER(parameter_index, __INTERNAL_PARAMETER(bind_internal, parameter_index), __PARAM_ERR_MSG(func_name,parameter_index,"should be a handle"));\
     if (!(__INTERNAL_PARAMETER(bind_internal, parameter_index))) {                                                                                         \
         return (void *)__PARAM_ERR_MSG(func_name,parameter_index," should be a valid handle (not null)");                                                  \
     } else {                                                                                                                                               \

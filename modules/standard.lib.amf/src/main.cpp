@@ -208,16 +208,14 @@ amf::amf_data_ptr amf_rec(void *arr) {
 
 //-----------------------------------------------------//
 CONCEPT_FUNCTION_IMPL(AMF, 1)
-//T_ARRAY(0)
     __INTERNAL_PARAMETER_DECL(char *, bind, 0);
     __INTERNAL_PARAMETER_DECL(NUMBER, bind_len, 0);
-    error = AnsiString(func_name) + ": parameter 1 should be an object or array";
 
     char *dclass = 0;
 
     GetVariable(LOCAL_CONTEXT[PARAMETERS->PARAM_INDEX[0] - 1], &TYPE, &dclass, &nDUMMY_FILL);
     if ((TYPE != VARIABLE_CLASS) && (TYPE != VARIABLE_ARRAY))
-        return (void *)error.c_str();
+        return (void *)"AMF: parameter 1 should be an object or array";
 
     void *arr = PARAMETER(0);
 
