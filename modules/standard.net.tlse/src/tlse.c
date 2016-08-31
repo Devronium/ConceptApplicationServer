@@ -1009,7 +1009,7 @@ static struct ECCCurveParameters secp521r1 = {
     "01FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFA51868783BF2F966B7FCC0148F709A5D03BB5C9B8899C47AEBB6FB71E91386409"  // order (n)
 };
 
-static struct ECCCurveParameters *default_curve = &secp256r1;
+static struct ECCCurveParameters * const default_curve = &secp256r1;
 
 void init_curve(struct ECCCurveParameters *curve) {
     curve->dp.size = curve->size;
@@ -1127,53 +1127,53 @@ typedef int (*SOCKET_SEND_CALLBACK)(int socket, const void *buffer, size_t lengt
 #endif
 #endif
 
-static unsigned int version_id[] = {1, 1, 1, 0};
-static unsigned int pk_id[] = {1, 1, 7, 0};
-static unsigned int serial_id[] = {1, 1, 2, 1, 0};
-static unsigned int issurer_id[] = {1, 1, 4, 0};
-static unsigned int owner_id[] = {1, 1, 6, 0};
-static unsigned int validity_id[] = {1, 1, 5, 0};
-static unsigned int algorithm_id[] = {1, 1, 3, 0};
-static unsigned int sign_id[] = {1, 3, 2, 1, 0};
-static unsigned int priv_id[] = {1, 4, 0};
-static unsigned int priv_der_id[] = {1, 3, 1, 0};
-static unsigned int ecc_priv_id[] = {1, 2, 0};
+static const unsigned int version_id[] = {1, 1, 1, 0};
+static const unsigned int pk_id[] = {1, 1, 7, 0};
+static const unsigned int serial_id[] = {1, 1, 2, 1, 0};
+static const unsigned int issurer_id[] = {1, 1, 4, 0};
+static const unsigned int owner_id[] = {1, 1, 6, 0};
+static const unsigned int validity_id[] = {1, 1, 5, 0};
+static const unsigned int algorithm_id[] = {1, 1, 3, 0};
+static const unsigned int sign_id[] = {1, 3, 2, 1, 0};
+static const unsigned int priv_id[] = {1, 4, 0};
+static const unsigned int priv_der_id[] = {1, 3, 1, 0};
+static const unsigned int ecc_priv_id[] = {1, 2, 0};
 
-static unsigned char country_oid[] = {0x55, 0x04, 0x06, 0x00};
-static unsigned char state_oid[] = {0x55, 0x04, 0x08, 0x00};
-static unsigned char location_oid[] = {0x55, 0x04, 0x07, 0x00};
-static unsigned char entity_oid[] = {0x55, 0x04, 0x0A, 0x00};
-static unsigned char subject_oid[] = {0x55, 0x04, 0x03, 0x00};
-static unsigned char san_oid[] = {0x55, 0x1D, 0x11, 0x00};
-static unsigned char ocsp_oid[] = {0x2B, 0x06, 0x01, 0x05, 0x05, 0x07, 0x30, 0x01, 0x00};
+static const unsigned char country_oid[] = {0x55, 0x04, 0x06, 0x00};
+static const unsigned char state_oid[] = {0x55, 0x04, 0x08, 0x00};
+static const unsigned char location_oid[] = {0x55, 0x04, 0x07, 0x00};
+static const unsigned char entity_oid[] = {0x55, 0x04, 0x0A, 0x00};
+static const unsigned char subject_oid[] = {0x55, 0x04, 0x03, 0x00};
+static const unsigned char san_oid[] = {0x55, 0x1D, 0x11, 0x00};
+static const unsigned char ocsp_oid[] = {0x2B, 0x06, 0x01, 0x05, 0x05, 0x07, 0x30, 0x01, 0x00};
 
-static unsigned char TLS_RSA_SIGN_RSA_OID[] = {0x2A, 0x86, 0x48, 0x86, 0xF7, 0x0D, 0x01, 0x01, 0x01, 0x00};
-static unsigned char TLS_RSA_SIGN_MD5_OID[] = {0x2A, 0x86, 0x48, 0x86, 0xF7, 0x0D, 0x01, 0x01, 0x04, 0x00};
-static unsigned char TLS_RSA_SIGN_SHA1_OID[] = {0x2A, 0x86, 0x48, 0x86, 0xF7, 0x0D, 0x01, 0x01, 0x05, 0x00};
-static unsigned char TLS_RSA_SIGN_SHA256_OID[] = {0x2A, 0x86, 0x48, 0x86, 0xF7, 0x0D, 0x01, 0x01, 0x0B, 0x00};
-static unsigned char TLS_RSA_SIGN_SHA384_OID[] = {0x2A, 0x86, 0x48, 0x86, 0xF7, 0x0D, 0x01, 0x01, 0x0C, 0x00};
-static unsigned char TLS_RSA_SIGN_SHA512_OID[] = {0x2A, 0x86, 0x48, 0x86, 0xF7, 0x0D, 0x01, 0x01, 0x0D, 0x00};
+static const unsigned char TLS_RSA_SIGN_RSA_OID[] = {0x2A, 0x86, 0x48, 0x86, 0xF7, 0x0D, 0x01, 0x01, 0x01, 0x00};
+static const unsigned char TLS_RSA_SIGN_MD5_OID[] = {0x2A, 0x86, 0x48, 0x86, 0xF7, 0x0D, 0x01, 0x01, 0x04, 0x00};
+static const unsigned char TLS_RSA_SIGN_SHA1_OID[] = {0x2A, 0x86, 0x48, 0x86, 0xF7, 0x0D, 0x01, 0x01, 0x05, 0x00};
+static const unsigned char TLS_RSA_SIGN_SHA256_OID[] = {0x2A, 0x86, 0x48, 0x86, 0xF7, 0x0D, 0x01, 0x01, 0x0B, 0x00};
+static const unsigned char TLS_RSA_SIGN_SHA384_OID[] = {0x2A, 0x86, 0x48, 0x86, 0xF7, 0x0D, 0x01, 0x01, 0x0C, 0x00};
+static const unsigned char TLS_RSA_SIGN_SHA512_OID[] = {0x2A, 0x86, 0x48, 0x86, 0xF7, 0x0D, 0x01, 0x01, 0x0D, 0x00};
 
-// static unsigned char TLS_ECDSA_SIGN_SHA1_OID[] = {0x2A, 0x86, 0x48, 0xCE, 0x3D, 0x04, 0x01, 0x05, 0x00, 0x00};
-// static unsigned char TLS_ECDSA_SIGN_SHA224_OID[] = {0x2A, 0x86, 0x48, 0xCE, 0x3D, 0x04, 0x03, 0x01, 0x05, 0x00, 0x00};
-// static unsigned char TLS_ECDSA_SIGN_SHA256_OID[] = {0x2A, 0x86, 0x48, 0xCE, 0x3D, 0x04, 0x03, 0x02, 0x05, 0x00, 0x00};
-// static unsigned char TLS_ECDSA_SIGN_SHA384_OID[] = {0x2A, 0x86, 0x48, 0xCE, 0x3D, 0x04, 0x03, 0x03, 0x05, 0x00, 0x00};
-// static unsigned char TLS_ECDSA_SIGN_SHA512_OID[] = {0x2A, 0x86, 0x48, 0xCE, 0x3D, 0x04, 0x03, 0x04, 0x05, 0x00, 0x00};
+// static const unsigned char TLS_ECDSA_SIGN_SHA1_OID[] = {0x2A, 0x86, 0x48, 0xCE, 0x3D, 0x04, 0x01, 0x05, 0x00, 0x00};
+// static const unsigned char TLS_ECDSA_SIGN_SHA224_OID[] = {0x2A, 0x86, 0x48, 0xCE, 0x3D, 0x04, 0x03, 0x01, 0x05, 0x00, 0x00};
+// static const unsigned char TLS_ECDSA_SIGN_SHA256_OID[] = {0x2A, 0x86, 0x48, 0xCE, 0x3D, 0x04, 0x03, 0x02, 0x05, 0x00, 0x00};
+// static const unsigned char TLS_ECDSA_SIGN_SHA384_OID[] = {0x2A, 0x86, 0x48, 0xCE, 0x3D, 0x04, 0x03, 0x03, 0x05, 0x00, 0x00};
+// static const unsigned char TLS_ECDSA_SIGN_SHA512_OID[] = {0x2A, 0x86, 0x48, 0xCE, 0x3D, 0x04, 0x03, 0x04, 0x05, 0x00, 0x00};
 
-static unsigned char TLS_EC_PUBLIC_KEY_OID[] = {0x2A, 0x86, 0x48, 0xCE, 0x3D, 0x02, 0x01, 0x00};
+static const unsigned char TLS_EC_PUBLIC_KEY_OID[] = {0x2A, 0x86, 0x48, 0xCE, 0x3D, 0x02, 0x01, 0x00};
 
-static unsigned char TLS_EC_prime192v1_OID[] = {0x2A, 0x86, 0x48, 0xCE, 0x3D, 0x03, 0x01, 0x01, 0x00};
-static unsigned char TLS_EC_prime192v2_OID[] = {0x2A, 0x86, 0x48, 0xCE, 0x3D, 0x03, 0x01, 0x02, 0x00};
-static unsigned char TLS_EC_prime192v3_OID[] = {0x2A, 0x86, 0x48, 0xCE, 0x3D, 0x03, 0x01, 0x03, 0x00};
-static unsigned char TLS_EC_prime239v1_OID[] = {0x2A, 0x86, 0x48, 0xCE, 0x3D, 0x03, 0x01, 0x04, 0x00};
-static unsigned char TLS_EC_prime239v2_OID[] = {0x2A, 0x86, 0x48, 0xCE, 0x3D, 0x03, 0x01, 0x05, 0x00};
-static unsigned char TLS_EC_prime239v3_OID[] = {0x2A, 0x86, 0x48, 0xCE, 0x3D, 0x03, 0x01, 0x06, 0x00};
-static unsigned char TLS_EC_prime256v1_OID[] = {0x2A, 0x86, 0x48, 0xCE, 0x3D, 0x03, 0x01, 0x07, 0x00};
+static const unsigned char TLS_EC_prime192v1_OID[] = {0x2A, 0x86, 0x48, 0xCE, 0x3D, 0x03, 0x01, 0x01, 0x00};
+static const unsigned char TLS_EC_prime192v2_OID[] = {0x2A, 0x86, 0x48, 0xCE, 0x3D, 0x03, 0x01, 0x02, 0x00};
+static const unsigned char TLS_EC_prime192v3_OID[] = {0x2A, 0x86, 0x48, 0xCE, 0x3D, 0x03, 0x01, 0x03, 0x00};
+static const unsigned char TLS_EC_prime239v1_OID[] = {0x2A, 0x86, 0x48, 0xCE, 0x3D, 0x03, 0x01, 0x04, 0x00};
+static const unsigned char TLS_EC_prime239v2_OID[] = {0x2A, 0x86, 0x48, 0xCE, 0x3D, 0x03, 0x01, 0x05, 0x00};
+static const unsigned char TLS_EC_prime239v3_OID[] = {0x2A, 0x86, 0x48, 0xCE, 0x3D, 0x03, 0x01, 0x06, 0x00};
+static const unsigned char TLS_EC_prime256v1_OID[] = {0x2A, 0x86, 0x48, 0xCE, 0x3D, 0x03, 0x01, 0x07, 0x00};
 
 #define TLS_EC_secp256r1_OID    TLS_EC_prime256v1_OID
-static unsigned char TLS_EC_secp224r1_OID[] = {0x2B, 0x81, 0x04, 0x00, 0x21, 0x00};
-static unsigned char TLS_EC_secp384r1_OID[] = {0x2B, 0x81, 0x04, 0x00, 0x22, 0x00};
-static unsigned char TLS_EC_secp521r1_OID[] = {0x2B, 0x81, 0x04, 0x00, 0x23, 0x00};
+static const unsigned char TLS_EC_secp224r1_OID[] = {0x2B, 0x81, 0x04, 0x00, 0x21, 0x00};
+static const unsigned char TLS_EC_secp384r1_OID[] = {0x2B, 0x81, 0x04, 0x00, 0x22, 0x00};
+static const unsigned char TLS_EC_secp521r1_OID[] = {0x2B, 0x81, 0x04, 0x00, 0x23, 0x00};
 
 struct TLSCertificate *asn1_parse(struct TLSContext *context, const unsigned char *buffer, int size, int client_cert);
 int __private_tls_update_hash(struct TLSContext *context, const unsigned char *in, unsigned int len);
@@ -1247,7 +1247,7 @@ int __private_b64_decode(const char *in_buffer, int in_buffer_size, unsigned cha
     return (int)((intptr_t)out_ptr - (intptr_t)out_buffer);
 }
 
-void init_dependencies() {
+void tls_init() {
     if (dependecies_loaded)
         return;
     DEBUG_PRINT("Initializing dependencies\n");
@@ -1402,7 +1402,7 @@ unsigned char *__private_tls_decrypt_rsa(struct TLSContext *context, const unsig
         DEBUG_PRINT("No private key set");
         return NULL;
     }
-    init_dependencies();
+    tls_init();
     rsa_key key;
     int err;
     err = rsa_import(context->private_key->der_bytes, context->private_key->der_len, &key);
@@ -1433,7 +1433,7 @@ unsigned char *__private_tls_encrypt_rsa(struct TLSContext *context, const unsig
         DEBUG_PRINT("No certificate set\n");
         return NULL;
     }
-    init_dependencies();
+    tls_init();
     rsa_key key;
     int err;
     err = rsa_import(context->certificates[0]->der_bytes, context->certificates[0]->der_len, &key);
@@ -1510,7 +1510,7 @@ int __private_rsa_verify_hash_md5sha1(const unsigned char *sig, unsigned long si
 #endif
 
 int __private_tls_verify_rsa(struct TLSContext *context, unsigned int hash_type, const unsigned char *buffer, unsigned int len, const unsigned char *message, unsigned int message_len) {
-    init_dependencies();
+    tls_init();
     rsa_key key;
     int err;
     
@@ -1661,7 +1661,7 @@ int __private_tls_sign_rsa(struct TLSContext *context, unsigned int hash_type, c
         DEBUG_PRINT("No private key set");
         return TLS_GENERIC_ERROR;
     }
-    init_dependencies();
+    tls_init();
     rsa_key key;
     int err;
     err = rsa_import(context->private_key->der_bytes, context->private_key->der_len, &key);
@@ -1936,7 +1936,7 @@ int __private_tls_sign_ecdsa(struct TLSContext *context, unsigned int hash_type,
     if (!curve)
         return TLS_GENERIC_ERROR;
     
-    init_dependencies();
+    tls_init();
     ecc_key key;
     int err;
     
@@ -2093,7 +2093,7 @@ int __private_tls_ecc_import_pk(const unsigned char *public_key, int public_len,
 }
 
 int __private_tls_verify_ecdsa(struct TLSContext *context, unsigned int hash_type, const unsigned char *buffer, unsigned int len, const unsigned char *message, unsigned int message_len) {
-    init_dependencies();
+    tls_init();
     ecc_key key;
     int err;
     
@@ -3157,7 +3157,7 @@ int __private_tls_crypto_create(struct TLSContext *context, int key_length, int 
         }
         context->crypto.created = 0;
     }
-    init_dependencies();
+    tls_init();
     int is_aead = __private_tls_is_aead(context);
     int cipherID = find_cipher("aes");
     DEBUG_PRINT("Using cipher ID: %x\n", (int)context->cipher);
@@ -4593,7 +4593,7 @@ struct TLSPacket *tls_build_server_key_exchange(struct TLSContext *context, int 
     int start_len = packet->len;
 #ifdef TLS_FORWARD_SECRECY
     if (method == KEA_dhe_rsa) {
-        init_dependencies();
+        tls_init();
         __private_tls_dhe_create(context);
         
         const char *default_dhe_p = context->default_dhe_p;
@@ -4653,7 +4653,7 @@ struct TLSPacket *tls_build_server_key_exchange(struct TLSContext *context, int 
             context->curve = default_curve;
         tls_packet_uint8(packet, 3);
         tls_packet_uint16(packet, context->curve->iana);
-        init_dependencies();
+        tls_init();
         __private_tls_ecc_dhe_create(context);
         
         ltc_ecc_set_type *dp = (ltc_ecc_set_type *)&context->curve->dp;
@@ -5822,7 +5822,7 @@ int tls_parse_server_key_exchange(struct TLSContext *context, const unsigned cha
         }
     } else
     if ((ephemeral == 2) && (curve) && (pk_key) && (key_size)) {
-        init_dependencies();
+        tls_init();
         __private_tls_ecc_dhe_create(context);
         
         ltc_ecc_set_type *dp = (ltc_ecc_set_type *)&curve->dp;
@@ -6687,7 +6687,7 @@ unsigned int asn1_get_len(const unsigned char *buffer, int buf_len, unsigned int
     return size;
 }
 
-void print_index(unsigned int *fields) {
+void print_index(const unsigned int *fields) {
     int i = 0;
     while (fields[i]) {
         if (i)
@@ -6697,7 +6697,7 @@ void print_index(unsigned int *fields) {
     }
 }
 
-int __is_field(unsigned int *fields, unsigned int *prefix) {
+int __is_field(const unsigned int *fields, const unsigned int *prefix) {
     int i = 0;
     while (prefix[i]) {
         if (fields[i] != prefix[i])
@@ -6806,7 +6806,7 @@ int tls_certificate_verify_signature(struct TLSCertificate *cert, struct TLSCert
         DEBUG_PRINT("CANNOT VERIFY SIGNATURE");
         return 0;
     }
-    init_dependencies();
+    tls_init();
     int hash_len = __private_tls_hash_len(cert->algorithm);
     if (hash_len <= 0)
         return 0;
@@ -6897,7 +6897,7 @@ int tls_certificate_chain_is_valid_root(struct TLSContext *context, struct TLSCe
     return bad_certificate;
 }
 
-int __private_is_oid(struct __private_OID_chain *ref_chain, unsigned char *looked_oid, int looked_oid_len) {
+int __private_is_oid(struct __private_OID_chain *ref_chain, const unsigned char *looked_oid, int looked_oid_len) {
     while (ref_chain) {
         if (ref_chain->oid) {
             if (__is_oid2(ref_chain->oid, looked_oid, 16, looked_oid_len))

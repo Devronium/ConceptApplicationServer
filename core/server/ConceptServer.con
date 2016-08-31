@@ -39,10 +39,14 @@ define IDLE_SLEEP_THRESHOLD	200
 define IDLE_SLEEP_MS2		50
 define CGI_MAX_RETRY_SECONDS	5
 
+// 128k pipe read buffer
+define PIPE_MAX_STDOUT_BUFFER	0x20000
 // 2Mb stdout buffer
 define CGI_MAX_STDOUT_BUFFER	0x200000
 // 8Mb stdout buffer for http/2
 define H2_MAX_STDOUT_BUFFER	0x800000
+// 2Mb limit file read buffer
+define H2_MAX_FILE_BUFFER	0x200000
 
 class RewriteContainer {
 	var Rewrite;
@@ -1259,12 +1263,13 @@ class ConceptChild {
 									err = 503;
 								}
 								if (app) {
-									var pparam=Pos(app, "?");
-									var params="";
-									if (pparam>0) {
+									var pparam = Pos(app, "?");
+									var params = "";
+									if (pparam > 0) {
 										params = SubStr(app, pparam, length app - pparam);
 										app = SubStr(app, 0, pparam - 1);
 									}
+									var orig_path = app;
 
 									var path = this.NormalizeFilename(app, var directory);
 									var client_resource = (directory[0] + directory[1] + directory[2] == "/@/");
@@ -1308,6 +1313,7 @@ class ConceptChild {
 										}
 									}
 
+									var is_redirect = false;
 									if (client_resource) {
 										app = Owner.ConceptClient + app;
 									} else {
@@ -1320,8 +1326,15 @@ class ConceptChild {
 										app = host_root + app;
 										if ((app) && (DirectoryExists(app))) {
 											empty_request = true;
-											if (app[length app - 1] != "/")
+											if (app[length app - 1] != "/") {
 												app += "/";
+												// auto redirect if no / is present
+												if ((orig_path) && (orig_path[length orig_path - 1] != "/")) {
+													is_redirect = Owner.Redirect(orig_path + "/", params);
+													keep_alive = false;
+													empty_request = false;
+												}
+											}
 										}
 										if (empty_request) {
 											if (FileExists(app + "start.con")) {
@@ -1342,16 +1355,20 @@ class ConceptChild {
 
 									}
 
-									var exists = FileExists(app);
-
-									if ((!exists) && (path[0] == "@")) {
-										app = Owner.ConceptClient + "/" + SubStr(path, 1);
+									var exists;
+									if (is_redirect) {
+										exists = true;
+									} else {
 										exists = FileExists(app);
+										if ((!exists) && (path[0] == "@")) {
+											app = Owner.ConceptClient + "/" + SubStr(path, 1);
+											exists = FileExists(app);
+										}
 									}
 
 									if (exists) {
 										var worker = null;
-										if ((is_server_page) && (cgi))//(content_type == "application/concept-server-page")
+										if ((is_server_page) && (cgi)) //(content_type == "application/concept-server-page")
 											worker = Owner.ChooseWorker();
 										if (worker) {
 											var port = Owner.WSPort;
@@ -1371,8 +1388,14 @@ class ConceptChild {
 											data = "";
 											var skip_content = false;
 											var content_length = 0;
+											if (is_redirect) {
+												var buffer = is_redirect;
+												data = "0";
+												is_redirect = "";
+												skip_content = true;
+											} else
 											if ((!TLS) && (force_tls)) {
-												var buffer = Owner.RedirectHeader(orig_app, ServerName) ;
+												buffer = Owner.RedirectHeader(orig_app, ServerName) ;
 												connection_policy = "close";
 												keep_alive = false;
 												skip_content = true;
@@ -1770,8 +1793,10 @@ class ConceptCGIChild {
 		SetNonBlocking(std_in, true);
 		SocketSetBlocking(Socket.Socket, false);
 
-		if (h2)
+		if (h2) {
 			h2.MaxOutputBuffer = H2_MAX_STDOUT_BUFFER;
+			h2.MaxFileBuffer = H2_MAX_FILE_BUFFER;
+		}
 	}
 
 	Join() {
@@ -1896,7 +1921,7 @@ class ConceptCGIChild {
 			}
 		}
 
-		if (std_out) {
+		if ((std_out) && (length std_out_buffer < PIPE_MAX_STDOUT_BUFFER)) {
 			var s = microseconds();
 			var bytes_read = 0;
 			do {
@@ -2404,6 +2429,18 @@ pragma used
 		stream.Write(h2, data, true);
 	}
 
+	Redirect(h2, stream, url, params) {
+		if (params)
+			url += "?" + params;
+		var headers = [
+			":status" => 302,
+			"server" => "CAS5WS",
+			H2_EXTRA_HEADER,
+			"location" => url
+		];
+		stream.Response(h2, headers, true);
+	}
+
 	OnRequest(h2, stream) {
 		if (stream.Headers) {
 			var method = stream.Headers[":method"];
@@ -2429,6 +2466,7 @@ pragma used
 						empty_request = true;
 
 					path = ConceptChild::NormalizeFilename(path, var directory);
+
 					var client_resource = (directory[0] + directory[1] + directory[2] == "/@/");
 					var root_buffer = "";
 					var content_type = "application/octet-stream";
@@ -2436,8 +2474,14 @@ pragma used
 					app = root + directory + path;
 					if ((app) && (DirectoryExists(app))) {
 						empty_request = true;
-						if (path[length path - 1] != "/")
+						if (path[length path - 1] != "/") {
 							path += "/";
+							// auto redirect if no / is present
+							if ((orig_path) && (orig_path[length orig_path - 1] != "/")) {
+								this.Redirect(h2, stream, directory + path, params);
+								return;
+							}
+						}
 					}
 
 					if ((!client_resource) && (empty_request))
@@ -2531,7 +2575,6 @@ pragma used
 							"date" => tstamp,
 							"content-type" => "text/html"
 						]);
-
 						var data =  ReadFile(ConceptClient + "/errors/404.html");
 						if (!data)
 							data = "Error 404 in processing your request.";
@@ -4101,6 +4144,12 @@ class ConceptServer extends RewriteContainer {
 			location += "/";
 		location += orig_app;
 		return "HTTP/1.1 302 Found\r\nDate: $tstamp\r\nConnection: close\r\nLocation: $location\r\nServer: " + SERVER_NAME + "\r\n\r\n";
+	}
+
+	Redirect(location, params) {
+		if (params)
+			location += "?" + params;
+		return "HTTP/1.1 302 Found\r\nConnection: close\r\nLocation: $location\r\nServer: " + SERVER_NAME + "\r\n\r\n";
 	}
 
 	Start() {

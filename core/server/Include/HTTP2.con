@@ -539,7 +539,10 @@ class HTTP2Stream {
 	}
 
 	FileWrite(socket) {
-		if (ResponseFile) {	
+		if (ResponseFile) {
+			if (!socket.Writable())
+				return 0;
+
 			var size = ResponseFile.Read(var buffer, H2_FILE_READ_BUFFER);
 			if (size < 0)
 				throw "HTTP2Stream/FileWrite: Error reading file";
@@ -605,6 +608,7 @@ class HTTP2Socket {
 	public var IdleSince;
 	public var UserData;
 	public var MaxOutputBuffer;
+	public var MaxFileBuffer;
 	public var MaxErrorTimeout;
 	protected var last_err_time;
 
@@ -619,6 +623,12 @@ class HTTP2Socket {
 
 	GetStream(streamid) {
 		return Streams["" + streamid];
+	}
+
+	Writable() {
+		if ((MaxFileBuffer) && (length OutBuffer >= MaxFileBuffer))
+			return false;
+		return true;
 	}
 
 	RemoveStream(streamid) {

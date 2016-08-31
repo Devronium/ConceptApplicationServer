@@ -1949,6 +1949,8 @@ CONCEPT_DLL_API ON_CREATE_CONTEXT MANAGEMENT_PARAMETERS {
 #ifndef NOSSL
 #ifdef WITH_OPENSSL
     thread_setup();
+#else
+    tls_init();
 #endif
 #endif
     return 0;

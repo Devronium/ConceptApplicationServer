@@ -103,6 +103,8 @@ CONCEPT_DLL_API ON_CREATE_CONTEXT MANAGEMENT_PARAMETERS {
     DEFINE_ECONSTANT(no_renegotiation)
     DEFINE_ECONSTANT(unsupported_extension)
     DEFINE_ECONSTANT(no_error)
+
+    tls_init();
     return 0;
 }
 //---------------------------------------------------------------------------

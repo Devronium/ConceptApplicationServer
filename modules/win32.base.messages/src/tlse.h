@@ -146,6 +146,7 @@ typedef struct TLSCertificate Certificate;
 
 typedef int (*tls_validation_function)(struct TLSContext *context, struct TLSCertificate **certificate_chain, int len);
 
+void tls_init(); /* optional, will be called automatically */
 unsigned char *tls_pem_decode(const unsigned char *data_in, unsigned int input_length, int cert_index, unsigned int *output_len);
 struct TLSCertificate *tls_create_certificate();
 int tls_certificate_valid_subject(struct TLSCertificate *cert, const char *subject);
