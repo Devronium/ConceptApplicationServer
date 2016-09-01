@@ -18,10 +18,14 @@ import standard.lib.cripto
 import standard.math.rand
 import standard.coding.base64
 
+// set to true when in production
+// this will allow only compiled files to run (.accel)
+define CONCEPT_STRICT_EXECUTE	false
+
 define WS_SESSION_RESTORE	true
 
 define MAX_RECV_BUFFER		0xFFFF
-define READ_BUFFER		0xFFFFF
+define READ_BUFFER		0x7FFFF
 define MAX_WS_HEADER		0xFFF
 define MAX_WS_HEADER_BUF	0xFFF
 define USE_TLS_PROXY		false
@@ -47,6 +51,8 @@ define CGI_MAX_STDOUT_BUFFER	0x200000
 define H2_MAX_STDOUT_BUFFER	0x800000
 // 2Mb limit file read buffer
 define H2_MAX_FILE_BUFFER	0x200000
+// 128k file buffer for http 1.1
+define H1_MAX_FILE_BUFFER	0x20000
 
 class RewriteContainer {
 	var Rewrite;
@@ -456,6 +462,11 @@ class ConceptChild {
 		var check_full_path = "$host_root/$fname";
 		if (!FileExists(check_full_path))
 			throw "File '$check_full_path' does not exists\n";
+
+		if (CONCEPT_STRICT_EXECUTE) {
+			if (!FileExists(check_full_path + ".accel"))
+				throw "File '$check_full_path' has no compiled version\n";
+		}
 
 		if (!this.APID) {
 			Owner.APID++;
@@ -1282,9 +1293,14 @@ class ConceptChild {
 
 									var ext = ToLower(Ext(app));
 									var content_type = "application/octet-stream";
-									if (IsSet(this.Owner.mimetypes, ext))
+									var invalid_app = false;
+									if (IsSet(this.Owner.mimetypes, ext)) {
 										content_type = this.Owner.mimetypes[ext];
-
+										if (content_type == "application/concept-private") {
+											err = 403;
+											invalid_app = true;
+										}
+									}
 									var is_root = false;
 									var target_app = "start.con";
 									if (content_type == "application/concept") {
@@ -1293,6 +1309,13 @@ class ConceptChild {
 										content_type = "text/html";
 										is_root = true;
 										client_resource = true;
+
+										var host_root = this.Owner.IniGetPath("Paths", "ServerRoot", "");
+										if (this.ServerName)
+											host_root = this.Owner.IniGetPath("Paths", "HostRoot(${this.ServerName})", host_root);
+
+										var real_app_path = host_root + directory + path;
+										invalid_app = !FileExists(real_app_path);
 									}
 
 									if (ToLower(app) == "/@/index.html")
@@ -1304,7 +1327,7 @@ class ConceptChild {
 									var cgi;
 									if (content_type == "application/concept-server-page") {
 										is_server_page = true;
-										cgi = this.Owner.cgi;
+										cgi = this.Owner.cgi;  
 									} else
 									if (this.Owner.cgiother) {
 										if (IsSet(this.Owner.cgiother, content_type)) {
@@ -1315,12 +1338,21 @@ class ConceptChild {
 
 									var is_redirect = false;
 									if (client_resource) {
-										app = Owner.ConceptClient + app;
+										var local_app;
+										if (is_root) {
+											var local_app_index = host_root + directory + "@index.html";
+											if (FileExists(local_app_index))
+												local_app = local_app_index;
+										}
+										if (local_app)
+											app = local_app;
+										else
+											app = Owner.ConceptClient + app;
 									} else {
 										var empty_request = false;
 										if (app == "/")
 											empty_request = true;
-										var host_root = this.Owner.IniGetPath("Paths", "ServerRoot", "");
+										host_root = this.Owner.IniGetPath("Paths", "ServerRoot", "");
 										if (this.ServerName)
 											host_root = this.Owner.IniGetPath("Paths", "HostRoot(${this.ServerName})", host_root);
 										app = host_root + app;
@@ -1356,6 +1388,9 @@ class ConceptChild {
 									}
 
 									var exists;
+									if (invalid_app) {
+										exists = false;
+									} else
 									if (is_redirect) {
 										exists = true;
 									} else {
@@ -1480,7 +1515,7 @@ class ConceptChild {
 													written = buf_len;
 												} else
 												while ((buf_len > 0) || (file)) {
-													if (file) {
+													if ((file) && (length buffer < H1_MAX_FILE_BUFFER)) {
 														if (file.Read(buf2, READ_BUFFER) > 0) {
 															buffer += buf2;
 															buf_len += length buf2;
@@ -2488,29 +2523,39 @@ pragma used
 						path += this.EmptyRequest(app);
 
 					var ext = ToLower(Ext(path));
-					if ((ext) && (IsSet(this.mimetypes, ext)))
+					if ((ext) && (IsSet(this.mimetypes, ext))) {
 						content_type = this.mimetypes[ext];
-
+						if (content_type == "application/concept-private")
+							return InternalError(h2, stream, 403);
+					}
 					if (client_resource) {
 						directory = SubStr(directory, 2);
 						app = ConceptClient + directory + path;
 					} else {
+						app = root + directory + path;
 						if (content_type == "application/concept") {
-							app = ConceptClient + "/index.html";
-							content_type = "text/html";
-							root_buffer = ReadFile(app);
-							root_buffer = StrReplace(root_buffer, "{PROTOCOL}", "wss");
-							root_buffer = StrReplace(root_buffer, "{HOST}", server);
-							var concept_app = directory + path;
-							if (concept_app[0] == "/")
-								concept_app = SubStr(concept_app, 1);
-							if (params)
-								concept_app += "?" + params;
-							root_buffer = StrReplace(root_buffer, "{APP}", concept_app);
-							client_resource = true;
-						} else
-							app = root + directory + path;
+							if (FileExists(app)) {
+								var local_app_index = root + directory + "/@index.html";
+								if (FileExists(local_app_index))
+									app = local_app_index;
+								else
+									app = ConceptClient + "/index.html";
+								content_type = "text/html";
+								root_buffer = ReadFile(app);
+								root_buffer = StrReplace(root_buffer, "{PROTOCOL}", "wss");
+								root_buffer = StrReplace(root_buffer, "{HOST}", server);
+								var concept_app = directory + path;
+								if (concept_app[0] == "/")
+									concept_app = SubStr(concept_app, 1);
+								if (params)
+									concept_app += "?" + params;
+								root_buffer = StrReplace(root_buffer, "{APP}", concept_app);
+								client_resource = true;
+							} else
+								return InternalError(h2, stream, 404);
+						}
 					}
+
 					var exists = FileExists(app);
 					if ((!exists) && (path[0] == "@")) {
 						app = this.ConceptClient + "/" + SubStr(path, 1);
@@ -3737,7 +3782,10 @@ class ConceptServer extends RewriteContainer {
 				"php" => "application/php",
 				"rb" => "application/ruby",
 				"con" => "application/concept",
-				"csp" => "application/concept-server-page"
+				"csp" => "application/concept-server-page",
+				"accel" => "application/concept-private",
+				"package" => "application/concept-private",
+				"ini" => "application/concept-private"
 		];
 
 		var v6only=value IniGet(inifile, "Server", "IPv6", "0");
