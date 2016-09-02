@@ -327,6 +327,7 @@ var CLASS_TOGGLEBUTTON                = 64;
 var CLASS_IMAGEBUTTON                 = 65;
 var CLASS_CLIENTCHART                 = 66;
 var CLASS_HTMLSNAP                    = 67;
+var CLASS_HTMLAPP                     = 68;
 
 // general (window) messages
 var P_CAPTION                         = 100;
@@ -1996,6 +1997,8 @@ function ConceptClient(url, container, loading, absolute_paths, debug) {
 				console.log("Session restored");
 				self.Container.disabled = false;
 				self.Alerts.style.display = "none";
+				if (self.UIRun)
+					self.UIRun(2, "");
 			}
 		};
 
@@ -2011,11 +2014,18 @@ function ConceptClient(url, container, loading, absolute_paths, debug) {
 					self.LoadingContainer.style.display = "block";
 
 				self.NotifyLoading("[application closed]");
+				if (self.UIRun)
+					self.UIRun(0, "");
 			} else {
-				if ((evt) && (evt.data))
+				if ((evt) && (evt.data)) {
 					self.NotifyLoading("error connecting to the server [" + evt.data + "]");
-				else
+					if (self.UIRun)
+						self.UIRun(-1, evt.data);
+				} else {
 					self.NotifyLoading("error connecting to the server");
+					if (self.UIRun)
+						self.UIRun(-1, "");
+				}
 			}
 			self.Connected = false;
 			self.MainForm = null;
@@ -2040,6 +2050,8 @@ function ConceptClient(url, container, loading, absolute_paths, debug) {
 					self.LoadingContainer.style.display = "block";
 
 				self.NotifyLoading("[application closed]");
+				if (self.UIRun)
+					self.UIRun(0, "");
 			}
 			self.MainForm = null;
 		};
@@ -2065,6 +2077,8 @@ function ConceptClient(url, container, loading, absolute_paths, debug) {
 			this.AlertsLabel.innerHTML = "&#x1f4e1; Connection lost. Reconnecting (#" + this.ReconnectCount + ")";
 			this.Alerts.style.display = "block";
 			this.CreateSocket(url, this.Debug, true);
+			if (this.UIRun)
+				this.UIRun(3, this.ReconnectCount);
 		}
 	};
 
@@ -2676,14 +2690,16 @@ function ConceptClient(url, container, loading, absolute_paths, debug) {
 					this.CleanClose = false;
 				}
 				if (this.PendingCode) {
-						setTimeout(function() {
-							for (var k in self.PendingCode) {
-								var f = self.PendingCode[k];
-								f();
-							}
-							self.PendingCode = null;
-						}, 1);
+					setTimeout(function() {
+						for (var k in self.PendingCode) {
+							var f = self.PendingCode[k];
+							f();
+						}
+						self.PendingCode = null;
+					}, 1);
 				}
+				if (self.UIRun)
+					self.UIRun(1, "");
 				console.log("UI loading time: " + ((new Date().getTime() - this.StartTime)/1000) + " seconds");
 				break;
 			case MSG_SAVE_FILE:
@@ -3059,10 +3075,14 @@ function ConceptClient(url, container, loading, absolute_paths, debug) {
 				}
 				break;
 			case MSG_APPLICATION_QUIT:
-				if (self.Container)
-					self.Container.style.display = "none";
-				if (self.LoadingContainer)
-					self.Container.style.display = "block";
+				if (self.UIRun) {
+					self.UIRun(0, "");
+				} else {
+					if (self.Container)
+						self.Container.style.display = "none";
+					if (self.LoadingContainer)
+						self.Container.style.display = "block";
+				}
 				self.MainForm = null;
 				self.NotifyLoading("Done");
 				self.CleanClose = true;
@@ -5260,6 +5280,17 @@ function ConceptClient(url, container, loading, absolute_paths, debug) {
 							console.error("Cannot use Set/Get for unregistered RSnap objects");
 						}
 						break;
+					case CLASS_HTMLAPP:
+						if (this.UISet) {
+							try {
+								this.UISet({ "Client": this, "event": this.UIEvent, "RID": "" + OwnerID, "Object": element }, Target, JSON.parse(Value));
+							} catch (e) {
+								console.error("Error in UISet");
+								console.error(e);
+							}							
+						} else
+							console.log("client.UISet is not set");
+						break;
 					case 1000:
 						if (element.ConceptEditor) {
 							var msg = parseInt(this.POST_STRING)
@@ -5337,15 +5368,23 @@ function ConceptClient(url, container, loading, absolute_paths, debug) {
 						}
 						break;
 					case CLASS_HTMLSNAP:
-						if (element.ConceptHTMLClass) {
-							var get_name = element.ConceptHTMLClass + "Get";
+					case CLASS_HTMLAPP:
+						if ((element.ConceptHTMLClass) || (this.UISet)) {
+							var fn;
+							var get_name;
 							var eval_result = "";
-							var fn = window[get_name];
+							if (cls_id == CLASS_HTMLAPP) {
+								get_name = "this.UIGet";
+								fn = this.UIGet;
+							} else {
+								get_name = element.ConceptHTMLClass + "Get";
+								fn = window[get_name];
+							}
 							if (fn) {
 								try {
-									eval_result = fn({ "Client": this, "RID": "" + OwnerID, "Object": element}, Target, Value);
+									eval_result = fn({ "Client": this, "event": this.UIEvent, "RID": "" + OwnerID, "Object": element}, Target, Value);
 								} catch (e) {
-									console.error("Error in " + set_name);
+									console.error("Error in " + get_name);
 									console.error(e);
 								}
 							} else {
@@ -5367,7 +5406,7 @@ function ConceptClient(url, container, loading, absolute_paths, debug) {
 							}
 						} else {
 							self.SendMessage("" + OwnerID, MSG_ID, "0", "", 0);
-							console.error("Cannot use Set/Get for unregistered RSnap objects");
+							console.error("Cannot use Set/Get for unregistered RSnap/HTMLUI objects");
 						}
 						break;
 				}
@@ -5411,7 +5450,18 @@ function ConceptClient(url, container, loading, absolute_paths, debug) {
 					} else {
 						console.error("Cannot use Set/Get for unregistered RSnap objects");
 					}
-				}
+				} else
+				if (cls_id == CLASS_HTMLAPP) {
+					if (this.UISet) {
+						try {
+							this.UISet({ "Client": this, "event": this.UIEvent, "RID": "" + OwnerID, "Object": element }, Target, Value);
+						} catch (e) {
+							console.error("Error in UISet");
+							console.error(e);
+						}							
+					} else
+						console.log("client.UISet is not set");
+				}				
 				break;
 			case MSG_CUSTOM_MESSAGE6:
 				switch (cls_id) {
@@ -6806,6 +6856,13 @@ function ConceptClient(url, container, loading, absolute_paths, debug) {
 					data = JSON.stringify(parameter);
 		}
 		this.SendMessage("" + RID, MSG_EVENT_FIRED, "21", data, 0);
+	}
+
+	this.UIEvent = function(parameter) {
+		var id = 1;
+		if (self.MainForm)
+			id = self.MainForm.id;
+		self.Fire(id, parameter);
 	}
 
 	this.SpeexCompress = function(element, data) {
@@ -12020,6 +12077,15 @@ function ConceptClient(url, container, loading, absolute_paths, debug) {
 				if (key in js_flags)
 					control.innerHTML = js_flags[key];
 				break;
+			case CLASS_HTMLAPP:
+				if (this.UIContainer)
+					control = document.getElementById(this.UIContainer);
+				else
+					control = this.Container;
+				control.ConceptClassID = CLASS_HTMLAPP;
+				this.Controls[RID] = control;
+				// not an UI object !
+				return;
 			case 1000:
 				control = document.createElement("pre");
 				control.className = "RScintilla";
@@ -12125,7 +12191,7 @@ function ConceptClient(url, container, loading, absolute_paths, debug) {
 				break;
 		}
 
-		if (control!=null) {
+		if (control != null) {
 			control.style.display = "none";
 			control.id = "r" + RID;
 			control.ConceptClassID = CLASS_ID;
@@ -12484,6 +12550,23 @@ function ConceptClient(url, container, loading, absolute_paths, debug) {
 				}
 			}
 		}
+	}
+}
+
+function HTMLUI(url, container, settings) {
+	var loading = "";
+	if ((settings) && (settings.loading))
+		loading = settings.loading;
+	var client = new ConceptClient(url, container, loading, true);
+	if (settings) {
+		if (settings.get)
+			client.UIGet = settings.get;
+		if (settings.set)
+			client.UISet = settings.set;
+		if (settings.run)
+			client.UIRun = settings.run;
+		if (settings.runcontainer)
+			client.UIContainer = settings.runcontainer;
 	}
 }
 //========================================================================================//

@@ -1338,7 +1338,7 @@ class ConceptChild {
 
 									var is_redirect = false;
 									if (client_resource) {
-										var local_app;
+										var local_app = "";
 										if (is_root) {
 											var local_app_index = host_root + directory + "@index.html";
 											if (FileExists(local_app_index))

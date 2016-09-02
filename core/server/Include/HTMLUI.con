@@ -1,0 +1,45 @@
+include Application.con
+import standard.lib.json
+
+class HTMLUI extends VisibleRemoteObject {
+	protected var _OnUI;
+	public property OnUI { get _OnUI, set SetOnUI }
+
+	public function HTMLUI() {
+		super(null, CLASS_HTMLAPP);
+	}
+
+	public function Set(string prop_name, argument) {
+		if ((typeof argument == "array") || (typeof argument == "class")) {
+			var data = JSONSerialize(argument, true);
+			Send(MSG_CUSTOM_MESSAGE3, prop_name, data);
+		} else {
+			Send(MSG_CUSTOM_MESSAGE5, prop_name, argument);
+		}
+	}
+
+	public function Get(string prop_name, argument = null) {
+		var data;
+		if ((typeof argument == "array") || (typeof argument == "class"))
+			data = JSONSerialize(argument, true);
+		else
+			data = "" + argument;
+
+		Send(MSG_CUSTOM_MESSAGE4, prop_name, data);
+		WaitMessage(var Sender, MSG_CUSTOM_MESSAGE4, var Target, var Value);
+		// is json ?
+		if ((value Target) && (Value))
+			return JSONDeserialize(Value);
+		return Value;
+	}
+
+	protected Event(Sender, EventData) {
+		if (_OnUI)
+			return _OnUI(JSONDeserialize(EventData));
+	}
+
+	public function SetOnUI(var delegate deleg) {
+		_OnUI = deleg;
+		return _MAP_REMOTE_EVENT(EVENT_ON_EVENT, Event);
+	}
+}
