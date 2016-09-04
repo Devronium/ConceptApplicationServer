@@ -922,6 +922,20 @@ class ConceptChild {
 			close(this.PipeOut);
 	}
 
+	static CleanApp(var app) {
+		var len_filename = length app;
+		var skip = 0;
+		while (len_filename) {
+			len_filename--;
+			if (app[len_filename] == ".")
+				skip++;
+			else
+				break;
+		}
+		if (skip)
+			app = SubStr(app, 0, length app - skip);
+	}
+
 	static NormalizeFilename(filename, var directory) {
 		filename=StrReplace(filename, "\\", "/");
 		var arr=StrSplit(filename, "/");
@@ -1178,6 +1192,7 @@ class ConceptChild {
 								if (length line > 1) {
 									var method=ToUpper(line[0]);
 									app=URIDecode(line[1]);
+									CleanApp(app);
 									if ((method=="GET") || (method == "POST") || (method == "PUT"))
 										ParseHeader(header, ws, ws_key, origin, host, session_to_restore, if_modified, keep_alive, parent, debug, in_content_length, protocol, extension);
 								}
@@ -1371,15 +1386,18 @@ class ConceptChild {
 										if (empty_request) {
 											if (FileExists(app + "start.con")) {
 												content_type = "text/html";
-												target_app = "start.con";
-												app = Owner.ConceptClient + "/index.html";
+												target_app = path + "/start.con";
+												local_app_index = host_root + "/" + path + "/@index.html";
+												if (FileExists(local_app_index))
+													app = local_app_index;
+												else
+													app = Owner.ConceptClient + "/index.html";
 												is_root = true;
 											} else
 											if (FileExists(app + "index.csp")) {
 												content_type = "application/concept-server-page";
 												app += "index.csp";
 											} else {
-												// if (FileExists(app + "index.html")) {
 												content_type = "text/html";
 												app += "index.html";
 											}
@@ -2422,7 +2440,7 @@ pragma used
 	}
 
 	EmptyRequest(app) {
-		if (FileExists(app + "start.con"))
+		if (FileExists(app + "/start.con"))
 			return "start.con";
 		else
 		if (FileExists(app + "index.csp"))
@@ -2487,6 +2505,7 @@ pragma used
 			var params = SplitPath(path);
 			var empty_request = false;
 			var orig_path = path;
+			ConceptChild::CleanApp(path);
 			switch (method) {
 				case "GET":
 				case "POST":
@@ -2518,9 +2537,10 @@ pragma used
 							}
 						}
 					}
-
-					if ((!client_resource) && (empty_request))
+					if ((!client_resource) && (empty_request)) {
 						path += this.EmptyRequest(app);
+						path = ConceptChild::NormalizeFilename(path, directory);
+					}
 
 					var ext = ToLower(Ext(path));
 					if ((ext) && (IsSet(this.mimetypes, ext))) {

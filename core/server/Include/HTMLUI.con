@@ -1,7 +1,7 @@
 include Application.con
 import standard.lib.json
 
-class HTMLUI extends VisibleRemoteObject {
+class HTMLUI extends RemoteContainer {
 	protected var _OnUI;
 	public property OnUI { get _OnUI, set SetOnUI }
 

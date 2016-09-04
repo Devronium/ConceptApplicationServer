@@ -844,6 +844,7 @@ var RESPONSE_YES          = -8;
 var RESPONSE_NO           = -9;
 var RESPONSE_APPLY        = -10;
 var RESPONSE_HELP         = -11;
+var RESPONSE_SIGNUP       = -12
 
 var MESSAGE_INFO          = 0;
 var MESSAGE_WARNING       = 1;
@@ -3282,19 +3283,19 @@ function ConceptClient(url, container, loading, absolute_paths, debug) {
 		var type_img = "";
 		switch (Type) {
 			case MESSAGE_INFO:
-				type_img = "<img src='" + this.ResourceRoot + "/gtk-dialog-info.png' class='RMessageBoxIcon'/>";
+				type_img = "<i class='fa fa-info' aria-hidden='true'></i>";
 				type = "btn-info";
 				break;
 			case MESSAGE_WARNING:
-				type_img = "<img src='" + this.ResourceRoot + "/gtk-dialog-warning.png' class='RMessageBoxIcon'/>";
+				type_img = "<i class='fa fa-warning' aria-hidden='true'></i>";
 				type = "btn-warning";
 				break;
 			case MESSAGE_QUESTION:
-				type_img = "<img src='" + this.ResourceRoot + "/gtk-dialog-question.png' class='RMessageBoxIcon'/>";
+				type_img = "<i class='fa fa-question-circle-o' aria-hidden='true'></i>";
 				type = "btn-success";
 				break;
 			case MESSAGE_ERROR:
-				type_img = "<img src='" + this.ResourceRoot + "/gtk-dialog-error.png' class='RMessageBoxIcon'/>";
+				type_img = "<i class='fa fa-exclamation-circle' aria-hidden='true'></i>";
 				type = "btn-danger";
 				break;
 		}
@@ -3758,8 +3759,7 @@ function ConceptClient(url, container, loading, absolute_paths, debug) {
 		container = document.createElement("div");
 		container.className = "RMessageBox modal";
 		container.id = "loginDialog";
-		container.innerHTML = '<div class="RMessageBox RMessageBoxPassword dialog modal-dialog"><div class="modal-content"><div class="RMessageBoxHeader modal-header btn-success"><button type="button" class="close" data-dismiss="modal" id="loginClose"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button><h4 class="modal-title" id="loginTitle"></h4></div><div class="RMessageBoxContent modal-body"><label for="usernameLogin">User</label><input type="text" id="usernameLogin" class="RMessageBoxInput form-control"/><label for="passwordLogin">Password</label><input type="password" id="passwordLogin" class="RMessageBoxInput form-control"/></div><div class="RMessageBoxButtons modal-footer" id="loginButtons"></div></div></div>';
-			
+		container.innerHTML = '<div class="RMessageBox RMessageBoxPassword dialog modal-dialog"><div class="modal-content"><div class="RMessageBoxHeader modal-header btn-primary"><button type="button" class="close" data-dismiss="modal" id="loginClose"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button><h4 class="modal-title" id="loginTitle"></h4></div><div class="RMessageBoxContent modal-body"><div class="form-group"><input type="text" id="usernameLogin" placeholder="Username" class="RMessageBoxInput form-control"/></div><div class="form-group"><input type="password" id="passwordLogin" placeholder="Password" class="RMessageBoxInput form-control"/></div><div class="RMessageBoxButtons modal-footer" id="loginButtons"></div></div></div></div>';
 		this.Container.appendChild(container);
 
 		container.style.display = "block";
@@ -3797,6 +3797,17 @@ function ConceptClient(url, container, loading, absolute_paths, debug) {
 
 		if (bcontainer) {
 			bcontainer.innerHTML = "";
+
+			button = document.createElement("button");
+			button.className = "RButton btn-link pull-left";
+			button.innerHTML = "Sign-up";
+			button.setAttribute("data-dismiss", "modal");
+			button.onclick = function() {
+				container.style.display = "none";
+				self.NotifyLogin("", "", RESPONSE_SIGNUP, Method, "");
+			}
+			bcontainer.appendChild(button);
+
 			button = document.createElement("button");
 			button.className = "RButton btn btn-default";
 			button.innerHTML = "Cancel";
@@ -3809,7 +3820,7 @@ function ConceptClient(url, container, loading, absolute_paths, debug) {
 
 			button = document.createElement("button");
 			button.className = "RButton btn btn-primary";
-			button.innerHTML = "Ok";
+			button.innerHTML = "Sign-in";
 			button.setAttribute("data-dismiss", "modal");
 			button.onclick = function() {
 				container.style.display = "none";
@@ -11166,6 +11177,8 @@ function ConceptClient(url, container, loading, absolute_paths, debug) {
 			ptype = parent.ConceptClassID;
 			if (!ptype)
 				ptype = parseInt(parent.getAttribute("ConceptClassID"));
+			if ((ptype == CLASS_HTMLAPP) && (this.UICreate))
+				parent = this.UICreate();
 		}
 
 		switch (CLASS_ID) {
@@ -12567,6 +12580,8 @@ function HTMLUI(url, container, settings) {
 			client.UIRun = settings.run;
 		if (settings.runcontainer)
 			client.UIContainer = settings.runcontainer;
+		if (settings.create)
+			client.UICreate = settings.create;
 	}
 }
 //========================================================================================//

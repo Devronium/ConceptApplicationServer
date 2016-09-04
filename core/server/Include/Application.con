@@ -11,9 +11,6 @@ import standard.C.casts
 
 define MAX_LOOP_TIME	120
 
-/*define RESPONSE_NONE    -4
-define RESPONSE_YES	-8
-define RESPONSE_NO	-9*/
 
 define MESSAGE_INFO		0
 define MESSAGE_WARNING		1
@@ -31,7 +28,6 @@ define BUTTONS_OK_CANCEL	5
 define BUTTONS_YES_NO_CANCEL	6
 define BUTTONS_SAVE_DISCARD_CANCEL	7
 
-
 define RESPONSE_NONE		-1
 define RESPONSE_REJECT		-2
 define RESPONSE_ACCEPT		-3
@@ -43,6 +39,7 @@ define RESPONSE_YES		-8
 define RESPONSE_NO		-9
 define RESPONSE_APPLY		-10
 define RESPONSE_HELP		-11
+define RESPONSE_SIGNUP		-12
 
 define QREMOVE_ALL		-1
 define QREMOVE_CURRENT		0
