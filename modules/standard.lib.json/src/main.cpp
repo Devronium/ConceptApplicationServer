@@ -208,7 +208,13 @@ CONCEPT_FUNCTION_IMPL_VARIABLE_PARAMS(_JSONSerialize, 1)
     }
 
     if (my_obj) {
-        RETURN_STRING(json_object_to_json_string(my_obj))
+        const char *json_str = json_object_to_json_string(my_obj);
+        if (json_str) {
+            RETURN_STRING(json_str)
+        } else {
+            RETURN_STRING("");
+        }
+        json_object_put(my_obj);
     } else {
         RETURN_STRING("")
     }
@@ -337,8 +343,10 @@ CONCEPT_FUNCTION_IMPL(_JSONDeserialize, 1)
         //return (void *)"JSONDeserialize: Invalid JSON string";
         RETURN_NUMBER(0)
     }
-    if (obj)
+    if (obj) {
+        json_object_put(obj);
         json_tokener_free(tok);
+    }
 END_IMPL
 //-----------------------------------------------------//
 

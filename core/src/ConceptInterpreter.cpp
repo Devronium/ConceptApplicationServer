@@ -137,6 +137,15 @@ static TinyString DLL_MEMBER = "STATIC_FUNCTION";
         }                                                                                                                           \
     }                                                                                                                               \
 //---------------------------------------------------------
+#define CHECK_IF_STRING_INDEX_VAR(THISREF, VARIABLE)                                                                                \
+    if ((VARIABLE->TYPE == VARIABLE_STRING) && (VARIABLE->CLASS_DATA) && (((AnsiString *)VARIABLE->CLASS_DATA)->EXTRA_DATA)) {      \
+        Exc = new AnsiException(ERR1330, OE->Operator._DEBUG_INFO_LINE, 1330, OE->OperandLeft._PARSE_DATA, ((ClassCode *)(THISREF->OWNER->Defined_In))->_DEBUG_INFO_FILENAME, ((ClassCode *)(THISREF->OWNER->Defined_In))->NAME, THISREF->OWNER->NAME); \
+        PIF->AcknoledgeRunTimeError(STACK_TRACE, Exc);                                                                              \
+        DECLARE_PATH(0x20);                                                                                                         \
+        continue;                                                                                                                   \
+    }
+//---------------------------------------------------------
+
 #define CLASS_CHECK_KEEP_EXTRA(VARIABLE)                                                   \
     if ((VARIABLE->CLASS_DATA) && (VARIABLE->TYPE != VARIABLE_STRING)) {                   \
         if ((VARIABLE->TYPE == VARIABLE_CLASS) || (VARIABLE->TYPE == VARIABLE_DELEGATE)) { \
@@ -2667,6 +2676,7 @@ int ConceptInterpreter::StacklessInterpret(PIFAlizator *PIF, GreenThreadCycle *G
                                 LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE = LOCAL_CONTEXT [OE->OperandRight.ID - 1]->TYPE;
                                 char asg_type = LOCAL_CONTEXT [OE->OperandRight.ID - 1]->TYPE;
                                 if ((asg_type == VARIABLE_CLASS) || (asg_type == VARIABLE_ARRAY)) {
+                                    CHECK_IF_STRING_INDEX_VAR(THIS_REF, LOCAL_CONTEXT [OE->OperandLeft.ID - 1]);
                                     int delta = 0;
                                     if (LOCAL_CONTEXT [OE->OperandLeft.ID - 1]->CLASS_DATA != LOCAL_CONTEXT [OE->OperandRight.ID - 1]->CLASS_DATA) {
                                         //SMART_LOCK(LOCAL_CONTEXT [OE->OperandLeft.ID - 1]);
@@ -2707,6 +2717,7 @@ int ConceptInterpreter::StacklessInterpret(PIFAlizator *PIF, GreenThreadCycle *G
                                 }
                             }
                             if (LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE == VARIABLE_NUMBER) {
+                                CHECK_IF_STRING_INDEX_VAR(THIS_REF, LOCAL_CONTEXT [OE->OperandLeft.ID - 1]);
                                 CLASS_CHECK_TS(LOCAL_CONTEXT [OE->OperandLeft.ID - 1])
                                 LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = LOCAL_CONTEXT [OE->OperandLeft.ID - 1]->NUMBER_DATA = LOCAL_CONTEXT [OE->OperandRight.ID - 1]->NUMBER_DATA;
                                 LOCAL_CONTEXT [OE->OperandLeft.ID - 1]->TYPE   = VARIABLE_NUMBER;
@@ -5239,6 +5250,7 @@ VariableDATA *ConceptInterpreter::Interpret(PIFAlizator *PIF, VariableDATA **LOC
                             LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE = LOCAL_CONTEXT [OE->OperandRight.ID - 1]->TYPE;
                             char asg_type = LOCAL_CONTEXT [OE->OperandRight.ID - 1]->TYPE;
                             if ((asg_type == VARIABLE_CLASS) || (asg_type == VARIABLE_ARRAY)) {
+                                CHECK_IF_STRING_INDEX_VAR(this, LOCAL_CONTEXT [OE->OperandLeft.ID - 1]);
                                 int delta = 0;
                                 if (LOCAL_CONTEXT [OE->OperandLeft.ID - 1]->CLASS_DATA != LOCAL_CONTEXT [OE->OperandRight.ID - 1]->CLASS_DATA) {
                                     //SMART_LOCK(LOCAL_CONTEXT [OE->OperandLeft.ID - 1]);
@@ -5279,6 +5291,7 @@ VariableDATA *ConceptInterpreter::Interpret(PIFAlizator *PIF, VariableDATA **LOC
                             }
                         }
                         if (LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE == VARIABLE_NUMBER) {
+                            CHECK_IF_STRING_INDEX_VAR(this, LOCAL_CONTEXT [OE->OperandLeft.ID - 1]);
                             CLASS_CHECK_TS(LOCAL_CONTEXT [OE->OperandLeft.ID - 1])
                             LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = LOCAL_CONTEXT [OE->OperandLeft.ID - 1]->NUMBER_DATA = LOCAL_CONTEXT [OE->OperandRight.ID - 1]->NUMBER_DATA;
                             LOCAL_CONTEXT [OE->OperandLeft.ID - 1]->TYPE   = VARIABLE_NUMBER;

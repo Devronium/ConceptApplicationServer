@@ -1932,6 +1932,7 @@ function ConceptClient(url, container, loading, absolute_paths, debug) {
 	this.POST_OBJECT = 0;
 	this.UPLOADED_FILE = [ ];
 	this.MainForm = 0;
+	this.HTMLUIID = 0;
 	this.PendingCode = { };
 	this.POST_FILENAME = "";
 	this.Cookies = { };
@@ -3283,19 +3284,19 @@ function ConceptClient(url, container, loading, absolute_paths, debug) {
 		var type_img = "";
 		switch (Type) {
 			case MESSAGE_INFO:
-				type_img = "<i class='fa fa-info' aria-hidden='true'></i>";
-				type = "btn-info";
+				type_img = "<i class='fa fa-info' aria-hidden='true'></i> ";
+				type = "btn-primary";
 				break;
 			case MESSAGE_WARNING:
-				type_img = "<i class='fa fa-warning' aria-hidden='true'></i>";
+				type_img = "<i class='fa fa-warning' aria-hidden='true'></i> ";
 				type = "btn-warning";
 				break;
 			case MESSAGE_QUESTION:
-				type_img = "<i class='fa fa-question-circle-o' aria-hidden='true'></i>";
+				type_img = "<i class='fa fa-question-circle' aria-hidden='true'></i> ";
 				type = "btn-success";
 				break;
 			case MESSAGE_ERROR:
-				type_img = "<i class='fa fa-exclamation-circle' aria-hidden='true'></i>";
+				type_img = "<i class='fa fa-exclamation-circle' aria-hidden='true'></i> ";
 				type = "btn-danger";
 				break;
 		}
@@ -3445,7 +3446,7 @@ function ConceptClient(url, container, loading, absolute_paths, debug) {
 		container = document.createElement("div");
 		container.className = "RMessageBox modal";
 		container.id = "inputDialog";
-		container.innerHTML = '<div class="RMessageBox login-dialog modal-dialog"><div class="modal-content"><div class="RMessageBoxHeader modal-header btn-info"><button type="button" class="close" data-dismiss="modal" id="inputClose"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button><h4 class="modal-title" id="inputTitle"></h4></div><div class="RMessageBoxContent modal-body"><input type="text" id="inputInput" class="RMessageBoxInput form-control"/></div><div class="RMessageBoxButtons modal-footer" id="inputButtons"></div></div></div>';
+		container.innerHTML = '<div class="RMessageBox login-dialog modal-dialog"><div class="modal-content"><div class="RMessageBoxHeader modal-header btn-primary"><button type="button" class="close" data-dismiss="modal" id="inputClose"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button><h4 class="modal-title" id="inputTitle"></h4></div><div class="RMessageBoxContent modal-body"><input type="text" id="inputInput" class="RMessageBoxInput form-control"/></div><div class="RMessageBoxButtons modal-footer" id="inputButtons"></div></div></div>';
 			
 		this.Container.appendChild(container);
 		
@@ -3798,15 +3799,17 @@ function ConceptClient(url, container, loading, absolute_paths, debug) {
 		if (bcontainer) {
 			bcontainer.innerHTML = "";
 
-			button = document.createElement("button");
-			button.className = "RButton btn-link pull-left";
-			button.innerHTML = "Sign-up";
-			button.setAttribute("data-dismiss", "modal");
-			button.onclick = function() {
-				container.style.display = "none";
-				self.NotifyLogin("", "", RESPONSE_SIGNUP, Method, "");
+			if (!self.MainForm) {
+				button = document.createElement("button");
+				button.className = "RButton btn-link pull-left";
+				button.innerHTML = "Sign-up";
+				button.setAttribute("data-dismiss", "modal");
+				button.onclick = function() {
+					container.style.display = "none";
+					self.NotifyLogin("", "", RESPONSE_SIGNUP, Method, "");
+				}
+				bcontainer.appendChild(button);
 			}
-			bcontainer.appendChild(button);
 
 			button = document.createElement("button");
 			button.className = "RButton btn btn-default";
@@ -6870,10 +6873,7 @@ function ConceptClient(url, container, loading, absolute_paths, debug) {
 	}
 
 	this.UIEvent = function(parameter) {
-		var id = 1;
-		if (self.MainForm)
-			id = self.MainForm.id;
-		self.Fire(id, parameter);
+		self.Fire(this.HTMLUIID, parameter);
 	}
 
 	this.SpeexCompress = function(element, data) {
@@ -12097,6 +12097,7 @@ function ConceptClient(url, container, loading, absolute_paths, debug) {
 					control = this.Container;
 				control.ConceptClassID = CLASS_HTMLAPP;
 				this.Controls[RID] = control;
+				this.HTMLUIID = RID;
 				// not an UI object !
 				return;
 			case 1000:
@@ -12583,6 +12584,7 @@ function HTMLUI(url, container, settings) {
 		if (settings.create)
 			client.UICreate = settings.create;
 	}
+	return client;
 }
 //========================================================================================//
 function ToBase64(arrayBuffer) {

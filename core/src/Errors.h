@@ -126,6 +126,7 @@
 #define ERR1208     "Formal parameter type is different from the default value type"
 #define ERR1209     "Invalid special constant (special constants are @line, @filename, @path, @time, @class and @member)"
 #define ERR1210     "Unexpected end of file / unmatch '{' with '}'"
+
 #define ERR1220     "Right of '::' is not a valid class member or left of '::' is not a class"
 #define ERR1230     "Class was implicitly declared (used before its declaration) and cannot be extended with a class declared (explicitly or implicitly) after the first reference to this class"
 #define ERR1240     "A class may not extend itself"
@@ -137,6 +138,7 @@
 #define ERR1300     "Uncaught exception in green thread"
 #define ERR1310     "Green threads parameters must take no parameters"
 #define ERR1320     "Unreachable code"
+#define ERR1330     "A string character must be replaced only by a string. Expressions like string[i] = [ ] are illegal."
 #define ERR1400     "Concept Core is out of memory"
 
 #define WRN10001    "Possibly incorrect assignment: do you mean '==' instead of '=' ?"
