@@ -1,6 +1,660 @@
-ace.define("ace/mode/doc_comment_highlight_rules",["require","exports","module","ace/lib/oop","ace/mode/text_highlight_rules"],function(e,t,n){"use strict";var r=e("../lib/oop"),i=e("./text_highlight_rules").TextHighlightRules,s=function(){this.$rules={start:[{token:"comment.doc.tag",regex:"@[\\w\\d_]+"},{token:"comment.doc.tag",regex:"\\bTODO\\b"},{defaultToken:"comment.doc"}]}};r.inherits(s,i),s.getStartRule=function(e){return{token:"comment.doc",regex:"\\/\\*(?=\\*)",next:e}},s.getEndRule=function(e){return{token:"comment.doc",regex:"\\*\\/",next:e}},t.DocCommentHighlightRules=s}),ace.define("ace/mode/concept_highlight_rules",["require","exports","module","ace/lib/oop","ace/mode/doc_comment_highlight_rules","ace/mode/text_highlight_rules"],function(e,t,n){"use strict";var r=e("../lib/oop"),i=e("./doc_comment_highlight_rules").DocCommentHighlightRules,s=e("./text_highlight_rules").TextHighlightRules,o=function(e){var t=this.createKeywordMapper({"variable.language":
-
-"Array|Boolean|Date|Function|Iterator|Number|Object|RegExp|String|Proxy|Namespace|QName|XML|XMLList|ArrayBuffer|Float32Array|Float64Array|Int16Array|Int32Array|Int8Array|Uint16Array|Uint32Array|Uint8Array|Uint8ClampedArray|Error|EvalError|InternalError|RangeError|ReferenceError|StopIteration|SyntaxError|TypeError|URIError|decodeURI|decodeURIComponent|encodeURI|encodeURIComponent|eval|isFinite|isNaN|parseFloat|parseInt|JSON|Math|this|arguments|prototype|window|document",
-keyword:"define|extends|include|import|get|set|property|break|case|catch|continue|default|super|finalize|delete|new|do|else|for|function|if|classof|return|switch|throw|try|typeof|var|while|class|private|public|protected|static","storage.type":"var|function",
-"constant.language":"null","support.function":"alert","constant.language.boolean":"true|false"},"identifier"),
-n="case|do|else|return|throw|try|typeof|classof|yield|echo",r="[a-zA-Z\\$_\u00a1-\uffff][a-zA-Z\\d\\$_\u00a1-\uffff]*\\b",s="\\\\(?:x[0-9a-fA-F]{2}|u[0-9a-fA-F]{4}|[0-2][0-7]{0,2}|3[0-6][0-7]?|37[0-7]?|[4-7][0-7]?|.)";this.$rules={no_regex:[{token:"comment",regex:"\\/\\/",next:"line_comment"},i.getStartRule("doc-start"),{token:"comment",regex:/\/\*/,next:"comment"},{token:"string",regex:"'(?=.)",next:"qstring"},{token:"string",regex:'"(?=.)',next:"qqstring"},{token:"constant.numeric",regex:/0[xX][0-9a-fA-F]+\b/},{token:"constant.numeric",regex:/[+-]?\d+(?:(?:\.\d*)?(?:[eE][+-]?\d+)?)?\b/},{token:["storage.type","punctuation.operator","support.function","punctuation.operator","entity.name.function","text","keyword.operator"],regex:"("+r+")(\\.)(prototype)(\\.)("+r+")(\\s*)(=)",next:"function_arguments"},{token:["storage.type","punctuation.operator","entity.name.function","text","keyword.operator","text","storage.type","text","paren.lparen"],regex:"("+r+")(\\.)("+r+")(\\s*)(=)(\\s*)(function)(\\s*)(\\()",next:"function_arguments"},{token:["entity.name.function","text","keyword.operator","text","storage.type","text","paren.lparen"],regex:"("+r+")(\\s*)(=)(\\s*)(function)(\\s*)(\\()",next:"function_arguments"},{token:["storage.type","punctuation.operator","entity.name.function","text","keyword.operator","text","storage.type","text","entity.name.function","text","paren.lparen"],regex:"("+r+")(\\.)("+r+")(\\s*)(=)(\\s*)(function)(\\s+)(\\w+)(\\s*)(\\()",next:"function_arguments"},{token:["storage.type","text","entity.name.function","text","paren.lparen"],regex:"(function)(\\s+)("+r+")(\\s*)(\\()",next:"function_arguments"},{token:["entity.name.function","text","punctuation.operator","text","storage.type","text","paren.lparen"],regex:"("+r+")(\\s*)(:)(\\s*)(function)(\\s*)(\\()",next:"function_arguments"},{token:["text","text","storage.type","text","paren.lparen"],regex:"(:)(\\s*)(function)(\\s*)(\\()",next:"function_arguments"},{token:"keyword",regex:"(?:"+n+")\\b",next:"start"},{token:["punctuation.operator","support.function"],regex:/(\.)(s(?:h(?:ift|ow(?:Mod(?:elessDialog|alDialog)|Help))|croll(?:X|By(?:Pages|Lines)?|Y|To)?|t(?:op|rike)|i(?:n|zeToContent|debar|gnText)|ort|u(?:p|b(?:str(?:ing)?)?)|pli(?:ce|t)|e(?:nd|t(?:Re(?:sizable|questHeader)|M(?:i(?:nutes|lliseconds)|onth)|Seconds|Ho(?:tKeys|urs)|Year|Cursor|Time(?:out)?|Interval|ZOptions|Date|UTC(?:M(?:i(?:nutes|lliseconds)|onth)|Seconds|Hours|Date|FullYear)|FullYear|Active)|arch)|qrt|lice|avePreferences|mall)|h(?:ome|andleEvent)|navigate|c(?:har(?:CodeAt|At)|o(?:s|n(?:cat|textual|firm)|mpile)|eil|lear(?:Timeout|Interval)?|a(?:ptureEvents|ll)|reate(?:StyleSheet|Popup|EventObject))|t(?:o(?:GMTString|S(?:tring|ource)|U(?:TCString|pperCase)|Lo(?:caleString|werCase))|est|a(?:n|int(?:Enabled)?))|i(?:s(?:NaN|Finite)|ndexOf|talics)|d(?:isableExternalCapture|ump|etachEvent)|u(?:n(?:shift|taint|escape|watch)|pdateCommands)|j(?:oin|avaEnabled)|p(?:o(?:p|w)|ush|lugins.refresh|a(?:ddings|rse(?:Int|Float)?)|r(?:int|ompt|eference))|e(?:scape|nableExternalCapture|val|lementFromPoint|x(?:p|ec(?:Script|Command)?))|valueOf|UTC|queryCommand(?:State|Indeterm|Enabled|Value)|f(?:i(?:nd|le(?:ModifiedDate|Size|CreatedDate|UpdatedDate)|xed)|o(?:nt(?:size|color)|rward)|loor|romCharCode)|watch|l(?:ink|o(?:ad|g)|astIndexOf)|a(?:sin|nchor|cos|t(?:tachEvent|ob|an(?:2)?)|pply|lert|b(?:s|ort))|r(?:ou(?:nd|teEvents)|e(?:size(?:By|To)|calc|turnValue|place|verse|l(?:oad|ease(?:Capture|Events)))|andom)|g(?:o|et(?:ResponseHeader|M(?:i(?:nutes|lliseconds)|onth)|Se(?:conds|lection)|Hours|Year|Time(?:zoneOffset)?|Da(?:y|te)|UTC(?:M(?:i(?:nutes|lliseconds)|onth)|Seconds|Hours|Da(?:y|te)|FullYear)|FullYear|A(?:ttention|llResponseHeaders)))|m(?:in|ove(?:B(?:y|elow)|To(?:Absolute)?|Above)|ergeAttributes|a(?:tch|rgins|x))|b(?:toa|ig|o(?:ld|rderWidths)|link|ack))\b(?=\()/},{token:["punctuation.operator","support.function.dom"],regex:/(\.)(s(?:ub(?:stringData|mit)|plitText|e(?:t(?:NamedItem|Attribute(?:Node)?)|lect))|has(?:ChildNodes|Feature)|namedItem|c(?:l(?:ick|o(?:se|neNode))|reate(?:C(?:omment|DATASection|aption)|T(?:Head|extNode|Foot)|DocumentFragment|ProcessingInstruction|E(?:ntityReference|lement)|Attribute))|tabIndex|i(?:nsert(?:Row|Before|Cell|Data)|tem)|open|delete(?:Row|C(?:ell|aption)|T(?:Head|Foot)|Data)|focus|write(?:ln)?|a(?:dd|ppend(?:Child|Data))|re(?:set|place(?:Child|Data)|move(?:NamedItem|Child|Attribute(?:Node)?)?)|get(?:NamedItem|Element(?:sBy(?:Name|TagName)|ById)|Attribute(?:Node)?)|blur)\b(?=\()/},{token:["punctuation.operator","support.constant"],regex:/(\.)(s(?:ystemLanguage|cr(?:ipts|ollbars|een(?:X|Y|Top|Left))|t(?:yle(?:Sheets)?|atus(?:Text|bar)?)|ibling(?:Below|Above)|ource|uffixes|e(?:curity(?:Policy)?|l(?:ection|f)))|h(?:istory|ost(?:name)?|as(?:h|Focus))|y|X(?:MLDocument|SLDocument)|n(?:ext|ame(?:space(?:s|URI)|Prop))|M(?:IN_VALUE|AX_VALUE)|c(?:haracterSet|o(?:n(?:structor|trollers)|okieEnabled|lorDepth|mp(?:onents|lete))|urrent|puClass|l(?:i(?:p(?:boardData)?|entInformation)|osed|asses)|alle(?:e|r)|rypto)|t(?:o(?:olbar|p)|ext(?:Transform|Indent|Decoration|Align)|ags)|SQRT(?:1_2|2)|i(?:n(?:ner(?:Height|Width)|put)|ds|gnoreCase)|zIndex|o(?:scpu|n(?:readystatechange|Line)|uter(?:Height|Width)|p(?:sProfile|ener)|ffscreenBuffering)|NEGATIVE_INFINITY|d(?:i(?:splay|alog(?:Height|Top|Width|Left|Arguments)|rectories)|e(?:scription|fault(?:Status|Ch(?:ecked|arset)|View)))|u(?:ser(?:Profile|Language|Agent)|n(?:iqueID|defined)|pdateInterval)|_content|p(?:ixelDepth|ort|ersonalbar|kcs11|l(?:ugins|atform)|a(?:thname|dding(?:Right|Bottom|Top|Left)|rent(?:Window|Layer)?|ge(?:X(?:Offset)?|Y(?:Offset)?))|r(?:o(?:to(?:col|type)|duct(?:Sub)?|mpter)|e(?:vious|fix)))|e(?:n(?:coding|abledPlugin)|x(?:ternal|pando)|mbeds)|v(?:isibility|endor(?:Sub)?|Linkcolor)|URLUnencoded|P(?:I|OSITIVE_INFINITY)|f(?:ilename|o(?:nt(?:Size|Family|Weight)|rmName)|rame(?:s|Element)|gColor)|E|whiteSpace|l(?:i(?:stStyleType|n(?:eHeight|kColor))|o(?:ca(?:tion(?:bar)?|lName)|wsrc)|e(?:ngth|ft(?:Context)?)|a(?:st(?:M(?:odified|atch)|Index|Paren)|yer(?:s|X)|nguage))|a(?:pp(?:MinorVersion|Name|Co(?:deName|re)|Version)|vail(?:Height|Top|Width|Left)|ll|r(?:ity|guments)|Linkcolor|bove)|r(?:ight(?:Context)?|e(?:sponse(?:XML|Text)|adyState))|global|x|m(?:imeTypes|ultiline|enubar|argin(?:Right|Bottom|Top|Left))|L(?:N(?:10|2)|OG(?:10E|2E))|b(?:o(?:ttom|rder(?:Width|RightWidth|BottomWidth|Style|Color|TopWidth|LeftWidth))|ufferDepth|elow|ackground(?:Color|Image)))\b/},{token:["support.constant"],regex:/that\b/},{token:["storage.type","punctuation.operator","support.function.firebug"],regex:/(console)(\.)(warn|info|log|error|time|trace|timeEnd|assert)\b/},{token:t,regex:r},{token:"keyword.operator",regex:/--|\+\+|===|==|=|!=|!==|<=|>=|<<=|>>=|>>>=|<>|<|>|!|&&|\|\||\?\:|[!$%&*+\-~\/^]=?/,next:"start"},{token:"punctuation.operator",regex:/[?:,;.]/,next:"start"},{token:"paren.lparen",regex:/[\[({]/,next:"start"},{token:"paren.rparen",regex:/[\])}]/},{token:"comment",regex:/^#!.*$/}],start:[i.getStartRule("doc-start"),{token:"comment",regex:"\\/\\*",next:"comment_regex_allowed"},{token:"comment",regex:"\\/\\/",next:"line_comment_regex_allowed"},{token:"string.regexp",regex:"\\/",next:"regex"},{token:"text",regex:"\\s+|^$",next:"start"},{token:"empty",regex:"",next:"no_regex"}],regex:[{token:"regexp.keyword.operator",regex:"\\\\(?:u[\\da-fA-F]{4}|x[\\da-fA-F]{2}|.)"},{token:"string.regexp",regex:"/[sxngimy]*",next:"no_regex"},{token:"invalid",regex:/\{\d+\b,?\d*\}[+*]|[+*$^?][+*]|[$^][?]|\?{3,}/},{token:"constant.language.escape",regex:/\(\?[:=!]|\)|\{\d+\b,?\d*\}|[+*]\?|[()$^+*?.]/},{token:"constant.language.delimiter",regex:/\|/},{token:"constant.language.escape",regex:/\[\^?/,next:"regex_character_class"},{token:"empty",regex:"$",next:"no_regex"},{defaultToken:"string.regexp"}],regex_character_class:[{token:"regexp.charclass.keyword.operator",regex:"\\\\(?:u[\\da-fA-F]{4}|x[\\da-fA-F]{2}|.)"},{token:"constant.language.escape",regex:"]",next:"regex"},{token:"constant.language.escape",regex:"-"},{token:"empty",regex:"$",next:"no_regex"},{defaultToken:"string.regexp.charachterclass"}],function_arguments:[{token:"variable.parameter",regex:r},{token:"punctuation.operator",regex:"[, ]+"},{token:"punctuation.operator",regex:"$"},{token:"empty",regex:"",next:"no_regex"}],comment_regex_allowed:[{token:"comment",regex:"\\*\\/",next:"start"},{defaultToken:"comment"}],comment:[{token:"comment",regex:"\\*\\/",next:"no_regex"},{defaultToken:"comment"}],line_comment_regex_allowed:[{token:"comment",regex:"$|^",next:"start"},{defaultToken:"comment"}],line_comment:[{token:"comment",regex:"$|^",next:"no_regex"},{defaultToken:"comment"}],qqstring:[{token:"constant.language.escape",regex:s},{token:"string",regex:"\\\\$",next:"qqstring"},{token:"string",regex:'"|$',next:"no_regex"},{defaultToken:"string"}],qstring:[{token:"constant.language.escape",regex:s},{token:"string",regex:"\\\\$",next:"qstring"},{token:"string",regex:"'|$",next:"no_regex"},{defaultToken:"string"}]},(!e||!e.noES6)&&this.$rules.no_regex.unshift({regex:"[{}]",onMatch:function(e,t,n){this.next=e=="{"?this.nextState:"";if(e=="{"&&n.length)return n.unshift("start",t),"paren";if(e=="}"&&n.length){n.shift(),this.next=n.shift();if(this.next.indexOf("string")!=-1)return"paren.quasi.end"}return e=="{"?"paren.lparen":"paren.rparen"},nextState:"start"},{token:"string.quasi.start",regex:/`/,push:[{token:"constant.language.escape",regex:s},{token:"paren.quasi.start",regex:/\${/,push:"start"},{token:"string.quasi.end",regex:/`/,next:"pop"},{defaultToken:"string.quasi"}]}),this.embedRules(i,"doc-",[i.getEndRule("no_regex")]),this.normalizeRules()};r.inherits(o,s),t.JavaScriptHighlightRules=o}),ace.define("ace/mode/matching_brace_outdent",["require","exports","module","ace/range"],function(e,t,n){"use strict";var r=e("../range").Range,i=function(){};(function(){this.checkOutdent=function(e,t){return/^\s+$/.test(e)?/^\s*\}/.test(t):!1},this.autoOutdent=function(e,t){var n=e.getLine(t),i=n.match(/^(\s*\})/);if(!i)return 0;var s=i[1].length,o=e.findMatchingBracket({row:t,column:s});if(!o||o.row==t)return 0;var u=this.$getIndent(e.getLine(o.row));e.replace(new r(t,0,t,s-1),u)},this.$getIndent=function(e){return e.match(/^\s*/)[0]}}).call(i.prototype),t.MatchingBraceOutdent=i}),ace.define("ace/mode/behaviour/cstyle",["require","exports","module","ace/lib/oop","ace/mode/behaviour","ace/token_iterator","ace/lib/lang"],function(e,t,n){"use strict";var r=e("../../lib/oop"),i=e("../behaviour").Behaviour,s=e("../../token_iterator").TokenIterator,o=e("../../lib/lang"),u=["text","paren.rparen","punctuation.operator"],a=["text","paren.rparen","punctuation.operator","comment"],f,l={},c=function(e){var t=-1;e.multiSelect&&(t=e.selection.id,l.rangeCount!=e.multiSelect.rangeCount&&(l={rangeCount:e.multiSelect.rangeCount}));if(l[t])return f=l[t];f=l[t]={autoInsertedBrackets:0,autoInsertedRow:-1,autoInsertedLineEnd:"",maybeInsertedBrackets:0,maybeInsertedRow:-1,maybeInsertedLineStart:"",maybeInsertedLineEnd:""}},h=function(){this.add("braces","insertion",function(e,t,n,r,i){var s=n.getCursorPosition(),u=r.doc.getLine(s.row);if(i=="{"){c(n);var a=n.getSelectionRange(),l=r.doc.getTextRange(a);if(l!==""&&l!=="{"&&n.getWrapBehavioursEnabled())return{text:"{"+l+"}",selection:!1};if(h.isSaneInsertion(n,r))return/[\]\}\)]/.test(u[s.column])||n.inMultiSelectMode?(h.recordAutoInsert(n,r,"}"),{text:"{}",selection:[1,1]}):(h.recordMaybeInsert(n,r,"{"),{text:"{",selection:[1,1]})}else if(i=="}"){c(n);var p=u.substring(s.column,s.column+1);if(p=="}"){var d=r.$findOpeningBracket("}",{column:s.column+1,row:s.row});if(d!==null&&h.isAutoInsertedClosing(s,u,i))return h.popAutoInsertedClosing(),{text:"",selection:[1,1]}}}else{if(i=="\n"||i=="\r\n"){c(n);var v="";h.isMaybeInsertedClosing(s,u)&&(v=o.stringRepeat("}",f.maybeInsertedBrackets),h.clearMaybeInsertedClosing());var p=u.substring(s.column,s.column+1);if(p==="}"){var m=r.findMatchingBracket({row:s.row,column:s.column+1},"}");if(!m)return null;var g=this.$getIndent(r.getLine(m.row))}else{if(!v){h.clearMaybeInsertedClosing();return}var g=this.$getIndent(u)}var y=g+r.getTabString();return{text:"\n"+y+"\n"+g+v,selection:[1,y.length,1,y.length]}}h.clearMaybeInsertedClosing()}}),this.add("braces","deletion",function(e,t,n,r,i){var s=r.doc.getTextRange(i);if(!i.isMultiLine()&&s=="{"){c(n);var o=r.doc.getLine(i.start.row),u=o.substring(i.end.column,i.end.column+1);if(u=="}")return i.end.column++,i;f.maybeInsertedBrackets--}}),this.add("parens","insertion",function(e,t,n,r,i){if(i=="("){c(n);var s=n.getSelectionRange(),o=r.doc.getTextRange(s);if(o!==""&&n.getWrapBehavioursEnabled())return{text:"("+o+")",selection:!1};if(h.isSaneInsertion(n,r))return h.recordAutoInsert(n,r,")"),{text:"()",selection:[1,1]}}else if(i==")"){c(n);var u=n.getCursorPosition(),a=r.doc.getLine(u.row),f=a.substring(u.column,u.column+1);if(f==")"){var l=r.$findOpeningBracket(")",{column:u.column+1,row:u.row});if(l!==null&&h.isAutoInsertedClosing(u,a,i))return h.popAutoInsertedClosing(),{text:"",selection:[1,1]}}}}),this.add("parens","deletion",function(e,t,n,r,i){var s=r.doc.getTextRange(i);if(!i.isMultiLine()&&s=="("){c(n);var o=r.doc.getLine(i.start.row),u=o.substring(i.start.column+1,i.start.column+2);if(u==")")return i.end.column++,i}}),this.add("brackets","insertion",function(e,t,n,r,i){if(i=="["){c(n);var s=n.getSelectionRange(),o=r.doc.getTextRange(s);if(o!==""&&n.getWrapBehavioursEnabled())return{text:"["+o+"]",selection:!1};if(h.isSaneInsertion(n,r))return h.recordAutoInsert(n,r,"]"),{text:"[]",selection:[1,1]}}else if(i=="]"){c(n);var u=n.getCursorPosition(),a=r.doc.getLine(u.row),f=a.substring(u.column,u.column+1);if(f=="]"){var l=r.$findOpeningBracket("]",{column:u.column+1,row:u.row});if(l!==null&&h.isAutoInsertedClosing(u,a,i))return h.popAutoInsertedClosing(),{text:"",selection:[1,1]}}}}),this.add("brackets","deletion",function(e,t,n,r,i){var s=r.doc.getTextRange(i);if(!i.isMultiLine()&&s=="["){c(n);var o=r.doc.getLine(i.start.row),u=o.substring(i.start.column+1,i.start.column+2);if(u=="]")return i.end.column++,i}}),this.add("string_dquotes","insertion",function(e,t,n,r,i){if(i=='"'||i=="'"){c(n);var s=i,o=n.getSelectionRange(),u=r.doc.getTextRange(o);if(u!==""&&u!=="'"&&u!='"'&&n.getWrapBehavioursEnabled())return{text:s+u+s,selection:!1};var a=n.getCursorPosition(),f=r.doc.getLine(a.row),l=f.substring(a.column-1,a.column);if(l=="\\")return null;var p=r.getTokens(o.start.row),d=0,v,m=-1;for(var g=0;g<p.length;g++){v=p[g],v.type=="string"?m=-1:m<0&&(m=v.value.indexOf(s));if(v.value.length+d>o.start.column)break;d+=p[g].value.length}if(!v||m<0&&v.type!=="comment"&&(v.type!=="string"||o.start.column!==v.value.length+d-1&&v.value.lastIndexOf(s)===v.value.length-1)){if(!h.isSaneInsertion(n,r))return;return{text:s+s,selection:[1,1]}}if(v&&v.type==="string"){var y=f.substring(a.column,a.column+1);if(y==s)return{text:"",selection:[1,1]}}}}),this.add("string_dquotes","deletion",function(e,t,n,r,i){var s=r.doc.getTextRange(i);if(!i.isMultiLine()&&(s=='"'||s=="'")){c(n);var o=r.doc.getLine(i.start.row),u=o.substring(i.start.column+1,i.start.column+2);if(u==s)return i.end.column++,i}})};h.isSaneInsertion=function(e,t){var n=e.getCursorPosition(),r=new s(t,n.row,n.column);if(!this.$matchTokenType(r.getCurrentToken()||"text",u)){var i=new s(t,n.row,n.column+1);if(!this.$matchTokenType(i.getCurrentToken()||"text",u))return!1}return r.stepForward(),r.getCurrentTokenRow()!==n.row||this.$matchTokenType(r.getCurrentToken()||"text",a)},h.$matchTokenType=function(e,t){return t.indexOf(e.type||e)>-1},h.recordAutoInsert=function(e,t,n){var r=e.getCursorPosition(),i=t.doc.getLine(r.row);this.isAutoInsertedClosing(r,i,f.autoInsertedLineEnd[0])||(f.autoInsertedBrackets=0),f.autoInsertedRow=r.row,f.autoInsertedLineEnd=n+i.substr(r.column),f.autoInsertedBrackets++},h.recordMaybeInsert=function(e,t,n){var r=e.getCursorPosition(),i=t.doc.getLine(r.row);this.isMaybeInsertedClosing(r,i)||(f.maybeInsertedBrackets=0),f.maybeInsertedRow=r.row,f.maybeInsertedLineStart=i.substr(0,r.column)+n,f.maybeInsertedLineEnd=i.substr(r.column),f.maybeInsertedBrackets++},h.isAutoInsertedClosing=function(e,t,n){return f.autoInsertedBrackets>0&&e.row===f.autoInsertedRow&&n===f.autoInsertedLineEnd[0]&&t.substr(e.column)===f.autoInsertedLineEnd},h.isMaybeInsertedClosing=function(e,t){return f.maybeInsertedBrackets>0&&e.row===f.maybeInsertedRow&&t.substr(e.column)===f.maybeInsertedLineEnd&&t.substr(0,e.column)==f.maybeInsertedLineStart},h.popAutoInsertedClosing=function(){f.autoInsertedLineEnd=f.autoInsertedLineEnd.substr(1),f.autoInsertedBrackets--},h.clearMaybeInsertedClosing=function(){f&&(f.maybeInsertedBrackets=0,f.maybeInsertedRow=-1)},r.inherits(h,i),t.CstyleBehaviour=h}),ace.define("ace/mode/folding/cstyle",["require","exports","module","ace/lib/oop","ace/range","ace/mode/folding/fold_mode"],function(e,t,n){"use strict";var r=e("../../lib/oop"),i=e("../../range").Range,s=e("./fold_mode").FoldMode,o=t.FoldMode=function(e){e&&(this.foldingStartMarker=new RegExp(this.foldingStartMarker.source.replace(/\|[^|]*?$/,"|"+e.start)),this.foldingStopMarker=new RegExp(this.foldingStopMarker.source.replace(/\|[^|]*?$/,"|"+e.end)))};r.inherits(o,s),function(){this.foldingStartMarker=/(\{|\[)[^\}\]]*$|^\s*(\/\*)/,this.foldingStopMarker=/^[^\[\{]*(\}|\])|^[\s\*]*(\*\/)/,this.getFoldWidgetRange=function(e,t,n,r){var i=e.getLine(n),s=i.match(this.foldingStartMarker);if(s){var o=s.index;if(s[1])return this.openingBracketBlock(e,s[1],n,o);var u=e.getCommentFoldRange(n,o+s[0].length,1);return u&&!u.isMultiLine()&&(r?u=this.getSectionRange(e,n):t!="all"&&(u=null)),u}if(t==="markbegin")return;var s=i.match(this.foldingStopMarker);if(s){var o=s.index+s[0].length;return s[1]?this.closingBracketBlock(e,s[1],n,o):e.getCommentFoldRange(n,o,-1)}},this.getSectionRange=function(e,t){var n=e.getLine(t),r=n.search(/\S/),s=t,o=n.length;t+=1;var u=t,a=e.getLength();while(++t<a){n=e.getLine(t);var f=n.search(/\S/);if(f===-1)continue;if(r>f)break;var l=this.getFoldWidgetRange(e,"all",t);if(l){if(l.start.row<=s)break;if(l.isMultiLine())t=l.end.row;else if(r==f)break}u=t}return new i(s,o,u,e.getLine(u).length)}}.call(o.prototype)}),ace.define("ace/mode/concept",["require","exports","module","ace/lib/oop","ace/mode/text","ace/mode/concept_highlight_rules","ace/mode/matching_brace_outdent","ace/range","ace/worker/worker_client","ace/mode/behaviour/cstyle","ace/mode/folding/cstyle"],function(e,t,n){"use strict";var r=e("../lib/oop"),i=e("./text").Mode,s=e("./concept_highlight_rules").JavaScriptHighlightRules,o=e("./matching_brace_outdent").MatchingBraceOutdent,u=e("../range").Range,a=e("../worker/worker_client").WorkerClient,f=e("./behaviour/cstyle").CstyleBehaviour,l=e("./folding/cstyle").FoldMode,c=function(){this.HighlightRules=s,this.$outdent=new o,this.$behaviour=new f,this.foldingRules=new l};r.inherits(c,i),function(){this.lineCommentStart="//",this.blockComment={start:"/*",end:"*/"},this.getNextLineIndent=function(e,t,n){var r=this.$getIndent(t),i=this.getTokenizer().getLineTokens(t,e),s=i.tokens,o=i.state;if(s.length&&s[s.length-1].type=="comment")return r;if(e=="start"||e=="no_regex"){var u=t.match(/^.*(?:\bcase\b.*\:|[\{\(\[])\s*$/);u&&(r+=n)}else if(e=="doc-start"){if(o=="start"||o=="no_regex")return"";var u=t.match(/^\s*(\/?)\*/);u&&(u[1]&&(r+=" "),r+="* ")}return r},this.checkOutdent=function(e,t,n){return this.$outdent.checkOutdent(t,n)},this.autoOutdent=function(e,t,n){this.$outdent.autoOutdent(t,n)},this.$id="ace/mode/concept"}.call(c.prototype),t.Mode=c})
+ace.define("ace/mode/doc_comment_highlight_rules", ["require", "exports", "module", "ace/lib/oop", "ace/mode/text_highlight_rules"], function(e, t, n) {
+    "use strict";
+    var r = e("../lib/oop"),
+        i = e("./text_highlight_rules").TextHighlightRules,
+        s = function() {
+            this.$rules = {
+                start: [{
+                    token: "comment.doc.tag",
+                    regex: "@[\\w\\d_]+"
+                }, {
+                    token: "comment.doc.tag",
+                    regex: "\\bTODO\\b"
+                }, {
+                    defaultToken: "comment.doc"
+                }]
+            }
+        };
+    r.inherits(s, i), s.getStartRule = function(e) {
+        return {
+            token: "comment.doc",
+            regex: "\\/\\*(?=\\*)",
+            next: e
+        }
+    }, s.getEndRule = function(e) {
+        return {
+            token: "comment.doc",
+            regex: "\\*\\/",
+            next: e
+        }
+    }, t.DocCommentHighlightRules = s
+}), ace.define("ace/mode/concept_highlight_rules", ["require", "exports", "module", "ace/lib/oop", "ace/mode/doc_comment_highlight_rules", "ace/mode/text_highlight_rules"], function(e, t, n) {
+    "use strict";
+    var r = e("../lib/oop"),
+        i = e("./doc_comment_highlight_rules").DocCommentHighlightRules,
+        s = e("./text_highlight_rules").TextHighlightRules,
+        o = function(e) {
+            var t = this.createKeywordMapper({
+                    "variable.language":"this|GLOBALS()|var|array|string|number|object|delegate",
+                    keyword: "if|else|for|while|do|echo|return|try|catch|throw|break|continue|new|delete|class|function|private|public|event|property|set|get|extends|include|import|triggers|var|operator|typeof|classof|define|length|override|value|this|protected|this|pragma|static|on|off|super|true|false|finalize|null|switch|case|default|array|string|number|object|delegate|__gpu|__parallel",
+                    "storage.type": "var|function|property|event",
+                    "constant.language": "null",
+                    "support.function": "echo|abs|acos|ActiveXControl|AddressClose|AddressGetCity|AddressGetCountry|AddressGetPostalCode|AddressGetStateOrProvince|AddressGetStreet|AddressSetCity|AddressSetCountry|AddressSetPostalCode|AddressSetStateOrProvince|AddressSetStreet|add_mibdir|ADOConnection|ADODataRecord|ADODataSet|aes_decrypt|aes_encrypt|ApacheCacher|asctime|asin|ASSERT|atan|BeginUpdateSession|BinToNumber|CameraFrame|Canvas|CApplication|ceil|CheckPoint|chr|CLArg|ClearDrawingWand|ClearMagickWand|ClearPixelIterator|ClearPixelWand|clock|CloneDrawingWand|CloneMagickWand|ClonePixelIterator|ClonePixelWand|CloseCamera|closedir|CloseMBR|CloseObject|CloseRecognize|ClsPtr|ConceptException|ContactClose|ContactGetAddress|ContactGetAnniversary|ContactGetAnniversaryString|ContactGetAssistantName|ContactGetBirthday|ContactGetBirthdayString|ContactGetCompany|ContactGetDepartment|ContactGetDisplayNamePrefix|ContactGetEmail|ContactGetEmailDisplayAs|ContactGetGeneration|ContactGetHomePage|ContactGetManagerName|ContactGetName|ContactGetNamedProperty|ContactGetNickName|ContactGetNotes|ContactGetNotesSize|ContactGetOffice|ContactGetPhoneNumber|ContactGetPostalAddress|ContactGetPropertyString|ContactGetSensitivity|ContactGetSpouseName|ContactGetTitle|ContactSave|ContactSetAddress|ContactSetAnniversary|ContactSetAssistantName|ContactSetBirthday|ContactSetCompany|ContactSetDepartment|ContactSetDisplayNamePrefix|ContactSetEmail|ContactSetEmailDisplayAs|ContactSetFileAs|ContactSetGeneration|ContactSetHomePage|ContactSetManagerName|ContactSetName|ContactSetNamedProperty|ContactSetNickName|ContactSetNotes|ContactSetOffice|ContactSetPhoneNumber|ContactSetPostalAddress|ContactSetPropertyString|ContactSetSensitivity|ContactSetSpouseName|ContactSetTitle|ContactUpdateDisplayAddress|ContactUpdateDisplayName|ContentType|COOKIE|CookieVar|cos|crc32|CreateDebugPipe|CSV|CSVCreate|CSVDone|CSVError|CSVErrorExplain|CSVParse|CSVSetDelim|CSVSetQuote|ctime|curl_easy_cleanup|curl_easy_duphandle|curl_easy_escape|curl_easy_getinfo|curl_easy_init|curl_easy_perform|curl_easy_reset|curl_easy_setopt|curl_easy_strerror|curl_easy_unescape|curl_escape|curl_getdate|curl_getenv|curl_global_cleanup|curl_global_init|curl_strequal|curl_strnequal|curl_unescape|curl_version|DBChanges|DBClearBindings|DBClose|DBColumnDeclType|DBColumnName|DBColumns|DBColumnType|DBData|DBDataRead|DBDataWrite|DBError|DBFirst|DBFree|DBLastRowID|DBNewStmt|DBNext|DBOpen|DBQuery|DBReset|DBWrap|DestroyDebugPipe|DestroyDrawingWand|DestroyMagickWand|DestroyPixelIterator|DestroyPixelWand|DestroyTemplateContext|difftime|DirectoryExists|DirectoryList|dirname|DOCConverter|DoubleContainer|DrawAffine|DrawAllocateWand|DrawAnnotation|DrawArc|DrawBezier|DrawCircle|DrawClearException|DrawColor|DrawComment|DrawComposite|DrawEllipse|DrawGetBorderColor|DrawGetClipPath|DrawGetClipRule|DrawGetClipUnits|DrawGetException|DrawGetExceptionType|DrawGetFillColor|DrawGetFillOpacity|DrawGetFillRule|DrawGetFont|DrawGetFontFamily|DrawGetFontResolution|DrawGetFontSize|DrawGetFontStretch|DrawGetFontStyle|DrawGetFontWeight|DrawGetGravity|DrawGetOpacity|DrawGetStrokeAntialias|DrawGetStrokeColor|DrawGetStrokeDashArray|DrawGetStrokeDashOffset|DrawGetStrokeLineCap|DrawGetStrokeLineJoin|DrawGetStrokeMiterLimit|DrawGetStrokeOpacity|DrawGetStrokeWidth|DrawGetTextAlignment|DrawGetTextAntialias|DrawGetTextDecoration|DrawGetTextEncoding|DrawGetTextInterlineSpacing|DrawGetTextInterwordSpacing|DrawGetTextKerning|DrawGetTextUnderColor|DrawGetVectorGraphics|DrawLine|DrawMatte|DrawPathClose|DrawPathCurveToAbsolute|DrawPathCurveToQuadraticBezierAbsolute|DrawPathCurveToQuadraticBezierRelative|DrawPathCurveToQuadraticBezierSmoothAbsolute|DrawPathCurveToQuadraticBezierSmoothRelative|DrawPathCurveToRelative|DrawPathCurveToSmoothAbsolute|DrawPathCurveToSmoothRelative|DrawPathEllipticArcAbsolute|DrawPathEllipticArcRelative|DrawPathFinish|DrawPathLineToAbsolute|DrawPathLineToHorizontalAbsolute|DrawPathLineToHorizontalRelative|DrawPathLineToRelative|DrawPathLineToVerticalAbsolute|DrawPathLineToVerticalRelative|DrawPathMoveToAbsolute|DrawPathMoveToRelative|DrawPathStart|DrawPoint|DrawPolygon|DrawPolyline|DrawPopClipPath|DrawPopDefs|DrawPopPattern|DrawPushClipPath|DrawPushDefs|DrawPushPattern|DrawRectangle|DrawRender|DrawResetVectorGraphics|DrawRotate|DrawRoundRectangle|DrawScale|DrawSetBorderColor|DrawSetClipPath|DrawSetClipRule|DrawSetClipUnits|DrawSetFillColor|DrawSetFillOpacity|DrawSetFillPatternURL|DrawSetFillRule|DrawSetFont|DrawSetFontFamily|DrawSetFontResolution|DrawSetFontSize|DrawSetFontStretch|DrawSetFontStyle|DrawSetFontWeight|DrawSetGravity|DrawSetOpacity|DrawSetStrokeAntialias|DrawSetStrokeColor|DrawSetStrokeDashArray|DrawSetStrokeDashOffset|DrawSetStrokeLineCap|DrawSetStrokeLineJoin|DrawSetStrokeMiterLimit|DrawSetStrokeOpacity|DrawSetStrokePatternURL|DrawSetStrokeWidth|DrawSetTextAlignment|DrawSetTextAntialias|DrawSetTextDecoration|DrawSetTextEncoding|DrawSetTextInterlineSpacing|DrawSetTextInterwordSpacing|DrawSetTextKerning|DrawSetTextUnderColor|DrawSetVectorGraphics|DrawSetViewbox|DrawSkewX|DrawSkewY|DrawTranslate|EndUpdateSession|exec|exp|Ext|fabs|FaceRecognize|fann_create_from_file|fann_create_shortcut_array|fann_create_sparse_array|fann_create_standard_array|fann_destroy|fann_destroy_train|fann_duplicate_train_data|fann_get_bit_fail|fann_get_bit_fail_limit|fann_get_errstr|fann_get_learning_momentum|fann_get_learning_rate|fann_get_MSE|fann_get_num_input|fann_get_num_output|fann_get_quickprop_decay|fann_get_quickprop_mu|fann_get_rprop_decrease_factor|fann_get_rprop_delta_max|fann_get_rprop_delta_min|fann_get_rprop_increase_factor|fann_get_total_connections|fann_get_total_neurons|fann_get_train_error_function|fann_init_weights|fann_length_train_data|fann_merge_train_data|fann_num_input_train_data|fann_num_output_train_data|fann_print_connections|fann_print_error|fann_print_parameters|fann_randomize_weights|fann_read_train_from_file|fann_reset_errno|fann_reset_errstr|fann_reset_MSE|fann_run|fann_save|fann_save_to_fixed|fann_save_train|fann_save_train_to_fixed|fann_scale_input_train_data|fann_scale_output_train_data|fann_scale_train_data|fann_set_activation_function|fann_set_activation_function_hidden|fann_set_activation_function_layer|fann_set_activation_function_output|fann_set_activation_steepness|fann_set_activation_steepness_hidden|fann_set_activation_steepness_layer|fann_set_activation_steepness_output|fann_set_bit_fail_limit|fann_set_error_log|fann_set_learning_momentum|fann_set_learning_rate|fann_set_quickprop_decay|fann_set_quickprop_mu|fann_set_rprop_decrease_factor|fann_set_rprop_delta_max|fann_set_rprop_delta_min|fann_set_rprop_increase_factor|fann_set_training_algorithm|fann_set_train_error_function|fann_set_train_stop_function|fann_shuffle_train_data|fann_subset_train_data|fann_test|fann_test_data|fann_train|fann_train_epoch|fann_train_on_data|fann_train_on_file|FBAffectedRows|FBBlobClose|FBBlobCreate|FBBlobOpen|FBBlobRead|FBBlobSeek|FBBlobWrite|FBColumnName|FBConnect|FBConnection|FBCountColumns|FBDataRecord|FBDataSet|FBDescribeCol|FBDisconnect|FBError|FBErrorCode|FBFetchForward|FBFreeResult|FBGetBlobId|FBGetValue|FBIsBlob|FBIsNull|FBNonQuery|fclose|feof|fflush|FFMpeg|fgetc|fgets|fgetstring|File|FileExists|filegid|filelast_acc|filelast_ch|filelast_mod|filesize|filetype|fileuid|float|floor|FlushMBR|fmod|fopen|fputc|fputs|fread|FreeImage_Allocate|FreeImage_AllocateT|FreeImage_Clone|FreeImage_DeInitialise|FreeImage_GetBlueMask|FreeImage_GetBPP|FreeImage_GetColorsUsed|FreeImage_GetColorType|FreeImage_GetCopyrightMessage|FreeImage_GetDIBSize|FreeImage_GetDotsPerMeterX|FreeImage_GetDotsPerMeterY|FreeImage_GetGreenMask|FreeImage_GetHeight|FreeImage_GetImageType|FreeImage_GetLine|FreeImage_GetPitch|FreeImage_GetRedMask|FreeImage_GetTransparencyCount|FreeImage_GetVersion|FreeImage_GetWidth|FreeImage_HasBackgroundColor|FreeImage_Initialise|FreeImage_IsTransparent|FreeImage_Load|FreeImage_Rescale|FreeImage_Save|FreeImage_SetDotsPerMeterX|FreeImage_SetDotsPerMeterY|FreeImage_SetPixelColor|FreeImage_SetTransparent|FreeImage_Unload|freopen|fseek|fsize|ftell|FtpAccess|FtpCDUp|FtpChdir|FtpClose|FtpConnect|FtpConnection|FtpDelete|FtpDir|FtpFile|FtpGet|FtpLastResponse|FtpLogin|FtpMkdir|FtpModDate|FtpNlst|FtpOptions|FtpPut|FtpPwd|FtpQuit|FtpRead|FtpRename|FtpRmdir|FtpSite|FtpSize|FtpSysType|FtpWrite|fwrite|gdAlphaBlend|GDCPIE_3d_angle|GDCPIE_3d_depth|GDCPIE_BGColor|GDCPIE_Color|GDCPIE_EdgeColor|GDCPIE_explode|GDCPIE_label_dist|GDCPIE_label_line|GDCPIE_label_size|GDCPIE_LineColor|GDCPIE_missing|GDCPIE_other_threshold|GDCPIE_percent_labels|GDCPIE_PlotColor|GDCPIE_title|GDCPIE_title_size|GDC_0Shelf|GDC_3d_angle|GDC_3d_depth|GDC_annotation_font|GDC_bar_width|GDC_BGColor|GDC_border|GDC_ExtColor|GDC_ExtVolColor|GDC_grid|GDC_GridColor|GDC_HLC_cap_width|GDC_HLC_style|GDC_LineColor|GDC_num_scatter_pts|GDC_PlotColor|GDC_requested_yinterval|GDC_requested_ymax|GDC_requested_ymin|GDC_SetColor|GDC_stack_type|GDC_thumblabel|GDC_thumbnail|GDC_thumbval|GDC_title|GDC_TitleColor|GDC_title_size|GDC_transparent_bg|GDC_VolColor|GDC_xaxis|GDC_xaxisfont_size|GDC_XLabelColor|GDC_xlabel_spacing|GDC_xtitle|GDC_XTitleColor|GDC_xtitle_size|GDC_yaxis|GDC_yaxis2|GDC_yaxisfont_size|GDC_YLabel2Color|GDC_ylabel2_fmt|GDC_YLabelColor|GDC_ylabel_density|GDC_ylabel_fmt|GDC_ytitle|GDC_ytitle2|GDC_YTitle2Color|GDC_YTitleColor|GDC_ytitle_size|GDC_yval_style|gdFontCacheSetup|gdFontCacheShutdown|gdFree|gdFreeFontCache|gdFTUseFontConfig|gdImageAABlend|gdImageAlpha|gdImageAlphaBlending|gdImageArc|gdImageBlue|gdImageBoundsSafe|gdImageChar|gdImageCharUp|gdImageColorAllocate|gdImageColorAllocateAlpha|gdImageColorClosest|gdImageColorClosestAlpha|gdImageColorClosestHWB|gdImageColorDeallocate|gdImageColorExact|gdImageColorExactAlpha|gdImageColorResolve|gdImageColorResolveAlpha|gdImageColorsTotal|gdImageColorTransparent|gdImageCopy|gdImageCopyMerge|gdImageCopyMergeGray|gdImageCopyResampled|gdImageCopyResized|gdImageCopyRotated|gdImageCreate|gdImageCreateFromGd|gdImageCreateFromGd2|gdImageCreateFromGd2Ctx|gdImageCreateFromGd2Part|gdImageCreateFromGd2PartCtx|gdImageCreateFromGd2PartPtr|gdImageCreateFromGd2Ptr|gdImageCreateFromGdCtx|gdImageCreateFromGdPtr|gdImageCreateFromGif|gdImageCreateFromGifCtx|gdImageCreateFromGifPtr|gdImageCreateFromJpeg|gdImageCreateFromJpegCtx|gdImageCreateFromJpegPtr|gdImageCreateFromPng|gdImageCreateFromPngCtx|gdImageCreateFromPngPtr|gdImageCreateFromPngSource|gdImageCreateFromWBMP|gdImageCreateFromWBMPCtx|gdImageCreateFromWBMPPtr|gdImageCreateFromXbm|gdImageCreateFromXpm|gdImageCreatePaletteFromTrueColor|gdImageCreateTrueColor|gdImageDashedLine|gdImageDestroy|gdImageFill|gdImageFilledArc|gdImageFilledEllipse|gdImageFilledPolygon|gdImageFilledRectangle|gdImageFillToBorder|gdImageGd|gdImageGd2|gdImageGd2Ptr|gdImageGdPtr|gdImageGetClip|gdImageGetInterlaced|gdImageGetPixel|gdImageGetTransparent|gdImageGetTrueColorPixel|gdImageGif|gdImageGifAnimAdd|gdImageGifAnimAddCtx|gdImageGifAnimAddPtr|gdImageGifAnimBegin|gdImageGifAnimBeginCtx|gdImageGifAnimBeginPtr|gdImageGifAnimEnd|gdImageGifAnimEndCtx|gdImageGifAnimEndPtr|gdImageGifCtx|gdImageGifPtr|gdImageGreen|gdImageInterlace|gdImageJpeg|gdImageJpegCtx|gdImageJpegPtr|gdImageLine|gdImageOpenPolygon|gdImagePaletteCopy|gdImagePalettePixel|gdImagePng|gdImagePngCtx|gdImagePngCtxEx|gdImagePngEx|gdImagePngPtr|gdImagePngPtrEx|gdImagePngToSink|gdImagePolygon|gdImageRectangle|gdImageRed|gdImageSaveAlpha|gdImageSetAntiAliased|gdImageSetAntiAliasedDontBlend|gdImageSetBrush|gdImageSetClip|gdImageSetPixel|gdImageSetStyle|gdImageSetThickness|gdImageSetTile|gdImageSharpen|gdImageSquareToCircle|gdImageString|gdImageString16|gdImageStringFT|gdImageStringFTCircle|gdImageStringFTEx|gdImageStringTTF|gdImageStringUp|gdImageStringUp16|gdImageSX|gdImageSY|gdImageTrueColor|gdImageTrueColorPixel|gdImageTrueColorToPalette|gdImageWBMP|gdImageWBMPCtx|gdImageWBMPPtr|gdNewDynamicCtx|gdNewDynamicCtxEx|gdNewFileCtx|gdNewSSCtx|gdTrueColor|gdTrueColorAlpha|gdTrueColorGetAlpha|gdTrueColorGetBlue|gdTrueColorGetGreen|gdTrueColorGetRed|GeoCode|GeoIP|GET|GetAPID|GetAPMessage|GetFreqMBR|GetImageFromMagickWand|GetKeys|GetParentAPID|GetSessionID|GetVolumeRatioMBR|get_message|gmp_randclear|gmp_randinit_lc_2exp|gmp_randinit_lc_2exp_size|gmp_randinit_set|gmp_randseed|gmp_randseed_ui|gmp_urandomb_ui|gmp_urandomm_ui|GoogleResult|GoogleSearch|HasMember|HexToNumber|HPDF_AddPage|HPDF_AddPageLabel|HPDF_CreateExtGState|HPDF_CreateOutline|HPDF_Destination_SetFit|HPDF_Destination_SetFitB|HPDF_Destination_SetFitBH|HPDF_Destination_SetFitBV|HPDF_Destination_SetFitH|HPDF_Destination_SetFitR|HPDF_Destination_SetFitV|HPDF_Destination_SetXYZ|HPDF_Encoder_GetByteType|HPDF_Encoder_GetType|HPDF_Encoder_GetUnicode|HPDF_Encoder_GetWritingMode|HPDF_ExtGState_SetAlphaFill|HPDF_ExtGState_SetAlphaStroke|HPDF_ExtGState_SetBlendMode|HPDF_Font_GetAscent|HPDF_Font_GetBBox|HPDF_Font_GetCapHeight|HPDF_Font_GetDescent|HPDF_Font_GetEncodingName|HPDF_Font_GetFontName|HPDF_Font_GetUnicodeWidth|HPDF_Font_GetXHeight|HPDF_Font_MeasureText|HPDF_Font_TextWidth|HPDF_Free|HPDF_FreeDoc|HPDF_FreeDocAll|HPDF_GetCurrentEncoder|HPDF_GetCurrentPage|HPDF_GetEncoder|HPDF_GetError|HPDF_GetErrorDetail|HPDF_GetFont|HPDF_GetInfoAttr|HPDF_GetPageByIndex|HPDF_GetPageLayout|HPDF_GetPageMode|HPDF_GetStreamSize|HPDF_GetVersion|HPDF_GetViewerPreference|HPDF_HasDoc|HPDF_Image_GetBitsPerComponent|HPDF_Image_GetColorSpace|HPDF_Image_GetHeight|HPDF_Image_GetSize|HPDF_Image_GetSize2|HPDF_Image_GetWidth|HPDF_Image_SetColorMask|HPDF_Image_SetMaskImage|HPDF_InsertPage|HPDF_LinkAnnot_SetBorderStyle|HPDF_LoadJpegImageFromFile|HPDF_LoadPngImageFromFile|HPDF_LoadPngImageFromFile2|HPDF_LoadRawImageFromFile|HPDF_LoadRawImageFromMem|HPDF_LoadTTFontFromFile|HPDF_LoadTTFontFromFile2|HPDF_LoadType1FontFromFile|HPDF_New|HPDF_NewDoc|HPDF_Outline_SetDestination|HPDF_Outline_SetOpened|HPDF_Page_Arc|HPDF_Page_BeginText|HPDF_Page_Circle|HPDF_Page_Clip|HPDF_Page_ClosePath|HPDF_Page_ClosePathEofillStroke|HPDF_Page_ClosePathFillStroke|HPDF_Page_ClosePathStroke|HPDF_Page_Concat|HPDF_Page_CreateDestination|HPDF_Page_CreateLinkAnnot|HPDF_Page_CreateTextAnnot|HPDF_Page_CreateURILinkAnnot|HPDF_Page_CurveTo|HPDF_Page_CurveTo2|HPDF_Page_CurveTo3|HPDF_Page_DrawImage|HPDF_Page_Ellipse|HPDF_Page_EndPath|HPDF_Page_EndText|HPDF_Page_Eoclip|HPDF_Page_Eofill|HPDF_Page_EofillStroke|HPDF_Page_ExecuteXObject|HPDF_Page_Fill|HPDF_Page_FillStroke|HPDF_Page_GetCharSpace|HPDF_Page_GetCMYKFill|HPDF_Page_GetCMYKStroke|HPDF_Page_GetCurrentFont|HPDF_Page_GetCurrentFontSize|HPDF_Page_GetCurrentPos|HPDF_Page_GetCurrentPos2|HPDF_Page_GetCurrentTextPos|HPDF_Page_GetCurrentTextPos2|HPDF_Page_GetFillingColorSpace|HPDF_Page_GetFlat|HPDF_Page_GetGMode|HPDF_Page_GetGrayFill|HPDF_Page_GetGrayStroke|HPDF_Page_GetGStateDepth|HPDF_Page_GetHeight|HPDF_Page_GetHorizontalScalling|HPDF_Page_GetLineCap|HPDF_Page_GetLineJoin|HPDF_Page_GetLineWidth|HPDF_Page_GetMiterLimit|HPDF_Page_GetRGBFill|HPDF_Page_GetRGBStroke|HPDF_Page_GetStrokingColorSpace|HPDF_Page_GetTextLeading|HPDF_Page_GetTextMatrix|HPDF_Page_GetTextRaise|HPDF_Page_GetTextRenderingMode|HPDF_Page_GetTextRise|HPDF_Page_GetTransMatrix|HPDF_Page_GetWidth|HPDF_Page_GetWordSpace|HPDF_Page_GRestore|HPDF_Page_GSave|HPDF_Page_LineTo|HPDF_Page_MeasureText|HPDF_Page_MoveTextPos|HPDF_Page_MoveTextPos2|HPDF_Page_MoveTo|HPDF_Page_MoveToNextLine|HPDF_Page_Rectangle|HPDF_Page_SetCharSpace|HPDF_Page_SetCMYKFill|HPDF_Page_SetCMYKStroke|HPDF_Page_SetDash|HPDF_Page_SetExtGState|HPDF_Page_SetFlat|HPDF_Page_SetFontAndSize|HPDF_Page_SetGrayFill|HPDF_Page_SetGrayStroke|HPDF_Page_SetHeight|HPDF_Page_SetHorizontalScalling|HPDF_Page_SetLineCap|HPDF_Page_SetLineJoin|HPDF_Page_SetLineWidth|HPDF_Page_SetMiterLimit|HPDF_Page_SetRGBFill|HPDF_Page_SetRGBStroke|HPDF_Page_SetRotate|HPDF_Page_SetSize|HPDF_Page_SetSlideShow|HPDF_Page_SetTextLeading|HPDF_Page_SetTextMatrix|HPDF_Page_SetTextRaise|HPDF_Page_SetTextRenderingMode|HPDF_Page_SetTextRise|HPDF_Page_SetWidth|HPDF_Page_SetWordSpace|HPDF_Page_ShowText|HPDF_Page_ShowTextNextLine|HPDF_Page_ShowTextNextLineEx|HPDF_Page_Stroke|HPDF_Page_TextOut|HPDF_Page_TextRect|HPDF_Page_TextWidth|HPDF_ReadFromStream|HPDF_ResetError|HPDF_ResetStream|HPDF_SaveToFile|HPDF_SaveToStream|HPDF_SetCompressionMode|HPDF_SetCurrentEncoder|HPDF_SetEncryptionMode|HPDF_SetErrorHandler|HPDF_SetInfoAttr|HPDF_SetInfoDateAttr|HPDF_SetOpenAction|HPDF_SetPageLayout|HPDF_SetPageMode|HPDF_SetPagesConfiguration|HPDF_SetPassword|HPDF_SetPermission|HPDF_SetViewerPreference|HPDF_TextAnnot_SetIcon|HPDF_TextAnnot_SetOpened|HPDF_UseCNSEncodings|HPDF_UseCNSFonts|HPDF_UseCNTEncodings|HPDF_UseCNTFonts|HPDF_UseJPEncodings|HPDF_UseJPFonts|HPDF_UseKREncodings|HPDF_UseKRFonts|htmlCreateMemoryParserCtxt|htmlCtxtReadDoc|htmlCtxtReadFile|htmlCtxtReadMemory|htmlCtxtReset|htmlCtxtUseOptions|htmlDocDumpMemory|htmlElemDescArray|htmlElementAllowedHere|htmlElementStatusHere|htmlEntityDescArray|htmlFreeParserCtxt|htmlGetMetaEncoding|htmlHandleOmittedElem|htmlIsAutoClosed|htmlIsBooleanAttr|htmlIsScriptAttribute|htmlNewDoc|htmlNewDocNoDtD|htmlNodeStatus|htmlParseCharRef|htmlParseChunk|htmlParseDoc|htmlParseDocument|htmlParseElement|htmlParseFile|htmlReadDoc|htmlReadFile|htmlReadMemory|htmlSaveFile|htmlSaveFileEnc|htmlSaveFileFormat|htmlSetMetaEncoding|Hunspell_add|Hunspell_add_with_affix|Hunspell_analyze|Hunspell_create|Hunspell_create_key|Hunspell_destroy|Hunspell_generate|Hunspell_generate2|Hunspell_get_dic_encoding|Hunspell_remove|Hunspell_spell|Hunspell_stem|Hunspell_stem2|Hunspell_suggest|iconv|iconv2|iconvctl|iconv_close|iconv_open|InitMBR|int16|int32|int64|int8|IO|IsDrawingWand|IsMagickWand|IsPixelIterator|IsPixelWand|IsPixelWandSimilar|IsSet|JSDestroyContext|JSDestroyRuntime|JSEval|JSEvaluateScript|JSInitStandardClasses|JSLock|JSNewContext|JSNewObject|JSNewRuntime|JSONDeserialize|JSSetErrorReporter|JSShutDown|JSThrow|JSUnlock|JSWrap|KeySorted|KillThread|labs|Lang|LastErrorMBR|LastErrorStrMBR|ldap_abandon_ext|ldap_add_ext|ldap_add_ext_s|ldap_add_result_entry|ldap_bv2dn|ldap_bv2escaped_filter_value|ldap_bv2rdn|ldap_cancel|ldap_cancel_s|ldap_compare_ext|ldap_compare_ext_s|ldap_controls_dup|ldap_controls_free|ldap_control_create|ldap_control_dup|ldap_control_find|ldap_control_free|ldap_count_entries|ldap_count_messages|ldap_count_references|ldap_count_values_len|ldap_create|ldap_create_assertion_control|ldap_create_assertion_control_value|ldap_create_deref_control|ldap_create_page_control|ldap_create_page_control_value|ldap_create_session_tracking|ldap_create_session_tracking_value|ldap_create_sort_control|ldap_create_sort_control_value|ldap_create_sort_keylist|ldap_create_vlv_control|ldap_create_vlv_control_value|ldap_dcedn2dn|ldap_delete_ext|ldap_delete_ext_s|ldap_delete_result_entry|ldap_derefresponse_free|ldap_dn2ad_canonical|ldap_dn2bv|ldap_dn2dcedn|ldap_dn2domain|ldap_dn2str|ldap_dn2ufn|ldap_dnfree|ldap_dn_normalize|ldap_domain2dn|ldap_domain2hostlist|ldap_err2string|ldap_explode_dn|ldap_explode_rdn|ldap_extended_operation|ldap_extended_operation_s|ldap_first_attribute|ldap_first_entry|ldap_first_message|ldap_first_reference|ldap_free_sort_keylist|ldap_free_urldesc|ldap_get_attribute_ber|ldap_get_dn|ldap_get_dn_ber|ldap_get_entry_controls|ldap_gssapi_bind|ldap_gssapi_bind_s|ldap_initialize|ldap_install_tls|ldap_is_ldapi_url|ldap_is_ldaps_url|ldap_is_ldap_url|ldap_modify_ext|ldap_modify_ext_s|ldap_mods_free|ldap_msgdelete|ldap_msgfree|ldap_msgid|ldap_msgtype|ldap_next_attribute|ldap_next_entry|ldap_next_message|ldap_next_reference|ldap_parse_derefresponse_control|ldap_parse_deref_control|ldap_parse_extended_result|ldap_parse_intermediate|ldap_parse_pageresponse_control|ldap_parse_passwd|ldap_parse_passwordpolicy_control|ldap_parse_reference|ldap_parse_refresh|ldap_parse_result|ldap_parse_sasl_bind_result|ldap_parse_session_tracking_control|ldap_parse_sortresponse_control|ldap_parse_vlvresponse_control|ldap_parse_whoami|ldap_passwd|ldap_passwd_s|ldap_passwordpolicy_err2txt|ldap_put_vrFilter|ldap_rdn2bv|ldap_rdn2str|ldap_rdnfree|ldap_refresh|ldap_refresh_s|ldap_rename|ldap_rename_s|ldap_result|ldap_sasl_bind|ldap_sasl_bind_s|ldap_sasl_interactive_bind_s|ldap_search_ext|ldap_search_ext_s|ldap_start_tls|ldap_start_tls_s|ldap_str2dn|ldap_str2rdn|ldap_sync_destroy|ldap_sync_init|ldap_sync_initialize|ldap_sync_init_refresh_and_persist|ldap_sync_init_refresh_only|ldap_sync_poll|ldap_turn|ldap_turn_s|ldap_txn_end|ldap_txn_end_s|ldap_txn_start|ldap_txn_start_s|ldap_unbind_ext|ldap_unbind_ext_s|ldap_url_desc2str|ldap_url_parse|ldap_value_free_len|ldap_whoami|ldap_whoami_s|ldap_X509dn2bv|ldexp|LoadObject|localtime|log|log10|lo_close|lo_creat|lo_create|lo_export|lo_import|lo_import_with_oid|lo_lseek|lo_open|lo_read|lo_tell|lo_truncate|lo_unlink|lo_write|ltrim|MagickAdaptiveBlurImage|MagickAdaptiveBlurImageChannel|MagickAdaptiveResizeImage|MagickAdaptiveSharpenImage|MagickAdaptiveSharpenImageChannel|MagickAdaptiveThresholdImage|MagickAddImage|MagickAddNoiseImage|MagickAddNoiseImageChannel|MagickAffineTransformImage|MagickAnimateImages|MagickAnnotateImage|MagickAppendImages|MagickAutoGammaImage|MagickAutoGammaImageChannel|MagickAutoLevelImage|MagickAutoLevelImageChannel|MagickBlackThresholdImage|MagickBlueShiftImage|MagickBlurImage|MagickBlurImageChannel|MagickBorderImage|MagickBrightnessContrastImage|MagickBrightnessContrastImageChannel|MagickCharcoalImage|MagickChopImage|MagickClampImage|MagickClampImageChannel|MagickClearException|MagickClipImage|MagickClipImagePath|MagickClutImage|MagickClutImageChannel|MagickCoalesceImages|MagickColorDecisionListImage|MagickColorizeImage|MagickColorMatrixImage|MagickCombineImages|MagickCommentImage|MagickCompareImageChannels|MagickCompareImageLayers|MagickCompareImages|MagickCompositeImage|MagickCompositeImageChannel|MagickConstituteImage|MagickContrastImage|MagickContrastStretchImage|MagickContrastStretchImageChannel|MagickConvolveImage|MagickConvolveImageChannel|MagickCropImage|MagickCycleColormapImage|MagickDecipherImage|MagickDeconstructImages|MagickDeleteImageArtifact|MagickDeleteImageProperty|MagickDeleteOption|MagickDeskewImage|MagickDespeckleImage|MagickDestroyImage|MagickDisplayImage|MagickDisplayImages|MagickDistortImage|MagickDrawImage|MagickEdgeImage|MagickEmbossImage|MagickEncipherImage|MagickEnhanceImage|MagickEqualizeImage|MagickEqualizeImageChannel|MagickEvaluateImage|MagickEvaluateImageChannel|MagickEvaluateImages|MagickExportImagePixels|MagickExtentImage|MagickFilterImage|MagickFilterImageChannel|MagickFlipImage|MagickFloodfillPaintImage|MagickFlopImage|MagickForwardFourierTransformImage|MagickFrameImage|MagickFunctionImage|MagickFunctionImageChannel|MagickFxImage|MagickFxImageChannel|MagickGammaImage|MagickGammaImageChannel|MagickGaussianBlurImage|MagickGaussianBlurImageChannel|MagickGetAntialias|MagickGetBackgroundColor|MagickGetColorspace|MagickGetCompression|MagickGetCopyright|MagickGetExceptionType|MagickGetFilename|MagickGetFont|MagickGetFormat|MagickGetGravity|MagickGetHomeURL|MagickGetImage|MagickGetImageAlphaChannel|MagickGetImageArtifact|MagickGetImageArtifacts|MagickGetImageBackgroundColor|MagickGetImageBlob|MagickGetImageBluePrimary|MagickGetImageBorderColor|MagickGetImageChannelDepth|MagickGetImageChannelDistortion|MagickGetImageChannelDistortions|MagickGetImageChannelFeatures|MagickGetImageChannelKurtosis|MagickGetImageChannelMean|MagickGetImageChannelRange|MagickGetImageChannelStatistics|MagickGetImageClipMask|MagickGetImageColormapColor|MagickGetImageColors|MagickGetImageColorspace|MagickGetImageCompose|MagickGetImageCompression|MagickGetImageCompressionQuality|MagickGetImageDelay|MagickGetImageDepth|MagickGetImageDispose|MagickGetImageDistortion|MagickGetImageFilename|MagickGetImageFormat|MagickGetImageFuzz|MagickGetImageGamma|MagickGetImageGravity|MagickGetImageGreenPrimary|MagickGetImageHeight|MagickGetImageHistogram|MagickGetImageInterlaceScheme|MagickGetImageInterpolateMethod|MagickGetImageIterations|MagickGetImageLength|MagickGetImageMatteColor|MagickGetImageOrientation|MagickGetImagePage|MagickGetImagePixelColor|MagickGetImageProfile|MagickGetImageProfiles|MagickGetImageProperties|MagickGetImageProperty|MagickGetImageRange|MagickGetImageRedPrimary|MagickGetImageRegion|MagickGetImageRenderingIntent|MagickGetImageResolution|MagickGetImagesBlob|MagickGetImageScene|MagickGetImageSignature|MagickGetImageTicksPerSecond|MagickGetImageTotalInkDensity|MagickGetImageType|MagickGetImageUnits|MagickGetImageVirtualPixelMethod|MagickGetImageWhitePoint|MagickGetImageWidth|MagickGetInterlaceScheme|MagickGetInterpolateMethod|MagickGetIteratorIndex|MagickGetNumberImages|MagickGetOption|MagickGetOptions|MagickGetOrientation|MagickGetPackageName|MagickGetPage|MagickGetPointsize|MagickGetQuantumDepth|MagickGetQuantumRange|MagickGetReleaseDate|MagickGetResolution|MagickGetResource|MagickGetResourceLimit|MagickGetSamplingFactors|MagickGetSize|MagickGetSizeOffset|MagickGetType|MagickGetVersion|MagickHaldClutImage|MagickHaldClutImageChannel|MagickHasNextImage|MagickHasPreviousImage|MagickIdentifyImage|MagickImplodeImage|MagickImportImagePixels|MagickInverseFourierTransformImage|MagickLabelImage|MagickLevelImage|MagickLevelImageChannel|MagickLinearStretchImage|MagickLiquidRescaleImage|MagickMagnifyImage|MagickMedianFilterImage|MagickMergeImageLayers|MagickMinifyImage|MagickModulateImage|MagickMontageImage|MagickMorphImages|MagickMorphologyImage|MagickMorphologyImageChannel|MagickMotionBlurImage|MagickMotionBlurImageChannel|MagickNegateImage|MagickNegateImageChannel|MagickNewImage|MagickNextImage|MagickNormalizeImage|MagickNormalizeImageChannel|MagickOilPaintImage|MagickOpaquePaintImage|MagickOpaquePaintImageChannel|MagickOptimizeImageLayers|MagickOrderedPosterizeImage|MagickOrderedPosterizeImageChannel|MagickPingImage|MagickPingImageBlob|MagickPingImageFile|MagickPolaroidImage|MagickPosterizeImage|MagickPreviewImages|MagickPreviousImage|MagickProfileImage|MagickQuantizeImage|MagickQuantizeImages|MagickQueryConfigureOption|MagickQueryConfigureOptions|MagickQueryFontMetrics|MagickQueryFonts|MagickQueryFormats|MagickQueryMultilineFontMetrics|MagickRadialBlurImage|MagickRadialBlurImageChannel|MagickRaiseImage|MagickRandomThresholdImage|MagickRandomThresholdImageChannel|MagickReadImage|MagickReadImageBlob|MagickReadImageFile|MagickReduceNoiseImage|MagickRelinquishMemory|MagickRemapImage|MagickRemoveImage|MagickRemoveImageProfile|MagickResampleImage|MagickResetImagePage|MagickResetIterator|MagickRollImage|MagickRotateImage|MagickSampleImage|MagickScaleImage|MagickSegmentImage|MagickSelectiveBlurImage|MagickSelectiveBlurImageChannel|MagickSeparateImageChannel|MagickSepiaToneImage|MagickSetAntialias|MagickSetBackgroundColor|MagickSetColorspace|MagickSetCompression|MagickSetCompressionQuality|MagickSetDepth|MagickSetExtract|MagickSetFilename|MagickSetFirstIterator|MagickSetFont|MagickSetFormat|MagickSetGravity|MagickSetImage|MagickSetImageAlphaChannel|MagickSetImageArtifact|MagickSetImageBackgroundColor|MagickSetImageBias|MagickSetImageBluePrimary|MagickSetImageBorderColor|MagickSetImageChannelDepth|MagickSetImageClipMask|MagickSetImageColor|MagickSetImageColormapColor|MagickSetImageColorspace|MagickSetImageCompose|MagickSetImageCompression|MagickSetImageCompressionQuality|MagickSetImageDelay|MagickSetImageDepth|MagickSetImageDispose|MagickSetImageExtent|MagickSetImageFilename|MagickSetImageFormat|MagickSetImageFuzz|MagickSetImageGamma|MagickSetImageGravity|MagickSetImageGreenPrimary|MagickSetImageInterlaceScheme|MagickSetImageInterpolateMethod|MagickSetImageIterations|MagickSetImageMatte|MagickSetImageMatteColor|MagickSetImageOpacity|MagickSetImageOrientation|MagickSetImagePage|MagickSetImageProfile|MagickSetImageProperty|MagickSetImageRedPrimary|MagickSetImageRenderingIntent|MagickSetImageResolution|MagickSetImageScene|MagickSetImageTicksPerSecond|MagickSetImageType|MagickSetImageUnits|MagickSetImageVirtualPixelMethod|MagickSetImageWhitePoint|MagickSetInterlaceScheme|MagickSetInterpolateMethod|MagickSetIteratorIndex|MagickSetLastIterator|MagickSetOption|MagickSetOrientation|MagickSetPage|MagickSetPassphrase|MagickSetPointsize|MagickSetResolution|MagickSetResourceLimit|MagickSetSamplingFactors|MagickSetSize|MagickSetSizeOffset|MagickSetType|MagickShadeImage|MagickShadowImage|MagickSharpenImage|MagickSharpenImageChannel|MagickShaveImage|MagickShearImage|MagickSigmoidalContrastImage|MagickSigmoidalContrastImageChannel|MagickSimilarityImage|MagickSketchImage|MagickSolarizeImage|MagickSparseColorImage|MagickSpliceImage|MagickSpreadImage|MagickSteganoImage|MagickStereoImage|MagickStripImage|MagickSwirlImage|MagickTextureImage|MagickThresholdImage|MagickThresholdImageChannel|MagickThumbnailImage|MagickTintImage|MagickTransformImage|MagickTransformImageColorspace|MagickTransparentPaintImage|MagickTransposeImage|MagickTransverseImage|MagickTrimImage|MagickUniqueImageColors|MagickUnsharpMaskImage|MagickUnsharpMaskImageChannel|MagickVignetteImage|MagickWaveImage|MagickWhiteThresholdImage|MagickWriteImage|MagickWriteImageFile|MagickWriteImagesFile|mail|mail_error|MAPICopyMessage|MAPICreateSubFolder|MAPIDeleteMessage|MAPIDeleteSubFolder|MAPIDeleteSubFolderByName|MAPIGetContents|MAPIGetFolder|MAPIGetHierarchy|MAPIGetNextContact|MAPIGetNextMessage|MAPIGetNextSubFolder|MAPIGetProfileName|MAPIGetRowCount|MAPIInit|MAPILogin|MAPILogout|MAPIMoveMessage|MAPIOpenContacts|MAPIOpenDeletedItems|MAPIOpenDrafts|MAPIOpenInbox|MAPIOpenMessageStore|MAPIOpenOutbox|MAPIOpenRootFolder|MAPIOpenSentItems|MAPIOpenSubFolder|MAPIReleaseFolder|MAPISortContents|MAPITerm|md5|MemCachedAdd|MemCachedAddByKey|MemCachedAddServer|MemCachedAddServerUDP|MemCachedAddServerUnixSocket|MemCachedAppend|MemCachedAppendByKey|MemCachedBehaviorGet|MemCachedBehaviorSet|MemCachedCreate|MemCachedDecrement|MemCachedDelete|MemCachedDeleteByKey|MemCachedError|MemCachedFlush|MemCachedFree|MemCachedGet|MemCachedGetByKey|MemCachedIncrement|MemCachedMGet|MemCachedMGetByKey|MemCachedPrepend|MemCachedPrependByKey|MemCachedReplace|MemCachedReplaceByKey|MemCachedResetServers|MemCachedServerPush|MemCachedSet|MemCachedSetByKey|memchr|memcmp|memcpy|memmove|memset|MessageAddAttachment|MessageAddRecipient|MessageClose|MessageCreate|MessageDeleteAttachment|MessageGetAttachmentCount|MessageGetAttachmentName|MessageGetBCC|MessageGetBody|MessageGetBodySize|MessageGetCC|MessageGetHeader|MessageGetMessageFlags|MessageGetNamedProperty|MessageGetNextRecipient|MessageGetReceivedTime|MessageGetReceivedTimeString|MessageGetRecipients|MessageGetRTF|MessageGetRTFSize|MessageGetSenderEmail|MessageGetSenderName|MessageGetSensitivity|MessageGetSubject|MessageGetSubmitTime|MessageGetSubmitTimeString|MessageGetTo|MessageIsUnread|MessageMarkAsPrivate|MessageMarkAsRead|MessageSave|MessageSaveAttachment|MessageSend|MessageSetBody|MessageSetDeliveryReceipt|MessageSetMessageFlags|MessageSetMessageStatus|MessageSetNamedProperty|MessageSetReadReceipt|MessageSetRTF|MessageSetSenderEmail|MessageSetSenderName|MessageSetSensitivity|MessageSetSubject|MessageShowForm|METAR|METARRec|mime_decode|mime_encode|MinimalObject|MongoAddUser|MongoAuthenticate|MongoCheckConnection|MongoClose|MongoCommand|MongoConnect|MongoConnection|MongoConnectReplica|MongoCount|MongoCursor|MongoData|MongoDataSet|MongoDisconnect|MongoDropCollection|MongoDropDb|MongoError|MongoFind|MongoFindOne|MongoIndex|MongoInsert|MongoIsMaster|MongoLastError|MongoNext|MongoPrevError|MongoRemove|MongoSetOpTimeout|MongoSimpleCommand|MongoSimpleIndex|MongoUpdate|MongoUpdateObject|MongoUpdateType|mpf_abs|mpf_add|mpf_add_ui|mpf_ceil|mpf_clear|mpf_clears|mpf_cmp|mpf_cmp_d|mpf_cmp_si|mpf_cmp_ui|mpf_div|mpf_div_2exp|mpf_div_ui|mpf_eq|mpf_fits_sint_p|mpf_fits_slong_p|mpf_fits_sshort_p|mpf_fits_uint_p|mpf_fits_ulong_p|mpf_fits_ushort_p|mpf_floor|mpf_get_d|mpf_get_default_prec|mpf_get_d_2exp|mpf_get_prec|mpf_get_si|mpf_get_str|mpf_get_ui|mpf_init2|mpf_inits|mpf_init_set|mpf_init_set_d|mpf_init_set_si|mpf_init_set_str|mpf_init_set_ui|mpf_inp_str|mpf_integer_p|mpf_mul|mpf_mul_2exp|mpf_mul_ui|mpf_neg|mpf_out_str|mpf_pow_ui|mpf_random2|mpf_reldiff|mpf_set|mpf_set_d|mpf_set_default_prec|mpf_set_prec|mpf_set_prec_raw|mpf_set_q|mpf_set_si|mpf_set_str|mpf_set_ui|mpf_set_z|mpf_sgn|mpf_sqrt|mpf_sqrt_ui|mpf_sub|mpf_sub_ui|mpf_swap|mpf_trunc|mpf_ui_div|mpf_ui_sub|mpf_urandomb|mpq_abs|mpq_add|mpq_clear|mpq_clears|mpq_cmp|mpq_cmp_si|mpq_cmp_ui|mpq_denref|mpq_div|mpq_div_2exp|mpq_equal|mpq_get_d|mpq_get_den|mpq_get_num|mpq_get_str|mpq_inits|mpq_inp_str|mpq_inv|mpq_mul|mpq_mul_2exp|mpq_neg|mpq_numref|mpq_out_str|mpq_set|mpq_set_d|mpq_set_den|mpq_set_f|mpq_set_num|mpq_set_str|mpq_set_z|mpq_sgn|mpq_sub|mpq_swap|mpz_abs|mpz_add|mpz_addmul|mpz_addmul_ui|mpz_add_ui|mpz_and|mpz_bin_ui|mpz_bin_uiui|mpz_cdiv_q|mpz_cdiv_qr|mpz_cdiv_qr_ui|mpz_cdiv_q_2exp|mpz_cdiv_q_ui|mpz_cdiv_r|mpz_cdiv_r_2exp|mpz_cdiv_r_ui|mpz_cdiv_ui|mpz_clear|mpz_clears|mpz_clrbit|mpz_cmp|mpz_cmpabs|mpz_cmpabs_d|mpz_cmpabs_ui|mpz_cmp_d|mpz_cmp_si|mpz_cmp_ui|mpz_com|mpz_combit|mpz_congruent_2exp_p|mpz_congruent_p|mpz_congruent_ui_p|mpz_divexact|mpz_divexact_ui|mpz_divisible_2exp_p|mpz_divisible_p|mpz_divisible_ui_p|mpz_even_p|mpz_export|mpz_fac_ui|mpz_fdiv_q|mpz_fdiv_qr|mpz_fdiv_qr_ui|mpz_fdiv_q_2exp|mpz_fdiv_q_ui|mpz_fdiv_r|mpz_fdiv_r_2exp|mpz_fdiv_r_ui|mpz_fdiv_ui|mpz_fib2_ui|mpz_fib_ui|mpz_fits_sint_p|mpz_fits_slong_p|mpz_fits_sshort_p|mpz_fits_uint_p|mpz_fits_ulong_p|mpz_fits_ushort_p|mpz_gcd|mpz_gcdext|mpz_gcd_ui|mpz_getlimbn|mpz_get_d|mpz_get_d_2exp|mpz_get_si|mpz_get_str|mpz_get_ui|mpz_hamdist|mpz_import|mpz_inits|mpz_init_set|mpz_init_set_d|mpz_init_set_si|mpz_init_set_str|mpz_init_set_ui|mpz_inp_raw|mpz_inp_str|mpz_invert|mpz_ior|mpz_jacobi|mpz_kronecker|mpz_kronecker_si|mpz_kronecker_ui|mpz_lcm|mpz_lcm_ui|mpz_legendre|mpz_lucnum2_ui|mpz_lucnum_ui|mpz_mod|mpz_mod_ui|mpz_mul|mpz_mul_2exp|mpz_mul_si|mpz_mul_ui|mpz_neg|mpz_nextprime|mpz_odd_p|mpz_out_raw|mpz_out_str|mpz_perfect_power_p|mpz_perfect_square_p|mpz_popcount|mpz_powm|mpz_powm_sec|mpz_powm_ui|mpz_pow_ui|mpz_probab_prime_p|mpz_random|mpz_random2|mpz_remove|mpz_root|mpz_rootrem|mpz_rrandomb|mpz_scan0|mpz_scan1|mpz_set|mpz_setbit|mpz_set_d|mpz_set_f|mpz_set_q|mpz_set_si|mpz_set_str|mpz_set_ui|mpz_sgn|mpz_size|mpz_sizeinbase|mpz_si_kronecker|mpz_sqrt|mpz_sqrtrem|mpz_sub|mpz_submul|mpz_submul_ui|mpz_sub_ui|mpz_swap|mpz_tdiv_q|mpz_tdiv_qr|mpz_tdiv_qr_ui|mpz_tdiv_q_2exp|mpz_tdiv_q_ui|mpz_tdiv_r|mpz_tdiv_r_2exp|mpz_tdiv_r_ui|mpz_tdiv_ui|mpz_tstbit|mpz_ui_kronecker|mpz_ui_pow_ui|mpz_ui_sub|mpz_urandomb|mpz_urandomm|mpz_xor|MultiItems|MyConnection|MyDataRecord|MyDataSet|MySQLAutoCommit|MySQLBindResult|MySQLColumnGet|MySQLCommit|MySQLConnect|MySQLCountColumns|MySQLCountRows|MySQLDescribeCol|MySQLDisconnect|MySQLError|MySQLEscape|MySQLExecute|MySQLFetchAbsolute|MySQLFetchFirst|MySQLFetchLast|MySQLFetchNext|MySQLFreeQuery|MySQLFreeResult|MySQLListColumns|MySQLListDatabases|MySQLListTables|MySQLQuery|MySQLRollback|MySQLStatement|MySQLWarningCount|netsnmp_ds_get_boolean|netsnmp_ds_get_int|netsnmp_ds_get_string|netsnmp_ds_set_boolean|netsnmp_ds_set_int|netsnmp_ds_set_string|netsnmp_ds_toggle_boolean|netsnmp_init_mib|NewDrawingWand|NewMagickWand|NewMagickWandFromImage|NewPixelIterator|NewPixelRegionIterator|NewPixelWand|newsletter|NewTemplateContext|ne_accept_2xx|ne_accept_always|ne_addr_destroy|ne_addr_error|ne_addr_first|ne_addr_next|ne_addr_resolve|ne_addr_result|ne_add_depth_header|ne_add_proxy_auth|ne_add_request_header|ne_add_response_body_reader|ne_add_server_auth|ne_begin_request|ne_close_connection|ne_copy|ne_delete|ne_discard_response|ne_end_request|ne_fill_server_uri|ne_forget_auth|ne_getmodtime|ne_get_content_type|ne_get_error|ne_get_range|ne_get_request_flag|ne_get_response_header|ne_get_scheme|ne_get_server_hostport|ne_get_session|ne_get_session_flag|ne_get_session_private|ne_get_status|ne_i18n_init|ne_iaddr_cmp|ne_iaddr_free|ne_iaddr_make|ne_iaddr_print|ne_iaddr_reverse|ne_iaddr_typeof|ne_lock|ne_lockstore_add|ne_lockstore_create|ne_lockstore_destroy|ne_lockstore_findbyuri|ne_lockstore_first|ne_lockstore_next|ne_lockstore_register|ne_lockstore_remove|ne_lock_copy|ne_lock_create|ne_lock_destroy|ne_lock_discover|ne_lock_free|ne_lock_refresh|ne_lock_using_parent|ne_lock_using_resource|ne_mkcol|ne_move|ne_options2|ne_post|ne_proxy_server_uri|ne_read_response_block|ne_read_response_to_fd|ne_redirect_location|ne_redirect_register|ne_request_destroy|ne_request_dispatch|ne_response_header_iterate|ne_session_create|ne_session_destroy|ne_session_proxy|ne_set_addrlist|ne_set_connect_timeout|ne_set_localaddr|ne_set_proxy_auth|ne_set_read_timeout|ne_set_request_flag|ne_set_server_auth|ne_set_session_flag|ne_set_session_private|ne_set_useragent|ne_sock_accept|ne_sock_accept_ssl|ne_sock_block|ne_sock_cipher|ne_sock_close|ne_sock_connect|ne_sock_connect_ssl|ne_sock_connect_timeout|ne_sock_create|ne_sock_error|ne_sock_exit|ne_sock_fd|ne_sock_fullread|ne_sock_fullwrite|ne_sock_init|ne_sock_peek|ne_sock_peer|ne_sock_prebind|ne_sock_read|ne_sock_readline|ne_sock_read_timeout|ne_sock_sessid|ne_ssl_cert_cmp|ne_ssl_cert_digest|ne_ssl_cert_export|ne_ssl_cert_free|ne_ssl_cert_identity|ne_ssl_cert_import|ne_ssl_cert_issuer|ne_ssl_cert_read|ne_ssl_cert_signedby|ne_ssl_cert_subject|ne_ssl_cert_validity|ne_ssl_cert_validity_time|ne_ssl_cert_write|ne_ssl_clicert_decrypt|ne_ssl_clicert_encrypted|ne_ssl_clicert_free|ne_ssl_clicert_name|ne_ssl_clicert_owner|ne_ssl_clicert_read|ne_ssl_context_create|ne_ssl_context_destroy|ne_ssl_context_keypair|ne_ssl_context_set_flag|ne_ssl_context_set_verify|ne_ssl_context_trustcert|ne_ssl_dname_cmp|ne_ssl_readable_dname|ne_ssl_set_clicert|ne_ssl_trust_cert|ne_ssl_trust_default_ca|ne_unlock|ne_version_pre_http11|NumberToBin|NumberToHex|NumberToOct|number_format|NuoAbsolute|NuoAnalyze|NuoBlob|NuoBlobByName|NuoBlobCreate|NuoColumnInfo|NuoCommit|NuoConnection|NuoCountColumns|NuoCountRows|NuoDataRecord|NuoDataSet|NuoDisconnect|NuoError|NuoExecute|NuoFinish|NuoFirst|NuoFreeResult|NuoGetAutoCommit|NuoGetIsolationLevel|NuoInfo|NuoLast|NuoNext|NuoNonQuery|NuoParameterCount|NuoParameterMeta|NuoPrepared|NuoPrepareTransaction|NuoPrevious|NuoQuery|NuoRefresh|NuoRollback|NuoSetAutoCommit|NuoSetCursorName|NuoSetIsolationLevel|NuoSetNull|NuoSetParameter|NuoValue|NuoValueByName|NuoValues|ObjectDetect|ObjectLinks|OctToNumber|ODBCAddParameter|ODBCAutoCommit|ODBCBindResult|ODBCClearParameters|ODBCColumnGet|ODBCColumnSet|ODBCCommit|ODBCConnect|ODBCCountColumns|ODBCCountRows|ODBCDelete|ODBCDescribeCol|ODBCDisconnect|ODBCDriver|ODBCDriverConnect|ODBCError|ODBCExecute|ODBCExecuteQuery|ODBCFetchAbsolute|ODBCFetchFirst|ODBCFetchForward|ODBCFetchLast|ODBCFetchNext|ODBCFetchPrior|ODBCFirstDSN|ODBCFreeQuery|ODBCFreeResult|ODBCListColumns|ODBCListTables|ODBCListTypes|ODBCLock|ODBCNextDSN|ODBCPosition|ODBCRollback|ODBCSkip|ODBCStatement|ODBCUnlock|ODBCUpdate|ODBCWarning|OpenCamera|opendir|OptionDialog|ord|osip_accept_clone|osip_accept_encoding_clone|osip_accept_encoding_free|osip_accept_encoding_init|osip_accept_encoding_parse|osip_accept_free|osip_accept_language_clone|osip_accept_language_free|osip_accept_language_init|osip_accept_language_parse|osip_accept_parse|osip_alert_info_clone|osip_alert_info_free|osip_alert_info_init|osip_alert_info_parse|osip_allow_clone|osip_allow_free|osip_allow_init|osip_allow_parse|osip_authentication_info_clone|osip_authentication_info_free|osip_authentication_info_get_cnonce|osip_authentication_info_get_nextnonce|osip_authentication_info_get_nonce_count|osip_authentication_info_get_qop_options|osip_authentication_info_get_rspauth|osip_authentication_info_init|osip_authentication_info_parse|osip_authentication_info_set_cnonce|osip_authentication_info_set_nextnonce|osip_authentication_info_set_nonce_count|osip_authentication_info_set_qop_options|osip_authentication_info_set_rspauth|osip_authorization_clone|osip_authorization_free|osip_authorization_get_algorithm|osip_authorization_get_auth_type|osip_authorization_get_cnonce|osip_authorization_get_digest|osip_authorization_get_message_qop|osip_authorization_get_nonce|osip_authorization_get_nonce_count|osip_authorization_get_opaque|osip_authorization_get_realm|osip_authorization_get_response|osip_authorization_get_uri|osip_authorization_get_username|osip_authorization_init|osip_authorization_parse|osip_authorization_set_algorithm|osip_authorization_set_auth_type|osip_authorization_set_cnonce|osip_authorization_set_digest|osip_authorization_set_message_qop|osip_authorization_set_nonce|osip_authorization_set_nonce_count|osip_authorization_set_opaque|osip_authorization_set_realm|osip_authorization_set_response|osip_authorization_set_uri|osip_authorization_set_username|osip_body_clone|osip_body_free|osip_body_init|osip_body_parse|osip_body_parse_mime|osip_body_set_contenttype|osip_body_set_header|osip_body_to_str|osip_call_id_clone|osip_call_id_free|osip_call_id_get_host|osip_call_id_get_number|osip_call_id_init|osip_call_id_match|osip_call_id_message|osip_call_id_parse|osip_call_id_set_host|osip_call_id_set_number|osip_call_info_clone|osip_call_info_free|osip_call_info_init|osip_call_info_parse|osip_contact_clone|osip_contact_free|osip_contact_get_displayname|osip_contact_get_url|osip_contact_init|osip_contact_param_add|osip_contact_parse|osip_contact_set_displayname|osip_contact_set_url|osip_contact_to_str|osip_content_disposition_clone|osip_content_disposition_free|osip_content_disposition_init|osip_content_disposition_parse|osip_content_encoding_clone|osip_content_encoding_free|osip_content_encoding_init|osip_content_encoding_parse|osip_content_length_clone|osip_content_length_free|osip_content_length_init|osip_content_length_parse|osip_content_type_clone|osip_content_type_free|osip_content_type_init|osip_content_type_parse|osip_create_transaction|osip_cseq_clone|osip_cseq_free|osip_cseq_get_method|osip_cseq_get_number|osip_cseq_init|osip_cseq_match|osip_cseq_message|osip_cseq_parse|osip_cseq_set_method|osip_cseq_set_number|osip_error_info_clone|osip_error_info_free|osip_error_info_init|osip_error_info_parse|osip_event_describe|osip_event_free|osip_find_transaction_and_add_event|osip_from_clone|osip_from_compare|osip_from_free|osip_from_get_displayname|osip_from_get_tag|osip_from_get_url|osip_from_init|osip_from_message|osip_from_parse|osip_from_set_displayname|osip_from_set_tag|osip_from_set_url|osip_from_tag_match|osip_from_to_str|osip_header_clone|osip_header_free|osip_header_init|osip_ict_execute|osip_init|osip_ist_execute|osip_list_add|osip_list_add_string|osip_list_eol|osip_list_get|osip_list_remove|osip_list_size|osip_message_clone|osip_message_describe|osip_message_fix_last_via_header|osip_message_force_update|osip_message_free|osip_message_get_accept|osip_message_get_accept_encoding|osip_message_get_accept_language|osip_message_get_alert_info|osip_message_get_allow|osip_message_get_authentication_info|osip_message_get_authorization|osip_message_get_body|osip_message_get_call_id|osip_message_get_call_info|osip_message_get_contact|osip_message_get_content_encoding|osip_message_get_content_language|osip_message_get_content_length|osip_message_get_content_type|osip_message_get_cseq|osip_message_get_date|osip_message_get_encryption|osip_message_get_error_info|osip_message_get_expires|osip_message_get_from|osip_message_get_header|osip_message_get_in_reply_to|osip_message_get_max_forwards|osip_message_get_method|osip_message_get_mime_version|osip_message_get_organization|osip_message_get_priority|osip_message_get_proxy_authenticate|osip_message_get_proxy_authentication_info|osip_message_get_proxy_authorization|osip_message_get_proxy_require|osip_message_get_reason|osip_message_get_reason_phrase|osip_message_get_record_route|osip_message_get_require|osip_message_get_response_key|osip_message_get_retry_after|osip_message_get_route|osip_message_get_server|osip_message_get_status_code|osip_message_get_subject|osip_message_get_supported|osip_message_get_timestamp|osip_message_get_to|osip_message_get_unsupported|osip_message_get_uri|osip_message_get_user_agent|osip_message_get_version|osip_message_get_via|osip_message_get_warning|osip_message_get_www_authenticate|osip_message_get__property|osip_message_header_get_byname|osip_message_init|osip_message_parse|osip_message_set_accept|osip_message_set_accept_encoding|osip_message_set_accept_language|osip_message_set_alert_info|osip_message_set_allow|osip_message_set_authentication_info|osip_message_set_authorization|osip_message_set_body|osip_message_set_body_mime|osip_message_set_call_id|osip_message_set_call_info|osip_message_set_contact|osip_message_set_content_encoding|osip_message_set_content_language|osip_message_set_content_length|osip_message_set_content_type|osip_message_set_cseq|osip_message_set_date|osip_message_set_encryption|osip_message_set_error_info|osip_message_set_expires|osip_message_set_from|osip_message_set_header|osip_message_set_in_reply_to|osip_message_set_max_forwards|osip_message_set_method|osip_message_set_mime_version|osip_message_set_organization|osip_message_set_priority|osip_message_set_proxy_authenticate|osip_message_set_proxy_authentication_info|osip_message_set_proxy_authorization|osip_message_set_proxy_require|osip_message_set_reason_phrase|osip_message_set_record_route|osip_message_set_require|osip_message_set_response_key|osip_message_set_retry_after|osip_message_set_route|osip_message_set_server|osip_message_set_status_code|osip_message_set_subject|osip_message_set_supported|osip_message_set_timestamp|osip_message_set_to|osip_message_set_topheader|osip_message_set_unsupported|osip_message_set_uri|osip_message_set_user_agent|osip_message_set_version|osip_message_set_via|osip_message_set_warning|osip_message_set_www_authenticate|osip_message_to_str|osip_message_to_str_sipfrag|osip_mime_version_clone|osip_mime_version_free|osip_mime_version_init|osip_mime_version_parse|osip_nict_execute|osip_nict_set_destination|osip_nist_execute|osip_parse|osip_proxy_authenticate_clone|osip_proxy_authenticate_free|osip_proxy_authenticate_get_algorithm|osip_proxy_authenticate_get_auth_type|osip_proxy_authenticate_get_domain|osip_proxy_authenticate_get_nonce|osip_proxy_authenticate_get_opaque|osip_proxy_authenticate_get_qop_options|osip_proxy_authenticate_get_realm|osip_proxy_authenticate_get_stale|osip_proxy_authenticate_init|osip_proxy_authenticate_parse|osip_proxy_authenticate_set_algorithm|osip_proxy_authenticate_set_auth_type|osip_proxy_authenticate_set_domain|osip_proxy_authenticate_set_nonce|osip_proxy_authenticate_set_opaque|osip_proxy_authenticate_set_qop_options|osip_proxy_authenticate_set_realm|osip_proxy_authenticate_set_stale|osip_proxy_authentication_info_clone|osip_proxy_authentication_info_free|osip_proxy_authentication_info_init|osip_proxy_authentication_info_parse|osip_proxy_authorization_clone|osip_proxy_authorization_free|osip_proxy_authorization_get_algorithm|osip_proxy_authorization_get_auth_type|osip_proxy_authorization_get_cnonce|osip_proxy_authorization_get_digest|osip_proxy_authorization_get_message_qop|osip_proxy_authorization_get_nonce|osip_proxy_authorization_get_nonce_count|osip_proxy_authorization_get_opaque|osip_proxy_authorization_get_realm|osip_proxy_authorization_get_response|osip_proxy_authorization_get_uri|osip_proxy_authorization_get_username|osip_proxy_authorization_init|osip_proxy_authorization_parse|osip_proxy_authorization_set_algorithm|osip_proxy_authorization_set_auth_type|osip_proxy_authorization_set_cnonce|osip_proxy_authorization_set_digest|osip_proxy_authorization_set_message_qop|osip_proxy_authorization_set_nonce|osip_proxy_authorization_set_nonce_count|osip_proxy_authorization_set_opaque|osip_proxy_authorization_set_realm|osip_proxy_authorization_set_response|osip_proxy_authorization_set_uri|osip_proxy_authorization_set_username|osip_record_route_clone|osip_record_route_free|osip_record_route_init|osip_record_route_parse|osip_release|osip_retransmissions_execute|osip_route_clone|osip_route_free|osip_route_init|osip_route_parse|osip_set_cb_send_message|osip_set_kill_transaction_callback|osip_set_message_callback|osip_set_transport_error_callback|osip_timers_ict_execute|osip_timers_ist_execute|osip_timers_nict_execute|osip_timers_nist_execute|osip_to_clone|osip_to_compare|osip_to_free|osip_to_get_displayname|osip_to_get_tag|osip_to_get_url|osip_to_init|osip_to_message|osip_to_parse|osip_to_set_displayname|osip_to_set_tag|osip_to_set_url|osip_to_tag_match|osip_to_to_str|osip_transaction_add_event|osip_transaction_free|osip_transaction_free2|osip_transaction_get_destination|osip_transaction_get_your_instance|osip_transaction_init|osip_transaction_set_out_socket|osip_transaction_set_your_instance|osip_uri_clone|osip_uri_free|osip_uri_get_host|osip_uri_get_password|osip_uri_get_port|osip_uri_get_scheme|osip_uri_get_username|osip_uri_init|osip_uri_parse|osip_uri_set_host|osip_uri_set_password|osip_uri_set_port|osip_uri_set_scheme|osip_uri_set_transport_sctp|osip_uri_set_transport_tcp|osip_uri_set_transport_tls|osip_uri_set_transport_udp|osip_uri_set_username|osip_uri_to_str|osip_via_clone|osip_via_free|osip_via_init|osip_via_match|osip_via_param_add|osip_via_parse|osip_via_set_branch|osip_via_set_maddr|osip_via_set_received|osip_via_set_ttl|osip_via_to_str|osip_www_authenticate_clone|osip_www_authenticate_free|osip_www_authenticate_init|osip_www_authenticate_parse|out_err|out_graph|PDFReport|PDF_activate_item|PDF_add_bookmark|PDF_add_bookmark2|PDF_add_launchlink|PDF_add_locallink|PDF_add_nameddest|PDF_add_note|PDF_add_note2|PDF_add_pdflink|PDF_add_table_cell|PDF_add_textflow|PDF_add_thumbnail|PDF_add_weblink|PDF_arc|PDF_arcn|PDF_attach_file|PDF_attach_file2|PDF_begin_document|PDF_begin_font|PDF_begin_glyph|PDF_begin_item|PDF_begin_layer|PDF_begin_mc|PDF_begin_page|PDF_begin_page_ext|PDF_begin_pattern|PDF_begin_template|PDF_begin_template_ext|PDF_boot|PDF_check_context|PDF_circle|PDF_clip|PDF_close|PDF_closepath|PDF_closepath_fill_stroke|PDF_closepath_stroke|PDF_close_image|PDF_close_pdi|PDF_close_pdi_document|PDF_close_pdi_page|PDF_concat|PDF_continue_text|PDF_continue_text2|PDF_create_3dview|PDF_create_action|PDF_create_annotation|PDF_create_bookmark|PDF_create_field|PDF_create_fieldgroup|PDF_create_gstate|PDF_create_pvf|PDF_create_textflow|PDF_curveto|PDF_define_layer|PDF_delete|PDF_delete_pvf|PDF_delete_table|PDF_delete_textflow|PDF_encoding_set_char|PDF_endpath|PDF_end_document|PDF_end_font|PDF_end_glyph|PDF_end_item|PDF_end_layer|PDF_end_mc|PDF_end_page|PDF_end_page_ext|PDF_end_pattern|PDF_end_template|PDF_fill|PDF_fill_imageblock|PDF_fill_pdfblock|PDF_fill_stroke|PDF_fill_textblock|PDF_findfont|PDF_fit_image|PDF_fit_pdi_page|PDF_fit_table|PDF_fit_textflow|PDF_fit_textline|PDF_get_apiname|PDF_get_buffer|PDF_get_errmsg|PDF_get_errnum|PDF_get_kern_amount|PDF_get_majorversion|PDF_get_minorversion|PDF_get_opaque|PDF_get_parameter|PDF_get_pdi_parameter|PDF_get_pdi_value|PDF_get_value|PDF_info_font|PDF_info_matchbox|PDF_info_table|PDF_info_textflow|PDF_info_textline|PDF_initgraphics|PDF_lineto|PDF_load_3ddata|PDF_load_font|PDF_load_iccprofile|PDF_load_image|PDF_makespotcolor|PDF_mc_point|PDF_moveto|PDF_new|PDF_open_CCITT|PDF_open_file|PDF_open_image|PDF_open_image_file|PDF_open_pdi|PDF_open_pdi_document|PDF_open_pdi_page|PDF_place_image|PDF_place_pdi_page|PDF_process_pdi|PDF_rcurveto|PDF_rect|PDF_restore|PDF_resume_page|PDF_rlineto|PDF_rmoveto|PDF_rotate|PDF_save|PDF_scale|PDF_setcolor|PDF_setdash|PDF_setdashpattern|PDF_setflat|PDF_setfont|PDF_setgray|PDF_setgray_fill|PDF_setgray_stroke|PDF_setlinecap|PDF_setlinejoin|PDF_setlinewidth|PDF_setmatrix|PDF_setmiterlimit|PDF_setrgbcolor|PDF_setrgbcolor_fill|PDF_setrgbcolor_stroke|PDF_set_border_color|PDF_set_border_dash|PDF_set_border_style|PDF_set_gstate|PDF_set_info|PDF_set_info2|PDF_set_layer_dependency|PDF_set_parameter|PDF_set_text_pos|PDF_set_value|PDF_shading|PDF_shading_pattern|PDF_shfill|PDF_show|PDF_show2|PDF_show_boxed|PDF_show_boxed2|PDF_show_xy|PDF_show_xy2|PDF_shutdown|PDF_skew|PDF_stringwidth|PDF_stringwidth2|PDF_stroke|PDF_suspend_page|PDF_translate|PDF_utf16_to_utf8|PDF_utf32_to_utf16|PDF_utf8_to_utf16|PeekAPMessage|PeekDrawingWand|pie_gif|PixelClearException|PixelClearIteratorException|PixelGetAlpha|PixelGetAlphaQuantum|PixelGetBlack|PixelGetBlackQuantum|PixelGetBlue|PixelGetBlueQuantum|PixelGetColorAsNormalizedString|PixelGetColorAsString|PixelGetColorCount|PixelGetCurrentIteratorRow|PixelGetCyan|PixelGetCyanQuantum|PixelGetException|PixelGetExceptionType|PixelGetFuzz|PixelGetGreen|PixelGetGreenQuantum|PixelGetHSL|PixelGetIndex|PixelGetIteratorException|PixelGetIteratorExceptionType|PixelGetIteratorRow|PixelGetMagenta|PixelGetMagentaQuantum|PixelGetNextIteratorRow|PixelGetOpacity|PixelGetOpacityQuantum|PixelGetPreviousIteratorRow|PixelGetQuantumColor|PixelGetRed|PixelGetRedQuantum|PixelGetYellow|PixelGetYellowQuantum|PixelResetIterator|PixelSetAlpha|PixelSetAlphaQuantum|PixelSetBlack|PixelSetBlackQuantum|PixelSetBlue|PixelSetBlueQuantum|PixelSetColor|PixelSetColorCount|PixelSetColorFromWand|PixelSetCyan|PixelSetCyanQuantum|PixelSetFirstIteratorRow|PixelSetFuzz|PixelSetGreen|PixelSetGreenQuantum|PixelSetHSL|PixelSetIndex|PixelSetIteratorRow|PixelSetLastIteratorRow|PixelSetMagenta|PixelSetMagentaQuantum|PixelSetMagickColor|PixelSetOpacity|PixelSetOpacityQuantum|PixelSetQuantumColor|PixelSetRed|PixelSetRedQuantum|PixelSetYellow|PixelSetYellowQuantum|PixelSyncIterator|pop3_close|pop3_count_messages|pop3_delete_message|pop3_error|pop3_get_message|pop3_open|pop3_open_secured|PopDrawingWand|Pos|POST|pow|PQAffectedRows|PQConnect|PQConnection|PQCountColumns|PQCountRows|PQDataRecord|PQDataSet|PQDescribeCol|PQDisconnect|PQEncryptPassword|PQError|PQEscape|PQFile|PQFreeResult|PQGetValue|PQIsNull|PQLength|PQLogin|PQQuery|PQQueryError|PQQueryParams|PQTable|PQTableCol|preg|preg_match|PushDrawingWand|RAdjustment|RADOCheckButton|RADOComboBox|RADOEdit|RADOLabel|RADORadioButton|RADOTextView|RADOView|RAlignment|rand|RandomBit|RandomFloat|RandomInteger|RandomIntegerX|RandomSeed|RAspectFrame|RAudioStream|RBox|RButton|RButtonBox|RCalendar|RCheckButton|RCheckMenuItem|RClipboard|RColumnManager|RComboBox|ReadCamera|readdir|ReadFile|ReadMBR|read_mib|REdit|REditComboBox|regex|regex_match|regex_replace|RemoteAudio|RemoteContainer|RemoteObject|remove|RemoveCookie|RepeatString|ResetMBR|REventBox|rewinddir|RExpander|RFixed|RFont|RForm|RFrame|RGlade|RHandleBox|RHBox|RHButtonBox|RHPaned|RHScale|RHScrollbar|RHSeparator|RHTML|RIconView|RImage|RImageMenuItem|RItem|RLabel|RMedia|RMenu|RMenuBar|RMenuItem|RMenuToolButton|RNotebook|ROCV|round|RPaned|RPDF|RPrinter|RProgressBar|RPropertiesBox|RRadioButton|RRadioMenuItem|RRadioToolButton|rsa_decrypt|rsa_encrypt|rsa_generate_keys|rsa_sign|rsa_verify|RScale|RScrollbar|RScrolledWindow|RSeparator|RSheet|RSpinButton|RStatusbar|RTable|RTearoffMenuItem|RTextTag|RTextView|RToggleButton|RToggleToolButton|RToolbar|RToolButton|RToolSeparator|RTouchKeyboard|RTouchKeyboardForm|RTreeView|RTreeViewColumnManager|rtrim|RunThread|RVBox|RVButtonBox|RViewPort|RVPaned|RVScale|RVScrollbar|RVSeparator|RWebEditor|RWebEditorToolbar|RWebView|SablotAddArgBuffer|SablotAddArgTree|SablotAddParam|SablotClearError|SablotClearSituation|SablotCreateDocument|SablotCreateProcessor|SablotCreateProcessorForSituation|SablotCreateSituation|SablotDestroyDocument|SablotDestroyProcessor|SablotDestroySituation|SablotFreeResultArgs|SablotGetErrorLine|SablotGetErrorMsg|SablotGetInstanceData|SablotGetMsgText|SablotGetOptions|SablotGetResultArg|SablotLockDocument|SablotParse|SablotParseBuffer|SablotParseStylesheet|SablotParseStylesheetBuffer|SablotProcess|SablotProcessFiles|SablotProcessStrings|SablotProcessStringsWithBase|SablotRunProcessor|SablotRunProcessorExt|SablotRunProcessorGen|SablotSetBase|SablotSetBaseForScheme|SablotSetEncoding|SablotSetInstanceData|SablotSetLog|SablotSetOptions|SablotUnregHandler|SACKGenerator|Scintilla|sdp_attribute_describe|sdp_attribute_free|sdp_attribute_init|sdp_bandwidth_describe|sdp_bandwidth_free|sdp_bandwidth_init|sdp_connection_describe|sdp_connection_free|sdp_connection_init|sdp_media_describe|sdp_media_free|sdp_media_init|sdp_message_attribute_get|sdp_message_a_attribute_add|sdp_message_a_attribute_del_at_index|sdp_message_a_att_field_get|sdp_message_a_att_value_get|sdp_message_bandwidth_get|sdp_message_b_bandwidth_add|sdp_message_b_bandwidth_get|sdp_message_b_bwtype_get|sdp_message_clone|sdp_message_c_addrtype_get|sdp_message_c_addr_get|sdp_message_c_addr_multicast_int_get|sdp_message_c_addr_multicast_ttl_get|sdp_message_c_connection_add|sdp_message_c_nettype_get|sdp_message_describe|sdp_message_endof_media|sdp_message_e_email_add|sdp_message_e_email_get|sdp_message_free|sdp_message_init|sdp_message_i_info_get|sdp_message_i_info_set|sdp_message_k_keydata_get|sdp_message_k_keytype_get|sdp_message_k_key_set|sdp_message_m_media_add|sdp_message_m_media_get|sdp_message_m_number_of_port_get|sdp_message_m_payload_add|sdp_message_m_payload_get|sdp_message_m_port_get|sdp_message_m_proto_get|sdp_message_o_addrtype_get|sdp_message_o_addr_get|sdp_message_o_nettype_get|sdp_message_o_origin_set|sdp_message_o_sess_id_get|sdp_message_o_sess_version_get|sdp_message_o_username_get|sdp_message_parse|sdp_message_p_phone_add|sdp_message_p_phone_get|sdp_message_r_repeat_add|sdp_message_r_repeat_get|sdp_message_s_name_get|sdp_message_s_name_set|sdp_message_to_str|sdp_message_t_start_time_get|sdp_message_t_stop_time_get|sdp_message_t_time_descr_add|sdp_message_u_uri_get|sdp_message_u_uri_set|sdp_message_v_version_get|sdp_message_v_version_set|sdp_message_z_adjustments_get|sdp_message_z_adjustments_set|seekdir|semcreate|semdone|seminit|semp|semv|SendAPMessage|send_message|sent_count|Serializable|SerializeObject|ServerFileChooser|ServerFileSaver|ServerVar|SessionDestroy|SessionDone|SessionStart|SessionTimeout|SessionVar|SetCookie|SetFreqMBR|SetMember|SetSessionVar|SetVolumeRatioMBR|sha1|share_create|share_done|share_get|share_link_count|share_lock|share_open|share_set|share_size|share_unlock|shutdown_mib|sin|SingleContainer|SLConnection|SLDataRecord|SLDataSet|Sleep|SNMP|snmp_add_null_var|snmp_add_var|snmp_clone_pdu|snmp_close|snmp_fix_pdu|snmp_free_pdu|snmp_open|snmp_pdu_create|snmp_synch_response|SOAPClientBlockSocket|SOAPClientDestroy|SOAPClientGetBlockmode|SOAPClientInitArgs|SOAPClientInvoke|SOAPCtxAddFile|SOAPCtxFree|SOAPCtxGetFile|SOAPCtxNewWithMethod|SOAPEnvAddItem|SOAPEnvAttachment|SOAPEnvFindMethodname|SOAPEnvFindUrn|SOAPEnvFree|SOAPEnvGetBody|SOAPEnvGetFault|SOAPEnvGetMethod|SOAPEnvNewFromBuffer|SOAPEnvNewFromDoc|SOAPEnvNewFromStream|SOAPEnvNewWithFault|SOAPEnvNewWithMethod|SOAPEnvNewWithResponse|SOAPEnvPopItem|SOAPEnvPushItem|SOAPError|SOAPFaultBuild|SOAPGetCtxArray|SOAPGetCurrentNode|SOAPGetEnv|SOAPGetEnvArray|SOAPGetRootDoc|SOAPGetRootNode|SOAPGetServiceMethod|SOAPGetServiceUrn|SOAPRouterFindService|SOAPRouterFree|SOAPRouterNew|SOAPRouterRegisterService|SOAPServerDestroy|SOAPServerInitArgs|SOAPServerRegisterRouter|SOAPServerRun|SOAPXMLDocPrint|SOAPXMLGetChildren|SOAPXMLGetNext|SOAPXMLGetNodeArray|SOAPXMLGetText|SOCClient|SocketAccept|SocketClose|SocketConnect|SocketCreate|SocketError|SocketGetOption|SocketHasData|SocketInfo|SocketListen|SocketRead|SocketSetOption|SocketWrite|SOCServer|SpeexDecoder|SpeexEncoder|speex_bits_advance|speex_bits_destroy|speex_bits_init|speex_bits_init_buffer|speex_bits_insert_terminator|speex_bits_nbytes|speex_bits_pack|speex_bits_peek|speex_bits_peek_unsigned|speex_bits_read_from|speex_bits_read_whole_bytes|speex_bits_remaining|speex_bits_reset|speex_bits_rewind|speex_bits_set_bit_buffer|speex_bits_unpack_signed|speex_bits_unpack_unsigned|speex_bits_write|speex_bits_write_whole_bytes|speex_decoder_ctl|speex_decoder_destroy|speex_decoder_init|speex_decode_int|speex_encoder_ctl|speex_encoder_destroy|speex_encoder_init|speex_encode_int|speex_lib_ctl|speex_lib_get_mode|speex_mode_query|SQL|sqrt|srand|StaticLinks|strcat|strchr|strcmp|strcoll|strcpy|strcspn|String|strlen|strncat|strncmp|strncpy|StrNumberSplit|strpbrk|strrchr|StrReplace|StrSplit|strspn|strstr|strtok|strxfrm|SubStr|SVG|tan|TBind|TCompile|telldir|TErrors|TExecute|time|ToHTML|ToLower|ToUpper|trim|TUnBind|Twitter|Twitter_accountRateLimitGet|Twitter_blockCreate|Twitter_blockDestroy|Twitter_Create|Twitter_Destroy|Twitter_directMessageDestroyById|Twitter_directMessageGet|Twitter_directMessageGetSent|Twitter_directMessageSend|Twitter_favoriteCreate|Twitter_favoriteDestroy|Twitter_favoriteGet|Twitter_featuredUsersGet|Twitter_followersGet|Twitter_followersIdsGet|Twitter_friendsGet|Twitter_friendshipCreate|Twitter_friendshipDestroy|Twitter_friendshipShow|Twitter_friendsIdsGet|Twitter_getLastCurlError|Twitter_getLastWebResponse|Twitter_getProxyPassword|Twitter_getProxyServerIp|Twitter_getProxyServerPort|Twitter_getProxyUserName|Twitter_getTwitterPassword|Twitter_getTwitterUsername|Twitter_isCurlInit|Twitter_mentionsGet|Twitter_savedSearchCreate|Twitter_savedSearchDestroy|Twitter_savedSearchGet|Twitter_savedSearchShow|Twitter_search|Twitter_setProxyPassword|Twitter_setProxyServerIp|Twitter_setProxyServerPort|Twitter_setProxyUserName|Twitter_setTwitterPassword|Twitter_setTwitterUsername|Twitter_statusDestroyById|Twitter_statusShowById|Twitter_statusUpdate|Twitter_timelineFriendsGet|Twitter_timelinePublicGet|Twitter_timelineUserGet|Twitter_userGet|uint16|uint32|uint64|uint8|UnSerializeObject|URL|UTF8ToLower|UTF8ToUpper|VARS|via_get_comment|via_get_host|via_get_port|via_get_protocol|via_get_version|via_set_comment|via_set_host|via_set_port|via_set_protocol|via_set_version|VirtualADOObject|VirtualNuoObject|VirtualPQObject|VisibleRemoteObject|WaitThread|wait_message_ID|WALINK|WARESULT|WASSUMPTION|WASSUMPTIONVALUE|WebDocument|WebFree|WebTemplate|WebVar|WolframAlpha|WPOD|WriteFile|WriteMBR|WSUBPOD|XapianDatabase|XapianDatabaseCreate|XapianDatabaseCreate2|XapianDatabaseDestroy|XapianDatabase__add_database|XapianDatabase__allterms_begin|XapianDatabase__allterms_begin2|XapianDatabase__allterms_end|XapianDatabase__allterms_end2|XapianDatabase__get_avlength|XapianDatabase__get_collection_freq|XapianDatabase__get_description|XapianDatabase__get_doccount|XapianDatabase__get_doclength|XapianDatabase__get_document|XapianDatabase__get_lastdocid|XapianDatabase__get_metadata|XapianDatabase__get_spelling_suggestion|XapianDatabase__get_termfreq|XapianDatabase__has_positions|XapianDatabase__keep_alive|XapianDatabase__metadata_keys_begin|XapianDatabase__metadata_keys_end|XapianDatabase__positionlist_begin|XapianDatabase__positionlist_end|XapianDatabase__postlist_begin|XapianDatabase__postlist_end|XapianDatabase__reopen|XapianDatabase__spellings_begin|XapianDatabase__spellings_end|XapianDatabase__synonyms_begin|XapianDatabase__synonyms_end|XapianDatabase__synonym_keys_begin|XapianDatabase__synonym_keys_end|XapianDatabase__termlist_begin|XapianDatabase__termlist_end|XapianDatabase__term_exists|XapianDocument|XapianDocumentCreate|XapianDocumentDestroy|XapianDocument__add_posting|XapianDocument__add_term|XapianDocument__add_value|XapianDocument__clear_terms|XapianDocument__clear_values|XapianDocument__get_data|XapianDocument__get_description|XapianDocument__get_docid|XapianDocument__get_value|XapianDocument__remove_posting|XapianDocument__remove_term|XapianDocument__remove_value|XapianDocument__set_data|XapianDocument__termlist_begin|XapianDocument__termlist_count|XapianDocument__termlist_end|XapianDocument__values_begin|XapianDocument__values_count|XapianDocument__values_end|XapianEnquire|XapianEnquireCreate|XapianEnquireDestroy|XapianEnquire__get_description|XapianEnquire__get_eset|XapianEnquire__get_eset2|XapianEnquire__get_matching_terms_begin|XapianEnquire__get_matching_terms_begin2|XapianEnquire__get_matching_terms_end|XapianEnquire__get_matching_terms_end2|XapianEnquire__get_mset|XapianEnquire__get_query|XapianEnquire__set_collapse_key|XapianEnquire__set_cutoff|XapianEnquire__set_docid_order|XapianEnquire__set_query|XapianEnquire__set_sort_by_relevance|XapianEnquire__set_sort_by_value|XapianEnquire__set_sort_by_value_then_relevance|XapianEnquire__set_weighting_scheme|XapianESet|XapianESetCreate|XapianESetDestroy|XapianESetIterator|XapianESetIterator__equal|XapianESetIterator__get_description|XapianESetIterator__get_value|XapianESetIterator__get_weight|XapianESetIterator__next|XapianESetIterator__prev|XapianESet__back|XapianESet__begin|XapianESet__empty|XapianESet__end|XapianESet__getiter|XapianESet__get_description|XapianESet__get_ebound|XapianESet__max_size|XapianESet__size|XapianESet__swap|XapianMSet|XapianMSetCreate|XapianMSetDestroy|XapianMSetIterator|XapianMSetIterator__equal|XapianMSetIterator__get_collapse_count|XapianMSetIterator__get_collapse_key|XapianMSetIterator__get_description|XapianMSetIterator__get_document|XapianMSetIterator__get_percent|XapianMSetIterator__get_rank|XapianMSetIterator__get_value|XapianMSetIterator__get_weight|XapianMSetIterator__next|XapianMSetIterator__prev|XapianMSet__back|XapianMSet__begin|XapianMSet__convert_to_percent|XapianMSet__convert_to_percent2|XapianMSet__empty|XapianMSet__end|XapianMSet__fetch|XapianMSet__getiter|XapianMSet__get_description|XapianMSet__get_firstitem|XapianMSet__get_matches_estimated|XapianMSet__get_matches_lower_bound|XapianMSet__get_matches_upper_bound|XapianMSet__get_max_attained|XapianMSet__get_max_possible|XapianMSet__get_termfreq|XapianMSet__get_termweight|XapianMSet__max_size|XapianMSet__size|XapianMSet__swap|XapianPositionIterator|XapianPositionIterator__equal|XapianPositionIterator__get_description|XapianPositionIterator__get_value|XapianPositionIterator__next|XapianPositionIterator__skip_to|XapianPostingIterator|XapianPostingIterator__equal|XapianPostingIterator__get_description|XapianPostingIterator__get_doclength|XapianPostingIterator__get_value|XapianPostingIterator__get_wdf|XapianPostingIterator__next|XapianPostingIterator__positionlist_begin|XapianPostingIterator__positionlist_end|XapianQuery|XapianQueryCreate|XapianQueryCreate2|XapianQueryCreate3|XapianQueryCreate4|XapianQueryCreate5|XapianQueryDestroy|XapianQueryParser|XapianQueryParserCreate|XapianQueryParserDestroy|XapianQueryParser__add_boolean_prefix|XapianQueryParser__add_prefix|XapianQueryParser__get_corrected_query_string|XapianQueryParser__get_default_op|XapianQueryParser__get_description|XapianQueryParser__parse_query|XapianQueryParser__set_database|XapianQueryParser__set_default_op|XapianQueryParser__set_stemmer|XapianQueryParser__set_stemming_strategy|XapianQueryParser__set_stopper|XapianQueryParser__stoplist_begin|XapianQueryParser__stoplist_end|XapianQueryParser__unstem_begin|XapianQueryParser__unstem_end|XapianQuery__empty|XapianQuery__get_description|XapianQuery__get_length|XapianQuery__get_terms|XapianQuery__get_terms_begin|XapianQuery__get_terms_end|XapianRSet|XapianRSetCreate|XapianRSetDestroy|XapianRSet__add_document|XapianRSet__add_document2|XapianRSet__contains|XapianRSet__contains2|XapianRSet__empty|XapianRSet__get_description|XapianRSet__remove_document|XapianRSet__remove_document2|XapianRSet__size|XapianStem|XapianStemCreate|XapianStemCreate2|XapianStemDestroy|XapianStem__get_description|XapianStem__stem_word|XapianTermGenerator|XapianTermGeneratorCreate|XapianTermGeneratorDestroy|XapianTermGenerator__get_description|XapianTermGenerator__get_document|XapianTermGenerator__get_termpos|XapianTermGenerator__increase_termpos|XapianTermGenerator__index_text|XapianTermGenerator__index_text_without_positions|XapianTermGenerator__set_database|XapianTermGenerator__set_document|XapianTermGenerator__set_flags|XapianTermGenerator__set_stemmer|XapianTermGenerator__set_stopper|XapianTermGenerator__set_termpos|XapianTermIterator|XapianTermIterator__equal|XapianTermIterator__get_description|XapianTermIterator__get_termfreq|XapianTermIterator__get_value|XapianTermIterator__get_wdf|XapianTermIterator__next|XapianTermIterator__positionlist_begin|XapianTermIterator__positionlist_count|XapianTermIterator__positionlist_end|XapianTermIterator__skip_to|XapianValueIterator|XapianValueIterator__equal|XapianValueIterator__get_description|XapianValueIterator__get_value|XapianValueIterator__get_valueno|XapianValueIterator__next|XapianWritableDatabase|XapianWritableDatabaseCreate|XapianWritableDatabaseCreate2|XapianWritableDatabaseDestroy|XapianWritableDatabase__add_document|XapianWritableDatabase__add_spelling|XapianWritableDatabase__add_synonym|XapianWritableDatabase__begin_transaction|XapianWritableDatabase__cancel_transaction|XapianWritableDatabase__clear_synonyms|XapianWritableDatabase__commit_transaction|XapianWritableDatabase__delete_document|XapianWritableDatabase__delete_document2|XapianWritableDatabase__flush|XapianWritableDatabase__get_description|XapianWritableDatabase__remove_spelling|XapianWritableDatabase__remove_synonym|XapianWritableDatabase__replace_document|XapianWritableDatabase__replace_document2|XapianWritableDatabase__set_metadata|xls_cell|xls_close|xls_getCellProperties|xls_getLastCol|xls_getLastRow|xls_getRowProperties|xls_getVersion|xls_getWorkBookProperties|xls_getWorkSheet|xls_getWorkSheetProperties|xls_matrix|xls_open|xls_parseWorkBook|xls_parseWorkSheet|xls_row|xmlAddChild|xmlAddChildList|xmlAddNextSibling|xmlAddPrevSibling|xmlAddSibling|xmlCleanupParser|xmlDocDumpFormatMemory|xmlDocGetRootElement|xmlDocSetRootElement|XMLDocument|xmlEncodeEntitiesReentrant|xmlFreeDoc|xmlFreeTextReader|xmlGetNodeArray|xmlGetNodePath|xmlGetNsList|xmlGetNsProp|xmlGetProp|xmlHasNsProp|xmlHasProp|xmlIsBlankNode|xmlMemoryDump|xmlNewChild|xmlNewComment|xmlNewDoc|xmlNewDocComment|xmlNewDocNode|xmlNewDocPI|xmlNewDocRawNode|xmlNewDocText|xmlNewGlobalNs|xmlNewNode|xmlNewNs|xmlNewNsProp|xmlNewPI|xmlNewProp|xmlNewReference|xmlNewText|xmlNewTextChild|XMLNode|xmlNodeAddContent|xmlNodeGetBase|xmlNodeGetContent|xmlNodeGetLang|xmlNodeIsText|xmlNodeSetBase|xmlNodeSetContent|xmlNodeSetLang|xmlNodeSetName|xmlParseFile|xmlParseMemory|xmlReadDoc|xmlReaderForFile|xmlReaderForMemory|xmlReadFile|xmlReadMemory|xmlRemoveProp|xmlSaveFile|xmlSearchNs|xmlSearchNsByHref|xmlSetNsProp|xmlSetProp|xmlSetTreeDoc|xmlTextReaderConstName|xmlTextReaderConstValue|xmlTextReaderCurrentDoc|xmlTextReaderDepth|xmlTextReaderHasValue|xmlTextReaderIsEmptyElement|xmlTextReaderIsValid|xmlTextReaderNodeType|xmlTextReaderPreservePattern|xmlTextReaderRead|XSLTError|XSLTProcess|yahoo_add_buddy|yahoo_change_buddy_group|yahoo_chat_keepalive|yahoo_chat_logoff|yahoo_chat_logon|yahoo_chat_message|yahoo_conference_addinvite|yahoo_conference_decline|yahoo_conference_invite|yahoo_conference_logoff|yahoo_conference_logon|yahoo_conference_message|yahoo_current_status|yahoo_get_buddylist|yahoo_get_chatrooms|yahoo_get_cookie|yahoo_get_identities|yahoo_get_ignorelist|yahoo_get_list|yahoo_get_profile_url|yahoo_get_yab|yahoo_group_rename|yahoo_ignore_buddy|yahoo_keepalive|yahoo_login|yahoo_logout|yahoo_refresh|yahoo_reject_buddy|yahoo_remove_buddy|yahoo_send_im|yahoo_send_typing|yahoo_set_away|yahoo_set_callback|yahoo_set_identity_status|yahoo_set_yab|yahoo_status_code|yahoo_webcam_accept_viewer|yahoo_webcam_close_feed|yahoo_webcam_get_feed|yahoo_webcam_invite|yahoo_webcam_send_image|zip_add|zip_close|zip_delete|zip_fclose|zip_file_strerror|zip_fopen|zip_fopen_index|zip_fread|zip_get_archive_comment|zip_get_file_comment|zip_get_num_files|zip_open|zip_rename|zip_set_archive_comment|zip_set_file_comment|zip_source_buffer|zip_source_file|zip_source_filep|zip_source_free|zip_source_zip|zip_stat|zip_strerror|zip_unchange_all|zip_unchange_archive|_chdir|_errno|_fileno|_getenv|_mkdir|_putenv|_rmdir|_stat|_strerror|_unlink|_zip_get_name|_zip_name_locate|_zip_replace|_zip_unchange|__CONCEPT_INTERFACE_HELPER_GENERATE_UNIQUE_ID|__RNOTEBOOKPages",
+                    "constant.language.boolean": "true|false"
+                }, "identifier"),
+                n = "case|do|else|return|throw|try|typeof|classof|yield|echo",
+                r = "[a-zA-Z\\$_\u00a1-\uffff][a-zA-Z\\d\\$_\u00a1-\uffff]*\\b",
+                s = "\\\\(?:x[0-9a-fA-F]{2}|u[0-9a-fA-F]{4}|[0-2][0-7]{0,2}|3[0-6][0-7]?|37[0-7]?|[4-7][0-7]?|.)";
+            this.$rules = {
+                no_regex: [{
+                    token: "comment",
+                    regex: "\\/\\/",
+                    next: "line_comment"
+                }, i.getStartRule("doc-start"), {
+                    token: "comment",
+                    regex: /\/\*/,
+                    next: "comment"
+                }, {
+                    token: "string",
+                    regex: "'(?=.)",
+                    next: "qstring"
+                }, {
+                    token: "string",
+                    regex: '"(?=.)',
+                    next: "qqstring"
+                }, {
+                    token: "constant.numeric",
+                    regex: /0[xX][0-9a-fA-F]+\b/
+                }, {
+                    token: "constant.numeric",
+                    regex: /[+-]?\d+(?:(?:\.\d*)?(?:[eE][+-]?\d+)?)?\b/
+                }, {
+                    token: ["storage.type", "punctuation.operator", "support.function", "punctuation.operator", "entity.name.function", "text", "keyword.operator"],
+                    regex: "(" + r + ")(\\.)(prototype)(\\.)(" + r + ")(\\s*)(=)",
+                    next: "function_arguments"
+                }, {
+                    token: ["storage.type", "punctuation.operator", "entity.name.function", "text", "keyword.operator", "text", "storage.type", "text", "paren.lparen"],
+                    regex: "(" + r + ")(\\.)(" + r + ")(\\s*)(=)(\\s*)(function)(\\s*)(\\()",
+                    next: "function_arguments"
+                }, {
+                    token: ["entity.name.function", "text", "keyword.operator", "text", "storage.type", "text", "paren.lparen"],
+                    regex: "(" + r + ")(\\s*)(=)(\\s*)(function)(\\s*)(\\()",
+                    next: "function_arguments"
+                }, {
+                    token: ["storage.type", "punctuation.operator", "entity.name.function", "text", "keyword.operator", "text", "storage.type", "text", "entity.name.function", "text", "paren.lparen"],
+                    regex: "(" + r + ")(\\.)(" + r + ")(\\s*)(=)(\\s*)(function)(\\s+)(\\w+)(\\s*)(\\()",
+                    next: "function_arguments"
+                }, {
+                    token: ["storage.type", "text", "entity.name.function", "text", "paren.lparen"],
+                    regex: "(function)(\\s+)(" + r + ")(\\s*)(\\()",
+                    next: "function_arguments"
+                }, {
+                    token: ["entity.name.function", "text", "punctuation.operator", "text", "storage.type", "text", "paren.lparen"],
+                    regex: "(" + r + ")(\\s*)(:)(\\s*)(function)(\\s*)(\\()",
+                    next: "function_arguments"
+                }, {
+                    token: ["text", "text", "storage.type", "text", "paren.lparen"],
+                    regex: "(:)(\\s*)(function)(\\s*)(\\()",
+                    next: "function_arguments"
+                }, {
+                    token: "keyword",
+                    regex: "(?:" + n + ")\\b",
+                    next: "start"
+                }, {
+                    token: ["punctuation.operator", "support.function"],
+                    regex: /(\.)(s(?:h(?:ift|ow(?:Mod(?:elessDialog|alDialog)|Help))|croll(?:X|By(?:Pages|Lines)?|Y|To)?|t(?:op|rike)|i(?:n|zeToContent|debar|gnText)|ort|u(?:p|b(?:str(?:ing)?)?)|pli(?:ce|t)|e(?:nd|t(?:Re(?:sizable|questHeader)|M(?:i(?:nutes|lliseconds)|onth)|Seconds|Ho(?:tKeys|urs)|Year|Cursor|Time(?:out)?|Interval|ZOptions|Date|UTC(?:M(?:i(?:nutes|lliseconds)|onth)|Seconds|Hours|Date|FullYear)|FullYear|Active)|arch)|qrt|lice|avePreferences|mall)|h(?:ome|andleEvent)|navigate|c(?:har(?:CodeAt|At)|o(?:s|n(?:cat|textual|firm)|mpile)|eil|lear(?:Timeout|Interval)?|a(?:ptureEvents|ll)|reate(?:StyleSheet|Popup|EventObject))|t(?:o(?:GMTString|S(?:tring|ource)|U(?:TCString|pperCase)|Lo(?:caleString|werCase))|est|a(?:n|int(?:Enabled)?))|i(?:s(?:NaN|Finite)|ndexOf|talics)|d(?:isableExternalCapture|ump|etachEvent)|u(?:n(?:shift|taint|escape|watch)|pdateCommands)|j(?:oin|avaEnabled)|p(?:o(?:p|w)|ush|lugins.refresh|a(?:ddings|rse(?:Int|Float)?)|r(?:int|ompt|eference))|e(?:scape|nableExternalCapture|val|lementFromPoint|x(?:p|ec(?:Script|Command)?))|valueOf|UTC|queryCommand(?:State|Indeterm|Enabled|Value)|f(?:i(?:nd|le(?:ModifiedDate|Size|CreatedDate|UpdatedDate)|xed)|o(?:nt(?:size|color)|rward)|loor|romCharCode)|watch|l(?:ink|o(?:ad|g)|astIndexOf)|a(?:sin|nchor|cos|t(?:tachEvent|ob|an(?:2)?)|pply|lert|b(?:s|ort))|r(?:ou(?:nd|teEvents)|e(?:size(?:By|To)|calc|turnValue|place|verse|l(?:oad|ease(?:Capture|Events)))|andom)|g(?:o|et(?:ResponseHeader|M(?:i(?:nutes|lliseconds)|onth)|Se(?:conds|lection)|Hours|Year|Time(?:zoneOffset)?|Da(?:y|te)|UTC(?:M(?:i(?:nutes|lliseconds)|onth)|Seconds|Hours|Da(?:y|te)|FullYear)|FullYear|A(?:ttention|llResponseHeaders)))|m(?:in|ove(?:B(?:y|elow)|To(?:Absolute)?|Above)|ergeAttributes|a(?:tch|rgins|x))|b(?:toa|ig|o(?:ld|rderWidths)|link|ack))\b(?=\()/
+                }, {
+                    token: ["punctuation.operator", "support.function.dom"],
+                    regex: /(\.)(s(?:ub(?:stringData|mit)|plitText|e(?:t(?:NamedItem|Attribute(?:Node)?)|lect))|has(?:ChildNodes|Feature)|namedItem|c(?:l(?:ick|o(?:se|neNode))|reate(?:C(?:omment|DATASection|aption)|T(?:Head|extNode|Foot)|DocumentFragment|ProcessingInstruction|E(?:ntityReference|lement)|Attribute))|tabIndex|i(?:nsert(?:Row|Before|Cell|Data)|tem)|open|delete(?:Row|C(?:ell|aption)|T(?:Head|Foot)|Data)|focus|write(?:ln)?|a(?:dd|ppend(?:Child|Data))|re(?:set|place(?:Child|Data)|move(?:NamedItem|Child|Attribute(?:Node)?)?)|get(?:NamedItem|Element(?:sBy(?:Name|TagName)|ById)|Attribute(?:Node)?)|blur)\b(?=\()/
+                }, {
+                    token: ["punctuation.operator", "support.constant"],
+                    regex: /(\.)(s(?:ystemLanguage|cr(?:ipts|ollbars|een(?:X|Y|Top|Left))|t(?:yle(?:Sheets)?|atus(?:Text|bar)?)|ibling(?:Below|Above)|ource|uffixes|e(?:curity(?:Policy)?|l(?:ection|f)))|h(?:istory|ost(?:name)?|as(?:h|Focus))|y|X(?:MLDocument|SLDocument)|n(?:ext|ame(?:space(?:s|URI)|Prop))|M(?:IN_VALUE|AX_VALUE)|c(?:haracterSet|o(?:n(?:structor|trollers)|okieEnabled|lorDepth|mp(?:onents|lete))|urrent|puClass|l(?:i(?:p(?:boardData)?|entInformation)|osed|asses)|alle(?:e|r)|rypto)|t(?:o(?:olbar|p)|ext(?:Transform|Indent|Decoration|Align)|ags)|SQRT(?:1_2|2)|i(?:n(?:ner(?:Height|Width)|put)|ds|gnoreCase)|zIndex|o(?:scpu|n(?:readystatechange|Line)|uter(?:Height|Width)|p(?:sProfile|ener)|ffscreenBuffering)|NEGATIVE_INFINITY|d(?:i(?:splay|alog(?:Height|Top|Width|Left|Arguments)|rectories)|e(?:scription|fault(?:Status|Ch(?:ecked|arset)|View)))|u(?:ser(?:Profile|Language|Agent)|n(?:iqueID|defined)|pdateInterval)|_content|p(?:ixelDepth|ort|ersonalbar|kcs11|l(?:ugins|atform)|a(?:thname|dding(?:Right|Bottom|Top|Left)|rent(?:Window|Layer)?|ge(?:X(?:Offset)?|Y(?:Offset)?))|r(?:o(?:to(?:col|type)|duct(?:Sub)?|mpter)|e(?:vious|fix)))|e(?:n(?:coding|abledPlugin)|x(?:ternal|pando)|mbeds)|v(?:isibility|endor(?:Sub)?|Linkcolor)|URLUnencoded|P(?:I|OSITIVE_INFINITY)|f(?:ilename|o(?:nt(?:Size|Family|Weight)|rmName)|rame(?:s|Element)|gColor)|E|whiteSpace|l(?:i(?:stStyleType|n(?:eHeight|kColor))|o(?:ca(?:tion(?:bar)?|lName)|wsrc)|e(?:ngth|ft(?:Context)?)|a(?:st(?:M(?:odified|atch)|Index|Paren)|yer(?:s|X)|nguage))|a(?:pp(?:MinorVersion|Name|Co(?:deName|re)|Version)|vail(?:Height|Top|Width|Left)|ll|r(?:ity|guments)|Linkcolor|bove)|r(?:ight(?:Context)?|e(?:sponse(?:XML|Text)|adyState))|global|x|m(?:imeTypes|ultiline|enubar|argin(?:Right|Bottom|Top|Left))|L(?:N(?:10|2)|OG(?:10E|2E))|b(?:o(?:ttom|rder(?:Width|RightWidth|BottomWidth|Style|Color|TopWidth|LeftWidth))|ufferDepth|elow|ackground(?:Color|Image)))\b/
+                }, {
+                    token: ["support.constant"],
+                    regex: /that\b/
+                }, {
+                    token: ["storage.type", "punctuation.operator", "support.function.firebug"],
+                    regex: /(console)(\.)(warn|info|log|error|time|trace|timeEnd|assert)\b/
+                }, {
+                    token: t,
+                    regex: r
+                }, {
+                    token: "keyword.operator",
+                    regex: /--|\+\+|===|==|=|!=|!==|<=|>=|<<=|>>=|>>>=|<>|<|>|!|&&|\|\||\?\:|[!$%&*+\-~\/^]=?/,
+                    next: "start"
+                }, {
+                    token: "punctuation.operator",
+                    regex: /[?:,;.]/,
+                    next: "start"
+                }, {
+                    token: "paren.lparen",
+                    regex: /[\[({]/,
+                    next: "start"
+                }, {
+                    token: "paren.rparen",
+                    regex: /[\])}]/
+                }, {
+                    token: "comment",
+                    regex: /^#!.*$/
+                }],
+                start: [i.getStartRule("doc-start"), {
+                    token: "comment",
+                    regex: "\\/\\*",
+                    next: "comment_regex_allowed"
+                }, {
+                    token: "comment",
+                    regex: "\\/\\/",
+                    next: "line_comment_regex_allowed"
+                }, {
+                    token: "string.regexp",
+                    regex: "\\/",
+                    next: "regex"
+                }, {
+                    token: "text",
+                    regex: "\\s+|^$",
+                    next: "start"
+                }, {
+                    token: "empty",
+                    regex: "",
+                    next: "no_regex"
+                }],
+                regex: [{
+                    token: "regexp.keyword.operator",
+                    regex: "\\\\(?:u[\\da-fA-F]{4}|x[\\da-fA-F]{2}|.)"
+                }, {
+                    token: "string.regexp",
+                    regex: "/[sxngimy]*",
+                    next: "no_regex"
+                }, {
+                    token: "invalid",
+                    regex: /\{\d+\b,?\d*\}[+*]|[+*$^?][+*]|[$^][?]|\?{3,}/
+                }, {
+                    token: "constant.language.escape",
+                    regex: /\(\?[:=!]|\)|\{\d+\b,?\d*\}|[+*]\?|[()$^+*?.]/
+                }, {
+                    token: "constant.language.delimiter",
+                    regex: /\|/
+                }, {
+                    token: "constant.language.escape",
+                    regex: /\[\^?/,
+                    next: "regex_character_class"
+                }, {
+                    token: "empty",
+                    regex: "$",
+                    next: "no_regex"
+                }, {
+                    defaultToken: "string.regexp"
+                }],
+                regex_character_class: [{
+                    token: "regexp.charclass.keyword.operator",
+                    regex: "\\\\(?:u[\\da-fA-F]{4}|x[\\da-fA-F]{2}|.)"
+                }, {
+                    token: "constant.language.escape",
+                    regex: "]",
+                    next: "regex"
+                }, {
+                    token: "constant.language.escape",
+                    regex: "-"
+                }, {
+                    token: "empty",
+                    regex: "$",
+                    next: "no_regex"
+                }, {
+                    defaultToken: "string.regexp.charachterclass"
+                }],
+                function_arguments: [{
+                    token: "variable.parameter",
+                    regex: r
+                }, {
+                    token: "punctuation.operator",
+                    regex: "[, ]+"
+                }, {
+                    token: "punctuation.operator",
+                    regex: "$"
+                }, {
+                    token: "empty",
+                    regex: "",
+                    next: "no_regex"
+                }],
+                comment_regex_allowed: [{
+                    token: "comment",
+                    regex: "\\*\\/",
+                    next: "start"
+                }, {
+                    defaultToken: "comment"
+                }],
+                comment: [{
+                    token: "comment",
+                    regex: "\\*\\/",
+                    next: "no_regex"
+                }, {
+                    defaultToken: "comment"
+                }],
+                line_comment_regex_allowed: [{
+                    token: "comment",
+                    regex: "$|^",
+                    next: "start"
+                }, {
+                    defaultToken: "comment"
+                }],
+                line_comment: [{
+                    token: "comment",
+                    regex: "$|^",
+                    next: "no_regex"
+                }, {
+                    defaultToken: "comment"
+                }],
+                qqstring: [{
+                    token: "constant.language.escape",
+                    regex: s
+                }, {
+                    token: "string",
+                    regex: "\\\\$",
+                    next: "qqstring"
+                }, {
+                    token: "string",
+                    regex: '"|$',
+                    next: "no_regex"
+                }, {
+                    defaultToken: "string"
+                }],
+                qstring: [{
+                    token: "constant.language.escape",
+                    regex: s
+                }, {
+                    token: "string",
+                    regex: "\\\\$",
+                    next: "qstring"
+                }, {
+                    token: "string",
+                    regex: "'|$",
+                    next: "no_regex"
+                }, {
+                    defaultToken: "string"
+                }]
+            }, (!e || !e.noES6) && this.$rules.no_regex.unshift({
+                regex: "[{}]",
+                onMatch: function(e, t, n) {
+                    this.next = e == "{" ? this.nextState : "";
+                    if (e == "{" && n.length) return n.unshift("start", t), "paren";
+                    if (e == "}" && n.length) {
+                        n.shift(), this.next = n.shift();
+                        if (this.next.indexOf("string") != -1) return "paren.quasi.end"
+                    }
+                    return e == "{" ? "paren.lparen" : "paren.rparen"
+                },
+                nextState: "start"
+            }, {
+                token: "string.quasi.start",
+                regex: /`/,
+                push: [{
+                    token: "constant.language.escape",
+                    regex: s
+                }, {
+                    token: "paren.quasi.start",
+                    regex: /\${/,
+                    push: "start"
+                }, {
+                    token: "string.quasi.end",
+                    regex: /`/,
+                    next: "pop"
+                }, {
+                    defaultToken: "string.quasi"
+                }]
+            }), this.embedRules(i, "doc-", [i.getEndRule("no_regex")]), this.normalizeRules()
+        };
+    r.inherits(o, s), t.JavaScriptHighlightRules = o
+}), ace.define("ace/mode/matching_brace_outdent", ["require", "exports", "module", "ace/range"], function(e, t, n) {
+    "use strict";
+    var r = e("../range").Range,
+        i = function() {};
+    (function() {
+        this.checkOutdent = function(e, t) {
+            return /^\s+$/.test(e) ? /^\s*\}/.test(t) : !1
+        }, this.autoOutdent = function(e, t) {
+            var n = e.getLine(t),
+                i = n.match(/^(\s*\})/);
+            if (!i) return 0;
+            var s = i[1].length,
+                o = e.findMatchingBracket({
+                    row: t,
+                    column: s
+                });
+            if (!o || o.row == t) return 0;
+            var u = this.$getIndent(e.getLine(o.row));
+            e.replace(new r(t, 0, t, s - 1), u)
+        }, this.$getIndent = function(e) {
+            return e.match(/^\s*/)[0]
+        }
+    }).call(i.prototype), t.MatchingBraceOutdent = i
+}), ace.define("ace/mode/behaviour/cstyle", ["require", "exports", "module", "ace/lib/oop", "ace/mode/behaviour", "ace/token_iterator", "ace/lib/lang"], function(e, t, n) {
+    "use strict";
+    var r = e("../../lib/oop"),
+        i = e("../behaviour").Behaviour,
+        s = e("../../token_iterator").TokenIterator,
+        o = e("../../lib/lang"),
+        u = ["text", "paren.rparen", "punctuation.operator"],
+        a = ["text", "paren.rparen", "punctuation.operator", "comment"],
+        f, l = {},
+        c = function(e) {
+            var t = -1;
+            e.multiSelect && (t = e.selection.id, l.rangeCount != e.multiSelect.rangeCount && (l = {
+                rangeCount: e.multiSelect.rangeCount
+            }));
+            if (l[t]) return f = l[t];
+            f = l[t] = {
+                autoInsertedBrackets: 0,
+                autoInsertedRow: -1,
+                autoInsertedLineEnd: "",
+                maybeInsertedBrackets: 0,
+                maybeInsertedRow: -1,
+                maybeInsertedLineStart: "",
+                maybeInsertedLineEnd: ""
+            }
+        },
+        h = function() {
+            this.add("braces", "insertion", function(e, t, n, r, i) {
+                var s = n.getCursorPosition(),
+                    u = r.doc.getLine(s.row);
+                if (i == "{") {
+                    c(n);
+                    var a = n.getSelectionRange(),
+                        l = r.doc.getTextRange(a);
+                    if (l !== "" && l !== "{" && n.getWrapBehavioursEnabled()) return {
+                        text: "{" + l + "}",
+                        selection: !1
+                    };
+                    if (h.isSaneInsertion(n, r)) return /[\]\}\)]/.test(u[s.column]) || n.inMultiSelectMode ? (h.recordAutoInsert(n, r, "}"), {
+                        text: "{}",
+                        selection: [1, 1]
+                    }) : (h.recordMaybeInsert(n, r, "{"), {
+                        text: "{",
+                        selection: [1, 1]
+                    })
+                } else if (i == "}") {
+                    c(n);
+                    var p = u.substring(s.column, s.column + 1);
+                    if (p == "}") {
+                        var d = r.$findOpeningBracket("}", {
+                            column: s.column + 1,
+                            row: s.row
+                        });
+                        if (d !== null && h.isAutoInsertedClosing(s, u, i)) return h.popAutoInsertedClosing(), {
+                            text: "",
+                            selection: [1, 1]
+                        }
+                    }
+                } else {
+                    if (i == "\n" || i == "\r\n") {
+                        c(n);
+                        var v = "";
+                        h.isMaybeInsertedClosing(s, u) && (v = o.stringRepeat("}", f.maybeInsertedBrackets), h.clearMaybeInsertedClosing());
+                        var p = u.substring(s.column, s.column + 1);
+                        if (p === "}") {
+                            var m = r.findMatchingBracket({
+                                row: s.row,
+                                column: s.column + 1
+                            }, "}");
+                            if (!m) return null;
+                            var g = this.$getIndent(r.getLine(m.row))
+                        } else {
+                            if (!v) {
+                                h.clearMaybeInsertedClosing();
+                                return
+                            }
+                            var g = this.$getIndent(u)
+                        }
+                        var y = g + r.getTabString();
+                        return {
+                            text: "\n" + y + "\n" + g + v,
+                            selection: [1, y.length, 1, y.length]
+                        }
+                    }
+                    h.clearMaybeInsertedClosing()
+                }
+            }), this.add("braces", "deletion", function(e, t, n, r, i) {
+                var s = r.doc.getTextRange(i);
+                if (!i.isMultiLine() && s == "{") {
+                    c(n);
+                    var o = r.doc.getLine(i.start.row),
+                        u = o.substring(i.end.column, i.end.column + 1);
+                    if (u == "}") return i.end.column++, i;
+                    f.maybeInsertedBrackets--
+                }
+            }), this.add("parens", "insertion", function(e, t, n, r, i) {
+                if (i == "(") {
+                    c(n);
+                    var s = n.getSelectionRange(),
+                        o = r.doc.getTextRange(s);
+                    if (o !== "" && n.getWrapBehavioursEnabled()) return {
+                        text: "(" + o + ")",
+                        selection: !1
+                    };
+                    if (h.isSaneInsertion(n, r)) return h.recordAutoInsert(n, r, ")"), {
+                        text: "()",
+                        selection: [1, 1]
+                    }
+                } else if (i == ")") {
+                    c(n);
+                    var u = n.getCursorPosition(),
+                        a = r.doc.getLine(u.row),
+                        f = a.substring(u.column, u.column + 1);
+                    if (f == ")") {
+                        var l = r.$findOpeningBracket(")", {
+                            column: u.column + 1,
+                            row: u.row
+                        });
+                        if (l !== null && h.isAutoInsertedClosing(u, a, i)) return h.popAutoInsertedClosing(), {
+                            text: "",
+                            selection: [1, 1]
+                        }
+                    }
+                }
+            }), this.add("parens", "deletion", function(e, t, n, r, i) {
+                var s = r.doc.getTextRange(i);
+                if (!i.isMultiLine() && s == "(") {
+                    c(n);
+                    var o = r.doc.getLine(i.start.row),
+                        u = o.substring(i.start.column + 1, i.start.column + 2);
+                    if (u == ")") return i.end.column++, i
+                }
+            }), this.add("brackets", "insertion", function(e, t, n, r, i) {
+                if (i == "[") {
+                    c(n);
+                    var s = n.getSelectionRange(),
+                        o = r.doc.getTextRange(s);
+                    if (o !== "" && n.getWrapBehavioursEnabled()) return {
+                        text: "[" + o + "]",
+                        selection: !1
+                    };
+                    if (h.isSaneInsertion(n, r)) return h.recordAutoInsert(n, r, "]"), {
+                        text: "[]",
+                        selection: [1, 1]
+                    }
+                } else if (i == "]") {
+                    c(n);
+                    var u = n.getCursorPosition(),
+                        a = r.doc.getLine(u.row),
+                        f = a.substring(u.column, u.column + 1);
+                    if (f == "]") {
+                        var l = r.$findOpeningBracket("]", {
+                            column: u.column + 1,
+                            row: u.row
+                        });
+                        if (l !== null && h.isAutoInsertedClosing(u, a, i)) return h.popAutoInsertedClosing(), {
+                            text: "",
+                            selection: [1, 1]
+                        }
+                    }
+                }
+            }), this.add("brackets", "deletion", function(e, t, n, r, i) {
+                var s = r.doc.getTextRange(i);
+                if (!i.isMultiLine() && s == "[") {
+                    c(n);
+                    var o = r.doc.getLine(i.start.row),
+                        u = o.substring(i.start.column + 1, i.start.column + 2);
+                    if (u == "]") return i.end.column++, i
+                }
+            }), this.add("string_dquotes", "insertion", function(e, t, n, r, i) {
+                if (i == '"' || i == "'") {
+                    c(n);
+                    var s = i,
+                        o = n.getSelectionRange(),
+                        u = r.doc.getTextRange(o);
+                    if (u !== "" && u !== "'" && u != '"' && n.getWrapBehavioursEnabled()) return {
+                        text: s + u + s,
+                        selection: !1
+                    };
+                    var a = n.getCursorPosition(),
+                        f = r.doc.getLine(a.row),
+                        l = f.substring(a.column - 1, a.column);
+                    if (l == "\\") return null;
+                    var p = r.getTokens(o.start.row),
+                        d = 0,
+                        v, m = -1;
+                    for (var g = 0; g < p.length; g++) {
+                        v = p[g], v.type == "string" ? m = -1 : m < 0 && (m = v.value.indexOf(s));
+                        if (v.value.length + d > o.start.column) break;
+                        d += p[g].value.length
+                    }
+                    if (!v || m < 0 && v.type !== "comment" && (v.type !== "string" || o.start.column !== v.value.length + d - 1 && v.value.lastIndexOf(s) === v.value.length - 1)) {
+                        if (!h.isSaneInsertion(n, r)) return;
+                        return {
+                            text: s + s,
+                            selection: [1, 1]
+                        }
+                    }
+                    if (v && v.type === "string") {
+                        var y = f.substring(a.column, a.column + 1);
+                        if (y == s) return {
+                            text: "",
+                            selection: [1, 1]
+                        }
+                    }
+                }
+            }), this.add("string_dquotes", "deletion", function(e, t, n, r, i) {
+                var s = r.doc.getTextRange(i);
+                if (!i.isMultiLine() && (s == '"' || s == "'")) {
+                    c(n);
+                    var o = r.doc.getLine(i.start.row),
+                        u = o.substring(i.start.column + 1, i.start.column + 2);
+                    if (u == s) return i.end.column++, i
+                }
+            })
+        };
+    h.isSaneInsertion = function(e, t) {
+        var n = e.getCursorPosition(),
+            r = new s(t, n.row, n.column);
+        if (!this.$matchTokenType(r.getCurrentToken() || "text", u)) {
+            var i = new s(t, n.row, n.column + 1);
+            if (!this.$matchTokenType(i.getCurrentToken() || "text", u)) return !1
+        }
+        return r.stepForward(), r.getCurrentTokenRow() !== n.row || this.$matchTokenType(r.getCurrentToken() || "text", a)
+    }, h.$matchTokenType = function(e, t) {
+        return t.indexOf(e.type || e) > -1
+    }, h.recordAutoInsert = function(e, t, n) {
+        var r = e.getCursorPosition(),
+            i = t.doc.getLine(r.row);
+        this.isAutoInsertedClosing(r, i, f.autoInsertedLineEnd[0]) || (f.autoInsertedBrackets = 0), f.autoInsertedRow = r.row, f.autoInsertedLineEnd = n + i.substr(r.column), f.autoInsertedBrackets++
+    }, h.recordMaybeInsert = function(e, t, n) {
+        var r = e.getCursorPosition(),
+            i = t.doc.getLine(r.row);
+        this.isMaybeInsertedClosing(r, i) || (f.maybeInsertedBrackets = 0), f.maybeInsertedRow = r.row, f.maybeInsertedLineStart = i.substr(0, r.column) + n, f.maybeInsertedLineEnd = i.substr(r.column), f.maybeInsertedBrackets++
+    }, h.isAutoInsertedClosing = function(e, t, n) {
+        return f.autoInsertedBrackets > 0 && e.row === f.autoInsertedRow && n === f.autoInsertedLineEnd[0] && t.substr(e.column) === f.autoInsertedLineEnd
+    }, h.isMaybeInsertedClosing = function(e, t) {
+        return f.maybeInsertedBrackets > 0 && e.row === f.maybeInsertedRow && t.substr(e.column) === f.maybeInsertedLineEnd && t.substr(0, e.column) == f.maybeInsertedLineStart
+    }, h.popAutoInsertedClosing = function() {
+        f.autoInsertedLineEnd = f.autoInsertedLineEnd.substr(1), f.autoInsertedBrackets--
+    }, h.clearMaybeInsertedClosing = function() {
+        f && (f.maybeInsertedBrackets = 0, f.maybeInsertedRow = -1)
+    }, r.inherits(h, i), t.CstyleBehaviour = h
+}), ace.define("ace/mode/folding/cstyle", ["require", "exports", "module", "ace/lib/oop", "ace/range", "ace/mode/folding/fold_mode"], function(e, t, n) {
+    "use strict";
+    var r = e("../../lib/oop"),
+        i = e("../../range").Range,
+        s = e("./fold_mode").FoldMode,
+        o = t.FoldMode = function(e) {
+            e && (this.foldingStartMarker = new RegExp(this.foldingStartMarker.source.replace(/\|[^|]*?$/, "|" + e.start)), this.foldingStopMarker = new RegExp(this.foldingStopMarker.source.replace(/\|[^|]*?$/, "|" + e.end)))
+        };
+    r.inherits(o, s),
+        function() {
+            this.foldingStartMarker = /(\{|\[)[^\}\]]*$|^\s*(\/\*)/, this.foldingStopMarker = /^[^\[\{]*(\}|\])|^[\s\*]*(\*\/)/, this.getFoldWidgetRange = function(e, t, n, r) {
+                var i = e.getLine(n),
+                    s = i.match(this.foldingStartMarker);
+                if (s) {
+                    var o = s.index;
+                    if (s[1]) return this.openingBracketBlock(e, s[1], n, o);
+                    var u = e.getCommentFoldRange(n, o + s[0].length, 1);
+                    return u && !u.isMultiLine() && (r ? u = this.getSectionRange(e, n) : t != "all" && (u = null)), u
+                }
+                if (t === "markbegin") return;
+                var s = i.match(this.foldingStopMarker);
+                if (s) {
+                    var o = s.index + s[0].length;
+                    return s[1] ? this.closingBracketBlock(e, s[1], n, o) : e.getCommentFoldRange(n, o, -1)
+                }
+            }, this.getSectionRange = function(e, t) {
+                var n = e.getLine(t),
+                    r = n.search(/\S/),
+                    s = t,
+                    o = n.length;
+                t += 1;
+                var u = t,
+                    a = e.getLength();
+                while (++t < a) {
+                    n = e.getLine(t);
+                    var f = n.search(/\S/);
+                    if (f === -1) continue;
+                    if (r > f) break;
+                    var l = this.getFoldWidgetRange(e, "all", t);
+                    if (l) {
+                        if (l.start.row <= s) break;
+                        if (l.isMultiLine()) t = l.end.row;
+                        else if (r == f) break
+                    }
+                    u = t
+                }
+                return new i(s, o, u, e.getLine(u).length)
+            }
+        }.call(o.prototype)
+}), ace.define("ace/mode/concept", ["require", "exports", "module", "ace/lib/oop", "ace/mode/text", "ace/mode/concept_highlight_rules", "ace/mode/matching_brace_outdent", "ace/range", "ace/worker/worker_client", "ace/mode/behaviour/cstyle", "ace/mode/folding/cstyle"], function(e, t, n) {
+    "use strict";
+    var r = e("../lib/oop"),
+        i = e("./text").Mode,
+        s = e("./concept_highlight_rules").JavaScriptHighlightRules,
+        o = e("./matching_brace_outdent").MatchingBraceOutdent,
+        u = e("../range").Range,
+        a = e("../worker/worker_client").WorkerClient,
+        f = e("./behaviour/cstyle").CstyleBehaviour,
+        l = e("./folding/cstyle").FoldMode,
+        c = function() {
+            this.HighlightRules = s, this.$outdent = new o, this.$behaviour = new f, this.foldingRules = new l
+        };
+    r.inherits(c, i),
+        function() {
+            this.lineCommentStart = "//", this.blockComment = {
+                start: "/*",
+                end: "*/"
+            }, this.getNextLineIndent = function(e, t, n) {
+                var r = this.$getIndent(t),
+                    i = this.getTokenizer().getLineTokens(t, e),
+                    s = i.tokens,
+                    o = i.state;
+                if (s.length && s[s.length - 1].type == "comment") return r;
+                if (e == "start" || e == "no_regex") {
+                    var u = t.match(/^.*(?:\bcase\b.*\:|[\{\(\[])\s*$/);
+                    u && (r += n)
+                } else if (e == "doc-start") {
+                    if (o == "start" || o == "no_regex") return "";
+                    var u = t.match(/^\s*(\/?)\*/);
+                    u && (u[1] && (r += " "), r += "* ")
+                }
+                return r
+            }, this.checkOutdent = function(e, t, n) {
+                return this.$outdent.checkOutdent(t, n)
+            }, this.autoOutdent = function(e, t, n) {
+                this.$outdent.autoOutdent(t, n)
+            }, this.$id = "ace/mode/concept"
+        }.call(c.prototype), t.Mode = c
+})

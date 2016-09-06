@@ -9,7 +9,7 @@ class HTMLUI extends RemoteContainer {
 		super(null, CLASS_HTMLAPP);
 	}
 
-	public function Set(string prop_name, argument) {
+	public function Set(string prop_name, argument = "") {
 		if ((typeof argument == "array") || (typeof argument == "class")) {
 			var data = JSONSerialize(argument, true);
 			Send(MSG_CUSTOM_MESSAGE3, prop_name, data);

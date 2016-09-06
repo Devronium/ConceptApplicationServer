@@ -6870,10 +6870,11 @@ function ConceptClient(url, container, loading, absolute_paths, debug) {
 					data = JSON.stringify(parameter);
 		}
 		this.SendMessage("" + RID, MSG_EVENT_FIRED, "21", data, 0);
+		return this.Connected;
 	}
 
 	this.UIEvent = function(parameter) {
-		self.Fire(this.HTMLUIID, parameter);
+		return self.Fire(this.HTMLUIID, parameter);
 	}
 
 	this.SpeexCompress = function(element, data) {
