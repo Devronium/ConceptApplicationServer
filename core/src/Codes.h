@@ -288,7 +288,7 @@
 #define C_CASE_SEP       ":"
 #define C_DEFAULT        "default"
 
-#define NULL_STRING                (char *)""
+#define NULL_STRING                ""
 
 #define VARIABLE_PREFIX            '$'
 
@@ -325,23 +325,23 @@
 #define ESCAPE_CHARACTER       '\\'
 #define NEW_LINE               '\n'
 
-#define LINE_COMMENT           (char *)"//"
+#define LINE_COMMENT           "//"
 #define COMMENT_START          "/*"
 #define COMMENT_END            "*/"
 
-#define ATOM_MEMBER            (char *)"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_." // am scos $
-#define IDENTIFIER             (char *)"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_()"
-#define FIRSTCHAR              (char *)"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz_"
+#define ATOM_MEMBER            "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_." // am scos $
+#define IDENTIFIER             "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_()"
+#define FIRSTCHAR              "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz_"
 #define STATAMENT_SEPARATOR    ';'
 #define CASE_SEPARATOR         ':'
-#define SEPARATORS             (char *)" \t\r\n"
+#define SEPARATORS             " \t\r\n"
 #define ATOMIZER_OPEN          '('
 #define ATOMIZER_CLOSE         ')'
-#define QUOTES                 (char *)"'\""
-#define OPERATORS              (char *)"+-=*/%&|<>!^()[],~:@?"
+#define QUOTES                 "'\""
+#define OPERATORS              "+-=*/%&|<>!^()[],~:@?"
 #define BLANK                  ' '
-#define LEVEL_1                (char *)"*/%"
-#define LEVEL_2                (char *)"+-"
+#define LEVEL_1                "*/%"
+#define LEVEL_2                "+-"
 #define ST_BEGIN               '{'
 #define ST_END                 '}'
 #define MAX_OPERATOR_LEN       2

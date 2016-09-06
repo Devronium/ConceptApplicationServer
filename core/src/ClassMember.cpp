@@ -7,7 +7,7 @@
 POOLED_IMPLEMENTATION(ExecutableMember)
 POOLED_IMPLEMENTATION(ClassMember)
 
-ClassMember::ClassMember(void *DefinedIn, char *name,  char is_data_only, char _not_binary, char is_unserialize) {
+ClassMember::ClassMember(void *DefinedIn, const char *name,  char is_data_only, char _not_binary, char is_unserialize) {
     NAME   = name;
     ACCESS = ACCESS_PUBLIC;
 
@@ -28,7 +28,7 @@ ClassMember::ClassMember(void *DefinedIn, char *name,  char is_data_only, char _
         if (!is_unserialize) {
             VD         = new SmallVariableDESCRIPTOR;
             VD->TYPE   = VARIABLE_NUMBER;
-            VD->value  = (char *)"0";
+            VD->value  = "0";
             VD->nValue = 0;
         }
         this->CDATA           = 0;
@@ -49,7 +49,7 @@ void ClassMember::EnsureVD() {
     }
     VD         = new SmallVariableDESCRIPTOR;
     VD->TYPE   = VARIABLE_NUMBER;
-    VD->value  = (char *)"0";
+    VD->value  = "0";
     VD->nValue = 0;
 }
 
@@ -176,7 +176,7 @@ int ClassMember::Unserialize(concept_FILE *in, AnsiList *ClassList , bool is_lib
     }
 
     if (!IS_FUNCTION) {
-        refVD->value = (char *)"";
+        refVD->value = "";
     }
 
     UNSERIALIZE_SMALL_VAR_DESCRIPTOR(refVD, in, false);
@@ -289,7 +289,7 @@ VariableDATA *ClassMember::Execute(void *PIF, intptr_t CONCEPT_CLASS_ID, Variabl
                             ((VariableDATA *)((PIFAlizator *)PIF)->static_result)->TYPE = VARIABLE_STRING;
                             if (RESULT->CLASS_DATA) {
                                 CONCEPT_STRING(((VariableDATA *)((PIFAlizator *)PIF)->static_result))  = ((CompiledClass *)RESULT->CLASS_DATA)->_Class->NAME.c_str();
-                                CONCEPT_STRING(((VariableDATA *)((PIFAlizator *)PIF)->static_result)) += (char *)"::";
+                                CONCEPT_STRING(((VariableDATA *)((PIFAlizator *)PIF)->static_result)) += "::";
                                 CONCEPT_STRING(((VariableDATA *)((PIFAlizator *)PIF)->static_result)) += ((CompiledClass *)RESULT->CLASS_DATA)->_Class->pMEMBERS [(INTEGER)RESULT->DELEGATE_DATA - 1]->NAME;
                             } else {
                                 CONCEPT_STRING(((VariableDATA *)((PIFAlizator *)PIF)->static_result)) = "delegate";

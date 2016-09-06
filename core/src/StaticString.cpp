@@ -53,7 +53,7 @@ StaticString::StaticString(const StaticString& S) {
     }
 }
 
-void StaticString::operator=(char *value) {
+void StaticString::operator=(const char *value) {
     char *Data = 0;
 
     if (DataOffset) {
@@ -130,17 +130,15 @@ StaticString::operator char *() {
 char *StaticString::c_str() {
     char *Data = 0;
 
-    if (!_LENGTH) {
+    if (!_LENGTH)
         return (char *)"";
-    }
 
-    if (DataOffset) {
+    if (DataOffset)
         Data = ((char *)(void *)this) + DataOffset;
-    }
 
-    if (!Data) {
+    if (!Data)
         return (char *)"";
-    }
+
     return Data;
 }
 

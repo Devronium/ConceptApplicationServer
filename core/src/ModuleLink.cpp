@@ -117,7 +117,7 @@ INTEGER ImportModule(AnsiString& MODULE_MASK, AnsiList *Errors, INTEGER line, An
     } else {
         TARGET->Add(hLIBRARY, DATA_HANDLER);
         // --------------- Module Management functions -----------------------------------------//
-        AnsiString PREFIX = (char *)"_";
+        AnsiString PREFIX = "_";
 #ifdef _WIN32
         CONCEPT_MANAGEMENT_CALL _PROC_ADR = (CONCEPT_MANAGEMENT_CALL)GetProcAddress((HMODULE)hLIBRARY, ON_CREATE);
 #else
@@ -144,7 +144,7 @@ INTEGER ImportModule(AnsiString& MODULE_MASK, AnsiList *Errors, INTEGER line, An
 
 INTEGER UnImportModule(HMODULE hMODULE, PIFAlizator *Sender) {
     // --------------- Module Management functions -----------------------------------------//
-    AnsiString PREFIX = (char *)"_";
+    AnsiString PREFIX = "_";
 
 #ifdef _WIN32
     CONCEPT_MANAGEMENT_CALL _PROC_ADR = (CONCEPT_MANAGEMENT_CALL)GetProcAddress((HMODULE)hMODULE, ON_DESTROY);
@@ -254,7 +254,7 @@ INTEGER GetVariable(VariableDATA *VD, INTEGER *TYPE, char **STRING_VALUE, NUMBER
     return 0;
 }
 
-INTEGER GetClassMember(void *CLASS_PTR, char *class_member_name, INTEGER *TYPE, char **STRING_VALUE, NUMBER *NUMBER_VALUE) {
+INTEGER GetClassMember(void *CLASS_PTR, const char *class_member_name, INTEGER *TYPE, char **STRING_VALUE, NUMBER *NUMBER_VALUE) {
     if (CLASS_PTR) {
         ClassCode    *CCode    = ((CompiledClass *)CLASS_PTR)->GetClass();
         VariableDATA **CONTEXT = ((CompiledClass *)CLASS_PTR)->GetContext();
@@ -325,7 +325,7 @@ INTEGER GetClassMember(void *CLASS_PTR, char *class_member_name, INTEGER *TYPE, 
     return -1;
 }
 
-INTEGER GetClassMemberVariable(void *CLASS_PTR, char *class_member_name, void **ptr) {
+INTEGER GetClassMemberVariable(void *CLASS_PTR, const char *class_member_name, void **ptr) {
     if (CLASS_PTR) {
         ClassCode    *CCode    = ((CompiledClass *)CLASS_PTR)->GetClass();
         VariableDATA **CONTEXT = ((CompiledClass *)CLASS_PTR)->GetContext();
@@ -349,7 +349,7 @@ INTEGER GetClassMemberVariable(void *CLASS_PTR, char *class_member_name, void **
     return -1;
 }
 
-INTEGER SetClassMember(void *CLASS_PTR, char *class_member_name, INTEGER TYPE, char *STRING_VALUE, NUMBER NUMBER_VALUE) {
+INTEGER SetClassMember(void *CLASS_PTR, const char *class_member_name, INTEGER TYPE, const char *STRING_VALUE, NUMBER NUMBER_VALUE) {
     if (CLASS_PTR) {
         ClassCode    *CCode    = ((CompiledClass *)CLASS_PTR)->GetClass();
         VariableDATA **CONTEXT = ((CompiledClass *)CLASS_PTR)->GetContext();
@@ -431,7 +431,7 @@ INTEGER SetClassMember(void *CLASS_PTR, char *class_member_name, INTEGER TYPE, c
                     ((CompiledClass *)CLASS_PTR)->CreateVariable(index, CM);
 
                 if (CONTEXT [index]) {
-                    return SetVariable(CONTEXT [index], TYPE, STRING_VALUE, NUMBER_VALUE);
+                    return SetVariable(CONTEXT [index], TYPE, (char *)STRING_VALUE, NUMBER_VALUE);
                 }
             } else {
                 return -1;
@@ -1202,8 +1202,8 @@ INTEGER Invoke(INTEGER INVOKE_TYPE, ...) {
                     int         mid = target->DELEGATE_DATA;
                     ClassMember *CM = mid ? ((CompiledClass *)target->CLASS_DATA)->_Class->pMEMBERS [mid - 1] : 0;
                     if (CM) {
-                        *class_name  = ((CompiledClass *)target->CLASS_DATA)->_Class->NAME.c_str();
-                        *member_name = CM->NAME;
+                        *class_name  = (char *)((CompiledClass *)target->CLASS_DATA)->_Class->NAME.c_str();
+                        *member_name = (char *)CM->NAME;
                     } else {
                         result = CANNOT_INVOKE_IN_THIS_CASE;
                     }
@@ -1240,7 +1240,7 @@ INTEGER Invoke(INTEGER INVOKE_TYPE, ...) {
                     }
 
                     char        *ref_mname = pif->CheckMember(name);
-                    ClassMember *CM        = CC->AddMember(pif, ref_mname, 0, (char *)"STATIC_MODULE", ACCESS_PUBLIC, true);
+                    ClassMember *CM        = CC->AddMember(pif, ref_mname, 0, "STATIC_MODULE", ACCESS_PUBLIC, true);
                     if (is_array) {
                         CM->VD->TYPE = VARIABLE_ARRAY;
                     }
@@ -1325,7 +1325,7 @@ INTEGER Invoke(INTEGER INVOKE_TYPE, ...) {
                     result = CANNOT_INVOKE_INTERFACE;
                     break;
                 }
-                *class_name = CC->_Class->NAME.c_str();
+                *class_name = (char *)CC->_Class->NAME.c_str();
                 result      = CC->_Class->GetSerialMembers(CC, max_members, pmembers, flags, access, types, szValue, n_data, class_data, variable_data, (int)(INVOKE_TYPE == INVOKE_GET_SERIAL_CLASS));
             }
             break;
@@ -1343,7 +1343,7 @@ INTEGER Invoke(INTEGER INVOKE_TYPE, ...) {
                 if ((member_id > 0) && (member_id <= CC->_Class->pMEMBERS_COUNT))
                     CM = CC->_Class->pMEMBERS [member_id - 1];
                 if (CM) {
-                    *member = CM->NAME;
+                    *member = (char *)CM->NAME;
                 } else {
                     result = CANNOT_INVOKE_IN_THIS_CASE;
                 }
@@ -1362,7 +1362,7 @@ INTEGER Invoke(INTEGER INVOKE_TYPE, ...) {
                 int         mid = CC->_Class->Relocation(member_id);
                 ClassMember *CM = mid ? CC->_Class->pMEMBERS [mid - 1] : 0;
                 if (CM) {
-                    *member = CM->NAME;
+                    *member = (char *)CM->NAME;
                 } else {
                     result = CANNOT_INVOKE_IN_THIS_CASE;
                 }
@@ -1562,7 +1562,7 @@ INTEGER Invoke(INTEGER INVOKE_TYPE, ...) {
                         reftc->OperandRight_ID   = OE->OperandRight.ID;
                         reftc->OperandRight_TYPE = OE->OperandRight.TYPE;
                         if ((OE->Operator.TYPE == TYPE_OPERATOR) && (OE->Operator.ID == KEY_DLL_CALL) && (OE->OperandLeft.ID == STATIC_CLASS_DLL)) {
-                            reftc->Function = OE->OperandRight._PARSE_DATA.c_str();
+                            reftc->Function = (char *)OE->OperandRight._PARSE_DATA.c_str();
                         } else {
                             reftc->Function = 0;
                         }
@@ -1573,7 +1573,7 @@ INTEGER Invoke(INTEGER INVOKE_TYPE, ...) {
                                 int         relocation2 = CC->Relocation(i2);
                                 ClassMember *pMEMBER_i2 = relocation2 ? CC->pMEMBERS [relocation2 - 1] : 0;
                                 if (pMEMBER_i2)
-                                    reftc->Function = pMEMBER_i2->NAME;
+                                    reftc->Function = (char *)pMEMBER_i2->NAME;
                             }
                             if (((OE->Operator.ID != KEY_NEW) || (OE->OperandLeft.ID != -1)) && (OE->OperandReserved.ID > 0)) {
                                 ParamList *FORMAL_PARAMETERS = &Parameters[OE->OperandReserved.ID - 1];
@@ -1841,7 +1841,7 @@ INTEGER Invoke(INTEGER INVOKE_TYPE, ...) {
                 if ((name) && (index > 0) && (pif->ClassList) && (index <= pif->ClassList->Count())) {
                     ClassCode *CC = StaticClassList[index - 1];
                     if (CC)
-                        *name = CC->NAME.c_str();
+                        *name = (char *)CC->NAME.c_str();
                 } else
                     result = INVALID_INVOKE_PARAMETER;
             }
@@ -1878,7 +1878,7 @@ INTEGER Invoke(INTEGER INVOKE_TYPE, ...) {
                         if (CM) {
                             if (mdef) {
                                 if (CM->Defined_In)
-                                    *mdef = ((ClassCode *)CM->Defined_In)->NAME.c_str();
+                                    *mdef = (char *)((ClassCode *)CM->Defined_In)->NAME.c_str();
                             }
                             if (type) {
                                 *type = CM->IS_FUNCTION;
@@ -2184,7 +2184,7 @@ INTEGER Invoke(INTEGER INVOKE_TYPE, ...) {
                 for (int i = pif->fixed_class_count; i < count; i++) {
                     ClassCode *CC = (ClassCode *)pif->ClassList->Item(i);
                     if ((CC) && (CC->NAME == class_name)) {
-                        CC->NAME = (char *)"*";
+                        CC->NAME = "*";
                         result   = INVOKE_SUCCESS;
                         break;
                     }
@@ -2260,7 +2260,7 @@ INTEGER Invoke(INTEGER INVOKE_TYPE, ...) {
     return result;
 }
 
-SYS_INT LinkFunction(char *FUNCTION_NAME, AnsiList *TARGET, void **CACHED_hDLL) {
+SYS_INT LinkFunction(const char *FUNCTION_NAME, AnsiList *TARGET, void **CACHED_hDLL) {
 #ifdef CACHE_MEMBERS
  #ifndef NO_HASHING
     HASH_TYPE key = hash_func(FUNCTION_NAME, strlen(FUNCTION_NAME));
@@ -2272,8 +2272,8 @@ SYS_INT LinkFunction(char *FUNCTION_NAME, AnsiList *TARGET, void **CACHED_hDLL) 
         return val;
 #endif
 
-    AnsiString PREFIX  = (char *)"CONCEPT__";
-    AnsiString PREFIX2 = (char *)"CONCEPT_";
+    AnsiString PREFIX  = "CONCEPT__";
+    AnsiString PREFIX2 = "CONCEPT_";
     int        count   = TARGET->Count();
 
     if (CACHED_hDLL) {

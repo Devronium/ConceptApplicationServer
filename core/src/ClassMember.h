@@ -43,14 +43,14 @@ class ClassMember {
     friend INTEGER Invoke(INTEGER, ...);
     friend int GetVariableByName(int operation, void **VDESC, void **CONTEXT, int Depth, char *VariableName, char *buffer, int buf_size, void *PIF, void *STACK_TRACE);
 
-    friend INTEGER GetClassMember(void *CLASS_PTR, char *class_member_name, INTEGER *TYPE, char **STRING_VALUE, NUMBER *NUMBER_VALUE);
+    friend INTEGER GetClassMember(void *CLASS_PTR, const char *class_member_name, INTEGER *TYPE, char **STRING_VALUE, NUMBER *NUMBER_VALUE);
 
-    friend VariableDATA *GetClassMember(void *CLASS_PTR, char *class_member_name);
+    friend VariableDATA *GetClassMember(void *CLASS_PTR, const char *class_member_name);
 
-    friend INTEGER SetClassMember(void *CLASS_PTR, char *class_member_name, INTEGER TYPE, char *STRING_VALUE, NUMBER NUMBER_VALUE);
+    friend INTEGER SetClassMember(void *CLASS_PTR, const char *class_member_name, INTEGER TYPE, const char *STRING_VALUE, NUMBER NUMBER_VALUE);
 
 private:
-    char *NAME;
+    const char *NAME;
     void *Defined_In;
     SmallVariableDESCRIPTOR *VD;
 
@@ -72,7 +72,7 @@ private:
 public:
     POOLED(ClassMember)
 
-    ClassMember(void *DefinedIn, char *name , char is_data_only, char _not_binary = 1, char is_unserialize = false);
+    ClassMember(void *DefinedIn, const char *name , char is_data_only, char _not_binary = 1, char is_unserialize = false);
     ~ClassMember(void);
 #ifdef SIMPLE_MULTI_THREADING
     VariableDATA *Execute(void *PIF, intptr_t CONCEPT_CLASS_ID, VariableDATA *Owner, ParamList *FORMAL_PARAM, VariableDATA **SenderCTX, VariableDATA *& THROW_DATA, SCStack *PREV, char is_main = 0, INTEGER *thread_lock = NULL);

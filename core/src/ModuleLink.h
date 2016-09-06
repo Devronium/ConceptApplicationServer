@@ -33,8 +33,8 @@ class PIFAlizator;
 typedef INTEGER (*CALL_BACK_VARIABLE_SET)(VariableDATA *VD, INTEGER TYPE, char *STRING_VALUE, NUMBER NUMBER_VALUE);
 typedef INTEGER (*CALL_BACK_VARIABLE_GET)(VariableDATA *VD, INTEGER *TYPE, char **STRING_VALUE, NUMBER *NUMBER_VALUE);
 
-typedef INTEGER (*CALL_BACK_CLASS_MEMBER_GET)(void *CLASS_PTR, char *class_member_name, INTEGER *TYPE, char **STRING_VALUE, NUMBER *NUMBER_VALUE);
-typedef INTEGER (*CALL_BACK_CLASS_MEMBER_SET)(void *CLASS_PTR, char *class_member_name, INTEGER TYPE, char *STRING_VALUE, NUMBER NUMBER_VALUE);
+typedef INTEGER (*CALL_BACK_CLASS_MEMBER_GET)(void *CLASS_PTR, const char *class_member_name, INTEGER *TYPE, char **STRING_VALUE, NUMBER *NUMBER_VALUE);
+typedef INTEGER (*CALL_BACK_CLASS_MEMBER_SET)(void *CLASS_PTR, const char *class_member_name, INTEGER TYPE, const char *STRING_VALUE, NUMBER NUMBER_VALUE);
 
 typedef INTEGER (*INVOKE_CALL)(INTEGER INVOKE_TYPE, ...);
 
@@ -44,14 +44,14 @@ typedef POINTER (*EXTERNAL_CALL)(ParamListExtra *PARAMETERS, VariableDATA **LOCA
 
 INTEGER ImportModule(AnsiString& MODULE_MASK, AnsiList *Errors, INTEGER line, AnsiString FILENAME, AnsiList *TARGET, PIFAlizator *Sender, INTEGER _NO_ERROR_REPORT = 0);
 INTEGER UnImportModule(HMODULE hMODULE, PIFAlizator *Sender = 0);
-SYS_INT LinkFunction(char *FUNCTION_NAME, AnsiList *TARGET, void **CACHED_hDLL);
+SYS_INT LinkFunction(const char *FUNCTION_NAME, AnsiList *TARGET, void **CACHED_hDLL);
 void DoneLinking();
 
 INTEGER SetVariable(VariableDATA *VD, INTEGER TYPE, char *STRING_VALUE, NUMBER NUMBER_VALUE);
 INTEGER GetVariable(VariableDATA *VD, INTEGER *TYPE, char **STRING_VALUE, NUMBER *NUMBER_VALUE);
 
-INTEGER GetClassMember(void *CLASS_PTR, char *class_member_name, INTEGER *TYPE, char **STRING_VALUE, NUMBER *NUMBER_VALUE);
-INTEGER SetClassMember(void *CLASS_PTR, char *class_member_name, INTEGER TYPE, char *STRING_VALUE, NUMBER NUMBER_VALUE);
+INTEGER GetClassMember(void *CLASS_PTR, const char *class_member_name, INTEGER *TYPE, char **STRING_VALUE, NUMBER *NUMBER_VALUE);
+INTEGER SetClassMember(void *CLASS_PTR, const char *class_member_name, INTEGER TYPE, const char *STRING_VALUE, NUMBER NUMBER_VALUE);
 
 INTEGER Invoke(INTEGER INVOKE_TYPE, ...);
 #endif // __MODULE_LINK_H

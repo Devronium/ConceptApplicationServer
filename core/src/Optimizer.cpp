@@ -24,12 +24,12 @@ THREADED_FLAG AnsiList *Optimizer::BREAK_Elements;
 THREADED_FLAG AnsiList *Optimizer::CONTINUE_Elements;
 
 THREADED_FLAG ClassCode *Optimizer::_CLASS;
-THREADED_FLAG char      *Optimizer::_MEMBER;
+THREADED_FLAG const char*Optimizer::_MEMBER;
 
 THREADED_FLAG DoubleList *Optimizer::PIFList;
 THREADED_FLAG DoubleList *Optimizer::VDList;
 THREADED_FLAG INTEGER    Optimizer::PIF_POSITION;
-THREADED_FLAG char       *Optimizer::_DEBUG_INFO_FILENAME;
+THREADED_FLAG const char *Optimizer::_DEBUG_INFO_FILENAME;
 THREADED_FLAG char       Optimizer::NO_WARNING_EMPTY;
 THREADED_FLAG char       Optimizer::NO_WARNING_ATTR;
 THREADED_FLAG char       Optimizer::_clean_condition;
@@ -124,7 +124,7 @@ public:
     }
 };
 
-Optimizer::Optimizer(PIFAlizator *P, DoubleList *_PIFList, DoubleList *_VDList, char *Filename, ClassCode *cls, char *member, bool is_unserialized) {
+Optimizer::Optimizer(PIFAlizator *P, DoubleList *_PIFList, DoubleList *_VDList, const char *Filename, ClassCode *cls, const char *member, bool is_unserialized) {
     PIFOwner = P;
     PIFList  = _PIFList;
     VDList   = _VDList;
@@ -754,7 +754,7 @@ INTEGER Optimizer::OptimizeExpression(TempVariableManager *TVM, INTEGER ID, INTE
 
         if (((AE->TYPE == TYPE_OPERATOR) && (AE->ID == KEY_ASG)) && ((TYPE == TYPE_OPERATOR) && ((ID == KEY_P_CLOSE) || (ID == KEY_INDEX_CLOSE)))) {
             if (!NO_WARNING_ATTR) {
-                PIFOwner->Warning(WRN10001, AE ? AE->_DEBUG_INFO_LINE : LAST_LINE, 10001, (char *)"", _DEBUG_INFO_FILENAME);
+                PIFOwner->Warning(WRN10001, AE ? AE->_DEBUG_INFO_LINE : LAST_LINE, 10001, "", _DEBUG_INFO_FILENAME);
             }
         }
 
@@ -886,7 +886,7 @@ INTEGER Optimizer::OptimizeExpression(TempVariableManager *TVM, INTEGER ID, INTE
             AnalizerElement *Parameter = (AnalizerElement *)PIFList->Item(FIRST_OPERATOR + 2);
 
             if ((AE_ID == KEY_P_OPEN) || (AE_ID == KEY_P_CLOSE) || (Right == MARKER) || (FIRST_OPERATOR <= START_POSITION)) {
-                this->PIFOwner->Errors.Add(new AnsiException(ERR490, AE ? AE->_DEBUG_INFO_LINE : LAST_LINE, 490, AE ? AE->_PARSE_DATA.c_str() : (char *)"", _DEBUG_INFO_FILENAME, _CLASS->NAME, _MEMBER), DATA_EXCEPTION);
+                this->PIFOwner->Errors.Add(new AnsiException(ERR490, AE ? AE->_DEBUG_INFO_LINE : LAST_LINE, 490, AE ? AE->_PARSE_DATA.c_str() : "", _DEBUG_INFO_FILENAME, _CLASS->NAME, _MEMBER), DATA_EXCEPTION);
             }
             if ((Check(Left, AE)) || (Check(Right, AE))) {
                 continue;
@@ -965,12 +965,12 @@ INTEGER Optimizer::OptimizeExpression(TempVariableManager *TVM, INTEGER ID, INTE
                     int         minp, maxp;
                     ClassMember *targetCM = 0;
                     if (!TryCheckParameters(OE, pc ? pc->Count() : 0, &minp, &maxp, &targetCM, this->_CLASS)) {
-                        AnsiString szparameters = (char *)"none";
+                        AnsiString szparameters = "none";
                         AnsiString target_name;
                         if (targetCM) {
                             target_name = targetCM->NAME;
                         } else {
-                            target_name = (char *)"(none)";
+                            target_name = "(none)";
                         }
                         if (pc) {
                             szparameters = AnsiString((intptr_t)pc->Count());
@@ -999,7 +999,7 @@ INTEGER Optimizer::OptimizeExpression(TempVariableManager *TVM, INTEGER ID, INTE
             AnalizerElement *Parameter = (OP_TYPE == OPERATOR_UNARY) ? (AnalizerElement *)PIFList->Item(FIRST_OPERATOR + 2) : 0;
 
             if (((OP_TYPE == OPERATOR_UNARY) && (Target == MARKER)) || ((OP_TYPE == OPERATOR_UNARY_LEFT) && (FIRST_OPERATOR <= START_POSITION)))
-                this->PIFOwner->Errors.Add(new AnsiException(ERR490, AE ? AE->_DEBUG_INFO_LINE : LAST_LINE, 490, AE ? AE->_PARSE_DATA.c_str() : (char *)"", _DEBUG_INFO_FILENAME, _CLASS->NAME, _MEMBER), DATA_EXCEPTION);
+                this->PIFOwner->Errors.Add(new AnsiException(ERR490, AE ? AE->_DEBUG_INFO_LINE : LAST_LINE, 490, AE ? AE->_PARSE_DATA.c_str() : "", _DEBUG_INFO_FILENAME, _CLASS->NAME, _MEMBER), DATA_EXCEPTION);
 
             if (Check(Target, AE)) {
                 return -1;
@@ -1046,7 +1046,7 @@ INTEGER Optimizer::OptimizeExpression(TempVariableManager *TVM, INTEGER ID, INTE
                 AnsiList *pc = (AnsiList *)this->ParameterList->Item(OE->OperandReserved.ID - 1);
                 int      minp, maxp;
                 if (!TryCheckParameters(OE, pc ? pc->Count() : 0, &minp, &maxp)) {
-                    AnsiString szparameters = (char *)"none";
+                    AnsiString szparameters = "none";
                     if (pc) {
                         szparameters = AnsiString((intptr_t)pc->Count());
                     }
@@ -1625,7 +1625,7 @@ INTEGER Optimizer::OptimizeSwitch(TempVariableManager *TVM) {
     AnalizerElement *EXPR_ELEM = 0;
     unsigned short _DEBUG_INFO_LINE = 0;
     if ((!tempAE) || (tempAE->TYPE != TYPE_OPERATOR) || (tempAE->ID != KEY_P_OPEN)) {
-        PIFOwner->Errors.Add(new AnsiException(ERR1201, tempAE ? tempAE->_DEBUG_INFO_LINE : 0, 1201, (tempAE ? tempAE->_PARSE_DATA : AnsiString((char *)"")), _DEBUG_INFO_FILENAME, _CLASS->NAME, _MEMBER), DATA_EXCEPTION);
+        PIFOwner->Errors.Add(new AnsiException(ERR1201, tempAE ? tempAE->_DEBUG_INFO_LINE : 0, 1201, (tempAE ? tempAE->_PARSE_DATA : AnsiString("")), _DEBUG_INFO_FILENAME, _CLASS->NAME, _MEMBER), DATA_EXCEPTION);
         if (!tempAE) {
             return -1;
         }
@@ -1639,7 +1639,7 @@ INTEGER Optimizer::OptimizeSwitch(TempVariableManager *TVM) {
     tempAE = (AnalizerElement *)PIFList->Item(PIF_POSITION);
 
     if ((!tempAE) || (tempAE->TYPE != TYPE_KEYWORD) || (tempAE->ID != KEY_BEGIN)) {
-        PIFOwner->Errors.Add(new AnsiException(ERR1200, tempAE ? tempAE->_DEBUG_INFO_LINE : 0, 1200, (tempAE ? tempAE->_PARSE_DATA : AnsiString((char *)"")), _DEBUG_INFO_FILENAME, _CLASS->NAME, _MEMBER), DATA_EXCEPTION);
+        PIFOwner->Errors.Add(new AnsiException(ERR1200, tempAE ? tempAE->_DEBUG_INFO_LINE : 0, 1200, (tempAE ? tempAE->_PARSE_DATA : AnsiString("")), _DEBUG_INFO_FILENAME, _CLASS->NAME, _MEMBER), DATA_EXCEPTION);
         if (!tempAE) {
             return -1;
         }
@@ -1657,7 +1657,7 @@ INTEGER Optimizer::OptimizeSwitch(TempVariableManager *TVM) {
     while (have_cases) {
         AnalizerElement *AE = (AnalizerElement *)PIFList->Item(PIF_POSITION);
         if ((!AE) || (AE->TYPE != TYPE_KEYWORD)) {
-            PIFOwner->Errors.Add(new AnsiException(ERR1202, AE ? AE->_DEBUG_INFO_LINE : 0, 1202, (AE ? AE->_PARSE_DATA : AnsiString((char *)"")), _DEBUG_INFO_FILENAME, _CLASS->NAME, _MEMBER), DATA_EXCEPTION);
+            PIFOwner->Errors.Add(new AnsiException(ERR1202, AE ? AE->_DEBUG_INFO_LINE : 0, 1202, (AE ? AE->_PARSE_DATA : AnsiString("")), _DEBUG_INFO_FILENAME, _CLASS->NAME, _MEMBER), DATA_EXCEPTION);
             break;
         }
         _DEBUG_INFO_LINE = AE->_DEBUG_INFO_LINE;
@@ -1733,7 +1733,7 @@ INTEGER Optimizer::OptimizeSwitch(TempVariableManager *TVM) {
                 PIFList->Delete(PIF_POSITION);
                 tempAE = (AnalizerElement *)PIFList->Item(PIF_POSITION);
                 if ((!tempAE) || (tempAE->TYPE != TYPE_OPERATOR) || (tempAE->ID != KEY_CND_2)) {
-                    PIFOwner->Errors.Add(new AnsiException(ERR1203, tempAE ? tempAE->_DEBUG_INFO_LINE : 0, 1203, (tempAE ? tempAE->_PARSE_DATA : AnsiString((char *)"")), _DEBUG_INFO_FILENAME, _CLASS->NAME, _MEMBER), DATA_EXCEPTION);
+                    PIFOwner->Errors.Add(new AnsiException(ERR1203, tempAE ? tempAE->_DEBUG_INFO_LINE : 0, 1203, (tempAE ? tempAE->_PARSE_DATA : AnsiString("")), _DEBUG_INFO_FILENAME, _CLASS->NAME, _MEMBER), DATA_EXCEPTION);
                     END_SWITCH(0);
                     return -1;
                 }
@@ -2064,8 +2064,8 @@ AnsiString Optimizer::DEBUG_INFO() {
                    AnsiString(" TYPE:") + AnsiString((int)OE->Operator.TYPE) +
                    AnsiString(") '") + GetKeyWord(OE->Operator.ID) +
 
-                   AnsiString("' (LP: ") + OE->OperandLeft._PARSE_DATA.c_str() + (char *)"/" + AnsiString(OE->OperandLeft.ID) +
-                   AnsiString(" RP: ") + OE->OperandRight._PARSE_DATA.c_str() + (char *)"/" + AnsiString(OE->OperandRight.ID) +
+                   AnsiString("' (LP: ") + OE->OperandLeft._PARSE_DATA.c_str() + "/" + AnsiString(OE->OperandLeft.ID) +
+                   AnsiString(" RP: ") + OE->OperandRight._PARSE_DATA.c_str() + "/" + AnsiString(OE->OperandRight.ID) +
 
                    AnsiString(") GO:") + AnsiString(OE->OperandReserved.ID) +
                    AnsiString("\n");
@@ -2078,8 +2078,8 @@ AnsiString Optimizer::DEBUG_INFO() {
                    AnsiString(" TYPE:") + AnsiString((int)OE->Operator.TYPE) +
                    AnsiString(") '") + GetKeyWord(OE->Operator.ID) +
 
-                   AnsiString("' (LP: ") + OE->OperandLeft._PARSE_DATA.c_str() + (char *)"/" + AnsiString(OE->OperandLeft.ID) +
-                   AnsiString(" RP: ") + OE->OperandRight._PARSE_DATA.c_str() + (char *)"/" + AnsiString(OE->OperandRight.ID) +
+                   AnsiString("' (LP: ") + OE->OperandLeft._PARSE_DATA.c_str() + "/" + AnsiString(OE->OperandLeft.ID) +
+                   AnsiString(" RP: ") + OE->OperandRight._PARSE_DATA.c_str() + "/" + AnsiString(OE->OperandRight.ID) +
 
                    AnsiString(") GO:") + AnsiString(OE->OperandReserved.ID) +
                    AnsiString("\n");
@@ -2310,7 +2310,7 @@ int Optimizer::Unserialize(concept_FILE *in, AnsiList *ModuleList, bool is_lib, 
             if (OE->Operator.TYPE == TYPE_OPERATOR) {
                 if (OE->Operator.ID == KEY_DLL_CALL) {
                     if (OE->OperandLeft.ID == STATIC_CLASS_DLL) {
-                        char *funname = CODE [i].OperandRight._PARSE_DATA.c_str();
+                        const char *funname = CODE [i].OperandRight._PARSE_DATA.c_str();
 
                         int l_res = PIFOwner->LinkStatic(funname);
                         if (!l_res)
@@ -2397,7 +2397,7 @@ void Optimizer::AddProfilerCode(int code) {
         OEProfiler->OperandLeft.TYPE             = TYPE_CLASS;
         OEProfiler->OperandLeft._DEBUG_INFO_LINE = 0;
         OEProfiler->OperandLeft._HASH_DATA       = 0;
-        OEProfiler->OperandLeft._PARSE_DATA      = (char *)"LIBRARY";
+        OEProfiler->OperandLeft._PARSE_DATA      = "LIBRARY";
 
         OEProfiler->OperandRight.ID               = PIFOwner->PROFILE_DRIVEN_ID;
         OEProfiler->OperandRight.TYPE             = TYPE_METHOD;

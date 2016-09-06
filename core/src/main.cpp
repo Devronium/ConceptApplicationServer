@@ -838,8 +838,8 @@ void RemoveGCRoot(void *PIF, void *CONTEXT) {
 }
 
 int GetMemoryStatistics(void *PIF, void *RESULT) {
-    VariableDATA *objects_var = ((Array *)RESULT)->ModuleGet((char *)"objects");
-    VariableDATA *array_var   = ((Array *)RESULT)->ModuleGet((char *)"arrays");
+    VariableDATA *objects_var = ((Array *)RESULT)->ModuleGet("objects");
+    VariableDATA *array_var   = ((Array *)RESULT)->ModuleGet("arrays");
 
     CLASS_CHECK(objects_var);
     CLASS_CHECK(array_var);
@@ -852,15 +852,15 @@ int GetMemoryStatistics(void *PIF, void *RESULT) {
     ((Array *)array_var->CLASS_DATA)->reachable = 0x1C;
 
 #ifdef POOL_BLOCK_ALLOC
-    VariableDATA *variable_var  = ((Array *)RESULT)->ModuleGet((char *)"variables");
-    VariableDATA *string_var    = ((Array *)RESULT)->ModuleGet((char *)"strings");
-    VariableDATA *number_var    = ((Array *)RESULT)->ModuleGet((char *)"numbers");
-    VariableDATA *delegate_var  = ((Array *)RESULT)->ModuleGet((char *)"delegates");
+    VariableDATA *variable_var  = ((Array *)RESULT)->ModuleGet("variables");
+    VariableDATA *string_var    = ((Array *)RESULT)->ModuleGet("strings");
+    VariableDATA *number_var    = ((Array *)RESULT)->ModuleGet("numbers");
+    VariableDATA *delegate_var  = ((Array *)RESULT)->ModuleGet("delegates");
 #endif
-    VariableDATA *string_memory = ((Array *)RESULT)->ModuleGet((char *)"strings_memory");
-    VariableDATA *memory = ((Array *)RESULT)->ModuleGet((char *)"memory");
-    VariableDATA *unreachable_objects = ((Array *)RESULT)->ModuleGet((char *)"unreachable_objects");
-    VariableDATA *unreachable_arrays  = ((Array *)RESULT)->ModuleGet((char *)"unreachable_arrays");
+    VariableDATA *string_memory = ((Array *)RESULT)->ModuleGet("strings_memory");
+    VariableDATA *memory = ((Array *)RESULT)->ModuleGet("memory");
+    VariableDATA *unreachable_objects = ((Array *)RESULT)->ModuleGet("unreachable_objects");
+    VariableDATA *unreachable_arrays  = ((Array *)RESULT)->ModuleGet("unreachable_arrays");
 #ifdef POOL_BLOCK_ALLOC
     VARPool *NEXT_POOL = ((PIFAlizator *)PIF)->POOL;
     while (NEXT_POOL) {
@@ -1269,14 +1269,14 @@ CONCEPT_DLL_API Concept_CachedInit(char *filename) {
         i++;
     }
     key += lpBuffer;
-    key += (char *)"/";
+    key += "/";
     key += filename;
 #else
     AnsiString key;
     lpBuffer[8191] = 0;
     getcwd(lpBuffer, 8191);
     key += lpBuffer;
-    key += (char *)"/";
+    key += "/";
     key += filename;
 #endif
     FILE *in = fopen(accel_filename.c_str(), "rb");
@@ -1285,9 +1285,9 @@ CONCEPT_DLL_API Concept_CachedInit(char *filename) {
     fclose(in);
 #ifdef _WIN32
     if (!stat(accel_filename.c_str(), &buf)) {
-        key += (char *)":";
+        key += ":";
         key += AnsiString((intptr_t)buf.st_size);
-        key += (char *)":";
+        key += ":";
         key += AnsiString((intptr_t)buf.st_mtime);
     }
 #endif

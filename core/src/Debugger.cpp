@@ -15,7 +15,7 @@ int          VarCnt = 0;
 #define CLEAN_VARS    { for (int i = 0; i < VarCnt; i ++) { FREE_VARIABLE(VarToClean [i]); } VarCnt = 0; }
 #define ADD_VAR(VAR)    { if (VAR) VarToClean [VarCnt ++] = VAR; }
 
-VariableDATA *GetClassMember(void *CLASS_PTR, char *class_member_name) {
+VariableDATA *GetClassMember(void *CLASS_PTR, const char *class_member_name) {
     if (CLASS_PTR) {
         ClassCode    *CCode    = ((CompiledClass *)CLASS_PTR)->GetClass();
         VariableDATA **CONTEXT = ((CompiledClass *)CLASS_PTR)->GetContext();
@@ -221,7 +221,7 @@ int GetVariableByName(int operation, void **VDESC, void **CONTEXT, int Depth, ch
                         if (operation == 1) {
                             VD->NUMBER_DATA = AnsiString(buffer).ToFloat();
                             if (VD->IS_PROPERTY_RESULT) {
-                                SetClassMember(((VariableDATA *)CONTEXT [i])->CLASS_DATA, ParsedVariableName.c_str(), VARIABLE_NUMBER, (char *)"", VD->NUMBER_DATA);
+                                SetClassMember(((VariableDATA *)CONTEXT [i])->CLASS_DATA, ParsedVariableName.c_str(), VARIABLE_NUMBER, "", VD->NUMBER_DATA);
                             }
                         }
                         CLEAN_VARS;
@@ -248,7 +248,7 @@ int GetVariableByName(int operation, void **VDESC, void **CONTEXT, int Depth, ch
                         {
                             if (operation == 0) {
                                 AnsiString delegate = ((CompiledClass *)VD->CLASS_DATA)->GetClassName();
-                                delegate += (char *)".";
+                                delegate += ".";
                                 delegate += ((CompiledClass *)VD->CLASS_DATA)->_Class->pMEMBERS [(INTEGER)VD->DELEGATE_DATA]->NAME;
                                 strncpy(buffer, delegate.c_str(), buf_size);
                             }

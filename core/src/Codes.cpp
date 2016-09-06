@@ -480,226 +480,226 @@ INTEGER GetID(AnsiString& KeyWord) {
             break;
 
         case 2:
-            if (KeyWord == (char *)SELECTOR_I) {
+            if (KeyWord == SELECTOR_I) {
                 return KEY_SELECTOR_I;
             }
-            if (KeyWord == (char *)SEL) {
+            if (KeyWord == SEL) {
                 return KEY_SEL;
             }
-            if (KeyWord == (char *)INC) {
+            if (KeyWord == INC) {
                 return KEY_INC;
             }
-            if (KeyWord == (char *)DEC) {
+            if (KeyWord == DEC) {
                 return KEY_DEC;
             }
-            if (KeyWord == (char *)SHL) {
+            if (KeyWord == SHL) {
                 return KEY_SHL;
             }
-            if (KeyWord == (char *)SHR) {
+            if (KeyWord == SHR) {
                 return KEY_SHR;
             }
-            if (KeyWord == (char *)LEQ) {
+            if (KeyWord == LEQ) {
                 return KEY_LEQ;
             }
-            if (KeyWord == (char *)GEQ) {
+            if (KeyWord == GEQ) {
                 return KEY_GEQ;
             }
-            if (KeyWord == (char *)EQU) {
+            if (KeyWord == EQU) {
                 return KEY_EQU;
             }
-            if (KeyWord == (char *)NEQ) {
+            if (KeyWord == NEQ) {
                 return KEY_NEQ;
             }
-            if (KeyWord == (char *)BAN) {
+            if (KeyWord == BAN) {
                 return KEY_BAN;
             }
-            if (KeyWord == (char *)BOR) {
+            if (KeyWord == BOR) {
                 return KEY_BOR;
             }
-            if (KeyWord == (char *)ASG_BY_REF) {
+            if (KeyWord == ASG_BY_REF) {
                 return KEY_BY_REF;
             }
-            if (KeyWord == (char *)ASU) {
+            if (KeyWord == ASU) {
                 return KEY_ASU;
             }
-            if (KeyWord == (char *)ADI) {
+            if (KeyWord == ADI) {
                 return KEY_ADI;
             }
-            if (KeyWord == (char *)AMU) {
+            if (KeyWord == AMU) {
                 return KEY_AMU;
             }
-            if (KeyWord == (char *)ADV) {
+            if (KeyWord == ADV) {
                 return KEY_ADV;
             }
-            if (KeyWord == (char *)ARE) {
+            if (KeyWord == ARE) {
                 return KEY_ARE;
             }
-            if (KeyWord == (char *)AAN) {
+            if (KeyWord == AAN) {
                 return KEY_AAN;
             }
-            if (KeyWord == (char *)AXO) {
+            if (KeyWord == AXO) {
                 return KEY_AXO;
             }
-            if (KeyWord == (char *)AOR) {
+            if (KeyWord == AOR) {
                 return KEY_AOR;
             }
-            if (KeyWord == (char *)DLL_CALL) {
+            if (KeyWord == DLL_CALL) {
                 return KEY_DLL_CALL;
             }
-            if (KeyWord == (char *)IF) {
+            if (KeyWord == IF) {
                 return KEY_IF;
             }
-            if (KeyWord == (char *)DO) {
+            if (KeyWord == DO) {
                 return KEY_DO;
             }
-            if (KeyWord == (char *)CND_NULL) {
+            if (KeyWord == CND_NULL) {
                 return KEY_CND_NULL;
             }
-            if (KeyWord == (char *)ARR_KEY) {
+            if (KeyWord == ARR_KEY) {
                 return KEY_ARR_KEY;
             }
             break;
 
         case 3:
-            if (KeyWord == (char *)VAR) {
+            if (KeyWord == VAR) {
                 return KEY_VAR;
             }
-            if (KeyWord == (char *)ASL) {
+            if (KeyWord == ASL) {
                 return KEY_ASL;
             }
-            if (KeyWord == (char *)ASR) {
+            if (KeyWord == ASR) {
                 return KEY_ASR;
             }
-            if (KeyWord == (char *)FOR) {
+            if (KeyWord == FOR) {
                 return KEY_FOR;
             }
-            if (KeyWord == (char *)TRY) {
+            if (KeyWord == TRY) {
                 return KEY_TRY;
             }
-            if (KeyWord == (char *)NEW) {
+            if (KeyWord == NEW) {
                 return KEY_NEW;
             }
-            if (KeyWord == (char *)SET) {
+            if (KeyWord == SET) {
                 return KEY_SET;
             }
-            if (KeyWord == (char *)GET) {
+            if (KeyWord == GET) {
                 return KEY_GET;
             }
             break;
 
         case 4:
-            if (KeyWord == (char *)ELSE) {
+            if (KeyWord == ELSE) {
                 return KEY_ELSE;
             }
-            if (KeyWord == (char *)ECHO) {
+            if (KeyWord == ECHO) {
                 return KEY_ECHO;
             }
-            if (KeyWord == (char *)C_CASE) {
+            if (KeyWord == C_CASE) {
                 return KEY_CASE;
             }
             break;
 
         case 5:
-            if (KeyWord == (char *)WHILE) {
+            if (KeyWord == WHILE) {
                 return KEY_WHILE;
             }
-            if (KeyWord == (char *)THROW) {
+            if (KeyWord == THROW) {
                 return KEY_THROW;
             }
-            if (KeyWord == (char *)CATCH) {
+            if (KeyWord == CATCH) {
                 return KEY_CATCH;
             }
-            if (KeyWord == (char *)BREAK) {
+            if (KeyWord == BREAK) {
                 return KEY_BREAK;
             }
-            if (KeyWord == (char *)CLASS) {
+            if (KeyWord == CLASS) {
                 return KEY_CLASS;
             }
-            if (KeyWord == (char *)CEVENT) {
+            if (KeyWord == CEVENT) {
                 return KEY_CEVENT;
             }
-            if (KeyWord == (char *)C_VALUE) {
+            if (KeyWord == C_VALUE) {
                 return KEY_VALUE;
             }
-            if (KeyWord == (char *)C_SUPER) {
+            if (KeyWord == C_SUPER) {
                 return KEY_SUPER;
             }
             break;
 
         case 6:
-            if (KeyWord == (char *)RETURN) {
+            if (KeyWord == RETURN) {
                 return KEY_RETURN;
             }
-            if (KeyWord == (char *)M_DELETE) {
+            if (KeyWord == M_DELETE) {
                 return KEY_DELETE;
             }
-            if (KeyWord == (char *)PUBLIC) {
+            if (KeyWord == PUBLIC) {
                 return KEY_PUBLIC;
             }
-            if (KeyWord == (char *)C_SWITCH) {
+            if (KeyWord == C_SWITCH) {
                 return KEY_SWITCH;
             }
-            if (KeyWord == (char *)C_LENGTH) {
+            if (KeyWord == C_LENGTH) {
                 return KEY_LENGTH;
             }
-            if (KeyWord == (char *)C_STATIC) {
+            if (KeyWord == C_STATIC) {
                 return KEY_STATIC;
             }
-            if (KeyWord == (char *)C_DEFINE) {
+            if (KeyWord == C_DEFINE) {
                 return KEY_DEFINE;
             }
-            if (KeyWord == (char *)TYPE_OF) {
+            if (KeyWord == TYPE_OF) {
                 return KEY_TYPE_OF;
             }
-            if (KeyWord == (char *)IMPORT) {
+            if (KeyWord == IMPORT) {
                 return KEY_IMPORT;
             }
-            if (KeyWord == (char *)C_PRAGMA) {
+            if (KeyWord == C_PRAGMA) {
                 return KEY_PRAGMA;
             }
             break;
 
         case 7:
-            if (KeyWord == (char *)PRIVATE) {
+            if (KeyWord == PRIVATE) {
                 return KEY_PRIVATE;
             }
-            if (KeyWord == (char *)EXTENDS) {
+            if (KeyWord == EXTENDS) {
                 return KEY_EXTENDS;
             }
-            if (KeyWord == (char *)CLASS_NAME) {
+            if (KeyWord == CLASS_NAME) {
                 return KEY_CLASS_NAME;
             }
-            if (KeyWord == (char *)INCLUDE) {
+            if (KeyWord == INCLUDE) {
                 return KEY_INCLUDE;
             }
-            if (KeyWord == (char *)C_DEFAULT) {
+            if (KeyWord == C_DEFAULT) {
                 return KEY_DEFAULT;
             }
             break;
 
         case 8:
-            if (KeyWord == (char *)FUNCTION) {
+            if (KeyWord == FUNCTION) {
                 return KEY_FUNCTION;
             }
-            if (KeyWord == (char *)CONTINUE) {
+            if (KeyWord == CONTINUE) {
                 return KEY_CONTINUE;
             }
-            if (KeyWord == (char *)PROPERTY) {
+            if (KeyWord == PROPERTY) {
                 return KEY_PROPERTY;
             }
-            if (KeyWord == (char *)M_OPERATOR) {
+            if (KeyWord == M_OPERATOR) {
                 return KEY_OPERATOR;
             }
-            if (KeyWord == (char *)OVERRIDE) {
+            if (KeyWord == OVERRIDE) {
                 return KEY_OVERRIDE;
             }
-            if (KeyWord == (char *)TRIGERS) {
+            if (KeyWord == TRIGERS) {
                 return KEY_TRIGERS;
             }
             break;
 
         case 9:
-            if (KeyWord == (char *)PROTECTED) {
+            if (KeyWord == PROTECTED) {
                 return KEY_PROTECTED;
             }
             break;
@@ -714,11 +714,11 @@ INTEGER GetType(AnsiString& KeyWord) {
         return TYPE_EMPTY;
     }
 
-    if (KeyWord == (char *)SEP) {
+    if (KeyWord == SEP) {
         return TYPE_SEPARATOR;
     }
 
-    if ((KeyWord == (char *)BEGIN) || (KeyWord == (char *)END)) {
+    if ((KeyWord == BEGIN) || (KeyWord == END)) {
         return TYPE_KEYWORD;
     }
 

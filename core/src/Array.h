@@ -95,7 +95,7 @@ public:
 #endif
     POOLED(Array)
 
-    ARRAY_COUNT_TYPE FindKey(char *KEY);
+    ARRAY_COUNT_TYPE FindKey(const char *KEY);
     ARRAY_COUNT_TYPE FindIndex(ARRAY_COUNT_TYPE index);
 
     int LINKS;
@@ -108,7 +108,7 @@ public:
     VariableDATA *NewArray();
 
     char *GetKey(ARRAY_COUNT_TYPE);
-    ARRAY_COUNT_TYPE     GetIndex(char *Key);
+    ARRAY_COUNT_TYPE     GetIndex(const char *Key);
 
     VariableDATA *Get(ARRAY_COUNT_TYPE);
     VariableDATA *Get(VariableDATA *KEY);
@@ -118,7 +118,7 @@ public:
     VariableDATA *Add(VariableDATA *VAR_TO_ADD);
     VariableDATA *AddCopy(VariableDATA *VAR_TO_ADD);
 
-    VariableDATA *ModuleGet(char *key);
+    VariableDATA *ModuleGet(const char *key);
 
     VariableDATA *ModuleGet(ARRAY_COUNT_TYPE);
 

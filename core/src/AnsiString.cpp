@@ -232,35 +232,35 @@ void AnsiString::operator=(int i) {
     operator=((D_LONG_TYPE)i);
 }
 
-int AnsiString::operator <(char *str) {
+int AnsiString::operator <(const char *str) {
     if ((Data) && (str)) {
         return strcmp(Data, str) < 0;
     }
     return 0;
 }
 
-int AnsiString::operator >(char *str) {
+int AnsiString::operator >(const char *str) {
     if ((Data) && (str)) {
         return strcmp(Data, str) > 0;
     }
     return 0;
 }
 
-int AnsiString::operator >=(char *str) {
+int AnsiString::operator >=(const char *str) {
     if ((Data) && (str)) {
         return strcmp(Data, str) >= 0;
     }
     return 0;
 }
 
-int AnsiString::operator <=(char *str) {
+int AnsiString::operator <=(const char *str) {
     if ((Data) && (str)) {
         return strcmp(Data, str) <= 0;
     }
     return 0;
 }
 
-int AnsiString::operator==(char *str) {
+int AnsiString::operator==(const char *str) {
     if ((Data) && (str)) {
         if (strcmp(Data, str)) {
             return 0;
@@ -282,7 +282,7 @@ int AnsiString::operator==(char *str) {
     return 0;
 }
 
-int AnsiString::operator !=(char *str) {
+int AnsiString::operator !=(const char *str) {
     return !operator==(str);
 }
 
@@ -380,9 +380,9 @@ AnsiString::operator char *() {
 }
 
 char *AnsiString::c_str() const {
-    if (!Data) {
+    if (!Data)
         return (char *)"";
-    }
+
     return Data;
 }
 
@@ -634,7 +634,7 @@ void AnsiString::LinkBuffer(char *buffer, int size) {
     }
 }
 
-void AnsiString::LoadBuffer(char *buffer, int size) {
+void AnsiString::LoadBuffer(const char *buffer, int size) {
     free(Data);
     if (size < 0) {
         size = 0;
@@ -805,7 +805,7 @@ int AnsiString::Unserialize(concept_FILE *in, int type, signed char use_pool) {
     return 1;
 }
 
-void AnsiString::AddBuffer(char *S_Data, int S_Len) {
+void AnsiString::AddBuffer(const char *S_Data, int S_Len) {
     size_t len;
     size_t len_value;
 

@@ -68,7 +68,7 @@ TinyString::TinyString(const TinyString& S) {
     //}
 }
 
-void TinyString::operator=(char *value) {
+void TinyString::operator=(const char *value) {
     size_t len   = 0;
     char   *Data = 0;
 
@@ -127,7 +127,7 @@ void TinyString::operator=(int i) {
     operator=((long)i);
 }
 
-int TinyString::operator <(char *str) {
+int TinyString::operator <(const char *str) {
     char *Data = 0;
 
     if (DataOffset) {
@@ -139,7 +139,7 @@ int TinyString::operator <(char *str) {
     return 0;
 }
 
-int TinyString::operator >(char *str) {
+int TinyString::operator >(const char *str) {
     char *Data = 0;
 
     if (DataOffset) {
@@ -151,7 +151,7 @@ int TinyString::operator >(char *str) {
     return 0;
 }
 
-int TinyString::operator >=(char *str) {
+int TinyString::operator >=(const char *str) {
     char *Data = 0;
 
     if (DataOffset) {
@@ -163,7 +163,7 @@ int TinyString::operator >=(char *str) {
     return 0;
 }
 
-int TinyString::operator <=(char *str) {
+int TinyString::operator <=(const char *str) {
     char *Data = 0;
 
     if (DataOffset) {
@@ -176,7 +176,7 @@ int TinyString::operator <=(char *str) {
     return 0;
 }
 
-int TinyString::operator==(char *str) {
+int TinyString::operator==(const char *str) {
     char *Data = 0;
 
     if (DataOffset) {
@@ -203,7 +203,7 @@ int TinyString::operator==(char *str) {
     return 0;
 }
 
-int TinyString::operator !=(char *str) {
+int TinyString::operator !=(const char *str) {
     return !operator==(str);
 }
 
@@ -252,7 +252,7 @@ TinyString::~TinyString(void) {
     DataOffset = 0;
 }
 
-TinyString::operator char *() {
+TinyString::operator const char *() {
     return c_str();
 }
 
@@ -265,7 +265,7 @@ TinyString::operator AnsiString() {
     return AnsiString(Data);
 }
 
-char *TinyString::c_str() {
+const char *TinyString::c_str() const {
     char *Data = 0;
 
     if (DataOffset) {
@@ -273,12 +273,12 @@ char *TinyString::c_str() {
     }
 
     if (!Data) {
-        return (char *)"";
+        return "";
     }
     return Data;
 }
 
-void TinyString::operator +=(char *value) {
+void TinyString::operator +=(const char *value) {
     size_t len;
     size_t len_value;
 

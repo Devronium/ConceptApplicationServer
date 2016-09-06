@@ -17,7 +17,7 @@ private:
 public:
     POOLED(AnsiException)
 
-    AnsiException(AnsiString text, int line, intptr_t ID, AnsiString extra, AnsiString FileName, AnsiString class_name = "", AnsiString member_name = "");
+    AnsiException(const char *text, int line, intptr_t ID, const char *extra, const char *FileName, const char *class_name = "", const char *member_name = "");
     AnsiString GetText();
     AnsiString GetExtra();
     AnsiString GetFileName();

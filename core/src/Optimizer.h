@@ -21,13 +21,13 @@ class Optimizer {
 
 private:
     STATIC_FLAG ClassCode *_CLASS;
-    STATIC_FLAG char      *_MEMBER;
+    STATIC_FLAG const char*_MEMBER;
     STATIC_FLAG INTEGER   LAST_DEBUG_TRAP;
 
     STATIC_FLAG DoubleList *PIFList;
     STATIC_FLAG DoubleList *VDList;
     STATIC_FLAG INTEGER    PIF_POSITION;
-    STATIC_FLAG char       *_DEBUG_INFO_FILENAME;
+    STATIC_FLAG const char *_DEBUG_INFO_FILENAME;
 
     STATIC_FLAG char NO_WARNING_EMPTY;
     STATIC_FLAG char NO_WARNING_ATTR;
@@ -72,7 +72,7 @@ public:
     STATIC_FLAG PIFAlizator *PIFOwner;
 
     POOLED(Optimizer)
-    Optimizer(PIFAlizator *P, DoubleList *_PIFList, DoubleList *_VDList, char *Filename, ClassCode *cls, char *member, bool is_unserialized = false);
+    Optimizer(PIFAlizator *P, DoubleList *_PIFList, DoubleList *_VDList, const char *Filename, ClassCode *cls, const char *member, bool is_unserialized = false);
     int Optimize();
     int OptimizeMemoryUsage();
     AnsiString DEBUG_INFO();

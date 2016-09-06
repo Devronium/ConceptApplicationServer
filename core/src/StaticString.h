@@ -21,7 +21,7 @@ public:
     StaticString(const StaticString& S);
     StaticString(const char *value);
 
-    void operator=(char *value);
+    void operator=(const char *value);
     void operator=(StaticString& S);
     void operator=(intptr_t i);
     void operator=(AnsiString& S);

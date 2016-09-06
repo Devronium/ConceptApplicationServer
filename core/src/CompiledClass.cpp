@@ -307,7 +307,7 @@ CompiledClass::~CompiledClass() {
     FAST_FREE(_CONTEXT);
 #ifndef USE_RECURSIVE_MARKINGS
     if (inspectPos) {
-        for (int j = 0; j < inspectPos; j++) {
+        for (unsigned int j = 0; j < inspectPos; j++) {
             CompiledClass *obj = toInspect[j];
             if (obj->HasDestructor()) {
                 obj->LINKS = 2;

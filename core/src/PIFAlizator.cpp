@@ -362,12 +362,12 @@ PIFAlizator::~PIFAlizator(void) {
     StaticClassList = NULL;
 }
 
-unsigned int PIFAlizator::LinkStatic(char *funname) {
+unsigned int PIFAlizator::LinkStatic(const char *funname) {
     unsigned int res = 0;
     SYS_INT      ref = LinkFunction(funname, ModuleList, &CachedhDLL);
 
     if (ref) {
-        for (unsigned int i = 0; i < this->StaticLinksCount; i++) {
+        for (int i = 0; i < this->StaticLinksCount; i++) {
             if (this->StaticLinks [i] == ref) {
                 return i + 1;
             }
@@ -403,7 +403,7 @@ unsigned int PIFAlizator::LinkStatic(char *funname) {
     return res;
 }
 
-INTEGER PIFAlizator::AddUndefinedMember(AnsiString& member, TinyString& _CLASS, char *_MEMBER, intptr_t line) {
+INTEGER PIFAlizator::AddUndefinedMember(AnsiString& member, TinyString& _CLASS, const char *_MEMBER, intptr_t line) {
     UndefinedMember *UM = new UndefinedMember;
 
     UM->filename = FileName;
@@ -416,7 +416,7 @@ INTEGER PIFAlizator::AddUndefinedMember(AnsiString& member, TinyString& _CLASS, 
     return GeneralMembers->Count();
 }
 
-INTEGER PIFAlizator::AddUndefinedClass(AnsiString& member, TinyString& _CLASS, char *_MEMBER, intptr_t line) {
+INTEGER PIFAlizator::AddUndefinedClass(AnsiString& member, TinyString& _CLASS, const char *_MEMBER, intptr_t line) {
     UndefinedMember *UM = new UndefinedMember;
 
     UM->filename = FileName;
@@ -517,7 +517,7 @@ INTEGER PIFAlizator::ListContains(AnsiString& S, AnsiList *VDList, char is_tiny)
     return 0;
 }
 
-SYS_INT PIFAlizator::ClassExists(char *name, char by_addr, int *index) {
+SYS_INT PIFAlizator::ClassExists(const char *name, char by_addr, int *index) {
 #ifdef CACHED_CLASSES
     HASH_TYPE    key = hash_func(name);
     unsigned int pos = CachedClasses[key];
@@ -652,11 +652,11 @@ INTEGER PIFAlizator::BuildVariable(ClassCode *CC, AnsiParser *P, INTEGER on_line
 AnsiString PIFAlizator::GetSpecial(AnsiParser *P, ClassCode *CC, ClassMember *CM, AnsiString special) {
     AnsiString result;
 
-    if (special == (char *)"line") {
+    if (special == "line") {
         result = P->LastLine();
     } else
-    if (special == (char *)"filename") {
-        result += (char *)"'";
+    if (special == "filename") {
+        result += "'";
         int len = FileName.Length();
         int pos = 0;
         // len-2 = at least one character for the filename
@@ -668,10 +668,10 @@ AnsiString PIFAlizator::GetSpecial(AnsiParser *P, ClassCode *CC, ClassMember *CM
             }
         }
         result += AnsiString(FileName.c_str() + pos);
-        result += (char *)"'";
+        result += "'";
     } else
-    if (special == (char *)"path") {
-        result += (char *)"'";
+    if (special == "path") {
+        result += "'";
         int len = FileName.Length();
         for (int i = 0; i < len; i++) {
             char c = FileName [i];
@@ -681,19 +681,19 @@ AnsiString PIFAlizator::GetSpecial(AnsiParser *P, ClassCode *CC, ClassMember *CM
                 result += c;
             }
         }
-        result += (char *)"'";
+        result += "'";
     } else
-    if (special == (char *)"class") {
-        result += (char *)"'";
+    if (special == "class") {
+        result += "'";
         result += CC->NAME.c_str();
-        result += (char *)"'";
+        result += "'";
     } else
-    if (special == (char *)"member") {
-        result += (char *)"'";
+    if (special == "member") {
+        result += "'";
         result += CM->NAME;
-        result += (char *)"'";
+        result += "'";
     } else
-    if (special == (char *)"time") {
+    if (special == "time") {
         result = (intptr_t)time(NULL);
     } else {
         Errors.Add(new AnsiException(ERR1209, P->LastLine(), 1209, special, FileName, CC->NAME, CM->NAME), DATA_EXCEPTION);
@@ -702,7 +702,7 @@ AnsiString PIFAlizator::GetSpecial(AnsiParser *P, ClassCode *CC, ClassMember *CM
     return result;
 }
 
-INTEGER PIFAlizator::BuildFunction(ClassCode *CC, AnsiParser *P, INTEGER on_line, INTEGER ACCESS, INTEGER OPERATOR, char STATIC, char *prec_parse, char is_inline) {
+INTEGER PIFAlizator::BuildFunction(ClassCode *CC, AnsiParser *P, INTEGER on_line, INTEGER ACCESS, INTEGER OPERATOR, char STATIC, const char *prec_parse, char is_inline) {
     INTEGER                      BEGIN_END_LEVEL = 0;
     INTEGER                      ATOMIC_LEVEL    = 0;
     bool                         is_destructor   = false;
@@ -723,7 +723,7 @@ INTEGER PIFAlizator::BuildFunction(ClassCode *CC, AnsiParser *P, INTEGER on_line
 
     if (is_inline) {
         sPARSE   = prec_parse;
-        sPARSE  += (char *)"#";
+        sPARSE  += "#";
         sPARSE  += AnsiString((long)OPERATOR);
         OPERATOR = 0;
 
@@ -737,7 +737,7 @@ INTEGER PIFAlizator::BuildFunction(ClassCode *CC, AnsiParser *P, INTEGER on_line
         CM->IS_FUNCTION = 1;
         CM->IS_STATIC   = STATIC;
 
-        cached = (char *)"{";
+        cached = "{";
     } else {
         if (prec_parse) {
             sPARSE = prec_parse;
@@ -778,7 +778,7 @@ INTEGER PIFAlizator::BuildFunction(ClassCode *CC, AnsiParser *P, INTEGER on_line
         } else
         if (!strcmp(CM->NAME, (char *)C_FINALIZE)) {
             sPARSE  = CC->NAME.c_str();
-            sPARSE += (char *)"@";
+            sPARSE += "@";
             sPARSE += C_FINALIZE;
 
             ref_id   = GeneralMembers->ContainsString(sPARSE.c_str(), sPARSE.Length());
@@ -892,10 +892,11 @@ INTEGER PIFAlizator::BuildFunction(ClassCode *CC, AnsiParser *P, INTEGER on_line
                 }
             } else
             if (NEXT_IS_ASG) {
-                if (sPARSE == (char *)DIF) {
+                if (sPARSE == DIF) {
                     sign *= -1;
                     continue;
-                } else if (sPARSE == (char *)SUM) {
+                } else
+                if (sPARSE == SUM) {
                     continue;
                 }
 
@@ -940,39 +941,39 @@ INTEGER PIFAlizator::BuildFunction(ClassCode *CC, AnsiParser *P, INTEGER on_line
                 }
             } else
             if ((TYPE == TYPE_METHOD) && (!_ID) && (WANT_PARAM)) {
-                if (sPARSE == (char *)"number") {
+                if (sPARSE == "number") {
                     NEXT_IS_TYPE  = VARIABLE_NUMBER;
                     NEXT_IS_CLSID = 0;
                     P->NextAtom(sPARSE_FORWARD);
-                    if ((!sPARSE_FORWARD.Length()) || ((sPARSE_FORWARD != (char *)",") && (sPARSE_FORWARD != (char *)")")))
+                    if ((!sPARSE_FORWARD.Length()) || ((sPARSE_FORWARD != ",") && (sPARSE_FORWARD != ")")))
                         continue;
                 } else
-                if (sPARSE == (char *)"string") {
+                if (sPARSE == "string") {
                     NEXT_IS_TYPE  = VARIABLE_STRING;
                     NEXT_IS_CLSID = 0;
                     P->NextAtom(sPARSE_FORWARD);
-                    if ((!sPARSE_FORWARD.Length()) || ((sPARSE_FORWARD != (char *)",") && (sPARSE_FORWARD != (char *)")")))
+                    if ((!sPARSE_FORWARD.Length()) || ((sPARSE_FORWARD != ",") && (sPARSE_FORWARD != ")")))
                         continue;
                 } else
-                if (sPARSE == (char *)"array") {
+                if (sPARSE == "array") {
                     NEXT_IS_TYPE  = VARIABLE_ARRAY;
                     NEXT_IS_CLSID = 0;
                     P->NextAtom(sPARSE_FORWARD);
-                    if ((!sPARSE_FORWARD.Length()) || ((sPARSE_FORWARD != (char *)",") && (sPARSE_FORWARD != (char *)")")))
+                    if ((!sPARSE_FORWARD.Length()) || ((sPARSE_FORWARD != ",") && (sPARSE_FORWARD != ")")))
                         continue;
                 } else
-                if (sPARSE == (char *)"delegate") {
+                if (sPARSE == "delegate") {
                     NEXT_IS_TYPE  = VARIABLE_DELEGATE;
                     NEXT_IS_CLSID = 0;
                     P->NextAtom(sPARSE_FORWARD);
-                    if ((!sPARSE_FORWARD.Length()) || ((sPARSE_FORWARD != (char *)",") && (sPARSE_FORWARD != (char *)")")))
+                    if ((!sPARSE_FORWARD.Length()) || ((sPARSE_FORWARD != ",") && (sPARSE_FORWARD != ")")))
                         continue;
                 } else
-                if (sPARSE == (char *)"object") {
+                if (sPARSE == "object") {
                     NEXT_IS_TYPE  = VARIABLE_CLASS;
                     NEXT_IS_CLSID = 0;
                     P->NextAtom(sPARSE_FORWARD);
-                    if ((!sPARSE_FORWARD.Length()) || ((sPARSE_FORWARD != (char *)",") && (sPARSE_FORWARD != (char *)")")))
+                    if ((!sPARSE_FORWARD.Length()) || ((sPARSE_FORWARD != ",") && (sPARSE_FORWARD != ")")))
                         continue;
                 } else {
                     INTEGER cls_id = this->ClassExists(sPARSE.c_str());
@@ -980,7 +981,7 @@ INTEGER PIFAlizator::BuildFunction(ClassCode *CC, AnsiParser *P, INTEGER on_line
                         NEXT_IS_TYPE  = VARIABLE_CLASS;
                         NEXT_IS_CLSID = cls_id;
                         P->NextAtom(sPARSE_FORWARD);
-                        if ((!sPARSE_FORWARD.Length()) || ((sPARSE_FORWARD != (char *)",") && (sPARSE_FORWARD != (char *)")")))
+                        if ((!sPARSE_FORWARD.Length()) || ((sPARSE_FORWARD != ",") && (sPARSE_FORWARD != ")")))
                             continue;
                     }
                 }
@@ -1065,7 +1066,7 @@ INTEGER PIFAlizator::BuildFunction(ClassCode *CC, AnsiParser *P, INTEGER on_line
 
         if (cached.Length()) {
             sPARSE = cached;
-            cached = (char *)"";
+            cached = "";
         } else {
             P->NextAtom(sPARSE);
         }
@@ -1105,7 +1106,7 @@ INTEGER PIFAlizator::BuildFunction(ClassCode *CC, AnsiParser *P, INTEGER on_line
             continue;
         }
 
-        if ((IN_VAR_STATAMENT) && (!ATOMIC_LEVEL) && (sPARSE == (char *)CONCEPT_COMMA)) {
+        if ((IN_VAR_STATAMENT) && (!ATOMIC_LEVEL) && (sPARSE == CONCEPT_COMMA)) {
             TYPE = TYPE_KEYWORD;
             _ID  = KEY_VAR;
             AnalizerElement *AE = new AnalizerElement;
@@ -1252,7 +1253,7 @@ INTEGER PIFAlizator::BuildFunction(ClassCode *CC, AnsiParser *P, INTEGER on_line
                         AE->TYPE             = TYPE_VARIABLE;
                         AE->_DEBUG_INFO_LINE = on_line ? on_line : P->LastLine();
                         AE->_INFO_OPTIMIZED  = 0;
-                        AE->_PARSE_DATA      = (char *)"this";
+                        AE->_PARSE_DATA      = "this";
                         AE->_HASH_DATA       = 0;
                         PIFList->Add(AE, DATA_ANALIZER_ELEMENT);
 
@@ -1261,7 +1262,7 @@ INTEGER PIFAlizator::BuildFunction(ClassCode *CC, AnsiParser *P, INTEGER on_line
                         AE->TYPE             = TYPE_OPERATOR;
                         AE->_DEBUG_INFO_LINE = on_line ? on_line : P->LastLine();
                         AE->_INFO_OPTIMIZED  = 0;
-                        AE->_PARSE_DATA      = (char *)".";
+                        AE->_PARSE_DATA      = ".";
                         AE->_HASH_DATA       = 0;
                         PIFList->Add(AE, DATA_ANALIZER_ELEMENT);
 
@@ -1273,7 +1274,7 @@ INTEGER PIFAlizator::BuildFunction(ClassCode *CC, AnsiParser *P, INTEGER on_line
                         AE->TYPE             = TYPE_METHOD;
                         AE->_DEBUG_INFO_LINE = on_line ? on_line : P->LastLine();
                         AE->_INFO_OPTIMIZED  = 0;
-                        AE->_PARSE_DATA      = (char *)"inline";
+                        AE->_PARSE_DATA      = "inline";
                         AE->_HASH_DATA       = 0;
                         PIFList->Add(AE, DATA_ANALIZER_ELEMENT);
                         continue;
@@ -1296,7 +1297,7 @@ INTEGER PIFAlizator::BuildFunction(ClassCode *CC, AnsiParser *P, INTEGER on_line
                 TYPE = TYPE_KEYWORD;
                 if (_ID == KEY_FUNCTION) {
                     AnsiString temp_name(CM->NAME);
-                    temp_name += (char *)"#";
+                    temp_name += "#";
                     temp_name += AnsiString((long)++inline_count);
                     int inline_ref_id = this->BuildFunction(CC, P,  0, ACCESS_PUBLIC, 0, STATIC, temp_name.c_str());
                     // add this
@@ -1305,7 +1306,7 @@ INTEGER PIFAlizator::BuildFunction(ClassCode *CC, AnsiParser *P, INTEGER on_line
                     AE->TYPE             = TYPE_VARIABLE;
                     AE->_DEBUG_INFO_LINE = on_line ? on_line : P->LastLine();
                     AE->_INFO_OPTIMIZED  = 0;
-                    AE->_PARSE_DATA      = (char *)"this";
+                    AE->_PARSE_DATA      = "this";
                     AE->_HASH_DATA       = 0;
                     PIFList->Add(AE, DATA_ANALIZER_ELEMENT);
 
@@ -1314,7 +1315,7 @@ INTEGER PIFAlizator::BuildFunction(ClassCode *CC, AnsiParser *P, INTEGER on_line
                     AE->TYPE             = TYPE_OPERATOR;
                     AE->_DEBUG_INFO_LINE = on_line ? on_line : P->LastLine();
                     AE->_INFO_OPTIMIZED  = 0;
-                    AE->_PARSE_DATA      = (char *)".";
+                    AE->_PARSE_DATA      = ".";
                     AE->_HASH_DATA       = 0;
                     PIFList->Add(AE, DATA_ANALIZER_ELEMENT);
 
@@ -1326,7 +1327,7 @@ INTEGER PIFAlizator::BuildFunction(ClassCode *CC, AnsiParser *P, INTEGER on_line
                     AE->TYPE             = TYPE_METHOD;
                     AE->_DEBUG_INFO_LINE = on_line ? on_line : P->LastLine();
                     AE->_INFO_OPTIMIZED  = 0;
-                    AE->_PARSE_DATA      = (char *)"inline";
+                    AE->_PARSE_DATA      = "inline";
                     AE->_HASH_DATA       = 0;
                     PIFList->Add(AE, DATA_ANALIZER_ELEMENT);
                     continue;
@@ -1425,7 +1426,7 @@ INTEGER PIFAlizator::BuildFunction(ClassCode *CC, AnsiParser *P, INTEGER on_line
                     ClassCode *CC_temp = (ClassCode *)ClassList->Item(AE->ID - 1);
                     if (CC_temp) {
                         AnsiString temp_mname = CC_temp->NAME;
-                        temp_mname += (char *)"@";
+                        temp_mname += "@";
                         temp_mname += sPARSE;
                         _ID         = CC->HasMember(temp_mname);
                         if (_ID) {
@@ -1437,7 +1438,7 @@ INTEGER PIFAlizator::BuildFunction(ClassCode *CC, AnsiParser *P, INTEGER on_line
                             AE->TYPE             = TYPE_VARIABLE;
                             AE->_DEBUG_INFO_LINE = on_line ? on_line : P->LastLine();
                             AE->_INFO_OPTIMIZED  = 0;
-                            AE->_PARSE_DATA      = (char *)"this";
+                            AE->_PARSE_DATA      = "this";
                             AE->_HASH_DATA       = 0;
                             PIFList->Add(AE, DATA_ANALIZER_ELEMENT);
                             VD_THIS->USED = 1;
@@ -1447,7 +1448,7 @@ INTEGER PIFAlizator::BuildFunction(ClassCode *CC, AnsiParser *P, INTEGER on_line
                             AE->TYPE             = TYPE_OPERATOR;
                             AE->_DEBUG_INFO_LINE = on_line ? on_line : P->LastLine();
                             AE->_INFO_OPTIMIZED  = 0;
-                            AE->_PARSE_DATA      = (char *)".";
+                            AE->_PARSE_DATA      = ".";
                             AE->_HASH_DATA       = 0;
                             PIFList->Add(AE, DATA_ANALIZER_ELEMENT);
                         }
@@ -1473,7 +1474,7 @@ INTEGER PIFAlizator::BuildFunction(ClassCode *CC, AnsiParser *P, INTEGER on_line
                                 AE->TYPE             = TYPE_VARIABLE;
                                 AE->_DEBUG_INFO_LINE = on_line ? on_line : P->LastLine();
                                 AE->_INFO_OPTIMIZED  = 0;
-                                AE->_PARSE_DATA      = (char *)"this";
+                                AE->_PARSE_DATA      = "this";
                                 AE->_HASH_DATA       = 0;
                                 PIFList->Add(AE, DATA_ANALIZER_ELEMENT);
                                 VD_THIS->USED = 1;
@@ -1483,12 +1484,12 @@ INTEGER PIFAlizator::BuildFunction(ClassCode *CC, AnsiParser *P, INTEGER on_line
                                 AE->TYPE             = TYPE_OPERATOR;
                                 AE->_DEBUG_INFO_LINE = on_line ? on_line : P->LastLine();
                                 AE->_INFO_OPTIMIZED  = 0;
-                                AE->_PARSE_DATA      = (char *)".";
+                                AE->_PARSE_DATA      = ".";
                                 AE->_HASH_DATA       = 0;
                                 PIFList->Add(AE, DATA_ANALIZER_ELEMENT);
-                                if (sPARSE == (char *)C_FINALIZE) {
+                                if (sPARSE == C_FINALIZE) {
                                     sPARSE  = CC_T->NAME.c_str();
-                                    sPARSE += (char *)"@";
+                                    sPARSE += "@";
                                     sPARSE += C_FINALIZE;
                                 }
                                 _ID = GeneralMembers->ContainsString(sPARSE.c_str(), sPARSE.Length());
@@ -1510,7 +1511,7 @@ INTEGER PIFAlizator::BuildFunction(ClassCode *CC, AnsiParser *P, INTEGER on_line
                 AE->TYPE             = TYPE_CLASS;
                 AE->_DEBUG_INFO_LINE = on_line ? on_line : P->LastLine();
                 AE->_INFO_OPTIMIZED  = 0;
-                AE->_PARSE_DATA      = (char *)"LIBRARY";
+                AE->_PARSE_DATA      = "LIBRARY";
                 AE->_HASH_DATA       = 0;
                 PIFList->Add(AE, DATA_ANALIZER_ELEMENT);
 
@@ -1519,7 +1520,7 @@ INTEGER PIFAlizator::BuildFunction(ClassCode *CC, AnsiParser *P, INTEGER on_line
                 AE->TYPE             = TYPE_OPERATOR;
                 AE->_DEBUG_INFO_LINE = on_line ? on_line : P->LastLine();
                 AE->_INFO_OPTIMIZED  = 0;
-                AE->_PARSE_DATA      = (char *)"::";
+                AE->_PARSE_DATA      = "::";
                 AE->_HASH_DATA       = 0;
                 PIFList->Add(AE, DATA_ANALIZER_ELEMENT);
             }
@@ -1533,14 +1534,14 @@ INTEGER PIFAlizator::BuildFunction(ClassCode *CC, AnsiParser *P, INTEGER on_line
                     cachedMember = sPARSE;
                 if (sPARSE == CC->NAME.c_str()) {
                     P->NextAtom(cached);
-                    if ((cached == (char *)".") || (cached == (char *)"->") || (cached == (char *)"::")) {
+                    if ((cached == ".") || (cached == "->") || (cached == "::")) {
                         _ID = 0;
                     } else {
                         _ID = GeneralMembers->ContainsString(sPARSE.c_str(), sPARSE.Length());
                     }
                 } else {
                     P->NextAtom(cached);
-                    if (cached != (char *)"::") {
+                    if (cached != "::") {
                         _ID = GeneralMembers->ContainsString(sPARSE.c_str(), sPARSE.Length());
                     }
                 }
@@ -1555,7 +1556,7 @@ INTEGER PIFAlizator::BuildFunction(ClassCode *CC, AnsiParser *P, INTEGER on_line
                     AE->TYPE             = TYPE_VARIABLE;
                     AE->_DEBUG_INFO_LINE = on_line ? on_line : P->LastLine();
                     AE->_INFO_OPTIMIZED  = 0;
-                    AE->_PARSE_DATA      = (char *)"this";
+                    AE->_PARSE_DATA      = "this";
                     AE->_HASH_DATA       = 0;
                     PIFList->Add(AE, DATA_ANALIZER_ELEMENT);
                     VD_THIS->USED = 1;
@@ -1565,7 +1566,7 @@ INTEGER PIFAlizator::BuildFunction(ClassCode *CC, AnsiParser *P, INTEGER on_line
                     AE->TYPE             = TYPE_OPERATOR;
                     AE->_DEBUG_INFO_LINE = on_line ? on_line : P->LastLine();
                     AE->_INFO_OPTIMIZED  = 0;
-                    AE->_PARSE_DATA      = (char *)".";
+                    AE->_PARSE_DATA      = ".";
                     AE->_HASH_DATA       = 0;
                     PIFList->Add(AE, DATA_ANALIZER_ELEMENT);
                 }
@@ -1581,7 +1582,7 @@ INTEGER PIFAlizator::BuildFunction(ClassCode *CC, AnsiParser *P, INTEGER on_line
                 if (!cached.Length())
                     P->NextAtom(cached);
 
-                if ((cached == (char *)".") || (cached == (char *)"->") || (cached == (char *)"::")) {
+                if ((cached == ".") || (cached == "->") || (cached == "::")) {
                 } else {
                     _ID = GeneralMembers->ContainsString(sPARSE.c_str(), sPARSE.Length());
 
@@ -1626,7 +1627,7 @@ INTEGER PIFAlizator::BuildFunction(ClassCode *CC, AnsiParser *P, INTEGER on_line
                     P->NextAtom(cached);
                 }
 
-                if ((cached == (char *)".") || (cached == (char *)"::")) {
+                if ((cached == ".") || (cached == "::")) {
                     Warning(WRN10007, on_line ? on_line : P->LastLine(), 10007, sPARSE, FileName);
 
                     ClassCode *CC1 = new ClassCode(sPARSE, this);
@@ -1679,7 +1680,7 @@ INTEGER PIFAlizator::BuildFunction(ClassCode *CC, AnsiParser *P, INTEGER on_line
             AE->TYPE             = TYPE_CLASS;
             AE->_DEBUG_INFO_LINE = on_line ? on_line : P->LastLine();
             AE->_INFO_OPTIMIZED  = 0;
-            AE->_PARSE_DATA      = (char *)"DELEGATE";
+            AE->_PARSE_DATA      = "DELEGATE";
             AE->_HASH_DATA       = 0;
             PIFList->Insert(AE, pos - 1, DATA_ANALIZER_ELEMENT);
 
@@ -1688,7 +1689,7 @@ INTEGER PIFAlizator::BuildFunction(ClassCode *CC, AnsiParser *P, INTEGER on_line
             AE->TYPE             = TYPE_OPERATOR;
             AE->_DEBUG_INFO_LINE = on_line ? on_line : P->LastLine();
             AE->_INFO_OPTIMIZED  = 0;
-            AE->_PARSE_DATA      = (char *)"::";
+            AE->_PARSE_DATA      = "::";
             AE->_HASH_DATA       = 0;
             PIFList->Insert(AE, pos, DATA_ANALIZER_ELEMENT);
         }
@@ -1740,9 +1741,9 @@ INTEGER PIFAlizator::BuildFunction(ClassCode *CC, AnsiParser *P, INTEGER on_line
         VariableDESCRIPTOR *VD = (VariableDESCRIPTOR *)VDList->Item(i);
         if (!VD->USED) {
             if (OPERATOR) {
-                Warning(WRN10003, on_line ? on_line : P->LastLine(), 10003, AnsiString("var '") + VD->name.c_str() + AnsiString("' in operator '") + CM->NAME + (char *)"'");
+                Warning(WRN10003, on_line ? on_line : P->LastLine(), 10003, AnsiString("var '") + VD->name.c_str() + AnsiString("' in operator '") + CM->NAME + "'");
             } else {
-                Warning(WRN10003, on_line ? on_line : P->LastLine(), 10003, AnsiString("var '") + VD->name.c_str() + AnsiString("' in function '") + CM->NAME + (char *)"'");
+                Warning(WRN10003, on_line ? on_line : P->LastLine(), 10003, AnsiString("var '") + VD->name.c_str() + AnsiString("' in function '") + CM->NAME + "'");
             }
         }
     }
@@ -1905,7 +1906,7 @@ INTEGER PIFAlizator::BuildEvent(ClassCode *CC, AnsiParser *P, INTEGER on_line, I
     P->NextAtom(sPARSE);
 
     // faster
-    if (sPARSE != (char *)TRIGERS) {
+    if (sPARSE != TRIGERS) {
         Errors.Add(new AnsiException(ERR330, on_line ? on_line : P->LastLine(), 330, sPARSE, FileName, CC->NAME, CM->NAME), DATA_EXCEPTION);
         return 1;
     }
@@ -1937,7 +1938,7 @@ INTEGER PIFAlizator::BuildEvent(ClassCode *CC, AnsiParser *P, INTEGER on_line, I
             return 1;
         }
     } else {
-        if (sPARSE != (char *)SEP)
+        if (sPARSE != SEP)
             P->Rollback();
     }
 #else
@@ -2193,7 +2194,7 @@ INTEGER PIFAlizator::BuildClass(AnsiParser *P, INTEGER on_line) {
     return 0;
 }
 
-INTEGER PIFAlizator::Warning(const char *WRN, int line, int wrn_code, char *extra, char *filename) {
+INTEGER PIFAlizator::Warning(const char *WRN, int line, int wrn_code, const char *extra, const char *filename) {
     if (USE_WARN) {
         Warnings.Add(new AnsiException(WRN, line, wrn_code, extra, filename ? filename : FileName.c_str()), DATA_EXCEPTION);
         return 1;
@@ -2327,10 +2328,10 @@ AnsiString PIFAlizator::NormalizePath(AnsiString *MODULE_NAME) {
             if (prec_str.Length()) {
                 if (i >= 0)
                     str[i] = 0;
-                if (prec_str == (char *)"..") {
+                if (prec_str == "..") {
                     ignore_next++;
                 } else
-                if (prec_str != (char *)".") {
+                if (prec_str != ".") {
                     if (ignore_next)
                         ignore_next--;
                     else {
@@ -2338,7 +2339,7 @@ AnsiString PIFAlizator::NormalizePath(AnsiString *MODULE_NAME) {
                             path_pos[path_count++] = i + 1;
                     }
                 }
-                prec_str = (char *)"";
+                prec_str = "";
             }
         } else
             prec_str += c;
@@ -2353,7 +2354,7 @@ AnsiString PIFAlizator::NormalizePath(AnsiString *MODULE_NAME) {
         int pos = path_pos[i];
         if (pos >= 0) {
             if (not_first)
-                result += (char *)"/";
+                result += "/";
             else
                 not_first = 1;
             result += str + pos;
@@ -3089,20 +3090,20 @@ AnsiString PIFAlizator::SerializeWarningsErrors(int ser_warnings) {
     for (INTEGER k = 0; k < count; k++) {
         AnsiException *Ex = (AnsiException *)Target->Item(k);
         result += Ex->GetFileName();
-        result += (char *)"<:>";
+        result += "<:>";
         result += AnsiString((intptr_t)Ex->GetLine());
         result += "<:>";
         result += (char *)Ex->GetClass();
-        result += (char *)"<:>";
+        result += "<:>";
         result += Ex->GetMember();
-        result += (char *)"<:>";
+        result += "<:>";
         result += AnsiString((intptr_t)Ex->GetID());
-        result += (char *)"<:>";
+        result += "<:>";
         result += Ex->GetText();
-        result += (char *)"<:>";
+        result += "<:>";
         result += Ex->GetExtra();
         if (k != count - 1) {
-            result += (char *)"<:>";
+            result += "<:>";
         }
     }
     return result;
@@ -3113,7 +3114,7 @@ AnsiString PIFAlizator::PRINT_ERRORS(int html) {
 
     if (html == 1) {
         if (!this->out->userdata) {
-            res = (char *)"Content-Type: text/plain\r\n\r\n";
+            res = "Content-Type: text/plain\r\n\r\n";
         }
     }
     res += "\n------------ Errors -------------------------------------------------------\n";
@@ -3132,7 +3133,7 @@ AnsiString PIFAlizator::PRINT_ERRORS(int html) {
         }
         if (_CLASS != Ex->GetClass()) {
             _CLASS = Ex->GetClass();
-            if (_CLASS != (char *)"") {
+            if (_CLASS != "") {
                 res += "  In class ";
                 res += _CLASS;
                 res += ":\n";
@@ -3143,12 +3144,12 @@ AnsiString PIFAlizator::PRINT_ERRORS(int html) {
 
         if (_MEMBER != Ex->GetMember()) {
             _MEMBER = Ex->GetMember();
-            if (_MEMBER != (char *)"") {
-                res += (char *)"    In member ";
+            if (_MEMBER != "") {
+                res += "    In member ";
                 res += _CLASS;
-                res += (char *)".";
+                res += ".";
                 res += (char *)_MEMBER;
-                res += (char *)":\n";
+                res += ":\n";
             } else {
                 res += "    Outside class member:\n";
             }
@@ -3158,7 +3159,7 @@ AnsiString PIFAlizator::PRINT_ERRORS(int html) {
                AnsiString("E") + AnsiString(Ex->GetID()) +
                AnsiString(" on line ") + AnsiString(Ex->GetLine()) +
                AnsiString(": ") + Ex->GetText();
-        if (Ex->GetExtra() != (char *)"") {
+        if (Ex->GetExtra() != "") {
             res += AnsiString(" (\'") + Ex->GetExtra() + AnsiString("\') ");
         }
 
@@ -3172,10 +3173,10 @@ AnsiString PIFAlizator::PRINT_WARNINGS(int html) {
 
     if (html == 1) {
         if (!this->out->userdata) {
-            res = (char *)"Content-Type: text/plain\r\n\r\n";
+            res = "Content-Type: text/plain\r\n\r\n";
         }
     }
-    res += (char *)"------------ Warnings -----------------------------------------------------\n";
+    res += "------------ Warnings -----------------------------------------------------\n";
     for (INTEGER k = 0; k < Warnings.Count(); k++) {
         AnsiException *Ex = (AnsiException *)Warnings [k];
         res += AnsiString(k) + AnsiString(". ") +
@@ -3192,57 +3193,57 @@ AnsiString PIFAlizator::PRINT_WARNINGS(int html) {
 AnsiString PIFAlizator::DEBUG_CLASS_CONFIGURATION() {
     AnsiString res;
 
-    res += (char *)"------------ Class Configuration ------------------------------------------\n";
+    res += "------------ Class Configuration ------------------------------------------\n";
     INTEGER CLASS_COUNT = ClassList->Count();
     for (INTEGER i = 0; i < CLASS_COUNT; i++) {
         ClassCode *CC           = (ClassCode *)(*ClassList) [i];
         INTEGER   MEMBERS_COUNT = CC->Members->Count();
-        res += (char *)"Class '";
+        res += "Class '";
         res += CC->NAME.c_str();
-        res += (char *)"' class ID :";
+        res += "' class ID :";
         res += (char *)AnsiString(CC->CLSID);
-        res += (char *)"\n";
+        res += "\n";
         for (INTEGER j = 0; j < MEMBERS_COUNT; j++) {
             ClassMember *CM = (ClassMember *)CC->Members->Item(j);
-            res += (char *)"\t::";
+            res += "\t::";
             res += CM->NAME;
             if (CM->IS_FUNCTION == 1) {
-                res += (char *)" is a function\n\t\tDATA:\n";
+                res += " is a function\n\t\tDATA:\n";
                 for (INTEGER k = 0; k < ((Optimizer *)CM->OPTIMIZER)->dataCount; k++) {
-                    res += (char *)"\t\t\tTYPE:";
+                    res += "\t\t\tTYPE:";
                     res += AnsiString((intptr_t)((Optimizer *)CM->OPTIMIZER)->DATA [k].TYPE);
-                    res += (char *)"\n";
+                    res += "\n";
                 }
-                res += (char *)"\t\tCODE:\n";
+                res += "\t\tCODE:\n";
                 for (INTEGER k = 0; k < ((Optimizer *)CM->OPTIMIZER)->codeCount; k++) {
-                    res += (char *)"\t\t\tOPERATOR TYPE:";
+                    res += "\t\t\tOPERATOR TYPE:";
                     res += AnsiString((intptr_t)((Optimizer *)CM->OPTIMIZER)->CODE [k].Operator.TYPE);
-                    res += (char *)"\tOPERATOR ID:";
+                    res += "\tOPERATOR ID:";
                     res += AnsiString(((Optimizer *)CM->OPTIMIZER)->CODE [k].Operator.ID);
-                    res += (char *)"\n";
+                    res += "\n";
                 }
             } else {
-                res += (char *)"\n";
+                res += "\n";
             }
         }
-        res += (char *)"\n\tDYNAMIC MEMBERS:\n";
+        res += "\n\tDYNAMIC MEMBERS:\n";
         for (INTEGER j = 0; j < CC->pMEMBERS_COUNT; j++) {
             ClassMember *CM = (ClassMember *)CC->pMEMBERS [j];
-            res += (char *)"\t\t[+]\t";
+            res += "\t\t[+]\t";
             res += AnsiString(j);
-            res += (char *)"\t";
+            res += "\t";
             if (CM) {
                 res += CM->NAME;
             } else {
-                res += (char *)"___NADA___";
+                res += "___NADA___";
             }
-            res += (char *)"\n";
+            res += "\n";
         }
     }
     return res;
 }
 
-char *PIFAlizator::CheckMember(char *member_name) {
+char *PIFAlizator::CheckMember(const char *member_name) {
     int  ref_id    = GeneralMembers->ContainsString(member_name);
     char *ref_name = 0;
 
@@ -3256,7 +3257,7 @@ char *PIFAlizator::CheckMember(char *member_name) {
     return ref_name;
 }
 
-INTEGER PIFAlizator::FindVariableByName(void *key, char *name) {
+INTEGER PIFAlizator::FindVariableByName(void *key, const char *name) {
 #ifdef DEBUGGER_VAR_NAMES
     int  len = strlen(name);
     char buf[0x108];
@@ -3271,7 +3272,7 @@ INTEGER PIFAlizator::FindVariableByName(void *key, char *name) {
 #endif
 }
 
-void PIFAlizator::RegisterVariableName(void *key, char *name, INTEGER val) {
+void PIFAlizator::RegisterVariableName(void *key, const char *name, INTEGER val) {
 #ifdef DEBUGGER_VAR_NAMES
     int  len = strlen(name);
     char buf[0x108];

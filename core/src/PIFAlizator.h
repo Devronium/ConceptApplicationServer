@@ -165,15 +165,15 @@
 
 #define PDATA_ITEMS               0xFF
 
-#define PRAGMA_WARNINGS           (char *)"warnings"
-#define PRAGMA_EXCEPTIONS         (char *)"lib_exceptions"
-#define PRAGMA_IMPLICIT           (char *)"implicit"
-#define PRAGMA_ENTRY_POINT        (char *)"entry_point"
-#define PRAGMA_USED               (char *)"used"
-#define PRAGMA_STRICT             (char *)"strict"
+#define PRAGMA_WARNINGS           "warnings"
+#define PRAGMA_EXCEPTIONS         "lib_exceptions"
+#define PRAGMA_IMPLICIT           "implicit"
+#define PRAGMA_ENTRY_POINT        "entry_point"
+#define PRAGMA_USED               "used"
+#define PRAGMA_STRICT             "strict"
 
-#define PRAGMA_ON                 (char *)"on"
-#define PRAGMA_OFF                (char *)"off"
+#define PRAGMA_ON                 "on"
+#define PRAGMA_OFF                "off"
 
 #define MAIN_ENTRY_POINT          "Main"
 
@@ -259,10 +259,10 @@ class PIFAlizator {
     int     StaticLinksCount;
     int     StaticLinksSize;
 
-    unsigned int LinkStatic(char *funname);
-    INTEGER AddUndefinedMember(AnsiString& member, TinyString& _CLASS, char *_MEMBER, intptr_t line);
+    unsigned int LinkStatic(const char *funname);
+    INTEGER AddUndefinedMember(AnsiString& member, TinyString& _CLASS, const char *_MEMBER, intptr_t line);
     INTEGER CheckUndefinedMembers();
-    INTEGER AddUndefinedClass(AnsiString& member, TinyString& _CLASS, char *_MEMBER, intptr_t line);
+    INTEGER AddUndefinedClass(AnsiString& member, TinyString& _CLASS, const char *_MEMBER, intptr_t line);
     INTEGER CheckUndefinedClasses();
 
 #ifdef CACHED_VARIABLES
@@ -274,7 +274,7 @@ class PIFAlizator {
     INTEGER ConstantIsDescribed(AnsiString& S, AnsiList *VDList);
 
     AnsiString GetSpecial(AnsiParser *P, ClassCode *CC, ClassMember *CM, AnsiString special);
-    INTEGER BuildFunction(ClassCode *CC, AnsiParser *P, INTEGER on_line = 0, INTEGER ACCESS = ACCESS_PUBLIC, INTEGER OPERATOR = 0, char STATIC = 0, char *prec_parse = 0, char is_inline = 0);
+    INTEGER BuildFunction(ClassCode *CC, AnsiParser *P, INTEGER on_line = 0, INTEGER ACCESS = ACCESS_PUBLIC, INTEGER OPERATOR = 0, char STATIC = 0, const char *prec_parse = 0, char is_inline = 0);
     INTEGER BuildProperty(ClassCode *CC, AnsiParser *P, INTEGER on_line = 0, INTEGER ACCESS = ACCESS_PUBLIC);
     INTEGER BuildEvent(ClassCode *CC, AnsiParser *P, INTEGER on_line = 0, INTEGER ACCESS = ACCESS_PUBLIC);
     INTEGER BuildOverride(ClassCode *CC, AnsiParser *P, INTEGER on_line);
@@ -289,7 +289,7 @@ class PIFAlizator {
     INTEGER BuildPragma(AnsiParser *P, ClassCode *CC = NULL);
 
     INTEGER Execute(AnsiString *Stream, INTEGER on_line = 0, char _USE_WARN = DEFAULT_USE_WARNINGS, char _USE_EXC = DEFAULT_USE_EXCEPTIONS, char _USE_IMPLICIT = DEFAULT_USE_IMPLICIT);
-    SYS_INT ClassExists(char *name, char by_addr = 0, int *index = 0);
+    SYS_INT ClassExists(const char *name, char by_addr = 0, int *index = 0);
     INTEGER ListContains(AnsiString& S, AnsiList *VDList, char is_tiny = false);
     INTEGER BuildVariable(ClassCode *CC, AnsiParser *P, INTEGER on_line, INTEGER ACCESS);
     INTEGER ExtendClass(ClassCode *CC, AnsiParser *P, INTEGER on_line, INTEGER OWNER_CLSID);
@@ -314,10 +314,10 @@ class PIFAlizator {
     unsigned int PROFILE_DRIVEN_ID;
     int          INCLUDE_LEVEL;
 
-    INTEGER Warning(const char *WRN, int line, int wrn_code, char *extra, char *filename = 0);
+    INTEGER Warning(const char *WRN, int line, int wrn_code, const char *extra, const char *filename = 0);
     void DefineConstant(const char *name, const char *value, int is_string = 1);
 
-    char *CheckMember(char *member_name);
+    char *CheckMember(const char *member_name);
 
     char basic_constants_count;
 #ifdef CACHED_LIST
@@ -411,8 +411,8 @@ public:
 #ifdef DEBUGGER_VAR_NAMES
     std::map<HASH_TYPE, INTEGER> DebugVarNames;
 #endif
-    INTEGER FindVariableByName(void *key, char *name);
-    void RegisterVariableName(void *key, char *name, INTEGER val);
+    INTEGER FindVariableByName(void *key, const char *name);
+    void RegisterVariableName(void *key, const char *name, INTEGER val);
 
     void Clear();
     ~PIFAlizator(void);

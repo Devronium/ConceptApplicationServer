@@ -48,7 +48,7 @@
 #include <stdint.h>
 
 typedef void (*CHECK_POINT)(int status);
-typedef void (*SECURE_MESSAGE)(char *Sender, char *Target, int message, char *value, int len, int socket, void *handler);
+typedef void (*SECURE_MESSAGE)(const char *Sender, const char *Target, int message, const char *value, int len, int socket, void *handler);
 typedef void (*DESTROY_PROTO_DATA)(void *data, void *handler);
 
 #define INVOKE_SET_VARIABLE                   0x01
@@ -629,7 +629,7 @@ public:
             if (send_secure_message) {
                 if ((length < 0) && (str))
                     length = strlen(str);
-                send_secure_message((char *)"%SYSTEM", (char *)"%SCREEN", message_id, (char *)str, length, sock, PIF);
+                send_secure_message("%SYSTEM", "%SCREEN", message_id, (char *)str, length, sock, PIF);
             }
             if (fprint_notify) {
                 fprint_notify(PIF, (char *)str, length, userdata);
@@ -653,7 +653,7 @@ public:
     void ClientError(const char *error_text, int err_id = -11) {
         if (sock) {
             if (send_secure_message)
-                send_secure_message((char *)"%SYSTEM", (char *)"%SCREEN", err_id, (char *)error_text, strlen(error_text), sock, PIF);
+                send_secure_message("%SYSTEM", "%SCREEN", err_id, (char *)error_text, strlen(error_text), sock, PIF);
         } else {
             if (userdata) {
                 Print("<br /><pre>");

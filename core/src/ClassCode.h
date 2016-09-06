@@ -37,13 +37,13 @@ class ClassCode {
     friend INTEGER Invoke(INTEGER, ...);
     friend int GetVariableByName(int operation, void **VDESC, void **CONTEXT, int Depth, char *VariableName, char *buffer, int buf_size, void *PIF, void *STACK_TRACE);
 
-    friend INTEGER GetClassMember(void *CLASS_PTR, char *class_member_name, INTEGER *TYPE, char **STRING_VALUE, NUMBER *NUMBER_VALUE);
+    friend INTEGER GetClassMember(void *CLASS_PTR, const char *class_member_name, INTEGER *TYPE, char **STRING_VALUE, NUMBER *NUMBER_VALUE);
 
-    friend INTEGER GetClassMemberVariable(void *CLASS_PTR, char *class_member_name, void **ptr);
+    friend INTEGER GetClassMemberVariable(void *CLASS_PTR, const char *class_member_name, void **ptr);
 
-    friend VariableDATA *GetClassMember(void *CLASS_PTR, char *class_member_name);
+    friend VariableDATA *GetClassMember(void *CLASS_PTR, const char *class_member_name);
 
-    friend INTEGER SetClassMember(void *CLASS_PTR, char *class_member_name, INTEGER TYPE, char *STRING_VALUE, NUMBER NUMBER_VALUE);
+    friend INTEGER SetClassMember(void *CLASS_PTR, const char *class_member_name, INTEGER TYPE, const char *STRING_VALUE, NUMBER NUMBER_VALUE);
 
     friend int MarkRecursive(void *PIF, CompiledClass *CC, signed char reach_id_flag);
 
@@ -81,27 +81,27 @@ public:
     int Inherits(INTEGER CLSID);
     int GetAbsoluteMemberID(int mid);
     int BoundMember(PIFAlizator *PIF, ClassMember *CM, ClassCode *Sender);
-    int HasMember(char *name);
-    int HasMemberInCompiled(char *name, INTEGER *is_variable = NULL);
+    int HasMember(const char *name);
+    int HasMemberInCompiled(const char *name, INTEGER *is_variable = NULL);
     ClassMember *MemberID(int mid);
     int GetSerialMembers(CompiledClass *CC, int max_members, char **pmembers, unsigned char *flags, char *access, char *types, char **szValue, double *n_data, void **class_data, void **variable_data, int all_members = 1);
-    int CanBeRunStatic(char *name);
+    int CanBeRunStatic(const char *name);
 
-    ClassCode(char *name, PIFAlizator *P, char binary_form = false);
+    ClassCode(const char *name, PIFAlizator *P, char binary_form = false);
     ClassMember *AddLinked(PIFAlizator *PIF, ClassMember *CM_i);
-    ClassMember *AddMember(PIFAlizator *PIF, char *name, INTEGER line, char *FileName, INTEGER ACCESS, char data_only);
-    int RemoveMember(PIFAlizator *PIF, char *name, INTEGER line, char *FileName);
+    ClassMember *AddMember(PIFAlizator *PIF, const char *name, INTEGER line, const char *FileName, INTEGER ACCESS, char data_only);
+    int RemoveMember(PIFAlizator *PIF, const char *name, INTEGER line, const char *FileName);
 
-    VariableDATA *ExecuteMember(PIFAlizator *PIF, INTEGER i, VariableDATA *Owner, RuntimeElement *AE, INTEGER local, ParamList *FORMAL_PARAM, VariableDATA **SenderCTX, char property , INTEGER CLSID , INTEGER LOCAL_CLSID, SCStack *PREV, char next_is_asg = 0, VariableDATAPROPERTY **PROPERTIES = NULL, int dataLen = -1, int result_id = -1);
+    VariableDATA *ExecuteMember(PIFAlizator *PIF, INTEGER i, VariableDATA *Owner, const RuntimeElement *AE, INTEGER local, ParamList *FORMAL_PARAM, VariableDATA **SenderCTX, char property, INTEGER CLSID, INTEGER LOCAL_CLSID, SCStack *PREV, char next_is_asg = 0, VariableDATAPROPERTY **PROPERTIES = NULL, int dataLen = -1, int result_id = -1);
 #ifdef SIMPLE_MULTI_THREADING
-    VariableDATA *ExecuteDelegate(PIFAlizator *PIF, INTEGER i, VariableDATA *Owner, RuntimeElement *AE, ParamList *FORMAL_PARAM, VariableDATA **SenderCTX, INTEGER CLSID, INTEGER LOCAL_CLSID, SCStack *PREV, INTEGER *thread_lock = NULL);
+    VariableDATA *ExecuteDelegate(PIFAlizator *PIF, INTEGER i, VariableDATA *Owner, const RuntimeElement *AE, ParamList *FORMAL_PARAM, VariableDATA **SenderCTX, INTEGER CLSID, INTEGER LOCAL_CLSID, SCStack *PREV, INTEGER *thread_lock = NULL);
 #else
-    VariableDATA *ExecuteDelegate(PIFAlizator *PIF, INTEGER i, VariableDATA *Owner, RuntimeElement *AE, ParamList *FORMAL_PARAM, VariableDATA **SenderCTX, INTEGER CLSID, INTEGER LOCAL_CLSID, SCStack *PREV);
+    VariableDATA *ExecuteDelegate(PIFAlizator *PIF, INTEGER i, VariableDATA *Owner, const RuntimeElement *AE, ParamList *FORMAL_PARAM, VariableDATA **SenderCTX, INTEGER CLSID, INTEGER LOCAL_CLSID, SCStack *PREV);
 #endif
 
     TinyString *GetFilename(PIFAlizator *PIF, INTEGER LOCAL_CLSID, TinyString *default_Value);
-    void SetProperty(PIFAlizator *PIF, INTEGER i, VariableDATA *Owner, RuntimeElement *AE, INTEGER local, INTEGER VALUE, VariableDATA **SenderCTX, INTEGER CLSID, INTEGER LOCAL_CLSID, SCStack *PREV);
-    CompiledClass *CreateInstance(PIFAlizator *PIF, VariableDATA *Owner, RuntimeElement *AE, ParamList *FORMAL_PARAM, VariableDATA **SenderCTX, SCStack *PREV, char is_static = 0);
+    void SetProperty(PIFAlizator *PIF, INTEGER i, VariableDATA *Owner, const RuntimeElement *AE, INTEGER local, INTEGER VALUE, VariableDATA **SenderCTX, INTEGER CLSID, INTEGER LOCAL_CLSID, SCStack *PREV);
+    CompiledClass *CreateInstance(PIFAlizator *PIF, VariableDATA *Owner, const RuntimeElement *AE, ParamList *FORMAL_PARAM, VariableDATA **SenderCTX, SCStack *PREV, char is_static = 0);
     void GenerateCode(StaticList *GeneralMembers);
     int Serialize(PIFAlizator *PIF, FILE *out, bool is_lib = false);
     int Unserialize(PIFAlizator *PIF, concept_FILE *in, AnsiList *ClassList, bool is_lib = false, int *ClassNames = 0, int *Relocation = 0);

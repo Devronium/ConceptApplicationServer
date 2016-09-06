@@ -30,39 +30,39 @@ public:
     int operator!=(AnsiString& S);
     void operator=(AnsiString& S);
 
-    int operator==(char *str);
-    int operator!=(char *str);
+    int operator==(const char *str);
+    int operator!=(const char *str);
 
     int operator==(TinyString& S);
     int operator!=(TinyString& S);
 
-    int operator <(char *str);
-    int operator <=(char *str);
-    int operator >(char *str);
-    int operator >=(char *str);
+    int operator <(const char *str);
+    int operator <=(const char *str);
+    int operator >(const char *str);
+    int operator >=(const char *str);
 
     int operator <(TinyString& S);
     int operator <=(TinyString& S);
     int operator >(TinyString& S);
     int operator >=(TinyString& S);
 
-    void operator=(char *value);
+    void operator=(const char *value);
     void operator=(TinyString& S);
     void operator=(long i);
     void operator=(int i);
     void operator=(char c);
     void operator=(double d);
 
-    void operator+=(char *value);
+    void operator+=(const char *value);
     void operator+=(TinyString& S);
     void operator+=(char c);
 
-    operator char *();
+    operator const char *();
     operator AnsiString();
 
     TinyString operator+(TinyString& S);
 
-    char *c_str();
+    const char *c_str() const;
     intptr_t ToInt();
     double ToFloat();
 

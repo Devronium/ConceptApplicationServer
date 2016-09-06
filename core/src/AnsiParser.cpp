@@ -145,7 +145,7 @@ void AnsiParser::NextAtom(AnsiString& result, int no_constants) {
             if (c == '#') {
                 if (!comment) {
                     line_comment = 1;
-                    result       = (char *)"";
+                    result       = "";
                     oper         = 0;
                     separator    = 0;
                 }
@@ -217,14 +217,14 @@ void AnsiParser::NextAtom(AnsiString& result, int no_constants) {
                 if PRED_EQU(prediction, LINE_COMMENT) {
                     if (!comment) {
                         line_comment = 1;
-                        result       = (char *)"";
+                        result       = "";
                         oper         = 0;
                         separator    = 0;
                     }
                 } else
                 if PRED_EQU(prediction, COMMENT_START) {
                     comment   = 1;
-                    result    = (char *)"";
+                    result    = "";
                     oper      = 0;
                     separator = 0;
                 } else
@@ -235,7 +235,7 @@ void AnsiParser::NextAtom(AnsiString& result, int no_constants) {
                         return;
                     }
                     comment   = 0;
-                    result    = (char *)"";
+                    result    = "";
                     oper      = 0;
                     separator = 0;
                 } else
@@ -243,7 +243,7 @@ void AnsiParser::NextAtom(AnsiString& result, int no_constants) {
                     if (c == COMMENT_END [0]) {
                         result = c;
                     } else {
-                        result = (char *)"";
+                        result = "";
                     }
                 }
             } else
@@ -251,7 +251,7 @@ void AnsiParser::NextAtom(AnsiString& result, int no_constants) {
                 if (c == COMMENT_END [0]) {
                     result = c;
                 } else {
-                    result = (char *)"";
+                    result = "";
                 }
             }
         }

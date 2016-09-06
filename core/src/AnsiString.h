@@ -42,8 +42,8 @@ public:
     char operator[](uintptr_t index);
     char operator[](int index);
 
-    int operator==(char *str);
-    int operator!=(char *str);
+    int operator==(const char *str);
+    int operator!=(const char *str);
 
     int operator==(double d);
     int operator!=(double d);
@@ -51,10 +51,10 @@ public:
     int operator==(const AnsiString& S);
     int operator!=(const AnsiString& S);
 
-    int operator <(char *str);
-    int operator <=(char *str);
-    int operator >(char *str);
-    int operator >=(char *str);
+    int operator <(const char *str);
+    int operator <=(const char *str);
+    int operator >(const char *str);
+    int operator >=(const char *str);
 
     int operator <(const AnsiString& S);
     int operator <=(const AnsiString& S);
@@ -86,8 +86,8 @@ public:
 
     int LoadFile(char *filename);
     int SaveFile(char *filename);
-    void LoadBuffer(char *buffer, int size);
-    void AddBuffer(char *S_Data, int S_Len);
+    void LoadBuffer(const char *buffer, int size);
+    void AddBuffer(const char *S_Data, int S_Len);
     void LinkBuffer(char *buffer, int size);
     void IncreaseBuffer(int size);
     void Sum(AnsiString& S1, AnsiString& S2);

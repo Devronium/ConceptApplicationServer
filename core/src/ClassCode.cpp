@@ -44,7 +44,7 @@ ParamList * ClassCode::EMPTY_PARAM_LIST = 0;
             } \
         }
 
-ClassCode::ClassCode(char *name, PIFAlizator *P, char binary_form) {
+ClassCode::ClassCode(const char *name, PIFAlizator *P, char binary_form) {
     if (binary_form) {
         Members = 0;
     } else {
@@ -114,7 +114,7 @@ ClassMember *ClassCode::AddLinked(PIFAlizator *PIF, ClassMember *CM_i) {
     return CM_i;
 }
 
-ClassMember *ClassCode::AddMember(PIFAlizator *PIF, char *name, INTEGER line, char *FileName, INTEGER ACCESS, char data_only) {
+ClassMember *ClassCode::AddMember(PIFAlizator *PIF, const char *name, INTEGER line, const char *FileName, INTEGER ACCESS, char data_only) {
     INTEGER Count = Members->Count();
 
     for (INTEGER i = 0; i < Count; i++) {
@@ -149,7 +149,7 @@ ClassMember *ClassCode::AddMember(PIFAlizator *PIF, char *name, INTEGER line, ch
 int ClassCode::BoundMember(PIFAlizator *PIF, ClassMember *CM, ClassCode *Sender) {
     AnsiString Mname = ((ClassCode *)CM->Defined_In)->NAME;
 
-    Mname += (char *)"@";
+    Mname += "@";
     Mname += CM->NAME;
 
     int has_it = Sender->HasMember(Mname.c_str());
@@ -214,7 +214,7 @@ int ClassCode::BoundMember(PIFAlizator *PIF, ClassMember *CM, ClassCode *Sender)
     return 0;
 }
 
-int ClassCode::RemoveMember(PIFAlizator *PIF, char *name, INTEGER line, char *FileName) {
+int ClassCode::RemoveMember(PIFAlizator *PIF, const char *name, INTEGER line, const char *FileName) {
     INTEGER Count  = Members->Count();
     int     has_it = 0;
 
@@ -248,7 +248,7 @@ int ClassCode::RemoveMember(PIFAlizator *PIF, char *name, INTEGER line, char *Fi
     return 0;
 }
 
-int ClassCode::HasMember(char *name) {
+int ClassCode::HasMember(const char *name) {
     if (!Members)
         return this->HasMemberInCompiled(name);
     INTEGER Count = Members->Count();
@@ -262,7 +262,7 @@ int ClassCode::HasMember(char *name) {
     return 0;
 }
 
-int ClassCode::CanBeRunStatic(char *name) {
+int ClassCode::CanBeRunStatic(const char *name) {
     INTEGER Count = Members->Count();
 
     for (INTEGER i = 0; i < Count; i++) {
@@ -274,7 +274,7 @@ int ClassCode::CanBeRunStatic(char *name) {
     return 0;
 }
 
-int ClassCode::HasMemberInCompiled(char *name, INTEGER *m_type) {
+int ClassCode::HasMemberInCompiled(const char *name, INTEGER *m_type) {
     INTEGER Count = pMEMBERS_COUNT;
 
     if (!pMEMBERS) {
@@ -340,7 +340,7 @@ int ClassCode::GetSerialMembers(CompiledClass *CC, int max_members,
         }
         ClassMember *CM = pMEMBERS [i];
         if (CM) {
-            pmembers [index] = CM->NAME;
+            pmembers [index] = (char *)CM->NAME;
             flags [index]    = CM->IS_FUNCTION;
             if (CM->IS_OPERATOR) {
                 flags [index] = 0x80;
@@ -370,7 +370,7 @@ int ClassCode::GetSerialMembers(CompiledClass *CC, int max_members,
                             break;
 
                         case VARIABLE_CLASS:
-                            szValue [index]    = ((CompiledClass *)CC->_CONTEXT [reloc]->CLASS_DATA)->_Class->NAME.c_str();
+                            szValue [index]    = (char *)((CompiledClass *)CC->_CONTEXT [reloc]->CLASS_DATA)->_Class->NAME.c_str();
                             class_data [index] = CC->_CONTEXT [reloc]->CLASS_DATA;
                             break;
 
@@ -392,7 +392,7 @@ int ClassCode::GetSerialMembers(CompiledClass *CC, int max_members,
                                 } else {
                                     n_data [index] = 0;
                                 }
-                                szValue [index] = ((CompiledClass *)CC->_CONTEXT [reloc]->CLASS_DATA)->_Class->NAME.c_str();
+                                szValue [index] = (char *)((CompiledClass *)CC->_CONTEXT [reloc]->CLASS_DATA)->_Class->NAME.c_str();
                             }
                             break;
                     }
@@ -443,7 +443,7 @@ void ClassCode::SetRelocation(INTEGER mid, INTEGER index) {
     }
 }
 
-CompiledClass *ClassCode::CreateInstance(PIFAlizator *PIF, VariableDATA *Owner, RuntimeElement *AE, ParamList *FORMAL_PARAM, VariableDATA **SenderCTX, SCStack *PREV, char is_static) {
+CompiledClass *ClassCode::CreateInstance(PIFAlizator *PIF, VariableDATA *Owner, const RuntimeElement *AE, ParamList *FORMAL_PARAM, VariableDATA **SenderCTX, SCStack *PREV, char is_static) {
     static ParamList dummy = { 0, 0 };
     CompiledClass    *res  = new(AllocClassObject(PIF))CompiledClass(this);
 
@@ -491,7 +491,7 @@ CompiledClass *ClassCode::CreateInstance(PIFAlizator *PIF, VariableDATA *Owner, 
             AnsiString *data = new AnsiString();
 
             if (AE) {
-                *data  = AE->_PARSE_DATA.c_str();
+                *data  = ((TinyString)AE->_PARSE_DATA).c_str();
                 *data += ", data:";
             }
 
@@ -530,7 +530,7 @@ CompiledClass *ClassCode::CreateInstance(PIFAlizator *PIF, VariableDATA *Owner, 
     return res;
 }
 
-void ClassCode::SetProperty(PIFAlizator *PIF, INTEGER i, VariableDATA *Owner, RuntimeElement *AE, INTEGER local, INTEGER VALUE, VariableDATA **SenderCTX, INTEGER CLSID, INTEGER LOCAL_CLSID, SCStack *PREV) {
+void ClassCode::SetProperty(PIFAlizator *PIF, INTEGER i, VariableDATA *Owner, const RuntimeElement *AE, INTEGER local, INTEGER VALUE, VariableDATA **SenderCTX, INTEGER CLSID, INTEGER LOCAL_CLSID, SCStack *PREV) {
     int relocation = this->Relocation(i);
 
     register ClassMember *pMEMBER_i = relocation ? pMEMBERS [relocation - 1] : 0;
@@ -539,7 +539,7 @@ void ClassCode::SetProperty(PIFAlizator *PIF, INTEGER i, VariableDATA *Owner, Ru
         if (((ClassCode *)pMEMBER_i->Defined_In)->CLSID != LOCAL_CLSID) {
             if (pMEMBER_i->ACCESS == ACCESS_PRIVATE) {
                 char          *mname = PIF->GeneralMembers->Item(i);
-                AnsiException *Exc   = new AnsiException(ERR190, AE ? AE->_DEBUG_INFO_LINE : 0, 190, mname ? mname : (AE ? AE->_PARSE_DATA.c_str() : pMEMBER_i->NAME), *GetFilename(PIF, CLSID, &((ClassCode *)(pMEMBER_i->Defined_In))->_DEBUG_INFO_FILENAME), NAME);
+                AnsiException *Exc   = new AnsiException(ERR190, AE ? AE->_DEBUG_INFO_LINE : 0, 190, mname ? mname : (AE ? ((TinyString)AE->_PARSE_DATA).c_str() : pMEMBER_i->NAME), *GetFilename(PIF, CLSID, &((ClassCode *)(pMEMBER_i->Defined_In))->_DEBUG_INFO_FILENAME), NAME);
                 PIF->AcknoledgeRunTimeError(PREV, Exc);
                 return;
             }
@@ -547,7 +547,7 @@ void ClassCode::SetProperty(PIFAlizator *PIF, INTEGER i, VariableDATA *Owner, Ru
                 ClassCode *caller = (ClassCode *)PIF->StaticClassList[LOCAL_CLSID];
                 if ((!caller) || (!caller->Inherits(this->CLSID))) {
                     char          *mname = PIF->GeneralMembers->Item(i);
-                    AnsiException *Exc   = new AnsiException(ERR850, AE ? AE->_DEBUG_INFO_LINE : 0, 850, mname ? mname : (AE ? AE->_PARSE_DATA.c_str() : pMEMBER_i->NAME), *GetFilename(PIF, CLSID, &((ClassCode *)(pMEMBER_i->Defined_In))->_DEBUG_INFO_FILENAME), NAME);
+                    AnsiException *Exc   = new AnsiException(ERR850, AE ? AE->_DEBUG_INFO_LINE : 0, 850, mname ? mname : (AE ? ((TinyString)AE->_PARSE_DATA).c_str() : pMEMBER_i->NAME), *GetFilename(PIF, CLSID, &((ClassCode *)(pMEMBER_i->Defined_In))->_DEBUG_INFO_FILENAME), NAME);
                     PIF->AcknoledgeRunTimeError(PREV, Exc);
                     return;
                 }
@@ -563,7 +563,7 @@ void ClassCode::SetProperty(PIFAlizator *PIF, INTEGER i, VariableDATA *Owner, Ru
 
         if (!pMEMBER_i->MEMBER_SET) {
             char          *mname = PIF->GeneralMembers->Item(i);
-            AnsiException *Exc   = new AnsiException(ERR410, AE->_DEBUG_INFO_LINE, 410, mname ? AnsiString(mname) : AE->_PARSE_DATA, *GetFilename(PIF, CLSID, &((ClassCode *)(pMEMBER_i->Defined_In))->_DEBUG_INFO_FILENAME), NAME);
+            AnsiException *Exc   = new AnsiException(ERR410, AE->_DEBUG_INFO_LINE, 410, mname ? AnsiString(mname) : (TinyString)AE->_PARSE_DATA, *GetFilename(PIF, CLSID, &((ClassCode *)(pMEMBER_i->Defined_In))->_DEBUG_INFO_FILENAME), NAME);
             PIF->AcknoledgeRunTimeError(PREV, Exc);
             return;
         }
@@ -614,8 +614,8 @@ void ClassCode::SetProperty(PIFAlizator *PIF, INTEGER i, VariableDATA *Owner, Ru
         }
     }
 
-    char          *mname = PIF->GeneralMembers->Item(i);
-    AnsiException *Exc   = new AnsiException(ERR150, AE->_DEBUG_INFO_LINE, 150, mname ? AnsiString(mname) : AE->_PARSE_DATA, *GetFilename(PIF, CLSID, &_DEBUG_INFO_FILENAME), NAME);
+    const char *mname = PIF->GeneralMembers->Item(i);
+    AnsiException *Exc   = new AnsiException(ERR150, AE->_DEBUG_INFO_LINE, 150, mname ? mname : AE->_PARSE_DATA.c_str(), *GetFilename(PIF, CLSID, &_DEBUG_INFO_FILENAME), NAME);
     PIF->AcknoledgeRunTimeError(PREV, Exc);
     return;
 }
@@ -633,13 +633,13 @@ TinyString *ClassCode::GetFilename(PIFAlizator *PIF, INTEGER LOCAL_CLSID, TinySt
     return NULL;
 }
 
-VariableDATA *ClassCode::ExecuteDelegate(PIFAlizator *PIF, INTEGER i, VariableDATA *Owner, RuntimeElement *AE, ParamList *FORMAL_PARAM, VariableDATA **SenderCTX, INTEGER CLSID, INTEGER LOCAL_CLSID, SCStack *PREV THREAD_CREATION_LOCKS) {
+VariableDATA *ClassCode::ExecuteDelegate(PIFAlizator *PIF, INTEGER i, VariableDATA *Owner, const RuntimeElement *AE, ParamList *FORMAL_PARAM, VariableDATA **SenderCTX, INTEGER CLSID, INTEGER LOCAL_CLSID, SCStack *PREV THREAD_CREATION_LOCKS) {
     VariableDATA         *RESULT;
     register ClassMember *pMEMBER_i = i ? pMEMBERS [i - 1] : 0;
 
     if (pMEMBER_i) {
         if (!(ENOUGH_PARAMETERS(pMEMBER_i, FORMAL_PARAM))) {
-            AnsiString szparameters = (char *)"none";
+            AnsiString szparameters = "none";
             if (FORMAL_PARAM) {
                 szparameters = AnsiString(FORMAL_PARAM->COUNT);
             }
@@ -666,7 +666,7 @@ VariableDATA *ClassCode::ExecuteDelegate(PIFAlizator *PIF, INTEGER i, VariableDA
     return 0;
 }
 
-VariableDATA *ClassCode::ExecuteMember(PIFAlizator *PIF, INTEGER i, VariableDATA *Owner, RuntimeElement *AE, INTEGER local, ParamList *FORMAL_PARAM, VariableDATA **SenderCTX, char property, INTEGER CLSID, INTEGER LOCAL_CLSID, SCStack *PREV, char next_is_asg, VariableDATAPROPERTY **PROPERTIES, int dataLen, int result_id) {
+VariableDATA *ClassCode::ExecuteMember(PIFAlizator *PIF, INTEGER i, VariableDATA *Owner, const RuntimeElement *AE, INTEGER local, ParamList *FORMAL_PARAM, VariableDATA **SenderCTX, char property, INTEGER CLSID, INTEGER LOCAL_CLSID, SCStack *PREV, char next_is_asg, VariableDATAPROPERTY **PROPERTIES, int dataLen, int result_id) {
     INTEGER      IS_PROPERTY = 0;
     VariableDATA *RESULT;
     int          relocation = this->Relocation(i);
@@ -677,7 +677,7 @@ VariableDATA *ClassCode::ExecuteMember(PIFAlizator *PIF, INTEGER i, VariableDATA
         if (((ClassCode *)pMEMBER_i->Defined_In)->CLSID != LOCAL_CLSID) {
             if (pMEMBER_i->ACCESS == ACCESS_PRIVATE) {
                 char          *mname = PIF->GeneralMembers->Item(i);
-                AnsiException *Exc   = new AnsiException(ERR190, AE ? AE->_DEBUG_INFO_LINE : 0, 190, mname ? mname : (AE ? AE->_PARSE_DATA.c_str() : pMEMBER_i->NAME), *GetFilename(PIF, CLSID, &((ClassCode *)(pMEMBER_i->Defined_In))->_DEBUG_INFO_FILENAME), ((ClassCode *)(pMEMBER_i->Defined_In))->NAME, NAME);
+                AnsiException *Exc   = new AnsiException(ERR190, AE ? AE->_DEBUG_INFO_LINE : 0, 190, mname ? mname : (AE ? ((TinyString)AE->_PARSE_DATA).c_str() : pMEMBER_i->NAME), *GetFilename(PIF, CLSID, &((ClassCode *)(pMEMBER_i->Defined_In))->_DEBUG_INFO_FILENAME), ((ClassCode *)(pMEMBER_i->Defined_In))->NAME, NAME);
                 PIF->AcknoledgeRunTimeError(PREV, Exc);
                 return 0;
             }
@@ -685,7 +685,7 @@ VariableDATA *ClassCode::ExecuteMember(PIFAlizator *PIF, INTEGER i, VariableDATA
                 ClassCode *caller = (ClassCode *)PIF->StaticClassList[LOCAL_CLSID];
                 if ((!caller) || (!caller->Inherits(this->CLSID))) {
                     char          *mname = PIF->GeneralMembers->Item(i);
-                    AnsiException *Exc   = new AnsiException(ERR850, AE ? AE->_DEBUG_INFO_LINE : 0, 850, mname ? mname : (AE ? AE->_PARSE_DATA.c_str() : pMEMBER_i->NAME), *GetFilename(PIF, CLSID, &((ClassCode *)(pMEMBER_i->Defined_In))->_DEBUG_INFO_FILENAME), ((ClassCode *)(pMEMBER_i->Defined_In))->NAME, NAME);
+                    AnsiException *Exc   = new AnsiException(ERR850, AE ? AE->_DEBUG_INFO_LINE : 0, 850, mname ? mname : (AE ? ((TinyString)AE->_PARSE_DATA).c_str() : pMEMBER_i->NAME), *GetFilename(PIF, CLSID, &((ClassCode *)(pMEMBER_i->Defined_In))->_DEBUG_INFO_FILENAME), ((ClassCode *)(pMEMBER_i->Defined_In))->NAME, NAME);
                     PIF->AcknoledgeRunTimeError(PREV, Exc);
                     return 0;
                 }
@@ -718,7 +718,7 @@ VariableDATA *ClassCode::ExecuteMember(PIFAlizator *PIF, INTEGER i, VariableDATA
                     return deleg;
                 } else
                 if (!(ENOUGH_PARAMETERS(pMEMBER_i, FORMAL_PARAM))) {
-                    AnsiString szparameters = (char *)"none";
+                    AnsiString szparameters = "none";
                     if (FORMAL_PARAM) {
                         szparameters = AnsiString(FORMAL_PARAM->COUNT);
                     }
@@ -760,7 +760,7 @@ VariableDATA *ClassCode::ExecuteMember(PIFAlizator *PIF, INTEGER i, VariableDATA
                 }
                 if (!pMEMBER_i->MEMBER_GET) {
                     char          *mname = PIF->GeneralMembers->Item(i);
-                    AnsiException *Exc   = new AnsiException(ERR370, AE->_DEBUG_INFO_LINE, 370, mname ? AnsiString(mname) : AE->_PARSE_DATA, *GetFilename(PIF, CLSID, &((ClassCode *)(pMEMBER_i->Defined_In))->_DEBUG_INFO_FILENAME), NAME);
+                    AnsiException *Exc   = new AnsiException(ERR370, AE->_DEBUG_INFO_LINE, 370, mname ? AnsiString(mname) : (TinyString)AE->_PARSE_DATA, *GetFilename(PIF, CLSID, &((ClassCode *)(pMEMBER_i->Defined_In))->_DEBUG_INFO_FILENAME), NAME);
                     PIF->AcknoledgeRunTimeError(PREV, Exc);
                     return 0;
                 }
@@ -811,7 +811,7 @@ VariableDATA *ClassCode::ExecuteMember(PIFAlizator *PIF, INTEGER i, VariableDATA
                                 return 0;
                             }
                         }
-                        AnsiException *Exc = new AnsiException(ERR390, AE->_DEBUG_INFO_LINE, 390, AE->_PARSE_DATA, *GetFilename(PIF, CLSID, &((ClassCode *)(pMEMBER_i->Defined_In))->_DEBUG_INFO_FILENAME), NAME);
+                        AnsiException *Exc = new AnsiException(ERR390, AE->_DEBUG_INFO_LINE, 390, (TinyString)AE->_PARSE_DATA, *GetFilename(PIF, CLSID, &((ClassCode *)(pMEMBER_i->Defined_In))->_DEBUG_INFO_FILENAME), NAME);
                         PIF->AcknoledgeRunTimeError(PREV, Exc);
 
                         RESULT                     = (VariableDATA *)VAR_ALLOC(PIF);
@@ -921,7 +921,7 @@ VariableDATA *ClassCode::ExecuteMember(PIFAlizator *PIF, INTEGER i, VariableDATA
                 CC_WRITE_UNLOCK(PIF)
                 if ((FORMAL_PARAM) && (!property)) {
                     char          *mname = PIF->GeneralMembers->Item(i);
-                    AnsiException *Exc   = new AnsiException(ERR250, AE->_DEBUG_INFO_LINE, 250, mname ? AnsiString(mname) : AE->_PARSE_DATA, *GetFilename(PIF, CLSID, &_DEBUG_INFO_FILENAME), ((ClassCode *)(pMEMBER_i->Defined_In))->NAME, NAME);
+                    AnsiException *Exc   = new AnsiException(ERR250, AE->_DEBUG_INFO_LINE, 250, mname ? AnsiString(mname) : (TinyString)AE->_PARSE_DATA, *GetFilename(PIF, CLSID, &_DEBUG_INFO_FILENAME), ((ClassCode *)(pMEMBER_i->Defined_In))->NAME, NAME);
                     PIF->AcknoledgeRunTimeError(PREV, Exc);
 
                     RESULT                     = (VariableDATA *)VAR_ALLOC(PIF);
@@ -936,7 +936,7 @@ VariableDATA *ClassCode::ExecuteMember(PIFAlizator *PIF, INTEGER i, VariableDATA
         }
     } else {
         char          *mname = PIF->GeneralMembers->Item(i);
-        AnsiException *Exc   = new AnsiException(ERR150, AE->_DEBUG_INFO_LINE, 150, mname ? AnsiString(mname) : AE->_PARSE_DATA, *GetFilename(PIF, CLSID, &_DEBUG_INFO_FILENAME), NAME);
+        AnsiException *Exc   = new AnsiException(ERR150, AE->_DEBUG_INFO_LINE, 150, mname ? AnsiString(mname) : (TinyString)AE->_PARSE_DATA, *GetFilename(PIF, CLSID, &_DEBUG_INFO_FILENAME), NAME);
         PIF->AcknoledgeRunTimeError(PREV, Exc);
     }
     return 0;

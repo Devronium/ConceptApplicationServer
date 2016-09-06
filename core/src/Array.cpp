@@ -246,7 +246,7 @@ ARRAY_COUNT_TYPE Array::FindIndex(ARRAY_COUNT_TYPE index) {
 }
 
 #ifdef STDMAP_KEYS
-ARRAY_COUNT_TYPE Array::FindKey(char *KEY) {
+ARRAY_COUNT_TYPE Array::FindKey(const char *KEY) {
     if (!Keys)
         return -1;
 
@@ -258,12 +258,12 @@ ARRAY_COUNT_TYPE Array::FindKey(char *KEY) {
 
 #else
 
-ARRAY_COUNT_TYPE Array::FindKey(char *KEY) {
+ARRAY_COUNT_TYPE Array::FindKey(const char *KEY) {
     if (!KeysCount) {
         return -1;
     }
 
-    char *str = KEY;
+    const char *str = KEY;
     if ((KeysCount > 10) && (LastKey != -1)) {
         if (LastKey < KeysCount) {
             if (!strcmp(str, Keys [LastKey].KEY)) {
@@ -780,7 +780,7 @@ VariableDATA *Array::ModuleGet(ARRAY_COUNT_TYPE i) {
     return 0;
 }
 
-VariableDATA *Array::ModuleGet(char *key) {
+VariableDATA *Array::ModuleGet(const char *key) {
     ARRAY_COUNT_TYPE i = -1;
 
     i = FindKey(key);
@@ -959,7 +959,7 @@ char *Array::GetKey(ARRAY_COUNT_TYPE index) {
 #endif
 }
 
-ARRAY_COUNT_TYPE Array::GetIndex(char *Key) {
+ARRAY_COUNT_TYPE Array::GetIndex(const char *Key) {
 #ifdef STDMAP_KEYS
     if (!Keys)
         return -1;
