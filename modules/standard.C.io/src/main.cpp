@@ -4215,4 +4215,13 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(getpassword, 0, 1)
     }
 END_IMPL
 //-----------------------------------------------------------------------------------
-
+CONCEPT_FUNCTION_IMPL(chroot, 1)
+    T_STRING(chroot, 0)
+#ifdef _WIN32
+    int err = -1;
+#else
+    int err = chroot(PARAM(0));
+#endif
+    RETURN_NUMBER(err);
+END_IMPL
+//-----------------------------------------------------------------------------------

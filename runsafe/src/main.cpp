@@ -495,69 +495,6 @@ SOCKET CONTACT_DEBUGER(char *hostname, int port) {
     return DEBUG_SOCKET;
 }
 
-int RunDebugConceptApplication(char *filename, char *Include, char *Library, SOCKET sock, char *DEBUG_HOST, int DEBUG_PORT, int pipein, int pipeout, int apid, int parent_apid) {
-    HMODULE          hDLL;
-    API_INTERPRETER2 Concept_Execute;
-
-
-#ifdef _WIN32
-    hDLL = LoadLibrary(mt ? LIBRARY_MT : LIBRARY);
-#else
-    // linux module
-    hDLL = dlopen(mt ? LIBRARY_PATH_MT : LIBRARY_PATH, RTLD_LAZY);
-#endif
-    if (!hDLL) {
-        fprintf(stderr, "Error loading core library '%s'\n", LIBRARY);
-        return -1;
-    }
-
-#ifdef _WIN32
-    Concept_Execute = (API_INTERPRETER2)GetProcAddress(hDLL, "Concept_Execute2");
-#else
-    Concept_Execute = (API_INTERPRETER2)dlsym(hDLL, "Concept_Execute2");
-#endif
-    if (!Concept_Execute) {
-        fprintf(stderr, "Corrupted library '%s'\n", LIBRARY);
-#ifdef _WIN32
-        FreeLibrary(hDLL);
-#else
-        dlclose(hDLL);
-#endif
-        return -1;
-    }
-
-    SOCKET DEBUG_SOCKET = CONTACT_DEBUGER(DEBUG_HOST, DEBUG_PORT);
-
-    if ((!DEBUG_SOCKET) || (DEBUG_SOCKET == INVALID_SOCKET))
-        return 100;
-
-    ClientDebugInfo DINFO;
-    DINFO.CLIENT_NOTICE = 0;
-    DINFO.last_line     = 0;
-    DINFO.sock          = sock;
-    DINFO.debug_type    = DEBUG_STEPINTO;
-    DINFO.run_to_line   = 0;
-    DINFO.FileName      = filename;
-    DINFO.context_id    = 0;
-    DINFO.DEBUG_SOCKET  = DEBUG_SOCKET;
-
-    int res = Concept_Execute(filename, Include, Library, (void *)Print, sock, 1, DEBUGGER_TRAP, &DINFO, 0, 0, 0, pipein, pipeout, apid, parent_apid, CheckPoint, 0);
-    // inchid conexiunea cu debugger-ul
-#ifdef _WIN32
-    closesocket(DEBUG_SOCKET);
-#else
-    close(DEBUG_SOCKET);
-#endif
-    if (res == -3)
-        fprintf(stderr, "File not found or insufficient rights: '%s'\n", filename);
-#ifdef _WIN32
-    FreeLibrary(hDLL);
-#else
-    dlclose(hDLL);
-#endif
-    return res;
-}
-
 int PROCESS_COMMAND(AnsiString DATA, ClientDebugInfo *DINFO, void *CONTEXT) {
     int result = 0;
 
@@ -840,7 +777,7 @@ int CONCEPT_DEBUGGER_TRAP(void *VDESC, void *CONTEXT, int Depth, int line, char 
     return result;
 }
 
-int RunDebugConceptApplication2(char *filename, char *Include, char *Library, SOCKET sock, int pipein, int pipeout, int apid, int parent_apid) {
+int RunDebugConceptApplication2(char *filename, char *Include, char *Library, SOCKET sock, int pipein, int pipeout, int apid, int parent_apid, char *KEY) {
     HMODULE          hDLL;
     API_INTERPRETER2 Concept_Execute;
 
@@ -888,7 +825,7 @@ int RunDebugConceptApplication2(char *filename, char *Include, char *Library, SO
     if (!GetSocket)
         fprintf(stderr, "Warning: '%s' has no GetSocket.\n", LIBRARY);
 
-    int res = Concept_Execute(filename, Include, Library, (void *)Print, sock, 1, CONCEPT_DEBUGGER_TRAP, &DINFO, 0, 0, 0, pipein, pipeout, apid, parent_apid, CheckPoint, 0);
+    int res = Concept_Execute(filename, Include, Library, (void *)Print, sock, 1, CONCEPT_DEBUGGER_TRAP, &DINFO, KEY, KEY, KEY, pipein, pipeout, apid, parent_apid, CheckPoint, 0);
     GetSocket = 0;
 
     if (res == -3)
@@ -1580,17 +1517,17 @@ int main2(int argc, char **argv) {
     __p_apid    = parent_apid;
     link_socket = sock;
 
+    SERVER_PUBLIC_KEY  = (argc > 10) && (argv[10][0]) ? hex_to_string(argv[10], spbk) : 0;
+    SERVER_PRIVATE_KEY = (argc > 11) && (argv[11][0]) ? hex_to_string(argv[11], sprk) : 0;
+    CLIENT_PUBLIC_KEY  = (argc > 12) && (argv[12][0]) ? hex_to_string(argv[12], cpbk) : 0;
+    if ((SERVER_PRIVATE_KEY) && (CLIENT_PUBLIC_KEY))
+        secured = 1;
+
     if ((debug) && (__pipe_out > 0) && (__pipe_in > 0) && (__p_apid > 0)) {
-        int code = RunDebugConceptApplication2(filename, Include, Library, sock, pipein, pipeout, apid, parent_apid);
+        int code = RunDebugConceptApplication2(filename, Include, Library, sock, pipein, pipeout, apid, parent_apid, secured ? SERVER_PRIVATE_KEY : NULL);
 
         if (code != 100)
             return 0;
-    } else {
-        SERVER_PUBLIC_KEY  = (argc > 10) && (argv[10][0]) ? hex_to_string(argv[10], spbk) : 0;
-        SERVER_PRIVATE_KEY = (argc > 11) && (argv[11][0]) ? hex_to_string(argv[11], sprk) : 0;
-        CLIENT_PUBLIC_KEY  = (argc > 12) && (argv[12][0]) ? hex_to_string(argv[12], cpbk) : 0;
-        if ((SERVER_PRIVATE_KEY) && (CLIENT_PUBLIC_KEY))
-            secured = 1;
     }
 
     HMODULE              hDLL;
