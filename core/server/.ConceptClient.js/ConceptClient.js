@@ -5147,6 +5147,27 @@ function ConceptClient(url, container, loading, absolute_paths, debug) {
 									if (text.length)
 										window.prompt("Copy to clipboard: Ctrl+C on PC/Cmd+C on Mac, Enter", text);
 									break;
+								// 4001 = SCI_SETLEXER
+								case 4001:
+									var type = parseInt(Target);
+									switch (type) {
+										case 4:
+											// html
+											element.ConceptEditor.getSession().setMode("ace/mode/html");
+											break;
+										case 5:
+											// xml
+											element.ConceptEditor.getSession().setMode("ace/mode/xml");
+											break;
+										case 7:
+											// sql
+											element.ConceptEditor.getSession().setMode("ace/mode/sql");
+											break;
+										default:
+											element.ConceptEditor.getSession().setMode("ace/mode/concept");
+											break;
+									}
+									break;
 							}
 						}
 						break;
@@ -8472,8 +8493,11 @@ function ConceptClient(url, container, loading, absolute_paths, debug) {
 						}
 						break;
 					case 1000:
-						if (element.ConceptEditor)
+						if (element.ConceptEditor) {
 							element.ConceptEditor.getSession().setValue(Value);
+							if (element.heightUpdateFunction)
+								element.heightUpdateFunction();
+						}
 						self.UpdateScrolledWindowSize(1);
 						break;
 				}
@@ -10259,19 +10283,6 @@ function ConceptClient(url, container, loading, absolute_paths, debug) {
 			case P_HSCROLLBARPOLICY:
 				switch (parseInt(Value)) {
 					case 0:
-						element.style.overflowY = "scroll";
-						break;
-					case 2:
-						element.style.overflowY = "hidden";
-						break;
-					default:
-						element.style.overflowY = "auto";
-						break;
-				}
-				break;
-			case P_VSCROLLBARPOLICY:
-				switch (parseInt(Value)) {
-					case 0:
 						element.style.overflowX = "scroll";
 						break;
 					case 2:
@@ -10279,6 +10290,19 @@ function ConceptClient(url, container, loading, absolute_paths, debug) {
 						break;
 					default:
 						element.style.overflowX = "auto";
+						break;
+				}
+				break;
+			case P_VSCROLLBARPOLICY:
+				switch (parseInt(Value)) {
+					case 0:
+						element.style.overflowY = "scroll";
+						break;
+					case 2:
+						element.style.overflowY = "hidden";
+						break;
+					default:
+						element.style.overflowY = "auto";
 						break;
 				}
 				break;
@@ -10888,6 +10912,8 @@ function ConceptClient(url, container, loading, absolute_paths, debug) {
 													e2.checked = true;
 												else
 													e2.checked = false;
+												e2.ConceptName = name;
+												e2.ConceptIndex = i;
 												e2.onchange = function() {
 													if (element.ConceptChanged === true) {
 														if (element.ConceptReturnPropertyIndex)
@@ -10908,6 +10934,8 @@ function ConceptClient(url, container, loading, absolute_paths, debug) {
 												e2 = document.createElement("textarea");
 												if (val)
 													e2.value = val;
+												e2.ConceptName = name;
+												e2.ConceptIndex = i;
 												e2.oninput = function() {
 													if (element.ConceptChanged === true) {
 														if (element.ConceptReturnPropertyIndex)
@@ -10930,6 +10958,8 @@ function ConceptClient(url, container, loading, absolute_paths, debug) {
 														o.selected = true;
 													e2.appendChild(o);
 												}
+												e2.ConceptName = name;
+												e2.ConceptIndex = i;
 												e2.onchange = function() {
 													if (element.ConceptChanged === true) {
 														if (element.ConceptReturnPropertyIndex)
@@ -12557,9 +12587,22 @@ function ConceptClient(url, container, loading, absolute_paths, debug) {
 			if (CLASS_ID == 1000) {
 				try {
 					var editor = ace.edit(control.id);
-					editor.setTheme("ace/theme/twilight");
 					editor.getSession().setMode("ace/mode/concept");
+					editor.$blockScrolling = Infinity;
+					var heightUpdateFunction = function() {
+						var newHeight = editor.getSession().getScreenLength() * editor.renderer.lineHeight + editor.renderer.scrollBar.getWidth();
+						if (newHeight > 0) {
+							$('#'+control.id+'-section').height(newHeight.toString() + "px");
+							editor.resize();
+						} else
+							setTimeout(heightUpdateFunction, 1000);
+					};
+					heightUpdateFunction();
+					editor.getSession().on('change', heightUpdateFunction);
+					editor.on('focus', heightUpdateFunction);
+					editor.on('blur', heightUpdateFunction);
 					control.ConceptEditor = editor;
+					control.heightUpdateFunction = heightUpdateFunction;
 				} catch (exc) {
 					console.warn(exc);
 				}

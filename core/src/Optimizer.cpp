@@ -2433,22 +2433,16 @@ void Optimizer::AddProfilerCode(int code) {
         VD->TYPE   = VARIABLE_STRING;
         VDList->Add(VD, DATA_VAR_DESCRIPTOR);
 
-        AnsiList *PL = new AnsiList();
+        AnsiList *PL = new AnsiList(false);
 
-        INTEGER *ParamID = new INTEGER;
         start_param++;
-        *ParamID = start_param;
-        PL->Add(ParamID, DATA_32_BIT);
+        PL->Add((void *)start_param, DATA_32_BIT);
 
-        ParamID = new INTEGER;
         start_param++;
-        *ParamID = start_param;
-        PL->Add(ParamID, DATA_32_BIT);
+        PL->Add((void *)start_param, DATA_32_BIT);
 
-        ParamID = new INTEGER;
         start_param++;
-        *ParamID = start_param;
-        PL->Add(ParamID, DATA_32_BIT);
+        PL->Add((void *)start_param, DATA_32_BIT);
 
         ParameterList->Add(PL, DATA_LIST);
 

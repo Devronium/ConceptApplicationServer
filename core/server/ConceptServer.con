@@ -1386,7 +1386,7 @@ class ConceptChild {
 										if (empty_request) {
 											if (FileExists(app + "start.con")) {
 												content_type = "text/html";
-												target_app = path + "/start.con";
+												target_app = directory + path + "/start.con";
 												local_app_index = host_root + "/" + path + "/@index.html";
 												if (FileExists(local_app_index))
 													app = local_app_index;
@@ -2539,7 +2539,8 @@ pragma used
 					}
 					if ((!client_resource) && (empty_request)) {
 						path += this.EmptyRequest(app);
-						path = ConceptChild::NormalizeFilename(path, directory);
+						path = ConceptChild::NormalizeFilename(path, var directory_empty);
+						directory += directory_empty;
 					}
 
 					var ext = ToLower(Ext(path));

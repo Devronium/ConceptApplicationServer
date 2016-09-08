@@ -19,7 +19,7 @@ POOLED_IMPLEMENTATION(AnsiString)
 #define fast_memcpy(d, s, n)                                                                 \
     { register size_t nn = (size_t)(n);                                                      \
       if (nn >= breakeven_point) { memcpy((d), (s), nn); }                                   \
-      else if (nn > 0) {              \
+      else if (nn > 0) {                                                                     \
           register char *dd; register const char *ss;                                        \
           for (ss = (s), dd = (d); nn > 0; nn--) { *dd++ = *ss++; } } }
 
