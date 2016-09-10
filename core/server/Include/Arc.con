@@ -2,7 +2,7 @@ import standard.lib.str
 import standard.lang.serialize
 import standard.arch.zip
 import standard.C.io
-
+include DirectoryList.con
 
 class Arc {
 	static function DoDirectory(path) {
@@ -79,31 +79,67 @@ class Arc {
 	}
 	
 	static function Add(number zip, filename) {
-	    var source=zip_source_file(zip, filename, 0, 0);
-	    if (!source)
+		var source=zip_source_file(zip, filename, 0, 0);
+		if (!source)
 		throw "Error reading file '$filename'";
-	    var ret=zip_add(zip, filename, source);
-	    // not needed !
-	    //zip_source_free(source);
-	    if (ret<0)
-		throw "Error adding file '$filename'";
-	    return ret;
+		var ret=zip_add(zip, filename, source);
+		// not needed !
+		//zip_source_free(source);
+		if (ret<0)
+			throw "Error adding file '$filename'";
+		return ret;
 	}
 
 	static function AddContent(number zip, filename, var content) {
-	    var source=zip_source_buffer(zip, content);
-	    if (!source)
-		throw "Error reading file '$filename'";
-	    var ret=zip_add(zip, filename, source);
-	    if (ret<0)
-		throw "Error adding file '$filename'";
-	    return ret;
+		var source=zip_source_buffer(zip, content);
+		if (!source)
+			throw "Error reading file '$filename'";
+		var ret=zip_add(zip, filename, source);
+		if (ret<0)
+			throw "Error adding file '$filename'";
+		return ret;
 	}
 	
 	static function Close(var zip) {
-	    if (zip)
-            zip_close(zip);
-        zip=null;
+		if (zip)
+			zip_close(zip);
+		zip=null;
 		return true;
+	}
+
+
+	static private function _ArchiveDirectory(zip, dir, progress=null) {
+		var names = DirectoryList::ListByType(dir+"/",S_IFDIR);
+		var files = DirectoryList::ListByType(dir+"/",S_IFREG);
+		var len=length names;
+		if (progress)
+			progress(0, "");
+
+		for (var i=0;i<len;i++) {
+			var d=names[i];
+			if ((d) && (d!=".") && (d!="..")) {
+				if (progress)
+					progress(i/len, d);
+				Arc::_ArchiveDirectory(zip, dir+"/"+d, null);
+			}
+		}
+		
+		len=length files;
+		for (i=0;i<len;i++) {
+			var f=files[i];
+			if (f) {
+				var filename=dir+"/"+f;
+				Arc::Add(zip, filename);
+			}
+		}
+	}
+
+	static Zip(archivename, dir, progress=null) {
+		_unlink(archivename);
+		var zip=zip_open(archivename,ZIP_CREATE, var err);
+		if (!zip)
+			throw "Unzip failed with error code $err";
+		Arc::_ArchiveDirectory(zip, dir, progress);
+		zip_close(zip);
 	}
 }
