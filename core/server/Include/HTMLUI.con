@@ -3,7 +3,9 @@ import standard.lib.json
 
 class HTMLUI extends RemoteContainer {
 	protected var _OnUI;
+	protected var CAPTION;
 	public property OnUI { get _OnUI, set SetOnUI }
+	public property Caption { get CAPTION, set SetCaption }
 
 	public function HTMLUI() {
 		super(null, CLASS_HTMLAPP);
@@ -41,5 +43,11 @@ class HTMLUI extends RemoteContainer {
 	public function SetOnUI(var delegate deleg) {
 		_OnUI = deleg;
 		return _MAP_REMOTE_EVENT(EVENT_ON_EVENT, Event);
+	}
+
+	public function SetCaption(argument) {
+		SendMessage(REMOTE_ID_STR,MSG_SET_PROPERTY,P_CAPTION,argument);
+		CAPTION=argument;
+		return argument;
 	}
 }

@@ -3431,7 +3431,6 @@ function ConceptClient(url, container, loading, absolute_paths, debug) {
 					break;
 			}
 		}
-
 		var close = document.getElementById("alertClose");
 		if (close)
 			this.SetResponse(close, container, Response, RESPONSE_DELETE_EVENT);
@@ -8468,6 +8467,9 @@ function ConceptClient(url, container, loading, absolute_paths, debug) {
 						break;
 					case CLASS_HTMLSNAP:
 						element.innerHTML = Value;
+						break;
+					case CLASS_HTMLAPP:
+						document.title = Value;
 						break;
 					case 1001:
 					case 1012:
