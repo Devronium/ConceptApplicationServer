@@ -297,6 +297,8 @@ INTEGER GetClassMember(void *CLASS_PTR, const char *class_member_name, INTEGER *
                                                                      );
                         int result = -1;
                         if (VarDATA) {
+                            if (!VarDATA->LINKS)
+                                VarDATA->LINKS = 1;
                             result = GetVariable(VarDATA, TYPE, STRING_VALUE, NUMBER_VALUE);
                             FREE_VARIABLE(VarDATA);
                         }
