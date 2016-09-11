@@ -3326,7 +3326,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(SetCurrentUser, 2, 3)
     retval = LogonUser(
         PARAM(0),
         domain.c_str(),
-        PARAM(0),
+        PARAM(1),
         LOGON32_LOGON_SERVICE,
         LOGON32_PROVIDER_DEFAULT,
         &hToken

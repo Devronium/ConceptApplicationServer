@@ -46,6 +46,7 @@
  #include <netinet/in.h>
  #include <arpa/inet.h>
  #include <netdb.h>
+ #include <pwd.h>
 #endif
 
 #ifdef USE_FCGI
@@ -867,6 +868,25 @@ int ConceptCGIInit(int is_cached_cgi) {
     Concept_Compiler = (API_INTERPRETER)dlsym(hDLL, "Concept_Compile");
     SetNotifyParent  = (API_SETNOTIFY)dlsym(hDLL, "SetNotifyParent");
 #endif
+
+    AnsiString concept_user = GetKey(manifest.c_str(), "Server", "ConceptUser", "");
+    if (concept_user.Length()) {
+#ifdef _WIN32
+        int    retval = 0;
+        HANDLE hToken = 0;
+
+        if (!LogonUser(concept_user.c_str(), ".", NULL, LOGON32_LOGON_SERVICE, LOGON32_PROVIDER_DEFAULT, &hToken))
+            fprintf(stderr, "Warning: Cannot run as '%s'\n", concept_user.c_str());
+#else
+        struct passwd *pwd = getpwnam(concept_user.c_str());
+        if (pwd) {
+            setuid(pwd->pw_uid);
+            setgid(pwd->pw_gid);
+        } else {
+            fprintf(stderr, "Warning: Cannot run as '%s'\n", concept_user.c_str());
+        } 
+#endif
+    }
     return 1;
 }
 
