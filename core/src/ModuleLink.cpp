@@ -1076,10 +1076,13 @@ INTEGER Invoke(INTEGER INVOKE_TYPE, ...) {
                                                                                                         NULL);
 #endif
                         FREE_VARIABLE(lOwner);
+                        if (*SENDER_RESULT)
+                            (*SENDER_RESULT)->LINKS++;
                     } catch (VariableDATA *LAST_THROW) {
                         FREE_VARIABLE(lOwner);
                         *SENDER_EXCEPTION = LAST_THROW;
                     }
+                    //fprintf(stderr, "SENDER: %i\n", (int)(*SENDER_RESULT)->LINKS);
 #ifdef SIMPLE_MULTI_THREADING
                     if (spin_lock)
                         *spin_lock = 0;
