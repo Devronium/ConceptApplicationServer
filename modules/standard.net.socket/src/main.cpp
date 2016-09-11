@@ -1179,6 +1179,8 @@ CONCEPT_DLL_API CONCEPT_SocketRead CONCEPT_API_PARAMETERS {
     if (ref_count) {
         DWORD outsize = 0;
         if (ReadFile((HANDLE)_get_osfhandle((SYS_INT)sock), buf, (int)nSize, &outsize, NULL)) {
+            if (outsize >= 0)
+                buf[outsize] = 0;
             SetVariable(PARAMETER(1), -1, buf, outsize);
             RETURN_NUMBER(outsize);
         } else {
@@ -1233,6 +1235,7 @@ CONCEPT_DLL_API CONCEPT_SocketRead CONCEPT_API_PARAMETERS {
         } while (((int)exactSize) && (len > 0) && (rec_size < (int)nSize));
     }
     if (rec_size > 0) {
+        buf[rec_size] = 0;
         SetVariable(PARAMETER(1), -1, buf, rec_size);
     } else {
         CORE_DELETE(buf);

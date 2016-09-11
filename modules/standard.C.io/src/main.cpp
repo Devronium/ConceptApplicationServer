@@ -1172,7 +1172,8 @@ CONCEPT_DLL_API CONCEPT__fread CONCEPT_API_PARAMETERS {
         return (void *)"fread: Not enough memory";
 
     //szParam0=new char[len+1];
-    szParam0[0] = szParam0[len] = 0;
+    szParam0[0] = 0;
+    szParam0[len] = 0;
 
     int fno = (int)nParam3;
     switch (fno) {
@@ -1191,6 +1192,8 @@ CONCEPT_DLL_API CONCEPT__fread CONCEPT_API_PARAMETERS {
 
     // function call
     _C_call_result = (size_t)fread((void *)szParam0, (size_t)nParam1, (size_t)nParam2, (FILE *)(SYS_INT)nParam3);
+    if ((_C_call_result >= 0) && (_C_call_result < len))
+        szParam0[_C_call_result] = 0;
 
 #if 0
 //        SetVariable(LOCAL_CONTEXT[PARAMETERS->PARAM_INDEX[0]-1],VARIABLE_STRING,szParam0,_C_call_result);
@@ -4279,10 +4282,17 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(Impersonate, 1, 3)
         setfsuid(pwd->pw_uid);
         setfsgid(pwd->pw_gid);
 #else
+#ifdef __APPLE__
+        if (pthread_setugid_np(pwd->pw_uid, pwd->pw_gid)) {
+            RETURN_NUMBER(0);
+            return 0;
+        }
+#else
         if ((setuid(pwd->pw_uid)) || (setgid(pwd->pw_gid))) {
             RETURN_NUMBER(0);
             return 0;
         }
+#endif
 #endif
         RETURN_NUMBER(1);
     } else {
