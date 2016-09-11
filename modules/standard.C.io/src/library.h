@@ -150,5 +150,6 @@ CONCEPT_FUNCTION(gets)
 CONCEPT_FUNCTION(getpassword)
 
 CONCEPT_FUNCTION(chroot)
+CONCEPT_FUNCTION(Impersonate)
 }
 #endif // __LIBRARY_H

@@ -160,7 +160,6 @@ intptr_t spawn_mod(char *cmd, char *workingDirectory, void *environment, int fdS
   #include <sys/mman.h>
  #endif
  #include <termios.h>
-
  #define NEW_LINE     "\n"
  #define NEW_LINE2    "\n\n"
 
@@ -169,6 +168,7 @@ extern char **environ;
 
 #ifdef __linux__
  #include <sys/prctl.h>
+ #include <sys/fsuid.h>
 #endif
 
 #ifndef RLIMIT_LOCKS
@@ -3309,11 +3309,16 @@ CONCEPT_FUNCTION_IMPL(getpwuid, 1)
 #endif
 END_IMPL
 //---------------------------------------------------------------------------
-CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(SetCurrentUser, 2, 3)
+CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(SetCurrentUser, 1, 3)
     T_STRING(SetCurrentUser, 0)
-    T_STRING(SetCurrentUser, 1)
 
     AnsiString domain(".");
+    char *passwd = NULL;
+    if (PARAMETERS_COUNT > 1) {
+        T_STRING(SetCurrentUser, 1)
+        passwd = PARAM(1);
+    }
+
     if (PARAMETERS_COUNT > 2) {
         T_STRING(SetCurrentUser, 2)
 
@@ -3326,7 +3331,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(SetCurrentUser, 2, 3)
     retval = LogonUser(
         PARAM(0),
         domain.c_str(),
-        PARAM(1),
+        passwd,
         LOGON32_LOGON_SERVICE,
         LOGON32_PROVIDER_DEFAULT,
         &hToken
@@ -3347,8 +3352,10 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(SetCurrentUser, 2, 3)
 #else
     struct passwd *pwd = getpwnam((const char *)PARAM(0));
     if (pwd) {
-        setuid(pwd->pw_uid);
-        setgid(pwd->pw_gid);
+        if ((setuid(pwd->pw_uid)) || (setgid(pwd->pw_gid))) {
+            RETURN_NUMBER(0);
+            return 0;
+        }
         RETURN_NUMBER(1);
     } else {
         RETURN_NUMBER(0);
@@ -4223,5 +4230,64 @@ CONCEPT_FUNCTION_IMPL(chroot, 1)
     int err = chroot(PARAM(0));
 #endif
     RETURN_NUMBER(err);
+END_IMPL
+//-----------------------------------------------------------------------------------
+CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(Impersonate, 1, 3)
+    T_STRING(Impersonate, 0)
+
+    AnsiString domain(".");
+    char *passwd = NULL;
+    if (PARAMETERS_COUNT > 1) {
+        T_STRING(Impersonate, 1)
+        passwd = PARAM(1);
+    }
+
+    if (PARAMETERS_COUNT > 2) {
+        T_STRING(Impersonate, 2)
+
+        domain = PARAM(2);
+    }
+#ifdef _WIN32
+    int    retval = 0;
+    HANDLE hToken = 0;
+
+    retval = LogonUser(
+        PARAM(0),
+        domain.c_str(),
+        passwd,
+        LOGON32_LOGON_SERVICE,
+        LOGON32_PROVIDER_DEFAULT,
+        &hToken
+        );
+
+    if (!retval) {
+        RETURN_NUMBER(0)
+    } else {
+        retval = ImpersonateLoggedOnUser(hToken);
+        CloseHandle(hToken);
+        if (!retval) {
+            RETURN_NUMBER(0)
+        } else {
+            RETURN_NUMBER(1)
+        }
+    }
+
+#else
+    struct passwd *pwd = getpwnam((const char *)PARAM(0));
+    if (pwd) {
+#ifdef __linux__
+        setfsuid(pwd->pw_uid);
+        setfsgid(pwd->pw_gid);
+#else
+        if ((setuid(pwd->pw_uid)) || (setgid(pwd->pw_gid))) {
+            RETURN_NUMBER(0);
+            return 0;
+        }
+#endif
+        RETURN_NUMBER(1);
+    } else {
+        RETURN_NUMBER(0);
+    }
+#endif
 END_IMPL
 //-----------------------------------------------------------------------------------
