@@ -44,7 +44,7 @@ define H2_SEND_WINDOWUPDATE	32767
 define H2_INITIAL_WINDOW	0xFFFF
 define H2_WINDOWUPDATE_VALUE	0xFFFF
 
-define H2_FILE_READ_BUFFER	0xFFFFF
+define H2_FILE_READ_BUFFER	0xFFFF
 
 define H2_X_INITIAL_WINDOW_SIZE	7FFFF
 define H2_X_INITIAL_WINDOW_SIZE_VAL	1048576
@@ -502,11 +502,13 @@ class HTTP2Stream {
 		return len;
 	}
 
-	Write(socket, var buf, close = false) {
+	Write(socket, var buf, close = false, len = -1) {
 		if (Status != 2)
 			throw "HTTP2Stream/Write: Cannot write on a closed stream";
 
-		var len = length buf;
+		if (len < 0)
+			len = length buf;
+
 		var frame;
 		var flags = 0;
 		if (close) {
@@ -525,33 +527,55 @@ class HTTP2Stream {
 					use_flags = flags;
 				}
 				frame += HTTP2::Frame(StreamID, SubStr(buf, start, chunk_len), H2_DATA, use_flags);
-				start += H2_MAX_LEN;
+				start += chunk_len;
 				remaining -= chunk_len;
 			}
 		} else {
-			frame = HTTP2::Frame(StreamID, buf, H2_DATA, flags);
+			if (len != length buf)
+				frame = HTTP2::Frame(StreamID, SubStr(buf, 0, len), H2_DATA, flags);
+			else
+				frame = HTTP2::Frame(StreamID, buf, H2_DATA, flags);
 		}
-		socket.AddBuffer(frame, true);
+		WindowSize -= len;
+		socket.AddBuffer(frame, true, len);
 		TotalSent += length frame;
 		if (close)
 			this.Remove(socket);
 		return len;
 	}
 
+	WindowAdjusted(len) {
+		if (len < WindowSize)
+			return len;
+		return WindowSize;
+	}
+
+	SafeWrite(socket, var buf, close = false) {
+		var max_len = this.WindowAdjusted(socket.WindowAdjusted(length buf));
+		if (max_len <= 0)
+			return 0;
+		return this.Write(socket, buf, close, max_len);
+	}
+	
 	FileWrite(socket) {
 		if (ResponseFile) {
 			if (!socket.Writable())
 				return 0;
 
-			var size = ResponseFile.Read(var buffer, H2_FILE_READ_BUFFER);
+			var max_len = this.WindowAdjusted(socket.WindowAdjusted(H2_FILE_READ_BUFFER));
+			if (max_len <= 0)
+				return 0;
+			var size = ResponseFile.Read(var buffer, max_len);
 			if (size < 0)
 				throw "HTTP2Stream/FileWrite: Error reading file";
+
 			var eof = ResponseFile.EOF;
 			if (eof) {
 				ResponseFile.Close();
 				ResponseFile = null;
 			}
 			var written = Write(socket, buffer, eof);
+
 			if (eof)
 				this.Remove(socket);
 			return written;
@@ -625,8 +649,14 @@ class HTTP2Socket {
 		return Streams["" + streamid];
 	}
 
+	WindowAdjusted(len) {
+		if (len < WindowSize)
+			return len;
+		return WindowSize;
+	}
+
 	Writable() {
-		if ((MaxFileBuffer) && (length OutBuffer >= MaxFileBuffer))
+		if (((MaxFileBuffer) && (length OutBuffer >= MaxFileBuffer)) || (WindowSize <= 0))
 			return false;
 		return true;
 	}
@@ -662,9 +692,10 @@ class HTTP2Socket {
 		//return false;
 	}
 
-	AddBuffer(var buf, is_data = false) {
+	AddBuffer(var buf, is_data = false, size_hint = 0) {
 		if (is_data)
 			TotalSent += length buf;
+		WindowSize -= size_hint;
 		if (Status < 0)
 			throw "HTTP2Socket/AddBuffer: Connection is no longer active";
 
@@ -973,9 +1004,13 @@ class HTTP2Socket {
 	}
 
 	Close(send_go_away = false, go_away_err_code = H2_ERR_NO_ERROR, debug_data = "") {
-		if ((send_go_away) && (Status >= 0))
+		if ((send_go_away) && (Status >= 0)) {
 			this.AddBuffer(HTTP2::Frame(0, pack("U32", go_away_err_code) + debug_data, H2_GOAWAY));
-
+			try {
+				WritePending();
+			} catch (var e) {
+			}
+		}
 		this.Socket.Close();
 	}
 }
