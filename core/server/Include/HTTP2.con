@@ -634,6 +634,7 @@ class HTTP2Socket {
 	public var MaxOutputBuffer;
 	public var MaxFileBuffer;
 	public var MaxErrorTimeout;
+	public var InitialWindowSize = H2_INITIAL_WINDOW;
 	protected var last_err_time;
 
 	HTTP2Socket(Socket, client = false) {
@@ -816,6 +817,7 @@ class HTTP2Socket {
 							else
 								headers = [ ];
 							stream = new HTTP2Stream(streamid, headers);
+							stream.WindowSize = this.InitialWindowSize;
 							this.StreamCount++;
 							Streams["" + streamid] = stream;
 							if (RemoteMaxStreamID < streamid)
@@ -847,9 +849,21 @@ class HTTP2Socket {
 							break;
 						case H2_SETTINGS:
 							// aknowledge settings
-							if ((flags & FLAG_ACK) == 0)
+							if ((flags & FLAG_ACK) == 0) {
 								this.AddBuffer(HTTP2::Settings([ ], true));
-							else
+								if (payload) {
+									for (var i = 0; i < length payload; i++) {
+										var arr = payload[i];	
+										if ((arr) && (arr[0] == H2_SETTINGS_INITIAL_WINDOW_SIZE)) {
+											var window_size = arr[1];
+											if (window_size > 0) {
+												this.WindowSize = window_size;
+												this.InitialWindowSize = window_size;
+											}
+										}
+									}
+								}
+							} else
 								RemoteSettings = payload;
 							break;
 						case H2_PUSHPROMISE:

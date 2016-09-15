@@ -2622,14 +2622,14 @@ pragma used
 							stream.Response(h2, headers, no_content);
 							stream.Write(h2, root_buffer, true);
 						} else {
-
 							var if_modified = stream.Headers["if-modified-since"];
 							if (last_mod == if_modified) {
 								headers[":status"] = 304;
 								file.Close();
 								delete file;
 								no_content = true;
-							}
+							} else
+								headers["content-length"] = file.Size;
 							stream.Response(h2, headers, no_content);
 						}
 						if (file)
