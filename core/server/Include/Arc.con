@@ -78,11 +78,13 @@ class Arc {
 		return zip;
 	}
 	
-	static function Add(number zip, filename) {
+	static function Add(number zip, filename, zip_filename="") {
+		if (!zip_filename)
+			zip_filename = filename;
 		var source=zip_source_file(zip, filename, 0, 0);
 		if (!source)
 		throw "Error reading file '$filename'";
-		var ret=zip_add(zip, filename, source);
+		var ret=zip_add(zip, zip_filename, source);
 		// not needed !
 		//zip_source_free(source);
 		if (ret<0)
@@ -108,7 +110,7 @@ class Arc {
 	}
 
 
-	static private function _ArchiveDirectory(zip, dir, progress=null) {
+	static private function _ArchiveDirectory(zip, dir, progress=null, root="") {
 		var names = DirectoryList::ListByType(dir+"/",S_IFDIR);
 		var files = DirectoryList::ListByType(dir+"/",S_IFREG);
 		var len=length names;
@@ -120,7 +122,7 @@ class Arc {
 			if ((d) && (d!=".") && (d!="..")) {
 				if (progress)
 					progress(i/len, d);
-				Arc::_ArchiveDirectory(zip, dir+"/"+d, null);
+				Arc::_ArchiveDirectory(zip, dir+"/"+d, null, root+"/"+d);
 			}
 		}
 		
@@ -129,17 +131,19 @@ class Arc {
 			var f=files[i];
 			if (f) {
 				var filename=dir+"/"+f;
-				Arc::Add(zip, filename);
+				Arc::Add(zip, filename, root+"/"+f);
 			}
 		}
 	}
 
-	static Zip(archivename, dir, progress=null) {
+	static Zip(archivename, dir, root = "", progress=null) {
 		_unlink(archivename);
+		if (!root)
+			root = dir;
 		var zip=zip_open(archivename,ZIP_CREATE, var err);
 		if (!zip)
 			throw "Unzip failed with error code $err";
-		Arc::_ArchiveDirectory(zip, dir, progress);
+		Arc::_ArchiveDirectory(zip, dir, progress, root);
 		zip_close(zip);
 	}
 }

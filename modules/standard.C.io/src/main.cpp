@@ -3355,7 +3355,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(SetCurrentUser, 1, 3)
 #else
     struct passwd *pwd = getpwnam((const char *)PARAM(0));
     if (pwd) {
-        if ((setuid(pwd->pw_uid)) || (setgid(pwd->pw_gid))) {
+        if ((setgid(pwd->pw_gid)) || (setuid(pwd->pw_uid))) {
             RETURN_NUMBER(0);
             return 0;
         }
