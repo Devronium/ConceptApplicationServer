@@ -171,14 +171,18 @@ CONCEPT_FUNCTION_IMPL_VARIABLE_PARAMS(_JSONSerialize, 1)
     char *dclass = 0;
     NUMBER dmember   = 0;
     bool   as_object = false;
-
-    if (PARAMETERS_COUNT > 2) {
-        return (void *)"JSONSerialize: invalid parameters count: object, array_as_objects=false";
+    bool   pretty    = false;
+    if (PARAMETERS_COUNT > 3) {
+        return (void *)"JSONSerialize: invalid parameters count: object, array_as_objects=false, pretty=false";
     } else
-    if (PARAMETERS_COUNT == 2) {
+    if (PARAMETERS_COUNT > 1) {
         T_NUMBER(_JSONSerialize, 1)
 
-        as_object = (int)PARAM_INT(1);
+        as_object = (bool)PARAM_INT(1);
+        if (PARAMETERS_COUNT > 2) {
+            T_NUMBER(_JSONSerialize, 2)
+            pretty = (bool)PARAM_INT(2);
+        }
     }
 
     struct json_object *my_obj = 0;
@@ -208,7 +212,11 @@ CONCEPT_FUNCTION_IMPL_VARIABLE_PARAMS(_JSONSerialize, 1)
     }
 
     if (my_obj) {
-        const char *json_str = json_object_to_json_string(my_obj);
+        const char *json_str;
+        if (pretty)
+            json_str = json_object_to_json_string_ext(my_obj, JSON_C_TO_STRING_PRETTY | JSON_C_TO_STRING_SPACED);
+        else
+            json_str = json_object_to_json_string(my_obj);
         if (json_str) {
             RETURN_STRING(json_str)
         } else {
@@ -349,4 +357,3 @@ CONCEPT_FUNCTION_IMPL(_JSONDeserialize, 1)
     }
 END_IMPL
 //-----------------------------------------------------//
-
