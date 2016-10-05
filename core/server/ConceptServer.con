@@ -1157,7 +1157,7 @@ class ConceptChild {
 							data = Socket.Read(MAX_WS_HEADER_BUF);
 
 						if (!data)
-							break;
+							throw "Broken socket";
 
 						received_data += data;
 
@@ -2607,7 +2607,8 @@ pragma used
 					var last_mod = rtrim(asctime(_filelast_mod(app))) + " GMT";
 					var file = new File("rb");
 					file.Name = app;
-					if ((!is_cgi) && (file.Open())) {
+
+					if ((!is_cgi) && ((root_buffer) || (file.Open()))) {
 						var headers = [
 							":status" => 200,
 							"server" => "CAS5WS",
@@ -2631,9 +2632,9 @@ pragma used
 							} else
 								headers["content-length"] = file.Size;
 							stream.Response(h2, headers, no_content);
+							if (file)
+								stream.ResponseFile = file;
 						}
-						if (file)
-							stream.ResponseFile = file;
 					} else {
 						stream.Response(h2, [
 							":status" => "404",

@@ -666,7 +666,7 @@ class HTTP2Socket {
 		var key = "" + streamid;
 		if (Streams[key]) {
 			Streams[key] = null;
-			this.StreamCount++;
+			this.StreamCount--;
 		}
 	}
 
