@@ -95,7 +95,7 @@ class PQDataRecord {
 	}
 
 	public function ToBuffer() {
-		return this.DATA;
+		return "" + this.DATA;
 	}
 
 	public function LO() {

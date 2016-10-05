@@ -20,11 +20,11 @@ class ADODataRecord {
 	}
 
 	public function ToBuffer() {
-		return this.DATA;
+		return "" + this.DATA;
 	}
 
 	public function ToString() {
-		return String(this.DATA);
+		return String("" + this.DATA);
 	}
 
 	public function ToNumber() {

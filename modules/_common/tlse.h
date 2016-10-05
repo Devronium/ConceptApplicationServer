@@ -21,6 +21,8 @@
 // TLS renegotiation is disabled by default (secured or not)
 // do not uncomment next line!
 // #define TLS_ACCEPT_SECURE_RENEGOTIATION
+// basic superficial X509v1 certificate support
+#define TLS_X509_V1_SUPPORT
 
 #define SSL_V30                 0x0300
 #define TLS_V10                 0x0301

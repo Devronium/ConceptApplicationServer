@@ -19,11 +19,11 @@ class MyDataRecord {
 	}
 
 	public function ToBuffer() {
-		return this.DATA;
+		return "" + this.DATA;
 	}
 
 	public function ToString() {
-		return this.DATA;
+		return "" + this.DATA;
 	}
 
 	public function ToNumber() {

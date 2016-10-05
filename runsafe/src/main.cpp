@@ -1,6 +1,6 @@
 //#define DEBUG
 //#define DISABLE_CHECKPOINTS
-
+#define MAX_DEBUG_TIMEOUT   5
 #include <stdlib.h>
 #include <fcntl.h>
 #ifdef _WIN32
@@ -20,6 +20,7 @@
 #else
  #include <dlfcn.h>           // dlopen
  #include <sys/select.h>
+ #include <poll.h>
 
  #define HANDLE            void *
  #define HMODULE           HANDLE
@@ -82,6 +83,7 @@ typedef int (*API_EXECUTE_DONE)(void *PTR);
 int        __pipe_out = 0;
 int        __pipe_in  = 0;
 int        __p_apid   = 0;
+int        __p_valid  = 0;
 HHSEM      sem_lock;
 static int mt          = 0;
 static int link_socket = -1;
@@ -160,12 +162,37 @@ void sig_term(int signum) {
     } else
         exit(-9);
 }
+
+int eof(int stream) {
+    struct pollfd ufds[1];
+
+    ufds[0].fd     = stream;
+    ufds[0].events = POLLIN;
+
+    int res = poll(ufds, 1, 0);
+    if (res < 0)
+        return -1;
+    return !res;
+}
 #endif
 
-ssize_t read_exact(int fd, void *buf, int size) {
+ssize_t read_exact(int fd, void *buf, int size, int timeout) {
     int  written = 0;
     char *ref    = (char *)buf;
 
+    if (timeout > 0) {
+        int is_eof;
+        do {
+            is_eof = eof(fd);
+#ifdef _WIN32
+            Sleep(1000);
+#else
+            sleep(1);
+#endif
+        } while ((timeout--) && (is_eof));
+        if (is_eof)
+            return 0;
+    }
     while (size > 0) {
         int res = read(fd, ref, size);
         if (res > 0) {
@@ -203,7 +230,7 @@ ssize_t pipe_fd_read(int _source_pipe, int *fd, int step) {
     if (fd) {
         intptr_t new_sock = 0;
         *fd = -1;
-        if (read_exact(_source_pipe, &new_sock, sizeof(new_sock)) == sizeof(new_sock)) {
+        if (read_exact(_source_pipe, &new_sock, sizeof(new_sock), 0) == sizeof(new_sock)) {
             if (new_sock >= 0) {
                 if (step <= 1) {
                     *fd = new_sock;
@@ -336,16 +363,21 @@ int GetParent(int *parent, int *msg_id, AnsiString *DATA) {
 
     int params[3];
 
-    if (read_exact(__pipe_in, params, sizeof(int) * 3) != sizeof(int) * 3)
+    int timeout = __p_valid ? 0 : MAX_DEBUG_TIMEOUT;
+    if (read_exact(__pipe_in, params, sizeof(int) * 3, timeout) != sizeof(int) * 3) {
+        fprintf(stderr, "No response from debug parent\n");
+        __p_apid = -1;
         return 0;
-
+    }
+    if (timeout)
+        __p_valid = 1;
     *parent = params[0];
     *msg_id = params[1];
 
     if (params[2]) {
         char *data = new char [params[2] + 1];
         data[params[2]] = 0;
-        int rd = read_exact(__pipe_in, data, params[2]);
+        int rd = read_exact(__pipe_in, data, params[2], 0);
         *DATA = data;
         delete[] data;
         if (rd != params[2])
@@ -600,7 +632,6 @@ int CONCEPT_DEBUGGER_TRAP(void *VDESC, void *CONTEXT, int Depth, int line, char 
     int  parent;
     int  msg_id;
     char buffer2[0xFFFF];
-
     switch (DINFO->debug_type) {
         case DEBUG_RUNTO:
             break;
@@ -618,7 +649,9 @@ int CONCEPT_DEBUGGER_TRAP(void *VDESC, void *CONTEXT, int Depth, int line, char 
                 NotifyParent(-0x100, DATA);
 
                 do {
-                    GetParent(&parent, &msg_id, &DATA);
+                    if (!GetParent(&parent, &msg_id, &DATA))
+                        break;
+
                     if (msg_id == -0x100)
                         result = PROCESS_COMMAND(DATA, DINFO, CONTEXT);
                     else
@@ -699,7 +732,8 @@ int CONCEPT_DEBUGGER_TRAP(void *VDESC, void *CONTEXT, int Depth, int line, char 
                     NotifyParent(-0x100, DATA);
 
                     do {
-                        GetParent(&parent, &msg_id, &DATA);
+                        if (!GetParent(&parent, &msg_id, &DATA))
+                            break;
                         if (msg_id == -0x100)
                             result = PROCESS_COMMAND(DATA, DINFO, CONTEXT);
                         else
@@ -774,7 +808,6 @@ int CONCEPT_DEBUGGER_TRAP(void *VDESC, void *CONTEXT, int Depth, int line, char 
     }
     DINFO->FileName  = filename;
     DINFO->last_line = line;
-
     return result;
 }
 
@@ -1205,8 +1238,8 @@ int main3(int argc, char **argv) {
 #else
         struct passwd *pwd = getpwnam(concept_user.c_str());
         if (pwd) {
-            setuid(pwd->pw_uid);
             setgid(pwd->pw_gid);
+            setuid(pwd->pw_uid);
         } else {
             fprintf(stderr, "Warning: Cannot run as '%s'\n", concept_user.c_str());
         } 
@@ -1289,7 +1322,7 @@ int main3(int argc, char **argv) {
         char *SERVER_PRIVATE_KEY = NULL;
         char *CLIENT_PUBLIC_KEY  = NULL;
 
-        if (read_exact(read_pipe, &apid, sizeof(apid)) != sizeof(apid)) {
+        if (read_exact(read_pipe, &apid, sizeof(apid), 0) != sizeof(apid)) {
             exit_code = -1;
             break;
         }
@@ -1299,7 +1332,7 @@ int main3(int argc, char **argv) {
             break;
         }
 
-        if (read_exact(read_pipe, &parent_apid, sizeof(parent_apid)) != sizeof(parent_apid)) {
+        if (read_exact(read_pipe, &parent_apid, sizeof(parent_apid), 0) != sizeof(parent_apid)) {
             exit_code = -2;
             break;
         }
@@ -1322,7 +1355,7 @@ int main3(int argc, char **argv) {
         }
 
         int csize;
-        if (read_exact(read_pipe, &csize, sizeof(csize)) != sizeof(csize)) {
+        if (read_exact(read_pipe, &csize, sizeof(csize), 0) != sizeof(csize)) {
             exit_code = -7;
             break;
         }
@@ -1330,7 +1363,7 @@ int main3(int argc, char **argv) {
         if (csize > 0) {
             // secured session
             if (csize < sizeof(keybuffer) - 1) {
-                if (read_exact(read_pipe, keybuffer, csize) != csize) {
+                if (read_exact(read_pipe, keybuffer, csize, 0) != csize) {
                     exit_code = -8;
                     break;
                 }
@@ -1342,13 +1375,13 @@ int main3(int argc, char **argv) {
                 secured            = 1;
             }
         } else {
-            if (read_exact(read_pipe, &csize, sizeof(csize)) != sizeof(csize)) {
+            if (read_exact(read_pipe, &csize, sizeof(csize), 0) != sizeof(csize)) {
                 exit_code = -9;
                 break;
             }
 
             if ((csize > 0) && (csize < sizeof(keybuffer) - 1)) {
-                if (read_exact(read_pipe, keybuffer, csize) != csize) {
+                if (read_exact(read_pipe, keybuffer, csize, 0) != csize) {
                     exit_code = -10;
                     break;
                 }

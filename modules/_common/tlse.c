@@ -6695,6 +6695,10 @@ void print_index(const unsigned int *fields) {
         DEBUG_PRINT("%i", fields[i]);
         i++;
     }
+    while (i < 6) {
+        DEBUG_PRINT("  ");
+        i++;
+    }
 }
 
 int __is_field(const unsigned int *fields, const unsigned int *prefix) {
@@ -7023,8 +7027,15 @@ int __private_asn1_parse(struct TLSContext *context, struct TLSCertificate *cert
                     } else
                     if (__is_field(fields, serial_id))
                         tls_certificate_set_serial(cert, &buffer[pos], length);
-                    if ((__is_field(fields, version_id)) && (length == 1))
-                        cert->version = buffer[pos];
+                    if (__is_field(fields, version_id)) {
+                        if (length == 1)
+                            cert->version = buffer[pos];
+#ifdef TLS_X509_V1_SUPPORT
+                        else
+                            cert->version = 0;
+                        idx++;
+#endif
+                    }
                     if (level >= 2) {
                         unsigned int fields_temp[3];
                         fields_temp[0] = fields[level - 2];
@@ -7249,7 +7260,11 @@ int tls_load_certificates(struct TLSContext *context, const unsigned char *pem_b
             break;
         struct TLSCertificate *cert = asn1_parse(context, data, len, 0);
         if (cert) {
-            if (cert->version == 2) {
+            if ((cert->version == 2) 
+#ifdef TLS_X509_V1_SUPPORT
+                || (cert->version == 0)
+#endif
+            ) {
                 TLS_FREE(cert->der_bytes);
                 cert->der_bytes = data;
                 cert->der_len = len;
@@ -8147,7 +8162,7 @@ int SSL_CTX_use_PrivateKey_file(struct TLSContext *context, const char *filename
 }
 
 int SSL_CTX_check_private_key(struct TLSContext *context) {
-    if ((!context) || (!context->private_key) || (!context->private_key->der_bytes) || (!context->private_key->der_len))
+    if ((!context) || (((!context->private_key) || (!context->private_key->der_bytes) || (!context->private_key->der_len)) && ((!context->ec_private_key) || (!context->ec_private_key->der_bytes) || (!context->ec_private_key->der_len))))
         return 0;
     return 1;
 }

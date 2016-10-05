@@ -3891,7 +3891,7 @@ class ConceptServer extends RewriteContainer {
 				var buf=tobin(source_apid, 32)+tobin(msg_id, 32)+tobin(length msg, 32)+msg;
 				connection.Send(buf);
 			} else
-				this.Log("ConceptServer", "Unknown APID: $apid (message send by $source_apid)");
+				this.Log("ConceptServer", "Unknown APID: $apid (message sent by $source_apid)");
 		} else {
 			this.Iterations++;
 			buf=tobin(source_apid, 32)+tobin(msg_id, 32)+tobin(length msg, 32)+msg;
