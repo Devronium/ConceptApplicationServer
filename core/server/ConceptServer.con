@@ -1648,7 +1648,7 @@ class ConceptChild {
 						if (Socket.HasData) {
 							data = Socket.Read();
 							if (!data)
-								break;
+								throw "Broken socket";
 							received_data+=data;
 							Owner.Iterations++;
 
