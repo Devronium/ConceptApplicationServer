@@ -989,6 +989,7 @@ class ConceptChild {
 	ParseHeader(header, var ws, var ws_key, var origin, var host, var session_to_restore, var if_modified, var keep_alive, var parent, var debug, var content_length, var protocol, var extension) {
 		var len = length header;
 		content_length = 0;
+		var cache = true;
 		if (len > MAX_HEADER_PARAMETERS)
 			len = MAX_HEADER_PARAMETERS;
 		for (var i=1;i<len;i++) {
@@ -1056,7 +1057,14 @@ class ConceptChild {
 					// 	session_to_restore=trim(orig);
 					// 	break;
 					case "if-modified-since":
-						if_modified = trim(SubStr(line, 18));
+						if (cache)
+							if_modified = trim(SubStr(line, 18));
+						break;
+					case "cache-control":
+						if (trim(ToLower("" + arr[1])) == "no-cache") {
+							if_modified = "";
+							cache = false;
+						}
 						break;
 					case "connection":
 						if (ToLower(trim(""+arr[1])) == "keep-alive")
@@ -1453,7 +1461,7 @@ class ConceptChild {
 												keep_alive = false;
 												skip_content = true;
 											} else
-											if ((!is_root) && (if_modified == last_mod)) {
+											if (((!is_root) || (!params)) && (if_modified == last_mod)) {
 												buffer = "HTTP/1.1 304 Not Modified\r\nDate: $tstamp\r\nConnection: $connection_policy\r\nContent-Type: $content_type\r\nCache-Control: max-age=31536000\r\nLast-Modified: $last_mod\r\n" + EXTRA_HEADER + "Server: " + SERVER_NAME + "\r\n\r\n";
 												skip_content = true;
 											} else {
@@ -2619,11 +2627,21 @@ pragma used
 							"content-type" => content_type
 						];
 						var no_content = false;
+						var if_modified = stream.Headers["if-modified-since"];
+						if (if_modified) {
+							var cache_control = stream.Headers["cache-control"];
+							if ((cache_control) && (cache_control == "no-cache"))
+								if_modified = null;
+						}
 						if (root_buffer) {
-							stream.Response(h2, headers, no_content);
-							stream.Write(h2, root_buffer, true);
+							if ((!params) && (last_mod == if_modified)) {
+								headers[":status"] = 304;
+								stream.Response(h2, headers, true);
+							} else {
+								stream.Response(h2, headers, no_content);
+								stream.Write(h2, root_buffer, true);
+							}
 						} else {
-							var if_modified = stream.Headers["if-modified-since"];
 							if (last_mod == if_modified) {
 								headers[":status"] = 304;
 								file.Close();
