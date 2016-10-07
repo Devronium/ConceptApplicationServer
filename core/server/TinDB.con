@@ -642,6 +642,7 @@ class TinDB {
 	protected var[] StorageWorkers;
 
 	TinDB(workers = 4, storage_workers = 4) {
+        RandomSeed(unpack("u32", CryptoRandom(4))[0]);
 		var[] sworkers;
 		for (var i = 0; i < storage_workers; i++) {
 			StorageWorkers[i] = new Worker("StorageWorker", "");

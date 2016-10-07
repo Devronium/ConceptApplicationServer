@@ -15,7 +15,6 @@ import standard.C.time
 import standard.lib.str
 import standard.C.casts
 import standard.lib.cripto
-import standard.math.rand
 import standard.coding.base64
 
 // set to true when in production
@@ -155,16 +154,6 @@ class ConceptChild {
 		this.Owner = owner;
 		this.Socket = socket;
 		Owner.ClientCount++;
-	}
-
-	RandomString(len) {
-		var res="";
-		while (length res<len) {
-			var c = RandomInteger(33, 126);
-			if ((c != '\r') && (c != '\n') && (c != ';'))
-				res += chr(c);
-		}
-		return res;
 	}
 
 	WriteExact(buffer, add_size=false, do_throw=false) {
@@ -330,7 +319,7 @@ class ConceptChild {
 				break;
 			case "session":
 				if (!this.Session)
-					this.Session=this.GenerateSession();//sha256(""+NumberToHex(ClsPtr(this))+"#"+RandomString(80);
+					this.Session = this.GenerateSession();
 				this.WriteExact("${this.Session}\r\n", false, true);
 				break;
 			case "restore":
