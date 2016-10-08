@@ -28,6 +28,7 @@ define READ_BUFFER		0x7FFFF
 define MAX_WS_HEADER		0xFFF
 define MAX_WS_HEADER_BUF	0xFFF
 define USE_TLS_PROXY		false
+define USE_DB_SERVICE		true
 define DEFAULT_CGI_WORKERS	4
 define DEFAULT_H2_WORKERS	4
 define PIPE_READ_CPU_TIME_US	2000
@@ -4313,6 +4314,10 @@ class Main {
 		if (USE_TLS_PROXY) {
 			if (ExecuteProcess("concept", ".", ["-mt", "ConceptTLSProxyServer.con"], [ ], false) < 0)
 				s.Log("ConceptServer", "Error initializing Concept SSL proxy");
+		}
+		if (USE_DB_SERVICE) {
+			if (ExecuteProcess("concept", ".", ["TinDB.con"], [ ], false) < 0)
+				s.Log("ConceptServer", "Error running database service");
 		}
 		try {
 			s.Start();
