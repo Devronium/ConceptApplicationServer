@@ -248,6 +248,8 @@ pragma used
 																		db_valid = true;
 																	if ((user) && (d2 == digest) && (db_valid)) {
 																		ctx.auth = true;
+																		if (IsSet(user, "code"))
+																			ctx.code = (user["code"] == 1);
 																		r.id = 0;
 																		r.p["ok"] = true;
 																		r.Send(sock);
