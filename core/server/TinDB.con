@@ -25,6 +25,9 @@ define ERR_USER_PASS	-6
 define ERR_USER_PASS_S	"Invalid username or password"
 define ERR_IN_CODE	-7
 define ERR_NO_MEMBER_S	"No such function"
+define ERR_CODE_RIGHTS	-8
+define ERR_CODE_RIGHTS_S"Server code is disabled for this user"
+
 define BUSY_FSYNC_LIMIT	 10000
 
 class Triggers {
@@ -74,6 +77,7 @@ class ConnectionContext {
 	var buffer = "";
 	var challenge = "";
 	var auth = false;
+	var code = true;
 	var key;
 
 	ConnectionContext() {
@@ -173,19 +177,27 @@ pragma used
 									obj = UnBinarizeObject(buf2);
  									if ((obj) && (classof obj == "Q")) {
 										switch (obj.o) {
+											case "H":
+												if (!ctx.code) {
+													var r = new R();
+													r.q = obj.q;
+													r.e = ERR_CODE_RIGHTS;
+													r.et = ERR_CODE_RIGHTS_S;
+													r.Send(sock);
+													break;
+												}
 											case "A":
 											case "Q":
 											case "I":
 											case "D":
 											case "X":
-											case "H":
 											case ".":
 											case "*":
 												if (ctx.auth) {
 													if (typeof obj.c != "string")
 														obj.c = "";
 													if ((!obj.d) || (typeof obj.d != "string") || (Pos(obj.d, "/") > 0) || (Pos(obj.d, "\\") > 0)) {
-														var r = new R();
+														r = new R();
 														r.e = ERR_DB;
 														r.et = ERR_DB_S;
 														r.Send(sock);
@@ -213,12 +225,28 @@ pragma used
 														if (obj.o == "A") {
 															var username = obj.p["u"];
 															var digest = obj.p["d"];
-															//var db = obj.p["db"];
+															var db = obj.p["db"];
 															try {
 																var user = t.Query(["username" => username])[0];
 																if (user) {
 																	var d2 = sha256(username + ":" + ctx.challenge + ":" + user["password"]);
-																	if ((user) && (d2 == digest)) {
+																	var user_db = user["db"];
+																	var db_valid = false;
+																	if (user_db) {
+																		if (typeof user_db == "array") {
+																			for (var db_i = 0; db_i < length user_db; db_i++) {
+																				var u_db = user_db[db_i];
+																				if ((u_db) && (typeof u_db == "string") && (u_db == user_db)) {
+																					db_valid = true;
+																					break;
+																				}
+																			}
+																		} else
+																		if (user_db == db)
+																			db_valid = true;
+																	} else
+																		db_valid = true;
+																	if ((user) && (d2 == digest) && (db_valid)) {
 																		ctx.auth = true;
 																		r.id = 0;
 																		r.p["ok"] = true;
@@ -642,7 +670,7 @@ class TinDB {
 	protected var[] StorageWorkers;
 
 	TinDB(workers = 4, storage_workers = 4) {
-        RandomSeed(unpack("u32", CryptoRandom(4))[0]);
+		RandomSeed(unpack("u32", CryptoRandom(4))[0]);
 		var[] sworkers;
 		for (var i = 0; i < storage_workers; i++) {
 			StorageWorkers[i] = new Worker("StorageWorker", "");
@@ -673,18 +701,74 @@ class TinDB {
 		while (true) {
 			var sock = Socket.Accept(true);
 			if (sock > 0) {
-				QueryWorkers[WorkerIndex++].AddData(BinarizeObject([sock]));
-				if (WorkerIndex >= length QueryWorkers)
-					WorkerIndex = 0;
+				var info = SocketInfo(sock);
+				var addr = info["address"];
+				if ((addr) && ((addr == "127.0.0.1") || (addr == "::1"))) {
+					QueryWorkers[WorkerIndex++].AddData(BinarizeObject([sock]));
+					if (WorkerIndex >= length QueryWorkers)
+						WorkerIndex = 0;
+				} else {
+					SocketClose(sock);
+				}
 			}
 		}
 	}
-	
 }
 
 class Main {
+	RealPath(path) {
+		var res = "";
+		path = StrReplace(path, "\\", "/");
+		var arr = StrSplit(path, "/");
+		for (var i = length arr - 1; i >= 0; i--) {
+			var e = arr[i];
+			if (e == "..") {
+				i--;
+			} else {
+				if (res)
+					res = arr[i] + "/" + res;
+				else
+					res = arr[i];
+			}
+		}
+		return res;
+	}
+
+	IniGetPath(ini_file, category, key, default_value = "") {
+		var res = trim(IniGet(ini_file, category, key, default_value));
+		if (res[0] == ".")
+			return getcwd() + "/" + res;
+		return res;
+	}
+
 	Main() {
 		echo "Initializing Tinbase...\n";
+		var ini_file = "/usr/local/etc/concept.ini";
+		if (!FileExists(ini_file))
+			ini_file="/usr/etc/concept.ini";
+		if (!FileExists(ini_file))
+			ini_file="/etc/concept.ini";
+		if (!FileExists(ini_file))
+			ini_file=getcwd()+"/concept.ini";
+
+		var user = IniGet(ini_file, "TinDB", "User", "");
+		var password = "";
+		if (user) {
+			password = IniGet(ini_file, "TinDB", "UserPassword", "");
+		} else {
+			user = IniGet(ini_file, "Server", "User", "");
+			password = IniGet(ini_file, "Server", "UserPassword", "");
+		}
+		if (user) {
+			if (!SetCurrentUser(user, password))
+				echo "TinDB WARNING: cannot change user to $user\n";
+		}
+		var root = RealPath(IniGetPath(ini_file, "Paths", "DB", "../db"));
+		_mkdir(root);
+		if ((!root) || (_chdir(root))) {
+			echo "Error initializing DB engine\nCannot chdir to '$root'\n";
+			return -1;
+		}
 		var db = new TinDB();
 		echo "Listening\n";
 		db.Start();
