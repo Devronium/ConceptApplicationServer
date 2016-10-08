@@ -733,6 +733,8 @@ class Main {
 					res = arr[i];
 			}
 		}
+		if (path[0] == "/")
+			res = "/" + res;
 		return res;
 	}
 

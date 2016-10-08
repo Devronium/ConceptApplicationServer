@@ -1,6 +1,7 @@
 //#define DEBUG
 //#define DISABLE_CHECKPOINTS
 #define MAX_DEBUG_TIMEOUT   5
+#define MAX_APID_TIMEOUT    1800
 #include <stdlib.h>
 #include <fcntl.h>
 #ifdef _WIN32
@@ -154,6 +155,18 @@ BOOL sig_term(DWORD fdwCtrlType) {
     return FALSE;
 }
 
+int eof_timeout(int fd, int timeout_ms) {
+    int is_eof;
+    int timeout = timeout_ms / 50;
+    do {
+        is_eof = eof(fd);
+        if (!timeout)
+            break;
+        if (is_eof)
+            Sleep(50);
+    } while ((--timeout) && (is_eof));
+    return is_eof;
+}
 #else
 void sig_term(int signum) {
     if ((link_socket > 0) && (GetSocket)) {
@@ -163,13 +176,13 @@ void sig_term(int signum) {
         exit(-9);
 }
 
-int eof(int stream) {
+int eof_timeout(int stream, int timeout_ms) {
     struct pollfd ufds[1];
 
     ufds[0].fd     = stream;
     ufds[0].events = POLLIN;
 
-    int res = poll(ufds, 1, 0);
+    int res = poll(ufds, 1, timeout_ms);
     if (res < 0)
         return -1;
     return !res;
@@ -179,18 +192,11 @@ int eof(int stream) {
 ssize_t read_exact(int fd, void *buf, int size, int timeout) {
     int  written = 0;
     char *ref    = (char *)buf;
-
-    if (timeout > 0) {
-        int is_eof;
-        do {
-            is_eof = eof(fd);
-#ifdef _WIN32
-            Sleep(1000);
-#else
-            sleep(1);
-#endif
-        } while ((timeout--) && (is_eof));
-        if (is_eof)
+    if (timeout <= 0) {
+        if (eof_timeout(fd, MAX_APID_TIMEOUT * 1000))
+            return 0;
+    } else {
+        if (eof_timeout(fd, timeout * 1000))
             return 0;
     }
     while (size > 0) {
