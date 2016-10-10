@@ -2829,10 +2829,15 @@ function ConceptClient(url, container, loading, absolute_paths, debug) {
 				this.AudioQuery(Sender, Target, Value);
 				break;
 			case MSG_CLIENT_ENVIRONMENT:
-				if ((Target) && (Target.length) && (Target.toLowerCase() != "simid"))
+				var env = "";
+				if ((Target) && (Target.length) && (Target.toLowerCase() != "simid")) {
 					setCookie(Target, Value, 36500);
-
-				SendMessageFunction(Sender, MSG_CLIENT_ENVIRONMENT, "", document.cookie, 0);
+				} else {
+					env = getCookie(Value);
+					if (!env)
+						env = "";
+				}
+				SendMessageFunction(Sender, MSG_CLIENT_ENVIRONMENT, "", env, 0);
 				break;
 			case MSG_CLIENT_QUERY:
 				this.NotifyLoading("server queried for \"" + Target + "\"");
