@@ -171,7 +171,14 @@ class TinDataSet {
 	Store(obj, multiple = false, callback = null) {
 		if (typeof obj != "array")
 			obj = ToArray(obj);
-
+		else
+		if (multiple) {
+			for (var i = 0; i < length obj; i++) {
+				var o = obj[i];
+				if ((o) && (typeof o != "array"))
+					obj[i] = ToArray(o);
+			}
+		}
 		var q = new Q(obj, Connection.Database, this.Collection, "I");
 		if (!callback)
 			q.x["silent"] = true;

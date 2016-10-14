@@ -4267,7 +4267,7 @@ class ConceptServer extends RewriteContainer {
 				throw "Error initializing Concept server TLS WS socket (port ${this.SSLWSPort} already in use)";
 			} else {
 				this.LoadKeys();
-				if (value IniGet(this.IniFile, "Server", "HTTP2", "0")) {
+				if (value IniGet(this.IniFile, "Server", "HTTP2", "1")) {
 					TLSWSSocket.AddALPN("h2");
 					var h2worker_init_parameters = BinarizeObject([this.IniFile, this.ConceptClient, this.mimetypes, this.cgi, this.cgiother]);
 					for (i = 0; i < DEFAULT_H2_WORKERS; i++) {

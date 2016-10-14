@@ -20,6 +20,11 @@ class HTMLUI extends RemoteContainer {
 		}
 	}
 
+	public function client(string prop, argument = "") {
+		this.Set(prop, argument);
+		return this;
+	}
+
 	public function Get(string prop_name, argument = null) {
 		var data;
 		if ((typeof argument == "array") || (typeof argument == "class"))

@@ -468,7 +468,7 @@ pragma used
 									r.id = id;
 								} else {
 									if ((IsSet(obj.p, '$')) && (obj.p['$'] > 0)) {
-										id = obj.p['$'];
+										id = value obj.p['$'];
 										if (!t.Update(obj.p, id, true, var old_bin, var new_bin))
 											id = -1;
 										else

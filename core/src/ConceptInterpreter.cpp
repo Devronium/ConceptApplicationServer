@@ -941,10 +941,12 @@ void ConceptInterpreter::AnalizeInstructionPath(Optimizer *OPT) {
                             if (FORMAL_PARAMETERS2.PARAM_INDEX) {
                                 for (int j = 0; j < FORMAL_PARAMETERS2.COUNT; j++) {
                                     int idx = FORMAL_PARAMETERS2.PARAM_INDEX[j] - 1;
-                                    if (usedflags[idx])
-                                        usedflags[idx] = 2;
-                                    else
-                                        usedflags[idx] = 1;
+                                    if (usedflags[idx] != 3) {
+                                        if (usedflags[idx])
+                                            usedflags[idx] = 2;
+                                        else
+                                            usedflags[idx] = 1;
+                                    }
                                 }
                             }
                         }
@@ -954,10 +956,12 @@ void ConceptInterpreter::AnalizeInstructionPath(Optimizer *OPT) {
                 case KEY_TYPE_OF:
                 case KEY_CLASS_NAME:
                 case KEY_LENGTH:
-                    if (usedflags[OE->OperandLeft.ID - 1])
-                        usedflags[OE->OperandLeft.ID - 1] = 2;
-                    else
-                        usedflags[OE->OperandLeft.ID - 1] = 1;
+                    if (usedflags[OE->OperandLeft.ID - 1] != 3) {
+                        if (usedflags[OE->OperandLeft.ID - 1])
+                            usedflags[OE->OperandLeft.ID - 1] = 2;
+                        else
+                            usedflags[OE->OperandLeft.ID - 1] = 1;
+                    }
                     break;
 
                 case KEY_NEW:
@@ -970,10 +974,12 @@ void ConceptInterpreter::AnalizeInstructionPath(Optimizer *OPT) {
                             if (FORMAL_PARAMETERS2.PARAM_INDEX) {
                                 for (int j = 0; j < FORMAL_PARAMETERS2.COUNT; j++) {
                                     int idx = FORMAL_PARAMETERS2.PARAM_INDEX[j] - 1;
-                                    if (usedflags[idx])
-                                        usedflags[idx] = 2;
-                                    else
-                                        usedflags[idx] = 1;
+                                    if (usedflags[idx] != 3) {
+                                        if (usedflags[idx])
+                                            usedflags[idx] = 2;
+                                        else
+                                            usedflags[idx] = 1;
+                                    }
                                 }
                             }
                         }
@@ -990,16 +996,21 @@ void ConceptInterpreter::AnalizeInstructionPath(Optimizer *OPT) {
                             if (FORMAL_PARAMETERS2.PARAM_INDEX) {
                                 for (int j = 0; j < FORMAL_PARAMETERS2.COUNT; j++) {
                                     int idx = FORMAL_PARAMETERS2.PARAM_INDEX[j] - 1;
-                                    if (usedflags[idx])
-                                        usedflags[idx] = 2;
-                                    else
-                                        usedflags[idx] = 1;
+                                    if (usedflags[idx] != 3) {
+                                        if (usedflags[idx])
+                                            usedflags[idx] = 2;
+                                        else
+                                            usedflags[idx] = 1;
+                                    }
                                 }
                             }
                         }
                     }
                     break;
-
+                case KEY_CND_NULL:
+                    usedflags[OE->OperandRight.ID - 1] = 3;
+                    usedflags[OE->OperandLeft.ID - 1] = 3;
+                    break;
                 case KEY_ASG:
                 case KEY_BY_REF:
                 case KEY_ASU:
@@ -1016,7 +1027,6 @@ void ConceptInterpreter::AnalizeInstructionPath(Optimizer *OPT) {
                 case KEY_GEQ:
                 case KEY_EQU:
                 case KEY_NEQ:
-                case KEY_CND_NULL:
                 case KEY_REM:
                 case KEY_ARE:
                 case KEY_BOR:
@@ -1032,14 +1042,18 @@ void ConceptInterpreter::AnalizeInstructionPath(Optimizer *OPT) {
                 case KEY_XOR:
                 case KEY_OR:
                 case KEY_INDEX_OPEN:
-                    if (usedflags[OE->OperandRight.ID - 1])
-                        usedflags[OE->OperandRight.ID - 1] = 2;
-                    else
-                        usedflags[OE->OperandRight.ID - 1] = 1;
-                    if (usedflags[OE->OperandLeft.ID - 1])
-                        usedflags[OE->OperandLeft.ID - 1] = 2;
-                    else
-                        usedflags[OE->OperandLeft.ID - 1] = 1;
+                    if (usedflags[OE->OperandRight.ID - 1] != 3) {
+                        if (usedflags[OE->OperandRight.ID - 1])
+                            usedflags[OE->OperandRight.ID - 1] = 2;
+                        else
+                            usedflags[OE->OperandRight.ID - 1] = 1;
+                    }
+                    if (usedflags[OE->OperandLeft.ID - 1] != 3) {
+                        if (usedflags[OE->OperandLeft.ID - 1])
+                            usedflags[OE->OperandLeft.ID - 1] = 2;
+                        else
+                            usedflags[OE->OperandLeft.ID - 1] = 1;
+                    }
                     break;
 
                 case KEY_INC:
@@ -1051,10 +1065,12 @@ void ConceptInterpreter::AnalizeInstructionPath(Optimizer *OPT) {
                 case KEY_NOT:
                 case KEY_NEG:
                 case KEY_COM:
-                    if (usedflags[OE->OperandLeft.ID - 1])
-                        usedflags[OE->OperandLeft.ID - 1] = 2;
-                    else
-                        usedflags[OE->OperandLeft.ID - 1] = 1;
+                    if (usedflags[OE->OperandLeft.ID - 1] != 3) {
+                        if (usedflags[OE->OperandLeft.ID - 1])
+                            usedflags[OE->OperandLeft.ID - 1] = 2;
+                        else
+                            usedflags[OE->OperandLeft.ID - 1] = 1;
+                    }
                     break;
             }
         } else
@@ -1064,10 +1080,12 @@ void ConceptInterpreter::AnalizeInstructionPath(Optimizer *OPT) {
                 case KEY_OPTIMIZED_RETURN:
                 case KEY_OPTIMIZED_ECHO:
                 case KEY_OPTIMIZED_IF:
-                    if (usedflags[OE->OperandRight.ID - 1])
-                        usedflags[OE->OperandRight.ID - 1] = 2;
-                    else
-                        usedflags[OE->OperandRight.ID - 1] = 1;
+                    if (usedflags[OE->OperandLeft.ID - 1] != 3) {
+                        if (usedflags[OE->OperandRight.ID - 1])
+                            usedflags[OE->OperandRight.ID - 1] = 2;
+                        else
+                            usedflags[OE->OperandRight.ID - 1] = 1;
+                    }
                     // optimize IF .. GOTO to GOTO
                     if ((OE->Operator.ID == KEY_OPTIMIZED_IF) && (OE->OperandReserved.ID < count)) {
                         RuntimeOptimizedElement *OE2 = &OPT->CODE[OE->OperandReserved.ID];
@@ -2306,7 +2324,7 @@ void ConceptInterpreter::AnalizeInstructionPath(Optimizer *OPT) {
                             break;
 
                         case KEY_INDEX_OPEN:
-                            if (i + 1 < end) {
+                            if ((i + 1 < end) && (usedflags[OE->Result_ID - 1] != 3)) {
                                 cnt    = labels[i - start + 1];
                                 OENext = &OPT->CODE[i + 1];
                             } else
