@@ -1,0 +1,27 @@
+﻿include BM25.con
+
+import standard.C.io
+import standard.C.time
+
+class Main {
+	Main() {
+		var s = microseconds();
+		var language = "en";
+		var documents = [
+			BM25::document(ReadFile("14.txt"), language),
+			BM25::document(ReadFile("15.txt"), language),
+			BM25::document(ReadFile("16.txt"), language),
+			BM25::document(ReadFile("17.txt"), language)
+		];
+		echo "Load: " + (microseconds() - s)/1000 + "ms\n";
+		s = microseconds();
+		var query = BM25::query("cinderella's prince", language);
+		var documents_qi = BM25::count(query, documents, var avgdl);
+
+		for (var i = 0; i < length documents; i++) {
+			var score = BM25::score(query, documents_qi, documents[i], length documents, avgdl);
+			echo "SCORE: $i => $score\n";
+		}
+		echo "Query: " + (microseconds() - s)/1000 + "ms\n";
+	}
+}

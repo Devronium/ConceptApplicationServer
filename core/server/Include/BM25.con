@@ -1,15 +1,16 @@
-import standard.lib.str
+﻿import standard.lib.str
 import standard.C.casts
 import standard.lang.serialize
 import standard.C.math
 
 define EN_STOP_WORDS	["a":true,"about":true,"above":true,"after":true,"again":true,"against":true,"all":true,"am":true,"an":true,"and":true,"any":true,"are":true,"aren't":true,"as":true,"at":true,"be":true,"because":true,"been":true,"before":true,"being":true,"below":true,"between":true,"both":true,"but":true,"by":true,"can't":true,"cannot":true,"could":true,"couldn't":true,"did":true,"didn't":true,"do":true,"does":true,"doesn't":true,"doing":true,"don't":true,"down":true,"during":true,"each":true,"few":true,"for":true,"from":true,"further":true,"had":true,"hadn't":true,"has":true,"hasn't":true,"have":true,"haven't":true,"having":true,"he":true,"he'd":true,"he'll":true,"he's":true,"her":true,"here":true,"here's":true,"hers":true,"herself":true,"him":true,"himself":true,"his":true,"how":true,"how's":true,"i":true,"i'd":true,"i'll":true,"i'm":true,"i've":true,"if":true,"in":true,"into":true,"is":true,"isn't":true,"it":true,"it's":true,"its":true,"itself":true,"let's":true,"me":true,"more":true,"most":true,"mustn't":true,"my":true,"myself":true,"no":true,"nor":true,"not":true,"of":true,"off":true,"on":true,"once":true,"only":true,"or":true,"other":true,"ought":true,"our":true,"ours":true,"ourselves":true,"out":true,"over":true,"own":true,"same":true,"shan't":true,"she":true,"she'd":true,"she'll":true,"she's":true,"should":true,"shouldn't":true,"so":true,"some":true,"such":true,"than":true,"that":true,"that's":true,"the":true,"their":true,"theirs":true,"them":true,"themselves":true,"then":true,"there":true,"there's":true,"these":true,"they":true,"they'd":true,"they'll":true,"they're":true,"they've":true,"this":true,"those":true,"through":true,"to":true,"too":true,"under":true,"until":true,"up":true,"very":true,"was":true,"wasn't":true,"we":true,"we'd":true,"we'll":true,"we're":true,"we've":true,"were":true,"weren't":true,"what":true,"what's":true,"when":true,"when's":true,"where":true,"where's":true,"which":true,"while":true,"who":true,"who's":true,"whom":true,"why":true,"why's":true,"with":true,"won't":true,"would":true,"wouldn't":true,"you":true,"you'd":true,"you'll":true,"you're":true,"you've":true,"your":true,"yours":true,"yourself":true,"yourselves":true]
 
-class enStemmer {
-	static suffix(var word, suffix, add = "") {
+define RO_STOP_WORDS	["împotriva":true,"întrucât":true,"întrucît":true,"mulţumesc":true,"altcineva":true,"datorită":true,"dinaintea":true,"înaintea":true,"nicăieri","sînteţi":true,"această":true,"aceştia":true,"asemenea":true,"deoarece":true,"înainte":true,"încotro":true,"noastră":true,"oricând":true,"oricînd":true,"patrulea":true,"puţină":true,"sunteţi":true,"voastră":true,"﻿acea":true,"aceasta":true,"acestea":true,"aceşti":true,"altceva":true,"aşadar":true,"astăzi":true,"ăştia":true,"curând":true,"curînd":true,"departe":true,"fiecare":true,"graţie":true,"încât":true,"încît":true,"lângă":true,"lîngă":true,"noastre":true,"noştri":true,"oricare":true,"oricât":true,"oricine":true,"oricît":true,"oriunde":true,"puţina":true,"sîntem":true,"totuşi":true,"treilea":true,"voastre":true,"voştri":true,"acelea":true,"acesta":true,"aceste":true,"ăstea":true,"asupra":true,"aveţi":true,"cărei":true,"căror":true,"cărui":true,"câţi":true,"către":true,"câtva":true,"cineva":true,"cîţi":true,"cîtva":true,"contra":true,"dintr-":true,"dintre":true,"doilea":true,"fără":true,"frumos":true,"halbă":true,"între":true,"mâine":true,"mîine":true,"multă":true,"mulţi":true,"nevoie":true,"nimeni":true,"nimeri":true,"nişte":true,"nostru":true,"oricum":true,"până":true,"pentru":true,"pînă":true,"primul":true,"puţin":true,"şapte":true,"suntem":true,"toată":true,"undeva":true,"uneori":true,"vostru":true,"aceea":true,"aceia":true,"acela":true,"acele":true,"acest":true,"acolo":true,"acord":true,"aibă":true,"ălea":true,"ăsta":true,"astea":true,"bucur":true,"bună":true,"căci":true,"când":true,"câte":true,"chiar":true,"cinci":true,"cînd":true,"cîte":true,"cumva":true,"dacă":true,"dată":true,"deşi":true,"două":true,"drept":true,"după":true,"eşti":true,"fiţi":true,"îţi":true,"mereu":true,"nimic":true,"noroc":true,"nouă":true,"orice":true,"patra":true,"patru":true,"peste":true,"poate":true,"prima":true,"şase":true,"sînt":true,"spate":true,"ştiu":true,"sută":true,"toate":true,"toţi":true,"treia":true,"uneia":true,"unele":true,"unora":true,"unuia":true,"vouă":true,"vreme":true,"vreun":true,"acei":true,"acel":true,"acum":true,"aici":true,"ăla":true,"alea":true,"asta":true,"aţi":true,"avea":true,"avem":true,"bine":true,"care":true,"cât":true,"caut":true,"ceva":true,"cine":true,"cît":true,"deci":true,"deja":true,"eram":true,"este":true,"face":true,"fata":true,"ieri":true,"îmi":true,"în ":true,"mele":true,"mine":true,"mult":true,"nici":true,"prea":true,"prin":true,"săi":true,"sale":true,"său":true,"spre":true,"sunt":true,"tăi":true,"tale":true,"tău":true,"ţie":true,"timp":true,"tine":true,"trei":true,"unde":true,"unei":true,"unii":true,"unor":true,"unui":true,"unul":true,"vreo":true,"zece":true,"zero":true,"zice":true,"aia":true,"ale":true,"are":true,"aş":true,"azi":true,"că":true,"cel":true,"cum":true,"dă":true,"dar":true,"dau":true,"din":true,"doi":true,"ele":true,"fie":true,"fii":true,"fim":true,"fiu":true,"iar":true,"îi":true,"îl":true,"lor":true,"lui":true,"mă":true,"mai":true,"mea":true,"mei":true,"meu":true,"mie":true,"noi":true,"opt":true,"ori":true,"pic":true,"pot":true,"rog":true,"să":true,"sau":true,"şi":true,"sub":true,"ţi":true,"tot":true,"una":true,"unu":true,"vă":true,"voi":true,"ai":true,"al":true,"am":true,"ar":true,"au":true,"ca":true,"ce":true,"cu":true,"da":true,"de":true,"ea":true,"ei":true,"el":true,"eu":true,"fi":true,"la":true,"le":true,"li":true,"mi":true,"ne":true,"nu":true,"pe":true,"sa":true,"se":true,"ta":true,"te":true,"tu":true,"un":true,"vi":true,"zi":true]
+
+class _Stemmer {
+	static ansisuffix(var word, suffix, add = "") {
 		if (length suffix >= length word)
 			return word;
-
 		var delta = length word - length suffix;
 		if (SubStr(word, delta) == suffix) {
 			word = SubStr(word, 0, delta) + add;
@@ -18,23 +19,92 @@ class enStemmer {
 		return false;
 	}
 
+	static suffix(var word, suffix, add = "") {
+		var word_len = UTF8Length(word);
+		var suffix_len = UTF8Length(suffix);
+		if (suffix_len >= word_len)
+			return word;
+		var delta = UTF8Charnum(word, word_len - suffix_len);
+		if (SubStr(word, delta) == suffix) {
+			word = SubStr(word, 0, delta) + add;
+			return true;
+		}
+		return false;
+	}
+
+	static suffixMultiple(var word, array suffix, add = "") {
+		for (var i = 0; i < length suffix; i++) {
+			var s = suffix[i];
+			if (s) {
+				if (_Stemmer::suffix(word, s, add))
+					return true;
+			}
+		}
+		return false;
+	}
+
+	static pre(word, suffix, len = 1) {
+		if (length suffix >= word)
+			return "";
+		if (len == 1)
+			return word[length word - length suffix - 1];
+		return SubStr(word, length word - length suffix - len, len);
+	}
+
+	static sortbylength(array arr, as_string = false) {
+		var max_len = 0;
+		var[] arr2;
+		for (var i = 0; i < length arr; i++) {
+			var e = arr[i];
+			if (length e > max_len) {
+				max_len = length e;
+			}
+			var arr3 = arr2[length e];
+			if (!arr3) {
+				arr3 = new [];
+				arr2[length e] = arr3;
+			}
+			arr3[length arr3] = e;
+		}
+		var arr4 = new [];
+		for (i = length arr2 - 1; i >= 0; i--) {
+			var a = arr2[i];
+			if (a)
+				arr4 += a;
+		}
+
+		if (!as_string)
+			return arr4;
+
+		var str = "[";
+		for (i = 0; i < length arr4; i++) {
+			if (i)
+				str += ", ";
+			str += "\"" + arr4[i] + "\""; 
+		}
+		str += "]";
+		return str;
+	}
+}
+
+class enStemmer extends _Stemmer {
 	static stem1(word) {
 		if (!word)
 			return word;
-		if ((enStemmer::suffix(word, "ed")) || (enStemmer::suffix(word, "ing"))) {
-			enStemmer::suffix(word, "at", "ate");
-			enStemmer::suffix(word, "bl", "ble");
-			enStemmer::suffix(word, "iz", "ize");
+		if ((_Stemmer::suffix(word, "ed")) || (_Stemmer::suffix(word, "ing"))) {
+			_Stemmer::suffix(word, "at", "ate");
+			_Stemmer::suffix(word, "bl", "ble");
+			_Stemmer::suffix(word, "iz", "ize");
 			return word;
 		}
-		if (enStemmer::suffix(word, "ly"))
+		if (_Stemmer::suffix(word, "ly"))
 			return word;
-		if (enStemmer::suffix(word, "ies", "i"))
+		if (_Stemmer::suffix(word, "ies", "i"))
 			return word;
-		if (enStemmer::suffix(word, "s"))
+		if (_Stemmer::suffix(word, "s"))
 			return word;
 
-		if (enStemmer::suffix(word, "eed", "ee"))
+		if (_Stemmer::suffix(word, "eed", "ee"))
 			return word;
 		return word;
 	}
@@ -42,122 +112,225 @@ class enStemmer {
 	static stem2(word) {
 		if (!word)
 			return word;
-		if (enStemmer::suffix(word, "ational", "ate"))
+		if (_Stemmer::suffix(word, "ational", "ate"))
 			return word;
-		if (enStemmer::suffix(word, "tional", "tion"))
+		if (_Stemmer::suffix(word, "tional", "tion"))
 			return word;
-		if (enStemmer::suffix(word, "enci", "ence"))
+		if (_Stemmer::suffix(word, "enci", "ence"))
 			return word;
-		if (enStemmer::suffix(word, "anci", "ance"))
+		if (_Stemmer::suffix(word, "anci", "ance"))
 			return word;
-		if (enStemmer::suffix(word, "izer", "ize"))
+		if (_Stemmer::suffix(word, "izer", "ize"))
 			return word;
-		if (enStemmer::suffix(word, "abli", "able"))
+		if (_Stemmer::suffix(word, "abli", "able"))
 			return word;
-		if (enStemmer::suffix(word, "alli", "al"))
+		if (_Stemmer::suffix(word, "alli", "al"))
 			return word;
-		if (enStemmer::suffix(word, "entli", "ent"))
+		if (_Stemmer::suffix(word, "entli", "ent"))
 			return word;
-		if (enStemmer::suffix(word, "eli", "e"))
+		if (_Stemmer::suffix(word, "eli", "e"))
 			return word;
-		if (enStemmer::suffix(word, "ousli", "ous"))
+		if (_Stemmer::suffix(word, "ousli", "ous"))
 			return word;
-		if (enStemmer::suffix(word, "ization", "ize"))
+		if (_Stemmer::suffix(word, "ization", "ize"))
 			return word;
-		if (enStemmer::suffix(word, "ation", "ate"))
+		if (_Stemmer::suffix(word, "ation", "ate"))
 			return word;
-		if (enStemmer::suffix(word, "ator", "ate"))
+		if (_Stemmer::suffix(word, "ator", "ate"))
 			return word;
-		if (enStemmer::suffix(word, "alism", "al"))
+		if (_Stemmer::suffix(word, "alism", "al"))
 			return word;
-		if (enStemmer::suffix(word, "iveness", "ive"))
+		if (_Stemmer::suffix(word, "iveness", "ive"))
 			return word;
-		if (enStemmer::suffix(word, "fulness", "ful"))
+		if (_Stemmer::suffix(word, "fulness", "ful"))
 			return word;
-		if (enStemmer::suffix(word, "ousness", "ous"))
+		if (_Stemmer::suffix(word, "ousness", "ous"))
 			return word;
-		if (enStemmer::suffix(word, "aliti", "al"))
+		if (_Stemmer::suffix(word, "aliti", "al"))
 			return word;
-		if (enStemmer::suffix(word, "iviti", "ive"))
+		if (_Stemmer::suffix(word, "iviti", "ive"))
 			return word;
-		if (enStemmer::suffix(word, "biliti", "ble"))
+		if (_Stemmer::suffix(word, "biliti", "ble"))
 			return word;
 		return word;
 	}
 
 	static stem3(word) {
-		if (enStemmer::suffix(word, "icate", "ic"))
+		if (_Stemmer::suffix(word, "icate", "ic"))
 			return word;
-		if (enStemmer::suffix(word, "ative"))
+		if (_Stemmer::suffix(word, "ative"))
 			return word;
-		if (enStemmer::suffix(word, "alize", "al"))
+		if (_Stemmer::suffix(word, "alize", "al"))
 			return word;
-		if (enStemmer::suffix(word, "iciti", "ic"))
+		if (_Stemmer::suffix(word, "iciti", "ic"))
 			return word;
-		if (enStemmer::suffix(word, "ical", "ic"))
+		if (_Stemmer::suffix(word, "ical", "ic"))
 			return word;
-		if (enStemmer::suffix(word, "ful"))
+		if (_Stemmer::suffix(word, "ful"))
 			return word;
-		if (enStemmer::suffix(word, "ness"))
+		if (_Stemmer::suffix(word, "ness"))
 			return word;
 		return word;
 	}
 
-	static pre(word, suffix) {
-		if (length suffix >= word)
-			return "";
-		return word[length word - length suffix - 1];
-	}
-
 	static stem4(word) {
-		if (enStemmer::suffix(word, "al"))
+		if (_Stemmer::suffix(word, "al"))
 			return word;
-		if (enStemmer::suffix(word, "ance"))
+		if (_Stemmer::suffix(word, "ance"))
 			return word;
-		if (enStemmer::suffix(word, "ence"))
+		if (_Stemmer::suffix(word, "ence"))
 			return word;
-		if (enStemmer::suffix(word, "er"))
+		if (_Stemmer::suffix(word, "er"))
 			return word;
-		if (enStemmer::suffix(word, "ic"))
+		if (_Stemmer::suffix(word, "ic"))
 			return word;
-		if (enStemmer::suffix(word, "able"))
+		if (_Stemmer::suffix(word, "able"))
 			return word;
-		if (enStemmer::suffix(word, "ible"))
+		if (_Stemmer::suffix(word, "ible"))
 			return word;
-		if (enStemmer::suffix(word, "ant"))
+		if (_Stemmer::suffix(word, "ant"))
 			return word;
-		if (enStemmer::suffix(word, "ement"))
+		if (_Stemmer::suffix(word, "ement"))
 			return word;
-		if (enStemmer::suffix(word, "ment"))
+		if (_Stemmer::suffix(word, "ment"))
 			return word;
-		if (enStemmer::suffix(word, "ent"))
+		if (_Stemmer::suffix(word, "ent"))
 			return word;
 		if (length word > 3) {
-			var pre = enStemmer::pre(word, "ion");
+			var pre = _Stemmer::pre(word, "ion");
 			if ((pre == "s") || (pre == "t")) {
-				if (enStemmer::suffix(word, "ion"))
+				if (_Stemmer::suffix(word, "ion"))
 					return word;
 			}
 		}
-		if (enStemmer::suffix(word, "ou"))
+		if (_Stemmer::suffix(word, "ou"))
 			return word;
-		if (enStemmer::suffix(word, "ism"))
+		if (_Stemmer::suffix(word, "ism"))
 			return word;
-		if (enStemmer::suffix(word, "ate"))
+		if (_Stemmer::suffix(word, "ate"))
 			return word;
-		if (enStemmer::suffix(word, "iti"))
+		if (_Stemmer::suffix(word, "iti"))
 			return word;
-		if (enStemmer::suffix(word, "ous"))
+		if (_Stemmer::suffix(word, "ous"))
 			return word;
-		if (enStemmer::suffix(word, "ive"))
+		if (_Stemmer::suffix(word, "ive"))
 			return word;
-		if (enStemmer::suffix(word, "ize"))
+		if (_Stemmer::suffix(word, "ize"))
 			return word;
 		return word;
 	}
 
 	static stem(word) {
-		return enStemmer::stem1(enStemmer::stem2(enStemmer::stem3(enStemmer::stem4(word))));
+		return enStemmer::stem4(enStemmer::stem3(enStemmer::stem2(enStemmer::stem1(word))));
+	}
+
+}
+
+class roStemmer extends _Stemmer {
+	static stem0(word) {
+		if (!word)
+			return word;
+		if (_Stemmer::suffix(word, "ul"))
+			return word;
+		if (_Stemmer::suffix(word, "ului"))
+			return word;
+		if (_Stemmer::suffix(word, "aua", "a"))
+			return word;
+		if (_Stemmer::suffix(word, "ea", "e"))
+			return word;
+		if (_Stemmer::suffix(word, "ele", "e"))
+			return word;
+		if (_Stemmer::suffix(word, "elor", "e"))
+			return word;
+		if (_Stemmer::suffix(word, "ii", "i"))
+			return word;
+		if (_Stemmer::suffix(word, "iua", "i"))
+			return word;
+		if (_Stemmer::suffix(word, "iei", "i"))
+			return word;
+		if (_Stemmer::suffix(word, "iile", "i"))
+			return word;
+		if (_Stemmer::suffix(word, "iilor", "i"))
+			return word;
+		if (_Stemmer::suffix(word, "ilor", "i"))
+			return word;
+		var pre = _Stemmer::pre(word, "ile", 2);
+		if (pre != "ab") {
+			if (_Stemmer::suffix(word, "ile", "i"))
+				return word;
+		}
+		if (_Stemmer::suffix(word, "atei", "at"))
+			return word;
+
+		if (_Stemmer::suffix(word, "atie", "ati"))
+			return word;
+		if (_Stemmer::suffix(word, "aţie", "aţia"))
+			return word;
+		return word;
+	}
+
+	static stem1(word) {
+		if (!word)
+			return word;
+
+		if (_Stemmer::suffixMultiple(word, ["abilitate", "abilitati", "abilităi", "abilităţi"], "abil"))
+			return word;
+
+		if (_Stemmer::suffix(word, "ibilitate", "ibil"))
+			return word;
+
+		if (_Stemmer::suffixMultiple(word, ["ivitate", "ivitati", "ivităi", "ivităţi"], "iv"))
+			return word;
+
+		if (_Stemmer::suffixMultiple(word, ["icitate", "icitati", "icităi", "icităţi", "icator", "icatori", "iciv", "iciva", "icive", "icivi", "icivă", "ical", "icala", "icale", "icali", "icală"], "ic"))
+			return word;
+
+		if (_Stemmer::suffixMultiple(word, ["ativ", "ativa", "ative", "ativi", "ativă", "aţiune", "atoare", "ator", "atori", "ătoare", "ător", "ători"], "at"))
+			return word;
+
+		if (_Stemmer::suffixMultiple(word, ["itiv", "itiva", "itive", "itivi", "itivă", "iţiune", "itoare", "itor", "itori"], "iv"))
+			return word;
+
+		return word;
+	}
+
+	static stem2(word) {
+		if (!word)
+			return word;
+		
+		if (_Stemmer::suffixMultiple(word, ["ităţi", "abilă", "ibilă", "abila", "abile", "abili", "ibila", "ibile", "ibili", "oasă", "antă", "atori", "itate", "itati", "ităi", "ată", "ută", "ită", "ică", "abil", "ibil", "oasa", "oase", "oşi", "anta", "ante", "anti", "ator", "ivă", "ata", "ati", "ate", "uta", "uti", "ute", "ita", "iti", "ite", "ica", "ice", "ici", "osi", "ant", "iva", "ive", "ivi", "at", "ut", "it", "ic", "os", "iv"]))
+			return word;
+
+		if (_Stemmer::suffixMultiple(word, ["ism", "isme", "ist", "ista", "iste", "isti", "istă", "işti"], "ist"))
+			return word;
+
+		return word;
+	}
+
+	static stem3(word) {
+		if (!word)
+			return word;
+		
+		if (_Stemmer::suffixMultiple(word, ["ăm", "aţi", "em", "eţi", "im", "iţi", "âm", "âţi", "seşi", "serăm", "serăţi", "seră", "sei", "se", "sesem", "seseşi", "sese", "seserăm", "seserăţi", "seseră"]))
+			return word;
+		return word;
+	}
+
+	static stem4(word) {
+		if (!word)
+			return word;
+		if (_Stemmer::suffixMultiple(word, ["ie", "a", "e", "i", "ă"]))
+			return word;
+		return word;
+	}
+
+	static stem(word) {
+		word = roStemmer::stem0(word);
+		var stemm_word = roStemmer::stem2(roStemmer::stem1(word));
+		if (stemm_word == word)
+			stemm_word = roStemmer::stem3(stemm_word);
+
+		return roStemmer::stem4(stemm_word);
 	}
 
 }
@@ -200,16 +373,33 @@ class BagOfWords {
 			case "en":
 				word = enStemmer::stem(word);
 				break;
+			case "ro":
+				word = roStemmer::stem(word);
+				break;
 		}
 		return word;
+	}
+
+	static en() {
+		return EN_STOP_WORDS;
+	}
+
+	static ro() {
+		return RO_STOP_WORDS;
 	}
 
 	static stem(array, lang = "en") {
 		var keys = GetKeys(array);
 		var[] out;
 		var stopWords;
-		if (ToLower(lang) == "en")
-		 	stopWords = EN_STOP_WORDS;
+		switch (ToLower(lang)) {
+			case "en":
+		 		stopWords = BagOfWords::en();
+				break;
+			case "ro":
+		 		stopWords = BagOfWords::ro();
+				break;
+		}
 		for (var i = 0; i < length keys; i++) {
 			var key = keys[i];
 			if (key) {
