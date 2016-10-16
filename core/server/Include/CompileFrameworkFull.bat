@@ -231,3 +231,4 @@ accel PDFFontMetricEncoding.con
 accel SCTPSocket.con
 accel HTTP2.con
 accel HTMLUI.con
+accel BM25.con

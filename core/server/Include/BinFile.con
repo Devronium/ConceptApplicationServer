@@ -1384,7 +1384,7 @@ class BinFile extends File {
 					if ((type != "array") && (type != "class"))
 						return false;
 				} else {
-					if ((!IsSet(o, key)) || (o[key] != v) || (add_key)) {
+					if ((!IsSet(o, key)) || (typeof o[key] != typeof v) || (o[key] != v) || (add_key)) {
 						first_key = key_arr[0];
 						prec_value = o[key];
 						if (add_key) {

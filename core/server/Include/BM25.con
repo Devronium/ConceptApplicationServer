@@ -1,0 +1,299 @@
+import standard.lib.str
+import standard.C.casts
+import standard.lang.serialize
+import standard.C.math
+
+define EN_STOP_WORDS	["a":true,"about":true,"above":true,"after":true,"again":true,"against":true,"all":true,"am":true,"an":true,"and":true,"any":true,"are":true,"aren't":true,"as":true,"at":true,"be":true,"because":true,"been":true,"before":true,"being":true,"below":true,"between":true,"both":true,"but":true,"by":true,"can't":true,"cannot":true,"could":true,"couldn't":true,"did":true,"didn't":true,"do":true,"does":true,"doesn't":true,"doing":true,"don't":true,"down":true,"during":true,"each":true,"few":true,"for":true,"from":true,"further":true,"had":true,"hadn't":true,"has":true,"hasn't":true,"have":true,"haven't":true,"having":true,"he":true,"he'd":true,"he'll":true,"he's":true,"her":true,"here":true,"here's":true,"hers":true,"herself":true,"him":true,"himself":true,"his":true,"how":true,"how's":true,"i":true,"i'd":true,"i'll":true,"i'm":true,"i've":true,"if":true,"in":true,"into":true,"is":true,"isn't":true,"it":true,"it's":true,"its":true,"itself":true,"let's":true,"me":true,"more":true,"most":true,"mustn't":true,"my":true,"myself":true,"no":true,"nor":true,"not":true,"of":true,"off":true,"on":true,"once":true,"only":true,"or":true,"other":true,"ought":true,"our":true,"ours":true,"ourselves":true,"out":true,"over":true,"own":true,"same":true,"shan't":true,"she":true,"she'd":true,"she'll":true,"she's":true,"should":true,"shouldn't":true,"so":true,"some":true,"such":true,"than":true,"that":true,"that's":true,"the":true,"their":true,"theirs":true,"them":true,"themselves":true,"then":true,"there":true,"there's":true,"these":true,"they":true,"they'd":true,"they'll":true,"they're":true,"they've":true,"this":true,"those":true,"through":true,"to":true,"too":true,"under":true,"until":true,"up":true,"very":true,"was":true,"wasn't":true,"we":true,"we'd":true,"we'll":true,"we're":true,"we've":true,"were":true,"weren't":true,"what":true,"what's":true,"when":true,"when's":true,"where":true,"where's":true,"which":true,"while":true,"who":true,"who's":true,"whom":true,"why":true,"why's":true,"with":true,"won't":true,"would":true,"wouldn't":true,"you":true,"you'd":true,"you'll":true,"you're":true,"you've":true,"your":true,"yours":true,"yourself":true,"yourselves":true]
+
+class enStemmer {
+	static suffix(var word, suffix, add = "") {
+		if (length suffix >= length word)
+			return word;
+
+		var delta = length word - length suffix;
+		if (SubStr(word, delta) == suffix) {
+			word = SubStr(word, 0, delta) + add;
+			return true;
+		}
+		return false;
+	}
+
+	static stem1(word) {
+		if (!word)
+			return word;
+		if ((enStemmer::suffix(word, "ed")) || (enStemmer::suffix(word, "ing"))) {
+			enStemmer::suffix(word, "at", "ate");
+			enStemmer::suffix(word, "bl", "ble");
+			enStemmer::suffix(word, "iz", "ize");
+			return word;
+		}
+		if (enStemmer::suffix(word, "ly"))
+			return word;
+		if (enStemmer::suffix(word, "ies", "i"))
+			return word;
+		if (enStemmer::suffix(word, "s"))
+			return word;
+
+		if (enStemmer::suffix(word, "eed", "ee"))
+			return word;
+		return word;
+	}
+
+	static stem2(word) {
+		if (!word)
+			return word;
+		if (enStemmer::suffix(word, "ational", "ate"))
+			return word;
+		if (enStemmer::suffix(word, "tional", "tion"))
+			return word;
+		if (enStemmer::suffix(word, "enci", "ence"))
+			return word;
+		if (enStemmer::suffix(word, "anci", "ance"))
+			return word;
+		if (enStemmer::suffix(word, "izer", "ize"))
+			return word;
+		if (enStemmer::suffix(word, "abli", "able"))
+			return word;
+		if (enStemmer::suffix(word, "alli", "al"))
+			return word;
+		if (enStemmer::suffix(word, "entli", "ent"))
+			return word;
+		if (enStemmer::suffix(word, "eli", "e"))
+			return word;
+		if (enStemmer::suffix(word, "ousli", "ous"))
+			return word;
+		if (enStemmer::suffix(word, "ization", "ize"))
+			return word;
+		if (enStemmer::suffix(word, "ation", "ate"))
+			return word;
+		if (enStemmer::suffix(word, "ator", "ate"))
+			return word;
+		if (enStemmer::suffix(word, "alism", "al"))
+			return word;
+		if (enStemmer::suffix(word, "iveness", "ive"))
+			return word;
+		if (enStemmer::suffix(word, "fulness", "ful"))
+			return word;
+		if (enStemmer::suffix(word, "ousness", "ous"))
+			return word;
+		if (enStemmer::suffix(word, "aliti", "al"))
+			return word;
+		if (enStemmer::suffix(word, "iviti", "ive"))
+			return word;
+		if (enStemmer::suffix(word, "biliti", "ble"))
+			return word;
+		return word;
+	}
+
+	static stem3(word) {
+		if (enStemmer::suffix(word, "icate", "ic"))
+			return word;
+		if (enStemmer::suffix(word, "ative"))
+			return word;
+		if (enStemmer::suffix(word, "alize", "al"))
+			return word;
+		if (enStemmer::suffix(word, "iciti", "ic"))
+			return word;
+		if (enStemmer::suffix(word, "ical", "ic"))
+			return word;
+		if (enStemmer::suffix(word, "ful"))
+			return word;
+		if (enStemmer::suffix(word, "ness"))
+			return word;
+		return word;
+	}
+
+	static pre(word, suffix) {
+		if (length suffix >= word)
+			return "";
+		return word[length word - length suffix - 1];
+	}
+
+	static stem4(word) {
+		if (enStemmer::suffix(word, "al"))
+			return word;
+		if (enStemmer::suffix(word, "ance"))
+			return word;
+		if (enStemmer::suffix(word, "ence"))
+			return word;
+		if (enStemmer::suffix(word, "er"))
+			return word;
+		if (enStemmer::suffix(word, "ic"))
+			return word;
+		if (enStemmer::suffix(word, "able"))
+			return word;
+		if (enStemmer::suffix(word, "ible"))
+			return word;
+		if (enStemmer::suffix(word, "ant"))
+			return word;
+		if (enStemmer::suffix(word, "ement"))
+			return word;
+		if (enStemmer::suffix(word, "ment"))
+			return word;
+		if (enStemmer::suffix(word, "ent"))
+			return word;
+		if (length word > 3) {
+			var pre = enStemmer::pre(word, "ion");
+			if ((pre == "s") || (pre == "t")) {
+				if (enStemmer::suffix(word, "ion"))
+					return word;
+			}
+		}
+		if (enStemmer::suffix(word, "ou"))
+			return word;
+		if (enStemmer::suffix(word, "ism"))
+			return word;
+		if (enStemmer::suffix(word, "ate"))
+			return word;
+		if (enStemmer::suffix(word, "iti"))
+			return word;
+		if (enStemmer::suffix(word, "ous"))
+			return word;
+		if (enStemmer::suffix(word, "ive"))
+			return word;
+		if (enStemmer::suffix(word, "ize"))
+			return word;
+		return word;
+	}
+
+	static stem(word) {
+		return enStemmer::stem1(enStemmer::stem2(enStemmer::stem3(enStemmer::stem4(word))));
+	}
+
+}
+
+class BagOfWords {
+	static bag(string text, var words = null) {
+		text = UTF8ToLower(text);
+		var len  = UTF8Length(text);
+		var char_pos = 0;
+		var word = "";
+		var[] word_bag;
+		words = 0;
+		for (var i = 0; i < len; i++) {
+			var prec = char_pos;
+			var u_char = UTF8NextChar(text, char_pos);
+			var char = SubStr(text, prec, char_pos - prec);
+			if ((u_char <= 47) || 
+				((u_char >= 58) && (u_char <= 64)) || 
+				((u_char >= 91) && (u_char <= 96)) ||
+				((u_char >= 123) && (u_char <= 127))) {
+				if (word) {
+					word_bag[word]++;
+					words++;
+				}
+				word = "";
+			} else {
+				word += char;
+			}
+		}
+		if (word) {
+			word_bag[word]++;
+			words++;
+		}
+		return word_bag;
+	}
+
+	static stemWord(string word, lang = "en") {
+		lang = ToLower(lang);
+		switch (lang) {
+			case "en":
+				word = enStemmer::stem(word);
+				break;
+		}
+		return word;
+	}
+
+	static stem(array, lang = "en") {
+		var keys = GetKeys(array);
+		var[] out;
+		var stopWords;
+		if (ToLower(lang) == "en")
+		 	stopWords = EN_STOP_WORDS;
+		for (var i = 0; i < length keys; i++) {
+			var key = keys[i];
+			if (key) {
+				var stem_key = BagOfWords::stemWord(key, lang);
+				if (stem_key) {
+					if ((!stopWords) || (!stopWords[stem_key]) || (!stopWords[key]))
+						out[stem_key] += array[key];
+				}
+			}
+		}
+		return out;
+	}
+}
+
+class BM25 extends BagOfWords {
+	static idf(N, n_qi, limit = 1) {
+		var val = log((N - n_qi + 0.5) / (n_qi + 0.5));
+		if (val <= limit)
+			val = limit;
+		return val;
+	}
+
+	static doclen(array D) {
+		var len = 0;
+		var keys = GetKeys(D);
+		for (var i = 0; i < length keys; i++)
+			len += D[keys[i]];
+		return len;
+	}
+
+	static score(array Q, array documents_qi, D, N, avgdl) {
+		var keys = GetKeys(Q);
+		if ((!Q) || (!keys) || (!D))
+			return 0;
+		var sum = 0;
+		var k1 = 2;
+		var b = 0.75;
+		var doclen = BM25::doclen(D);
+		for (var i = 0; i < length keys; i++) {
+			var k = keys[i];
+			var qi = Q[k];
+			if (qi) {
+				var f = D[k];
+				var summand = BM25::idf(N, documents_qi[k]) * (f * (k1 + 1)) / (f + k1 * (1 - b + b * doclen / avgdl));
+				if (summand > 0)
+					sum += summand;
+			}
+		}
+		return sum;
+	}
+
+	static count(array Q, array documents, var avgdl = null) {
+		var keys = GetKeys(Q);
+		var[] documents_qi;
+		avgdl = 0;
+		if ((!Q) || (!keys) || (!documents))
+			return documents_qi;
+		var sum = 0;
+		var docs = 0;
+		for (var i = 0; i < length keys; i++) {
+			var key = keys[i];
+			if (key) {
+				for (var j = 0; j < length documents; j++) {
+					var document = documents[j];
+					if (document) {
+						docs++;
+						if (IsSet(document, key))
+							documents_qi[key]++;
+						sum += length document;
+						docs++;
+					}
+				}
+			}
+		}
+		if (docs)
+			avgdl = sum / docs;
+		return documents_qi;
+	}
+
+	static document(string, language = "en") {
+		return BM25::stem(BM25::bag(string), language);
+	}
+
+	static query(string, language = "en") {
+		return BM25::document(string, language);
+	}
+}
