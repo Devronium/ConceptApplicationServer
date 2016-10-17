@@ -6,6 +6,16 @@ import standard.lib.cripto
 import standard.C.time
 import standard.lib.str
 
+define ERR_DB		-1
+define ERR_COLLECTION	-2
+define ERR_INTERNAL	-3
+define ERR_IO		-4
+define ERR_LOGIN	-5
+define ERR_USER_PASS	-6
+define ERR_IN_CODE	-7
+define ERR_CODE_RIGHTS	-8
+define ERR_NOT_UNIQUE	-9
+
 class Q {
 pragma used
 	var q = "";
@@ -168,7 +178,7 @@ class TinDataSet {
 		this.Collection = Collection;
 	}
 
-	Store(obj, multiple = false, callback = null) {
+	Store(obj, multiple = false, callback = null, unique = null) {
 		if (typeof obj != "array")
 			obj = ToArray(obj);
 		else
@@ -184,6 +194,8 @@ class TinDataSet {
 			q.x["silent"] = true;
 		if (multiple)
 			q.x["multi"] = true;
+		if ((unique) && ((typeof unique == "array") || (typeof unique == "string")))
+			q.x["unique"] = unique;
 		this.Connection._Handle(q, callback, this.UserData);
 	}
 
@@ -210,6 +222,14 @@ class TinDataSet {
 		if (descending)
 			q.x["descending"] = descending;
 		q.f = fields;
+		this.Connection._Handle(q, callback, this.UserData);
+	}
+
+	Drop(callback = null) {
+		var q = new Q([ ], Connection.Database, this.Collection, "R");
+		if (!callback)
+			q.x["silent"] = true;
+
 		this.Connection._Handle(q, callback, this.UserData);
 	}
 

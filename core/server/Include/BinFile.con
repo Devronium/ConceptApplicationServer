@@ -190,6 +190,10 @@ class BinIndex {
 		return null;
 	}
 
+	DropIndex(idxname) {
+		_unlink(this._name + "." + idxname + ".idx");
+	}
+
 	Put(objid, db = "", cached_val = "dumybear") {
 		if (!db)
 			db = this.Database;
@@ -418,6 +422,18 @@ class BinFile extends File {
 					LookForFields += StrSplit(arr[j], ".");
 			}
 		}
+	}
+
+	DropIndexes() {
+		LookForFields = new [];
+		for (var i = 0; i < length Indexes; i++) {
+			var index = Indexes[i];
+			if (index) {
+				if (typeof index == "string")
+					_Index.DropIndex(index);
+			}
+		}
+		Indexes = new [];
 	}
 
 	Check(repair = false, var repaired = false) {
@@ -1053,6 +1069,87 @@ class BinFile extends File {
 
 	Store(var obj, update_index = true) {
 		return this._Store(obj, update_index);
+	}
+
+	IsUnique(obj, fields) {
+		if ((!fields) || (!obj))
+			return true;
+		if (typeof fields == "string")
+			fields = [ fields ];
+		if (typeof fields != "array")
+			return true;
+
+		var obj_id = obj['$'];
+		var fetch_count = 1;
+		if (obj_id > 0)
+			fetch_count = 2;
+		var db_obj = null;
+		var sum_of_fields = [ ];
+
+		for (var i = 0; i < length fields; i++) {
+			var field = fields[i];
+			switch (typeof field) {
+				case "string":
+					if (field)
+						sum_of_fields[field] = field;
+					break;
+				case "array":
+					for (var j = 0; j < length field; j++) {
+						var f2 = field[j];
+						if (f2) 
+							sum_of_fields[f2] = f2;
+					}
+					break;
+			}
+		}
+
+		for (i = 0; i < length fields; i++) {
+			field = fields[i];
+			switch (typeof field) {
+				case "string":
+					if (IsSet(obj, field)) {
+						var objects = this.Query([field => obj[field]], ['$'], false, 0, fetch_count);
+						if (objects) {
+							for (j = 0; j < length objects; j++) {
+								var o = objects[j];
+								if ((o) && (o['$'] != obj_id))
+									return false;
+							}
+						}
+					}
+					break;
+				case "array":
+					var query = [ ];
+					if ((obj_id > 0) && (!db_obj)) {
+						db_obj = this.ById(obj_id, sum_of_fields);
+						// invalid id
+						if (!db_obj)
+							return false;
+					}
+					for (j = 0; j < length field; j++) {
+						f2 = field[j];
+						if (f2) {
+							if (IsSet(obj, f2))
+								query[f2] = obj[f2];
+							else
+							if ((db_obj) && (IsSet(db_obj, f2)))
+								query[f2] = db_obj[f2];
+						}
+					}
+					if (query) {
+						objects = this.Query(query, ['$'], false, 0, fetch_count);
+						if (objects) {
+							for (j = 0; j < length objects; j++) {
+								o = objects[j];
+								if ((o) && (o['$'] != obj_id))
+									return false;
+							}
+						}
+					}
+					break;
+			}
+		}
+		return true;		
 	}
 
 	protected __Debug(id) {
@@ -1927,5 +2024,17 @@ class BinFile extends File {
 		}
 		if (flush_index)
 			_Index.Flush();
+	}
+
+	Drop() {
+		if (hFile) {
+			fclose(hFile);
+			delete hFile;
+			_Index.ResetCache();
+			_unlink(this.name);
+			_unlink(this.name + ".idxn");
+			this.DropIndexes();
+			cache = new [];
+		}	
 	}
 }

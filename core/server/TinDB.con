@@ -27,6 +27,8 @@ define ERR_IN_CODE	-7
 define ERR_NO_MEMBER_S	"No such function"
 define ERR_CODE_RIGHTS	-8
 define ERR_CODE_RIGHTS_S"Server code is disabled for this user"
+define ERR_NOT_UNIQUE	-9
+define ERR_NOT_UNIQUE_S	"Not unique"
 
 define BUSY_FSYNC_LIMIT	 10000
 
@@ -193,6 +195,7 @@ pragma used
 											case "X":
 											case ".":
 											case "*":
+											case "R":
 												if (ctx.auth) {
 													if (typeof obj.c != "string")
 														obj.c = "";
@@ -391,7 +394,6 @@ pragma used
 					throw "Collection name error";
 
 				var multi_insert = false;
-
 				switch (obj.o) {
 					case "Q":
 						var t = db[obj.c];
@@ -439,12 +441,18 @@ pragma used
 								multi_insert = true;
 							var id = -1;
 							if (t) {
+								var unique_fields = obj.x["unique"];
 								trigger = _triggers["${obj.d}.${obj.c}"];
 								if (multi_insert) {
 									id = new [];
 									for (var i = 0; i < length obj.p; i++) {
 										var o = obj.p[i];
 										if (typeof o == "array") {
+											if ((unique_fields) && (!t.IsUnique(o, unique_fields))) {
+												r.e = ERR_NOT_UNIQUE;
+												r.et = ERR_NOT_UNIQUE_S;
+												break;
+											}
 											try {
 												var id2 = t.Store(obj.p[i]);
 											} catch (var store_exc) {
@@ -467,6 +475,10 @@ pragma used
 									}
 									r.id = id;
 								} else {
+									if ((unique_fields) && (!t.IsUnique(obj.p, unique_fields))) {
+										r.e = ERR_NOT_UNIQUE;
+										r.et = ERR_NOT_UNIQUE_S;
+									} else
 									if ((IsSet(obj.p, '$')) && (obj.p['$'] > 0)) {
 										id = value obj.p['$'];
 										if (!t.Update(obj.p, id, true, var old_bin, var new_bin))
@@ -623,6 +635,24 @@ pragma used
 								}
 							}
 							db.StoreTriggers(_triggers);
+						} else {
+							r.e = ERR_COLLECTION;
+							r.et = ERR_COLLECTION_S;
+						}
+						break;
+					case "R":
+						if (obj.c) {
+							t = db[obj.c];
+							if (t) {
+								try {
+									t.Drop();
+									db.Reset();
+								} catch (var exc_drop) {
+									echo "Remove error: $exc_drop\n";
+									r.e = ERR_COLLECTION;
+									r.et = ERR_COLLECTION_S;
+								}
+							}
 						} else {
 							r.e = ERR_COLLECTION;
 							r.et = ERR_COLLECTION_S;

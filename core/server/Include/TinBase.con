@@ -74,4 +74,9 @@ class TinBase {
 	operator[](string name) {
 		return Collection(name);
 	}
+
+	Reset() {
+		this.Flush();
+		tables = new [];
+	}
 }
