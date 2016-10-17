@@ -1298,7 +1298,7 @@ class BinFile extends File {
 							var o = UnBinarizeObject(res, 0, fields);
 						else
 							o = UnBinarizeObject(res);
-						if (o) {
+						if (o != null) {
 							o['$'] = _id;
 							res_array["" + _id]  = o;
 							if (do_cache)
