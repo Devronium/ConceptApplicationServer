@@ -415,7 +415,7 @@ class BagOfWords {
 }
 
 class BM25 extends BagOfWords {
-	static idf(N, n_qi, limit = 1) {
+	static idf(N, n_qi, limit = 0.5) {
 		var val = log((N - n_qi + 0.5) / (n_qi + 0.5));
 		if (val <= limit)
 			val = limit;
@@ -435,7 +435,7 @@ class BM25 extends BagOfWords {
 		if ((!Q) || (!keys) || (!D))
 			return 0;
 		var sum = 0;
-		var k1 = 2;
+		var k1 = 1.2;
 		var b = 0.75;
 		var doclen = BM25::doclen(D);
 		for (var i = 0; i < length keys; i++) {
