@@ -225,6 +225,16 @@ class TinDataSet {
 		this.Connection._Handle(q, callback, this.UserData);
 	}
 
+	Search(string q_string, delegate callback, fields = null, len = 0, start = 0) {
+		var q = new Q([q_string], Connection.Database, this.Collection, "S");
+		if (start)
+			q.x["start"] = start;
+		if (len)
+			q.x["len"] = len;
+		q.f = fields;
+		this.Connection._Handle(q, callback, this.UserData);
+	}
+
 	Drop(callback = null) {
 		var q = new Q([ ], Connection.Database, this.Collection, "R");
 		if (!callback)
@@ -261,6 +271,15 @@ class TinDataSet {
 	EnsureIndexes(array indexes) {
 		var q = new Q(indexes, Connection.Database, this.Collection, "X");
 		q.x["silent"] = true;
+		this.Connection._Handle(q, null);
+	}
+
+	EnsureFullText(fields = null, language = "en") {
+		if (!fields)
+			fields = new [];
+		var q = new Q(fields, Connection.Database, this.Collection, "Y");
+		q.x["silent"] = true;
+		q.x["lang"] = language;
 		this.Connection._Handle(q, null);
 	}
 

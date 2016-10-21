@@ -1,5 +1,6 @@
 include File.con
 include BTree.con
+include BM25.con
 
 import standard.lang.serialize
 import standard.C.casts
@@ -8,6 +9,10 @@ import standard.lib.str
 
 define HEADER_SIZE		64
 define DEFAULT_MODULO_SIZE	64
+
+define BM25_GRAPH_LEVEL		7
+define BM25_QUERY_LEVEL		7
+define BM25_MODULO_SIZE		48
 
 class TinQueryParser {
 	var min;
@@ -181,13 +186,20 @@ class BinIndex {
 			origname = FiltreName(origname);
 
 			if (Unique)
-				idx = new BTreeFile(f, this._cmp, /*this.Database*/origname, true);
+				idx = new BTreeFile(f, this._cmp, origname, true);
 			else
-				idx = new BTreeFile(f, this._cmp_reversed, /*this.Database*/origname, false);
+				idx = new BTreeFile(f, this._cmp_reversed, origname, false);
 			index_cache[idxname] = idx;
 			return idx;
 		}
 		return null;
+	}
+
+	NewTree(idxname) {
+		var idx = GetIndex(idxname);
+		if (idx)
+			return idx.CreateSubtree();
+		return -1;
 	}
 
 	DropIndex(idxname) {
@@ -328,10 +340,11 @@ class BinIndex {
 		var btree = GetIndex(database);
 		if (!btree)
 			throw "Cannot open index (${@class}.${@member})";
-		if (Unique)
+
+		//if (Unique)
 			return btree.Delete(key, val);
-		else
-			return btree.Delete(val, key);
+		//else
+		//	return btree.Delete(val, key);
 	}
 
 	Drop(database) {
@@ -373,9 +386,391 @@ class BinIndex {
 	}
 }
 
+class BM25Index {
+	var lang = "en";
+	var[] fields;
+	var file;
+	var wordsfile;
+	var graphfile;
+	var dl;
+	var N;
+
+	BM25Index(basename = "", fields = null, lang = "en") {
+		this.lang = lang;
+		this.fields = fields;
+		if (basename) {
+			file = new BinFile(basename + ".words", "r+b", BM25_MODULO_SIZE);
+			if (!file.Open()) {
+				file = null;
+				echo "Error opening BM25 index: " + file.name + "\n";
+				return;
+			}
+			wordsfile = new BinFile(basename + ".all", "r+b", BM25_MODULO_SIZE);
+			if (!wordsfile.Open()) {
+				wordsfile = null;
+				file = null;
+				echo "Error opening BM25 index: " + wordsfile.name + "\n";
+				return;
+			}
+			graphfile = new BinFile(basename + ".graph", "r+b", BM25_MODULO_SIZE);
+			if (!graphfile.Open()) {
+				wordsfile = null;
+				file = null;
+				graphfile = null;
+				echo "Error opening BM25 index: " + graphfile.name + "\n";
+				return;
+			}
+			try {
+				file.EnsureIndex("w");
+				file.EnsureIndex("d");
+				file.EnsureIndex(["w", "d"]);
+				wordsfile.EnsureIndex("w");
+				graphfile.EnsureIndex(["w1", "w2"]);
+				graphfile.EnsureIndex(["w1", "w2", "d"]);
+				graphfile.EnsureIndex("d");
+			} catch (var exc) {
+				echo "BM25 index error: $exc\n";
+			}
+		}
+	}
+
+	protected recursive(o) {
+		var document = "";
+		for (var i = 0; i < length o; i++) {
+			var e = o[i];
+			if (e) {
+				if (document)
+					document += ";";
+				document += e;
+			}
+		}
+		return document;
+	}
+
+	document(o, var graph = null, graph_level = 0) {
+		if (typeof o != "array")
+			o = ToArray(o);
+
+		var document = "";
+		if (fields) {
+			for (var i = 0; i < length fields; i++) {
+				var f = fields[i];
+				if ((f) && (f != '$') && (IsSet(o, f))) {
+					var k = o[f];
+					if (k) {
+						if (typeof k == "array")
+							k = recursive(k);
+						if (document)
+							document += ";";
+						document += k;
+					}
+				}
+			}
+		} else {
+			var keys = GetKeys(o);
+			for (i = 0; i < length keys; i++) {
+				k = keys[i];	
+				if ((k) && (k != '$')) {
+					var k2 = o[k];
+					if (k2) {
+						if (typeof k2 == "array")
+							k2 = recursive(k2);
+						if (document)
+							document += ";";
+						document += k2;
+					}
+				}
+			}
+		}
+		if (!document)
+			return null;
+
+		return BM25::document(document, lang, graph, graph_level);
+	}
+
+	samefields(fields) {
+		if (!this.fields) {
+			if (fields)
+				return false;
+			return true;
+		}
+		if (!fields)
+			return false;
+
+		if (length fields != length this.fields)
+			return false;
+
+		for (var i = 0; i < length fields; i++) {
+			var k = fields[i];
+			if (k) {
+				var found = false;
+				for (var j = 0; j < length this.fields; j++) {
+					var k2 = this.fields[j];
+					if ((k2) && (k2 == k)) {
+						found = true;
+						break;
+					}
+				}
+				if (!found)
+					return false;
+			}
+		}
+		return true;
+	}
+
+	protected delete_index(findex, id) {
+		var objects = findex.Query(["d" => id], ['$', 'd']);
+		if (objects) {
+			// clean old objects
+			for (var i = 0; i < length objects; i++) {
+				var o = objects[i];
+				if ((o) && (o['d'] == id)) {
+					var ref_id = o['$'];
+					if (ref_id)
+						findex.Delete(ref_id);
+				}
+			}
+		}
+	}
+
+	protected docadd(documents, count, add) {
+		if (!add)
+			return;
+		for (var i = 0; i < length add; i++) {
+			var d = add[i];
+			if (d) {
+				var id = d["d"];
+				if (id) {
+					var key = "" + id;
+					documents[key] = id;
+					count[key]++;
+				}
+			}
+		}
+	}
+
+	arrayset(arr, key, word, val) {
+		key = "" + key;
+		var arr2 = arr[key];
+		if (!arr2) {
+			arr2 = new [];
+			arr[key] = arr2;
+		}
+		arr2[word] = val;
+	}
+
+	statistics(word_query, n, f, lens, start, len, documents = null, counts = null, add_to_documents = false) {
+		// incomplete !!!
+		// to sort by relevance !!!
+		var wl = file.Query(word_query, null, false, start, len);
+		if (wl) {
+			var word = word_query["w"];
+			if (!word)
+				return false;
+			if (add_to_documents)
+				docadd(documents, counts, wl);
+			for (var i = 0; i < length wl; i++) {
+				var wdoc = wl[i];
+				if (wdoc) {
+					var doc_id = wdoc["d"];
+					var doc_len = wdoc["l"];
+					var doc_word_count = wdoc["a"];
+					if (doc_id) {
+						var word_statistics_arr = wordsfile.Query(["w" => word], null, false, 0, 1);
+						if (word_statistics_arr) {
+							var word_statistics = word_statistics_arr[0];
+							var n_qi = word_statistics["a"];
+							if ((n_qi) && (doc_len) && (doc_word_count)) {
+								// all elements encountered
+								arrayset(n, doc_id, word, n_qi);
+								arrayset(f, doc_id, word, doc_word_count / doc_len);
+								lens["" + doc_id] = doc_len;
+							}
+						}
+					}
+				}
+			}
+			return true;
+		}
+		return false;
+	}
+
+	search(string query, start = 0, len = 100) {
+		if (file) {
+			if (len <= 0)
+				len = 100;
+			var words = BM25::document(query, lang);
+			if (words) {
+				var all_words = GetKeys(words);
+				var documents = new [];
+				var counts = new [];
+				var n = new [];
+				var f = new [];
+				var lens = new [];
+				if (length words == 1) {
+					if (!statistics(["w" => all_words[0]], n, f, lens, start, len, documents, counts, true))
+						return null;
+				} else {
+					var graph = BM25::complete(all_words, BM25_QUERY_LEVEL);
+					for (var i = 0; i < length graph; i++) {
+						var g = graph[i];	
+						if (g)
+							docadd(documents, counts, graphfile.Query(g, ["d"], false, start, len));
+					}
+					if (length documents < len) {
+						for (i = 0; i < length all_words; i++)
+							statistics(["w" => all_words[i]], n, f, lens, start, len, documents, counts, true);
+					}
+				}
+				for (i = 0; i < length documents; i++) {	
+					var id = documents[i];
+					if (id) {
+						var key_id = "" + id;
+						if (!n[key_id]) {
+							for (var j = 0; j < length words; j++) {
+								var word = words[j];
+								if (word)
+									statistics(["w" => word, "d" => id], n, f, lens, start, len);
+							}
+						}
+					}
+				}
+				var avgdl = 0;
+				if (N)
+					avgdl = dl/N;
+				// some arbitray fall-back value (this should never happen)
+				if (!avgdl)
+					avgdl = 100;
+
+				var k1 = 1.2;
+				var b = 0.75;
+				var bm25_array = new [];
+				for (i = 0; i < length documents; i++) {
+					id = documents[i];
+					if (id) {
+						key_id = "" + id;
+						var sum = 0;
+						var d_len = lens[key_id];
+						if (d_len) {
+							for (j = 0; j < length all_words; j++) {
+								var qi = all_words[j];
+								var d_n = n[key_id];
+								var d_f = f[key_id];
+								if ((d_n) && (d_f)) {
+									var idf = BM25::idf(N, d_n[qi]);
+									var f2 = d_f[qi];
+									sum += idf * (f2 * (k1 + 1)) / (f2 + k1 * (1 - b + b * d_len / avgdl));
+								}
+							}
+						}
+						bm25_array[key_id] = sum;
+					}
+				}
+				if (bm25_array) {
+					var new_documents = new [];
+					for (i = 0; i < length bm25_array; i++) {
+						var key = "" + (10000000 - floor(bm25_array[i] * 100000));
+						new_documents[key] = documents[i];
+					}
+					documents = KeySorted(new_documents);
+				}
+				return documents;
+			}
+		}
+		return null;
+	}
+
+	increment(dl, inc = 1) {
+		if (inc > 0) {
+			this.N += inc;
+			this.dl += dl;
+		}
+	}
+
+	update(document, id, changed_keys = null, graph = null, do_flush = true) {
+		if (!document)
+			return false;
+		if ((changed_keys) && (fields)) {
+			var key_exists = false;
+			for (var i = 0; i < length changed_keys; i++) {
+				var k = changed_keys[i];
+				if (k) {
+					for (var j = 0; j < length fields; j++) {
+						var k2 = fields[j];
+						if (k == k2) {
+							key_exists = true;
+							break;
+						}
+					}
+					if (key_exists)
+						break;
+				}
+			}
+			if (!key_exists)
+				return false;
+		}
+		if (id > 0) {
+			var word_count = BM25::doclen(document);
+			if (word_count) {
+				if (file) {
+					delete_index(file, id);
+					delete_index(graphfile, id);
+					var words = GetKeys(document);
+					for (i = 0; i < length words; i++) {
+						var word = words[i];
+						if (word) {
+							try {								
+								file.Store(["w" => word, "d" => id, "a" => document[word], "l" => word_count]);
+								var wl = wordsfile.Query(["w" => word], null, false, 0, 1);
+
+								var w = null;
+								if (wl)
+									w = wl[0];
+
+								if (w)
+									w["a"]++;
+								else
+									w = ["w" => word, "a" => 1];
+								wordsfile.Store(w);
+							} catch (var exc) {
+								echo "BM25 store error: $exc\n";
+								return false;
+							}
+						}
+					}
+					if (graph) {
+						for (i = 0; i < length graph; i++) {
+							var g = graph[i];
+							if (g) {
+								g["d"] = id;
+								graphfile.Store(g);
+							}
+						}
+					}
+					if (!changed_keys)
+						increment(word_count);
+
+					if (do_flush)
+						this.flush();
+				}
+			}
+		}
+		return true;
+	}
+
+	flush() {
+		if (file) {
+			file.FlushDB();
+			wordsfile.FlushDB();
+			graphfile.FlushDB();
+		}
+	}
+}
+
 class BinFile extends File {
 	protected var deleted_records = 0;
 	protected var _Index;
+	protected var bm25;
 	protected var cache_obj;
 	protected var cache_id;
 	protected var[] cache;
@@ -404,6 +799,22 @@ class BinFile extends File {
 			if (!Indexes)
 				Indexes  = new [];
 			this.SyncIndexes();
+		}
+		var bm25_name = filename + ".bm25";
+		if (FileExists(bm25_name)) {
+			data = ReadFile(bm25_name);
+			if (data) {
+				var fields = UnBinarizeObject(data);
+				if (typeof fields == "array") {
+					var lang = "en";
+					if (fields["lang"])
+						lang = fields["lang"];
+
+					bm25 = new BM25Index(bm25_name, fields["fields"], lang);
+					bm25.dl = fields["dl"];
+					bm25.N = fields["N"];
+				}
+			}
 		}
 	}
 
@@ -589,6 +1000,7 @@ class BinFile extends File {
 		if ((obj_a != null) && (obj_b != null)) {
 			var key_a;
 			var key_b;
+
 			if (typeof key == "array") {
 				key_a = this.GetObjectFieldsAsString(obj_a, key);
 				key_b = this.GetObjectFieldsAsString(obj_b, key);
@@ -992,6 +1404,11 @@ class BinFile extends File {
 		} else
 			c = ToArray(obj);
 
+		var bm25_document = null;
+		var graph = null;
+		if ((bm25) && (c) && (update_index))
+			bm25_document = bm25.document(c, graph, BM25_GRAPH_LEVEL);
+			
 		data = BinarizeObject(c);
 		if (data) {
 			var data_comp = "";
@@ -1019,6 +1436,10 @@ class BinFile extends File {
 						this.UpdateIndex(obj, id);
 					} else
 						this.UpdateIndex(changed_keys, id, obj);
+				}
+				if (bm25_document) {
+					bm25.update(bm25_document, id, changed_keys, graph);
+					this.SyncBM25Info();
 				}
 			}
 			return id;
@@ -1408,6 +1829,30 @@ class BinFile extends File {
 		}
 	}
 
+	protected MinFields() {
+		var[] fields;
+		for (var i = 0; i < length Indexes; i++) {
+			var index = Indexes[i];
+			if (index) {
+				switch (typeof index) {
+					case "string":
+						fields[index] = index;
+						break;
+					case "array":
+						index = index[1];
+						if (typeof index == "array") {
+							for (var j = 0; j < length index; j++) {
+								var index_2 = index[j];	
+								if ((index_2) && (typeof index_2 == "string"))
+									fields[index_2] = index_2;
+							}
+						}
+						break;
+				}
+			}
+		}
+		return fields;
+	}
 
 	protected _Delete(id, strict = false, update_index = true) {
 		//if (!this.Seek(id))
@@ -1427,7 +1872,7 @@ class BinFile extends File {
 
 		try {
 			if ((Indexes) && (update_index))
-				this.RemoveIndexes(UnBinarizeObject(obj, 0, Indexes), id);
+				this.RemoveIndexes(UnBinarizeObject(obj, 0, this.MinFields()), id);
 		} catch (var exc) {
 			echo "Exception: $exc\n";
 			return false;
@@ -1603,6 +2048,26 @@ class BinFile extends File {
 		cache_obj = null;
 	}
 
+	RebuildBM25() {
+		if (!bm25)
+			return;
+		fseek(hFile, HEADER_SIZE, SEEK_SET);
+		this.Scan(function(c, id, userdata = null) {
+			cache_id = id;
+			cache_obj = c;
+			try {
+				bm25.update(bm25.document(c, var graph, BM25_GRAPH_LEVEL), id, null, graph, false);
+			} catch (var exc) {
+				echo "Table scan error: $exc\n";
+			}
+		});
+		bm25.flush();
+		fseek(hFile, HEADER_SIZE, SEEK_SET);
+		cache = new [];
+		cache_id = -1;
+		cache_obj = null;
+	}
+
 	GetObjectFields(obj, fields) {
 		var[] indexed_object;
 
@@ -1692,6 +2157,27 @@ class BinFile extends File {
 		Indexes[field] = field;
 		WriteFile(BinarizeObject(Indexes), name + ".idxn");
 		this.SyncIndexes();
+	}
+
+	EnsureFullTextIndex(fields, lang = "en") {
+		if (bm25) {
+			if (bm25.samefields(fields))
+				return false;
+		}
+		if (!fields)
+			fields = new [];
+		var bm25_name = this.name + ".bm25";
+		bm25 = new BM25Index(bm25_name, fields, lang);
+		this.RebuildBM25();
+		this.SyncBM25Info();
+		this.FlushDB();
+	}
+
+	SyncBM25Info() {
+		if (bm25) {
+			var bm25_name = this.name + ".bm25";
+			WriteFile(BinarizeObject(["fields" => bm25.fields, "lang" => bm25.lang, "dl" => bm25.dl, "N" => bm25.N]), bm25_name);
+		}
 	}
 
 	IndexName(fields) {
@@ -1878,6 +2364,68 @@ class BinFile extends File {
 		return this.Query(['#' => q])[0];
 	}
 
+	Search(string q, fields = null, start = 0, len = 0) {
+		var bm = this.bm25;
+		if (!bm)
+			bm = new BM25Index();
+
+		var qdoc = BM25::query(q, bm.lang);
+		if (!qdoc)
+			return [ ];
+		if (this.bm25) {
+			var ids = this.bm25.search(q, start, len);
+			if (ids)
+				return this.ById(ids, fields);
+		} else {
+			var documents = new [];
+			this.Scan(function(o, id, userdata) {
+				var ids = userdata[0];
+				var bm = userdata[1];
+				var q = userdata[2];
+
+				var doc = bm.document(o);
+				if ((doc) && (BM25::contains(doc, q))) {
+					doc['$'] = id;
+					ids[length ids] = doc;
+				}
+			}, [documents, bm, qdoc]);
+			var[] weights;
+			var documents_qi = BM25::count(qdoc, documents, var avgdl);
+			for (var i = 0; i < length documents; i++) {
+				var doc = documents[i];
+				if (doc) {
+					var score = BM25::score(qdoc, documents_qi, documents[i], length documents, avgdl);
+					if (score > 0) {
+						var id = doc['$'];
+						var key = "" + (1000000 - floor(score * 1000));
+						var prec = weights[key];
+						if (prec)
+							key = key + "." + i;
+						weights[key] = id;
+					}
+				}
+			}
+			ids = KeySorted(weights);
+			if ((len) || (start)) {
+				if (len <= 0)
+					len = length ids;
+
+				if (len - start > length ids)
+					len = length ids - start;
+
+				var new_ids = new [];
+				for (i = start; i < len; i++) {
+					id = ids[i];
+					if (id)
+						new_ids[length new_ids] = id;
+				}
+				ids = new_ids;
+			}
+			return this.ById(ids, fields);
+		}
+		return [ ];
+	}
+
 	Query(q = null, fields = null, descending = false, start = 0, len = 0) {
 		var count;
 		if ((q) && (IsSet(q, '#'))) {
@@ -2022,8 +2570,11 @@ class BinFile extends File {
 				echo "FlushDB error: $exc\n";
 			}
 		}
-		if (flush_index)
+		if (flush_index) {
 			_Index.Flush();
+			if (bm25)
+				bm25.flush();
+		}
 	}
 
 	Drop() {

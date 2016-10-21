@@ -336,13 +336,66 @@ class roStemmer extends _Stemmer {
 }
 
 class BagOfWords {
-	static bag(string text, var words = null) {
+	static vertex(w1, w2, var obj, docid = 0) {
+		if (w1 < w2) {
+			obj = ["w1" => w1, "w2" => w2];
+			if (docid)
+				obj["d"] = docid;
+			return w1 + "." + w2;
+		}
+		if (w1 > w2) {
+			obj = ["w1" => w2, "w2" => w1];
+			if (docid)
+				obj["d"] = docid;
+			return w2 + "." + w1;
+		}
+		obj = null;
+		return "";
+	}
+
+	static complete_slice(pivot, words, start, level, graph, docid = 0) {
+		var end = start + level;
+		if (end > length words)
+			end = length words;
+
+		if (end <= start)
+			return false;
+
+		for (var i = start; i < end; i++) {
+			var word = words[i];
+			if (word) {
+				var key = BagOfWords::vertex(pivot, word, var obj, docid);
+				if (key) {
+					graph[key] = obj;
+				}
+			}
+		}
+		return true;
+	}
+
+	static complete(array words, level, docid = 0) {
+		var[] graph;
+		if (words) {
+			var pos = 0;
+			while (BagOfWords::complete_slice(words[pos++], words, pos, level, graph, docid)) {
+				// nothing
+			}
+		}
+		return graph;
+	}
+
+	static bag(string text, var words = null, var words_cache = null, do_words_cache = false) {
 		text = UTF8ToLower(text);
 		var len  = UTF8Length(text);
 		var char_pos = 0;
 		var word = "";
 		var[] word_bag;
 		words = 0;
+
+		if (do_words_cache)
+			words_cache = new [];
+
+		var prec_word = "";
 		for (var i = 0; i < len; i++) {
 			var prec = char_pos;
 			var u_char = UTF8NextChar(text, char_pos);
@@ -354,6 +407,11 @@ class BagOfWords {
 				if (word) {
 					word_bag[word]++;
 					words++;
+					if (do_words_cache) {
+						if (word != prec_word)
+							words_cache[length words_cache] = word;
+					}
+					prec_word = word;
 				}
 				word = "";
 			} else {
@@ -363,6 +421,10 @@ class BagOfWords {
 		if (word) {
 			word_bag[word]++;
 			words++;
+			if (do_words_cache) {
+				if (word != prec_word)
+					words_cache[length words_cache] = word;
+			}
 		}
 		return word_bag;
 	}
@@ -388,8 +450,12 @@ class BagOfWords {
 		return RO_STOP_WORDS;
 	}
 
-	static stem(array, lang = "en") {
-		var keys = GetKeys(array);
+	static stem(array, lang = "en", stem_keys = true) {
+		var keys;
+		if (stem_keys)
+			keys = GetKeys(array);
+		else
+			keys = array;
 		var[] out;
 		var stopWords;
 		switch (ToLower(lang)) {
@@ -405,8 +471,12 @@ class BagOfWords {
 			if (key) {
 				var stem_key = BagOfWords::stemWord(key, lang);
 				if (stem_key) {
-					if ((!stopWords) || (!stopWords[stem_key]) || (!stopWords[key]))
-						out[stem_key] += array[key];
+					if ((!stopWords) || (!stopWords[stem_key]) || (!stopWords[key])) {
+						if (stem_keys)
+							out[stem_key] += array[key];
+						else
+							out[length out] = stem_key;
+					}
 				}
 			}
 		}
@@ -479,11 +549,34 @@ class BM25 extends BagOfWords {
 		return documents_qi;
 	}
 
-	static document(string, language = "en") {
-		return BM25::stem(BM25::bag(string), language);
+	static document(string, language = "en", var graph = null, graph_level = 0, docid = 0) {
+		var words_cache;
+		var do_words_cache = false;
+
+		if (graph_level > 0)
+			do_words_cache = true;
+
+		var doc = BM25::bag(string, null, words_cache, do_words_cache);
+
+		if (words_cache)
+			graph = BagOfWords::complete(BM25::stem(words_cache, language, false), graph_level, docid);
+
+		return BM25::stem(doc, language);
 	}
 
 	static query(string, language = "en") {
 		return BM25::document(string, language);
+	}
+
+	static contains(array document, array q) {
+		var q2 = GetKeys(q);
+		for (var i = 0; i < length q2; i++) {
+			var w = q2[i];
+			if (w) {
+				if (IsSet(document, w))
+					return true;
+			}
+		}
+		return false;
 	}
 }

@@ -190,9 +190,11 @@ pragma used
 												}
 											case "A":
 											case "Q":
+											case "S":
 											case "I":
 											case "D":
 											case "X":
+											case "Y":
 											case ".":
 											case "*":
 											case "R":
@@ -537,6 +539,29 @@ pragma used
 						if ((obj.p) && (typeof obj.p == "array")) {
 							t.EnsureIndexes(obj.p);
 							non_flushed_writes++;
+						}
+						break;
+					case "Y":
+						r.id = 0;
+						t = db[obj.c];
+						if (typeof obj.p == "array") {
+							var lang = "en";
+							if ((obj.x) && (obj.x["lang"]))
+								lang = obj.x["lang"];
+							t.EnsureFullTextIndex(obj.p, lang);
+							non_flushed_writes++;
+						}
+						break;
+					case "S":
+						t = db[obj.c];
+						if (t) {
+							if ((obj.f) && (typeof obj.f != "array"))
+								obj.f = null;
+							var searchstring = "";
+							if (typeof obj.p == "array")
+								searchstring = obj.p[0] ;
+							r.p = t.Search(searchstring, obj.f, obj.x["start"], obj.x["len"]);
+							r.id = 0;
 						}
 						break;
 					case "H":
