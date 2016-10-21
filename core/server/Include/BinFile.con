@@ -780,6 +780,7 @@ class BinFile extends File {
 
 	public property DeletedRecords { get deleted_records }
 	public var[] Indexes;
+	public var[] MinIndexFields;
 	protected var[] LookForFields;
 	protected var MODULO_SIZE = DEFAULT_MODULO_SIZE;
 	public var Debug = false;
@@ -833,6 +834,7 @@ class BinFile extends File {
 					LookForFields += StrSplit(arr[j], ".");
 			}
 		}
+		MinIndexFields = this.MinFields();
 	}
 
 	DropIndexes() {
@@ -917,9 +919,9 @@ class BinFile extends File {
 
 		if (a == cache_id)
 			obj_a = cache_obj;
-		else {
+		else
 			obj_a = this.ById(a, LookForFields, !bottom_layer, cache);
-		}
+
 		if (obj_a != null) {
 			var key_a;
 			if (typeof key == "array")
@@ -947,13 +949,13 @@ class BinFile extends File {
 
 		if (a == cache_id) {
 			obj_a = cache_obj;
-			obj_b = this.ById(b, Indexes, !bottom_layer, cache);
+			obj_b = this.ById(b, MinIndexFields, !bottom_layer, cache);
 		} else
 		if (b == cache_id) {
 			obj_b = cache_obj;
-			obj_a = this.ById(a, Indexes, !bottom_layer, cache);
+			obj_a = this.ById(a, MinIndexFields, !bottom_layer, cache);
 		} else {
-			var res = this.ById([a,b], Indexes, !bottom_layer, cache);
+			var res = this.ById([a,b], MinIndexFields, !bottom_layer, cache);
 			obj_a = res[0];
 			obj_b = res[1];
 		}
@@ -986,13 +988,13 @@ class BinFile extends File {
 
 		if (a == cache_id) {
 			obj_a = cache_obj;
-			obj_b = this.ById(b, Indexes, !bottom_layer, cache);
+			obj_b = this.ById(b, MinIndexFields, !bottom_layer, cache);
 		} else
 		if (b == cache_id) {
 			obj_b = cache_obj;
-			obj_a = this.ById(a, Indexes, !bottom_layer, cache);
+			obj_a = this.ById(a, MinIndexFields, !bottom_layer, cache);
 		} else {
-			var res = this.ById([a,b], Indexes, !bottom_layer, cache);
+			var res = this.ById([a,b], MinIndexFields, !bottom_layer, cache);
 			obj_a = res[0];
 			obj_b = res[1];
 		}
@@ -1872,7 +1874,7 @@ class BinFile extends File {
 
 		try {
 			if ((Indexes) && (update_index))
-				this.RemoveIndexes(UnBinarizeObject(obj, 0, this.MinFields()), id);
+				this.RemoveIndexes(UnBinarizeObject(obj, 0, MinIndexFields), id);
 		} catch (var exc) {
 			echo "Exception: $exc\n";
 			return false;
