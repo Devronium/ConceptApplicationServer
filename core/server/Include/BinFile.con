@@ -13,6 +13,7 @@ define DEFAULT_MODULO_SIZE	64
 define BM25_GRAPH_LEVEL		7
 define BM25_QUERY_LEVEL		7
 define BM25_MODULO_SIZE		48
+define BM25_MAX_WORDCACHE	5000
 
 define MAX_CACHE_OBJECTS	1000
 
@@ -535,7 +536,7 @@ class BM25Index {
 		}
 	}
 
-	protected docadd(documents, count, add) {
+	protected docadd(documents, add) {
 		if (!add)
 			return;
 		for (var i = 0; i < length add; i++) {
@@ -545,7 +546,6 @@ class BM25Index {
 				if (id) {
 					var key = "" + id;
 					documents[key] = id;
-					count[key]++;
 				}
 			}
 		}
@@ -561,7 +561,7 @@ class BM25Index {
 		arr2[word] = val;
 	}
 
-	statistics(word_query, n, f, lens, start, len, documents = null, counts = null, add_to_documents = false) {
+	statistics(word_query, n, f, lens, start, len, documents = null, add_to_documents = false) {
 		// incomplete !!!
 		// to sort by relevance !!!
 		var wl = file.Query(word_query, null, false, start, len);
@@ -570,7 +570,7 @@ class BM25Index {
 			if (!word)
 				return false;
 			if (add_to_documents)
-				docadd(documents, counts, wl);
+				docadd(documents, wl);
 			for (var i = 0; i < length wl; i++) {
 				var wdoc = wl[i];
 				if (wdoc) {
@@ -605,23 +605,22 @@ class BM25Index {
 			if (words) {
 				var all_words = GetKeys(words);
 				var documents = new [];
-				var counts = new [];
 				var n = new [];
 				var f = new [];
 				var lens = new [];
 				if (length words == 1) {
-					if (!statistics(["w" => all_words[0]], n, f, lens, start, len, documents, counts, true))
+					if (!statistics(["w" => all_words[0]], n, f, lens, start, len, documents, true))
 						return null;
 				} else {
 					var graph = BM25::complete(all_words, BM25_QUERY_LEVEL);
 					for (var i = 0; i < length graph; i++) {
 						var g = graph[i];	
 						if (g)
-							docadd(documents, counts, graphfile.Query(g, ["d"], false, start, len));
+							docadd(documents, graphfile.Query(g, ["d"], false, start, len));
 					}
 					if (length documents < len) {
 						for (i = 0; i < length all_words; i++)
-							statistics(["w" => all_words[i]], n, f, lens, start, len, documents, counts, true);
+							statistics(["w" => all_words[i]], n, f, lens, start, len, documents, true);
 					}
 				}
 				for (i = 0; i < length documents; i++) {	
@@ -689,7 +688,23 @@ class BM25Index {
 		}
 	}
 
-	update(document, id, changed_keys = null, graph = null, do_flush = true) {
+	dumpcache(var wordcache) {
+		if (wordcache) {
+			for (var i = 0; i < length wordcache; i++) {
+				var w = wordcache[i];
+				if (w) {
+					try {
+						wordsfile.Store(w);
+					} catch (var exc) {
+						echo "BM25 dumpcache error: $exc\n";
+					}
+				}
+			}
+		}
+		wordcache = ["." => null];
+	}
+
+	update(document, id, changed_keys = null, graph = null, do_flush = true, wordcache = null) {
 		if (!document)
 			return false;
 		if ((changed_keys) && (fields)) {
@@ -723,17 +738,25 @@ class BM25Index {
 						if (word) {
 							try {								
 								file.Store(["w" => word, "d" => id, "a" => document[word], "l" => word_count]);
-								var wl = wordsfile.Query(["w" => word], null, false, 0, 1);
-
+								
 								var w = null;
-								if (wl)
-									w = wl[0];
+								if ((wordcache) && (IsSet(wordcache, word))) {
+									w = wordcache[word];
+								} else {
+									var wl = wordsfile.Query(["w" => word], null, false, 0, 1);
 
+									if (wl)
+										w = wl[0];
+								}
 								if (w)
 									w["a"]++;
 								else
 									w = ["w" => word, "a" => 1];
-								wordsfile.Store(w);
+
+								if (wordcache)
+									wordcache[word] = w;
+								else
+									wordsfile.Store(w);
 							} catch (var exc) {
 								echo "BM25 store error: $exc\n";
 								return false;
@@ -2068,12 +2091,15 @@ class BinFile extends File {
 		if (!bm25)
 			return;
 		fseek(hFile, HEADER_SIZE, SEEK_SET);
-		this.Scan(function(c, id, userdata = null) {
+		var word_cache = ["." => 0];
+		this.Scan(function(c, id, var word_cache) {
 			cache_id = id;
 			cache_obj = c;
-
-			bm25.update(bm25.document(c, var graph, BM25_GRAPH_LEVEL), id, null, graph, false);
-		});
+			bm25.update(bm25.document(c, var graph, BM25_GRAPH_LEVEL), id, null, graph, false, word_cache);
+			if (length word_cache >= BM25_MAX_WORDCACHE)
+				bm25.dumpcache(word_cache);
+		}, word_cache);
+		bm25.dumpcache(word_cache);
 		bm25.flush();
 		fseek(hFile, HEADER_SIZE, SEEK_SET);
 		cache = new [];
@@ -2453,7 +2479,6 @@ class BinFile extends File {
 		}
 		if (q == null)
 			q = new [];
-
 		var indexes = Indexes;
 		var keys = GetKeys(q);
 		var index_to_use = new [];
@@ -2485,9 +2510,10 @@ class BinFile extends File {
 		var result = new [];
 		var filter_ids;
 		var filter_by_id = false;
-		if (IsSet(keys, '$')) {
+
+		if (IsSet(q/*keys*/, '$')) {
 			filter_by_id = true;
-			var ref_filter_ids = keys['$'];
+			var ref_filter_ids = q['$'];//keys['$'];
 			if (typeof ref_filter_ids != "array")
 				ref_filter_ids = [ref_filter_ids];
 

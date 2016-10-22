@@ -22,8 +22,10 @@ class _Stemmer {
 	static suffix(var word, suffix, add = "") {
 		var word_len = UTF8Length(word);
 		var suffix_len = UTF8Length(suffix);
+
 		if (suffix_len >= word_len)
 			return word;
+
 		var delta = UTF8Charnum(word, word_len - suffix_len);
 		if (SubStr(word, delta) == suffix) {
 			word = SubStr(word, 0, delta) + add;
@@ -91,71 +93,95 @@ class enStemmer extends _Stemmer {
 	static stem1(word) {
 		if (!word)
 			return word;
-		if ((_Stemmer::suffix(word, "ed")) || (_Stemmer::suffix(word, "ing"))) {
-			_Stemmer::suffix(word, "at", "ate");
-			_Stemmer::suffix(word, "bl", "ble");
-			_Stemmer::suffix(word, "iz", "ize");
-			return word;
-		}
-		if (_Stemmer::suffix(word, "ly"))
-			return word;
-		if (_Stemmer::suffix(word, "ies", "i"))
-			return word;
-		if (_Stemmer::suffix(word, "s"))
-			return word;
+		switch (word[length word - 1]) {
+			case "s":
+				if (_Stemmer::suffix(word, "ies", "i"))
+					return word;
+				if (_Stemmer::suffix(word, "s"))
+					return word;
+				break;
+			case "y":
+				if (_Stemmer::suffix(word, "ly"))
+					return word;
+				break;
+			case "d":
+			case "g":
+				if ((_Stemmer::suffix(word, "ed")) || (_Stemmer::suffix(word, "ing"))) {
+					_Stemmer::suffix(word, "at", "ate");
+					_Stemmer::suffix(word, "bl", "ble");
+					_Stemmer::suffix(word, "iz", "ize");
+					return word;
+				}
 
-		if (_Stemmer::suffix(word, "eed", "ee"))
-			return word;
+				if (_Stemmer::suffix(word, "eed", "ee"))
+					return word;
+				break;
+		}
 		return word;
 	}
 
 	static stem2(word) {
-		if (!word)
+		if ((!word) || (length word <= 3))
 			return word;
-		if (_Stemmer::suffix(word, "ational", "ate"))
-			return word;
-		if (_Stemmer::suffix(word, "tional", "tion"))
-			return word;
-		if (_Stemmer::suffix(word, "enci", "ence"))
-			return word;
-		if (_Stemmer::suffix(word, "anci", "ance"))
-			return word;
-		if (_Stemmer::suffix(word, "izer", "ize"))
-			return word;
-		if (_Stemmer::suffix(word, "abli", "able"))
-			return word;
-		if (_Stemmer::suffix(word, "alli", "al"))
-			return word;
-		if (_Stemmer::suffix(word, "entli", "ent"))
-			return word;
-		if (_Stemmer::suffix(word, "eli", "e"))
-			return word;
-		if (_Stemmer::suffix(word, "ousli", "ous"))
-			return word;
-		if (_Stemmer::suffix(word, "ization", "ize"))
-			return word;
-		if (_Stemmer::suffix(word, "ation", "ate"))
-			return word;
-		if (_Stemmer::suffix(word, "ator", "ate"))
-			return word;
-		if (_Stemmer::suffix(word, "alism", "al"))
-			return word;
-		if (_Stemmer::suffix(word, "iveness", "ive"))
-			return word;
-		if (_Stemmer::suffix(word, "fulness", "ful"))
-			return word;
-		if (_Stemmer::suffix(word, "ousness", "ous"))
-			return word;
-		if (_Stemmer::suffix(word, "aliti", "al"))
-			return word;
-		if (_Stemmer::suffix(word, "iviti", "ive"))
-			return word;
-		if (_Stemmer::suffix(word, "biliti", "ble"))
-			return word;
+
+		switch (word[length word - 1]) {
+			case "l":
+				if (_Stemmer::suffix(word, "ational", "ate"))
+					return word;
+				if (_Stemmer::suffix(word, "tional", "tion"))
+					return word;
+				if (_Stemmer::suffix(word, "alism", "al"))
+					return word;
+				break;
+			case "i":
+				if (_Stemmer::suffix(word, "enci", "ence"))
+					return word;
+				if (_Stemmer::suffix(word, "anci", "ance"))
+					return word;
+				if (_Stemmer::suffix(word, "abli", "able"))
+					return word;
+				if (_Stemmer::suffix(word, "alli", "al"))
+					return word;
+				if (_Stemmer::suffix(word, "entli", "ent"))
+					return word;
+				if (_Stemmer::suffix(word, "eli", "e"))
+					return word;
+				if (_Stemmer::suffix(word, "ousli", "ous"))
+					return word;
+				if (_Stemmer::suffix(word, "aliti", "al"))
+					return word;
+				if (_Stemmer::suffix(word, "iviti", "ive"))
+					return word;
+				if (_Stemmer::suffix(word, "biliti", "ble"))
+					return word;
+				break;
+			case "n":
+				if (_Stemmer::suffix(word, "ization", "ize"))
+					return word;
+				if (_Stemmer::suffix(word, "ation", "ate"))
+					return word;
+				break;
+			case "s":
+				if (_Stemmer::suffix(word, "iveness", "ive"))
+					return word;
+				if (_Stemmer::suffix(word, "fulness", "ful"))
+					return word;
+				if (_Stemmer::suffix(word, "ousness", "ous"))
+					return word;
+				break;
+			case "r":
+				if (_Stemmer::suffix(word, "izer", "ize"))
+					return word;
+				if (_Stemmer::suffix(word, "ator", "ate"))
+					return word;
+				break;
+		}
 		return word;
 	}
 
 	static stem3(word) {
+		if ((!word) || (length word <= 3))
+			return word;
 		if (_Stemmer::suffix(word, "icate", "ic"))
 			return word;
 		if (_Stemmer::suffix(word, "ative"))
@@ -174,49 +200,74 @@ class enStemmer extends _Stemmer {
 	}
 
 	static stem4(word) {
-		if (_Stemmer::suffix(word, "al"))
+		if ((!word) || (length word <= 2))
 			return word;
-		if (_Stemmer::suffix(word, "ance"))
-			return word;
-		if (_Stemmer::suffix(word, "ence"))
-			return word;
-		if (_Stemmer::suffix(word, "er"))
-			return word;
-		if (_Stemmer::suffix(word, "ic"))
-			return word;
-		if (_Stemmer::suffix(word, "able"))
-			return word;
-		if (_Stemmer::suffix(word, "ible"))
-			return word;
-		if (_Stemmer::suffix(word, "ant"))
-			return word;
-		if (_Stemmer::suffix(word, "ement"))
-			return word;
-		if (_Stemmer::suffix(word, "ment"))
-			return word;
-		if (_Stemmer::suffix(word, "ent"))
-			return word;
-		if (length word > 3) {
-			var pre = _Stemmer::pre(word, "ion");
-			if ((pre == "s") || (pre == "t")) {
-				if (_Stemmer::suffix(word, "ion"))
+
+		switch (word[length word - 1]) {
+			case "e":
+				if (_Stemmer::suffix(word, "ance"))
 					return word;
-			}
+				if (_Stemmer::suffix(word, "ence"))
+					return word;
+				if (_Stemmer::suffix(word, "able"))
+					return word;
+				if (_Stemmer::suffix(word, "ible"))
+					return word;
+				if (_Stemmer::suffix(word, "ate"))
+					return word;
+				if (_Stemmer::suffix(word, "ive"))
+					return word;
+				if (_Stemmer::suffix(word, "ize"))
+					return word;
+				break;
+			case "t":
+				if (_Stemmer::suffix(word, "ant"))
+					return word;
+				if (_Stemmer::suffix(word, "ement"))
+					return word;
+				if (_Stemmer::suffix(word, "ment"))
+					return word;
+				if (_Stemmer::suffix(word, "ent"))
+					return word;
+				break;
+			case "l":
+				if (_Stemmer::suffix(word, "al"))
+					return word;
+				break;
+			case "r":
+				if (_Stemmer::suffix(word, "er"))
+					return word;
+				break;
+			case "c":
+				if (_Stemmer::suffix(word, "ic"))
+					return word;
+				break;
+			case "n":
+				if (length word > 3) {
+					var pre = _Stemmer::pre(word, "ion");
+					if ((pre == "s") || (pre == "t")) {
+						if (_Stemmer::suffix(word, "ion"))
+							return word;
+					}
+				}
+				break;
+			case "u":
+				if (_Stemmer::suffix(word, "ou"))
+					return word;
+				break;
+			case "m":
+				if (_Stemmer::suffix(word, "ism"))
+					return word;
+				break;
+			case "s":
+				if (_Stemmer::suffix(word, "ous"))
+					return word;
+				break;
+			case "i":
+				if (_Stemmer::suffix(word, "iti"))
+					return word;
+				break;
 		}
-		if (_Stemmer::suffix(word, "ou"))
-			return word;
-		if (_Stemmer::suffix(word, "ism"))
-			return word;
-		if (_Stemmer::suffix(word, "ate"))
-			return word;
-		if (_Stemmer::suffix(word, "iti"))
-			return word;
-		if (_Stemmer::suffix(word, "ous"))
-			return word;
-		if (_Stemmer::suffix(word, "ive"))
-			return word;
-		if (_Stemmer::suffix(word, "ize"))
-			return word;
 		return word;
 	}
 
@@ -469,13 +520,15 @@ class BagOfWords {
 		for (var i = 0; i < length keys; i++) {
 			var key = keys[i];
 			if (key) {
-				var stem_key = BagOfWords::stemWord(key, lang);
-				if (stem_key) {
-					if ((!stopWords) || (!stopWords[stem_key]) || (!stopWords[key])) {
-						if (stem_keys)
-							out[stem_key] += array[key];
-						else
-							out[length out] = stem_key;
+				if ((!stopWords) || (!stopWords[key])) {
+					var stem_key = BagOfWords::stemWord(key, lang);
+					if (stem_key) {
+						if ((!stopWords) || (!stopWords[stem_key])) {
+							if (stem_keys)
+								out[stem_key] += array[key];
+							else
+								out[length out] = stem_key;
+						}
 					}
 				}
 			}

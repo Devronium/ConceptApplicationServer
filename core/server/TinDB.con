@@ -6,6 +6,7 @@ include UNIXSocket.con
 import standard.lib.cripto
 import standard.math.rand
 import standard.lang.cli
+import standard.C.time
 
 define READ_BUFFER	0xFFFF
 
@@ -548,7 +549,11 @@ pragma used
 							var lang = "en";
 							if ((obj.x) && (obj.x["lang"]))
 								lang = obj.x["lang"];
+							echo "Full text index requested (building index) ...\n";
+							var start_time = microseconds();
 							t.EnsureFullTextIndex(obj.p, lang);
+							var end_time = microseconds() - start_time;
+							echo "Full text index created in ${end_time/1000}ms\n";
 							non_flushed_writes++;
 						}
 						break;
@@ -559,7 +564,7 @@ pragma used
 								obj.f = null;
 							var searchstring = "";
 							if (typeof obj.p == "array")
-								searchstring = obj.p[0] ;
+								searchstring = obj.p[0];
 							r.p = t.Search(searchstring, obj.f, obj.x["start"], obj.x["len"]);
 							r.id = 0;
 						}
