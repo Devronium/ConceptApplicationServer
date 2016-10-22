@@ -14,6 +14,8 @@ define BM25_GRAPH_LEVEL		7
 define BM25_QUERY_LEVEL		7
 define BM25_MODULO_SIZE		48
 
+define MAX_CACHE_OBJECTS	1000
+
 class TinQueryParser {
 	var min;
 	var min_mode = 0;
@@ -901,6 +903,7 @@ class BinFile extends File {
 
 		if (a < -1)
 			a = btree.GetValue(-a);
+
 		if (b < -1)
 			b = btree.GetValue(-b);
 
@@ -917,11 +920,13 @@ class BinFile extends File {
 		var obj_a;
 		var key = btree.UserData;
 
-		if (a == cache_id)
+		if (a == cache_id) {
 			obj_a = cache_obj;
-		else
+		} else {
+			if (length cache > MAX_CACHE_OBJECTS)
+				cache = new [];
 			obj_a = this.ById(a, LookForFields, !bottom_layer, cache);
-
+		}
 		if (obj_a != null) {
 			var key_a;
 			if (typeof key == "array")
@@ -929,6 +934,7 @@ class BinFile extends File {
 			else
 			if (!this.IsSet2(obj_a, StrSplit(key, "."), key_a))
 				throw "Error in compare objects (non existing object) ($a), call stack:\n${_callstack()}";
+
 			//key_a = obj_a[key];
 
 			if (key_a > key_b)
@@ -946,6 +952,9 @@ class BinFile extends File {
 		var obj_a;
 		var obj_b;
 		var key = btree.UserData;
+
+		if (length cache > MAX_CACHE_OBJECTS)
+			cache = new [];
 
 		if (a == cache_id) {
 			obj_a = cache_obj;
@@ -985,6 +994,9 @@ class BinFile extends File {
 		var obj_a;
 		var obj_b;
 		var key = btree.UserData;
+
+		if (length cache > MAX_CACHE_OBJECTS)
+			cache = new [];
 
 		if (a == cache_id) {
 			obj_a = cache_obj;
@@ -1385,7 +1397,7 @@ class BinFile extends File {
 		return true;
 	}
 
-	protected _Store(var obj, update_index = true, id = -1, changed_keys = null) {
+	protected _Store(var obj, update_index = true, id = -1, changed_keys = null, do_flush = true) {
 		if (!hFile)
 			throw "Invalid file descriptor or no open file";
 		var data;
@@ -1432,7 +1444,8 @@ class BinFile extends File {
 					cache = new [];
 			}
 			if (res > 0) {
-				this.Flush();
+				if (do_flush)
+					this.Flush();
 				if (update_index) {
 					if (changed_keys == null) {
 						this.UpdateIndex(obj, id);
@@ -1450,6 +1463,7 @@ class BinFile extends File {
 	}
 
 	UpdateIndex(obj, id, extra_obj = null) {
+
 		var c;
 		if (typeof obj == "array")
 			c = obj;
@@ -1490,8 +1504,8 @@ class BinFile extends File {
 		}
 	}
 
-	Store(var obj, update_index = true) {
-		return this._Store(obj, update_index);
+	Store(var obj, update_index = true, do_flush = true) {
+		return this._Store(obj, update_index, do_flush);
 	}
 
 	IsUnique(obj, fields) {
@@ -2057,11 +2071,8 @@ class BinFile extends File {
 		this.Scan(function(c, id, userdata = null) {
 			cache_id = id;
 			cache_obj = c;
-			try {
-				bm25.update(bm25.document(c, var graph, BM25_GRAPH_LEVEL), id, null, graph, false);
-			} catch (var exc) {
-				echo "Table scan error: $exc\n";
-			}
+
+			bm25.update(bm25.document(c, var graph, BM25_GRAPH_LEVEL), id, null, graph, false);
 		});
 		bm25.flush();
 		fseek(hFile, HEADER_SIZE, SEEK_SET);
@@ -2159,6 +2170,9 @@ class BinFile extends File {
 		Indexes[field] = field;
 		WriteFile(BinarizeObject(Indexes), name + ".idxn");
 		this.SyncIndexes();
+		cache = new [];
+		cache_id = -1;
+		cache_obj = null;
 	}
 
 	EnsureFullTextIndex(fields, lang = "en") {
@@ -2173,6 +2187,9 @@ class BinFile extends File {
 		this.RebuildBM25();
 		this.SyncBM25Info();
 		this.FlushDB();
+		cache = new [];
+		cache_id = -1;
+		cache_obj = null;
 	}
 
 	SyncBM25Info() {
