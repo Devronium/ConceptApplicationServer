@@ -10,7 +10,7 @@ import standard.lib.str
 define HEADER_SIZE		64
 define DEFAULT_MODULO_SIZE	64
 
-define BM25_GRAPH_LEVEL		7
+define BM25_GRAPH_LEVEL		5
 define BM25_QUERY_LEVEL		7
 define BM25_MODULO_SIZE		48
 define BM25_MAX_WORDCACHE	5000
@@ -428,8 +428,8 @@ class BM25Index {
 				file.EnsureIndex("d");
 				file.EnsureIndex(["w", "d"]);
 				wordsfile.EnsureIndex("w");
-				graphfile.EnsureIndex(["w1", "w2"]);
-				graphfile.EnsureIndex(["w1", "w2", "d"]);
+				graphfile.EnsureIndex(["a", "b"]);
+				graphfile.EnsureIndex(["a", "b", "d"]);
 				graphfile.EnsureIndex("d");
 			} catch (var exc) {
 				echo "BM25 index error: $exc\n";
@@ -612,8 +612,28 @@ class BM25Index {
 					if (!statistics(["w" => all_words[0]], n, f, lens, start, len, documents, true))
 						return null;
 				} else {
+					if (length all_words < BM25_QUERY_LEVEL) {
+						var all_words2 = new [];
+						for (var i = 0; i < length all_words; i++) {
+							var word = all_words[i];
+							if (word) {
+								var word_statistics_arr = wordsfile.Query(["w" => word], null, false, 0, 1);
+								if (word_statistics_arr) {
+									var word_statistics = word_statistics_arr[0];
+									var word_count = word_statistics["a"];
+									var word_key = "" + word_count;
+									while (length word_key < 10)
+										word_key = "0" + word_key;
+									word_key += "." + i;
+									all_words2[word_key] = word;
+								}
+							}
+						}
+						if (all_words2)
+							all_words = KeySorted(all_words2);
+					}
 					var graph = BM25::complete(all_words, BM25_QUERY_LEVEL);
-					for (var i = 0; i < length graph; i++) {
+					for (i = 0; i < length graph; i++) {
 						var g = graph[i];	
 						if (g)
 							docadd(documents, graphfile.Query(g, ["d"], false, start, len));
@@ -629,7 +649,7 @@ class BM25Index {
 						var key_id = "" + id;
 						if (!n[key_id]) {
 							for (var j = 0; j < length words; j++) {
-								var word = words[j];
+								word = words[j];
 								if (word)
 									statistics(["w" => word, "d" => id], n, f, lens, start, len);
 							}
@@ -670,7 +690,7 @@ class BM25Index {
 				if (bm25_array) {
 					var new_documents = new [];
 					for (i = 0; i < length bm25_array; i++) {
-						var key = "" + (10000000 - floor(bm25_array[i] * 100000));
+						var key = "" + (10000000 - floor(bm25_array[i] * 100000)) + "." + i;
 						new_documents[key] = documents[i];
 					}
 					documents = KeySorted(new_documents);
@@ -694,7 +714,10 @@ class BM25Index {
 				var w = wordcache[i];
 				if (w) {
 					try {
-						wordsfile.Store(w);
+						var update_index = true;
+						if ((IsSet(w, '$')) && (w['$'] > 0))
+							update_index = false;
+						wordsfile.Store(w, update_index);
 					} catch (var exc) {
 						echo "BM25 dumpcache error: $exc\n";
 					}
@@ -704,7 +727,7 @@ class BM25Index {
 		wordcache = ["." => null];
 	}
 
-	update(document, id, changed_keys = null, graph = null, do_flush = true, wordcache = null) {
+	update(document, id, changed_keys = null, graph = null, do_flush = true, var wordcache = null, check_existing_index = true) {
 		if (!document)
 			return false;
 		if ((changed_keys) && (fields)) {
@@ -730,8 +753,10 @@ class BM25Index {
 			var word_count = BM25::doclen(document);
 			if (word_count) {
 				if (file) {
-					delete_index(file, id);
-					delete_index(graphfile, id);
+					if (check_existing_index) {
+						delete_index(file, id);
+						delete_index(graphfile, id);
+					}
 					var words = GetKeys(document);
 					for (i = 0; i < length words; i++) {
 						var word = words[i];
@@ -740,6 +765,7 @@ class BM25Index {
 								file.Store(["w" => word, "d" => id, "a" => document[word], "l" => word_count]);
 								
 								var w = null;
+								var update_index = true;
 								if ((wordcache) && (IsSet(wordcache, word))) {
 									w = wordcache[word];
 								} else {
@@ -748,15 +774,16 @@ class BM25Index {
 									if (wl)
 										w = wl[0];
 								}
-								if (w)
+								if (w) {
 									w["a"]++;
-								else
+									update_index = false;
+								} else
 									w = ["w" => word, "a" => 1];
 
 								if (wordcache)
 									wordcache[word] = w;
 								else
-									wordsfile.Store(w);
+									wordsfile.Store(w, update_index);
 							} catch (var exc) {
 								echo "BM25 store error: $exc\n";
 								return false;
@@ -1528,7 +1555,7 @@ class BinFile extends File {
 	}
 
 	Store(var obj, update_index = true, do_flush = true) {
-		return this._Store(obj, update_index, do_flush);
+		return this._Store(obj, update_index, -1, null, do_flush);
 	}
 
 	IsUnique(obj, fields) {
@@ -2095,7 +2122,7 @@ class BinFile extends File {
 		this.Scan(function(c, id, var word_cache) {
 			cache_id = id;
 			cache_obj = c;
-			bm25.update(bm25.document(c, var graph, BM25_GRAPH_LEVEL), id, null, graph, false, word_cache);
+			bm25.update(bm25.document(c, var graph, BM25_GRAPH_LEVEL), id, null, graph, false, word_cache, false);
 			if (length word_cache >= BM25_MAX_WORDCACHE)
 				bm25.dumpcache(word_cache);
 		}, word_cache);

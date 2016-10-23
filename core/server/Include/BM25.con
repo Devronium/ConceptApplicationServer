@@ -110,6 +110,11 @@ class enStemmer extends _Stemmer {
 					_Stemmer::suffix(word, "at", "ate");
 					_Stemmer::suffix(word, "bl", "ble");
 					_Stemmer::suffix(word, "iz", "ize");
+					if (length word > 2) {
+						// remove double
+						if (word[length word - 1] == word[length word - 2])
+							word = SubStr(word, 0, length word - 1);
+					}
 					return word;
 				}
 
@@ -129,8 +134,6 @@ class enStemmer extends _Stemmer {
 				if (_Stemmer::suffix(word, "ational", "ate"))
 					return word;
 				if (_Stemmer::suffix(word, "tional", "tion"))
-					return word;
-				if (_Stemmer::suffix(word, "alism", "al"))
 					return word;
 				break;
 			case "i":
@@ -175,6 +178,10 @@ class enStemmer extends _Stemmer {
 				if (_Stemmer::suffix(word, "ator", "ate"))
 					return word;
 				break;
+			case "m":
+				if (_Stemmer::suffix(word, "alism", "al"))
+					return word;
+				break;
 		}
 		return word;
 	}
@@ -182,20 +189,32 @@ class enStemmer extends _Stemmer {
 	static stem3(word) {
 		if ((!word) || (length word <= 3))
 			return word;
-		if (_Stemmer::suffix(word, "icate", "ic"))
-			return word;
-		if (_Stemmer::suffix(word, "ative"))
-			return word;
-		if (_Stemmer::suffix(word, "alize", "al"))
-			return word;
-		if (_Stemmer::suffix(word, "iciti", "ic"))
-			return word;
-		if (_Stemmer::suffix(word, "ical", "ic"))
-			return word;
-		if (_Stemmer::suffix(word, "ful"))
-			return word;
-		if (_Stemmer::suffix(word, "ness"))
-			return word;
+		switch (word[length word - 1]) {
+			case "e":
+				if (_Stemmer::suffix(word, "icate", "ic"))
+					return word;
+				if (_Stemmer::suffix(word, "ative"))
+					return word;
+				if (_Stemmer::suffix(word, "alize", "al"))
+					return word;
+				break;
+			case "i":
+				if (_Stemmer::suffix(word, "iciti", "ic"))
+					return word;
+				break;
+			case "c":
+				if (_Stemmer::suffix(word, "ical", "ic"))
+					return word;
+				break;
+			case "l":
+				if (_Stemmer::suffix(word, "ful"))
+					return word;
+				break;
+			case "s":
+				if (_Stemmer::suffix(word, "ness"))
+					return word;
+				break;
+		}
 		return word;
 	}
 
@@ -387,15 +406,15 @@ class roStemmer extends _Stemmer {
 }
 
 class BagOfWords {
-	static vertex(w1, w2, var obj, docid = 0) {
+	static vertex(w1, w2, var obj, distance, docid = 0) {
 		if (w1 < w2) {
-			obj = ["w1" => w1, "w2" => w2];
+			obj = ["a" => w1, "b" => w2, "x" => distance];
 			if (docid)
 				obj["d"] = docid;
 			return w1 + "." + w2;
 		}
 		if (w1 > w2) {
-			obj = ["w1" => w2, "w2" => w1];
+			obj = ["a" => w2, "b" => w1, "x" => distance];
 			if (docid)
 				obj["d"] = docid;
 			return w2 + "." + w1;
@@ -412,10 +431,11 @@ class BagOfWords {
 		if (end <= start)
 			return false;
 
+		var distance = 0;
 		for (var i = start; i < end; i++) {
 			var word = words[i];
 			if (word) {
-				var key = BagOfWords::vertex(pivot, word, var obj, docid);
+				var key = BagOfWords::vertex(pivot, word, var obj, distance++, docid);
 				if (key) {
 					graph[key] = obj;
 				}
