@@ -199,6 +199,7 @@ pragma used
 											case ".":
 											case "*":
 											case "R":
+											case "L":
 												if (ctx.auth) {
 													if (typeof obj.c != "string")
 														obj.c = "";
@@ -682,6 +683,70 @@ pragma used
 									r.e = ERR_COLLECTION;
 									r.et = ERR_COLLECTION_S;
 								}
+							}
+						} else {
+							r.e = ERR_COLLECTION;
+							r.et = ERR_COLLECTION_S;
+						}
+						break;
+					case "L":
+						if ((obj.c) && (typeof obj.p == "array")) {
+							t = db[obj.c];
+							var hash = "sha256";
+							var username = "username";
+							var field = "password";
+							var challenge = "";
+							var sum = "";
+							if (obj.x["f"])
+								hash = ToLower("" + obj.x["f"]);
+
+							if (obj.x["pass_field"])
+								field = obj.x["pass_field"];
+
+							if (obj.x["user_field"])
+								username = obj.x["user_field"];
+
+							if (obj.x["challenge"])
+								challenge = obj.x["challenge"];
+
+							if (obj.x["hash"])
+								sum = obj.x["hash"];
+
+							if ((t) && (field) && (username)) {
+								if (obj.f) {
+									obj.f[username] = username;
+									obj.f[field] = field;
+								}
+								var user_arr = t.Query(obj.p, obj.f, false, 0, 1);
+								var user = null;
+								if (user_arr)
+									user = user_arr[0];
+								if (user) {
+									var d2 = "";
+									switch (hash) {
+										case "sha256":
+											d2 = sha256(user[username] + ":" + challenge + ":" + user[field]);
+											break;
+										case "sha1":
+											d2 = sha1(user[username] + ":" + challenge + ":" + user[field]);
+											break;
+										case "":
+											d2 = user[field];
+											break;
+									}
+									if (d2 == sum) {
+										user[field] = "";
+									} else {
+										r.e = ERR_USER_PASS;
+										r.et = ERR_USER_PASS_S;
+									}
+								} else {
+									r.e = ERR_USER_PASS;
+									r.et = ERR_USER_PASS_S;
+								}
+							} else {
+								r.e = ERR_IO;
+								r.et = ERR_IO_S;
 							}
 						} else {
 							r.e = ERR_COLLECTION;

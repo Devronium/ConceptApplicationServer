@@ -406,15 +406,15 @@ class roStemmer extends _Stemmer {
 }
 
 class BagOfWords {
-	static vertex(w1, w2, var obj, distance, docid = 0) {
+	static vertex(w1, w2, var obj, docid = 0) {
 		if (w1 < w2) {
-			obj = ["a" => w1, "b" => w2, "x" => distance];
+			obj = ["a" => w1, "b" => w2];
 			if (docid)
 				obj["d"] = docid;
 			return w1 + "." + w2;
 		}
 		if (w1 > w2) {
-			obj = ["a" => w2, "b" => w1, "x" => distance];
+			obj = ["a" => w2, "b" => w1];
 			if (docid)
 				obj["d"] = docid;
 			return w2 + "." + w1;
@@ -435,8 +435,10 @@ class BagOfWords {
 		for (var i = start; i < end; i++) {
 			var word = words[i];
 			if (word) {
-				var key = BagOfWords::vertex(pivot, word, var obj, distance++, docid);
+				var key = BagOfWords::vertex(pivot, word, var obj, docid);
 				if (key) {
+					if (docid)
+						obj["x"] = distance++;
 					graph[key] = obj;
 				}
 			}

@@ -174,7 +174,7 @@ class BinIndex {
 		return origname;
 	}
 
-	GetIndex(idxname) {
+	GetIndex(idxname, fields = null) {
 		var origname = idxname;
 		idxname = this._name + "." + idxname + ".idx";
 		var idx = index_cache[idxname];
@@ -186,8 +186,10 @@ class BinIndex {
 		f.Name = idxname;
 
 		if (f.Open()) {
-			origname = FiltreName(origname);
-
+			if (fields)
+				origname = fields;
+			else
+				origname = FiltreName(origname);
 			if (Unique)
 				idx = new BTreeFile(f, this._cmp, origname, true);
 			else
@@ -198,7 +200,7 @@ class BinIndex {
 		return null;
 	}
 
-	NewTree(idxname) {
+	NewTree(idxname, fields = null) {
 		var idx = GetIndex(idxname);
 		if (idx)
 			return idx.CreateSubtree();
@@ -252,7 +254,6 @@ class BinIndex {
 	_FetchMultiple(array keys, no_index_query = null, filter_func = null, owner = null, descending = false, start = 0, len = 0) {
 		_last_error = 0;
 		var databases = GetKeys(keys);
-
 		var[] result;
 		for (var i = 0; i < length databases; i++) {
 			var db = databases[i];
@@ -648,8 +649,8 @@ class BM25Index {
 					if (id) {
 						var key_id = "" + id;
 						if (!n[key_id]) {
-							for (var j = 0; j < length words; j++) {
-								word = words[j];
+							for (var j = 0; j < length all_words; j++) {
+								word = all_words[j];
 								if (word)
 									statistics(["w" => word, "d" => id], n, f, lens, start, len);
 							}
@@ -984,7 +985,6 @@ class BinFile extends File {
 			else
 			if (!this.IsSet2(obj_a, StrSplit(key, "."), key_a))
 				throw "Error in compare objects (non existing object) ($a), call stack:\n${_callstack()}";
-
 			//key_a = obj_a[key];
 
 			if (key_a > key_b)
@@ -2079,7 +2079,7 @@ class BinFile extends File {
 		return false;
 	}
 
-	Scan(callback, userdata = null) {
+	Scan(callback, var userdata = null) {
 		//this.Seek(HEADER_SIZE);
 		fseek(hFile, HEADER_SIZE, SEEK_SET);
 		while (var obj = this.GetOne(var id, false)) {
@@ -2286,7 +2286,7 @@ class BinFile extends File {
 			return false;
 
 		for (var i = 0; i < length Indexes; i++) {
-			var index =  Indexes[i];
+			var index = Indexes[i];
 			if ((index) && (typeof index == "array") && (index_name == index[0]))
 				return true;
 		}
@@ -2523,6 +2523,8 @@ class BinFile extends File {
 							index_to_use[index_name] = index_name;
 							index_counts[index_name] = length indexes - i;
 							indexed_query[index_name] = this.GetObjectFieldsAsString(q, index[1]);
+							// ensure index is created!
+							_Index.GetIndex(index_name, index[1]); 
 							keys = CompositeFilterKeys(index[1], keys);
 						}
 					}
