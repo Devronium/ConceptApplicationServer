@@ -106,7 +106,7 @@ class enStemmer extends _Stemmer {
 				break;
 			case "d":
 			case "g":
-				if ((_Stemmer::suffix(word, "ed")) || (_Stemmer::suffix(word, "ing"))) {
+				if (((length word > 3) && (_Stemmer::suffix(word, "ed"))) || ((length word > 4) && (_Stemmer::suffix(word, "ing")))) {
 					_Stemmer::suffix(word, "at", "ate");
 					_Stemmer::suffix(word, "bl", "ble");
 					_Stemmer::suffix(word, "iz", "ize");

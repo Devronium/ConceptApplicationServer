@@ -609,8 +609,11 @@ class BM25Index {
 				var n = new [];
 				var f = new [];
 				var lens = new [];
+				var len_coef = len;
+				if (len_coef < 30)
+					len_coef = 30;
 				if (length words == 1) {
-					if (!statistics(["w" => all_words[0]], n, f, lens, start, len, documents, true))
+					if (!statistics(["w" => all_words[0]], n, f, lens, start, len_coef, documents, true))
 						return null;
 				} else {
 					if (length all_words < BM25_QUERY_LEVEL) {
@@ -637,11 +640,11 @@ class BM25Index {
 					for (i = 0; i < length graph; i++) {
 						var g = graph[i];	
 						if (g)
-							docadd(documents, graphfile.Query(g, ["d"], false, start, len));
+							docadd(documents, graphfile.Query(g, ["d"], false, start, len_coef));
 					}
 					if (length documents < len) {
 						for (i = 0; i < length all_words; i++)
-							statistics(["w" => all_words[i]], n, f, lens, start, len, documents, true);
+							statistics(["w" => all_words[i]], n, f, lens, start, len_coef, documents, true);
 					}
 				}
 				for (i = 0; i < length documents; i++) {	
@@ -652,7 +655,7 @@ class BM25Index {
 							for (var j = 0; j < length all_words; j++) {
 								word = all_words[j];
 								if (word)
-									statistics(["w" => word, "d" => id], n, f, lens, start, len);
+									statistics(["w" => word, "d" => id], n, f, lens, start, len_coef);
 							}
 						}
 					}
@@ -695,6 +698,12 @@ class BM25Index {
 						new_documents[key] = documents[i];
 					}
 					documents = KeySorted(new_documents);
+					if ((len > 0) && (length documents > len)) {
+						new_documents = new [];
+						for (i = 0; i < len; i++)
+							new_documents[i] = documents[i];
+						documents = new_documents;
+					}
 				}
 				return documents;
 			}
