@@ -736,6 +736,7 @@ pragma used
 									}
 									if (d2 == sum) {
 										user[field] = "";
+										r.p = user;
 									} else {
 										r.e = ERR_USER_PASS;
 										r.et = ERR_USER_PASS_S;

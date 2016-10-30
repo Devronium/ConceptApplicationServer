@@ -1,0 +1,150 @@
+include Application.con
+include RWebRTCConference.con
+
+class RTCData {
+	var[] sdp;
+	var[] ice;
+	var apid;
+
+	RTCData() {
+		apid = GetAPID();
+	}
+}
+
+class MainForm extends RForm {
+	var rtc;
+	var peer;
+	var peername;
+	var remoteAPID;
+	var is_host;
+
+	OnError(Sender, EventData) {
+		echo "ERROR: $EventData\n";
+	}
+
+	StatusChanged(Sender, EventData) {
+		echo "STATUS: $EventData\n";
+	}
+
+	OnEndCall(Sender, EventData) {
+		rtc.Hangup();
+		if (remoteAPID)
+			SendAPMessage(remoteAPID, 3, "Bye");
+		CApplication::Done();
+	}
+
+	OnICEReceived(ice) {
+		rtc.ICE(ice);
+	}
+
+	OnSDPReceived(sdp) {
+		rtc.SDP(sdp);
+	}
+
+	SendInvite(sdp) {
+		if (remoteAPID > 0) {
+			SendAPMessage(remoteAPID, 1, sdp);
+		} else {
+			peer.sdp[length peer.sdp] = sdp;
+			WriteFile(BinarizeObject(peer), "${peername}.peer");
+		}
+	}
+
+	SendICE(ice) {
+		if (remoteAPID > 0) {
+			SendAPMessage(remoteAPID, 2, ice);
+		} else {
+			peer.ice[length peer.ice] = ice;
+			WriteFile(BinarizeObject(peer), "${peername}.peer");
+		}
+	}
+
+	APMessage(SenderAPID, MSGID, szData) {
+		remoteAPID = SenderAPID;
+		switch (MSGID) {
+			case 1:
+				OnSDPReceived(szData);
+				break;
+			case 2:
+				OnICEReceived(szData);
+				break;
+			case 3:
+				rtc.Hangup();
+				CApplication::Done();
+				break;
+		}
+	}
+
+	LoadPeer() {
+		if (peer) {
+			for (var i = 0; i < length peer.sdp; i++)
+				rtc.SDP(peer.sdp[i]);
+			for (i = 0; i < length peer.ice; i++)
+				rtc.ICE(peer.ice[i]);
+			rtc.Answer();
+		}
+	}
+
+	OnStart(Sender, EventData) {
+		if (!is_host)
+			LoadPeer();
+	}
+
+	MainForm(owner) {
+		super(owner);
+		peer = new RTCData();
+		var host = CLArg()[0];
+
+		rtc = new RWebRTCConference(this);
+		rtc.Show();
+		rtc.Start(true, true, false, 1920, 1080);
+
+		rtc.OnLocal = OnStart;
+		if (!host)
+			host = "test";
+		if (!FileExists("$host.peer")) {
+			is_host = true;
+			rtc.Offer();
+		} else {
+			peer = UnBinarizeObject(ReadFile("$host.peer"));
+			_unlink("$host.peer");
+			if (peer)
+				remoteAPID = peer.apid;
+		}
+		peername = host;
+
+		rtc.OnClicked = OnEndCall;
+
+		rtc.OnError = OnError;
+		rtc.OnSDP = function(Sender, EventData) {
+			SendInvite(EventData);
+		};
+
+		rtc.OnICE = function(Sender, EventData) {
+			SendICE(EventData);
+		};
+
+		this.KeepAliveTimer();
+	}
+
+	KeepAliveTimer(Sender = null, EventData = "") {
+		echo "Ping!\n";
+		AddTimer(KeepAliveTimer, 5000);
+	}
+}
+
+class Main {
+	function Main() {
+			try {
+				var Application=new CApplication(new MainForm(null));
+
+				Application.ShellDebug = Application.ApplicationForm.APMessage;
+				Application.Init();
+				Application.Run();
+				Application.Done();
+
+			} catch (var Exception) {
+				echo Exception;
+			}
+	}
+}

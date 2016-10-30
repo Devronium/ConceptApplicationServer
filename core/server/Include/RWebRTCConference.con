@@ -1,0 +1,113 @@
+include VisibleRemoteObject.con
+
+define P_RECORD                "1002"
+define P_BEGINPLAYBACK         "1004"
+define P_ADDBUFFER             "1003"
+define P_ADDBUFFER2            "1007"
+
+define EVENT_ON_BUFFER         "350"
+define EVENT_ON_ICE            "351"
+define EVENT_ON_RTCERROR       "352"
+define EVENT_ON_ICESTATUS      "353"
+define EVENT_ON_REMOTESTREAM   "354"
+define EVENT_ON_LOCALSTREAM    "355"
+
+class RWebRTCConference extends VisibleRemoteObject {
+	//-------- Events ----------------//
+	public property OnSDP { get GetOnSDP, set SetOnSDP }
+	private function GetOnSDP() {
+		return _GET_REMOTE_EVENT(EVENT_ON_BUFFER);
+	}
+
+	private function SetOnSDP(delegate deleg) {
+		return _MAP_REMOTE_EVENT(EVENT_ON_BUFFER, deleg);
+	}
+
+	public property OnICE { get GetOnICE, set SetOnICE }
+	private function GetOnICE() {
+		return _GET_REMOTE_EVENT(EVENT_ON_ICE);
+	}
+
+	private function SetOnICE(delegate deleg) {
+		return _MAP_REMOTE_EVENT(EVENT_ON_ICE, deleg);
+	}
+
+	public property OnError { get GetOnError, set SetOnError }
+	private function GetOnError() {
+		return _GET_REMOTE_EVENT(EVENT_ON_RTCERROR);
+	}
+
+	private function SetOnError(delegate deleg) {
+		return _MAP_REMOTE_EVENT(EVENT_ON_RTCERROR, deleg);
+	}
+
+	public property OnStatusChanged { get GetOnStatusChanged, set SetOnStatusChanged }
+	private function GetOnStatusChanged() {
+		return _GET_REMOTE_EVENT(EVENT_ON_ICESTATUS);
+	}
+
+	private function SetOnStatusChanged(delegate deleg) {
+		return _MAP_REMOTE_EVENT(EVENT_ON_ICESTATUS, deleg);
+	}
+
+	public property OnClicked { get GetOnClicked, set SetOnClicked }
+	public function GetOnClicked() {
+		return _GET_REMOTE_EVENT(EVENT_ON_CLICKED);
+	}
+
+	public function SetOnClicked(var delegate deleg) {
+		return _MAP_REMOTE_EVENT(EVENT_ON_CLICKED, deleg);
+	}
+
+	public property OnRemote { get GetOnRemote, set SetOnRemote }
+	public function GetOnRemote() {
+		return _GET_REMOTE_EVENT(EVENT_ON_REMOTESTREAM);
+	}
+
+	public function SetOnRemote(var delegate deleg) {
+		return _MAP_REMOTE_EVENT(EVENT_ON_REMOTESTREAM, deleg);
+	}
+
+	public property OnLocal { get GetOnLocal, set SetOnLocal }
+	public function GetOnLocal() {
+		return _GET_REMOTE_EVENT(EVENT_ON_LOCALSTREAM);
+	}
+
+	public function SetOnLocal(var delegate deleg) {
+		return _MAP_REMOTE_EVENT(EVENT_ON_LOCALSTREAM, deleg);
+	}
+
+	//-------- End of Events ---------//
+
+	RWebRTCConference(Owner) {
+		super(Owner, CLASS_WEBRTCCONFERENCE);
+	}
+
+	Start(video = true, audio = true, recv_only = false, max_width = 0, max_height = 0) {
+		SetProperty(P_RECORD, "$video:$audio:$recv_only:$max_width:$max_height");
+	}
+
+	Hangup() {
+		SetProperty(P_BEGINPLAYBACK, "hangup");
+	}
+
+	Offer() {
+		SetProperty(P_BEGINPLAYBACK, "offer");
+	}
+
+	Answer() {
+		SetProperty(P_BEGINPLAYBACK, "answer");
+	}
+
+	SDP(string sdp) {
+		SetProperty(P_ADDBUFFER, sdp);
+	}
+
+	ICE(string candidate) {
+		SetProperty(P_ADDBUFFER2, candidate);
+	}
+
+	finalize() {
+		Hangup();
+	}
+}

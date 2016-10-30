@@ -328,6 +328,7 @@ var CLASS_IMAGEBUTTON                 = 65;
 var CLASS_CLIENTCHART                 = 66;
 var CLASS_HTMLSNAP                    = 67;
 var CLASS_HTMLAPP                     = 68;
+var CLASS_WEBRTCCONFERENCE            = 69;
 
 // general (window) messages
 var P_CAPTION                         = 100;
@@ -2007,7 +2008,7 @@ function ConceptClient(url, container, loading, absolute_paths, debug) {
 		this.ConceptSocket.onerror = function(evt) {
 			if (!self.CleanClose)
 				return;
-
+			console.warn('Socket error');
 			if (self.Container)
 				self.Container.style.display = "none";
 
@@ -2046,6 +2047,7 @@ function ConceptClient(url, container, loading, absolute_paths, debug) {
 				}
 			}
 			if (self.Connected) {
+				console.log('Socket close');
 				if (self.Container)
 					self.Container.style.display = "none";
 				if (self.LoadingContainer)
@@ -2918,7 +2920,7 @@ function ConceptClient(url, container, loading, absolute_paths, debug) {
 							utterance.text = Value;
 							if ((Sender) && (Sender.length))
 								utterance.lang = Sender;
-               						utterance.rate = 1;
+							utterance.rate = 1;
 							utterance.pitch = 1;
 							window.speechSynthesis.speak(utterance)
 							SendMessageFunction(Sender, MSG_ID, Target, "1", 0);
@@ -2958,7 +2960,7 @@ function ConceptClient(url, container, loading, absolute_paths, debug) {
 												SendMessageFunction(Sender, MSG_ID, Target, subscription.endpoint + "/" + subscription.subscriptionId, 0);
 											else
 												SendMessageFunction(Sender, MSG_ID, Target, subscription.endpoint, 0);
-									        	return true;
+											return true;
 										}).catch(function(e) {
 											SendMessageFunction(Sender, MSG_ID, Target, "-2", 0);
 											if (Notification.permission === 'denied') {
@@ -3082,6 +3084,7 @@ function ConceptClient(url, container, loading, absolute_paths, debug) {
 				}
 				break;
 			case MSG_APPLICATION_QUIT:
+				console.log('Received application quit message');
 				if (self.UIRun) {
 					self.UIRun(0, "");
 				} else {
@@ -3268,11 +3271,11 @@ function ConceptClient(url, container, loading, absolute_paths, debug) {
 					self.SendMessage("%CLIENT", Response, document.getElementById("inputInput").value, "" + ResponseValue, 0);
 				else
 					self.SendMessage("%CLIENT", Response, "", "" + ResponseValue, 0);
-			}
+			};
 		} else {
 			button.onclick = function() {
 				container.style.display = "none";
-			}
+			};
 		}
 	}
 
@@ -3513,7 +3516,7 @@ function ConceptClient(url, container, loading, absolute_paths, debug) {
 		container.className = "RMessageBox modal";
 		container.id = "colorDialog";
 		container.innerHTML = '<div class="RMessageBox login-dialog modal-dialog"><div class="modal-content"><div class="RMessageBoxHeader modal-header btn-info"><button type="button" class="close" data-dismiss="modal" id="colorClose"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button><h4 class="modal-title" id="colorTitle"></h4></div><div class="RMessageBoxContent modal-body"><div class="input-group colorpicker-component"><span class="input-group-addon"><i></i></span><input type="text" id="colorInput" value="" class="form-control" /></div></div><div class="RMessageBoxButtons modal-footer" id="colorButtons"></div></div></div>';
-			
+
 		this.Container.appendChild(container);
 		
 		$(".colorpicker-component").colorpicker();
@@ -3543,7 +3546,7 @@ function ConceptClient(url, container, loading, absolute_paths, debug) {
 			button.onclick = function() {
 				container.style.display="none";
 				self.SendMessage("%CLIENT", MSG_CHOOSE_COLOR, "0", "-1", 0);
-			}
+			};
 			bcontainer.appendChild(button);
 
 			button = document.createElement("button");
@@ -3557,7 +3560,7 @@ function ConceptClient(url, container, loading, absolute_paths, debug) {
 				if ((colorText) && (colorText.length))
 					colorvalue = parseInt(colorText.substring(1), 16);
 				self.SendMessage("%CLIENT", MSG_CHOOSE_COLOR, "1", "" + colorvalue, 0);
-			}
+			};
 			bcontainer.appendChild(button);
 		}
 
@@ -3566,7 +3569,7 @@ function ConceptClient(url, container, loading, absolute_paths, debug) {
 			close.onclick = function() {
 				container.style.display="none";
 				self.SendMessage("%CLIENT", MSG_CHOOSE_COLOR, "0", "-1", 0);
-			}
+			};
 		}
 	}
 
@@ -3605,7 +3608,7 @@ function ConceptClient(url, container, loading, absolute_paths, debug) {
 			button.onclick = function() {
 				container.style.display="none";
 				self.SendMessage("%CLIENT", MSG_CHOOSE_FONT, "0", "-1", 0);
-			}
+			};
 			bcontainer.appendChild(button);
 
 			button = document.createElement("button");
@@ -3618,7 +3621,7 @@ function ConceptClient(url, container, loading, absolute_paths, debug) {
 				if (val.indexOf(" ") > 0)
 					val = '"' + val + '"';
 				self.SendMessage("%CLIENT", MSG_CHOOSE_FONT, "1", "" + val, 0);
-			}
+			};
 			bcontainer.appendChild(button);
 		}
 
@@ -3627,7 +3630,7 @@ function ConceptClient(url, container, loading, absolute_paths, debug) {
 			close.onclick = function() {
 				container.style.display="none";
 				self.SendMessage("%CLIENT", MSG_CHOOSE_FONT, "0", "-1", 0);
-			}
+			};
 		}
 	}
 
@@ -3656,7 +3659,7 @@ function ConceptClient(url, container, loading, absolute_paths, debug) {
 					self.SendMessage("%CLIENT", MSG_REQUEST_FOR_FILE, "", "", 0);
 				else
 					self.SendMessage("%CLIENT", MESSAGE_ID, "-1", "0", 0);
-			}
+			};
 		}
 
 		var msg = document.getElementById("fileInput");
@@ -3727,7 +3730,7 @@ function ConceptClient(url, container, loading, absolute_paths, debug) {
 			self.UPLOADED_FILE.push({ "file": new Uint8Array(0), "size": 0, "position": 0, "buffer": new ArrayBuffer(0), "filename": Sender, "upload": true });
 			self.SendMessage(Sender, MSG_SAVE_CHUNK, "", "" + self.UPLOADED_FILE.length, 0);
 			container.style.display="none";
-		}
+		};
 	}
 
 	this.NotifyLogin = function(user, pass, response, method, challenge) {
@@ -3743,6 +3746,9 @@ function ConceptClient(url, container, loading, absolute_paths, debug) {
 					break;
 				case "SHA256":
 					pass = "" + CryptoJS.SHA256(challenge + CryptoJS.SHA256(pass).toString()).toString();
+					break;
+				case "SHA256D":
+					pass = "" + CryptoJS.SHA256(user + ":" + challenge + ":" + CryptoJS.SHA256(pass).toString()).toString();
 					break;
 				case "PLAIN":
 					break;
@@ -3764,7 +3770,7 @@ function ConceptClient(url, container, loading, absolute_paths, debug) {
 		container = document.createElement("div");
 		container.className = "RMessageBox modal";
 		container.id = "loginDialog";
-		container.innerHTML = '<div class="RMessageBox RMessageBoxPassword dialog modal-dialog"><div class="modal-content"><div class="RMessageBoxHeader modal-header btn-primary"><button type="button" class="close" data-dismiss="modal" id="loginClose"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button><h4 class="modal-title" id="loginTitle"></h4></div><div class="RMessageBoxContent modal-body"><div class="form-group"><input type="text" id="usernameLogin" placeholder="Username" class="RMessageBoxInput form-control"/></div><div class="form-group"><input type="password" id="passwordLogin" placeholder="Password" class="RMessageBoxInput form-control"/></div><div class="RMessageBoxButtons modal-footer" id="loginButtons"></div></div></div></div>';
+		container.innerHTML = '<div class="RMessageBox RMessageBoxPassword dialog modal-dialog"><div class="modal-content"><div class="RMessageBoxHeader modal-header btn-primary"><button type="button" class="close" data-dismiss="modal" id="loginClose"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button><h4 class="modal-title" id="loginTitle"></h4></div><div class="RMessageBoxContent modal-body"><div class="form-group"><input type="email" id="usernameLogin" placeholder="Username" class="RMessageBoxInput form-control"/></div><div class="form-group"><input type="password" id="passwordLogin" placeholder="Password" class="RMessageBoxInput form-control"/></div><div class="RMessageBoxButtons modal-footer" id="loginButtons"></div></div></div></div>';
 		this.Container.appendChild(container);
 
 		container.style.display = "block";
@@ -3811,7 +3817,7 @@ function ConceptClient(url, container, loading, absolute_paths, debug) {
 				button.onclick = function() {
 					container.style.display = "none";
 					self.NotifyLogin("", "", RESPONSE_SIGNUP, Method, "");
-				}
+				};
 				bcontainer.appendChild(button);
 			}
 
@@ -3822,7 +3828,7 @@ function ConceptClient(url, container, loading, absolute_paths, debug) {
 			button.onclick = function() {
 				container.style.display = "none";
 				self.NotifyLogin("", "", RESPONSE_CANCEL, Method, "");
-			}
+			};
 			bcontainer.appendChild(button);
 
 			button = document.createElement("button");
@@ -3832,7 +3838,7 @@ function ConceptClient(url, container, loading, absolute_paths, debug) {
 			button.onclick = function() {
 				container.style.display = "none";
 				self.NotifyLogin(user.value, pass.value, RESPONSE_OK, Method, Challenge);
-			}
+			};
 			bcontainer.appendChild(button);
 		}
 
@@ -3841,7 +3847,7 @@ function ConceptClient(url, container, loading, absolute_paths, debug) {
 			close.onclick = function() {
 				container.style.display = "none";
 				self.NotifyLogin("", "", RESPONSE_DELETE_EVENT, Method, "");
-			}
+			};
 		}
 	}
 
@@ -4356,7 +4362,7 @@ function ConceptClient(url, container, loading, absolute_paths, debug) {
 							if (treeview.ConceptEndEditing)
 								self.SendMessage("" + OwnerID, MSG_EVENT_FIRED, "" + EVENT_ON_ENDEDITING, "" + this.firstChild.firstChild.innerHTML, 0);
 							return false;
-						}
+						};
 					}
 				}
 			}
@@ -4418,12 +4424,12 @@ function ConceptClient(url, container, loading, absolute_paths, debug) {
 				tr.onclick = function() {
 					self.SelectComboItemText(OwnerID, this);
 					return false;
-				}
+				};
 			} else {
 				tr.onclick = function() {
 					self.SelectComboItem(OwnerID, this);
 					return false;
-				}
+				};
 			}
 			li.appendChild(tr);
 		}
@@ -6310,7 +6316,14 @@ function ConceptClient(url, container, loading, absolute_paths, debug) {
 								self.LatencyCompensation(latency_code, element, "");
 
 							self.SendMessage("" + OwnerID, MSG_EVENT_FIRED, "" + EVENT_ON_CLICKED, "", 0);
-						}
+						};
+						break;
+					case CLASS_WEBRTCCONFERENCE:
+						document.getElementById("hangupButton" + OwnerID).onclick = function() {
+							if (latency_code)
+								self.LatencyCompensation(latency_code, element, "");
+							self.SendMessage("" + OwnerID, MSG_EVENT_FIRED, "" + EVENT_ON_CLICKED, "", 0);
+						};
 						break;
 				}
 				break;
@@ -7634,7 +7647,7 @@ function ConceptClient(url, container, loading, absolute_paths, debug) {
 							self.ToggleItem(element, node, "1");
 						}
 						return false;
-					}
+					};
 					first_td.insertBefore(a, first_td.firstChild);
 				} else {
 					var ref = first_td.child[0];
@@ -8046,7 +8059,7 @@ function ConceptClient(url, container, loading, absolute_paths, debug) {
 				for (var i = 0; i < channels; i++) {
 					var data = audioProcessingEvent.outputBuffer.getChannelData(i);
 					for (var sample = 0; sample < data.length; sample++)
-	      					data[sample] = 0;//((Math.random() * 2) - 1) * 0.002;
+						data[sample] = 0;//((Math.random() * 2) - 1) * 0.002;
 				}
 			}
 		}
@@ -8289,6 +8302,7 @@ function ConceptClient(url, container, loading, absolute_paths, debug) {
 					}
 					element.style.display = "none";
 					if ((cls_id == CLASS_FORM) && (this.MainForm) && (this.MainForm.id == element.id)) {
+						console.log('Main form closed');
 						if (self.Container)
 							self.Container.style.display = "none";
 						if (self.LoadingContainer)
@@ -9453,6 +9467,46 @@ function ConceptClient(url, container, loading, absolute_paths, debug) {
 				}
 				break;
 			case P_RECORD:
+				if (cls_id == CLASS_WEBRTCCONFERENCE) {
+					var arr = Value.split(":");
+					var audio = false;
+					var video = false;
+					var recv_only = false;
+					if (arr[0] != "0")
+						video = true;
+					if (arr[1] != "0")
+						audio = true;
+					if (arr[2] != "0")
+						recv_only = true;
+					if (arr.length > 4) {
+						element.CommLayer.CameraWidth = parseInt(arr[3]);
+						element.CommLayer.CameraHeight = parseInt(arr[4]);
+						
+					}
+					element.CommLayer.OnLocalStream = function(stream) {
+						self.SendMessage("" + OwnerID, MSG_EVENT_FIRED, "355", "", 0);
+						element.ConceptHasStream = true;
+						if (recv_only) {
+							document.getElementById("localVideo" + OwnerID).style.display = "none";
+						} else {
+							document.getElementById("localVideo" + OwnerID).srcObject = stream;
+							document.getElementById("localVideo" + OwnerID).style.display = "block";
+						}
+						if (element.ConceptDoOffer) {
+							element.CommLayer.Offer();
+							delete element.ConceptDoOffer;
+						} else
+						if (element.ConceptDoAnswer) {
+							if (element.ConceptRemoteDescription) {
+								element.CommLayer.RemoteDescription(element.ConceptRemoteDescription);
+								delete element.ConceptRemoteDescription;
+							}
+							element.CommLayer.Answer();
+							delete element.ConceptDoAnswer;
+						}
+					};
+					element.CommLayer.InitMedia(recv_only);
+				} else
 				if (cls_id == 1016) {
 					this.LastAudioLevel = 0;
 					this.LastAudioLevel_tail = 0;
@@ -9579,10 +9633,40 @@ function ConceptClient(url, container, loading, absolute_paths, debug) {
 				if (cls_id == 1016) {
 					if (parseInt(Value))
 						this.Play(element);
+				} else
+				if (cls_id == CLASS_WEBRTCCONFERENCE) {
+					switch (Value.toLowerCase()) {
+						case "hangup":
+							if (element.ConceptHasStream) {
+								element.CommLayer.Hangup();
+								delete element.ConceptHasStream
+							}
+							break;
+						case "offer":
+							if (element.ConceptHasStream)
+								element.CommLayer.Offer();
+							else
+								element.ConceptDoOffer = true;
+							break;
+						case "answer":
+							if (element.ConceptHasStream)
+								element.CommLayer.Answer();
+							else
+								element.ConceptDoAnswer = true;
+							break;
+					}
 				}
 				break;
 			case P_ADDBUFFER2:
 			case P_ADDBUFFER:
+				if (cls_id == CLASS_WEBRTCCONFERENCE) {
+					var message = JSON.parse(Value);
+					if (message.sdp)
+						element.CommLayer.RemoteDescription(new RTCSessionDescription(message));
+					else
+					if (message.candidate)
+						element.CommLayer.ICE(new RTCIceCandidate(message));
+				} else
 				if (cls_id == 1016) {
 					if ((element.ConceptMaxBuffers) && (element.ConceptMaxBuffers > 0)) {
 						if (element.ConceptBuffers.length >= element.ConceptMaxBuffers) {
@@ -10127,7 +10211,7 @@ function ConceptClient(url, container, loading, absolute_paths, debug) {
 							href.href = "#";
 							href.onclick = function() {
 								return false;
-							}
+							};
 							var icon_id;
 							if (PROP_ID == P_PRIMARYICONNAME)
 								icon_id = "0";
@@ -10170,7 +10254,7 @@ function ConceptClient(url, container, loading, absolute_paths, debug) {
 							href.href = "#";
 							href.onclick = function() {
 								return false;
-							}
+							};
 							var icon_id;
 							if (PROP_ID == P_PRIMARYICONNAME)
 								icon_id = "0";
@@ -10735,15 +10819,15 @@ function ConceptClient(url, container, loading, absolute_paths, debug) {
 					element.style.padding = "" + parseInt(Value) + "px";
 				break;
 			case P_FORECOLOR:
-            			if (cls_id == CLASS_TEXTTAG)
+				if (cls_id == CLASS_TEXTTAG)
 					element.cssText += "color: " + this.doColorString(parseInt(Value)) + ";";
 				break;
 			case P_BACKCOLOR:
-            			if (cls_id == CLASS_TEXTTAG)
+				if (cls_id == CLASS_TEXTTAG)
 					element.cssText += "background-color: " + this.doColorString(parseInt(Value)) + ";";
 				break;
 			case P_DIRECTION:
-            			if (cls_id == CLASS_TEXTTAG) {
+				if (cls_id == CLASS_TEXTTAG) {
 					switch (parseInt(Value)) {	
 						case 1:
 							element.cssText += "direction: ltr;";
@@ -10759,13 +10843,13 @@ function ConceptClient(url, container, loading, absolute_paths, debug) {
 				}
 				break;
 			case P_FONTWEIGHT:
-            			if (cls_id == CLASS_TEXTTAG)
+				if (cls_id == CLASS_TEXTTAG)
 					element.cssText += "font-weight: " + Value + ";";
 				else
 					element.style.fontWeight = Value;
 				break;
 			case P_UNDERLINE:
-            			if (cls_id == CLASS_TEXTTAG) {
+				if (cls_id == CLASS_TEXTTAG) {
 					var val = parseInt(Value);
 					if (val) {
 						if (val == 4)
@@ -10782,7 +10866,7 @@ function ConceptClient(url, container, loading, absolute_paths, debug) {
 				}
 				break;
 			case P_STRIKEOUT:
-            			if (cls_id == CLASS_TEXTTAG) {
+				if (cls_id == CLASS_TEXTTAG) {
 					if (parseInt(Value))
 						element.cssText += "text-decoration: line-through;";
 					else
@@ -10795,13 +10879,13 @@ function ConceptClient(url, container, loading, absolute_paths, debug) {
 				}
 				break;
 			case P_FONTSIZE:
-            			if (cls_id == CLASS_TEXTTAG)
+				if (cls_id == CLASS_TEXTTAG)
 					element.cssText += "font-size: " + parseInt(Value) + "px;";
 				else
 					element.style.fontSize = "" + parseInt(Value) + "px";
 				break;
 			case P_SCALE:
-            			if (cls_id == CLASS_TEXTTAG)
+				if (cls_id == CLASS_TEXTTAG)
 					element.cssText += "font-size: " + (parseFloat(Value) * 100) + "%;";
 				else
 					element.style.fontSize = "" + (parseFloat(Value) * 100) + "%";
@@ -11520,7 +11604,7 @@ function ConceptClient(url, container, loading, absolute_paths, debug) {
 				label.href = "#";
 				label.onclick = function() {
 					return false;
-				}
+				};
 				label.className = "dropdown-toggle";
 				label.setAttribute("data-toggle", "dropdown");
 				label.id = "l" + RID;
@@ -11631,7 +11715,7 @@ function ConceptClient(url, container, loading, absolute_paths, debug) {
 						$(content).hide("fade");
 						button.className = "RExpanderButton RExpanderButtonCollapsed";
 					}
-				}
+				};
 				packing = PACK_EXPAND_WIDGET;
 				break;
 			case CLASS_PROGRESSBAR:
@@ -11816,7 +11900,7 @@ function ConceptClient(url, container, loading, absolute_paths, debug) {
 				label.innerHTML = '&nbsp;<span class="caret RCaret"></span>';
 				label.onclick = function() {
 					return false;
-				}
+				};
 
 				this.TreeData[RID] = { "Columns": [], "Post": [] };
 				control.setAttribute("ConceptRowIndex", "-1");
@@ -12138,6 +12222,40 @@ function ConceptClient(url, container, loading, absolute_paths, debug) {
 				this.HTMLUIID = RID;
 				// not an UI object !
 				return;
+			case CLASS_WEBRTCCONFERENCE:
+				control = document.createElement("div");
+				control.CommLayer = new CommLayer("comm" + RID);
+
+				control.innerHTML = '<video id="remoteVideo' + RID + '" autoplay="" class="RWebRTCConferenceRemoteVideo"></video>' +
+					'<video id="localVideo' + RID + '" autoplay="" muted="" class="RWebRTCConferenceLocalVideo"></video>' +
+					'<button id="hangupButton' + RID + '" class="RWebRTCConferenceButton"><i class="fa fa-phone" aria-hidden="true"></i></button>';
+
+				control.CommLayer.OnError = function(e, title) {
+					if (!e)
+						e = { };
+					e.title = title;
+					self.SendMessage("" + RID, MSG_EVENT_FIRED, "352", JSON.stringify(e), 0);
+				};
+				control.CommLayer.OnStatusChanged = function(name, status) {
+					self.SendMessage("" + RID, MSG_EVENT_FIRED, "353", JSON.stringify({"name": name, "status": status}), 0);
+				};
+				control.CommLayer.OnCreateOffer = function(desc) {
+					control.CommLayer.PendingDescription = desc;
+					self.SendMessage("" + RID, MSG_EVENT_FIRED, "350", JSON.stringify(desc.toJSON()), 0);
+				};
+				control.CommLayer.OnCreateAnswer = function(desc) {
+					self.SendMessage("" + RID, MSG_EVENT_FIRED, "350", JSON.stringify(desc.toJSON()), 0);
+				};
+				control.CommLayer.OnICECandidate = function(candidate) {
+					self.SendMessage("" + RID, MSG_EVENT_FIRED, "351", JSON.stringify(candidate), 0);
+				};
+				control.CommLayer.OnRemoteStream = function(stream) {
+					document.getElementById("remoteVideo" + RID).srcObject = stream;
+					self.SendMessage("" + RID, MSG_EVENT_FIRED, "354", "", 0);
+				};
+				control.ConceptClassID = CLASS_WEBRTCCONFERENCE;
+				control.className = "RWebRTCConference";
+				break;
 			case 1000:
 				control = document.createElement("pre");
 				control.className = "RScintilla";
@@ -12285,7 +12403,7 @@ function ConceptClient(url, container, loading, absolute_paths, debug) {
 						href.onclick = function() {
 							self.PageChanged(parent, tabs, tab);
 							return false;
-						}
+						};
 
 						tab.appendChild(href);
 						tabs.appendChild(tab);

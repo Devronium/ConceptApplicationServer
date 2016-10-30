@@ -702,8 +702,8 @@ class BM25Index {
 						new_documents = new [];
 						for (i = 0; i < len; i++)
 							new_documents[i] = documents[i];
-						documents = new_documents;
 					}
+					documents = new_documents;
 				}
 				return documents;
 			}
@@ -1773,15 +1773,17 @@ class BinFile extends File {
 
 	ById(id, fields = null, do_cache = false, cache = null) {
 		if (typeof id == "array") {
+			var[] id_flags;
 			var res_array = new [];
 			for (var i = 0; i < length id; i++) {
 				var _id = id[i];
-				if ((_id) && (!InvalidId(_id))) {
+				var _id_key = "" + _id;
+				if ((_id) && (!InvalidId(_id)) && (!id_flags[_id_key])) {
+					id_flags[_id_key]++;
 					if (do_cache) {
-						var cache_key = "" + _id;
-						var cached_obj = cache[cache_key];
+						var cached_obj = cache[_id_key];
 						if (cached_obj) {
-							res_array[cache_key] = cached_obj;
+							res_array[_id_key] = cached_obj;
 							continue;
 						}
 					}
@@ -1796,9 +1798,9 @@ class BinFile extends File {
 							o = UnBinarizeObject(res);
 						if (o != null) {
 							o['$'] = _id;
-							res_array["" + _id]  = o;
+							res_array[length res_array]  = o;
 							if (do_cache)
-								cache[cache_key] = o;
+								cache[_id_key] = o;
 						}
 					}
 				}
@@ -1809,7 +1811,7 @@ class BinFile extends File {
 				return null;
 
 			if (do_cache) {
-				cache_key = "" + id;
+				var cache_key = "" + id;
 				cached_obj = cache[cache_key];
 				if (cached_obj)
 					return cached_obj;
@@ -2238,14 +2240,18 @@ class BinFile extends File {
 	}
 
 	EnsureFullTextIndex(fields, lang = "en") {
+		var bm25_name = this.name + ".bm25";
 		if (bm25) {
 			if (bm25.samefields(fields))
 				return false;
+			_unlink(bm25_name);
 		}
 		if (!fields)
 			fields = new [];
-		var bm25_name = this.name + ".bm25";
 		bm25 = new BM25Index(bm25_name, fields, lang);
+		// sync twice (to ensure no double-indexing)
+		this.SyncBM25Info();
+		// second
 		this.RebuildBM25();
 		this.SyncBM25Info();
 		this.FlushDB();

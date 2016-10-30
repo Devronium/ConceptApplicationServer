@@ -829,6 +829,40 @@ a, div, tr, td, table, tbody, thead {
 	padding: 0px;
 }
 
+.RWebRTCConference {
+	width: 100%;
+	height: 100%;
+	background-color: black;
+}
+
+
+.RWebRTCConferenceLocalVideo {
+	position: absolute;
+	max-width: 20vw;
+	width: auto;
+	bottom: 50px;
+	right: 20px;
+	background-color: black;
+}
+
+.RWebRTCConferenceRemoteVideo {
+	display: block;
+	background-color: black;
+	height: 100%;
+	width: 100%;
+	margin: 0 auto;
+}
+
+.RWebRTCConferenceButton {
+	display: block;
+	position: relative;
+	bottom: 100px;
+	margin: 0 auto;
+	border-radius: 50%;
+	min-width: 50px;
+	min-height: 50px;
+}
+
 label {
 	font-weight: normal;
 	padding: 5px;
