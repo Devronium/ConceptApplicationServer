@@ -92,17 +92,32 @@ class MainForm extends RForm {
 
 	MainForm(owner) {
 		super(owner);
+		var model = ToLower(CApplication.Query("Model", false, ""));
+		var supported = false;
+		var video = true;
+		echo "Browser: $model\n";
+		if (Pos(model, " edge/") > 0) {
+			supported = true;
+			video = false;
+		} else
+		if (Pos(model, " chrome/") > 0)
+			supported = true;
+		else
+		if (Pos(model, " firefox/") > 0)
+			supported = true;
+
 		peer = new RTCData();
 		var host = CLArg()[0];
 
 		rtc = new RWebRTCConference(this);
 		rtc.Show();
-		rtc.Start(true, true, false, 1920, 1080);
+		rtc.Start(video, true, false, 1920, 1080);
 
 		rtc.OnLocal = OnStart;
 		if (!host)
 			host = "test";
 		if (!FileExists("$host.peer")) {
+			WriteFile(BinarizeObject(peer), "$host.peer");
 			is_host = true;
 			rtc.Offer();
 		} else {

@@ -9478,6 +9478,9 @@ function ConceptClient(url, container, loading, absolute_paths, debug) {
 						audio = true;
 					if (arr[2] != "0")
 						recv_only = true;
+
+					element.CommLayer.Video = video;
+					element.CommLayer.Audio = audio;
 					if (arr.length > 4) {
 						element.CommLayer.CameraWidth = parseInt(arr[3]);
 						element.CommLayer.CameraHeight = parseInt(arr[4]);
