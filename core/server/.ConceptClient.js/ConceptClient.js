@@ -9481,14 +9481,18 @@ function ConceptClient(url, container, loading, absolute_paths, debug) {
 
 					element.CommLayer.Video = video;
 					element.CommLayer.Audio = audio;
+					var channel_name = "";
+
 					if (arr.length > 4) {
 						element.CommLayer.CameraWidth = parseInt(arr[3]);
 						element.CommLayer.CameraHeight = parseInt(arr[4]);
 						
+						if (arr.length > 5)
+							channel_name = arr[5];
 					}
-					element.CommLayer.OnLocalStream = function(stream) {
-						self.SendMessage("" + OwnerID, MSG_EVENT_FIRED, "355", "", 0);
-						element.ConceptHasStream = true;
+					element.CommLayer.OnLocalStream = function(stream, channel_name) {
+						self.SendMessage("" + OwnerID, MSG_EVENT_FIRED, "355", channel_name, 0);
+						element.ConceptHasStream++;
 						if (recv_only) {
 							document.getElementById("localVideo" + OwnerID).style.display = "none";
 						} else {
@@ -9496,19 +9500,20 @@ function ConceptClient(url, container, loading, absolute_paths, debug) {
 							document.getElementById("localVideo" + OwnerID).style.display = "block";
 						}
 						if (element.ConceptDoOffer) {
-							element.CommLayer.Offer();
+							element.CommLayer.Offer(channel_name);
 							delete element.ConceptDoOffer;
 						} else
 						if (element.ConceptDoAnswer) {
-							if (element.ConceptRemoteDescription) {
-								element.CommLayer.RemoteDescription(element.ConceptRemoteDescription);
-								delete element.ConceptRemoteDescription;
+							var key = "ConceptRemoteDescription" + channel_name;
+							if (element[key]) {
+								element.CommLayer.RemoteDescription(element[key]);
+								delete element[key];
 							}
-							element.CommLayer.Answer();
+							element.CommLayer.Answer(channel_name);
 							delete element.ConceptDoAnswer;
 						}
 					};
-					element.CommLayer.InitMedia(recv_only);
+					element.CommLayer.InitMedia(recv_only, channel_name);
 				} else
 				if (cls_id == 1016) {
 					this.LastAudioLevel = 0;
@@ -9638,22 +9643,32 @@ function ConceptClient(url, container, loading, absolute_paths, debug) {
 						this.Play(element);
 				} else
 				if (cls_id == CLASS_WEBRTCCONFERENCE) {
-					switch (Value.toLowerCase()) {
+					var query = Value.split(":");
+					var stream_name = "";
+					if (query.length > 1)
+						stream_name = Value.substring(Value.indexOf(":") + 1);
+
+					switch (query[0].toLowerCase()) {
 						case "hangup":
-							if (element.ConceptHasStream) {
+							if (element.ConceptHasStream > 0) {
 								element.CommLayer.Hangup();
-								delete element.ConceptHasStream
+								element.ConceptHasStream = 0;
+								var RID = OwnerID;
+								element.innerHTML = '<video id="remoteVideo1-' + RID + '" autoplay="" class="RWebRTCConferenceRemoteVideo" ConceptRemote="true" style="width: 100%;"></video>' +
+											'<video id="localVideo' + RID + '" autoplay="" muted="" class="RWebRTCConferenceLocalVideo"></video>' +
+											'<div class="clearfix"></div>' +
+											'<button id="hangupButton' + RID + '" class="RWebRTCConferenceButton"><i class="fa fa-phone" aria-hidden="true"></i></button>';
 							}
 							break;
 						case "offer":
-							if (element.ConceptHasStream)
-								element.CommLayer.Offer();
+							if (element.ConceptHasStream > 0)
+								element.CommLayer.Offer(stream_name);
 							else
 								element.ConceptDoOffer = true;
 							break;
 						case "answer":
-							if (element.ConceptHasStream)
-								element.CommLayer.Answer();
+							if (element.ConceptHasStream > 0)
+								element.CommLayer.Answer(stream_name);
 							else
 								element.ConceptDoAnswer = true;
 							break;
@@ -9664,11 +9679,14 @@ function ConceptClient(url, container, loading, absolute_paths, debug) {
 			case P_ADDBUFFER:
 				if (cls_id == CLASS_WEBRTCCONFERENCE) {
 					var message = JSON.parse(Value);
-					if (message.sdp)
-						element.CommLayer.RemoteDescription(new RTCSessionDescription(message));
-					else
+					var channelName = message.channelName;
+					if (channelName)
+						delete message.channelName;
+					if (message.sdp) {
+						element.CommLayer.RemoteDescription(new RTCSessionDescription(message), channelName);
+					} else
 					if (message.candidate)
-						element.CommLayer.ICE(new RTCIceCandidate(message));
+						element.CommLayer.ICE(new RTCIceCandidate(message), channelName);
 				} else
 				if (cls_id == 1016) {
 					if ((element.ConceptMaxBuffers) && (element.ConceptMaxBuffers > 0)) {
@@ -12228,34 +12246,101 @@ function ConceptClient(url, container, loading, absolute_paths, debug) {
 			case CLASS_WEBRTCCONFERENCE:
 				control = document.createElement("div");
 				control.CommLayer = new CommLayer("comm" + RID);
-
-				control.innerHTML = '<video id="remoteVideo' + RID + '" autoplay="" class="RWebRTCConferenceRemoteVideo"></video>' +
+				control.ConceptHasStream = 0;
+				control.innerHTML = '<video id="remoteVideo1-' + RID + '" autoplay="" class="RWebRTCConferenceRemoteVideo" ConceptRemote="true" style="width: 100%;"></video>' +
 					'<video id="localVideo' + RID + '" autoplay="" muted="" class="RWebRTCConferenceLocalVideo"></video>' +
+					'<div class="clearfix"></div>' +
 					'<button id="hangupButton' + RID + '" class="RWebRTCConferenceButton"><i class="fa fa-phone" aria-hidden="true"></i></button>';
 
-				control.CommLayer.OnError = function(e, title) {
+				control.CommLayer.OnError = function(e, title, stream_name) {
 					if (!e)
 						e = { };
 					e.title = title;
+					if ((stream_name) && (stream_name.length > 0))
+						e.stream = stream_name;
 					self.SendMessage("" + RID, MSG_EVENT_FIRED, "352", JSON.stringify(e), 0);
 				};
-				control.CommLayer.OnStatusChanged = function(name, status) {
+				control.CommLayer.OnStatusChanged = function(name, status, channel_name) {
 					self.SendMessage("" + RID, MSG_EVENT_FIRED, "353", JSON.stringify({"name": name, "status": status}), 0);
 				};
-				control.CommLayer.OnCreateOffer = function(desc) {
-					control.CommLayer.PendingDescription = desc;
-					self.SendMessage("" + RID, MSG_EVENT_FIRED, "350", JSON.stringify(desc.toJSON()), 0);
+				control.CommLayer.OnCreateOffer = function(desc, channel_name) {
+					control.CommLayer.AddPending(desc, channel_name);
+					var obj = desc.toJSON();
+					if ((channel_name) && (channel_name.length > 0))
+						obj.channelName = channel_name;
+					self.SendMessage("" + RID, MSG_EVENT_FIRED, "350", JSON.stringify(obj), 0);
 				};
-				control.CommLayer.OnCreateAnswer = function(desc) {
-					self.SendMessage("" + RID, MSG_EVENT_FIRED, "350", JSON.stringify(desc.toJSON()), 0);
+				control.CommLayer.OnCreateAnswer = function(desc, channel_name) {
+					var obj = desc.toJSON();
+					if ((channel_name) && (channel_name.length > 0))
+						obj.channelName = channel_name;
+					self.SendMessage("" + RID, MSG_EVENT_FIRED, "350", JSON.stringify(obj), 0);
 				};
-				control.CommLayer.OnICECandidate = function(candidate) {
-					self.SendMessage("" + RID, MSG_EVENT_FIRED, "351", JSON.stringify(candidate), 0);
+				control.CommLayer.OnICECandidate = function(candidate, channel_name) {
+					var obj = candidate.toJSON();
+					if ((channel_name) && (channel_name.length > 0)) {
+						obj.channelName = channel_name;
+					}
+					self.SendMessage("" + RID, MSG_EVENT_FIRED, "351", JSON.stringify(obj), 0);
 				};
-				control.CommLayer.OnRemoteStream = function(stream) {
-					document.getElementById("remoteVideo" + RID).srcObject = stream;
-					self.SendMessage("" + RID, MSG_EVENT_FIRED, "354", "", 0);
+
+				control.CommLayer.OnRemoteStream = function(stream, channel_name) {
+					if (control.CommLayer.StreamCount > 1) {
+						var element_name = channel_name;
+						if ((!element_name) || (element_name.length == 0))
+							element_name = "" + Math.random();
+						var video_id = 'remoteVideo' + element_name + '-' + RID;
+						var video = document.getElementById(video_id);
+						if (!video) {
+							video = document.createElement("video");
+							video.id = 'remoteVideo' + element_name + '-' + RID;
+							video.setAttribute("autoplay", "");
+							video.setAttribute("ConceptRemote", "true");
+							video.className = "RWebRTCConferenceRemoteVideo";
+							control.insertBefore(video, document.getElementById("localVideo" + RID));
+						}
+
+						var columns;
+						switch (control.CommLayer.StreamCount) {
+							case 1:
+								columns = 1;
+								break;
+							case 2:
+							case 3:
+							case 4:
+								columns = 2;
+								break;
+							default:
+								if (control.CommLayer.StreamCount > 12)
+									columns = 6;
+								else
+								if (control.CommLayer.StreamCount > 6)
+									columns = 4;
+								else
+									columns = 3;
+						}
+						var height = 100 / Math.ceil(control.CommLayer.StreamCount / columns);
+						columns = 12 / columns;
+
+						for (var i = 0; i < control.children.length; i++) {
+							var child = control.children[i];
+							if ((child) && (child.getAttribute("ConceptRemote") == "true")) {
+								child.className = "col-md-" + columns + " RWebRTCConferenceRemoteVideo";
+								child.style.height = "" + height + "%";
+								child.style.width = "";
+							}
+						}
+
+						video.srcObject = stream;
+					} else {
+						var video = document.getElementById("remoteVideo1-" + RID);
+						video.srcObject = stream;
+						video.className = "RWebRTCConferenceRemoteVideo";
+						video.style.height = "100%";
+					}
+					self.SendMessage("" + RID, MSG_EVENT_FIRED, "354", channel_name, 0);
 				};
+
 				control.ConceptClassID = CLASS_WEBRTCCONFERENCE;
 				control.className = "RWebRTCConference";
 				break;

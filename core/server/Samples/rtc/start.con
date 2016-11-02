@@ -1,5 +1,6 @@
 include Application.con
 include RWebRTCConference.con
+import standard.lib.json
 
 class RTCData {
 	var[] sdp;
@@ -17,6 +18,10 @@ class MainForm extends RForm {
 	var peername;
 	var remoteAPID;
 	var is_host;
+	var[] all_apids;
+	var video;
+	var channel_name = "";
+	var answered;
 
 	OnError(Sender, EventData) {
 		echo "ERROR: $EventData\n";
@@ -26,11 +31,18 @@ class MainForm extends RForm {
 		echo "STATUS: $EventData\n";
 	}
 
-	OnEndCall(Sender, EventData) {
+	OnEndCall(Sender = null, EventData = "") {
 		rtc.Hangup();
-		if (remoteAPID)
-			SendAPMessage(remoteAPID, 3, "Bye");
+		if (all_apids) {
+			for (var i = 0; i < length all_apids; i++) {
+				var apid = all_apids[i];
+				if (apid)
+					SendAPMessage(apid, 3, "Bye");
+			}
+		}
 		CApplication::Done();
+		if (is_host)
+			_unlink("$peername.peer");
 	}
 
 	OnICEReceived(ice) {
@@ -42,6 +54,11 @@ class MainForm extends RForm {
 	}
 
 	SendInvite(sdp) {
+		if (is_host) {
+			var json = JSONDeserialize(sdp);
+			if ((json) && (json["channelName"]))
+				SendAPMessage(value json["channelName"], 1, sdp);
+		} else
 		if (remoteAPID > 0) {
 			SendAPMessage(remoteAPID, 1, sdp);
 		} else {
@@ -51,26 +68,53 @@ class MainForm extends RForm {
 	}
 
 	SendICE(ice) {
+		if (is_host) {
+			peer.ice[length peer.ice] = ice;
+			var json = JSONDeserialize(ice);
+			if ((json) && (json["channelName"]))
+				SendAPMessage(value json["channelName"], 2, ice);
+		} else
 		if (remoteAPID > 0) {
 			SendAPMessage(remoteAPID, 2, ice);
 		} else {
-			peer.ice[length peer.ice] = ice;
 			WriteFile(BinarizeObject(peer), "${peername}.peer");
 		}
 	}
 
+	Channel(jdata) {
+		if (is_host) {
+			var json = JSONDeserialize(jdata);
+			var channel = json["channelName"];
+			if (!channel)
+				channel = "";
+		} else
+			channel = "" + GetAPID();
+		return channel;
+	}
+
 	APMessage(SenderAPID, MSGID, szData) {
 		remoteAPID = SenderAPID;
+		all_apids["" + SenderAPID] = SenderAPID;
 		switch (MSGID) {
 			case 1:
 				OnSDPReceived(szData);
+				if ((!is_host) && (!answered)) {
+					//answered = true;
+					rtc.Answer(Channel(szData));
+				}
 				break;
 			case 2:
 				OnICEReceived(szData);
 				break;
 			case 3:
-				rtc.Hangup();
-				CApplication::Done();
+				if ((!is_host) || (length all_apids <= 1)) {
+					rtc.Hangup();
+					CApplication::Done();
+				}
+				break;
+			case 4:
+				rtc.Start(video, true, false, 1920, 1080, szData);
+				rtc.Offer(szData);
 				break;
 		}
 	}
@@ -81,7 +125,6 @@ class MainForm extends RForm {
 				rtc.SDP(peer.sdp[i]);
 			for (i = 0; i < length peer.ice; i++)
 				rtc.ICE(peer.ice[i]);
-			rtc.Answer();
 		}
 	}
 
@@ -94,7 +137,7 @@ class MainForm extends RForm {
 		super(owner);
 		var model = ToLower(CApplication.Query("Model", false, ""));
 		var supported = false;
-		var video = true;
+		video = true;
 		echo "Browser: $model\n";
 		if (Pos(model, " edge/") > 0) {
 			supported = true;
@@ -111,21 +154,21 @@ class MainForm extends RForm {
 
 		rtc = new RWebRTCConference(this);
 		rtc.Show();
-		rtc.Start(video, true, false, 1920, 1080);
-
 		rtc.OnLocal = OnStart;
 		if (!host)
 			host = "test";
 		if (!FileExists("$host.peer")) {
 			WriteFile(BinarizeObject(peer), "$host.peer");
 			is_host = true;
-			rtc.Offer();
 		} else {
+			channel_name = "" + GetAPID();
+			rtc.Start(video, true, false, 1920, 1080, channel_name);
 			peer = UnBinarizeObject(ReadFile("$host.peer"));
-			_unlink("$host.peer");
 			if (peer)
 				remoteAPID = peer.apid;
+			SendAPMessage(remoteAPID, 4, channel_name);
 		}
+
 		peername = host;
 
 		rtc.OnClicked = OnEndCall;
@@ -157,7 +200,7 @@ class Main {
 				Application.Init();
 				Application.Run();
 				Application.Done();
-
+				Application.ApplicationForm.OnEndCall();
 			} catch (var Exception) {
 				echo Exception;
 			}

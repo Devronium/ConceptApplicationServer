@@ -83,20 +83,20 @@ class RWebRTCConference extends VisibleRemoteObject {
 		super(Owner, CLASS_WEBRTCCONFERENCE);
 	}
 
-	Start(video = true, audio = true, recv_only = false, max_width = 0, max_height = 0) {
-		SetProperty(P_RECORD, "$video:$audio:$recv_only:$max_width:$max_height");
+	Start(video = true, audio = true, recv_only = false, max_width = 0, max_height = 0, channel_name = "") {
+		SetProperty(P_RECORD, "$video:$audio:$recv_only:$max_width:$max_height:$channel_name");
 	}
 
 	Hangup() {
 		SetProperty(P_BEGINPLAYBACK, "hangup");
 	}
 
-	Offer() {
-		SetProperty(P_BEGINPLAYBACK, "offer");
+	Offer(channel_name = "") {
+		SetProperty(P_BEGINPLAYBACK, "offer:$channel_name");
 	}
 
-	Answer() {
-		SetProperty(P_BEGINPLAYBACK, "answer");
+	Answer(channel_name = "") {
+		SetProperty(P_BEGINPLAYBACK, "answer:$channel_name");
 	}
 
 	SDP(string sdp) {

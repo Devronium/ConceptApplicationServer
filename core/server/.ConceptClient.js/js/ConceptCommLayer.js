@@ -7,6 +7,9 @@ function CommLayer(tag) {
     this.ReadOnly = false;
     this.Tag = tag ? tag : "";
     this.Peers = [ ];
+    this.localPeers = { };
+    this.PendingChannelDescription = { };
+    this.StreamCount = 0;
 
     window.RTCPeerConnection = window.RTCPeerConnection ? window.RTCPeerConnection : webkitRTCPeerConnection;
     window.RTCPeerConnection = window.RTCPeerConnection ? window.RTCPeerConnection : mozRTCPeerConnection;
@@ -21,13 +24,25 @@ function CommLayer(tag) {
         ]
     };
 
-    this.InitStream = function(stream, local_only) {
+    this.GetPeer = function(name) {
+        if ((name) && (name.length > 0))
+            return this.localPeers[name];
+        return this.localPeer;
+    }
+
+    this.InitStream = function(stream, local_only, stream_name) {
         if (!local_only)
             this.Stream = stream;
         this.ReadOnly = local_only;
-        this.localPeer = this.NewPeer("local");
+        var peer = this.NewPeer("local", stream_name);
+        if ((stream_name) && (stream_name.length > 0)) {
+            this.localPeers[stream_name] = peer;
+        } else {
+            this.localPeer = peer;
+            stream_name = "";
+        }
         if (!local_only) {
-            this.localPeer.addStream(stream);
+            peer.addStream(stream);
             var videoTracks = stream.getVideoTracks();
             var audioTracks = stream.getAudioTracks();
             if ((videoTracks) && (videoTracks.length > 0))
@@ -35,22 +50,23 @@ function CommLayer(tag) {
             if ((audioTracks) && (audioTracks.length > 0))
                 console.log(this.Tag + ': Using audio device: ' + audioTracks[0].label);
         }
+
         if (this.OnLocalStream)
-            this.OnLocalStream(stream);
+            this.OnLocalStream(stream, stream_name);
     }
 
-    this.Error = function(e, title) {
+    this.Error = function(e, title, stream_name) {
         if (e) {
             console.error(this.Tag + ': ' + title + ": ", e.toString());
             if (this.OnError)
-                this.OnError(e, title);
+                this.OnError(e, title, stream_name);
         } else
             console.error(this.Tag + ': unknown error');
     }
 
-    this.InitMedia = function(recv_only) {
+    this.InitMedia = function(recv_only, stream_name) {
         if ((this.Stream) || (recv_only)) {
-            this.InitStream(this.Stream, recv_only);
+            this.InitStream(this.Stream, recv_only, stream_name);
             return;
         }
         var width = this.CameraWidth;
@@ -68,16 +84,24 @@ function CommLayer(tag) {
         navigator.mediaDevices.getUserMedia({
             audio: this.Audio,
             video: video
-        }).then(this.InitStream.bind(this)).catch(function(e) {
+        }).then(function(stream) {
+                this.InitStream(stream, false, stream_name);
+            }.bind(this)).catch(function(e) {
             alert(this.Tag + ':getUserMedia() error: ' + e.name);
-            this.Error(e, "getUserMedia error");
+            this.Error(e, "getUserMedia error", stream_name);
         }.bind(this));
     }
 
-    this.NewPeer = function(name) {
+    this.NewPeer = function(name, stream_name) {
         var pc = new RTCPeerConnection(this.servers);
         this.Peers[this.Peers.length] = pc;
         pc._ref_owner = this;
+        if (!stream_name)
+             stream_name = "";
+        if (name !== "local")
+            this.StreamCount++;
+        pc._ref_stream_name = stream_name;
+        pc._ref_stream_domain = name;
         pc.onicecandidate = function(e) {
             pc._ref_owner.onIceCandidate(pc, e, name);
         };
@@ -85,17 +109,17 @@ function CommLayer(tag) {
             console.log(pc._ref_owner.Tag + ': ' + name + ' ICE state: ' + pc.iceConnectionState);
             console.log(pc._ref_owner.Tag + ': ICE state change event: ', e);
             if (pc._ref_owner.OnStatusChanged)
-                pc._ref_owner.OnStatusChanged(name, pc.iceConnectionState);
+                pc._ref_owner.OnStatusChanged(name, pc.iceConnectionState, pc._ref_stream_name);
         };
         if (pc.ontrack === null) {
             pc.ontrack = function(e) {
-                if (pc._ref_owner.OnRemoteStream)
-                    pc._ref_owner.OnRemoteStream(e.streams[0]);
+                if ((pc._ref_owner.OnRemoteStream) && (pc._ref_stream_domain == "remote"))
+                    pc._ref_owner.OnRemoteStream(e.streams[0], pc._ref_stream_name);
             };
         } else {
             pc.onaddstream = function(e) {
-                if (pc._ref_owner.OnRemoteStream)
-                    pc._ref_owner.OnRemoteStream(e.stream);
+                if ((pc._ref_owner.OnRemoteStream) && (pc._ref_stream_domain == "remote"))
+                    pc._ref_owner.OnRemoteStream(e.stream, pc._ref_stream_name);
             };
         }
         return pc;
@@ -119,18 +143,19 @@ function CommLayer(tag) {
             function() {
                 // add ice candidate success
                 if (this.OnICECandidate)
-                    this.OnICECandidate(candidate);
+                    this.OnICECandidate(candidate, pc._ref_stream_name);
             }.bind(this),
             this.onAddIceCandidateError.bind(this)
         );
     }
 
-    this.ICE = function(candidate) {
-        if (!this.localPeer) {
-            alert("Local peer is not initialized. Call InitMedia first.");
+    this.ICE = function(candidate, stream_name) {
+        var localPeer = this.GetPeer(stream_name)
+        if (!localPeer) {
+            alert("ICE: Local peer is not initialized. Call InitMedia first.");
             return;
         }
-        this.localPeer.addIceCandidate(
+        localPeer.addIceCandidate(
             new RTCIceCandidate(candidate)
         ).then(
             this.onAddIceCandidateSuccess.bind(this),
@@ -146,73 +171,102 @@ function CommLayer(tag) {
         console.log(this.Tag + ': setLocalDescription complete');
     }
 
-    this.onCreateOfferSuccess = function(desc) {
+    this.onCreateOfferSuccess = function(desc, stream_name) {
         if (this.OnCreateOffer)
-            this.OnCreateOffer(desc);
+            this.OnCreateOffer(desc, stream_name);
     }
 
-    this.LocalDescription = function(desc) {
-        if (!this.localPeer) {
-            alert("Local peer is not initialized. Call InitMedia first.");
+    this.LocalDescription = function(desc, stream_name) {
+        var localPeer = this.GetPeer(stream_name)
+        if (!localPeer) {
+            alert("LocalDescription: Local peer is not initialized. Call InitMedia first.");
             return;
         }
         console.log(this.Tag + ": LOCAL DESCRIPTION");
-        this.localPeer.setLocalDescription(desc).then(function() {  this.onSetLocalSuccess(desc); }.bind(this), this.onSetSessionDescriptionError);
-        if (this.PendingDescription)
-            delete this.PendingDescription;
+        localPeer.setLocalDescription(desc).then(function() {  this.onSetLocalSuccess(desc); }.bind(this), this.onSetSessionDescriptionError);
+        this.GetPending(stream_name);
     }
 
     this.onSetRemoteSuccess = function(pc) {
         console.log(this.Tag + ': setRemoteDescription complete');
     }
 
-    this.RemoteDescription = function(desc) {
-        if (!this.localPeer) {
-            alert("Local peer is not initialized. Call InitMedia first.");
+    this.RemoteDescription = function(desc, stream_name) {
+        var localPeer = this.GetPeer(stream_name)
+        if (!localPeer) {
+            alert("RemoteDescription: Local peer is not initialized. Call InitMedia first.");
             return;
         }
-        if (this.PendingDescription) {
-            this.LocalDescription(this.PendingDescription);
-            delete this.PendingDescription;
-        }
+        var local_desc = this.GetPending(stream_name);
+        if (local_desc)
+            this.LocalDescription(local_desc, stream_name);
         console.log(this.Tag + ": REMOTE DESCRIPTION");
-        this.localPeer.setRemoteDescription(desc).then(function() { this.onSetRemoteSuccess(this.localPeer); }.bind(this), this.onSetSessionDescriptionError.bind(this));
+        localPeer.setRemoteDescription(desc).then(function() { this.onSetRemoteSuccess(localPeer); }.bind(this), this.onSetSessionDescriptionError.bind(this));
     }
 
-    this.onCreateAnswerSuccess = function(desc) {
+    this.onCreateAnswerSuccess = function(desc, stream_name) {
         console.log(this.Tag + ": Create anwswer ", desc);
-        this.LocalDescription(desc);
+        this.LocalDescription(desc, stream_name);
         if (this.OnCreateAnswer)
-            this.OnCreateAnswer(desc);
+            this.OnCreateAnswer(desc, stream_name);
     }
 
     this.onCreateSessionDescriptionError = function(error) {
         this.Error(error, 'Failed to create session description');
     }
 
-    this.Answer = function() {
-        this.localPeer.createAnswer().then(this.onCreateAnswerSuccess.bind(this), this.onCreateSessionDescriptionError.bind(this));
-    }
-
-    this.Offer = function() {
-        if (!this.localPeer) {
-            alert("Local peer is not initialized. Call InitMedia first.");
+    this.Answer = function(stream_name) {
+        var localPeer = this.GetPeer(stream_name)
+        if (!localPeer) {
+            alert("Answer: Local peer is not initialized. Call InitMedia first.");
             return;
         }
-        var pc_remote = this.NewPeer("remote");
+        localPeer.createAnswer().then(function(desc) { this.onCreateAnswerSuccess(desc, stream_name); }.bind(this), this.onCreateSessionDescriptionError.bind(this));
+    }
+
+    this.Offer = function(stream_name) {
+        var localPeer = this.GetPeer(stream_name)
+        if (!localPeer) {
+            alert("Offer: Local peer is not initialized. Call InitMedia first.");
+            return;
+        }
+        var pc_remote = this.NewPeer("remote", stream_name);
 
         var offerOptions = {offerToReceiveAudio: this.Audio ? 1 : 0, offerToReceiveVideo: this.Video ? 1 : 0}; 
-        this.localPeer.createOffer(
+        localPeer.createOffer(
             offerOptions
-        ).then(
-            this.onCreateOfferSuccess.bind(this),
+        ).then(function(desc) {
+                this.onCreateOfferSuccess(desc, stream_name);
+            }.bind(this),
             this.onCreateSessionDescriptionError
         );
+        return {"local": localPeer, "remote": pc_remote};
+    }
 
-        return {"local": this.localPeer, "remote": pc_remote};
+    this.GetPending = function(channel_name) {
+        var desc;
+        if ((channel_name) && (channel_name.length > 0)) {
+            if (this.PendingChannelDescription[channel_name]) {
+                desc = this.PendingChannelDescription[channel_name];
+                delete this.PendingChannelDescription[channel_name];
+            }
+        } else
+        if (this.PendingDescription) {
+            desc = this.PendingDescription;
+            delete this.PendingDescription;
+        }
+        return desc;
+    }
+
+    this.AddPending = function(desc, channel_name) {
+        if ((channel_name) && (channel_name.length > 0))
+            this.PendingChannelDescription[channel_name] = desc;
+        else
+            this.PendingDescription = desc;
     }
 
     this.Hangup = function() {
+        this.StreamCount = 0;
         for (var i = 0; i < this.Peers.length; i++) {
             var peer = this.Peers[i];
             if (peer) {
@@ -224,6 +278,8 @@ function CommLayer(tag) {
             }
         }
         this.Peers = [ ];
+        this.localPeers = { };
+        this.PendingChannelDescription = { };
         delete this.localPeer;
         if (this.PendingDescription)
             delete this.PendingDescription;
