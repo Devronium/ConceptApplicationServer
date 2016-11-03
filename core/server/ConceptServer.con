@@ -1452,7 +1452,7 @@ class ConceptChild {
 												skip_content = true;
 											} else
 											if (((!is_root) || (!params)) && (if_modified == last_mod)) {
-												buffer = "HTTP/1.1 304 Not Modified\r\nDate: $tstamp\r\nConnection: $connection_policy\r\nContent-Type: $content_type\r\nCache-Control: max-age=31536000\r\nLast-Modified: $last_mod\r\n" + EXTRA_HEADER + "Server: " + SERVER_NAME + "\r\n\r\n";
+												buffer = "HTTP/1.1 304 Not Modified\r\nDate: $tstamp\r\nConnection: $connection_policy\r\nContent-Type: $content_type\r\nCache-Control: max-age=604800\r\nLast-Modified: $last_mod\r\n" + EXTRA_HEADER + "Server: " + SERVER_NAME + "\r\n\r\n";
 												skip_content = true;
 											} else {
 												var extra_origin = "";
@@ -1479,7 +1479,7 @@ class ConceptChild {
 												} else {
 													content_length = _filesize(app);
 												}
-												buffer = "HTTP/1.1 200 OK\r\nDate: $tstamp\r\nConnection: $connection_policy\r\nContent-Type: $content_type\r\nCache-Control: max-age=31536000\r\nLast-Modified: $last_mod\r\nServer: " + SERVER_NAME + "\r\n" + EXTRA_HEADER + extra_origin + "Strict-Transport-Security: max-age=31536000; includeSubDomains; preload\r\nContent-Length: $content_length\r\n\r\n" + data;
+												buffer = "HTTP/1.1 200 OK\r\nDate: $tstamp\r\nConnection: $connection_policy\r\nContent-Type: $content_type\r\nCache-Control: max-age=604800\r\nLast-Modified: $last_mod\r\nServer: " + SERVER_NAME + "\r\n" + EXTRA_HEADER + extra_origin + "Strict-Transport-Security: max-age=31536000; includeSubDomains; preload\r\nContent-Length: $content_length\r\n\r\n" + data;
 											}
 											SocketSetBlocking(Socket.Socket, false);
 											var buf_len = length buffer;
@@ -2610,7 +2610,7 @@ pragma used
 						var headers = [
 							":status" => 200,
 							"server" => "CAS5WS",
-							"cache-control" => "max-age=31536000",
+							"cache-control" => "max-age=604800",
 							"date" => tstamp,
 							"last-modified" => last_mod,
 							H2_EXTRA_HEADER,
