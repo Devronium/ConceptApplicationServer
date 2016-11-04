@@ -211,8 +211,12 @@ class TinDataSet {
 	}
 
 	Query(params, delegate callback, fields = null, len = 0, start = 0, descending = false) {
-		if (typeof params != "array")
-			params = ToArray(params);
+		if (typeof params != "array") {
+			if (typeof params == "object")
+				params = ToArray(params);
+			else
+				params = ['$' => params];
+		}
 
 		var q = new Q(params, Connection.Database, this.Collection, "Q");
 		if (start)
@@ -224,6 +228,22 @@ class TinDataSet {
 		q.f = fields;
 		this.Connection._Handle(q, callback, this.UserData);
 	}
+
+	Aggregate(params, delegate callback, fields = null, len = 0, start = 0, descending = false) {
+		if ((!params) || (typeof params != "array"))
+			return false;
+
+		var q = new Q(params, Connection.Database, this.Collection, "W");
+		if (start)
+			q.x["start"] = start;
+		if (len)
+			q.x["len"] = len;
+		if (descending)
+			q.x["descending"] = descending;
+		q.f = fields;
+		this.Connection._Handle(q, callback, this.UserData);
+	}
+
 
 	Verify(params, challenge, hash, delegate callback, user_field = "username", password_field = "password",  fields = null, hash_function = "sha256") {
 		if (typeof params != "array")

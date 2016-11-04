@@ -30,6 +30,9 @@ define ERR_CODE_RIGHTS	-8
 define ERR_CODE_RIGHTS_S"Server code is disabled for this user"
 define ERR_NOT_UNIQUE	-9
 define ERR_NOT_UNIQUE_S	"Not unique"
+define ERR_AGGREGATION	-10
+define ERR_AGGREGATION_S"Invalid aggregation"
+
 
 define BUSY_FSYNC_LIMIT	 10000
 
@@ -64,6 +67,14 @@ pragma used
 
 	var[] p;
 	var[] x;
+
+	var r;
+	var worker;
+	var socket;
+	var ctx_key;
+	var aindex;
+	var origp;
+	var data;
 }
 
 
@@ -124,23 +135,158 @@ pragma used
 		return res;
 	}
 
+	Dispatch(ctx, sock, t, var next_worker, var next_a_worker, storage_dbs, storage_workers, aggregation_workers, obj, current_worker, var buf) {
+		switch (obj.o) {
+			case "H":
+				if (!ctx.code) {
+					var r = new R();
+					r.q = obj.q;
+					r.e = ERR_CODE_RIGHTS;
+					r.et = ERR_CODE_RIGHTS_S;
+					r.Send(sock);
+					break;
+				}
+			case "A":
+			case "Q":
+			case "S":
+			case "I":
+			case "D":
+			case "X":
+			case "Y":
+			case ".":
+			case "*":
+			case "R":
+			case "L":
+			case "W":
+				if ((!ctx) || (ctx.auth)) {
+					if (typeof obj.c != "string")
+						obj.c = "";
+					if ((!obj.d) || (typeof obj.d != "string") || (Pos(obj.d, "/") > 0) || (Pos(obj.d, "\\") > 0)) {
+						r = new R();
+						r.e = ERR_DB;
+						r.et = ERR_DB_S;
+						r.Send(sock);
+					} else
+					if ((obj.c) && ((Pos(obj.c, "/") > 0) || (Pos(obj.c, "\\") > 0))) {
+						r = new R();
+						r.e = ERR_DB;
+						r.et = ERR_DB_S;
+						r.Send(sock);
+					} else {
+						var storage;
+						var ctx_key = obj.ctx_key;
+						if (!ctx_key) {
+							ctx_key = ctx.key;
+							obj.ctx_key = ctx.key;
+						}
+						if (obj.o == "W") {
+							storage = obj.worker;
+							if (!storage) {
+								storage = aggregation_workers[next_a_worker++];
+								if (next_a_worker >= length aggregation_workers)
+									next_a_worker = 0;
+							}
+							if (obj.socket <= 0)
+								obj.socket = sock;
+							if (!obj.r)
+								obj.r = new R();
+						} else {
+							var storage_key = "" + obj.d + "/" + obj.c;
+							storage = storage_dbs[storage_key];
+							if (!storage) {
+								storage = storage_workers[next_worker++];
+								if (next_worker >= length storage_workers)
+									next_worker = 0;
+								storage_dbs[storage_key] = storage;
+							}
+						}
+						AddWorkerData(storage, BinarizeObject([sock, obj, current_worker, ctx_key]));
+					}
+				} else {
+					r = new R();
+					r.q = obj.q;
+					if (ctx.challenge) {
+						if (obj.o == "A") {
+							var username = obj.p["u"];
+							var digest = obj.p["d"];
+							var db = obj.p["db"];
+							try {
+								var user = t.Query(["username" => username])[0];
+								if (user) {
+									var d2 = sha256(username + ":" + ctx.challenge + ":" + user["password"]);
+									var user_db = user["db"];
+									var db_valid = false;
+									if (user_db) {
+										if (typeof user_db == "array") {
+											for (var db_i = 0; db_i < length user_db; db_i++) {
+												var u_db = user_db[db_i];
+												if ((u_db) && (typeof u_db == "string") && (u_db == user_db)) {
+													db_valid = true;
+													break;
+												}
+											}
+										} else
+										if (user_db == db)
+											db_valid = true;
+									} else
+										db_valid = true;
+									if ((user) && (d2 == digest) && (db_valid)) {
+										ctx.auth = true;
+										if (IsSet(user, "code"))
+											ctx.code = (user["code"] == 1);
+										r.id = 0;
+										r.p["ok"] = true;
+										r.Send(sock);
+									}
+								}
+							} catch (var exc) {
+								echo "Exception: $exc\n";
+							}
+						}
+						if (!ctx.auth) {
+							r.e = ERR_USER_PASS;
+							r.et = ERR_USER_PASS_S;
+							r.Send(sock);
+							RemoveSocket(sock);
+							buf = "";
+						}
+					} else {
+						ctx.challenge = RandomString(48);
+						r.e = ERR_LOGIN;
+						r.et = ERR_LOGIN_S;
+						r.p["c"] = ctx.challenge;
+						r.p["m"] = "sha256";
+						r.Send(sock);
+					}
+				}
+				break;
+		}
+	}
+
 	QueryWorker(n) {
 		n = UnBinarizeObject(n);
 		WorkerID = n[0];
 		var storage_workers = n[1];
 		var[] storage_dbs;
 		var next_worker = 0;
+		var next_a_worker = 0;
 
 		var AccessDB = new TinBase("sys");
 		AccessDB.Mode = "rb";
 		var t = AccessDB["users"];
 		t.Open();
 		var current_worker = CurrentWorker();
+
+		while (!Worker::Pending(var aggregation_data))
+			Sleep(5);
+
+		var aggregation_workers = UnBinarizeObject(aggregation_data);
 		while (true) {
 			var data = "";
 			if (Worker::Pending(data)) {
 				var job = UnBinarizeObject(data);
 				var socket = job[0];
+				var remote_obj = job[1];
 				if (socket > 0) {
 					var post_key = job[1];
 					if (post_key) {
@@ -158,6 +304,10 @@ pragma used
 						sockets[length sockets] = socket;
 						buffers["" + socket] = new ConnectionContext();
 					}
+				} else
+				if (remote_obj) {
+					if ((remote_obj) && (classof remote_obj == "Q") && (remote_obj.o) && ((remote_obj.o == "W") || (remote_obj.o == "Q")))
+						Dispatch(null, -1, null, next_worker, next_a_worker, storage_dbs, storage_workers, aggregation_workers, remote_obj, current_worker, "");
 				}
 			}
 			if ((SocketPoll(sockets, var outsockets, 0)) && (outsockets)) {
@@ -178,113 +328,8 @@ pragma used
 									buf2 = SubStr(buf, bytes, to_read);
 									buf = SubStr(buf, to_read + bytes);
 									obj = UnBinarizeObject(buf2);
- 									if ((obj) && (classof obj == "Q")) {
-										switch (obj.o) {
-											case "H":
-												if (!ctx.code) {
-													var r = new R();
-													r.q = obj.q;
-													r.e = ERR_CODE_RIGHTS;
-													r.et = ERR_CODE_RIGHTS_S;
-													r.Send(sock);
-													break;
-												}
-											case "A":
-											case "Q":
-											case "S":
-											case "I":
-											case "D":
-											case "X":
-											case "Y":
-											case ".":
-											case "*":
-											case "R":
-											case "L":
-												if (ctx.auth) {
-													if (typeof obj.c != "string")
-														obj.c = "";
-													if ((!obj.d) || (typeof obj.d != "string") || (Pos(obj.d, "/") > 0) || (Pos(obj.d, "\\") > 0)) {
-														r = new R();
-														r.e = ERR_DB;
-														r.et = ERR_DB_S;
-														r.Send(sock);
-													} else
-													if ((obj.c) && ((Pos(obj.c, "/") > 0) || (Pos(obj.c, "\\") > 0))) {
-														r = new R();
-														r.e = ERR_DB;
-														r.et = ERR_DB_S;
-														r.Send(sock);
-													} else {
-														var storage_key = "" + obj.d + "/" + obj.c;
-														var storage = storage_dbs[storage_key];
-														if (!storage) {
-															storage = storage_workers[next_worker++];
-															if (next_worker >= length storage_workers)
-																next_worker = 0;
-															storage_dbs[storage_key] = storage;
-														}
-														AddWorkerData(storage, BinarizeObject([sock, obj, current_worker, ctx.key]));
-													}
-												} else {
-													r = new R();
-													r.q = obj.q;
-													if (ctx.challenge) {
-														if (obj.o == "A") {
-															var username = obj.p["u"];
-															var digest = obj.p["d"];
-															var db = obj.p["db"];
-															try {
-																var user = t.Query(["username" => username])[0];
-																if (user) {
-																	var d2 = sha256(username + ":" + ctx.challenge + ":" + user["password"]);
-																	var user_db = user["db"];
-																	var db_valid = false;
-																	if (user_db) {
-																		if (typeof user_db == "array") {
-																			for (var db_i = 0; db_i < length user_db; db_i++) {
-																				var u_db = user_db[db_i];
-																				if ((u_db) && (typeof u_db == "string") && (u_db == user_db)) {
-																					db_valid = true;
-																					break;
-																				}
-																			}
-																		} else
-																		if (user_db == db)
-																			db_valid = true;
-																	} else
-																		db_valid = true;
-																	if ((user) && (d2 == digest) && (db_valid)) {
-																		ctx.auth = true;
-																		if (IsSet(user, "code"))
-																			ctx.code = (user["code"] == 1);
-																		r.id = 0;
-																		r.p["ok"] = true;
-																		r.Send(sock);
-																	}
-																}
-															} catch (var exc) {
-																echo "Exception: $exc\n";
-															}
-														}
-														if (!ctx.auth) {
-															r.e = ERR_USER_PASS;
-															r.et = ERR_USER_PASS_S;
-															r.Send(sock);
-															RemoveSocket(sock);
-															buf = "";
-														}
-													} else {
-														ctx.challenge = RandomString(48);
-														r.e = ERR_LOGIN;
-														r.et = ERR_LOGIN_S;
-														r.p["c"] = ctx.challenge;
-														r.p["m"] = "sha256";
-														r.Send(sock);
-													}
-												}
-												break;
-										}
-									}
+ 									if ((obj) && (classof obj == "Q") && (obj.o))
+										Dispatch(ctx, sock, t, next_worker, next_a_worker, storage_dbs, storage_workers, aggregation_workers, obj, current_worker, buf);
 								} else {
 									ctx.buffer = buf;
 									break;
@@ -373,6 +418,7 @@ pragma used
 		var r = new R();
 		if (obj)
 			r.q = obj.q;
+
 		if ((obj) && (obj.d)) {
 			try {
 				var db = managed_dbs[obj.d];
@@ -764,6 +810,10 @@ pragma used
 			r.et = ERR_DB_S;
 		}
 		if ((!obj) || (!obj.x) || (!IsSet(obj.x, 'silent')) || (!obj.x['silent'])) {
+			if (obj.worker) {
+				obj.r = r;
+				AddWorkerData(obj.worker, BinarizeObject([socket, obj, 0, target_key]));
+			} else
 			if ((target_worker) && (target_key))
 				AddWorkerData(target_worker, BinarizeObject([socket, target_key, r]));
 			else
@@ -791,15 +841,163 @@ pragma used
 	}
 }
 
+class QueryAggregator {
+	var QueryWorkers;
+	var QueryWorkerIndex = 0;
+
+	PopulateValues(arr, key) {
+		var[] values;
+		if ((arr) && (key)) {
+			var[] keys;
+			for (var i = 0; i < length arr; i++) {
+				var e = arr[i];
+				if ((e) && (IsSet(e, key))) {
+					var v = e[key];
+					keys[v] = v;
+				}
+			}
+			for (i = 0; i < length keys; i++)
+				values[i] = keys[i];
+		}	
+		return values;
+	}
+
+	Execute(var data) {
+		var q = UnBinarizeObject(data);
+		var obj;
+		if (q)
+			obj = q[1];
+		if (obj) {
+			var worker = QueryWorkers[QueryWorkerIndex++];
+			if (QueryWorkerIndex >= length QueryWorkers)
+				QueryWorkerIndex = 0;
+			var data_ready = false;
+			if (obj.p) {
+				var new_obj = new Q;
+				new_obj.o = "Q";
+				new_obj.q = obj.q;
+				new_obj.d = obj.d;
+				new_obj.c = obj.c;
+				new_obj.x = obj.x;
+
+				new_obj.socket = obj.socket;
+				new_obj.worker = CurrentWorker();
+				new_obj.ctx_key = obj.ctx_key;
+				if (obj.o == "W") {
+					new_obj.origp = obj.p;
+					new_obj.aindex = 0;
+					new_obj.p = obj.p[0];
+				} else
+				if ((obj.r) && (obj.r.p) && (obj.origp)) {
+					new_obj.aindex = obj.aindex + 1;
+					var p = obj.origp[new_obj.aindex];
+					if (p) {
+						var keys = GetKeys(p);
+						var k1 = keys[0];
+						var k2 = keys[1];
+						var has_query = true;
+						var translate;
+						if ((!k1) && (!k2) && (length p == 2) && (p[0]) && (typeof p[0] == "string")) {
+							k1 = p[0];
+							translate = p[1];
+							has_query = false;
+						}
+
+						if ((length p != 2) || ((!k1) && (!k2)) || ((k1 != '$') && (k2 != '$'))) {
+							obj.r = new R();
+							obj.r.e = ERR_AGGREGATION;
+							obj.r.et = ERR_AGGREGATION_S;
+							data_ready = true;
+						} else {
+							if (k1 == '$') {
+								new_obj.c = k2;
+								if (has_query) {
+									new_obj.p = p[1];
+									translate = p[0];
+								}
+							} else {
+								new_obj.c = k1;
+								if (has_query) {
+									new_obj.p = p[0];
+									translate = p[1];
+								}
+							}
+							if (!new_obj.p)
+								new_obj.p = new [];
+							var query_for_values = 0;
+							if (translate) {
+								keys = GetKeys(translate);
+								for (var i = 0; i < length keys; i++) {
+									var k = keys[i];
+									if (k) {
+										var echivalent_k = translate[echivalent_k];
+										if (echivalent_k) {
+											var v = PopulateValues(obj.r.p, k);
+											if (v) {
+												new_obj.p[echivalent_k] = v;
+												query_for_values++;
+											}
+										}
+									}
+								}
+							}
+							if (query_for_values) {
+								new_obj.origp = obj.origp;
+								new_obj.data = obj.r.p;
+								echo new_obj.p;
+							} else
+								data_ready = true;
+						}
+					} else
+						data_ready = true;
+				} else
+					data_ready = true;
+
+				if (!data_ready)
+					AddWorkerData(worker, BinarizeObject([-1, new_obj]));
+			} else
+				data_ready = true;
+			if (data_ready) {
+				if (!obj.r) {
+					obj.r = new R();
+					obj.q = obj.q;
+				}
+				obj.r.Send(obj.socket);
+			}
+		}
+	}
+
+	QueryAggregator(n) {
+		n = UnBinarizeObject(n);
+		QueryWorkers = n[1];
+		var data = "";
+		while (true) {
+			while (Worker::Pending(data)) {
+				try {
+					Execute(data);
+				} catch (var exc) {
+					echo "Storage worker exception: $exc\n";
+				}
+				data = "";
+			}
+			Sleep(5);
+		}
+	}
+}
+
+
 class TinDB {
 	protected var[] QueryWorkers;
 	protected var WorkerIndex = 0;
 	protected var Socket;
 	protected var[] StorageWorkers;
+	protected var[] AggregatorWorkers;
 
-	TinDB(workers = 4, storage_workers = 4) {
+	TinDB(workers = 4, storage_workers = 4, aggregator_workers = 2) {
 		RandomSeed(unpack("u32", CryptoRandom(4))[0]);
 		var[] sworkers;
+		var[] qworkers;
+		var[] aworkers;
 		for (var i = 0; i < storage_workers; i++) {
 			StorageWorkers[i] = new Worker("StorageWorker", "");
 			var w_obj = StorageWorkers[i]._workerobj;
@@ -808,8 +1006,20 @@ class TinDB {
 		}
 		for (i = 0; i < workers; i++) {
 			QueryWorkers[i] = new Worker("QueryWorker", BinarizeObject(["QW${i+1}", sworkers]));
+			var q_obj = QueryWorkers[i]._workerobj;
+			qworkers[length qworkers] = q_obj;
 			Sleep(100);
 		}
+		for (i = 0; i < aggregator_workers; i++) {
+			AggregatorWorkers[i] = new Worker("QueryAggregator", BinarizeObject(["QAW${i+1}", qworkers]));
+			var a_obj = AggregatorWorkers[i]._workerobj;
+			aworkers[length aworkers] = a_obj;
+			Sleep(100);
+		}
+
+		var aworkers_bin = BinarizeObject(aworkers);
+		for (i = 0; i < length QueryWorkers; i++)
+			AddWorkerData(QueryWorkers[i]._workerobj, aworkers_bin);
 	}
 
 	InitializeDatabases() {
