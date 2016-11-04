@@ -926,8 +926,12 @@ class QueryAggregator {
 				if ((typeof v == "string") || (typeof v == "numeric")) {
 					v = "" + v;
 					var arr = pairs[k];
-					if (IsSet(arr, v))
-						e['$' + k] = arr[v];
+					if (IsSet(arr, v)) {
+						var tmp_key = '$' + k;
+						while (e[tmp_key])
+							tmp_key = '$' + tmp_key;
+						e[tmp_key] = arr[v];
+					}
 				}
 			}
 		}
@@ -943,7 +947,7 @@ class QueryAggregator {
 			if (QueryWorkerIndex >= length QueryWorkers)
 				QueryWorkerIndex = 0;
 			var data_ready = false;
-			if (obj.p) {
+			if (typeof obj.p == "array") {
 				var new_obj = new Q;
 				new_obj.o = "Q";
 				new_obj.q = obj.q;
