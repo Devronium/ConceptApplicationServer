@@ -853,13 +853,84 @@ class QueryAggregator {
 				var e = arr[i];
 				if ((e) && (IsSet(e, key))) {
 					var v = e[key];
-					keys[v] = v;
+					if (typeof v == "string")
+						keys[v] = v;
+					else
+					if (typeof v == "numeric") {
+						v = "" + v;
+						keys[v] = v;
+					}
 				}
 			}
 			for (i = 0; i < length keys; i++)
 				values[i] = keys[i];
 		}	
 		return values;
+	}
+
+	Pairs(elements, pairs) {
+		var[] pairs_tree;
+		var keys = GetKeys(pairs);
+		var[] tree_counts;
+		for (var i = 0; i < length elements; i++) {
+			var e = elements[i];
+			if (e) {
+				for (var j = 0; j < length keys; j++) {
+					var k = keys[j];
+					if (k) {
+						var sorted_pairs = pairs_tree[k];
+						var counts;
+						if (sorted_pairs) {
+							counts = tree_counts[k];
+						} else {
+							sorted_pairs = new [];
+							pairs_tree[k] = sorted_pairs;
+							counts = new [];
+							tree_counts[k] = counts;
+						}
+						var equiv = pairs[k];
+						if ((equiv) && (IsSet(e, equiv))) {
+							var v = e[equiv];
+							if ((typeof v == "string") || (typeof v == "numeric")) {
+								v = "" + v;
+								var count = counts[v];
+								if (!count) {
+									sorted_pairs[v] = e;
+								} else
+								if (count == 1) {
+									sorted_pairs[v] = [sorted_pairs[v], e];
+								} else {
+									var arr = sorted_pairs[v];
+									var key = e['$'];
+									if (key)
+										arr[key] = e;
+									else
+										arr[length arr] = e;
+								}
+								count++;
+								counts[v] = count;
+							}
+						}
+					}
+				}
+			}
+		}
+		return pairs_tree;
+	}
+
+	Filter(e, pairs, keys) {
+		for (var i = 0; i < length keys; i++) {
+			var k = keys[i];
+			if ((k) && (IsSet(e, k))) {
+				var v = e[k];	
+				if ((typeof v == "string") || (typeof v == "numeric")) {
+					v = "" + v;
+					var arr = pairs[k];
+					if (IsSet(arr, v))
+						e['$' + k] = arr[v];
+				}
+			}
+		}
 	}
 
 	Execute(var data) {
@@ -891,6 +962,24 @@ class QueryAggregator {
 				if ((obj.r) && (obj.r.p) && (obj.origp)) {
 					new_obj.aindex = obj.aindex + 1;
 					var p = obj.origp[new_obj.aindex];
+					var qdata;
+					if (!obj.aindex) {
+						qdata = obj.r.p;
+					} else
+					if (obj.data) {
+						qdata = obj.data[0];
+						var pairs = Pairs(obj.r.p, obj.data[1]);
+
+						if ((qdata) && (pairs)) {
+							var pair_keys = GetKeys(pairs);
+							for (var i = 0; i < length qdata; i++) {
+								var e = qdata[i];
+								if (e)
+									Filter(e, pairs, pair_keys);
+							}
+						}
+					} else
+						qdata = new [];
 					if (p) {
 						var keys = GetKeys(p);
 						var k1 = keys[0];
@@ -924,27 +1013,26 @@ class QueryAggregator {
 							}
 							if (!new_obj.p)
 								new_obj.p = new [];
-							var query_for_values = 0;
+							var translate_clean = new [];
 							if (translate) {
 								keys = GetKeys(translate);
-								for (var i = 0; i < length keys; i++) {
+								for (i = 0; i < length keys; i++) {
 									var k = keys[i];
 									if (k) {
-										var echivalent_k = translate[echivalent_k];
-										if (echivalent_k) {
-											var v = PopulateValues(obj.r.p, k);
+										var equivalent_k = translate[equivalent_k];
+										if (equivalent_k) {
+											var v = PopulateValues(qdata, k);
 											if (v) {
-												new_obj.p[echivalent_k] = v;
-												query_for_values++;
+												new_obj.p[equivalent_k] = v;
+												translate_clean[k] = equivalent_k;
 											}
 										}
 									}
 								}
 							}
-							if (query_for_values) {
+							if ((translate_clean) && (qdata)) {
 								new_obj.origp = obj.origp;
-								new_obj.data = obj.r.p;
-								echo new_obj.p;
+								new_obj.data = [qdata, translate_clean];
 							} else
 								data_ready = true;
 						}
@@ -962,6 +1050,8 @@ class QueryAggregator {
 					obj.r = new R();
 					obj.q = obj.q;
 				}
+				if (obj.data)
+					obj.r.p = obj.data[0];
 				obj.r.Send(obj.socket);
 			}
 		}
