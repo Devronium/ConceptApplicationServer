@@ -2004,7 +2004,6 @@ int DoBin(RefContainer *rc, void *ConceptHandler, void *OwnerPTR = 0, int dry_ru
             if (ref_id < 0) {
                 if (!dry_run) {
                     ref_id *= -1;
-                    ref_id--;
                     if ((ref_id > 0) && (ref_id <= MAX_OBJECTS)) {
                         ref_id--;
                         LocalInvoker(INVOKE_SET_VARIABLE, OwnerPTR, (INTEGER)rc->BACK_TYPES[ref_id], rc->BACK_REFERENCES[ref_id], (NUMBER)0);
@@ -2023,7 +2022,7 @@ int DoBin(RefContainer *rc, void *ConceptHandler, void *OwnerPTR = 0, int dry_ru
                         ref_id--;
                         rc->BACK_REFERENCES[ref_id] = str;
                         rc->BACK_REF_COUNT++;
-                        rc->BACK_TYPES[ref_id] = VARIABLE_CLASS;
+                        rc->BACK_TYPES[ref_id] = VARIABLE_ARRAY;
                     }
                 }
                 size = bin_read_size(rc);
@@ -3216,4 +3215,3 @@ CONCEPT_FUNCTION_IMPL(hunpack, 1)
     }
 END_IMPL
 //---------------------------------------------------------------------------
-

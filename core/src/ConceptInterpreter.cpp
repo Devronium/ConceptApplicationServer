@@ -1241,13 +1241,13 @@ void ConceptInterpreter::AnalizeInstructionPath(Optimizer *OPT) {
             int  *posj        = (int *)malloc(sizeof(int) * delta2);
             void ***jumps     = (void ***)malloc(sizeof(void **) * delta2);
             void ***labelsptr = (void ***)malloc(sizeof(void **) * delta2);
-            int  *lrptr       = (int *)malloc(sizeof(int) * delta2);
+            //int  *lrptr       = (int *)malloc(sizeof(int) * delta2);
             for (int i = 0; i < delta2; i++) {
                 labels[i]    = 0;
                 jumps[i]     = 0;
                 labelsptr[i] = 0;
                 posj[i]      = 0;
-                lrptr[i]     = 0;
+                //lrptr[i]     = 0;
             }
 
             for (int i = start; i < end; i++) {
@@ -1259,11 +1259,11 @@ void ConceptInterpreter::AnalizeInstructionPath(Optimizer *OPT) {
                             case KEY_OPTIMIZED_IF:
                                 if ((OE->OperandReserved.ID >= start) && (OE->OperandReserved.ID < end)) {
                                     labels[OE->OperandReserved.ID - start]++;
-                                    if ((OE->Operator.ID == KEY_OPTIMIZED_GOTO) && (i > start)) {
-                                        OENext = &OPT->CODE[i - 1];
-                                        if ((OENext->Operator.TYPE == TYPE_OPERATOR) && (OENext->OperandLeft.TYPE == TYPE_VARIABLE))
-                                            lrptr[OE->OperandReserved.ID - start] = OENext->OperandLeft.ID;
-                                    }
+                                    //if ((OE->Operator.ID == KEY_OPTIMIZED_GOTO) && (i > start)) {
+                                        //OENext = &OPT->CODE[i - 1];
+                                        //if ((OENext->Operator.TYPE == TYPE_OPERATOR) && (OENext->OperandLeft.TYPE == TYPE_VARIABLE))
+                                        //    lrptr[OE->OperandReserved.ID - start] = OENext->OperandLeft.ID;
+                                    //}
                                 }
                                 break;
                         }
@@ -1425,11 +1425,11 @@ void ConceptInterpreter::AnalizeInstructionPath(Optimizer *OPT) {
                     labelsptr[idx] = (void **)malloc(sizeof(void *) * cnt);
                     for (int j = 0; j < cnt; j++)
                         labelsptr[idx][j] = (void *)sljit_emit_label(compiler);
-                    if (cnt == 1) {
+                    /*if (cnt == 1) {
                         if (reg1 != lrptr[idx])
                             reg1 = 0;
-                    } else
-                        reg1 = 0;
+                    } else*/
+                    reg1 = 0;
                     reg2 = 0;
                     reg3 = 0;
                 }
@@ -2558,7 +2558,7 @@ void ConceptInterpreter::AnalizeInstructionPath(Optimizer *OPT) {
                         free(ptr);
                 }
                 free(labelsptr);
-                free(lrptr);
+                //free(lrptr);
             }
             if (jumps)
                 free(jumps);
@@ -7631,4 +7631,3 @@ ConceptInterpreter::~ConceptInterpreter(void) {
     }
 #endif
 }
-
