@@ -75,6 +75,8 @@ pragma used
 	var aindex;
 	var origp;
 	var data;
+	var child;
+	var child_data;
 }
 
 
@@ -937,7 +939,7 @@ class QueryAggregator {
 		}
 	}
 
-	Execute(var data) {
+	Execute(var data, recursive_count = 0) {
 		var q = UnBinarizeObject(data);
 		var obj;
 		if (q)
@@ -953,7 +955,6 @@ class QueryAggregator {
 				new_obj.q = obj.q;
 				new_obj.d = obj.d;
 				new_obj.c = obj.c;
-				new_obj.x = obj.x;
 
 				new_obj.socket = obj.socket;
 				new_obj.worker = CurrentWorker();
@@ -962,41 +963,65 @@ class QueryAggregator {
 					new_obj.origp = obj.p;
 					new_obj.aindex = 0;
 					new_obj.p = obj.p[0];
+					new_obj.x = obj.x;
 				} else
-				if ((obj.r) && (obj.r.p) && (obj.origp)) {
-					new_obj.aindex = obj.aindex + 1;
-					var p = obj.origp[new_obj.aindex];
-					var qdata;
-					if (!obj.aindex) {
-						qdata = obj.r.p;
-					} else
-					if (obj.data) {
-						qdata = obj.data[0];
-						var pairs = Pairs(obj.r.p, obj.data[1]);
+				if ((obj.r) && (obj.origp)) {
+					var p;
+					if (obj.child) {
+						p = obj.child;
+						new_obj.aindex = obj.aindex;
+					} else {
+						new_obj.aindex = obj.aindex + 1;
+						p = obj.origp[new_obj.aindex];
+					}
 
-						if ((qdata) && (pairs)) {
+					var qdata;
+					var ref_data;
+					if (!obj.aindex)
+						qdata = obj.r.p;
+					else
+					if ((obj.data) || (obj.child_data)) {
+						qdata = obj.data[0];
+
+						if (obj.child_data) {
+							ref_data = obj.child_data[0];
+							var pairs = Pairs(obj.r.p, obj.child_data[1]);
+ 						} else {
+							ref_data = qdata;
+							pairs = Pairs(obj.r.p, obj.data[1]);
+						}
+
+						if ((ref_data) && (pairs)) {
+
 							var pair_keys = GetKeys(pairs);
-							for (var i = 0; i < length qdata; i++) {
-								var e = qdata[i];
+							for (var i = 0; i < length ref_data; i++) {
+								var e = ref_data[i];
 								if (e)
 									Filter(e, pairs, pair_keys);
 							}
 						}
 					} else
 						qdata = new [];
+
 					if (p) {
 						var keys = GetKeys(p);
 						var k1 = keys[0];
 						var k2 = keys[1];
 						var has_query = true;
 						var translate;
-						if ((!k1) && (!k2) && (length p == 2) && (p[0]) && (typeof p[0] == "string")) {
+						var child_query = null;
+						if ((length p == 3) && (typeof p[2] == "array"))
+							child_query = p[2];
+						if ((child_query) && (obj.r.p))
+							new_obj.child = child_query;
+
+						if ((!k1) && (!k2) && (length p >= 2) && (p[0]) && (typeof p[0] == "string")) {
 							k1 = p[0];
 							translate = p[1];
 							has_query = false;
 						}
 
-						if ((length p != 2) || ((!k1) && (!k2)) || ((k1 != '$') && (k2 != '$'))) {
+						if (((length p != 2) && (length p != 3)) || ((!k1) && (!k2)) || ((k1 != '$') && (k2 != '$'))) {
 							obj.r = new R();
 							obj.r.e = ERR_AGGREGATION;
 							obj.r.et = ERR_AGGREGATION_S;
@@ -1018,6 +1043,10 @@ class QueryAggregator {
 							if (!new_obj.p)
 								new_obj.p = new [];
 							var translate_clean = new [];
+							if (obj.child)
+								ref_data = obj.r.p;
+							else
+								ref_data = qdata;
 							if (translate) {
 								keys = GetKeys(translate);
 								for (i = 0; i < length keys; i++) {
@@ -1025,7 +1054,7 @@ class QueryAggregator {
 									if (k) {
 										var equivalent_k = translate[equivalent_k];
 										if (equivalent_k) {
-											var v = PopulateValues(qdata, k);
+											var v = PopulateValues(ref_data, k);
 											if (v) {
 												new_obj.p[equivalent_k] = v;
 												translate_clean[k] = equivalent_k;
@@ -1034,9 +1063,11 @@ class QueryAggregator {
 									}
 								}
 							}
-							if ((translate_clean) && (qdata)) {
+							if (qdata) {
 								new_obj.origp = obj.origp;
 								new_obj.data = [qdata, translate_clean];
+								if (obj.child)
+									new_obj.child_data = [obj.r.p, translate_clean];
 							} else
 								data_ready = true;
 						}
@@ -1049,6 +1080,7 @@ class QueryAggregator {
 					AddWorkerData(worker, BinarizeObject([-1, new_obj]));
 			} else
 				data_ready = true;
+
 			if (data_ready) {
 				if (!obj.r) {
 					obj.r = new R();

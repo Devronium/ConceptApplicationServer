@@ -229,7 +229,7 @@ class TinDataSet {
 		this.Connection._Handle(q, callback, this.UserData);
 	}
 
-	Aggregate(params, delegate callback, fields = null, len = 0, start = 0, descending = false) {
+	Join(params, delegate callback, fields = null, len = 0, start = 0, descending = false) {
 		if ((!params) || (typeof params != "array"))
 			return false;
 
