@@ -178,7 +178,7 @@ class TinDataSet {
 		this.Collection = Collection;
 	}
 
-	Store(obj, multiple = false, callback = null, unique = null) {
+	Store(obj, multiple = false, callback = null, unique = null, priority = 0) {
 		if (typeof obj != "array")
 			obj = ToArray(obj);
 		else
@@ -196,21 +196,24 @@ class TinDataSet {
 			q.x["multi"] = true;
 		if ((unique) && ((typeof unique == "array") || (typeof unique == "string")))
 			q.x["unique"] = unique;
+		if (priority)
+			q.x["priority"] = priority;
 		this.Connection._Handle(q, callback, this.UserData);
 	}
 
-	Delete(obj, callback = null) {
+	Delete(obj, callback = null, priority = 0) {
 		if (typeof obj != "array")
 			obj = ToArray(obj);
 
 		var q = new Q(obj, Connection.Database, this.Collection, "D");
 		if (!callback)
 			q.x["silent"] = true;
-
+		if (priority)
+			q.x["priority"] = priority;
 		this.Connection._Handle(q, callback, this.UserData);
 	}
 
-	Query(params, delegate callback, fields = null, len = 0, start = 0, descending = false) {
+	Query(params, delegate callback, fields = null, len = 0, start = 0, descending = false, priority = 0) {
 		if (typeof params != "array") {
 			if (typeof params == "object")
 				params = ToArray(params);
@@ -225,11 +228,13 @@ class TinDataSet {
 			q.x["len"] = len;
 		if (descending)
 			q.x["descending"] = descending;
+		if (priority)
+			q.x["priority"] = priority;
 		q.f = fields;
 		this.Connection._Handle(q, callback, this.UserData);
 	}
 
-	Join(params, delegate callback, fields = null, len = 0, start = 0, descending = false) {
+	Join(params, delegate callback, fields = null, len = 0, start = 0, descending = false, priority = 0) {
 		if ((!params) || (typeof params != "array"))
 			return false;
 
@@ -240,12 +245,14 @@ class TinDataSet {
 			q.x["len"] = len;
 		if (descending)
 			q.x["descending"] = descending;
+		if (priority)
+			q.x["priority"] = priority;
 		q.f = fields;
 		this.Connection._Handle(q, callback, this.UserData);
 	}
 
 
-	Verify(params, challenge, hash, delegate callback, user_field = "username", password_field = "password",  fields = null, hash_function = "sha256") {
+	Verify(params, challenge, hash, delegate callback, user_field = "username", password_field = "password",  fields = null, hash_function = "sha256", priority = 0) {
 		if (typeof params != "array")
 			params = ToArray(params);
 
@@ -255,25 +262,30 @@ class TinDataSet {
 		q.x["hash"] = hash;
 		q.x["user_field"] = user_field;
 		q.x["pass_field"] = password_field;
+		if (priority)
+			q.x["priority"] = priority;
 		q.f = fields;
 		this.Connection._Handle(q, callback, this.UserData);
 	}
 
-	Search(string q_string, delegate callback, fields = null, len = 0, start = 0) {
+	Search(string q_string, delegate callback, fields = null, len = 0, start = 0, priority = 0) {
 		var q = new Q([q_string], Connection.Database, this.Collection, "S");
 		if (start)
 			q.x["start"] = start;
 		if (len)
 			q.x["len"] = len;
+		if (priority)
+			q.x["priority"] = priority;
 		q.f = fields;
 		this.Connection._Handle(q, callback, this.UserData);
 	}
 
-	Drop(callback = null) {
+	Drop(callback = null, priority = 0) {
 		var q = new Q([ ], Connection.Database, this.Collection, "R");
 		if (!callback)
 			q.x["silent"] = true;
-
+		if (priority)
+			q.x["priority"] = priority;
 		this.Connection._Handle(q, callback, this.UserData);
 	}
 
@@ -302,18 +314,22 @@ class TinDataSet {
 		this.Connection._Handle(q, _AuthDelegate);
 	}
 
-	EnsureIndexes(array indexes) {
+	EnsureIndexes(array indexes, priority = 0) {
 		var q = new Q(indexes, Connection.Database, this.Collection, "X");
 		q.x["silent"] = true;
+		if (priority)
+			q.x["priority"] = priority;
 		this.Connection._Handle(q, null);
 	}
 
-	EnsureFullText(fields = null, language = "en") {
+	EnsureFullText(fields = null, language = "en", priority = 0) {
 		if (!fields)
 			fields = new [];
 		var q = new Q(fields, Connection.Database, this.Collection, "Y");
 		q.x["silent"] = true;
 		q.x["lang"] = language;
+		if (priority)
+			q.x["priority"] = priority;
 		this.Connection._Handle(q, null);
 	}
 

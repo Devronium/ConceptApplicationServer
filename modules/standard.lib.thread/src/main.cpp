@@ -37,7 +37,7 @@ struct Container {
 
 struct WorkerContainer {
     void        *worker;
-    void        *variable;
+    // void        *variable;
     AnsiString  class_name;
     AnsiString  data;
     INVOKE_CALL Invoke;
@@ -86,6 +86,16 @@ public:
         node_count++;
     }
 
+    void push_front(void *data) {
+        SimpleQueueNODE *NODE = new SimpleQueueNODE();
+        NODE->NEXT = ROOT;
+        NODE->DATA = data;
+        if (!ROOT)
+            LAST = NODE;
+        ROOT = NODE;
+        node_count++;
+    }
+
     void *front() {
         if (ROOT)
             return ROOT->DATA;
@@ -129,12 +139,19 @@ private:
 public:
     void *worker;
 
-    int AddInput(char *S, int len) {
+    int AddInput(char *S, int len, int priority = 0) {
         AnsiString *temp = new AnsiString();
 
         temp->LoadBuffer(S, len);
         QUEUE_LOCK(input_lock);
+#if USE_STD_QUEUE
         input_data.push(temp);
+#else
+        if (priority > 0)
+            input_data.push_front(temp);
+        else
+            input_data.push(temp);
+#endif
         int size = input_data.size();
         QUEUE_UNLOCK(input_lock);
         return size;
@@ -546,7 +563,7 @@ LPVOID WorkerFunction(LPVOID DPARAM) {
 #endif
     WorkerContainer *cdc       = (WorkerContainer *)DPARAM;
     void            *worker    = cdc->worker;
-    void            *variable  = cdc->variable;
+    //void            *variable  = cdc->variable;
     AnsiString      class_name = cdc->class_name;
     AnsiString      data       = cdc->data;
     INVOKE_CALL     Invoke     = cdc->Invoke;
@@ -554,6 +571,9 @@ LPVOID WorkerFunction(LPVOID DPARAM) {
 
     void *CONTEXT[2];
     void *parameter = NULL;
+
+    void *variable = NULL;
+    Invoke(INVOKE_CREATE_VARIABLE_2, worker, &variable);
     CONTEXT[0] = variable;
     Invoke(INVOKE_CREATE_VARIABLE_2, worker, &parameter);
     CONTEXT[1] = parameter;
@@ -574,15 +594,15 @@ CONCEPT_FUNCTION_IMPL(CreateWorker, 3)
     void *worker = NULL;
     Invoke(INVOKE_CREATE_WORKER, PARAMETERS->HANDLER, &worker);
     if (worker) {
-        void *variable = NULL;
-        Invoke(INVOKE_CREATE_VARIABLE_2, worker, &variable);
-        if (variable) {
+        //void *variable = NULL;
+        //Invoke(INVOKE_CREATE_VARIABLE_2, worker, &variable);
+        //if (variable) {
             ThreadMetaContainer *tmc = new ThreadMetaContainer(worker);
             Invoke(INVOKE_SETPROTODATA, worker, (int)2, tmc, thread_destroy_metadata);
 
             WorkerContainer *cdc = new WorkerContainer();
             cdc->worker     = worker;
-            cdc->variable   = variable;
+            //cdc->variable   = variable;
             cdc->class_name = PARAM(0);
             cdc->data.LoadBuffer(PARAM(2), PARAM_LEN(2));
             cdc->Invoke = Invoke;
@@ -593,8 +613,8 @@ CONCEPT_FUNCTION_IMPL(CreateWorker, 3)
             if (!thandle) {
                 delete cdc;
                 cdc = NULL;
-                LocalInvoker(INVOKE_FREE_VARIABLE, variable);
-                variable = NULL;
+                //LocalInvoker(INVOKE_FREE_VARIABLE, variable);
+                //variable = NULL;
             }
 #else
             pthread_t threadID = 0;
@@ -602,31 +622,36 @@ CONCEPT_FUNCTION_IMPL(CreateWorker, 3)
                 threadID = 0;
                 delete cdc;
                 cdc = NULL;
-                LocalInvoker(INVOKE_FREE_VARIABLE, variable);
-                variable = NULL;
+                //LocalInvoker(INVOKE_FREE_VARIABLE, variable);
+                //variable = NULL;
             }
 #endif
             SET_NUMBER(1, (uintptr_t)threadID);
-        }
-        if (!variable) {
-            Invoke(INVOKE_FREE_WORKER, worker);
-            return (void *)"CreateWorker: Class not found";
-        }
+        //}
+        //if (!variable) {
+        //    Invoke(INVOKE_FREE_WORKER, worker);
+        //    return (void *)"CreateWorker: Class not found";
+        //}
     }
     RETURN_NUMBER((uintptr_t)worker);
 END_IMPL
 //---------------------------------------------------------------------------
-CONCEPT_FUNCTION_IMPL(AddWorkerData, 2)
+CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(AddWorkerData, 2, 3)
     T_HANDLE(AddWorkerData, 0)
     T_STRING(AddWorkerData, 1)
 
+    int priority = 0;
+    if (PARAMETERS_COUNT > 2) {
+        T_NUMBER(AddWorkerData, 2);
+        priority = PARAM_INT(2);
+    }
     void *worker = (void *)(uintptr_t)PARAM(0);
     ThreadMetaContainer *tmc = NULL;
     Invoke(INVOKE_GETPROTODATA, worker, (int)2, &tmc);
     if (!tmc)
         return (void *)"Using a worker function on a non-worker";
 
-    int size = tmc->AddInput(PARAM(1), PARAM_LEN(1));
+    int size = tmc->AddInput(PARAM(1), PARAM_LEN(1), priority);
     RETURN_NUMBER(size);
 END_IMPL
 //---------------------------------------------------------------------------

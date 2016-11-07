@@ -137,7 +137,11 @@ pragma used
 		return res;
 	}
 
-	Dispatch(ctx, sock, t, var next_worker, var next_a_worker, storage_dbs, storage_workers, aggregation_workers, obj, current_worker, var buf) {
+	Dispatch(ctx, sock, t, var next_worker, var next_a_worker, var next_idle_worker, storage_dbs, storage_workers, aggregation_workers, idle_workers, obj, current_worker, var buf) {
+		var priority = 0;
+		if (obj.x)
+			priority = obj.x["priority"];
+
 		switch (obj.o) {
 			case "H":
 				if (!ctx.code) {
@@ -192,6 +196,12 @@ pragma used
 								obj.socket = sock;
 							if (!obj.r)
 								obj.r = new R();
+						} else
+						if (priority < 0) {
+							// idle priority
+							storage = idle_workers[next_idle_worker++];
+							if (next_idle_worker >= length idle_workers)
+								next_idle_worker = 0;
 						} else {
 							var storage_key = "" + obj.d + "/" + obj.c;
 							storage = storage_dbs[storage_key];
@@ -202,7 +212,7 @@ pragma used
 								storage_dbs[storage_key] = storage;
 							}
 						}
-						AddWorkerData(storage, BinarizeObject([sock, obj, current_worker, ctx_key]));
+						AddWorkerData(storage, BinarizeObject([sock, obj, current_worker, ctx_key]), priority);
 					}
 				} else {
 					r = new R();
@@ -269,9 +279,11 @@ pragma used
 		n = UnBinarizeObject(n);
 		WorkerID = n[0];
 		var storage_workers = n[1];
+		var idle_workers =  n[2];
 		var[] storage_dbs;
 		var next_worker = 0;
 		var next_a_worker = 0;
+		var next_idle_worker = 0;
 
 		var AccessDB = new TinBase("sys");
 		AccessDB.Mode = "rb";
@@ -309,7 +321,7 @@ pragma used
 				} else
 				if (remote_obj) {
 					if ((remote_obj) && (classof remote_obj == "Q") && (remote_obj.o) && ((remote_obj.o == "W") || (remote_obj.o == "Q")))
-						Dispatch(null, -1, null, next_worker, next_a_worker, storage_dbs, storage_workers, aggregation_workers, remote_obj, current_worker, "");
+						Dispatch(null, -1, null, next_worker, next_a_worker, next_idle_worker, storage_dbs, storage_workers, aggregation_workers, idle_workers, remote_obj, current_worker, "");
 				}
 			}
 			if ((SocketPoll(sockets, var outsockets, 0)) && (outsockets)) {
@@ -331,7 +343,7 @@ pragma used
 									buf = SubStr(buf, to_read + bytes);
 									obj = UnBinarizeObject(buf2);
  									if ((obj) && (classof obj == "Q") && (obj.o))
-										Dispatch(ctx, sock, t, next_worker, next_a_worker, storage_dbs, storage_workers, aggregation_workers, obj, current_worker, buf);
+										Dispatch(ctx, sock, t, next_worker, next_a_worker, next_idle_worker, storage_dbs, storage_workers, aggregation_workers, idle_workers, obj, current_worker, buf);
 								} else {
 									ctx.buffer = buf;
 									break;
@@ -811,13 +823,17 @@ pragma used
 			r.e = ERR_DB;
 			r.et = ERR_DB_S;
 		}
+		var priority = 0;
+		if ((obj) && (obj.x))
+			priority = obj.x["priority"];
+
 		if ((!obj) || (!obj.x) || (!IsSet(obj.x, 'silent')) || (!obj.x['silent'])) {
 			if (obj.worker) {
 				obj.r = r;
-				AddWorkerData(obj.worker, BinarizeObject([socket, obj, 0, target_key]));
+				AddWorkerData(obj.worker, BinarizeObject([socket, obj, 0, target_key]), priority);
 			} else
 			if ((target_worker) && (target_key))
-				AddWorkerData(target_worker, BinarizeObject([socket, target_key, r]));
+				AddWorkerData(target_worker, BinarizeObject([socket, target_key, r]), priority);
 			else
 				r.Send(socket);
 		}
@@ -944,7 +960,11 @@ class QueryAggregator {
 		var obj;
 		if (q)
 			obj = q[1];
+		var priority = 0;
 		if (obj) {
+			if (obj.x)
+				priority = obj.x["priority"];
+
 			var worker = QueryWorkers[QueryWorkerIndex++];
 			if (QueryWorkerIndex >= length QueryWorkers)
 				QueryWorkerIndex = 0;
@@ -1077,7 +1097,7 @@ class QueryAggregator {
 					data_ready = true;
 
 				if (!data_ready)
-					AddWorkerData(worker, BinarizeObject([-1, new_obj]));
+					AddWorkerData(worker, BinarizeObject([-1, new_obj]), priority);
 			} else
 				data_ready = true;
 
@@ -1117,21 +1137,29 @@ class TinDB {
 	protected var WorkerIndex = 0;
 	protected var Socket;
 	protected var[] StorageWorkers;
+	protected var[] IDLEWorkers;
 	protected var[] AggregatorWorkers;
 
-	TinDB(workers = 4, storage_workers = 4, aggregator_workers = 2) {
+	TinDB(workers = 4, storage_workers = 4, idle_workers = 1, aggregator_workers = 2) {
 		RandomSeed(unpack("u32", CryptoRandom(4))[0]);
 		var[] sworkers;
 		var[] qworkers;
 		var[] aworkers;
+		var[] idleworkers;
 		for (var i = 0; i < storage_workers; i++) {
 			StorageWorkers[i] = new Worker("StorageWorker", "");
 			var w_obj = StorageWorkers[i]._workerobj;
 			sworkers[length sworkers] = w_obj;
 			Sleep(100);
 		}
+		for (i = 0; i < idle_workers; i++) {
+			IDLEWorkers[i] = new Worker("StorageWorker", "");
+			var idle_obj = IDLEWorkers[i]._workerobj;
+			idleworkers[length idleworkers] = idle_obj;
+			Sleep(100);
+		}
 		for (i = 0; i < workers; i++) {
-			QueryWorkers[i] = new Worker("QueryWorker", BinarizeObject(["QW${i+1}", sworkers]));
+			QueryWorkers[i] = new Worker("QueryWorker", BinarizeObject(["QW${i+1}", sworkers, idleworkers]));
 			var q_obj = QueryWorkers[i]._workerobj;
 			qworkers[length qworkers] = q_obj;
 			Sleep(100);

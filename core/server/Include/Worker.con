@@ -26,9 +26,12 @@ class Worker {
 	}
 
 
-	AddData(string data) {
-		if (_workerobj)
+	AddData(string data, priority = 0) {
+		if (_workerobj) {
+			if (priority > 0)
+				return AddWorkerData(_workerobj, data, priority);
 			return AddWorkerData(_workerobj, data);
+		}
 		return -1;
 	}
 
