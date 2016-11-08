@@ -153,7 +153,9 @@ intptr_t spawn_mod(char *cmd, char *workingDirectory, void *environment, int fdS
  #include <sys/resource.h>
  #include <sys/statvfs.h>
  #include <unistd.h>
- #include <sys/stat.h>
+ #include <sys/file.h>
+ #include <inttypes.h>
+ #include <semaphore.h>
  #include <signal.h>
  #include <pwd.h>
  #ifdef WITH_MMAP_FUNCTIONS
@@ -323,20 +325,20 @@ extern char **environ;
  #define F_RDLCK                            1
 #endif
 #ifndef F_WRLCK
- #define F_WRLCK                            2
+ #define F_WRLCK                            3
 #endif
 #ifndef F_UNLCK
- #define F_UNLCK                            3
+ #define F_UNLCK                            2
 #endif
 
 #ifndef F_GETLK
- #define F_GETLK     5
+ #define F_GETLK     7
 #endif
 #ifndef F_SETLK
- #define F_SETLK     6
+ #define F_SETLK     8
 #endif
 #ifndef F_SETLKW
- #define F_SETLKW    7
+ #define F_SETLKW    9
 #endif
 
 #ifdef _WIN32
@@ -3866,15 +3868,47 @@ CONCEPT_FUNCTION_IMPL(ftruncate, 2)
     RETURN_NUMBER(res);
 END_IMPL
 //-----------------------------------------------------------------------------------
+#ifndef _WIN32
+// warning: sem_unlink is never called! (possible memory leak if opening a large amount of files)
+// calling sem_unlink after sem_close can be slow
+void local_lock(int fd) {
+    struct stat buf;
+    if (!fstat(fd, &buf)) {
+        char fbuf[0xFF];
+        snprintf(fbuf, sizeof(fbuf), "/local_%i_%i_%i", (int)getpid(), (int)buf.st_dev, (int)buf.st_ino);
+            
+        sem_t *sem = sem_open(fbuf, O_CREAT, 0600, 1);
+        if (sem) {
+            sem_wait(sem);
+            sem_close(sem);
+        }
+    }
+}
+
+void local_unlock(int fd) {
+    struct stat buf;
+    if (!fstat(fd, &buf)) {
+        char fbuf[0xFF];
+        snprintf(fbuf, sizeof(fbuf), "/local_%i_%i_%i", (int)getpid(), (int)buf.st_dev, (int)buf.st_ino);
+
+        sem_t *sem = sem_open(fbuf, 0);
+        if (sem) {
+            sem_post(sem);
+            sem_close(sem);
+        }
+    }
+}
+#endif
+//-----------------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(LockFileBytes, 4, 6)
     T_HANDLE(LockFileBytes, 0)
     T_NUMBER(LockFileBytes, 1) // lock_type
     T_NUMBER(LockFileBytes, 2) // start
     T_NUMBER(LockFileBytes, 3) // len
 
-    int f_lock_flags = F_SETLK;
+    int f_lock_flags = F_WRLCK;
     int whence = SEEK_SET;
-    if (PARAMETERS_COUNT > 3) {
+    if (PARAMETERS_COUNT > 4) {
         T_NUMBER(LockFileBytes, 4)
         whence = PARAM_INT(4);
     }
@@ -3885,7 +3919,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(LockFileBytes, 4, 6)
 
     FILE *file = (FILE *)(SYS_INT)PARAM(0);
 #ifdef _WIN32
-    if (whence != SEEK_SET) {
+    if (whence == SEEK_SET) {
         HANDLE f = (HANDLE)_get_osfhandle(fileno(file));
         if (f) {
             int64_t start    = PARAM(2);
@@ -3893,24 +3927,65 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(LockFileBytes, 4, 6)
             DWORD   start_lo = (start << 32) >> 32;
             DWORD   start_hi = start >> 32;
 
-            DWORD len_lo = (start << 32) >> 32;
+            DWORD len_lo = (len << 32) >> 32;
             DWORD len_hi = len >> 32;
-            bool  result;
-            if (PARAM_INT(1) == F_UNLCK)
-                result = UnlockFile(f, start_lo, start_hi, len_lo, len_hi);
-            else
-                result = LockFile(f, start_lo, start_hi, len_lo, len_hi);
-        }
-    }
-    RETURN_NUMBER(0);
-#else
-    struct flock fl;
-    fl.l_type   = PARAM_INT(1);
-    fl.l_whence = whence;
-    fl.l_start  = PARAM_INT(2);
-    fl.l_len    = PARAM_INT(3);
 
-    int res = fcntl(fileno(file), f_lock_flags);
+            if ((!start) && (!len)) {
+                len_lo = MAXDWORD;
+                len_hi = MAXDWORD;
+            }
+            bool  result;
+            if (PARAM_INT(1) == F_UNLCK) {
+                result = UnlockFile(f, start_lo, start_hi, len_lo, len_hi);
+            } else {
+                OVERLAPPED sOverlapped;
+                sOverlapped.Offset = start_lo;
+                sOverlapped.OffsetHigh = start_hi;
+                if (PARAM_INT(1) == F_SETLKW) {
+                    result = LockFileEx(f, LOCKFILE_EXCLUSIVE_LOCK, 0, len_lo, len_hi, &sOverlapped);
+                } else
+                    result = LockFileEx(f, 0, 0, len_lo, len_hi, &sOverlapped);
+            }
+            RETURN_NUMBER(result);
+        } else {
+            RETURN_NUMBER(0);
+        }
+    } else {
+        RETURN_NUMBER(0);
+    }
+#else
+    int res = -2;
+#ifndef SKIP_LOCAL_LOCKS
+    if (PARAM_INT(1) == F_UNLCK)
+        local_unlock(fileno(file));
+    else
+        local_lock(fileno(file));
+#endif
+#ifdef LOCK_WITH_FLOCK
+    if ((PARAM(2) == 0) && (PARAM(3) == 0)) {
+        int lock = flock(fileno(file), LOCK_SH);
+        switch (PARAM_INT(1)) {
+            case F_UNLCK:
+                res = flock(fileno(file), LOCK_UN);
+                break;
+            case F_SETLKW:
+                res = flock(fileno(file), LOCK_EX);
+                break;
+            default:
+                res = flock(fileno(file), LOCK_SH);
+                break;
+        }
+    } else 
+#endif
+    {
+        struct flock fl;
+        fl.l_type   = f_lock_flags;
+        fl.l_whence = whence;
+        fl.l_start  = PARAM(2);
+        fl.l_len    = PARAM(3);
+        fl.l_pid    = getpid();
+        res = fcntl(fileno(file), PARAM_INT(1), &fl);
+    }
     if (res) {
         RETURN_NUMBER(0);
     } else {

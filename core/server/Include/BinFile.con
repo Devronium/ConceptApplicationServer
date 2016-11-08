@@ -771,7 +771,7 @@ class BM25Index {
 					for (i = 0; i < length words; i++) {
 						var word = words[i];
 						if (word) {
-							try {								
+							try {
 								file.Store(["w" => word, "d" => id, "a" => document[word], "l" => word_count]);
 								
 								var w = null;
@@ -879,6 +879,24 @@ class BinFile extends File {
 				}
 			}
 		}
+	}
+
+	Lock(write = false, start = 0, len = 0) {
+		if (hFile) {
+			if (write)
+				return LockFileBytes(hFile, F_SETLKW, start, len);
+			return LockFileBytes(hFile, F_SETLKW, start, len, SEEK_SET, F_WRLCK);
+		}
+		return false;
+	}
+
+	Unlock(write = false, start = 0, len = 0) {
+		if (hFile) {
+			if (write)
+				return LockFileBytes(hFile, F_UNLCK, start, len);
+			return LockFileBytes(hFile, F_UNLCK, start, len, SEEK_SET, F_RDLCK);
+		}
+		return false;
 	}
 
 	SyncIndexes() {

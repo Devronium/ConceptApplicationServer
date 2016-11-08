@@ -223,7 +223,9 @@ pragma used
 							var digest = obj.p["d"];
 							var db = obj.p["db"];
 							try {
+								t.Lock();
 								var user = t.Query(["username" => username])[0];
+								t.Unlock();
 								if (user) {
 									var d2 = sha256(username + ":" + ctx.challenge + ":" + user["password"]);
 									var user_db = user["db"];
@@ -466,7 +468,9 @@ pragma used
 								obj.f = null;
 							if (typeof obj.p != "array")
 								obj.p = [ ];
+							t.Lock();
 							r.p = t.Query(obj.p, obj.f, obj.x["descending"], obj.x["start"], obj.x["len"]);
+							t.Unlock();
 							r.id = 0;
 						}
 						break;
@@ -477,7 +481,9 @@ pragma used
 								obj.f = null;
 							if (typeof obj.p != "array")
 								obj.p = [ ];
+							t.Lock();
 							var items = t.Query(obj.p, obj.f, obj.x["descending"], obj.x["start"], obj.x["len"]);
+							t.Unlock();
 							if (items) {
 								t.Delete(items);
 								non_flushed_writes += length items;
@@ -507,6 +513,7 @@ pragma used
 							if (t) {
 								var unique_fields = obj.x["unique"];
 								trigger = _triggers["${obj.d}.${obj.c}"];
+								t.Lock(true);
 								if (multi_insert) {
 									id = new [];
 									for (var i = 0; i < length obj.p; i++) {
@@ -585,6 +592,7 @@ pragma used
 									if (id > 0)
 										obj.p['$'] = id;
 								}
+								t.Unlock();
 								// t.Flush();
 							} else {
 								r.e = ERR_IO;
@@ -599,7 +607,9 @@ pragma used
 						r.id = 0;
 						t = db[obj.c];
 						if ((obj.p) && (typeof obj.p == "array")) {
+							t.Lock();
 							t.EnsureIndexes(obj.p);
+							t.Unlock();
 							non_flushed_writes++;
 						}
 						break;
@@ -612,7 +622,9 @@ pragma used
 								lang = obj.x["lang"];
 							echo "Full text index requested (building index) ...\n";
 							var start_time = microseconds();
+							t.Lock();
 							t.EnsureFullTextIndex(obj.p, lang);
+							t.Unlock();
 							var end_time = microseconds() - start_time;
 							echo "Full text index created in ${end_time/1000}ms\n";
 							non_flushed_writes++;
@@ -777,7 +789,9 @@ pragma used
 									obj.f[username] = username;
 									obj.f[field] = field;
 								}
+								t.Lock();
 								var user_arr = t.Query(obj.p, obj.f, false, 0, 1);
+								t.Unlock();
 								var user = null;
 								if (user_arr)
 									user = user_arr[0];
@@ -1140,6 +1154,22 @@ class TinDB {
 	protected var[] IDLEWorkers;
 	protected var[] AggregatorWorkers;
 
+	Rotate(array, right) {
+		if ((right <= 0) || (!array) || (length array == 1))
+			return array;
+
+		right = length array % right;
+		if (!right)
+			return array;
+
+		var[] new_arr;
+		for (var i = right; i < length array; i++)
+			new_arr[length new_arr] = array[i];
+		for (i = 0; i < right; i++)
+			new_arr[length new_arr] = array[i];
+		return new_arr;
+	}
+
 	TinDB(workers = 4, storage_workers = 4, idle_workers = 1, aggregator_workers = 2) {
 		RandomSeed(unpack("u32", CryptoRandom(4))[0]);
 		var[] sworkers;
@@ -1159,28 +1189,29 @@ class TinDB {
 			Sleep(100);
 		}
 		for (i = 0; i < workers; i++) {
-			QueryWorkers[i] = new Worker("QueryWorker", BinarizeObject(["QW${i+1}", sworkers, idleworkers]));
+			QueryWorkers[i] = new Worker("QueryWorker", BinarizeObject(["QW${i+1}", Rotate(sworkers, i), Rotate(idleworkers, i)]));
 			var q_obj = QueryWorkers[i]._workerobj;
 			qworkers[length qworkers] = q_obj;
 			Sleep(100);
 		}
 		for (i = 0; i < aggregator_workers; i++) {
-			AggregatorWorkers[i] = new Worker("QueryAggregator", BinarizeObject(["QAW${i+1}", qworkers]));
+			AggregatorWorkers[i] = new Worker("QueryAggregator", BinarizeObject(["QAW${i+1}", Rotate(qworkers, i)]));
 			var a_obj = AggregatorWorkers[i]._workerobj;
 			aworkers[length aworkers] = a_obj;
 			Sleep(100);
 		}
 
-		var aworkers_bin = BinarizeObject(aworkers);
 		for (i = 0; i < length QueryWorkers; i++)
-			AddWorkerData(QueryWorkers[i]._workerobj, aworkers_bin);
+			AddWorkerData(QueryWorkers[i]._workerobj, BinarizeObject(Rotate(aworkers, i)));
 	}
 
 	InitializeDatabases() {
 		var AccessDB = new TinBase("sys");
 		var t = AccessDB["users"];
+		t.Lock(true);
 		if (!t.EnsureIndex("username"))
 			t.Store(["username" => "sysdbadministrator", "password" => sha256("sysdbadministrator"), "db" => ""]);
+		t.Unlock(true);
 	}
 
 	Start(port = 2668, max_connections = 1024, working_directory = "", interface = "") {
