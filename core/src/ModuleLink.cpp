@@ -2170,10 +2170,12 @@ INTEGER Invoke(INTEGER INVOKE_TYPE, ...) {
                     pif->Errors.Clear();
                 }
                 pif->SyncClassList();
-                if (ref_pif->Workers)
-                    ref_pif->EnsureThreadSafe();
                 if (pif->parentPIF)
                     ((PIFAlizator *)pif->parentPIF)->SyncClassList();
+                if (ref_pif->Workers) {
+                    ref_pif->SyncClassList();
+                    ref_pif->EnsureThreadSafe();
+                }
             }
             break;
 
