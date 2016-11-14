@@ -1080,7 +1080,7 @@ void ConceptInterpreter::AnalizeInstructionPath(Optimizer *OPT) {
                 case KEY_OPTIMIZED_RETURN:
                 case KEY_OPTIMIZED_ECHO:
                 case KEY_OPTIMIZED_IF:
-                    if (usedflags[OE->OperandLeft.ID - 1] != 3) {
+                    if (usedflags[OE->OperandRight.ID - 1] != 3) {
                         if (usedflags[OE->OperandRight.ID - 1])
                             usedflags[OE->OperandRight.ID - 1] = 2;
                         else

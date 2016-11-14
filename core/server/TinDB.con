@@ -425,7 +425,6 @@ pragma used
 	Execute(var data) {
 		var key;
 		var trigger;
-
 		data = UnBinarizeObject(data);
 		var socket = data[0];
 		var obj = data[1];

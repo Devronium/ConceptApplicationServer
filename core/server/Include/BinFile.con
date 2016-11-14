@@ -1497,9 +1497,10 @@ class BinFile extends File {
 
 		var bm25_document = null;
 		var graph = null;
-		if ((bm25) && (c) && (update_index))
+		// bm25 index updated
+		if ((bm25) && (c) && ((update_index) || (changed_keys)))
 			bm25_document = bm25.document(c, graph, BM25_GRAPH_LEVEL);
-			
+
 		data = BinarizeObject(c);
 		if (data) {
 			var data_comp = "";
@@ -1524,9 +1525,9 @@ class BinFile extends File {
 				if (do_flush)
 					this.Flush();
 				if (update_index) {
-					if (changed_keys == null) {
+					if (changed_keys == null)
 						this.UpdateIndex(obj, id);
-					} else
+					else
 						this.UpdateIndex(changed_keys, id, obj);
 				}
 				if (bm25_document) {
@@ -2397,7 +2398,7 @@ class BinFile extends File {
 			for (var j = 0; j < length keys; j++) {
 				var key = keys[j];
 				var key_arr = cache[j];
-				if (!key_arr) {
+				if ((key) && (!key_arr)) {
 					key_arr = StrSplit(key, ".");
 					cache[j] = key_arr;
 				}
@@ -2576,6 +2577,9 @@ class BinFile extends File {
 		if (IsSet(q/*keys*/, '$')) {
 			filter_by_id = true;
 			var ref_filter_ids = q['$'];//keys['$'];
+			if (typeof ref_filter_ids == "string")
+				ref_filter_ids = [value ref_filter_ids];
+			else
 			if (typeof ref_filter_ids != "array")
 				ref_filter_ids = [ref_filter_ids];
 
