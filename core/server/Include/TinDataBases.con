@@ -34,7 +34,7 @@ pragma used
 		if (q)
 			this.q = q;
 		else
-			this.q = "Q" + Murmur("" + ClsPtr(this) + time() + rand());
+			this.q = "Q" + unpack("u32", CryptoRandom(4))[0];
 		if (typeof obj == "array")
 			this.p = obj;
 		else

@@ -445,7 +445,10 @@ class BM25Index {
 			if (e) {
 				if (document)
 					document += ";";
-				document += e;
+				if (typeof e == "array")
+					document += recursive(e);
+				else
+					document += e;
 			}
 		}
 		return document;

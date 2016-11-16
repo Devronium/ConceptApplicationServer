@@ -147,7 +147,7 @@ struct json_object *do_array(void *arr, bool as_object) {
                     break;
 
                 case VARIABLE_CLASS:
-                    my_elem = do_object((void *)szData);
+                    my_elem = do_object((void *)szData, as_object);
                     break;
 
                 default:
