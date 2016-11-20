@@ -1099,6 +1099,9 @@ class ConceptChild {
 		var max_iap = value IniGet(Owner.IniFile, "Server", "MaxInterAppMessageBuffer", "1024");
 		if (max_iap < 0)
 			max_iap = 0;
+		var max_age = value IniGet(Owner.IniFile, "Server", "MaxAge", "");
+		if (max_age < 0)
+			max_age = 604800;
 
 		this.MaxBuffer = max_iap;
 
@@ -1452,7 +1455,7 @@ class ConceptChild {
 												skip_content = true;
 											} else
 											if (((!is_root) || (!params)) && (if_modified == last_mod)) {
-												buffer = "HTTP/1.1 304 Not Modified\r\nDate: $tstamp\r\nConnection: $connection_policy\r\nContent-Type: $content_type\r\nCache-Control: max-age=604800\r\nLast-Modified: $last_mod\r\n" + EXTRA_HEADER + "Server: " + SERVER_NAME + "\r\n\r\n";
+												buffer = "HTTP/1.1 304 Not Modified\r\nDate: $tstamp\r\nConnection: $connection_policy\r\nContent-Type: $content_type\r\nCache-Control: max-age=$max_age\r\nLast-Modified: $last_mod\r\n" + EXTRA_HEADER + "Server: " + SERVER_NAME + "\r\n\r\n";
 												skip_content = true;
 											} else {
 												var extra_origin = "";
@@ -1479,7 +1482,7 @@ class ConceptChild {
 												} else {
 													content_length = _filesize(app);
 												}
-												buffer = "HTTP/1.1 200 OK\r\nDate: $tstamp\r\nConnection: $connection_policy\r\nContent-Type: $content_type\r\nCache-Control: max-age=604800\r\nLast-Modified: $last_mod\r\nServer: " + SERVER_NAME + "\r\n" + EXTRA_HEADER + extra_origin + "Strict-Transport-Security: max-age=31536000; includeSubDomains; preload\r\nContent-Length: $content_length\r\n\r\n" + data;
+												buffer = "HTTP/1.1 200 OK\r\nDate: $tstamp\r\nConnection: $connection_policy\r\nContent-Type: $content_type\r\nCache-Control: max-age=$max_age\r\nLast-Modified: $last_mod\r\nServer: " + SERVER_NAME + "\r\n" + EXTRA_HEADER + extra_origin + "Strict-Transport-Security: max-age=31536000; includeSubDomains; preload\r\nContent-Length: $content_length\r\n\r\n" + data;
 											}
 											SocketSetBlocking(Socket.Socket, false);
 											var buf_len = length buffer;
@@ -2492,6 +2495,13 @@ pragma used
 		stream.Response(h2, headers, true);
 	}
 
+	MaxAge() {
+		var max_age = value IniGet(IniFile, "Server", "MaxAge", "");
+		if (max_age < 0)
+			max_age = 604800;
+		return max_age;
+	}
+
 	OnRequest(h2, stream) {
 		if (stream.Headers) {
 			var method = stream.Headers[":method"];
@@ -2607,10 +2617,11 @@ pragma used
 					file.Name = app;
 
 					if ((!is_cgi) && ((root_buffer) || (file.Open()))) {
+
 						var headers = [
 							":status" => 200,
 							"server" => "CAS5WS",
-							"cache-control" => "max-age=604800",
+							"cache-control" => "max-age=${this.MaxAge()}",
 							"date" => tstamp,
 							"last-modified" => last_mod,
 							H2_EXTRA_HEADER,
