@@ -128,8 +128,8 @@ pragma used
 	}
 
 	RandomString(len) {
-		var res="";
-		while (length res<len) {
+		var res = "";
+		while (length res < len) {
 			var c = RandomInteger(33, 126);
 			if ((c != '\r') && (c != '\n') && (c != ';'))
 				res += chr(c);

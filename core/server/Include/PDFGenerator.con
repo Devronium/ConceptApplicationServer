@@ -132,6 +132,9 @@ class PDFPage {
 		this.TextX = MarginLeft;
 		this.TextY = Height - MarginTop - MarginBottom;
 
+		if (Owner.Template)
+			this.__CloneElements(Owner.Template);
+
 		if (inherit_header_footer) {
 			var header = Owner.Header;
 			if (header) {
@@ -738,6 +741,7 @@ class PDFGenerator {
 	var[] Images;
 	var Metrics;
 	var EncodingMetrics;
+	var[] Template;
 
 	public property Footer { get GetFooter }
 	public property Header { get GetHeader }
@@ -747,6 +751,21 @@ class PDFGenerator {
 		this.DefaultPageHeight = DefaultPageHeight;
 		this.Metrics = PDF_FONT_METRIC;
 		this.EncodingMetrics = PDF_FONT_ENCODING_METRIC;
+	}
+
+	UseTemplate(page) {
+		Template = new [];
+		if (page) {
+			for (var i = 0; i < length page.Elements; i++)
+				Template[i] = page.Elements[i];
+		}
+	}
+
+	LoadTemplate(page) {
+		if (page) {
+			for (var i = 0; i < length this.Template; i++)
+				page.Elements[length page.Elements] = this.Template[i];
+		}
 	}
 
 	protected LoadEncodingMetrics(fontname_lo) {

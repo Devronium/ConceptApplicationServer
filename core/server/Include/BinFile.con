@@ -4,6 +4,7 @@ include BM25.con
 
 import standard.lang.serialize
 import standard.C.casts
+import standard.C.time
 import standard.net.socket
 import standard.lib.str
 
@@ -16,6 +17,8 @@ define BM25_MODULO_SIZE		48
 define BM25_MAX_WORDCACHE	5000
 
 define MAX_CACHE_OBJECTS	1000
+
+define INDEX_REFRESH_TIMEOUT	30
 
 class TinQueryParser {
 	var min;
@@ -850,6 +853,7 @@ class BinFile extends File {
 	protected var MODULO_SIZE = DEFAULT_MODULO_SIZE;
 	public var Debug = false;
 	public var[] __debug_block_info;
+	protected var index_refresh_time;
 
 
 	BinFile(filename, mode="r+b", default_block_size = DEFAULT_MODULO_SIZE) {
@@ -857,15 +861,23 @@ class BinFile extends File {
 		this.name  = filename;
 		_Index = new BinIndex(filename, this.CompareObjects, this.CompareObjectsReversed);
 		_Index.Unique = false;
-		var data = ReadFile(filename + ".idxn");
 		if (default_block_size > 16)
 			MODULO_SIZE = default_block_size;
+
+		this.RefreshIndexes();
+	}
+
+	RefreshIndexes() {
+		index_refresh_time = time();
+		var filename = this.name;
+		var data = ReadFile(filename + ".idxn");
 		if (data) {
 			Indexes = UnBinarizeObject(data);
 			if (!Indexes)
 				Indexes  = new [];
 			this.SyncIndexes();
 		}
+
 		var bm25_name = filename + ".bm25";
 		if (FileExists(bm25_name)) {
 			data = ReadFile(bm25_name);
@@ -1589,6 +1601,18 @@ class BinFile extends File {
 		return this._Store(obj, update_index, -1, null, do_flush);
 	}
 
+	SafeStore(var obj, update_index = true, do_flush = true) {
+		this.Lock(true);
+		try {
+			var res = this.Store(obj, update_index, do_flush);
+		} catch (var exc) {
+			this.Unlock(true);
+			throw exc;
+		}
+		this.Unlock(true);
+		return res;
+	}
+
 	IsUnique(obj, fields) {
 		if ((!fields) || (!obj))
 			return true;
@@ -2240,6 +2264,7 @@ class BinFile extends File {
 	}
 
 	EnsureIndex(field) {
+		this.RefreshIndexes();
 		if (typeof field == "array")
 			return this.EnsureCompositeIndex(field);
 		else
@@ -2263,6 +2288,9 @@ class BinFile extends File {
 
 	EnsureFullTextIndex(fields, lang = "en") {
 		var bm25_name = this.name + ".bm25";
+		if (!bm25)
+			this.RefreshIndexes();
+
 		if (bm25) {
 			if (bm25.samefields(fields))
 				return false;
@@ -2317,7 +2345,7 @@ class BinFile extends File {
 	EnsureCompositeIndex(array fields) {
 		if (!fields)
 			return false;
-
+		this.RefreshIndexes();
 		var index_name = this.IndexName(fields);
 		if (!index_name)
 			return false;
@@ -2335,6 +2363,7 @@ class BinFile extends File {
 	}
 
 	EnsureIndexes(array fields) {
+		this.RefreshIndexes();
 		for (var i = 0; i < length fields; i++) {
 			var field = fields[i];
 			if (field)
@@ -2476,6 +2505,9 @@ class BinFile extends File {
 	Search(string q, fields = null, start = 0, len = 0) {
 		var bm = this.bm25;
 		if (!bm)
+			this.RefreshIndexes();
+
+		if (!bm)
 			bm = new BM25Index();
 
 		var qdoc = BM25::query(q, bm.lang);
@@ -2536,6 +2568,8 @@ class BinFile extends File {
 	}
 
 	Query(q = null, fields = null, descending = false, start = 0, len = 0) {
+		if (time() - index_refresh_time > INDEX_REFRESH_TIMEOUT)
+			this.RefreshIndexes();
 		var count;
 		if ((q) && (IsSet(q, '#'))) {
 			q = q['#'];
@@ -2673,6 +2707,18 @@ class BinFile extends File {
 			}
 		}
 		return result;
+	}
+
+	SafeQuery(q = null, fields = null, descending = false, start = 0, len = 0) {
+		try {
+			this.Lock();
+			var res = this.Query(q, fields, descending, start, len);
+		} catch (var exc) {
+			this.Unlock();
+			throw exc;
+		}
+		this.Unlock();
+		return res;
 	}
 
 	FlushDB(flush_index = true) {
