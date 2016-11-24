@@ -1,8 +1,10 @@
 include VisibleRemoteObject.con
+import standard.lib.json
 
+define P_SERVERS               "1001"
 define P_RECORD                "1002"
-define P_BEGINPLAYBACK         "1004"
 define P_ADDBUFFER             "1003"
+define P_BEGINPLAYBACK         "1004"
 define P_ADDBUFFER2            "1007"
 
 define EVENT_ON_BUFFER         "350"
@@ -105,6 +107,10 @@ class RWebRTCConference extends VisibleRemoteObject {
 
 	ICE(string candidate) {
 		SetProperty(P_ADDBUFFER2, candidate);
+	}
+
+	UseServers(array servers) {
+		SetProperty(P_SERVERS, JSONSerialize(servers, true));
 	}
 
 	finalize() {

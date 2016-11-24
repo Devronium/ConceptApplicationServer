@@ -9813,6 +9813,9 @@ function ConceptClient(url, container, loading, absolute_paths, debug) {
 				} else
 				if (cls_id == 1018)
 					element.lang = Value;
+				else
+				if (cls_id == CLASS_WEBRTCCONFERENCE)
+					element.CommLayer.servers = {'iceServers': JSON.parse(Value)};
 				break;
 			case P_DRAWVALUE:
 				if (cls_id == 1018) {

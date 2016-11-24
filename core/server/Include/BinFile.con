@@ -18,6 +18,9 @@ define BM25_MAX_WORDCACHE	5000
 
 define MAX_CACHE_OBJECTS	1000
 
+// ASCII char record separator
+define COMPOSITE_FIELD_SEPARATOR "\x1E"
+
 define INDEX_REFRESH_TIMEOUT	30
 
 class TinQueryParser {
@@ -157,6 +160,7 @@ class BinIndex {
 
 	public var Unique = false;
 	public var Database = "";
+	public var GetIndexFields;
 	public property LastError { get _last_error }
 	public property LastErrorString { get GetLastErrorString }
 
@@ -171,7 +175,10 @@ class BinIndex {
 		index_cache = new [];
 	}
 
-	static FiltreName(origname) {
+	FilterName(origname) {
+		if (GetIndexFields)
+			return GetIndexFields(origname);
+
 		if (Pos(origname, "composite.") == 1)
 			origname = StrSplit(SubStr(origname, 10), "&");
 		return origname;
@@ -192,7 +199,8 @@ class BinIndex {
 			if (fields)
 				origname = fields;
 			else
-				origname = FiltreName(origname);
+				origname = FilterName(origname);
+
 			if (Unique)
 				idx = new BTreeFile(f, this._cmp, origname, true);
 			else
@@ -204,7 +212,7 @@ class BinIndex {
 	}
 
 	NewTree(idxname, fields = null) {
-		var idx = GetIndex(idxname);
+		var idx = GetIndex(idxname, fields);
 		if (idx)
 			return idx.CreateSubtree();
 		return -1;
@@ -221,7 +229,7 @@ class BinIndex {
 		var btree = GetIndex(db);
 		if (!btree)
 			throw "Cannot open index (${@class}.${@member})";
-		btree.UserData = FiltreName(db);
+		btree.UserData = FilterName(db);
 		if (Unique)
 			return btree.Add(objid, cached_val, Unique);
 		return btree.Add(cached_val, objid);
@@ -433,7 +441,8 @@ class BM25Index {
 				file.EnsureIndex(["w", "d"]);
 				wordsfile.EnsureIndex("w");
 				graphfile.EnsureIndex(["a", "b"]);
-				graphfile.EnsureIndex(["a", "b", "d"]);
+				// not needed yet & slow
+				// graphfile.EnsureIndex(["a", "b", "d"]);
 				graphfile.EnsureIndex("d");
 			} catch (var exc) {
 				echo "BM25 index error: $exc\n";
@@ -860,11 +869,24 @@ class BinFile extends File {
 		super(mode);
 		this.name  = filename;
 		_Index = new BinIndex(filename, this.CompareObjects, this.CompareObjectsReversed);
+		_Index.GetIndexFields = this.GetIndexFields;
 		_Index.Unique = false;
 		if (default_block_size > 16)
 			MODULO_SIZE = default_block_size;
 
 		this.RefreshIndexes();
+	}
+
+	GetIndexFields(name) {
+		if (IsSet(Indexes, name)) {
+			var idx = Indexes[name];
+			if (idx) {
+				if (typeof idx == "array")
+					return idx[1];
+				return idx;
+			}
+		}
+		return "";
 	}
 
 	RefreshIndexes() {
@@ -970,6 +992,7 @@ class BinFile extends File {
 			return 1;
 		if (a_val < b_val)
 			return -1;
+
 		var type = typeof a_val;
 		if ((typeof a_val == typeof b_val) && (type != "string"))
 			return 0;
@@ -988,7 +1011,11 @@ class BinFile extends File {
 			return -1;
 
 		var type = typeof a_val;
-		if ((typeof a_val == typeof b_val) && (type != "string"))
+		if (type == "string") {
+			if (length a_val < 8)
+				return 0;
+		} else
+		if (type == typeof b_val)
 			return 0;
 
 		if (a == b)
@@ -1006,7 +1033,7 @@ class BinFile extends File {
 		if (b == -1)
 			return this.CompareSearchObject(a, b_val_orig, btree, bottom_layer);
 
-		return this.CompareObjectsNoCache(a, b, btree, bottom_layer);
+		return this.CompareObjectsNoCache(a, b, btree, bottom_layer, b_val_orig);
 	}
 
 	CompareSearchObject(a, key_b, btree, bottom_layer) {
@@ -1082,9 +1109,12 @@ class BinFile extends File {
 		return -2;
 	}
 
-	CompareObjectsNoCache(a, b, btree, bottom_layer) {
+	CompareObjectsNoCache(a, b, btree, bottom_layer, b_val_orig = null) {
 		var obj_a;
 		var obj_b;
+		var key_a;
+		var key_b;
+
 		var key = btree.UserData;
 
 		if (length cache > MAX_CACHE_OBJECTS)
@@ -1104,12 +1134,12 @@ class BinFile extends File {
 		}
 
 		if ((obj_a != null) && (obj_b != null)) {
-			var key_a;
-			var key_b;
-
 			if (typeof key == "array") {
 				key_a = this.GetObjectFieldsAsString(obj_a, key);
-				key_b = this.GetObjectFieldsAsString(obj_b, key);
+				if ((!bottom_layer) && (b_val_orig))
+					key_b = b_val_orig;
+				else
+					key_b = this.GetObjectFieldsAsString(obj_b, key);
 			} else {
 				key_a = obj_a[key];
 				key_b = obj_b[key];
@@ -1556,7 +1586,6 @@ class BinFile extends File {
 	}
 
 	UpdateIndex(obj, id, extra_obj = null) {
-
 		var c;
 		if (typeof obj == "array")
 			c = obj;
@@ -1572,7 +1601,7 @@ class BinFile extends File {
 				if (key) {
 					if (typeof key == "array") {
 						// to do
-						var string_val = this.GetObjectFieldsAsString(c, key[1], var field_count, extra_obj);
+						var string_val = "" + this.GetObjectFieldsAsString(c, key[1], var field_count, extra_obj);
 						if ((field_count) && (!_Index.Put(id, key[0], string_val))) {
 							// to do
 							// this._Delete(id, false, false);
@@ -2205,7 +2234,6 @@ class BinFile extends File {
 	GetObjectFieldsAsString(obj, fields, var field_count = null, extra_obj = null) {
 		var indexed_object = "";
 		field_count = 0;
-
 		for (var i = 0; i < length fields; i++) {
 			var field = fields[i];
 			if (field) {
@@ -2227,7 +2255,7 @@ class BinFile extends File {
 						indexed_object += v;
 					}
 				}
-				indexed_object += "|";
+				indexed_object += COMPOSITE_FIELD_SEPARATOR;
 			}
 		}
 		return indexed_object;
