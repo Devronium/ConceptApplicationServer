@@ -406,8 +406,14 @@ class BTreeFile {
 
 		if ((elements < PAGE_SIZE) || (!bottom_layer)) {
 			while (true) {
-				if ((pos < 0) || (pos >= elements))
-					return null;
+				if ((pos < 0) || (pos >= elements)) {
+					if ((pos != 0) || (elements != 0))
+						return null;
+					// an empty (deleted) page to be recycled
+					elements++;
+					target_node = pos;
+					break;
+				}
 
 				var i = pos * NODE_LOGICAL_ELEMENTS + 1;
 				var left = page[i-1];

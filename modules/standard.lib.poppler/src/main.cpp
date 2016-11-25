@@ -90,17 +90,17 @@ CONCEPT_FUNCTION_IMPL(PDFPageText, 2)
 
     poppler::page *page = pdoc->create_page(PARAM_INT(1));
     if (page) {
+        //latin1
         poppler::ustring buf = page->text();
-        if (buf.to_utf8().size()) {
-#if __cplusplus <= 199711L
-            char *buf_ptr = &buf.to_utf8().front();
-#else
-            char *buf_ptr = &buf.to_utf8().data();
-#endif
-            int size = buf.to_utf8().size();
-
-            if (size > 0) {
-                RETURN_BUFFER(buf_ptr, size);
+        poppler::byte_array s_utf8 = buf.to_utf8();
+        int len = s_utf8.size();
+        if (len > 0) {
+            char *buffer;
+            CORE_NEW(len + 1, buffer);
+            if (buffer) {
+                buffer[len] = 0;
+                std::copy(s_utf8.begin(), s_utf8.end(), buffer);
+                SetVariable(RESULT, -1, buffer, len);
             } else {
                 RETURN_STRING("");
             }
@@ -287,13 +287,9 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(PDFPageImage, 3, 6)
 END_IMPL
 //------------------------------------------------------------------------
 const char *getVectorData(poppler::ustring buf) {
-    if (buf.to_utf8().size()) {
-#if __cplusplus <= 199711L
-        return &buf.to_utf8().front();
-#else
-        return buf.to_utf8().data();
-#endif
-    }
+    const char *res = buf.to_latin1().c_str();
+    if (res)
+        return res;
     return "";
 }
 

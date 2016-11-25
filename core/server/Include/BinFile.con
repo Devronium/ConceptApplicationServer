@@ -788,7 +788,7 @@ class BM25Index {
 						if (word) {
 							try {
 								file.Store(["w" => word, "d" => id, "a" => document[word], "l" => word_count]);
-								
+
 								var w = null;
 								var update_index = true;
 								if ((wordcache) && (IsSet(wordcache, word))) {
@@ -1603,6 +1603,7 @@ class BinFile extends File {
 						// to do
 						var string_val = "" + this.GetObjectFieldsAsString(c, key[1], var field_count, extra_obj);
 						if ((field_count) && (!_Index.Put(id, key[0], string_val))) {
+							echo "Error writing composite index\n";
 							// to do
 							// this._Delete(id, false, false);
 						}
@@ -1611,12 +1612,14 @@ class BinFile extends File {
 						if (!_Index.Put(id, key, c[key])) {
 							// to do
 							// this._Delete(id, false, false);
+							echo "Error writing index $key\n";
 						}
 					} else
 					if (this.IsSet2(c, StrSplit(key, "."), var v)) {
 						if (!_Index.Put(id, key, v)) {
 							// to do
 							// this._Delete(id, false, false);
+							echo "Error writing index $key\n";
 						}
 					}
 				}
