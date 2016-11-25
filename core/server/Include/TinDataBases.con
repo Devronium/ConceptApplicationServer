@@ -71,6 +71,7 @@ class TinConnection {
 	protected var InternalBuffer = "";
 	var Database;
 	var OnReconnectRequested;
+	var OnNotify;
 	private var[] ConnectOptions;
 
 	DriverOpen(string db, string host = "localhost", number port = 2668) {
@@ -135,23 +136,60 @@ class TinConnection {
 				var buf2 = SubStr(InternalBuffer, bytes, size);
 				InternalBuffer = SubStr(InternalBuffer, bytes + size);
 				var obj = UnBinarizeObject(buf2);
-				if ((obj) && (IsSet(ActiveQueries, obj.q))) {
-					var callback = this._RemoveQuery(obj.q);
-					if (callback) {
-						var err;
-						if (obj.e)
-							err = [obj.e, obj.et];
-						if (typeof callback == "array") {
-							var deleg = callback[0];
-							deleg(obj.p, obj.id, err, callback[1]);
-						} else
-							callback(obj.p, obj.id, err);
-					}
+				if (obj) {
+					if (IsSet(ActiveQueries, obj.q)) {
+						var callback = this._RemoveQuery(obj.q);
+						if (callback) {
+							var err;
+							if (obj.e)
+								err = [obj.e, obj.et];
+							if (typeof callback == "array") {
+								var deleg = callback[0];
+								deleg(obj.p, obj.id, err, callback[1]);
+							} else
+								callback(obj.p, obj.id, err);
+						}
+					} else
+					if ((obj.q == "!") && (OnNotify))
+						OnNotify(obj.p["w"], obj.p["o"]);
 				}
 				size = FromSize(InternalBuffer, bytes);
 			}
 		}
 		return cli;
+	}
+
+	AddSubject(string subject, priority = 0) {
+		if (subject) {
+			var q = new Q([ ], Database, "", "+");
+			q.x["silent"] = true;
+			if (priority)
+				q.x["priority"] = priority;
+			q.p = subject;
+			this._Handle(q, null);
+		}
+	}
+
+	RemoveSubject(string subject, priority = 0) {
+		if (subject) {
+			var q = new Q([ ], Database, "", "-");
+			q.x["silent"] = true;
+			if (priority)
+				q.x["priority"] = priority;
+			q.p = subject;
+			this._Handle(q, null);
+		}
+	}
+
+	Notify(string subject, obj, priority = 0) {
+		if (subject) {
+			var q = new Q([ ], Database, "", "!");
+			q.x["silent"] = true;
+			if (priority)
+				q.x["priority"] = priority;
+			q.p = ["w" => subject, "o" => obj];
+			this._Handle(q, null);
+		}
 	}
 
 	Disconnect() {
