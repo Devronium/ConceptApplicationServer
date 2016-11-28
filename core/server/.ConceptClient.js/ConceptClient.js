@@ -9473,7 +9473,9 @@ function ConceptClient(url, container, loading, absolute_paths, debug) {
 					var video = false;
 					var recv_only = false;
 					if (arr[0] != "0")
-						video = true;
+						video = parseInt(arr[0]);
+					if (video == 0)
+						video = false;
 					if (arr[1] != "0")
 						audio = true;
 					if (arr[2] != "0")

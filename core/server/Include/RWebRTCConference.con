@@ -14,6 +14,13 @@ define EVENT_ON_ICESTATUS      "353"
 define EVENT_ON_REMOTESTREAM   "354"
 define EVENT_ON_LOCALSTREAM    "355"
 
+define WEBRTC_VIDEO		1
+define WEBRTC_SCREEN		2
+define WEBRTC_WINDOW		3
+define WEBRTC_DESKTOP		4
+define WEBRTC_BACKCAMERA	10
+define WEBRTC_FRONTCAMERA	11
+
 class RWebRTCConference extends VisibleRemoteObject {
 	//-------- Events ----------------//
 	public property OnSDP { get GetOnSDP, set SetOnSDP }

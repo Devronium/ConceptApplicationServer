@@ -77,8 +77,25 @@ function CommLayer(tag) {
                   maxHeight: height
                 }
               };
+              if (this.Video == 2) {
+                  video.mandatory.chromeMediaSource = 'screen';
+                  video.optional = [];
+              } else
+              if (this.Video == 3) {
+                  video.mandatory.chromeMediaSource = 'window';
+                  video.optional = [];
+              } else
+              if (this.Video == 4) {
+                  video.mandatory.chromeMediaSource = 'desktop';
+                  video.optional = [];
+              } else
+              if (this.Video == 10) {
+                  video.facingMode = 'environment';
+              } else
+              if (this.Video == 11) {
+                  video.facingMode = 'user';
+              }
         }
-
         navigator.mediaDevices.getUserMedia({
             audio: this.Audio,
             video: video
