@@ -2501,6 +2501,10 @@ function ConceptClient(url, container, loading, absolute_paths, debug) {
 			console.warn('ConceptClient is trying to reconnect ...');
 			return;
 		}
+		if ((is_buffer == 0) && (val.length > 0)) {
+			val = new TextEncoder("utf-8").encode(val);
+			is_buffer = 1;
+		}
 		var size = sender.length + target.length + 7;
 		var max = 0;
 		if (is_buffer >= 2) {

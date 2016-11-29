@@ -1099,10 +1099,7 @@ class ConceptChild {
 		var max_iap = value IniGet(Owner.IniFile, "Server", "MaxInterAppMessageBuffer", "1024");
 		if (max_iap < 0)
 			max_iap = 0;
-		var max_age = value IniGet(Owner.IniFile, "Server", "MaxAge", "");
-		if (max_age < 0)
-			max_age = 604800;
-
+		var max_age = value IniGet(Owner.IniFile, "Server", "MaxAge", "604800");
 		this.MaxBuffer = max_iap;
 
 		if (max_idle < 1000000)
@@ -2496,10 +2493,7 @@ pragma used
 	}
 
 	MaxAge() {
-		var max_age = value IniGet(IniFile, "Server", "MaxAge", "");
-		if (max_age < 0)
-			max_age = 604800;
-		return max_age;
+		return value IniGet(IniFile, "Server", "MaxAge", "604800");
 	}
 
 	OnRequest(h2, stream) {
@@ -4327,8 +4321,10 @@ class Main {
 				s.Log("ConceptServer", "Error initializing Concept SSL proxy");
 		}
 		if (USE_DB_SERVICE) {
-			if (ExecuteProcess("concept", ".", ["TinDB.con"], [ ], false) < 0)
-				s.Log("ConceptServer", "Error running database service");
+			if (ExecuteProcess("concept", ".", ["TinDB.con"], [ ], false) < 0) {
+				if (ExecuteProcess(getcwd() + "/concept", ".", ["TinDB.con"], [ ], false) < 0)
+					s.Log("ConceptServer", "Error running database service");
+			}
 		}
 		try {
 			s.Start();
