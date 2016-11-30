@@ -2502,7 +2502,10 @@ function ConceptClient(url, container, loading, absolute_paths, debug) {
 			return;
 		}
 		if ((is_buffer == 0) && (val.length > 0)) {
-			val = new TextEncoder("utf-8").encode(val);
+			if ("TextEncoder" in window)
+				val = new TextEncoder("utf-8").encode(val);
+			else
+				val = stringToUtf8ByteArray(val);
 			is_buffer = 1;
 		}
 		var size = sender.length + target.length + 7;
@@ -13038,8 +13041,12 @@ shortcut = {
 			}
 	
 			//Find Which key is pressed
-			if (e.keyCode) code = e.keyCode;
-			else if (e.which) code = e.which;
+			var code = 0;
+			if (e.keyCode)
+				code = e.keyCode;
+			else
+			if (e.which)
+				code = e.which;
 			var character = String.fromCharCode(code).toLowerCase();
 			
 			if(code == 188) character=","; //If the user presses , when the type is onkeydown
@@ -13223,5 +13230,32 @@ function strip(html) {
    var tmp = document.createElement("DIV");
    tmp.innerHTML = html;
    return tmp.textContent || tmp.innerText || "";
+}
+
+function stringToUtf8ByteArray(str) {
+	var out = [], p = 0;
+	for (var i = 0; i < str.length; i++) {
+		var c = str.charCodeAt(i);
+		if (c < 128) {
+			out[p++] = c;
+		} else
+		if (c < 2048) {
+			out[p++] = (c >> 6) | 192;
+			out[p++] = (c & 63) | 128;
+		} else
+		if (((c & 0xFC00) == 0xD800) && (i + 1) < str.length && ((str.charCodeAt(i + 1) & 0xFC00) == 0xDC00)) {
+			// Surrogate Pair
+			c = 0x10000 + ((c & 0x03FF) << 10) + (str.charCodeAt(++i) & 0x03FF);
+			out[p++] = (c >> 18) | 240;
+			out[p++] = ((c >> 12) & 63) | 128;
+			out[p++] = ((c >> 6) & 63) | 128;
+			out[p++] = (c & 63) | 128;
+		} else {
+			out[p++] = (c >> 12) | 224;
+			out[p++] = ((c >> 6) & 63) | 128;
+			out[p++] = (c & 63) | 128;
+		}
+	}
+	return out;
 }
 //========================================================================================//
