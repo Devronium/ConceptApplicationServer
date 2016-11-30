@@ -491,6 +491,7 @@ pragma used
 	var[] members;
 	var[] _triggers;
 	var non_flushed_writes = 0;
+	var[] other_workers;
 
 	GetDelegate(dbobject, db, name, var objects, var members, r = null) {
 		var arr = StrSplit(name, ".");
@@ -536,10 +537,35 @@ pragma used
 		}
 	}
 
+	ResetDBS(all_workers = false) {
+		if (!all_workers)
+			echo "\t * Resetting storage worker #${CurrentWorker()}\n";
+		else
+			echo "Resetting storage worker #${CurrentWorker()}\n";
+		for (var i = 0; i < length managed_dbs; i++) {
+			var db = managed_dbs[i];
+			if (db)
+				db.Reset();
+		}
+		if (all_workers) {
+			echo "\tresetting child workers ...\n";
+			for (i = 0; i < length other_workers; i++) {
+				var worker = other_workers[i];
+				if (worker)
+					AddWorkerData(worker, BinarizeObject([-8]));
+			}
+		}
+	}
+
 	Execute(var data) {
 		var key;
 		var trigger;
 		data = UnBinarizeObject(data);
+
+		if ((length data == 1) && (data[0] == -8)) {
+			ResetDBS();
+			return;
+		}
 		var socket = data[0];
 		var obj = data[1];
 		var target_worker = data[2];
@@ -721,8 +747,10 @@ pragma used
 						t = db[obj.c];
 						if ((obj.p) && (typeof obj.p == "array")) {
 							t.Lock();
-							t.EnsureIndexes(obj.p);
+							var created_indexes = t.EnsureIndexes(obj.p);
 							t.Unlock();
+							if (created_indexes)
+								this.ResetDBS(true);
 							non_flushed_writes++;
 						}
 						break;
@@ -736,10 +764,15 @@ pragma used
 							echo "Full text index requested (building index) ...\n";
 							var start_time = microseconds();
 							t.Lock();
-							t.EnsureFullTextIndex(obj.p, lang);
+							var index_exists = t.EnsureFullTextIndex(obj.p, lang);
 							t.Unlock();
 							var end_time = microseconds() - start_time;
-							echo "Full text index created in ${end_time/1000}ms\n";
+							if (index_exists) {
+								echo "Index exists (${end_time/1000}ms)\n";
+							} else {
+								echo "Full text index created in ${end_time/1000}ms\n";
+								this.ResetDBS(true);
+							}
 							non_flushed_writes++;
 						}
 						break;
@@ -868,6 +901,7 @@ pragma used
 									r.e = ERR_COLLECTION;
 									r.et = ERR_COLLECTION_S;
 								}
+								this.ResetDBS(true);
 							}
 						} else {
 							r.e = ERR_COLLECTION;
@@ -967,6 +1001,18 @@ pragma used
 	}
 
 	StorageWorker(n) {
+		while (!Worker::Pending(var storage_data))
+			Sleep(5);
+		var all_workers = UnBinarizeObject(storage_data);
+		var current_worker = CurrentWorker();
+		if (all_workers) {
+			for (var j = 0; j < length all_workers; j++) {
+				var worker = all_workers[j];
+				if ((worker) && (worker != current_worker))
+					other_workers[length other_workers] = worker;
+			}
+		}
+
 		while (true) {
 			var data = "";
 			while (Worker::Pending(data)) {
@@ -1290,16 +1336,20 @@ class TinDB {
 		var[] qworkers;
 		var[] aworkers;
 		var[] idleworkers;
+
+		var[] all_storage_workers;
 		for (var i = 0; i < storage_workers; i++) {
 			StorageWorkers[i] = new Worker("StorageWorker", "");
 			var w_obj = StorageWorkers[i]._workerobj;
 			sworkers[length sworkers] = w_obj;
+			all_storage_workers[length all_storage_workers] = w_obj;
 			Sleep(100);
 		}
 		for (i = 0; i < idle_workers; i++) {
 			IDLEWorkers[i] = new Worker("StorageWorker", "");
 			var idle_obj = IDLEWorkers[i]._workerobj;
 			idleworkers[length idleworkers] = idle_obj;
+			all_storage_workers[length all_storage_workers] = idle_obj;
 			Sleep(100);
 		}
 		for (i = 0; i < workers; i++) {
@@ -1317,6 +1367,10 @@ class TinDB {
 
 		for (i = 0; i < length QueryWorkers; i++)
 			AddWorkerData(QueryWorkers[i]._workerobj, BinarizeObject([Rotate(aworkers, i), qworkers]));
+
+		var storage_bin = BinarizeObject(all_storage_workers);
+		for (i = 0; i < length all_storage_workers; i++)
+			AddWorkerData(all_storage_workers[i], storage_bin);
 	}
 
 	InitializeDatabases() {

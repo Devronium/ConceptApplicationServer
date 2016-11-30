@@ -2315,6 +2315,7 @@ class BinFile extends File {
 		cache = new [];
 		cache_id = -1;
 		cache_obj = null;
+		return false;
 	}
 
 	EnsureFullTextIndex(fields, lang = "en") {
@@ -2324,7 +2325,7 @@ class BinFile extends File {
 
 		if (bm25) {
 			if (bm25.samefields(fields))
-				return false;
+				return true;
 			_unlink(bm25_name);
 		}
 		if (!fields)
@@ -2339,6 +2340,7 @@ class BinFile extends File {
 		cache = new [];
 		cache_id = -1;
 		cache_obj = null;
+		return false;
 	}
 
 	SyncBM25Info() {
@@ -2391,15 +2393,20 @@ class BinFile extends File {
 		Indexes[index_name] = [index_name, fields];
 		WriteFile(BinarizeObject(Indexes), name + ".idxn");
 		this.SyncIndexes();
+		return false;
 	}
 
 	EnsureIndexes(array fields) {
 		this.RefreshIndexes();
+		var count = 0;
 		for (var i = 0; i < length fields; i++) {
 			var field = fields[i];
-			if (field)
-				EnsureIndex(field);
+			if (field) {
+				if (!EnsureIndex(field))
+					count++;
+			}
 		}
+		return count;
 	}
 
 	static GetMin(var arr) {
