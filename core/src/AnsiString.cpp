@@ -233,31 +233,55 @@ void AnsiString::operator=(int i) {
 }
 
 int AnsiString::operator <(const char *str) {
-    if ((Data) && (str)) {
+    if ((Data) && (str))
         return strcmp(Data, str) < 0;
-    }
-    return 0;
+
+    const char *ref_Data = Data;
+    if (!str)
+        str = "";
+    if (!ref_Data)
+        ref_Data = "";
+
+    return strcmp(ref_Data, str) < 0;
 }
 
 int AnsiString::operator >(const char *str) {
-    if ((Data) && (str)) {
+    if ((Data) && (str))
         return strcmp(Data, str) > 0;
-    }
-    return 0;
+
+    const char *ref_Data = Data;
+    if (!str)
+        str = "";
+    if (!ref_Data)
+        ref_Data = "";
+
+    return strcmp(ref_Data, str) > 0;
 }
 
 int AnsiString::operator >=(const char *str) {
-    if ((Data) && (str)) {
+    if ((Data) && (str))
         return strcmp(Data, str) >= 0;
-    }
-    return 0;
+
+    const char *ref_Data = Data;
+    if (!str)
+        str = "";
+    if (!ref_Data)
+        ref_Data = "";
+
+    return strcmp(ref_Data, str) >= 0;
 }
 
 int AnsiString::operator <=(const char *str) {
-    if ((Data) && (str)) {
+    if ((Data) && (str))
         return strcmp(Data, str) <= 0;
-    }
-    return 0;
+
+    const char *ref_Data = Data;
+    if (!str)
+        str = "";
+    if (!ref_Data)
+        ref_Data = "";
+
+    return strcmp(ref_Data, str) <= 0;
 }
 
 int AnsiString::operator==(const char *str) {
@@ -326,7 +350,9 @@ int AnsiString::operator >(const AnsiString& S) {
             return 1;
         if ((res == 0) && (this->_LENGTH > S._LENGTH))
             return 1;
-    }
+    } else
+    if (this->_LENGTH)
+        return 1;
     return 0;
 }
 
@@ -339,7 +365,9 @@ int AnsiString::operator <(const AnsiString& S) {
             return 1;
         if ((res == 0) && (this->_LENGTH < S._LENGTH))
             return 1;
-    }
+    } else
+    if (S._LENGTH)
+        return 1;
     return 0;
 }
 
@@ -352,7 +380,9 @@ int AnsiString::operator >=(const AnsiString& S) {
             return 1;
         if ((res == 0) && (this->_LENGTH >= S._LENGTH))
             return 1;
-    }
+    } else
+    if ((this->_LENGTH) || (this->_LENGTH == S._LENGTH))
+        return 1;
     return 0;
 }
 
@@ -365,7 +395,9 @@ int AnsiString::operator <=(const AnsiString& S) {
             return 1;
         if ((res == 0) && (this->_LENGTH <= S._LENGTH))
             return 1;
-    }
+    } else
+    if ((S._LENGTH) || (this->_LENGTH == S._LENGTH))
+        return 1;
     return 0;
 }
 
