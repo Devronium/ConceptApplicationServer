@@ -877,8 +877,8 @@ void AnsiString::ReplaceCharWithString(AnsiString& s, intptr_t position) {
             Data       = (char *)realloc(Data, _DATA_SIZE);
         }
         if (Data) {
-            memcpy(Data + position + s._LENGTH, Data + position + 1, _LENGTH - position - 1);
-            memcpy(Data + position, s.Data, s._LENGTH);
+            memmove(Data + position + s._LENGTH, Data + position + 1, _LENGTH - position - 1);
+            memmove(Data + position, s.Data, s._LENGTH);
             _LENGTH       = len - 1;
             Data[_LENGTH] = 0;
         }
