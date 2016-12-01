@@ -469,14 +469,29 @@ void AnsiString::operator +=(const AnsiString& S) {
     }
 
     if ((Data) && (len_value)) {
-        len     = _LENGTH;
-        _LENGTH = len + len_value;
-        if (_DATA_SIZE < _LENGTH + 1) {
-            _DATA_SIZE = ((_LENGTH + 1) / BLOCK_SIZE) * BLOCK_SIZE + BLOCK_SIZE;
+        if (Data == S.Data) {
+            // overlapping !
+            AnsiString temp(S);
+            len     = _LENGTH;
+            _LENGTH = len + len_value;
 
-            Data = (char *)realloc(Data, _DATA_SIZE);
+            if (_DATA_SIZE < _LENGTH + 1) {
+                _DATA_SIZE = ((_LENGTH + 1) / BLOCK_SIZE) * BLOCK_SIZE + BLOCK_SIZE;
+
+                Data = (char *)realloc(Data, _DATA_SIZE);
+            }
+            MEMCPY(Data + len, temp.Data, len_value + 1);
+        } else {
+            len     = _LENGTH;
+            _LENGTH = len + len_value;
+
+            if (_DATA_SIZE < _LENGTH + 1) {
+                _DATA_SIZE = ((_LENGTH + 1) / BLOCK_SIZE) * BLOCK_SIZE + BLOCK_SIZE;
+
+                Data = (char *)realloc(Data, _DATA_SIZE);
+            }
+            MEMCPY(Data + len, S.Data, len_value + 1);
         }
-        MEMCPY(Data + len, S.Data, len_value + 1);
     } else {
         operator=(S);
     }
