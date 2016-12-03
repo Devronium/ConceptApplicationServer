@@ -464,11 +464,10 @@ void AnsiString::operator +=(const AnsiString& S) {
     size_t len;
     size_t len_value = S._LENGTH;
 
-    if (!len_value) {
+    if (!len_value)
         return;
-    }
 
-    if ((Data) && (len_value)) {
+    if (Data) {
         if (Data == S.Data) {
             // overlapping !
             AnsiString temp(S);
@@ -682,7 +681,11 @@ void AnsiString::LinkBuffer(char *buffer, int size) {
 }
 
 void AnsiString::LoadBuffer(const char *buffer, int size) {
-    free(Data);
+    void *free_after = NULL;
+    if ((Data) && (buffer == Data))
+        free_after = Data;
+    else
+        free(Data);
     if (size < 0) {
         size = 0;
     }
@@ -697,10 +700,17 @@ void AnsiString::LoadBuffer(const char *buffer, int size) {
     if (Data) {
         MEMCPY(Data, buffer, size);
         Data [size] = 0;
-    }
+    }   
+    free(free_after);
 }
 
 void AnsiString::Sum(AnsiString& S1, AnsiString& S2) {
+    if ((Data) && ((S1.Data == Data) || (S2.Data == Data))) {
+        this->LoadBuffer(S1.Data, S1._LENGTH);
+        *this += S2;
+        return;
+    }
+
     int len1 = S1._LENGTH;
     int len2 = S2._LENGTH;
     int size = len1 + len2;
@@ -720,8 +730,9 @@ void AnsiString::Sum(AnsiString& S1, AnsiString& S2) {
     } else
         this->IncreaseBuffer(size - _LENGTH);
 
-    if (len1)
+    if (len1) {
         MEMCPY(Data, S1.Data, len1);
+    }
     if (len2)
         MEMCPY(Data + len1, S2.Data, len2);
     _LENGTH     = size;
@@ -887,16 +898,22 @@ void AnsiString::ReplaceCharWithString(AnsiString& s, intptr_t position) {
         Data[position] = s.Data[0];
     } else {
         uintptr_t len = _LENGTH + s._LENGTH;
+        const char *ptr = s.Data;
+        uintptr_t ptr_len = s._LENGTH;
+        AnsiString temp;
+        if (s.Data == Data) {
+            temp = s;
+            ptr = temp.c_str();
+        }
         if (len > _DATA_SIZE) {
             _DATA_SIZE = (len / BLOCK_SIZE) * BLOCK_SIZE + BLOCK_SIZE;
             Data       = (char *)realloc(Data, _DATA_SIZE);
         }
         if (Data) {
-            memmove(Data + position + s._LENGTH, Data + position + 1, _LENGTH - position - 1);
-            memmove(Data + position, s.Data, s._LENGTH);
+            memmove(Data + position + ptr_len, Data + position + 1, _LENGTH - position - 1);
+            memmove(Data + position, ptr, ptr_len);
             _LENGTH       = len - 1;
             Data[_LENGTH] = 0;
         }
     }
 }
-
