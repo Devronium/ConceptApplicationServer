@@ -147,7 +147,6 @@ CONCEPT_DLL_API CONCEPT_WebVar CONCEPT_API_PARAMETERS {
 
     char *data = qValueFirst(CHAR_VAL);
 
-
     /*if (!data) {
         qFree();
         return (void *)"WebVar : QUERY_STRING enviroment variable NOT FOUND. Not running in CGI mode ?";
@@ -191,13 +190,13 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(SessionStart, 0, 2)
         T_STRING(SessionStart, 0);
 
         path = PARAM(0);
-        if (path[0] == 0)
+        if ((path) && (path[0] == 0))
             path = NULL;
 
         if (PARAMETERS_COUNT == 2) {
             T_STRING(SessionStart, 1)
             ses = PARAM(1);
-            if (ses[0] == 0)
+            if ((ses) && (ses[0] == 0))
                 ses = NULL;
         }
     }
@@ -206,7 +205,11 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(SessionStart, 0, 2)
     char *sessid = qSessionGetID();
 
 //SetVariable(RESULT,VARIABLE_STRING,sessid,0);
-    RETURN_STRING(sessid);
+    if (sessid) {
+        RETURN_STRING(sessid);
+    } else {
+        RETURN_STRING("");
+    }
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_DLL_API CONCEPT_SessionDestroy CONCEPT_API_PARAMETERS {

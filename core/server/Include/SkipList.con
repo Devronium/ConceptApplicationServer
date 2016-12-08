@@ -1,0 +1,166 @@
+include File.con
+include Serializable.con
+import standard.math.rand
+import standard.C.time
+import standard.lib.thread
+import standard.lang.cli
+import standard.C.casts
+import standard.net.socket
+//include Profiler.con
+
+// 64k reserved for header
+// define HEADER_SIZE	0xFFFF
+define LIST_LEVELS	6
+define MAX_BLOCK_SIZE	0xFFF
+
+class SkipNode {
+	var next;
+	var key;
+	var next_list;
+	var prev_list;
+
+	SkipNode(key = null) {
+		this.key = key;
+	}
+}
+
+class SkipList extends File {
+	protected var first;
+
+	SkipList(name) {
+		super("ab+");
+		this.Name = name;
+	}
+
+	ReadNode(offset) {
+		this.Seek(offset);
+		if (this.Read(var data, 2) == 2) {
+			var size = ntohs(tounumber(data, 16));
+			if (this.Read(var buf, size) == size)
+				return UnBinarizeObject(buf);
+		}
+		return null;
+	}
+
+	WriteNode(node, offset = -1) {
+		if (offset >= 0)
+			this.Seek(offset);
+		else
+			this.Seek(0, SEEK_END);
+		var obj = [node.key, 0, 0, 0, 0];
+		var buf = BinarizeObject(obj);
+		if (buf) {
+			this.Write(toubin(htons(length buf), 16) + buf);
+			return true;
+		}
+		return false;
+	}
+
+	override Open;
+	Open() {
+		if (File::Open()) {
+			this.ReadNode(0);
+			return true;
+		}
+		return false;
+	}
+
+	Add(key, number data) {
+		if (first) {
+			var list = first;
+			var last_list;
+			var level = 0;
+			var[] trace;
+			var index = 0;
+			var before = false;
+			var last_last_list;
+			do {
+				last_last_list = last_list;
+				last_list = list;
+				if (key <= list.key) {
+					if (!last_last_list)
+						break;
+					last_list = last_last_list;
+					while (last_list.next_list) {
+						last_list = last_list.next_list;
+						level++;
+					}
+					before = true;
+					break;
+				} else {
+					list = list.next;
+					index++;
+				}
+
+				if (!list) {
+					trace[length trace] = last_list;
+					list = last_list.next_list;
+					if (list)
+						level++;
+				}
+			} while (list);
+
+			level = LIST_LEVELS - 1;
+			var prec_node;
+			do {
+				var node = new SkipNode(key);
+				node.next = last_list.next;
+				last_list.next = node;
+				node.next_list = prec_node;
+				if (prec_node)
+					prec_node.prev_list = node;
+
+				prec_node = node;
+				this.WriteNode(node);
+				level--;
+				if (level < 0)
+					break;
+				if (before)
+					last_list = last_list.prev_list;
+				else
+					last_list = trace[level];
+
+				if (!last_list)
+					break;
+			} while (RandomInteger(0,1));
+		} else {
+			var prev_node;
+			for (var i = 0; i < LIST_LEVELS; i++) {
+				node = new SkipNode(key);
+				if (!first)
+					first = node;
+				if (prev_node)
+					prev_node.next_list = node;
+				node.prev_list = prev_node;
+				prev_node = node;
+			}
+			this.WriteNode(first);
+		}
+	}
+
+	Print(level = 0) {
+		var list = first;
+		var step = level;
+		while (step > 0) {
+			if (!list)
+				return;
+			list = list.next_list;
+			step--;
+		}
+		echo "\nLEVEL: $level\n";
+		var idx = 0;
+		while (list) {
+			echo "$idx.KEY: ";
+			echo list.key;
+			echo "\n";
+			list = list.next;
+			idx++;
+		}
+		echo "==============\n";
+	}
+
+	finalize() {
+		first = null;
+		CheckReachability();
+	}
+}
