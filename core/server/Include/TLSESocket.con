@@ -83,7 +83,6 @@ class TLSESocket extends TCPSocket {
 		return TLSESetExportable(tls);
 	}
 
-
 	public HandshakeIterate() {
 		if (Socket<=0)
 			throw "Invalid TLS socket (HandshakeIterate)";

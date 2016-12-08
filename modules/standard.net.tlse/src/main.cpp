@@ -378,6 +378,14 @@ CONCEPT_FUNCTION_IMPL(TLSESent, 2)
     }
 END_IMPL
 //------------------------------------------------------------------------
+CONCEPT_FUNCTION_IMPL(TLSEClearCertificates, 1)
+    T_HANDLE(TLSEClear, 0)
+    TLSContext *context = (TLSContext *)(SYS_INT)PARAM(0);
+
+    int res = tls_clear_certificates(context);
+    RETURN_NUMBER(res);
+END_IMPL
+//------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(TLSELoadKeys, 3)
     T_HANDLE(TLSELoadKeys, 0)
     T_STRING(TLSELoadKeys, 1)

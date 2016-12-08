@@ -7331,6 +7331,31 @@ int tls_load_private_key(struct TLSContext *context, const unsigned char *pem_bu
     return 0;
 }
 
+int tls_clear_certificates(struct TLSContext *context) {
+    int i;
+    if ((!context) || (!context->is_server) || (context->is_child))
+        return TLS_GENERIC_ERROR;
+
+    if (context->root_certificates) {
+        for (i = 0; i < context->root_count; i++)
+            tls_destroy_certificate(context->root_certificates[i]);
+    }
+    context->root_certificates = NULL;
+    context->root_count = 0;
+    if (context->private_key)
+        tls_destroy_certificate(context->private_key);
+    context->private_key = NULL;
+#ifdef TLS_ECDSA_SUPPORTED
+    if (context->ec_private_key)
+        tls_destroy_certificate(context->ec_private_key);
+    context->ec_private_key = NULL;
+#endif
+    TLS_FREE(context->certificates);
+    context->certificates = NULL;
+    context->certificates_count = 0;
+    return 0;
+}
+
 struct TLSPacket *tls_build_certificate(struct TLSContext *context) {
     int i;
     unsigned int all_certificate_size = 0;
