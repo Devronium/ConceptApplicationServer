@@ -71,14 +71,16 @@ class PDFColumn {
 class PDFCell {
 	var text;
 	var span = 1;
+	var style;
 	
 	PDFCell(text) {
 		this.text = text;
 	}
 
-	static put(text, span) {
+	static put(text, span, style = null) {
 		var cell = new PDFCell(text);
 		cell.span = span;
+		cell.style = style;
 		return cell;
 	}
 }
@@ -264,10 +266,11 @@ class PDFPage {
 		return this.Append(text);
 	}
 
-	protected  __ComputeRowHeight(row, table, var wrapped_rows, padding, var spans = null) {
+	protected  __ComputeRowHeight(row, table, var wrapped_rows, padding, var spans = null, var styles = null) {
 		var columns = table.columns;
 		wrapped_rows = new [];
 		spans = new [];
+		styles = new [];
 		var max = 0;
 		padding *= 2;
 		var len = length row;
@@ -285,6 +288,8 @@ class PDFPage {
 						// to do
 						span = txt.span;
 						caption = "" + txt.text;
+						if (txt.style)
+							styles[rowindex] = txt.style;
 						break;
 					case "numeric":
 					case "string":
@@ -509,7 +514,7 @@ class PDFPage {
 			x = table_x;
 			var row = data[i];
 			if (row) {
-				var row_height = this.__ComputeRowHeight(row, table, out_rows, padding, var spans) * FontSize * font_height_coef;
+				var row_height = this.__ComputeRowHeight(row, table, out_rows, padding, var spans, var styles) * FontSize * font_height_coef;
 
 				if ((auto_pos) && (row_y - row_height <= MarginBottom) && (row_height < max_row_size)) {
 					if (return_offset)
@@ -531,6 +536,7 @@ class PDFPage {
 						y = row_y;
 
 						var span = spans[k];
+						var spanstyle = styles[k];
 						var column_width = column.computed_width;
 						if (span >= 2) {
 							for (var k1 = 1; k1 < span; k1++) {
@@ -553,6 +559,11 @@ class PDFPage {
 								background = background ?? this.__style(rstyle, "background", background);
 								textcolor = textcolor ?? this.__style(rstyle, "text-color", textcolor);
 							}
+						}
+						if ((spanstyle) && (typeof spanstyle == "array")) {
+							color = this.__style(spanstyle, "color", color);
+							background = this.__style(spanstyle, "background", background);
+							textcolor = this.__style(spanstyle, "text-color", textcolor);
 						}
 
 						if ((border) || (background) || (color)) {
