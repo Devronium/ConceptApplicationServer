@@ -68,6 +68,21 @@ class PDFColumn {
 	}
 }
 
+class PDFCell {
+	var text;
+	var span = 1;
+	
+	PDFCell(text) {
+		this.text = text;
+	}
+
+	static put(text, span) {
+		var cell = new PDFCell(text);
+		cell.span = span;
+		return cell;
+	}
+}
+
 class PDFTable {
 	var columns;
 	var data;
@@ -249,20 +264,48 @@ class PDFPage {
 		return this.Append(text);
 	}
 
-	protected  __ComputeRowHeight(row, table, var wrapped_rows, padding) {
+	protected  __ComputeRowHeight(row, table, var wrapped_rows, padding, var spans = null) {
 		var columns = table.columns;
 		wrapped_rows = new [];
+		spans = new [];
 		var max = 0;
 		padding *= 2;
 		var len = length row;
 		if (len > length columns)
 			len = length columns;
+		var rowindex = 0;
 		for (var i = 0; i < len; i++) {
-			var caption = "" + row[i];
 			var column = columns[i];
 			if (column) { 
+				var txt = row[rowindex];
+				var span = 1;
+				var caption = "";
+				switch (typeof txt) {
+					case "class":
+						// to do
+						span = txt.span;
+						caption = "" + txt.text;
+						break;
+					case "numeric":
+					case "string":
+						caption += txt;
+						break;
+					default:
+						caption = "";
+				}
+				spans[rowindex] = span;
 				if (caption) {
-					var lines = this.Owner.Wrap(caption, Font, FontSize, column.computed_width - padding);
+					var column_size = column.computed_width - padding;
+					if (span >= 2) {
+						for (var j = 1; j < span; j++) {
+							if (j >= len)
+								break;
+							var span_column = columns[i + j];
+							if (span_column)
+								column_size += span_column.computed_width;
+						}
+					}
+					var lines = this.Owner.Wrap(caption, Font, FontSize, column_size);
 					if (lines) {
 						wrapped_rows[i] = lines;
 						if (length lines > max)
@@ -270,6 +313,10 @@ class PDFPage {
 					}
 				} else
 					wrapped_rows[i] = "";
+
+				if (span >= 2)
+					i += span - 1;
+				rowindex++;
 			}
 		}
 		if (length wrapped_rows == 0)
@@ -462,7 +509,7 @@ class PDFPage {
 			x = table_x;
 			var row = data[i];
 			if (row) {
-				var row_height = this.__ComputeRowHeight(row, table, out_rows, padding) * FontSize * font_height_coef;
+				var row_height = this.__ComputeRowHeight(row, table, out_rows, padding, var spans) * FontSize * font_height_coef;
 
 				if ((auto_pos) && (row_y - row_height <= MarginBottom) && (row_height < max_row_size)) {
 					if (return_offset)
@@ -483,6 +530,16 @@ class PDFPage {
 							continue;
 						y = row_y;
 
+						var span = spans[k];
+						var column_width = column.computed_width;
+						if (span >= 2) {
+							for (var k1 = 1; k1 < span; k1++) {
+								var span_column = columns[k + k1];
+								if (span_column)
+									column_width += span_column.computed_width;
+							}
+							k += span - 1;
+						}
 						var has_style = false;
 
 						var background = column.background;
@@ -515,7 +572,7 @@ class PDFPage {
 								if (background)
 									this.Color = background;
 							}
-							this.Rectangle(x, y - row_height - padding * 2, column.computed_width - line_width * 2, row_height + padding * 2, filled);
+							this.Rectangle(x, y - row_height - padding * 2, column_width - line_width * 2, row_height + padding * 2, filled);
 						}
 						if (caption) {
 							if (textcolor) {
@@ -536,7 +593,7 @@ class PDFPage {
 									delta = 0;
 									if (column.align > 0) {
 										len = this.Owner.Measure(line, Font, FontSize);
-										delta_ref = column.computed_width - padding * 2 - len;
+										delta_ref = column_width - padding * 2 - len;
 										if (delta_ref > 0)
 											delta = column.align * delta_ref;
 									}
@@ -547,7 +604,7 @@ class PDFPage {
 						}
 						if (has_style)
 							this.Pop();
-						x += column.computed_width;
+						x += column_width;
 					}
 				}
 				row_y -= row_height + padding * 2;
