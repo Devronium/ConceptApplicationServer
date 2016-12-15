@@ -274,10 +274,12 @@ class PDFPage {
 		var max = 0;
 		padding *= 2;
 		var len = length row;
+		var len_columns = length columns;
 		if (len > length columns)
-			len = length columns;
+			len = len_columns;
 		var rowindex = 0;
-		for (var i = 0; i < len; i++) {
+		var i = 0;
+		while (i < len_columns) {
 			var column = columns[i];
 			if (column) { 
 				var txt = row[rowindex];
@@ -289,7 +291,7 @@ class PDFPage {
 						span = txt.span;
 						caption = "" + txt.text;
 						if (txt.style)
-							styles[rowindex] = txt.style;
+							styles[i] = txt.style;
 						break;
 					case "numeric":
 					case "string":
@@ -298,14 +300,15 @@ class PDFPage {
 					default:
 						caption = "";
 				}
-				spans[rowindex] = span;
+				spans[i] = span;
 				if (caption) {
 					var column_size = column.computed_width - padding;
 					if (span >= 2) {
 						for (var j = 1; j < span; j++) {
-							if (j >= len)
+							var ji = i + j;
+							if (ji >= len_columns)
 								break;
-							var span_column = columns[i + j];
+							var span_column = columns[ji];
 							if (span_column)
 								column_size += span_column.computed_width;
 						}
@@ -320,8 +323,12 @@ class PDFPage {
 					wrapped_rows[i] = "";
 
 				if (span >= 2)
-					i += span - 1;
+					i += span;
+				else
+					i++;
 				rowindex++;
+				if (rowindex >= len)
+					break;
 			}
 		}
 		if (length wrapped_rows == 0)
@@ -445,13 +452,11 @@ class PDFPage {
 
 		this.Push();
 		this.LineWidth = border;
-
 		if (header_visible) {
 			this.Push();
 			var x = table_x;
 			var line_width = 0;
 			padding += border/2;
-
 			header_height = this.__ComputeRowHeight(headers, table, var out_rows, padding) * FontSize * font_height_coef;
 			var filled = false;
 
@@ -538,6 +543,7 @@ class PDFPage {
 						var span = spans[k];
 						var spanstyle = styles[k];
 						var column_width = column.computed_width;
+						var column_align = column.align;
 						if (span >= 2) {
 							for (var k1 = 1; k1 < span; k1++) {
 								var span_column = columns[k + k1];
@@ -564,6 +570,7 @@ class PDFPage {
 							color = this.__style(spanstyle, "color", color);
 							background = this.__style(spanstyle, "background", background);
 							textcolor = this.__style(spanstyle, "text-color", textcolor);
+							column_align = this.__style(spanstyle, "align", column_align);
 						}
 
 						if ((border) || (background) || (color)) {
@@ -602,11 +609,11 @@ class PDFPage {
 								line = caption[j];
 								if (line) {
 									delta = 0;
-									if (column.align > 0) {
+									if (column_align > 0) {
 										len = this.Owner.Measure(line, Font, FontSize);
 										delta_ref = column_width - padding * 2 - len;
 										if (delta_ref > 0)
-											delta = column.align * delta_ref;
+											delta = column_align * delta_ref;
 									}
 									this.Print(round(x + padding + delta, 3), round(y - padding - font_line_size, 3), line, FontSize, Font);
 								}
@@ -896,7 +903,7 @@ class PDFGenerator {
 			var last_line = "";
 			var line = "";
 			var last_separator = 0;
-
+			var prec_jump = -1;
 			for (var i = 0; i < length text; i++) {
 				var l = text[i];
 				if (l == "\t") {
@@ -919,6 +926,9 @@ class PDFGenerator {
 							last_separator = i - 1;
 						}
 						i = last_separator;
+						if (last_separator == prec_jump)
+							i++;
+						prec_jump = last_separator;
 						line = "";
 						res[length res] = last_line;
 						last_line = "";
