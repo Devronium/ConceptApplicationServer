@@ -159,7 +159,9 @@ class TinConnection {
 		return cli;
 	}
 
-	AddSubject(string subject, priority = 0) {
+	AddSubject(string subject = "", priority = 0) {
+		if (!subject)
+			subject = "" + Database;
 		if (subject) {
 			var q = new Q([ ], Database, "", "+");
 			q.x["silent"] = true;
@@ -181,7 +183,9 @@ class TinConnection {
 		}
 	}
 
-	Notify(string subject, obj, priority = 0) {
+	Notify(obj, string subject = "", priority = 0) {
+		if (!subject)
+			subject = "" + Database;
 		if (subject) {
 			var q = new Q([ ], Database, "", "!");
 			q.x["silent"] = true;
@@ -384,5 +388,16 @@ class TinDataSet {
 	Triggers(array _triggers, callback = null) {
 		var q = new Q(_triggers, Connection.Database, this.Collection, "*");
 		this.Connection._Handle(q, callback, this.UserData);
+	}
+
+	Generate(string generator_name, delegate callback, increment = 1, priority = 0) {
+		if (generator_name) {
+			var q = new Q(["g" => generator_name,  "i" => increment], Connection.Database, this.Collection, "G");
+			if (priority)
+				q.x["priority"] = priority;
+			this.Connection._Handle(q, callback, this.UserData);
+			return true;
+		}
+		return false;
 	}
 }

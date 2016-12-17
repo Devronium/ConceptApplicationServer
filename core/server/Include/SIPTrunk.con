@@ -557,6 +557,8 @@ class SIPStack {
 		this.full_host = localhost;
 		if (local_port != 5060)
 			this.full_host += ":" + bind_port;
+
+		RandomSeed(unpack("u32", CryptoRandom(4))[0]);
 	}
 
 	private ParseDestination(destination) {
@@ -670,7 +672,7 @@ class SIPStack {
 		return res;
 	}
 
-	private ParseAuth(auth) {
+	ParseAuth(auth) {
 		var len = length auth;
 		var in_quotes = false;
 
@@ -678,30 +680,34 @@ class SIPStack {
 		var val = "";
 		var temp = "";
 		var[] res;
-		for (var i = 0; i < len; i++) {
+		var equal = false;
+		var start = 0;
+		if (ToLower(SubStr(auth, 0, 7)) == "digest ")
+			start = 7;
+
+		for (var i = start; i < len; i++) {
 			var c = auth[i];
-			if (c == '"') {
+			if (c == '"')
 				in_quotes = !in_quotes;
-				if (!in_quotes) {
-					val = temp;
-					res[ToLower(name)] = val;
-					temp = "";
-					name = "";
-				}
-			} else
-			if (in_quotes) {
-				temp += c;
-			} else
-			if (c == "=") {
+			else
+			if (c == '=') {
+				name = ToLower(trim(temp));
 				temp = "";
 			} else
-			if (c != ",") {
-				if ((c == " ") || (c=="\n") || (c=="\r") || (c=="\t"))
-					name = "";
-				else
-					name += c;
-			}
+			if ((c == ",") && (!in_quotes)) {
+				if (name) {
+					temp = trim(temp);
+					if ((length temp >= 2) && (temp[0] == temp[length temp - 1]) && (temp[0] == '"'))
+						temp = SubStr(temp, 1, length temp - 2);
+					res[name] = temp;
+				}
+				temp = "";
+			} else
+				temp += c;
 		}
+		if ((name) && (temp))
+			res[name] = temp;
+
 		return res;
 	}
 
@@ -1473,38 +1479,66 @@ class SIPStack {
 		}
 	}
 
-	RequestAuth(msg) {
+	RequestAuth(msg, algorithm = "md5") {
 		var nonce = md5(RandomString(32));
 		var extra_headers = new [];
-		extra_headers["WWW-Authenticate"] = "Digest realm=\"${this.realm}\", qop=\"auth\", nonce=\"$nonce\", algorithm=md5";
+		extra_headers["WWW-Authenticate"] = "Digest realm=\"${this.realm}\", qop=\"auth\", nonce=\"$nonce\", algorithm=$algorithm";
 		return extra_headers;
 	}
 
-	CheckAuth(auth, nonce, password, method = "REGISTER") {
+	CheckAuth(auth, password, nonce = "", method = "REGISTER") {
 		var res = ParseAuth(auth);
+		if (!nonce)
+			nonce = res["nonce"];
 		var username = res["username"];
 		var uri = res["uri"];
+
+		if (typeof password == "delegate")
+			password = password(username);
+
 		if ((res["nonce"]) && (res["realm"]) && (res["response"]) && (username) && (uri)) {
 			var alg = res["algorithm"];
-			if (!alg)	
-				alg = "md5";
-			else
+			if (!alg) {
+				switch (length res["response"]) {
+					case 32:
+						alg = "md5";
+						break;
+					case 40:
+						alg = "sha1";
+						break;
+					case 64:
+					default:
+						alg = "sha256";
+						break;
+				}
+			} else
 				alg = ToLower(alg);
+			var qop = ToLower("" + res["qop"]);
 			switch (alg) {
 				case "sha1":
 					var ha1 = sha1(username + ":" + res["realm"] + ":" + password);
 					var ha2 = sha1(method + ":" + uri);
-					var response = sha1(ha1 +":" + nonce + ":" + ha2);
+					if ((qop == "auth") || (qop == "auth-int"))
+						var response = sha1(ha1 +":" + nonce + ":" + res["nc"] + ":" + res["cnonce"] + ":" + qop + ":" + ha2);
+					else
+						response = sha1(ha1 +":" + nonce + ":" + ha2);
 					break;
 				case "sha256":
-					ha1 = sha256(username + ":" + nonce + ":" + password);
+					ha1 = sha256(username + ":" + res["realm"] + ":" + password);
 					ha2 = sha256(method + ":" + uri);
-					response = sha256(ha1 +":" + nonce + ":" + ha2);
+					if ((qop == "auth") || (qop == "auth-int"))
+						response = sha256(ha1 +":" + nonce + ":" + res["nc"] + ":" + res["cnonce"] + ":" + qop + ":" + ha2);
+					else
+						response = sha256(ha1 +":" + nonce + ":" + ha2);
 					break;
 				default:
-					ha1 = md5(username + ":" + nonce + ":" + password);
+					ha1 = md5(username + ":" + res["realm"] + ":" + password);
 					ha2 = md5(method + ":" + uri);
-					response = md5(ha1 +":" + nonce + ":" + ha2);
+					if ((qop == "auth") || (qop == "auth-int"))
+						response = md5(ha1 +":" + nonce + ":" + res["nc"] + ":" + res["cnonce"] + ":" + qop + ":" + ha2);
+					else
+						response = md5(ha1 +":" + nonce + ":" + ha2);
+
 			}
 			if (response == res["response"])
 				return 200;

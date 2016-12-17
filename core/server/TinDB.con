@@ -339,6 +339,22 @@ pragma used
 				if ((obj.p) && (typeof obj.p == "array") && (obj.p["w"]))
 					this.Notify(obj.p["w"], obj.p["o"], true, sock);
 				break;
+			case "G":
+				r = new R();
+				r.q = obj.q;
+				try {
+					var inc = 1;
+					if ((obj.p) && (IsSet(obj.p, "i")))
+						inc = obj.p["i"];
+
+					r.p = TinBase::Generator(obj.d, obj.p["g"], inc);
+				} catch (exc) {
+					r.e = ERR_IO;
+					r.et = ERR_IO_S;
+					echo "Exception: $exc\n";
+				}
+				r.Send(sock);
+				break;
 		}
 	}
 

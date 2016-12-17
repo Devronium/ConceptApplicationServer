@@ -21,6 +21,65 @@ class TinBase {
 		}
 	}
 
+	static Lock(hFile, write = false, start = 0, len = 0) {
+		if (hFile) {
+			if (write)
+				return LockFileBytes(hFile, F_SETLKW, start, len);
+			return LockFileBytes(hFile, F_SETLKW, start, len, SEEK_SET, F_WRLCK);
+		}
+		return false;
+	}
+
+
+	static Unlock(hFile, write = false, start = 0, len = 0) {
+		if (hFile) {
+			if (write)
+				return LockFileBytes(hFile, F_UNLCK, start, len);
+			return LockFileBytes(hFile, F_UNLCK, start, len, SEEK_SET, F_RDLCK);
+		}
+		return false;
+	}
+
+	static Generator(db, name, increment = 1) {
+		if ((Pos(name, "..") > 0) || (Pos(name, "/") > 0) || (Pos(name, "\\") > 0) || (!name) || (name == ".") || (Pos(name, " ") > 0) || (Pos(name, "\t") > 0))
+			throw "Invalid generator name $name\n";
+
+		var gen_name = "$db/$name.gen";
+
+		var hFile = fopen(gen_name, "r+");
+		if (!hFile) {
+			WriteFile("1", gen_name);
+			hFile = fopen(gen_name, "r+");
+		}
+		if (!hFile)
+			throw "Error creating or opening data for generator '$name'";
+
+		var err = false;
+		var gen_value;
+		TinBase::Lock(hFile, true);
+		fread(var fdata, 1, 0xFF, hFile);
+		if (fdata) {
+			var data = value fdata;
+			if (!data)
+				data = 1;
+			gen_value = data;
+			data++;
+			fseek(hFile, 0, SEEK_SET);
+			ftruncate(hFile, 0);
+			fdata = "" + data;
+			if (fwrite(fdata, 1, length fdata, hFile) != length fdata)
+				err = true;
+		} else
+			err = true;
+		TinBase::Unlock(hFile);
+		fclose(hFile);
+
+		if (err)
+			throw "I/O error for generator '$name'";
+
+		return gen_value;
+	}
+
 	SetDB(string db) {
 		if (!db)
 			throw "Invalid database selected\n";
