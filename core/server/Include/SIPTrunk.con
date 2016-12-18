@@ -12,7 +12,7 @@ include UDPSocket.con
 include Speex.con
 
 define SIP_CODES	["100" => "Trying", "180" => "Ringing", "181" => "Call Is Being Forwarded", "182" => "Queued", "200" => "OK", "300" => "Multiple Choices", "301" => "Moved Permanently", "302" => "Moved Temporarily", "303" => "See Other", "305" => "Use Proxy", "380" => "Alternative Service", "400" => "Bad Request", "401" => "Unauthorized", "402" => "Payment Required", "403" => "Forbidden", "404" => "Not Found", "405" => "Method Not Allowed", "406" => "Not Acceptable", "407" => "Proxy Authentication Required", "408" => "Request Timeout", "409" => "Conflict", "410" => "Gone", "411" => "Length Required", "413" => "Request Entity Too Large", "414" => "Request-URI Too Large", "415" => "Unsupported Media Type", "420" => "Bad Extension", "480" => "Temporarily not available", "481" => "Call Leg/Transaction Does Not Exist", "482" => "Loop Detected", "483" => "Too Many Hops", "484" => "Address Incomplete", "485" => "Ambiguous", "486" => "Busy Here", "500" => "Internal Server Error", "501" => "Not Implemented", "502" => "Bad Gateway", "503" => "Service Unavailable", "504" => "Gateway Time-out", "505" => "SIP Version not supported", "600" => "Busy Everywhere", "603" => "Decline", "604" => "Does not exist anywhere", "606" => "Not Acceptable"]
-define SIP_ALLOW	"REGISTER,INVITE,ACK,CANCEL,BYE,REFER,NOTIFY"
+define SIP_ALLOW	"REGISTER,INVITE,ACK,CANCEL,BYE,REFER,NOTIFY,MESSAGE"
 define SIP_SUPPORTED	"replaces, 100rel, timer, tdialog"
 define RTP_START_PORT	16000
 define RTP_END_PORT	32000
@@ -63,6 +63,9 @@ class SIPSession {
 
 	var _private_data;
 	var Referred;
+
+	var Record = false;
+	var RecordBuffers;
 
 	SIPSession(s, msg, rtp_port, ip, port, chunk_size = 20, expire = 3600) {
 		packet_time = microseconds();
@@ -183,14 +186,66 @@ class SIPSession {
 		return this.s.Refer(msg, address);
 	}
 
+	RecordID() {
+		return "" + ClsPtr(this);
+	}
+
+	RecordStream(srcid, var payload, type = "", profile = 8) {
+		var key = RecordID() + "-" + type + profile + "-" + srcid;
+		if (!RecordBuffers)
+			RecordBuffers = new [];
+		if (RecordBuffers[key])
+			RecordBuffers[key] += payload;
+		else
+			RecordBuffers[key] = payload;
+	}
+
+	DumpStreams(prefix, sync_len = true) {
+		var[] files;
+		if (RecordBuffers) {
+			var keys = GetKeys(RecordBuffers);
+			if (keys) {
+				var min_len = 0;
+				if (sync_len) {
+					for (var i = 0; i < length RecordBuffers; i++) {
+						var buf = RecordBuffers[i];
+						if (buf) {
+							if ((!min_len) || (min_len > length buf))
+								min_len = length buf;
+						}
+					}
+				}
+				for (i = 0; i < length keys; i++) {
+					var k = keys[i];
+					if (k) {
+						buf = RecordBuffers[k];
+						if (buf) {
+							var fname = prefix + k + ".raw";
+							files[length files] = fname;
+							if ((min_len > 0) && (length buf != min_len))
+								WriteFile(SubStr(buf, length buf - min_len), fname);
+							else
+								WriteFile(buf, fname);
+						}
+					}
+				}
+			}
+			RecordBuffers = null;
+		}
+		return files;
+	}
+
 	SimpleRTP(payload, profile = 8) {
 		var res = chr(0x80) + chr(profile);
 		res += toubin(htons(sequence_number), 16);
 		timestamp += length payload;
 		res += toubin(htonl(timestamp), 32);
-		res += toubin(htonl(ClsPtr(this)), 32);
+		var ssrc_id = ClsPtr(this);
+		res += toubin(htonl(ssrc_id), 32);
 		res += payload;
 		sequence_number++;
+		if (Record)
+			RecordStream(ssrc_id, payload, "out-", profile);
 		return res;
 	}
 
@@ -199,8 +254,11 @@ class SIPSession {
 		if (length data > 12) {
 			type = tounumber(data[1], 8) & 0x7F;
 			// not used: var sequence_number = ntohs(tounumber(data[2] + data[3], 16));
-			// not used: var ssrc_id = (tounumber(data[8] + data[9] + data[10] + data[11], 32));
+			// not used: 
+			var ssrc_id = (tounumber(data[8] + data[9] + data[10] + data[11], 32));
 			var payload = SubStr(data, 12, length data);
+			if (Record)
+				RecordStream(ssrc_id, payload, "in-", type);
 			return payload;
 		}
 		return "";
@@ -520,6 +578,53 @@ class SIPMessage {
 	}
 }
 
+class SIPUserInfo {
+	var username;
+	var expires;
+	var ip;
+	var port;
+	var contact;
+	var non_routable;
+
+	SIPUserInfo(username) {
+		this.username = username;
+	}
+
+	Update(timeout) {
+		if (timeout > 0)
+			this.expires = time() + timeout;
+		else
+			this.expires = 0;
+	}
+
+	Expired() {
+		if ((expires) && (time() > expires))
+			return true;
+		return false;
+	}
+}
+
+class SIPUtils {
+	static mix(files, output_file, channels = 1, format = "alaw") {
+		if ((!files) || (!output_file))
+			return null;
+		var params = "";
+		var filter = "";
+		var index = 0;
+		for (var i = 0; i < length files; i++) {
+			var file = files[i];
+			if (file) {
+				params += "-f $format -ar 8000 -ac 1 -acodec pcm_$format -i \"$file\" ";
+				filter += "[$index:a]";
+				index++;
+			}
+		}
+		_unlink(output_file);
+		var command = "ffmpeg -loglevel fatal $params-filter_complex \"${filter}amix\" -ac $channels -qscale:a 2 \"$output_file\"";
+		return _system(command);
+	}
+}
+
 class SIPStack {
 	var udpclientsocket;
 	var localhost;
@@ -528,6 +633,8 @@ class SIPStack {
 	var rtp_port_index = RTP_START_PORT;
 	var realm = "";
 	var[] Sessions;
+	var[] Routes;
+	var[] Users;
 	var MaxTime = 3600;
 	var OnDTMF;
 	var OnAudio;
@@ -542,11 +649,15 @@ class SIPStack {
 	var OnNotUnderstood;
 	var OnRegister;
 	var OnNeedAuthorization;
+	var OnTextMessage;
 
 	var OnRecv;
 	var OnSend;
 
 	var FrameSize = 20;
+
+	var RegisterTimeout = 600;
+	var NonRoutableRegisterTimeout = 5;
 
 	SIPStack(localhost, bind_port = 5060) {
 		this.localhost = localhost;
@@ -568,6 +679,7 @@ class SIPStack {
 
 	public Parse(msg) {
 		if (msg) {
+			var orig_msg = msg;
 			msg = StrReplace(msg, "\r", "");
 
 			var arr = StrSplit(msg, "\n", true);
@@ -617,6 +729,7 @@ class SIPStack {
 				
 				var headers = new [];
 				var need_payload = false;
+				var has_content = false;
 				for (i = 1; i < len; i++) {
 					var line = arr[i];
 					if (line) {
@@ -635,6 +748,7 @@ class SIPStack {
 							if (name == "content-type") {
 								if ((val == "application/sdp") || (val=="sdp"))
 									need_payload = true;
+								has_content = true;
 							}
 						}
 					} else {
@@ -652,6 +766,11 @@ class SIPStack {
 							message.PayloadBlob += line + "\r\n";
 						}
 					}
+				} else
+				if (has_content) {
+					pos = Pos(orig_msg, "\r\n\r\n");
+					if (pos > 0)
+						message.PayloadBlob = SubStr(orig_msg, pos + 3);
 				}
 				message.Headers = headers;
 				message.Payload = payload;
@@ -677,10 +796,8 @@ class SIPStack {
 		var in_quotes = false;
 
 		var name = "";
-		var val = "";
 		var temp = "";
 		var[] res;
-		var equal = false;
 		var start = 0;
 		if (ToLower(SubStr(auth, 0, 7)) == "digest ")
 			start = 7;
@@ -705,8 +822,12 @@ class SIPStack {
 			} else
 				temp += c;
 		}
-		if ((name) && (temp))
+		if ((name) && (temp)) {
+			temp = trim(temp);
+			if ((length temp >= 2) && (temp[0] == temp[length temp - 1]) && (temp[0] == '"'))
+				temp = SubStr(temp, 1, length temp - 2);
 			res[name] = temp;
+		}
 
 		return res;
 	}
@@ -795,7 +916,9 @@ class SIPStack {
 			if (timeout <= 0)
 				return null;
 		}
-		return this.Parse(t.Read(var ip, var port));
+		var ip;
+		var port;
+		return this.Parse(t.Read(ip, port));
 	}
 
 	RegisterUDP(username, password, server, server_port=5060, timeout=5000) {
@@ -1291,7 +1414,79 @@ class SIPStack {
 				user = SubStr(user, pos, length user);
 			}
 			this.ParseHost(arr[1], server, port);
+			return true;
 		}
+		return false;
+	}
+
+	TextMessage(destination, username, text, content_type = "text/plain", max_forwards = 70) {
+		var msg = new SIPMessage();
+		msg.Method = "MESSAGE";
+
+		var server = "";
+		var server_port = 0;
+		var full_server = "";
+
+		var destination_parsed = ParseFullDestination(destination, var target_user, server, server_port);
+		if (!destination_parsed)
+			target_user = destination;
+
+		if ((target_user) && (IsSet(Users, target_user))) {
+			var uinfo = Users[target_user];
+			if ((uinfo) && (!uinfo.Expired())) {
+				if (uinfo.non_routable) {
+					if (uinfo.ip)
+						server = uinfo.ip;
+					if (uinfo.port)
+						server_port = uinfo.port;
+				}
+			} else
+				return false;
+		}
+		if ((!server) || (!server_port))
+			return false;
+
+		if (server_port != 5060)
+			full_server = server + ":" + server_port;
+		else
+			full_server = server;
+
+		if (Pos(username, "@") > 0) {
+			var user_destination = username;
+			var local_server = "";
+			var local_port = 0;
+			ParseFullDestination(user_destination, var username2, local_server, local_port);
+			username = username2;
+		}
+
+		msg.Destination = "sip:${target_user}@${full_server}";
+
+		var branch = "z9hG4bK" + this.RandomString(14);
+		var callid = this.RandomString(32) + "@" + localhost;
+
+		msg.Headers["via"] = "SIP/2.0/UDP " + this.full_host + ";rport;branch=" + branch;
+		msg.Headers["max-forwards"] = max_forwards;
+
+		msg.Headers["from"] = "sip:" + username + "@" + this.localhost + ";tag="+this.RandomString(20);
+		msg.Headers["to"] = "sip:${target_user}@${full_server}";
+		msg.Headers["contact"] = "<sip:" + username + "@" + this.full_host + ">";
+
+		msg.Headers["call-id"] = callid;
+		msg.Headers["cseq"] = "1 " + msg.Method;
+
+		msg.Headers["content-length"] = length text;
+		msg.Headers["content-type"] = content_type;
+		msg.PayloadBlob = text;
+		try {
+			if (this.OnSend)
+				this.OnSend(msg, server, server_port);
+
+			if (udpclientsocket.Write(msg.ToString(), server, server_port) <= 0)
+				return false;
+		} catch (var exc) {
+			// nothing
+		}
+		return true;
 	}
 
 	Invite(destination, username, max_forwards = 70, parent_session = null, validation_delegate = null) {
@@ -1302,7 +1497,26 @@ class SIPStack {
 		var server_port = 0;
 		var full_server = "";
 
-		ParseFullDestination(destination, var target_user, server, server_port);
+		var destination_parsed = ParseFullDestination(destination, var target_user, server, server_port);
+		if (!destination_parsed)
+			target_user = destination;
+
+		if ((target_user) && (IsSet(Users, target_user))) {
+			var uinfo = Users[target_user];
+			if ((uinfo) && (!uinfo.Expired())) {
+				if (uinfo.non_routable) {
+					if (uinfo.ip)
+						server = uinfo.ip;
+					if (uinfo.port)
+						server_port = uinfo.port;
+				}
+			} else
+				return null;
+		}
+		if ((!server) || (!server_port))
+			return null;
+
+
 		if (server_port != 5060)
 			full_server = server + ":" + server_port;
 		else
@@ -1310,7 +1524,9 @@ class SIPStack {
 
 		if (Pos(username, "@") > 0) {
 			var user_destination = username;
-			ParseFullDestination(user_destination, var username2, var local_server, var local_port);
+			var local_server = "";
+			var local_port = 0;
+			ParseFullDestination(user_destination, var username2, local_server, local_port);
 			username = username2;
 		}
 
@@ -1377,7 +1593,25 @@ class SIPStack {
 		var server_port = 0;
 		var full_server = "";
 
-		ParseFullDestination(destination, var target_user, server, server_port);
+		var destination_parsed = ParseFullDestination(destination, var target_user, server, server_port);
+		if (!destination_parsed)
+			target_user = destination;
+
+		if ((target_user) && (IsSet(Users, target_user))) {
+			var uinfo = Users[target_user];
+			if ((uinfo) && (!uinfo.Expired())) {
+				if (uinfo.non_routable) {
+					if (uinfo.ip)
+						server = uinfo.ip;
+					if (uinfo.port)
+						server_port = uinfo.port;
+				}
+			} else
+				return null;
+		}
+		if ((!server) || (!server_port))
+			return null;
+
 		if (server_port != 5060)
 			full_server = server + ":" + server_port;
 		else
@@ -1546,6 +1780,58 @@ class SIPStack {
 		return 401;
 	}
 
+	BuildContact(username) {
+		return "<sip:" + username + "@" + full_host + ">";
+	}
+
+	NonRoutable(ip) {
+		var arr = StrSplit(ip, ".");
+		if (length arr >= 4) {
+			switch (trim(arr[0])) {
+					case "10":
+						return true;
+					case "192":
+						if (trim(arr[1]) == "168")
+							return true;
+						break;
+					case "172":
+						var b = value arr[1];
+						if ((b >= 16) && (b <= 31))
+							return true;
+						break;
+			}
+		} else
+		if (length ip > 3) {
+			// ipv6 ?
+			if (ip[0] == "[")
+				ip++;
+			ip = ToLower(trim(ip));
+			if (ip[0] + ip[1] == "fd")
+				return true;
+		}
+		return false;
+	}
+
+	ContactNonRoutable(headers) {
+		if (!headers)
+			return false;
+		var route = "";
+		if (IsSet(headers, "contact"))
+			route = headers["contact"];
+		if ((!route) && (IsSet(headers, "via")))
+			route = headers["via"];
+		if (typeof route == "array")
+			route = route[0];
+
+		if (route) {
+			var arr = StrSplit(route, "@");
+			var ip = arr[1];
+			if (ip)
+				return NonRoutable(ip);
+		}
+		return false;
+	}
+
 	Iterate() {
 		var sessions = this.Sessions;
 		var ops = 0;
@@ -1556,6 +1842,8 @@ class SIPStack {
 		}
 		var msg = this.PeekMessage(var ip, var port);
 		if (msg) {
+			var routable_ip = "";
+			var routable_port = 0;
 			ops++;
 			if (this.OnNeedAuthorization) {
 				var auth_code = this.OnNeedAuthorization(msg);
@@ -1588,7 +1876,37 @@ class SIPStack {
 
 					if (this.OnRegister)
 						register_response = this.OnRegister(msg, auth, extra_headers);
-					this.ResponseUDP(register_response, msg, msg.Headers["from"], "", "", 70, extra_headers);
+					var contact = "";
+					if ((register_response == 200) && (auth)) {
+						var pauth = ParseAuth(auth);
+						var username = pauth["username"];
+						if (username) {
+							var uinfo = Users[username];
+							if (!uinfo) {
+								uinfo = new SIPUserInfo(username);
+								Users[username] = uinfo;
+							}
+							var non_routable = this.ContactNonRoutable(msg.Headers);
+							uinfo.non_routable = non_routable;
+							if ((RegisterTimeout > 0) || (NonRoutableRegisterTimeout > 0)) {
+								var timeout = RegisterTimeout;
+								if (non_routable) {
+									timeout = NonRoutableRegisterTimeout;
+									routable_ip = ip;
+									routable_port = port;
+								}
+								if (timeout > 0) {
+									if (username)
+										contact = BuildContact(username) + ";" + "expires=" + timeout;
+								}
+								uinfo.Update(timeout);
+							}
+							uinfo.ip = routable_ip;
+							uinfo.port = routable_port;
+							uinfo.contact = msg.Headers["contact"];
+						}
+					}
+					this.ResponseUDP(register_response, msg, msg.Headers["from"], "", "", 70, extra_headers, contact, routable_ip, routable_port);
 					break;
 				case "NOTIFY":
 					// message
@@ -1613,6 +1931,15 @@ class SIPStack {
 					break;
 				case "ACK":
 					// ignore it
+					break;
+				case "MESSAGE":
+					var message_response = 202;
+					if (this.OnTextMessage) {
+						message_response = this.OnTextMessage(msg);
+						if (!message_response)
+							message_response = 200;
+					}
+					this.ResponseUDP(message_response, msg, msg.Headers["from"], "", "", 70, extra_headers);
 					break;
 				default:
 					var parent = null;
