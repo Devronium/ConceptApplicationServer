@@ -380,7 +380,8 @@ public:
         }
     }
 
-    void Iterate(INVOKE_CALL Invoke) {
+    int Iterate(INVOKE_CALL Invoke) {
+        int active_loopers = 0;
         for (int i = 0; i < LOOPERS_count; i++) {
             if (LOOPERS[i]) {
                 void *RES       = NULL;
@@ -396,11 +397,14 @@ public:
 
                     if ((TYPE == VARIABLE_NUMBER) && (ndata == 1))
                         RemoveLooper(i, Invoke);
-
+                    else
+                        active_loopers++;
                     Invoke(INVOKE_FREE_VARIABLE, RES);
-                }
+                } else
+                    active_loopers++;
             }
         }
+        return active_loopers;
     }
 
 #ifndef WITH_OPENSSL
@@ -5824,6 +5828,38 @@ CONCEPT_FUNCTION_IMPL(RegisterLooper, 1)
     T_DELEGATE(RegisterLooper, 0)
     GET_METACONTAINER
     int res = mc->AddLooper(PARAMETER(0), Invoke);
+    RETURN_NUMBER(res);
+END_IMPL
+//------------------------------------------------------------------------
+CONCEPT_FUNCTION_IMPL(InterateLoop, 0)
+    GET_METACONTAINER
+    int res = mc->Iterate(Invoke);
+    RETURN_NUMBER(res);
+END_IMPL
+//------------------------------------------------------------------------
+CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(MainLoop, 0, 1)
+    GET_METACONTAINER
+    int res;
+    int count = 0;
+    int sleep_iter = 100;
+    if (PARAMETERS_COUNT > 0) {
+        T_NUMBER(MainLoop, 0);
+        sleep_iter = PARAM_INT(0);
+        if (sleep_iter <= 0)
+            sleep_iter = 100;
+    }
+    do {
+        res = mc->Iterate(Invoke);
+        count++;
+        if (count >= sleep_iter) {
+#ifdef _WIN32
+            Sleep(1);
+#else
+            usleep(1000);
+#endif
+            count = 0;
+        }
+    } while (res > 0);
     RETURN_NUMBER(res);
 END_IMPL
 //------------------------------------------------------------------------

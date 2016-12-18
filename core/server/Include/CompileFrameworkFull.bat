@@ -234,3 +234,4 @@ accel HTMLUI.con
 accel BM25.con
 accel RWebRTCConference.con
 accel Charset.con
+accel Loop.con

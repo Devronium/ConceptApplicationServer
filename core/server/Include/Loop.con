@@ -1,0 +1,15 @@
+import win32.base.messages
+
+class Loop {
+	static add(delegate) {
+		RegisterLooper(delegate);
+	}
+
+	static main(sleep_iterations = 100) {
+		return MainLoop(sleep_iterations);
+	}
+
+	static iterate() {
+		return InterateLoop();
+	}
+}
