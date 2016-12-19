@@ -5848,6 +5848,12 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(MainLoop, 0, 1)
         if (sleep_iter <= 0)
             sleep_iter = 100;
     }
+#ifndef _WIN32
+    sleep_iter /= 100;
+    struct timespec tim, tim2;
+    tim.tv_sec  = 0;
+    tim.tv_nsec = 500000L;
+#endif
     do {
         res = mc->Iterate(Invoke);
         count++;
@@ -5855,7 +5861,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(MainLoop, 0, 1)
 #ifdef _WIN32
             Sleep(1);
 #else
-            usleep(1000);
+            nanosleep(&tim, &tim2);
 #endif
             count = 0;
         }
