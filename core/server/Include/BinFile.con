@@ -852,6 +852,7 @@ class BinFile extends File {
 	protected var cache_id;
 	protected var[] cache;
 	protected var has_garbage;
+	protected var locked;
 
 	public var Compress = false;
 
@@ -920,6 +921,7 @@ class BinFile extends File {
 
 	Lock(write = false, start = 0, len = 0) {
 		if (hFile) {
+			locked = 1 + write;
 			if (write)
 				return LockFileBytes(hFile, F_SETLKW, start, len);
 			return LockFileBytes(hFile, F_SETLKW, start, len, SEEK_SET, F_WRLCK);
@@ -928,12 +930,21 @@ class BinFile extends File {
 	}
 
 	Unlock(write = false, start = 0, len = 0) {
+		locked = false;
 		if (hFile) {
 			if (write)
 				return LockFileBytes(hFile, F_UNLCK, start, len);
 			return LockFileBytes(hFile, F_UNLCK, start, len, SEEK_SET, F_RDLCK);
 		}
 		return false;
+	}
+
+	ReleaseLock() {
+		if (locked == 1)
+			this.Unlock();
+		else
+		if (locked == 2)
+			this.Unlock(true);
 	}
 
 	SyncIndexes() {
@@ -1849,7 +1860,7 @@ class BinFile extends File {
 	}
 
 
-	ById(id, fields = null, do_cache = false, cache = null) {
+	ById(id, fields = null, do_cache = false, cache = null, notify_one = null, notify_data = null) {
 		if (typeof id == "array") {
 			var[] id_flags;
 			var res_array = new [];
@@ -1876,7 +1887,10 @@ class BinFile extends File {
 							o = UnBinarizeObject(res);
 						if (o != null) {
 							o['$'] = _id;
-							res_array[length res_array]  = o;
+							if (notify_one)
+								notify_one(o, notify_data);
+							else
+								res_array[length res_array]  = o;
 							if (do_cache)
 								cache[_id_key] = o;
 						}
@@ -2605,16 +2619,19 @@ class BinFile extends File {
 		return [ ];
 	}
 
-	Query(q = null, fields = null, descending = false, start = 0, len = 0) {
+	Query(q = null, fields = null, descending = false, start = 0, len = 0, notify_one = null, notify_data = null) {
 		if (time() - index_refresh_time > INDEX_REFRESH_TIMEOUT)
 			this.RefreshIndexes();
 		var count;
 		if ((q) && (IsSet(q, '#'))) {
 			q = q['#'];
 			count = true;
+			// ignore notify for count queries
+			notify_one = null;
 		}
 		if (q == null)
 			q = new [];
+
 		var indexes = Indexes;
 		var keys = GetKeys(q);
 		var index_to_use = new [];
@@ -2665,7 +2682,7 @@ class BinFile extends File {
 					filter_ids["" + fi] = fi;
 			}
 			if (length keys == 1)
-				return this.ById(filter_ids);
+				return this.ById(filter_ids, null, false, null, notify_one, notify_data);
 		}
 
 		if (index_to_use) {
@@ -2681,7 +2698,7 @@ class BinFile extends File {
 			if (ids) {
 				if (count)
 					return [length ids];
-				result = this.ById(ids, fields);
+				result = this.ById(ids, fields, false, null, notify_one, notify_data);
 			}
 		} else {
 			if (q) {
@@ -2701,13 +2718,14 @@ class BinFile extends File {
 					}
 				}
 			}
-			var userdata = [keys, q, result, start, len, fields, count, null]; // null is cache //[result, q, GetKeys(q), start, len, 0];
+			var userdata = [keys, q, result, start, len, fields, count, null, notify_one, notify_data]; // null is cache //[result, q, GetKeys(q), start, len, 0];
 			this.Scan(function(o, id, var userdata) {
 				var result = userdata[2];
 				var start = userdata[3];
 				var len = userdata[4];
 				var fields = userdata[5];
 				var count = userdata[6];
+				var notify_one = userdata[8];
 
 				if ((len > 0) && (start > 0)) {
 					start--;
@@ -2727,14 +2745,24 @@ class BinFile extends File {
 					}
 					o = new_o;
 				}
-				if (count)
+				if (count) {
 					result[0]++;
-				else
-					result[length result] = o;
-
-				// stop scanning ?
-				if ((len > 0) && (length result >= len))
-					return true;
+				} else {
+					if (notify_one) {
+						notify_one(o, userdata[9]);
+						if (len > 0) {
+							userdata[10]++;
+							// stop scanning ?
+							if ((len > 0) && (userdata[10] >= len))
+								return true;
+						}
+					} else {
+						result[length result] = o;
+						// stop scanning ?
+						if ((len > 0) && (length result >= len))
+							return true;
+					}
+				}
 			}, userdata);
 			if ((result) && (descending)) {
 				result2 = new [];

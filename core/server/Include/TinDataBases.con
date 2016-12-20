@@ -15,6 +15,9 @@ define ERR_USER_PASS	-6
 define ERR_IN_CODE	-7
 define ERR_CODE_RIGHTS	-8
 define ERR_NOT_UNIQUE	-9
+define ERR_AGGREGATION	-10
+
+define NOTIFY_MORE_DATA	1
 
 class Q {
 pragma used
@@ -103,6 +106,15 @@ class TinConnection {
 			throw "TinConnection: Not connected";
 	}
 
+	protected _QueryById(qid) {
+		if (!qid)
+			return null;
+
+		if (IsSet(ActiveQueries, qid))
+			return ActiveQueries[qid];
+		return null;
+	}
+
 	protected _RemoveQuery(qid) {
 		var keys = GetKeys(ActiveQueries);
 		var[] res;
@@ -138,7 +150,13 @@ class TinConnection {
 				var obj = UnBinarizeObject(buf2);
 				if (obj) {
 					if (IsSet(ActiveQueries, obj.q)) {
-						var callback = this._RemoveQuery(obj.q);
+						var callback;
+						if (obj.e == NOTIFY_MORE_DATA) {
+							callback = this._QueryById(obj.q);
+							obj.e = 0;
+						} else {
+							 callback = this._RemoveQuery(obj.q);
+						}
 						if (callback) {
 							var err;
 							if (obj.e)
@@ -255,7 +273,7 @@ class TinDataSet {
 		this.Connection._Handle(q, callback, this.UserData);
 	}
 
-	Query(params, delegate callback, fields = null, len = 0, start = 0, descending = false, priority = 0) {
+	Query(params, delegate callback, fields = null, len = 0, start = 0, descending = false, priority = 0, map = false) {
 		if (typeof params != "array") {
 			if (typeof params == "object")
 				params = ToArray(params);
@@ -272,8 +290,14 @@ class TinDataSet {
 			q.x["descending"] = descending;
 		if (priority)
 			q.x["priority"] = priority;
+		if (map)
+			q.x["map"] = true;
 		q.f = fields;
 		this.Connection._Handle(q, callback, this.UserData);
+	}
+
+	Map(params, delegate callback, fields = null, len = 0, start = 0, descending = false, priority = 0) {
+		Query(params, callback, fields, len, start, descending, priority, true);
 	}
 
 	Join(params, delegate callback, fields = null, len = 0, start = 0, descending = false, priority = 0) {

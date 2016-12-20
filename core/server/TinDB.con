@@ -33,6 +33,8 @@ define ERR_NOT_UNIQUE_S	"Not unique"
 define ERR_AGGREGATION	-10
 define ERR_AGGREGATION_S"Invalid aggregation"
 
+define NOTIFY_MORE_DATA	1
+
 
 define BUSY_FSYNC_LIMIT	 10000
 
@@ -586,10 +588,13 @@ pragma used
 		var obj = data[1];
 		var target_worker = data[2];
 		var target_key = data[3];
+		var priority = 0;
 		var r = new R();
-		if (obj)
+		if (obj) {
 			r.q = obj.q;
-
+			if (obj.x)
+				priority = obj.x["priority"];
+		}
 		if ((obj) && (obj.d)) {
 			try {
 				var db = managed_dbs[obj.d];
@@ -623,8 +628,40 @@ pragma used
 								obj.f = null;
 							if (typeof obj.p != "array")
 								obj.p = [ ];
+							var map = false;
+							if ((obj.x) && (obj.x["map"]))
+								map = true;
 							t.Lock();
-							r.p = t.Query(obj.p, obj.f, obj.x["descending"], obj.x["start"], obj.x["len"]);
+							if ((!map) || (obj.worker)) {
+								r.p = t.Query(obj.p, obj.f, obj.x["descending"], obj.x["start"], obj.x["len"]);
+							} else
+							if ((target_worker) && (target_key)) {
+								r.p = null;
+								t.Query(obj.p, obj.f, obj.x["descending"], obj.x["start"], obj.x["len"], function(o, data) {
+									if (o) {
+										var obj = data[0];
+										var r = new R();
+										r.q = obj.q;
+										r.p = o;
+										r.id = o['$'];
+										r.e = NOTIFY_MORE_DATA;
+										AddWorkerData(data[1], BinarizeObject([data[2], data[3], r]), data[4]);
+									}
+								}, [obj, target_worker, socket, target_key, priority]);
+							} else {
+								r.p = null;
+								t.Query(obj.p, obj.f, obj.x["descending"], obj.x["start"], obj.x["len"], function(o, data) {
+									if (o) {
+										var obj = data[0];
+										var r = new R();
+										r.q = obj.q;
+										r.p = o;
+										r.id = o['$'];
+										r.e = NOTIFY_MORE_DATA;
+										r.Send(data[1], obj.io);
+									}
+								}, [obj, socket]);
+							}
 							t.Unlock();
 							r.id = 0;
 						}
@@ -640,7 +677,9 @@ pragma used
 							var items = t.Query(obj.p, obj.f, obj.x["descending"], obj.x["start"], obj.x["len"]);
 							t.Unlock();
 							if (items) {
+								t.Lock(true);
 								t.Delete(items);
+								t.Unlock(true);
 								non_flushed_writes += length items;
 								obj.p = items;
 								trigger = _triggers["${obj.d}.${obj.c}"];
@@ -993,6 +1032,8 @@ pragma used
 						break;
 				}
 			} catch (var exc) {
+				if (t)
+					t.ReleaseLock();
 				r.e = ERR_COLLECTION;
 				r.et = exc;
 			}
@@ -1000,9 +1041,6 @@ pragma used
 			r.e = ERR_DB;
 			r.et = ERR_DB_S;
 		}
-		var priority = 0;
-		if ((obj) && (obj.x))
-			priority = obj.x["priority"];
 
 		if ((!obj) || (!obj.x) || (!IsSet(obj.x, 'silent')) || (!obj.x['silent'])) {
 			if (obj.worker) {

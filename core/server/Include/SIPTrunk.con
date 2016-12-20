@@ -112,7 +112,7 @@ class SIPSession {
 			remote_host = ip;
 	}
 
-	GetTag(addr) {
+	static GetTag(addr) {
 		var tag = "";
 		var arr = StrSplit(addr, ";tag=");
 		if (length arr > 1) {
@@ -131,7 +131,7 @@ class SIPSession {
 
 			var to = bye_msg.Headers["to"];
 			if (!to)
-				to = bye_msg["to"];
+				to = bye_msg.Headers["To"];
 			if ((from) && (to)) {
 				var from_tag = GetTag(from);
 				var to_tag = GetTag(to);
@@ -149,6 +149,13 @@ class SIPSession {
 
 			}
 		}
+	}
+
+	static EnsureTag(var field) {
+		if (!field)
+			return;
+		if (!SIPSession::GetTag(field))
+			field += ";tag=" + SIPStack::RandomString(20);
 	}
 
 	Accept(code=200) {
@@ -900,17 +907,6 @@ class SIPStack {
 		return message;
 	}
 
-	private RandomString(len) {
-		var res="";
-		var characters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-		var rlen = length characters - 1;
-		while (length res<len) {
-			var c = RandomInteger(0, rlen);
-			res += characters[c];
-		}
-		return res;
-	}
-
 	ParseAuth(auth) {
 		var len = length auth;
 		var in_quotes = false;
@@ -980,6 +976,17 @@ class SIPStack {
 			return "Digest username=\"$username\", realm=\"${res['realm']}\", nonce=\"${res['nonce']}\", uri=\"$uri\", response=\"$response\"";
 		}
 		return "";
+	}
+
+	static RandomString(len) {
+		var res="";
+		var characters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+		var rlen = length characters - 1;
+		while (length res<len) {
+			var c = RandomInteger(0, rlen);
+			res += characters[c];
+		}
+		return res;
 	}
 
 	private Register(username, password, server, server_port = 5060, response = null, var nonce = null, max_forwards = 70) {
@@ -2025,6 +2032,8 @@ class SIPStack {
 			var extra_headers;
 			switch (msg.Method) {
 				case "INVITE":
+					SIPSession::EnsureTag(msg.Headers["from"]);
+					SIPSession::EnsureTag(msg.Headers["to"]);
 					var sess = this.CreateSession(msg, ip, port);
 					if (sess) {
 						if (non_routable)
