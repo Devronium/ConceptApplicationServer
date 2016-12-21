@@ -1406,6 +1406,8 @@ class SIPStack {
 										return;
 								}
 								session.Bye(true);
+							} else {
+								this.ResponseUDP(msg.ServerCode, session.msg, session.msg.Headers["from"], "", "", 70, null, "", session.ip, session.port);
 							}
 						}
 					};
