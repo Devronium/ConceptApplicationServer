@@ -68,6 +68,7 @@ class SIPSession {
 
 	var Record = false;
 	var RecordBuffers;
+	var last_sequence_number = -1;
 
 	SIPSession(s, msg, rtp_port, ip, port, chunk_size = 20, expire = 3600) {
 		packet_time = microseconds();
@@ -108,8 +109,11 @@ class SIPSession {
 					break;
 			}
 		}
-		if (this.s.NonRoutable(remote_host))
+		if (this.s.NonRoutable(remote_host)) {
 			remote_host = ip;
+			if (!remote_host)
+				remote_host = this.ip;
+		}
 	}
 
 	static GetTag(addr) {
@@ -148,6 +152,15 @@ class SIPSession {
 				}
 
 			}
+			if (is_invite) {
+				msg.LocalAddress = msg.Headers["from"];
+				msg.RemoteAddress = msg.Headers["to"];
+			} else {
+				msg.LocalAddress = msg.Headers["to"];
+				msg.RemoteAddress = msg.Headers["from"];
+			}
+			bye_msg.LocalAddress = msg.LocalAddress;
+			bye_msg.RemoteAddress = msg.RemoteAddress;
 		}
 	}
 
@@ -215,7 +228,11 @@ class SIPSession {
 		try {
 			if (accept_bye)
 				return this.Bye(delete_session);
-			var msg2 = s.Cancel(msg, ip, port);
+			//var msg2 = s.Cancel(msg, ip, port);
+			if (is_invite)
+				var msg2 = s.Cancel(bye_msg ?? msg, ip, port);
+			else
+				msg2 = s.Cancel(msg, ip, port);
 		} catch (exc) {
 			// nothing
 		}
@@ -304,8 +321,17 @@ class SIPSession {
 		type = -1;
 		if (length data > 12) {
 			type = tounumber(data[1], 8) & 0x7F;
-			// not used: var sequence_number = ntohs(tounumber(data[2] + data[3], 16));
-			// not used: 
+			if ((type >= 72) && (type <= 76))
+				return "";
+			var sequence_number = ntohs(tounumber(data[2] + data[3], 16));
+			if ((last_sequence_number) && (sequence_number <= last_sequence_number)) {
+				var delta = sequence_number - last_sequence_number;
+				if (delta < 0)
+					delta *= -1;
+				if (delta < 20)
+					return "";
+			}
+			last_sequence_number = sequence_number;
 			var ssrc_id = (tounumber(data[8] + data[9] + data[10] + data[11], 32));
 			var payload = SubStr(data, 12, length data);
 			if (Record)
@@ -550,6 +576,8 @@ class SIPMessage {
 	var PayloadBlob = "";
 	var ParentCallID = "";
 	var Local = false;
+	var LocalAddress = "";
+	var RemoteAddress = "";
 
 	var ip;
 	var port;
@@ -733,6 +761,7 @@ class SIPStack {
 
 	var RegisterTimeout = 600;
 	var NonRoutableRegisterTimeout = 5;
+	var AllowAllOrigins = true;
 
 	SIPStack(localhost, bind_port = 5060) {
 		this.localhost = localhost;
@@ -763,7 +792,7 @@ class SIPStack {
 		return local_ip;
 	}
 
-	public AddRoute(rule, ip, port) {
+	public AddRoute(rule, ip, port = 5060) {
 		var route = new SIPRoute(rule, ip, port);
 		Routes[rule] = route;
 	}
@@ -789,9 +818,11 @@ class SIPStack {
 	}
 
 	public ValidOrigin(ip) {
+		if ((!Routes) && (!Users) && (AllowAllOrigins))
+			return true;
 		for (var i = 0; i < length Routes; i++) {
 			var route = Routes[i];
-			if ((route) && (route.ip == ip))
+			if ((route) && ((route.ip == ip) || (route.ip == "*")))
 				return true;
 		}
 		for (i = 0; i < length Users; i++) {
@@ -1107,8 +1138,8 @@ class SIPStack {
 				} else
 					msg.Headers["Via"] = parent_msg.Headers["via"];
 				msg.Headers["Max-Forwards"] = max_forwards;
-				msg.Headers["From"] = parent_msg.Headers["from"];
-				msg.Headers["To"] = parent_msg.Headers["to"];
+				msg.Headers["From"] = parent_msg.LocalAddress ?? parent_msg.Headers["from"];
+				msg.Headers["To"] = parent_msg.RemoteAddress ?? parent_msg.Headers["to"];
 			} else {
 				// =============== to check this ===================//
 				branch = "z9hG4bK" + this.RandomString(14);
@@ -1297,7 +1328,6 @@ class SIPStack {
 
 			if (this.OnSend)
 				this.OnSend(msg, server, server_port);
-
 			if (udpclientsocket.Write(msg.ToString(), server, server_port) <= 0)
 				return null;
 			return msg;
@@ -1367,6 +1397,8 @@ class SIPStack {
 							} else
 							if (msg.ServerCode >= 300) {
 								// busy/redirect/etc
+								if (msg.ServerCode >= 400)
+									session.Reject(msg.ServerCode);
 								child_session.Cancel(true);
 								child_session.OnMessage = null;
 								if (session.OnReferError) {
@@ -1734,7 +1766,6 @@ class SIPStack {
 
 				sess.ip = this.IPFromName(server);
 				sess.port = server_port;
-
 				if (udpclientsocket.Write(msg.ToString(), server, server_port) <= 0)
 					return null;
 				return sess;
