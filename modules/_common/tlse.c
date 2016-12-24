@@ -5513,6 +5513,9 @@ int tls_parse_certificate(struct TLSContext *context, const unsigned char *buf, 
                     context->certificates_count++;
                     if ((cert->pk) || (cert->priv))
                         valid_certificate = 1;
+                    else
+                    if (!context->is_server)
+                        valid_certificate = 1;
                 }
             }
             res2 += certificate_size2;
@@ -7063,6 +7066,10 @@ int __private_asn1_parse(struct TLSContext *context, struct TLSCertificate *cert
                     DEBUG_PRINT("\n");
                     break;
                 case 0x03:
+                    if (__is_field(fields, pk_id)) {
+                        if (has_key)
+                            *has_key = 1;                        
+                    }
                     // bitstream
                     DEBUG_PRINT("BITSTREAM(%i): ", length);
                     DEBUG_DUMP_HEX(&buffer[pos], length);

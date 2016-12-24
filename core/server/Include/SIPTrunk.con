@@ -83,7 +83,7 @@ class SIPSession {
 
 		this.ip = ip;
 		this.port = port;
-		Expire = time() + expire;
+		Expire = time() + expire + 1;
 		CallID = msg.Headers["call-id"];
 		ssrc_id = ClsPtr(this);
 		sequence_number = RandomInteger(0, 0xFFF);
@@ -223,7 +223,23 @@ class SIPSession {
 		rtp = null;
 	}
 
-	Cancel(delete_session=false) {
+	End(delete_session=false, msg2 = null) {
+		var exc;
+		try {
+			if (rtp)
+				rtp.Close();
+			if (delete_session) {
+				if (this.s.OnEnd)
+					this.s.OnEnd(this, msg2, "");
+				this.s.RemoveSessionByRef(this);
+			}
+		} catch (exc) {
+			// nothing
+		}
+		rtp = null;
+	}
+
+	Cancel(delete_session=false, reject_code = 486) {
 		var exc;
 		try {
 			if (accept_bye)
@@ -232,7 +248,7 @@ class SIPSession {
 			if (is_invite)
 				var msg2 = s.Cancel(bye_msg ?? msg, ip, port);
 			else
-				msg2 = s.Cancel(msg, ip, port);
+				msg2 = this.Reject(reject_code);//s.Cancel(msg, ip, port);
 		} catch (exc) {
 			// nothing
 		}
@@ -251,7 +267,7 @@ class SIPSession {
 	}
 
 	Expired() {
-		return (time() >= Expire);
+		return (time() > Expire);
 	}
 
 	RecordID() {
@@ -393,6 +409,31 @@ class SIPSession {
 			Children[length Children] = session;
 			session.Parent = this;
 		}
+	}
+
+	RemoveChild(session) {
+		var[] new_children;
+		for (var i = 0; i < length Children; i++) {
+			var child = Children[i];
+			if (child) {
+				if (child == session)
+					child.Parent = null;
+				else
+					new_children[length new_children] = session;
+			}
+		}
+		this.Children = new_children;
+	}
+
+	ChildIsValid(session) {
+		for (var i = 0; i < length Children; i++) {
+			var child = Children[i];
+			if (child) {
+				if (child == session)
+					return true;
+			}
+		}
+		return false;
 	}
 
 	Write(payload, max_frames = 0) {
@@ -739,6 +780,7 @@ class SIPStack {
 	var[] Users;
 	var MaxTime = 3600;
 	var OnDTMF;
+	var OnDTMFRelay;
 	var OnAudio;
 	var OnAudioOut;
 	var OnInvite;
@@ -756,6 +798,7 @@ class SIPStack {
 	var OnInvalidSource;
 	var OnRecv;
 	var OnSend;
+	var OnInfo;
 
 	var FrameSize = 20;
 
@@ -1360,6 +1403,26 @@ class SIPStack {
 		return msg2;
 	}
 
+	protected RejectOthers(session, ref_session) {
+		var others = 0;
+		for (var i = 0; i < length session.Children; i++) {
+			var child = session.Children[i];
+			if ((child) && (child != ref_session)) {
+				others++;
+				child.OnMessage = null;
+				child.Parent = null;
+				if (child._private_data)
+					child.Cancel(true);
+				else
+					child.Bye(true);
+				child._private_data = null;
+			}
+		}
+		session.Children = new [];
+		session.Children[0] = ref_session;
+		return others;
+	}
+
 	public ReferProxy(msg, address, max_forwards = 70, contact = "") {
 		if (!msg)
 			return null;
@@ -1385,27 +1448,51 @@ class SIPStack {
 						var session = this.GetSessionById(child_session._private_data);
 						if (!session)
 							session = parent_session;
+
 						if (session) {
 							if ((msg.ServerCode >= 200) && (msg.ServerCode < 300)) {
+								// session is already removed
+								if (!session.ChildIsValid(child_session))
+									return true;
 								session.ResetBuffers();
 								child_session._private_data = null;
 								child_session.ResetBuffers();
 								child_session.OnMessage = null;
+								if (!session.Referred)
+									this.RejectOthers(session, child_session);
 								session.Referred = true;
 								if (!session.accept_bye)
 									session.Accept(msg.ServerCode);
 							} else
 							if (msg.ServerCode >= 300) {
 								// busy/redirect/etc
+								var child_len = length session.Children;
 								if (msg.ServerCode >= 400)
-									session.Reject(msg.ServerCode);
-								child_session.Cancel(true);
+									child_len++;
+
+								var canceled = false;
+								if ((msg.ServerCode >= 400) && (child_len <= 1)) {
+									session.Cancel(true, msg.ServerCode);
+									canceled = true;
+								}
+
+								if (child_len) {
+									child_session.Parent = null;
+									child_session._private_data = null;
+								}
+								child_session.End(true, msg);
+								// child_session.Cancel(true);
 								child_session.OnMessage = null;
 								if (session.OnReferError) {
 									if (session.OnReferError(session, msg))
 										return;
 								}
-								session.Bye(true);
+								if (!canceled) {
+									if (child_len <= 1)
+										session.Bye(true);
+									else
+										session.RemoveChild(child_session);
+								}
 							} else {
 								this.ResponseUDP(msg.ServerCode, session.msg, session.msg.Headers["from"], "", "", 70, null, "", session.ip, session.port);
 							}
@@ -1519,7 +1606,7 @@ class SIPStack {
 						new_sessions[sess.CallID] = sess;
 				}
 				Sessions = new_sessions;
-				this.CleanSession(res);
+				this.CleanSession(res, msg.ServerCode);
 				return res;
 			}
 		}
@@ -1543,15 +1630,21 @@ class SIPStack {
 		return null;
 	}
 
-	CleanSession(session) {
+	CleanSession(session, code = 0) {
 		if (session) {
 			var parent = session.Parent;
 			if (parent) {
-				session.Parent = null;
-				if (parent._private_data)
-					parent.Cancel(true);
-				else
-					parent.Bye(true);
+				if (length parent.Children <= 1) {
+					session.Parent = null;
+					if (code >= 400)
+						parent.End(true);
+					else
+					if (parent._private_data)
+						parent.Cancel(true);
+					else
+						parent.Bye(true);
+				}
+				parent.RemoveChild(session);
 			}
 
 			for (var i = 0; i < length session.Children; i++) {
@@ -1564,7 +1657,7 @@ class SIPStack {
 		}
 	}
 
-	RemoveSessionByRef(session) {
+	RemoveSessionByRef(session, code = 0) {
 		if ((session) && (IsSet(Sessions, session.CallID))) {
 			var sessions = Sessions;
 
@@ -1576,7 +1669,7 @@ class SIPStack {
 					new_sessions[sess.CallID] = sess;
 			}
 			Sessions = new_sessions;
-			CleanSession(session);
+			CleanSession(session, code);
 			return true;
 		}
 		return false;
@@ -2165,6 +2258,31 @@ class SIPStack {
 					else
 						this.ResponseUDP(message_response, msg, msg.Headers["from"], "", "", 70, extra_headers);
 					break;
+				case "INFO":
+					message_response = 415;
+					sess = GetSession(msg);
+					if (OnInfo)
+						message_response = this.OnInfo(sess, msg);
+					if ((sess) && (ToLower("" + msg.Headers["content-type"]) == "application/dtmf-relay")) {
+						if (this.OnDTMFRelay) {
+							var payload = msg.PayloadBlob;
+							if (payload) {
+								payload = StrReplace(ToLower(payload), " ", "");
+								var pos = Pos(payload, "signal=");
+								if (pos > 0) {
+									var key = trim("" + StrSplit(SubStr(payload, pos + 6), "\n")[0]);
+									if (key)
+										this.OnDTMFRelay(sess, key);
+								}
+							}
+						}
+						message_response = 200;
+					}
+					if (non_routable)
+						this.ResponseUDP(message_response, msg, msg.Headers["from"], "", "", 70, extra_headers, "", ip, port);
+					else
+						this.ResponseUDP(message_response, msg, msg.Headers["from"], "", "", 70, extra_headers);
+					break;
 				default:
 					var parent = null;
 					if (msg.FromServer) {
@@ -2204,8 +2322,8 @@ class SIPStack {
 
 							if (sess) {
 								parent = sess.Parent;
-								sess.Bye();
-								this.RemoveSessionByRef(sess);
+								// sess.Bye();
+								this.RemoveSessionByRef(sess, msg.ServerCode);
 								if (this.OnEnd)
 									this.OnEnd(sess, msg, msg.Headers["reason"] ?? "");
 							}
