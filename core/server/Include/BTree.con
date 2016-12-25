@@ -1193,7 +1193,7 @@ class BTreeFile {
 			var delta = elements - pos;
 			while (true) {
 				if ((pos < 0) || (pos >= elements))
-					return null;
+					return false;
 				var i = pos * NODE_LOGICAL_ELEMENTS + 1;
 				var node = page[i];
 				var node_val = page[i + NODE_VAL_OFFSET];
@@ -1204,10 +1204,9 @@ class BTreeFile {
 					STATIC_COMPARE_CODE
 
 				if (!cmp) {
-					if ((!ReverseKeyVal) && (node_val < 0)) {
-						// to do
-						// return this.GetValues(-node_val, start, limit, extra_validation, user_data);
-					}
+					if ((!ReverseKeyVal) && (node_val < 0))
+						return this.DeleteValue(-node_val, val, offset, pos, node, node_val);
+
 					return DeleteFromPage(page, pos, elements, offset);
 				}
 
@@ -1410,7 +1409,7 @@ class BTreeFile {
 					break;
 				}
 			} else {
-				elements++;
+				// elements++;
 				prec_offset = offset;
 			}
 			offset = node[1];
