@@ -806,6 +806,8 @@ class SIPStack {
 	var NonRoutableRegisterTimeout = 5;
 	var AllowAllOrigins = true;
 
+	var NATFriendly = false;
+
 	SIPStack(localhost, bind_port = 5060) {
 		this.localhost = localhost;
 		this.local_port = bind_port;
@@ -2073,6 +2075,9 @@ class SIPStack {
 	}
 
 	NonRoutable(ip) {
+		if (!this.NATFriendly)
+			return false;
+
 		var arr = StrSplit(ip, ".");
 		if (length arr >= 4) {
 			switch (trim(arr[0])) {
