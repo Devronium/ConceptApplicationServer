@@ -862,6 +862,20 @@ class BTreeFile {
 
 							if ((limit > 0) && (length res >= limit))
 								return res;
+						} else
+						if ((validated == QUERY_SKIP) && (!ReverseKeyVal) && (val < 0)) {
+							limit2 = -1;
+							if (limit > 0) {
+								limit2 = limit - length res;
+								if (limit2 <= 0)
+									return res;
+							}
+							start2 = start;
+							if (start2 < 0)
+								start2 = 0;
+							res2 = this.GetValues(-val, start2, limit2, additional_filter, filter_param);
+							if (res2)
+								res += res2;
 						}
 						if ((filter_func) && ((validated & QUERY_ELEMENT_PREV) == 0))
 							return res;
