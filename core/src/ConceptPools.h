@@ -5,7 +5,7 @@
 #include <stdint.h>
 #include "semhh.h"
 
-// #define SIMPLE_MULTI_THREADING
+#define SIMPLE_MULTI_THREADING
 #define JIT_RUNTIME_CHECKS
 #define OPTIONAL_SEPARATOR
 

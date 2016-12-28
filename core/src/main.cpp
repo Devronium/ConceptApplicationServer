@@ -844,10 +844,13 @@ int GetMemoryStatistics(void *PIF, void *RESULT) {
     CLASS_CHECK(objects_var);
     CLASS_CHECK(array_var);
 
-    objects_var->TYPE       = VARIABLE_ARRAY;
-    array_var->TYPE         = VARIABLE_ARRAY;
+    objects_var->TYPE       = VARIABLE_NUMBER;
+    array_var->TYPE         = VARIABLE_NUMBER;
     objects_var->CLASS_DATA = new(AllocArray((PIFAlizator *)PIF))Array(PIF);
     array_var->CLASS_DATA   = new(AllocArray((PIFAlizator *)PIF))Array(PIF);
+    objects_var->TYPE       = VARIABLE_ARRAY;
+    array_var->TYPE         = VARIABLE_ARRAY;
+
     ((Array *)objects_var->CLASS_DATA)->reachable = 0x1C;
     ((Array *)array_var->CLASS_DATA)->reachable = 0x1C;
 

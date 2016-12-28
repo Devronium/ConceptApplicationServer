@@ -641,9 +641,10 @@ INTEGER Invoke(INTEGER INVOKE_TYPE, ...) {
                 VariableDATA *target = va_arg(ap, VariableDATA *);
                 if (target) {
                     CLASS_CHECK(target);
-                    target->TYPE = VARIABLE_ARRAY;
+                    target->TYPE = VARIABLE_NUMBER;
                     PIFAlizator *PIF = (PIFAlizator *)POOL_CONTEXT(target);
                     target->CLASS_DATA = new(AllocArray(PIF))Array(PIF);
+                    target->TYPE = VARIABLE_ARRAY;
                 } else
                     result = INVALID_INVOKE_PARAMETER;
             }
@@ -685,6 +686,7 @@ INTEGER Invoke(INTEGER INVOKE_TYPE, ...) {
                 VariableDATA dummyVD [1];
 
                 target->TYPE       = VARIABLE_CLASS;
+                target->CLASS_DATA = NULL;
                 target->CLASS_DATA = CC->CreateInstance(pif, target, 0, &FORMAL_PARAM, (VariableDATA **)&dummyVD, NULL);
                 if (!target->CLASS_DATA) {
                     target->TYPE = VARIABLE_NUMBER;
@@ -722,8 +724,8 @@ INTEGER Invoke(INTEGER INVOKE_TYPE, ...) {
                     result = INVALID_INVOKE_PARAMETER;
                     break;
                 }
-
                 target->TYPE       = VARIABLE_CLASS;
+                target->CLASS_DATA = NULL;
                 target->CLASS_DATA = new(AllocClassObject(pif))CompiledClass(CC);
                 if (!target->CLASS_DATA) {
                     target->TYPE        = VARIABLE_NUMBER;
@@ -1941,8 +1943,9 @@ INTEGER Invoke(INTEGER INVOKE_TYPE, ...) {
                 VariableDATA *RESULT = va_arg(ap, VariableDATA *);
                 va_end(ap);
                 CLASS_CHECK(RESULT);
-                RESULT->TYPE       = VARIABLE_ARRAY;
+                RESULT->TYPE       = VARIABLE_NUMBER;
                 RESULT->CLASS_DATA = new(AllocArray(PIF))Array(PIF);
+                RESULT->TYPE       = VARIABLE_ARRAY;
                 return GetMemoryStatistics(PIF, RESULT->CLASS_DATA);
             }
             break;
@@ -2040,6 +2043,7 @@ INTEGER Invoke(INTEGER INVOKE_TYPE, ...) {
                 } while (index >= 0);
 
                 target->TYPE       = VARIABLE_CLASS;
+                target->CLASS_DATA = NULL;
                 target->CLASS_DATA = CC->CreateInstance(pif, target, 0, &FORMAL_PARAM, (VariableDATA **)CONTEXT, NULL);
                 if (ref)
                     free(ref);
@@ -2100,6 +2104,7 @@ INTEGER Invoke(INTEGER INVOKE_TYPE, ...) {
                 } while (index >= 0);
 
                 target->TYPE       = VARIABLE_CLASS;
+                target->CLASS_DATA = NULL;
                 target->CLASS_DATA = CC->CreateInstance(pif, target, 0, &FORMAL_PARAM, (VariableDATA **)CONTEXT, NULL);
                 if (ref)
                     free(ref);

@@ -2746,12 +2746,14 @@ int ConceptInterpreter::StacklessInterpret(PIFAlizator *PIF, GreenThreadCycle *G
                     case KEY_NEW:
                         CLASS_CHECK_TS(LOCAL_CONTEXT [OE->Result_ID - 1]);
                         if (OE->OperandLeft.ID == STATIC_CLASS_ARRAY) {
-                            LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE       = VARIABLE_ARRAY;
+                            LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE       = VARIABLE_NUMBER;
                             LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA = new(AllocArray(PIF))Array(PIF);
+                            LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE       = VARIABLE_ARRAY;
                             DECLARE_PATH(VARIABLE_ARRAY);
                         } else {
                             CC = PIF->StaticClassList[OE->OperandLeft.ID - 1];
                             LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE = VARIABLE_CLASS;
+                            LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA = NULL;
                             FORMAL_PARAMETERS = 0;
                             if (OE->OperandReserved.ID) {
                                 FORMAL_PARAMETERS = &OPT->PARAMS [OE->OperandReserved.ID - 1];
@@ -5405,12 +5407,14 @@ VariableDATA *ConceptInterpreter::Interpret(PIFAlizator *PIF, VariableDATA **LOC
                     //SMART_LOCK(LOCAL_CONTEXT [OE->Result_ID - 1]);
                     CLASS_CHECK_TS(LOCAL_CONTEXT [OE->Result_ID - 1]);
                     if (OE->OperandLeft.ID == STATIC_CLASS_ARRAY) {
-                        LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE       = VARIABLE_ARRAY;
+                        LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE       = VARIABLE_NUMBER;
                         LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA = new(AllocArray(PIF))Array(PIF);
+                        LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE       = VARIABLE_ARRAY;
                         DECLARE_PATH(VARIABLE_ARRAY);
                     } else {
                         CC = PIF->StaticClassList[OE->OperandLeft.ID - 1];
                         LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE = VARIABLE_CLASS;
+                        LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA = NULL;
                         FORMAL_PARAMETERS = 0;
                         if (OE->OperandReserved.ID) {
                             FORMAL_PARAMETERS = &OPT->PARAMS [OE->OperandReserved.ID - 1];
@@ -7475,9 +7479,10 @@ VariableDATA **ConceptInterpreter::CreateEnviroment(PIFAlizator *PIF, VariableDA
             } else
                 LOCAL_CONTEXT_i->CLASS_DATA = 0;
         } else
-        if (LOCAL_CONTEXT_i->TYPE == VARIABLE_ARRAY)
+        if (LOCAL_CONTEXT_i->TYPE == VARIABLE_ARRAY) {
+            LOCAL_CONTEXT_i->CLASS_DATA = NULL;
             LOCAL_CONTEXT_i->CLASS_DATA = new(AllocArray(PIF))Array(PIF);
-        else
+        } else
             LOCAL_CONTEXT_i->CLASS_DATA = NULL;
     }
     CC_WRITE_UNLOCK(PIF)
