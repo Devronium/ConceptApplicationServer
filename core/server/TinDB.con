@@ -1427,13 +1427,15 @@ class TinDB {
 			AddWorkerData(all_storage_workers[i], storage_bin);
 	}
 
-	InitializeDatabases() {
+	static InitializeDatabases() {
 		var AccessDB = new TinBase("sys");
 		var t = AccessDB["users"];
 		t.Lock(true);
 		if (!t.EnsureIndex("username"))
 			t.Store(["username" => "sysdbadministrator", "password" => sha256("sysdbadministrator"), "db" => ""]);
 		t.Unlock(true);
+		t.Flush();
+		AccessDB.Reset();
 	}
 
 	Start(port = 2668, max_connections = 1024, working_directory = "", interface = "") {
@@ -1442,7 +1444,7 @@ class TinDB {
 		Socket = new TCPSocket();
 		if (Socket.Listen(port, max_connections, interface))
 			throw "Error initializing TinDB server (port ${port} already in use)";
-		this.InitializeDatabases();
+
 		while (true) {
 			var sock = Socket.Accept(true);
 			if (sock > 0) {
@@ -1516,6 +1518,7 @@ class Main {
 			echo "Error initializing DB engine\nCannot chdir to '$root'\n";
 			return -1;
 		}
+		TinDB::InitializeDatabases();
 		var db = new TinDB();
 		echo "Listening\n";
 		db.Start();
