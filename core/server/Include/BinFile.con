@@ -14,6 +14,7 @@ define DEFAULT_MODULO_SIZE	64
 define BM25_GRAPH_LEVEL		5
 define BM25_QUERY_LEVEL		7
 define BM25_MODULO_SIZE		48
+define BM25_GRAPH_MODULO_SIZE	32
 define BM25_MAX_WORDCACHE	5000
 
 define MAX_CACHE_OBJECTS	1000
@@ -427,7 +428,7 @@ class BM25Index {
 				echo "Error opening BM25 index: " + wordsfile.name + "\n";
 				return;
 			}
-			graphfile = new BinFile(basename + ".graph", "r+b", BM25_MODULO_SIZE);
+			graphfile = new BinFile(basename + ".graph", "r+b", BM25_GRAPH_MODULO_SIZE);
 			if (!graphfile.Open()) {
 				wordsfile = null;
 				file = null;
@@ -440,7 +441,8 @@ class BM25Index {
 				file.EnsureIndex("d");
 				file.EnsureIndex(["w", "d"]);
 				wordsfile.EnsureIndex("w");
-				graphfile.EnsureIndex(["a", "b"]);
+				graphfile.EnsureIndex("a");
+				// graphfile.EnsureIndex(["a", "b"]);
 				// not needed yet & slow
 				// graphfile.EnsureIndex(["a", "b", "d"]);
 				graphfile.EnsureIndex("d");
@@ -504,7 +506,7 @@ class BM25Index {
 		if (!document)
 			return null;
 
-		return BM25::document(document, lang, graph, graph_level);
+		return BM25::document(document, lang, graph, graph_level, 0, true);
 	}
 
 	samefields(fields) {
@@ -617,7 +619,7 @@ class BM25Index {
 		if (file) {
 			if (len <= 0)
 				len = 100;
-			var words = BM25::document(query, lang);
+			var words = BM25::document(query, lang, null, 0, 0, true);
 			if (words) {
 				var all_words = GetKeys(words);
 				var documents = new [];
@@ -651,11 +653,11 @@ class BM25Index {
 						if (all_words2)
 							all_words = KeySorted(all_words2);
 					}
-					var graph = BM25::complete(all_words, BM25_QUERY_LEVEL);
+					var graph = BM25::complete(all_words, BM25_QUERY_LEVEL, 0, true);
 					for (i = 0; i < length graph; i++) {
 						var g = graph[i];	
 						if (g)
-							docadd(documents, graphfile.Query(g, ["d"], false, start, len_coef));
+							docadd(documents, graphfile.Query(["a" => g["a"]], ["d"], false, start, len_coef));
 					}
 					if (length documents < len) {
 						for (i = 0; i < length all_words; i++)
@@ -752,7 +754,15 @@ class BM25Index {
 		wordcache = ["." => null];
 	}
 
-	update(document, id, changed_keys = null, graph = null, do_flush = true, var wordcache = null, check_existing_index = true) {
+	notifybulk() {
+		if (file)
+			file.InvalidateAndRebuildIndexes();
+
+		if (graphfile)
+			graphfile.InvalidateAndRebuildIndexes();
+	}
+
+	update(document, id, changed_keys = null, graph = null, do_flush = true, var wordcache = null, check_existing_index = true, sync_index = true) {
 		if (!document)
 			return false;
 		if ((changed_keys) && (fields)) {
@@ -783,12 +793,13 @@ class BM25Index {
 						delete_index(graphfile, id);
 					}
 					var words = GetKeys(document);
+					var word_arr = new [];
 					for (i = 0; i < length words; i++) {
 						var word = words[i];
 						if (word) {
 							try {
-								file.Store(["w" => word, "d" => id, "a" => document[word], "l" => word_count]);
-
+								word_arr[length word_arr] = ["w" => word, "d" => id, "a" => document[word], "l" => word_count];
+								//file.Store(["w" => word, "d" => id, "a" => document[word], "l" => word_count], true, false);
 								var w = null;
 								var update_index = true;
 								if ((wordcache) && (IsSet(wordcache, word))) {
@@ -808,21 +819,25 @@ class BM25Index {
 								if (wordcache)
 									wordcache[word] = w;
 								else
-									wordsfile.Store(w, update_index);
+									wordsfile.Store(w, update_index, false);
+
 							} catch (var exc) {
 								echo "BM25 store error: $exc\n";
 								return false;
 							}
 						}
 					}
+					if (word_arr)
+						file._FastStoreMulti(word_arr, sync_index, false);
 					if (graph) {
 						for (i = 0; i < length graph; i++) {
 							var g = graph[i];
 							if (g) {
 								g["d"] = id;
-								graphfile.Store(g);
+								//graphfile.Store(g, true, false);
 							}
 						}
+						graphfile._FastStoreMulti(graph, sync_index, false);
 					}
 					if (!changed_keys)
 						increment(word_count);
@@ -1003,9 +1018,8 @@ class BinFile extends File {
 			return 1;
 		if (a_val < b_val)
 			return -1;
-
 		var type = typeof a_val;
-		if ((typeof a_val == typeof b_val) && (type != "string"))
+		if ((type == typeof b_val) && (type != "string"))
 			return 0;
 		return this.CompareObjectsNoCache(a, b, btree, bottom_layer);
 	}
@@ -1530,6 +1544,48 @@ class BinFile extends File {
 		return true;
 	}
 
+	public _FastStoreMulti(arr, update_index = true, do_flush = true, virtual_store_field = null) {
+		var[] ids;
+		for (var i = 0; i < length arr; i++) {
+			var obj = arr[i];
+			if ((obj) && (IsSet(obj, '$')))
+				throw "Cannot call _FastStoreMulti on already stored objects";
+			if (virtual_store_field) {
+				var id = obj[virtual_store_field];
+				if (id > 0)
+					ids[i] = id;
+			} else {
+				var data = BinarizeObject(obj);
+				if (data) {
+					var data_comp = "";
+					if (Compress) {
+						if (length data > MODULO_SIZE) {
+							data_comp = "\x06" + compress(data);
+							if (int32(length data_comp / MODULO_SIZE) >= int32(length data / MODULO_SIZE))
+								data_comp = "";
+						}
+					}
+					id = -1;
+					if (data_comp)
+						var res = this.WriteBlock(data_comp, id);
+					else
+						res = this.WriteBlock(data, id);
+
+					ids[i] = id;
+				}
+			}
+		}
+		if (update_index) {
+			for (i = 0; i < length arr; i++) {
+				id = ids[i];
+				if (id > 0)
+					this.UpdateIndex(arr[i], id);
+			}
+		}
+		if (do_flush)
+			this.Flush();
+	}
+
 	protected _Store(var obj, update_index = true, id = -1, changed_keys = null, do_flush = true) {
 		if (!hFile)
 			throw "Invalid file descriptor or no open file";
@@ -1587,7 +1643,7 @@ class BinFile extends File {
 						this.UpdateIndex(changed_keys, id, obj);
 				}
 				if (bm25_document) {
-					bm25.update(bm25_document, id, changed_keys, graph);
+					bm25.update(bm25_document, id, changed_keys, graph, true, null, orig_id > 0);
 					this.SyncBM25Info();
 				}
 			}
@@ -2225,7 +2281,8 @@ class BinFile extends File {
 		this.Scan(function(c, id, var word_cache) {
 			cache_id = id;
 			cache_obj = c;
-			bm25.update(bm25.document(c, var graph, BM25_GRAPH_LEVEL), id, null, graph, false, word_cache, false);
+
+			bm25.update(bm25.document(c, var graph, BM25_GRAPH_LEVEL), id, null, graph, false, word_cache, false, true);
 			if (length word_cache >= BM25_MAX_WORDCACHE)
 				bm25.dumpcache(word_cache);
 		}, word_cache);
@@ -2235,6 +2292,8 @@ class BinFile extends File {
 		cache = new [];
 		cache_id = -1;
 		cache_obj = null;
+
+		//bm25.notifybulk();
 	}
 
 	GetObjectFields(obj, fields) {
@@ -2330,6 +2389,24 @@ class BinFile extends File {
 		cache_id = -1;
 		cache_obj = null;
 		return false;
+	}
+
+	InvalidateAndRebuildIndexes() {
+		this.RefreshIndexes();
+		for (var i = 0; i < length Indexes; i++) {
+			var index = Indexes[i];
+			if (index) {
+				if (typeof index == "array") {
+					var fields = index[1];
+					if (typeof fields == "array")
+						this.RebuildCompositeIndex(fields);
+					else
+						this.RebuildIndex(fields);
+				} else
+				if (typeof index == "string")
+						this.RebuildIndex(index);
+			}
+		}
 	}
 
 	EnsureFullTextIndex(fields, lang = "en") {
