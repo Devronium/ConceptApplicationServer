@@ -441,7 +441,7 @@ class BagOfWords {
 		return "";
 	}
 
-	static complete_slice(pivot, words, start, level, graph, docid = 0, use_hash = false) {
+	static complete_slice(pivot, words, start, level, graph, docid = 0, use_hash = false, hash_cache = null) {
 		var end = start + level;
 		if (end > length words)
 			end = length words;
@@ -450,6 +450,7 @@ class BagOfWords {
 			return false;
 
 		var distance = 0;
+		var[] g;
 		for (var i = start; i < end; i++) {
 			var word = words[i];
 			if (word) {
@@ -459,20 +460,34 @@ class BagOfWords {
 				else
 					key = BagOfWords::vertex(pivot, word, obj, docid);
 				if (key) {
-					if (docid)
-						obj["x"] = distance++;
-					graph[key] = obj;
+					if (use_hash) {
+						var hash_key = key + "." + distance;
+						if (!hash_cache[hash_key]) {
+							g["" + distance] = obj["a"];
+							hash_cache[hash_key] = true;
+						}
+						distance++;
+					} else {
+						if (docid)
+							obj["x"] = distance++;
+						graph[key] = obj;
+					}
 				}
 			}
 		}
+		if ((use_hash) && (g))
+			graph[length graph] = g;
 		return true;
 	}
 
 	static complete(array words, level, docid = 0, use_hash = false) {
 		var[] graph;
+		var hash_cache;
+		if (use_hash)
+			hash_cache = new [];
 		if (words) {
 			var pos = 0;
-			while (BagOfWords::complete_slice(words[pos++], words, pos, level, graph, docid, use_hash)) {
+			while (BagOfWords::complete_slice(words[pos++], words, pos, level, graph, docid, use_hash, hash_cache)) {
 				// nothing
 			}
 		}

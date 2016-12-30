@@ -12,9 +12,9 @@ define HEADER_SIZE		64
 define DEFAULT_MODULO_SIZE	64
 
 define BM25_GRAPH_LEVEL		5
-define BM25_QUERY_LEVEL		7
+define BM25_QUERY_LEVEL		5
 define BM25_MODULO_SIZE		48
-define BM25_GRAPH_MODULO_SIZE	32
+define BM25_GRAPH_MODULO_SIZE	72
 define BM25_MAX_WORDCACHE	5000
 
 define MAX_CACHE_OBJECTS	1000
@@ -161,6 +161,7 @@ class BinIndex {
 
 	public var Unique = false;
 	public var Database = "";
+	public var CacheRoot = false;
 	public var GetIndexFields;
 	public property LastError { get _last_error }
 	public property LastErrorString { get GetLastErrorString }
@@ -189,8 +190,10 @@ class BinIndex {
 		var origname = idxname;
 		idxname = this._name + "." + idxname + ".idx";
 		var idx = index_cache[idxname];
-		if (idx)
+		if (idx) {
+			idx.CacheRoot = this.CacheRoot;
 			return idx;
+		}
 		var f = new File(_mode);
 		if (!FileExists(idxname))
 			WriteFile("", idxname);
@@ -207,6 +210,7 @@ class BinIndex {
 			else
 				idx = new BTreeFile(f, this._cmp_reversed, origname, false);
 			index_cache[idxname] = idx;
+			idx.CacheRoot = this.CacheRoot;
 			return idx;
 		}
 		return null;
@@ -441,7 +445,9 @@ class BM25Index {
 				file.EnsureIndex("d");
 				file.EnsureIndex(["w", "d"]);
 				wordsfile.EnsureIndex("w");
-				graphfile.EnsureIndex("a");
+				for (var i = 0; i < BM25_GRAPH_LEVEL; i++)
+					graphfile.EnsureIndex("" + i);
+				// graphfile.EnsureIndex("a");
 				// graphfile.EnsureIndex(["a", "b"]);
 				// not needed yet & slow
 				// graphfile.EnsureIndex(["a", "b", "d"]);
@@ -656,8 +662,14 @@ class BM25Index {
 					var graph = BM25::complete(all_words, BM25_QUERY_LEVEL, 0, true);
 					for (i = 0; i < length graph; i++) {
 						var g = graph[i];	
-						if (g)
-							docadd(documents, graphfile.Query(["a" => g["a"]], ["d"], false, start, len_coef));
+						if (g) {
+							for (var j = 0; j < BM25_QUERY_LEVEL; j++) {
+								var key_g = "" + j;
+								var gk = g[key_g];
+								if (gk)
+									docadd(documents, graphfile.Query([key_g => gk], ["d"], false, start, len_coef));
+							}
+						}
 					}
 					if (length documents < len) {
 						for (i = 0; i < length all_words; i++)
@@ -669,7 +681,7 @@ class BM25Index {
 					if (id) {
 						var key_id = "" + id;
 						if (!n[key_id]) {
-							for (var j = 0; j < length all_words; j++) {
+							for (j = 0; j < length all_words; j++) {
 								word = all_words[j];
 								if (word)
 									statistics(["w" => word, "d" => id], n, f, lens, start, len_coef);
@@ -2256,21 +2268,30 @@ class BinFile extends File {
 		_Index.Database = field;
 		fseek(hFile, HEADER_SIZE, SEEK_SET);
 		Indexes[field] = field;
-		this.Scan(function(c, id, field) {
-			cache_id = id;
-			cache_obj = c;
-			var pos = ftell(hFile);
-			if (this.IsSet2(c, StrSplit(field, "."), var v))
-			//if (IsSet(c, field))
-				_Index.Put(id, field, /*c[field]*/v);
+		_Index.CacheRoot = true;
+		var exc;
+		try {
+			this.Scan(function(c, id, field) {
+				cache_id = id;
+				cache_obj = c;
+				var pos = ftell(hFile);
+				if (this.IsSet2(c, StrSplit(field, "."), var v))
+				//if (IsSet(c, field))
+					_Index.Put(id, field, /*c[field]*/v);
 
-			fseek(hFile, pos, SEEK_SET);
-		}, field);
+				fseek(hFile, pos, SEEK_SET);
+			}, field);
+		} catch (exc) {	
+			echo exc;
+		}
 		fseek(hFile, HEADER_SIZE, SEEK_SET);
+		_Index.CacheRoot = false;
 		_Index.Database = prec_db;
 		cache = new [];
 		cache_id = -1;
 		cache_obj = null;
+		if (exc)
+			throw exc;
 	}
 
 	RebuildBM25() {
@@ -2343,28 +2364,37 @@ class BinFile extends File {
 			return;
 		var prec_db = _Index.Database;
 		_Index.Database = index_name;
+		_Index.CacheRoot = true;
 		fseek(hFile, HEADER_SIZE, SEEK_SET);
 		Indexes[index_name] = fields;
-		this.Scan(function(c, id, userdata) {
-			cache_id = id;
-			cache_obj = c;
-			var fields = userdata[0];
-			var index_name = userdata[1];
-			var pos = ftell(hFile);
-			for (var i = 0; i < length fields; i++) {
-				var field = fields[i];
-				if ((field) && (this.IsSet2(c, StrSplit(field, "."), null))) {
-					_Index.Put(id, index_name, GetObjectFieldsAsString(c, fields));
-					break;
+		var exc;
+		try {
+			this.Scan(function(c, id, userdata) {
+				cache_id = id;
+				cache_obj = c;
+				var fields = userdata[0];
+				var index_name = userdata[1];
+				var pos = ftell(hFile);
+				for (var i = 0; i < length fields; i++) {
+					var field = fields[i];
+					if ((field) && (this.IsSet2(c, StrSplit(field, "."), null))) {
+						_Index.Put(id, index_name, GetObjectFieldsAsString(c, fields));
+						break;
+					}
 				}
-			}
-			fseek(hFile, pos, SEEK_SET);
-		}, [fields, index_name]);
+				fseek(hFile, pos, SEEK_SET);
+			}, [fields, index_name]);
+		} catch (exc) {
+			echo exc;
+		}
 		fseek(hFile, HEADER_SIZE, SEEK_SET);
+		_Index.CacheRoot = false;
 		_Index.Database = prec_db;
 		cache = new [];
 		cache_id = -1;
 		cache_obj = null;
+		if (exc)
+			throw exc;
 	}
 
 	EnsureIndex(field) {
