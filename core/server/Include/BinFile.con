@@ -891,6 +891,7 @@ class BinFile extends File {
 	public var Debug = false;
 	public var[] __debug_block_info;
 	protected var index_refresh_time;
+	protected var _prec_bulk_op;
 
 
 	BinFile(filename, mode="r+b", default_block_size = DEFAULT_MODULO_SIZE) {
@@ -915,6 +916,15 @@ class BinFile extends File {
 			}
 		}
 		return "";
+	}
+
+	BeginBulkOp() {
+		_prec_bulk_op = _Index.CacheRoot;
+		_Index.CacheRoot = true;
+	}
+
+	EndBulkOp() {
+		_Index.CacheRoot = _prec_bulk_op;
 	}
 
 	RefreshIndexes() {
