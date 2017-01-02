@@ -168,7 +168,7 @@ class ConceptChild {
 
 		var result = 0;
 
-		while (len>0) {
+		while (len > 0) {
 			var written = socket.Write(buffer);
 			if (written <= 0) {
 				if (do_throw)
@@ -1265,7 +1265,7 @@ class ConceptChild {
 											step=4;
 											done=true;
 										} else
-										if (WriteExact(header_response)==length header_response) {
+										if (WriteExact(header_response) == length header_response) {
 											if ((sessChild) && (RestoreWS_Step2(sessChild))) {
 												step=4;
 												done=true;
@@ -1273,6 +1273,7 @@ class ConceptChild {
 												this.RunApplication(app, step, "", "", "", debug, true);
 												done=true;
 											}
+											max_idle = microseconds() + orig_idle;
 										}
 									}
 								}
@@ -1669,6 +1670,7 @@ class ConceptChild {
 				} else
 					Owner.Log(ip, "Broken socket on write");
 			}
+
 			var pid=this.PID;
 			if ((step==3) && ((pid>0) || (pid==-2))) {
 				Owner.Log(ip, "Executing");
@@ -1690,6 +1692,14 @@ class ConceptChild {
 				var orig_host=this.HostID;
 				var flush_iterations = 1;
 
+				var execute_start = microseconds();
+				while ((pid > 0) && (!ExecuteIsRunning(pid))) {
+					if (microseconds() - execute_start > 500000) {
+						Owner.Log(ip, "Application failed to start in 500ms.");
+						break;
+					}
+				}
+
 				while ((this.PID==-2) || ((pid > 0) && (ExecuteIsRunning(pid)))) {
 					if ((this.ContextIn>0) && (ctx_in>0)) {
 						var r=read(this.ContextIn, var apidbuf2, 4);
@@ -1702,7 +1712,7 @@ class ConceptChild {
 								if (RemoveChild(app_id, ip)) {
 									disconnected=true;
 									pipein=-1;
-									this.Disconnect(ip);
+									this.Disconnect(ip, "clean");
 								}
 								if (this.ChildCount<=0) {
 									this.HostID="";
@@ -1767,9 +1777,8 @@ class ConceptChild {
 		} catch (exc) {
 			// broken socket
 		}
-
 		if (!disconnected)
-			this.Disconnect(ip);
+			this.Disconnect(ip, "iterate");
 
 		if (this.ContextIn>0) {
 			close(this.ContextIn);
@@ -1786,7 +1795,7 @@ class ConceptChild {
 		this.Owner.threads--;
 	}
 
-	Disconnect(ip) {
+	Disconnect(ip, reason = "") {
 		if (this.DirectPipe>0) {
 			close(this.DirectPipe);
 			this.DirectPipe = -1;
@@ -1801,7 +1810,9 @@ class ConceptChild {
 		}
 
 		if (this.Socket) {
-			Owner.Log(ip, "Disconnected(${this.Socket.Socket}, ${this.APID})");
+			if (reason)
+				reason = ", reason: " + reason;
+			Owner.Log(ip, "Disconnected(${this.Socket.Socket}, ${this.APID}$reason)");
 			SocketSetBlocking(this.Socket.Socket, false);
 			this.Socket.Close();
 		}
