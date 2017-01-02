@@ -2528,6 +2528,7 @@ CONCEPT_DLL_API CONCEPT_wait_message_ID CONCEPT_API_PARAMETERS {
                         SetVariable(LOCAL_CONTEXT[PARAMETERS->PARAM_INDEX[2] - 1], VARIABLE_STRING, "", 0);
                         SetVariable(LOCAL_CONTEXT[PARAMETERS->PARAM_INDEX[3] - 1], VARIABLE_STRING, "", 0);
                         SetVariable(RESULT, VARIABLE_NUMBER, "", 1);
+                        free(buffer);
                         return 0;
                     } else {
                         // connection closed
@@ -2536,6 +2537,7 @@ CONCEPT_DLL_API CONCEPT_wait_message_ID CONCEPT_API_PARAMETERS {
                         SetVariable(LOCAL_CONTEXT[PARAMETERS->PARAM_INDEX[2] - 1], VARIABLE_STRING, "", 0);
                         SetVariable(LOCAL_CONTEXT[PARAMETERS->PARAM_INDEX[3] - 1], VARIABLE_STRING, "", 0);
                         SetVariable(RESULT, VARIABLE_NUMBER, "", 0);
+                        free(buffer);
                         return 0;
                     }
                 }
@@ -2555,10 +2557,21 @@ CONCEPT_DLL_API CONCEPT_wait_message_ID CONCEPT_API_PARAMETERS {
                     SetVariable(LOCAL_CONTEXT[PARAMETERS->PARAM_INDEX[3] - 1], VARIABLE_STRING, "", 0);
                     SetVariable(RESULT, VARIABLE_NUMBER, "", 0);
                     mc->force_exit = 1;
+                    free(buffer);
                     return 0;
                 }
 
                 total_size += size;
+                if (total_size > MAX_WS_PACKET) {
+                    semv(mc->sem_recv);
+                    SetVariable(LOCAL_CONTEXT[PARAMETERS->PARAM_INDEX[1] - 1], VARIABLE_NUMBER, "", 0x500);
+                    SetVariable(LOCAL_CONTEXT[PARAMETERS->PARAM_INDEX[2] - 1], VARIABLE_STRING, "", 0);
+                    SetVariable(LOCAL_CONTEXT[PARAMETERS->PARAM_INDEX[3] - 1], VARIABLE_STRING, "", 0);
+                    SetVariable(RESULT, VARIABLE_NUMBER, "", 0);
+                    mc->force_exit = 1;
+                    free(buffer);
+                    return 0;
+                }
                 buffer       = (char *)realloc(buffer, total_size + 1);
                 buffer[total_size] = 0;
                 if (!buffer) {
@@ -2567,6 +2580,7 @@ CONCEPT_DLL_API CONCEPT_wait_message_ID CONCEPT_API_PARAMETERS {
                     SetVariable(LOCAL_CONTEXT[PARAMETERS->PARAM_INDEX[2] - 1], VARIABLE_STRING, "", 0);
                     SetVariable(LOCAL_CONTEXT[PARAMETERS->PARAM_INDEX[3] - 1], VARIABLE_STRING, "", 0);
                     SetVariable(RESULT, VARIABLE_NUMBER, "", 0);
+                    free(buffer);
                     return 0;
                 }
                 received = WSReceive(mc, CLIENT_SOCKET, buffer + prec_offset, size, masked);
@@ -2578,14 +2592,6 @@ CONCEPT_DLL_API CONCEPT_wait_message_ID CONCEPT_API_PARAMETERS {
                 if (received > 0) {
                     total_received += received;
                     prec_offset += received;
-                }
-                if (total_received > MAX_WS_PACKET) {
-                    semv(mc->sem_recv);
-                    SetVariable(LOCAL_CONTEXT[PARAMETERS->PARAM_INDEX[1] - 1], VARIABLE_NUMBER, "", 0x500);
-                    SetVariable(LOCAL_CONTEXT[PARAMETERS->PARAM_INDEX[2] - 1], VARIABLE_STRING, "", 0);
-                    SetVariable(LOCAL_CONTEXT[PARAMETERS->PARAM_INDEX[3] - 1], VARIABLE_STRING, "", 0);
-                    SetVariable(RESULT, VARIABLE_NUMBER, "", 0);
-                    return 0;
                 }
             } while (!fin);
             received = total_received;
@@ -3303,6 +3309,7 @@ CONCEPT_DLL_API CONCEPT_get_message CONCEPT_API_PARAMETERS {
                     SetVariable(LOCAL_CONTEXT[PARAMETERS->PARAM_INDEX[2] - 1], VARIABLE_STRING, "", 0);
                     SetVariable(LOCAL_CONTEXT[PARAMETERS->PARAM_INDEX[3] - 1], VARIABLE_STRING, "", 0);
                     SetVariable(RESULT, VARIABLE_NUMBER, "", 1);
+                    free(buffer);
                     return 0;
                 } else {
                     // connection closed
@@ -3311,6 +3318,7 @@ CONCEPT_DLL_API CONCEPT_get_message CONCEPT_API_PARAMETERS {
                     SetVariable(LOCAL_CONTEXT[PARAMETERS->PARAM_INDEX[3] - 1], VARIABLE_STRING, "", 0);
                     SetVariable(RESULT, VARIABLE_NUMBER, "", 0);
                     mc->force_exit = 1;
+                    free(buffer);
                     return 0;
                 }
             }
@@ -3328,10 +3336,22 @@ CONCEPT_DLL_API CONCEPT_get_message CONCEPT_API_PARAMETERS {
                 SetVariable(LOCAL_CONTEXT[PARAMETERS->PARAM_INDEX[2] - 1], VARIABLE_STRING, "", 0);
                 SetVariable(LOCAL_CONTEXT[PARAMETERS->PARAM_INDEX[3] - 1], VARIABLE_STRING, "", 0);
                 SetVariable(RESULT, VARIABLE_NUMBER, "", 0);
+                free(buffer);
                 return 0;
             }
 
             total_size += size;
+            if (total_size > MAX_WS_PACKET) {
+                semv(mc->sem_recv);
+                SetVariable(LOCAL_CONTEXT[PARAMETERS->PARAM_INDEX[1] - 1], VARIABLE_NUMBER, "", 0x500);
+                SetVariable(LOCAL_CONTEXT[PARAMETERS->PARAM_INDEX[2] - 1], VARIABLE_STRING, "", 0);
+                SetVariable(LOCAL_CONTEXT[PARAMETERS->PARAM_INDEX[3] - 1], VARIABLE_STRING, "", 0);
+                SetVariable(RESULT, VARIABLE_NUMBER, "", 0);
+                mc->force_exit = 1;
+                free(buffer);
+                return 0;
+            }
+
             buffer       = (char *)realloc(buffer, total_size + 1);
             buffer[total_size] = 0;
             if (!buffer) {
@@ -3340,6 +3360,7 @@ CONCEPT_DLL_API CONCEPT_get_message CONCEPT_API_PARAMETERS {
                 SetVariable(LOCAL_CONTEXT[PARAMETERS->PARAM_INDEX[2] - 1], VARIABLE_STRING, "", 0);
                 SetVariable(LOCAL_CONTEXT[PARAMETERS->PARAM_INDEX[3] - 1], VARIABLE_STRING, "", 0);
                 SetVariable(RESULT, VARIABLE_NUMBER, "", 0);
+                free(buffer);
                 return 0;
             }
             received = WSReceive(mc, CLIENT_SOCKET, buffer + prec_offset, size, masked);
@@ -3351,14 +3372,6 @@ CONCEPT_DLL_API CONCEPT_get_message CONCEPT_API_PARAMETERS {
             if (received > 0) {
                 total_received += received;
                 prec_offset += received;
-            }
-            if (total_received > MAX_WS_PACKET) {
-                semv(mc->sem_recv);
-                SetVariable(LOCAL_CONTEXT[PARAMETERS->PARAM_INDEX[1] - 1], VARIABLE_NUMBER, "", 0x500);
-                SetVariable(LOCAL_CONTEXT[PARAMETERS->PARAM_INDEX[2] - 1], VARIABLE_STRING, "", 0);
-                SetVariable(LOCAL_CONTEXT[PARAMETERS->PARAM_INDEX[3] - 1], VARIABLE_STRING, "", 0);
-                SetVariable(RESULT, VARIABLE_NUMBER, "", 0);
-                return 0;
             }
         } while (!fin);
         received = total_received;
