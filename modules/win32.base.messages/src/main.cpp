@@ -28,7 +28,7 @@ extern "C" {
 #define CACHE_SIZE       0xFFFF
 #define CHUNK_SIZE       0x80000
 #define MAX_RT_SIZE      0x9FFF
-
+#define MAX_WS_PACKET    0x7FFFFFF
 
 #ifdef _WIN32
  #define _WIN32_WINNT    0x0501
@@ -1008,11 +1008,13 @@ void IgnoreBytes(MetaContainer *mc, int CLIENT_SOCKET, int size, bool masked = t
     } while ((rec_count < size) && (received > 0));
 }
 
-long WSGetPacketSize(MetaContainer *mc, int CLIENT_SOCKET, int *code, int *masked) {
+long WSGetPacketSize(MetaContainer *mc, int CLIENT_SOCKET, int *code, int *masked, int *fin) {
     int           received  = 0;
     int           rec_count = 0;
     unsigned char buf[9];
 
+    if (fin)
+        *fin = 0;
     do {
         received   = deturnated_recv(mc, CLIENT_SOCKET, (char *)buf + rec_count, 2 - rec_count, 0);
         rec_count += received;
@@ -1024,6 +1026,8 @@ long WSGetPacketSize(MetaContainer *mc, int CLIENT_SOCKET, int *code, int *maske
     }
     rec_count = 0;
     // buf[0] is packet marker
+    if (fin)
+        *fin = buf[0] & 0x80;
     switch (buf[0] & 0x0F) {
         case 0x0:
             // continuation frame
@@ -2508,57 +2512,84 @@ CONCEPT_DLL_API CONCEPT_wait_message_ID CONCEPT_API_PARAMETERS {
         if (ref_isWebSocket) {
             int code;
             int masked;
+            int fin;
+            long prec_offset = 0;
+            long total_received = 0;
+            long total_size = 0;
+
             semp(mc->sem_recv);
-            size = WSGetPacketSize(mc, CLIENT_SOCKET, &code, &masked);
-            if ((size <= 0) && (code)) {
-                semv(mc->sem_recv);
-                if (code > 0) {
-                    // ping or pong
-                    SetVariable(LOCAL_CONTEXT[PARAMETERS->PARAM_INDEX[1] - 1], VARIABLE_NUMBER, "", 0);
+            do {
+                size = WSGetPacketSize(mc, CLIENT_SOCKET, &code, &masked, &fin);
+                if ((size <= 0) && (code)) {
+                    semv(mc->sem_recv);
+                    if (code > 0) {
+                        // ping or pong
+                        SetVariable(LOCAL_CONTEXT[PARAMETERS->PARAM_INDEX[1] - 1], VARIABLE_NUMBER, "", 0);
+                        SetVariable(LOCAL_CONTEXT[PARAMETERS->PARAM_INDEX[2] - 1], VARIABLE_STRING, "", 0);
+                        SetVariable(LOCAL_CONTEXT[PARAMETERS->PARAM_INDEX[3] - 1], VARIABLE_STRING, "", 0);
+                        SetVariable(RESULT, VARIABLE_NUMBER, "", 1);
+                        return 0;
+                    } else {
+                        // connection closed
+                        mc->force_exit = 1;
+                        SetVariable(LOCAL_CONTEXT[PARAMETERS->PARAM_INDEX[1] - 1], VARIABLE_NUMBER, "", 0x500);
+                        SetVariable(LOCAL_CONTEXT[PARAMETERS->PARAM_INDEX[2] - 1], VARIABLE_STRING, "", 0);
+                        SetVariable(LOCAL_CONTEXT[PARAMETERS->PARAM_INDEX[3] - 1], VARIABLE_STRING, "", 0);
+                        SetVariable(RESULT, VARIABLE_NUMBER, "", 0);
+                        return 0;
+                    }
+                }
+                // min message is 7 bytes
+                if (size < 7)
+                    size = -1;
+
+                if (size <= 0) {
+                    if (size == 0) {
+                        // flush mask buffer
+                        WSReceive(mc, CLIENT_SOCKET, NULL, 0, masked);
+                        SetVariable(LOCAL_CONTEXT[PARAMETERS->PARAM_INDEX[1] - 1], VARIABLE_NUMBER, "", 0x500);
+                    } else
+                        SetVariable(LOCAL_CONTEXT[PARAMETERS->PARAM_INDEX[1] - 1], VARIABLE_NUMBER, "", 0);
+                    semv(mc->sem_recv);
                     SetVariable(LOCAL_CONTEXT[PARAMETERS->PARAM_INDEX[2] - 1], VARIABLE_STRING, "", 0);
                     SetVariable(LOCAL_CONTEXT[PARAMETERS->PARAM_INDEX[3] - 1], VARIABLE_STRING, "", 0);
-                    SetVariable(RESULT, VARIABLE_NUMBER, "", 1);
-                    return 0;
-                } else {
-                    // connection closed
+                    SetVariable(RESULT, VARIABLE_NUMBER, "", 0);
                     mc->force_exit = 1;
+                    return 0;
+                }
+
+                total_size += size;
+                buffer       = (char *)realloc(buffer, total_size + 1);
+                buffer[total_size] = 0;
+                if (!buffer) {
+                    semv(mc->sem_recv);
                     SetVariable(LOCAL_CONTEXT[PARAMETERS->PARAM_INDEX[1] - 1], VARIABLE_NUMBER, "", 0x500);
                     SetVariable(LOCAL_CONTEXT[PARAMETERS->PARAM_INDEX[2] - 1], VARIABLE_STRING, "", 0);
                     SetVariable(LOCAL_CONTEXT[PARAMETERS->PARAM_INDEX[3] - 1], VARIABLE_STRING, "", 0);
                     SetVariable(RESULT, VARIABLE_NUMBER, "", 0);
                     return 0;
                 }
-            }
-            // min message is 7 bytes
-            if (size < 7)
-                size = -1;
-
-            if (size <= 0) {
-                if (size == 0) {
-                    // flush mask buffer
-                    WSReceive(mc, CLIENT_SOCKET, NULL, 0, masked);
-                    SetVariable(LOCAL_CONTEXT[PARAMETERS->PARAM_INDEX[1] - 1], VARIABLE_NUMBER, "", 0x500);
+                received = WSReceive(mc, CLIENT_SOCKET, buffer + prec_offset, size, masked);
+                if ((received != size) || (received < 0)) {
+                    total_received = received;
+                    total_size = size;
+                    break;
                 } else
-                    SetVariable(LOCAL_CONTEXT[PARAMETERS->PARAM_INDEX[1] - 1], VARIABLE_NUMBER, "", 0);
-                semv(mc->sem_recv);
-                SetVariable(LOCAL_CONTEXT[PARAMETERS->PARAM_INDEX[2] - 1], VARIABLE_STRING, "", 0);
-                SetVariable(LOCAL_CONTEXT[PARAMETERS->PARAM_INDEX[3] - 1], VARIABLE_STRING, "", 0);
-                SetVariable(RESULT, VARIABLE_NUMBER, "", 0);
-                mc->force_exit = 1;
-                return 0;
-            }
-
-            buffer       = new char[size + 1];
-            buffer[size] = 0;
-            if (!buffer) {
-                semv(mc->sem_recv);
-                SetVariable(LOCAL_CONTEXT[PARAMETERS->PARAM_INDEX[1] - 1], VARIABLE_NUMBER, "", 0x500);
-                SetVariable(LOCAL_CONTEXT[PARAMETERS->PARAM_INDEX[2] - 1], VARIABLE_STRING, "", 0);
-                SetVariable(LOCAL_CONTEXT[PARAMETERS->PARAM_INDEX[3] - 1], VARIABLE_STRING, "", 0);
-                SetVariable(RESULT, VARIABLE_NUMBER, "", 0);
-                return 0;
-            }
-            received = WSReceive(mc, CLIENT_SOCKET, buffer, size, masked);
+                if (received > 0) {
+                    total_received += received;
+                    prec_offset += received;
+                }
+                if (total_received > MAX_WS_PACKET) {
+                    semv(mc->sem_recv);
+                    SetVariable(LOCAL_CONTEXT[PARAMETERS->PARAM_INDEX[1] - 1], VARIABLE_NUMBER, "", 0x500);
+                    SetVariable(LOCAL_CONTEXT[PARAMETERS->PARAM_INDEX[2] - 1], VARIABLE_STRING, "", 0);
+                    SetVariable(LOCAL_CONTEXT[PARAMETERS->PARAM_INDEX[3] - 1], VARIABLE_STRING, "", 0);
+                    SetVariable(RESULT, VARIABLE_NUMBER, "", 0);
+                    return 0;
+                }
+            } while (!fin);
+            received = total_received;
+            size = total_size;
             semv(mc->sem_recv);
             if (received != size) {
                 mc->force_exit = 1;
@@ -2566,7 +2597,7 @@ CONCEPT_DLL_API CONCEPT_wait_message_ID CONCEPT_API_PARAMETERS {
                 SetVariable(LOCAL_CONTEXT[PARAMETERS->PARAM_INDEX[2] - 1], VARIABLE_STRING, "", 0);
                 SetVariable(LOCAL_CONTEXT[PARAMETERS->PARAM_INDEX[3] - 1], VARIABLE_STRING, "", 0);
                 SetVariable(RESULT, VARIABLE_NUMBER, "", 0);
-                delete[] buffer;
+                free(buffer);
                 return 0;
             }
         } else {
@@ -2604,7 +2635,7 @@ CONCEPT_DLL_API CONCEPT_wait_message_ID CONCEPT_API_PARAMETERS {
             //if (size > BUFFER_SIZE)
             //   return (void *)"wait_message_ID: received data is too big";
             if (size) {
-                buffer       = new char[size + 1];
+                buffer       = (char *)malloc(size + 1);
                 buffer[size] = 0;
             }
 
@@ -2621,7 +2652,7 @@ CONCEPT_DLL_API CONCEPT_wait_message_ID CONCEPT_API_PARAMETERS {
             if (received <= 0) {
                 semv(mc->sem_recv);
                 if (buffer)
-                    delete[] buffer;
+                    free(buffer);
 
                 SOCKET_RECREATE_CHECK(1)
 
@@ -2635,17 +2666,17 @@ CONCEPT_DLL_API CONCEPT_wait_message_ID CONCEPT_API_PARAMETERS {
             semv(mc->sem_recv);
 
             if (LOCAL_PRIVATE_KEY) {
-                out_content  = new char[size * 2];
+                out_content  = (char *)malloc(size * 2 + 16);
                 buffer[size] = 0;
                 int decrypt_result = AES_decrypt(mc, buffer, size, out_content, size, LOCAL_PRIVATE_KEY, 16, true);
                 out_content[decrypt_result] = 0;
                 if (!decrypt_result) {
-                    delete[] out_content;
+                    free(out_content);
                     out_content = 0;
                 } else {
                     size = decrypt_result;
                     if (buffer) {
-                        delete[] buffer;
+                        free(buffer);
                         buffer = 0;
                     }
                 }
@@ -2664,12 +2695,12 @@ CONCEPT_DLL_API CONCEPT_wait_message_ID CONCEPT_API_PARAMETERS {
         char buf_tmp[0xFF];
         if (DeSerializeBuffer2(out_content ? out_content : buffer, size, &Owner, &OwnerLen, &message_id, &Target, &TargetLen, &Value, &ValueLen, size2, buf_tmp) < 0) {
             if (out_content) {
-                delete[] out_content;
+                free(out_content);
                 out_content = 0;
             }
 
             if (buffer) {
-                delete[] buffer;
+                free(buffer);
                 buffer = 0;
             }
             mc->force_exit = 1;
@@ -2716,12 +2747,12 @@ CONCEPT_DLL_API CONCEPT_wait_message_ID CONCEPT_API_PARAMETERS {
                 ValueLen);
 
             if (out_content) {
-                delete[] out_content;
+                free(out_content);
                 out_content = 0;
             }
 
             if (buffer) {
-                delete[] buffer;
+                free(buffer);
                 buffer = 0;
             }
             mc->last_msg_seconds = time(NULL);
@@ -2743,12 +2774,12 @@ CONCEPT_DLL_API CONCEPT_wait_message_ID CONCEPT_API_PARAMETERS {
             cachedmessages++;
         }
         if (out_content) {
-            delete[] out_content;
+            free(out_content);
             out_content = 0;
         }
 
         if (buffer) {
-            delete[] buffer;
+            free(buffer);
             buffer = 0;
         }
         if ((do_timeout) && ((((MSG_ID > 0) && (MSG_ID != 0x131) && (MSG_ID != 0x132) && (MSG_ID != 0x137) && (MSG_ID != 0x138) && (MSG_ID != 0x139) && (MSG_ID != 0x13A)) || (cachedmessages >= 50)) && (time(NULL) - start >= 10))) {
@@ -3091,7 +3122,7 @@ CONCEPT_DLL_API CONCEPT_get_message CONCEPT_API_PARAMETERS {
 
             char *data = 0;
             if (params[2] > 0) {
-                data            = new char[params[2] + 1];
+                data            = (char *)malloc(params[2] + 1);
                 total           = deturnated_read(pipe_in, (void *)data, params[2]);
                 data[params[2]] = 0;
             }
@@ -3126,7 +3157,7 @@ CONCEPT_DLL_API CONCEPT_get_message CONCEPT_API_PARAMETERS {
                     0);
 
             if (data)
-                delete[] data;
+                free(data);
             SetVariable(RESULT, VARIABLE_NUMBER, "", total);
 
             mc->last_msg_seconds = time(NULL);
@@ -3254,57 +3285,84 @@ CONCEPT_DLL_API CONCEPT_get_message CONCEPT_API_PARAMETERS {
     char         *out_content = 0;
 
     if (ref_isWebSocket) {
-        semp(mc->sem_recv);
         int code;
         int masked;
-        size = WSGetPacketSize(mc, CLIENT_SOCKET, &code, &masked);
-        if ((size <= 0) && (code)) {
-            semv(mc->sem_recv);
-            if (code > 0) {
-                // ping or pong
-                SetVariable(LOCAL_CONTEXT[PARAMETERS->PARAM_INDEX[1] - 1], VARIABLE_NUMBER, "", 0);
+        int fin;
+        long prec_offset = 0;
+        long total_received = 0;
+        long total_size = 0;
+
+        semp(mc->sem_recv);
+        do {
+            size = WSGetPacketSize(mc, CLIENT_SOCKET, &code, &masked, &fin);
+            if ((size <= 0) && (code)) {
+                semv(mc->sem_recv);
+                if (code > 0) {
+                    // ping or pong
+                    SetVariable(LOCAL_CONTEXT[PARAMETERS->PARAM_INDEX[1] - 1], VARIABLE_NUMBER, "", 0);
+                    SetVariable(LOCAL_CONTEXT[PARAMETERS->PARAM_INDEX[2] - 1], VARIABLE_STRING, "", 0);
+                    SetVariable(LOCAL_CONTEXT[PARAMETERS->PARAM_INDEX[3] - 1], VARIABLE_STRING, "", 0);
+                    SetVariable(RESULT, VARIABLE_NUMBER, "", 1);
+                    return 0;
+                } else {
+                    // connection closed
+                    SetVariable(LOCAL_CONTEXT[PARAMETERS->PARAM_INDEX[1] - 1], VARIABLE_NUMBER, "", 0x500);
+                    SetVariable(LOCAL_CONTEXT[PARAMETERS->PARAM_INDEX[2] - 1], VARIABLE_STRING, "", 0);
+                    SetVariable(LOCAL_CONTEXT[PARAMETERS->PARAM_INDEX[3] - 1], VARIABLE_STRING, "", 0);
+                    SetVariable(RESULT, VARIABLE_NUMBER, "", 0);
+                    mc->force_exit = 1;
+                    return 0;
+                }
+            }
+            // min message is 7 bytes
+            if (size < 7)
+                size = -1;
+            if (size <= 0) {
+                if (size == 0) {
+                    // flush mask buffer
+                    WSReceive(mc, CLIENT_SOCKET, NULL, 0, masked);
+                    SetVariable(LOCAL_CONTEXT[PARAMETERS->PARAM_INDEX[1] - 1], VARIABLE_NUMBER, "", 0x500);
+                } else
+                    SetVariable(LOCAL_CONTEXT[PARAMETERS->PARAM_INDEX[1] - 1], VARIABLE_NUMBER, "", 0);
+                semv(mc->sem_recv);
                 SetVariable(LOCAL_CONTEXT[PARAMETERS->PARAM_INDEX[2] - 1], VARIABLE_STRING, "", 0);
                 SetVariable(LOCAL_CONTEXT[PARAMETERS->PARAM_INDEX[3] - 1], VARIABLE_STRING, "", 0);
-                SetVariable(RESULT, VARIABLE_NUMBER, "", 1);
+                SetVariable(RESULT, VARIABLE_NUMBER, "", 0);
                 return 0;
-            } else {
-                // connection closed
+            }
+
+            total_size += size;
+            buffer       = (char *)realloc(buffer, total_size + 1);
+            buffer[total_size] = 0;
+            if (!buffer) {
+                semv(mc->sem_recv);
                 SetVariable(LOCAL_CONTEXT[PARAMETERS->PARAM_INDEX[1] - 1], VARIABLE_NUMBER, "", 0x500);
                 SetVariable(LOCAL_CONTEXT[PARAMETERS->PARAM_INDEX[2] - 1], VARIABLE_STRING, "", 0);
                 SetVariable(LOCAL_CONTEXT[PARAMETERS->PARAM_INDEX[3] - 1], VARIABLE_STRING, "", 0);
                 SetVariable(RESULT, VARIABLE_NUMBER, "", 0);
-                mc->force_exit = 1;
                 return 0;
             }
-        }
-        // min message is 7 bytes
-        if (size < 7)
-            size = -1;
-        if (size <= 0) {
-            if (size == 0) {
-                // flush mask buffer
-                WSReceive(mc, CLIENT_SOCKET, NULL, 0, masked);
-                SetVariable(LOCAL_CONTEXT[PARAMETERS->PARAM_INDEX[1] - 1], VARIABLE_NUMBER, "", 0x500);
+            received = WSReceive(mc, CLIENT_SOCKET, buffer + prec_offset, size, masked);
+            if ((received != size) || (received < 0)) {
+                total_received = received;
+                total_size = size;
+                break;
             } else
-                SetVariable(LOCAL_CONTEXT[PARAMETERS->PARAM_INDEX[1] - 1], VARIABLE_NUMBER, "", 0);
-            semv(mc->sem_recv);
-            SetVariable(LOCAL_CONTEXT[PARAMETERS->PARAM_INDEX[2] - 1], VARIABLE_STRING, "", 0);
-            SetVariable(LOCAL_CONTEXT[PARAMETERS->PARAM_INDEX[3] - 1], VARIABLE_STRING, "", 0);
-            SetVariable(RESULT, VARIABLE_NUMBER, "", 0);
-            return 0;
-        }
-
-        buffer       = (char *)malloc(size + 1);
-        buffer[size] = 0;
-        if (!buffer) {
-            semv(mc->sem_recv);
-            SetVariable(LOCAL_CONTEXT[PARAMETERS->PARAM_INDEX[1] - 1], VARIABLE_NUMBER, "", 0x500);
-            SetVariable(LOCAL_CONTEXT[PARAMETERS->PARAM_INDEX[2] - 1], VARIABLE_STRING, "", 0);
-            SetVariable(LOCAL_CONTEXT[PARAMETERS->PARAM_INDEX[3] - 1], VARIABLE_STRING, "", 0);
-            SetVariable(RESULT, VARIABLE_NUMBER, "", 0);
-            return 0;
-        }
-        received = WSReceive(mc, CLIENT_SOCKET, buffer, size, masked);
+            if (received > 0) {
+                total_received += received;
+                prec_offset += received;
+            }
+            if (total_received > MAX_WS_PACKET) {
+                semv(mc->sem_recv);
+                SetVariable(LOCAL_CONTEXT[PARAMETERS->PARAM_INDEX[1] - 1], VARIABLE_NUMBER, "", 0x500);
+                SetVariable(LOCAL_CONTEXT[PARAMETERS->PARAM_INDEX[2] - 1], VARIABLE_STRING, "", 0);
+                SetVariable(LOCAL_CONTEXT[PARAMETERS->PARAM_INDEX[3] - 1], VARIABLE_STRING, "", 0);
+                SetVariable(RESULT, VARIABLE_NUMBER, "", 0);
+                return 0;
+            }
+        } while (!fin);
+        received = total_received;
+        size = total_size;
         semv(mc->sem_recv);
         if (received != size) {
             SetVariable(LOCAL_CONTEXT[PARAMETERS->PARAM_INDEX[1] - 1], VARIABLE_NUMBER, "", 0);
