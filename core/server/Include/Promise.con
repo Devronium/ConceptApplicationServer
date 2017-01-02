@@ -1,0 +1,98 @@
+define PROMISE_PENDING		0
+define PROMISE_FULFILLED	1
+define PROMISE_REJECTED		-1
+
+class Promise {
+	protected var handler;
+	protected var _state = PROMISE_PENDING;
+	protected var _next;
+
+	public var onFulfilled;
+	public var onRejected;
+	public property state { get _state }
+	public property head { get next }
+
+	public var parameters;
+	
+	Promise(handler = null, parameters = null) {
+		this.handler = handler;
+		this.parameters = parameters;
+	}
+
+	protected do_next(p) {
+		if (classof p == "Promise") {
+			if (_next) {
+				p.onFulfilled = p.onFulfilled ?? _next.onFulfilled;
+				p.onRejected = p.onRejected ?? _next.onRejected;
+			}
+			_next = p;			
+		}
+	}
+
+	resolve(p = null) {
+		if (_state != PROMISE_PENDING)
+			throw "Invalid promise state in ::resolve";
+		_state = PROMISE_FULFILLED;
+		if (this.onFulfilled) {
+			if (this.parameters)
+				do_next(this.onFulfilled(p, this.parameters));
+			else
+				do_next(this.onFulfilled(p));
+		}
+	}
+
+	reject(p = null) {
+		if (_state != PROMISE_PENDING)
+			throw "Invalid promise state in ::reject";
+		_state = PROMISE_REJECTED;
+		if (this.onRejected) {
+			if (this.parameters)
+				do_next(this.onRejected(p, this.parameters));
+			else
+				do_next(this.onRejected(p));
+		}
+	}
+
+	then(delegate onFulfilled, onRejected = null) {
+		this.onFulfilled = onFulfilled;
+		this.onRejected = onRejected;
+		var p = new Promise(null);
+		this._next = p;
+		return p;
+	}
+
+	signal() {
+		var ref = this;
+		while (ref) {
+			if (ref._state == PROMISE_PENDING) {
+				if (ref.handler) {
+					ref.handler(ref);
+					return true;
+				}
+			}
+			ref = ref._next;
+		}
+		return false;
+	}
+
+	list() {
+		var[] promises;
+		var ref = this;
+		while (ref) {
+			if (ref._state == PROMISE_PENDING)
+				promises[length promises] = ref;
+			ref = ref._next;
+		}
+		return promises;
+	}
+
+	next() {
+		var ref = this;
+		while (ref) {
+			if (ref._state == PROMISE_PENDING)
+				return ref;
+			ref = ref._next;
+		}
+		return null;
+	}
+}

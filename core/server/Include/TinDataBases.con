@@ -1,5 +1,7 @@
 include TCPSocket.con
 include Binarizable.con
+include Promise.con
+
 import standard.lib.thread
 import standard.C.math
 import standard.lib.cripto
@@ -104,6 +106,13 @@ class TinConnection {
 			}
 		} else
 			throw "TinConnection: Not connected";
+	}
+
+	_Promise(q, callback, userdata = null) {
+		var p = new Promise();
+		p.parameters = userdata;
+		this._Handle(q, callback, p);
+		return p;
 	}
 
 	protected _QueryById(qid) {
@@ -296,8 +305,55 @@ class TinDataSet {
 		this.Connection._Handle(q, callback, this.UserData);
 	}
 
+	protected PromiseHandler(data, id, err, p) {
+		if (err)
+			return p.reject(err);
+
+		return p.resolve(data);
+	}
+
+	q(params, fields = null, len = 0, start = 0, descending = false, priority = 0) {
+		if (typeof params != "array") {
+			if (typeof params == "object")
+				params = ToArray(params);
+			else
+				params = ['$' => params];
+		}
+
+		var q = new Q(params, Connection.Database, this.Collection, "Q");
+		if (start)
+			q.x["start"] = start;
+		if (len)
+			q.x["len"] = len;
+		if (descending)
+			q.x["descending"] = descending;
+		if (priority)
+			q.x["priority"] = priority;
+		q.f = fields;
+
+		return this.Connection._Promise(q, PromiseHandler, this.UserData);
+	}
+
 	Map(params, delegate callback, fields = null, len = 0, start = 0, descending = false, priority = 0) {
 		Query(params, callback, fields, len, start, descending, priority, true);
+	}
+
+	j(params, fields = null, len = 0, start = 0, descending = false, priority = 0) {
+		if ((!params) || (typeof params != "array"))
+			return false;
+
+		var q = new Q(params, Connection.Database, this.Collection, "W");
+		if (start)
+			q.x["start"] = start;
+		if (len)
+			q.x["len"] = len;
+		if (descending)
+			q.x["descending"] = descending;
+		if (priority)
+			q.x["priority"] = priority;
+		q.f = fields;
+
+		return this.Connection._Promise(q, PromiseHandler, this.UserData);
 	}
 
 	Join(params, delegate callback, fields = null, len = 0, start = 0, descending = false, priority = 0) {
@@ -317,6 +373,21 @@ class TinDataSet {
 		this.Connection._Handle(q, callback, this.UserData);
 	}
 
+	v(params, challenge, hash, user_field = "username", password_field = "password",  fields = null, hash_function = "sha256", priority = 0) {
+		if (typeof params != "array")
+			params = ToArray(params);
+
+		var q = new Q(params, Connection.Database, this.Collection, "L");
+		q.x["f"] = hash_function;
+		q.x["challenge"] = challenge;
+		q.x["hash"] = hash;
+		q.x["user_field"] = user_field;
+		q.x["pass_field"] = password_field;
+		if (priority)
+			q.x["priority"] = priority;
+		q.f = fields;
+		return this.Connection._Promise(q, PromiseHandler, this.UserData);
+	}
 
 	Verify(params, challenge, hash, delegate callback, user_field = "username", password_field = "password",  fields = null, hash_function = "sha256", priority = 0) {
 		if (typeof params != "array")
@@ -344,6 +415,18 @@ class TinDataSet {
 			q.x["priority"] = priority;
 		q.f = fields;
 		this.Connection._Handle(q, callback, this.UserData);
+	}
+
+	search(string q_string, fields = null, len = 0, start = 0, priority = 0) {
+		var q = new Q([q_string], Connection.Database, this.Collection, "S");
+		if (start)
+			q.x["start"] = start;
+		if (len)
+			q.x["len"] = len;
+		if (priority)
+			q.x["priority"] = priority;
+		q.f = fields;
+		return this.Connection._Promise(q, PromiseHandler, this.UserData);
 	}
 
 	Drop(callback = null, priority = 0) {
@@ -423,5 +506,15 @@ class TinDataSet {
 			return true;
 		}
 		return false;
+	}
+
+	g(string generator_name, increment = 1, priority = 0) {
+		if (generator_name) {
+			var q = new Q(["g" => generator_name,  "i" => increment], Connection.Database, this.Collection, "G");
+			if (priority)
+				q.x["priority"] = priority;
+			return this.Connection._Promise(q, PromiseHandler, this.UserData);
+		}
+		return null;
 	}
 }
