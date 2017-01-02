@@ -307,6 +307,7 @@ pragma used
 									}
 								}
 							} catch (var exc) {
+								t.ReleaseLock();
 								echo "Exception: $exc\n";
 							}
 						}

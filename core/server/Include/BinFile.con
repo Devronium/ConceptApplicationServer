@@ -421,23 +421,23 @@ class BM25Index {
 		if (basename) {
 			file = new BinFile(basename + ".words", "r+b", BM25_MODULO_SIZE);
 			if (!file.Open()) {
+				echo "Error opening BM25 index (words): " + file.name + "\n";
 				file = null;
-				echo "Error opening BM25 index: " + file.name + "\n";
 				return;
 			}
 			wordsfile = new BinFile(basename + ".all", "r+b", BM25_MODULO_SIZE);
 			if (!wordsfile.Open()) {
+				echo "Error opening BM25 index (all): " + wordsfile.name + "\n";
 				wordsfile = null;
 				file = null;
-				echo "Error opening BM25 index: " + wordsfile.name + "\n";
 				return;
 			}
 			graphfile = new BinFile(basename + ".graph", "r+b", BM25_GRAPH_MODULO_SIZE);
 			if (!graphfile.Open()) {
+				echo "Error opening BM25 index (graph): " + graphfile.name + "\n";
 				wordsfile = null;
 				file = null;
 				graphfile = null;
-				echo "Error opening BM25 index: " + graphfile.name + "\n";
 				return;
 			}
 			try {
@@ -456,6 +456,15 @@ class BM25Index {
 				echo "BM25 index error: $exc\n";
 			}
 		}
+	}
+
+	ReleaseLock() {
+		if (file)
+			file.ReleaseLock();
+		if (wordsfile)
+			wordsfile.ReleaseLock();
+		if (graphfile)
+			graphfile.ReleaseLock();
 	}
 
 	protected recursive(o) {
@@ -982,6 +991,8 @@ class BinFile extends File {
 		else
 		if (locked == 2)
 			this.Unlock(true);
+		if (bm25)
+			bm25.ReleaseLock();
 	}
 
 	SyncIndexes() {
@@ -2737,8 +2748,8 @@ class BinFile extends File {
 	}
 
 	Query(q = null, fields = null, descending = false, start = 0, len = 0, notify_one = null, notify_data = null) {
-		if (time() - index_refresh_time > INDEX_REFRESH_TIMEOUT)
-			this.RefreshIndexes();
+		// if (time() - index_refresh_time > INDEX_REFRESH_TIMEOUT)
+		//	this.RefreshIndexes();
 		var count;
 		if ((q) && (IsSet(q, '#'))) {
 			q = q['#'];
