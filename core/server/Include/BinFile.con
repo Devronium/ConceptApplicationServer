@@ -2790,8 +2790,8 @@ class BinFile extends File {
 	}
 
 	Query(q = null, fields = null, descending = false, start = 0, len = 0, notify_one = null, notify_data = null) {
-		if (time() - index_refresh_time > INDEX_REFRESH_TIMEOUT)
-			this.RefreshIndexes();
+		// if (time() - index_refresh_time > INDEX_REFRESH_TIMEOUT)
+		//	this.RefreshIndexes();
 		var count;
 		if ((q) && (IsSet(q, '#'))) {
 			q = q['#'];
