@@ -787,7 +787,7 @@ pragma used
 									if (id > 0)
 										obj.p['$'] = id;
 								}
-								t.Unlock();
+								t.Unlock(true);
 								// t.Flush();
 							} else {
 								r.e = ERR_IO;

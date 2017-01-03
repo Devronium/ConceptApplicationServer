@@ -1000,17 +1000,19 @@ class BinFile extends File {
 			locked = 1 + write;
 			if (write)
 				return LockFileBytes(hFile, F_SETLKW, start, len);
-			return LockFileBytes(hFile, F_SETLKW, start, len, SEEK_SET, F_WRLCK);
+			return LockFileBytes(hFile, F_SETLKW, start, len, SEEK_SET, F_RDLCK);
 		}
 		return false;
 	}
 
 	Unlock(write = false, start = 0, len = 0) {
-		locked = false;
-		if (hFile) {
-			if (write)
-				return LockFileBytes(hFile, F_UNLCK, start, len);
-			return LockFileBytes(hFile, F_UNLCK, start, len, SEEK_SET, F_RDLCK);
+		if (locked) {
+			locked = false;
+			if (hFile) {
+				if (write)
+					return LockFileBytes(hFile, F_UNLCK, start, len);
+				return LockFileBytes(hFile, F_UNLCK, start, len, SEEK_SET, F_RDLCK);
+			}
 		}
 		return false;
 	}

@@ -341,6 +341,16 @@ extern char **environ;
  #define F_SETLKW    9
 #endif
 
+
+
+#define CONCEPT_F_RDLCK     1
+#define CONCEPT_F_UNLCK     2
+#define CONCEPT_F_WRLCK     3
+
+#define CONCEPT_F_GETLK     7
+#define CONCEPT_F_SETLK     8
+#define CONCEPT_F_SETLKW    9
+
 #ifdef _WIN32
 wchar_t *wstr(const char *utf8) {
     int     len    = MultiByteToWideChar(CP_UTF8, 0, utf8, -1, NULL, 0);
@@ -994,11 +1004,13 @@ CONCEPT_DLL_API ON_CREATE_CONTEXT MANAGEMENT_PARAMETERS {
     DEFINE_ECONSTANT(_SC_AVPHYS_PAGES)
     DEFINE_ECONSTANT(_SC_MONOTONIC_CLOCK)
 
-    DEFINE_ECONSTANT(F_RDLCK)
-    DEFINE_ECONSTANT(F_WRLCK)
-    DEFINE_ECONSTANT(F_UNLCK)
-    DEFINE_ECONSTANT(F_SETLK)
-    DEFINE_ECONSTANT(F_SETLKW)
+    Invoke(INVOKE_DEFINE_CONSTANT, HANDLER, "F_RDLCK", "1");
+    Invoke(INVOKE_DEFINE_CONSTANT, HANDLER, "F_UNLCK", "2");
+    Invoke(INVOKE_DEFINE_CONSTANT, HANDLER, "F_WRLCK", "3");
+
+    Invoke(INVOKE_DEFINE_CONSTANT, HANDLER, "F_GETLK", "7");
+    Invoke(INVOKE_DEFINE_CONSTANT, HANDLER, "F_SETLK", "8");
+    Invoke(INVOKE_DEFINE_CONSTANT, HANDLER, "F_SETLKW", "9");
 
 #ifdef WITH_MMAP_FUNCTIONS
     DEFINE_ECONSTANT(PROT_NONE)
@@ -3914,7 +3926,17 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(LockFileBytes, 4, 6)
     }
     if (PARAMETERS_COUNT > 5) {
         T_NUMBER(LockFileBytes, 5)
-        f_lock_flags = PARAM_INT(5);
+        switch (PARAM_INT(5)) {
+            case CONCEPT_F_WRLCK:
+                f_lock_flags = F_WRLCK;
+                break;
+            case CONCEPT_F_RDLCK:
+                f_lock_flags = F_RDLCK;
+                break;
+            case CONCEPT_F_UNLCK:
+                f_lock_flags = F_UNLCK;
+                break;
+        }
     }
 
     FILE *file = (FILE *)(SYS_INT)PARAM(0);
@@ -3935,13 +3957,13 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(LockFileBytes, 4, 6)
                 len_hi = MAXDWORD;
             }
             bool  result;
-            if (PARAM_INT(1) == F_UNLCK) {
+            if (PARAM_INT(1) == CONCEPT_F_UNLCK) {
                 result = UnlockFile(f, start_lo, start_hi, len_lo, len_hi);
             } else {
                 OVERLAPPED sOverlapped;
                 sOverlapped.Offset = start_lo;
                 sOverlapped.OffsetHigh = start_hi;
-                if (PARAM_INT(1) == F_SETLKW) {
+                if (PARAM_INT(1) == CONCEPT_F_SETLKW) {
                     result = LockFileEx(f, LOCKFILE_EXCLUSIVE_LOCK, 0, len_lo, len_hi, &sOverlapped);
                 } else
                     result = LockFileEx(f, 0, 0, len_lo, len_hi, &sOverlapped);
@@ -3956,19 +3978,18 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(LockFileBytes, 4, 6)
 #else
     int res = -2;
 #ifndef SKIP_LOCAL_LOCKS
-    if (PARAM_INT(1) == F_UNLCK)
+    if (PARAM_INT(1) == CONCEPT_F_UNLCK)
         local_unlock(fileno(file));
     else
         local_lock(fileno(file));
 #endif
 #ifdef LOCK_WITH_FLOCK
     if ((PARAM(2) == 0) && (PARAM(3) == 0)) {
-        int lock = flock(fileno(file), LOCK_SH);
         switch (PARAM_INT(1)) {
-            case F_UNLCK:
+            case CONCEPT_F_UNLCK:
                 res = flock(fileno(file), LOCK_UN);
                 break;
-            case F_SETLKW:
+            case CONCEPT_F_SETLKW:
                 res = flock(fileno(file), LOCK_EX);
                 break;
             default:
@@ -3984,7 +4005,19 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(LockFileBytes, 4, 6)
         fl.l_start  = PARAM(2);
         fl.l_len    = PARAM(3);
         fl.l_pid    = getpid();
-        res = fcntl(fileno(file), PARAM_INT(1), &fl);
+        int fcntl_op = F_SETLKW;
+        switch (PARAM_INT(1)) {
+            case CONCEPT_F_SETLKW:
+                fcntl_op = F_SETLKW;
+                break;
+            case CONCEPT_F_SETLK:
+                fcntl_op = F_SETLK;
+                break;
+            case CONCEPT_F_UNLCK:
+                fcntl_op = F_UNLCK;
+                break;
+        }
+        res = fcntl(fileno(file), fcntl_op, &fl);
     }
     if (res) {
         RETURN_NUMBER(0);
