@@ -1693,9 +1693,10 @@ class ConceptChild {
 				var flush_iterations = 1;
 
 				var execute_start = microseconds();
+				// this should never happen
 				while ((pid > 0) && (!ExecuteIsRunning(pid))) {
-					if (microseconds() - execute_start > 500000) {
-						Owner.Log(ip, "Application failed to start in 500ms.");
+					if (microseconds() - execute_start >= 50000) {
+						Owner.Log(ip, "Application failed to start in 50ms.");
 						break;
 					}
 				}

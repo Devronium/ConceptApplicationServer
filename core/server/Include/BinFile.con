@@ -162,6 +162,7 @@ class BinIndex {
 	public var Unique = false;
 	public var Database = "";
 	public var CacheRoot = false;
+	public var Locked = false;
 	public var GetIndexFields;
 	public property LastError { get _last_error }
 	public property LastErrorString { get GetLastErrorString }
@@ -192,8 +193,21 @@ class BinIndex {
 		var idx = index_cache[idxname];
 		if (idx) {
 			idx.CacheRoot = this.CacheRoot;
-			return idx;
+			if ((!Locked) || (Locked == 2)) {
+				if (Locked == 2)
+					Locked = 1;
+				if (idx.Reopen())
+					return idx;
+			} else
+				return idx;
+
+			index_cache[idxname] = null;
+			echo "Error #${_errno()} reopening index $idxname\n";
+			return null;
 		}
+		if (Locked == 2)
+			Locked = 1;
+
 		var f = new File(_mode);
 		if (!FileExists(idxname))
 			WriteFile("", idxname);
@@ -414,6 +428,7 @@ class BM25Index {
 	var graphfile;
 	var dl;
 	var N;
+	var Locked;
 
 	BM25Index(basename = "", fields = null, lang = "en") {
 		this.lang = lang;
@@ -421,20 +436,20 @@ class BM25Index {
 		if (basename) {
 			file = new BinFile(basename + ".words", "r+b", BM25_MODULO_SIZE);
 			if (!file.Open()) {
-				echo "Error opening BM25 index (words): " + file.name + "\n";
+				echo "Error #${_errno()} opening BM25 index (words): " + file.name + "\n";
 				file = null;
 				return;
 			}
 			wordsfile = new BinFile(basename + ".all", "r+b", BM25_MODULO_SIZE);
 			if (!wordsfile.Open()) {
-				echo "Error opening BM25 index (all): " + wordsfile.name + "\n";
+				echo "Error #${_errno()} opening BM25 index (all): " + wordsfile.name + "\n";
 				wordsfile = null;
 				file = null;
 				return;
 			}
 			graphfile = new BinFile(basename + ".graph", "r+b", BM25_GRAPH_MODULO_SIZE);
 			if (!graphfile.Open()) {
-				echo "Error opening BM25 index (graph): " + graphfile.name + "\n";
+				echo "Error #${_errno()} opening BM25 index (graph): " + graphfile.name + "\n";
 				wordsfile = null;
 				file = null;
 				graphfile = null;
@@ -456,6 +471,16 @@ class BM25Index {
 				echo "BM25 index error: $exc\n";
 			}
 		}
+	}
+
+	SetIndexLock(lock) {
+		if (file)
+			file.SetIndexLock(lock);
+		if (wordsfile)
+			wordsfile.SetIndexLock(lock);
+		if (graphfile)
+			graphfile.SetIndexLock(lock);
+		Locked = lock;
 	}
 
 	ReleaseLock() {
@@ -915,6 +940,11 @@ class BinFile extends File {
 		this.RefreshIndexes();
 	}
 
+	SetIndexLock(lock) {
+		if (_Index)
+			_Index.Locked = lock;
+	}
+
 	GetIndexFields(name) {
 		if (IsSet(Indexes, name)) {
 			var idx = Indexes[name];
@@ -991,8 +1021,6 @@ class BinFile extends File {
 		else
 		if (locked == 2)
 			this.Unlock(true);
-		if (bm25)
-			bm25.ReleaseLock();
 	}
 
 	SyncIndexes() {
@@ -1676,7 +1704,15 @@ class BinFile extends File {
 						this.UpdateIndex(changed_keys, id, obj);
 				}
 				if (bm25_document) {
-					bm25.update(bm25_document, id, changed_keys, graph, true, null, orig_id > 0);
+					bm25.SetIndexLock(2);
+					try {
+						bm25.update(bm25_document, id, changed_keys, graph, true, null, orig_id > 0);
+					} catch (var exc) {
+						echo "Error in bm25.update $exc\n";
+					}
+					bm25.SetIndexLock(false);
+					if (exc)
+						throw exc;
 					this.SyncBM25Info();
 				}
 			}
@@ -2290,6 +2326,7 @@ class BinFile extends File {
 		fseek(hFile, HEADER_SIZE, SEEK_SET);
 		Indexes[field] = field;
 		_Index.CacheRoot = true;
+		_Index.Locked = 2;
 		var exc;
 		try {
 			this.Scan(function(c, id, field) {
@@ -2306,6 +2343,7 @@ class BinFile extends File {
 			echo exc;
 		}
 		fseek(hFile, HEADER_SIZE, SEEK_SET);
+		_Index.Locked = false;
 		_Index.CacheRoot = false;
 		_Index.Database = prec_db;
 		cache = new [];
@@ -2320,6 +2358,7 @@ class BinFile extends File {
 			return;
 		fseek(hFile, HEADER_SIZE, SEEK_SET);
 		var word_cache = ["." => 0];
+		bm25.SetIndexLock(2);
 		this.Scan(function(c, id, var word_cache) {
 			cache_id = id;
 			cache_obj = c;
@@ -2329,6 +2368,7 @@ class BinFile extends File {
 				bm25.dumpcache(word_cache);
 		}, word_cache);
 		bm25.dumpcache(word_cache);
+		bm25.SetIndexLock(false);
 		bm25.flush();
 		fseek(hFile, HEADER_SIZE, SEEK_SET);
 		cache = new [];
@@ -2386,6 +2426,7 @@ class BinFile extends File {
 		var prec_db = _Index.Database;
 		_Index.Database = index_name;
 		_Index.CacheRoot = true;
+		_Index.Locked = 2;
 		fseek(hFile, HEADER_SIZE, SEEK_SET);
 		Indexes[index_name] = fields;
 		var exc;
@@ -2409,6 +2450,7 @@ class BinFile extends File {
 			echo exc;
 		}
 		fseek(hFile, HEADER_SIZE, SEEK_SET);
+		_Index.Locked = false;
 		_Index.CacheRoot = false;
 		_Index.Database = prec_db;
 		cache = new [];
@@ -2748,8 +2790,8 @@ class BinFile extends File {
 	}
 
 	Query(q = null, fields = null, descending = false, start = 0, len = 0, notify_one = null, notify_data = null) {
-		// if (time() - index_refresh_time > INDEX_REFRESH_TIMEOUT)
-		//	this.RefreshIndexes();
+		if (time() - index_refresh_time > INDEX_REFRESH_TIMEOUT)
+			this.RefreshIndexes();
 		var count;
 		if ((q) && (IsSet(q, '#'))) {
 			q = q['#'];

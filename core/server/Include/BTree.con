@@ -67,6 +67,13 @@ class BTreeFile {
 		this.ReverseKeyVal = ReverseKeyVal;
 	}
 
+	Reopen() {
+		var opened = f.Open();
+		f_handle = f.Handle;
+		cached_root = null;
+		return opened;
+	}
+
 	protected AddPage(var offset, pages = 1, append = true, elements = 0) {
 		if (ReverseKeyVal)
 			var buf = pack("u16:" + (NODE_SIZE_NOVAL * PAGE_SIZE + 10), elements);
