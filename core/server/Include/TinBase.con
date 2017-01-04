@@ -25,7 +25,7 @@ class TinBase {
 		if (hFile) {
 			if (write)
 				return LockFileBytes(hFile, F_SETLKW, start, len);
-			return LockFileBytes(hFile, F_SETLKW, start, len, SEEK_SET, F_WRLCK);
+			return LockFileBytes(hFile, F_SETLKW, start, len, SEEK_SET, F_RDLCK);
 		}
 		return false;
 	}
@@ -136,6 +136,11 @@ class TinBase {
 
 	Reset() {
 		this.Flush();
+		for (var i = 0; i < length tables; i++) {
+			var t = tables[i];
+			if (t)
+				t.Reset();
+		}
 		tables = new [];
 	}
 }

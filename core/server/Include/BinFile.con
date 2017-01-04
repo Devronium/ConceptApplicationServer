@@ -436,20 +436,20 @@ class BM25Index {
 		if (basename) {
 			file = new BinFile(basename + ".words", "r+b", BM25_MODULO_SIZE);
 			if (!file.Open()) {
-				echo "Error #${_errno()} opening BM25 index (words): " + file.name + "\n";
+				echo "Error #${_errno()} opening BM25 index (words): " + file.Name + "\n";
 				file = null;
 				return;
 			}
 			wordsfile = new BinFile(basename + ".all", "r+b", BM25_MODULO_SIZE);
 			if (!wordsfile.Open()) {
-				echo "Error #${_errno()} opening BM25 index (all): " + wordsfile.name + "\n";
+				echo "Error #${_errno()} opening BM25 index (all): " + wordsfile.Name + "\n";
 				wordsfile = null;
 				file = null;
 				return;
 			}
 			graphfile = new BinFile(basename + ".graph", "r+b", BM25_GRAPH_MODULO_SIZE);
 			if (!graphfile.Open()) {
-				echo "Error #${_errno()} opening BM25 index (graph): " + graphfile.name + "\n";
+				echo "Error #${_errno()} opening BM25 index (graph): " + graphfile.Name + "\n";
 				wordsfile = null;
 				file = null;
 				graphfile = null;
@@ -902,6 +902,21 @@ class BM25Index {
 			wordsfile.FlushDB();
 			graphfile.FlushDB();
 		}
+	}
+
+	finalize() {
+		flush();
+		if (file) {
+			file.Reset();
+			file.Close();
+			wordsfile.Close();
+			wordsfile.Reset();
+			graphfile.Close();
+			graphfile.Reset();
+		}
+		file = null;
+		wordsfile = null;
+		graphfile = null;
 	}
 }
 
@@ -2985,5 +3000,18 @@ class BinFile extends File {
 			this.DropIndexes();
 			cache = new [];
 		}	
+	}
+
+	Reset() {
+		if (_Index) {
+			this.ResetCache();
+			_Index.ResetCache();
+			_Index = null;
+		}
+	}
+
+	finalize() {
+		this.Reset();
+		File::finalize();
 	}
 }
