@@ -909,10 +909,14 @@ class BM25Index {
 		if (file) {
 			file.Reset();
 			file.Close();
-			wordsfile.Close();
+		}
+		if (wordsfile) {
 			wordsfile.Reset();
-			graphfile.Close();
+			wordsfile.Close();
+		}
+		if (graphfile) {
 			graphfile.Reset();
+			graphfile.Close();
 		}
 		file = null;
 		wordsfile = null;
