@@ -473,6 +473,21 @@ class BM25Index {
 		}
 	}
 
+	Reopen() {
+		if (file) {
+			if (!file.Open())
+				echo "Error #${_errno()} opening BM25 index (words): " + file.Name + "\n";
+		}
+		if (wordsfile) {
+			if (!wordsfile.Open())
+				echo "Error #${_errno()} opening BM25 index (all): " + wordsfile.Name + "\n";
+		}
+		if (graphfile) {
+			if (!graphfile.Open())
+				echo "Error #${_errno()} opening BM25 index (graph): " + graphfile.Name + "\n";
+		}
+	}
+
 	SetIndexLock(lock) {
 		if (file)
 			file.SetIndexLock(lock);
@@ -907,16 +922,34 @@ class BM25Index {
 	finalize() {
 		flush();
 		if (file) {
-			file.Reset();
-			file.Close();
+			try {
+				file.Reset();
+			} catch (var exc) {
+			}
+			try {
+				file.Close();
+			} catch (exc) {
+			}
 		}
 		if (wordsfile) {
-			wordsfile.Reset();
-			wordsfile.Close();
+			try {
+				wordsfile.Reset();
+			} catch (exc) {
+			}
+			try {
+				wordsfile.Close();
+			} catch (exc) {
+			}
 		}
 		if (graphfile) {
-			graphfile.Reset();
-			graphfile.Close();
+			try {
+				graphfile.Reset();
+			} catch (exc) {
+			}
+			try {
+				graphfile.Close();
+			} catch (exc) {
+			}
 		}
 		file = null;
 		wordsfile = null;
@@ -1309,6 +1342,13 @@ class BinFile extends File {
 			return true;
 		}
 		return false;
+	}
+
+	Reopen() {
+		if (this.Open()) {
+			if (bm25)
+				bm25.Reopen();
+		}
 	}
 
 	ResetCache() {
@@ -2988,7 +3028,8 @@ class BinFile extends File {
 			}
 		}
 		if (flush_index) {
-			_Index.Flush();
+			if (_Index)
+				_Index.Flush();
 			if (bm25)
 				bm25.flush();
 		}
