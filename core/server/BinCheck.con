@@ -166,8 +166,6 @@ class Main {
 						echo "Usage: BinCheck.con filename set id field value\n";
 						return -3;
 					}
-_unlink("ringers");
-_system("copy ringers_safe2 ringers");
 					return Update(arg, id, field, CLArg()[4]);
 					break;
 				case "get":
@@ -227,7 +225,7 @@ _system("copy ringers_safe2 ringers");
 			if (showdata)
 				userdata[1] = new [];
 			try {
-				bin.Scan(function(o, id, userdata) {	
+				bin.Scan(function(o, id, userdata) {
 					userdata[2] = o;
 					if (userdata[0])
 						userdata[1][length userdata[1]] = o;
@@ -248,7 +246,7 @@ _system("copy ringers_safe2 ringers");
 			else
 				echo "${userdata[1]} record(s) retrieved\n";
 			if (showdata)
-				echo userdata;
+				echo userdata[1];
 			echo "Checking integrity ...\n";
 			var debug_data = bin.__debug_block_info;
 			var keys = GetKeys(debug_data);

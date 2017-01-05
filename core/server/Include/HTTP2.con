@@ -1009,7 +1009,7 @@ class HTTP2Socket {
 			while (Consume(OnRequest) > 0);
 		WritePending();
 
-		if ((data_read) || (OutBuffer))
+		if ((data_read) || ((OutBuffer) && (Status)))
 			return true;
 
 		if (length Streams - StreamCount > 64)

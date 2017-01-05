@@ -708,6 +708,7 @@ pragma used
 							if (t) {
 								var unique_fields = obj.x["unique"];
 								trigger = _triggers["${obj.d}.${obj.c}"];
+								t.Reopen();
 								t.Lock(true);
 								if (multi_insert) {
 									id = new [];
@@ -787,6 +788,7 @@ pragma used
 									if (id > 0)
 										obj.p['$'] = id;
 								}
+								t.Flush();
 								t.Unlock(true);
 								// t.Flush();
 							} else {
