@@ -978,6 +978,7 @@ class BinFile extends File {
 	public var[] __debug_block_info;
 	protected var index_refresh_time;
 	protected var _prec_bulk_op;
+	public var DebugPath;
 
 
 	BinFile(filename, mode="r+b", default_block_size = DEFAULT_MODULO_SIZE) {
@@ -1777,6 +1778,9 @@ class BinFile extends File {
 					this.SyncBM25Info();
 				}
 			}
+			if (DebugPath)
+				WriteFile(data, DebugPath + "/$id.bin");
+
 			return id;
 		}
 		return id;

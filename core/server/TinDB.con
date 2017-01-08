@@ -8,6 +8,7 @@ import standard.math.rand
 import standard.lang.cli
 import standard.C.time
 
+define TIN_DEBUG	false
 define READ_BUFFER	0xFFFF
 
 // 256M packet
@@ -603,6 +604,8 @@ pragma used
 					if ((Pos(obj.d, "/") > 0) || (Pos(obj.d, "\\") > 0))
 						throw "DB name error";
 					db = new TinBase(obj.d);
+					if (TIN_DEBUG)
+						db.DebugPath = obj.d + "/";
 					managed_dbs[obj.d] = db;
 					var code = db.ReadHandler();
 					if (code) {

@@ -6,6 +6,7 @@ class TinBase {
 	public property Use { get DB, set SetDB }
 	public var NoIndexCached = false;
 	public var Mode = "r+b";
+	public var DebugPath;
 
 	TinBase(dbname = "default") {
 		Use = dbname;
@@ -93,6 +94,11 @@ class TinBase {
 		var key = "${DB}/$name";
 		if (NoIndexCached) { 
 			var t = new BinFile(key, this.Mode);
+			if (DebugPath) {
+				var path = "$key.debug";
+				_mkdir(path);
+				t.DebugPath = path;
+			}
 			if ((!index_only) && (this.Mode != "r") && (this.Mode != "rb")) {
 				if (!t.Open())
 					throw "Cannot open $key\n";
@@ -101,6 +107,11 @@ class TinBase {
 			t = tables[key];
 			if ((!t) || (!t.Handle)) {
 				t = new BinFile(key, this.Mode);
+				if (DebugPath) {
+					path = "$key.debug";
+					_mkdir(path);
+					t.DebugPath = path;
+				}
 				if ((!index_only) && (this.Mode != "r") && (this.Mode != "rb")) {
 					if (!t.Open())
 						throw "Cannot open $key\n";
