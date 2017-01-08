@@ -697,6 +697,7 @@ pragma used
 							}
 							r.p['$count'] = length items;
 							t.Flush();
+							t.DataSync();
 						}
 						break;
 					case "I":
@@ -789,6 +790,7 @@ pragma used
 										obj.p['$'] = id;
 								}
 								t.Flush();
+								t.DataSync();
 								t.Unlock(true);
 								// t.Flush();
 							} else {
