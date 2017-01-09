@@ -242,17 +242,20 @@ class BinIndex {
 		_unlink(this._name + "." + idxname + ".idx");
 	}
 
-	Put(objid, db = "", cached_val = "dumybear") {
+	Put(objid, db = "", cached_val = "dumybear", flush = true) {
 		if (!db)
 			db = this.Database;
-
+		var code;
 		var btree = GetIndex(db);
 		if (!btree)
 			throw "Cannot open index (${@class}.${@member})";
 		btree.UserData = FilterName(db);
 		if (Unique)
-			return btree.Add(objid, cached_val, Unique);
-		return btree.Add(cached_val, objid);
+			code = btree.Add(objid, cached_val, Unique);
+		code = btree.Add(cached_val, objid);
+		if (flush)
+			btree.File.Flush();
+		return code;
 	}
 
 	operator << (values) {
@@ -362,24 +365,30 @@ class BinIndex {
 	}
 
 
-	RemoveKey(key) {
+	RemoveKey(key, flush = true) {
 		var btree = GetIndex(this.Database);
 		if (!btree)
 			throw "Cannot open index (${@class}.${@member})";
 		btree.DeleteByKey(key);
+		if (flush)
+			btree.File.Flush();
 	}
 
-	Remove(key, val, database = "") {
+	Remove(key, val, database = "", flush = true) {
 		if (!database)
 			database = this.Database;
 		var btree = GetIndex(database);
 		if (!btree)
 			throw "Cannot open index (${@class}.${@member})";
 
+		var code;
 		//if (Unique)
-			return btree.Delete(key, val);
+			code = btree.Delete(key, val);
 		//else
-		//	return btree.Delete(val, key);
+		//	code = btree.Delete(val, key);
+		if (flush)
+			btree.File.Flush();
+		return code;
 	}
 
 	Drop(database) {
@@ -403,7 +412,7 @@ class BinIndex {
 		return "";
 	}
 
-	Flush() {
+	Flush(sync = true) {
 		for (var i = 0; i < length index_cache; i++) {
 			var idx = index_cache[i];
 			if (idx) {
@@ -411,7 +420,8 @@ class BinIndex {
 				if (f) {
 					try {
 						f.Flush();
-						f.DataSync();
+						if (sync)
+							f.DataSync();
 					} catch (var exc) {
 						echo "Index flush error: $exc\n";
 					}

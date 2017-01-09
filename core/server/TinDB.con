@@ -9,6 +9,7 @@ import standard.lang.cli
 import standard.C.time
 
 define TIN_DEBUG	false
+define TIN_FORCESYNC	true
 define READ_BUFFER	0xFFFF
 
 // 256M packet
@@ -37,7 +38,10 @@ define ERR_AGGREGATION_S"Invalid aggregation"
 define NOTIFY_MORE_DATA	1
 
 
-define BUSY_FSYNC_LIMIT	 10000
+define BUSY_FSYNC_LIMIT	 	10000
+
+// fsync every 5 seconds
+define BUSY_FSYNC_TIMEOUT	5
 
 class Triggers {
 	var OnDelete;
@@ -511,6 +515,7 @@ pragma used
 	var[] members;
 	var[] _triggers;
 	var non_flushed_writes = 0;
+	var last_flush = 0;
 	var[] other_workers;
 
 	GetDelegate(dbobject, db, name, var objects, var members, r = null) {
@@ -545,6 +550,7 @@ pragma used
 
 	Flush(flush_index = true) {
 		non_flushed_writes = 0;
+		last_flush = time();
 		for (var i = 0; i < length managed_dbs; i++) {
 			var db = managed_dbs[i];
 			if (db) {
@@ -684,7 +690,7 @@ pragma used
 								t.Lock(true);
 								t.Delete(items);
 								t.Unlock(true);
-								// non_flushed_writes += length items;
+								non_flushed_writes += length items;
 								obj.p = items;
 								trigger = _triggers["${obj.d}.${obj.c}"];
 								if ((trigger) && (trigger.OnDelete)) {
@@ -792,7 +798,10 @@ pragma used
 									if (id > 0)
 										obj.p['$'] = id;
 								}
-								t.FlushDB(false);
+								if (TIN_FORCESYNC)
+									t.FlushDB(false);
+								else
+									t.Flush();
 								t.Unlock(true);
 								// t.Flush();
 							} else {
@@ -1083,7 +1092,7 @@ pragma used
 					echo "Storage worker exception: $exc\n";
 				}
 				data = "";
-				if (non_flushed_writes > BUSY_FSYNC_LIMIT)
+				if ((non_flushed_writes) && ((non_flushed_writes > BUSY_FSYNC_LIMIT) || (time() - last_flush >= BUSY_FSYNC_TIMEOUT)))
 					this.Flush();
 			}
 			if (non_flushed_writes)
