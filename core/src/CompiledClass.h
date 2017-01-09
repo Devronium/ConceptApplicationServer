@@ -13,6 +13,7 @@ class CompiledClass {
     friend class ClassCode;
     friend class ClassMember;
     friend class Array;
+    friend class GarbageCollector;
     friend INTEGER Invoke(INTEGER, ...);
     friend int GetVariableByName(int operation, void **VDESC, void **CONTEXT, int Depth, char *VariableName, char *buffer, int buf_size, void *PIF, void *STACK_TRACE);
 

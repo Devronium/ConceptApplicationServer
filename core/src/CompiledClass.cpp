@@ -173,13 +173,13 @@ void CompiledClass::__GO_GARBAGE(void *PIF, GarbageCollector *__gc_obj, GarbageC
             }
         }
     }
-    for (int j = 0; j < inspectPos; j++) {
-        CompiledClass *CC = toInspect[j];
-        if ((CC) && (CC->_CONTEXT)) {
-            FAST_FREE(CC->_CONTEXT);
-            CC->_CONTEXT = NULL;
-        }
-    }
+    // for (int j = 0; j < inspectPos; j++) {
+    //     CompiledClass *CC = toInspect[j];
+    //     if ((CC) && (CC->_CONTEXT)) {
+    //         FAST_FREE(CC->_CONTEXT);
+    //         CC->_CONTEXT = NULL;
+    //     }
+    // }
     free(toInspect);
 #endif
 }

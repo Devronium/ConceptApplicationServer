@@ -43,12 +43,15 @@ void GarbageCollector::EndOfExecution_SayBye_Objects() {
     if (BASE) {
         std::set<void *> *BASE2 = BASE;
         BASE = 0;
-
         std::set<void *>::iterator end = BASE2->end();
         for (std::set<void *>::iterator i = BASE2->begin(); i != end; ++i) {
             CompiledClass *ptr = (CompiledClass *)(*i);
             if (ptr) {
                 ptr->LINKS = -1;
+                if (ptr->_CONTEXT) {
+                    FAST_FREE(ptr->_CONTEXT);
+                    ptr->_CONTEXT = NULL;
+                }
                 delete ptr;
             }
         }
@@ -68,7 +71,10 @@ void GarbageCollector::EndOfExecution_SayBye_Objects() {
         NODE = NODE2;
 
         ptr->LINKS = -1;
-
+        if (ptr->_CONTEXT) {
+            FAST_FREE(ptr->_CONTEXT);
+            ptr->_CONTEXT = NULL;
+        }
         delete ptr;
     }
 #endif
