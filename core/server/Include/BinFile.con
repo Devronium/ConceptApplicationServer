@@ -10,6 +10,7 @@ import standard.lib.str
 
 define HEADER_SIZE		64
 define DEFAULT_MODULO_SIZE	64
+define NO_FRAGMENTATION_SIZE	(MODULO_SIZE * 5)
 
 define BM25_GRAPH_LEVEL		5
 define BM25_QUERY_LEVEL		5
@@ -404,7 +405,7 @@ class BinIndex {
 
 	Flush() {
 		for (var i = 0; i < length index_cache; i++) {
-			var idx = index_cache[i];	
+			var idx = index_cache[i];
 			if (idx) {
 				var f = idx.File;
 				if (f) {
@@ -1524,7 +1525,7 @@ class BinFile extends File {
 		var end_block = "\x0\x0\x0\x0\x0\x0\x0\x0";
 		var query_garbage = true;
 		var at_end = false;
-		if ((id < 0) && (!has_garbage)) {
+		if ((id < 0) && ((!has_garbage) || (length data > NO_FRAGMENTATION_SIZE))) {
 			if (length data > MODULO_SIZE) {
 				for (var i = MODULO_SIZE; i < length data; i += MODULO_SIZE)
 					data[i] = "\x00" + data[i];

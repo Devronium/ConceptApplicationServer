@@ -684,7 +684,7 @@ pragma used
 								t.Lock(true);
 								t.Delete(items);
 								t.Unlock(true);
-								non_flushed_writes += length items;
+								// non_flushed_writes += length items;
 								obj.p = items;
 								trigger = _triggers["${obj.d}.${obj.c}"];
 								if ((trigger) && (trigger.OnDelete)) {
@@ -699,8 +699,8 @@ pragma used
 								}
 							}
 							r.p['$count'] = length items;
-							t.Flush();
-							t.DataSync();
+							// force flush/fsync for delete operations
+							t.FlushDB(false);
 						}
 						break;
 					case "I":
@@ -792,8 +792,7 @@ pragma used
 									if (id > 0)
 										obj.p['$'] = id;
 								}
-								t.Flush();
-								t.DataSync();
+								t.FlushDB(false);
 								t.Unlock(true);
 								// t.Flush();
 							} else {
