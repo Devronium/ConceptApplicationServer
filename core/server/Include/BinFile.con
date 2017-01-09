@@ -1514,7 +1514,6 @@ class BinFile extends File {
 		var file_pos = 0;
 		var ref_id = -1;
 		var next_block = 0;
-		var popped = false;
 
 		if (id >= HEADER_SIZE) {
 			//if (!this.Seek(id))
@@ -1569,7 +1568,6 @@ class BinFile extends File {
 				if ((query_garbage) && (this.PopGarbage(var offset))) {
 					//this.Seek(offset);
 					fseek(hFile, offset, SEEK_SET);
-					popped = true;
 				} else {
 					//this.Seek(0, SEEK_END);
 					fseek(hFile, 0, SEEK_END);
@@ -1652,8 +1650,7 @@ class BinFile extends File {
 						fseek(hFile, 0, SEEK_END);
 						next_block = ftell(hFile);
 						query_garbage = false;
-					} else
-						popped = true;
+					}
 
 					fseek(hFile, current, SEEK_SET);
 					this.Write(pack("u64", next_block));
@@ -1735,7 +1732,6 @@ class BinFile extends File {
 		// bm25 index updated
 		if ((bm25) && (c) && ((update_index) || (changed_keys)))
 			bm25_document = bm25.document(c, graph, BM25_GRAPH_LEVEL);
-
 		data = BinarizeObject(c);
 		if (data) {
 			var data_comp = "";
@@ -1778,9 +1774,12 @@ class BinFile extends File {
 					this.SyncBM25Info();
 				}
 			}
-			if (DebugPath)
-				WriteFile(data, DebugPath + "/$id.bin");
-
+			if (DebugPath) {
+				if (orig_id > 0)
+					WriteFile(data, DebugPath + "/${time()}-${microseconds()}-$id.update.bin");
+				else
+					WriteFile(data, DebugPath + "/${time()}-${microseconds()}-$id.bin");
+			}
 			return id;
 		}
 		return id;
@@ -2311,8 +2310,11 @@ class BinFile extends File {
 		//if (!this.Seek(id))
 		if (fseek(hFile, id, SEEK_SET))
 			return false;
-		var keys = GetKeys(o);	
+		var keys = GetKeys(o);
 		if (keys) {
+			// nothing to update
+			if ((length keys == 1) && (keys[0] == '$'))
+				return true;
 			var res = GetOne(null, true, id);
 			if (res) {
 				var old = UnBinarizeObject(res);
@@ -2355,7 +2357,9 @@ class BinFile extends File {
 							}
 						}
 					}
-
+					// nothing changed
+					if (!changed)
+						return true;
 					if (update_index)
 						update_index = this.RemoveIndexesIfChanged(changed, id, old);
 
