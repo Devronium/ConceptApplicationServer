@@ -1092,7 +1092,7 @@ pragma used
 					echo "Storage worker exception: $exc\n";
 				}
 				data = "";
-				if ((non_flushed_writes) && ((non_flushed_writes > BUSY_FSYNC_LIMIT) || (time() - last_flush >= BUSY_FSYNC_TIMEOUT)))
+				if ((non_flushed_writes) && ((non_flushed_writes > BUSY_FSYNC_LIMIT) || ((time() - last_flush) >= BUSY_FSYNC_TIMEOUT)))
 					this.Flush();
 			}
 			if (non_flushed_writes)

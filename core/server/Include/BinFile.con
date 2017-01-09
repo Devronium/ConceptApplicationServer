@@ -2405,6 +2405,7 @@ class BinFile extends File {
 		_Index.Database = field;
 		fseek(hFile, HEADER_SIZE, SEEK_SET);
 		Indexes[field] = field;
+		this.SyncIndexes();
 		_Index.CacheRoot = true;
 		_Index.Locked = 2;
 		var exc;
@@ -2509,6 +2510,7 @@ class BinFile extends File {
 		_Index.Locked = 2;
 		fseek(hFile, HEADER_SIZE, SEEK_SET);
 		Indexes[index_name] = fields;
+		this.SyncIndexes();
 		var exc;
 		try {
 			this.Scan(function(c, id, userdata) {
