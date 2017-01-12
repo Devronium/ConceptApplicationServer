@@ -875,24 +875,30 @@ class ConceptChild {
 				this.APIDBuf="";
 				var buf="";
 				var processed_buffer="";
+				var err = false;
 				while (ExecuteIsRunning(pid)) {
-					if (pipein>0) {
-						while (read(pipein, buf, 0xFF)>0) {
-							processed_buffer=ref_owner.ProcessMessage(apid, -1, processed_buffer+buf);
-							if ((max_iap) && (length processed_buffer>max_iap))
-								processed_buffer="";
+					if ((pipein > 0) && (!err)) {
+						while (read(pipein, buf, 0xFF) > 0) {
+							processed_buffer = ref_owner.ProcessMessage(apid, -1, processed_buffer + buf, err);
+							if ((max_iap) && (length processed_buffer > max_iap))
+								processed_buffer = "";
+							if (err)
+								break;
 						}
 					}
-					var buf_out=this.APIDBuf;
+					var buf_out = this.APIDBuf;
 					if (buf_out) {
-						var len=write(pipeout, buf_out);
+						var len = write(pipeout, buf_out);
 						if (len>0)
 							this.APIDBuf=SubStr(this.APIDBuf, len, length this.APIDBuf);
 					}
 				}
 				if (pid>0) {
-					while (read(pipein, buf, 0xFF)>0)
-						processed_buffer=ref_owner.ProcessMessage(apid, -1, processed_buffer+buf);
+					while (read(pipein, buf, 0xFF) > 0) {
+						processed_buffer=ref_owner.ProcessMessage(apid, -1, processed_buffer + buf, err);
+						if (err)
+							break;
+					}
 					var code=ExecuteJoin(pid);
 					if (code)
 						Owner.Log("ConceptServer", "$apid: Done (error code: $code)");
@@ -1700,7 +1706,7 @@ class ConceptChild {
 						break;
 					}
 				}
-
+				var apid_err = false;
 				while ((this.PID==-2) || ((pid > 0) && (ExecuteIsRunning(pid)))) {
 					if ((this.ContextIn>0) && (ctx_in>0)) {
 						var r=read(this.ContextIn, var apidbuf2, 4);
@@ -1725,11 +1731,11 @@ class ConceptChild {
 						}
 					}
 
-					if (pipein>0) {
-						while (read(pipein, buf, 0xFF)>0) {
+					if (pipein > 0)  {
+						while ((!apid_err) && (read(pipein, buf, 0xFF) > 0)) {
 							this.Owner.Iterations++;
-							processed_buffer=ref_owner.ProcessMessage(apid, hash, processed_buffer+buf);
-							if ((max_iap) && (length processed_buffer>max_iap))
+							processed_buffer=ref_owner.ProcessMessage(apid, hash, processed_buffer + buf, apid_err);
+							if ((max_iap) && (length processed_buffer > max_iap))
 								processed_buffer="";
 							if (processed_buffer)
 								flush_iterations = 1000;
@@ -1740,17 +1746,17 @@ class ConceptChild {
 						if (buf_out) {
 							//var len;
 							if (length buf_out > 1024)
-								len=write(pipeout, SubStr(buf_out, 0, 1024));
+								len = write(pipeout, SubStr(buf_out, 0, 1024));
 							else
-								len=write(pipeout, buf_out);
+								len = write(pipeout, buf_out);
 
 							if (len>0)
-								this.APIDBuf=SubStr(this.APIDBuf, len, length this.APIDBuf);
+								this.APIDBuf = SubStr(this.APIDBuf, len, length this.APIDBuf);
 						}
 					}
 				}
 				if (this.Parent > 0)
-					ref_owner.ProcessMessage(apid, hash, tobin(this.Parent, 32) + tobin(-6, 32) + tobin(4, 32) + "done");
+					ref_owner.ProcessMessage(apid, hash, tobin(this.Parent, 32) + tobin(-6, 32) + tobin(4, 32) + "done", apid_err);
 
 				if (orig_host)
 					Owner.CloseChildren(this.APID);
@@ -1763,8 +1769,11 @@ class ConceptChild {
 
 				if (pid > 0) {
 					if (pipein > 0) {
-						while (read(pipein, buf, 0xFF)>0)
-							processed_buffer=ref_owner.ProcessMessage(apid, hash, processed_buffer+buf);
+						while (read(pipein, buf, 0xFF) > 0) {
+							processed_buffer=ref_owner.ProcessMessage(apid, hash, processed_buffer + buf, apid_err);
+							if (apid_err)
+								break;
+						}
 					}
 					var code=ExecuteJoin(pid);
 					if (code)
@@ -3909,15 +3918,17 @@ class ConceptServer extends RewriteContainer {
 		return res;
 	}
 
-	RouteMessage(source_apid, hash, apid, msg_id, msg) {
+	RouteMessage(source_apid, hash, apid, msg_id, msg, var err) {
 		if (apid>0) {
 			var connection=this.GetConnection(apid);
 			if (connection) {
 				this.Iterations++;
 				var buf=tobin(source_apid, 32)+tobin(msg_id, 32)+tobin(length msg, 32)+msg;
 				connection.Send(buf);
-			} else
+			} else {
 				this.Log("ConceptServer", "Unknown APID: $apid (message sent by $source_apid)");
+				err = true;
+			}
 		} else {
 			this.Iterations++;
 			buf=tobin(source_apid, 32)+tobin(msg_id, 32)+tobin(length msg, 32)+msg;
@@ -3932,17 +3943,18 @@ class ConceptServer extends RewriteContainer {
 		}
 	}
 
-	ProcessMessage(apid, hash, var buf) {
-		while (true) {
-			var lbuf=length buf;
-			if (lbuf>=12) {
+	ProcessMessage(apid, hash, var buf, var err) {
+		err = false;
+		while ((true) && (!err)) {
+			var lbuf = length buf;
+			if (lbuf >= 12) {
 				var target_apid=tonumber(buf[0]+buf[1]+buf[2]+buf[3], 32);
 				var msg_id=tonumber(buf[4]+buf[5]+buf[6]+buf[7], 32);
 				var len=tonumber(buf[8]+buf[9]+buf[10]+buf[11], 32);
-				if (lbuf >= len+12) {
-					var msg=SubStr(buf, 12, len);
-					buf=SubStr(buf, 12+len, lbuf);
-					this.RouteMessage(apid, hash, target_apid, msg_id, msg);
+				if (lbuf >= len + 12) {
+					var msg = SubStr(buf, 12, len);
+					buf = SubStr(buf, 12 + len, lbuf);
+					this.RouteMessage(apid, hash, target_apid, msg_id, msg, err);
 				} else
 					break;
 			} else
