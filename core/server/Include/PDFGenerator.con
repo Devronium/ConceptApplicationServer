@@ -386,12 +386,14 @@ class PDFPage {
 		var header_border_color = "";
 		var header_text_color = "";
 		var header_visible = true;
+		var pre_headers = null;
 		if ((header_style) && (typeof header_style == "array")) {
 			header_color = this.__style(header_style, "color", "");
 			header_background = this.__style(header_style, "background", "");
 			header_border_color = this.__style(header_style, "border-color", "");
 			header_text_color = this.__style(header_style, "text-color", "");
 			header_visible = this.__style(header_style, "visible", true);
+			pre_headers = this.__style(header_style, "headers", true);
 		}
 		var row_style = this.__style(style, "rowstyleindex", -1);
 		var max_row_size;
@@ -453,15 +455,82 @@ class PDFPage {
 		this.Push();
 		this.LineWidth = border;
 		if (header_visible) {
-			this.Push();
-			var x = table_x;
-			var line_width = 0;
-			padding += border/2;
-			header_height = this.__ComputeRowHeight(headers, table, var out_rows, padding) * FontSize * font_height_coef;
+			var pre_height = 0;
 			var filled = false;
+			this.Push();
+			var line_width = 0;
+			if ((pre_headers) && (typeof pre_headers == "array")) {
+				var hdelta = 0;
+				var hdelta_ref;
+				var x = table_x;
+				pre_height = this.__ComputeRowHeight(pre_headers, table, var out_rows, padding, var header_spans, var header_styles) * FontSize * font_height_coef;
+				var pre_index = 0;
+				for (i = 0; i < length out_rows; i++) {
+					var hcaption = out_rows[i];
+					var hcolumn = columns[i];
+					var hspan = header_spans[i];
+					var hspanstyle = header_styles[i];
+					var hcolumn_width = hcolumn.computed_width;
+					var hcolumn_align = 0.5;
+					pre_index++;
+					var y = table_y - padding - line_width;
+					if (hspan >= 2) {
+						for (var k2 = 1; k2 < hspan; k2++) {
+							var hspan_column = columns[i + k2];
+							if (hspan_column)
+								hcolumn_width += hspan_column.computed_width;
+						}
+						i += hspan - 1;
+					}
+					if (hcaption) {
+						if ((border) || (header_background) || (header_color)) {
+							filled = false;
+							if (header_style) {
+								if (header_background) {
+									filled = true;
+									this.FillColor = header_background;
+								}
+								if (header_color) {
+									if (border)
+										this.Color = header_color;
+									else
+									if (header_background)
+										this.Color = header_background;
+								}
+							}
+							this.Rectangle(x, table_y - pre_height - padding * 2, hcolumn_width - line_width * 2, pre_height + padding * 2, filled);
+						}
+						if ((header_color) || (header_text_color))
+							this.FillColor = header_text_color ?? header_color;
+
+						for (var j = 0; j < length hcaption; j++) {
+							var hline = hcaption[j];
+							if (hline) {
+								hdelta = 0;
+								if (hcolumn_align > 0) {
+									var len = this.Owner.Measure(hline, Font, FontSize);
+									hdelta_ref = hcolumn_width - padding * 2 - len;
+									if (hdelta_ref > 0)
+										hdelta = hcolumn_align * hdelta_ref;
+								}
+								this.Print(round(x + padding + hdelta, 3), round(y - padding - font_line_size, 3), hline, FontSize, Font);
+							}
+							y -= FontSize;
+						}
+						
+					}
+					x += hcolumn_width;
+				}
+				table_y -= pre_height + padding * 2 + border;
+			}
+			line_width = 0;
+			x = table_x;
+			padding += border/2;
+			header_height = this.__ComputeRowHeight(headers, table, out_rows, padding) * FontSize * font_height_coef;
+			filled = false;
 
 			for (i = 0; i < length columns; i++) {
-				var y = table_y - padding - line_width;
+				y = table_y - padding - line_width;
 				caption = out_rows[i];
 				column = columns[i];
 				if (!column)
@@ -487,12 +556,12 @@ class PDFPage {
 				if ((header_color) || (header_text_color))
 					this.FillColor = header_text_color ?? header_color;
 				if (caption) {
-					for (var j = 0; j < length caption; j++) {
+					for (j = 0; j < length caption; j++) {
 						var line = caption[j];
 						if (line) {
 							var delta = 0;
 							if (column.align > 0) {
-								var len = this.Owner.Measure(line, Font, FontSize);
+								len = this.Owner.Measure(line, Font, FontSize);
 								var delta_ref = column.computed_width - padding * 2 - len;
 								if (delta_ref > 0)
 									delta = column.align * delta_ref;
@@ -504,7 +573,6 @@ class PDFPage {
 				}
 				x += column.computed_width;
 			}
-
 			this.Pop();
 			if (auto_pos)
 				max_row_size -= header_height;
