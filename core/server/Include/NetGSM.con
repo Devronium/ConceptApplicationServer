@@ -1,0 +1,210 @@
+include TCPSocket.con
+include XMLDocument.con
+import standard.coding.base64
+import standard.lib.str
+import standard.lang.serialize
+
+class NetGSM {
+	var host;
+	var port;
+	var Username;
+	var Password;
+
+	NetGSM(host, port = 80) {
+		this.host = host;
+		this.port = port;
+	}
+
+	static ParseXML(body) {
+		var doc = new XMLDocument();
+		body = StrReplace(body, "<soapenv:", "<soapenv_");
+		body = StrReplace(body, "</soapenv:", "</soapenv_");
+		body = StrReplace(body, "<pos:", "<pos_");
+		body = StrReplace(body, "</pos:", "</pos_");
+		if (doc.LoadString(body))
+			return doc;
+		return null;
+	}
+
+	static Parse(body, var id) {
+		var rslt = 0;
+		id = 0;
+		var doc = NetGSM::ParseXML(body);
+		if (doc) {
+			var nodes = doc.GetXPath("/soapenv_Envelope/soapenv_Body/pos_QueueAddResponse/*");
+			for (var i = 0; i < length nodes; i++) {
+				var node = nodes[i];
+				switch (ToLower(node.Name)) {
+					case "rslt":
+						rslt = value node.Content;
+						break;
+					case "id":
+						id = value node.Content;
+						break;
+				}
+			}
+		}
+		return rslt;
+	}
+
+	protected Envelope(content) {
+		return	"<?xml version=\"1.0\" encoding=\"utf-8\"?>" +
+			"<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:pos=\"poseidonService.xsd\">" +
+			"<soapenv:Header/><soapenv:Body>$content</soapenv:Body></soapenv:Envelope>";
+	}
+
+	protected Post(soap, var buf_data) {
+		var tcp = new TCPSocket();
+		buf_data = "";
+		if (tcp.Connect(host, port)) {
+			var buffer = "POST /service.xml HTTP/1.0\r\n";
+			buffer += "User-Agent: HWgSdk\r\n";
+			buffer += "Host: ${host}\r\n";
+			if (Username) {
+				var auth = trim(StrReplace(StrReplace(mime_encode("" + Username + ":" + Password), "\r", ""), "\n" ,""));
+				buffer += "Authorization: Basic $auth\r\n";
+			}
+			buffer += "Content-Length: ${length soap}\r\n\r\n";
+			buffer += soap;
+			do {
+				var len = tcp.Write(buffer);
+				if (len <= 0) {
+					tcp.Close();
+					return false;
+				}
+				buffer = SubStr(buffer, len);
+			} while (buffer);
+			var data = "";
+			do {
+				var buf = tcp.Read();
+				data += buf;
+				if (Pos(data, "</soapenv:Body>"))
+					break;
+			} while (buf);
+			tcp.Close();
+			var pos = Pos(data, "\r\n\r\n");
+			if (pos > 0) {
+				var body = trim(SubStr(data, pos + 3));
+				if (body)
+					buf_data = body;
+			}
+			var line = trim(""+StrSplit(data, "\n")[0]);
+			var code = value StrSplit(line, " ")[1];
+			return code;
+		}
+		return false;
+	}
+
+	Query(queue = "GsmOut", var code = null) {
+		code = this.Post(Envelope("<pos:QueueStatus><Queue>$queue</Queue></pos:QueueStatus>"), var body);
+		return body;
+	}
+
+	Pick(id, queue = "GsmIn", var code = null) {
+		code = this.Post(Envelope("<pos:QueuePick><Queue>$queue</Queue><ID>$id</ID></pos:QueuePick>"), var body);
+		return body;
+	}
+
+	static DirtyTag(buf2, tag) {
+		if (tag) {
+			var buf2_lo = ToLower(buf2);
+			var start = Pos(buf2_lo, "<$tag>");
+			var end = Pos(buf2_lo, "</$tag>");
+			if ((start) && (end)) {
+				start += (length tag) + 1;
+				var len  = end - start - 1;
+				if (len > 0)
+					return SubStr(buf2, start, len);
+			}
+		}
+		return "";
+	}
+
+	HexText(text) {
+		if (text) {
+			if ((length text) % 4)
+				return text;
+			for (var i = 0; i < length text; i++) {
+				var t = text[i];
+				switch (t) {
+					case "0":
+					case "1":
+					case "2":
+					case "3":
+					case "4":
+					case "5":
+					case "6":
+					case "7":
+					case "8":
+					case "9":
+					case "A":
+					case "B":
+					case "C":
+					case "D":
+					case "E":
+					case "F":
+						break;
+					default:
+						return text;
+				}
+			}
+			text = HexToString(text);
+			var ref_text = "";
+			for (i = 0; i < length text; i+=2)
+				ref_text += U_(unpack("U16", text[i] + text[i+1])[0]);
+
+			return ref_text;
+		}
+		return text;
+	}
+
+	SentReceived(queue, var code = null) {
+		var buf = Query(queue, code);
+		if (code == 200) {
+			var doc = NetGSM::ParseXML(buf);
+			var[] ids;
+			if (doc) {
+				var nodes = doc.GetXPath("/soapenv_Envelope/soapenv_Body/pos_QueueStatusResponse/IdSet/*");
+				for (var i = 0; i < length nodes; i++) {
+					var node = nodes[i];
+					if (node) {
+						var buf2 = this.Pick(node.Content, queue, var code2);
+						if (code2 == 200) {
+							var text = DirtyTag(buf2, "text");
+							var nmr = DirtyTag(buf2, "nmr");
+							if (text) {
+								text = HexText(text);
+								ids[length ids] = ["From" => nmr, "Text" => text, "ID" => node.Content];
+							}
+						}
+					}
+				}
+			}
+			return ids;
+		}
+		return null;
+	}
+
+	Received(var code = null) {
+		return SentReceived("GsmIn", code);
+	}
+
+	Sent(var code = null) {
+		return SentReceived("GsmOut", code);
+	}
+
+	Send(to, text, var id = null) {
+		id = 0;
+		var soap = Envelope("<pos:QueueAdd><Queue>GsmOut</Queue><Gsm><Cmd>SMS</Cmd>" +
+			"<Nmr>$to</Nmr>" +
+			"<Text>$text</Text>" +
+		"</Gsm></pos:QueueAdd>");
+
+		var code = this.Post(soap, var body);
+		if ((code) && (body)) {
+			if (!this.Parse(body, id))
+				return false;
+		}
+		return code;
+	}
+}
