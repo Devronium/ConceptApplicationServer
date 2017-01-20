@@ -281,55 +281,56 @@ class PDFPage {
 		var i = 0;
 		while (i < len_columns) {
 			var column = columns[i];
-			if (column) { 
-				var txt = row[rowindex];
-				var span = 1;
-				var caption = "";
-				switch (typeof txt) {
-					case "class":
-						// to do
-						span = txt.span;
-						caption = "" + txt.text;
-						if (txt.style)
-							styles[i] = txt.style;
-						break;
-					case "numeric":
-					case "string":
-						caption += txt;
-						break;
-					default:
-						caption = "";
-				}
-				spans[i] = span;
-				if (caption) {
-					var column_size = column.computed_width - padding;
-					if (span >= 2) {
-						for (var j = 1; j < span; j++) {
-							var ji = i + j;
-							if (ji >= len_columns)
-								break;
-							var span_column = columns[ji];
-							if (span_column)
-								column_size += span_column.computed_width;
-						}
-					}
-					var lines = this.Owner.Wrap(caption, Font, FontSize, column_size);
-					if (lines) {
-						wrapped_rows[i] = lines;
-						if (length lines > max)
-							max = length lines;
-					}
-				} else
-					wrapped_rows[i] = "";
-
-				if (span >= 2)
-					i += span;
-				else
-					i++;
-				rowindex++;
-				if (rowindex >= len)
+			var txt = row[rowindex];
+			var span = 1;
+			var caption = "";
+			switch (typeof txt) {
+				case "class":
+					// to do
+					span = txt.span;
+					caption = "" + txt.text;
+					if (txt.style)
+						styles[i] = txt.style;
 					break;
+				case "numeric":
+					if (column == null) {
+						i++;
+						continue;
+					}
+				case "string":
+					caption += txt;
+					break;
+				default:
+					caption = "";
 			}
+			spans[i] = span;
+			if (caption) {
+				var column_size = column.computed_width - padding;
+				if (span >= 2) {
+					for (var j = 1; j < span; j++) {
+						var ji = i + j;
+						if (ji >= len_columns)
+							break;
+						var span_column = columns[ji];
+						if (span_column)
+							column_size += span_column.computed_width;
+					}
+				}
+				var lines = this.Owner.Wrap(caption, Font, FontSize, column_size);
+				if (lines) {
+					wrapped_rows[i] = lines;
+					if (length lines > max)
+						max = length lines;
+				}
+			} else
+				wrapped_rows[i] = "";
+			if (span >= 2)
+				i += span;
+			else
+				i++;
+			rowindex++;
+			if (rowindex >= len)
+				break;
 		}
 		if (length wrapped_rows == 0)
 			wrapped_rows[0] = " ";
@@ -420,7 +421,7 @@ class PDFPage {
 		var font_line_size = round(this.FontSize / font_height_coef, 3);
 		for (var i = 0; i < length header; i++) {
 			var e = header[i];
-			if (e) {
+			if ((e) || (typeof e == "string")) {
 				var width = 1;
 				var caption = "";
 				var align = 0;
@@ -502,7 +503,6 @@ class PDFPage {
 						}
 						if ((header_color) || (header_text_color))
 							this.FillColor = header_text_color ?? header_color;
-
 						for (var j = 0; j < length hcaption; j++) {
 							var hline = hcaption[j];
 							if (hline) {
@@ -517,7 +517,6 @@ class PDFPage {
 							}
 							y -= FontSize;
 						}
-						
 					}
 					x += hcolumn_width;
 				}
@@ -528,7 +527,6 @@ class PDFPage {
 			padding += border/2;
 			header_height = this.__ComputeRowHeight(headers, table, out_rows, padding) * FontSize * font_height_coef;
 			filled = false;
-
 			for (i = 0; i < length columns; i++) {
 				y = table_y - padding - line_width;
 				caption = out_rows[i];
@@ -588,7 +586,6 @@ class PDFPage {
 			var row = data[i];
 			if (row) {
 				var row_height = this.__ComputeRowHeight(row, table, out_rows, padding, var spans, var styles) * FontSize * font_height_coef;
-
 				if ((auto_pos) && (row_y - row_height <= MarginBottom) && (row_height < max_row_size)) {
 					if (return_offset)
 						return i;
@@ -599,7 +596,6 @@ class PDFPage {
 					} while (offset < length data);
 					return page;
 				}
-
 				for (var k = 0; k < length out_rows; k++) {
 					if (row_height) {
 						caption = out_rows[k];

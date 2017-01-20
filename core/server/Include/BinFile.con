@@ -301,7 +301,8 @@ class BinIndex {
 						for (var k = 0; k < length no_index_keys; k++) {
 							var ni_key = no_index_keys[k];
 							var ni_q = no_index_query[ni_key];
-							if ((typeof ni_q == "array") && (GetKeys(ni_q))) {
+							var ni_key_list = GetKeys(ni_q);
+							if ((typeof ni_q == "array") && (ni_key_list) && (ni_key_list[0])) {
 								var ni_qp = new TinQueryParser(ni_q);
 								ni_qp.reversed = this.Unique;
 								ni_qp.btree = btree;

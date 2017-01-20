@@ -2048,7 +2048,7 @@ int DoBin(RefContainer *rc, void *ConceptHandler, void *OwnerPTR = 0, int dry_ru
                             return -1;
                     } else {
                         if (rc->filters)
-                            ref_dry_run = 1;
+                            ref_dry_run = dry_run;
 
                         if (!ref_dry_run)
                             LocalInvoker(INVOKE_ARRAY_VARIABLE, OwnerPTR, i, &handler);
