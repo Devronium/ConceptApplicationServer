@@ -426,7 +426,7 @@ DLL_EXPORT int ECDHEMakeKey(char *x, char *y, char *z, char *k) {
         mp_toradix(ecc_dhe.k, k, 16);
         ecc_free(&ecc_dhe);
     }
-
+    return res;
 }
 
 DLL_EXPORT int ECDHECompute(const char *x, const char *y, const char *z, const char *k, unsigned char *out, unsigned long *out_len) {
