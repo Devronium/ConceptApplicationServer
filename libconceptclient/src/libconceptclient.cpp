@@ -6,12 +6,12 @@
 // ============= from libtomcrypt  ================ //
 typedef struct {
     int  size;
-    char *name;
-    char *prime;
-    char *B;
-    char *order;
-    char *Gx;
-    char *Gy;
+    const char *name;
+    const char *prime;
+    const char *B;
+    const char *order;
+    const char *Gx;
+    const char *Gy;
 } ltc_ecc_set_type;
 
 typedef struct {
@@ -107,7 +107,7 @@ DLL_EXPORT void *CreateClient(CALLBACK_FUNC cb, PROGRESS_API _notify, char *url,
 
     char buf[4096];
     char *host = NULL;
-    char *app = strchr(url, '/');
+    const char *app = strchr(url, '/');
     int port = secured ? DEFAULT_TLS_PORT : DEFAULT_PORT;
     if (!app) {
         app = "start.con";
@@ -125,7 +125,6 @@ DLL_EXPORT void *CreateClient(CALLBACK_FUNC cb, PROGRESS_API _notify, char *url,
         } else
             return NULL;
     }
-    char *port_str = NULL;
     for (int i = strlen(host) - 1; i >= 0; i--) {
         char c = host[i];
         if (c == ':') {
@@ -426,7 +425,7 @@ DLL_EXPORT int ECDHEMakeKey(char *x, char *y, char *z, char *k) {
         mp_toradix(ecc_dhe.k, k, 16);
         ecc_free(&ecc_dhe);
     }
-
+    return res;
 }
 
 DLL_EXPORT int ECDHECompute(const char *x, const char *y, const char *z, const char *k, unsigned char *out, unsigned long *out_len) {

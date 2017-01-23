@@ -701,7 +701,6 @@ int send_message(CConceptClient *OWNER, AnsiString SENDER_NAME, int MESSAGE_ID, 
     } while (remaining > 0);
 
     if (in) {
-        int  r          = 0;
         char *file_buf  = new char[RBUF_SIZE];
         int  chunk_size = 0;
         do {
@@ -731,11 +730,9 @@ int get_message(CConceptClient *OWNER, TParameters *PARAM, PROGRESS_API notify_p
     unsigned int size2          = 0;
     int          size           = 0;
     int          received       = 0;
-    int          result         = 0;
     int          rec_count      = 0;
     int          buf_size       = 0;
     char         *buffer        = 0;
-    char         *output        = 0;
     int          filemarker     = 0;
     int          MSG_ID         = 0;
     int          remaining      = 0;
@@ -1121,8 +1118,6 @@ AnsiString InitUDP2(CConceptClient *owner, char *host) {
     if ((!owner) || (!host) || (!host[0]))
         return result;
 
-    int s_len = strlen(host);
-
     char *stun_server = host;
     char *p_str       = strchr(host, ',');
     if ((!p_str) || (p_str[1] == '-'))
@@ -1297,8 +1292,6 @@ AnsiString SwitchP2P(CConceptClient *owner, char *host) {
 
     if ((!owner) || (!host) || (!host[0]))
         return result;
-
-    int s_len = strlen(host);
 
     char *stun_server = host;
     char *p_str       = strchr(host, ',');
