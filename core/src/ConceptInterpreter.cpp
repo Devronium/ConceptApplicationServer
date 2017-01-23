@@ -122,11 +122,11 @@ static TinyString DLL_MEMBER = "STATIC_FUNCTION";
     if ((VARIABLE->CLASS_DATA) && (VARIABLE->TYPE == VARIABLE_STRING) && (((AnsiString *)VARIABLE->CLASS_DATA)->EXTRA_DATA)) {      \
         RuntimeOptimizedElement *tempOE = &OPT->CODE [((AnsiString *)VARIABLE->CLASS_DATA)->EXTRA_DATA - 1];                        \
         ((AnsiString *)VARIABLE->CLASS_DATA)->EXTRA_DATA = 0;                                                                       \
-        INTEGER _def_index = -1;                                                                                                    \
+        D_LONG_TYPE _def_index = -1;                                                                                                    \
         if (LOCAL_CONTEXT [tempOE->OperandLeft.ID - 1]->TYPE == VARIABLE_STRING) {                                                  \
             switch (LOCAL_CONTEXT [tempOE->OperandRight.ID - 1]->TYPE) {                                                            \
                 case VARIABLE_NUMBER:                                                                                               \
-                    _def_index = (INTEGER)LOCAL_CONTEXT [tempOE->OperandRight.ID - 1]->NUMBER_DATA;                                 \
+                    _def_index = (D_LONG_TYPE)LOCAL_CONTEXT [tempOE->OperandRight.ID - 1]->NUMBER_DATA;                                 \
                     break;                                                                                                          \
                 case VARIABLE_STRING:                                                                                               \
                     _def_index = CONCEPT_STRING(LOCAL_CONTEXT [tempOE->OperandRight.ID - 1]).ToInt();                               \
@@ -3807,13 +3807,13 @@ int ConceptInterpreter::StacklessInterpret(PIFAlizator *PIF, GreenThreadCycle *G
                             case KEY_INDEX_OPEN:
                                 switch (LOCAL_CONTEXT [OE->OperandRight.ID - 1]->TYPE) {
                                     case VARIABLE_NUMBER:
-                                        CONCEPT_STRING(LOCAL_CONTEXT [OE->Result_ID - 1]) = CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft.ID - 1]) [(INTEGER)LOCAL_CONTEXT [OE->OperandRight.ID - 1]->NUMBER_DATA];
+                                        CONCEPT_STRING(LOCAL_CONTEXT [OE->Result_ID - 1]) = CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft.ID - 1]) [(D_LONG_TYPE)LOCAL_CONTEXT [OE->OperandRight.ID - 1]->NUMBER_DATA];
                                         ((AnsiString *)LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA)->EXTRA_DATA = INSTRUCTION_POINTER;
                                         DECLARE_PATH(VARIABLE_STRING);
                                         break;
 
                                     case VARIABLE_STRING:
-                                        CONCEPT_STRING(LOCAL_CONTEXT [OE->Result_ID - 1]) = CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft.ID - 1]) [(INTEGER)CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandRight.ID - 1]).ToInt()];
+                                        CONCEPT_STRING(LOCAL_CONTEXT [OE->Result_ID - 1]) = CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft.ID - 1]) [CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandRight.ID - 1]).ToInt()];
                                         ((AnsiString *)LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA)->EXTRA_DATA = INSTRUCTION_POINTER;
                                         DECLARE_PATH(VARIABLE_STRING);
                                         break;
@@ -6354,13 +6354,13 @@ VariableDATA *ConceptInterpreter::Interpret(PIFAlizator *PIF, VariableDATA **LOC
                         case KEY_INDEX_OPEN:
                             switch (LOCAL_CONTEXT [OE->OperandRight.ID - 1]->TYPE) {
                                 case VARIABLE_NUMBER:
-                                    CONCEPT_STRING(LOCAL_CONTEXT [OE->Result_ID - 1]) = CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft.ID - 1]) [(INTEGER)LOCAL_CONTEXT [OE->OperandRight.ID - 1]->NUMBER_DATA];
+                                    CONCEPT_STRING(LOCAL_CONTEXT [OE->Result_ID - 1]) = CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft.ID - 1]) [(D_LONG_TYPE)LOCAL_CONTEXT [OE->OperandRight.ID - 1]->NUMBER_DATA];
                                     ((AnsiString *)LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA)->EXTRA_DATA = INSTRUCTION_POINTER;
                                     DECLARE_PATH(VARIABLE_STRING);
                                     break;
 
                                 case VARIABLE_STRING:
-                                    CONCEPT_STRING(LOCAL_CONTEXT [OE->Result_ID - 1]) = CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft.ID - 1]) [(INTEGER)CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandRight.ID - 1]).ToInt()];
+                                    CONCEPT_STRING(LOCAL_CONTEXT [OE->Result_ID - 1]) = CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft.ID - 1]) [CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandRight.ID - 1]).ToInt()];
                                     ((AnsiString *)LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA)->EXTRA_DATA = INSTRUCTION_POINTER;
                                     DECLARE_PATH(VARIABLE_STRING);
                                     break;

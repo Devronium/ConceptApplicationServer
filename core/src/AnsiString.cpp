@@ -531,7 +531,7 @@ char AnsiString::operator [](uintptr_t index) {
 
     if (Data) {
         len = _LENGTH;
-        if (index < len) {
+        if ((index >= 0) && (index < len)) {
             return Data [index];
         }
     }
@@ -543,7 +543,7 @@ char AnsiString::operator [](D_LONG_TYPE index) {
 
     if (Data) {
         len = _LENGTH;
-        if (index < len) {
+        if ((index < len) && (index >= 0)) {
             return Data [index];
         }
     }
