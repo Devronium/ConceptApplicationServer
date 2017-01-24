@@ -5,5 +5,6 @@
 
 extern "C" {
     CONCEPT_FUNCTION(M2TSDemux)
+    CONCEPT_FUNCTION(M2TSSyncOffset)
 }
 #endif // __LIBRARY_H

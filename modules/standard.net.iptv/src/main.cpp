@@ -69,7 +69,7 @@ CONCEPT_DLL_API ON_DESTROY_CONTEXT MANAGEMENT_PARAMETERS {
     return 0;
 }
 //=====================================================================================//
-CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(M2TSDemux, 1, 5)
+CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(M2TSDemux, 1, 7)
     T_STRING("MTSDemux", 0)
     INTEGER offset = 0;
     INTEGER len = (INTEGER)PARAM_LEN(0);
@@ -90,12 +90,21 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(M2TSDemux, 1, 5)
     if (PARAMETERS_COUNT > 4) {
         SET_NUMBER(4, 0);
     }
+    if (PARAMETERS_COUNT > 5) {
+        SET_NUMBER(5, -1);
+    }
+    if (PARAMETERS_COUNT > 6) {
+        SET_NUMBER(6, 0);
+    }
     const unsigned char *str = (unsigned char *)PARAM(0) + offset;
     INTEGER start = -1;
-    INTEGER buf_start;
-    if (len >= 4) {
+    INTEGER buf_start = 0;
+    int packet_size = 188;
+    int data_size = packet_size;
+    unsigned short err = 0;
+    if (len >= packet_size) {
         for (INTEGER i = 0; i < len; i++) {
-            if (str[i] == 'G') {
+            if ((str[i] == 'G') && (!(str[i + 1] & 0x80))) {
                 start = i;
                 break;
             }
@@ -105,7 +114,6 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(M2TSDemux, 1, 5)
             return 0;
         }
         buf_start = start;
-        int packet_size = 188;
         if (len - start >= packet_size) {
             start++;
             unsigned short tei = str[start] & 0x80;
@@ -128,19 +136,24 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(M2TSDemux, 1, 5)
             if (afc & 0x02) {
                 // adaptation field
                 unsigned char size = str[start];
-                start += size + 1;
+                start++;
+                if ((PARAMETERS_COUNT > 4) && (str[start] & 0x40))
+                    SET_NUMBER(4, (NUMBER)1);
+                start += size;
                 if (start >= len) {
                     RETURN_NUMBER(0);
                     return 0;
                 }
             }
-            if ((PARAMETERS_COUNT > 3) && (packet_size > start)) {
+            if (PARAMETERS_COUNT > 3) {
                 SET_BUFFER(3, (const char *)&str[buf_start], packet_size);
             }
+            if (PARAMETERS_COUNT > 5) {
+                SET_NUMBER(5, (NUMBER)cont_counter);
+            }
             int has_info = 1;
-            if (PARAMETERS_COUNT > 4) {
-                CREATE_ARRAY(PARAMETER(4));
-                unsigned short err = 0;
+            if (PARAMETERS_COUNT > 6) {
+                CREATE_ARRAY(PARAMETER(6));
                 if (pusi) {
                     pointer_field = str[start];
                     start++;
@@ -160,140 +173,243 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(M2TSDemux, 1, 5)
                         INTEGER table_start = start;
                         // table header (32bit)
                         table_id = str[start];
-                        Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, PARAMETER(4), "table_id", (INTEGER)VARIABLE_NUMBER, (char *)"", (NUMBER)table_id);
-                        start ++;
-
-                        section_len = (str[start] & 0x03) * 0x100;
-                        start ++;
-
-                        section_len += str[start];
-                        Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, PARAMETER(4), "section_len", (INTEGER)VARIABLE_NUMBER, (char *)"", (NUMBER)section_len);
-                        start ++;
-
-                        if ((start + section_len < len) && (section_len >= 8)) {
-                            unsigned short extension = ntohs((*(unsigned short *)&str[start]));
-                            Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, PARAMETER(4), "extension_id", (INTEGER)VARIABLE_NUMBER, (char *)"", (NUMBER)extension);
-                            start += 2;
-                            // various flags
-                            Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, PARAMETER(4), "flags", (INTEGER)VARIABLE_NUMBER, (char *)"", (NUMBER)str[start]);
+                        if ((table_id == 2) || (table_id == 0) || (table_id == 0x42)) {
+                            unsigned short extension = 0;
+                            Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, PARAMETER(6), "table_id", (INTEGER)VARIABLE_NUMBER, (char *)"", (NUMBER)table_id);
                             start ++;
-                            Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, PARAMETER(4), "section_number", (INTEGER)VARIABLE_NUMBER, (char *)"", (NUMBER)str[start]);
-                            start++;
-                            Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, PARAMETER(4), "last_section_number", (INTEGER)VARIABLE_NUMBER, (char *)"", (NUMBER)str[start]);
-                            start++;
 
-                            int payload_len = section_len - 9;
-                            int payload_start = start;
-                            switch (pid) {
-                                case 0:
-                                    // Program Association Table
-                                    if (table_id == 0) {
-                                        unsigned short prog_no = ntohs((*(unsigned short *)&str[start]));
-                                        Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, PARAMETER(4), "channel", (INTEGER)VARIABLE_NUMBER, (char *)"", (NUMBER)prog_no);
+                            section_len = (str[start] & 0x03) * 0x100;
+                            start ++;
+
+                            section_len += str[start];
+                            Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, PARAMETER(6), "section_len", (INTEGER)VARIABLE_NUMBER, (char *)"", (NUMBER)section_len);
+                            start ++;
+                            if ((start + section_len < len) && (section_len >= 8) && (section_len <= 1021)) {
+                                extension = ntohs((*(unsigned short *)&str[start]));
+                                Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, PARAMETER(6), "extension_id", (INTEGER)VARIABLE_NUMBER, (char *)"", (NUMBER)extension);
+                                start += 2;
+                                // various flags
+                                Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, PARAMETER(6), "flags", (INTEGER)VARIABLE_NUMBER, (char *)"", (NUMBER)str[start]);
+                                start ++;
+                                Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, PARAMETER(6), "section_number", (INTEGER)VARIABLE_NUMBER, (char *)"", (NUMBER)str[start]);
+                                start++;
+                                Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, PARAMETER(6), "last_section_number", (INTEGER)VARIABLE_NUMBER, (char *)"", (NUMBER)str[start]);
+                                start++;
+
+                                int payload_len = section_len - 9;
+
+                                int header_size = start - buf_start;
+                                int remaining = 188 - header_size;
+                                int extra_packets = 0;
+
+                                unsigned char *ref_str = (unsigned char *)str;
+                                if ((remaining) && (payload_len > remaining)) {
+                                    extra_packets = payload_len / remaining;
+                                    if (payload_len % remaining)
+                                        extra_packets ++;
+
+                                    if ((start + payload_len) < (len - extra_packets * packet_size)) {
+                                        ref_str = (unsigned char *)malloc(start + (extra_packets + 1) * packet_size);
+                                        memcpy(ref_str, str, packet_size);
+                                        int ref_offset = packet_size;
+                                        int str_offset = packet_size;
+
+                                        header_size = 4;
+                                        int rem2 = packet_size - header_size;
+                                        for (int i = 0; i < extra_packets; i++) {
+                                            memcpy(ref_str + ref_offset, str + str_offset + header_size, rem2);
+                                            ref_offset += rem2;
+                                            str_offset += packet_size;
+                                            data_size += packet_size;
+                                        }
+                                    } else {
+                                        extra_packets = 0;
+                                        payload_len = remaining;
                                     }
-                                    break;
-                                case 1:
-                                    // Conditional Access tables
-                                    break;
-                                case 2:
-                                    // Transport Stream Description tables
-                                    break;
-                                case 17:
-                                    // Service Description Table, Bouquet Association table
-                                    if (payload_len > 0)
-                                        Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, PARAMETER(4), "table_data", (INTEGER)VARIABLE_STRING, (char *)&str[payload_start], (NUMBER)payload_len);
-                                    break;
-                                default:
-                                    if ((pid >= 48) && (pid <= 8182) && (start + 5 < len) && (table_id == 2)) {
-                                        unsigned int remaining_len = payload_len;
-                                        // pmt, pmt-e, mgt or mgt-e
-                                        start += 2;
-                                        unsigned short program_info_len = (str[start] & 0x03) * 0x100;
-                                        start++;
-                                        program_info_len += str[start];
-                                        start++;
-                                        // skip program info
-                                        if (program_info_len)
-                                            start += program_info_len;
-                                        
-                                        remaining_len -= 4 + program_info_len;
-                                        has_info = 2;
-                                        if (remaining_len >= 5) {
+                                }
+
+                                int payload_start = start;
+                                int payload_offset = payload_len;
+
+                                switch (pid) {
+                                    case 0:
+                                        // Program Association Table
+                                        if (table_id == 0) {
+                                            unsigned short prog_no = ntohs((*(unsigned short *)&ref_str[start]));
+                                            Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, PARAMETER(6), "channel", (INTEGER)VARIABLE_NUMBER, (char *)"", (NUMBER)prog_no);
+                                            start += 2;
+                                        }
+                                        break;
+                                    case 1:
+                                        // Conditional Access tables
+                                        break;
+                                    case 2:
+                                        // Transport Stream Description tables
+                                        break;
+                                    case 17:
+                                        // Service Description Table, Bouquet Association table
+                                        if ((table_id == 0x42) || (table_id == 0x46)) {
+                                            start += 3;
+                                            int remaining_len = payload_len;
+
                                             void *newpData = 0;
-                                            Invoke(INVOKE_ARRAY_VARIABLE_BY_KEY, PARAMETER(4), "descriptors", &newpData);
+                                            Invoke(INVOKE_ARRAY_VARIABLE_BY_KEY, PARAMETER(6), "channels", &newpData);
                                             CREATE_ARRAY(newpData);
+
                                             INTEGER i = 0;
-                                            while (remaining_len > 5) {
+                                            while (remaining_len > 10) {
                                                 void *newpData2 = 0;
                                                 Invoke(INVOKE_ARRAY_VARIABLE, newpData, i, &newpData2);
                                                 CREATE_ARRAY(newpData2);
-                                                Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, newpData2, "type", (INTEGER)VARIABLE_NUMBER, (char *)"", (NUMBER)str[start]);
-                                                start++;
-                                                unsigned short epid = (str[start] & 0x1F) * 0x100;
-                                                start++;
-                                                epid += str[start];
-                                                Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, newpData2, "pid", (INTEGER)VARIABLE_NUMBER, (char *)"", (NUMBER)epid);
-                                                start++;
 
-                                                unsigned short es_info_len = (str[start] & 0x03) * 0x100;
+                                                unsigned short service_id = ntohs((*(unsigned short *)&ref_str[start]));
+                                                Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, newpData2, "service_id", (INTEGER)VARIABLE_NUMBER, (char *)"", (NUMBER)service_id);
+
+                                                start += 2;
                                                 start++;
-                                                es_info_len += str[start];
+                                                unsigned short loop_len = (ref_str[start] & 0x1F) * 0x100;
                                                 start++;
-                                                if (start + es_info_len > len)
-                                                    break;
-                                                if (es_info_len > 2) {
-                                                    unsigned short es_len = str[1];
-                                                    if (es_len > es_info_len - 2)
-                                                        es_len = es_info_len - 2;
-                                                    switch (str[start]) {
-                                                        case 0x0A:
-                                                            Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, newpData2, "language", (INTEGER)VARIABLE_STRING, (char *)&str[start + 2], (NUMBER)es_len);
-                                                            break;
-                                                        case 0x41:
-                                                            Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, newpData2, "network", (INTEGER)VARIABLE_STRING, (char *)&str[start + 2], (NUMBER)es_len);
-                                                            break;
-                                                        case 0x48:
-                                                            Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, newpData2, "service", (INTEGER)VARIABLE_STRING, (char *)&str[start + 2], (NUMBER)es_len);
+                                                loop_len += ref_str[start];
+                                                start++;
+                                                int ref_loop_len = loop_len;
+                                                int ref_start = start;
+                                                while (ref_loop_len >= 6) {
+                                                    unsigned char es_len = ref_str[ref_start + 3];
+                                                    unsigned char es_len2 = 0;
+                                                    if (es_len > ref_loop_len - 5) {
+                                                        es_len = ref_loop_len - 5;
+                                                    } else {
+                                                        es_len2 = ref_str[ref_start + 4 + es_len ];
+                                                        if (es_len2 > ref_loop_len - es_len - 5)
                                                             break;
                                                     }
-                                                    
+
+                                                    switch (ref_str[ref_start]) {
+                                                        case 0x48:
+                                                            Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, newpData2, "network", (INTEGER)VARIABLE_STRING, (char *)&ref_str[ref_start + 4], (NUMBER)es_len);
+                                                            if (es_len2)
+                                                                Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, newpData2, "service", (INTEGER)VARIABLE_STRING, (char *)&ref_str[ref_start + 5 + es_len], (NUMBER)es_len2);
+                                                            break;
+                                                    }
+                                                    ref_loop_len -= es_len + es_len2 + 5;
+                                                    ref_start += es_len + es_len2 + 5;
                                                 }
-                                                start += es_info_len;
+                                                start += loop_len;
+
+                                                remaining_len -= 4 + loop_len;
                                                 i++;
-                                                remaining_len -= 5 + es_info_len;
                                             }
                                         }
-                                    }
-                            }
-                            if (payload_len > 0) {
-                                start += payload_len;
-                                if (start <= len - 4) {
-                                    unsigned long crc = ntohl((*(unsigned int *)&str[start]));
-                                    unsigned long crc2 = fast_crc32((char *)&str[table_start], start - table_start);
-                                    Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, PARAMETER(4), "valid", (INTEGER)VARIABLE_NUMBER, (char *)"", (NUMBER)(crc == crc2));
-                                    start += 4;
+                                        // if (payload_len > 0)
+                                        //    Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, PARAMETER(6), "table_data", (INTEGER)VARIABLE_STRING, (char *)&ref_str[payload_start], (NUMBER)payload_len);
+                                        break;
+                                    default:
+                                        if ((pid >= 48) && (pid <= 8182) && (start + 5 < len) && (table_id == 2)) {
+                                            unsigned int remaining_len = payload_len;
+                                            // pmt, pmt-e, mgt or mgt-e
+                                            start += 2;
+                                            unsigned short program_info_len = (ref_str[start] & 0x03) * 0x100;
+                                            start++;
+                                            program_info_len += ref_str[start];
+                                            start++;
+                                            // skip program info
+                                            if (program_info_len)
+                                                start += program_info_len;
+                                        
+                                            remaining_len -= 4 + program_info_len;
+                                            has_info = 2;
+                                            if (remaining_len >= 5) {
+                                                void *newpData = 0;
+                                                Invoke(INVOKE_ARRAY_VARIABLE_BY_KEY, PARAMETER(6), "descriptors", &newpData);
+                                                CREATE_ARRAY(newpData);
+                                                INTEGER i = 0;
+                                                while (remaining_len >= 5) {
+                                                    void *newpData2 = 0;
+                                                    Invoke(INVOKE_ARRAY_VARIABLE, newpData, i, &newpData2);
+                                                    CREATE_ARRAY(newpData2);
+                                                    Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, newpData2, "type", (INTEGER)VARIABLE_NUMBER, (char *)"", (NUMBER)ref_str[start]);
+                                                    start++;
+                                                    unsigned short epid = (ref_str[start] & 0x1F) * 0x100;
+                                                    start++;
+                                                    epid += ref_str[start];
+                                                    Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, newpData2, "pid", (INTEGER)VARIABLE_NUMBER, (char *)"", (NUMBER)epid);
+                                                    start++;
+
+                                                    unsigned short es_info_len = (ref_str[start] & 0x03) * 0x100;
+                                                    start++;
+                                                    es_info_len += ref_str[start];
+                                                    start++;
+                                                    if (start + es_info_len > len)
+                                                        break;
+                                                    if (es_info_len > 2) {
+                                                        unsigned short es_len = ref_str[1];
+                                                        if (es_len > es_info_len - 2)
+                                                            es_len = es_info_len - 2;
+                                                        switch (ref_str[start]) {
+                                                            case 0x0A:
+                                                            case 0x56:
+                                                            case 0x59:
+                                                                if (es_len > 3)
+                                                                    Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, newpData2, "language", (INTEGER)VARIABLE_STRING, (char *)&ref_str[start + 2], (NUMBER)3);
+                                                                else
+                                                                    Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, newpData2, "language", (INTEGER)VARIABLE_STRING, (char *)&ref_str[start + 2], (NUMBER)es_len);
+                                                                break;
+                                                            default:
+                                                                break;
+                                                        }
+                                                    
+                                                    }
+                                                    start += es_info_len;
+                                                    i++;
+                                                    remaining_len -= 5 + es_info_len;
+                                                }
+                                            }
+                                            payload_offset = remaining_len;
+                                        }
                                 }
-                            }
-                        } else
-                            err = 2;
+                                if (payload_len > 0) {
+                                    start += payload_offset;
+                                    if (start <= len - 4) {
+                                        unsigned long crc = ntohl((*(unsigned int *)&ref_str[start]));
+                                        unsigned long crc2 = fast_crc32((char *)&ref_str[table_start], start - table_start);
+                                        Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, PARAMETER(6), "valid", (INTEGER)VARIABLE_NUMBER, (char *)"", (NUMBER)(crc == crc2));
+                                        start += 4;
+                                        if (crc != crc2)
+                                            err = 4;
+                                    } else
+                                        err = 3;
+                                }
+                                if (extra_packets)
+                                    free(ref_str);
+                            } else
+                                err = 2;
+                        }
                     }
                 }
-                Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, PARAMETER(4), "pid", (INTEGER)VARIABLE_NUMBER, (char *)"", (NUMBER)pid);
-                Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, PARAMETER(4), "afc", (INTEGER)VARIABLE_NUMBER, (char *)"", (NUMBER)afc);
-                Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, PARAMETER(4), "tsc", (INTEGER)VARIABLE_NUMBER, (char *)"", (NUMBER)tsc);
-                Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, PARAMETER(4), "tei", (INTEGER)VARIABLE_NUMBER, (char *)"", (NUMBER)tei);
-                Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, PARAMETER(4), "pusi", (INTEGER)VARIABLE_NUMBER, (char *)"", (NUMBER)pusi);
+                Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, PARAMETER(6), "cont", (INTEGER)VARIABLE_NUMBER, (char *)"", (NUMBER)cont_counter);
+                Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, PARAMETER(6), "pid", (INTEGER)VARIABLE_NUMBER, (char *)"", (NUMBER)pid);
+                Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, PARAMETER(6), "afc", (INTEGER)VARIABLE_NUMBER, (char *)"", (NUMBER)afc);
+                Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, PARAMETER(6), "tsc", (INTEGER)VARIABLE_NUMBER, (char *)"", (NUMBER)tsc);
+                Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, PARAMETER(6), "tei", (INTEGER)VARIABLE_NUMBER, (char *)"", (NUMBER)tei);
+                Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, PARAMETER(6), "pusi", (INTEGER)VARIABLE_NUMBER, (char *)"", (NUMBER)pusi);
                 if (pusi) {
-                    Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, PARAMETER(4), "pointer", (INTEGER)VARIABLE_NUMBER, (char *)"", (NUMBER)pointer_field);
-                    Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, PARAMETER(4), "padding", (INTEGER)VARIABLE_NUMBER, (char *)"", (NUMBER)pointer_padding);
+                    Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, PARAMETER(6), "pointer", (INTEGER)VARIABLE_NUMBER, (char *)"", (NUMBER)pointer_field);
+                    Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, PARAMETER(6), "padding", (INTEGER)VARIABLE_NUMBER, (char *)"", (NUMBER)pointer_padding);
                 }
-                Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, PARAMETER(4), "priority", (INTEGER)VARIABLE_NUMBER, (char *)"", (NUMBER)priority);
+                Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, PARAMETER(6), "priority", (INTEGER)VARIABLE_NUMBER, (char *)"", (NUMBER)priority);
                 if (pid == 8191)
-                    Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, PARAMETER(4), "null", (INTEGER)VARIABLE_NUMBER, (char *)"", (NUMBER)1);
+                    Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, PARAMETER(6), "null", (INTEGER)VARIABLE_NUMBER, (char *)"", (NUMBER)1);
                 if (err)
-                    Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, PARAMETER(4), "parse_error", (INTEGER)VARIABLE_NUMBER, (char *)"", (NUMBER)err);
+                    Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, PARAMETER(6), "parse_error", (INTEGER)VARIABLE_NUMBER, (char *)"", (NUMBER)err);
             }
-            start = offset + packet_size;
+            if ((err) && (err != 4)) {
+                start = offset + buf_start + 1;
+                has_info = -err;
+                if (PARAMETERS_COUNT > 3) {
+                    SET_STRING(3, "");
+                }
+            } else
+                start = offset + packet_size;
             if (PARAMETERS_COUNT > 1) {
                 SET_NUMBER(1, start);
                 if (PARAMETERS_COUNT > 2) {
@@ -305,5 +421,22 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(M2TSDemux, 1, 5)
         }
     }
     RETURN_NUMBER(0);
+END_IMPL
+//=====================================================================================//
+CONCEPT_FUNCTION_IMPL(M2TSSyncOffset, 2)
+    T_STRING("M2TSSyncOffset", 0)
+    T_NUMBER("M2TSSyncOffset", 1)
+    INTEGER offset = PARAM_INT(1);
+    if (offset >= 0) {
+        INTEGER limit = PARAM_LEN(0) - 188 * 3;
+        const unsigned char *str = (unsigned char *)PARAM(0);
+        for (int i  = offset; i < limit; i++) {
+            if ((str[i] == 'G') && (str[i + 188] == 'G') && (str[i + 188 * 2] == 'G')) {
+                offset = i;
+                break;
+            }
+        }
+    }
+    RETURN_NUMBER(offset);
 END_IMPL
 //=====================================================================================//
