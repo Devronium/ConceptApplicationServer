@@ -69,12 +69,426 @@ CONCEPT_DLL_API ON_DESTROY_CONTEXT MANAGEMENT_PARAMETERS {
     return 0;
 }
 //=====================================================================================//
-CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(M2TSDemux, 1, 7)
-    T_STRING("MTSDemux", 0)
+CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(M2TSTable, 4, 6)
+    T_NUMBER("M2TSTable", 0)
+    T_NUMBER("M2TSTable", 1)
+    T_NUMBER("M2TSTable", 2)
+    int network_id = 1;
+    int pcr_id = -1;
+    if (PARAMETERS_COUNT > 4) {
+        T_NUMBER("M2TSTable", 4)
+        network_id = PARAM_INT(4);
+        if (network_id < 0)
+            network_id = 1;
+    }
+    if (PARAMETERS_COUNT > 5) {
+        T_NUMBER("M2TSTable", 5)
+        pcr_id = PARAM_INT(5);
+    }
+
+    unsigned char buffer[2048];
+    int pid = PARAM_INT(0);
+    unsigned char table_id = (unsigned char)PARAM_INT(1);
+    // table type
+    buffer[0] = table_id;
+    if (pid == 0) {
+        T_ARRAY("M2TSTable", 3)
+
+        buffer[1] = 0xB0; // 0b10110000
+        // buffer[2] = length ( + 2 bit buffer[1])
+        buffer[2] = 0;
+        unsigned short extension = (unsigned short)PARAM_INT(2);
+        buffer[3] = extension / 0x100;
+        buffer[4] = extension % 0x100;
+        buffer[5] = 0xC1;
+        // section number
+        buffer[6] = 0;
+        // last section number
+        buffer[7] = 0;
+
+        buffer[8] = 0xE0;
+        if (pcr_id < 0)
+                pcr_id = 0x1FFF;
+
+        buffer[8] |= pcr_id / 100;
+        buffer[9] = pcr_id % 100;
+        buffer[10] = 0xF0;
+        buffer[11] = 0x00;
+        
+        int pos = 12;
+        int count = Invoke(INVOKE_GET_ARRAY_COUNT, PARAMETER(3));
+        for (int i = 0; i < count; i++) {
+            void *newpData = 0;
+            Invoke(INVOKE_ARRAY_VARIABLE, PARAMETER(3), i, &newpData);
+            if (newpData) {
+                char    *str;
+                INTEGER type;
+                NUMBER  nr;
+
+                Invoke(INVOKE_GET_VARIABLE, newpData, &type, &str, &nr);
+                if (type == VARIABLE_ARRAY) {
+                    int stream_id = -1;
+                    int stream_type = -1;
+                    char *language = 0;
+                    Invoke(INVOKE_GET_ARRAY_ELEMENT_BY_KEY, newpData, "pid", &type, &str, &nr);
+                    if (type == VARIABLE_NUMBER)
+                        stream_id = (INTEGER)nr;
+                    Invoke(INVOKE_GET_ARRAY_ELEMENT_BY_KEY, newpData, "type", &type, &str, &nr);
+                    if (type == VARIABLE_NUMBER)
+                        stream_type = (INTEGER)nr;
+
+                    if ((stream_id > 0) && (stream_type > 0)) {
+                        unsigned char *esinfo = 0;
+                        int esinfo_len = 0;
+                        int lang_len = 0;
+
+                        Invoke(INVOKE_GET_ARRAY_ELEMENT_BY_KEY, newpData, "esinfo", &type, &str, &nr);
+                        if ((type == VARIABLE_STRING) && (str) && (nr) && (nr < 0xFF)) {
+                            esinfo = (unsigned char *)str;
+                            esinfo_len = (int)nr;
+                        } else {
+                            Invoke(INVOKE_GET_ARRAY_ELEMENT_BY_KEY, newpData, "language", &type, &str, &nr);
+                            if ((type == VARIABLE_STRING) && (str) && (str[0]))
+                                language = str;
+                            else
+                                language = 0;
+
+                            if (language) {
+                                lang_len = strlen(language);
+                                if (lang_len > 10)
+                                    lang_len = 10;
+                            }
+                        }
+
+                        buffer[pos] = stream_type;
+                        pos++;
+                        buffer[pos] = 0xE0;
+                        buffer[pos] |= stream_id / 0x100;
+                        pos++;
+                        buffer[pos] = stream_id % 0x100;
+                        pos++;
+
+                        if (esinfo) {
+                            buffer[pos] = 0xF0 | (esinfo_len / 0x100);
+                            pos++;
+                            buffer[pos] = esinfo_len % 0x100;
+                            pos++;
+                            memcpy(buffer + pos, esinfo, esinfo_len);
+                            pos += esinfo_len;
+                        } else
+                        if (lang_len) {
+                            int llen = lang_len + 3;
+                            buffer[pos] = 0xF0 | (llen / 0x100);
+                            pos++;
+                            buffer[pos] = llen % 0x100;
+                            pos++;
+                            buffer[pos] = 0x0A;
+                            pos++;
+                            buffer[pos] = lang_len + 1;
+                            pos++;
+                            memcpy(buffer + pos, language, lang_len);
+                            pos += lang_len;
+                            buffer[pos] = 0x00;
+                            pos++;
+                        } else {
+                            buffer[pos] = 0xF0;
+                            pos++;
+                            buffer[pos] = 0x00;
+                            pos++;
+                        }
+                    }
+                }
+            }
+            if (pos >= 1021)
+                break;
+        }
+        int len_ref = pos + 1;
+        buffer[1] |= len_ref  / 0x100;
+        buffer[2] = len_ref % 0x100;
+
+        unsigned long crc = fast_crc32((char *)buffer, pos);
+        crc = htonl(crc);
+        memcpy(buffer + pos, &crc, 4);
+        pos += 4;
+
+        RETURN_BUFFER((char *)buffer, pos);
+        return 0;
+        // E1 00 F0 00 02
+        // E1 00 F0 00 03
+        // E1 01 F0 06 0A 04 rum 00
+    } else
+    if (pid == 0x11) {
+        T_ARRAY("M2TSTable", 3)
+
+        buffer[1] = 0xF0;
+        // buffer[2] = length ( + 2 bit buffer[1])
+        buffer[2] = 0;
+        unsigned short extension = (unsigned short)PARAM_INT(2);
+        buffer[3] = extension / 0x100;
+        buffer[4] = extension % 0x100;
+
+        buffer[5] = 0xC1;
+        // section number
+        buffer[6] = 0;
+        // last section number
+        buffer[7] = 0;
+
+        buffer[8] = 0xFF;//network_id / 0x100;
+        buffer[9] = network_id % 0x100;
+        buffer[10] = 0xFF;
+        // service id 
+        int pos = 11;
+
+        int count = Invoke(INVOKE_GET_ARRAY_COUNT, PARAMETER(3));
+        for (int i = 0; i < count; i++) {
+            void *newpData = 0;
+            Invoke(INVOKE_ARRAY_VARIABLE, PARAMETER(3), i, &newpData);
+            if (newpData) {
+                char    *str;
+                INTEGER type;
+                NUMBER  nr;
+
+                Invoke(INVOKE_GET_VARIABLE, newpData, &type, &str, &nr);
+                if (type == VARIABLE_ARRAY) {
+                    int service_id = 1;
+
+                    Invoke(INVOKE_GET_ARRAY_ELEMENT_BY_KEY, newpData, "id", &type, &str, &nr);
+                    if (type == VARIABLE_NUMBER)
+                        service_id = (INTEGER)nr;
+
+                    if (service_id > 0) {
+                        char *network = "Concept";
+                        char *service = "Service01";
+                        int service_type = 1;
+
+                        Invoke(INVOKE_GET_ARRAY_ELEMENT_BY_KEY, newpData, "network", &type, &str, &nr);
+                        if ((type == VARIABLE_STRING) && (str) && (str[0]))
+                            network = str;
+
+                        Invoke(INVOKE_GET_ARRAY_ELEMENT_BY_KEY, newpData, "service", &type, &str, &nr);
+                        if ((type == VARIABLE_STRING) && (str) && (str[0]))
+                            service = str;
+
+                        Invoke(INVOKE_GET_ARRAY_ELEMENT_BY_KEY, newpData, "type", &type, &str, &nr);
+                        if (type == VARIABLE_NUMBER) {
+                            service_type = (INTEGER)nr;
+                            if (service_type <= 0)
+                                service_type = 1;
+                        }
+
+                        buffer[pos] = service_id / 0x100;
+                        pos++;
+                        buffer[pos] = service_id % 0x100;
+                        pos++;
+                        buffer[pos] = 0xFC;
+                        pos++;
+
+                        int service_len = strlen(service);
+                        if (service_len > 0xFF)
+                            service_len = 0xFF;
+                        int network_len = strlen(network);
+                        if (network_len > 0xFF)
+                            network_len = 0xFF;
+
+                        // loop len 4 bits
+                        buffer[pos] = 0x80;
+                        pos++;
+                        // loop len 8 bits
+                        buffer[pos] = network_len + service_len + 5;
+                        pos++;
+
+                        buffer[pos] = 0x48;
+                        pos++;
+
+                        // descriptor length
+                        buffer[pos] = network_len + service_len + 3;
+                        pos++;
+
+                        buffer[pos] = service_type;
+                        pos++;
+                        buffer[pos] = network_len;
+                        pos++;
+                        memcpy(buffer + pos, network, network_len);
+                        pos += network_len;
+                        buffer[pos] = service_len;
+                        pos++;
+                        memcpy(buffer + pos, service, service_len);
+                        pos += service_len;
+                    }
+                }
+            }
+            if (pos >= 1021)
+                break;
+        }
+        int len_ref = pos + 1;
+        buffer[1] |= len_ref  / 0x100;
+        buffer[2] = len_ref % 0x100;
+
+        unsigned long crc = fast_crc32((char *)buffer, pos);
+        crc = htonl(crc);
+        memcpy(buffer + pos, &crc, 4);
+        pos += 4;
+
+        RETURN_BUFFER((char *)buffer, pos);
+        return 0;
+    } else {
+        T_NUMBER("M2TSTable", 3)
+        int pcr_pid = PARAM_INT(3);
+        if ((pcr_pid >= 0) && (pcr_pid <= 0xFFFF)) {
+            // PMT
+            buffer[1] = 0xB0; // 0b10110000
+            // buffer[2] = length ( + 2 bit buffer[1])
+            buffer[2] = 0x0D;
+            unsigned short extension = (unsigned short)PARAM_INT(2);
+            buffer[3] = extension / 0x100;
+            buffer[4] = extension % 0x100;
+            buffer[5] = 0xC1;
+            // section number
+            buffer[6] = 0;
+            // last section number
+            buffer[7] = 0;
+
+            buffer[8] = 0x00;
+
+            buffer[8] |= pcr_pid / 0x100;
+            buffer[9] = pcr_pid % 0x100;
+            buffer[10] = 0xF0;
+            buffer[11] = 0;
+
+            unsigned long crc = fast_crc32((char *)buffer, 12);
+            crc = htonl(crc);
+            memcpy(buffer + 12, &crc, 4);
+
+            RETURN_BUFFER((char *)buffer, 16);
+            return 0;
+        }
+    }
+
+    RETURN_STRING("");
+END_IMPL
+//=====================================================================================//
+CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(M2TSPacket, 3, 4)
+    T_NUMBER("M2TSPacket", 0)
+    T_NUMBER("M2TSPacket", 1)
+    T_STRING("M2TSPacket", 2)
+    int priority = 0;
+    if (PARAMETERS_COUNT > 3) {
+        T_NUMBER("M2TSPacket", 3)
+        priority = PARAM_INT(3);
+    }
+    INTEGER pid = PARAM_INT(0);
+    INTEGER counter = PARAM_INT(1);
+    if ((pid >= 0) && (pid <= 0x1FFF)) {
+        unsigned char packet[188];
+        packet[0] = 'G';
+        // set pusi flag
+        if (priority)
+            packet[1] = 0x60;
+        else
+            packet[1] = 0x40;
+
+        unsigned char pid_hi = pid / 0x100;
+        unsigned char pid_lo = pid % 0x100;
+
+        packet[1] |= pid_hi;
+        packet[2] = pid_lo;
+
+        // payload only
+        packet[3] = 0x10;
+
+        if (counter < 0)
+            counter = 0;
+        packet[3] |= counter % 16;
+
+        // padding
+        packet[4] = 0;
+
+        int len = PARAM_LEN(2);
+        if (len < 0)
+            len = 0;
+        if (len > 183) {
+            len = 183;
+        } else
+            memset(packet + 5 + len, 0xFF, 183 - len);
+
+        memcpy(packet + 5, PARAM(2), len);
+        RETURN_BUFFER((const char *)packet, 188);
+    } else {
+        RETURN_STRING("");
+    }
+END_IMPL
+//=====================================================================================//
+CONCEPT_FUNCTION_IMPL(M2TSChpid, 2)
+    T_STRING("M2TSChpid", 0)
+    T_NUMBER("M2TSChpid", 1)
+    int len = PARAM_LEN(0);
+    INTEGER pid = PARAM_INT(1);
+    unsigned char *str = (unsigned char *)PARAM(0);
+    int blocks = 0;
+    if ((len >= 188) && (pid >= 0) && (pid <= 0x1FFF)) {
+        int index = 0;
+        unsigned char pid_hi = pid / 0x100;
+        pid_hi |= 0xE0;
+        unsigned char pid_lo = pid % 0x100;
+        while (len >= 188) {
+            if (str[index] != 'G')
+                break;
+            str[index + 1] &= pid_hi;
+            str[index + 2] = pid_lo;
+            blocks++;
+            index += 188;
+            len -= 188;
+        }
+    }
+    RETURN_NUMBER(blocks);
+END_IMPL
+//=====================================================================================//
+CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(M2TSPeek, 1, 4)
+    T_STRING("M2TSPeek", 0)
     INTEGER offset = 0;
     INTEGER len = (INTEGER)PARAM_LEN(0);
     if (PARAMETERS_COUNT > 1) {
-        T_NUMBER("MTSDemux", 1);
+        T_NUMBER("M2TSDemux", 1);
+        offset = (INTEGER)PARAM(1);
+        if (offset > 0)
+            len -= offset;
+        else
+            offset = 0;
+        if (PARAMETERS_COUNT > 2) {
+            SET_STRING(2, "");
+        }
+        if (PARAMETERS_COUNT > 3) {
+            SET_NUMBER(3, 0);
+        }
+    }
+    const unsigned char *str = (unsigned char *)PARAM(0) + offset;
+    if (len >= 188) {
+        if (str[0] == 'G') {
+            unsigned short pusi = str[1] & 0x40;
+            unsigned short pid_hi = str[1] & 0x1F;
+            unsigned short pid = pid_hi * 0x100 + str[2];
+            unsigned short afc = (str[3] & 0x30) >> 4;
+            if ((PARAMETERS_COUNT > 2)) {
+                SET_BUFFER(2, (const char *)str, 188);
+                if ((PARAMETERS_COUNT > 3) && (pusi)) {
+                    SET_NUMBER(3, 1);
+                }
+            }
+            RETURN_NUMBER(pid);
+        } else {
+            RETURN_NUMBER(-1);
+        }
+    } else {
+        RETURN_NUMBER(-1);
+    }
+END_IMPL
+//=====================================================================================//
+CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(M2TSDemux, 1, 7)
+    T_STRING("M2TSDemux", 0)
+    INTEGER offset = 0;
+    INTEGER len = (INTEGER)PARAM_LEN(0);
+    if (PARAMETERS_COUNT > 1) {
+        T_NUMBER("M2TSDemux", 1);
         offset = (INTEGER)PARAM(1);
         if (offset > 0)
             len -= offset;
@@ -307,7 +721,12 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(M2TSDemux, 1, 7)
                                         if ((pid >= 48) && (pid <= 8182) && (start + 5 < len) && (table_id == 2)) {
                                             unsigned int remaining_len = payload_len;
                                             // pmt, pmt-e, mgt or mgt-e
-                                            start += 2;
+                                            unsigned short pcr_pid = (ref_str[start] & 0x1F) * 0x100;
+                                            start++;
+                                            pcr_pid += ref_str[start];
+                                            start ++;
+
+                                            Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, PARAMETER(6), "pcr", (INTEGER)VARIABLE_NUMBER, (char *)"", (NUMBER)pcr_pid);
                                             unsigned short program_info_len = (ref_str[start] & 0x03) * 0x100;
                                             start++;
                                             program_info_len += ref_str[start];
@@ -357,8 +776,9 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(M2TSDemux, 1, 7)
                                                             default:
                                                                 break;
                                                         }
-                                                    
                                                     }
+                                                    if (es_info_len)
+                                                        Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, newpData2, "esinfo", (INTEGER)VARIABLE_STRING, (char *)&ref_str[start], (NUMBER)es_info_len);
                                                     start += es_info_len;
                                                     i++;
                                                     remaining_len -= 5 + es_info_len;
