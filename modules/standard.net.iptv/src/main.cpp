@@ -2,11 +2,13 @@
 #include "stdlibrary.h"
 //------------ end of standard header ----------------------------//
 #include "library.h"
+#include <stdlib.h>
+#include <string.h>
 #ifndef _WIN32
     #include <arpa/inet.h>
 #endif
 
-static const unsigned long crc_table[256] = {
+static const unsigned int crc_table[256] = {
         0x00000000, 0x04c11db7, 0x09823b6e, 0x0d4326d9, 0x130476dc, 0x17c56b6b,
         0x1a864db2, 0x1e475005, 0x2608edb8, 0x22c9f00f, 0x2f8ad6d6, 0x2b4bcb61,
         0x350c9b64, 0x31cd86d3, 0x3c8ea00a, 0x384fbdbd, 0x4c11db70, 0x48d0c6c7,
@@ -51,9 +53,9 @@ static const unsigned long crc_table[256] = {
         0x933eb0bb, 0x97ffad0c, 0xafb010b1, 0xab710d06, 0xa6322bdf, 0xa2f33668,
         0xbcb4666d, 0xb8757bda, 0xb5365d03, 0xb1f740b4};
 
-unsigned long fast_crc32(const char *data, int len) {
+unsigned int fast_crc32(const char *data, int len) {
         register int i;
-        unsigned long crc = 0xffffffff;
+        unsigned int crc = 0xffffffff;
 
         for (i=0; i<len; i++)
                 crc = (crc << 8) ^ crc_table[((crc >> 24) ^ *data++) & 0xff];
@@ -206,7 +208,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(M2TSTable, 4, 6)
         buffer[1] |= len_ref  / 0x100;
         buffer[2] = len_ref % 0x100;
 
-        unsigned long crc = fast_crc32((char *)buffer, pos);
+        unsigned int crc = fast_crc32((char *)buffer, pos);
         crc = htonl(crc);
         memcpy(buffer + pos, &crc, 4);
         pos += 4;
@@ -920,7 +922,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(M2TSDemux, 1, 7)
                 if (err)
                     Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, PARAMETER(6), "parse_error", (INTEGER)VARIABLE_NUMBER, (char *)"", (NUMBER)err);
             }
-            if ((err) && (err != 4)) {
+            if ((err) && (err != 4) && (err != 2)) {
                 start = offset + buf_start + 1;
                 has_info = -err;
                 if (PARAMETERS_COUNT > 3) {
