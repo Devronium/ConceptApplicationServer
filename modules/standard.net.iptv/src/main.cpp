@@ -110,8 +110,8 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(M2TSTable, 4, 6)
         if (pcr_id < 0)
                 pcr_id = 0x1FFF;
 
-        buffer[8] |= pcr_id / 100;
-        buffer[9] = pcr_id % 100;
+        buffer[8] |= pcr_id / 0x100;
+        buffer[9] = pcr_id % 0x100;
         buffer[10] = 0xF0;
         buffer[11] = 0x00;
         
@@ -443,6 +443,100 @@ CONCEPT_FUNCTION_IMPL(M2TSChpid, 2)
     RETURN_NUMBER(blocks);
 END_IMPL
 //=====================================================================================//
+CONCEPT_FUNCTION_IMPL(M2TSPTS, 1)
+    T_STRING("M2TSPTS", 0)
+    int len = PARAM_LEN(0);
+    unsigned char *str = (unsigned char *)PARAM(0);
+    NUMBER pts = -1;
+    if (len >= 188) {
+        if (str[0] == 'G') {
+            unsigned short afc = (str[3] & 0x30) >> 4;
+            int start = 4;
+            if (afc & 0x01) {
+                if (afc == 0x03) {
+                    unsigned char size = str[start];
+                    start++;
+                    start += size;
+                    if (start >= len) {
+                        RETURN_NUMBER(0);
+                        return 0;
+                    }
+                }
+                if ((start + 12 < len) && (str[start] == 0x00) && (str[start + 1] == 0x00) && (str[start + 2] == 0x01)) {
+                    // 3 + 1 + 1 + 1 + 1
+                    // PES start code prefix
+                    start += 3;
+                    unsigned char stream_id = str[start];
+                    if ((stream_id >= 0xBD) && (stream_id <= 0xEF)) {
+                        start++;
+                        unsigned short pes_packet_length = ntohs((*(unsigned short *)&str[start]));
+                        start += 2;
+                        if (pes_packet_length > 8) {
+                            start++;
+                            unsigned char dts_flags = str[start] >> 6;
+                            if (dts_flags == 0x02) {
+                                start ++;
+                                unsigned char pes_header_length = str[start];
+                                start ++;
+                                if (pes_header_length >= 5) {
+                                    //unsigned char clock_1 
+                                    unsigned short pts_32_30 = (str[start] & 0x7) >> 1;
+                                    start ++;
+                                    unsigned char pts_29_15_hi = *(unsigned short *)&str[start];
+                                    start ++;
+                                    unsigned char pts_29_15_lo = *(unsigned short *)&str[start];
+                                    pts_29_15_lo >>= 1;
+                                    start ++;
+                                    unsigned short pts_14_0_hi = *(unsigned short *)&str[start];
+                                    start ++;
+                                    unsigned short pts_14_0_lo = *(unsigned short *)&str[start];
+                                    pts_14_0_lo >>= 1;
+                                    start ++;
+                                    if (stream_id == 0xC0) {
+                                        unsigned char pts_ref[5];
+                                        pts_ref[4]  = pts_14_0_lo; // 7 bit
+                                        pts_ref[4] |= pts_14_0_hi << 7; // 1 bit from hi
+
+                                        pts_ref[3]  = pts_14_0_hi >> 1; // 7 bit from hi
+                                        pts_ref[3] |= pts_29_15_lo << 7; // 1 bit from lo
+
+                                        pts_ref[2]  = pts_29_15_lo >> 2; // 6 bit from lo
+                                        pts_ref[2] |= pts_29_15_hi << 6; // 2 bit from hi
+                                        
+                                        pts_ref[1]  = pts_29_15_hi >> 2; // 6 bit from hi
+                                        pts_ref[1] |= (pts_32_30 & 0x06) << 6; // 2 bit
+                                        pts_ref[0]  = pts_32_30 >> 2; // 1 bit
+
+                                        unsigned int tstamp = ntohl(*(unsigned int *)&pts_ref[1]);
+                                        pts = pts_ref[0] * 0x1000000LL + tstamp;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    RETURN_NUMBER(pts);
+END_IMPL
+//=====================================================================================//
+CONCEPT_FUNCTION_IMPL(M2TSChcont, 2)
+    T_STRING("M2TSChpid", 0)
+    T_NUMBER("M2TSChpid", 1)
+    int len = PARAM_LEN(0);
+    INTEGER cont = PARAM_INT(1);
+    unsigned char *str = (unsigned char *)PARAM(0);
+    int blocks = 0;
+    if ((len >= 188) && (cont >= 0) && (cont <= 15)) {
+        if (str[0] == 'G') {
+            blocks = 1;
+            str[3] = (str[3] & 0xF0) | cont;
+        }
+    }
+    RETURN_NUMBER(blocks);
+END_IMPL
+//=====================================================================================//
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(M2TSPeek, 1, 4)
     T_STRING("M2TSPeek", 0)
     INTEGER offset = 0;
@@ -679,34 +773,38 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(M2TSDemux, 1, 7)
                                                 unsigned short service_id = ntohs((*(unsigned short *)&ref_str[start]));
                                                 Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, newpData2, "service_id", (INTEGER)VARIABLE_NUMBER, (char *)"", (NUMBER)service_id);
 
+
                                                 start += 2;
                                                 start++;
-                                                unsigned short loop_len = (ref_str[start] & 0x1F) * 0x100;
+                                                unsigned short loop_len = (ref_str[start] & 0x0F) * 0x100;
                                                 start++;
                                                 loop_len += ref_str[start];
                                                 start++;
                                                 int ref_loop_len = loop_len;
                                                 int ref_start = start;
                                                 while (ref_loop_len >= 6) {
-                                                    unsigned char es_len = ref_str[ref_start + 3];
-                                                    unsigned char es_len2 = 0;
-                                                    if (es_len > ref_loop_len - 5) {
-                                                        es_len = ref_loop_len - 5;
-                                                    } else {
-                                                        es_len2 = ref_str[ref_start + 4 + es_len ];
-                                                        if (es_len2 > ref_loop_len - es_len - 5)
-                                                            break;
+                                                    unsigned char descriptor_len = ref_str[ref_start + 1];
+                                                    if (ref_str[ref_start] == 0x48) {
+                                                        unsigned char es_len = ref_str[ref_start + 3];
+                                                        unsigned char es_len2 = 0;
+                                                        if (es_len > ref_loop_len - 5) {
+                                                            es_len = ref_loop_len - 5;
+                                                        } else {
+                                                            es_len2 = ref_str[ref_start + 4 + es_len ];
+                                                            if (es_len2 > ref_loop_len - es_len - 5)
+                                                                break;
+                                                        }
+                                                        switch (ref_str[ref_start]) {
+                                                            case 0x48:
+                                                                if (es_len > 0)
+                                                                    Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, newpData2, "network", (INTEGER)VARIABLE_STRING, (char *)&ref_str[ref_start + 4], (NUMBER)es_len);
+                                                                if (es_len2)
+                                                                    Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, newpData2, "service", (INTEGER)VARIABLE_STRING, (char *)&ref_str[ref_start + 5 + es_len], (NUMBER)es_len2);
+                                                                break;
+                                                        }
                                                     }
-
-                                                    switch (ref_str[ref_start]) {
-                                                        case 0x48:
-                                                            Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, newpData2, "network", (INTEGER)VARIABLE_STRING, (char *)&ref_str[ref_start + 4], (NUMBER)es_len);
-                                                            if (es_len2)
-                                                                Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, newpData2, "service", (INTEGER)VARIABLE_STRING, (char *)&ref_str[ref_start + 5 + es_len], (NUMBER)es_len2);
-                                                            break;
-                                                    }
-                                                    ref_loop_len -= es_len + es_len2 + 5;
-                                                    ref_start += es_len + es_len2 + 5;
+                                                    ref_loop_len -= descriptor_len + 2;
+                                                    ref_start += descriptor_len + 2;
                                                 }
                                                 start += loop_len;
 
