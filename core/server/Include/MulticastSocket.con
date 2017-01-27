@@ -68,10 +68,15 @@ class MulticastSocket {
 		return 0;
 	}
 
-	public function GetHasData() {
+	public function GetHasData(var timeout=0) {
 		if (Socket<=0)
 			throw "Invalid socket (GetHasData)";
-		var res=SocketHasData(Socket);
+		//if (_islisten)
+		//	throw "Invalid socket type (GetHasData)";
+		if (timeout<=0)
+			var res=SocketHasData(Socket);
+		else
+			res=SocketHasData(Socket, timeout);
 		if (res<0)
 			throw "Broken socket (GetHasData)";
 		return res;

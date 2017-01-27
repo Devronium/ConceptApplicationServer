@@ -45,7 +45,12 @@ class TinQueryParser {
 		if (IsSet(arr, ">=")) {
 			min = arr[">="];
 			min_mode = 2;
+		} else
+		if (IsSet(arr, "^")) {
+			min = arr["^"];
+			min_mode = 3;
 		}
+
 		if (IsSet(arr, "<")) {
 			max = arr["<"];
 			max_mode = 1;
@@ -72,6 +77,13 @@ class TinQueryParser {
 		}
 		if (min_mode == 2) {
 			if (key < min)
+				return false;
+		}
+		if (min_mode == 3) {
+			if ((typeof key != "string") || (typeof min != "string"))
+				return false;
+
+			if ((min) && (Pos(key, min) != 1))
 				return false;
 		}
 		if (max_mode == 1) {
@@ -125,6 +137,13 @@ class TinQueryParser {
 		}
 		if (min_mode == 2) {
 			if (key < min)
+				result |= QUERY_LESS;
+		}
+		if (min_mode == 3) {
+			if ((typeof key != "string") || (typeof min != "string"))
+				result |= QUERY_LESS;
+			else
+			if ((min) && (Pos(key, min) != 1))
 				result |= QUERY_LESS;
 		}
 		if (max_mode == 1) {
@@ -2747,6 +2766,7 @@ class BinFile extends File {
 					var arr = vals[key];
 					var typeof_arr = typeof arr;
 					//var v = o[key];
+
 					if (typeof_arr == "array") {
 						for (var i = 0; i < length arr; i++) {
 							if (arr[i] == v) {
@@ -2763,9 +2783,22 @@ class BinFile extends File {
 						} else
 							return false;
 					} else
-					if (v != vals[key])
-						return false;
-					else
+					if (v != arr) {
+						var not_found = true;
+						if (typeof v != typeof_arr) {
+							if (typeof v == "array") {
+								for (var k = 0; k < length v; k++) {
+									if (v[0] == arr) {
+										add_item = true;
+										not_found = false;
+										break;
+									}
+								}
+							}
+						}
+						if (not_found)
+							return false;
+					} else
 						add_item = true;
 				} else
 					return false;
