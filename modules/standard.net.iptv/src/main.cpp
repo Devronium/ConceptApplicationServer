@@ -560,12 +560,37 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(M2TSPeek, 1, 4)
     const unsigned char *str = (unsigned char *)PARAM(0) + offset;
     if (len >= 188) {
         if (str[0] == 'G') {
-            unsigned short pusi = str[1] & 0x40;
-            unsigned short pid_hi = str[1] & 0x1F;
-            unsigned short pid = pid_hi * 0x100 + str[2];
-            unsigned short afc = (str[3] & 0x30) >> 4;
+            int index = 0;
+            int buf_len = 0;
+            unsigned short prec_pid = 0;
+            unsigned short pusi  = 0;
+            unsigned short pid = 0;
+            const unsigned char *start = str;
+            do {
+                pusi = str[1] & 0x40;
+                unsigned short pid_hi = str[1] & 0x1F;
+                pid = pid_hi * 0x100 + str[2];
+                // unsigned short afc = (str[3] & 0x30) >> 4;
+
+                if ((buf_len) && (prec_pid != pid)) {
+                    pid = prec_pid;
+                    break;
+                }
+                if (pusi) {
+                    if (prec_pid > 0)
+                        pid = prec_pid;
+                    else
+                        buf_len = 188;
+                    break;
+                }
+
+                buf_len += 188;
+                str += 188;
+                len -= 188;
+                prec_pid = pid;
+            } while ((str[0] == 'G') && (len >= 188));
             if ((PARAMETERS_COUNT > 2)) {
-                SET_BUFFER(2, (const char *)str, 188);
+                SET_BUFFER(2, (const char *)start, buf_len);
                 if ((PARAMETERS_COUNT > 3) && (pusi)) {
                     SET_NUMBER(3, 1);
                 }
@@ -663,7 +688,6 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(M2TSDemux, 1, 7)
             }
             int has_info = 1;
             if (PARAMETERS_COUNT > 6) {
-                CREATE_ARRAY(PARAMETER(6));
                 if (pusi) {
                     pointer_field = str[start];
                     start++;
@@ -684,6 +708,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(M2TSDemux, 1, 7)
                         // table header (32bit)
                         table_id = str[start];
                         if ((table_id == 2) || (table_id == 0) || (table_id == 0x42)) {
+                            CREATE_ARRAY(PARAMETER(6));
                             unsigned short extension = 0;
                             Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, PARAMETER(6), "table_id", (INTEGER)VARIABLE_NUMBER, (char *)"", (NUMBER)table_id);
                             start ++;
@@ -737,7 +762,6 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(M2TSDemux, 1, 7)
                                         payload_len = remaining;
                                     }
                                 }
-
                                 int payload_start = start;
                                 int payload_offset = payload_len;
 
@@ -761,7 +785,6 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(M2TSDemux, 1, 7)
                                         if ((table_id == 0x42) || (table_id == 0x46)) {
                                             start += 3;
                                             int remaining_len = payload_len;
-
                                             void *newpData = 0;
                                             Invoke(INVOKE_ARRAY_VARIABLE_BY_KEY, PARAMETER(6), "channels", &newpData);
                                             CREATE_ARRAY(newpData);
@@ -819,7 +842,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(M2TSDemux, 1, 7)
                                         break;
                                     default:
                                         if ((pid >= 48) && (pid <= 8182) && (start + 5 < len) && (table_id == 2)) {
-                                            unsigned int remaining_len = payload_len;
+                                            int remaining_len = payload_len;
                                             // pmt, pmt-e, mgt or mgt-e
                                             unsigned short pcr_pid = (ref_str[start] & 0x1F) * 0x100;
                                             start++;
@@ -837,7 +860,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(M2TSDemux, 1, 7)
                                         
                                             remaining_len -= 4 + program_info_len;
                                             has_info = 2;
-                                            if (remaining_len >= 5) {
+                                            if ((remaining_len >= 5) && (start + remaining_len < len)) {
                                                 void *newpData = 0;
                                                 Invoke(INVOKE_ARRAY_VARIABLE_BY_KEY, PARAMETER(6), "descriptors", &newpData);
                                                 CREATE_ARRAY(newpData);
@@ -903,24 +926,25 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(M2TSDemux, 1, 7)
                                     free(ref_str);
                             } else
                                 err = 2;
+
+                            Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, PARAMETER(6), "cont", (INTEGER)VARIABLE_NUMBER, (char *)"", (NUMBER)cont_counter);
+                            Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, PARAMETER(6), "pid", (INTEGER)VARIABLE_NUMBER, (char *)"", (NUMBER)pid);
+                            Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, PARAMETER(6), "afc", (INTEGER)VARIABLE_NUMBER, (char *)"", (NUMBER)afc);
+                            Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, PARAMETER(6), "tsc", (INTEGER)VARIABLE_NUMBER, (char *)"", (NUMBER)tsc);
+                            Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, PARAMETER(6), "tei", (INTEGER)VARIABLE_NUMBER, (char *)"", (NUMBER)tei);
+                            Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, PARAMETER(6), "pusi", (INTEGER)VARIABLE_NUMBER, (char *)"", (NUMBER)pusi);
+                            if (pusi) {
+                                Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, PARAMETER(6), "pointer", (INTEGER)VARIABLE_NUMBER, (char *)"", (NUMBER)pointer_field);
+                                Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, PARAMETER(6), "padding", (INTEGER)VARIABLE_NUMBER, (char *)"", (NUMBER)pointer_padding);
+                            }
+                            Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, PARAMETER(6), "priority", (INTEGER)VARIABLE_NUMBER, (char *)"", (NUMBER)priority);
+                            if (pid == 8191)
+                                Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, PARAMETER(6), "null", (INTEGER)VARIABLE_NUMBER, (char *)"", (NUMBER)1);
+                            if (err)
+                                Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, PARAMETER(6), "parse_error", (INTEGER)VARIABLE_NUMBER, (char *)"", (NUMBER)err);
                         }
                     }
                 }
-                Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, PARAMETER(6), "cont", (INTEGER)VARIABLE_NUMBER, (char *)"", (NUMBER)cont_counter);
-                Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, PARAMETER(6), "pid", (INTEGER)VARIABLE_NUMBER, (char *)"", (NUMBER)pid);
-                Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, PARAMETER(6), "afc", (INTEGER)VARIABLE_NUMBER, (char *)"", (NUMBER)afc);
-                Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, PARAMETER(6), "tsc", (INTEGER)VARIABLE_NUMBER, (char *)"", (NUMBER)tsc);
-                Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, PARAMETER(6), "tei", (INTEGER)VARIABLE_NUMBER, (char *)"", (NUMBER)tei);
-                Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, PARAMETER(6), "pusi", (INTEGER)VARIABLE_NUMBER, (char *)"", (NUMBER)pusi);
-                if (pusi) {
-                    Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, PARAMETER(6), "pointer", (INTEGER)VARIABLE_NUMBER, (char *)"", (NUMBER)pointer_field);
-                    Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, PARAMETER(6), "padding", (INTEGER)VARIABLE_NUMBER, (char *)"", (NUMBER)pointer_padding);
-                }
-                Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, PARAMETER(6), "priority", (INTEGER)VARIABLE_NUMBER, (char *)"", (NUMBER)priority);
-                if (pid == 8191)
-                    Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, PARAMETER(6), "null", (INTEGER)VARIABLE_NUMBER, (char *)"", (NUMBER)1);
-                if (err)
-                    Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, PARAMETER(6), "parse_error", (INTEGER)VARIABLE_NUMBER, (char *)"", (NUMBER)err);
             }
             if ((err) && (err != 4) && (err != 2)) {
                 start = offset + buf_start + 1;
