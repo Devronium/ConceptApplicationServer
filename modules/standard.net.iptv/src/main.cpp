@@ -841,7 +841,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(M2TSDemux, 1, 7)
                                         //    Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, PARAMETER(6), "table_data", (INTEGER)VARIABLE_STRING, (char *)&ref_str[payload_start], (NUMBER)payload_len);
                                         break;
                                     default:
-                                        if ((pid >= 48) && (pid <= 8182) && (start + 5 < len) && (table_id == 2)) {
+                                        if ((pid >= 32) && (pid <= 8182) && (start + 5 < len) && (table_id == 2)) {
                                             int remaining_len = payload_len;
                                             // pmt, pmt-e, mgt or mgt-e
                                             unsigned short pcr_pid = (ref_str[start] & 0x1F) * 0x100;
