@@ -717,6 +717,7 @@ class BM25Index {
 				var len_coef = len;
 				if (len_coef < 30)
 					len_coef = 30;
+				var threshold = 0;
 				if (length words == 1) {
 					if (!statistics(["w" => all_words[0]], n, f, lens, start, len_coef, documents, true))
 						return null;
@@ -741,6 +742,7 @@ class BM25Index {
 						if (all_words2)
 							all_words = KeySorted(all_words2);
 					}
+					// first strategy, words at 1 distance
 					var graph = BM25::complete(all_words, BM25_QUERY_LEVEL, 0, true);
 					for (i = 0; i < length graph; i++) {
 						var g = graph[i];	
@@ -753,7 +755,29 @@ class BM25Index {
 							}
 						}
 					}
+					// second strategy (words at > 1 distance)
 					if (length documents < len) {
+						if (length documents)
+							threshold = length documents;
+						for (i = 0; i < length graph; i++) {
+							g = graph[i];	
+							if (g) {
+								for (j = 0; j < length g; j++) {
+									gk = g[j];
+									if (gk) {
+										for (var j1 = 0; j1 < BM25_QUERY_LEVEL; j1++) {
+											key_g = "" + j1;
+											docadd(documents, graphfile.Query([key_g => gk], ["d"], false, start, len_coef));
+										}
+									}
+								}
+							}
+						}
+					}
+					// any word
+					if (length documents < len) {
+						if (!threshold)
+							threshold = length documents;
 						for (i = 0; i < length all_words; i++)
 							statistics(["w" => all_words[i]], n, f, lens, start, len_coef, documents, true);
 					}
@@ -796,6 +820,8 @@ class BM25Index {
 									var idf = BM25::idf(N, d_n[qi]);
 									var f2 = d_f[qi];
 									sum += idf * (f2 * (k1 + 1)) / (f2 + k1 * (1 - b + b * d_len / avgdl));
+									if ((threshold) && (i < threshold))
+										sum += 100;
 								}
 							}
 						}

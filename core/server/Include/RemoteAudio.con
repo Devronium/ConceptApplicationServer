@@ -80,6 +80,10 @@ class RemoteAudio {
 		return audio;
 	}
 
+	Stock(string sound, number duration) {
+		this.Query(sound, ""+duration);
+	}
+
 	static function Go(string filename, number repeat=false, number send_file=true, string key="DefaultStaticPlayer") {
 		if (send_file) {
 			CApplication::SendCookie(filename, var out_file);
