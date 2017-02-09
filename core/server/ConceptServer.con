@@ -42,6 +42,7 @@ define IDLE_SLEEP_MS		10
 define IDLE_SLEEP_THRESHOLD	200
 define IDLE_SLEEP_MS2		50
 define CGI_MAX_RETRY_SECONDS	5
+define EAGAIN_TIMEOUT_SECONDS	5
 
 // 128k pipe read buffer
 define PIPE_MAX_STDOUT_BUFFER	0x20000
@@ -169,10 +170,16 @@ class ConceptChild {
 		var result = 0;
 
 		while (len > 0) {
-			var written = socket.Write(buffer);
+			try {
+				var written = socket.Write(buffer);
+			} catch (var exc) {
+				if (do_throw)
+					throw "Socket.Write: $exc";
+				return -1;
+			}
 			if (written <= 0) {
 				if (do_throw)
-					throw "TCPSocket.Write: broken socket";
+					throw "Socket.Write: broken socket";
 				return -1;
 			}
 			result += written;
@@ -181,6 +188,11 @@ class ConceptChild {
 				buffer = SubStr(buffer, written, len);
 		}
 		return result;
+	}
+
+	WriteExactNoBlocking(buffer) {
+		SocketSetBlocking(Socket.Socket, false);
+		return WriteExact(buffer);
 	}
 
 	DecryptKey(var private_key, size=16) {
@@ -1197,8 +1209,10 @@ class ConceptChild {
 									var method=ToUpper(line[0]);
 									app=URIDecode(line[1]);
 									CleanApp(app);
-									if ((method=="GET") || (method == "POST") || (method == "PUT"))
+									if ((method=="GET") || (method == "POST") || (method == "PUT")) {
 										ParseHeader(header, ws, ws_key, origin, host, session_to_restore, if_modified, keep_alive, parent, debug, in_content_length, protocol, extension);
+										Owner.Log(ip, "$method $app");
+									}
 								}
 							}
 							var content_offset = pos + 4;
@@ -1220,7 +1234,7 @@ class ConceptChild {
 							var orig_app = app;
 							if ((ws) && (ws_key)) {
 								if ((!TLS) && (force_tls)) {
-									WriteExact(Owner.RedirectHeader(orig_app, ServerName));
+									WriteExactNoBlocking(Owner.RedirectHeader(orig_app, ServerName));
 									keep_alive = false;
 									step=4;
 									done=true;
@@ -1251,7 +1265,8 @@ class ConceptChild {
 
 									if (sessChildError) {
 										var header_response="HTTP/1.1 403 Forbidden\r\nServer: " + SERVER_NAME + "\r\n\r\n";
-										WriteExact(header_response);
+										WriteExactNoBlocking(header_response);
+										keep_alive = false;
 										step=4;
 										done=true;
 									} else {
@@ -1271,9 +1286,10 @@ class ConceptChild {
 											step=4;
 											done=true;
 										} else
-										if (WriteExact(header_response) == length header_response) {
+										if (WriteExactNoBlocking(header_response) == length header_response) {
 											if ((sessChild) && (RestoreWS_Step2(sessChild))) {
 												step=4;
+												keep_alive = false;
 												done=true;
 											} else {
 												this.RunApplication(app, step, "", "", "", debug, true);
@@ -1446,6 +1462,7 @@ class ConceptChild {
 											data = "";
 											var skip_content = false;
 											var content_length = 0;
+											var eagain_time = 0;
 											if (is_redirect) {
 												var buffer = is_redirect;
 												data = "0";
@@ -1503,14 +1520,17 @@ class ConceptChild {
 													} catch (exc) {
 														// EAGAIN
 														err = SocketErrno();
-														if ((err != 11) && (err != 35) && (err != 10035))
+														if (((err != 11) && (err != 35) && (err != 10035)) || ((eagain_time) && (time() - eagain_time > EAGAIN_TIMEOUT_SECONDS)))
 															break;
+														if (!eagain_time)
+															eagain_time = time();
 														continue;
 													}
 													if (written <= 0)
 														break;
 
 													buf_len -= written;
+													eagain_time = 0;
 													if (buf_len > 0)
 														buffer = SubStr(buffer, written, buf_len);
 												}
@@ -1554,18 +1574,21 @@ class ConceptChild {
 													} catch (exc) {
 														// EAGAIN
 														err = SocketErrno();
-														if ((err != 11) && (err != 35) && (err != 10035)) {
+														if (((err != 11) && (err != 35) && (err != 10035)) || ((eagain_time) && (time() - eagain_time > EAGAIN_TIMEOUT_SECONDS))) {
 															if (file) {
 																file.Close();
 																file = null;
 															}
 															break;
 														}
+														if (!eagain_time)
+															eagain_time = time();
 														continue;
 													}
 													if (written <= 0)
 														break;
 													buf_len -= written;
+													eagain_time = 0;
 													if (buf_len > 0)
 														buffer = SubStr(buffer, written, buf_len);
 													else
@@ -1629,7 +1652,7 @@ class ConceptChild {
 					}
 					var delta_ms = microseconds() - max_idle;
 					if (delta_ms > 0) {
-						Owner.Log(ip, "Protocol negotiation timed out (${delta_ms/1000}ms)");
+						Owner.Log(ip, "Timed out (${delta_ms/1000}ms)");
 						break;
 					}
 					if (step==-1) {
@@ -1978,7 +2001,7 @@ class ConceptCGIChild {
 					std_in_buffer = SubStr(std_in_buffer, res);
 					last_pipe_err_time = 0;
 				}
-				if (res < 0) {
+				if (res <= 0) {
 					var pipe_err = _errno();
 					if ((pipe_err != 11) && (pipe_err != 35) && (pipe_err != 28) && (pipe_err != 22)) {
 						echo "CGI pipe write error: $pipe_err\n";
@@ -2008,9 +2031,10 @@ class ConceptCGIChild {
 						break;
 				}
 			} while (res > 0);
-			if (res < 0) {
+			// read returns 0 if pipe closed
+			if (res <= 0) {
 				pipe_err = _errno();
-				if ((pipe_err != 11) && (pipe_err != 35) && (pipe_err != 28) && (pipe_err != 22)) {
+				if ((pipe_err != 11) && (pipe_err != 35) && (pipe_err != 28) && (pipe_err != 22) && (res)) {
 					echo "CGI pipe read error: $pipe_err\n";
 					return true;
 				}
@@ -2854,6 +2878,7 @@ class ConceptServer extends RewriteContainer {
 	public var[] Connections;
 	public var PlaceHolders;
 	public var LogFile;
+	public var LogFileHandle;
 	public var ConceptClient=".ConceptClient.js";
 
 	public var mimetypes;
@@ -4092,11 +4117,18 @@ class ConceptServer extends RewriteContainer {
 			var t=StrReplace(StrReplace(ctime(time()), "\r", ""), "\n", "");
 			var str="$t $domain: $text\n";
 			if (this.LogFile) {
-				var f=new File("a");
-				f.Name=this.LogFile;
-				if (f.Open())
-					f.Write(str);
-				f.Close();
+				if (!LogFileHandle) {
+					var f=new File("a");
+					f.Name=this.LogFile;
+					if (f.Open())
+						LogFileHandle = f;
+					else
+						echo str + " (log I/O error)";
+					// f.Write(str);
+					// f.Close();
+				}
+				if (LogFileHandle)
+					LogFileHandle.Write(str);
 			} else
 				echo str;
 		} catch (var e) {
@@ -4159,7 +4191,7 @@ class ConceptServer extends RewriteContainer {
 					//if (socket.GetHasData(timeout)) {
 						this.Iterations++;
 						var s = socket.Accept();
-						if ((s) && (s.Socket>0))
+						if ((s) && (s.Socket > 0))
 							AcceptChild(loop, s);
 						else
 							this.Log("ConceptServer", "Invalid socket in accept");
