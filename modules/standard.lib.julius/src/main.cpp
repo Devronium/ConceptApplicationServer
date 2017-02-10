@@ -180,7 +180,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(SpeechLoop, 1, 2)
     int argc = 1;
     char **argv = (char **)malloc((count * 2 + 1) * sizeof(char *));
     argv[0] = "SpeechLoop";
-    bool has_mic = false;
+    bool has_mic = true;
     char *empty = (char *)"";
     void *on_result = 0;
     void *on_start = 0;
@@ -188,6 +188,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(SpeechLoop, 1, 2)
     void *on_ready = 0;
     void *on_recog_start = 0;
     void *on_recog_end = 0;
+    char *stream = NULL;
     if (count > 0) {
         for (INTEGER i = 0; i < count; i++) {
             char *key = 0;
@@ -222,16 +223,22 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(SpeechLoop, 1, 2)
                     if (type == VARIABLE_DELEGATE)
                         Invoke(INVOKE_ARRAY_VARIABLE_BY_KEY, PARAMETER(0), key, &on_recog_end); 
                 } else
+                if (strcmp(key, "InputName") == 0) {
+                    if (type == VARIABLE_STRING)
+                        stream = str;
+                } else                
+                if ((key) && (!strcmp(key, "j_adin_init"))) {
+                    if (type == VARIABLE_NUMBER)
+                        has_mic = (bool)(int)dummy;
+                } else
                     argv[argc++] = key;
             } else
                 Invoke(INVOKE_GET_ARRAY_ELEMENT, PARAMETER(0), i, &type, &str, &dummy);
             switch (type) {
                 case VARIABLE_STRING:
-                    if ((str) && (str[0])) {
+                    if ((str) && (str[0]))
                         argv[argc++] = str;
-                        if ((key) && (!strcmp(key, "-input")) && (!strcmp(str, "mic")))
-                            has_mic = true;
-                    } else
+                    else
                         argv[argc++] = empty;
                     break;
             }
@@ -266,9 +273,10 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(SpeechLoop, 1, 2)
         if (PARAMETERS_COUNT > 1) {
             SET_STRING(1, "j_adin_init");
         }
-        j_jconf_free(jconf);
-        free(argv);
+        // called by j_recog_free
+        // j_jconf_free(jconf);
         j_recog_free(recog);
+        free(argv);
         return 0;
     }
 
@@ -297,7 +305,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(SpeechLoop, 1, 2)
         callback_add(recog, CALLBACK_RESULT, output_result, on_result);
 
     bool stream_ok = false;
-    switch (j_open_stream(recog, NULL)) {
+    switch (j_open_stream(recog, stream)) {
         case 0:
             stream_ok = true;
             break;
@@ -318,8 +326,9 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(SpeechLoop, 1, 2)
     int ret = -1;
     if (stream_ok)
         ret = j_recognize_stream(recog);
-    if (jconf)
-        j_jconf_free(jconf);
+    // called by j_recog_free
+    // if (jconf)
+    //     j_jconf_free(jconf);
     if (stream_ok)
         j_close_stream(recog);
     j_recog_free(recog);
