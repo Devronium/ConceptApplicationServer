@@ -190,9 +190,12 @@ class ConceptChild {
 		return result;
 	}
 
-	WriteExactNoBlocking(buffer) {
+	WriteExactNoBlocking(buffer, reblock = false) {
 		SocketSetBlocking(Socket.Socket, false);
-		return WriteExact(buffer);
+		var written = WriteExact(buffer);
+		if (reblock)
+			SocketSetBlocking(Socket.Socket, true);
+		return written;
 	}
 
 	DecryptKey(var private_key, size=16) {
@@ -1286,7 +1289,7 @@ class ConceptChild {
 											step=4;
 											done=true;
 										} else
-										if (WriteExactNoBlocking(header_response) == length header_response) {
+										if (WriteExactNoBlocking(header_response, true) == length header_response) {
 											if ((sessChild) && (RestoreWS_Step2(sessChild))) {
 												step=4;
 												keep_alive = false;
