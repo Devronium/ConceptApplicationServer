@@ -1,4 +1,5 @@
 include BinFile.con
+include TinDBOid.con
 
 class TinBase {
 	protected var DB = "";

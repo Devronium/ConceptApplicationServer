@@ -564,7 +564,7 @@ class BM25Index {
 		if (fields) {
 			for (var i = 0; i < length fields; i++) {
 				var f = fields[i];
-				if ((f) && (f != '$') && (IsSet(o, f))) {
+				if ((f) && (f != '$') && (f != '$oid') && (IsSet(o, f))) {
 					var k = o[f];
 					if (k) {
 						if (typeof k == "array")
@@ -579,7 +579,7 @@ class BM25Index {
 			var keys = GetKeys(o);
 			for (i = 0; i < length keys; i++) {
 				k = keys[i];	
-				if ((k) && (k != '$')) {
+				if ((k) && (k != '$') && (k != '$oid')) {
 					var k2 = o[k];
 					if (k2) {
 						if (typeof k2 == "array")
@@ -1771,12 +1771,12 @@ class BinFile extends File {
 		var data;
 		var c;
 		if (typeof obj == "array") {
-			if (IsSet(obj, '$')) {
+			if (IsSet(obj, '$'))  {
 				var keys = GetKeys(obj);
 				c = new [];
 				for (var i = 0; i < length keys; i++) {
 					var k = keys[i];
-					if ((k) && (k != '$'))
+					if ((k) && (k != '$') && (k != '$oid'))
 						c[k] = obj[k];
 				}
 				if (id < 0)

@@ -191,7 +191,6 @@ pragma used
 		var priority = 0;
 		if (obj.x)
 			priority = obj.x["priority"];
-
 		switch (obj.o) {
 			case "H":
 				if (!ctx.code) {
@@ -517,6 +516,8 @@ pragma used
 	var non_flushed_writes = 0;
 	var last_flush = 0;
 	var[] other_workers;
+	var counter;
+	var workerid;
 
 	GetDelegate(dbobject, db, name, var objects, var members, r = null) {
 		var arr = StrSplit(name, ".");
@@ -730,6 +731,8 @@ pragma used
 												r.et = ERR_NOT_UNIQUE_S;
 												break;
 											}
+											if (IsSet(o, '$oid'))
+												o['$oid'] = this.oid();
 											try {
 												var id2 = t.Store(obj.p[i]);
 											} catch (var store_exc) {
@@ -781,6 +784,8 @@ pragma used
 											}
 										}
 									} else {
+										if ((typeof obj.p == "array") && (IsSet(obj.p , '$oid')))
+											obj.p['$oid'] = this.oid();
 										id = t.Store(obj.p);
 										non_flushed_writes++;
 										if ((trigger) && (trigger.OnInsert)) {
@@ -1070,16 +1075,28 @@ pragma used
 		}
 	}
 
+	oid() {
+		if (counter >= 0xFFFF)
+			counter = 0;
+		return TinDBOid::create(1, workerid, counter++);
+	}
+
 	StorageWorker(n) {
 		while (!Worker::Pending(var storage_data))
 			Sleep(5);
 		var all_workers = UnBinarizeObject(storage_data);
 		var current_worker = CurrentWorker();
+		counter = RandomInteger(0, 0xFFF0);
+
 		if (all_workers) {
 			for (var j = 0; j < length all_workers; j++) {
 				var worker = all_workers[j];
 				if ((worker) && (worker != current_worker))
 					other_workers[length other_workers] = worker;
+				else
+				if (worker)
+					workerid = j;
+
 			}
 		}
 

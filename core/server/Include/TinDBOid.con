@@ -1,0 +1,51 @@
+import standard.lang.serialize
+import standard.lib.str
+import standard.C.time
+
+class TinDBOid {
+	static create(serverid, workerid, counter) {
+		return pack("U32U16U8U16", time(), serverid, workerid, counter);
+	}
+
+	static hex(oid) {
+		return StringToHex(oid);
+	}
+
+	static oid(oid) {
+		return HexToString(oid);
+	}
+
+	static oidtostr(o) {
+		if ((typeof o == "array") && (IsSet(o, '$oid'))) {
+			var oid = o['$oid'];
+			if ((oid) && (typeof oid == "string"))
+				o['$oid'] = TinDBOid::hex(oid);
+		}
+		return o;
+	}
+
+	static strtooid(o) {
+		if ((typeof o == "array") && (IsSet(o, '$oid'))) {
+			var oid = o['$oid'];
+			if ((oid) && (typeof oid == "string"))
+				o['$oid'] = TinDBOid::oid(oid);
+		}
+		return o;
+	}
+
+	static oidtostr2(arr) {
+		if (typeof arr == "array") {
+			for (var i = 0; i < length arr; i++)
+				TinDBOid::oidtostr(arr[i]);
+		}
+		return arr;
+	}
+
+	static strtooid2(arr) {
+		if (typeof arr == "array") {
+			for (var i = 0; i < length arr; i++)
+				TinDBOid::strtooid2(arr[i]);
+		}
+		return arr;
+	}
+}

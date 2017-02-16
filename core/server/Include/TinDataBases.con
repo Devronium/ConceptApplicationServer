@@ -1,6 +1,7 @@
 include TCPSocket.con
 include Binarizable.con
 include Promise.con
+include TinDBOid.con
 
 import standard.lib.thread
 import standard.C.math
@@ -139,6 +140,12 @@ class TinConnection {
 		return q;
 	}
 
+	Prepare(o, single_object = true) {
+		if (single_object)
+			return TinDBOid::oidtostr(o);
+		return TinDBOid::oidtostr2(o);
+	}
+
 	Iterate(cli = false) {
 		if (!this.socket)
 			return cli;
@@ -160,11 +167,13 @@ class TinConnection {
 				if (obj) {
 					if (IsSet(ActiveQueries, obj.q)) {
 						var callback;
+						var single_object = false;
 						if (obj.e == NOTIFY_MORE_DATA) {
 							callback = this._QueryById(obj.q);
 							obj.e = 0;
+							single_object = true;
 						} else {
-							 callback = this._RemoveQuery(obj.q);
+							callback = this._RemoveQuery(obj.q);
 						}
 						if (callback) {
 							var err;
@@ -172,9 +181,9 @@ class TinConnection {
 								err = [obj.e, obj.et];
 							if (typeof callback == "array") {
 								var deleg = callback[0];
-								deleg(obj.p, obj.id, err, callback[1]);
+								deleg(Prepare(obj.p, single_object), obj.id, err, callback[1]);
 							} else
-								callback(obj.p, obj.id, err);
+								callback(Prepare(obj.p, single_object), obj.id, err);
 						}
 					} else
 					if ((obj.q == "!") && (OnNotify))
@@ -247,17 +256,23 @@ class TinDataSet {
 		this.Collection = Collection;
 	}
 
-	Store(obj, multiple = false, callback = null, unique = null, priority = 0) {
+	protected Prepare(obj) {
 		if (typeof obj != "array")
 			obj = ToArray(obj);
-		else
+		if (obj)
+			return TinDBOid::strtooid(obj);
+		return obj;
+	}
+
+	Store(obj, multiple = false, callback = null, unique = null, priority = 0) {
 		if (multiple) {
 			for (var i = 0; i < length obj; i++) {
 				var o = obj[i];
-				if ((o) && (typeof o != "array"))
-					obj[i] = ToArray(o);
+				if (o)
+					obj[i] = Prepare(o);
 			}
-		}
+		} else
+			obj = Prepare(obj);
 		var q = new Q(obj, Connection.Database, this.Collection, "I");
 		if (!callback)
 			q.x["silent"] = true;
@@ -271,8 +286,7 @@ class TinDataSet {
 	}
 
 	Delete(obj, callback = null, priority = 0) {
-		if (typeof obj != "array")
-			obj = ToArray(obj);
+		obj = Prepare(obj);
 
 		var q = new Q(obj, Connection.Database, this.Collection, "D");
 		if (!callback)
@@ -285,10 +299,11 @@ class TinDataSet {
 	Query(params, delegate callback, fields = null, len = 0, start = 0, descending = false, priority = 0, map = false) {
 		if (typeof params != "array") {
 			if (typeof params == "object")
-				params = ToArray(params);
+				params = Prepare(params);
 			else
 				params = ['$' => params];
-		}
+		} else
+			params = Prepare(params);
 
 		var q = new Q(params, Connection.Database, this.Collection, "Q");
 		if (start)
@@ -315,10 +330,11 @@ class TinDataSet {
 	q(params, fields = null, len = 0, start = 0, descending = false, priority = 0) {
 		if (typeof params != "array") {
 			if (typeof params == "object")
-				params = ToArray(params);
+				params = Prepare(params);
 			else
 				params = ['$' => params];
-		}
+		} else
+			params = Prepare(params);
 
 		var q = new Q(params, Connection.Database, this.Collection, "Q");
 		if (start)

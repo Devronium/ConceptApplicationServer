@@ -237,3 +237,4 @@ accel Charset.con
 accel Loop.con
 accel Promise.con
 accel NetGSM.con
+accel TinDBOid.con
