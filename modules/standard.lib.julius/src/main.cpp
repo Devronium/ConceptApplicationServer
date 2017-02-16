@@ -123,7 +123,7 @@ static void output_result(Recog *recog, void *delegate) {
 
 
             void *var4 = 0;
-            Invoke(INVOKE_ARRAY_VARIABLE_BY_KEY, var3, (INTEGER)"s", &var4);
+            Invoke(INVOKE_ARRAY_VARIABLE_BY_KEY, var3, "s", &var4);
             CREATE_ARRAY(var4);
 
             /* output word sequence like Julius */
@@ -131,7 +131,7 @@ static void output_result(Recog *recog, void *delegate) {
                 Invoke(INVOKE_SET_ARRAY_ELEMENT, var4, (INTEGER)i, (INTEGER)VARIABLE_STRING, winfo->woutput[seq[i]], (NUMBER)0);
 
             var4 = 0;
-            Invoke(INVOKE_ARRAY_VARIABLE_BY_KEY, var3, (INTEGER)"wsek", &var4);
+            Invoke(INVOKE_ARRAY_VARIABLE_BY_KEY, var3, "wsek", &var4);
             CREATE_ARRAY(var4);
 
             for (i = 0; i < seqnum; i++)
@@ -143,7 +143,7 @@ static void output_result(Recog *recog, void *delegate) {
                 Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, var3, "phoneme", (INTEGER)VARIABLE_STRING, phoneme.c_str(), (NUMBER)phoneme.Length());
 
             var4 = 0;
-            Invoke(INVOKE_ARRAY_VARIABLE_BY_KEY, var3, (INTEGER)"score", &var4);
+            Invoke(INVOKE_ARRAY_VARIABLE_BY_KEY, var3, "score", &var4);
             CREATE_ARRAY(var4);
 
             /* confidence scores */
