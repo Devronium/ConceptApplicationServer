@@ -734,7 +734,7 @@ pragma used
 												r.et = ERR_NOT_UNIQUE_S;
 												break;
 											}
-											if (IsSet(o, '$oid'))
+											if ((IsSet(o, '$oid')) && (!o['$oid']))
 												o['$oid'] = this.oid();
 											try {
 												var id2 = t.Store(obj.p[i]);
@@ -787,7 +787,7 @@ pragma used
 											}
 										}
 									} else {
-										if ((typeof obj.p == "array") && (IsSet(obj.p , '$oid')))
+										if ((typeof obj.p == "array") && (IsSet(obj.p , '$oid')) && (obj.p['$oid']))
 											obj.p['$oid'] = this.oid();
 										id = t.Store(obj.p);
 										non_flushed_writes++;
