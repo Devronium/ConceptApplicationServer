@@ -189,8 +189,11 @@ pragma used
 
 	Dispatch(ctx, sock, t, var next_worker, var next_a_worker, var next_idle_worker, storage_dbs, storage_workers, aggregation_workers, idle_workers, obj, current_worker, var buf) {
 		var priority = 0;
-		if (obj.x)
-			priority = obj.x["priority"];
+		if (obj.x) {
+			var p2 = obj.x["priority"];
+			if ((p2) && (typeof p2 == "numeric"))
+				priority = p2;
+		}
 		switch (obj.o) {
 			case "H":
 				if (!ctx.code) {

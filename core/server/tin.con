@@ -286,12 +286,30 @@ class Main {
 		}
 		switch (s) {
 			case "query":
-			case "aggregate":
 				if (!parameters)
 					parameters = new [];
 				var dataset = new TinDataSet(connection, collection);
 				dataset.UserData = [orig_query, microseconds()];
 				dataset.Query(parameters, querycallback);
+				queries++;
+				echo "Query sent, waiting response (${queries} in queue, including this one)...\n";
+				break;
+			case "count":
+				if (!parameters)
+					parameters = new [];
+				dataset = new TinDataSet(connection, collection);
+				dataset.UserData = [orig_query, microseconds()];
+				dataset.Query(["#" => parameters], querycallback);
+				queries++;
+				echo "Query sent, waiting response (${queries} in queue, including this one)...\n";
+				break;
+			case "aggregate":
+			case "join":
+				if (!parameters)
+					parameters = new [];
+				dataset = new TinDataSet(connection, collection);
+				dataset.UserData = [orig_query, microseconds()];
+				dataset.Join(parameters, querycallback);
 				queries++;
 				echo "Query sent, waiting response (${queries} in queue, including this one)...\n";
 				break;
@@ -392,6 +410,8 @@ class Main {
 				echo "    collection.query(criteria_object);\n";
 				echo "        Search object, matching criteria\n";
 				echo "        eg: student.query({\"Name\": \"Jane\"});\n";
+				echo "    collection.count(criteria_object);\n";
+				echo "        Count objects in collection matching criteria\n";
 				echo "    collection.delete(criteria_object);\n";
 				echo "        delete an object from collection, matching criteria\n";
 				echo "        eg: student.delete({\"Name\": \"Jane\"});\n";
