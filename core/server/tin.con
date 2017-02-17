@@ -52,6 +52,7 @@ class Main {
 	var io;
 	var queries;
 	var output;
+	var reconnecting = false;
 
 	GetParameters(arg, var db) {
 		var[] parameters;
@@ -440,8 +441,11 @@ class Main {
 		echo "Connecting ...\n";
 		if (!connection) {
 			echo "Error connecting to database $host:$port/$db\n";
+			if (reconnecting)
+				return 0;
 			return -1;
 		}
+		reconnecting = true;
 		echo "Authorizing ...\n";
 
 		var dataset = new TinDataSet(connection, "users");

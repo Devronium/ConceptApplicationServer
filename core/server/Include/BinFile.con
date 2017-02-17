@@ -7,6 +7,7 @@ import standard.C.casts
 import standard.C.time
 import standard.net.socket
 import standard.lib.str
+import standard.lib.regex
 
 define HEADER_SIZE		64
 define DEFAULT_MODULO_SIZE	64
@@ -18,6 +19,8 @@ define BM25_MODULO_SIZE		48
 define BM25_GRAPH_MODULO_SIZE	72
 define BM25_MAX_WORDCACHE	5000
 
+// define REGEX_MATCH		preg_match
+define REGEX_MATCH		regex_match
 define MAX_CACHE_OBJECTS	1000
 
 // ASCII char record separator
@@ -49,6 +52,10 @@ class TinQueryParser {
 		if (IsSet(arr, "^")) {
 			min = arr["^"];
 			min_mode = 3;
+		} else
+		if (IsSet(arr, "*")) {
+			min = arr["*"];
+			min_mode = 4;
 		}
 
 		if (IsSet(arr, "<")) {
@@ -79,10 +86,14 @@ class TinQueryParser {
 			if (key < min)
 				return false;
 		}
-		if (min_mode == 3) {
+		if (min_mode >= 3) {
 			if ((typeof key != "string") || (typeof min != "string"))
 				return false;
 
+			if (min_mode == 4) {
+				if ((min) && (REGEX_MATCH(key, min) <= 0))
+					return false;
+			} else
 			if ((min) && (Pos(key, min) != 1))
 				return false;
 		}
@@ -139,13 +150,18 @@ class TinQueryParser {
 			if (key < min)
 				result |= QUERY_LESS;
 		}
-		if (min_mode == 3) {
+		if (min_mode >= 3) {
 			if ((typeof key != "string") || (typeof min != "string"))
 				result |= QUERY_LESS;
 			else
+			if (min_mode == 4) {
+				if ((min) && (REGEX_MATCH(key, min) <= 0))
+					result |= QUERY_LESS | QUERY_GREAT;
+			} else
 			if ((min) && (Pos(key, min) != 1))
 				result |= QUERY_LESS;
 		}
+
 		if (max_mode == 1) {
 			if (key >= max)
 				result |= QUERY_GREAT;
