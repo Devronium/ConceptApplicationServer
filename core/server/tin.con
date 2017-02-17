@@ -1,0 +1,469 @@
+#!/usr/local/bin/concept
+
+import standard.C.io
+import standard.lang.cli
+import standard.lib.preg
+import standard.lib.json
+include Worker.con
+include TinDataBases.con
+
+class Container {
+	var Data;
+
+	Container(data) {
+		this.Data = data;
+	}
+}
+
+class IOWorker extends Worker{
+	IOWorker(dummy) {
+		var s = "";
+		var sent = false;
+		while (true) {
+			if (s) {
+				s += "\n";
+			} else {
+				if (sent) {
+					while (!this.Pending(dummy))
+						Sleep(20);
+					sent = false;
+				}
+				echo "> ";
+			}
+
+			s += trim(gets());
+			if ((s) && (s[length s - 1] == ";")) {
+				AddWorkerResultData(s);
+				s = "";
+				sent = true;
+			}
+		}
+	}
+}
+
+class Main {
+	var connected = true;
+	var db;
+	var user;
+	var password;
+	var host;
+	var port;
+	var connection;
+	var io;
+	var queries;
+	var output;
+
+	GetParameters(arg, var db) {
+		var[] parameters;
+		for (var i = 0; i < length arg; i++) {
+			var key = arg[i];
+			if (key) {
+				if (key[0] == "-") {
+					while ((key) && (key[0] == "-"))
+						key++;
+					if (key) {
+						var val = arg[++i];
+						parameters[key] = val;
+					}
+				} else
+					db = key;
+			}
+		}
+		return parameters;
+	}
+
+	Connect(host, port, db) {
+		connection = new TinConnection();
+		if (connection.DriverOpen(db, host, port))
+			return connection;
+
+		return null;
+	}
+
+	callback(r, id, err) {
+		queries--;
+		if (err) {
+			connected = false;
+			echo "${err[1]}\n";
+			return false;
+		}
+		echo "OK\n";
+		if (!io)
+			io = new Worker("IOWorker");
+	}
+
+	SafeCSV(k, separator) {
+		if (Pos(k, separator) > 0) {
+			k = StrReplace(k, "\\", "\\\\");
+			k = StrReplace(k, '"', "\\\"");
+			k = "\"" + k + "\"";
+		}
+		return k;
+	}
+
+	WriteCSV(data, output, separator = ",", line_ending = "\n") {
+		if (data) {
+			var[] all_keys;
+			for (var i = 0; i < length data; i++) {
+				var obj = data[i];
+				if (obj) {
+					var keys = GetKeys(obj);
+					for (var j = 0; j < length keys; j++) {
+						var k = keys[j];
+						if (typeof k == "string")
+							all_keys[k] = k;
+					}
+				}
+			}
+			var csv = "";
+			for (i = 0; i < length all_keys; i++) {
+				k = SafeCSV(all_keys[i], separator);
+				if (csv)
+					csv += separator;
+				csv +=  k;
+			}
+			if (!csv) {
+				echo "Dataset contains no keys\n";
+				return;
+			}
+			csv += line_ending;
+			for (i = 0; i < length data; i++) {
+				obj = data[i];
+				if (obj) {
+					var line = "";
+					for (j = 0; j < length all_keys; j++) {
+						k = all_keys[j];
+						if (line)
+							line += separator;
+						if (IsSet(obj, k)) {
+							var v = obj[k];
+							switch (typeof v) {
+								case "string":
+								case "numeric":
+									line += SafeCSV("" + v, separator);
+									break;
+								default:
+									line += "/" + typeof v + "/";
+							}
+						}
+					}
+					if (line)
+						csv += line + line_ending;
+				}
+			}
+			WriteFile(csv, output);
+		} else
+			echo "Dataset is empty\n";
+	}
+
+	querycallback(r, id, err, userdata) {
+		queries--;
+		var query = userdata[0];
+		var time = (microseconds() - userdata[1])/1000;
+
+		if (time > 60000) {
+			time /= 1000;
+			time = "${time} seconds";
+		} else
+			time = "${time}ms";
+
+		if (err) {
+			echo "$query ($time):\n";
+			echo "${err[1]}\n";
+		} else {
+			if (output) {
+				echo "$query ($time) to file $output\n";
+				var ext = ToLower(Ext(output));
+				switch (ext) {
+					case "bin":
+						WriteFile(BinarizeObject(r), output);
+						break;
+					case "xml":
+						WriteFile(ToXML(new Container(r), true), output);
+						break;
+					case "csv":
+						WriteCSV(r, output);
+						break;
+					default:
+						WriteFile(JSONSerialize(r, true), output);
+				}
+			} else {
+				echo "$query ($time):\n";
+				echo r;
+				echo "\n";
+			}
+		}
+	}
+
+	storecallback(r, id, err, userdata) {
+		queries--;
+		var query = userdata[0];
+		var time = (microseconds() - userdata[1])/1000;
+
+		if (time > 60000) {
+			time /= 1000;
+			time = "${time} seconds";
+		} else
+			time = "${time}ms";
+
+		if (err) {
+			echo "$query ($time):\n";
+			echo "${err[1]}\n";
+		} else {
+			echo "$query ($time):\n";
+			echo id;
+			echo "\n";
+		}
+	}
+
+	requestcallback(r, id, err, userdata) {
+		queries--;
+		var query = userdata[0];
+		var time = (microseconds() - userdata[1])/1000;
+
+		if (time > 60000) {
+			time /= 1000;
+			time = "${time} seconds";
+		} else
+			time = "${time}ms";
+
+		if (err) {
+			echo "$query ($time):\n";
+			echo "${err[1]}\n";
+		} else {
+			echo "$query ($time): OK\n";
+		}
+	}
+
+	Command(s) {
+		if (!s)
+			return;
+		while ((s) && (s[length s - 1] == ";"))
+			s = trim(SubStr(s, 0, length s - 1));
+
+		if (!s)
+			return;
+
+		var orig_query = s;
+		var query_arr = preg(s, '^([A-Za-z0-9\_]+)\\.([A-Za-z0-9\_]+)\\((.*)\\)$');
+		var collection = "";
+		var parameters = "";
+
+		if (length query_arr > 2) {
+			s = ToLower("" + query_arr[2]);
+			collection = query_arr[1];
+			if (length query_arr > 3) {
+				parameters = trim("" + query_arr[3]);
+				if (parameters) {
+					if (((parameters[0] == "{") || (parameters[0] == "[")) && (s != "search")) {
+						var orig_params = parameters;
+						parameters = JSONDeserialize(parameters);
+						if (typeof parameters != "array")
+							echo "Error parsing JSON: '$orig_params'\n\n";
+					} else
+					if ((parameters[0] != "'") && (parameters[0] != "\""))
+						parameters = value parameters;
+					else
+					if (parameters[0] == parameters[length parameters - 1])
+						parameters = SubStr(parameters, 1, length parameters - 2);
+				}
+			}
+		} else
+		if (length s >= 6) {
+			if (s == "output") {
+				output = null;
+				echo "Output results to stdout\n";
+				return;
+			} else
+			if ((SubStr(s, 0, 6) == "output") && ((s[6] == " ") || (s[6] == "\t"))) {
+				output = trim(SubStr(s, 7));
+				if (output)
+					echo "Output results to '$output'\n";
+				else
+					echo "Output results to stdout\n";
+				return;
+			}
+		}
+		switch (s) {
+			case "query":
+			case "aggregate":
+				if (!parameters)
+					parameters = new [];
+				var dataset = new TinDataSet(connection, collection);
+				dataset.UserData = [orig_query, microseconds()];
+				dataset.Query(parameters, querycallback);
+				queries++;
+				echo "Query sent, waiting response (${queries} in queue, including this one)...\n";
+				break;
+			case "search":
+				parameters = "" + parameters;
+				dataset = new TinDataSet(connection, collection);
+				dataset.UserData = [orig_query, microseconds()];
+				dataset.Search(parameters, querycallback);
+				queries++;
+				echo "Search '$parameters' sent, waiting response (${queries} in queue, including this one)...\n";
+				break;
+			case "store":
+				if (typeof parameters != "array")
+					parameters = ["_" => parameters];
+				if (!parameters)
+					parameters = new [];
+				dataset = new TinDataSet(connection, collection);
+				dataset.UserData = [orig_query, microseconds()];
+				var keys = GetKeys(parameters);
+				dataset.Store(parameters, ((!keys) || (!keys[0])), storecallback);
+				queries++;
+				echo "Object sent, waiting response (${queries} in queue, including this one)...\n";
+				break;
+			case "drop":
+				dataset = new TinDataSet(connection, collection);				
+				dataset.UserData = [orig_query, microseconds()];
+				dataset.Drop(requestcallback);
+				queries++;
+				echo "Request sent, waiting response (${queries} in queue, including this one)...\n";
+				break;
+			case "info":
+				if (queries) {
+					if (queries == 1)
+						echo "1 query queued\n";
+					else
+						echo "${queries} queries queued\n";
+				} else
+					echo "No queries queued\n";
+				break;
+			case "index":
+			case "ensureindex":
+			case "ensureindexes":
+				if (!parameters) {
+					echo "No index specified\n";
+					return;
+				}
+				if (typeof parameters != "array")
+					parameters = [parameters];
+				dataset = new TinDataSet(connection, collection);
+				dataset.EnsureIndexes(parameters);
+				echo "OK\n";
+				break;
+			case "fulltext":
+				var lang = "en";
+				var fields = null;
+				if (parameters) {
+					if (typeof parameters == "string") {
+						lang = parameters;
+					} else
+					if (typeof parameters == "array") {
+						keys = GetKeys(parameters);
+						if ((keys) && (keys[0])) {
+							fields = parameters["fields"];
+							lang = parameters["language"] ?? "en";
+						} else
+							fields = parameters;
+					}
+				}
+				dataset = new TinDataSet(connection, collection);
+				dataset.EnsureFullText(parameters, fields, lang);
+				echo "Full text index reuqest sent, for \"$lang\" language\n";
+				if (fields) {
+					echo "Index will use fields:\n";
+					echo fields;
+					echo "\n";
+				}
+				break;
+			case "delete":
+				if (!parameters)
+					parameters = new [];
+				dataset = new TinDataSet(connection, collection);
+				dataset.UserData = [orig_query, microseconds()];
+				dataset.Delete(parameters, querycallback);
+				queries++;
+				echo "Delete request sent, waiting response (${queries} in queue, including this one)...\n";
+				break;
+			case "quit":
+			case "exit":
+				if (connection) {
+					connection.Disconnect();
+					connection = null;
+				}
+				connected = false;
+				break;
+			case "help":
+				echo "Local commands: info, quit, exit, output [outputfilename]\n";
+				echo "TinDB commands:\n";
+				echo "    collection.query(criteria_object);\n";
+				echo "        Search object, matching criteria\n";
+				echo "        eg: student.query({\"Name\": \"Jane\"});\n";
+				echo "    collection.delete(criteria_object);\n";
+				echo "        delete an object from collection, matching criteria\n";
+				echo "        eg: student.delete({\"Name\": \"Jane\"});\n";
+				echo "    collection.store(object);\n";
+				echo "        store an arbitray object, eg:. student.store({\"Name\": \"George\"})\n";
+				echo "        may also use arrays, eg:. student.store([{\"Name\": \"George\"}, {\"Name\": \"Jane\"}])\n";
+				echo "    collection.search(searchstring);\n";
+				echo "        perform bm25 search\n";
+				echo "    collection.drop();\n";
+				echo "        drop collection\n";
+				echo "    collection.index(index);\n";
+				echo "        create btree index\n";
+				echo "    collection.fulltext(string language | array fields | {\"language\": \"en\", \"fileds\": array);\n";
+				echo "        create full text index\n";
+				echo "All commands MUST end with ';'\n";
+				break;
+			default:
+				if (length s > 20)
+					s = SubStr(s, 0, 20) + "...";
+				echo "Command '$s' not understood\n";
+		}
+	}
+
+	Loop() {
+		var connection = Connect(host, port, db);
+		echo "Connecting ...\n";
+		if (!connection) {
+			echo "Error connecting to database $host:$port/$db\n";
+			return -1;
+		}
+		echo "Authorizing ...\n";
+
+		var dataset = new TinDataSet(connection, "users");
+		queries++;
+		dataset.Auth(user, password, db, callback);
+		while (connected) {
+			if (!connection.Iterate(true)) {
+				echo "Disconnected\n";
+				return 0;
+			}
+			if (io) {
+				if (io.GetResult(var s) > 0) {
+					if (s) {
+						Command(s);
+						io.AddData("ok");
+						continue;
+					}
+				}
+			}
+			if (queries <= 0)
+				Sleep(20);
+		}
+		return true;
+	}
+
+	Main() {
+		echo "TinDB client console application v0.1\n";
+		echo "Developed by Eduard Suica, releasend into public domain\n";
+		echo "Type help; for help\n\n";
+		db = "appdb";
+		var parameters = GetParameters(CLArg(), db);
+		user = parameters["u"] ?? "sysdbadministrator";
+		password = parameters["p"] ?? "sysdbadministrator";
+		host = parameters["h"] ?? "localhost";
+		port = value (parameters["P"] ?? "2668");
+
+		while ((!Loop()) && (connected)) {
+			echo "Reconnecting...\n";
+			Sleep(1000);
+			queries = 0;
+		}
+		if (io)
+			io.Exit();
+	}
+}

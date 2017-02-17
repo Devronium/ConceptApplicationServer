@@ -86,7 +86,7 @@ class TinConnection {
 		if (!db)
 			throw "TinConnection: No database specified";
 		var t = new TCPSocket();
-		if (!t.Connect("localhost", 2668))
+		if (!t.Connect("localhost", port))
 			return false;
 		socket = t;
 		this.Database = db;
