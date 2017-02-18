@@ -287,7 +287,8 @@ class BinIndex {
 		btree.UserData = FilterName(db);
 		if (Unique)
 			code = btree.Add(objid, cached_val, Unique);
-		code = btree.Add(cached_val, objid);
+		else
+			code = btree.Add(cached_val, objid);
 		if (flush)
 			btree.File.Flush();
 		return code;
@@ -1796,7 +1797,7 @@ class BinFile extends File {
 						c[k] = obj[k];
 				}
 				if (id < 0)
-					id = obj['$'];
+					id = value obj['$'];
 			} else
 				c = obj;
 		} else

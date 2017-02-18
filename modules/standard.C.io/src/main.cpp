@@ -3944,8 +3944,8 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(LockFileBytes, 4, 6)
     if (whence == SEEK_SET) {
         HANDLE f = (HANDLE)_get_osfhandle(fileno(file));
         if (f) {
-            int64_t start    = PARAM(2);
-            int64_t len      = PARAM(3);
+            int64_t start    = (int64_t)PARAM(2);
+            int64_t len      = (int64_t)PARAM(3);
             DWORD   start_lo = (start << 32) >> 32;
             DWORD   start_hi = start >> 32;
 
@@ -4407,5 +4407,18 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(Impersonate, 1, 3)
         RETURN_NUMBER(0);
     }
 #endif
+END_IMPL
+//-----------------------------------------------------------------------------------
+CONCEPT_FUNCTION_IMPL(setvbuf, 2)
+    T_HANDLE("setvbuf", 0)
+    T_NUMBER("setvbuf", 1)
+    
+    int buf_size = PARAM_INT(1);
+    int err;
+    if (buf_size <= 0)
+        err = setvbuf((FILE *)(SYS_INT)PARAM(0), NULL, _IONBF, 0);
+    else
+        err = setvbuf((FILE *)(SYS_INT)PARAM(0), NULL, _IOFBF, buf_size);
+    RETURN_NUMBER(err);
 END_IMPL
 //-----------------------------------------------------------------------------------

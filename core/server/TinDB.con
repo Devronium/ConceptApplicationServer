@@ -726,6 +726,7 @@ pragma used
 								t.Lock(true);
 								if (multi_insert) {
 									id = new [];
+									t.SetIndexLock(2);
 									for (var i = 0; i < length obj.p; i++) {
 										var o = obj.p[i];
 										if (typeof o == "array") {
@@ -756,6 +757,7 @@ pragma used
 											}
 										}
 									}
+									t.SetIndexLock(false);
 									r.id = id;
 								} else {
 									if ((unique_fields) && (!t.IsUnique(obj.p, unique_fields))) {
@@ -1071,9 +1073,9 @@ pragma used
 				obj.r = r;
 				AddWorkerData(obj.worker, BinarizeObject([socket, obj, 0, target_key]), priority);
 			} else
-			if ((target_worker) && (target_key))
+			if ((target_worker) && (target_key)) {
 				AddWorkerData(target_worker, BinarizeObject([socket, target_key, r]), priority);
-			else
+			} else
 				r.Send(socket, obj.io);
 		}
 	}

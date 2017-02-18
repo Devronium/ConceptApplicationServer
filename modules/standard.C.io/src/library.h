@@ -151,5 +151,6 @@ CONCEPT_FUNCTION(getpassword)
 
 CONCEPT_FUNCTION(chroot)
 CONCEPT_FUNCTION(Impersonate)
+CONCEPT_FUNCTION(setvbuf)
 }
 #endif // __LIBRARY_H

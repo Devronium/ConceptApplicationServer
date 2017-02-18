@@ -6,6 +6,7 @@ import standard.lib.preg
 import standard.lib.json
 include Worker.con
 include TinDataBases.con
+include CSV.con
 
 class Container {
 	var Data;
@@ -172,8 +173,11 @@ class Main {
 			echo "$query ($time):\n";
 			echo "${err[1]}\n";
 		} else {
+			var count = 0;
+			if (r)
+				count = length r;
 			if (output) {
-				echo "$query ($time) to file $output\n";
+				echo "$query ($time), $count records to file $output\n";
 				var ext = ToLower(Ext(output));
 				switch (ext) {
 					case "bin":
@@ -187,11 +191,14 @@ class Main {
 						break;
 					default:
 						WriteFile(JSONSerialize(r, true), output);
+						break;
 				}
 			} else {
-				echo "$query ($time):\n";
-				echo r;
-				echo "\n";
+				if ((r) && (userdata[2]) && (userdata[2] == "count"))
+					count = r[0];
+				else
+					echo r;
+				echo "\n$query ($time), $count records\n";
 			}
 		}
 	}
@@ -211,9 +218,16 @@ class Main {
 			echo "$query ($time):\n";
 			echo "${err[1]}\n";
 		} else {
-			echo "$query ($time):\n";
-			echo id;
-			echo "\n";
+			if (typeof id == "array") {
+				if (length id < 10)
+					echo id;
+				else
+					echo "${length id} recors stored\n";
+				echo "\n$query ($time)\n";
+			} else {
+				echo id;
+				echo "\n$query ($time)\n";
+			}
 		}
 	}
 
@@ -233,6 +247,78 @@ class Main {
 			echo "${err[1]}\n";
 		} else {
 			echo "$query ($time): OK\n";
+		}
+	}
+
+	LoadCSV(var data) {
+		data = CSV::Do(data, null, var error, var error_text);
+		if ((error) && (error_text)) {
+			echo "Error in CSV: $error_text\n";
+			return null;
+		}
+		var header = data[0];
+		var objects = new [];
+		if (header) {
+			for (var i = 1; i < length data; i++) {
+				var line = data[i];
+				if (line) {
+					var obj = new [];
+					for (var j = 0; j < length header; j++) {
+						var v = line[j];
+						var h = header[j] ?? "_field_${j+1}";
+						// skip ids
+						if (h != '$')
+							obj[h] = v;
+					}
+					if (obj)
+						objects[length objects] = obj;
+				}
+			}
+		}
+		return objects;
+	}
+
+	SkipID(obj) {
+		if (obj) {
+			if (IsSet(obj, '$'))  {
+				var keys = GetKeys(obj);
+				var c = new [];
+				for (var i = 0; i < length keys; i++) {
+					var k = keys[i];
+					if ((k) && (k != '$'))
+						c[k] = obj[k];
+				}
+				return c;
+			}
+		}
+		return obj;
+	}
+
+	SkipIDS(data) {
+		if (data) {
+			var keys = GetKeys(data);
+			var is_set = true;
+			if ((keys) && (keys[0]))
+				is_set = false;
+			if (is_set) {
+				for (var i =0; i < length data; i++)
+					data[i] = SkipID(data[i]);
+			}
+			return SkipID(data);
+		}
+		return data;
+	}
+
+	GetObjects(var data, ext) {
+		switch (ext) {
+			case "csv":
+			case "txt":
+				return LoadCSV(data);
+			case "bin":
+				return SkipIDS(UnBinarizeObject(data));
+			case "json":
+			default:					
+				return SkipIDS(JSONDeserialize(data));
 		}
 	}
 
@@ -278,6 +364,8 @@ class Main {
 			} else
 			if ((SubStr(s, 0, 6) == "output") && ((s[6] == " ") || (s[6] == "\t"))) {
 				output = trim(SubStr(s, 7));
+				if ((length output > 1) && (((output[0] == "'") || (output[0] == "\"")) && (output[0] == output[length output - 1])))
+					output = SubStr(output, 1, length output - 2);
 				if (output)
 					echo "Output results to '$output'\n";
 				else
@@ -299,7 +387,7 @@ class Main {
 				if (!parameters)
 					parameters = new [];
 				dataset = new TinDataSet(connection, collection);
-				dataset.UserData = [orig_query, microseconds()];
+				dataset.UserData = [orig_query, microseconds(), s];
 				dataset.Query(["#" => parameters], querycallback);
 				queries++;
 				echo "Query sent, waiting response (${queries} in queue, including this one)...\n";
@@ -328,8 +416,8 @@ class Main {
 				if (!parameters)
 					parameters = new [];
 				dataset = new TinDataSet(connection, collection);
-				dataset.UserData = [orig_query, microseconds()];
 				var keys = GetKeys(parameters);
+				dataset.UserData = [orig_query, microseconds(), s];
 				dataset.Store(parameters, ((!keys) || (!keys[0])), storecallback);
 				queries++;
 				echo "Object sent, waiting response (${queries} in queue, including this one)...\n";
@@ -397,6 +485,32 @@ class Main {
 				queries++;
 				echo "Delete request sent, waiting response (${queries} in queue, including this one)...\n";
 				break;
+			case "load":
+				if ((!parameters) || (typeof parameters != "string")) {
+					echo "No file specified.\n";
+					return;
+				}
+				var data = ReadFile(parameters);
+				if (!data) {
+					echo "File '$parameters' is empty or does not exists.\n";
+					return;
+				}
+				var objects = GetObjects(data, ToLower(Ext(parameters)));
+				if (!objects) {
+					echo "File '$parameters' contains no usable objects.\n";
+					return;
+				}
+				dataset = new TinDataSet(connection, collection);
+				keys = GetKeys(objects);
+				var is_set = ((!keys) || (!keys[0]));
+				dataset.UserData = [orig_query, microseconds(), s];
+				dataset.Store(objects, is_set, storecallback);
+				queries++;
+				if (is_set)
+					echo "${length objects} objects sent, waiting response (${queries} in queue, including this one)...\n";
+				else
+					echo "1 object sent, waiting response (${queries} in queue, including this one)...\n";
+				break;
 			case "quit":
 			case "exit":
 				if (connection) {
@@ -419,6 +533,8 @@ class Main {
 				echo "    collection.store(object);\n";
 				echo "        store an arbitray object, eg:. student.store({\"Name\": \"George\"})\n";
 				echo "        may also use arrays, eg:. student.store([{\"Name\": \"George\"}, {\"Name\": \"Jane\"}])\n";
+				echo "    collection.load(filename);\n";
+				echo "        load objects from JSON or CSV file\n";
 				echo "    collection.search(searchstring);\n";
 				echo "        perform bm25 search\n";
 				echo "    collection.drop();\n";

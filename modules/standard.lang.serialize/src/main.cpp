@@ -142,7 +142,7 @@ void SerializeVariable(RefContainer *rc, char *member, int type, char *szData, N
 void SerializeArray(RefContainer *rc, void *pData, void *arr_id, XML_NODE_REF parent, char is_simple = 0);
 void DoObject(RefContainer *rc, void *pData, void *parent);
 void DoArray(RefContainer *rc, void *pData, void *parent);
-int bin_write(RefContainer *rc, char *data, int d_size, int write_increment = 0xFFF);
+int bin_write(RefContainer *rc, char *data, int d_size, int write_increment = 0x1000);
 int bin_write_int(RefContainer *rc, int v);
 int bin_write_size(RefContainer *rc, unsigned long long v);
 int bin_write_char(RefContainer *rc, char v);
@@ -1688,13 +1688,25 @@ int bin_write(RefContainer *rc, char *data, int d_size, int write_increment) {
     if (rc->offset + d_size > rc->size) {
         int blocks = 1;
         if (rc->increment) {
+            int current_blocks = rc->size / write_increment;
             if (rc->increment > write_increment)
                 blocks = rc->increment / write_increment + 1;
 
+            if (blocks < current_blocks) {
+                if (current_blocks < 1000)
+                    blocks = current_blocks;
+                else
+                if (blocks < current_blocks / 2)
+                    blocks = current_blocks / 2;
+            }
             rc->increment = 0;
         }
-        rc->size = ((rc->offset + d_size) / write_increment + 1) * write_increment * blocks;
+        rc->size = ((rc->offset + d_size) / write_increment + blocks) * write_increment;
         rc->buf  = (char *)realloc(rc->buf, rc->size);
+        if (!rc->buf) {
+            rc->size = 0;
+            rc->offset = 0;
+        }
     }
     if (rc->buf) {
         memcpy(rc->buf + rc->offset, data, d_size);
