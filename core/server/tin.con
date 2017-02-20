@@ -92,6 +92,15 @@ class Main {
 		return null;
 	}
 
+	notifycallback(subject, obj) {
+		echo "Notification received\n";
+		if (subject)
+			echo "Subject: $subject\n";
+		echo "Content:\n";
+		echo obj;
+		echo "\nEnd content\n";
+	}
+
 	callback(r, id, err) {
 		queries--;
 		if (err) {
@@ -100,6 +109,7 @@ class Main {
 			return false;
 		}
 		echo "OK\n";
+		connection.OnNotify = notifycallback;
 		if (!io)
 			io = new Worker("IOWorker");
 	}
@@ -494,6 +504,27 @@ class Main {
 				dataset.Delete(parameters, querycallback);
 				queries++;
 				echo "Delete request sent, waiting response (${queries} in queue, including this one)...\n";
+				break;
+			case "addsubject":
+			case "removesubject":
+				if (typeof parameters != "string")
+					parameters = "";
+				if (s == "addsubject")
+					connection.AddSubject(parameters);
+				else
+					connection.RemoveSubject(parameters);
+				echo "OK\n";
+				break;
+			case "notify":
+				var subject = "";
+				if (typeof parameters == "array") {
+					if (IsSet(parameters, "subject"))
+						subject = parameters["subject"];
+
+					if (IsSet(parameters, "object"))
+						parameters = parameters["object"];
+				}
+				connection.Notify(parameters, subject);
 				break;
 			case "load":
 				if ((!parameters) || (typeof parameters != "string")) {
