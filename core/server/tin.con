@@ -33,10 +33,20 @@ class IOWorker extends Worker{
 			}
 
 			s += trim(gets());
-			if ((s) && (s[length s - 1] == ";")) {
+			if ((s) && (s[length s - 1] == '\\')) {
+				s = SubStr(s, 0, length s - 1);
+			} else
+			if (s) {
+			// if ((s) && (s[length s - 1] == ";")) {
 				AddWorkerResultData(s);
+				var s2 = s;
+				while ((s2) && (s2[length s2 - 1] == ";"))
+					s2 = SubStr(s2, 0, length s2 - 1);
+				s2 = trim(s2);
 				s = "";
 				sent = true;
+				if ((s2 == "exit") || (s2 == "quit"))
+					break;
 			}
 		}
 	}
@@ -222,7 +232,7 @@ class Main {
 				if (length id < 10)
 					echo id;
 				else
-					echo "${length id} recors stored\n";
+					echo "${length id} records stored\n";
 				echo "\n$query ($time)\n";
 			} else {
 				echo id;
@@ -603,7 +613,5 @@ class Main {
 			Sleep(1000);
 			queries = 0;
 		}
-		if (io)
-			io.Exit();
 	}
 }
