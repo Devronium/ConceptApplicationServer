@@ -1107,7 +1107,8 @@ pragma used
 
 		while (true) {
 			var data = "";
-			while (Worker::Pending(data)) {
+			var qsize = Worker::Pending(data, -1);
+			if (qsize) {
 				try {
 					Execute(data);
 				} catch (var exc) {
@@ -1116,10 +1117,10 @@ pragma used
 				data = "";
 				if ((non_flushed_writes) && ((non_flushed_writes > BUSY_FSYNC_LIMIT) || ((time() - last_flush) >= BUSY_FSYNC_TIMEOUT)))
 					this.Flush();
+				else
+				if ((non_flushed_writes) && (qsize == 1))
+					this.Flush();
 			}
-			if (non_flushed_writes)
-				this.Flush();
-			Sleep(5);
 		}
 	}
 }
@@ -1384,7 +1385,7 @@ class QueryAggregator {
 		QueryWorkers = n[1];
 		var data = "";
 		while (true) {
-			while (Worker::Pending(data)) {
+			if (Worker::Pending(data, -1)) {
 				try {
 					Execute(data);
 				} catch (var exc) {
@@ -1392,7 +1393,7 @@ class QueryAggregator {
 				}
 				data = "";
 			}
-			Sleep(5);
+			// Sleep(5);
 		}
 	}
 }

@@ -25,7 +25,7 @@ class IOWorker extends Worker{
 				s += "\n";
 			} else {
 				if (sent) {
-					while (!this.Pending(dummy))
+					while (!this.Pending(dummy, -1))
 						Sleep(20);
 					sent = false;
 				}

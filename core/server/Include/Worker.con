@@ -35,13 +35,18 @@ class Worker {
 		return -1;
 	}
 
-	GetResult(var data) {
-		if (_workerobj)
+	GetResult(var data, timeout_ms = 0) {
+		if (_workerobj) {
+			if (timeout_ms)
+				return GetWorkerResultData(_workerobj, data, timeout_ms);
 			return GetWorkerResultData(_workerobj, data);
+		}
 		return -1;
 	}
 
-	static Pending(var data) {
+	static Pending(var data, timeout_ms = 0) {
+		if (timeout_ms)
+			return GetWorkerData(data, timeout_ms);
 		return GetWorkerData(data);
 	}
 

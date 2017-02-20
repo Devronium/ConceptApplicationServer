@@ -10,6 +10,7 @@
  #include <pthread.h>
  #include <unistd.h>
  #include <sched.h>
+ #include <sys/time.h>
  #define DWORD     long
  #define LPVOID    void *
  #define POSIX_SEMAPHORES
@@ -125,6 +126,64 @@ public:
 };
 #endif
 
+class CondWait {
+private:
+#ifdef _WIN32
+    HANDLE cond;
+#else
+    pthread_mutex_t mutex;
+    pthread_cond_t cond;
+#endif
+public:
+    CondWait() {
+#ifdef _WIN32
+        cond = CreateEvent(NULL, FALSE, FALSE, NULL);
+#else
+        pthread_mutex_init(&mutex, NULL);
+        pthread_cond_init(&cond, NULL);
+#endif
+    }
+
+    int wait(int timeout_ms = 0) {
+#ifdef _WIN32
+        if (timeout_ms > 0)
+            return WaitForSingleObject(cond, timeout_ms);
+        return WaitForSingleObject(cond, INFINITE);
+#else
+        if (timeout_ms > 0) {
+            struct timeval now;
+            gettimeofday(&now, NULL);
+            struct timespec delay;
+            delay.tv_sec  = now.tv_sec + timeout_ms / 1000;
+            delay.tv_nsec = now.tv_usec * 1000 + (timeout_ms % 1000000) * 1000000;
+            if (delay.tv_nsec >= 1000000000) {
+                delay.tv_nsec -= 1000000000;
+                delay.tv_sec++;
+            }
+            return pthread_cond_timedwait(&cond, &mutex, &delay);
+        }
+        return pthread_cond_wait(&cond, &mutex);
+#endif
+    }
+
+    void notify() {
+#ifdef _WIN32
+        SetEvent(cond);
+#else
+        pthread_cond_signal(&cond);
+#endif
+    }
+
+    ~CondWait() {
+#ifdef _WIN32
+        CloseHandle(cond);
+#else
+        pthread_cond_destroy(&cond);
+        pthread_mutex_destroy(&mutex);
+#endif
+    }
+};
+
 class ThreadMetaContainer {
 private:
 #ifdef USE_STD_QUEUE
@@ -136,6 +195,11 @@ private:
 #endif
     QUEUE_SEMAPHORE input_lock;
     QUEUE_SEMAPHORE output_lock;
+
+    int input_cond_wait;
+    int output_cond_wait;
+    CondWait input_cond;
+    CondWait output_cond;
 public:
     void *worker;
 
@@ -154,6 +218,8 @@ public:
 #endif
         int size = input_data.size();
         QUEUE_UNLOCK(input_lock);
+        if ((size == 1) && (input_cond_wait))
+            input_cond.notify();
         return size;
     }
 
@@ -165,10 +231,12 @@ public:
         output_data.push(temp);
         int size = output_data.size();
         QUEUE_UNLOCK(output_lock);
+        if ((size == 1) && (output_cond_wait))
+            output_cond.notify();
         return size;
     }
 
-    int GetInput(AnsiString **S) {
+    int GetInput(AnsiString **S, int locking = 0) {
         QUEUE_LOCK(input_lock);
         int size = input_data.size();
 
@@ -176,11 +244,17 @@ public:
             *S = (AnsiString *)input_data.front();
             input_data.pop();
         }
+        if (locking)
+            input_cond_wait = 1;
         QUEUE_UNLOCK(input_lock);
+        if ((locking) && (!size)) {
+            input_cond.wait(locking);
+            return GetInput(S);
+        }
         return size;
     }
 
-    int GetOutput(AnsiString **S) {
+    int GetOutput(AnsiString **S, int locking = 0) {
         QUEUE_LOCK(output_lock);
         int size = output_data.size();
 
@@ -188,13 +262,21 @@ public:
             *S = (AnsiString *)output_data.front();
             output_data.pop();
         }
+        if (locking)
+            output_cond_wait = 1;
         QUEUE_UNLOCK(output_lock);
+        if ((locking) && (!size)) {
+            output_cond.wait(locking);
+            return GetOutput(S);
+        }
         return size;
     }
 
     ThreadMetaContainer(void *worker) {
         QUEUE_CREATE(input_lock);
         QUEUE_CREATE(output_lock);
+        this->input_cond_wait = 0;
+        this->output_cond_wait = 0;
         this->worker = worker;
     }
 
@@ -666,7 +748,7 @@ CONCEPT_FUNCTION_IMPL(AddWorkerResultData, 1)
     RETURN_NUMBER(size);
 END_IMPL
 //---------------------------------------------------------------------------
-CONCEPT_FUNCTION_IMPL(GetWorkerResultData, 2)
+CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(GetWorkerResultData, 2, 3)
     T_HANDLE(GetWorkerResultData, 0)
 
     void *worker = (void *)(uintptr_t)PARAM(0);
@@ -675,8 +757,14 @@ CONCEPT_FUNCTION_IMPL(GetWorkerResultData, 2)
     if (!tmc)
         return (void *)"Using a worker function on a non-worker";
 
+    int locking = 0;
+    if (PARAMETERS_COUNT > 2) {
+        T_NUMBER("GetWorkerData", 2);
+        locking = PARAM_INT(2);
+    }
+
     AnsiString *temp = NULL;
-    int        size  = tmc->GetOutput(&temp);
+    int        size  = tmc->GetOutput(&temp, locking);
     if ((temp) && (temp->Length())) {
         SET_BUFFER(1, temp->c_str(), temp->Length());
     } else {
@@ -687,14 +775,19 @@ CONCEPT_FUNCTION_IMPL(GetWorkerResultData, 2)
     RETURN_NUMBER(size);
 END_IMPL
 //---------------------------------------------------------------------------
-CONCEPT_FUNCTION_IMPL(GetWorkerData, 1)
+CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(GetWorkerData, 1, 2)
     ThreadMetaContainer * tmc = NULL;
     Invoke(INVOKE_GETPROTODATA, PARAMETERS->HANDLER, (int)2, &tmc);
     if (!tmc)
         return (void *)"Using a worker function on a non-worker";
 
+    int locking = 0;
+    if (PARAMETERS_COUNT > 1) {
+        T_NUMBER("GetWorkerData", 1);
+        locking = PARAM_INT(1);
+    }
     AnsiString *temp = NULL;
-    int        size  = tmc->GetInput(&temp);
+    int        size  = tmc->GetInput(&temp, locking);
     if ((temp) && (temp->Length())) {
         SET_BUFFER(0, temp->c_str(), temp->Length());
     } else {
