@@ -421,9 +421,10 @@ pragma used
 					other_workers[length other_workers] = q_worker;
 			}
 		}
+		var sleep_value = 0;
 		while (true) {
 			var data = "";
-			if (Worker::Pending(data)) {
+			if (Worker::Pending(data, sleep_value)) {
 				var job = UnBinarizeObject(data);
 				var socket = job[0];
 				var remote_obj = job[1];
@@ -503,9 +504,9 @@ pragma used
 				continue;
 			}
 			if (sockets) {
-				Sleep(2);
+				sleep_value = 2; // Sleep(2);
 			} else
-				Sleep(5);
+				sleep_value = 5; // Sleep(5);
 		}
 	}
 }

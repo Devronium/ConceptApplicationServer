@@ -2288,9 +2288,10 @@ pragma used
 	ConceptWorker(n) {
 		WorkerName = n;
 		var empty_iterations = 0;
+		var sleep_value = 0;
 		while (true) {
 			var work_count = 0;
-			if (Worker::Pending(var data)) {
+			if (Worker::Pending(var data, sleep_value)) {
 				work_count++;
 				var job = UnBinarizeObject(data);
 				if (job) {
@@ -2321,12 +2322,13 @@ pragma used
 			work_count += this.Iterate();
 			if (work_count) {
 				empty_iterations = 0;
+				sleep_value = 0;
 			} else {
 				empty_iterations++;
 				if (empty_iterations > IDLE_SLEEP_THRESHOLD)
-					Sleep(IDLE_SLEEP_MS2);
+					sleep_value = IDLE_SLEEP_MS2; // Sleep(IDLE_SLEEP_MS2);
 				else
-					Sleep(IDLE_SLEEP_MS);
+					sleep_value = IDLE_SLEEP_MS; // Sleep(IDLE_SLEEP_MS);
 			}
 
 			// if (!work_count)
@@ -2822,10 +2824,11 @@ pragma used
 		cgiother = init_data[4];
 		var exc;
 		var empty_iterations = 0;
+		var sleep_value = 0;
 		while (true) {
 			var work_count = 0;
 			var Socket = null;
-			if (Worker::Pending(var data)) {
+			if (Worker::Pending(var data, sleep_value)) {
 				work_count++;
 				var job = UnBinarizeObject(data);
 				if (job) {
@@ -2850,12 +2853,13 @@ pragma used
 			work_count += this.IterateCGI();
 			if (work_count) {
 				empty_iterations = 0;
+				sleep_value = 0;
 			} else {
 				empty_iterations++;
 				if (empty_iterations > IDLE_SLEEP_THRESHOLD)
-					Sleep(IDLE_SLEEP_MS2);
+					sleep_value = IDLE_SLEEP_MS2; // Sleep(IDLE_SLEEP_MS2);
 				else
-					Sleep(IDLE_SLEEP_MS);
+					sleep_value = IDLE_SLEEP_MS; // Sleep(IDLE_SLEEP_MS);
 			}
 		}
 	}

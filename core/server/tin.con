@@ -65,6 +65,15 @@ class Main {
 	var output;
 	var reconnecting = false;
 
+	static em(text, add_quote = false) {
+		if (ON_MSWINDOWS) {
+			if (add_quote)
+				return "\"$text\"";
+			return text;
+		}
+		return "\x1b[31;1m" + text + "\x1b[0m";
+	}
+
 	GetParameters(arg, var db) {
 		var[] parameters;
 		for (var i = 0; i < length arg; i++) {
@@ -95,7 +104,7 @@ class Main {
 	notifycallback(subject, obj) {
 		echo "Notification received\n";
 		if (subject)
-			echo "Subject: $subject\n";
+			echo "Subject: ${em(subject)}\n";
 		echo "Content:\n";
 		echo obj;
 		echo "\nEnd content\n";
@@ -175,7 +184,7 @@ class Main {
 			}
 			WriteFile(csv, output);
 		} else
-			echo "Dataset is empty\n";
+			echo "${em("Dataset is empty")}\n";
 	}
 
 	querycallback(r, id, err, userdata) {
@@ -191,13 +200,13 @@ class Main {
 
 		if (err) {
 			echo "$query ($time):\n";
-			echo "${err[1]}\n";
+			echo "${em(err[1])}\n";
 		} else {
 			var count = 0;
 			if (r)
 				count = length r;
 			if (output) {
-				echo "$query ($time), $count records to file $output\n";
+				echo "$query ($time), ${em(count)} records to file ${em(output)}\n";
 				var ext = ToLower(Ext(output));
 				switch (ext) {
 					case "bin":
@@ -218,7 +227,7 @@ class Main {
 					count = r[0];
 				else
 					echo r;
-				echo "\n$query ($time), $count records\n";
+				echo "\n$query ($time), ${em(count)} records\n";
 			}
 		}
 	}
@@ -236,7 +245,7 @@ class Main {
 
 		if (err) {
 			echo "$query ($time):\n";
-			echo "${err[1]}\n";
+			echo "${em(err[1])}\n";
 		} else {
 			if (typeof id == "array") {
 				if (length id < 10)
@@ -264,7 +273,7 @@ class Main {
 
 		if (err) {
 			echo "$query ($time):\n";
-			echo "${err[1]}\n";
+			echo "${em(err[1])}\n";
 		} else {
 			echo "$query ($time): OK\n";
 		}
@@ -563,26 +572,26 @@ class Main {
 			case "help":
 				echo "Local commands: info, quit, exit, output [outputfilename]\n";
 				echo "TinDB commands:\n";
-				echo "    collection.query(criteria_object);\n";
+				echo "    ${em("collection.query")}(criteria_object);\n";
 				echo "        Search object, matching criteria\n";
 				echo "        eg: student.query({\"Name\": \"Jane\"});\n";
-				echo "    collection.count(criteria_object);\n";
+				echo "    ${em("collection.count")}(criteria_object);\n";
 				echo "        Count objects in collection matching criteria\n";
-				echo "    collection.delete(criteria_object);\n";
+				echo "    ${em("collection.delete")}(criteria_object);\n";
 				echo "        delete an object from collection, matching criteria\n";
 				echo "        eg: student.delete({\"Name\": \"Jane\"});\n";
-				echo "    collection.store(object);\n";
+				echo "    ${em("collection.store")}(object);\n";
 				echo "        store an arbitray object, eg:. student.store({\"Name\": \"George\"})\n";
 				echo "        may also use arrays, eg:. student.store([{\"Name\": \"George\"}, {\"Name\": \"Jane\"}])\n";
-				echo "    collection.load(filename);\n";
+				echo "    ${em("collection.load")}(filename);\n";
 				echo "        load objects from JSON or CSV file\n";
-				echo "    collection.search(searchstring);\n";
+				echo "    ${em("collection.search")}(searchstring);\n";
 				echo "        perform bm25 search\n";
-				echo "    collection.drop();\n";
+				echo "    ${em("collection.drop")}();\n";
 				echo "        drop collection\n";
-				echo "    collection.index(index);\n";
+				echo "    ${em("collection.index")}(index);\n";
 				echo "        create btree index\n";
-				echo "    collection.fulltext(string language | array fields | {\"language\": \"en\", \"fileds\": array);\n";
+				echo "    ${em("collection.fulltext")}(string language | array fields | {\"language\": \"en\", \"fileds\": array);\n";
 				echo "        create full text index\n";
 				echo "All commands MUST end with ';'\n";
 				break;
@@ -630,8 +639,8 @@ class Main {
 
 	Main() {
 		echo "TinDB client console application v0.1\n";
-		echo "Developed by Eduard Suica, releasend into public domain\n";
-		echo "Type help; for help\n\n";
+		echo "Developed by Eduard Suica, released into public domain\n";
+		echo "Type ${em("help", true)} for help\n\n";
 		db = "appdb";
 		var parameters = GetParameters(CLArg(), db);
 		user = parameters["u"] ?? "sysdbadministrator";

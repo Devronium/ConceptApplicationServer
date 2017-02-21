@@ -2,7 +2,7 @@
 #define __ARRAY_H
 
 #define OPTIMIZE_FAST_ARRAYS
-//#define STDMAP_KEYS
+// #define STDMAP_KEYS
 
 #include "AnsiString.h"
 #include "ConceptTypes.h"
@@ -82,10 +82,11 @@ private:
     ARRAY_COUNT_TYPE COUNT;
 
     void *PIF;
-    ARRAY_COUNT_TYPE AddKey(AnsiString *KEY, ARRAY_COUNT_TYPE index);
-
+    ARRAY_COUNT_TYPE AddKey(const char *KEY, ARRAY_COUNT_TYPE index);
 #ifndef STDMAP_KEYS
-    ARRAY_COUNT_TYPE FindPlace(char *KEY, ARRAY_COUNT_TYPE *in_dirty_zone = NULL);
+    ARRAY_COUNT_TYPE FindKeyPlace(const char *KEY, ARRAY_COUNT_TYPE *index);
+    ARRAY_COUNT_TYPE FindOrAddKey(const char *KEY);
+    ARRAY_COUNT_TYPE FindPlace(const char *KEY, ARRAY_COUNT_TYPE *in_dirty_zone = NULL);
     void CleanIndex(bool forced = false);
 #endif
 

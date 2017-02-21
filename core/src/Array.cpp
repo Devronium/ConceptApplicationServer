@@ -263,15 +263,14 @@ ARRAY_COUNT_TYPE Array::FindKey(const char *KEY) {
         return -1;
     }
 
-    const char *str = KEY;
     if ((KeysCount > 10) && (LastKey != -1)) {
         if (LastKey < KeysCount) {
-            if (!strcmp(str, Keys [LastKey].KEY)) {
+            if (!strcmp(KEY, Keys [LastKey].KEY)) {
                 return Keys [LastKey].index;
             }
         } else
         if (LastKey < KeysCount - 1) {
-            if (!strcmp(str, Keys [++LastKey].KEY)) {
+            if (!strcmp(KEY, Keys [++LastKey].KEY)) {
                 return Keys [LastKey].index;
             }
         }
@@ -282,7 +281,7 @@ ARRAY_COUNT_TYPE Array::FindKey(const char *KEY) {
             LocalKeysCount--;
             // the strcmp part should be moved AFTER binary lookup
             // it would make more sense this way
-            if (!strcmp(str, Keys [i].KEY))
+            if (!strcmp(KEY, Keys [i].KEY))
                 return Keys [i].index;
         } else
             break;
@@ -338,7 +337,7 @@ ARRAY_COUNT_TYPE Array::FindKey(const char *KEY) {
     int order = 0;
     int last_middle = 0;
     while (start <= end) {
-        order  = strcmp(str, Keys [middle].KEY);
+        order  = strcmp(KEY, Keys [middle].KEY);
         last_middle = middle;
         if (order > 0)
             start = middle + 1;
@@ -355,7 +354,7 @@ ARRAY_COUNT_TYPE Array::FindKey(const char *KEY) {
 #endif
 
 #ifndef STDMAP_KEYS
-ARRAY_COUNT_TYPE Array::FindPlace(char *KEY, ARRAY_COUNT_TYPE *in_dirty_zone) {
+ARRAY_COUNT_TYPE Array::FindPlace(const char *KEY, ARRAY_COUNT_TYPE *in_dirty_zone) {
     if (!KeysCount)
         return 0;
 
@@ -387,9 +386,8 @@ ARRAY_COUNT_TYPE Array::FindPlace(char *KEY, ARRAY_COUNT_TYPE *in_dirty_zone) {
         }
     }
 
-    char *str = KEY;
     if (LocalKeysCount > 10) {
-        if (strcmp(str, TargetKeys [LocalKeysCount - 1].KEY) > 0) {
+        if (strcmp(KEY, TargetKeys [LocalKeysCount - 1].KEY) > 0) {
             return LocalKeysCount;
         }
     }
@@ -449,7 +447,7 @@ ARRAY_COUNT_TYPE Array::FindPlace(char *KEY, ARRAY_COUNT_TYPE *in_dirty_zone) {
     int order = 0;
     int last_middle = 0;
     while (start <= end) {
-        order  = strcmp(str, TargetKeys [middle].KEY);
+        order  = strcmp(KEY, TargetKeys [middle].KEY);
         last_middle = middle;
         if (order > 0)
             start = middle + 1;
@@ -524,29 +522,29 @@ void Array::CleanIndex(bool forced) {
 }
 #endif
 
-ARRAY_COUNT_TYPE Array::AddKey(AnsiString *KEY, ARRAY_COUNT_TYPE index) {
+ARRAY_COUNT_TYPE Array::AddKey(const char *KEY, ARRAY_COUNT_TYPE index) {
 #ifdef STDMAP_KEYS
     if (!Keys)
         Keys = new KeyMap();
 
-    int  len  = KEY->Length();
+    int  len  = KEY ? strlen(KEY) : 0;
     char *buf = (char *)FAST_MALLOC(len + 1);
-    memcpy(buf, KEY->c_str(), len);
+    memcpy(buf, KEY, len);
     buf[len] = 0;
     Keys->insert(KeyMapPair(buf, index));
     return Keys->size();
 #else
     if (!(KeysCount % KEY_INCREMENT))
         Keys = (ArrayKey *)FAST_REALLOC(Keys, sizeof(ArrayKey) * (KeysCount / KEY_INCREMENT + 1) * KEY_INCREMENT);
-    ARRAY_COUNT_TYPE place = FindPlace(KEY->c_str());
+    ARRAY_COUNT_TYPE place = FindPlace(KEY);
 
-    int len = KEY->Length();
+    int len = KEY ? strlen(KEY) : 0;
     ARRAY_COUNT_TYPE delta = KeysCount - place;
     char             dirty = 0;
 
     if ((KeysCount > DIRTY_TRESHOLD) && (delta)) {
         ARRAY_COUNT_TYPE delta_place = 0;
-        place  = FindPlace(KEY->c_str(), &delta_place);
+        place  = FindPlace(KEY, &delta_place);
         place += delta_place;
         delta  = KeysCount - place;
         dirty  = 1;
@@ -558,7 +556,7 @@ ARRAY_COUNT_TYPE Array::AddKey(AnsiString *KEY, ARRAY_COUNT_TYPE index) {
     Keys [place].KEY   = (char *)FAST_MALLOC(len + 1);
     Keys [place].index = index;
     Keys [place].dirty = dirty;
-    memcpy(Keys [place].KEY, KEY->c_str(), len);
+    memcpy(Keys [place].KEY, KEY, len);
     Keys [place].KEY [len] = 0;
     KeysCount++;
     CleanIndex();
@@ -636,10 +634,11 @@ VariableDATA *Array::Get(VariableDATA *KEY) {
         }
     } else
     if (KEY->TYPE == VARIABLE_STRING) {
-        i = FindKey(CONCEPT_STRING(KEY).c_str());
+        const char *k_str = CONCEPT_STRING(KEY).c_str();
+        i = FindKey(k_str);
 
         if (i == -1) {
-            AddKey(&CONCEPT_STRING(KEY), COUNT);
+            AddKey(k_str, COUNT);
             ADD_VARIABLE(0, PIF);
         }
     }
@@ -780,16 +779,103 @@ VariableDATA *Array::ModuleGet(ARRAY_COUNT_TYPE i) {
     return 0;
 }
 
+#ifndef STDMAP_KEYS
+ARRAY_COUNT_TYPE Array::FindKeyPlace(const char *KEY, ARRAY_COUNT_TYPE *index) {
+    *index = 0;
+    if (!KeysCount) {
+        return -1;
+    }
+
+    ARRAY_COUNT_TYPE LocalKeysCount = this->KeysCount;
+    for (int i = LocalKeysCount - 1; i >= 0; i--) {
+        if (Keys [i].dirty) {
+            LocalKeysCount--;
+            if (!strcmp(KEY, Keys [i].KEY))
+                return Keys [i].index;
+        } else
+            break;
+    }
+
+    LastKey = -1;
+
+    INTEGER start = 0;
+    INTEGER end = LocalKeysCount - 1;
+    INTEGER middle = end / 2;
+
+    int order = 0;
+    int last_middle = 0;
+    while (start <= end) {
+        order  = strcmp(KEY, Keys [middle].KEY);
+        last_middle = middle;
+        if (order > 0)
+            start = middle + 1;
+        else
+        if (!order) {
+            return Keys[middle].index;
+        } else
+            end = middle - 1;
+        middle = (start + end) / 2;
+    }
+    if (order > 0)
+        last_middle++;
+    *index = last_middle;
+    return -1;
+}
+
+ARRAY_COUNT_TYPE Array::FindOrAddKey(const char *KEY) {
+    ARRAY_COUNT_TYPE index;
+    ARRAY_COUNT_TYPE place = FindKeyPlace(KEY, &index);
+    if (place != -1)
+        return place;
+    place = index;
+
+    if (!(KeysCount % KEY_INCREMENT))
+        Keys = (ArrayKey *)FAST_REALLOC(Keys, sizeof(ArrayKey) * (KeysCount / KEY_INCREMENT + 1) * KEY_INCREMENT);
+
+    int len = KEY ? strlen(KEY) : 0;
+    ARRAY_COUNT_TYPE delta = KeysCount - place;
+    char             dirty = 0;
+
+    if ((KeysCount > DIRTY_TRESHOLD) && (delta)) {
+        ARRAY_COUNT_TYPE delta_place = 0;
+        place  = FindPlace(KEY, &delta_place);
+        place += delta_place;
+        delta  = KeysCount - place;
+        dirty  = 1;
+    }
+
+    if (place < KeysCount)
+        memmove((void *)&Keys [place + 1], (void *)&Keys [place], sizeof(ArrayKey) * delta);
+
+    Keys [place].KEY   = (char *)FAST_MALLOC(len + 1);
+    Keys [place].index = COUNT;
+    Keys [place].dirty = dirty;
+    memcpy(Keys [place].KEY, KEY, len);
+    Keys [place].KEY [len] = 0;
+    KeysCount++;
+    CleanIndex();
+    return -1;
+    //return KeysCount;
+}
+#endif
+
 VariableDATA *Array::ModuleGet(const char *key) {
     ARRAY_COUNT_TYPE i = -1;
 
+    // if (!unsafe_non_existing_key_len)
+#ifdef STDMAP_KEYS
     i = FindKey(key);
 
     if (i == -1) {
-        AnsiString tmp(key);
-        AddKey(&tmp, COUNT);
+        AddKey(key, COUNT);
         ADD_VARIABLE(0, PIF);
     }
+#else
+    i = FindOrAddKey(key);
+    if (i == -1) {
+        ADD_VARIABLE(0, PIF);
+    }
+#endif
 
     if (i < COUNT) {
         ARRAY_COUNT_TYPE target_node = i / ARRAY_INCREMENT;
@@ -1130,15 +1216,14 @@ Array *Array::SortArrayElementsByKey() {
         for (KeyMap::iterator iter = Keys->begin(); iter != end; ++iter) {
             newARRAY->Add(Get(iter->second));
             key = (char *)iter->first;
-            newARRAY->AddKey(&key, i++);
+            newARRAY->AddKey(key, i++);
         }
     }
 #else
     CleanIndex(true);
     for (ARRAY_COUNT_TYPE i = 0; i < KeysCount; i++) {
-        AnsiString key = Keys [i].KEY;
         newARRAY->Add(Get(Keys [i].index));
-        newARRAY->AddKey(&key, i);
+        newARRAY->AddKey(Keys [i].KEY, i);
     }
 #endif
 

@@ -2048,9 +2048,23 @@ int DoBin(RefContainer *rc, void *ConceptHandler, void *OwnerPTR = 0, int dry_ru
                         if (dry_run) {
                             handler = NULL;
                         } else {
-                            buf.LoadBuffer(temp, key_size);
+                            if (rc->filters)
+                                buf.LoadBuffer(temp, key_size);
                             if ((!rc->filters) || (FilterContains(rc, &buf))) {
-                                LocalInvoker(INVOKE_ARRAY_VARIABLE_BY_KEY, OwnerPTR, buf.c_str(), &handler);
+                                if ((!rc->filters) && (rc->offset < rc->size - 1)) {
+                                    // add null_character at the end
+                                    // ugly but faster when not using filters (no additional copying necessary to buf)
+                                    char pushed_char = temp[key_size];
+                                    temp[key_size] = 0;
+
+                                    LocalInvoker(INVOKE_ARRAY_VARIABLE_BY_KEY, OwnerPTR, temp, &handler);
+                                    // restore char
+                                    temp[key_size] = pushed_char;
+                                } else {
+                                    if (!rc->filters)
+                                        buf.LoadBuffer(temp, key_size);
+                                    LocalInvoker(INVOKE_ARRAY_VARIABLE_BY_KEY, OwnerPTR, buf.c_str(), &handler);
+                                }
                                 if (rc->filters)
                                     ref_dry_run = 0;
                             } else
