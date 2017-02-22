@@ -235,14 +235,13 @@ public:
                 QUEUE_UNLOCK(share_lock);
                 return data;
             }
-
             data = &(*map)[key];
             QUEUE_UNLOCK(share_lock);
         }
         return data;
     }
 
-    int RemoveKey(char *master_key) {
+    int RemoveKey(char *master_key, char *key = NULL) {
         int size = 0;
         if (master_key) {
             QUEUE_LOCK(share_lock);
@@ -251,10 +250,14 @@ public:
                 QUEUE_UNLOCK(share_lock);
                 return size;
             }
-            share_data.erase(master_key);
+            if (key)
+                map->erase(key);
+            else
+                share_data.erase(master_key);
             QUEUE_UNLOCK(share_lock);
             size = map->size();
-            delete map;
+            if (!key)
+                delete map;
         }
         return size;
     }
@@ -970,7 +973,6 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(WorkerSharedGet, 2, 3)
 
         sharecontext = tmc->sharecontext;
     }
-
     AnsiString *data = sharecontext->GetKey(PARAM(0), PARAM(1));
     if ((data) && (data->Length())) {
         RETURN_BUFFER(data->c_str(), data->Length());
@@ -979,18 +981,25 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(WorkerSharedGet, 2, 3)
     }
 END_IMPL
 //---------------------------------------------------------------------------
-CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(WorkerSharedRemove, 1, 2)
+CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(WorkerSharedRemove, 1, 3)
     T_STRING(WorkerSharedRemove, 0)
 
     ShareContext *sharecontext = NULL;
     void *worker = NULL;
+    char *key = NULL;
     if (PARAMETERS_COUNT > 1) {
-        T_NUMBER(WorkerSharedRemove, 1);
-        sharecontext = (ShareContext *)(SYS_INT)PARAM(1);
+        T_STRING(WorkerSharedRemove, 1);
+        key = PARAM(1);
+        if ((key) && (!key[0]))
+            key = NULL;
+    }
+    if (PARAMETERS_COUNT > 2) {
+        T_NUMBER(WorkerSharedRemove, 2);
+        sharecontext = (ShareContext *)(SYS_INT)PARAM(2);
     }
     int size = 0;
     if (sharecontext) {
-        size = sharecontext->RemoveKey(PARAM(0));
+        size = sharecontext->RemoveKey(PARAM(0), key);
     } else {
         ThreadMetaContainer * tmc = NULL;
         Invoke(INVOKE_GETPROTODATA, PARAMETERS->HANDLER, (int)2, &tmc);
@@ -999,7 +1008,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(WorkerSharedRemove, 1, 2)
         if (!tmc->sharecontext)
             return (void *)"No shared context set";
 
-        size = tmc->sharecontext->RemoveKey(PARAM(0));
+        size = tmc->sharecontext->RemoveKey(PARAM(0), key);
     }
     RETURN_NUMBER(size);
 END_IMPL

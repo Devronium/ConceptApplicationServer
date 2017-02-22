@@ -74,8 +74,8 @@ class Worker {
 		return WorkerSharedSet(masterkey, key, data);
 	}
 
-	static Remove(masterkey) {
-		return WorkerSharedRemove(masterkey);
+	static Remove(masterkey, key = "") {
+		return WorkerSharedRemove(masterkey, key);
 	}
 
 	GetKey(masterkey, key) {
@@ -90,10 +90,10 @@ class Worker {
 		return WorkerSharedSet(masterkey, key, data, _shared_context);
 	}
 
-	RemoveKey(masterkey) {
+	RemoveKey(masterkey, key = "") {
 		if (!_shared_context)
 			throw "No shared context set";
-		return WorkerSharedRemove(masterkey, _shared_context);
+		return WorkerSharedRemove(masterkey, key, _shared_context);
 	}
 
 	Exit() {
