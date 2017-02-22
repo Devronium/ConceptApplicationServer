@@ -39,6 +39,7 @@ extern "C" {
     CONCEPT_FUNCTION(WorkerSharedGet)
     CONCEPT_FUNCTION(WorkerSharedSet)
     CONCEPT_FUNCTION(WorkerSharedRemove)
+    CONCEPT_FUNCTION(WorkerSharedGetSet)
 
     CONCEPT_FUNCTION(WorkerSharedContext)
     CONCEPT_FUNCTION(WorkerSharedRelease)

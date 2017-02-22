@@ -241,6 +241,23 @@ public:
         return data;
     }
 
+    AnsiString *GetSetKey(char *master_key, char *key, char *value, int len) {
+        AnsiString *data = NULL;
+        if ((master_key) && (key)) {
+            QUEUE_LOCK(share_lock);
+            std::map<std::string, AnsiString> *map = share_data[master_key];
+            if (!map) {
+                map = new std::map<std::string, AnsiString>();
+                share_data[master_key] = map;
+            }
+            data = &(*map)[key];
+            if ((!data) || (!data->Length()))
+                (*map)[key].LoadBuffer(value, len);
+            QUEUE_UNLOCK(share_lock);
+        }
+        return data;
+    }
+
     int RemoveKey(char *master_key, char *key = NULL) {
         int size = 0;
         if (master_key) {
@@ -976,6 +993,38 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(WorkerSharedGet, 2, 3)
     AnsiString *data = sharecontext->GetKey(PARAM(0), PARAM(1));
     if ((data) && (data->Length())) {
         RETURN_BUFFER(data->c_str(), data->Length());
+    } else {
+        RETURN_STRING("");
+    }
+END_IMPL
+//---------------------------------------------------------------------------
+CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(WorkerSharedGetSet, 3, 4)
+    T_STRING(WorkerSharedSet, 0)
+    T_STRING(WorkerSharedSet, 1)
+    T_STRING(WorkerSharedSet, 2)
+
+    ShareContext *sharecontext = NULL;
+    if (PARAMETERS_COUNT > 3) {
+        T_NUMBER(WorkerSharedGet, 3);
+        sharecontext = (ShareContext *)(SYS_INT)PARAM(3);
+    }
+    int size = 0;
+    if (!sharecontext) {
+        ThreadMetaContainer * tmc = NULL;
+        Invoke(INVOKE_GETPROTODATA, PARAMETERS->HANDLER, (int)2, &tmc);
+        if (!tmc)
+            return (void *)"Using a worker function on a non-worker";
+        if (!tmc->sharecontext)
+            return (void *)"No shared context set";
+
+        sharecontext = tmc->sharecontext;
+    }
+    AnsiString *data = sharecontext->GetSetKey(PARAM(0), PARAM(1), PARAM(2), PARAM_LEN(2));
+    if ((data) && (data->Length())) {
+        RETURN_BUFFER(data->c_str(), data->Length());
+    } else
+    if (PARAM_LEN(2)) {
+        RETURN_BUFFER(PARAM(2), PARAM_LEN(2));
     } else {
         RETURN_STRING("");
     }
