@@ -591,7 +591,7 @@ class Main {
 				echo "        drop collection\n";
 				echo "    ${em("collection.index")}(index);\n";
 				echo "        create btree index\n";
-				echo "    ${em("collection.fulltext")}(string language | array fields | {\"language\": \"en\", \"fileds\": array);\n";
+				echo "    ${em("collection.fulltext")}(string language | array fields | {\"language\": \"en\", \"fields\": array);\n";
 				echo "        create full text index\n";
 				echo "All commands MUST end with ';'\n";
 				break;
