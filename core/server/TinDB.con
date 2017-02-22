@@ -189,17 +189,22 @@ pragma used
 		return res;
 	}
 
+	static WriterWorker(d, c, suggest_worker) {
+		var key = "*" + d + "/" + c;
+		return value Worker::GetSet(key, "worker", "" + suggest_worker);
+	}
+
 	static CacheKey(obj) {
 		return sha1(BinarizeObject([obj.o, obj.f, obj.p, obj.x["start"], obj.x["len"], obj.x["descending"]]));
 	}
 
 	static InvalidateCache(d, c) {
-		var key = "" + d + "/" + c;
+		var key = "/" + d + "/" + c;
 		Worker::Remove(key);
 	}
 
 	static Cache(obj, r) {
-		var key = "" + obj.d + "/" + obj.c;
+		var key = "/" + obj.d + "/" + obj.c;
 		var cache_key = QueryWorker::CacheKey(obj);
 		if (length r < MAX_CACHE_OBJECT_LEN) {
 			var cache_obj = BinarizeObject([r, time()]);
@@ -215,7 +220,7 @@ pragma used
 	static CacheHit(obj, sock, current_worker) {
 		var data;
 		if ((obj.o == "Q") && ((!obj.x) || (!obj.x["map"])) && (obj.c) && (obj.d)) {
-			var key = "" + obj.d + "/" + obj.c;
+			var key = "/" + obj.d + "/" + obj.c;
 			if (key) {
 				data = Worker::Get(key, QueryWorker::CacheKey(obj));
 				if (data) {
@@ -236,7 +241,7 @@ pragma used
 		return false;
 	}
 
-	Dispatch(ctx, sock, t, var next_worker, var next_a_worker, var next_idle_worker, storage_dbs, storage_workers, aggregation_workers, idle_workers, obj, current_worker, var buf) {
+	Dispatch(ctx, sock, t, var next_worker, var next_a_worker, var next_idle_worker, storage_dbs, storage_workers, aggregation_workers, idle_workers, obj, current_worker, var buf, storage_dbs_w) {
 		var priority = 0;
 		if (obj.x) {
 			var p2 = obj.x["priority"];
@@ -309,13 +314,23 @@ pragma used
 							if (!obj.r)
 								obj.r = new R();
 						} else
+						if ((obj.o == "I") || (obj.o == "D") || (obj.o == "R")) {
+							var storage_key = "" + obj.d + "/" + obj.c;
+							storage = storage_dbs_w[storage_key];
+							if (!storage) {
+								storage = WriterWorker(obj.d, obj.c, storage_workers[next_worker++]);
+								if (next_worker >= length storage_workers)
+									next_worker = 0;
+								storage_dbs_w[storage_key] = storage;
+							}
+						} else
 						if (priority < 0) {
 							// idle priority
 							storage = idle_workers[next_idle_worker++];
 							if (next_idle_worker >= length idle_workers)
 								next_idle_worker = 0;
 						} else {
-							var storage_key = "" + obj.d + "/" + obj.c;
+							storage_key = "" + obj.d + "/" + obj.c;
 							storage = storage_dbs[storage_key];
 							if (!storage) {
 								storage = storage_workers[next_worker++];
@@ -450,6 +465,7 @@ pragma used
 		var storage_workers = n[1];
 		var idle_workers =  n[2];
 		var[] storage_dbs;
+		var[] storage_dbs_w;
 		var next_worker = 0;
 		var next_a_worker = 0;
 		var next_idle_worker = 0;
@@ -516,7 +532,7 @@ pragma used
 				} else
 				if (remote_obj) {
 					if ((remote_obj) && (classof remote_obj == "Q") && (remote_obj.o) && ((remote_obj.o == "W") || (remote_obj.o == "Q")))
-						Dispatch(null, -1, null, next_worker, next_a_worker, next_idle_worker, storage_dbs, storage_workers, aggregation_workers, idle_workers, remote_obj, current_worker, "");
+						Dispatch(null, -1, null, next_worker, next_a_worker, next_idle_worker, storage_dbs, storage_workers, aggregation_workers, idle_workers, remote_obj, current_worker, "", storage_dbs_w);
 				}
 			}
 			if ((SocketPoll(sockets, var outsockets, 0)) && (outsockets)) {
@@ -538,7 +554,7 @@ pragma used
 									buf = SubStr(buf, to_read + bytes);
 									obj = UnBinarizeObject(buf2);
  									if ((obj) && (classof obj == "Q") && (obj.o))
-										Dispatch(ctx, sock, t, next_worker, next_a_worker, next_idle_worker, storage_dbs, storage_workers, aggregation_workers, idle_workers, obj, current_worker, buf);
+										Dispatch(ctx, sock, t, next_worker, next_a_worker, next_idle_worker, storage_dbs, storage_workers, aggregation_workers, idle_workers, obj, current_worker, buf, storage_dbs_w);
 								} else {
 									ctx.buffer = buf;
 									break;
