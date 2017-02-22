@@ -3,9 +3,10 @@ import standard.lib.thread
 class Worker {
 	var _workerobj;
 	var _workerthread;
+	var _shared_context;
 
-	Worker(classname, string parameter = "") {
-		_workerobj = CreateWorker(classname, _workerthread, parameter);
+	Worker(classname, string parameter = "", shared_context = null) {
+		_workerobj = CreateWorker(classname, _workerthread, parameter, shared_context);
 		if (_workerthread) {
 			var iterations=0;
 			while (!ThreadIsActive(_workerthread)) {
@@ -14,6 +15,17 @@ class Worker {
 					break;
 			}
 		}
+		if (shared_context)
+			this._shared_context = shared_context;
+	}
+
+	static SharedContext() {
+		return WorkerSharedContext();
+	}
+
+	static SharedContextRelease(shared_context) {
+		if (shared_context)
+			WorkerSharedRelease(shared_context);
 	}
 
 	Join() {
@@ -52,6 +64,36 @@ class Worker {
 
 	static Result(data) {
 		return AddWorkerResultData(data);
+	}
+
+	static Get(masterkey, key) {
+		return WorkerSharedGet(masterkey, key);
+	}
+
+	static Set(masterkey, key, var data) {
+		return WorkerSharedSet(masterkey, key, data);
+	}
+
+	static Remove(masterkey) {
+		return WorkerSharedRemove(masterkey);
+	}
+
+	GetKey(masterkey, key) {
+		if (!_shared_context)
+			throw "No shared context set";
+		return WorkerSharedGet(masterkey, key, _shared_context);
+	}
+
+	SetKey(masterkey, key, var data) {
+		if (!_shared_context)
+			throw "No shared context set";
+		return WorkerSharedSet(masterkey, key, data, _shared_context);
+	}
+
+	RemoveKey(masterkey) {
+		if (!_shared_context)
+			throw "No shared context set";
+		return WorkerSharedRemove(masterkey, _shared_context);
 	}
 
 	Exit() {

@@ -25,6 +25,8 @@
 #include <queue>
 #endif
 #include "semhh.h"
+#include <map>
+#include <string>
 
 #ifdef POSIX_SEMAPHORES
  #include <semaphore.h>
@@ -184,6 +186,91 @@ public:
     }
 };
 
+class ShareContext {
+private:
+    QUEUE_SEMAPHORE share_lock;
+    std::map<std::string, std::map<std::string, AnsiString> *> share_data;
+    int links;
+public:
+    ShareContext() {
+        links = 0;
+        QUEUE_CREATE(share_lock);
+    }
+
+    void Retain() {
+        QUEUE_LOCK(share_lock);
+        links++;
+        QUEUE_UNLOCK(share_lock);
+    }
+
+    int Release() {
+        QUEUE_LOCK(share_lock);
+        links--;
+        QUEUE_UNLOCK(share_lock);
+        return links;
+    }
+
+    int SetKey(char *master_key, char *key, char *value, int len) {
+        int size = 0;
+        if ((master_key) && (key)) {
+            QUEUE_LOCK(share_lock);
+            std::map<std::string, AnsiString> *map = share_data[master_key];
+            if (!map) {
+                map = new std::map<std::string, AnsiString>();
+                share_data[master_key] = map;
+            }
+            size = map->size();
+            (*map)[key].LoadBuffer(value, len);
+            QUEUE_UNLOCK(share_lock);
+        }
+        return size;
+    }
+
+    AnsiString *GetKey(char *master_key, char *key) {
+        AnsiString *data = NULL;
+        if ((master_key) && (key)) {
+            QUEUE_LOCK(share_lock);
+            std::map<std::string, AnsiString> *map = share_data[master_key];
+            if (!map) {
+                QUEUE_UNLOCK(share_lock);
+                return data;
+            }
+
+            data = &(*map)[key];
+            QUEUE_UNLOCK(share_lock);
+        }
+        return data;
+    }
+
+    int RemoveKey(char *master_key) {
+        int size = 0;
+        if (master_key) {
+            QUEUE_LOCK(share_lock);
+            std::map<std::string, AnsiString> *map = share_data[master_key];
+            if (!map) {
+                QUEUE_UNLOCK(share_lock);
+                return size;
+            }
+            share_data.erase(master_key);
+            QUEUE_UNLOCK(share_lock);
+            size = map->size();
+            delete map;
+        }
+        return size;
+    }
+
+    ~ShareContext() {
+        QUEUE_LOCK(share_lock);
+        for (std::map<std::string, std::map<std::string, AnsiString> *>::iterator it = share_data.begin(); it != share_data.end(); ++it) {
+            std::map<std::string, AnsiString> *map = it->second;
+            if (map)
+                delete map;
+        }
+        QUEUE_UNLOCK(share_lock);
+        QUEUE_DONE(share_lock);
+    }
+};
+
 class ThreadMetaContainer {
 private:
 #ifdef USE_STD_QUEUE
@@ -201,6 +288,7 @@ private:
     CondWait input_cond;
     CondWait output_cond;
 public:
+    ShareContext *sharecontext;
     void *worker;
 
     int AddInput(char *S, int len, int priority = 0) {
@@ -278,6 +366,17 @@ public:
         this->input_cond_wait = 0;
         this->output_cond_wait = 0;
         this->worker = worker;
+        this->sharecontext = NULL;
+    }
+
+    void SetShareContext(void *context) {
+        if (sharecontext) {
+            if (sharecontext->Release() <= 0)
+                delete sharecontext;
+        }
+        sharecontext = (ShareContext *)context;
+        if (sharecontext)
+            sharecontext->Retain();
     }
 
     ~ThreadMetaContainer() {
@@ -294,6 +393,7 @@ public:
             if (S)
                 delete S;
         }
+        SetShareContext(NULL);
         QUEUE_UNLOCK(input_lock);
         QUEUE_DONE(input_lock);
         QUEUE_DONE(output_lock);
@@ -669,11 +769,16 @@ LPVOID WorkerFunction(LPVOID DPARAM) {
 }
 
 //---------------------------------------------------------------------------
-CONCEPT_FUNCTION_IMPL(CreateWorker, 3)
+CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(CreateWorker, 3, 4)
     T_STRING(CreateWorker, 0)
     SET_NUMBER(1, 0);
     T_STRING(CreateWorker, 2)
+    ShareContext *sharecontext = NULL;
     void *worker = NULL;
+    if (PARAMETERS_COUNT > 3) {
+        T_NUMBER(CreateWorker, 3);
+        sharecontext = (ShareContext *)(SYS_INT)PARAM(3);
+    }
     Invoke(INVOKE_CREATE_WORKER, PARAMETERS->HANDLER, &worker);
     if (worker) {
         //void *variable = NULL;
@@ -714,7 +819,10 @@ CONCEPT_FUNCTION_IMPL(CreateWorker, 3)
         //    Invoke(INVOKE_FREE_WORKER, worker);
         //    return (void *)"CreateWorker: Class not found";
         //}
+        if (sharecontext)
+            tmc->SetShareContext(sharecontext);
     }
+
     RETURN_NUMBER((uintptr_t)worker);
 END_IMPL
 //---------------------------------------------------------------------------
@@ -787,7 +895,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(GetWorkerData, 1, 2)
         locking = PARAM_INT(1);
     }
     AnsiString *temp = NULL;
-    int        size  = tmc->GetInput(&temp, locking);
+    int size  = tmc->GetInput(&temp, locking);
     if ((temp) && (temp->Length())) {
         SET_BUFFER(0, temp->c_str(), temp->Length());
     } else {
@@ -815,5 +923,97 @@ CONCEPT_FUNCTION_IMPL(CurrentWorker, 0)
     if (!tmc)
         return (void *)"Using a worker function on a non-worker";
     RETURN_NUMBER((uintptr_t)tmc->worker);
+END_IMPL
+//---------------------------------------------------------------------------
+CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(WorkerSharedSet, 3, 4)
+    T_STRING(WorkerSharedSet, 0)
+    T_STRING(WorkerSharedSet, 1)
+    T_STRING(WorkerSharedSet, 2)
+
+    ShareContext *sharecontext = NULL;
+    if (PARAMETERS_COUNT > 3) {
+        T_NUMBER(WorkerSharedGet, 3);
+        sharecontext = (ShareContext *)(SYS_INT)PARAM(3);
+    }
+    int size = 0;
+    if (!sharecontext) {
+        ThreadMetaContainer * tmc = NULL;
+        Invoke(INVOKE_GETPROTODATA, PARAMETERS->HANDLER, (int)2, &tmc);
+        if (!tmc)
+            return (void *)"Using a worker function on a non-worker";
+        if (!tmc->sharecontext)
+            return (void *)"No shared context set";
+
+        sharecontext = tmc->sharecontext;
+    }
+    size = sharecontext->SetKey(PARAM(0), PARAM(1), PARAM(2), PARAM_LEN(2));
+    RETURN_NUMBER(size);
+END_IMPL
+//---------------------------------------------------------------------------
+CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(WorkerSharedGet, 2, 3)
+    T_STRING(WorkerSharedGet, 0)
+    T_STRING(WorkerSharedGet, 1)
+
+    ShareContext *sharecontext = NULL;
+    if (PARAMETERS_COUNT > 2) {
+        T_NUMBER(WorkerSharedGet, 2);
+        sharecontext = (ShareContext *)(SYS_INT)PARAM(2);
+    }
+
+    if (!sharecontext) {
+        ThreadMetaContainer * tmc = NULL;
+        Invoke(INVOKE_GETPROTODATA, PARAMETERS->HANDLER, (int)2, &tmc);
+        if (!tmc)
+            return (void *)"Using a worker function on a non-worker";
+        if (!tmc->sharecontext)
+            return (void *)"No shared context set";
+
+        sharecontext = tmc->sharecontext;
+    }
+
+    AnsiString *data = sharecontext->GetKey(PARAM(0), PARAM(1));
+    if ((data) && (data->Length())) {
+        RETURN_BUFFER(data->c_str(), data->Length());
+    } else {
+        RETURN_STRING("");
+    }
+END_IMPL
+//---------------------------------------------------------------------------
+CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(WorkerSharedRemove, 1, 2)
+    T_STRING(WorkerSharedRemove, 0)
+
+    ShareContext *sharecontext = NULL;
+    void *worker = NULL;
+    if (PARAMETERS_COUNT > 1) {
+        T_NUMBER(WorkerSharedRemove, 1);
+        sharecontext = (ShareContext *)(SYS_INT)PARAM(1);
+    }
+    int size = 0;
+    if (sharecontext) {
+        size = sharecontext->RemoveKey(PARAM(0));
+    } else {
+        ThreadMetaContainer * tmc = NULL;
+        Invoke(INVOKE_GETPROTODATA, PARAMETERS->HANDLER, (int)2, &tmc);
+        if (!tmc)
+            return (void *)"Using a worker function on a non-worker";
+        if (!tmc->sharecontext)
+            return (void *)"No shared context set";
+
+        size = tmc->sharecontext->RemoveKey(PARAM(0));
+    }
+    RETURN_NUMBER(size);
+END_IMPL
+//---------------------------------------------------------------------------
+CONCEPT_FUNCTION_IMPL(WorkerSharedContext, 0)
+    ShareContext *context = new ShareContext();
+    context->Retain();
+    RETURN_NUMBER((SYS_INT)context);
+END_IMPL
+//---------------------------------------------------------------------------
+CONCEPT_FUNCTION_IMPL(WorkerSharedRelease, 1)
+    T_HANDLE(WorkerSharedRelease, 0)
+    ShareContext *sharecontext = (ShareContext *)(SYS_INT)PARAM(0);
+    sharecontext->Release();
+    RETURN_NUMBER(0);
 END_IMPL
 //---------------------------------------------------------------------------
