@@ -11,7 +11,8 @@ import standard.lib.regex
 
 define HEADER_SIZE		64
 define DEFAULT_MODULO_SIZE	64
-define NO_FRAGMENTATION_SIZE	(MODULO_SIZE * 5)
+// don't fragment new records (faster)
+define NO_FRAGMENTATION_SIZE	63
 
 define BM25_GRAPH_LEVEL		5
 define BM25_QUERY_LEVEL		5
@@ -1675,18 +1676,22 @@ class BinFile extends File {
 				if ((at_end) && (pos < length data)) {
 					file_pos = ftell(hFile);
 					var full_buf = buf;
+					var buf_size;
 					while (pos < length data) {
 						file_pos += MODULO_SIZE + 8;
 						full_buf += pack("u64", file_pos);
-						if (pos)
-							buf = "\x00" + SubStr(data, pos, MODULO_SIZE - 1);
-						else
-							buf = SubStr(data, pos, MODULO_SIZE);
+						if (pos) {
+							buf_size = MODULO_SIZE - 1;
+							buf = "\x00" + SubStr(data, pos, buf_size);
+						} else {
+							buf_size = MODULO_SIZE;
+							buf = SubStr(data, pos, buf_size);
+						}
 						if (length buf < MODULO_SIZE)
 							full_buf += pack("s:" + MODULO_SIZE, buf);
 						else
 							full_buf += buf;
-						pos += length buf;
+						pos += buf_size;
 					}
 					full_buf += end_block;
 					// write all at once

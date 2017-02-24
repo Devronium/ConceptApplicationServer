@@ -37,8 +37,10 @@ define ERR_AGGREGATION_S"Invalid aggregation"
 
 define NOTIFY_MORE_DATA	1
 
-define MAX_CACHED_QUERIES	1024
-define MAX_CACHE_OBJECT_LEN	100000
+define MAX_CACHED_QUERIES	128
+define MAX_CACHE_OBJECT_LEN	50000
+// max 8M per object
+define MAX_CACHE_OBJECT_SIZE	8388608
 
 define BUSY_FSYNC_LIMIT	 	10000
 
@@ -208,6 +210,10 @@ pragma used
 		var cache_key = QueryWorker::CacheKey(obj);
 		if (length r < MAX_CACHE_OBJECT_LEN) {
 			var cache_obj = BinarizeObject([r, time()]);
+			if (length cache_obj > MAX_CACHE_OBJECT_SIZE) {
+				// don't cache large objects
+				return;
+			}
 			if (Worker::Set(key, cache_key, cache_obj) > MAX_CACHED_QUERIES) {
 				QueryWorker::InvalidateCache(obj.d, obj.c);
 				Worker::Set(key, cache_key, cache_obj);
@@ -490,8 +496,9 @@ pragma used
 			}
 		}
 		var sleep_value = 0;
+		var data;
 		while (true) {
-			var data = "";
+			data = "";
 			if (Worker::Pending(data, sleep_value)) {
 				var job = UnBinarizeObject(data);
 				var socket = job[0];
@@ -534,6 +541,8 @@ pragma used
 					if ((remote_obj) && (classof remote_obj == "Q") && (remote_obj.o) && ((remote_obj.o == "W") || (remote_obj.o == "Q")))
 						Dispatch(null, -1, null, next_worker, next_a_worker, next_idle_worker, storage_dbs, storage_workers, aggregation_workers, idle_workers, remote_obj, current_worker, "", storage_dbs_w);
 				}
+				remote_obj = null;
+				job = null;
 			}
 			if ((SocketPoll(sockets, var outsockets, 0)) && (outsockets)) {
 				for (var i = 0; i < length outsockets; i++) {

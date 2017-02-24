@@ -8,6 +8,7 @@
 #include "AnsiString.h"
 #include <string.h>
 #include <stdint.h>
+#include <map>
 #ifndef _WIN32
  #include <netinet/in.h>
 #endif
@@ -111,6 +112,7 @@ static const HuffChar *slow_table[] = {slow_values_10, slow_values_11, slow_valu
 #define MAX_OBJECTS    0x1FFFF
 
 typedef struct {
+    std::map<void *, int> BACK_CACHE;
     void       *BACK_REFERENCES[MAX_OBJECTS];
     void       *BACK_REFERENCES2[MAX_OBJECTS];
     char       BACK_TYPES[MAX_OBJECTS];
@@ -273,12 +275,14 @@ END_IMPL
 //------------------------------------------------------------------------
 int CheckBack(RefContainer *rc, void *pData) {
     // check if a reference is already serialized (anti-cyclic reference)
-    for (int i = 0; i < rc->BACK_REF_COUNT; i++) {
-        if (rc->BACK_REFERENCES[i] == pData)
-            return i + 1;
-    }
-    if (rc->BACK_REF_COUNT < MAX_OBJECTS)
+    int i = rc->BACK_CACHE[pData];
+    if (i)
+        return i;
+
+    if (rc->BACK_REF_COUNT < MAX_OBJECTS) {
         rc->BACK_REFERENCES[rc->BACK_REF_COUNT++] = pData;
+        rc->BACK_CACHE[pData] = rc->BACK_REF_COUNT;
+    }
     return 0;
 }
 
