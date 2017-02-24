@@ -12,7 +12,7 @@ import standard.lib.regex
 define HEADER_SIZE		64
 define DEFAULT_MODULO_SIZE	64
 // don't fragment new records (faster)
-define NO_FRAGMENTATION_SIZE	63
+define NO_FRAGMENTATION_SIZE	DEFAULT_MODULO_SIZE
 
 define BM25_GRAPH_LEVEL		5
 define BM25_QUERY_LEVEL		5

@@ -209,7 +209,7 @@ pragma used
 		var key = "/" + obj.d + "/" + obj.c;
 		var cache_key = QueryWorker::CacheKey(obj);
 		if (length r < MAX_CACHE_OBJECT_LEN) {
-			var cache_obj = BinarizeObject([r, time()]);
+			var cache_obj = BinarizeObject(r);
 			if (length cache_obj > MAX_CACHE_OBJECT_SIZE) {
 				// don't cache large objects
 				return;
@@ -230,11 +230,11 @@ pragma used
 			if (key) {
 				data = Worker::Get(key, QueryWorker::CacheKey(obj));
 				if (data) {
-					data = UnBinarizeObject(data);
-					if (data) {
+					var data_obj = UnBinarizeObject(data);
+					if (data_obj) {
 						var r = new R();
 						r.q = obj.q;
-						r.p = data[0];
+						r.p = data_obj;
 						if ((!obj.io) || (obj.io != current_worker))
 							r.Send(sock, obj.io);
 						else
@@ -465,6 +465,96 @@ pragma used
 		}
 	}
 
+	Execute(var data, var sleep_value, var t, var next_worker, var next_a_worker, var next_idle_worker, var storage_dbs, var storage_workers, var aggregation_workers, var idle_workers, var current_worker, var storage_dbs_w) {
+		var timeout = 2;
+		if (data) {
+			timeout = 0;
+			var job = UnBinarizeObject(data);
+			var socket = job[0];
+			var remote_obj = job[1];
+			if (socket > 0) {
+				if (job[3]) {
+					// is postback
+					var socket_key = "" + socket;
+					// check if socket is still valid
+					if (IsSet(buffers, socket_key)) {
+						var len = SocketIOBase::SendBuffer(socket, remote_obj);
+						if (len != length remote_obj) {
+							// connection was dropped
+							RemoveSocket(socket);
+						}
+					}
+				} else {
+					var post_key = remote_obj;//job[1];
+					if (post_key) {
+						var sock_key = "" + socket;
+						if (IsSet(buffers, sock_key)) {
+							var post_back_ctx = buffers[sock_key];
+							if ((post_back_ctx) && (post_back_ctx.key == post_key)) {
+								var post_back_r = job[2];
+								post_back_r.Send(socket);
+								delete post_back_r;
+								delete job;
+							}
+						}
+					} else {
+						sockets[length sockets] = socket;
+						buffers["" + socket] = new ConnectionContext(socket);
+					}
+				}
+			} else
+			if (socket == -7) {
+				this.Notify(job[1], job[2]);
+			} else
+			if (remote_obj) {
+				if ((remote_obj) && (classof remote_obj == "Q") && (remote_obj.o) && ((remote_obj.o == "W") || (remote_obj.o == "Q")))
+					Dispatch(null, -1, null, next_worker, next_a_worker, next_idle_worker, storage_dbs, storage_workers, aggregation_workers, idle_workers, remote_obj, current_worker, "", storage_dbs_w);
+			}
+			remote_obj = null;
+			job = null;
+		}
+		if ((SocketPoll(sockets, var outsockets, timeout)) && (outsockets)) {
+			for (var i = 0; i < length outsockets; i++) {
+				var sock = outsockets[i];
+				var buffer = "";
+				var buf2 = "";
+				var obj = null;
+				var res = SocketRead(sock, buffer, READ_BUFFER);
+				if (res > 0) {
+					var ctx = buffers["" + sock];
+					var buf = ctx.buffer + buffer;
+					// deserialize
+					while (buf) {
+						var to_read = FromSize(buf, var bytes);
+						if (to_read <= MAX_OP_SIZE) {
+							if ((to_read > 0) && (to_read <= length buf - bytes)) {
+								buf2 = SubStr(buf, bytes, to_read);
+								buf = SubStr(buf, to_read + bytes);
+								obj = UnBinarizeObject(buf2);
+ 								if ((obj) && (classof obj == "Q") && (obj.o))
+									Dispatch(ctx, sock, t, next_worker, next_a_worker, next_idle_worker, storage_dbs, storage_workers, aggregation_workers, idle_workers, obj, current_worker, buf, storage_dbs_w);
+							} else {
+								ctx.buffer = buf;
+								break;
+							}
+							ctx.buffer = buf;
+						} else {
+							// drop socket ... packet to large
+							RemoveSocket(sock);
+							break;
+						}
+					}
+				} else
+					RemoveSocket(sock);
+			}
+			return;
+		}
+		if (sockets) {
+			sleep_value = 2; // Sleep(2);
+		} else
+			sleep_value = 5; // Sleep(5);
+	}
+
 	QueryWorker(n) {
 		n = UnBinarizeObject(n);
 		WorkerID = n[0];
@@ -499,91 +589,8 @@ pragma used
 		var data;
 		while (true) {
 			data = "";
-			if (Worker::Pending(data, sleep_value)) {
-				var job = UnBinarizeObject(data);
-				var socket = job[0];
-				var remote_obj = job[1];
-				if (socket > 0) {
-					if (job[3]) {
-						// is postback
-						var socket_key = "" + socket;
-						// check if socket is still valid
-						if (IsSet(buffers, socket_key)) {
-							var len = SocketIOBase::SendBuffer(socket, remote_obj);
-							if (len != length remote_obj) {
-								// connection was dropped
-								RemoveSocket(socket);
-							}
-						}
-					} else {
-						var post_key = remote_obj;//job[1];
-						if (post_key) {
-							var sock_key = "" + socket;
-							if (IsSet(buffers, sock_key)) {
-								var post_back_ctx = buffers[sock_key];
-								if ((post_back_ctx) && (post_back_ctx.key == post_key)) {
-									var post_back_r = job[2];
-									post_back_r.Send(socket);
-									delete post_back_r;
-									delete job;
-								}
-							}
-						} else {
-							sockets[length sockets] = socket;
-							buffers["" + socket] = new ConnectionContext(socket);
-						}
-					}
-				} else
-				if (socket == -7) {
-					this.Notify(job[1], job[2]);
-				} else
-				if (remote_obj) {
-					if ((remote_obj) && (classof remote_obj == "Q") && (remote_obj.o) && ((remote_obj.o == "W") || (remote_obj.o == "Q")))
-						Dispatch(null, -1, null, next_worker, next_a_worker, next_idle_worker, storage_dbs, storage_workers, aggregation_workers, idle_workers, remote_obj, current_worker, "", storage_dbs_w);
-				}
-				remote_obj = null;
-				job = null;
-			}
-			if ((SocketPoll(sockets, var outsockets, 0)) && (outsockets)) {
-				for (var i = 0; i < length outsockets; i++) {
-					var sock = outsockets[i];
-					var buffer = "";
-					var buf2 = "";
-					var obj = null;
-					var res = SocketRead(sock, buffer, READ_BUFFER);
-					if (res > 0) {
-						var ctx = buffers["" + sock];
-						var buf = ctx.buffer + buffer;
-						// deserialize
-						while (buf) {
-							var to_read = FromSize(buf, var bytes);
-							if (to_read <= MAX_OP_SIZE) {
-								if ((to_read > 0) && (to_read <= length buf - bytes)) {
-									buf2 = SubStr(buf, bytes, to_read);
-									buf = SubStr(buf, to_read + bytes);
-									obj = UnBinarizeObject(buf2);
- 									if ((obj) && (classof obj == "Q") && (obj.o))
-										Dispatch(ctx, sock, t, next_worker, next_a_worker, next_idle_worker, storage_dbs, storage_workers, aggregation_workers, idle_workers, obj, current_worker, buf, storage_dbs_w);
-								} else {
-									ctx.buffer = buf;
-									break;
-								}
-								ctx.buffer = buf;
-							} else {
-								// drop socket ... packet to large
-								RemoveSocket(sock);
-								break;
-							}
-						}
-					} else
-						RemoveSocket(sock);
-				}
-				continue;
-			}
-			if (sockets) {
-				sleep_value = 2; // Sleep(2);
-			} else
-				sleep_value = 5; // Sleep(5);
+			Worker::Pending(data, sleep_value);
+			Execute(data, sleep_value, t, next_worker, next_a_worker, next_idle_worker, storage_dbs, storage_workers, aggregation_workers, idle_workers, current_worker, storage_dbs_w);
 		}
 	}
 }
@@ -1190,8 +1197,9 @@ pragma used
 			}
 		}
 
+		var data;
 		while (true) {
-			var data = "";
+			data = "";
 			var qsize = Worker::Pending(data, -1);
 			if (qsize) {
 				try {

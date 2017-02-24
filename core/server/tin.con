@@ -45,7 +45,7 @@ class IOWorker extends Worker{
 				s2 = trim(s2);
 				s = "";
 				sent = true;
-				if ((s2 == "exit") || (s2 == "quit"))
+				if ((s2 == "exit") || (s2 == "quit") || (s2 == "done"))
 					break;
 			}
 		}
@@ -64,6 +64,7 @@ class Main {
 	var queries;
 	var output;
 	var reconnecting = false;
+	var close = false;
 
 	static em(text, add_quote = false) {
 		if (ON_MSWINDOWS) {
@@ -110,8 +111,15 @@ class Main {
 		echo "\nEnd content\n";
 	}
 
-	callback(r, id, err) {
+	DoneQuery() {
 		queries--;
+		if ((this.close) && (!queries)) {
+			echo "Done\n";
+			panicexit(0);
+		}
+	}
+
+	callback(r, id, err) {
 		if (err) {
 			connected = false;
 			echo "${err[1]}\n";
@@ -121,6 +129,7 @@ class Main {
 		connection.OnNotify = notifycallback;
 		if (!io)
 			io = new Worker("IOWorker");
+		DoneQuery();
 	}
 
 	SafeCSV(k, separator) {
@@ -188,7 +197,6 @@ class Main {
 	}
 
 	querycallback(r, id, err, userdata) {
-		queries--;
 		var query = userdata[0];
 		var time = (microseconds() - userdata[1])/1000;
 
@@ -230,10 +238,10 @@ class Main {
 				echo "\n$query ($time), ${em(count)} records\n";
 			}
 		}
+		DoneQuery();
 	}
 
 	storecallback(r, id, err, userdata) {
-		queries--;
 		var query = userdata[0];
 		var time = (microseconds() - userdata[1])/1000;
 
@@ -258,10 +266,10 @@ class Main {
 				echo "\n$query ($time)\n";
 			}
 		}
+		DoneQuery();
 	}
 
 	requestcallback(r, id, err, userdata) {
-		queries--;
 		var query = userdata[0];
 		var time = (microseconds() - userdata[1])/1000;
 
@@ -277,6 +285,7 @@ class Main {
 		} else {
 			echo "$query ($time): OK\n";
 		}
+		DoneQuery();
 	}
 
 	LoadCSV(var data) {
@@ -561,6 +570,13 @@ class Main {
 				else
 					echo "1 object sent, waiting response (${queries} in queue, including this one)...\n";
 				break;
+			case "done":
+				if (queries) {
+					this.close = true;
+					echo "Waiting for ${em(queries)} queries to finish\n";
+					break;
+				}
+				// no break here
 			case "quit":
 			case "exit":
 				if (connection) {
@@ -570,7 +586,7 @@ class Main {
 				connected = false;
 				break;
 			case "help":
-				echo "Local commands: info, quit, exit, output [outputfilename]\n";
+				echo "Local commands: info, quit, exit, done, output [outputfilename]\n";
 				echo "TinDB commands:\n";
 				echo "    ${em("collection.query")}(criteria_object);\n";
 				echo "        Search object, matching criteria\n";
@@ -633,6 +649,8 @@ class Main {
 			}
 			if (queries <= 0)
 				Sleep(20);
+			else
+				Sleep(1);
 		}
 		return true;
 	}
