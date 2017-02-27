@@ -673,6 +673,18 @@ pragma used
 		}
 	}
 
+	ForceNumber(val, not_zero = false) {
+		if (typeof val != "numeric") {
+			if (typeof val == "string")
+				val = value val;
+			else
+				val = 0;
+		}
+		if ((not_zero) && (!val) )
+			val = 0.0000000001;
+		return val;
+	}
+
 	Execute(var data) {
 		var key;
 		var trigger;
@@ -931,9 +943,29 @@ pragma used
 										var changed = false;
 										for (var i = 0; i < length keys; i++) {
 											var k = keys[i];
-											if (k) {
+											if ((k) && (k != '$')) {
 												var val = vals[k];
 												var o_k = o[k];
+												if ((!val) && (k == '$oid')) {
+													val = this.oid();
+												} else
+												if (typeof val == "array") {
+													if (IsSet(val, "+"))
+														val = o_k + val["+"];
+													else
+													if (IsSet(val, "-"))
+														val = ForceNumber(o_k) - ForceNumber(val["-"]);
+													else
+													if (IsSet(val, "*"))
+														val = ForceNumber(o_k) * ForceNumber(val["-"]);
+													else
+													if (IsSet(val, "/"))
+														val = ForceNumber(o_k) / ForceNumber(val["/"], true);
+													else
+													if (IsSet(val, "%"))
+														val = ForceNumber(o_k) % ForceNumber(val["%"], true);
+												}
+
 												if ((typeof o_k != typeof val) || (o_k != val)) {
 													o[k] = val;
 													changed = true;
@@ -957,7 +989,7 @@ pragma used
 										}
 									}
 								}, update_data);
-								if (update_data[2])
+								if (update_data[4])
 									QueryWorker::InvalidateCache(obj.d, obj.c);
 								if (unique_fields)
 									r.p = ["\$updated" => update_data[4], "\$notunique" => update_data[5]];
