@@ -673,6 +673,24 @@ class BM25Index {
 				}
 			}
 		}
+		return true;
+	}
+
+	protected docadd_match(documents, match, add) {
+		if (!add)
+			return;
+		for (var i = 0; i < length add; i++) {
+			var d = add[i];
+			if (d) {
+				var id = d["d"];
+				if (id) {
+					var key = "" + id;
+					documents[key] = id;
+					match[key]++;
+				}
+			}
+		}
+		return true;
 	}
 
 	arrayset(arr, key, word, val) {
@@ -736,6 +754,7 @@ class BM25Index {
 				if (len_coef < 30)
 					len_coef = 30;
 				var threshold = 0;
+				var threshold2 = 0;
 				if (length words == 1) {
 					if (!statistics(["w" => all_words[0]], n, f, lens, start, len_coef, documents, true))
 						return null;
@@ -762,6 +781,8 @@ class BM25Index {
 					}
 					// first strategy, words at 1 distance
 					var graph = BM25::complete(all_words, BM25_QUERY_LEVEL, 0, true);
+					var[] force_coef;
+					var[] match;
 					for (i = 0; i < length graph; i++) {
 						var g = graph[i];	
 						if (g) {
@@ -769,7 +790,7 @@ class BM25Index {
 								var key_g = "" + j;
 								var gk = g[key_g];
 								if (gk)
-									docadd(documents, graphfile.Query([key_g => gk], ["d"], false, start, len_coef));
+									docadd_match(documents, match, graphfile.Query([key_g => gk], ["d"], false, start, len_coef));
 							}
 						}
 					}
@@ -785,7 +806,7 @@ class BM25Index {
 									if (gk) {
 										for (var j1 = 0; j1 < BM25_QUERY_LEVEL; j1++) {
 											key_g = "" + j1;
-											docadd(documents, graphfile.Query([key_g => gk], ["d"], false, start, len_coef));
+											docadd_match(documents, match, graphfile.Query([key_g => gk], ["d"], false, start, len_coef));
 										}
 									}
 								}
@@ -796,6 +817,8 @@ class BM25Index {
 					if (length documents < len) {
 						if (!threshold)
 							threshold = length documents;
+						if (!threshold2)
+							threshold2 = length documents;
 						for (i = 0; i < length all_words; i++)
 							statistics(["w" => all_words[i]], n, f, lens, start, len_coef, documents, true);
 					}
@@ -838,8 +861,13 @@ class BM25Index {
 									var idf = BM25::idf(N, d_n[qi]);
 									var f2 = d_f[qi];
 									sum += idf * (f2 * (k1 + 1)) / (f2 + k1 * (1 - b + b * d_len / avgdl));
+
 									if ((threshold) && (i < threshold))
 										sum += 100;
+									else
+									if ((threshold2) && (i < threshold2))
+										sum += 20;
+									sum += sum * match[key_id];
 								}
 							}
 						}
@@ -1787,7 +1815,7 @@ class BinFile extends File {
 			this.Flush();
 	}
 
-	protected _Store(var obj, update_index = true, id = -1, changed_keys = null, do_flush = true) {
+	protected _Store(var obj, update_index = true, id = -1, changed_keys = null, do_flush = true, change_oid = false) {
 		if (!hFile)
 			throw "Invalid file descriptor or no open file";
 		var data;
@@ -1798,7 +1826,7 @@ class BinFile extends File {
 				c = new [];
 				for (var i = 0; i < length keys; i++) {
 					var k = keys[i];
-					if ((k) && (k != '$') && (k != '$oid'))
+					if ((k) && (k != '$') && ((change_oid) || (k != '$oid')))
 						c[k] = obj[k];
 				}
 				if (id < 0)
@@ -1910,8 +1938,8 @@ class BinFile extends File {
 		}
 	}
 
-	Store(var obj, update_index = true, do_flush = true) {
-		return this._Store(obj, update_index, -1, null, do_flush);
+	Store(var obj, update_index = true, do_flush = true, change_oid = true) {
+		return this._Store(obj, update_index, -1, null, do_flush, change_oid);
 	}
 
 	SafeStore(var obj, update_index = true, do_flush = true) {

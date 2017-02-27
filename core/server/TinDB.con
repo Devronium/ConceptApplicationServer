@@ -947,13 +947,18 @@ pragma used
 										var unique_fields = data[3];
 										var deleg = data[4];
 										var changed = false;
+										var oid_changed = false;
 										for (var i = 0; i < length keys; i++) {
 											var k = keys[i];
 											if ((k) && (k != '$')) {
 												var val = vals[k];
 												var o_k = o[k];
 												if ((!val) && (k == '$oid')) {
+													// do not update oid for objects that already have an oid
+													if (o_k)
+														continue;
 													val = this.oid();
+													oid_changed = true;
 												} else
 												if (typeof val == "array") {
 													if (IsSet(val, "+"))
@@ -985,7 +990,7 @@ pragma used
 											} else {
 												var filepos = t.Tell();
 												try {
-													t.Store(o);
+													t.Store(o, true, true, oid_changed);
 													data[5]++;
 
 													if (deleg)
