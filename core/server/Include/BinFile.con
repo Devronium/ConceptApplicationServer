@@ -1410,7 +1410,7 @@ class BinFile extends File {
 	}
 
 	override Open;
-	Open() {
+	Open(with_lock = false) {
 		var file_size = filesize(this.name);
 		var valid_file = false;
 		if (file_size < HEADER_SIZE) {
@@ -1422,27 +1422,39 @@ class BinFile extends File {
 		if (File::Open()) {
 			if (valid_file) {
 				//this.Read(var buf, 6);
+				if (with_lock)
+					this.Lock();
 				fread(var buf, 1, 6, hFile);
 				if ((length buf != 6) || (buf != "CDB010")) {
 					this.Close();
-					throw "Invalid or corrupted data file";
+					if (with_lock)
+						this.ReleaseLock();
+					throw "Invalid or corrupted data file (errno ${_errno()})";
 				}
 				this.Read(buf, 4);
 				fread(buf, 1, 4, hFile);
 				if (length buf == 4)
 					deleted_records = htonl(tounumber(buf, 32));
 				fread(buf, 1, 8, hFile);
-				if (length buf != 8)
+				if (length buf != 8) {
+					if (with_lock)
+						this.ReleaseLock();
 					throw @class + "." + @member + ": Corrupted header";
+				}
 
 				if (unpack("u64", buf)[0])
 					has_garbage = true;
 				fread(buf, 1, 4, hFile);
-				if (length buf != 4)
+				if (length buf != 4) {
+					if (with_lock)
+						this.ReleaseLock();
 					throw @class + "." + @member + ": Corrupted header";
+				}
 				var msize = unpack("u32", buf)[0];
 				if (msize > 16)
 					MODULO_SIZE = msize;
+				if (with_lock)
+					this.ReleaseLock();
 			} else
 				this.WriteHeader();
 			return true;
@@ -1450,8 +1462,8 @@ class BinFile extends File {
 		return false;
 	}
 
-	Reopen() {
-		if (this.Open()) {
+	Reopen(with_lock = false) {
+		if (this.Open(with_lock)) {
 			if (bm25)
 				bm25.Reopen();
 		}
