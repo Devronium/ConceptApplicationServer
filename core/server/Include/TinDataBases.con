@@ -320,6 +320,28 @@ class TinDataSet {
 		this.Connection._Handle(q, callback, this.UserData);
 	}
 
+	Update(params, array new_values, delegate callback, len = 0, start = 0, descending = false, priority = 0) {
+		if (typeof params != "array") {
+			if (typeof params == "object")
+				params = Prepare(params);
+			else
+				params = ['$' => params];
+		} else
+			params = Prepare(params);
+
+		var q = new Q(params, Connection.Database, this.Collection, "U");
+		if (start)
+			q.x["start"] = start;
+		if (len)
+			q.x["len"] = len;
+		if (descending)
+			q.x["descending"] = descending;
+		if (priority)
+			q.x["priority"] = priority;
+		q.f = new_values;
+		this.Connection._Handle(q, callback, this.UserData);
+	}
+
 	protected PromiseHandler(data, id, err, p) {
 		if (err)
 			return p.reject(err);
@@ -346,6 +368,29 @@ class TinDataSet {
 		if (priority)
 			q.x["priority"] = priority;
 		q.f = fields;
+
+		return this.Connection._Promise(q, PromiseHandler, this.UserData);
+	}
+
+	u(params, array new_values, delegate callback, len = 0, start = 0, descending = false, priority = 0) {
+		if (typeof params != "array") {
+			if (typeof params == "object")
+				params = Prepare(params);
+			else
+				params = ['$' => params];
+		} else
+			params = Prepare(params);
+
+		var q = new Q(params, Connection.Database, this.Collection, "U");
+		if (start)
+			q.x["start"] = start;
+		if (len)
+			q.x["len"] = len;
+		if (descending)
+			q.x["descending"] = descending;
+		if (priority)
+			q.x["priority"] = priority;
+		q.f = new_values;
 
 		return this.Connection._Promise(q, PromiseHandler, this.UserData);
 	}

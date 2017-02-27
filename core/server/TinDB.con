@@ -276,6 +276,7 @@ pragma used
 			case "R":
 			case "L":
 			case "W":
+			case "U":
 				if ((!ctx) || (ctx.auth)) {
 					if (typeof obj.c != "string")
 						obj.c = "";
@@ -320,7 +321,7 @@ pragma used
 							if (!obj.r)
 								obj.r = new R();
 						} else
-						if ((obj.o == "I") || (obj.o == "D") || (obj.o == "R")) {
+						if ((obj.o == "I") || (obj.o == "D") || (obj.o == "R") || (obj.o == "U")) {
 							var storage_key = "" + obj.d + "/" + obj.c;
 							storage = storage_dbs_w[storage_key];
 							if (!storage) {
@@ -876,7 +877,7 @@ pragma used
 											}
 										}
 									} else {
-										if ((typeof obj.p == "array") && (IsSet(obj.p , '$oid')) && (obj.p['$oid']))
+										if ((typeof obj.p == "array") && (IsSet(obj.p , '$oid')) && (!obj.p['$oid']))
 											obj.p['$oid'] = this.oid();
 										id = t.Store(obj.p);
 										non_flushed_writes++;
@@ -910,6 +911,62 @@ pragma used
 							r.e = ERR_COLLECTION;
 							r.et = ERR_COLLECTION_S;
 						}
+						break;
+					case "U":
+						t = db[obj.c];
+						if (t) {
+							if (typeof obj.f == "array") {
+								if (typeof obj.p != "array")
+									obj.p = [ ];
+								t.Lock(true);
+								r.p = null;
+								unique_fields = obj.x["unique"];
+								var update_data = [GetKeys(obj.f), obj.f, t, unique_fields];
+								t.Query(obj.p, null, obj.x["descending"], obj.x["start"], obj.x["len"], function(o, data) {
+									if (o) {
+										var keys = data[0];
+										var vals = data[1];
+										var t = data[2];
+										var unique_fields = data[3];
+										var changed = false;
+										for (var i = 0; i < length keys; i++) {
+											var k = keys[i];
+											if (k) {
+												var val = vals[k];
+												var o_k = o[k];
+												if ((typeof o_k != typeof val) || (o_k != val)) {
+													o[k] = val;
+													changed = true;
+												}
+											}
+										}
+										if (changed) {
+											if ((unique_fields) && (!t.IsUnique(o, unique_fields))) {
+												// not unique
+												data[5]++;
+											} else {
+												var filepos = t.Tell();
+												try {
+													t.Store(o);
+													data[4]++;
+												} catch (var exc) {
+													echo "Error in update: $exc\n";
+												}
+												t.Seek(filepos);
+											}
+										}
+									}
+								}, update_data);
+								if (update_data[2])
+									QueryWorker::InvalidateCache(obj.d, obj.c);
+								if (unique_fields)
+									r.p = ["\$updated" => update_data[4], "\$notunique" => update_data[5]];
+								else
+									r.p = ["\$updated" => update_data[4]];
+								t.Unlock(true);
+							}
+						}
+						r.id = 0;
 						break;
 					case "X":
 						r.id = 0;

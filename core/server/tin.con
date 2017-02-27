@@ -523,6 +523,19 @@ class Main {
 				queries++;
 				echo "Delete request sent, waiting response (${queries} in queue, including this one)...\n";
 				break;
+			case "update":
+				if ((!parameters) || (typeof parameters != "array") || (!parameters["values"]) || (typeof parameters["values"] != "array")) {
+					echo em("Nothing to update") + "\n";
+					break;
+				}
+				if (!parameters["query"])
+					parameters["query"] = new [];
+				dataset = new TinDataSet(connection, collection);
+				dataset.UserData = [orig_query, microseconds()];
+				dataset.Update(parameters["query"], parameters["values"], querycallback);
+				queries++;
+				echo "Update request sent, waiting response (${queries} in queue, including this one)...\n";
+				break;
 			case "addsubject":
 			case "removesubject":
 				if (typeof parameters != "string")
@@ -599,6 +612,8 @@ class Main {
 				echo "    ${em("collection.store")}(object);\n";
 				echo "        store an arbitray object, eg:. student.store({\"Name\": \"George\"})\n";
 				echo "        may also use arrays, eg:. student.store([{\"Name\": \"George\"}, {\"Name\": \"Jane\"}])\n";
+				echo "    ${em("collection.update")}({\"query\": query, \"values\": object});\n";
+				echo "        update multiple objects, eg:. student.update({\"query\": {\"Year\": 1}, \"values\": {\"Year\": 2}})\n";
 				echo "    ${em("collection.load")}(filename);\n";
 				echo "        load objects from JSON or CSV file\n";
 				echo "    ${em("collection.search")}(searchstring);\n";
@@ -609,7 +624,7 @@ class Main {
 				echo "        create btree index\n";
 				echo "    ${em("collection.fulltext")}(string language | array fields | {\"language\": \"en\", \"fields\": array);\n";
 				echo "        create full text index\n";
-				echo "All commands MUST end with ';'\n";
+				echo "\n";
 				break;
 			default:
 				if (length s > 20)
