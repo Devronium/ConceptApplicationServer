@@ -933,13 +933,19 @@ pragma used
 								t.Lock(true);
 								r.p = null;
 								unique_fields = obj.x["unique"];
-								var update_data = [GetKeys(obj.f), obj.f, t, unique_fields];
+								trigger = _triggers["${obj.d}.${obj.c}"];
+								deleg = null;
+								if ((trigger) && (trigger.OnUpdate))
+									deleg = this.GetDelegate(db, obj.d, trigger.OnUpdate, objects, members);
+
+								var update_data = [GetKeys(obj.f), obj.f, t, unique_fields, deleg];
 								t.Query(obj.p, null, obj.x["descending"], obj.x["start"], obj.x["len"], function(o, data) {
 									if (o) {
 										var keys = data[0];
 										var vals = data[1];
 										var t = data[2];
 										var unique_fields = data[3];
+										var deleg = data[4];
 										var changed = false;
 										for (var i = 0; i < length keys; i++) {
 											var k = keys[i];
@@ -975,12 +981,15 @@ pragma used
 										if (changed) {
 											if ((unique_fields) && (!t.IsUnique(o, unique_fields))) {
 												// not unique
-												data[5]++;
+												data[6]++;
 											} else {
 												var filepos = t.Tell();
 												try {
 													t.Store(o);
-													data[4]++;
+													data[5]++;
+
+													if (deleg)
+														deleg(t, o);
 												} catch (var exc) {
 													echo "Error in update: $exc\n";
 												}
@@ -989,12 +998,14 @@ pragma used
 										}
 									}
 								}, update_data);
-								if (update_data[4])
+								if (update_data[5]) {
 									QueryWorker::InvalidateCache(obj.d, obj.c);
+									non_flushed_writes += update_data[5];
+								}
 								if (unique_fields)
-									r.p = ["\$updated" => update_data[4], "\$notunique" => update_data[5]];
+									r.p = ["\$updated" => update_data[5], "\$notunique" => update_data[6]];
 								else
-									r.p = ["\$updated" => update_data[4]];
+									r.p = ["\$updated" => update_data[5]];
 								t.Unlock(true);
 							}
 						}
