@@ -3961,6 +3961,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(LockFileBytes, 4, 6)
                 result = UnlockFile(f, start_lo, start_hi, len_lo, len_hi);
             } else {
                 OVERLAPPED sOverlapped;
+                memset(&sOverlapped, 0, sizeof(OVERLAPPED));
                 sOverlapped.Offset = start_lo;
                 sOverlapped.OffsetHigh = start_hi;
                 if (PARAM_INT(1) == CONCEPT_F_SETLKW) {

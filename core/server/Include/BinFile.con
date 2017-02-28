@@ -1429,7 +1429,10 @@ class BinFile extends File {
 					this.Close();
 					if (with_lock)
 						this.ReleaseLock();
-					throw "Invalid or corrupted data file (errno ${_errno()})";
+					var err = _errno();
+					if (err == 13)
+						throw "Datafile is locked";
+					throw "Invalid or corrupted data file (errno ${err})";
 				}
 				this.Read(buf, 4);
 				fread(buf, 1, 4, hFile);

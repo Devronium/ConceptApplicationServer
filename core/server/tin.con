@@ -198,13 +198,9 @@ class Main {
 
 	querycallback(r, id, err, userdata) {
 		var query = userdata[0];
-		var time = (microseconds() - userdata[1])/1000;
+		var time = (microseconds() - userdata[1])/1000000;
 
-		if (time > 60000) {
-			time /= 1000;
-			time = "${time} seconds";
-		} else
-			time = "${time}ms";
+		time = "${time} seconds";
 
 		if (err) {
 			echo "$query ($time):\n";
@@ -305,8 +301,13 @@ class Main {
 						var v = line[j];
 						var h = header[j] ?? "_field_${j+1}";
 						// skip ids
-						if (h != '$')
-							obj[h] = v;
+						if (h != '$') {
+							var v_val = value v;
+							if ("" + v_val == v)
+								obj[h] = v_val;
+							else
+								obj[h] = v;
+						}
 					}
 					if (obj)
 						objects[length objects] = obj;

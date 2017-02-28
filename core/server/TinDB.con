@@ -231,7 +231,7 @@ pragma used
 				data = Worker::Get(key, QueryWorker::CacheKey(obj));
 				if (data) {
 					var data_obj = UnBinarizeObject(data);
-					if (data_obj) {
+					if ((data_obj) || (typeof data_obj == "array")) {
 						var r = new R();
 						r.q = obj.q;
 						r.p = data_obj;
@@ -321,7 +321,7 @@ pragma used
 							if (!obj.r)
 								obj.r = new R();
 						} else
-						if ((obj.o == "I") || (obj.o == "D") || (obj.o == "R") || (obj.o == "U")) {
+						if ((obj.o == "I") || (obj.o == "D") || (obj.o == "R") || (obj.o == "U") || (obj.o == "X") || (obj.o == "Y")) {
 							var storage_key = "" + obj.d + "/" + obj.c;
 							storage = storage_dbs_w[storage_key];
 							if (!storage) {
