@@ -685,6 +685,24 @@ pragma used
 		return val;
 	}
 
+	ForceEval(o, val, o_k, k) {
+		var bin_o = StringToHex(BinarizeObject(o));
+		var code = "import standard.lib.str\nimport standard.C.math\nimport standard.lang.serialize\nimport standard.lib.cripto\nimport standard.math.rand\nimport standard.C.time\n";
+		code += "class Main{Main(){\n";
+		code += "var o = UnBinarizeObject(HexToString(\"$bin_o\"));\n";
+		code += "if (!o)\n";
+		code += "return 0;\n";
+		code += "return StringToHex(BinarizeObject([($val)]));\n";
+		code += "}}\n";
+		var val2 = eval(code, false);
+		if (val2) {
+			val2 = UnBinarizeObject(HexToString(val2));
+			if (val2)
+				return val2[0];
+		}
+		return o_k;
+	}
+
 	Execute(var data) {
 		var key;
 		var trigger;
@@ -976,6 +994,10 @@ pragma used
 													else
 													if (IsSet(val, "%"))
 														val = ForceNumber(o_k) % ForceNumber(val["%"], true);
+													else
+													if (IsSet(val, "=")) {
+														val = ForceEval(o, val["="], o_k, k);
+													}
 												}
 
 												if ((typeof o_k != typeof val) || (o_k != val)) {
