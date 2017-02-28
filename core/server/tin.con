@@ -507,8 +507,8 @@ class Main {
 					}
 				}
 				dataset = new TinDataSet(connection, collection);
-				dataset.EnsureFullText(parameters, fields, lang);
-				echo "Full text index reuqest sent, for \"$lang\" language\n";
+				dataset.EnsureFullText(fields, lang);
+				echo "Full text index request sent, for \"$lang\" language\n";
 				if (fields) {
 					echo "Index will use fields:\n";
 					echo fields;

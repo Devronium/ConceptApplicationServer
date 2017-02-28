@@ -159,8 +159,12 @@ class TinQueryParser {
 				if ((min) && (REGEX_MATCH(key, min) <= 0))
 					result |= QUERY_LESS | QUERY_GREAT;
 			} else
-			if ((min) && (Pos(key, min) != 1))
-				result |= QUERY_LESS;
+			if ((min) && (Pos(key, min) != 1)) {
+				if (key < min)
+					result |= QUERY_LESS;
+				else
+					result |= QUERY_GREAT;
+			}
 		}
 
 		if (max_mode == 1) {
