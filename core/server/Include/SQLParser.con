@@ -200,6 +200,25 @@ class SQLParser {
 		return val;
 	}
 
+	static prepare(val, var err) {
+		if (typeof val == "string") {
+			switch (val[0]) {
+				case "'":
+				case '"':
+					return SQLParser::strip(val);
+				default:
+					var new_val = value val;
+					if ("" + new_val != val) {
+						if (err)
+							err += "\n";
+						err += "Invalid number value '$val'";
+					} else
+						return new_val;
+			}
+		}
+		return val;
+	}
+
 	static parseWhere(var buffer, var err, var offset) {
 		var state = -1;
 		var[] criteria;
@@ -246,15 +265,16 @@ class SQLParser {
 						} else
 							break;
 					case 2:
+						var val = SQLParser::prepare(command, err);
 						if ((op == "=") || (op == "IN")) {
 							if (condition) {
 								if (err)
 									err += "\n";
 								err += "Impossible condition (same variable, multiple values; use 'IN' operator)";
 							} else
-								criteria[variable] = command;
+								criteria[variable] = val;
 						}
-						condition[op] = command;
+						condition[op] = val;
 						state = 3;
 						break;
 					case 3:
