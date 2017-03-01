@@ -304,7 +304,7 @@ pragma used
 							ctx_key = ctx.key;
 							obj.ctx_key = ctx.key;
 						}
-						if (CacheHit(obj, sock, current_worker))
+						if ((!obj.io) && (CacheHit(obj, sock, current_worker)))
 							return;
 
 						if (obj.o == "W") {
@@ -1462,6 +1462,7 @@ class QueryAggregator {
 				new_obj.q = obj.q;
 				new_obj.d = obj.d;
 				new_obj.c = obj.c;
+				new_obj.f = obj.f;
 
 				new_obj.socket = obj.socket;
 				new_obj.io = obj.io;
@@ -1500,7 +1501,6 @@ class QueryAggregator {
 						}
 
 						if ((ref_data) && (pairs)) {
-
 							var pair_keys = GetKeys(pairs);
 							for (var i = 0; i < length ref_data; i++) {
 								var e = ref_data[i];
@@ -1531,6 +1531,7 @@ class QueryAggregator {
 
 						if (((length p != 2) && (length p != 3)) || ((!k1) && (!k2)) || ((k1 != '$') && (k2 != '$'))) {
 							obj.r = new R();
+							obj.r.q = obj.q;
 							obj.r.e = ERR_AGGREGATION;
 							obj.r.et = ERR_AGGREGATION_S;
 							data_ready = true;

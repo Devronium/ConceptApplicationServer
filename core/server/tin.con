@@ -7,6 +7,7 @@ import standard.lib.json
 include Worker.con
 include TinDataBases.con
 include CSV.con
+include SQLParser.con
 
 class Container {
 	var Data;
@@ -628,9 +629,50 @@ class Main {
 				echo "\n";
 				break;
 			default:
-				if (length s > 20)
-					s = SubStr(s, 0, 20) + "...";
-				echo "Command '$s' not understood\n";
+				var sql = SQLParser::parse(s, var err);
+				if ((sql) && (!err)) {
+					for (var i = 0; i < length sql; i++) {
+						var q = sql[i];
+						if (q) {
+							fields = q["SELECT"];
+							if ((fields) && (length fields == 1) && (fields[0] == "*"))
+								fields = null;	
+
+							collection = q["FROM"];
+							var where = q["WHERE"] ?? [ ];
+							dataset = new TinDataSet(connection, collection);
+							dataset.UserData = [orig_query, microseconds()];
+							var mod = q["MOD"];
+							var join = q["JOIN"];
+							if (mod) {
+								var agg = mod[0][0];
+								if (agg == "COUNT") {
+									dataset.Query(["#" => where], querycallback, fields, q["LIMIT"], q["OFFSET"], (q["ORDER"] == -1));
+								} else {
+									echo "Unsupported SQL function ${em(agg)}\n";
+									break;
+								}
+							} else
+							if (join) {
+								var join_query = [where];	
+								for (var j = 0; j < length join; j++)
+									join_query[length join_query] = join[j];
+echo fields;
+								dataset.Join(join_query, querycallback, fields, q["LIMIT"], q["OFFSET"], (q["ORDER"] == -1));
+							} else {
+								dataset.Query(where, querycallback, fields, q["LIMIT"], q["OFFSET"], (q["ORDER"] == -1));
+							}
+							queries++;
+							echo "SQL-like query sent, waiting response (${queries} in queue, including this one)...\n";
+						}
+					}
+				} else {
+					if (err)
+						echo em(err) + "\n";
+					if (length s > 20)
+						s = SubStr(s, 0, 20) + "...";
+					echo "Command '$s' not understood\n";
+				}
 		}
 	}
 
