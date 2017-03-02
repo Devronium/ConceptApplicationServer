@@ -169,7 +169,7 @@ class SQLParser {
 		return one;
 	}
 
-	static parseList(var buffer, var err, var offset, list = 0, var func = null) {
+	static parseList(var buffer, var err, var offset, list = 0, var func = null, strip = true) {
 		var[] fields;
 		var expect_comma = false;
 		var ref_list = list;
@@ -217,7 +217,12 @@ class SQLParser {
 				}
 				expect_comma = false;
 			} else {
-				var str = SQLParser::strip(command);
+				var str;
+				if (strip)
+					str = SQLParser::strip(command);
+				else
+					str = command;
+
 				if (target_foo)
 					target_foo[1][length target_foo[1]] = str;
 				else
@@ -347,7 +352,6 @@ class SQLParser {
 	static parseSet(var buffer, var err, var offset) {
 		var state = -1;
 		var[] criteria;
-		var condition;
 		var variable = "";
 		var op = "";
 		do {
@@ -599,7 +603,7 @@ class SQLParser {
 				err += "Expected '(' after 'VALUES'";
 				return false;
 			}
-			var values = SQLParser::parseList(buffer, err, offset, 2);
+			var values = SQLParser::parseList(buffer, err, offset, 2, null, false);
 			if (SQLParser::parseAtom(buffer, err, offset, 2) != ")") {
 				if (err)
 					err += "\n";
@@ -621,7 +625,6 @@ class SQLParser {
 					err += "Cannot use object volatile reference in INSERT. Use UPDATE instead.";
 					return false;
 				}
-				var val_buffer = values[i];
 				obj[field] = SQLParser::prepare(values[i], err, true);
 			}
 		}
@@ -705,7 +708,7 @@ class SQLParser {
 	}
 
 	static parseDrop(var buffer, var err, var offset, syntax) {
-		var atom = SQLParser::parseAtom(buffer, err, offset);
+		var atom = ToUpper(SQLParser::parseAtom(buffer, err, offset));
 		if (atom != "COLLECTION") {
 			if (err)
 				err += "\n";
@@ -732,14 +735,14 @@ class SQLParser {
 
 
 	static parseCreateIndex(var buffer, var err, var offset, syntax) {
-		var atom = SQLParser::parseAtom(buffer, err, offset);
+		var atom = ToUpper(SQLParser::parseAtom(buffer, err, offset));
 		if (atom != "INDEX") {
 			if (err)
 				err += "\n";
-			err += "Expected 'INDEX' after 'CREATE'";
+			err += "Expected 'INDEX' after 'CREATE', received '$atom'";
 			return false;
 		}
-		atom = SQLParser::parseAtom(buffer, err, offset);
+		atom = ToUpper(SQLParser::parseAtom(buffer, err, offset));
 		if (atom != "ON") {
 			if (err)
 				err += "\n";

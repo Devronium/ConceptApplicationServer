@@ -463,7 +463,7 @@ class Main {
 				echo "Object sent, waiting response (${queries} in queue, including this one)...\n";
 				break;
 			case "drop":
-				dataset = new TinDataSet(connection, collection);				
+				dataset = new TinDataSet(connection, collection);
 				dataset.UserData = [orig_query, microseconds()];
 				dataset.Drop(requestcallback);
 				queries++;
@@ -634,35 +634,83 @@ class Main {
 					for (var i = 0; i < length sql; i++) {
 						var q = sql[i];
 						if (q) {
-							fields = q["SELECT"];
-							if ((fields) && (length fields == 1) && (fields[0] == "*"))
-								fields = null;	
+							if (IsSet(q, "SELECT")) {
+								fields = q["SELECT"];
+								if ((fields) && (length fields == 1) && (fields[0] == "*"))
+									fields = null;	
 
-							collection = q["FROM"];
-							var where = q["WHERE"] ?? [ ];
-							dataset = new TinDataSet(connection, collection);
-							dataset.UserData = [orig_query, microseconds()];
-							var mod = q["MOD"];
-							var join = q["JOIN"];
-							if (mod) {
-								var agg = mod[0][0];
-								if (agg == "COUNT") {
-									dataset.Query(["#" => where], querycallback, fields, q["LIMIT"], q["OFFSET"], (q["ORDER"] == -1));
+								collection = q["FROM"];
+								var where = q["WHERE"] ?? [ ];
+								dataset = new TinDataSet(connection, collection);
+								dataset.UserData = [orig_query, microseconds()];
+								var mod = q["MOD"];
+								var join = q["JOIN"];
+								if (mod) {
+									var agg = mod[0][0];
+									if (agg == "COUNT") {
+										dataset.Query(["#" => where], querycallback, fields, q["LIMIT"], q["OFFSET"], (q["ORDER"] == -1));
+									} else {
+										echo "Unsupported SQL function ${em(agg)}\n";
+										break;
+									}
+								} else
+								if (join) {
+									var join_query = [where];	
+									for (var j = 0; j < length join; j++)
+										join_query[length join_query] = join[j];
+									dataset.Join(join_query, querycallback, fields, q["LIMIT"], q["OFFSET"], (q["ORDER"] == -1));
 								} else {
-									echo "Unsupported SQL function ${em(agg)}\n";
-									break;
+									dataset.Query(where, querycallback, fields, q["LIMIT"], q["OFFSET"], (q["ORDER"] == -1));
 								}
+								queries++;
+								echo "SQL-like query sent, waiting response (${queries} in queue, including this one)...\n";
 							} else
-							if (join) {
-								var join_query = [where];	
-								for (var j = 0; j < length join; j++)
-									join_query[length join_query] = join[j];
-								dataset.Join(join_query, querycallback, fields, q["LIMIT"], q["OFFSET"], (q["ORDER"] == -1));
-							} else {
-								dataset.Query(where, querycallback, fields, q["LIMIT"], q["OFFSET"], (q["ORDER"] == -1));
+							if (IsSet(q, "INSERT")) {
+								collection = q["INTO"];
+								var values = q["INSERT"];
+								dataset = new TinDataSet(connection, collection);
+								dataset.UserData = [orig_query, microseconds(), s];
+								keys = GetKeys(values);
+								dataset.Store(values, ((!keys) || (!keys[0])), storecallback);
+								queries++;
+								echo "Object sent, waiting response (${queries} in queue, including this one)...\n";
+							} else
+							if (IsSet(q, "DELETE")) {
+								collection = q["FROM"];
+								where = q["WHERE"] ?? [ ];
+								dataset = new TinDataSet(connection, collection);
+								dataset.UserData = [orig_query, microseconds()];
+								dataset.Delete(where, querycallback);
+								queries++;
+								echo "Delete request sent, waiting response (${queries} in queue, including this one)...\n";
+							} else
+							if (IsSet(q, "UPDATE")) {
+								collection = q["UPDATE"];
+								where = q["WHERE"] ?? [ ];
+								values = q["SET"];
+								dataset = new TinDataSet(connection, collection);
+								dataset.UserData = [orig_query, microseconds()];
+								dataset.Update(where, values, querycallback, q["LIMIT"], q["OFFSET"], (q["ORDER"] == -1));
+								queries++;
+								echo "Update request sent, waiting response (${queries} in queue, including this one)...\n";
+							} else
+							if (IsSet(q, "DROP")) {
+								collection = q["DROP"];
+								dataset = new TinDataSet(connection, collection);
+								dataset.UserData = [orig_query, microseconds()];
+								dataset.Drop(requestcallback);
+								queries++;
+								echo "Request sent, waiting response (${queries} in queue, including this one)...\n";
+							} else
+							if (IsSet(q, "INDEX")) {
+								collection = q["INDEX"];
+								values = q["ON"];
+								if (length values > 1)
+									values = [values];
+								dataset = new TinDataSet(connection, collection);
+								dataset.EnsureIndexes(values);
+								echo "OK\n";
 							}
-							queries++;
-							echo "SQL-like query sent, waiting response (${queries} in queue, including this one)...\n";
 						}
 					}
 				} else {
@@ -730,3 +778,4 @@ class Main {
 		}
 	}
 }
+
