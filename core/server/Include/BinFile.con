@@ -785,7 +785,6 @@ class BM25Index {
 					}
 					// first strategy, words at 1 distance
 					var graph = BM25::complete(all_words, BM25_QUERY_LEVEL, 0, true);
-					var[] force_coef;
 					var[] match;
 					for (i = 0; i < length graph; i++) {
 						var g = graph[i];	
@@ -1119,6 +1118,46 @@ class BinFile extends File {
 		return "";
 	}
 
+	RemoveIndex(fields) {
+		var idxname = this.IndexName(fields);
+		if (!idxname)
+			return false;
+		if (!Indexes)
+			return false;
+		if (!IsSet(Indexes, idxname))
+			return false;
+		var idx = _Index.GetIndex(idxname, fields);
+		if (!idx)
+			return false;
+
+		var index_keys = GetKeys(Indexes);
+		var new_indexes = new [];
+		for (var i = 0; i < length index_keys; i++) {
+			var k = index_keys[i];
+			if ((k) && (k != idxname))
+				new_indexes[k] = Indexes[k];
+		}
+		Indexes = new_indexes;
+		WriteFile(BinarizeObject(Indexes), name + ".idxn");
+		this.RefreshIndexes();
+		_Index.ResetCache();
+		_Index.DropIndex(idxname);
+		return true;
+	}
+
+	DeleteIndexes(array fields) {
+		this.RefreshIndexes();
+		var count = 0;
+		for (var i = 0; i < length fields; i++) {
+			var field = fields[i];
+			if (field) {
+				if (this.RemoveIndex(field))
+					count++;
+			}
+		}
+		return count;
+	}
+
 	BeginBulkOp() {
 		_prec_bulk_op = _Index.CacheRoot;
 		_Index.CacheRoot = true;
@@ -1215,6 +1254,7 @@ class BinFile extends File {
 			}
 		}
 		Indexes = new [];
+		this.ResetCache();
 	}
 
 	Check(repair = false, var repaired = false) {
@@ -1424,8 +1464,8 @@ class BinFile extends File {
 			valid_file = true;
 
 		if (File::Open()) {
+			setvbuf(hFile, 0);
 			if (valid_file) {
-				//this.Read(var buf, 6);
 				if (with_lock)
 					this.Lock();
 				fread(var buf, 1, 6, hFile);
@@ -2518,6 +2558,8 @@ class BinFile extends File {
 	}
 
 	RebuildIndex(string field) {
+		_Index.ResetCache();
+		_Index.DropIndex(field);
 		var prec_db = _Index.Database;
 		_Index.Database = field;
 		fseek(hFile, HEADER_SIZE, SEEK_SET);

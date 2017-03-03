@@ -532,6 +532,14 @@ class TinDataSet {
 		this.Connection._Handle(q, null);
 	}
 
+	DropIndexes(array indexes, priority = 0) {
+		var q = new Q(indexes, Connection.Database, this.Collection, "Z");
+		q.x["silent"] = true;
+		if (priority)
+			q.x["priority"] = priority;
+		this.Connection._Handle(q, null);
+	}
+
 	EnsureFullText(fields = null, language = "en", priority = 0) {
 		if (!fields)
 			fields = new [];

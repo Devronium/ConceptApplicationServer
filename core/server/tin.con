@@ -710,6 +710,15 @@ class Main {
 								dataset = new TinDataSet(connection, collection);
 								dataset.EnsureIndexes(values);
 								echo "OK\n";
+							} else
+							if (IsSet(q, "DROP INDEX")) {
+								collection = q["DROP INDEX"];
+								values = q["ON"];
+								if (length values > 1)
+									values = [values];
+								dataset = new TinDataSet(connection, collection);
+								dataset.DropIndexes(values);
+								echo "OK\n";
 							}
 						}
 					}
@@ -778,4 +787,3 @@ class Main {
 		}
 	}
 }
-

@@ -277,6 +277,7 @@ pragma used
 			case "L":
 			case "W":
 			case "U":
+			case "Z":
 				if ((!ctx) || (ctx.auth)) {
 					if (typeof obj.c != "string")
 						obj.c = "";
@@ -321,7 +322,7 @@ pragma used
 							if (!obj.r)
 								obj.r = new R();
 						} else
-						if ((obj.o == "I") || (obj.o == "D") || (obj.o == "R") || (obj.o == "U") || (obj.o == "X") || (obj.o == "Y")) {
+						if ((obj.o == "I") || (obj.o == "D") || (obj.o == "R") || (obj.o == "U") || (obj.o == "X") || (obj.o == "Y") || (obj.o == "Z")) {
 							var storage_key = "" + obj.d + "/" + obj.c;
 							storage = storage_dbs_w[storage_key];
 							if (!storage) {
@@ -1051,6 +1052,20 @@ pragma used
 								this.ResetDBS(true);
 							}
 							non_flushed_writes++;
+						}
+						break;
+					case "Z":
+						r.id = 0;
+						t = db[obj.c];
+						if ((obj.p) && (typeof obj.p == "array")) {
+							t.Lock();
+							var removed = t.DeleteIndexes(obj.p);
+							t.Unlock();
+							if (removed) {
+								QueryWorker::InvalidateCache(obj.d, obj.c);
+								this.ResetDBS(true);
+								non_flushed_writes++;
+							}
 						}
 						break;
 					case "Y":

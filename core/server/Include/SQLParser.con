@@ -707,19 +707,68 @@ class SQLParser {
 		return true;
 	}
 
+	static parseDropIndex(var buffer, var err, var offset, syntax) {
+		var atom = ToUpper(SQLParser::parseAtom(buffer, err, offset));
+		if (atom != "ON") {
+			if (err)
+				err += "\n";
+			err += "Expected 'ON' after 'DROP INDEX'";
+			return false;
+		}
+		var from = SQLParser::strip(SQLParser::parseAtom(buffer, err, offset));
+		if (!from) {
+			if (err)
+				err += "\n";
+			err += "Syntax error in DROP INDEX: expecting collection name after 'DROP INDEX ON'";
+			return false;
+		}
+		syntax["DROP INDEX"] = from;
+		atom = SQLParser::parseAtom(buffer, err, offset, 1);
+		if (atom != "(") {
+			if (err)
+				err += "\n";
+			err += "Syntax error in DROP INDEX: expecting field list";
+			return false;
+		}
+		var list = SQLParser::parseList(buffer, err, offset, 2);
+		if (SQLParser::parseAtom(buffer, err, offset, 2) != ")") {
+			if (err)
+				err += "\n";
+			err += "Expected ')'";
+			return false;
+		}
+		syntax["ON"] = list;
+		atom = SQLParser::parseAtom(buffer, err, offset);
+		if ((atom) && (atom != ";")) {
+			if (err)
+				err += "\n";
+			err += "Expected ';'";
+			return false;
+		}
+		if (!list) {
+			if (err)
+				err += "\n";
+			err += "Field list is empty";
+			return false;
+		}
+		return true;
+	}
+
 	static parseDrop(var buffer, var err, var offset, syntax) {
 		var atom = ToUpper(SQLParser::parseAtom(buffer, err, offset));
+		if (atom == "INDEX")
+			return SQLParser::parseDropIndex(buffer, err, offset, syntax);
 		if (atom != "COLLECTION") {
 			if (err)
 				err += "\n";
-			err += "Expected 'COLLECTION' after 'DROP'";
+			err += "Expected 'COLLECTION' or 'INDEX' after 'DROP'";
 			return false;
 		}		
 		var from = SQLParser::strip(SQLParser::parseAtom(buffer, err, offset));
 		if (!from) {
 			if (err)
 				err += "\n";
-			err += "Syntax error in DROP: expecting collection name after 'FROM'";
+			err += "Syntax error in DROP: expecting collection name after 'COLLECTION'";
 			return false;
 		}
 		syntax["DROP"] = from;
