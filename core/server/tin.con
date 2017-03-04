@@ -404,7 +404,7 @@ class Main {
 		} else
 		if (length s >= 3) {
 			var s_lower = ToLower(s);
-			if ((SubStr(s, 0, 3) == "use") && ((s[3] == " ") || (s[3] == "\t"))) {
+			if ((SubStr(s_lower, 0, 3) == "use") && ((s[3] == " ") || (s[3] == "\t"))) {
 				parameters = trim(SubStr(s, 4));
 				s = "use";
 			} else
@@ -431,7 +431,7 @@ class Main {
 				case "collections":
 				case "top":
 				case "version":
-					connection.Info(s, querycallback);
+					connection.Info(s_lower, querycallback);
 					queries++;
 					echo "Request sent, waiting response (${queries} in queue, including this one)...\n";
 				return;

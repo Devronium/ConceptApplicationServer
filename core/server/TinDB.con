@@ -869,46 +869,49 @@ pragma used
 							r.id = 0;
 						}
 						break;
-					case "D":
-						t = db[obj.c];
-						if (t) {
-							if ((obj.f) && (typeof obj.f != "array"))
-								obj.f = null;
-							if (typeof obj.p != "array")
-								obj.p = [ ];
-							t.Lock();
-							var items = t.Query(obj.p, obj.f, obj.x["descending"], obj.x["start"], obj.x["len"]);
-							t.Unlock();
-							if (items) {
-								t.Lock(true);
-								QueryWorker::InvalidateCache(obj.d, obj.c);
-								t.Delete(items);
-								t.Unlock(true);
-								non_flushed_writes += length items;
-								obj.p = items;
-								trigger = _triggers["${obj.d}.${obj.c}"];
-								if ((trigger) && (trigger.OnDelete)) {
-									var deleg = this.GetDelegate(db, obj.d, trigger.OnDelete, objects, members);
-									if (deleg) {
-										try {
-											r.p['$trigger'] = deleg(t, items);
-										} catch (var deleg_exception) {
-											echo "Uncaught delegate exception: $deleg_exception\n";
-										}
-									}
-								}
-							}
-							r.p['$count'] = length items;
-							// force flush/fsync for delete operations
-							t.FlushDB(false);
-						}
-						break;
+					// Old delete, inefficient (memory)
+					// case "D":
+					// 	t = db[obj.c];
+					// 	if (t) {
+					// 		if ((obj.f) && (typeof obj.f != "array"))
+					// 			obj.f = null;
+					// 		if (typeof obj.p != "array")
+					// 			obj.p = [ ];
+					// 		t.Lock();
+					// 		var items = t.Query(obj.p, obj.f, obj.x["descending"], obj.x["start"], obj.x["len"]);
+					// 		t.Unlock();
+					// 		if (items) {
+					// 			t.Lock(true);
+					// 			QueryWorker::InvalidateCache(obj.d, obj.c);
+					// 			t.Delete(items);
+					// 			t.Unlock(true);
+					// 			non_flushed_writes += length items;
+					// 			obj.p = items;
+					// 			trigger = _triggers["${obj.d}.${obj.c}"];
+					// 			if ((trigger) && (trigger.OnDelete)) {
+					// 				var deleg = this.GetDelegate(db, obj.d, trigger.OnDelete, objects, members);
+					// 				if (deleg) {
+					// 					try {
+					// 						r.p['$trigger'] = deleg(t, items);
+					// 					} catch (var deleg_exception) {
+					// 						echo "Uncaught delegate exception: $deleg_exception\n";
+					// 					}
+					// 				}
+					// 			}
+					// 		}
+					// 		r.p['$count'] = length items;
+					// 		// force flush/fsync for delete operations
+					// 		t.FlushDB(false);
+					// 	}
+					// 	break;
 					case "I":
 						if ((obj.c) && (typeof obj.p == "array")) {
 							t = db[obj.c];
 							if (obj.x["multi"])
 								multi_insert = true;
 							var id = -1;
+							var deleg;
+							var deleg_exception;
 							if (t) {
 								var unique_fields = obj.x["unique"];
 								trigger = _triggers["${obj.d}.${obj.c}"];
@@ -1108,6 +1111,48 @@ pragma used
 									r.p = ["\$updated" => update_data[5]];
 								t.Unlock(true);
 							}
+						}
+						r.id = 0;
+						break;
+					case "D":
+						t = db[obj.c];
+						if (t) {
+							if (typeof obj.p != "array")
+								obj.p = [ ];
+							t.Reopen(true);
+							t.Lock(true);
+							r.p = null;
+							unique_fields = obj.x["unique"];
+							trigger = _triggers["${obj.d}.${obj.c}"];
+							deleg = null;
+							if ((trigger) && (trigger.OnDelete))
+								deleg = this.GetDelegate(db, obj.d, trigger.OnDelete, objects, members);
+
+							update_data = [deleg, t];
+
+							t.Query(obj.p, null, obj.x["descending"], obj.x["start"], obj.x["len"], function(o, data) {
+								if (o) {
+									var deleg = data[0];
+									var t = data[1];
+									var filepos = t.Tell();
+									try {
+										t.Delete(o['$']);
+										data[2]++;
+										if (deleg)
+											deleg(t, o);
+									} catch (var exc) {
+										echo "Error in delete: $exc\n";
+									}
+									t.Seek(filepos);
+								}
+							}, update_data);
+							var count = update_data[2];
+							if (count) {
+								QueryWorker::InvalidateCache(obj.d, obj.c);
+								non_flushed_writes += count;
+							}
+							t.Unlock(true);
+							r.p = ['$count' => count];
 						}
 						r.id = 0;
 						break;
