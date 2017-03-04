@@ -3125,20 +3125,27 @@ class BinFile extends File {
 		if (IsSet(q/*keys*/, '$')) {
 			filter_by_id = true;
 			var ref_filter_ids = q['$'];//keys['$'];
-			if (typeof ref_filter_ids == "string")
+			var has_rowids = true;
+			if (typeof ref_filter_ids == "string") {
 				ref_filter_ids = [value ref_filter_ids];
-			else
-			if (typeof ref_filter_ids != "array")
+			} else
+			if (typeof ref_filter_ids != "array") {
 				ref_filter_ids = [ref_filter_ids];
-
-			filter_ids = new [];
-			for (i = 0; i < length ref_filter_ids; i++) {
-				var fi = ref_filter_ids[i];
-				if (fi)
-					filter_ids["" + fi] = fi;
+			} else {
+				var ref_keys = GetKeys(ref_filter_ids);
+				if ((ref_keys) && (ref_keys[0]))
+					has_rowids = false;
 			}
-			if (length keys == 1)
-				return this.ById(filter_ids, null, false, null, notify_one, notify_data);
+			if (has_rowids) {
+				filter_ids = new [];
+				for (i = 0; i < length ref_filter_ids; i++) {
+					var fi = ref_filter_ids[i];
+					if (fi)
+						filter_ids["" + fi] = fi;
+				}
+				if (length keys == 1)
+					return this.ById(filter_ids, null, false, null, notify_one, notify_data);
+			}
 		}
 
 		if (index_to_use) {

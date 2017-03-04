@@ -76,6 +76,24 @@ class Main {
 		return "\x1b[31;1m" + text + "\x1b[0m";
 	}
 
+	static bold(text, add_quote = false) {
+		if (ON_MSWINDOWS) {
+			if (add_quote)
+				return "\"$text\"";
+			return text;
+		}
+		return "\x1b[1m" + text + "\x1b[0m";
+	}
+
+	static is_string(text, add_quote = false) {
+		if (ON_MSWINDOWS) {
+			if (add_quote)
+				return "\"$text\"";
+			return text;
+		}
+		return "\x1b[33;1m" + text + "\x1b[0m";
+	}
+
 	GetParameters(arg, var db) {
 		var[] parameters;
 		for (var i = 0; i < length arg; i++) {
@@ -103,12 +121,100 @@ class Main {
 		return null;
 	}
 
+	space(key, len) {
+		while (length key < len)
+			key += " ";
+		return key;
+	}
+
+	prefix(key, len) {
+		while (length key < len)
+			key = " " + key;
+		return key;
+	}
+
+	print(obj, level = 0, var backref = null, prec_level_str = "") {
+		if (typeof obj == "array") {
+			if (!backref)
+				backref = new [];
+			backref["" + ClsPtr(obj)] = true;
+			var level_str = "";
+			for (var i = 0; i < level ; i++)
+				level_str += "  ";
+			var keys = GetKeys(obj);
+			var max_len = 0;
+			var is_static = true;
+			for (i = 0; i < length keys; i++) {
+				var key = keys[i];
+				if ((key) && (length key > max_len)) {
+					max_len = length key;
+					is_static = false;
+				} else {
+					var val = obj[i];
+					if ((typeof val != "string") && (typeof val != "numeric"))
+						is_static = false;
+				}
+			}
+			var is_object = max_len;
+			if (level) {
+				if (is_object) {
+					echo "{";
+				} else
+					echo "[";
+			}
+			if (is_static) {
+				echo " ";
+				level_str = "";
+				prec_level_str = "";
+			} else
+				echo "\n";
+			for (i = 0; i < length obj; i++) {
+				key = keys[i];
+				var keystr;
+				if (typeof key == "string")
+					keystr = bold(space(key, max_len)) + ": ";
+				else
+					keystr = "";
+				val = obj[i];
+				echo "$level_str$keystr";
+				if (typeof val == "array") {
+					var backref_ptr = ""+ClsPtr(val);
+					if (backref[backref_ptr]) {
+						echo em("(reference to already printed object)");
+						if (i < length obj - 1)
+							echo ",";
+						echo "\n";
+					} else {
+						backref[backref_ptr] = true;
+						print(val, level + 1, backref, level_str);
+					}
+				} else {
+					if (typeof val == "string")
+						val = is_string(val, true);
+					echo val;
+					if (is_static)
+						echo " ";
+					else
+						echo "\n";
+				}
+			}
+			if (level) {
+				if (is_object)
+					echo "$prec_level_str}\n";
+				else
+					echo "$prec_level_str]\n";
+			}
+			return;
+		}
+		echo obj;
+	}
+
 	notifycallback(subject, obj) {
 		echo "Notification received\n";
 		if (subject)
 			echo "Subject: ${em(subject)}\n";
 		echo "Content:\n";
-		echo obj;
+		print(obj);
 		echo "\nEnd content\n";
 	}
 
@@ -237,7 +343,7 @@ class Main {
 				if ((r) && (userdata[2]) && (userdata[2] == "count"))
 					count = r[0];
 				else
-					echo r;
+					print(r);
 				echo "\n$query ($time), ${em(count)} records\n";
 			}
 		}

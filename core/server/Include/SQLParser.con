@@ -344,12 +344,6 @@ class SQLParser {
 						} else
 							break;
 					case 2:
-						if ((variable == '$') && ((op == "NOT IN") || (op == "!="))) {
-							if (err)
-								err += "\n";
-							err += "Cannot use lists with '\$' (volatile rowid)";
-						}
-
 						if (is_list)
 							var val = SQLParser::prepareList(command, err);
 						else
