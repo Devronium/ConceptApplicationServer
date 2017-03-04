@@ -102,6 +102,10 @@ class SQLParser {
 						if (next == "=") {
 							c += next;
 							offset++;
+						} else
+						if ((c == "<") && (next == ">")) {
+							c = "!=";
+							offset++;
 						}
 					case "*":
 					case "+":
@@ -273,6 +277,16 @@ class SQLParser {
 		return val;
 	}
 
+	static prepareList(val, var err, var json = false) {
+		if (typeof val == "array") {
+			var[] val2;
+			for (var i = 0; i < length val; i++)
+				val2[i] = SQLParser::prepare(val[i], err, json);
+			return val2;
+		}
+		return SQLParser::prepare(val, err, json);
+	}
+
 	static parseWhere(var buffer, var err, var offset) {
 		var state = -1;
 		var[] criteria;
@@ -282,6 +296,7 @@ class SQLParser {
 		do {
 			var prev_offset = offset;
 			var command = SQLParser::parseAtom(buffer, err, offset);
+			var is_list = false;
 			if (command) {
 				switch (state) {
 					case -1:
@@ -297,7 +312,17 @@ class SQLParser {
 					case 1:
 						op = ToUpper(command);
 						state = 2;
-						if (op == "IN") {
+						if (op == "NOT") {
+							command = ToUpper(SQLParser::parseAtom(buffer, err, offset, 1));
+							if (command != "IN") {
+								if (err)
+									err += "\n";
+								err += "'IN' expected after 'NOT', found '$command'";
+							}
+							op = "NOT IN";
+						}
+						if ((op == "IN")  || (op == "NOT IN")) {
+							is_list = true;
 							command = SQLParser::parseAtom(buffer, err, offset, 1);
 							if (command != "(") {
 								if (err)
@@ -306,7 +331,7 @@ class SQLParser {
 								command = "";
 								break;
 							}
-							var list = SQLParser::parseList(buffer, err, offset, 2);
+							var list = SQLParser::parseList(buffer, err, offset, 2, null, false);
 							command = SQLParser::parseAtom(buffer, err, offset, 2);
 							if (command != ")") {
 								if (err)
@@ -319,15 +344,27 @@ class SQLParser {
 						} else
 							break;
 					case 2:
-						var val = SQLParser::prepare(command, err);
-						if ((op == "=") || (op == "IN")) {
+						if ((variable == '$') && ((op == "NOT IN") || (op == "!="))) {
+							if (err)
+								err += "\n";
+							err += "Cannot use lists with '\$' (volatile rowid)";
+						}
+
+						if (is_list)
+							var val = SQLParser::prepareList(command, err);
+						else
+							val = SQLParser::prepare(command, err);
+						if ((op == "=") || (op == "IN") || (op == "NOT IN") || (op == "!=")) {
 							if (condition) {
 								if (err)
 									err += "\n";
 								err += "Impossible condition (same variable, multiple values; use 'IN' operator)";
 							} else
+							if ((op == "=") || (op == "IN"))
 								criteria[variable] = val;
 						}
+						if (op == "NOT IN")
+							op = "!=";
 						condition[op] = val;
 						state = 3;
 						break;

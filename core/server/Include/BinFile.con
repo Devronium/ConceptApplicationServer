@@ -57,6 +57,10 @@ class TinQueryParser {
 		if (IsSet(arr, "*")) {
 			min = arr["*"];
 			min_mode = 4;
+		} else
+		if (IsSet(arr, "!=")) {
+			min = arr["!="];
+			min_mode = 5;
 		}
 
 		if (IsSet(arr, "<")) {
@@ -67,6 +71,24 @@ class TinQueryParser {
 			max = arr["<="];
 			max_mode = 2;
 		}
+	}
+
+	Differs(key, val) {
+		if ((typeof key != "string") && (typeof key != "numeric"))
+			return false;
+
+		if (typeof min == "array") {
+			for (var i = 0; i < length min; i++) {
+				var e = min[i];
+				if (key == e)
+					return false;
+			}
+			return true;
+		} else
+		if (key == min)
+			return false;
+
+		return true;
 	}
 
 	CompareSimple(key, val) {
@@ -88,6 +110,9 @@ class TinQueryParser {
 				return false;
 		}
 		if (min_mode >= 3) {
+			if (min_mode == 5)
+				return Differs(key, min);
+
 			if ((typeof key != "string") || (typeof min != "string"))
 				return false;
 
@@ -152,18 +177,24 @@ class TinQueryParser {
 				result |= QUERY_LESS;
 		}
 		if (min_mode >= 3) {
-			if ((typeof key != "string") || (typeof min != "string"))
-				result |= QUERY_LESS;
-			else
-			if (min_mode == 4) {
-				if ((min) && (REGEX_MATCH(key, min) <= 0))
-					result |= QUERY_LESS | QUERY_GREAT;
-			} else
-			if ((min) && (Pos(key, min) != 1)) {
-				if (key < min)
+			if (min_mode == 5) {
+				result |= QUERY_LESS | QUERY_GREAT;
+				if (Differs(key, min))
+					result |= QUERY_ELEMENT_VALID;
+			} else {
+				if ((typeof key != "string") || (typeof min != "string"))
 					result |= QUERY_LESS;
 				else
-					result |= QUERY_GREAT;
+				if (min_mode == 4) {
+					if ((min) && (REGEX_MATCH(key, min) <= 0))
+						result |= QUERY_LESS | QUERY_GREAT;
+				} else
+				if ((min) && (Pos(key, min) != 1)) {
+					if (key < min)
+						result |= QUERY_LESS;
+					else
+						result |= QUERY_GREAT;
+				}
 			}
 		}
 
@@ -3152,7 +3183,7 @@ class BinFile extends File {
 				var count = userdata[6];
 				var notify_one = userdata[8];
 
-				if ((len > 0) && (start > 0)) {
+				if (start > 0) {
 					start--;
 					userdata[3] = start;
 					return false;
@@ -3172,6 +3203,11 @@ class BinFile extends File {
 				}
 				if (count) {
 					result[0]++;
+					if (len) {
+						var e_count = result[0];
+						if (e_count >= len)
+							return true;
+					}
 				} else {
 					if (notify_one) {
 						notify_one(o, userdata[9]);
