@@ -197,11 +197,17 @@ class Main {
 			echo "${em("Dataset is empty")}\n";
 	}
 
-	querycallback(r, id, err, userdata) {
-		var query = userdata[0];
-		var time = (microseconds() - userdata[1])/1000000;
+	querycallback(r, id, err, userdata = null) {
+		if (userdata) {
+			var query = userdata[0];
+			var time = (microseconds() - userdata[1])/1000000;
 
-		time = "${time} seconds";
+			time = "${time} seconds";
+		} else {
+			query = "(info query)";
+			time = "0 seconds";
+			userdata = new [];
+		}
 
 		if (err) {
 			echo "$query ($time):\n";
@@ -396,25 +402,47 @@ class Main {
 				}
 			}
 		} else
-		if (length s >= 6) {
-			if (s == "output") {
-				output = null;
-				echo "Output results to stdout\n";
-				return;
+		if (length s >= 3) {
+			var s_lower = ToLower(s);
+			if ((SubStr(s, 0, 3) == "use") && ((s[3] == " ") || (s[3] == "\t"))) {
+				parameters = trim(SubStr(s, 4));
+				s = "use";
 			} else
-			if ((SubStr(s, 0, 6) == "output") && ((s[6] == " ") || (s[6] == "\t"))) {
-				output = trim(SubStr(s, 7));
-				if ((length output > 1) && (((output[0] == "'") || (output[0] == "\"")) && (output[0] == output[length output - 1])))
-					output = SubStr(output, 1, length output - 2);
-				if (output)
-					echo "Output results to '$output'\n";
-				else
+			if (length s >= 6) {
+				if (s_lower == "output") {
+					output = null;
 					echo "Output results to stdout\n";
+					return;
+				} else
+				if ((SubStr(s_lower, 0, 6) == "output") && ((s[6] == " ") || (s[6] == "\t"))) {
+					output = trim(SubStr(s, 7));
+					if ((length output > 1) && (((output[0] == "'") || (output[0] == "\"")) && (output[0] == output[length output - 1])))
+						output = SubStr(output, 1, length output - 2);
+					if (output)
+						echo "Output results to '$output'\n";
+					else
+						echo "Output results to stdout\n";
+					return;
+				}
+			}
+
+			switch (s_lower) {
+				case "databases":
+				case "collections":
+				case "top":
+				case "version":
+					connection.Info(s, querycallback);
+					queries++;
+					echo "Request sent, waiting response (${queries} in queue, including this one)...\n";
 				return;
 			}
 		}
 		switch (s) {
 			case "query":
+				if (!collection) {
+					echo "No collection selected\n";
+					return;
+				}
 				if (!parameters)
 					parameters = new [];
 				var dataset = new TinDataSet(connection, collection);
@@ -424,6 +452,10 @@ class Main {
 				echo "Query sent, waiting response (${queries} in queue, including this one)...\n";
 				break;
 			case "count":
+				if (!collection) {
+					echo "No collection selected\n";
+					return;
+				}
 				if (!parameters)
 					parameters = new [];
 				dataset = new TinDataSet(connection, collection);
@@ -434,6 +466,10 @@ class Main {
 				break;
 			case "aggregate":
 			case "join":
+				if (!collection) {
+					echo "No collection selected\n";
+					return;
+				}
 				if (!parameters)
 					parameters = new [];
 				dataset = new TinDataSet(connection, collection);
@@ -443,6 +479,10 @@ class Main {
 				echo "Query sent, waiting response (${queries} in queue, including this one)...\n";
 				break;
 			case "search":
+				if (!collection) {
+					echo "No collection selected\n";
+					return;
+				}
 				parameters = "" + parameters;
 				dataset = new TinDataSet(connection, collection);
 				dataset.UserData = [orig_query, microseconds()];
@@ -451,6 +491,10 @@ class Main {
 				echo "Search '$parameters' sent, waiting response (${queries} in queue, including this one)...\n";
 				break;
 			case "store":
+				if (!collection) {
+					echo "No collection selected\n";
+					return;
+				}
 				if (typeof parameters != "array")
 					parameters = ["_" => parameters];
 				if (!parameters)
@@ -463,6 +507,10 @@ class Main {
 				echo "Object sent, waiting response (${queries} in queue, including this one)...\n";
 				break;
 			case "drop":
+				if (!collection) {
+					echo "No collection selected\n";
+					return;
+				}
 				dataset = new TinDataSet(connection, collection);
 				dataset.UserData = [orig_query, microseconds()];
 				dataset.Drop(requestcallback);
@@ -481,6 +529,10 @@ class Main {
 			case "index":
 			case "ensureindex":
 			case "ensureindexes":
+				if (!collection) {
+					echo "No collection selected\n";
+					return;
+				}
 				if (!parameters) {
 					echo "No index specified\n";
 					return;
@@ -492,6 +544,10 @@ class Main {
 				echo "OK\n";
 				break;
 			case "fulltext":
+				if (!collection) {
+					echo "No collection selected\n";
+					return;
+				}
 				var lang = "en";
 				var fields = null;
 				if (parameters) {
@@ -517,6 +573,10 @@ class Main {
 				}
 				break;
 			case "delete":
+				if (!collection) {
+					echo "No collection selected\n";
+					return;
+				}
 				if (!parameters)
 					parameters = new [];
 				dataset = new TinDataSet(connection, collection);
@@ -526,6 +586,10 @@ class Main {
 				echo "Delete request sent, waiting response (${queries} in queue, including this one)...\n";
 				break;
 			case "update":
+				if (!collection) {
+					echo "No collection selected\n";
+					return;
+				}
 				if ((!parameters) || (typeof parameters != "array") || (!parameters["set"]) || (typeof parameters["set"] != "array")) {
 					echo em("Nothing to update") + "\n";
 					break;
@@ -560,6 +624,10 @@ class Main {
 				connection.Notify(parameters, subject);
 				break;
 			case "load":
+				if (!collection) {
+					echo "No collection selected\n";
+					return;
+				}
 				if ((!parameters) || (typeof parameters != "string")) {
 					echo "No file specified.\n";
 					return;
@@ -600,8 +668,16 @@ class Main {
 				}
 				connected = false;
 				break;
+			case "use":
+				if ((!parameters) || (typeof parameters != "string")) {
+					echo "No database specified\n";
+					return;
+				}
+				connection.Database = parameters;
+				echo "Using database ${parameters}\n";
+				break;
 			case "help":
-				echo "Local commands: info, quit, exit, done, output [outputfilename]\n";
+				echo "Local commands: info, quit, exit, done, output [outputfilename], use dbname, databases, collections, top, version\n";
 				echo "TinDB commands:\n";
 				echo "    ${em("collection.query")}(criteria_object);\n";
 				echo "        Search object, matching criteria\n";

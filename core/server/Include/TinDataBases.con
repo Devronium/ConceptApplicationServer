@@ -232,6 +232,11 @@ class TinConnection {
 		}
 	}
 
+	Info(string what, delegate callback) {
+		var q = new Q([what], "" + Database, "", "INFO");
+		this._Handle(q, callback);
+	}
+
 	Disconnect() {
 		if (socket)
 			socket.Close();

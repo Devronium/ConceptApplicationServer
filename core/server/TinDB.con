@@ -3,10 +3,13 @@ include Worker.con
 include TinBase.con
 include TCPSocket.con
 include UNIXSocket.con
+include DirectoryList.con
 import standard.lib.cripto
 import standard.math.rand
 import standard.lang.cli
 import standard.C.time
+
+define TIN_VERSION	"1.0BETA"
 
 define TIN_DEBUG	false
 define TIN_FORCESYNC	true
@@ -247,6 +250,69 @@ pragma used
 		return false;
 	}
 
+	static DoInfo(obj, sock, current_worker) {
+		var r = new R();
+		r.q = obj.q;
+		var type = "";
+		var obj_p = obj.p;
+		if (typeof obj_p == "array")
+			type = obj_p[0];
+
+		if (typeof obj_p == "string")
+			type = ToLower(obj_p);
+
+		if (type == "databases") {
+			r.p = new [];
+			var list = DirectoryList::ListByType("./", S_IFDIR);
+			for (var i = 0; i < length list; i++) {
+				var d = list[i];
+				if ((d) && (d[0] != "."))
+					r.p[length r.p] = d;
+			}
+		} else
+		if (type == "top") {
+			r.p = getrusage(0);
+		} else
+		if (type == "collections") {
+			r.p = new [];
+			list = DirectoryList::ListByExt(obj.d + "/", [""], true);
+			for (i = 0; i < length list; i++) {
+				d = list[i];
+				if (d) {
+					var collection_data = [ ];
+
+					var indexes = null;
+					var idx = ReadFile(obj.d + "/" + d + ".idxn");
+					if (idx) {
+						indexes = UnBinarizeObject(idx);
+						if (indexes)
+							collection_data["index"] = indexes;
+					}
+					idx = ReadFile(obj.d + "/" + d + ".bm25");
+					if (idx) {
+						indexes = UnBinarizeObject(idx);
+						if (indexes)
+							collection_data["bm25"] = indexes;
+					}
+					if (collection_data)
+						collection_data["name"] = d;
+					else
+						collection_data = d;
+					r.p[d] = collection_data;
+				}
+			}
+			if (r.p)
+				r.p = KeySorted(r.p);
+		} else
+		if (type == "version")
+			r.p = ["version" => TIN_VERSION, "forcesync" => TIN_FORCESYNC, "maxopsize" => MAX_OP_SIZE, "debug" => TIN_DEBUG];
+
+		if ((!obj.io) || (obj.io != current_worker))
+			r.Send(sock, obj.io);
+		else
+			r.Send(sock);
+	}
+
 	Dispatch(ctx, sock, t, var next_worker, var next_a_worker, var next_idle_worker, storage_dbs, storage_workers, aggregation_workers, idle_workers, obj, current_worker, var buf, storage_dbs_w) {
 		var priority = 0;
 		if (obj.x) {
@@ -278,10 +344,11 @@ pragma used
 			case "W":
 			case "U":
 			case "Z":
+			case "INFO":
 				if ((!ctx) || (ctx.auth)) {
 					if (typeof obj.c != "string")
 						obj.c = "";
-					if ((!obj.d) || (typeof obj.d != "string") || (Pos(obj.d, "/") > 0) || (Pos(obj.d, "\\") > 0)) {
+					if ((!obj.d) || (typeof obj.d != "string") || (Pos(obj.d, "/") > 0) || (Pos(obj.d, "\\") > 0) || (obj.d == "..") || (obj.d == ".")) {
 						r = new R();
 						r.e = ERR_DB;
 						r.et = ERR_DB_S;
@@ -304,6 +371,10 @@ pragma used
 						if (!ctx_key) {
 							ctx_key = ctx.key;
 							obj.ctx_key = ctx.key;
+						}
+						if (obj.o == "INFO") {
+							DoInfo(obj, sock, current_worker);
+							return;
 						}
 						if ((!obj.io) && (CacheHit(obj, sock, current_worker)))
 							return;
