@@ -65,7 +65,7 @@ class TinBase {
 			if (!data)
 				data = 1;
 			gen_value = data;
-			data++;
+			data += increment;
 			fseek(hFile, 0, SEEK_SET);
 			ftruncate(hFile, 0);
 			fdata = "" + data;

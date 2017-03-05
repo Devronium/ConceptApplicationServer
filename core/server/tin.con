@@ -320,6 +320,8 @@ class Main {
 			echo "${em(err[1])}\n";
 		} else {
 			var count = 0;
+			if (typeof r != "array")
+				r = [r];
 			if (r)
 				count = length r;
 			if (output) {
@@ -887,10 +889,20 @@ class Main {
 							if (IsSet(q, "INDEX")) {
 								collection = q["INDEX"];
 								values = q["ON"];
-								if (length values > 1)
-									values = [values];
 								dataset = new TinDataSet(connection, collection);
-								dataset.EnsureIndexes(values);
+								if (q["BM25"]) {
+									if (!values)
+										values = null;
+									lang = q["LANG"];
+									if (!lang)
+										lang = "en";
+									dataset = new TinDataSet(connection, collection);
+									dataset.EnsureFullText(values, lang);
+								} else {
+									if (length values > 1)
+										values = [values];
+									dataset.EnsureIndexes(values);
+								}
 								echo "OK\n";
 							} else
 							if (IsSet(q, "DROP INDEX")) {
@@ -901,6 +913,15 @@ class Main {
 								dataset = new TinDataSet(connection, collection);
 								dataset.DropIndexes(values);
 								echo "OK\n";
+							} else
+							if (IsSet(q, "SEQUENCE")) {
+								collection = q["SEQUENCE"];
+								var increment = q["INCREMENT"];
+								dataset = new TinDataSet(connection, collection);
+								dataset.UserData = [orig_query, microseconds()];
+								dataset.Generate(collection, querycallback, increment);
+								queries++;
+								echo "Sequence request sent, waiting response (${queries} in queue, including this one)...\n";
 							}
 						}
 					}

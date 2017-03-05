@@ -313,8 +313,70 @@ pragma used
 			r.Send(sock);
 	}
 
+	RequestAuth(ctx, sock, var t, obj, var buf) {
+		var r = new R();
+		r.q = obj.q;
+		if (ctx.challenge) {
+			if (obj.o == "A") {
+				var username = obj.p["u"];
+				var digest = obj.p["d"];
+				var db = obj.p["db"];
+				try {
+					t.Lock();
+					var user = t.Query(["username" => username])[0];
+					t.Unlock();
+					if (user) {
+						var d2 = sha256(username + ":" + ctx.challenge + ":" + user["password"]);
+						var user_db = user["db"];
+						var db_valid = false;
+						if (user_db) {
+							if (typeof user_db == "array") {
+								for (var db_i = 0; db_i < length user_db; db_i++) {
+									var u_db = user_db[db_i];
+									if ((u_db) && (typeof u_db == "string") && (u_db == user_db)) {
+										db_valid = true;
+										break;
+									}
+								}
+							} else
+							if (user_db == db)
+								db_valid = true;
+						} else
+							db_valid = true;
+						if ((user) && (d2 == digest) && (db_valid)) {
+							ctx.auth = true;
+							if (IsSet(user, "code"))
+								ctx.code = (user["code"] == 1);
+							r.id = 0;
+							r.p["ok"] = true;
+							r.Send(sock);
+						}
+					}
+				} catch (var exc) {
+					t.ReleaseLock();
+					echo "Exception: $exc\n";
+				}
+			}
+			if (!ctx.auth) {
+				r.e = ERR_USER_PASS;
+				r.et = ERR_USER_PASS_S;
+				r.Send(sock);
+				RemoveSocket(sock);
+				buf = "";
+			}
+		} else {
+			ctx.challenge = RandomString(48);
+			r.e = ERR_LOGIN;
+			r.et = ERR_LOGIN_S;
+			r.p["c"] = ctx.challenge;
+			r.p["m"] = "sha256";
+			r.Send(sock);
+		}
+	}
+
 	Dispatch(ctx, sock, t, var next_worker, var next_a_worker, var next_idle_worker, storage_dbs, storage_workers, aggregation_workers, idle_workers, obj, current_worker, var buf, storage_dbs_w) {
 		var priority = 0;
+		var exc;
 		if (obj.x) {
 			var p2 = obj.x["priority"];
 			if ((p2) && (typeof p2 == "numeric"))
@@ -420,96 +482,49 @@ pragma used
 						}
 						AddWorkerData(storage, BinarizeObject([sock, obj, current_worker, ctx_key]), priority);
 					}
-				} else {
-					r = new R();
-					r.q = obj.q;
-					if (ctx.challenge) {
-						if (obj.o == "A") {
-							var username = obj.p["u"];
-							var digest = obj.p["d"];
-							var db = obj.p["db"];
-							try {
-								t.Lock();
-								var user = t.Query(["username" => username])[0];
-								t.Unlock();
-								if (user) {
-									var d2 = sha256(username + ":" + ctx.challenge + ":" + user["password"]);
-									var user_db = user["db"];
-									var db_valid = false;
-									if (user_db) {
-										if (typeof user_db == "array") {
-											for (var db_i = 0; db_i < length user_db; db_i++) {
-												var u_db = user_db[db_i];
-												if ((u_db) && (typeof u_db == "string") && (u_db == user_db)) {
-													db_valid = true;
-													break;
-												}
-											}
-										} else
-										if (user_db == db)
-											db_valid = true;
-									} else
-										db_valid = true;
-									if ((user) && (d2 == digest) && (db_valid)) {
-										ctx.auth = true;
-										if (IsSet(user, "code"))
-											ctx.code = (user["code"] == 1);
-										r.id = 0;
-										r.p["ok"] = true;
-										r.Send(sock);
-									}
-								}
-							} catch (var exc) {
-								t.ReleaseLock();
-								echo "Exception: $exc\n";
-							}
-						}
-						if (!ctx.auth) {
-							r.e = ERR_USER_PASS;
-							r.et = ERR_USER_PASS_S;
-							r.Send(sock);
-							RemoveSocket(sock);
-							buf = "";
-						}
-					} else {
-						ctx.challenge = RandomString(48);
-						r.e = ERR_LOGIN;
-						r.et = ERR_LOGIN_S;
-						r.p["c"] = ctx.challenge;
-						r.p["m"] = "sha256";
-						r.Send(sock);
-					}
-				}
+				} else
+					RequestAuth(ctx, sock, t, obj, buf);
 				break;
 			case "+":
-				// no response for add/remove subject
-				if ((obj.p) && (typeof obj.p == "string"))
-					ctx.AddSubject(obj.p);
+				if ((!ctx) || (ctx.auth)) {
+					// no response for add/remove subject
+					if ((obj.p) && (typeof obj.p == "string"))
+						ctx.AddSubject(obj.p);
+				} else
+					RequestAuth(ctx, sock, t, obj, buf);
 				break;
 			case "-":
-				// no response for add/remove subject
-				if ((obj.p) && (typeof obj.p == "string"))
-					ctx.RemoveSubject(obj.p);
+				if ((!ctx) || (ctx.auth)) {
+					// no response for add/remove subject
+					if ((obj.p) && (typeof obj.p == "string"))
+						ctx.RemoveSubject(obj.p);				
+				} else
+					RequestAuth(ctx, sock, t, obj, buf);
 				break;
 			case "!":
-				if ((obj.p) && (typeof obj.p == "array") && (obj.p["w"]))
-					this.Notify(obj.p["w"], obj.p["o"], true, sock);
+				if ((!ctx) || (ctx.auth)) {
+					if ((obj.p) && (typeof obj.p == "array") && (obj.p["w"]))
+						this.Notify(obj.p["w"], obj.p["o"], true, sock);
+				} else
+					RequestAuth(ctx, sock, t, obj, buf);
 				break;
 			case "G":
-				r = new R();
-				r.q = obj.q;
-				try {
-					var inc = 1;
-					if ((obj.p) && (IsSet(obj.p, "i")))
-						inc = obj.p["i"];
-
-					r.p = TinBase::Generator(obj.d, obj.p["g"], inc);
-				} catch (exc) {
-					r.e = ERR_IO;
-					r.et = ERR_IO_S;
-					echo "Exception: $exc\n";
-				}
-				r.Send(sock);
+				if ((!ctx) || (ctx.auth)) {
+					r = new R();
+					r.q = obj.q;
+					try {
+						var inc = 1;
+						if ((obj.p) && (IsSet(obj.p, "i")))
+							inc = obj.p["i"];
+						r.p = TinBase::Generator(obj.d, obj.p["g"], inc);
+					} catch (exc) {
+						r.e = ERR_IO;
+						r.et = ERR_IO_S;
+						echo "Exception: $exc\n";
+					}
+					r.Send(sock);
+				} else
+					RequestAuth(ctx, sock, t, obj, buf);
 				break;
 		}
 	}

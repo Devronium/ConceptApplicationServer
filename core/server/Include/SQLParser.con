@@ -816,10 +816,32 @@ class SQLParser {
 
 	static parseCreateIndex(var buffer, var err, var offset, syntax) {
 		var atom = ToUpper(SQLParser::parseAtom(buffer, err, offset));
+		var bm25 = false;
+		var lang_id = "";
+		if (atom == "BM25") {
+			atom = ToUpper(SQLParser::parseAtom(buffer, err, offset, 1));
+			if (atom == "(") {
+				atom = SQLParser::strip(ToLower(SQLParser::parseAtom(buffer, err, offset, 2)));
+				if (atom != ")") {
+					lang_id = atom;
+					atom = SQLParser::parseAtom(buffer, err, offset, 2);
+				}
+				if (atom != ")") {
+					if (err)
+						err += "\n";
+					err += "Expected ')', received '$atom'";
+				}
+			}
+			bm25 = true;
+			atom = ToUpper(SQLParser::parseAtom(buffer, err, offset));
+		}
 		if (atom != "INDEX") {
 			if (err)
 				err += "\n";
-			err += "Expected 'INDEX' after 'CREATE', received '$atom'";
+			if (bm25)
+				err += "Expected 'INDEX' after 'CREATE BM25', received '$atom'";
+			else
+				err += "Expected 'INDEX' or 'BM25' after 'CREATE', received '$atom'";
 			return false;
 		}
 		atom = ToUpper(SQLParser::parseAtom(buffer, err, offset));
@@ -837,11 +859,17 @@ class SQLParser {
 			return false;
 		}
 		syntax["INDEX"] = from;
+		if (bm25) {
+			syntax["BM25"] = true;
+			syntax["LANG"] = lang_id;
+		}
 		atom = SQLParser::parseAtom(buffer, err, offset, 1);
 		if (atom != "(") {
+			if ((bm25) && ((!atom) || (atom == ";")))
+				return true;
 			if (err)
 				err += "\n";
-			err += "Syntax error in CREATE INDEX: expecting field list";
+			err += "Syntax error in CREATE INDEX: expecting field list, received '$atom'";
 			return false;
 		}
 		var list = SQLParser::parseList(buffer, err, offset, 2);
@@ -925,6 +953,34 @@ class SQLParser {
 		return true;
 	}
 
+	static parseSequence(var buffer, var err, var offset, syntax) {
+		var from = SQLParser::strip(SQLParser::parseAtom(buffer, err, offset));
+		if (!from) {
+			if (err)
+				err += "\n";
+			err += "Syntax error in SEQUENCE: expecting sequence name after 'SEQUENCE'";
+			return false;
+		}
+		syntax["SEQUENCE"] = from;
+		var atom = ToUpper(SQLParser::parseAtom(buffer, err, offset));
+		if (atom == "INCREMENT") {
+			atom = SQLParser::parseAtom(buffer, err, offset);
+			if (ToUpper(atom) == "BY")
+				atom = SQLParser::parseAtom(buffer, err, offset);
+			atom = SQLParser::prepare(SQLParser::strip(atom), err);
+			syntax["INCREMENT"] = atom;
+			atom = SQLParser::parseAtom(buffer, err, offset);
+		} else
+			syntax["INCREMENT"] = 1;
+		if ((atom) && (atom != ";")) {
+			if (err)
+				err += "\n";
+			err += "Expected ';'";
+			return false;
+		}
+		return true;
+	}
+
 	static parse(buffer, var err = null) {
 		var[] statements;
 		err = "";
@@ -966,6 +1022,12 @@ class SQLParser {
 						break;
 					case "CREATE":
 						if (!SQLParser::parseCreateIndex(buffer, err, offset, syntax)) {
+							command = "";
+							syntax = null;
+						}
+						break;
+					case "SEQUENCE":
+						if (!SQLParser::parseSequence(buffer, err, offset, syntax)) {
 							command = "";
 							syntax = null;
 						}
