@@ -95,6 +95,10 @@ class SQLParser {
 			if (SQLParser::parseJSON(c, buffer, err, offset, command)) {
 				break;
 			} else {
+				if ((c == "-") && (!command) && (SQLParser::numeric(buffer[offset]))) {
+					command += c;
+					continue;
+				}
 				switch (c) {
 					case "<":
 					case ">":
@@ -831,9 +835,9 @@ class SQLParser {
 						err += "\n";
 					err += "Expected ')', received '$atom'";
 				}
+				atom = ToUpper(SQLParser::parseAtom(buffer, err, offset));
 			}
 			bm25 = true;
-			atom = ToUpper(SQLParser::parseAtom(buffer, err, offset));
 		}
 		if (atom != "INDEX") {
 			if (err)
