@@ -270,8 +270,8 @@ class SQLParser {
 					}
 					return SQLParser::eval(atom, parameters, err, offset);
 				}
+				offset = prec_offset;
 			}
-			offset = prec_offset;
 		}
 		return atom;
 	}
