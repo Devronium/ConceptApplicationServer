@@ -4416,8 +4416,11 @@ CONCEPT_FUNCTION_IMPL(setvbuf, 2)
     
     int buf_size = PARAM_INT(1);
     int err;
-    if (buf_size <= 0)
+    if (buf_size == 0)
         err = setvbuf((FILE *)(SYS_INT)PARAM(0), NULL, _IONBF, 0);
+    else
+    if (buf_size < 0)
+        err = setvbuf((FILE *)(SYS_INT)PARAM(0), NULL, _IOFBF, 0);
     else
         err = setvbuf((FILE *)(SYS_INT)PARAM(0), NULL, _IOFBF, buf_size);
     RETURN_NUMBER(err);
