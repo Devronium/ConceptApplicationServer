@@ -120,7 +120,7 @@ class Utils {
 	}
 
 	static pdfdocument(title, author = "", landscape = false) {
-		var p = Utils::_pdfinit(title, author, landscape, var page);
+		var p = Utils::_pdfinit(title, author, landscape, null);
 		// reset pages
 		p.Pages = new [];
 		return p;
@@ -1074,6 +1074,7 @@ class Main {
 							if (IsSet(q, "SELECT")) {
 								fields = q["SELECT"];
 								if (q["DUMMY"]) {
+									queries++;
 									querycallback(fields, 0, null, [orig_query, microseconds()]);
 									break;
 								}
@@ -1099,9 +1100,9 @@ class Main {
 									var join_query = [where];	
 									for (var j = 0; j < length join; j++)
 										join_query[length join_query] = join[j];
-									dataset.Join(join_query, querycallback, fields, q["LIMIT"], q["OFFSET"], (q["ORDER"] == -1));
+									dataset.Join(join_query, querycallback, fields, q["LIMIT"], q["OFFSET"], (q["ORDER"] == -1), q["PRIORITY"]);
 								} else {
-									dataset.Query(where, querycallback, fields, q["LIMIT"], q["OFFSET"], (q["ORDER"] == -1));
+									dataset.Query(where, querycallback, fields, q["LIMIT"], q["OFFSET"], (q["ORDER"] == -1), q["PRIORITY"]);
 								}
 								queries++;
 								echo "SQL-like query sent, waiting response (${queries} in queue, including this one)...\n";

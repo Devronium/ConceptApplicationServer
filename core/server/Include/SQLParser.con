@@ -248,13 +248,26 @@ class SQLParser {
 					parameter += SQLParser::prepare(parameters[i], err);
 				return '"' + parameter + '"';
 				break;
+			case "COUNT":
+			default:
+				SQLParser::error(err, offset, "'$func' is not defined");
+				return "0";
 		}
 		return "0";
 	}
 
+	static serverFunction(atom) {
+		atom = ToUpper(atom);
+		switch (atom) {
+			case "COUNT":
+				return true;
+		}
+		return false;
+	}
+
 	static parseValue(var buffer, var err, var offset, list = 0) {
 		var atom = SQLParser::parseAtom(buffer, err, offset, list);
-		if ((atom) && (atom != "(") && (atom != ")")) {
+		if ((atom) && (atom != "(") && (atom != ")") && (!SQLParser::serverFunction(atom))) {
 			if (SQLParser::is_string(atom))
 				return atom;
 			var prec_offset = offset;
@@ -637,6 +650,14 @@ class SQLParser {
 							}
 						} else {
 							SQLParser::error(err, offset, "Syntax error in SELECT/LEFT: expected 'JOIN', received '$command'");
+						}
+						break;
+					case "PRIORITY":
+						command = SQLParser::parseAtom(buffer, err, offset);
+						if (command) {
+							syntax["PRIORITY"] = value SQLParser::prepare(command, err);
+						} else {
+							SQLParser::error(err, offset, "'PRIORITY' value expected");
 						}
 						break;
 					default:
