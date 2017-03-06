@@ -9,11 +9,243 @@ include TinDataBases.con
 include CSV.con
 include SQLParser.con
 
+include Charset.con
+include PDFGenerator.con
+
+define REPORT_COLOR	"0.34 0.37 0.53"
+define INVERSE_COLOR	"1.0 1.0 1.0"
+define TITLE_FONT_SIZE	10
+define REPORT_FONT_SIZE	8
+
 class Container {
 	var Data;
 
 	Container(data) {
 		this.Data = data;
+	}
+}
+
+class Utils {
+	static report_table(p, ref_text, title, values, header = null) {
+		p.Font = "Helvetica-Bold";
+		p.FontSize = REPORT_FONT_SIZE;
+		if (title) {
+			title = Charset::latin10(title);
+			p = p.Append(title);
+		}
+		if (ref_text) {
+			p.Push();
+			p.FillColor = INVERSE_COLOR;
+			p.Print(p.MarginLeft - 26, p.TextY - 18, ref_text, 36);
+			p.Pop();
+		}
+		p.Font = "Helvetica";
+		p.FontSize = REPORT_FONT_SIZE;
+		var header_visible = true;
+		if ((!header) && (values)) {
+			var first_len = length values[0];
+			header = new [];
+			header[0] = ["Field", 0.3, 0, ["background": REPORT_COLOR, "text-color": INVERSE_COLOR, "color": INVERSE_COLOR]];
+			for (var i = 1; i < first_len; i++)
+				header[i] = "$i";
+
+			header_visible = false;
+		}
+		p.Table(header,
+			values,
+			["header": ["background": REPORT_COLOR, "text-color": INVERSE_COLOR, "visible": header_visible], "border": 0.1, "padding":1]
+		);
+		return p;
+	}
+
+	static filter_keys(arr) {
+		var keys = GetKeys(arr);
+		if ((IsSet(arr, '$')) || (IsSet(arr, 'id'))) {
+			var new_keys = new [];
+			for (var i = 0; i < length keys; i++) {
+				var k = keys[i];
+				if ((k) && (k != '$') && (k != "id"))
+					new_keys[length new_keys] = k;
+			}
+			return new_keys;
+		}
+		return keys;
+	}
+
+	protected static _pdfinit(title, author, landscape, var page) {
+		var p;
+		// landscape
+		if (landscape)
+			p = new PDFGenerator(PDF_A4_H, PDF_A4_W);
+		else
+			p = new PDFGenerator();
+		p.Title = Charset::latin10(title);
+		author = Charset::latin10(author);
+		p.Creator = author;
+		p.Author = author;
+		p.Subject = title;
+		p.Producer = "GyroGears";
+		p.UseCompression = true;
+		p.Encoding = "iso-8859-2";
+		p.MarginLeft = 50;
+
+		page = p.NewPage();
+		page.Color = REPORT_COLOR;
+		page.FillColor = REPORT_COLOR;
+		page.Rectangle(0, 0, p.MarginLeft - 5, page.Height, true);
+		page.FontSize = REPORT_FONT_SIZE;
+		// page.LineWidth = 0.5;
+		p.UseTemplate(page);
+
+		p.Footer.TextY = 10;
+		p.Footer.Color = REPORT_COLOR;
+		p.Footer.FillColor = REPORT_COLOR;
+		p.Footer.FontSize = REPORT_FONT_SIZE;
+		p.Footer.Append("[#]", 1);
+
+		return p;
+	}
+
+	static tostring(array, separator = ", ") {
+		var str =  "";
+		for (var i = 0; i < length array; i++) {
+			var e = array[i];
+			if ((typeof e == "string") || (typeof e == "numeric")) {
+				if (str)
+					str += separator;
+				str += e;
+			}
+		}
+		return str;
+	}
+
+	static pdfdocument(title, author = "", landscape = false) {
+		var p = Utils::_pdfinit(title, author, landscape, var page);
+		// reset pages
+		p.Pages = new [];
+		return p;
+	}
+
+	static report(o, show_keys = null, title = "", sub_title = "", info_text = "", author = "") {
+		var p;
+		// landscape
+		var header_size = 0;
+		if (show_keys) {
+			header_size = length show_keys;
+		} else
+		if ((o) && (typeof o == "array") && (typeof o[0] == "array")) {
+			header_size = length Utils::filter_keys(o[0]);
+		}
+
+		if (header_size >= 9)
+			p = Utils::_pdfinit(title, author, true, var page);
+		else
+			p = Utils::_pdfinit(title, author, false, page);
+
+		if (title) {
+			title = Charset::latin10(title);
+			page = page.Append("$title\n", 0.5);
+		}
+		page.FontSize = REPORT_FONT_SIZE;
+		if (sub_title) {
+			sub_title = Charset::latin10(sub_title);
+			page = page.Append("$sub_title\n", 0.5);
+		}
+		page.Rule();
+
+		if (info_text)
+			page = page << info_text;
+		if (typeof o == "class")
+			o = ToArray(o);
+		if (typeof o == "array") {
+			var keys = GetKeys(o);
+			if ((keys) && (keys[0])) {
+				// object info
+				if (!show_keys)
+					show_keys = keys;
+			} else {
+				if (!show_keys) {
+					var first_o = o[0];
+					if (typeof first_o == "class")
+						first_o = ToArray(first_o);
+					if (typeof first_o == "array")
+						show_keys = Utils::filter_keys(first_o);
+					if ((show_keys) && (!show_keys[0]))
+						show_keys = null;
+				}
+				if (show_keys) {
+					var values = new [];
+					var headers = new [];
+					for (var i = 0; i < length o; i++) {
+						var obj = o[i];
+						if (typeof obj == "class")
+							obj = ToArray(obj);
+						if (typeof obj == "array") {
+							var val = new [];
+							for (var j = 0; j < length show_keys; j++) {
+								var k = show_keys[j];
+								if (!j) {
+									var vcol = i + 1;
+									val[0] = vcol;
+									headers[0] = [" ", ceil(length ("" + vcol) * 1.8), 1];
+								}
+								if ((k) && (IsSet(obj, k))) {
+									var v = obj[k];
+									var is_container = false;
+									if (typeof v == "array") {
+										v = Utils::tostring(v);
+									} else
+									if ((typeof v != "string") && (typeof v != "numeric")) {
+										v = typeof v;
+										is_container = true;
+									}
+
+									val[length val] = Charset::latin10("" + v);
+									var prec_headers = headers[k];
+									var len;
+									if (v)
+										len = length (StrSplit(("" + v), "\n")[0]);
+									else
+										len = 1;
+									if (len < length k)
+										len = length k;
+									if ((typeof v == "string") && (v == ToUpper(v))) {
+										// uppercase letter take more space
+										len = ceil(len * 1.5);
+									}
+									if (len > 20)
+										len = 20;
+									if ((prec_headers) && (len < prec_headers[1]))
+										len = prec_headers[1];
+									if (len < length k)
+										len = length k;
+
+									if (typeof v == "numeric")
+										headers[k] = [StrReplace(k, "_", " "), len, 1];
+									else
+									if (is_container)
+										headers[k] = [StrReplace(k, "_", " "), len, 0.5];
+									else
+										headers[k] = [StrReplace(k, "_", " "), len, 0];
+								} else
+								if (k) {
+									val[length val] = "";
+									if (!headers[k]) {
+										len = length k;
+										if (len > 20)
+											len = 20;
+										headers[k] = [StrReplace(k, "_", " "), len, 0.5];
+									}
+								}
+							}
+							values[length values] = val;
+						}
+					}
+					page = Utils::report_table(page, "*", "", values, headers);
+				}
+			}
+		}
+		return p.Generate();
 	}
 }
 
@@ -133,9 +365,18 @@ class Main {
 		return key;
 	}
 
+	safeoid(val) {
+		for (var i = 0; i < length val; i++) {
+			var v = val[i];
+			if (((v < '0') || (v > '9')) && ((v < 'a') || (v > 'f')))
+				return StringToHex(val);
+		}
+		return val;
+	}
+
 	print(obj, level = 0, var backref = null, prec_level_str = "") {
 		if (typeof obj == "array") {
-			if (!backref)
+			if (level <= 1)
 				backref = new [];
 			backref["" + ClsPtr(obj)] = true;
 			var level_str = "";
@@ -189,6 +430,8 @@ class Main {
 						print(val, level + 1, backref, level_str);
 					}
 				} else {
+					if ((key) && (key == "\$oid"))
+						val = safeoid(val);
 					if (typeof val == "string")
 						val = is_string(val, true);
 					echo val;
@@ -303,6 +546,13 @@ class Main {
 			echo "${em("Dataset is empty")}\n";
 	}
 
+	WritePDF(data, output, title = "") {
+		if (data)
+			WriteFile(Utils::report(data, null, title), output);
+		else
+			echo "${em("Dataset is empty")}\n";
+	}
+
 	querycallback(r, id, err, userdata = null) {
 		if (userdata) {
 			var query = userdata[0];
@@ -336,6 +586,9 @@ class Main {
 						break;
 					case "csv":
 						WriteCSV(r, output);
+						break;
+					case "pdf":
+						WritePDF(r, output, query);
 						break;
 					default:
 						WriteFile(JSONSerialize(r, true), output);
@@ -820,6 +1073,10 @@ class Main {
 						if (q) {
 							if (IsSet(q, "SELECT")) {
 								fields = q["SELECT"];
+								if (q["DUMMY"]) {
+									querycallback(fields, 0, null, [orig_query, microseconds()]);
+									break;
+								}
 								if ((fields) && (length fields == 1) && (fields[0] == "*"))
 									fields = null;	
 

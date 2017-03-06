@@ -1,9 +1,18 @@
 import standard.lib.str
 import standard.lib.json
+import standard.lib.cripto
 
 class SQLParser {
+	static error(var err, offset, message) {
+		if (err)
+			err += "\n";
+		err += message;
+		if (offset > 0)
+			err += " at char $offset";
+	}
+
 	static alpha(c) {
-		if (((c >= "A") && (c <= "Z")) || ((c >= "a") && (c <= "z")))
+		if (((c >= "A") && (c <= "Z")) || ((c >= "a") && (c <= "z")) || (c == "_") || (c == "\$") || (c == "."))
 			return true;
 		return false;
 	}
@@ -43,9 +52,7 @@ class SQLParser {
 			if (c == q)
 				return true;
 		}
-		if (err)
-			err += "\n";
-		err += "Forgot to close quotes";
+		SQLParser::error(err, offset, "Forgot to close quotes");
 		return false;
 	}
 
@@ -72,13 +79,11 @@ class SQLParser {
 			if (c == q)
 				return true;
 		}
-		if (err)
-			err += "\n";
-		err += "Forgot to close JSON object";
+		SQLParser::error(err, offset, "Forgot to close JSON object");
 		return false;
 	}
 
-	static parseAtom(var buffer, var err, var offset, list = 0) {
+	static parseAtom(var buffer, var err, var offset, list = 0, silent = false) {
 		var command = "";
 		while (offset < length buffer) {
 			var c = buffer[offset++];
@@ -129,9 +134,7 @@ class SQLParser {
 							offset++;
 							return c;
 						} else {
-							if (err)
-								err += "\n";
-							err += "Unexpected operator '$c'";
+							SQLParser::error(err, offset, "Unexpected operator '$c'");
 							return "";
 						}
 					case '(':
@@ -143,9 +146,9 @@ class SQLParser {
 							return c;
 						list = 0;
 					default:
-						if (err)
-							err += "\n";
-						err += "Unexpected character '$c'";
+						if (silent)
+							return c;
+						SQLParser::error(err, offset, "Unexpected character '$c'");
 						return "";
 				}
 			}
@@ -160,6 +163,115 @@ class SQLParser {
 				case '"':	
 					return SubStr(atom, 1, length atom - 2);
 			}
+		}
+		return atom;
+	}
+
+	static is_string(atom) {
+		if ((atom[0] == '"') || (atom[0] == "'"))
+			return true;
+		return false;
+	}
+
+	static OneParameter(func, parameters, var err, offset) {
+		if (length parameters != 1) {
+			SQLParser::error(err, offset, "$func expects one parameter");
+			return "";
+		}
+		return SQLParser::prepare(parameters[0], err);
+	}
+
+	static escapestr(var str) {
+		var val = StrReplace(str, "\\", "\\\\");
+		val = StrReplace(val, "'", "\\'");
+		val = StrReplace(val, "\"", "\\'");
+		return val;
+	}
+
+	static eval(func, parameters, var err, offset) {
+		func = ToUpper(func);
+		switch (func) {
+			case "SHA256":
+				return '"' + sha256("" + SQLParser::OneParameter(func, parameters, err, offset)) + '"';
+				break;
+			case "SHA1":
+				return '"' + sha1("" + SQLParser::OneParameter(func, parameters, err, offset)) + '"';
+				break;
+			case "MD5":
+				return '"' + md5("" + SQLParser::OneParameter(func, parameters, err, offset)) + '"';
+				break;
+			case "CRC32":
+				return '"' + crc32("" + SQLParser::OneParameter(func, parameters, err, offset)) + '"';
+				break;
+			case "UPPER":
+				return '"' + SQLParser::escapestr(UTF8ToUpper("" + SQLParser::OneParameter(func, parameters, err, offset))) + '"';
+				break;
+			case "LOWER":
+				return '"' + SQLParser::escapestr(UTF8ToLower("" + SQLParser::OneParameter(func, parameters, err, offset))) + '"';
+				break;
+			case "METAPHONE":
+				return '"' + SQLParser::escapestr(Metaphone("" + SQLParser::OneParameter(func, parameters, err, offset))) + '"';
+			case "DOUBLEMETAPHONE":
+				return '"' + SQLParser::escapestr(DoubleMetaphone("" + SQLParser::OneParameter(func, parameters, err, offset))) + '"';
+			case "SOUNDEX":
+				return '"' + SQLParser::escapestr(Soundex("" + SQLParser::OneParameter(func, parameters, err, offset))) + '"';
+			case "TRIM":
+				return '"' + SQLParser::escapestr(trim("" + SQLParser::OneParameter(func, parameters, err, offset))) + '"';
+			case "LTRIM":
+				return '"' + SQLParser::escapestr(ltrim("" + SQLParser::OneParameter(func, parameters, err, offset))) + '"';
+			case "RTRIM":
+				return '"' + ltrim("" + SQLParser::OneParameter(func, parameters, err, offset)) + '"';
+			case "HEX":
+				var parameter = SQLParser::OneParameter(func, parameters, err, offset);
+				if (typeof parameter == "string")
+					return '"' + ToLower(StringToHex(parameter)) + '"';
+				return '"' + ToLower(NumberToHex(parameter)) + '"';
+			case "BINHEX":
+				return '"' + SQLParser::escapestr(HexToString("" + SQLParser::OneParameter(func, parameters, err, offset))) + '"';
+				break;
+			case "BINNUMBER":
+				return '"' + HexToNumber("" + SQLParser::OneParameter(func, parameters, err, offset)) + '"';
+				break;
+			case "OIDSTRING":
+				return '"' + ToLower(StringToHex("" + SQLParser::OneParameter(func, parameters, err, offset))) + '"';
+			case "OID":
+				return '"' + SQLParser::escapestr(HexToString("" + SQLParser::OneParameter(func, parameters, err, offset))) + '"';
+			case "URIENCODE":
+				return '"' + SQLParser::escapestr(URIEncode("" + SQLParser::OneParameter(func, parameters, err, offset))) + '"';
+			case "URIDECODE":
+				return '"' + SQLParser::escapestr(URIDecode("" + SQLParser::OneParameter(func, parameters, err, offset))) + '"';
+			case "HTML":
+				return '"' + SQLParser::escapestr(ToHTML("" + SQLParser::OneParameter(func, parameters, err, offset))) + '"';
+			case "CONCAT":
+				parameter = "";
+				for (var i = 0; i < length parameters; i++)
+					parameter += SQLParser::prepare(parameters[i], err);
+				return '"' + parameter + '"';
+				break;
+		}
+		return "0";
+	}
+
+	static parseValue(var buffer, var err, var offset, list = 0) {
+		var atom = SQLParser::parseAtom(buffer, err, offset, list);
+		if ((atom) && (atom != "(") && (atom != ")")) {
+			if (SQLParser::is_string(atom))
+				return atom;
+			var prec_offset = offset;
+			if (SQLParser::alpha(atom[0])) {
+				// if list, silent is true
+				var param = SQLParser::parseAtom(buffer, err, offset, 1, list);
+				if (param == "(") {
+					var parameters = SQLParser::parseList(buffer, err, offset, 2, null, false);
+					var end_list = SQLParser::parseAtom(buffer, err, offset, 2);
+					if (end_list != ")") {
+						SQLParser::error(err, offset, "')' expected");
+						return atom;
+					}
+					return SQLParser::eval(atom, parameters, err, offset);
+				}
+			}
+			offset = prec_offset;
 		}
 		return atom;
 	}
@@ -186,20 +298,18 @@ class SQLParser {
 		var target_foo;
 		do {
 			var prec_offset = offset;
-			var command = SQLParser::parseAtom(buffer, err, offset, ref_list);
+			var command = SQLParser::parseValue(buffer, err, offset, ref_list);
 			if (!command) {
-				if (err)
-					err += "\n";
-				err += "Syntax error";
+				if ((ref_list == 1) && (list == 3))
+					return fields;
+				SQLParser::error(err, offset, "Syntax error");
 				return false;
 			}
 			if (list == 3) {
 				if ((command == "(") && (ref_list == 1)) {
 					var f = SQLParser::removeone(fields);
 					if (!f) {
-						if (err)
-							err += "\n";
-						err += "Syntax error in aggregation function";
+						SQLParser::error(err, offset, "Syntax error in aggregation function");
 						return false;
 					}
 					if (!func)
@@ -244,16 +354,12 @@ class SQLParser {
 	static parseNumber(var buffer, var err, var offset) {
 		var command = SQLParser::parseAtom(buffer, err, offset);
 		if (!command) {
-			if (err)
-				err += "\n";
-			err += "Number expected";
+			SQLParser::error(err, offset, "Number expected");
 			return 0;
 		}
 		var val = value command;
 		if ("" + val != command) {
-			if (err)
-				err += "\n";
-			err += "Invalid number value '$command'";
+			SQLParser::error(err, offset, "Invalid number value '$command'");
 		}
 		return val;
 	}
@@ -271,9 +377,7 @@ class SQLParser {
 				default:
 					var new_val = value val;
 					if ("" + new_val != val) {
-						if (err)
-							err += "\n";
-						err += "Invalid number value '$val'";
+						SQLParser::error(err, -1, "Invalid number value '$val'");
 					} else
 						return new_val;
 			}
@@ -299,7 +403,7 @@ class SQLParser {
 		var op = "";
 		do {
 			var prev_offset = offset;
-			var command = SQLParser::parseAtom(buffer, err, offset);
+			var command = SQLParser::parseValue(buffer, err, offset);
 			var is_list = false;
 			if (command) {
 				switch (state) {
@@ -319,9 +423,7 @@ class SQLParser {
 						if (op == "NOT") {
 							command = ToUpper(SQLParser::parseAtom(buffer, err, offset, 1));
 							if (command != "IN") {
-								if (err)
-									err += "\n";
-								err += "'IN' expected after 'NOT', found '$command'";
+								SQLParser::error(err, offset, "'IN' expected after 'NOT', found '$command'");
 							}
 							op = "NOT IN";
 						}
@@ -329,18 +431,14 @@ class SQLParser {
 							is_list = true;
 							command = SQLParser::parseAtom(buffer, err, offset, 1);
 							if (command != "(") {
-								if (err)
-									err += "\n";
-								err += "'(' expected after IN operator";
+								SQLParser::error(err, offset, "'(' expected after IN operator");
 								command = "";
 								break;
 							}
 							var list = SQLParser::parseList(buffer, err, offset, 2, null, false);
 							command = SQLParser::parseAtom(buffer, err, offset, 2);
 							if (command != ")") {
-								if (err)
-									err += "\n";
-								err += "')' expected";
+								SQLParser::error(err, offset, "')' expected");
 								command = "";
 								break;
 							}
@@ -354,9 +452,7 @@ class SQLParser {
 							val = SQLParser::prepare(command, err);
 						if ((op == "=") || (op == "IN") || (op == "NOT IN") || (op == "!=")) {
 							if (condition) {
-								if (err)
-									err += "\n";
-								err += "Impossible condition (same variable, multiple values; use 'IN' operator)";
+								SQLParser::error(err, offset, "Impossible condition (same variable, multiple values; use 'IN' operator)");
 							} else
 							if ((op == "=") || (op == "IN"))
 								criteria[variable] = val;
@@ -377,9 +473,7 @@ class SQLParser {
 			}
 		} while (command);
 		if ((state != 0) && (state != 3)) {
-			if (err)
-				err += "\n";
-			err += "Invalid WHERE syntax";
+			SQLParser::error(err, offset, "Invalid WHERE syntax");
 		}
 		return criteria;
 	}
@@ -391,7 +485,7 @@ class SQLParser {
 		var op = "";
 		do {
 			var prev_offset = offset;
-			var command = SQLParser::parseAtom(buffer, err, offset);
+			var command = SQLParser::parseValue(buffer, err, offset);
 			if (command) {
 				switch (state) {
 					case -1:
@@ -402,9 +496,7 @@ class SQLParser {
 					case 1:
 						op = ToUpper(command);
 						if (op != "=") {
-							if (err)
-								err += "\n";
-							err += "'=' expected, '$command' received";
+							SQLParser::error(err, offset, "'=' expected, '$command' received");
 						}
 						state = 2;
 						break;
@@ -423,9 +515,7 @@ class SQLParser {
 			}
 		} while (command);
 		if ((state != 0) && (state != 3)) {
-			if (err)
-				err += "\n";
-			err += "Invalid SET syntax";
+			SQLParser::error(err, offset, "Invalid SET syntax");
 		}
 		return criteria;
 	}
@@ -434,17 +524,13 @@ class SQLParser {
 		join_ref = "";
 		var command = SQLParser::strip(SQLParser::parseAtom(buffer, err, offset));
 		if (!command) {
-			if (err)
-				err += "\n";
-			err += "Expected collection name after 'JOIN'";
+			SQLParser::error(err, offset, "Expected collection name after 'JOIN'");
 			return null;
 		}
 		var collection = command;
 		command = ToUpper(SQLParser::parseAtom(buffer, err, offset));
 		if (command != "ON") {
-			if (err)
-				err += "\n";
-			err += "Expected 'ON' after 'JOIN collection'";
+			SQLParser::error(err, offset, "Expected 'ON' after 'JOIN collection'");
 			return null;
 		}
 		var field = SQLParser::strip(SQLParser::parseAtom(buffer, err, offset));
@@ -456,9 +542,7 @@ class SQLParser {
 		var eq = SQLParser::parseAtom(buffer, err, offset);
 		var field2 = SQLParser::strip(SQLParser::parseAtom(buffer, err, offset));
 		if ((!field) || (!field2) || (eq != "=")) {
-			if (err)
-				err += "\n";
-			err += "Expected 'field1 = field2' after 'JOIN collection ON'";
+			SQLParser::error(err, offset, "Expected 'field1 = field2' after 'JOIN collection ON'");
 			return null;
 		}
 		return [collection, [field => field2]];
@@ -470,9 +554,7 @@ class SQLParser {
 			if (funct) {
 				fields = ["*"];
 			} else {
-				if (err)
-					err += "\n";
-				err += "Missing fields in SELECT";
+				SQLParser::error(err, offset, "Missing fields in SELECT");
 				return false;
 			}
 		}
@@ -484,17 +566,17 @@ class SQLParser {
 			false;
 
 		var command = SQLParser::parseAtom(buffer, err, offset);
+		if ((!funct) && ((!command) || (command  == ";")) && (fields) && (fields[0] != "*")) {
+			syntax["DUMMY"] = true;
+			return true;
+		}
 		if ((!command) || (ToUpper(command) != "FROM")) {
-			if (err)
-				err += "\n";
-			err += "Syntax error in SELECT: expecting 'FROM', found '$command'";
+			SQLParser::error(err, offset, "Syntax error in SELECT: expecting 'FROM', found '$command'");
 			return false;
 		}
 		var from = SQLParser::strip(SQLParser::parseAtom(buffer, err, offset));
 		if (!from) {
-			if (err)
-				err += "\n";
-			err += "Syntax error in SELECT: expecting collection name after 'FROM'";
+			SQLParser::error(err, offset, "Syntax error in SELECT: expecting collection name after 'FROM'");
 			return false;
 		}
 		syntax["FROM"] = from;
@@ -523,9 +605,7 @@ class SQLParser {
 						if ((direction == "DESC") || (direction == "DESCENDING"))
 							syntax["ORDER"] = -1;
 						else {
-							if (err)
-								err += "\n";
-							err += "Syntax error in SELECT/ORDER: expected 'ASC' or 'DESC', received '$direction'";
+							SQLParser::error(err, offset, "Syntax error in SELECT/ORDER: expected 'ASC' or 'DESC', received '$direction'");
 						}
 						command = direction;
 						break;
@@ -544,9 +624,7 @@ class SQLParser {
 								if (join_collection) {
 									target_join = join_ref[join_collection];
 									if ((!target_join) && (join_collection != from)) {
-										if (err)
-											err += "\n";
-										err += "Unknown collection '$join_collection' in 'JOIN'";
+										SQLParser::error(err, offset, "Unknown collection '$join_collection' in 'JOIN'");
 									}
 								}
 								join_ref[join_with] = join_now;
@@ -558,15 +636,11 @@ class SQLParser {
 								}
 							}
 						} else {
-							if (err)
-								err += "\n";
-							err += "Syntax error in SELECT/LEFT: expected 'JOIN', received '$command'";
+							SQLParser::error(err, offset, "Syntax error in SELECT/LEFT: expected 'JOIN', received '$command'");
 						}
 						break;
 					default:
-						if (err)
-							err += "\n";
-						err += "Syntax error in SELECT: unexpected '$command'";
+						SQLParser::error(err, offset, "Syntax error in SELECT: unexpected '$command'");
 						return false;
 				}
 			}
@@ -577,16 +651,12 @@ class SQLParser {
 	static parseInsert(var buffer, var err, var offset, syntax) {
 		var command = ToUpper(SQLParser::parseAtom(buffer, err, offset));
 		if (command != "INTO") {
-			if (err)
-				err += "\n";
-			err += "Expected 'INTO' after 'INSERT'";
+			SQLParser::error(err, offset, "Expected 'INTO' after 'INSERT'");
 			return false;
 		}
 		var collection = SQLParser::strip(SQLParser::parseAtom(buffer, err, offset));
 		if (!collection) {
-			if (err)
-				err += "\n";
-			err += "Expected collection name after 'INSERT INTO'";
+			SQLParser::error(err, offset, "Expected collection name after 'INSERT INTO'");
 			return false;
 		}
 		var atom = ToUpper(SQLParser::parseAtom(buffer, err, offset, 1));
@@ -596,16 +666,12 @@ class SQLParser {
 			case "(":
 				list = SQLParser::parseList(buffer, err, offset, 2);
 				if (SQLParser::parseAtom(buffer, err, offset, 2) != ")") {
-					if (err)
-						err += "\n";
-					err += "Expected ')'";
+					SQLParser::error(err, offset, "Expected ')'");
 					return false;
 				}
 				atom = ToUpper(SQLParser::parseAtom(buffer, err, offset));
 				if (atom != "VALUES") {
-					if (err)
-						err += "\n";
-					err += "Expected 'VALUES' after collection name: unexpected '$atom'";
+					SQLParser::error(err, offset, "Expected 'VALUES' after collection name: unexpected '$atom'");
 					return false;
 				}
 				if (!list)
@@ -615,9 +681,7 @@ class SQLParser {
 				expect_json = true;
 				break;
 			default:
-				if (err)
-					err += "\n";
-				err += "Expected 'VALUES' after collection name: unexpected '$atom'";
+				SQLParser::error(err, offset, "Expected 'VALUES' after collection name: unexpected '$atom'");
 				return false;
 		}
 		var obj;
@@ -625,39 +689,29 @@ class SQLParser {
 			atom = SQLParser::parseAtom(buffer, err, offset);
 			obj = SQLParser::prepare(atom, err, true);
 			if (typeof obj != "array") {
-				if (err)
-					err += "\n";
-				err += "Invalid JSON object '$atom'";
+				SQLParser::error(err, offset, "Invalid JSON object '$atom'");
 				return false;
 			}
 		} else {
 			atom = SQLParser::parseAtom(buffer, err, offset, 1);
 			if (atom != "(") {
-				if (err)
-					err += "\n";
-				err += "Expected '(' after 'VALUES'";
+				SQLParser::error(err, offset, "Expected '(' after 'VALUES'");
 				return false;
 			}
 			var values = SQLParser::parseList(buffer, err, offset, 2, null, false);
 			if (SQLParser::parseAtom(buffer, err, offset, 2) != ")") {
-				if (err)
-					err += "\n";
-				err += "Expected ')'";
+				SQLParser::error(err, offset, "Expected ')'");
 				return false;
 			}
 			if ((!values) || (length list != length values)) {
-				if (err)
-					err += "\n";
-				err += "Values count mismatch in 'INSERT INTO collection(field_list) VALUES(value_list)";
+				SQLParser::error(err, offset, "Values count mismatch in 'INSERT INTO collection(field_list) VALUES(value_list)");
 				return false;
 			}
 			obj = new [];
 			for (var i = 0; i < length list; i++) {
 				var field = SQLParser::strip(list[i]);
 				if (field == '$') {
-					if (err)
-						err += "\n";
-					err += "Cannot use object volatile reference in INSERT. Use UPDATE instead.";
+					SQLParser::error(err, offset, "Cannot use object volatile reference in INSERT. Use UPDATE instead");
 					return false;
 				}
 				obj[field] = SQLParser::prepare(values[i], err, true);
@@ -666,16 +720,12 @@ class SQLParser {
 		syntax["INSERT"] = obj;
 		syntax["INTO"] = collection;
 		if (!obj) {
-			if (err)
-				err += "\n";
-			err += "Nothing to 'INSERT'.";
+			SQLParser::error(err, offset, "Nothing to 'INSERT'");
 			return false;
 		}
 		atom = SQLParser::parseAtom(buffer, err, offset);
 		if ((atom) && (atom != ";")) {
-			if (err)
-				err += "\n";
-			err += "Expected ';'";
+			SQLParser::error(err, offset, "Expected ';'");
 			return false;
 		}
 		return true;
@@ -685,16 +735,12 @@ class SQLParser {
 		syntax["DELETE"] = "*";
 		var command = SQLParser::parseAtom(buffer, err, offset);
 		if ((!command) || (ToUpper(command) != "FROM")) {
-			if (err)
-				err += "\n";
-			err += "Syntax error in DELETE: expecting 'FROM', found '$command'";
+			SQLParser::error(err, offset, "Syntax error in DELETE: expecting 'FROM', found '$command'");
 			return false;
 		}
 		var from = SQLParser::strip(SQLParser::parseAtom(buffer, err, offset));
 		if (!from) {
-			if (err)
-				err += "\n";
-			err += "Syntax error in DELETE: expecting collection name after 'FROM'";
+			SQLParser::error(err, offset, "Syntax error in DELETE: expecting collection name after 'FROM'");
 			return false;
 		}
 		syntax["FROM"] = from;
@@ -719,9 +765,7 @@ class SQLParser {
 						if ((direction == "DESC") || (direction == "DESCENDING"))
 							syntax["ORDER"] = -1;
 						else {
-							if (err)
-								err += "\n";
-							err += "Syntax error in DELETE/ORDER: expected 'ASC' or 'DESC', received '$direction'";
+							SQLParser::error(err, offset, "Syntax error in DELETE/ORDER: expected 'ASC' or 'DESC', received '$direction'");
 						}
 						command = direction;
 						break;
@@ -732,9 +776,7 @@ class SQLParser {
 							break;
 						}
 					default:
-						if (err)
-							err += "\n";
-						err += "Syntax error in DELETE: unexpected '$command'";
+						SQLParser::error(err, offset, "Syntax error in DELETE: unexpected '$command'");
 						return false;
 				}
 			}
@@ -745,45 +787,33 @@ class SQLParser {
 	static parseDropIndex(var buffer, var err, var offset, syntax) {
 		var atom = ToUpper(SQLParser::parseAtom(buffer, err, offset));
 		if (atom != "ON") {
-			if (err)
-				err += "\n";
-			err += "Expected 'ON' after 'DROP INDEX'";
+			SQLParser::error(err, offset, "Expected 'ON' after 'DROP INDEX'");
 			return false;
 		}
 		var from = SQLParser::strip(SQLParser::parseAtom(buffer, err, offset));
 		if (!from) {
-			if (err)
-				err += "\n";
-			err += "Syntax error in DROP INDEX: expecting collection name after 'DROP INDEX ON'";
+			SQLParser::error(err, offset, "Syntax error in DROP INDEX: expecting collection name after 'DROP INDEX ON'");
 			return false;
 		}
 		syntax["DROP INDEX"] = from;
 		atom = SQLParser::parseAtom(buffer, err, offset, 1);
 		if (atom != "(") {
-			if (err)
-				err += "\n";
-			err += "Syntax error in DROP INDEX: expecting field list";
+			SQLParser::error(err, offset, "Syntax error in DROP INDEX: expecting field list");
 			return false;
 		}
 		var list = SQLParser::parseList(buffer, err, offset, 2);
 		if (SQLParser::parseAtom(buffer, err, offset, 2) != ")") {
-			if (err)
-				err += "\n";
-			err += "Expected ')'";
+			SQLParser::error(err, offset, "Expected ')'");
 			return false;
 		}
 		syntax["ON"] = list;
 		atom = SQLParser::parseAtom(buffer, err, offset);
 		if ((atom) && (atom != ";")) {
-			if (err)
-				err += "\n";
-			err += "Expected ';'";
+			SQLParser::error(err, offset, "Expected ';'");
 			return false;
 		}
 		if (!list) {
-			if (err)
-				err += "\n";
-			err += "Field list is empty";
+			SQLParser::error(err, offset, "Field list is empty");
 			return false;
 		}
 		return true;
@@ -794,24 +824,18 @@ class SQLParser {
 		if (atom == "INDEX")
 			return SQLParser::parseDropIndex(buffer, err, offset, syntax);
 		if (atom != "COLLECTION") {
-			if (err)
-				err += "\n";
-			err += "Expected 'COLLECTION' or 'INDEX' after 'DROP'";
+			SQLParser::error(err, offset, "Expected 'COLLECTION' or 'INDEX' after 'DROP'");
 			return false;
 		}		
 		var from = SQLParser::strip(SQLParser::parseAtom(buffer, err, offset));
 		if (!from) {
-			if (err)
-				err += "\n";
-			err += "Syntax error in DROP: expecting collection name after 'COLLECTION'";
+			SQLParser::error(err, offset, "Syntax error in DROP: expecting collection name after 'COLLECTION'");
 			return false;
 		}
 		syntax["DROP"] = from;
 		atom = SQLParser::parseAtom(buffer, err, offset);
 		if ((atom) && (atom != ";")) {
-			if (err)
-				err += "\n";
-			err += "Expected ';'";
+			SQLParser::error(err, offset, "Expected ';'");
 			return false;
 		}
 		return true;
@@ -831,35 +855,27 @@ class SQLParser {
 					atom = SQLParser::parseAtom(buffer, err, offset, 2);
 				}
 				if (atom != ")") {
-					if (err)
-						err += "\n";
-					err += "Expected ')', received '$atom'";
+					SQLParser::error(err, offset, "Expected ')', received '$atom'");
 				}
 				atom = ToUpper(SQLParser::parseAtom(buffer, err, offset));
 			}
 			bm25 = true;
 		}
 		if (atom != "INDEX") {
-			if (err)
-				err += "\n";
 			if (bm25)
-				err += "Expected 'INDEX' after 'CREATE BM25', received '$atom'";
+				SQLParser::error(err, offset, "Expected 'INDEX' after 'CREATE BM25', received '$atom'");
 			else
-				err += "Expected 'INDEX' or 'BM25' after 'CREATE', received '$atom'";
+				SQLParser::error(err, offset, "Expected 'INDEX' or 'BM25' after 'CREATE', received '$atom'");
 			return false;
 		}
 		atom = ToUpper(SQLParser::parseAtom(buffer, err, offset));
 		if (atom != "ON") {
-			if (err)
-				err += "\n";
-			err += "Expected 'ON' after 'CREATE INDEX'";
+			SQLParser::error(err, offset, "Expected 'ON' after 'CREATE INDEX'");
 			return false;
 		}
 		var from = SQLParser::strip(SQLParser::parseAtom(buffer, err, offset));
 		if (!from) {
-			if (err)
-				err += "\n";
-			err += "Syntax error in CREATE INDEX: expecting collection name after 'CREATE INDEX ON'";
+			SQLParser::error(err, offset, "Syntax error in CREATE INDEX: expecting collection name after 'CREATE INDEX ON'");
 			return false;
 		}
 		syntax["INDEX"] = from;
@@ -871,30 +887,22 @@ class SQLParser {
 		if (atom != "(") {
 			if ((bm25) && ((!atom) || (atom == ";")))
 				return true;
-			if (err)
-				err += "\n";
-			err += "Syntax error in CREATE INDEX: expecting field list, received '$atom'";
+			SQLParser::error(err, offset, "Syntax error in CREATE INDEX: expecting field list, received '$atom'");
 			return false;
 		}
 		var list = SQLParser::parseList(buffer, err, offset, 2);
 		if (SQLParser::parseAtom(buffer, err, offset, 2) != ")") {
-			if (err)
-				err += "\n";
-			err += "Expected ')'";
+			SQLParser::error(err, offset, "Expected ')'");
 			return false;
 		}
 		syntax["ON"] = list;
 		atom = SQLParser::parseAtom(buffer, err, offset);
 		if ((atom) && (atom != ";")) {
-			if (err)
-				err += "\n";
-			err += "Expected ';'";
+			SQLParser::error(err, offset, "Expected ';'");
 			return false;
 		}
 		if (!list) {
-			if (err)
-				err += "\n";
-			err += "Field list is empty";
+			SQLParser::error(err, offset, "Field list is empty");
 			return false;
 		}
 		return true;
@@ -903,9 +911,7 @@ class SQLParser {
 	static parseUpdate(var buffer, var err, var offset, syntax) {
 		var from = SQLParser::strip(SQLParser::parseAtom(buffer, err, offset));
 		if (!from) {
-			if (err)
-				err += "\n";
-			err += "Syntax error in UPDATE: expecting collection name";
+			SQLParser::error(err, offset, "Syntax error in UPDATE: expecting collection name");
 			return false;
 		}
 		syntax["UPDATE"] = from;
@@ -930,9 +936,7 @@ class SQLParser {
 						if ((direction == "DESC") || (direction == "DESCENDING"))
 							syntax["ORDER"] = -1;
 						else {
-							if (err)
-								err += "\n";
-							err += "Syntax error in UPDATE/ORDER: expected 'ASC' or 'DESC', received '$direction'";
+							SQLParser::error(err, offset, "Syntax error in UPDATE/ORDER: expected 'ASC' or 'DESC', received '$direction'");
 						}
 						command = direction;
 						break;
@@ -947,9 +951,7 @@ class SQLParser {
 							break;
 						}
 					default:
-						if (err)
-							err += "\n";
-						err += "Syntax error in UPDATE: unexpected '$command'";
+						SQLParser::error(err, offset, "Syntax error in UPDATE: unexpected '$command'");
 						return false;
 				}
 			}
@@ -960,9 +962,7 @@ class SQLParser {
 	static parseSequence(var buffer, var err, var offset, syntax) {
 		var from = SQLParser::strip(SQLParser::parseAtom(buffer, err, offset));
 		if (!from) {
-			if (err)
-				err += "\n";
-			err += "Syntax error in SEQUENCE: expecting sequence name after 'SEQUENCE'";
+			SQLParser::error(err, offset, "Syntax error in SEQUENCE: expecting sequence name after 'SEQUENCE'");
 			return false;
 		}
 		syntax["SEQUENCE"] = from;
@@ -977,9 +977,7 @@ class SQLParser {
 		} else
 			syntax["INCREMENT"] = 1;
 		if ((atom) && (atom != ";")) {
-			if (err)
-				err += "\n";
-			err += "Expected ';'";
+			SQLParser::error(err, offset, "Expected ';'");
 			return false;
 		}
 		return true;
@@ -1040,9 +1038,7 @@ class SQLParser {
 						// ignore it
 						break;
 					default:
-						if (err)
-							err += "\n";
-						err += "Unsupported command '$command'";
+						SQLParser::error(err, offset, "Unsupported command '$command'");
 						command = "";
 						break;
 				}
