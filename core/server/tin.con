@@ -1172,6 +1172,13 @@ class Main {
 								dataset.DropIndexes(values);
 								echo "OK\n";
 							} else
+							if (IsSet(q, "DROP BM25")) {
+								collection = q["DROP BM25"];
+								values = q["ON"];
+								dataset = new TinDataSet(connection, collection);
+								dataset.DropFullText();
+								echo "OK\n";
+							} else
 							if (IsSet(q, "SEQUENCE")) {
 								collection = q["SEQUENCE"];
 								var increment = q["INCREMENT"];

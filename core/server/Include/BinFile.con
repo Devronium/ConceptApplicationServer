@@ -24,6 +24,8 @@ define BM25_MAX_WORDCACHE	5000
 define REGEX_MATCH		regex_match
 define MAX_CACHE_OBJECTS	1000
 
+define READ_VBUF_SIZE		4096
+
 // ASCII char record separator
 define COMPOSITE_FIELD_SEPARATOR "\x1E"
 
@@ -1058,7 +1060,7 @@ class BM25Index {
 		}
 	}
 
-	finalize() {
+	Close() {
 		flush();
 		if (file) {
 			try {
@@ -1093,6 +1095,49 @@ class BM25Index {
 		file = null;
 		wordsfile = null;
 		graphfile = null;
+	}
+
+	Delete() {
+		flush();
+		if (file) {
+			try {
+
+				file.Drop();
+			} catch (var exc) {
+			}
+			try {
+				file.Reset();
+			} catch (exc) {
+			}
+		}
+		if (wordsfile) {
+			try {
+				wordsfile.Drop();
+			} catch (exc) {
+			}
+			try {
+				wordsfile.Reset();
+			} catch (exc) {
+			}
+		}
+		if (graphfile) {
+			try {
+				graphfile.Drop();
+			} catch (exc) {
+			}
+			try {
+				wordsfile.Reset();
+			} catch (exc) {
+			}
+		}
+		file = null;
+		wordsfile = null;
+		graphfile = null;
+
+	}
+
+	finalize() {
+		Close();
 	}
 }
 
@@ -1147,6 +1192,19 @@ class BinFile extends File {
 			}
 		}
 		return "";
+	}
+	
+	DropBM25Index() {
+		var dropped = false;
+		if (bm25) {
+			bm25.Delete();
+			bm25.Close();
+			bm25 = null;
+			dropped = true;
+		}
+		if (this.name)
+			_unlink(this.name+ ".bm25");
+		return dropped;
 	}
 
 	RemoveIndex(fields) {
@@ -1229,6 +1287,10 @@ class BinFile extends File {
 
 	Lock(write = false, start = 0, len = 0) {
 		if (hFile) {
+			if (write)
+				setvbuf(hFile, 0);
+			else
+				setvbuf(hFile, READ_VBUF_SIZE);
 			locked = 1 + write;
 			if (write)
 				return LockFileBytes(hFile, F_SETLKW, start, len);
@@ -1241,6 +1303,7 @@ class BinFile extends File {
 		if (locked) {
 			locked = false;
 			if (hFile) {
+				setvbuf(hFile, 0);
 				if (write)
 					return LockFileBytes(hFile, F_UNLCK, start, len);
 				return LockFileBytes(hFile, F_UNLCK, start, len, SEEK_SET, F_RDLCK);
@@ -1282,6 +1345,9 @@ class BinFile extends File {
 			if (index) {
 				if (typeof index == "string")
 					_Index.DropIndex(index);
+				else
+				if (typeof index == "array")
+					_Index.DropIndex(index[0]);
 			}
 		}
 		Indexes = new [];
@@ -3279,6 +3345,7 @@ class BinFile extends File {
 			_Index.ResetCache();
 			_unlink(this.name);
 			_unlink(this.name + ".idxn");
+			this.DropBM25Index();
 			this.DropIndexes();
 			cache = new [];
 		}	

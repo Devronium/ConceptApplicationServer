@@ -1189,9 +1189,12 @@ pragma used
 						r.id = 0;
 						t = db[obj.c];
 						if ((obj.p) && (typeof obj.p == "array")) {
-							t.Lock();
-							var removed = t.DeleteIndexes(obj.p);
-							t.Unlock();
+							t.Lock(true);
+							if (obj.p["bm25"])
+								var removed = t.DropBM25Index();
+							else
+								removed = t.DeleteIndexes(obj.p);
+							t.Unlock(true);
 							if (removed) {
 								QueryWorker::InvalidateCache(obj.d, obj.c);
 								this.ResetDBS(true);
