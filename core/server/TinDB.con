@@ -286,7 +286,10 @@ class Journal {
 						if (offset <= 0)
 							offset = -1;
 
-						records[collection] = ['$' => offset, "time" => record[0], "flags" => flags, "data" => buffer];
+						var prec_record = records[collection];
+						var record_time = record[0];
+						if ((!prec_record) || (prec_record["time"] < record_time))
+							records[collection] = ['$' => offset, "time" => record_time, "flags" => flags, "data" => buffer];
 					} else {
 						var seek_size = record_size + collection_size;
 						if (!f2.Seek(tell_offset + seek_size))
