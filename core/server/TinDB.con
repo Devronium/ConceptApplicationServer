@@ -185,7 +185,7 @@ class Journal {
 		f.Name = name;
 		if (f.Open()) {
 			// no buffering
-			// setvbuf(f.Handle, 0);
+			setvbuf(f.Handle, 0);
 			f.Seek(12);
 			f.Read(var buf, 4);
 			last_cleanup = unpack("U32", buf)[0];
