@@ -1165,16 +1165,18 @@ class BinFile extends File {
 	public var DebugPath;
 	public var Journal;
 
-	BinFile(filename, mode="r+b", default_block_size = DEFAULT_MODULO_SIZE) {
+	BinFile(filename, mode="r+b", default_block_size = DEFAULT_MODULO_SIZE, use_index = true) {
 		super(mode);
 		this.name  = filename;
-		_Index = new BinIndex(filename, this.CompareObjects, this.CompareObjectsReversed);
-		_Index.GetIndexFields = this.GetIndexFields;
-		_Index.Unique = false;
-		if (default_block_size > 16)
-			MODULO_SIZE = default_block_size;
+		if (use_index) {
+			_Index = new BinIndex(filename, this.CompareObjects, this.CompareObjectsReversed);
+			_Index.GetIndexFields = this.GetIndexFields;
+			_Index.Unique = false;
+			if (default_block_size > 16)
+				MODULO_SIZE = default_block_size;
 
-		this.RefreshIndexes();
+			this.RefreshIndexes();
+		}
 	}
 
 	SetIndexLock(lock) {
@@ -1788,6 +1790,11 @@ class BinFile extends File {
 		var query_garbage = true;
 		var at_end = false;
 		if ((id < 0) && ((!has_garbage) || (length data > NO_FRAGMENTATION_SIZE))) {
+			fseek(hFile, 0, SEEK_END);
+			ref_id = ftell(hFile);
+			if (Journal)
+				Journal(data, this.name, ref_id, 1);
+
 			if (length data > MODULO_SIZE) {
 				for (var i = MODULO_SIZE; i < length data; i += MODULO_SIZE)
 					data[i] = "\x00" + data[i];
@@ -1798,11 +1805,6 @@ class BinFile extends File {
 				data += pack(":"+padding);
 			}
 			i = 0;
-
-			fseek(hFile, 0, SEEK_END);
-			ref_id = ftell(hFile);
-			if (Journal)
-				Journal(data, this.name, ref_id, 1);
 			while (i < length data) {
 				i += MODULO_SIZE;
 				if (i < length data) {
@@ -2222,7 +2224,7 @@ class BinFile extends File {
 			__debug_block_info[key] = id;
 	}
 
-	protected GetOne(var id = null, strict = true, offset = -1) {
+	GetOne(var id = null, strict = true, offset = -1) {
 		if (offset < 0)
 			id = ftell(hFile);
 		else
