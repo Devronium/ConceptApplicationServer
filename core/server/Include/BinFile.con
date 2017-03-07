@@ -1163,7 +1163,7 @@ class BinFile extends File {
 	protected var index_refresh_time;
 	protected var _prec_bulk_op;
 	public var DebugPath;
-
+	public var Journal;
 
 	BinFile(filename, mode="r+b", default_block_size = DEFAULT_MODULO_SIZE) {
 		super(mode);
@@ -1575,10 +1575,12 @@ class BinFile extends File {
 						throw "Datafile is locked";
 					throw "Invalid or corrupted data file (errno ${err})";
 				}
-				this.Read(buf, 4);
-				fread(buf, 1, 4, hFile);
-				if (length buf == 4)
-					deleted_records = htonl(tounumber(buf, 32));
+				// this.Read(buf, 4);
+				fread(buf, 1, 8, hFile);
+				if (length buf == 8)
+					deleted_records = unpack("u64", buf)[0];//htonl(tounumber(buf, 32));
+				else
+					deleted_records = 0;
 				fread(buf, 1, 8, hFile);
 				if (length buf != 8) {
 					if (with_lock)
@@ -1799,6 +1801,8 @@ class BinFile extends File {
 
 			fseek(hFile, 0, SEEK_END);
 			ref_id = ftell(hFile);
+			if (Journal)
+				Journal(data, this.name, ref_id, 1);
 			while (i < length data) {
 				i += MODULO_SIZE;
 				if (i < length data) {
@@ -1810,120 +1814,123 @@ class BinFile extends File {
 				i += 8;
 			}
 			Write(data);
-		} else
-		do {
-			if (pos) {
-				var buf = "\x00" + SubStr(data, pos, MODULO_SIZE - 1);
-				if (length buf == 1)
-					break;
-				
-				pos += length buf - 1;
-			} else {
-				buf = SubStr(data, pos, MODULO_SIZE);
-				pos += length buf;
-			}
-			if (!buf)
-				break;
+		} else {
+			if (Journal)
+				Journal(data, this.name, ref_id, 2);
+			do {
+				if (pos) {
+					var buf = "\x00" + SubStr(data, pos, MODULO_SIZE - 1);
+					if (length buf == 1)
+						break;
 
-			if (id < 0) {
-				if ((query_garbage) && (this.PopGarbage(var offset))) {
-					//this.Seek(offset);
-					fseek(hFile, offset, SEEK_SET);
+					pos += length buf - 1;
 				} else {
-					//this.Seek(0, SEEK_END);
-					fseek(hFile, 0, SEEK_END);
-					query_garbage = false;
-					at_end = true;
+					buf = SubStr(data, pos, MODULO_SIZE);
+					pos += length buf;
 				}
-				if (ref_id < 0)
-					ref_id = ftell(hFile);
-			}
-
-			if (length buf < MODULO_SIZE)
-				buf = pack("s:" + MODULO_SIZE, buf);
-
-			if (next_block) {
-				//if (!this.Seek(next_block))
-				if (fseek(hFile, next_block, SEEK_SET))
-					throw @class + "." + @member + ": Seek error";
-			} else
-			if (file_pos) {
-				var next_pos = ftell(hFile);
-				//this.Seek(file_pos - 8);
-				fseek(hFile, file_pos - 8, SEEK_SET);
-				this.Write(pack("u64", next_pos));
-				//this.Seek(next_pos);
-				fseek(hFile, next_pos, SEEK_SET);
-			}
-
-			if (id < 0) {
-				if ((at_end) && (pos < length data)) {
-					file_pos = ftell(hFile);
-					var full_buf = buf;
-					var buf_size;
-					while (pos < length data) {
-						file_pos += MODULO_SIZE + 8;
-						full_buf += pack("u64", file_pos);
-						if (pos) {
-							buf_size = MODULO_SIZE - 1;
-							buf = "\x00" + SubStr(data, pos, buf_size);
-						} else {
-							buf_size = MODULO_SIZE;
-							buf = SubStr(data, pos, buf_size);
-						}
-						if (length buf < MODULO_SIZE)
-							full_buf += pack("s:" + MODULO_SIZE, buf);
-						else
-							full_buf += buf;
-						pos += buf_size;
-					}
-					full_buf += end_block;
-					// write all at once
-					this.Write(full_buf);
+				if (!buf)
 					break;
-				} else
-					this.Write(buf + end_block);
-			} else {
-				this.Write(buf);
 
-				var current = ftell(hFile);
-				//this.Seek(0, SEEK_CUR);
-				fseek(hFile, 0, SEEK_CUR);
-
-				//if (this.Read(var buf2, 8) != 8)
-				var read_size = fread(var buf2, 1, 8, hFile);
-				if (read_size != 8) {
-					// end of file ?
-					if (read_size != 0)
-						throw @class + "." + @member + ": Corrupted database / page link error in update";
-					next_block = 0;
-					this.Write(end_block);
-				} else {
-					next_block = unpack("u64", buf2)[0];
-				}
-				if (pos >= length data) {
-					if (next_block)
-						this._DeleteChain(next_block);
-					//this.Seek(-8, SEEK_CUR);
-					//fseek(hFile, -8, SEEK_CUR);
-					fseek(hFile, current, SEEK_SET);
-					this.Write(pack("u64", 0));
-				} else
-				if (!next_block) {
-					if ((!query_garbage) || (!this.PopGarbage(next_block))) {
+				if (id < 0) {
+					if ((query_garbage) && (this.PopGarbage(var offset))) {
+						//this.Seek(offset);
+						fseek(hFile, offset, SEEK_SET);
+					} else {
 						//this.Seek(0, SEEK_END);
 						fseek(hFile, 0, SEEK_END);
-						next_block = ftell(hFile);
 						query_garbage = false;
+						at_end = true;
 					}
-
-					fseek(hFile, current, SEEK_SET);
-					this.Write(pack("u64", next_block));
-					fseek(hFile, 0, SEEK_CUR);
+					if (ref_id < 0)
+						ref_id = ftell(hFile);
 				}
-			}
-			file_pos = ftell(hFile);
-		} while (true);
+
+				if (length buf < MODULO_SIZE)
+					buf = pack("s:" + MODULO_SIZE, buf);
+
+				if (next_block) {
+					//if (!this.Seek(next_block))
+					if (fseek(hFile, next_block, SEEK_SET))
+						throw @class + "." + @member + ": Seek error";
+				} else
+				if (file_pos) {
+					var next_pos = ftell(hFile);
+					//this.Seek(file_pos - 8);
+					fseek(hFile, file_pos - 8, SEEK_SET);
+					this.Write(pack("u64", next_pos));
+					//this.Seek(next_pos);
+					fseek(hFile, next_pos, SEEK_SET);
+				}
+
+				if (id < 0) {
+					if ((at_end) && (pos < length data)) {
+						file_pos = ftell(hFile);
+						var full_buf = buf;
+						var buf_size;
+						while (pos < length data) {
+							file_pos += MODULO_SIZE + 8;
+							full_buf += pack("u64", file_pos);
+							if (pos) {
+								buf_size = MODULO_SIZE - 1;
+								buf = "\x00" + SubStr(data, pos, buf_size);
+							} else {
+								buf_size = MODULO_SIZE;
+								buf = SubStr(data, pos, buf_size);
+							}
+							if (length buf < MODULO_SIZE)
+								full_buf += pack("s:" + MODULO_SIZE, buf);
+							else
+								full_buf += buf;
+							pos += buf_size;
+						}
+						full_buf += end_block;
+						// write all at once
+						this.Write(full_buf);
+						break;
+					} else
+						this.Write(buf + end_block);
+				} else {
+					this.Write(buf);
+
+					var current = ftell(hFile);
+					//this.Seek(0, SEEK_CUR);
+					fseek(hFile, 0, SEEK_CUR);
+
+					//if (this.Read(var buf2, 8) != 8)
+					var read_size = fread(var buf2, 1, 8, hFile);
+					if (read_size != 8) {
+						// end of file ?
+						if (read_size != 0)
+							throw @class + "." + @member + ": Corrupted database / page link error in update";
+						next_block = 0;
+						this.Write(end_block);
+					} else {
+						next_block = unpack("u64", buf2)[0];
+					}
+					if (pos >= length data) {
+						if (next_block)
+							this._DeleteChain(next_block);
+						//this.Seek(-8, SEEK_CUR);
+						//fseek(hFile, -8, SEEK_CUR);
+						fseek(hFile, current, SEEK_SET);
+						this.Write(pack("u64", 0));
+					} else
+					if (!next_block) {
+						if ((!query_garbage) || (!this.PopGarbage(next_block))) {
+							//this.Seek(0, SEEK_END);
+							fseek(hFile, 0, SEEK_END);
+							next_block = ftell(hFile);
+							query_garbage = false;
+						}
+
+						fseek(hFile, current, SEEK_SET);
+						this.Write(pack("u64", next_block));
+						fseek(hFile, 0, SEEK_CUR);
+					}
+				}
+				file_pos = ftell(hFile);
+			} while (true);
+		}
 		if (id < 0)
 			id = ref_id;
 		return true;
@@ -2098,15 +2105,28 @@ class BinFile extends File {
 		return this._Store(obj, update_index, -1, null, do_flush, change_oid);
 	}
 
-	SafeStore(var obj, update_index = true, do_flush = true) {
-		this.Lock(true);
+	SafeStore(var obj, update_index = true, do_flush = true, change_oid = true) {
+		var do_unlock = false;
+		var prev_lock = false;
+		if (locked != 2) {
+			if (locked) {
+				prev_lock = true;
+				this.ReleaseLock();
+			}
+			this.Lock(true);
+			do_unlock = true;
+		}
 		try {
-			var res = this.Store(obj, update_index, do_flush);
+			var res = this.Store(obj, update_index, do_flush, change_oid);
 		} catch (var exc) {
 			this.Unlock(true);
 			throw exc;
 		}
-		this.Unlock(true);
+		if (do_unlock) {
+			this.Unlock(true);
+			if (prev_lock)
+				this.Lock();
+		}
 		return res;
 	}
 
@@ -2500,6 +2520,9 @@ class BinFile extends File {
 			echo "Exception: $exc\n";
 			return false;
 		}
+
+		if (Journal)
+			Journal(obj, this.name, id, 3);
 
 		this._DeleteChain(id);
 		if (cache) {

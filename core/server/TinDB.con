@@ -13,6 +13,7 @@ define TIN_VERSION	"1.0BETA"
 
 define TIN_DEBUG	false
 define TIN_FORCESYNC	true
+define TIN_JOURNALING	true
 define READ_BUFFER	0xFFFF
 
 // 256M packet
@@ -49,6 +50,12 @@ define BUSY_FSYNC_LIMIT	 	10000
 
 // fsync every 5 seconds
 define BUSY_FSYNC_TIMEOUT	5
+
+// 16M log size
+define LOG_CLEAN_LIMIT		16777216
+define LOG_CLEAN_TIMEOUT	30
+// sync every 100ms
+define LOG_SYNC_US		100000
 
 class Triggers {
 	var OnDelete;
@@ -154,6 +161,183 @@ class ConnectionContext {
 			return (IsSet(subjects, subject) && (subjects[subject]));
 
 		return false;
+	}
+}
+
+class Journal {
+	var f;
+	var last_sync;
+	var last_cleanup;
+
+	Journal(name) {
+		if ((!FileExists(name)) || (_filesize(name) < 64)) {
+			var header = pack("sU32:64", "Journal file", time());
+			WriteFile(header, name);
+			echo "Creating journal file $name\n";
+		}
+		this.Open(name);
+	}
+
+	Open(name) {
+		if (f)
+			this.Done();
+		f = new File("ab");
+		f.Name = name;
+		if (f.Open()) {
+			// no buffering
+			// setvbuf(f.Handle, 0);
+			f.Seek(12);
+			f.Read(var buf, 4);
+			last_cleanup = unpack("U32", buf)[0];
+			if (!LockFileBytes(f.Handle, F_SETLKW, 0, 0))
+				echo "Error locking file $name\n";
+			f.Seek(0, SEEK_END);
+		} else {
+			echo "Error opening $name\n";
+			f = null;
+		}
+		last_sync = microseconds();
+	}
+
+	Read(newerthan = 0) {
+		var name = this.f.Name;
+		this.Done();
+		var f2 = new File("rb");
+		f2.Name = name;
+		var[] records;
+		try {
+			if (f2.Open()) {
+				if (!f2.Seek(64))
+					throw "Error in seek: ${_errno()}";
+				do {
+					if (f2.Read(var buf, 23) != 23)
+						break;
+					var tell_offset = f2.Tell();
+					var record = unpack("U32U64U64U16U8", buf);
+					var record_size = record[2];
+					var collection_size = record[3];
+					if (record[0] >= newerthan) {
+						var buffer;
+						var collection;
+						if (f2.Read(buffer, record_size) != record_size)
+							break;
+						if (f2.Read(collection, collection_size) != collection_size)
+							break;
+						var offset = record[1];
+						if (offset <= 0)
+							offset = -1;
+						records[length records] = ["time" => record[0], "flags" => record[4], "collection" => collection, '$' => offset, "data" => UnBinarizeObject(buffer)];
+					} else {
+						var seek_size = record_size + collection_size;
+						if (!f2.Seek(tell_offset + seek_size))
+							break;
+					}
+				} while (buf);
+				f2.Close();
+			} else
+				f2 = null;
+		} catch (var exc) {
+			echo "Error in journal read: $exc\n";
+			if (f2)
+				f2.Close();
+		}
+		this.Open(name);
+		return records;
+	}
+
+
+	SafeWrite(f2, var buf) {
+		if (f2.Write(buf) != length buf)
+			throw "Write error in ${f2.Name}, errno: ${_errno()}\n";
+	}
+
+	Clean(olderthan) {
+		try {
+			if ((f) && (_filesize(f.Name) > LOG_CLEAN_LIMIT)) {
+				var f2 = new File("wb");
+				f2.Name = f.Name + ".clean";
+				_unlink(f2.Name);
+				if (f2.Open()) {
+					f.Flush();
+					f.Sync();
+					var header = pack("sU32:64", "Journal file", time());
+					if (f2.Write(header) != length header)
+						throw "Error in cleanup log write ${f2.Name}, errno: ${_errno()}\n";
+
+					if (!f.Seek(64))
+						throw "Error in seek ${f.Name}, errno: ${_errno()}\n";
+					do {
+						if (f.Read(var buf, 23) != 23)
+							break;
+						var record = unpack("U32U64U64U16U8", buf);
+						if (record[0] >= olderthan) {
+							// copy from here
+							SafeWrite(f2, buf);
+							do {
+								f.Read(buf, 0x100000);
+								if (buf)
+									SafeWrite(f2, buf);
+							} while (buf);
+							break;
+						}
+						var record_size = record[2] + record[3];
+						if (!f.Seek(record_size, SEEK_CUR))
+							break;
+					} while (buf);
+					var name = f.Name;
+					f2.Flush();
+					f2.Sync();
+					f2.Close();
+					this.Done();
+					_unlink(name);
+					if (rename(name + ".clean", name))
+						throw  "Error in rename ${name}.clean to $name, errno: ${_errno()}\n";
+
+					this.Open(name);
+				}
+			}
+		} catch (var exc) {
+			if (f)
+				f.Seek(0, SEEK_END);
+			echo exc;
+		}
+		last_cleanup = time();
+	}
+
+	Log(var op_bin, collection, offset, flags) {
+		if ((op_bin) && (collection) && (f)) {
+			try {
+				if (offset < 0)
+					offset = 0;
+
+				var buffer = pack("U32U64U64U16U8", time(), offset, length op_bin, length collection, flags) + op_bin + collection;
+				if (f.Write(buffer) != length buffer) {
+					echo "Error writing to log file '${f.Name}', errno: ${_errno()}\n";
+					return false;
+				}
+				if (microseconds() - last_sync >= LOG_SYNC_US) {
+					f.Flush();
+					f.Sync();
+					last_sync = microseconds();
+				}
+				var now = time();
+				if (now - last_cleanup > LOG_CLEAN_TIMEOUT)
+					Clean(now - LOG_CLEAN_TIMEOUT);
+			} catch (var exc) {
+				echo "Log error: $exc\n";
+				return false;
+			}
+			return true;
+		}
+		return false;
+	}
+
+	Done() {
+		if (f) {
+			LockFileBytes(f.Handle, F_UNLCK, 0, 0);
+			f.Close();
+			f = null;
+		}
 	}
 }
 
@@ -694,6 +878,7 @@ pragma used
 	var[] other_workers;
 	var counter;
 	var workerid;
+	var journal;
 
 	GetDelegate(dbobject, db, name, var objects, var members, r = null) {
 		var arr = StrSplit(name, ".");
@@ -816,7 +1001,10 @@ pragma used
 				if (!db) {
 					if ((Pos(obj.d, "/") > 0) || (Pos(obj.d, "\\") > 0))
 						throw "DB name error";
-					db = new TinBase(obj.d);
+					var log = null;
+					if (journal)
+						log = journal.Log;
+					db = new TinBase(obj.d, log);
 					if (TIN_DEBUG)
 						db.DebugPath = obj.d + "/";
 					managed_dbs[obj.d] = db;
@@ -1456,6 +1644,8 @@ pragma used
 	}
 
 	StorageWorker(n) {
+		if (TIN_JOURNALING)
+			journal = new Journal(n);
 		while (!Worker::Pending(var storage_data))
 			Sleep(5);
 		var all_workers = UnBinarizeObject(storage_data);
@@ -1794,6 +1984,13 @@ class TinDB {
 		return new_arr;
 	}
 
+	LeadingZero(i) {
+		i = "" + i;
+		while (length i < 4)
+			i = "0" + i;
+		return i;
+	}
+
 	TinDB(workers = 4, storage_workers = 4, idle_workers = 1, aggregator_workers = 2) {
 		RandomSeed(unpack("u32", CryptoRandom(4))[0]);
 		var[] sworkers;
@@ -1804,14 +2001,14 @@ class TinDB {
 		var[] all_storage_workers;
 		var context = Worker::SharedContext();
 		for (var i = 0; i < storage_workers; i++) {
-			StorageWorkers[i] = new Worker("StorageWorker", "", context);
+			StorageWorkers[i] = new Worker("StorageWorker", "journal${LeadingZero(length all_storage_workers)}", context);
 			var w_obj = StorageWorkers[i]._workerobj;
 			sworkers[length sworkers] = w_obj;
 			all_storage_workers[length all_storage_workers] = w_obj;
 			Sleep(100);
 		}
 		for (i = 0; i < idle_workers; i++) {
-			IDLEWorkers[i] = new Worker("StorageWorker", "", context);
+			IDLEWorkers[i] = new Worker("StorageWorker", "journal${LeadingZero(length all_storage_workers)}", context);
 			var idle_obj = IDLEWorkers[i]._workerobj;
 			idleworkers[length idleworkers] = idle_obj;
 			all_storage_workers[length all_storage_workers] = idle_obj;
