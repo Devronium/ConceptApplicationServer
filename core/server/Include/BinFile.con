@@ -1818,7 +1818,7 @@ class BinFile extends File {
 			Write(data);
 		} else {
 			if (Journal)
-				Journal(data, this.name, ref_id, 2);
+				Journal(data, this.name, id, 2);
 			do {
 				if (pos) {
 					var buf = "\x00" + SubStr(data, pos, MODULO_SIZE - 1);
