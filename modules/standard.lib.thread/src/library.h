@@ -43,5 +43,6 @@ extern "C" {
 
     CONCEPT_FUNCTION(WorkerSharedContext)
     CONCEPT_FUNCTION(WorkerSharedRelease)
+    CONCEPT_FUNCTION(WorkerSharedRWLock)
 }
 #endif // __LIBRARY_H

@@ -6,6 +6,7 @@
 #include "library.h"
 #ifdef _WIN32
  #include <windows.h>
+ #include <pthread.h>
 #else
  #include <pthread.h>
  #include <unistd.h>
@@ -186,6 +187,117 @@ public:
     }
 };
 
+#define RWLOCK_TYPE pthread_rwlock_t *
+class RWLock {
+private:
+    QUEUE_SEMAPHORE access_lock;
+    std::map<std::string, RWLOCK_TYPE> locks;
+
+    RWLOCK_TYPE Get(const char *lock_name) {
+        QUEUE_LOCK(access_lock);
+        RWLOCK_TYPE lock = locks[lock_name];
+        if (!lock) {
+            lock = (RWLOCK_TYPE)malloc(sizeof(pthread_rwlock_t));
+            if (lock) {
+                memset(lock, 0, sizeof(pthread_rwlock_t));
+                if (!pthread_rwlock_init(lock, NULL)) {
+                    locks[lock_name] = lock;
+                } else {
+                    free(lock);
+                    lock = NULL;
+                }
+            }
+        }
+        QUEUE_UNLOCK(access_lock);
+        return lock;
+    }
+public:
+    RWLock() {
+        QUEUE_CREATE(access_lock);
+    }
+
+    int ReadLock(const char *lock_name, int non_blocking = 0) {
+        RWLOCK_TYPE lock = Get(lock_name);
+        if (!lock)
+            return 0;
+
+        if (non_blocking) {
+            if (pthread_rwlock_tryrdlock(lock))
+                return 0;
+        } else {
+            if (pthread_rwlock_rdlock(lock))
+                return 0;
+        }
+
+        return 1;
+    }
+
+    int WriteLock(const char *lock_name, int non_blocking = 0) {
+        RWLOCK_TYPE lock = Get(lock_name);
+        if (!lock)
+            return 0;
+        
+        if (non_blocking) {
+            if (pthread_rwlock_trywrlock(lock))
+                return 0;
+        } else {
+            if (pthread_rwlock_wrlock(lock))
+                return 0;
+        }
+
+        return 1;
+    }
+
+    int ReadUnlock(const char *lock_name) {
+        RWLOCK_TYPE lock = Get(lock_name);
+        if (!lock)
+            return 0;
+        
+        if (pthread_rwlock_unlock(lock))
+            return 0;
+
+        return 1;
+    }
+
+    int WriteUnlock(const char *lock_name) {
+        RWLOCK_TYPE lock = Get(lock_name);
+        if (!lock)
+            return 0;
+        
+        if (pthread_rwlock_unlock(lock))
+            return 0;
+
+        return 1;
+    }
+
+    int DestroyLock(const char *lock_name) {
+        QUEUE_LOCK(access_lock);
+        RWLOCK_TYPE lock = locks[lock_name];
+        if (lock)
+            locks.erase(lock_name);
+        QUEUE_UNLOCK(access_lock);
+        if (lock) {
+            pthread_rwlock_destroy(lock);
+            free(lock);
+            return 1;
+        }
+        return 0;
+    }
+
+    ~RWLock() {
+        QUEUE_LOCK(access_lock);
+        for (std::map<std::string, RWLOCK_TYPE>::iterator it = locks.begin(); it != locks.end(); ++it) {
+            RWLOCK_TYPE lock = it->second;
+            if (lock) {
+                pthread_rwlock_destroy(lock);
+                free(lock);
+            }
+        }
+        QUEUE_UNLOCK(access_lock);
+        QUEUE_DONE(access_lock);
+    }
+};
+
 class ShareContext {
 private:
     QUEUE_SEMAPHORE share_lock;
@@ -309,6 +421,7 @@ private:
     CondWait output_cond;
 public:
     ShareContext *sharecontext;
+    RWLock rwlock;
     void *worker;
 
     int AddInput(char *S, int len, int priority = 0) {
@@ -431,6 +544,11 @@ static int  MultiThreaded = 0;
 CONCEPT_DLL_API ON_CREATE_CONTEXT MANAGEMENT_PARAMETERS {
     LocalInvoker  = Invoke;
     MultiThreaded = Invoke(INVOKE_MULTITHREADED);
+    DEFINE_ICONSTANT("RWLOCK_READ", 1);
+    DEFINE_ICONSTANT("RWLOCK_WRITE", 2);
+    DEFINE_ICONSTANT("RWUNLOCK_READ", 3);
+    DEFINE_ICONSTANT("RWUNLOCK_WRITE", 4);
+    DEFINE_ICONSTANT("RWLOCK_DONE", 5);
     return 0;
 }
 //---------------------------------------------------------------------------
@@ -1073,5 +1191,38 @@ CONCEPT_FUNCTION_IMPL(WorkerSharedRelease, 1)
     ShareContext *sharecontext = (ShareContext *)(SYS_INT)PARAM(0);
     sharecontext->Release();
     RETURN_NUMBER(0);
+END_IMPL
+//---------------------------------------------------------------------------
+CONCEPT_FUNCTION_IMPL(WorkerSharedRWLock, 2)
+    T_STRING(WorkerSharedRWLock, 0);
+    T_NUMBER(WorkerSharedRWLock, 1);
+
+    ThreadMetaContainer * tmc = NULL;
+    Invoke(INVOKE_GETPROTODATA, PARAMETERS->HANDLER, (int)2, &tmc);
+    if (!tmc)
+        return (void *)"Using a worker function on a non-worker";
+
+    int non_blocking = 0;
+    int return_code = 0;
+    switch (PARAM_INT(1)) {
+        case 1:
+            // read lock
+            return_code = tmc->rwlock.ReadLock(PARAM(0), non_blocking);
+            break;
+        case 2:
+            // write lock
+            return_code = tmc->rwlock.WriteLock(PARAM(0), non_blocking);
+            break;
+        case 3:
+            return_code = tmc->rwlock.ReadUnlock(PARAM(0));
+            break;
+        case 4:
+            return_code = tmc->rwlock.WriteUnlock(PARAM(0));
+            break;
+        case 0:
+            return_code = tmc->rwlock.DestroyLock(PARAM(0));
+            break;
+    }
+    RETURN_NUMBER(return_code);
 END_IMPL
 //---------------------------------------------------------------------------

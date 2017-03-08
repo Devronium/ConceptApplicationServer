@@ -8,6 +8,7 @@ import standard.C.time
 import standard.net.socket
 import standard.lib.str
 import standard.lib.regex
+import standard.lib.thread
 
 define HEADER_SIZE		64
 define DEFAULT_MODULO_SIZE	64
@@ -1287,7 +1288,7 @@ class BinFile extends File {
 		}
 	}
 
-	Lock(write = false, start = 0, len = 0) {
+	Lock(write = false) {
 		if (hFile) {
 			if (write)
 				setvbuf(hFile, 0);
@@ -1295,20 +1296,20 @@ class BinFile extends File {
 				setvbuf(hFile, READ_VBUF_SIZE);
 			locked = 1 + write;
 			if (write)
-				return LockFileBytes(hFile, F_SETLKW, start, len);
-			return LockFileBytes(hFile, F_SETLKW, start, len, SEEK_SET, F_RDLCK);
+				return WorkerSharedRWLock(this.name, RWLOCK_WRITE); // LockFileBytes(hFile, F_SETLKW, start, len);
+			return WorkerSharedRWLock(this.name, RWLOCK_READ);// LockFileBytes(hFile, F_SETLKW, start, len, SEEK_SET, F_RDLCK);
 		}
 		return false;
 	}
 
-	Unlock(write = false, start = 0, len = 0) {
+	Unlock(write = false) {
 		if (locked) {
 			locked = false;
 			if (hFile) {
 				setvbuf(hFile, 0);
 				if (write)
-					return LockFileBytes(hFile, F_UNLCK, start, len);
-				return LockFileBytes(hFile, F_UNLCK, start, len, SEEK_SET, F_RDLCK);
+					return WorkerSharedRWLock(this.name, RWUNLOCK_WRITE); //LockFileBytes(hFile, F_UNLCK, start, len);
+				return WorkerSharedRWLock(this.name, RWUNLOCK_READ); // LockFileBytes(hFile, F_UNLCK, start, len, SEEK_SET, F_RDLCK);
 			}
 		}
 		return false;

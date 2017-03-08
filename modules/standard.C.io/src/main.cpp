@@ -3920,6 +3920,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(LockFileBytes, 4, 6)
 
     int f_lock_flags = F_WRLCK;
     int whence = SEEK_SET;
+    int non_blocking = 0;
     if (PARAMETERS_COUNT > 4) {
         T_NUMBER(LockFileBytes, 4)
         whence = PARAM_INT(4);
@@ -3938,6 +3939,8 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(LockFileBytes, 4, 6)
                 break;
         }
     }
+    if (PARAM_INT(1) == CONCEPT_F_SETLK)
+        non_blocking = 1;
 
     FILE *file = (FILE *)(SYS_INT)PARAM(0);
 #ifdef _WIN32
@@ -3964,10 +3967,18 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(LockFileBytes, 4, 6)
                 memset(&sOverlapped, 0, sizeof(OVERLAPPED));
                 sOverlapped.Offset = start_lo;
                 sOverlapped.OffsetHigh = start_hi;
-                if (PARAM_INT(1) == CONCEPT_F_SETLKW) {
-                    result = LockFileEx(f, LOCKFILE_EXCLUSIVE_LOCK, 0, len_lo, len_hi, &sOverlapped);
-                } else
-                    result = LockFileEx(f, 0, 0, len_lo, len_hi, &sOverlapped);
+                // disabled shared locks, because windows allows a shared lock after an exclusive lock, when using the same process
+                // if (f_lock_flags == F_RDLCK)  {
+                //    if (non_blocking)
+                //        result = LockFileEx(f, LOCKFILE_FAIL_IMMEDIATELY, 0, len_lo, len_hi, &sOverlapped);
+                //    else
+                //        result = LockFileEx(f, 0, 0, len_lo, len_hi, &sOverlapped);
+                //} else {
+                    if (non_blocking)
+                        result = LockFileEx(f, LOCKFILE_EXCLUSIVE_LOCK | LOCKFILE_FAIL_IMMEDIATELY, 0, len_lo, len_hi, &sOverlapped);
+                    else
+                        result = LockFileEx(f, LOCKFILE_EXCLUSIVE_LOCK, 0, len_lo, len_hi, &sOverlapped);
+                //}
             }
             RETURN_NUMBER(result);
         } else {
@@ -3991,10 +4002,19 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(LockFileBytes, 4, 6)
                 res = flock(fileno(file), LOCK_UN);
                 break;
             case CONCEPT_F_SETLKW:
-                res = flock(fileno(file), LOCK_EX);
-                break;
+            case CONCEPT_F_SETLK
             default:
-                res = flock(fileno(file), LOCK_SH);
+                if (f_lock_flags == F_RDLCK) {
+                    if (non_blocking)
+                        res = flock(fileno(file), LOCK_SH | LOCK_NB);
+                    else
+                        res = flock(fileno(file), LOCK_SH);
+                } else {
+                    if (non_blocking)
+                        res = flock(fileno(file), LOCK_EX | LOCK_NB);
+                    else
+                        res = flock(fileno(file), LOCK_EX);
+                }
                 break;
         }
     } else 
@@ -4007,17 +4027,9 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(LockFileBytes, 4, 6)
         fl.l_len    = PARAM(3);
         fl.l_pid    = getpid();
         int fcntl_op = F_SETLKW;
-        switch (PARAM_INT(1)) {
-            case CONCEPT_F_SETLKW:
-                fcntl_op = F_SETLKW;
-                break;
-            case CONCEPT_F_SETLK:
-                fcntl_op = F_SETLK;
-                break;
-            case CONCEPT_F_UNLCK:
-                fcntl_op = F_UNLCK;
-                break;
-        }
+        if (non_blocking)
+            fcntl_op = F_SETLK;
+
         res = fcntl(fileno(file), fcntl_op, &fl);
     }
     if (res) {

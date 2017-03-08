@@ -25,21 +25,20 @@ class TinBase {
 		}
 	}
 
-	static Lock(hFile, write = false, start = 0, len = 0) {
-		if (hFile) {
+	static Lock(name, write = false) {
+		if (name) {
 			if (write)
-				return LockFileBytes(hFile, F_SETLKW, start, len);
-			return LockFileBytes(hFile, F_SETLKW, start, len, SEEK_SET, F_RDLCK);
+				return WorkerSharedRWLock(name, RWLOCK_WRITE);
+			return WorkerSharedRWLock(name, RWLOCK_READ);
 		}
 		return false;
 	}
 
-
-	static Unlock(hFile, write = false, start = 0, len = 0) {
-		if (hFile) {
+	static Unlock(name, write = false) {
+		if (name) {
 			if (write)
-				return LockFileBytes(hFile, F_UNLCK, start, len);
-			return LockFileBytes(hFile, F_UNLCK, start, len, SEEK_SET, F_RDLCK);
+				return WorkerSharedRWLock(name, RWUNLOCK_WRITE);
+			return WorkerSharedRWLock(name, RWUNLOCK_READ);
 		}
 		return false;
 	}
@@ -60,7 +59,7 @@ class TinBase {
 
 		var err = false;
 		var gen_value;
-		TinBase::Lock(hFile, true);
+		TinBase::Lock("g:$name", true);
 		fread(var fdata, 1, 0xFF, hFile);
 		if (fdata) {
 			var data = value fdata;
@@ -75,8 +74,8 @@ class TinBase {
 				err = true;
 		} else
 			err = true;
-		TinBase::Unlock(hFile);
 		fclose(hFile);
+		TinBase::Unlock("g:$name", true);
 
 		if (err)
 			throw "I/O error for generator '$name'";
