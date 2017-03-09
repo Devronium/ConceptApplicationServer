@@ -1818,7 +1818,7 @@ class BinFile extends File {
 			}
 			Write(data);
 		} else {
-			if (Journal)
+			if ((Journal) && (id >= 0))
 				Journal(data, this.name, id, 2);
 			do {
 				if (pos) {
@@ -1844,8 +1844,11 @@ class BinFile extends File {
 						query_garbage = false;
 						at_end = true;
 					}
-					if (ref_id < 0)
+					if (ref_id < 0) {
 						ref_id = ftell(hFile);
+						if (Journal)
+							Journal(data, this.name, ref_id, 2);
+					}
 				}
 
 				if (length buf < MODULO_SIZE)

@@ -275,7 +275,7 @@ class Journal {
 					var collection_size = record[3];
 					var flags = record[4];
 					// insert or update
-					if ((record[0] >= newerthan) && ((flags == 1) || (flags == 2))) {
+					if ((record[0] >= newerthan) && ((flags == 1) || (flags == 2) || (flags == 3))) {
 						var buffer;
 						var collection;
 						if (f2.Read(buffer, record_size) != record_size)
@@ -320,9 +320,10 @@ class Journal {
 		return obj;
 	}
 
-	static CheckAll(prefix = "journal") {
+	static CheckAll(prefix = "journal", var broken_collections = null) {
 		var i = 0;
 		var[] records;
+		broken_collections = new [];
 		do {
 			var fname = prefix + Journal::LeadingZero(i++);
 			if (!FileExists(fname))
@@ -330,6 +331,7 @@ class Journal {
 			Journal::Check(fname, records);
 		} while (true);
 		var keys = GetKeys(records);
+		var db_is_ok = true;
 		for (i = 0; i < length keys; i++) {
 			var key = keys[i];
 			if (key) {
@@ -358,20 +360,35 @@ class Journal {
 							try {
 								if (!t.Open()) {
 									echo "Error opening file $key, errno: ${_errno()}\n";
-									return false;
+									broken_collections[key] = key;
+									db_is_ok = false;
+									continue;
 								}
 								var id = obj['$'];
 								t.Seek(id);
 								var ref_obj = Journal::StripPadding(t.GetOne(id));
 								t.Close();
 								echo "Last write($type) for database $db, collection $collection was: ${obj['$']}, on ${ctime(obj["time"])}";
-								if (!ref_obj) {
-									echo "Null object retrieved for id ($id). Database may be corrupted (file: $key)\n";
-									return false;
-								}
-								if (ref_obj != Journal::StripPadding(obj["data"])) {
-									echo "Stored object is not the same as logged object. Database may be corrupted (file: $key)\n";
-									return false;
+								if (obj["flags"] == 3) {
+									if (ref_obj) {
+										echo "Deleted object retrieved for id ($id). Database may be corrupted (file: $key)\n";
+										db_is_ok = false;
+										broken_collections[key] = key;
+										continue;
+									}
+								} else {
+									if (!ref_obj) {
+										echo "Null object retrieved for id ($id). Database may be corrupted (file: $key)\n";
+										db_is_ok = false;
+										broken_collections[key] = key;
+										continue;
+									} else
+									if (ref_obj != Journal::StripPadding(obj["data"])) {
+										echo "Stored object is not the same as logged object. Database may be corrupted (file: $key)\n";
+										db_is_ok = false;
+										broken_collections[key] = key;
+										continue;
+									}
 								}
 								echo "Object is OK\n";
 							} catch (var exc) {
@@ -2109,10 +2126,10 @@ class TinDB {
 	protected var[] AggregatorWorkers;
 
 	Rotate(array, right) {
-		if ((right <= 0) || (!array) || (length array == 1))
+		if ((right <= 0) || (!array) || (length array <= 1))
 			return array;
 
-		right = length array % right;
+		right = right % length array;
 		if (!right)
 			return array;
 
@@ -2121,6 +2138,7 @@ class TinDB {
 			new_arr[length new_arr] = array[i];
 		for (i = 0; i < right; i++)
 			new_arr[length new_arr] = array[i];
+
 		return new_arr;
 	}
 
@@ -2175,10 +2193,10 @@ class TinDB {
 	static InitializeDatabases() {
 		var AccessDB = new TinBase("sys");
 		var t = AccessDB["users"];
-		t.Lock(true);
+		// t.Lock(true);
 		if (!t.EnsureIndex("username"))
 			t.Store(["username" => "sysdbadministrator", "password" => sha256("sysdbadministrator"), "db" => ""]);
-		t.Unlock(true);
+		// t.Unlock(true);
 		t.Flush();
 		AccessDB.Reset();
 	}

@@ -1,6 +1,7 @@
 import standard.lib.str
 import standard.lib.json
 import standard.lib.cripto
+import standard.lang.serialize
 
 class SQLParser {
 	static error(var err, offset, message) {
@@ -105,6 +106,9 @@ class SQLParser {
 					continue;
 				}
 				switch (c) {
+					case ":":
+						command += c;
+						continue;
 					case "<":
 					case ">":
 						var next = buffer[offset];
@@ -173,12 +177,12 @@ class SQLParser {
 		return false;
 	}
 
-	static OneParameter(func, parameters, var err, offset) {
+	static OneParameter(func, parameters, var err, offset, variables) {
 		if (length parameters != 1) {
 			SQLParser::error(err, offset, "$func expects one parameter");
 			return "";
 		}
-		return SQLParser::prepare(parameters[0], err);
+		return SQLParser::prepare(parameters[0], err, false, variables);
 	}
 
 	static escapestr(var str) {
@@ -188,64 +192,64 @@ class SQLParser {
 		return val;
 	}
 
-	static eval(func, parameters, var err, offset) {
+	static eval(func, parameters, var err, offset, variables) {
 		func = ToUpper(func);
 		switch (func) {
 			case "SHA256":
-				return '"' + sha256("" + SQLParser::OneParameter(func, parameters, err, offset)) + '"';
+				return '"' + sha256("" + SQLParser::OneParameter(func, parameters, err, offset, variables)) + '"';
 				break;
 			case "SHA1":
-				return '"' + sha1("" + SQLParser::OneParameter(func, parameters, err, offset)) + '"';
+				return '"' + sha1("" + SQLParser::OneParameter(func, parameters, err, offset, variables)) + '"';
 				break;
 			case "MD5":
-				return '"' + md5("" + SQLParser::OneParameter(func, parameters, err, offset)) + '"';
+				return '"' + md5("" + SQLParser::OneParameter(func, parameters, err, offset, variables)) + '"';
 				break;
 			case "CRC32":
-				return '"' + crc32("" + SQLParser::OneParameter(func, parameters, err, offset)) + '"';
+				return '"' + crc32("" + SQLParser::OneParameter(func, parameters, err, offset, variables)) + '"';
 				break;
 			case "UPPER":
-				return '"' + SQLParser::escapestr(UTF8ToUpper("" + SQLParser::OneParameter(func, parameters, err, offset))) + '"';
+				return '"' + SQLParser::escapestr(UTF8ToUpper("" + SQLParser::OneParameter(func, parameters, err, offset, variables))) + '"';
 				break;
 			case "LOWER":
-				return '"' + SQLParser::escapestr(UTF8ToLower("" + SQLParser::OneParameter(func, parameters, err, offset))) + '"';
+				return '"' + SQLParser::escapestr(UTF8ToLower("" + SQLParser::OneParameter(func, parameters, err, offset, variables))) + '"';
 				break;
 			case "METAPHONE":
-				return '"' + SQLParser::escapestr(Metaphone("" + SQLParser::OneParameter(func, parameters, err, offset))) + '"';
+				return '"' + SQLParser::escapestr(Metaphone("" + SQLParser::OneParameter(func, parameters, err, offset, variables))) + '"';
 			case "DOUBLEMETAPHONE":
-				return '"' + SQLParser::escapestr(DoubleMetaphone("" + SQLParser::OneParameter(func, parameters, err, offset))) + '"';
+				return '"' + SQLParser::escapestr(DoubleMetaphone("" + SQLParser::OneParameter(func, parameters, err, offset, variables))) + '"';
 			case "SOUNDEX":
-				return '"' + SQLParser::escapestr(Soundex("" + SQLParser::OneParameter(func, parameters, err, offset))) + '"';
+				return '"' + SQLParser::escapestr(Soundex("" + SQLParser::OneParameter(func, parameters, err, offset, variables))) + '"';
 			case "TRIM":
-				return '"' + SQLParser::escapestr(trim("" + SQLParser::OneParameter(func, parameters, err, offset))) + '"';
+				return '"' + SQLParser::escapestr(trim("" + SQLParser::OneParameter(func, parameters, err, offset, variables))) + '"';
 			case "LTRIM":
-				return '"' + SQLParser::escapestr(ltrim("" + SQLParser::OneParameter(func, parameters, err, offset))) + '"';
+				return '"' + SQLParser::escapestr(ltrim("" + SQLParser::OneParameter(func, parameters, err, offset, variables))) + '"';
 			case "RTRIM":
-				return '"' + ltrim("" + SQLParser::OneParameter(func, parameters, err, offset)) + '"';
+				return '"' + ltrim("" + SQLParser::OneParameter(func, parameters, err, offset, variables)) + '"';
 			case "HEX":
-				var parameter = SQLParser::OneParameter(func, parameters, err, offset);
+				var parameter = SQLParser::OneParameter(func, parameters, err, offset, variables);
 				if (typeof parameter == "string")
 					return '"' + ToLower(StringToHex(parameter)) + '"';
 				return '"' + ToLower(NumberToHex(parameter)) + '"';
 			case "BINHEX":
-				return '"' + SQLParser::escapestr(HexToString("" + SQLParser::OneParameter(func, parameters, err, offset))) + '"';
+				return '"' + SQLParser::escapestr(HexToString("" + SQLParser::OneParameter(func, parameters, err, offset, variables))) + '"';
 				break;
 			case "BINNUMBER":
-				return '"' + HexToNumber("" + SQLParser::OneParameter(func, parameters, err, offset)) + '"';
+				return '"' + HexToNumber("" + SQLParser::OneParameter(func, parameters, err, offset, variables)) + '"';
 				break;
 			case "OIDSTRING":
-				return '"' + ToLower(StringToHex("" + SQLParser::OneParameter(func, parameters, err, offset))) + '"';
+				return '"' + ToLower(StringToHex("" + SQLParser::OneParameter(func, parameters, err, offset, variables))) + '"';
 			case "OID":
-				return '"' + SQLParser::escapestr(HexToString("" + SQLParser::OneParameter(func, parameters, err, offset))) + '"';
+				return '"' + SQLParser::escapestr(HexToString("" + SQLParser::OneParameter(func, parameters, err, offset, variables))) + '"';
 			case "URIENCODE":
-				return '"' + SQLParser::escapestr(URIEncode("" + SQLParser::OneParameter(func, parameters, err, offset))) + '"';
+				return '"' + SQLParser::escapestr(URIEncode("" + SQLParser::OneParameter(func, parameters, err, offset, variables))) + '"';
 			case "URIDECODE":
-				return '"' + SQLParser::escapestr(URIDecode("" + SQLParser::OneParameter(func, parameters, err, offset))) + '"';
+				return '"' + SQLParser::escapestr(URIDecode("" + SQLParser::OneParameter(func, parameters, err, offset, variables))) + '"';
 			case "HTML":
-				return '"' + SQLParser::escapestr(ToHTML("" + SQLParser::OneParameter(func, parameters, err, offset))) + '"';
+				return '"' + SQLParser::escapestr(ToHTML("" + SQLParser::OneParameter(func, parameters, err, offset, variables))) + '"';
 			case "CONCAT":
 				parameter = "";
 				for (var i = 0; i < length parameters; i++)
-					parameter += SQLParser::prepare(parameters[i], err);
+					parameter += SQLParser::prepare(parameters[i], err, false, variables);
 				return '"' + parameter + '"';
 				break;
 			case "COUNT":
@@ -265,7 +269,7 @@ class SQLParser {
 		return false;
 	}
 
-	static parseValue(var buffer, var err, var offset, list = 0) {
+	static parseValue(var buffer, var err, var offset, list = 0, variables = null) {
 		var atom = SQLParser::parseAtom(buffer, err, offset, list);
 		if ((atom) && (atom != "(") && (atom != ")") && (!SQLParser::serverFunction(atom))) {
 			if (SQLParser::is_string(atom))
@@ -281,7 +285,7 @@ class SQLParser {
 						SQLParser::error(err, offset, "')' expected");
 						return atom;
 					}
-					return SQLParser::eval(atom, parameters, err, offset);
+					return SQLParser::eval(atom, parameters, err, offset, variables);
 				}
 				offset = prec_offset;
 			}
@@ -302,7 +306,7 @@ class SQLParser {
 		return one;
 	}
 
-	static parseList(var buffer, var err, var offset, list = 0, var func = null, strip = true) {
+	static parseList(var buffer, var err, var offset, list = 0, var func = null, strip = true, parameters = null) {
 		var[] fields;
 		var expect_comma = false;
 		var ref_list = list;
@@ -311,7 +315,7 @@ class SQLParser {
 		var target_foo;
 		do {
 			var prec_offset = offset;
-			var command = SQLParser::parseValue(buffer, err, offset, ref_list);
+			var command = SQLParser::parseValue(buffer, err, offset, ref_list, parameters);
 			if (!command) {
 				if ((ref_list == 1) && (list == 3))
 					return fields;
@@ -377,12 +381,18 @@ class SQLParser {
 		return val;
 	}
 
-	static prepare(val, var err, var json = false) {
+	static prepare(val, var err, var json = false, parameters = null) {
 		if (typeof val == "string") {
 			switch (val[0]) {
 				case "'":
 				case '"':
 					return SQLParser::strip(val);
+				case ":":
+					val = SubStr(val, 1);
+					if ((parameters) && (IsSet(parameters, val)))
+						return parameters[val];
+					SQLParser::error(err, -1, "Undefined variable '$val'");
+					return "";
 				case '{':
 				case '[':
 					if (json)
@@ -398,17 +408,17 @@ class SQLParser {
 		return val;
 	}
 
-	static prepareList(val, var err, var json = false) {
+	static prepareList(val, var err, var json = false, parameters = null) {
 		if (typeof val == "array") {
 			var[] val2;
 			for (var i = 0; i < length val; i++)
-				val2[i] = SQLParser::prepare(val[i], err, json);
+				val2[i] = SQLParser::prepare(val[i], err, json, parameters);
 			return val2;
 		}
-		return SQLParser::prepare(val, err, json);
+		return SQLParser::prepare(val, err, json, parameters);
 	}
 
-	static parseWhere(var buffer, var err, var offset) {
+	static parseWhere(var buffer, var err, var offset, parameters) {
 		var state = -1;
 		var[] criteria;
 		var condition;
@@ -462,7 +472,7 @@ class SQLParser {
 						if (is_list)
 							var val = SQLParser::prepareList(command, err);
 						else
-							val = SQLParser::prepare(command, err);
+							val = SQLParser::prepare(command, err, false, parameters);
 						if ((op == "=") || (op == "IN") || (op == "NOT IN") || (op == "!=")) {
 							if (condition) {
 								SQLParser::error(err, offset, "Impossible condition (same variable, multiple values; use 'IN' operator)");
@@ -491,7 +501,7 @@ class SQLParser {
 		return criteria;
 	}
 
-	static parseSet(var buffer, var err, var offset) {
+	static parseSet(var buffer, var err, var offset, parameters) {
 		var state = -1;
 		var[] criteria;
 		var variable = "";
@@ -514,7 +524,7 @@ class SQLParser {
 						state = 2;
 						break;
 					case 2:
-						criteria[variable] = SQLParser::prepare(command, err, true);
+						criteria[variable] = SQLParser::prepare(command, err, true, parameters);
 						state = 3;
 						break;
 					case 3:
@@ -561,8 +571,9 @@ class SQLParser {
 		return [collection, [field => field2]];
 	}
 
-	static parseSelect(var buffer, var err, var offset, syntax) {
-		var fields = SQLParser::parseList(buffer, err, offset, 3, var funct);
+	static parseSelect(var buffer, var err, var offset, syntax, parameters) {
+		var orig_offset = offset;
+		var fields = SQLParser::parseList(buffer, err, offset, 3, var funct, true, parameters);
 		if (!fields) {
 			if (funct) {
 				fields = ["*"];
@@ -580,6 +591,10 @@ class SQLParser {
 
 		var command = SQLParser::parseAtom(buffer, err, offset);
 		if ((!funct) && ((!command) || (command  == ";")) && (fields) && (fields[0] != "*")) {
+			fields = SQLParser::parseList(buffer, err, orig_offset, 3, funct, false, parameters);
+			for (var i = 0; i < length fields; i++)
+				fields[i] = SQLParser::prepare(fields[i], err, true, parameters);
+			syntax["SELECT"] = fields;
 			syntax["DUMMY"] = true;
 			return true;
 		}
@@ -602,7 +617,7 @@ class SQLParser {
 					case ";":
 						return true;
 					case "WHERE":
-						syntax["WHERE"] = SQLParser::parseWhere(buffer, err, offset);
+						syntax["WHERE"] = SQLParser::parseWhere(buffer, err, offset, parameters);
 						break;
 					case "OFFSET":
 						syntax["OFFSET"] = SQLParser::parseNumber(buffer, err, offset);
@@ -655,7 +670,7 @@ class SQLParser {
 					case "PRIORITY":
 						command = SQLParser::parseAtom(buffer, err, offset);
 						if (command) {
-							syntax["PRIORITY"] = value SQLParser::prepare(command, err);
+							syntax["PRIORITY"] = value SQLParser::prepare(command, err, false, parameters);
 						} else {
 							SQLParser::error(err, offset, "'PRIORITY' value expected");
 						}
@@ -669,7 +684,7 @@ class SQLParser {
 		return true;
 	}
 
-	static parseInsert(var buffer, var err, var offset, syntax) {
+	static parseInsert(var buffer, var err, var offset, syntax, parameters) {
 		var command = ToUpper(SQLParser::parseAtom(buffer, err, offset));
 		if (command != "INTO") {
 			SQLParser::error(err, offset, "Expected 'INTO' after 'INSERT'");
@@ -708,7 +723,7 @@ class SQLParser {
 		var obj;
 		if (expect_json) {
 			atom = SQLParser::parseAtom(buffer, err, offset);
-			obj = SQLParser::prepare(atom, err, true);
+			obj = SQLParser::prepare(atom, err, true, parameters);
 			if (typeof obj != "array") {
 				SQLParser::error(err, offset, "Invalid JSON object '$atom'");
 				return false;
@@ -735,7 +750,7 @@ class SQLParser {
 					SQLParser::error(err, offset, "Cannot use object volatile reference in INSERT. Use UPDATE instead");
 					return false;
 				}
-				obj[field] = SQLParser::prepare(values[i], err, true);
+				obj[field] = SQLParser::prepare(values[i], err, true, parameters);
 			}
 		}
 		syntax["INSERT"] = obj;
@@ -752,7 +767,7 @@ class SQLParser {
 		return true;
 	}
 
-	static parseDelete(var buffer, var err, var offset, syntax) {
+	static parseDelete(var buffer, var err, var offset, syntax, parameters) {
 		syntax["DELETE"] = "*";
 		var command = SQLParser::parseAtom(buffer, err, offset);
 		if ((!command) || (ToUpper(command) != "FROM")) {
@@ -793,7 +808,7 @@ class SQLParser {
 					case "WHERE":
 						if (!has_where) {
 							has_where = true;
-							syntax["WHERE"] = SQLParser::parseWhere(buffer, err, offset);
+							syntax["WHERE"] = SQLParser::parseWhere(buffer, err, offset, parameters);
 							break;
 						}
 					default:
@@ -956,7 +971,7 @@ class SQLParser {
 		return true;
 	}
 
-	static parseUpdate(var buffer, var err, var offset, syntax) {
+	static parseUpdate(var buffer, var err, var offset, syntax, parameters) {
 		var from = SQLParser::strip(SQLParser::parseAtom(buffer, err, offset));
 		if (!from) {
 			SQLParser::error(err, offset, "Syntax error in UPDATE: expecting collection name");
@@ -990,12 +1005,12 @@ class SQLParser {
 						break;
 					case "SET":
 						// to do
-						syntax["SET"] = SQLParser::parseSet(buffer, err, offset);
+						syntax["SET"] = SQLParser::parseSet(buffer, err, offset, parameters);
 						break;
 					case "WHERE":
 						if (!has_where) {
 							has_where = true;
-							syntax["WHERE"] = SQLParser::parseWhere(buffer, err, offset);
+							syntax["WHERE"] = SQLParser::parseWhere(buffer, err, offset, parameters);
 							break;
 						}
 					default:
@@ -1007,7 +1022,7 @@ class SQLParser {
 		return true;
 	}
 
-	static parseSequence(var buffer, var err, var offset, syntax) {
+	static parseSequence(var buffer, var err, var offset, syntax, parameters) {
 		var from = SQLParser::strip(SQLParser::parseAtom(buffer, err, offset));
 		if (!from) {
 			SQLParser::error(err, offset, "Syntax error in SEQUENCE: expecting sequence name after 'SEQUENCE'");
@@ -1019,7 +1034,7 @@ class SQLParser {
 			atom = SQLParser::parseAtom(buffer, err, offset);
 			if (ToUpper(atom) == "BY")
 				atom = SQLParser::parseAtom(buffer, err, offset);
-			atom = SQLParser::prepare(SQLParser::strip(atom), err);
+			atom = SQLParser::prepare(SQLParser::strip(atom), err, false, parameters);
 			syntax["INCREMENT"] = atom;
 			atom = SQLParser::parseAtom(buffer, err, offset);
 		} else
@@ -1031,35 +1046,63 @@ class SQLParser {
 		return true;
 	}
 
-	static parse(buffer, var err = null) {
+
+	static parseVariable(var buffer, var err, var offset, syntax, parameters) {
+		var variable = SQLParser::strip(SQLParser::parseAtom(buffer, err, offset));
+		if (variable[0] == ":")
+			variable = SubStr(variable, 1);
+		if (!variable) {
+			SQLParser::error(err, offset, "Syntax error in SET: expecting variable name after 'SET'");
+			return false;
+		}
+		var atom = ToUpper(SQLParser::parseAtom(buffer, err, offset));
+		if (atom != "=") {
+			SQLParser::error(err, offset, "Syntax error in SET: expecting '=' after variable name, received '$atom'");
+			return false;
+		}
+		atom = SQLParser::prepare(SQLParser::parseAtom(buffer, err, offset), err, true, parameters);
+		parameters[variable] = atom;
+		syntax["SET"] = variable;
+		syntax["VALUE"] = atom;
+		atom = ToUpper(SQLParser::parseAtom(buffer, err, offset));
+		if ((atom) && (atom != ";")) {
+			SQLParser::error(err, offset, "Expected ';'");
+			return false;
+		}
+		return true;
+	}
+
+	static parse(buffer, var err = null, var parameters = null) {
 		var[] statements;
 		err = "";
 		var offset = 0;
+		if (!parameters)
+			parameters = new [];
 		do {
 			var command = ToUpper(SQLParser::parseAtom(buffer, err, offset));
 			if (command) {
 				var syntax = new [];
 				switch (command) {
 					case "SELECT":
-						if (!SQLParser::parseSelect(buffer, err, offset, syntax)) {
+						if (!SQLParser::parseSelect(buffer, err, offset, syntax, parameters)) {
 							command = "";
 							syntax = null;
 						}
 						break;
 					case "INSERT":
-						if (!SQLParser::parseInsert(buffer, err, offset, syntax)) {
+						if (!SQLParser::parseInsert(buffer, err, offset, syntax, parameters)) {
 							command = "";
 							syntax = null;
 						}
 						break;
 					case "UPDATE":
-						if (!SQLParser::parseUpdate(buffer, err, offset, syntax)) {
+						if (!SQLParser::parseUpdate(buffer, err, offset, syntax, parameters)) {
 							command = "";
 							syntax = null;
 						}
 						break;
 					case "DELETE":
-						if (!SQLParser::parseDelete(buffer, err, offset, syntax)) {
+						if (!SQLParser::parseDelete(buffer, err, offset, syntax, parameters)) {
 							command = "";
 							syntax = null;
 						}
@@ -1077,7 +1120,13 @@ class SQLParser {
 						}
 						break;
 					case "SEQUENCE":
-						if (!SQLParser::parseSequence(buffer, err, offset, syntax)) {
+						if (!SQLParser::parseSequence(buffer, err, offset, syntax, parameters)) {
+							command = "";
+							syntax = null;
+						}
+						break;
+					case "SET":
+						if (!SQLParser::parseVariable(buffer, err, offset, syntax, parameters)) {
 							command = "";
 							syntax = null;
 						}

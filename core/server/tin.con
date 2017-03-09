@@ -298,6 +298,7 @@ class Main {
 	var output;
 	var reconnecting = false;
 	var close = false;
+	var[] variables;
 
 	static em(text, add_quote = false) {
 		if (ON_MSWINDOWS) {
@@ -546,6 +547,10 @@ class Main {
 			echo "${em("Dataset is empty")}\n";
 	}
 
+	TimeDelta(t) {
+		return number_format((microseconds() - t)/1000000, 3, ".", "") + " seconds";
+	}
+
 	WritePDF(data, output, title = "") {
 		if (data)
 			WriteFile(Utils::report(data, null, title), output);
@@ -556,9 +561,7 @@ class Main {
 	querycallback(r, id, err, userdata = null) {
 		if (userdata) {
 			var query = userdata[0];
-			var time = (microseconds() - userdata[1])/1000000;
-
-			time = "${time} seconds";
+			var time = TimeDelta(userdata[1]);
 		} else {
 			query = "(info query)";
 			time = "0 seconds";
@@ -607,13 +610,7 @@ class Main {
 
 	storecallback(r, id, err, userdata) {
 		var query = userdata[0];
-		var time = (microseconds() - userdata[1])/1000;
-
-		if (time > 60000) {
-			time /= 1000;
-			time = "${time} seconds";
-		} else
-			time = "${time}ms";
+		var time = TimeDelta(userdata[1]);
 
 		if (err) {
 			echo "$query ($time):\n";
@@ -635,14 +632,7 @@ class Main {
 
 	requestcallback(r, id, err, userdata) {
 		var query = userdata[0];
-		var time = (microseconds() - userdata[1])/1000;
-
-		if (time > 60000) {
-			time /= 1000;
-			time = "${time} seconds";
-		} else
-			time = "${time}ms";
-
+		var time = TimeDelta(userdata[1]);
 		if (err) {
 			echo "$query ($time):\n";
 			echo "${em(err[1])}\n";
@@ -1066,7 +1056,7 @@ class Main {
 				echo "\n";
 				break;
 			default:
-				var sql = SQLParser::parse(s, var err);
+				var sql = SQLParser::parse(s, var err, variables);
 				if ((sql) && (!err)) {
 					for (var i = 0; i < length sql; i++) {
 						var q = sql[i];
