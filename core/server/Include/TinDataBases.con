@@ -176,7 +176,7 @@ class TinConnection {
 							callback = this._RemoveQuery(obj.q);
 						}
 						if (callback) {
-							var err;
+							var err = null;
 							if (obj.e)
 								err = [obj.e, obj.et];
 							if (typeof callback == "array") {
