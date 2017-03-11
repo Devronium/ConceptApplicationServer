@@ -1335,7 +1335,7 @@ class PDFGenerator {
 		delete _Header;
 	}
 
-	__wide(str) {
+	__wide(string str) {
 		var res = "<feff";
 		for (var i = 0; i < length str; i++) {
 			var s = NumberToHex(ord(str[i]));

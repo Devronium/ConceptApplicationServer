@@ -8,6 +8,8 @@
     #include <arpa/inet.h>
 #endif
 
+#define MAX_PACKET_LOOK_AHEAD   20
+
 static const unsigned int crc_table[256] = {
         0x00000000, 0x04c11db7, 0x09823b6e, 0x0d4326d9, 0x130476dc, 0x17c56b6b,
         0x1a864db2, 0x1e475005, 0x2608edb8, 0x22c9f00f, 0x2f8ad6d6, 0x2b4bcb61,
@@ -71,12 +73,13 @@ CONCEPT_DLL_API ON_DESTROY_CONTEXT MANAGEMENT_PARAMETERS {
     return 0;
 }
 //=====================================================================================//
-CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(M2TSTable, 4, 6)
+CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(M2TSTable, 4, 7)
     T_NUMBER("M2TSTable", 0)
     T_NUMBER("M2TSTable", 1)
     T_NUMBER("M2TSTable", 2)
     int network_id = 1;
     int pcr_id = -1;
+    int version = 0;
     if (PARAMETERS_COUNT > 4) {
         T_NUMBER("M2TSTable", 4)
         network_id = PARAM_INT(4);
@@ -87,7 +90,14 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(M2TSTable, 4, 6)
         T_NUMBER("M2TSTable", 5)
         pcr_id = PARAM_INT(5);
     }
-
+    if (PARAMETERS_COUNT > 6) {
+        T_NUMBER("M2TSTable", 6)
+        version = PARAM_INT(6);
+        if (version < 0)
+            version = 0;
+        if (version > 32)
+            version %= 32;
+    }
     unsigned char buffer[2048];
     int pid = PARAM_INT(0);
     unsigned char table_id = (unsigned char)PARAM_INT(1);
@@ -102,7 +112,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(M2TSTable, 4, 6)
         unsigned short extension = (unsigned short)PARAM_INT(2);
         buffer[3] = extension / 0x100;
         buffer[4] = extension % 0x100;
-        buffer[5] = 0xC1;
+        buffer[5] = 0xC0 | (version << 1) | 1;
         // section number
         buffer[6] = 0;
         // last section number
@@ -207,7 +217,6 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(M2TSTable, 4, 6)
         int len_ref = pos + 1;
         buffer[1] |= len_ref  / 0x100;
         buffer[2] = len_ref % 0x100;
-
         unsigned int crc = fast_crc32((char *)buffer, pos);
         crc = htonl(crc);
         memcpy(buffer + pos, &crc, 4);
@@ -229,7 +238,8 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(M2TSTable, 4, 6)
         buffer[3] = extension / 0x100;
         buffer[4] = extension % 0x100;
 
-        buffer[5] = 0xC1;
+        buffer[5] = 0xC0 | (version << 1) | 1;
+        // buffer[5] = 0xC1;
         // section number
         buffer[6] = 0;
         // last section number
@@ -344,7 +354,8 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(M2TSTable, 4, 6)
             unsigned short extension = (unsigned short)PARAM_INT(2);
             buffer[3] = extension / 0x100;
             buffer[4] = extension % 0x100;
-            buffer[5] = 0xC1;
+            // buffer[5] = 0xC1;
+            buffer[5] = 0xC0 | (version << 1) | 1;
             // section number
             buffer[6] = 0;
             // last section number
@@ -369,7 +380,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(M2TSTable, 4, 6)
     RETURN_STRING("");
 END_IMPL
 //=====================================================================================//
-CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(M2TSPacket, 3, 4)
+CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(M2TSPacket, 3, 5)
     T_NUMBER("M2TSPacket", 0)
     T_NUMBER("M2TSPacket", 1)
     T_STRING("M2TSPacket", 2)
@@ -384,6 +395,9 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(M2TSPacket, 3, 4)
         unsigned char packet[188];
         packet[0] = 'G';
         // set pusi flag
+        if (priority == -1)
+            packet[1] = 0x00;
+        else
         if (priority)
             packet[1] = 0x60;
         else
@@ -409,13 +423,23 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(M2TSPacket, 3, 4)
         if (len < 0)
             len = 0;
         if (len > 183) {
+            if (PARAMETERS_COUNT > 4) {
+                SET_BUFFER(4, PARAM(2) + 183, len - 183);
+            }
             len = 183;
-        } else
+        } else {
             memset(packet + 5 + len, 0xFF, 183 - len);
+            if (PARAMETERS_COUNT > 4) {
+                SET_STRING(4, "");
+            }
+        }
 
         memcpy(packet + 5, PARAM(2), len);
         RETURN_BUFFER((const char *)packet, 188);
     } else {
+        if (PARAMETERS_COUNT > 4) {
+            SET_STRING(4, "");
+        }
         RETURN_STRING("");
     }
 END_IMPL
@@ -604,6 +628,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(M2TSPeek, 1, 4)
     }
 END_IMPL
 //=====================================================================================//
+#include <stdio.h>
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(M2TSDemux, 1, 7)
     T_STRING("M2TSDemux", 0)
     INTEGER offset = 0;
@@ -725,6 +750,8 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(M2TSDemux, 1, 7)
                                 start += 2;
                                 // various flags
                                 Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, PARAMETER(6), "flags", (INTEGER)VARIABLE_NUMBER, (char *)"", (NUMBER)str[start]);
+                                int version = (str[start] & 0x3E) >> 1;
+                                Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, PARAMETER(6), "version", (INTEGER)VARIABLE_NUMBER, (char *)"", (NUMBER)version);
                                 start ++;
                                 Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, PARAMETER(6), "section_number", (INTEGER)VARIABLE_NUMBER, (char *)"", (NUMBER)str[start]);
                                 start++;
@@ -738,11 +765,11 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(M2TSDemux, 1, 7)
                                 int extra_packets = 0;
 
                                 unsigned char *ref_str = (unsigned char *)str;
-                                if ((remaining) && (payload_len > remaining)) {
+                                // 4 bytes crc
+                                if ((remaining) && (payload_len > remaining - 4)) {
                                     extra_packets = payload_len / remaining;
                                     if (payload_len % remaining)
                                         extra_packets ++;
-
                                     if ((start + payload_len) < (len - extra_packets * packet_size)) {
                                         ref_str = (unsigned char *)malloc(start + (extra_packets + 1) * packet_size);
                                         memcpy(ref_str, str, packet_size);
@@ -751,11 +778,35 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(M2TSDemux, 1, 7)
 
                                         header_size = 4;
                                         int rem2 = packet_size - header_size;
+                                        int packets_remaining = extra_packets;
+                                        int skips = 0;
                                         for (int i = 0; i < extra_packets; i++) {
+                                            const unsigned char *str_temp = str + str_offset;
+                                            if (str_temp[0] != 'G') {
+                                                // invalid packet, discard
+                                                memset(ref_str + ref_offset, 0, packet_size * packets_remaining);
+                                                break;
+                                            }
+
+                                            pusi = str_temp[1] & 0x40;
+                                            unsigned short temp_pid_hi = str_temp[1] & 0x1F;
+                                            unsigned short temp_pid = temp_pid_hi * 0x100 + str_temp[2];
+                                            if (temp_pid != pid) {
+                                                str_offset += packet_size;
+                                                extra_packets ++;
+                                                if (((start + payload_len) >= (len - extra_packets * packet_size)) || (skips > MAX_PACKET_LOOK_AHEAD)) {
+                                                    memset(ref_str + ref_offset, 0, packet_size * packets_remaining);
+                                                    break;
+                                                }
+                                                skips++;
+                                                continue;
+                                            }
+
                                             memcpy(ref_str + ref_offset, str + str_offset + header_size, rem2);
                                             ref_offset += rem2;
                                             str_offset += packet_size;
                                             data_size += packet_size;
+                                            packets_remaining--;
                                         }
                                     } else {
                                         extra_packets = 0;
@@ -884,19 +935,32 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(M2TSDemux, 1, 7)
                                                     if (start + es_info_len > len)
                                                         break;
                                                     if (es_info_len > 2) {
-                                                        unsigned short es_len = ref_str[1];
+                                                        unsigned int es_len = ref_str[1];
                                                         if (es_len > es_info_len - 2)
                                                             es_len = es_info_len - 2;
-                                                        switch (ref_str[start]) {
-                                                            case 0x0A:
-                                                            case 0x56:
-                                                            case 0x59:
-                                                                if (es_len > 3)
-                                                                    Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, newpData2, "language", (INTEGER)VARIABLE_STRING, (char *)&ref_str[start + 2], (NUMBER)3);
-                                                                else
-                                                                    Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, newpData2, "language", (INTEGER)VARIABLE_STRING, (char *)&ref_str[start + 2], (NUMBER)es_len);
-                                                                break;
-                                                            default:
+                                                        int es_offset = 0;
+                                                        int do_break = 0;
+                                                        while (es_len > 0) {
+                                                            switch (ref_str[start + es_offset]) {
+                                                                case 0x09:
+                                                                case 0x52:
+                                                                    es_len -= ref_str[start + es_offset + 1] + 2;
+                                                                    es_offset += ref_str[start + es_offset + 1] + 2;
+                                                                    break;
+                                                                case 0x0A:
+                                                                case 0x56:
+                                                                case 0x59:
+                                                                    if (es_len > 3)
+                                                                        Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, newpData2, "language", (INTEGER)VARIABLE_STRING, (char *)&ref_str[start + 2 + es_offset], (NUMBER)3);
+                                                                    else
+                                                                        Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, newpData2, "language", (INTEGER)VARIABLE_STRING, (char *)&ref_str[start + 2 + es_offset], (NUMBER)es_len);
+                                                                    do_break = 1;
+                                                                    break;
+                                                                default:
+                                                                    do_break = 1;
+                                                                    break;
+                                                            }
+                                                            if (do_break)
                                                                 break;
                                                         }
                                                     }
