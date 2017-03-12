@@ -101,8 +101,8 @@ void AddFunction(AnsiString func_name, void *DELEGATE, JSContext *ctx = 0, JSObj
 }
 
 //---------------------------------------------------------------------------
-void JS_TO_CONCEPT(void *member, jsval rval) {
-    INVOKE_CALL            InvokePtr   = 0;
+void JS_TO_CONCEPT(JSContext *cx, void *member, jsval rval) {
+    INVOKE_CALL Invoke   = InvokePtr;
     CALL_BACK_VARIABLE_SET SetVariable = _SetVariable;
     void *HANDLER = CONCEPT_HANDLER;
 
@@ -122,7 +122,34 @@ void JS_TO_CONCEPT(void *member, jsval rval) {
     if ((JSVAL_IS_NULL(rval)) || (JSVAL_IS_VOID(rval))) {
         SET_NUMBER_VARIABLE(member, 0);
     } else
+    if (!JSVAL_IS_PRIMITIVE(rval)) {
+        CREATE_ARRAY(member);
+        JSObject *object = JSVAL_TO_OBJECT(rval);
+        if (object) {
+            // bool isArray = false;
+            // if ((JS_IsArrayObject(cx, object, &isArray)) && (isArray)) {
+            if (JS_IsArrayObject(cx, object)) {
+                // is array
+                jsuint lengthp = 0;
+                if (JS_GetArrayLength(cx, object, &lengthp)) {
+                    for (jsuint i = 0; i < lengthp; i++) {
+                        jsval rval2;
+                        if (JS_GetElement(cx, object, i, &rval2)) {
+                            void *elem_data = NULL;
+                            Invoke(INVOKE_ARRAY_VARIABLE, member, (INTEGER)i, &elem_data);
+                            if (elem_data) {
+                                JS_TO_CONCEPT(cx, elem_data, rval2);
+                            }
+                        }
+                    }
+                }
+            } else {
+                // is object
+            }
+        }
+    } else {
         SET_NUMBER_VARIABLE(member, 1);
+    }
 }
 
 //---------------------------------------------------------------------------
@@ -205,7 +232,7 @@ static JSBool function_handler(JSContext *cx, JSObject *obj, uintN argc, jsval *
     for ( ; i < argc; i++) {
         jsval param = argv[i];
         CREATE_VARIABLE(PARAMETERS[index]);
-        JS_TO_CONCEPT(PARAMETERS[index], param);
+        JS_TO_CONCEPT(cx, PARAMETERS[index], param);
         index++;
     }
 
@@ -592,7 +619,6 @@ CONCEPT_FUNCTION_IMPL(JSEvaluateScript, 6)
     RETURN_NUMBER(is_ok = JS_EvaluateScript((JSContext *)(long)PARAM(0), (JSObject *)PARAM_INT(1), PARAM(2), (uintN)PARAM_LEN(2), PARAM(3), (uintN)PARAM(4), &rval))
     SET_NUMBER(5, (long)0)
     if (is_ok) {
-        //JS_TO_CONCEPT(PARAMETER(5), rval);
         if (JSVAL_IS_DOUBLE(rval)) {
             SET_NUMBER(5, *JSVAL_TO_DOUBLE(rval));
         } else
@@ -608,8 +634,10 @@ CONCEPT_FUNCTION_IMPL(JSEvaluateScript, 6)
         } else
         if ((JSVAL_IS_NULL(rval)) || (JSVAL_IS_VOID(rval))) {
             SET_NUMBER(5, (NUMBER)0);
-        } else
-            SET_NUMBER(5, (NUMBER)1);
+        } else {
+            JS_TO_CONCEPT((JSContext *)(long)PARAM(0),PARAMETER(5), rval);
+        }
+        // SET_NUMBER(5, (NUMBER)1);
     }
 
 END_IMPL
