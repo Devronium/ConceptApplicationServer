@@ -133,7 +133,7 @@ void JS_TO_CONCEPT(JSContext *cx, void *member, jsval rval) {
                 jsuint lengthp = 0;
                 if (JS_GetArrayLength(cx, object, &lengthp)) {
                     for (jsuint i = 0; i < lengthp; i++) {
-                        jsval rval2;
+                        jsval rval2 = JSVAL_VOID;
                         if (JS_GetElement(cx, object, i, &rval2)) {
                             void *elem_data = NULL;
                             Invoke(INVOKE_ARRAY_VARIABLE, member, (INTEGER)i, &elem_data);
@@ -145,6 +145,25 @@ void JS_TO_CONCEPT(JSContext *cx, void *member, jsval rval) {
                 }
             } else {
                 // is object
+                JSIdArray *arr = JS_Enumerate(cx, object);
+                if (arr) {
+                    for (jsint i = 0; i < arr->length; i++) {
+                        jsval prop = JSVAL_VOID;
+                        if (JS_IdToValue(cx, arr->vector[i], &prop)) {
+                            struct JSString *str = JSVAL_TO_STRING(prop);
+                            if (str) {
+                                void *elem_data = NULL;
+                                jsval rval2 = JSVAL_VOID;
+                                Invoke(INVOKE_ARRAY_VARIABLE_BY_KEY, member, JS_GetStringBytes(str), &elem_data);
+                                // if ((elem_data) && (JS_GetPropertyById(cx, object, arr->vector[i], &rval2)))
+                                if ((elem_data) && (JS_GetProperty(cx, object, JS_GetStringBytes(str), &rval2))) {
+                                    JS_TO_CONCEPT(cx, elem_data, rval2);
+                                }
+                            }
+                        }
+                    }
+                    JS_DestroyIdArray(cx, arr);
+                }
             }
         }
     } else {
