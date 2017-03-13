@@ -63,6 +63,9 @@ define LOG_CLEAN_TIMEOUT	10
 // sync every 100ms
 define LOG_SYNC_US		100000
 
+class DummyObject {
+}
+
 class Triggers {
 	var OnDelete;
 	var OnInsert;
@@ -1211,7 +1214,7 @@ pragma used
 							t.Lock();
 							if (reduce) {
 								try {
-									js.variable("map", ["\$reduce" => ""]);
+									js.variable("map", new DummyObject());
 									t.Query(obj.p, obj.f, obj.x["descending"], obj.x["start"], obj.x["len"], function(o, var reduce) {
 										if (o) {
 											js.variable("self", o);
