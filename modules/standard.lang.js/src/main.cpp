@@ -12,6 +12,7 @@
 #include <jsapi.h>
 #include <jsstr.h>
 #include <list>
+#include <map>
 //---------------------------------------------------------------------------
 void                   *ERR_DELEGATE    = 0;
 void                   *CONCEPT_HANDLER = 0;
@@ -33,7 +34,7 @@ inline JSBool ejs_throw_error(JSContext *cx, JSObject *obj, const char *msg) {
     // if we get errors during error reporting we report those
     if (((jsstr = JS_NewStringCopyZ(cx, msg))) &&
         (JS_AddNamedRoot(cx, &jsstr, "jsstr"))) {
-        jsval dummy;
+        jsval dummy  = JSVAL_VOID;
         // We can't use JS_EvaluateScript since the stack would be wrong
         JSFunction *func;
         JSObject   *fobj;
@@ -56,7 +57,6 @@ inline JSBool ejs_throw_error(JSContext *cx, JSObject *obj, const char *msg) {
 
     return JS_FALSE;
 }//---------------------------------------------------------------------------
-
 FunctionTypes *FindFunction(AnsiString func_name, JSContext *ctx = 0, JSObject *obj = 0) {
     std::list<FunctionTypes *>::const_iterator it = functions.begin();
 
@@ -69,7 +69,6 @@ FunctionTypes *FindFunction(AnsiString func_name, JSContext *ctx = 0, JSObject *
     }
     return 0;
 }
-
 //---------------------------------------------------------------------------
 void ClearFunctions() {
     std::list<FunctionTypes *>::const_iterator it = functions.begin();
@@ -101,10 +100,13 @@ void AddFunction(AnsiString func_name, void *DELEGATE, JSContext *ctx = 0, JSObj
 }
 
 //---------------------------------------------------------------------------
-void JS_TO_CONCEPT(JSContext *cx, void *member, jsval rval) {
+void JS_TO_CONCEPT(JSContext *cx, void *member, jsval rval, std::map<void *, void *> *circular_map = NULL) {
     INVOKE_CALL Invoke   = InvokePtr;
     CALL_BACK_VARIABLE_SET SetVariable = _SetVariable;
     void *HANDLER = CONCEPT_HANDLER;
+    std::map<void *, void *> *use_map = circular_map;
+    if (!use_map)
+        use_map = new std::map<void *, void *>();
 
     if (JSVAL_IS_DOUBLE(rval)) {
         SET_NUMBER_VARIABLE(member, *JSVAL_TO_DOUBLE(rval));
@@ -123,52 +125,65 @@ void JS_TO_CONCEPT(JSContext *cx, void *member, jsval rval) {
         SET_NUMBER_VARIABLE(member, 0);
     } else
     if (!JSVAL_IS_PRIMITIVE(rval)) {
-        CREATE_ARRAY(member);
         JSObject *object = JSVAL_TO_OBJECT(rval);
         if (object) {
-            // bool isArray = false;
-            // if ((JS_IsArrayObject(cx, object, &isArray)) && (isArray)) {
-            if (JS_IsArrayObject(cx, object)) {
-                // is array
-                jsuint lengthp = 0;
-                if (JS_GetArrayLength(cx, object, &lengthp)) {
-                    for (jsuint i = 0; i < lengthp; i++) {
-                        jsval rval2 = JSVAL_VOID;
-                        if (JS_GetElement(cx, object, i, &rval2)) {
-                            void *elem_data = NULL;
-                            Invoke(INVOKE_ARRAY_VARIABLE, member, (INTEGER)i, &elem_data);
-                            if (elem_data) {
-                                JS_TO_CONCEPT(cx, elem_data, rval2);
-                            }
-                        }
-                    }
-                }
+            void *prev_object = (*use_map)[object];
+            if (prev_object) {
+                INTEGER    type     = 0;
+                char       *szValue = 0;
+                NUMBER     nValue   = 0;
+
+                Invoke(INVOKE_GET_VARIABLE, prev_object, &type, &szValue, &nValue);
+                Invoke(INVOKE_SET_VARIABLE, member, type, szValue, nValue);
             } else {
-                // is object
-                JSIdArray *arr = JS_Enumerate(cx, object);
-                if (arr) {
-                    for (jsint i = 0; i < arr->length; i++) {
-                        jsval prop = JSVAL_VOID;
-                        if (JS_IdToValue(cx, arr->vector[i], &prop)) {
-                            struct JSString *str = JSVAL_TO_STRING(prop);
-                            if (str) {
+                CREATE_ARRAY(member);
+                (*use_map)[object] = member;
+                // bool isArray = false;
+                // if ((JS_IsArrayObject(cx, object, &isArray)) && (isArray)) {
+                if (JS_IsArrayObject(cx, object)) {
+                    // is array
+                    jsuint lengthp = 0;
+                    if (JS_GetArrayLength(cx, object, &lengthp)) {
+                        for (jsuint i = 0; i < lengthp; i++) {
+                            jsval rval2 = JSVAL_VOID;
+                            if (JS_GetElement(cx, object, i, &rval2)) {
                                 void *elem_data = NULL;
-                                jsval rval2 = JSVAL_VOID;
-                                Invoke(INVOKE_ARRAY_VARIABLE_BY_KEY, member, JS_GetStringBytes(str), &elem_data);
-                                // if ((elem_data) && (JS_GetPropertyById(cx, object, arr->vector[i], &rval2)))
-                                if ((elem_data) && (JS_GetProperty(cx, object, JS_GetStringBytes(str), &rval2))) {
-                                    JS_TO_CONCEPT(cx, elem_data, rval2);
+                                Invoke(INVOKE_ARRAY_VARIABLE, member, (INTEGER)i, &elem_data);
+                                if (elem_data) {
+                                    JS_TO_CONCEPT(cx, elem_data, rval2, use_map);
                                 }
                             }
                         }
                     }
-                    JS_DestroyIdArray(cx, arr);
+                } else {
+                    // is object
+                    JSIdArray *arr = JS_Enumerate(cx, object);
+                    if (arr) {
+                        for (jsint i = 0; i < arr->length; i++) {
+                            jsval prop = JSVAL_VOID;
+                            if (JS_IdToValue(cx, arr->vector[i], &prop)) {
+                                struct JSString *str = JSVAL_TO_STRING(prop);
+                                if (str) {
+                                    void *elem_data = NULL;
+                                    jsval rval2 = JSVAL_VOID;
+                                    Invoke(INVOKE_ARRAY_VARIABLE_BY_KEY, member, JS_GetStringBytes(str), &elem_data);
+                                    // if ((elem_data) && (JS_GetPropertyById(cx, object, arr->vector[i], &rval2)))
+                                    if ((elem_data) && (JS_GetProperty(cx, object, JS_GetStringBytes(str), &rval2))) {
+                                        JS_TO_CONCEPT(cx, elem_data, rval2, use_map);
+                                    }
+                                }
+                            }
+                        }
+                        JS_DestroyIdArray(cx, arr);
+                    }
                 }
             }
         }
     } else {
         SET_NUMBER_VARIABLE(member, 1);
     }
+    if ((use_map) && (!circular_map))
+        delete use_map;
 }
 
 //---------------------------------------------------------------------------
@@ -195,11 +210,16 @@ AnsiString CONCEPT_TO_STRING(JSContext *cx, void *member) {
 }
 
 //---------------------------------------------------------------------------
-jsval CONCEPT_TO_JS(JSContext *cx, void *member) {
+jsval CONCEPT_TO_JS(JSContext *cx, void *member, std::map<void *, int> *circular_map = NULL) {
     INTEGER type     = 0;
     char    *szValue = 0;
     NUMBER  nValue   = 0;
-    jsval   ret      = 0;
+    jsval   ret      = JSVAL_VOID;
+    INVOKE_CALL Invoke   = InvokePtr;
+    void *HANDLER = CONCEPT_HANDLER;
+    std::map<void *, int> *use_map = circular_map;
+    if (!use_map)
+        use_map = new std::map<void *, int>();
 
     InvokePtr(INVOKE_GET_VARIABLE, member, &type, &szValue, &nValue);
     switch (type) {
@@ -208,12 +228,101 @@ jsval CONCEPT_TO_JS(JSContext *cx, void *member) {
             break;
 
         case VARIABLE_STRING:
-            ret = STRING_TO_JSVAL(JS_NewString(cx, szValue, (int)nValue));
+            ret = STRING_TO_JSVAL(JS_NewStringCopyN(cx, szValue, (int)nValue));
+            break;
+
+        case VARIABLE_ARRAY:
+            {
+                // circular reference
+                if ((*use_map)[(void *)szValue])
+                    break;
+                (*use_map)[(void *)szValue] = 1;
+                int count = Invoke(INVOKE_GET_ARRAY_COUNT, member);
+                jsval *values = NULL;
+                JSObject *object = NULL;
+                if (count) {
+                    char *key = NULL;
+                    void *elem_data = NULL;
+                    Invoke(INVOKE_GET_ARRAY_KEY, member, 0, &key);
+                    if (key) {
+                        object = JS_NewObject(cx, NULL, NULL, NULL);
+                        for (int i = 0; i < count; i++) {
+                            InvokePtr(INVOKE_ARRAY_VARIABLE, member, i, &elem_data);
+                            InvokePtr(INVOKE_GET_ARRAY_KEY, member, i, &key);
+                            if (key) {
+                                jsval temp = CONCEPT_TO_JS(cx, elem_data, use_map);
+                                JS_SetProperty(cx, object, key, &temp);
+                            }
+                        }
+                    } else {
+                        values = (jsval *)malloc(sizeof(jsval) * count);
+                        if (values) {
+                            for (int i = 0; i < count; i++) {
+                                values[i] = JSVAL_VOID;
+                                Invoke(INVOKE_ARRAY_VARIABLE, member, (INTEGER)i, &elem_data);
+                                if (elem_data)
+                                    values[i] = CONCEPT_TO_JS(cx, elem_data, use_map);
+                            }
+                        }
+                        object = JS_NewArrayObject(cx, count, values);
+                        if (values)
+                            free(values);
+                    }
+                }
+                if (object)
+                    ret = OBJECT_TO_JSVAL(object);
+            }
+            break;
+
+        case VARIABLE_CLASS:
+            {
+                // circular reference
+                if ((*use_map)[(void *)szValue])
+                    break;
+                (*use_map)[(void *)szValue] = 1;
+                JSObject * object = JS_NewObject(cx, NULL, NULL, NULL);
+                if (object) {
+                    char *class_name = NULL;
+                    int members_count = Invoke(INVOKE_GET_SERIAL_CLASS, szValue, (int)0, &class_name, (char **)0, (char *)0, (char *)0, (char *)0, (char **)0, (NUMBER *)0, (char *)0, (char *)0);
+                    char   **members       = new char * [members_count];
+                    char   *flags          = new char[members_count];
+                    char   *access         = new char[members_count];
+                    char   *types          = new char[members_count];
+                    char   **szValues      = new char * [members_count];
+                    NUMBER *nValues        = new NUMBER[members_count];
+                    void   **class_data    = new void * [members_count];
+                    void   **variable_data = new void * [members_count];
+
+                    int result = Invoke(INVOKE_GET_SERIAL_CLASS, szValue, members_count, &class_name, members, flags, access, types, (const char **)szValues, nValues, class_data, variable_data);
+                    if (IS_OK(result)) {
+                        for (int i = 0; i < members_count; i++) {
+                             char *key = members[i];
+                             void *elem_data =  variable_data[i];
+                             if ((key) && (elem_data)) {
+                                jsval temp = CONCEPT_TO_JS(cx, elem_data, use_map);
+                                JS_SetProperty(cx, object, key, &temp);
+                             }
+                        }
+                    }
+                    ret = OBJECT_TO_JSVAL(object);
+
+                    delete[] members;
+                    delete[] flags;
+                    delete[] access;
+                    delete[] types;
+                    delete[] szValues;
+                    delete[] nValues;
+                    delete[] class_data;
+                    delete[] variable_data;
+                }
+            }
             break;
 
         default:
             ret = DOUBLE_TO_JSVAL(JS_NewDouble(cx, 1.0));
     }
+    if ((use_map) && (!circular_map))
+        delete use_map;
     return ret;
 }
 
@@ -632,7 +741,7 @@ CONCEPT_FUNCTION_IMPL(JSEvaluateScript, 6)
     T_NUMBER(JSEvaluateScript, 4)     // uintN
 
 // ... parameter 6 is by reference (jsval*)
-    jsval rval;
+    jsval rval = JSVAL_VOID;
     bool is_ok = false;
 
     RETURN_NUMBER(is_ok = JS_EvaluateScript((JSContext *)(long)PARAM(0), (JSObject *)PARAM_INT(1), PARAM(2), (uintN)PARAM_LEN(2), PARAM(3), (uintN)PARAM(4), &rval))
@@ -677,7 +786,7 @@ CONCEPT_FUNCTION_IMPL(JSEval, 1)
     JSContext *context = NULL;
     JSObject  *global  = NULL;
 
-    jsval rval;
+    jsval rval = JSVAL_VOID;
 
     RETURN_NUMBER(0);
 /* create new runtime, new context, global object */
@@ -731,4 +840,3 @@ CONCEPT_FUNCTION_IMPL(JSWrap, 4)
     RETURN_NUMBER((JS_DefineFunction((JSContext *)PARAM_INT(0), (JSObject *)PARAM_INT(1), PARAM(3), function_handler, param_count, 0) != 0));
 END_IMPL
 //------------------------------------------------------------------------
-
