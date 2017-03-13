@@ -1,0 +1,59 @@
+import standard.lang.js
+
+// 128M
+define DEFAULT_JS_MAX_RUNTIME_SIZE	134217728
+
+class JS {
+	protected var runtime;
+	protected var context;
+	protected var global;
+	protected var error_delegate;
+
+	JS(error_handler = null, size = DEFAULT_JS_MAX_RUNTIME_SIZE, stack_chunk_size = 8192) {
+  		if ((!(runtime = JSNewRuntime (size)))
+       			|| (!(context = JSNewContext (runtime, stack_chunk_size)))
+       			|| (!(global  = JSNewObject  (context, null, null, null)))) 
+			return;
+		if (!JSInitStandardClasses(context, global)) 
+			return -2;
+		if (error_handler)
+			this.error(error_handler);
+	}
+	
+	__error_callback(ctx, message, struct) {
+		if (error_delegate)
+			return error_delegate(this, message, struct);
+	}
+
+	error(delegate error_handler) {
+		error_delegate = error_handler;
+		JSSetErrorReporter(context, __error_callback);
+	}
+
+	allowrecursive(recursive = true) {
+		JSRecursive(context, recursive);
+	}
+
+	script(var code, code_name = "code.js") {
+		if (!JSEvaluateScript(context, global, code, code_name, 1, var rval))
+			throw "Error evaluating script";
+		return rval;
+	}
+
+	wrap(delegate, string js_name) {
+		return JSWrap(context, global, delegate, js_name);
+	}
+
+	gc() {
+		JSGC(context, runtime);
+	}
+
+	finalize() {
+  		JSDestroyContext(context);
+  		JSDestroyRuntime(runtime);
+	}
+
+	static eval(string code) {
+		return JSEval(code);
+	}
+}

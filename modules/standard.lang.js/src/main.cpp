@@ -63,10 +63,12 @@ void *SetErrorDelegate(JSContext *cx, void *ERR_DELEGATE) {
     void *OLD_DELEGATE = NULL;
     if (cx) {
         LocalContainer *data = (LocalContainer *)JS_GetContextPrivate(cx);
-        if (data) {
-            OLD_DELEGATE = data->ERR_DELEGATE;
-            data->ERR_DELEGATE = ERR_DELEGATE;
+        if (!data) {
+            data = new LocalContainer();
+            JS_SetContextPrivate(cx, data);
         }
+        OLD_DELEGATE = data->ERR_DELEGATE;
+        data->ERR_DELEGATE = ERR_DELEGATE;
     }
     return OLD_DELEGATE;
 }
@@ -471,6 +473,13 @@ void printError(JSContext *cx, const char *message, JSErrorReport *report) {
 }
 
 //---------------------------------------------------------------------------
+int char16len(const jschar *s) {
+    int len = 0;
+    while ((s) && (s[len]))
+        len++;
+    return len;
+}
+
 void ShowError(JSContext *cx, const char *message, JSErrorReport *report) {
     int  where;
     char *cstr;
@@ -480,75 +489,38 @@ void ShowError(JSContext *cx, const char *message, JSErrorReport *report) {
     CALL_BACK_VARIABLE_SET SetVariable      = _SetVariable;
     void                   *HANDLER         = CONCEPT_HANDLER;
     void                   *ERR_DELEGATE    = GetErrorDelegate(cx);
+
     if (!ERR_DELEGATE) {
         printError(cx, message, report);
         return;
     }
 
     CREATE_VARIABLE(CREPORT);
+    CREATE_ARRAY(CREPORT);
 
-    if (!CREATE_OBJECT(CREPORT, "JSErrorReport"))
-        return;    // (void *)"Failed to INVOKE_CREATE_OBJECT";
+    Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, CREPORT, "filename", (INTEGER)VARIABLE_STRING, (char *)report->filename, (NUMBER)0);
+    Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, CREPORT, "lineno", (INTEGER)VARIABLE_NUMBER, (char *)"", (NUMBER)report->lineno);
+    Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, CREPORT, "linebuf", (INTEGER)VARIABLE_STRING, (char *)report->linebuf, (NUMBER)0);
+    Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, CREPORT, "tokenptr", (INTEGER)VARIABLE_STRING, (char *)report->tokenptr, (NUMBER)0);
+    Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, CREPORT, "uclinebuf", (INTEGER)VARIABLE_STRING, (char *)report->tokenptr, (NUMBER)0);
+    Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, CREPORT, "uctokenptr", (INTEGER)VARIABLE_STRING, (char *)report->uctokenptr, (NUMBER)0);
+    Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, CREPORT, "flags", (INTEGER)VARIABLE_NUMBER, (char *)"", (NUMBER)report->flags);
+    Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, CREPORT, "errorNumber", (INTEGER)VARIABLE_NUMBER, (char *)"", (NUMBER)report->errorNumber);
+    JSString *str = JS_NewUCString(cx, (jschar *)report->ucmessage, char16len(report->ucmessage));
+    Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, CREPORT, "ucmessage", (INTEGER)VARIABLE_STRING, (char *)JS_GetStringBytes(str), (NUMBER)str->length);
 
-
-    void *member = 0;
-
-    if (!IS_OK(GET_MEMBER_VAR(CREPORT, "filename", member)))
-        return;
-
-    SET_STRING_VARIABLE(member, report->filename);
-
-    if (!IS_OK(GET_MEMBER_VAR(CREPORT, "lineno", member)))
-        return;
-
-    SET_NUMBER_VARIABLE(member, report->lineno);
-
-    if (!IS_OK(GET_MEMBER_VAR(CREPORT, "linebuf", member)))
-        return;
-
-    SET_STRING_VARIABLE(member, (char *)report->linebuf);
-
-    if (!IS_OK(GET_MEMBER_VAR(CREPORT, "tokenptr", member)))
-        return;
-
-    SET_STRING_VARIABLE(member, (char *)report->tokenptr);
-
-    if (!IS_OK(GET_MEMBER_VAR(CREPORT, "uclinebuf", member)))
-        return;
-
-    SET_STRING_VARIABLE(member, (char *)report->linebuf);
-
-    if (!IS_OK(GET_MEMBER_VAR(CREPORT, "uctokenptr", member)))
-        return;
-
-    SET_STRING_VARIABLE(member, (char *)report->tokenptr);
-
-    if (!IS_OK(GET_MEMBER_VAR(CREPORT, "flags", member)))
-        return;
-
-    SET_NUMBER_VARIABLE(member, report->flags);
-
-    if (!IS_OK(GET_MEMBER_VAR(CREPORT, "errorNumber", member)))
-        return;
-
-    SET_NUMBER_VARIABLE(member, report->errorNumber);
-
-    if (!IS_OK(GET_MEMBER_VAR(CREPORT, "ucmessage", member)))
-        return;
-
-    SET_STRING_VARIABLE(member, message);
-
-    if (!IS_OK(GET_MEMBER_VAR(CREPORT, "messageArgs", member)))
-        return;
-
-    CREATE_ARRAY(member);
-
-    /*int i=0;
-       char **messageArg=report->messageArgs ? report->messageArgs[i] : 0;
-       while (messageArg) {
-       Invoke(INVOKE_SET_ARRAY_ELEMENT,member,(INTEGER)i,(INTEGER)VARIABLE_STRING,(char *)messageArg,(NUMBER)0);
-       messageArg=report->messageArgs[++i];
-       }*/
+    void *elem_data = NULL;
+    Invoke(INVOKE_ARRAY_VARIABLE_BY_KEY, CREPORT, "messageArgs", &elem_data);
+    if (elem_data) {
+        CREATE_ARRAY(elem_data);
+    }
+    int i=0;
+    const jschar *messageArg = report->messageArgs ? report->messageArgs[i] : 0;
+    while (messageArg) {
+        str = JS_NewUCString(cx, (jschar *)messageArg, char16len(messageArg));
+        Invoke(INVOKE_SET_ARRAY_ELEMENT, elem_data, (INTEGER)i, (INTEGER)VARIABLE_STRING, (char *)JS_GetStringBytes(str), (NUMBER)str->length);
+        messageArg = report->messageArgs[++i];
+    }
     // call delegate
     CALL_DELEGATE(ERR_DELEGATE, (INTEGER)3, (INTEGER)VARIABLE_NUMBER, (char *)"", (NUMBER)(SYS_INT)cx, (INTEGER)VARIABLE_STRING, (char *)message, (NUMBER)0, (INTEGER)VARIABLE_UNDEFINED, CREPORT);
     FREE_VARIABLE(CREPORT);
@@ -558,7 +530,7 @@ void ShowError(JSContext *cx, const char *message, JSErrorReport *report) {
 CONCEPT_DLL_API ON_CREATE_CONTEXT MANAGEMENT_PARAMETERS {
     InvokePtr       = Invoke;
     CONCEPT_HANDLER = HANDLER;
-    DEFINE_CLASS("JSErrorReport",
+    /*DEFINE_CLASS("JSErrorReport",
                  "filename",
                  "lineno",
                  "linebuf",
@@ -569,7 +541,7 @@ CONCEPT_DLL_API ON_CREATE_CONTEXT MANAGEMENT_PARAMETERS {
                  "errorNumber",
                  "ucmessage",
                  "messageArgs"
-                 );
+                 );*/
     return 0;
 }
 //---------------------------------------------------------------------------
@@ -645,7 +617,6 @@ CONCEPT_FUNCTION_IMPL(JSSetErrorReporter, 2)
         FREE_VARIABLE(ERR_DELEGATE);
 
     LOCK_VARIABLE(ERR_DELEGATE);
-    SetErrorDelegate(((JSContext *)(SYS_INT)PARAM(0)), ERR_DELEGATE);
     JS_SetErrorReporter(((JSContext *)(SYS_INT)PARAM(0)), ShowError);
     RETURN_NUMBER(0);
 END_IMPL

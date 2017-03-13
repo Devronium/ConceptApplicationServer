@@ -238,3 +238,5 @@ accel Loop.con
 accel Promise.con
 accel NetGSM.con
 accel TinDBOid.con
+accel SQLParser.con
+accel JS.con
