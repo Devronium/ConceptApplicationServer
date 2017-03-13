@@ -11,22 +11,77 @@
 #include "AnsiString.h"
 #include <jsapi.h>
 #include <jsstr.h>
-#include <list>
 #include <map>
+#include <string>
 //---------------------------------------------------------------------------
-void                   *ERR_DELEGATE    = 0;
 void                   *CONCEPT_HANDLER = 0;
 INVOKE_CALL            InvokePtr        = 0;
 CALL_BACK_VARIABLE_SET _SetVariable     = 0;
 
-typedef struct {
-    AnsiString func_name;
-    void       *DELEGATE;
-    JSContext  *ctx;
-    JSObject   *obj;
-} FunctionTypes;
+class LocalContainer {
+public:
+    std::map<std::string, void *> functions;
+    void *ERR_DELEGATE;
+    bool recursive;
 
-std::list<FunctionTypes *> functions;
+    LocalContainer() {
+        ERR_DELEGATE = NULL;
+        recursive = true;
+    }
+};
+
+bool GetRecursive(JSContext *cx) {
+    if (cx) {
+        LocalContainer *data = (LocalContainer *)JS_GetContextPrivate(cx);
+        if (data)
+            return data->recursive;
+    }
+    return true;
+}
+
+void SetRecursive(JSContext *cx, bool recursive) {
+    if (cx) {
+        LocalContainer *data = (LocalContainer *)JS_GetContextPrivate(cx);
+        if (!data) {
+            data = new LocalContainer();
+            JS_SetContextPrivate(cx, data);
+        }
+        data->recursive = recursive;
+    }
+}
+
+void *GetErrorDelegate(JSContext *cx) {
+    if (cx) {
+        LocalContainer *data = (LocalContainer *)JS_GetContextPrivate(cx);
+        if (data)
+            return data->ERR_DELEGATE;
+    }
+    return NULL;
+}
+
+void *SetErrorDelegate(JSContext *cx, void *ERR_DELEGATE) {
+    void *OLD_DELEGATE = NULL;
+    if (cx) {
+        LocalContainer *data = (LocalContainer *)JS_GetContextPrivate(cx);
+        if (data) {
+            OLD_DELEGATE = data->ERR_DELEGATE;
+            data->ERR_DELEGATE = ERR_DELEGATE;
+        }
+    }
+    return OLD_DELEGATE;
+}
+
+std::map<std::string, void *> *GetFunctions(JSContext *cx) {
+    if (cx) {
+        LocalContainer *data = (LocalContainer *)JS_GetContextPrivate(cx);
+        if (!data) {
+            data = new LocalContainer();
+            JS_SetContextPrivate(cx, data);
+        }
+        return &data->functions;
+    }
+    return NULL;
+}
 //---------------------------------------------------------------------------
 inline JSBool ejs_throw_error(JSContext *cx, JSObject *obj, const char *msg) {
     JSString *jsstr;
@@ -57,57 +112,43 @@ inline JSBool ejs_throw_error(JSContext *cx, JSObject *obj, const char *msg) {
 
     return JS_FALSE;
 }//---------------------------------------------------------------------------
-FunctionTypes *FindFunction(AnsiString func_name, JSContext *ctx = 0, JSObject *obj = 0) {
-    std::list<FunctionTypes *>::const_iterator it = functions.begin();
+void ClearFunctions(JSContext *cx) {
+    std::map<std::string, void *> *functions = GetFunctions(cx);
+    if (functions) {
+        INVOKE_CALL Invoke   = InvokePtr;
+        std::map<std::string, void *>::const_iterator it = functions->begin();
 
-    for (it = functions.begin(); it != functions.end(); ++it) {
-        FunctionTypes *ft = *it;
-        if (((ft->obj == obj) && (ft->ctx == ctx)) || ((!ft->obj) && (!ft->ctx))) {
-            if (ft->func_name == func_name)
-                return ft;
+        for (it = functions->begin(); it != functions->end(); ++it) {
+            void *ft = it->second;
+            if (ft)
+                FREE_VARIABLE(ft);
         }
-    }
-    return 0;
-}
-//---------------------------------------------------------------------------
-void ClearFunctions() {
-    std::list<FunctionTypes *>::const_iterator it = functions.begin();
-
-    for (it = functions.begin(); it != functions.end(); ++it) {
-        FunctionTypes *ft = *it;
-        delete ft;
-    }
-    if (!functions.empty())
-        functions.clear();
-}
-
-//---------------------------------------------------------------------------
-void AddFunction(AnsiString func_name, void *DELEGATE, JSContext *ctx = 0, JSObject *obj = 0) {
-    FunctionTypes *ft     = FindFunction(func_name, ctx, obj);
-    bool          created = false;
-
-    if (!ft) {
-        ft      = new FunctionTypes;
-        created = true;
-    }
-    ft->func_name = func_name;
-    ft->DELEGATE  = DELEGATE;
-    ft->ctx       = ctx;
-    ft->obj       = obj;
-    if (created) {
-        functions.push_back(ft);
+        if (!functions->empty())
+            functions->clear();
     }
 }
 
 //---------------------------------------------------------------------------
-void JS_TO_CONCEPT(JSContext *cx, void *member, jsval rval, std::map<void *, void *> *circular_map = NULL) {
+void *SetFunction(AnsiString func_name, void *DELEGATE, JSContext *ctx, JSObject *obj = 0) {
+    std::map<std::string, void *> *functions = GetFunctions(ctx);
+    void *OLD_DELEGATE = NULL;
+    if (functions) {
+        OLD_DELEGATE = (*functions)[(const char *)func_name.c_str()];
+        (*functions)[(const char *)func_name.c_str()] = DELEGATE;
+    }
+    return OLD_DELEGATE;
+}
+
+//---------------------------------------------------------------------------
+void JS_TO_CONCEPT(JSContext *cx, void *member, jsval rval, std::map<void *, void *> *circular_map = NULL, int level = 0) {
     INVOKE_CALL Invoke   = InvokePtr;
     CALL_BACK_VARIABLE_SET SetVariable = _SetVariable;
     void *HANDLER = CONCEPT_HANDLER;
     std::map<void *, void *> *use_map = circular_map;
+    if (level > 100)
+        return;
     if (!use_map)
         use_map = new std::map<void *, void *>();
-
     if (JSVAL_IS_DOUBLE(rval)) {
         SET_NUMBER_VARIABLE(member, *JSVAL_TO_DOUBLE(rval));
     } else
@@ -129,12 +170,14 @@ void JS_TO_CONCEPT(JSContext *cx, void *member, jsval rval, std::map<void *, voi
         if (object) {
             void *prev_object = (*use_map)[object];
             if (prev_object) {
-                INTEGER    type     = 0;
-                char       *szValue = 0;
-                NUMBER     nValue   = 0;
+                if (GetRecursive(cx)) {
+                    INTEGER    type     = 0;
+                    char       *szValue = 0;
+                    NUMBER     nValue   = 0;
 
-                Invoke(INVOKE_GET_VARIABLE, prev_object, &type, &szValue, &nValue);
-                Invoke(INVOKE_SET_VARIABLE, member, type, szValue, nValue);
+                    Invoke(INVOKE_GET_VARIABLE, prev_object, &type, &szValue, &nValue);
+                    Invoke(INVOKE_SET_VARIABLE, member, type, szValue, nValue);
+                }
             } else {
                 CREATE_ARRAY(member);
                 (*use_map)[object] = member;
@@ -150,7 +193,7 @@ void JS_TO_CONCEPT(JSContext *cx, void *member, jsval rval, std::map<void *, voi
                                 void *elem_data = NULL;
                                 Invoke(INVOKE_ARRAY_VARIABLE, member, (INTEGER)i, &elem_data);
                                 if (elem_data) {
-                                    JS_TO_CONCEPT(cx, elem_data, rval2, use_map);
+                                    JS_TO_CONCEPT(cx, elem_data, rval2, use_map, level + 1);
                                 }
                             }
                         }
@@ -169,7 +212,7 @@ void JS_TO_CONCEPT(JSContext *cx, void *member, jsval rval, std::map<void *, voi
                                     Invoke(INVOKE_ARRAY_VARIABLE_BY_KEY, member, JS_GetStringBytes(str), &elem_data);
                                     // if ((elem_data) && (JS_GetPropertyById(cx, object, arr->vector[i], &rval2)))
                                     if ((elem_data) && (JS_GetProperty(cx, object, JS_GetStringBytes(str), &rval2))) {
-                                        JS_TO_CONCEPT(cx, elem_data, rval2, use_map);
+                                        JS_TO_CONCEPT(cx, elem_data, rval2, use_map, level + 1);
                                     }
                                 }
                             }
@@ -343,7 +386,10 @@ static JSBool function_handler(JSContext *cx, JSObject *obj, uintN argc, jsval *
         i        = 1;
     }
     //std::cerr << fun_name;
-    FunctionTypes *ft = FindFunction(fun_name, cx, obj);
+    std::map<std::string, void *> *functions = GetFunctions(cx);
+    void *ft = NULL;
+    if (functions)
+        ft = (*functions)[(const char *)fun_name];
     if (!ft)
         return JS_FALSE;
 
@@ -367,7 +413,7 @@ static JSBool function_handler(JSContext *cx, JSObject *obj, uintN argc, jsval *
     // -1 in parameter count means that we will prvide a parameter list;
     void *EXCEPTION = 0;
     void *RES       = 0;
-    Invoke(INVOKE_CALL_DELEGATE, ft->DELEGATE, &RES, &EXCEPTION, (INTEGER)-1, PARAMETERS);
+    Invoke(INVOKE_CALL_DELEGATE, ft, &RES, &EXCEPTION, (INTEGER)-1, PARAMETERS);
     if (RES) {
         *rval = CONCEPT_TO_JS(cx, RES);
         Invoke(INVOKE_FREE_VARIABLE, RES);
@@ -430,10 +476,10 @@ void ShowError(JSContext *cx, const char *message, JSErrorReport *report) {
     char *cstr;
 
     void                   *CREPORT;
-    INVOKE_CALL            Invoke      = InvokePtr;
-    CALL_BACK_VARIABLE_SET SetVariable = _SetVariable;
-    void                   *HANDLER    = CONCEPT_HANDLER;
-
+    INVOKE_CALL            Invoke           = InvokePtr;
+    CALL_BACK_VARIABLE_SET SetVariable      = _SetVariable;
+    void                   *HANDLER         = CONCEPT_HANDLER;
+    void                   *ERR_DELEGATE    = GetErrorDelegate(cx);
     if (!ERR_DELEGATE) {
         printError(cx, message, report);
         return;
@@ -512,124 +558,6 @@ void ShowError(JSContext *cx, const char *message, JSErrorReport *report) {
 CONCEPT_DLL_API ON_CREATE_CONTEXT MANAGEMENT_PARAMETERS {
     InvokePtr       = Invoke;
     CONCEPT_HANDLER = HANDLER;
-
-    /*DEFINE_CLASS("JSClass",
-                    "name",
-                    "flags",
-                    "addProperty",
-                    "delProperty",
-                    "getProperty",
-                    "setProperty",
-                    "enumerate",
-                    "resolve",
-                    "convert",
-                    "_finalize",
-                    "getObjectOps",
-                    "checkAccess",
-                    "call",
-                    "construct",
-                    "xdrObject",
-                    "hasInstance",
-                    "mark",
-                    "reserveSlots"
-       )
-
-       DEFINE_CLASS("JSExtendedClass",
-                    "base",
-                    "equality",
-                    "outerObject",
-                    "innerObject",
-                    "reserved0",
-                    "reserved1",
-                    "reserved2",
-                    "reserved3",
-                    "reserved4"
-       )
-
-       DEFINE_CLASS("JSObjectOps",
-                    "newObjectMap",
-                    "destroyObjectMap",
-                    "lookupProperty",
-                    "defineProperty",
-                    "getProperty",
-                    "setProperty",
-                    "getAttributes",
-                    "setAttributes",
-                    "deleteProperty",
-                    "defaultValue",
-                    "enumerate",
-                    "checkAccess",
-                    "thisObject",
-                    "dropProperty",
-                    "call",
-                    "construct",
-                    "xdrObject",
-                    "hasInstance",
-                    "setProto",
-                    "setParent",
-                    "mark",
-                    "clear",
-                    "getRequiredSlot",
-                    "setRequiredSlot"
-       )
-
-       DEFINE_CLASS("JSXMLObjectOps",
-                    "base",
-                    "getMethod",
-                    "setMethod",
-                    "enumerateValues",
-                    "equality",
-                    "concatenate"
-       )
-
-       DEFINE_CLASS("JSProperty",
-                    "id"
-       )
-
-       DEFINE_CLASS("JSIdArray",
-                    "length",
-                    "vector"
-       )
-
-       DEFINE_CLASS("JSConstDoubleSpec",
-                    "dval",
-                    "name",
-                    "flags",
-                    "spare"
-       )
-
-       DEFINE_CLASS("JSPropertySpec",
-                    "name",
-                    "tinyid",
-                    "flags",
-                    "getter",
-                    "setter"
-       )
-
-       DEFINE_CLASS("JSFunctionSpec",
-                    "name",
-                    "call",
-                    "nargs",
-                    "flags",
-                    "extra"
-       )
-
-       DEFINE_CLASS("JSPrincipals",
-                    "codebase",
-                    "getPrincipalArray",
-                    "globalPrivilegesEnabled",
-                    "refcount",
-                    "destroy",
-                    "subsume"
-       )
-
-       DEFINE_CLASS("JSLocaleCallbacks",
-                    "localeToUpperCase",
-                    "localeToLowerCase",
-                    "localeCompare",
-                    "localeToUnicode"
-       )*/
-
     DEFINE_CLASS("JSErrorReport",
                  "filename",
                  "lineno",
@@ -646,7 +574,6 @@ CONCEPT_DLL_API ON_CREATE_CONTEXT MANAGEMENT_PARAMETERS {
 }
 //---------------------------------------------------------------------------
 CONCEPT_DLL_API ON_DESTROY_CONTEXT MANAGEMENT_PARAMETERS {
-    ClearFunctions();
     return 0;
 }
 //---------------------------------------------------------------------------
@@ -654,48 +581,47 @@ CONCEPT_FUNCTION_IMPL(JSNewRuntime, 1)
     T_NUMBER(JSNewRuntime, 0)     // uint32
     _SetVariable = SetVariable;
 
-    RETURN_NUMBER((long)JS_NewRuntime((uint32)PARAM(0)))
+    RETURN_NUMBER((SYS_INT)JS_NewRuntime((uint32)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(JSDestroyRuntime, 1)
-    T_NUMBER(JSDestroyRuntime, 0)     // JSRuntime*
+    T_HANDLE(JSDestroyRuntime, 0)     // JSRuntime*
 
-    JS_DestroyRuntime((JSRuntime *)(long)PARAM(0));
+    JS_DestroyRuntime((JSRuntime *)(SYS_INT)PARAM(0));
     RETURN_NUMBER(0)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(JSShutDown, 0)
-
     JS_ShutDown();
     RETURN_NUMBER(0)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(JSLock, 1)
-    T_NUMBER(JSLock, 0)     // JSRuntime*
+    T_HANDLE(JSLock, 0)     // JSRuntime*
 
-    JS_Lock((JSRuntime *)(long)PARAM(0));
+    JS_Lock((JSRuntime *)(SYS_INT)PARAM(0));
     RETURN_NUMBER(0)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(JSUnlock, 1)
-    T_NUMBER(JSUnlock, 0)     // JSRuntime*
+    T_HANDLE(JSUnlock, 0)     // JSRuntime*
 
-    JS_Unlock((JSRuntime *)(long)PARAM(0));
+    JS_Unlock((JSRuntime *)(SYS_INT)PARAM(0));
     RETURN_NUMBER(0)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(JSNewContext, 2)
-    T_NUMBER(JSNewContext, 0)     // JSRuntime*
+    T_HANDLE(JSNewContext, 0)     // JSRuntime*
     T_NUMBER(JSNewContext, 1)     // size_t
     _SetVariable = SetVariable;
 
-    RETURN_NUMBER((long)JS_NewContext((JSRuntime *)(long)PARAM(0), (size_t)PARAM(1)))
+    RETURN_NUMBER((SYS_INT)JS_NewContext((JSRuntime *)(SYS_INT)PARAM(0), (size_t)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(JSDestroyContext, 1)
-    T_NUMBER(JSDestroyContext, 0)     // JSContext*
-
-    JS_DestroyContext((JSContext *)(long)PARAM(0));
+    T_HANDLE(JSDestroyContext, 0)     // JSContext*
+    ClearFunctions((JSContext *)(SYS_INT)PARAM(0));
+    JS_DestroyContext((JSContext *)(SYS_INT)PARAM(0));
     RETURN_NUMBER(0)
 END_IMPL
 //------------------------------------------------------------------------
@@ -704,37 +630,50 @@ CONCEPT_FUNCTION_IMPL(JSInitStandardClasses, 2)
     T_NUMBER(JSInitStandardClasses, 1)
     _SetVariable = SetVariable;
 
-    RETURN_NUMBER(JS_InitStandardClasses((JSContext *)(long)PARAM(0), (JSObject *)(long)PARAM(1)))
+    RETURN_NUMBER(JS_InitStandardClasses((JSContext *)(SYS_INT)PARAM(0), (JSObject *)(SYS_INT)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(JSSetErrorReporter, 2)
-    T_NUMBER(JSSetErrorReporter, 0)     // JSContext*
+    T_HANDLE(JSSetErrorReporter, 0)     // JSContext*
     T_DELEGATE(JSSetErrorReporter, 1)
 
-    if (ERR_DELEGATE)
-        FREE_VARIABLE(ERR_DELEGATE);
-
-    ERR_DELEGATE = PARAMETER(1);
     if (!(PARAM_INT(0)))
         return (void *)"JSSetErrorReporter: Invalid JSContext (is null)";
 
+    void *ERR_DELEGATE = SetErrorDelegate(((JSContext *)(SYS_INT)PARAM(0)), PARAMETER(1));
+    if (ERR_DELEGATE)
+        FREE_VARIABLE(ERR_DELEGATE);
+
     LOCK_VARIABLE(ERR_DELEGATE);
-    JS_SetErrorReporter(((JSContext *)(SYS_INT)PARAM_INT(0)), ShowError);
+    SetErrorDelegate(((JSContext *)(SYS_INT)PARAM(0)), ERR_DELEGATE);
+    JS_SetErrorReporter(((JSContext *)(SYS_INT)PARAM(0)), ShowError);
     RETURN_NUMBER(0);
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(JSNewObject, 4)
-    T_NUMBER(JSNewObject, 0) // JSContext*
+    T_HANDLE(JSNewObject, 0) // JSContext*
     T_NUMBER(JSNewObject, 1) // JSClass*
     T_NUMBER(JSNewObject, 2) // JSObject*
     T_NUMBER(JSNewObject, 3) // JSObject*
 
-
     RETURN_NUMBER((SYS_INT)JS_NewObject((JSContext *)PARAM_INT(0), (JSClass *)PARAM_INT(1), (JSObject *)PARAM_INT(2), (JSObject *)PARAM_INT(3)))
 END_IMPL
 //------------------------------------------------------------------------
+CONCEPT_FUNCTION_IMPL(JSGC, 2)
+    T_HANDLE(JSGC, 0)
+    T_HANDLE(JSGC, 1)
+
+    JSContext *cx = (JSContext *)(SYS_INT)PARAM(0);
+    if (cx) {
+        JS_GC(cx);
+        RETURN_NUMBER(1);
+    } else {
+        RETURN_NUMBER(0);
+    }
+END_IMPL
+//------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(JSEvaluateScript, 6)
-    T_NUMBER(JSEvaluateScript, 0)     // JSContext*
+    T_HANDLE(JSEvaluateScript, 0)     // JSContext*
     T_NUMBER(JSEvaluateScript, 1)
     T_STRING(JSEvaluateScript, 2)     // char*
     T_STRING(JSEvaluateScript, 3)     // char*
@@ -743,9 +682,9 @@ CONCEPT_FUNCTION_IMPL(JSEvaluateScript, 6)
 // ... parameter 6 is by reference (jsval*)
     jsval rval = JSVAL_VOID;
     bool is_ok = false;
-
-    RETURN_NUMBER(is_ok = JS_EvaluateScript((JSContext *)(long)PARAM(0), (JSObject *)PARAM_INT(1), PARAM(2), (uintN)PARAM_LEN(2), PARAM(3), (uintN)PARAM(4), &rval))
-    SET_NUMBER(5, (long)0)
+    JSContext *cx = (JSContext *)(SYS_INT)PARAM(0);
+    RETURN_NUMBER(is_ok = JS_EvaluateScript(cx, (JSObject *)PARAM_INT(1), PARAM(2), (uintN)PARAM_LEN(2), PARAM(3), (uintN)PARAM(4), &rval))
+    SET_NUMBER(5, (SYS_INT)0)
     if (is_ok) {
         if (JSVAL_IS_DOUBLE(rval)) {
             SET_NUMBER(5, *JSVAL_TO_DOUBLE(rval));
@@ -763,25 +702,23 @@ CONCEPT_FUNCTION_IMPL(JSEvaluateScript, 6)
         if ((JSVAL_IS_NULL(rval)) || (JSVAL_IS_VOID(rval))) {
             SET_NUMBER(5, (NUMBER)0);
         } else {
-            JS_TO_CONCEPT((JSContext *)(long)PARAM(0),PARAMETER(5), rval);
+            JS_TO_CONCEPT((JSContext *)(SYS_INT)PARAM(0),PARAMETER(5), rval);
         }
         // SET_NUMBER(5, (NUMBER)1);
     }
-
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(JSThrow, 3)
-    T_NUMBER(JSThrow, 0)     // JSContext*
+    T_HANDLE(JSThrow, 0)     // JSContext*
     T_NUMBER(JSThrow, 1)
     T_STRING(JSThrow, 2)
     _SetVariable = SetVariable;
 
-    RETURN_NUMBER(ejs_throw_error((JSContext *)(long)PARAM(0), (JSObject *)(long)PARAM(1), PARAM(2)));
+    RETURN_NUMBER(ejs_throw_error((JSContext *)(SYS_INT)PARAM(0), (JSObject *)(SYS_INT)PARAM(1), PARAM(2)));
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(JSEval, 1)
     T_STRING(JSEval, 0)
-
     JSRuntime * runtime = NULL;
     JSContext *context = NULL;
     JSObject  *global  = NULL;
@@ -789,7 +726,7 @@ CONCEPT_FUNCTION_IMPL(JSEval, 1)
     jsval rval = JSVAL_VOID;
 
     RETURN_NUMBER(0);
-/* create new runtime, new context, global object */
+    /* create new runtime, new context, global object */
     if ((!(runtime = JS_NewRuntime(1024L * 1024L))) ||
         (!(context = JS_NewContext(runtime, 8192))) ||
         (!(global = JS_NewObject(context, NULL, NULL, NULL)))
@@ -819,24 +756,35 @@ CONCEPT_FUNCTION_IMPL(JSEval, 1)
         } else
         if ((JSVAL_IS_NULL(rval)) || (JSVAL_IS_VOID(rval))) {
             RETURN_NUMBER(0);
-        } else
-            RETURN_NUMBER(1);
+        } else {
+            JS_TO_CONCEPT(context, RESULT, rval);
+        }
     }
     JS_DestroyContext(context);
     JS_DestroyRuntime(runtime);
-
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(JSWrap, 4)
-    T_NUMBER(JSWrap, 0) // JSContext*
+    T_HANDLE(JSWrap, 0) // JSContext*
     T_NUMBER(JSWrap, 1) // JSObject*
     T_DELEGATE(JSWrap, 2)
     T_STRING(JSWrap, 3) // function name
     _SetVariable = SetVariable;
 
-    AddFunction(PARAM(3), PARAMETER(2), (JSContext *)PARAM_INT(0), (JSObject *)PARAM_INT(1));
-    int param_count = Invoke(INVOKE_COUNT_DELEGATE_PARAMS, PARAMETER(2));
+    void *OLD_DELEGATE = SetFunction(PARAM(3), PARAMETER(2), (JSContext *)PARAM_INT(0), (JSObject *)PARAM_INT(1));
+    LOCK_VARIABLE(PARAMETER(2));
+    if (OLD_DELEGATE) {
+        FREE_VARIABLE(OLD_DELEGATE);
+    }
 
-    RETURN_NUMBER((JS_DefineFunction((JSContext *)PARAM_INT(0), (JSObject *)PARAM_INT(1), PARAM(3), function_handler, param_count, 0) != 0));
+    int param_count = Invoke(INVOKE_COUNT_DELEGATE_PARAMS, PARAMETER(2));
+    RETURN_NUMBER((JS_DefineFunction((JSContext *)(SYS_INT)PARAM(0), (JSObject *)PARAM_INT(1), PARAM(3), function_handler, param_count, 0) != 0));
+END_IMPL
+//------------------------------------------------------------------------
+CONCEPT_FUNCTION_IMPL(JSRecursive, 2) 
+    T_HANDLE(JSWrap, 0) // JSContext*
+    T_NUMBER(JSWrap, 1)
+    SetRecursive((JSContext *)(SYS_INT)PARAM(0), (bool)PARAM_INT(1));
+    RETURN_NUMBER(0);
 END_IMPL
 //------------------------------------------------------------------------

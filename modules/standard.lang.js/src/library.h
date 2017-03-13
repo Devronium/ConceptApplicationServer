@@ -25,6 +25,8 @@ CONCEPT_FUNCTION(JSSetErrorReporter)
 CONCEPT_FUNCTION(JSEvaluateScript)
 CONCEPT_FUNCTION(JSThrow)
 CONCEPT_FUNCTION(JSEval)
+CONCEPT_FUNCTION(JSGC)
+CONCEPT_FUNCTION(JSRecursive)
 //--------------------------------------------------------------//
 CONCEPT_FUNCTION(JSWrap)
 //--------------------------------------------------------------//
