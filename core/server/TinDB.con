@@ -1214,14 +1214,14 @@ pragma used
 							t.Lock();
 							if (reduce) {
 								try {
-									js.variable("map", new DummyObject());
+									js.variable("out", new DummyObject());
 									t.Query(obj.p, obj.f, obj.x["descending"], obj.x["start"], obj.x["len"], function(o, var reduce) {
 										if (o) {
 											js.variable("self", o);
 											js.script(reduce);
 										}
 									}, reduce);
-									r.p = js.script("map;");
+									r.p = js.script("out;");
 									if ((r.p) && (typeof r.p == "array"))
 										QueryWorker::Cache(obj, r.p);
 								} catch (var js_error) {
