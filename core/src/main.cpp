@@ -608,12 +608,12 @@ int MarkRecursive(void *PIF, Array *arr, signed char reach_id_flag) {
             if ((Var) && (Var->CLASS_DATA)) {
                 if ((Var->TYPE == VARIABLE_CLASS) || (Var->TYPE == VARIABLE_DELEGATE)) {
                     CompiledClass *CC2 = (CompiledClass *)Var->CLASS_DATA;
-                    if ((CC2->reachable & 0x1F) != reach_id_flag)
+                    if ((CC2->reachable & 0x03) != reach_id_flag)
                         res += MarkRecursive(PIF, CC2, reach_id_flag);
                 } else
                 if (Var->TYPE == VARIABLE_ARRAY) {
                     Array *ARR2 = (Array *)Var->CLASS_DATA;
-                    if ((ARR2->reachable & 0x1F) != reach_id_flag)
+                    if ((ARR2->reachable & 0x03) != reach_id_flag)
                         res += MarkRecursive(PIF, ARR2, reach_id_flag);
                 }
             }
@@ -637,12 +637,12 @@ int MarkRecursive(void *PIF, CompiledClass *CC, signed char reach_id_flag) {
         if ((Var) && (Var->CLASS_DATA)) {
             if ((Var->TYPE == VARIABLE_CLASS) || (Var->TYPE == VARIABLE_DELEGATE)) {
                 CompiledClass *CC2 = (CompiledClass *)Var->CLASS_DATA;
-                if ((CC2->reachable & 0x1F) != reach_id_flag)
+                if ((CC2->reachable & 0x03) != reach_id_flag)
                     res += MarkRecursive(PIF, CC2, reach_id_flag);
             } else
             if (Var->TYPE == VARIABLE_ARRAY) {
                 Array *ARR2 = (Array *)Var->CLASS_DATA;
-                if ((ARR2->reachable & 0x1F) != reach_id_flag)
+                if ((ARR2->reachable & 0x03) != reach_id_flag)
                     res += MarkRecursive(PIF, ARR2, reach_id_flag);
             }
         }
@@ -660,7 +660,7 @@ int MarkRecursive(void *PIF, CompiledClass *CC, signed char reach_id_flag) {
             if ((Var) && (Var->CLASS_DATA)) {
                 if ((Var->TYPE == VARIABLE_CLASS) || (Var->TYPE == VARIABLE_DELEGATE)) {
                     CompiledClass *CC2 = (CompiledClass *)Var->CLASS_DATA;
-                    if ((CC2->reachable & 0x1F) != reach_id_flag) {
+                    if ((CC2->reachable & 0x03) != reach_id_flag) {
                         if (CC2->_CONTEXT) {
                             if (inspectPos < inspectSize)
                                 toInspect[inspectPos++] = CC2;
@@ -675,7 +675,7 @@ int MarkRecursive(void *PIF, CompiledClass *CC, signed char reach_id_flag) {
                 } else
                 if (Var->TYPE == VARIABLE_ARRAY) {
                     Array *ARR2 = (Array *)Var->CLASS_DATA;
-                    if ((ARR2->reachable & 0x1F) != reach_id_flag)
+                    if ((ARR2->reachable & 0x03) != reach_id_flag)
                         res += MarkRecursive(PIF, ARR2, reach_id_flag);
                 }
             }
@@ -716,7 +716,7 @@ int CheckReachability(void *PIF) {
     // ============================================================================== //
 
     CompiledClass *CC_ROOT      = (CompiledClass *)((PIFAlizator *)PIF)->RootInstance;
-    signed char   reach_id_flag = CC_ROOT->reachable & 0x1F;
+    signed char   reach_id_flag = CC_ROOT->reachable & 0x03;
 
     if (reach_id_flag == 1)
         reach_id_flag = 2;
@@ -742,12 +742,12 @@ int CheckReachability(void *PIF) {
                     if ((Var) && (Var->CLASS_DATA)) {
                         if ((Var->TYPE == VARIABLE_CLASS) || (Var->TYPE == VARIABLE_DELEGATE)) {
                             CompiledClass *CC2 = (CompiledClass *)Var->CLASS_DATA;
-                            if ((CC2->reachable & 0x1F) != reach_id_flag)
+                            if ((CC2->reachable & 0x03) != reach_id_flag)
                                 MarkRecursive(PIF, CC2, reach_id_flag);
                         } else
                         if (Var->TYPE == VARIABLE_ARRAY) {
                             Array *ARR2 = (Array *)Var->CLASS_DATA;
-                            if ((ARR2->reachable & 0x1F) != reach_id_flag)
+                            if ((ARR2->reachable & 0x03) != reach_id_flag)
                                 MarkRecursive(PIF, ARR2, reach_id_flag);
                         }
                     }
@@ -900,7 +900,7 @@ int GetMemoryStatistics(void *PIF, void *RESULT) {
 #endif
     ALLOC_LOCK
     CompiledClass *CC_ROOT      = (CompiledClass *)((PIFAlizator *)PIF)->RootInstance;
-    signed char   reach_id_flag = CC_ROOT->reachable & 0x1F;
+    signed char   reach_id_flag = CC_ROOT->reachable & 0x03;
 
     if (reach_id_flag == 1)
         reach_id_flag = 2;
@@ -930,12 +930,12 @@ int GetMemoryStatistics(void *PIF, void *RESULT) {
                     if ((Var) && (Var->CLASS_DATA)) {
                         if ((Var->TYPE == VARIABLE_CLASS) || (Var->TYPE == VARIABLE_DELEGATE)) {
                             CompiledClass *CC2 = (CompiledClass *)Var->CLASS_DATA;
-                            if ((CC2->reachable & 0x1F) != reach_id_flag)
+                            if ((CC2->reachable & 0x03) != reach_id_flag)
                                 MarkRecursive(PIF, CC2, reach_id_flag);
                         } else
                         if (Var->TYPE == VARIABLE_ARRAY) {
                             Array *ARR2 = (Array *)Var->CLASS_DATA;
-                            if ((ARR2->reachable & 0x1F) != reach_id_flag)
+                            if ((ARR2->reachable & 0x03) != reach_id_flag)
                                 MarkRecursive(PIF, ARR2, reach_id_flag);
                         }
                     }
