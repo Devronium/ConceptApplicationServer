@@ -301,7 +301,7 @@ class TinDataSet {
 		this.Connection._Handle(q, callback, this.UserData);
 	}
 
-	Query(params, delegate callback, fields = null, len = 0, start = 0, descending = false, priority = 0, map = false) {
+	Query(params, delegate callback, fields = null, len = 0, start = 0, descending = false, priority = 0, map = false, reduce = "") {
 		if (typeof params != "array") {
 			if (typeof params == "object")
 				params = Prepare(params);
@@ -321,6 +321,8 @@ class TinDataSet {
 			q.x["priority"] = priority;
 		if (map)
 			q.x["map"] = true;
+		if (reduce)
+			q.x["reduce"] = reduce;
 		q.f = fields;
 		this.Connection._Handle(q, callback, this.UserData);
 	}
@@ -404,6 +406,10 @@ class TinDataSet {
 		Query(params, callback, fields, len, start, descending, priority, true);
 	}
 
+	Reduce(reduce_js, params, delegate callback, fields = null, len = 0, start = 0, descending = false, priority = 0) {
+		Query(params, callback, fields, len, start, descending, priority, false, reduce_js);
+	}
+
 	j(params, fields = null, len = 0, start = 0, descending = false, priority = 0) {
 		if ((!params) || (typeof params != "array"))
 			return false;
@@ -422,7 +428,7 @@ class TinDataSet {
 		return this.Connection._Promise(q, PromiseHandler, this.UserData);
 	}
 
-	Join(params, delegate callback, fields = null, len = 0, start = 0, descending = false, priority = 0) {
+	Join(params, delegate callback, fields = null, len = 0, start = 0, descending = false, priority = 0, reduce = "") {
 		if ((!params) || (typeof params != "array"))
 			return false;
 
@@ -435,6 +441,8 @@ class TinDataSet {
 			q.x["descending"] = descending;
 		if (priority)
 			q.x["priority"] = priority;
+		if (reduce)
+			q.x["reduce"] = reduce;
 		q.f = fields;
 		this.Connection._Handle(q, callback, this.UserData);
 	}

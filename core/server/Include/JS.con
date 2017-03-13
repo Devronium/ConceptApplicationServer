@@ -25,6 +25,10 @@ class JS {
 			return error_delegate(this, message, struct);
 	}
 
+	variable(name, val) {
+		return JSObjectKey(context, global, name, val);
+	}
+
 	error(delegate error_handler) {
 		error_delegate = error_handler;
 		JSSetErrorReporter(context, __error_callback);

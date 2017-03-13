@@ -9,6 +9,11 @@ import standard.math.rand
 import standard.lang.cli
 import standard.C.time
 
+// <javascript support>
+include JS.con
+define TIN_JS		true
+// </javascript support>
+
 define TIN_VERSION	"1.0BETA"
 
 define TIN_DEBUG	false
@@ -38,6 +43,7 @@ define ERR_NOT_UNIQUE	-9
 define ERR_NOT_UNIQUE_S	"Not unique"
 define ERR_AGGREGATION	-10
 define ERR_AGGREGATION_S"Invalid aggregation"
+define ERR_JS_SCRIPT	-11
 
 define NOTIFY_MORE_DATA	1
 
@@ -541,7 +547,7 @@ pragma used
 	}
 
 	static CacheKey(obj) {
-		return sha1(BinarizeObject([obj.o, obj.f, obj.p, obj.x["start"], obj.x["len"], obj.x["descending"]]));
+		return sha1(BinarizeObject([obj.o, obj.f, obj.p, obj.x["start"], obj.x["len"], obj.x["descending"], obj.x["reduce"]]));
 	}
 
 	static InvalidateCache(d, c) {
@@ -646,7 +652,7 @@ pragma used
 				r.p = KeySorted(r.p);
 		} else
 		if (type == "version")
-			r.p = ["version" => TIN_VERSION, "forcesync" => TIN_FORCESYNC, "maxopsize" => MAX_OP_SIZE, "debug" => TIN_DEBUG];
+			r.p = ["version" => TIN_VERSION, "forcesync" => TIN_FORCESYNC, "maxopsize" => MAX_OP_SIZE, "debug" => TIN_DEBUG, "js" => TIN_JS];
 
 		if ((!obj.io) || (obj.io != current_worker))
 			r.Send(sock, obj.io);
@@ -1036,6 +1042,7 @@ pragma used
 	var counter;
 	var workerid;
 	var journal;
+	var js;
 
 	GetDelegate(dbobject, db, name, var objects, var members, r = null) {
 		var arr = StrSplit(name, ".");
@@ -1191,9 +1198,34 @@ pragma used
 							if (typeof obj.p != "array")
 								obj.p = [ ];
 							var map = false;
-							if ((obj.x) && (obj.x["map"]))
-								map = true;
+							var reduce = "";
+							if (obj.x) {
+								if (obj.x["map"])
+									map = true;
+								if (TIN_JS) {
+									reduce = obj.x["reduce"];
+									if ((reduce) && (!js))
+										js = new JS();
+								}
+							}
 							t.Lock();
+							if (reduce) {
+								try {
+									js.variable("map", ["\$reduce" => ""]);
+									t.Query(obj.p, obj.f, obj.x["descending"], obj.x["start"], obj.x["len"], function(o, var reduce) {
+										if (o) {
+											js.variable("self", o);
+											js.script(reduce);
+										}
+									}, reduce);
+									r.p = js.script("map;");
+									if ((r.p) && (typeof r.p == "array"))
+										QueryWorker::Cache(obj, r.p);
+								} catch (var js_error) {
+									r.e = ERR_JS_SCRIPT;
+									r.et = js_error;
+								}
+							} else
 							if ((!map) || (obj.worker)) {
 								r.p = t.Query(obj.p, obj.f, obj.x["descending"], obj.x["start"], obj.x["len"]);
 								QueryWorker::Cache(obj, r.p);

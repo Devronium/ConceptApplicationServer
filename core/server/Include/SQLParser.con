@@ -76,6 +76,9 @@ class SQLParser {
 			if (SQLParser::parseQuote(c, buffer, err, offset, var json_val)) {
 				val += json_val;
 			} else
+			if (SQLParser::parseJSON(c, buffer, err, offset, json_val)) {
+				val += json_val;
+			} else
 				val += c;
 			if (c == q)
 				return true;
@@ -673,6 +676,14 @@ class SQLParser {
 							syntax["PRIORITY"] = value SQLParser::prepare(command, err, false, parameters);
 						} else {
 							SQLParser::error(err, offset, "'PRIORITY' value expected");
+						}
+						break;
+					case "REDUCE":
+						command = SQLParser::parseAtom(buffer, err, offset);
+						if (command) {
+							syntax["REDUCE"] = command;
+						} else {
+							SQLParser::error(err, offset, "JS code expected");
 						}
 						break;
 					default:

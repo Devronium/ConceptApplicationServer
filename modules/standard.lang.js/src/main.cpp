@@ -759,3 +759,14 @@ CONCEPT_FUNCTION_IMPL(JSRecursive, 2)
     RETURN_NUMBER(0);
 END_IMPL
 //------------------------------------------------------------------------
+CONCEPT_FUNCTION_IMPL(JSObjectKey, 4)
+    T_HANDLE(JSObjectKey, 0) // JSContext*
+    T_HANDLE(JSObjectKey, 1) // JSObject*
+    T_STRING(JSObjectKey, 2);
+
+    jsval val = CONCEPT_TO_JS((JSContext *)(SYS_INT)PARAM(0), PARAMETER(3));
+
+    bool prop_set = JS_SetProperty((JSContext *)(SYS_INT)PARAM(0), (JSObject *)(SYS_INT)PARAM(1), PARAM(2), &val);
+    RETURN_NUMBER((int)prop_set);
+END_IMPL
+//------------------------------------------------------------------------
