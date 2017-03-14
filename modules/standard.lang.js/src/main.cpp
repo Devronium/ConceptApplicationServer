@@ -52,7 +52,6 @@
 #include <map>
 #include <string>
 //---------------------------------------------------------------------------
-void                   *CONCEPT_HANDLER = 0;
 INVOKE_CALL            InvokePtr        = 0;
 CALL_BACK_VARIABLE_SET _SetVariable     = 0;
 
@@ -80,15 +79,38 @@ public:
     std::map<std::string, void *> functions;
     void *ERR_DELEGATE;
     bool recursive;
+    void *handler;
 #ifndef JS_OLDAPI
     void *global;
 #endif
 
     LocalContainer() {
         ERR_DELEGATE = NULL;
+        handler = NULL;
+        global = NULL;
         recursive = true;
     }
 };
+
+void *GetHandler(JSContext *cx) {
+    if (cx) {
+        LocalContainer *data = (LocalContainer *)JS_GetContextPrivate(cx);
+        if (data)
+            return data->handler;
+    }
+    return NULL;
+}
+
+void SetHandler(JSContext *cx, void *handler) {
+    if (cx) {
+        LocalContainer *data = (LocalContainer *)JS_GetContextPrivate(cx);
+        if (!data) {
+            data = new LocalContainer();
+            JS_SetContextPrivate(cx, data);
+        }
+        data->handler = handler;
+    }
+}
 
 #ifndef JS_OLDAPI
 void *GetGlobal(JSContext *cx) {
@@ -228,10 +250,9 @@ void *SetFunction(AnsiString func_name, void *DELEGATE, JSContext *ctx, JSObject
 }
 
 //---------------------------------------------------------------------------
-void JS_TO_CONCEPT(JSContext *cx, void *member, jsval rval, std::map<void *, void *> *circular_map = NULL, int level = 0) {
+void JS_TO_CONCEPT(void *HANDLER, JSContext *cx, void *member, jsval rval, std::map<void *, void *> *circular_map = NULL, int level = 0) {
     INVOKE_CALL Invoke   = InvokePtr;
     CALL_BACK_VARIABLE_SET SetVariable = _SetVariable;
-    void *HANDLER = CONCEPT_HANDLER;
     std::map<void *, void *> *use_map = circular_map;
     if (level > 100)
         return;
@@ -308,7 +329,7 @@ void JS_TO_CONCEPT(JSContext *cx, void *member, jsval rval, std::map<void *, voi
                                 void *elem_data = NULL;
                                 Invoke(INVOKE_ARRAY_VARIABLE, member, (INTEGER)i, &elem_data);
                                 if (elem_data) {
-                                    JS_TO_CONCEPT(cx, elem_data, rval2, use_map, level + 1);
+                                    JS_TO_CONCEPT(HANDLER, cx, elem_data, rval2, use_map, level + 1);
                                 }
                             }
                         }
@@ -336,14 +357,14 @@ void JS_TO_CONCEPT(JSContext *cx, void *member, jsval rval, std::map<void *, voi
                                     DECLARE_JSVAL(rval2);
                                     Invoke(INVOKE_ARRAY_VARIABLE_BY_KEY, member, JS_GetStringBytes(str), &elem_data);
                                     if ((elem_data) && (JS_GetProperty(cx, object, JS_GetStringBytes(str), &rval2))) {
-                                        JS_TO_CONCEPT(cx, elem_data, rval2, use_map, level + 1);
+                                        JS_TO_CONCEPT(HANDLER, cx, elem_data, rval2, use_map, level + 1);
                                     }
 #else
                                     JS::RootedValue rval2(cx);
                                     char *buf = JS_EncodeString(cx, str);
                                     Invoke(INVOKE_ARRAY_VARIABLE_BY_KEY, member, buf, &elem_data);
                                     if ((elem_data) && (JS_GetPropertyById(cx, object, arr[i], &rval2))) {
-                                        JS_TO_CONCEPT(cx, elem_data, rval2, use_map, level + 1);
+                                        JS_TO_CONCEPT(HANDLER, cx, elem_data, rval2, use_map, level + 1);
                                     }
                                     if (buf)
                                         JS_free(cx, buf);
@@ -390,13 +411,12 @@ AnsiString CONCEPT_TO_STRING(JSContext *cx, void *member) {
 }
 
 //---------------------------------------------------------------------------
-jsval CONCEPT_TO_JS(JSContext *cx, void *member, std::map<void *, int> *circular_map = NULL) {
+jsval CONCEPT_TO_JS(void *HANDLER, JSContext *cx, void *member, std::map<void *, int> *circular_map = NULL) {
     INTEGER type     = 0;
     char    *szValue = 0;
     NUMBER  nValue   = 0;
     DECLARE_JSVAL(ret);
     INVOKE_CALL Invoke   = InvokePtr;
-    void *HANDLER = CONCEPT_HANDLER;
     std::map<void *, int> *use_map = circular_map;
     if (!use_map)
         use_map = new std::map<void *, int>();
@@ -448,11 +468,11 @@ jsval CONCEPT_TO_JS(JSContext *cx, void *member, std::map<void *, int> *circular
                             InvokePtr(INVOKE_GET_ARRAY_KEY, member, i, &key);
                             if (key) {
 #ifdef JS_OLDAPI
-                                jsval temp = CONCEPT_TO_JS(cx, elem_data, use_map);
+                                jsval temp = CONCEPT_TO_JS(HANDLER, cx, elem_data, use_map);
                                 JS_SetProperty(cx, object, key, &temp);
 #else
                                 JS::RootedValue temp(cx);
-                                temp = CONCEPT_TO_JS(cx, elem_data, use_map);
+                                temp = CONCEPT_TO_JS(HANDLER, cx, elem_data, use_map);
                                 JS_SetProperty(cx, object, key, temp);
 #endif
                             }
@@ -468,7 +488,7 @@ jsval CONCEPT_TO_JS(JSContext *cx, void *member, std::map<void *, int> *circular
                                 values[i] = JSVAL_VOID;
                                 Invoke(INVOKE_ARRAY_VARIABLE, member, (INTEGER)i, &elem_data);
                                 if (elem_data)
-                                    values[i] = CONCEPT_TO_JS(cx, elem_data, use_map);
+                                    values[i] = CONCEPT_TO_JS(HANDLER, cx, elem_data, use_map);
                             }
                         }
                         object = JS_NewArrayObject(cx, count, values);
@@ -480,7 +500,7 @@ jsval CONCEPT_TO_JS(JSContext *cx, void *member, std::map<void *, int> *circular
                              Invoke(INVOKE_ARRAY_VARIABLE, member, (INTEGER)i, &elem_data);
                              JS::RootedValue temp(cx);
                              if (elem_data)
-                                 temp = CONCEPT_TO_JS(cx, elem_data, use_map);
+                                 temp = CONCEPT_TO_JS(HANDLER, cx, elem_data, use_map);
                              JS_DefineElement(cx, object, i, temp, JSPROP_ENUMERATE);
                         }
                         ret = OBJECT_TO_JSVAL(*object);
@@ -524,12 +544,12 @@ jsval CONCEPT_TO_JS(JSContext *cx, void *member, std::map<void *, int> *circular
                              void *elem_data =  variable_data[i];
                              if ((key) && (elem_data)) {
 #ifdef JS_OLDAPI
-                                jsval temp = CONCEPT_TO_JS(cx, elem_data, use_map);
+                                jsval temp = CONCEPT_TO_JS(HANDLER, cx, elem_data, use_map);
                                 JS_SetProperty(cx, object, key, &temp);
 #else
                                 JS::RootedValue temp(cx);
                                 if (elem_data)
-                                    temp = CONCEPT_TO_JS(cx, elem_data, use_map);
+                                    temp = CONCEPT_TO_JS(HANDLER, cx, elem_data, use_map);
                                 JS_SetProperty(cx, object, key, temp);
 #endif
                              }
@@ -577,7 +597,7 @@ static bool function_handler(JSContext *cx, unsigned argc, JS::Value *vp) {
     char                   *fun_name;
     INVOKE_CALL            Invoke      = InvokePtr;
     CALL_BACK_VARIABLE_SET SetVariable = _SetVariable;
-    void                   *HANDLER    = CONCEPT_HANDLER;
+    void                   *HANDLER    = GetHandler(cx);
 
 #ifdef JS_OLDAPI
     /* Differetiate between direct and method-like call */
@@ -629,7 +649,7 @@ static bool function_handler(JSContext *cx, unsigned argc, JS::Value *vp) {
     for ( ; i < argc; i++) {
         jsval param = argv[i];
         CREATE_VARIABLE(PARAMETERS[index]);
-        JS_TO_CONCEPT(cx, PARAMETERS[index], param);
+        JS_TO_CONCEPT(HANDLER, cx, PARAMETERS[index], param);
         index++;
     }
 
@@ -639,9 +659,9 @@ static bool function_handler(JSContext *cx, unsigned argc, JS::Value *vp) {
     Invoke(INVOKE_CALL_DELEGATE, ft, &RES, &EXCEPTION, (INTEGER)-1, PARAMETERS);
     if (RES) {
 #ifdef JS_OLDAPI
-        *rval = CONCEPT_TO_JS(cx, RES);
+        *rval = CONCEPT_TO_JS(HANDLER, cx, RES);
 #else
-        argv.rval().set(CONCEPT_TO_JS(cx, RES));
+        argv.rval().set(CONCEPT_TO_JS(HANDLER, cx, RES));
 #endif
         Invoke(INVOKE_FREE_VARIABLE, RES);
     }
@@ -714,7 +734,6 @@ void ShowError(JSContext *cx, const char *message, JSErrorReport *report) {
     void                   *CREPORT;
     INVOKE_CALL            Invoke           = InvokePtr;
     CALL_BACK_VARIABLE_SET SetVariable      = _SetVariable;
-    void                   *HANDLER         = CONCEPT_HANDLER;
     void                   *ERR_DELEGATE    = GetErrorDelegate(cx);
 
     if (!ERR_DELEGATE) {
@@ -762,7 +781,6 @@ void ShowError(JSContext *cx, const char *message, JSErrorReport *report) {
 //---------------------------------------------------------------------------
 CONCEPT_DLL_API ON_CREATE_CONTEXT MANAGEMENT_PARAMETERS {
     InvokePtr       = Invoke;
-    CONCEPT_HANDLER = HANDLER;
 #ifndef JS_OLDAPI
     JS_Init();
 #endif
@@ -825,7 +843,10 @@ CONCEPT_FUNCTION_IMPL(JSNewContext, 2)
     T_NUMBER(JSNewContext, 1)     // size_t
     _SetVariable = SetVariable;
 
-    RETURN_NUMBER((SYS_INT)JS_NewContext((JSRuntime *)(SYS_INT)PARAM(0), (size_t)PARAM(1)))
+    JSContext *context = JS_NewContext((JSRuntime *)(SYS_INT)PARAM(0), (size_t)PARAM(1));
+    if (context)
+        SetHandler(context, PARAMETERS->HANDLER);
+    RETURN_NUMBER((SYS_INT)context)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(JSDestroyContext, 1)
@@ -977,7 +998,7 @@ CONCEPT_FUNCTION_IMPL(JSEvaluateScript, 6)
         if ((JSVAL_IS_NULL(rval)) || (JSVAL_IS_VOID(rval))) {
             SET_NUMBER(5, (NUMBER)0);
         } else {
-            JS_TO_CONCEPT((JSContext *)(SYS_INT)PARAM(0),PARAMETER(5), rval);
+            JS_TO_CONCEPT(PARAMETERS->HANDLER, (JSContext *)(SYS_INT)PARAM(0),PARAMETER(5), rval);
         }
         // SET_NUMBER(5, (NUMBER)1);
     }
@@ -1011,6 +1032,7 @@ CONCEPT_FUNCTION_IMPL(JSEval, 1)
             )
             return (void *)"JSEval: error creating runtime/context/global";
 
+        SetHandler(context, PARAMETERS->HANDLER);
         if (!JS_InitStandardClasses(context, global))
             return (void *)"JSEval: initialising standard classes";
 
@@ -1020,6 +1042,7 @@ CONCEPT_FUNCTION_IMPL(JSEval, 1)
         if ((!(runtime = JS_NewRuntime(1024L * 1024L))) || (!(context = JS_NewContext(runtime, 8192))))
             return (void *)"JSEval: error creating runtime/context";
 
+        SetHandler(context, PARAMETERS->HANDLER);
         JSAutoRequest ar(context);
         JS::RootedObject global(context, JS_NewGlobalObject(context, &global_class, nullptr, JS::FireOnNewGlobalHook));
         if (!global)
@@ -1063,7 +1086,7 @@ CONCEPT_FUNCTION_IMPL(JSEval, 1)
             if ((JSVAL_IS_NULL(rval)) || (JSVAL_IS_VOID(rval))) {
                 RETURN_NUMBER(0);
             } else {
-                JS_TO_CONCEPT(context, RESULT, rval);
+                JS_TO_CONCEPT(PARAMETERS->HANDLER, context, RESULT, rval);
             }
         }
     }
@@ -1109,13 +1132,13 @@ CONCEPT_FUNCTION_IMPL(JSObjectKey, 4)
     T_STRING(JSObjectKey, 2);
 
 #ifdef JS_OLDAPI
-    jsval val = CONCEPT_TO_JS((JSContext *)(SYS_INT)PARAM(0), PARAMETER(3));
+    jsval val = CONCEPT_TO_JS(PARAMETERS->HANDLER, (JSContext *)(SYS_INT)PARAM(0), PARAMETER(3));
     bool prop_set = JS_SetProperty((JSContext *)(SYS_INT)PARAM(0), (JSObject *)(SYS_INT)PARAM(1), PARAM(2), &val);
 #else
     JSObject *obj = (JSObject *)(SYS_INT)PARAM(1);
     JS::RootedObject global((JSContext *)(SYS_INT)PARAM(0), obj);
     JSAutoCompartment ac((JSContext *)(SYS_INT)PARAM(0), global);
-    jsval val = CONCEPT_TO_JS((JSContext *)(SYS_INT)PARAM(0), PARAMETER(3));
+    jsval val = CONCEPT_TO_JS(PARAMETERS->HANDLER, (JSContext *)(SYS_INT)PARAM(0), PARAMETER(3));
     JS::RootedValue root_val((JSContext *)(SYS_INT)PARAM(0), val);
     bool prop_set = JS_SetProperty((JSContext *)(SYS_INT)PARAM(0), global, (const char *)PARAM(2), root_val);
 #endif
