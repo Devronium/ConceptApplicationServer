@@ -254,7 +254,10 @@ void JS_TO_CONCEPT(JSContext *cx, void *member, jsval rval, std::map<void *, voi
         struct JSString *str = JSVAL_TO_STRING(rval);
         SET_BUFFER_VARIABLE(member, JS_GetStringBytes(str), str->length);
 #else
-        SET_STRING_VARIABLE(member, JS_EncodeString(cx, rval.toString()));
+        char *buf = JS_EncodeString(cx, rval.toString());
+        SET_STRING_VARIABLE(member, buf);
+        if (buf)
+            JS_free(cx, buf);
 #endif
     } else
     if (JSVAL_IS_BOOLEAN(rval)) {
@@ -337,10 +340,13 @@ void JS_TO_CONCEPT(JSContext *cx, void *member, jsval rval, std::map<void *, voi
                                     }
 #else
                                     JS::RootedValue rval2(cx);
-                                    Invoke(INVOKE_ARRAY_VARIABLE_BY_KEY, member, JS_EncodeString(cx, str), &elem_data);
+                                    char *buf = JS_EncodeString(cx, str);
+                                    Invoke(INVOKE_ARRAY_VARIABLE_BY_KEY, member, buf, &elem_data);
                                     if ((elem_data) && (JS_GetPropertyById(cx, object, arr[i], &rval2))) {
                                         JS_TO_CONCEPT(cx, elem_data, rval2, use_map, level + 1);
                                     }
+                                    if (buf)
+                                        JS_free(cx, buf);
 #endif
                                 }
                             }
@@ -588,7 +594,6 @@ static bool function_handler(JSContext *cx, unsigned argc, JS::Value *vp) {
     JS::Value callee = argv.calleev();
     if (callee.isString()) {
         JSString *str = callee.toString();
-        JS::RootedString ref_str(cx, str);
         fun_name = JS_EncodeString(cx, str);
     } else
     if (callee.isObject()) {
@@ -596,7 +601,6 @@ static bool function_handler(JSContext *cx, unsigned argc, JS::Value *vp) {
         JSFunction* fun = JS_ValueToFunction(cx, func_val);
         if (fun) {
             JSString *str = JS_GetFunctionId(fun);
-            JS::RootedString ref_str(cx, str);
             fun_name = JS_EncodeString(cx, str);
         }
     }
@@ -605,6 +609,10 @@ static bool function_handler(JSContext *cx, unsigned argc, JS::Value *vp) {
     void *ft = NULL;
     if (functions)
         ft = (*functions)[(const char *)fun_name];
+#ifndef JS_OLDAPI
+    if (fun_name)
+        JS_free(cx, fun_name);
+#endif
     if (!ft)
         return JS_FALSE;
 
@@ -742,11 +750,7 @@ void ShowError(JSContext *cx, const char *message, JSErrorReport *report) {
     const jschar *messageArg = report->messageArgs ? report->messageArgs[i] : 0;
     while (messageArg) {
         str = JS_NewUCString(cx, (jschar *)messageArg, char16len(messageArg));
-#ifdef JS_OLDAPI
         Invoke(INVOKE_SET_ARRAY_ELEMENT, elem_data, (INTEGER)i, (INTEGER)VARIABLE_STRING, (char *)JS_GetStringBytes(str), (NUMBER)str->length);
-#else
-        Invoke(INVOKE_SET_ARRAY_ELEMENT, elem_data, (INTEGER)i, (INTEGER)VARIABLE_STRING, (char *)JS_EncodeString(cx, str), (NUMBER)0);
-#endif
         messageArg = report->messageArgs[++i];
     }
 #endif
@@ -883,6 +887,12 @@ CONCEPT_FUNCTION_IMPL(JSNewObject, 4)
 #ifdef JS_OLDAPI
     RETURN_NUMBER((SYS_INT)JS_NewObject((JSContext *)(SYS_INT)PARAM(0), (JSClass *)PARAM_INT(1), (JSObject *)(SYS_INT)PARAM(2), (JSObject *)(SYS_INT)PARAM(3)))
 #else
+    JSObject *parent = (JSObject *)(SYS_INT)PARAM(3);
+    if (parent) {
+        JSObject *object = JS_NewObject((JSContext *)(SYS_INT)PARAM(0), (JSClass *)PARAM_INT(1));
+        RETURN_NUMBER((SYS_INT)object);
+        return 0;
+    }
     JS::RootedObject *old_global = (JS::RootedObject *)GetGlobal((JSContext *)(SYS_INT)PARAM(0));
     if (old_global) {
         RETURN_NUMBER((SYS_INT)old_global)
@@ -955,7 +965,10 @@ CONCEPT_FUNCTION_IMPL(JSEvaluateScript, 6)
 #ifdef JS_OLDAPI
             SET_BUFFER(5, JS_GetStringBytes(str), (NUMBER)str->length);
 #else
-            SET_STRING(5, JS_EncodeString(cx, str));
+            char *buf = JS_EncodeString(cx, str);
+            SET_STRING(5, buf);
+            if (buf)
+                JS_free(cx, buf);
 #endif
         } else
         if (JSVAL_IS_BOOLEAN(rval)) {
@@ -1038,7 +1051,10 @@ CONCEPT_FUNCTION_IMPL(JSEval, 1)
     #ifdef JS_OLDAPI
                 RETURN_BUFFER(JS_GetStringBytes(str), str->length);
     #else
-                RETURN_STRING(JS_EncodeString(context, str));
+                char *buf = JS_EncodeString(context, str);
+                RETURN_STRING(buf);
+                if (buf)
+                    JS_free(context, buf);
     #endif
             } else
             if (JSVAL_IS_BOOLEAN(rval)) {
