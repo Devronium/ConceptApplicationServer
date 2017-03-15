@@ -1748,7 +1748,16 @@ pragma used
 						if (code) {
 							if (obj.p["js"]) {
 								try {
+									var js_parameters = obj.p["params"];
 									js = EnsureJSContext(db);
+									if (typeof js_parameters == "array") {
+										var js_keys = GetKeys(js_parameters);
+										for (var i2 = 0; i2 < length js_keys; i2++) {
+											var js_key = js_keys[i2];
+											if (js_key)
+												js.variable(js_key, js_parameters[js_key]);
+										}
+									}
 									r.p = js.script(code);
 									js.gc();
 								} catch (js_error) {

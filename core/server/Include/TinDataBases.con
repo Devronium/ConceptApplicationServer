@@ -582,8 +582,8 @@ class TinDataSet {
 		this.Connection._Handle(q, callback, this.UserData);
 	}
 
-	exec(string js, callback = null) {
-		var q = new Q(["code" => js, "js" => true], Connection.Database, this.Collection, ".");
+	exec(string js, parameters = null, callback = null) {
+		var q = new Q(["code" => js, "js" => true, "params" => parameters], Connection.Database, this.Collection, ".");
 		this.Connection._Handle(q, callback, this.UserData);
 	}
 
