@@ -574,7 +574,12 @@ class TinDataSet {
 
 	Code(string code, remove = null, callback = null) {
 		var q = new Q(["code" => code, "remove" => remove], Connection.Database, this.Collection, "H");
-		this.Connection._Handle(q, callback);
+		this.Connection._Handle(q, callback, this.UserData);
+	}
+
+	js(string code, callback = null) {
+		var q = new Q(["code" => code, "js" => true], Connection.Database, this.Collection, "H");
+		this.Connection._Handle(q, callback, this.UserData);
 	}
 
 	Call(string functionname, parameters = null, callback = null) {

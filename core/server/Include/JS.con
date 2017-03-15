@@ -9,20 +9,48 @@ class JS {
 	protected var global;
 	protected var error_delegate;
 
+	public var LastError;
+	public var UserData;
+
 	JS(error_handler = null, size = DEFAULT_JS_MAX_RUNTIME_SIZE, stack_chunk_size = 8192) {
   		if ((!(runtime = JSNewRuntime (size)))
        			|| (!(context = JSNewContext (runtime, stack_chunk_size)))
        			|| (!(global  = JSNewObject  (context, null, null, null)))) 
 			return;
-		if (!JSInitStandardClasses(context, global)) 
-			return -2;
+		if (!JSInitStandardClasses(context, global)) {
+			this.done();
+			return;
+		}
+
+		JSSetErrorReporter(context, this.__error_callback);
+
 		if (error_handler)
 			this.error(error_handler);
 	}
-	
+
 	__error_callback(ctx, message, struct) {
+		LastError = message;
+		if (struct) {
+			LastError += "(${struct["filename"]}:${struct["lineno"]})";
+		}
 		if (error_delegate)
 			return error_delegate(this, message, struct);
+	}
+
+	reset(size = DEFAULT_JS_MAX_RUNTIME_SIZE, stack_chunk_size = 8192) {
+		this.done();
+
+  		if ((!(runtime = JSNewRuntime (size)))
+       			|| (!(context = JSNewContext (runtime, stack_chunk_size)))
+       			|| (!(global  = JSNewObject  (context, null, null, null)))) 
+			return false;
+		if (!JSInitStandardClasses(context, global)) {
+			this.done();
+			return false;
+		}
+
+		JSSetErrorReporter(context, this.__error_callback);
+		return true;
 	}
 
 	variable(name, val) {
@@ -30,8 +58,7 @@ class JS {
 	}
 
 	error(delegate error_handler) {
-		error_delegate = error_handler;
-		JSSetErrorReporter(context, __error_callback);
+		this.error_delegate = error_handler;
 	}
 
 	allowrecursive(recursive = true) {
@@ -39,8 +66,12 @@ class JS {
 	}
 
 	script(var code, code_name = "code.js") {
-		if (!JSEvaluateScript(context, global, code, code_name, 1, var rval))
-			throw "Error evaluating script";
+		LastError = "";
+		if (!JSEvaluateScript(context, global, code, code_name, 1, var rval)) {
+			if (this.LastError)
+				throw "" + this.LastError;
+			throw "Error executing script ($code_name)";
+		}
 		return rval;
 	}
 
@@ -52,9 +83,19 @@ class JS {
 		JSGC(context, runtime);
 	}
 
+	protected done() {
+		if (context) {
+	  		JSDestroyContext(context);
+			context = null;
+		}
+		if (runtime) {
+	  		JSDestroyRuntime(runtime);
+			runtime = null;
+		}
+	}
+
 	finalize() {
-  		JSDestroyContext(context);
-  		JSDestroyRuntime(runtime);
+		this.done();
 	}
 
 	static eval(string code) {

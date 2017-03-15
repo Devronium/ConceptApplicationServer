@@ -87,7 +87,9 @@ public:
     LocalContainer() {
         ERR_DELEGATE = NULL;
         handler = NULL;
+#ifndef JS_OLDAPI
         global = NULL;
+#endif
         recursive = true;
     }
 };
@@ -350,23 +352,37 @@ void JS_TO_CONCEPT(void *HANDLER, JSContext *cx, void *member, jsval rval, std::
                             JS::RootedValue prop(cx);
                             if (JS_IdToValue(cx, arr[i], &prop)) {
 #endif
-                                struct JSString *str = JSVAL_TO_STRING(prop);
-                                if (str) {
+                                JSString *str = NULL;
+                                AnsiString temp;
+                                if (JSVAL_IS_STRING(prop))
+                                    str = JSVAL_TO_STRING(prop);
+                                else
+                                if (JSVAL_IS_INT(prop)) {
+                                    temp = (long)JSVAL_TO_INT(prop);
+                                } else
+                                if (JSVAL_IS_DOUBLE(prop)) {
+#ifdef JS_OLDAPI
+                                    temp = *((double *)JSVAL_TO_DOUBLE(prop));
+#else
+                                    temp = (double)JSVAL_TO_DOUBLE(prop);
+#endif
+                                }
+                                if ((str) || (temp.Length())) {
                                     void *elem_data = NULL;
 #ifdef JS_OLDAPI
                                     DECLARE_JSVAL(rval2);
-                                    Invoke(INVOKE_ARRAY_VARIABLE_BY_KEY, member, JS_GetStringBytes(str), &elem_data);
-                                    if ((elem_data) && (JS_GetProperty(cx, object, JS_GetStringBytes(str), &rval2))) {
+                                    Invoke(INVOKE_ARRAY_VARIABLE_BY_KEY, member, str ? JS_GetStringBytes(str) : temp.c_str(), &elem_data);
+                                    if ((elem_data) && (JS_GetProperty(cx, object, str ? JS_GetStringBytes(str) : temp.c_str(), &rval2))) {
                                         JS_TO_CONCEPT(HANDLER, cx, elem_data, rval2, use_map, level + 1);
                                     }
 #else
                                     JS::RootedValue rval2(cx);
-                                    char *buf = JS_EncodeString(cx, str);
+                                    char *buf = str ? JS_EncodeString(cx, str) : temp.c_str();
                                     Invoke(INVOKE_ARRAY_VARIABLE_BY_KEY, member, buf, &elem_data);
                                     if ((elem_data) && (JS_GetPropertyById(cx, object, arr[i], &rval2))) {
                                         JS_TO_CONCEPT(HANDLER, cx, elem_data, rval2, use_map, level + 1);
                                     }
-                                    if (buf)
+                                    if ((buf) && (str))
                                         JS_free(cx, buf);
 #endif
                                 }
@@ -890,7 +906,7 @@ CONCEPT_FUNCTION_IMPL(JSSetErrorReporter, 2)
     if (ERR_DELEGATE)
         FREE_VARIABLE(ERR_DELEGATE);
 
-    LOCK_VARIABLE(ERR_DELEGATE);
+    LOCK_VARIABLE(PARAMETER(1));
 #ifdef JS_OLDAPI
     JS_SetErrorReporter(((JSContext *)(SYS_INT)PARAM(0)), ShowError);
 #else

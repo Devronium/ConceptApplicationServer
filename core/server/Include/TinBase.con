@@ -129,19 +129,44 @@ class TinBase {
 	}
 
 	StoreHandler(string code) {
-		return WriteFile(code, "${DB}/handler.con");
+		TinBase::Lock(":handler", true);
+		var wr = WriteFile(code, "${DB}/handler.con");
+		TinBase::Unlock(":handler", true);
+		return wr;
+	}
+
+	StoreJS(string code) {
+		TinBase::Lock(":js", true);
+		var wr = WriteFile(code, "${DB}/code.js");
+		TinBase::Unlock(":js", true);
+		return wr;
 	}
 
 	ReadHandler() {
-		return ReadFile("${DB}/handler.con");
+		TinBase::Lock(":handler");
+		var handler = ReadFile("${DB}/handler.con");
+		TinBase::Unlock(":handler");
+		return handler;
+	}
+
+	ReadJS() {
+		TinBase::Lock(":js");
+		var handler = ReadFile("${DB}/code.js");
+		TinBase::Unlock(":js");
+		return handler;
 	}
 
 	StoreTriggers(array _triggers) {
-		return WriteFile(BinarizeObject(_triggers), "${DB}/triggers.bin");
+		TinBase::Lock(":triggers", true);
+		var wr = WriteFile(BinarizeObject(_triggers), "${DB}/triggers.bin");
+		TinBase::Unlock(":triggers", true);
+		return wr;
 	}
 
 	ReadTriggers() {
+		TinBase::Lock(":triggers");
 		var data = ReadFile("${DB}/triggers.bin");
+		TinBase::Unlock(":triggers");
 		if (data)
 			return UnBinarizeObject(data);
 		return null;

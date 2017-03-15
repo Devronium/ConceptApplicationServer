@@ -846,6 +846,14 @@ class Main {
 						dataset.Generate(collection, querycallback, increment);
 						queries++;
 						echo "Sequence request sent, waiting response (${queries} in queue, including this one)...\n";
+					} else
+					if (IsSet(q, "CODE")) {
+						var code = q["CODE"];
+						dataset = new TinDataSet(connection, "db");
+						dataset.UserData = [orig_query, microseconds()];
+						dataset.js(code, querycallback);
+						queries++;
+						echo "JS code sent, waiting response (${queries} in queue, including this one)...\n";
 					}
 				}
 			}
