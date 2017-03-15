@@ -1151,13 +1151,15 @@ class SQLParser {
 						}
 						break;
 					case "CODE":
+					case "EXEC":
+						var orig_command = command;
 						command = trim(SQLParser::parseAtom(buffer, err, offset));
 						if (!command) {
 							SQLParser::error(err, offset, "JS code expected");
 							command = "";
 							syntax = null;
 						} else
-							syntax["CODE"] = SQLParser::stripcode(command);
+							syntax[orig_command] = SQLParser::stripcode(command);
 						break;
 					case ";":
 						// ignore it

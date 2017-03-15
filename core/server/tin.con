@@ -854,6 +854,14 @@ class Main {
 						dataset.js(code, querycallback);
 						queries++;
 						echo "JS code sent, waiting response (${queries} in queue, including this one)...\n";
+					} else
+					if (IsSet(q, "EXEC")) {
+						code = q["EXEC"];
+						dataset = new TinDataSet(connection, "db");
+						dataset.UserData = [orig_query, microseconds()];
+						dataset.exec(code, querycallback);
+						queries++;
+						echo "Code sent, waiting response (${queries} in queue, including this one)...\n";
 					}
 				}
 			}

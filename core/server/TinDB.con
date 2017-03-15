@@ -1746,38 +1746,50 @@ pragma used
 						code = obj.p["code"];
 						var member = null;
 						if (code) {
-							var arr = StrSplit(code, ".");
-							if (length arr == 2) {
-								var classname = arr[0];
-								var mname = arr[1];
-								key = "${obj.d}.$classname";
-								var key_mname = "$key.$mname";
-								member = members[key_mname];
-								if (!member) {
-									var handler = objects[key];
-									if (!handler) {
-										handler = CreateObject2(classname, db);
-										if (handler)
-											objects[key] = handler;
-									}
-									if (handler) {
-										if (!GetMember(handler, mname, member, true))
-											member = null;
-									}
+							if (obj.p["js"]) {
+								try {
+									js = EnsureJSContext(db);
+									r.p = js.script(code);
+									js.gc();
+								} catch (js_error) {
+									ResetJSContext(db);
+									r.e = ERR_JS_SCRIPT;
+									r.et = js_error;
 								}
-								if (member) {
-									var parameters = obj.p["params"];
-									try {
-										if (parameters)
-											r.p = member(parameters);
-										else
-											r.p = member();
-									} catch (deleg_exception) {
-										echo "Uncaught delegate exception: $deleg_exception\n";
+							} else {
+								var arr = StrSplit(code, ".");
+								if (length arr == 2) {
+									var classname = arr[0];
+									var mname = arr[1];
+									key = "${obj.d}.$classname";
+									var key_mname = "$key.$mname";
+									member = members[key_mname];
+									if (!member) {
+										var handler = objects[key];
+										if (!handler) {
+											handler = CreateObject2(classname, db);
+											if (handler)
+												objects[key] = handler;
+										}
+										if (handler) {
+											if (!GetMember(handler, mname, member, true))
+												member = null;
+										}
 									}
-								} else {
-									r.e = ERR_IN_CODE;
-									r.et = ERR_NO_MEMBER_S;
+									if (member) {
+										var parameters = obj.p["params"];
+										try {
+											if (parameters)
+												r.p = member(parameters);
+											else
+												r.p = member();
+										} catch (deleg_exception) {
+											echo "Uncaught delegate exception: $deleg_exception\n";
+										}
+									} else {
+										r.e = ERR_IN_CODE;
+										r.et = ERR_NO_MEMBER_S;
+									}
 								}
 							}
 						}
