@@ -1260,6 +1260,7 @@ pragma used
 			var js = EnsureJSContext(db);
 			js.variable("self", o);
 			var new_o = js.script(code);
+			js.gc();
 			if ((allow_modify) && (new_o)) {
 				if (typeof new_o == "array") {
 					var keys = GetKeys(new_o);
@@ -1268,6 +1269,7 @@ pragma used
 				}
 			}
 		} catch (var exc) {
+			js.gc();
 			return exc;
 		}
 		return null;
