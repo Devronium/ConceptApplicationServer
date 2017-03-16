@@ -734,7 +734,7 @@ class Main {
 						if (q["DUMMY"]) {
 							queries++;
 							querycallback(fields, 0, null, [orig_query, microseconds()]);
-							break;
+							continue;
 						}
 						if ((fields) && (length fields == 1) && (fields[0] == "*"))
 							fields = null;	
@@ -781,7 +781,7 @@ class Main {
 						where = q["WHERE"] ?? [ ];
 						dataset = new TinDataSet(connection, collection);
 						dataset.UserData = [orig_query, microseconds()];
-						dataset.Delete(where, querycallback);
+						dataset.Delete(where, querycallback, q["LIMIT"], q["OFFSET"], (q["ORDER"] == -1));
 						queries++;
 						echo "Delete request sent, waiting response (${queries} in queue, including this one)...\n";
 					} else

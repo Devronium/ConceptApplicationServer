@@ -11,6 +11,7 @@ import standard.C.time
 
 // <javascript support>
 include JS.con
+include SQLParser.con
 // </javascript support>
 
 define TIN_VERSION	"1.0BETA"
@@ -1190,16 +1191,96 @@ pragma used
 		return o_k;
 	}
 
-	jsquery(query_str, parameters = null) {
-		return null;
+	tin(dbname, array sql, callback = null) {
+		var db;
+		for (var i = 0; i < length sql; i++) {
+			var q = sql[i];
+			if (q) {
+				if (IsSet(q, "SELECT")) {
+					var fields = q["SELECT"];
+					if ((fields) && (length fields == 1) && (fields[0] == "*"))
+						fields = null;	
+
+					var collection = q["FROM"];
+					var where = q["WHERE"] ?? [ ];
+					var mod = q["MOD"];
+					var join = q["JOIN"];
+
+					var q_obj = new Q;
+					q_obj.q = "TinDBInternal";
+					q_obj.o = "Q";
+					q_obj.f = fields;
+					q_obj.d = dbname;
+					q_obj.c = collection;
+					q_obj.x["start"] = q["OFFSET"];
+					q_obj.x["len"] = q["LIMIT"];
+					q_obj.x["descending"] = (q["ORDER"] == -1);
+					q_obj.x["reduce"] = q["REDUCE"];
+					q_obj.x["priority"] = q["PRIORITY"];
+
+					if (mod) {
+						var agg = mod[0][0];
+						if (agg == "COUNT")
+							q_obj.p = ["#" => where];
+					} else
+					if (join) {
+						var join_query = [where];	
+						for (var j = 0; j < length join; j++)
+							join_query[length join_query] = join[j];
+
+						q_obj.p = join_query;
+					} else {
+						q_obj.p = where;
+					}
+					try {
+						if (!db)
+							db = this.EnsureDB(q_obj);
+						var js = this.EnsureJSContext(db);
+						if (js.UserData[1])
+							return ["error" => "Locked. Use asynchronous query to resolve this."];
+						var r = this.Execute([-1, q_obj, "", ""]);
+						if (callback) {
+							if (js) {
+								js.variable("out", r.p);
+								js.script(callback + "(out)", "callback.js");
+							}
+							return ["async" => true];
+						} else
+							return ["data" => r.p];
+					} catch (var exc) {
+						return ["error" => exc];
+					}
+				} else {
+					return ["error" => "Unsupported SQL syntax"];
+				}
+			}
+		}
+		return ["data" => null];
+	}
+
+	jsquery(string dbname, string query_str, parameters = null, callback = null) {
+		var cb;
+		if (typeof callback == "array") {
+			cb = callback[".function"];
+			if ((!cb) || (typeof cb != "string"))
+				return "db.query: Callback must be a named function";
+		}
+
+		var sql = SQLParser::parse(query_str, var err, parameters);
+		if ((sql) && (!err))
+			return tin(dbname, sql, cb);
+
+		return ["error" => err];
 	}
 
 	jsprint(text) {
 		echo text;
+		echo "\n";
 	}
 
 	SetJSContext(db, js, skip_code = false) {
-		js.wrap(jsquery, "query");
+		js.variable("___internal__tindb__currentdb", db.Use);
+		js.wrap(jsquery, "___internal__tindb__query");
 		js.wrap(jsprint, "print");
 		try {
 			var data = ReadFile("server.js");
@@ -1223,9 +1304,19 @@ pragma used
 		var dbname = db.Use;
 		var js = jsctx[dbname];
 		if (js) {
+			if (js.UserData[1]) {
+				echo "Cannot reset JS context (locked) ...\n";
+				return js;
+			}
+			// recursive
+			if (js.UserData[0]) {
+				echo "Cannot reset JS context (recursive call) ...\n";
+				return js;
+			}
 			js.reset();
 		} else {
 			js = new JS();
+			js.UserData = new [];
 			jsctx[dbname] = js;
 		}
 		SetJSContext(db, js, skip_code);
@@ -1242,6 +1333,7 @@ pragma used
 			return js;
 
 		js = new JS();
+		js.UserData = new [];
 		jsctx[dbname] = js;
 		SetJSContext(db, js);
 		return js;
@@ -1258,6 +1350,8 @@ pragma used
 	JSTrigger(db, var o, code, allow_modify = false) {
 		try {
 			var js = EnsureJSContext(db);
+			js.UserData[1] = true;
+			js.UserData[0]++;
 			js.variable("self", o);
 			var new_o = js.script(code);
 			js.gc();
@@ -1269,16 +1363,49 @@ pragma used
 				}
 			}
 		} catch (var exc) {
+			js.UserData[1] = false;
+			js.UserData[0]--;
 			js.gc();
 			return exc;
 		}
+		js.UserData[1] = false;
+		js.UserData[0]--;
 		return null;
+	}
+
+	EnsureDB(obj) {
+		var db = managed_dbs[obj.d];
+		if (!db) {
+			if ((Pos(obj.d, "/") > 0) || (Pos(obj.d, "\\") > 0))
+				throw "DB name error";
+			var log = null;
+			if (journal)
+				log = journal.Log;
+			db = new TinBase(obj.d, log);
+			if (TIN_DEBUG)
+				db.DebugPath = obj.d + "/";
+			managed_dbs[obj.d] = db;
+			var code = db.ReadHandler();
+			if (code) {
+				var load_err = IncludeCode(code);
+				if (load_err) {
+					echo "Stored handler loading error:\n$load_err\n";
+					load_err = "";
+				}
+				code = "";
+			}
+			if (!_triggers) {
+				var t2 = db.ReadTriggers();
+				if (typeof t2 == "array")
+					_triggers = t2;	
+			}
+		}
+		return db;
 	}
 
 	Execute(var data) {
 		var key;
 		var trigger;
-		data = UnBinarizeObject(data);
 
 		if (length data == 1) {
 			var req_type = data[0];
@@ -1307,32 +1434,7 @@ pragma used
 		}
 		if ((obj) && (obj.d)) {
 			try {
-				var db = managed_dbs[obj.d];
-				if (!db) {
-					if ((Pos(obj.d, "/") > 0) || (Pos(obj.d, "\\") > 0))
-						throw "DB name error";
-					var log = null;
-					if (journal)
-						log = journal.Log;
-					db = new TinBase(obj.d, log);
-					if (TIN_DEBUG)
-						db.DebugPath = obj.d + "/";
-					managed_dbs[obj.d] = db;
-					var code = db.ReadHandler();
-					if (code) {
-						var load_err = IncludeCode(code);
-						if (load_err) {
-							echo "Stored handler loading error:\n$load_err\n";
-							load_err = "";
-						}
-						code = "";
-					}
-					if (!_triggers) {
-						var t2 = db.ReadTriggers();
-						if (typeof t2 == "array")
-							_triggers = t2;	
-					}
-				}
+				var db = EnsureDB(obj);
 				if ((obj.c) && ((Pos(obj.c, "/") > 0) || (Pos(obj.c, "\\") > 0)))
 					throw "Collection name error";
 
@@ -1356,6 +1458,7 @@ pragma used
 							if (reduce) {
 								try {
 									var js = EnsureJSContext(db);
+									js.UserData[0]++;
 									js.variable("out", new DummyObject());
 									js.script("var _r = function() { " + reduce + " }");
 									t.Query(obj.p, obj.f, obj.x["descending"], obj.x["start"], obj.x["len"], function(o, js) {
@@ -1375,6 +1478,7 @@ pragma used
 									r.e = ERR_JS_SCRIPT;
 									r.et = js_error;
 								}
+								js.UserData[0]--;
 							} else
 							if ((!map) || (obj.worker)) {
 								r.p = t.Query(obj.p, obj.f, obj.x["descending"], obj.x["start"], obj.x["len"]);
@@ -1849,14 +1953,17 @@ pragma used
 						break;
 					case "H":
 						var remove = obj.p["remove"];
-						code = obj.p["code"];
+						var code = obj.p["code"];
 						if (obj.p["js"]) {
 							js = ResetJSContext(db, true);
+							js.UserData[0]++;
 							try {
 								js.script(code);
 								ResetJS(true);
 								db.StoreJS(code);
+								js.UserData[0]--;
 							} catch (var js_exc) {
+								js.UserData[0]--;
 								ResetJSContext(db);
 								r.e = ERR_JS_SCRIPT;
 								r.et = js_exc;
@@ -1899,9 +2006,12 @@ pragma used
 												js.variable(js_key, js_parameters[js_key]);
 										}
 									}
+									js.UserData[0]++;
 									r.p = js.script(code);
 									js.gc();
+									js.UserData[0]--;
 								} catch (js_error) {
+									js.UserData[0]--;
 									ResetJSContext(db);
 									r.e = ERR_JS_SCRIPT;
 									r.et = js_error;
@@ -2111,6 +2221,9 @@ pragma used
 			if ((target_worker) && (target_key)) {
 				AddWorkerData(target_worker, BinarizeObject([socket, target_key, r]), priority);
 			} else
+			if (socket < 0)
+				return r;
+			else
 				r.Send(socket, obj.io);
 		}
 	}
@@ -2148,7 +2261,7 @@ pragma used
 			var qsize = Worker::Pending(data, -1);
 			if (qsize) {
 				try {
-					Execute(data);
+					Execute(UnBinarizeObject(data));
 				} catch (var exc) {
 					echo "Storage worker exception: $exc\n";
 				}

@@ -1,5 +1,5 @@
 var console = {log: print, warn: print, error: print };
-var db = {query: query };
+var db = {query: function(query, parameters, callback) { var data = ___internal__tindb__query(___internal__tindb__currentdb, query, parameters, callback); if (data.error) throw data.error; return data.data; }, "name": ___internal__tindb__currentdb };
 var alert = print;
 
 function avg(out, val) {
