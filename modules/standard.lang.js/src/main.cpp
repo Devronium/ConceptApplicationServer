@@ -10,8 +10,6 @@
 #include <string.h>
 #include "AnsiString.h"
 
-#define UINT32_MAX  (0xffffffff)
-
 #include <jsapi.h>
 #ifdef JS_OLDAPI
     #include <jsstr.h>
@@ -338,6 +336,28 @@ void JS_TO_CONCEPT(void *HANDLER, JSContext *cx, void *member, jsval rval, std::
                     }
                 } else {
                     // is object
+                    if (JS_ObjectIsFunction(cx, object)) {
+#ifdef JS_OLDAPI
+                        JSFunction *func = JS_ValueToFunction(cx, rval);
+#else
+                        JS::RootedValue rval_handle(cx, rval);
+                        JSFunction *func = JS_ValueToFunction(cx, rval_handle);
+#endif
+                        if (func) {
+                            JSString *str = JS_GetFunctionId(func);
+                            if (str) {
+#ifdef JS_OLDAPI
+                                Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, member, ".function", (INTEGER)VARIABLE_STRING, (char *)JS_GetStringBytes(str), (NUMBER)0);
+#else
+                                char *func_buf = JS_EncodeString(cx, str);
+                                if (func_buf) {
+                                    Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, member, ".function", (INTEGER)VARIABLE_STRING, (char *)func_buf, (NUMBER)0);
+                                    JS_free(cx, func_buf);
+                                }
+#endif
+                            }
+                        }
+                    }
 #ifdef JS_OLDAPI
                     JSIdArray *arr = JS_Enumerate(cx, object);
                     if (arr) {

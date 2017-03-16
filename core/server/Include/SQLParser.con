@@ -923,6 +923,52 @@ class SQLParser {
 		return true;
 	}
 
+	static parseCreateTrigger(var buffer, var err, var offset, syntax) {
+		var atom = ToUpper(SQLParser::parseAtom(buffer, err, offset));
+		var before = false;
+		switch (atom) {
+			case "BEFORE":
+				before = true;
+				// no break
+			case "AFTER":
+				atom = ToUpper(SQLParser::parseAtom(buffer, err, offset));
+				break;
+		}
+
+		var type = "";
+		switch (atom) {
+			case "INSERT":
+			case "UPDATE":
+			case "DELETE":
+				type = ToLower(atom);
+				break;
+			default:
+				SQLParser::error(err, offset, "Syntax error in CREATE TRIGGER: expecting AFTER, BEFORE, INSERT, UPDATE, DELETE after 'CREATE TRIGGER'");
+				return false;
+		}
+		atom = ToUpper(SQLParser::parseAtom(buffer, err, offset));
+		if (atom != "ON") {
+			SQLParser::error(err, offset, "Expected 'ON' after 'CREATE TRIGGER ... '");
+			return false;
+		}
+		var from = SQLParser::strip(SQLParser::parseAtom(buffer, err, offset));
+		if (!from) {
+			SQLParser::error(err, offset, "Syntax error in CREATE TRIGGER: expecting collection name after 'CREATE INDEX ON'");
+			return false;
+		}
+		syntax["TRIGGER"] = from;
+		syntax["EVENT"] = type;
+		syntax["BEFORE"] = before;
+
+		atom = SQLParser::parseAtom(buffer, err, offset);
+		if (atom) {
+			syntax["TRIGGERCODE"] = SQLParser::stripcode(atom);
+		} else {
+			SQLParser::error(err, offset, "JS code expected");
+			return false;
+		}
+		return true;
+	}
 
 	static parseCreateIndex(var buffer, var err, var offset, syntax) {
 		var atom = ToUpper(SQLParser::parseAtom(buffer, err, offset));
@@ -942,7 +988,10 @@ class SQLParser {
 				atom = ToUpper(SQLParser::parseAtom(buffer, err, offset));
 			}
 			bm25 = true;
-		}
+		} else
+		if (atom == "TRIGGER")
+			return SQLParser::parseCreateTrigger(buffer, err, offset, syntax);
+
 		if (atom != "INDEX") {
 			if (bm25)
 				SQLParser::error(err, offset, "Expected 'INDEX' after 'CREATE BM25', received '$atom'");

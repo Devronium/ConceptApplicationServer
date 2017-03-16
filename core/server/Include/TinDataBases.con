@@ -597,6 +597,13 @@ class TinDataSet {
 		this.Connection._Handle(q, callback, this.UserData);
 	}
 
+	jstriggers(array _triggers, before = false, callback = null) {
+		_triggers["js"] = true;
+		_triggers["before"] = before;
+		var q = new Q(_triggers, Connection.Database, this.Collection, "*");
+		this.Connection._Handle(q, callback, this.UserData);
+	}
+
 	Generate(string generator_name, delegate callback, increment = 1, priority = 0) {
 		if (generator_name) {
 			var q = new Q(["g" => generator_name,  "i" => increment], Connection.Database, this.Collection, "G");

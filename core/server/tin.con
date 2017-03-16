@@ -859,9 +859,18 @@ class Main {
 						code = q["EXEC"];
 						dataset = new TinDataSet(connection, "db");
 						dataset.UserData = [orig_query, microseconds()];
-						dataset.exec(code, querycallback);
+						dataset.exec(code, null, querycallback);
 						queries++;
 						echo "Code sent, waiting response (${queries} in queue, including this one)...\n";
+					} else
+					if (IsSet(q, "TRIGGER")) {
+						code = q["TRIGGERCODE"];
+						collection = q["TRIGGER"];
+						dataset = new TinDataSet(connection, collection);
+						dataset.UserData = [orig_query, microseconds()];
+						dataset.jstriggers([q["EVENT"] => code], q["BEFORE"], querycallback);
+						queries++;
+						echo "Trigger code sent, waiting response (${queries} in queue, including this one)...\n";
 					}
 				}
 			}

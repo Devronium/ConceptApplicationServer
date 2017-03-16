@@ -43,6 +43,7 @@ define ERR_NOT_UNIQUE_S	"Not unique"
 define ERR_AGGREGATION	-10
 define ERR_AGGREGATION_S"Invalid aggregation"
 define ERR_JS_SCRIPT	-11
+define ERR_TRIGGER	-12
 
 define NOTIFY_MORE_DATA	1
 
@@ -69,6 +70,14 @@ class Triggers {
 	var OnDelete;
 	var OnInsert;
 	var OnUpdate;
+
+	var OnJSDelete;
+	var OnJSInsert;
+	var OnJSUpdate;
+
+	var OnJSBeforeDelete;
+	var OnJSBeforeInsert;
+	var OnJSBeforeUpdate;
 }
 
 class SocketIOBase {
@@ -1091,6 +1100,28 @@ pragma used
 		}
 	}
 
+	ResetTriggers(all_workers = false) {
+		if (all_workers) {
+			for (var i = 0; i < length other_workers; i++) {
+				var worker = other_workers[i];
+				if (worker)
+					AddWorkerData(worker, BinarizeObject([-10]));
+			}
+		} else {
+			for (i = 0; i < length managed_dbs; i++) {
+				var db = managed_dbs[i];
+				if (db) {
+					echo "Resetting triggers in worker #${CurrentWorker()}\n";
+					var t2 = db.ReadTriggers();
+					if (typeof t2 == "array")
+						_triggers = t2;
+					// just once
+					break;
+				}
+			}
+		}
+	}
+
 	ResetJS(all_workers = false) {
 		if (all_workers) {
 			for (var i = 0; i < length other_workers; i++) {
@@ -1224,6 +1255,24 @@ pragma used
 			ResetJSContext(db);
 	}
 
+	JSTrigger(db, var o, code, allow_modify = false) {
+		try {
+			var js = EnsureJSContext(db);
+			js.variable("self", o);
+			var new_o = js.script(code);
+			if ((allow_modify) && (new_o)) {
+				if (typeof new_o == "array") {
+					var keys = GetKeys(new_o);
+					if ((keys) && (keys[0]))
+						o = new_o;
+				}
+			}
+		} catch (var exc) {
+			return exc;
+		}
+		return null;
+	}
+
 	Execute(var data) {
 		var key;
 		var trigger;
@@ -1231,13 +1280,16 @@ pragma used
 
 		if (length data == 1) {
 			var req_type = data[0];
-			if (req_type == -8) {
-				ResetDBS();
-				return;
-			} else
-			if (req_type == -9) {
-				ResetJS();
-				return;
+			switch (req_type) {
+				case -8:
+					ResetDBS();
+					return;
+				case -9:
+					ResetJS();
+					return;
+				case -10:
+					ResetTriggers();
+					return;
 			}
 		}
 		var socket = data[0];
@@ -1272,9 +1324,11 @@ pragma used
 							load_err = "";
 						}
 						code = "";
+					}
+					if (!_triggers) {
 						var t2 = db.ReadTriggers();
 						if (typeof t2 == "array")
-							_triggers = t2;
+							_triggers = t2;	
 					}
 				}
 				if ((obj.c) && ((Pos(obj.c, "/") > 0) || (Pos(obj.c, "\\") > 0)))
@@ -1313,7 +1367,9 @@ pragma used
 										QueryWorker::Cache(obj, r.p);
 									js.gc();
 								} catch (var js_error) {
-									ResetJSContext(db);
+									js.gc();
+									// no need to reset here
+									// ResetJSContext(db);
 									r.e = ERR_JS_SCRIPT;
 									r.et = js_error;
 								}
@@ -1415,21 +1471,42 @@ pragma used
 											}
 											if ((IsSet(o, '$oid')) && (!o['$oid']))
 												o['$oid'] = this.oid();
+											if ((trigger) && (trigger.OnJSBeforeInsert)) {
+												var trigger_error = JSTrigger(db, o, trigger.OnJSBeforeInsert, true);
+												if (trigger_error) {
+													r.e = ERR_TRIGGER;
+													r.et = "OnBeforeInsert(JS): " + trigger_error;
+													break;
+												}
+											}
 											try {
-												var id2 = t.Store(obj.p[i]);
+												var id2 = t.Store(o);
 											} catch (var store_exc) {
 												echo "Store error: $store_exc\n";
+												r.e = ERR_INTERNAL;
+												r.et = store_exc;
+												break;
 											}
 											non_flushed_writes++;
 											id[length id] = id2;
-											o['$'] = id2;
-											if ((trigger) && (trigger.OnInsert)) {
-												deleg = this.GetDelegate(db, obj.d, trigger.OnInsert, objects, members);
-												if (deleg) {
-													try {
-														deleg(t, o);
-													} catch (deleg_exception) {
-														echo "Uncaught delegate exception: $deleg_exception\n";
+											o['$'] = id2;											
+											if (trigger) {
+												if (trigger.OnJSInsert) {
+													trigger_error = JSTrigger(db, o, trigger.OnJSInsert);
+													if (trigger_error) {
+														r.e = "OnInsert(JS): " + ERR_TRIGGER;
+														r.et = trigger_error;
+														break;
+													}
+												}
+												if (trigger.OnInsert) {
+													deleg = this.GetDelegate(db, obj.d, trigger.OnInsert, objects, members);
+													if (deleg) {
+														try {
+															deleg(t, o);
+														} catch (deleg_exception) {
+															echo "Uncaught delegate exception: $deleg_exception\n";
+														}
 													}
 												}
 											}
@@ -1443,7 +1520,16 @@ pragma used
 										r.et = ERR_NOT_UNIQUE_S;
 									} else
 									if ((IsSet(obj.p, '$')) && (obj.p['$'] > 0)) {
-										id = value obj.p['$'];
+										o = obj.p;
+										id = value o['$'];
+										if ((trigger) && (trigger.OnJSBeforeUpdate)) {
+											trigger_error = JSTrigger(db, o, trigger.OnJSBeforeUpdate, true);
+											if (trigger_error) {
+												r.e = ERR_TRIGGER;
+												r.et = "OnBeforeUpdate(JS): " + trigger_error;
+												break;
+											}
+										}
 										if (!t.Update(obj.p, id, true, var old_bin, var new_bin))
 											id = -1;
 										else
@@ -1456,28 +1542,57 @@ pragma used
 											//do_index = true;
 										}
 										non_flushed_writes++;
-										if ((trigger) && (trigger.OnUpdate)) {
-											deleg = this.GetDelegate(db, obj.d, trigger.OnUpdate, objects, members);
-											if (deleg) {
-												try {
-													r.p['$trigger'] = deleg(t, obj.p);
-												} catch (deleg_exception) {
-													echo "Uncaught delegate exception: $deleg_exception\n";
+										if (trigger) {
+											if (trigger.OnJSUpdate) {
+												trigger_error = JSTrigger(db, o, trigger.OnJSUpdate);
+												if (trigger_error) {
+													r.e = "OnJSUpdate(JS): " + ERR_TRIGGER;
+													r.et = trigger_error;
+													break;
+												}
+											}
+											if (trigger.OnUpdate) {
+												deleg = this.GetDelegate(db, obj.d, trigger.OnUpdate, objects, members);
+												if (deleg) {
+													try {
+														r.p['$trigger'] = deleg(t, obj.p);
+													} catch (deleg_exception) {
+														echo "Uncaught delegate exception: $deleg_exception\n";
+													}
 												}
 											}
 										}
 									} else {
 										if ((typeof obj.p == "array") && (IsSet(obj.p , '$oid')) && (!obj.p['$oid']))
 											obj.p['$oid'] = this.oid();
+										if ((trigger) && (trigger.OnJSBeforeInsert)) {
+											trigger_error = JSTrigger(db, obj.p, trigger.OnJSBeforeInsert, true);
+											if (trigger_error) {
+												r.e = ERR_TRIGGER;
+												r.et = "OnBeforeInsert(JS): " + trigger_error;
+												break;
+											}
+										}
 										id = t.Store(obj.p);
 										non_flushed_writes++;
-										if ((trigger) && (trigger.OnInsert)) {
-											deleg = this.GetDelegate(db, obj.d, trigger.OnInsert, objects, members);
-											if (deleg) {
-												try {
-													r.p['$trigger'] = deleg(t, obj.p);
-												} catch (deleg_exception) {
-													echo "Uncaught delegate exception: $deleg_exception\n";
+										if (trigger) {
+											if (trigger.OnJSInsert) {
+												obj.p['$'] = id;
+												trigger_error = JSTrigger(db, o, trigger.OnJSInsert);
+												if (trigger_error) {
+													r.e = "OnInsert(JS): " + ERR_TRIGGER;
+													r.et = trigger_error;
+													break;
+												}
+											}
+											if (trigger.OnInsert) {
+												deleg = this.GetDelegate(db, obj.d, trigger.OnInsert, objects, members);
+												if (deleg) {
+													try {
+														r.p['$trigger'] = deleg(t, obj.p);
+													} catch (deleg_exception) {
+														echo "Uncaught delegate exception: $deleg_exception\n";
+													}
 												}
 											}
 										}
@@ -1516,7 +1631,7 @@ pragma used
 								if ((trigger) && (trigger.OnUpdate))
 									deleg = this.GetDelegate(db, obj.d, trigger.OnUpdate, objects, members);
 
-								var update_data = [GetKeys(obj.f), obj.f, t, unique_fields, deleg];
+								var update_data = [GetKeys(obj.f), obj.f, t, unique_fields, deleg, trigger, db];
 								t.Query(obj.p, null, obj.x["descending"], obj.x["start"], obj.x["len"], function(o, data) {
 									if (o) {
 										var keys = data[0];
@@ -1524,6 +1639,8 @@ pragma used
 										var t = data[2];
 										var unique_fields = data[3];
 										var deleg = data[4];
+										var trigger = data[5];
+										var db = data[6];
 										var changed = false;
 										var oid_changed = false;
 										for (var i = 0; i < length keys; i++) {
@@ -1568,12 +1685,22 @@ pragma used
 										if (changed) {
 											if ((unique_fields) && (!t.IsUnique(o, unique_fields))) {
 												// not unique
-												data[6]++;
+												data[8]++;
 											} else {
 												var filepos = t.Tell();
 												try {
+													if ((trigger) && (trigger.OnJSBeforeUpdate)) {
+														var trigger_error = JSTrigger(db, o, trigger.OnJSBeforeUpdate, true);
+														if (trigger_error)
+															throw trigger_error;
+													}
 													t.Store(o, true, true, oid_changed);
-													data[5]++;
+													if ((trigger) && (trigger.OnJSUpdate)) {
+														trigger_error = JSTrigger(db, o, trigger.OnJSUpdate);
+														if (trigger_error)
+															throw trigger_error;
+													}
+													data[7]++;
 
 													if (deleg)
 														deleg(t, o);
@@ -1585,14 +1712,14 @@ pragma used
 										}
 									}
 								}, update_data);
-								if (update_data[5]) {
+								if (update_data[7]) {
 									QueryWorker::InvalidateCache(obj.d, obj.c);
-									non_flushed_writes += update_data[5];
+									non_flushed_writes += update_data[7];
 								}
 								if (unique_fields)
-									r.p = ["\$updated" => update_data[5], "\$notunique" => update_data[6]];
+									r.p = ["\$updated" => update_data[7], "\$notunique" => update_data[8]];
 								else
-									r.p = ["\$updated" => update_data[5]];
+									r.p = ["\$updated" => update_data[7]];
 								t.Unlock(true);
 							}
 						}
@@ -1612,16 +1739,28 @@ pragma used
 							if ((trigger) && (trigger.OnDelete))
 								deleg = this.GetDelegate(db, obj.d, trigger.OnDelete, objects, members);
 
-							update_data = [deleg, t];
+							update_data = [deleg, t, trigger, db];
 
 							t.Query(obj.p, null, obj.x["descending"], obj.x["start"], obj.x["len"], function(o, data) {
 								if (o) {
 									var deleg = data[0];
 									var t = data[1];
+									var trigger = data[2];
+									var db = data[3];
 									var filepos = t.Tell();
 									try {
+										if ((trigger) && (trigger.OnJSBeforeDelete)) {
+											var trigger_error = JSTrigger(db, o, trigger.OnJSBeforeDelete, true);
+											if (trigger_error)
+												throw trigger_error;
+										}
 										t.Delete(o['$']);
-										data[2]++;
+										data[4]++;
+										if ((trigger) && (trigger.OnJSDelete)) {
+											trigger_error = JSTrigger(db, o, trigger.OnJSDelete);
+											if (trigger_error)
+												throw trigger_error;
+										}
 										if (deleg)
 											deleg(t, o);
 									} catch (var exc) {
@@ -1630,7 +1769,7 @@ pragma used
 									t.Seek(filepos);
 								}
 							}, update_data);
-							var count = update_data[2];
+							var count = update_data[4];
 							if (count) {
 								QueryWorker::InvalidateCache(obj.d, obj.c);
 								non_flushed_writes += count;
@@ -1814,28 +1953,51 @@ pragma used
 							// insert
 							// update
 							// delete
-							if (IsSet(obj.p, "insert")) {
-								trigger.OnInsert = obj.p["insert"];
-								if (!this.GetDelegate(db, obj.d, trigger.OnInsert, objects, members, r)) {
-									trigger.OnInsert = null;
-									break;
+							if (obj.p["js"]) {
+								if (obj.p["before"]) {
+									if (IsSet(obj.p, "insert"))
+										trigger.OnJSBeforeInsert = obj.p["insert"];
+
+									if (IsSet(obj.p, "update"))
+										trigger.OnJSBeforeUpdate = obj.p["update"];
+
+									if (IsSet(obj.p, "delete"))
+										trigger.OnJSBeforeDelete = obj.p["delete"];
+								} else {
+									if (IsSet(obj.p, "insert"))
+										trigger.OnJSInsert = obj.p["insert"];
+
+									if (IsSet(obj.p, "update"))
+										trigger.OnJSUpdate = obj.p["update"];
+
+									if (IsSet(obj.p, "delete"))
+										trigger.OnJSDelete = obj.p["delete"];
 								}
-							}
-							if (IsSet(obj.p, "update")) {
-								trigger.OnUpdate = obj.p["update"];
-								if (!this.GetDelegate(db, obj.d, trigger.OnUpdate, objects, members, r)) {
-									trigger.OnUpdate = null;
-									break;
+							} else {
+								if (IsSet(obj.p, "insert")) {
+									trigger.OnInsert = obj.p["insert"];
+									if (!this.GetDelegate(db, obj.d, trigger.OnInsert, objects, members, r)) {
+										trigger.OnInsert = null;
+										break;
+									}
 								}
-							}
-							if (IsSet(obj.p, "delete")) {
-								trigger.OnDelete = obj.p["delete"];
-								if (!this.GetDelegate(db, obj.d, trigger.OnDelete, objects, members, r)) {
-									trigger.OnDelete = null;
-									break;
+								if (IsSet(obj.p, "update")) {
+									trigger.OnUpdate = obj.p["update"];
+									if (!this.GetDelegate(db, obj.d, trigger.OnUpdate, objects, members, r)) {
+										trigger.OnUpdate = null;
+										break;
+									}
+								}
+								if (IsSet(obj.p, "delete")) {
+									trigger.OnDelete = obj.p["delete"];
+									if (!this.GetDelegate(db, obj.d, trigger.OnDelete, objects, members, r)) {
+										trigger.OnDelete = null;
+										break;
+									}
 								}
 							}
 							db.StoreTriggers(_triggers);
+							ResetTriggers(true);
 						} else {
 							r.e = ERR_COLLECTION;
 							r.et = ERR_COLLECTION_S;
@@ -1939,7 +2101,6 @@ pragma used
 			r.e = ERR_DB;
 			r.et = ERR_DB_S;
 		}
-
 		if ((!obj) || (!obj.x) || (!IsSet(obj.x, 'silent')) || (!obj.x['silent'])) {
 			if (obj.worker) {
 				obj.r = r;
