@@ -996,9 +996,8 @@ CONCEPT_FUNCTION_IMPL(JSEvaluateScript, 6)
     JSObject *obj = (JSObject *)(SYS_INT)PARAM(1);
     JS::RootedObject global(cx, obj);
     JS::RootedValue rval(cx);
+    JSAutoCompartment ac(cx, global);
     {
-        JSAutoCompartment ac(cx, global);
-        JS_InitStandardClasses(cx, global);
         JS::CompileOptions opts(cx);
         opts.setFileAndLine(PARAM(3), PARAM_INT(4));
         is_ok = JS::Evaluate(cx, opts, PARAM(2), PARAM_LEN(2), &rval);
@@ -1086,8 +1085,8 @@ CONCEPT_FUNCTION_IMPL(JSEval, 1)
 
         JS::RootedValue rval(context);
         bool is_ok = false;
+        JSAutoCompartment ac(context, global);
         {
-            JSAutoCompartment ac(context, global);
             JS_InitStandardClasses(context, global);
             JS::CompileOptions opts(context);
             opts.setFileAndLine("script.js", 1);
