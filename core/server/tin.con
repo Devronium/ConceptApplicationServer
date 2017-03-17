@@ -759,7 +759,7 @@ class Main {
 							var join_query = [where];	
 							for (var j = 0; j < length join; j++)
 								join_query[length join_query] = join[j];
-							dataset.Join(join_query, querycallback, fields, q["LIMIT"], q["OFFSET"], (q["ORDER"] == -1), q["PRIORITY"], false, reduce);
+							dataset.Join(join_query, querycallback, fields, q["LIMIT"], q["OFFSET"], (q["ORDER"] == -1), q["PRIORITY"], reduce);
 						} else {
 							dataset.Query(where, querycallback, fields, q["LIMIT"], q["OFFSET"], (q["ORDER"] == -1), q["PRIORITY"], false, reduce);
 						}
