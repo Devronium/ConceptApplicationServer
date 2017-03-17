@@ -344,7 +344,13 @@ void JS_TO_CONCEPT(void *HANDLER, JSContext *cx, void *member, jsval rval, std::
                         JSFunction *func = JS_ValueToFunction(cx, rval_handle);
 #endif
                         if (func) {
+#ifdef JS_OLDAPI
                             JSString *str = JS_GetFunctionId(func);
+#else
+                            JSString *str = JS_GetFunctionDisplayId(func);
+                            if (!str)
+                                str = JS_GetFunctionId(func);
+#endif
                             if (str) {
 #ifdef JS_OLDAPI
                                 Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, member, ".function", (INTEGER)VARIABLE_STRING, (char *)JS_GetStringBytes(str), (NUMBER)0);
