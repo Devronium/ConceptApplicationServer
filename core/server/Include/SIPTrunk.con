@@ -70,11 +70,13 @@ class SIPSession {
 	var RecordBuffers;
 	var last_sequence_number = -1;
 
+	var Branch;
+	var NoForward;
+
 	SIPSession(s, msg, rtp_port, ip, port, chunk_size = 20, expire = 3600) {
 		packet_time = microseconds();
 		timestamp = RandomInteger(140, 140000) * 100;
-		rtp = new UDPSocket();
-		rtp.Bind(rtp_port);
+		this.SetRTP(msg, rtp_port);
 		this.rtp_port = rtp_port;
 		this.chunk_size = chunk_size * 1000;
 
@@ -89,6 +91,12 @@ class SIPSession {
 		sequence_number = RandomInteger(0, 0xFFF);
 
 		this.UpdateMedia(msg);
+	}
+
+	SetRTP(msg, rtp_port) {
+		Branch = msg.Branch;
+		rtp = new UDPSocket();
+		rtp.Bind(rtp_port);
 	}
 
 	UpdateMedia(msg, ip = "", port = 0) {
@@ -1176,9 +1184,10 @@ class SIPStack {
 		}
 
 		if (parent_msg) {
-			if ((msg.Method == "ACK") || (msg.Method == "CANCEL") || (msg.Method == "BYE")) {
-				if ((msg.Method == "BYE") || ((parent_msg.ServerCode >= 200) && (parent_msg.ServerCode < 300))) {
+			if ((msg.Method == "ACK") || (msg.Method == "CANCEL") || (msg.Method == "BYE") || (msg.Method == "NOTIFY")) {
+				if ((msg.Method == "BYE") || (msg.Method == "NOTIFY") || ((parent_msg.ServerCode >= 200) && (parent_msg.ServerCode < 300))) {
 					var branch = "z9hG4bK" + this.RandomString(14);
+					msg.Branch = branch;
 					msg.Headers["Via"] = "SIP/2.0/UDP " + full_host + ";rport;branch=" + branch;
 				} else
 					msg.Headers["Via"] = parent_msg.Headers["via"];
@@ -1511,7 +1520,31 @@ class SIPStack {
 		return this.ReferProxy(msg, address, max_forwards, contact);
 	}
 
-	public ReferHold(msg, address, ip = "", port = 0, max_forwards = 70) {
+	public ReferDialog(msg, address, target_dialog, ip = "", port = 0, max_forwards = 70) {
+		var contact = msg.Headers["contact"];
+		if (!contact)
+			contact = msg.Headers["from"];
+
+		var msg2 = null;
+		if (contact) {
+			var session = this.GetSession(msg);
+			var extra_headers = ["Refer-To" => address, "Tartget-Dialog" => target_dialog + ";tag=" + this.RandomString(20)];
+			msg2 = this.PerformUDP("REFER", msg.Headers["to"], contact, "", "", 70, msg, extra_headers, "", 0, session, function(msg, new_msg) {
+				if ((msg.ServerCode >= 200) && (msg.ServerCode < 300))
+					return true;
+				else
+				if ((msg.ServerCode < 100) && (msg.ServerCode >= 300)) {
+					var session = this.GetSession(msg);
+					if (session)
+						session.ClearStack();
+				}
+				return false;
+			});
+		}
+		return msg2;
+	}
+
+	public ReferHold(msg, address, target_dialog = "", ip = "", port = 0, max_forwards = 70) {
 		var contact = msg.Headers["contact"];
 		if (!contact)
 			contact = msg.Headers["from"];
@@ -1579,14 +1612,27 @@ class SIPStack {
 		return null;
 	}
 
-	CreateSession(msg, ip, port) {
+	CreateSession(msg, ip, port, check_branch = false) {
 		var id = msg.Headers["call-id"];
 		if (id) {
-			if (Sessions[id]) {
+			var parent_session = Sessions[id];
+			var branch = this.ParseBranch(msg);
+			if (parent_session) {
+				if ((check_branch) && (branch)) {
+					if (branch != parent_session.Branch) {
+						parent_session.msg = msg;
+						parent_session.Branch = branch;
+						parent_session.UpdateMedia(msg, ip, port);
+						parent_session.NoForward = true;
+						return parent_session;
+					}
+				}
 				echo "Session $id already exists\n";
 				return null;
 			}
+
 			var session = new SIPSession(this, msg, rtp_port_index++, ip, port, this.FrameSize, MaxTime);
+			session.Branch = branch;
 			if (rtp_port_index > RTP_END_PORT)
 				rtp_port_index = RTP_START_PORT;
 			Sessions[id] = session;
@@ -1595,13 +1641,14 @@ class SIPStack {
 		return null;
 	}
 
+
 	RemoveSession(msg) {
 		var id = msg.Headers["call-id"];
 		if (id) {
 			if (IsSet(Sessions, id)) {
 				var sessions = Sessions;
-				var new_sessions = new [];
 				var res = sessions[id];
+				var new_sessions = new [];
 				for (var i = 0; i < length sessions; i++) {
 					var sess = sessions[i];	
 					if ((sess) && (sess.CallID != id))
@@ -1617,10 +1664,8 @@ class SIPStack {
 
 	GetSession(msg) {
 		var id = msg.Headers["call-id"];
-		if (id) {
-			if (IsSet(Sessions, id))
-				return Sessions[id];
-		}
+		if (id)
+			return this.GetSessionById(id);
 		return null;
 	}
 
@@ -1773,6 +1818,87 @@ class SIPStack {
 			// nothing
 		}
 		return true;
+	}
+
+	DecodeURL(str) {
+		var str_decoded = "";
+		for (var i = 0; i < length str; i++) {
+			var char = str[i];
+			if (char == "%") {
+				i++;
+				var hex = str[i] + str[i+1];
+				str_decoded += HexToString(hex);
+				i++;
+			} else
+				str_decoded += char;
+		}
+		return str_decoded;
+	}
+
+	ParseReferURL(url) {
+		var arr = StrSplit(url, ";");
+		var[] keys;
+		if (arr) {
+			keys["call-id"] = arr[0];
+			for (var i = 1; i < length arr; i++) {
+				var e = arr[i];
+				if (e) {
+					var arr2 = StrSplit(e, "=");
+					if (length arr2 == 2) {
+						var k = ToLower(trim(arr2[0]));
+						if (k)
+							keys[k] = trim(arr2[1]);
+					}
+				}
+			}
+		}
+		return keys;
+	}
+
+	ReferSession(sess, msg, var refer) {
+		var to = msg.Headers["refer-to"];
+		var pos = Pos(ToLower(to), "?replaces=");
+		refer = null;
+		if (pos > 0) {
+			pos += 9;
+			var sub_str = trim(SubStr(to, pos));
+			if ((sub_str) && (sub_str[length sub_str - 1] == ">"))
+				sub_str = trim(SubStr(sub_str, 0, length sub_str - 1));
+			var url = DecodeURL(sub_str);
+			refer = ParseReferURL(url);
+			return 202;
+		}
+		return 603;
+	}
+
+	NotifyRefer(sess, msg, refer, ip = "", port = 0) {
+		var contact = msg.Headers["contact"];
+		if (!contact)
+			contact = msg.Headers["from"];
+
+		if (contact) {
+			var server = "";
+			var server_port = 0;
+
+			this.ParseVia(msg, server, server_port);
+
+			if (ip)
+				server = ip;
+			if (port)
+				server_port = port;
+
+			var msg2 = PerformUDP("NOTIFY", msg.Headers["to"], contact, "SIP/2.0 200 OK\r\n", "message/sipfrag", 70, msg, ["Event" => "refer", "Subscription-State" => "terminated;reason=noresource"]);
+			try {
+				sess.Branch = msg2.Branch;
+				if (this.OnSend)
+					this.OnSend(msg2, server, server_port);
+
+				udpclientsocket.Write(msg2.ToString(), server, server_port);
+			} catch (var exc) {
+				// nothing
+			}
+		}
+
 	}
 
 	Invite(destination, username, max_forwards = 70, parent_session = null, validation_delegate = null) {
@@ -1988,6 +2114,30 @@ class SIPStack {
 		}
 	}
 
+	ParseBranch(msg) {
+		var branch = msg.Branch;
+		if (branch)
+			return branch;
+		var via = msg.Headers["via"];
+		if (via) {
+			if (typeof via == "array")
+				via = via[0];
+			var arr = StrSplit(via, " ");
+			if (length arr >= 2) {
+				var arr2 = StrSplit(arr[1], ";");
+				for (var i = 1; i < length arr2; i++) {
+					var arr3 = StrSplit(arr2[i], "=");
+					if ((length arr3 == 2) && (trim(ToLower(arr3[0])) == "branch")) {
+						branch = trim(arr3[1]);
+						msg.Branch = branch;
+						break;
+					}
+				}
+			}
+		}
+		return branch;
+	}
+
 	ParseVia(msg, var host, var port, var protocol = null) {
 		if (msg) {
 			var via = msg.Headers["via"];
@@ -2165,7 +2315,7 @@ class SIPStack {
 				case "INVITE":
 					SIPSession::EnsureTag(msg.Headers["from"]);
 					SIPSession::EnsureTag(msg.Headers["to"]);
-					var sess = this.CreateSession(msg, ip, port);
+					var sess = this.CreateSession(msg, ip, port, true);
 					if (sess) {
 						if (non_routable)
 							this.ResponseUDP(180, msg, msg.Headers["from"], "", "", 70, null, "", sess.ip, sess.port);
@@ -2175,7 +2325,7 @@ class SIPStack {
 						if (this.OnInvite)
 							this.OnInvite(sess, msg);
 					} else {
-						echo "Cannot create session (session already exists?)\n";
+						echo "Cannot create session (session/branch already exists?)\n";
 						// this.ResponseUDP(430, msg, msg.Headers["from"], "", "", 70, null, "", ip, port);
 					}
 					break;
@@ -2287,6 +2437,24 @@ class SIPStack {
 						this.ResponseUDP(message_response, msg, msg.Headers["from"], "", "", 70, extra_headers, "", ip, port);
 					else
 						this.ResponseUDP(message_response, msg, msg.Headers["from"], "", "", 70, extra_headers);
+					break;
+				case "REFER":
+					message_response = 603;
+					sess = GetSession(msg);
+					var refer = null;
+					if (sess)
+						message_response = this.ReferSession(sess, msg, refer);
+
+					if (non_routable)
+						this.ResponseUDP(message_response, msg, msg.Headers["from"], "", "", 70, extra_headers, "", ip, port);
+					else
+						this.ResponseUDP(message_response, msg, msg.Headers["from"], "", "", 70, extra_headers);
+					if (refer) {
+						if (non_routable)
+							this.NotifyRefer(sess, msg, refer, ip, port);
+						else
+							this.NotifyRefer(sess, msg, refer, ip, port);
+					}
 					break;
 				default:
 					var parent = null;
