@@ -4,6 +4,8 @@ import standard.C.io
 import standard.lang.cli
 import standard.lib.preg
 import standard.lib.json
+import standard.lib.readline
+
 include Worker.con
 include TinDataBases.con
 include CSV.con
@@ -250,9 +252,66 @@ class Utils {
 }
 
 class IOWorker extends Worker{
+	Word(buf) {
+		buf = trim(buf);
+		buf = StrReplace(buf, "\t", " ");
+		var buf_arr = StrSplit(buf, " ");
+		if (buf_arr)
+			return buf_arr[length buf_arr - 1];
+		return "";
+	}
+
+	Completion(buf) {
+		var word = ToUpper(Word(buf));
+		buf = rtrim(buf);
+		var buffer_upercase = StrReplace(ToUpper(buf), "\t", " ");
+		if (buffer_upercase) {
+			var syntax = ["INSERT INTO ", "DELETE FROM ", "REDUCE { ", "CODE { ", "CREATE ", "AFTER ", "BEFORE ", "SELECT ", "FROM ", "UPDATE ", "CREATE BM25 INDEX ON ", "CREATE INDEX(", "CREATE TRIGGER ", "SEQUENCE ", "USE ", "VALUES ", "* FROM ", "WHERE ", "OFFSET ", "LIMIT ", "LEFT JOIN ", "ORDER ASC", "ORDER DESC", "COLLECTIONS", "TOP", "VERSION", "IN (", "AND ", "{ }", "QUIT", "DROP COLLECTION ", "DROP INDEX(", "DROP BM25 INDEX ON ", "SET ", "DONE"];
+			var[] values;
+			var last_offset = length buffer_upercase;
+			for (var i = 0; i < length syntax; i++) {
+				var k = syntax[i];
+				if (k) {
+					var pos = Pos(k, word);
+					if (pos == 1) {
+						var buf2 = SubStr(buf, 0, length buf - length word);
+						values[length values] = buf2 + k;
+					}
+				}			
+			}
+			return values;
+		}
+	}
+
+	Hint(buf) {
+		var word = ToUpper(Word(buf));
+		switch (word) {
+			case "SELECT":
+				return " * ";
+			case "FROM":
+				return " collection";
+			case "OFFSET":
+				return " start";
+			case "LIMIT":
+				return " records_count";
+			case "REDUCE":
+				return " { js }";
+			case "INSERT":
+				return " INTO";
+			case "DELETE":
+				return " FROM";
+			case "UPDATE":
+				return " collection";
+			case "CREATE":
+				return " INDEX";
+		}
+	}
+
 	IOWorker(dummy) {
 		var s = "";
 		var sent = false;
+		ttyloadhistory();
+		ttymaxhistory(500);
 		while (true) {
 			if (s) {
 				s += "\n";
@@ -262,14 +321,15 @@ class IOWorker extends Worker{
 						Sleep(20);
 					sent = false;
 				}
-				echo "> ";
+				// echo "> ";
 			}
 
-			s += trim(gets());
+			s += trim(ttyreadline("sql> ", this.Completion, this.Hint));
 			if ((s) && (s[length s - 1] == '\\')) {
 				s = SubStr(s, 0, length s - 1);
 			} else
 			if (s) {
+				ttysavehistory();
 			// if ((s) && (s[length s - 1] == ";")) {
 				AddWorkerResultData(s);
 				var s2 = s;
