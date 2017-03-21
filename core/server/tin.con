@@ -18,6 +18,7 @@ define REPORT_COLOR	"0.34 0.37 0.53"
 define INVERSE_COLOR	"1.0 1.0 1.0"
 define TITLE_FONT_SIZE	10
 define REPORT_FONT_SIZE	8
+define NEW_LINE		"\r\n"
 
 class Container {
 	var Data;
@@ -268,7 +269,6 @@ class IOWorker extends Worker{
 		if (buffer_upercase) {
 			var syntax = ["INSERT INTO ", "DELETE FROM ", "REDUCE { ", "CODE { ", "CREATE ", "AFTER ", "BEFORE ", "SELECT ", "FROM ", "UPDATE ", "CREATE BM25 INDEX ON ", "CREATE INDEX(", "CREATE TRIGGER ", "SEQUENCE ", "USE ", "VALUES ", "* FROM ", "WHERE ", "OFFSET ", "LIMIT ", "LEFT JOIN ", "ORDER ASC", "ORDER DESC", "COLLECTIONS", "TOP", "VERSION", "IN (", "AND ", "{ }", "QUIT", "DROP COLLECTION ", "DROP INDEX(", "DROP BM25 INDEX ON ", "SET ", "DONE"];
 			var[] values;
-			var last_offset = length buffer_upercase;
 			for (var i = 0; i < length syntax; i++) {
 				var k = syntax[i];
 				if (k) {
@@ -287,7 +287,7 @@ class IOWorker extends Worker{
 		var word = ToUpper(Word(buf));
 		switch (word) {
 			case "SELECT":
-				return " * ";
+				return " *";
 			case "FROM":
 				return " collection";
 			case "OFFSET":
@@ -314,7 +314,7 @@ class IOWorker extends Worker{
 		ttymaxhistory(500);
 		while (true) {
 			if (s) {
-				s += "\n";
+				s += NEW_LINE;
 			} else {
 				if (sent) {
 					while (!this.Pending(dummy, -1))
@@ -469,7 +469,7 @@ class Main {
 				level_str = "";
 				prec_level_str = "";
 			} else
-				echo "\n";
+				echo NEW_LINE;
 			for (i = 0; i < length obj; i++) {
 				key = keys[i];
 				var keystr;
@@ -485,7 +485,7 @@ class Main {
 						echo em("(reference to already printed object)");
 						if (i < length obj - 1)
 							echo ",";
-						echo "\n";
+						echo NEW_LINE;
 					} else {
 						backref[backref_ptr] = true;
 						print(val, level + 1, backref, level_str);
@@ -499,14 +499,14 @@ class Main {
 					if (is_static)
 						echo " ";
 					else
-						echo "\n";
+						echo NEW_LINE;
 				}
 			}
 			if (level) {
 				if (is_object)
-					echo "$prec_level_str}\n";
+					echo "$prec_level_str}" + NEW_LINE;
 				else
-					echo "$prec_level_str]\n";
+					echo "$prec_level_str]" + NEW_LINE;
 			}
 			return;
 		}
@@ -514,18 +514,18 @@ class Main {
 	}
 
 	notifycallback(subject, obj) {
-		echo "Notification received\n";
+		echo "Notification received" + NEW_LINE;
 		if (subject)
-			echo "Subject: ${em(subject)}\n";
-		echo "Content:\n";
+			echo "Subject: ${em(subject)}" + NEW_LINE;
+		echo "Content:" + NEW_LINE;
 		print(obj);
-		echo "\nEnd content\n";
+		echo "\nEnd content" + NEW_LINE;
 	}
 
 	DoneQuery() {
 		queries--;
 		if ((this.close) && (!queries)) {
-			echo "Done\n";
+			echo "Done" + NEW_LINE;
 			panicexit(0);
 		}
 	}
@@ -533,10 +533,10 @@ class Main {
 	callback(r, id, err) {
 		if (err) {
 			connected = false;
-			echo "${err[1]}\n";
+			echo "${err[1]}" + NEW_LINE;
 			return false;
 		}
-		echo "OK\n";
+		echo "OK" + NEW_LINE;
 		connection.OnNotify = notifycallback;
 		if (!io)
 			io = new Worker("IOWorker");
@@ -574,7 +574,7 @@ class Main {
 				csv +=  k;
 			}
 			if (!csv) {
-				echo "Dataset contains no keys\n";
+				echo "Dataset contains no keys" + NEW_LINE;
 				return;
 			}
 			csv += line_ending;
@@ -604,7 +604,7 @@ class Main {
 			}
 			WriteFile(csv, output);
 		} else
-			echo "${em("Dataset is empty")}\n";
+			echo "${em("Dataset is empty")}" + NEW_LINE;
 	}
 
 	TimeDelta(t) {
@@ -615,7 +615,7 @@ class Main {
 		if (data)
 			WriteFile(Utils::report(data, null, title), output);
 		else
-			echo "${em("Dataset is empty")}\n";
+			echo "${em("Dataset is empty")}" + NEW_LINE;
 	}
 
 	querycallback(r, id, err, userdata = null) {
@@ -629,8 +629,8 @@ class Main {
 		}
 
 		if (err) {
-			echo "$query ($time):\n";
-			echo "${em(err[1])}\n";
+			echo "$query ($time):" + NEW_LINE;
+			echo "${em(err[1])}" + NEW_LINE;
 		} else {
 			var count = 0;
 			if (typeof r != "array")
@@ -638,7 +638,7 @@ class Main {
 			if (r)
 				count = length r;
 			if (output) {
-				echo "$query ($time), ${em(count)} records to file ${em(output)}\n";
+				echo "$query ($time), ${em(count)} records to file ${em(output)}" + NEW_LINE;
 				var ext = ToLower(Ext(output));
 				switch (ext) {
 					case "bin":
@@ -662,7 +662,7 @@ class Main {
 					count = r[0];
 				else
 					print(r);
-				echo "\n$query ($time), ${em(count)} records\n";
+				echo "\n$query ($time), ${em(count)} records" + NEW_LINE;
 			}
 		}
 		DoneQuery();
@@ -673,18 +673,18 @@ class Main {
 		var time = TimeDelta(userdata[1]);
 
 		if (err) {
-			echo "$query ($time):\n";
-			echo "${em(err[1])}\n";
+			echo "$query ($time):" + NEW_LINE;
+			echo "${em(err[1])}" + NEW_LINE;
 		} else {
 			if (typeof id == "array") {
 				if (length id < 10)
 					echo id;
 				else
-					echo "${length id} records stored\n";
-				echo "\n$query ($time)\n";
+					echo "${length id} records stored" + NEW_LINE;
+				echo "\n$query ($time)" + NEW_LINE;
 			} else {
 				echo id;
-				echo "\n$query ($time)\n";
+				echo "\n$query ($time)" + NEW_LINE;
 			}
 		}
 		DoneQuery();
@@ -694,10 +694,10 @@ class Main {
 		var query = userdata[0];
 		var time = TimeDelta(userdata[1]);
 		if (err) {
-			echo "$query ($time):\n";
-			echo "${em(err[1])}\n";
+			echo "$query ($time):" + NEW_LINE;
+			echo "${em(err[1])}" + NEW_LINE;
 		} else {
-			echo "$query ($time): OK\n";
+			echo "$query ($time): OK" + NEW_LINE;
 		}
 		DoneQuery();
 	}
@@ -705,7 +705,7 @@ class Main {
 	LoadCSV(var data) {
 		data = CSV::Do(data, null, var error, var error_text);
 		if ((error) && (error_text)) {
-			echo "Error in CSV: $error_text\n";
+			echo "Error in CSV: $error_text" + NEW_LINE;
 			return null;
 		}
 		var header = data[0];
@@ -811,7 +811,7 @@ class Main {
 							if (agg == "COUNT") {
 								dataset.Query(["#" => where], querycallback, fields, q["LIMIT"], q["OFFSET"], (q["ORDER"] == -1), q["PRIORITY"], false, reduce);
 							} else {
-								echo "Unsupported SQL function ${em(agg)}\n";
+								echo "Unsupported SQL function ${em(agg)}" + NEW_LINE;
 								break;
 							}
 						} else
@@ -824,7 +824,7 @@ class Main {
 							dataset.Query(where, querycallback, fields, q["LIMIT"], q["OFFSET"], (q["ORDER"] == -1), q["PRIORITY"], false, reduce);
 						}
 						queries++;
-						echo "SQL-like query sent, waiting response (${queries} in queue, including this one)...\n";
+						echo "SQL-like query sent, waiting response (${queries} in queue, including this one)..." + NEW_LINE;
 					} else
 					if (IsSet(q, "INSERT")) {
 						collection = q["INTO"];
@@ -834,7 +834,7 @@ class Main {
 						keys = GetKeys(values);
 						dataset.Store(values, ((!keys) || (!keys[0])), storecallback);
 						queries++;
-						echo "Object sent, waiting response (${queries} in queue, including this one)...\n";
+						echo "Object sent, waiting response (${queries} in queue, including this one)..." + NEW_LINE;
 					} else
 					if (IsSet(q, "DELETE")) {
 						collection = q["FROM"];
@@ -843,7 +843,7 @@ class Main {
 						dataset.UserData = [orig_query, microseconds()];
 						dataset.Delete(where, querycallback, q["LIMIT"], q["OFFSET"], (q["ORDER"] == -1));
 						queries++;
-						echo "Delete request sent, waiting response (${queries} in queue, including this one)...\n";
+						echo "Delete request sent, waiting response (${queries} in queue, including this one)..." + NEW_LINE;
 					} else
 					if (IsSet(q, "UPDATE")) {
 						collection = q["UPDATE"];
@@ -853,7 +853,7 @@ class Main {
 						dataset.UserData = [orig_query, microseconds()];
 						dataset.Update(where, values, querycallback, q["LIMIT"], q["OFFSET"], (q["ORDER"] == -1));
 						queries++;
-						echo "Update request sent, waiting response (${queries} in queue, including this one)...\n";
+						echo "Update request sent, waiting response (${queries} in queue, including this one)..." + NEW_LINE;
 					} else
 					if (IsSet(q, "DROP")) {
 						collection = q["DROP"];
@@ -861,7 +861,7 @@ class Main {
 						dataset.UserData = [orig_query, microseconds()];
 						dataset.Drop(requestcallback);
 						queries++;
-						echo "Request sent, waiting response (${queries} in queue, including this one)...\n";
+						echo "Request sent, waiting response (${queries} in queue, including this one)..." + NEW_LINE;
 					} else
 					if (IsSet(q, "INDEX")) {
 						collection = q["INDEX"];
@@ -880,7 +880,7 @@ class Main {
 								values = [values];
 							dataset.EnsureIndexes(values);
 						}
-						echo "OK\n";
+						echo "OK" + NEW_LINE;
 					} else
 					if (IsSet(q, "DROP INDEX")) {
 						collection = q["DROP INDEX"];
@@ -889,14 +889,14 @@ class Main {
 							values = [values];
 						dataset = new TinDataSet(connection, collection);
 						dataset.DropIndexes(values);
-						echo "OK\n";
+						echo "OK" + NEW_LINE;
 					} else
 					if (IsSet(q, "DROP BM25")) {
 						collection = q["DROP BM25"];
 						values = q["ON"];
 						dataset = new TinDataSet(connection, collection);
 						dataset.DropFullText();
-						echo "OK\n";
+						echo "OK" + NEW_LINE;
 					} else
 					if (IsSet(q, "SEQUENCE")) {
 						collection = q["SEQUENCE"];
@@ -905,7 +905,7 @@ class Main {
 						dataset.UserData = [orig_query, microseconds()];
 						dataset.Generate(collection, querycallback, increment);
 						queries++;
-						echo "Sequence request sent, waiting response (${queries} in queue, including this one)...\n";
+						echo "Sequence request sent, waiting response (${queries} in queue, including this one)..." + NEW_LINE;
 					} else
 					if (IsSet(q, "CODE")) {
 						var code = q["CODE"];
@@ -913,7 +913,7 @@ class Main {
 						dataset.UserData = [orig_query, microseconds()];
 						dataset.js(code, querycallback);
 						queries++;
-						echo "JS code sent, waiting response (${queries} in queue, including this one)...\n";
+						echo "JS code sent, waiting response (${queries} in queue, including this one)..." + NEW_LINE;
 					} else
 					if (IsSet(q, "EXEC")) {
 						code = q["EXEC"];
@@ -921,7 +921,7 @@ class Main {
 						dataset.UserData = [orig_query, microseconds()];
 						dataset.exec(code, null, querycallback);
 						queries++;
-						echo "Code sent, waiting response (${queries} in queue, including this one)...\n";
+						echo "Code sent, waiting response (${queries} in queue, including this one)..." + NEW_LINE;
 					} else
 					if (IsSet(q, "TRIGGER")) {
 						code = q["TRIGGERCODE"];
@@ -930,7 +930,7 @@ class Main {
 						dataset.UserData = [orig_query, microseconds()];
 						dataset.jstriggers([q["EVENT"] => code], q["BEFORE"], querycallback);
 						queries++;
-						echo "Trigger code sent, waiting response (${queries} in queue, including this one)...\n";
+						echo "Trigger code sent, waiting response (${queries} in queue, including this one)..." + NEW_LINE;
 					}
 				}
 			}
@@ -963,7 +963,7 @@ class Main {
 						var orig_params = parameters;
 						parameters = JSONDeserialize(parameters);
 						if (typeof parameters != "array")
-							echo "Error parsing JSON: '$orig_params'\n\n";
+							echo "Error parsing JSON: '$orig_params'\n" + NEW_LINE;
 					} else
 					if ((parameters[0] != "'") && (parameters[0] != "\""))
 						parameters = value parameters;
@@ -982,7 +982,7 @@ class Main {
 			if (length s >= 6) {
 				if (s_lower == "output") {
 					output = null;
-					echo "Output results to stdout\n";
+					echo "Output results to stdout" + NEW_LINE;
 					return;
 				} else
 				if ((SubStr(s_lower, 0, 6) == "output") && ((s[6] == " ") || (s[6] == "\t"))) {
@@ -990,9 +990,9 @@ class Main {
 					if ((length output > 1) && (((output[0] == "'") || (output[0] == "\"")) && (output[0] == output[length output - 1])))
 						output = SubStr(output, 1, length output - 2);
 					if (output)
-						echo "Output results to '$output'\n";
+						echo "Output results to '$output'" + NEW_LINE;
 					else
-						echo "Output results to stdout\n";
+						echo "Output results to stdout" + NEW_LINE;
 					return;
 				}
 			}
@@ -1004,14 +1004,14 @@ class Main {
 				case "version":
 					connection.Info(s_lower, querycallback);
 					queries++;
-					echo "Request sent, waiting response (${queries} in queue, including this one)...\n";
+					echo "Request sent, waiting response (${queries} in queue, including this one)..." + NEW_LINE;
 					return;
 			}
 		}
 		switch (s) {
 			case "query":
 				if (!collection) {
-					echo "No collection selected\n";
+					echo "No collection selected" + NEW_LINE;
 					return;
 				}
 				if (!parameters)
@@ -1020,11 +1020,11 @@ class Main {
 				dataset.UserData = [orig_query, microseconds()];
 				dataset.Query(parameters, querycallback);
 				queries++;
-				echo "Query sent, waiting response (${queries} in queue, including this one)...\n";
+				echo "Query sent, waiting response (${queries} in queue, including this one)..." + NEW_LINE;
 				break;
 			case "count":
 				if (!collection) {
-					echo "No collection selected\n";
+					echo "No collection selected" + NEW_LINE;
 					return;
 				}
 				if (!parameters)
@@ -1033,12 +1033,12 @@ class Main {
 				dataset.UserData = [orig_query, microseconds(), s];
 				dataset.Query(["#" => parameters], querycallback);
 				queries++;
-				echo "Query sent, waiting response (${queries} in queue, including this one)...\n";
+				echo "Query sent, waiting response (${queries} in queue, including this one)..." + NEW_LINE;
 				break;
 			case "aggregate":
 			case "join":
 				if (!collection) {
-					echo "No collection selected\n";
+					echo "No collection selected" + NEW_LINE;
 					return;
 				}
 				if (!parameters)
@@ -1047,11 +1047,11 @@ class Main {
 				dataset.UserData = [orig_query, microseconds()];
 				dataset.Join(parameters, querycallback);
 				queries++;
-				echo "Query sent, waiting response (${queries} in queue, including this one)...\n";
+				echo "Query sent, waiting response (${queries} in queue, including this one)..." + NEW_LINE;
 				break;
 			case "search":
 				if (!collection) {
-					echo "No collection selected\n";
+					echo "No collection selected" + NEW_LINE;
 					return;
 				}
 				parameters = "" + parameters;
@@ -1059,11 +1059,11 @@ class Main {
 				dataset.UserData = [orig_query, microseconds()];
 				dataset.Search(parameters, querycallback);
 				queries++;
-				echo "Search '$parameters' sent, waiting response (${queries} in queue, including this one)...\n";
+				echo "Search '$parameters' sent, waiting response (${queries} in queue, including this one)..." + NEW_LINE;
 				break;
 			case "store":
 				if (!collection) {
-					echo "No collection selected\n";
+					echo "No collection selected" + NEW_LINE;
 					return;
 				}
 				if (typeof parameters != "array")
@@ -1075,48 +1075,48 @@ class Main {
 				dataset.UserData = [orig_query, microseconds(), s];
 				dataset.Store(parameters, ((!keys) || (!keys[0])), storecallback);
 				queries++;
-				echo "Object sent, waiting response (${queries} in queue, including this one)...\n";
+				echo "Object sent, waiting response (${queries} in queue, including this one)..." + NEW_LINE;
 				break;
 			case "drop":
 				if (!collection) {
-					echo "No collection selected\n";
+					echo "No collection selected" + NEW_LINE;
 					return;
 				}
 				dataset = new TinDataSet(connection, collection);
 				dataset.UserData = [orig_query, microseconds()];
 				dataset.Drop(requestcallback);
 				queries++;
-				echo "Request sent, waiting response (${queries} in queue, including this one)...\n";
+				echo "Request sent, waiting response (${queries} in queue, including this one)..." + NEW_LINE;
 				break;
 			case "info":
 				if (queries) {
 					if (queries == 1)
-						echo "1 query queued\n";
+						echo "1 query queued" + NEW_LINE;
 					else
-						echo "${queries} queries queued\n";
+						echo "${queries} queries queued" + NEW_LINE;
 				} else
-					echo "No queries queued\n";
+					echo "No queries queued" + NEW_LINE;
 				break;
 			case "index":
 			case "ensureindex":
 			case "ensureindexes":
 				if (!collection) {
-					echo "No collection selected\n";
+					echo "No collection selected" + NEW_LINE;
 					return;
 				}
 				if (!parameters) {
-					echo "No index specified\n";
+					echo "No index specified" + NEW_LINE;
 					return;
 				}
 				if (typeof parameters != "array")
 					parameters = [parameters];
 				dataset = new TinDataSet(connection, collection);
 				dataset.EnsureIndexes(parameters);
-				echo "OK\n";
+				echo "OK" + NEW_LINE;
 				break;
 			case "fulltext":
 				if (!collection) {
-					echo "No collection selected\n";
+					echo "No collection selected" + NEW_LINE;
 					return;
 				}
 				var lang = "en";
@@ -1136,16 +1136,16 @@ class Main {
 				}
 				dataset = new TinDataSet(connection, collection);
 				dataset.EnsureFullText(fields, lang);
-				echo "Full text index request sent, for \"$lang\" language\n";
+				echo "Full text index request sent, for \"$lang\" language" + NEW_LINE;
 				if (fields) {
-					echo "Index will use fields:\n";
+					echo "Index will use fields:" + NEW_LINE;
 					echo fields;
-					echo "\n";
+					echo NEW_LINE;
 				}
 				break;
 			case "delete":
 				if (!collection) {
-					echo "No collection selected\n";
+					echo "No collection selected" + NEW_LINE;
 					return;
 				}
 				if (!parameters)
@@ -1154,15 +1154,15 @@ class Main {
 				dataset.UserData = [orig_query, microseconds()];
 				dataset.Delete(parameters, querycallback);
 				queries++;
-				echo "Delete request sent, waiting response (${queries} in queue, including this one)...\n";
+				echo "Delete request sent, waiting response (${queries} in queue, including this one)..." + NEW_LINE;
 				break;
 			case "update":
 				if (!collection) {
-					echo "No collection selected\n";
+					echo "No collection selected" + NEW_LINE;
 					return;
 				}
 				if ((!parameters) || (typeof parameters != "array") || (!parameters["set"]) || (typeof parameters["set"] != "array")) {
-					echo em("Nothing to update") + "\n";
+					echo em("Nothing to update") + NEW_LINE;
 					break;
 				}
 				if (!parameters["select"])
@@ -1171,7 +1171,7 @@ class Main {
 				dataset.UserData = [orig_query, microseconds()];
 				dataset.Update(parameters["select"], parameters["set"], querycallback);
 				queries++;
-				echo "Update request sent, waiting response (${queries} in queue, including this one)...\n";
+				echo "Update request sent, waiting response (${queries} in queue, including this one)..." + NEW_LINE;
 				break;
 			case "addsubject":
 			case "removesubject":
@@ -1181,7 +1181,7 @@ class Main {
 					connection.AddSubject(parameters);
 				else
 					connection.RemoveSubject(parameters);
-				echo "OK\n";
+				echo "OK" + NEW_LINE;
 				break;
 			case "notify":
 				var subject = "";
@@ -1196,21 +1196,21 @@ class Main {
 				break;
 			case "load":
 				if (!collection) {
-					echo "No collection selected\n";
+					echo "No collection selected" + NEW_LINE;
 					return;
 				}
 				if ((!parameters) || (typeof parameters != "string")) {
-					echo "No file specified.\n";
+					echo "No file specified." + NEW_LINE;
 					return;
 				}
 				var data = ReadFile(parameters);
 				if (!data) {
-					echo "File '$parameters' is empty or does not exists.\n";
+					echo "File '$parameters' is empty or does not exists." + NEW_LINE;
 					return;
 				}
 				var objects = GetObjects(data, ToLower(Ext(parameters)));
 				if (!objects) {
-					echo "File '$parameters' contains no usable objects.\n";
+					echo "File '$parameters' contains no usable objects." + NEW_LINE;
 					return;
 				}
 				dataset = new TinDataSet(connection, collection);
@@ -1220,14 +1220,14 @@ class Main {
 				dataset.Store(objects, is_set, storecallback);
 				queries++;
 				if (is_set)
-					echo "${length objects} objects sent, waiting response (${queries} in queue, including this one)...\n";
+					echo "${length objects} objects sent, waiting response (${queries} in queue, including this one)..." + NEW_LINE;
 				else
-					echo "1 object sent, waiting response (${queries} in queue, including this one)...\n";
+					echo "1 object sent, waiting response (${queries} in queue, including this one)..." + NEW_LINE;
 				break;
 			case "done":
 				if (queries) {
 					this.close = true;
-					echo "Waiting for ${em(queries)} queries to finish\n";
+					echo "Waiting for ${em(queries)} queries to finish" + NEW_LINE;
 					break;
 				}
 				// no break here
@@ -1241,69 +1241,69 @@ class Main {
 				break;
 			case "use":
 				if ((!parameters) || (typeof parameters != "string")) {
-					echo "No database specified\n";
+					echo "No database specified" + NEW_LINE;
 					return;
 				}
 				connection.Database = parameters;
-				echo "Using database ${parameters}\n";
+				echo "Using database ${parameters}" + NEW_LINE;
 				break;
 			case "help":
-				echo "Local commands: info, quit, exit, done, output [outputfilename], use dbname, databases, collections, top, version\n";
-				echo "TinDB commands:\n";
-				echo "    ${em("collection.query")}(criteria_object);\n";
-				echo "        Search object, matching criteria\n";
-				echo "        eg: student.query({\"Name\": \"Jane\"});\n";
-				echo "    ${em("collection.count")}(criteria_object);\n";
-				echo "        Count objects in collection matching criteria\n";
-				echo "    ${em("collection.delete")}(criteria_object);\n";
-				echo "        delete an object from collection, matching criteria\n";
-				echo "        eg: student.delete({\"Name\": \"Jane\"});\n";
-				echo "    ${em("collection.store")}(object);\n";
-				echo "        store an arbitray object, eg:. student.store({\"Name\": \"George\"})\n";
-				echo "        may also use arrays, eg:. student.store([{\"Name\": \"George\"}, {\"Name\": \"Jane\"}])\n";
-				echo "    ${em("collection.update")}({\"select\": query, \"set\": object});\n";
-				echo "        update multiple objects, eg:. student.update({\"select\": {\"Year\": 1}, \"set\": {\"Year\": 2}})\n";
-				echo "    ${em("collection.load")}(filename);\n";
-				echo "        load objects from JSON or CSV file\n";
-				echo "    ${em("collection.search")}(searchstring);\n";
-				echo "        perform bm25 search\n";
-				echo "    ${em("collection.drop")}();\n";
-				echo "        drop collection\n";
-				echo "    ${em("collection.index")}(index);\n";
-				echo "        create btree index\n";
-				echo "    ${em("collection.fulltext")}(string language | array fields | {\"language\": \"en\", \"fields\": array);\n";
-				echo "        create full text index\n";
-				echo "\n";
+				echo "Local commands: info, quit, exit, done, output [outputfilename], use dbname, databases, collections, top, version" + NEW_LINE;
+				echo "TinDB commands:" + NEW_LINE;
+				echo "    ${em("collection.query")}(criteria_object);" + NEW_LINE;
+				echo "        Search object, matching criteria" + NEW_LINE;
+				echo "        eg: student.query({\"Name\": \"Jane\"});" + NEW_LINE;
+				echo "    ${em("collection.count")}(criteria_object);" + NEW_LINE;
+				echo "        Count objects in collection matching criteria" + NEW_LINE;
+				echo "    ${em("collection.delete")}(criteria_object);" + NEW_LINE;
+				echo "        delete an object from collection, matching criteria" + NEW_LINE;
+				echo "        eg: student.delete({\"Name\": \"Jane\"});" + NEW_LINE;
+				echo "    ${em("collection.store")}(object);" + NEW_LINE;
+				echo "        store an arbitray object, eg:. student.store({\"Name\": \"George\"})" + NEW_LINE;
+				echo "        may also use arrays, eg:. student.store([{\"Name\": \"George\"}, {\"Name\": \"Jane\"}])" + NEW_LINE;
+				echo "    ${em("collection.update")}({\"select\": query, \"set\": object});" + NEW_LINE;
+				echo "        update multiple objects, eg:. student.update({\"select\": {\"Year\": 1}, \"set\": {\"Year\": 2}})" + NEW_LINE;
+				echo "    ${em("collection.load")}(filename);" + NEW_LINE;
+				echo "        load objects from JSON or CSV file" + NEW_LINE;
+				echo "    ${em("collection.search")}(searchstring);" + NEW_LINE;
+				echo "        perform bm25 search" + NEW_LINE;
+				echo "    ${em("collection.drop")}();" + NEW_LINE;
+				echo "        drop collection" + NEW_LINE;
+				echo "    ${em("collection.index")}(index);" + NEW_LINE;
+				echo "        create btree index" + NEW_LINE;
+				echo "    ${em("collection.fulltext")}(string language | array fields | {\"language\": \"en\", \"fields\": array);" + NEW_LINE;
+				echo "        create full text index" + NEW_LINE;
+				echo NEW_LINE;
 				break;
 			default:
 				if (!SQL(s, orig_query, var err)) {
 					if (err)
-						echo em(err) + "\n";
+						echo em(err) + NEW_LINE;
 					if (length s > 20)
 						s = SubStr(s, 0, 20) + "...";
-					echo "Command '$s' not understood\n";
+					echo "Command '$s' not understood" + NEW_LINE;
 				}
 		}
 	}
 
 	Loop() {
 		var connection = Connect(host, port, db);
-		echo "Connecting ...\n";
+		echo "Connecting ..." + NEW_LINE;
 		if (!connection) {
-			echo "Error connecting to database $host:$port/$db\n";
+			echo "Error connecting to database $host:$port/$db" + NEW_LINE;
 			if (reconnecting)
 				return 0;
 			return -1;
 		}
 		reconnecting = true;
-		echo "Authorizing ...\n";
+		echo "Authorizing ..." + NEW_LINE;
 
 		var dataset = new TinDataSet(connection, "users");
 		queries++;
 		dataset.Auth(user, password, db, callback);
 		while (connected) {
 			if (!connection.Iterate(true)) {
-				echo "Disconnected\n";
+				echo "Disconnected" + NEW_LINE;
 				return 0;
 			}
 			if (io) {
@@ -1324,9 +1324,9 @@ class Main {
 	}
 
 	Main() {
-		echo "TinDB client console application v0.1\n";
-		echo "Developed by Eduard Suica, released into public domain\n";
-		echo "Type ${em("help", true)} for help\n\n";
+		echo "TinDB client console application v0.1" + NEW_LINE;
+		echo "Developed by Eduard Suica, released into public domain" + NEW_LINE;
+		echo "Type ${em("help", true)} for help\n" + NEW_LINE;
 		db = "appdb";
 		var parameters = GetParameters(CLArg(), db);
 		user = parameters["u"] ?? "sysdbadministrator";
@@ -1335,7 +1335,7 @@ class Main {
 		port = value (parameters["P"] ?? "2668");
 
 		while ((!Loop()) && (connected)) {
-			echo "Reconnecting...\n";
+			echo "Reconnecting..." + NEW_LINE;
 			Sleep(1000);
 			queries = 0;
 		}

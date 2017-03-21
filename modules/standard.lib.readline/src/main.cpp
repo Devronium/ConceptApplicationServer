@@ -65,13 +65,13 @@ void ttycompletion(const char *buf, linenoiseCompletions *lc) {
     }
 }
 
-char *hints(const char *buf, int *color, int *bold) {
+char *hints(const char *line, int *color, int *bold) {
     if ((HINT_DELEGATE) && (InvokePtr)) {
         static char buf[4096];
         INVOKE_CALL Invoke = InvokePtr;
         void *EXCEPTION = 0;
         void *RES       = 0;
-        Invoke(INVOKE_CALL_DELEGATE, HINT_DELEGATE, &RES, &EXCEPTION, (INTEGER)1, VARIABLE_STRING, buf, (NUMBER)0);
+        Invoke(INVOKE_CALL_DELEGATE, HINT_DELEGATE, &RES, &EXCEPTION, (INTEGER)1, VARIABLE_STRING, line, (NUMBER)0);
         if (EXCEPTION) {
             FREE_VARIABLE(EXCEPTION);
         }
@@ -88,8 +88,8 @@ char *hints(const char *buf, int *color, int *bold) {
                         nValue = sizeof(buf) - 1;
                     memcpy(buf, szValue, (int)nValue);
                     buf[(int)nValue] = 0;
-                    *color = 35;
-                    *bold = 0;
+                    *color = 31;
+                    *bold = 1;
                     FREE_VARIABLE(RES);
                     return buf;
                 }
@@ -115,7 +115,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(ttyreadline, 0, 3)
     if (PARAMETERS_COUNT > 2) {
         T_DELEGATE(ttyreadline, 2)
         HINT_DELEGATE = PARAMETER(2);
-#ifndef WIN32
+#ifndef _WIN32
         linenoiseSetHintsCallback(hints);
 #endif
     }
@@ -123,7 +123,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(ttyreadline, 0, 3)
     COMPLETION_DELEGATE = NULL;
     HINT_DELEGATE = NULL;
     linenoiseSetCompletionCallback(NULL);
-#ifndef WIN32
+#ifndef _WIN32
     linenoiseSetHintsCallback(NULL);
 #endif
     if (line) {
@@ -153,7 +153,13 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(ttysavehistory, 0, 1)
         strcat(buf, "\\conceptttyreadline");
         file = buf;
 #else
-        file = "~/.conceptttyreadline";
+        char *path = getenv("HOME");
+        char buf[8192];
+        buf[0] = 0;
+        if (path)
+            strcpy(buf, path);
+        strcat(buf, "/.conceptttyreadline");
+        file = buf;
 #endif
     }
     int err = linenoiseHistorySave(file);
@@ -178,7 +184,13 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(ttyloadhistory, 0, 1)
         strcat(buf, "\\conceptttyreadline");
         file = buf;
 #else
-        file = "~/.conceptttyreadline";
+        char *path = getenv("HOME");
+        char buf[8192];
+        buf[0] = 0;
+        if (path)
+            strcpy(buf, path);
+        strcat(buf, "/.conceptttyreadline");
+        file = buf;
 #endif
     }
     int err = linenoiseHistoryLoad(file);
