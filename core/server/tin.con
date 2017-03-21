@@ -519,7 +519,7 @@ class Main {
 			echo "Subject: ${em(subject)}" + NEW_LINE;
 		echo "Content:" + NEW_LINE;
 		print(obj);
-		echo "\nEnd content" + NEW_LINE;
+		echo NEW_LINE + "End content" + NEW_LINE;
 	}
 
 	DoneQuery() {
@@ -662,7 +662,7 @@ class Main {
 					count = r[0];
 				else
 					print(r);
-				echo "\n$query ($time), ${em(count)} records" + NEW_LINE;
+				echo NEW_LINE + "$query ($time), ${em(count)} records" + NEW_LINE;
 			}
 		}
 		DoneQuery();
@@ -681,10 +681,10 @@ class Main {
 					echo id;
 				else
 					echo "${length id} records stored" + NEW_LINE;
-				echo "\n$query ($time)" + NEW_LINE;
+				echo NEW_LINE + "$query ($time)" + NEW_LINE;
 			} else {
 				echo id;
-				echo "\n$query ($time)" + NEW_LINE;
+				echo NEW_LINE + "$query ($time)" + NEW_LINE;
 			}
 		}
 		DoneQuery();
