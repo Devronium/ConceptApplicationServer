@@ -3,6 +3,7 @@ include Worker.con
 include TinBase.con
 include TCPSocket.con
 include UNIXSocket.con
+include Poll.con
 include DirectoryList.con
 import standard.lib.cripto
 import standard.math.rand
@@ -909,6 +910,7 @@ class JSQueryWorker extends QueryWorkerBase {
 class QueryWorker extends QueryWorkerBase {
 pragma used
 	var[] sockets;
+	var poll;
 
 	RemoveSocket(sock) {
 		var res = new [];
@@ -925,6 +927,7 @@ pragma used
 			if ((k) && (k != sock_key))
 				buf[k] = buffers[k];
 		}
+		this.poll.remove(sock);
 		SocketClose(sock);
 		this.sockets = res;
 		this.buffers = buf;
@@ -1002,7 +1005,7 @@ pragma used
 	}
 
 	Execute(var data, var sleep_value, var t, var next_worker, var next_a_worker, var next_idle_worker, var storage_dbs, var storage_workers, var aggregation_workers, var idle_workers, var current_worker, var storage_dbs_w) {
-		var timeout = 2;
+		var timeout = sleep_value;
 		if (data) {
 			timeout = 0;
 			var job = UnBinarizeObject(data);
@@ -1035,6 +1038,7 @@ pragma used
 						}
 					} else {
 						sockets[length sockets] = socket;
+						this.poll.add(socket);
 						buffers["" + socket] = new ConnectionContext(socket);
 					}
 				}
@@ -1049,7 +1053,14 @@ pragma used
 			remote_obj = null;
 			job = null;
 		}
-		if ((SocketPoll(sockets, var outsockets, timeout)) && (outsockets)) {
+		if (!sockets) {
+			sleep_value = -1;
+			return;
+		}
+		if (timeout < 0)
+			timeout = 0;
+		var outsockets = this.poll.wait(timeout);
+		if (/*(SocketPoll(sockets, var outsockets, timeout)) &&*/ (outsockets)) {
 			for (var i = 0; i < length outsockets; i++) {
 				var sock = outsockets[i];
 				var buffer = "";
@@ -1085,12 +1096,13 @@ pragma used
 				} else
 					RemoveSocket(sock);
 			}
+			sleep_value = 2;
 			return;
 		}
-		if (sockets) {
+		if (sockets)
 			sleep_value = 2; // Sleep(2);
-		} else
-			sleep_value = 5; // Sleep(5);
+		else
+			sleep_value = -1; // Sleep(5);
 	}
 
 	QueryWorker(n) {
@@ -1103,6 +1115,8 @@ pragma used
 		var next_worker = 0;
 		var next_a_worker = 0;
 		var next_idle_worker = 0;
+
+		this.poll = new Poll();
 
 		var AccessDB = new TinBase("sys");
 		AccessDB.Mode = "rb";

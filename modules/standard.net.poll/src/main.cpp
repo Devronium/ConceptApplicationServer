@@ -269,7 +269,7 @@ CONCEPT_FUNCTION_IMPL(PollAdd, 2)
 #else
         struct epoll_event event;
         event.data.fd = fd;
-        event.events = EPOLLIN; // | EPOLLET;
+        event.events = EPOLLIN | EPOLLPRI | EPOLLHUP | EPOLLRDHUP;// | EPOLLET;
         err = epoll_ctl (efd, EPOLL_CTL_ADD, fd, &event);
 #endif
     }
@@ -297,10 +297,9 @@ CONCEPT_FUNCTION_IMPL(PollRemove, 2)
         EV_SET(&event, fd, EVFILT_READ, EV_DELETE, 0, 0, 0);
         err = kevent(efd, &event, 1, NULL, 0, NULL);
 #else
-
         struct epoll_event event;
         event.data.fd = fd;
-        event.events = EPOLLIN; // | EPOLLET;
+        event.events = EPOLLIN | EPOLLPRI | EPOLLHUP | EPOLLRDHUP;// | EPOLLET;
         err = epoll_ctl (efd, EPOLL_CTL_DEL, fd, &event);
 #endif
     }
