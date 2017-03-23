@@ -172,9 +172,10 @@ class NetGSM {
 						if (code2 == 200) {
 							var text = DirtyTag(buf2, "text");
 							var nmr = DirtyTag(buf2, "nmr");
+							var timestamp = DirtyTag(buf2, "time") ?? "";
 							if (text) {
 								text = HexText(text);
-								ids[length ids] = ["From" => nmr, "Text" => text, "ID" => node.Content];
+								ids[length ids] = ["From" => nmr, "Text" => text, "ID" => node.Content, "Time" => timestamp];
 							}
 						}
 					}

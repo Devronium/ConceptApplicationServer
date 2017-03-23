@@ -101,7 +101,7 @@ public:
     int Wait(INVOKE_CALL Invoke, void *RESULT, int timeout) {
 #ifdef WITH_KQUEUE
         int maxevents = 1024;
-        struct kevent *events = (struct kevent *)malloc(sizeof(struct kevent));
+        struct kevent *events = (struct kevent *)malloc(sizeof(struct kevent) * maxevents);
         if (!events)
             return -1;
 
@@ -328,7 +328,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(PollWait, 1, 2)
         int maxevents = 1024;
         CREATE_ARRAY(RESULT);
 #ifdef WITH_KQUEUE
-        struct kevent *events = (struct kevent *)malloc(sizeof(struct kevent));
+        struct kevent *events = (struct kevent *)malloc(sizeof(struct kevent) * maxevents);
         if (!events) {
             RETURN_NUMBER(0);
             return (void *)"PollWait: Out of memory";
@@ -339,7 +339,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(PollWait, 1, 2)
             Invoke(INVOKE_SET_ARRAY_ELEMENT, RESULT, i, (INTEGER)VARIABLE_NUMBER, (char *)NULL, (NUMBER)events[i].ident); 
         free(events);
 #else
-        struct epoll_event *events = (struct epoll_event *)malloc(sizeof(struct epoll_event));
+        struct epoll_event *events = (struct epoll_event *)malloc(sizeof(struct epoll_event) * maxevents);
         if (events) {
             CREATE_ARRAY(RESULT);
             int nfds = epoll_wait(efd, events, maxevents, timeout);
