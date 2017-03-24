@@ -61,6 +61,9 @@ struct WorkerContainer {
 #define QUEUE_SEMAPHORE     HHSEM
 #endif
 
+INVOKE_CALL LocalInvoker;
+static int MultiThreaded = 0;
+
 #ifndef USE_STD_QUEUE
 struct SimpleQueueNODE {
     void *DATA;
@@ -304,6 +307,8 @@ private:
     std::map<std::string, std::map<std::string, AnsiString> *> share_data;
     int links;
 public:
+    RWLock rwlock;
+
     ShareContext() {
         links = 0;
         QUEUE_CREATE(share_lock);
@@ -403,11 +408,25 @@ public:
     }
 };
 
+class ThreadDataContainer {
+public:
+    char *data;
+    int len;
+
+    void ClearBuffers() {
+        INVOKE_CALL Invoke = LocalInvoker;
+        if ((Invoke) && (data)) {
+            CORE_DELETE(data);
+            data = NULL;
+        }
+    }
+};
+
 class ThreadMetaContainer {
 private:
 #ifdef USE_STD_QUEUE
-    std::queue<AnsiString *> input_data;
-    std::queue<AnsiString *> output_data;
+    std::queue<ThreadDataContainer *> input_data;
+    std::queue<ThreadDataContainer *> output_data;
 #else
     SimpleQueue input_data;
     SimpleQueue output_data;
@@ -421,13 +440,12 @@ private:
     CondWait output_cond;
 public:
     ShareContext *sharecontext;
-    RWLock rwlock;
     void *worker;
 
     int AddInput(char *S, int len, int priority = 0) {
-        AnsiString *temp = new AnsiString();
-
-        temp->LoadBuffer(S, len);
+        ThreadDataContainer *temp = new ThreadDataContainer();
+        temp->data = S;
+        temp->len = len;
         QUEUE_LOCK(input_lock);
 #if USE_STD_QUEUE
         input_data.push(temp);
@@ -445,9 +463,10 @@ public:
     }
 
     int AddOutput(char *S, int len) {
-        AnsiString *temp = new AnsiString();
+        ThreadDataContainer *temp = new ThreadDataContainer();
+        temp->data = S;
+        temp->len = len;
 
-        temp->LoadBuffer(S, len);
         QUEUE_LOCK(output_lock);
         output_data.push(temp);
         int size = output_data.size();
@@ -457,12 +476,18 @@ public:
         return size;
     }
 
-    int GetInput(AnsiString **S, int locking = 0) {
+    int GetInput(char **S, int *len, int locking = 0) {
         QUEUE_LOCK(input_lock);
         int size = input_data.size();
-
+        *S = NULL;
+        *len = 0;
         if (size > 0) {
-            *S = (AnsiString *)input_data.front();
+            ThreadDataContainer *temp = (ThreadDataContainer *)input_data.front();
+            if (temp) {
+                *S = temp->data;
+                *len = temp->len;
+                delete temp;
+            }
             input_data.pop();
         }
         if (locking)
@@ -470,17 +495,24 @@ public:
         QUEUE_UNLOCK(input_lock);
         if ((locking) && (!size)) {
             input_cond.wait(locking);
-            return GetInput(S);
+            return GetInput(S, len);
         }
         return size;
     }
 
-    int GetOutput(AnsiString **S, int locking = 0) {
+    int GetOutput(char **S, int *len, int locking = 0) {
         QUEUE_LOCK(output_lock);
         int size = output_data.size();
+        *S = NULL;
+        *len = 0;
 
         if (size > 0) {
-            *S = (AnsiString *)output_data.front();
+            ThreadDataContainer *temp = (ThreadDataContainer *)output_data.front();
+            if (temp) {
+                *S = temp->data;
+                *len = temp->len;
+                delete temp;
+            }
             output_data.pop();
         }
         if (locking)
@@ -488,7 +520,7 @@ public:
         QUEUE_UNLOCK(output_lock);
         if ((locking) && (!size)) {
             output_cond.wait(locking);
-            return GetOutput(S);
+            return GetOutput(S, len);
         }
         return size;
     }
@@ -515,16 +547,20 @@ public:
     ~ThreadMetaContainer() {
         QUEUE_LOCK(input_lock);
         while (!output_data.empty()) {
-            AnsiString *S = (AnsiString *)output_data.front();
+            ThreadDataContainer *S = (ThreadDataContainer *)output_data.front();
             output_data.pop();
-            if (S)
+            if (S) {
+                S->ClearBuffers();
                 delete S;
+            }
         }
         while (!input_data.empty()) {
-            AnsiString *S = (AnsiString *)input_data.front();
+            ThreadDataContainer *S = (ThreadDataContainer *)input_data.front();
             input_data.pop();
-            if (S)
+            if (S) {
+                S->ClearBuffers();
                 delete S;
+            }
         }
         SetShareContext(NULL);
         QUEUE_UNLOCK(input_lock);
@@ -537,9 +573,6 @@ void thread_destroy_metadata(void *data, void *handler) {
     if (data)
         delete (ThreadMetaContainer *)data;
 }
-
-INVOKE_CALL LocalInvoker;
-static int  MultiThreaded = 0;
 //---------------------------------------------------------------------------
 CONCEPT_DLL_API ON_CREATE_CONTEXT MANAGEMENT_PARAMETERS {
     LocalInvoker  = Invoke;
@@ -979,8 +1012,19 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(AddWorkerData, 2, 3)
     if (!tmc)
         return (void *)"Using a worker function on a non-worker";
 
-    int size = tmc->AddInput(PARAM(1), PARAM_LEN(1), priority);
-    RETURN_NUMBER(size);
+    int len = PARAM_LEN(1);
+    if (len > 0) {
+        char *owned_buffer = NULL;
+        CORE_NEW(len + 1, owned_buffer);
+        if (!owned_buffer)
+            return (void *)"AddWorkerData: Not enough memory";
+        memcpy(owned_buffer, PARAM(1), len);
+        owned_buffer[len] = 0;
+        int size = tmc->AddInput(owned_buffer, len, priority);
+        RETURN_NUMBER(size);
+    } else {
+        RETURN_NUMBER(-1);
+    }
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(AddWorkerResultData, 1)
@@ -990,8 +1034,20 @@ CONCEPT_FUNCTION_IMPL(AddWorkerResultData, 1)
     Invoke(INVOKE_GETPROTODATA, PARAMETERS->HANDLER, (int)2, &tmc);
     if (!tmc)
         return (void *)"Using a worker function on a non-worker";
-    int size = tmc->AddOutput(PARAM(0), PARAM_LEN(0));
-    RETURN_NUMBER(size);
+
+    int len = PARAM_LEN(0);
+    if (len > 0) {
+        char *owned_buffer = NULL;
+        CORE_NEW(len + 1, owned_buffer);
+        if (!owned_buffer)
+            return (void *)"AddWorkerData: Not enough memory";
+        memcpy(owned_buffer, PARAM(0), len);
+        owned_buffer[len] = 0;
+        int size = tmc->AddOutput(owned_buffer, len);
+        RETURN_NUMBER(size);
+    } else {
+        RETURN_NUMBER(-1);
+    }
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(GetWorkerResultData, 2, 3)
@@ -1009,15 +1065,15 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(GetWorkerResultData, 2, 3)
         locking = PARAM_INT(2);
     }
 
-    AnsiString *temp = NULL;
-    int        size  = tmc->GetOutput(&temp, locking);
-    if ((temp) && (temp->Length())) {
-        SET_BUFFER(1, temp->c_str(), temp->Length());
+    char *owned_buffer = NULL;
+    int len = 0;
+    int size  = tmc->GetOutput(&owned_buffer, &len, locking);
+    if ((owned_buffer) && (len)) {
+        SetVariable(PARAMETER(1), -1, owned_buffer, len);
+        // SET_BUFFER(1, temp->c_str(), temp->Length());
     } else {
         SET_STRING(1, "");
     }
-    if (temp)
-        delete temp;
     RETURN_NUMBER(size);
 END_IMPL
 //---------------------------------------------------------------------------
@@ -1032,15 +1088,15 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(GetWorkerData, 1, 2)
         T_NUMBER(GetWorkerData, 1);
         locking = PARAM_INT(1);
     }
-    AnsiString *temp = NULL;
-    int size  = tmc->GetInput(&temp, locking);
-    if ((temp) && (temp->Length())) {
-        SET_BUFFER(0, temp->c_str(), temp->Length());
+    char *owned_buffer = NULL;
+    int len = 0;
+    int size  = tmc->GetInput(&owned_buffer, &len, locking);
+    if ((owned_buffer) && (len)) {
+        SetVariable(PARAMETER(0), -1, owned_buffer, len);
+        // SET_BUFFER(0, temp->c_str(), temp->Length());
     } else {
         SET_STRING(0, "");
     }
-    if (temp)
-        delete temp;
     RETURN_NUMBER(size);
 END_IMPL
 //---------------------------------------------------------------------------
@@ -1200,27 +1256,29 @@ CONCEPT_FUNCTION_IMPL(WorkerSharedRWLock, 2)
     ThreadMetaContainer * tmc = NULL;
     Invoke(INVOKE_GETPROTODATA, PARAMETERS->HANDLER, (int)2, &tmc);
     if (!tmc)
-        return (void *)"Using a worker function on a non-worker";
+        return (void *)"WorkerSharedRWLock: Using a worker function on a non-worker";
+    if (!tmc->sharecontext)
+        return (void *)"WorkerSharedRWLock: No shared context set";
 
     int non_blocking = 0;
     int return_code = 0;
     switch (PARAM_INT(1)) {
         case 1:
             // read lock
-            return_code = tmc->rwlock.ReadLock(PARAM(0), non_blocking);
+            return_code = tmc->sharecontext->rwlock.ReadLock(PARAM(0), non_blocking);
             break;
         case 2:
             // write lock
-            return_code = tmc->rwlock.WriteLock(PARAM(0), non_blocking);
+            return_code = tmc->sharecontext->rwlock.WriteLock(PARAM(0), non_blocking);
             break;
         case 3:
-            return_code = tmc->rwlock.ReadUnlock(PARAM(0));
+            return_code = tmc->sharecontext->rwlock.ReadUnlock(PARAM(0));
             break;
         case 4:
-            return_code = tmc->rwlock.WriteUnlock(PARAM(0));
+            return_code = tmc->sharecontext->rwlock.WriteUnlock(PARAM(0));
             break;
         case 0:
-            return_code = tmc->rwlock.DestroyLock(PARAM(0));
+            return_code = tmc->sharecontext->rwlock.DestroyLock(PARAM(0));
             break;
     }
     RETURN_NUMBER(return_code);
