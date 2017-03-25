@@ -24,6 +24,8 @@ define READ_BUFFER	0xFFFF
 
 // 256M packet
 define MAX_OP_SIZE	0xFFFFFFF
+// 2k for auth
+define MAX_NO_AUTH_SIZE	2048
 
 define ERR_DB		-1
 define ERR_DB_S		"Invalid db"
@@ -1074,6 +1076,11 @@ pragma used
 					while (buf) {
 						var to_read = FromSize(buf, var bytes);
 						if (to_read <= MAX_OP_SIZE) {
+							if ((!ctx.auth) && (to_read > MAX_NO_AUTH_SIZE)) {
+								// drop socket ... packet to large for unauthorized user
+								RemoveSocket(sock);
+								break;
+							}
 							if ((to_read > 0) && (to_read <= length buf - bytes)) {
 								buf2 = SubStr(buf, bytes, to_read);
 								buf = SubStr(buf, to_read + bytes);
