@@ -5223,9 +5223,11 @@ VariableDATA *ConceptInterpreter::Interpret(PIFAlizator *PIF, VariableDATA **LOC
 
 #ifdef USE_JIT_TRACE
     WRITE_LOCK
-    if (callcount == 1) {
-        if (!jittracecode)
+    if (callcount) {
+        if (callcount == 1) {
             this->AnalizeInstructionPath(OPT);
+            callcount = 2;
+        }
     } else
         callcount++;
     void **jittrace = jittracecode;
@@ -7346,7 +7348,7 @@ VariableDATA *ConceptInterpreter::Interpret(PIFAlizator *PIF, VariableDATA **LOC
     return RETURN_DATA;
 }
 
-VariableDATA **ConceptInterpreter::CreateEnviroment(PIFAlizator *PIF, VariableDATA *Sender, ParamList *FORMAL_PARAM, VariableDATA **SenderCTX, SCStack *STACK_TRACE, bool& can_run) {
+VariableDATA **ConceptInterpreter::CreateEnvironment(PIFAlizator *PIF, VariableDATA *Sender, ParamList *FORMAL_PARAM, VariableDATA **SenderCTX, SCStack *STACK_TRACE, bool& can_run) {
     VariableDATA **LOCAL_CONTEXT;
     Optimizer *OPT = (Optimizer *)this->OWNER->OPTIMIZER;
 

@@ -240,7 +240,7 @@ VariableDATA *ClassMember::Execute(void *PIF, intptr_t CONCEPT_CLASS_ID, Variabl
     STACK_TRACE.TOP = &STACK_TRACE;
 
     bool         can_run;
-    VariableDATA **CONTEXT = ((ConceptInterpreter *)INTERPRETER)->CreateEnviroment((PIFAlizator *)PIF, Owner, FORMAL_PARAM, SenderCTX, &STACK_TRACE, can_run);
+    VariableDATA **CONTEXT = ((ConceptInterpreter *)INTERPRETER)->CreateEnvironment((PIFAlizator *)PIF, Owner, FORMAL_PARAM, SenderCTX, &STACK_TRACE, can_run);
     STACK_TRACE.LOCAL_CONTEXT = (void **)CONTEXT;
 
     if (CONTEXT)
@@ -395,7 +395,7 @@ GreenThreadCycle *ClassMember::CreateThread(void *PIF, intptr_t CONCEPT_CLASS_ID
     gtc->STACK_TRACE.stack_pos        = 0;
     gtc->STACK_TRACE.alloc_from_stack = 0;
     bool         can_be_run;
-    VariableDATA **CONTEXT = ((ConceptInterpreter *)INTERPRETER)->CreateEnviroment((PIFAlizator *)PIF, Owner, &FORMAL_PARAM, 0, &gtc->STACK_TRACE, can_be_run);
+    VariableDATA **CONTEXT = ((ConceptInterpreter *)INTERPRETER)->CreateEnvironment((PIFAlizator *)PIF, Owner, &FORMAL_PARAM, 0, &gtc->STACK_TRACE, can_be_run);
     gtc->LOCAL_CONTEXT             = CONTEXT;
     gtc->STACK_TRACE.LOCAL_CONTEXT = (void **)CONTEXT;
     if (CONTEXT)

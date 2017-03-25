@@ -23,13 +23,6 @@ class PIFAlizator;
 
 #define SYSTEM_SOCKET        INTEGER
 
-//
-//      function Main() {
-//      }
-//      }
-// }
-//
-
 typedef INTEGER (*CALL_BACK_VARIABLE_SET)(VariableDATA *VD, INTEGER TYPE, char *STRING_VALUE, NUMBER NUMBER_VALUE);
 typedef INTEGER (*CALL_BACK_VARIABLE_GET)(VariableDATA *VD, INTEGER *TYPE, char **STRING_VALUE, NUMBER *NUMBER_VALUE);
 
