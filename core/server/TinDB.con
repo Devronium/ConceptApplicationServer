@@ -1362,7 +1362,7 @@ pragma used
 							if (js) {
 								// js.variable("out", r.p);
 								// js.script(callback + "(out)", "callback.js");
-								js.call(callback, r.p);
+								js.call(callback, [r.p]);
 							}
 							return ["async" => true];
 						} else
@@ -1631,7 +1631,7 @@ pragma used
 					var js = EnsureJSContext(db);
 					// js.variable("out", data);
 					// js.script(callback + "(out)", "callback.js");
-					js.call(callback, data);
+					js.call(callback, [data]);
 					js.gc();
 				}
 			}
@@ -1742,7 +1742,7 @@ pragma used
 										if (o) {
 											// js.variable("self", o);
 											// js.script("_r();");
-											js.call("_r", o);
+											js.call("_r", [o]);
 										}
 									}, js);
 									r.p = js.script("out;");
