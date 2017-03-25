@@ -1360,8 +1360,9 @@ pragma used
 						}
 						if (callback) {
 							if (js) {
-								js.variable("out", r.p);
-								js.script(callback + "(out)", "callback.js");
+								// js.variable("out", r.p);
+								// js.script(callback + "(out)", "callback.js");
+								js.call(callback, r.p);
 							}
 							return ["async" => true];
 						} else
@@ -1628,8 +1629,9 @@ pragma used
 					db = this.EnsureDBByName(dbname);
 				if (db) {
 					var js = EnsureJSContext(db);
-					js.variable("out", data);
-					js.script(callback + "(out)", "callback.js");
+					// js.variable("out", data);
+					// js.script(callback + "(out)", "callback.js");
+					js.call(callback, data);
 					js.gc();
 				}
 			}
@@ -1735,11 +1737,12 @@ pragma used
 									var js = EnsureJSContext(db);
 									js.UserData[0]++;
 									js.variable("out", new DummyObject());
-									js.script("var _r = function() { " + reduce + " }");
+									js.script("var _r = function(self) { " + reduce + " }");
 									t.Query(obj.p, obj.f, obj.x["descending"], obj.x["start"], obj.x["len"], function(o, js) {
 										if (o) {
-											js.variable("self", o);
-											js.script("_r();");
+											// js.variable("self", o);
+											// js.script("_r();");
+											js.call("_r", o);
 										}
 									}, js);
 									r.p = js.script("out;");
