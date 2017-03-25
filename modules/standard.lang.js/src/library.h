@@ -31,5 +31,6 @@ CONCEPT_FUNCTION(JSObjectKey)
 //--------------------------------------------------------------//
 CONCEPT_FUNCTION(JSWrap)
 //--------------------------------------------------------------//
+CONCEPT_FUNCTION(JSCall)
 }
 #endif // __LIBRARY_H

@@ -75,6 +75,12 @@ class JS {
 		return rval;
 	}
 
+	call(string function_name, parameters = null) {
+		if (!parameters)
+			parameters = new [];
+		return JSCall(context, global, function_name, parameters);
+	}
+
 	wrap(delegate, string js_name) {
 		return JSWrap(context, global, delegate, js_name);
 	}

@@ -1186,3 +1186,57 @@ CONCEPT_FUNCTION_IMPL(JSObjectKey, 4)
     RETURN_NUMBER((int)prop_set);
 END_IMPL
 //------------------------------------------------------------------------
+CONCEPT_FUNCTION_IMPL(JSCall, 4)
+    T_HANDLE(JSCall, 0) // JSContext*
+    T_HANDLE(JSCall, 1) // JSObject*
+    T_STRING(JSCall, 2) // name
+    T_ARRAY(JSCall, 3)  // argv
+    RETURN_NUMBER(0);
+
+    JSContext *cx = (JSContext *)(SYS_INT)PARAM(0);
+    JSObject *obj = (JSObject *)(SYS_INT)PARAM(1);
+    unsigned int argc = Invoke(INVOKE_GET_ARRAY_COUNT, PARAMETER(3));
+#ifdef JS_OLDAPI
+    jsval *argv = NULL;
+    if (argc) {
+        argv = (jsval *)malloc(sizeof(jsval) * argc);
+        for (INTEGER i = 0; i < argc; i++) {
+            argv[i] = JSVAL_VOID;
+            void *elem_data = NULL;
+            Invoke(INVOKE_ARRAY_VARIABLE, PARAMETER(3), (INTEGER)i, &elem_data);
+            if (elem_data) {
+                argv[i] = CONCEPT_TO_JS(PARAMETERS->HANDLER, cx, elem_data);
+            }
+        }
+    }
+    DECLARE_JSVAL(rval);
+    bool called = JS_CallFunctionName(cx, obj, PARAM(2), argc, argv, &rval);
+    if (argv)
+        free(argv);
+#else
+    JS::RootedObject global(cx, obj);
+    JSAutoCompartment ac(cx, global);
+
+    jsval *argv = NULL;
+    if (argc) {
+        argv = new jsval[argc];
+        for (INTEGER i = 0; i < argc; i++) {
+            void *elem_data = NULL;
+            Invoke(INVOKE_ARRAY_VARIABLE, PARAMETER(3), (INTEGER)i, &elem_data);
+            if (elem_data) {
+                argv[i] = CONCEPT_TO_JS(PARAMETERS->HANDLER, cx, elem_data);
+            }
+        }
+    }
+    JS::HandleValueArray args = JS::HandleValueArray::fromMarkedLocation(argc, argv);
+
+    JS::RootedValue rval(cx);
+    bool called = JS_CallFunctionName(cx, global, PARAM(2), args, &rval);
+    if (argv)
+        delete[] argv;
+#endif
+    if (called) {
+        JS_TO_CONCEPT(PARAMETERS->HANDLER, cx, RESULT, rval);
+    }
+END_IMPL
+//------------------------------------------------------------------------
