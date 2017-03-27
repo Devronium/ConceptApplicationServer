@@ -63,8 +63,8 @@ define BUSY_FSYNC_LIMIT	 	10000
 // max 5 connections per node
 define SYNC_CONNECTIONS_MAX	5
 
-// ring reload timeout (5 seconds)
-define RING_RELOAD_TIMEOUT	5
+// ring reload timeout (60 seconds)
+define RING_RELOAD_TIMEOUT	60
 
 // fsync every 5 seconds
 define BUSY_FSYNC_TIMEOUT	5
@@ -281,7 +281,7 @@ class Journal {
 		last_sync = microseconds();
 	}
 
-	Read(newerthan = 0) {
+	Read(newerthan = 0, no_unserialize = false) {
 		var name = this.f.Name;
 		this.Done();
 		var f2 = new File("rb");
@@ -308,7 +308,10 @@ class Journal {
 						var offset = record[1];
 						if (offset <= 0)
 							offset = -1;
-						records[length records] = ["time" => record[0], "flags" => record[4], "collection" => collection, '$' => offset, "data" => UnBinarizeObject(buffer)];
+						if (no_unserialize)
+							records[length records] = ["time" => record[0], "flags" => record[4], "collection" => collection, '$' => offset, "data" => buffer];
+						else
+							records[length records] = ["time" => record[0], "flags" => record[4], "collection" => collection, '$' => offset, "data" => UnBinarizeObject(buffer)];
 					} else {
 						var seek_size = record_size + collection_size;
 						if (!f2.Seek(tell_offset + seek_size))
@@ -538,6 +541,21 @@ class Journal {
 		} catch (var exc) {
 			if (f)
 				f.Seek(0, SEEK_END);
+			echo exc;
+		}
+		last_cleanup = time();
+	}
+
+
+	Reset() {
+		try {
+			var name = f.Name;
+			this.Done();
+			if (name) {
+				_unlink(name);
+				this.Open(name);
+			}
+		} catch (var exc) {
 			echo exc;
 		}
 		last_cleanup = time();
@@ -2929,9 +2947,11 @@ class QuerySyncWorker {
 	protected var QueryWorkers;
 	protected var QueryWorkerIndex = 0;
 	protected var journal;
-	protected var journalout;
+	protected var localjournal;
 	protected var opid;
 	protected var[] NotSynced;
+	protected var[] NotWritten;
+	protected var[] NotConfirmed;
 	protected var[] Neighbours;
 	protected var[] buffers;
 	protected var[] local_ring;
@@ -2940,10 +2960,12 @@ class QuerySyncWorker {
 	protected var NodeHost = "";
 	protected var poll;
 	protected var RingTimeout;
+	protected var current_worker;
 
 	Execute(var data) {
+		var wait_confirmation = false;
 		if (!data)
-			return;
+			return wait_confirmation;
 
 		var obj = UnBinarizeObject(data);
 		if (obj) {
@@ -2963,8 +2985,23 @@ class QuerySyncWorker {
 				obj.p['$'] = 0;
 			obj.notrig = true;
 			obj.origp = origin_node;
+			if (obj.r)
+				obj.r.p = null;
+			switch (obj.o) {
+				case "I":
+				case "U":
+				case "D":
+					// insert/update/delete neeed confirmation
+					obj.io = current_worker;
+					obj.aindex = sha1(data);
+					if ((typeof obj.x == "array") && (IsSet(obj.x, "silent")))
+						obj.x["silent"] = false;
+					wait_confirmation = true;
+					break;
+			}
 			AddWorkerData(worker, BinarizeObject([-20, obj]));
 		}
+		return wait_confirmation;
 	}
 
 	CreateNeighbour() {
@@ -3008,8 +3045,12 @@ class QuerySyncWorker {
 				for (var i = 0; i < length NotSynced; i++) {
 					var data = NotSynced[i];
 					if (data) {
-						if (SocketIOBase::SendBufferWithSize(socket, data)) {
-							journalout.Log(data, "sync", opid++, 1);
+						if ((socket) && (SocketIOBase::SendBufferWithSize(socket, data))) {
+							if ((SocketRead(socket, var buffer, 3) != 3) || (buffer != "\x02OK")) {
+								this.RemoveSocket(socket);
+								socket = 0;
+							} else
+								journal.Log(data, "sync", opid++, 3);
 						} else {
 							new_notsync[length new_notsync] = data;
 							// conection broken, remove neighbour
@@ -3018,6 +3059,9 @@ class QuerySyncWorker {
 					}
 				}
 				NotSynced = new_notsync;
+				// nothing to sync, reset journal
+				if (length new_notsync == 0)
+					journal.Reset();
 			}
 		}
 	}
@@ -3190,7 +3234,10 @@ class QuerySyncWorker {
 					if ((to_read > 0) && (to_read <= length buf - bytes)) {
 						var buf2 = SubStr(buf, bytes, to_read);
 						buf = SubStr(buf, to_read + bytes);
-						Execute(buf2);
+						if (SocketWrite(sock, "\x02OK") == 3) {
+							localjournal.Log(buf2, "sync", opid++, 1);
+							NotWritten[length NotWritten] = buf2;
+						}
 					} else {
 						ctx.buffer = buf;
 						break;
@@ -3203,11 +3250,82 @@ class QuerySyncWorker {
 		}
 	}
 
+	WriteSync() {
+		var wait_confirmation = new [];
+		for (var i = 0; i < length NotWritten; i++) {
+			var buf = NotWritten[i];
+			if (buf) {
+				if (Execute(buf))
+					wait_confirmation[length wait_confirmation] = buf;
+				else
+					localjournal.Log(buf, "sync", opid++, 3);
+			}
+		}
+		NotWritten = new [];
+		NotConfirmed = wait_confirmation;
+		if (!wait_confirmation)
+			localjournal.Reset();
+	}
+
+	ConfirmMessage(written_buf_hash) {
+		var wait_confirmation = new [];
+		
+		for (var i = 0; i < length NotConfirmed; i++) {
+			var buf = NotConfirmed[i];
+			if (buf) { 
+				if (sha1(buf) == written_buf_hash)
+					localjournal.Log(buf, "sync", opid++, 3);
+				else
+					wait_confirmation[length wait_confirmation] = buf;
+			}
+		}
+		NotConfirmed = wait_confirmation;
+		if (!wait_confirmation)
+			localjournal.Reset();
+	}
+
+	LoadJournal(data) {
+		var target = new [];
+		if (data) {
+			var buffers = new [];
+			for (var i = 0; i < length data; i++) {
+				var e = data[i];
+				if (e) {
+					var buf = e["data"];
+					var flags = e["flags"];
+					if (buf) {
+						var key = sha1(buf);
+						if (flags == 3)
+							buffers[key] = "";
+						else
+							buffers[key] = buf;
+					}
+				}
+			}
+			for (i = 0; i < length buffers; i++) {
+				buf = buffers[i];
+				if (buf)
+					target[length target] = buf;
+			}
+			if (target)
+				echo "${length target} records to sync\n";
+		}
+		return target;
+	}
+
 	QuerySyncWorker(n) {
+		current_worker = CurrentWorker();
 		journal = new Journal("sync");
 		journal.AutoClean = false;
-		journalout = new Journal("syncwrite");
-		journalout.AutoClean = false;
+
+		localjournal = new Journal("syncwrite");
+		localjournal.AutoClean = false;
+
+		echo "Checking sync journal ...\n";
+		NotSynced = LoadJournal(journal.Read(0, true));
+		echo "Checking local sync journal ...\n";
+		NotWritten = LoadJournal(localjournal.Read(0, true));
+		echo "Done\n";
 
 		n = UnBinarizeObject(n);
 		QueryWorkers = n[0];
@@ -3247,7 +3365,14 @@ class QuerySyncWorker {
 				var iterations = 0;
 				do {
 					try {
-						NotifyNeighbours(data);
+						var data_container = UnBinarizeObject(data);
+						if (typeof data_container == "array") {
+							// is confirmation
+							var obj = UnBinarizeObject(data_container[1]);
+							if (obj)
+								ConfirmMessage(obj.aindex);
+						} else
+							NotifyNeighbours(data);
 					} catch (exc) {
 						echo "SyncWorker: $exc\n";
 					}
@@ -3260,6 +3385,7 @@ class QuerySyncWorker {
 				LoadRing();
 			// try to sync
 			Sync();
+			WriteSync();
 		}
 	}
 }
