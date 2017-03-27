@@ -3244,11 +3244,17 @@ class QuerySyncWorker {
 				}
 			}
 			if ((Worker::Pending(data, timeout)) && (data)) {
-				try {
-					NotifyNeighbours(data);
-				} catch (exc) {
-					echo "SyncWorker: $exc\n";
-				}
+				var iterations = 0;
+				do {
+					try {
+						NotifyNeighbours(data);
+					} catch (exc) {
+						echo "SyncWorker: $exc\n";
+					}
+					iterations++;
+					if (iterations >= BUSY_FSYNC_LIMIT)
+						break;
+				} while ((Worker::Pending(data, 0)) && (data));
 			}
 			if (time() > RingTimeout)
 				LoadRing();
