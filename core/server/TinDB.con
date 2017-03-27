@@ -20,6 +20,8 @@ define TIN_VERSION	"1.0BETA"
 define TIN_DEBUG	false
 define TIN_FORCESYNC	true
 define TIN_JOURNALING	true
+define TIN_CLUSTER	false
+
 define READ_BUFFER	0xFFFF
 
 // 256M packet
@@ -57,6 +59,12 @@ define MAX_CACHE_OBJECT_LEN	50000
 define MAX_CACHE_OBJECT_SIZE	8388608
 
 define BUSY_FSYNC_LIMIT	 	10000
+
+// max 5 connections per node
+define SYNC_CONNECTIONS_MAX	5
+
+// ring reload timeout (5 seconds)
+define RING_RELOAD_TIMEOUT	5
 
 // fsync every 5 seconds
 define BUSY_FSYNC_TIMEOUT	5
@@ -96,6 +104,14 @@ class SocketIOBase {
 			offset += res;
 		} while (offset < length to_send);
 		return offset;
+	}
+
+	static SendBufferWithSize(socket, to_send) {
+		to_send = ToSize(length to_send) + to_send;
+		var sent = SocketIOBase::SendBuffer(socket, to_send);
+		if (sent != length to_send)
+			return false;
+		return true;
 	}
 
 	Send(socket, io = 0) {
@@ -157,6 +173,31 @@ pragma used
 	var[] p;
 }
 
+class SyncContext {
+	var buffer = "";
+	var key;
+	var direction;
+	var socket;
+
+	SyncContext(ip, direction, sockfd) {
+		this.key = ip;
+		this.direction = direction;
+		this.socket = sockfd;
+	}
+}
+
+class SyncNode {
+	var host;
+	var name;
+	var port;
+	
+	SyncNode(host, name = "", port = 2669) {
+		this.host = host;
+		this.name = name;
+		this.port = port;
+	}
+}
+
 class ConnectionContext {
 	var buffer = "";
 	var challenge = "";
@@ -206,6 +247,7 @@ class Journal {
 	var f;
 	var last_sync;
 	var last_cleanup;
+	var AutoClean = true;
 
 	Journal(name) {
 		if ((!FileExists(name)) || (_filesize(name) < 64)) {
@@ -515,9 +557,11 @@ class Journal {
 					f.Sync();
 					last_sync = microseconds();
 				}
-				var now = time();
-				if (now - last_cleanup > LOG_CLEAN_TIMEOUT)
-					Clean(now - LOG_CLEAN_TIMEOUT);
+				if (AutoClean) {
+					var now = time();
+					if (now - last_cleanup > LOG_CLEAN_TIMEOUT)
+						Clean(now - LOG_CLEAN_TIMEOUT);
+				}
 			} catch (var exc) {
 				echo "Log error: $exc\n";
 				return false;
@@ -554,6 +598,16 @@ pragma used
 	static InvalidateCache(d, c) {
 		var key = "/" + d + "/" + c;
 		Worker::Remove(key);
+	}
+
+	static Sync(obj, syncworker) {
+		if (syncworker)
+			AddWorkerData(syncworker, BinarizeObject(obj));
+	}
+
+	static InvalidateCacheSync(obj, syncworker = null) {
+		QueryWorkerBase::InvalidateCache(obj.d, obj.c);
+		QueryWorkerBase::Sync(obj, syncworker);
 	}
 
 	static Cache(obj, r) {
@@ -655,7 +709,7 @@ pragma used
 				r.p = KeySorted(r.p);
 		} else
 		if (type == "version")
-			r.p = ["version" => TIN_VERSION, "forcesync" => TIN_FORCESYNC, "maxopsize" => MAX_OP_SIZE, "debug" => TIN_DEBUG, "js" => true];
+			r.p = ["version" => TIN_VERSION, "forcesync" => TIN_FORCESYNC, "maxopsize" => MAX_OP_SIZE, "debug" => TIN_DEBUG, "js" => true, "cluster" => TIN_CLUSTER, "journaling" => TIN_JOURNALING];
 
 		if ((!obj.io) || (obj.io != current_worker))
 			r.Send(sock, obj.io);
@@ -1049,7 +1103,7 @@ pragma used
 				this.Notify(job[1], job[2]);
 			} else
 			if (remote_obj) {
-				if ((remote_obj) && (classof remote_obj == "Q") && (remote_obj.o) && ((remote_obj.o == "W") || (remote_obj.o == "Q")))
+				if (((remote_obj) && (classof remote_obj == "Q") && (remote_obj.o) && ((remote_obj.o == "W") || (remote_obj.o == "Q"))) || (socket == -20))
 					Dispatch(RequestAuth, null, -1, null, next_worker, next_a_worker, next_idle_worker, storage_dbs, storage_workers, aggregation_workers, idle_workers, remote_obj, current_worker, "", storage_dbs_w);
 			}
 			remote_obj = null;
@@ -1168,6 +1222,7 @@ pragma used
 	var journal;
 	var[] jsctx;
 	var jsworker;
+	var syncworker;
 
 	GetDelegate(dbobject, db, name, var objects, var members, r = null) {
 		var arr = StrSplit(name, ".");
@@ -1529,7 +1584,6 @@ pragma used
 			var data = ReadFile("server.js");
 			if (data)
 				js.script(data, "server.js");
-
 			if (!skip_code) {
 				data = db.ReadJS();
 				if (data)
@@ -1848,7 +1902,7 @@ pragma used
 								trigger = _triggers["${obj.d}.${obj.c}"];
 								t.Reopen(true);
 								t.Lock(true);
-								QueryWorker::InvalidateCache(obj.d, obj.c);
+								// QueryWorker::InvalidateCache(obj.d, obj.c);
 								if (multi_insert) {
 									id = new [];
 									t.SetIndexLock(2);
@@ -1992,6 +2046,8 @@ pragma used
 									if (id > 0)
 										obj.p['$'] = id;
 								}
+								if (r.id)
+									QueryWorker::InvalidateCacheSync(obj, syncworker);
 								if (TIN_FORCESYNC)
 									t.FlushDB(false);
 								else
@@ -2104,7 +2160,8 @@ pragma used
 									}
 								}, update_data);
 								if (update_data[7]) {
-									QueryWorker::InvalidateCache(obj.d, obj.c);
+									// QueryWorker::InvalidateCache(obj.d, obj.c);
+									QueryWorker::InvalidateCacheSync(obj, syncworker);
 									non_flushed_writes += update_data[7];
 								}
 								if (unique_fields)
@@ -2162,7 +2219,8 @@ pragma used
 							}, update_data);
 							var count = update_data[4];
 							if (count) {
-								QueryWorker::InvalidateCache(obj.d, obj.c);
+								// QueryWorker::InvalidateCache(obj.d, obj.c);
+								QueryWorker::InvalidateCacheSync(obj, syncworker);
 								non_flushed_writes += count;
 							}
 							t.Unlock(true);
@@ -2178,7 +2236,8 @@ pragma used
 							var created_indexes = t.EnsureIndexes(obj.p);
 							t.Unlock();
 							if (created_indexes) {
-								QueryWorker::InvalidateCache(obj.d, obj.c);
+								// QueryWorker::InvalidateCache(obj.d, obj.c);
+								QueryWorker::InvalidateCacheSync(obj, syncworker);
 								this.ResetDBS(true);
 							}
 							non_flushed_writes++;
@@ -2195,7 +2254,8 @@ pragma used
 								removed = t.DeleteIndexes(obj.p);
 							t.Unlock(true);
 							if (removed) {
-								QueryWorker::InvalidateCache(obj.d, obj.c);
+								// QueryWorker::InvalidateCache(obj.d, obj.c);
+								QueryWorker::InvalidateCacheSync(obj, syncworker);
 								this.ResetDBS(true);
 								non_flushed_writes++;
 							}
@@ -2218,7 +2278,8 @@ pragma used
 								echo "Index exists (${end_time/1000}ms)\n";
 							} else {
 								echo "Full text index created in ${end_time/1000}ms\n";
-								QueryWorker::InvalidateCache(obj.d, obj.c);
+								// QueryWorker::InvalidateCache(obj.d, obj.c);
+								QueryWorker::InvalidateCacheSync(obj, syncworker);
 								this.ResetDBS(true);
 							}
 							non_flushed_writes++;
@@ -2412,7 +2473,8 @@ pragma used
 									r.e = ERR_COLLECTION;
 									r.et = ERR_COLLECTION_S;
 								}
-								QueryWorker::InvalidateCache(obj.d, obj.c);
+								// QueryWorker::InvalidateCache(obj.d, obj.c);
+								QueryWorker::InvalidateCacheSync(obj, syncworker);
 								this.ResetDBS(true);
 							}
 						} else {
@@ -2531,6 +2593,7 @@ pragma used
 		var n_data = UnBinarizeObject(storage_data);
 		var all_workers = n_data[0];
 		jsworker = n_data[1];
+		syncworker = n_data[2];
 		var current_worker = CurrentWorker();
 		counter = RandomInteger(0, 0xFFF0);
 
@@ -2845,6 +2908,337 @@ class QueryAggregator {
 	}
 }
 
+class QuerySyncWorker {
+	protected var QueryWorkers;
+	protected var QueryWorkerIndex = 0;
+	protected var journal;
+	protected var journalout;
+	protected var opid;
+	protected var[] NotSynced;
+	protected var[] Neighbours;
+	protected var[] buffers;
+	protected var[] local_ring;
+	protected var[] validips;
+	protected var NodeName = "";
+	protected var NodeHost = "";
+	protected var poll;
+	protected var RingTimeout;
+
+	Execute(var data) {
+		if (!data)
+			return;
+
+		var obj = UnBinarizeObject(data);
+		if (obj) {
+			var origin_node = obj.origp;
+			if (origin_node) {
+				// already written
+				if (origin_node == NodeName)
+					return;
+			} else
+				origin_node = NodeName;
+			var worker = QueryWorkers[QueryWorkerIndex++];
+			if (QueryWorkerIndex >= length QueryWorkers)
+				QueryWorkerIndex = 0;
+			obj.MakeSafe();
+			// don't use offsets
+			if ((typeof obj.p == "array") && (IsSet(obj.p, '$')))
+				obj.p['$'] = 0;
+			obj.origp = origin_node;
+			AddWorkerData(worker, BinarizeObject([-20, obj]));
+		}
+	}
+
+	CreateNeighbour() {
+		for (var i = 0; i < length local_ring; i++) {
+			var node = local_ring[i];
+			if (node) {
+				var socket = new TCPSocket();
+				try {
+					if (socket.Connect(node.host, node.port)) {
+						var sockfd = socket.Socket;	
+						// no autoclose
+						socket.Socket = -1;
+						var ctx = this.AddSocket(sockfd, node.host, 1);
+						if (ctx)
+							return sockfd;
+					}
+				} catch (var exc) {
+					echo "Error connecting to ${node.host}:${node.port}: $exc\n";
+				}
+				// try just next neighbour to mantain correct order
+				break;
+			}
+		}
+		return null;
+	}
+
+	ChooseNeighbour() {
+		for (var i = 0; i < length buffers; i++) {
+			var ctx = buffers[i];
+			if ((ctx) && (ctx.direction))
+				return ctx.socket;
+		}
+		return CreateNeighbour();
+	}
+
+	Sync() {
+		if (NotSynced) {
+			var socket = ChooseNeighbour();
+			if (socket) {
+				var new_notsync = new [];
+				for (var i = 0; i < length NotSynced; i++) {
+					var data = NotSynced[i];
+					if (data) {
+						if (SocketIOBase::SendBufferWithSize(socket, data)) {
+							journalout.Log(data, "sync", opid++, 1);
+						} else {
+							new_notsync[length new_notsync] = data;
+							// conection broken, remove neighbour
+							this.RemoveSocket(socket);
+						}
+					}
+				}
+				NotSynced = new_notsync;
+			}
+		}
+	}
+
+	NotifyNeighbours(var data) {
+		if (data) {
+			journal.Log(data, "sync", opid++, 1);
+			NotSynced[length NotSynced] = data;
+			Sync();
+		}
+	}
+
+	Order(arr, index) {
+		var[] nodes;
+		for (var i = index + 1; i < length arr; i++)
+			nodes[length nodes] = arr[i];
+
+		for (i = 0; i < index; i++)
+			nodes[length nodes] = arr[i];
+
+		return nodes;
+	}
+
+	ClearOutNeighbours() {
+		var[] neighbours;
+		for (var i = 0; i < length buffers; i++) {
+			var ctx = buffers[i];
+			if ((ctx) && (ctx.direction))
+				neighbours[length neighbours] = ctx;
+		}
+		for (i = 0; i < length neighbours; i++)
+			this.RemoveSocket(neighbours[i].socket);
+	}
+
+	LoadRing(path = ".") {
+		// set timeout here, in case we fail
+		RingTimeout = time() + RING_RELOAD_TIMEOUT;
+
+		var node = ReadFile(path + "/node.json");
+		if (!node)
+			return;
+
+		node = JSONDeserialize(node);
+		if (!node) {
+			echo "Error parsing node config file\n";
+			return;
+		}
+
+		var name = node["name"] ?? "";
+		var host = node["host"] ?? "";
+		if (!host) {
+			echo "Node host is not set\n";
+			return;
+		}
+
+		var data = ReadFile(path + "/ring.json");
+		if (!data)
+			return;
+
+		data = JSONDeserialize(data);
+		if ((!data) || (typeof data != "array")) {
+			echo "Error paring ring config file\n";
+			return;
+		}
+
+		NodeName = name ?? host;
+		NodeHost = host;
+
+		var keys = GetKeys(data);
+		var[] all_nodes;
+		var this_node_index = -1;
+		var[] all_hosts;
+		for (var i = 0; i < length keys; i++) {
+			var node_element = data[i];
+			if (node_element) {
+				if (typeof node_element == "array") {
+					var node_host = node_element["host"] ?? "";
+					var node_name = node_element["name"] ?? node_host;
+					var node_port = (value node_element["port"]) ?? 2669;
+					if (node_host) {
+						all_hosts[node_host] = true;
+						if (node_host == host)
+							this_node_index = length all_nodes;
+						all_nodes["$node_host:$node_port"] = new SyncNode(node_host, node_name, node_port);
+					}
+				} else
+				if (typeof node_element == "string") {
+					node_host = node_element;
+					if (node_host == host)
+						this_node_index = length all_nodes;
+					all_nodes["$node_host:2669"] = new SyncNode(node_host, node_host);
+					all_hosts[node_host] = true;
+				}
+			}
+		}
+		validips = all_hosts;
+		if (this_node_index == -1) {
+			echo "Cannot identify current node in node list\n";
+			return;
+		}
+
+		local_ring = Order(all_nodes, this_node_index);
+		ClearOutNeighbours();
+		// reset timeout (didn't fail)
+		RingTimeout = time() + RING_RELOAD_TIMEOUT;
+	}
+
+	ValidIP(ip) {
+		if (IsSet(validips, ip))
+			return validips[ip];
+		return false;
+	}
+
+	RemoveSocket(sock) {
+		var list = this.Neighbours;
+		var new_list = new [];
+		var buffers = this.buffers;
+		var buf = new [];
+		var keys = GetKeys(buffers);
+		var sock_key = "" + sock;
+		for (var i = 0; i < length list; i++) {
+			var s = list[i];
+			var k = keys[i];
+			if ((s) && (s != sock))
+				new_list[length new_list] = s;
+			if ((k) && (k != sock_key))
+				buf[k] = buffers[k];
+		}
+		this.poll.remove(sock);
+		SocketClose(sock);
+		this.buffers = buf;
+		this.Neighbours = new_list;
+	}
+
+	AddSocket(sockfd, ip, direction) {
+		var old_sock = Neighbours[ip];
+		if (old_sock)
+			this.poll.remove(old_sock);
+		Neighbours[ip] = sockfd;
+		this.poll.add(sockfd);
+		var ctx = new SyncContext(ip, direction, sockfd);
+		buffers["" + sockfd] = ctx;
+		return ctx;
+	}
+
+	ValidHost(sockfd) {
+		var info = SocketInfo(sockfd);
+		if (info) {
+			var ip = info["address"];
+			if (ValidIP(ip)) {
+				AddSocket(sockfd, ip, 0);
+				return true;
+			}
+		}
+		return false;
+	}
+
+	Dispatch(sock) {
+		var res = SocketRead(sock, var buffer, READ_BUFFER);
+		if (res > 0) {
+			var ctx = buffers["" + sock];
+			if (!ctx) {
+				RemoveSocket(sock);
+				return;
+			}
+			var buf = ctx.buffer + buffer;
+			while (buf) {
+				var to_read = FromSize(buf, var bytes);
+				if (to_read <= MAX_OP_SIZE) {
+					if ((to_read > 0) && (to_read <= length buf - bytes)) {
+						var buf2 = SubStr(buf, bytes, to_read);
+						buf = SubStr(buf, to_read + bytes);
+						Execute(buf2);
+					} else {
+						ctx.buffer = buf;
+						break;
+					}
+					ctx.buffer = buf;
+				}
+			}
+		} else {
+			RemoveSocket(sock);
+		}
+	}
+
+	QuerySyncWorker(n) {
+		journal = new Journal("sync");
+		journal.AutoClean = false;
+		journalout = new Journal("syncwrite");
+		journalout.AutoClean = false;
+
+		n = UnBinarizeObject(n);
+		QueryWorkers = n[0];
+		var port = n[1];
+		var interface = n[2];
+		
+		var Socket = new TCPSocket();
+		if (Socket.Listen(port, SYNC_CONNECTIONS_MAX, interface)) {
+			throw "Error initializing TinDB sync socket (port ${port} already in use)";
+			panicexit(-1);
+		}
+
+		opid = RandomInteger(1, 0xFFFF);
+		this.poll = new Poll();
+		var server_socket = Socket.Socket;
+		this.poll.add(server_socket);
+		var timeout = 500;
+		while (true) {
+			var data = "";
+			var outsockets = this.poll.wait(timeout);
+			if (outsockets) {
+				for (var i = 0; i < length outsockets; i++) {
+					var socket = outsockets[i];
+					if (socket == server_socket) {
+						try {
+							var client = Socket.Accept(true);
+							if (!ValidHost(client))
+								SocketClose(client);
+						} catch (var exc) {
+							echo "SyncWorker: $exc\n";
+						}
+					} else
+						Dispatch(socket);
+				}
+			}
+			if ((Worker::Pending(data, timeout)) && (data)) {
+				try {
+					NotifyNeighbours(data);
+				} catch (exc) {
+					echo "SyncWorker: $exc\n";
+				}
+			}
+			if (time() > RingTimeout)
+				LoadRing();
+			// try to sync
+			Sync();
+		}
+	}
+}
 
 class TinDB {
 	protected var[] QueryWorkers;
@@ -2853,6 +3247,7 @@ class TinDB {
 	protected var[] StorageWorkers;
 	protected var[] IDLEWorkers;
 	protected var[] AggregatorWorkers;
+	protected var SyncWorker;
 	protected var JSWorker;
 
 	Rotate(array, right) {
@@ -2872,7 +3267,7 @@ class TinDB {
 		return new_arr;
 	}
 
-	TinDB(workers = 4, storage_workers = 4, idle_workers = 1, aggregator_workers = 2) {
+	TinDB(sync_port = 2669, sync_interface = "", workers = 4, storage_workers = 4, idle_workers = 1, aggregator_workers = 2) {
 		RandomSeed(unpack("u32", CryptoRandom(4))[0]);
 		var[] sworkers;
 		var[] qworkers;
@@ -2909,12 +3304,20 @@ class TinDB {
 		}
 
 		JSWorker = new Worker("JSQueryWorker",  BinarizeObject(["QJSW1", sworkers, idleworkers]), context);
+		Sleep(100);
+
+		var sync_worker = null;
+		if (TIN_CLUSTER) {
+			SyncWorker = new Worker("QuerySyncWorker",  BinarizeObject([qworkers, sync_port, sync_interface]), context);
+			sync_worker = SyncWorker._workerobj;
+		}
+
 		AddWorkerData(JSWorker._workerobj, BinarizeObject([aworkers, qworkers]));
 
 		for (i = 0; i < length QueryWorkers; i++)
 			AddWorkerData(QueryWorkers[i]._workerobj, BinarizeObject([Rotate(aworkers, i), qworkers]));
 
-		var storage_bin = BinarizeObject([all_storage_workers, JSWorker._workerobj]);
+		var storage_bin = BinarizeObject([all_storage_workers, JSWorker._workerobj, sync_worker]);
 		for (i = 0; i < length all_storage_workers; i++)
 			AddWorkerData(all_storage_workers[i], storage_bin);
 	}
