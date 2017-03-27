@@ -587,6 +587,7 @@ pragma used
 	var[] buffers;
 	var[] other_workers;
 	var WorkerID;
+	var syncworker;
 
 	static WriterWorker(d, c, suggest_worker) {
 		var key = "*" + d + "/" + c;
@@ -854,8 +855,10 @@ pragma used
 				break;
 			case "!":
 				if ((!ctx) || (ctx.auth)) {
-					if ((obj.p) && (typeof obj.p == "array") && (obj.p["w"]))
+					if ((obj.p) && (typeof obj.p == "array") && (obj.p["w"])) {
 						this.Notify(obj.p["w"], obj.p["o"], true, sock);
+						this.Sync(obj, syncworker);
+					}
 				} else
 				if (RequestAuth)
 					RequestAuth(ctx, sock, t, obj, buf);
@@ -869,6 +872,7 @@ pragma used
 						if ((obj.p) && (IsSet(obj.p, "i")))
 							inc = obj.p["i"];
 						r.p = TinBase::Generator(obj.d, obj.p["g"], inc);
+						this.Sync(obj, syncworker);
 					} catch (exc) {
 						r.e = ERR_IO;
 						r.et = ERR_IO_S;
@@ -917,7 +921,7 @@ class JSQueryWorker extends QueryWorkerBase {
 			var socket = job[0];
 			var remote_obj = job[1];
 			if (socket == -7) {
-				this.Notify(job[1], job[2], true);
+				this.Notify(remote_obj, job[2], true);
 			} else
 			if ((remote_obj) && (classof remote_obj == "Q") && (remote_obj.o) && (remote_obj.cb))
 				Dispatch(null, null, -1, null, next_worker, next_a_worker, next_idle_worker, storage_dbs, storage_workers, aggregation_workers, idle_workers, remote_obj, current_worker, "", storage_dbs_w);
@@ -949,6 +953,8 @@ class JSQueryWorker extends QueryWorkerBase {
 		var ref_data = UnBinarizeObject(aggregation_data);
 		var aggregation_workers = ref_data[0];
 		var all_query_workers = ref_data[1];
+		syncworker = ref_data[2];
+
 		if (all_query_workers) {
 			for (var j = 0; j < length all_query_workers; j++) {
 				var q_worker = all_query_workers[j];
@@ -1102,7 +1108,7 @@ pragma used
 				}
 			} else
 			if (socket == -7) {
-				this.Notify(job[1], job[2]);
+				this.Notify(remote_obj, job[2]);
 			} else
 			if (remote_obj) {
 				if (((remote_obj) && (classof remote_obj == "Q") && (remote_obj.o) && ((remote_obj.o == "W") || (remote_obj.o == "Q"))) || (socket == -20))
@@ -1193,6 +1199,7 @@ pragma used
 		var ref_data = UnBinarizeObject(aggregation_data);
 		var aggregation_workers = ref_data[0];
 		var all_query_workers = ref_data[1];
+		syncworker = n[2];
 		if (all_query_workers) {
 			for (var j = 0; j < length all_query_workers; j++) {
 				var q_worker = all_query_workers[j];
@@ -1225,6 +1232,7 @@ pragma used
 	var[] jsctx;
 	var jsworker;
 	var syncworker;
+	var machineid;
 
 	GetDelegate(dbobject, db, name, var objects, var members, r = null) {
 		var arr = StrSplit(name, ".");
@@ -2589,7 +2597,7 @@ pragma used
 	oid() {
 		if (counter >= 0xFFFF)
 			counter = 0;
-		return TinDBOid::create(1, workerid, counter++);
+		return TinDBOid::create(machineid, workerid, counter++);
 	}
 
 	StorageWorker(n) {
@@ -2602,6 +2610,7 @@ pragma used
 		var all_workers = n_data[0];
 		jsworker = n_data[1];
 		syncworker = n_data[2];
+		machineid = n_data[3];
 		var current_worker = CurrentWorker();
 		counter = RandomInteger(0, 0xFFF0);
 
@@ -3276,7 +3285,7 @@ class TinDB {
 		return new_arr;
 	}
 
-	TinDB(sync_port = 2669, sync_interface = "", workers = 4, storage_workers = 4, idle_workers = 1, aggregator_workers = 2) {
+	TinDB(machineid = 1, sync_port = 2669, sync_interface = "", workers = 4, storage_workers = 4, idle_workers = 1, aggregator_workers = 2) {
 		RandomSeed(unpack("u32", CryptoRandom(4))[0]);
 		var[] sworkers;
 		var[] qworkers;
@@ -3321,12 +3330,12 @@ class TinDB {
 			sync_worker = SyncWorker._workerobj;
 		}
 
-		AddWorkerData(JSWorker._workerobj, BinarizeObject([aworkers, qworkers]));
+		AddWorkerData(JSWorker._workerobj, BinarizeObject([aworkers, qworkers, sync_worker]));
 
 		for (i = 0; i < length QueryWorkers; i++)
-			AddWorkerData(QueryWorkers[i]._workerobj, BinarizeObject([Rotate(aworkers, i), qworkers]));
+			AddWorkerData(QueryWorkers[i]._workerobj, BinarizeObject([Rotate(aworkers, i), qworkers, sync_worker]));
 
-		var storage_bin = BinarizeObject([all_storage_workers, JSWorker._workerobj, sync_worker]);
+		var storage_bin = BinarizeObject([all_storage_workers, JSWorker._workerobj, sync_worker, machineid]);
 		for (i = 0; i < length all_storage_workers; i++)
 			AddWorkerData(all_storage_workers[i], storage_bin);
 	}
@@ -3409,6 +3418,7 @@ class Main {
 			ini_file=getcwd()+"/concept.ini";
 
 		var user = IniGet(ini_file, "TinDB", "User", "");
+		var machineid = value IniGet(ini_file, "TinDB", "MachineID", "1");
 		var password = "";
 		if (user) {
 			password = IniGet(ini_file, "TinDB", "UserPassword", "");
@@ -3433,7 +3443,7 @@ class Main {
 		}
 		echo "Done, database seems to be OK\n";
 		TinDB::InitializeDatabases();
-		var db = new TinDB();
+		var db = new TinDB(machineid);
 		echo "Listening\n";
 		db.Start();
 	}

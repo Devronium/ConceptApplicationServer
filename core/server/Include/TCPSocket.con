@@ -46,7 +46,7 @@ class TCPSocket {
 		return SocketListen(Socket, port, max_connections, interface);
 	}
 
-	public function Accept(return_static_socket=false) {		
+	public function Accept(return_static_socket=false) {
 		if (Socket<=0)
 			throw "Invalid socket (Accept)";
 		if (!_islisten)

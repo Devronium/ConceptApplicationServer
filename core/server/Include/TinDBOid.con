@@ -4,7 +4,7 @@ import standard.C.time
 
 class TinDBOid {
 	static create(serverid, workerid, counter) {
-		return pack("U32U16U8U16", time(), serverid, workerid, counter);
+		return pack("U32U8U16U8U16", time(), serverid / 0x1000000, serverid % 0x1000000, workerid, counter);
 	}
 
 	static hex(oid) {
