@@ -147,6 +147,7 @@ pragma used
 	var data;
 	var child;
 	var child_data;
+	var notrig;
 
 	MakeSafe() {
 		this.r = null;
@@ -160,6 +161,7 @@ pragma used
 		this.data = null;
 		this.child = null;
 		this.child_data = null;
+		this.notrig = null;
 	}
 }
 
@@ -1900,6 +1902,8 @@ pragma used
 							if (t) {
 								var unique_fields = obj.x["unique"];
 								trigger = _triggers["${obj.d}.${obj.c}"];
+								if (obj.notrig)
+									trigger = null;
 								t.Reopen(true);
 								t.Lock(true);
 								// QueryWorker::InvalidateCache(obj.d, obj.c);
@@ -2074,6 +2078,8 @@ pragma used
 								r.p = null;
 								unique_fields = obj.x["unique"];
 								trigger = _triggers["${obj.d}.${obj.c}"];
+								if (obj.notrig)
+									trigger = null;
 								deleg = null;
 								if ((trigger) && (trigger.OnUpdate))
 									deleg = this.GetDelegate(db, obj.d, trigger.OnUpdate, objects, members);
@@ -2183,6 +2189,8 @@ pragma used
 							r.p = null;
 							unique_fields = obj.x["unique"];
 							trigger = _triggers["${obj.d}.${obj.c}"];
+							if (obj.notrig)
+								trigger = null;
 							deleg = null;
 							if ((trigger) && (trigger.OnDelete))
 								deleg = this.GetDelegate(db, obj.d, trigger.OnDelete, objects, members);
@@ -2944,6 +2952,7 @@ class QuerySyncWorker {
 			// don't use offsets
 			if ((typeof obj.p == "array") && (IsSet(obj.p, '$')))
 				obj.p['$'] = 0;
+			obj.notrig = true;
 			obj.origp = origin_node;
 			AddWorkerData(worker, BinarizeObject([-20, obj]));
 		}
