@@ -2961,6 +2961,8 @@ class QuerySyncWorker {
 	protected var poll;
 	protected var RingTimeout;
 	protected var current_worker;
+	protected var ring_checksum = "";
+	protected var node_checksum = "";
 
 	Execute(var data) {
 		var wait_confirmation = false;
@@ -3104,6 +3106,15 @@ class QuerySyncWorker {
 		if (!node)
 			return;
 
+		var local_checksum = sha256(node);
+		var data = ReadFile(path + "/ring.json");
+		var data_checksum = sha256(data);
+
+		if ((ring_checksum == data_checksum) && (node_checksum == local_checksum)) {
+			// nothing changed;
+			return;
+		}
+
 		node = JSONDeserialize(node);
 		if (!node) {
 			echo "Error parsing node config file\n";
@@ -3117,7 +3128,6 @@ class QuerySyncWorker {
 			return;
 		}
 
-		var data = ReadFile(path + "/ring.json");
 		if (!data)
 			return;
 
@@ -3166,6 +3176,8 @@ class QuerySyncWorker {
 		local_ring = Order(all_nodes, this_node_index);
 		ClearOutNeighbours();
 		// reset timeout (didn't fail)
+		node_checksum = local_checksum;
+		ring_checksum = data_checksum;
 		RingTimeout = time() + RING_RELOAD_TIMEOUT;
 	}
 
