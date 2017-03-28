@@ -3342,10 +3342,10 @@ class QuerySyncWorker {
 		this.poll = new Poll();
 		var server_socket = Socket.Socket;
 		this.poll.add(server_socket);
-		var timeout = 500;
+		var timeout = 100;
 		while (true) {
 			var data = "";
-			var outsockets = this.poll.wait(timeout);
+			var outsockets = this.poll.wait(0);
 			if (outsockets) {
 				for (var i = 0; i < length outsockets; i++) {
 					var socket = outsockets[i];
