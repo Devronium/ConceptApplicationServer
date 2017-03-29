@@ -267,7 +267,7 @@ class IOWorker extends Worker{
 		buf = rtrim(buf);
 		var buffer_upercase = StrReplace(ToUpper(buf), "\t", " ");
 		if (buffer_upercase) {
-			var syntax = ["INSERT INTO ", "DELETE FROM ", "REDUCE { ", "CODE { ", "CREATE ", "AFTER ", "BEFORE ", "SELECT ", "FROM ", "UPDATE ", "CREATE BM25 INDEX ON ", "CREATE INDEX(", "CREATE TRIGGER ", "SEQUENCE ", "USE ", "VALUES ", "* FROM ", "WHERE ", "OFFSET ", "LIMIT ", "LEFT JOIN ", "ORDER ASC", "ORDER DESC", "COLLECTIONS", "TOP", "VERSION", "IN (", "AND ", "{ }", "QUIT", "DROP COLLECTION ", "DROP INDEX(", "DROP BM25 INDEX ON ", "SET ", "DONE"];
+			var syntax = ["INSERT INTO ", "DELETE FROM ", "REDUCE { ", "CODE { ", "CREATE ", "AFTER ", "BEFORE ", "SELECT ", "FROM ", "UPDATE ", "CREATE BM25 INDEX ON ", "CREATE INDEX(", "CREATE TRIGGER ", "SEQUENCE ", "USE ", "VALUES ", "* FROM ", "WHERE ", "OFFSET ", "LIMIT ", "LEFT JOIN ", "ORDER ASC", "ORDER DESC", "COLLECTIONS", "TOP", "VERSION", "IN (", "AND ", "{ }", "QUIT", "DROP COLLECTION ", "DROP INDEX(", "DROP BM25 INDEX ON ", "SET ", "DONE", "NODE", "RING", "OUTPUT "];
 			var[] values;
 			for (var i = 0; i < length syntax; i++) {
 				var k = syntax[i];
@@ -304,6 +304,8 @@ class IOWorker extends Worker{
 				return " collection";
 			case "CREATE":
 				return " INDEX";
+			case "OUTPUT":
+				return " [file.csv|file.json|file.xml|file.bin||]";
 		}
 	}
 
@@ -1002,6 +1004,8 @@ class Main {
 				case "collections":
 				case "top":
 				case "version":
+				case "node":
+				case "ring":
 					connection.Info(s_lower, querycallback);
 					queries++;
 					echo "Request sent, waiting response (${queries} in queue, including this one)..." + NEW_LINE;

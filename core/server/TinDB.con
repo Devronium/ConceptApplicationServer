@@ -675,6 +675,21 @@ pragma used
 		return false;
 	}
 
+	static ReadJSON(json) {
+		var data = ReadFile(json);
+		if (data)
+			return JSONDeserialize(data) ?? [ ];
+		return [ ];
+	}
+
+	static NodeInfo(path = ".") {
+		return QueryWorkerBase::ReadJSON(path + "/node.json");
+	}
+
+	static ClusterInfo(path = ".") {
+		return QueryWorkerBase::ReadJSON(path + "/ring.json");
+	}
+
 	static DoInfo(obj, sock, current_worker) {
 		var r = new R();
 		r.q = obj.q;
@@ -731,6 +746,12 @@ pragma used
 		} else
 		if (type == "version")
 			r.p = ["version" => TIN_VERSION, "forcesync" => TIN_FORCESYNC, "maxopsize" => MAX_OP_SIZE, "debug" => TIN_DEBUG, "js" => true, "cluster" => TIN_CLUSTER, "journaling" => TIN_JOURNALING];
+		else
+		if (type == "node")
+			r.p = QueryWorkerBase::NodeInfo();
+		else
+		if (type == "ring")
+			r.p = QueryWorkerBase::ClusterInfo();
 
 		if ((!obj.io) || (obj.io != current_worker))
 			r.Send(sock, obj.io);
