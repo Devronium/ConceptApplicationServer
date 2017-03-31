@@ -2,6 +2,7 @@ include TCPSocket.con
 include Binarizable.con
 include Promise.con
 include TinDBOid.con
+include SQLParser.con
 
 import standard.lib.thread
 import standard.C.math
@@ -235,6 +236,172 @@ class TinConnection {
 	Info(string what, delegate callback) {
 		var q = new Q([what], "" + Database, "", "INFO");
 		this._Handle(q, callback);
+	}
+
+	sql(string, parameters = null, querycallback = null, userdata = null) {
+		var string_lo = trim(ToLower(string));
+		var queries = 0;
+		switch (string_lo) {
+			case "databases":
+			case "collections":
+			case "top":
+			case "version":
+			case "node":
+			case "ring":
+				this.Info(string_lo, querycallback);
+				queries++;
+				return queries;
+		}
+
+		var sql = SQLParser::parse(string, var err, parameters);
+		if (err)
+			throw err;
+		if (sql) {
+			var dataset, fields, collection, lang, keys;
+			for (var i = 0; i < length sql; i++) {
+				var q = sql[i];
+				if (q) {
+					if (IsSet(q, "SELECT")) {
+						fields = q["SELECT"];
+						if (q["DUMMY"]) {
+							queries++;
+							if (querycallback) {
+								if (userdata)
+									querycallback(fields, 0, null, userdata);
+								else
+									querycallback(fields, 0, null);
+							}
+							continue;
+						}
+						if ((fields) && (length fields == 1) && (fields[0] == "*"))
+							fields = null;	
+
+						collection = q["FROM"];
+						var where = q["WHERE"] ?? [ ];
+						dataset = new TinDataSet(this, collection);
+						dataset.UserData = userdata;
+						var mod = q["MOD"];
+						var join = q["JOIN"];
+						var reduce = q["REDUCE"];
+						if (mod) {
+							var agg = mod[0][0];
+							if (agg == "COUNT") {
+								dataset.Query(["#" => where], querycallback, fields, q["LIMIT"], q["OFFSET"], (q["ORDER"] == -1), q["PRIORITY"], false, reduce);
+							} else {
+								throw "Unsupported SQL function $agg";
+								break;
+							}
+						} else
+						if (join) {
+							var join_query = [where];	
+							for (var j = 0; j < length join; j++)
+								join_query[length join_query] = join[j];
+							dataset.Join(join_query, querycallback, fields, q["LIMIT"], q["OFFSET"], (q["ORDER"] == -1), q["PRIORITY"], reduce);
+						} else {
+							dataset.Query(where, querycallback, fields, q["LIMIT"], q["OFFSET"], (q["ORDER"] == -1), q["PRIORITY"], false, reduce);
+						}
+						queries++;
+					} else
+					if (IsSet(q, "INSERT")) {
+						collection = q["INTO"];
+						var values = q["INSERT"];
+						dataset = new TinDataSet(this, collection);
+						dataset.UserData = userdata;
+						keys = GetKeys(values);
+						dataset.Store(values, ((!keys) || (!keys[0])), querycallback);
+						queries++;
+					} else
+					if (IsSet(q, "DELETE")) {
+						collection = q["FROM"];
+						where = q["WHERE"] ?? [ ];
+						dataset = new TinDataSet(this, collection);
+						dataset.UserData = userdata;
+						dataset.Delete(where, querycallback, q["LIMIT"], q["OFFSET"], (q["ORDER"] == -1));
+						queries++;
+					} else
+					if (IsSet(q, "UPDATE")) {
+						collection = q["UPDATE"];
+						where = q["WHERE"] ?? [ ];
+						values = q["SET"];
+						dataset = new TinDataSet(this, collection);
+						dataset.UserData = userdata;
+						dataset.Update(where, values, querycallback, q["LIMIT"], q["OFFSET"], (q["ORDER"] == -1));
+						queries++;
+					} else
+					if (IsSet(q, "DROP")) {
+						collection = q["DROP"];
+						dataset = new TinDataSet(this, collection);
+						dataset.UserData = userdata;
+						dataset.Drop(querycallback);
+						queries++;
+					} else
+					if (IsSet(q, "INDEX")) {
+						collection = q["INDEX"];
+						values = q["ON"];
+						dataset = new TinDataSet(this, collection);
+						if (q["BM25"]) {
+							if (!values)
+								values = null;
+							lang = q["LANG"];
+							if (!lang)
+								lang = "en";
+							dataset = new TinDataSet(this, collection);
+							dataset.EnsureFullText(values, lang);
+						} else {
+							if (length values > 1)
+								values = [values];
+							dataset.EnsureIndexes(values);
+						}
+					} else
+					if (IsSet(q, "DROP INDEX")) {
+						collection = q["DROP INDEX"];
+						values = q["ON"];
+						if (length values > 1)
+							values = [values];
+						dataset = new TinDataSet(this, collection);
+						dataset.DropIndexes(values);
+					} else
+					if (IsSet(q, "DROP BM25")) {
+						collection = q["DROP BM25"];
+						values = q["ON"];
+						dataset = new TinDataSet(this, collection);
+						dataset.DropFullText();
+					} else
+					if (IsSet(q, "SEQUENCE")) {
+						collection = q["SEQUENCE"];
+						var increment = q["INCREMENT"];
+						dataset = new TinDataSet(this, collection);
+						dataset.UserData = userdata;
+						dataset.Generate(collection, querycallback, increment);
+						queries++;
+					} else
+					if (IsSet(q, "CODE")) {
+						var code = q["CODE"];
+						dataset = new TinDataSet(this, "db");
+						dataset.UserData = userdata;
+						dataset.js(code, querycallback);
+						queries++;
+					} else
+					if (IsSet(q, "EXEC")) {
+						code = q["EXEC"];
+						dataset = new TinDataSet(this, "db");
+						dataset.UserData = userdata;
+						dataset.exec(code, null, querycallback);
+						queries++;
+					} else
+					if (IsSet(q, "TRIGGER")) {
+						code = q["TRIGGERCODE"];
+						collection = q["TRIGGER"];
+						dataset = new TinDataSet(this, collection);
+						dataset.UserData = userdata;
+						dataset.jstriggers([q["EVENT"] => code], q["BEFORE"], querycallback);
+						queries++;
+					}
+				}
+			}
+			return queries;
+		}
+		return 0;
 	}
 
 	Disconnect() {
