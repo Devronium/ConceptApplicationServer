@@ -1238,7 +1238,7 @@ pragma used
 		var ref_data = UnBinarizeObject(aggregation_data);
 		var aggregation_workers = ref_data[0];
 		var all_query_workers = ref_data[1];
-		syncworker = n[2];
+		syncworker = ref_data[2];
 		if (all_query_workers) {
 			for (var j = 0; j < length all_query_workers; j++) {
 				var q_worker = all_query_workers[j];
