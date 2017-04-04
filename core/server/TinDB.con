@@ -3387,6 +3387,7 @@ class QuerySyncWorker {
 							var client = Socket.Accept(true);
 							if (!ValidHost(client))
 								SocketClose(client);
+							SocketSetOption(client, SOL_SOCKET, SO_RCVTIMEO, 10000);
 						} catch (var exc) {
 							echo "SyncWorker: $exc\n";
 						}
