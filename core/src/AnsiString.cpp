@@ -190,7 +190,8 @@ void AnsiString::operator=(const AnsiString& S) {
             _DATA_SIZE = ((len + 1) / BLOCK_SIZE) * BLOCK_SIZE + BLOCK_SIZE;
             Data = (char *)malloc(_DATA_SIZE);
         }
-        MEMCPY(Data, other_data, len + 1);
+        MEMCPY(Data, other_data, len);
+        Data[len] = 0;
     }
 }
 
@@ -479,7 +480,7 @@ void AnsiString::operator +=(const AnsiString& S) {
 
                 Data = (char *)realloc(Data, _DATA_SIZE);
             }
-            MEMCPY(Data + len, temp.Data, len_value + 1);
+            MEMCPY(Data + len, temp.Data, len_value);
         } else {
             len     = _LENGTH;
             _LENGTH = len + len_value;
@@ -489,8 +490,9 @@ void AnsiString::operator +=(const AnsiString& S) {
 
                 Data = (char *)realloc(Data, _DATA_SIZE);
             }
-            MEMCPY(Data + len, S.Data, len_value + 1);
+            MEMCPY(Data + len, S.Data, len_value);
         }
+        Data[_LENGTH] = 0;
     } else {
         operator=(S);
     }
@@ -867,7 +869,10 @@ void AnsiString::AddBuffer(const char *S_Data, int S_Len) {
     size_t len;
     size_t len_value;
 
-    if ((Data) && (S_Data)) {
+    if ((!S_Data) || (!S_Len))
+        return;
+
+    if (Data) {
         len       = _LENGTH;
         len_value = S_Len;
         _LENGTH   = len + len_value;
@@ -876,13 +881,15 @@ void AnsiString::AddBuffer(const char *S_Data, int S_Len) {
 
             Data = (char *)realloc(Data, _DATA_SIZE);
             if (Data) {
-                memcpy(Data + len, S_Data, len_value + 1);
+                memcpy(Data + len, S_Data, len_value);
+                Data[_LENGTH] = 0;
             } else {
                 _LENGTH    = 0;
                 _DATA_SIZE = 0;
             }
         } else {
-            memcpy(Data + len, S_Data, len_value + 1);
+            memcpy(Data + len, S_Data, len_value);
+            Data[_LENGTH] = 0;
         }
     } else {
         LoadBuffer(S_Data, S_Len);
