@@ -846,7 +846,7 @@ class BTreeFile {
 						if (filter_func)
 							validated = filter_func(key, val, filter_param);
 
-						if ((validated & QUERY_ELEMENT_VALID) && (pos >= start)) {
+						if ((validated & QUERY_ELEMENT_VALID) && ((pos >= start) || (val < 0))) {
 							if (ReverseKeyVal)
 								res[length res] = key;
 							else {
@@ -861,6 +861,7 @@ class BTreeFile {
 									if (start2 < 0)
 										start2 = 0;
 									var res2 = this.GetValues(-val, start2, limit2, additional_filter, filter_param);
+									start = start2;
 									res += res2;
 								} else
 									res[length res] = val;
@@ -880,6 +881,7 @@ class BTreeFile {
 							if (start2 < 0)
 								start2 = 0;
 							res2 = this.GetValues(-val, start2, limit2, additional_filter, filter_param);
+							start = start2;
 							if (res2)
 								res += res2;
 						}
@@ -951,6 +953,7 @@ class BTreeFile {
 									if (start2 < 0)
 										start2 = 0;
 									res2 = this.GetValues(-val2, start2, limit2, additional_filter, filter_param);
+									start = start2;
 									res += res2;
 								} else
 									res[length res] = val2;
@@ -1338,7 +1341,7 @@ class BTreeFile {
 		return ReadPage(elements);
 	}
 
-	GetValues(offset, start = 0, limit = -1, extra_validation = null, userdata = null) {
+	GetValues(offset, var start = 0, limit = -1, extra_validation = null, userdata = null) {
 		var[] res;
 
 		while (offset > 0) {
