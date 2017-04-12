@@ -153,5 +153,11 @@ CONCEPT_FUNCTION(ldap_create_assertion_control)
 CONCEPT_FUNCTION(ldap_derefresponse_free)
 CONCEPT_FUNCTION(ldap_parse_derefresponse_control)
 CONCEPT_FUNCTION(ldap_parse_deref_control)
+
+CONCEPT_FUNCTION(ldap_simple_bind_s)
+CONCEPT_FUNCTION(ldap_simple_bind)
+CONCEPT_FUNCTION(ldap_search)
+CONCEPT_FUNCTION(ldap_done)
+CONCEPT_FUNCTION(ldap_array)
 }
 #endif // __LIBRARY_H

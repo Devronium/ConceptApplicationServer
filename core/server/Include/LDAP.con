@@ -1,0 +1,39 @@
+import standard.net.ldap
+
+class LDAP {
+	var ld;
+
+	LDAP(string url, version = LDAP_VERSION3) {
+		ldap_initialize(ld, url, LDAP_VERSION3);
+	}
+
+	bind(string dn, string password, var err = null) {
+		if (!ld)
+			throw "LDAP not initialized";
+		err = ldap_simple_bind_s(ld, dn, password);
+		return !err;
+	}
+
+	unbind() {
+		if (ld)
+			ldap_done(ld);
+		ld = null;
+	}	
+
+	search(dn, filter = "", scope = LDAP_SCOPE_SUBTREE, limit = LDAP_NO_LIMIT, var err = 0) {
+		if (!ld)
+			throw "LDAP not initialized";
+
+		err = ldap_search(ld, dn, LDAP_SCOPE_SUBTREE, filter, limit, var msgid);
+		var data = [ ];
+		if (msgid) {
+			data = ldap_array(ld, msgid);
+			ldap_msgfree(msgid);
+		}
+		return data;
+	}
+
+	finalize() {
+		unbind();
+	}
+}

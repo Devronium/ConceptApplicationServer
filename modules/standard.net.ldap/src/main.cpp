@@ -4,6 +4,8 @@
 #include "library.h"
 #include "AnsiString.h"
 
+#define LDAP_DEPRECATED 1
+#include <lber.h>
 #include <ldap.h>
 
 INVOKE_CALL InvokePtr = 0;
@@ -764,7 +766,7 @@ CONCEPT_FUNCTION_IMPL(ldap_extended_operation, 6)
 // ... parameter 5 is by reference (int*)
     int local_parameter_5;
 
-    RETURN_NUMBER(ldap_extended_operation((LDAP *)(long)PARAM(0), PARAM(1), &local_parameter_2, &local_parameter_3, &local_parameter_4, &local_parameter_5))
+    RETURN_NUMBER(ldap_extended_operation((LDAP *)(uintptr_t)PARAM(0), PARAM(1), &local_parameter_2, &local_parameter_3, &local_parameter_4, &local_parameter_5))
 //SET_NUMBER(2, (long)local_parameter_2)
     SET_BERVAL(2, local_parameter_2)
 
@@ -788,7 +790,7 @@ CONCEPT_FUNCTION_IMPL(ldap_extended_operation_s, 7)
 // ... parameter 6 is by reference (berval**)
     berval *local_parameter_6;
 
-    RETURN_NUMBER(ldap_extended_operation_s((LDAP *)(long)PARAM(0), PARAM(1), &local_parameter_2, &local_parameter_3, &local_parameter_4, &local_parameter_5, &local_parameter_6))
+    RETURN_NUMBER(ldap_extended_operation_s((LDAP *)(uintptr_t)PARAM(0), PARAM(1), &local_parameter_2, &local_parameter_3, &local_parameter_4, &local_parameter_5, &local_parameter_6))
 //SET_NUMBER(2, (long)local_parameter_2)
     SET_BERVAL(2, local_parameter_2)
     SET_NUMBER(3, (long)local_parameter_3)
@@ -807,7 +809,7 @@ CONCEPT_FUNCTION_IMPL(ldap_parse_extended_result, 5)
 // ... parameter 3 is by reference (berval**)
     berval *local_parameter_3;
 
-    RETURN_NUMBER(ldap_parse_extended_result((LDAP *)(long)PARAM(0), (LDAPMessage *)(long)PARAM(1), &local_parameter_2, &local_parameter_3, (int)PARAM(4)))
+    RETURN_NUMBER(ldap_parse_extended_result((LDAP *)(uintptr_t)PARAM(0), (LDAPMessage *)(uintptr_t)PARAM(1), &local_parameter_2, &local_parameter_3, (int)PARAM(4)))
     SET_STRING(2, local_parameter_2)
     SET_NUMBER(3, (long)local_parameter_3)
 END_IMPL
@@ -824,7 +826,7 @@ CONCEPT_FUNCTION_IMPL(ldap_parse_intermediate, 6)
 // ... parameter 4 is by reference (LDAPControl***)
     LDAPControl **local_parameter_4;
 
-    RETURN_NUMBER(ldap_parse_intermediate((LDAP *)(long)PARAM(0), (LDAPMessage *)(long)PARAM(1), &local_parameter_2, &local_parameter_3, &local_parameter_4, (int)PARAM(5)))
+    RETURN_NUMBER(ldap_parse_intermediate((LDAP *)(uintptr_t)PARAM(0), (LDAPMessage *)(uintptr_t)PARAM(1), &local_parameter_2, &local_parameter_3, &local_parameter_4, (int)PARAM(5)))
     SET_STRING(2, local_parameter_2)
     SET_NUMBER(3, (long)local_parameter_3)
     SET_NUMBER(4, (long)local_parameter_4)
@@ -839,7 +841,7 @@ CONCEPT_FUNCTION_IMPL(ldap_abandon_ext, 4)
 // ... parameter 3 is by reference (LDAPControl**)
     LDAPControl *local_parameter_3;
 
-    RETURN_NUMBER(ldap_abandon_ext((LDAP *)(long)PARAM(0), (int)PARAM(1), &local_parameter_2, &local_parameter_3))
+    RETURN_NUMBER(ldap_abandon_ext((LDAP *)(uintptr_t)PARAM(0), (int)PARAM(1), &local_parameter_2, &local_parameter_3))
     SET_NUMBER(2, (long)local_parameter_2)
     SET_NUMBER(3, (long)local_parameter_3)
 END_IMPL
@@ -857,7 +859,7 @@ CONCEPT_FUNCTION_IMPL(ldap_add_ext, 6)
 // ... parameter 5 is by reference (int*)
     int local_parameter_5;
 
-    RETURN_NUMBER(ldap_add_ext((LDAP *)(long)PARAM(0), PARAM(1), &local_parameter_2, &local_parameter_3, &local_parameter_4, &local_parameter_5))
+    RETURN_NUMBER(ldap_add_ext((LDAP *)(uintptr_t)PARAM(0), PARAM(1), &local_parameter_2, &local_parameter_3, &local_parameter_4, &local_parameter_5))
     SET_NUMBER(2, (long)local_parameter_2)
     SET_NUMBER(3, (long)local_parameter_3)
     SET_NUMBER(4, (long)local_parameter_4)
@@ -875,7 +877,7 @@ CONCEPT_FUNCTION_IMPL(ldap_add_ext_s, 5)
 // ... parameter 4 is by reference (LDAPControl**)
     LDAPControl *local_parameter_4;
 
-    RETURN_NUMBER(ldap_add_ext_s((LDAP *)(long)PARAM(0), PARAM(1), &local_parameter_2, &local_parameter_3, &local_parameter_4))
+    RETURN_NUMBER(ldap_add_ext_s((LDAP *)(uintptr_t)PARAM(0), PARAM(1), &local_parameter_2, &local_parameter_3, &local_parameter_4))
     SET_NUMBER(2, (long)local_parameter_2)
     SET_NUMBER(3, (long)local_parameter_3)
     SET_NUMBER(4, (long)local_parameter_4)
@@ -895,7 +897,7 @@ CONCEPT_FUNCTION_IMPL(ldap_sasl_bind, 7)
 // ... parameter 6 is by reference (int*)
     int local_parameter_6;
 
-    RETURN_NUMBER(ldap_sasl_bind((LDAP *)(long)PARAM(0), PARAM(1), PARAM(2), &local_parameter_3, &local_parameter_4, &local_parameter_5, &local_parameter_6))
+    RETURN_NUMBER(ldap_sasl_bind((LDAP *)(uintptr_t)PARAM(0), PARAM(1), PARAM(2), &local_parameter_3, &local_parameter_4, &local_parameter_5, &local_parameter_6))
 //SET_NUMBER(3, (long)local_parameter_3)
     SET_BERVAL(3, local_parameter_3)
     SET_NUMBER(4, (long)local_parameter_4)
@@ -968,7 +970,7 @@ CONCEPT_FUNCTION_IMPL(ldap_sasl_interactive_bind_s, 8)
 // ... parameter 6 is by reference (LDAP_SASL_INTERACT_PROC*)
 //LDAP_SASL_INTERACT_PROC local_parameter_6;
 
-    RETURN_NUMBER(ldap_sasl_interactive_bind_s((LDAP *)(long)PARAM(0), PARAM(1), PARAM(2), &local_parameter_3, &local_parameter_4, (unsigned)PARAM(5), MyDeleg, (void *)(long)PARAM(7)))
+    RETURN_NUMBER(ldap_sasl_interactive_bind_s((LDAP *)(uintptr_t)PARAM(0), PARAM(1), PARAM(2), &local_parameter_3, &local_parameter_4, (unsigned)PARAM(5), MyDeleg, (void *)(long)PARAM(7)))
     SET_NUMBER(3, (long)local_parameter_3)
     SET_NUMBER(4, (long)local_parameter_4)
 END_IMPL
@@ -987,7 +989,7 @@ CONCEPT_FUNCTION_IMPL(ldap_sasl_bind_s, 7)
 // ... parameter 6 is by reference (berval**)
     berval *local_parameter_6;
 
-    RETURN_NUMBER(ldap_sasl_bind_s((LDAP *)(long)PARAM(0), PARAM(1), PARAM(2), &local_parameter_3, &local_parameter_4, &local_parameter_5, &local_parameter_6))
+    RETURN_NUMBER(ldap_sasl_bind_s((LDAP *)(uintptr_t)PARAM(0), PARAM(1), PARAM(2), &local_parameter_3, &local_parameter_4, &local_parameter_5, &local_parameter_6))
 //SET_NUMBER(3, (long)local_parameter_3)
     SET_BERVAL(3, local_parameter_3)
     SET_NUMBER(4, (long)local_parameter_4)
@@ -1003,7 +1005,7 @@ CONCEPT_FUNCTION_IMPL(ldap_parse_sasl_bind_result, 4)
 // ... parameter 2 is by reference (berval**)
     berval * local_parameter_2;
 
-    RETURN_NUMBER(ldap_parse_sasl_bind_result((LDAP *)(long)PARAM(0), (LDAPMessage *)(long)PARAM(1), &local_parameter_2, (int)PARAM(3)))
+    RETURN_NUMBER(ldap_parse_sasl_bind_result((LDAP *)(uintptr_t)PARAM(0), (LDAPMessage *)(uintptr_t)PARAM(1), &local_parameter_2, (int)PARAM(3)))
     SET_NUMBER(2, (long)local_parameter_2)
 END_IMPL
 //------------------------------------------------------------------------
@@ -1021,7 +1023,7 @@ CONCEPT_FUNCTION_IMPL(ldap_compare_ext, 7)
 // ... parameter 6 is by reference (int*)
     int local_parameter_6;
 
-    RETURN_NUMBER(ldap_compare_ext((LDAP *)(long)PARAM(0), PARAM(1), PARAM(2), &local_parameter_3, &local_parameter_4, &local_parameter_5, &local_parameter_6))
+    RETURN_NUMBER(ldap_compare_ext((LDAP *)(uintptr_t)PARAM(0), PARAM(1), PARAM(2), &local_parameter_3, &local_parameter_4, &local_parameter_5, &local_parameter_6))
 //SET_NUMBER(3, (long)local_parameter_3)
     SET_BERVAL(3, local_parameter_3)
     SET_NUMBER(4, (long)local_parameter_4)
@@ -1041,7 +1043,7 @@ CONCEPT_FUNCTION_IMPL(ldap_compare_ext_s, 6)
 // ... parameter 5 is by reference (LDAPControl**)
     LDAPControl *local_parameter_5;
 
-    RETURN_NUMBER(ldap_compare_ext_s((LDAP *)(long)PARAM(0), PARAM(1), PARAM(2), &local_parameter_3, &local_parameter_4, &local_parameter_5))
+    RETURN_NUMBER(ldap_compare_ext_s((LDAP *)(uintptr_t)PARAM(0), PARAM(1), PARAM(2), &local_parameter_3, &local_parameter_4, &local_parameter_5))
 //SET_NUMBER(3, (long)local_parameter_3)
     SET_BERVAL(3, local_parameter_3)
     SET_NUMBER(4, (long)local_parameter_4)
@@ -1059,7 +1061,7 @@ CONCEPT_FUNCTION_IMPL(ldap_delete_ext, 5)
 // ... parameter 4 is by reference (int*)
     int local_parameter_4;
 
-    RETURN_NUMBER(ldap_delete_ext((LDAP *)(long)PARAM(0), PARAM(1), &local_parameter_2, &local_parameter_3, &local_parameter_4))
+    RETURN_NUMBER(ldap_delete_ext((LDAP *)(uintptr_t)PARAM(0), PARAM(1), &local_parameter_2, &local_parameter_3, &local_parameter_4))
     SET_NUMBER(2, (long)local_parameter_2)
     SET_NUMBER(3, (long)local_parameter_3)
     SET_NUMBER(4, (long)local_parameter_4)
@@ -1074,7 +1076,7 @@ CONCEPT_FUNCTION_IMPL(ldap_delete_ext_s, 4)
 // ... parameter 3 is by reference (LDAPControl**)
     LDAPControl *local_parameter_3;
 
-    RETURN_NUMBER(ldap_delete_ext_s((LDAP *)(long)PARAM(0), PARAM(1), &local_parameter_2, &local_parameter_3))
+    RETURN_NUMBER(ldap_delete_ext_s((LDAP *)(uintptr_t)PARAM(0), PARAM(1), &local_parameter_2, &local_parameter_3))
     SET_NUMBER(2, (long)local_parameter_2)
     SET_NUMBER(3, (long)local_parameter_3)
 END_IMPL
@@ -1095,7 +1097,7 @@ CONCEPT_FUNCTION_IMPL(ldap_parse_result, 8)
 // ... parameter 6 is by reference (LDAPControl***)
     LDAPControl **local_parameter_6;
 
-    RETURN_NUMBER(ldap_parse_result((LDAP *)(long)PARAM(0), (LDAPMessage *)(long)PARAM(1), &local_parameter_2, &local_parameter_3, &local_parameter_4, &local_parameter_5, &local_parameter_6, (int)PARAM(7)))
+    RETURN_NUMBER(ldap_parse_result((LDAP *)(uintptr_t)PARAM(0), (LDAPMessage *)(uintptr_t)PARAM(1), &local_parameter_2, &local_parameter_3, &local_parameter_4, &local_parameter_5, &local_parameter_6, (int)PARAM(7)))
     SET_NUMBER(2, (long)local_parameter_2)
     SET_STRING(3, local_parameter_3)
     SET_STRING(4, local_parameter_4)
@@ -1114,7 +1116,7 @@ CONCEPT_FUNCTION_IMPL(ldap_gssapi_bind, 3)
     T_STRING(ldap_gssapi_bind, 1)     // char*
     T_STRING(ldap_gssapi_bind, 2)     // char*
 
-    RETURN_NUMBER(ldap_gssapi_bind((LDAP *)(long)PARAM(0), PARAM(1), PARAM(2)))
+    RETURN_NUMBER(ldap_gssapi_bind((LDAP *)(uintptr_t)PARAM(0), PARAM(1), PARAM(2)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(ldap_gssapi_bind_s, 3)
@@ -1122,7 +1124,7 @@ CONCEPT_FUNCTION_IMPL(ldap_gssapi_bind_s, 3)
     T_STRING(ldap_gssapi_bind_s, 1)     // char*
     T_STRING(ldap_gssapi_bind_s, 2)     // char*
 
-    RETURN_NUMBER(ldap_gssapi_bind_s((LDAP *)(long)PARAM(0), PARAM(1), PARAM(2)))
+    RETURN_NUMBER(ldap_gssapi_bind_s((LDAP *)(uintptr_t)PARAM(0), PARAM(1), PARAM(2)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(ldap_modify_ext, 6)
@@ -1138,7 +1140,7 @@ CONCEPT_FUNCTION_IMPL(ldap_modify_ext, 6)
 // ... parameter 5 is by reference (int*)
     int local_parameter_5;
 
-    RETURN_NUMBER(ldap_modify_ext((LDAP *)(long)PARAM(0), PARAM(1), &local_parameter_2, &local_parameter_3, &local_parameter_4, &local_parameter_5))
+    RETURN_NUMBER(ldap_modify_ext((LDAP *)(uintptr_t)PARAM(0), PARAM(1), &local_parameter_2, &local_parameter_3, &local_parameter_4, &local_parameter_5))
     SET_NUMBER(2, (long)local_parameter_2)
     SET_NUMBER(3, (long)local_parameter_3)
     SET_NUMBER(4, (long)local_parameter_4)
@@ -1156,7 +1158,7 @@ CONCEPT_FUNCTION_IMPL(ldap_modify_ext_s, 5)
 // ... parameter 4 is by reference (LDAPControl**)
     LDAPControl *local_parameter_4;
 
-    RETURN_NUMBER(ldap_modify_ext_s((LDAP *)(long)PARAM(0), PARAM(1), &local_parameter_2, &local_parameter_3, &local_parameter_4))
+    RETURN_NUMBER(ldap_modify_ext_s((LDAP *)(uintptr_t)PARAM(0), PARAM(1), &local_parameter_2, &local_parameter_3, &local_parameter_4))
     SET_NUMBER(2, (long)local_parameter_2)
     SET_NUMBER(3, (long)local_parameter_3)
     SET_NUMBER(4, (long)local_parameter_4)
@@ -1176,7 +1178,7 @@ CONCEPT_FUNCTION_IMPL(ldap_rename, 8)
 // ... parameter 7 is by reference (int*)
     int local_parameter_7;
 
-    RETURN_NUMBER(ldap_rename((LDAP *)(long)PARAM(0), PARAM(1), PARAM(2), PARAM(3), (int)PARAM(4), &local_parameter_5, &local_parameter_6, &local_parameter_7))
+    RETURN_NUMBER(ldap_rename((LDAP *)(uintptr_t)PARAM(0), PARAM(1), PARAM(2), PARAM(3), (int)PARAM(4), &local_parameter_5, &local_parameter_6, &local_parameter_7))
     SET_NUMBER(5, (long)local_parameter_5)
     SET_NUMBER(6, (long)local_parameter_6)
     SET_NUMBER(7, (long)local_parameter_7)
@@ -1194,7 +1196,7 @@ CONCEPT_FUNCTION_IMPL(ldap_rename_s, 7)
 // ... parameter 6 is by reference (LDAPControl**)
     LDAPControl *local_parameter_6;
 
-    RETURN_NUMBER(ldap_rename_s((LDAP *)(long)PARAM(0), PARAM(1), PARAM(2), PARAM(3), (int)PARAM(4), &local_parameter_5, &local_parameter_6))
+    RETURN_NUMBER(ldap_rename_s((LDAP *)(uintptr_t)PARAM(0), PARAM(1), PARAM(2), PARAM(3), (int)PARAM(4), &local_parameter_5, &local_parameter_6))
     SET_NUMBER(5, (long)local_parameter_5)
     SET_NUMBER(6, (long)local_parameter_6)
 END_IMPL
@@ -1208,13 +1210,21 @@ CONCEPT_FUNCTION_IMPL(ldap_create, 1)
     SET_NUMBER(0, (long)local_parameter_0)
 END_IMPL
 //------------------------------------------------------------------------
-CONCEPT_FUNCTION_IMPL(ldap_initialize, 2)
+CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(ldap_initialize, 2, 3)
     T_STRING(ldap_initialize, 1)     // char*
 
 // ... parameter 0 is by reference (LDAP**)
-    LDAP * local_parameter_0;
+    LDAP * local_parameter_0 = NULL;
+    int version = LDAP_VERSION3;
+    if (PARAMETERS_COUNT > 2) {
+        T_NUMBER(ldap_initialize, 2);
+        version = PARAM_INT(2);
+    }
 
     RETURN_NUMBER(ldap_initialize(&local_parameter_0, PARAM(1)))
+    if (local_parameter_0)
+        ldap_set_option(local_parameter_0, LDAP_OPT_PROTOCOL_VERSION, &version);
+
     SET_NUMBER(0, (long)local_parameter_0)
 END_IMPL
 //------------------------------------------------------------------------
@@ -1235,7 +1245,7 @@ CONCEPT_FUNCTION_IMPL(ldap_start_tls, 4)
 // ... parameter 3 is by reference (int*)
     int local_parameter_3;
 
-    RETURN_NUMBER(ldap_start_tls((LDAP *)(long)PARAM(0), &local_parameter_1, &local_parameter_2, &local_parameter_3))
+    RETURN_NUMBER(ldap_start_tls((LDAP *)(uintptr_t)PARAM(0), &local_parameter_1, &local_parameter_2, &local_parameter_3))
     SET_NUMBER(1, (long)local_parameter_1)
     SET_NUMBER(2, (long)local_parameter_2)
     SET_NUMBER(3, (long)local_parameter_3)
@@ -1244,7 +1254,7 @@ END_IMPL
 CONCEPT_FUNCTION_IMPL(ldap_install_tls, 1)
     T_NUMBER(ldap_install_tls, 0)     // LDAP*
 
-    RETURN_NUMBER(ldap_install_tls((LDAP *)(long)PARAM(0)))
+    RETURN_NUMBER(ldap_install_tls((LDAP *)(uintptr_t)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(ldap_start_tls_s, 3)
@@ -1255,7 +1265,7 @@ CONCEPT_FUNCTION_IMPL(ldap_start_tls_s, 3)
 // ... parameter 2 is by reference (LDAPControl**)
     LDAPControl *local_parameter_2;
 
-    RETURN_NUMBER(ldap_start_tls_s((LDAP *)(long)PARAM(0), &local_parameter_1, &local_parameter_2))
+    RETURN_NUMBER(ldap_start_tls_s((LDAP *)(uintptr_t)PARAM(0), &local_parameter_1, &local_parameter_2))
     SET_NUMBER(1, (long)local_parameter_1)
     SET_NUMBER(2, (long)local_parameter_2)
 END_IMPL
@@ -1264,42 +1274,42 @@ CONCEPT_FUNCTION_IMPL(ldap_first_message, 2)
     T_NUMBER(ldap_first_message, 0)     // LDAP*
     T_NUMBER(ldap_first_message, 1)     // LDAPMessage*
 
-    RETURN_NUMBER((long)ldap_first_message((LDAP *)(long)PARAM(0), (LDAPMessage *)(long)PARAM(1)))
+    RETURN_NUMBER((long)ldap_first_message((LDAP *)(uintptr_t)PARAM(0), (LDAPMessage *)(uintptr_t)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(ldap_next_message, 2)
     T_NUMBER(ldap_next_message, 0)     // LDAP*
     T_NUMBER(ldap_next_message, 1)     // LDAPMessage*
 
-    RETURN_NUMBER((long)ldap_next_message((LDAP *)(long)PARAM(0), (LDAPMessage *)(long)PARAM(1)))
+    RETURN_NUMBER((long)ldap_next_message((LDAP *)(uintptr_t)PARAM(0), (LDAPMessage *)(uintptr_t)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(ldap_count_messages, 2)
     T_NUMBER(ldap_count_messages, 0)     // LDAP*
     T_NUMBER(ldap_count_messages, 1)     // LDAPMessage*
 
-    RETURN_NUMBER(ldap_count_messages((LDAP *)(long)PARAM(0), (LDAPMessage *)(long)PARAM(1)))
+    RETURN_NUMBER(ldap_count_messages((LDAP *)(uintptr_t)PARAM(0), (LDAPMessage *)(uintptr_t)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(ldap_first_reference, 2)
     T_NUMBER(ldap_first_reference, 0)     // LDAP*
     T_NUMBER(ldap_first_reference, 1)     // LDAPMessage*
 
-    RETURN_NUMBER((long)ldap_first_reference((LDAP *)(long)PARAM(0), (LDAPMessage *)(long)PARAM(1)))
+    RETURN_NUMBER((long)ldap_first_reference((LDAP *)(uintptr_t)PARAM(0), (LDAPMessage *)(uintptr_t)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(ldap_next_reference, 2)
     T_NUMBER(ldap_next_reference, 0)     // LDAP*
     T_NUMBER(ldap_next_reference, 1)     // LDAPMessage*
 
-    RETURN_NUMBER((long)ldap_next_reference((LDAP *)(long)PARAM(0), (LDAPMessage *)(long)PARAM(1)))
+    RETURN_NUMBER((long)ldap_next_reference((LDAP *)(uintptr_t)PARAM(0), (LDAPMessage *)(uintptr_t)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(ldap_count_references, 2)
     T_NUMBER(ldap_count_references, 0)     // LDAP*
     T_NUMBER(ldap_count_references, 1)     // LDAPMessage*
 
-    RETURN_NUMBER(ldap_count_references((LDAP *)(long)PARAM(0), (LDAPMessage *)(long)PARAM(1)))
+    RETURN_NUMBER(ldap_count_references((LDAP *)(uintptr_t)PARAM(0), (LDAPMessage *)(uintptr_t)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(ldap_parse_reference, 5)
@@ -1312,7 +1322,7 @@ CONCEPT_FUNCTION_IMPL(ldap_parse_reference, 5)
 // ... parameter 3 is by reference (LDAPControl***)
     LDAPControl **local_parameter_3;
 
-    RETURN_NUMBER(ldap_parse_reference((LDAP *)(long)PARAM(0), (LDAPMessage *)(long)PARAM(1), &local_parameter_2, &local_parameter_3, (int)PARAM(4)))
+    RETURN_NUMBER(ldap_parse_reference((LDAP *)(uintptr_t)PARAM(0), (LDAPMessage *)(uintptr_t)PARAM(1), &local_parameter_2, &local_parameter_3, (int)PARAM(4)))
 //SET_NUMBER(2, (long)local_parameter_2)
     ReturnCharList(PARAMETER(2), local_parameter_2);
     SET_NUMBER(3, (long)local_parameter_3)
@@ -1322,21 +1332,21 @@ CONCEPT_FUNCTION_IMPL(ldap_first_entry, 2)
     T_NUMBER(ldap_first_entry, 0)     // LDAP*
     T_NUMBER(ldap_first_entry, 1)     // LDAPMessage*
 
-    RETURN_NUMBER((long)ldap_first_entry((LDAP *)(long)PARAM(0), (LDAPMessage *)(long)PARAM(1)))
+    RETURN_NUMBER((long)ldap_first_entry((LDAP *)(uintptr_t)PARAM(0), (LDAPMessage *)(uintptr_t)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(ldap_next_entry, 2)
     T_NUMBER(ldap_next_entry, 0)     // LDAP*
     T_NUMBER(ldap_next_entry, 1)     // LDAPMessage*
 
-    RETURN_NUMBER((long)ldap_next_entry((LDAP *)(long)PARAM(0), (LDAPMessage *)(long)PARAM(1)))
+    RETURN_NUMBER((long)ldap_next_entry((LDAP *)(uintptr_t)PARAM(0), (LDAPMessage *)(uintptr_t)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(ldap_count_entries, 2)
     T_NUMBER(ldap_count_entries, 0)     // LDAP*
     T_NUMBER(ldap_count_entries, 1)     // LDAPMessage*
 
-    RETURN_NUMBER(ldap_count_entries((LDAP *)(long)PARAM(0), (LDAPMessage *)(long)PARAM(1)))
+    RETURN_NUMBER(ldap_count_entries((LDAP *)(uintptr_t)PARAM(0), (LDAPMessage *)(uintptr_t)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(ldap_get_entry_controls, 3)
@@ -1346,7 +1356,7 @@ CONCEPT_FUNCTION_IMPL(ldap_get_entry_controls, 3)
 // ... parameter 2 is by reference (LDAPControl***)
     LDAPControl * *local_parameter_2;
 
-    RETURN_NUMBER(ldap_get_entry_controls((LDAP *)(long)PARAM(0), (LDAPMessage *)(long)PARAM(1), &local_parameter_2))
+    RETURN_NUMBER(ldap_get_entry_controls((LDAP *)(uintptr_t)PARAM(0), (LDAPMessage *)(uintptr_t)PARAM(1), &local_parameter_2))
     SET_NUMBER(2, (long)local_parameter_2)
 END_IMPL
 //------------------------------------------------------------------------
@@ -1356,7 +1366,7 @@ CONCEPT_FUNCTION_IMPL(ldap_delete_result_entry, 2)
 // ... parameter 0 is by reference (LDAPMessage**)
     LDAPMessage * local_parameter_0;
 
-    RETURN_NUMBER((long)ldap_delete_result_entry(&local_parameter_0, (LDAPMessage *)(long)PARAM(1)))
+    RETURN_NUMBER((long)ldap_delete_result_entry(&local_parameter_0, (LDAPMessage *)(uintptr_t)PARAM(1)))
     SET_NUMBER(0, (long)local_parameter_0)
 END_IMPL
 //------------------------------------------------------------------------
@@ -1366,7 +1376,7 @@ CONCEPT_FUNCTION_IMPL(ldap_add_result_entry, 2)
 // ... parameter 0 is by reference (LDAPMessage**)
     LDAPMessage * local_parameter_0;
 
-    ldap_add_result_entry(&local_parameter_0, (LDAPMessage *)(long)PARAM(1));
+    ldap_add_result_entry(&local_parameter_0, (LDAPMessage *)(uintptr_t)PARAM(1));
     SET_NUMBER(0, (long)local_parameter_0)
     RETURN_NUMBER(0)
 END_IMPL
@@ -1375,7 +1385,7 @@ CONCEPT_FUNCTION_IMPL(ldap_get_dn, 2)
     T_HANDLE(ldap_get_dn, 0)     // LDAP*
     T_HANDLE(ldap_get_dn, 1)     // LDAPMessage*
 
-    RETURN_STRING((char *)ldap_get_dn((LDAP *)(long)PARAM(0), (LDAPMessage *)(long)PARAM(1)))
+    RETURN_STRING((char *)ldap_get_dn((LDAP *)(uintptr_t)PARAM(0), (LDAPMessage *)(uintptr_t)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(ldap_rdnfree, 1)
@@ -1611,7 +1621,7 @@ CONCEPT_FUNCTION_IMPL(ldap_get_dn_ber, 4)
 // ... parameter 3 is by reference (berval*)
     GET_DECL_BERVAL(3, local_parameter_3);
 
-    RETURN_NUMBER(ldap_get_dn_ber((LDAP *)(long)PARAM(0), (LDAPMessage *)(long)PARAM(1), &local_parameter_2, &local_parameter_3))
+    RETURN_NUMBER(ldap_get_dn_ber((LDAP *)(uintptr_t)PARAM(0), (LDAPMessage *)(uintptr_t)PARAM(1), &local_parameter_2, &local_parameter_3))
     SET_NUMBER(2, (long)local_parameter_2)
 //SET_NUMBER(3, (long)local_parameter_3)
     SET_BERVAL(3, local_parameter_3)
@@ -1629,7 +1639,7 @@ CONCEPT_FUNCTION_IMPL(ldap_get_attribute_ber, 5)
 // ... parameter 4 is by reference (berval**)
     berval *local_parameter_4;
 
-    RETURN_NUMBER(ldap_get_attribute_ber((LDAP *)(long)PARAM(0), (LDAPMessage *)(long)PARAM(1), (BerElement *)PARAM_INT(2), &local_parameter_3, &local_parameter_4))
+    RETURN_NUMBER(ldap_get_attribute_ber((LDAP *)(uintptr_t)PARAM(0), (LDAPMessage *)(uintptr_t)PARAM(1), (BerElement *)PARAM_INT(2), &local_parameter_3, &local_parameter_4))
 //SET_NUMBER(2, (long)local_parameter_2)
 //SET_NUMBER(3, (long)local_parameter_3)
     SET_BERVAL(3, local_parameter_3)
@@ -1643,7 +1653,7 @@ CONCEPT_FUNCTION_IMPL(ldap_first_attribute, 3)
 // ... parameter 2 is by reference (BerElement**)
     BerElement * local_parameter_2;
 
-    RETURN_STRING((char *)ldap_first_attribute((LDAP *)(long)PARAM(0), (LDAPMessage *)(long)PARAM(1), &local_parameter_2))
+    RETURN_STRING((char *)ldap_first_attribute((LDAP *)(uintptr_t)PARAM(0), (LDAPMessage *)(uintptr_t)PARAM(1), &local_parameter_2))
     SET_NUMBER(2, (long)local_parameter_2)
 END_IMPL
 //------------------------------------------------------------------------
@@ -1655,7 +1665,7 @@ CONCEPT_FUNCTION_IMPL(ldap_next_attribute, 3)
 // ... parameter 2 is by reference (BerElement*)
 //struct BerElement local_parameter_2;
 
-    RETURN_STRING((char *)ldap_next_attribute((LDAP *)(long)PARAM(0), (LDAPMessage *)(long)PARAM(1), (BerElement *)PARAM_INT(2)))
+    RETURN_STRING((char *)ldap_next_attribute((LDAP *)(uintptr_t)PARAM(0), (LDAPMessage *)(uintptr_t)PARAM(1), (BerElement *)PARAM_INT(2)))
 //SET_NUMBER(2, (long)local_parameter_2)
 END_IMPL
 //------------------------------------------------------------------------
@@ -1689,7 +1699,7 @@ CONCEPT_FUNCTION_IMPL(ldap_result, 5)
 // ... parameter 4 is by reference (LDAPMessage**)
     LDAPMessage *local_parameter_4;
 
-    RETURN_NUMBER(ldap_result((LDAP *)(long)PARAM(0), (int)PARAM(1), (int)PARAM(2), &local_parameter_3, &local_parameter_4))
+    RETURN_NUMBER(ldap_result((LDAP *)(uintptr_t)PARAM(0), (int)PARAM(1), (int)PARAM(2), &local_parameter_3, &local_parameter_4))
 //SET_NUMBER(3, (long)local_parameter_3)
     WRAP_timeval(PARAMETER(3), &local_parameter_3);
     SET_NUMBER(4, (long)local_parameter_4)
@@ -1698,26 +1708,26 @@ END_IMPL
 CONCEPT_FUNCTION_IMPL(ldap_msgtype, 1)
     T_NUMBER(ldap_msgtype, 0)     // LDAPMessage*
 
-    RETURN_NUMBER(ldap_msgtype((LDAPMessage *)(long)PARAM(0)))
+    RETURN_NUMBER(ldap_msgtype((LDAPMessage *)(uintptr_t)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(ldap_msgid, 1)
     T_NUMBER(ldap_msgid, 0)     // LDAPMessage*
 
-    RETURN_NUMBER(ldap_msgid((LDAPMessage *)(long)PARAM(0)))
+    RETURN_NUMBER(ldap_msgid((LDAPMessage *)(uintptr_t)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(ldap_msgfree, 1)
     T_NUMBER(ldap_msgfree, 0)     // LDAPMessage*
 
-    RETURN_NUMBER(ldap_msgfree((LDAPMessage *)(long)PARAM(0)))
+    RETURN_NUMBER(ldap_msgfree((LDAPMessage *)(uintptr_t)PARAM(0)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(ldap_msgdelete, 2)
     T_NUMBER(ldap_msgdelete, 0)     // LDAP*
     T_NUMBER(ldap_msgdelete, 1)     // int
 
-    RETURN_NUMBER(ldap_msgdelete((LDAP *)(long)PARAM(0), (int)PARAM(1)))
+    RETURN_NUMBER(ldap_msgdelete((LDAP *)(uintptr_t)PARAM(0), (int)PARAM(1)))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(ldap_bv2escaped_filter_value, 2)
@@ -1753,7 +1763,7 @@ CONCEPT_FUNCTION_IMPL(ldap_search_ext, 11)
 // ... parameter 10 is by reference (int*)
     int local_parameter_10;
 
-    RETURN_NUMBER(ldap_search_ext((LDAP *)(long)PARAM(0), PARAM(1), (int)PARAM(2), PARAM(3), &local_parameter_4, (int)PARAM(5), &local_parameter_6, &local_parameter_7, &local_parameter_8, (int)PARAM(9), &local_parameter_10))
+    RETURN_NUMBER(ldap_search_ext((LDAP *)(uintptr_t)PARAM(0), PARAM(1), (int)PARAM(2), PARAM(3), &local_parameter_4, (int)PARAM(5), &local_parameter_6, &local_parameter_7, &local_parameter_8, (int)PARAM(9), &local_parameter_10))
     SET_STRING(4, local_parameter_4)
     SET_NUMBER(6, (long)local_parameter_6)
     SET_NUMBER(7, (long)local_parameter_7)
@@ -1771,17 +1781,17 @@ CONCEPT_FUNCTION_IMPL(ldap_search_ext_s, 11)
     T_NUMBER(ldap_search_ext_s, 9)     // int
 
 // ... parameter 4 is by reference (char**)
-    char *local_parameter_4;
+    char *local_parameter_4 = NULL;
 // ... parameter 6 is by reference (LDAPControl**)
-    LDAPControl *local_parameter_6;
+    LDAPControl *local_parameter_6 = NULL;
 // ... parameter 7 is by reference (LDAPControl**)
-    LDAPControl *local_parameter_7;
+    LDAPControl *local_parameter_7 = NULL;
 // ... parameter 8 is by reference (timeval*)
-    timeval local_parameter_8;
+    timeval local_parameter_8 = {0, 0};
 // ... parameter 10 is by reference (LDAPMessage**)
-    LDAPMessage *local_parameter_10;
+    LDAPMessage *local_parameter_10 = NULL;
 
-    RETURN_NUMBER(ldap_search_ext_s((LDAP *)(long)PARAM(0), PARAM(1), (int)PARAM(2), PARAM(3), &local_parameter_4, (int)PARAM(5), &local_parameter_6, &local_parameter_7, &local_parameter_8, (int)PARAM(9), &local_parameter_10))
+    RETURN_NUMBER(ldap_search_ext_s((LDAP *)(uintptr_t)PARAM(0), PARAM(1), (int)PARAM(2), PARAM(3), &local_parameter_4, (int)PARAM(5), &local_parameter_6, &local_parameter_7, &local_parameter_8, (int)PARAM(9), &local_parameter_10))
     SET_STRING(4, local_parameter_4)
     SET_NUMBER(6, (long)local_parameter_6)
     SET_NUMBER(7, (long)local_parameter_7)
@@ -1798,7 +1808,7 @@ CONCEPT_FUNCTION_IMPL(ldap_unbind_ext, 3)
 // ... parameter 2 is by reference (LDAPControl**)
     LDAPControl *local_parameter_2;
 
-    RETURN_NUMBER(ldap_unbind_ext((LDAP *)(long)PARAM(0), &local_parameter_1, &local_parameter_2))
+    RETURN_NUMBER(ldap_unbind_ext((LDAP *)(uintptr_t)PARAM(0), &local_parameter_1, &local_parameter_2))
     SET_NUMBER(1, (long)local_parameter_1)
     SET_NUMBER(2, (long)local_parameter_2)
 END_IMPL
@@ -1811,7 +1821,7 @@ CONCEPT_FUNCTION_IMPL(ldap_unbind_ext_s, 3)
 // ... parameter 2 is by reference (LDAPControl**)
     LDAPControl *local_parameter_2;
 
-    RETURN_NUMBER(ldap_unbind_ext_s((LDAP *)(long)PARAM(0), &local_parameter_1, &local_parameter_2))
+    RETURN_NUMBER(ldap_unbind_ext_s((LDAP *)(uintptr_t)PARAM(0), &local_parameter_1, &local_parameter_2))
     SET_NUMBER(1, (long)local_parameter_1)
     SET_NUMBER(2, (long)local_parameter_2)
 END_IMPL
@@ -1896,7 +1906,7 @@ CONCEPT_FUNCTION_IMPL(ldap_cancel, 5)
 // ... parameter 4 is by reference (int*)
     int local_parameter_4;
 
-    RETURN_NUMBER(ldap_cancel((LDAP *)(long)PARAM(0), (int)PARAM(1), &local_parameter_2, &local_parameter_3, &local_parameter_4))
+    RETURN_NUMBER(ldap_cancel((LDAP *)(uintptr_t)PARAM(0), (int)PARAM(1), &local_parameter_2, &local_parameter_3, &local_parameter_4))
     SET_NUMBER(2, (long)local_parameter_2)
     SET_NUMBER(3, (long)local_parameter_3)
     SET_NUMBER(4, (long)local_parameter_4)
@@ -1911,7 +1921,7 @@ CONCEPT_FUNCTION_IMPL(ldap_cancel_s, 4)
 // ... parameter 3 is by reference (LDAPControl**)
     LDAPControl *local_parameter_3;
 
-    RETURN_NUMBER(ldap_cancel_s((LDAP *)(long)PARAM(0), (int)PARAM(1), &local_parameter_2, &local_parameter_3))
+    RETURN_NUMBER(ldap_cancel_s((LDAP *)(uintptr_t)PARAM(0), (int)PARAM(1), &local_parameter_2, &local_parameter_3))
     SET_NUMBER(2, (long)local_parameter_2)
     SET_NUMBER(3, (long)local_parameter_3)
 END_IMPL
@@ -1928,7 +1938,7 @@ CONCEPT_FUNCTION_IMPL(ldap_turn, 6)
 // ... parameter 5 is by reference (int*)
     int local_parameter_5;
 
-    RETURN_NUMBER(ldap_turn((LDAP *)(long)PARAM(0), (int)PARAM(1), PARAM(2), &local_parameter_3, &local_parameter_4, &local_parameter_5))
+    RETURN_NUMBER(ldap_turn((LDAP *)(uintptr_t)PARAM(0), (int)PARAM(1), PARAM(2), &local_parameter_3, &local_parameter_4, &local_parameter_5))
     SET_NUMBER(3, (long)local_parameter_3)
     SET_NUMBER(4, (long)local_parameter_4)
     SET_NUMBER(5, (long)local_parameter_5)
@@ -1944,7 +1954,7 @@ CONCEPT_FUNCTION_IMPL(ldap_turn_s, 5)
 // ... parameter 4 is by reference (LDAPControl**)
     LDAPControl *local_parameter_4;
 
-    RETURN_NUMBER(ldap_turn_s((LDAP *)(long)PARAM(0), (int)PARAM(1), PARAM(2), &local_parameter_3, &local_parameter_4))
+    RETURN_NUMBER(ldap_turn_s((LDAP *)(uintptr_t)PARAM(0), (int)PARAM(1), PARAM(2), &local_parameter_3, &local_parameter_4))
     SET_NUMBER(3, (long)local_parameter_3)
     SET_NUMBER(4, (long)local_parameter_4)
 END_IMPL
@@ -1958,7 +1968,7 @@ CONCEPT_FUNCTION_IMPL(ldap_create_page_control_value, 4)
 // ... parameter 3 is by reference (berval*)
     GET_DECL_BERVAL(3, local_parameter_3);
 
-    RETURN_NUMBER(ldap_create_page_control_value((LDAP *)(long)PARAM(0), (ber_int_t)PARAM(1), &local_parameter_2, &local_parameter_3))
+    RETURN_NUMBER(ldap_create_page_control_value((LDAP *)(uintptr_t)PARAM(0), (ber_int_t)PARAM(1), &local_parameter_2, &local_parameter_3))
 //SET_NUMBER(2, (long)local_parameter_2)
 //SET_NUMBER(3, (long)local_parameter_3)
     SET_BERVAL(2, local_parameter_2)
@@ -1975,7 +1985,7 @@ CONCEPT_FUNCTION_IMPL(ldap_create_page_control, 5)
 // ... parameter 4 is by reference (LDAPControl**)
     LDAPControl *local_parameter_4;
 
-    RETURN_NUMBER(ldap_create_page_control((LDAP *)(long)PARAM(0), (ber_int_t)PARAM(1), &local_parameter_2, (int)PARAM(3), &local_parameter_4))
+    RETURN_NUMBER(ldap_create_page_control((LDAP *)(uintptr_t)PARAM(0), (ber_int_t)PARAM(1), &local_parameter_2, (int)PARAM(3), &local_parameter_4))
 //SET_NUMBER(2, (long)local_parameter_2)
     SET_BERVAL(2, local_parameter_2)
     SET_NUMBER(4, (long)local_parameter_4)
@@ -1990,7 +2000,7 @@ CONCEPT_FUNCTION_IMPL(ldap_parse_pageresponse_control, 4)
 // ... parameter 3 is by reference (berval*)
     GET_DECL_BERVAL(3, local_parameter_3);
 
-    RETURN_NUMBER(ldap_parse_pageresponse_control((LDAP *)(long)PARAM(0), (LDAPControl *)(long)PARAM(1), &local_parameter_2, &local_parameter_3))
+    RETURN_NUMBER(ldap_parse_pageresponse_control((LDAP *)(uintptr_t)PARAM(0), (LDAPControl *)(long)PARAM(1), &local_parameter_2, &local_parameter_3))
     SET_NUMBER(2, (long)local_parameter_2)
 //SET_NUMBER(3, (long)local_parameter_3)
     SET_BERVAL(3, local_parameter_3)
@@ -2024,7 +2034,7 @@ CONCEPT_FUNCTION_IMPL(ldap_create_sort_control_value, 3)
 // ... parameter 2 is by reference (berval*)
     GET_DECL_BERVAL(2, local_parameter_2);
 
-    RETURN_NUMBER(ldap_create_sort_control_value((LDAP *)(long)PARAM(0), &local_parameter_1, &local_parameter_2))
+    RETURN_NUMBER(ldap_create_sort_control_value((LDAP *)(uintptr_t)PARAM(0), &local_parameter_1, &local_parameter_2))
     SET_NUMBER(1, (long)local_parameter_1)
 //SET_NUMBER(2, (long)local_parameter_2)
     SET_BERVAL(2, local_parameter_2)
@@ -2039,7 +2049,7 @@ CONCEPT_FUNCTION_IMPL(ldap_create_sort_control, 4)
 // ... parameter 3 is by reference (LDAPControl**)
     LDAPControl *local_parameter_3;
 
-    RETURN_NUMBER(ldap_create_sort_control((LDAP *)(long)PARAM(0), &local_parameter_1, (int)PARAM(2), &local_parameter_3))
+    RETURN_NUMBER(ldap_create_sort_control((LDAP *)(uintptr_t)PARAM(0), &local_parameter_1, (int)PARAM(2), &local_parameter_3))
     SET_NUMBER(1, (long)local_parameter_1)
     SET_NUMBER(3, (long)local_parameter_3)
 END_IMPL
@@ -2053,7 +2063,7 @@ CONCEPT_FUNCTION_IMPL(ldap_parse_sortresponse_control, 4)
 // ... parameter 3 is by reference (char**)
     char *local_parameter_3;
 
-    RETURN_NUMBER(ldap_parse_sortresponse_control((LDAP *)(long)PARAM(0), (LDAPControl *)(long)PARAM(1), &local_parameter_2, &local_parameter_3))
+    RETURN_NUMBER(ldap_parse_sortresponse_control((LDAP *)(uintptr_t)PARAM(0), (LDAPControl *)(long)PARAM(1), &local_parameter_2, &local_parameter_3))
     SET_NUMBER(2, (SYS_INT)local_parameter_2)
     SET_STRING(3, local_parameter_3)
 END_IMPL
@@ -2067,7 +2077,7 @@ CONCEPT_FUNCTION_IMPL(ldap_create_vlv_control_value, 3)
 // ... parameter 2 is by reference (berval*)
     GET_DECL_BERVAL(2, local_parameter_2);
 
-    RETURN_NUMBER(ldap_create_vlv_control_value((LDAP *)(long)PARAM(0), UNWRAP_LDAPVLVInfo(PARAMETER(1)), &local_parameter_2))
+    RETURN_NUMBER(ldap_create_vlv_control_value((LDAP *)(uintptr_t)PARAM(0), UNWRAP_LDAPVLVInfo(PARAMETER(1)), &local_parameter_2))
 //SET_NUMBER(1, (long)local_parameter_1)
 //SET_NUMBER(2, (long)local_parameter_2)
     SET_BERVAL(2, local_parameter_2)
@@ -2082,7 +2092,7 @@ CONCEPT_FUNCTION_IMPL(ldap_create_vlv_control, 3)
 // ... parameter 2 is by reference (LDAPControl**)
     LDAPControl * local_parameter_2;
 
-    RETURN_NUMBER(ldap_create_vlv_control((LDAP *)(long)PARAM(0), UNWRAP_LDAPVLVInfo(PARAMETER(1)), &local_parameter_2))
+    RETURN_NUMBER(ldap_create_vlv_control((LDAP *)(uintptr_t)PARAM(0), UNWRAP_LDAPVLVInfo(PARAMETER(1)), &local_parameter_2))
 //SET_NUMBER(1, (long)local_parameter_1)
     SET_NUMBER(2, (long)local_parameter_2)
 END_IMPL
@@ -2100,7 +2110,7 @@ CONCEPT_FUNCTION_IMPL(ldap_parse_vlvresponse_control, 6)
 // ... parameter 5 is by reference (int*)
     int local_parameter_5;
 
-    RETURN_NUMBER(ldap_parse_vlvresponse_control((LDAP *)(long)PARAM(0), (LDAPControl *)(long)PARAM(1), &local_parameter_2, &local_parameter_3, &local_parameter_4, &local_parameter_5))
+    RETURN_NUMBER(ldap_parse_vlvresponse_control((LDAP *)(uintptr_t)PARAM(0), (LDAPControl *)(long)PARAM(1), &local_parameter_2, &local_parameter_3, &local_parameter_4, &local_parameter_5))
     SET_NUMBER(2, (long)local_parameter_2)
     SET_NUMBER(3, (long)local_parameter_3)
     SET_NUMBER(4, (long)local_parameter_4)
@@ -2114,7 +2124,7 @@ CONCEPT_FUNCTION_IMPL(ldap_parse_whoami, 3)
 // ... parameter 2 is by reference (berval**)
     berval * local_parameter_2;
 
-    RETURN_NUMBER(ldap_parse_whoami((LDAP *)(long)PARAM(0), (LDAPMessage *)(long)PARAM(1), &local_parameter_2))
+    RETURN_NUMBER(ldap_parse_whoami((LDAP *)(uintptr_t)PARAM(0), (LDAPMessage *)(uintptr_t)PARAM(1), &local_parameter_2))
     SET_NUMBER(2, (long)local_parameter_2)
 END_IMPL
 //------------------------------------------------------------------------
@@ -2128,7 +2138,7 @@ CONCEPT_FUNCTION_IMPL(ldap_whoami, 4)
 // ... parameter 3 is by reference (int*)
     int local_parameter_3;
 
-    RETURN_NUMBER(ldap_whoami((LDAP *)(long)PARAM(0), &local_parameter_1, &local_parameter_2, &local_parameter_3))
+    RETURN_NUMBER(ldap_whoami((LDAP *)(uintptr_t)PARAM(0), &local_parameter_1, &local_parameter_2, &local_parameter_3))
     SET_NUMBER(1, (long)local_parameter_1)
     SET_NUMBER(2, (long)local_parameter_2)
     SET_NUMBER(3, (long)local_parameter_3)
@@ -2144,7 +2154,7 @@ CONCEPT_FUNCTION_IMPL(ldap_whoami_s, 4)
 // ... parameter 3 is by reference (LDAPControl**)
     LDAPControl *local_parameter_3;
 
-    RETURN_NUMBER(ldap_whoami_s((LDAP *)(long)PARAM(0), &local_parameter_1, &local_parameter_2, &local_parameter_3))
+    RETURN_NUMBER(ldap_whoami_s((LDAP *)(uintptr_t)PARAM(0), &local_parameter_1, &local_parameter_2, &local_parameter_3))
     SET_NUMBER(1, (long)local_parameter_1)
     SET_NUMBER(2, (long)local_parameter_2)
     SET_NUMBER(3, (long)local_parameter_3)
@@ -2157,7 +2167,7 @@ CONCEPT_FUNCTION_IMPL(ldap_parse_passwd, 3)
 // ... parameter 2 is by reference (berval*)
     GET_DECL_BERVAL(2, local_parameter_2);
 
-    RETURN_NUMBER(ldap_parse_passwd((LDAP *)(long)PARAM(0), (LDAPMessage *)(long)PARAM(1), &local_parameter_2))
+    RETURN_NUMBER(ldap_parse_passwd((LDAP *)(uintptr_t)PARAM(0), (LDAPMessage *)(uintptr_t)PARAM(1), &local_parameter_2))
 //SET_NUMBER(2, (long)local_parameter_2)
     SET_BERVAL(2, local_parameter_2)
 END_IMPL
@@ -2178,7 +2188,7 @@ CONCEPT_FUNCTION_IMPL(ldap_passwd, 7)
 // ... parameter 6 is by reference (int*)
     int local_parameter_6;
 
-    RETURN_NUMBER(ldap_passwd((LDAP *)(long)PARAM(0), &local_parameter_1, &local_parameter_2, &local_parameter_3, &local_parameter_4, &local_parameter_5, &local_parameter_6))
+    RETURN_NUMBER(ldap_passwd((LDAP *)(uintptr_t)PARAM(0), &local_parameter_1, &local_parameter_2, &local_parameter_3, &local_parameter_4, &local_parameter_5, &local_parameter_6))
 //SET_NUMBER(1, (long)local_parameter_1)
 //SET_NUMBER(2, (long)local_parameter_2)
 //SET_NUMBER(3, (long)local_parameter_3)
@@ -2206,7 +2216,7 @@ CONCEPT_FUNCTION_IMPL(ldap_passwd_s, 7)
 // ... parameter 6 is by reference (LDAPControl**)
     LDAPControl *local_parameter_6;
 
-    RETURN_NUMBER(ldap_passwd_s((LDAP *)(long)PARAM(0), &local_parameter_1, &local_parameter_2, &local_parameter_3, &local_parameter_4, &local_parameter_5, &local_parameter_6))
+    RETURN_NUMBER(ldap_passwd_s((LDAP *)(uintptr_t)PARAM(0), &local_parameter_1, &local_parameter_2, &local_parameter_3, &local_parameter_4, &local_parameter_5, &local_parameter_6))
 //SET_NUMBER(1, (long)local_parameter_1)
 //SET_NUMBER(2, (long)local_parameter_2)
 //SET_NUMBER(3, (long)local_parameter_3)
@@ -2260,7 +2270,7 @@ CONCEPT_FUNCTION_IMPL(ldap_parse_refresh, 3)
 // ... parameter 2 is by reference (ber_int_t*)
     ber_int_t local_parameter_2;
 
-    RETURN_NUMBER(ldap_parse_refresh((LDAP *)(long)PARAM(0), (LDAPMessage *)(long)PARAM(1), &local_parameter_2))
+    RETURN_NUMBER(ldap_parse_refresh((LDAP *)(uintptr_t)PARAM(0), (LDAPMessage *)(uintptr_t)PARAM(1), &local_parameter_2))
     SET_NUMBER(2, (long)local_parameter_2)
 END_IMPL
 //------------------------------------------------------------------------
@@ -2277,7 +2287,7 @@ CONCEPT_FUNCTION_IMPL(ldap_refresh, 6)
 // ... parameter 5 is by reference (int*)
     int local_parameter_5;
 
-    RETURN_NUMBER(ldap_refresh((LDAP *)(long)PARAM(0), &local_parameter_1, (ber_int_t)PARAM(2), &local_parameter_3, &local_parameter_4, &local_parameter_5))
+    RETURN_NUMBER(ldap_refresh((LDAP *)(uintptr_t)PARAM(0), &local_parameter_1, (ber_int_t)PARAM(2), &local_parameter_3, &local_parameter_4, &local_parameter_5))
 //SET_NUMBER(1, (long)local_parameter_1)
     SET_BERVAL(1, local_parameter_1)
     SET_NUMBER(3, (long)local_parameter_3)
@@ -2298,7 +2308,7 @@ CONCEPT_FUNCTION_IMPL(ldap_refresh_s, 6)
 // ... parameter 5 is by reference (LDAPControl**)
     LDAPControl *local_parameter_5;
 
-    RETURN_NUMBER(ldap_refresh_s((LDAP *)(long)PARAM(0), &local_parameter_1, (ber_int_t)PARAM(2), &local_parameter_3, &local_parameter_4, &local_parameter_5))
+    RETURN_NUMBER(ldap_refresh_s((LDAP *)(uintptr_t)PARAM(0), &local_parameter_1, (ber_int_t)PARAM(2), &local_parameter_3, &local_parameter_4, &local_parameter_5))
 //SET_NUMBER(1, (long)local_parameter_1)
     SET_BERVAL(1, local_parameter_1)
     SET_NUMBER(3, (long)local_parameter_3)
@@ -2317,7 +2327,7 @@ CONCEPT_FUNCTION_IMPL(ldap_txn_start, 4)
 // ... parameter 3 is by reference (int*)
     int local_parameter_3;
 
-    RETURN_NUMBER(ldap_txn_start((LDAP *)(long)PARAM(0), &local_parameter_1, &local_parameter_2, &local_parameter_3))
+    RETURN_NUMBER(ldap_txn_start((LDAP *)(uintptr_t)PARAM(0), &local_parameter_1, &local_parameter_2, &local_parameter_3))
     SET_NUMBER(1, (long)local_parameter_1)
     SET_NUMBER(2, (long)local_parameter_2)
     SET_NUMBER(3, (long)local_parameter_3)
@@ -2333,7 +2343,7 @@ CONCEPT_FUNCTION_IMPL(ldap_txn_start_s, 4)
 // ... parameter 3 is by reference (berval**)
     berval *local_parameter_3;
 
-    RETURN_NUMBER(ldap_txn_start_s((LDAP *)(long)PARAM(0), &local_parameter_1, &local_parameter_2, &local_parameter_3))
+    RETURN_NUMBER(ldap_txn_start_s((LDAP *)(uintptr_t)PARAM(0), &local_parameter_1, &local_parameter_2, &local_parameter_3))
     SET_NUMBER(1, (long)local_parameter_1)
     SET_NUMBER(2, (long)local_parameter_2)
     SET_NUMBER(3, (long)local_parameter_3)
@@ -2352,7 +2362,7 @@ CONCEPT_FUNCTION_IMPL(ldap_txn_end, 6)
 // ... parameter 5 is by reference (int*)
     int local_parameter_5;
 
-    RETURN_NUMBER(ldap_txn_end((LDAP *)(long)PARAM(0), (int)PARAM(1), &local_parameter_2, &local_parameter_3, &local_parameter_4, &local_parameter_5))
+    RETURN_NUMBER(ldap_txn_end((LDAP *)(uintptr_t)PARAM(0), (int)PARAM(1), &local_parameter_2, &local_parameter_3, &local_parameter_4, &local_parameter_5))
 //SET_NUMBER(2, (long)local_parameter_2)
     SET_BERVAL(2, local_parameter_2)
     SET_NUMBER(3, (long)local_parameter_3)
@@ -2373,7 +2383,7 @@ CONCEPT_FUNCTION_IMPL(ldap_txn_end_s, 6)
 // ... parameter 5 is by reference (int*)
     int local_parameter_5;
 
-    RETURN_NUMBER(ldap_txn_end_s((LDAP *)(long)PARAM(0), (int)PARAM(1), &local_parameter_2, &local_parameter_3, &local_parameter_4, &local_parameter_5))
+    RETURN_NUMBER(ldap_txn_end_s((LDAP *)(uintptr_t)PARAM(0), (int)PARAM(1), &local_parameter_2, &local_parameter_3, &local_parameter_4, &local_parameter_5))
 //SET_NUMBER(2, (long)local_parameter_2)
     SET_BERVAL(2, local_parameter_2)
     SET_NUMBER(3, (long)local_parameter_3)
@@ -2435,7 +2445,7 @@ CONCEPT_FUNCTION_IMPL(ldap_create_session_tracking_value, 6)
 // ... parameter 5 is by reference (berval*)
     GET_DECL_BERVAL(5, local_parameter_5);
 
-    RETURN_NUMBER(ldap_create_session_tracking_value((LDAP *)(long)PARAM(0), PARAM(1), PARAM(2), PARAM(3), &local_parameter_4, &local_parameter_5))
+    RETURN_NUMBER(ldap_create_session_tracking_value((LDAP *)(uintptr_t)PARAM(0), PARAM(1), PARAM(2), PARAM(3), &local_parameter_4, &local_parameter_5))
 //SET_NUMBER(4, (long)local_parameter_4)
 //SET_NUMBER(5, (long)local_parameter_5)
     SET_BERVAL(4, local_parameter_4)
@@ -2453,7 +2463,7 @@ CONCEPT_FUNCTION_IMPL(ldap_create_session_tracking, 6)
 // ... parameter 5 is by reference (LDAPControl**)
     LDAPControl *local_parameter_5;
 
-    RETURN_NUMBER(ldap_create_session_tracking((LDAP *)(long)PARAM(0), PARAM(1), PARAM(2), PARAM(3), &local_parameter_4, &local_parameter_5))
+    RETURN_NUMBER(ldap_create_session_tracking((LDAP *)(uintptr_t)PARAM(0), PARAM(1), PARAM(2), PARAM(3), &local_parameter_4, &local_parameter_5))
 //SET_NUMBER(4, (long)local_parameter_4)
     SET_BERVAL(4, local_parameter_4)
     SET_NUMBER(5, (long)local_parameter_5)
@@ -2472,7 +2482,7 @@ CONCEPT_FUNCTION_IMPL(ldap_parse_session_tracking_control, 6)
 // ... parameter 5 is by reference (berval*)
     GET_DECL_BERVAL(5, local_parameter_5);
 
-    RETURN_NUMBER(ldap_parse_session_tracking_control((LDAP *)(long)PARAM(0), (LDAPControl *)(long)PARAM(1), &local_parameter_2, &local_parameter_3, &local_parameter_4, &local_parameter_5))
+    RETURN_NUMBER(ldap_parse_session_tracking_control((LDAP *)(uintptr_t)PARAM(0), (LDAPControl *)(long)PARAM(1), &local_parameter_2, &local_parameter_3, &local_parameter_4, &local_parameter_5))
 
 /*SET_NUMBER(2, (long)local_parameter_2)
    SET_NUMBER(3, (long)local_parameter_3)
@@ -2492,7 +2502,7 @@ CONCEPT_FUNCTION_IMPL(ldap_create_assertion_control_value, 3)
 // ... parameter 2 is by reference (berval*)
     GET_DECL_BERVAL(2, local_parameter_2);
 
-    RETURN_NUMBER(ldap_create_assertion_control_value((LDAP *)(long)PARAM(0), PARAM(1), &local_parameter_2))
+    RETURN_NUMBER(ldap_create_assertion_control_value((LDAP *)(uintptr_t)PARAM(0), PARAM(1), &local_parameter_2))
 //SET_NUMBER(2, (long)local_parameter_2)
     SET_BERVAL(2, local_parameter_2)
 END_IMPL
@@ -2505,7 +2515,7 @@ CONCEPT_FUNCTION_IMPL(ldap_create_assertion_control, 4)
 // ... parameter 3 is by reference (LDAPControl**)
     LDAPControl * local_parameter_3;
 
-    RETURN_NUMBER(ldap_create_assertion_control((LDAP *)(long)PARAM(0), PARAM(1), (int)PARAM(2), &local_parameter_3))
+    RETURN_NUMBER(ldap_create_assertion_control((LDAP *)(uintptr_t)PARAM(0), PARAM(1), (int)PARAM(2), &local_parameter_3))
     SET_NUMBER(3, (long)local_parameter_3)
 END_IMPL
 //------------------------------------------------------------------------
@@ -2552,7 +2562,7 @@ CONCEPT_FUNCTION_IMPL(ldap_parse_derefresponse_control, 3)
 // ... parameter 2 is by reference (LDAPDerefRes**)
     LDAPDerefRes * local_parameter_2;
 
-    RETURN_NUMBER(ldap_parse_derefresponse_control((LDAP *)(long)PARAM(0), (LDAPControl *)(long)PARAM(1), &local_parameter_2))
+    RETURN_NUMBER(ldap_parse_derefresponse_control((LDAP *)(uintptr_t)PARAM(0), (LDAPControl *)(long)PARAM(1), &local_parameter_2))
     SET_NUMBER(2, (long)local_parameter_2)
 END_IMPL
 //------------------------------------------------------------------------
@@ -2564,8 +2574,85 @@ CONCEPT_FUNCTION_IMPL(ldap_parse_deref_control, 3)
 // ... parameter 2 is by reference (LDAPDerefRes**)
     LDAPDerefRes *local_parameter_2;
 
-    RETURN_NUMBER(ldap_parse_deref_control((LDAP *)(long)PARAM(0), &local_parameter_1, &local_parameter_2))
+    RETURN_NUMBER(ldap_parse_deref_control((LDAP *)(uintptr_t)PARAM(0), &local_parameter_1, &local_parameter_2))
     SET_NUMBER(1, (long)local_parameter_1)
     SET_NUMBER(2, (long)local_parameter_2)
 END_IMPL
+//------------------------------------------------------------------------
+CONCEPT_FUNCTION_IMPL(ldap_simple_bind_s, 3)
+    T_HANDLE(ldap_simple_bind_s, 0)     // LDAP*
+    T_STRING(ldap_simple_bind_s, 1)     // char*
+    T_STRING(ldap_simple_bind_s, 2)     // char*
 
+    RETURN_NUMBER(ldap_simple_bind_s((LDAP *)(uintptr_t)PARAM(0), PARAM(1), PARAM(2)));
+END_IMPL
+//------------------------------------------------------------------------
+CONCEPT_FUNCTION_IMPL(ldap_simple_bind, 3)
+    T_HANDLE(ldap_simple_bind_s, 0)     // LDAP*
+    T_STRING(ldap_simple_bind_s, 1)     // char*
+    T_STRING(ldap_simple_bind_s, 2)     // char*
+
+    RETURN_NUMBER(ldap_simple_bind((LDAP *)(uintptr_t)PARAM(0), PARAM(1), PARAM(2)));
+END_IMPL
+//------------------------------------------------------------------------
+CONCEPT_FUNCTION_IMPL(ldap_search, 6)
+    T_HANDLE(ldap_search, 0)     // LDAP*
+    T_STRING(ldap_search, 1)     // char*
+    T_NUMBER(ldap_search, 2)     // int
+    T_STRING(ldap_search, 3)     // char*
+    T_NUMBER(ldap_search, 4)
+
+    LDAPMessage *msg = NULL;
+    char *filter = PARAM(3);
+    if ((filter) && (!filter[0]))
+        filter = NULL;
+    RETURN_NUMBER(ldap_search_ext_s((LDAP *)(uintptr_t)PARAM(0), PARAM(1), (int)PARAM(2), filter, NULL, 0, NULL, NULL, NULL, PARAM_INT(4), &msg));
+    SET_NUMBER(5, (long)msg)
+END_IMPL
+//------------------------------------------------------------------------
+CONCEPT_FUNCTION_IMPL(ldap_done, 1)
+    T_HANDLE(ldap_done, 0)
+    ldap_unbind_ext_s((LDAP *)(uintptr_t)PARAM(0), NULL, NULL);
+    SET_NUMBER(0, 0);
+END_IMPL
+//------------------------------------------------------------------------
+CONCEPT_FUNCTION_IMPL(ldap_array, 2)
+    T_HANDLE(ldap_to_array, 0)
+    T_HANDLE(ldap_to_array, 1)
+
+    LDAP *ld = (LDAP *)(uintptr_t)PARAM(0);
+    LDAPMessage *msg = (LDAPMessage *)(uintptr_t)PARAM(1);
+    CREATE_ARRAY(RESULT);
+    
+    LDAPMessage  *e = ldap_first_entry(ld, msg);
+    BerElement *ber = NULL;
+    INTEGER index = 0;
+    while (e) {
+        void *record = NULL;
+        Invoke(INVOKE_ARRAY_VARIABLE, RESULT, index++, &record);
+        CREATE_ARRAY(record);
+        for (char *a = ldap_first_attribute(ld, e, &ber); a != NULL; a = ldap_next_attribute(ld, e, ber)) { 
+            char **vals = ldap_get_values(ld, e, a);
+            if ((vals != NULL) && (vals[0]))  {
+                if (!vals[1]) {
+                    InvokePtr(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, record, a, (INTEGER)VARIABLE_STRING, (char *)vals[0], (NUMBER)0);
+                } else {
+                    void *values = NULL;
+                    Invoke(INVOKE_ARRAY_VARIABLE_BY_KEY, record, a, &values);
+                    CREATE_ARRAY(values);
+                    for (INTEGER j = 0; vals[j] != NULL; j++) {
+                        InvokePtr(INVOKE_SET_ARRAY_ELEMENT, values, j, (INTEGER)VARIABLE_STRING, (char *)vals[j], (NUMBER)0);
+                    }
+                }
+            } else
+                InvokePtr(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, record, a, (INTEGER)VARIABLE_NUMBER, (char *)"", (NUMBER)0);
+            if (vals)
+                ldap_value_free(vals);
+            ldap_memfree(a);
+        }
+        if (ber)
+            ber_free(ber, 0); //  or ldap_ber_free
+        e = ldap_next_entry(ld, e);
+    }
+END_IMPL
+//------------------------------------------------------------------------
