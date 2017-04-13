@@ -1235,20 +1235,9 @@ END_IMPL
         RETURN_NUMBER(ldap_tls_inplace((LDAP*)(long)PARAM(0)))
    END_IMPL*/
 //------------------------------------------------------------------------
-CONCEPT_FUNCTION_IMPL(ldap_start_tls, 4)
-    T_NUMBER(ldap_start_tls, 0)     // LDAP*
-
-// ... parameter 1 is by reference (LDAPControl**)
-    LDAPControl * local_parameter_1;
-// ... parameter 2 is by reference (LDAPControl**)
-    LDAPControl *local_parameter_2;
-// ... parameter 3 is by reference (int*)
-    int local_parameter_3;
-
-    RETURN_NUMBER(ldap_start_tls((LDAP *)(uintptr_t)PARAM(0), &local_parameter_1, &local_parameter_2, &local_parameter_3))
-    SET_NUMBER(1, (long)local_parameter_1)
-    SET_NUMBER(2, (long)local_parameter_2)
-    SET_NUMBER(3, (long)local_parameter_3)
+CONCEPT_FUNCTION_IMPL(ldap_start_tls, 1)
+    T_HANDLE(ldap_start_tls, 0)     // LDAP*
+    RETURN_NUMBER(ldap_start_tls_s((LDAP *)(uintptr_t)PARAM(0), NULL, NULL));
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(ldap_install_tls, 1)

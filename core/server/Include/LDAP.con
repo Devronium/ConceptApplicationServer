@@ -33,6 +33,18 @@ class LDAP {
 		return data;
 	}
 
+	starttls() {
+		if (!ld)
+			throw "LDAP not initialized";
+		return ldap_start_tls(ld);
+	}
+
+	installtls() {
+		if (!ld)
+			throw "LDAP not initialized";
+		return ldap_install_tls(ld);
+	}
+
 	finalize() {
 		unbind();
 	}

@@ -9,6 +9,8 @@ import standard.C.time
 include DTMFDetector.con
 include Serializable.con
 include UDPSocket.con
+include TCPSocket.con
+include TLSESocket.con
 include Speex.con
 
 define SIP_CODES	["100" => "Trying", "180" => "Ringing", "181" => "Call Is Being Forwarded", "182" => "Queued", "200" => "OK", "300" => "Multiple Choices", "301" => "Moved Permanently", "302" => "Moved Temporarily", "303" => "See Other", "305" => "Use Proxy", "380" => "Alternative Service", "400" => "Bad Request", "401" => "Unauthorized", "402" => "Payment Required", "403" => "Forbidden", "404" => "Not Found", "405" => "Method Not Allowed", "406" => "Not Acceptable", "407" => "Proxy Authentication Required", "408" => "Request Timeout", "409" => "Conflict", "410" => "Gone", "411" => "Length Required", "413" => "Request Entity Too Large", "414" => "Request-URI Too Large", "415" => "Unsupported Media Type", "420" => "Bad Extension", "480" => "Temporarily not available", "481" => "Call Leg/Transaction Does Not Exist", "482" => "Loop Detected", "483" => "Too Many Hops", "484" => "Address Incomplete", "485" => "Ambiguous", "486" => "Busy Here", "500" => "Internal Server Error", "501" => "Not Implemented", "502" => "Bad Gateway", "503" => "Service Unavailable", "504" => "Gateway Time-out", "505" => "SIP Version not supported", "600" => "Busy Everywhere", "603" => "Decline", "604" => "Does not exist anywhere", "606" => "Not Acceptable"]
@@ -17,10 +19,15 @@ define SIP_SUPPORTED	"replaces, 100rel, timer, tdialog"
 define RTP_START_PORT	16000
 define RTP_END_PORT	32000
 
+define SIP_TRANSPORT_UDP	0
+define SIP_TRANSPORT_TCP	1
+define SIP_TRANSPORT_TLS	2
+
 class SIPSession {
 	public var CallID;
 	public var ssrc_id;
 	public var UserData;
+	public var tcp_socket;
 
 	private var Expire = 0;
 	public var msg;
@@ -79,8 +86,8 @@ class SIPSession {
 		this.SetRTP(msg, rtp_port);
 		this.rtp_port = rtp_port;
 		this.chunk_size = chunk_size * 1000;
-
 		this.s = s;
+		this.tcp_socket = s.use_socket;
 		this.msg = msg;
 
 		this.ip = ip;
@@ -184,6 +191,7 @@ class SIPSession {
 		bye_set = true;
 		var exc;
 		try {
+			this.s.use_socket = tcp_socket;
 			this.bye_msg = this.s.ResponseUDP(code, msg, msg.Headers["from"], this.GetSDP(), "application/sdp", 70, null, "", ip, port, true);
 			UpdateTags();
 			return true;
@@ -195,6 +203,7 @@ class SIPSession {
 	Reject(code=486) {
 		var exc;
 		try {
+			this.s.use_socket = tcp_socket;
 			this.s.ResponseUDP(code, msg, msg.Headers["from"], "", "", 70, null, "", ip, port);
 			if (this.s.OnEnd)
 				this.s.OnEnd(this, msg, "");
@@ -208,6 +217,7 @@ class SIPSession {
 	Bye(delete_session=false) {
 		var exc;
 		try {
+			this.s.use_socket = tcp_socket;
 			if (accept_bye) {
 				if (is_invite)
 					var msg2 = s.Bye(bye_msg ?? msg, ip, port);
@@ -234,6 +244,7 @@ class SIPSession {
 	End(delete_session=false, msg2 = null) {
 		var exc;
 		try {
+			this.s.use_socket = tcp_socket;
 			if (rtp)
 				rtp.Close();
 			if (delete_session) {
@@ -250,6 +261,7 @@ class SIPSession {
 	Cancel(delete_session=false, reject_code = 486) {
 		var exc;
 		try {
+			this.s.use_socket = tcp_socket;
 			if (accept_bye)
 				return this.Bye(delete_session);
 			//var msg2 = s.Cancel(msg, ip, port);
@@ -777,6 +789,8 @@ class SIPRoute {
 
 class SIPStack {
 	var udpclientsocket;
+	var use_socket;
+	var tcpsocket;
 	var localhost;
 	var local_port = 5060;
 	var localip;
@@ -808,6 +822,9 @@ class SIPStack {
 	var OnSend;
 	var OnInfo;
 
+	var Transport = "UDP";
+	var tcp = false;
+	var[] TCPSockets;
 	var FrameSize = 20;
 
 	var RegisterTimeout = 600;
@@ -816,13 +833,26 @@ class SIPStack {
 
 	var NATFriendly = false;
 
-	SIPStack(localhost, bind_port = 5060) {
+	SIPStack(localhost, bind_port = 5060, type = SIP_TRANSPORT_UDP) {
 		this.localhost = localhost;
 		this.local_port = bind_port;
 		this.localip = this.IPFromName(localhost);
 		this.realm = localhost;
+		switch (type) {
+			case SIP_TRANSPORT_TCP:
+				tcpsocket = new TCPSocket();
+				tcpsocket.Listen(bind_port, 0xFFFF);
+				Transport = "TCP";
+				tcp = true;
+				break;
+			case SIP_TRANSPORT_TLS:
+				Transport = "TLS";
+				tcp = true;
+				break;
+		}
 		udpclientsocket = new UDPSocket();
 		udpclientsocket.Bind(bind_port);
+
 		this.full_host = localhost;
 		if (local_port != 5060)
 			this.full_host += ":" + bind_port;
@@ -1099,7 +1129,7 @@ class SIPStack {
 		if (!callid)
 			callid = this.RandomString(32) + "@" + localhost;
 
-		register.Headers["Via"] = "SIP/2.0/UDP " + full_host + ";rport;branch=" + branch;
+		register.Headers["Via"] = "SIP/2.0/${Transport} " + full_host + ";rport;branch=" + branch;
 		var from = username + " <sip:" + username + "@" + server + ">";
 		register.Headers["From"] = from;
 		register.Headers["To"] = from;
@@ -1130,17 +1160,28 @@ class SIPStack {
 		return this.Parse(t.Read());
 	}
 
+	DoWrite(socket, var buffer, ip, port) {
+		// UDP
+		var type = classof socket;
+		if (type[0] == "U")
+			return socket.Write(buffer, ip, port);
+
+		return socket.Write(buffer);
+	}
+
 	RegisterUDP(username, password, server, server_port=5060, timeout=5000) {
 		try {
 			var register = this.Register(username, password, server, server_port, null, var nonce);
-			var local_udpclientsocket = udpclientsocket;//new UDPSocket();
-			if (local_udpclientsocket.Write(register.ToString(), server, server_port) <= 0)
+			var local_udpclientsocket = use_socket ?? udpclientsocket;//new UDPSocket();
+			/*local_udpclientsocket.Write(register.ToString(), server, server_port)*/
+			if (this.DoWrite(local_udpclientsocket,  register.ToString(), server, server_port) <= 0)
 				return null;
 
 			var msg = this.TimedOutRead(local_udpclientsocket, timeout);
 			if ((msg) && (msg.ServerCode == 401)) {
 				register = this.Register(username, password, server, server_port, msg, nonce);
-				if (local_udpclientsocket.Write(register.ToString(), server, server_port) < 0)
+				// if (local_udpclientsocket.Write(register.ToString(), server, server_port) < 0)
+				if (this.DoWrite(local_udpclientsocket, register.ToString(), server, server_port) < 0)
 					return null;
 				var msg2 = this.TimedOutRead(local_udpclientsocket, timeout);
 				if (msg2)
@@ -1188,7 +1229,7 @@ class SIPStack {
 				if ((msg.Method == "BYE") || (msg.Method == "NOTIFY") || ((parent_msg.ServerCode >= 200) && (parent_msg.ServerCode < 300))) {
 					var branch = "z9hG4bK" + this.RandomString(14);
 					msg.Branch = branch;
-					msg.Headers["Via"] = "SIP/2.0/UDP " + full_host + ";rport;branch=" + branch;
+					msg.Headers["Via"] = "SIP/2.0/${Transport} " + full_host + ";rport;branch=" + branch;
 				} else
 					msg.Headers["Via"] = parent_msg.Headers["via"];
 				msg.Headers["Max-Forwards"] = max_forwards;
@@ -1197,7 +1238,7 @@ class SIPStack {
 			} else {
 				// =============== to check this ===================//
 				branch = "z9hG4bK" + this.RandomString(14);
-				msg.Headers["Via"] = "SIP/2.0/UDP " + full_host + ";rport;branch=" + branch;
+				msg.Headers["Via"] = "SIP/2.0/${Transport} " + full_host + ";rport;branch=" + branch;
 				// =================================================//
 				// msg.Headers["Via"] = parent_msg.Headers["via"];
 
@@ -1208,7 +1249,7 @@ class SIPStack {
 			}
 		} else {
 			branch = "z9hG4bK" + this.RandomString(14);
-			msg.Headers["Via"] = "SIP/2.0/UDP " + full_server + ";rport;branch=" + branch;
+			msg.Headers["Via"] = "SIP/2.0/${Transport} " + full_server + ";rport;branch=" + branch;
 			msg.Headers["Max-Forwards"] = max_forwards;
 			msg.Headers["From"] = from;//username + " <sip:" + username + "@" + server + ">";
 			msg.Headers["To"] = destination;
@@ -1251,7 +1292,8 @@ class SIPStack {
 			if (this.OnSend)
 				this.OnSend(msg, server, server_port);
 
-			if (udpclientsocket.Write(msg.ToString(), server, server_port) <= 0)
+			// if (udpclientsocket.Write(msg.ToString(), server, server_port) <= 0)
+			if (this.DoWrite(use_socket ?? udpclientsocket, msg.ToString(), server, server_port) <= 0)
 				return null;
 			return msg;
 		} catch (var exc) {
@@ -1290,7 +1332,8 @@ class SIPStack {
 						this.OnSend(msg, ip, port);
 				}
 
-				if (udpclientsocket.Write(msg.ToString(), ip, port) <= 0)
+				// if (udpclientsocket.Write(msg.ToString(), ip, port) <= 0)
+				if (this.DoWrite(use_socket ?? udpclientsocket, msg.ToString(), ip, port) <= 0)
 					return false;
 				return true;
 			} catch (var exc) {
@@ -1352,7 +1395,7 @@ class SIPStack {
 		if (parent_msg)
 			msg.Headers["Via"] = parent_msg.Headers["via"];
 		else
-			msg.Headers["Via"] = "SIP/2.0/UDP " + full_server + ";rport;branch=" + branch;
+			msg.Headers["Via"] = "SIP/2.0/${Transport} " + full_server + ";rport;branch=" + branch;
 		msg.Headers["Max-Forwards"] = max_forwards;
 
 		msg.Headers["Call-ID"] = callid;	
@@ -1382,7 +1425,8 @@ class SIPStack {
 
 			if (this.OnSend)
 				this.OnSend(msg, server, server_port);
-			if (udpclientsocket.Write(msg.ToString(), server, server_port) <= 0)
+			// if (udpclientsocket.Write(msg.ToString(), server, server_port) <= 0)
+			if (this.DoWrite(use_socket ?? udpclientsocket, msg.ToString(), server, server_port) <= 0)
 				return null;
 			return msg;
 		} catch (var exc) {
@@ -1590,23 +1634,98 @@ class SIPStack {
 		return msg2;
 	}
 
+	DoRead(socket, var ip, var port) {
+		var type = classof socket;
+		if (type[0] == "U")
+			return socket.Read(ip, port);
+		ip = "";
+		port = 0;
+
+		var buffer = "";
+		do {
+			var read = socket.Read(1);
+			if (!read)
+				break;
+			buffer += read;
+		} while (Pos(buffer, "\r\n\r\n") > 0);
+		var buf_lo = ToLower(buffer);
+		var pos = Pos(buf_lo, "content-length");
+		if (pos > 0) {
+			var len = value SubStr(buf_lo, pos + 14);
+			while (len > 0) {
+				var buf2 = socket.Read(len);
+				if (!buf2)
+					break;
+				buffer += buf2;
+				len -= length buf2;
+			}
+		}
+		ip = socket.Info["address"];
+		port = socket.Info["port"];
+		return buffer;
+	}
+
+	Peek(msg, ip, port, max_forwards = 70) {
+		if (this.OnRecv)
+			this.OnRecv(msg, ip, port);
+		if (((msg.ServerCode >= 200) || (!msg.ServerCode)) && (msg.Method == "") && (!Pos(""+msg.Headers["cseq"], " ACK"))) {
+			if (this.ContactNonRoutable(msg.Headers))
+				this.Ack(msg, ip, port, max_forwards);
+			else
+				this.Ack(msg, "", 0, max_forwards);
+		}
+	}
+
 	PeekMessage(var ip, var port, max_forwards = 70) {
 		try {
 			if (udpclientsocket.HasData) {
-				var msg = this.Parse(udpclientsocket.Read(ip, port));
+				// var msg = this.Parse(udpclientsocket.Read(ip, port));
+				var msg = this.Parse(this.DoRead(udpclientsocket, ip, port));
 				if (msg) {
-					if (this.OnRecv)
-						this.OnRecv(msg, ip, port);
-					if (((msg.ServerCode >= 200) || (!msg.ServerCode)) && (msg.Method == "") && (!Pos(""+msg.Headers["cseq"], " ACK"))) {
-						if (this.ContactNonRoutable(msg.Headers))
-							this.Ack(msg, ip, port, max_forwards);
-						else
-							this.Ack(msg, "", 0, max_forwards);
-					}
+					this.Peek(msg, ip, port, max_forwards);
 					return msg;
 				}
 			}
 		} catch (var exc) {
+			// nothing
+		}
+		return null;
+	}
+
+	RemoveTCPSocket(socket) {
+		var[] new_sockets;
+		for (var i = 0; i < length TCPSockets; i++) {
+			var tcpsocket = TCPSockets[i];
+			if ((tcpsocket) && (tcpsocket != socket))
+				new_sockets[length new_sockets] = tcpsocket;
+		}
+		TCPSockets = new_sockets;
+	}
+
+	PeekMessageTCP(var ip, var port, var clientsocket, max_forwards = 70) {
+		try {
+			clientsocket = null;
+			if (tcpsocket.HasData) {
+				var socket = tcpsocket.Accept();
+				if (socket)
+					TCPSockets[length TCPSockets] = socket;
+			}
+			for (var i = 0; i < length TCPSockets; i++) {
+				socket = TCPSockets[i];
+				if ((socket) && (socket.HasData)) {
+					try {
+						var msg = this.Parse(this.DoRead(socket, ip, port));
+						if (msg) {
+							this.Peek(msg, ip, port, max_forwards);
+							clientsocket = socket;
+							return msg;
+						}
+					} catch (var exc) {	
+						RemoveTCPSocket(socket);
+					}
+				}
+			}
+		} catch (exc) {
 			// nothing
 		}
 		return null;
@@ -1795,7 +1914,7 @@ class SIPStack {
 		var branch = "z9hG4bK" + this.RandomString(14);
 		var callid = this.RandomString(32) + "@" + localhost;
 
-		msg.Headers["via"] = "SIP/2.0/UDP " + this.full_host + ";rport;branch=" + branch;
+		msg.Headers["via"] = "SIP/2.0/${Transport} " + this.full_host + ";rport;branch=" + branch;
 		msg.Headers["max-forwards"] = max_forwards;
 
 		msg.Headers["from"] = "sip:" + username + "@" + this.localhost + ";tag="+this.RandomString(20);
@@ -1812,7 +1931,8 @@ class SIPStack {
 			if (this.OnSend)
 				this.OnSend(msg, server, server_port);
 
-			if (udpclientsocket.Write(msg.ToString(), server, server_port) <= 0)
+			// if (udpclientsocket.Write(msg.ToString(), server, server_port) <= 0)
+			if (this.DoWrite(use_socket ?? udpclientsocket, msg.ToString(), server, server_port) <= 0)
 				return false;
 		} catch (var exc) {
 			// nothing
@@ -1893,7 +2013,8 @@ class SIPStack {
 				if (this.OnSend)
 					this.OnSend(msg2, server, server_port);
 
-				udpclientsocket.Write(msg2.ToString(), server, server_port);
+				// udpclientsocket.Write(msg2.ToString(), server, server_port);
+				this.DoWrite(use_socket ?? udpclientsocket, msg2.ToString(), server, server_port);
 			} catch (var exc) {
 				// nothing
 			}
@@ -1947,7 +2068,7 @@ class SIPStack {
 		var branch = "z9hG4bK" + this.RandomString(14);
 		var callid = this.RandomString(32) + "@" + localhost;
 
-		msg.Headers["via"] = "SIP/2.0/UDP " + this.full_host + ";rport;branch=" + branch;
+		msg.Headers["via"] = "SIP/2.0/${Transport} " + this.full_host + ";rport;branch=" + branch;
 		msg.Headers["max-forwards"] = max_forwards;
 
 		var tag = this.RandomString(20);
@@ -1989,7 +2110,8 @@ class SIPStack {
 
 				sess.ip = this.IPFromName(server);
 				sess.port = server_port;
-				if (udpclientsocket.Write(msg.ToString(), server, server_port) <= 0)
+				// if (udpclientsocket.Write(msg.ToString(), server, server_port) <= 0)
+				if (this.DoWrite(use_socket ?? udpclientsocket, msg.ToString(), server, server_port) <= 0)
 					return null;
 				return sess;
 			} catch (var exc) {
@@ -2037,7 +2159,7 @@ class SIPStack {
 		if (!branch)
 		    branch = "z9hG4bK" + this.RandomString(14);
 
-		msg.Headers["via"] = "SIP/2.0/UDP " + this.full_host + ";rport;branch=" + branch;
+		msg.Headers["via"] = "SIP/2.0/${Transport} " + this.full_host + ";rport;branch=" + branch;
 		msg.Headers["max-forwards"] = max_forwards;
 
 
@@ -2079,7 +2201,8 @@ class SIPStack {
 				if (this.OnSend)
 					this.OnSend(msg, server, server_port);
 
-				if (udpclientsocket.Write(msg.ToString(), server, server_port) <= 0)
+				// if (udpclientsocket.Write(msg.ToString(), server, server_port) <= 0)
+				if (this.DoWrite(use_socket ?? udpclientsocket, msg.ToString(), server, server_port) <= 0)
 					return null;
 				return msg;
 			} catch (var exc) {
@@ -2092,7 +2215,8 @@ class SIPStack {
 
 	KeepAlive(ip, port) {
 		try {
-			if (udpclientsocket.Write("\r\n", ip, port) <= 0)
+			// if (udpclientsocket.Write("\r\n", ip, port) <= 0)
+			if (this.DoWrite(use_socket ?? udpclientsocket, "\r\n", ip, port) <= 0)
 				return false;
 			return true;
 		} catch (var exc) {
@@ -2283,7 +2407,15 @@ class SIPStack {
 			if (session)
 				ops += session.Iterate();
 		}
-		var msg = this.PeekMessage(var ip, var port);
+		var msg;
+		use_socket = null;
+		if (tcp) {
+			msg = this.PeekMessageTCP(var ip, var port, use_socket);
+			if (!msg)
+				msg = this.PeekMessage(ip, port);
+		} else
+			msg = this.PeekMessage(ip, port);
+
 		if (msg) {
 			if (this.OnFilter) {
 				if (this.OnFilter(msg, ip, port)) {
