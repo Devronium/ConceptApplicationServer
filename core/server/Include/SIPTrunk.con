@@ -615,6 +615,8 @@ class SIPSession {
 			if (Expired())
 				throw "Session expired !\n";
 		} catch (exc) {
+			if (this.tcp_socket)
+				this.s.RemoveTCPSocket(this.tcp_socket);
 			this.s.RemoveSessionByRef(this);
 			this.Bye();
 			ops++;
@@ -821,8 +823,11 @@ class SIPStack {
 	var OnRecv;
 	var OnSend;
 	var OnInfo;
+	var OnPublish;
+	var OnAfterPublish;
 
 	var Transport = "UDP";
+	var sipproto = "sip:";
 	var tcp = false;
 	var[] TCPSockets;
 	var FrameSize = 20;
@@ -833,7 +838,7 @@ class SIPStack {
 
 	var NATFriendly = false;
 
-	SIPStack(localhost, bind_port = 5060, type = SIP_TRANSPORT_UDP) {
+	SIPStack(localhost, bind_port = 5060, type = SIP_TRANSPORT_UDP, public_key = "", private_key = "", force_tls_version = 0) {
 		this.localhost = localhost;
 		this.local_port = bind_port;
 		this.localip = this.IPFromName(localhost);
@@ -846,6 +851,12 @@ class SIPStack {
 				tcp = true;
 				break;
 			case SIP_TRANSPORT_TLS:
+				// use sip: for TLS also
+				// sipproto = "sips:";
+				tcpsocket = new TLSESocket();
+				tcpsocket.Listen(bind_port, 0xFFFF, "", force_tls_version);
+				if (!tcpsocket.LoadKeys(public_key, private_key))
+					echo "Warning: Error loading TLS/SSL keys. TLS will not be supported.";
 				Transport = "TLS";
 				tcp = true;
 				break;
@@ -1105,7 +1116,7 @@ class SIPStack {
 
 	private Register(username, password, server, server_port = 5060, response = null, var nonce = null, max_forwards = 70) {
 		var register = new SIPMessage();
-		register.Destination = "sip:" + server;
+		register.Destination = sipproto + server;
 		if (server_port != 5060)
 			register.Destination += ":" + server_port;
 		register.Method = "REGISTER";
@@ -1130,7 +1141,7 @@ class SIPStack {
 			callid = this.RandomString(32) + "@" + localhost;
 
 		register.Headers["Via"] = "SIP/2.0/${Transport} " + full_host + ";rport;branch=" + branch;
-		var from = username + " <sip:" + username + "@" + server + ">";
+		var from = username + " <" + sipproto + username + "@" + server + ">";
 		register.Headers["From"] = from;
 		register.Headers["To"] = from;
 		register.Headers["Max-Forwards"] = max_forwards;
@@ -1141,7 +1152,7 @@ class SIPStack {
 			register.Headers["CSeq"] = "" + (value (response.Headers["cseq"]) + 1) + " " + register.Method;
 		else
 			register.Headers["CSeq"] = "1 " + register.Method;
-		register.Headers["Contact"] = "\"$username\" <sip:" + username + "@" + full_host + ">";
+		register.Headers["Contact"] = "\"$username\" <" + sipproto + username + "@" + full_host + ">";
 		if (authorization)
 			register.Headers["Authorization"] = authorization;
 
@@ -1251,7 +1262,7 @@ class SIPStack {
 			branch = "z9hG4bK" + this.RandomString(14);
 			msg.Headers["Via"] = "SIP/2.0/${Transport} " + full_server + ";rport;branch=" + branch;
 			msg.Headers["Max-Forwards"] = max_forwards;
-			msg.Headers["From"] = from;//username + " <sip:" + username + "@" + server + ">";
+			msg.Headers["From"] = from;//username + " <" + sipproto + username + "@" + server + ">";
 			msg.Headers["To"] = destination;
 		}
 
@@ -1264,7 +1275,7 @@ class SIPStack {
 		} else
 			msg.Headers["CSeq"] = "1 " + msg.Method;
 		if ((method != "ACK") && (method != "CANCEL")) {
-			msg.Headers["Contact"] = from;//"<sip:" + username + "@" + localhost + ">";
+			msg.Headers["Contact"] = from;//"<" + sipproto + username + "@" + localhost + ">";
 			msg.Headers["Allow"] = SIP_ALLOW;
 		}
 		msg.Headers["Content-Length"] = length payload;
@@ -1358,7 +1369,7 @@ class SIPStack {
 			return null;
 
 
-		msg.Destination = "sip:" + server;
+		msg.Destination = sipproto + server;
 		if (server_port != 5060)
 			msg.Destination += ":" + server_port;
 		msg.Method = "";
@@ -1407,6 +1418,17 @@ class SIPStack {
 		}
 		if (contact)
 			msg.Headers["Contact"] = contact;
+		else
+		if ((parent_msg) && (code >= 200) && (code <= 300)) {
+			to = msg.Headers["To"];
+			var username = "";
+			if (to)
+				this.ParseFullDestination(to, username, null, null);
+			if (!username)
+				username = "Anonymous";
+
+			msg.Headers["Contact"] = "<" + sipproto + username + "@" + full_host + ">";
+		}
 		/*else
 			msg.Headers["Contact"] = parent_msg.Destination;//"<sip:" + username + "@" + localhost + ">";*/
 
@@ -1646,8 +1668,10 @@ class SIPStack {
 			var read = socket.Read(1);
 			if (!read)
 				break;
+
 			buffer += read;
-		} while (Pos(buffer, "\r\n\r\n") > 0);
+		} while (Pos(buffer, "\r\n\r\n") <= 0);
+
 		var buf_lo = ToLower(buffer);
 		var pos = Pos(buf_lo, "content-length");
 		if (pos > 0) {
@@ -1707,20 +1731,32 @@ class SIPStack {
 			clientsocket = null;
 			if (tcpsocket.HasData) {
 				var socket = tcpsocket.Accept();
-				if (socket)
+echo socket;
+				if (socket) {
+					socket.SetOption(IPPROTO_TCP, TCP_NODELAY, 1);
+					socket.SetOption(IPPROTO_IP, IP_TOS, 0x10);
+					socket.SetOption(SOL_SOCKET, SO_KEEPALIVE, 1);
+					socket.SetOption(SOL_SOCKET, SO_LINGER, 0);
 					TCPSockets[length TCPSockets] = socket;
+				}
 			}
 			for (var i = 0; i < length TCPSockets; i++) {
 				socket = TCPSockets[i];
 				if ((socket) && (socket.HasData)) {
 					try {
-						var msg = this.Parse(this.DoRead(socket, ip, port));
+						var data = this.DoRead(socket, ip, port);
+						if (!data)
+							throw "Broken connection";
+						var msg = this.Parse(data);
 						if (msg) {
 							this.Peek(msg, ip, port, max_forwards);
 							clientsocket = socket;
 							return msg;
 						}
-					} catch (var exc) {	
+					} catch (var exc) {
+						var session = this.SessionBySocket(socket);
+						if (session)
+							session.Cancel(true);
 						RemoveTCPSocket(socket);
 					}
 				}
@@ -1841,6 +1877,18 @@ class SIPStack {
 		return false;
 	}
 
+	SessionBySocket(socket) {
+		if (!socket)
+			return null;
+
+		for (var i = 0; i < length Sessions; i++) {
+			var session = Sessions[i];
+			if ((session) && (session.tcp_socket == socket))
+				return session;
+		}
+		return null;
+	}
+
 	TerminateSession(msg) {
 		var id = msg.Headers["call-id"];
 		if (id) {
@@ -1909,7 +1957,7 @@ class SIPStack {
 			username = username2;
 		}
 
-		msg.Destination = "sip:${target_user}@${full_server}";
+		msg.Destination = sipproto + "${target_user}@${full_server}";
 
 		var branch = "z9hG4bK" + this.RandomString(14);
 		var callid = this.RandomString(32) + "@" + localhost;
@@ -1917,9 +1965,9 @@ class SIPStack {
 		msg.Headers["via"] = "SIP/2.0/${Transport} " + this.full_host + ";rport;branch=" + branch;
 		msg.Headers["max-forwards"] = max_forwards;
 
-		msg.Headers["from"] = "sip:" + username + "@" + this.localhost + ";tag="+this.RandomString(20);
-		msg.Headers["to"] = "sip:${target_user}@${full_server}";
-		msg.Headers["contact"] = "<sip:" + username + "@" + this.full_host + ">";
+		msg.Headers["from"] = sipproto + username + "@" + this.localhost + ";tag="+this.RandomString(20);
+		msg.Headers["to"] = sipproto + "${target_user}@${full_server}";
+		msg.Headers["contact"] = "<" + sipproto + username + "@" + this.full_host + ">";
 
 		msg.Headers["call-id"] = callid;
 		msg.Headers["cseq"] = "1 " + msg.Method;
@@ -2063,7 +2111,7 @@ class SIPStack {
 		}
 
 		//msg.Destination = destination;
-		msg.Destination = "sip:${target_user}@${full_server}";
+		msg.Destination = sipproto + "${target_user}@${full_server}";
 
 		var branch = "z9hG4bK" + this.RandomString(14);
 		var callid = this.RandomString(32) + "@" + localhost;
@@ -2072,9 +2120,9 @@ class SIPStack {
 		msg.Headers["max-forwards"] = max_forwards;
 
 		var tag = this.RandomString(20);
-		msg.Headers["from"] = "sip:" + username + "@" + this.localhost + ";tag=" + tag;
-		msg.Headers["to"] = "sip:${target_user}@${full_server}";//"sip:${target_user}@${localhost}";//destination;
-		msg.Headers["contact"] = "<sip:" + username + "@" + this.full_host + ">";
+		msg.Headers["from"] = sipproto + username + "@" + this.localhost + ";tag=" + tag;
+		msg.Headers["to"] = sipproto + "${target_user}@${full_server}";//"sip:${target_user}@${localhost}";//destination;
+		msg.Headers["contact"] = "<" + sipproto + username + "@" + this.full_host + ">";
 		msg.Headers["call-id"] = callid;
 		if (parent_session)
 			msg.Headers["cseq"] = "3 " + msg.Method;
@@ -2154,7 +2202,7 @@ class SIPStack {
 		else
 			full_server = server;
 
-		msg.Destination = "sip:" + target_user + "@" + full_server;
+		msg.Destination = sipproto + target_user + "@" + full_server;
 
 		if (!branch)
 		    branch = "z9hG4bK" + this.RandomString(14);
@@ -2345,7 +2393,7 @@ class SIPStack {
 	}
 
 	BuildContact(username) {
-		return "<sip:" + username + "@" + full_host + ">";
+		return "<" + sipproto + username + "@" + full_host + ">";
 	}
 
 	NonRoutable(ip) {
@@ -2587,6 +2635,17 @@ class SIPStack {
 						else
 							this.NotifyRefer(sess, msg, refer, ip, port);
 					}
+					break;
+				case "PUBLISH":
+					code = 200;
+					if (this.OnPublish)
+						code = this.OnPublish(msg);
+					if (this.ContactNonRoutable(msg.Headers))
+						this.ResponseUDP(code, msg, msg.Headers["from"], "", "", 70, null, "", ip, port);
+					else
+						this.ResponseUDP(code, msg, msg.Headers["from"]);
+					if (this.OnAfterPublish)
+						this.OnAfterPublish(msg);
 					break;
 				default:
 					var parent = null;

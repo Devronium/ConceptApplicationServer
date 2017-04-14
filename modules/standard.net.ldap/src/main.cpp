@@ -10,6 +10,9 @@
 
 INVOKE_CALL InvokePtr = 0;
 
+#ifndef _WIN32
+#include <sys/time.h>
+#endif
 
 //struct berval sz_value;
 
@@ -921,10 +924,10 @@ int MyDeleg(LDAP *ld, unsigned flags, void *defaults, void *interact) {
     INTEGER TYPE    = 0;
 
     InvokePtr(INVOKE_CALL_DELEGATE, deleg, &RES, &EXCEPTION, (INTEGER)4,
-              (INTEGER)VARIABLE_NUMBER, (char *)"", (double)(int)ld,
+              (INTEGER)VARIABLE_NUMBER, (char *)"", (double)(uintptr_t)ld,
               (INTEGER)VARIABLE_NUMBER, (char *)"", (double)(int)flags,
-              (INTEGER)VARIABLE_NUMBER, (char *)"", (double)(int)defaults,
-              (INTEGER)VARIABLE_NUMBER, (char *)"", (double)(int)interact
+              (INTEGER)VARIABLE_NUMBER, (char *)"", (double)(uintptr_t)defaults,
+              (INTEGER)VARIABLE_NUMBER, (char *)"", (double)(uintptr_t)interact
               );
 
     if (RES) {

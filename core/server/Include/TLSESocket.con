@@ -46,10 +46,13 @@ class TLSESocket extends TCPSocket {
 	}
 
 	override Listen;
-	public function Listen(port, max_connections=0x100, interface="") {
+	public function Listen(port, max_connections=0x100, interface="", force_version = 0) {
 		var res=TCPSocket::Listen(port, max_connections, interface);
 		if (!res) {
-			tls = TLSEServer();
+			if (force_version)
+				tls = TLSEServer(force_version);
+			else
+				tls = TLSEServer();
 			if (!tls) {
 				this.Close();
 				return -1;
