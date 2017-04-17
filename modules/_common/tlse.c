@@ -51,9 +51,28 @@
 
 #include "tlse.h"
 
+#ifndef TLS_FORWARD_SECRECY
+#undef TLS_ECDSA_SUPPORTED
+#endif
+
+#ifndef TLS_ECDSA_SUPPORTED
+// disable client ECDSA if not supported
+#undef TLS_CLIENT_ECDSA
+#endif
+
 #define TLS_DH_DEFAULT_P            "87A8E61DB4B6663CFFBBD19C651959998CEEF608660DD0F25D2CEED4435E3B00E00DF8F1D61957D4FAF7DF4561B2AA3016C3D91134096FAA3BF4296D830E9A7C209E0C6497517ABD5A8A9D306BCF67ED91F9E6725B4758C022E0B1EF4275BF7B6C5BFC11D45F9088B941F54EB1E59BB8BC39A0BF12307F5C4FDB70C581B23F76B63ACAE1CAA6B7902D52526735488A0EF13C6D9A51BFA4AB3AD8347796524D8EF6A167B5A41825D967E144E5140564251CCACB83E6B486F6B3CA3F7971506026C0B857F689962856DED4010ABD0BE621C3A3960A54E710C375F26375D7014103A4B54330C198AF126116D2276E11715F693877FAD7EF09CADB094AE91E1A1597"
 #define TLS_DH_DEFAULT_G            "3FB32C9B73134D0B2E77506660EDBD484CA7B18F21EF205407F4793A1A0BA12510DBC15077BE463FFF4FED4AAC0BB555BE3A6C1B0C6B47B1BC3773BF7E8C6F62901228F8C28CBB18A55AE31341000A650196F931C77A57F2DDF463E5E9EC144B777DE62AAAB8A8628AC376D282D6ED3864E67982428EBC831D14348F6F2F9193B5045AF2767164E1DFC967C1FB3F2E55A4BD1BFFE83B9C80D052B985D182EA0ADB2A3B7313D3FE14C8484B1E052588B9B7D2BBD2DF016199ECD06E1557CD0915B3353BBB64E0EC377FD028370DF92B52C7891428CDC67EB6184B523D1DB246C32F63078490F00EF8D647D148D47954515E2327CFEF98C582664B4C0F6CC41659"
 #define __TLS_DHE_KEY_SIZE          2048
+
+// you should never use weak DH groups (1024 bits)
+// but if you have old devices (like grandstream ip phones)
+// that can't handle 2048bit DHE, uncomment next lines
+// and define TLS_WEAK_DH_LEGACY_DEVICES
+// #ifdef TLS_WEAK_DH_LEGACY_DEVICES
+//     #define TLS_DH_DEFAULT_P            "B10B8F96A080E01DDE92DE5EAE5D54EC52C99FBCFB06A3C69A6A9DCA52D23B616073E28675A23D189838EF1E2EE652C013ECB4AEA906112324975C3CD49B83BFACCBDD7D90C4BD7098488E9C219A73724EFFD6FAE5644738FAA31A4FF55BCCC0A151AF5F0DC8B4BD45BF37DF365C1A65E68CFDA76D4DA708DF1FB2BC2E4A4371"
+//     #define TLS_DH_DEFAULT_G            "A4D1CBD5C3FD34126765A442EFB99905F8104DD258AC507FD6406CFF14266D31266FEA1E5C41564B777E690F5504F213160217B4B01B886A5E91547F9E2749F4D7FBD7D3B9A92EE1909D0D2263F80A76A6A24C087A091F531DBF0A0169B6A28AD662A4D18E73AFA32D779D5918D08BC8858F4DCEF97C2A24855E6EEB22B3B2E5"
+//     #define __TLS_DHE_KEY_SIZE          1024
+// #endif
 
 #define TLS_MALLOC(size)        malloc(size)
 #define TLS_REALLOC(ptr, size)  realloc(ptr, size)
@@ -8476,5 +8495,255 @@ int SSL_set_io(struct TLSContext *context, void *recv_cb, void *send_cb) {
     return 0;
 }
 #endif // SSL_COMPATIBLE_INTERFACE
+
+
+#ifdef TLS_SRTP
+
+struct SRTPContext {
+    symmetric_CTR aes;
+    unsigned int salt[4];
+    unsigned char mac[__TLS_SHA1_MAC_SIZE];
+    unsigned int tag_size;
+    unsigned int roc;
+    unsigned short seq;
+
+    unsigned char mode;
+    unsigned char auth_mode;
+};
+
+struct SRTPContext *srtp_init(unsigned char mode, unsigned char auth_mode) {
+    struct SRTPContext *context = NULL;
+    tls_init();
+    switch (mode) {
+        case SRTP_NULL:
+            break;
+        case SRTP_AES_CM:
+            break;
+        default:
+            return NULL;
+    }
+
+    switch (auth_mode) {
+        case SRTP_AUTH_NULL:
+            break;
+        case SRTP_AUTH_HMAC_SHA1:
+            break;
+        default:
+            return NULL;
+    }
+    context = (struct SRTPContext *)malloc(sizeof(struct SRTPContext));
+    if (context) {
+        memset(context, 0, sizeof(struct SRTPContext));
+        context->mode = mode;
+        context->auth_mode = auth_mode;
+    }
+    return context;
+}
+
+static int __private_tls_srtp_key_derive(const void *key, int keylen, const void *salt, unsigned char label, void *out, int outlen) {
+    unsigned char iv[16];
+    memcpy(iv, salt, 14);
+    iv[14] = iv[15] = 0;
+    void *in = malloc(outlen);
+    if (!in)
+        return TLS_GENERIC_ERROR;
+    memset(in, 0, outlen);
+
+    iv[7] ^= label;
+
+    symmetric_CTR aes;
+
+    if (ctr_start(find_cipher("aes"), iv, (const unsigned char *)key, keylen, 0, CTR_COUNTER_BIG_ENDIAN, &aes))
+        return TLS_GENERIC_ERROR;
+
+    ctr_encrypt((unsigned char *)in, (unsigned char *)out, outlen, &aes);
+    free(in);
+    ctr_done(&aes);
+    return 0;
+}
+
+int srtp_key(struct SRTPContext *context, const void *key, int keylen, const void *salt, int saltlen, int tag_bits) {
+    if (!context)
+        return TLS_GENERIC_ERROR;
+    if (context->mode == SRTP_AES_CM) {
+        if ((saltlen < 14) || (keylen < 16))
+            return TLS_GENERIC_ERROR;
+        // key
+        unsigned char key_buf[16];
+        unsigned char iv[16];
+
+        memset(iv, 0, sizeof(iv));
+
+        if (__private_tls_srtp_key_derive(key, keylen, salt, 0, key_buf, sizeof(key_buf)))
+            return TLS_GENERIC_ERROR;
+
+        DEBUG_DUMP_HEX_LABEL("KEY", key_buf, 16)
+
+        if (__private_tls_srtp_key_derive(key, keylen, salt, 1, context->mac, 20))
+            return TLS_GENERIC_ERROR;
+
+        DEBUG_DUMP_HEX_LABEL("AUTH", context->mac, 20)
+
+        memset(context->salt, 0, sizeof(context->salt));
+        if (__private_tls_srtp_key_derive(key, keylen, salt, 2, context->salt, 14))
+            return TLS_GENERIC_ERROR;
+
+        DEBUG_DUMP_HEX_LABEL("SALT", ((unsigned char *)context->salt), 14)
+
+        if (ctr_start(find_cipher("aes"), iv, key_buf, sizeof(key_buf), 0, CTR_COUNTER_BIG_ENDIAN, &context->aes))
+            return TLS_GENERIC_ERROR;
+    }
+    if (context->auth_mode)
+        context->tag_size = tag_bits / 8;
+    return 0;
+}
+
+int srtp_inline(struct SRTPContext *context, const char *b64, int tag_bits) {
+    char out_buffer[1024];
+
+    if (!b64)
+        return TLS_GENERIC_ERROR;
+
+    int len = strlen(b64);
+    if (len >= sizeof(out_buffer))
+        len = sizeof(out_buffer);
+    int size = __private_b64_decode(b64, len, (unsigned char *)out_buffer);
+    if (size <= 0)
+        return TLS_GENERIC_ERROR;
+    switch (context->mode) {
+        case SRTP_AES_CM:
+            if (size < 30)
+                return TLS_BROKEN_PACKET;
+            return srtp_key(context, out_buffer, 16, out_buffer + 16, 14, tag_bits);
+    }
+    return TLS_GENERIC_ERROR;
+}
+
+int srtp_encrypt(struct SRTPContext *context, unsigned char *pt_header, int pt_len, unsigned char *payload, unsigned int payload_len, unsigned char *out, int *out_buffer_len) {
+    if ((!context) || (!out) || (!out_buffer_len) || (*out_buffer_len < payload_len))
+        return TLS_GENERIC_ERROR;
+
+    int out_len = payload_len;
+
+    unsigned short seq = 0;
+    unsigned int roc = context->roc;
+    unsigned int ssrc = 0;
+
+    if ((pt_header) && (pt_len >= 12)) {
+        seq = ntohs(*((unsigned short *)&pt_header[2]));
+        ssrc = ntohl(*((unsigned long *)&pt_header[8]));
+    }
+
+    if (seq < context->seq)
+        roc++;
+
+    if (context->mode) {
+        if (*out_buffer_len < out_len)
+            return TLS_NO_MEMORY;
+
+        unsigned int counter[4];
+        counter[0] = context->salt[0];
+        counter[1] = context->salt[1] ^ ssrc;
+        counter[2] = context->salt[2] ^ htonl (roc);
+        counter[3] = context->salt[3] ^ htonl (seq << 16);
+        ctr_setiv((unsigned char *)&counter, 16, &context->aes);
+        if (ctr_encrypt(payload, out, payload_len, &context->aes))
+            return TLS_GENERIC_ERROR;
+    } else {
+        memcpy(out, payload, payload_len);
+    }
+
+    *out_buffer_len = out_len;
+
+    if (context->auth_mode == SRTP_AUTH_HMAC_SHA1) {
+        unsigned char digest_out[__TLS_SHA1_MAC_SIZE];
+        unsigned long dlen = __TLS_SHA1_MAC_SIZE;
+        hmac_state hmac;
+        int err = hmac_init(&hmac, find_hash("sha1"), context->mac, 20);
+        if (!err) {
+            if (pt_len)
+                err = hmac_process(&hmac, pt_header, pt_len);
+            if (out_len)
+                err = hmac_process(&hmac, payload, payload_len);
+
+            if (!err)
+                err = hmac_done(&hmac, digest_out, &dlen);
+        }
+        if (err)
+            return TLS_GENERIC_ERROR;
+        if (dlen > context->tag_size)
+            dlen = context->tag_size;
+
+        *out_buffer_len += dlen;
+        memcpy(out + out_len, digest_out, dlen);
+    }
+    context->roc = roc;
+    context->seq = seq;
+    return 0;
+}
+
+int srtp_decrypt(struct SRTPContext *context, unsigned char *pt_header, int pt_len, unsigned char *payload, unsigned int payload_len, unsigned char *out, int *out_buffer_len) {
+    if ((!context) || (!out) || (!out_buffer_len) || (*out_buffer_len < payload_len) || (payload_len < context->tag_size) || (!pt_header) || (pt_len < 12))
+        return TLS_GENERIC_ERROR;
+
+    int out_len = payload_len;
+
+    unsigned short seq = ntohs(*((unsigned short *)&pt_header[2]));
+    unsigned int roc = context->roc;
+    unsigned int ssrc = ntohl(*((unsigned long *)&pt_header[8]));
+
+    if (seq < context->seq)
+        roc++;
+    if (context->mode) {
+        unsigned int counter[4];
+        counter[0] = context->salt[0];
+        counter[1] = context->salt[1] ^ ssrc;
+        counter[2] = context->salt[2] ^ htonl (roc);
+        counter[3] = context->salt[3] ^ htonl (seq << 16);
+        ctr_setiv((unsigned char *)&counter, 16, &context->aes);
+
+        if (ctr_decrypt(payload, out, payload_len - context->tag_size, &context->aes))
+            return TLS_GENERIC_ERROR;
+
+        if (context->auth_mode == SRTP_AUTH_HMAC_SHA1) {
+            unsigned char digest_out[__TLS_SHA1_MAC_SIZE];
+            unsigned long dlen = __TLS_SHA1_MAC_SIZE;
+            hmac_state hmac;
+            int err = hmac_init(&hmac, find_hash("sha1"), context->mac, 20);
+            if (!err) {
+                if (pt_len)
+                    err = hmac_process(&hmac, pt_header, pt_len);
+                if (out_len)
+                    err = hmac_process(&hmac, out, payload_len - context->tag_size);
+
+                if (!err)
+                    err = hmac_done(&hmac, digest_out, &dlen);
+            }
+            if (err)
+                return TLS_GENERIC_ERROR;
+            if (dlen > context->tag_size)
+                dlen = context->tag_size;
+
+            if (memcmp(digest_out, payload + payload_len - context->tag_size, dlen))
+                return TLS_INTEGRITY_FAILED;
+        }
+    } else {
+        memcpy(out, payload, payload_len - context->tag_size);
+    }
+    context->seq = seq;
+    context->roc = roc;
+    *out_buffer_len = payload_len - context->tag_size;
+    return 0;
+}
+
+void srtp_destroy(struct SRTPContext *context) {
+    if (context) {
+        if (context->mode)
+            ctr_done(&context->aes);
+        free(context);
+    }
+}
+
+#endif // TLS_SRTP
 
 #endif // TLSE_C

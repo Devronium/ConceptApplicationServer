@@ -104,6 +104,11 @@ CONCEPT_DLL_API ON_CREATE_CONTEXT MANAGEMENT_PARAMETERS {
     DEFINE_ECONSTANT(unsupported_extension)
     DEFINE_ECONSTANT(no_error)
 
+    DEFINE_ECONSTANT(SRTP_NULL)
+    DEFINE_ECONSTANT(SRTP_AES_CM)
+    DEFINE_ECONSTANT(SRTP_AUTH_NULL)
+    DEFINE_ECONSTANT(SRTP_AUTH_HMAC_SHA1)
+
     tls_init();
     return 0;
 }
@@ -581,4 +586,72 @@ CONCEPT_FUNCTION_IMPL(TLSEALPN, 1)
     }
 END_IMPL
 //------------------------------------------------------------------------
-
+CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(SRTPInit, 1, 2)
+    T_STRING(SRTPInit, 0)
+    int tag_bits = 32;
+    if (PARAMETERS_COUNT > 1) {
+        T_NUMBER(SRTPInit, 1)
+        tag_bits = PARAM_INT(1);
+    }
+    struct SRTPContext *context = srtp_init(SRTP_AES_CM, SRTP_AUTH_HMAC_SHA1);
+    if (context) {
+        if (srtp_inline(context, PARAM(0), tag_bits)) {
+            srtp_destroy(context);
+            context = NULL;
+        }
+    }
+    RETURN_NUMBER((SYS_INT)context);
+END_IMPL
+//------------------------------------------------------------------------
+CONCEPT_FUNCTION_IMPL(SRTPEncrypt, 3)
+    T_HANDLE(SRTPEncrypt, 0)
+    T_STRING(SRTPEncrypt, 1)
+    T_STRING(SRTPEncrypt, 2)
+    SRTPContext *ctx = (SRTPContext *)(SYS_INT)PARAM(0);
+    int out_buffer_len = PARAM_LEN(2) + 32;
+    char *out = NULL;
+    CORE_NEW(out_buffer_len + 1, out);
+    if (out) {
+        int res = srtp_encrypt(ctx, (unsigned char *)PARAM(1), PARAM_LEN(1), (unsigned char *)PARAM(2), PARAM_LEN(2), (unsigned char *)out, &out_buffer_len);
+        if (res) {
+            CORE_DELETE(out);
+            RETURN_STRING("");
+        } else {
+            out[out_buffer_len] = 0;
+            SetVariable(RESULT, -1, out, out_buffer_len);
+        }
+    } else {
+        RETURN_STRING("");
+    }
+END_IMPL
+//------------------------------------------------------------------------
+CONCEPT_FUNCTION_IMPL(SRTPDecrypt, 3)
+    T_HANDLE(SRTPDecrypt, 0)
+    T_STRING(SRTPDecrypt, 1)
+    T_STRING(SRTPDecrypt, 2)
+    SRTPContext *ctx = (SRTPContext *)(SYS_INT)PARAM(0);
+    int out_buffer_len = PARAM_LEN(2) + 1;
+    char *out = NULL;
+    CORE_NEW(out_buffer_len + 1, out);
+    if (out) {
+        int res = srtp_decrypt(ctx, (unsigned char *)PARAM(1), PARAM_LEN(1), (unsigned char *)PARAM(2), PARAM_LEN(2), (unsigned char *)out, &out_buffer_len);
+        if (res) {
+            CORE_DELETE(out);
+            RETURN_STRING("");
+        } else {
+            out[out_buffer_len] = 0;
+            SetVariable(RESULT, -1, out, out_buffer_len);
+        }
+    } else {
+        RETURN_STRING("");
+    }
+END_IMPL
+//------------------------------------------------------------------------
+CONCEPT_FUNCTION_IMPL(SRTPDone, 1)
+    T_HANDLE(SRTPDone, 0)
+    SRTPContext *ctx = (SRTPContext *)(SYS_INT)PARAM(0);
+    srtp_destroy(ctx);
+    SET_NUMBER(0, 0);
+    RETURN_NUMBER(0);
+END_IMPL
+//------------------------------------------------------------------------
