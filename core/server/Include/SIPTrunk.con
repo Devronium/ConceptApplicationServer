@@ -5,6 +5,7 @@ import standard.lib.cripto
 import standard.lib.thread
 import standard.C.casts
 import standard.C.time
+import standard.coding.base64
 
 include DTMFDetector.con
 include Serializable.con
@@ -23,6 +24,76 @@ define SIP_TRANSPORT_UDP	0
 define SIP_TRANSPORT_TCP	1
 define SIP_TRANSPORT_TLS	2
 
+class SRTPContext {
+	var srtp_in;
+	var srtp_out;
+
+	private Init(var rtp, key_data, tag_size = 32) {
+		if (rtp)
+			SRTPDone(rtp);
+		rtp = SRTPInit(key_data, tag_size);
+		return (rtp != 0);
+	}
+
+	LocalInit(key_data, tag_size = 32) {
+		return Init(srtp_out, key_data);
+	}
+
+	static MasterSecret(key_data) {
+		key_data = mime_encode(key_data);
+		key_data = StrReplace(key_data, "\r", "");
+		key_data = StrReplace(key_data, "\n", "");
+		return key_data;
+	}
+
+	RandomInit(tag_size = 32) {
+		var key_data = MasterSecret(CryptoRandom(30));
+		LocalInit(key_data, tag_size);
+		return key_data;
+	}
+
+	static HexDebug(hex) {
+		hex = StringToHex(hex);
+		if (hex) {
+			for (var i = 0; i < length hex; i += 4)
+				hex[i] = "\\x" + hex[i];
+		}
+		return hex;
+	}
+
+	RemoteInit(key_data, tag_size = 32) {
+		return Init(srtp_in, key_data, tag_size);
+	}
+
+	Encrypt(var header, var payload) {
+		if (!srtp_out)
+			return payload;
+		return SRTPEncrypt(srtp_out, header, payload);
+	}
+
+	Decrypt(var header, var payload) {
+		if (!srtp_in)
+			return payload;
+
+		return SRTPDecrypt(srtp_in, header, payload);
+	}
+
+	Done() {
+		if (srtp_in) {
+			SRTPDone(srtp_in);
+			srtp_in = null;
+		}
+		if (srtp_out) {
+			SRTPDone(srtp_out);
+			srtp_out = null;
+		}
+	}
+
+	finalize() {
+		Done();
+	}
+}
+
 class SIPSession {
 	public var CallID;
 	public var ssrc_id;
@@ -37,6 +108,7 @@ class SIPSession {
 	private var sequence_number;
 	private var rtp_port;
 	private var rtp;
+	private var srtp;
 	private var d;
 
 	var remote_port = -1;
@@ -106,6 +178,33 @@ class SIPSession {
 		rtp.Bind(rtp_port);
 	}
 
+	ParseA(line) {
+		var arr = StrSplit(line, " ");
+		if (length arr > 2) {
+			var crypto = ToLower(SubStr(arr[0], 0, 6));
+			if (crypto == "crypto") {
+				var algorithm = ToUpper(trim(arr[1]));
+				var key = StrSplit(trim(arr[2]), "|")[0];
+				if (SubStr(key, 0, 7) != "inline:")
+					return false;
+
+				key = SubStr(key, 7);
+				switch (algorithm) {
+					case "AES_CM_128_HMAC_SHA1_80":
+						if (!srtp)
+							srtp = new SRTPContext();
+						srtp.RemoteInit(key, 80);
+						return true;
+					case "AES_CM_128_HMAC_SHA1_32":
+						if (!srtp)
+							srtp = new SRTPContext();
+						srtp.RemoteInit(key, 32);
+						return true;
+				}
+			}
+		}
+	}
+
 	UpdateMedia(msg, ip = "", port = 0) {
 		var payload = msg.Payload;
 		sdp_in = msg.PayloadBlob;
@@ -121,6 +220,10 @@ class SIPSession {
 					arr = StrSplit(SubStr(line, 2, length line), " ");
 					if ((arr) && (ToLower(arr[0]) == "audio"))
 						remote_port = value arr[1];
+					break;
+				case "a=":
+					if (this.s.SRTP)
+						this.ParseA(SubStr(line, 2));
 					break;
 			}
 		}
@@ -346,7 +449,10 @@ class SIPSession {
 		res += toubin(htonl(timestamp), 32);
 		var ssrc_id = ClsPtr(this);
 		res += toubin(htonl(ssrc_id), 32);
-		res += payload;
+		if (srtp)
+			res += srtp.Encrypt(res, payload);
+		else
+			res += payload;
 		sequence_number++;
 		if (Record)
 			RecordStream(ssrc_id, payload, "out-", profile);
@@ -372,13 +478,21 @@ class SIPSession {
 			var payload = SubStr(data, 12, length data);
 			if (Record)
 				RecordStream(ssrc_id, payload, "in-", type);
+			if (srtp)
+				return srtp.Decrypt(SubStr(data, 0, 12), payload);
 			return payload;
 		}
 		return "";
 	}
 
 	GetSDP(codec = 8, extra = "") {
-		var res = "v=0\r\no=somebody ${ClsPtr(this)} ${VarPtr(this)} IN IP4 ${s.localip}\t\ns=Concept\r\nc=IN IP4 ${s.localip}\r\nt=0 0\r\nm=audio ${rtp_port} RTP/AVP $codec\r\na=rtpmap:$codec PCMA/8000\r\n";
+		var res;
+		if (this.s.SRTP) {
+			if (!srtp)
+				srtp = new SRTPContext();
+			res = "v=0\r\no=somebody ${ClsPtr(this)} ${VarPtr(this)} IN IP4 ${s.localip}\t\ns=Concept\r\nc=IN IP4 ${s.localip}\r\nt=0 0\r\nm=audio ${rtp_port} RTP/SAVP $codec\r\na=crypto:1 AES_CM_128_HMAC_SHA1_32 inline:${srtp.RandomInit(32)}\r\n";
+		} else
+			res = "v=0\r\no=somebody ${ClsPtr(this)} ${VarPtr(this)} IN IP4 ${s.localip}\t\ns=Concept\r\nc=IN IP4 ${s.localip}\r\nt=0 0\r\nm=audio ${rtp_port} RTP/AVP $codec\r\na=rtpmap:$codec PCMA/8000\r\n";
 		if (extra)
 			res += "a=$extra\r\n";
 		sdp_out = res;
@@ -837,6 +951,7 @@ class SIPStack {
 	var AllowAllOrigins = true;
 
 	var NATFriendly = false;
+	var SRTP = false;
 
 	SIPStack(localhost, bind_port = 5060, type = SIP_TRANSPORT_UDP, public_key = "", private_key = "", force_tls_version = 0) {
 		this.localhost = localhost;
@@ -1731,7 +1846,6 @@ class SIPStack {
 			clientsocket = null;
 			if (tcpsocket.HasData) {
 				var socket = tcpsocket.Accept();
-echo socket;
 				if (socket) {
 					socket.SetOption(IPPROTO_TCP, TCP_NODELAY, 1);
 					socket.SetOption(IPPROTO_IP, IP_TOS, 0x10);

@@ -8637,14 +8637,15 @@ int srtp_encrypt(struct SRTPContext *context, unsigned char *pt_header, int pt_l
     if (seq < context->seq)
         roc++;
 
+    unsigned int roc_be = htonl(roc);
     if (context->mode) {
         if (*out_buffer_len < out_len)
             return TLS_NO_MEMORY;
 
         unsigned int counter[4];
         counter[0] = context->salt[0];
-        counter[1] = context->salt[1] ^ ssrc;
-        counter[2] = context->salt[2] ^ htonl (roc);
+        counter[1] = context->salt[1] ^ htonl (ssrc);
+        counter[2] = context->salt[2] ^ roc_be;
         counter[3] = context->salt[3] ^ htonl (seq << 16);
         ctr_setiv((unsigned char *)&counter, 16, &context->aes);
         if (ctr_encrypt(payload, out, payload_len, &context->aes))
@@ -8664,8 +8665,8 @@ int srtp_encrypt(struct SRTPContext *context, unsigned char *pt_header, int pt_l
             if (pt_len)
                 err = hmac_process(&hmac, pt_header, pt_len);
             if (out_len)
-                err = hmac_process(&hmac, payload, payload_len);
-
+                err = hmac_process(&hmac, out, payload_len);
+            err = hmac_process(&hmac, (unsigned char *)&roc_be, 4);
             if (!err)
                 err = hmac_done(&hmac, digest_out, &dlen);
         }
@@ -8694,11 +8695,13 @@ int srtp_decrypt(struct SRTPContext *context, unsigned char *pt_header, int pt_l
 
     if (seq < context->seq)
         roc++;
+
+    unsigned int roc_be = htonl(roc);
     if (context->mode) {
         unsigned int counter[4];
         counter[0] = context->salt[0];
-        counter[1] = context->salt[1] ^ ssrc;
-        counter[2] = context->salt[2] ^ htonl (roc);
+        counter[1] = context->salt[1] ^ htonl (ssrc);
+        counter[2] = context->salt[2] ^ roc_be;
         counter[3] = context->salt[3] ^ htonl (seq << 16);
         ctr_setiv((unsigned char *)&counter, 16, &context->aes);
 
@@ -8714,8 +8717,8 @@ int srtp_decrypt(struct SRTPContext *context, unsigned char *pt_header, int pt_l
                 if (pt_len)
                     err = hmac_process(&hmac, pt_header, pt_len);
                 if (out_len)
-                    err = hmac_process(&hmac, out, payload_len - context->tag_size);
-
+                    err = hmac_process(&hmac, payload, payload_len - context->tag_size);
+                err = hmac_process(&hmac, (unsigned char *)&roc_be, 4);
                 if (!err)
                     err = hmac_done(&hmac, digest_out, &dlen);
             }
