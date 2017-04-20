@@ -281,30 +281,56 @@ class Journal {
 		last_sync = microseconds();
 	}
 
+	static Truncate(name, offset) {
+		echo "Truncating invalid journal file at offset $offset\n";
+		var f2 = new File("wb");
+		f2.Name = name;
+		if (f2.Open()) {
+			try {
+				f2.Truncate(offset);
+				f2.Close();
+			} catch (var exc) {
+				echo "Error truncating file $name\n";
+			}
+		}
+	}
+
 	Read(newerthan = 0, no_unserialize = false) {
 		var name = this.f.Name;
 		this.Done();
 		var f2 = new File("rb");
 		f2.Name = name;
 		var[] records;
+		var truncate_at = 0;
+		var hash_error = false;
 		try {
 			if (f2.Open()) {
 				if (!f2.Seek(64))
 					throw "Error in seek: ${_errno()}";
 				do {
-					if (f2.Read(var buf, 23) != 23)
+					truncate_at = f2.Tell();
+					if (f2.Read(var buf, 27) != 27)
 						break;
 					var tell_offset = f2.Tell();
-					var record = unpack("U32U64U64U16U8", buf);
+					var record = unpack("U32U64U64U16U8U32", buf);
 					var record_size = record[2];
 					var collection_size = record[3];
 					if (record[0] >= newerthan) {
 						var buffer;
 						var collection;
-						if (f2.Read(buffer, record_size) != record_size)
+						if (f2.Read(buffer, record_size) != record_size) {
+							hash_error = true;
 							break;
-						if (f2.Read(collection, collection_size) != collection_size)
+						}
+						if (f2.Read(collection, collection_size) != collection_size) {
+							hash_error = true;
 							break;
+						}
+						if (record[5] != Murmur(buffer)) {
+							hash_error = true;
+							throw "Hash error";
+							break;
+						}
 						var offset = record[1];
 						if (offset <= 0)
 							offset = -1;
@@ -326,6 +352,8 @@ class Journal {
 			if (f2)
 				f2.Close();
 		}
+		if (hash_error)
+			Journal::Truncate(name, truncate_at);
 		this.Open(name);
 		return records;
 	}
@@ -340,6 +368,8 @@ class Journal {
 	static Check(name, records) {
 		var f2 = new File("rb");
 		f2.Name = name;
+		var truncate_at = 0;
+		var hash_error = false;
 		try {
 			if (f2.Open()) {
 				if (!f2.Seek(12))
@@ -352,10 +382,11 @@ class Journal {
 				if (!f2.Seek(64))
 					throw "Error in seek: ${_errno()}";
 				do {
-					if (f2.Read(buf, 23) != 23)
+					truncate_at = f2.Tell();
+					if (f2.Read(buf, 27) != 27)
 						break;
 					var tell_offset = f2.Tell();
-					var record = unpack("U32U64U64U16U8", buf);
+					var record = unpack("U32U64U64U16U8U32", buf);
 					var record_size = record[2];
 					var collection_size = record[3];
 					var flags = record[4];
@@ -363,10 +394,19 @@ class Journal {
 					if ((record[0] >= newerthan) && ((flags == 1) || (flags == 2) || (flags == 3))) {
 						var buffer;
 						var collection;
-						if (f2.Read(buffer, record_size) != record_size)
+						if (f2.Read(buffer, record_size) != record_size) {
+							hash_error = true;
 							break;
-						if (f2.Read(collection, collection_size) != collection_size)
+						}
+						if (record[5] != Murmur(buffer)) {
+							hash_error  = true;
+							throw "Hash failed";
 							break;
+						}
+						if (f2.Read(collection, collection_size) != collection_size) {
+							hash_error = true;
+							break;
+						}
 						var offset = record[1];
 						if (offset <= 0)
 							offset = -1;
@@ -389,6 +429,8 @@ class Journal {
 			if (f2)
 				f2.Close();
 		}
+		if (hash_error)
+			Journal::Truncate(name, truncate_at);
 		return records;
 	}
 
@@ -509,9 +551,9 @@ class Journal {
 					if (!f.Seek(64))
 						throw "Error in seek ${f.Name}, errno: ${_errno()}\n";
 					do {
-						if (f.Read(var buf, 23) != 23)
+						if (f.Read(var buf, 27) != 27)
 							break;
-						var record = unpack("U32U64U64U16U8", buf);
+						var record = unpack("U32U64U64U16U8U32", buf);
 						if (record[0] >= olderthan) {
 							// copy from here
 							SafeWrite(f2, buf);
@@ -567,7 +609,7 @@ class Journal {
 				if (offset < 0)
 					offset = 0;
 
-				var buffer = pack("U32U64U64U16U8", time(), offset, length op_bin, length collection, flags) + op_bin + collection;
+				var buffer = pack("U32U64U64U16U8U32", time(), offset, length op_bin, length collection, flags, Murmur(op_bin)) + op_bin + collection;
 				if (f.Write(buffer) != length buffer) {
 					echo "Error writing to log file '${f.Name}', errno: ${_errno()}\n";
 					return false;
