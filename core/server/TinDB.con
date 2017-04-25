@@ -290,7 +290,7 @@ class Journal {
 				f2.Truncate(offset);
 				f2.Close();
 			} catch (var exc) {
-				echo "Error truncating file $name\n";
+				echo "Error truncating file $name: $exc\n";
 			}
 		}
 	}
@@ -732,7 +732,7 @@ pragma used
 		return QueryWorkerBase::ReadJSON(path + "/ring.json");
 	}
 
-	static DoInfo(obj, sock, current_worker) {
+	DoInfo(obj, sock, current_worker) {
 		var r = new R();
 		r.q = obj.q;
 		var type = "";
@@ -754,6 +754,8 @@ pragma used
 		} else
 		if (type == "top") {
 			r.p = getrusage(0);
+			r.p["cw_connections"] = length buffers;
+			r.p["cw_id"] = WorkerID;
 		} else
 		if (type == "collections") {
 			r.p = new [];
@@ -3427,9 +3429,10 @@ class QuerySyncWorker {
 					if (socket == server_socket) {
 						try {
 							var client = Socket.Accept(true);
-							if (ValidHost(client))
+							if (ValidHost(client)) {
 								SocketSetOption(client, SOL_SOCKET, SO_RCVTIMEO, 10000);
-							else
+								SocketSetOption(client, SOL_SOCKET, SO_SNDTIMEO, 10000);
+							} else
 								SocketClose(client);
 						} catch (var exc) {
 							echo "SyncWorker: $exc\n";
@@ -3575,6 +3578,8 @@ class TinDB {
 			var sock = Socket.Accept(true);
 			if (sock > 0) {
 				var info = SocketInfo(sock);
+				SocketSetOption(sock, SOL_SOCKET, SO_RCVTIMEO, 10000);
+				SocketSetOption(sock, SOL_SOCKET, SO_SNDTIMEO, 10000);
 				var addr = info["address"];
 				if ((addr) && ((addr == "127.0.0.1") || (addr == "::1"))) {
 					QueryWorkers[WorkerIndex++].AddData(BinarizeObject([sock]));

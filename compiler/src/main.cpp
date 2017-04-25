@@ -26,7 +26,7 @@
 #include <string.h>
 #include <time.h>
 
-#define COMPILER_COPYRIGHT    "Concept Compiler (Accelerator) version 4.1\n(c)2006-2016 Devronium Applications srl\n"
+#define COMPILER_COPYRIGHT    "Concept Compiler (Accelerator) version 5.0\n(c)2006-2017 Devronium Applications srl\n"
 
 #define INI_FILE              "concept.ini"
 
