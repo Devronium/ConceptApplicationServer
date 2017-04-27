@@ -183,6 +183,92 @@ LDAPVLVInfo *UNWRAP_LDAPVLVInfo(void *arr) {
     return ctl;
 }
 
+char **GetCharList2(void *arr, INVOKE_CALL _Invoke) {
+    INTEGER type      = 0;
+    NUMBER  nr        = 0;
+    void    *newpData = 0;
+    char    **ret     = 0;
+
+    int count = _Invoke(INVOKE_GET_ARRAY_COUNT, arr);
+
+    ret        = (char **)malloc(sizeof(char **) * (count + 1));
+    ret[count] = 0;
+
+    for (int i = 0; i < count; i++) {
+        _Invoke(INVOKE_ARRAY_VARIABLE, arr, i, &newpData);
+        if (newpData) {
+            char    *szData;
+            INTEGER type;
+            NUMBER  nData;
+
+            _Invoke(INVOKE_GET_VARIABLE, newpData, &type, &szData, &nData);
+            if (type == VARIABLE_STRING) {
+                ret[i] = szData;
+            } else
+                ret[i] = 0;
+        }
+    }
+    return ret;
+} 
+
+LDAPMod **GetLDAPMod(void *arr, INVOKE_CALL Invoke) {
+        int count = Invoke(INVOKE_GET_ARRAY_COUNT, arr);
+        LDAPMod **mod = (LDAPMod **)malloc(sizeof(LDAPMod *) * (count + 1));
+        if (mod)
+            mod[count] = NULL;
+        if ((mod) && (count)) {
+            char *key = NULL;
+            void *elem_data = NULL;
+            for (INTEGER i = 0; i < count; i++) {
+                Invoke(INVOKE_GET_ARRAY_KEY, arr, i, &key);
+                mod[i] = NULL;
+                if (key) {
+                    LDAPMod *e = (LDAPMod *)malloc(sizeof(LDAPMod));
+                    if (e) {
+                        memset(e, 0, sizeof(LDAPMod));
+                        e->mod_op = 0;
+                        e->mod_type = key;
+                        
+                        INTEGER    type     = 0;
+                        char       *str     = 0;
+                        NUMBER     nValue   = 0;
+                        Invoke(INVOKE_GET_ARRAY_ELEMENT, arr, i, &type, &str, &nValue);
+                        char **values = NULL;
+                        switch (type) {
+                            case VARIABLE_STRING:
+                                values = (char **)malloc(sizeof(char *) * 2);
+                                values[0] = str;
+                                values[1] = NULL;
+                                break;
+                            case VARIABLE_ARRAY:
+                                Invoke(INVOKE_ARRAY_VARIABLE, arr, i, &elem_data);
+                                if (elem_data)
+                                    values = GetCharList2(arr, Invoke);
+                                break;
+                        }
+                        e->mod_values = values;
+                        mod[i] = e;
+                    }
+                } else
+                    break;
+            }
+        }
+        return mod;
+}
+
+void FreeLDAPMod(LDAPMod **mod) {
+    if (mod) {
+        LDAPMod *e = mod[0];
+        int i = 1;
+        while (e) {
+            if (e->mod_values)
+                free(e->mod_values);
+            free(e);
+            e = mod[i++];
+        }
+        free(mod);
+    }
+}
 //-----------------------------------------------------------------------------------
 CONCEPT_INIT {
     InvokePtr = Invoke;
@@ -849,41 +935,26 @@ CONCEPT_FUNCTION_IMPL(ldap_abandon_ext, 4)
     SET_NUMBER(3, (long)local_parameter_3)
 END_IMPL
 //------------------------------------------------------------------------
-CONCEPT_FUNCTION_IMPL(ldap_add_ext, 6)
-    T_NUMBER(ldap_add_ext, 0)     // LDAP*
+CONCEPT_FUNCTION_IMPL(ldap_add_ext, 4)
+    T_HANDLE(ldap_add_ext, 0)     // LDAP*
     T_STRING(ldap_add_ext, 1)     // char*
+    T_ARRAY(ldap_add_ext, 2)
 
-// ... parameter 2 is by reference (LDAPMod**)
-    LDAPMod * local_parameter_2;
-// ... parameter 3 is by reference (LDAPControl**)
-    LDAPControl *local_parameter_3;
-// ... parameter 4 is by reference (LDAPControl**)
-    LDAPControl *local_parameter_4;
-// ... parameter 5 is by reference (int*)
-    int local_parameter_5;
-
-    RETURN_NUMBER(ldap_add_ext((LDAP *)(uintptr_t)PARAM(0), PARAM(1), &local_parameter_2, &local_parameter_3, &local_parameter_4, &local_parameter_5))
-    SET_NUMBER(2, (long)local_parameter_2)
+    int local_parameter_3 = 0;
+    LDAPMod **mod = GetLDAPMod(PARAMETER(2), Invoke);
+    RETURN_NUMBER(ldap_add_ext((LDAP *)(uintptr_t)PARAM(0), PARAM(1), mod, NULL, NULL, &local_parameter_3))
+    FreeLDAPMod(mod);
     SET_NUMBER(3, (long)local_parameter_3)
-    SET_NUMBER(4, (long)local_parameter_4)
-    SET_NUMBER(5, (long)local_parameter_5)
 END_IMPL
 //------------------------------------------------------------------------
-CONCEPT_FUNCTION_IMPL(ldap_add_ext_s, 5)
+CONCEPT_FUNCTION_IMPL(ldap_add_ext_s, 3)
     T_NUMBER(ldap_add_ext_s, 0)     // LDAP*
     T_STRING(ldap_add_ext_s, 1)     // char*
+    T_ARRAY(ldap_add_ext_s, 2)
 
-// ... parameter 2 is by reference (LDAPMod**)
-    LDAPMod * local_parameter_2;
-// ... parameter 3 is by reference (LDAPControl**)
-    LDAPControl *local_parameter_3;
-// ... parameter 4 is by reference (LDAPControl**)
-    LDAPControl *local_parameter_4;
-
-    RETURN_NUMBER(ldap_add_ext_s((LDAP *)(uintptr_t)PARAM(0), PARAM(1), &local_parameter_2, &local_parameter_3, &local_parameter_4))
-    SET_NUMBER(2, (long)local_parameter_2)
-    SET_NUMBER(3, (long)local_parameter_3)
-    SET_NUMBER(4, (long)local_parameter_4)
+    LDAPMod **mod = GetLDAPMod(PARAMETER(2), Invoke);
+    RETURN_NUMBER(ldap_add_ext_s((LDAP *)(uintptr_t)PARAM(0), PARAM(1), mod, NULL, NULL))
+    FreeLDAPMod(mod);
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(ldap_sasl_bind, 7)
@@ -1053,35 +1124,21 @@ CONCEPT_FUNCTION_IMPL(ldap_compare_ext_s, 6)
     SET_NUMBER(5, (long)local_parameter_5)
 END_IMPL
 //------------------------------------------------------------------------
-CONCEPT_FUNCTION_IMPL(ldap_delete_ext, 5)
-    T_NUMBER(ldap_delete_ext, 0)     // LDAP*
+CONCEPT_FUNCTION_IMPL(ldap_delete_ext, 3)
+    T_HANDLE(ldap_delete_ext, 0)     // LDAP*
     T_STRING(ldap_delete_ext, 1)     // char*
 
-// ... parameter 2 is by reference (LDAPControl**)
-    LDAPControl * local_parameter_2;
-// ... parameter 3 is by reference (LDAPControl**)
-    LDAPControl *local_parameter_3;
-// ... parameter 4 is by reference (int*)
-    int local_parameter_4;
+    int local_parameter_2;
 
-    RETURN_NUMBER(ldap_delete_ext((LDAP *)(uintptr_t)PARAM(0), PARAM(1), &local_parameter_2, &local_parameter_3, &local_parameter_4))
+    RETURN_NUMBER(ldap_delete_ext((LDAP *)(uintptr_t)PARAM(0), PARAM(1), NULL, NULL, &local_parameter_2))
     SET_NUMBER(2, (long)local_parameter_2)
-    SET_NUMBER(3, (long)local_parameter_3)
-    SET_NUMBER(4, (long)local_parameter_4)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(ldap_delete_ext_s, 4)
-    T_NUMBER(ldap_delete_ext_s, 0)     // LDAP*
+    T_HANDLE(ldap_delete_ext_s, 0)     // LDAP*
     T_STRING(ldap_delete_ext_s, 1)     // char*
 
-// ... parameter 2 is by reference (LDAPControl**)
-    LDAPControl * local_parameter_2;
-// ... parameter 3 is by reference (LDAPControl**)
-    LDAPControl *local_parameter_3;
-
-    RETURN_NUMBER(ldap_delete_ext_s((LDAP *)(uintptr_t)PARAM(0), PARAM(1), &local_parameter_2, &local_parameter_3))
-    SET_NUMBER(2, (long)local_parameter_2)
-    SET_NUMBER(3, (long)local_parameter_3)
+    RETURN_NUMBER(ldap_delete_ext_s((LDAP *)(uintptr_t)PARAM(0), PARAM(1), NULL, NULL))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(ldap_parse_result, 8)
@@ -1130,78 +1187,60 @@ CONCEPT_FUNCTION_IMPL(ldap_gssapi_bind_s, 3)
     RETURN_NUMBER(ldap_gssapi_bind_s((LDAP *)(uintptr_t)PARAM(0), PARAM(1), PARAM(2)))
 END_IMPL
 //------------------------------------------------------------------------
-CONCEPT_FUNCTION_IMPL(ldap_modify_ext, 6)
+CONCEPT_FUNCTION_IMPL(ldap_modify_ext, 4)
     T_NUMBER(ldap_modify_ext, 0)     // LDAP*
     T_STRING(ldap_modify_ext, 1)     // char*
+    T_ARRAY(ldap_modify_ext, 2)
 
-// ... parameter 2 is by reference (LDAPMod**)
-    LDAPMod * local_parameter_2;
-// ... parameter 3 is by reference (LDAPControl**)
-    LDAPControl *local_parameter_3;
-// ... parameter 4 is by reference (LDAPControl**)
-    LDAPControl *local_parameter_4;
 // ... parameter 5 is by reference (int*)
-    int local_parameter_5;
+    int local_parameter_3;
 
-    RETURN_NUMBER(ldap_modify_ext((LDAP *)(uintptr_t)PARAM(0), PARAM(1), &local_parameter_2, &local_parameter_3, &local_parameter_4, &local_parameter_5))
-    SET_NUMBER(2, (long)local_parameter_2)
+    LDAPMod **mod = GetLDAPMod(PARAMETER(2), Invoke);
+    RETURN_NUMBER(ldap_modify_ext((LDAP *)(uintptr_t)PARAM(0), PARAM(1), mod, NULL, NULL, &local_parameter_3))
+    FreeLDAPMod(mod);
     SET_NUMBER(3, (long)local_parameter_3)
-    SET_NUMBER(4, (long)local_parameter_4)
-    SET_NUMBER(5, (long)local_parameter_5)
 END_IMPL
 //------------------------------------------------------------------------
-CONCEPT_FUNCTION_IMPL(ldap_modify_ext_s, 5)
+CONCEPT_FUNCTION_IMPL(ldap_modify_ext_s, 3)
     T_NUMBER(ldap_modify_ext_s, 0)     // LDAP*
     T_STRING(ldap_modify_ext_s, 1)     // char*
+    T_ARRAY(ldap_modify_ext_s, 2)
 
-// ... parameter 2 is by reference (LDAPMod**)
-    LDAPMod * local_parameter_2;
-// ... parameter 3 is by reference (LDAPControl**)
-    LDAPControl *local_parameter_3;
-// ... parameter 4 is by reference (LDAPControl**)
-    LDAPControl *local_parameter_4;
+    LDAPMod **mod = GetLDAPMod(PARAMETER(2), Invoke);
 
-    RETURN_NUMBER(ldap_modify_ext_s((LDAP *)(uintptr_t)PARAM(0), PARAM(1), &local_parameter_2, &local_parameter_3, &local_parameter_4))
-    SET_NUMBER(2, (long)local_parameter_2)
-    SET_NUMBER(3, (long)local_parameter_3)
-    SET_NUMBER(4, (long)local_parameter_4)
+    RETURN_NUMBER(ldap_modify_ext_s((LDAP *)(uintptr_t)PARAM(0), PARAM(1), mod, NULL, NULL))
+    FreeLDAPMod(mod);
 END_IMPL
 //------------------------------------------------------------------------
-CONCEPT_FUNCTION_IMPL(ldap_rename, 8)
+CONCEPT_FUNCTION_IMPL(ldap_rename, 6)
     T_NUMBER(ldap_rename, 0)     // LDAP*
     T_STRING(ldap_rename, 1)     // char*
     T_STRING(ldap_rename, 2)     // char*
     T_STRING(ldap_rename, 3)     // char*
     T_NUMBER(ldap_rename, 4)     // int
 
-// ... parameter 5 is by reference (LDAPControl**)
-    LDAPControl * local_parameter_5;
-// ... parameter 6 is by reference (LDAPControl**)
-    LDAPControl *local_parameter_6;
-// ... parameter 7 is by reference (int*)
-    int local_parameter_7;
+    int local_parameter_5;
 
-    RETURN_NUMBER(ldap_rename((LDAP *)(uintptr_t)PARAM(0), PARAM(1), PARAM(2), PARAM(3), (int)PARAM(4), &local_parameter_5, &local_parameter_6, &local_parameter_7))
+    char *newparent = PARAM(3);
+    if ((newparent) && (!newparent[0]))
+        newparent = NULL;
+
+    RETURN_NUMBER(ldap_rename((LDAP *)(uintptr_t)PARAM(0), PARAM(1), PARAM(2), newparent, (int)PARAM(4), NULL, NULL, &local_parameter_5))
     SET_NUMBER(5, (long)local_parameter_5)
-    SET_NUMBER(6, (long)local_parameter_6)
-    SET_NUMBER(7, (long)local_parameter_7)
 END_IMPL
 //------------------------------------------------------------------------
-CONCEPT_FUNCTION_IMPL(ldap_rename_s, 7)
+CONCEPT_FUNCTION_IMPL(ldap_rename_s, 5)
     T_NUMBER(ldap_rename_s, 0)     // LDAP*
     T_STRING(ldap_rename_s, 1)     // char*
     T_STRING(ldap_rename_s, 2)     // char*
     T_STRING(ldap_rename_s, 3)     // char*
     T_NUMBER(ldap_rename_s, 4)     // int
 
-// ... parameter 5 is by reference (LDAPControl**)
-    LDAPControl * local_parameter_5;
-// ... parameter 6 is by reference (LDAPControl**)
-    LDAPControl *local_parameter_6;
+    char *newparent = PARAM(3);
+    if ((newparent) && (!newparent[0]))
+        newparent = NULL;
 
-    RETURN_NUMBER(ldap_rename_s((LDAP *)(uintptr_t)PARAM(0), PARAM(1), PARAM(2), PARAM(3), (int)PARAM(4), &local_parameter_5, &local_parameter_6))
-    SET_NUMBER(5, (long)local_parameter_5)
-    SET_NUMBER(6, (long)local_parameter_6)
+    RETURN_NUMBER(ldap_rename_s((LDAP *)(uintptr_t)PARAM(0), PARAM(1), PARAM(2), newparent, (int)PARAM(4), NULL, NULL))
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(ldap_create, 1)

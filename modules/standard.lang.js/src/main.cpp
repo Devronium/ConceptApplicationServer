@@ -505,7 +505,7 @@ jsval CONCEPT_TO_JS(void *HANDLER, JSContext *cx, void *member, std::map<void *,
 #else
                         JS::RootedObject object(cx, JS_NewObject(cx, NULL));
 #endif
-                        for (int i = 0; i < count; i++) {
+                        for (INTEGER i = 0; i < count; i++) {
                             InvokePtr(INVOKE_ARRAY_VARIABLE, member, i, &elem_data);
                             InvokePtr(INVOKE_GET_ARRAY_KEY, member, i, &key);
                             if (key) {
@@ -526,7 +526,7 @@ jsval CONCEPT_TO_JS(void *HANDLER, JSContext *cx, void *member, std::map<void *,
 #ifdef JS_OLDAPI
                         values = (jsval *)malloc(sizeof(jsval) * count);
                         if (values) {
-                            for (int i = 0; i < count; i++) {
+                            for (INTEGER i = 0; i < count; i++) {
                                 values[i] = JSVAL_VOID;
                                 Invoke(INVOKE_ARRAY_VARIABLE, member, (INTEGER)i, &elem_data);
                                 if (elem_data)
@@ -538,7 +538,7 @@ jsval CONCEPT_TO_JS(void *HANDLER, JSContext *cx, void *member, std::map<void *,
                             free(values);
 #else
                         JS::RootedObject object(cx, JS_NewArrayObject(cx, count));
-                        for (int i = 0; i < count; i++) {
+                        for (INTEGER i = 0; i < count; i++) {
                              Invoke(INVOKE_ARRAY_VARIABLE, member, (INTEGER)i, &elem_data);
                              JS::RootedValue temp(cx);
                              if (elem_data)
@@ -791,30 +791,32 @@ void ShowError(JSContext *cx, const char *message, JSErrorReport *report) {
 #ifdef JS_OLDAPI
     Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, CREPORT, "linebuf", (INTEGER)VARIABLE_STRING, (char *)report->linebuf, (NUMBER)0);
     Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, CREPORT, "tokenptr", (INTEGER)VARIABLE_STRING, (char *)report->tokenptr, (NUMBER)0);
-    Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, CREPORT, "uclinebuf", (INTEGER)VARIABLE_STRING, (char *)report->uclinebuf, (NUMBER)0);
-    Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, CREPORT, "uctokenptr", (INTEGER)VARIABLE_STRING, (char *)report->uctokenptr, (NUMBER)0);
+    // Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, CREPORT, "uclinebuf", (INTEGER)VARIABLE_STRING, (char *)report->uclinebuf, (NUMBER)0);
+    // Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, CREPORT, "uctokenptr", (INTEGER)VARIABLE_STRING, (char *)report->uctokenptr, (NUMBER)0);
 #endif
     Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, CREPORT, "flags", (INTEGER)VARIABLE_NUMBER, (char *)"", (NUMBER)report->flags);
     Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, CREPORT, "errorNumber", (INTEGER)VARIABLE_NUMBER, (char *)"", (NUMBER)report->errorNumber);
 #ifdef JS_OLDAPI
-    JSString *str = JS_NewUCString(cx, (jschar *)report->ucmessage, char16len(report->ucmessage));
-    Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, CREPORT, "ucmessage", (INTEGER)VARIABLE_STRING, (char *)JS_GetStringBytes(str), (NUMBER)str->length);
+    // if (report->ucmessage) {
+    //     JSString *str = JS_NewUCString(cx, (jschar *)report->ucmessage, char16len(report->ucmessage));
+    //     Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, CREPORT, "ucmessage", (INTEGER)VARIABLE_STRING, (char *)JS_GetStringBytes(str), (NUMBER)str->length);
+    // }
 #endif
 
-#ifdef JS_OLDAPI
+/*#ifdef JS_OLDAPI
     void *elem_data = NULL;
     Invoke(INVOKE_ARRAY_VARIABLE_BY_KEY, CREPORT, "messageArgs", &elem_data);
     if (elem_data) {
         CREATE_ARRAY(elem_data);
     }
-    int i=0;
+    int i = 0;
     const jschar *messageArg = report->messageArgs ? report->messageArgs[i] : 0;
     while (messageArg) {
-        str = JS_NewUCString(cx, (jschar *)messageArg, char16len(messageArg));
+        JSString *str = JS_NewUCString(cx, (jschar *)messageArg, char16len(messageArg));
         Invoke(INVOKE_SET_ARRAY_ELEMENT, elem_data, (INTEGER)i, (INTEGER)VARIABLE_STRING, (char *)JS_GetStringBytes(str), (NUMBER)str->length);
         messageArg = report->messageArgs[++i];
     }
-#endif
+#endif*/
     // call delegate
     CALL_DELEGATE(ERR_DELEGATE, (INTEGER)3, (INTEGER)VARIABLE_NUMBER, (char *)"", (NUMBER)(SYS_INT)cx, (INTEGER)VARIABLE_STRING, (char *)message, (NUMBER)0, (INTEGER)VARIABLE_UNDEFINED, CREPORT);
     FREE_VARIABLE(CREPORT);

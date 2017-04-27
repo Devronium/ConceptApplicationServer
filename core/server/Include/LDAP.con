@@ -45,6 +45,42 @@ class LDAP {
 		return ldap_install_tls(ld);
 	}
 
+	del(dn, async = false, var tref = 0) {
+		if (!ld)
+			throw "LDAP not initialized";
+		if (async)
+			return ldap_delete_ext(ld, dn, tref);
+		return ldap_delete_ext_s(ld, dn);
+	}
+
+	rename(dn, newrdn, newparent = "", deleteoldrdn = true, async = false, var tref = 0) {
+		if (!ld)
+			throw "LDAP not initialized";
+		if (async)
+			return ldap_rename(ld, dn, newrdn, newparent, deleteoldrdn, tref);
+		return ldap_rename_s(ld, dn, newrdn, newparent, deleteoldrdn);
+	}
+
+	add(string dn, array mod, async = false, var tref = 0) {
+		if (!ld)
+			throw "LDAP not initialized";
+		if (async)
+			return ldap_add_ext(ld, dn, mod, tref);
+		return ldap_add_ext_s(ld, dn, mod);
+	}
+
+	modify(string dn, array mod, async = false, var tref = 0) {
+		if (!ld)
+			throw "LDAP not initialized";
+		if (async)
+			return ldap_modify_ext(ld, dn, mod, tref);
+		return ldap_modify_ext_s(ld, dn, mod);
+	}
+
+	static errstr(number code) {
+		return ldap_err2string(code);
+	}
+
 	finalize() {
 		unbind();
 	}

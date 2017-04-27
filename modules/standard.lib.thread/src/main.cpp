@@ -456,7 +456,13 @@ public:
             input_data.push(temp);
 #endif
         int size = input_data.size();
+#ifdef _WIN32
+        // If no threads are waiting, the event object's state remains signaled.
         if ((size == 1) && (input_cond_wait))
+#else
+        // The pthread_cond_signal() and pthread_cond_broadcast() functions have no effect if there are no threads currently blocked on cond. 
+        if (input_cond_wait)
+#endif
             input_cond.notify();
         QUEUE_UNLOCK(input_lock);
         return size;
@@ -470,7 +476,13 @@ public:
         QUEUE_LOCK(output_lock);
         output_data.push(temp);
         int size = output_data.size();
+#ifdef _WIN32
+        // If no threads are waiting, the event object's state remains signaled.
         if ((size == 1) && (output_cond_wait))
+#else
+        // The pthread_cond_signal() and pthread_cond_broadcast() functions have no effect if there are no threads currently blocked on cond. 
+        if (output_cond_wait)
+#endif
             output_cond.notify();
         QUEUE_UNLOCK(output_lock);
         return size;
