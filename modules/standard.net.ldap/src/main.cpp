@@ -3,6 +3,7 @@
 //------------ end of standard header ----------------------------//
 #include "library.h"
 #include "AnsiString.h"
+#include <stdlib.h>
 
 #define LDAP_DEPRECATED 1
 #include <lber.h>

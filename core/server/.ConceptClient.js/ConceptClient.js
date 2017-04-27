@@ -12277,19 +12277,19 @@ function ConceptClient(url, container, loading, absolute_paths, debug) {
 				};
 				control.CommLayer.OnCreateOffer = function(desc, channel_name) {
 					control.CommLayer.AddPending(desc, channel_name);
-					var obj = desc.toJSON();
+					var obj = desc.toJSON ? desc.toJSON() : desc;
 					if ((channel_name) && (channel_name.length > 0))
 						obj.channelName = channel_name;
 					self.SendMessage("" + RID, MSG_EVENT_FIRED, "350", JSON.stringify(obj), 0);
 				};
 				control.CommLayer.OnCreateAnswer = function(desc, channel_name) {
-					var obj = desc.toJSON();
+					var obj = desc.toJSON ? desc.toJSON() : desc;
 					if ((channel_name) && (channel_name.length > 0))
 						obj.channelName = channel_name;
 					self.SendMessage("" + RID, MSG_EVENT_FIRED, "350", JSON.stringify(obj), 0);
 				};
 				control.CommLayer.OnICECandidate = function(candidate, channel_name) {
-					var obj = candidate.toJSON();
+					var obj = candidate.toJSON ? candidate.toJSON() : candidate;
 					if ((channel_name) && (channel_name.length > 0)) {
 						obj.channelName = channel_name;
 					}
