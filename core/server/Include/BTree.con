@@ -1085,15 +1085,17 @@ class BTreeFile {
 					offset = page[0];
 
 				if (!offset) {
+					var limit = elements * NODE_LOGICAL_ELEMENTS + 1;
 					if (at_right) {
 						var pos = (elements - 1) * NODE_LOGICAL_ELEMENTS + NODE_VAL_OFFSET;
 						new_key = page[pos];
 						new_val = page[pos + 1];
+						for (var i = (elements - 1) * NODE_LOGICAL_ELEMENTS; i < limit; i++)
+							page[i] = page[i + NODE_LOGICAL_ELEMENTS];
 					} else {
 						new_key = page[NODE_VAL_OFFSET];
 						new_val = page[NODE_VAL_OFFSET + 1];
-						var limit = elements * NODE_LOGICAL_ELEMENTS + 1;
-						for (var i = 0; i < limit; i++)
+						for (i = 0; i < limit; i++)
 							page[i] = page[i + NODE_LOGICAL_ELEMENTS];
 					}
 					this.FullSyncPage(page, elements - 1, prev_offset);
@@ -1116,7 +1118,6 @@ class BTreeFile {
 			if ((page) && (elements)) {
 				prec_page = page;
 				prec_elements = elements;
-
 				if (at_right)
 					offset = page[elements * NODE_LOGICAL_ELEMENTS];
 				else
@@ -1151,8 +1152,10 @@ class BTreeFile {
 				(GetSuccessor(page[idx], new_key, new_val, true, var score_left))) {
 				page[++idx] = new_key;
 				page[idx + NODE_VAL_OFFSET] = new_val;
+
 				if (offset >= 0)
 					this.FullSyncPage(page, elements, offset);
+
 				return true;
 			}
 			// special case ... empty page at left, empty page at right
@@ -1162,11 +1165,12 @@ class BTreeFile {
 			else
 			if (score_left)
 				has_best_value = GetBestSuccessor(page[idx], new_key, new_val, true);
+
 			if (has_best_value) {
 				if (this.Delete(new_key)) {
 					if (offset >= 0) {
 						//if (f.Seek(offset))
-						if (fseek(f_handle, offset, SEEK_SET))
+						if (!fseek(f_handle, offset, SEEK_SET))
 							page = ReadPage(elements);
 						if (!page)
 							throw "B-Tree internal error in delete";
@@ -1179,10 +1183,8 @@ class BTreeFile {
 				return true;
 			}
 		}
-
 		var left_page = 0;
 		var right_page = 0;
-
 		if (elements > 1) {
 			left_page = page[idx];
 			var limit = elements * NODE_LOGICAL_ELEMENTS + 1;
@@ -1192,14 +1194,13 @@ class BTreeFile {
 		} else {
 			left_page = page[0];
 			right_page = page[NODE_LOGICAL_ELEMENTS];
-
 			page = new [];
 			limit = PAGE_SIZE * NODE_LOGICAL_ELEMENTS + 1;
 			for (i = 0; i < limit; i++)
 				page[i] = 0;
 			elements = 0;
 		}
-			
+
 		if (offset >= 0) {
 			this.FullSyncPage(page, elements, offset);
 			if (left_page)
@@ -1229,11 +1230,13 @@ class BTreeFile {
 					cmp = compare(node, node_val, stored_val, val, this, false);
 				else
 					STATIC_COMPARE_CODE
-
 				if (!cmp) {
-					if ((!ReverseKeyVal) && (node_val < 0))
-						return this.DeleteValue(-node_val, val, offset, pos, node, node_val);
-
+					if ((!ReverseKeyVal) && (node_val < 0)) {
+						var is_empty = false;
+						var deleted = this.DeleteValue(-node_val, val, offset, pos, node, node_val, 1, is_empty);
+						if (!is_empty)
+							return deleted;
+					}
 					return DeleteFromPage(page, pos, elements, offset);
 				}
 
@@ -1409,9 +1412,11 @@ class BTreeFile {
 		return offset;
 	}
 
-	protected DeleteValue(offset, val, page_offset, index, tree_node, tree_node_val, limit = 1) {
+	protected DeleteValue(offset, val, page_offset, index, tree_node, tree_node_val, limit = 1, var is_empty = true) {
 		var prec_offset = -1;
 		var elements = 0;
+		is_empty = true;
+
 		while (offset > 0) {
 			if (fseek(f_handle, offset, SEEK_SET))
 				throw "B-Tree seek error in " + @class + "." + @member + ":" + @line;
@@ -1431,8 +1436,10 @@ class BTreeFile {
 				}
 				limit--;
 				if (!limit) {
-					if (node[1])
+					if (node[1]) {
+						is_empty = false;
 						elements++;
+					}
 					break;
 				}
 			} else {
@@ -1440,6 +1447,7 @@ class BTreeFile {
 				prec_offset = offset;
 			}
 			offset = node[1];
+			is_empty = false;
 		}
 		return elements;
 	}

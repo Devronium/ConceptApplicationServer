@@ -154,7 +154,7 @@ class TinQueryParser {
 				fetch = false;
 		}
 		if (fetch) {
-			if (length key == 8) {
+			if ((typeof key == "string") && (length key == 8)) {
 				if (((typeof min == "string") && (length min > 8)) || ((typeof max == "string") && (length max > 8))) {
 					if (val < 0) {
 						if (btree)
@@ -169,6 +169,10 @@ class TinQueryParser {
 					fetch = false;
 			}
 		}
+
+		if (((min_mode) || (max_mode)) && (typeof key != typeof min))
+			key = "" + key;
+
 
 		var result = prec_result;
 		if (min_mode == 1) {
@@ -242,6 +246,8 @@ class BinIndex {
 	public property LastError { get _last_error }
 	public property LastErrorString { get GetLastErrorString }
 
+	// public var __vbufsize = 0;
+
 	BinIndex(name, cmp_func, cmp_reversed, mode = "r+b") {
 		this._name = name;
 		this._mode = mode;
@@ -271,10 +277,18 @@ class BinIndex {
 			if ((!Locked) || (Locked == 2)) {
 				if (Locked == 2)
 					Locked = 1;
-				if (idx.Reopen())
+				if (idx.Reopen()) {
+					// var f_handle = idx.File.Handle;
+					// if (f_handle)
+					// 	setvbuf(f_handle, __vbufsize);
 					return idx;
-			} else
+				}
+			} else {
+				// f_handle = idx.File.Handle;
+				// if (f_handle)
+				// 	setvbuf(f_handle, __vbufsize);
 				return idx;
+			}
 
 			index_cache[idxname] = null;
 			echo "Error #${_errno()} reopening index $idxname\n";
@@ -289,6 +303,7 @@ class BinIndex {
 		f.Name = idxname;
 
 		if (f.Open()) {
+			// setvbuf(f.Handle, __vbufsize);
 			if (fields)
 				origname = fields;
 			else
@@ -1290,10 +1305,15 @@ class BinFile extends File {
 
 	Lock(write = false) {
 		if (hFile) {
-			if (write)
+			if (write) {
 				setvbuf(hFile, 0);
-			else
+				// if (_Index)
+				//	_Index.__vbufsize = 0;
+			} else {
 				setvbuf(hFile, READ_VBUF_SIZE);
+				// if (_Index)
+				// 	_Index.__vbufsize = READ_VBUF_SIZE;
+			}
 			locked = 1 + write;
 			if (write)
 				return WorkerSharedRWLock(this.name, RWLOCK_WRITE); // LockFileBytes(hFile, F_SETLKW, start, len);
@@ -1379,33 +1399,57 @@ class BinFile extends File {
 	}
 
 	CompareObjects(a, a_val, b, b_val, btree, bottom_layer) {
-		if (a_val > b_val)
-			return 1;
-		if (a_val < b_val)
-			return -1;
+		// if (a_val > b_val)
+		// 	return 1;
+		// if (a_val < b_val)
+		// 	return -1;
+		var cmp = this.anycmp(a_val, b_val);
+		if (cmp)	
+			return cmp;
 		var type = typeof a_val;
 		if ((type == typeof b_val) && (type != "string"))
 			return 0;
 		return this.CompareObjectsNoCache(a, b, btree, bottom_layer);
 	}
 
+	static anycmp(a_val, b_val) {
+		if ((typeof a_val == typeof b_val) || (typeof a_val == "string")) {
+			if (a_val > b_val)
+				return 1;
+
+			if (a_val < b_val)
+				return -1;
+		} else {
+			if (b_val > a_val)
+				return -1;
+
+			if (b_val < a_val)
+				return 1;
+		}
+		return 0;
+	}
+
 	CompareObjectsReversed(a_val, a, b_val, b, btree, bottom_layer) {
 		var b_val_orig = b_val;
-		if ((typeof b_val == "string") && (length b_val > 8))
+		var type_b = typeof b_val;
+		if ((type_b == "string") && (length b_val > 8))
 			b_val = SubStr(b_val, 0, 8);
 
-		if (a_val > b_val)
-			return 1;
-
-		if (a_val < b_val)
-			return -1;
-
 		var type = typeof a_val;
+		var cmp = anycmp(a_val, b_val);
+		if (cmp)
+			return cmp;
+		// if (a_val > b_val)
+		// 	return 1;
+
+		// if (a_val < b_val)
+		// 	return -1;
+
 		if (type == "string") {
 			if (length a_val < 8)
 				return 0;
 		} else
-		if (type == typeof b_val)
+		if (type == type_b)
 			return 0;
 
 		if (a == b)
@@ -1446,11 +1490,13 @@ class BinFile extends File {
 				throw "Error in compare objects (non existing object) ($a), call stack:\n${_callstack()}";
 			//key_a = obj_a[key];
 
-			if (key_a > key_b)
+			return anycmp(key_a, key_b);
+			/* if (key_a > key_b)
 				return 1;
 			if (key_a < key_b)
 				return -1;
-			return 0;
+
+			return 0;*/
 		}
 		throw "Error in compare objects (non existing object) ($a), call stack:\n${_callstack()}";
 		// error
@@ -1488,11 +1534,12 @@ class BinFile extends File {
 				key_a = obj_a[key];
 				key_b = obj_b[key];
 			}
-			if (key_a > key_b)
+			return anycmp(key_a, key_b);
+			/*if (key_a > key_b)
 				return 1;
 			if (key_a < key_b)
 				return -1;
-			return 0;
+			return 0;*/
 		}
 		throw "Error in compare objects (non existing object) ($a/$b), call stack:\n${_callstack()}";
 		// error
@@ -1535,11 +1582,12 @@ class BinFile extends File {
 				key_b = obj_b[key];
 			}
 
-			if (key_a > key_b)
+			return anycmp(key_a, key_b);
+			/*if (key_a > key_b)
 				return 1;
 			if (key_a < key_b)
 				return -1;
-			return 0;
+			return 0;*/
 		}
 		throw "Error in compare objects (non existing object) ($a/$b), call stack:\n${_callstack()}";
 		// error
@@ -2173,7 +2221,7 @@ class BinFile extends File {
 			switch (typeof field) {
 				case "string":
 					if (IsSet(obj, field)) {
-						var objects = this.Query([field => obj[field]], ['$'], false, 0, fetch_count);
+						var objects = this.Query([field => obj[field]], ['$', field], false, 0, fetch_count);
 						if (objects) {
 							for (j = 0; j < length objects; j++) {
 								var o = objects[j];
@@ -2185,6 +2233,7 @@ class BinFile extends File {
 					break;
 				case "array":
 					var query = [ ];
+					var object_fields = ['$'];
 					if ((obj_id > 0) && (!db_obj)) {
 						db_obj = this.ById(obj_id, sum_of_fields);
 						// invalid id
@@ -2194,15 +2243,18 @@ class BinFile extends File {
 					for (j = 0; j < length field; j++) {
 						f2 = field[j];
 						if (f2) {
-							if (IsSet(obj, f2))
+							if (IsSet(obj, f2)) {
 								query[f2] = obj[f2];
-							else
-							if ((db_obj) && (IsSet(db_obj, f2)))
+								object_fields[length object_fields] = f2;
+							} else
+							if ((db_obj) && (IsSet(db_obj, f2))) {
 								query[f2] = db_obj[f2];
+								object_fields[length object_fields] = f2;
+							}
 						}
 					}
 					if (query) {
-						objects = this.Query(query, ['$'], false, 0, fetch_count);
+						objects = this.Query(query, object_fields, false, 0, fetch_count);
 						if (objects) {
 							for (j = 0; j < length objects; j++) {
 								o = objects[j];

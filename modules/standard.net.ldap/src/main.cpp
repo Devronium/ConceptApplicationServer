@@ -244,7 +244,7 @@ LDAPMod **GetLDAPMod(void *arr, INVOKE_CALL Invoke) {
                             case VARIABLE_ARRAY:
                                 Invoke(INVOKE_ARRAY_VARIABLE, arr, i, &elem_data);
                                 if (elem_data)
-                                    values = GetCharList2(arr, Invoke);
+                                    values = GetCharList2(elem_data, Invoke);
                                 break;
                         }
                         e->mod_values = values;
@@ -1135,7 +1135,7 @@ CONCEPT_FUNCTION_IMPL(ldap_delete_ext, 3)
     SET_NUMBER(2, (long)local_parameter_2)
 END_IMPL
 //------------------------------------------------------------------------
-CONCEPT_FUNCTION_IMPL(ldap_delete_ext_s, 4)
+CONCEPT_FUNCTION_IMPL(ldap_delete_ext_s, 2)
     T_HANDLE(ldap_delete_ext_s, 0)     // LDAP*
     T_STRING(ldap_delete_ext_s, 1)     // char*
 
