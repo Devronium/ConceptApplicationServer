@@ -1,0 +1,13 @@
+include JS.con
+
+class TinDBGlobalUDF {
+	// here you can define extension functions for tindb
+
+	// UDFTest() {
+	// 	return "Hello World";
+	// }
+
+	TinDBGlobalUDF(js) {
+		// js.wrap(this.UDFTest, "UDFTest");
+	}
+}
