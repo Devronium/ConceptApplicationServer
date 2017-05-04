@@ -597,6 +597,9 @@ class Journal {
 			if (name) {
 				_unlink(name);
 				this.Open(name);
+				var header = pack("sU32:64", "Journal file", time());
+				if (f.Write(header) != length header)
+					throw "Error in log reset ${name}, errno: ${_errno()}\n";
 			}
 		} catch (var exc) {
 			echo exc;
@@ -1874,6 +1877,7 @@ pragma used
 					throw "Collection name error";
 
 				var multi_insert = false;
+				var use_sync_worker = syncworker;
 				switch (obj.o) {
 					case "Q":
 						var t = db[obj.c];
@@ -2013,8 +2017,9 @@ pragma used
 												r.et = ERR_NOT_UNIQUE_S;
 												break;
 											}
-											if ((IsSet(o, '$oid')) && (!o['$oid']))
+											if ((TIN_CLUSTER || (IsSet(o, '$oid'))) && (!o['$oid'])) {
 												o['$oid'] = this.oid();
+											}
 											if ((trigger) && (trigger.OnJSBeforeInsert)) {
 												var trigger_error = JSTrigger(db, o, trigger.OnJSBeforeInsert, true);
 												if (trigger_error) {
@@ -2074,16 +2079,16 @@ pragma used
 												break;
 											}
 										}
-										if (!t.Update(obj.p, id, true, var old_bin, var new_bin))
+										if (!t.Update(obj.p, id, true, var oid, use_sync_worker)) {
 											id = -1;
-										else
-										if (old_bin) {
-											old_bin['$'] = id;
-											obj.p = [old_bin, new_bin, obj.p];
-											obj.o = "U";
-											//obj.o = "I";
-											//obj.p = new_bin;
-											//do_index = true;
+										} else
+										if (use_sync_worker) {
+											if (oid) {
+												obj.o = "U";
+												obj.f = obj.p;
+												obj.p = ['$oid' => oid];
+											} else
+												use_sync_worker = null;
 										}
 										non_flushed_writes++;
 										if (trigger) {
@@ -2107,7 +2112,7 @@ pragma used
 											}
 										}
 									} else {
-										if ((typeof obj.p == "array") && (IsSet(obj.p , '$oid')) && (!obj.p['$oid']))
+										if ((typeof obj.p == "array") && (TIN_CLUSTER || (IsSet(obj.p , '$oid'))) && (!obj.p['$oid']))
 											obj.p['$oid'] = this.oid();
 										if ((trigger) && (trigger.OnJSBeforeInsert)) {
 											trigger_error = JSTrigger(db, obj.p, trigger.OnJSBeforeInsert, true);
@@ -2147,6 +2152,7 @@ pragma used
 								}
 								if (r.id)
 									QueryWorker::InvalidateCacheSync(obj, syncworker);
+
 								if (TIN_FORCESYNC)
 									t.FlushDB(false);
 								else
@@ -2179,7 +2185,7 @@ pragma used
 								if ((trigger) && (trigger.OnUpdate))
 									deleg = this.GetDelegate(db, obj.d, trigger.OnUpdate, objects, members);
 
-								var update_data = [GetKeys(obj.f), obj.f, t, unique_fields, deleg, trigger, db];
+								var update_data = [GetKeys(obj.f), obj.f, t, unique_fields, deleg, trigger, db, ((IsSet(obj.p, '$')) && (obj.p['$']))];
 								t.Query(obj.p, null, obj.x["descending"], obj.x["start"], obj.x["len"], function(o, data) {
 									if (o) {
 										var keys = data[0];
@@ -2189,6 +2195,7 @@ pragma used
 										var deleg = data[4];
 										var trigger = data[5];
 										var db = data[6];
+										var has_rowid = data[7];
 										var changed = false;
 										var oid_changed = false;
 										for (var i = 0; i < length keys; i++) {
@@ -2231,9 +2238,27 @@ pragma used
 											}
 										}
 										if (changed) {
+											var oid = o['$oid'];
+											if (oid)
+												oid_changed = true;
+
+											if ((syncworker) && (has_rowid)) {
+												data[10] = true;
+												if (oid) {
+													if (data[11]) {
+														var arr = data[11];
+														if (typeof arr == "array")
+															arr[length arr] = oid;
+														else
+															data[11] = [arr, oid];
+													} else
+														data[11] = oid;
+												}
+											}
+
 											if ((unique_fields) && (!t.IsUnique(o, unique_fields))) {
 												// not unique
-												data[8]++;
+												data[9]++;
 											} else {
 												var filepos = t.Tell();
 												try {
@@ -2248,7 +2273,7 @@ pragma used
 														if (trigger_error)
 															throw trigger_error;
 													}
-													data[7]++;
+													data[8]++;
 
 													if (deleg)
 														deleg(t, o);
@@ -2260,15 +2285,22 @@ pragma used
 										}
 									}
 								}, update_data);
-								if (update_data[7]) {
+								if (update_data[8]) {
 									// QueryWorker::InvalidateCache(obj.d, obj.c);
-									QueryWorker::InvalidateCacheSync(obj, syncworker);
-									non_flushed_writes += update_data[7];
+									if ((use_sync_worker) && (update_data[10])) {
+										oid = update_data[11];
+										if (oid)
+											obj.p = ['$oid' => oid];
+										else
+											use_sync_worker = null;
+									}
+									QueryWorker::InvalidateCacheSync(obj, use_sync_worker);
+									non_flushed_writes += update_data[8];
 								}
 								if (unique_fields)
-									r.p = ["\$updated" => update_data[7], "\$notunique" => update_data[8]];
+									r.p = ["\$updated" => update_data[8], "\$notunique" => update_data[9]];
 								else
-									r.p = ["\$updated" => update_data[7]];
+									r.p = ["\$updated" => update_data[8]];
 								t.Unlock(true);
 							}
 						}
@@ -2290,8 +2322,7 @@ pragma used
 							if ((trigger) && (trigger.OnDelete))
 								deleg = this.GetDelegate(db, obj.d, trigger.OnDelete, objects, members);
 
-							update_data = [deleg, t, trigger, db];
-
+							update_data = [deleg, t, trigger, db, ((IsSet(obj.p, '$')) && (obj.p['$']))];
 							t.Query(obj.p, null, obj.x["descending"], obj.x["start"], obj.x["len"], function(o, data) {
 								if (o) {
 									var deleg = data[0];
@@ -2306,7 +2337,22 @@ pragma used
 												throw trigger_error;
 										}
 										t.Delete(o['$']);
-										data[4]++;
+										if ((syncworker) && (data[4])) {
+											data[5] = true;
+											var oid = o['$oid'];
+											if (oid) {
+												if (data[6]) {
+													var arr = data[6];
+													if (typeof arr == "array")
+														arr[length arr] = oid;
+													else
+														data[6] = [arr, oid];
+												} else
+													data[6] = oid;
+											}
+										}
+
+										data[7]++;
 										if ((trigger) && (trigger.OnJSDelete)) {
 											trigger_error = JSTrigger(db, o, trigger.OnJSDelete);
 											if (trigger_error)
@@ -2320,10 +2366,16 @@ pragma used
 									t.Seek(filepos);
 								}
 							}, update_data);
-							var count = update_data[4];
+							var count = update_data[7];
 							if (count) {
-								// QueryWorker::InvalidateCache(obj.d, obj.c);
-								QueryWorker::InvalidateCacheSync(obj, syncworker);
+								if ((use_sync_worker) && (update_data[5])) {
+									oid = update_data[6];
+									if (oid)
+										obj.p = ['$oid' => oid];
+									else
+										use_sync_worker = null;
+								}								
+								QueryWorker::InvalidateCacheSync(obj, use_sync_worker);
 								non_flushed_writes += count;
 							}
 							t.Unlock(true);
@@ -3288,10 +3340,13 @@ class QuerySyncWorker {
 		for (var i = 0; i < length list; i++) {
 			var s = list[i];
 			var k = keys[i];
-			if ((s) && (s != sock))
-				new_list[length new_list] = s;
-			if ((k) && (k != sock_key))
-				buf[k] = buffers[k];
+			if (k) {
+				var buf_k = buffers[k];
+				if ((buf_k) && (s) && (s != sock) && (k != sock_key)) {
+					new_list["" + buf_k.direction + "/" + buf_k.key] = s;
+					buf[k] = buf_k;
+				}
+			}
 		}
 		this.poll.remove(sock);
 		SocketClose(sock);
@@ -3300,12 +3355,15 @@ class QuerySyncWorker {
 	}
 
 	AddSocket(sockfd, ip, direction) {
-		var old_sock = Neighbours[ip];
-		if (old_sock)
-			this.poll.remove(old_sock);
-		Neighbours[ip] = sockfd;
-		this.poll.add(sockfd);
 		var ctx = new SyncContext(ip, direction, sockfd);
+		var key = "" + direction + "/" + ip;
+		var old_sock = Neighbours[key];
+		if (old_sock)
+			RemoveSocket(old_sock);
+
+		Neighbours[key] = sockfd;
+		this.poll.add(sockfd);
+
 		buffers["" + sockfd] = ctx;
 		return ctx;
 	}
@@ -3346,6 +3404,9 @@ class QuerySyncWorker {
 						break;
 					}
 					ctx.buffer = buf;
+				} else {
+					RemoveSocket(sock);
+					break;
 				}
 			}
 		} else {
@@ -3477,8 +3538,13 @@ class QuerySyncWorker {
 							var obj = UnBinarizeObject(data_container[1]);
 							if (obj)
 								ConfirmMessage(obj.aindex);
-						} else
+						} else {
+							if ((classof data_container == "Q") && (!data_container.origp)) {
+								data_container.origp = NodeName;
+								data = BinarizeObject(data_container);
+							}
 							NotifyNeighbours(data);
+						}
 					} catch (exc) {
 						echo "SyncWorker: $exc\n";
 					}

@@ -2650,9 +2650,9 @@ class BinFile extends File {
 		return false;
 	}
 
-	Update(o, var id, update_index = true, var old_bin = null, var new_bin = null) {
-		//old_bin = null;
-		new_bin = null;
+	Update(o, var id, update_index = true, var oid = null, getoid = false) {
+		// new_bin = null;
+		oid = null;
 		//if (!this.Seek(id))
 		if (fseek(hFile, id, SEEK_SET))
 			return false;
@@ -2665,8 +2665,8 @@ class BinFile extends File {
 			if (res) {
 				var old = UnBinarizeObject(res);
 				if (old) {
-					var[] changed;
 					var[] new_values;
+					var[] changed;
 					for (var i = 0; i < length keys; i++) {
 						var k = keys[i];
 						if ((k) && (k != '$')) {
@@ -2674,28 +2674,11 @@ class BinFile extends File {
 							var val = o[k];
 							if (k[0] == "+") {
 								k++;
-								/*var has_key = IsSet(old, k);
-								if (!has_key) {
-									old[k] = [o["+" + k]];
-								} else {
-									if (typeof old[k] != "array")
-										old[k] = [old[k]];
-
-									old[k][length old[k]] = o["+" + k];
-								}
-								new_values[k] = old[k];
-								// changed[k] = [ ];*/
 								if (SetKey(old, k, val, var first_key, var prec_value, true)) {
 									changed[k] = prec_value;
 									new_values[k] = val;
 								}
 							} else {
-								/*has_key = IsSet(old, k);
-								if ((!has_key) || (old[k] != o[k])) {
-									changed[k] = old[k];
-									old[k]  = o[k];
-									new_values[k] = o[k];
-								}*/
 								if (SetKey(old, k, val, first_key, prec_value)) {
 									changed[k] = prec_value;
 									new_values[/*first_key*/k] = val;
@@ -2703,6 +2686,8 @@ class BinFile extends File {
 							}
 						}
 					}
+					if (getoid)
+						oid = old['$oid'];
 					// nothing changed
 					if (!changed)
 						return true;
@@ -2713,8 +2698,8 @@ class BinFile extends File {
 					if (fseek(hFile, id, SEEK_SET))
 						return false;
 					this._Store(old, update_index, id, new_values);
-					if (!update_index)
-						new_bin  = old;
+					// if (!update_index)
+					// 	new_bin  = old;
 					return true;
 				}
 			}
