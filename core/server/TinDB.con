@@ -22,6 +22,7 @@ define TIN_DEBUG	false
 define TIN_FORCESYNC	true
 define TIN_JOURNALING	true
 define TIN_CLUSTER	false
+define TIN_CLUSTER_LOG	true
 
 define READ_BUFFER	0xFFFF
 
@@ -63,6 +64,7 @@ define BUSY_FSYNC_LIMIT	 	10000
 
 // max 5 connections per node
 define SYNC_CONNECTIONS_MAX	5
+define SYNC_CONFIRM_TIMEOUT	10000
 
 // ring reload timeout (60 seconds)
 define RING_RELOAD_TIMEOUT	60
@@ -149,6 +151,7 @@ pragma used
 	var child;
 	var child_data;
 	var notrig;
+	var w;
 
 	MakeSafe() {
 		this.r = null;
@@ -668,8 +671,10 @@ pragma used
 	}
 
 	static Sync(obj, syncworker) {
-		if (syncworker)
+		if (syncworker) {
+			obj.w = time();
 			AddWorkerData(syncworker, BinarizeObject(obj));
+		}
 	}
 
 	static InvalidateCacheSync(obj, syncworker = null) {
@@ -3086,6 +3091,22 @@ class QuerySyncWorker {
 	protected var ring_checksum = "";
 	protected var node_checksum = "";
 
+	Log(str) {
+		var now = trim(StrReplace(ctime(time()), "\r", ""));
+		echo "$now: $str\n";
+	}
+
+	RemoveOffsetKey(p) {
+		var keys = GetKeys(p);
+		var new_p = new [];
+		for (var i = 0; i < length keys; i++) {
+			var k = keys[i];	
+			if ((k) && (k != '$'))
+				new_p[k] = p[k];
+		}
+		return new_p;
+	}
+
 	Execute(var data) {
 		var wait_confirmation = false;
 		if (!data)
@@ -3106,7 +3127,7 @@ class QuerySyncWorker {
 			obj.MakeSafe();
 			// don't use offsets
 			if ((typeof obj.p == "array") && (IsSet(obj.p, '$')))
-				obj.p['$'] = 0;
+				obj.p = RemoveOffsetKey(obj.p);
 			obj.notrig = true;
 			obj.origp = origin_node;
 			if (obj.r)
@@ -3117,12 +3138,15 @@ class QuerySyncWorker {
 				case "D":
 					// insert/update/delete neeed confirmation
 					obj.io = current_worker;
-					obj.aindex = sha1(data);
+					// obj.aindex = Key(obj);
+					obj.q = "QSHA:" + sha1(data);
 					if ((typeof obj.x == "array") && (IsSet(obj.x, "silent")))
 						obj.x["silent"] = false;
 					wait_confirmation = true;
 					break;
 			}
+			if (TIN_CLUSTER_LOG)
+				this.Log("Added '${obj.o}' to queue");
 			AddWorkerData(worker, BinarizeObject([-20, obj]));
 		}
 		return wait_confirmation;
@@ -3135,13 +3159,16 @@ class QuerySyncWorker {
 				var socket = new TCPSocket();
 				try {
 					if (socket.Connect(node.host, node.port)) {
+						if (TIN_CLUSTER_LOG)
+							this.Log("Connected to node ${node.host}:${node.port}");
 						var sockfd = socket.Socket;	
 						// no autoclose
 						socket.Socket = -1;
 						var ctx = this.AddSocket(sockfd, node.host, 1);
 						if (ctx)
 							return sockfd;
-					}
+					} else
+						echo "Cannot connect to node ${node.host}:${node.port}\n";
 				} catch (var exc) {
 					echo "Error connecting to ${node.host}:${node.port}: $exc\n";
 				}
@@ -3161,6 +3188,12 @@ class QuerySyncWorker {
 		return CreateNeighbour();
 	}
 
+	SocketReadTimeot(socket, var buffer, len, timeout = SYNC_CONFIRM_TIMEOUT) {
+		if (SocketHasData(socket, timeout))
+			return SocketRead(socket, buffer, len);
+		return -2;
+	}
+
 	Sync() {
 		if (NotSynced) {
 			var socket = ChooseNeighbour();
@@ -3170,7 +3203,8 @@ class QuerySyncWorker {
 					var data = NotSynced[i];
 					if (data) {
 						if ((socket) && (SocketIOBase::SendBufferWithSize(socket, data))) {
-							if ((SocketRead(socket, var buffer, 3) != 3) || (buffer != "\x02OK")) {
+							if ((SocketReadTimeot(socket, var buffer, 3) != 3) || (buffer != "\x02OK")) {
+								echo "Node sync error, resetting connection ...\n";
 								this.RemoveSocket(socket);
 								socket = 0;
 							} else
@@ -3348,6 +3382,12 @@ class QuerySyncWorker {
 				}
 			}
 		}
+		var info = SocketInfo(sock);
+		if (info) {
+			var ip = info["address"];
+			var port = info["port"];
+			echo "Closing socket $ip:$port\n";
+		}
 		this.poll.remove(sock);
 		SocketClose(sock);
 		this.buffers = buf;
@@ -3373,6 +3413,8 @@ class QuerySyncWorker {
 		if (info) {
 			var ip = info["address"];
 			if (ValidIP(ip)) {
+				if (TIN_CLUSTER_LOG)
+					this.Log("Connected input node $ip");
 				AddSocket(sockfd, ip, 0);
 				return true;
 			}
@@ -3415,7 +3457,7 @@ class QuerySyncWorker {
 	}
 
 	WriteSync() {
-		var wait_confirmation = new [];
+		var wait_confirmation = NotConfirmed;
 		for (var i = 0; i < length NotWritten; i++) {
 			var buf = NotWritten[i];
 			if (buf) {
@@ -3437,9 +3479,11 @@ class QuerySyncWorker {
 		for (var i = 0; i < length NotConfirmed; i++) {
 			var buf = NotConfirmed[i];
 			if (buf) { 
-				if (sha1(buf) == written_buf_hash)
+				if ("QSHA:" + sha1(buf) == written_buf_hash) {
 					localjournal.Log(buf, "sync", opid++, 3);
-				else
+					if (TIN_CLUSTER_LOG)
+						this.Log("ACK $written_buf_hash");
+				} else
 					wait_confirmation[length wait_confirmation] = buf;
 			}
 		}
@@ -3535,9 +3579,11 @@ class QuerySyncWorker {
 						var data_container = UnBinarizeObject(data);
 						if (typeof data_container == "array") {
 							// is confirmation
-							var obj = UnBinarizeObject(data_container[1]);
-							if (obj)
-								ConfirmMessage(obj.aindex);
+							var confirmation_buffer = data_container[1];
+							FromSize(confirmation_buffer, var bytes);
+							var obj = UnBinarizeObject(confirmation_buffer, bytes);
+							if ((obj) && (classof obj == "R"))
+								ConfirmMessage(obj.q);
 						} else {
 							if ((classof data_container == "Q") && (!data_container.origp)) {
 								data_container.origp = NodeName;
