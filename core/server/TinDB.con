@@ -2201,7 +2201,7 @@ pragma used
 										var trigger = data[5];
 										var db = data[6];
 										var has_rowid = data[7];
-										var changed = false;
+										var changed = new [];
 										var oid_changed = false;
 										for (var i = 0; i < length keys; i++) {
 											var k = keys[i];
@@ -2238,7 +2238,7 @@ pragma used
 
 												if ((typeof o_k != typeof val) || (o_k != val)) {
 													o[k] = val;
-													changed = true;
+													changed[k] = val;
 												}
 											}
 										}
@@ -2271,8 +2271,10 @@ pragma used
 														var trigger_error = JSTrigger(db, o, trigger.OnJSBeforeUpdate, true);
 														if (trigger_error)
 															throw trigger_error;
+														// set it to null, to force full reindex (before update may modify the object)
+														changed = null;
 													}
-													t.Store(o, true, true, oid_changed);
+													t._StoreHint(o, true, true, oid_changed, changed);
 													if ((trigger) && (trigger.OnJSUpdate)) {
 														trigger_error = JSTrigger(db, o, trigger.OnJSUpdate);
 														if (trigger_error)
@@ -3096,13 +3098,18 @@ class QuerySyncWorker {
 		echo "$now: $str\n";
 	}
 
-	RemoveOffsetKey(p) {
+	RemoveOffsetKey(p, var has_key_offset) {
 		var keys = GetKeys(p);
 		var new_p = new [];
+		has_key_offset = false;
 		for (var i = 0; i < length keys; i++) {
 			var k = keys[i];	
-			if ((k) && (k != '$'))
-				new_p[k] = p[k];
+			if (k) {
+				if (k == '$')
+					has_key_offset = true;
+				else
+					new_p[k] = p[k];
+			}
 		}
 		return new_p;
 	}
@@ -3126,8 +3133,13 @@ class QuerySyncWorker {
 				QueryWorkerIndex = 0;
 			obj.MakeSafe();
 			// don't use offsets
-			if ((typeof obj.p == "array") && (IsSet(obj.p, '$')))
-				obj.p = RemoveOffsetKey(obj.p);
+			if ((typeof obj.p == "array") && (IsSet(obj.p, '$'))) {
+				obj.p = RemoveOffsetKey(obj.p, var has_key_offset);
+				if ((has_key_offset) && (!obj.p)) {
+					this.Log("Broken query received (has key offset, but no other parameters)");
+					return;
+				}
+			}
 			obj.notrig = true;
 			obj.origp = origin_node;
 			if (obj.r)

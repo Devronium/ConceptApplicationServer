@@ -2037,6 +2037,7 @@ class BinFile extends File {
 			throw "Invalid file descriptor or no open file";
 		var data;
 		var c;
+		var not_oid_update = true;
 		if (typeof obj == "array") {
 			if (IsSet(obj, '$'))  {
 				var keys = GetKeys(obj);
@@ -2050,14 +2051,19 @@ class BinFile extends File {
 					id = value obj['$'];
 			} else
 				c = obj;
+			if ((length c == 1) && (IsSet(c, '$oid')))
+				not_oid_update = false;
 		} else
 			c = ToArray(obj);
 
+		if ((changed_keys) && (length changed_keys == 1) && (IsSet(changed_keys, '$oid')))
+			not_oid_update = false;
 		var bm25_document = null;
 		var graph = null;
 		// bm25 index updated
-		if ((bm25) && (c) && ((update_index) || (changed_keys)))
+		if ((bm25) && (c) && (not_oid_update) && ((update_index) || (changed_keys)))
 			bm25_document = bm25.document(c, graph, BM25_GRAPH_LEVEL);
+
 		data = BinarizeObject(c);
 		if (data) {
 			var data_comp = "";
@@ -2157,6 +2163,10 @@ class BinFile extends File {
 
 	Store(var obj, update_index = true, do_flush = true, change_oid = true) {
 		return this._Store(obj, update_index, -1, null, do_flush, change_oid);
+	}
+
+	_StoreHint(var obj, update_index = true, do_flush = true, change_oid = true, changed_keys = null) {
+		return this._Store(obj, update_index, -1, changed_keys, do_flush, change_oid);
 	}
 
 	SafeStore(var obj, update_index = true, do_flush = true, change_oid = true) {
