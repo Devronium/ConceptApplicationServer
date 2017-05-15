@@ -241,3 +241,4 @@ accel TinDBOid.con
 accel SQLParser.con
 accel JS.con
 accel LDAP.con
+accel XMLAPI.con

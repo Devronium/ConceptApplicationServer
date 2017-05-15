@@ -12,6 +12,7 @@ extern "C" {
 }
 
 #define SEND_BUF_SIZE    0x4000 //256k buffer
+#define LOCAL_BLOB_LIMIT 0xFFFFF
 
 //-------------------------//
 // Local variables         //
@@ -64,8 +65,7 @@ struct WrappedSTMT {
     STMT->lens    = NULL;              \
     STMT->nulls   = NULL;              \
     STMT->fields  = 0;                 \
-    STMT->mybind  = NULL;              \
-    STMT->mylens  = NULL;
+    STMT->mybind  = NULL;
 
 #define DONE_STMT(STMT) \
     FREE_STMT(STMT);    \
@@ -882,8 +882,8 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(MySQLBindStatement, 1, 2)
                     if (max_size <= 0) {
                         max_size = fields[i].length;
                         // blob ?
-                        if ((max_size > 0xFFFFF) || (max_size < 0))
-                            max_size = 0xFFFFF;
+                        if ((max_size > LOCAL_BLOB_LIMIT) || (max_size < 0))
+                            max_size = LOCAL_BLOB_LIMIT;
                     }
                     //max_size=field->length;
 
@@ -973,10 +973,11 @@ CONCEPT_FUNCTION_IMPL(MySQLFetchForward, 1)
                     char *target = ws->buffers[i];
                     target[0]     = 0;
                     target[f_len] = 0;
-                    ws->lens[i]   = f_len + 1;
+                    // don't reset it
+                    // ws->lens[i]   = f_len + 1;
 
                     ws->bind[i].buffer        = ws->buffers[i];
-                    ws->bind[i].buffer_length = ws->lens[i];
+                    ws->bind[i].buffer_length = f_len + 1;
                     mysql_stmt_fetch_column(ws->stmt, &ws->bind[i], i, 0);
                 }
             }
@@ -1204,7 +1205,14 @@ CONCEPT_FUNCTION_IMPL(MySQLSTMTColumnGet, 2)
         }
 
         if ((res->buffers[index]) && (!res->nulls[index]) && (res->lens[index] > 0)) {
-            RETURN_BUFFER(res->buffers[index], res->lens[index]);
+            int buffer_len = res->bind[index].buffer_length;
+            if (res->lens[index] < buffer_len)
+                buffer_len = res->lens[index];
+            if (buffer_len > 0) {
+                RETURN_BUFFER(res->buffers[index], buffer_len);
+            } else {
+                RETURN_STRING("")
+            }
         } else {
             RETURN_STRING("")
         }

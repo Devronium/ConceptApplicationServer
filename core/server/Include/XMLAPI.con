@@ -1,0 +1,94 @@
+include Serializable.con
+import standard.lib.str
+
+class XMLAPI {
+	protected var[] __properties;
+
+	attribute(name, v) {
+		__properties[name] = v;
+		return v;
+	}
+
+	static __xmlsafe(str) {
+		if (typeof str == "string") {
+			str = StrReplace(str, "&", "&amp;");
+			str = StrReplace(str, "<", "&lt;");
+			str = StrReplace(str, ">", "&gt;");
+			str = StrReplace(str, "\"", "&quot;");
+			str = StrReplace(str, "'", "&apos;");
+		}
+		return str;
+	}
+
+	protected static __toproperties(arr) {
+		var properties = "";
+		if (!arr)
+			return properties;
+		var keys = GetKeys(arr);
+		for (var i = 0; i < length keys; i++) {
+			var k = keys[i];
+			if (k) {
+				var v = arr[k];
+				switch (typeof v) {
+					case "string":
+						properties += " $k=\"${XMLAPI::__xmlsafe(v)}\"";
+						break;
+					case "numeric":
+						properties += " $k=\"$v\"";
+						break;
+				}
+			}
+		}
+		return properties;
+	}
+
+	protected static valuetoxml(v, k, levelstr = "") {
+		var xmlstr = "";
+		switch (typeof v) {
+			case "string":
+				xmlstr += "$levelstr<$k>\n";
+				xmlstr += "$levelstr\t" + XMLAPI::__xmlsafe(v);
+				xmlstr += "\n$levelstr</$k>\n";
+				break;
+			case "numeric":
+				xmlstr += "$levelstr<$k>$v</$k>\n";
+				break;
+			case "array":
+				var keys = GetKeys(v);
+				if ((keys) && (keys[0]))
+					xmlstr += XMLAPI::toxml(v, null, k, levelstr);
+				else
+					xmlstr += XMLAPI::arraytoxml(v, k, levelstr);
+				break;
+			case "class":
+				xmlstr += "$levelstr<$k>\n";
+				xmlstr += v.xml("", levelstr + "\t");
+				xmlstr += "$levelstr</$k>\n";
+				break;
+		}
+		return xmlstr;
+	}
+
+	protected static arraytoxml(array arr, nodename, levelstr) {
+		var xmlstr = "";
+		for (var i = 0; i < length arr; i++)
+			xmlstr += XMLAPI::valuetoxml(arr[i], nodename, levelstr);
+		return xmlstr;
+	}
+
+	static toxml(array arr, properties, nodename, levelstr = "") {
+		var keys = GetKeys(arr);
+		var xmlstr = "$levelstr<$nodename${XMLAPI::__toproperties(properties)}>\n";
+		for (var i = 0; i < length keys; i++) {
+			var k = keys[i];
+			if ((k) && (k != "__properties"))
+				xmlstr += XMLAPI::valuetoxml(arr[k], k, levelstr + "\t");
+		}
+		xmlstr += "$levelstr</$nodename>\n";
+		return xmlstr;
+	}
+
+	xml(nodename = "", levelstr = "") {
+		return toxml(ToArray(this, false, true), __properties, nodename ?? classof this, levelstr);
+	}
+}

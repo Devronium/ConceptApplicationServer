@@ -142,7 +142,7 @@ INVOKE_CALL LocalInvoker;
 void Serialize(RefContainer *rc, void *pData, XML_NODE_REF parent, char is_simple = 0, char is_simple_array_element = 0);
 void SerializeVariable(RefContainer *rc, char *member, int type, char *szData, NUMBER nData, void *class_data, void *variable_data, XML_NODE_REF parent, char is_simple = 0);
 void SerializeArray(RefContainer *rc, void *pData, void *arr_id, XML_NODE_REF parent, char is_simple = 0);
-void DoObject(RefContainer *rc, void *pData, void *parent);
+void DoObject(RefContainer *rc, void *pData, void *parent, bool root_only = false);
 void DoArray(RefContainer *rc, void *pData, void *parent);
 int bin_write(RefContainer *rc, char *data, int d_size, int write_increment = 0x1000);
 int bin_write_int(RefContainer *rc, int v);
@@ -1608,7 +1608,7 @@ void DoArray(RefContainer *rc, void *pData, void *variable_data) {
 }
 
 //---------------------------------------------------------------------------
-void DoObject(RefContainer *rc, void *pData, void *parent) {
+void DoObject(RefContainer *rc, void *pData, void *parent, bool root_only) {
     INVOKE_CALL Invoke = LocalInvoker;
     char *class_name = 0;
     int  ref_ptr     = CheckBack(rc, pData);
@@ -1647,8 +1647,20 @@ void DoObject(RefContainer *rc, void *pData, void *parent) {
         }
 
         for (int i = 0; i < members_count; i++) {
-            if (flags[i] == 0)
-                DoVariable(rc, members[i], types[i], szValues[i], nValues[i], class_data[i], parent, variable_data[i]);
+            if (flags[i] == 0) {
+                if (root_only) {
+                    switch ((INTEGER)types[i]) {
+                        case VARIABLE_STRING:
+                        case VARIABLE_NUMBER:
+                            Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, parent, members[i], (INTEGER)types[i], szValues[i], nValues[i]);
+                            break;
+                        default:
+                            Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, parent, members[i], (INTEGER)types[i], class_data[i], nValues[i]);
+                            break;
+                    }
+                } else
+                    DoVariable(rc, members[i], types[i], szValues[i], nValues[i], class_data[i], parent, variable_data[i]);
+            }
         }
 
         delete[] members;
@@ -1663,14 +1675,20 @@ void DoObject(RefContainer *rc, void *pData, void *parent) {
 }
 
 //---------------------------------------------------------------------------
-CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(ToArray, 1, 2)
+CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(ToArray, 1, 3)
     RESET_ERROR
     T_OBJECT(ToArray, 0)
 
     int no_defaults = 0;
+    bool root_only = 0;
     if (PARAMETERS_COUNT > 1) {
         T_NUMBER(ToArray, 1)
         no_defaults = PARAM_INT(1);
+    }
+    if (PARAMETERS_COUNT > 2) {
+        T_NUMBER(ToArray, 2)
+        if (PARAM_INT(2))
+            root_only = true;
     }
 
     CREATE_ARRAY(RESULT);
@@ -1681,7 +1699,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(ToArray, 1, 2)
     rc->is_buffer      = 0;
     rc->err_ser        = 0;
     rc->no_defaults    = no_defaults;
-    DoObject(rc, PARAM(0), RESULT);
+    DoObject(rc, PARAM(0), RESULT, root_only);
     delete rc;
 END_IMPL
 //---------------------------------------------------------------------------
