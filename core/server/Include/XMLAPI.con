@@ -1,4 +1,6 @@
 include Serializable.con
+include HTTPRequest.con
+
 import standard.lib.str
 
 class XMLAPI {
@@ -78,7 +80,11 @@ class XMLAPI {
 
 	static toxml(array arr, properties, nodename, levelstr = "") {
 		var keys = GetKeys(arr);
-		var xmlstr = "$levelstr<$nodename${XMLAPI::__toproperties(properties)}>\n";
+		var xmlstr = "";
+		if (!levelstr)
+			xmlstr += "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
+
+		xmlstr += "$levelstr<$nodename${XMLAPI::__toproperties(properties)}>\n";
 		for (var i = 0; i < length keys; i++) {
 			var k = keys[i];
 			if ((k) && (k != "__properties"))
@@ -90,5 +96,18 @@ class XMLAPI {
 
 	xml(nodename = "", levelstr = "") {
 		return toxml(ToArray(this, false, true), __properties, nodename ?? classof this, levelstr);
+	}
+
+	post(url, callback = null, timeout = 5000) {
+		var request = new HTTPRequest(url);
+		var xml_data = this.xml();
+		var headers = ["Content-Type" => "application/xml", "Content-Length" => length xml_data];
+		request.OnResponse = callback;
+		if (request.request("POST", headers, xml_data))
+			request.iterate(timeout);
+		else
+			return -1;
+
+		return request.response["code"];
 	}
 }
