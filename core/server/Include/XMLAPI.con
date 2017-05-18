@@ -48,9 +48,7 @@ class XMLAPI {
 		var xmlstr = "";
 		switch (typeof v) {
 			case "string":
-				xmlstr += "$levelstr<$k>\n";
-				xmlstr += "$levelstr\t" + XMLAPI::__xmlsafe(v);
-				xmlstr += "\n$levelstr</$k>\n";
+				xmlstr += "$levelstr<$k>" + XMLAPI::__xmlsafe(v) + "</$k>\n";
 				break;
 			case "numeric":
 				xmlstr += "$levelstr<$k>$v</$k>\n";
@@ -64,7 +62,7 @@ class XMLAPI {
 				break;
 			case "class":
 				xmlstr += "$levelstr<$k>\n";
-				xmlstr += v.xml("", levelstr + "\t");
+				xmlstr += v.xml("", false, levelstr + "\t");
 				xmlstr += "$levelstr</$k>\n";
 				break;
 		}
@@ -81,8 +79,6 @@ class XMLAPI {
 	static toxml(array arr, properties, nodename, levelstr = "") {
 		var keys = GetKeys(arr);
 		var xmlstr = "";
-		if (!levelstr)
-			xmlstr += "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
 
 		xmlstr += "$levelstr<$nodename${XMLAPI::__toproperties(properties)}>\n";
 		for (var i = 0; i < length keys; i++) {
@@ -94,13 +90,17 @@ class XMLAPI {
 		return xmlstr;
 	}
 
-	xml(nodename = "", levelstr = "") {
-		return toxml(ToArray(this, false, true), __properties, nodename ?? classof this, levelstr);
+	xml(nodename = "", add_xml_encoding = true, levelstr = "") {
+		var xmlstr = "";
+		if (add_xml_encoding)
+			xmlstr += "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
+		xmlstr += toxml(ToArray(this, false, true), __properties, nodename ?? classof this, levelstr);
+		return xmlstr;
 	}
 
 	post(url, callback = null, timeout = 5000) {
 		var request = new HTTPRequest(url);
-		var xml_data = this.xml();
+		var xml_data = this.xml("", false);
 		var headers = ["Content-Type" => "application/xml", "Content-Length" => length xml_data];
 		request.OnResponse = callback;
 		if (request.request("POST", headers, xml_data))

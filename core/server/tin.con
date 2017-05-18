@@ -546,9 +546,8 @@ class Main {
 	}
 
 	SafeCSV(k, separator) {
-		if (Pos(k, separator) > 0) {
-			k = StrReplace(k, "\\", "\\\\");
-			k = StrReplace(k, '"', "\\\"");
+		if ((Pos(k, separator) > 0) || (Pos(k, "\n") > 0)) {
+			k = StrReplace(k, '"', '""');
 			k = "\"" + k + "\"";
 		}
 		return k;
