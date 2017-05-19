@@ -23,6 +23,14 @@ class NetGSM {
 		body = StrReplace(body, "</pos:", "</pos_");
 		if (doc.LoadString(body))
 			return doc;
+		// bug in firmware
+		body = StrReplace(body, "<ID>1</soapenv_Body>", "</IdSet></pos_QueueStatusResponse></soapenv_Body>");
+		body = StrReplace(body, "<ID>2</soapenv_Body>", "</IdSet></pos_QueueStatusResponse></soapenv_Body>");
+		body = StrReplace(body, "<ID>3</soapenv_Body>", "</IdSet></pos_QueueStatusResponse></soapenv_Body>");
+		body = StrReplace(body, "<ID>4</soapenv_Body>", "</IdSet></pos_QueueStatusResponse></soapenv_Body>");
+		body = StrReplace(body, "<ID>5</soapenv_Body>", "</IdSet></pos_QueueStatusResponse></soapenv_Body>");
+		if (doc.LoadString(body))
+			return doc;
 		return null;
 	}
 
@@ -78,7 +86,7 @@ class NetGSM {
 			do {
 				var buf = tcp.Read();
 				data += buf;
-				if (Pos(data, "</soapenv:Body>"))
+				if (Pos(data, "</soapenv:Body>") > 0)
 					break;
 			} while (buf);
 			tcp.Close();
@@ -184,6 +192,28 @@ class NetGSM {
 			return ids;
 		}
 		return null;
+	}
+
+	Received2(max_id = 100) {
+		var[] ids;
+		for (var i = 1; i <= max_id; i++) {
+			var buf2 = this.Pick("" + i, "GsmIn", var code2);
+			if (code2 == 200) {
+				var text = DirtyTag(buf2, "text");
+				var nmr = DirtyTag(buf2, "nmr");
+				var timestamp = DirtyTag(buf2, "time") ?? "";
+				if (text) {
+					text = HexText(text);
+					ids[length ids] = ["From" => nmr, "Text" => text, "ID" => "" + i, "Time" => timestamp];
+				}
+			}
+		}
+		return ids;
+	}
+
+	Delete(id, queue = "GsmIn") {
+		var code = this.Post(Envelope("<pos:RecordDelete><Queue>$queue</Queue><ID>$id</ID></pos:RecordDelete>"), var body);
+		return code;
 	}
 
 	Received(var code = null) {
