@@ -8,7 +8,7 @@ class XMLAPI {
 
 	attribute(name, v) {
 		__properties[name] = v;
-		return v;
+		return this;
 	}
 
 	static __xmlsafe(str) {
@@ -46,6 +46,11 @@ class XMLAPI {
 
 	protected static valuetoxml(v, k, levelstr = "") {
 		var xmlstr = "";
+		// if (Pos(k, "xmlns_") == 1)
+		// 	k[5] = ":";
+		// else
+		// if (Pos(k, "xsi_") == 1)
+		// 	k[3] = ":";
 		switch (typeof v) {
 			case "string":
 				xmlstr += "$levelstr<$k>" + XMLAPI::__xmlsafe(v) + "</$k>\n";
@@ -61,9 +66,13 @@ class XMLAPI {
 					xmlstr += XMLAPI::arraytoxml(v, k, levelstr);
 				break;
 			case "class":
-				xmlstr += "$levelstr<$k>\n";
-				xmlstr += v.xml("", false, levelstr + "\t");
-				xmlstr += "$levelstr</$k>\n";
+				if (Pos(k, "__") == 1) {
+					xmlstr += v.xml("", false, levelstr);
+				} else {
+					xmlstr += "$levelstr<$k>\n";
+					xmlstr += v.xml("", false, levelstr + "\t");
+					xmlstr += "$levelstr</$k>\n";
+				}
 				break;
 		}
 		return xmlstr;
@@ -80,13 +89,17 @@ class XMLAPI {
 		var keys = GetKeys(arr);
 		var xmlstr = "";
 
-		xmlstr += "$levelstr<$nodename${XMLAPI::__toproperties(properties)}>\n";
+		xmlstr += "$levelstr<$nodename${XMLAPI::__toproperties(properties)}";
+		var xml_content = "";
 		for (var i = 0; i < length keys; i++) {
 			var k = keys[i];
-			if ((k) && (k != "__properties"))
-				xmlstr += XMLAPI::valuetoxml(arr[k], k, levelstr + "\t");
+			if ((k) && (k != "__properties") && (k != "UserData"))
+				xml_content += XMLAPI::valuetoxml(arr[k], k, levelstr + "\t");
 		}
-		xmlstr += "$levelstr</$nodename>\n";
+		if (xml_content)
+			xmlstr += ">\n" + xml_content + "$levelstr</$nodename>\n";
+		else
+			xmlstr += " />\n";
 		return xmlstr;
 	}
 
