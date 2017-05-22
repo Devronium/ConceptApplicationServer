@@ -10,6 +10,10 @@ class HTTPRequest {
 	protected var connected;
 	protected var headersreceived;
 	protected var content_length = -1;
+	protected var chunk_size = -1;
+	protected var delta_chunk_size = 0;
+	protected var chunked = false;
+	protected var chunk_buffer_pos = 0;
 
 	public var buffer = "";
 	public var[] headers;
@@ -122,6 +126,10 @@ class HTTPRequest {
 		this.headersreceived = false;
 		this.response = new [];
 		this.content_length = -1;
+		this.chunk_size = -1;
+		this.delta_chunk_size = 0;
+		this.chunk_buffer_pos = 0;
+		this.chunked = false;
 		if (!connected) {
 			if (socket.Connect(url["host"], url["port"])) {
 				connected = true;
@@ -140,16 +148,42 @@ class HTTPRequest {
 	}
 
 	pending(maxtimeout = 0) {
-		return socket.GetHasData(maxtimeout);
+		try {
+			if (classof socket == "TLSESocket") {
+				do {
+					var start = microseconds() / 1000;
+					var has_socket_data = socket.GetHasData(maxtimeout, var transport_layer_data);
+					var end = microseconds() / 1000;
+					if (has_socket_data)
+						return has_socket_data;
+
+					if (maxtimeout)
+						maxtimeout -= end - start;
+
+					if (maxtimeout <= 0)
+						return false;
+				} while (transport_layer_data);
+				return false;
+			}
+			return socket.GetHasData(maxtimeout);
+		} catch (var exc) {
+			return true;
+		}
 	}
 
 	iterate(maxtimeout = 0) {
 		var iterations = 0;
 		if ((headersreceived) && (content_length >= 0) && (length buffer >= content_length))
 			return 0;
-
+		var exc;
+		var done = !chunked;
 		while (pending(maxtimeout)) {
-			buffer += socket.Read();
+			try {
+				buffer += socket.Read();
+			} catch (exc) {
+				done = true;
+				this.close();
+			}
 			if (!headersreceived) {
 				var header_pos = Pos(buffer, "\r\n\r\n");
 				if (header_pos > 0) {
@@ -168,6 +202,13 @@ class HTTPRequest {
 								if (k == "content-length") {
 									content_length = value trim(SubStr(header, sep));
 									headers[k] = content_length;
+								} else
+								if (k == "transfer-encoding") {
+									if (ToLower(trim(SubStr(header, sep))) == "chunked") {
+										chunked = true;
+										done = false;
+									}
+									headers[k] = trim(SubStr(header, sep));
 								} else {
 									var typehk = typeof headers[k];
 									if (typehk == "string") {
@@ -185,13 +226,44 @@ class HTTPRequest {
 				}
 				headersreceived = true;
 			}
-			iterations++;
-			if ((headersreceived) && (content_length >= 0) && (length buffer >= content_length))
-				break;
-		}
-		if ((OnResponse) && (headersreceived) && (((content_length >= 0) && (length buffer >= content_length)) || (content_length < 0)))
-			OnResponse(this);
+			if (chunked) {
+				var tmp = "";
+				var buffer2 = SubStr(buffer, 0, chunk_buffer_pos);
+				var has_chunk_info = false;
+				for (i = chunk_buffer_pos; i < length buffer; i++) {
+					tmp += buffer[i];
+					if (tmp == "\r\n")
+						tmp = "";
+					if (Pos(tmp, "\r\n")) {
+						chunk_size = HexToNumber(trim(tmp));
+						tmp = "";
+						has_chunk_info = true;
+						if (chunk_size) {
+							var tmp2 = SubStr(buffer, i + 1, chunk_size);
+							i += chunk_size + 2;
+							chunk_buffer_pos += chunk_size;
+							delta_chunk_size = chunk_size - length tmp2;
+							buffer2 += tmp2;
+						} else {
+							done = true;
+						}
+					}
+				}
+				if (has_chunk_info)
+					buffer = buffer2 + tmp;
+			}
 
+			iterations++;
+			if ((headersreceived) && (((content_length >= 0) && (length buffer >= content_length)) || ((chunked) && (done)))) {
+				break;
+			}
+			if (exc) {
+				this.close();
+				break;
+			}
+		}
+		if ((OnResponse) && (headersreceived) && (((content_length >= 0) && (length buffer >= content_length)) || ((content_length < 0) && (done))))
+			OnResponse(this);
 		return iterations;
 	}
 

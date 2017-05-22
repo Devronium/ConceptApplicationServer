@@ -427,10 +427,11 @@ class TLSESocket extends TCPSocket {
 	}
 
 	override GetHasData;
-	public function GetHasData(var timeout=0) {
+	public function GetHasData(var timeout=0, var socket_layer_has_data=null) {
 		if (Socket<=0)
 			throw "Invalid socket (GetHasData)";
 
+		socket_layer_has_data = false;
 		if ((tls) && (TLSEReadBufferSize(tls)))
 			return true;
 
@@ -444,6 +445,7 @@ class TLSESocket extends TCPSocket {
 
 		if ((res) && (!_islisten)) {
 			if (tls) {
+				socket_layer_has_data = true;
 				var data = super::Read();
 				if (data) {
 					res = TLSEConsume(tls, data);
