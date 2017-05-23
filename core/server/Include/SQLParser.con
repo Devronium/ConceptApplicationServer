@@ -681,9 +681,25 @@ class SQLParser {
 					case "PRIORITY":
 						command = SQLParser::parseAtom(buffer, err, offset);
 						if (command) {
-							syntax["PRIORITY"] = value SQLParser::prepare(command, err, false, parameters);
+							var priority = "0";
+							switch (ToLower(command)) {
+								case "low":
+									priority = "-1";
+									break;
+								case "normal":
+								case "medium":
+									priority = "0";
+									break;
+								case "high":
+									priority = "1";
+									break;
+								default:
+									priority = SQLParser::prepare(command, err, false, parameters);
+									break;
+							}
+							syntax["PRIORITY"] = value priority;
 						} else {
-							SQLParser::error(err, offset, "'PRIORITY' value expected");
+							SQLParser::error(err, offset, "'PRIORITY' value or 'LOW'/'NORMAL'/'HIGH' expected");
 						}
 						break;
 					case "REDUCE":
