@@ -93,6 +93,21 @@ void VarClean(PIFAlizator *pif) {
     }
 }
 
+void RemoveBlock(VARPool *CURRENT) {
+    VARPool *PREV = (VARPool *)CURRENT->PREV;
+    VARPool *NEXT = (VARPool *)CURRENT->NEXT;
+    if (PREV)
+        PREV->NEXT = NEXT;
+    if (NEXT)
+        NEXT->PREV = CURRENT->PREV;
+    ((PIFAlizator *)CURRENT->PIF)->free_vars -= POOL_BLOCK_SIZE;
+    if (((PIFAlizator *)CURRENT->PIF)->CACHEDPOOL == CURRENT)
+        ((PIFAlizator *)CURRENT->PIF)->CACHEDPOOL = NULL;
+    if (((PIFAlizator *)CURRENT->PIF)->POOL == CURRENT)
+        ((PIFAlizator *)CURRENT->PIF)->POOL = NEXT;
+    FAST_FREE(CURRENT);
+}
+
 void FreeMultipleVars(void **refVARs, int count) {
     VariableDATA **CONTEXT = (VariableDATA **)refVARs;
     VARPool      *CURRENT  = NULL;
@@ -109,6 +124,12 @@ void FreeMultipleVars(void **refVARs, int count) {
                 pif->free_vars++;
                 ((VariableDATA *)refVAR)->flags = -1;
                 CURRENT->POOL_VARS++;
+                if (CURRENT->POOL_VARS == POOL_BLOCK_SIZE) {
+                    RemoveBlock(CURRENT);
+                    if (CURRENT == pif->CACHEDPOOL)
+                        pif->CACHEDPOOL = NULL;
+                    CURRENT = NULL;
+                }
             } else
             if (refVAR->flags == -2) {
                 // module allocated!
@@ -116,12 +137,12 @@ void FreeMultipleVars(void **refVARs, int count) {
             }
         }
     }
-    if (pif) {
+    /*if (pif) {
         if (pif->free_vars > BLOCK_SIZE * 10)
-            VarClean(pif);
+           VarClean(pif);
         else
-            pif->CACHEDPOOL = CURRENT;
-    }
+           pif->CACHEDPOOL = CURRENT;
+    }*/
 }
 
 void FreeVAR(void *refVAR) {
@@ -146,14 +167,15 @@ void FreeVAR(void *refVAR) {
     VARPool *PREV = (VARPool *)CURRENT->PREV;
     VARPool *NEXT = (VARPool *)CURRENT->NEXT;
     PIFAlizator *PIF = (PIFAlizator *)CURRENT->PIF;
-    if ((CURRENT->POOL_VARS == POOL_BLOCK_SIZE) && (PREV)) {
-        PREV->NEXT = NEXT;
+    if (CURRENT->POOL_VARS == POOL_BLOCK_SIZE) /*&& (PREV))*/ {
+        /*PREV->NEXT = NEXT;
         if (NEXT)
-            NEXT->PREV = CURRENT->PREV;
+            NEXT->PREV = CURRENT->PREV;*/
         ((PIFAlizator *)CURRENT->PIF)->free_vars -= POOL_BLOCK_SIZE;
         if (((PIFAlizator *)CURRENT->PIF)->CACHEDPOOL == CURRENT)
             ((PIFAlizator *)CURRENT->PIF)->CACHEDPOOL = NULL;
-        FAST_FREE(CURRENT);
+        /*FAST_FREE(CURRENT);*/
+        RemoveBlock(CURRENT);
     } else
     if ((PREV) && (NEXT)) {
         PIFAlizator *PIF = (PIFAlizator *)CURRENT->PIF;
@@ -878,7 +900,7 @@ int GetMemoryStatistics(void *PIF, void *RESULT) {
     VARPool *NEXT_POOL = ((PIFAlizator *)PIF)->POOL;
     while (NEXT_POOL) {
         if (NEXT_POOL->POOL_VARS) {
-            for (int i = 0; i < BLOCK_SIZE; i++) {
+            for (int i = 0; i < POOL_BLOCK_SIZE; i++) {
                 if (NEXT_POOL->POOL[i].flags != -1) {
                     variable_var->NUMBER_DATA += 1;
                     memory->NUMBER_DATA       += sizeof(VariableDATA);
