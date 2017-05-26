@@ -145,6 +145,7 @@ void FreeVAR(void *refVAR) {
     CURRENT->POOL_VARS++;
     VARPool *PREV = (VARPool *)CURRENT->PREV;
     VARPool *NEXT = (VARPool *)CURRENT->NEXT;
+    PIFAlizator *PIF = (PIFAlizator *)CURRENT->PIF;
     if ((CURRENT->POOL_VARS == POOL_BLOCK_SIZE) && (PREV)) {
         PREV->NEXT = NEXT;
         if (NEXT)
@@ -152,8 +153,18 @@ void FreeVAR(void *refVAR) {
         ((PIFAlizator *)CURRENT->PIF)->free_vars -= POOL_BLOCK_SIZE;
         if (((PIFAlizator *)CURRENT->PIF)->CACHEDPOOL == CURRENT)
             ((PIFAlizator *)CURRENT->PIF)->CACHEDPOOL = NULL;
-        PIFAlizator *PIF = (PIFAlizator *)CURRENT->PIF;
         FAST_FREE(CURRENT);
+    } else
+    if ((PREV) && (NEXT)) {
+        PIFAlizator *PIF = (PIFAlizator *)CURRENT->PIF;
+        PREV->NEXT = NEXT;
+        NEXT->PREV = PREV;
+
+        CURRENT->PREV = NULL;
+        CURRENT->NEXT = PIF->POOL;
+        PIF->POOL->PREV = CURRENT;
+
+        PIF->POOL = CURRENT;
     }
     //}
 }
@@ -183,21 +194,20 @@ void AllocMultipleVars(void **context, void *PIF, int count, int offset) {
     if (((PIFAlizator *)PIF)->free_vars) {
         int iterations = 0;
         while ((NEXT_POOL) && (((PIFAlizator *)PIF)->free_vars)) {
-            while (NEXT_POOL->POOL_VARS) {
-                for (i = NEXT_POOL->FIRST_VAR; i < POOL_BLOCK_SIZE; i++) {
-                    if (NEXT_POOL->POOL[i].flags == -1) {
-                        NEXT_POOL->POOL_VARS--;
-                        NEXT_POOL->POOL[i].flags = i;
-                        ((PIFAlizator *)PIF)->free_vars--;
-                        context[offset++] = &NEXT_POOL->POOL[i];
-                        count--;
-                        NEXT_POOL->FIRST_VAR = i + 1;
-                        if (!count)
-                            return;
-                    }
+            //while (NEXT_POOL->POOL_VARS) {
+            for (i = NEXT_POOL->FIRST_VAR; (NEXT_POOL->POOL_VARS) && (i < POOL_BLOCK_SIZE); i++) {
+                if (NEXT_POOL->POOL[i].flags == -1) {
+                    NEXT_POOL->POOL_VARS--;
+                    NEXT_POOL->POOL[i].flags = i;
+                    ((PIFAlizator *)PIF)->free_vars--;
+                    context[offset++] = &NEXT_POOL->POOL[i];
+                    count--;
+                    NEXT_POOL->FIRST_VAR = i + 1;
+                    if (!count)
+                        return;
                 }
             }
-
+            //}
             iterations++;
             if (((PIFAlizator *)PIF)->free_vars < POOL_BLOCK_SIZE)
                 break;
