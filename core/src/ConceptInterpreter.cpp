@@ -900,8 +900,8 @@ void ConceptInterpreter::AnalizeInstructionPath(Optimizer *OPT) {
     RuntimeOptimizedElement *OE;
     void **jittracecode = (void **)malloc(sizeof(void *) * count);
     memset(jittracecode, 0, sizeof(void *) * count);
-    static sljit_d d_true     = 1;
-    static sljit_d d_false    = 0;
+    static sljit_f64 d_true     = 1;
+    static sljit_f64 d_false    = 0;
     char           *dataflags = dataCount ? (char *)malloc(dataCount) : 0;
     char           *usedflags = dataCount ? (char *)malloc(dataCount) : 0;
     memset(usedflags, 0, sizeof(char) * dataCount);
@@ -1271,7 +1271,7 @@ void ConceptInterpreter::AnalizeInstructionPath(Optimizer *OPT) {
                 }
             }
 
-            compiler = sljit_create_compiler();
+            compiler = sljit_create_compiler(NULL);
  #ifdef ARM_PATCH
             sljit_emit_enter(compiler, 0, 1, 4, 3, 0, 0, 0);
  #else
@@ -1443,12 +1443,12 @@ void ConceptInterpreter::AnalizeInstructionPath(Optimizer *OPT) {
                                 if (usedflags[OE->Result_ID - 1])
                                     OPERAND_RESULT2
 
-                                        sljit_emit_fop1(compiler, SLJIT_DMOV,
+                                        sljit_emit_fop1(compiler, SLJIT_MOV_F64,
                                                         SLJIT_MEM1(SLJIT_R0), OFFSETOF(VariableDATA, NUMBER_DATA),
                                                         SLJIT_MEM1(SLJIT_R2), OFFSETOF(VariableDATA, NUMBER_DATA));
 
                                 if (usedflags[OE->Result_ID - 1])
-                                    sljit_emit_fop1(compiler, SLJIT_DMOV,
+                                    sljit_emit_fop1(compiler, SLJIT_MOV_F64,
                                                     SLJIT_MEM1(SLJIT_R1), OFFSETOF(VariableDATA, NUMBER_DATA),
                                                     SLJIT_MEM1(SLJIT_R2), OFFSETOF(VariableDATA, NUMBER_DATA));
                             } else {
@@ -1456,12 +1456,12 @@ void ConceptInterpreter::AnalizeInstructionPath(Optimizer *OPT) {
                                 if (usedflags[OE->Result_ID - 1])
                                     OPERAND_RESULT
 
-                                        sljit_emit_fop1(compiler, SLJIT_DMOV,
+                                        sljit_emit_fop1(compiler, SLJIT_MOV_F64,
                                                         SLJIT_MEM1(SLJIT_R0), OFFSETOF(VariableDATA, NUMBER_DATA),
                                                         SLJIT_MEM1(SLJIT_R1), OFFSETOF(VariableDATA, NUMBER_DATA));
 
                                 if (usedflags[OE->Result_ID - 1])
-                                    sljit_emit_fop1(compiler, SLJIT_DMOV,
+                                    sljit_emit_fop1(compiler, SLJIT_MOV_F64,
                                                     SLJIT_MEM1(SLJIT_R2), OFFSETOF(VariableDATA, NUMBER_DATA),
                                                     SLJIT_MEM1(SLJIT_R1), OFFSETOF(VariableDATA, NUMBER_DATA));
                             }
@@ -1499,13 +1499,13 @@ void ConceptInterpreter::AnalizeInstructionPath(Optimizer *OPT) {
                             if (usedflags[OE->Result_ID - 1])
                                 OPERAND_RESULT
 
-                                    sljit_emit_fop2(compiler, SLJIT_DADD,
+                                    sljit_emit_fop2(compiler, SLJIT_ADD_F64,
                                                     SLJIT_MEM1(SLJIT_R0), OFFSETOF(VariableDATA, NUMBER_DATA),
                                                     SLJIT_MEM1(SLJIT_R0), OFFSETOF(VariableDATA, NUMBER_DATA),
                                                     SLJIT_MEM0(), (sljit_sw) & d_true);
 
                             if (usedflags[OE->Result_ID - 1])
-                                sljit_emit_fop1(compiler, SLJIT_DMOV,
+                                sljit_emit_fop1(compiler, SLJIT_MOV_F64,
                                                 SLJIT_MEM1(SLJIT_R2), OFFSETOF(VariableDATA, NUMBER_DATA),
                                                 SLJIT_MEM1(SLJIT_R0), OFFSETOF(VariableDATA, NUMBER_DATA));
                             break;
@@ -1515,13 +1515,13 @@ void ConceptInterpreter::AnalizeInstructionPath(Optimizer *OPT) {
                             if (usedflags[OE->Result_ID - 1])
                                 OPERAND_RESULT
 
-                                    sljit_emit_fop2(compiler, SLJIT_DSUB,
+                                    sljit_emit_fop2(compiler, SLJIT_SUB_F64,
                                                     SLJIT_MEM1(SLJIT_R0), OFFSETOF(VariableDATA, NUMBER_DATA),
                                                     SLJIT_MEM1(SLJIT_R0), OFFSETOF(VariableDATA, NUMBER_DATA),
                                                     SLJIT_MEM0(), (sljit_sw) & d_true);
 
                             if (usedflags[OE->Result_ID - 1])
-                                sljit_emit_fop1(compiler, SLJIT_DMOV,
+                                sljit_emit_fop1(compiler, SLJIT_MOV_F64,
                                                 SLJIT_MEM1(SLJIT_R2), OFFSETOF(VariableDATA, NUMBER_DATA),
                                                 SLJIT_MEM1(SLJIT_R0), OFFSETOF(VariableDATA, NUMBER_DATA));
 
@@ -1533,11 +1533,11 @@ void ConceptInterpreter::AnalizeInstructionPath(Optimizer *OPT) {
                                     OPERAND_LEFT
 
                                 if (usedflags[OE->Result_ID - 1])
-                                    sljit_emit_fop1(compiler, SLJIT_DMOV,
+                                    sljit_emit_fop1(compiler, SLJIT_MOV_F64,
                                                     SLJIT_MEM1(SLJIT_R2), OFFSETOF(VariableDATA, NUMBER_DATA),
                                                     SLJIT_MEM1(SLJIT_R0), OFFSETOF(VariableDATA, NUMBER_DATA));
 
-                            sljit_emit_fop2(compiler, SLJIT_DADD,
+                            sljit_emit_fop2(compiler, SLJIT_ADD_F64,
                                             SLJIT_MEM1(SLJIT_R0), OFFSETOF(VariableDATA, NUMBER_DATA),
                                             SLJIT_MEM1(SLJIT_R0), OFFSETOF(VariableDATA, NUMBER_DATA),
                                             SLJIT_MEM0(), (sljit_sw) & d_true);
@@ -1549,11 +1549,11 @@ void ConceptInterpreter::AnalizeInstructionPath(Optimizer *OPT) {
                                 OPERAND_RESULT
 
                                 if (usedflags[OE->Result_ID - 1])
-                                    sljit_emit_fop1(compiler, SLJIT_DMOV,
+                                    sljit_emit_fop1(compiler, SLJIT_MOV_F64,
                                                     SLJIT_MEM1(SLJIT_R2), OFFSETOF(VariableDATA, NUMBER_DATA),
                                                     SLJIT_MEM1(SLJIT_R0), OFFSETOF(VariableDATA, NUMBER_DATA));
 
-                            sljit_emit_fop2(compiler, SLJIT_DSUB,
+                            sljit_emit_fop2(compiler, SLJIT_SUB_F64,
                                             SLJIT_MEM1(SLJIT_R0), OFFSETOF(VariableDATA, NUMBER_DATA),
                                             SLJIT_MEM1(SLJIT_R0), OFFSETOF(VariableDATA, NUMBER_DATA),
                                             SLJIT_MEM0(), (sljit_sw) & d_true);
@@ -1566,13 +1566,13 @@ void ConceptInterpreter::AnalizeInstructionPath(Optimizer *OPT) {
                             if (usedflags[OE->Result_ID - 1])
                                 OPERAND_RESULT
 
-                                sljit_emit_fop2(compiler, SLJIT_DADD,
+                                sljit_emit_fop2(compiler, SLJIT_ADD_F64,
                                                 SLJIT_MEM1(SLJIT_R0), OFFSETOF(VariableDATA, NUMBER_DATA),
                                                 SLJIT_MEM1(SLJIT_R0), OFFSETOF(VariableDATA, NUMBER_DATA),
                                                 SLJIT_MEM1(SLJIT_R1), OFFSETOF(VariableDATA, NUMBER_DATA));
 
                             if (usedflags[OE->Result_ID - 1])
-                                sljit_emit_fop1(compiler, SLJIT_DMOV,
+                                sljit_emit_fop1(compiler, SLJIT_MOV_F64,
                                                 SLJIT_MEM1(SLJIT_R2), OFFSETOF(VariableDATA, NUMBER_DATA),
                                                 SLJIT_MEM1(SLJIT_R0), OFFSETOF(VariableDATA, NUMBER_DATA));
 
@@ -1584,13 +1584,13 @@ void ConceptInterpreter::AnalizeInstructionPath(Optimizer *OPT) {
                             if (usedflags[OE->Result_ID - 1])
                                 OPERAND_RESULT
 
-                                sljit_emit_fop2(compiler, SLJIT_DSUB,
+                                sljit_emit_fop2(compiler, SLJIT_SUB_F64,
                                                 SLJIT_MEM1(SLJIT_R0), OFFSETOF(VariableDATA, NUMBER_DATA),
                                                 SLJIT_MEM1(SLJIT_R0), OFFSETOF(VariableDATA, NUMBER_DATA),
                                                 SLJIT_MEM1(SLJIT_R1), OFFSETOF(VariableDATA, NUMBER_DATA));
 
                             if (usedflags[OE->Result_ID - 1])
-                                sljit_emit_fop1(compiler, SLJIT_DMOV,
+                                sljit_emit_fop1(compiler, SLJIT_MOV_F64,
                                                 SLJIT_MEM1(SLJIT_R2), OFFSETOF(VariableDATA, NUMBER_DATA),
                                                 SLJIT_MEM1(SLJIT_R0), OFFSETOF(VariableDATA, NUMBER_DATA));
 
@@ -1602,13 +1602,13 @@ void ConceptInterpreter::AnalizeInstructionPath(Optimizer *OPT) {
                             if (usedflags[OE->Result_ID - 1])
                                 OPERAND_RESULT
 
-                                sljit_emit_fop2(compiler, SLJIT_DMUL,
+                                sljit_emit_fop2(compiler, SLJIT_MUL_F64,
                                                 SLJIT_MEM1(SLJIT_R0), OFFSETOF(VariableDATA, NUMBER_DATA),
                                                 SLJIT_MEM1(SLJIT_R0), OFFSETOF(VariableDATA, NUMBER_DATA),
                                                 SLJIT_MEM1(SLJIT_R1), OFFSETOF(VariableDATA, NUMBER_DATA));
 
                             if (usedflags[OE->Result_ID - 1])
-                                sljit_emit_fop1(compiler, SLJIT_DMOV,
+                                sljit_emit_fop1(compiler, SLJIT_MOV_F64,
                                                 SLJIT_MEM1(SLJIT_R2), OFFSETOF(VariableDATA, NUMBER_DATA),
                                                 SLJIT_MEM1(SLJIT_R0), OFFSETOF(VariableDATA, NUMBER_DATA));
 
@@ -1620,13 +1620,13 @@ void ConceptInterpreter::AnalizeInstructionPath(Optimizer *OPT) {
                             if (usedflags[OE->Result_ID - 1])
                                 OPERAND_RESULT
 
-                                sljit_emit_fop2(compiler, SLJIT_DDIV,
+                                sljit_emit_fop2(compiler, SLJIT_DIV_F64,
                                                 SLJIT_MEM1(SLJIT_R0), OFFSETOF(VariableDATA, NUMBER_DATA),
                                                 SLJIT_MEM1(SLJIT_R0), OFFSETOF(VariableDATA, NUMBER_DATA),
                                                 SLJIT_MEM1(SLJIT_R1), OFFSETOF(VariableDATA, NUMBER_DATA));
 
                             if (usedflags[OE->Result_ID - 1])
-                                sljit_emit_fop1(compiler, SLJIT_DMOV,
+                                sljit_emit_fop1(compiler, SLJIT_MOV_F64,
                                                 SLJIT_MEM1(SLJIT_R2), OFFSETOF(VariableDATA, NUMBER_DATA),
                                                 SLJIT_MEM1(SLJIT_R0), OFFSETOF(VariableDATA, NUMBER_DATA));
 
@@ -1648,7 +1648,7 @@ void ConceptInterpreter::AnalizeInstructionPath(Optimizer *OPT) {
                             OPERAND_RESULT
                             OPERAND_LEFT
 
-                                sljit_emit_fop1(compiler, SLJIT_DMOV,
+                                sljit_emit_fop1(compiler, SLJIT_MOV_F64,
                                                 SLJIT_MEM1(SLJIT_R2), OFFSETOF(VariableDATA, NUMBER_DATA),
                                                 SLJIT_MEM1(SLJIT_R0), OFFSETOF(VariableDATA, NUMBER_DATA));
                             break;
@@ -1662,12 +1662,12 @@ void ConceptInterpreter::AnalizeInstructionPath(Optimizer *OPT) {
                             if (OE->OperandLeft.ID != OE->OperandRight.ID) {
                                 OPERAND_RIGHT
 
-                                sljit_emit_fop2(compiler, SLJIT_DMUL,
+                                sljit_emit_fop2(compiler, SLJIT_MUL_F64,
                                                 SLJIT_MEM1(SLJIT_R2), OFFSETOF(VariableDATA, NUMBER_DATA),
                                                 SLJIT_MEM1(SLJIT_R0), OFFSETOF(VariableDATA, NUMBER_DATA),
                                                 SLJIT_MEM1(SLJIT_R1), OFFSETOF(VariableDATA, NUMBER_DATA));
                             } else {
-                                sljit_emit_fop2(compiler, SLJIT_DMUL,
+                                sljit_emit_fop2(compiler, SLJIT_MUL_F64,
                                                 SLJIT_MEM1(SLJIT_R2), OFFSETOF(VariableDATA, NUMBER_DATA),
                                                 SLJIT_MEM1(SLJIT_R0), OFFSETOF(VariableDATA, NUMBER_DATA),
                                                 SLJIT_MEM1(SLJIT_R0), OFFSETOF(VariableDATA, NUMBER_DATA));
@@ -1682,7 +1682,7 @@ void ConceptInterpreter::AnalizeInstructionPath(Optimizer *OPT) {
                             OPERAND_LEFT
                             OPERAND_RIGHT
 
-                                sljit_emit_fop2(compiler, SLJIT_DDIV,
+                                sljit_emit_fop2(compiler, SLJIT_DIV_F64,
                                                 SLJIT_MEM1(SLJIT_R2), OFFSETOF(VariableDATA, NUMBER_DATA),
                                                 SLJIT_MEM1(SLJIT_R0), OFFSETOF(VariableDATA, NUMBER_DATA),
                                                 SLJIT_MEM1(SLJIT_R1), OFFSETOF(VariableDATA, NUMBER_DATA));
@@ -1708,12 +1708,12 @@ void ConceptInterpreter::AnalizeInstructionPath(Optimizer *OPT) {
                             if (OE->OperandLeft.ID != OE->OperandRight.ID) {
                                 OPERAND_RIGHT
 
-                                sljit_emit_fop2(compiler, SLJIT_DADD,
+                                sljit_emit_fop2(compiler, SLJIT_ADD_F64,
                                                 SLJIT_MEM1(SLJIT_R2), OFFSETOF(VariableDATA, NUMBER_DATA),
                                                 SLJIT_MEM1(SLJIT_R0), OFFSETOF(VariableDATA, NUMBER_DATA),
                                                 SLJIT_MEM1(SLJIT_R1), OFFSETOF(VariableDATA, NUMBER_DATA));
                             } else {
-                                sljit_emit_fop2(compiler, SLJIT_DADD,
+                                sljit_emit_fop2(compiler, SLJIT_ADD_F64,
                                                 SLJIT_MEM1(SLJIT_R2), OFFSETOF(VariableDATA, NUMBER_DATA),
                                                 SLJIT_MEM1(SLJIT_R0), OFFSETOF(VariableDATA, NUMBER_DATA),
                                                 SLJIT_MEM1(SLJIT_R0), OFFSETOF(VariableDATA, NUMBER_DATA));
@@ -1729,12 +1729,12 @@ void ConceptInterpreter::AnalizeInstructionPath(Optimizer *OPT) {
                                 OPERAND_LEFT
                                 OPERAND_RIGHT
 
-                                    sljit_emit_fop2(compiler, SLJIT_DSUB,
+                                    sljit_emit_fop2(compiler, SLJIT_SUB_F64,
                                                     SLJIT_MEM1(SLJIT_R2), OFFSETOF(VariableDATA, NUMBER_DATA),
                                                     SLJIT_MEM1(SLJIT_R0), OFFSETOF(VariableDATA, NUMBER_DATA),
                                                     SLJIT_MEM1(SLJIT_R1), OFFSETOF(VariableDATA, NUMBER_DATA));
                             } else {
-                                sljit_emit_fop1(compiler, SLJIT_DMOV,
+                                sljit_emit_fop1(compiler, SLJIT_MOV_F64,
                                                 SLJIT_MEM1(SLJIT_R2), OFFSETOF(VariableDATA, NUMBER_DATA),
                                                 SLJIT_MEM0(), (sljit_sw) & d_false);
                             }
@@ -1753,7 +1753,7 @@ void ConceptInterpreter::AnalizeInstructionPath(Optimizer *OPT) {
                                 (icode >= start) && (icode < end) && (!cnt)) {
                                 OPERAND_LEFT
                                 OPERAND_RIGHT
-                                    jump = sljit_emit_fcmp(compiler, SLJIT_D_GREATER_EQUAL,
+                                    jump = sljit_emit_fcmp(compiler, SLJIT_GREATER_EQUAL_F64,
                                                            SLJIT_MEM1(SLJIT_R0), OFFSETOF(VariableDATA, NUMBER_DATA),
                                                            SLJIT_MEM1(SLJIT_R1), OFFSETOF(VariableDATA, NUMBER_DATA));
 
@@ -1767,15 +1767,15 @@ void ConceptInterpreter::AnalizeInstructionPath(Optimizer *OPT) {
                                 OPERAND_LEFT
                                 OPERAND_RIGHT
 
-                                    sljit_emit_fop1(compiler, SLJIT_DMOV,
+                                    sljit_emit_fop1(compiler, SLJIT_MOV_F64,
                                                     SLJIT_MEM1(SLJIT_R2), OFFSETOF(VariableDATA, NUMBER_DATA),
                                                     SLJIT_MEM0(), (sljit_sw) & d_true);
 
-                                jump = sljit_emit_fcmp(compiler, SLJIT_D_LESS,
+                                jump = sljit_emit_fcmp(compiler, SLJIT_LESS_F64,
                                                        SLJIT_MEM1(SLJIT_R0), OFFSETOF(VariableDATA, NUMBER_DATA),
                                                        SLJIT_MEM1(SLJIT_R1), OFFSETOF(VariableDATA, NUMBER_DATA));
 
-                                sljit_emit_fop1(compiler, SLJIT_DMOV,
+                                sljit_emit_fop1(compiler, SLJIT_MOV_F64,
                                                 SLJIT_MEM1(SLJIT_R2), OFFSETOF(VariableDATA, NUMBER_DATA),
                                                 SLJIT_MEM0(), (sljit_sw) & d_false);
 
@@ -1796,7 +1796,7 @@ void ConceptInterpreter::AnalizeInstructionPath(Optimizer *OPT) {
                                 (icode >= start) && (icode < end) && (!cnt)) {
                                 OPERAND_LEFT
                                 OPERAND_RIGHT
-                                    jump = sljit_emit_fcmp(compiler, SLJIT_D_GREATER,
+                                    jump = sljit_emit_fcmp(compiler, SLJIT_GREATER_F64,
                                                            SLJIT_MEM1(SLJIT_R0), OFFSETOF(VariableDATA, NUMBER_DATA),
                                                            SLJIT_MEM1(SLJIT_R1), OFFSETOF(VariableDATA, NUMBER_DATA));
 
@@ -1810,15 +1810,15 @@ void ConceptInterpreter::AnalizeInstructionPath(Optimizer *OPT) {
                                 OPERAND_LEFT
                                 OPERAND_RIGHT
 
-                                    sljit_emit_fop1(compiler, SLJIT_DMOV,
+                                    sljit_emit_fop1(compiler, SLJIT_MOV_F64,
                                                     SLJIT_MEM1(SLJIT_R2), OFFSETOF(VariableDATA, NUMBER_DATA),
                                                     SLJIT_MEM0(), (sljit_sw) & d_true);
 
-                                jump = sljit_emit_fcmp(compiler, SLJIT_D_LESS_EQUAL,
+                                jump = sljit_emit_fcmp(compiler, SLJIT_LESS_EQUAL,
                                                        SLJIT_MEM1(SLJIT_R0), OFFSETOF(VariableDATA, NUMBER_DATA),
                                                        SLJIT_MEM1(SLJIT_R1), OFFSETOF(VariableDATA, NUMBER_DATA));
 
-                                sljit_emit_fop1(compiler, SLJIT_DMOV,
+                                sljit_emit_fop1(compiler, SLJIT_MOV_F64,
                                                 SLJIT_MEM1(SLJIT_R2), OFFSETOF(VariableDATA, NUMBER_DATA),
                                                 SLJIT_MEM0(), (sljit_sw) & d_false);
 
@@ -1839,7 +1839,7 @@ void ConceptInterpreter::AnalizeInstructionPath(Optimizer *OPT) {
                                 (icode >= start) && (icode < end) && (!cnt)) {
                                 OPERAND_LEFT
                                 OPERAND_RIGHT
-                                    jump = sljit_emit_fcmp(compiler, SLJIT_D_LESS_EQUAL,
+                                    jump = sljit_emit_fcmp(compiler, SLJIT_LESS_EQUAL_F64,
                                                            SLJIT_MEM1(SLJIT_R0), OFFSETOF(VariableDATA, NUMBER_DATA),
                                                            SLJIT_MEM1(SLJIT_R1), OFFSETOF(VariableDATA, NUMBER_DATA));
 
@@ -1853,15 +1853,15 @@ void ConceptInterpreter::AnalizeInstructionPath(Optimizer *OPT) {
                                 OPERAND_LEFT
                                 OPERAND_RIGHT
 
-                                    sljit_emit_fop1(compiler, SLJIT_DMOV,
+                                    sljit_emit_fop1(compiler, SLJIT_MOV_F64,
                                                     SLJIT_MEM1(SLJIT_R2), OFFSETOF(VariableDATA, NUMBER_DATA),
                                                     SLJIT_MEM0(), (sljit_sw) & d_true);
 
-                                jump = sljit_emit_fcmp(compiler, SLJIT_D_GREATER,
+                                jump = sljit_emit_fcmp(compiler, SLJIT_GREATER_F64,
                                                        SLJIT_MEM1(SLJIT_R0), OFFSETOF(VariableDATA, NUMBER_DATA),
                                                        SLJIT_MEM1(SLJIT_R1), OFFSETOF(VariableDATA, NUMBER_DATA));
 
-                                sljit_emit_fop1(compiler, SLJIT_DMOV,
+                                sljit_emit_fop1(compiler, SLJIT_MOV_F64,
                                                 SLJIT_MEM1(SLJIT_R2), OFFSETOF(VariableDATA, NUMBER_DATA),
                                                 SLJIT_MEM0(), (sljit_sw) & d_false);
 
@@ -1882,7 +1882,7 @@ void ConceptInterpreter::AnalizeInstructionPath(Optimizer *OPT) {
                                 (icode >= start) && (icode < end) && (!cnt)) {
                                 OPERAND_LEFT
                                 OPERAND_RIGHT
-                                    jump = sljit_emit_fcmp(compiler, SLJIT_D_LESS,
+                                    jump = sljit_emit_fcmp(compiler, SLJIT_LESS_F64,
                                                            SLJIT_MEM1(SLJIT_R0), OFFSETOF(VariableDATA, NUMBER_DATA),
                                                            SLJIT_MEM1(SLJIT_R1), OFFSETOF(VariableDATA, NUMBER_DATA));
 
@@ -1896,15 +1896,15 @@ void ConceptInterpreter::AnalizeInstructionPath(Optimizer *OPT) {
                                 OPERAND_LEFT
                                 OPERAND_RIGHT
 
-                                    sljit_emit_fop1(compiler, SLJIT_DMOV,
+                                    sljit_emit_fop1(compiler, SLJIT_MOV_F64,
                                                     SLJIT_MEM1(SLJIT_R2), OFFSETOF(VariableDATA, NUMBER_DATA),
                                                     SLJIT_MEM0(), (sljit_sw) & d_true);
 
-                                jump = sljit_emit_fcmp(compiler, SLJIT_D_GREATER_EQUAL,
+                                jump = sljit_emit_fcmp(compiler, SLJIT_GREATER_EQUAL_F64,
                                                        SLJIT_MEM1(SLJIT_R0), OFFSETOF(VariableDATA, NUMBER_DATA),
                                                        SLJIT_MEM1(SLJIT_R1), OFFSETOF(VariableDATA, NUMBER_DATA));
 
-                                sljit_emit_fop1(compiler, SLJIT_DMOV,
+                                sljit_emit_fop1(compiler, SLJIT_MOV_F64,
                                                 SLJIT_MEM1(SLJIT_R2), OFFSETOF(VariableDATA, NUMBER_DATA),
                                                 SLJIT_MEM0(), (sljit_sw) & d_false);
 
@@ -1925,7 +1925,7 @@ void ConceptInterpreter::AnalizeInstructionPath(Optimizer *OPT) {
                                 (icode >= start) && (icode < end) && (!cnt)) {
                                 OPERAND_LEFT
                                 OPERAND_RIGHT
-                                    jump = sljit_emit_fcmp(compiler, SLJIT_D_NOT_EQUAL,
+                                    jump = sljit_emit_fcmp(compiler, SLJIT_NOT_EQUAL_F64,
                                                            SLJIT_MEM1(SLJIT_R0), OFFSETOF(VariableDATA, NUMBER_DATA),
                                                            SLJIT_MEM1(SLJIT_R1), OFFSETOF(VariableDATA, NUMBER_DATA));
 
@@ -1939,15 +1939,15 @@ void ConceptInterpreter::AnalizeInstructionPath(Optimizer *OPT) {
                                 OPERAND_LEFT
                                 OPERAND_RIGHT
 
-                                    sljit_emit_fop1(compiler, SLJIT_DMOV,
+                                    sljit_emit_fop1(compiler, SLJIT_MOV_F64,
                                                     SLJIT_MEM1(SLJIT_R2), OFFSETOF(VariableDATA, NUMBER_DATA),
                                                     SLJIT_MEM0(), (sljit_sw) & d_true);
 
-                                jump = sljit_emit_fcmp(compiler, SLJIT_D_EQUAL,
+                                jump = sljit_emit_fcmp(compiler, SLJIT_EQUAL_F64,
                                                        SLJIT_MEM1(SLJIT_R0), OFFSETOF(VariableDATA, NUMBER_DATA),
                                                        SLJIT_MEM1(SLJIT_R1), OFFSETOF(VariableDATA, NUMBER_DATA));
 
-                                sljit_emit_fop1(compiler, SLJIT_DMOV,
+                                sljit_emit_fop1(compiler, SLJIT_MOV_F64,
                                                 SLJIT_MEM1(SLJIT_R2), OFFSETOF(VariableDATA, NUMBER_DATA),
                                                 SLJIT_MEM0(), (sljit_sw) & d_false);
 
@@ -1968,7 +1968,7 @@ void ConceptInterpreter::AnalizeInstructionPath(Optimizer *OPT) {
                                 (icode >= start) && (icode < end) && (!cnt)) {
                                 OPERAND_LEFT
                                 OPERAND_RIGHT
-                                    jump = sljit_emit_fcmp(compiler, SLJIT_D_EQUAL,
+                                    jump = sljit_emit_fcmp(compiler, SLJIT_EQUAL_F64,
                                                            SLJIT_MEM1(SLJIT_R0), OFFSETOF(VariableDATA, NUMBER_DATA),
                                                            SLJIT_MEM1(SLJIT_R1), OFFSETOF(VariableDATA, NUMBER_DATA));
 
@@ -1982,15 +1982,15 @@ void ConceptInterpreter::AnalizeInstructionPath(Optimizer *OPT) {
                                 OPERAND_LEFT
                                 OPERAND_RIGHT
 
-                                    sljit_emit_fop1(compiler, SLJIT_DMOV,
+                                    sljit_emit_fop1(compiler, SLJIT_MOV_F64,
                                                     SLJIT_MEM1(SLJIT_R2), OFFSETOF(VariableDATA, NUMBER_DATA),
                                                     SLJIT_MEM0(), (sljit_sw) & d_true);
 
-                                jump = sljit_emit_fcmp(compiler, SLJIT_D_NOT_EQUAL,
+                                jump = sljit_emit_fcmp(compiler, SLJIT_NOT_EQUAL_F64,
                                                        SLJIT_MEM1(SLJIT_R0), OFFSETOF(VariableDATA, NUMBER_DATA),
                                                        SLJIT_MEM1(SLJIT_R1), OFFSETOF(VariableDATA, NUMBER_DATA));
 
-                                sljit_emit_fop1(compiler, SLJIT_DMOV,
+                                sljit_emit_fop1(compiler, SLJIT_MOV_F64,
                                                 SLJIT_MEM1(SLJIT_R2), OFFSETOF(VariableDATA, NUMBER_DATA),
                                                 SLJIT_MEM0(), (sljit_sw) & d_false);
 
@@ -2010,7 +2010,7 @@ void ConceptInterpreter::AnalizeInstructionPath(Optimizer *OPT) {
                                 (OENext->OperandRight.ID == OE->Result_ID) && (usedflags[OE->Result_ID - 1] < 2) &&
                                 (icode >= start) && (icode < end) && (!cnt)) {
                                 OPERAND_LEFT
-                                    jump = sljit_emit_fcmp(compiler, SLJIT_D_NOT_EQUAL,
+                                    jump = sljit_emit_fcmp(compiler, SLJIT_NOT_EQUAL_F64,
                                                            SLJIT_MEM1(SLJIT_R0), OFFSETOF(VariableDATA, NUMBER_DATA),
                                                            SLJIT_MEM0(), (sljit_sw) & d_false);
 
@@ -2023,15 +2023,15 @@ void ConceptInterpreter::AnalizeInstructionPath(Optimizer *OPT) {
                                 OPERAND_RESULT
                                 OPERAND_LEFT
 
-                                    sljit_emit_fop1(compiler, SLJIT_DMOV,
+                                    sljit_emit_fop1(compiler, SLJIT_MOV_F64,
                                                     SLJIT_MEM1(SLJIT_R2), OFFSETOF(VariableDATA, NUMBER_DATA),
                                                     SLJIT_MEM0(), (sljit_sw) & d_true);
 
-                                jump = sljit_emit_fcmp(compiler, SLJIT_D_EQUAL,
+                                jump = sljit_emit_fcmp(compiler, SLJIT_EQUAL_F64,
                                                        SLJIT_MEM1(SLJIT_R0), OFFSETOF(VariableDATA, NUMBER_DATA),
                                                        SLJIT_MEM0(), (sljit_sw) & d_false);
 
-                                sljit_emit_fop1(compiler, SLJIT_DMOV,
+                                sljit_emit_fop1(compiler, SLJIT_MOV_F64,
                                                 SLJIT_MEM1(SLJIT_R2), OFFSETOF(VariableDATA, NUMBER_DATA),
                                                 SLJIT_MEM0(), (sljit_sw) & d_false);
 
@@ -2043,7 +2043,7 @@ void ConceptInterpreter::AnalizeInstructionPath(Optimizer *OPT) {
                             OPERAND_RESULT
                             OPERAND_LEFT
 
-                                sljit_emit_fop1(compiler, SLJIT_DNEG,
+                                sljit_emit_fop1(compiler, SLJIT_NEG_F64,
                                                 SLJIT_MEM1(SLJIT_R2), OFFSETOF(VariableDATA, NUMBER_DATA),
                                                 SLJIT_MEM1(SLJIT_R0), OFFSETOF(VariableDATA, NUMBER_DATA));
                             break;
@@ -2053,15 +2053,15 @@ void ConceptInterpreter::AnalizeInstructionPath(Optimizer *OPT) {
                             OPERAND_LEFT
                             OPERAND_RIGHT
 
-                                sljit_emit_fop1(compiler, SLJIT_DMOV,
+                                sljit_emit_fop1(compiler, SLJIT_MOV_F64,
                                                 SLJIT_MEM1(SLJIT_R2), OFFSETOF(VariableDATA, NUMBER_DATA),
                                                 SLJIT_MEM1(SLJIT_R0), OFFSETOF(VariableDATA, NUMBER_DATA));
 
-                            jump = sljit_emit_fcmp(compiler, SLJIT_D_NOT_EQUAL,
+                            jump = sljit_emit_fcmp(compiler, SLJIT_NOT_EQUAL_F64,
                                                    SLJIT_MEM1(SLJIT_R0), OFFSETOF(VariableDATA, NUMBER_DATA),
                                                    SLJIT_MEM0(), (sljit_sw) & d_false);
 
-                            sljit_emit_fop1(compiler, SLJIT_DMOV,
+                            sljit_emit_fop1(compiler, SLJIT_MOV_F64,
                                             SLJIT_MEM1(SLJIT_R2), OFFSETOF(VariableDATA, NUMBER_DATA),
                                             SLJIT_MEM1(SLJIT_R1), OFFSETOF(VariableDATA, NUMBER_DATA));
 
@@ -2105,19 +2105,19 @@ void ConceptInterpreter::AnalizeInstructionPath(Optimizer *OPT) {
                             OPERAND_LEFT
                             OPERAND_RIGHT
 
-                                sljit_emit_fop2(compiler, SLJIT_DADD,
+                                sljit_emit_fop2(compiler, SLJIT_ADD_F64,
                                                 SLJIT_MEM1(SLJIT_R2), OFFSETOF(VariableDATA, NUMBER_DATA),
                                                 SLJIT_MEM1(SLJIT_R0), OFFSETOF(VariableDATA, NUMBER_DATA),
                                                 SLJIT_MEM1(SLJIT_R1), OFFSETOF(VariableDATA, NUMBER_DATA));
 
-                            jump = sljit_emit_fcmp(compiler, SLJIT_D_NOT_EQUAL,
+                            jump = sljit_emit_fcmp(compiler, SLJIT_NOT_EQUAL_F64,
                                                    SLJIT_MEM1(SLJIT_R2), OFFSETOF(VariableDATA, NUMBER_DATA),
                                                    SLJIT_MEM0(), (sljit_sw) & d_false);
 
                             jump2 = sljit_emit_jump(compiler, SLJIT_JUMP);
                             sljit_set_label(jump, sljit_emit_label(compiler));
 
-                            sljit_emit_fop1(compiler, SLJIT_DMOV,
+                            sljit_emit_fop1(compiler, SLJIT_MOV_F64,
                                             SLJIT_MEM1(SLJIT_R2), OFFSETOF(VariableDATA, NUMBER_DATA),
                                             SLJIT_MEM0(), (sljit_sw) & d_true);
 
@@ -2129,19 +2129,19 @@ void ConceptInterpreter::AnalizeInstructionPath(Optimizer *OPT) {
                             OPERAND_LEFT
                             OPERAND_RIGHT
 
-                                sljit_emit_fop2(compiler, SLJIT_DMUL,
+                                sljit_emit_fop2(compiler, SLJIT_MUL_F64,
                                                 SLJIT_MEM1(SLJIT_R2), OFFSETOF(VariableDATA, NUMBER_DATA),
                                                 SLJIT_MEM1(SLJIT_R0), OFFSETOF(VariableDATA, NUMBER_DATA),
                                                 SLJIT_MEM1(SLJIT_R1), OFFSETOF(VariableDATA, NUMBER_DATA));
 
-                            jump = sljit_emit_fcmp(compiler, SLJIT_D_NOT_EQUAL,
+                            jump = sljit_emit_fcmp(compiler, SLJIT_NOT_EQUAL_F64,
                                                    SLJIT_MEM1(SLJIT_R2), OFFSETOF(VariableDATA, NUMBER_DATA),
                                                    SLJIT_MEM0(), (sljit_sw) & d_false);
 
                             jump2 = sljit_emit_jump(compiler, SLJIT_JUMP);
                             sljit_set_label(jump, sljit_emit_label(compiler));
 
-                            sljit_emit_fop1(compiler, SLJIT_DMOV,
+                            sljit_emit_fop1(compiler, SLJIT_MOV_F64,
                                             SLJIT_MEM1(SLJIT_R2), OFFSETOF(VariableDATA, NUMBER_DATA),
                                             SLJIT_MEM0(), (sljit_sw) & d_true);
 
@@ -2358,12 +2358,12 @@ void ConceptInterpreter::AnalizeInstructionPath(Optimizer *OPT) {
                                     if (usedflags[OENext->Result_ID - 1]) {
                                         sljit_emit_op1(compiler, SLJIT_MOV_P, SLJIT_R2, 0, SLJIT_MEM1(SLJIT_S0), sizeof(VariableDATA *) * (OENext->Result_ID - 1));
 
-                                        sljit_emit_fop1(compiler, SLJIT_DMOV,
+                                        sljit_emit_fop1(compiler, SLJIT_MOV_F64,
                                                         SLJIT_MEM1(SLJIT_R2), OFFSETOF(VariableDATA, NUMBER_DATA),
                                                         SLJIT_MEM1(SLJIT_R0), OFFSETOF(VariableDATA, NUMBER_DATA));
                                     }
 
-                                    sljit_emit_fop1(compiler, SLJIT_DMOV,
+                                    sljit_emit_fop1(compiler, SLJIT_MOV_F64,
                                                     SLJIT_MEM1(SLJIT_R1), OFFSETOF(VariableDATA, NUMBER_DATA),
                                                     SLJIT_MEM1(SLJIT_R0), OFFSETOF(VariableDATA, NUMBER_DATA));
                                 }
@@ -2483,14 +2483,14 @@ void ConceptInterpreter::AnalizeInstructionPath(Optimizer *OPT) {
 
                                 icode = OE->OperandReserved.ID;
                             if ((icode < start) || (icode >= end)) {
-                                jump = sljit_emit_fcmp(compiler, SLJIT_D_NOT_EQUAL,
+                                jump = sljit_emit_fcmp(compiler, SLJIT_NOT_EQUAL_F64,
                                                        SLJIT_MEM1(SLJIT_R1), OFFSETOF(VariableDATA, NUMBER_DATA),
                                                        SLJIT_MEM0(), (sljit_sw) & d_false);
                                 sljit_emit_return(compiler, SLJIT_MOV, SLJIT_IMM, icode);
                                 sljit_set_label(jump, sljit_emit_label(compiler));
                                 outsidejump[icode] = 1;
                             } else {
-                                jump = sljit_emit_fcmp(compiler, SLJIT_D_EQUAL,
+                                jump = sljit_emit_fcmp(compiler, SLJIT_EQUAL_F64,
                                                        SLJIT_MEM1(SLJIT_R1), OFFSETOF(VariableDATA, NUMBER_DATA),
                                                        SLJIT_MEM0(), (sljit_sw) & d_false);
 

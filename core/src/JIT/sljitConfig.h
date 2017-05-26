@@ -1,7 +1,7 @@
 /*
  *    Stack-less Just-In-Time compiler
  *
- *    Copyright 2009-2012 Zoltan Herczeg (hzmester@freemail.hu). All rights reserved.
+ *    Copyright Zoltan Herczeg (hzmester@freemail.hu). All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
@@ -27,8 +27,6 @@
 #ifndef _SLJIT_CONFIG_H_
 #define _SLJIT_CONFIG_H_
 
-#define SLJIT_DEBUG      0
-#define SLJIT_VERBOSE    0
 /* --------------------------------------------------------------------- */
 /*  Custom defines                                                       */
 /* --------------------------------------------------------------------- */
@@ -54,7 +52,7 @@
 /* #define SLJIT_CONFIG_SPARC_32 1 */
 /* #define SLJIT_CONFIG_TILEGX 1 */
 
-#define SLJIT_CONFIG_AUTO    1
+#define SLJIT_CONFIG_AUTO 1
 /* #define SLJIT_CONFIG_UNSUPPORTED 1 */
 
 /* --------------------------------------------------------------------- */
@@ -64,19 +62,19 @@
 /* Useful for thread-safe compiling of global functions. */
 #ifndef SLJIT_UTIL_GLOBAL_LOCK
 /* Enabled by default */
- #define SLJIT_UTIL_GLOBAL_LOCK    1
+#define SLJIT_UTIL_GLOBAL_LOCK 1
 #endif
 
 /* Implements a stack like data structure (by using mmap / VirtualAlloc). */
 #ifndef SLJIT_UTIL_STACK
 /* Enabled by default */
- #define SLJIT_UTIL_STACK    1
+#define SLJIT_UTIL_STACK 1
 #endif
 
 /* Single threaded application. Does not require any locks. */
 #ifndef SLJIT_SINGLE_THREADED
 /* Disabled by default. */
- #define SLJIT_SINGLE_THREADED    0
+#define SLJIT_SINGLE_THREADED 0
 #endif
 
 /* --------------------------------------------------------------------- */
@@ -84,44 +82,65 @@
 /* --------------------------------------------------------------------- */
 
 /* If SLJIT_STD_MACROS_DEFINED is not defined, the application should
-   define SLJIT_MALLOC, SLJIT_FREE, SLJIT_MEMMOVE, and NULL. */
+   define SLJIT_MALLOC, SLJIT_FREE, SLJIT_MEMCPY, and NULL. */
 #ifndef SLJIT_STD_MACROS_DEFINED
 /* Disabled by default. */
- #define SLJIT_STD_MACROS_DEFINED    0
+#define SLJIT_STD_MACROS_DEFINED 0
 #endif
 
 /* Executable code allocation:
    If SLJIT_EXECUTABLE_ALLOCATOR is not defined, the application should
-   define both SLJIT_MALLOC_EXEC and SLJIT_FREE_EXEC. */
+   define SLJIT_MALLOC_EXEC, SLJIT_FREE_EXEC, and SLJIT_EXEC_OFFSET. */
 #ifndef SLJIT_EXECUTABLE_ALLOCATOR
 /* Enabled by default. */
- #define SLJIT_EXECUTABLE_ALLOCATOR    1
+#define SLJIT_EXECUTABLE_ALLOCATOR 1
+
+/* When SLJIT_PROT_EXECUTABLE_ALLOCATOR is enabled SLJIT uses
+   an allocator which does not set writable and executable
+   permission flags at the same time. The trade-of is increased
+   memory consumption and disabled dynamic code modifications. */
+#ifndef SLJIT_PROT_EXECUTABLE_ALLOCATOR
+/* Disabled by default. */
+#define SLJIT_PROT_EXECUTABLE_ALLOCATOR 0
+#endif
+
+#endif
+
+/* Force cdecl calling convention even if a better calling
+   convention (e.g. fastcall) is supported by the C compiler.
+   If this option is enabled, C functions without
+   SLJIT_CALL can also be called from JIT code. */
+#ifndef SLJIT_USE_CDECL_CALLING_CONVENTION
+/* Disabled by default */
+#define SLJIT_USE_CDECL_CALLING_CONVENTION 0
 #endif
 
 /* Return with error when an invalid argument is passed. */
 #ifndef SLJIT_ARGUMENT_CHECKS
 /* Disabled by default */
- #define SLJIT_ARGUMENT_CHECKS    0
+#define SLJIT_ARGUMENT_CHECKS 0
 #endif
 
 /* Debug checks (assertions, etc.). */
 #ifndef SLJIT_DEBUG
 /* Enabled by default */
- #define SLJIT_DEBUG    1
+#define SLJIT_DEBUG 0
 #endif
 
 /* Verbose operations. */
 #ifndef SLJIT_VERBOSE
 /* Enabled by default */
- #define SLJIT_VERBOSE    1
+#define SLJIT_VERBOSE 0
 #endif
 
+//#define SLJIT_IS_FPU_AVAILABLE  1
 /*
-   SLJIT_IS_FPU_AVAILABLE
+  SLJIT_IS_FPU_AVAILABLE
     The availability of the FPU can be controlled by SLJIT_IS_FPU_AVAILABLE.
       zero value - FPU is NOT present.
       nonzero value - FPU is present.
- */
+*/
 
 /* For further configurations, see the beginning of sljitConfigInternal.h */
+
 #endif
