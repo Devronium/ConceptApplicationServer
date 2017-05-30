@@ -52,6 +52,8 @@ define ERR_AGGREGATION	-10
 define ERR_AGGREGATION_S"Invalid aggregation"
 define ERR_JS_SCRIPT	-11
 define ERR_TRIGGER	-12
+define ERR_FILENAME	-13
+define ERR_FILENAME_S	"Invalid filename"
 
 define NOTIFY_MORE_DATA	1
 
@@ -820,7 +822,6 @@ pragma used
 			if ((p2) && (typeof p2 == "numeric"))
 				priority = p2;
 		}
-
 		switch (obj.o) {
 			case "H":
 				if ((ctx) && (!ctx.code)) {
@@ -848,6 +849,8 @@ pragma used
 			case "W":
 			case "U":
 			case "Z":
+			case "F":
+			case "B":
 			case "INFO":
 				if ((!ctx) || (ctx.auth)) {
 					if (typeof obj.c != "string")
@@ -897,7 +900,7 @@ pragma used
 							if (!obj.r)
 								obj.r = new R();
 						} else
-						if ((obj.o == "I") || (obj.o == "D") || (obj.o == "R") || (obj.o == "U") || (obj.o == "X") || (obj.o == "Y") || (obj.o == "Z")) {
+						if ((obj.o == "I") || (obj.o == "D") || (obj.o == "R") || (obj.o == "U") || (obj.o == "X") || (obj.o == "Y") || (obj.o == "Z") || (obj.o == "F")) {
 							var storage_key = "" + obj.d + "/" + obj.c;
 							storage = storage_dbs_w[storage_key];
 							if (!storage) {
@@ -1840,6 +1843,83 @@ pragma used
 		return EnsureDBByName(obj.d);
 	}
 
+	DeleteFile(db, collection, name) {
+		var filename = "$db/fs/${collection}_$name.bin";
+		if (_unlink(filename))
+			return false;
+		return true;
+	}
+
+	StoreFile(db, collection, name, offset, var buffer) {
+		_mkdir("$db/fs");
+		var filename = "$db/fs/${collection}_$name.bin";
+		if ((!FileExists(filename)) || (offset == -2))
+			WriteFile("", filename);
+		var f = new File("r+b");
+		f.Name = filename;
+		if (f.Open()) {
+			try {
+				if (offset > 0) {
+					var fs = f.Size;
+					var delta = offset - fs;
+					if (delta > 0) {
+						f.Seek(fs);
+						f.Write(pack(":$delta"));
+					}
+					f.Seek(offset);
+				}
+				if (offset < 0)
+					f.Seek(0, SEEK_END);
+
+				var written = f.Write(buffer);
+				f.Close();
+				return written;
+			} catch (var exc) {
+				echo "Error writing to file $filename: $exc\n";
+				return -1;
+			}
+		} 
+		return -1;
+	}
+
+	GetFileBuffer(db, collection, name, offset, size) {
+		var[] data;
+		var filename = "$db/fs/${collection}_$name.bin";
+		if (FileExists(filename)) {
+			data["exists"] = true;
+			if ((size < 0) && (offset <= 0)) {
+				data["buffer"] = ReadFile(filename);
+				data["size"] = length data["buffer"];
+			} else {
+				var f = new File("rb");
+				if (f.Open()) {
+					try {
+						data["size"] = f.Size;
+						if (offset > 0) {
+							data["offset"] = offset;
+							if (!f.Seek(offset)) {
+								data["buffer"] = "";
+								f.Close();
+								return data;
+							}
+						}
+						if (size > 0) {
+							data["chunk"] = f.Read(var buffer, size);
+							data["buffer"] = buffer;
+						}
+						f.Close();
+					} catch (var exc) {
+						echo "Error reading file $filename: $exc\n";
+					}
+				}
+			}
+		} else {
+			data["exists"] = false;
+			data["buffer"] = "";
+		}
+		return data;
+	}
+
 	Execute(var data) {
 		var key;
 		var trigger;
@@ -2705,6 +2785,69 @@ pragma used
 							} else {
 								r.e = ERR_IO;
 								r.et = ERR_IO_S;
+							}
+						} else {
+							r.e = ERR_COLLECTION;
+							r.et = ERR_COLLECTION_S;
+						}
+						break;
+					case "F":
+						t = db[obj.c];
+						if ((t) && (obj.p)) {
+							var offset = obj.p["o"];
+							var name = obj.p["n"];
+							if (typeof name != "string")
+								name = "";
+							if (name) {
+								name = StrReplace(name, "/", "_");
+								name = StrReplace(name, "\\", "_");
+								name = StrReplace(name, "..", "_");
+							}
+							if (name) {
+								var stored_bytes = 0;
+								var file_buffer = obj.p["b"];
+								if (obj.p["delete"]) {
+									t.Lock(true);
+									var deleted = DeleteFile(obj.d, obj.c, name);
+									r.p = ["deleted" => deleted, "name" => name];
+									t.Unlock();
+								} else {
+									if ((file_buffer) && (typeof file_buffer == "string")) {
+										t.Lock(true);
+										stored_bytes = StoreFile(obj.d, obj.c, name, offset, file_buffer);
+										t.Unlock();
+									}
+									r.p = ["bytes" => stored_bytes, "name" => name];
+								}
+							} else {
+								r.e = ERR_FILENAME;
+								r.et = ERR_FILENAME_S;
+							}
+						} else {
+							r.e = ERR_COLLECTION;
+							r.et = ERR_COLLECTION_S;
+						}
+						break;
+					case "B":
+						t = db[obj.c];
+						if ((t) && (obj.p)) {
+							offset = obj.p["o"];
+							var size = obj.p["s"];
+							name = obj.p["n"];
+							if (typeof name != "string")
+								name = "";
+							if (name) {
+								name = StrReplace(name, "/", "_");
+								name = StrReplace(name, "\\", "_");
+								name = StrReplace(name, "..", "_");
+							}
+							if (name) {
+								t.Lock();
+								r.p = GetFileBuffer(obj.d, obj.c, name, offset, size);
+								t.Unlock();
+							} else {
+								r.e = ERR_FILENAME;
+								r.et = ERR_FILENAME_S;
 							}
 						} else {
 							r.e = ERR_COLLECTION;

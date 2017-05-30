@@ -468,6 +468,35 @@ class TinDataSet {
 		this.Connection._Handle(q, callback, this.UserData);
 	}
 
+	StoreFile(string name, var string content, callback = null, offset = -2, priority = 0) {
+		var q = new Q(["n" => name, "o" => offset, "b" => content], Connection.Database, this.Collection, "F");
+		if (!callback)
+			q.x["silent"] = true;
+		if (priority)
+			q.x["priority"] = priority;
+		this.Connection._Handle(q, callback, this.UserData);
+	}
+
+	DeleteFile(string name, callback = null, priority = 0) {
+		var q = new Q(["n" => name, "delete" => true], Connection.Database, this.Collection, "F");
+		if (!callback)
+			q.x["silent"] = true;
+		if (priority)
+			q.x["priority"] = priority;
+
+		this.Connection._Handle(q, callback, this.UserData);
+	}
+
+	GetFile(string name, callback = null, offset = -1, size = -1, priority = 0) {
+		var q = new Q(["n" => name, "o" => offset, "s" => size], Connection.Database, this.Collection, "B");
+		if (!callback)
+			q.x["silent"] = true;
+		if (priority)
+			q.x["priority"] = priority;
+
+		this.Connection._Handle(q, callback, this.UserData);
+	}
+
 	Query(params, delegate callback, fields = null, len = 0, start = 0, descending = false, priority = 0, map = false, reduce = "") {
 		if (typeof params != "array") {
 			if (typeof params == "object")

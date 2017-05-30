@@ -16,6 +16,11 @@
 #define     KEY_NUMBER          0
 
 #define     ARRAY_INCREMENT     0x40
+// mandatory multiple of ARRAY_INCREMENT
+#define     BIG_ARRAY_TRESHOLD  ARRAY_INCREMENT * 0x80
+// mandatory multiple of ARRAY_INCREMENT
+#define     BIG_ARRAY_INCREMENT 0x400
+
 #define     KEY_INCREMENT       0x20
 #define     REALLOC_TRESHOLD    0x20
 

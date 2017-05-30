@@ -190,7 +190,7 @@ class PDFPage {
 		}
 	}
 
-	protected __NewPage() {
+	public NewPage() {
 		var page = this.Owner.NewPage(Width, Height);
 		page.Font = Font;
 		page.FontSize = FontSize;
@@ -225,7 +225,7 @@ class PDFPage {
 					for (var j = i + 1; j < length lines; j++)
 						lines2[length lines2] = lines[j];
 					if (lines2) {
-						var page = this.__NewPage();
+						var page = this.NewPage();
 						return page.__AppendLines(lines2, align);
 					}
 				}
@@ -591,7 +591,7 @@ class PDFPage {
 						return i;
 					var offset = i;
 					do {
-						var page = this.__NewPage();
+						var page = this.NewPage();
 						offset = page.Table(header, data, style, offset, -1, -1, -1, true);
 					} while (offset < length data);
 					return page;

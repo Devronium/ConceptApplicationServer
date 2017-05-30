@@ -633,7 +633,6 @@ int MarkRecursive(void *PIF, Array *arr, signed char reach_id_flag) {
     arr->reachable = (arr->reachable & 0x1C) | reach_id_flag;
     int      res      = 1;
     NODE     *CURRENT = arr->FIRST;
-    intptr_t d_count  = arr->COUNT % ARRAY_INCREMENT;
     for (intptr_t i = 0; i < arr->NODE_COUNT; i++) {
         for (intptr_t j = 0; j < CURRENT->COUNT; j++) {
             VariableDATA *Var = CURRENT->ELEMENTS [j];

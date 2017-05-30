@@ -6,18 +6,22 @@
 //POOLED_IMPLEMENTATION(_NODE)
 POOLED_IMPLEMENTATION(Array)
 
-//--- In line functions ------------------------------------------------------------
+//--- macros ------------------------------------------------------------
 #define CREATE_NODE(NEW_NODE)                               \
     NEW_NODE           = (NODE *)FAST_MALLOC(sizeof(NODE)); \
     NEW_NODE->ELEMENTS = NULL;                              \
     NEW_NODE->COUNT    = 0;                                 \
     NEW_NODE->NEXT     = 0;
 
+#define DYNAMIC_INCREMENT(i)    (i <= BIG_ARRAY_TRESHOLD ) ? ARRAY_INCREMENT : BIG_ARRAY_INCREMENT
+#define DYNAMIC_TARGET(i)       (i <= BIG_ARRAY_TRESHOLD ) ? (i / ARRAY_INCREMENT) : (BIG_ARRAY_TRESHOLD / ARRAY_INCREMENT) + (i - BIG_ARRAY_TRESHOLD) / BIG_ARRAY_INCREMENT
+#define DYNAMIC_DISTRIBUTION(i) (i <= BIG_ARRAY_TRESHOLD ) ? (i % ARRAY_INCREMENT) : (i - BIG_ARRAY_TRESHOLD) % BIG_ARRAY_INCREMENT
+
 #define ENSURE_ELEMENTS(TARGET_NODE, INDEX)                                                                                     \
     if (TARGET_NODE->COUNT <= INDEX) {                                                                                          \
         int prec_size = TARGET_NODE->COUNT;                                                                                     \
         if (COUNT >= REALLOC_TRESHOLD)                                                                                          \
-            TARGET_NODE->COUNT = ARRAY_INCREMENT;                                                                               \
+            TARGET_NODE->COUNT = DYNAMIC_INCREMENT(COUNT);                                                                      \
         else                                                                                                                    \
             TARGET_NODE->COUNT = INDEX + 1;                                                                                     \
         TARGET_NODE->ELEMENTS = (ArrayElement *)FAST_REALLOC(TARGET_NODE->ELEMENTS, TARGET_NODE->COUNT * sizeof(ArrayElement)); \
@@ -26,8 +30,8 @@ POOLED_IMPLEMENTATION(Array)
     }
 
 #define ADD_LINKED_VARIABLE(var)                                  \
-    ARRAY_COUNT_TYPE DISTRIBUTED_COUNT = COUNT % ARRAY_INCREMENT; \
-    ARRAY_COUNT_TYPE TARGET_NODE = COUNT / ARRAY_INCREMENT;       \
+    ARRAY_COUNT_TYPE DISTRIBUTED_COUNT = DYNAMIC_DISTRIBUTION(COUNT);\
+    ARRAY_COUNT_TYPE TARGET_NODE = DYNAMIC_TARGET(COUNT);         \
     NODE             *REF_NODE;                                   \
     if (TARGET_NODE >= NODE_COUNT) {                              \
         NODE *NEW_NODE;                                           \
@@ -60,8 +64,8 @@ POOLED_IMPLEMENTATION(Array)
     return ELEMENTS [DISTRIBUTED_COUNT];
 
 #define ADD_COPY_VARIABLE(var, pif)                                         \
-    ARRAY_COUNT_TYPE DISTRIBUTED_COUNT = COUNT % ARRAY_INCREMENT;           \
-    ARRAY_COUNT_TYPE TARGET_NODE = COUNT / ARRAY_INCREMENT;                 \
+    ARRAY_COUNT_TYPE DISTRIBUTED_COUNT = DYNAMIC_DISTRIBUTION(COUNT);       \
+    ARRAY_COUNT_TYPE TARGET_NODE = DYNAMIC_TARGET(COUNT);                   \
     NODE             *REF_NODE;                                             \
     if (TARGET_NODE >= NODE_COUNT) {                                        \
         NODE *NEW_NODE;                                                     \
@@ -117,8 +121,8 @@ POOLED_IMPLEMENTATION(Array)
     return ELEMENTS [DISTRIBUTED_COUNT];
 
 #define ADD_VARIABLE(val, pif)                                            \
-    ARRAY_COUNT_TYPE DISTRIBUTED_COUNT = COUNT % ARRAY_INCREMENT;         \
-    ARRAY_COUNT_TYPE TARGET_NODE = COUNT / ARRAY_INCREMENT;               \
+    ARRAY_COUNT_TYPE DISTRIBUTED_COUNT = DYNAMIC_DISTRIBUTION(COUNT);       \
+    ARRAY_COUNT_TYPE TARGET_NODE = DYNAMIC_TARGET(COUNT);                   \
     NODE             *REF_NODE;                                           \
     if (TARGET_NODE >= NODE_COUNT) {                                      \
         NODE *NEW_NODE;                                                   \
@@ -154,8 +158,8 @@ POOLED_IMPLEMENTATION(Array)
 \
 
 #define ADD_MULTIPLE_VARIABLE2                                    \
-    ARRAY_COUNT_TYPE DISTRIBUTED_COUNT = COUNT % ARRAY_INCREMENT; \
-    ARRAY_COUNT_TYPE TARGET_NODE = COUNT / ARRAY_INCREMENT;       \
+    ARRAY_COUNT_TYPE DISTRIBUTED_COUNT = DYNAMIC_DISTRIBUTION(COUNT); \
+    ARRAY_COUNT_TYPE TARGET_NODE = DYNAMIC_TARGET(COUNT);         \
     if (TARGET_NODE >= NODE_COUNT) {                              \
         NODE *NEW_NODE;                                           \
         CREATE_NODE(NEW_NODE);                                    \
@@ -230,8 +234,8 @@ Array::Array(void *PIF) {
 
 ARRAY_COUNT_TYPE Array::FindIndex(ARRAY_COUNT_TYPE index) {
     if (index < COUNT) {
-        ARRAY_COUNT_TYPE target_node = index / ARRAY_INCREMENT;
-        ARRAY_COUNT_TYPE d_count     = index % ARRAY_INCREMENT;
+        ARRAY_COUNT_TYPE target_node = DYNAMIC_TARGET(index);
+        ARRAY_COUNT_TYPE d_count     = DYNAMIC_DISTRIBUTION(index);
         NODE             *CURRENT    = FIRST;
         for (ARRAY_COUNT_TYPE k = 0; k < target_node; k++) {
             CURRENT = CURRENT->NEXT;
@@ -591,8 +595,8 @@ VariableDATA *Array::Get(ARRAY_COUNT_TYPE i) {
     if (i < COUNT) {
         CACHE_ARRAY_BLOCK;
 
-        ARRAY_COUNT_TYPE target_node = i / ARRAY_INCREMENT;
-        ARRAY_COUNT_TYPE d_count     = i % ARRAY_INCREMENT;
+        ARRAY_COUNT_TYPE target_node = DYNAMIC_TARGET(i);
+        ARRAY_COUNT_TYPE d_count     = DYNAMIC_DISTRIBUTION(i);
 
         NODE *CURRENT;
 #ifdef OPTIMIZE_FAST_ARRAYS
@@ -646,8 +650,8 @@ VariableDATA *Array::Get(VariableDATA *KEY) {
     if (i < COUNT) {
         CACHE_ARRAY_BLOCK;
 
-        ARRAY_COUNT_TYPE target_node = i / ARRAY_INCREMENT;
-        ARRAY_COUNT_TYPE d_count     = i % ARRAY_INCREMENT;
+        ARRAY_COUNT_TYPE target_node = DYNAMIC_TARGET(i);
+        ARRAY_COUNT_TYPE d_count     = DYNAMIC_DISTRIBUTION(i);
 
         NODE *CURRENT;
 #ifdef OPTIMIZE_FAST_ARRAYS
@@ -693,8 +697,9 @@ VariableDATA *Array::GetWithCreate(ARRAY_COUNT_TYPE i, NUMBER default_value) {
     if (i < COUNT) {
         CACHE_ARRAY_BLOCK;
 
-        ARRAY_COUNT_TYPE target_node = i / ARRAY_INCREMENT;
-        ARRAY_COUNT_TYPE d_count     = i % ARRAY_INCREMENT;
+        ARRAY_COUNT_TYPE target_node = DYNAMIC_TARGET(i);
+        ARRAY_COUNT_TYPE d_count     = DYNAMIC_DISTRIBUTION(i);
+
         NODE *CURRENT;
 #ifdef OPTIMIZE_FAST_ARRAYS
         if (LastNodeIndex == target_node) {
@@ -739,8 +744,9 @@ VariableDATA *Array::GetWithCreate(ARRAY_COUNT_TYPE i, NUMBER default_value) {
 
 VariableDATA *Array::ModuleGet(ARRAY_COUNT_TYPE i) {
     if (i < COUNT) {
-        ARRAY_COUNT_TYPE target_node = i / ARRAY_INCREMENT;
-        ARRAY_COUNT_TYPE d_count     = i % ARRAY_INCREMENT;
+        ARRAY_COUNT_TYPE target_node = DYNAMIC_TARGET(i);
+        ARRAY_COUNT_TYPE d_count     = DYNAMIC_DISTRIBUTION(i);
+
         NODE *CURRENT;
 #ifdef OPTIMIZE_FAST_ARRAYS
         if (LastNodeIndex == target_node) {
@@ -878,8 +884,9 @@ VariableDATA *Array::ModuleGet(const char *key) {
 #endif
 
     if (i < COUNT) {
-        ARRAY_COUNT_TYPE target_node = i / ARRAY_INCREMENT;
-        ARRAY_COUNT_TYPE d_count     = i % ARRAY_INCREMENT;
+        ARRAY_COUNT_TYPE target_node = DYNAMIC_TARGET(i);
+        ARRAY_COUNT_TYPE d_count     = DYNAMIC_DISTRIBUTION(i);
+
         NODE *CURRENT = FIRST;
         for (ARRAY_COUNT_TYPE k = 0; k < target_node; k++) {
             CURRENT = CURRENT->NEXT;
@@ -909,8 +916,8 @@ void Array::EnsureSize(ARRAY_COUNT_TYPE size, VariableDATA *default_value) {
     ARRAY_COUNT_TYPE PREC_TARGET_NODE = -1;
     NODE *REF_NODE = 0;
     while (COUNT < size) {
-        ARRAY_COUNT_TYPE DISTRIBUTED_COUNT = COUNT % ARRAY_INCREMENT;
-        ARRAY_COUNT_TYPE TARGET_NODE       = COUNT / ARRAY_INCREMENT;
+        ARRAY_COUNT_TYPE DISTRIBUTED_COUNT = DYNAMIC_DISTRIBUTION(COUNT);
+        ARRAY_COUNT_TYPE TARGET_NODE = DYNAMIC_TARGET(COUNT);
         if (PREC_TARGET_NODE != TARGET_NODE) {
             if (TARGET_NODE >= NODE_COUNT) {
                 NODE *NEW_NODE;

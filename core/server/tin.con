@@ -1080,6 +1080,63 @@ class Main {
 				queries++;
 				echo "Object sent, waiting response (${queries} in queue, including this one)..." + NEW_LINE;
 				break;
+			case "storefile":
+				if (!collection) {
+					echo "No collection selected" + NEW_LINE;
+					return;
+				}
+				if ((!parameters) || (typeof parameters != "string")) {
+					echo "No file" + NEW_LINE;
+					return;
+				}
+				dataset = new TinDataSet(connection, collection);
+				dataset.UserData = [orig_query, microseconds(), s];
+
+				var fname_arr = StrSplit(StrReplace(parameters, "\\", "/"), "/");
+				var fdata = ReadFile(parameters);
+				if (!fdata) {
+					echo "File does not exists or is empty" + NEW_LINE;
+					return;
+				}
+				var fname = parameters;
+				if (fname_arr)
+					fname = fname_arr[length fname_arr - 1];
+				dataset.StoreFile(fname, fdata, querycallback);
+				queries++;
+				echo "Object sent, waiting response (${queries} in queue, including this one)..." + NEW_LINE;
+				break;
+			case "deletefile":
+				if (!collection) {
+					echo "No collection selected" + NEW_LINE;
+					return;
+				}
+				if ((!parameters) || (typeof parameters != "string")) {
+					echo "No file" + NEW_LINE;
+					return;
+				}
+				dataset = new TinDataSet(connection, collection);
+				dataset.UserData = [orig_query, microseconds(), s];
+
+				dataset.DeleteFile(parameters, querycallback);
+				queries++;
+				echo "Object sent, waiting response (${queries} in queue, including this one)..." + NEW_LINE;
+				break;
+			case "file":
+				if (!collection) {
+					echo "No collection selected" + NEW_LINE;
+					return;
+				}
+				if ((!parameters) || (typeof parameters != "string")) {
+					echo "No file" + NEW_LINE;
+					return;
+				}
+				dataset = new TinDataSet(connection, collection);
+				dataset.UserData = [orig_query, microseconds(), s];
+
+				dataset.GetFile(parameters, querycallback);
+				queries++;
+				echo "Object sent, waiting response (${queries} in queue, including this one)..." + NEW_LINE;
+				break;
 			case "drop":
 				if (!collection) {
 					echo "No collection selected" + NEW_LINE;
