@@ -346,11 +346,11 @@ class TinConnection {
 							if (!lang)
 								lang = "en";
 							dataset = new TinDataSet(this, collection);
-							dataset.EnsureFullText(values, lang);
+							dataset.EnsureFullText(values, lang, querycallback, q["PRIORITY"]);
 						} else {
 							if (length values > 1)
 								values = [values];
-							dataset.EnsureIndexes(values);
+							dataset.EnsureIndexes(values, querycallback, q["PRIORITY"]);
 						}
 					} else
 					if (IsSet(q, "DROP INDEX")) {
@@ -359,13 +359,13 @@ class TinConnection {
 						if (length values > 1)
 							values = [values];
 						dataset = new TinDataSet(this, collection);
-						dataset.DropIndexes(values);
+						dataset.DropIndexes(values, querycallback, q["PRIORITY"]);
 					} else
 					if (IsSet(q, "DROP BM25")) {
 						collection = q["DROP BM25"];
 						values = q["ON"];
 						dataset = new TinDataSet(this, collection);
-						dataset.DropFullText();
+						dataset.DropFullText(querycallback, q["PRIORITY"]);
 					} else
 					if (IsSet(q, "SEQUENCE")) {
 						collection = q["SEQUENCE"];

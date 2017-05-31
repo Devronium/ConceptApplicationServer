@@ -49,4 +49,24 @@ class DirectoryList {
 		//return arr;
 		return KeySorted(arr);
 	}
+
+	static Delete(directory) {
+		var dirp = opendir(directory);
+		if (!dirp)
+			return false;
+
+		while ((var dp=readdir(dirp))!=0) {
+			var filename=dirname(dp);
+			if ((filename != ".") && (filename != "..")) {
+				if (filetype(directory+filename)==S_IFDIR)
+					DirectoryList::Delete(directory + filename + "/");
+				else
+					_unlink(directory+filename);
+			}
+		}
+		closedir(dirp);
+		if (_rmdir(directory))
+			return false;
+		return true;
+	}
 }

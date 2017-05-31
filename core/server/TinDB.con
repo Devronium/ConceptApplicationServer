@@ -1844,15 +1844,20 @@ pragma used
 	}
 
 	DeleteFile(db, collection, name) {
-		var filename = "$db/fs/${collection}_$name.bin";
+		var filename = "$db/fs/$collection/$name.bin";
 		if (_unlink(filename))
 			return false;
 		return true;
 	}
 
+	RemoveCollectionFS(db, collection) {
+		return DirectoryList::Delete("$db/fs/$collection/");
+	}
+
 	StoreFile(db, collection, name, offset, var buffer) {
 		_mkdir("$db/fs");
-		var filename = "$db/fs/${collection}_$name.bin";
+		_mkdir("$db/fs/$collection");
+		var filename = "$db/fs/$collection/$name.bin";
 		if ((!FileExists(filename)) || (offset == -2))
 			WriteFile("", filename);
 		var f = new File("r+b");
@@ -1884,7 +1889,7 @@ pragma used
 
 	GetFileBuffer(db, collection, name, offset, size) {
 		var[] data;
-		var filename = "$db/fs/${collection}_$name.bin";
+		var filename = "$db/fs/${collection}/$name.bin";
 		if (FileExists(filename)) {
 			data["exists"] = true;
 			if ((size < 0) && (offset <= 0)) {
@@ -2475,12 +2480,19 @@ pragma used
 						t = db[obj.c];
 						if ((obj.p) && (typeof obj.p == "array")) {
 							t.Lock();
+							var start = microseconds();
 							var created_indexes = t.EnsureIndexes(obj.p);
+							var end = microseconds();
 							t.Unlock();
 							if (created_indexes) {
+								r.p["created"] = true;
+								r.p["duration"] = (end - start) / 1000;
 								// QueryWorker::InvalidateCache(obj.d, obj.c);
 								QueryWorker::InvalidateCacheSync(obj, syncworker);
 								this.ResetDBS(true);
+							} else {
+								r.p["created"] = false;
+								r.p["exists"] = true;
 							}
 							non_flushed_writes++;
 						}
@@ -2496,11 +2508,14 @@ pragma used
 								removed = t.DeleteIndexes(obj.p);
 							t.Unlock(true);
 							if (removed) {
+								r.p["removed"] = true;
+								r.p["exists"] = true;
 								// QueryWorker::InvalidateCache(obj.d, obj.c);
 								QueryWorker::InvalidateCacheSync(obj, syncworker);
 								this.ResetDBS(true);
 								non_flushed_writes++;
-							}
+							} else
+								r.p["exists"] = false;
 						}
 						break;
 					case "Y":
@@ -2517,8 +2532,12 @@ pragma used
 							t.Unlock();
 							var end_time = microseconds() - start_time;
 							if (index_exists) {
+								r.p["created"] = false;
+								r.p["exists"] = true;
 								echo "Index exists (${end_time/1000}ms)\n";
 							} else {
+								r.p["created"] = true;
+								r.p["duration"] = end_time/1000;
 								echo "Full text index created in ${end_time/1000}ms\n";
 								// QueryWorker::InvalidateCache(obj.d, obj.c);
 								QueryWorker::InvalidateCacheSync(obj, syncworker);
@@ -2709,6 +2728,7 @@ pragma used
 							if (t) {
 								try {
 									t.Drop();
+									RemoveCollectionFS(obj.d, obj.c);
 									db.Reset();
 								} catch (var exc_drop) {
 									echo "Remove error: $exc_drop\n";

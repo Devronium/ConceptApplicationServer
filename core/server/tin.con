@@ -868,6 +868,7 @@ class Main {
 						collection = q["INDEX"];
 						values = q["ON"];
 						dataset = new TinDataSet(connection, collection);
+						dataset.UserData = [orig_query, microseconds()];
 						if (q["BM25"]) {
 							if (!values)
 								values = null;
@@ -875,13 +876,13 @@ class Main {
 							if (!lang)
 								lang = "en";
 							dataset = new TinDataSet(connection, collection);
-							dataset.EnsureFullText(values, lang);
+							dataset.EnsureFullText(values, lang, querycallback);
 						} else {
 							if (length values > 1)
 								values = [values];
-							dataset.EnsureIndexes(values);
+							dataset.EnsureIndexes(values, querycallback);
 						}
-						echo "OK" + NEW_LINE;
+						echo "Request sent, waiting response (${queries} in queue, including this one)..." + NEW_LINE;
 					} else
 					if (IsSet(q, "DROP INDEX")) {
 						collection = q["DROP INDEX"];
@@ -889,15 +890,18 @@ class Main {
 						if (length values > 1)
 							values = [values];
 						dataset = new TinDataSet(connection, collection);
-						dataset.DropIndexes(values);
-						echo "OK" + NEW_LINE;
+						dataset.UserData = [orig_query, microseconds()];
+						dataset.DropIndexes(values, querycallback);
+						echo "Request sent, waiting response (${queries} in queue, including this one)..." + NEW_LINE;
 					} else
 					if (IsSet(q, "DROP BM25")) {
 						collection = q["DROP BM25"];
 						values = q["ON"];
 						dataset = new TinDataSet(connection, collection);
-						dataset.DropFullText();
-						echo "OK" + NEW_LINE;
+						dataset.UserData = [orig_query, microseconds()];
+						dataset.DropFullText(querycallback);
+						echo "Request sent, waiting response (${queries} in queue, including this one)..." + NEW_LINE;
+
 					} else
 					if (IsSet(q, "SEQUENCE")) {
 						collection = q["SEQUENCE"];
@@ -1333,6 +1337,12 @@ class Main {
 				echo "        create btree index" + NEW_LINE;
 				echo "    ${em("collection.fulltext")}(string language | array fields | {\"language\": \"en\", \"fields\": array);" + NEW_LINE;
 				echo "        create full text index" + NEW_LINE;
+				echo "    ${em("collection.storefile")}(filename);" + NEW_LINE;
+				echo "        store file in collection file storage" + NEW_LINE;
+				echo "    ${em("collection.deletefile")}(filename);" + NEW_LINE;
+				echo "        delete file in collection file storage" + NEW_LINE;
+				echo "    ${em("collection.file")}(filename);" + NEW_LINE;
+				echo "        fetch file from collection file storage" + NEW_LINE;
 				echo NEW_LINE;
 				break;
 			default:
