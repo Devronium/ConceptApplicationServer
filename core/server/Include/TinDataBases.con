@@ -238,6 +238,11 @@ class TinConnection {
 		this._Handle(q, callback);
 	}
 
+	oid(delegate callback) {
+		var q = new Q([ ], "" + Database, "", "oid");
+		this._Handle(q, callback);
+	}
+
 	sql(string, parameters = null, querycallback = null, userdata = null) {
 		var string_lo = trim(ToLower(string));
 		var queries = 0;

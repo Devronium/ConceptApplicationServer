@@ -657,6 +657,7 @@ pragma used
 	var[] other_workers;
 	var WorkerID;
 	var syncworker;
+	var oid_counter = -1;
 
 	static WriterWorker(d, c, suggest_worker) {
 		var key = "*" + d + "/" + c;
@@ -967,6 +968,31 @@ pragma used
 						if ((obj.p) && (IsSet(obj.p, "i")))
 							inc = obj.p["i"];
 						r.p = TinBase::Generator(obj.d, obj.p["g"], inc);
+						this.Sync(obj, syncworker);
+					} catch (exc) {
+						r.e = ERR_IO;
+						r.et = ERR_IO_S;
+						echo "Exception: $exc\n";
+					}
+					if ((!obj.io) || (obj.io != current_worker))
+						r.Send(sock, obj.io);
+					else
+						r.Send(sock);
+				} else
+				if (RequestAuth)
+					RequestAuth(ctx, sock, t, obj, buf);
+				break;
+			case "oid":
+				if ((!ctx) || (ctx.auth)) {
+					r = new R();
+					r.q = obj.q;
+					try {
+						if (oid_counter < 0)
+							oid_counter = RandomInteger(0, 0xFFF0);
+						if (oid_counter >= 0xFFFF)
+							oid_counter = 0;
+						r.id = TinDBOid::create(ClsPtr(this), WorkerID, oid_counter++);
+						r.p = StringToHex(r.id);
 						this.Sync(obj, syncworker);
 					} catch (exc) {
 						r.e = ERR_IO;
@@ -1890,6 +1916,7 @@ pragma used
 	GetFileBuffer(db, collection, name, offset, size) {
 		var[] data;
 		var filename = "$db/fs/${collection}/$name.bin";
+		data["name"] = name;
 		if (FileExists(filename)) {
 			data["exists"] = true;
 			if ((size < 0) && (offset <= 0)) {
