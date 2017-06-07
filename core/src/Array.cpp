@@ -13,9 +13,9 @@ POOLED_IMPLEMENTATION(Array)
     NEW_NODE->COUNT    = 0;                                 \
     NEW_NODE->NEXT     = 0;
 
-#define DYNAMIC_INCREMENT(i)    (i <= BIG_ARRAY_TRESHOLD ) ? ARRAY_INCREMENT : BIG_ARRAY_INCREMENT
-#define DYNAMIC_TARGET(i)       (i <= BIG_ARRAY_TRESHOLD ) ? (i / ARRAY_INCREMENT) : (BIG_ARRAY_TRESHOLD / ARRAY_INCREMENT) + (i - BIG_ARRAY_TRESHOLD) / BIG_ARRAY_INCREMENT
-#define DYNAMIC_DISTRIBUTION(i) (i <= BIG_ARRAY_TRESHOLD ) ? (i % ARRAY_INCREMENT) : (i - BIG_ARRAY_TRESHOLD) % BIG_ARRAY_INCREMENT
+#define DYNAMIC_INCREMENT(i)    (i < BIG_ARRAY_TRESHOLD ) ? ARRAY_INCREMENT : BIG_ARRAY_INCREMENT
+#define DYNAMIC_TARGET(i)       (i < BIG_ARRAY_TRESHOLD ) ? (i / ARRAY_INCREMENT) : (BIG_ARRAY_TRESHOLD / ARRAY_INCREMENT) + (i - BIG_ARRAY_TRESHOLD) / BIG_ARRAY_INCREMENT
+#define DYNAMIC_DISTRIBUTION(i) (i < BIG_ARRAY_TRESHOLD ) ? (i % ARRAY_INCREMENT) : (i - BIG_ARRAY_TRESHOLD) % BIG_ARRAY_INCREMENT
 
 #define ENSURE_ELEMENTS(TARGET_NODE, INDEX)                                                                                     \
     if (TARGET_NODE->COUNT <= INDEX) {                                                                                          \
@@ -970,10 +970,11 @@ void Array::EnsureSize(ARRAY_COUNT_TYPE size, VariableDATA *default_value) {
     }
 }
 
-void Array::__GO_GARBAGE(void *PIF, GarbageCollector *__gc_obj, GarbageCollector *__gc_array, GarbageCollector *__gc_vars, signed char check_objects) {
+void Array::__GO_GARBAGE(void *PIF, GarbageCollector *__gc_obj, GarbageCollector *__gc_array, GarbageCollector *__gc_vars, signed char check_objects, char main_call) {
     if (this->LINKS < 0)
         return;
 
+    bool single_link = ((main_call) && (this->LINKS == 1));
     this->LINKS = -1;
     NODE *CURRENT = FIRST;
 
@@ -981,6 +982,12 @@ void Array::__GO_GARBAGE(void *PIF, GarbageCollector *__gc_obj, GarbageCollector
         for (ARRAY_COUNT_TYPE j = 0; j < CURRENT->COUNT; j++) {
             VariableDATA *Var = CURRENT->ELEMENTS [j];
             if (Var) {
+                // faster, but problematic with destructor call
+                if ((single_link) && (Var->LINKS == 1) && ((Var->TYPE == VARIABLE_NUMBER) || (Var->TYPE == VARIABLE_STRING)) && (!__gc_vars->IsReferenced(Var))) {
+                     FREE_VARIABLE(Var);
+                     CURRENT->ELEMENTS [j] = NULL;
+                     continue;
+                }
                 if (check_objects == -1) {
                     Var->LINKS++;
                     __gc_vars->Reference(Var);

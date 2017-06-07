@@ -7516,17 +7516,23 @@ void ConceptInterpreter::DestroyEnviroment(PIFAlizator *PIF, VariableDATA **LOCA
         GarbageCollector __gc_array;
         GarbageCollector __gc_vars;
         VariableDATA *LOCAL_CONTEXT_i;
+        char fast_array_clean = 0;
         for (i = 0; i < data_count; i++) {
             LOCAL_CONTEXT_i = LOCAL_CONTEXT [i];
             if (LOCAL_CONTEXT_i) {
                 if (LOCAL_CONTEXT_i->CLASS_DATA) {
                     if ((LOCAL_CONTEXT_i->TYPE == VARIABLE_CLASS) || (LOCAL_CONTEXT_i->TYPE == VARIABLE_DELEGATE)) {
                         __gc_obj.Reference(LOCAL_CONTEXT_i->CLASS_DATA);
+                        if (!i) {
+                            ClassCode *CC = ((CompiledClass *)LOCAL_CONTEXT_i->CLASS_DATA)->_Class;
+                            if ((CC) && (!CC->DESTRUCTOR_MEMBER))
+                                fast_array_clean = 1;
+                        }
                         ((CompiledClass *)LOCAL_CONTEXT_i->CLASS_DATA)->__GO_GARBAGE(PIF, &__gc_obj, &__gc_array, &__gc_vars);
                     } else
                     if (LOCAL_CONTEXT_i->TYPE == VARIABLE_ARRAY) {
                         __gc_array.Reference(LOCAL_CONTEXT_i->CLASS_DATA);
-                        ((Array *)LOCAL_CONTEXT_i->CLASS_DATA)->__GO_GARBAGE(PIF, &__gc_obj, &__gc_array, &__gc_vars);
+                        ((Array *)LOCAL_CONTEXT_i->CLASS_DATA)->__GO_GARBAGE(PIF, &__gc_obj, &__gc_array, &__gc_vars, -1, fast_array_clean);
                     }
                 }
                 __gc_vars.Reference(LOCAL_CONTEXT_i);

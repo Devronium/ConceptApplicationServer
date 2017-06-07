@@ -107,7 +107,7 @@ public:
     int LINKS;
     ARRAY_COUNT_TYPE Count();
 
-    void __GO_GARBAGE(void *PIF, GarbageCollector *__gc_obj, GarbageCollector *__gc_array, GarbageCollector *__gc_vars, signed char check_objects = -1);
+    void __GO_GARBAGE(void *PIF, GarbageCollector *__gc_obj, GarbageCollector *__gc_array, GarbageCollector *__gc_vars, signed char check_objects = -1, char main_call = 0);
 
     void UnlinkObjects();
 
