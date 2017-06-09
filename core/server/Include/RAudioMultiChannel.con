@@ -64,10 +64,8 @@ class RAudioMultiChannel {
 		if (Running) {
 			if ((channel >= 0) && (channel < length audio_out_array)) {
 				var audio_out = audio_out_array[channel];
-				if (audio_out) {
-echo "WRITE ${length buf}\n";
+				if (audio_out)
 					audio_out.AddSmallBuffer(buf);
-				}
 			}
 		}
 	}

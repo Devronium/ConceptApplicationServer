@@ -8236,6 +8236,7 @@ function ConceptClient(url, container, loading, absolute_paths, debug) {
 		if ((this.MediaVideo) && (!this.isEDGE))
 			params["video"] = this.MediaVideo;
 		this.MediaObject = navigator.getUserMedia(params, function(stream) {
+				self.MediaStream = stream;
 				for (var i = 0; i < self.MediaListeners.length; i++) {
 					var listener = self.MediaListeners[i];
 					listener(stream);
@@ -8243,6 +8244,7 @@ function ConceptClient(url, container, loading, absolute_paths, debug) {
 				this.MediaListeners = [ ];
 			},
 			function(error) {
+				delete self.MediaStream;
 				console.error("getUserMedia error: " + error.name ? error.name : error.code); 
 				this.MediaListeners = [ ];
 			}
@@ -9544,7 +9546,8 @@ function ConceptClient(url, container, loading, absolute_paths, debug) {
 						}
 						this.InAudioContext = null;
 						if (this.MediaStream) {
-							this.MediaStream.stop();
+							// this.MediaStream.stop();
+							this.MediaStream.getAudioTracks().forEach(function(track) { track.stop(); });
 							delete this.MediaStream;
 						}
 					}
@@ -9552,7 +9555,8 @@ function ConceptClient(url, container, loading, absolute_paths, debug) {
 				if (cls_id == 1017) {
 					if (parseInt(Value) == -2) {
 						if (this.MediaStream) {
-							this.MediaStream.stop();
+							// this.MediaStream.stop();
+							this.MediaStream.getAudioTracks().forEach(function(track) { track.stop(); });
 							delete this.MediaStream;
 							if (element.ConceptEncoder) {
 								element.ConceptEncoder.terminate();
