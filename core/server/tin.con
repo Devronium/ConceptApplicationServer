@@ -882,6 +882,7 @@ class Main {
 								values = [values];
 							dataset.EnsureIndexes(values, querycallback);
 						}
+						queries++;
 						echo "Request sent, waiting response (${queries} in queue, including this one)..." + NEW_LINE;
 					} else
 					if (IsSet(q, "DROP INDEX")) {
@@ -892,6 +893,7 @@ class Main {
 						dataset = new TinDataSet(connection, collection);
 						dataset.UserData = [orig_query, microseconds()];
 						dataset.DropIndexes(values, querycallback);
+						queries++;
 						echo "Request sent, waiting response (${queries} in queue, including this one)..." + NEW_LINE;
 					} else
 					if (IsSet(q, "DROP BM25")) {
@@ -900,8 +902,8 @@ class Main {
 						dataset = new TinDataSet(connection, collection);
 						dataset.UserData = [orig_query, microseconds()];
 						dataset.DropFullText(querycallback);
+						queries++;
 						echo "Request sent, waiting response (${queries} in queue, including this one)..." + NEW_LINE;
-
 					} else
 					if (IsSet(q, "SEQUENCE")) {
 						collection = q["SEQUENCE"];

@@ -1107,7 +1107,7 @@ class BTreeFile {
 		return false;
 	}
 
-	protected GetBestSuccessor(offset, var new_key, var new_val, at_right = false) {
+	protected GetBestSuccessor(offset, var new_key, var new_val, at_right = false, var target_offset = 0) {
 		var prec_page;
 		var prec_elements;
 		while (offset) {
@@ -1116,6 +1116,7 @@ class BTreeFile {
 				throw "B-Tree seek error in " + @class + "." + @member;
 			var page = ReadPage(var elements);
 			if ((page) && (elements)) {
+				target_offset = offset;
 				prec_page = page;
 				prec_elements = elements;
 				if (at_right)
@@ -1161,25 +1162,31 @@ class BTreeFile {
 			// special case ... empty page at left, empty page at right
 			var has_best_value = false;
 			if (score_right)
-				has_best_value = GetBestSuccessor(page[idx + NODE_LOGICAL_ELEMENTS], new_key, new_val, false);
+				has_best_value = GetBestSuccessor(page[idx + NODE_LOGICAL_ELEMENTS], new_key, new_val, false, var target_offset);
 			else
 			if (score_left)
-				has_best_value = GetBestSuccessor(page[idx], new_key, new_val, true);
+				has_best_value = GetBestSuccessor(page[idx], new_key, new_val, true, target_offset);
 
 			if (has_best_value) {
-				if (this.Delete(new_key)) {
-					if (offset >= 0) {
-						//if (f.Seek(offset))
-						if (!fseek(f_handle, offset, SEEK_SET))
-							page = ReadPage(elements);
-						if (!page)
-							throw "B-Tree internal error in delete";
-					}
-					page[++idx] = new_key;
-					page[idx + NODE_VAL_OFFSET] = new_val;
-					if (offset >= 0)
-						this.FullSyncPage(page, elements, offset);	
+				if (fseek(f_handle, target_offset, SEEK_SET))
+					throw "B-Tree seek error in " + @class + "." + @member;
+
+				if (ReverseKeyVal)
+					this.DeleteByKey2(new_key, new_val, false);
+				else
+					this.DeleteByKey2(new_val, new_key, false);
+
+				if (offset >= 0) {
+					//if (f.Seek(offset))
+					if (!fseek(f_handle, offset, SEEK_SET))
+						page = ReadPage(elements);
+					if (!page)
+						throw "B-Tree internal error in delete";
 				}
+				page[++idx] = new_key;
+				page[idx + NODE_VAL_OFFSET] = new_val;
+				if (offset >= 0)
+					this.FullSyncPage(page, elements, offset);	
 				return true;
 			}
 		}
@@ -1212,7 +1219,7 @@ class BTreeFile {
 		return true;
 	}
 
-	protected DeleteByKey2(val, stored_val) {
+	protected DeleteByKey2(val, stored_val, delete_one = true) {
 		var offset = ftell(f_handle);//f.Tell();
 		var page = ReadPage(var elements);
 		if ((page) && (elements > 0)) {
@@ -1231,7 +1238,7 @@ class BTreeFile {
 				else
 					STATIC_COMPARE_CODE
 				if (!cmp) {
-					if ((!ReverseKeyVal) && (node_val < 0)) {
+					if ((!ReverseKeyVal) && (node_val < 0) && (delete_one)) {
 						var is_empty = false;
 						var deleted = this.DeleteValue(-node_val, val, offset, pos, node, node_val, 1, is_empty);
 						if (!is_empty)
@@ -1275,7 +1282,7 @@ class BTreeFile {
 				//if (!f.Seek(pos))
 				if (fseek(f_handle, pos, SEEK_SET))
 					throw "B-Tree seek error in " + @class + "." + @member;
-				return this.DeleteByKey2(val, stored_val);
+				return this.DeleteByKey2(val, stored_val, delete_one);
 			}
 		}
 		return false;

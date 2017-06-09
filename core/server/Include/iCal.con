@@ -1,0 +1,426 @@
+import standard.lib.str
+import standard.lang.serialize
+
+class ICalendarBase {
+	var uid = "";
+	var attach = "";
+	var organizer = "";
+	var attendee = "";
+	var _class = "";
+	var summary = "";
+	var description = "";
+	var stamp = "";
+	var start = "";
+	var end = "";
+	var rrule = "";
+	var rdate = "";
+	var created = "";
+	var url = "";
+	var other;
+
+	settag(tag, val) {
+		switch (ToLower(tag)) {
+			case "uid":
+				this.uid = val;
+				break;
+			case "attach":
+				this.attach = val;
+				break;
+			case "organizer":
+				this.organizer = val;
+				break;
+			case "attendee":
+				this.attendee = val;
+				break;
+			case "class":
+				this._class = val;
+				break;
+			case "description":
+				this.description = val;
+				break;
+			case "summary":
+				this.summary = val;
+				break;
+			case "dtstamp":
+				this.stamp = val;
+				break;
+			case "dtstart":
+				this.start = val;
+				break;
+			case "dtend":
+				this.end = val;
+				break;
+			case "rrule":
+				this.rrule = val;
+				break;
+			case "rdate":
+				this.rdate = val;
+				break;
+			case "created":
+				this.created = val;
+				break;
+			case "url":
+				this.url = val;
+				break;
+			default:
+				if (!other)
+					other = new [];
+				other[tag] = val;
+				return false;
+		}
+		return true;
+	}
+
+	protected __body() {
+		var str = "";
+		if (this.uid)
+			str += "UID:${this.uid}\r\n";
+		if (this.attach)
+			str += "ATTACH:${this.attach}\r\n";
+		if (this.organizer)
+			str += "ORGANIZER:${this.organizer}\r\n";
+		if (this.attendee)
+			str += "ATENDEE:${this.attendee}\r\n";
+		if (this._class)
+			str += "CLASS:${this._class}\r\n";
+		if (this.summary)
+			str += "SUMMARY:${this.summary}\r\n";
+		if (this.description)
+			str += "DESCRIPTION:${this.description}\r\n";
+		if (this.stamp)
+			str += "DTSTAMP:${this.stamp}\r\n";
+		if (this.start)
+			str += "DTSTART:${this.start}\r\n";
+		if (this.end)
+			str += "DTEND:${this.end}\r\n";
+		if (this.rrule)
+			str += "RRULE:${this.rrule}\r\n";
+		if (this.rdate)
+			str += "RDATE:${this.rdate}\r\n";
+		if (this.created)
+			str += "CREATED:${this.created}\r\n";
+		if (this.url)
+			str += "URL:${this.url}\r\n";
+		if (other) {
+			var keys = GetKeys(other);
+			for (var i = 0; i < length keys; i++) {
+				var k = keys[i];
+				if (k)
+					str += "${ToUpper(k)}:${other[k]}\r\n";
+			}
+		}
+		return str;
+	}
+}
+
+class ICalendarJournal extends ICalendarBase {
+	string() {
+		return "BEGIN:VJOURNAL\r\n" + this.__body() + "END:VJOURNAL\r\n";
+	}
+}
+
+class ICalendarAlarm extends ICalendarBase {
+	var action = "";
+	var trigger = "";
+	var repeat = 0;
+
+	override settag;
+	settag(tag, val) {
+		switch (ToLower(tag)) {
+			case "action":
+				this.action = val;
+				break;
+			case "trigger":
+				this.trigger = val;
+				break;
+			case "repeat":
+				this.repeat = value val;
+				break;
+			default:
+				return super.settag(tag, val);
+		}
+		return true;
+	}
+
+	string() {
+		var str = "";
+		if (action)
+			str += "ACTION:${action}\r\n";
+		if (trigger)
+			str += "TRIGGER:${trigger}\r\n";
+		if (repeat)
+			str += "REPEAT:${repeat}\r\n";
+		return "BEGIN:VALARM\r\n" + str + this.__body() + "END:VALARM\r\n";
+	}
+}
+
+class ICalendarTodo extends ICalendarBase {
+	var due = "";
+
+	override settag;
+	settag(tag, val) {
+		switch (ToLower(tag)) {
+			case "due":
+				this.due = val;
+				break;
+			default:
+				return super.settag(tag, val);
+		}
+		return true;
+	}
+
+	string() {
+		var str = "";
+		if (due)
+			str += "DUE:${due}\r\n";
+		return "BEGIN:VTODO\r\n" + str + this.__body() + "END:VTODO\r\n";
+	}
+}
+
+class ICalendarFreeBusy extends ICalendarBase {
+	var[] freebusy;
+
+	override settag;
+	settag(tag, val) {
+		switch (ToLower(tag)) {
+			case "freebusy":
+				this.freebusy[length freebusy] = val;
+				break;
+			default:
+				return super.settag(tag, val);
+		}
+		return true;
+	}
+
+	string() {
+		var str = "";
+		for (var i = 0; i < length freebusy; i++) {
+			var fb = freebusy[i];
+			if (fb)
+				str += "FREEBUSY:${fb}\r\n";
+		}
+		return "BEGIN:VFREEBUSY\r\n" + str + this.__body() + "END:VFREEBUSY\r\n";
+	}
+}
+
+class ICalendarEvent extends ICalendarBase {
+	var categories;
+	var location = "";
+
+	override settag;
+	settag(tag, val) {
+		switch (ToLower(tag)) {
+			case "categories":
+				this.categories = StrSplit(val, ",");
+				break;
+			case "location":
+				this.location = val;
+				break;
+			default:
+				return super.settag(tag, val);
+		}
+		return true;
+	}
+
+	string() {
+		var str = "";
+		if (location)
+			str += "LOCATION:${location}\r\n";
+		if (categories) {
+			var category = "";
+			for (var i = 0; i < length categories; i++) {
+				var e = categories[i];
+				if (e) {
+					if (category)
+						category += ",";
+					category += e;
+				}
+			}
+			if (category)
+				str += "CATEGORIES:$category\r\n";
+		}
+		return "BEGIN:VEVENT\r\n" + str + this.__body() + "END:VEVENT\r\n";
+	}
+}
+
+class iCal {
+	var version = "2.0";
+	var prodid = "-//Devronium//NONSGML Concept iCal//EN";
+	var calscale = "GREGORIAN";
+	var method = "";
+	var[] events;
+	var[] todo;
+	var[] journal;
+	var[] alarm;
+	var[] freebusy;
+	var[] timezone;
+
+	protected line(buf) {
+		return StrReplace(StrReplace(ToUpper(buf), " ", ""), "\t", "");
+	}
+
+	protected parseattr(buf, var tag, var val, var attributes = null) {
+		attributes = new [];
+		tag = "";
+		val = "";
+		var pos = Pos(buf, ":");
+		if (pos <= 0)
+			return;
+		tag = trim(SubStr(buf, 0, pos - 1));
+		val = trim(SubStr(buf, pos));
+		val = StrReplace(val, "\\\\", "\\");
+		val = StrReplace(val, "\\n", "\n");
+		val = StrReplace(val, "\\t", "\t");
+		pos = Pos(tag, ";");
+		if (pos > 0) {
+			var attr = SubStr(tag, pos);
+			tag = trim(SubStr(tag, 0, pos - 1));
+			var attr_arr = StrSplit(attr, ";");
+			for (var i = 0; i < length attr_arr; i++) {
+				var a = attr_arr[i];
+				if (a) {
+					var a_arr = StrSplit(a, "=");
+					if (length a_arr == 2)
+						attributes[trim(a_arr[0])] = a_arr[1];
+				}
+			}
+		}
+	}
+
+	protected parseobject(arr, offset, type) {
+		var lines = 0;
+		var ev;
+		switch (type) {
+		 	case "VEVENT":
+				ev = new ICalendarEvent();
+				this.events[length this.events] = ev;
+				break;
+		 	case "VTODO":
+				ev = new ICalendarTodo();
+				this.todo[length this.todo] = ev;
+				break;
+		 	case "VJOURNAL":
+				ev = new ICalendarJournal();
+				this.journal[length this.journal] = ev;
+				break;
+		 	case "VALARM":
+				ev = new ICalendarAlarm();
+				this.alarm[length this.alarm] = ev;
+				break;
+		 	case "VFREEBUSY":
+				ev = new ICalendarEvent();
+				freebusy[length freebusy] = ev;
+				break;
+		 	case "VTIMEZONE":
+				ev = new ICalendarEvent();
+				this.timezone[length this.timezone] = ev;
+				break;
+			default:
+				ev = new ICalendarBase();
+		}
+		var end_tag = "END:$type";
+		for (var i = offset; i < length arr; i++) {
+			lines++;
+			if (this.line(arr[i]) == end_tag)
+				return lines;
+			this.parseattr(arr[i], var tag, var val);
+			ev.settag(tag, val);
+		}
+		return lines;
+	}
+
+	protected parsecalendar(arr, offset) {
+		var lines = 0;
+		for (var i = offset; i < length arr; i++) {
+			var tag = this.line(arr[i]);
+			lines++;
+			switch (tag) {
+				case "BEGIN:VEVENT":
+					i += this.parseobject(arr, i + 1, "VEVENT");
+					break;
+				case "BEGIN:VTODO":
+					i += this.parseobject(arr, i + 1, "VTODO");
+					break;
+				case "BEGIN:VJOURNAL":
+					i += this.parseobject(arr, i + 1, "VJOURNAL");
+					break;
+				case "BEGIN:VALARM":
+					i += this.parseobject(arr, i + 1, "VALARM");
+					break;
+				case "BEGIN:VFREEBUSY":
+					i += this.parseobject(arr, i + 1, "VFREEBUSY");
+					break;
+				case "BEGIN:VTIMEZONE":
+					i += this.parseobject(arr, i + 1, "VTIMEZONE");
+					break;
+				case "END:VCALENDAR":
+					return lines;
+				default:
+					var pos = Pos(tag, ":");
+					if (pos > 0) {
+						var tag2 = trim(SubStr(tag, 0, pos - 1));
+						var val = trim(SubStr(tag, pos));
+						switch (tag2) {
+							case "METHOD":
+								this.method = val;
+								break;
+							case "CALSCALE":
+								this.calscale = val;
+								break;
+							case "PRODID":
+								this.prodid = val;
+								break;
+						}
+					}
+					break;
+			}
+		}
+		return lines;
+	}
+	
+	parse(calendarbuf) {
+		calendarbuf = StrReplace(calendarbuf, "\r", "");
+		var arr = StrSplit(calendarbuf, "\n");
+		for (var i = 0; i < length arr; i++) {
+			var tag = this.line(arr[i]);
+			switch (tag) {
+				case "BEGIN:VCALENDAR":
+					i += this.parsecalendar(arr, i + 1);
+					break;
+			}
+		}
+	}
+
+	protected __tostr(arr) {
+		var str = "";
+		if (arr) {
+			for (var i = 0; i < length arr; i++) {
+				var e = arr[i];
+				if (e)
+					str += e.string();
+			}
+		}
+		return str;
+	}
+
+	string() {
+		var str = "BEGIN:VCALENDAR\r\n";
+		if (version)
+			str += "VERSION:${version}\r\n";
+		if (prodid)
+			str += "PRODID:${prodid}\r\n";
+		if (calscale)
+			str += "CALSCALE:${calscale}\r\n";
+		if (method)
+			str += "METHOD:${method}\r\n";
+		str += __tostr(this.events);
+		str += __tostr(this.todo);
+		str += __tostr(this.journal);
+		str += __tostr(this.alarm);
+		str += __tostr(this.freebusy);
+		str += __tostr(this.timezone);
+
+		str += "END:VCALENDAR\r\n";
+		return str;
+	}
+}

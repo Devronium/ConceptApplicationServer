@@ -243,3 +243,4 @@ accel JS.con
 accel LDAP.con
 accel HTTPRequest.con
 accel XMLAPI.con
+accel iCal.con

@@ -2313,6 +2313,7 @@ pragma used
 										var trigger = data[5];
 										var db = data[6];
 										var has_rowid = data[7];
+										var word_cache = data[8];
 										var changed = new [];
 										var oid_changed = false;
 										for (var i = 0; i < length keys; i++) {
@@ -2360,22 +2361,22 @@ pragma used
 												oid_changed = true;
 
 											if ((syncworker) && (has_rowid)) {
-												data[10] = true;
+												data[11] = true;
 												if (oid) {
-													if (data[11]) {
-														var arr = data[11];
+													if (data[12]) {
+														var arr = data[12];
 														if (typeof arr == "array")
 															arr[length arr] = oid;
 														else
-															data[11] = [arr, oid];
+															data[12] = [arr, oid];
 													} else
-														data[11] = oid;
+														data[12] = oid;
 												}
 											}
 
 											if ((unique_fields) && (!t.IsUnique(o, unique_fields))) {
 												// not unique
-												data[9]++;
+												data[10]++;
 											} else {
 												var filepos = t.Tell();
 												try {
@@ -2386,13 +2387,18 @@ pragma used
 														// set it to null, to force full reindex (before update may modify the object)
 														changed = null;
 													}
-													t._StoreHint(o, true, true, oid_changed, changed);
+													if (data[9] == 1) {
+														// at least one record
+														word_cache = t.BM25UpdateStart();
+														data[8] = word_cache;
+													}
+													t._StoreHint(o, true, true, oid_changed, changed, word_cache);
 													if ((trigger) && (trigger.OnJSUpdate)) {
 														trigger_error = JSTrigger(db, o, trigger.OnJSUpdate);
 														if (trigger_error)
 															throw trigger_error;
 													}
-													data[8]++;
+													data[9]++;
 
 													if (deleg)
 														deleg(t, o);
@@ -2404,22 +2410,24 @@ pragma used
 										}
 									}
 								}, update_data);
-								if (update_data[8]) {
+								if (update_data[8])
+									t.BM25UpdateEnd(update_data[8]);
+								if (update_data[9]) {
 									// QueryWorker::InvalidateCache(obj.d, obj.c);
-									if ((use_sync_worker) && (update_data[10])) {
-										oid = update_data[11];
+									if ((use_sync_worker) && (update_data[11])) {
+										oid = update_data[12];
 										if (oid)
 											obj.p = ['$oid' => oid];
 										else
 											use_sync_worker = null;
 									}
 									QueryWorker::InvalidateCacheSync(obj, use_sync_worker);
-									non_flushed_writes += update_data[8];
+									non_flushed_writes += update_data[9];
 								}
 								if (unique_fields)
-									r.p = ["\$updated" => update_data[8], "\$notunique" => update_data[9]];
+									r.p = ["\$updated" => update_data[9], "\$notunique" => update_data[10]];
 								else
-									r.p = ["\$updated" => update_data[8]];
+									r.p = ["\$updated" => update_data[9]];
 								t.Unlock(true);
 							}
 						}

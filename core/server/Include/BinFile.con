@@ -473,7 +473,6 @@ class BinIndex {
 		var btree = GetIndex(database);
 		if (!btree)
 			throw "Cannot open index (${@class}.${@member})";
-
 		var code;
 		//if (Unique)
 			code = btree.Delete(key, val);
@@ -978,6 +977,13 @@ class BM25Index {
 
 		if (graphfile)
 			graphfile.InvalidateAndRebuildIndexes();
+	}
+
+	delete_before_update(id) {
+		if (id > 0) {
+			delete_index(file, id);
+			delete_index(graphfile, id);
+		}
 	}
 
 	update(document, id, changed_keys = null, graph = null, do_flush = true, var wordcache = null, check_existing_index = true, sync_index = true) {
@@ -1583,11 +1589,6 @@ class BinFile extends File {
 			}
 
 			return anycmp(key_a, key_b);
-			/*if (key_a > key_b)
-				return 1;
-			if (key_a < key_b)
-				return -1;
-			return 0;*/
 		}
 		throw "Error in compare objects (non existing object) ($a/$b), call stack:\n${_callstack()}";
 		// error
@@ -2032,7 +2033,25 @@ class BinFile extends File {
 			this.Flush();
 	}
 
-	protected _Store(var obj, update_index = true, id = -1, changed_keys = null, do_flush = true, change_oid = false) {
+	BM25UpdateStart() {
+		if (bm25) {
+			var word_cache = ["." => 0];
+			bm25.SetIndexLock(2);
+			return word_cache;
+		}
+		return null;
+	}
+
+	BM25UpdateEnd(word_cache) {
+		if (bm25) {
+			if (word_cache)
+				bm25.dumpcache(word_cache);
+			bm25.flush();
+			bm25.SetIndexLock(false);
+		}
+	}
+
+	protected _Store(var obj, update_index = true, id = -1, changed_keys = null, do_flush = true, change_oid = false, wordcache = null) {
 		if (!hFile)
 			throw "Invalid file descriptor or no open file";
 		var data;
@@ -2094,16 +2113,26 @@ class BinFile extends File {
 						this.UpdateIndex(changed_keys, id, obj);
 				}
 				if (bm25_document) {
-					bm25.SetIndexLock(2);
-					try {
-						bm25.update(bm25_document, id, changed_keys, graph, true, null, orig_id > 0);
-					} catch (var exc) {
-						echo "Error in bm25.update $exc\n";
+					if (wordcache) {
+						try {
+							bm25.update(bm25_document, id, changed_keys, graph, false, wordcache, orig_id > 0);
+							if (length wordcache >= BM25_MAX_WORDCACHE)
+								bm25.dumpcache(wordcache);
+						} catch (var exc) {
+							echo "Error in bm25.update $exc\n";
+						}
+					} else {
+						bm25.SetIndexLock(2);
+						try {
+							bm25.update(bm25_document, id, changed_keys, graph, true, null, orig_id > 0);
+						} catch (exc) {
+							echo "Error in bm25.update $exc\n";
+						}
+						bm25.SetIndexLock(false);
+						if (exc)
+							throw exc;
+						this.SyncBM25Info();
 					}
-					bm25.SetIndexLock(false);
-					if (exc)
-						throw exc;
-					this.SyncBM25Info();
 				}
 			}
 			if (DebugPath) {
@@ -2165,8 +2194,8 @@ class BinFile extends File {
 		return this._Store(obj, update_index, -1, null, do_flush, change_oid);
 	}
 
-	_StoreHint(var obj, update_index = true, do_flush = true, change_oid = true, changed_keys = null) {
-		return this._Store(obj, update_index, -1, changed_keys, do_flush, change_oid);
+	_StoreHint(var obj, update_index = true, do_flush = true, change_oid = true, changed_keys = null, wordcache = null) {
+		return this._Store(obj, update_index, -1, changed_keys, do_flush, change_oid, wordcache);
 	}
 
 	SafeStore(var obj, update_index = true, do_flush = true, change_oid = true) {
@@ -2610,7 +2639,6 @@ class BinFile extends File {
 				for (var i = 0; i < length id; i++) {
 					var _id = id[i];
 					if (_id) {
-
 						if ((typeof _id == "array") && (IsSet(_id, '$'))) {
 							cnt += this._Delete(_id['$'], strict, update_index);
 						} else
