@@ -2557,8 +2557,11 @@ function ConceptClient(url, container, loading, absolute_paths, debug) {
 				for (var j = 0; j < max; j++) {
 					for (var i = 0; i < v_len; i++) {
 						var val2 = val[i];
-
-						var v = Math.floor(val2[j] * 32768);
+						var v = Math.round(val2[j] * 32768);
+						if (v > 32768)
+							v = 32768;
+						if (v < -32767)
+							v = -32767;
 						// signed big endian to little endian
 						str.setUint16(index, ((v & 0xFF) << 8) | ((v >> 8) & 0xFF));
 
@@ -7724,80 +7727,63 @@ function ConceptClient(url, container, loading, absolute_paths, debug) {
 
 					out = new Float32Array(out_len);
 				}
-				// ugly but fast
-				var coef = len / out_len;
-				var ref = 0.01584893192; // 10 ^ (-18/10)
-				var m_Gain = element.ConceptGain;
-				if (!m_Gain)
-					m_Gain = 1;
-				var limit = out_len - 1;
-				out[0] = floatin[0] * m_Gain;
+				var method = 2;
+				switch (method) {
+					case 1:
+						// ugly but fast
+						var coef = len / out_len;
+						var ref = 0.01584893192; // 10 ^ (-18/10)
+						var m_Gain = element.ConceptGain;
+						if (!m_Gain)
+							m_Gain = 1;
+						var limit = out_len - 1;
+						out[0] = floatin[0] * m_Gain;
 
-				var delta = 1 - this.LastAudioLevel * 4;
-				if (delta < 0)
-					delta = 0.05;
-
-				for (var i = 1; i < limit; i++) {
-					var level = floatin[Math.floor(i * coef)];
-					if (!is_in) {
-						//if (delta > 0.4)
-						//	delta = 0.95;
-
-						level *= delta;
-					}
-					/*if (agc) {
-						var level_g = level * m_Gain;
-						if (level_g > 1) {
-							m_Gain = 1/level;
-							level_g = 1;
+						for (var i = 1; i < limit; i++) {
+							var level = floatin[Math.floor(i * coef)];
+							out[i] = level;
+							avg += Math.abs(level/limit);
 						}
-						out[i] = level_g;
+						out[limit] = floatin[floatin.length - 1] * m_Gain;
+						arrout[k] = out;
+						element.ConceptGain = m_Gain;
+						break;
+					case 2:
+						// slower
+						var coef = len / out_len;
+						var springFactor = (floatin.length - 1) / (out_len - 1);
+						var limit = out_len - 1;
+						var ref = 0.01584893192; // 10 ^ (-18/10)
+						var m_Gain = element.ConceptGain;
+						if (!m_Gain)
+							m_Gain = 1;
 
-						m_Gain += ref - level_g * level_g;
-						if (m_Gain > 3)
-							m_Gain = 3;
-					} else*/
-						out[i] = level;
-					avg += Math.abs(level/limit);
+						out[0] = floatin[0] * m_Gain;
+						for (var i = 1; i < limit; i++) {
+							var tmp = i * springFactor;
+							var before = Math.floor(tmp);
+							var after = Math.ceil(tmp);
+							var atPoint = tmp - before;
+
+							var level = floatin[before] + (floatin[after] - floatin[before]) * atPoint;
+							if (agc) {
+								level *= m_Gain;
+								out[i] = level;
+
+								m_Gain += ref - level * level;
+								if (m_Gain > 8)
+									m_Gain = 8;
+							} else
+								out[i] = level;
+						}
+						element.ConceptGain = m_Gain;
+						out[limit] = floatin[floatin.length - 1] * m_Gain;
+
+						arrout[k] = out;
+					default:
+						// slowest
+						arrout[k] = this.interpolateArray(floatin, out_len);
 				}
-				out[limit] = floatin[floatin.length - 1] * m_Gain;
-				arrout[k] = out;
-				element.ConceptGain = m_Gain;
-
-				// slower
-				/*var coef = len / out_len;
-				var springFactor = (floatin.length - 1) / (out_len - 1);
-				var limit = out_len - 1;
-				var ref = 0.01584893192; // 10 ^ (-18/10)
-				var m_Gain = element.ConceptGain;
-				if (!m_Gain)
-					m_Gain = 1;
-
-				out[0] = floatin[0] * m_Gain;
-				for (var i = 1; i < limit; i++) {
-					var tmp = i * springFactor;
-					var before = Math.floor(tmp);
-					var after = Math.ceil(tmp);
-					var atPoint = tmp - before;
-
-					var level = floatin[before] + (floatin[after] - floatin[before]) * atPoint;
-					if (agc) {
-						level *= m_Gain;
-						out[i] = level;
-
-						m_Gain += ref - level * level;
-						if (m_Gain > 8)
-							m_Gain = 8;
-					} else
-						out[i] = level;
-				}
-				element.ConceptGain = m_Gain;
-				out[limit] = floatin[floatin.length - 1] * m_Gain;
-
-				arrout[k] = out;*/
-
-				// slowest
-				// arrout[k] = this.interpolateArray(floatin, out_len);
 			}
 			if (is_in) {
 				if ((avg > this.LastAudioLevel) || (this.LastAudioLevel_tail <= 0)) {
@@ -8048,7 +8034,7 @@ function ConceptClient(url, container, loading, absolute_paths, debug) {
 			audioContext.OpusDecoder = new OpusDecoder(audioContext.ConceptSampleRate, audioContext.ConceptChannels);
 		}
 
-		var processFunction= function(audioProcessingEvent) {
+		var processFunction = function(audioProcessingEvent) {
 			var buf = audioContext.ConceptBuffers;
 			var channels = audioProcessingEvent.outputBuffer.numberOfChannels;
 			if ((buf) && (buf.length > 0)) {
@@ -9533,8 +9519,8 @@ function ConceptClient(url, container, loading, absolute_paths, debug) {
 						this.Record(element);
 					else
 					if ((element) && (element.ConceptProcessor)) {
-						if (element.destination)
-							element.ConceptProcessor.disconnect(element.destination);
+						if ((element.ref) && (element.ref.destination))
+							element.ConceptProcessor.disconnect(element.ref.destination);
 						element.ConceptProcessor.onaudioprocess = null;
 						if (element.ConceptMicrophone)
 							element.ConceptMicrophone = null;
