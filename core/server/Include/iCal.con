@@ -16,6 +16,9 @@ class ICalendarBase {
 	var rdate = "";
 	var created = "";
 	var url = "";
+	var duration = "";
+	var contact = "";
+	var status = "";
 	var other;
 
 	settag(tag, val) {
@@ -62,6 +65,15 @@ class ICalendarBase {
 			case "url":
 				this.url = val;
 				break;
+			case "duration":
+				this.duration = val;
+				break;
+			case "contact":
+				this.contact = val;
+				break;
+			case "status":
+				this.status = val;
+				break;
 			default:
 				if (!other)
 					other = new [];
@@ -101,6 +113,12 @@ class ICalendarBase {
 			str += "CREATED:${this.created}\r\n";
 		if (this.url)
 			str += "URL:${this.url}\r\n";
+		if (this.duration)
+			str += "DURATION:${this.duration}\r\n";
+		if (this.contact)
+			str += "CONTACT:${this.contact}\r\n";
+		if (this.status)
+			str += "STATUS:${this.status}\r\n";
 		if (other) {
 			var keys = GetKeys(other);
 			for (var i = 0; i < length keys; i++) {
