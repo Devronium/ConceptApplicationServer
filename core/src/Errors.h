@@ -54,6 +54,7 @@
 #define ERR510      "Expression missing ']'"
 #define ERR520      "Expression missing ';'"
 #define ERR530      "Misplaced 'else' (no matching 'if')"
+#define ERR531      "Missing statement after 'else'"
 #define ERR540      "'try' encountered with no matching 'catch'"
 #define ERR541      "Cannot catch an exception using a constant"
 #define ERR550      "'do' encountered with no matching 'while'"

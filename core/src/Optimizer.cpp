@@ -1228,6 +1228,10 @@ INTEGER Optimizer::OptimizeKeyWord(TempVariableManager *TVM, INTEGER ID, INTEGER
                 OEgoto->OperandReserved.ID   = 0;
                 OEgoto->OperandReserved.TYPE = TYPE_OPTIMIZED_JUMP_ADR;
                 OptimizedPIF->Add(OEgoto, DATA_OPTIMIZED_ELEMENT);
+                
+                AE = (AnalizerElement *)PIFList->Item(PIF_POSITION);
+                if ((!AE) || ((AE->TYPE == TYPE_KEYWORD) && (AE->ID == KEY_END)))
+                    PIFOwner->Errors.Add(new AnsiException(ERR531, AE->_DEBUG_INFO_LINE, 531, AE->_PARSE_DATA, _DEBUG_INFO_FILENAME, _CLASS->NAME, _MEMBER), DATA_EXCEPTION);
 
                 OptimizeAny(TVM);
                 OEgoto->OperandReserved.ID = OptimizedPIF->Count();

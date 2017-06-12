@@ -7728,6 +7728,8 @@ function ConceptClient(url, container, loading, absolute_paths, debug) {
 					out = new Float32Array(out_len);
 				}
 				var method = 2;
+				if (element.ConceptCompression)
+					method = 1;
 				switch (method) {
 					case 1:
 						// ugly but fast
@@ -7738,9 +7740,13 @@ function ConceptClient(url, container, loading, absolute_paths, debug) {
 							m_Gain = 1;
 						var limit = out_len - 1;
 						out[0] = floatin[0] * m_Gain;
-
+						var delta = 1 - this.LastAudioLevel * 4;
+						if (delta < 0)
+							delta = 0.05;
 						for (var i = 1; i < limit; i++) {
 							var level = floatin[Math.floor(i * coef)];
+							if (!is_in)
+								level *= delta;
 							out[i] = level;
 							avg += Math.abs(level/limit);
 						}
