@@ -9,6 +9,7 @@ import standard.lib.cripto
 import standard.math.rand
 import standard.lang.cli
 import standard.C.time
+// import standard.lang.profiler
 
 // <javascript support>
 include JS.con
@@ -744,6 +745,10 @@ pragma used
 		return QueryWorkerBase::ReadJSON(path + "/ring.json");
 	}
 
+	CoreMemoryInfo() {
+		return ["message" => "no profiler"];
+	}
+
 	DoInfo(obj, sock, current_worker) {
 		var r = new R();
 		r.q = obj.q;
@@ -808,6 +813,16 @@ pragma used
 		else
 		if (type == "ring")
 			r.p = QueryWorkerBase::ClusterInfo();
+		else
+		if (type == "memory") {
+			r.p = CoreMemoryInfo();
+			r.p["cw_id"] = WorkerID;
+		} else
+		if (type == "gc") {
+			CheckReachability();
+			r.p = new [];
+			r.p["cw_id"] = WorkerID;
+		}
 
 		if ((!obj.io) || (obj.io != current_worker))
 			r.Send(sock, obj.io);
@@ -1194,49 +1209,51 @@ pragma used
 		if (data) {
 			timeout = 0;
 			var job = UnBinarizeObject(data);
-			var socket = job[0];
-			var remote_obj = job[1];
-			if (socket > 0) {
-				if (job[3]) {
-					// is postback
-					var socket_key = "" + socket;
-					// check if socket is still valid
-					if (IsSet(buffers, socket_key)) {
-						var len = SocketIOBase::SendBuffer(socket, remote_obj);
-						if (len != length remote_obj) {
-							// connection was dropped
-							RemoveSocket(socket);
-						}
-					}
-				} else {
-					var post_key = remote_obj;//job[1];
-					if (post_key) {
-						var sock_key = "" + socket;
-						if (IsSet(buffers, sock_key)) {
-							var post_back_ctx = buffers[sock_key];
-							if ((post_back_ctx) && (post_back_ctx.key == post_key)) {
-								var post_back_r = job[2];
-								post_back_r.Send(socket);
-								delete post_back_r;
-								delete job;
+			if (job) {
+				var socket = job[0];
+				var remote_obj = job[1];
+				if (socket > 0) {
+					if (job[3]) {
+						// is postback
+						var socket_key = "" + socket;
+						// check if socket is still valid
+						if (IsSet(buffers, socket_key)) {
+							var len = SocketIOBase::SendBuffer(socket, remote_obj);
+							if (len != length remote_obj) {
+								// connection was dropped
+								RemoveSocket(socket);
 							}
 						}
 					} else {
-						sockets[length sockets] = socket;
-						this.poll.add(socket);
-						buffers["" + socket] = new ConnectionContext(socket);
+						var post_key = remote_obj;//job[1];
+						if (post_key) {
+							var sock_key = "" + socket;
+							if (IsSet(buffers, sock_key)) {
+								var post_back_ctx = buffers[sock_key];
+								if ((post_back_ctx) && (post_back_ctx.key == post_key)) {
+									var post_back_r = job[2];
+									post_back_r.Send(socket);
+									delete post_back_r;
+									delete job;
+								}
+							}
+						} else {
+							sockets[length sockets] = socket;
+							this.poll.add(socket);
+							buffers["" + socket] = new ConnectionContext(socket);
+						}
 					}
+				} else
+				if (socket == -7) {
+					this.Notify(remote_obj, job[2]);
+				} else
+				if (remote_obj) {
+					if (((remote_obj) && (classof remote_obj == "Q") && (remote_obj.o) && ((remote_obj.o == "W") || (remote_obj.o == "Q"))) || (socket == -20))
+						Dispatch(RequestAuth, null, -1, null, next_worker, next_a_worker, next_idle_worker, storage_dbs, storage_workers, aggregation_workers, idle_workers, remote_obj, current_worker, "", storage_dbs_w);
 				}
-			} else
-			if (socket == -7) {
-				this.Notify(remote_obj, job[2]);
-			} else
-			if (remote_obj) {
-				if (((remote_obj) && (classof remote_obj == "Q") && (remote_obj.o) && ((remote_obj.o == "W") || (remote_obj.o == "Q"))) || (socket == -20))
-					Dispatch(RequestAuth, null, -1, null, next_worker, next_a_worker, next_idle_worker, storage_dbs, storage_workers, aggregation_workers, idle_workers, remote_obj, current_worker, "", storage_dbs_w);
+				remote_obj = null;
+				job = null;
 			}
-			remote_obj = null;
-			job = null;
 		}
 		if (!sockets) {
 			sleep_value = -1;

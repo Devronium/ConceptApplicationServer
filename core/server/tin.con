@@ -267,7 +267,7 @@ class IOWorker extends Worker{
 		buf = rtrim(buf);
 		var buffer_upercase = StrReplace(ToUpper(buf), "\t", " ");
 		if (buffer_upercase) {
-			var syntax = ["INSERT INTO ", "DELETE FROM ", "REDUCE { ", "CODE { ", "CREATE ", "AFTER ", "BEFORE ", "SELECT ", "FROM ", "UPDATE ", "CREATE BM25 INDEX ON ", "CREATE INDEX(", "CREATE TRIGGER ", "SEQUENCE ", "USE ", "VALUES ", "* FROM ", "WHERE ", "OFFSET ", "LIMIT ", "LEFT JOIN ", "ORDER ASC", "ORDER DESC", "COLLECTIONS", "TOP", "VERSION", "IN (", "AND ", "{ }", "QUIT", "DROP COLLECTION ", "DROP INDEX(", "DROP BM25 INDEX ON ", "SET ", "DONE", "NODE", "RING", "OUTPUT "];
+			var syntax = ["INSERT INTO ", "DELETE FROM ", "REDUCE { ", "CODE { ", "CREATE ", "AFTER ", "BEFORE ", "SELECT ", "FROM ", "UPDATE ", "CREATE BM25 INDEX ON ", "CREATE INDEX(", "CREATE TRIGGER ", "SEQUENCE ", "USE ", "VALUES ", "* FROM ", "WHERE ", "OFFSET ", "LIMIT ", "LEFT JOIN ", "ORDER ASC", "ORDER DESC", "COLLECTIONS", "TOP", "GC", "MEMORY", "VERSION", "IN (", "AND ", "{ }", "QUIT", "DROP COLLECTION ", "DROP INDEX(", "DROP BM25 INDEX ON ", "SET ", "DONE", "NODE", "RING", "OUTPUT "];
 			var[] values;
 			for (var i = 0; i < length syntax; i++) {
 				var k = syntax[i];
@@ -558,7 +558,7 @@ class Main {
 			var[] all_keys;
 			for (var i = 0; i < length data; i++) {
 				var obj = data[i];
-				if (obj) {
+				if (typeof obj == "array") {
 					var keys = GetKeys(obj);
 					for (var j = 0; j < length keys; j++) {
 						var k = keys[j];
@@ -581,7 +581,7 @@ class Main {
 			csv += line_ending;
 			for (i = 0; i < length data; i++) {
 				obj = data[i];
-				if (obj) {
+				if (typeof obj == "array") {
 					var line = "";
 					for (j = 0; j < length all_keys; j++) {
 						k = all_keys[j];
@@ -980,7 +980,7 @@ class Main {
 				}
 			}
 		} else
-		if (length s >= 3) {
+		if (length s >= 2) {
 			var s_lower = ToLower(s);
 			if ((SubStr(s_lower, 0, 3) == "use") && ((s[3] == " ") || (s[3] == "\t"))) {
 				parameters = trim(SubStr(s, 4));
@@ -1003,7 +1003,6 @@ class Main {
 					return;
 				}
 			}
-
 			switch (s_lower) {
 				case "databases":
 				case "collections":
@@ -1011,6 +1010,8 @@ class Main {
 				case "version":
 				case "node":
 				case "ring":
+				case "memory":
+				case "gc":
 					connection.Info(s_lower, querycallback);
 					queries++;
 					echo "Request sent, waiting response (${queries} in queue, including this one)..." + NEW_LINE;

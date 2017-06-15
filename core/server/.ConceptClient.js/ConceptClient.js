@@ -7825,7 +7825,7 @@ function ConceptClient(url, container, loading, absolute_paths, debug) {
 							navigator.mozGetUserMedia ||
 							navigator.msGetUserMedia;
 
-			var hasMicrophoneInput = (navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia || navigator.msGetUserMedia);
+			hasMicrophoneInput = (navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia || navigator.msGetUserMedia);
 		} catch (e) {
 			alert("Audio recording is not supported in your browser");
 		}
