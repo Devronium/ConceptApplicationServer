@@ -7727,9 +7727,7 @@ function ConceptClient(url, container, loading, absolute_paths, debug) {
 
 					out = new Float32Array(out_len);
 				}
-				var method = 2;
-				if (element.ConceptCompression)
-					method = 1;
+				var method = 1;
 				switch (method) {
 					case 1:
 						// ugly but fast

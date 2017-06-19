@@ -7336,13 +7336,13 @@ int tls_load_private_key(struct TLSContext *context, const unsigned char *pem_bu
         if ((!data) || (!len))
             break;
         struct TLSCertificate *cert = asn1_parse(context, data, len, -1);
-        if (!cert->der_len) {
-            TLS_FREE(cert->der_bytes);
-            cert->der_bytes = data;
-            cert->der_len = len;
-        } else
-            TLS_FREE(data);
         if (cert) {
+            if (!cert->der_len) {
+                TLS_FREE(cert->der_bytes);
+                cert->der_bytes = data;
+                cert->der_len = len;
+            } else
+                TLS_FREE(data);
             if ((cert) && (cert->priv) && (cert->priv_len)) {
 #ifdef TLS_ECDSA_SUPPORTED
                 if (cert->ec_algorithm) {
@@ -7362,7 +7362,8 @@ int tls_load_private_key(struct TLSContext *context, const unsigned char *pem_bu
                 }
             }
             tls_destroy_certificate(cert);
-        }
+        } else
+            TLS_FREE(data);
     } while (1);
     return 0;
 }
