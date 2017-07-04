@@ -1969,6 +1969,12 @@ function ConceptClient(url, container, loading, absolute_paths, debug) {
 	if (navigator.userAgent.toLowerCase().indexOf("edge") != -1)
 		this.isEDGE = true;
 
+	if ((navigator.mediaDevices) && (navigator.mediaDevices.getUserMedia)) {
+		navigator.getUserMedia = function(constraints, successCallback, errorCallback) {
+			navigator.mediaDevices.getUserMedia(constraints).then(successCallback).catch(errorCallback);
+		}
+	}
+
 	this.PendingUpdate = null;
 	window[this.FPrefix + "IsClient"] = function() { return 1; };
 	window.IsClient = window[this.FPrefix + "IsClient"];
