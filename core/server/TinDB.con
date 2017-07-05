@@ -12,6 +12,7 @@ import standard.C.time
 // import standard.lang.profiler
 
 // <javascript support>
+// include DUKJS.con instead of JS.con for using duktape instead of SpiderMonkey
 include JS.con
 include SQLParser.con
 include TinDBGlobalUDF.con
@@ -2041,6 +2042,10 @@ pragma used
 											js.call("_r", [o]);
 										}
 									}, js);
+									if (js.LastError) {
+										r.e = ERR_JS_SCRIPT;
+										r.et = js.LastError;
+									}
 									r.p = js.script("out;");
 									if ((r.p) && (typeof r.p == "array"))
 										QueryWorker::Cache(obj, r.p);

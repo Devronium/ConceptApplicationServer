@@ -240,7 +240,8 @@ accel NetGSM.con
 accel TinDBOid.con
 accel SQLParser.con
 accel JS.con
+accel Poll.con
 accel LDAP.con
 accel HTTPRequest.con
 accel XMLAPI.con
-accel iCal.con
+accel DUKJS.con

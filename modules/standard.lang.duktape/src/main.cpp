@@ -51,7 +51,7 @@ CONCEPT_FUNCTION_IMPL(JSNewRuntime, 0)
             ref->ctx = ctx;
 
             duk_push_global_stash(ctx);
-            duk_push_number(ctx, (NUMBER)(SYS_INT)ref); 
+            duk_push_pointer(ctx, ref); 
             duk_put_prop_string(ctx, 0, "\xff_____concept_internal_object");
             //duk_put_global_string(ctx, "\xff_____concept_internal_object");
 
@@ -320,10 +320,13 @@ void RecursivePush(duk_context *ctx, void *var, INVOKE_CALL Invoke) {
 
 }
 
-CONCEPT_FUNCTION_IMPL(JSCall, 3)
+CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(JSCall, 3, 4)
     T_HANDLE(JSCall, 0)
     T_STRING(JSCall, 1)
     T_ARRAY(JSCall, 2)
+    if (PARAMETERS_COUNT > 3) {
+        SET_STRING(3, "");
+    }
 
     duk_context *ctx = DUK_CTX((duk_wrapper_container *)(intptr_t)PARAM(0));
     const char *func = PARAM(1);
@@ -338,8 +341,15 @@ CONCEPT_FUNCTION_IMPL(JSCall, 3)
                     RecursivePush(ctx, elem_data, Invoke);
                 }
             }
-            duk_call(ctx, count);
-            RecursiveValue(ctx, RESULT, -1, Invoke);
+            if (duk_pcall(ctx, count)) {
+                if (PARAMETERS_COUNT > 3) {
+                    const char *err = duk_safe_to_string(ctx, -1);
+                    SET_STRING(3, err);
+                }
+                RETURN_NUMBER(0);
+            } else {
+                RecursiveValue(ctx, RESULT, -1, Invoke);
+            }
             duk_pop(ctx);
         } else {
             RETURN_NUMBER(0);
@@ -398,7 +408,7 @@ static duk_ret_t concept_handler_func(duk_context *ctx) {
     duk_push_global_stash(ctx);
     duk_get_prop_string(ctx, -1, "\xff_____concept_internal_object");
     //duk_get_global_string(ctx, "\xff_____concept_internal_object");
-    struct duk_wrapper_container *container = (struct duk_wrapper_container *)(SYS_INT)duk_to_number(ctx, -1);
+    struct duk_wrapper_container *container = (struct duk_wrapper_container *)duk_to_pointer(ctx, -1);
     if ((!container) || (container->ctx != ctx) || (!container->HANDLERS) || (magic < 0) || (magic >= container->HLEN))
         return 0;
 

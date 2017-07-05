@@ -1,0 +1,96 @@
+import standard.lang.duktape
+
+class JS {
+	protected var context;
+
+	public var LastError;
+	public var LastErrorCode;
+	public var UserData;
+	public var error_delegate;
+
+	JS(error_handler = null) {
+		context = JSNewRuntime();
+		if (error_handler)
+			this.error(error_handler);
+	}
+
+	protected __check_error(extra_err = "") {
+		LastErrorCode = 0;
+		LastError = extra_err;
+		if (extra_err)
+			LastErrorCode = -1;
+		if (context) {
+			var err_code = JSErrorCode(context, var errtext);
+			if (err_code) {
+				this.LastError = errtext;
+				this.LastErrorCode = err_code;
+				if (error_delegate)
+					error_delegate(this, LastError, ["code" => err_code]);
+			}
+		}
+	}
+
+	reset() {
+		this.done();
+		context = JSNewRuntime();
+		return true;
+	}
+
+	variable(name, val) {
+		return JSVariable(context, name, val);
+	}
+
+	error(delegate error_handler) {
+		this.error_delegate = error_handler;
+	}
+
+	script(var code, code_name = "code.js") {
+		var rval = JSEvaluateScript(context, code);
+		this.__check_error();
+		if (this.LastError)
+			throw "" + this.LastError;
+		return rval;
+	}
+
+	call(string function_name, parameters = null) {
+		if (!parameters)
+			parameters = new [];
+		var rval = JSCall(context, function_name, parameters, var err);
+		this.__check_error(err);
+		return rval;
+	}
+
+	wrap(delegate, string js_name) {
+		LastErrorCode = 0;
+		LastError = "";
+		var rval = JSWrap(context, delegate, js_name);
+		this.__check_error();
+		return rval;
+	}
+
+	gc() {
+		LastErrorCode = 0;
+		LastError = "";
+		JSGC(context);
+	}
+
+	protected done() {
+		LastErrorCode = 0;
+		LastError = "";
+		if (context) {
+	  		JSDestroyRuntime(context);
+			context = null;
+		}
+	}
+
+	finalize() {
+		this.done();
+	}
+
+	static eval(string code) {
+		var ctx = JSNewRuntime();
+		var res = JSEvaluateScript(ctx, code);
+		JSDestroyRuntime(ctx);
+		return res;
+	}
+}

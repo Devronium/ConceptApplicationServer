@@ -76,20 +76,24 @@ class JS {
 	}
 
 	call(string function_name, parameters = null) {
+		LastError = "";
 		if (!parameters)
 			parameters = new [];
 		return JSCall(context, global, function_name, parameters);
 	}
 
 	wrap(delegate, string js_name) {
+		LastError = "";
 		return JSWrap(context, global, delegate, js_name);
 	}
 
 	gc() {
+		LastError = "";
 		JSGC(context, runtime);
 	}
 
 	protected done() {
+		LastError = "";
 		if (context) {
 	  		JSDestroyContext(context);
 			context = null;
