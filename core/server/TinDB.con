@@ -9,7 +9,6 @@ import standard.lib.cripto
 import standard.math.rand
 import standard.lang.cli
 import standard.C.time
-// import standard.lang.profiler
 
 // <javascript support>
 // include DUKJS.con instead of JS.con for using duktape instead of SpiderMonkey
@@ -746,11 +745,7 @@ pragma used
 		return QueryWorkerBase::ReadJSON(path + "/ring.json");
 	}
 
-	CoreMemoryInfo() {
-		return ["message" => "no profiler"];
-	}
-
-	DoInfo(obj, sock, current_worker) {
+	DoInfo(obj, sock, current_worker, storage_workers) {
 		var r = new R();
 		r.q = obj.q;
 		var type = "";
@@ -816,14 +811,55 @@ pragma used
 			r.p = QueryWorkerBase::ClusterInfo();
 		else
 		if (type == "memory") {
-			r.p = CoreMemoryInfo();
+			r.p = new [];
+			var[] qw;
+			var[] sw;
+			r.p["StorageWorkers"] = sw;
+			r.p["QueryWorkers"] = qw;
+			for (i = 0; i < length other_workers; i++) {
+				var w = other_workers[i];
+				if (w)
+					qw["QueryWorker #" + (i + 1)] = WorkerMemoryInfo(w);
+			}
+			qw["CurrentWorker"] = WorkerMemoryInfo();
+			if (storage_workers) {
+				for (i = 0; i < length storage_workers; i++) {
+					w = storage_workers[i];
+					if (w)
+						sw["StorageWorker #" + (i + 1)] = WorkerMemoryInfo(w);
+				}
+			}
 			r.p["cw_id"] = WorkerID;
 		} else
 		if (type == "gc") {
 			CheckReachability();
+			var total_workers = 1;
+			for (i = 0; i < length other_workers; i++) {
+				w = other_workers[i];
+				if (w) {
+					WorkerGC(w);
+					total_workers++;
+				}
+			}
+			if (storage_workers) {
+				for (i = 0; i < length storage_workers; i++) {
+					w = storage_workers[i];
+					if (w) {
+						WorkerGC(w);
+						total_workers++;
+					}
+				}
+			}
+			r.p = new [];
+			r.p["total_workers"] = total_workers;
+			r.p["cw_id"] = WorkerID;
+		} else
+		if (type == "clear") {
+			Worker::Clear();
 			r.p = new [];
 			r.p["cw_id"] = WorkerID;
 		}
+
 
 		if ((!obj.io) || (obj.io != current_worker))
 			r.Send(sock, obj.io);
@@ -897,7 +933,7 @@ pragma used
 							obj.ctx_key = ctx.key;
 						}
 						if (obj.o == "INFO") {
-							DoInfo(obj, sock, current_worker);
+							DoInfo(obj, sock, current_worker, storage_workers);
 							return;
 						}
 						if ((!obj.io) && (!obj.cb) && (CacheHit(obj, sock, current_worker)))

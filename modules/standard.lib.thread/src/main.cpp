@@ -396,13 +396,18 @@ public:
         return size;
     }
 
-    ~ShareContext() {
-        QUEUE_LOCK(share_lock);
+    void ClearCache() {
         for (std::map<std::string, std::map<std::string, AnsiString> *>::iterator it = share_data.begin(); it != share_data.end(); ++it) {
             std::map<std::string, AnsiString> *map = it->second;
             if (map)
                 delete map;
         }
+        share_data.clear();
+    }
+
+    ~ShareContext() {
+        QUEUE_LOCK(share_lock);
+        ClearCache();
         QUEUE_UNLOCK(share_lock);
         QUEUE_DONE(share_lock);
     }
@@ -1248,6 +1253,29 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(WorkerSharedRemove, 1, 3)
     RETURN_NUMBER(size);
 END_IMPL
 //---------------------------------------------------------------------------
+CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(WorkerSharedClear, 0, 1)
+    ShareContext *sharecontext = NULL;
+    void *worker = NULL;
+    if (PARAMETERS_COUNT > 0) {
+        T_NUMBER(WorkerSharedClear, 0);
+        sharecontext = (ShareContext *)(SYS_INT)PARAM(0);
+    }
+    int size = 0;
+    if (sharecontext) {
+        sharecontext->ClearCache();
+    } else {
+        ThreadMetaContainer * tmc = NULL;
+        Invoke(INVOKE_GETPROTODATA, PARAMETERS->HANDLER, (int)2, &tmc);
+        if (!tmc)
+            return (void *)"Using a worker function on a non-worker";
+        if (!tmc->sharecontext)
+            return (void *)"No shared context set";
+
+        tmc->sharecontext->ClearCache();
+    }
+    RETURN_NUMBER(0);
+END_IMPL
+//---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(WorkerSharedContext, 0)
     ShareContext *context = new ShareContext();
     context->Retain();
@@ -1296,3 +1324,27 @@ CONCEPT_FUNCTION_IMPL(WorkerSharedRWLock, 2)
     RETURN_NUMBER(return_code);
 END_IMPL
 //---------------------------------------------------------------------------
+CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(WorkerMemoryInfo, 0, 1)
+    CREATE_ARRAY(RESULT);
+    void *worker = NULL;
+    if (PARAMETERS_COUNT > 0) {
+        T_NUMBER(WorkerMemoryInfo, 0);
+        worker = (void *)(uintptr_t)PARAM(0);
+    }
+    if (!worker)
+        worker = PARAMETERS->HANDLER;
+    Invoke(INVOKE_PROFILE_MEMORY, worker, RESULT);
+END_IMPL
+//------------------------------------------------------------------------
+CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(WorkerGC, 0, 1)
+    CREATE_ARRAY(RESULT);
+    void *worker = NULL;
+    if (PARAMETERS_COUNT > 0) {
+        T_NUMBER(WorkerMemoryInfo, 0);
+        worker = (void *)(uintptr_t)PARAM(0);
+    }
+    if (!worker)
+        worker = PARAMETERS->HANDLER;
+    Invoke(INVOKE_CHECK_REACHABILITY, worker, RESULT);
+END_IMPL
+//------------------------------------------------------------------------

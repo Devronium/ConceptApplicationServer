@@ -430,12 +430,12 @@ static duk_ret_t concept_handler_func(duk_context *ctx) {
     Invoke(INVOKE_CALL_DELEGATE, deleg, &RES, &EXCEPTION, (INTEGER)-1, PARAMETERS);
     if (EXCEPTION) {
         RecursivePush(ctx, EXCEPTION, Invoke);
-        Invoke(INVOKE_FREE_VARIABLE, EXCEPTION);
+        FREE_VARIABLE(EXCEPTION);
         duk_throw(ctx);
     }
     if (RES) {
         RecursivePush(ctx, RES, Invoke);
-        Invoke(INVOKE_FREE_VARIABLE, RES);
+        FREE_VARIABLE(RES);
     }
     for (duk_idx_t i = 0; i < n; i++) {
         FREE_VARIABLE(PARAMETERS[i]);

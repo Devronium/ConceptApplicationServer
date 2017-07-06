@@ -40,9 +40,12 @@ extern "C" {
     CONCEPT_FUNCTION(WorkerSharedSet)
     CONCEPT_FUNCTION(WorkerSharedRemove)
     CONCEPT_FUNCTION(WorkerSharedGetSet)
+    CONCEPT_FUNCTION(WorkerSharedClear)
 
     CONCEPT_FUNCTION(WorkerSharedContext)
     CONCEPT_FUNCTION(WorkerSharedRelease)
     CONCEPT_FUNCTION(WorkerSharedRWLock)
+    CONCEPT_FUNCTION(WorkerMemoryInfo)
+    CONCEPT_FUNCTION(WorkerGC)
 }
 #endif // __LIBRARY_H

@@ -82,6 +82,10 @@ class Worker {
 		return WorkerSharedRemove(masterkey, key);
 	}
 
+	static Clear() {
+		return WorkerSharedClear();;
+	}
+
 	GetKey(masterkey, key) {
 		if (!_shared_context)
 			throw "No shared context set";
@@ -104,6 +108,12 @@ class Worker {
 		if (!_shared_context)
 			throw "No shared context set";
 		return WorkerSharedRemove(masterkey, key, _shared_context);
+	}
+
+	ClearKeys() {
+		if (!_shared_context)
+			throw "No shared context set";
+		return WorkerSharedClear(_shared_context);
 	}
 
 	Exit() {

@@ -253,6 +253,9 @@ class TinConnection {
 			case "version":
 			case "node":
 			case "ring":
+			case "memory":
+			case "gc":
+			case "clear":
 				this.Info(string_lo, querycallback);
 				queries++;
 				return queries;
