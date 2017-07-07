@@ -816,6 +816,7 @@ pragma used
 			var[] sw;
 			r.p["StorageWorkers"] = sw;
 			r.p["QueryWorkers"] = qw;
+			// ============ REVIEW THIS => RACE CONDITION !!! =====================
 			for (i = 0; i < length other_workers; i++) {
 				var w = other_workers[i];
 				if (w)
@@ -829,11 +830,13 @@ pragma used
 						sw["StorageWorker #" + (i + 1)] = WorkerMemoryInfo(w);
 				}
 			}
+			// ============ /REVIEW THIS => RACE CONDITION !!! ===================
 			r.p["cw_id"] = WorkerID;
 		} else
 		if (type == "gc") {
 			CheckReachability();
 			var total_workers = 1;
+			/* ============ RACE CONDITION !!! =====================
 			for (i = 0; i < length other_workers; i++) {
 				w = other_workers[i];
 				if (w) {
@@ -850,6 +853,7 @@ pragma used
 					}
 				}
 			}
+			// ============ /RACE CONDITION !!! ==================== */
 			r.p = new [];
 			r.p["total_workers"] = total_workers;
 			r.p["cw_id"] = WorkerID;

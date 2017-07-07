@@ -437,7 +437,11 @@ class SQLParser {
 		var op = "";
 		do {
 			var prev_offset = offset;
-			var command = SQLParser::parseValue(buffer, err, offset);
+			var command;
+			if (state == 1)
+				command = SQLParser::parseAtom(buffer, err, offset);
+			else
+				command = SQLParser::parseValue(buffer, err, offset);
 			var is_list = false;
 			if (command) {
 				switch (state) {

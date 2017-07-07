@@ -73,6 +73,26 @@ class TinQueryParser {
 		if (IsSet(arr, "<=")) {
 			max = arr["<="];
 			max_mode = 2;
+		} else
+		if (typeof arr == "array") {
+			this.sort(arr);
+			min = arr;
+			min_mode = 6;
+		}
+	}
+
+	sort(arr) {
+		if (arr) {
+			for (var i = 0; i < length arr; i++) {
+				for (var j = i + 1; j < length arr; j++) {
+					var ni = arr[i];
+					var nj = arr[j];
+					if (ni > nj) {
+						arr[i] = nj;
+						arr[j] = ni;
+					}
+				}
+			}
 		}
 	}
 
@@ -92,6 +112,27 @@ class TinQueryParser {
 			return false;
 
 		return true;
+	}
+
+	Equals(key, val, remove = false) {
+		if ((typeof key != "string") && (typeof key != "numeric"))
+			return false;
+
+		if (typeof min == "array") {
+			for (var i = 0; i < length min; i++) {
+				var e = min[i];
+				if (key == e) {
+					if (remove)
+						min = this.Remove(min, i);
+					return true;
+				}
+			}
+			return false;
+		} else
+		if (key == min)
+			return true;
+
+		return false;
 	}
 
 	CompareSimple(key, val) {
@@ -115,6 +156,8 @@ class TinQueryParser {
 		if (min_mode >= 3) {
 			if (min_mode == 5)
 				return Differs(key, min);
+			if (min_mode == 6)
+				return Equals(key, min);
 
 			if ((typeof key != "string") || (typeof min != "string"))
 				return false;
@@ -137,6 +180,17 @@ class TinQueryParser {
 		return true;
 	}
 
+	Remove(arr, index) {
+		var[] arr2;
+		if (arr) {
+			for (var i = 0; i < length arr; i++) {
+				if (i != index)
+					arr2[length arr2] = arr[i];
+			}
+		}
+		return arr2;
+	}
+
 	Compare(key, val, userdata = null, prec_result = 0) {
 		if (reversed) {
 			var t = key;
@@ -155,7 +209,7 @@ class TinQueryParser {
 		}
 		if (fetch) {
 			if ((typeof key == "string") && (length key == 8)) {
-				if (((typeof min == "string") && (length min > 8)) || ((typeof max == "string") && (length max > 8))) {
+				if (((typeof min == "string") && (length min > 8)) || ((typeof max == "string") && (length max > 8)) || (min_mode == 5) || (min_mode == 6)) {
 					if (val < 0) {
 						if (btree)
 							val = btree.GetValue(-val);
@@ -188,6 +242,29 @@ class TinQueryParser {
 				result |= QUERY_LESS | QUERY_GREAT;
 				if (Differs(key, min))
 					result |= QUERY_ELEMENT_VALID;
+			} else
+			if (min_mode == 6) {
+				result |= QUERY_LESS | QUERY_GREAT;
+				if (Equals(key, min, true))
+					result |= QUERY_ELEMENT_VALID;
+				else
+				if (min) {
+					var arr_min;
+					var arr_max;
+					if (length min == 1) {
+						arr_min = min[0];
+						arr_max = arr_min;
+					} else {
+						arr_min = min[0];
+						arr_max = min[length min - 1];
+					}
+					if (key < arr_min)
+						result = prec_result | QUERY_LESS;
+					else
+					if (key > arr_max)
+						result = prec_result | QUERY_GREAT;
+				} else
+					return 0;
 			} else {
 				if ((typeof key != "string") || (typeof min != "string"))
 					result |= QUERY_LESS;
@@ -407,44 +484,43 @@ class BinIndex {
 					filter_func = null;
 
 				if (typeof key == "array") {
-					var key_list = GetKeys(key);
-					if ((key_list) && (key_list[0])) {
-						if (len <= 0)
-							len = -1;
-						var qp = new TinQueryParser(key);
-						qp.owner = owner;
-						qp.db = db;
-						qp.btree = btree;
-						//var no_index_keys;
-						//if (no_index_query) {
-						//	no_index_keys = GetKeys(no_index_query);
-							if (no_index_keys) {
-								qp.reversed = this.Unique;
-								qp.additional_filter = filter_func;
-							}
-
-						//	no_index_keys = [no_index_keys, no_index_query];
-						//}
-						result = btree.Query(qp.Compare, no_index_keys, descending, len, start, filter_func);
-						return result;
+					// var key_list = GetKeys(key);
+					if (len <= 0)
+						len = -1;
+					// if ((key_list) && (key_list[0])) {
+					var qp = new TinQueryParser(key);
+					qp.owner = owner;
+					qp.db = db;
+					qp.btree = btree;
+					//var no_index_keys;
+					// if (no_index_query) {
+					//	no_index_keys = GetKeys(no_index_query);
+					if (no_index_keys) {
+						qp.reversed = this.Unique;
+						qp.additional_filter = filter_func;
 					}
-					for (var j = 0; j < length key; j++) {
-						var subkey = key[j];
-						var res = btree.Get(subkey, var found);
-						if (found) {
-							if (typeof res == "array") {
-								for (var i1 = 0; i1 < length res; i1++)
-									result += res[i1];
-							} else
-								result += res;
-						}
-					}
+					//	no_index_keys = [no_index_keys, no_index_query];
+					// }
+					result = btree.Query(qp.Compare, no_index_keys, descending, len, start, filter_func);
+					return result;
+					// }
+					// for (var j = 0; j < length key; j++) {
+					//	var subkey = key[j];
+					//	var res = btree.Get(subkey, var found, start, len, filter_func, no_index_keys);
+					//	if (found) {
+					//		if (typeof res == "array") {
+					//			for (var i1 = 0; i1 < length res; i1++)
+					//				result += res[i1];
+					//		} else
+					//			result += res;
+					//	}
+					// }
 				} else {
-					res = btree.Get(key, found, start, len, filter_func, no_index_keys);
+					var res = btree.Get(key, var found, start, len, filter_func, no_index_keys);
 					if (found) {
 						if (typeof res == "array") {
 							if (result) {
-								for (i1 = 0; i1 < length res; i1++)
+								for (var i1 = 0; i1 < length res; i1++)
 									result += res[i1];
 							} else
 								result = res;
@@ -3313,8 +3389,11 @@ class BinFile extends File {
 					if (fi)
 						filter_ids["" + fi] = fi;
 				}
-				if (length keys == 1)
+				if (length keys == 1) {
+					if (count)
+						return [length filter_ids];
 					return this.ById(filter_ids, null, false, null, notify_one, notify_data);
+				}
 			}
 		}
 
