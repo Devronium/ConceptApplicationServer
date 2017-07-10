@@ -745,7 +745,7 @@ pragma used
 		return QueryWorkerBase::ReadJSON(path + "/ring.json");
 	}
 
-	DoInfo(obj, sock, current_worker, storage_workers) {
+	DoInfo(obj, sock, current_worker, storage_workers, idle_workers) {
 		var r = new R();
 		r.q = obj.q;
 		var type = "";
@@ -823,6 +823,13 @@ pragma used
 					qw["QueryWorker #" + (i + 1)] = WorkerMemoryInfo(w);
 			}
 			qw["CurrentWorker"] = WorkerMemoryInfo();
+			if (idle_workers) {
+				for (i = 0; i < length idle_workers; i++) {
+					w = idle_workers[i];
+					if (w)
+						sw["IdleWorker #" + (i + 1)] = WorkerMemoryInfo(w);
+				}
+			}
 			if (storage_workers) {
 				for (i = 0; i < length storage_workers; i++) {
 					w = storage_workers[i];
@@ -834,26 +841,39 @@ pragma used
 			r.p["cw_id"] = WorkerID;
 		} else
 		if (type == "gc") {
+			echo "Garbage collector forced in worker #${WorkerID}\n";
 			CheckReachability();
 			var total_workers = 1;
-			/* ============ RACE CONDITION !!! =====================
+			var worker_gc = BinarizeObject([-100]);
+			var worker_gc_js = BinarizeObject([-9]);
 			for (i = 0; i < length other_workers; i++) {
 				w = other_workers[i];
 				if (w) {
-					WorkerGC(w);
+					AddWorkerData(w, worker_gc);
 					total_workers++;
+				}
+			}
+			if (idle_workers) {
+				for (i = 0; i < length idle_workers; i++) {
+					w = idle_workers[i];
+					if (w) {
+						AddWorkerData(w, worker_gc, -1);
+						AddWorkerData(w, worker_gc_js, -1);
+						total_workers++;
+					}
 				}
 			}
 			if (storage_workers) {
 				for (i = 0; i < length storage_workers; i++) {
 					w = storage_workers[i];
 					if (w) {
-						WorkerGC(w);
+						AddWorkerData(w, worker_gc, -1);
+						AddWorkerData(w, worker_gc_js, -1);
 						total_workers++;
 					}
 				}
 			}
-			// ============ /RACE CONDITION !!! ==================== */
+
 			r.p = new [];
 			r.p["total_workers"] = total_workers;
 			r.p["cw_id"] = WorkerID;
@@ -937,7 +957,7 @@ pragma used
 							obj.ctx_key = ctx.key;
 						}
 						if (obj.o == "INFO") {
-							DoInfo(obj, sock, current_worker, storage_workers);
+							DoInfo(obj, sock, current_worker, storage_workers, idle_workers);
 							return;
 						}
 						if ((!obj.io) && (!obj.cb) && (CacheHit(obj, sock, current_worker)))
@@ -1099,6 +1119,10 @@ class JSQueryWorker extends QueryWorkerBase {
 			var remote_obj = job[1];
 			if (socket == -7) {
 				this.Notify(remote_obj, job[2], true);
+			} else
+			if (socket == -100) {
+				echo "Garbage collector forced in JS query worker\n";
+				CheckReachability();
 			} else
 			if ((remote_obj) && (classof remote_obj == "Q") && (remote_obj.o) && (remote_obj.cb))
 				Dispatch(null, null, -1, null, next_worker, next_a_worker, next_idle_worker, storage_dbs, storage_workers, aggregation_workers, idle_workers, remote_obj, current_worker, "", storage_dbs_w);
@@ -1287,6 +1311,10 @@ pragma used
 				} else
 				if (socket == -7) {
 					this.Notify(remote_obj, job[2]);
+				} else
+				if (socket == -100) {
+					echo "Garbage collector forced in worker #${WorkerID}\n";
+					CheckReachability();
 				} else
 				if (remote_obj) {
 					if (((remote_obj) && (classof remote_obj == "Q") && (remote_obj.o) && ((remote_obj.o == "W") || (remote_obj.o == "Q"))) || (socket == -20))
@@ -2025,6 +2053,10 @@ pragma used
 					return;
 				case -10:
 					ResetTriggers();
+					return;
+				case -100:
+					echo "Garbage collector forced in worker #StorageWorker${workerid + 1}\n";
+					CheckReachability();
 					return;
 			}
 		}
