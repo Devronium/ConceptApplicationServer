@@ -1,0 +1,33 @@
+import standard.net.poll
+
+class Poll {
+	protected var efd;
+
+	Poll() {
+		efd = PollOpen();
+	}
+
+	add(fd) {
+		var res = PollAdd(efd, fd);
+		if (res)
+			return false;
+
+		return true;
+	}
+
+	remove(fd) {
+		var res = PollRemove(efd, fd);
+		if (res)
+			return false;
+		return true;
+	}
+
+	wait(timeout = 0) {
+		return PollWait(efd, timeout);
+	}
+
+	finalize() {
+		if (efd)
+			PollClose(efd);
+	}
+}

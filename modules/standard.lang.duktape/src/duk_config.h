@@ -1067,9 +1067,9 @@
 #endif
 
 #undef DUK_USE_VARIADIC_MACROS
-#if defined(DUK_F_C99) || defined(DUK_F_CPP11)
+// #if defined(DUK_F_C99) || defined(DUK_F_CPP11)
 #define DUK_USE_VARIADIC_MACROS
-#endif
+// #endif
 
 #define DUK_USE_UNION_INITIALIZERS
 

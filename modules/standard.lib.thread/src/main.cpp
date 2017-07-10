@@ -156,6 +156,7 @@ public:
             return WaitForSingleObject(cond, timeout_ms);
         return WaitForSingleObject(cond, INFINITE);
 #else
+        int res = 0;
         if (timeout_ms > 0) {
             struct timeval now;
             gettimeofday(&now, NULL);
@@ -166,9 +167,15 @@ public:
                 delay.tv_nsec -= 1000000000;
                 delay.tv_sec++;
             }
-            return pthread_cond_timedwait(&cond, &mutex, &delay);
+            pthread_mutex_lock(&mutex);
+            res = pthread_cond_timedwait(&cond, &mutex, &delay);
+            pthread_mutex_unlock(&mutex);
+        } else {
+            pthread_mutex_lock(&mutex);
+            res = pthread_cond_wait(&cond, &mutex);
+            pthread_mutex_unlock(&mutex);
         }
-        return pthread_cond_wait(&cond, &mutex);
+        return res;
 #endif
     }
 
@@ -176,7 +183,9 @@ public:
 #ifdef _WIN32
         SetEvent(cond);
 #else
+        pthread_mutex_lock(&mutex);
         pthread_cond_signal(&cond);
+        pthread_mutex_unlock(&mutex);
 #endif
     }
 
