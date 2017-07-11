@@ -3321,6 +3321,92 @@ class BinFile extends File {
 		return [ ];
 	}
 
+	Explain(q = null) {
+		if (q == null)
+			q = new [];
+		var keys = GetKeys(q);
+		var index_to_use = new [];
+		var index_counts = new [];
+		var indexed_query = new [];
+		var non_indexed = new [];
+		var indexes = Indexes;
+		var target_index;
+		for (var i = 0; i < length indexes; i++) {
+			var index = indexes[i];
+			if (index) {
+				if (typeof index == "array") {
+					if (CompositeIndexQuery(index[1], q)) {
+						var index_name = index[0];
+						if (index_name) {
+							_Index.Database = index_name;
+							indexed_query[index_name] = this.GetObjectFieldsAsString(q, index[1]);
+							keys = CompositeFilterKeys(index[1], keys);
+							index_to_use[index_name] = keys;
+						}
+					}
+				} else
+				if (IsSet(q, index)) {
+					_Index.Database = index;
+					index_to_use[index] = index;
+				}
+			}
+		}
+		var non_indexed_query = [ ];
+		if (index_to_use) {
+			for (i = 0; i < length keys; i++) {
+				var key = keys[i];
+				if ((indexed_query) || (!IsSet(index_to_use, key))) {
+					non_indexed_query[key] = q[key];
+				} else {
+					target_index = key;
+					indexed_query[key] = q[key];
+				}
+			}
+		}
+
+		var[] explain;
+		explain["collection"] = this.name;
+		if (IsSet(q, '$')) {
+			explain["type"] = "direct access";
+			var vals = q['$'];
+			if ((typeof vals == "array") && (length vals > 1))
+				explain["complexity"] = "${length vals} * O(1)";
+			else
+				explain["complexity"] = "O(1)";
+			explain["note"] = "This query is ideal";
+		} else
+		if (!target_index) {
+			explain["type"] = "full table scan";
+			explain["complexity"] = "O(n)";
+			if (q)
+				explain["note"] = "Consider creating an index";
+			else
+				explain["note"] = "Consider using an index, by adding a filter";
+		} else {
+			if (length q > 1) {
+				explain["type"] = "index + scan";
+				explain["complexity"] = "[O(log(n)) .. O(n)]";
+				explain["note"] = "This query is suboptimal. Consider creating a composite index, only if this query is executed frequently.";
+			} else {
+				explain["type"] = "index";
+				explain["complexity"] = "O(log(n))";
+				explain["note"] = "This query is optimal";
+			}
+			explain["index"] = target_index;
+			if (index_to_use) {
+				explain["method"] = "first available index";
+				explain["available"] = index_to_use;
+			} else
+				explain["method"] = "single index";
+		}
+		if (indexed_query)
+			explain["using index"] = indexed_query;
+		if (non_indexed_query)
+			explain["not using index"] = non_indexed_query;
+		explain["keys"] = keys;
+		return explain;
+	}
+
 	Query(q = null, fields = null, descending = false, start = 0, len = 0, notify_one = null, notify_data = null) {
 		// if (time() - index_refresh_time > INDEX_REFRESH_TIMEOUT)
 		//	this.RefreshIndexes();

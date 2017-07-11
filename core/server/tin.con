@@ -267,7 +267,7 @@ class IOWorker extends Worker{
 		buf = rtrim(buf);
 		var buffer_upercase = StrReplace(ToUpper(buf), "\t", " ");
 		if (buffer_upercase) {
-			var syntax = ["INSERT INTO ", "DELETE FROM ", "REDUCE { ", "CODE { ", "CREATE ", "AFTER ", "BEFORE ", "SELECT ", "FROM ", "UPDATE ", "CREATE BM25 INDEX ON ", "CREATE INDEX(", "CREATE TRIGGER ", "SEQUENCE ", "USE ", "VALUES ", "* FROM ", "WHERE ", "OFFSET ", "LIMIT ", "LEFT JOIN ", "ORDER ASC", "ORDER DESC", "COLLECTIONS", "TOP", "GC", "CLEAR", "MEMORY", "VERSION", "IN (", "AND ", "{ }", "QUIT", "DROP COLLECTION ", "DROP INDEX(", "DROP BM25 INDEX ON ", "SET ", "DONE", "NODE", "RING", "OUTPUT "];
+			var syntax = ["INSERT INTO ", "DELETE FROM ", "REDUCE { ", "CODE { ", "CREATE ", "AFTER ", "BEFORE ", "SELECT ", "FROM ", "UPDATE ", "CREATE BM25 INDEX ON ", "CREATE INDEX(", "CREATE TRIGGER ", "SEQUENCE ", "USE ", "VALUES ", "* FROM ", "WHERE ", "OFFSET ", "LIMIT ", "LEFT JOIN ", "ORDER ASC", "ORDER DESC", "COLLECTIONS", "TOP", "GC", "CLEAR", "MEMORY", "VERSION", "IN (", "AND ", "{ }", "QUIT", "DROP COLLECTION ", "DROP INDEX(", "DROP BM25 INDEX ON ", "SET ", "DONE", "NODE", "RING", "OUTPUT ", "EXPLAIN SELECT "];
 			var[] values;
 			for (var i = 0; i < length syntax; i++) {
 				var k = syntax[i];
@@ -807,6 +807,9 @@ class Main {
 						var mod = q["MOD"];
 						var join = q["JOIN"];
 						var reduce = q["REDUCE"];
+						if (q["EXPLAIN"]) {
+							dataset.Explain(where, querycallback);
+						} else
 						if (mod) {
 							var agg = mod[0][0];
 							if (agg == "COUNT") {

@@ -706,7 +706,7 @@ pragma used
 
 	static CacheHit(obj, sock, current_worker) {
 		var data;
-		if ((obj.o == "Q") && ((!obj.x) || (!obj.x["map"])) && (obj.c) && (obj.d)) {
+		if ((obj.o == "Q") && ((!obj.x) || (!obj.x["map"]) || (!obj.x["explain"])) && (obj.c) && (obj.d)) {
 			var key = "/" + obj.d + "/" + obj.c;
 			if (key) {
 				data = Worker::Get(key, QueryWorkerBase::CacheKey(obj));
@@ -1602,7 +1602,8 @@ pragma used
 					q_obj.x["descending"] = (q["ORDER"] == -1);
 					q_obj.x["reduce"] = q["REDUCE"];
 					q_obj.x["priority"] = q["PRIORITY"];
-
+					if (q["EXPLAIN"])
+						q_obj.x["explain"] = true;
 					if (mod) {
 						var agg = mod[0][0];
 						if (agg == "COUNT")
@@ -2099,6 +2100,11 @@ pragma used
 								if (obj.x["map"])
 									map = true;
 								reduce = obj.x["reduce"];
+								if (obj.x["explain"]) {
+									r.id = 0;
+									r.p = t.Explain(obj.p);
+									break;
+								}
 							}
 							t.Lock();
 							if (reduce) {

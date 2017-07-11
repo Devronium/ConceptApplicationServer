@@ -1166,11 +1166,15 @@ class SQLParser {
 		var offset = 0;
 		if (!parameters)
 			parameters = new [];
+		var next_is_explain = false;
 		do {
 			var command = ToUpper(SQLParser::parseAtom(buffer, err, offset));
 			if (command) {
 				var syntax = new [];
 				switch (command) {
+					case "EXPLAIN":
+						next_is_explain = true;
+						continue;
 					case "SELECT":
 						if (!SQLParser::parseSelect(buffer, err, offset, syntax, parameters)) {
 							command = "";
@@ -1188,6 +1192,7 @@ class SQLParser {
 							command = "";
 							syntax = null;
 						}
+						next_is_explain = false;
 						break;
 					case "DELETE":
 						if (!SQLParser::parseDelete(buffer, err, offset, syntax, parameters)) {
@@ -1238,8 +1243,24 @@ class SQLParser {
 						command = "";
 						break;
 				}
+				if (next_is_explain) {
+					switch (command) {
+						case "SELECT":
+							syntax["EXPLAIN"] = true;
+							break;
+						case "UPDATE":
+						case "DELETE":
+						default:
+							SQLParser::error(err, offset, "Unsupported 'EXPLAIN' command '$command'");
+							command = "";
+							syntax = null;
+							break;
+					}
+					next_is_explain = false;
+				}
 				if (syntax)
 					statements[length statements] = syntax;
+
 			}
 		} while (command);
 		return statements;

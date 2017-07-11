@@ -505,6 +505,20 @@ class TinDataSet {
 		this.Connection._Handle(q, callback, this.UserData);
 	}
 
+	Explain(params, delegate callback) {
+		if (typeof params != "array") {
+			if (typeof params == "object")
+				params = Prepare(params);
+			else
+				params = ['$' => params];
+		} else
+			params = Prepare(params);
+		
+		var q = new Q(params, Connection.Database, this.Collection, "Q");
+		q.x["explain"] = true;
+		this.Connection._Handle(q, callback, this.UserData);
+	}
+
 	Query(params, delegate callback, fields = null, len = 0, start = 0, descending = false, priority = 0, map = false, reduce = "") {
 		if (typeof params != "array") {
 			if (typeof params == "object")
