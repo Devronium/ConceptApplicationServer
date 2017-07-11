@@ -73,8 +73,9 @@ class TinQueryParser {
 		if (IsSet(arr, "<=")) {
 			max = arr["<="];
 			max_mode = 2;
-		} else
-		if (typeof arr == "array") {
+		}
+
+		if ((typeof arr == "array") && (!min_mode) && (!max_mode)) {
 			this.sort(arr);
 			min = arr;
 			min_mode = 6;
