@@ -8,7 +8,9 @@ import standard.lib.readline
 
 include Worker.con
 include TinDataBases.con
+include File.con
 include CSV.con
+include SpreadsheetML.con
 include SQLParser.con
 
 include Charset.con
@@ -16,9 +18,13 @@ include PDFGenerator.con
 
 define REPORT_COLOR	"0.34 0.37 0.53"
 define INVERSE_COLOR	"1.0 1.0 1.0"
+define SSREPORT_COLOR	"#565E87"
+define SSINVERSE_COLOR	"#FFFFFF"
 define TITLE_FONT_SIZE	10
 define REPORT_FONT_SIZE	8
 define NEW_LINE		"\r\n"
+define CSV_BIG_FILE	0x100000
+define WRITE_BUFFER	0xFFFF
 
 class Container {
 	var Data;
@@ -305,7 +311,7 @@ class IOWorker extends Worker{
 			case "CREATE":
 				return " INDEX";
 			case "OUTPUT":
-				return " [file.csv|file.json|file.xml|file.bin||]";
+				return " [file.csv|file.json|file.xml|file.bin|file.xls|]";
 		}
 	}
 
@@ -553,6 +559,96 @@ class Main {
 		return k;
 	}
 
+	array_to_str(v, max_level = 10) {
+		if (max_level <= 0)
+			return "..";
+		if (typeof v == "array") {
+			var str = "";
+			for (var i = 0; i < length v; i++) {
+				var e = v[i];
+				switch (typeof e) {
+					case "string":
+					case "numeric":
+						if (str)
+							str += ", ";
+						str += e;
+						break;
+					case "array":
+						if (str)
+							str += ", ";
+						str += "[" + this.array_to_str(e, max_level - 1) + "]";
+						break;
+				}
+			}
+			return str;
+		}
+		return v;
+	}
+
+	WriteXLS(data, output) {
+		var sml = new SpreadsheetML();
+		if (data) {
+			var[] all_keys;
+			var[] text_keys;
+			sml.style("Header", ["Interior" => ["ss:Color" => SSREPORT_COLOR, "ss:Pattern" => "Solid"], "Font" => ["ss:Color" => SSINVERSE_COLOR, "ss:Bold" => "1"]]);
+
+			var sheet = sml << "Datasheet";
+			for (var i = 0; i < length data; i++) {
+				var obj = data[i];
+				if (obj) {
+					if (typeof obj == "class") {
+						obj = ToArray(obj);
+						data[i] = obj;
+					}
+					var keys = GetKeys(obj);
+					for (var j = 0; j < length keys; j++) {
+						var k = keys[j];
+						if ((typeof k == "string") && (k != "id") && (k[0] != '$') && (Pos(k, "_sha256") <= 0)) {
+							all_keys[k] = k;
+							text_keys[k] = StrReplace(k, "_", " ");
+						}
+					}
+				}
+			}
+			var table = sheet.Table();
+			table.style(0, "Header") << text_keys;
+
+			for (i = 0; i < length data; i++) {
+				obj = data[i];
+				if (obj) {
+					var line = new [];
+					for (j = 0; j < length all_keys; j++) {
+						k = all_keys[j];
+						if (IsSet(obj, k)) {
+							var v = obj[k];
+							switch (typeof v) {
+								case "string":
+								case "numeric":
+									line[length line] = v;
+									break;
+								case "array":
+									line[length line] = "[" + this.array_to_str(v) + "]";
+									break;
+								default:
+									line[length line] = "/" + typeof v + "/";
+							}
+						} else
+							line[length line] = "";
+					}
+					if (line)
+						table << line;
+				}
+			}
+		}
+		_unlink(output);
+		var f = new File("wb");
+		f.Name = output;
+		if (f.Open()) {
+			sml.Generate(f);
+			f.Close();
+		}
+	}
+
 	WriteCSV(data, output, separator = ",", line_ending = "\n") {
 		if (data) {
 			var[] all_keys;
@@ -579,31 +675,40 @@ class Main {
 				return;
 			}
 			csv += line_ending;
-			for (i = 0; i < length data; i++) {
-				obj = data[i];
-				if (typeof obj == "array") {
-					var line = "";
-					for (j = 0; j < length all_keys; j++) {
-						k = all_keys[j];
-						if (line)
-							line += separator;
-						if (IsSet(obj, k)) {
-							var v = obj[k];
-							switch (typeof v) {
-								case "string":
-								case "numeric":
-									line += SafeCSV("" + v, separator);
-									break;
-								default:
-									line += "/" + typeof v + "/";
+			_unlink(output);
+			var f = new File("wb");
+			f.Name = output;
+			if (f.Open()) {
+				for (i = 0; i < length data; i++) {
+					obj = data[i];
+					if (typeof obj == "array") {
+						var line = "";
+						for (j = 0; j < length all_keys; j++) {
+							k = all_keys[j];
+							if (line)
+								line += separator;
+							if (IsSet(obj, k)) {
+								var v = obj[k];
+								switch (typeof v) {
+									case "string":
+									case "numeric":
+										line += SafeCSV("" + v, separator);
+										break;
+									default:
+										line += "/" + typeof v + "/";
+								}
 							}
 						}
+						if (line)
+							csv += line + line_ending;
 					}
-					if (line)
-						csv += line + line_ending;
+					if (length csv > WRITE_BUFFER) {
+						f.Write(csv);
+						csv=  "";
+					}
 				}
+				f.Close();
 			}
-			WriteFile(csv, output);
 		} else
 			echo "${em("Dataset is empty")}" + NEW_LINE;
 	}
@@ -653,6 +758,9 @@ class Main {
 						break;
 					case "pdf":
 						WritePDF(r, output, query);
+						break;
+					case "xls":
+						WriteXLS(r, output);
 						break;
 					default:
 						WriteFile(JSONSerialize(r, true), output);
@@ -734,6 +842,68 @@ class Main {
 			}
 		}
 		return objects;
+	}
+
+	LoadBigCSV(csvname, collection, orig_query, s) {
+		var f = new File("rb");
+		f.Name = csvname;
+		if (!f.Open()) {
+			echo "Error opening CSV file $csvname" + NEW_LINE;
+			return;
+		}
+		var csv = new CSV();
+
+		var header = null;
+		var start = 0;
+		do {
+			if (f.Read(var buffer, CSV_BIG_FILE) <= 0)
+				break;
+			if (buffer) {
+				var data = csv.Parse(buffer, length buffer < CSV_BIG_FILE);
+				if ((data) && (!header)) {
+					header = data[0];
+					start = 1;
+				} else
+					start = 0;
+
+				if ((csv.Error) && (csv.ErrorText)) {
+					echo "Error in CSV: ${csv.ErrorText}" + NEW_LINE;
+					f.Close();
+					return;
+				}
+				var objects = new [];
+				if (header) {
+					for (var i = start; i < length data; i++) {
+						var line = data[i];
+						if (line) {
+							var obj = new [];
+							for (var j = 0; j < length header; j++) {
+								var v = line[j];
+								var h = header[j] ?? "_field_${j+1}";
+								// skip ids
+								if (h != '$') {
+									var v_val = value v;
+									if ("" + v_val == v)
+										obj[h] = v_val;
+									else
+										obj[h] = v;
+								}
+							}
+							if (obj)
+								objects[length objects] = obj;
+						}
+					}
+					if (objects) {
+						var dataset = new TinDataSet(connection, collection);
+						dataset.UserData = [orig_query, microseconds(), s];
+						dataset.Store(objects, true, storecallback);
+						queries++;
+						echo "${length objects} objects sent, waiting response (${queries} in queue, including this one)..." + NEW_LINE;
+					}
+				}
+			}
+		} while (data);
+		f.Close();
 	}
 
 	SkipID(obj) {
@@ -1274,26 +1444,31 @@ class Main {
 					echo "No file specified." + NEW_LINE;
 					return;
 				}
-				var data = ReadFile(parameters);
-				if (!data) {
-					echo "File '$parameters' is empty or does not exists." + NEW_LINE;
-					return;
+				var ext = ToLower(Ext(parameters));
+				if ((ext == "csv") && (filesize(parameters) > CSV_BIG_FILE)) {
+					LoadBigCSV(parameters, collection, orig_query, s);
+				} else {
+					var data = ReadFile(parameters);
+					if (!data) {
+						echo "File '$parameters' is empty or does not exists." + NEW_LINE;
+						return;
+					}
+					var objects = GetObjects(data, ext);
+					if (!objects) {
+						echo "File '$parameters' contains no usable objects." + NEW_LINE;
+						return;
+					}
+					dataset = new TinDataSet(connection, collection);
+					keys = GetKeys(objects);
+					var is_set = ((!keys) || (!keys[0]));
+					dataset.UserData = [orig_query, microseconds(), s];
+					dataset.Store(objects, is_set, storecallback);
+					queries++;
+					if (is_set)
+						echo "${length objects} objects sent, waiting response (${queries} in queue, including this one)..." + NEW_LINE;
+					else
+						echo "1 object sent, waiting response (${queries} in queue, including this one)..." + NEW_LINE;
 				}
-				var objects = GetObjects(data, ToLower(Ext(parameters)));
-				if (!objects) {
-					echo "File '$parameters' contains no usable objects." + NEW_LINE;
-					return;
-				}
-				dataset = new TinDataSet(connection, collection);
-				keys = GetKeys(objects);
-				var is_set = ((!keys) || (!keys[0]));
-				dataset.UserData = [orig_query, microseconds(), s];
-				dataset.Store(objects, is_set, storecallback);
-				queries++;
-				if (is_set)
-					echo "${length objects} objects sent, waiting response (${queries} in queue, including this one)..." + NEW_LINE;
-				else
-					echo "1 object sent, waiting response (${queries} in queue, including this one)..." + NEW_LINE;
 				break;
 			case "done":
 				if (queries) {

@@ -1,0 +1,259 @@
+import standard.lib.str
+import standard.lang.serialize
+
+class XMLTable {
+	var[] rows;
+	protected var[] row_styles;
+	protected var[] cell_styles;
+	protected var[] column_styles;
+	protected var columns;
+	public property Columns { get columns }
+
+	protected load(data, row = null, row_index = -1) {
+		if (typeof data == "class")
+			data = typeof data;
+
+		if (row_index >= 0) {
+			if (row_index + 1 > columns)
+				columns = row_index + 1;
+			row[row_index] = data;
+			return null;
+		}
+
+		if (typeof data != "array")
+			return false;
+
+		var[] new_row;
+		for (var i = 0; i < length data; i++)
+			this.load(data[i], new_row, i);
+		rows[length rows] = new_row;
+
+		return rows;
+	}
+
+	style(row_cell, styleid) {
+		var row = -1;
+		var col = -1;
+		if (typeof row_cell == "numeric")
+			row = row_cell;
+		else
+		if (typeof row_cell == "array") {
+			row = row_cell[0];
+			col = row_cell[1];
+		}
+		if ((row >= 0) && (col < 0))
+			row_styles["" + row] = styleid;
+		else
+		if ((row >= 0) && (col >= 0))
+			cell_styles["" + row + ":" + col] = styleid;
+		else
+		if (col >= 0)
+			column_styles["" + col] = styleid;
+
+		return this;
+	}
+
+	operator << (data) {
+		this.load(data);
+		return this;
+	}
+
+	Generate(file = null) {
+		var rows = this.rows;
+		var xml = " <ss:Table x:FullColumns=\"1\" x:FullRows=\"1\" ss:ExpandedColumnCount=\"${columns}\" ss:ExpandedRowCount=\"${length rows}\">\n";
+		for (var i = 0; i < length rows; i++) {
+			var row_style = "";
+			var row_key = "" + i;
+			if (IsSet(row_styles, row_key))
+				row_style = " ss:StyleID=\"${row_styles[row_key]}\"";
+
+			xml += "  <ss:Row$row_style>\n";
+			var row = rows[i];
+			if (row) {
+				for (var j = 0; j < length row; j++) {
+					var style = "";
+					var style_key = "" + i + ":" + j;
+					if (IsSet(cell_styles, style_key)) {
+						style = " ss:StyleID=\"${cell_styles[style_key]}\"";
+					} else {
+						var column_key = "" + j;
+						if (IsSet(column_styles, column_key))
+							style = " ss:StyleID=\"${column_styles[column_key]}\"";
+					}
+
+					var data = row[j];
+					var cell_xml = "   <ss:Cell$style>";
+					cell_xml += "<ss:Data ss:Type=\"";
+					switch (typeof data) {
+						case "numeric":
+							cell_xml += "Number";
+							break;
+						case "string":
+ 							cell_xml += "String";
+							data = SpreadsheetML::__xmlsafe(data);
+							break;
+						case "array":
+							if (length data > 1) {
+								var keys = GetKeys(data);
+								if ((keys) && (keys[0] == "=")) {
+									var formula = SpreadsheetML::__xmlsafe(data["="]);
+									xml += "   <ss:Cell$style ss:Formula=\"$formula\"/>";
+									continue;
+								}
+							}
+							// no break here
+						default:
+							cell_xml += "String";
+							data = "[${typeof data}]";
+							break;
+					}
+					cell_xml += "\">$data</ss:Data>";
+					cell_xml += "</ss:Cell>\n";
+					xml += cell_xml;
+				}
+			}
+			xml += "  </ss:Row>\n";
+			if ((file) && (length xml > 0xFFFF)) {
+				file.Write(xml);
+				xml = "";
+			}
+		}
+		xml += " </ss:Table>\n";
+		if (file) {
+			file.Write(xml);
+			xml = "";
+		}
+		return xml;
+	}
+}
+
+class XMLWorksheet {
+	var name;
+	var[] elements;
+
+	XMLWorksheet(name) {
+		this.name = name;
+	}
+
+	Table() {
+		var table = new XMLTable();
+		elements[length elements] = table;
+		return table;
+	}
+
+	Generate(file = null) {
+		var name = SpreadsheetML::__xmlsafe(this.name);
+		var xml = "<Worksheet ss:Name=\"$name\">\n";
+		if (file) {
+			file.Write(xml);
+			xml = "";
+		}
+		for (var i = 0; i < length elements; i++) {
+			var e = elements[i];	
+			if (e)
+				xml += e.Generate(file);
+		}
+		xml += "</Worksheet>\n";
+		if (file) {
+			file.Write(xml);
+			xml = "";
+		}
+		return xml;
+	}
+}
+
+class SpreadsheetML {
+	var[] sheets;
+	var[] styles;
+	private var Write;
+
+	style(name, attributes) {
+		styles[name] = attributes;
+		return this;
+	}
+
+	static __xmlsafe(str) {
+		if (typeof str == "string") {
+			str = StrReplace(str, "&", "&amp;");
+			str = StrReplace(str, "<", "&lt;");
+			str = StrReplace(str, ">", "&gt;");
+			str = StrReplace(str, "\"", "&quot;");
+			str = StrReplace(str, "'", "&apos;");
+		}
+		return str;
+	}
+	add(name = "") {
+		if (!name)
+			name = "Sheet" + (length sheets + 1);
+		var sheet = new XMLWorksheet(name);
+		sheets[length sheets] = sheet;
+		return sheet;
+	}
+
+	operator << (name) {
+		return add(name);
+	}
+
+	Generate(file = null) {
+		var xml = '<?xml version="1.0" encoding=\"UTF-8\"?>\n<?mso-application progid="Excel.Sheet"?>\n<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet" xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet" xmlns:x="urn:schemas-microsoft-com:office:excel">\n';
+		if (styles) {
+			xml += " <Styles>\n";
+			var keys = GetKeys(styles);
+			for (var i = 0; i < length keys; i++) {
+				var k = keys[i];
+				if (k) {
+					var id_str = SpreadsheetML::__xmlsafe(k);
+					xml += "  <Style ss:ID=\"$id_str\" ss:Name=\"$id_str\">\n";
+					var attr = styles[k];
+					if ((attr) && (typeof attr == "array")) {
+						var keys2 = GetKeys(attr);
+						if (keys2) {
+							for (var j = 0; j < length keys2; j++) {
+								var k2 = keys2[j];	
+								if (k2) {
+									var attr2 = attr[k2];
+									if ((attr2) && (typeof attr2 == "array")) {
+										k2 = SpreadsheetML::__xmlsafe(k2);
+										var keys3 = GetKeys(attr2);
+										if (keys3) {
+											var attr_str = "";
+											for (var i1 = 0; i1 < length keys3; i1++) {
+												var k3 = keys3[i1];
+												if (k3) {
+													var val = attr2[k3];
+													if ((typeof val == "string") || (typeof val == "numeric")) {
+														k3 = SpreadsheetML::__xmlsafe(k3);
+														val = SpreadsheetML::__xmlsafe(val);
+														attr_str += " $k3=\"$val\"";
+													}
+												}
+											}
+											xml += "   <$k2$attr_str/>\n";
+										}
+									}
+								}
+							}
+						}
+					}
+					xml += "  </Style>\n";
+				}
+			}
+			xml += " </Styles>\n";
+		}
+		if (file) {
+			file.Write(xml);
+			xml = "";
+		}
+		for (i = 0; i < length sheets; i++) {
+			var sheet = sheets[i];
+			if (sheet)
+				xml += sheet.Generate(file);
+		}
+		xml += "</Workbook>\n";
+		if (file) {
+			file.Write(xml);
+			xml = "";
+		}
+		return xml;
+	}
+}
