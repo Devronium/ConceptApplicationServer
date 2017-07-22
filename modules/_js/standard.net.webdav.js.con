@@ -1,0 +1,687 @@
+/* This file is generated automatically by generatejs.con. Do not edit. */
+
+import standard.net.webdav
+
+class ECMABRIDGE_standard_net_webdav {
+	__cjs_ne_accept_2xx(a, b, c) {
+		return ne_accept_2xx(a, b, c);
+	}
+
+	__cjs_ne_accept_always(a, b, c) {
+		return ne_accept_always(a, b, c);
+	}
+
+	__cjs_ne_add_response_body_reader(a, b, c) {
+		return ne_add_response_body_reader(a, b, c);
+	}
+
+	__cjs_ne_get_response_header(a, b) {
+		return ne_get_response_header(a, b);
+	}
+
+	__cjs_ne_response_header_iterate(a, b, c, d) {
+		return ne_response_header_iterate(a, b, c, d);
+	}
+
+	__cjs_ne_add_request_header(a, b, c) {
+		return ne_add_request_header(a, b, c);
+	}
+
+	__cjs_ne_request_dispatch(a) {
+		return ne_request_dispatch(a);
+	}
+
+	__cjs_ne_get_status(a) {
+		return ne_get_status(a);
+	}
+
+	__cjs_ne_get_session(a) {
+		return ne_get_session(a);
+	}
+
+	__cjs_ne_request_destroy(a) {
+		return ne_request_destroy(a);
+	}
+
+	__cjs_ne_begin_request(a) {
+		return ne_begin_request(a);
+	}
+
+	__cjs_ne_end_request(a) {
+		return ne_end_request(a);
+	}
+
+	__cjs_ne_read_response_block(a, b, c) {
+		return ne_read_response_block(a, b, c);
+	}
+
+	__cjs_ne_discard_response(a) {
+		return ne_discard_response(a);
+	}
+
+	__cjs_ne_read_response_to_fd(a, b) {
+		return ne_read_response_to_fd(a, b);
+	}
+
+	__cjs_ne_set_request_flag(a, b, c) {
+		return ne_set_request_flag(a, b, c);
+	}
+
+	__cjs_ne_get_request_flag(a, b) {
+		return ne_get_request_flag(a, b);
+	}
+
+	__cjs_ne_redirect_register(a) {
+		return ne_redirect_register(a);
+	}
+
+	__cjs_ne_redirect_location(a) {
+		return ne_redirect_location(a);
+	}
+
+	__cjs_ne_copy(a, b, c, d, e) {
+		return ne_copy(a, b, c, d, e);
+	}
+
+	__cjs_ne_move(a, b, c, d) {
+		return ne_move(a, b, c, d);
+	}
+
+	__cjs_ne_delete(a, b) {
+		return ne_delete(a, b);
+	}
+
+	__cjs_ne_mkcol(a, b) {
+		return ne_mkcol(a, b);
+	}
+
+	__cjs_ne_add_depth_header(a, b) {
+		return ne_add_depth_header(a, b);
+	}
+
+	__cjs_ne_getmodtime(a, b, c) {
+		return ne_getmodtime(a, b, c);
+	}
+
+	__cjs_ne_get_content_type(a, b) {
+		return ne_get_content_type(a, b);
+	}
+
+	__cjs_ne_options2(a, b, c) {
+		return ne_options2(a, b, c);
+	}
+
+	__cjs_ne_get_range(a, b, c, d) {
+		return ne_get_range(a, b, c, d);
+	}
+
+	__cjs_ne_post(a, b, c, d) {
+		return ne_post(a, b, c, d);
+	}
+
+	__cjs_ne_set_server_auth(a, b) {
+		return ne_set_server_auth(a, b);
+	}
+
+	__cjs_ne_set_proxy_auth(a, b) {
+		return ne_set_proxy_auth(a, b);
+	}
+
+	__cjs_ne_add_server_auth(a, b, c) {
+		return ne_add_server_auth(a, b, c);
+	}
+
+	__cjs_ne_add_proxy_auth(a, b, c) {
+		return ne_add_proxy_auth(a, b, c);
+	}
+
+	__cjs_ne_forget_auth(a) {
+		return ne_forget_auth(a);
+	}
+
+	__cjs_ne_i18n_init(a) {
+		return ne_i18n_init(a);
+	}
+
+	__cjs_ne_lock_create() {
+		return ne_lock_create();
+	}
+
+	__cjs_ne_lock_copy(a) {
+		return ne_lock_copy(a);
+	}
+
+	__cjs_ne_lock_free(a) {
+		return ne_lock_free(a);
+	}
+
+	__cjs_ne_lock_destroy(a) {
+		return ne_lock_destroy(a);
+	}
+
+	__cjs_ne_lockstore_create() {
+		return ne_lockstore_create();
+	}
+
+	__cjs_ne_lockstore_register(a, b) {
+		return ne_lockstore_register(a, b);
+	}
+
+	__cjs_ne_lockstore_destroy(a) {
+		return ne_lockstore_destroy(a);
+	}
+
+	__cjs_ne_lockstore_add(a, b) {
+		return ne_lockstore_add(a, b);
+	}
+
+	__cjs_ne_lockstore_remove(a, b) {
+		return ne_lockstore_remove(a, b);
+	}
+
+	__cjs_ne_lockstore_first(a) {
+		return ne_lockstore_first(a);
+	}
+
+	__cjs_ne_lockstore_next(a) {
+		return ne_lockstore_next(a);
+	}
+
+	__cjs_ne_lockstore_findbyuri(a, b) {
+		return ne_lockstore_findbyuri(a, b);
+	}
+
+	__cjs_ne_lock(a, b) {
+		return ne_lock(a, b);
+	}
+
+	__cjs_ne_unlock(a, b) {
+		return ne_unlock(a, b);
+	}
+
+	__cjs_ne_lock_refresh(a, b) {
+		return ne_lock_refresh(a, b);
+	}
+
+	__cjs_ne_lock_discover(a, b, c) {
+		return ne_lock_discover(a, b, c);
+	}
+
+	__cjs_ne_lock_using_resource(a, b, c) {
+		return ne_lock_using_resource(a, b, c);
+	}
+
+	__cjs_ne_lock_using_parent(a, b) {
+		return ne_lock_using_parent(a, b);
+	}
+
+	__cjs_ne_session_create(a, b, c) {
+		return ne_session_create(a, b, c);
+	}
+
+	__cjs_ne_session_destroy(a) {
+		return ne_session_destroy(a);
+	}
+
+	__cjs_ne_close_connection(a) {
+		return ne_close_connection(a);
+	}
+
+	__cjs_ne_session_proxy(a, b, c) {
+		return ne_session_proxy(a, b, c);
+	}
+
+	__cjs_ne_set_session_flag(a, b, c) {
+		return ne_set_session_flag(a, b, c);
+	}
+
+	__cjs_ne_get_session_flag(a, b) {
+		return ne_get_session_flag(a, b);
+	}
+
+	__cjs_ne_set_addrlist(a, b, c) {
+		return ne_set_addrlist(a, b, c);
+	}
+
+	__cjs_ne_set_localaddr(a, b) {
+		return ne_set_localaddr(a, b);
+	}
+
+	__cjs_ne_set_session_private(a, b, c) {
+		return ne_set_session_private(a, b, c);
+	}
+
+	__cjs_ne_get_session_private(a, b) {
+		return ne_get_session_private(a, b);
+	}
+
+	__cjs_ne_ssl_set_clicert(a, b) {
+		return ne_ssl_set_clicert(a, b);
+	}
+
+	__cjs_ne_ssl_trust_cert(a, b) {
+		return ne_ssl_trust_cert(a, b);
+	}
+
+	__cjs_ne_ssl_trust_default_ca(a) {
+		return ne_ssl_trust_default_ca(a);
+	}
+
+	__cjs_ne_set_read_timeout(a, b) {
+		return ne_set_read_timeout(a, b);
+	}
+
+	__cjs_ne_set_connect_timeout(a, b) {
+		return ne_set_connect_timeout(a, b);
+	}
+
+	__cjs_ne_set_useragent(a, b) {
+		return ne_set_useragent(a, b);
+	}
+
+	__cjs_ne_version_pre_http11(a) {
+		return ne_version_pre_http11(a);
+	}
+
+	__cjs_ne_get_server_hostport(a) {
+		return ne_get_server_hostport(a);
+	}
+
+	__cjs_ne_get_scheme(a) {
+		return ne_get_scheme(a);
+	}
+
+	__cjs_ne_fill_server_uri(a, b) {
+		return ne_fill_server_uri(a, b);
+	}
+
+	__cjs_ne_get_error(a) {
+		return ne_get_error(a);
+	}
+
+	__cjs_ne_sock_init() {
+		return ne_sock_init();
+	}
+
+	__cjs_ne_sock_exit() {
+		return ne_sock_exit();
+	}
+
+	__cjs_ne_addr_resolve(a, b) {
+		return ne_addr_resolve(a, b);
+	}
+
+	__cjs_ne_addr_result(a) {
+		return ne_addr_result(a);
+	}
+
+	__cjs_ne_addr_first(a) {
+		return ne_addr_first(a);
+	}
+
+	__cjs_ne_addr_next(a) {
+		return ne_addr_next(a);
+	}
+
+	__cjs_ne_addr_error(a, b) {
+		return ne_addr_error(a, b);
+	}
+
+	__cjs_ne_addr_destroy(a) {
+		return ne_addr_destroy(a);
+	}
+
+	__cjs_ne_iaddr_make(a, b) {
+		return ne_iaddr_make(a, b);
+	}
+
+	__cjs_ne_iaddr_cmp(a, b) {
+		return ne_iaddr_cmp(a, b);
+	}
+
+	__cjs_ne_iaddr_typeof(a) {
+		return ne_iaddr_typeof(a);
+	}
+
+	__cjs_ne_iaddr_print(a, b, c) {
+		return ne_iaddr_print(a, b, c);
+	}
+
+	__cjs_ne_iaddr_reverse(a, b, c) {
+		return ne_iaddr_reverse(a, b, c);
+	}
+
+	__cjs_ne_iaddr_free(a) {
+		return ne_iaddr_free(a);
+	}
+
+	__cjs_ne_sock_create() {
+		return ne_sock_create();
+	}
+
+	__cjs_ne_sock_prebind(a, b, c) {
+		return ne_sock_prebind(a, b, c);
+	}
+
+	__cjs_ne_sock_connect(a, b, c) {
+		return ne_sock_connect(a, b, c);
+	}
+
+	__cjs_ne_sock_read(a, b, c) {
+		return ne_sock_read(a, b, c);
+	}
+
+	__cjs_ne_sock_peek(a, b, c) {
+		return ne_sock_peek(a, b, c);
+	}
+
+	__cjs_ne_sock_block(a, b) {
+		return ne_sock_block(a, b);
+	}
+
+	__cjs_ne_sock_fullwrite(a, b, c) {
+		return ne_sock_fullwrite(a, b, c);
+	}
+
+	__cjs_ne_sock_readline(a, b, c) {
+		return ne_sock_readline(a, b, c);
+	}
+
+	__cjs_ne_sock_fullread(a, b, c) {
+		return ne_sock_fullread(a, b, c);
+	}
+
+	__cjs_ne_sock_accept(a, b) {
+		return ne_sock_accept(a, b);
+	}
+
+	__cjs_ne_sock_fd(a) {
+		return ne_sock_fd(a);
+	}
+
+	__cjs_ne_sock_peer(a, b) {
+		return ne_sock_peer(a, b);
+	}
+
+	__cjs_ne_sock_close(a) {
+		return ne_sock_close(a);
+	}
+
+	__cjs_ne_sock_error(a) {
+		return ne_sock_error(a);
+	}
+
+	__cjs_ne_sock_read_timeout(a, b) {
+		return ne_sock_read_timeout(a, b);
+	}
+
+	__cjs_ne_sock_connect_timeout(a, b) {
+		return ne_sock_connect_timeout(a, b);
+	}
+
+	__cjs_ne_sock_accept_ssl(a, b) {
+		return ne_sock_accept_ssl(a, b);
+	}
+
+	__cjs_ne_sock_connect_ssl(a, b, c) {
+		return ne_sock_connect_ssl(a, b, c);
+	}
+
+	__cjs_ne_sock_sessid(a, b, c) {
+		return ne_sock_sessid(a, b, c);
+	}
+
+	__cjs_ne_sock_cipher(a) {
+		return ne_sock_cipher(a);
+	}
+
+	__cjs_ne_ssl_readable_dname(a) {
+		return ne_ssl_readable_dname(a);
+	}
+
+	__cjs_ne_ssl_dname_cmp(a, b) {
+		return ne_ssl_dname_cmp(a, b);
+	}
+
+	__cjs_ne_ssl_cert_read(a) {
+		return ne_ssl_cert_read(a);
+	}
+
+	__cjs_ne_ssl_cert_write(a, b) {
+		return ne_ssl_cert_write(a, b);
+	}
+
+	__cjs_ne_ssl_cert_export(a) {
+		return ne_ssl_cert_export(a);
+	}
+
+	__cjs_ne_ssl_cert_import(a) {
+		return ne_ssl_cert_import(a);
+	}
+
+	__cjs_ne_ssl_cert_identity(a) {
+		return ne_ssl_cert_identity(a);
+	}
+
+	__cjs_ne_ssl_cert_signedby(a) {
+		return ne_ssl_cert_signedby(a);
+	}
+
+	__cjs_ne_ssl_cert_issuer(a) {
+		return ne_ssl_cert_issuer(a);
+	}
+
+	__cjs_ne_ssl_cert_subject(a) {
+		return ne_ssl_cert_subject(a);
+	}
+
+	__cjs_ne_ssl_cert_digest(a, b) {
+		return ne_ssl_cert_digest(a, b);
+	}
+
+	__cjs_ne_ssl_cert_validity_time(a, b, c) {
+		return ne_ssl_cert_validity_time(a, b, c);
+	}
+
+	__cjs_ne_ssl_cert_validity(a, b, c) {
+		return ne_ssl_cert_validity(a, b, c);
+	}
+
+	__cjs_ne_ssl_cert_cmp(a, b) {
+		return ne_ssl_cert_cmp(a, b);
+	}
+
+	__cjs_ne_ssl_cert_free(a) {
+		return ne_ssl_cert_free(a);
+	}
+
+	__cjs_ne_ssl_clicert_read(a) {
+		return ne_ssl_clicert_read(a);
+	}
+
+	__cjs_ne_ssl_clicert_name(a) {
+		return ne_ssl_clicert_name(a);
+	}
+
+	__cjs_ne_ssl_clicert_encrypted(a) {
+		return ne_ssl_clicert_encrypted(a);
+	}
+
+	__cjs_ne_ssl_clicert_decrypt(a, b) {
+		return ne_ssl_clicert_decrypt(a, b);
+	}
+
+	__cjs_ne_ssl_clicert_owner(a) {
+		return ne_ssl_clicert_owner(a);
+	}
+
+	__cjs_ne_ssl_clicert_free(a) {
+		return ne_ssl_clicert_free(a);
+	}
+
+	__cjs_ne_ssl_context_create(a) {
+		return ne_ssl_context_create(a);
+	}
+
+	__cjs_ne_ssl_context_trustcert(a, b) {
+		return ne_ssl_context_trustcert(a, b);
+	}
+
+	__cjs_ne_ssl_context_keypair(a, b, c) {
+		return ne_ssl_context_keypair(a, b, c);
+	}
+
+	__cjs_ne_ssl_context_set_verify(a, b, c, d) {
+		return ne_ssl_context_set_verify(a, b, c, d);
+	}
+
+	__cjs_ne_ssl_context_set_flag(a, b, c) {
+		return ne_ssl_context_set_flag(a, b, c);
+	}
+
+	__cjs_ne_ssl_context_destroy(a) {
+		return ne_ssl_context_destroy(a);
+	}
+
+	wrap(js) {
+		js.wrap(this.__cjs_ne_accept_2xx, "__cjs_ne_accept_2xx");
+		js.wrap(this.__cjs_ne_accept_always, "__cjs_ne_accept_always");
+		js.wrap(this.__cjs_ne_add_response_body_reader, "__cjs_ne_add_response_body_reader");
+		js.wrap(this.__cjs_ne_get_response_header, "__cjs_ne_get_response_header");
+		js.wrap(this.__cjs_ne_response_header_iterate, "__cjs_ne_response_header_iterate");
+		js.wrap(this.__cjs_ne_add_request_header, "__cjs_ne_add_request_header");
+		js.wrap(this.__cjs_ne_request_dispatch, "__cjs_ne_request_dispatch");
+		js.wrap(this.__cjs_ne_get_status, "__cjs_ne_get_status");
+		js.wrap(this.__cjs_ne_get_session, "__cjs_ne_get_session");
+		js.wrap(this.__cjs_ne_request_destroy, "__cjs_ne_request_destroy");
+		js.wrap(this.__cjs_ne_begin_request, "__cjs_ne_begin_request");
+		js.wrap(this.__cjs_ne_end_request, "__cjs_ne_end_request");
+		js.wrap(this.__cjs_ne_read_response_block, "__cjs_ne_read_response_block");
+		js.wrap(this.__cjs_ne_discard_response, "__cjs_ne_discard_response");
+		js.wrap(this.__cjs_ne_read_response_to_fd, "__cjs_ne_read_response_to_fd");
+		js.wrap(this.__cjs_ne_set_request_flag, "__cjs_ne_set_request_flag");
+		js.wrap(this.__cjs_ne_get_request_flag, "__cjs_ne_get_request_flag");
+		js.wrap(this.__cjs_ne_redirect_register, "__cjs_ne_redirect_register");
+		js.wrap(this.__cjs_ne_redirect_location, "__cjs_ne_redirect_location");
+		js.wrap(this.__cjs_ne_copy, "__cjs_ne_copy");
+		js.wrap(this.__cjs_ne_move, "__cjs_ne_move");
+		js.wrap(this.__cjs_ne_delete, "__cjs_ne_delete");
+		js.wrap(this.__cjs_ne_mkcol, "__cjs_ne_mkcol");
+		js.wrap(this.__cjs_ne_add_depth_header, "__cjs_ne_add_depth_header");
+		js.wrap(this.__cjs_ne_getmodtime, "__cjs_ne_getmodtime");
+		js.wrap(this.__cjs_ne_get_content_type, "__cjs_ne_get_content_type");
+		js.wrap(this.__cjs_ne_options2, "__cjs_ne_options2");
+		js.wrap(this.__cjs_ne_get_range, "__cjs_ne_get_range");
+		js.wrap(this.__cjs_ne_post, "__cjs_ne_post");
+		js.wrap(this.__cjs_ne_set_server_auth, "__cjs_ne_set_server_auth");
+		js.wrap(this.__cjs_ne_set_proxy_auth, "__cjs_ne_set_proxy_auth");
+		js.wrap(this.__cjs_ne_add_server_auth, "__cjs_ne_add_server_auth");
+		js.wrap(this.__cjs_ne_add_proxy_auth, "__cjs_ne_add_proxy_auth");
+		js.wrap(this.__cjs_ne_forget_auth, "__cjs_ne_forget_auth");
+		js.wrap(this.__cjs_ne_i18n_init, "__cjs_ne_i18n_init");
+		js.wrap(this.__cjs_ne_lock_create, "__cjs_ne_lock_create");
+		js.wrap(this.__cjs_ne_lock_copy, "__cjs_ne_lock_copy");
+		js.wrap(this.__cjs_ne_lock_free, "__cjs_ne_lock_free");
+		js.wrap(this.__cjs_ne_lock_destroy, "__cjs_ne_lock_destroy");
+		js.wrap(this.__cjs_ne_lockstore_create, "__cjs_ne_lockstore_create");
+		js.wrap(this.__cjs_ne_lockstore_register, "__cjs_ne_lockstore_register");
+		js.wrap(this.__cjs_ne_lockstore_destroy, "__cjs_ne_lockstore_destroy");
+		js.wrap(this.__cjs_ne_lockstore_add, "__cjs_ne_lockstore_add");
+		js.wrap(this.__cjs_ne_lockstore_remove, "__cjs_ne_lockstore_remove");
+		js.wrap(this.__cjs_ne_lockstore_first, "__cjs_ne_lockstore_first");
+		js.wrap(this.__cjs_ne_lockstore_next, "__cjs_ne_lockstore_next");
+		js.wrap(this.__cjs_ne_lockstore_findbyuri, "__cjs_ne_lockstore_findbyuri");
+		js.wrap(this.__cjs_ne_lock, "__cjs_ne_lock");
+		js.wrap(this.__cjs_ne_unlock, "__cjs_ne_unlock");
+		js.wrap(this.__cjs_ne_lock_refresh, "__cjs_ne_lock_refresh");
+		js.wrap(this.__cjs_ne_lock_discover, "__cjs_ne_lock_discover");
+		js.wrap(this.__cjs_ne_lock_using_resource, "__cjs_ne_lock_using_resource");
+		js.wrap(this.__cjs_ne_lock_using_parent, "__cjs_ne_lock_using_parent");
+		js.wrap(this.__cjs_ne_session_create, "__cjs_ne_session_create");
+		js.wrap(this.__cjs_ne_session_destroy, "__cjs_ne_session_destroy");
+		js.wrap(this.__cjs_ne_close_connection, "__cjs_ne_close_connection");
+		js.wrap(this.__cjs_ne_session_proxy, "__cjs_ne_session_proxy");
+		js.wrap(this.__cjs_ne_set_session_flag, "__cjs_ne_set_session_flag");
+		js.wrap(this.__cjs_ne_get_session_flag, "__cjs_ne_get_session_flag");
+		js.wrap(this.__cjs_ne_set_addrlist, "__cjs_ne_set_addrlist");
+		js.wrap(this.__cjs_ne_set_localaddr, "__cjs_ne_set_localaddr");
+		js.wrap(this.__cjs_ne_set_session_private, "__cjs_ne_set_session_private");
+		js.wrap(this.__cjs_ne_get_session_private, "__cjs_ne_get_session_private");
+		js.wrap(this.__cjs_ne_ssl_set_clicert, "__cjs_ne_ssl_set_clicert");
+		js.wrap(this.__cjs_ne_ssl_trust_cert, "__cjs_ne_ssl_trust_cert");
+		js.wrap(this.__cjs_ne_ssl_trust_default_ca, "__cjs_ne_ssl_trust_default_ca");
+		js.wrap(this.__cjs_ne_set_read_timeout, "__cjs_ne_set_read_timeout");
+		js.wrap(this.__cjs_ne_set_connect_timeout, "__cjs_ne_set_connect_timeout");
+		js.wrap(this.__cjs_ne_set_useragent, "__cjs_ne_set_useragent");
+		js.wrap(this.__cjs_ne_version_pre_http11, "__cjs_ne_version_pre_http11");
+		js.wrap(this.__cjs_ne_get_server_hostport, "__cjs_ne_get_server_hostport");
+		js.wrap(this.__cjs_ne_get_scheme, "__cjs_ne_get_scheme");
+		js.wrap(this.__cjs_ne_fill_server_uri, "__cjs_ne_fill_server_uri");
+		js.wrap(this.__cjs_ne_get_error, "__cjs_ne_get_error");
+		js.wrap(this.__cjs_ne_sock_init, "__cjs_ne_sock_init");
+		js.wrap(this.__cjs_ne_sock_exit, "__cjs_ne_sock_exit");
+		js.wrap(this.__cjs_ne_addr_resolve, "__cjs_ne_addr_resolve");
+		js.wrap(this.__cjs_ne_addr_result, "__cjs_ne_addr_result");
+		js.wrap(this.__cjs_ne_addr_first, "__cjs_ne_addr_first");
+		js.wrap(this.__cjs_ne_addr_next, "__cjs_ne_addr_next");
+		js.wrap(this.__cjs_ne_addr_error, "__cjs_ne_addr_error");
+		js.wrap(this.__cjs_ne_addr_destroy, "__cjs_ne_addr_destroy");
+		js.wrap(this.__cjs_ne_iaddr_make, "__cjs_ne_iaddr_make");
+		js.wrap(this.__cjs_ne_iaddr_cmp, "__cjs_ne_iaddr_cmp");
+		js.wrap(this.__cjs_ne_iaddr_typeof, "__cjs_ne_iaddr_typeof");
+		js.wrap(this.__cjs_ne_iaddr_print, "__cjs_ne_iaddr_print");
+		js.wrap(this.__cjs_ne_iaddr_reverse, "__cjs_ne_iaddr_reverse");
+		js.wrap(this.__cjs_ne_iaddr_free, "__cjs_ne_iaddr_free");
+		js.wrap(this.__cjs_ne_sock_create, "__cjs_ne_sock_create");
+		js.wrap(this.__cjs_ne_sock_prebind, "__cjs_ne_sock_prebind");
+		js.wrap(this.__cjs_ne_sock_connect, "__cjs_ne_sock_connect");
+		js.wrap(this.__cjs_ne_sock_read, "__cjs_ne_sock_read");
+		js.wrap(this.__cjs_ne_sock_peek, "__cjs_ne_sock_peek");
+		js.wrap(this.__cjs_ne_sock_block, "__cjs_ne_sock_block");
+		js.wrap(this.__cjs_ne_sock_fullwrite, "__cjs_ne_sock_fullwrite");
+		js.wrap(this.__cjs_ne_sock_readline, "__cjs_ne_sock_readline");
+		js.wrap(this.__cjs_ne_sock_fullread, "__cjs_ne_sock_fullread");
+		js.wrap(this.__cjs_ne_sock_accept, "__cjs_ne_sock_accept");
+		js.wrap(this.__cjs_ne_sock_fd, "__cjs_ne_sock_fd");
+		js.wrap(this.__cjs_ne_sock_peer, "__cjs_ne_sock_peer");
+		js.wrap(this.__cjs_ne_sock_close, "__cjs_ne_sock_close");
+		js.wrap(this.__cjs_ne_sock_error, "__cjs_ne_sock_error");
+		js.wrap(this.__cjs_ne_sock_read_timeout, "__cjs_ne_sock_read_timeout");
+		js.wrap(this.__cjs_ne_sock_connect_timeout, "__cjs_ne_sock_connect_timeout");
+		js.wrap(this.__cjs_ne_sock_accept_ssl, "__cjs_ne_sock_accept_ssl");
+		js.wrap(this.__cjs_ne_sock_connect_ssl, "__cjs_ne_sock_connect_ssl");
+		js.wrap(this.__cjs_ne_sock_sessid, "__cjs_ne_sock_sessid");
+		js.wrap(this.__cjs_ne_sock_cipher, "__cjs_ne_sock_cipher");
+		js.wrap(this.__cjs_ne_ssl_readable_dname, "__cjs_ne_ssl_readable_dname");
+		js.wrap(this.__cjs_ne_ssl_dname_cmp, "__cjs_ne_ssl_dname_cmp");
+		js.wrap(this.__cjs_ne_ssl_cert_read, "__cjs_ne_ssl_cert_read");
+		js.wrap(this.__cjs_ne_ssl_cert_write, "__cjs_ne_ssl_cert_write");
+		js.wrap(this.__cjs_ne_ssl_cert_export, "__cjs_ne_ssl_cert_export");
+		js.wrap(this.__cjs_ne_ssl_cert_import, "__cjs_ne_ssl_cert_import");
+		js.wrap(this.__cjs_ne_ssl_cert_identity, "__cjs_ne_ssl_cert_identity");
+		js.wrap(this.__cjs_ne_ssl_cert_signedby, "__cjs_ne_ssl_cert_signedby");
+		js.wrap(this.__cjs_ne_ssl_cert_issuer, "__cjs_ne_ssl_cert_issuer");
+		js.wrap(this.__cjs_ne_ssl_cert_subject, "__cjs_ne_ssl_cert_subject");
+		js.wrap(this.__cjs_ne_ssl_cert_digest, "__cjs_ne_ssl_cert_digest");
+		js.wrap(this.__cjs_ne_ssl_cert_validity_time, "__cjs_ne_ssl_cert_validity_time");
+		js.wrap(this.__cjs_ne_ssl_cert_validity, "__cjs_ne_ssl_cert_validity");
+		js.wrap(this.__cjs_ne_ssl_cert_cmp, "__cjs_ne_ssl_cert_cmp");
+		js.wrap(this.__cjs_ne_ssl_cert_free, "__cjs_ne_ssl_cert_free");
+		js.wrap(this.__cjs_ne_ssl_clicert_read, "__cjs_ne_ssl_clicert_read");
+		js.wrap(this.__cjs_ne_ssl_clicert_name, "__cjs_ne_ssl_clicert_name");
+		js.wrap(this.__cjs_ne_ssl_clicert_encrypted, "__cjs_ne_ssl_clicert_encrypted");
+		js.wrap(this.__cjs_ne_ssl_clicert_decrypt, "__cjs_ne_ssl_clicert_decrypt");
+		js.wrap(this.__cjs_ne_ssl_clicert_owner, "__cjs_ne_ssl_clicert_owner");
+		js.wrap(this.__cjs_ne_ssl_clicert_free, "__cjs_ne_ssl_clicert_free");
+		js.wrap(this.__cjs_ne_ssl_context_create, "__cjs_ne_ssl_context_create");
+		js.wrap(this.__cjs_ne_ssl_context_trustcert, "__cjs_ne_ssl_context_trustcert");
+		js.wrap(this.__cjs_ne_ssl_context_keypair, "__cjs_ne_ssl_context_keypair");
+		js.wrap(this.__cjs_ne_ssl_context_set_verify, "__cjs_ne_ssl_context_set_verify");
+		js.wrap(this.__cjs_ne_ssl_context_set_flag, "__cjs_ne_ssl_context_set_flag");
+		js.wrap(this.__cjs_ne_ssl_context_destroy, "__cjs_ne_ssl_context_destroy");
+	}
+
+	ECMABRIDGE_standard_net_webdav(js) {
+		this.wrap(js);
+	}
+}

@@ -1,0 +1,27 @@
+/* This file is generated automatically by generatejs.con. Do not edit. */
+
+import standard.net.dns
+
+class ECMABRIDGE_standard_net_dns {
+	__cjs_DNSReversed(a) {
+		return DNSReversed(a);
+	}
+
+	__cjs_DNSResolve(a) {
+		return DNSResolve(a);
+	}
+
+	__cjs_DNSQuery(a, b, c = null) {
+		return DNSQuery(a, b, c = null);
+	}
+
+	wrap(js) {
+		js.wrap(this.__cjs_DNSReversed, "__cjs_DNSReversed");
+		js.wrap(this.__cjs_DNSResolve, "__cjs_DNSResolve");
+		js.wrap(this.__cjs_DNSQuery, "__cjs_DNSQuery");
+	}
+
+	ECMABRIDGE_standard_net_dns(js) {
+		this.wrap(js);
+	}
+}

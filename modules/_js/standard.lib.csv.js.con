@@ -1,0 +1,47 @@
+/* This file is generated automatically by generatejs.con. Do not edit. */
+
+import standard.lib.csv
+
+class ECMABRIDGE_standard_lib_csv {
+	__cjs_CSVCreate(a) {
+		return CSVCreate(a);
+	}
+
+	__cjs_CSVDone(a) {
+		return CSVDone(a);
+	}
+
+	__cjs_CSVParse(a, b, c) {
+		return CSVParse(a, b, c);
+	}
+
+	__cjs_CSVError(a) {
+		return CSVError(a);
+	}
+
+	__cjs_CSVErrorExplain(a) {
+		return CSVErrorExplain(a);
+	}
+
+	__cjs_CSVSetDelim(a, b) {
+		return CSVSetDelim(a, b);
+	}
+
+	__cjs_CSVSetQuote(a, b) {
+		return CSVSetQuote(a, b);
+	}
+
+	wrap(js) {
+		js.wrap(this.__cjs_CSVCreate, "__cjs_CSVCreate");
+		js.wrap(this.__cjs_CSVDone, "__cjs_CSVDone");
+		js.wrap(this.__cjs_CSVParse, "__cjs_CSVParse");
+		js.wrap(this.__cjs_CSVError, "__cjs_CSVError");
+		js.wrap(this.__cjs_CSVErrorExplain, "__cjs_CSVErrorExplain");
+		js.wrap(this.__cjs_CSVSetDelim, "__cjs_CSVSetDelim");
+		js.wrap(this.__cjs_CSVSetQuote, "__cjs_CSVSetQuote");
+	}
+
+	ECMABRIDGE_standard_lib_csv(js) {
+		this.wrap(js);
+	}
+}

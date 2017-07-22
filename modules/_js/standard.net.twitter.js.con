@@ -1,0 +1,257 @@
+/* This file is generated automatically by generatejs.con. Do not edit. */
+
+import standard.net.twitter
+
+class ECMABRIDGE_standard_net_twitter {
+	__cjs_Twitter_Create() {
+		return Twitter_Create();
+	}
+
+	__cjs_Twitter_Destroy(a) {
+		return Twitter_Destroy(a);
+	}
+
+	__cjs_Twitter_Auth(a, b, c, d, e, f) {
+		return Twitter_Auth(a, b, c, d, e, f);
+	}
+
+	__cjs_Twitter_getTwitterUsername(a) {
+		return Twitter_getTwitterUsername(a);
+	}
+
+	__cjs_Twitter_getTwitterPassword(a) {
+		return Twitter_getTwitterPassword(a);
+	}
+
+	__cjs_Twitter_setTwitterUsername(a, b) {
+		return Twitter_setTwitterUsername(a, b);
+	}
+
+	__cjs_Twitter_setTwitterPassword(a, b) {
+		return Twitter_setTwitterPassword(a, b);
+	}
+
+	__cjs_Twitter_search(a, b) {
+		return Twitter_search(a, b);
+	}
+
+	__cjs_Twitter_statusUpdate(a, b) {
+		return Twitter_statusUpdate(a, b);
+	}
+
+	__cjs_Twitter_statusShowById(a, b) {
+		return Twitter_statusShowById(a, b);
+	}
+
+	__cjs_Twitter_statusDestroyById(a, b) {
+		return Twitter_statusDestroyById(a, b);
+	}
+
+	__cjs_Twitter_timelinePublicGet(a) {
+		return Twitter_timelinePublicGet(a);
+	}
+
+	__cjs_Twitter_timelineFriendsGet(a) {
+		return Twitter_timelineFriendsGet(a);
+	}
+
+	__cjs_Twitter_timelineUserGet(a, b, c, d, e = null) {
+		return Twitter_timelineUserGet(a, b, c, d, e = null);
+	}
+
+	__cjs_Twitter_featuredUsersGet(a) {
+		return Twitter_featuredUsersGet(a);
+	}
+
+	__cjs_Twitter_mentionsGet(a) {
+		return Twitter_mentionsGet(a);
+	}
+
+	__cjs_Twitter_userGet(a, b, c) {
+		return Twitter_userGet(a, b, c);
+	}
+
+	__cjs_Twitter_friendsGet(a, b, c) {
+		return Twitter_friendsGet(a, b, c);
+	}
+
+	__cjs_Twitter_followersGet(a, b, c) {
+		return Twitter_followersGet(a, b, c);
+	}
+
+	__cjs_Twitter_directMessageGet(a) {
+		return Twitter_directMessageGet(a);
+	}
+
+	__cjs_Twitter_directMessageSend(a, b, c, d) {
+		return Twitter_directMessageSend(a, b, c, d);
+	}
+
+	__cjs_Twitter_directMessageGetSent(a) {
+		return Twitter_directMessageGetSent(a);
+	}
+
+	__cjs_Twitter_directMessageDestroyById(a, b) {
+		return Twitter_directMessageDestroyById(a, b);
+	}
+
+	__cjs_Twitter_friendshipCreate(a, b, c) {
+		return Twitter_friendshipCreate(a, b, c);
+	}
+
+	__cjs_Twitter_friendshipDestroy(a, b, c) {
+		return Twitter_friendshipDestroy(a, b, c);
+	}
+
+	__cjs_Twitter_friendshipShow(a, b, c) {
+		return Twitter_friendshipShow(a, b, c);
+	}
+
+	__cjs_Twitter_friendsIdsGet(a, b, c) {
+		return Twitter_friendsIdsGet(a, b, c);
+	}
+
+	__cjs_Twitter_followersIdsGet(a, b, c) {
+		return Twitter_followersIdsGet(a, b, c);
+	}
+
+	__cjs_Twitter_accountRateLimitGet(a) {
+		return Twitter_accountRateLimitGet(a);
+	}
+
+	__cjs_Twitter_favoriteGet(a) {
+		return Twitter_favoriteGet(a);
+	}
+
+	__cjs_Twitter_favoriteCreate(a, b) {
+		return Twitter_favoriteCreate(a, b);
+	}
+
+	__cjs_Twitter_favoriteDestroy(a, b) {
+		return Twitter_favoriteDestroy(a, b);
+	}
+
+	__cjs_Twitter_blockCreate(a, b) {
+		return Twitter_blockCreate(a, b);
+	}
+
+	__cjs_Twitter_blockDestroy(a, b) {
+		return Twitter_blockDestroy(a, b);
+	}
+
+	__cjs_Twitter_savedSearchGet(a) {
+		return Twitter_savedSearchGet(a);
+	}
+
+	__cjs_Twitter_savedSearchCreate(a, b) {
+		return Twitter_savedSearchCreate(a, b);
+	}
+
+	__cjs_Twitter_savedSearchShow(a, b) {
+		return Twitter_savedSearchShow(a, b);
+	}
+
+	__cjs_Twitter_savedSearchDestroy(a, b) {
+		return Twitter_savedSearchDestroy(a, b);
+	}
+
+	__cjs_Twitter_isCurlInit(a) {
+		return Twitter_isCurlInit(a);
+	}
+
+	__cjs_Twitter_getLastCurlError(a) {
+		return Twitter_getLastCurlError(a);
+	}
+
+	__cjs_Twitter_getLastWebResponse(a) {
+		return Twitter_getLastWebResponse(a);
+	}
+
+	__cjs_Twitter_getProxyServerIp(a) {
+		return Twitter_getProxyServerIp(a);
+	}
+
+	__cjs_Twitter_getProxyServerPort(a) {
+		return Twitter_getProxyServerPort(a);
+	}
+
+	__cjs_Twitter_getProxyUserName(a) {
+		return Twitter_getProxyUserName(a);
+	}
+
+	__cjs_Twitter_getProxyPassword(a) {
+		return Twitter_getProxyPassword(a);
+	}
+
+	__cjs_Twitter_setProxyServerIp(a, b) {
+		return Twitter_setProxyServerIp(a, b);
+	}
+
+	__cjs_Twitter_setProxyServerPort(a, b) {
+		return Twitter_setProxyServerPort(a, b);
+	}
+
+	__cjs_Twitter_setProxyUserName(a, b) {
+		return Twitter_setProxyUserName(a, b);
+	}
+
+	__cjs_Twitter_setProxyPassword(a, b) {
+		return Twitter_setProxyPassword(a, b);
+	}
+
+	wrap(js) {
+		js.wrap(this.__cjs_Twitter_Create, "__cjs_Twitter_Create");
+		js.wrap(this.__cjs_Twitter_Destroy, "__cjs_Twitter_Destroy");
+		js.wrap(this.__cjs_Twitter_Auth, "__cjs_Twitter_Auth");
+		js.wrap(this.__cjs_Twitter_getTwitterUsername, "__cjs_Twitter_getTwitterUsername");
+		js.wrap(this.__cjs_Twitter_getTwitterPassword, "__cjs_Twitter_getTwitterPassword");
+		js.wrap(this.__cjs_Twitter_setTwitterUsername, "__cjs_Twitter_setTwitterUsername");
+		js.wrap(this.__cjs_Twitter_setTwitterPassword, "__cjs_Twitter_setTwitterPassword");
+		js.wrap(this.__cjs_Twitter_search, "__cjs_Twitter_search");
+		js.wrap(this.__cjs_Twitter_statusUpdate, "__cjs_Twitter_statusUpdate");
+		js.wrap(this.__cjs_Twitter_statusShowById, "__cjs_Twitter_statusShowById");
+		js.wrap(this.__cjs_Twitter_statusDestroyById, "__cjs_Twitter_statusDestroyById");
+		js.wrap(this.__cjs_Twitter_timelinePublicGet, "__cjs_Twitter_timelinePublicGet");
+		js.wrap(this.__cjs_Twitter_timelineFriendsGet, "__cjs_Twitter_timelineFriendsGet");
+		js.wrap(this.__cjs_Twitter_timelineUserGet, "__cjs_Twitter_timelineUserGet");
+		js.wrap(this.__cjs_Twitter_featuredUsersGet, "__cjs_Twitter_featuredUsersGet");
+		js.wrap(this.__cjs_Twitter_mentionsGet, "__cjs_Twitter_mentionsGet");
+		js.wrap(this.__cjs_Twitter_userGet, "__cjs_Twitter_userGet");
+		js.wrap(this.__cjs_Twitter_friendsGet, "__cjs_Twitter_friendsGet");
+		js.wrap(this.__cjs_Twitter_followersGet, "__cjs_Twitter_followersGet");
+		js.wrap(this.__cjs_Twitter_directMessageGet, "__cjs_Twitter_directMessageGet");
+		js.wrap(this.__cjs_Twitter_directMessageSend, "__cjs_Twitter_directMessageSend");
+		js.wrap(this.__cjs_Twitter_directMessageGetSent, "__cjs_Twitter_directMessageGetSent");
+		js.wrap(this.__cjs_Twitter_directMessageDestroyById, "__cjs_Twitter_directMessageDestroyById");
+		js.wrap(this.__cjs_Twitter_friendshipCreate, "__cjs_Twitter_friendshipCreate");
+		js.wrap(this.__cjs_Twitter_friendshipDestroy, "__cjs_Twitter_friendshipDestroy");
+		js.wrap(this.__cjs_Twitter_friendshipShow, "__cjs_Twitter_friendshipShow");
+		js.wrap(this.__cjs_Twitter_friendsIdsGet, "__cjs_Twitter_friendsIdsGet");
+		js.wrap(this.__cjs_Twitter_followersIdsGet, "__cjs_Twitter_followersIdsGet");
+		js.wrap(this.__cjs_Twitter_accountRateLimitGet, "__cjs_Twitter_accountRateLimitGet");
+		js.wrap(this.__cjs_Twitter_favoriteGet, "__cjs_Twitter_favoriteGet");
+		js.wrap(this.__cjs_Twitter_favoriteCreate, "__cjs_Twitter_favoriteCreate");
+		js.wrap(this.__cjs_Twitter_favoriteDestroy, "__cjs_Twitter_favoriteDestroy");
+		js.wrap(this.__cjs_Twitter_blockCreate, "__cjs_Twitter_blockCreate");
+		js.wrap(this.__cjs_Twitter_blockDestroy, "__cjs_Twitter_blockDestroy");
+		js.wrap(this.__cjs_Twitter_savedSearchGet, "__cjs_Twitter_savedSearchGet");
+		js.wrap(this.__cjs_Twitter_savedSearchCreate, "__cjs_Twitter_savedSearchCreate");
+		js.wrap(this.__cjs_Twitter_savedSearchShow, "__cjs_Twitter_savedSearchShow");
+		js.wrap(this.__cjs_Twitter_savedSearchDestroy, "__cjs_Twitter_savedSearchDestroy");
+		js.wrap(this.__cjs_Twitter_isCurlInit, "__cjs_Twitter_isCurlInit");
+		js.wrap(this.__cjs_Twitter_getLastCurlError, "__cjs_Twitter_getLastCurlError");
+		js.wrap(this.__cjs_Twitter_getLastWebResponse, "__cjs_Twitter_getLastWebResponse");
+		js.wrap(this.__cjs_Twitter_getProxyServerIp, "__cjs_Twitter_getProxyServerIp");
+		js.wrap(this.__cjs_Twitter_getProxyServerPort, "__cjs_Twitter_getProxyServerPort");
+		js.wrap(this.__cjs_Twitter_getProxyUserName, "__cjs_Twitter_getProxyUserName");
+		js.wrap(this.__cjs_Twitter_getProxyPassword, "__cjs_Twitter_getProxyPassword");
+		js.wrap(this.__cjs_Twitter_setProxyServerIp, "__cjs_Twitter_setProxyServerIp");
+		js.wrap(this.__cjs_Twitter_setProxyServerPort, "__cjs_Twitter_setProxyServerPort");
+		js.wrap(this.__cjs_Twitter_setProxyUserName, "__cjs_Twitter_setProxyUserName");
+		js.wrap(this.__cjs_Twitter_setProxyPassword, "__cjs_Twitter_setProxyPassword");
+	}
+
+	ECMABRIDGE_standard_net_twitter(js) {
+		this.wrap(js);
+	}
+}

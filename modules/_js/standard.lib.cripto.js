@@ -1,0 +1,68 @@
+/* This file is generated automatically by generatejs.con. Do not edit. */
+
+'use strict';
+
+if (!con.lib)
+	con.lib = { };
+if (!con.lib.cripto)
+	con.lib.cripto = { };
+con.lib.cripto.MD5Init = this.__cjs_MD5Init;
+con.lib.cripto.MD5Update = this.__cjs_MD5Update;
+con.lib.cripto.MD5Final = this.__cjs_MD5Final;
+con.lib.cripto.SHA1Init = this.__cjs_SHA1Init;
+con.lib.cripto.SHA1Update = this.__cjs_SHA1Update;
+con.lib.cripto.SHA1Final = this.__cjs_SHA1Final;
+con.lib.cripto.SHA256Init = this.__cjs_SHA256Init;
+con.lib.cripto.SHA256Update = this.__cjs_SHA256Update;
+con.lib.cripto.SHA256Final = this.__cjs_SHA256Final;
+con.lib.cripto.md5 = this.__cjs_md5;
+con.lib.cripto.sha1 = this.__cjs_sha1;
+con.lib.cripto.sha256 = this.__cjs_sha256;
+con.lib.cripto.crc32 = this.__cjs_crc32;
+con.lib.cripto.AESEncryptInit = this.__cjs_AESEncryptInit;
+con.lib.cripto.AESDecryptInit = this.__cjs_AESDecryptInit;
+con.lib.cripto.AESRelease = this.__cjs_AESRelease;
+con.lib.cripto.AESEncrypt = this.__cjs_AESEncrypt;
+con.lib.cripto.AESDecrypt = this.__cjs_AESDecrypt;
+con.lib.cripto.aes_encrypt = this.__cjs_aes_encrypt;
+con.lib.cripto.aes_decrypt = this.__cjs_aes_decrypt;
+con.lib.cripto.rsa_encrypt = this.__cjs_rsa_encrypt;
+con.lib.cripto.rsa_decrypt = this.__cjs_rsa_decrypt;
+con.lib.cripto.rsa_generate_keys = this.__cjs_rsa_generate_keys;
+con.lib.cripto.rsa_sign = this.__cjs_rsa_sign;
+con.lib.cripto.rsa_verify = this.__cjs_rsa_verify;
+con.lib.cripto.hmac_md5 = this.__cjs_hmac_md5;
+con.lib.cripto.hmac_sha1 = this.__cjs_hmac_sha1;
+con.lib.cripto.hmac_sha256 = this.__cjs_hmac_sha256;
+con.lib.cripto.Murmur = this.__cjs_Murmur;
+con.lib.cripto.Murmur3 = this.__cjs_Murmur3;
+con.lib.cripto.DRMKey = this.__cjs_DRMKey;
+con.lib.cripto.PBKDF2 = this.__cjs_PBKDF2;
+con.lib.cripto.CryptoRandom = this.__cjs_CryptoRandom;
+con.lib.cripto.AesDone = this.__cjs_AesDone;
+con.lib.cripto.AesSetKey = this.__cjs_AesSetKey;
+con.lib.cripto.AesSetInitVector = this.__cjs_AesSetInitVector;
+con.lib.cripto.AesSetFeedbackSize = this.__cjs_AesSetFeedbackSize;
+con.lib.cripto.AesEncryptECB = this.__cjs_AesEncryptECB;
+con.lib.cripto.AesEncryptCBC = this.__cjs_AesEncryptCBC;
+con.lib.cripto.AesEncryptPCBC = this.__cjs_AesEncryptPCBC;
+con.lib.cripto.AesEncryptCRT = this.__cjs_AesEncryptCRT;
+con.lib.cripto.AesEncryptOFB = this.__cjs_AesEncryptOFB;
+con.lib.cripto.AesEncryptCFB = this.__cjs_AesEncryptCFB;
+con.lib.cripto.AesDecryptECB = this.__cjs_AesDecryptECB;
+con.lib.cripto.AesDecryptCBC = this.__cjs_AesDecryptCBC;
+con.lib.cripto.AesDecryptPCBC = this.__cjs_AesDecryptPCBC;
+con.lib.cripto.AesDecryptCRT = this.__cjs_AesDecryptCRT;
+con.lib.cripto.AesDecryptOFB = this.__cjs_AesDecryptOFB;
+con.lib.cripto.AesDecryptCFB = this.__cjs_AesDecryptCFB;
+con.lib.cripto.ECCKeys = this.__cjs_ECCKeys;
+con.lib.cripto.ECCEncrypt = this.__cjs_ECCEncrypt;
+con.lib.cripto.ECCDecrypt = this.__cjs_ECCDecrypt;
+con.lib.cripto.RSAKeys = this.__cjs_RSAKeys;
+con.lib.cripto.RSAEncrypt = this.__cjs_RSAEncrypt;
+con.lib.cripto.RSADecrypt = this.__cjs_RSADecrypt;
+con.lib.cripto.ECCRSAErrorExplain = this.__cjs_ECCRSAErrorExplain;
+con.lib.cripto.DHMakeKey = this.__cjs_DHMakeKey;
+con.lib.cripto.DHSecret = this.__cjs_DHSecret;
+con.lib.cripto.ECDHMakeKey = this.__cjs_ECDHMakeKey;
+con.lib.cripto.ECDHSecret = this.__cjs_ECDHSecret;

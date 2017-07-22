@@ -1,0 +1,217 @@
+/* This file is generated automatically by generatejs.con. Do not edit. */
+
+import standard.lib.str
+
+class ECMABRIDGE_standard_lib_str {
+	__cjs_StrReplace(a, b, c) {
+		return StrReplace(a, b, c);
+	}
+
+	__cjs_NumberToBin(a) {
+		return NumberToBin(a);
+	}
+
+	__cjs_BinToNumber(a) {
+		return BinToNumber(a);
+	}
+
+	__cjs_NumberToHex(a) {
+		return NumberToHex(a);
+	}
+
+	__cjs_HexToNumber(a) {
+		return HexToNumber(a);
+	}
+
+	__cjs_StringToHex(a) {
+		return StringToHex(a);
+	}
+
+	__cjs_HexToString(a) {
+		return HexToString(a);
+	}
+
+	__cjs_NumberToOct(a) {
+		return NumberToOct(a);
+	}
+
+	__cjs_OctToNumber(a) {
+		return OctToNumber(a);
+	}
+
+	__cjs_RepeatString(a, b) {
+		return RepeatString(a, b);
+	}
+
+	__cjs_String(a) {
+		return String(a);
+	}
+
+	__cjs_StrFrom(a, b) {
+		return StrFrom(a, b);
+	}
+
+	__cjs_chr(a) {
+		return chr(a);
+	}
+
+	__cjs_ord(a) {
+		return ord(a);
+	}
+
+	__cjs_ltrim(a) {
+		return ltrim(a);
+	}
+
+	__cjs_rtrim(a) {
+		return rtrim(a);
+	}
+
+	__cjs_trim(a) {
+		return trim(a);
+	}
+
+	__cjs_Ext(a) {
+		return Ext(a);
+	}
+
+	__cjs_ToUpper(a) {
+		return ToUpper(a);
+	}
+
+	__cjs_ToLower(a) {
+		return ToLower(a);
+	}
+
+	__cjs_ToHTML(a) {
+		return ToHTML(a);
+	}
+
+	__cjs_URIEncode(a) {
+		return URIEncode(a);
+	}
+
+	__cjs_URIDecode(a) {
+		return URIDecode(a);
+	}
+
+	__cjs_Pos(a, b) {
+		return Pos(a, b);
+	}
+
+	__cjs_UTF8ToWide(a) {
+		return UTF8ToWide(a);
+	}
+
+	__cjs_WideToUTF8(a) {
+		return WideToUTF8(a);
+	}
+
+	__cjs_UTF8Offset(a, b) {
+		return UTF8Offset(a, b);
+	}
+
+	__cjs_UTF8Charnum(a, b) {
+		return UTF8Charnum(a, b);
+	}
+
+	__cjs_UTF8NextChar(a, b) {
+		return UTF8NextChar(a, b);
+	}
+
+	__cjs_UTF8Next(a, b) {
+		return UTF8Next(a, b);
+	}
+
+	__cjs_UTF8Prev(a, b) {
+		return UTF8Prev(a, b);
+	}
+
+	__cjs_UTF8Escape(a) {
+		return UTF8Escape(a);
+	}
+
+	__cjs_UTF8Unescape(a) {
+		return UTF8Unescape(a);
+	}
+
+	__cjs_UTF8Length(a) {
+		return UTF8Length(a);
+	}
+
+	__cjs_UTF8ToLower(a, b) {
+		return UTF8ToLower(a, b);
+	}
+
+	__cjs_UTF8ToUpper(a, b) {
+		return UTF8ToUpper(a, b);
+	}
+
+	__cjs_Soundex(a) {
+		return Soundex(a);
+	}
+
+	__cjs_Metaphone(a) {
+		return Metaphone(a);
+	}
+
+	__cjs_DoubleMetaphone(a, b) {
+		return DoubleMetaphone(a, b);
+	}
+
+	__cjs_calc(a, b) {
+		return calc(a, b);
+	}
+
+	__cjs_U_(a) {
+		return U_(a);
+	}
+
+	wrap(js) {
+		js.wrap(this.__cjs_StrReplace, "__cjs_StrReplace");
+		js.wrap(this.__cjs_NumberToBin, "__cjs_NumberToBin");
+		js.wrap(this.__cjs_BinToNumber, "__cjs_BinToNumber");
+		js.wrap(this.__cjs_NumberToHex, "__cjs_NumberToHex");
+		js.wrap(this.__cjs_HexToNumber, "__cjs_HexToNumber");
+		js.wrap(this.__cjs_StringToHex, "__cjs_StringToHex");
+		js.wrap(this.__cjs_HexToString, "__cjs_HexToString");
+		js.wrap(this.__cjs_NumberToOct, "__cjs_NumberToOct");
+		js.wrap(this.__cjs_OctToNumber, "__cjs_OctToNumber");
+		js.wrap(this.__cjs_RepeatString, "__cjs_RepeatString");
+		js.wrap(this.__cjs_String, "__cjs_String");
+		js.wrap(this.__cjs_StrFrom, "__cjs_StrFrom");
+		js.wrap(this.__cjs_chr, "__cjs_chr");
+		js.wrap(this.__cjs_ord, "__cjs_ord");
+		js.wrap(this.__cjs_ltrim, "__cjs_ltrim");
+		js.wrap(this.__cjs_rtrim, "__cjs_rtrim");
+		js.wrap(this.__cjs_trim, "__cjs_trim");
+		js.wrap(this.__cjs_Ext, "__cjs_Ext");
+		js.wrap(this.__cjs_ToUpper, "__cjs_ToUpper");
+		js.wrap(this.__cjs_ToLower, "__cjs_ToLower");
+		js.wrap(this.__cjs_ToHTML, "__cjs_ToHTML");
+		js.wrap(this.__cjs_URIEncode, "__cjs_URIEncode");
+		js.wrap(this.__cjs_URIDecode, "__cjs_URIDecode");
+		js.wrap(this.__cjs_Pos, "__cjs_Pos");
+		js.wrap(this.__cjs_UTF8ToWide, "__cjs_UTF8ToWide");
+		js.wrap(this.__cjs_WideToUTF8, "__cjs_WideToUTF8");
+		js.wrap(this.__cjs_UTF8Offset, "__cjs_UTF8Offset");
+		js.wrap(this.__cjs_UTF8Charnum, "__cjs_UTF8Charnum");
+		js.wrap(this.__cjs_UTF8NextChar, "__cjs_UTF8NextChar");
+		js.wrap(this.__cjs_UTF8Next, "__cjs_UTF8Next");
+		js.wrap(this.__cjs_UTF8Prev, "__cjs_UTF8Prev");
+		js.wrap(this.__cjs_UTF8Escape, "__cjs_UTF8Escape");
+		js.wrap(this.__cjs_UTF8Unescape, "__cjs_UTF8Unescape");
+		js.wrap(this.__cjs_UTF8Length, "__cjs_UTF8Length");
+		js.wrap(this.__cjs_UTF8ToLower, "__cjs_UTF8ToLower");
+		js.wrap(this.__cjs_UTF8ToUpper, "__cjs_UTF8ToUpper");
+		js.wrap(this.__cjs_Soundex, "__cjs_Soundex");
+		js.wrap(this.__cjs_Metaphone, "__cjs_Metaphone");
+		js.wrap(this.__cjs_DoubleMetaphone, "__cjs_DoubleMetaphone");
+		js.wrap(this.__cjs_calc, "__cjs_calc");
+		js.wrap(this.__cjs_U_, "__cjs_U_");
+	}
+
+	ECMABRIDGE_standard_lib_str(js) {
+		this.wrap(js);
+	}
+}

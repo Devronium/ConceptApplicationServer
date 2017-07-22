@@ -1,0 +1,157 @@
+/* This file is generated automatically by generatejs.con. Do not edit. */
+
+import standard.net.memcached
+
+class ECMABRIDGE_standard_net_memcached {
+	__cjs_MemCachedCreate() {
+		return MemCachedCreate();
+	}
+
+	__cjs_MemCachedFree(a) {
+		return MemCachedFree(a);
+	}
+
+	__cjs_MemCachedResetServers(a) {
+		return MemCachedResetServers(a);
+	}
+
+	__cjs_MemCachedAddServer(a, b, c) {
+		return MemCachedAddServer(a, b, c);
+	}
+
+	__cjs_MemCachedAddServerUDP(a, b, c) {
+		return MemCachedAddServerUDP(a, b, c);
+	}
+
+	__cjs_MemCachedAddServerUnixSocket(a, b) {
+		return MemCachedAddServerUnixSocket(a, b);
+	}
+
+	__cjs_MemCachedServerPush(a, b) {
+		return MemCachedServerPush(a, b);
+	}
+
+	__cjs_MemCachedSet(a, b, c, d, e = null) {
+		return MemCachedSet(a, b, c, d, e = null);
+	}
+
+	__cjs_MemCachedAdd(a, b, c, d, e = null) {
+		return MemCachedAdd(a, b, c, d, e = null);
+	}
+
+	__cjs_MemCachedReplace(a, b, c, d, e = null) {
+		return MemCachedReplace(a, b, c, d, e = null);
+	}
+
+	__cjs_MemCachedPrepend(a, b, c, d, e = null) {
+		return MemCachedPrepend(a, b, c, d, e = null);
+	}
+
+	__cjs_MemCachedAppend(a, b, c, d, e = null) {
+		return MemCachedAppend(a, b, c, d, e = null);
+	}
+
+	__cjs_MemCachedSetByKey(a, b, c, d, e, f = null) {
+		return MemCachedSetByKey(a, b, c, d, e, f = null);
+	}
+
+	__cjs_MemCachedAddByKey(a, b, c, d, e, f = null) {
+		return MemCachedAddByKey(a, b, c, d, e, f = null);
+	}
+
+	__cjs_MemCachedReplaceByKey(a, b, c, d, e, f = null) {
+		return MemCachedReplaceByKey(a, b, c, d, e, f = null);
+	}
+
+	__cjs_MemCachedPrependByKey(a, b, c, d, e, f = null) {
+		return MemCachedPrependByKey(a, b, c, d, e, f = null);
+	}
+
+	__cjs_MemCachedAppendByKey(a, b, c, d, e, f = null) {
+		return MemCachedAppendByKey(a, b, c, d, e, f = null);
+	}
+
+	__cjs_MemCachedGet(a, b, c, d = null) {
+		return MemCachedGet(a, b, c, d = null);
+	}
+
+	__cjs_MemCachedMGet(a, b) {
+		return MemCachedMGet(a, b);
+	}
+
+	__cjs_MemCachedGetByKey(a, b, c, d, e = null) {
+		return MemCachedGetByKey(a, b, c, d, e = null);
+	}
+
+	__cjs_MemCachedMGetByKey(a, b, c) {
+		return MemCachedMGetByKey(a, b, c);
+	}
+
+	__cjs_MemCachedDelete(a, b, c) {
+		return MemCachedDelete(a, b, c);
+	}
+
+	__cjs_MemCachedDeleteByKey(a, b, c, d) {
+		return MemCachedDeleteByKey(a, b, c, d);
+	}
+
+	__cjs_MemCachedIncrement(a, b, c) {
+		return MemCachedIncrement(a, b, c);
+	}
+
+	__cjs_MemCachedDecrement(a, b, c) {
+		return MemCachedDecrement(a, b, c);
+	}
+
+	__cjs_MemCachedFlush(a, b) {
+		return MemCachedFlush(a, b);
+	}
+
+	__cjs_MemCachedError(a, b) {
+		return MemCachedError(a, b);
+	}
+
+	__cjs_MemCachedBehaviorSet(a, b, c) {
+		return MemCachedBehaviorSet(a, b, c);
+	}
+
+	__cjs_MemCachedBehaviorGet(a, b) {
+		return MemCachedBehaviorGet(a, b);
+	}
+
+	wrap(js) {
+		js.wrap(this.__cjs_MemCachedCreate, "__cjs_MemCachedCreate");
+		js.wrap(this.__cjs_MemCachedFree, "__cjs_MemCachedFree");
+		js.wrap(this.__cjs_MemCachedResetServers, "__cjs_MemCachedResetServers");
+		js.wrap(this.__cjs_MemCachedAddServer, "__cjs_MemCachedAddServer");
+		js.wrap(this.__cjs_MemCachedAddServerUDP, "__cjs_MemCachedAddServerUDP");
+		js.wrap(this.__cjs_MemCachedAddServerUnixSocket, "__cjs_MemCachedAddServerUnixSocket");
+		js.wrap(this.__cjs_MemCachedServerPush, "__cjs_MemCachedServerPush");
+		js.wrap(this.__cjs_MemCachedSet, "__cjs_MemCachedSet");
+		js.wrap(this.__cjs_MemCachedAdd, "__cjs_MemCachedAdd");
+		js.wrap(this.__cjs_MemCachedReplace, "__cjs_MemCachedReplace");
+		js.wrap(this.__cjs_MemCachedPrepend, "__cjs_MemCachedPrepend");
+		js.wrap(this.__cjs_MemCachedAppend, "__cjs_MemCachedAppend");
+		js.wrap(this.__cjs_MemCachedSetByKey, "__cjs_MemCachedSetByKey");
+		js.wrap(this.__cjs_MemCachedAddByKey, "__cjs_MemCachedAddByKey");
+		js.wrap(this.__cjs_MemCachedReplaceByKey, "__cjs_MemCachedReplaceByKey");
+		js.wrap(this.__cjs_MemCachedPrependByKey, "__cjs_MemCachedPrependByKey");
+		js.wrap(this.__cjs_MemCachedAppendByKey, "__cjs_MemCachedAppendByKey");
+		js.wrap(this.__cjs_MemCachedGet, "__cjs_MemCachedGet");
+		js.wrap(this.__cjs_MemCachedMGet, "__cjs_MemCachedMGet");
+		js.wrap(this.__cjs_MemCachedGetByKey, "__cjs_MemCachedGetByKey");
+		js.wrap(this.__cjs_MemCachedMGetByKey, "__cjs_MemCachedMGetByKey");
+		js.wrap(this.__cjs_MemCachedDelete, "__cjs_MemCachedDelete");
+		js.wrap(this.__cjs_MemCachedDeleteByKey, "__cjs_MemCachedDeleteByKey");
+		js.wrap(this.__cjs_MemCachedIncrement, "__cjs_MemCachedIncrement");
+		js.wrap(this.__cjs_MemCachedDecrement, "__cjs_MemCachedDecrement");
+		js.wrap(this.__cjs_MemCachedFlush, "__cjs_MemCachedFlush");
+		js.wrap(this.__cjs_MemCachedError, "__cjs_MemCachedError");
+		js.wrap(this.__cjs_MemCachedBehaviorSet, "__cjs_MemCachedBehaviorSet");
+		js.wrap(this.__cjs_MemCachedBehaviorGet, "__cjs_MemCachedBehaviorGet");
+	}
+
+	ECMABRIDGE_standard_net_memcached(js) {
+		this.wrap(js);
+	}
+}

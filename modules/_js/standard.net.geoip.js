@@ -1,0 +1,65 @@
+/* This file is generated automatically by generatejs.con. Do not edit. */
+
+'use strict';
+
+if (!con.net)
+	con.net = { };
+if (!con.net.geoip)
+	con.net.geoip = { };
+con.net.geoip.GeoIP_setup_custom_directory = this.__cjs_GeoIP_setup_custom_directory;
+con.net.geoip.GeoIP_open_type = this.__cjs_GeoIP_open_type;
+con.net.geoip.GeoIP_new = this.__cjs_GeoIP_new;
+con.net.geoip.GeoIP_open = this.__cjs_GeoIP_open;
+con.net.geoip.GeoIP_db_avail = this.__cjs_GeoIP_db_avail;
+con.net.geoip.GeoIP_delete = this.__cjs_GeoIP_delete;
+con.net.geoip.GeoIP_country_code_by_addr = this.__cjs_GeoIP_country_code_by_addr;
+con.net.geoip.GeoIP_country_code_by_name = this.__cjs_GeoIP_country_code_by_name;
+con.net.geoip.GeoIP_country_code3_by_addr = this.__cjs_GeoIP_country_code3_by_addr;
+con.net.geoip.GeoIP_country_code3_by_name = this.__cjs_GeoIP_country_code3_by_name;
+con.net.geoip.GeoIP_country_name_by_addr = this.__cjs_GeoIP_country_name_by_addr;
+con.net.geoip.GeoIP_country_name_by_name = this.__cjs_GeoIP_country_name_by_name;
+con.net.geoip.GeoIP_country_name_by_ipnum = this.__cjs_GeoIP_country_name_by_ipnum;
+con.net.geoip.GeoIP_country_code_by_ipnum = this.__cjs_GeoIP_country_code_by_ipnum;
+con.net.geoip.GeoIP_country_code3_by_ipnum = this.__cjs_GeoIP_country_code3_by_ipnum;
+con.net.geoip.GeoIP_country_name_by_ipnum_v6 = this.__cjs_GeoIP_country_name_by_ipnum_v6;
+con.net.geoip.GeoIP_country_code_by_ipnum_v6 = this.__cjs_GeoIP_country_code_by_ipnum_v6;
+con.net.geoip.GeoIP_country_code3_by_ipnum_v6 = this.__cjs_GeoIP_country_code3_by_ipnum_v6;
+con.net.geoip.GeoIP_id_by_addr = this.__cjs_GeoIP_id_by_addr;
+con.net.geoip.GeoIP_id_by_name = this.__cjs_GeoIP_id_by_name;
+con.net.geoip.GeoIP_id_by_ipnum = this.__cjs_GeoIP_id_by_ipnum;
+con.net.geoip.GeoIP_id_by_addr_v6 = this.__cjs_GeoIP_id_by_addr_v6;
+con.net.geoip.GeoIP_id_by_name_v6 = this.__cjs_GeoIP_id_by_name_v6;
+con.net.geoip.GeoIP_id_by_ipnum_v6 = this.__cjs_GeoIP_id_by_ipnum_v6;
+con.net.geoip.GeoIP_region_by_addr = this.__cjs_GeoIP_region_by_addr;
+con.net.geoip.GeoIP_region_by_name = this.__cjs_GeoIP_region_by_name;
+con.net.geoip.GeoIP_region_by_ipnum = this.__cjs_GeoIP_region_by_ipnum;
+con.net.geoip.GeoIP_region_by_addr_v6 = this.__cjs_GeoIP_region_by_addr_v6;
+con.net.geoip.GeoIP_region_by_name_v6 = this.__cjs_GeoIP_region_by_name_v6;
+con.net.geoip.GeoIP_region_by_ipnum_v6 = this.__cjs_GeoIP_region_by_ipnum_v6;
+con.net.geoip.GeoIP_name_by_ipnum = this.__cjs_GeoIP_name_by_ipnum;
+con.net.geoip.GeoIP_name_by_addr = this.__cjs_GeoIP_name_by_addr;
+con.net.geoip.GeoIP_name_by_name = this.__cjs_GeoIP_name_by_name;
+con.net.geoip.GeoIP_name_by_ipnum_v6 = this.__cjs_GeoIP_name_by_ipnum_v6;
+con.net.geoip.GeoIP_name_by_addr_v6 = this.__cjs_GeoIP_name_by_addr_v6;
+con.net.geoip.GeoIP_name_by_name_v6 = this.__cjs_GeoIP_name_by_name_v6;
+con.net.geoip.GeoIP_code_by_id = this.__cjs_GeoIP_code_by_id;
+con.net.geoip.GeoIP_code3_by_id = this.__cjs_GeoIP_code3_by_id;
+con.net.geoip.GeoIP_name_by_id = this.__cjs_GeoIP_name_by_id;
+con.net.geoip.GeoIP_continent_by_id = this.__cjs_GeoIP_continent_by_id;
+con.net.geoip.GeoIP_id_by_code = this.__cjs_GeoIP_id_by_code;
+con.net.geoip.GeoIP_num_countries = this.__cjs_GeoIP_num_countries;
+con.net.geoip.GeoIP_database_info = this.__cjs_GeoIP_database_info;
+con.net.geoip.GeoIP_database_edition = this.__cjs_GeoIP_database_edition;
+con.net.geoip.GeoIP_charset = this.__cjs_GeoIP_charset;
+con.net.geoip.GeoIP_set_charset = this.__cjs_GeoIP_set_charset;
+con.net.geoip.GeoIP_last_netmask = this.__cjs_GeoIP_last_netmask;
+con.net.geoip.GeoIP_region_name_by_code = this.__cjs_GeoIP_region_name_by_code;
+con.net.geoip.GeoIP_time_zone_by_country_and_region = this.__cjs_GeoIP_time_zone_by_country_and_region;
+con.net.geoip.GeoIP_record_by_ipnum = this.__cjs_GeoIP_record_by_ipnum;
+con.net.geoip.GeoIP_record_by_addr = this.__cjs_GeoIP_record_by_addr;
+con.net.geoip.GeoIP_record_by_name = this.__cjs_GeoIP_record_by_name;
+con.net.geoip.GeoIP_record_by_ipnum_v6 = this.__cjs_GeoIP_record_by_ipnum_v6;
+con.net.geoip.GeoIP_record_by_addr_v6 = this.__cjs_GeoIP_record_by_addr_v6;
+con.net.geoip.GeoIP_record_by_name_v6 = this.__cjs_GeoIP_record_by_name_v6;
+con.net.geoip.GeoIP_record_id_by_addr = this.__cjs_GeoIP_record_id_by_addr;
+con.net.geoip.GeoIP_record_id_by_addr_v6 = this.__cjs_GeoIP_record_id_by_addr_v6;

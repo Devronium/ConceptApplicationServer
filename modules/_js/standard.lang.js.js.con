@@ -1,0 +1,102 @@
+/* This file is generated automatically by generatejs.con. Do not edit. */
+
+import standard.lang.js
+
+class ECMABRIDGE_standard_lang_js {
+	__cjs_JSNewRuntime(a) {
+		return JSNewRuntime(a);
+	}
+
+	__cjs_JSNewContext(a, b) {
+		return JSNewContext(a, b);
+	}
+
+	__cjs_JSNewObject(a, b, c, d) {
+		return JSNewObject(a, b, c, d);
+	}
+
+	__cjs_JSLock(a) {
+		return JSLock(a);
+	}
+
+	__cjs_JSUnlock(a) {
+		return JSUnlock(a);
+	}
+
+	__cjs_JSDestroyContext(a) {
+		return JSDestroyContext(a);
+	}
+
+	__cjs_JSDestroyRuntime(a) {
+		return JSDestroyRuntime(a);
+	}
+
+	__cjs_JSShutDown() {
+		return JSShutDown();
+	}
+
+	__cjs_JSInitStandardClasses(a, b) {
+		return JSInitStandardClasses(a, b);
+	}
+
+	__cjs_JSSetErrorReporter(a, b) {
+		return JSSetErrorReporter(a, b);
+	}
+
+	__cjs_JSEvaluateScript(a, b, c, d, e, f) {
+		return JSEvaluateScript(a, b, c, d, e, f);
+	}
+
+	__cjs_JSThrow(a, b, c) {
+		return JSThrow(a, b, c);
+	}
+
+	__cjs_JSEval(a) {
+		return JSEval(a);
+	}
+
+	__cjs_JSGC(a, b) {
+		return JSGC(a, b);
+	}
+
+	__cjs_JSRecursive(a, b) {
+		return JSRecursive(a, b);
+	}
+
+	__cjs_JSObjectKey(a, b, c, d) {
+		return JSObjectKey(a, b, c, d);
+	}
+
+	__cjs_JSWrap(a, b, c, d) {
+		return JSWrap(a, b, c, d);
+	}
+
+	__cjs_JSCall(a, b, c, d) {
+		return JSCall(a, b, c, d);
+	}
+
+	wrap(js) {
+		js.wrap(this.__cjs_JSNewRuntime, "__cjs_JSNewRuntime");
+		js.wrap(this.__cjs_JSNewContext, "__cjs_JSNewContext");
+		js.wrap(this.__cjs_JSNewObject, "__cjs_JSNewObject");
+		js.wrap(this.__cjs_JSLock, "__cjs_JSLock");
+		js.wrap(this.__cjs_JSUnlock, "__cjs_JSUnlock");
+		js.wrap(this.__cjs_JSDestroyContext, "__cjs_JSDestroyContext");
+		js.wrap(this.__cjs_JSDestroyRuntime, "__cjs_JSDestroyRuntime");
+		js.wrap(this.__cjs_JSShutDown, "__cjs_JSShutDown");
+		js.wrap(this.__cjs_JSInitStandardClasses, "__cjs_JSInitStandardClasses");
+		js.wrap(this.__cjs_JSSetErrorReporter, "__cjs_JSSetErrorReporter");
+		js.wrap(this.__cjs_JSEvaluateScript, "__cjs_JSEvaluateScript");
+		js.wrap(this.__cjs_JSThrow, "__cjs_JSThrow");
+		js.wrap(this.__cjs_JSEval, "__cjs_JSEval");
+		js.wrap(this.__cjs_JSGC, "__cjs_JSGC");
+		js.wrap(this.__cjs_JSRecursive, "__cjs_JSRecursive");
+		js.wrap(this.__cjs_JSObjectKey, "__cjs_JSObjectKey");
+		js.wrap(this.__cjs_JSWrap, "__cjs_JSWrap");
+		js.wrap(this.__cjs_JSCall, "__cjs_JSCall");
+	}
+
+	ECMABRIDGE_standard_lang_js(js) {
+		this.wrap(js);
+	}
+}

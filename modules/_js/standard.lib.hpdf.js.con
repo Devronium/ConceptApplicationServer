@@ -1,0 +1,1002 @@
+/* This file is generated automatically by generatejs.con. Do not edit. */
+
+import standard.lib.hpdf
+
+class ECMABRIDGE_standard_lib_hpdf {
+	__cjs__HPDF_GetVersion() {
+		return _HPDF_GetVersion();
+	}
+
+	__cjs__HPDF_New() {
+		return _HPDF_New();
+	}
+
+	__cjs__HPDF_SetErrorHandler(a) {
+		return _HPDF_SetErrorHandler(a);
+	}
+
+	__cjs__HPDF_Free(a) {
+		return _HPDF_Free(a);
+	}
+
+	__cjs__HPDF_NewDoc(a) {
+		return _HPDF_NewDoc(a);
+	}
+
+	__cjs__HPDF_FreeDoc(a) {
+		return _HPDF_FreeDoc(a);
+	}
+
+	__cjs__HPDF_HasDoc(a) {
+		return _HPDF_HasDoc(a);
+	}
+
+	__cjs__HPDF_FreeDocAll(a) {
+		return _HPDF_FreeDocAll(a);
+	}
+
+	__cjs__HPDF_SaveToStream(a) {
+		return _HPDF_SaveToStream(a);
+	}
+
+	__cjs__HPDF_GetStreamSize(a) {
+		return _HPDF_GetStreamSize(a);
+	}
+
+	__cjs__HPDF_ReadFromStream(a, b, c) {
+		return _HPDF_ReadFromStream(a, b, c);
+	}
+
+	__cjs__HPDF_ResetStream(a) {
+		return _HPDF_ResetStream(a);
+	}
+
+	__cjs__HPDF_SaveToFile(a, b) {
+		return _HPDF_SaveToFile(a, b);
+	}
+
+	__cjs__HPDF_GetError(a) {
+		return _HPDF_GetError(a);
+	}
+
+	__cjs__HPDF_GetErrorDetail(a) {
+		return _HPDF_GetErrorDetail(a);
+	}
+
+	__cjs__HPDF_ResetError(a) {
+		return _HPDF_ResetError(a);
+	}
+
+	__cjs__HPDF_SetPagesConfiguration(a, b) {
+		return _HPDF_SetPagesConfiguration(a, b);
+	}
+
+	__cjs__HPDF_GetPageByIndex(a, b) {
+		return _HPDF_GetPageByIndex(a, b);
+	}
+
+	__cjs__HPDF_GetPageLayout(a) {
+		return _HPDF_GetPageLayout(a);
+	}
+
+	__cjs__HPDF_SetPageLayout(a, b) {
+		return _HPDF_SetPageLayout(a, b);
+	}
+
+	__cjs__HPDF_GetPageMode(a) {
+		return _HPDF_GetPageMode(a);
+	}
+
+	__cjs__HPDF_SetPageMode(a, b) {
+		return _HPDF_SetPageMode(a, b);
+	}
+
+	__cjs__HPDF_GetViewerPreference(a) {
+		return _HPDF_GetViewerPreference(a);
+	}
+
+	__cjs__HPDF_SetViewerPreference(a, b) {
+		return _HPDF_SetViewerPreference(a, b);
+	}
+
+	__cjs__HPDF_SetOpenAction(a, b) {
+		return _HPDF_SetOpenAction(a, b);
+	}
+
+	__cjs__HPDF_GetCurrentPage(a) {
+		return _HPDF_GetCurrentPage(a);
+	}
+
+	__cjs__HPDF_AddPage(a) {
+		return _HPDF_AddPage(a);
+	}
+
+	__cjs__HPDF_InsertPage(a, b) {
+		return _HPDF_InsertPage(a, b);
+	}
+
+	__cjs__HPDF_Page_SetWidth(a, b) {
+		return _HPDF_Page_SetWidth(a, b);
+	}
+
+	__cjs__HPDF_Page_SetHeight(a, b) {
+		return _HPDF_Page_SetHeight(a, b);
+	}
+
+	__cjs__HPDF_Page_SetSize(a, b, c) {
+		return _HPDF_Page_SetSize(a, b, c);
+	}
+
+	__cjs__HPDF_Page_SetRotate(a, b) {
+		return _HPDF_Page_SetRotate(a, b);
+	}
+
+	__cjs__HPDF_GetFont(a, b, c) {
+		return _HPDF_GetFont(a, b, c);
+	}
+
+	__cjs__HPDF_LoadType1FontFromFile(a, b, c) {
+		return _HPDF_LoadType1FontFromFile(a, b, c);
+	}
+
+	__cjs__HPDF_LoadTTFontFromFile(a, b, c) {
+		return _HPDF_LoadTTFontFromFile(a, b, c);
+	}
+
+	__cjs__HPDF_LoadTTFontFromFile2(a, b, c, d) {
+		return _HPDF_LoadTTFontFromFile2(a, b, c, d);
+	}
+
+	__cjs__HPDF_AddPageLabel(a, b, c, d, e) {
+		return _HPDF_AddPageLabel(a, b, c, d, e);
+	}
+
+	__cjs__HPDF_UseJPFonts(a) {
+		return _HPDF_UseJPFonts(a);
+	}
+
+	__cjs__HPDF_UseKRFonts(a) {
+		return _HPDF_UseKRFonts(a);
+	}
+
+	__cjs__HPDF_UseCNSFonts(a) {
+		return _HPDF_UseCNSFonts(a);
+	}
+
+	__cjs__HPDF_UseCNTFonts(a) {
+		return _HPDF_UseCNTFonts(a);
+	}
+
+	__cjs__HPDF_CreateOutline(a, b, c, d) {
+		return _HPDF_CreateOutline(a, b, c, d);
+	}
+
+	__cjs__HPDF_Outline_SetOpened(a, b) {
+		return _HPDF_Outline_SetOpened(a, b);
+	}
+
+	__cjs__HPDF_Outline_SetDestination(a, b) {
+		return _HPDF_Outline_SetDestination(a, b);
+	}
+
+	__cjs__HPDF_Page_CreateDestination(a) {
+		return _HPDF_Page_CreateDestination(a);
+	}
+
+	__cjs__HPDF_Destination_SetXYZ(a, b, c, d) {
+		return _HPDF_Destination_SetXYZ(a, b, c, d);
+	}
+
+	__cjs__HPDF_Destination_SetFit(a) {
+		return _HPDF_Destination_SetFit(a);
+	}
+
+	__cjs__HPDF_Destination_SetFitH(a, b) {
+		return _HPDF_Destination_SetFitH(a, b);
+	}
+
+	__cjs__HPDF_Destination_SetFitV(a, b) {
+		return _HPDF_Destination_SetFitV(a, b);
+	}
+
+	__cjs__HPDF_Destination_SetFitR(a, b, c, d, e) {
+		return _HPDF_Destination_SetFitR(a, b, c, d, e);
+	}
+
+	__cjs__HPDF_Destination_SetFitB(a) {
+		return _HPDF_Destination_SetFitB(a);
+	}
+
+	__cjs__HPDF_Destination_SetFitBH(a, b) {
+		return _HPDF_Destination_SetFitBH(a, b);
+	}
+
+	__cjs__HPDF_Destination_SetFitBV(a, b) {
+		return _HPDF_Destination_SetFitBV(a, b);
+	}
+
+	__cjs__HPDF_GetEncoder(a, b) {
+		return _HPDF_GetEncoder(a, b);
+	}
+
+	__cjs__HPDF_GetCurrentEncoder(a) {
+		return _HPDF_GetCurrentEncoder(a);
+	}
+
+	__cjs__HPDF_SetCurrentEncoder(a, b) {
+		return _HPDF_SetCurrentEncoder(a, b);
+	}
+
+	__cjs__HPDF_Encoder_GetType(a) {
+		return _HPDF_Encoder_GetType(a);
+	}
+
+	__cjs__HPDF_Encoder_GetByteType(a, b, c) {
+		return _HPDF_Encoder_GetByteType(a, b, c);
+	}
+
+	__cjs__HPDF_Encoder_GetUnicode(a, b) {
+		return _HPDF_Encoder_GetUnicode(a, b);
+	}
+
+	__cjs__HPDF_Encoder_GetWritingMode(a) {
+		return _HPDF_Encoder_GetWritingMode(a);
+	}
+
+	__cjs__HPDF_UseJPEncodings(a) {
+		return _HPDF_UseJPEncodings(a);
+	}
+
+	__cjs__HPDF_UseKREncodings(a) {
+		return _HPDF_UseKREncodings(a);
+	}
+
+	__cjs__HPDF_UseCNSEncodings(a) {
+		return _HPDF_UseCNSEncodings(a);
+	}
+
+	__cjs__HPDF_UseCNTEncodings(a) {
+		return _HPDF_UseCNTEncodings(a);
+	}
+
+	__cjs__HPDF_Page_CreateTextAnnot(a, b, c, d) {
+		return _HPDF_Page_CreateTextAnnot(a, b, c, d);
+	}
+
+	__cjs__HPDF_Page_CreateLinkAnnot(a, b, c) {
+		return _HPDF_Page_CreateLinkAnnot(a, b, c);
+	}
+
+	__cjs__HPDF_Page_CreateURILinkAnnot(a, b, c) {
+		return _HPDF_Page_CreateURILinkAnnot(a, b, c);
+	}
+
+	__cjs__HPDF_LinkAnnot_SetBorderStyle(a, b, c, d) {
+		return _HPDF_LinkAnnot_SetBorderStyle(a, b, c, d);
+	}
+
+	__cjs__HPDF_TextAnnot_SetIcon(a, b) {
+		return _HPDF_TextAnnot_SetIcon(a, b);
+	}
+
+	__cjs__HPDF_TextAnnot_SetOpened(a, b) {
+		return _HPDF_TextAnnot_SetOpened(a, b);
+	}
+
+	__cjs__HPDF_LoadPngImageFromFile(a, b) {
+		return _HPDF_LoadPngImageFromFile(a, b);
+	}
+
+	__cjs__HPDF_LoadPngImageFromFile2(a, b) {
+		return _HPDF_LoadPngImageFromFile2(a, b);
+	}
+
+	__cjs__HPDF_LoadJpegImageFromFile(a, b) {
+		return _HPDF_LoadJpegImageFromFile(a, b);
+	}
+
+	__cjs__HPDF_LoadRawImageFromFile(a, b, c, d, e) {
+		return _HPDF_LoadRawImageFromFile(a, b, c, d, e);
+	}
+
+	__cjs__HPDF_LoadRawImageFromMem(a, b, c, d, e, f) {
+		return _HPDF_LoadRawImageFromMem(a, b, c, d, e, f);
+	}
+
+	__cjs__HPDF_Image_GetSize(a) {
+		return _HPDF_Image_GetSize(a);
+	}
+
+	__cjs__HPDF_Image_GetSize2(a, b) {
+		return _HPDF_Image_GetSize2(a, b);
+	}
+
+	__cjs__HPDF_Image_GetWidth(a) {
+		return _HPDF_Image_GetWidth(a);
+	}
+
+	__cjs__HPDF_Image_GetHeight(a) {
+		return _HPDF_Image_GetHeight(a);
+	}
+
+	__cjs__HPDF_Image_GetBitsPerComponent(a) {
+		return _HPDF_Image_GetBitsPerComponent(a);
+	}
+
+	__cjs__HPDF_Image_GetColorSpace(a) {
+		return _HPDF_Image_GetColorSpace(a);
+	}
+
+	__cjs__HPDF_Image_SetColorMask(a, b, c, d, e, f, g) {
+		return _HPDF_Image_SetColorMask(a, b, c, d, e, f, g);
+	}
+
+	__cjs__HPDF_Image_SetMaskImage(a, b) {
+		return _HPDF_Image_SetMaskImage(a, b);
+	}
+
+	__cjs__HPDF_SetInfoAttr(a, b, c) {
+		return _HPDF_SetInfoAttr(a, b, c);
+	}
+
+	__cjs__HPDF_GetInfoAttr(a, b) {
+		return _HPDF_GetInfoAttr(a, b);
+	}
+
+	__cjs__HPDF_SetInfoDateAttr(a, b, c) {
+		return _HPDF_SetInfoDateAttr(a, b, c);
+	}
+
+	__cjs__HPDF_SetPassword(a, b, c) {
+		return _HPDF_SetPassword(a, b, c);
+	}
+
+	__cjs__HPDF_SetPermission(a, b) {
+		return _HPDF_SetPermission(a, b);
+	}
+
+	__cjs__HPDF_SetEncryptionMode(a, b, c) {
+		return _HPDF_SetEncryptionMode(a, b, c);
+	}
+
+	__cjs__HPDF_SetCompressionMode(a, b) {
+		return _HPDF_SetCompressionMode(a, b);
+	}
+
+	__cjs__HPDF_Font_GetFontName(a) {
+		return _HPDF_Font_GetFontName(a);
+	}
+
+	__cjs__HPDF_Font_GetEncodingName(a) {
+		return _HPDF_Font_GetEncodingName(a);
+	}
+
+	__cjs__HPDF_Font_GetUnicodeWidth(a, b) {
+		return _HPDF_Font_GetUnicodeWidth(a, b);
+	}
+
+	__cjs__HPDF_Font_GetBBox(a) {
+		return _HPDF_Font_GetBBox(a);
+	}
+
+	__cjs__HPDF_Font_GetAscent(a) {
+		return _HPDF_Font_GetAscent(a);
+	}
+
+	__cjs__HPDF_Font_GetDescent(a) {
+		return _HPDF_Font_GetDescent(a);
+	}
+
+	__cjs__HPDF_Font_GetXHeight(a) {
+		return _HPDF_Font_GetXHeight(a);
+	}
+
+	__cjs__HPDF_Font_GetCapHeight(a) {
+		return _HPDF_Font_GetCapHeight(a);
+	}
+
+	__cjs__HPDF_Font_TextWidth(a, b, c) {
+		return _HPDF_Font_TextWidth(a, b, c);
+	}
+
+	__cjs__HPDF_Font_MeasureText(a, b, c, d, e, f, g, h, i) {
+		return _HPDF_Font_MeasureText(a, b, c, d, e, f, g, h, i);
+	}
+
+	__cjs__HPDF_CreateExtGState(a) {
+		return _HPDF_CreateExtGState(a);
+	}
+
+	__cjs__HPDF_ExtGState_SetAlphaStroke(a, b) {
+		return _HPDF_ExtGState_SetAlphaStroke(a, b);
+	}
+
+	__cjs__HPDF_ExtGState_SetAlphaFill(a, b) {
+		return _HPDF_ExtGState_SetAlphaFill(a, b);
+	}
+
+	__cjs__HPDF_ExtGState_SetBlendMode(a, b) {
+		return _HPDF_ExtGState_SetBlendMode(a, b);
+	}
+
+	__cjs__HPDF_Page_TextWidth(a, b) {
+		return _HPDF_Page_TextWidth(a, b);
+	}
+
+	__cjs__HPDF_Page_MeasureText(a, b, c, d, e) {
+		return _HPDF_Page_MeasureText(a, b, c, d, e);
+	}
+
+	__cjs__HPDF_Page_GetWidth(a) {
+		return _HPDF_Page_GetWidth(a);
+	}
+
+	__cjs__HPDF_Page_GetHeight(a) {
+		return _HPDF_Page_GetHeight(a);
+	}
+
+	__cjs__HPDF_Page_GetGMode(a) {
+		return _HPDF_Page_GetGMode(a);
+	}
+
+	__cjs__HPDF_Page_GetCurrentPos(a) {
+		return _HPDF_Page_GetCurrentPos(a);
+	}
+
+	__cjs__HPDF_Page_GetCurrentPos2(a, b) {
+		return _HPDF_Page_GetCurrentPos2(a, b);
+	}
+
+	__cjs__HPDF_Page_GetCurrentTextPos(a) {
+		return _HPDF_Page_GetCurrentTextPos(a);
+	}
+
+	__cjs__HPDF_Page_GetCurrentTextPos2(a, b) {
+		return _HPDF_Page_GetCurrentTextPos2(a, b);
+	}
+
+	__cjs__HPDF_Page_GetCurrentFont(a) {
+		return _HPDF_Page_GetCurrentFont(a);
+	}
+
+	__cjs__HPDF_Page_GetCurrentFontSize(a) {
+		return _HPDF_Page_GetCurrentFontSize(a);
+	}
+
+	__cjs__HPDF_Page_GetTransMatrix(a) {
+		return _HPDF_Page_GetTransMatrix(a);
+	}
+
+	__cjs__HPDF_Page_GetLineWidth(a) {
+		return _HPDF_Page_GetLineWidth(a);
+	}
+
+	__cjs__HPDF_Page_GetLineCap(a) {
+		return _HPDF_Page_GetLineCap(a);
+	}
+
+	__cjs__HPDF_Page_GetLineJoin(a) {
+		return _HPDF_Page_GetLineJoin(a);
+	}
+
+	__cjs__HPDF_Page_GetMiterLimit(a) {
+		return _HPDF_Page_GetMiterLimit(a);
+	}
+
+	__cjs__HPDF_Page_GetDash(a) {
+		return _HPDF_Page_GetDash(a);
+	}
+
+	__cjs__HPDF_Page_GetFlat(a) {
+		return _HPDF_Page_GetFlat(a);
+	}
+
+	__cjs__HPDF_Page_GetCharSpace(a) {
+		return _HPDF_Page_GetCharSpace(a);
+	}
+
+	__cjs__HPDF_Page_GetWordSpace(a) {
+		return _HPDF_Page_GetWordSpace(a);
+	}
+
+	__cjs__HPDF_Page_GetHorizontalScalling(a) {
+		return _HPDF_Page_GetHorizontalScalling(a);
+	}
+
+	__cjs__HPDF_Page_GetTextLeading(a) {
+		return _HPDF_Page_GetTextLeading(a);
+	}
+
+	__cjs__HPDF_Page_GetTextRenderingMode(a) {
+		return _HPDF_Page_GetTextRenderingMode(a);
+	}
+
+	__cjs__HPDF_Page_GetTextRaise(a) {
+		return _HPDF_Page_GetTextRaise(a);
+	}
+
+	__cjs__HPDF_Page_GetTextRise(a) {
+		return _HPDF_Page_GetTextRise(a);
+	}
+
+	__cjs__HPDF_Page_GetRGBFill(a) {
+		return _HPDF_Page_GetRGBFill(a);
+	}
+
+	__cjs__HPDF_Page_GetRGBStroke(a) {
+		return _HPDF_Page_GetRGBStroke(a);
+	}
+
+	__cjs__HPDF_Page_GetCMYKFill(a) {
+		return _HPDF_Page_GetCMYKFill(a);
+	}
+
+	__cjs__HPDF_Page_GetCMYKStroke(a) {
+		return _HPDF_Page_GetCMYKStroke(a);
+	}
+
+	__cjs__HPDF_Page_GetGrayFill(a) {
+		return _HPDF_Page_GetGrayFill(a);
+	}
+
+	__cjs__HPDF_Page_GetGrayStroke(a) {
+		return _HPDF_Page_GetGrayStroke(a);
+	}
+
+	__cjs__HPDF_Page_GetStrokingColorSpace(a) {
+		return _HPDF_Page_GetStrokingColorSpace(a);
+	}
+
+	__cjs__HPDF_Page_GetFillingColorSpace(a) {
+		return _HPDF_Page_GetFillingColorSpace(a);
+	}
+
+	__cjs__HPDF_Page_GetTextMatrix(a) {
+		return _HPDF_Page_GetTextMatrix(a);
+	}
+
+	__cjs__HPDF_Page_GetGStateDepth(a) {
+		return _HPDF_Page_GetGStateDepth(a);
+	}
+
+	__cjs__HPDF_Page_SetLineWidth(a, b) {
+		return _HPDF_Page_SetLineWidth(a, b);
+	}
+
+	__cjs__HPDF_Page_SetLineCap(a, b) {
+		return _HPDF_Page_SetLineCap(a, b);
+	}
+
+	__cjs__HPDF_Page_SetLineJoin(a, b) {
+		return _HPDF_Page_SetLineJoin(a, b);
+	}
+
+	__cjs__HPDF_Page_SetMiterLimit(a, b) {
+		return _HPDF_Page_SetMiterLimit(a, b);
+	}
+
+	__cjs__HPDF_Page_SetDash(a, b, c, d) {
+		return _HPDF_Page_SetDash(a, b, c, d);
+	}
+
+	__cjs__HPDF_Page_SetFlat(a, b) {
+		return _HPDF_Page_SetFlat(a, b);
+	}
+
+	__cjs__HPDF_Page_SetExtGState(a, b) {
+		return _HPDF_Page_SetExtGState(a, b);
+	}
+
+	__cjs__HPDF_Page_GSave(a) {
+		return _HPDF_Page_GSave(a);
+	}
+
+	__cjs__HPDF_Page_GRestore(a) {
+		return _HPDF_Page_GRestore(a);
+	}
+
+	__cjs__HPDF_Page_Concat(a, b, c, d, e, f, g) {
+		return _HPDF_Page_Concat(a, b, c, d, e, f, g);
+	}
+
+	__cjs__HPDF_Page_MoveTo(a, b, c) {
+		return _HPDF_Page_MoveTo(a, b, c);
+	}
+
+	__cjs__HPDF_Page_LineTo(a, b, c) {
+		return _HPDF_Page_LineTo(a, b, c);
+	}
+
+	__cjs__HPDF_Page_CurveTo(a, b, c, d, e, f, g) {
+		return _HPDF_Page_CurveTo(a, b, c, d, e, f, g);
+	}
+
+	__cjs__HPDF_Page_CurveTo2(a, b, c, d, e) {
+		return _HPDF_Page_CurveTo2(a, b, c, d, e);
+	}
+
+	__cjs__HPDF_Page_CurveTo3(a, b, c, d, e) {
+		return _HPDF_Page_CurveTo3(a, b, c, d, e);
+	}
+
+	__cjs__HPDF_Page_ClosePath(a) {
+		return _HPDF_Page_ClosePath(a);
+	}
+
+	__cjs__HPDF_Page_Rectangle(a, b, c, d, e) {
+		return _HPDF_Page_Rectangle(a, b, c, d, e);
+	}
+
+	__cjs__HPDF_Page_Stroke(a) {
+		return _HPDF_Page_Stroke(a);
+	}
+
+	__cjs__HPDF_Page_ClosePathStroke(a) {
+		return _HPDF_Page_ClosePathStroke(a);
+	}
+
+	__cjs__HPDF_Page_Fill(a) {
+		return _HPDF_Page_Fill(a);
+	}
+
+	__cjs__HPDF_Page_Eofill(a) {
+		return _HPDF_Page_Eofill(a);
+	}
+
+	__cjs__HPDF_Page_FillStroke(a) {
+		return _HPDF_Page_FillStroke(a);
+	}
+
+	__cjs__HPDF_Page_EofillStroke(a) {
+		return _HPDF_Page_EofillStroke(a);
+	}
+
+	__cjs__HPDF_Page_ClosePathFillStroke(a) {
+		return _HPDF_Page_ClosePathFillStroke(a);
+	}
+
+	__cjs__HPDF_Page_ClosePathEofillStroke(a) {
+		return _HPDF_Page_ClosePathEofillStroke(a);
+	}
+
+	__cjs__HPDF_Page_EndPath(a) {
+		return _HPDF_Page_EndPath(a);
+	}
+
+	__cjs__HPDF_Page_Clip(a) {
+		return _HPDF_Page_Clip(a);
+	}
+
+	__cjs__HPDF_Page_Eoclip(a) {
+		return _HPDF_Page_Eoclip(a);
+	}
+
+	__cjs__HPDF_Page_BeginText(a) {
+		return _HPDF_Page_BeginText(a);
+	}
+
+	__cjs__HPDF_Page_EndText(a) {
+		return _HPDF_Page_EndText(a);
+	}
+
+	__cjs__HPDF_Page_SetCharSpace(a, b) {
+		return _HPDF_Page_SetCharSpace(a, b);
+	}
+
+	__cjs__HPDF_Page_SetWordSpace(a, b) {
+		return _HPDF_Page_SetWordSpace(a, b);
+	}
+
+	__cjs__HPDF_Page_SetHorizontalScalling(a, b) {
+		return _HPDF_Page_SetHorizontalScalling(a, b);
+	}
+
+	__cjs__HPDF_Page_SetTextLeading(a, b) {
+		return _HPDF_Page_SetTextLeading(a, b);
+	}
+
+	__cjs__HPDF_Page_SetFontAndSize(a, b, c) {
+		return _HPDF_Page_SetFontAndSize(a, b, c);
+	}
+
+	__cjs__HPDF_Page_SetTextRenderingMode(a, b) {
+		return _HPDF_Page_SetTextRenderingMode(a, b);
+	}
+
+	__cjs__HPDF_Page_SetTextRise(a, b) {
+		return _HPDF_Page_SetTextRise(a, b);
+	}
+
+	__cjs__HPDF_Page_SetTextRaise(a, b) {
+		return _HPDF_Page_SetTextRaise(a, b);
+	}
+
+	__cjs__HPDF_Page_MoveTextPos(a, b, c) {
+		return _HPDF_Page_MoveTextPos(a, b, c);
+	}
+
+	__cjs__HPDF_Page_MoveTextPos2(a, b, c) {
+		return _HPDF_Page_MoveTextPos2(a, b, c);
+	}
+
+	__cjs__HPDF_Page_SetTextMatrix(a, b, c, d, e, f, g) {
+		return _HPDF_Page_SetTextMatrix(a, b, c, d, e, f, g);
+	}
+
+	__cjs__HPDF_Page_MoveToNextLine(a) {
+		return _HPDF_Page_MoveToNextLine(a);
+	}
+
+	__cjs__HPDF_Page_ShowText(a, b) {
+		return _HPDF_Page_ShowText(a, b);
+	}
+
+	__cjs__HPDF_Page_ShowTextNextLine(a, b) {
+		return _HPDF_Page_ShowTextNextLine(a, b);
+	}
+
+	__cjs__HPDF_Page_ShowTextNextLineEx(a, b, c, d) {
+		return _HPDF_Page_ShowTextNextLineEx(a, b, c, d);
+	}
+
+	__cjs__HPDF_Page_SetGrayFill(a, b) {
+		return _HPDF_Page_SetGrayFill(a, b);
+	}
+
+	__cjs__HPDF_Page_SetGrayStroke(a, b) {
+		return _HPDF_Page_SetGrayStroke(a, b);
+	}
+
+	__cjs__HPDF_Page_SetRGBFill(a, b, c, d) {
+		return _HPDF_Page_SetRGBFill(a, b, c, d);
+	}
+
+	__cjs__HPDF_Page_SetRGBStroke(a, b, c, d) {
+		return _HPDF_Page_SetRGBStroke(a, b, c, d);
+	}
+
+	__cjs__HPDF_Page_SetCMYKFill(a, b, c, d, e) {
+		return _HPDF_Page_SetCMYKFill(a, b, c, d, e);
+	}
+
+	__cjs__HPDF_Page_SetCMYKStroke(a, b, c, d, e) {
+		return _HPDF_Page_SetCMYKStroke(a, b, c, d, e);
+	}
+
+	__cjs__HPDF_Page_ExecuteXObject(a, b) {
+		return _HPDF_Page_ExecuteXObject(a, b);
+	}
+
+	__cjs__HPDF_Page_DrawImage(a, b, c, d, e, f) {
+		return _HPDF_Page_DrawImage(a, b, c, d, e, f);
+	}
+
+	__cjs__HPDF_Page_Circle(a, b, c, d) {
+		return _HPDF_Page_Circle(a, b, c, d);
+	}
+
+	__cjs__HPDF_Page_Ellipse(a, b, c, d, e) {
+		return _HPDF_Page_Ellipse(a, b, c, d, e);
+	}
+
+	__cjs__HPDF_Page_Arc(a, b, c, d, e, f) {
+		return _HPDF_Page_Arc(a, b, c, d, e, f);
+	}
+
+	__cjs__HPDF_Page_TextOut(a, b, c, d) {
+		return _HPDF_Page_TextOut(a, b, c, d);
+	}
+
+	__cjs__HPDF_Page_TextRect(a, b, c, d, e, f, g, h) {
+		return _HPDF_Page_TextRect(a, b, c, d, e, f, g, h);
+	}
+
+	__cjs__HPDF_Page_SetSlideShow(a, b, c, d) {
+		return _HPDF_Page_SetSlideShow(a, b, c, d);
+	}
+
+	wrap(js) {
+		js.wrap(this.__cjs__HPDF_GetVersion, "__cjs__HPDF_GetVersion");
+		js.wrap(this.__cjs__HPDF_New, "__cjs__HPDF_New");
+		js.wrap(this.__cjs__HPDF_SetErrorHandler, "__cjs__HPDF_SetErrorHandler");
+		js.wrap(this.__cjs__HPDF_Free, "__cjs__HPDF_Free");
+		js.wrap(this.__cjs__HPDF_NewDoc, "__cjs__HPDF_NewDoc");
+		js.wrap(this.__cjs__HPDF_FreeDoc, "__cjs__HPDF_FreeDoc");
+		js.wrap(this.__cjs__HPDF_HasDoc, "__cjs__HPDF_HasDoc");
+		js.wrap(this.__cjs__HPDF_FreeDocAll, "__cjs__HPDF_FreeDocAll");
+		js.wrap(this.__cjs__HPDF_SaveToStream, "__cjs__HPDF_SaveToStream");
+		js.wrap(this.__cjs__HPDF_GetStreamSize, "__cjs__HPDF_GetStreamSize");
+		js.wrap(this.__cjs__HPDF_ReadFromStream, "__cjs__HPDF_ReadFromStream");
+		js.wrap(this.__cjs__HPDF_ResetStream, "__cjs__HPDF_ResetStream");
+		js.wrap(this.__cjs__HPDF_SaveToFile, "__cjs__HPDF_SaveToFile");
+		js.wrap(this.__cjs__HPDF_GetError, "__cjs__HPDF_GetError");
+		js.wrap(this.__cjs__HPDF_GetErrorDetail, "__cjs__HPDF_GetErrorDetail");
+		js.wrap(this.__cjs__HPDF_ResetError, "__cjs__HPDF_ResetError");
+		js.wrap(this.__cjs__HPDF_SetPagesConfiguration, "__cjs__HPDF_SetPagesConfiguration");
+		js.wrap(this.__cjs__HPDF_GetPageByIndex, "__cjs__HPDF_GetPageByIndex");
+		js.wrap(this.__cjs__HPDF_GetPageLayout, "__cjs__HPDF_GetPageLayout");
+		js.wrap(this.__cjs__HPDF_SetPageLayout, "__cjs__HPDF_SetPageLayout");
+		js.wrap(this.__cjs__HPDF_GetPageMode, "__cjs__HPDF_GetPageMode");
+		js.wrap(this.__cjs__HPDF_SetPageMode, "__cjs__HPDF_SetPageMode");
+		js.wrap(this.__cjs__HPDF_GetViewerPreference, "__cjs__HPDF_GetViewerPreference");
+		js.wrap(this.__cjs__HPDF_SetViewerPreference, "__cjs__HPDF_SetViewerPreference");
+		js.wrap(this.__cjs__HPDF_SetOpenAction, "__cjs__HPDF_SetOpenAction");
+		js.wrap(this.__cjs__HPDF_GetCurrentPage, "__cjs__HPDF_GetCurrentPage");
+		js.wrap(this.__cjs__HPDF_AddPage, "__cjs__HPDF_AddPage");
+		js.wrap(this.__cjs__HPDF_InsertPage, "__cjs__HPDF_InsertPage");
+		js.wrap(this.__cjs__HPDF_Page_SetWidth, "__cjs__HPDF_Page_SetWidth");
+		js.wrap(this.__cjs__HPDF_Page_SetHeight, "__cjs__HPDF_Page_SetHeight");
+		js.wrap(this.__cjs__HPDF_Page_SetSize, "__cjs__HPDF_Page_SetSize");
+		js.wrap(this.__cjs__HPDF_Page_SetRotate, "__cjs__HPDF_Page_SetRotate");
+		js.wrap(this.__cjs__HPDF_GetFont, "__cjs__HPDF_GetFont");
+		js.wrap(this.__cjs__HPDF_LoadType1FontFromFile, "__cjs__HPDF_LoadType1FontFromFile");
+		js.wrap(this.__cjs__HPDF_LoadTTFontFromFile, "__cjs__HPDF_LoadTTFontFromFile");
+		js.wrap(this.__cjs__HPDF_LoadTTFontFromFile2, "__cjs__HPDF_LoadTTFontFromFile2");
+		js.wrap(this.__cjs__HPDF_AddPageLabel, "__cjs__HPDF_AddPageLabel");
+		js.wrap(this.__cjs__HPDF_UseJPFonts, "__cjs__HPDF_UseJPFonts");
+		js.wrap(this.__cjs__HPDF_UseKRFonts, "__cjs__HPDF_UseKRFonts");
+		js.wrap(this.__cjs__HPDF_UseCNSFonts, "__cjs__HPDF_UseCNSFonts");
+		js.wrap(this.__cjs__HPDF_UseCNTFonts, "__cjs__HPDF_UseCNTFonts");
+		js.wrap(this.__cjs__HPDF_CreateOutline, "__cjs__HPDF_CreateOutline");
+		js.wrap(this.__cjs__HPDF_Outline_SetOpened, "__cjs__HPDF_Outline_SetOpened");
+		js.wrap(this.__cjs__HPDF_Outline_SetDestination, "__cjs__HPDF_Outline_SetDestination");
+		js.wrap(this.__cjs__HPDF_Page_CreateDestination, "__cjs__HPDF_Page_CreateDestination");
+		js.wrap(this.__cjs__HPDF_Destination_SetXYZ, "__cjs__HPDF_Destination_SetXYZ");
+		js.wrap(this.__cjs__HPDF_Destination_SetFit, "__cjs__HPDF_Destination_SetFit");
+		js.wrap(this.__cjs__HPDF_Destination_SetFitH, "__cjs__HPDF_Destination_SetFitH");
+		js.wrap(this.__cjs__HPDF_Destination_SetFitV, "__cjs__HPDF_Destination_SetFitV");
+		js.wrap(this.__cjs__HPDF_Destination_SetFitR, "__cjs__HPDF_Destination_SetFitR");
+		js.wrap(this.__cjs__HPDF_Destination_SetFitB, "__cjs__HPDF_Destination_SetFitB");
+		js.wrap(this.__cjs__HPDF_Destination_SetFitBH, "__cjs__HPDF_Destination_SetFitBH");
+		js.wrap(this.__cjs__HPDF_Destination_SetFitBV, "__cjs__HPDF_Destination_SetFitBV");
+		js.wrap(this.__cjs__HPDF_GetEncoder, "__cjs__HPDF_GetEncoder");
+		js.wrap(this.__cjs__HPDF_GetCurrentEncoder, "__cjs__HPDF_GetCurrentEncoder");
+		js.wrap(this.__cjs__HPDF_SetCurrentEncoder, "__cjs__HPDF_SetCurrentEncoder");
+		js.wrap(this.__cjs__HPDF_Encoder_GetType, "__cjs__HPDF_Encoder_GetType");
+		js.wrap(this.__cjs__HPDF_Encoder_GetByteType, "__cjs__HPDF_Encoder_GetByteType");
+		js.wrap(this.__cjs__HPDF_Encoder_GetUnicode, "__cjs__HPDF_Encoder_GetUnicode");
+		js.wrap(this.__cjs__HPDF_Encoder_GetWritingMode, "__cjs__HPDF_Encoder_GetWritingMode");
+		js.wrap(this.__cjs__HPDF_UseJPEncodings, "__cjs__HPDF_UseJPEncodings");
+		js.wrap(this.__cjs__HPDF_UseKREncodings, "__cjs__HPDF_UseKREncodings");
+		js.wrap(this.__cjs__HPDF_UseCNSEncodings, "__cjs__HPDF_UseCNSEncodings");
+		js.wrap(this.__cjs__HPDF_UseCNTEncodings, "__cjs__HPDF_UseCNTEncodings");
+		js.wrap(this.__cjs__HPDF_Page_CreateTextAnnot, "__cjs__HPDF_Page_CreateTextAnnot");
+		js.wrap(this.__cjs__HPDF_Page_CreateLinkAnnot, "__cjs__HPDF_Page_CreateLinkAnnot");
+		js.wrap(this.__cjs__HPDF_Page_CreateURILinkAnnot, "__cjs__HPDF_Page_CreateURILinkAnnot");
+		js.wrap(this.__cjs__HPDF_LinkAnnot_SetBorderStyle, "__cjs__HPDF_LinkAnnot_SetBorderStyle");
+		js.wrap(this.__cjs__HPDF_TextAnnot_SetIcon, "__cjs__HPDF_TextAnnot_SetIcon");
+		js.wrap(this.__cjs__HPDF_TextAnnot_SetOpened, "__cjs__HPDF_TextAnnot_SetOpened");
+		js.wrap(this.__cjs__HPDF_LoadPngImageFromFile, "__cjs__HPDF_LoadPngImageFromFile");
+		js.wrap(this.__cjs__HPDF_LoadPngImageFromFile2, "__cjs__HPDF_LoadPngImageFromFile2");
+		js.wrap(this.__cjs__HPDF_LoadJpegImageFromFile, "__cjs__HPDF_LoadJpegImageFromFile");
+		js.wrap(this.__cjs__HPDF_LoadRawImageFromFile, "__cjs__HPDF_LoadRawImageFromFile");
+		js.wrap(this.__cjs__HPDF_LoadRawImageFromMem, "__cjs__HPDF_LoadRawImageFromMem");
+		js.wrap(this.__cjs__HPDF_Image_GetSize, "__cjs__HPDF_Image_GetSize");
+		js.wrap(this.__cjs__HPDF_Image_GetSize2, "__cjs__HPDF_Image_GetSize2");
+		js.wrap(this.__cjs__HPDF_Image_GetWidth, "__cjs__HPDF_Image_GetWidth");
+		js.wrap(this.__cjs__HPDF_Image_GetHeight, "__cjs__HPDF_Image_GetHeight");
+		js.wrap(this.__cjs__HPDF_Image_GetBitsPerComponent, "__cjs__HPDF_Image_GetBitsPerComponent");
+		js.wrap(this.__cjs__HPDF_Image_GetColorSpace, "__cjs__HPDF_Image_GetColorSpace");
+		js.wrap(this.__cjs__HPDF_Image_SetColorMask, "__cjs__HPDF_Image_SetColorMask");
+		js.wrap(this.__cjs__HPDF_Image_SetMaskImage, "__cjs__HPDF_Image_SetMaskImage");
+		js.wrap(this.__cjs__HPDF_SetInfoAttr, "__cjs__HPDF_SetInfoAttr");
+		js.wrap(this.__cjs__HPDF_GetInfoAttr, "__cjs__HPDF_GetInfoAttr");
+		js.wrap(this.__cjs__HPDF_SetInfoDateAttr, "__cjs__HPDF_SetInfoDateAttr");
+		js.wrap(this.__cjs__HPDF_SetPassword, "__cjs__HPDF_SetPassword");
+		js.wrap(this.__cjs__HPDF_SetPermission, "__cjs__HPDF_SetPermission");
+		js.wrap(this.__cjs__HPDF_SetEncryptionMode, "__cjs__HPDF_SetEncryptionMode");
+		js.wrap(this.__cjs__HPDF_SetCompressionMode, "__cjs__HPDF_SetCompressionMode");
+		js.wrap(this.__cjs__HPDF_Font_GetFontName, "__cjs__HPDF_Font_GetFontName");
+		js.wrap(this.__cjs__HPDF_Font_GetEncodingName, "__cjs__HPDF_Font_GetEncodingName");
+		js.wrap(this.__cjs__HPDF_Font_GetUnicodeWidth, "__cjs__HPDF_Font_GetUnicodeWidth");
+		js.wrap(this.__cjs__HPDF_Font_GetBBox, "__cjs__HPDF_Font_GetBBox");
+		js.wrap(this.__cjs__HPDF_Font_GetAscent, "__cjs__HPDF_Font_GetAscent");
+		js.wrap(this.__cjs__HPDF_Font_GetDescent, "__cjs__HPDF_Font_GetDescent");
+		js.wrap(this.__cjs__HPDF_Font_GetXHeight, "__cjs__HPDF_Font_GetXHeight");
+		js.wrap(this.__cjs__HPDF_Font_GetCapHeight, "__cjs__HPDF_Font_GetCapHeight");
+		js.wrap(this.__cjs__HPDF_Font_TextWidth, "__cjs__HPDF_Font_TextWidth");
+		js.wrap(this.__cjs__HPDF_Font_MeasureText, "__cjs__HPDF_Font_MeasureText");
+		js.wrap(this.__cjs__HPDF_CreateExtGState, "__cjs__HPDF_CreateExtGState");
+		js.wrap(this.__cjs__HPDF_ExtGState_SetAlphaStroke, "__cjs__HPDF_ExtGState_SetAlphaStroke");
+		js.wrap(this.__cjs__HPDF_ExtGState_SetAlphaFill, "__cjs__HPDF_ExtGState_SetAlphaFill");
+		js.wrap(this.__cjs__HPDF_ExtGState_SetBlendMode, "__cjs__HPDF_ExtGState_SetBlendMode");
+		js.wrap(this.__cjs__HPDF_Page_TextWidth, "__cjs__HPDF_Page_TextWidth");
+		js.wrap(this.__cjs__HPDF_Page_MeasureText, "__cjs__HPDF_Page_MeasureText");
+		js.wrap(this.__cjs__HPDF_Page_GetWidth, "__cjs__HPDF_Page_GetWidth");
+		js.wrap(this.__cjs__HPDF_Page_GetHeight, "__cjs__HPDF_Page_GetHeight");
+		js.wrap(this.__cjs__HPDF_Page_GetGMode, "__cjs__HPDF_Page_GetGMode");
+		js.wrap(this.__cjs__HPDF_Page_GetCurrentPos, "__cjs__HPDF_Page_GetCurrentPos");
+		js.wrap(this.__cjs__HPDF_Page_GetCurrentPos2, "__cjs__HPDF_Page_GetCurrentPos2");
+		js.wrap(this.__cjs__HPDF_Page_GetCurrentTextPos, "__cjs__HPDF_Page_GetCurrentTextPos");
+		js.wrap(this.__cjs__HPDF_Page_GetCurrentTextPos2, "__cjs__HPDF_Page_GetCurrentTextPos2");
+		js.wrap(this.__cjs__HPDF_Page_GetCurrentFont, "__cjs__HPDF_Page_GetCurrentFont");
+		js.wrap(this.__cjs__HPDF_Page_GetCurrentFontSize, "__cjs__HPDF_Page_GetCurrentFontSize");
+		js.wrap(this.__cjs__HPDF_Page_GetTransMatrix, "__cjs__HPDF_Page_GetTransMatrix");
+		js.wrap(this.__cjs__HPDF_Page_GetLineWidth, "__cjs__HPDF_Page_GetLineWidth");
+		js.wrap(this.__cjs__HPDF_Page_GetLineCap, "__cjs__HPDF_Page_GetLineCap");
+		js.wrap(this.__cjs__HPDF_Page_GetLineJoin, "__cjs__HPDF_Page_GetLineJoin");
+		js.wrap(this.__cjs__HPDF_Page_GetMiterLimit, "__cjs__HPDF_Page_GetMiterLimit");
+		js.wrap(this.__cjs__HPDF_Page_GetDash, "__cjs__HPDF_Page_GetDash");
+		js.wrap(this.__cjs__HPDF_Page_GetFlat, "__cjs__HPDF_Page_GetFlat");
+		js.wrap(this.__cjs__HPDF_Page_GetCharSpace, "__cjs__HPDF_Page_GetCharSpace");
+		js.wrap(this.__cjs__HPDF_Page_GetWordSpace, "__cjs__HPDF_Page_GetWordSpace");
+		js.wrap(this.__cjs__HPDF_Page_GetHorizontalScalling, "__cjs__HPDF_Page_GetHorizontalScalling");
+		js.wrap(this.__cjs__HPDF_Page_GetTextLeading, "__cjs__HPDF_Page_GetTextLeading");
+		js.wrap(this.__cjs__HPDF_Page_GetTextRenderingMode, "__cjs__HPDF_Page_GetTextRenderingMode");
+		js.wrap(this.__cjs__HPDF_Page_GetTextRaise, "__cjs__HPDF_Page_GetTextRaise");
+		js.wrap(this.__cjs__HPDF_Page_GetTextRise, "__cjs__HPDF_Page_GetTextRise");
+		js.wrap(this.__cjs__HPDF_Page_GetRGBFill, "__cjs__HPDF_Page_GetRGBFill");
+		js.wrap(this.__cjs__HPDF_Page_GetRGBStroke, "__cjs__HPDF_Page_GetRGBStroke");
+		js.wrap(this.__cjs__HPDF_Page_GetCMYKFill, "__cjs__HPDF_Page_GetCMYKFill");
+		js.wrap(this.__cjs__HPDF_Page_GetCMYKStroke, "__cjs__HPDF_Page_GetCMYKStroke");
+		js.wrap(this.__cjs__HPDF_Page_GetGrayFill, "__cjs__HPDF_Page_GetGrayFill");
+		js.wrap(this.__cjs__HPDF_Page_GetGrayStroke, "__cjs__HPDF_Page_GetGrayStroke");
+		js.wrap(this.__cjs__HPDF_Page_GetStrokingColorSpace, "__cjs__HPDF_Page_GetStrokingColorSpace");
+		js.wrap(this.__cjs__HPDF_Page_GetFillingColorSpace, "__cjs__HPDF_Page_GetFillingColorSpace");
+		js.wrap(this.__cjs__HPDF_Page_GetTextMatrix, "__cjs__HPDF_Page_GetTextMatrix");
+		js.wrap(this.__cjs__HPDF_Page_GetGStateDepth, "__cjs__HPDF_Page_GetGStateDepth");
+		js.wrap(this.__cjs__HPDF_Page_SetLineWidth, "__cjs__HPDF_Page_SetLineWidth");
+		js.wrap(this.__cjs__HPDF_Page_SetLineCap, "__cjs__HPDF_Page_SetLineCap");
+		js.wrap(this.__cjs__HPDF_Page_SetLineJoin, "__cjs__HPDF_Page_SetLineJoin");
+		js.wrap(this.__cjs__HPDF_Page_SetMiterLimit, "__cjs__HPDF_Page_SetMiterLimit");
+		js.wrap(this.__cjs__HPDF_Page_SetDash, "__cjs__HPDF_Page_SetDash");
+		js.wrap(this.__cjs__HPDF_Page_SetFlat, "__cjs__HPDF_Page_SetFlat");
+		js.wrap(this.__cjs__HPDF_Page_SetExtGState, "__cjs__HPDF_Page_SetExtGState");
+		js.wrap(this.__cjs__HPDF_Page_GSave, "__cjs__HPDF_Page_GSave");
+		js.wrap(this.__cjs__HPDF_Page_GRestore, "__cjs__HPDF_Page_GRestore");
+		js.wrap(this.__cjs__HPDF_Page_Concat, "__cjs__HPDF_Page_Concat");
+		js.wrap(this.__cjs__HPDF_Page_MoveTo, "__cjs__HPDF_Page_MoveTo");
+		js.wrap(this.__cjs__HPDF_Page_LineTo, "__cjs__HPDF_Page_LineTo");
+		js.wrap(this.__cjs__HPDF_Page_CurveTo, "__cjs__HPDF_Page_CurveTo");
+		js.wrap(this.__cjs__HPDF_Page_CurveTo2, "__cjs__HPDF_Page_CurveTo2");
+		js.wrap(this.__cjs__HPDF_Page_CurveTo3, "__cjs__HPDF_Page_CurveTo3");
+		js.wrap(this.__cjs__HPDF_Page_ClosePath, "__cjs__HPDF_Page_ClosePath");
+		js.wrap(this.__cjs__HPDF_Page_Rectangle, "__cjs__HPDF_Page_Rectangle");
+		js.wrap(this.__cjs__HPDF_Page_Stroke, "__cjs__HPDF_Page_Stroke");
+		js.wrap(this.__cjs__HPDF_Page_ClosePathStroke, "__cjs__HPDF_Page_ClosePathStroke");
+		js.wrap(this.__cjs__HPDF_Page_Fill, "__cjs__HPDF_Page_Fill");
+		js.wrap(this.__cjs__HPDF_Page_Eofill, "__cjs__HPDF_Page_Eofill");
+		js.wrap(this.__cjs__HPDF_Page_FillStroke, "__cjs__HPDF_Page_FillStroke");
+		js.wrap(this.__cjs__HPDF_Page_EofillStroke, "__cjs__HPDF_Page_EofillStroke");
+		js.wrap(this.__cjs__HPDF_Page_ClosePathFillStroke, "__cjs__HPDF_Page_ClosePathFillStroke");
+		js.wrap(this.__cjs__HPDF_Page_ClosePathEofillStroke, "__cjs__HPDF_Page_ClosePathEofillStroke");
+		js.wrap(this.__cjs__HPDF_Page_EndPath, "__cjs__HPDF_Page_EndPath");
+		js.wrap(this.__cjs__HPDF_Page_Clip, "__cjs__HPDF_Page_Clip");
+		js.wrap(this.__cjs__HPDF_Page_Eoclip, "__cjs__HPDF_Page_Eoclip");
+		js.wrap(this.__cjs__HPDF_Page_BeginText, "__cjs__HPDF_Page_BeginText");
+		js.wrap(this.__cjs__HPDF_Page_EndText, "__cjs__HPDF_Page_EndText");
+		js.wrap(this.__cjs__HPDF_Page_SetCharSpace, "__cjs__HPDF_Page_SetCharSpace");
+		js.wrap(this.__cjs__HPDF_Page_SetWordSpace, "__cjs__HPDF_Page_SetWordSpace");
+		js.wrap(this.__cjs__HPDF_Page_SetHorizontalScalling, "__cjs__HPDF_Page_SetHorizontalScalling");
+		js.wrap(this.__cjs__HPDF_Page_SetTextLeading, "__cjs__HPDF_Page_SetTextLeading");
+		js.wrap(this.__cjs__HPDF_Page_SetFontAndSize, "__cjs__HPDF_Page_SetFontAndSize");
+		js.wrap(this.__cjs__HPDF_Page_SetTextRenderingMode, "__cjs__HPDF_Page_SetTextRenderingMode");
+		js.wrap(this.__cjs__HPDF_Page_SetTextRise, "__cjs__HPDF_Page_SetTextRise");
+		js.wrap(this.__cjs__HPDF_Page_SetTextRaise, "__cjs__HPDF_Page_SetTextRaise");
+		js.wrap(this.__cjs__HPDF_Page_MoveTextPos, "__cjs__HPDF_Page_MoveTextPos");
+		js.wrap(this.__cjs__HPDF_Page_MoveTextPos2, "__cjs__HPDF_Page_MoveTextPos2");
+		js.wrap(this.__cjs__HPDF_Page_SetTextMatrix, "__cjs__HPDF_Page_SetTextMatrix");
+		js.wrap(this.__cjs__HPDF_Page_MoveToNextLine, "__cjs__HPDF_Page_MoveToNextLine");
+		js.wrap(this.__cjs__HPDF_Page_ShowText, "__cjs__HPDF_Page_ShowText");
+		js.wrap(this.__cjs__HPDF_Page_ShowTextNextLine, "__cjs__HPDF_Page_ShowTextNextLine");
+		js.wrap(this.__cjs__HPDF_Page_ShowTextNextLineEx, "__cjs__HPDF_Page_ShowTextNextLineEx");
+		js.wrap(this.__cjs__HPDF_Page_SetGrayFill, "__cjs__HPDF_Page_SetGrayFill");
+		js.wrap(this.__cjs__HPDF_Page_SetGrayStroke, "__cjs__HPDF_Page_SetGrayStroke");
+		js.wrap(this.__cjs__HPDF_Page_SetRGBFill, "__cjs__HPDF_Page_SetRGBFill");
+		js.wrap(this.__cjs__HPDF_Page_SetRGBStroke, "__cjs__HPDF_Page_SetRGBStroke");
+		js.wrap(this.__cjs__HPDF_Page_SetCMYKFill, "__cjs__HPDF_Page_SetCMYKFill");
+		js.wrap(this.__cjs__HPDF_Page_SetCMYKStroke, "__cjs__HPDF_Page_SetCMYKStroke");
+		js.wrap(this.__cjs__HPDF_Page_ExecuteXObject, "__cjs__HPDF_Page_ExecuteXObject");
+		js.wrap(this.__cjs__HPDF_Page_DrawImage, "__cjs__HPDF_Page_DrawImage");
+		js.wrap(this.__cjs__HPDF_Page_Circle, "__cjs__HPDF_Page_Circle");
+		js.wrap(this.__cjs__HPDF_Page_Ellipse, "__cjs__HPDF_Page_Ellipse");
+		js.wrap(this.__cjs__HPDF_Page_Arc, "__cjs__HPDF_Page_Arc");
+		js.wrap(this.__cjs__HPDF_Page_TextOut, "__cjs__HPDF_Page_TextOut");
+		js.wrap(this.__cjs__HPDF_Page_TextRect, "__cjs__HPDF_Page_TextRect");
+		js.wrap(this.__cjs__HPDF_Page_SetSlideShow, "__cjs__HPDF_Page_SetSlideShow");
+	}
+
+	ECMABRIDGE_standard_lib_hpdf(js) {
+		this.wrap(js);
+	}
+}

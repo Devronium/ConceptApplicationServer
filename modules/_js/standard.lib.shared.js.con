@@ -1,0 +1,42 @@
+/* This file is generated automatically by generatejs.con. Do not edit. */
+
+import standard.lib.shared
+
+class ECMABRIDGE_standard_lib_shared {
+	__cjs_share_link_count(a) {
+		return share_link_count(a);
+	}
+
+	__cjs_share_size(a) {
+		return share_size(a);
+	}
+
+	__cjs_share_set(a, b) {
+		return share_set(a, b);
+	}
+
+	__cjs_share_get(a) {
+		return share_get(a);
+	}
+
+	__cjs_share_done(a) {
+		return share_done(a);
+	}
+
+	__cjs_share_unlock(a) {
+		return share_unlock(a);
+	}
+
+	wrap(js) {
+		js.wrap(this.__cjs_share_link_count, "__cjs_share_link_count");
+		js.wrap(this.__cjs_share_size, "__cjs_share_size");
+		js.wrap(this.__cjs_share_set, "__cjs_share_set");
+		js.wrap(this.__cjs_share_get, "__cjs_share_get");
+		js.wrap(this.__cjs_share_done, "__cjs_share_done");
+		js.wrap(this.__cjs_share_unlock, "__cjs_share_unlock");
+	}
+
+	ECMABRIDGE_standard_lib_shared(js) {
+		this.wrap(js);
+	}
+}

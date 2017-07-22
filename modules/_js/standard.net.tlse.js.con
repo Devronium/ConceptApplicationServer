@@ -1,0 +1,182 @@
+/* This file is generated automatically by generatejs.con. Do not edit. */
+
+import standard.net.tlse
+
+class ECMABRIDGE_standard_net_tlse {
+	__cjs_TLSEServer(a) {
+		return TLSEServer(a);
+	}
+
+	__cjs_TLSEClient(a) {
+		return TLSEClient(a);
+	}
+
+	__cjs_TLSEDone(a) {
+		return TLSEDone(a);
+	}
+
+	__cjs_TLSEAccept(a) {
+		return TLSEAccept(a);
+	}
+
+	__cjs_TLSEConnect(a) {
+		return TLSEConnect(a);
+	}
+
+	__cjs_TLSERequestClientCertificate(a) {
+		return TLSERequestClientCertificate(a);
+	}
+
+	__cjs_TLSERead(a, b, c) {
+		return TLSERead(a, b, c);
+	}
+
+	__cjs_TLSEWrite(a, b, c) {
+		return TLSEWrite(a, b, c);
+	}
+
+	__cjs_TLSEConsume(a, b) {
+		return TLSEConsume(a, b);
+	}
+
+	__cjs_TLSEstablished(a) {
+		return TLSEstablished(a);
+	}
+
+	__cjs_TLSEPending(a) {
+		return TLSEPending(a);
+	}
+
+	__cjs_TLSEReadBufferSize(a) {
+		return TLSEReadBufferSize(a);
+	}
+
+	__cjs_TLSESent(a, b) {
+		return TLSESent(a, b);
+	}
+
+	__cjs_TLSELoadKeys(a, b, c) {
+		return TLSELoadKeys(a, b, c);
+	}
+
+	__cjs_TLSELoadRootCA(a, b) {
+		return TLSELoadRootCA(a, b);
+	}
+
+	__cjs_TLSEChipher(a) {
+		return TLSEChipher(a);
+	}
+
+	__cjs_TLSEChipherName(a) {
+		return TLSEChipherName(a);
+	}
+
+	__cjs_TLSEBroken(a) {
+		return TLSEBroken(a);
+	}
+
+	__cjs_TLSESetExportable(a, b) {
+		return TLSESetExportable(a, b);
+	}
+
+	__cjs_TLSEExport(a) {
+		return TLSEExport(a);
+	}
+
+	__cjs_TLSEImport(a) {
+		return TLSEImport(a);
+	}
+
+	__cjs_TLSEGetSNI(a) {
+		return TLSEGetSNI(a);
+	}
+
+	__cjs_TLSESetSNI(a, b) {
+		return TLSESetSNI(a, b);
+	}
+
+	__cjs_TLSESetVerify(a, b) {
+		return TLSESetVerify(a, b);
+	}
+
+	__cjs_TLSECertificateInfo(a, b) {
+		return TLSECertificateInfo(a, b);
+	}
+
+	__cjs_TLSEShutdown(a) {
+		return TLSEShutdown(a);
+	}
+
+	__cjs_TLSEError(a) {
+		return TLSEError(a);
+	}
+
+	__cjs_TLSEAddALPN(a, b) {
+		return TLSEAddALPN(a, b);
+	}
+
+	__cjs_TLSEALPN(a) {
+		return TLSEALPN(a);
+	}
+
+	__cjs_TLSEClearCertificates(a) {
+		return TLSEClearCertificates(a);
+	}
+
+	__cjs_SRTPInit(a, b) {
+		return SRTPInit(a, b);
+	}
+
+	__cjs_SRTPEncrypt(a, b, c) {
+		return SRTPEncrypt(a, b, c);
+	}
+
+	__cjs_SRTPDecrypt(a, b, c) {
+		return SRTPDecrypt(a, b, c);
+	}
+
+	__cjs_SRTPDone(a) {
+		return SRTPDone(a);
+	}
+
+	wrap(js) {
+		js.wrap(this.__cjs_TLSEServer, "__cjs_TLSEServer");
+		js.wrap(this.__cjs_TLSEClient, "__cjs_TLSEClient");
+		js.wrap(this.__cjs_TLSEDone, "__cjs_TLSEDone");
+		js.wrap(this.__cjs_TLSEAccept, "__cjs_TLSEAccept");
+		js.wrap(this.__cjs_TLSEConnect, "__cjs_TLSEConnect");
+		js.wrap(this.__cjs_TLSERequestClientCertificate, "__cjs_TLSERequestClientCertificate");
+		js.wrap(this.__cjs_TLSERead, "__cjs_TLSERead");
+		js.wrap(this.__cjs_TLSEWrite, "__cjs_TLSEWrite");
+		js.wrap(this.__cjs_TLSEConsume, "__cjs_TLSEConsume");
+		js.wrap(this.__cjs_TLSEstablished, "__cjs_TLSEstablished");
+		js.wrap(this.__cjs_TLSEPending, "__cjs_TLSEPending");
+		js.wrap(this.__cjs_TLSEReadBufferSize, "__cjs_TLSEReadBufferSize");
+		js.wrap(this.__cjs_TLSESent, "__cjs_TLSESent");
+		js.wrap(this.__cjs_TLSELoadKeys, "__cjs_TLSELoadKeys");
+		js.wrap(this.__cjs_TLSELoadRootCA, "__cjs_TLSELoadRootCA");
+		js.wrap(this.__cjs_TLSEChipher, "__cjs_TLSEChipher");
+		js.wrap(this.__cjs_TLSEChipherName, "__cjs_TLSEChipherName");
+		js.wrap(this.__cjs_TLSEBroken, "__cjs_TLSEBroken");
+		js.wrap(this.__cjs_TLSESetExportable, "__cjs_TLSESetExportable");
+		js.wrap(this.__cjs_TLSEExport, "__cjs_TLSEExport");
+		js.wrap(this.__cjs_TLSEImport, "__cjs_TLSEImport");
+		js.wrap(this.__cjs_TLSEGetSNI, "__cjs_TLSEGetSNI");
+		js.wrap(this.__cjs_TLSESetSNI, "__cjs_TLSESetSNI");
+		js.wrap(this.__cjs_TLSESetVerify, "__cjs_TLSESetVerify");
+		js.wrap(this.__cjs_TLSECertificateInfo, "__cjs_TLSECertificateInfo");
+		js.wrap(this.__cjs_TLSEShutdown, "__cjs_TLSEShutdown");
+		js.wrap(this.__cjs_TLSEError, "__cjs_TLSEError");
+		js.wrap(this.__cjs_TLSEAddALPN, "__cjs_TLSEAddALPN");
+		js.wrap(this.__cjs_TLSEALPN, "__cjs_TLSEALPN");
+		js.wrap(this.__cjs_TLSEClearCertificates, "__cjs_TLSEClearCertificates");
+		js.wrap(this.__cjs_SRTPInit, "__cjs_SRTPInit");
+		js.wrap(this.__cjs_SRTPEncrypt, "__cjs_SRTPEncrypt");
+		js.wrap(this.__cjs_SRTPDecrypt, "__cjs_SRTPDecrypt");
+		js.wrap(this.__cjs_SRTPDone, "__cjs_SRTPDone");
+	}
+
+	ECMABRIDGE_standard_net_tlse(js) {
+		this.wrap(js);
+	}
+}

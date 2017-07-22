@@ -1,0 +1,37 @@
+/* This file is generated automatically by generatejs.con. Do not edit. */
+
+import standard.net.poll
+
+class ECMABRIDGE_standard_net_poll {
+	__cjs_PollOpen() {
+		return PollOpen();
+	}
+
+	__cjs_PollAdd(a, b) {
+		return PollAdd(a, b);
+	}
+
+	__cjs_PollRemove(a, b) {
+		return PollRemove(a, b);
+	}
+
+	__cjs_PollWait(a, b) {
+		return PollWait(a, b);
+	}
+
+	__cjs_PollClose(a) {
+		return PollClose(a);
+	}
+
+	wrap(js) {
+		js.wrap(this.__cjs_PollOpen, "__cjs_PollOpen");
+		js.wrap(this.__cjs_PollAdd, "__cjs_PollAdd");
+		js.wrap(this.__cjs_PollRemove, "__cjs_PollRemove");
+		js.wrap(this.__cjs_PollWait, "__cjs_PollWait");
+		js.wrap(this.__cjs_PollClose, "__cjs_PollClose");
+	}
+
+	ECMABRIDGE_standard_net_poll(js) {
+		this.wrap(js);
+	}
+}

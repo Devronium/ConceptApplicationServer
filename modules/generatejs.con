@@ -1,0 +1,151 @@
+include DirectoryList.con
+
+define PREFIX	"/* This file is generated automatically by generatejs.con. Do not edit. */\n\n"
+
+class Main {
+	Do(path, prefix = "") {
+		var arr2 = StrSplit(path, "/");
+		if (!arr2)
+			return;
+		var libname = arr2[length arr2 - 1];
+		if (prefix)
+			path += "/" + prefix;
+		var fname = path + "/library.h";
+		var fname2 = path + "/main.cpp";
+		var data = ReadFile(fname);
+		var data2 = ReadFile(fname2);
+		if (data) {
+			var[] functions;
+			data = StrReplace(data, "\r", "");
+			var arr = StrSplit(data, "\n");
+			for (var i = 0; i < length arr; i++) {
+				var e = trim(arr[i]);
+				if (e) {
+					e = StrReplace(e, "\t", " ");
+					var pos = Pos(e, "CONCEPT_DLL_API");
+					var target_func = "";
+					var orig_name = "";
+					if (pos > 0) {
+						var func = StrSplit(e, " ")[1];
+						if (Pos(func, "CONCEPT_") == 1) {
+							orig_name = trim(func);
+							func = trim(SubStr(func, 8));
+							if (func[0] == "_")
+								func++;
+							if (func)
+								target_func = func;
+						}
+					} else {
+						pos = Pos(e, "CONCEPT_FUNCTION(");
+						if (pos > 0) {
+							func = StrSplit(e, "(")[1];
+							func = trim(StrReplace(func, ")", ""));
+							if (func)
+								target_func = func;						
+						}
+					}
+					if (target_func) {
+						var match = "CONCEPT_FUNCTION_IMPL($target_func,";
+						pos = Pos(data2, match);
+						if (pos > 0) {
+							var tmp = SubStr(data2, pos-1, 100);
+							var parameters = value StrSplit(tmp, ",")[1];
+							functions[target_func] = parameters;
+						} else {
+							match = "CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS($target_func,";
+							pos = Pos(data2, match);
+							if (pos > 0) {
+								tmp = SubStr(data2, pos-1, 100);
+								var minmax = StrSplit(tmp, ",");
+								parameters = [value minmax[1], value minmax[2]];
+								functions[target_func] = parameters;
+							} else
+							if (orig_name) {
+								match = "CONCEPT_DLL_API $orig_name";
+								pos = Pos(data2, match);
+								if (pos > 0) {
+									tmp = SubStr(data2, pos-1, 200);
+									var strparam = StrSplit(tmp, "PARAMETERS_CHECK(")[1];
+									if (strparam) {
+										parameters = value strparam;
+										functions[target_func] = parameters;
+									} else {
+										tmp = StrReplace(tmp, " ", "");
+										strparam = StrSplit(tmp, "PARAMETERS->COUNT!=")[1];
+										if (strparam) {
+											parameters = value strparam;
+											functions[target_func] = parameters;
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+			if (functions) {
+				var wrap = "import $libname\n\n";
+				var classname = StrReplace(libname, "." , "_");
+				wrap += "class ECMABRIDGE_$classname {\n";
+				var keys = GetKeys(functions);
+				var jswrap = "";
+				var js = "'use strict';\n\n";
+				var arr3 = StrSplit(libname, ".");
+				var prev = "con";
+				for (i = 1; i < length arr3; i++) {
+					e = arr3[i];
+					js += "if (!$prev.$e)\n";
+					js += "\t$prev.$e = { };\n";
+					prev = prev + "." + e;
+				}
+				for (i = 0; i < length keys; i++) {
+					var k = keys[i];
+					if (k) {
+						parameters = "";
+						minmax = functions[k];
+						var count = 0;
+						var min = 0;
+						if (typeof minmax == "numeric") {
+							count = minmax;
+							min = minmax;
+						} else {
+							min = minmax[0];
+							count = minmax[1];
+						}
+						for (var j = 0; j < count; j++) {
+							if (parameters)
+								parameters += ", ";
+							parameters += chr(ord("a") + j);
+							if (j > min)
+								parameters += " = null";
+						}
+						wrap += "\t__cjs_$k($parameters) {\n";
+						wrap +=	"\t\treturn $k($parameters);\n";
+						wrap += "\t}\n\n";
+						js += "$prev.$k = this.__cjs_$k;\n";
+						jswrap += "\t\tjs.wrap(this.__cjs_$k, \"__cjs_$k\");\n";
+					}
+				}
+				wrap += "\twrap(js) {\n";
+				wrap +=	jswrap;
+				wrap += "\t}\n\n";
+				wrap += "\tECMABRIDGE_$classname(js) {\n";
+				wrap +=	"\t\tthis.wrap(js);\n";
+				wrap += "\t}\n";
+				wrap += "}\n";
+				WriteFile(PREFIX + wrap, "_js/$libname.js.con");
+				WriteFile(PREFIX + js, "_js/$libname.js");
+			}
+		}
+	}
+
+	Main() {
+		var basedir = "./";
+		var arr = DirectoryList::ListByType(basedir, S_IFDIR);
+		for (var i = 0; i < length arr; i++) {
+			var dir = arr[i];
+			if ((dir != ".") && (dir != ".."))
+				Do(basedir + dir, "src");
+		}
+	}
+}

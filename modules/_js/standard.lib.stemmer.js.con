@@ -1,0 +1,17 @@
+/* This file is generated automatically by generatejs.con. Do not edit. */
+
+import standard.lib.stemmer
+
+class ECMABRIDGE_standard_lib_stemmer {
+	__cjs_stem(a, b, c = null) {
+		return stem(a, b, c = null);
+	}
+
+	wrap(js) {
+		js.wrap(this.__cjs_stem, "__cjs_stem");
+	}
+
+	ECMABRIDGE_standard_lib_stemmer(js) {
+		this.wrap(js);
+	}
+}

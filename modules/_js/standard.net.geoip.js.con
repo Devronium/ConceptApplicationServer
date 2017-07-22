@@ -1,0 +1,297 @@
+/* This file is generated automatically by generatejs.con. Do not edit. */
+
+import standard.net.geoip
+
+class ECMABRIDGE_standard_net_geoip {
+	__cjs_GeoIP_setup_custom_directory(a) {
+		return GeoIP_setup_custom_directory(a);
+	}
+
+	__cjs_GeoIP_open_type(a, b) {
+		return GeoIP_open_type(a, b);
+	}
+
+	__cjs_GeoIP_new(a) {
+		return GeoIP_new(a);
+	}
+
+	__cjs_GeoIP_open(a, b) {
+		return GeoIP_open(a, b);
+	}
+
+	__cjs_GeoIP_db_avail(a) {
+		return GeoIP_db_avail(a);
+	}
+
+	__cjs_GeoIP_delete(a) {
+		return GeoIP_delete(a);
+	}
+
+	__cjs_GeoIP_country_code_by_addr(a, b) {
+		return GeoIP_country_code_by_addr(a, b);
+	}
+
+	__cjs_GeoIP_country_code_by_name(a, b) {
+		return GeoIP_country_code_by_name(a, b);
+	}
+
+	__cjs_GeoIP_country_code3_by_addr(a, b) {
+		return GeoIP_country_code3_by_addr(a, b);
+	}
+
+	__cjs_GeoIP_country_code3_by_name(a, b) {
+		return GeoIP_country_code3_by_name(a, b);
+	}
+
+	__cjs_GeoIP_country_name_by_addr(a, b) {
+		return GeoIP_country_name_by_addr(a, b);
+	}
+
+	__cjs_GeoIP_country_name_by_name(a, b) {
+		return GeoIP_country_name_by_name(a, b);
+	}
+
+	__cjs_GeoIP_country_name_by_ipnum(a, b) {
+		return GeoIP_country_name_by_ipnum(a, b);
+	}
+
+	__cjs_GeoIP_country_code_by_ipnum(a, b) {
+		return GeoIP_country_code_by_ipnum(a, b);
+	}
+
+	__cjs_GeoIP_country_code3_by_ipnum(a, b) {
+		return GeoIP_country_code3_by_ipnum(a, b);
+	}
+
+	__cjs_GeoIP_country_name_by_ipnum_v6(a, b) {
+		return GeoIP_country_name_by_ipnum_v6(a, b);
+	}
+
+	__cjs_GeoIP_country_code_by_ipnum_v6(a, b) {
+		return GeoIP_country_code_by_ipnum_v6(a, b);
+	}
+
+	__cjs_GeoIP_country_code3_by_ipnum_v6(a, b) {
+		return GeoIP_country_code3_by_ipnum_v6(a, b);
+	}
+
+	__cjs_GeoIP_id_by_addr(a, b) {
+		return GeoIP_id_by_addr(a, b);
+	}
+
+	__cjs_GeoIP_id_by_name(a, b) {
+		return GeoIP_id_by_name(a, b);
+	}
+
+	__cjs_GeoIP_id_by_ipnum(a, b) {
+		return GeoIP_id_by_ipnum(a, b);
+	}
+
+	__cjs_GeoIP_id_by_addr_v6(a, b) {
+		return GeoIP_id_by_addr_v6(a, b);
+	}
+
+	__cjs_GeoIP_id_by_name_v6(a, b) {
+		return GeoIP_id_by_name_v6(a, b);
+	}
+
+	__cjs_GeoIP_id_by_ipnum_v6(a, b) {
+		return GeoIP_id_by_ipnum_v6(a, b);
+	}
+
+	__cjs_GeoIP_region_by_addr(a, b) {
+		return GeoIP_region_by_addr(a, b);
+	}
+
+	__cjs_GeoIP_region_by_name(a, b) {
+		return GeoIP_region_by_name(a, b);
+	}
+
+	__cjs_GeoIP_region_by_ipnum(a, b) {
+		return GeoIP_region_by_ipnum(a, b);
+	}
+
+	__cjs_GeoIP_region_by_addr_v6(a, b) {
+		return GeoIP_region_by_addr_v6(a, b);
+	}
+
+	__cjs_GeoIP_region_by_name_v6(a, b) {
+		return GeoIP_region_by_name_v6(a, b);
+	}
+
+	__cjs_GeoIP_region_by_ipnum_v6(a, b) {
+		return GeoIP_region_by_ipnum_v6(a, b);
+	}
+
+	__cjs_GeoIP_name_by_ipnum(a, b) {
+		return GeoIP_name_by_ipnum(a, b);
+	}
+
+	__cjs_GeoIP_name_by_addr(a, b) {
+		return GeoIP_name_by_addr(a, b);
+	}
+
+	__cjs_GeoIP_name_by_name(a, b) {
+		return GeoIP_name_by_name(a, b);
+	}
+
+	__cjs_GeoIP_name_by_ipnum_v6(a, b) {
+		return GeoIP_name_by_ipnum_v6(a, b);
+	}
+
+	__cjs_GeoIP_name_by_addr_v6(a, b) {
+		return GeoIP_name_by_addr_v6(a, b);
+	}
+
+	__cjs_GeoIP_name_by_name_v6(a, b) {
+		return GeoIP_name_by_name_v6(a, b);
+	}
+
+	__cjs_GeoIP_code_by_id(a) {
+		return GeoIP_code_by_id(a);
+	}
+
+	__cjs_GeoIP_code3_by_id(a) {
+		return GeoIP_code3_by_id(a);
+	}
+
+	__cjs_GeoIP_name_by_id(a) {
+		return GeoIP_name_by_id(a);
+	}
+
+	__cjs_GeoIP_continent_by_id(a) {
+		return GeoIP_continent_by_id(a);
+	}
+
+	__cjs_GeoIP_id_by_code(a) {
+		return GeoIP_id_by_code(a);
+	}
+
+	__cjs_GeoIP_num_countries() {
+		return GeoIP_num_countries();
+	}
+
+	__cjs_GeoIP_database_info(a) {
+		return GeoIP_database_info(a);
+	}
+
+	__cjs_GeoIP_database_edition(a) {
+		return GeoIP_database_edition(a);
+	}
+
+	__cjs_GeoIP_charset(a) {
+		return GeoIP_charset(a);
+	}
+
+	__cjs_GeoIP_set_charset(a, b) {
+		return GeoIP_set_charset(a, b);
+	}
+
+	__cjs_GeoIP_last_netmask(a) {
+		return GeoIP_last_netmask(a);
+	}
+
+	__cjs_GeoIP_region_name_by_code(a, b) {
+		return GeoIP_region_name_by_code(a, b);
+	}
+
+	__cjs_GeoIP_time_zone_by_country_and_region(a, b) {
+		return GeoIP_time_zone_by_country_and_region(a, b);
+	}
+
+	__cjs_GeoIP_record_by_ipnum(a, b) {
+		return GeoIP_record_by_ipnum(a, b);
+	}
+
+	__cjs_GeoIP_record_by_addr(a, b) {
+		return GeoIP_record_by_addr(a, b);
+	}
+
+	__cjs_GeoIP_record_by_name(a, b) {
+		return GeoIP_record_by_name(a, b);
+	}
+
+	__cjs_GeoIP_record_by_ipnum_v6(a, b) {
+		return GeoIP_record_by_ipnum_v6(a, b);
+	}
+
+	__cjs_GeoIP_record_by_addr_v6(a, b) {
+		return GeoIP_record_by_addr_v6(a, b);
+	}
+
+	__cjs_GeoIP_record_by_name_v6(a, b) {
+		return GeoIP_record_by_name_v6(a, b);
+	}
+
+	__cjs_GeoIP_record_id_by_addr(a, b) {
+		return GeoIP_record_id_by_addr(a, b);
+	}
+
+	__cjs_GeoIP_record_id_by_addr_v6(a, b) {
+		return GeoIP_record_id_by_addr_v6(a, b);
+	}
+
+	wrap(js) {
+		js.wrap(this.__cjs_GeoIP_setup_custom_directory, "__cjs_GeoIP_setup_custom_directory");
+		js.wrap(this.__cjs_GeoIP_open_type, "__cjs_GeoIP_open_type");
+		js.wrap(this.__cjs_GeoIP_new, "__cjs_GeoIP_new");
+		js.wrap(this.__cjs_GeoIP_open, "__cjs_GeoIP_open");
+		js.wrap(this.__cjs_GeoIP_db_avail, "__cjs_GeoIP_db_avail");
+		js.wrap(this.__cjs_GeoIP_delete, "__cjs_GeoIP_delete");
+		js.wrap(this.__cjs_GeoIP_country_code_by_addr, "__cjs_GeoIP_country_code_by_addr");
+		js.wrap(this.__cjs_GeoIP_country_code_by_name, "__cjs_GeoIP_country_code_by_name");
+		js.wrap(this.__cjs_GeoIP_country_code3_by_addr, "__cjs_GeoIP_country_code3_by_addr");
+		js.wrap(this.__cjs_GeoIP_country_code3_by_name, "__cjs_GeoIP_country_code3_by_name");
+		js.wrap(this.__cjs_GeoIP_country_name_by_addr, "__cjs_GeoIP_country_name_by_addr");
+		js.wrap(this.__cjs_GeoIP_country_name_by_name, "__cjs_GeoIP_country_name_by_name");
+		js.wrap(this.__cjs_GeoIP_country_name_by_ipnum, "__cjs_GeoIP_country_name_by_ipnum");
+		js.wrap(this.__cjs_GeoIP_country_code_by_ipnum, "__cjs_GeoIP_country_code_by_ipnum");
+		js.wrap(this.__cjs_GeoIP_country_code3_by_ipnum, "__cjs_GeoIP_country_code3_by_ipnum");
+		js.wrap(this.__cjs_GeoIP_country_name_by_ipnum_v6, "__cjs_GeoIP_country_name_by_ipnum_v6");
+		js.wrap(this.__cjs_GeoIP_country_code_by_ipnum_v6, "__cjs_GeoIP_country_code_by_ipnum_v6");
+		js.wrap(this.__cjs_GeoIP_country_code3_by_ipnum_v6, "__cjs_GeoIP_country_code3_by_ipnum_v6");
+		js.wrap(this.__cjs_GeoIP_id_by_addr, "__cjs_GeoIP_id_by_addr");
+		js.wrap(this.__cjs_GeoIP_id_by_name, "__cjs_GeoIP_id_by_name");
+		js.wrap(this.__cjs_GeoIP_id_by_ipnum, "__cjs_GeoIP_id_by_ipnum");
+		js.wrap(this.__cjs_GeoIP_id_by_addr_v6, "__cjs_GeoIP_id_by_addr_v6");
+		js.wrap(this.__cjs_GeoIP_id_by_name_v6, "__cjs_GeoIP_id_by_name_v6");
+		js.wrap(this.__cjs_GeoIP_id_by_ipnum_v6, "__cjs_GeoIP_id_by_ipnum_v6");
+		js.wrap(this.__cjs_GeoIP_region_by_addr, "__cjs_GeoIP_region_by_addr");
+		js.wrap(this.__cjs_GeoIP_region_by_name, "__cjs_GeoIP_region_by_name");
+		js.wrap(this.__cjs_GeoIP_region_by_ipnum, "__cjs_GeoIP_region_by_ipnum");
+		js.wrap(this.__cjs_GeoIP_region_by_addr_v6, "__cjs_GeoIP_region_by_addr_v6");
+		js.wrap(this.__cjs_GeoIP_region_by_name_v6, "__cjs_GeoIP_region_by_name_v6");
+		js.wrap(this.__cjs_GeoIP_region_by_ipnum_v6, "__cjs_GeoIP_region_by_ipnum_v6");
+		js.wrap(this.__cjs_GeoIP_name_by_ipnum, "__cjs_GeoIP_name_by_ipnum");
+		js.wrap(this.__cjs_GeoIP_name_by_addr, "__cjs_GeoIP_name_by_addr");
+		js.wrap(this.__cjs_GeoIP_name_by_name, "__cjs_GeoIP_name_by_name");
+		js.wrap(this.__cjs_GeoIP_name_by_ipnum_v6, "__cjs_GeoIP_name_by_ipnum_v6");
+		js.wrap(this.__cjs_GeoIP_name_by_addr_v6, "__cjs_GeoIP_name_by_addr_v6");
+		js.wrap(this.__cjs_GeoIP_name_by_name_v6, "__cjs_GeoIP_name_by_name_v6");
+		js.wrap(this.__cjs_GeoIP_code_by_id, "__cjs_GeoIP_code_by_id");
+		js.wrap(this.__cjs_GeoIP_code3_by_id, "__cjs_GeoIP_code3_by_id");
+		js.wrap(this.__cjs_GeoIP_name_by_id, "__cjs_GeoIP_name_by_id");
+		js.wrap(this.__cjs_GeoIP_continent_by_id, "__cjs_GeoIP_continent_by_id");
+		js.wrap(this.__cjs_GeoIP_id_by_code, "__cjs_GeoIP_id_by_code");
+		js.wrap(this.__cjs_GeoIP_num_countries, "__cjs_GeoIP_num_countries");
+		js.wrap(this.__cjs_GeoIP_database_info, "__cjs_GeoIP_database_info");
+		js.wrap(this.__cjs_GeoIP_database_edition, "__cjs_GeoIP_database_edition");
+		js.wrap(this.__cjs_GeoIP_charset, "__cjs_GeoIP_charset");
+		js.wrap(this.__cjs_GeoIP_set_charset, "__cjs_GeoIP_set_charset");
+		js.wrap(this.__cjs_GeoIP_last_netmask, "__cjs_GeoIP_last_netmask");
+		js.wrap(this.__cjs_GeoIP_region_name_by_code, "__cjs_GeoIP_region_name_by_code");
+		js.wrap(this.__cjs_GeoIP_time_zone_by_country_and_region, "__cjs_GeoIP_time_zone_by_country_and_region");
+		js.wrap(this.__cjs_GeoIP_record_by_ipnum, "__cjs_GeoIP_record_by_ipnum");
+		js.wrap(this.__cjs_GeoIP_record_by_addr, "__cjs_GeoIP_record_by_addr");
+		js.wrap(this.__cjs_GeoIP_record_by_name, "__cjs_GeoIP_record_by_name");
+		js.wrap(this.__cjs_GeoIP_record_by_ipnum_v6, "__cjs_GeoIP_record_by_ipnum_v6");
+		js.wrap(this.__cjs_GeoIP_record_by_addr_v6, "__cjs_GeoIP_record_by_addr_v6");
+		js.wrap(this.__cjs_GeoIP_record_by_name_v6, "__cjs_GeoIP_record_by_name_v6");
+		js.wrap(this.__cjs_GeoIP_record_id_by_addr, "__cjs_GeoIP_record_id_by_addr");
+		js.wrap(this.__cjs_GeoIP_record_id_by_addr_v6, "__cjs_GeoIP_record_id_by_addr_v6");
+	}
+
+	ECMABRIDGE_standard_net_geoip(js) {
+		this.wrap(js);
+	}
+}

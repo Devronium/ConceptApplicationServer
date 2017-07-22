@@ -1,0 +1,27 @@
+/* This file is generated automatically by generatejs.con. Do not edit. */
+
+import standard.lib.regex
+
+class ECMABRIDGE_standard_lib_regex {
+	__cjs_regex_match(a, b) {
+		return regex_match(a, b);
+	}
+
+	__cjs_regex(a, b) {
+		return regex(a, b);
+	}
+
+	__cjs_regex_replace(a, b, c) {
+		return regex_replace(a, b, c);
+	}
+
+	wrap(js) {
+		js.wrap(this.__cjs_regex_match, "__cjs_regex_match");
+		js.wrap(this.__cjs_regex, "__cjs_regex");
+		js.wrap(this.__cjs_regex_replace, "__cjs_regex_replace");
+	}
+
+	ECMABRIDGE_standard_lib_regex(js) {
+		this.wrap(js);
+	}
+}

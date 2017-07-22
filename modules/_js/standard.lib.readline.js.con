@@ -1,0 +1,32 @@
+/* This file is generated automatically by generatejs.con. Do not edit. */
+
+import standard.lib.readline
+
+class ECMABRIDGE_standard_lib_readline {
+	__cjs_ttyreadline(a, b = null, c = null) {
+		return ttyreadline(a, b = null, c = null);
+	}
+
+	__cjs_ttysavehistory(a) {
+		return ttysavehistory(a);
+	}
+
+	__cjs_ttyloadhistory(a) {
+		return ttyloadhistory(a);
+	}
+
+	__cjs_ttymaxhistory(a) {
+		return ttymaxhistory(a);
+	}
+
+	wrap(js) {
+		js.wrap(this.__cjs_ttyreadline, "__cjs_ttyreadline");
+		js.wrap(this.__cjs_ttysavehistory, "__cjs_ttysavehistory");
+		js.wrap(this.__cjs_ttyloadhistory, "__cjs_ttyloadhistory");
+		js.wrap(this.__cjs_ttymaxhistory, "__cjs_ttymaxhistory");
+	}
+
+	ECMABRIDGE_standard_lib_readline(js) {
+		this.wrap(js);
+	}
+}

@@ -1,0 +1,242 @@
+/* This file is generated automatically by generatejs.con. Do not edit. */
+
+import standard.db.nuo
+
+class ECMABRIDGE_standard_db_nuo {
+	__cjs_NuoSetAutoCommit(a, b) {
+		return NuoSetAutoCommit(a, b);
+	}
+
+	__cjs_NuoGetAutoCommit(a) {
+		return NuoGetAutoCommit(a);
+	}
+
+	__cjs_NuoSetIsolationLevel(a, b) {
+		return NuoSetIsolationLevel(a, b);
+	}
+
+	__cjs_NuoGetIsolationLevel(a) {
+		return NuoGetIsolationLevel(a);
+	}
+
+	__cjs_NuoInfo(a) {
+		return NuoInfo(a);
+	}
+
+	__cjs_NuoPrepareTransaction(a) {
+		return NuoPrepareTransaction(a);
+	}
+
+	__cjs_NuoRollback(a) {
+		return NuoRollback(a);
+	}
+
+	__cjs_NuoCommit(a) {
+		return NuoCommit(a);
+	}
+
+	__cjs_NuoConnect(a, b, c) {
+		return NuoConnect(a, b, c);
+	}
+
+	__cjs_NuoConnectCreate(a, b, c, d) {
+		return NuoConnectCreate(a, b, c, d);
+	}
+
+	__cjs_NuoDisconnect(a) {
+		return NuoDisconnect(a);
+	}
+
+	__cjs_NuoQuery(a, b) {
+		return NuoQuery(a, b);
+	}
+
+	__cjs_NuoNonQuery(a, b) {
+		return NuoNonQuery(a, b);
+	}
+
+	__cjs_NuoError() {
+		return NuoError();
+	}
+
+	__cjs_NuoFreeResult(a) {
+		return NuoFreeResult(a);
+	}
+
+	__cjs_NuoSetCursorName(a, b, c) {
+		return NuoSetCursorName(a, b, c);
+	}
+
+	__cjs_NuoSetNull(a, b) {
+		return NuoSetNull(a, b);
+	}
+
+	__cjs_NuoSetBlob(a, b, c) {
+		return NuoSetBlob(a, b, c);
+	}
+
+	__cjs_NuoSetClob(a, b, c) {
+		return NuoSetClob(a, b, c);
+	}
+
+	__cjs_NuoBlobCreate(a) {
+		return NuoBlobCreate(a);
+	}
+
+	__cjs_NuoClobCreate(a) {
+		return NuoClobCreate(a);
+	}
+
+	__cjs_NuoBlobWrite(a, b) {
+		return NuoBlobWrite(a, b);
+	}
+
+	__cjs_NuoClobWrite(a, b) {
+		return NuoClobWrite(a, b);
+	}
+
+	__cjs_NuoPrepared(a, b, c) {
+		return NuoPrepared(a, b, c);
+	}
+
+	__cjs_NuoSetParameter(a, b, c) {
+		return NuoSetParameter(a, b, c);
+	}
+
+	__cjs_NuoExecute(a) {
+		return NuoExecute(a);
+	}
+
+	__cjs_NuoFinish(a) {
+		return NuoFinish(a);
+	}
+
+	__cjs_NuoParameterCount(a) {
+		return NuoParameterCount(a);
+	}
+
+	__cjs_NuoParameterMeta(a, b) {
+		return NuoParameterMeta(a, b);
+	}
+
+	__cjs_NuoAnalyze(a, b) {
+		return NuoAnalyze(a, b);
+	}
+
+	__cjs_NuoCountRows(a) {
+		return NuoCountRows(a);
+	}
+
+	__cjs_NuoCountColumns(a) {
+		return NuoCountColumns(a);
+	}
+
+	__cjs_NuoColumnInfo(a, b) {
+		return NuoColumnInfo(a, b);
+	}
+
+	__cjs_NuoValues(a) {
+		return NuoValues(a);
+	}
+
+	__cjs_NuoValue(a, b) {
+		return NuoValue(a, b);
+	}
+
+	__cjs_NuoValueByName(a, b) {
+		return NuoValueByName(a, b);
+	}
+
+	__cjs_NuoBlob(a, b, c, d) {
+		return NuoBlob(a, b, c, d);
+	}
+
+	__cjs_NuoBlobByName(a, b, c, d) {
+		return NuoBlobByName(a, b, c, d);
+	}
+
+	__cjs_NuoClob(a, b, c, d) {
+		return NuoClob(a, b, c, d);
+	}
+
+	__cjs_NuoClobByName(a, b, c, d) {
+		return NuoClobByName(a, b, c, d);
+	}
+
+	__cjs_NuoFirst(a) {
+		return NuoFirst(a);
+	}
+
+	__cjs_NuoNext(a) {
+		return NuoNext(a);
+	}
+
+	__cjs_NuoPrevious(a) {
+		return NuoPrevious(a);
+	}
+
+	__cjs_NuoLast(a) {
+		return NuoLast(a);
+	}
+
+	__cjs_NuoRefresh(a) {
+		return NuoRefresh(a);
+	}
+
+	__cjs_NuoAbsolute(a, b) {
+		return NuoAbsolute(a, b);
+	}
+
+	wrap(js) {
+		js.wrap(this.__cjs_NuoSetAutoCommit, "__cjs_NuoSetAutoCommit");
+		js.wrap(this.__cjs_NuoGetAutoCommit, "__cjs_NuoGetAutoCommit");
+		js.wrap(this.__cjs_NuoSetIsolationLevel, "__cjs_NuoSetIsolationLevel");
+		js.wrap(this.__cjs_NuoGetIsolationLevel, "__cjs_NuoGetIsolationLevel");
+		js.wrap(this.__cjs_NuoInfo, "__cjs_NuoInfo");
+		js.wrap(this.__cjs_NuoPrepareTransaction, "__cjs_NuoPrepareTransaction");
+		js.wrap(this.__cjs_NuoRollback, "__cjs_NuoRollback");
+		js.wrap(this.__cjs_NuoCommit, "__cjs_NuoCommit");
+		js.wrap(this.__cjs_NuoConnect, "__cjs_NuoConnect");
+		js.wrap(this.__cjs_NuoConnectCreate, "__cjs_NuoConnectCreate");
+		js.wrap(this.__cjs_NuoDisconnect, "__cjs_NuoDisconnect");
+		js.wrap(this.__cjs_NuoQuery, "__cjs_NuoQuery");
+		js.wrap(this.__cjs_NuoNonQuery, "__cjs_NuoNonQuery");
+		js.wrap(this.__cjs_NuoError, "__cjs_NuoError");
+		js.wrap(this.__cjs_NuoFreeResult, "__cjs_NuoFreeResult");
+		js.wrap(this.__cjs_NuoSetCursorName, "__cjs_NuoSetCursorName");
+		js.wrap(this.__cjs_NuoSetNull, "__cjs_NuoSetNull");
+		js.wrap(this.__cjs_NuoSetBlob, "__cjs_NuoSetBlob");
+		js.wrap(this.__cjs_NuoSetClob, "__cjs_NuoSetClob");
+		js.wrap(this.__cjs_NuoBlobCreate, "__cjs_NuoBlobCreate");
+		js.wrap(this.__cjs_NuoClobCreate, "__cjs_NuoClobCreate");
+		js.wrap(this.__cjs_NuoBlobWrite, "__cjs_NuoBlobWrite");
+		js.wrap(this.__cjs_NuoClobWrite, "__cjs_NuoClobWrite");
+		js.wrap(this.__cjs_NuoPrepared, "__cjs_NuoPrepared");
+		js.wrap(this.__cjs_NuoSetParameter, "__cjs_NuoSetParameter");
+		js.wrap(this.__cjs_NuoExecute, "__cjs_NuoExecute");
+		js.wrap(this.__cjs_NuoFinish, "__cjs_NuoFinish");
+		js.wrap(this.__cjs_NuoParameterCount, "__cjs_NuoParameterCount");
+		js.wrap(this.__cjs_NuoParameterMeta, "__cjs_NuoParameterMeta");
+		js.wrap(this.__cjs_NuoAnalyze, "__cjs_NuoAnalyze");
+		js.wrap(this.__cjs_NuoCountRows, "__cjs_NuoCountRows");
+		js.wrap(this.__cjs_NuoCountColumns, "__cjs_NuoCountColumns");
+		js.wrap(this.__cjs_NuoColumnInfo, "__cjs_NuoColumnInfo");
+		js.wrap(this.__cjs_NuoValues, "__cjs_NuoValues");
+		js.wrap(this.__cjs_NuoValue, "__cjs_NuoValue");
+		js.wrap(this.__cjs_NuoValueByName, "__cjs_NuoValueByName");
+		js.wrap(this.__cjs_NuoBlob, "__cjs_NuoBlob");
+		js.wrap(this.__cjs_NuoBlobByName, "__cjs_NuoBlobByName");
+		js.wrap(this.__cjs_NuoClob, "__cjs_NuoClob");
+		js.wrap(this.__cjs_NuoClobByName, "__cjs_NuoClobByName");
+		js.wrap(this.__cjs_NuoFirst, "__cjs_NuoFirst");
+		js.wrap(this.__cjs_NuoNext, "__cjs_NuoNext");
+		js.wrap(this.__cjs_NuoPrevious, "__cjs_NuoPrevious");
+		js.wrap(this.__cjs_NuoLast, "__cjs_NuoLast");
+		js.wrap(this.__cjs_NuoRefresh, "__cjs_NuoRefresh");
+		js.wrap(this.__cjs_NuoAbsolute, "__cjs_NuoAbsolute");
+	}
+
+	ECMABRIDGE_standard_db_nuo(js) {
+		this.wrap(js);
+	}
+}

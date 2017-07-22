@@ -1,0 +1,732 @@
+/* This file is generated automatically by generatejs.con. Do not edit. */
+
+import standard.lib.gd
+
+class ECMABRIDGE_standard_lib_gd {
+	__cjs_gdAlphaBlend(a, b) {
+		return gdAlphaBlend(a, b);
+	}
+
+	__cjs_gdImageCreate(a, b) {
+		return gdImageCreate(a, b);
+	}
+
+	__cjs_gdImageCreateTrueColor(a, b) {
+		return gdImageCreateTrueColor(a, b);
+	}
+
+	__cjs_gdImageCreateFromPng(a) {
+		return gdImageCreateFromPng(a);
+	}
+
+	__cjs_gdImageCreateFromPngCtx(a) {
+		return gdImageCreateFromPngCtx(a);
+	}
+
+	__cjs_gdImageCreateFromPngPtr(a, b) {
+		return gdImageCreateFromPngPtr(a, b);
+	}
+
+	__cjs_gdImageCreateFromGif(a) {
+		return gdImageCreateFromGif(a);
+	}
+
+	__cjs_gdImageCreateFromGifCtx(a) {
+		return gdImageCreateFromGifCtx(a);
+	}
+
+	__cjs_gdImageCreateFromGifPtr(a, b) {
+		return gdImageCreateFromGifPtr(a, b);
+	}
+
+	__cjs_gdImageCreateFromWBMP(a) {
+		return gdImageCreateFromWBMP(a);
+	}
+
+	__cjs_gdImageCreateFromWBMPCtx(a) {
+		return gdImageCreateFromWBMPCtx(a);
+	}
+
+	__cjs_gdImageCreateFromWBMPPtr(a, b) {
+		return gdImageCreateFromWBMPPtr(a, b);
+	}
+
+	__cjs_gdImageCreateFromJpeg(a) {
+		return gdImageCreateFromJpeg(a);
+	}
+
+	__cjs_gdImageCreateFromJpegCtx(a) {
+		return gdImageCreateFromJpegCtx(a);
+	}
+
+	__cjs_gdImageCreateFromJpegPtr(a, b) {
+		return gdImageCreateFromJpegPtr(a, b);
+	}
+
+	__cjs_gdImageCreateFromPngSource(a) {
+		return gdImageCreateFromPngSource(a);
+	}
+
+	__cjs_gdImageCreateFromGd(a) {
+		return gdImageCreateFromGd(a);
+	}
+
+	__cjs_gdImageCreateFromGdCtx(a) {
+		return gdImageCreateFromGdCtx(a);
+	}
+
+	__cjs_gdImageCreateFromGdPtr(a, b) {
+		return gdImageCreateFromGdPtr(a, b);
+	}
+
+	__cjs_gdImageCreateFromGd2(a) {
+		return gdImageCreateFromGd2(a);
+	}
+
+	__cjs_gdImageCreateFromGd2Ctx(a) {
+		return gdImageCreateFromGd2Ctx(a);
+	}
+
+	__cjs_gdImageCreateFromGd2Ptr(a, b) {
+		return gdImageCreateFromGd2Ptr(a, b);
+	}
+
+	__cjs_gdImageCreateFromGd2Part(a, b, c, d, e) {
+		return gdImageCreateFromGd2Part(a, b, c, d, e);
+	}
+
+	__cjs_gdImageCreateFromGd2PartCtx(a, b, c, d, e) {
+		return gdImageCreateFromGd2PartCtx(a, b, c, d, e);
+	}
+
+	__cjs_gdImageCreateFromGd2PartPtr(a, b, c, d, e, f) {
+		return gdImageCreateFromGd2PartPtr(a, b, c, d, e, f);
+	}
+
+	__cjs_gdImageCreateFromXbm(a) {
+		return gdImageCreateFromXbm(a);
+	}
+
+	__cjs_gdImageCreateFromXpm(a) {
+		return gdImageCreateFromXpm(a);
+	}
+
+	__cjs_gdImageDestroy(a) {
+		return gdImageDestroy(a);
+	}
+
+	__cjs_gdImageSetPixel(a, b, c, d) {
+		return gdImageSetPixel(a, b, c, d);
+	}
+
+	__cjs_gdImageGetPixel(a, b, c) {
+		return gdImageGetPixel(a, b, c);
+	}
+
+	__cjs_gdImageGetTrueColorPixel(a, b, c) {
+		return gdImageGetTrueColorPixel(a, b, c);
+	}
+
+	__cjs_gdImageAABlend(a) {
+		return gdImageAABlend(a);
+	}
+
+	__cjs_gdImageLine(a, b, c, d, e, f) {
+		return gdImageLine(a, b, c, d, e, f);
+	}
+
+	__cjs_gdImageDashedLine(a, b, c, d, e, f) {
+		return gdImageDashedLine(a, b, c, d, e, f);
+	}
+
+	__cjs_gdImageRectangle(a, b, c, d, e, f) {
+		return gdImageRectangle(a, b, c, d, e, f);
+	}
+
+	__cjs_gdImageFilledRectangle(a, b, c, d, e, f) {
+		return gdImageFilledRectangle(a, b, c, d, e, f);
+	}
+
+	__cjs_gdImageSetClip(a, b, c, d, e) {
+		return gdImageSetClip(a, b, c, d, e);
+	}
+
+	__cjs_gdImageGetClip(a, b, c, d, e) {
+		return gdImageGetClip(a, b, c, d, e);
+	}
+
+	__cjs_gdImageBoundsSafe(a, b, c) {
+		return gdImageBoundsSafe(a, b, c);
+	}
+
+	__cjs_gdImageChar(a, b, c, d, e, f) {
+		return gdImageChar(a, b, c, d, e, f);
+	}
+
+	__cjs_gdImageCharUp(a, b, c, d, e, f) {
+		return gdImageCharUp(a, b, c, d, e, f);
+	}
+
+	__cjs_gdImageString(a, b, c, d, e, f) {
+		return gdImageString(a, b, c, d, e, f);
+	}
+
+	__cjs_gdImageStringUp(a, b, c, d, e, f) {
+		return gdImageStringUp(a, b, c, d, e, f);
+	}
+
+	__cjs_gdImageString16(a, b, c, d, e, f) {
+		return gdImageString16(a, b, c, d, e, f);
+	}
+
+	__cjs_gdImageStringUp16(a, b, c, d, e, f) {
+		return gdImageStringUp16(a, b, c, d, e, f);
+	}
+
+	__cjs_gdFontCacheSetup() {
+		return gdFontCacheSetup();
+	}
+
+	__cjs_gdFontCacheShutdown() {
+		return gdFontCacheShutdown();
+	}
+
+	__cjs_gdFreeFontCache() {
+		return gdFreeFontCache();
+	}
+
+	__cjs_gdImageStringTTF(a, b, c, d, e, f, g, h, i) {
+		return gdImageStringTTF(a, b, c, d, e, f, g, h, i);
+	}
+
+	__cjs_gdImageStringFT(a, b, c, d, e, f, g, h, i) {
+		return gdImageStringFT(a, b, c, d, e, f, g, h, i);
+	}
+
+	__cjs_gdFTUseFontConfig(a) {
+		return gdFTUseFontConfig(a);
+	}
+
+	__cjs_gdImageStringFTEx(a, b, c, d, e, f, g, h, i, j) {
+		return gdImageStringFTEx(a, b, c, d, e, f, g, h, i, j);
+	}
+
+	__cjs_gdImagePolygon(a, b, c, d) {
+		return gdImagePolygon(a, b, c, d);
+	}
+
+	__cjs_gdImageOpenPolygon(a, b, c, d) {
+		return gdImageOpenPolygon(a, b, c, d);
+	}
+
+	__cjs_gdImageFilledPolygon(a, b, c, d) {
+		return gdImageFilledPolygon(a, b, c, d);
+	}
+
+	__cjs_gdImageColorAllocate(a, b, c, d) {
+		return gdImageColorAllocate(a, b, c, d);
+	}
+
+	__cjs_gdImageColorAllocateAlpha(a, b, c, d, e) {
+		return gdImageColorAllocateAlpha(a, b, c, d, e);
+	}
+
+	__cjs_gdImageColorClosest(a, b, c, d) {
+		return gdImageColorClosest(a, b, c, d);
+	}
+
+	__cjs_gdImageColorClosestAlpha(a, b, c, d, e) {
+		return gdImageColorClosestAlpha(a, b, c, d, e);
+	}
+
+	__cjs_gdImageColorClosestHWB(a, b, c, d) {
+		return gdImageColorClosestHWB(a, b, c, d);
+	}
+
+	__cjs_gdImageColorExact(a, b, c, d) {
+		return gdImageColorExact(a, b, c, d);
+	}
+
+	__cjs_gdImageColorExactAlpha(a, b, c, d, e) {
+		return gdImageColorExactAlpha(a, b, c, d, e);
+	}
+
+	__cjs_gdImageColorResolve(a, b, c, d) {
+		return gdImageColorResolve(a, b, c, d);
+	}
+
+	__cjs_gdImageColorResolveAlpha(a, b, c, d, e) {
+		return gdImageColorResolveAlpha(a, b, c, d, e);
+	}
+
+	__cjs_gdImageColorDeallocate(a, b) {
+		return gdImageColorDeallocate(a, b);
+	}
+
+	__cjs_gdImageCreatePaletteFromTrueColor(a, b, c) {
+		return gdImageCreatePaletteFromTrueColor(a, b, c);
+	}
+
+	__cjs_gdImageTrueColorToPalette(a, b, c) {
+		return gdImageTrueColorToPalette(a, b, c);
+	}
+
+	__cjs_gdImageColorTransparent(a, b) {
+		return gdImageColorTransparent(a, b);
+	}
+
+	__cjs_gdImagePaletteCopy(a, b) {
+		return gdImagePaletteCopy(a, b);
+	}
+
+	__cjs_gdImageGif(a, b) {
+		return gdImageGif(a, b);
+	}
+
+	__cjs_gdImagePng(a, b) {
+		return gdImagePng(a, b);
+	}
+
+	__cjs_gdImagePngCtx(a, b) {
+		return gdImagePngCtx(a, b);
+	}
+
+	__cjs_gdImageGifCtx(a, b) {
+		return gdImageGifCtx(a, b);
+	}
+
+	__cjs_gdImagePngEx(a, b, c) {
+		return gdImagePngEx(a, b, c);
+	}
+
+	__cjs_gdImagePngCtxEx(a, b, c) {
+		return gdImagePngCtxEx(a, b, c);
+	}
+
+	__cjs_gdImageWBMP(a, b, c) {
+		return gdImageWBMP(a, b, c);
+	}
+
+	__cjs_gdImageWBMPCtx(a, b, c) {
+		return gdImageWBMPCtx(a, b, c);
+	}
+
+	__cjs_gdFree(a) {
+		return gdFree(a);
+	}
+
+	__cjs_gdImageWBMPPtr(a, b, c) {
+		return gdImageWBMPPtr(a, b, c);
+	}
+
+	__cjs_gdImageJpeg(a, b, c) {
+		return gdImageJpeg(a, b, c);
+	}
+
+	__cjs_gdImageJpegCtx(a, b, c) {
+		return gdImageJpegCtx(a, b, c);
+	}
+
+	__cjs_gdImageJpegPtr(a, b, c) {
+		return gdImageJpegPtr(a, b, c);
+	}
+
+	__cjs_gdImageGifAnimBegin(a, b, c, d) {
+		return gdImageGifAnimBegin(a, b, c, d);
+	}
+
+	__cjs_gdImageGifAnimAdd(a, b, c, d, e, f, g, h) {
+		return gdImageGifAnimAdd(a, b, c, d, e, f, g, h);
+	}
+
+	__cjs_gdImageGifAnimEnd(a) {
+		return gdImageGifAnimEnd(a);
+	}
+
+	__cjs_gdImageGifAnimBeginCtx(a, b, c, d) {
+		return gdImageGifAnimBeginCtx(a, b, c, d);
+	}
+
+	__cjs_gdImageGifAnimAddCtx(a, b, c, d, e, f, g, h) {
+		return gdImageGifAnimAddCtx(a, b, c, d, e, f, g, h);
+	}
+
+	__cjs_gdImageGifAnimEndCtx(a) {
+		return gdImageGifAnimEndCtx(a);
+	}
+
+	__cjs_gdImageGifAnimBeginPtr(a, b, c, d) {
+		return gdImageGifAnimBeginPtr(a, b, c, d);
+	}
+
+	__cjs_gdImageGifAnimAddPtr(a, b, c, d, e, f, g, h) {
+		return gdImageGifAnimAddPtr(a, b, c, d, e, f, g, h);
+	}
+
+	__cjs_gdImageGifAnimEndPtr(a) {
+		return gdImageGifAnimEndPtr(a);
+	}
+
+	__cjs_gdImagePngToSink(a, b) {
+		return gdImagePngToSink(a, b);
+	}
+
+	__cjs_gdImageGd(a, b) {
+		return gdImageGd(a, b);
+	}
+
+	__cjs_gdImageGd2(a, b, c, d) {
+		return gdImageGd2(a, b, c, d);
+	}
+
+	__cjs_gdImageGifPtr(a, b) {
+		return gdImageGifPtr(a, b);
+	}
+
+	__cjs_gdImagePngPtr(a, b) {
+		return gdImagePngPtr(a, b);
+	}
+
+	__cjs_gdImagePngPtrEx(a, b, c) {
+		return gdImagePngPtrEx(a, b, c);
+	}
+
+	__cjs_gdImageGdPtr(a, b) {
+		return gdImageGdPtr(a, b);
+	}
+
+	__cjs_gdImageGd2Ptr(a, b, c, d) {
+		return gdImageGd2Ptr(a, b, c, d);
+	}
+
+	__cjs_gdImageFilledArc(a, b, c, d, e, f, g, h, i) {
+		return gdImageFilledArc(a, b, c, d, e, f, g, h, i);
+	}
+
+	__cjs_gdImageArc(a, b, c, d, e, f, g, h) {
+		return gdImageArc(a, b, c, d, e, f, g, h);
+	}
+
+	__cjs_gdImageFilledEllipse(a, b, c, d, e, f) {
+		return gdImageFilledEllipse(a, b, c, d, e, f);
+	}
+
+	__cjs_gdImageFillToBorder(a, b, c, d, e) {
+		return gdImageFillToBorder(a, b, c, d, e);
+	}
+
+	__cjs_gdImageFill(a, b, c, d) {
+		return gdImageFill(a, b, c, d);
+	}
+
+	__cjs_gdImageCopy(a, b, c, d, e, f, g, h) {
+		return gdImageCopy(a, b, c, d, e, f, g, h);
+	}
+
+	__cjs_gdImageCopyMerge(a, b, c, d, e, f, g, h, i) {
+		return gdImageCopyMerge(a, b, c, d, e, f, g, h, i);
+	}
+
+	__cjs_gdImageCopyMergeGray(a, b, c, d, e, f, g, h, i) {
+		return gdImageCopyMergeGray(a, b, c, d, e, f, g, h, i);
+	}
+
+	__cjs_gdImageCopyResized(a, b, c, d, e, f, g, h, i, j) {
+		return gdImageCopyResized(a, b, c, d, e, f, g, h, i, j);
+	}
+
+	__cjs_gdImageCopyResampled(a, b, c, d, e, f, g, h, i, j) {
+		return gdImageCopyResampled(a, b, c, d, e, f, g, h, i, j);
+	}
+
+	__cjs_gdImageCopyRotated(a, b, c, d, e, f, g, h, i) {
+		return gdImageCopyRotated(a, b, c, d, e, f, g, h, i);
+	}
+
+	__cjs_gdImageSetBrush(a, b) {
+		return gdImageSetBrush(a, b);
+	}
+
+	__cjs_gdImageSetTile(a, b) {
+		return gdImageSetTile(a, b);
+	}
+
+	__cjs_gdImageSetAntiAliased(a, b) {
+		return gdImageSetAntiAliased(a, b);
+	}
+
+	__cjs_gdImageSetAntiAliasedDontBlend(a, b, c) {
+		return gdImageSetAntiAliasedDontBlend(a, b, c);
+	}
+
+	__cjs_gdImageSetStyle(a, b, c) {
+		return gdImageSetStyle(a, b, c);
+	}
+
+	__cjs_gdImageSetThickness(a, b) {
+		return gdImageSetThickness(a, b);
+	}
+
+	__cjs_gdImageInterlace(a, b) {
+		return gdImageInterlace(a, b);
+	}
+
+	__cjs_gdImageAlphaBlending(a, b) {
+		return gdImageAlphaBlending(a, b);
+	}
+
+	__cjs_gdImageSaveAlpha(a, b) {
+		return gdImageSaveAlpha(a, b);
+	}
+
+	__cjs_gdNewFileCtx(a) {
+		return gdNewFileCtx(a);
+	}
+
+	__cjs_gdNewDynamicCtx(a, b) {
+		return gdNewDynamicCtx(a, b);
+	}
+
+	__cjs_gdNewDynamicCtxEx(a, b, c) {
+		return gdNewDynamicCtxEx(a, b, c);
+	}
+
+	__cjs_gdNewSSCtx(a, b) {
+		return gdNewSSCtx(a, b);
+	}
+
+	__cjs_gdImageSquareToCircle(a, b) {
+		return gdImageSquareToCircle(a, b);
+	}
+
+	__cjs_gdImageStringFTCircle(a, b, c, d, e, f, g, h, i, j, k) {
+		return gdImageStringFTCircle(a, b, c, d, e, f, g, h, i, j, k);
+	}
+
+	__cjs_gdImageSharpen(a, b) {
+		return gdImageSharpen(a, b);
+	}
+
+	__cjs_gdTrueColorGetAlpha(a) {
+		return gdTrueColorGetAlpha(a);
+	}
+
+	__cjs_gdTrueColorGetRed(a) {
+		return gdTrueColorGetRed(a);
+	}
+
+	__cjs_gdTrueColorGetGreen(a) {
+		return gdTrueColorGetGreen(a);
+	}
+
+	__cjs_gdTrueColorGetBlue(a) {
+		return gdTrueColorGetBlue(a);
+	}
+
+	__cjs_gdTrueColor(a, b, c) {
+		return gdTrueColor(a, b, c);
+	}
+
+	__cjs_gdTrueColorAlpha(a, b, c, d) {
+		return gdTrueColorAlpha(a, b, c, d);
+	}
+
+	__cjs_gdImageTrueColor(a) {
+		return gdImageTrueColor(a);
+	}
+
+	__cjs_gdImageSX(a) {
+		return gdImageSX(a);
+	}
+
+	__cjs_gdImageSY(a) {
+		return gdImageSY(a);
+	}
+
+	__cjs_gdImageColorsTotal(a) {
+		return gdImageColorsTotal(a);
+	}
+
+	__cjs_gdImageRed(a, b) {
+		return gdImageRed(a, b);
+	}
+
+	__cjs_gdImageGreen(a, b) {
+		return gdImageGreen(a, b);
+	}
+
+	__cjs_gdImageBlue(a, b) {
+		return gdImageBlue(a, b);
+	}
+
+	__cjs_gdImageAlpha(a, b) {
+		return gdImageAlpha(a, b);
+	}
+
+	__cjs_gdImageGetTransparent(a) {
+		return gdImageGetTransparent(a);
+	}
+
+	__cjs_gdImageGetInterlaced(a) {
+		return gdImageGetInterlaced(a);
+	}
+
+	__cjs_gdImagePalettePixel(a, b, c) {
+		return gdImagePalettePixel(a, b, c);
+	}
+
+	__cjs_gdImageTrueColorPixel(a, b, c) {
+		return gdImageTrueColorPixel(a, b, c);
+	}
+
+	wrap(js) {
+		js.wrap(this.__cjs_gdAlphaBlend, "__cjs_gdAlphaBlend");
+		js.wrap(this.__cjs_gdImageCreate, "__cjs_gdImageCreate");
+		js.wrap(this.__cjs_gdImageCreateTrueColor, "__cjs_gdImageCreateTrueColor");
+		js.wrap(this.__cjs_gdImageCreateFromPng, "__cjs_gdImageCreateFromPng");
+		js.wrap(this.__cjs_gdImageCreateFromPngCtx, "__cjs_gdImageCreateFromPngCtx");
+		js.wrap(this.__cjs_gdImageCreateFromPngPtr, "__cjs_gdImageCreateFromPngPtr");
+		js.wrap(this.__cjs_gdImageCreateFromGif, "__cjs_gdImageCreateFromGif");
+		js.wrap(this.__cjs_gdImageCreateFromGifCtx, "__cjs_gdImageCreateFromGifCtx");
+		js.wrap(this.__cjs_gdImageCreateFromGifPtr, "__cjs_gdImageCreateFromGifPtr");
+		js.wrap(this.__cjs_gdImageCreateFromWBMP, "__cjs_gdImageCreateFromWBMP");
+		js.wrap(this.__cjs_gdImageCreateFromWBMPCtx, "__cjs_gdImageCreateFromWBMPCtx");
+		js.wrap(this.__cjs_gdImageCreateFromWBMPPtr, "__cjs_gdImageCreateFromWBMPPtr");
+		js.wrap(this.__cjs_gdImageCreateFromJpeg, "__cjs_gdImageCreateFromJpeg");
+		js.wrap(this.__cjs_gdImageCreateFromJpegCtx, "__cjs_gdImageCreateFromJpegCtx");
+		js.wrap(this.__cjs_gdImageCreateFromJpegPtr, "__cjs_gdImageCreateFromJpegPtr");
+		js.wrap(this.__cjs_gdImageCreateFromPngSource, "__cjs_gdImageCreateFromPngSource");
+		js.wrap(this.__cjs_gdImageCreateFromGd, "__cjs_gdImageCreateFromGd");
+		js.wrap(this.__cjs_gdImageCreateFromGdCtx, "__cjs_gdImageCreateFromGdCtx");
+		js.wrap(this.__cjs_gdImageCreateFromGdPtr, "__cjs_gdImageCreateFromGdPtr");
+		js.wrap(this.__cjs_gdImageCreateFromGd2, "__cjs_gdImageCreateFromGd2");
+		js.wrap(this.__cjs_gdImageCreateFromGd2Ctx, "__cjs_gdImageCreateFromGd2Ctx");
+		js.wrap(this.__cjs_gdImageCreateFromGd2Ptr, "__cjs_gdImageCreateFromGd2Ptr");
+		js.wrap(this.__cjs_gdImageCreateFromGd2Part, "__cjs_gdImageCreateFromGd2Part");
+		js.wrap(this.__cjs_gdImageCreateFromGd2PartCtx, "__cjs_gdImageCreateFromGd2PartCtx");
+		js.wrap(this.__cjs_gdImageCreateFromGd2PartPtr, "__cjs_gdImageCreateFromGd2PartPtr");
+		js.wrap(this.__cjs_gdImageCreateFromXbm, "__cjs_gdImageCreateFromXbm");
+		js.wrap(this.__cjs_gdImageCreateFromXpm, "__cjs_gdImageCreateFromXpm");
+		js.wrap(this.__cjs_gdImageDestroy, "__cjs_gdImageDestroy");
+		js.wrap(this.__cjs_gdImageSetPixel, "__cjs_gdImageSetPixel");
+		js.wrap(this.__cjs_gdImageGetPixel, "__cjs_gdImageGetPixel");
+		js.wrap(this.__cjs_gdImageGetTrueColorPixel, "__cjs_gdImageGetTrueColorPixel");
+		js.wrap(this.__cjs_gdImageAABlend, "__cjs_gdImageAABlend");
+		js.wrap(this.__cjs_gdImageLine, "__cjs_gdImageLine");
+		js.wrap(this.__cjs_gdImageDashedLine, "__cjs_gdImageDashedLine");
+		js.wrap(this.__cjs_gdImageRectangle, "__cjs_gdImageRectangle");
+		js.wrap(this.__cjs_gdImageFilledRectangle, "__cjs_gdImageFilledRectangle");
+		js.wrap(this.__cjs_gdImageSetClip, "__cjs_gdImageSetClip");
+		js.wrap(this.__cjs_gdImageGetClip, "__cjs_gdImageGetClip");
+		js.wrap(this.__cjs_gdImageBoundsSafe, "__cjs_gdImageBoundsSafe");
+		js.wrap(this.__cjs_gdImageChar, "__cjs_gdImageChar");
+		js.wrap(this.__cjs_gdImageCharUp, "__cjs_gdImageCharUp");
+		js.wrap(this.__cjs_gdImageString, "__cjs_gdImageString");
+		js.wrap(this.__cjs_gdImageStringUp, "__cjs_gdImageStringUp");
+		js.wrap(this.__cjs_gdImageString16, "__cjs_gdImageString16");
+		js.wrap(this.__cjs_gdImageStringUp16, "__cjs_gdImageStringUp16");
+		js.wrap(this.__cjs_gdFontCacheSetup, "__cjs_gdFontCacheSetup");
+		js.wrap(this.__cjs_gdFontCacheShutdown, "__cjs_gdFontCacheShutdown");
+		js.wrap(this.__cjs_gdFreeFontCache, "__cjs_gdFreeFontCache");
+		js.wrap(this.__cjs_gdImageStringTTF, "__cjs_gdImageStringTTF");
+		js.wrap(this.__cjs_gdImageStringFT, "__cjs_gdImageStringFT");
+		js.wrap(this.__cjs_gdFTUseFontConfig, "__cjs_gdFTUseFontConfig");
+		js.wrap(this.__cjs_gdImageStringFTEx, "__cjs_gdImageStringFTEx");
+		js.wrap(this.__cjs_gdImagePolygon, "__cjs_gdImagePolygon");
+		js.wrap(this.__cjs_gdImageOpenPolygon, "__cjs_gdImageOpenPolygon");
+		js.wrap(this.__cjs_gdImageFilledPolygon, "__cjs_gdImageFilledPolygon");
+		js.wrap(this.__cjs_gdImageColorAllocate, "__cjs_gdImageColorAllocate");
+		js.wrap(this.__cjs_gdImageColorAllocateAlpha, "__cjs_gdImageColorAllocateAlpha");
+		js.wrap(this.__cjs_gdImageColorClosest, "__cjs_gdImageColorClosest");
+		js.wrap(this.__cjs_gdImageColorClosestAlpha, "__cjs_gdImageColorClosestAlpha");
+		js.wrap(this.__cjs_gdImageColorClosestHWB, "__cjs_gdImageColorClosestHWB");
+		js.wrap(this.__cjs_gdImageColorExact, "__cjs_gdImageColorExact");
+		js.wrap(this.__cjs_gdImageColorExactAlpha, "__cjs_gdImageColorExactAlpha");
+		js.wrap(this.__cjs_gdImageColorResolve, "__cjs_gdImageColorResolve");
+		js.wrap(this.__cjs_gdImageColorResolveAlpha, "__cjs_gdImageColorResolveAlpha");
+		js.wrap(this.__cjs_gdImageColorDeallocate, "__cjs_gdImageColorDeallocate");
+		js.wrap(this.__cjs_gdImageCreatePaletteFromTrueColor, "__cjs_gdImageCreatePaletteFromTrueColor");
+		js.wrap(this.__cjs_gdImageTrueColorToPalette, "__cjs_gdImageTrueColorToPalette");
+		js.wrap(this.__cjs_gdImageColorTransparent, "__cjs_gdImageColorTransparent");
+		js.wrap(this.__cjs_gdImagePaletteCopy, "__cjs_gdImagePaletteCopy");
+		js.wrap(this.__cjs_gdImageGif, "__cjs_gdImageGif");
+		js.wrap(this.__cjs_gdImagePng, "__cjs_gdImagePng");
+		js.wrap(this.__cjs_gdImagePngCtx, "__cjs_gdImagePngCtx");
+		js.wrap(this.__cjs_gdImageGifCtx, "__cjs_gdImageGifCtx");
+		js.wrap(this.__cjs_gdImagePngEx, "__cjs_gdImagePngEx");
+		js.wrap(this.__cjs_gdImagePngCtxEx, "__cjs_gdImagePngCtxEx");
+		js.wrap(this.__cjs_gdImageWBMP, "__cjs_gdImageWBMP");
+		js.wrap(this.__cjs_gdImageWBMPCtx, "__cjs_gdImageWBMPCtx");
+		js.wrap(this.__cjs_gdFree, "__cjs_gdFree");
+		js.wrap(this.__cjs_gdImageWBMPPtr, "__cjs_gdImageWBMPPtr");
+		js.wrap(this.__cjs_gdImageJpeg, "__cjs_gdImageJpeg");
+		js.wrap(this.__cjs_gdImageJpegCtx, "__cjs_gdImageJpegCtx");
+		js.wrap(this.__cjs_gdImageJpegPtr, "__cjs_gdImageJpegPtr");
+		js.wrap(this.__cjs_gdImageGifAnimBegin, "__cjs_gdImageGifAnimBegin");
+		js.wrap(this.__cjs_gdImageGifAnimAdd, "__cjs_gdImageGifAnimAdd");
+		js.wrap(this.__cjs_gdImageGifAnimEnd, "__cjs_gdImageGifAnimEnd");
+		js.wrap(this.__cjs_gdImageGifAnimBeginCtx, "__cjs_gdImageGifAnimBeginCtx");
+		js.wrap(this.__cjs_gdImageGifAnimAddCtx, "__cjs_gdImageGifAnimAddCtx");
+		js.wrap(this.__cjs_gdImageGifAnimEndCtx, "__cjs_gdImageGifAnimEndCtx");
+		js.wrap(this.__cjs_gdImageGifAnimBeginPtr, "__cjs_gdImageGifAnimBeginPtr");
+		js.wrap(this.__cjs_gdImageGifAnimAddPtr, "__cjs_gdImageGifAnimAddPtr");
+		js.wrap(this.__cjs_gdImageGifAnimEndPtr, "__cjs_gdImageGifAnimEndPtr");
+		js.wrap(this.__cjs_gdImagePngToSink, "__cjs_gdImagePngToSink");
+		js.wrap(this.__cjs_gdImageGd, "__cjs_gdImageGd");
+		js.wrap(this.__cjs_gdImageGd2, "__cjs_gdImageGd2");
+		js.wrap(this.__cjs_gdImageGifPtr, "__cjs_gdImageGifPtr");
+		js.wrap(this.__cjs_gdImagePngPtr, "__cjs_gdImagePngPtr");
+		js.wrap(this.__cjs_gdImagePngPtrEx, "__cjs_gdImagePngPtrEx");
+		js.wrap(this.__cjs_gdImageGdPtr, "__cjs_gdImageGdPtr");
+		js.wrap(this.__cjs_gdImageGd2Ptr, "__cjs_gdImageGd2Ptr");
+		js.wrap(this.__cjs_gdImageFilledArc, "__cjs_gdImageFilledArc");
+		js.wrap(this.__cjs_gdImageArc, "__cjs_gdImageArc");
+		js.wrap(this.__cjs_gdImageFilledEllipse, "__cjs_gdImageFilledEllipse");
+		js.wrap(this.__cjs_gdImageFillToBorder, "__cjs_gdImageFillToBorder");
+		js.wrap(this.__cjs_gdImageFill, "__cjs_gdImageFill");
+		js.wrap(this.__cjs_gdImageCopy, "__cjs_gdImageCopy");
+		js.wrap(this.__cjs_gdImageCopyMerge, "__cjs_gdImageCopyMerge");
+		js.wrap(this.__cjs_gdImageCopyMergeGray, "__cjs_gdImageCopyMergeGray");
+		js.wrap(this.__cjs_gdImageCopyResized, "__cjs_gdImageCopyResized");
+		js.wrap(this.__cjs_gdImageCopyResampled, "__cjs_gdImageCopyResampled");
+		js.wrap(this.__cjs_gdImageCopyRotated, "__cjs_gdImageCopyRotated");
+		js.wrap(this.__cjs_gdImageSetBrush, "__cjs_gdImageSetBrush");
+		js.wrap(this.__cjs_gdImageSetTile, "__cjs_gdImageSetTile");
+		js.wrap(this.__cjs_gdImageSetAntiAliased, "__cjs_gdImageSetAntiAliased");
+		js.wrap(this.__cjs_gdImageSetAntiAliasedDontBlend, "__cjs_gdImageSetAntiAliasedDontBlend");
+		js.wrap(this.__cjs_gdImageSetStyle, "__cjs_gdImageSetStyle");
+		js.wrap(this.__cjs_gdImageSetThickness, "__cjs_gdImageSetThickness");
+		js.wrap(this.__cjs_gdImageInterlace, "__cjs_gdImageInterlace");
+		js.wrap(this.__cjs_gdImageAlphaBlending, "__cjs_gdImageAlphaBlending");
+		js.wrap(this.__cjs_gdImageSaveAlpha, "__cjs_gdImageSaveAlpha");
+		js.wrap(this.__cjs_gdNewFileCtx, "__cjs_gdNewFileCtx");
+		js.wrap(this.__cjs_gdNewDynamicCtx, "__cjs_gdNewDynamicCtx");
+		js.wrap(this.__cjs_gdNewDynamicCtxEx, "__cjs_gdNewDynamicCtxEx");
+		js.wrap(this.__cjs_gdNewSSCtx, "__cjs_gdNewSSCtx");
+		js.wrap(this.__cjs_gdImageSquareToCircle, "__cjs_gdImageSquareToCircle");
+		js.wrap(this.__cjs_gdImageStringFTCircle, "__cjs_gdImageStringFTCircle");
+		js.wrap(this.__cjs_gdImageSharpen, "__cjs_gdImageSharpen");
+		js.wrap(this.__cjs_gdTrueColorGetAlpha, "__cjs_gdTrueColorGetAlpha");
+		js.wrap(this.__cjs_gdTrueColorGetRed, "__cjs_gdTrueColorGetRed");
+		js.wrap(this.__cjs_gdTrueColorGetGreen, "__cjs_gdTrueColorGetGreen");
+		js.wrap(this.__cjs_gdTrueColorGetBlue, "__cjs_gdTrueColorGetBlue");
+		js.wrap(this.__cjs_gdTrueColor, "__cjs_gdTrueColor");
+		js.wrap(this.__cjs_gdTrueColorAlpha, "__cjs_gdTrueColorAlpha");
+		js.wrap(this.__cjs_gdImageTrueColor, "__cjs_gdImageTrueColor");
+		js.wrap(this.__cjs_gdImageSX, "__cjs_gdImageSX");
+		js.wrap(this.__cjs_gdImageSY, "__cjs_gdImageSY");
+		js.wrap(this.__cjs_gdImageColorsTotal, "__cjs_gdImageColorsTotal");
+		js.wrap(this.__cjs_gdImageRed, "__cjs_gdImageRed");
+		js.wrap(this.__cjs_gdImageGreen, "__cjs_gdImageGreen");
+		js.wrap(this.__cjs_gdImageBlue, "__cjs_gdImageBlue");
+		js.wrap(this.__cjs_gdImageAlpha, "__cjs_gdImageAlpha");
+		js.wrap(this.__cjs_gdImageGetTransparent, "__cjs_gdImageGetTransparent");
+		js.wrap(this.__cjs_gdImageGetInterlaced, "__cjs_gdImageGetInterlaced");
+		js.wrap(this.__cjs_gdImagePalettePixel, "__cjs_gdImagePalettePixel");
+		js.wrap(this.__cjs_gdImageTrueColorPixel, "__cjs_gdImageTrueColorPixel");
+	}
+
+	ECMABRIDGE_standard_lib_gd(js) {
+		this.wrap(js);
+	}
+}

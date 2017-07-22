@@ -1,0 +1,567 @@
+/* This file is generated automatically by generatejs.con. Do not edit. */
+
+import standard.C.io
+
+class ECMABRIDGE_standard_C_io {
+	__cjs_fopen(a, b) {
+		return fopen(a, b);
+	}
+
+	__cjs_fclose(a) {
+		return fclose(a);
+	}
+
+	__cjs_fread(a, b, c, d) {
+		return fread(a, b, c, d);
+	}
+
+	__cjs_fseek(a, b, c) {
+		return fseek(a, b, c);
+	}
+
+	__cjs_ftell(a) {
+		return ftell(a);
+	}
+
+	__cjs_fsize(a) {
+		return fsize(a);
+	}
+
+	__cjs_fgetstring(a, b, c) {
+		return fgetstring(a, b, c);
+	}
+
+	__cjs_feof(a) {
+		return feof(a);
+	}
+
+	__cjs_fflush(a) {
+		return fflush(a);
+	}
+
+	__cjs_fgetc(a) {
+		return fgetc(a);
+	}
+
+	__cjs_fputc(a, b) {
+		return fputc(a, b);
+	}
+
+	__cjs_fgets(a, b, c) {
+		return fgets(a, b, c);
+	}
+
+	__cjs_fputs(a, b) {
+		return fputs(a, b);
+	}
+
+	__cjs__fileno(a) {
+		return _fileno(a);
+	}
+
+	__cjs_freopen(a, b, c) {
+		return freopen(a, b, c);
+	}
+
+	__cjs_remove(a) {
+		return remove(a);
+	}
+
+	__cjs__unlink(a) {
+		return _unlink(a);
+	}
+
+	__cjs__chdir(a) {
+		return _chdir(a);
+	}
+
+	__cjs__mkdir(a) {
+		return _mkdir(a);
+	}
+
+	__cjs__rmdir(a) {
+		return _rmdir(a);
+	}
+
+	__cjs_opendir(a) {
+		return opendir(a);
+	}
+
+	__cjs_readdir(a) {
+		return readdir(a);
+	}
+
+	__cjs_telldir(a) {
+		return telldir(a);
+	}
+
+	__cjs_seekdir(a, b) {
+		return seekdir(a, b);
+	}
+
+	__cjs_rewinddir(a) {
+		return rewinddir(a);
+	}
+
+	__cjs_closedir(a) {
+		return closedir(a);
+	}
+
+	__cjs_dirname(a) {
+		return dirname(a);
+	}
+
+	__cjs__stat(a, b) {
+		return _stat(a, b);
+	}
+
+	__cjs_filetype(a) {
+		return filetype(a);
+	}
+
+	__cjs_filesize(a) {
+		return filesize(a);
+	}
+
+	__cjs_filelast_acc(a) {
+		return filelast_acc(a);
+	}
+
+	__cjs_filelast_mod(a) {
+		return filelast_mod(a);
+	}
+
+	__cjs_filelast_ch(a) {
+		return filelast_ch(a);
+	}
+
+	__cjs_fileuid(a) {
+		return fileuid(a);
+	}
+
+	__cjs_filegid(a) {
+		return filegid(a);
+	}
+
+	__cjs_ReadFile(a) {
+		return ReadFile(a);
+	}
+
+	__cjs_WriteFile(a, b) {
+		return WriteFile(a, b);
+	}
+
+	__cjs_FileExists(a) {
+		return FileExists(a);
+	}
+
+	__cjs_DirectoryExists(a) {
+		return DirectoryExists(a);
+	}
+
+	__cjs__errno() {
+		return _errno();
+	}
+
+	__cjs_strerror(a) {
+		return strerror(a);
+	}
+
+	__cjs_rename(a, b) {
+		return rename(a, b);
+	}
+
+	__cjs_IniGet(a, b, c, d) {
+		return IniGet(a, b, c, d);
+	}
+
+	__cjs_IniSet(a, b, c, d) {
+		return IniSet(a, b, c, d);
+	}
+
+	__cjs_popen(a, b) {
+		return popen(a, b);
+	}
+
+	__cjs_pclose(a) {
+		return pclose(a);
+	}
+
+	__cjs__WEXITSTATUS(a) {
+		return _WEXITSTATUS(a);
+	}
+
+	__cjs__MSWINDOWS() {
+		return _MSWINDOWS();
+	}
+
+	__cjs__BITS() {
+		return _BITS();
+	}
+
+	__cjs_IsSymlink(a) {
+		return IsSymlink(a);
+	}
+
+	__cjs_utime(a, b, c) {
+		return utime(a, b, c);
+	}
+
+	__cjs_dup(a) {
+		return dup(a);
+	}
+
+	__cjs_dup2(a, b) {
+		return dup2(a, b);
+	}
+
+	__cjs_fdopen(a, b) {
+		return fdopen(a, b);
+	}
+
+	__cjs_pipe(a, b) {
+		return pipe(a, b);
+	}
+
+	__cjs_socketpair(a, b) {
+		return socketpair(a, b);
+	}
+
+	__cjs_close(a) {
+		return close(a);
+	}
+
+	__cjs_write(a, b) {
+		return write(a, b);
+	}
+
+	__cjs_read(a, b, c) {
+		return read(a, b, c);
+	}
+
+	__cjs_seek(a, b, c) {
+		return seek(a, b, c);
+	}
+
+	__cjs_mkfifo(a, b) {
+		return mkfifo(a, b);
+	}
+
+	__cjs_remap_pipe_stdin_stdout(a, b) {
+		return remap_pipe_stdin_stdout(a, b);
+	}
+
+	__cjs_umask(a) {
+		return umask(a);
+	}
+
+	__cjs_chmod(a, b) {
+		return chmod(a, b);
+	}
+
+	__cjs_panicexit(a) {
+		return panicexit(a);
+	}
+
+	__cjs_getcwd() {
+		return getcwd();
+	}
+
+	__cjs_getpid() {
+		return getpid();
+	}
+
+	__cjs_getpgrp() {
+		return getpgrp();
+	}
+
+	__cjs_kill(a, b) {
+		return kill(a, b);
+	}
+
+	__cjs_ExecuteJoin(a) {
+		return ExecuteJoin(a);
+	}
+
+	__cjs_ExecuteProcess(a, b, c = null, d = null, e = null, f = null, g = null, h = null) {
+		return ExecuteProcess(a, b, c = null, d = null, e = null, f = null, g = null, h = null);
+	}
+
+	__cjs_ExecuteIsRunning(a) {
+		return ExecuteIsRunning(a);
+	}
+
+	__cjs_Duplicate(a, b) {
+		return Duplicate(a, b);
+	}
+
+	__cjs_setuid(a) {
+		return setuid(a);
+	}
+
+	__cjs_setgid(a) {
+		return setgid(a);
+	}
+
+	__cjs_getpwnam(a) {
+		return getpwnam(a);
+	}
+
+	__cjs_getpwuid(a) {
+		return getpwuid(a);
+	}
+
+	__cjs_setrlimit(a, b, c) {
+		return setrlimit(a, b, c);
+	}
+
+	__cjs_getrlimit(a) {
+		return getrlimit(a);
+	}
+
+	__cjs_SetCurrentUser(a, b, c = null) {
+		return SetCurrentUser(a, b, c = null);
+	}
+
+	__cjs_SetNonBlocking(a, b) {
+		return SetNonBlocking(a, b);
+	}
+
+	__cjs_DescriptorWrite(a, b, c) {
+		return DescriptorWrite(a, b, c);
+	}
+
+	__cjs_DescriptorRead(a, b) {
+		return DescriptorRead(a, b);
+	}
+
+	__cjs_getrusage(a, b) {
+		return getrusage(a, b);
+	}
+
+	__cjs_sysconf(a) {
+		return sysconf(a);
+	}
+
+	__cjs___PID(a) {
+		return __PID(a);
+	}
+
+	__cjs___cpuid(a) {
+		return __cpuid(a);
+	}
+
+	__cjs_ftruncate(a, b) {
+		return ftruncate(a, b);
+	}
+
+	__cjs_LockFileBytes(a, b, c, d, e, f = null) {
+		return LockFileBytes(a, b, c, d, e, f = null);
+	}
+
+	__cjs___ProcessTitle(a) {
+		return __ProcessTitle(a);
+	}
+
+	__cjs_mmap(a, b, c, d, e, f) {
+		return mmap(a, b, c, d, e, f);
+	}
+
+	__cjs_munmap(a, b) {
+		return munmap(a, b);
+	}
+
+	__cjs_mprotect(a, b, c) {
+		return mprotect(a, b, c);
+	}
+
+	__cjs_msync(a, b, c) {
+		return msync(a, b, c);
+	}
+
+	__cjs_mlock(a, b) {
+		return mlock(a, b);
+	}
+
+	__cjs_munlock(a, b) {
+		return munlock(a, b);
+	}
+
+	__cjs_mread(a, b, c) {
+		return mread(a, b, c);
+	}
+
+	__cjs_mwrite(a, b, c) {
+		return mwrite(a, b, c);
+	}
+
+	__cjs_fsync2(a) {
+		return fsync2(a);
+	}
+
+	__cjs_fsync(a) {
+		return fsync(a);
+	}
+
+	__cjs_fdatasync2(a) {
+		return fdatasync2(a);
+	}
+
+	__cjs_fdatasync(a) {
+		return fdatasync(a);
+	}
+
+	__cjs_availablespace(a) {
+		return availablespace(a);
+	}
+
+	__cjs_signal(a, b) {
+		return signal(a, b);
+	}
+
+	__cjs_alarm(a) {
+		return alarm(a);
+	}
+
+	__cjs_getchar() {
+		return getchar();
+	}
+
+	__cjs_gets() {
+		return gets();
+	}
+
+	__cjs_getpassword(a) {
+		return getpassword(a);
+	}
+
+	__cjs_chroot(a) {
+		return chroot(a);
+	}
+
+	__cjs_Impersonate(a, b, c = null) {
+		return Impersonate(a, b, c = null);
+	}
+
+	__cjs_setvbuf(a, b) {
+		return setvbuf(a, b);
+	}
+
+	wrap(js) {
+		js.wrap(this.__cjs_fopen, "__cjs_fopen");
+		js.wrap(this.__cjs_fclose, "__cjs_fclose");
+		js.wrap(this.__cjs_fread, "__cjs_fread");
+		js.wrap(this.__cjs_fseek, "__cjs_fseek");
+		js.wrap(this.__cjs_ftell, "__cjs_ftell");
+		js.wrap(this.__cjs_fsize, "__cjs_fsize");
+		js.wrap(this.__cjs_fgetstring, "__cjs_fgetstring");
+		js.wrap(this.__cjs_feof, "__cjs_feof");
+		js.wrap(this.__cjs_fflush, "__cjs_fflush");
+		js.wrap(this.__cjs_fgetc, "__cjs_fgetc");
+		js.wrap(this.__cjs_fputc, "__cjs_fputc");
+		js.wrap(this.__cjs_fgets, "__cjs_fgets");
+		js.wrap(this.__cjs_fputs, "__cjs_fputs");
+		js.wrap(this.__cjs__fileno, "__cjs__fileno");
+		js.wrap(this.__cjs_freopen, "__cjs_freopen");
+		js.wrap(this.__cjs_remove, "__cjs_remove");
+		js.wrap(this.__cjs__unlink, "__cjs__unlink");
+		js.wrap(this.__cjs__chdir, "__cjs__chdir");
+		js.wrap(this.__cjs__mkdir, "__cjs__mkdir");
+		js.wrap(this.__cjs__rmdir, "__cjs__rmdir");
+		js.wrap(this.__cjs_opendir, "__cjs_opendir");
+		js.wrap(this.__cjs_readdir, "__cjs_readdir");
+		js.wrap(this.__cjs_telldir, "__cjs_telldir");
+		js.wrap(this.__cjs_seekdir, "__cjs_seekdir");
+		js.wrap(this.__cjs_rewinddir, "__cjs_rewinddir");
+		js.wrap(this.__cjs_closedir, "__cjs_closedir");
+		js.wrap(this.__cjs_dirname, "__cjs_dirname");
+		js.wrap(this.__cjs__stat, "__cjs__stat");
+		js.wrap(this.__cjs_filetype, "__cjs_filetype");
+		js.wrap(this.__cjs_filesize, "__cjs_filesize");
+		js.wrap(this.__cjs_filelast_acc, "__cjs_filelast_acc");
+		js.wrap(this.__cjs_filelast_mod, "__cjs_filelast_mod");
+		js.wrap(this.__cjs_filelast_ch, "__cjs_filelast_ch");
+		js.wrap(this.__cjs_fileuid, "__cjs_fileuid");
+		js.wrap(this.__cjs_filegid, "__cjs_filegid");
+		js.wrap(this.__cjs_ReadFile, "__cjs_ReadFile");
+		js.wrap(this.__cjs_WriteFile, "__cjs_WriteFile");
+		js.wrap(this.__cjs_FileExists, "__cjs_FileExists");
+		js.wrap(this.__cjs_DirectoryExists, "__cjs_DirectoryExists");
+		js.wrap(this.__cjs__errno, "__cjs__errno");
+		js.wrap(this.__cjs_strerror, "__cjs_strerror");
+		js.wrap(this.__cjs_rename, "__cjs_rename");
+		js.wrap(this.__cjs_IniGet, "__cjs_IniGet");
+		js.wrap(this.__cjs_IniSet, "__cjs_IniSet");
+		js.wrap(this.__cjs_popen, "__cjs_popen");
+		js.wrap(this.__cjs_pclose, "__cjs_pclose");
+		js.wrap(this.__cjs__WEXITSTATUS, "__cjs__WEXITSTATUS");
+		js.wrap(this.__cjs__MSWINDOWS, "__cjs__MSWINDOWS");
+		js.wrap(this.__cjs__BITS, "__cjs__BITS");
+		js.wrap(this.__cjs_IsSymlink, "__cjs_IsSymlink");
+		js.wrap(this.__cjs_utime, "__cjs_utime");
+		js.wrap(this.__cjs_dup, "__cjs_dup");
+		js.wrap(this.__cjs_dup2, "__cjs_dup2");
+		js.wrap(this.__cjs_fdopen, "__cjs_fdopen");
+		js.wrap(this.__cjs_pipe, "__cjs_pipe");
+		js.wrap(this.__cjs_socketpair, "__cjs_socketpair");
+		js.wrap(this.__cjs_close, "__cjs_close");
+		js.wrap(this.__cjs_write, "__cjs_write");
+		js.wrap(this.__cjs_read, "__cjs_read");
+		js.wrap(this.__cjs_seek, "__cjs_seek");
+		js.wrap(this.__cjs_mkfifo, "__cjs_mkfifo");
+		js.wrap(this.__cjs_remap_pipe_stdin_stdout, "__cjs_remap_pipe_stdin_stdout");
+		js.wrap(this.__cjs_umask, "__cjs_umask");
+		js.wrap(this.__cjs_chmod, "__cjs_chmod");
+		js.wrap(this.__cjs_panicexit, "__cjs_panicexit");
+		js.wrap(this.__cjs_getcwd, "__cjs_getcwd");
+		js.wrap(this.__cjs_getpid, "__cjs_getpid");
+		js.wrap(this.__cjs_getpgrp, "__cjs_getpgrp");
+		js.wrap(this.__cjs_kill, "__cjs_kill");
+		js.wrap(this.__cjs_ExecuteJoin, "__cjs_ExecuteJoin");
+		js.wrap(this.__cjs_ExecuteProcess, "__cjs_ExecuteProcess");
+		js.wrap(this.__cjs_ExecuteIsRunning, "__cjs_ExecuteIsRunning");
+		js.wrap(this.__cjs_Duplicate, "__cjs_Duplicate");
+		js.wrap(this.__cjs_setuid, "__cjs_setuid");
+		js.wrap(this.__cjs_setgid, "__cjs_setgid");
+		js.wrap(this.__cjs_getpwnam, "__cjs_getpwnam");
+		js.wrap(this.__cjs_getpwuid, "__cjs_getpwuid");
+		js.wrap(this.__cjs_setrlimit, "__cjs_setrlimit");
+		js.wrap(this.__cjs_getrlimit, "__cjs_getrlimit");
+		js.wrap(this.__cjs_SetCurrentUser, "__cjs_SetCurrentUser");
+		js.wrap(this.__cjs_SetNonBlocking, "__cjs_SetNonBlocking");
+		js.wrap(this.__cjs_DescriptorWrite, "__cjs_DescriptorWrite");
+		js.wrap(this.__cjs_DescriptorRead, "__cjs_DescriptorRead");
+		js.wrap(this.__cjs_getrusage, "__cjs_getrusage");
+		js.wrap(this.__cjs_sysconf, "__cjs_sysconf");
+		js.wrap(this.__cjs___PID, "__cjs___PID");
+		js.wrap(this.__cjs___cpuid, "__cjs___cpuid");
+		js.wrap(this.__cjs_ftruncate, "__cjs_ftruncate");
+		js.wrap(this.__cjs_LockFileBytes, "__cjs_LockFileBytes");
+		js.wrap(this.__cjs___ProcessTitle, "__cjs___ProcessTitle");
+		js.wrap(this.__cjs_mmap, "__cjs_mmap");
+		js.wrap(this.__cjs_munmap, "__cjs_munmap");
+		js.wrap(this.__cjs_mprotect, "__cjs_mprotect");
+		js.wrap(this.__cjs_msync, "__cjs_msync");
+		js.wrap(this.__cjs_mlock, "__cjs_mlock");
+		js.wrap(this.__cjs_munlock, "__cjs_munlock");
+		js.wrap(this.__cjs_mread, "__cjs_mread");
+		js.wrap(this.__cjs_mwrite, "__cjs_mwrite");
+		js.wrap(this.__cjs_fsync2, "__cjs_fsync2");
+		js.wrap(this.__cjs_fsync, "__cjs_fsync");
+		js.wrap(this.__cjs_fdatasync2, "__cjs_fdatasync2");
+		js.wrap(this.__cjs_fdatasync, "__cjs_fdatasync");
+		js.wrap(this.__cjs_availablespace, "__cjs_availablespace");
+		js.wrap(this.__cjs_signal, "__cjs_signal");
+		js.wrap(this.__cjs_alarm, "__cjs_alarm");
+		js.wrap(this.__cjs_getchar, "__cjs_getchar");
+		js.wrap(this.__cjs_gets, "__cjs_gets");
+		js.wrap(this.__cjs_getpassword, "__cjs_getpassword");
+		js.wrap(this.__cjs_chroot, "__cjs_chroot");
+		js.wrap(this.__cjs_Impersonate, "__cjs_Impersonate");
+		js.wrap(this.__cjs_setvbuf, "__cjs_setvbuf");
+	}
+
+	ECMABRIDGE_standard_C_io(js) {
+		this.wrap(js);
+	}
+}

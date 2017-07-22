@@ -1,0 +1,247 @@
+/* This file is generated automatically by generatejs.con. Do not edit. */
+
+import standard.net.modbus
+
+class ECMABRIDGE_standard_net_modbus {
+	__cjs_modbus_set_slave(a, b) {
+		return modbus_set_slave(a, b);
+	}
+
+	__cjs_modbus_set_error_recovery(a, b) {
+		return modbus_set_error_recovery(a, b);
+	}
+
+	__cjs_modbus_set_socket(a, b) {
+		return modbus_set_socket(a, b);
+	}
+
+	__cjs_modbus_get_socket(a) {
+		return modbus_get_socket(a);
+	}
+
+	__cjs_modbus_get_response_timeout(a) {
+		return modbus_get_response_timeout(a);
+	}
+
+	__cjs_modbus_set_response_timeout(a, b) {
+		return modbus_set_response_timeout(a, b);
+	}
+
+	__cjs_modbus_get_byte_timeout(a) {
+		return modbus_get_byte_timeout(a);
+	}
+
+	__cjs_modbus_set_byte_timeout(a, b) {
+		return modbus_set_byte_timeout(a, b);
+	}
+
+	__cjs_modbus_get_header_length(a) {
+		return modbus_get_header_length(a);
+	}
+
+	__cjs_modbus_connect(a) {
+		return modbus_connect(a);
+	}
+
+	__cjs_modbus_close(a) {
+		return modbus_close(a);
+	}
+
+	__cjs_modbus_free(a) {
+		return modbus_free(a);
+	}
+
+	__cjs_modbus_flush(a) {
+		return modbus_flush(a);
+	}
+
+	__cjs_modbus_set_debug(a, b) {
+		return modbus_set_debug(a, b);
+	}
+
+	__cjs_modbus_strerror(a) {
+		return modbus_strerror(a);
+	}
+
+	__cjs_modbus_read_bits(a, b, c, d) {
+		return modbus_read_bits(a, b, c, d);
+	}
+
+	__cjs_modbus_read_input_bits(a, b, c, d) {
+		return modbus_read_input_bits(a, b, c, d);
+	}
+
+	__cjs_modbus_read_registers(a, b, c, d) {
+		return modbus_read_registers(a, b, c, d);
+	}
+
+	__cjs_modbus_read_input_registers(a, b, c, d) {
+		return modbus_read_input_registers(a, b, c, d);
+	}
+
+	__cjs_modbus_write_bit(a, b, c) {
+		return modbus_write_bit(a, b, c);
+	}
+
+	__cjs_modbus_write_register(a, b, c) {
+		return modbus_write_register(a, b, c);
+	}
+
+	__cjs_modbus_write_bits(a, b, c) {
+		return modbus_write_bits(a, b, c);
+	}
+
+	__cjs_modbus_write_registers(a, b, c) {
+		return modbus_write_registers(a, b, c);
+	}
+
+	__cjs_modbus_write_and_read_registers(a, b, c, d, e, f) {
+		return modbus_write_and_read_registers(a, b, c, d, e, f);
+	}
+
+	__cjs_modbus_report_slave_id(a, b) {
+		return modbus_report_slave_id(a, b);
+	}
+
+	__cjs_modbus_mapping_new(a, b, c, d) {
+		return modbus_mapping_new(a, b, c, d);
+	}
+
+	__cjs_modbus_mapping_free(a) {
+		return modbus_mapping_free(a);
+	}
+
+	__cjs_modbus_send_raw_request(a, b) {
+		return modbus_send_raw_request(a, b);
+	}
+
+	__cjs_modbus_receive(a, b) {
+		return modbus_receive(a, b);
+	}
+
+	__cjs_modbus_receive_from(a, b, c) {
+		return modbus_receive_from(a, b, c);
+	}
+
+	__cjs_modbus_receive_confirmation(a, b) {
+		return modbus_receive_confirmation(a, b);
+	}
+
+	__cjs_modbus_reply(a, b, c) {
+		return modbus_reply(a, b, c);
+	}
+
+	__cjs_modbus_reply_exception(a, b, c) {
+		return modbus_reply_exception(a, b, c);
+	}
+
+	__cjs_modbus_set_bits_from_byte(a, b, c) {
+		return modbus_set_bits_from_byte(a, b, c);
+	}
+
+	__cjs_modbus_set_bits_from_bytes(a, b, c, d) {
+		return modbus_set_bits_from_bytes(a, b, c, d);
+	}
+
+	__cjs_modbus_get_byte_from_bits(a, b, c) {
+		return modbus_get_byte_from_bits(a, b, c);
+	}
+
+	__cjs_modbus_get_float(a) {
+		return modbus_get_float(a);
+	}
+
+	__cjs_modbus_set_float(a, b) {
+		return modbus_set_float(a, b);
+	}
+
+	__cjs_modbus_new_rtu(a, b, c, d, e) {
+		return modbus_new_rtu(a, b, c, d, e);
+	}
+
+	__cjs_modbus_rtu_set_serial_mode(a, b) {
+		return modbus_rtu_set_serial_mode(a, b);
+	}
+
+	__cjs_modbus_rtu_get_serial_mode(a) {
+		return modbus_rtu_get_serial_mode(a);
+	}
+
+	__cjs_modbus_new_tcp(a, b) {
+		return modbus_new_tcp(a, b);
+	}
+
+	__cjs_modbus_tcp_listen(a, b) {
+		return modbus_tcp_listen(a, b);
+	}
+
+	__cjs_modbus_tcp_accept(a, b) {
+		return modbus_tcp_accept(a, b);
+	}
+
+	__cjs_modbus_new_tcp_pi(a, b) {
+		return modbus_new_tcp_pi(a, b);
+	}
+
+	__cjs_modbus_tcp_pi_listen(a, b) {
+		return modbus_tcp_pi_listen(a, b);
+	}
+
+	__cjs_modbus_tcp_pi_accept(a, b) {
+		return modbus_tcp_pi_accept(a, b);
+	}
+
+	wrap(js) {
+		js.wrap(this.__cjs_modbus_set_slave, "__cjs_modbus_set_slave");
+		js.wrap(this.__cjs_modbus_set_error_recovery, "__cjs_modbus_set_error_recovery");
+		js.wrap(this.__cjs_modbus_set_socket, "__cjs_modbus_set_socket");
+		js.wrap(this.__cjs_modbus_get_socket, "__cjs_modbus_get_socket");
+		js.wrap(this.__cjs_modbus_get_response_timeout, "__cjs_modbus_get_response_timeout");
+		js.wrap(this.__cjs_modbus_set_response_timeout, "__cjs_modbus_set_response_timeout");
+		js.wrap(this.__cjs_modbus_get_byte_timeout, "__cjs_modbus_get_byte_timeout");
+		js.wrap(this.__cjs_modbus_set_byte_timeout, "__cjs_modbus_set_byte_timeout");
+		js.wrap(this.__cjs_modbus_get_header_length, "__cjs_modbus_get_header_length");
+		js.wrap(this.__cjs_modbus_connect, "__cjs_modbus_connect");
+		js.wrap(this.__cjs_modbus_close, "__cjs_modbus_close");
+		js.wrap(this.__cjs_modbus_free, "__cjs_modbus_free");
+		js.wrap(this.__cjs_modbus_flush, "__cjs_modbus_flush");
+		js.wrap(this.__cjs_modbus_set_debug, "__cjs_modbus_set_debug");
+		js.wrap(this.__cjs_modbus_strerror, "__cjs_modbus_strerror");
+		js.wrap(this.__cjs_modbus_read_bits, "__cjs_modbus_read_bits");
+		js.wrap(this.__cjs_modbus_read_input_bits, "__cjs_modbus_read_input_bits");
+		js.wrap(this.__cjs_modbus_read_registers, "__cjs_modbus_read_registers");
+		js.wrap(this.__cjs_modbus_read_input_registers, "__cjs_modbus_read_input_registers");
+		js.wrap(this.__cjs_modbus_write_bit, "__cjs_modbus_write_bit");
+		js.wrap(this.__cjs_modbus_write_register, "__cjs_modbus_write_register");
+		js.wrap(this.__cjs_modbus_write_bits, "__cjs_modbus_write_bits");
+		js.wrap(this.__cjs_modbus_write_registers, "__cjs_modbus_write_registers");
+		js.wrap(this.__cjs_modbus_write_and_read_registers, "__cjs_modbus_write_and_read_registers");
+		js.wrap(this.__cjs_modbus_report_slave_id, "__cjs_modbus_report_slave_id");
+		js.wrap(this.__cjs_modbus_mapping_new, "__cjs_modbus_mapping_new");
+		js.wrap(this.__cjs_modbus_mapping_free, "__cjs_modbus_mapping_free");
+		js.wrap(this.__cjs_modbus_send_raw_request, "__cjs_modbus_send_raw_request");
+		js.wrap(this.__cjs_modbus_receive, "__cjs_modbus_receive");
+		js.wrap(this.__cjs_modbus_receive_from, "__cjs_modbus_receive_from");
+		js.wrap(this.__cjs_modbus_receive_confirmation, "__cjs_modbus_receive_confirmation");
+		js.wrap(this.__cjs_modbus_reply, "__cjs_modbus_reply");
+		js.wrap(this.__cjs_modbus_reply_exception, "__cjs_modbus_reply_exception");
+		js.wrap(this.__cjs_modbus_set_bits_from_byte, "__cjs_modbus_set_bits_from_byte");
+		js.wrap(this.__cjs_modbus_set_bits_from_bytes, "__cjs_modbus_set_bits_from_bytes");
+		js.wrap(this.__cjs_modbus_get_byte_from_bits, "__cjs_modbus_get_byte_from_bits");
+		js.wrap(this.__cjs_modbus_get_float, "__cjs_modbus_get_float");
+		js.wrap(this.__cjs_modbus_set_float, "__cjs_modbus_set_float");
+		js.wrap(this.__cjs_modbus_new_rtu, "__cjs_modbus_new_rtu");
+		js.wrap(this.__cjs_modbus_rtu_set_serial_mode, "__cjs_modbus_rtu_set_serial_mode");
+		js.wrap(this.__cjs_modbus_rtu_get_serial_mode, "__cjs_modbus_rtu_get_serial_mode");
+		js.wrap(this.__cjs_modbus_new_tcp, "__cjs_modbus_new_tcp");
+		js.wrap(this.__cjs_modbus_tcp_listen, "__cjs_modbus_tcp_listen");
+		js.wrap(this.__cjs_modbus_tcp_accept, "__cjs_modbus_tcp_accept");
+		js.wrap(this.__cjs_modbus_new_tcp_pi, "__cjs_modbus_new_tcp_pi");
+		js.wrap(this.__cjs_modbus_tcp_pi_listen, "__cjs_modbus_tcp_pi_listen");
+		js.wrap(this.__cjs_modbus_tcp_pi_accept, "__cjs_modbus_tcp_pi_accept");
+	}
+
+	ECMABRIDGE_standard_net_modbus(js) {
+		this.wrap(js);
+	}
+}

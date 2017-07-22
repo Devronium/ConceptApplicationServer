@@ -1,0 +1,87 @@
+/* This file is generated automatically by generatejs.con. Do not edit. */
+
+import standard.lib.xls
+
+class ECMABRIDGE_standard_lib_xls {
+	__cjs_xls_getVersion() {
+		return xls_getVersion();
+	}
+
+	__cjs_xls_open(a, b) {
+		return xls_open(a, b);
+	}
+
+	__cjs_xls_close(a) {
+		return xls_close(a);
+	}
+
+	__cjs_xls_parseWorkBook(a) {
+		return xls_parseWorkBook(a);
+	}
+
+	__cjs_xls_parseWorkSheet(a) {
+		return xls_parseWorkSheet(a);
+	}
+
+	__cjs_xls_getWorkSheet(a, b) {
+		return xls_getWorkSheet(a, b);
+	}
+
+	__cjs_xls_row(a, b) {
+		return xls_row(a, b);
+	}
+
+	__cjs_xls_cell(a, b, c) {
+		return xls_cell(a, b, c);
+	}
+
+	__cjs_xls_matrix(a) {
+		return xls_matrix(a);
+	}
+
+	__cjs_xls_getLastRow(a) {
+		return xls_getLastRow(a);
+	}
+
+	__cjs_xls_getLastCol(a) {
+		return xls_getLastCol(a);
+	}
+
+	__cjs_xls_getCellProperties(a, b, c) {
+		return xls_getCellProperties(a, b, c);
+	}
+
+	__cjs_xls_getRowProperties(a, b) {
+		return xls_getRowProperties(a, b);
+	}
+
+	__cjs_xls_getWorkSheetProperties(a) {
+		return xls_getWorkSheetProperties(a);
+	}
+
+	__cjs_xls_getWorkBookProperties(a) {
+		return xls_getWorkBookProperties(a);
+	}
+
+	wrap(js) {
+		js.wrap(this.__cjs_xls_getVersion, "__cjs_xls_getVersion");
+		js.wrap(this.__cjs_xls_open, "__cjs_xls_open");
+		js.wrap(this.__cjs_xls_close, "__cjs_xls_close");
+		js.wrap(this.__cjs_xls_parseWorkBook, "__cjs_xls_parseWorkBook");
+		js.wrap(this.__cjs_xls_parseWorkSheet, "__cjs_xls_parseWorkSheet");
+		js.wrap(this.__cjs_xls_getWorkSheet, "__cjs_xls_getWorkSheet");
+		js.wrap(this.__cjs_xls_row, "__cjs_xls_row");
+		js.wrap(this.__cjs_xls_cell, "__cjs_xls_cell");
+		js.wrap(this.__cjs_xls_matrix, "__cjs_xls_matrix");
+		js.wrap(this.__cjs_xls_getLastRow, "__cjs_xls_getLastRow");
+		js.wrap(this.__cjs_xls_getLastCol, "__cjs_xls_getLastCol");
+		js.wrap(this.__cjs_xls_getCellProperties, "__cjs_xls_getCellProperties");
+		js.wrap(this.__cjs_xls_getRowProperties, "__cjs_xls_getRowProperties");
+		js.wrap(this.__cjs_xls_getWorkSheetProperties, "__cjs_xls_getWorkSheetProperties");
+		js.wrap(this.__cjs_xls_getWorkBookProperties, "__cjs_xls_getWorkBookProperties");
+	}
+
+	ECMABRIDGE_standard_lib_xls(js) {
+		this.wrap(js);
+	}
+}

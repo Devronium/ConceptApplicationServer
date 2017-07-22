@@ -1,0 +1,92 @@
+/* This file is generated automatically by generatejs.con. Do not edit. */
+
+import standard.C.time
+
+class ECMABRIDGE_standard_C_time {
+	__cjs_clock() {
+		return clock();
+	}
+
+	__cjs_microseconds() {
+		return microseconds();
+	}
+
+	__cjs_asctime(a) {
+		return asctime(a);
+	}
+
+	__cjs_ctime(a) {
+		return ctime(a);
+	}
+
+	__cjs_difftime(a, b) {
+		return difftime(a, b);
+	}
+
+	__cjs_localtime(a) {
+		return localtime(a);
+	}
+
+	__cjs_gmtime(a) {
+		return gmtime(a);
+	}
+
+	__cjs_time() {
+		return time();
+	}
+
+	__cjs_mktime(a) {
+		return mktime(a);
+	}
+
+	__cjs_slocaltime(a) {
+		return slocaltime(a);
+	}
+
+	__cjs_setlocale(a, b) {
+		return setlocale(a, b);
+	}
+
+	__cjs_localeconv() {
+		return localeconv();
+	}
+
+	__cjs_strftime(a, b) {
+		return strftime(a, b);
+	}
+
+	__cjs_strftime2(a, b) {
+		return strftime2(a, b);
+	}
+
+	__cjs_strptime(a, b, c) {
+		return strptime(a, b, c);
+	}
+
+	__cjs_strptime2(a, b, c) {
+		return strptime2(a, b, c);
+	}
+
+	wrap(js) {
+		js.wrap(this.__cjs_clock, "__cjs_clock");
+		js.wrap(this.__cjs_microseconds, "__cjs_microseconds");
+		js.wrap(this.__cjs_asctime, "__cjs_asctime");
+		js.wrap(this.__cjs_ctime, "__cjs_ctime");
+		js.wrap(this.__cjs_difftime, "__cjs_difftime");
+		js.wrap(this.__cjs_localtime, "__cjs_localtime");
+		js.wrap(this.__cjs_gmtime, "__cjs_gmtime");
+		js.wrap(this.__cjs_time, "__cjs_time");
+		js.wrap(this.__cjs_mktime, "__cjs_mktime");
+		js.wrap(this.__cjs_slocaltime, "__cjs_slocaltime");
+		js.wrap(this.__cjs_setlocale, "__cjs_setlocale");
+		js.wrap(this.__cjs_localeconv, "__cjs_localeconv");
+		js.wrap(this.__cjs_strftime, "__cjs_strftime");
+		js.wrap(this.__cjs_strftime2, "__cjs_strftime2");
+		js.wrap(this.__cjs_strptime, "__cjs_strptime");
+		js.wrap(this.__cjs_strptime2, "__cjs_strptime2");
+	}
+
+	ECMABRIDGE_standard_C_time(js) {
+		this.wrap(js);
+	}
+}

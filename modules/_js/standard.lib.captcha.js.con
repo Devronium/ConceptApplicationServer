@@ -1,0 +1,17 @@
+/* This file is generated automatically by generatejs.con. Do not edit. */
+
+import standard.lib.captcha
+
+class ECMABRIDGE_standard_lib_captcha {
+	__cjs_Captcha(a) {
+		return Captcha(a);
+	}
+
+	wrap(js) {
+		js.wrap(this.__cjs_Captcha, "__cjs_Captcha");
+	}
+
+	ECMABRIDGE_standard_lib_captcha(js) {
+		this.wrap(js);
+	}
+}

@@ -1,0 +1,51 @@
+include JS.con
+import standard.C.io
+import standard.lib.str
+import standard.lang.serialize
+import standard.lang.cli
+
+class JSApp {
+	protected var js;
+	protected var framework_path;
+	protected var[] loaded;
+
+	require(lib) {
+		if (loaded[lib])
+			return true;
+		var libname = "ECMABRIDGE_" + StrReplace(lib, ".", "_");
+		var code = ReadFile(framework_path + lib + ".js.con");
+		if (!code)
+			return false;
+		if (IncludeCode(code))
+			return false;
+		var obj = CreateObject2(libname, js);
+		if (obj) {
+			js.script(ReadFile(framework_path + lib + ".js"));
+			loaded[lib] = true;
+			return true;
+		}
+		return false;
+	}
+
+	JSApp(error_delegate = null, jspath = "") {
+		framework_path = jspath;
+		if (!error_delegate) {
+			error_delegate = function(js, message, struct) {
+				echo message;
+				echo "\n";
+				echo struct;
+			};
+		}
+		js = new JS(error_delegate);
+		js.wrap(this.require, "__cjs_require");
+		js.script("var con = { 'require': __cjs_require };\n");
+	}
+
+	run(code) {
+		return js.script(code);
+	}
+
+	operator << (code) {
+		return this.run(code);
+	}
+}

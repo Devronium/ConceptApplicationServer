@@ -1,0 +1,1257 @@
+/* This file is generated automatically by generatejs.con. Do not edit. */
+
+import standard.search.xapian
+
+class ECMABRIDGE_standard_search_xapian {
+	__cjs_XapianDocumentCreate(a) {
+		return XapianDocumentCreate(a);
+	}
+
+	__cjs_XapianDocumentDestroy(a, b) {
+		return XapianDocumentDestroy(a, b);
+	}
+
+	__cjs_XapianDocument__get_value(a, b, c) {
+		return XapianDocument__get_value(a, b, c);
+	}
+
+	__cjs_XapianDocument__add_value(a, b, c, d) {
+		return XapianDocument__add_value(a, b, c, d);
+	}
+
+	__cjs_XapianDocument__remove_value(a, b, c) {
+		return XapianDocument__remove_value(a, b, c);
+	}
+
+	__cjs_XapianDocument__clear_values(a, b) {
+		return XapianDocument__clear_values(a, b);
+	}
+
+	__cjs_XapianDocument__get_data(a, b) {
+		return XapianDocument__get_data(a, b);
+	}
+
+	__cjs_XapianDocument__set_data(a, b, c) {
+		return XapianDocument__set_data(a, b, c);
+	}
+
+	__cjs_XapianDocument__add_posting(a, b, c, d, e) {
+		return XapianDocument__add_posting(a, b, c, d, e);
+	}
+
+	__cjs_XapianDocument__add_term(a, b, c, d) {
+		return XapianDocument__add_term(a, b, c, d);
+	}
+
+	__cjs_XapianDocument__remove_posting(a, b, c, d, e) {
+		return XapianDocument__remove_posting(a, b, c, d, e);
+	}
+
+	__cjs_XapianDocument__remove_term(a, b, c) {
+		return XapianDocument__remove_term(a, b, c);
+	}
+
+	__cjs_XapianDocument__clear_terms(a, b) {
+		return XapianDocument__clear_terms(a, b);
+	}
+
+	__cjs_XapianDocument__termlist_count(a, b) {
+		return XapianDocument__termlist_count(a, b);
+	}
+
+	__cjs_XapianDocument__values_count(a, b) {
+		return XapianDocument__values_count(a, b);
+	}
+
+	__cjs_XapianDocument__get_docid(a, b) {
+		return XapianDocument__get_docid(a, b);
+	}
+
+	__cjs_XapianDocument__get_description(a, b) {
+		return XapianDocument__get_description(a, b);
+	}
+
+	__cjs_XapianDocument__values_begin(a, b) {
+		return XapianDocument__values_begin(a, b);
+	}
+
+	__cjs_XapianDocument__values_end(a, b) {
+		return XapianDocument__values_end(a, b);
+	}
+
+	__cjs_XapianDocument__termlist_begin(a, b) {
+		return XapianDocument__termlist_begin(a, b);
+	}
+
+	__cjs_XapianDocument__termlist_end(a, b) {
+		return XapianDocument__termlist_end(a, b);
+	}
+
+	__cjs_XapianWritableDatabaseCreate(a) {
+		return XapianWritableDatabaseCreate(a);
+	}
+
+	__cjs_XapianWritableDatabaseCreate2(a, b, c) {
+		return XapianWritableDatabaseCreate2(a, b, c);
+	}
+
+	__cjs_XapianWritableDatabaseDestroy(a, b) {
+		return XapianWritableDatabaseDestroy(a, b);
+	}
+
+	__cjs_XapianWritableDatabase__flush(a, b) {
+		return XapianWritableDatabase__flush(a, b);
+	}
+
+	__cjs_XapianWritableDatabase__begin_transaction(a, b, c) {
+		return XapianWritableDatabase__begin_transaction(a, b, c);
+	}
+
+	__cjs_XapianWritableDatabase__commit_transaction(a, b) {
+		return XapianWritableDatabase__commit_transaction(a, b);
+	}
+
+	__cjs_XapianWritableDatabase__cancel_transaction(a, b) {
+		return XapianWritableDatabase__cancel_transaction(a, b);
+	}
+
+	__cjs_XapianWritableDatabase__add_document(a, b, c) {
+		return XapianWritableDatabase__add_document(a, b, c);
+	}
+
+	__cjs_XapianWritableDatabase__delete_document(a, b, c) {
+		return XapianWritableDatabase__delete_document(a, b, c);
+	}
+
+	__cjs_XapianWritableDatabase__delete_document2(a, b, c) {
+		return XapianWritableDatabase__delete_document2(a, b, c);
+	}
+
+	__cjs_XapianWritableDatabase__replace_document(a, b, c, d) {
+		return XapianWritableDatabase__replace_document(a, b, c, d);
+	}
+
+	__cjs_XapianWritableDatabase__replace_document2(a, b, c, d) {
+		return XapianWritableDatabase__replace_document2(a, b, c, d);
+	}
+
+	__cjs_XapianWritableDatabase__add_spelling(a, b, c, d) {
+		return XapianWritableDatabase__add_spelling(a, b, c, d);
+	}
+
+	__cjs_XapianWritableDatabase__remove_spelling(a, b, c, d) {
+		return XapianWritableDatabase__remove_spelling(a, b, c, d);
+	}
+
+	__cjs_XapianWritableDatabase__add_synonym(a, b, c, d) {
+		return XapianWritableDatabase__add_synonym(a, b, c, d);
+	}
+
+	__cjs_XapianWritableDatabase__remove_synonym(a, b, c, d) {
+		return XapianWritableDatabase__remove_synonym(a, b, c, d);
+	}
+
+	__cjs_XapianWritableDatabase__clear_synonyms(a, b, c) {
+		return XapianWritableDatabase__clear_synonyms(a, b, c);
+	}
+
+	__cjs_XapianWritableDatabase__set_metadata(a, b, c, d) {
+		return XapianWritableDatabase__set_metadata(a, b, c, d);
+	}
+
+	__cjs_XapianWritableDatabase__get_description(a, b) {
+		return XapianWritableDatabase__get_description(a, b);
+	}
+
+	__cjs_XapianTermGeneratorCreate(a) {
+		return XapianTermGeneratorCreate(a);
+	}
+
+	__cjs_XapianTermGeneratorDestroy(a, b) {
+		return XapianTermGeneratorDestroy(a, b);
+	}
+
+	__cjs_XapianTermGenerator__set_stemmer(a, b, c) {
+		return XapianTermGenerator__set_stemmer(a, b, c);
+	}
+
+	__cjs_XapianTermGenerator__set_stopper(a, b, c) {
+		return XapianTermGenerator__set_stopper(a, b, c);
+	}
+
+	__cjs_XapianTermGenerator__set_document(a, b, c) {
+		return XapianTermGenerator__set_document(a, b, c);
+	}
+
+	__cjs_XapianTermGenerator__get_document(a, b) {
+		return XapianTermGenerator__get_document(a, b);
+	}
+
+	__cjs_XapianTermGenerator__set_database(a, b, c) {
+		return XapianTermGenerator__set_database(a, b, c);
+	}
+
+	__cjs_XapianTermGenerator__set_flags(a, b, c, d) {
+		return XapianTermGenerator__set_flags(a, b, c, d);
+	}
+
+	__cjs_XapianTermGenerator__index_text(a, b, c, d, e) {
+		return XapianTermGenerator__index_text(a, b, c, d, e);
+	}
+
+	__cjs_XapianTermGenerator__index_text_without_positions(a, b, c, d, e) {
+		return XapianTermGenerator__index_text_without_positions(a, b, c, d, e);
+	}
+
+	__cjs_XapianTermGenerator__increase_termpos(a, b, c) {
+		return XapianTermGenerator__increase_termpos(a, b, c);
+	}
+
+	__cjs_XapianTermGenerator__get_termpos(a, b) {
+		return XapianTermGenerator__get_termpos(a, b);
+	}
+
+	__cjs_XapianTermGenerator__set_termpos(a, b, c) {
+		return XapianTermGenerator__set_termpos(a, b, c);
+	}
+
+	__cjs_XapianTermGenerator__get_description(a, b) {
+		return XapianTermGenerator__get_description(a, b);
+	}
+
+	__cjs_XapianStemCreate(a) {
+		return XapianStemCreate(a);
+	}
+
+	__cjs_XapianStemCreate2(a, b) {
+		return XapianStemCreate2(a, b);
+	}
+
+	__cjs_XapianStemDestroy(a, b) {
+		return XapianStemDestroy(a, b);
+	}
+
+	__cjs_XapianStem__get_description(a, b) {
+		return XapianStem__get_description(a, b);
+	}
+
+	__cjs_XapianStem__stem_word(a, b, c) {
+		return XapianStem__stem_word(a, b, c);
+	}
+
+	__cjs_XapianValueIterator__next(a, b) {
+		return XapianValueIterator__next(a, b);
+	}
+
+	__cjs_XapianValueIterator__get_value(a, b) {
+		return XapianValueIterator__get_value(a, b);
+	}
+
+	__cjs_XapianValueIterator__get_valueno(a, b) {
+		return XapianValueIterator__get_valueno(a, b);
+	}
+
+	__cjs_XapianValueIterator__get_description(a, b) {
+		return XapianValueIterator__get_description(a, b);
+	}
+
+	__cjs_XapianValueIterator__equal(a, b, c) {
+		return XapianValueIterator__equal(a, b, c);
+	}
+
+	__cjs_XapianPositionIterator__next(a, b) {
+		return XapianPositionIterator__next(a, b);
+	}
+
+	__cjs_XapianPositionIterator__get_value(a, b) {
+		return XapianPositionIterator__get_value(a, b);
+	}
+
+	__cjs_XapianPositionIterator__skip_to(a, b, c) {
+		return XapianPositionIterator__skip_to(a, b, c);
+	}
+
+	__cjs_XapianPositionIterator__get_description(a, b) {
+		return XapianPositionIterator__get_description(a, b);
+	}
+
+	__cjs_XapianPositionIterator__equal(a, b, c) {
+		return XapianPositionIterator__equal(a, b, c);
+	}
+
+	__cjs_XapianTermIterator__next(a, b) {
+		return XapianTermIterator__next(a, b);
+	}
+
+	__cjs_XapianTermIterator__get_value(a, b) {
+		return XapianTermIterator__get_value(a, b);
+	}
+
+	__cjs_XapianTermIterator__skip_to(a, b, c) {
+		return XapianTermIterator__skip_to(a, b, c);
+	}
+
+	__cjs_XapianTermIterator__get_description(a, b) {
+		return XapianTermIterator__get_description(a, b);
+	}
+
+	__cjs_XapianTermIterator__equal(a, b, c) {
+		return XapianTermIterator__equal(a, b, c);
+	}
+
+	__cjs_XapianTermIterator__get_wdf(a, b) {
+		return XapianTermIterator__get_wdf(a, b);
+	}
+
+	__cjs_XapianTermIterator__get_termfreq(a, b) {
+		return XapianTermIterator__get_termfreq(a, b);
+	}
+
+	__cjs_XapianTermIterator__positionlist_count(a, b) {
+		return XapianTermIterator__positionlist_count(a, b);
+	}
+
+	__cjs_XapianTermIterator__positionlist_begin(a, b) {
+		return XapianTermIterator__positionlist_begin(a, b);
+	}
+
+	__cjs_XapianTermIterator__positionlist_end(a, b) {
+		return XapianTermIterator__positionlist_end(a, b);
+	}
+
+	__cjs_XapianMSetIterator__next(a, b) {
+		return XapianMSetIterator__next(a, b);
+	}
+
+	__cjs_XapianMSetIterator__prev(a, b) {
+		return XapianMSetIterator__prev(a, b);
+	}
+
+	__cjs_XapianMSetIterator__get_value(a, b) {
+		return XapianMSetIterator__get_value(a, b);
+	}
+
+	__cjs_XapianMSetIterator__get_description(a, b) {
+		return XapianMSetIterator__get_description(a, b);
+	}
+
+	__cjs_XapianMSetIterator__equal(a, b, c) {
+		return XapianMSetIterator__equal(a, b, c);
+	}
+
+	__cjs_XapianMSetIterator__get_document(a, b) {
+		return XapianMSetIterator__get_document(a, b);
+	}
+
+	__cjs_XapianMSetIterator__get_rank(a, b) {
+		return XapianMSetIterator__get_rank(a, b);
+	}
+
+	__cjs_XapianMSetIterator__get_weight(a, b) {
+		return XapianMSetIterator__get_weight(a, b);
+	}
+
+	__cjs_XapianMSetIterator__get_collapse_key(a, b) {
+		return XapianMSetIterator__get_collapse_key(a, b);
+	}
+
+	__cjs_XapianMSetIterator__get_collapse_count(a, b) {
+		return XapianMSetIterator__get_collapse_count(a, b);
+	}
+
+	__cjs_XapianMSetIterator__get_percent(a, b) {
+		return XapianMSetIterator__get_percent(a, b);
+	}
+
+	__cjs_XapianESetIterator__next(a, b) {
+		return XapianESetIterator__next(a, b);
+	}
+
+	__cjs_XapianESetIterator__prev(a, b) {
+		return XapianESetIterator__prev(a, b);
+	}
+
+	__cjs_XapianESetIterator__get_value(a, b) {
+		return XapianESetIterator__get_value(a, b);
+	}
+
+	__cjs_XapianESetIterator__get_description(a, b) {
+		return XapianESetIterator__get_description(a, b);
+	}
+
+	__cjs_XapianESetIterator__equal(a, b, c) {
+		return XapianESetIterator__equal(a, b, c);
+	}
+
+	__cjs_XapianESetIterator__get_weight(a, b) {
+		return XapianESetIterator__get_weight(a, b);
+	}
+
+	__cjs_XapianPostingIterator__next(a, b) {
+		return XapianPostingIterator__next(a, b);
+	}
+
+	__cjs_XapianPostingIterator__get_value(a, b) {
+		return XapianPostingIterator__get_value(a, b);
+	}
+
+	__cjs_XapianPostingIterator__get_description(a, b) {
+		return XapianPostingIterator__get_description(a, b);
+	}
+
+	__cjs_XapianPostingIterator__equal(a, b, c) {
+		return XapianPostingIterator__equal(a, b, c);
+	}
+
+	__cjs_XapianPostingIterator__get_wdf(a, b) {
+		return XapianPostingIterator__get_wdf(a, b);
+	}
+
+	__cjs_XapianPostingIterator__get_doclength(a, b) {
+		return XapianPostingIterator__get_doclength(a, b);
+	}
+
+	__cjs_XapianPostingIterator__positionlist_begin(a, b) {
+		return XapianPostingIterator__positionlist_begin(a, b);
+	}
+
+	__cjs_XapianPostingIterator__positionlist_end(a, b) {
+		return XapianPostingIterator__positionlist_end(a, b);
+	}
+
+	__cjs_XapianDatabaseCreate(a) {
+		return XapianDatabaseCreate(a);
+	}
+
+	__cjs_XapianDatabaseCreate2(a, b) {
+		return XapianDatabaseCreate2(a, b);
+	}
+
+	__cjs_XapianDatabaseDestroy(a, b) {
+		return XapianDatabaseDestroy(a, b);
+	}
+
+	__cjs_XapianDatabase__add_database(a, b, c) {
+		return XapianDatabase__add_database(a, b, c);
+	}
+
+	__cjs_XapianDatabase__reopen(a, b) {
+		return XapianDatabase__reopen(a, b);
+	}
+
+	__cjs_XapianDatabase__get_description(a, b) {
+		return XapianDatabase__get_description(a, b);
+	}
+
+	__cjs_XapianDatabase__postlist_begin(a, b, c) {
+		return XapianDatabase__postlist_begin(a, b, c);
+	}
+
+	__cjs_XapianDatabase__postlist_end(a, b, c) {
+		return XapianDatabase__postlist_end(a, b, c);
+	}
+
+	__cjs_XapianDatabase__termlist_begin(a, b, c) {
+		return XapianDatabase__termlist_begin(a, b, c);
+	}
+
+	__cjs_XapianDatabase__termlist_end(a, b, c) {
+		return XapianDatabase__termlist_end(a, b, c);
+	}
+
+	__cjs_XapianDatabase__has_positions(a, b) {
+		return XapianDatabase__has_positions(a, b);
+	}
+
+	__cjs_XapianDatabase__positionlist_begin(a, b, c, d) {
+		return XapianDatabase__positionlist_begin(a, b, c, d);
+	}
+
+	__cjs_XapianDatabase__positionlist_end(a, b, c, d) {
+		return XapianDatabase__positionlist_end(a, b, c, d);
+	}
+
+	__cjs_XapianDatabase__allterms_begin(a, b) {
+		return XapianDatabase__allterms_begin(a, b);
+	}
+
+	__cjs_XapianDatabase__allterms_end(a, b) {
+		return XapianDatabase__allterms_end(a, b);
+	}
+
+	__cjs_XapianDatabase__allterms_begin2(a, b, c) {
+		return XapianDatabase__allterms_begin2(a, b, c);
+	}
+
+	__cjs_XapianDatabase__allterms_end2(a, b, c) {
+		return XapianDatabase__allterms_end2(a, b, c);
+	}
+
+	__cjs_XapianDatabase__get_doccount(a, b) {
+		return XapianDatabase__get_doccount(a, b);
+	}
+
+	__cjs_XapianDatabase__get_lastdocid(a, b) {
+		return XapianDatabase__get_lastdocid(a, b);
+	}
+
+	__cjs_XapianDatabase__get_avlength(a, b) {
+		return XapianDatabase__get_avlength(a, b);
+	}
+
+	__cjs_XapianDatabase__get_termfreq(a, b, c) {
+		return XapianDatabase__get_termfreq(a, b, c);
+	}
+
+	__cjs_XapianDatabase__term_exists(a, b, c) {
+		return XapianDatabase__term_exists(a, b, c);
+	}
+
+	__cjs_XapianDatabase__get_collection_freq(a, b, c) {
+		return XapianDatabase__get_collection_freq(a, b, c);
+	}
+
+	__cjs_XapianDatabase__get_doclength(a, b, c) {
+		return XapianDatabase__get_doclength(a, b, c);
+	}
+
+	__cjs_XapianDatabase__keep_alive(a, b) {
+		return XapianDatabase__keep_alive(a, b);
+	}
+
+	__cjs_XapianDatabase__get_document(a, b, c) {
+		return XapianDatabase__get_document(a, b, c);
+	}
+
+	__cjs_XapianDatabase__get_spelling_suggestion(a, b, c, d) {
+		return XapianDatabase__get_spelling_suggestion(a, b, c, d);
+	}
+
+	__cjs_XapianDatabase__spellings_begin(a, b, c) {
+		return XapianDatabase__spellings_begin(a, b, c);
+	}
+
+	__cjs_XapianDatabase__spellings_end(a, b, c) {
+		return XapianDatabase__spellings_end(a, b, c);
+	}
+
+	__cjs_XapianDatabase__synonyms_begin(a, b, c) {
+		return XapianDatabase__synonyms_begin(a, b, c);
+	}
+
+	__cjs_XapianDatabase__synonyms_end(a, b, c) {
+		return XapianDatabase__synonyms_end(a, b, c);
+	}
+
+	__cjs_XapianDatabase__synonym_keys_begin(a, b, c) {
+		return XapianDatabase__synonym_keys_begin(a, b, c);
+	}
+
+	__cjs_XapianDatabase__synonym_keys_end(a, b, c) {
+		return XapianDatabase__synonym_keys_end(a, b, c);
+	}
+
+	__cjs_XapianDatabase__get_metadata(a, b, c) {
+		return XapianDatabase__get_metadata(a, b, c);
+	}
+
+	__cjs_XapianDatabase__metadata_keys_begin(a, b, c) {
+		return XapianDatabase__metadata_keys_begin(a, b, c);
+	}
+
+	__cjs_XapianDatabase__metadata_keys_end(a, b, c) {
+		return XapianDatabase__metadata_keys_end(a, b, c);
+	}
+
+	__cjs_XapianQueryCreate(a) {
+		return XapianQueryCreate(a);
+	}
+
+	__cjs_XapianQueryCreate2(a, b, c, d) {
+		return XapianQueryCreate2(a, b, c, d);
+	}
+
+	__cjs_XapianQueryCreate3(a, b, c, d) {
+		return XapianQueryCreate3(a, b, c, d);
+	}
+
+	__cjs_XapianQueryCreate4(a, b, c, d) {
+		return XapianQueryCreate4(a, b, c, d);
+	}
+
+	__cjs_XapianQueryCreate5(a, b, c, d) {
+		return XapianQueryCreate5(a, b, c, d);
+	}
+
+	__cjs_XapianQueryDestroy(a, b) {
+		return XapianQueryDestroy(a, b);
+	}
+
+	__cjs_XapianQuery__get_length(a, b) {
+		return XapianQuery__get_length(a, b);
+	}
+
+	__cjs_XapianQuery__get_terms_begin(a, b) {
+		return XapianQuery__get_terms_begin(a, b);
+	}
+
+	__cjs_XapianQuery__get_terms_end(a, b) {
+		return XapianQuery__get_terms_end(a, b);
+	}
+
+	__cjs_XapianQuery__empty(a, b) {
+		return XapianQuery__empty(a, b);
+	}
+
+	__cjs_XapianQuery__get_description(a, b) {
+		return XapianQuery__get_description(a, b);
+	}
+
+	__cjs_XapianQuery__serialise(a, b) {
+		return XapianQuery__serialise(a, b);
+	}
+
+	__cjs_XapianQuery__get_parameter(a, b) {
+		return XapianQuery__get_parameter(a, b);
+	}
+
+	__cjs_XapianQuery__get_terms(a, b) {
+		return XapianQuery__get_terms(a, b);
+	}
+
+	__cjs_XapianQueryParserCreate(a) {
+		return XapianQueryParserCreate(a);
+	}
+
+	__cjs_XapianQueryParserDestroy(a, b) {
+		return XapianQueryParserDestroy(a, b);
+	}
+
+	__cjs_XapianQueryParser__set_stemmer(a, b, c) {
+		return XapianQueryParser__set_stemmer(a, b, c);
+	}
+
+	__cjs_XapianQueryParser__set_stemming_strategy(a, b, c) {
+		return XapianQueryParser__set_stemming_strategy(a, b, c);
+	}
+
+	__cjs_XapianQueryParser__set_stopper(a, b, c) {
+		return XapianQueryParser__set_stopper(a, b, c);
+	}
+
+	__cjs_XapianQueryParser__set_default_op(a, b, c) {
+		return XapianQueryParser__set_default_op(a, b, c);
+	}
+
+	__cjs_XapianQueryParser__get_default_op(a, b) {
+		return XapianQueryParser__get_default_op(a, b);
+	}
+
+	__cjs_XapianQueryParser__set_database(a, b, c) {
+		return XapianQueryParser__set_database(a, b, c);
+	}
+
+	__cjs_XapianQueryParser__parse_query(a, b, c, d, e) {
+		return XapianQueryParser__parse_query(a, b, c, d, e);
+	}
+
+	__cjs_XapianQueryParser__add_prefix(a, b, c, d) {
+		return XapianQueryParser__add_prefix(a, b, c, d);
+	}
+
+	__cjs_XapianQueryParser__add_boolean_prefix(a, b, c, d) {
+		return XapianQueryParser__add_boolean_prefix(a, b, c, d);
+	}
+
+	__cjs_XapianQueryParser__add_valuerangeprocessor(a, b, c) {
+		return XapianQueryParser__add_valuerangeprocessor(a, b, c);
+	}
+
+	__cjs_XapianQueryParser__stoplist_begin(a, b) {
+		return XapianQueryParser__stoplist_begin(a, b);
+	}
+
+	__cjs_XapianQueryParser__stoplist_end(a, b) {
+		return XapianQueryParser__stoplist_end(a, b);
+	}
+
+	__cjs_XapianQueryParser__unstem_begin(a, b, c) {
+		return XapianQueryParser__unstem_begin(a, b, c);
+	}
+
+	__cjs_XapianQueryParser__unstem_end(a, b, c) {
+		return XapianQueryParser__unstem_end(a, b, c);
+	}
+
+	__cjs_XapianQueryParser__get_corrected_query_string(a, b) {
+		return XapianQueryParser__get_corrected_query_string(a, b);
+	}
+
+	__cjs_XapianQueryParser__get_description(a, b) {
+		return XapianQueryParser__get_description(a, b);
+	}
+
+	__cjs_XapianESetCreate(a) {
+		return XapianESetCreate(a);
+	}
+
+	__cjs_XapianESetDestroy(a, b) {
+		return XapianESetDestroy(a, b);
+	}
+
+	__cjs_XapianESet__get_ebound(a, b) {
+		return XapianESet__get_ebound(a, b);
+	}
+
+	__cjs_XapianESet__size(a, b) {
+		return XapianESet__size(a, b);
+	}
+
+	__cjs_XapianESet__max_size(a, b) {
+		return XapianESet__max_size(a, b);
+	}
+
+	__cjs_XapianESet__empty(a, b) {
+		return XapianESet__empty(a, b);
+	}
+
+	__cjs_XapianESet__swap(a, b, c) {
+		return XapianESet__swap(a, b, c);
+	}
+
+	__cjs_XapianESet__begin(a, b) {
+		return XapianESet__begin(a, b);
+	}
+
+	__cjs_XapianESet__end(a, b) {
+		return XapianESet__end(a, b);
+	}
+
+	__cjs_XapianESet__back(a, b) {
+		return XapianESet__back(a, b);
+	}
+
+	__cjs_XapianESet__getiter(a, b, c) {
+		return XapianESet__getiter(a, b, c);
+	}
+
+	__cjs_XapianESet__get_description(a, b) {
+		return XapianESet__get_description(a, b);
+	}
+
+	__cjs_XapianMSetCreate(a) {
+		return XapianMSetCreate(a);
+	}
+
+	__cjs_XapianMSetDestroy(a, b) {
+		return XapianMSetDestroy(a, b);
+	}
+
+	__cjs_XapianMSet__fetch(a, b) {
+		return XapianMSet__fetch(a, b);
+	}
+
+	__cjs_XapianMSet__convert_to_percent(a, b, c) {
+		return XapianMSet__convert_to_percent(a, b, c);
+	}
+
+	__cjs_XapianMSet__convert_to_percent2(a, b, c) {
+		return XapianMSet__convert_to_percent2(a, b, c);
+	}
+
+	__cjs_XapianMSet__get_termfreq(a, b, c) {
+		return XapianMSet__get_termfreq(a, b, c);
+	}
+
+	__cjs_XapianMSet__get_termweight(a, b, c) {
+		return XapianMSet__get_termweight(a, b, c);
+	}
+
+	__cjs_XapianMSet__get_firstitem(a, b) {
+		return XapianMSet__get_firstitem(a, b);
+	}
+
+	__cjs_XapianMSet__get_matches_lower_bound(a, b) {
+		return XapianMSet__get_matches_lower_bound(a, b);
+	}
+
+	__cjs_XapianMSet__get_matches_estimated(a, b) {
+		return XapianMSet__get_matches_estimated(a, b);
+	}
+
+	__cjs_XapianMSet__get_matches_upper_bound(a, b) {
+		return XapianMSet__get_matches_upper_bound(a, b);
+	}
+
+	__cjs_XapianMSet__get_max_possible(a, b) {
+		return XapianMSet__get_max_possible(a, b);
+	}
+
+	__cjs_XapianMSet__get_max_attained(a, b) {
+		return XapianMSet__get_max_attained(a, b);
+	}
+
+	__cjs_XapianMSet__size(a, b) {
+		return XapianMSet__size(a, b);
+	}
+
+	__cjs_XapianMSet__max_size(a, b) {
+		return XapianMSet__max_size(a, b);
+	}
+
+	__cjs_XapianMSet__empty(a, b) {
+		return XapianMSet__empty(a, b);
+	}
+
+	__cjs_XapianMSet__swap(a, b, c) {
+		return XapianMSet__swap(a, b, c);
+	}
+
+	__cjs_XapianMSet__begin(a, b) {
+		return XapianMSet__begin(a, b);
+	}
+
+	__cjs_XapianMSet__end(a, b) {
+		return XapianMSet__end(a, b);
+	}
+
+	__cjs_XapianMSet__back(a, b) {
+		return XapianMSet__back(a, b);
+	}
+
+	__cjs_XapianMSet__getiter(a, b, c) {
+		return XapianMSet__getiter(a, b, c);
+	}
+
+	__cjs_XapianMSet__get_description(a, b) {
+		return XapianMSet__get_description(a, b);
+	}
+
+	__cjs_XapianRSetCreate(a) {
+		return XapianRSetCreate(a);
+	}
+
+	__cjs_XapianRSetDestroy(a, b) {
+		return XapianRSetDestroy(a, b);
+	}
+
+	__cjs_XapianRSet__size(a, b) {
+		return XapianRSet__size(a, b);
+	}
+
+	__cjs_XapianRSet__empty(a, b) {
+		return XapianRSet__empty(a, b);
+	}
+
+	__cjs_XapianRSet__add_document(a, b, c) {
+		return XapianRSet__add_document(a, b, c);
+	}
+
+	__cjs_XapianRSet__add_document2(a, b, c) {
+		return XapianRSet__add_document2(a, b, c);
+	}
+
+	__cjs_XapianRSet__remove_document(a, b, c) {
+		return XapianRSet__remove_document(a, b, c);
+	}
+
+	__cjs_XapianRSet__remove_document2(a, b, c) {
+		return XapianRSet__remove_document2(a, b, c);
+	}
+
+	__cjs_XapianRSet__contains(a, b, c) {
+		return XapianRSet__contains(a, b, c);
+	}
+
+	__cjs_XapianRSet__contains2(a, b, c) {
+		return XapianRSet__contains2(a, b, c);
+	}
+
+	__cjs_XapianRSet__get_description(a, b) {
+		return XapianRSet__get_description(a, b);
+	}
+
+	__cjs_XapianEnquireCreate(a, b) {
+		return XapianEnquireCreate(a, b);
+	}
+
+	__cjs_XapianEnquireDestroy(a, b) {
+		return XapianEnquireDestroy(a, b);
+	}
+
+	__cjs_XapianEnquire__set_query(a, b, c, d) {
+		return XapianEnquire__set_query(a, b, c, d);
+	}
+
+	__cjs_XapianEnquire__get_query(a, b) {
+		return XapianEnquire__get_query(a, b);
+	}
+
+	__cjs_XapianEnquire__set_weighting_scheme(a, b, c) {
+		return XapianEnquire__set_weighting_scheme(a, b, c);
+	}
+
+	__cjs_XapianEnquire__set_collapse_key(a, b, c) {
+		return XapianEnquire__set_collapse_key(a, b, c);
+	}
+
+	__cjs_XapianEnquire__set_docid_order(a, b, c) {
+		return XapianEnquire__set_docid_order(a, b, c);
+	}
+
+	__cjs_XapianEnquire__set_cutoff(a, b, c, d) {
+		return XapianEnquire__set_cutoff(a, b, c, d);
+	}
+
+	__cjs_XapianEnquire__set_sort_by_relevance(a, b) {
+		return XapianEnquire__set_sort_by_relevance(a, b);
+	}
+
+	__cjs_XapianEnquire__set_sort_by_value(a, b, c, d) {
+		return XapianEnquire__set_sort_by_value(a, b, c, d);
+	}
+
+	__cjs_XapianEnquire__set_sort_by_value_then_relevance(a, b, c, d) {
+		return XapianEnquire__set_sort_by_value_then_relevance(a, b, c, d);
+	}
+
+	__cjs_XapianEnquire__set_sort_by_relevance_then_value(a, b, c, d) {
+		return XapianEnquire__set_sort_by_relevance_then_value(a, b, c, d);
+	}
+
+	__cjs_XapianEnquire__get_mset(a, b, c, d, e, f) {
+		return XapianEnquire__get_mset(a, b, c, d, e, f);
+	}
+
+	__cjs_XapianEnquire__get_eset(a, b, c, d, e, f) {
+		return XapianEnquire__get_eset(a, b, c, d, e, f);
+	}
+
+	__cjs_XapianEnquire__get_eset2(a, b, c, d) {
+		return XapianEnquire__get_eset2(a, b, c, d);
+	}
+
+	__cjs_XapianEnquire__get_matching_terms_begin(a, b, c) {
+		return XapianEnquire__get_matching_terms_begin(a, b, c);
+	}
+
+	__cjs_XapianEnquire__get_matching_terms_end(a, b, c) {
+		return XapianEnquire__get_matching_terms_end(a, b, c);
+	}
+
+	__cjs_XapianEnquire__get_matching_terms_begin2(a, b, c) {
+		return XapianEnquire__get_matching_terms_begin2(a, b, c);
+	}
+
+	__cjs_XapianEnquire__get_matching_terms_end2(a, b, c) {
+		return XapianEnquire__get_matching_terms_end2(a, b, c);
+	}
+
+	__cjs_XapianEnquire__get_description(a, b) {
+		return XapianEnquire__get_description(a, b);
+	}
+
+	__cjs_XapianStringValueRangeProcessorCreate(a) {
+		return XapianStringValueRangeProcessorCreate(a);
+	}
+
+	__cjs_XapianStringValueRangeProcessorDestroy(a) {
+		return XapianStringValueRangeProcessorDestroy(a);
+	}
+
+	__cjs_XapianDateValueRangeProcessorCreate(a, b, c = null) {
+		return XapianDateValueRangeProcessorCreate(a, b, c = null);
+	}
+
+	__cjs_XapianDateValueRangeProcessorDestroy(a) {
+		return XapianDateValueRangeProcessorDestroy(a);
+	}
+
+	__cjs_XapianNumberValueRangeProcessorCreate(a, b, c = null) {
+		return XapianNumberValueRangeProcessorCreate(a, b, c = null);
+	}
+
+	__cjs_XapianNumberValueRangeProcessorDestroy(a) {
+		return XapianNumberValueRangeProcessorDestroy(a);
+	}
+
+	__cjs_XapianSimpleStopperCreate() {
+		return XapianSimpleStopperCreate();
+	}
+
+	__cjs_XapianSimpleStopperDestroy(a) {
+		return XapianSimpleStopperDestroy(a);
+	}
+
+	__cjs_XapianSimpleStopper__add(a, b, c) {
+		return XapianSimpleStopper__add(a, b, c);
+	}
+
+	__cjs_XapianSimpleStopper__has(a, b, c) {
+		return XapianSimpleStopper__has(a, b, c);
+	}
+
+	__cjs_Xapian__sortable_serialise(a) {
+		return Xapian__sortable_serialise(a);
+	}
+
+	__cjs_Xapian__sortable_unserialise(a) {
+		return Xapian__sortable_unserialise(a);
+	}
+
+	wrap(js) {
+		js.wrap(this.__cjs_XapianDocumentCreate, "__cjs_XapianDocumentCreate");
+		js.wrap(this.__cjs_XapianDocumentDestroy, "__cjs_XapianDocumentDestroy");
+		js.wrap(this.__cjs_XapianDocument__get_value, "__cjs_XapianDocument__get_value");
+		js.wrap(this.__cjs_XapianDocument__add_value, "__cjs_XapianDocument__add_value");
+		js.wrap(this.__cjs_XapianDocument__remove_value, "__cjs_XapianDocument__remove_value");
+		js.wrap(this.__cjs_XapianDocument__clear_values, "__cjs_XapianDocument__clear_values");
+		js.wrap(this.__cjs_XapianDocument__get_data, "__cjs_XapianDocument__get_data");
+		js.wrap(this.__cjs_XapianDocument__set_data, "__cjs_XapianDocument__set_data");
+		js.wrap(this.__cjs_XapianDocument__add_posting, "__cjs_XapianDocument__add_posting");
+		js.wrap(this.__cjs_XapianDocument__add_term, "__cjs_XapianDocument__add_term");
+		js.wrap(this.__cjs_XapianDocument__remove_posting, "__cjs_XapianDocument__remove_posting");
+		js.wrap(this.__cjs_XapianDocument__remove_term, "__cjs_XapianDocument__remove_term");
+		js.wrap(this.__cjs_XapianDocument__clear_terms, "__cjs_XapianDocument__clear_terms");
+		js.wrap(this.__cjs_XapianDocument__termlist_count, "__cjs_XapianDocument__termlist_count");
+		js.wrap(this.__cjs_XapianDocument__values_count, "__cjs_XapianDocument__values_count");
+		js.wrap(this.__cjs_XapianDocument__get_docid, "__cjs_XapianDocument__get_docid");
+		js.wrap(this.__cjs_XapianDocument__get_description, "__cjs_XapianDocument__get_description");
+		js.wrap(this.__cjs_XapianDocument__values_begin, "__cjs_XapianDocument__values_begin");
+		js.wrap(this.__cjs_XapianDocument__values_end, "__cjs_XapianDocument__values_end");
+		js.wrap(this.__cjs_XapianDocument__termlist_begin, "__cjs_XapianDocument__termlist_begin");
+		js.wrap(this.__cjs_XapianDocument__termlist_end, "__cjs_XapianDocument__termlist_end");
+		js.wrap(this.__cjs_XapianWritableDatabaseCreate, "__cjs_XapianWritableDatabaseCreate");
+		js.wrap(this.__cjs_XapianWritableDatabaseCreate2, "__cjs_XapianWritableDatabaseCreate2");
+		js.wrap(this.__cjs_XapianWritableDatabaseDestroy, "__cjs_XapianWritableDatabaseDestroy");
+		js.wrap(this.__cjs_XapianWritableDatabase__flush, "__cjs_XapianWritableDatabase__flush");
+		js.wrap(this.__cjs_XapianWritableDatabase__begin_transaction, "__cjs_XapianWritableDatabase__begin_transaction");
+		js.wrap(this.__cjs_XapianWritableDatabase__commit_transaction, "__cjs_XapianWritableDatabase__commit_transaction");
+		js.wrap(this.__cjs_XapianWritableDatabase__cancel_transaction, "__cjs_XapianWritableDatabase__cancel_transaction");
+		js.wrap(this.__cjs_XapianWritableDatabase__add_document, "__cjs_XapianWritableDatabase__add_document");
+		js.wrap(this.__cjs_XapianWritableDatabase__delete_document, "__cjs_XapianWritableDatabase__delete_document");
+		js.wrap(this.__cjs_XapianWritableDatabase__delete_document2, "__cjs_XapianWritableDatabase__delete_document2");
+		js.wrap(this.__cjs_XapianWritableDatabase__replace_document, "__cjs_XapianWritableDatabase__replace_document");
+		js.wrap(this.__cjs_XapianWritableDatabase__replace_document2, "__cjs_XapianWritableDatabase__replace_document2");
+		js.wrap(this.__cjs_XapianWritableDatabase__add_spelling, "__cjs_XapianWritableDatabase__add_spelling");
+		js.wrap(this.__cjs_XapianWritableDatabase__remove_spelling, "__cjs_XapianWritableDatabase__remove_spelling");
+		js.wrap(this.__cjs_XapianWritableDatabase__add_synonym, "__cjs_XapianWritableDatabase__add_synonym");
+		js.wrap(this.__cjs_XapianWritableDatabase__remove_synonym, "__cjs_XapianWritableDatabase__remove_synonym");
+		js.wrap(this.__cjs_XapianWritableDatabase__clear_synonyms, "__cjs_XapianWritableDatabase__clear_synonyms");
+		js.wrap(this.__cjs_XapianWritableDatabase__set_metadata, "__cjs_XapianWritableDatabase__set_metadata");
+		js.wrap(this.__cjs_XapianWritableDatabase__get_description, "__cjs_XapianWritableDatabase__get_description");
+		js.wrap(this.__cjs_XapianTermGeneratorCreate, "__cjs_XapianTermGeneratorCreate");
+		js.wrap(this.__cjs_XapianTermGeneratorDestroy, "__cjs_XapianTermGeneratorDestroy");
+		js.wrap(this.__cjs_XapianTermGenerator__set_stemmer, "__cjs_XapianTermGenerator__set_stemmer");
+		js.wrap(this.__cjs_XapianTermGenerator__set_stopper, "__cjs_XapianTermGenerator__set_stopper");
+		js.wrap(this.__cjs_XapianTermGenerator__set_document, "__cjs_XapianTermGenerator__set_document");
+		js.wrap(this.__cjs_XapianTermGenerator__get_document, "__cjs_XapianTermGenerator__get_document");
+		js.wrap(this.__cjs_XapianTermGenerator__set_database, "__cjs_XapianTermGenerator__set_database");
+		js.wrap(this.__cjs_XapianTermGenerator__set_flags, "__cjs_XapianTermGenerator__set_flags");
+		js.wrap(this.__cjs_XapianTermGenerator__index_text, "__cjs_XapianTermGenerator__index_text");
+		js.wrap(this.__cjs_XapianTermGenerator__index_text_without_positions, "__cjs_XapianTermGenerator__index_text_without_positions");
+		js.wrap(this.__cjs_XapianTermGenerator__increase_termpos, "__cjs_XapianTermGenerator__increase_termpos");
+		js.wrap(this.__cjs_XapianTermGenerator__get_termpos, "__cjs_XapianTermGenerator__get_termpos");
+		js.wrap(this.__cjs_XapianTermGenerator__set_termpos, "__cjs_XapianTermGenerator__set_termpos");
+		js.wrap(this.__cjs_XapianTermGenerator__get_description, "__cjs_XapianTermGenerator__get_description");
+		js.wrap(this.__cjs_XapianStemCreate, "__cjs_XapianStemCreate");
+		js.wrap(this.__cjs_XapianStemCreate2, "__cjs_XapianStemCreate2");
+		js.wrap(this.__cjs_XapianStemDestroy, "__cjs_XapianStemDestroy");
+		js.wrap(this.__cjs_XapianStem__get_description, "__cjs_XapianStem__get_description");
+		js.wrap(this.__cjs_XapianStem__stem_word, "__cjs_XapianStem__stem_word");
+		js.wrap(this.__cjs_XapianValueIterator__next, "__cjs_XapianValueIterator__next");
+		js.wrap(this.__cjs_XapianValueIterator__get_value, "__cjs_XapianValueIterator__get_value");
+		js.wrap(this.__cjs_XapianValueIterator__get_valueno, "__cjs_XapianValueIterator__get_valueno");
+		js.wrap(this.__cjs_XapianValueIterator__get_description, "__cjs_XapianValueIterator__get_description");
+		js.wrap(this.__cjs_XapianValueIterator__equal, "__cjs_XapianValueIterator__equal");
+		js.wrap(this.__cjs_XapianPositionIterator__next, "__cjs_XapianPositionIterator__next");
+		js.wrap(this.__cjs_XapianPositionIterator__get_value, "__cjs_XapianPositionIterator__get_value");
+		js.wrap(this.__cjs_XapianPositionIterator__skip_to, "__cjs_XapianPositionIterator__skip_to");
+		js.wrap(this.__cjs_XapianPositionIterator__get_description, "__cjs_XapianPositionIterator__get_description");
+		js.wrap(this.__cjs_XapianPositionIterator__equal, "__cjs_XapianPositionIterator__equal");
+		js.wrap(this.__cjs_XapianTermIterator__next, "__cjs_XapianTermIterator__next");
+		js.wrap(this.__cjs_XapianTermIterator__get_value, "__cjs_XapianTermIterator__get_value");
+		js.wrap(this.__cjs_XapianTermIterator__skip_to, "__cjs_XapianTermIterator__skip_to");
+		js.wrap(this.__cjs_XapianTermIterator__get_description, "__cjs_XapianTermIterator__get_description");
+		js.wrap(this.__cjs_XapianTermIterator__equal, "__cjs_XapianTermIterator__equal");
+		js.wrap(this.__cjs_XapianTermIterator__get_wdf, "__cjs_XapianTermIterator__get_wdf");
+		js.wrap(this.__cjs_XapianTermIterator__get_termfreq, "__cjs_XapianTermIterator__get_termfreq");
+		js.wrap(this.__cjs_XapianTermIterator__positionlist_count, "__cjs_XapianTermIterator__positionlist_count");
+		js.wrap(this.__cjs_XapianTermIterator__positionlist_begin, "__cjs_XapianTermIterator__positionlist_begin");
+		js.wrap(this.__cjs_XapianTermIterator__positionlist_end, "__cjs_XapianTermIterator__positionlist_end");
+		js.wrap(this.__cjs_XapianMSetIterator__next, "__cjs_XapianMSetIterator__next");
+		js.wrap(this.__cjs_XapianMSetIterator__prev, "__cjs_XapianMSetIterator__prev");
+		js.wrap(this.__cjs_XapianMSetIterator__get_value, "__cjs_XapianMSetIterator__get_value");
+		js.wrap(this.__cjs_XapianMSetIterator__get_description, "__cjs_XapianMSetIterator__get_description");
+		js.wrap(this.__cjs_XapianMSetIterator__equal, "__cjs_XapianMSetIterator__equal");
+		js.wrap(this.__cjs_XapianMSetIterator__get_document, "__cjs_XapianMSetIterator__get_document");
+		js.wrap(this.__cjs_XapianMSetIterator__get_rank, "__cjs_XapianMSetIterator__get_rank");
+		js.wrap(this.__cjs_XapianMSetIterator__get_weight, "__cjs_XapianMSetIterator__get_weight");
+		js.wrap(this.__cjs_XapianMSetIterator__get_collapse_key, "__cjs_XapianMSetIterator__get_collapse_key");
+		js.wrap(this.__cjs_XapianMSetIterator__get_collapse_count, "__cjs_XapianMSetIterator__get_collapse_count");
+		js.wrap(this.__cjs_XapianMSetIterator__get_percent, "__cjs_XapianMSetIterator__get_percent");
+		js.wrap(this.__cjs_XapianESetIterator__next, "__cjs_XapianESetIterator__next");
+		js.wrap(this.__cjs_XapianESetIterator__prev, "__cjs_XapianESetIterator__prev");
+		js.wrap(this.__cjs_XapianESetIterator__get_value, "__cjs_XapianESetIterator__get_value");
+		js.wrap(this.__cjs_XapianESetIterator__get_description, "__cjs_XapianESetIterator__get_description");
+		js.wrap(this.__cjs_XapianESetIterator__equal, "__cjs_XapianESetIterator__equal");
+		js.wrap(this.__cjs_XapianESetIterator__get_weight, "__cjs_XapianESetIterator__get_weight");
+		js.wrap(this.__cjs_XapianPostingIterator__next, "__cjs_XapianPostingIterator__next");
+		js.wrap(this.__cjs_XapianPostingIterator__get_value, "__cjs_XapianPostingIterator__get_value");
+		js.wrap(this.__cjs_XapianPostingIterator__get_description, "__cjs_XapianPostingIterator__get_description");
+		js.wrap(this.__cjs_XapianPostingIterator__equal, "__cjs_XapianPostingIterator__equal");
+		js.wrap(this.__cjs_XapianPostingIterator__get_wdf, "__cjs_XapianPostingIterator__get_wdf");
+		js.wrap(this.__cjs_XapianPostingIterator__get_doclength, "__cjs_XapianPostingIterator__get_doclength");
+		js.wrap(this.__cjs_XapianPostingIterator__positionlist_begin, "__cjs_XapianPostingIterator__positionlist_begin");
+		js.wrap(this.__cjs_XapianPostingIterator__positionlist_end, "__cjs_XapianPostingIterator__positionlist_end");
+		js.wrap(this.__cjs_XapianDatabaseCreate, "__cjs_XapianDatabaseCreate");
+		js.wrap(this.__cjs_XapianDatabaseCreate2, "__cjs_XapianDatabaseCreate2");
+		js.wrap(this.__cjs_XapianDatabaseDestroy, "__cjs_XapianDatabaseDestroy");
+		js.wrap(this.__cjs_XapianDatabase__add_database, "__cjs_XapianDatabase__add_database");
+		js.wrap(this.__cjs_XapianDatabase__reopen, "__cjs_XapianDatabase__reopen");
+		js.wrap(this.__cjs_XapianDatabase__get_description, "__cjs_XapianDatabase__get_description");
+		js.wrap(this.__cjs_XapianDatabase__postlist_begin, "__cjs_XapianDatabase__postlist_begin");
+		js.wrap(this.__cjs_XapianDatabase__postlist_end, "__cjs_XapianDatabase__postlist_end");
+		js.wrap(this.__cjs_XapianDatabase__termlist_begin, "__cjs_XapianDatabase__termlist_begin");
+		js.wrap(this.__cjs_XapianDatabase__termlist_end, "__cjs_XapianDatabase__termlist_end");
+		js.wrap(this.__cjs_XapianDatabase__has_positions, "__cjs_XapianDatabase__has_positions");
+		js.wrap(this.__cjs_XapianDatabase__positionlist_begin, "__cjs_XapianDatabase__positionlist_begin");
+		js.wrap(this.__cjs_XapianDatabase__positionlist_end, "__cjs_XapianDatabase__positionlist_end");
+		js.wrap(this.__cjs_XapianDatabase__allterms_begin, "__cjs_XapianDatabase__allterms_begin");
+		js.wrap(this.__cjs_XapianDatabase__allterms_end, "__cjs_XapianDatabase__allterms_end");
+		js.wrap(this.__cjs_XapianDatabase__allterms_begin2, "__cjs_XapianDatabase__allterms_begin2");
+		js.wrap(this.__cjs_XapianDatabase__allterms_end2, "__cjs_XapianDatabase__allterms_end2");
+		js.wrap(this.__cjs_XapianDatabase__get_doccount, "__cjs_XapianDatabase__get_doccount");
+		js.wrap(this.__cjs_XapianDatabase__get_lastdocid, "__cjs_XapianDatabase__get_lastdocid");
+		js.wrap(this.__cjs_XapianDatabase__get_avlength, "__cjs_XapianDatabase__get_avlength");
+		js.wrap(this.__cjs_XapianDatabase__get_termfreq, "__cjs_XapianDatabase__get_termfreq");
+		js.wrap(this.__cjs_XapianDatabase__term_exists, "__cjs_XapianDatabase__term_exists");
+		js.wrap(this.__cjs_XapianDatabase__get_collection_freq, "__cjs_XapianDatabase__get_collection_freq");
+		js.wrap(this.__cjs_XapianDatabase__get_doclength, "__cjs_XapianDatabase__get_doclength");
+		js.wrap(this.__cjs_XapianDatabase__keep_alive, "__cjs_XapianDatabase__keep_alive");
+		js.wrap(this.__cjs_XapianDatabase__get_document, "__cjs_XapianDatabase__get_document");
+		js.wrap(this.__cjs_XapianDatabase__get_spelling_suggestion, "__cjs_XapianDatabase__get_spelling_suggestion");
+		js.wrap(this.__cjs_XapianDatabase__spellings_begin, "__cjs_XapianDatabase__spellings_begin");
+		js.wrap(this.__cjs_XapianDatabase__spellings_end, "__cjs_XapianDatabase__spellings_end");
+		js.wrap(this.__cjs_XapianDatabase__synonyms_begin, "__cjs_XapianDatabase__synonyms_begin");
+		js.wrap(this.__cjs_XapianDatabase__synonyms_end, "__cjs_XapianDatabase__synonyms_end");
+		js.wrap(this.__cjs_XapianDatabase__synonym_keys_begin, "__cjs_XapianDatabase__synonym_keys_begin");
+		js.wrap(this.__cjs_XapianDatabase__synonym_keys_end, "__cjs_XapianDatabase__synonym_keys_end");
+		js.wrap(this.__cjs_XapianDatabase__get_metadata, "__cjs_XapianDatabase__get_metadata");
+		js.wrap(this.__cjs_XapianDatabase__metadata_keys_begin, "__cjs_XapianDatabase__metadata_keys_begin");
+		js.wrap(this.__cjs_XapianDatabase__metadata_keys_end, "__cjs_XapianDatabase__metadata_keys_end");
+		js.wrap(this.__cjs_XapianQueryCreate, "__cjs_XapianQueryCreate");
+		js.wrap(this.__cjs_XapianQueryCreate2, "__cjs_XapianQueryCreate2");
+		js.wrap(this.__cjs_XapianQueryCreate3, "__cjs_XapianQueryCreate3");
+		js.wrap(this.__cjs_XapianQueryCreate4, "__cjs_XapianQueryCreate4");
+		js.wrap(this.__cjs_XapianQueryCreate5, "__cjs_XapianQueryCreate5");
+		js.wrap(this.__cjs_XapianQueryDestroy, "__cjs_XapianQueryDestroy");
+		js.wrap(this.__cjs_XapianQuery__get_length, "__cjs_XapianQuery__get_length");
+		js.wrap(this.__cjs_XapianQuery__get_terms_begin, "__cjs_XapianQuery__get_terms_begin");
+		js.wrap(this.__cjs_XapianQuery__get_terms_end, "__cjs_XapianQuery__get_terms_end");
+		js.wrap(this.__cjs_XapianQuery__empty, "__cjs_XapianQuery__empty");
+		js.wrap(this.__cjs_XapianQuery__get_description, "__cjs_XapianQuery__get_description");
+		js.wrap(this.__cjs_XapianQuery__serialise, "__cjs_XapianQuery__serialise");
+		js.wrap(this.__cjs_XapianQuery__get_parameter, "__cjs_XapianQuery__get_parameter");
+		js.wrap(this.__cjs_XapianQuery__get_terms, "__cjs_XapianQuery__get_terms");
+		js.wrap(this.__cjs_XapianQueryParserCreate, "__cjs_XapianQueryParserCreate");
+		js.wrap(this.__cjs_XapianQueryParserDestroy, "__cjs_XapianQueryParserDestroy");
+		js.wrap(this.__cjs_XapianQueryParser__set_stemmer, "__cjs_XapianQueryParser__set_stemmer");
+		js.wrap(this.__cjs_XapianQueryParser__set_stemming_strategy, "__cjs_XapianQueryParser__set_stemming_strategy");
+		js.wrap(this.__cjs_XapianQueryParser__set_stopper, "__cjs_XapianQueryParser__set_stopper");
+		js.wrap(this.__cjs_XapianQueryParser__set_default_op, "__cjs_XapianQueryParser__set_default_op");
+		js.wrap(this.__cjs_XapianQueryParser__get_default_op, "__cjs_XapianQueryParser__get_default_op");
+		js.wrap(this.__cjs_XapianQueryParser__set_database, "__cjs_XapianQueryParser__set_database");
+		js.wrap(this.__cjs_XapianQueryParser__parse_query, "__cjs_XapianQueryParser__parse_query");
+		js.wrap(this.__cjs_XapianQueryParser__add_prefix, "__cjs_XapianQueryParser__add_prefix");
+		js.wrap(this.__cjs_XapianQueryParser__add_boolean_prefix, "__cjs_XapianQueryParser__add_boolean_prefix");
+		js.wrap(this.__cjs_XapianQueryParser__add_valuerangeprocessor, "__cjs_XapianQueryParser__add_valuerangeprocessor");
+		js.wrap(this.__cjs_XapianQueryParser__stoplist_begin, "__cjs_XapianQueryParser__stoplist_begin");
+		js.wrap(this.__cjs_XapianQueryParser__stoplist_end, "__cjs_XapianQueryParser__stoplist_end");
+		js.wrap(this.__cjs_XapianQueryParser__unstem_begin, "__cjs_XapianQueryParser__unstem_begin");
+		js.wrap(this.__cjs_XapianQueryParser__unstem_end, "__cjs_XapianQueryParser__unstem_end");
+		js.wrap(this.__cjs_XapianQueryParser__get_corrected_query_string, "__cjs_XapianQueryParser__get_corrected_query_string");
+		js.wrap(this.__cjs_XapianQueryParser__get_description, "__cjs_XapianQueryParser__get_description");
+		js.wrap(this.__cjs_XapianESetCreate, "__cjs_XapianESetCreate");
+		js.wrap(this.__cjs_XapianESetDestroy, "__cjs_XapianESetDestroy");
+		js.wrap(this.__cjs_XapianESet__get_ebound, "__cjs_XapianESet__get_ebound");
+		js.wrap(this.__cjs_XapianESet__size, "__cjs_XapianESet__size");
+		js.wrap(this.__cjs_XapianESet__max_size, "__cjs_XapianESet__max_size");
+		js.wrap(this.__cjs_XapianESet__empty, "__cjs_XapianESet__empty");
+		js.wrap(this.__cjs_XapianESet__swap, "__cjs_XapianESet__swap");
+		js.wrap(this.__cjs_XapianESet__begin, "__cjs_XapianESet__begin");
+		js.wrap(this.__cjs_XapianESet__end, "__cjs_XapianESet__end");
+		js.wrap(this.__cjs_XapianESet__back, "__cjs_XapianESet__back");
+		js.wrap(this.__cjs_XapianESet__getiter, "__cjs_XapianESet__getiter");
+		js.wrap(this.__cjs_XapianESet__get_description, "__cjs_XapianESet__get_description");
+		js.wrap(this.__cjs_XapianMSetCreate, "__cjs_XapianMSetCreate");
+		js.wrap(this.__cjs_XapianMSetDestroy, "__cjs_XapianMSetDestroy");
+		js.wrap(this.__cjs_XapianMSet__fetch, "__cjs_XapianMSet__fetch");
+		js.wrap(this.__cjs_XapianMSet__convert_to_percent, "__cjs_XapianMSet__convert_to_percent");
+		js.wrap(this.__cjs_XapianMSet__convert_to_percent2, "__cjs_XapianMSet__convert_to_percent2");
+		js.wrap(this.__cjs_XapianMSet__get_termfreq, "__cjs_XapianMSet__get_termfreq");
+		js.wrap(this.__cjs_XapianMSet__get_termweight, "__cjs_XapianMSet__get_termweight");
+		js.wrap(this.__cjs_XapianMSet__get_firstitem, "__cjs_XapianMSet__get_firstitem");
+		js.wrap(this.__cjs_XapianMSet__get_matches_lower_bound, "__cjs_XapianMSet__get_matches_lower_bound");
+		js.wrap(this.__cjs_XapianMSet__get_matches_estimated, "__cjs_XapianMSet__get_matches_estimated");
+		js.wrap(this.__cjs_XapianMSet__get_matches_upper_bound, "__cjs_XapianMSet__get_matches_upper_bound");
+		js.wrap(this.__cjs_XapianMSet__get_max_possible, "__cjs_XapianMSet__get_max_possible");
+		js.wrap(this.__cjs_XapianMSet__get_max_attained, "__cjs_XapianMSet__get_max_attained");
+		js.wrap(this.__cjs_XapianMSet__size, "__cjs_XapianMSet__size");
+		js.wrap(this.__cjs_XapianMSet__max_size, "__cjs_XapianMSet__max_size");
+		js.wrap(this.__cjs_XapianMSet__empty, "__cjs_XapianMSet__empty");
+		js.wrap(this.__cjs_XapianMSet__swap, "__cjs_XapianMSet__swap");
+		js.wrap(this.__cjs_XapianMSet__begin, "__cjs_XapianMSet__begin");
+		js.wrap(this.__cjs_XapianMSet__end, "__cjs_XapianMSet__end");
+		js.wrap(this.__cjs_XapianMSet__back, "__cjs_XapianMSet__back");
+		js.wrap(this.__cjs_XapianMSet__getiter, "__cjs_XapianMSet__getiter");
+		js.wrap(this.__cjs_XapianMSet__get_description, "__cjs_XapianMSet__get_description");
+		js.wrap(this.__cjs_XapianRSetCreate, "__cjs_XapianRSetCreate");
+		js.wrap(this.__cjs_XapianRSetDestroy, "__cjs_XapianRSetDestroy");
+		js.wrap(this.__cjs_XapianRSet__size, "__cjs_XapianRSet__size");
+		js.wrap(this.__cjs_XapianRSet__empty, "__cjs_XapianRSet__empty");
+		js.wrap(this.__cjs_XapianRSet__add_document, "__cjs_XapianRSet__add_document");
+		js.wrap(this.__cjs_XapianRSet__add_document2, "__cjs_XapianRSet__add_document2");
+		js.wrap(this.__cjs_XapianRSet__remove_document, "__cjs_XapianRSet__remove_document");
+		js.wrap(this.__cjs_XapianRSet__remove_document2, "__cjs_XapianRSet__remove_document2");
+		js.wrap(this.__cjs_XapianRSet__contains, "__cjs_XapianRSet__contains");
+		js.wrap(this.__cjs_XapianRSet__contains2, "__cjs_XapianRSet__contains2");
+		js.wrap(this.__cjs_XapianRSet__get_description, "__cjs_XapianRSet__get_description");
+		js.wrap(this.__cjs_XapianEnquireCreate, "__cjs_XapianEnquireCreate");
+		js.wrap(this.__cjs_XapianEnquireDestroy, "__cjs_XapianEnquireDestroy");
+		js.wrap(this.__cjs_XapianEnquire__set_query, "__cjs_XapianEnquire__set_query");
+		js.wrap(this.__cjs_XapianEnquire__get_query, "__cjs_XapianEnquire__get_query");
+		js.wrap(this.__cjs_XapianEnquire__set_weighting_scheme, "__cjs_XapianEnquire__set_weighting_scheme");
+		js.wrap(this.__cjs_XapianEnquire__set_collapse_key, "__cjs_XapianEnquire__set_collapse_key");
+		js.wrap(this.__cjs_XapianEnquire__set_docid_order, "__cjs_XapianEnquire__set_docid_order");
+		js.wrap(this.__cjs_XapianEnquire__set_cutoff, "__cjs_XapianEnquire__set_cutoff");
+		js.wrap(this.__cjs_XapianEnquire__set_sort_by_relevance, "__cjs_XapianEnquire__set_sort_by_relevance");
+		js.wrap(this.__cjs_XapianEnquire__set_sort_by_value, "__cjs_XapianEnquire__set_sort_by_value");
+		js.wrap(this.__cjs_XapianEnquire__set_sort_by_value_then_relevance, "__cjs_XapianEnquire__set_sort_by_value_then_relevance");
+		js.wrap(this.__cjs_XapianEnquire__set_sort_by_relevance_then_value, "__cjs_XapianEnquire__set_sort_by_relevance_then_value");
+		js.wrap(this.__cjs_XapianEnquire__get_mset, "__cjs_XapianEnquire__get_mset");
+		js.wrap(this.__cjs_XapianEnquire__get_eset, "__cjs_XapianEnquire__get_eset");
+		js.wrap(this.__cjs_XapianEnquire__get_eset2, "__cjs_XapianEnquire__get_eset2");
+		js.wrap(this.__cjs_XapianEnquire__get_matching_terms_begin, "__cjs_XapianEnquire__get_matching_terms_begin");
+		js.wrap(this.__cjs_XapianEnquire__get_matching_terms_end, "__cjs_XapianEnquire__get_matching_terms_end");
+		js.wrap(this.__cjs_XapianEnquire__get_matching_terms_begin2, "__cjs_XapianEnquire__get_matching_terms_begin2");
+		js.wrap(this.__cjs_XapianEnquire__get_matching_terms_end2, "__cjs_XapianEnquire__get_matching_terms_end2");
+		js.wrap(this.__cjs_XapianEnquire__get_description, "__cjs_XapianEnquire__get_description");
+		js.wrap(this.__cjs_XapianStringValueRangeProcessorCreate, "__cjs_XapianStringValueRangeProcessorCreate");
+		js.wrap(this.__cjs_XapianStringValueRangeProcessorDestroy, "__cjs_XapianStringValueRangeProcessorDestroy");
+		js.wrap(this.__cjs_XapianDateValueRangeProcessorCreate, "__cjs_XapianDateValueRangeProcessorCreate");
+		js.wrap(this.__cjs_XapianDateValueRangeProcessorDestroy, "__cjs_XapianDateValueRangeProcessorDestroy");
+		js.wrap(this.__cjs_XapianNumberValueRangeProcessorCreate, "__cjs_XapianNumberValueRangeProcessorCreate");
+		js.wrap(this.__cjs_XapianNumberValueRangeProcessorDestroy, "__cjs_XapianNumberValueRangeProcessorDestroy");
+		js.wrap(this.__cjs_XapianSimpleStopperCreate, "__cjs_XapianSimpleStopperCreate");
+		js.wrap(this.__cjs_XapianSimpleStopperDestroy, "__cjs_XapianSimpleStopperDestroy");
+		js.wrap(this.__cjs_XapianSimpleStopper__add, "__cjs_XapianSimpleStopper__add");
+		js.wrap(this.__cjs_XapianSimpleStopper__has, "__cjs_XapianSimpleStopper__has");
+		js.wrap(this.__cjs_Xapian__sortable_serialise, "__cjs_Xapian__sortable_serialise");
+		js.wrap(this.__cjs_Xapian__sortable_unserialise, "__cjs_Xapian__sortable_unserialise");
+	}
+
+	ECMABRIDGE_standard_search_xapian(js) {
+		this.wrap(js);
+	}
+}

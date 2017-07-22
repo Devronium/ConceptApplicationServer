@@ -1,0 +1,42 @@
+/* This file is generated automatically by generatejs.con. Do not edit. */
+
+import standard.net.iptv
+
+class ECMABRIDGE_standard_net_iptv {
+	__cjs_M2TSDemux(a, b, c = null, d = null, e = null, f = null, g = null) {
+		return M2TSDemux(a, b, c = null, d = null, e = null, f = null, g = null);
+	}
+
+	__cjs_M2TSSyncOffset(a, b) {
+		return M2TSSyncOffset(a, b);
+	}
+
+	__cjs_M2TSPeek(a, b, c = null, d = null) {
+		return M2TSPeek(a, b, c = null, d = null);
+	}
+
+	__cjs_M2TSChpid(a, b) {
+		return M2TSChpid(a, b);
+	}
+
+	__cjs_M2TSChcont(a, b) {
+		return M2TSChcont(a, b);
+	}
+
+	__cjs_M2TSPacket(a, b, c, d, e = null) {
+		return M2TSPacket(a, b, c, d, e = null);
+	}
+
+	wrap(js) {
+		js.wrap(this.__cjs_M2TSDemux, "__cjs_M2TSDemux");
+		js.wrap(this.__cjs_M2TSSyncOffset, "__cjs_M2TSSyncOffset");
+		js.wrap(this.__cjs_M2TSPeek, "__cjs_M2TSPeek");
+		js.wrap(this.__cjs_M2TSChpid, "__cjs_M2TSChpid");
+		js.wrap(this.__cjs_M2TSChcont, "__cjs_M2TSChcont");
+		js.wrap(this.__cjs_M2TSPacket, "__cjs_M2TSPacket");
+	}
+
+	ECMABRIDGE_standard_net_iptv(js) {
+		this.wrap(js);
+	}
+}

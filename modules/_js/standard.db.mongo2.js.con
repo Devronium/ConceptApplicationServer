@@ -1,0 +1,137 @@
+/* This file is generated automatically by generatejs.con. Do not edit. */
+
+import standard.db.mongo2
+
+class ECMABRIDGE_standard_db_mongo2 {
+	__cjs_MongoConnect(a) {
+		return MongoConnect(a);
+	}
+
+	__cjs_MongoDisconnect(a) {
+		return MongoDisconnect(a);
+	}
+
+	__cjs_MongoCount(a, b, c, d, e, f = null, g = null) {
+		return MongoCount(a, b, c, d, e, f = null, g = null);
+	}
+
+	__cjs_MongoFind(a, b, c, d, e, f = null, g = null, h = null) {
+		return MongoFind(a, b, c, d, e, f = null, g = null, h = null);
+	}
+
+	__cjs_MongoNext(a, b, c, d = null) {
+		return MongoNext(a, b, c, d = null);
+	}
+
+	__cjs_MongoClose(a) {
+		return MongoClose(a);
+	}
+
+	__cjs_MongoInsert(a, b, c, d, e, f = null, g = null) {
+		return MongoInsert(a, b, c, d, e, f = null, g = null);
+	}
+
+	__cjs_MongoRemove(a, b, c, d, e) {
+		return MongoRemove(a, b, c, d, e);
+	}
+
+	__cjs_MongoUpdate(a, b, c, d, e, f, g = null) {
+		return MongoUpdate(a, b, c, d, e, f, g = null);
+	}
+
+	__cjs_MongoUpdateType(a, b, c, d, e, f, g = null, h = null, i = null) {
+		return MongoUpdateType(a, b, c, d, e, f, g = null, h = null, i = null);
+	}
+
+	__cjs_MongoUpdateObject(a, b, c, d, e, f = null) {
+		return MongoUpdateObject(a, b, c, d, e, f = null);
+	}
+
+	__cjs_MongoSimpleCommand(a, b, c, d, e = null) {
+		return MongoSimpleCommand(a, b, c, d, e = null);
+	}
+
+	__cjs_MongoCommand(a, b, c, d, e = null, f = null, g = null) {
+		return MongoCommand(a, b, c, d, e = null, f = null, g = null);
+	}
+
+	__cjs_MongoIndex(a, b, c, d, e) {
+		return MongoIndex(a, b, c, d, e);
+	}
+
+	__cjs_GridFSInit(a, b, c) {
+		return GridFSInit(a, b, c);
+	}
+
+	__cjs_GridFSDone(a) {
+		return GridFSDone(a);
+	}
+
+	__cjs_GridFSStore(a, b, c, d) {
+		return GridFSStore(a, b, c, d);
+	}
+
+	__cjs_GridFSGet(a, b) {
+		return GridFSGet(a, b);
+	}
+
+	__cjs_GridFSRemove(a, b) {
+		return GridFSRemove(a, b);
+	}
+
+	__cjs_GridFSExists(a, b) {
+		return GridFSExists(a, b);
+	}
+
+	__cjs_GridFSSize(a, b) {
+		return GridFSSize(a, b);
+	}
+
+	__cjs_GridFSType(a, b) {
+		return GridFSType(a, b);
+	}
+
+	__cjs_GridFSDate(a, b) {
+		return GridFSDate(a, b);
+	}
+
+	__cjs_GridFSMD5(a, b) {
+		return GridFSMD5(a, b);
+	}
+
+	__cjs_MongoError(a, b = null) {
+		return MongoError(a, b = null);
+	}
+
+	wrap(js) {
+		js.wrap(this.__cjs_MongoConnect, "__cjs_MongoConnect");
+		js.wrap(this.__cjs_MongoDisconnect, "__cjs_MongoDisconnect");
+		js.wrap(this.__cjs_MongoCount, "__cjs_MongoCount");
+		js.wrap(this.__cjs_MongoFind, "__cjs_MongoFind");
+		js.wrap(this.__cjs_MongoNext, "__cjs_MongoNext");
+		js.wrap(this.__cjs_MongoClose, "__cjs_MongoClose");
+		js.wrap(this.__cjs_MongoInsert, "__cjs_MongoInsert");
+		js.wrap(this.__cjs_MongoRemove, "__cjs_MongoRemove");
+		js.wrap(this.__cjs_MongoUpdate, "__cjs_MongoUpdate");
+		js.wrap(this.__cjs_MongoUpdateType, "__cjs_MongoUpdateType");
+		js.wrap(this.__cjs_MongoUpdateObject, "__cjs_MongoUpdateObject");
+		js.wrap(this.__cjs_MongoSimpleCommand, "__cjs_MongoSimpleCommand");
+		js.wrap(this.__cjs_MongoCommand, "__cjs_MongoCommand");
+		js.wrap(this.__cjs_MongoIndex, "__cjs_MongoIndex");
+		js.wrap(this.__cjs_GridFSInit, "__cjs_GridFSInit");
+		js.wrap(this.__cjs_GridFSDone, "__cjs_GridFSDone");
+		js.wrap(this.__cjs_GridFSStore, "__cjs_GridFSStore");
+		js.wrap(this.__cjs_GridFSGet, "__cjs_GridFSGet");
+		js.wrap(this.__cjs_GridFSRemove, "__cjs_GridFSRemove");
+		js.wrap(this.__cjs_GridFSExists, "__cjs_GridFSExists");
+		js.wrap(this.__cjs_GridFSSize, "__cjs_GridFSSize");
+		js.wrap(this.__cjs_GridFSType, "__cjs_GridFSType");
+		js.wrap(this.__cjs_GridFSDate, "__cjs_GridFSDate");
+		js.wrap(this.__cjs_GridFSMD5, "__cjs_GridFSMD5");
+		js.wrap(this.__cjs_MongoError, "__cjs_MongoError");
+	}
+
+	ECMABRIDGE_standard_db_mongo2(js) {
+		this.wrap(js);
+	}
+}

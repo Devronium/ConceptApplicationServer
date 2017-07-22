@@ -1,0 +1,137 @@
+/* This file is generated automatically by generatejs.con. Do not edit. */
+
+import standard.db.firebird
+
+class ECMABRIDGE_standard_db_firebird {
+	__cjs_FBConnect(a, b, c) {
+		return FBConnect(a, b, c);
+	}
+
+	__cjs_FBDisconnect(a) {
+		return FBDisconnect(a);
+	}
+
+	__cjs_FBError(a) {
+		return FBError(a);
+	}
+
+	__cjs_FBErrorCode(a) {
+		return FBErrorCode(a);
+	}
+
+	__cjs_FBTransaction(a, b) {
+		return FBTransaction(a, b);
+	}
+
+	__cjs_FBCommit(a, b, c) {
+		return FBCommit(a, b, c);
+	}
+
+	__cjs_FBRollback(a, b) {
+		return FBRollback(a, b);
+	}
+
+	__cjs_FBNonQuery(a, b, c) {
+		return FBNonQuery(a, b, c);
+	}
+
+	__cjs_FBQuery(a, b, c, d) {
+		return FBQuery(a, b, c, d);
+	}
+
+	__cjs_FBFreeResult(a) {
+		return FBFreeResult(a);
+	}
+
+	__cjs_FBFetchForward(a) {
+		return FBFetchForward(a);
+	}
+
+	__cjs_FBGetValue(a, b) {
+		return FBGetValue(a, b);
+	}
+
+	__cjs_FBIsBlob(a, b) {
+		return FBIsBlob(a, b);
+	}
+
+	__cjs_FBGetBlobId(a, b) {
+		return FBGetBlobId(a, b);
+	}
+
+	__cjs_FBIsNull(a, b) {
+		return FBIsNull(a, b);
+	}
+
+	__cjs_FBDescribeCol(a, b) {
+		return FBDescribeCol(a, b);
+	}
+
+	__cjs_FBColumnName(a, b, c) {
+		return FBColumnName(a, b, c);
+	}
+
+	__cjs_FBCountColumns(a) {
+		return FBCountColumns(a);
+	}
+
+	__cjs_FBAffectedRows(a) {
+		return FBAffectedRows(a);
+	}
+
+	__cjs_FBBlobOpen(a, b) {
+		return FBBlobOpen(a, b);
+	}
+
+	__cjs_FBBlobRead(a) {
+		return FBBlobRead(a);
+	}
+
+	__cjs_FBBlobWrite(a, b, c) {
+		return FBBlobWrite(a, b, c);
+	}
+
+	__cjs_FBBlobSeek(a, b, c, d) {
+		return FBBlobSeek(a, b, c, d);
+	}
+
+	__cjs_FBBlobClose(a) {
+		return FBBlobClose(a);
+	}
+
+	__cjs_FBBlobCreate(a, b, c, d) {
+		return FBBlobCreate(a, b, c, d);
+	}
+
+	wrap(js) {
+		js.wrap(this.__cjs_FBConnect, "__cjs_FBConnect");
+		js.wrap(this.__cjs_FBDisconnect, "__cjs_FBDisconnect");
+		js.wrap(this.__cjs_FBError, "__cjs_FBError");
+		js.wrap(this.__cjs_FBErrorCode, "__cjs_FBErrorCode");
+		js.wrap(this.__cjs_FBTransaction, "__cjs_FBTransaction");
+		js.wrap(this.__cjs_FBCommit, "__cjs_FBCommit");
+		js.wrap(this.__cjs_FBRollback, "__cjs_FBRollback");
+		js.wrap(this.__cjs_FBNonQuery, "__cjs_FBNonQuery");
+		js.wrap(this.__cjs_FBQuery, "__cjs_FBQuery");
+		js.wrap(this.__cjs_FBFreeResult, "__cjs_FBFreeResult");
+		js.wrap(this.__cjs_FBFetchForward, "__cjs_FBFetchForward");
+		js.wrap(this.__cjs_FBGetValue, "__cjs_FBGetValue");
+		js.wrap(this.__cjs_FBIsBlob, "__cjs_FBIsBlob");
+		js.wrap(this.__cjs_FBGetBlobId, "__cjs_FBGetBlobId");
+		js.wrap(this.__cjs_FBIsNull, "__cjs_FBIsNull");
+		js.wrap(this.__cjs_FBDescribeCol, "__cjs_FBDescribeCol");
+		js.wrap(this.__cjs_FBColumnName, "__cjs_FBColumnName");
+		js.wrap(this.__cjs_FBCountColumns, "__cjs_FBCountColumns");
+		js.wrap(this.__cjs_FBAffectedRows, "__cjs_FBAffectedRows");
+		js.wrap(this.__cjs_FBBlobOpen, "__cjs_FBBlobOpen");
+		js.wrap(this.__cjs_FBBlobRead, "__cjs_FBBlobRead");
+		js.wrap(this.__cjs_FBBlobWrite, "__cjs_FBBlobWrite");
+		js.wrap(this.__cjs_FBBlobSeek, "__cjs_FBBlobSeek");
+		js.wrap(this.__cjs_FBBlobClose, "__cjs_FBBlobClose");
+		js.wrap(this.__cjs_FBBlobCreate, "__cjs_FBBlobCreate");
+	}
+
+	ECMABRIDGE_standard_db_firebird(js) {
+		this.wrap(js);
+	}
+}

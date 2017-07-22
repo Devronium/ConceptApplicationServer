@@ -1,0 +1,22 @@
+/* This file is generated automatically by generatejs.con. Do not edit. */
+
+import standard.lib.ocr
+
+class ECMABRIDGE_standard_lib_ocr {
+	__cjs_OCR(a, b, c, d = null, e = null) {
+		return OCR(a, b, c, d = null, e = null);
+	}
+
+	__cjs_OCRDebugFile(a) {
+		return OCRDebugFile(a);
+	}
+
+	wrap(js) {
+		js.wrap(this.__cjs_OCR, "__cjs_OCR");
+		js.wrap(this.__cjs_OCRDebugFile, "__cjs_OCRDebugFile");
+	}
+
+	ECMABRIDGE_standard_lib_ocr(js) {
+		this.wrap(js);
+	}
+}

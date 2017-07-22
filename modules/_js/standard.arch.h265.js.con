@@ -1,0 +1,42 @@
+/* This file is generated automatically by generatejs.con. Do not edit. */
+
+import standard.arch.h265
+
+class ECMABRIDGE_standard_arch_h265 {
+	__cjs_H265Encoder(a) {
+		return H265Encoder(a);
+	}
+
+	__cjs_H265Decoder(a) {
+		return H265Decoder(a);
+	}
+
+	__cjs_H265Encode(a, b, c, d, e) {
+		return H265Encode(a, b, c, d, e);
+	}
+
+	__cjs_H265Decode(a, b, c) {
+		return H265Decode(a, b, c);
+	}
+
+	__cjs_H265EncoderDone(a) {
+		return H265EncoderDone(a);
+	}
+
+	__cjs_H265DecoderDone(a) {
+		return H265DecoderDone(a);
+	}
+
+	wrap(js) {
+		js.wrap(this.__cjs_H265Encoder, "__cjs_H265Encoder");
+		js.wrap(this.__cjs_H265Decoder, "__cjs_H265Decoder");
+		js.wrap(this.__cjs_H265Encode, "__cjs_H265Encode");
+		js.wrap(this.__cjs_H265Decode, "__cjs_H265Decode");
+		js.wrap(this.__cjs_H265EncoderDone, "__cjs_H265EncoderDone");
+		js.wrap(this.__cjs_H265DecoderDone, "__cjs_H265DecoderDone");
+	}
+
+	ECMABRIDGE_standard_arch_h265(js) {
+		this.wrap(js);
+	}
+}

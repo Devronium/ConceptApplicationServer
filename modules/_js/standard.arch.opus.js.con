@@ -1,0 +1,142 @@
+/* This file is generated automatically by generatejs.con. Do not edit. */
+
+import standard.arch.opus
+
+class ECMABRIDGE_standard_arch_opus {
+	__cjs_opus_encoder_create(a, b, c, d) {
+		return opus_encoder_create(a, b, c, d);
+	}
+
+	__cjs_opus_encode(a, b, c) {
+		return opus_encode(a, b, c);
+	}
+
+	__cjs_opus_encoder_ctl(a, b, c) {
+		return opus_encoder_ctl(a, b, c);
+	}
+
+	__cjs_opus_encoder_destroy(a) {
+		return opus_encoder_destroy(a);
+	}
+
+	__cjs_opus_decoder_create(a, b, c) {
+		return opus_decoder_create(a, b, c);
+	}
+
+	__cjs_opus_decode(a, b, c, d, e) {
+		return opus_decode(a, b, c, d, e);
+	}
+
+	__cjs_opus_decoder_ctl(a, b, c) {
+		return opus_decoder_ctl(a, b, c);
+	}
+
+	__cjs_opus_decoder_destroy(a) {
+		return opus_decoder_destroy(a);
+	}
+
+	__cjs_opus_packet_get_bandwidth(a) {
+		return opus_packet_get_bandwidth(a);
+	}
+
+	__cjs_opus_packet_get_nb_channels(a) {
+		return opus_packet_get_nb_channels(a);
+	}
+
+	__cjs_opus_packet_get_nb_frames(a) {
+		return opus_packet_get_nb_frames(a);
+	}
+
+	__cjs_opus_packet_get_nb_samples(a, b) {
+		return opus_packet_get_nb_samples(a, b);
+	}
+
+	__cjs_opus_decoder_get_nb_samples(a, b) {
+		return opus_decoder_get_nb_samples(a, b);
+	}
+
+	__cjs_opus_repacketizer_create() {
+		return opus_repacketizer_create();
+	}
+
+	__cjs_opus_repacketizer_destroy(a) {
+		return opus_repacketizer_destroy(a);
+	}
+
+	__cjs_opus_repacketizer_cat(a, b) {
+		return opus_repacketizer_cat(a, b);
+	}
+
+	__cjs_opus_repacketizer_out_range(a, b, c, d, e) {
+		return opus_repacketizer_out_range(a, b, c, d, e);
+	}
+
+	__cjs_opus_repacketizer_get_nb_frames(a) {
+		return opus_repacketizer_get_nb_frames(a);
+	}
+
+	__cjs_opus_repacketizer_out(a, b, c) {
+		return opus_repacketizer_out(a, b, c);
+	}
+
+	__cjs_alaw2ulaw(a) {
+		return alaw2ulaw(a);
+	}
+
+	__cjs_ulaw2alaw(a) {
+		return ulaw2alaw(a);
+	}
+
+	__cjs_alaw2pcm(a) {
+		return alaw2pcm(a);
+	}
+
+	__cjs_ulaw2pcm(a) {
+		return ulaw2pcm(a);
+	}
+
+	__cjs_pcm2ulaw(a) {
+		return pcm2ulaw(a);
+	}
+
+	__cjs_pcm2alaw(a) {
+		return pcm2alaw(a);
+	}
+
+	__cjs_downsample44k(a, b) {
+		return downsample44k(a, b);
+	}
+
+	wrap(js) {
+		js.wrap(this.__cjs_opus_encoder_create, "__cjs_opus_encoder_create");
+		js.wrap(this.__cjs_opus_encode, "__cjs_opus_encode");
+		js.wrap(this.__cjs_opus_encoder_ctl, "__cjs_opus_encoder_ctl");
+		js.wrap(this.__cjs_opus_encoder_destroy, "__cjs_opus_encoder_destroy");
+		js.wrap(this.__cjs_opus_decoder_create, "__cjs_opus_decoder_create");
+		js.wrap(this.__cjs_opus_decode, "__cjs_opus_decode");
+		js.wrap(this.__cjs_opus_decoder_ctl, "__cjs_opus_decoder_ctl");
+		js.wrap(this.__cjs_opus_decoder_destroy, "__cjs_opus_decoder_destroy");
+		js.wrap(this.__cjs_opus_packet_get_bandwidth, "__cjs_opus_packet_get_bandwidth");
+		js.wrap(this.__cjs_opus_packet_get_nb_channels, "__cjs_opus_packet_get_nb_channels");
+		js.wrap(this.__cjs_opus_packet_get_nb_frames, "__cjs_opus_packet_get_nb_frames");
+		js.wrap(this.__cjs_opus_packet_get_nb_samples, "__cjs_opus_packet_get_nb_samples");
+		js.wrap(this.__cjs_opus_decoder_get_nb_samples, "__cjs_opus_decoder_get_nb_samples");
+		js.wrap(this.__cjs_opus_repacketizer_create, "__cjs_opus_repacketizer_create");
+		js.wrap(this.__cjs_opus_repacketizer_destroy, "__cjs_opus_repacketizer_destroy");
+		js.wrap(this.__cjs_opus_repacketizer_cat, "__cjs_opus_repacketizer_cat");
+		js.wrap(this.__cjs_opus_repacketizer_out_range, "__cjs_opus_repacketizer_out_range");
+		js.wrap(this.__cjs_opus_repacketizer_get_nb_frames, "__cjs_opus_repacketizer_get_nb_frames");
+		js.wrap(this.__cjs_opus_repacketizer_out, "__cjs_opus_repacketizer_out");
+		js.wrap(this.__cjs_alaw2ulaw, "__cjs_alaw2ulaw");
+		js.wrap(this.__cjs_ulaw2alaw, "__cjs_ulaw2alaw");
+		js.wrap(this.__cjs_alaw2pcm, "__cjs_alaw2pcm");
+		js.wrap(this.__cjs_ulaw2pcm, "__cjs_ulaw2pcm");
+		js.wrap(this.__cjs_pcm2ulaw, "__cjs_pcm2ulaw");
+		js.wrap(this.__cjs_pcm2alaw, "__cjs_pcm2alaw");
+		js.wrap(this.__cjs_downsample44k, "__cjs_downsample44k");
+	}
+
+	ECMABRIDGE_standard_arch_opus(js) {
+		this.wrap(js);
+	}
+}

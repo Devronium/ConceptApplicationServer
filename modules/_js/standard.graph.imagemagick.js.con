@@ -1,0 +1,2987 @@
+/* This file is generated automatically by generatejs.con. Do not edit. */
+
+import standard.graph.imagemagick
+
+class ECMABRIDGE_standard_graph_imagemagick {
+	__cjs_MagickRelinquishMemory(a) {
+		return MagickRelinquishMemory(a);
+	}
+
+	__cjs_MagickGetException(a, b) {
+		return MagickGetException(a, b);
+	}
+
+	__cjs_NewMagickWand() {
+		return NewMagickWand();
+	}
+
+	__cjs_MagickReadImage(a, b) {
+		return MagickReadImage(a, b);
+	}
+
+	__cjs_MagickWriteImages(a, b, c = null) {
+		return MagickWriteImages(a, b, c = null);
+	}
+
+	__cjs_MagickSetIteratorIndex(a, b) {
+		return MagickSetIteratorIndex(a, b);
+	}
+
+	__cjs_MagickGetIteratorIndex(a) {
+		return MagickGetIteratorIndex(a);
+	}
+
+	__cjs_MagickResetIterator(a) {
+		return MagickResetIterator(a);
+	}
+
+	__cjs_MagickSetFirstIterator(a) {
+		return MagickSetFirstIterator(a);
+	}
+
+	__cjs_MagickSetLastIterator(a) {
+		return MagickSetLastIterator(a);
+	}
+
+	__cjs_MagickNextImage(a) {
+		return MagickNextImage(a);
+	}
+
+	__cjs_MagickResizeImage(a, b, c, d, e) {
+		return MagickResizeImage(a, b, c, d, e);
+	}
+
+	__cjs_DestroyMagickWand(a) {
+		return DestroyMagickWand(a);
+	}
+
+	__cjs_ClearMagickWand(a) {
+		return ClearMagickWand(a);
+	}
+
+	__cjs_NewMagickWandFromImage(a) {
+		return NewMagickWandFromImage(a);
+	}
+
+	__cjs_CloneMagickWand(a) {
+		return CloneMagickWand(a);
+	}
+
+	__cjs_IsMagickWand(a) {
+		return IsMagickWand(a);
+	}
+
+	__cjs_MagickGetExceptionType(a) {
+		return MagickGetExceptionType(a);
+	}
+
+	__cjs_MagickClearException(a) {
+		return MagickClearException(a);
+	}
+
+	__cjs_MagickAdaptiveBlurImage(a, b, c) {
+		return MagickAdaptiveBlurImage(a, b, c);
+	}
+
+	__cjs_MagickAdaptiveBlurImageChannel(a, b, c, d) {
+		return MagickAdaptiveBlurImageChannel(a, b, c, d);
+	}
+
+	__cjs_MagickAdaptiveResizeImage(a, b, c) {
+		return MagickAdaptiveResizeImage(a, b, c);
+	}
+
+	__cjs_MagickAdaptiveSharpenImage(a, b, c) {
+		return MagickAdaptiveSharpenImage(a, b, c);
+	}
+
+	__cjs_MagickAdaptiveSharpenImageChannel(a, b, c, d) {
+		return MagickAdaptiveSharpenImageChannel(a, b, c, d);
+	}
+
+	__cjs_MagickAdaptiveThresholdImage(a, b, c, d) {
+		return MagickAdaptiveThresholdImage(a, b, c, d);
+	}
+
+	__cjs_MagickAddImage(a, b) {
+		return MagickAddImage(a, b);
+	}
+
+	__cjs_MagickAddNoiseImage(a, b) {
+		return MagickAddNoiseImage(a, b);
+	}
+
+	__cjs_MagickAddNoiseImageChannel(a, b, c) {
+		return MagickAddNoiseImageChannel(a, b, c);
+	}
+
+	__cjs_MagickAffineTransformImage(a, b) {
+		return MagickAffineTransformImage(a, b);
+	}
+
+	__cjs_MagickAnnotateImage(a, b, c, d, e, f) {
+		return MagickAnnotateImage(a, b, c, d, e, f);
+	}
+
+	__cjs_MagickAnimateImages(a, b) {
+		return MagickAnimateImages(a, b);
+	}
+
+	__cjs_MagickAutoGammaImage(a) {
+		return MagickAutoGammaImage(a);
+	}
+
+	__cjs_MagickAutoGammaImageChannel(a, b) {
+		return MagickAutoGammaImageChannel(a, b);
+	}
+
+	__cjs_MagickAutoLevelImage(a) {
+		return MagickAutoLevelImage(a);
+	}
+
+	__cjs_MagickAutoLevelImageChannel(a, b) {
+		return MagickAutoLevelImageChannel(a, b);
+	}
+
+	__cjs_MagickBlackThresholdImage(a, b) {
+		return MagickBlackThresholdImage(a, b);
+	}
+
+	__cjs_MagickBlueShiftImage(a, b) {
+		return MagickBlueShiftImage(a, b);
+	}
+
+	__cjs_MagickBlurImage(a, b, c) {
+		return MagickBlurImage(a, b, c);
+	}
+
+	__cjs_MagickBlurImageChannel(a, b, c, d) {
+		return MagickBlurImageChannel(a, b, c, d);
+	}
+
+	__cjs_MagickBorderImage(a, b, c, d) {
+		return MagickBorderImage(a, b, c, d);
+	}
+
+	__cjs_MagickBrightnessContrastImage(a, b, c) {
+		return MagickBrightnessContrastImage(a, b, c);
+	}
+
+	__cjs_MagickBrightnessContrastImageChannel(a, b, c, d) {
+		return MagickBrightnessContrastImageChannel(a, b, c, d);
+	}
+
+	__cjs_MagickCharcoalImage(a, b, c) {
+		return MagickCharcoalImage(a, b, c);
+	}
+
+	__cjs_MagickChopImage(a, b, c, d, e) {
+		return MagickChopImage(a, b, c, d, e);
+	}
+
+	__cjs_MagickClampImage(a) {
+		return MagickClampImage(a);
+	}
+
+	__cjs_MagickClampImageChannel(a, b) {
+		return MagickClampImageChannel(a, b);
+	}
+
+	__cjs_MagickClipImage(a) {
+		return MagickClipImage(a);
+	}
+
+	__cjs_MagickClipImagePath(a, b, c) {
+		return MagickClipImagePath(a, b, c);
+	}
+
+	__cjs_MagickClutImage(a, b) {
+		return MagickClutImage(a, b);
+	}
+
+	__cjs_MagickClutImageChannel(a, b, c) {
+		return MagickClutImageChannel(a, b, c);
+	}
+
+	__cjs_MagickColorDecisionListImage(a, b) {
+		return MagickColorDecisionListImage(a, b);
+	}
+
+	__cjs_MagickColorizeImage(a, b, c) {
+		return MagickColorizeImage(a, b, c);
+	}
+
+	__cjs_MagickColorMatrixImage(a, b) {
+		return MagickColorMatrixImage(a, b);
+	}
+
+	__cjs_MagickCommentImage(a, b) {
+		return MagickCommentImage(a, b);
+	}
+
+	__cjs_MagickCompositeImage(a, b, c, d, e) {
+		return MagickCompositeImage(a, b, c, d, e);
+	}
+
+	__cjs_MagickCompositeImageChannel(a, b, c, d, e, f) {
+		return MagickCompositeImageChannel(a, b, c, d, e, f);
+	}
+
+	__cjs_MagickConstituteImage(a, b, c, d, e, f) {
+		return MagickConstituteImage(a, b, c, d, e, f);
+	}
+
+	__cjs_MagickContrastImage(a, b) {
+		return MagickContrastImage(a, b);
+	}
+
+	__cjs_MagickContrastStretchImage(a, b, c) {
+		return MagickContrastStretchImage(a, b, c);
+	}
+
+	__cjs_MagickContrastStretchImageChannel(a, b, c, d) {
+		return MagickContrastStretchImageChannel(a, b, c, d);
+	}
+
+	__cjs_MagickConvolveImage(a, b, c) {
+		return MagickConvolveImage(a, b, c);
+	}
+
+	__cjs_MagickConvolveImageChannel(a, b, c, d) {
+		return MagickConvolveImageChannel(a, b, c, d);
+	}
+
+	__cjs_MagickCropImage(a, b, c, d, e) {
+		return MagickCropImage(a, b, c, d, e);
+	}
+
+	__cjs_MagickCycleColormapImage(a, b) {
+		return MagickCycleColormapImage(a, b);
+	}
+
+	__cjs_MagickDecipherImage(a, b) {
+		return MagickDecipherImage(a, b);
+	}
+
+	__cjs_MagickDeskewImage(a, b) {
+		return MagickDeskewImage(a, b);
+	}
+
+	__cjs_MagickDespeckleImage(a) {
+		return MagickDespeckleImage(a);
+	}
+
+	__cjs_MagickDisplayImage(a, b) {
+		return MagickDisplayImage(a, b);
+	}
+
+	__cjs_MagickDisplayImages(a, b) {
+		return MagickDisplayImages(a, b);
+	}
+
+	__cjs_MagickDistortImage(a, b, c, d, e) {
+		return MagickDistortImage(a, b, c, d, e);
+	}
+
+	__cjs_MagickDrawImage(a, b) {
+		return MagickDrawImage(a, b);
+	}
+
+	__cjs_MagickEdgeImage(a, b) {
+		return MagickEdgeImage(a, b);
+	}
+
+	__cjs_MagickEmbossImage(a, b, c) {
+		return MagickEmbossImage(a, b, c);
+	}
+
+	__cjs_MagickEncipherImage(a, b) {
+		return MagickEncipherImage(a, b);
+	}
+
+	__cjs_MagickEnhanceImage(a) {
+		return MagickEnhanceImage(a);
+	}
+
+	__cjs_MagickEqualizeImage(a) {
+		return MagickEqualizeImage(a);
+	}
+
+	__cjs_MagickEqualizeImageChannel(a, b) {
+		return MagickEqualizeImageChannel(a, b);
+	}
+
+	__cjs_MagickEvaluateImage(a, b, c) {
+		return MagickEvaluateImage(a, b, c);
+	}
+
+	__cjs_MagickEvaluateImageChannel(a, b, c, d) {
+		return MagickEvaluateImageChannel(a, b, c, d);
+	}
+
+	__cjs_MagickExportImagePixels(a, b, c, d, e, f, g, h) {
+		return MagickExportImagePixels(a, b, c, d, e, f, g, h);
+	}
+
+	__cjs_MagickExtentImage(a, b, c, d, e) {
+		return MagickExtentImage(a, b, c, d, e);
+	}
+
+	__cjs_MagickFilterImage(a, b) {
+		return MagickFilterImage(a, b);
+	}
+
+	__cjs_MagickFilterImageChannel(a, b, c) {
+		return MagickFilterImageChannel(a, b, c);
+	}
+
+	__cjs_MagickFlipImage(a) {
+		return MagickFlipImage(a);
+	}
+
+	__cjs_MagickFloodfillPaintImage(a, b, c, d, e, f, g, h) {
+		return MagickFloodfillPaintImage(a, b, c, d, e, f, g, h);
+	}
+
+	__cjs_MagickFlopImage(a) {
+		return MagickFlopImage(a);
+	}
+
+	__cjs_MagickForwardFourierTransformImage(a, b) {
+		return MagickForwardFourierTransformImage(a, b);
+	}
+
+	__cjs_MagickFrameImage(a, b, c, d, e, f) {
+		return MagickFrameImage(a, b, c, d, e, f);
+	}
+
+	__cjs_MagickFunctionImage(a, b, c, d) {
+		return MagickFunctionImage(a, b, c, d);
+	}
+
+	__cjs_MagickFunctionImageChannel(a, b, c, d, e) {
+		return MagickFunctionImageChannel(a, b, c, d, e);
+	}
+
+	__cjs_MagickGammaImage(a, b) {
+		return MagickGammaImage(a, b);
+	}
+
+	__cjs_MagickGammaImageChannel(a, b, c) {
+		return MagickGammaImageChannel(a, b, c);
+	}
+
+	__cjs_MagickGaussianBlurImage(a, b, c) {
+		return MagickGaussianBlurImage(a, b, c);
+	}
+
+	__cjs_MagickGaussianBlurImageChannel(a, b, c, d) {
+		return MagickGaussianBlurImageChannel(a, b, c, d);
+	}
+
+	__cjs_MagickGetImageAlphaChannel(a) {
+		return MagickGetImageAlphaChannel(a);
+	}
+
+	__cjs_MagickGetImageBackgroundColor(a, b) {
+		return MagickGetImageBackgroundColor(a, b);
+	}
+
+	__cjs_MagickGetImageBluePrimary(a, b, c) {
+		return MagickGetImageBluePrimary(a, b, c);
+	}
+
+	__cjs_MagickGetImageBorderColor(a, b) {
+		return MagickGetImageBorderColor(a, b);
+	}
+
+	__cjs_MagickGetImageChannelDistortion(a, b, c, d, e) {
+		return MagickGetImageChannelDistortion(a, b, c, d, e);
+	}
+
+	__cjs_MagickGetImageChannelKurtosis(a, b, c, d) {
+		return MagickGetImageChannelKurtosis(a, b, c, d);
+	}
+
+	__cjs_MagickGetImageChannelMean(a, b, c, d) {
+		return MagickGetImageChannelMean(a, b, c, d);
+	}
+
+	__cjs_MagickGetImageChannelRange(a, b, c, d) {
+		return MagickGetImageChannelRange(a, b, c, d);
+	}
+
+	__cjs_MagickGetImageColormapColor(a, b, c) {
+		return MagickGetImageColormapColor(a, b, c);
+	}
+
+	__cjs_MagickGetImageDistortion(a, b, c, d) {
+		return MagickGetImageDistortion(a, b, c, d);
+	}
+
+	__cjs_MagickGetImageGreenPrimary(a, b, c) {
+		return MagickGetImageGreenPrimary(a, b, c);
+	}
+
+	__cjs_MagickGetImageMatteColor(a, b) {
+		return MagickGetImageMatteColor(a, b);
+	}
+
+	__cjs_MagickGetImageLength(a, b) {
+		return MagickGetImageLength(a, b);
+	}
+
+	__cjs_MagickGetImagePage(a, b, c, d, e) {
+		return MagickGetImagePage(a, b, c, d, e);
+	}
+
+	__cjs_MagickGetImagePixelColor(a, b, c, d) {
+		return MagickGetImagePixelColor(a, b, c, d);
+	}
+
+	__cjs_MagickGetImageRange(a, b, c) {
+		return MagickGetImageRange(a, b, c);
+	}
+
+	__cjs_MagickGetImageRedPrimary(a, b, c) {
+		return MagickGetImageRedPrimary(a, b, c);
+	}
+
+	__cjs_MagickGetImageResolution(a, b, c) {
+		return MagickGetImageResolution(a, b, c);
+	}
+
+	__cjs_MagickGetImageWhitePoint(a, b, c) {
+		return MagickGetImageWhitePoint(a, b, c);
+	}
+
+	__cjs_MagickHaldClutImage(a, b) {
+		return MagickHaldClutImage(a, b);
+	}
+
+	__cjs_MagickHaldClutImageChannel(a, b, c) {
+		return MagickHaldClutImageChannel(a, b, c);
+	}
+
+	__cjs_MagickHasNextImage(a) {
+		return MagickHasNextImage(a);
+	}
+
+	__cjs_MagickHasPreviousImage(a) {
+		return MagickHasPreviousImage(a);
+	}
+
+	__cjs_MagickImplodeImage(a, b) {
+		return MagickImplodeImage(a, b);
+	}
+
+	__cjs_MagickImportImagePixels(a, b, c, d, e, f, g, h) {
+		return MagickImportImagePixels(a, b, c, d, e, f, g, h);
+	}
+
+	__cjs_MagickInverseFourierTransformImage(a, b, c) {
+		return MagickInverseFourierTransformImage(a, b, c);
+	}
+
+	__cjs_MagickLabelImage(a, b) {
+		return MagickLabelImage(a, b);
+	}
+
+	__cjs_MagickLevelImage(a, b, c, d) {
+		return MagickLevelImage(a, b, c, d);
+	}
+
+	__cjs_MagickLevelImageChannel(a, b, c, d, e) {
+		return MagickLevelImageChannel(a, b, c, d, e);
+	}
+
+	__cjs_MagickLinearStretchImage(a, b, c) {
+		return MagickLinearStretchImage(a, b, c);
+	}
+
+	__cjs_MagickLiquidRescaleImage(a, b, c, d, e) {
+		return MagickLiquidRescaleImage(a, b, c, d, e);
+	}
+
+	__cjs_MagickMagnifyImage(a) {
+		return MagickMagnifyImage(a);
+	}
+
+	__cjs_MagickMedianFilterImage(a, b) {
+		return MagickMedianFilterImage(a, b);
+	}
+
+	__cjs_MagickMinifyImage(a) {
+		return MagickMinifyImage(a);
+	}
+
+	__cjs_MagickModulateImage(a, b, c, d) {
+		return MagickModulateImage(a, b, c, d);
+	}
+
+	__cjs_MagickMorphologyImage(a, b, c, d) {
+		return MagickMorphologyImage(a, b, c, d);
+	}
+
+	__cjs_MagickMorphologyImageChannel(a, b, c, d, e) {
+		return MagickMorphologyImageChannel(a, b, c, d, e);
+	}
+
+	__cjs_MagickMotionBlurImage(a, b, c, d) {
+		return MagickMotionBlurImage(a, b, c, d);
+	}
+
+	__cjs_MagickMotionBlurImageChannel(a, b, c, d, e) {
+		return MagickMotionBlurImageChannel(a, b, c, d, e);
+	}
+
+	__cjs_MagickNegateImage(a, b) {
+		return MagickNegateImage(a, b);
+	}
+
+	__cjs_MagickNegateImageChannel(a, b, c) {
+		return MagickNegateImageChannel(a, b, c);
+	}
+
+	__cjs_MagickNewImage(a, b, c, d) {
+		return MagickNewImage(a, b, c, d);
+	}
+
+	__cjs_MagickNormalizeImage(a) {
+		return MagickNormalizeImage(a);
+	}
+
+	__cjs_MagickNormalizeImageChannel(a, b) {
+		return MagickNormalizeImageChannel(a, b);
+	}
+
+	__cjs_MagickOilPaintImage(a, b) {
+		return MagickOilPaintImage(a, b);
+	}
+
+	__cjs_MagickOpaquePaintImage(a, b, c, d, e) {
+		return MagickOpaquePaintImage(a, b, c, d, e);
+	}
+
+	__cjs_MagickOpaquePaintImageChannel(a, b, c, d, e, f) {
+		return MagickOpaquePaintImageChannel(a, b, c, d, e, f);
+	}
+
+	__cjs_MagickOrderedPosterizeImage(a, b) {
+		return MagickOrderedPosterizeImage(a, b);
+	}
+
+	__cjs_MagickOrderedPosterizeImageChannel(a, b, c) {
+		return MagickOrderedPosterizeImageChannel(a, b, c);
+	}
+
+	__cjs_MagickTransparentPaintImage(a, b, c, d, e) {
+		return MagickTransparentPaintImage(a, b, c, d, e);
+	}
+
+	__cjs_MagickPingImage(a, b) {
+		return MagickPingImage(a, b);
+	}
+
+	__cjs_MagickPingImageBlob(a, b) {
+		return MagickPingImageBlob(a, b);
+	}
+
+	__cjs_MagickPingImageFile(a, b) {
+		return MagickPingImageFile(a, b);
+	}
+
+	__cjs_MagickPolaroidImage(a, b, c) {
+		return MagickPolaroidImage(a, b, c);
+	}
+
+	__cjs_MagickPosterizeImage(a, b, c) {
+		return MagickPosterizeImage(a, b, c);
+	}
+
+	__cjs_MagickPreviousImage(a) {
+		return MagickPreviousImage(a);
+	}
+
+	__cjs_MagickQuantizeImage(a, b, c, d, e, f) {
+		return MagickQuantizeImage(a, b, c, d, e, f);
+	}
+
+	__cjs_MagickQuantizeImages(a, b, c, d, e, f) {
+		return MagickQuantizeImages(a, b, c, d, e, f);
+	}
+
+	__cjs_MagickRadialBlurImage(a, b) {
+		return MagickRadialBlurImage(a, b);
+	}
+
+	__cjs_MagickRadialBlurImageChannel(a, b, c) {
+		return MagickRadialBlurImageChannel(a, b, c);
+	}
+
+	__cjs_MagickRaiseImage(a, b, c, d, e, f) {
+		return MagickRaiseImage(a, b, c, d, e, f);
+	}
+
+	__cjs_MagickRandomThresholdImage(a, b, c) {
+		return MagickRandomThresholdImage(a, b, c);
+	}
+
+	__cjs_MagickRandomThresholdImageChannel(a, b, c, d) {
+		return MagickRandomThresholdImageChannel(a, b, c, d);
+	}
+
+	__cjs_MagickReadImageBlob(a, b) {
+		return MagickReadImageBlob(a, b);
+	}
+
+	__cjs_MagickReadImageFile(a, b) {
+		return MagickReadImageFile(a, b);
+	}
+
+	__cjs_MagickReduceNoiseImage(a, b) {
+		return MagickReduceNoiseImage(a, b);
+	}
+
+	__cjs_MagickRemapImage(a, b, c) {
+		return MagickRemapImage(a, b, c);
+	}
+
+	__cjs_MagickRemoveImage(a) {
+		return MagickRemoveImage(a);
+	}
+
+	__cjs_MagickResampleImage(a, b, c, d, e) {
+		return MagickResampleImage(a, b, c, d, e);
+	}
+
+	__cjs_MagickResetImagePage(a, b) {
+		return MagickResetImagePage(a, b);
+	}
+
+	__cjs_MagickRollImage(a, b, c) {
+		return MagickRollImage(a, b, c);
+	}
+
+	__cjs_MagickRotateImage(a, b, c) {
+		return MagickRotateImage(a, b, c);
+	}
+
+	__cjs_MagickSampleImage(a, b, c) {
+		return MagickSampleImage(a, b, c);
+	}
+
+	__cjs_MagickScaleImage(a, b, c) {
+		return MagickScaleImage(a, b, c);
+	}
+
+	__cjs_MagickSegmentImage(a, b, c, d, e) {
+		return MagickSegmentImage(a, b, c, d, e);
+	}
+
+	__cjs_MagickSelectiveBlurImage(a, b, c, d) {
+		return MagickSelectiveBlurImage(a, b, c, d);
+	}
+
+	__cjs_MagickSelectiveBlurImageChannel(a, b, c, d, e) {
+		return MagickSelectiveBlurImageChannel(a, b, c, d, e);
+	}
+
+	__cjs_MagickSeparateImageChannel(a, b) {
+		return MagickSeparateImageChannel(a, b);
+	}
+
+	__cjs_MagickSepiaToneImage(a, b) {
+		return MagickSepiaToneImage(a, b);
+	}
+
+	__cjs_MagickSetImage(a, b) {
+		return MagickSetImage(a, b);
+	}
+
+	__cjs_MagickSetImageAlphaChannel(a, b) {
+		return MagickSetImageAlphaChannel(a, b);
+	}
+
+	__cjs_MagickSetImageBackgroundColor(a, b) {
+		return MagickSetImageBackgroundColor(a, b);
+	}
+
+	__cjs_MagickSetImageBias(a, b) {
+		return MagickSetImageBias(a, b);
+	}
+
+	__cjs_MagickSetImageBluePrimary(a, b, c) {
+		return MagickSetImageBluePrimary(a, b, c);
+	}
+
+	__cjs_MagickSetImageBorderColor(a, b) {
+		return MagickSetImageBorderColor(a, b);
+	}
+
+	__cjs_MagickSetImageChannelDepth(a, b, c) {
+		return MagickSetImageChannelDepth(a, b, c);
+	}
+
+	__cjs_MagickSetImageClipMask(a, b) {
+		return MagickSetImageClipMask(a, b);
+	}
+
+	__cjs_MagickSetImageColor(a, b) {
+		return MagickSetImageColor(a, b);
+	}
+
+	__cjs_MagickSetImageColormapColor(a, b, c) {
+		return MagickSetImageColormapColor(a, b, c);
+	}
+
+	__cjs_MagickSetImageColorspace(a, b) {
+		return MagickSetImageColorspace(a, b);
+	}
+
+	__cjs_MagickSetImageCompose(a, b) {
+		return MagickSetImageCompose(a, b);
+	}
+
+	__cjs_MagickSetImageCompression(a, b) {
+		return MagickSetImageCompression(a, b);
+	}
+
+	__cjs_MagickSetImageDelay(a, b) {
+		return MagickSetImageDelay(a, b);
+	}
+
+	__cjs_MagickSetImageDepth(a, b) {
+		return MagickSetImageDepth(a, b);
+	}
+
+	__cjs_MagickSetImageDispose(a, b) {
+		return MagickSetImageDispose(a, b);
+	}
+
+	__cjs_MagickSetImageCompressionQuality(a, b) {
+		return MagickSetImageCompressionQuality(a, b);
+	}
+
+	__cjs_MagickSetImageExtent(a, b, c) {
+		return MagickSetImageExtent(a, b, c);
+	}
+
+	__cjs_MagickSetImageFilename(a, b) {
+		return MagickSetImageFilename(a, b);
+	}
+
+	__cjs_MagickSetImageFormat(a, b) {
+		return MagickSetImageFormat(a, b);
+	}
+
+	__cjs_MagickSetImageFuzz(a, b) {
+		return MagickSetImageFuzz(a, b);
+	}
+
+	__cjs_MagickSetImageGamma(a, b) {
+		return MagickSetImageGamma(a, b);
+	}
+
+	__cjs_MagickSetImageGravity(a, b) {
+		return MagickSetImageGravity(a, b);
+	}
+
+	__cjs_MagickSetImageGreenPrimary(a, b, c) {
+		return MagickSetImageGreenPrimary(a, b, c);
+	}
+
+	__cjs_MagickSetImageInterlaceScheme(a, b) {
+		return MagickSetImageInterlaceScheme(a, b);
+	}
+
+	__cjs_MagickSetImageInterpolateMethod(a, b) {
+		return MagickSetImageInterpolateMethod(a, b);
+	}
+
+	__cjs_MagickSetImageIterations(a, b) {
+		return MagickSetImageIterations(a, b);
+	}
+
+	__cjs_MagickSetImageMatte(a, b) {
+		return MagickSetImageMatte(a, b);
+	}
+
+	__cjs_MagickSetImageMatteColor(a, b) {
+		return MagickSetImageMatteColor(a, b);
+	}
+
+	__cjs_MagickSetImageOpacity(a, b) {
+		return MagickSetImageOpacity(a, b);
+	}
+
+	__cjs_MagickSetImageOrientation(a, b) {
+		return MagickSetImageOrientation(a, b);
+	}
+
+	__cjs_MagickSetImagePage(a, b, c, d, e) {
+		return MagickSetImagePage(a, b, c, d, e);
+	}
+
+	__cjs_MagickSetImageRedPrimary(a, b, c) {
+		return MagickSetImageRedPrimary(a, b, c);
+	}
+
+	__cjs_MagickSetImageRenderingIntent(a, b) {
+		return MagickSetImageRenderingIntent(a, b);
+	}
+
+	__cjs_MagickSetImageResolution(a, b, c) {
+		return MagickSetImageResolution(a, b, c);
+	}
+
+	__cjs_MagickSetImageScene(a, b) {
+		return MagickSetImageScene(a, b);
+	}
+
+	__cjs_MagickSetImageTicksPerSecond(a, b) {
+		return MagickSetImageTicksPerSecond(a, b);
+	}
+
+	__cjs_MagickSetImageType(a, b) {
+		return MagickSetImageType(a, b);
+	}
+
+	__cjs_MagickSetImageUnits(a, b) {
+		return MagickSetImageUnits(a, b);
+	}
+
+	__cjs_MagickSetImageWhitePoint(a, b, c) {
+		return MagickSetImageWhitePoint(a, b, c);
+	}
+
+	__cjs_MagickShadeImage(a, b, c, d) {
+		return MagickShadeImage(a, b, c, d);
+	}
+
+	__cjs_MagickShadowImage(a, b, c, d, e) {
+		return MagickShadowImage(a, b, c, d, e);
+	}
+
+	__cjs_MagickSharpenImage(a, b, c) {
+		return MagickSharpenImage(a, b, c);
+	}
+
+	__cjs_MagickSharpenImageChannel(a, b, c, d) {
+		return MagickSharpenImageChannel(a, b, c, d);
+	}
+
+	__cjs_MagickShaveImage(a, b, c) {
+		return MagickShaveImage(a, b, c);
+	}
+
+	__cjs_MagickShearImage(a, b, c, d) {
+		return MagickShearImage(a, b, c, d);
+	}
+
+	__cjs_MagickSigmoidalContrastImage(a, b, c, d) {
+		return MagickSigmoidalContrastImage(a, b, c, d);
+	}
+
+	__cjs_MagickSigmoidalContrastImageChannel(a, b, c, d, e) {
+		return MagickSigmoidalContrastImageChannel(a, b, c, d, e);
+	}
+
+	__cjs_MagickSketchImage(a, b, c, d) {
+		return MagickSketchImage(a, b, c, d);
+	}
+
+	__cjs_MagickSolarizeImage(a, b) {
+		return MagickSolarizeImage(a, b);
+	}
+
+	__cjs_MagickSparseColorImage(a, b, c, d, e) {
+		return MagickSparseColorImage(a, b, c, d, e);
+	}
+
+	__cjs_MagickSpliceImage(a, b, c, d, e) {
+		return MagickSpliceImage(a, b, c, d, e);
+	}
+
+	__cjs_MagickSpreadImage(a, b) {
+		return MagickSpreadImage(a, b);
+	}
+
+	__cjs_MagickStripImage(a) {
+		return MagickStripImage(a);
+	}
+
+	__cjs_MagickSwirlImage(a, b) {
+		return MagickSwirlImage(a, b);
+	}
+
+	__cjs_MagickTintImage(a, b, c) {
+		return MagickTintImage(a, b, c);
+	}
+
+	__cjs_MagickTransformImageColorspace(a, b) {
+		return MagickTransformImageColorspace(a, b);
+	}
+
+	__cjs_MagickTransposeImage(a) {
+		return MagickTransposeImage(a);
+	}
+
+	__cjs_MagickTransverseImage(a) {
+		return MagickTransverseImage(a);
+	}
+
+	__cjs_MagickThresholdImage(a, b) {
+		return MagickThresholdImage(a, b);
+	}
+
+	__cjs_MagickThresholdImageChannel(a, b, c) {
+		return MagickThresholdImageChannel(a, b, c);
+	}
+
+	__cjs_MagickThumbnailImage(a, b, c) {
+		return MagickThumbnailImage(a, b, c);
+	}
+
+	__cjs_MagickTrimImage(a, b) {
+		return MagickTrimImage(a, b);
+	}
+
+	__cjs_MagickUniqueImageColors(a) {
+		return MagickUniqueImageColors(a);
+	}
+
+	__cjs_MagickUnsharpMaskImage(a, b, c, d, e) {
+		return MagickUnsharpMaskImage(a, b, c, d, e);
+	}
+
+	__cjs_MagickUnsharpMaskImageChannel(a, b, c, d, e, f) {
+		return MagickUnsharpMaskImageChannel(a, b, c, d, e, f);
+	}
+
+	__cjs_MagickVignetteImage(a, b, c, d, e) {
+		return MagickVignetteImage(a, b, c, d, e);
+	}
+
+	__cjs_MagickWaveImage(a, b, c) {
+		return MagickWaveImage(a, b, c);
+	}
+
+	__cjs_MagickWhiteThresholdImage(a, b) {
+		return MagickWhiteThresholdImage(a, b);
+	}
+
+	__cjs_MagickWriteImage(a, b) {
+		return MagickWriteImage(a, b);
+	}
+
+	__cjs_MagickWriteImageFile(a, b) {
+		return MagickWriteImageFile(a, b);
+	}
+
+	__cjs_MagickWriteImagesFile(a, b) {
+		return MagickWriteImagesFile(a, b);
+	}
+
+	__cjs_MagickGetImageChannelFeatures(a, b) {
+		return MagickGetImageChannelFeatures(a, b);
+	}
+
+	__cjs_MagickGetImageChannelStatistics(a) {
+		return MagickGetImageChannelStatistics(a);
+	}
+
+	__cjs_MagickGetImageFilename(a) {
+		return MagickGetImageFilename(a);
+	}
+
+	__cjs_MagickGetImageFormat(a) {
+		return MagickGetImageFormat(a);
+	}
+
+	__cjs_MagickGetImageSignature(a) {
+		return MagickGetImageSignature(a);
+	}
+
+	__cjs_MagickIdentifyImage(a) {
+		return MagickIdentifyImage(a);
+	}
+
+	__cjs_MagickGetImageColorspace(a) {
+		return MagickGetImageColorspace(a);
+	}
+
+	__cjs_MagickGetImageCompose(a) {
+		return MagickGetImageCompose(a);
+	}
+
+	__cjs_MagickGetImageCompression(a) {
+		return MagickGetImageCompression(a);
+	}
+
+	__cjs_MagickGetImageDispose(a) {
+		return MagickGetImageDispose(a);
+	}
+
+	__cjs_MagickGetImageChannelDistortions(a, b, c) {
+		return MagickGetImageChannelDistortions(a, b, c);
+	}
+
+	__cjs_MagickGetImageFuzz(a) {
+		return MagickGetImageFuzz(a);
+	}
+
+	__cjs_MagickGetImageGamma(a) {
+		return MagickGetImageGamma(a);
+	}
+
+	__cjs_MagickGetImageTotalInkDensity(a) {
+		return MagickGetImageTotalInkDensity(a);
+	}
+
+	__cjs_MagickGetImageGravity(a) {
+		return MagickGetImageGravity(a);
+	}
+
+	__cjs_MagickDestroyImage(a) {
+		return MagickDestroyImage(a);
+	}
+
+	__cjs_GetImageFromMagickWand(a) {
+		return GetImageFromMagickWand(a);
+	}
+
+	__cjs_MagickGetImageType(a) {
+		return MagickGetImageType(a);
+	}
+
+	__cjs_MagickGetImageInterlaceScheme(a) {
+		return MagickGetImageInterlaceScheme(a);
+	}
+
+	__cjs_MagickGetImageInterpolateMethod(a) {
+		return MagickGetImageInterpolateMethod(a);
+	}
+
+	__cjs_MagickAppendImages(a, b) {
+		return MagickAppendImages(a, b);
+	}
+
+	__cjs_MagickCoalesceImages(a) {
+		return MagickCoalesceImages(a);
+	}
+
+	__cjs_MagickCombineImages(a, b) {
+		return MagickCombineImages(a, b);
+	}
+
+	__cjs_MagickCompareImageChannels(a, b, c, d, e) {
+		return MagickCompareImageChannels(a, b, c, d, e);
+	}
+
+	__cjs_MagickCompareImages(a, b, c, d) {
+		return MagickCompareImages(a, b, c, d);
+	}
+
+	__cjs_MagickCompareImageLayers(a, b) {
+		return MagickCompareImageLayers(a, b);
+	}
+
+	__cjs_MagickDeconstructImages(a) {
+		return MagickDeconstructImages(a);
+	}
+
+	__cjs_MagickEvaluateImages(a, b) {
+		return MagickEvaluateImages(a, b);
+	}
+
+	__cjs_MagickFxImage(a, b) {
+		return MagickFxImage(a, b);
+	}
+
+	__cjs_MagickFxImageChannel(a, b, c) {
+		return MagickFxImageChannel(a, b, c);
+	}
+
+	__cjs_MagickGetImage(a) {
+		return MagickGetImage(a);
+	}
+
+	__cjs_MagickGetImageClipMask(a) {
+		return MagickGetImageClipMask(a);
+	}
+
+	__cjs_MagickGetImageRegion(a, b, c, d, e) {
+		return MagickGetImageRegion(a, b, c, d, e);
+	}
+
+	__cjs_MagickMergeImageLayers(a, b) {
+		return MagickMergeImageLayers(a, b);
+	}
+
+	__cjs_MagickMorphImages(a, b) {
+		return MagickMorphImages(a, b);
+	}
+
+	__cjs_MagickMontageImage(a, b, c, d, e, f) {
+		return MagickMontageImage(a, b, c, d, e, f);
+	}
+
+	__cjs_MagickOptimizeImageLayers(a) {
+		return MagickOptimizeImageLayers(a);
+	}
+
+	__cjs_MagickPreviewImages(a, b) {
+		return MagickPreviewImages(a, b);
+	}
+
+	__cjs_MagickSimilarityImage(a, b, c, d) {
+		return MagickSimilarityImage(a, b, c, d);
+	}
+
+	__cjs_MagickSteganoImage(a, b, c) {
+		return MagickSteganoImage(a, b, c);
+	}
+
+	__cjs_MagickStereoImage(a, b) {
+		return MagickStereoImage(a, b);
+	}
+
+	__cjs_MagickTextureImage(a, b) {
+		return MagickTextureImage(a, b);
+	}
+
+	__cjs_MagickTransformImage(a, b, c) {
+		return MagickTransformImage(a, b, c);
+	}
+
+	__cjs_MagickGetImageOrientation(a) {
+		return MagickGetImageOrientation(a);
+	}
+
+	__cjs_MagickGetImageHistogram(a) {
+		return MagickGetImageHistogram(a);
+	}
+
+	__cjs_MagickGetImageRenderingIntent(a) {
+		return MagickGetImageRenderingIntent(a);
+	}
+
+	__cjs_MagickGetImageUnits(a) {
+		return MagickGetImageUnits(a);
+	}
+
+	__cjs_MagickGetImageColors(a) {
+		return MagickGetImageColors(a);
+	}
+
+	__cjs_MagickGetImageCompressionQuality(a) {
+		return MagickGetImageCompressionQuality(a);
+	}
+
+	__cjs_MagickGetImageDelay(a) {
+		return MagickGetImageDelay(a);
+	}
+
+	__cjs_MagickGetImageChannelDepth(a, b) {
+		return MagickGetImageChannelDepth(a, b);
+	}
+
+	__cjs_MagickGetImageDepth(a) {
+		return MagickGetImageDepth(a);
+	}
+
+	__cjs_MagickGetImageHeight(a) {
+		return MagickGetImageHeight(a);
+	}
+
+	__cjs_MagickGetImageIterations(a) {
+		return MagickGetImageIterations(a);
+	}
+
+	__cjs_MagickGetImageScene(a) {
+		return MagickGetImageScene(a);
+	}
+
+	__cjs_MagickGetImageTicksPerSecond(a) {
+		return MagickGetImageTicksPerSecond(a);
+	}
+
+	__cjs_MagickGetImageWidth(a) {
+		return MagickGetImageWidth(a);
+	}
+
+	__cjs_MagickGetNumberImages(a) {
+		return MagickGetNumberImages(a);
+	}
+
+	__cjs_MagickGetImageBlob(a) {
+		return MagickGetImageBlob(a);
+	}
+
+	__cjs_MagickGetImagesBlob(a) {
+		return MagickGetImagesBlob(a);
+	}
+
+	__cjs_MagickGetImageVirtualPixelMethod(a) {
+		return MagickGetImageVirtualPixelMethod(a);
+	}
+
+	__cjs_MagickSetImageVirtualPixelMethod(a, b) {
+		return MagickSetImageVirtualPixelMethod(a, b);
+	}
+
+	__cjs_DrawGetTextAlignment(a) {
+		return DrawGetTextAlignment(a);
+	}
+
+	__cjs_DrawGetClipPath(a) {
+		return DrawGetClipPath(a);
+	}
+
+	__cjs_DrawGetException(a, b) {
+		return DrawGetException(a, b);
+	}
+
+	__cjs_DrawGetFont(a) {
+		return DrawGetFont(a);
+	}
+
+	__cjs_DrawGetFontFamily(a) {
+		return DrawGetFontFamily(a);
+	}
+
+	__cjs_DrawGetTextEncoding(a) {
+		return DrawGetTextEncoding(a);
+	}
+
+	__cjs_DrawGetVectorGraphics(a) {
+		return DrawGetVectorGraphics(a);
+	}
+
+	__cjs_DrawGetClipUnits(a) {
+		return DrawGetClipUnits(a);
+	}
+
+	__cjs_DrawGetTextDecoration(a) {
+		return DrawGetTextDecoration(a);
+	}
+
+	__cjs_DrawGetFillOpacity(a) {
+		return DrawGetFillOpacity(a);
+	}
+
+	__cjs_DrawGetFontSize(a) {
+		return DrawGetFontSize(a);
+	}
+
+	__cjs_DrawGetOpacity(a) {
+		return DrawGetOpacity(a);
+	}
+
+	__cjs_DrawGetStrokeDashArray(a, b) {
+		return DrawGetStrokeDashArray(a, b);
+	}
+
+	__cjs_DrawGetStrokeDashOffset(a) {
+		return DrawGetStrokeDashOffset(a);
+	}
+
+	__cjs_DrawGetStrokeOpacity(a) {
+		return DrawGetStrokeOpacity(a);
+	}
+
+	__cjs_DrawGetStrokeWidth(a) {
+		return DrawGetStrokeWidth(a);
+	}
+
+	__cjs_DrawGetTextKerning(a) {
+		return DrawGetTextKerning(a);
+	}
+
+	__cjs_DrawGetTextInterlineSpacing(a) {
+		return DrawGetTextInterlineSpacing(a);
+	}
+
+	__cjs_DrawGetTextInterwordSpacing(a) {
+		return DrawGetTextInterwordSpacing(a);
+	}
+
+	__cjs_PeekDrawingWand(a) {
+		return PeekDrawingWand(a);
+	}
+
+	__cjs_CloneDrawingWand(a) {
+		return CloneDrawingWand(a);
+	}
+
+	__cjs_DestroyDrawingWand(a) {
+		return DestroyDrawingWand(a);
+	}
+
+	__cjs_DrawAllocateWand(a, b) {
+		return DrawAllocateWand(a, b);
+	}
+
+	__cjs_NewDrawingWand() {
+		return NewDrawingWand();
+	}
+
+	__cjs_DrawGetExceptionType(a) {
+		return DrawGetExceptionType(a);
+	}
+
+	__cjs_DrawGetClipRule(a) {
+		return DrawGetClipRule(a);
+	}
+
+	__cjs_DrawGetFillRule(a) {
+		return DrawGetFillRule(a);
+	}
+
+	__cjs_DrawGetGravity(a) {
+		return DrawGetGravity(a);
+	}
+
+	__cjs_DrawGetStrokeLineCap(a) {
+		return DrawGetStrokeLineCap(a);
+	}
+
+	__cjs_DrawGetStrokeLineJoin(a) {
+		return DrawGetStrokeLineJoin(a);
+	}
+
+	__cjs_DrawClearException(a) {
+		return DrawClearException(a);
+	}
+
+	__cjs_DrawComposite(a, b, c, d, e, f, g) {
+		return DrawComposite(a, b, c, d, e, f, g);
+	}
+
+	__cjs_DrawGetFontResolution(a, b, c) {
+		return DrawGetFontResolution(a, b, c);
+	}
+
+	__cjs_DrawGetStrokeAntialias(a) {
+		return DrawGetStrokeAntialias(a);
+	}
+
+	__cjs_DrawGetTextAntialias(a) {
+		return DrawGetTextAntialias(a);
+	}
+
+	__cjs_DrawPopPattern(a) {
+		return DrawPopPattern(a);
+	}
+
+	__cjs_DrawPushPattern(a, b, c, d, e, f) {
+		return DrawPushPattern(a, b, c, d, e, f);
+	}
+
+	__cjs_DrawRender(a) {
+		return DrawRender(a);
+	}
+
+	__cjs_DrawSetClipPath(a, b) {
+		return DrawSetClipPath(a, b);
+	}
+
+	__cjs_DrawSetFillPatternURL(a, b) {
+		return DrawSetFillPatternURL(a, b);
+	}
+
+	__cjs_DrawSetFont(a, b) {
+		return DrawSetFont(a, b);
+	}
+
+	__cjs_DrawSetFontFamily(a, b) {
+		return DrawSetFontFamily(a, b);
+	}
+
+	__cjs_DrawSetFontResolution(a, b, c) {
+		return DrawSetFontResolution(a, b, c);
+	}
+
+	__cjs_DrawSetStrokeDashArray(a, b, c) {
+		return DrawSetStrokeDashArray(a, b, c);
+	}
+
+	__cjs_DrawSetStrokePatternURL(a, b) {
+		return DrawSetStrokePatternURL(a, b);
+	}
+
+	__cjs_DrawSetVectorGraphics(a, b) {
+		return DrawSetVectorGraphics(a, b);
+	}
+
+	__cjs_IsDrawingWand(a) {
+		return IsDrawingWand(a);
+	}
+
+	__cjs_PopDrawingWand(a) {
+		return PopDrawingWand(a);
+	}
+
+	__cjs_PushDrawingWand(a) {
+		return PushDrawingWand(a);
+	}
+
+	__cjs_DrawGetFontStretch(a) {
+		return DrawGetFontStretch(a);
+	}
+
+	__cjs_DrawGetFontStyle(a) {
+		return DrawGetFontStyle(a);
+	}
+
+	__cjs_DrawGetFontWeight(a) {
+		return DrawGetFontWeight(a);
+	}
+
+	__cjs_DrawGetStrokeMiterLimit(a) {
+		return DrawGetStrokeMiterLimit(a);
+	}
+
+	__cjs_ClearDrawingWand(a) {
+		return ClearDrawingWand(a);
+	}
+
+	__cjs_DrawAffine(a, b, c, d, e, f, g) {
+		return DrawAffine(a, b, c, d, e, f, g);
+	}
+
+	__cjs_DrawAnnotation(a, b, c, d) {
+		return DrawAnnotation(a, b, c, d);
+	}
+
+	__cjs_DrawArc(a, b, c, d, e, f, g) {
+		return DrawArc(a, b, c, d, e, f, g);
+	}
+
+	__cjs_DrawBezier(a, b) {
+		return DrawBezier(a, b);
+	}
+
+	__cjs_DrawGetBorderColor(a, b) {
+		return DrawGetBorderColor(a, b);
+	}
+
+	__cjs_DrawCircle(a, b, c, d, e) {
+		return DrawCircle(a, b, c, d, e);
+	}
+
+	__cjs_DrawColor(a, b, c, d) {
+		return DrawColor(a, b, c, d);
+	}
+
+	__cjs_DrawComment(a, b) {
+		return DrawComment(a, b);
+	}
+
+	__cjs_DrawEllipse(a, b, c, d, e, f, g) {
+		return DrawEllipse(a, b, c, d, e, f, g);
+	}
+
+	__cjs_DrawGetFillColor(a, b) {
+		return DrawGetFillColor(a, b);
+	}
+
+	__cjs_DrawGetStrokeColor(a, b) {
+		return DrawGetStrokeColor(a, b);
+	}
+
+	__cjs_DrawSetTextKerning(a, b) {
+		return DrawSetTextKerning(a, b);
+	}
+
+	__cjs_DrawSetTextInterlineSpacing(a, b) {
+		return DrawSetTextInterlineSpacing(a, b);
+	}
+
+	__cjs_DrawSetTextInterwordSpacing(a, b) {
+		return DrawSetTextInterwordSpacing(a, b);
+	}
+
+	__cjs_DrawGetTextUnderColor(a, b) {
+		return DrawGetTextUnderColor(a, b);
+	}
+
+	__cjs_DrawLine(a, b, c, d, e) {
+		return DrawLine(a, b, c, d, e);
+	}
+
+	__cjs_DrawMatte(a, b, c, d) {
+		return DrawMatte(a, b, c, d);
+	}
+
+	__cjs_DrawPathClose(a) {
+		return DrawPathClose(a);
+	}
+
+	__cjs_DrawPathCurveToAbsolute(a, b, c, d, e, f, g) {
+		return DrawPathCurveToAbsolute(a, b, c, d, e, f, g);
+	}
+
+	__cjs_DrawPathCurveToRelative(a, b, c, d, e, f, g) {
+		return DrawPathCurveToRelative(a, b, c, d, e, f, g);
+	}
+
+	__cjs_DrawPathCurveToQuadraticBezierAbsolute(a, b, c, d, e) {
+		return DrawPathCurveToQuadraticBezierAbsolute(a, b, c, d, e);
+	}
+
+	__cjs_DrawPathCurveToQuadraticBezierRelative(a, b, c, d, e) {
+		return DrawPathCurveToQuadraticBezierRelative(a, b, c, d, e);
+	}
+
+	__cjs_DrawPathCurveToQuadraticBezierSmoothAbsolute(a, b, c) {
+		return DrawPathCurveToQuadraticBezierSmoothAbsolute(a, b, c);
+	}
+
+	__cjs_DrawPathCurveToQuadraticBezierSmoothRelative(a, b, c) {
+		return DrawPathCurveToQuadraticBezierSmoothRelative(a, b, c);
+	}
+
+	__cjs_DrawPathCurveToSmoothAbsolute(a, b, c, d, e) {
+		return DrawPathCurveToSmoothAbsolute(a, b, c, d, e);
+	}
+
+	__cjs_DrawPathCurveToSmoothRelative(a, b, c, d, e) {
+		return DrawPathCurveToSmoothRelative(a, b, c, d, e);
+	}
+
+	__cjs_DrawPathEllipticArcAbsolute(a, b, c, d, e, f, g, h) {
+		return DrawPathEllipticArcAbsolute(a, b, c, d, e, f, g, h);
+	}
+
+	__cjs_DrawPathEllipticArcRelative(a, b, c, d, e, f, g, h) {
+		return DrawPathEllipticArcRelative(a, b, c, d, e, f, g, h);
+	}
+
+	__cjs_DrawPathFinish(a) {
+		return DrawPathFinish(a);
+	}
+
+	__cjs_DrawPathLineToAbsolute(a, b, c) {
+		return DrawPathLineToAbsolute(a, b, c);
+	}
+
+	__cjs_DrawPathLineToRelative(a, b, c) {
+		return DrawPathLineToRelative(a, b, c);
+	}
+
+	__cjs_DrawPathLineToHorizontalAbsolute(a, b) {
+		return DrawPathLineToHorizontalAbsolute(a, b);
+	}
+
+	__cjs_DrawPathLineToHorizontalRelative(a, b) {
+		return DrawPathLineToHorizontalRelative(a, b);
+	}
+
+	__cjs_DrawPathLineToVerticalAbsolute(a, b) {
+		return DrawPathLineToVerticalAbsolute(a, b);
+	}
+
+	__cjs_DrawPathLineToVerticalRelative(a, b) {
+		return DrawPathLineToVerticalRelative(a, b);
+	}
+
+	__cjs_DrawPathMoveToAbsolute(a, b, c) {
+		return DrawPathMoveToAbsolute(a, b, c);
+	}
+
+	__cjs_DrawPathMoveToRelative(a, b, c) {
+		return DrawPathMoveToRelative(a, b, c);
+	}
+
+	__cjs_DrawPathStart(a) {
+		return DrawPathStart(a);
+	}
+
+	__cjs_DrawPoint(a, b, c) {
+		return DrawPoint(a, b, c);
+	}
+
+	__cjs_DrawPolygon(a, b) {
+		return DrawPolygon(a, b);
+	}
+
+	__cjs_DrawPolyline(a, b) {
+		return DrawPolyline(a, b);
+	}
+
+	__cjs_DrawPopClipPath(a) {
+		return DrawPopClipPath(a);
+	}
+
+	__cjs_DrawPopDefs(a) {
+		return DrawPopDefs(a);
+	}
+
+	__cjs_DrawPushClipPath(a, b) {
+		return DrawPushClipPath(a, b);
+	}
+
+	__cjs_DrawPushDefs(a) {
+		return DrawPushDefs(a);
+	}
+
+	__cjs_DrawRectangle(a, b, c, d, e) {
+		return DrawRectangle(a, b, c, d, e);
+	}
+
+	__cjs_DrawResetVectorGraphics(a) {
+		return DrawResetVectorGraphics(a);
+	}
+
+	__cjs_DrawRotate(a, b) {
+		return DrawRotate(a, b);
+	}
+
+	__cjs_DrawRoundRectangle(a, b, c, d, e, f, g) {
+		return DrawRoundRectangle(a, b, c, d, e, f, g);
+	}
+
+	__cjs_DrawScale(a, b, c) {
+		return DrawScale(a, b, c);
+	}
+
+	__cjs_DrawSetBorderColor(a, b) {
+		return DrawSetBorderColor(a, b);
+	}
+
+	__cjs_DrawSetClipRule(a, b) {
+		return DrawSetClipRule(a, b);
+	}
+
+	__cjs_DrawSetClipUnits(a, b) {
+		return DrawSetClipUnits(a, b);
+	}
+
+	__cjs_DrawSetFillColor(a, b) {
+		return DrawSetFillColor(a, b);
+	}
+
+	__cjs_DrawSetFillOpacity(a, b) {
+		return DrawSetFillOpacity(a, b);
+	}
+
+	__cjs_DrawSetFillRule(a, b) {
+		return DrawSetFillRule(a, b);
+	}
+
+	__cjs_DrawSetFontSize(a, b) {
+		return DrawSetFontSize(a, b);
+	}
+
+	__cjs_DrawSetFontStretch(a, b) {
+		return DrawSetFontStretch(a, b);
+	}
+
+	__cjs_DrawSetFontStyle(a, b) {
+		return DrawSetFontStyle(a, b);
+	}
+
+	__cjs_DrawSetFontWeight(a, b) {
+		return DrawSetFontWeight(a, b);
+	}
+
+	__cjs_DrawSetGravity(a, b) {
+		return DrawSetGravity(a, b);
+	}
+
+	__cjs_DrawSetOpacity(a, b) {
+		return DrawSetOpacity(a, b);
+	}
+
+	__cjs_DrawSetStrokeAntialias(a, b) {
+		return DrawSetStrokeAntialias(a, b);
+	}
+
+	__cjs_DrawSetStrokeColor(a, b) {
+		return DrawSetStrokeColor(a, b);
+	}
+
+	__cjs_DrawSetStrokeDashOffset(a, b) {
+		return DrawSetStrokeDashOffset(a, b);
+	}
+
+	__cjs_DrawSetStrokeLineCap(a, b) {
+		return DrawSetStrokeLineCap(a, b);
+	}
+
+	__cjs_DrawSetStrokeLineJoin(a, b) {
+		return DrawSetStrokeLineJoin(a, b);
+	}
+
+	__cjs_DrawSetStrokeMiterLimit(a, b) {
+		return DrawSetStrokeMiterLimit(a, b);
+	}
+
+	__cjs_DrawSetStrokeOpacity(a, b) {
+		return DrawSetStrokeOpacity(a, b);
+	}
+
+	__cjs_DrawSetStrokeWidth(a, b) {
+		return DrawSetStrokeWidth(a, b);
+	}
+
+	__cjs_DrawSetTextAlignment(a, b) {
+		return DrawSetTextAlignment(a, b);
+	}
+
+	__cjs_DrawSetTextAntialias(a, b) {
+		return DrawSetTextAntialias(a, b);
+	}
+
+	__cjs_DrawSetTextDecoration(a, b) {
+		return DrawSetTextDecoration(a, b);
+	}
+
+	__cjs_DrawSetTextEncoding(a, b) {
+		return DrawSetTextEncoding(a, b);
+	}
+
+	__cjs_DrawSetTextUnderColor(a, b) {
+		return DrawSetTextUnderColor(a, b);
+	}
+
+	__cjs_DrawSetViewbox(a, b, c, d, e) {
+		return DrawSetViewbox(a, b, c, d, e);
+	}
+
+	__cjs_DrawSkewX(a, b) {
+		return DrawSkewX(a, b);
+	}
+
+	__cjs_DrawSkewY(a, b) {
+		return DrawSkewY(a, b);
+	}
+
+	__cjs_DrawTranslate(a, b, c) {
+		return DrawTranslate(a, b, c);
+	}
+
+	__cjs_PixelGetColorAsNormalizedString(a) {
+		return PixelGetColorAsNormalizedString(a);
+	}
+
+	__cjs_PixelGetColorAsString(a) {
+		return PixelGetColorAsString(a);
+	}
+
+	__cjs_PixelGetException(a, b) {
+		return PixelGetException(a, b);
+	}
+
+	__cjs_PixelGetAlpha(a) {
+		return PixelGetAlpha(a);
+	}
+
+	__cjs_PixelGetBlack(a) {
+		return PixelGetBlack(a);
+	}
+
+	__cjs_PixelGetBlue(a) {
+		return PixelGetBlue(a);
+	}
+
+	__cjs_PixelGetCyan(a) {
+		return PixelGetCyan(a);
+	}
+
+	__cjs_PixelGetFuzz(a) {
+		return PixelGetFuzz(a);
+	}
+
+	__cjs_PixelGetGreen(a) {
+		return PixelGetGreen(a);
+	}
+
+	__cjs_PixelGetMagenta(a) {
+		return PixelGetMagenta(a);
+	}
+
+	__cjs_PixelGetOpacity(a) {
+		return PixelGetOpacity(a);
+	}
+
+	__cjs_PixelGetRed(a) {
+		return PixelGetRed(a);
+	}
+
+	__cjs_PixelGetYellow(a) {
+		return PixelGetYellow(a);
+	}
+
+	__cjs_PixelGetExceptionType(a) {
+		return PixelGetExceptionType(a);
+	}
+
+	__cjs_PixelGetIndex(a) {
+		return PixelGetIndex(a);
+	}
+
+	__cjs_IsPixelWand(a) {
+		return IsPixelWand(a);
+	}
+
+	__cjs_IsPixelWandSimilar(a, b, c) {
+		return IsPixelWandSimilar(a, b, c);
+	}
+
+	__cjs_PixelClearException(a) {
+		return PixelClearException(a);
+	}
+
+	__cjs_PixelSetColor(a, b) {
+		return PixelSetColor(a, b);
+	}
+
+	__cjs_ClonePixelWand(a) {
+		return ClonePixelWand(a);
+	}
+
+	__cjs_ClonePixelWands(a, b) {
+		return ClonePixelWands(a, b);
+	}
+
+	__cjs_DestroyPixelWand(a) {
+		return DestroyPixelWand(a);
+	}
+
+	__cjs_DestroyPixelWands(a, b) {
+		return DestroyPixelWands(a, b);
+	}
+
+	__cjs_NewPixelWand() {
+		return NewPixelWand();
+	}
+
+	__cjs_NewPixelWands(a) {
+		return NewPixelWands(a);
+	}
+
+	__cjs_PixelGetAlphaQuantum(a) {
+		return PixelGetAlphaQuantum(a);
+	}
+
+	__cjs_PixelGetBlackQuantum(a) {
+		return PixelGetBlackQuantum(a);
+	}
+
+	__cjs_PixelGetBlueQuantum(a) {
+		return PixelGetBlueQuantum(a);
+	}
+
+	__cjs_PixelGetCyanQuantum(a) {
+		return PixelGetCyanQuantum(a);
+	}
+
+	__cjs_PixelGetGreenQuantum(a) {
+		return PixelGetGreenQuantum(a);
+	}
+
+	__cjs_PixelGetMagentaQuantum(a) {
+		return PixelGetMagentaQuantum(a);
+	}
+
+	__cjs_PixelGetOpacityQuantum(a) {
+		return PixelGetOpacityQuantum(a);
+	}
+
+	__cjs_PixelGetRedQuantum(a) {
+		return PixelGetRedQuantum(a);
+	}
+
+	__cjs_PixelGetYellowQuantum(a) {
+		return PixelGetYellowQuantum(a);
+	}
+
+	__cjs_PixelGetColorCount(a) {
+		return PixelGetColorCount(a);
+	}
+
+	__cjs_ClearPixelWand(a) {
+		return ClearPixelWand(a);
+	}
+
+	__cjs_PixelGetHSL(a, b, c, d) {
+		return PixelGetHSL(a, b, c, d);
+	}
+
+	__cjs_PixelGetQuantumColor(a, b, c, d, e) {
+		return PixelGetQuantumColor(a, b, c, d, e);
+	}
+
+	__cjs_PixelSetAlpha(a, b) {
+		return PixelSetAlpha(a, b);
+	}
+
+	__cjs_PixelSetAlphaQuantum(a, b) {
+		return PixelSetAlphaQuantum(a, b);
+	}
+
+	__cjs_PixelSetBlack(a, b) {
+		return PixelSetBlack(a, b);
+	}
+
+	__cjs_PixelSetBlackQuantum(a, b) {
+		return PixelSetBlackQuantum(a, b);
+	}
+
+	__cjs_PixelSetBlue(a, b) {
+		return PixelSetBlue(a, b);
+	}
+
+	__cjs_PixelSetBlueQuantum(a, b) {
+		return PixelSetBlueQuantum(a, b);
+	}
+
+	__cjs_PixelSetColorFromWand(a, b) {
+		return PixelSetColorFromWand(a, b);
+	}
+
+	__cjs_PixelSetColorCount(a, b) {
+		return PixelSetColorCount(a, b);
+	}
+
+	__cjs_PixelSetCyan(a, b) {
+		return PixelSetCyan(a, b);
+	}
+
+	__cjs_PixelSetCyanQuantum(a, b) {
+		return PixelSetCyanQuantum(a, b);
+	}
+
+	__cjs_PixelSetFuzz(a, b) {
+		return PixelSetFuzz(a, b);
+	}
+
+	__cjs_PixelSetGreen(a, b) {
+		return PixelSetGreen(a, b);
+	}
+
+	__cjs_PixelSetGreenQuantum(a, b) {
+		return PixelSetGreenQuantum(a, b);
+	}
+
+	__cjs_PixelSetHSL(a, b, c, d) {
+		return PixelSetHSL(a, b, c, d);
+	}
+
+	__cjs_PixelSetIndex(a, b) {
+		return PixelSetIndex(a, b);
+	}
+
+	__cjs_PixelSetMagenta(a, b) {
+		return PixelSetMagenta(a, b);
+	}
+
+	__cjs_PixelSetMagentaQuantum(a, b) {
+		return PixelSetMagentaQuantum(a, b);
+	}
+
+	__cjs_PixelSetMagickColor(a, b, c, d, e, f, g, h, i, j, k) {
+		return PixelSetMagickColor(a, b, c, d, e, f, g, h, i, j, k);
+	}
+
+	__cjs_PixelSetOpacity(a, b) {
+		return PixelSetOpacity(a, b);
+	}
+
+	__cjs_PixelSetOpacityQuantum(a, b) {
+		return PixelSetOpacityQuantum(a, b);
+	}
+
+	__cjs_PixelSetQuantumColor(a, b, c, d, e) {
+		return PixelSetQuantumColor(a, b, c, d, e);
+	}
+
+	__cjs_PixelSetRed(a, b) {
+		return PixelSetRed(a, b);
+	}
+
+	__cjs_PixelSetRedQuantum(a, b) {
+		return PixelSetRedQuantum(a, b);
+	}
+
+	__cjs_PixelSetYellow(a, b) {
+		return PixelSetYellow(a, b);
+	}
+
+	__cjs_PixelSetYellowQuantum(a, b) {
+		return PixelSetYellowQuantum(a, b);
+	}
+
+	__cjs_MagickGetFilename(a) {
+		return MagickGetFilename(a);
+	}
+
+	__cjs_MagickGetFormat(a) {
+		return MagickGetFormat(a);
+	}
+
+	__cjs_MagickGetFont(a) {
+		return MagickGetFont(a);
+	}
+
+	__cjs_MagickGetHomeURL() {
+		return MagickGetHomeURL();
+	}
+
+	__cjs_MagickGetImageArtifact(a, b) {
+		return MagickGetImageArtifact(a, b);
+	}
+
+	__cjs_MagickGetImageArtifacts(a, b) {
+		return MagickGetImageArtifacts(a, b);
+	}
+
+	__cjs_MagickGetImageProfiles(a, b) {
+		return MagickGetImageProfiles(a, b);
+	}
+
+	__cjs_MagickGetImageProperty(a, b) {
+		return MagickGetImageProperty(a, b);
+	}
+
+	__cjs_MagickGetImageProperties(a, b) {
+		return MagickGetImageProperties(a, b);
+	}
+
+	__cjs_MagickGetOption(a, b) {
+		return MagickGetOption(a, b);
+	}
+
+	__cjs_MagickGetOptions(a, b) {
+		return MagickGetOptions(a, b);
+	}
+
+	__cjs_MagickQueryConfigureOption(a) {
+		return MagickQueryConfigureOption(a);
+	}
+
+	__cjs_MagickQueryConfigureOptions(a) {
+		return MagickQueryConfigureOptions(a);
+	}
+
+	__cjs_MagickQueryFonts(a) {
+		return MagickQueryFonts(a);
+	}
+
+	__cjs_MagickQueryFormats(a) {
+		return MagickQueryFormats(a);
+	}
+
+	__cjs_MagickGetColorspace(a) {
+		return MagickGetColorspace(a);
+	}
+
+	__cjs_MagickGetCompression(a) {
+		return MagickGetCompression(a);
+	}
+
+	__cjs_MagickGetCopyright() {
+		return MagickGetCopyright();
+	}
+
+	__cjs_MagickGetPackageName() {
+		return MagickGetPackageName();
+	}
+
+	__cjs_MagickGetQuantumDepth(a) {
+		return MagickGetQuantumDepth(a);
+	}
+
+	__cjs_MagickGetQuantumRange(a) {
+		return MagickGetQuantumRange(a);
+	}
+
+	__cjs_MagickGetReleaseDate() {
+		return MagickGetReleaseDate();
+	}
+
+	__cjs_MagickGetVersion(a) {
+		return MagickGetVersion(a);
+	}
+
+	__cjs_MagickGetPointsize(a) {
+		return MagickGetPointsize(a);
+	}
+
+	__cjs_MagickGetSamplingFactors(a) {
+		return MagickGetSamplingFactors(a);
+	}
+
+	__cjs_MagickQueryFontMetrics(a, b, c) {
+		return MagickQueryFontMetrics(a, b, c);
+	}
+
+	__cjs_MagickQueryMultilineFontMetrics(a, b, c) {
+		return MagickQueryMultilineFontMetrics(a, b, c);
+	}
+
+	__cjs_MagickGetGravity(a) {
+		return MagickGetGravity(a);
+	}
+
+	__cjs_MagickGetType(a) {
+		return MagickGetType(a);
+	}
+
+	__cjs_MagickGetInterlaceScheme(a) {
+		return MagickGetInterlaceScheme(a);
+	}
+
+	__cjs_MagickGetInterpolateMethod(a) {
+		return MagickGetInterpolateMethod(a);
+	}
+
+	__cjs_MagickGetOrientation(a) {
+		return MagickGetOrientation(a);
+	}
+
+	__cjs_MagickDeleteImageArtifact(a, b) {
+		return MagickDeleteImageArtifact(a, b);
+	}
+
+	__cjs_MagickDeleteImageProperty(a, b) {
+		return MagickDeleteImageProperty(a, b);
+	}
+
+	__cjs_MagickDeleteOption(a, b) {
+		return MagickDeleteOption(a, b);
+	}
+
+	__cjs_MagickGetAntialias(a) {
+		return MagickGetAntialias(a);
+	}
+
+	__cjs_MagickGetPage(a, b, c, d, e) {
+		return MagickGetPage(a, b, c, d, e);
+	}
+
+	__cjs_MagickGetResolution(a, b, c) {
+		return MagickGetResolution(a, b, c);
+	}
+
+	__cjs_MagickGetSize(a, b, c) {
+		return MagickGetSize(a, b, c);
+	}
+
+	__cjs_MagickGetSizeOffset(a, b) {
+		return MagickGetSizeOffset(a, b);
+	}
+
+	__cjs_MagickProfileImage(a, b, c, d) {
+		return MagickProfileImage(a, b, c, d);
+	}
+
+	__cjs_MagickSetAntialias(a, b) {
+		return MagickSetAntialias(a, b);
+	}
+
+	__cjs_MagickSetBackgroundColor(a, b) {
+		return MagickSetBackgroundColor(a, b);
+	}
+
+	__cjs_MagickSetColorspace(a, b) {
+		return MagickSetColorspace(a, b);
+	}
+
+	__cjs_MagickSetCompression(a, b) {
+		return MagickSetCompression(a, b);
+	}
+
+	__cjs_MagickSetCompressionQuality(a, b) {
+		return MagickSetCompressionQuality(a, b);
+	}
+
+	__cjs_MagickSetDepth(a, b) {
+		return MagickSetDepth(a, b);
+	}
+
+	__cjs_MagickSetExtract(a, b) {
+		return MagickSetExtract(a, b);
+	}
+
+	__cjs_MagickSetFilename(a, b) {
+		return MagickSetFilename(a, b);
+	}
+
+	__cjs_MagickSetFormat(a, b) {
+		return MagickSetFormat(a, b);
+	}
+
+	__cjs_MagickSetFont(a, b) {
+		return MagickSetFont(a, b);
+	}
+
+	__cjs_MagickSetGravity(a, b) {
+		return MagickSetGravity(a, b);
+	}
+
+	__cjs_MagickSetImageArtifact(a, b, c) {
+		return MagickSetImageArtifact(a, b, c);
+	}
+
+	__cjs_MagickSetImageProfile(a, b, c, d) {
+		return MagickSetImageProfile(a, b, c, d);
+	}
+
+	__cjs_MagickSetImageProperty(a, b, c) {
+		return MagickSetImageProperty(a, b, c);
+	}
+
+	__cjs_MagickSetInterlaceScheme(a, b) {
+		return MagickSetInterlaceScheme(a, b);
+	}
+
+	__cjs_MagickSetInterpolateMethod(a, b) {
+		return MagickSetInterpolateMethod(a, b);
+	}
+
+	__cjs_MagickSetOption(a, b, c) {
+		return MagickSetOption(a, b, c);
+	}
+
+	__cjs_MagickSetOrientation(a, b) {
+		return MagickSetOrientation(a, b);
+	}
+
+	__cjs_MagickSetPage(a, b, c, d, e) {
+		return MagickSetPage(a, b, c, d, e);
+	}
+
+	__cjs_MagickSetPassphrase(a, b) {
+		return MagickSetPassphrase(a, b);
+	}
+
+	__cjs_MagickSetPointsize(a, b) {
+		return MagickSetPointsize(a, b);
+	}
+
+	__cjs_MagickSetResolution(a, b, c) {
+		return MagickSetResolution(a, b, c);
+	}
+
+	__cjs_MagickSetResourceLimit(a, b) {
+		return MagickSetResourceLimit(a, b);
+	}
+
+	__cjs_MagickSetSamplingFactors(a, b, c) {
+		return MagickSetSamplingFactors(a, b, c);
+	}
+
+	__cjs_MagickSetSize(a, b, c) {
+		return MagickSetSize(a, b, c);
+	}
+
+	__cjs_MagickSetSizeOffset(a, b, c, d) {
+		return MagickSetSizeOffset(a, b, c, d);
+	}
+
+	__cjs_MagickSetType(a, b) {
+		return MagickSetType(a, b);
+	}
+
+	__cjs_MagickSetProgressMonitor(a, b, c) {
+		return MagickSetProgressMonitor(a, b, c);
+	}
+
+	__cjs_MagickGetResource(a) {
+		return MagickGetResource(a);
+	}
+
+	__cjs_MagickGetResourceLimit(a) {
+		return MagickGetResourceLimit(a);
+	}
+
+	__cjs_MagickGetBackgroundColor(a) {
+		return MagickGetBackgroundColor(a);
+	}
+
+	__cjs_MagickGetImageProfile(a, b, c) {
+		return MagickGetImageProfile(a, b, c);
+	}
+
+	__cjs_MagickRemoveImageProfile(a, b, c) {
+		return MagickRemoveImageProfile(a, b, c);
+	}
+
+	__cjs_PixelGetIteratorException(a, b) {
+		return PixelGetIteratorException(a, b);
+	}
+
+	__cjs_PixelGetIteratorExceptionType(a) {
+		return PixelGetIteratorExceptionType(a);
+	}
+
+	__cjs_IsPixelIterator(a) {
+		return IsPixelIterator(a);
+	}
+
+	__cjs_PixelClearIteratorException(a) {
+		return PixelClearIteratorException(a);
+	}
+
+	__cjs_PixelSetIteratorRow(a, b) {
+		return PixelSetIteratorRow(a, b);
+	}
+
+	__cjs_PixelSyncIterator(a) {
+		return PixelSyncIterator(a);
+	}
+
+	__cjs_ClonePixelIterator(a) {
+		return ClonePixelIterator(a);
+	}
+
+	__cjs_DestroyPixelIterator(a) {
+		return DestroyPixelIterator(a);
+	}
+
+	__cjs_NewPixelIterator(a) {
+		return NewPixelIterator(a);
+	}
+
+	__cjs_NewPixelRegionIterator(a, b, c, d, e) {
+		return NewPixelRegionIterator(a, b, c, d, e);
+	}
+
+	__cjs_PixelGetCurrentIteratorRow(a) {
+		return PixelGetCurrentIteratorRow(a);
+	}
+
+	__cjs_PixelGetNextIteratorRow(a) {
+		return PixelGetNextIteratorRow(a);
+	}
+
+	__cjs_PixelGetPreviousIteratorRow(a) {
+		return PixelGetPreviousIteratorRow(a);
+	}
+
+	__cjs_PixelGetIteratorRow(a) {
+		return PixelGetIteratorRow(a);
+	}
+
+	__cjs_ClearPixelIterator(a) {
+		return ClearPixelIterator(a);
+	}
+
+	__cjs_PixelResetIterator(a) {
+		return PixelResetIterator(a);
+	}
+
+	__cjs_PixelSetFirstIteratorRow(a) {
+		return PixelSetFirstIteratorRow(a);
+	}
+
+	__cjs_PixelSetLastIteratorRow(a) {
+		return PixelSetLastIteratorRow(a);
+	}
+
+	wrap(js) {
+		js.wrap(this.__cjs_MagickRelinquishMemory, "__cjs_MagickRelinquishMemory");
+		js.wrap(this.__cjs_MagickGetException, "__cjs_MagickGetException");
+		js.wrap(this.__cjs_NewMagickWand, "__cjs_NewMagickWand");
+		js.wrap(this.__cjs_MagickReadImage, "__cjs_MagickReadImage");
+		js.wrap(this.__cjs_MagickWriteImages, "__cjs_MagickWriteImages");
+		js.wrap(this.__cjs_MagickSetIteratorIndex, "__cjs_MagickSetIteratorIndex");
+		js.wrap(this.__cjs_MagickGetIteratorIndex, "__cjs_MagickGetIteratorIndex");
+		js.wrap(this.__cjs_MagickResetIterator, "__cjs_MagickResetIterator");
+		js.wrap(this.__cjs_MagickSetFirstIterator, "__cjs_MagickSetFirstIterator");
+		js.wrap(this.__cjs_MagickSetLastIterator, "__cjs_MagickSetLastIterator");
+		js.wrap(this.__cjs_MagickNextImage, "__cjs_MagickNextImage");
+		js.wrap(this.__cjs_MagickResizeImage, "__cjs_MagickResizeImage");
+		js.wrap(this.__cjs_DestroyMagickWand, "__cjs_DestroyMagickWand");
+		js.wrap(this.__cjs_ClearMagickWand, "__cjs_ClearMagickWand");
+		js.wrap(this.__cjs_NewMagickWandFromImage, "__cjs_NewMagickWandFromImage");
+		js.wrap(this.__cjs_CloneMagickWand, "__cjs_CloneMagickWand");
+		js.wrap(this.__cjs_IsMagickWand, "__cjs_IsMagickWand");
+		js.wrap(this.__cjs_MagickGetExceptionType, "__cjs_MagickGetExceptionType");
+		js.wrap(this.__cjs_MagickClearException, "__cjs_MagickClearException");
+		js.wrap(this.__cjs_MagickAdaptiveBlurImage, "__cjs_MagickAdaptiveBlurImage");
+		js.wrap(this.__cjs_MagickAdaptiveBlurImageChannel, "__cjs_MagickAdaptiveBlurImageChannel");
+		js.wrap(this.__cjs_MagickAdaptiveResizeImage, "__cjs_MagickAdaptiveResizeImage");
+		js.wrap(this.__cjs_MagickAdaptiveSharpenImage, "__cjs_MagickAdaptiveSharpenImage");
+		js.wrap(this.__cjs_MagickAdaptiveSharpenImageChannel, "__cjs_MagickAdaptiveSharpenImageChannel");
+		js.wrap(this.__cjs_MagickAdaptiveThresholdImage, "__cjs_MagickAdaptiveThresholdImage");
+		js.wrap(this.__cjs_MagickAddImage, "__cjs_MagickAddImage");
+		js.wrap(this.__cjs_MagickAddNoiseImage, "__cjs_MagickAddNoiseImage");
+		js.wrap(this.__cjs_MagickAddNoiseImageChannel, "__cjs_MagickAddNoiseImageChannel");
+		js.wrap(this.__cjs_MagickAffineTransformImage, "__cjs_MagickAffineTransformImage");
+		js.wrap(this.__cjs_MagickAnnotateImage, "__cjs_MagickAnnotateImage");
+		js.wrap(this.__cjs_MagickAnimateImages, "__cjs_MagickAnimateImages");
+		js.wrap(this.__cjs_MagickAutoGammaImage, "__cjs_MagickAutoGammaImage");
+		js.wrap(this.__cjs_MagickAutoGammaImageChannel, "__cjs_MagickAutoGammaImageChannel");
+		js.wrap(this.__cjs_MagickAutoLevelImage, "__cjs_MagickAutoLevelImage");
+		js.wrap(this.__cjs_MagickAutoLevelImageChannel, "__cjs_MagickAutoLevelImageChannel");
+		js.wrap(this.__cjs_MagickBlackThresholdImage, "__cjs_MagickBlackThresholdImage");
+		js.wrap(this.__cjs_MagickBlueShiftImage, "__cjs_MagickBlueShiftImage");
+		js.wrap(this.__cjs_MagickBlurImage, "__cjs_MagickBlurImage");
+		js.wrap(this.__cjs_MagickBlurImageChannel, "__cjs_MagickBlurImageChannel");
+		js.wrap(this.__cjs_MagickBorderImage, "__cjs_MagickBorderImage");
+		js.wrap(this.__cjs_MagickBrightnessContrastImage, "__cjs_MagickBrightnessContrastImage");
+		js.wrap(this.__cjs_MagickBrightnessContrastImageChannel, "__cjs_MagickBrightnessContrastImageChannel");
+		js.wrap(this.__cjs_MagickCharcoalImage, "__cjs_MagickCharcoalImage");
+		js.wrap(this.__cjs_MagickChopImage, "__cjs_MagickChopImage");
+		js.wrap(this.__cjs_MagickClampImage, "__cjs_MagickClampImage");
+		js.wrap(this.__cjs_MagickClampImageChannel, "__cjs_MagickClampImageChannel");
+		js.wrap(this.__cjs_MagickClipImage, "__cjs_MagickClipImage");
+		js.wrap(this.__cjs_MagickClipImagePath, "__cjs_MagickClipImagePath");
+		js.wrap(this.__cjs_MagickClutImage, "__cjs_MagickClutImage");
+		js.wrap(this.__cjs_MagickClutImageChannel, "__cjs_MagickClutImageChannel");
+		js.wrap(this.__cjs_MagickColorDecisionListImage, "__cjs_MagickColorDecisionListImage");
+		js.wrap(this.__cjs_MagickColorizeImage, "__cjs_MagickColorizeImage");
+		js.wrap(this.__cjs_MagickColorMatrixImage, "__cjs_MagickColorMatrixImage");
+		js.wrap(this.__cjs_MagickCommentImage, "__cjs_MagickCommentImage");
+		js.wrap(this.__cjs_MagickCompositeImage, "__cjs_MagickCompositeImage");
+		js.wrap(this.__cjs_MagickCompositeImageChannel, "__cjs_MagickCompositeImageChannel");
+		js.wrap(this.__cjs_MagickConstituteImage, "__cjs_MagickConstituteImage");
+		js.wrap(this.__cjs_MagickContrastImage, "__cjs_MagickContrastImage");
+		js.wrap(this.__cjs_MagickContrastStretchImage, "__cjs_MagickContrastStretchImage");
+		js.wrap(this.__cjs_MagickContrastStretchImageChannel, "__cjs_MagickContrastStretchImageChannel");
+		js.wrap(this.__cjs_MagickConvolveImage, "__cjs_MagickConvolveImage");
+		js.wrap(this.__cjs_MagickConvolveImageChannel, "__cjs_MagickConvolveImageChannel");
+		js.wrap(this.__cjs_MagickCropImage, "__cjs_MagickCropImage");
+		js.wrap(this.__cjs_MagickCycleColormapImage, "__cjs_MagickCycleColormapImage");
+		js.wrap(this.__cjs_MagickDecipherImage, "__cjs_MagickDecipherImage");
+		js.wrap(this.__cjs_MagickDeskewImage, "__cjs_MagickDeskewImage");
+		js.wrap(this.__cjs_MagickDespeckleImage, "__cjs_MagickDespeckleImage");
+		js.wrap(this.__cjs_MagickDisplayImage, "__cjs_MagickDisplayImage");
+		js.wrap(this.__cjs_MagickDisplayImages, "__cjs_MagickDisplayImages");
+		js.wrap(this.__cjs_MagickDistortImage, "__cjs_MagickDistortImage");
+		js.wrap(this.__cjs_MagickDrawImage, "__cjs_MagickDrawImage");
+		js.wrap(this.__cjs_MagickEdgeImage, "__cjs_MagickEdgeImage");
+		js.wrap(this.__cjs_MagickEmbossImage, "__cjs_MagickEmbossImage");
+		js.wrap(this.__cjs_MagickEncipherImage, "__cjs_MagickEncipherImage");
+		js.wrap(this.__cjs_MagickEnhanceImage, "__cjs_MagickEnhanceImage");
+		js.wrap(this.__cjs_MagickEqualizeImage, "__cjs_MagickEqualizeImage");
+		js.wrap(this.__cjs_MagickEqualizeImageChannel, "__cjs_MagickEqualizeImageChannel");
+		js.wrap(this.__cjs_MagickEvaluateImage, "__cjs_MagickEvaluateImage");
+		js.wrap(this.__cjs_MagickEvaluateImageChannel, "__cjs_MagickEvaluateImageChannel");
+		js.wrap(this.__cjs_MagickExportImagePixels, "__cjs_MagickExportImagePixels");
+		js.wrap(this.__cjs_MagickExtentImage, "__cjs_MagickExtentImage");
+		js.wrap(this.__cjs_MagickFilterImage, "__cjs_MagickFilterImage");
+		js.wrap(this.__cjs_MagickFilterImageChannel, "__cjs_MagickFilterImageChannel");
+		js.wrap(this.__cjs_MagickFlipImage, "__cjs_MagickFlipImage");
+		js.wrap(this.__cjs_MagickFloodfillPaintImage, "__cjs_MagickFloodfillPaintImage");
+		js.wrap(this.__cjs_MagickFlopImage, "__cjs_MagickFlopImage");
+		js.wrap(this.__cjs_MagickForwardFourierTransformImage, "__cjs_MagickForwardFourierTransformImage");
+		js.wrap(this.__cjs_MagickFrameImage, "__cjs_MagickFrameImage");
+		js.wrap(this.__cjs_MagickFunctionImage, "__cjs_MagickFunctionImage");
+		js.wrap(this.__cjs_MagickFunctionImageChannel, "__cjs_MagickFunctionImageChannel");
+		js.wrap(this.__cjs_MagickGammaImage, "__cjs_MagickGammaImage");
+		js.wrap(this.__cjs_MagickGammaImageChannel, "__cjs_MagickGammaImageChannel");
+		js.wrap(this.__cjs_MagickGaussianBlurImage, "__cjs_MagickGaussianBlurImage");
+		js.wrap(this.__cjs_MagickGaussianBlurImageChannel, "__cjs_MagickGaussianBlurImageChannel");
+		js.wrap(this.__cjs_MagickGetImageAlphaChannel, "__cjs_MagickGetImageAlphaChannel");
+		js.wrap(this.__cjs_MagickGetImageBackgroundColor, "__cjs_MagickGetImageBackgroundColor");
+		js.wrap(this.__cjs_MagickGetImageBluePrimary, "__cjs_MagickGetImageBluePrimary");
+		js.wrap(this.__cjs_MagickGetImageBorderColor, "__cjs_MagickGetImageBorderColor");
+		js.wrap(this.__cjs_MagickGetImageChannelDistortion, "__cjs_MagickGetImageChannelDistortion");
+		js.wrap(this.__cjs_MagickGetImageChannelKurtosis, "__cjs_MagickGetImageChannelKurtosis");
+		js.wrap(this.__cjs_MagickGetImageChannelMean, "__cjs_MagickGetImageChannelMean");
+		js.wrap(this.__cjs_MagickGetImageChannelRange, "__cjs_MagickGetImageChannelRange");
+		js.wrap(this.__cjs_MagickGetImageColormapColor, "__cjs_MagickGetImageColormapColor");
+		js.wrap(this.__cjs_MagickGetImageDistortion, "__cjs_MagickGetImageDistortion");
+		js.wrap(this.__cjs_MagickGetImageGreenPrimary, "__cjs_MagickGetImageGreenPrimary");
+		js.wrap(this.__cjs_MagickGetImageMatteColor, "__cjs_MagickGetImageMatteColor");
+		js.wrap(this.__cjs_MagickGetImageLength, "__cjs_MagickGetImageLength");
+		js.wrap(this.__cjs_MagickGetImagePage, "__cjs_MagickGetImagePage");
+		js.wrap(this.__cjs_MagickGetImagePixelColor, "__cjs_MagickGetImagePixelColor");
+		js.wrap(this.__cjs_MagickGetImageRange, "__cjs_MagickGetImageRange");
+		js.wrap(this.__cjs_MagickGetImageRedPrimary, "__cjs_MagickGetImageRedPrimary");
+		js.wrap(this.__cjs_MagickGetImageResolution, "__cjs_MagickGetImageResolution");
+		js.wrap(this.__cjs_MagickGetImageWhitePoint, "__cjs_MagickGetImageWhitePoint");
+		js.wrap(this.__cjs_MagickHaldClutImage, "__cjs_MagickHaldClutImage");
+		js.wrap(this.__cjs_MagickHaldClutImageChannel, "__cjs_MagickHaldClutImageChannel");
+		js.wrap(this.__cjs_MagickHasNextImage, "__cjs_MagickHasNextImage");
+		js.wrap(this.__cjs_MagickHasPreviousImage, "__cjs_MagickHasPreviousImage");
+		js.wrap(this.__cjs_MagickImplodeImage, "__cjs_MagickImplodeImage");
+		js.wrap(this.__cjs_MagickImportImagePixels, "__cjs_MagickImportImagePixels");
+		js.wrap(this.__cjs_MagickInverseFourierTransformImage, "__cjs_MagickInverseFourierTransformImage");
+		js.wrap(this.__cjs_MagickLabelImage, "__cjs_MagickLabelImage");
+		js.wrap(this.__cjs_MagickLevelImage, "__cjs_MagickLevelImage");
+		js.wrap(this.__cjs_MagickLevelImageChannel, "__cjs_MagickLevelImageChannel");
+		js.wrap(this.__cjs_MagickLinearStretchImage, "__cjs_MagickLinearStretchImage");
+		js.wrap(this.__cjs_MagickLiquidRescaleImage, "__cjs_MagickLiquidRescaleImage");
+		js.wrap(this.__cjs_MagickMagnifyImage, "__cjs_MagickMagnifyImage");
+		js.wrap(this.__cjs_MagickMedianFilterImage, "__cjs_MagickMedianFilterImage");
+		js.wrap(this.__cjs_MagickMinifyImage, "__cjs_MagickMinifyImage");
+		js.wrap(this.__cjs_MagickModulateImage, "__cjs_MagickModulateImage");
+		js.wrap(this.__cjs_MagickMorphologyImage, "__cjs_MagickMorphologyImage");
+		js.wrap(this.__cjs_MagickMorphologyImageChannel, "__cjs_MagickMorphologyImageChannel");
+		js.wrap(this.__cjs_MagickMotionBlurImage, "__cjs_MagickMotionBlurImage");
+		js.wrap(this.__cjs_MagickMotionBlurImageChannel, "__cjs_MagickMotionBlurImageChannel");
+		js.wrap(this.__cjs_MagickNegateImage, "__cjs_MagickNegateImage");
+		js.wrap(this.__cjs_MagickNegateImageChannel, "__cjs_MagickNegateImageChannel");
+		js.wrap(this.__cjs_MagickNewImage, "__cjs_MagickNewImage");
+		js.wrap(this.__cjs_MagickNormalizeImage, "__cjs_MagickNormalizeImage");
+		js.wrap(this.__cjs_MagickNormalizeImageChannel, "__cjs_MagickNormalizeImageChannel");
+		js.wrap(this.__cjs_MagickOilPaintImage, "__cjs_MagickOilPaintImage");
+		js.wrap(this.__cjs_MagickOpaquePaintImage, "__cjs_MagickOpaquePaintImage");
+		js.wrap(this.__cjs_MagickOpaquePaintImageChannel, "__cjs_MagickOpaquePaintImageChannel");
+		js.wrap(this.__cjs_MagickOrderedPosterizeImage, "__cjs_MagickOrderedPosterizeImage");
+		js.wrap(this.__cjs_MagickOrderedPosterizeImageChannel, "__cjs_MagickOrderedPosterizeImageChannel");
+		js.wrap(this.__cjs_MagickTransparentPaintImage, "__cjs_MagickTransparentPaintImage");
+		js.wrap(this.__cjs_MagickPingImage, "__cjs_MagickPingImage");
+		js.wrap(this.__cjs_MagickPingImageBlob, "__cjs_MagickPingImageBlob");
+		js.wrap(this.__cjs_MagickPingImageFile, "__cjs_MagickPingImageFile");
+		js.wrap(this.__cjs_MagickPolaroidImage, "__cjs_MagickPolaroidImage");
+		js.wrap(this.__cjs_MagickPosterizeImage, "__cjs_MagickPosterizeImage");
+		js.wrap(this.__cjs_MagickPreviousImage, "__cjs_MagickPreviousImage");
+		js.wrap(this.__cjs_MagickQuantizeImage, "__cjs_MagickQuantizeImage");
+		js.wrap(this.__cjs_MagickQuantizeImages, "__cjs_MagickQuantizeImages");
+		js.wrap(this.__cjs_MagickRadialBlurImage, "__cjs_MagickRadialBlurImage");
+		js.wrap(this.__cjs_MagickRadialBlurImageChannel, "__cjs_MagickRadialBlurImageChannel");
+		js.wrap(this.__cjs_MagickRaiseImage, "__cjs_MagickRaiseImage");
+		js.wrap(this.__cjs_MagickRandomThresholdImage, "__cjs_MagickRandomThresholdImage");
+		js.wrap(this.__cjs_MagickRandomThresholdImageChannel, "__cjs_MagickRandomThresholdImageChannel");
+		js.wrap(this.__cjs_MagickReadImageBlob, "__cjs_MagickReadImageBlob");
+		js.wrap(this.__cjs_MagickReadImageFile, "__cjs_MagickReadImageFile");
+		js.wrap(this.__cjs_MagickReduceNoiseImage, "__cjs_MagickReduceNoiseImage");
+		js.wrap(this.__cjs_MagickRemapImage, "__cjs_MagickRemapImage");
+		js.wrap(this.__cjs_MagickRemoveImage, "__cjs_MagickRemoveImage");
+		js.wrap(this.__cjs_MagickResampleImage, "__cjs_MagickResampleImage");
+		js.wrap(this.__cjs_MagickResetImagePage, "__cjs_MagickResetImagePage");
+		js.wrap(this.__cjs_MagickRollImage, "__cjs_MagickRollImage");
+		js.wrap(this.__cjs_MagickRotateImage, "__cjs_MagickRotateImage");
+		js.wrap(this.__cjs_MagickSampleImage, "__cjs_MagickSampleImage");
+		js.wrap(this.__cjs_MagickScaleImage, "__cjs_MagickScaleImage");
+		js.wrap(this.__cjs_MagickSegmentImage, "__cjs_MagickSegmentImage");
+		js.wrap(this.__cjs_MagickSelectiveBlurImage, "__cjs_MagickSelectiveBlurImage");
+		js.wrap(this.__cjs_MagickSelectiveBlurImageChannel, "__cjs_MagickSelectiveBlurImageChannel");
+		js.wrap(this.__cjs_MagickSeparateImageChannel, "__cjs_MagickSeparateImageChannel");
+		js.wrap(this.__cjs_MagickSepiaToneImage, "__cjs_MagickSepiaToneImage");
+		js.wrap(this.__cjs_MagickSetImage, "__cjs_MagickSetImage");
+		js.wrap(this.__cjs_MagickSetImageAlphaChannel, "__cjs_MagickSetImageAlphaChannel");
+		js.wrap(this.__cjs_MagickSetImageBackgroundColor, "__cjs_MagickSetImageBackgroundColor");
+		js.wrap(this.__cjs_MagickSetImageBias, "__cjs_MagickSetImageBias");
+		js.wrap(this.__cjs_MagickSetImageBluePrimary, "__cjs_MagickSetImageBluePrimary");
+		js.wrap(this.__cjs_MagickSetImageBorderColor, "__cjs_MagickSetImageBorderColor");
+		js.wrap(this.__cjs_MagickSetImageChannelDepth, "__cjs_MagickSetImageChannelDepth");
+		js.wrap(this.__cjs_MagickSetImageClipMask, "__cjs_MagickSetImageClipMask");
+		js.wrap(this.__cjs_MagickSetImageColor, "__cjs_MagickSetImageColor");
+		js.wrap(this.__cjs_MagickSetImageColormapColor, "__cjs_MagickSetImageColormapColor");
+		js.wrap(this.__cjs_MagickSetImageColorspace, "__cjs_MagickSetImageColorspace");
+		js.wrap(this.__cjs_MagickSetImageCompose, "__cjs_MagickSetImageCompose");
+		js.wrap(this.__cjs_MagickSetImageCompression, "__cjs_MagickSetImageCompression");
+		js.wrap(this.__cjs_MagickSetImageDelay, "__cjs_MagickSetImageDelay");
+		js.wrap(this.__cjs_MagickSetImageDepth, "__cjs_MagickSetImageDepth");
+		js.wrap(this.__cjs_MagickSetImageDispose, "__cjs_MagickSetImageDispose");
+		js.wrap(this.__cjs_MagickSetImageCompressionQuality, "__cjs_MagickSetImageCompressionQuality");
+		js.wrap(this.__cjs_MagickSetImageExtent, "__cjs_MagickSetImageExtent");
+		js.wrap(this.__cjs_MagickSetImageFilename, "__cjs_MagickSetImageFilename");
+		js.wrap(this.__cjs_MagickSetImageFormat, "__cjs_MagickSetImageFormat");
+		js.wrap(this.__cjs_MagickSetImageFuzz, "__cjs_MagickSetImageFuzz");
+		js.wrap(this.__cjs_MagickSetImageGamma, "__cjs_MagickSetImageGamma");
+		js.wrap(this.__cjs_MagickSetImageGravity, "__cjs_MagickSetImageGravity");
+		js.wrap(this.__cjs_MagickSetImageGreenPrimary, "__cjs_MagickSetImageGreenPrimary");
+		js.wrap(this.__cjs_MagickSetImageInterlaceScheme, "__cjs_MagickSetImageInterlaceScheme");
+		js.wrap(this.__cjs_MagickSetImageInterpolateMethod, "__cjs_MagickSetImageInterpolateMethod");
+		js.wrap(this.__cjs_MagickSetImageIterations, "__cjs_MagickSetImageIterations");
+		js.wrap(this.__cjs_MagickSetImageMatte, "__cjs_MagickSetImageMatte");
+		js.wrap(this.__cjs_MagickSetImageMatteColor, "__cjs_MagickSetImageMatteColor");
+		js.wrap(this.__cjs_MagickSetImageOpacity, "__cjs_MagickSetImageOpacity");
+		js.wrap(this.__cjs_MagickSetImageOrientation, "__cjs_MagickSetImageOrientation");
+		js.wrap(this.__cjs_MagickSetImagePage, "__cjs_MagickSetImagePage");
+		js.wrap(this.__cjs_MagickSetImageRedPrimary, "__cjs_MagickSetImageRedPrimary");
+		js.wrap(this.__cjs_MagickSetImageRenderingIntent, "__cjs_MagickSetImageRenderingIntent");
+		js.wrap(this.__cjs_MagickSetImageResolution, "__cjs_MagickSetImageResolution");
+		js.wrap(this.__cjs_MagickSetImageScene, "__cjs_MagickSetImageScene");
+		js.wrap(this.__cjs_MagickSetImageTicksPerSecond, "__cjs_MagickSetImageTicksPerSecond");
+		js.wrap(this.__cjs_MagickSetImageType, "__cjs_MagickSetImageType");
+		js.wrap(this.__cjs_MagickSetImageUnits, "__cjs_MagickSetImageUnits");
+		js.wrap(this.__cjs_MagickSetImageWhitePoint, "__cjs_MagickSetImageWhitePoint");
+		js.wrap(this.__cjs_MagickShadeImage, "__cjs_MagickShadeImage");
+		js.wrap(this.__cjs_MagickShadowImage, "__cjs_MagickShadowImage");
+		js.wrap(this.__cjs_MagickSharpenImage, "__cjs_MagickSharpenImage");
+		js.wrap(this.__cjs_MagickSharpenImageChannel, "__cjs_MagickSharpenImageChannel");
+		js.wrap(this.__cjs_MagickShaveImage, "__cjs_MagickShaveImage");
+		js.wrap(this.__cjs_MagickShearImage, "__cjs_MagickShearImage");
+		js.wrap(this.__cjs_MagickSigmoidalContrastImage, "__cjs_MagickSigmoidalContrastImage");
+		js.wrap(this.__cjs_MagickSigmoidalContrastImageChannel, "__cjs_MagickSigmoidalContrastImageChannel");
+		js.wrap(this.__cjs_MagickSketchImage, "__cjs_MagickSketchImage");
+		js.wrap(this.__cjs_MagickSolarizeImage, "__cjs_MagickSolarizeImage");
+		js.wrap(this.__cjs_MagickSparseColorImage, "__cjs_MagickSparseColorImage");
+		js.wrap(this.__cjs_MagickSpliceImage, "__cjs_MagickSpliceImage");
+		js.wrap(this.__cjs_MagickSpreadImage, "__cjs_MagickSpreadImage");
+		js.wrap(this.__cjs_MagickStripImage, "__cjs_MagickStripImage");
+		js.wrap(this.__cjs_MagickSwirlImage, "__cjs_MagickSwirlImage");
+		js.wrap(this.__cjs_MagickTintImage, "__cjs_MagickTintImage");
+		js.wrap(this.__cjs_MagickTransformImageColorspace, "__cjs_MagickTransformImageColorspace");
+		js.wrap(this.__cjs_MagickTransposeImage, "__cjs_MagickTransposeImage");
+		js.wrap(this.__cjs_MagickTransverseImage, "__cjs_MagickTransverseImage");
+		js.wrap(this.__cjs_MagickThresholdImage, "__cjs_MagickThresholdImage");
+		js.wrap(this.__cjs_MagickThresholdImageChannel, "__cjs_MagickThresholdImageChannel");
+		js.wrap(this.__cjs_MagickThumbnailImage, "__cjs_MagickThumbnailImage");
+		js.wrap(this.__cjs_MagickTrimImage, "__cjs_MagickTrimImage");
+		js.wrap(this.__cjs_MagickUniqueImageColors, "__cjs_MagickUniqueImageColors");
+		js.wrap(this.__cjs_MagickUnsharpMaskImage, "__cjs_MagickUnsharpMaskImage");
+		js.wrap(this.__cjs_MagickUnsharpMaskImageChannel, "__cjs_MagickUnsharpMaskImageChannel");
+		js.wrap(this.__cjs_MagickVignetteImage, "__cjs_MagickVignetteImage");
+		js.wrap(this.__cjs_MagickWaveImage, "__cjs_MagickWaveImage");
+		js.wrap(this.__cjs_MagickWhiteThresholdImage, "__cjs_MagickWhiteThresholdImage");
+		js.wrap(this.__cjs_MagickWriteImage, "__cjs_MagickWriteImage");
+		js.wrap(this.__cjs_MagickWriteImageFile, "__cjs_MagickWriteImageFile");
+		js.wrap(this.__cjs_MagickWriteImagesFile, "__cjs_MagickWriteImagesFile");
+		js.wrap(this.__cjs_MagickGetImageChannelFeatures, "__cjs_MagickGetImageChannelFeatures");
+		js.wrap(this.__cjs_MagickGetImageChannelStatistics, "__cjs_MagickGetImageChannelStatistics");
+		js.wrap(this.__cjs_MagickGetImageFilename, "__cjs_MagickGetImageFilename");
+		js.wrap(this.__cjs_MagickGetImageFormat, "__cjs_MagickGetImageFormat");
+		js.wrap(this.__cjs_MagickGetImageSignature, "__cjs_MagickGetImageSignature");
+		js.wrap(this.__cjs_MagickIdentifyImage, "__cjs_MagickIdentifyImage");
+		js.wrap(this.__cjs_MagickGetImageColorspace, "__cjs_MagickGetImageColorspace");
+		js.wrap(this.__cjs_MagickGetImageCompose, "__cjs_MagickGetImageCompose");
+		js.wrap(this.__cjs_MagickGetImageCompression, "__cjs_MagickGetImageCompression");
+		js.wrap(this.__cjs_MagickGetImageDispose, "__cjs_MagickGetImageDispose");
+		js.wrap(this.__cjs_MagickGetImageChannelDistortions, "__cjs_MagickGetImageChannelDistortions");
+		js.wrap(this.__cjs_MagickGetImageFuzz, "__cjs_MagickGetImageFuzz");
+		js.wrap(this.__cjs_MagickGetImageGamma, "__cjs_MagickGetImageGamma");
+		js.wrap(this.__cjs_MagickGetImageTotalInkDensity, "__cjs_MagickGetImageTotalInkDensity");
+		js.wrap(this.__cjs_MagickGetImageGravity, "__cjs_MagickGetImageGravity");
+		js.wrap(this.__cjs_MagickDestroyImage, "__cjs_MagickDestroyImage");
+		js.wrap(this.__cjs_GetImageFromMagickWand, "__cjs_GetImageFromMagickWand");
+		js.wrap(this.__cjs_MagickGetImageType, "__cjs_MagickGetImageType");
+		js.wrap(this.__cjs_MagickGetImageInterlaceScheme, "__cjs_MagickGetImageInterlaceScheme");
+		js.wrap(this.__cjs_MagickGetImageInterpolateMethod, "__cjs_MagickGetImageInterpolateMethod");
+		js.wrap(this.__cjs_MagickAppendImages, "__cjs_MagickAppendImages");
+		js.wrap(this.__cjs_MagickCoalesceImages, "__cjs_MagickCoalesceImages");
+		js.wrap(this.__cjs_MagickCombineImages, "__cjs_MagickCombineImages");
+		js.wrap(this.__cjs_MagickCompareImageChannels, "__cjs_MagickCompareImageChannels");
+		js.wrap(this.__cjs_MagickCompareImages, "__cjs_MagickCompareImages");
+		js.wrap(this.__cjs_MagickCompareImageLayers, "__cjs_MagickCompareImageLayers");
+		js.wrap(this.__cjs_MagickDeconstructImages, "__cjs_MagickDeconstructImages");
+		js.wrap(this.__cjs_MagickEvaluateImages, "__cjs_MagickEvaluateImages");
+		js.wrap(this.__cjs_MagickFxImage, "__cjs_MagickFxImage");
+		js.wrap(this.__cjs_MagickFxImageChannel, "__cjs_MagickFxImageChannel");
+		js.wrap(this.__cjs_MagickGetImage, "__cjs_MagickGetImage");
+		js.wrap(this.__cjs_MagickGetImageClipMask, "__cjs_MagickGetImageClipMask");
+		js.wrap(this.__cjs_MagickGetImageRegion, "__cjs_MagickGetImageRegion");
+		js.wrap(this.__cjs_MagickMergeImageLayers, "__cjs_MagickMergeImageLayers");
+		js.wrap(this.__cjs_MagickMorphImages, "__cjs_MagickMorphImages");
+		js.wrap(this.__cjs_MagickMontageImage, "__cjs_MagickMontageImage");
+		js.wrap(this.__cjs_MagickOptimizeImageLayers, "__cjs_MagickOptimizeImageLayers");
+		js.wrap(this.__cjs_MagickPreviewImages, "__cjs_MagickPreviewImages");
+		js.wrap(this.__cjs_MagickSimilarityImage, "__cjs_MagickSimilarityImage");
+		js.wrap(this.__cjs_MagickSteganoImage, "__cjs_MagickSteganoImage");
+		js.wrap(this.__cjs_MagickStereoImage, "__cjs_MagickStereoImage");
+		js.wrap(this.__cjs_MagickTextureImage, "__cjs_MagickTextureImage");
+		js.wrap(this.__cjs_MagickTransformImage, "__cjs_MagickTransformImage");
+		js.wrap(this.__cjs_MagickGetImageOrientation, "__cjs_MagickGetImageOrientation");
+		js.wrap(this.__cjs_MagickGetImageHistogram, "__cjs_MagickGetImageHistogram");
+		js.wrap(this.__cjs_MagickGetImageRenderingIntent, "__cjs_MagickGetImageRenderingIntent");
+		js.wrap(this.__cjs_MagickGetImageUnits, "__cjs_MagickGetImageUnits");
+		js.wrap(this.__cjs_MagickGetImageColors, "__cjs_MagickGetImageColors");
+		js.wrap(this.__cjs_MagickGetImageCompressionQuality, "__cjs_MagickGetImageCompressionQuality");
+		js.wrap(this.__cjs_MagickGetImageDelay, "__cjs_MagickGetImageDelay");
+		js.wrap(this.__cjs_MagickGetImageChannelDepth, "__cjs_MagickGetImageChannelDepth");
+		js.wrap(this.__cjs_MagickGetImageDepth, "__cjs_MagickGetImageDepth");
+		js.wrap(this.__cjs_MagickGetImageHeight, "__cjs_MagickGetImageHeight");
+		js.wrap(this.__cjs_MagickGetImageIterations, "__cjs_MagickGetImageIterations");
+		js.wrap(this.__cjs_MagickGetImageScene, "__cjs_MagickGetImageScene");
+		js.wrap(this.__cjs_MagickGetImageTicksPerSecond, "__cjs_MagickGetImageTicksPerSecond");
+		js.wrap(this.__cjs_MagickGetImageWidth, "__cjs_MagickGetImageWidth");
+		js.wrap(this.__cjs_MagickGetNumberImages, "__cjs_MagickGetNumberImages");
+		js.wrap(this.__cjs_MagickGetImageBlob, "__cjs_MagickGetImageBlob");
+		js.wrap(this.__cjs_MagickGetImagesBlob, "__cjs_MagickGetImagesBlob");
+		js.wrap(this.__cjs_MagickGetImageVirtualPixelMethod, "__cjs_MagickGetImageVirtualPixelMethod");
+		js.wrap(this.__cjs_MagickSetImageVirtualPixelMethod, "__cjs_MagickSetImageVirtualPixelMethod");
+		js.wrap(this.__cjs_DrawGetTextAlignment, "__cjs_DrawGetTextAlignment");
+		js.wrap(this.__cjs_DrawGetClipPath, "__cjs_DrawGetClipPath");
+		js.wrap(this.__cjs_DrawGetException, "__cjs_DrawGetException");
+		js.wrap(this.__cjs_DrawGetFont, "__cjs_DrawGetFont");
+		js.wrap(this.__cjs_DrawGetFontFamily, "__cjs_DrawGetFontFamily");
+		js.wrap(this.__cjs_DrawGetTextEncoding, "__cjs_DrawGetTextEncoding");
+		js.wrap(this.__cjs_DrawGetVectorGraphics, "__cjs_DrawGetVectorGraphics");
+		js.wrap(this.__cjs_DrawGetClipUnits, "__cjs_DrawGetClipUnits");
+		js.wrap(this.__cjs_DrawGetTextDecoration, "__cjs_DrawGetTextDecoration");
+		js.wrap(this.__cjs_DrawGetFillOpacity, "__cjs_DrawGetFillOpacity");
+		js.wrap(this.__cjs_DrawGetFontSize, "__cjs_DrawGetFontSize");
+		js.wrap(this.__cjs_DrawGetOpacity, "__cjs_DrawGetOpacity");
+		js.wrap(this.__cjs_DrawGetStrokeDashArray, "__cjs_DrawGetStrokeDashArray");
+		js.wrap(this.__cjs_DrawGetStrokeDashOffset, "__cjs_DrawGetStrokeDashOffset");
+		js.wrap(this.__cjs_DrawGetStrokeOpacity, "__cjs_DrawGetStrokeOpacity");
+		js.wrap(this.__cjs_DrawGetStrokeWidth, "__cjs_DrawGetStrokeWidth");
+		js.wrap(this.__cjs_DrawGetTextKerning, "__cjs_DrawGetTextKerning");
+		js.wrap(this.__cjs_DrawGetTextInterlineSpacing, "__cjs_DrawGetTextInterlineSpacing");
+		js.wrap(this.__cjs_DrawGetTextInterwordSpacing, "__cjs_DrawGetTextInterwordSpacing");
+		js.wrap(this.__cjs_PeekDrawingWand, "__cjs_PeekDrawingWand");
+		js.wrap(this.__cjs_CloneDrawingWand, "__cjs_CloneDrawingWand");
+		js.wrap(this.__cjs_DestroyDrawingWand, "__cjs_DestroyDrawingWand");
+		js.wrap(this.__cjs_DrawAllocateWand, "__cjs_DrawAllocateWand");
+		js.wrap(this.__cjs_NewDrawingWand, "__cjs_NewDrawingWand");
+		js.wrap(this.__cjs_DrawGetExceptionType, "__cjs_DrawGetExceptionType");
+		js.wrap(this.__cjs_DrawGetClipRule, "__cjs_DrawGetClipRule");
+		js.wrap(this.__cjs_DrawGetFillRule, "__cjs_DrawGetFillRule");
+		js.wrap(this.__cjs_DrawGetGravity, "__cjs_DrawGetGravity");
+		js.wrap(this.__cjs_DrawGetStrokeLineCap, "__cjs_DrawGetStrokeLineCap");
+		js.wrap(this.__cjs_DrawGetStrokeLineJoin, "__cjs_DrawGetStrokeLineJoin");
+		js.wrap(this.__cjs_DrawClearException, "__cjs_DrawClearException");
+		js.wrap(this.__cjs_DrawComposite, "__cjs_DrawComposite");
+		js.wrap(this.__cjs_DrawGetFontResolution, "__cjs_DrawGetFontResolution");
+		js.wrap(this.__cjs_DrawGetStrokeAntialias, "__cjs_DrawGetStrokeAntialias");
+		js.wrap(this.__cjs_DrawGetTextAntialias, "__cjs_DrawGetTextAntialias");
+		js.wrap(this.__cjs_DrawPopPattern, "__cjs_DrawPopPattern");
+		js.wrap(this.__cjs_DrawPushPattern, "__cjs_DrawPushPattern");
+		js.wrap(this.__cjs_DrawRender, "__cjs_DrawRender");
+		js.wrap(this.__cjs_DrawSetClipPath, "__cjs_DrawSetClipPath");
+		js.wrap(this.__cjs_DrawSetFillPatternURL, "__cjs_DrawSetFillPatternURL");
+		js.wrap(this.__cjs_DrawSetFont, "__cjs_DrawSetFont");
+		js.wrap(this.__cjs_DrawSetFontFamily, "__cjs_DrawSetFontFamily");
+		js.wrap(this.__cjs_DrawSetFontResolution, "__cjs_DrawSetFontResolution");
+		js.wrap(this.__cjs_DrawSetStrokeDashArray, "__cjs_DrawSetStrokeDashArray");
+		js.wrap(this.__cjs_DrawSetStrokePatternURL, "__cjs_DrawSetStrokePatternURL");
+		js.wrap(this.__cjs_DrawSetVectorGraphics, "__cjs_DrawSetVectorGraphics");
+		js.wrap(this.__cjs_IsDrawingWand, "__cjs_IsDrawingWand");
+		js.wrap(this.__cjs_PopDrawingWand, "__cjs_PopDrawingWand");
+		js.wrap(this.__cjs_PushDrawingWand, "__cjs_PushDrawingWand");
+		js.wrap(this.__cjs_DrawGetFontStretch, "__cjs_DrawGetFontStretch");
+		js.wrap(this.__cjs_DrawGetFontStyle, "__cjs_DrawGetFontStyle");
+		js.wrap(this.__cjs_DrawGetFontWeight, "__cjs_DrawGetFontWeight");
+		js.wrap(this.__cjs_DrawGetStrokeMiterLimit, "__cjs_DrawGetStrokeMiterLimit");
+		js.wrap(this.__cjs_ClearDrawingWand, "__cjs_ClearDrawingWand");
+		js.wrap(this.__cjs_DrawAffine, "__cjs_DrawAffine");
+		js.wrap(this.__cjs_DrawAnnotation, "__cjs_DrawAnnotation");
+		js.wrap(this.__cjs_DrawArc, "__cjs_DrawArc");
+		js.wrap(this.__cjs_DrawBezier, "__cjs_DrawBezier");
+		js.wrap(this.__cjs_DrawGetBorderColor, "__cjs_DrawGetBorderColor");
+		js.wrap(this.__cjs_DrawCircle, "__cjs_DrawCircle");
+		js.wrap(this.__cjs_DrawColor, "__cjs_DrawColor");
+		js.wrap(this.__cjs_DrawComment, "__cjs_DrawComment");
+		js.wrap(this.__cjs_DrawEllipse, "__cjs_DrawEllipse");
+		js.wrap(this.__cjs_DrawGetFillColor, "__cjs_DrawGetFillColor");
+		js.wrap(this.__cjs_DrawGetStrokeColor, "__cjs_DrawGetStrokeColor");
+		js.wrap(this.__cjs_DrawSetTextKerning, "__cjs_DrawSetTextKerning");
+		js.wrap(this.__cjs_DrawSetTextInterlineSpacing, "__cjs_DrawSetTextInterlineSpacing");
+		js.wrap(this.__cjs_DrawSetTextInterwordSpacing, "__cjs_DrawSetTextInterwordSpacing");
+		js.wrap(this.__cjs_DrawGetTextUnderColor, "__cjs_DrawGetTextUnderColor");
+		js.wrap(this.__cjs_DrawLine, "__cjs_DrawLine");
+		js.wrap(this.__cjs_DrawMatte, "__cjs_DrawMatte");
+		js.wrap(this.__cjs_DrawPathClose, "__cjs_DrawPathClose");
+		js.wrap(this.__cjs_DrawPathCurveToAbsolute, "__cjs_DrawPathCurveToAbsolute");
+		js.wrap(this.__cjs_DrawPathCurveToRelative, "__cjs_DrawPathCurveToRelative");
+		js.wrap(this.__cjs_DrawPathCurveToQuadraticBezierAbsolute, "__cjs_DrawPathCurveToQuadraticBezierAbsolute");
+		js.wrap(this.__cjs_DrawPathCurveToQuadraticBezierRelative, "__cjs_DrawPathCurveToQuadraticBezierRelative");
+		js.wrap(this.__cjs_DrawPathCurveToQuadraticBezierSmoothAbsolute, "__cjs_DrawPathCurveToQuadraticBezierSmoothAbsolute");
+		js.wrap(this.__cjs_DrawPathCurveToQuadraticBezierSmoothRelative, "__cjs_DrawPathCurveToQuadraticBezierSmoothRelative");
+		js.wrap(this.__cjs_DrawPathCurveToSmoothAbsolute, "__cjs_DrawPathCurveToSmoothAbsolute");
+		js.wrap(this.__cjs_DrawPathCurveToSmoothRelative, "__cjs_DrawPathCurveToSmoothRelative");
+		js.wrap(this.__cjs_DrawPathEllipticArcAbsolute, "__cjs_DrawPathEllipticArcAbsolute");
+		js.wrap(this.__cjs_DrawPathEllipticArcRelative, "__cjs_DrawPathEllipticArcRelative");
+		js.wrap(this.__cjs_DrawPathFinish, "__cjs_DrawPathFinish");
+		js.wrap(this.__cjs_DrawPathLineToAbsolute, "__cjs_DrawPathLineToAbsolute");
+		js.wrap(this.__cjs_DrawPathLineToRelative, "__cjs_DrawPathLineToRelative");
+		js.wrap(this.__cjs_DrawPathLineToHorizontalAbsolute, "__cjs_DrawPathLineToHorizontalAbsolute");
+		js.wrap(this.__cjs_DrawPathLineToHorizontalRelative, "__cjs_DrawPathLineToHorizontalRelative");
+		js.wrap(this.__cjs_DrawPathLineToVerticalAbsolute, "__cjs_DrawPathLineToVerticalAbsolute");
+		js.wrap(this.__cjs_DrawPathLineToVerticalRelative, "__cjs_DrawPathLineToVerticalRelative");
+		js.wrap(this.__cjs_DrawPathMoveToAbsolute, "__cjs_DrawPathMoveToAbsolute");
+		js.wrap(this.__cjs_DrawPathMoveToRelative, "__cjs_DrawPathMoveToRelative");
+		js.wrap(this.__cjs_DrawPathStart, "__cjs_DrawPathStart");
+		js.wrap(this.__cjs_DrawPoint, "__cjs_DrawPoint");
+		js.wrap(this.__cjs_DrawPolygon, "__cjs_DrawPolygon");
+		js.wrap(this.__cjs_DrawPolyline, "__cjs_DrawPolyline");
+		js.wrap(this.__cjs_DrawPopClipPath, "__cjs_DrawPopClipPath");
+		js.wrap(this.__cjs_DrawPopDefs, "__cjs_DrawPopDefs");
+		js.wrap(this.__cjs_DrawPushClipPath, "__cjs_DrawPushClipPath");
+		js.wrap(this.__cjs_DrawPushDefs, "__cjs_DrawPushDefs");
+		js.wrap(this.__cjs_DrawRectangle, "__cjs_DrawRectangle");
+		js.wrap(this.__cjs_DrawResetVectorGraphics, "__cjs_DrawResetVectorGraphics");
+		js.wrap(this.__cjs_DrawRotate, "__cjs_DrawRotate");
+		js.wrap(this.__cjs_DrawRoundRectangle, "__cjs_DrawRoundRectangle");
+		js.wrap(this.__cjs_DrawScale, "__cjs_DrawScale");
+		js.wrap(this.__cjs_DrawSetBorderColor, "__cjs_DrawSetBorderColor");
+		js.wrap(this.__cjs_DrawSetClipRule, "__cjs_DrawSetClipRule");
+		js.wrap(this.__cjs_DrawSetClipUnits, "__cjs_DrawSetClipUnits");
+		js.wrap(this.__cjs_DrawSetFillColor, "__cjs_DrawSetFillColor");
+		js.wrap(this.__cjs_DrawSetFillOpacity, "__cjs_DrawSetFillOpacity");
+		js.wrap(this.__cjs_DrawSetFillRule, "__cjs_DrawSetFillRule");
+		js.wrap(this.__cjs_DrawSetFontSize, "__cjs_DrawSetFontSize");
+		js.wrap(this.__cjs_DrawSetFontStretch, "__cjs_DrawSetFontStretch");
+		js.wrap(this.__cjs_DrawSetFontStyle, "__cjs_DrawSetFontStyle");
+		js.wrap(this.__cjs_DrawSetFontWeight, "__cjs_DrawSetFontWeight");
+		js.wrap(this.__cjs_DrawSetGravity, "__cjs_DrawSetGravity");
+		js.wrap(this.__cjs_DrawSetOpacity, "__cjs_DrawSetOpacity");
+		js.wrap(this.__cjs_DrawSetStrokeAntialias, "__cjs_DrawSetStrokeAntialias");
+		js.wrap(this.__cjs_DrawSetStrokeColor, "__cjs_DrawSetStrokeColor");
+		js.wrap(this.__cjs_DrawSetStrokeDashOffset, "__cjs_DrawSetStrokeDashOffset");
+		js.wrap(this.__cjs_DrawSetStrokeLineCap, "__cjs_DrawSetStrokeLineCap");
+		js.wrap(this.__cjs_DrawSetStrokeLineJoin, "__cjs_DrawSetStrokeLineJoin");
+		js.wrap(this.__cjs_DrawSetStrokeMiterLimit, "__cjs_DrawSetStrokeMiterLimit");
+		js.wrap(this.__cjs_DrawSetStrokeOpacity, "__cjs_DrawSetStrokeOpacity");
+		js.wrap(this.__cjs_DrawSetStrokeWidth, "__cjs_DrawSetStrokeWidth");
+		js.wrap(this.__cjs_DrawSetTextAlignment, "__cjs_DrawSetTextAlignment");
+		js.wrap(this.__cjs_DrawSetTextAntialias, "__cjs_DrawSetTextAntialias");
+		js.wrap(this.__cjs_DrawSetTextDecoration, "__cjs_DrawSetTextDecoration");
+		js.wrap(this.__cjs_DrawSetTextEncoding, "__cjs_DrawSetTextEncoding");
+		js.wrap(this.__cjs_DrawSetTextUnderColor, "__cjs_DrawSetTextUnderColor");
+		js.wrap(this.__cjs_DrawSetViewbox, "__cjs_DrawSetViewbox");
+		js.wrap(this.__cjs_DrawSkewX, "__cjs_DrawSkewX");
+		js.wrap(this.__cjs_DrawSkewY, "__cjs_DrawSkewY");
+		js.wrap(this.__cjs_DrawTranslate, "__cjs_DrawTranslate");
+		js.wrap(this.__cjs_PixelGetColorAsNormalizedString, "__cjs_PixelGetColorAsNormalizedString");
+		js.wrap(this.__cjs_PixelGetColorAsString, "__cjs_PixelGetColorAsString");
+		js.wrap(this.__cjs_PixelGetException, "__cjs_PixelGetException");
+		js.wrap(this.__cjs_PixelGetAlpha, "__cjs_PixelGetAlpha");
+		js.wrap(this.__cjs_PixelGetBlack, "__cjs_PixelGetBlack");
+		js.wrap(this.__cjs_PixelGetBlue, "__cjs_PixelGetBlue");
+		js.wrap(this.__cjs_PixelGetCyan, "__cjs_PixelGetCyan");
+		js.wrap(this.__cjs_PixelGetFuzz, "__cjs_PixelGetFuzz");
+		js.wrap(this.__cjs_PixelGetGreen, "__cjs_PixelGetGreen");
+		js.wrap(this.__cjs_PixelGetMagenta, "__cjs_PixelGetMagenta");
+		js.wrap(this.__cjs_PixelGetOpacity, "__cjs_PixelGetOpacity");
+		js.wrap(this.__cjs_PixelGetRed, "__cjs_PixelGetRed");
+		js.wrap(this.__cjs_PixelGetYellow, "__cjs_PixelGetYellow");
+		js.wrap(this.__cjs_PixelGetExceptionType, "__cjs_PixelGetExceptionType");
+		js.wrap(this.__cjs_PixelGetIndex, "__cjs_PixelGetIndex");
+		js.wrap(this.__cjs_IsPixelWand, "__cjs_IsPixelWand");
+		js.wrap(this.__cjs_IsPixelWandSimilar, "__cjs_IsPixelWandSimilar");
+		js.wrap(this.__cjs_PixelClearException, "__cjs_PixelClearException");
+		js.wrap(this.__cjs_PixelSetColor, "__cjs_PixelSetColor");
+		js.wrap(this.__cjs_ClonePixelWand, "__cjs_ClonePixelWand");
+		js.wrap(this.__cjs_ClonePixelWands, "__cjs_ClonePixelWands");
+		js.wrap(this.__cjs_DestroyPixelWand, "__cjs_DestroyPixelWand");
+		js.wrap(this.__cjs_DestroyPixelWands, "__cjs_DestroyPixelWands");
+		js.wrap(this.__cjs_NewPixelWand, "__cjs_NewPixelWand");
+		js.wrap(this.__cjs_NewPixelWands, "__cjs_NewPixelWands");
+		js.wrap(this.__cjs_PixelGetAlphaQuantum, "__cjs_PixelGetAlphaQuantum");
+		js.wrap(this.__cjs_PixelGetBlackQuantum, "__cjs_PixelGetBlackQuantum");
+		js.wrap(this.__cjs_PixelGetBlueQuantum, "__cjs_PixelGetBlueQuantum");
+		js.wrap(this.__cjs_PixelGetCyanQuantum, "__cjs_PixelGetCyanQuantum");
+		js.wrap(this.__cjs_PixelGetGreenQuantum, "__cjs_PixelGetGreenQuantum");
+		js.wrap(this.__cjs_PixelGetMagentaQuantum, "__cjs_PixelGetMagentaQuantum");
+		js.wrap(this.__cjs_PixelGetOpacityQuantum, "__cjs_PixelGetOpacityQuantum");
+		js.wrap(this.__cjs_PixelGetRedQuantum, "__cjs_PixelGetRedQuantum");
+		js.wrap(this.__cjs_PixelGetYellowQuantum, "__cjs_PixelGetYellowQuantum");
+		js.wrap(this.__cjs_PixelGetColorCount, "__cjs_PixelGetColorCount");
+		js.wrap(this.__cjs_ClearPixelWand, "__cjs_ClearPixelWand");
+		js.wrap(this.__cjs_PixelGetHSL, "__cjs_PixelGetHSL");
+		js.wrap(this.__cjs_PixelGetQuantumColor, "__cjs_PixelGetQuantumColor");
+		js.wrap(this.__cjs_PixelSetAlpha, "__cjs_PixelSetAlpha");
+		js.wrap(this.__cjs_PixelSetAlphaQuantum, "__cjs_PixelSetAlphaQuantum");
+		js.wrap(this.__cjs_PixelSetBlack, "__cjs_PixelSetBlack");
+		js.wrap(this.__cjs_PixelSetBlackQuantum, "__cjs_PixelSetBlackQuantum");
+		js.wrap(this.__cjs_PixelSetBlue, "__cjs_PixelSetBlue");
+		js.wrap(this.__cjs_PixelSetBlueQuantum, "__cjs_PixelSetBlueQuantum");
+		js.wrap(this.__cjs_PixelSetColorFromWand, "__cjs_PixelSetColorFromWand");
+		js.wrap(this.__cjs_PixelSetColorCount, "__cjs_PixelSetColorCount");
+		js.wrap(this.__cjs_PixelSetCyan, "__cjs_PixelSetCyan");
+		js.wrap(this.__cjs_PixelSetCyanQuantum, "__cjs_PixelSetCyanQuantum");
+		js.wrap(this.__cjs_PixelSetFuzz, "__cjs_PixelSetFuzz");
+		js.wrap(this.__cjs_PixelSetGreen, "__cjs_PixelSetGreen");
+		js.wrap(this.__cjs_PixelSetGreenQuantum, "__cjs_PixelSetGreenQuantum");
+		js.wrap(this.__cjs_PixelSetHSL, "__cjs_PixelSetHSL");
+		js.wrap(this.__cjs_PixelSetIndex, "__cjs_PixelSetIndex");
+		js.wrap(this.__cjs_PixelSetMagenta, "__cjs_PixelSetMagenta");
+		js.wrap(this.__cjs_PixelSetMagentaQuantum, "__cjs_PixelSetMagentaQuantum");
+		js.wrap(this.__cjs_PixelSetMagickColor, "__cjs_PixelSetMagickColor");
+		js.wrap(this.__cjs_PixelSetOpacity, "__cjs_PixelSetOpacity");
+		js.wrap(this.__cjs_PixelSetOpacityQuantum, "__cjs_PixelSetOpacityQuantum");
+		js.wrap(this.__cjs_PixelSetQuantumColor, "__cjs_PixelSetQuantumColor");
+		js.wrap(this.__cjs_PixelSetRed, "__cjs_PixelSetRed");
+		js.wrap(this.__cjs_PixelSetRedQuantum, "__cjs_PixelSetRedQuantum");
+		js.wrap(this.__cjs_PixelSetYellow, "__cjs_PixelSetYellow");
+		js.wrap(this.__cjs_PixelSetYellowQuantum, "__cjs_PixelSetYellowQuantum");
+		js.wrap(this.__cjs_MagickGetFilename, "__cjs_MagickGetFilename");
+		js.wrap(this.__cjs_MagickGetFormat, "__cjs_MagickGetFormat");
+		js.wrap(this.__cjs_MagickGetFont, "__cjs_MagickGetFont");
+		js.wrap(this.__cjs_MagickGetHomeURL, "__cjs_MagickGetHomeURL");
+		js.wrap(this.__cjs_MagickGetImageArtifact, "__cjs_MagickGetImageArtifact");
+		js.wrap(this.__cjs_MagickGetImageArtifacts, "__cjs_MagickGetImageArtifacts");
+		js.wrap(this.__cjs_MagickGetImageProfiles, "__cjs_MagickGetImageProfiles");
+		js.wrap(this.__cjs_MagickGetImageProperty, "__cjs_MagickGetImageProperty");
+		js.wrap(this.__cjs_MagickGetImageProperties, "__cjs_MagickGetImageProperties");
+		js.wrap(this.__cjs_MagickGetOption, "__cjs_MagickGetOption");
+		js.wrap(this.__cjs_MagickGetOptions, "__cjs_MagickGetOptions");
+		js.wrap(this.__cjs_MagickQueryConfigureOption, "__cjs_MagickQueryConfigureOption");
+		js.wrap(this.__cjs_MagickQueryConfigureOptions, "__cjs_MagickQueryConfigureOptions");
+		js.wrap(this.__cjs_MagickQueryFonts, "__cjs_MagickQueryFonts");
+		js.wrap(this.__cjs_MagickQueryFormats, "__cjs_MagickQueryFormats");
+		js.wrap(this.__cjs_MagickGetColorspace, "__cjs_MagickGetColorspace");
+		js.wrap(this.__cjs_MagickGetCompression, "__cjs_MagickGetCompression");
+		js.wrap(this.__cjs_MagickGetCopyright, "__cjs_MagickGetCopyright");
+		js.wrap(this.__cjs_MagickGetPackageName, "__cjs_MagickGetPackageName");
+		js.wrap(this.__cjs_MagickGetQuantumDepth, "__cjs_MagickGetQuantumDepth");
+		js.wrap(this.__cjs_MagickGetQuantumRange, "__cjs_MagickGetQuantumRange");
+		js.wrap(this.__cjs_MagickGetReleaseDate, "__cjs_MagickGetReleaseDate");
+		js.wrap(this.__cjs_MagickGetVersion, "__cjs_MagickGetVersion");
+		js.wrap(this.__cjs_MagickGetPointsize, "__cjs_MagickGetPointsize");
+		js.wrap(this.__cjs_MagickGetSamplingFactors, "__cjs_MagickGetSamplingFactors");
+		js.wrap(this.__cjs_MagickQueryFontMetrics, "__cjs_MagickQueryFontMetrics");
+		js.wrap(this.__cjs_MagickQueryMultilineFontMetrics, "__cjs_MagickQueryMultilineFontMetrics");
+		js.wrap(this.__cjs_MagickGetGravity, "__cjs_MagickGetGravity");
+		js.wrap(this.__cjs_MagickGetType, "__cjs_MagickGetType");
+		js.wrap(this.__cjs_MagickGetInterlaceScheme, "__cjs_MagickGetInterlaceScheme");
+		js.wrap(this.__cjs_MagickGetInterpolateMethod, "__cjs_MagickGetInterpolateMethod");
+		js.wrap(this.__cjs_MagickGetOrientation, "__cjs_MagickGetOrientation");
+		js.wrap(this.__cjs_MagickDeleteImageArtifact, "__cjs_MagickDeleteImageArtifact");
+		js.wrap(this.__cjs_MagickDeleteImageProperty, "__cjs_MagickDeleteImageProperty");
+		js.wrap(this.__cjs_MagickDeleteOption, "__cjs_MagickDeleteOption");
+		js.wrap(this.__cjs_MagickGetAntialias, "__cjs_MagickGetAntialias");
+		js.wrap(this.__cjs_MagickGetPage, "__cjs_MagickGetPage");
+		js.wrap(this.__cjs_MagickGetResolution, "__cjs_MagickGetResolution");
+		js.wrap(this.__cjs_MagickGetSize, "__cjs_MagickGetSize");
+		js.wrap(this.__cjs_MagickGetSizeOffset, "__cjs_MagickGetSizeOffset");
+		js.wrap(this.__cjs_MagickProfileImage, "__cjs_MagickProfileImage");
+		js.wrap(this.__cjs_MagickSetAntialias, "__cjs_MagickSetAntialias");
+		js.wrap(this.__cjs_MagickSetBackgroundColor, "__cjs_MagickSetBackgroundColor");
+		js.wrap(this.__cjs_MagickSetColorspace, "__cjs_MagickSetColorspace");
+		js.wrap(this.__cjs_MagickSetCompression, "__cjs_MagickSetCompression");
+		js.wrap(this.__cjs_MagickSetCompressionQuality, "__cjs_MagickSetCompressionQuality");
+		js.wrap(this.__cjs_MagickSetDepth, "__cjs_MagickSetDepth");
+		js.wrap(this.__cjs_MagickSetExtract, "__cjs_MagickSetExtract");
+		js.wrap(this.__cjs_MagickSetFilename, "__cjs_MagickSetFilename");
+		js.wrap(this.__cjs_MagickSetFormat, "__cjs_MagickSetFormat");
+		js.wrap(this.__cjs_MagickSetFont, "__cjs_MagickSetFont");
+		js.wrap(this.__cjs_MagickSetGravity, "__cjs_MagickSetGravity");
+		js.wrap(this.__cjs_MagickSetImageArtifact, "__cjs_MagickSetImageArtifact");
+		js.wrap(this.__cjs_MagickSetImageProfile, "__cjs_MagickSetImageProfile");
+		js.wrap(this.__cjs_MagickSetImageProperty, "__cjs_MagickSetImageProperty");
+		js.wrap(this.__cjs_MagickSetInterlaceScheme, "__cjs_MagickSetInterlaceScheme");
+		js.wrap(this.__cjs_MagickSetInterpolateMethod, "__cjs_MagickSetInterpolateMethod");
+		js.wrap(this.__cjs_MagickSetOption, "__cjs_MagickSetOption");
+		js.wrap(this.__cjs_MagickSetOrientation, "__cjs_MagickSetOrientation");
+		js.wrap(this.__cjs_MagickSetPage, "__cjs_MagickSetPage");
+		js.wrap(this.__cjs_MagickSetPassphrase, "__cjs_MagickSetPassphrase");
+		js.wrap(this.__cjs_MagickSetPointsize, "__cjs_MagickSetPointsize");
+		js.wrap(this.__cjs_MagickSetResolution, "__cjs_MagickSetResolution");
+		js.wrap(this.__cjs_MagickSetResourceLimit, "__cjs_MagickSetResourceLimit");
+		js.wrap(this.__cjs_MagickSetSamplingFactors, "__cjs_MagickSetSamplingFactors");
+		js.wrap(this.__cjs_MagickSetSize, "__cjs_MagickSetSize");
+		js.wrap(this.__cjs_MagickSetSizeOffset, "__cjs_MagickSetSizeOffset");
+		js.wrap(this.__cjs_MagickSetType, "__cjs_MagickSetType");
+		js.wrap(this.__cjs_MagickSetProgressMonitor, "__cjs_MagickSetProgressMonitor");
+		js.wrap(this.__cjs_MagickGetResource, "__cjs_MagickGetResource");
+		js.wrap(this.__cjs_MagickGetResourceLimit, "__cjs_MagickGetResourceLimit");
+		js.wrap(this.__cjs_MagickGetBackgroundColor, "__cjs_MagickGetBackgroundColor");
+		js.wrap(this.__cjs_MagickGetImageProfile, "__cjs_MagickGetImageProfile");
+		js.wrap(this.__cjs_MagickRemoveImageProfile, "__cjs_MagickRemoveImageProfile");
+		js.wrap(this.__cjs_PixelGetIteratorException, "__cjs_PixelGetIteratorException");
+		js.wrap(this.__cjs_PixelGetIteratorExceptionType, "__cjs_PixelGetIteratorExceptionType");
+		js.wrap(this.__cjs_IsPixelIterator, "__cjs_IsPixelIterator");
+		js.wrap(this.__cjs_PixelClearIteratorException, "__cjs_PixelClearIteratorException");
+		js.wrap(this.__cjs_PixelSetIteratorRow, "__cjs_PixelSetIteratorRow");
+		js.wrap(this.__cjs_PixelSyncIterator, "__cjs_PixelSyncIterator");
+		js.wrap(this.__cjs_ClonePixelIterator, "__cjs_ClonePixelIterator");
+		js.wrap(this.__cjs_DestroyPixelIterator, "__cjs_DestroyPixelIterator");
+		js.wrap(this.__cjs_NewPixelIterator, "__cjs_NewPixelIterator");
+		js.wrap(this.__cjs_NewPixelRegionIterator, "__cjs_NewPixelRegionIterator");
+		js.wrap(this.__cjs_PixelGetCurrentIteratorRow, "__cjs_PixelGetCurrentIteratorRow");
+		js.wrap(this.__cjs_PixelGetNextIteratorRow, "__cjs_PixelGetNextIteratorRow");
+		js.wrap(this.__cjs_PixelGetPreviousIteratorRow, "__cjs_PixelGetPreviousIteratorRow");
+		js.wrap(this.__cjs_PixelGetIteratorRow, "__cjs_PixelGetIteratorRow");
+		js.wrap(this.__cjs_ClearPixelIterator, "__cjs_ClearPixelIterator");
+		js.wrap(this.__cjs_PixelResetIterator, "__cjs_PixelResetIterator");
+		js.wrap(this.__cjs_PixelSetFirstIteratorRow, "__cjs_PixelSetFirstIteratorRow");
+		js.wrap(this.__cjs_PixelSetLastIteratorRow, "__cjs_PixelSetLastIteratorRow");
+	}
+
+	ECMABRIDGE_standard_graph_imagemagick(js) {
+		this.wrap(js);
+	}
+}

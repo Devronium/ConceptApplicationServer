@@ -1,0 +1,737 @@
+/* This file is generated automatically by generatejs.con. Do not edit. */
+
+import standard.net.ldap
+
+class ECMABRIDGE_standard_net_ldap {
+	__cjs_ldap_control_create(a, b, c, d, e) {
+		return ldap_control_create(a, b, c, d, e);
+	}
+
+	__cjs_ldap_control_find(a, b, c) {
+		return ldap_control_find(a, b, c);
+	}
+
+	__cjs_ldap_control_free(a) {
+		return ldap_control_free(a);
+	}
+
+	__cjs_ldap_controls_free(a) {
+		return ldap_controls_free(a);
+	}
+
+	__cjs_ldap_controls_dup(a) {
+		return ldap_controls_dup(a);
+	}
+
+	__cjs_ldap_control_dup(a) {
+		return ldap_control_dup(a);
+	}
+
+	__cjs_ldap_domain2dn(a, b) {
+		return ldap_domain2dn(a, b);
+	}
+
+	__cjs_ldap_dn2domain(a, b) {
+		return ldap_dn2domain(a, b);
+	}
+
+	__cjs_ldap_domain2hostlist(a, b) {
+		return ldap_domain2hostlist(a, b);
+	}
+
+	__cjs_ldap_extended_operation(a, b, c, d, e, f) {
+		return ldap_extended_operation(a, b, c, d, e, f);
+	}
+
+	__cjs_ldap_extended_operation_s(a, b, c, d, e, f, g) {
+		return ldap_extended_operation_s(a, b, c, d, e, f, g);
+	}
+
+	__cjs_ldap_parse_extended_result(a, b, c, d, e) {
+		return ldap_parse_extended_result(a, b, c, d, e);
+	}
+
+	__cjs_ldap_parse_intermediate(a, b, c, d, e, f) {
+		return ldap_parse_intermediate(a, b, c, d, e, f);
+	}
+
+	__cjs_ldap_abandon_ext(a, b, c, d) {
+		return ldap_abandon_ext(a, b, c, d);
+	}
+
+	__cjs_ldap_add_ext(a, b, c, d) {
+		return ldap_add_ext(a, b, c, d);
+	}
+
+	__cjs_ldap_add_ext_s(a, b, c) {
+		return ldap_add_ext_s(a, b, c);
+	}
+
+	__cjs_ldap_sasl_bind(a, b, c, d, e, f, g) {
+		return ldap_sasl_bind(a, b, c, d, e, f, g);
+	}
+
+	__cjs_ldap_sasl_interactive_bind_s(a, b, c, d, e, f, g, h) {
+		return ldap_sasl_interactive_bind_s(a, b, c, d, e, f, g, h);
+	}
+
+	__cjs_ldap_sasl_bind_s(a, b, c, d, e, f, g) {
+		return ldap_sasl_bind_s(a, b, c, d, e, f, g);
+	}
+
+	__cjs_ldap_parse_sasl_bind_result(a, b, c, d) {
+		return ldap_parse_sasl_bind_result(a, b, c, d);
+	}
+
+	__cjs_ldap_compare_ext(a, b, c, d, e, f, g) {
+		return ldap_compare_ext(a, b, c, d, e, f, g);
+	}
+
+	__cjs_ldap_compare_ext_s(a, b, c, d, e, f) {
+		return ldap_compare_ext_s(a, b, c, d, e, f);
+	}
+
+	__cjs_ldap_delete_ext(a, b, c) {
+		return ldap_delete_ext(a, b, c);
+	}
+
+	__cjs_ldap_delete_ext_s(a, b) {
+		return ldap_delete_ext_s(a, b);
+	}
+
+	__cjs_ldap_parse_result(a, b, c, d, e, f, g, h) {
+		return ldap_parse_result(a, b, c, d, e, f, g, h);
+	}
+
+	__cjs_ldap_err2string(a) {
+		return ldap_err2string(a);
+	}
+
+	__cjs_ldap_gssapi_bind(a, b, c) {
+		return ldap_gssapi_bind(a, b, c);
+	}
+
+	__cjs_ldap_gssapi_bind_s(a, b, c) {
+		return ldap_gssapi_bind_s(a, b, c);
+	}
+
+	__cjs_ldap_modify_ext(a, b, c, d) {
+		return ldap_modify_ext(a, b, c, d);
+	}
+
+	__cjs_ldap_modify_ext_s(a, b, c) {
+		return ldap_modify_ext_s(a, b, c);
+	}
+
+	__cjs_ldap_rename(a, b, c, d, e, f) {
+		return ldap_rename(a, b, c, d, e, f);
+	}
+
+	__cjs_ldap_rename_s(a, b, c, d, e) {
+		return ldap_rename_s(a, b, c, d, e);
+	}
+
+	__cjs_ldap_create(a) {
+		return ldap_create(a);
+	}
+
+	__cjs_ldap_initialize(a, b, c) {
+		return ldap_initialize(a, b, c);
+	}
+
+	__cjs_ldap_tls_inplace(a) {
+		return ldap_tls_inplace(a);
+	}
+
+	__cjs_ldap_start_tls(a) {
+		return ldap_start_tls(a);
+	}
+
+	__cjs_ldap_install_tls(a) {
+		return ldap_install_tls(a);
+	}
+
+	__cjs_ldap_start_tls_s(a, b, c) {
+		return ldap_start_tls_s(a, b, c);
+	}
+
+	__cjs_ldap_first_message(a, b) {
+		return ldap_first_message(a, b);
+	}
+
+	__cjs_ldap_next_message(a, b) {
+		return ldap_next_message(a, b);
+	}
+
+	__cjs_ldap_count_messages(a, b) {
+		return ldap_count_messages(a, b);
+	}
+
+	__cjs_ldap_first_reference(a, b) {
+		return ldap_first_reference(a, b);
+	}
+
+	__cjs_ldap_next_reference(a, b) {
+		return ldap_next_reference(a, b);
+	}
+
+	__cjs_ldap_count_references(a, b) {
+		return ldap_count_references(a, b);
+	}
+
+	__cjs_ldap_parse_reference(a, b, c, d, e) {
+		return ldap_parse_reference(a, b, c, d, e);
+	}
+
+	__cjs_ldap_first_entry(a, b) {
+		return ldap_first_entry(a, b);
+	}
+
+	__cjs_ldap_next_entry(a, b) {
+		return ldap_next_entry(a, b);
+	}
+
+	__cjs_ldap_count_entries(a, b) {
+		return ldap_count_entries(a, b);
+	}
+
+	__cjs_ldap_get_entry_controls(a, b, c) {
+		return ldap_get_entry_controls(a, b, c);
+	}
+
+	__cjs_ldap_delete_result_entry(a, b) {
+		return ldap_delete_result_entry(a, b);
+	}
+
+	__cjs_ldap_add_result_entry(a, b) {
+		return ldap_add_result_entry(a, b);
+	}
+
+	__cjs_ldap_get_dn(a, b) {
+		return ldap_get_dn(a, b);
+	}
+
+	__cjs_ldap_rdnfree(a) {
+		return ldap_rdnfree(a);
+	}
+
+	__cjs_ldap_dnfree(a) {
+		return ldap_dnfree(a);
+	}
+
+	__cjs_ldap_bv2dn(a, b, c) {
+		return ldap_bv2dn(a, b, c);
+	}
+
+	__cjs_ldap_str2dn(a, b, c) {
+		return ldap_str2dn(a, b, c);
+	}
+
+	__cjs_ldap_dn2bv(a, b, c) {
+		return ldap_dn2bv(a, b, c);
+	}
+
+	__cjs_ldap_dn2str(a, b, c) {
+		return ldap_dn2str(a, b, c);
+	}
+
+	__cjs_ldap_bv2rdn(a, b, c, d) {
+		return ldap_bv2rdn(a, b, c, d);
+	}
+
+	__cjs_ldap_str2rdn(a, b, c, d) {
+		return ldap_str2rdn(a, b, c, d);
+	}
+
+	__cjs_ldap_rdn2bv(a, b, c) {
+		return ldap_rdn2bv(a, b, c);
+	}
+
+	__cjs_ldap_rdn2str(a, b, c) {
+		return ldap_rdn2str(a, b, c);
+	}
+
+	__cjs_ldap_dn_normalize(a, b, c, d) {
+		return ldap_dn_normalize(a, b, c, d);
+	}
+
+	__cjs_ldap_dn2ufn(a) {
+		return ldap_dn2ufn(a);
+	}
+
+	__cjs_ldap_explode_dn(a, b) {
+		return ldap_explode_dn(a, b);
+	}
+
+	__cjs_ldap_explode_rdn(a, b) {
+		return ldap_explode_rdn(a, b);
+	}
+
+	__cjs_ldap_X509dn2bv(a, b, c, d) {
+		return ldap_X509dn2bv(a, b, c, d);
+	}
+
+	__cjs_ldap_dn2dcedn(a) {
+		return ldap_dn2dcedn(a);
+	}
+
+	__cjs_ldap_dcedn2dn(a) {
+		return ldap_dcedn2dn(a);
+	}
+
+	__cjs_ldap_dn2ad_canonical(a) {
+		return ldap_dn2ad_canonical(a);
+	}
+
+	__cjs_ldap_get_dn_ber(a, b, c, d) {
+		return ldap_get_dn_ber(a, b, c, d);
+	}
+
+	__cjs_ldap_get_attribute_ber(a, b, c, d, e) {
+		return ldap_get_attribute_ber(a, b, c, d, e);
+	}
+
+	__cjs_ldap_first_attribute(a, b, c) {
+		return ldap_first_attribute(a, b, c);
+	}
+
+	__cjs_ldap_next_attribute(a, b, c) {
+		return ldap_next_attribute(a, b, c);
+	}
+
+	__cjs_ldap_count_values_len(a) {
+		return ldap_count_values_len(a);
+	}
+
+	__cjs_ldap_value_free_len(a) {
+		return ldap_value_free_len(a);
+	}
+
+	__cjs_ldap_result(a, b, c, d, e) {
+		return ldap_result(a, b, c, d, e);
+	}
+
+	__cjs_ldap_msgtype(a) {
+		return ldap_msgtype(a);
+	}
+
+	__cjs_ldap_msgid(a) {
+		return ldap_msgid(a);
+	}
+
+	__cjs_ldap_msgfree(a) {
+		return ldap_msgfree(a);
+	}
+
+	__cjs_ldap_msgdelete(a, b) {
+		return ldap_msgdelete(a, b);
+	}
+
+	__cjs_ldap_bv2escaped_filter_value(a, b) {
+		return ldap_bv2escaped_filter_value(a, b);
+	}
+
+	__cjs_ldap_search_ext(a, b, c, d, e, f, g, h, i, j, k) {
+		return ldap_search_ext(a, b, c, d, e, f, g, h, i, j, k);
+	}
+
+	__cjs_ldap_search_ext_s(a, b, c, d, e, f, g, h, i, j, k) {
+		return ldap_search_ext_s(a, b, c, d, e, f, g, h, i, j, k);
+	}
+
+	__cjs_ldap_unbind_ext(a, b, c) {
+		return ldap_unbind_ext(a, b, c);
+	}
+
+	__cjs_ldap_unbind_ext_s(a, b, c) {
+		return ldap_unbind_ext_s(a, b, c);
+	}
+
+	__cjs_ldap_put_vrFilter(a, b) {
+		return ldap_put_vrFilter(a, b);
+	}
+
+	__cjs_ldap_mods_free(a, b) {
+		return ldap_mods_free(a, b);
+	}
+
+	__cjs_ldap_is_ldap_url(a) {
+		return ldap_is_ldap_url(a);
+	}
+
+	__cjs_ldap_is_ldaps_url(a) {
+		return ldap_is_ldaps_url(a);
+	}
+
+	__cjs_ldap_is_ldapi_url(a) {
+		return ldap_is_ldapi_url(a);
+	}
+
+	__cjs_ldap_url_parse(a, b) {
+		return ldap_url_parse(a, b);
+	}
+
+	__cjs_ldap_url_desc2str(a) {
+		return ldap_url_desc2str(a);
+	}
+
+	__cjs_ldap_free_urldesc(a) {
+		return ldap_free_urldesc(a);
+	}
+
+	__cjs_ldap_cancel(a, b, c, d, e) {
+		return ldap_cancel(a, b, c, d, e);
+	}
+
+	__cjs_ldap_cancel_s(a, b, c, d) {
+		return ldap_cancel_s(a, b, c, d);
+	}
+
+	__cjs_ldap_turn(a, b, c, d, e, f) {
+		return ldap_turn(a, b, c, d, e, f);
+	}
+
+	__cjs_ldap_turn_s(a, b, c, d, e) {
+		return ldap_turn_s(a, b, c, d, e);
+	}
+
+	__cjs_ldap_create_page_control_value(a, b, c, d) {
+		return ldap_create_page_control_value(a, b, c, d);
+	}
+
+	__cjs_ldap_create_page_control(a, b, c, d, e) {
+		return ldap_create_page_control(a, b, c, d, e);
+	}
+
+	__cjs_ldap_parse_pageresponse_control(a, b, c, d) {
+		return ldap_parse_pageresponse_control(a, b, c, d);
+	}
+
+	__cjs_ldap_create_sort_keylist(a, b) {
+		return ldap_create_sort_keylist(a, b);
+	}
+
+	__cjs_ldap_free_sort_keylist(a) {
+		return ldap_free_sort_keylist(a);
+	}
+
+	__cjs_ldap_create_sort_control_value(a, b, c) {
+		return ldap_create_sort_control_value(a, b, c);
+	}
+
+	__cjs_ldap_create_sort_control(a, b, c, d) {
+		return ldap_create_sort_control(a, b, c, d);
+	}
+
+	__cjs_ldap_parse_sortresponse_control(a, b, c, d) {
+		return ldap_parse_sortresponse_control(a, b, c, d);
+	}
+
+	__cjs_ldap_create_vlv_control_value(a, b, c) {
+		return ldap_create_vlv_control_value(a, b, c);
+	}
+
+	__cjs_ldap_create_vlv_control(a, b, c) {
+		return ldap_create_vlv_control(a, b, c);
+	}
+
+	__cjs_ldap_parse_vlvresponse_control(a, b, c, d, e, f) {
+		return ldap_parse_vlvresponse_control(a, b, c, d, e, f);
+	}
+
+	__cjs_ldap_parse_whoami(a, b, c) {
+		return ldap_parse_whoami(a, b, c);
+	}
+
+	__cjs_ldap_whoami(a, b, c, d) {
+		return ldap_whoami(a, b, c, d);
+	}
+
+	__cjs_ldap_whoami_s(a, b, c, d) {
+		return ldap_whoami_s(a, b, c, d);
+	}
+
+	__cjs_ldap_parse_passwd(a, b, c) {
+		return ldap_parse_passwd(a, b, c);
+	}
+
+	__cjs_ldap_passwd(a, b, c, d, e, f, g) {
+		return ldap_passwd(a, b, c, d, e, f, g);
+	}
+
+	__cjs_ldap_passwd_s(a, b, c, d, e, f, g) {
+		return ldap_passwd_s(a, b, c, d, e, f, g);
+	}
+
+	__cjs_ldap_create_passwordpolicy_control(a, b) {
+		return ldap_create_passwordpolicy_control(a, b);
+	}
+
+	__cjs_ldap_parse_passwordpolicy_control(a, b, c, d, e) {
+		return ldap_parse_passwordpolicy_control(a, b, c, d, e);
+	}
+
+	__cjs_ldap_parse_refresh(a, b, c) {
+		return ldap_parse_refresh(a, b, c);
+	}
+
+	__cjs_ldap_refresh(a, b, c, d, e, f) {
+		return ldap_refresh(a, b, c, d, e, f);
+	}
+
+	__cjs_ldap_refresh_s(a, b, c, d, e, f) {
+		return ldap_refresh_s(a, b, c, d, e, f);
+	}
+
+	__cjs_ldap_txn_start(a, b, c, d) {
+		return ldap_txn_start(a, b, c, d);
+	}
+
+	__cjs_ldap_txn_start_s(a, b, c, d) {
+		return ldap_txn_start_s(a, b, c, d);
+	}
+
+	__cjs_ldap_txn_end(a, b, c, d, e, f) {
+		return ldap_txn_end(a, b, c, d, e, f);
+	}
+
+	__cjs_ldap_txn_end_s(a, b, c, d, e, f) {
+		return ldap_txn_end_s(a, b, c, d, e, f);
+	}
+
+	__cjs_ldap_sync_initialize() {
+		return ldap_sync_initialize();
+	}
+
+	__cjs_ldap_sync_destroy(a, b) {
+		return ldap_sync_destroy(a, b);
+	}
+
+	__cjs_ldap_sync_init(a, b) {
+		return ldap_sync_init(a, b);
+	}
+
+	__cjs_ldap_sync_init_refresh_only(a) {
+		return ldap_sync_init_refresh_only(a);
+	}
+
+	__cjs_ldap_sync_init_refresh_and_persist(a) {
+		return ldap_sync_init_refresh_and_persist(a);
+	}
+
+	__cjs_ldap_sync_poll(a) {
+		return ldap_sync_poll(a);
+	}
+
+	__cjs_ldap_create_session_tracking_value(a, b, c, d, e, f) {
+		return ldap_create_session_tracking_value(a, b, c, d, e, f);
+	}
+
+	__cjs_ldap_create_session_tracking(a, b, c, d, e, f) {
+		return ldap_create_session_tracking(a, b, c, d, e, f);
+	}
+
+	__cjs_ldap_parse_session_tracking_control(a, b, c, d, e, f) {
+		return ldap_parse_session_tracking_control(a, b, c, d, e, f);
+	}
+
+	__cjs_ldap_create_assertion_control_value(a, b, c) {
+		return ldap_create_assertion_control_value(a, b, c);
+	}
+
+	__cjs_ldap_create_assertion_control(a, b, c, d) {
+		return ldap_create_assertion_control(a, b, c, d);
+	}
+
+	__cjs_ldap_create_deref_control_value(a, b, c) {
+		return ldap_create_deref_control_value(a, b, c);
+	}
+
+	__cjs_ldap_create_deref_control(a, b, c, d) {
+		return ldap_create_deref_control(a, b, c, d);
+	}
+
+	__cjs_ldap_derefresponse_free(a) {
+		return ldap_derefresponse_free(a);
+	}
+
+	__cjs_ldap_parse_derefresponse_control(a, b, c) {
+		return ldap_parse_derefresponse_control(a, b, c);
+	}
+
+	__cjs_ldap_parse_deref_control(a, b, c) {
+		return ldap_parse_deref_control(a, b, c);
+	}
+
+	__cjs_ldap_simple_bind_s(a, b, c) {
+		return ldap_simple_bind_s(a, b, c);
+	}
+
+	__cjs_ldap_simple_bind(a, b, c) {
+		return ldap_simple_bind(a, b, c);
+	}
+
+	__cjs_ldap_search(a, b, c, d, e, f) {
+		return ldap_search(a, b, c, d, e, f);
+	}
+
+	__cjs_ldap_done(a) {
+		return ldap_done(a);
+	}
+
+	__cjs_ldap_array(a, b) {
+		return ldap_array(a, b);
+	}
+
+	wrap(js) {
+		js.wrap(this.__cjs_ldap_control_create, "__cjs_ldap_control_create");
+		js.wrap(this.__cjs_ldap_control_find, "__cjs_ldap_control_find");
+		js.wrap(this.__cjs_ldap_control_free, "__cjs_ldap_control_free");
+		js.wrap(this.__cjs_ldap_controls_free, "__cjs_ldap_controls_free");
+		js.wrap(this.__cjs_ldap_controls_dup, "__cjs_ldap_controls_dup");
+		js.wrap(this.__cjs_ldap_control_dup, "__cjs_ldap_control_dup");
+		js.wrap(this.__cjs_ldap_domain2dn, "__cjs_ldap_domain2dn");
+		js.wrap(this.__cjs_ldap_dn2domain, "__cjs_ldap_dn2domain");
+		js.wrap(this.__cjs_ldap_domain2hostlist, "__cjs_ldap_domain2hostlist");
+		js.wrap(this.__cjs_ldap_extended_operation, "__cjs_ldap_extended_operation");
+		js.wrap(this.__cjs_ldap_extended_operation_s, "__cjs_ldap_extended_operation_s");
+		js.wrap(this.__cjs_ldap_parse_extended_result, "__cjs_ldap_parse_extended_result");
+		js.wrap(this.__cjs_ldap_parse_intermediate, "__cjs_ldap_parse_intermediate");
+		js.wrap(this.__cjs_ldap_abandon_ext, "__cjs_ldap_abandon_ext");
+		js.wrap(this.__cjs_ldap_add_ext, "__cjs_ldap_add_ext");
+		js.wrap(this.__cjs_ldap_add_ext_s, "__cjs_ldap_add_ext_s");
+		js.wrap(this.__cjs_ldap_sasl_bind, "__cjs_ldap_sasl_bind");
+		js.wrap(this.__cjs_ldap_sasl_interactive_bind_s, "__cjs_ldap_sasl_interactive_bind_s");
+		js.wrap(this.__cjs_ldap_sasl_bind_s, "__cjs_ldap_sasl_bind_s");
+		js.wrap(this.__cjs_ldap_parse_sasl_bind_result, "__cjs_ldap_parse_sasl_bind_result");
+		js.wrap(this.__cjs_ldap_compare_ext, "__cjs_ldap_compare_ext");
+		js.wrap(this.__cjs_ldap_compare_ext_s, "__cjs_ldap_compare_ext_s");
+		js.wrap(this.__cjs_ldap_delete_ext, "__cjs_ldap_delete_ext");
+		js.wrap(this.__cjs_ldap_delete_ext_s, "__cjs_ldap_delete_ext_s");
+		js.wrap(this.__cjs_ldap_parse_result, "__cjs_ldap_parse_result");
+		js.wrap(this.__cjs_ldap_err2string, "__cjs_ldap_err2string");
+		js.wrap(this.__cjs_ldap_gssapi_bind, "__cjs_ldap_gssapi_bind");
+		js.wrap(this.__cjs_ldap_gssapi_bind_s, "__cjs_ldap_gssapi_bind_s");
+		js.wrap(this.__cjs_ldap_modify_ext, "__cjs_ldap_modify_ext");
+		js.wrap(this.__cjs_ldap_modify_ext_s, "__cjs_ldap_modify_ext_s");
+		js.wrap(this.__cjs_ldap_rename, "__cjs_ldap_rename");
+		js.wrap(this.__cjs_ldap_rename_s, "__cjs_ldap_rename_s");
+		js.wrap(this.__cjs_ldap_create, "__cjs_ldap_create");
+		js.wrap(this.__cjs_ldap_initialize, "__cjs_ldap_initialize");
+		js.wrap(this.__cjs_ldap_tls_inplace, "__cjs_ldap_tls_inplace");
+		js.wrap(this.__cjs_ldap_start_tls, "__cjs_ldap_start_tls");
+		js.wrap(this.__cjs_ldap_install_tls, "__cjs_ldap_install_tls");
+		js.wrap(this.__cjs_ldap_start_tls_s, "__cjs_ldap_start_tls_s");
+		js.wrap(this.__cjs_ldap_first_message, "__cjs_ldap_first_message");
+		js.wrap(this.__cjs_ldap_next_message, "__cjs_ldap_next_message");
+		js.wrap(this.__cjs_ldap_count_messages, "__cjs_ldap_count_messages");
+		js.wrap(this.__cjs_ldap_first_reference, "__cjs_ldap_first_reference");
+		js.wrap(this.__cjs_ldap_next_reference, "__cjs_ldap_next_reference");
+		js.wrap(this.__cjs_ldap_count_references, "__cjs_ldap_count_references");
+		js.wrap(this.__cjs_ldap_parse_reference, "__cjs_ldap_parse_reference");
+		js.wrap(this.__cjs_ldap_first_entry, "__cjs_ldap_first_entry");
+		js.wrap(this.__cjs_ldap_next_entry, "__cjs_ldap_next_entry");
+		js.wrap(this.__cjs_ldap_count_entries, "__cjs_ldap_count_entries");
+		js.wrap(this.__cjs_ldap_get_entry_controls, "__cjs_ldap_get_entry_controls");
+		js.wrap(this.__cjs_ldap_delete_result_entry, "__cjs_ldap_delete_result_entry");
+		js.wrap(this.__cjs_ldap_add_result_entry, "__cjs_ldap_add_result_entry");
+		js.wrap(this.__cjs_ldap_get_dn, "__cjs_ldap_get_dn");
+		js.wrap(this.__cjs_ldap_rdnfree, "__cjs_ldap_rdnfree");
+		js.wrap(this.__cjs_ldap_dnfree, "__cjs_ldap_dnfree");
+		js.wrap(this.__cjs_ldap_bv2dn, "__cjs_ldap_bv2dn");
+		js.wrap(this.__cjs_ldap_str2dn, "__cjs_ldap_str2dn");
+		js.wrap(this.__cjs_ldap_dn2bv, "__cjs_ldap_dn2bv");
+		js.wrap(this.__cjs_ldap_dn2str, "__cjs_ldap_dn2str");
+		js.wrap(this.__cjs_ldap_bv2rdn, "__cjs_ldap_bv2rdn");
+		js.wrap(this.__cjs_ldap_str2rdn, "__cjs_ldap_str2rdn");
+		js.wrap(this.__cjs_ldap_rdn2bv, "__cjs_ldap_rdn2bv");
+		js.wrap(this.__cjs_ldap_rdn2str, "__cjs_ldap_rdn2str");
+		js.wrap(this.__cjs_ldap_dn_normalize, "__cjs_ldap_dn_normalize");
+		js.wrap(this.__cjs_ldap_dn2ufn, "__cjs_ldap_dn2ufn");
+		js.wrap(this.__cjs_ldap_explode_dn, "__cjs_ldap_explode_dn");
+		js.wrap(this.__cjs_ldap_explode_rdn, "__cjs_ldap_explode_rdn");
+		js.wrap(this.__cjs_ldap_X509dn2bv, "__cjs_ldap_X509dn2bv");
+		js.wrap(this.__cjs_ldap_dn2dcedn, "__cjs_ldap_dn2dcedn");
+		js.wrap(this.__cjs_ldap_dcedn2dn, "__cjs_ldap_dcedn2dn");
+		js.wrap(this.__cjs_ldap_dn2ad_canonical, "__cjs_ldap_dn2ad_canonical");
+		js.wrap(this.__cjs_ldap_get_dn_ber, "__cjs_ldap_get_dn_ber");
+		js.wrap(this.__cjs_ldap_get_attribute_ber, "__cjs_ldap_get_attribute_ber");
+		js.wrap(this.__cjs_ldap_first_attribute, "__cjs_ldap_first_attribute");
+		js.wrap(this.__cjs_ldap_next_attribute, "__cjs_ldap_next_attribute");
+		js.wrap(this.__cjs_ldap_count_values_len, "__cjs_ldap_count_values_len");
+		js.wrap(this.__cjs_ldap_value_free_len, "__cjs_ldap_value_free_len");
+		js.wrap(this.__cjs_ldap_result, "__cjs_ldap_result");
+		js.wrap(this.__cjs_ldap_msgtype, "__cjs_ldap_msgtype");
+		js.wrap(this.__cjs_ldap_msgid, "__cjs_ldap_msgid");
+		js.wrap(this.__cjs_ldap_msgfree, "__cjs_ldap_msgfree");
+		js.wrap(this.__cjs_ldap_msgdelete, "__cjs_ldap_msgdelete");
+		js.wrap(this.__cjs_ldap_bv2escaped_filter_value, "__cjs_ldap_bv2escaped_filter_value");
+		js.wrap(this.__cjs_ldap_search_ext, "__cjs_ldap_search_ext");
+		js.wrap(this.__cjs_ldap_search_ext_s, "__cjs_ldap_search_ext_s");
+		js.wrap(this.__cjs_ldap_unbind_ext, "__cjs_ldap_unbind_ext");
+		js.wrap(this.__cjs_ldap_unbind_ext_s, "__cjs_ldap_unbind_ext_s");
+		js.wrap(this.__cjs_ldap_put_vrFilter, "__cjs_ldap_put_vrFilter");
+		js.wrap(this.__cjs_ldap_mods_free, "__cjs_ldap_mods_free");
+		js.wrap(this.__cjs_ldap_is_ldap_url, "__cjs_ldap_is_ldap_url");
+		js.wrap(this.__cjs_ldap_is_ldaps_url, "__cjs_ldap_is_ldaps_url");
+		js.wrap(this.__cjs_ldap_is_ldapi_url, "__cjs_ldap_is_ldapi_url");
+		js.wrap(this.__cjs_ldap_url_parse, "__cjs_ldap_url_parse");
+		js.wrap(this.__cjs_ldap_url_desc2str, "__cjs_ldap_url_desc2str");
+		js.wrap(this.__cjs_ldap_free_urldesc, "__cjs_ldap_free_urldesc");
+		js.wrap(this.__cjs_ldap_cancel, "__cjs_ldap_cancel");
+		js.wrap(this.__cjs_ldap_cancel_s, "__cjs_ldap_cancel_s");
+		js.wrap(this.__cjs_ldap_turn, "__cjs_ldap_turn");
+		js.wrap(this.__cjs_ldap_turn_s, "__cjs_ldap_turn_s");
+		js.wrap(this.__cjs_ldap_create_page_control_value, "__cjs_ldap_create_page_control_value");
+		js.wrap(this.__cjs_ldap_create_page_control, "__cjs_ldap_create_page_control");
+		js.wrap(this.__cjs_ldap_parse_pageresponse_control, "__cjs_ldap_parse_pageresponse_control");
+		js.wrap(this.__cjs_ldap_create_sort_keylist, "__cjs_ldap_create_sort_keylist");
+		js.wrap(this.__cjs_ldap_free_sort_keylist, "__cjs_ldap_free_sort_keylist");
+		js.wrap(this.__cjs_ldap_create_sort_control_value, "__cjs_ldap_create_sort_control_value");
+		js.wrap(this.__cjs_ldap_create_sort_control, "__cjs_ldap_create_sort_control");
+		js.wrap(this.__cjs_ldap_parse_sortresponse_control, "__cjs_ldap_parse_sortresponse_control");
+		js.wrap(this.__cjs_ldap_create_vlv_control_value, "__cjs_ldap_create_vlv_control_value");
+		js.wrap(this.__cjs_ldap_create_vlv_control, "__cjs_ldap_create_vlv_control");
+		js.wrap(this.__cjs_ldap_parse_vlvresponse_control, "__cjs_ldap_parse_vlvresponse_control");
+		js.wrap(this.__cjs_ldap_parse_whoami, "__cjs_ldap_parse_whoami");
+		js.wrap(this.__cjs_ldap_whoami, "__cjs_ldap_whoami");
+		js.wrap(this.__cjs_ldap_whoami_s, "__cjs_ldap_whoami_s");
+		js.wrap(this.__cjs_ldap_parse_passwd, "__cjs_ldap_parse_passwd");
+		js.wrap(this.__cjs_ldap_passwd, "__cjs_ldap_passwd");
+		js.wrap(this.__cjs_ldap_passwd_s, "__cjs_ldap_passwd_s");
+		js.wrap(this.__cjs_ldap_create_passwordpolicy_control, "__cjs_ldap_create_passwordpolicy_control");
+		js.wrap(this.__cjs_ldap_parse_passwordpolicy_control, "__cjs_ldap_parse_passwordpolicy_control");
+		js.wrap(this.__cjs_ldap_parse_refresh, "__cjs_ldap_parse_refresh");
+		js.wrap(this.__cjs_ldap_refresh, "__cjs_ldap_refresh");
+		js.wrap(this.__cjs_ldap_refresh_s, "__cjs_ldap_refresh_s");
+		js.wrap(this.__cjs_ldap_txn_start, "__cjs_ldap_txn_start");
+		js.wrap(this.__cjs_ldap_txn_start_s, "__cjs_ldap_txn_start_s");
+		js.wrap(this.__cjs_ldap_txn_end, "__cjs_ldap_txn_end");
+		js.wrap(this.__cjs_ldap_txn_end_s, "__cjs_ldap_txn_end_s");
+		js.wrap(this.__cjs_ldap_sync_initialize, "__cjs_ldap_sync_initialize");
+		js.wrap(this.__cjs_ldap_sync_destroy, "__cjs_ldap_sync_destroy");
+		js.wrap(this.__cjs_ldap_sync_init, "__cjs_ldap_sync_init");
+		js.wrap(this.__cjs_ldap_sync_init_refresh_only, "__cjs_ldap_sync_init_refresh_only");
+		js.wrap(this.__cjs_ldap_sync_init_refresh_and_persist, "__cjs_ldap_sync_init_refresh_and_persist");
+		js.wrap(this.__cjs_ldap_sync_poll, "__cjs_ldap_sync_poll");
+		js.wrap(this.__cjs_ldap_create_session_tracking_value, "__cjs_ldap_create_session_tracking_value");
+		js.wrap(this.__cjs_ldap_create_session_tracking, "__cjs_ldap_create_session_tracking");
+		js.wrap(this.__cjs_ldap_parse_session_tracking_control, "__cjs_ldap_parse_session_tracking_control");
+		js.wrap(this.__cjs_ldap_create_assertion_control_value, "__cjs_ldap_create_assertion_control_value");
+		js.wrap(this.__cjs_ldap_create_assertion_control, "__cjs_ldap_create_assertion_control");
+		js.wrap(this.__cjs_ldap_create_deref_control_value, "__cjs_ldap_create_deref_control_value");
+		js.wrap(this.__cjs_ldap_create_deref_control, "__cjs_ldap_create_deref_control");
+		js.wrap(this.__cjs_ldap_derefresponse_free, "__cjs_ldap_derefresponse_free");
+		js.wrap(this.__cjs_ldap_parse_derefresponse_control, "__cjs_ldap_parse_derefresponse_control");
+		js.wrap(this.__cjs_ldap_parse_deref_control, "__cjs_ldap_parse_deref_control");
+		js.wrap(this.__cjs_ldap_simple_bind_s, "__cjs_ldap_simple_bind_s");
+		js.wrap(this.__cjs_ldap_simple_bind, "__cjs_ldap_simple_bind");
+		js.wrap(this.__cjs_ldap_search, "__cjs_ldap_search");
+		js.wrap(this.__cjs_ldap_done, "__cjs_ldap_done");
+		js.wrap(this.__cjs_ldap_array, "__cjs_ldap_array");
+	}
+
+	ECMABRIDGE_standard_net_ldap(js) {
+		this.wrap(js);
+	}
+}

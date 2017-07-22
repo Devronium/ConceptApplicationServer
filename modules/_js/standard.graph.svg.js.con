@@ -1,0 +1,17 @@
+/* This file is generated automatically by generatejs.con. Do not edit. */
+
+import standard.graph.svg
+
+class ECMABRIDGE_standard_graph_svg {
+	__cjs_SVG(a, b, c = null, d = null) {
+		return SVG(a, b, c = null, d = null);
+	}
+
+	wrap(js) {
+		js.wrap(this.__cjs_SVG, "__cjs_SVG");
+	}
+
+	ECMABRIDGE_standard_graph_svg(js) {
+		this.wrap(js);
+	}
+}

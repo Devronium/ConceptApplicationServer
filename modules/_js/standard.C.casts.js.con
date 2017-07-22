@@ -1,0 +1,102 @@
+/* This file is generated automatically by generatejs.con. Do not edit. */
+
+import standard.C.casts
+
+class ECMABRIDGE_standard_C_casts {
+	__cjs_int8(a) {
+		return int8(a);
+	}
+
+	__cjs_int16(a) {
+		return int16(a);
+	}
+
+	__cjs_int32(a) {
+		return int32(a);
+	}
+
+	__cjs_int64(a) {
+		return int64(a);
+	}
+
+	__cjs_uint8(a) {
+		return uint8(a);
+	}
+
+	__cjs_uint16(a) {
+		return uint16(a);
+	}
+
+	__cjs_uint32(a) {
+		return uint32(a);
+	}
+
+	__cjs_uint64(a) {
+		return uint64(a);
+	}
+
+	__cjs_float(a) {
+		return float(a);
+	}
+
+	__cjs__tobin(a, b) {
+		return _tobin(a, b);
+	}
+
+	__cjs__tonumber(a, b) {
+		return _tonumber(a, b);
+	}
+
+	__cjs__toubin(a, b) {
+		return _toubin(a, b);
+	}
+
+	__cjs__tounumber(a, b) {
+		return _tounumber(a, b);
+	}
+
+	__cjs_CreateStaticArray(a, b) {
+		return CreateStaticArray(a, b);
+	}
+
+	__cjs_FreeStaticArray(a) {
+		return FreeStaticArray(a);
+	}
+
+	__cjs_GetStaticArray(a, b, c) {
+		return GetStaticArray(a, b, c);
+	}
+
+	__cjs_SetStaticArray(a, b, c, d) {
+		return SetStaticArray(a, b, c, d);
+	}
+
+	__cjs_FillStaticArray(a, b, c, d) {
+		return FillStaticArray(a, b, c, d);
+	}
+
+	wrap(js) {
+		js.wrap(this.__cjs_int8, "__cjs_int8");
+		js.wrap(this.__cjs_int16, "__cjs_int16");
+		js.wrap(this.__cjs_int32, "__cjs_int32");
+		js.wrap(this.__cjs_int64, "__cjs_int64");
+		js.wrap(this.__cjs_uint8, "__cjs_uint8");
+		js.wrap(this.__cjs_uint16, "__cjs_uint16");
+		js.wrap(this.__cjs_uint32, "__cjs_uint32");
+		js.wrap(this.__cjs_uint64, "__cjs_uint64");
+		js.wrap(this.__cjs_float, "__cjs_float");
+		js.wrap(this.__cjs__tobin, "__cjs__tobin");
+		js.wrap(this.__cjs__tonumber, "__cjs__tonumber");
+		js.wrap(this.__cjs__toubin, "__cjs__toubin");
+		js.wrap(this.__cjs__tounumber, "__cjs__tounumber");
+		js.wrap(this.__cjs_CreateStaticArray, "__cjs_CreateStaticArray");
+		js.wrap(this.__cjs_FreeStaticArray, "__cjs_FreeStaticArray");
+		js.wrap(this.__cjs_GetStaticArray, "__cjs_GetStaticArray");
+		js.wrap(this.__cjs_SetStaticArray, "__cjs_SetStaticArray");
+		js.wrap(this.__cjs_FillStaticArray, "__cjs_FillStaticArray");
+	}
+
+	ECMABRIDGE_standard_C_casts(js) {
+		this.wrap(js);
+	}
+}

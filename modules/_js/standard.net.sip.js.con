@@ -1,0 +1,2572 @@
+/* This file is generated automatically by generatejs.con. Do not edit. */
+
+import standard.net.sip
+
+class ECMABRIDGE_standard_net_sip {
+	__cjs_osip_init(a) {
+		return osip_init(a);
+	}
+
+	__cjs_osip_release(a) {
+		return osip_release(a);
+	}
+
+	__cjs_osip_parse(a) {
+		return osip_parse(a);
+	}
+
+	__cjs_osip_event_free(a) {
+		return osip_event_free(a);
+	}
+
+	__cjs_osip_find_transaction_and_add_event(a, b) {
+		return osip_find_transaction_and_add_event(a, b);
+	}
+
+	__cjs_osip_transaction_add_event(a, b) {
+		return osip_transaction_add_event(a, b);
+	}
+
+	__cjs_osip_create_transaction(a, b) {
+		return osip_create_transaction(a, b);
+	}
+
+	__cjs_osip_transaction_init(a, b, c, d) {
+		return osip_transaction_init(a, b, c, d);
+	}
+
+	__cjs_osip_transaction_set_out_socket(a, b) {
+		return osip_transaction_set_out_socket(a, b);
+	}
+
+	__cjs_osip_retransmissions_execute(a, b) {
+		return osip_retransmissions_execute(a, b);
+	}
+
+	__cjs_osip_transaction_execute(a, b) {
+		return osip_transaction_execute(a, b);
+	}
+
+	__cjs_osip_transaction_free(a) {
+		return osip_transaction_free(a);
+	}
+
+	__cjs_osip_transaction_free2(a) {
+		return osip_transaction_free2(a);
+	}
+
+	__cjs_osip_transaction_set_your_instance(a, b) {
+		return osip_transaction_set_your_instance(a, b);
+	}
+
+	__cjs_osip_transaction_get_your_instance(a) {
+		return osip_transaction_get_your_instance(a);
+	}
+
+	__cjs_osip_event_describe(a) {
+		return osip_event_describe(a);
+	}
+
+	__cjs_osip_transaction_get_destination(a, b, c) {
+		return osip_transaction_get_destination(a, b, c);
+	}
+
+	__cjs_osip_nict_set_destination(a, b, c) {
+		return osip_nict_set_destination(a, b, c);
+	}
+
+	__cjs_osip_message_describe(a) {
+		return osip_message_describe(a);
+	}
+
+	__cjs_osip_message_init(a) {
+		return osip_message_init(a);
+	}
+
+	__cjs_osip_message_free(a) {
+		return osip_message_free(a);
+	}
+
+	__cjs_osip_message_to_str(a, b) {
+		return osip_message_to_str(a, b);
+	}
+
+	__cjs_osip_message_parse(a, b) {
+		return osip_message_parse(a, b);
+	}
+
+	__cjs_osip_message_parse_sipfrag(a, b) {
+		return osip_message_parse_sipfrag(a, b);
+	}
+
+	__cjs_osip_message_to_str_sipfrag(a) {
+		return osip_message_to_str_sipfrag(a);
+	}
+
+	__cjs_osip_message_clone(a, b) {
+		return osip_message_clone(a, b);
+	}
+
+	__cjs_osip_message_set_reason_phrase(a, b) {
+		return osip_message_set_reason_phrase(a, b);
+	}
+
+	__cjs_osip_message_get_reason_phrase(a) {
+		return osip_message_get_reason_phrase(a);
+	}
+
+	__cjs_osip_message_set_status_code(a, b) {
+		return osip_message_set_status_code(a, b);
+	}
+
+	__cjs_osip_message_get_status_code(a) {
+		return osip_message_get_status_code(a);
+	}
+
+	__cjs_osip_message_set_method(a, b) {
+		return osip_message_set_method(a, b);
+	}
+
+	__cjs_osip_message_get_method(a) {
+		return osip_message_get_method(a);
+	}
+
+	__cjs_osip_message_set_version(a, b) {
+		return osip_message_set_version(a, b);
+	}
+
+	__cjs_osip_message_get_version(a) {
+		return osip_message_get_version(a);
+	}
+
+	__cjs_osip_message_set_uri(a, b) {
+		return osip_message_set_uri(a, b);
+	}
+
+	__cjs_osip_message_get_uri(a) {
+		return osip_message_get_uri(a);
+	}
+
+	__cjs_osip_message_set_date(a, b) {
+		return osip_message_set_date(a, b);
+	}
+
+	__cjs_osip_message_get_date(a, b, c) {
+		return osip_message_get_date(a, b, c);
+	}
+
+	__cjs_osip_message_set_encryption(a, b) {
+		return osip_message_set_encryption(a, b);
+	}
+
+	__cjs_osip_message_get_encryption(a, b, c) {
+		return osip_message_get_encryption(a, b, c);
+	}
+
+	__cjs_osip_message_set_organization(a, b) {
+		return osip_message_set_organization(a, b);
+	}
+
+	__cjs_osip_message_get_organization(a, b, c) {
+		return osip_message_get_organization(a, b, c);
+	}
+
+	__cjs_osip_message_set_require(a, b) {
+		return osip_message_set_require(a, b);
+	}
+
+	__cjs_osip_message_get_require(a, b, c) {
+		return osip_message_get_require(a, b, c);
+	}
+
+	__cjs_osip_message_set_supported(a, b) {
+		return osip_message_set_supported(a, b);
+	}
+
+	__cjs_osip_message_get_supported(a, b, c) {
+		return osip_message_get_supported(a, b, c);
+	}
+
+	__cjs_osip_message_set_timestamp(a, b) {
+		return osip_message_set_timestamp(a, b);
+	}
+
+	__cjs_osip_message_get_timestamp(a, b, c) {
+		return osip_message_get_timestamp(a, b, c);
+	}
+
+	__cjs_osip_message_set_user_agent(a, b) {
+		return osip_message_set_user_agent(a, b);
+	}
+
+	__cjs_osip_message_get_user_agent(a, b, c) {
+		return osip_message_get_user_agent(a, b, c);
+	}
+
+	__cjs_osip_message_set_content_language(a, b) {
+		return osip_message_set_content_language(a, b);
+	}
+
+	__cjs_osip_message_get_content_language(a, b, c) {
+		return osip_message_get_content_language(a, b, c);
+	}
+
+	__cjs_osip_message_set_expires(a, b) {
+		return osip_message_set_expires(a, b);
+	}
+
+	__cjs_osip_message_get_expires(a, b, c) {
+		return osip_message_get_expires(a, b, c);
+	}
+
+	__cjs_osip_message_set_in_reply_to(a, b) {
+		return osip_message_set_in_reply_to(a, b);
+	}
+
+	__cjs_osip_message_get_in_reply_to(a, b, c) {
+		return osip_message_get_in_reply_to(a, b, c);
+	}
+
+	__cjs_osip_message_set_max_forwards(a, b) {
+		return osip_message_set_max_forwards(a, b);
+	}
+
+	__cjs_osip_message_get_max_forwards(a, b, c) {
+		return osip_message_get_max_forwards(a, b, c);
+	}
+
+	__cjs_osip_message_set_priority(a, b) {
+		return osip_message_set_priority(a, b);
+	}
+
+	__cjs_osip_message_get_priority(a, b, c) {
+		return osip_message_get_priority(a, b, c);
+	}
+
+	__cjs_osip_message_set_proxy_require(a, b) {
+		return osip_message_set_proxy_require(a, b);
+	}
+
+	__cjs_osip_message_get_proxy_require(a, b, c) {
+		return osip_message_get_proxy_require(a, b, c);
+	}
+
+	__cjs_osip_message_set_response_key(a, b) {
+		return osip_message_set_response_key(a, b);
+	}
+
+	__cjs_osip_message_get_response_key(a, b, c) {
+		return osip_message_get_response_key(a, b, c);
+	}
+
+	__cjs_osip_message_set_subject(a, b) {
+		return osip_message_set_subject(a, b);
+	}
+
+	__cjs_osip_message_get_subject(a, b, c) {
+		return osip_message_get_subject(a, b, c);
+	}
+
+	__cjs_osip_message_set_retry_after(a, b) {
+		return osip_message_set_retry_after(a, b);
+	}
+
+	__cjs_osip_message_get_retry_after(a, b, c) {
+		return osip_message_get_retry_after(a, b, c);
+	}
+
+	__cjs_osip_message_set_server(a, b) {
+		return osip_message_set_server(a, b);
+	}
+
+	__cjs_osip_message_get_server(a, b, c) {
+		return osip_message_get_server(a, b, c);
+	}
+
+	__cjs_osip_message_set_unsupported(a, b) {
+		return osip_message_set_unsupported(a, b);
+	}
+
+	__cjs_osip_message_get_unsupported(a, b, c) {
+		return osip_message_get_unsupported(a, b, c);
+	}
+
+	__cjs_osip_message_set_warning(a, b) {
+		return osip_message_set_warning(a, b);
+	}
+
+	__cjs_osip_message_get_warning(a, b, c) {
+		return osip_message_get_warning(a, b, c);
+	}
+
+	__cjs_osip_message_fix_last_via_header(a, b, c) {
+		return osip_message_fix_last_via_header(a, b, c);
+	}
+
+	__cjs_osip_message_get__property(a) {
+		return osip_message_get__property(a);
+	}
+
+	__cjs_osip_message_force_update(a) {
+		return osip_message_force_update(a);
+	}
+
+	__cjs_osip_message_get_reason(a) {
+		return osip_message_get_reason(a);
+	}
+
+	__cjs_osip_message_set_accept(a, b) {
+		return osip_message_set_accept(a, b);
+	}
+
+	__cjs_osip_message_get_accept(a, b, c) {
+		return osip_message_get_accept(a, b, c);
+	}
+
+	__cjs_osip_message_set_accept_encoding(a, b) {
+		return osip_message_set_accept_encoding(a, b);
+	}
+
+	__cjs_osip_message_get_accept_encoding(a, b, c) {
+		return osip_message_get_accept_encoding(a, b, c);
+	}
+
+	__cjs_osip_message_set_accept_language(a, b) {
+		return osip_message_set_accept_language(a, b);
+	}
+
+	__cjs_osip_message_get_accept_language(a, b, c) {
+		return osip_message_get_accept_language(a, b, c);
+	}
+
+	__cjs_osip_message_set_alert_info(a, b) {
+		return osip_message_set_alert_info(a, b);
+	}
+
+	__cjs_osip_message_get_alert_info(a, b, c) {
+		return osip_message_get_alert_info(a, b, c);
+	}
+
+	__cjs_osip_message_set_allow(a, b) {
+		return osip_message_set_allow(a, b);
+	}
+
+	__cjs_osip_message_get_allow(a, b, c) {
+		return osip_message_get_allow(a, b, c);
+	}
+
+	__cjs_osip_message_set_authentication_info(a, b) {
+		return osip_message_set_authentication_info(a, b);
+	}
+
+	__cjs_osip_message_get_authentication_info(a, b, c) {
+		return osip_message_get_authentication_info(a, b, c);
+	}
+
+	__cjs_osip_message_set_authorization(a, b) {
+		return osip_message_set_authorization(a, b);
+	}
+
+	__cjs_osip_message_get_authorization(a, b, c) {
+		return osip_message_get_authorization(a, b, c);
+	}
+
+	__cjs_osip_message_set_call_id(a, b) {
+		return osip_message_set_call_id(a, b);
+	}
+
+	__cjs_osip_message_get_call_id(a) {
+		return osip_message_get_call_id(a);
+	}
+
+	__cjs_osip_message_set_call_info(a, b) {
+		return osip_message_set_call_info(a, b);
+	}
+
+	__cjs_osip_message_get_call_info(a, b, c) {
+		return osip_message_get_call_info(a, b, c);
+	}
+
+	__cjs_osip_message_set_contact(a, b) {
+		return osip_message_set_contact(a, b);
+	}
+
+	__cjs_osip_message_get_contact(a, b, c) {
+		return osip_message_get_contact(a, b, c);
+	}
+
+	__cjs_osip_message_set_content_encoding(a, b) {
+		return osip_message_set_content_encoding(a, b);
+	}
+
+	__cjs_osip_message_get_content_encoding(a, b, c) {
+		return osip_message_get_content_encoding(a, b, c);
+	}
+
+	__cjs_osip_message_set_content_length(a, b) {
+		return osip_message_set_content_length(a, b);
+	}
+
+	__cjs_osip_message_get_content_length(a) {
+		return osip_message_get_content_length(a);
+	}
+
+	__cjs_osip_message_set_content_type(a, b) {
+		return osip_message_set_content_type(a, b);
+	}
+
+	__cjs_osip_message_get_content_type(a) {
+		return osip_message_get_content_type(a);
+	}
+
+	__cjs_osip_message_set_cseq(a, b) {
+		return osip_message_set_cseq(a, b);
+	}
+
+	__cjs_osip_message_get_cseq(a) {
+		return osip_message_get_cseq(a);
+	}
+
+	__cjs_osip_message_set_error_info(a, b) {
+		return osip_message_set_error_info(a, b);
+	}
+
+	__cjs_osip_message_get_error_info(a, b, c) {
+		return osip_message_get_error_info(a, b, c);
+	}
+
+	__cjs_osip_message_set_from(a, b) {
+		return osip_message_set_from(a, b);
+	}
+
+	__cjs_osip_message_get_from(a) {
+		return osip_message_get_from(a);
+	}
+
+	__cjs_osip_message_set_mime_version(a, b) {
+		return osip_message_set_mime_version(a, b);
+	}
+
+	__cjs_osip_message_get_mime_version(a) {
+		return osip_message_get_mime_version(a);
+	}
+
+	__cjs_osip_message_set_proxy_authenticate(a, b) {
+		return osip_message_set_proxy_authenticate(a, b);
+	}
+
+	__cjs_osip_message_get_proxy_authenticate(a, b, c) {
+		return osip_message_get_proxy_authenticate(a, b, c);
+	}
+
+	__cjs_osip_message_set_proxy_authorization(a, b) {
+		return osip_message_set_proxy_authorization(a, b);
+	}
+
+	__cjs_osip_message_get_proxy_authorization(a, b, c) {
+		return osip_message_get_proxy_authorization(a, b, c);
+	}
+
+	__cjs_osip_message_set_proxy_authentication_info(a, b) {
+		return osip_message_set_proxy_authentication_info(a, b);
+	}
+
+	__cjs_osip_message_get_proxy_authentication_info(a, b, c) {
+		return osip_message_get_proxy_authentication_info(a, b, c);
+	}
+
+	__cjs_osip_message_set_record_route(a, b) {
+		return osip_message_set_record_route(a, b);
+	}
+
+	__cjs_osip_message_get_record_route(a, b, c) {
+		return osip_message_get_record_route(a, b, c);
+	}
+
+	__cjs_osip_message_set_route(a, b) {
+		return osip_message_set_route(a, b);
+	}
+
+	__cjs_osip_message_get_route(a, b, c) {
+		return osip_message_get_route(a, b, c);
+	}
+
+	__cjs_osip_message_set_to(a, b) {
+		return osip_message_set_to(a, b);
+	}
+
+	__cjs_osip_message_get_to(a) {
+		return osip_message_get_to(a);
+	}
+
+	__cjs_osip_message_set_via(a, b) {
+		return osip_message_set_via(a, b);
+	}
+
+	__cjs_osip_message_append_via(a, b) {
+		return osip_message_append_via(a, b);
+	}
+
+	__cjs_osip_message_get_via(a, b, c) {
+		return osip_message_get_via(a, b, c);
+	}
+
+	__cjs_osip_message_set_www_authenticate(a, b) {
+		return osip_message_set_www_authenticate(a, b);
+	}
+
+	__cjs_osip_message_get_www_authenticate(a, b, c) {
+		return osip_message_get_www_authenticate(a, b, c);
+	}
+
+	__cjs_osip_message_set_header(a, b, c) {
+		return osip_message_set_header(a, b, c);
+	}
+
+	__cjs_osip_message_replace_header(a, b, c) {
+		return osip_message_replace_header(a, b, c);
+	}
+
+	__cjs_osip_message_set_topheader(a, b, c) {
+		return osip_message_set_topheader(a, b, c);
+	}
+
+	__cjs_osip_message_header_get_byname(a, b, c, d) {
+		return osip_message_header_get_byname(a, b, c, d);
+	}
+
+	__cjs_osip_message_get_header(a, b, c) {
+		return osip_message_get_header(a, b, c);
+	}
+
+	__cjs_osip_message_set_body(a, b) {
+		return osip_message_set_body(a, b);
+	}
+
+	__cjs_osip_message_set_body_mime(a, b) {
+		return osip_message_set_body_mime(a, b);
+	}
+
+	__cjs_osip_message_get_body(a, b, c) {
+		return osip_message_get_body(a, b, c);
+	}
+
+	__cjs_osip_via_init(a) {
+		return osip_via_init(a);
+	}
+
+	__cjs_osip_via_free(a) {
+		return osip_via_free(a);
+	}
+
+	__cjs_osip_via_parse(a, b) {
+		return osip_via_parse(a, b);
+	}
+
+	__cjs_osip_via_to_str(a, b) {
+		return osip_via_to_str(a, b);
+	}
+
+	__cjs_osip_via_clone(a, b) {
+		return osip_via_clone(a, b);
+	}
+
+	__cjs_via_set_version(a, b) {
+		return via_set_version(a, b);
+	}
+
+	__cjs_via_get_version(a) {
+		return via_get_version(a);
+	}
+
+	__cjs_via_set_protocol(a, b) {
+		return via_set_protocol(a, b);
+	}
+
+	__cjs_via_get_protocol(a) {
+		return via_get_protocol(a);
+	}
+
+	__cjs_via_set_host(a, b) {
+		return via_set_host(a, b);
+	}
+
+	__cjs_via_get_host(a) {
+		return via_get_host(a);
+	}
+
+	__cjs_via_set_port(a, b) {
+		return via_set_port(a, b);
+	}
+
+	__cjs_via_get_port(a) {
+		return via_get_port(a);
+	}
+
+	__cjs_via_set_comment(a, b) {
+		return via_set_comment(a, b);
+	}
+
+	__cjs_via_get_comment(a) {
+		return via_get_comment(a);
+	}
+
+	__cjs_osip_via_set_ttl(a, b) {
+		return osip_via_set_ttl(a, b);
+	}
+
+	__cjs_osip_via_set_maddr(a, b) {
+		return osip_via_set_maddr(a, b);
+	}
+
+	__cjs_osip_via_set_received(a, b) {
+		return osip_via_set_received(a, b);
+	}
+
+	__cjs_osip_via_set_branch(a, b) {
+		return osip_via_set_branch(a, b);
+	}
+
+	__cjs_osip_via_param_add(a, b, c) {
+		return osip_via_param_add(a, b, c);
+	}
+
+	__cjs_osip_via_match(a, b) {
+		return osip_via_match(a, b);
+	}
+
+	__cjs_osip_uri_init(a) {
+		return osip_uri_init(a);
+	}
+
+	__cjs_osip_uri_free(a) {
+		return osip_uri_free(a);
+	}
+
+	__cjs_osip_uri_parse(a, b) {
+		return osip_uri_parse(a, b);
+	}
+
+	__cjs_osip_uri_to_str(a, b) {
+		return osip_uri_to_str(a, b);
+	}
+
+	__cjs_osip_uri_clone(a, b) {
+		return osip_uri_clone(a, b);
+	}
+
+	__cjs_osip_uri_set_scheme(a, b) {
+		return osip_uri_set_scheme(a, b);
+	}
+
+	__cjs_osip_uri_get_scheme(a) {
+		return osip_uri_get_scheme(a);
+	}
+
+	__cjs_osip_uri_set_host(a, b) {
+		return osip_uri_set_host(a, b);
+	}
+
+	__cjs_osip_uri_get_host(a) {
+		return osip_uri_get_host(a);
+	}
+
+	__cjs_osip_uri_set_username(a, b) {
+		return osip_uri_set_username(a, b);
+	}
+
+	__cjs_osip_uri_get_username(a) {
+		return osip_uri_get_username(a);
+	}
+
+	__cjs_osip_uri_set_password(a, b) {
+		return osip_uri_set_password(a, b);
+	}
+
+	__cjs_osip_uri_get_password(a) {
+		return osip_uri_get_password(a);
+	}
+
+	__cjs_osip_uri_set_port(a, b) {
+		return osip_uri_set_port(a, b);
+	}
+
+	__cjs_osip_uri_get_port(a) {
+		return osip_uri_get_port(a);
+	}
+
+	__cjs_osip_uri_set_transport_udp(a) {
+		return osip_uri_set_transport_udp(a);
+	}
+
+	__cjs_osip_uri_set_transport_tcp(a) {
+		return osip_uri_set_transport_tcp(a);
+	}
+
+	__cjs_osip_uri_set_transport_sctp(a) {
+		return osip_uri_set_transport_sctp(a);
+	}
+
+	__cjs_osip_uri_set_transport_tls(a) {
+		return osip_uri_set_transport_tls(a);
+	}
+
+	__cjs_osip_ict_execute(a) {
+		return osip_ict_execute(a);
+	}
+
+	__cjs_osip_ist_execute(a) {
+		return osip_ist_execute(a);
+	}
+
+	__cjs_osip_nict_execute(a) {
+		return osip_nict_execute(a);
+	}
+
+	__cjs_osip_nist_execute(a) {
+		return osip_nist_execute(a);
+	}
+
+	__cjs_osip_timers_ict_execute(a) {
+		return osip_timers_ict_execute(a);
+	}
+
+	__cjs_osip_timers_ist_execute(a) {
+		return osip_timers_ist_execute(a);
+	}
+
+	__cjs_osip_timers_nict_execute(a) {
+		return osip_timers_nict_execute(a);
+	}
+
+	__cjs_osip_timers_nist_execute(a) {
+		return osip_timers_nist_execute(a);
+	}
+
+	__cjs_osip_set_cb_send_message(a, b) {
+		return osip_set_cb_send_message(a, b);
+	}
+
+	__cjs_osip_set_message_callback(a, b, c) {
+		return osip_set_message_callback(a, b, c);
+	}
+
+	__cjs_osip_set_kill_transaction_callback(a, b, c) {
+		return osip_set_kill_transaction_callback(a, b, c);
+	}
+
+	__cjs_osip_set_transport_error_callback(a, b, c) {
+		return osip_set_transport_error_callback(a, b, c);
+	}
+
+	__cjs_osip_list_add(a, b, c) {
+		return osip_list_add(a, b, c);
+	}
+
+	__cjs_osip_list_add_string(a, b, c) {
+		return osip_list_add_string(a, b, c);
+	}
+
+	__cjs_osip_list_size(a) {
+		return osip_list_size(a);
+	}
+
+	__cjs_osip_list_remove(a, b) {
+		return osip_list_remove(a, b);
+	}
+
+	__cjs_osip_list_eol(a, b) {
+		return osip_list_eol(a, b);
+	}
+
+	__cjs_osip_list_get(a, b) {
+		return osip_list_get(a, b);
+	}
+
+	__cjs_osip_from_message(a, b) {
+		return osip_from_message(a, b);
+	}
+
+	__cjs_osip_from_init(a) {
+		return osip_from_init(a);
+	}
+
+	__cjs_osip_from_free(a) {
+		return osip_from_free(a);
+	}
+
+	__cjs_osip_from_parse(a, b) {
+		return osip_from_parse(a, b);
+	}
+
+	__cjs_osip_from_to_str(a, b) {
+		return osip_from_to_str(a, b);
+	}
+
+	__cjs_osip_from_clone(a, b) {
+		return osip_from_clone(a, b);
+	}
+
+	__cjs_osip_from_set_displayname(a, b) {
+		return osip_from_set_displayname(a, b);
+	}
+
+	__cjs_osip_from_get_displayname(a) {
+		return osip_from_get_displayname(a);
+	}
+
+	__cjs_osip_from_set_url(a, b) {
+		return osip_from_set_url(a, b);
+	}
+
+	__cjs_osip_from_get_url(a) {
+		return osip_from_get_url(a);
+	}
+
+	__cjs_osip_from_get_tag(a) {
+		return osip_from_get_tag(a);
+	}
+
+	__cjs_osip_from_set_tag(a, b) {
+		return osip_from_set_tag(a, b);
+	}
+
+	__cjs_osip_from_compare(a, b) {
+		return osip_from_compare(a, b);
+	}
+
+	__cjs_osip_from_tag_match(a, b) {
+		return osip_from_tag_match(a, b);
+	}
+
+	__cjs_osip_to_message(a, b) {
+		return osip_to_message(a, b);
+	}
+
+	__cjs_osip_to_init(a) {
+		return osip_to_init(a);
+	}
+
+	__cjs_osip_to_free(a) {
+		return osip_to_free(a);
+	}
+
+	__cjs_osip_to_parse(a, b) {
+		return osip_to_parse(a, b);
+	}
+
+	__cjs_osip_to_to_str(a, b) {
+		return osip_to_to_str(a, b);
+	}
+
+	__cjs_osip_to_clone(a, b) {
+		return osip_to_clone(a, b);
+	}
+
+	__cjs_osip_to_set_displayname(a, b) {
+		return osip_to_set_displayname(a, b);
+	}
+
+	__cjs_osip_to_get_displayname(a) {
+		return osip_to_get_displayname(a);
+	}
+
+	__cjs_osip_to_set_url(a, b) {
+		return osip_to_set_url(a, b);
+	}
+
+	__cjs_osip_to_get_url(a) {
+		return osip_to_get_url(a);
+	}
+
+	__cjs_osip_to_get_tag(a) {
+		return osip_to_get_tag(a);
+	}
+
+	__cjs_osip_to_set_tag(a, b) {
+		return osip_to_set_tag(a, b);
+	}
+
+	__cjs_osip_to_compare(a, b) {
+		return osip_to_compare(a, b);
+	}
+
+	__cjs_osip_to_tag_match(a, b) {
+		return osip_to_tag_match(a, b);
+	}
+
+	__cjs_osip_call_id_init(a) {
+		return osip_call_id_init(a);
+	}
+
+	__cjs_osip_call_id_free(a) {
+		return osip_call_id_free(a);
+	}
+
+	__cjs_osip_call_id_parse(a, b) {
+		return osip_call_id_parse(a, b);
+	}
+
+	__cjs_osip_call_id_clone(a, b) {
+		return osip_call_id_clone(a, b);
+	}
+
+	__cjs_osip_call_id_match(a, b) {
+		return osip_call_id_match(a, b);
+	}
+
+	__cjs_osip_call_id_to_str(a, b) {
+		return osip_call_id_to_str(a, b);
+	}
+
+	__cjs_osip_call_info_init(a) {
+		return osip_call_info_init(a);
+	}
+
+	__cjs_osip_call_info_free(a) {
+		return osip_call_info_free(a);
+	}
+
+	__cjs_osip_call_info_parse(a, b) {
+		return osip_call_info_parse(a, b);
+	}
+
+	__cjs_osip_call_info_clone(a, b) {
+		return osip_call_info_clone(a, b);
+	}
+
+	__cjs_osip_accept_free(a) {
+		return osip_accept_free(a);
+	}
+
+	__cjs_osip_accept_parse(a, b) {
+		return osip_accept_parse(a, b);
+	}
+
+	__cjs_osip_accept_clone(a, b) {
+		return osip_accept_clone(a, b);
+	}
+
+	__cjs_osip_accept_encoding_init(a) {
+		return osip_accept_encoding_init(a);
+	}
+
+	__cjs_osip_accept_encoding_free(a) {
+		return osip_accept_encoding_free(a);
+	}
+
+	__cjs_osip_accept_encoding_parse(a, b) {
+		return osip_accept_encoding_parse(a, b);
+	}
+
+	__cjs_osip_accept_encoding_clone(a, b) {
+		return osip_accept_encoding_clone(a, b);
+	}
+
+	__cjs_osip_accept_language_init(a) {
+		return osip_accept_language_init(a);
+	}
+
+	__cjs_osip_accept_language_free(a) {
+		return osip_accept_language_free(a);
+	}
+
+	__cjs_osip_accept_language_parse(a, b) {
+		return osip_accept_language_parse(a, b);
+	}
+
+	__cjs_osip_accept_language_clone(a, b) {
+		return osip_accept_language_clone(a, b);
+	}
+
+	__cjs_osip_alert_info_init(a) {
+		return osip_alert_info_init(a);
+	}
+
+	__cjs_osip_alert_info_free(a) {
+		return osip_alert_info_free(a);
+	}
+
+	__cjs_osip_alert_info_parse(a, b) {
+		return osip_alert_info_parse(a, b);
+	}
+
+	__cjs_osip_alert_info_clone(a, b) {
+		return osip_alert_info_clone(a, b);
+	}
+
+	__cjs_osip_allow_init(a) {
+		return osip_allow_init(a);
+	}
+
+	__cjs_osip_allow_free(a) {
+		return osip_allow_free(a);
+	}
+
+	__cjs_osip_allow_parse(a, b) {
+		return osip_allow_parse(a, b);
+	}
+
+	__cjs_osip_allow_clone(a, b) {
+		return osip_allow_clone(a, b);
+	}
+
+	__cjs_osip_authentication_info_init(a) {
+		return osip_authentication_info_init(a);
+	}
+
+	__cjs_osip_authentication_info_free(a) {
+		return osip_authentication_info_free(a);
+	}
+
+	__cjs_osip_authentication_info_parse(a, b) {
+		return osip_authentication_info_parse(a, b);
+	}
+
+	__cjs_osip_authentication_info_clone(a, b) {
+		return osip_authentication_info_clone(a, b);
+	}
+
+	__cjs_osip_authorization_init(a) {
+		return osip_authorization_init(a);
+	}
+
+	__cjs_osip_authorization_free(a) {
+		return osip_authorization_free(a);
+	}
+
+	__cjs_osip_authorization_parse(a, b) {
+		return osip_authorization_parse(a, b);
+	}
+
+	__cjs_osip_authorization_clone(a, b) {
+		return osip_authorization_clone(a, b);
+	}
+
+	__cjs_osip_contact_init(a) {
+		return osip_contact_init(a);
+	}
+
+	__cjs_osip_contact_free(a) {
+		return osip_contact_free(a);
+	}
+
+	__cjs_osip_contact_parse(a, b) {
+		return osip_contact_parse(a, b);
+	}
+
+	__cjs_osip_contact_clone(a, b) {
+		return osip_contact_clone(a, b);
+	}
+
+	__cjs_osip_content_disposition_init(a) {
+		return osip_content_disposition_init(a);
+	}
+
+	__cjs_osip_content_disposition_free(a) {
+		return osip_content_disposition_free(a);
+	}
+
+	__cjs_osip_content_disposition_parse(a, b) {
+		return osip_content_disposition_parse(a, b);
+	}
+
+	__cjs_osip_content_disposition_clone(a, b) {
+		return osip_content_disposition_clone(a, b);
+	}
+
+	__cjs_osip_content_encoding_init(a) {
+		return osip_content_encoding_init(a);
+	}
+
+	__cjs_osip_content_encoding_free(a) {
+		return osip_content_encoding_free(a);
+	}
+
+	__cjs_osip_content_encoding_parse(a, b) {
+		return osip_content_encoding_parse(a, b);
+	}
+
+	__cjs_osip_content_encoding_clone(a, b) {
+		return osip_content_encoding_clone(a, b);
+	}
+
+	__cjs_osip_content_length_init(a) {
+		return osip_content_length_init(a);
+	}
+
+	__cjs_osip_content_length_free(a) {
+		return osip_content_length_free(a);
+	}
+
+	__cjs_osip_content_length_parse(a, b) {
+		return osip_content_length_parse(a, b);
+	}
+
+	__cjs_osip_content_length_clone(a, b) {
+		return osip_content_length_clone(a, b);
+	}
+
+	__cjs_osip_content_type_init(a) {
+		return osip_content_type_init(a);
+	}
+
+	__cjs_osip_content_type_free(a) {
+		return osip_content_type_free(a);
+	}
+
+	__cjs_osip_content_type_parse(a, b) {
+		return osip_content_type_parse(a, b);
+	}
+
+	__cjs_osip_content_type_clone(a, b) {
+		return osip_content_type_clone(a, b);
+	}
+
+	__cjs_osip_cseq_init(a) {
+		return osip_cseq_init(a);
+	}
+
+	__cjs_osip_cseq_to_str(a, b) {
+		return osip_cseq_to_str(a, b);
+	}
+
+	__cjs_osip_cseq_free(a) {
+		return osip_cseq_free(a);
+	}
+
+	__cjs_osip_cseq_parse(a, b) {
+		return osip_cseq_parse(a, b);
+	}
+
+	__cjs_osip_cseq_clone(a, b) {
+		return osip_cseq_clone(a, b);
+	}
+
+	__cjs_osip_cseq_match(a, b) {
+		return osip_cseq_match(a, b);
+	}
+
+	__cjs_osip_error_info_init(a) {
+		return osip_error_info_init(a);
+	}
+
+	__cjs_osip_error_info_free(a) {
+		return osip_error_info_free(a);
+	}
+
+	__cjs_osip_error_info_parse(a, b) {
+		return osip_error_info_parse(a, b);
+	}
+
+	__cjs_osip_error_info_clone(a, b) {
+		return osip_error_info_clone(a, b);
+	}
+
+	__cjs_osip_header_init(a) {
+		return osip_header_init(a);
+	}
+
+	__cjs_osip_header_free(a) {
+		return osip_header_free(a);
+	}
+
+	__cjs_osip_header_clone(a, b) {
+		return osip_header_clone(a, b);
+	}
+
+	__cjs_osip_mime_version_init(a) {
+		return osip_mime_version_init(a);
+	}
+
+	__cjs_osip_mime_version_free(a) {
+		return osip_mime_version_free(a);
+	}
+
+	__cjs_osip_mime_version_parse(a, b) {
+		return osip_mime_version_parse(a, b);
+	}
+
+	__cjs_osip_mime_version_clone(a, b) {
+		return osip_mime_version_clone(a, b);
+	}
+
+	__cjs_osip_proxy_authenticate_init(a) {
+		return osip_proxy_authenticate_init(a);
+	}
+
+	__cjs_osip_proxy_authenticate_free(a) {
+		return osip_proxy_authenticate_free(a);
+	}
+
+	__cjs_osip_proxy_authenticate_parse(a, b) {
+		return osip_proxy_authenticate_parse(a, b);
+	}
+
+	__cjs_osip_proxy_authenticate_clone(a, b) {
+		return osip_proxy_authenticate_clone(a, b);
+	}
+
+	__cjs_osip_proxy_authentication_info_init(a) {
+		return osip_proxy_authentication_info_init(a);
+	}
+
+	__cjs_osip_proxy_authentication_info_free(a) {
+		return osip_proxy_authentication_info_free(a);
+	}
+
+	__cjs_osip_proxy_authentication_info_parse(a, b) {
+		return osip_proxy_authentication_info_parse(a, b);
+	}
+
+	__cjs_osip_proxy_authentication_info_clone(a, b) {
+		return osip_proxy_authentication_info_clone(a, b);
+	}
+
+	__cjs_osip_proxy_authorization_init(a) {
+		return osip_proxy_authorization_init(a);
+	}
+
+	__cjs_osip_proxy_authorization_free(a) {
+		return osip_proxy_authorization_free(a);
+	}
+
+	__cjs_osip_proxy_authorization_parse(a, b) {
+		return osip_proxy_authorization_parse(a, b);
+	}
+
+	__cjs_osip_proxy_authorization_clone(a, b) {
+		return osip_proxy_authorization_clone(a, b);
+	}
+
+	__cjs_osip_record_route_init(a) {
+		return osip_record_route_init(a);
+	}
+
+	__cjs_osip_record_route_free(a) {
+		return osip_record_route_free(a);
+	}
+
+	__cjs_osip_record_route_parse(a, b) {
+		return osip_record_route_parse(a, b);
+	}
+
+	__cjs_osip_record_route_clone(a, b) {
+		return osip_record_route_clone(a, b);
+	}
+
+	__cjs_osip_route_init(a) {
+		return osip_route_init(a);
+	}
+
+	__cjs_osip_route_free(a) {
+		return osip_route_free(a);
+	}
+
+	__cjs_osip_route_parse(a, b) {
+		return osip_route_parse(a, b);
+	}
+
+	__cjs_osip_route_clone(a, b) {
+		return osip_route_clone(a, b);
+	}
+
+	__cjs_osip_www_authenticate_init(a) {
+		return osip_www_authenticate_init(a);
+	}
+
+	__cjs_osip_www_authenticate_free(a) {
+		return osip_www_authenticate_free(a);
+	}
+
+	__cjs_osip_www_authenticate_parse(a, b) {
+		return osip_www_authenticate_parse(a, b);
+	}
+
+	__cjs_osip_www_authenticate_clone(a, b) {
+		return osip_www_authenticate_clone(a, b);
+	}
+
+	__cjs_sdp_message_init(a) {
+		return sdp_message_init(a);
+	}
+
+	__cjs_sdp_message_free(a) {
+		return sdp_message_free(a);
+	}
+
+	__cjs_sdp_message_parse(a, b) {
+		return sdp_message_parse(a, b);
+	}
+
+	__cjs_sdp_message_clone(a, b) {
+		return sdp_message_clone(a, b);
+	}
+
+	__cjs_sdp_message_to_str(a, b) {
+		return sdp_message_to_str(a, b);
+	}
+
+	__cjs_osip_call_id_set_host(a, b) {
+		return osip_call_id_set_host(a, b);
+	}
+
+	__cjs_osip_call_id_set_number(a, b) {
+		return osip_call_id_set_number(a, b);
+	}
+
+	__cjs_osip_call_id_get_host(a) {
+		return osip_call_id_get_host(a);
+	}
+
+	__cjs_osip_call_id_get_number(a) {
+		return osip_call_id_get_number(a);
+	}
+
+	__cjs_osip_cseq_set_number(a, b) {
+		return osip_cseq_set_number(a, b);
+	}
+
+	__cjs_osip_cseq_set_method(a, b) {
+		return osip_cseq_set_method(a, b);
+	}
+
+	__cjs_osip_cseq_get_number(a) {
+		return osip_cseq_get_number(a);
+	}
+
+	__cjs_osip_cseq_get_method(a) {
+		return osip_cseq_get_method(a);
+	}
+
+	__cjs_osip_contact_set_displayname(a, b) {
+		return osip_contact_set_displayname(a, b);
+	}
+
+	__cjs_osip_contact_param_add(a, b, c) {
+		return osip_contact_param_add(a, b, c);
+	}
+
+	__cjs_sdp_attribute_init(a) {
+		return sdp_attribute_init(a);
+	}
+
+	__cjs_sdp_attribute_free(a) {
+		return sdp_attribute_free(a);
+	}
+
+	__cjs_sdp_connection_init(a) {
+		return sdp_connection_init(a);
+	}
+
+	__cjs_sdp_connection_free(a) {
+		return sdp_connection_free(a);
+	}
+
+	__cjs_sdp_media_init(a) {
+		return sdp_media_init(a);
+	}
+
+	__cjs_sdp_media_free(a) {
+		return sdp_media_free(a);
+	}
+
+	__cjs_sdp_message_v_version_set(a, b) {
+		return sdp_message_v_version_set(a, b);
+	}
+
+	__cjs_sdp_message_v_version_get(a) {
+		return sdp_message_v_version_get(a);
+	}
+
+	__cjs_sdp_message_o_origin_set(a, b, c, d, e, f, g) {
+		return sdp_message_o_origin_set(a, b, c, d, e, f, g);
+	}
+
+	__cjs_sdp_message_o_username_get(a) {
+		return sdp_message_o_username_get(a);
+	}
+
+	__cjs_sdp_message_o_sess_id_get(a) {
+		return sdp_message_o_sess_id_get(a);
+	}
+
+	__cjs_sdp_message_o_sess_version_get(a) {
+		return sdp_message_o_sess_version_get(a);
+	}
+
+	__cjs_sdp_message_o_nettype_get(a) {
+		return sdp_message_o_nettype_get(a);
+	}
+
+	__cjs_sdp_message_o_addrtype_get(a) {
+		return sdp_message_o_addrtype_get(a);
+	}
+
+	__cjs_sdp_message_o_addr_get(a) {
+		return sdp_message_o_addr_get(a);
+	}
+
+	__cjs_sdp_message_s_name_set(a, b) {
+		return sdp_message_s_name_set(a, b);
+	}
+
+	__cjs_sdp_message_s_name_get(a) {
+		return sdp_message_s_name_get(a);
+	}
+
+	__cjs_sdp_message_i_info_set(a, b, c) {
+		return sdp_message_i_info_set(a, b, c);
+	}
+
+	__cjs_sdp_message_i_info_get(a, b) {
+		return sdp_message_i_info_get(a, b);
+	}
+
+	__cjs_sdp_message_u_uri_set(a, b) {
+		return sdp_message_u_uri_set(a, b);
+	}
+
+	__cjs_sdp_message_u_uri_get(a) {
+		return sdp_message_u_uri_get(a);
+	}
+
+	__cjs_sdp_message_e_email_add(a, b) {
+		return sdp_message_e_email_add(a, b);
+	}
+
+	__cjs_sdp_message_e_email_get(a, b) {
+		return sdp_message_e_email_get(a, b);
+	}
+
+	__cjs_sdp_message_p_phone_add(a, b) {
+		return sdp_message_p_phone_add(a, b);
+	}
+
+	__cjs_sdp_message_p_phone_get(a, b) {
+		return sdp_message_p_phone_get(a, b);
+	}
+
+	__cjs_sdp_message_c_connection_add(a, b, c, d, e, f, g) {
+		return sdp_message_c_connection_add(a, b, c, d, e, f, g);
+	}
+
+	__cjs_sdp_message_c_nettype_get(a, b, c) {
+		return sdp_message_c_nettype_get(a, b, c);
+	}
+
+	__cjs_sdp_message_c_addrtype_get(a, b, c) {
+		return sdp_message_c_addrtype_get(a, b, c);
+	}
+
+	__cjs_sdp_message_c_addr_get(a, b, c) {
+		return sdp_message_c_addr_get(a, b, c);
+	}
+
+	__cjs_sdp_message_c_addr_multicast_ttl_get(a, b, c) {
+		return sdp_message_c_addr_multicast_ttl_get(a, b, c);
+	}
+
+	__cjs_sdp_message_c_addr_multicast_int_get(a, b, c) {
+		return sdp_message_c_addr_multicast_int_get(a, b, c);
+	}
+
+	__cjs_sdp_message_b_bandwidth_add(a, b, c, d) {
+		return sdp_message_b_bandwidth_add(a, b, c, d);
+	}
+
+	__cjs_sdp_message_bandwidth_get(a, b, c) {
+		return sdp_message_bandwidth_get(a, b, c);
+	}
+
+	__cjs_sdp_message_b_bwtype_get(a, b, c) {
+		return sdp_message_b_bwtype_get(a, b, c);
+	}
+
+	__cjs_sdp_message_b_bandwidth_get(a, b, c) {
+		return sdp_message_b_bandwidth_get(a, b, c);
+	}
+
+	__cjs_sdp_message_t_time_descr_add(a, b, c) {
+		return sdp_message_t_time_descr_add(a, b, c);
+	}
+
+	__cjs_sdp_message_t_start_time_get(a, b) {
+		return sdp_message_t_start_time_get(a, b);
+	}
+
+	__cjs_sdp_message_t_stop_time_get(a, b) {
+		return sdp_message_t_stop_time_get(a, b);
+	}
+
+	__cjs_sdp_message_r_repeat_add(a, b, c) {
+		return sdp_message_r_repeat_add(a, b, c);
+	}
+
+	__cjs_sdp_message_r_repeat_get(a, b, c) {
+		return sdp_message_r_repeat_get(a, b, c);
+	}
+
+	__cjs_sdp_message_z_adjustments_set(a, b) {
+		return sdp_message_z_adjustments_set(a, b);
+	}
+
+	__cjs_sdp_message_z_adjustments_get(a) {
+		return sdp_message_z_adjustments_get(a);
+	}
+
+	__cjs_sdp_message_k_key_set(a, b, c, d) {
+		return sdp_message_k_key_set(a, b, c, d);
+	}
+
+	__cjs_sdp_message_k_keytype_get(a, b) {
+		return sdp_message_k_keytype_get(a, b);
+	}
+
+	__cjs_sdp_message_k_keydata_get(a, b) {
+		return sdp_message_k_keydata_get(a, b);
+	}
+
+	__cjs_sdp_message_a_attribute_add(a, b, c, d) {
+		return sdp_message_a_attribute_add(a, b, c, d);
+	}
+
+	__cjs_sdp_message_a_attribute_del(a, b, c) {
+		return sdp_message_a_attribute_del(a, b, c);
+	}
+
+	__cjs_sdp_message_a_attribute_del_at_index(a, b, c, d) {
+		return sdp_message_a_attribute_del_at_index(a, b, c, d);
+	}
+
+	__cjs_sdp_message_attribute_get(a, b, c) {
+		return sdp_message_attribute_get(a, b, c);
+	}
+
+	__cjs_sdp_message_a_att_field_get(a, b, c) {
+		return sdp_message_a_att_field_get(a, b, c);
+	}
+
+	__cjs_sdp_message_a_att_value_get(a, b, c) {
+		return sdp_message_a_att_value_get(a, b, c);
+	}
+
+	__cjs_sdp_message_endof_media(a, b) {
+		return sdp_message_endof_media(a, b);
+	}
+
+	__cjs_sdp_message_m_media_add(a, b, c, d, e) {
+		return sdp_message_m_media_add(a, b, c, d, e);
+	}
+
+	__cjs_sdp_message_m_media_get(a, b) {
+		return sdp_message_m_media_get(a, b);
+	}
+
+	__cjs_sdp_message_m_port_get(a, b) {
+		return sdp_message_m_port_get(a, b);
+	}
+
+	__cjs_sdp_message_m_port_set(a, b, c) {
+		return sdp_message_m_port_set(a, b, c);
+	}
+
+	__cjs_sdp_message_m_number_of_port_get(a, b) {
+		return sdp_message_m_number_of_port_get(a, b);
+	}
+
+	__cjs_sdp_message_m_proto_get(a, b) {
+		return sdp_message_m_proto_get(a, b);
+	}
+
+	__cjs_sdp_message_m_payload_add(a, b, c) {
+		return sdp_message_m_payload_add(a, b, c);
+	}
+
+	__cjs_sdp_message_m_payload_get(a, b, c) {
+		return sdp_message_m_payload_get(a, b, c);
+	}
+
+	__cjs_sdp_message_m_payload_del(a, b, c) {
+		return sdp_message_m_payload_del(a, b, c);
+	}
+
+	__cjs_sdp_bandwidth_init(a) {
+		return sdp_bandwidth_init(a);
+	}
+
+	__cjs_sdp_bandwidth_free(a) {
+		return sdp_bandwidth_free(a);
+	}
+
+	__cjs_sdp_message_describe(a) {
+		return sdp_message_describe(a);
+	}
+
+	__cjs_sdp_media_describe(a) {
+		return sdp_media_describe(a);
+	}
+
+	__cjs_sdp_attribute_describe(a) {
+		return sdp_attribute_describe(a);
+	}
+
+	__cjs_sdp_connection_describe(a) {
+		return sdp_connection_describe(a);
+	}
+
+	__cjs_sdp_bandwidth_describe(a) {
+		return sdp_bandwidth_describe(a);
+	}
+
+	__cjs_osip_cseq_message(a, b) {
+		return osip_cseq_message(a, b);
+	}
+
+	__cjs_osip_call_id_message(a, b) {
+		return osip_call_id_message(a, b);
+	}
+
+	__cjs_osip_contact_set_url(a, b) {
+		return osip_contact_set_url(a, b);
+	}
+
+	__cjs_osip_contact_get_url(a) {
+		return osip_contact_get_url(a);
+	}
+
+	__cjs_osip_contact_to_str(a, b) {
+		return osip_contact_to_str(a, b);
+	}
+
+	__cjs_osip_body_init(a) {
+		return osip_body_init(a);
+	}
+
+	__cjs_osip_body_free(a) {
+		return osip_body_free(a);
+	}
+
+	__cjs_osip_body_parse(a, b) {
+		return osip_body_parse(a, b);
+	}
+
+	__cjs_osip_body_parse_mime(a, b) {
+		return osip_body_parse_mime(a, b);
+	}
+
+	__cjs_osip_body_clone(a, b) {
+		return osip_body_clone(a, b);
+	}
+
+	__cjs_osip_body_to_str(a, b) {
+		return osip_body_to_str(a, b);
+	}
+
+	__cjs_osip_body_set_header(a, b, c) {
+		return osip_body_set_header(a, b, c);
+	}
+
+	__cjs_osip_body_set_contenttype(a, b) {
+		return osip_body_set_contenttype(a, b);
+	}
+
+	__cjs_osip_proxy_authenticate_set_auth_type(a, b) {
+		return osip_proxy_authenticate_set_auth_type(a, b);
+	}
+
+	__cjs_osip_proxy_authenticate_get_auth_type(a) {
+		return osip_proxy_authenticate_get_auth_type(a);
+	}
+
+	__cjs_osip_proxy_authenticate_set_realm(a, b) {
+		return osip_proxy_authenticate_set_realm(a, b);
+	}
+
+	__cjs_osip_proxy_authenticate_get_realm(a) {
+		return osip_proxy_authenticate_get_realm(a);
+	}
+
+	__cjs_osip_proxy_authenticate_set_domain(a, b) {
+		return osip_proxy_authenticate_set_domain(a, b);
+	}
+
+	__cjs_osip_proxy_authenticate_get_domain(a) {
+		return osip_proxy_authenticate_get_domain(a);
+	}
+
+	__cjs_osip_proxy_authenticate_set_nonce(a, b) {
+		return osip_proxy_authenticate_set_nonce(a, b);
+	}
+
+	__cjs_osip_proxy_authenticate_get_nonce(a) {
+		return osip_proxy_authenticate_get_nonce(a);
+	}
+
+	__cjs_osip_proxy_authenticate_set_opaque(a, b) {
+		return osip_proxy_authenticate_set_opaque(a, b);
+	}
+
+	__cjs_osip_proxy_authenticate_get_opaque(a) {
+		return osip_proxy_authenticate_get_opaque(a);
+	}
+
+	__cjs_osip_proxy_authenticate_set_stale(a, b) {
+		return osip_proxy_authenticate_set_stale(a, b);
+	}
+
+	__cjs_osip_proxy_authenticate_get_stale(a) {
+		return osip_proxy_authenticate_get_stale(a);
+	}
+
+	__cjs_osip_proxy_authenticate_set_algorithm(a, b) {
+		return osip_proxy_authenticate_set_algorithm(a, b);
+	}
+
+	__cjs_osip_proxy_authenticate_get_algorithm(a) {
+		return osip_proxy_authenticate_get_algorithm(a);
+	}
+
+	__cjs_osip_proxy_authenticate_set_qop_options(a, b) {
+		return osip_proxy_authenticate_set_qop_options(a, b);
+	}
+
+	__cjs_osip_proxy_authenticate_get_qop_options(a) {
+		return osip_proxy_authenticate_get_qop_options(a);
+	}
+
+	__cjs_osip_authorization_set_auth_type(a, b) {
+		return osip_authorization_set_auth_type(a, b);
+	}
+
+	__cjs_osip_authorization_get_auth_type(a) {
+		return osip_authorization_get_auth_type(a);
+	}
+
+	__cjs_osip_authorization_set_realm(a, b) {
+		return osip_authorization_set_realm(a, b);
+	}
+
+	__cjs_osip_authorization_get_realm(a) {
+		return osip_authorization_get_realm(a);
+	}
+
+	__cjs_osip_authorization_set_nonce(a, b) {
+		return osip_authorization_set_nonce(a, b);
+	}
+
+	__cjs_osip_authorization_get_nonce(a) {
+		return osip_authorization_get_nonce(a);
+	}
+
+	__cjs_osip_authorization_set_opaque(a, b) {
+		return osip_authorization_set_opaque(a, b);
+	}
+
+	__cjs_osip_authorization_get_opaque(a) {
+		return osip_authorization_get_opaque(a);
+	}
+
+	__cjs_osip_authorization_set_algorithm(a, b) {
+		return osip_authorization_set_algorithm(a, b);
+	}
+
+	__cjs_osip_authorization_get_algorithm(a) {
+		return osip_authorization_get_algorithm(a);
+	}
+
+	__cjs_osip_authorization_set_username(a, b) {
+		return osip_authorization_set_username(a, b);
+	}
+
+	__cjs_osip_authorization_get_username(a) {
+		return osip_authorization_get_username(a);
+	}
+
+	__cjs_osip_authorization_set_uri(a, b) {
+		return osip_authorization_set_uri(a, b);
+	}
+
+	__cjs_osip_authorization_get_uri(a) {
+		return osip_authorization_get_uri(a);
+	}
+
+	__cjs_osip_authorization_set_response(a, b) {
+		return osip_authorization_set_response(a, b);
+	}
+
+	__cjs_osip_authorization_get_response(a) {
+		return osip_authorization_get_response(a);
+	}
+
+	__cjs_osip_authorization_set_digest(a, b) {
+		return osip_authorization_set_digest(a, b);
+	}
+
+	__cjs_osip_authorization_get_digest(a) {
+		return osip_authorization_get_digest(a);
+	}
+
+	__cjs_osip_authorization_set_cnonce(a, b) {
+		return osip_authorization_set_cnonce(a, b);
+	}
+
+	__cjs_osip_authorization_get_cnonce(a) {
+		return osip_authorization_get_cnonce(a);
+	}
+
+	__cjs_osip_authorization_set_message_qop(a, b) {
+		return osip_authorization_set_message_qop(a, b);
+	}
+
+	__cjs_osip_authorization_get_message_qop(a) {
+		return osip_authorization_get_message_qop(a);
+	}
+
+	__cjs_osip_authorization_set_nonce_count(a, b) {
+		return osip_authorization_set_nonce_count(a, b);
+	}
+
+	__cjs_osip_authorization_get_nonce_count(a) {
+		return osip_authorization_get_nonce_count(a);
+	}
+
+	__cjs_osip_authentication_info_set_nextnonce(a, b) {
+		return osip_authentication_info_set_nextnonce(a, b);
+	}
+
+	__cjs_osip_authentication_info_get_nextnonce(a) {
+		return osip_authentication_info_get_nextnonce(a);
+	}
+
+	__cjs_osip_authentication_info_set_cnonce(a, b) {
+		return osip_authentication_info_set_cnonce(a, b);
+	}
+
+	__cjs_osip_authentication_info_get_cnonce(a) {
+		return osip_authentication_info_get_cnonce(a);
+	}
+
+	__cjs_osip_authentication_info_set_qop_options(a, b) {
+		return osip_authentication_info_set_qop_options(a, b);
+	}
+
+	__cjs_osip_authentication_info_get_qop_options(a) {
+		return osip_authentication_info_get_qop_options(a);
+	}
+
+	__cjs_osip_authentication_info_set_rspauth(a, b) {
+		return osip_authentication_info_set_rspauth(a, b);
+	}
+
+	__cjs_osip_authentication_info_get_rspauth(a) {
+		return osip_authentication_info_get_rspauth(a);
+	}
+
+	__cjs_osip_authentication_info_set_nonce_count(a, b) {
+		return osip_authentication_info_set_nonce_count(a, b);
+	}
+
+	__cjs_osip_authentication_info_get_nonce_count(a) {
+		return osip_authentication_info_get_nonce_count(a);
+	}
+
+	__cjs_osip_proxy_authorization_set_auth_type(a, b) {
+		return osip_proxy_authorization_set_auth_type(a, b);
+	}
+
+	__cjs_osip_proxy_authorization_get_auth_type(a) {
+		return osip_proxy_authorization_get_auth_type(a);
+	}
+
+	__cjs_osip_proxy_authorization_set_username(a, b) {
+		return osip_proxy_authorization_set_username(a, b);
+	}
+
+	__cjs_osip_proxy_authorization_get_username(a) {
+		return osip_proxy_authorization_get_username(a);
+	}
+
+	__cjs_osip_proxy_authorization_set_realm(a, b) {
+		return osip_proxy_authorization_set_realm(a, b);
+	}
+
+	__cjs_osip_proxy_authorization_get_realm(a) {
+		return osip_proxy_authorization_get_realm(a);
+	}
+
+	__cjs_osip_proxy_authorization_set_nonce(a, b) {
+		return osip_proxy_authorization_set_nonce(a, b);
+	}
+
+	__cjs_osip_proxy_authorization_get_nonce(a) {
+		return osip_proxy_authorization_get_nonce(a);
+	}
+
+	__cjs_osip_proxy_authorization_set_uri(a, b) {
+		return osip_proxy_authorization_set_uri(a, b);
+	}
+
+	__cjs_osip_proxy_authorization_get_uri(a) {
+		return osip_proxy_authorization_get_uri(a);
+	}
+
+	__cjs_osip_proxy_authorization_set_response(a, b) {
+		return osip_proxy_authorization_set_response(a, b);
+	}
+
+	__cjs_osip_proxy_authorization_get_response(a) {
+		return osip_proxy_authorization_get_response(a);
+	}
+
+	__cjs_osip_proxy_authorization_set_digest(a, b) {
+		return osip_proxy_authorization_set_digest(a, b);
+	}
+
+	__cjs_osip_proxy_authorization_get_digest(a) {
+		return osip_proxy_authorization_get_digest(a);
+	}
+
+	__cjs_osip_proxy_authorization_set_algorithm(a, b) {
+		return osip_proxy_authorization_set_algorithm(a, b);
+	}
+
+	__cjs_osip_proxy_authorization_get_algorithm(a) {
+		return osip_proxy_authorization_get_algorithm(a);
+	}
+
+	__cjs_osip_proxy_authorization_set_cnonce(a, b) {
+		return osip_proxy_authorization_set_cnonce(a, b);
+	}
+
+	__cjs_osip_proxy_authorization_get_cnonce(a) {
+		return osip_proxy_authorization_get_cnonce(a);
+	}
+
+	__cjs_osip_proxy_authorization_set_opaque(a, b) {
+		return osip_proxy_authorization_set_opaque(a, b);
+	}
+
+	__cjs_osip_proxy_authorization_get_opaque(a) {
+		return osip_proxy_authorization_get_opaque(a);
+	}
+
+	__cjs_osip_proxy_authorization_set_message_qop(a, b) {
+		return osip_proxy_authorization_set_message_qop(a, b);
+	}
+
+	__cjs_osip_proxy_authorization_get_message_qop(a) {
+		return osip_proxy_authorization_get_message_qop(a);
+	}
+
+	__cjs_osip_proxy_authorization_set_nonce_count(a, b) {
+		return osip_proxy_authorization_set_nonce_count(a, b);
+	}
+
+	__cjs_osip_proxy_authorization_get_nonce_count(a) {
+		return osip_proxy_authorization_get_nonce_count(a);
+	}
+
+	__cjs_osip_dialog_init_as_uac(a, b) {
+		return osip_dialog_init_as_uac(a, b);
+	}
+
+	__cjs_osip_dialog_init_as_uac_with_remote_request(a, b, c) {
+		return osip_dialog_init_as_uac_with_remote_request(a, b, c);
+	}
+
+	__cjs_osip_dialog_init_as_uas(a, b, c) {
+		return osip_dialog_init_as_uas(a, b, c);
+	}
+
+	__cjs_osip_dialog_free(a) {
+		return osip_dialog_free(a);
+	}
+
+	__cjs_osip_dialog_set_state(a, b) {
+		return osip_dialog_set_state(a, b);
+	}
+
+	__cjs_osip_dialog_update_route_set_as_uas(a, b) {
+		return osip_dialog_update_route_set_as_uas(a, b);
+	}
+
+	__cjs_osip_dialog_update_osip_cseq_as_uas(a, b) {
+		return osip_dialog_update_osip_cseq_as_uas(a, b);
+	}
+
+	__cjs_osip_dialog_match_as_uac(a, b) {
+		return osip_dialog_match_as_uac(a, b);
+	}
+
+	__cjs_osip_dialog_update_tag_as_uac(a, b) {
+		return osip_dialog_update_tag_as_uac(a, b);
+	}
+
+	__cjs_osip_dialog_update_route_set_as_uac(a, b) {
+		return osip_dialog_update_route_set_as_uac(a, b);
+	}
+
+	__cjs_osip_dialog_match_as_uas(a, b) {
+		return osip_dialog_match_as_uas(a, b);
+	}
+
+	__cjs_osip_dialog_is_originator(a) {
+		return osip_dialog_is_originator(a);
+	}
+
+	__cjs_osip_dialog_is_callee(a) {
+		return osip_dialog_is_callee(a);
+	}
+
+	__cjs_osip_start_200ok_retransmissions(a, b, c, d) {
+		return osip_start_200ok_retransmissions(a, b, c, d);
+	}
+
+	__cjs_osip_start_ack_retransmissions(a, b, c, d, e, f) {
+		return osip_start_ack_retransmissions(a, b, c, d, e, f);
+	}
+
+	__cjs_osip_stop_200ok_retransmissions(a, b) {
+		return osip_stop_200ok_retransmissions(a, b);
+	}
+
+	__cjs_osip_stop_retransmissions_from_dialog(a, b) {
+		return osip_stop_retransmissions_from_dialog(a, b);
+	}
+
+	__cjs_osip_new_outgoing_sipmessage(a) {
+		return osip_new_outgoing_sipmessage(a);
+	}
+
+	__cjs_osip_message_get_header_str(a, b, c) {
+		return osip_message_get_header_str(a, b, c);
+	}
+
+	__cjs_osip_transaction_describe(a) {
+		return osip_transaction_describe(a);
+	}
+
+	__cjs_osip_remove_transaction(a, b) {
+		return osip_remove_transaction(a, b);
+	}
+
+	wrap(js) {
+		js.wrap(this.__cjs_osip_init, "__cjs_osip_init");
+		js.wrap(this.__cjs_osip_release, "__cjs_osip_release");
+		js.wrap(this.__cjs_osip_parse, "__cjs_osip_parse");
+		js.wrap(this.__cjs_osip_event_free, "__cjs_osip_event_free");
+		js.wrap(this.__cjs_osip_find_transaction_and_add_event, "__cjs_osip_find_transaction_and_add_event");
+		js.wrap(this.__cjs_osip_transaction_add_event, "__cjs_osip_transaction_add_event");
+		js.wrap(this.__cjs_osip_create_transaction, "__cjs_osip_create_transaction");
+		js.wrap(this.__cjs_osip_transaction_init, "__cjs_osip_transaction_init");
+		js.wrap(this.__cjs_osip_transaction_set_out_socket, "__cjs_osip_transaction_set_out_socket");
+		js.wrap(this.__cjs_osip_retransmissions_execute, "__cjs_osip_retransmissions_execute");
+		js.wrap(this.__cjs_osip_transaction_execute, "__cjs_osip_transaction_execute");
+		js.wrap(this.__cjs_osip_transaction_free, "__cjs_osip_transaction_free");
+		js.wrap(this.__cjs_osip_transaction_free2, "__cjs_osip_transaction_free2");
+		js.wrap(this.__cjs_osip_transaction_set_your_instance, "__cjs_osip_transaction_set_your_instance");
+		js.wrap(this.__cjs_osip_transaction_get_your_instance, "__cjs_osip_transaction_get_your_instance");
+		js.wrap(this.__cjs_osip_event_describe, "__cjs_osip_event_describe");
+		js.wrap(this.__cjs_osip_transaction_get_destination, "__cjs_osip_transaction_get_destination");
+		js.wrap(this.__cjs_osip_nict_set_destination, "__cjs_osip_nict_set_destination");
+		js.wrap(this.__cjs_osip_message_describe, "__cjs_osip_message_describe");
+		js.wrap(this.__cjs_osip_message_init, "__cjs_osip_message_init");
+		js.wrap(this.__cjs_osip_message_free, "__cjs_osip_message_free");
+		js.wrap(this.__cjs_osip_message_to_str, "__cjs_osip_message_to_str");
+		js.wrap(this.__cjs_osip_message_parse, "__cjs_osip_message_parse");
+		js.wrap(this.__cjs_osip_message_parse_sipfrag, "__cjs_osip_message_parse_sipfrag");
+		js.wrap(this.__cjs_osip_message_to_str_sipfrag, "__cjs_osip_message_to_str_sipfrag");
+		js.wrap(this.__cjs_osip_message_clone, "__cjs_osip_message_clone");
+		js.wrap(this.__cjs_osip_message_set_reason_phrase, "__cjs_osip_message_set_reason_phrase");
+		js.wrap(this.__cjs_osip_message_get_reason_phrase, "__cjs_osip_message_get_reason_phrase");
+		js.wrap(this.__cjs_osip_message_set_status_code, "__cjs_osip_message_set_status_code");
+		js.wrap(this.__cjs_osip_message_get_status_code, "__cjs_osip_message_get_status_code");
+		js.wrap(this.__cjs_osip_message_set_method, "__cjs_osip_message_set_method");
+		js.wrap(this.__cjs_osip_message_get_method, "__cjs_osip_message_get_method");
+		js.wrap(this.__cjs_osip_message_set_version, "__cjs_osip_message_set_version");
+		js.wrap(this.__cjs_osip_message_get_version, "__cjs_osip_message_get_version");
+		js.wrap(this.__cjs_osip_message_set_uri, "__cjs_osip_message_set_uri");
+		js.wrap(this.__cjs_osip_message_get_uri, "__cjs_osip_message_get_uri");
+		js.wrap(this.__cjs_osip_message_set_date, "__cjs_osip_message_set_date");
+		js.wrap(this.__cjs_osip_message_get_date, "__cjs_osip_message_get_date");
+		js.wrap(this.__cjs_osip_message_set_encryption, "__cjs_osip_message_set_encryption");
+		js.wrap(this.__cjs_osip_message_get_encryption, "__cjs_osip_message_get_encryption");
+		js.wrap(this.__cjs_osip_message_set_organization, "__cjs_osip_message_set_organization");
+		js.wrap(this.__cjs_osip_message_get_organization, "__cjs_osip_message_get_organization");
+		js.wrap(this.__cjs_osip_message_set_require, "__cjs_osip_message_set_require");
+		js.wrap(this.__cjs_osip_message_get_require, "__cjs_osip_message_get_require");
+		js.wrap(this.__cjs_osip_message_set_supported, "__cjs_osip_message_set_supported");
+		js.wrap(this.__cjs_osip_message_get_supported, "__cjs_osip_message_get_supported");
+		js.wrap(this.__cjs_osip_message_set_timestamp, "__cjs_osip_message_set_timestamp");
+		js.wrap(this.__cjs_osip_message_get_timestamp, "__cjs_osip_message_get_timestamp");
+		js.wrap(this.__cjs_osip_message_set_user_agent, "__cjs_osip_message_set_user_agent");
+		js.wrap(this.__cjs_osip_message_get_user_agent, "__cjs_osip_message_get_user_agent");
+		js.wrap(this.__cjs_osip_message_set_content_language, "__cjs_osip_message_set_content_language");
+		js.wrap(this.__cjs_osip_message_get_content_language, "__cjs_osip_message_get_content_language");
+		js.wrap(this.__cjs_osip_message_set_expires, "__cjs_osip_message_set_expires");
+		js.wrap(this.__cjs_osip_message_get_expires, "__cjs_osip_message_get_expires");
+		js.wrap(this.__cjs_osip_message_set_in_reply_to, "__cjs_osip_message_set_in_reply_to");
+		js.wrap(this.__cjs_osip_message_get_in_reply_to, "__cjs_osip_message_get_in_reply_to");
+		js.wrap(this.__cjs_osip_message_set_max_forwards, "__cjs_osip_message_set_max_forwards");
+		js.wrap(this.__cjs_osip_message_get_max_forwards, "__cjs_osip_message_get_max_forwards");
+		js.wrap(this.__cjs_osip_message_set_priority, "__cjs_osip_message_set_priority");
+		js.wrap(this.__cjs_osip_message_get_priority, "__cjs_osip_message_get_priority");
+		js.wrap(this.__cjs_osip_message_set_proxy_require, "__cjs_osip_message_set_proxy_require");
+		js.wrap(this.__cjs_osip_message_get_proxy_require, "__cjs_osip_message_get_proxy_require");
+		js.wrap(this.__cjs_osip_message_set_response_key, "__cjs_osip_message_set_response_key");
+		js.wrap(this.__cjs_osip_message_get_response_key, "__cjs_osip_message_get_response_key");
+		js.wrap(this.__cjs_osip_message_set_subject, "__cjs_osip_message_set_subject");
+		js.wrap(this.__cjs_osip_message_get_subject, "__cjs_osip_message_get_subject");
+		js.wrap(this.__cjs_osip_message_set_retry_after, "__cjs_osip_message_set_retry_after");
+		js.wrap(this.__cjs_osip_message_get_retry_after, "__cjs_osip_message_get_retry_after");
+		js.wrap(this.__cjs_osip_message_set_server, "__cjs_osip_message_set_server");
+		js.wrap(this.__cjs_osip_message_get_server, "__cjs_osip_message_get_server");
+		js.wrap(this.__cjs_osip_message_set_unsupported, "__cjs_osip_message_set_unsupported");
+		js.wrap(this.__cjs_osip_message_get_unsupported, "__cjs_osip_message_get_unsupported");
+		js.wrap(this.__cjs_osip_message_set_warning, "__cjs_osip_message_set_warning");
+		js.wrap(this.__cjs_osip_message_get_warning, "__cjs_osip_message_get_warning");
+		js.wrap(this.__cjs_osip_message_fix_last_via_header, "__cjs_osip_message_fix_last_via_header");
+		js.wrap(this.__cjs_osip_message_get__property, "__cjs_osip_message_get__property");
+		js.wrap(this.__cjs_osip_message_force_update, "__cjs_osip_message_force_update");
+		js.wrap(this.__cjs_osip_message_get_reason, "__cjs_osip_message_get_reason");
+		js.wrap(this.__cjs_osip_message_set_accept, "__cjs_osip_message_set_accept");
+		js.wrap(this.__cjs_osip_message_get_accept, "__cjs_osip_message_get_accept");
+		js.wrap(this.__cjs_osip_message_set_accept_encoding, "__cjs_osip_message_set_accept_encoding");
+		js.wrap(this.__cjs_osip_message_get_accept_encoding, "__cjs_osip_message_get_accept_encoding");
+		js.wrap(this.__cjs_osip_message_set_accept_language, "__cjs_osip_message_set_accept_language");
+		js.wrap(this.__cjs_osip_message_get_accept_language, "__cjs_osip_message_get_accept_language");
+		js.wrap(this.__cjs_osip_message_set_alert_info, "__cjs_osip_message_set_alert_info");
+		js.wrap(this.__cjs_osip_message_get_alert_info, "__cjs_osip_message_get_alert_info");
+		js.wrap(this.__cjs_osip_message_set_allow, "__cjs_osip_message_set_allow");
+		js.wrap(this.__cjs_osip_message_get_allow, "__cjs_osip_message_get_allow");
+		js.wrap(this.__cjs_osip_message_set_authentication_info, "__cjs_osip_message_set_authentication_info");
+		js.wrap(this.__cjs_osip_message_get_authentication_info, "__cjs_osip_message_get_authentication_info");
+		js.wrap(this.__cjs_osip_message_set_authorization, "__cjs_osip_message_set_authorization");
+		js.wrap(this.__cjs_osip_message_get_authorization, "__cjs_osip_message_get_authorization");
+		js.wrap(this.__cjs_osip_message_set_call_id, "__cjs_osip_message_set_call_id");
+		js.wrap(this.__cjs_osip_message_get_call_id, "__cjs_osip_message_get_call_id");
+		js.wrap(this.__cjs_osip_message_set_call_info, "__cjs_osip_message_set_call_info");
+		js.wrap(this.__cjs_osip_message_get_call_info, "__cjs_osip_message_get_call_info");
+		js.wrap(this.__cjs_osip_message_set_contact, "__cjs_osip_message_set_contact");
+		js.wrap(this.__cjs_osip_message_get_contact, "__cjs_osip_message_get_contact");
+		js.wrap(this.__cjs_osip_message_set_content_encoding, "__cjs_osip_message_set_content_encoding");
+		js.wrap(this.__cjs_osip_message_get_content_encoding, "__cjs_osip_message_get_content_encoding");
+		js.wrap(this.__cjs_osip_message_set_content_length, "__cjs_osip_message_set_content_length");
+		js.wrap(this.__cjs_osip_message_get_content_length, "__cjs_osip_message_get_content_length");
+		js.wrap(this.__cjs_osip_message_set_content_type, "__cjs_osip_message_set_content_type");
+		js.wrap(this.__cjs_osip_message_get_content_type, "__cjs_osip_message_get_content_type");
+		js.wrap(this.__cjs_osip_message_set_cseq, "__cjs_osip_message_set_cseq");
+		js.wrap(this.__cjs_osip_message_get_cseq, "__cjs_osip_message_get_cseq");
+		js.wrap(this.__cjs_osip_message_set_error_info, "__cjs_osip_message_set_error_info");
+		js.wrap(this.__cjs_osip_message_get_error_info, "__cjs_osip_message_get_error_info");
+		js.wrap(this.__cjs_osip_message_set_from, "__cjs_osip_message_set_from");
+		js.wrap(this.__cjs_osip_message_get_from, "__cjs_osip_message_get_from");
+		js.wrap(this.__cjs_osip_message_set_mime_version, "__cjs_osip_message_set_mime_version");
+		js.wrap(this.__cjs_osip_message_get_mime_version, "__cjs_osip_message_get_mime_version");
+		js.wrap(this.__cjs_osip_message_set_proxy_authenticate, "__cjs_osip_message_set_proxy_authenticate");
+		js.wrap(this.__cjs_osip_message_get_proxy_authenticate, "__cjs_osip_message_get_proxy_authenticate");
+		js.wrap(this.__cjs_osip_message_set_proxy_authorization, "__cjs_osip_message_set_proxy_authorization");
+		js.wrap(this.__cjs_osip_message_get_proxy_authorization, "__cjs_osip_message_get_proxy_authorization");
+		js.wrap(this.__cjs_osip_message_set_proxy_authentication_info, "__cjs_osip_message_set_proxy_authentication_info");
+		js.wrap(this.__cjs_osip_message_get_proxy_authentication_info, "__cjs_osip_message_get_proxy_authentication_info");
+		js.wrap(this.__cjs_osip_message_set_record_route, "__cjs_osip_message_set_record_route");
+		js.wrap(this.__cjs_osip_message_get_record_route, "__cjs_osip_message_get_record_route");
+		js.wrap(this.__cjs_osip_message_set_route, "__cjs_osip_message_set_route");
+		js.wrap(this.__cjs_osip_message_get_route, "__cjs_osip_message_get_route");
+		js.wrap(this.__cjs_osip_message_set_to, "__cjs_osip_message_set_to");
+		js.wrap(this.__cjs_osip_message_get_to, "__cjs_osip_message_get_to");
+		js.wrap(this.__cjs_osip_message_set_via, "__cjs_osip_message_set_via");
+		js.wrap(this.__cjs_osip_message_append_via, "__cjs_osip_message_append_via");
+		js.wrap(this.__cjs_osip_message_get_via, "__cjs_osip_message_get_via");
+		js.wrap(this.__cjs_osip_message_set_www_authenticate, "__cjs_osip_message_set_www_authenticate");
+		js.wrap(this.__cjs_osip_message_get_www_authenticate, "__cjs_osip_message_get_www_authenticate");
+		js.wrap(this.__cjs_osip_message_set_header, "__cjs_osip_message_set_header");
+		js.wrap(this.__cjs_osip_message_replace_header, "__cjs_osip_message_replace_header");
+		js.wrap(this.__cjs_osip_message_set_topheader, "__cjs_osip_message_set_topheader");
+		js.wrap(this.__cjs_osip_message_header_get_byname, "__cjs_osip_message_header_get_byname");
+		js.wrap(this.__cjs_osip_message_get_header, "__cjs_osip_message_get_header");
+		js.wrap(this.__cjs_osip_message_set_body, "__cjs_osip_message_set_body");
+		js.wrap(this.__cjs_osip_message_set_body_mime, "__cjs_osip_message_set_body_mime");
+		js.wrap(this.__cjs_osip_message_get_body, "__cjs_osip_message_get_body");
+		js.wrap(this.__cjs_osip_via_init, "__cjs_osip_via_init");
+		js.wrap(this.__cjs_osip_via_free, "__cjs_osip_via_free");
+		js.wrap(this.__cjs_osip_via_parse, "__cjs_osip_via_parse");
+		js.wrap(this.__cjs_osip_via_to_str, "__cjs_osip_via_to_str");
+		js.wrap(this.__cjs_osip_via_clone, "__cjs_osip_via_clone");
+		js.wrap(this.__cjs_via_set_version, "__cjs_via_set_version");
+		js.wrap(this.__cjs_via_get_version, "__cjs_via_get_version");
+		js.wrap(this.__cjs_via_set_protocol, "__cjs_via_set_protocol");
+		js.wrap(this.__cjs_via_get_protocol, "__cjs_via_get_protocol");
+		js.wrap(this.__cjs_via_set_host, "__cjs_via_set_host");
+		js.wrap(this.__cjs_via_get_host, "__cjs_via_get_host");
+		js.wrap(this.__cjs_via_set_port, "__cjs_via_set_port");
+		js.wrap(this.__cjs_via_get_port, "__cjs_via_get_port");
+		js.wrap(this.__cjs_via_set_comment, "__cjs_via_set_comment");
+		js.wrap(this.__cjs_via_get_comment, "__cjs_via_get_comment");
+		js.wrap(this.__cjs_osip_via_set_ttl, "__cjs_osip_via_set_ttl");
+		js.wrap(this.__cjs_osip_via_set_maddr, "__cjs_osip_via_set_maddr");
+		js.wrap(this.__cjs_osip_via_set_received, "__cjs_osip_via_set_received");
+		js.wrap(this.__cjs_osip_via_set_branch, "__cjs_osip_via_set_branch");
+		js.wrap(this.__cjs_osip_via_param_add, "__cjs_osip_via_param_add");
+		js.wrap(this.__cjs_osip_via_match, "__cjs_osip_via_match");
+		js.wrap(this.__cjs_osip_uri_init, "__cjs_osip_uri_init");
+		js.wrap(this.__cjs_osip_uri_free, "__cjs_osip_uri_free");
+		js.wrap(this.__cjs_osip_uri_parse, "__cjs_osip_uri_parse");
+		js.wrap(this.__cjs_osip_uri_to_str, "__cjs_osip_uri_to_str");
+		js.wrap(this.__cjs_osip_uri_clone, "__cjs_osip_uri_clone");
+		js.wrap(this.__cjs_osip_uri_set_scheme, "__cjs_osip_uri_set_scheme");
+		js.wrap(this.__cjs_osip_uri_get_scheme, "__cjs_osip_uri_get_scheme");
+		js.wrap(this.__cjs_osip_uri_set_host, "__cjs_osip_uri_set_host");
+		js.wrap(this.__cjs_osip_uri_get_host, "__cjs_osip_uri_get_host");
+		js.wrap(this.__cjs_osip_uri_set_username, "__cjs_osip_uri_set_username");
+		js.wrap(this.__cjs_osip_uri_get_username, "__cjs_osip_uri_get_username");
+		js.wrap(this.__cjs_osip_uri_set_password, "__cjs_osip_uri_set_password");
+		js.wrap(this.__cjs_osip_uri_get_password, "__cjs_osip_uri_get_password");
+		js.wrap(this.__cjs_osip_uri_set_port, "__cjs_osip_uri_set_port");
+		js.wrap(this.__cjs_osip_uri_get_port, "__cjs_osip_uri_get_port");
+		js.wrap(this.__cjs_osip_uri_set_transport_udp, "__cjs_osip_uri_set_transport_udp");
+		js.wrap(this.__cjs_osip_uri_set_transport_tcp, "__cjs_osip_uri_set_transport_tcp");
+		js.wrap(this.__cjs_osip_uri_set_transport_sctp, "__cjs_osip_uri_set_transport_sctp");
+		js.wrap(this.__cjs_osip_uri_set_transport_tls, "__cjs_osip_uri_set_transport_tls");
+		js.wrap(this.__cjs_osip_ict_execute, "__cjs_osip_ict_execute");
+		js.wrap(this.__cjs_osip_ist_execute, "__cjs_osip_ist_execute");
+		js.wrap(this.__cjs_osip_nict_execute, "__cjs_osip_nict_execute");
+		js.wrap(this.__cjs_osip_nist_execute, "__cjs_osip_nist_execute");
+		js.wrap(this.__cjs_osip_timers_ict_execute, "__cjs_osip_timers_ict_execute");
+		js.wrap(this.__cjs_osip_timers_ist_execute, "__cjs_osip_timers_ist_execute");
+		js.wrap(this.__cjs_osip_timers_nict_execute, "__cjs_osip_timers_nict_execute");
+		js.wrap(this.__cjs_osip_timers_nist_execute, "__cjs_osip_timers_nist_execute");
+		js.wrap(this.__cjs_osip_set_cb_send_message, "__cjs_osip_set_cb_send_message");
+		js.wrap(this.__cjs_osip_set_message_callback, "__cjs_osip_set_message_callback");
+		js.wrap(this.__cjs_osip_set_kill_transaction_callback, "__cjs_osip_set_kill_transaction_callback");
+		js.wrap(this.__cjs_osip_set_transport_error_callback, "__cjs_osip_set_transport_error_callback");
+		js.wrap(this.__cjs_osip_list_add, "__cjs_osip_list_add");
+		js.wrap(this.__cjs_osip_list_add_string, "__cjs_osip_list_add_string");
+		js.wrap(this.__cjs_osip_list_size, "__cjs_osip_list_size");
+		js.wrap(this.__cjs_osip_list_remove, "__cjs_osip_list_remove");
+		js.wrap(this.__cjs_osip_list_eol, "__cjs_osip_list_eol");
+		js.wrap(this.__cjs_osip_list_get, "__cjs_osip_list_get");
+		js.wrap(this.__cjs_osip_from_message, "__cjs_osip_from_message");
+		js.wrap(this.__cjs_osip_from_init, "__cjs_osip_from_init");
+		js.wrap(this.__cjs_osip_from_free, "__cjs_osip_from_free");
+		js.wrap(this.__cjs_osip_from_parse, "__cjs_osip_from_parse");
+		js.wrap(this.__cjs_osip_from_to_str, "__cjs_osip_from_to_str");
+		js.wrap(this.__cjs_osip_from_clone, "__cjs_osip_from_clone");
+		js.wrap(this.__cjs_osip_from_set_displayname, "__cjs_osip_from_set_displayname");
+		js.wrap(this.__cjs_osip_from_get_displayname, "__cjs_osip_from_get_displayname");
+		js.wrap(this.__cjs_osip_from_set_url, "__cjs_osip_from_set_url");
+		js.wrap(this.__cjs_osip_from_get_url, "__cjs_osip_from_get_url");
+		js.wrap(this.__cjs_osip_from_get_tag, "__cjs_osip_from_get_tag");
+		js.wrap(this.__cjs_osip_from_set_tag, "__cjs_osip_from_set_tag");
+		js.wrap(this.__cjs_osip_from_compare, "__cjs_osip_from_compare");
+		js.wrap(this.__cjs_osip_from_tag_match, "__cjs_osip_from_tag_match");
+		js.wrap(this.__cjs_osip_to_message, "__cjs_osip_to_message");
+		js.wrap(this.__cjs_osip_to_init, "__cjs_osip_to_init");
+		js.wrap(this.__cjs_osip_to_free, "__cjs_osip_to_free");
+		js.wrap(this.__cjs_osip_to_parse, "__cjs_osip_to_parse");
+		js.wrap(this.__cjs_osip_to_to_str, "__cjs_osip_to_to_str");
+		js.wrap(this.__cjs_osip_to_clone, "__cjs_osip_to_clone");
+		js.wrap(this.__cjs_osip_to_set_displayname, "__cjs_osip_to_set_displayname");
+		js.wrap(this.__cjs_osip_to_get_displayname, "__cjs_osip_to_get_displayname");
+		js.wrap(this.__cjs_osip_to_set_url, "__cjs_osip_to_set_url");
+		js.wrap(this.__cjs_osip_to_get_url, "__cjs_osip_to_get_url");
+		js.wrap(this.__cjs_osip_to_get_tag, "__cjs_osip_to_get_tag");
+		js.wrap(this.__cjs_osip_to_set_tag, "__cjs_osip_to_set_tag");
+		js.wrap(this.__cjs_osip_to_compare, "__cjs_osip_to_compare");
+		js.wrap(this.__cjs_osip_to_tag_match, "__cjs_osip_to_tag_match");
+		js.wrap(this.__cjs_osip_call_id_init, "__cjs_osip_call_id_init");
+		js.wrap(this.__cjs_osip_call_id_free, "__cjs_osip_call_id_free");
+		js.wrap(this.__cjs_osip_call_id_parse, "__cjs_osip_call_id_parse");
+		js.wrap(this.__cjs_osip_call_id_clone, "__cjs_osip_call_id_clone");
+		js.wrap(this.__cjs_osip_call_id_match, "__cjs_osip_call_id_match");
+		js.wrap(this.__cjs_osip_call_id_to_str, "__cjs_osip_call_id_to_str");
+		js.wrap(this.__cjs_osip_call_info_init, "__cjs_osip_call_info_init");
+		js.wrap(this.__cjs_osip_call_info_free, "__cjs_osip_call_info_free");
+		js.wrap(this.__cjs_osip_call_info_parse, "__cjs_osip_call_info_parse");
+		js.wrap(this.__cjs_osip_call_info_clone, "__cjs_osip_call_info_clone");
+		js.wrap(this.__cjs_osip_accept_free, "__cjs_osip_accept_free");
+		js.wrap(this.__cjs_osip_accept_parse, "__cjs_osip_accept_parse");
+		js.wrap(this.__cjs_osip_accept_clone, "__cjs_osip_accept_clone");
+		js.wrap(this.__cjs_osip_accept_encoding_init, "__cjs_osip_accept_encoding_init");
+		js.wrap(this.__cjs_osip_accept_encoding_free, "__cjs_osip_accept_encoding_free");
+		js.wrap(this.__cjs_osip_accept_encoding_parse, "__cjs_osip_accept_encoding_parse");
+		js.wrap(this.__cjs_osip_accept_encoding_clone, "__cjs_osip_accept_encoding_clone");
+		js.wrap(this.__cjs_osip_accept_language_init, "__cjs_osip_accept_language_init");
+		js.wrap(this.__cjs_osip_accept_language_free, "__cjs_osip_accept_language_free");
+		js.wrap(this.__cjs_osip_accept_language_parse, "__cjs_osip_accept_language_parse");
+		js.wrap(this.__cjs_osip_accept_language_clone, "__cjs_osip_accept_language_clone");
+		js.wrap(this.__cjs_osip_alert_info_init, "__cjs_osip_alert_info_init");
+		js.wrap(this.__cjs_osip_alert_info_free, "__cjs_osip_alert_info_free");
+		js.wrap(this.__cjs_osip_alert_info_parse, "__cjs_osip_alert_info_parse");
+		js.wrap(this.__cjs_osip_alert_info_clone, "__cjs_osip_alert_info_clone");
+		js.wrap(this.__cjs_osip_allow_init, "__cjs_osip_allow_init");
+		js.wrap(this.__cjs_osip_allow_free, "__cjs_osip_allow_free");
+		js.wrap(this.__cjs_osip_allow_parse, "__cjs_osip_allow_parse");
+		js.wrap(this.__cjs_osip_allow_clone, "__cjs_osip_allow_clone");
+		js.wrap(this.__cjs_osip_authentication_info_init, "__cjs_osip_authentication_info_init");
+		js.wrap(this.__cjs_osip_authentication_info_free, "__cjs_osip_authentication_info_free");
+		js.wrap(this.__cjs_osip_authentication_info_parse, "__cjs_osip_authentication_info_parse");
+		js.wrap(this.__cjs_osip_authentication_info_clone, "__cjs_osip_authentication_info_clone");
+		js.wrap(this.__cjs_osip_authorization_init, "__cjs_osip_authorization_init");
+		js.wrap(this.__cjs_osip_authorization_free, "__cjs_osip_authorization_free");
+		js.wrap(this.__cjs_osip_authorization_parse, "__cjs_osip_authorization_parse");
+		js.wrap(this.__cjs_osip_authorization_clone, "__cjs_osip_authorization_clone");
+		js.wrap(this.__cjs_osip_contact_init, "__cjs_osip_contact_init");
+		js.wrap(this.__cjs_osip_contact_free, "__cjs_osip_contact_free");
+		js.wrap(this.__cjs_osip_contact_parse, "__cjs_osip_contact_parse");
+		js.wrap(this.__cjs_osip_contact_clone, "__cjs_osip_contact_clone");
+		js.wrap(this.__cjs_osip_content_disposition_init, "__cjs_osip_content_disposition_init");
+		js.wrap(this.__cjs_osip_content_disposition_free, "__cjs_osip_content_disposition_free");
+		js.wrap(this.__cjs_osip_content_disposition_parse, "__cjs_osip_content_disposition_parse");
+		js.wrap(this.__cjs_osip_content_disposition_clone, "__cjs_osip_content_disposition_clone");
+		js.wrap(this.__cjs_osip_content_encoding_init, "__cjs_osip_content_encoding_init");
+		js.wrap(this.__cjs_osip_content_encoding_free, "__cjs_osip_content_encoding_free");
+		js.wrap(this.__cjs_osip_content_encoding_parse, "__cjs_osip_content_encoding_parse");
+		js.wrap(this.__cjs_osip_content_encoding_clone, "__cjs_osip_content_encoding_clone");
+		js.wrap(this.__cjs_osip_content_length_init, "__cjs_osip_content_length_init");
+		js.wrap(this.__cjs_osip_content_length_free, "__cjs_osip_content_length_free");
+		js.wrap(this.__cjs_osip_content_length_parse, "__cjs_osip_content_length_parse");
+		js.wrap(this.__cjs_osip_content_length_clone, "__cjs_osip_content_length_clone");
+		js.wrap(this.__cjs_osip_content_type_init, "__cjs_osip_content_type_init");
+		js.wrap(this.__cjs_osip_content_type_free, "__cjs_osip_content_type_free");
+		js.wrap(this.__cjs_osip_content_type_parse, "__cjs_osip_content_type_parse");
+		js.wrap(this.__cjs_osip_content_type_clone, "__cjs_osip_content_type_clone");
+		js.wrap(this.__cjs_osip_cseq_init, "__cjs_osip_cseq_init");
+		js.wrap(this.__cjs_osip_cseq_to_str, "__cjs_osip_cseq_to_str");
+		js.wrap(this.__cjs_osip_cseq_free, "__cjs_osip_cseq_free");
+		js.wrap(this.__cjs_osip_cseq_parse, "__cjs_osip_cseq_parse");
+		js.wrap(this.__cjs_osip_cseq_clone, "__cjs_osip_cseq_clone");
+		js.wrap(this.__cjs_osip_cseq_match, "__cjs_osip_cseq_match");
+		js.wrap(this.__cjs_osip_error_info_init, "__cjs_osip_error_info_init");
+		js.wrap(this.__cjs_osip_error_info_free, "__cjs_osip_error_info_free");
+		js.wrap(this.__cjs_osip_error_info_parse, "__cjs_osip_error_info_parse");
+		js.wrap(this.__cjs_osip_error_info_clone, "__cjs_osip_error_info_clone");
+		js.wrap(this.__cjs_osip_header_init, "__cjs_osip_header_init");
+		js.wrap(this.__cjs_osip_header_free, "__cjs_osip_header_free");
+		js.wrap(this.__cjs_osip_header_clone, "__cjs_osip_header_clone");
+		js.wrap(this.__cjs_osip_mime_version_init, "__cjs_osip_mime_version_init");
+		js.wrap(this.__cjs_osip_mime_version_free, "__cjs_osip_mime_version_free");
+		js.wrap(this.__cjs_osip_mime_version_parse, "__cjs_osip_mime_version_parse");
+		js.wrap(this.__cjs_osip_mime_version_clone, "__cjs_osip_mime_version_clone");
+		js.wrap(this.__cjs_osip_proxy_authenticate_init, "__cjs_osip_proxy_authenticate_init");
+		js.wrap(this.__cjs_osip_proxy_authenticate_free, "__cjs_osip_proxy_authenticate_free");
+		js.wrap(this.__cjs_osip_proxy_authenticate_parse, "__cjs_osip_proxy_authenticate_parse");
+		js.wrap(this.__cjs_osip_proxy_authenticate_clone, "__cjs_osip_proxy_authenticate_clone");
+		js.wrap(this.__cjs_osip_proxy_authentication_info_init, "__cjs_osip_proxy_authentication_info_init");
+		js.wrap(this.__cjs_osip_proxy_authentication_info_free, "__cjs_osip_proxy_authentication_info_free");
+		js.wrap(this.__cjs_osip_proxy_authentication_info_parse, "__cjs_osip_proxy_authentication_info_parse");
+		js.wrap(this.__cjs_osip_proxy_authentication_info_clone, "__cjs_osip_proxy_authentication_info_clone");
+		js.wrap(this.__cjs_osip_proxy_authorization_init, "__cjs_osip_proxy_authorization_init");
+		js.wrap(this.__cjs_osip_proxy_authorization_free, "__cjs_osip_proxy_authorization_free");
+		js.wrap(this.__cjs_osip_proxy_authorization_parse, "__cjs_osip_proxy_authorization_parse");
+		js.wrap(this.__cjs_osip_proxy_authorization_clone, "__cjs_osip_proxy_authorization_clone");
+		js.wrap(this.__cjs_osip_record_route_init, "__cjs_osip_record_route_init");
+		js.wrap(this.__cjs_osip_record_route_free, "__cjs_osip_record_route_free");
+		js.wrap(this.__cjs_osip_record_route_parse, "__cjs_osip_record_route_parse");
+		js.wrap(this.__cjs_osip_record_route_clone, "__cjs_osip_record_route_clone");
+		js.wrap(this.__cjs_osip_route_init, "__cjs_osip_route_init");
+		js.wrap(this.__cjs_osip_route_free, "__cjs_osip_route_free");
+		js.wrap(this.__cjs_osip_route_parse, "__cjs_osip_route_parse");
+		js.wrap(this.__cjs_osip_route_clone, "__cjs_osip_route_clone");
+		js.wrap(this.__cjs_osip_www_authenticate_init, "__cjs_osip_www_authenticate_init");
+		js.wrap(this.__cjs_osip_www_authenticate_free, "__cjs_osip_www_authenticate_free");
+		js.wrap(this.__cjs_osip_www_authenticate_parse, "__cjs_osip_www_authenticate_parse");
+		js.wrap(this.__cjs_osip_www_authenticate_clone, "__cjs_osip_www_authenticate_clone");
+		js.wrap(this.__cjs_sdp_message_init, "__cjs_sdp_message_init");
+		js.wrap(this.__cjs_sdp_message_free, "__cjs_sdp_message_free");
+		js.wrap(this.__cjs_sdp_message_parse, "__cjs_sdp_message_parse");
+		js.wrap(this.__cjs_sdp_message_clone, "__cjs_sdp_message_clone");
+		js.wrap(this.__cjs_sdp_message_to_str, "__cjs_sdp_message_to_str");
+		js.wrap(this.__cjs_osip_call_id_set_host, "__cjs_osip_call_id_set_host");
+		js.wrap(this.__cjs_osip_call_id_set_number, "__cjs_osip_call_id_set_number");
+		js.wrap(this.__cjs_osip_call_id_get_host, "__cjs_osip_call_id_get_host");
+		js.wrap(this.__cjs_osip_call_id_get_number, "__cjs_osip_call_id_get_number");
+		js.wrap(this.__cjs_osip_cseq_set_number, "__cjs_osip_cseq_set_number");
+		js.wrap(this.__cjs_osip_cseq_set_method, "__cjs_osip_cseq_set_method");
+		js.wrap(this.__cjs_osip_cseq_get_number, "__cjs_osip_cseq_get_number");
+		js.wrap(this.__cjs_osip_cseq_get_method, "__cjs_osip_cseq_get_method");
+		js.wrap(this.__cjs_osip_contact_set_displayname, "__cjs_osip_contact_set_displayname");
+		js.wrap(this.__cjs_osip_contact_param_add, "__cjs_osip_contact_param_add");
+		js.wrap(this.__cjs_sdp_attribute_init, "__cjs_sdp_attribute_init");
+		js.wrap(this.__cjs_sdp_attribute_free, "__cjs_sdp_attribute_free");
+		js.wrap(this.__cjs_sdp_connection_init, "__cjs_sdp_connection_init");
+		js.wrap(this.__cjs_sdp_connection_free, "__cjs_sdp_connection_free");
+		js.wrap(this.__cjs_sdp_media_init, "__cjs_sdp_media_init");
+		js.wrap(this.__cjs_sdp_media_free, "__cjs_sdp_media_free");
+		js.wrap(this.__cjs_sdp_message_v_version_set, "__cjs_sdp_message_v_version_set");
+		js.wrap(this.__cjs_sdp_message_v_version_get, "__cjs_sdp_message_v_version_get");
+		js.wrap(this.__cjs_sdp_message_o_origin_set, "__cjs_sdp_message_o_origin_set");
+		js.wrap(this.__cjs_sdp_message_o_username_get, "__cjs_sdp_message_o_username_get");
+		js.wrap(this.__cjs_sdp_message_o_sess_id_get, "__cjs_sdp_message_o_sess_id_get");
+		js.wrap(this.__cjs_sdp_message_o_sess_version_get, "__cjs_sdp_message_o_sess_version_get");
+		js.wrap(this.__cjs_sdp_message_o_nettype_get, "__cjs_sdp_message_o_nettype_get");
+		js.wrap(this.__cjs_sdp_message_o_addrtype_get, "__cjs_sdp_message_o_addrtype_get");
+		js.wrap(this.__cjs_sdp_message_o_addr_get, "__cjs_sdp_message_o_addr_get");
+		js.wrap(this.__cjs_sdp_message_s_name_set, "__cjs_sdp_message_s_name_set");
+		js.wrap(this.__cjs_sdp_message_s_name_get, "__cjs_sdp_message_s_name_get");
+		js.wrap(this.__cjs_sdp_message_i_info_set, "__cjs_sdp_message_i_info_set");
+		js.wrap(this.__cjs_sdp_message_i_info_get, "__cjs_sdp_message_i_info_get");
+		js.wrap(this.__cjs_sdp_message_u_uri_set, "__cjs_sdp_message_u_uri_set");
+		js.wrap(this.__cjs_sdp_message_u_uri_get, "__cjs_sdp_message_u_uri_get");
+		js.wrap(this.__cjs_sdp_message_e_email_add, "__cjs_sdp_message_e_email_add");
+		js.wrap(this.__cjs_sdp_message_e_email_get, "__cjs_sdp_message_e_email_get");
+		js.wrap(this.__cjs_sdp_message_p_phone_add, "__cjs_sdp_message_p_phone_add");
+		js.wrap(this.__cjs_sdp_message_p_phone_get, "__cjs_sdp_message_p_phone_get");
+		js.wrap(this.__cjs_sdp_message_c_connection_add, "__cjs_sdp_message_c_connection_add");
+		js.wrap(this.__cjs_sdp_message_c_nettype_get, "__cjs_sdp_message_c_nettype_get");
+		js.wrap(this.__cjs_sdp_message_c_addrtype_get, "__cjs_sdp_message_c_addrtype_get");
+		js.wrap(this.__cjs_sdp_message_c_addr_get, "__cjs_sdp_message_c_addr_get");
+		js.wrap(this.__cjs_sdp_message_c_addr_multicast_ttl_get, "__cjs_sdp_message_c_addr_multicast_ttl_get");
+		js.wrap(this.__cjs_sdp_message_c_addr_multicast_int_get, "__cjs_sdp_message_c_addr_multicast_int_get");
+		js.wrap(this.__cjs_sdp_message_b_bandwidth_add, "__cjs_sdp_message_b_bandwidth_add");
+		js.wrap(this.__cjs_sdp_message_bandwidth_get, "__cjs_sdp_message_bandwidth_get");
+		js.wrap(this.__cjs_sdp_message_b_bwtype_get, "__cjs_sdp_message_b_bwtype_get");
+		js.wrap(this.__cjs_sdp_message_b_bandwidth_get, "__cjs_sdp_message_b_bandwidth_get");
+		js.wrap(this.__cjs_sdp_message_t_time_descr_add, "__cjs_sdp_message_t_time_descr_add");
+		js.wrap(this.__cjs_sdp_message_t_start_time_get, "__cjs_sdp_message_t_start_time_get");
+		js.wrap(this.__cjs_sdp_message_t_stop_time_get, "__cjs_sdp_message_t_stop_time_get");
+		js.wrap(this.__cjs_sdp_message_r_repeat_add, "__cjs_sdp_message_r_repeat_add");
+		js.wrap(this.__cjs_sdp_message_r_repeat_get, "__cjs_sdp_message_r_repeat_get");
+		js.wrap(this.__cjs_sdp_message_z_adjustments_set, "__cjs_sdp_message_z_adjustments_set");
+		js.wrap(this.__cjs_sdp_message_z_adjustments_get, "__cjs_sdp_message_z_adjustments_get");
+		js.wrap(this.__cjs_sdp_message_k_key_set, "__cjs_sdp_message_k_key_set");
+		js.wrap(this.__cjs_sdp_message_k_keytype_get, "__cjs_sdp_message_k_keytype_get");
+		js.wrap(this.__cjs_sdp_message_k_keydata_get, "__cjs_sdp_message_k_keydata_get");
+		js.wrap(this.__cjs_sdp_message_a_attribute_add, "__cjs_sdp_message_a_attribute_add");
+		js.wrap(this.__cjs_sdp_message_a_attribute_del, "__cjs_sdp_message_a_attribute_del");
+		js.wrap(this.__cjs_sdp_message_a_attribute_del_at_index, "__cjs_sdp_message_a_attribute_del_at_index");
+		js.wrap(this.__cjs_sdp_message_attribute_get, "__cjs_sdp_message_attribute_get");
+		js.wrap(this.__cjs_sdp_message_a_att_field_get, "__cjs_sdp_message_a_att_field_get");
+		js.wrap(this.__cjs_sdp_message_a_att_value_get, "__cjs_sdp_message_a_att_value_get");
+		js.wrap(this.__cjs_sdp_message_endof_media, "__cjs_sdp_message_endof_media");
+		js.wrap(this.__cjs_sdp_message_m_media_add, "__cjs_sdp_message_m_media_add");
+		js.wrap(this.__cjs_sdp_message_m_media_get, "__cjs_sdp_message_m_media_get");
+		js.wrap(this.__cjs_sdp_message_m_port_get, "__cjs_sdp_message_m_port_get");
+		js.wrap(this.__cjs_sdp_message_m_port_set, "__cjs_sdp_message_m_port_set");
+		js.wrap(this.__cjs_sdp_message_m_number_of_port_get, "__cjs_sdp_message_m_number_of_port_get");
+		js.wrap(this.__cjs_sdp_message_m_proto_get, "__cjs_sdp_message_m_proto_get");
+		js.wrap(this.__cjs_sdp_message_m_payload_add, "__cjs_sdp_message_m_payload_add");
+		js.wrap(this.__cjs_sdp_message_m_payload_get, "__cjs_sdp_message_m_payload_get");
+		js.wrap(this.__cjs_sdp_message_m_payload_del, "__cjs_sdp_message_m_payload_del");
+		js.wrap(this.__cjs_sdp_bandwidth_init, "__cjs_sdp_bandwidth_init");
+		js.wrap(this.__cjs_sdp_bandwidth_free, "__cjs_sdp_bandwidth_free");
+		js.wrap(this.__cjs_sdp_message_describe, "__cjs_sdp_message_describe");
+		js.wrap(this.__cjs_sdp_media_describe, "__cjs_sdp_media_describe");
+		js.wrap(this.__cjs_sdp_attribute_describe, "__cjs_sdp_attribute_describe");
+		js.wrap(this.__cjs_sdp_connection_describe, "__cjs_sdp_connection_describe");
+		js.wrap(this.__cjs_sdp_bandwidth_describe, "__cjs_sdp_bandwidth_describe");
+		js.wrap(this.__cjs_osip_cseq_message, "__cjs_osip_cseq_message");
+		js.wrap(this.__cjs_osip_call_id_message, "__cjs_osip_call_id_message");
+		js.wrap(this.__cjs_osip_contact_set_url, "__cjs_osip_contact_set_url");
+		js.wrap(this.__cjs_osip_contact_get_url, "__cjs_osip_contact_get_url");
+		js.wrap(this.__cjs_osip_contact_to_str, "__cjs_osip_contact_to_str");
+		js.wrap(this.__cjs_osip_body_init, "__cjs_osip_body_init");
+		js.wrap(this.__cjs_osip_body_free, "__cjs_osip_body_free");
+		js.wrap(this.__cjs_osip_body_parse, "__cjs_osip_body_parse");
+		js.wrap(this.__cjs_osip_body_parse_mime, "__cjs_osip_body_parse_mime");
+		js.wrap(this.__cjs_osip_body_clone, "__cjs_osip_body_clone");
+		js.wrap(this.__cjs_osip_body_to_str, "__cjs_osip_body_to_str");
+		js.wrap(this.__cjs_osip_body_set_header, "__cjs_osip_body_set_header");
+		js.wrap(this.__cjs_osip_body_set_contenttype, "__cjs_osip_body_set_contenttype");
+		js.wrap(this.__cjs_osip_proxy_authenticate_set_auth_type, "__cjs_osip_proxy_authenticate_set_auth_type");
+		js.wrap(this.__cjs_osip_proxy_authenticate_get_auth_type, "__cjs_osip_proxy_authenticate_get_auth_type");
+		js.wrap(this.__cjs_osip_proxy_authenticate_set_realm, "__cjs_osip_proxy_authenticate_set_realm");
+		js.wrap(this.__cjs_osip_proxy_authenticate_get_realm, "__cjs_osip_proxy_authenticate_get_realm");
+		js.wrap(this.__cjs_osip_proxy_authenticate_set_domain, "__cjs_osip_proxy_authenticate_set_domain");
+		js.wrap(this.__cjs_osip_proxy_authenticate_get_domain, "__cjs_osip_proxy_authenticate_get_domain");
+		js.wrap(this.__cjs_osip_proxy_authenticate_set_nonce, "__cjs_osip_proxy_authenticate_set_nonce");
+		js.wrap(this.__cjs_osip_proxy_authenticate_get_nonce, "__cjs_osip_proxy_authenticate_get_nonce");
+		js.wrap(this.__cjs_osip_proxy_authenticate_set_opaque, "__cjs_osip_proxy_authenticate_set_opaque");
+		js.wrap(this.__cjs_osip_proxy_authenticate_get_opaque, "__cjs_osip_proxy_authenticate_get_opaque");
+		js.wrap(this.__cjs_osip_proxy_authenticate_set_stale, "__cjs_osip_proxy_authenticate_set_stale");
+		js.wrap(this.__cjs_osip_proxy_authenticate_get_stale, "__cjs_osip_proxy_authenticate_get_stale");
+		js.wrap(this.__cjs_osip_proxy_authenticate_set_algorithm, "__cjs_osip_proxy_authenticate_set_algorithm");
+		js.wrap(this.__cjs_osip_proxy_authenticate_get_algorithm, "__cjs_osip_proxy_authenticate_get_algorithm");
+		js.wrap(this.__cjs_osip_proxy_authenticate_set_qop_options, "__cjs_osip_proxy_authenticate_set_qop_options");
+		js.wrap(this.__cjs_osip_proxy_authenticate_get_qop_options, "__cjs_osip_proxy_authenticate_get_qop_options");
+		js.wrap(this.__cjs_osip_authorization_set_auth_type, "__cjs_osip_authorization_set_auth_type");
+		js.wrap(this.__cjs_osip_authorization_get_auth_type, "__cjs_osip_authorization_get_auth_type");
+		js.wrap(this.__cjs_osip_authorization_set_realm, "__cjs_osip_authorization_set_realm");
+		js.wrap(this.__cjs_osip_authorization_get_realm, "__cjs_osip_authorization_get_realm");
+		js.wrap(this.__cjs_osip_authorization_set_nonce, "__cjs_osip_authorization_set_nonce");
+		js.wrap(this.__cjs_osip_authorization_get_nonce, "__cjs_osip_authorization_get_nonce");
+		js.wrap(this.__cjs_osip_authorization_set_opaque, "__cjs_osip_authorization_set_opaque");
+		js.wrap(this.__cjs_osip_authorization_get_opaque, "__cjs_osip_authorization_get_opaque");
+		js.wrap(this.__cjs_osip_authorization_set_algorithm, "__cjs_osip_authorization_set_algorithm");
+		js.wrap(this.__cjs_osip_authorization_get_algorithm, "__cjs_osip_authorization_get_algorithm");
+		js.wrap(this.__cjs_osip_authorization_set_username, "__cjs_osip_authorization_set_username");
+		js.wrap(this.__cjs_osip_authorization_get_username, "__cjs_osip_authorization_get_username");
+		js.wrap(this.__cjs_osip_authorization_set_uri, "__cjs_osip_authorization_set_uri");
+		js.wrap(this.__cjs_osip_authorization_get_uri, "__cjs_osip_authorization_get_uri");
+		js.wrap(this.__cjs_osip_authorization_set_response, "__cjs_osip_authorization_set_response");
+		js.wrap(this.__cjs_osip_authorization_get_response, "__cjs_osip_authorization_get_response");
+		js.wrap(this.__cjs_osip_authorization_set_digest, "__cjs_osip_authorization_set_digest");
+		js.wrap(this.__cjs_osip_authorization_get_digest, "__cjs_osip_authorization_get_digest");
+		js.wrap(this.__cjs_osip_authorization_set_cnonce, "__cjs_osip_authorization_set_cnonce");
+		js.wrap(this.__cjs_osip_authorization_get_cnonce, "__cjs_osip_authorization_get_cnonce");
+		js.wrap(this.__cjs_osip_authorization_set_message_qop, "__cjs_osip_authorization_set_message_qop");
+		js.wrap(this.__cjs_osip_authorization_get_message_qop, "__cjs_osip_authorization_get_message_qop");
+		js.wrap(this.__cjs_osip_authorization_set_nonce_count, "__cjs_osip_authorization_set_nonce_count");
+		js.wrap(this.__cjs_osip_authorization_get_nonce_count, "__cjs_osip_authorization_get_nonce_count");
+		js.wrap(this.__cjs_osip_authentication_info_set_nextnonce, "__cjs_osip_authentication_info_set_nextnonce");
+		js.wrap(this.__cjs_osip_authentication_info_get_nextnonce, "__cjs_osip_authentication_info_get_nextnonce");
+		js.wrap(this.__cjs_osip_authentication_info_set_cnonce, "__cjs_osip_authentication_info_set_cnonce");
+		js.wrap(this.__cjs_osip_authentication_info_get_cnonce, "__cjs_osip_authentication_info_get_cnonce");
+		js.wrap(this.__cjs_osip_authentication_info_set_qop_options, "__cjs_osip_authentication_info_set_qop_options");
+		js.wrap(this.__cjs_osip_authentication_info_get_qop_options, "__cjs_osip_authentication_info_get_qop_options");
+		js.wrap(this.__cjs_osip_authentication_info_set_rspauth, "__cjs_osip_authentication_info_set_rspauth");
+		js.wrap(this.__cjs_osip_authentication_info_get_rspauth, "__cjs_osip_authentication_info_get_rspauth");
+		js.wrap(this.__cjs_osip_authentication_info_set_nonce_count, "__cjs_osip_authentication_info_set_nonce_count");
+		js.wrap(this.__cjs_osip_authentication_info_get_nonce_count, "__cjs_osip_authentication_info_get_nonce_count");
+		js.wrap(this.__cjs_osip_proxy_authorization_set_auth_type, "__cjs_osip_proxy_authorization_set_auth_type");
+		js.wrap(this.__cjs_osip_proxy_authorization_get_auth_type, "__cjs_osip_proxy_authorization_get_auth_type");
+		js.wrap(this.__cjs_osip_proxy_authorization_set_username, "__cjs_osip_proxy_authorization_set_username");
+		js.wrap(this.__cjs_osip_proxy_authorization_get_username, "__cjs_osip_proxy_authorization_get_username");
+		js.wrap(this.__cjs_osip_proxy_authorization_set_realm, "__cjs_osip_proxy_authorization_set_realm");
+		js.wrap(this.__cjs_osip_proxy_authorization_get_realm, "__cjs_osip_proxy_authorization_get_realm");
+		js.wrap(this.__cjs_osip_proxy_authorization_set_nonce, "__cjs_osip_proxy_authorization_set_nonce");
+		js.wrap(this.__cjs_osip_proxy_authorization_get_nonce, "__cjs_osip_proxy_authorization_get_nonce");
+		js.wrap(this.__cjs_osip_proxy_authorization_set_uri, "__cjs_osip_proxy_authorization_set_uri");
+		js.wrap(this.__cjs_osip_proxy_authorization_get_uri, "__cjs_osip_proxy_authorization_get_uri");
+		js.wrap(this.__cjs_osip_proxy_authorization_set_response, "__cjs_osip_proxy_authorization_set_response");
+		js.wrap(this.__cjs_osip_proxy_authorization_get_response, "__cjs_osip_proxy_authorization_get_response");
+		js.wrap(this.__cjs_osip_proxy_authorization_set_digest, "__cjs_osip_proxy_authorization_set_digest");
+		js.wrap(this.__cjs_osip_proxy_authorization_get_digest, "__cjs_osip_proxy_authorization_get_digest");
+		js.wrap(this.__cjs_osip_proxy_authorization_set_algorithm, "__cjs_osip_proxy_authorization_set_algorithm");
+		js.wrap(this.__cjs_osip_proxy_authorization_get_algorithm, "__cjs_osip_proxy_authorization_get_algorithm");
+		js.wrap(this.__cjs_osip_proxy_authorization_set_cnonce, "__cjs_osip_proxy_authorization_set_cnonce");
+		js.wrap(this.__cjs_osip_proxy_authorization_get_cnonce, "__cjs_osip_proxy_authorization_get_cnonce");
+		js.wrap(this.__cjs_osip_proxy_authorization_set_opaque, "__cjs_osip_proxy_authorization_set_opaque");
+		js.wrap(this.__cjs_osip_proxy_authorization_get_opaque, "__cjs_osip_proxy_authorization_get_opaque");
+		js.wrap(this.__cjs_osip_proxy_authorization_set_message_qop, "__cjs_osip_proxy_authorization_set_message_qop");
+		js.wrap(this.__cjs_osip_proxy_authorization_get_message_qop, "__cjs_osip_proxy_authorization_get_message_qop");
+		js.wrap(this.__cjs_osip_proxy_authorization_set_nonce_count, "__cjs_osip_proxy_authorization_set_nonce_count");
+		js.wrap(this.__cjs_osip_proxy_authorization_get_nonce_count, "__cjs_osip_proxy_authorization_get_nonce_count");
+		js.wrap(this.__cjs_osip_dialog_init_as_uac, "__cjs_osip_dialog_init_as_uac");
+		js.wrap(this.__cjs_osip_dialog_init_as_uac_with_remote_request, "__cjs_osip_dialog_init_as_uac_with_remote_request");
+		js.wrap(this.__cjs_osip_dialog_init_as_uas, "__cjs_osip_dialog_init_as_uas");
+		js.wrap(this.__cjs_osip_dialog_free, "__cjs_osip_dialog_free");
+		js.wrap(this.__cjs_osip_dialog_set_state, "__cjs_osip_dialog_set_state");
+		js.wrap(this.__cjs_osip_dialog_update_route_set_as_uas, "__cjs_osip_dialog_update_route_set_as_uas");
+		js.wrap(this.__cjs_osip_dialog_update_osip_cseq_as_uas, "__cjs_osip_dialog_update_osip_cseq_as_uas");
+		js.wrap(this.__cjs_osip_dialog_match_as_uac, "__cjs_osip_dialog_match_as_uac");
+		js.wrap(this.__cjs_osip_dialog_update_tag_as_uac, "__cjs_osip_dialog_update_tag_as_uac");
+		js.wrap(this.__cjs_osip_dialog_update_route_set_as_uac, "__cjs_osip_dialog_update_route_set_as_uac");
+		js.wrap(this.__cjs_osip_dialog_match_as_uas, "__cjs_osip_dialog_match_as_uas");
+		js.wrap(this.__cjs_osip_dialog_is_originator, "__cjs_osip_dialog_is_originator");
+		js.wrap(this.__cjs_osip_dialog_is_callee, "__cjs_osip_dialog_is_callee");
+		js.wrap(this.__cjs_osip_start_200ok_retransmissions, "__cjs_osip_start_200ok_retransmissions");
+		js.wrap(this.__cjs_osip_start_ack_retransmissions, "__cjs_osip_start_ack_retransmissions");
+		js.wrap(this.__cjs_osip_stop_200ok_retransmissions, "__cjs_osip_stop_200ok_retransmissions");
+		js.wrap(this.__cjs_osip_stop_retransmissions_from_dialog, "__cjs_osip_stop_retransmissions_from_dialog");
+		js.wrap(this.__cjs_osip_new_outgoing_sipmessage, "__cjs_osip_new_outgoing_sipmessage");
+		js.wrap(this.__cjs_osip_message_get_header_str, "__cjs_osip_message_get_header_str");
+		js.wrap(this.__cjs_osip_transaction_describe, "__cjs_osip_transaction_describe");
+		js.wrap(this.__cjs_osip_remove_transaction, "__cjs_osip_remove_transaction");
+	}
+
+	ECMABRIDGE_standard_net_sip(js) {
+		this.wrap(js);
+	}
+}

@@ -1,0 +1,437 @@
+/* This file is generated automatically by generatejs.con. Do not edit. */
+
+import standard.lib.chart
+
+class ECMABRIDGE_standard_lib_chart {
+	__cjs__GDCPIE_BGColor(a) {
+		return _GDCPIE_BGColor(a);
+	}
+
+	__cjs__GDCPIE_PlotColor(a) {
+		return _GDCPIE_PlotColor(a);
+	}
+
+	__cjs__GDCPIE_LineColor(a) {
+		return _GDCPIE_LineColor(a);
+	}
+
+	__cjs__GDCPIE_EdgeColor(a) {
+		return _GDCPIE_EdgeColor(a);
+	}
+
+	__cjs__GDCPIE_other_threshold(a) {
+		return _GDCPIE_other_threshold(a);
+	}
+
+	__cjs__GDCPIE_3d_angle(a) {
+		return _GDCPIE_3d_angle(a);
+	}
+
+	__cjs__GDCPIE_3d_depth(a) {
+		return _GDCPIE_3d_depth(a);
+	}
+
+	__cjs__GDCPIE_label_dist(a) {
+		return _GDCPIE_label_dist(a);
+	}
+
+	__cjs__GDCPIE_title(a) {
+		return _GDCPIE_title(a);
+	}
+
+	__cjs__GDCPIE_label_line(a) {
+		return _GDCPIE_label_line(a);
+	}
+
+	__cjs__GDCPIE_title_size(a) {
+		return _GDCPIE_title_size(a);
+	}
+
+	__cjs__GDCPIE_label_size(a) {
+		return _GDCPIE_label_size(a);
+	}
+
+	__cjs__GDCPIE_percent_labels(a) {
+		return _GDCPIE_percent_labels(a);
+	}
+
+	__cjs__GDCPIE_explode(a) {
+		return _GDCPIE_explode(a);
+	}
+
+	__cjs__GDCPIE_Color(a) {
+		return _GDCPIE_Color(a);
+	}
+
+	__cjs__GDCPIE_missing(a) {
+		return _GDCPIE_missing(a);
+	}
+
+	__cjs__GDC_ytitle(a) {
+		return _GDC_ytitle(a);
+	}
+
+	__cjs__GDC_xtitle(a) {
+		return _GDC_xtitle(a);
+	}
+
+	__cjs__GDC_ytitle2(a) {
+		return _GDC_ytitle2(a);
+	}
+
+	__cjs__GDC_title(a) {
+		return _GDC_title(a);
+	}
+
+	__cjs__GDC_title_size(a) {
+		return _GDC_title_size(a);
+	}
+
+	__cjs__GDC_xtitle_size(a) {
+		return _GDC_xtitle_size(a);
+	}
+
+	__cjs__GDC_ytitle_size(a) {
+		return _GDC_ytitle_size(a);
+	}
+
+	__cjs__GDC_yaxisfont_size(a) {
+		return _GDC_yaxisfont_size(a);
+	}
+
+	__cjs__GDC_xaxisfont_size(a) {
+		return _GDC_xaxisfont_size(a);
+	}
+
+	__cjs__GDC_ylabel_fmt(a) {
+		return _GDC_ylabel_fmt(a);
+	}
+
+	__cjs__GDC_ylabel2_fmt(a) {
+		return _GDC_ylabel2_fmt(a);
+	}
+
+	__cjs__GDC_xlabel_spacing(a) {
+		return _GDC_xlabel_spacing(a);
+	}
+
+	__cjs__GDC_ylabel_density(a) {
+		return _GDC_ylabel_density(a);
+	}
+
+	__cjs__GDC_requested_ymin(a) {
+		return _GDC_requested_ymin(a);
+	}
+
+	__cjs__GDC_requested_ymax(a) {
+		return _GDC_requested_ymax(a);
+	}
+
+	__cjs__GDC_requested_yinterval(a) {
+		return _GDC_requested_yinterval(a);
+	}
+
+	__cjs__GDC_0Shelf(a) {
+		return _GDC_0Shelf(a);
+	}
+
+	__cjs__GDC_grid(a) {
+		return _GDC_grid(a);
+	}
+
+	__cjs__GDC_xaxis(a) {
+		return _GDC_xaxis(a);
+	}
+
+	__cjs__GDC_yaxis(a) {
+		return _GDC_yaxis(a);
+	}
+
+	__cjs__GDC_xaxis_angle(a) {
+		return _GDC_xaxis_angle(a);
+	}
+
+	__cjs__GDC_yaxis2(a) {
+		return _GDC_yaxis2(a);
+	}
+
+	__cjs__GDC_yval_style(a) {
+		return _GDC_yval_style(a);
+	}
+
+	__cjs__GDC_stack_type(a) {
+		return _GDC_stack_type(a);
+	}
+
+	__cjs__GDC_3d_depth(a) {
+		return _GDC_3d_depth(a);
+	}
+
+	__cjs__GDC_3d_angle(a) {
+		return _GDC_3d_angle(a);
+	}
+
+	__cjs__GDC_bar_width(a) {
+		return _GDC_bar_width(a);
+	}
+
+	__cjs__GDC_HLC_style(a) {
+		return _GDC_HLC_style(a);
+	}
+
+	__cjs__GDC_HLC_cap_width(a) {
+		return _GDC_HLC_cap_width(a);
+	}
+
+	__cjs__GDC_annotation_font(a) {
+		return _GDC_annotation_font(a);
+	}
+
+	__cjs__GDC_annotation_ptsize(a) {
+		return _GDC_annotation_ptsize(a);
+	}
+
+	__cjs__GDC_num_scatter_pts(a) {
+		return _GDC_num_scatter_pts(a);
+	}
+
+	__cjs__GDC_thumbnail(a) {
+		return _GDC_thumbnail(a);
+	}
+
+	__cjs__GDC_thumblabel(a) {
+		return _GDC_thumblabel(a);
+	}
+
+	__cjs__GDC_thumbval(a) {
+		return _GDC_thumbval(a);
+	}
+
+	__cjs__GDC_border(a) {
+		return _GDC_border(a);
+	}
+
+	__cjs__GDC_BGColor(a) {
+		return _GDC_BGColor(a);
+	}
+
+	__cjs__GDC_GridColor(a) {
+		return _GDC_GridColor(a);
+	}
+
+	__cjs__GDC_LineColor(a) {
+		return _GDC_LineColor(a);
+	}
+
+	__cjs__GDC_PlotColor(a) {
+		return _GDC_PlotColor(a);
+	}
+
+	__cjs__GDC_VolColor(a) {
+		return _GDC_VolColor(a);
+	}
+
+	__cjs__GDC_TitleColor(a) {
+		return _GDC_TitleColor(a);
+	}
+
+	__cjs__GDC_XTitleColor(a) {
+		return _GDC_XTitleColor(a);
+	}
+
+	__cjs__GDC_YTitleColor(a) {
+		return _GDC_YTitleColor(a);
+	}
+
+	__cjs__GDC_YTitle2Color(a) {
+		return _GDC_YTitle2Color(a);
+	}
+
+	__cjs__GDC_XLabelColor(a) {
+		return _GDC_XLabelColor(a);
+	}
+
+	__cjs__GDC_YLabelColor(a) {
+		return _GDC_YLabelColor(a);
+	}
+
+	__cjs__GDC_YLabel2Color(a) {
+		return _GDC_YLabel2Color(a);
+	}
+
+	__cjs__GDC_ExtVolColor(a) {
+		return _GDC_ExtVolColor(a);
+	}
+
+	__cjs__GDC_SetColor(a) {
+		return _GDC_SetColor(a);
+	}
+
+	__cjs__GDC_ExtColor(a) {
+		return _GDC_ExtColor(a);
+	}
+
+	__cjs__GDC_transparent_bg(a) {
+		return _GDC_transparent_bg(a);
+	}
+
+	__cjs__GDC_title_font(a) {
+		return _GDC_title_font(a);
+	}
+
+	__cjs__GDC_ytitle_font(a) {
+		return _GDC_ytitle_font(a);
+	}
+
+	__cjs__GDC_xtitle_font(a) {
+		return _GDC_xtitle_font(a);
+	}
+
+	__cjs__GDC_yaxis_font(a) {
+		return _GDC_yaxis_font(a);
+	}
+
+	__cjs__GDC_xaxis_font(a) {
+		return _GDC_xaxis_font(a);
+	}
+
+	__cjs__GDC_title_ptsize(a) {
+		return _GDC_title_ptsize(a);
+	}
+
+	__cjs__GDC_ytitle_ptsize(a) {
+		return _GDC_ytitle_ptsize(a);
+	}
+
+	__cjs__GDC_xtitle_ptsize(a) {
+		return _GDC_xtitle_ptsize(a);
+	}
+
+	__cjs__GDC_yaxis_ptsize(a) {
+		return _GDC_yaxis_ptsize(a);
+	}
+
+	__cjs__GDC_xaxis_ptsize(a) {
+		return _GDC_xaxis_ptsize(a);
+	}
+
+	__cjs__GDCPIE_title_font(a) {
+		return _GDCPIE_title_font(a);
+	}
+
+	__cjs__GDCPIE_label_font(a) {
+		return _GDCPIE_label_font(a);
+	}
+
+	__cjs__GDCPIE_title_ptsize(a) {
+		return _GDCPIE_title_ptsize(a);
+	}
+
+	__cjs__GDCPIE_label_ptsize(a) {
+		return _GDCPIE_label_ptsize(a);
+	}
+
+	__cjs__GDC_image_type(a) {
+		return _GDC_image_type(a);
+	}
+
+	__cjs__pie_gif(a, b, c, d, e, f, g) {
+		return _pie_gif(a, b, c, d, e, f, g);
+	}
+
+	__cjs__out_err(a, b, c, d, e, f) {
+		return _out_err(a, b, c, d, e, f);
+	}
+
+	wrap(js) {
+		js.wrap(this.__cjs__GDCPIE_BGColor, "__cjs__GDCPIE_BGColor");
+		js.wrap(this.__cjs__GDCPIE_PlotColor, "__cjs__GDCPIE_PlotColor");
+		js.wrap(this.__cjs__GDCPIE_LineColor, "__cjs__GDCPIE_LineColor");
+		js.wrap(this.__cjs__GDCPIE_EdgeColor, "__cjs__GDCPIE_EdgeColor");
+		js.wrap(this.__cjs__GDCPIE_other_threshold, "__cjs__GDCPIE_other_threshold");
+		js.wrap(this.__cjs__GDCPIE_3d_angle, "__cjs__GDCPIE_3d_angle");
+		js.wrap(this.__cjs__GDCPIE_3d_depth, "__cjs__GDCPIE_3d_depth");
+		js.wrap(this.__cjs__GDCPIE_label_dist, "__cjs__GDCPIE_label_dist");
+		js.wrap(this.__cjs__GDCPIE_title, "__cjs__GDCPIE_title");
+		js.wrap(this.__cjs__GDCPIE_label_line, "__cjs__GDCPIE_label_line");
+		js.wrap(this.__cjs__GDCPIE_title_size, "__cjs__GDCPIE_title_size");
+		js.wrap(this.__cjs__GDCPIE_label_size, "__cjs__GDCPIE_label_size");
+		js.wrap(this.__cjs__GDCPIE_percent_labels, "__cjs__GDCPIE_percent_labels");
+		js.wrap(this.__cjs__GDCPIE_explode, "__cjs__GDCPIE_explode");
+		js.wrap(this.__cjs__GDCPIE_Color, "__cjs__GDCPIE_Color");
+		js.wrap(this.__cjs__GDCPIE_missing, "__cjs__GDCPIE_missing");
+		js.wrap(this.__cjs__GDC_ytitle, "__cjs__GDC_ytitle");
+		js.wrap(this.__cjs__GDC_xtitle, "__cjs__GDC_xtitle");
+		js.wrap(this.__cjs__GDC_ytitle2, "__cjs__GDC_ytitle2");
+		js.wrap(this.__cjs__GDC_title, "__cjs__GDC_title");
+		js.wrap(this.__cjs__GDC_title_size, "__cjs__GDC_title_size");
+		js.wrap(this.__cjs__GDC_xtitle_size, "__cjs__GDC_xtitle_size");
+		js.wrap(this.__cjs__GDC_ytitle_size, "__cjs__GDC_ytitle_size");
+		js.wrap(this.__cjs__GDC_yaxisfont_size, "__cjs__GDC_yaxisfont_size");
+		js.wrap(this.__cjs__GDC_xaxisfont_size, "__cjs__GDC_xaxisfont_size");
+		js.wrap(this.__cjs__GDC_ylabel_fmt, "__cjs__GDC_ylabel_fmt");
+		js.wrap(this.__cjs__GDC_ylabel2_fmt, "__cjs__GDC_ylabel2_fmt");
+		js.wrap(this.__cjs__GDC_xlabel_spacing, "__cjs__GDC_xlabel_spacing");
+		js.wrap(this.__cjs__GDC_ylabel_density, "__cjs__GDC_ylabel_density");
+		js.wrap(this.__cjs__GDC_requested_ymin, "__cjs__GDC_requested_ymin");
+		js.wrap(this.__cjs__GDC_requested_ymax, "__cjs__GDC_requested_ymax");
+		js.wrap(this.__cjs__GDC_requested_yinterval, "__cjs__GDC_requested_yinterval");
+		js.wrap(this.__cjs__GDC_0Shelf, "__cjs__GDC_0Shelf");
+		js.wrap(this.__cjs__GDC_grid, "__cjs__GDC_grid");
+		js.wrap(this.__cjs__GDC_xaxis, "__cjs__GDC_xaxis");
+		js.wrap(this.__cjs__GDC_yaxis, "__cjs__GDC_yaxis");
+		js.wrap(this.__cjs__GDC_xaxis_angle, "__cjs__GDC_xaxis_angle");
+		js.wrap(this.__cjs__GDC_yaxis2, "__cjs__GDC_yaxis2");
+		js.wrap(this.__cjs__GDC_yval_style, "__cjs__GDC_yval_style");
+		js.wrap(this.__cjs__GDC_stack_type, "__cjs__GDC_stack_type");
+		js.wrap(this.__cjs__GDC_3d_depth, "__cjs__GDC_3d_depth");
+		js.wrap(this.__cjs__GDC_3d_angle, "__cjs__GDC_3d_angle");
+		js.wrap(this.__cjs__GDC_bar_width, "__cjs__GDC_bar_width");
+		js.wrap(this.__cjs__GDC_HLC_style, "__cjs__GDC_HLC_style");
+		js.wrap(this.__cjs__GDC_HLC_cap_width, "__cjs__GDC_HLC_cap_width");
+		js.wrap(this.__cjs__GDC_annotation_font, "__cjs__GDC_annotation_font");
+		js.wrap(this.__cjs__GDC_annotation_ptsize, "__cjs__GDC_annotation_ptsize");
+		js.wrap(this.__cjs__GDC_num_scatter_pts, "__cjs__GDC_num_scatter_pts");
+		js.wrap(this.__cjs__GDC_thumbnail, "__cjs__GDC_thumbnail");
+		js.wrap(this.__cjs__GDC_thumblabel, "__cjs__GDC_thumblabel");
+		js.wrap(this.__cjs__GDC_thumbval, "__cjs__GDC_thumbval");
+		js.wrap(this.__cjs__GDC_border, "__cjs__GDC_border");
+		js.wrap(this.__cjs__GDC_BGColor, "__cjs__GDC_BGColor");
+		js.wrap(this.__cjs__GDC_GridColor, "__cjs__GDC_GridColor");
+		js.wrap(this.__cjs__GDC_LineColor, "__cjs__GDC_LineColor");
+		js.wrap(this.__cjs__GDC_PlotColor, "__cjs__GDC_PlotColor");
+		js.wrap(this.__cjs__GDC_VolColor, "__cjs__GDC_VolColor");
+		js.wrap(this.__cjs__GDC_TitleColor, "__cjs__GDC_TitleColor");
+		js.wrap(this.__cjs__GDC_XTitleColor, "__cjs__GDC_XTitleColor");
+		js.wrap(this.__cjs__GDC_YTitleColor, "__cjs__GDC_YTitleColor");
+		js.wrap(this.__cjs__GDC_YTitle2Color, "__cjs__GDC_YTitle2Color");
+		js.wrap(this.__cjs__GDC_XLabelColor, "__cjs__GDC_XLabelColor");
+		js.wrap(this.__cjs__GDC_YLabelColor, "__cjs__GDC_YLabelColor");
+		js.wrap(this.__cjs__GDC_YLabel2Color, "__cjs__GDC_YLabel2Color");
+		js.wrap(this.__cjs__GDC_ExtVolColor, "__cjs__GDC_ExtVolColor");
+		js.wrap(this.__cjs__GDC_SetColor, "__cjs__GDC_SetColor");
+		js.wrap(this.__cjs__GDC_ExtColor, "__cjs__GDC_ExtColor");
+		js.wrap(this.__cjs__GDC_transparent_bg, "__cjs__GDC_transparent_bg");
+		js.wrap(this.__cjs__GDC_title_font, "__cjs__GDC_title_font");
+		js.wrap(this.__cjs__GDC_ytitle_font, "__cjs__GDC_ytitle_font");
+		js.wrap(this.__cjs__GDC_xtitle_font, "__cjs__GDC_xtitle_font");
+		js.wrap(this.__cjs__GDC_yaxis_font, "__cjs__GDC_yaxis_font");
+		js.wrap(this.__cjs__GDC_xaxis_font, "__cjs__GDC_xaxis_font");
+		js.wrap(this.__cjs__GDC_title_ptsize, "__cjs__GDC_title_ptsize");
+		js.wrap(this.__cjs__GDC_ytitle_ptsize, "__cjs__GDC_ytitle_ptsize");
+		js.wrap(this.__cjs__GDC_xtitle_ptsize, "__cjs__GDC_xtitle_ptsize");
+		js.wrap(this.__cjs__GDC_yaxis_ptsize, "__cjs__GDC_yaxis_ptsize");
+		js.wrap(this.__cjs__GDC_xaxis_ptsize, "__cjs__GDC_xaxis_ptsize");
+		js.wrap(this.__cjs__GDCPIE_title_font, "__cjs__GDCPIE_title_font");
+		js.wrap(this.__cjs__GDCPIE_label_font, "__cjs__GDCPIE_label_font");
+		js.wrap(this.__cjs__GDCPIE_title_ptsize, "__cjs__GDCPIE_title_ptsize");
+		js.wrap(this.__cjs__GDCPIE_label_ptsize, "__cjs__GDCPIE_label_ptsize");
+		js.wrap(this.__cjs__GDC_image_type, "__cjs__GDC_image_type");
+		js.wrap(this.__cjs__pie_gif, "__cjs__pie_gif");
+		js.wrap(this.__cjs__out_err, "__cjs__out_err");
+	}
+
+	ECMABRIDGE_standard_lib_chart(js) {
+		this.wrap(js);
+	}
+}

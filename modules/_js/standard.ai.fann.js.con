@@ -1,0 +1,402 @@
+/* This file is generated automatically by generatejs.con. Do not edit. */
+
+import standard.ai.fann
+
+class ECMABRIDGE_standard_ai_fann {
+	__cjs__fann_create_standard(a) {
+		return _fann_create_standard(a);
+	}
+
+	__cjs__fann_create_standard_array(a) {
+		return _fann_create_standard_array(a);
+	}
+
+	__cjs__fann_create_sparse(a, b) {
+		return _fann_create_sparse(a, b);
+	}
+
+	__cjs__fann_create_sparse_array(a, b) {
+		return _fann_create_sparse_array(a, b);
+	}
+
+	__cjs__fann_create_shortcut(a) {
+		return _fann_create_shortcut(a);
+	}
+
+	__cjs__fann_create_shortcut_array(a) {
+		return _fann_create_shortcut_array(a);
+	}
+
+	__cjs__fann_destroy(a) {
+		return _fann_destroy(a);
+	}
+
+	__cjs__fann_run(a, b) {
+		return _fann_run(a, b);
+	}
+
+	__cjs__fann_randomize_weights(a, b, c) {
+		return _fann_randomize_weights(a, b, c);
+	}
+
+	__cjs__fann_init_weights(a, b) {
+		return _fann_init_weights(a, b);
+	}
+
+	__cjs__fann_print_connections(a) {
+		return _fann_print_connections(a);
+	}
+
+	__cjs__fann_print_parameters(a) {
+		return _fann_print_parameters(a);
+	}
+
+	__cjs__fann_get_num_input(a) {
+		return _fann_get_num_input(a);
+	}
+
+	__cjs__fann_get_num_output(a) {
+		return _fann_get_num_output(a);
+	}
+
+	__cjs__fann_get_total_neurons(a) {
+		return _fann_get_total_neurons(a);
+	}
+
+	__cjs__fann_get_total_connections(a) {
+		return _fann_get_total_connections(a);
+	}
+
+	__cjs__fann_set_error_log(a, b) {
+		return _fann_set_error_log(a, b);
+	}
+
+	__cjs__fann_reset_errno(a) {
+		return _fann_reset_errno(a);
+	}
+
+	__cjs__fann_reset_errstr(a) {
+		return _fann_reset_errstr(a);
+	}
+
+	__cjs__fann_get_errstr(a) {
+		return _fann_get_errstr(a);
+	}
+
+	__cjs__fann_print_error(a) {
+		return _fann_print_error(a);
+	}
+
+	__cjs__fann_train(a, b, c) {
+		return _fann_train(a, b, c);
+	}
+
+	__cjs__fann_test(a, b, c) {
+		return _fann_test(a, b, c);
+	}
+
+	__cjs__fann_get_MSE(a) {
+		return _fann_get_MSE(a);
+	}
+
+	__cjs__fann_get_bit_fail(a) {
+		return _fann_get_bit_fail(a);
+	}
+
+	__cjs__fann_reset_MSE(a) {
+		return _fann_reset_MSE(a);
+	}
+
+	__cjs__fann_train_on_data(a, b, c, d, e) {
+		return _fann_train_on_data(a, b, c, d, e);
+	}
+
+	__cjs__fann_train_on_file(a, b, c, d, e) {
+		return _fann_train_on_file(a, b, c, d, e);
+	}
+
+	__cjs__fann_train_epoch(a, b) {
+		return _fann_train_epoch(a, b);
+	}
+
+	__cjs__fann_test_data(a, b) {
+		return _fann_test_data(a, b);
+	}
+
+	__cjs__fann_read_train_from_file(a) {
+		return _fann_read_train_from_file(a);
+	}
+
+	__cjs__fann_destroy_train(a) {
+		return _fann_destroy_train(a);
+	}
+
+	__cjs__fann_shuffle_train_data(a) {
+		return _fann_shuffle_train_data(a);
+	}
+
+	__cjs__fann_scale_input_train_data(a, b, c) {
+		return _fann_scale_input_train_data(a, b, c);
+	}
+
+	__cjs__fann_scale_output_train_data(a, b, c) {
+		return _fann_scale_output_train_data(a, b, c);
+	}
+
+	__cjs__fann_scale_train_data(a, b, c) {
+		return _fann_scale_train_data(a, b, c);
+	}
+
+	__cjs__fann_merge_train_data(a, b) {
+		return _fann_merge_train_data(a, b);
+	}
+
+	__cjs__fann_duplicate_train_data(a) {
+		return _fann_duplicate_train_data(a);
+	}
+
+	__cjs__fann_subset_train_data(a, b, c) {
+		return _fann_subset_train_data(a, b, c);
+	}
+
+	__cjs__fann_length_train_data(a) {
+		return _fann_length_train_data(a);
+	}
+
+	__cjs__fann_num_input_train_data(a) {
+		return _fann_num_input_train_data(a);
+	}
+
+	__cjs__fann_num_output_train_data(a) {
+		return _fann_num_output_train_data(a);
+	}
+
+	__cjs__fann_save_train(a, b) {
+		return _fann_save_train(a, b);
+	}
+
+	__cjs__fann_save_train_to_fixed(a, b, c) {
+		return _fann_save_train_to_fixed(a, b, c);
+	}
+
+	__cjs__fann_set_training_algorithm(a, b) {
+		return _fann_set_training_algorithm(a, b);
+	}
+
+	__cjs__fann_get_learning_rate(a) {
+		return _fann_get_learning_rate(a);
+	}
+
+	__cjs__fann_set_learning_rate(a, b) {
+		return _fann_set_learning_rate(a, b);
+	}
+
+	__cjs__fann_get_learning_momentum(a) {
+		return _fann_get_learning_momentum(a);
+	}
+
+	__cjs__fann_set_learning_momentum(a, b) {
+		return _fann_set_learning_momentum(a, b);
+	}
+
+	__cjs__fann_set_activation_function(a, b, c, d) {
+		return _fann_set_activation_function(a, b, c, d);
+	}
+
+	__cjs__fann_set_activation_function_layer(a, b, c) {
+		return _fann_set_activation_function_layer(a, b, c);
+	}
+
+	__cjs__fann_set_activation_function_hidden(a, b) {
+		return _fann_set_activation_function_hidden(a, b);
+	}
+
+	__cjs__fann_set_activation_function_output(a, b) {
+		return _fann_set_activation_function_output(a, b);
+	}
+
+	__cjs__fann_set_activation_steepness(a, b, c, d) {
+		return _fann_set_activation_steepness(a, b, c, d);
+	}
+
+	__cjs__fann_set_activation_steepness_layer(a, b, c) {
+		return _fann_set_activation_steepness_layer(a, b, c);
+	}
+
+	__cjs__fann_set_activation_steepness_hidden(a, b) {
+		return _fann_set_activation_steepness_hidden(a, b);
+	}
+
+	__cjs__fann_set_activation_steepness_output(a, b) {
+		return _fann_set_activation_steepness_output(a, b);
+	}
+
+	__cjs__fann_get_train_error_function(a) {
+		return _fann_get_train_error_function(a);
+	}
+
+	__cjs__fann_set_train_error_function(a, b) {
+		return _fann_set_train_error_function(a, b);
+	}
+
+	__cjs__fann_set_train_stop_function(a, b) {
+		return _fann_set_train_stop_function(a, b);
+	}
+
+	__cjs__fann_get_bit_fail_limit(a) {
+		return _fann_get_bit_fail_limit(a);
+	}
+
+	__cjs__fann_set_bit_fail_limit(a, b) {
+		return _fann_set_bit_fail_limit(a, b);
+	}
+
+	__cjs__fann_set_callback(a, b) {
+		return _fann_set_callback(a, b);
+	}
+
+	__cjs__fann_get_quickprop_decay(a) {
+		return _fann_get_quickprop_decay(a);
+	}
+
+	__cjs__fann_set_quickprop_decay(a, b) {
+		return _fann_set_quickprop_decay(a, b);
+	}
+
+	__cjs__fann_get_quickprop_mu(a) {
+		return _fann_get_quickprop_mu(a);
+	}
+
+	__cjs__fann_set_quickprop_mu(a, b) {
+		return _fann_set_quickprop_mu(a, b);
+	}
+
+	__cjs__fann_get_rprop_increase_factor(a) {
+		return _fann_get_rprop_increase_factor(a);
+	}
+
+	__cjs__fann_set_rprop_increase_factor(a, b) {
+		return _fann_set_rprop_increase_factor(a, b);
+	}
+
+	__cjs__fann_get_rprop_decrease_factor(a) {
+		return _fann_get_rprop_decrease_factor(a);
+	}
+
+	__cjs__fann_set_rprop_decrease_factor(a, b) {
+		return _fann_set_rprop_decrease_factor(a, b);
+	}
+
+	__cjs__fann_get_rprop_delta_min(a) {
+		return _fann_get_rprop_delta_min(a);
+	}
+
+	__cjs__fann_set_rprop_delta_min(a, b) {
+		return _fann_set_rprop_delta_min(a, b);
+	}
+
+	__cjs__fann_get_rprop_delta_max(a) {
+		return _fann_get_rprop_delta_max(a);
+	}
+
+	__cjs__fann_set_rprop_delta_max(a, b) {
+		return _fann_set_rprop_delta_max(a, b);
+	}
+
+	__cjs__fann_create_from_file(a) {
+		return _fann_create_from_file(a);
+	}
+
+	__cjs__fann_save(a, b) {
+		return _fann_save(a, b);
+	}
+
+	__cjs__fann_save_to_fixed(a, b) {
+		return _fann_save_to_fixed(a, b);
+	}
+
+	wrap(js) {
+		js.wrap(this.__cjs__fann_create_standard, "__cjs__fann_create_standard");
+		js.wrap(this.__cjs__fann_create_standard_array, "__cjs__fann_create_standard_array");
+		js.wrap(this.__cjs__fann_create_sparse, "__cjs__fann_create_sparse");
+		js.wrap(this.__cjs__fann_create_sparse_array, "__cjs__fann_create_sparse_array");
+		js.wrap(this.__cjs__fann_create_shortcut, "__cjs__fann_create_shortcut");
+		js.wrap(this.__cjs__fann_create_shortcut_array, "__cjs__fann_create_shortcut_array");
+		js.wrap(this.__cjs__fann_destroy, "__cjs__fann_destroy");
+		js.wrap(this.__cjs__fann_run, "__cjs__fann_run");
+		js.wrap(this.__cjs__fann_randomize_weights, "__cjs__fann_randomize_weights");
+		js.wrap(this.__cjs__fann_init_weights, "__cjs__fann_init_weights");
+		js.wrap(this.__cjs__fann_print_connections, "__cjs__fann_print_connections");
+		js.wrap(this.__cjs__fann_print_parameters, "__cjs__fann_print_parameters");
+		js.wrap(this.__cjs__fann_get_num_input, "__cjs__fann_get_num_input");
+		js.wrap(this.__cjs__fann_get_num_output, "__cjs__fann_get_num_output");
+		js.wrap(this.__cjs__fann_get_total_neurons, "__cjs__fann_get_total_neurons");
+		js.wrap(this.__cjs__fann_get_total_connections, "__cjs__fann_get_total_connections");
+		js.wrap(this.__cjs__fann_set_error_log, "__cjs__fann_set_error_log");
+		js.wrap(this.__cjs__fann_reset_errno, "__cjs__fann_reset_errno");
+		js.wrap(this.__cjs__fann_reset_errstr, "__cjs__fann_reset_errstr");
+		js.wrap(this.__cjs__fann_get_errstr, "__cjs__fann_get_errstr");
+		js.wrap(this.__cjs__fann_print_error, "__cjs__fann_print_error");
+		js.wrap(this.__cjs__fann_train, "__cjs__fann_train");
+		js.wrap(this.__cjs__fann_test, "__cjs__fann_test");
+		js.wrap(this.__cjs__fann_get_MSE, "__cjs__fann_get_MSE");
+		js.wrap(this.__cjs__fann_get_bit_fail, "__cjs__fann_get_bit_fail");
+		js.wrap(this.__cjs__fann_reset_MSE, "__cjs__fann_reset_MSE");
+		js.wrap(this.__cjs__fann_train_on_data, "__cjs__fann_train_on_data");
+		js.wrap(this.__cjs__fann_train_on_file, "__cjs__fann_train_on_file");
+		js.wrap(this.__cjs__fann_train_epoch, "__cjs__fann_train_epoch");
+		js.wrap(this.__cjs__fann_test_data, "__cjs__fann_test_data");
+		js.wrap(this.__cjs__fann_read_train_from_file, "__cjs__fann_read_train_from_file");
+		js.wrap(this.__cjs__fann_destroy_train, "__cjs__fann_destroy_train");
+		js.wrap(this.__cjs__fann_shuffle_train_data, "__cjs__fann_shuffle_train_data");
+		js.wrap(this.__cjs__fann_scale_input_train_data, "__cjs__fann_scale_input_train_data");
+		js.wrap(this.__cjs__fann_scale_output_train_data, "__cjs__fann_scale_output_train_data");
+		js.wrap(this.__cjs__fann_scale_train_data, "__cjs__fann_scale_train_data");
+		js.wrap(this.__cjs__fann_merge_train_data, "__cjs__fann_merge_train_data");
+		js.wrap(this.__cjs__fann_duplicate_train_data, "__cjs__fann_duplicate_train_data");
+		js.wrap(this.__cjs__fann_subset_train_data, "__cjs__fann_subset_train_data");
+		js.wrap(this.__cjs__fann_length_train_data, "__cjs__fann_length_train_data");
+		js.wrap(this.__cjs__fann_num_input_train_data, "__cjs__fann_num_input_train_data");
+		js.wrap(this.__cjs__fann_num_output_train_data, "__cjs__fann_num_output_train_data");
+		js.wrap(this.__cjs__fann_save_train, "__cjs__fann_save_train");
+		js.wrap(this.__cjs__fann_save_train_to_fixed, "__cjs__fann_save_train_to_fixed");
+		js.wrap(this.__cjs__fann_set_training_algorithm, "__cjs__fann_set_training_algorithm");
+		js.wrap(this.__cjs__fann_get_learning_rate, "__cjs__fann_get_learning_rate");
+		js.wrap(this.__cjs__fann_set_learning_rate, "__cjs__fann_set_learning_rate");
+		js.wrap(this.__cjs__fann_get_learning_momentum, "__cjs__fann_get_learning_momentum");
+		js.wrap(this.__cjs__fann_set_learning_momentum, "__cjs__fann_set_learning_momentum");
+		js.wrap(this.__cjs__fann_set_activation_function, "__cjs__fann_set_activation_function");
+		js.wrap(this.__cjs__fann_set_activation_function_layer, "__cjs__fann_set_activation_function_layer");
+		js.wrap(this.__cjs__fann_set_activation_function_hidden, "__cjs__fann_set_activation_function_hidden");
+		js.wrap(this.__cjs__fann_set_activation_function_output, "__cjs__fann_set_activation_function_output");
+		js.wrap(this.__cjs__fann_set_activation_steepness, "__cjs__fann_set_activation_steepness");
+		js.wrap(this.__cjs__fann_set_activation_steepness_layer, "__cjs__fann_set_activation_steepness_layer");
+		js.wrap(this.__cjs__fann_set_activation_steepness_hidden, "__cjs__fann_set_activation_steepness_hidden");
+		js.wrap(this.__cjs__fann_set_activation_steepness_output, "__cjs__fann_set_activation_steepness_output");
+		js.wrap(this.__cjs__fann_get_train_error_function, "__cjs__fann_get_train_error_function");
+		js.wrap(this.__cjs__fann_set_train_error_function, "__cjs__fann_set_train_error_function");
+		js.wrap(this.__cjs__fann_set_train_stop_function, "__cjs__fann_set_train_stop_function");
+		js.wrap(this.__cjs__fann_get_bit_fail_limit, "__cjs__fann_get_bit_fail_limit");
+		js.wrap(this.__cjs__fann_set_bit_fail_limit, "__cjs__fann_set_bit_fail_limit");
+		js.wrap(this.__cjs__fann_set_callback, "__cjs__fann_set_callback");
+		js.wrap(this.__cjs__fann_get_quickprop_decay, "__cjs__fann_get_quickprop_decay");
+		js.wrap(this.__cjs__fann_set_quickprop_decay, "__cjs__fann_set_quickprop_decay");
+		js.wrap(this.__cjs__fann_get_quickprop_mu, "__cjs__fann_get_quickprop_mu");
+		js.wrap(this.__cjs__fann_set_quickprop_mu, "__cjs__fann_set_quickprop_mu");
+		js.wrap(this.__cjs__fann_get_rprop_increase_factor, "__cjs__fann_get_rprop_increase_factor");
+		js.wrap(this.__cjs__fann_set_rprop_increase_factor, "__cjs__fann_set_rprop_increase_factor");
+		js.wrap(this.__cjs__fann_get_rprop_decrease_factor, "__cjs__fann_get_rprop_decrease_factor");
+		js.wrap(this.__cjs__fann_set_rprop_decrease_factor, "__cjs__fann_set_rprop_decrease_factor");
+		js.wrap(this.__cjs__fann_get_rprop_delta_min, "__cjs__fann_get_rprop_delta_min");
+		js.wrap(this.__cjs__fann_set_rprop_delta_min, "__cjs__fann_set_rprop_delta_min");
+		js.wrap(this.__cjs__fann_get_rprop_delta_max, "__cjs__fann_get_rprop_delta_max");
+		js.wrap(this.__cjs__fann_set_rprop_delta_max, "__cjs__fann_set_rprop_delta_max");
+		js.wrap(this.__cjs__fann_create_from_file, "__cjs__fann_create_from_file");
+		js.wrap(this.__cjs__fann_save, "__cjs__fann_save");
+		js.wrap(this.__cjs__fann_save_to_fixed, "__cjs__fann_save_to_fixed");
+	}
+
+	ECMABRIDGE_standard_ai_fann(js) {
+		this.wrap(js);
+	}
+}

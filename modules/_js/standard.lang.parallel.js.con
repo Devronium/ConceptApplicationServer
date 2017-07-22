@@ -1,0 +1,112 @@
+/* This file is generated automatically by generatejs.con. Do not edit. */
+
+import standard.lang.parallel
+
+class ECMABRIDGE_standard_lang_parallel {
+	__cjs_PPInit(a) {
+		return PPInit(a);
+	}
+
+	__cjs_PPDone(a) {
+		return PPDone(a);
+	}
+
+	__cjs_PPCompile(a, b, c, d = null) {
+		return PPCompile(a, b, c, d = null);
+	}
+
+	__cjs_PPRelease(a) {
+		return PPRelease(a);
+	}
+
+	__cjs_PPKernel(a, b) {
+		return PPKernel(a, b);
+	}
+
+	__cjs_PPReleaseKernel(a) {
+		return PPReleaseKernel(a);
+	}
+
+	__cjs_PPGo(a, b, c, d) {
+		return PPGo(a, b, c, d);
+	}
+
+	__cjs_PPFinish(a) {
+		return PPFinish(a);
+	}
+
+	__cjs_PPConcept(a, b, c = null) {
+		return PPConcept(a, b, c = null);
+	}
+
+	__cjs_PPConceptGo(a, b, c, d) {
+		return PPConceptGo(a, b, c, d);
+	}
+
+	__cjs_get_global_id(a) {
+		return get_global_id(a);
+	}
+
+	__cjs_get_local_id(a) {
+		return get_local_id(a);
+	}
+
+	__cjs_get_global_size(a) {
+		return get_global_size(a);
+	}
+
+	__cjs_get_local_size(a) {
+		return get_local_size(a);
+	}
+
+	__cjs_get_work_dim() {
+		return get_work_dim();
+	}
+
+	__cjs_get_num_groups(a) {
+		return get_num_groups(a);
+	}
+
+	__cjs_get_group_id(a) {
+		return get_group_id(a);
+	}
+
+	__cjs_get_global_offset(a) {
+		return get_global_offset(a);
+	}
+
+	__cjs_barrier(a) {
+		return barrier(a);
+	}
+
+	__cjs_PPNative(a) {
+		return PPNative(a);
+	}
+
+	wrap(js) {
+		js.wrap(this.__cjs_PPInit, "__cjs_PPInit");
+		js.wrap(this.__cjs_PPDone, "__cjs_PPDone");
+		js.wrap(this.__cjs_PPCompile, "__cjs_PPCompile");
+		js.wrap(this.__cjs_PPRelease, "__cjs_PPRelease");
+		js.wrap(this.__cjs_PPKernel, "__cjs_PPKernel");
+		js.wrap(this.__cjs_PPReleaseKernel, "__cjs_PPReleaseKernel");
+		js.wrap(this.__cjs_PPGo, "__cjs_PPGo");
+		js.wrap(this.__cjs_PPFinish, "__cjs_PPFinish");
+		js.wrap(this.__cjs_PPConcept, "__cjs_PPConcept");
+		js.wrap(this.__cjs_PPConceptGo, "__cjs_PPConceptGo");
+		js.wrap(this.__cjs_get_global_id, "__cjs_get_global_id");
+		js.wrap(this.__cjs_get_local_id, "__cjs_get_local_id");
+		js.wrap(this.__cjs_get_global_size, "__cjs_get_global_size");
+		js.wrap(this.__cjs_get_local_size, "__cjs_get_local_size");
+		js.wrap(this.__cjs_get_work_dim, "__cjs_get_work_dim");
+		js.wrap(this.__cjs_get_num_groups, "__cjs_get_num_groups");
+		js.wrap(this.__cjs_get_group_id, "__cjs_get_group_id");
+		js.wrap(this.__cjs_get_global_offset, "__cjs_get_global_offset");
+		js.wrap(this.__cjs_barrier, "__cjs_barrier");
+		js.wrap(this.__cjs_PPNative, "__cjs_PPNative");
+	}
+
+	ECMABRIDGE_standard_lang_parallel(js) {
+		this.wrap(js);
+	}
+}

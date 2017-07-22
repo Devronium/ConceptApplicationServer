@@ -1,0 +1,132 @@
+/* This file is generated automatically by generatejs.con. Do not edit. */
+
+import standard.lang.serialize
+
+class ECMABRIDGE_standard_lang_serialize {
+	__cjs_HasMember(a, b) {
+		return HasMember(a, b);
+	}
+
+	__cjs_SetMember(a, b, c) {
+		return SetMember(a, b, c);
+	}
+
+	__cjs_CreateObject(a) {
+		return CreateObject(a);
+	}
+
+	__cjs_ObjectLinks(a) {
+		return ObjectLinks(a);
+	}
+
+	__cjs_StaticLinks(a) {
+		return StaticLinks(a);
+	}
+
+	__cjs_ClsPtr(a) {
+		return ClsPtr(a);
+	}
+
+	__cjs_VarPtr(a) {
+		return VarPtr(a);
+	}
+
+	__cjs_KeySorted(a) {
+		return KeySorted(a);
+	}
+
+	__cjs_IsSet(a, b) {
+		return IsSet(a, b);
+	}
+
+	__cjs_GetKeys(a) {
+		return GetKeys(a);
+	}
+
+	__cjs_SerializeError() {
+		return SerializeError();
+	}
+
+	__cjs_ToXML(a, b, c = null) {
+		return ToXML(a, b, c = null);
+	}
+
+	__cjs_ToArray(a, b, c = null) {
+		return ToArray(a, b, c = null);
+	}
+
+	__cjs_BinarizeObject(a, b) {
+		return BinarizeObject(a, b);
+	}
+
+	__cjs_UnBinarizeObject(a, b, c = null) {
+		return UnBinarizeObject(a, b, c = null);
+	}
+
+	__cjs_ToSize(a) {
+		return ToSize(a);
+	}
+
+	__cjs_FromSize(a, b) {
+		return FromSize(a, b);
+	}
+
+	__cjs_unpack(a, b, c) {
+		return unpack(a, b, c);
+	}
+
+	__cjs_compress(a, b, c = null) {
+		return compress(a, b, c = null);
+	}
+
+	__cjs_uncompress(a, b) {
+		return uncompress(a, b);
+	}
+
+	__cjs___callstack() {
+		return __callstack();
+	}
+
+	__cjs___object(a) {
+		return __object(a);
+	}
+
+	__cjs_hpack(a) {
+		return hpack(a);
+	}
+
+	__cjs_hunpack(a) {
+		return hunpack(a);
+	}
+
+	wrap(js) {
+		js.wrap(this.__cjs_HasMember, "__cjs_HasMember");
+		js.wrap(this.__cjs_SetMember, "__cjs_SetMember");
+		js.wrap(this.__cjs_CreateObject, "__cjs_CreateObject");
+		js.wrap(this.__cjs_ObjectLinks, "__cjs_ObjectLinks");
+		js.wrap(this.__cjs_StaticLinks, "__cjs_StaticLinks");
+		js.wrap(this.__cjs_ClsPtr, "__cjs_ClsPtr");
+		js.wrap(this.__cjs_VarPtr, "__cjs_VarPtr");
+		js.wrap(this.__cjs_KeySorted, "__cjs_KeySorted");
+		js.wrap(this.__cjs_IsSet, "__cjs_IsSet");
+		js.wrap(this.__cjs_GetKeys, "__cjs_GetKeys");
+		js.wrap(this.__cjs_SerializeError, "__cjs_SerializeError");
+		js.wrap(this.__cjs_ToXML, "__cjs_ToXML");
+		js.wrap(this.__cjs_ToArray, "__cjs_ToArray");
+		js.wrap(this.__cjs_BinarizeObject, "__cjs_BinarizeObject");
+		js.wrap(this.__cjs_UnBinarizeObject, "__cjs_UnBinarizeObject");
+		js.wrap(this.__cjs_ToSize, "__cjs_ToSize");
+		js.wrap(this.__cjs_FromSize, "__cjs_FromSize");
+		js.wrap(this.__cjs_unpack, "__cjs_unpack");
+		js.wrap(this.__cjs_compress, "__cjs_compress");
+		js.wrap(this.__cjs_uncompress, "__cjs_uncompress");
+		js.wrap(this.__cjs___callstack, "__cjs___callstack");
+		js.wrap(this.__cjs___object, "__cjs___object");
+		js.wrap(this.__cjs_hpack, "__cjs_hpack");
+		js.wrap(this.__cjs_hunpack, "__cjs_hunpack");
+	}
+
+	ECMABRIDGE_standard_lang_serialize(js) {
+		this.wrap(js);
+	}
+}

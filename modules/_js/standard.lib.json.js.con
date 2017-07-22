@@ -1,0 +1,17 @@
+/* This file is generated automatically by generatejs.con. Do not edit. */
+
+import standard.lib.json
+
+class ECMABRIDGE_standard_lib_json {
+	__cjs__JSONDeserialize(a) {
+		return _JSONDeserialize(a);
+	}
+
+	wrap(js) {
+		js.wrap(this.__cjs__JSONDeserialize, "__cjs__JSONDeserialize");
+	}
+
+	ECMABRIDGE_standard_lib_json(js) {
+		this.wrap(js);
+	}
+}

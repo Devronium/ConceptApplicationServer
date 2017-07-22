@@ -1,0 +1,37 @@
+/* This file is generated automatically by generatejs.con. Do not edit. */
+
+import standard.math.rand
+
+class ECMABRIDGE_standard_math_rand {
+	__cjs_RandomSeed(a) {
+		return RandomSeed(a);
+	}
+
+	__cjs_RandomInteger(a, b) {
+		return RandomInteger(a, b);
+	}
+
+	__cjs_RandomIntegerX(a, b) {
+		return RandomIntegerX(a, b);
+	}
+
+	__cjs_RandomBit() {
+		return RandomBit();
+	}
+
+	__cjs_RandomFloat() {
+		return RandomFloat();
+	}
+
+	wrap(js) {
+		js.wrap(this.__cjs_RandomSeed, "__cjs_RandomSeed");
+		js.wrap(this.__cjs_RandomInteger, "__cjs_RandomInteger");
+		js.wrap(this.__cjs_RandomIntegerX, "__cjs_RandomIntegerX");
+		js.wrap(this.__cjs_RandomBit, "__cjs_RandomBit");
+		js.wrap(this.__cjs_RandomFloat, "__cjs_RandomFloat");
+	}
+
+	ECMABRIDGE_standard_math_rand(js) {
+		this.wrap(js);
+	}
+}

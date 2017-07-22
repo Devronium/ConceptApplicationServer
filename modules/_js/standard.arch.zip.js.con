@@ -1,0 +1,152 @@
+/* This file is generated automatically by generatejs.con. Do not edit. */
+
+import standard.arch.zip
+
+class ECMABRIDGE_standard_arch_zip {
+	__cjs__zip_open(a, b, c) {
+		return _zip_open(a, b, c);
+	}
+
+	__cjs___zip_name_locate(a, b, c) {
+		return __zip_name_locate(a, b, c);
+	}
+
+	__cjs__zip_fopen(a, b, c) {
+		return _zip_fopen(a, b, c);
+	}
+
+	__cjs__zip_fopen_index(a, b, c) {
+		return _zip_fopen_index(a, b, c);
+	}
+
+	__cjs__zip_fread(a, b, c) {
+		return _zip_fread(a, b, c);
+	}
+
+	__cjs__zip_fclose(a) {
+		return _zip_fclose(a);
+	}
+
+	__cjs__zip_close(a) {
+		return _zip_close(a);
+	}
+
+	__cjs__zip_stat(a, b, c, d) {
+		return _zip_stat(a, b, c, d);
+	}
+
+	__cjs__zip_get_archive_comment(a, b) {
+		return _zip_get_archive_comment(a, b);
+	}
+
+	__cjs__zip_get_file_comment(a, b, c) {
+		return _zip_get_file_comment(a, b, c);
+	}
+
+	__cjs___zip_get_name(a, b, c) {
+		return __zip_get_name(a, b, c);
+	}
+
+	__cjs__zip_get_num_files(a) {
+		return _zip_get_num_files(a);
+	}
+
+	__cjs__zip_add(a, b, c) {
+		return _zip_add(a, b, c);
+	}
+
+	__cjs___zip_replace(a, b, c) {
+		return __zip_replace(a, b, c);
+	}
+
+	__cjs__zip_set_file_comment(a, b, c) {
+		return _zip_set_file_comment(a, b, c);
+	}
+
+	__cjs__zip_source_buffer(a, b) {
+		return _zip_source_buffer(a, b);
+	}
+
+	__cjs__zip_source_file(a, b, c, d) {
+		return _zip_source_file(a, b, c, d);
+	}
+
+	__cjs__zip_source_filep(a, b, c, d) {
+		return _zip_source_filep(a, b, c, d);
+	}
+
+	__cjs__zip_source_zip(a, b, c, d, e, f) {
+		return _zip_source_zip(a, b, c, d, e, f);
+	}
+
+	__cjs__zip_source_free(a) {
+		return _zip_source_free(a);
+	}
+
+	__cjs__zip_rename(a, b, c) {
+		return _zip_rename(a, b, c);
+	}
+
+	__cjs__zip_delete(a, b) {
+		return _zip_delete(a, b);
+	}
+
+	__cjs___zip_unchange(a, b) {
+		return __zip_unchange(a, b);
+	}
+
+	__cjs__zip_unchange_all(a) {
+		return _zip_unchange_all(a);
+	}
+
+	__cjs__zip_unchange_archive(a) {
+		return _zip_unchange_archive(a);
+	}
+
+	__cjs__zip_set_archive_comment(a, b) {
+		return _zip_set_archive_comment(a, b);
+	}
+
+	__cjs__zip_strerror(a) {
+		return _zip_strerror(a);
+	}
+
+	__cjs__zip_file_strerror(a) {
+		return _zip_file_strerror(a);
+	}
+
+	wrap(js) {
+		js.wrap(this.__cjs__zip_open, "__cjs__zip_open");
+		js.wrap(this.__cjs___zip_name_locate, "__cjs___zip_name_locate");
+		js.wrap(this.__cjs__zip_fopen, "__cjs__zip_fopen");
+		js.wrap(this.__cjs__zip_fopen_index, "__cjs__zip_fopen_index");
+		js.wrap(this.__cjs__zip_fread, "__cjs__zip_fread");
+		js.wrap(this.__cjs__zip_fclose, "__cjs__zip_fclose");
+		js.wrap(this.__cjs__zip_close, "__cjs__zip_close");
+		js.wrap(this.__cjs__zip_stat, "__cjs__zip_stat");
+		js.wrap(this.__cjs__zip_get_archive_comment, "__cjs__zip_get_archive_comment");
+		js.wrap(this.__cjs__zip_get_file_comment, "__cjs__zip_get_file_comment");
+		js.wrap(this.__cjs___zip_get_name, "__cjs___zip_get_name");
+		js.wrap(this.__cjs__zip_get_num_files, "__cjs__zip_get_num_files");
+		js.wrap(this.__cjs__zip_add, "__cjs__zip_add");
+		js.wrap(this.__cjs___zip_replace, "__cjs___zip_replace");
+		js.wrap(this.__cjs__zip_set_file_comment, "__cjs__zip_set_file_comment");
+		js.wrap(this.__cjs__zip_source_buffer, "__cjs__zip_source_buffer");
+		js.wrap(this.__cjs__zip_source_file, "__cjs__zip_source_file");
+		js.wrap(this.__cjs__zip_source_filep, "__cjs__zip_source_filep");
+		js.wrap(this.__cjs__zip_source_zip, "__cjs__zip_source_zip");
+		js.wrap(this.__cjs__zip_source_free, "__cjs__zip_source_free");
+		js.wrap(this.__cjs__zip_rename, "__cjs__zip_rename");
+		js.wrap(this.__cjs__zip_delete, "__cjs__zip_delete");
+		js.wrap(this.__cjs___zip_unchange, "__cjs___zip_unchange");
+		js.wrap(this.__cjs__zip_unchange_all, "__cjs__zip_unchange_all");
+		js.wrap(this.__cjs__zip_unchange_archive, "__cjs__zip_unchange_archive");
+		js.wrap(this.__cjs__zip_set_archive_comment, "__cjs__zip_set_archive_comment");
+		js.wrap(this.__cjs__zip_strerror, "__cjs__zip_strerror");
+		js.wrap(this.__cjs__zip_file_strerror, "__cjs__zip_file_strerror");
+	}
+
+	ECMABRIDGE_standard_arch_zip(js) {
+		this.wrap(js);
+	}
+}

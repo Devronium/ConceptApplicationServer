@@ -1,0 +1,122 @@
+/* This file is generated automatically by generatejs.con. Do not edit. */
+
+import standard.db.dbase
+
+class ECMABRIDGE_standard_db_dbase {
+	__cjs_DBFUpdateName(a, b, c) {
+		return DBFUpdateName(a, b, c);
+	}
+
+	__cjs_DBFCreate() {
+		return DBFCreate();
+	}
+
+	__cjs_DBFOpen(a, b, c = null, d = null) {
+		return DBFOpen(a, b, c = null, d = null);
+	}
+
+	__cjs_DBFClose(a) {
+		return DBFClose(a);
+	}
+
+	__cjs_DBFMove(a, b) {
+		return DBFMove(a, b);
+	}
+
+	__cjs_DBFPutRecord(a, b) {
+		return DBFPutRecord(a, b);
+	}
+
+	__cjs_DBFInsertRecord(a, b) {
+		return DBFInsertRecord(a, b);
+	}
+
+	__cjs_DBFAddRecord(a) {
+		return DBFAddRecord(a);
+	}
+
+	__cjs_DBFIsDeleted(a) {
+		return DBFIsDeleted(a);
+	}
+
+	__cjs_DBFDelete(a, b) {
+		return DBFDelete(a, b);
+	}
+
+	__cjs_DBFFindField(a, b) {
+		return DBFFindField(a, b);
+	}
+
+	__cjs_DBFLastError(a) {
+		return DBFLastError(a);
+	}
+
+	__cjs_DBFLastErrorString(a) {
+		return DBFLastErrorString(a);
+	}
+
+	__cjs_DBFType(a) {
+		return DBFType(a);
+	}
+
+	__cjs_DBFInfo(a) {
+		return DBFInfo(a);
+	}
+
+	__cjs_DBFFieldInfo(a, b) {
+		return DBFFieldInfo(a, b);
+	}
+
+	__cjs_DBFValue(a, b) {
+		return DBFValue(a, b);
+	}
+
+	__cjs_DBFGet(a, b) {
+		return DBFGet(a, b);
+	}
+
+	__cjs_DBFGetName(a, b) {
+		return DBFGetName(a, b);
+	}
+
+	__cjs_DBFUpdate(a, b, c) {
+		return DBFUpdate(a, b, c);
+	}
+
+	__cjs_DBFNull(a, b) {
+		return DBFNull(a, b);
+	}
+
+	__cjs_DBFNullName(a, b) {
+		return DBFNullName(a, b);
+	}
+
+	wrap(js) {
+		js.wrap(this.__cjs_DBFUpdateName, "__cjs_DBFUpdateName");
+		js.wrap(this.__cjs_DBFCreate, "__cjs_DBFCreate");
+		js.wrap(this.__cjs_DBFOpen, "__cjs_DBFOpen");
+		js.wrap(this.__cjs_DBFClose, "__cjs_DBFClose");
+		js.wrap(this.__cjs_DBFMove, "__cjs_DBFMove");
+		js.wrap(this.__cjs_DBFPutRecord, "__cjs_DBFPutRecord");
+		js.wrap(this.__cjs_DBFInsertRecord, "__cjs_DBFInsertRecord");
+		js.wrap(this.__cjs_DBFAddRecord, "__cjs_DBFAddRecord");
+		js.wrap(this.__cjs_DBFIsDeleted, "__cjs_DBFIsDeleted");
+		js.wrap(this.__cjs_DBFDelete, "__cjs_DBFDelete");
+		js.wrap(this.__cjs_DBFFindField, "__cjs_DBFFindField");
+		js.wrap(this.__cjs_DBFLastError, "__cjs_DBFLastError");
+		js.wrap(this.__cjs_DBFLastErrorString, "__cjs_DBFLastErrorString");
+		js.wrap(this.__cjs_DBFType, "__cjs_DBFType");
+		js.wrap(this.__cjs_DBFInfo, "__cjs_DBFInfo");
+		js.wrap(this.__cjs_DBFFieldInfo, "__cjs_DBFFieldInfo");
+		js.wrap(this.__cjs_DBFValue, "__cjs_DBFValue");
+		js.wrap(this.__cjs_DBFGet, "__cjs_DBFGet");
+		js.wrap(this.__cjs_DBFGetName, "__cjs_DBFGetName");
+		js.wrap(this.__cjs_DBFUpdate, "__cjs_DBFUpdate");
+		js.wrap(this.__cjs_DBFNull, "__cjs_DBFNull");
+		js.wrap(this.__cjs_DBFNullName, "__cjs_DBFNullName");
+	}
+
+	ECMABRIDGE_standard_db_dbase(js) {
+		this.wrap(js);
+	}
+}

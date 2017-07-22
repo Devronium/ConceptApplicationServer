@@ -1,0 +1,312 @@
+/* This file is generated automatically by generatejs.con. Do not edit. */
+
+import standard.lib.cripto
+
+class ECMABRIDGE_standard_lib_cripto {
+	__cjs_MD5Init() {
+		return MD5Init();
+	}
+
+	__cjs_MD5Update(a, b) {
+		return MD5Update(a, b);
+	}
+
+	__cjs_MD5Final(a) {
+		return MD5Final(a);
+	}
+
+	__cjs_SHA1Init() {
+		return SHA1Init();
+	}
+
+	__cjs_SHA1Update(a, b) {
+		return SHA1Update(a, b);
+	}
+
+	__cjs_SHA1Final(a) {
+		return SHA1Final(a);
+	}
+
+	__cjs_SHA256Init() {
+		return SHA256Init();
+	}
+
+	__cjs_SHA256Update(a, b) {
+		return SHA256Update(a, b);
+	}
+
+	__cjs_SHA256Final(a) {
+		return SHA256Final(a);
+	}
+
+	__cjs_md5(a) {
+		return md5(a);
+	}
+
+	__cjs_sha1(a) {
+		return sha1(a);
+	}
+
+	__cjs_sha256(a) {
+		return sha256(a);
+	}
+
+	__cjs_crc32(a) {
+		return crc32(a);
+	}
+
+	__cjs_AESEncryptInit(a) {
+		return AESEncryptInit(a);
+	}
+
+	__cjs_AESDecryptInit(a) {
+		return AESDecryptInit(a);
+	}
+
+	__cjs_AESRelease(a) {
+		return AESRelease(a);
+	}
+
+	__cjs_AESEncrypt(a, b, c, d = null) {
+		return AESEncrypt(a, b, c, d = null);
+	}
+
+	__cjs_AESDecrypt(a, b, c, d = null) {
+		return AESDecrypt(a, b, c, d = null);
+	}
+
+	__cjs_aes_encrypt(a, b, c) {
+		return aes_encrypt(a, b, c);
+	}
+
+	__cjs_aes_decrypt(a, b, c) {
+		return aes_decrypt(a, b, c);
+	}
+
+	__cjs_rsa_encrypt(a, b) {
+		return rsa_encrypt(a, b);
+	}
+
+	__cjs_rsa_decrypt(a, b) {
+		return rsa_decrypt(a, b);
+	}
+
+	__cjs_rsa_generate_keys(a, b, c) {
+		return rsa_generate_keys(a, b, c);
+	}
+
+	__cjs_rsa_sign(a, b) {
+		return rsa_sign(a, b);
+	}
+
+	__cjs_rsa_verify(a, b) {
+		return rsa_verify(a, b);
+	}
+
+	__cjs_hmac_md5(a, b, c) {
+		return hmac_md5(a, b, c);
+	}
+
+	__cjs_hmac_sha1(a, b, c) {
+		return hmac_sha1(a, b, c);
+	}
+
+	__cjs_hmac_sha256(a, b, c, d) {
+		return hmac_sha256(a, b, c, d);
+	}
+
+	__cjs_Murmur(a) {
+		return Murmur(a);
+	}
+
+	__cjs_Murmur3(a, b) {
+		return Murmur3(a, b);
+	}
+
+	__cjs_DRMKey() {
+		return DRMKey();
+	}
+
+	__cjs_PBKDF2(a, b, c, d = null) {
+		return PBKDF2(a, b, c, d = null);
+	}
+
+	__cjs_CryptoRandom(a) {
+		return CryptoRandom(a);
+	}
+
+	__cjs_AesDone(a) {
+		return AesDone(a);
+	}
+
+	__cjs_AesSetKey(a, b, c) {
+		return AesSetKey(a, b, c);
+	}
+
+	__cjs_AesSetInitVector(a, b) {
+		return AesSetInitVector(a, b);
+	}
+
+	__cjs_AesSetFeedbackSize(a, b) {
+		return AesSetFeedbackSize(a, b);
+	}
+
+	__cjs_AesEncryptECB(a, b, c) {
+		return AesEncryptECB(a, b, c);
+	}
+
+	__cjs_AesEncryptCBC(a, b, c) {
+		return AesEncryptCBC(a, b, c);
+	}
+
+	__cjs_AesEncryptPCBC(a, b, c) {
+		return AesEncryptPCBC(a, b, c);
+	}
+
+	__cjs_AesEncryptCRT(a, b, c) {
+		return AesEncryptCRT(a, b, c);
+	}
+
+	__cjs_AesEncryptOFB(a, b, c) {
+		return AesEncryptOFB(a, b, c);
+	}
+
+	__cjs_AesEncryptCFB(a, b, c) {
+		return AesEncryptCFB(a, b, c);
+	}
+
+	__cjs_AesDecryptECB(a, b, c) {
+		return AesDecryptECB(a, b, c);
+	}
+
+	__cjs_AesDecryptCBC(a, b, c) {
+		return AesDecryptCBC(a, b, c);
+	}
+
+	__cjs_AesDecryptPCBC(a, b, c) {
+		return AesDecryptPCBC(a, b, c);
+	}
+
+	__cjs_AesDecryptCRT(a, b, c) {
+		return AesDecryptCRT(a, b, c);
+	}
+
+	__cjs_AesDecryptOFB(a, b, c) {
+		return AesDecryptOFB(a, b, c);
+	}
+
+	__cjs_AesDecryptCFB(a, b, c) {
+		return AesDecryptCFB(a, b, c);
+	}
+
+	__cjs_ECCKeys(a, b, c) {
+		return ECCKeys(a, b, c);
+	}
+
+	__cjs_ECCEncrypt(a, b, c) {
+		return ECCEncrypt(a, b, c);
+	}
+
+	__cjs_ECCDecrypt(a, b, c) {
+		return ECCDecrypt(a, b, c);
+	}
+
+	__cjs_RSAKeys(a, b, c) {
+		return RSAKeys(a, b, c);
+	}
+
+	__cjs_RSAEncrypt(a, b, c) {
+		return RSAEncrypt(a, b, c);
+	}
+
+	__cjs_RSADecrypt(a, b, c, d = null) {
+		return RSADecrypt(a, b, c, d = null);
+	}
+
+	__cjs_ECCRSAErrorExplain(a) {
+		return ECCRSAErrorExplain(a);
+	}
+
+	__cjs_DHMakeKey(a, b = null, c = null) {
+		return DHMakeKey(a, b = null, c = null);
+	}
+
+	__cjs_DHSecret(a, b, c) {
+		return DHSecret(a, b, c);
+	}
+
+	__cjs_ECDHMakeKey() {
+		return ECDHMakeKey();
+	}
+
+	__cjs_ECDHSecret(a, b, c, d) {
+		return ECDHSecret(a, b, c, d);
+	}
+
+	wrap(js) {
+		js.wrap(this.__cjs_MD5Init, "__cjs_MD5Init");
+		js.wrap(this.__cjs_MD5Update, "__cjs_MD5Update");
+		js.wrap(this.__cjs_MD5Final, "__cjs_MD5Final");
+		js.wrap(this.__cjs_SHA1Init, "__cjs_SHA1Init");
+		js.wrap(this.__cjs_SHA1Update, "__cjs_SHA1Update");
+		js.wrap(this.__cjs_SHA1Final, "__cjs_SHA1Final");
+		js.wrap(this.__cjs_SHA256Init, "__cjs_SHA256Init");
+		js.wrap(this.__cjs_SHA256Update, "__cjs_SHA256Update");
+		js.wrap(this.__cjs_SHA256Final, "__cjs_SHA256Final");
+		js.wrap(this.__cjs_md5, "__cjs_md5");
+		js.wrap(this.__cjs_sha1, "__cjs_sha1");
+		js.wrap(this.__cjs_sha256, "__cjs_sha256");
+		js.wrap(this.__cjs_crc32, "__cjs_crc32");
+		js.wrap(this.__cjs_AESEncryptInit, "__cjs_AESEncryptInit");
+		js.wrap(this.__cjs_AESDecryptInit, "__cjs_AESDecryptInit");
+		js.wrap(this.__cjs_AESRelease, "__cjs_AESRelease");
+		js.wrap(this.__cjs_AESEncrypt, "__cjs_AESEncrypt");
+		js.wrap(this.__cjs_AESDecrypt, "__cjs_AESDecrypt");
+		js.wrap(this.__cjs_aes_encrypt, "__cjs_aes_encrypt");
+		js.wrap(this.__cjs_aes_decrypt, "__cjs_aes_decrypt");
+		js.wrap(this.__cjs_rsa_encrypt, "__cjs_rsa_encrypt");
+		js.wrap(this.__cjs_rsa_decrypt, "__cjs_rsa_decrypt");
+		js.wrap(this.__cjs_rsa_generate_keys, "__cjs_rsa_generate_keys");
+		js.wrap(this.__cjs_rsa_sign, "__cjs_rsa_sign");
+		js.wrap(this.__cjs_rsa_verify, "__cjs_rsa_verify");
+		js.wrap(this.__cjs_hmac_md5, "__cjs_hmac_md5");
+		js.wrap(this.__cjs_hmac_sha1, "__cjs_hmac_sha1");
+		js.wrap(this.__cjs_hmac_sha256, "__cjs_hmac_sha256");
+		js.wrap(this.__cjs_Murmur, "__cjs_Murmur");
+		js.wrap(this.__cjs_Murmur3, "__cjs_Murmur3");
+		js.wrap(this.__cjs_DRMKey, "__cjs_DRMKey");
+		js.wrap(this.__cjs_PBKDF2, "__cjs_PBKDF2");
+		js.wrap(this.__cjs_CryptoRandom, "__cjs_CryptoRandom");
+		js.wrap(this.__cjs_AesDone, "__cjs_AesDone");
+		js.wrap(this.__cjs_AesSetKey, "__cjs_AesSetKey");
+		js.wrap(this.__cjs_AesSetInitVector, "__cjs_AesSetInitVector");
+		js.wrap(this.__cjs_AesSetFeedbackSize, "__cjs_AesSetFeedbackSize");
+		js.wrap(this.__cjs_AesEncryptECB, "__cjs_AesEncryptECB");
+		js.wrap(this.__cjs_AesEncryptCBC, "__cjs_AesEncryptCBC");
+		js.wrap(this.__cjs_AesEncryptPCBC, "__cjs_AesEncryptPCBC");
+		js.wrap(this.__cjs_AesEncryptCRT, "__cjs_AesEncryptCRT");
+		js.wrap(this.__cjs_AesEncryptOFB, "__cjs_AesEncryptOFB");
+		js.wrap(this.__cjs_AesEncryptCFB, "__cjs_AesEncryptCFB");
+		js.wrap(this.__cjs_AesDecryptECB, "__cjs_AesDecryptECB");
+		js.wrap(this.__cjs_AesDecryptCBC, "__cjs_AesDecryptCBC");
+		js.wrap(this.__cjs_AesDecryptPCBC, "__cjs_AesDecryptPCBC");
+		js.wrap(this.__cjs_AesDecryptCRT, "__cjs_AesDecryptCRT");
+		js.wrap(this.__cjs_AesDecryptOFB, "__cjs_AesDecryptOFB");
+		js.wrap(this.__cjs_AesDecryptCFB, "__cjs_AesDecryptCFB");
+		js.wrap(this.__cjs_ECCKeys, "__cjs_ECCKeys");
+		js.wrap(this.__cjs_ECCEncrypt, "__cjs_ECCEncrypt");
+		js.wrap(this.__cjs_ECCDecrypt, "__cjs_ECCDecrypt");
+		js.wrap(this.__cjs_RSAKeys, "__cjs_RSAKeys");
+		js.wrap(this.__cjs_RSAEncrypt, "__cjs_RSAEncrypt");
+		js.wrap(this.__cjs_RSADecrypt, "__cjs_RSADecrypt");
+		js.wrap(this.__cjs_ECCRSAErrorExplain, "__cjs_ECCRSAErrorExplain");
+		js.wrap(this.__cjs_DHMakeKey, "__cjs_DHMakeKey");
+		js.wrap(this.__cjs_DHSecret, "__cjs_DHSecret");
+		js.wrap(this.__cjs_ECDHMakeKey, "__cjs_ECDHMakeKey");
+		js.wrap(this.__cjs_ECDHSecret, "__cjs_ECDHSecret");
+	}
+
+	ECMABRIDGE_standard_lib_cripto(js) {
+		this.wrap(js);
+	}
+}

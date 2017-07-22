@@ -1,0 +1,32 @@
+/* This file is generated automatically by generatejs.con. Do not edit. */
+
+import standard.lang.profiler
+
+class ECMABRIDGE_standard_lang_profiler {
+	__cjs___profile(a, b, c) {
+		return __profile(a, b, c);
+	}
+
+	__cjs_ProfilerDelegate(a) {
+		return ProfilerDelegate(a);
+	}
+
+	__cjs_CoreMemoryInfo() {
+		return CoreMemoryInfo();
+	}
+
+	__cjs_ProfilerReset() {
+		return ProfilerReset();
+	}
+
+	wrap(js) {
+		js.wrap(this.__cjs___profile, "__cjs___profile");
+		js.wrap(this.__cjs_ProfilerDelegate, "__cjs_ProfilerDelegate");
+		js.wrap(this.__cjs_CoreMemoryInfo, "__cjs_CoreMemoryInfo");
+		js.wrap(this.__cjs_ProfilerReset, "__cjs_ProfilerReset");
+	}
+
+	ECMABRIDGE_standard_lang_profiler(js) {
+		this.wrap(js);
+	}
+}

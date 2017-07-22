@@ -1,0 +1,57 @@
+/* This file is generated automatically by generatejs.con. Do not edit. */
+
+import standard.lib.face
+
+class ECMABRIDGE_standard_lib_face {
+	__cjs_LoadObject(a) {
+		return LoadObject(a);
+	}
+
+	__cjs_CloseObject(a) {
+		return CloseObject(a);
+	}
+
+	__cjs_ObjectDetect(a, b, c, d = null, e = null, f = null, g = null, h = null) {
+		return ObjectDetect(a, b, c, d = null, e = null, f = null, g = null, h = null);
+	}
+
+	__cjs_FaceRecognize(a, b, c, d = null, e = null, f = null) {
+		return FaceRecognize(a, b, c, d = null, e = null, f = null);
+	}
+
+	__cjs_CloseRecognize(a) {
+		return CloseRecognize(a);
+	}
+
+	__cjs_ReadCamera(a, b = null, c = null) {
+		return ReadCamera(a, b = null, c = null);
+	}
+
+	__cjs_OpenCamera(a, b = null, c = null) {
+		return OpenCamera(a, b = null, c = null);
+	}
+
+	__cjs_CloseCamera(a) {
+		return CloseCamera(a);
+	}
+
+	__cjs_CameraFrame(a, b) {
+		return CameraFrame(a, b);
+	}
+
+	wrap(js) {
+		js.wrap(this.__cjs_LoadObject, "__cjs_LoadObject");
+		js.wrap(this.__cjs_CloseObject, "__cjs_CloseObject");
+		js.wrap(this.__cjs_ObjectDetect, "__cjs_ObjectDetect");
+		js.wrap(this.__cjs_FaceRecognize, "__cjs_FaceRecognize");
+		js.wrap(this.__cjs_CloseRecognize, "__cjs_CloseRecognize");
+		js.wrap(this.__cjs_ReadCamera, "__cjs_ReadCamera");
+		js.wrap(this.__cjs_OpenCamera, "__cjs_OpenCamera");
+		js.wrap(this.__cjs_CloseCamera, "__cjs_CloseCamera");
+		js.wrap(this.__cjs_CameraFrame, "__cjs_CameraFrame");
+	}
+
+	ECMABRIDGE_standard_lib_face(js) {
+		this.wrap(js);
+	}
+}

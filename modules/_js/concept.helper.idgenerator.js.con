@@ -1,0 +1,17 @@
+/* This file is generated automatically by generatejs.con. Do not edit. */
+
+import concept.helper.idgenerator
+
+class ECMABRIDGE_concept_helper_idgenerator {
+	__cjs___CONCEPT_INTERFACE_HELPER_GENERATE_UNIQUE_ID() {
+		return __CONCEPT_INTERFACE_HELPER_GENERATE_UNIQUE_ID();
+	}
+
+	wrap(js) {
+		js.wrap(this.__cjs___CONCEPT_INTERFACE_HELPER_GENERATE_UNIQUE_ID, "__cjs___CONCEPT_INTERFACE_HELPER_GENERATE_UNIQUE_ID");
+	}
+
+	ECMABRIDGE_concept_helper_idgenerator(js) {
+		this.wrap(js);
+	}
+}

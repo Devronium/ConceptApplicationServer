@@ -1,0 +1,37 @@
+/* This file is generated automatically by generatejs.con. Do not edit. */
+
+import standard.lib.iconv
+
+class ECMABRIDGE_standard_lib_iconv {
+	__cjs_iconv_open(a, b) {
+		return iconv_open(a, b);
+	}
+
+	__cjs_iconv_close(a) {
+		return iconv_close(a);
+	}
+
+	__cjs_iconv(a, b, c) {
+		return iconv(a, b, c);
+	}
+
+	__cjs_iconv2(a, b, c) {
+		return iconv2(a, b, c);
+	}
+
+	__cjs_iconvctl(a, b, c) {
+		return iconvctl(a, b, c);
+	}
+
+	wrap(js) {
+		js.wrap(this.__cjs_iconv_open, "__cjs_iconv_open");
+		js.wrap(this.__cjs_iconv_close, "__cjs_iconv_close");
+		js.wrap(this.__cjs_iconv, "__cjs_iconv");
+		js.wrap(this.__cjs_iconv2, "__cjs_iconv2");
+		js.wrap(this.__cjs_iconvctl, "__cjs_iconvctl");
+	}
+
+	ECMABRIDGE_standard_lib_iconv(js) {
+		this.wrap(js);
+	}
+}

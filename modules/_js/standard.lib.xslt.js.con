@@ -1,0 +1,212 @@
+/* This file is generated automatically by generatejs.con. Do not edit. */
+
+import standard.lib.xslt
+
+class ECMABRIDGE_standard_lib_xslt {
+	__cjs__SablotCreateDocument(a, b) {
+		return _SablotCreateDocument(a, b);
+	}
+
+	__cjs__SablotParse(a, b, c) {
+		return _SablotParse(a, b, c);
+	}
+
+	__cjs__SablotParseBuffer(a, b, c) {
+		return _SablotParseBuffer(a, b, c);
+	}
+
+	__cjs__SablotParseStylesheet(a, b, c) {
+		return _SablotParseStylesheet(a, b, c);
+	}
+
+	__cjs__SablotParseStylesheetBuffer(a, b, c) {
+		return _SablotParseStylesheetBuffer(a, b, c);
+	}
+
+	__cjs__SablotLockDocument(a, b) {
+		return _SablotLockDocument(a, b);
+	}
+
+	__cjs__SablotDestroyDocument(a, b) {
+		return _SablotDestroyDocument(a, b);
+	}
+
+	__cjs__SablotAddParam(a, b, c, d) {
+		return _SablotAddParam(a, b, c, d);
+	}
+
+	__cjs__SablotAddArgBuffer(a, b, c, d) {
+		return _SablotAddArgBuffer(a, b, c, d);
+	}
+
+	__cjs__SablotAddArgTree(a, b, c, d) {
+		return _SablotAddArgTree(a, b, c, d);
+	}
+
+	__cjs__SablotRunProcessorGen(a, b, c, d, e) {
+		return _SablotRunProcessorGen(a, b, c, d, e);
+	}
+
+	__cjs__SablotRunProcessorExt(a, b, c, d, e) {
+		return _SablotRunProcessorExt(a, b, c, d, e);
+	}
+
+	__cjs__SablotCreateSituation(a) {
+		return _SablotCreateSituation(a);
+	}
+
+	__cjs__SablotSetOptions(a, b) {
+		return _SablotSetOptions(a, b);
+	}
+
+	__cjs__SablotGetOptions(a) {
+		return _SablotGetOptions(a);
+	}
+
+	__cjs__SablotClearSituation(a) {
+		return _SablotClearSituation(a);
+	}
+
+	__cjs__SablotGetErrorURI(a) {
+		return _SablotGetErrorURI(a);
+	}
+
+	__cjs__SablotGetErrorLine(a) {
+		return _SablotGetErrorLine(a);
+	}
+
+	__cjs__SablotGetErrorMsg(a) {
+		return _SablotGetErrorMsg(a);
+	}
+
+	__cjs__SablotDestroySituation(a) {
+		return _SablotDestroySituation(a);
+	}
+
+	__cjs__SablotCreateProcessor(a) {
+		return _SablotCreateProcessor(a);
+	}
+
+	__cjs__SablotCreateProcessorForSituation(a, b) {
+		return _SablotCreateProcessorForSituation(a, b);
+	}
+
+	__cjs__SablotDestroyProcessor(a) {
+		return _SablotDestroyProcessor(a);
+	}
+
+	__cjs__SablotRunProcessor(a, b, c, d, e, f) {
+		return _SablotRunProcessor(a, b, c, d, e, f);
+	}
+
+	__cjs__SablotGetResultArg(a, b, c) {
+		return _SablotGetResultArg(a, b, c);
+	}
+
+	__cjs__SablotFreeResultArgs(a) {
+		return _SablotFreeResultArgs(a);
+	}
+
+	__cjs__SablotRegHandler(a, b, c, d) {
+		return _SablotRegHandler(a, b, c, d);
+	}
+
+	__cjs__SablotUnregHandler(a, b, c, d) {
+		return _SablotUnregHandler(a, b, c, d);
+	}
+
+	__cjs__SablotSetBase(a, b) {
+		return _SablotSetBase(a, b);
+	}
+
+	__cjs__SablotSetBaseForScheme(a, b, c) {
+		return _SablotSetBaseForScheme(a, b, c);
+	}
+
+	__cjs__SablotSetLog(a, b, c) {
+		return _SablotSetLog(a, b, c);
+	}
+
+	__cjs__SablotProcess(a, b, c, d, e, f) {
+		return _SablotProcess(a, b, c, d, e, f);
+	}
+
+	__cjs__SablotProcessFiles(a, b, c) {
+		return _SablotProcessFiles(a, b, c);
+	}
+
+	__cjs__SablotProcessStrings(a, b, c) {
+		return _SablotProcessStrings(a, b, c);
+	}
+
+	__cjs__SablotProcessStringsWithBase(a, b, c, d) {
+		return _SablotProcessStringsWithBase(a, b, c, d);
+	}
+
+	__cjs__SablotClearError(a) {
+		return _SablotClearError(a);
+	}
+
+	__cjs__SablotGetMsgText(a) {
+		return _SablotGetMsgText(a);
+	}
+
+	__cjs__SablotSetInstanceData(a, b) {
+		return _SablotSetInstanceData(a, b);
+	}
+
+	__cjs__SablotGetInstanceData(a) {
+		return _SablotGetInstanceData(a);
+	}
+
+	__cjs__SablotSetEncoding(a, b) {
+		return _SablotSetEncoding(a, b);
+	}
+
+	wrap(js) {
+		js.wrap(this.__cjs__SablotCreateDocument, "__cjs__SablotCreateDocument");
+		js.wrap(this.__cjs__SablotParse, "__cjs__SablotParse");
+		js.wrap(this.__cjs__SablotParseBuffer, "__cjs__SablotParseBuffer");
+		js.wrap(this.__cjs__SablotParseStylesheet, "__cjs__SablotParseStylesheet");
+		js.wrap(this.__cjs__SablotParseStylesheetBuffer, "__cjs__SablotParseStylesheetBuffer");
+		js.wrap(this.__cjs__SablotLockDocument, "__cjs__SablotLockDocument");
+		js.wrap(this.__cjs__SablotDestroyDocument, "__cjs__SablotDestroyDocument");
+		js.wrap(this.__cjs__SablotAddParam, "__cjs__SablotAddParam");
+		js.wrap(this.__cjs__SablotAddArgBuffer, "__cjs__SablotAddArgBuffer");
+		js.wrap(this.__cjs__SablotAddArgTree, "__cjs__SablotAddArgTree");
+		js.wrap(this.__cjs__SablotRunProcessorGen, "__cjs__SablotRunProcessorGen");
+		js.wrap(this.__cjs__SablotRunProcessorExt, "__cjs__SablotRunProcessorExt");
+		js.wrap(this.__cjs__SablotCreateSituation, "__cjs__SablotCreateSituation");
+		js.wrap(this.__cjs__SablotSetOptions, "__cjs__SablotSetOptions");
+		js.wrap(this.__cjs__SablotGetOptions, "__cjs__SablotGetOptions");
+		js.wrap(this.__cjs__SablotClearSituation, "__cjs__SablotClearSituation");
+		js.wrap(this.__cjs__SablotGetErrorURI, "__cjs__SablotGetErrorURI");
+		js.wrap(this.__cjs__SablotGetErrorLine, "__cjs__SablotGetErrorLine");
+		js.wrap(this.__cjs__SablotGetErrorMsg, "__cjs__SablotGetErrorMsg");
+		js.wrap(this.__cjs__SablotDestroySituation, "__cjs__SablotDestroySituation");
+		js.wrap(this.__cjs__SablotCreateProcessor, "__cjs__SablotCreateProcessor");
+		js.wrap(this.__cjs__SablotCreateProcessorForSituation, "__cjs__SablotCreateProcessorForSituation");
+		js.wrap(this.__cjs__SablotDestroyProcessor, "__cjs__SablotDestroyProcessor");
+		js.wrap(this.__cjs__SablotRunProcessor, "__cjs__SablotRunProcessor");
+		js.wrap(this.__cjs__SablotGetResultArg, "__cjs__SablotGetResultArg");
+		js.wrap(this.__cjs__SablotFreeResultArgs, "__cjs__SablotFreeResultArgs");
+		js.wrap(this.__cjs__SablotRegHandler, "__cjs__SablotRegHandler");
+		js.wrap(this.__cjs__SablotUnregHandler, "__cjs__SablotUnregHandler");
+		js.wrap(this.__cjs__SablotSetBase, "__cjs__SablotSetBase");
+		js.wrap(this.__cjs__SablotSetBaseForScheme, "__cjs__SablotSetBaseForScheme");
+		js.wrap(this.__cjs__SablotSetLog, "__cjs__SablotSetLog");
+		js.wrap(this.__cjs__SablotProcess, "__cjs__SablotProcess");
+		js.wrap(this.__cjs__SablotProcessFiles, "__cjs__SablotProcessFiles");
+		js.wrap(this.__cjs__SablotProcessStrings, "__cjs__SablotProcessStrings");
+		js.wrap(this.__cjs__SablotProcessStringsWithBase, "__cjs__SablotProcessStringsWithBase");
+		js.wrap(this.__cjs__SablotClearError, "__cjs__SablotClearError");
+		js.wrap(this.__cjs__SablotGetMsgText, "__cjs__SablotGetMsgText");
+		js.wrap(this.__cjs__SablotSetInstanceData, "__cjs__SablotSetInstanceData");
+		js.wrap(this.__cjs__SablotGetInstanceData, "__cjs__SablotGetInstanceData");
+		js.wrap(this.__cjs__SablotSetEncoding, "__cjs__SablotSetEncoding");
+	}
+
+	ECMABRIDGE_standard_lib_xslt(js) {
+		this.wrap(js);
+	}
+}

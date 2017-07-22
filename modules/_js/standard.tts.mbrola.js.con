@@ -1,0 +1,72 @@
+/* This file is generated automatically by generatejs.con. Do not edit. */
+
+import standard.tts.mbrola
+
+class ECMABRIDGE_standard_tts_mbrola {
+	__cjs_InitMBR(a) {
+		return InitMBR(a);
+	}
+
+	__cjs_CloseMBR() {
+		return CloseMBR();
+	}
+
+	__cjs_ResetMBR() {
+		return ResetMBR();
+	}
+
+	__cjs_WriteMBR(a) {
+		return WriteMBR(a);
+	}
+
+	__cjs_ReadMBR(a, b) {
+		return ReadMBR(a, b);
+	}
+
+	__cjs_SetFreqMBR(a) {
+		return SetFreqMBR(a);
+	}
+
+	__cjs_GetFreqMBR() {
+		return GetFreqMBR();
+	}
+
+	__cjs_SetVolumeRatioMBR(a) {
+		return SetVolumeRatioMBR(a);
+	}
+
+	__cjs_GetVolumeRatioMBR() {
+		return GetVolumeRatioMBR();
+	}
+
+	__cjs_FlushMBR() {
+		return FlushMBR();
+	}
+
+	__cjs_LastErrorMBR() {
+		return LastErrorMBR();
+	}
+
+	__cjs_LastErrorStrMBR() {
+		return LastErrorStrMBR();
+	}
+
+	wrap(js) {
+		js.wrap(this.__cjs_InitMBR, "__cjs_InitMBR");
+		js.wrap(this.__cjs_CloseMBR, "__cjs_CloseMBR");
+		js.wrap(this.__cjs_ResetMBR, "__cjs_ResetMBR");
+		js.wrap(this.__cjs_WriteMBR, "__cjs_WriteMBR");
+		js.wrap(this.__cjs_ReadMBR, "__cjs_ReadMBR");
+		js.wrap(this.__cjs_SetFreqMBR, "__cjs_SetFreqMBR");
+		js.wrap(this.__cjs_GetFreqMBR, "__cjs_GetFreqMBR");
+		js.wrap(this.__cjs_SetVolumeRatioMBR, "__cjs_SetVolumeRatioMBR");
+		js.wrap(this.__cjs_GetVolumeRatioMBR, "__cjs_GetVolumeRatioMBR");
+		js.wrap(this.__cjs_FlushMBR, "__cjs_FlushMBR");
+		js.wrap(this.__cjs_LastErrorMBR, "__cjs_LastErrorMBR");
+		js.wrap(this.__cjs_LastErrorStrMBR, "__cjs_LastErrorStrMBR");
+	}
+
+	ECMABRIDGE_standard_tts_mbrola(js) {
+		this.wrap(js);
+	}
+}

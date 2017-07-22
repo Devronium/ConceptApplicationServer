@@ -1,0 +1,122 @@
+/* This file is generated automatically by generatejs.con. Do not edit. */
+
+import standard.net.snmp
+
+class ECMABRIDGE_standard_net_snmp {
+	__cjs_add_mibdir(a) {
+		return add_mibdir(a);
+	}
+
+	__cjs_read_mib(a) {
+		return read_mib(a);
+	}
+
+	__cjs_netsnmp_init_mib() {
+		return netsnmp_init_mib();
+	}
+
+	__cjs_shutdown_mib() {
+		return shutdown_mib();
+	}
+
+	__cjs_snmp_open(a) {
+		return snmp_open(a);
+	}
+
+	__cjs_snmp_close(a) {
+		return snmp_close(a);
+	}
+
+	__cjs_snmp_error(a, b, c = null) {
+		return snmp_error(a, b, c = null);
+	}
+
+	__cjs_snmp_sess_error(a, b, c = null) {
+		return snmp_sess_error(a, b, c = null);
+	}
+
+	__cjs_snmp_pdu_create(a) {
+		return snmp_pdu_create(a);
+	}
+
+	__cjs_snmp_add_null_var(a, b) {
+		return snmp_add_null_var(a, b);
+	}
+
+	__cjs_snmp_add_var(a, b, c, d) {
+		return snmp_add_var(a, b, c, d);
+	}
+
+	__cjs_snmp_synch_response(a, b, c) {
+		return snmp_synch_response(a, b, c);
+	}
+
+	__cjs_snmp_clone_pdu(a) {
+		return snmp_clone_pdu(a);
+	}
+
+	__cjs_snmp_fix_pdu(a, b) {
+		return snmp_fix_pdu(a, b);
+	}
+
+	__cjs_snmp_free_pdu(a) {
+		return snmp_free_pdu(a);
+	}
+
+	__cjs_netsnmp_ds_toggle_boolean(a, b) {
+		return netsnmp_ds_toggle_boolean(a, b);
+	}
+
+	__cjs_netsnmp_ds_get_boolean(a, b) {
+		return netsnmp_ds_get_boolean(a, b);
+	}
+
+	__cjs_netsnmp_ds_set_boolean(a, b, c) {
+		return netsnmp_ds_set_boolean(a, b, c);
+	}
+
+	__cjs_netsnmp_ds_get_int(a, b, c) {
+		return netsnmp_ds_get_int(a, b, c);
+	}
+
+	__cjs_netsnmp_ds_set_int(a, b, c) {
+		return netsnmp_ds_set_int(a, b, c);
+	}
+
+	__cjs_netsnmp_ds_get_string(a, b) {
+		return netsnmp_ds_get_string(a, b);
+	}
+
+	__cjs_netsnmp_ds_set_string(a, b, c) {
+		return netsnmp_ds_set_string(a, b, c);
+	}
+
+	wrap(js) {
+		js.wrap(this.__cjs_add_mibdir, "__cjs_add_mibdir");
+		js.wrap(this.__cjs_read_mib, "__cjs_read_mib");
+		js.wrap(this.__cjs_netsnmp_init_mib, "__cjs_netsnmp_init_mib");
+		js.wrap(this.__cjs_shutdown_mib, "__cjs_shutdown_mib");
+		js.wrap(this.__cjs_snmp_open, "__cjs_snmp_open");
+		js.wrap(this.__cjs_snmp_close, "__cjs_snmp_close");
+		js.wrap(this.__cjs_snmp_error, "__cjs_snmp_error");
+		js.wrap(this.__cjs_snmp_sess_error, "__cjs_snmp_sess_error");
+		js.wrap(this.__cjs_snmp_pdu_create, "__cjs_snmp_pdu_create");
+		js.wrap(this.__cjs_snmp_add_null_var, "__cjs_snmp_add_null_var");
+		js.wrap(this.__cjs_snmp_add_var, "__cjs_snmp_add_var");
+		js.wrap(this.__cjs_snmp_synch_response, "__cjs_snmp_synch_response");
+		js.wrap(this.__cjs_snmp_clone_pdu, "__cjs_snmp_clone_pdu");
+		js.wrap(this.__cjs_snmp_fix_pdu, "__cjs_snmp_fix_pdu");
+		js.wrap(this.__cjs_snmp_free_pdu, "__cjs_snmp_free_pdu");
+		js.wrap(this.__cjs_netsnmp_ds_toggle_boolean, "__cjs_netsnmp_ds_toggle_boolean");
+		js.wrap(this.__cjs_netsnmp_ds_get_boolean, "__cjs_netsnmp_ds_get_boolean");
+		js.wrap(this.__cjs_netsnmp_ds_set_boolean, "__cjs_netsnmp_ds_set_boolean");
+		js.wrap(this.__cjs_netsnmp_ds_get_int, "__cjs_netsnmp_ds_get_int");
+		js.wrap(this.__cjs_netsnmp_ds_set_int, "__cjs_netsnmp_ds_set_int");
+		js.wrap(this.__cjs_netsnmp_ds_get_string, "__cjs_netsnmp_ds_get_string");
+		js.wrap(this.__cjs_netsnmp_ds_set_string, "__cjs_netsnmp_ds_set_string");
+	}
+
+	ECMABRIDGE_standard_net_snmp(js) {
+		this.wrap(js);
+	}
+}

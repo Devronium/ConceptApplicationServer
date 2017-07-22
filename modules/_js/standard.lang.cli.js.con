@@ -1,0 +1,17 @@
+/* This file is generated automatically by generatejs.con. Do not edit. */
+
+import standard.lang.cli
+
+class ECMABRIDGE_standard_lang_cli {
+	__cjs_CLArg() {
+		return CLArg();
+	}
+
+	wrap(js) {
+		js.wrap(this.__cjs_CLArg, "__cjs_CLArg");
+	}
+
+	ECMABRIDGE_standard_lang_cli(js) {
+		this.wrap(js);
+	}
+}

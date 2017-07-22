@@ -1,0 +1,57 @@
+/* This file is generated automatically by generatejs.con. Do not edit. */
+
+import standard.net.bluetooth
+
+class ECMABRIDGE_standard_net_bluetooth {
+	__cjs_BTSocketCreate(a, b = null) {
+		return BTSocketCreate(a, b = null);
+	}
+
+	__cjs_BTSocketClose(a) {
+		return BTSocketClose(a);
+	}
+
+	__cjs_BTSocketListen(a, b, c = null, d = null, e = null) {
+		return BTSocketListen(a, b, c = null, d = null, e = null);
+	}
+
+	__cjs_BTSocketAccept(a) {
+		return BTSocketAccept(a);
+	}
+
+	__cjs_BTSocketConnect(a, b, c, d) {
+		return BTSocketConnect(a, b, c, d);
+	}
+
+	__cjs_BTSocketInfo(a, b) {
+		return BTSocketInfo(a, b);
+	}
+
+	__cjs_BTDiscover(a) {
+		return BTDiscover(a);
+	}
+
+	__cjs_BTRegister(a, b, c, d = null) {
+		return BTRegister(a, b, c, d = null);
+	}
+
+	__cjs_BTUnregister(a, b, c, d = null) {
+		return BTUnregister(a, b, c, d = null);
+	}
+
+	wrap(js) {
+		js.wrap(this.__cjs_BTSocketCreate, "__cjs_BTSocketCreate");
+		js.wrap(this.__cjs_BTSocketClose, "__cjs_BTSocketClose");
+		js.wrap(this.__cjs_BTSocketListen, "__cjs_BTSocketListen");
+		js.wrap(this.__cjs_BTSocketAccept, "__cjs_BTSocketAccept");
+		js.wrap(this.__cjs_BTSocketConnect, "__cjs_BTSocketConnect");
+		js.wrap(this.__cjs_BTSocketInfo, "__cjs_BTSocketInfo");
+		js.wrap(this.__cjs_BTDiscover, "__cjs_BTDiscover");
+		js.wrap(this.__cjs_BTRegister, "__cjs_BTRegister");
+		js.wrap(this.__cjs_BTUnregister, "__cjs_BTUnregister");
+	}
+
+	ECMABRIDGE_standard_net_bluetooth(js) {
+		this.wrap(js);
+	}
+}

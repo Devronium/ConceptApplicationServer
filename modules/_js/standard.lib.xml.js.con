@@ -1,0 +1,587 @@
+/* This file is generated automatically by generatejs.con. Do not edit. */
+
+import standard.lib.xml
+
+class ECMABRIDGE_standard_lib_xml {
+	__cjs_xmlReaderForFile(a, b, c) {
+		return xmlReaderForFile(a, b, c);
+	}
+
+	__cjs_xmlReaderForMemory(a, b, c, d) {
+		return xmlReaderForMemory(a, b, c, d);
+	}
+
+	__cjs_xmlTextReaderRead(a) {
+		return xmlTextReaderRead(a);
+	}
+
+	__cjs_xmlFreeTextReader(a) {
+		return xmlFreeTextReader(a);
+	}
+
+	__cjs_xmlTextReaderConstName(a) {
+		return xmlTextReaderConstName(a);
+	}
+
+	__cjs_xmlTextReaderConstValue(a) {
+		return xmlTextReaderConstValue(a);
+	}
+
+	__cjs_xmlTextReaderDepth(a) {
+		return xmlTextReaderDepth(a);
+	}
+
+	__cjs_xmlTextReaderNodeType(a) {
+		return xmlTextReaderNodeType(a);
+	}
+
+	__cjs_xmlTextReaderIsEmptyElement(a) {
+		return xmlTextReaderIsEmptyElement(a);
+	}
+
+	__cjs_xmlTextReaderHasValue(a) {
+		return xmlTextReaderHasValue(a);
+	}
+
+	__cjs_xmlTextReaderIsValid(a) {
+		return xmlTextReaderIsValid(a);
+	}
+
+	__cjs_xmlTextReaderPreservePattern(a, b) {
+		return xmlTextReaderPreservePattern(a, b);
+	}
+
+	__cjs_xmlCleanupParser() {
+		return xmlCleanupParser();
+	}
+
+	__cjs_xmlMemoryDump() {
+		return xmlMemoryDump();
+	}
+
+	__cjs_xmlTextReaderCurrentDoc(a) {
+		return xmlTextReaderCurrentDoc(a);
+	}
+
+	__cjs_xmlParseFile(a) {
+		return xmlParseFile(a);
+	}
+
+	__cjs_xmlParseMemory(a) {
+		return xmlParseMemory(a);
+	}
+
+	__cjs_xmlDocGetRootElement(a) {
+		return xmlDocGetRootElement(a);
+	}
+
+	__cjs_xmlFreeDoc(a) {
+		return xmlFreeDoc(a);
+	}
+
+	__cjs_xmlGetNodeArray(a) {
+		return xmlGetNodeArray(a);
+	}
+
+	__cjs_xmlReadFile(a, b, c) {
+		return xmlReadFile(a, b, c);
+	}
+
+	__cjs_xmlReadDoc(a, b, c, d) {
+		return xmlReadDoc(a, b, c, d);
+	}
+
+	__cjs_xmlNewDoc(a) {
+		return xmlNewDoc(a);
+	}
+
+	__cjs_xmlNodeSetContent(a, b) {
+		return xmlNodeSetContent(a, b);
+	}
+
+	__cjs_xmlNodeSetName(a, b) {
+		return xmlNodeSetName(a, b);
+	}
+
+	__cjs_xmlNodeSetLang(a, b) {
+		return xmlNodeSetLang(a, b);
+	}
+
+	__cjs_xmlNodeSetBase(a, b) {
+		return xmlNodeSetBase(a, b);
+	}
+
+	__cjs_xmlRemoveProp(a) {
+		return xmlRemoveProp(a);
+	}
+
+	__cjs_xmlNodeGetContent(a) {
+		return xmlNodeGetContent(a);
+	}
+
+	__cjs_xmlNodeGetLang(a) {
+		return xmlNodeGetLang(a);
+	}
+
+	__cjs_xmlNodeGetBase(a, b) {
+		return xmlNodeGetBase(a, b);
+	}
+
+	__cjs_xmlNewProp(a, b, c) {
+		return xmlNewProp(a, b, c);
+	}
+
+	__cjs_xmlNewNode(a, b) {
+		return xmlNewNode(a, b);
+	}
+
+	__cjs_xmlDocDumpFormatMemory(a, b) {
+		return xmlDocDumpFormatMemory(a, b);
+	}
+
+	__cjs_xmlDocDumpFormatMemoryEnc(a, b) {
+		return xmlDocDumpFormatMemoryEnc(a, b);
+	}
+
+	__cjs_xmlDocSetRootElement(a, b) {
+		return xmlDocSetRootElement(a, b);
+	}
+
+	__cjs_xmlAddChild(a, b) {
+		return xmlAddChild(a, b);
+	}
+
+	__cjs_xmlAddChildList(a, b) {
+		return xmlAddChildList(a, b);
+	}
+
+	__cjs_xmlAddNextSibling(a, b) {
+		return xmlAddNextSibling(a, b);
+	}
+
+	__cjs_xmlAddPrevSibling(a, b) {
+		return xmlAddPrevSibling(a, b);
+	}
+
+	__cjs_xmlAddSibling(a, b) {
+		return xmlAddSibling(a, b);
+	}
+
+	__cjs_xmlGetNodePath(a) {
+		return xmlGetNodePath(a);
+	}
+
+	__cjs_xmlGetNsList(a, b) {
+		return xmlGetNsList(a, b);
+	}
+
+	__cjs_xmlGetNsProp(a, b, c) {
+		return xmlGetNsProp(a, b, c);
+	}
+
+	__cjs_xmlGetProp(a, b) {
+		return xmlGetProp(a, b);
+	}
+
+	__cjs_xmlHasNsProp(a, b, c) {
+		return xmlHasNsProp(a, b, c);
+	}
+
+	__cjs_xmlHasProp(a, b) {
+		return xmlHasProp(a, b);
+	}
+
+	__cjs_xmlIsBlankNode(a) {
+		return xmlIsBlankNode(a);
+	}
+
+	__cjs_xmlNewChild(a, b, c, d) {
+		return xmlNewChild(a, b, c, d);
+	}
+
+	__cjs_xmlNewComment(a) {
+		return xmlNewComment(a);
+	}
+
+	__cjs_xmlNewDocComment(a, b) {
+		return xmlNewDocComment(a, b);
+	}
+
+	__cjs_xmlNewDocNode(a, b, c, d) {
+		return xmlNewDocNode(a, b, c, d);
+	}
+
+	__cjs_xmlNewDocRawNode(a, b, c, d) {
+		return xmlNewDocRawNode(a, b, c, d);
+	}
+
+	__cjs_xmlNewDocText(a, b) {
+		return xmlNewDocText(a, b);
+	}
+
+	__cjs_xmlNewGlobalNs(a, b, c) {
+		return xmlNewGlobalNs(a, b, c);
+	}
+
+	__cjs_xmlNewNs(a, b, c) {
+		return xmlNewNs(a, b, c);
+	}
+
+	__cjs_xmlNewNsProp(a, b, c, d) {
+		return xmlNewNsProp(a, b, c, d);
+	}
+
+	__cjs_xmlNewText(a) {
+		return xmlNewText(a);
+	}
+
+	__cjs_xmlNewTextChild(a, b, c, d) {
+		return xmlNewTextChild(a, b, c, d);
+	}
+
+	__cjs_xmlNodeAddContent(a, b) {
+		return xmlNodeAddContent(a, b);
+	}
+
+	__cjs_xmlSearchNs(a, b, c) {
+		return xmlSearchNs(a, b, c);
+	}
+
+	__cjs_xmlSearchNsByHref(a, b, c) {
+		return xmlSearchNsByHref(a, b, c);
+	}
+
+	__cjs_xmlSetNsProp(a, b, c, d) {
+		return xmlSetNsProp(a, b, c, d);
+	}
+
+	__cjs_xmlSetProp(a, b, c) {
+		return xmlSetProp(a, b, c);
+	}
+
+	__cjs_xmlSetTreeDoc(a, b) {
+		return xmlSetTreeDoc(a, b);
+	}
+
+	__cjs_xmlNewPI(a, b) {
+		return xmlNewPI(a, b);
+	}
+
+	__cjs_xmlNewReference(a, b) {
+		return xmlNewReference(a, b);
+	}
+
+	__cjs_xmlNewDocPI(a, b, c) {
+		return xmlNewDocPI(a, b, c);
+	}
+
+	__cjs_xmlReadMemory(a, b, c, d) {
+		return xmlReadMemory(a, b, c, d);
+	}
+
+	__cjs_xmlNodeIsText(a) {
+		return xmlNodeIsText(a);
+	}
+
+	__cjs_xmlGetPath(a, b) {
+		return xmlGetPath(a, b);
+	}
+
+	__cjs_xmlEncodeEntitiesReentrant(a, b) {
+		return xmlEncodeEntitiesReentrant(a, b);
+	}
+
+	__cjs__xmlCopyNode(a, b) {
+		return _xmlCopyNode(a, b);
+	}
+
+	__cjs_xmlNodeDump(a, b, c, d, e) {
+		return xmlNodeDump(a, b, c, d, e);
+	}
+
+	__cjs__htmlCreateMemoryParserCtxt(a) {
+		return _htmlCreateMemoryParserCtxt(a);
+	}
+
+	__cjs__htmlCtxtReadDoc(a, b, c, d, e) {
+		return _htmlCtxtReadDoc(a, b, c, d, e);
+	}
+
+	__cjs__htmlCtxtReadFile(a, b, c, d) {
+		return _htmlCtxtReadFile(a, b, c, d);
+	}
+
+	__cjs__htmlCtxtReadMemory(a, b, c, d, e) {
+		return _htmlCtxtReadMemory(a, b, c, d, e);
+	}
+
+	__cjs__htmlCtxtReset(a) {
+		return _htmlCtxtReset(a);
+	}
+
+	__cjs__htmlCtxtUseOptions(a, b) {
+		return _htmlCtxtUseOptions(a, b);
+	}
+
+	__cjs__htmlElementAllowedHere(a, b) {
+		return _htmlElementAllowedHere(a, b);
+	}
+
+	__cjs__htmlElementStatusHere(a, b) {
+		return _htmlElementStatusHere(a, b);
+	}
+
+	__cjs__htmlFreeParserCtxt(a) {
+		return _htmlFreeParserCtxt(a);
+	}
+
+	__cjs__htmlHandleOmittedElem(a) {
+		return _htmlHandleOmittedElem(a);
+	}
+
+	__cjs__htmlIsAutoClosed(a, b) {
+		return _htmlIsAutoClosed(a, b);
+	}
+
+	__cjs__htmlIsScriptAttribute(a) {
+		return _htmlIsScriptAttribute(a);
+	}
+
+	__cjs__htmlNodeStatus(a, b) {
+		return _htmlNodeStatus(a, b);
+	}
+
+	__cjs__htmlParseCharRef(a) {
+		return _htmlParseCharRef(a);
+	}
+
+	__cjs__htmlParseChunk(a, b, c) {
+		return _htmlParseChunk(a, b, c);
+	}
+
+	__cjs__htmlParseDoc(a, b) {
+		return _htmlParseDoc(a, b);
+	}
+
+	__cjs__htmlParseDocument(a) {
+		return _htmlParseDocument(a);
+	}
+
+	__cjs__htmlParseElement(a) {
+		return _htmlParseElement(a);
+	}
+
+	__cjs__htmlParseFile(a, b) {
+		return _htmlParseFile(a, b);
+	}
+
+	__cjs__htmlReadDoc(a, b, c, d) {
+		return _htmlReadDoc(a, b, c, d);
+	}
+
+	__cjs__htmlReadFile(a, b, c) {
+		return _htmlReadFile(a, b, c);
+	}
+
+	__cjs__htmlReadMemory(a, b, c, d) {
+		return _htmlReadMemory(a, b, c, d);
+	}
+
+	__cjs__htmlDocDumpMemory(a) {
+		return _htmlDocDumpMemory(a);
+	}
+
+	__cjs__htmlGetMetaEncoding(a) {
+		return _htmlGetMetaEncoding(a);
+	}
+
+	__cjs__htmlIsBooleanAttr(a) {
+		return _htmlIsBooleanAttr(a);
+	}
+
+	__cjs__htmlNewDoc(a, b) {
+		return _htmlNewDoc(a, b);
+	}
+
+	__cjs__htmlNewDocNoDtD(a, b) {
+		return _htmlNewDocNoDtD(a, b);
+	}
+
+	__cjs__htmlSaveFile(a, b) {
+		return _htmlSaveFile(a, b);
+	}
+
+	__cjs__htmlSaveFileEnc(a, b, c) {
+		return _htmlSaveFileEnc(a, b, c);
+	}
+
+	__cjs__htmlSaveFileFormat(a, b, c, d) {
+		return _htmlSaveFileFormat(a, b, c, d);
+	}
+
+	__cjs__htmlSetMetaEncoding(a, b) {
+		return _htmlSetMetaEncoding(a, b);
+	}
+
+	__cjs__htmlElemDescArray(a) {
+		return _htmlElemDescArray(a);
+	}
+
+	__cjs__htmlEntityDescArray(a) {
+		return _htmlEntityDescArray(a);
+	}
+
+	__cjs_xmlTextReaderSetErrorHandler(a, b) {
+		return xmlTextReaderSetErrorHandler(a, b);
+	}
+
+	__cjs_xmlSetGenericErrorFunc(a, b) {
+		return xmlSetGenericErrorFunc(a, b);
+	}
+
+	__cjs_xmlSetStructuredErrorFunc(a, b) {
+		return xmlSetStructuredErrorFunc(a, b);
+	}
+
+	__cjs_xmlURIEscapeStr(a, b) {
+		return xmlURIEscapeStr(a, b);
+	}
+
+	__cjs_xmlURIUnescapeString(a) {
+		return xmlURIUnescapeString(a);
+	}
+
+	__cjs_xmlFreeNode(a) {
+		return xmlFreeNode(a);
+	}
+
+	__cjs_xmlNewCDataBlock(a, b) {
+		return xmlNewCDataBlock(a, b);
+	}
+
+	__cjs_xmlChildElementCount(a) {
+		return xmlChildElementCount(a);
+	}
+
+	wrap(js) {
+		js.wrap(this.__cjs_xmlReaderForFile, "__cjs_xmlReaderForFile");
+		js.wrap(this.__cjs_xmlReaderForMemory, "__cjs_xmlReaderForMemory");
+		js.wrap(this.__cjs_xmlTextReaderRead, "__cjs_xmlTextReaderRead");
+		js.wrap(this.__cjs_xmlFreeTextReader, "__cjs_xmlFreeTextReader");
+		js.wrap(this.__cjs_xmlTextReaderConstName, "__cjs_xmlTextReaderConstName");
+		js.wrap(this.__cjs_xmlTextReaderConstValue, "__cjs_xmlTextReaderConstValue");
+		js.wrap(this.__cjs_xmlTextReaderDepth, "__cjs_xmlTextReaderDepth");
+		js.wrap(this.__cjs_xmlTextReaderNodeType, "__cjs_xmlTextReaderNodeType");
+		js.wrap(this.__cjs_xmlTextReaderIsEmptyElement, "__cjs_xmlTextReaderIsEmptyElement");
+		js.wrap(this.__cjs_xmlTextReaderHasValue, "__cjs_xmlTextReaderHasValue");
+		js.wrap(this.__cjs_xmlTextReaderIsValid, "__cjs_xmlTextReaderIsValid");
+		js.wrap(this.__cjs_xmlTextReaderPreservePattern, "__cjs_xmlTextReaderPreservePattern");
+		js.wrap(this.__cjs_xmlCleanupParser, "__cjs_xmlCleanupParser");
+		js.wrap(this.__cjs_xmlMemoryDump, "__cjs_xmlMemoryDump");
+		js.wrap(this.__cjs_xmlTextReaderCurrentDoc, "__cjs_xmlTextReaderCurrentDoc");
+		js.wrap(this.__cjs_xmlParseFile, "__cjs_xmlParseFile");
+		js.wrap(this.__cjs_xmlParseMemory, "__cjs_xmlParseMemory");
+		js.wrap(this.__cjs_xmlDocGetRootElement, "__cjs_xmlDocGetRootElement");
+		js.wrap(this.__cjs_xmlFreeDoc, "__cjs_xmlFreeDoc");
+		js.wrap(this.__cjs_xmlGetNodeArray, "__cjs_xmlGetNodeArray");
+		js.wrap(this.__cjs_xmlReadFile, "__cjs_xmlReadFile");
+		js.wrap(this.__cjs_xmlReadDoc, "__cjs_xmlReadDoc");
+		js.wrap(this.__cjs_xmlNewDoc, "__cjs_xmlNewDoc");
+		js.wrap(this.__cjs_xmlNodeSetContent, "__cjs_xmlNodeSetContent");
+		js.wrap(this.__cjs_xmlNodeSetName, "__cjs_xmlNodeSetName");
+		js.wrap(this.__cjs_xmlNodeSetLang, "__cjs_xmlNodeSetLang");
+		js.wrap(this.__cjs_xmlNodeSetBase, "__cjs_xmlNodeSetBase");
+		js.wrap(this.__cjs_xmlRemoveProp, "__cjs_xmlRemoveProp");
+		js.wrap(this.__cjs_xmlNodeGetContent, "__cjs_xmlNodeGetContent");
+		js.wrap(this.__cjs_xmlNodeGetLang, "__cjs_xmlNodeGetLang");
+		js.wrap(this.__cjs_xmlNodeGetBase, "__cjs_xmlNodeGetBase");
+		js.wrap(this.__cjs_xmlNewProp, "__cjs_xmlNewProp");
+		js.wrap(this.__cjs_xmlNewNode, "__cjs_xmlNewNode");
+		js.wrap(this.__cjs_xmlDocDumpFormatMemory, "__cjs_xmlDocDumpFormatMemory");
+		js.wrap(this.__cjs_xmlDocDumpFormatMemoryEnc, "__cjs_xmlDocDumpFormatMemoryEnc");
+		js.wrap(this.__cjs_xmlDocSetRootElement, "__cjs_xmlDocSetRootElement");
+		js.wrap(this.__cjs_xmlAddChild, "__cjs_xmlAddChild");
+		js.wrap(this.__cjs_xmlAddChildList, "__cjs_xmlAddChildList");
+		js.wrap(this.__cjs_xmlAddNextSibling, "__cjs_xmlAddNextSibling");
+		js.wrap(this.__cjs_xmlAddPrevSibling, "__cjs_xmlAddPrevSibling");
+		js.wrap(this.__cjs_xmlAddSibling, "__cjs_xmlAddSibling");
+		js.wrap(this.__cjs_xmlGetNodePath, "__cjs_xmlGetNodePath");
+		js.wrap(this.__cjs_xmlGetNsList, "__cjs_xmlGetNsList");
+		js.wrap(this.__cjs_xmlGetNsProp, "__cjs_xmlGetNsProp");
+		js.wrap(this.__cjs_xmlGetProp, "__cjs_xmlGetProp");
+		js.wrap(this.__cjs_xmlHasNsProp, "__cjs_xmlHasNsProp");
+		js.wrap(this.__cjs_xmlHasProp, "__cjs_xmlHasProp");
+		js.wrap(this.__cjs_xmlIsBlankNode, "__cjs_xmlIsBlankNode");
+		js.wrap(this.__cjs_xmlNewChild, "__cjs_xmlNewChild");
+		js.wrap(this.__cjs_xmlNewComment, "__cjs_xmlNewComment");
+		js.wrap(this.__cjs_xmlNewDocComment, "__cjs_xmlNewDocComment");
+		js.wrap(this.__cjs_xmlNewDocNode, "__cjs_xmlNewDocNode");
+		js.wrap(this.__cjs_xmlNewDocRawNode, "__cjs_xmlNewDocRawNode");
+		js.wrap(this.__cjs_xmlNewDocText, "__cjs_xmlNewDocText");
+		js.wrap(this.__cjs_xmlNewGlobalNs, "__cjs_xmlNewGlobalNs");
+		js.wrap(this.__cjs_xmlNewNs, "__cjs_xmlNewNs");
+		js.wrap(this.__cjs_xmlNewNsProp, "__cjs_xmlNewNsProp");
+		js.wrap(this.__cjs_xmlNewText, "__cjs_xmlNewText");
+		js.wrap(this.__cjs_xmlNewTextChild, "__cjs_xmlNewTextChild");
+		js.wrap(this.__cjs_xmlNodeAddContent, "__cjs_xmlNodeAddContent");
+		js.wrap(this.__cjs_xmlSearchNs, "__cjs_xmlSearchNs");
+		js.wrap(this.__cjs_xmlSearchNsByHref, "__cjs_xmlSearchNsByHref");
+		js.wrap(this.__cjs_xmlSetNsProp, "__cjs_xmlSetNsProp");
+		js.wrap(this.__cjs_xmlSetProp, "__cjs_xmlSetProp");
+		js.wrap(this.__cjs_xmlSetTreeDoc, "__cjs_xmlSetTreeDoc");
+		js.wrap(this.__cjs_xmlNewPI, "__cjs_xmlNewPI");
+		js.wrap(this.__cjs_xmlNewReference, "__cjs_xmlNewReference");
+		js.wrap(this.__cjs_xmlNewDocPI, "__cjs_xmlNewDocPI");
+		js.wrap(this.__cjs_xmlReadMemory, "__cjs_xmlReadMemory");
+		js.wrap(this.__cjs_xmlNodeIsText, "__cjs_xmlNodeIsText");
+		js.wrap(this.__cjs_xmlGetPath, "__cjs_xmlGetPath");
+		js.wrap(this.__cjs_xmlEncodeEntitiesReentrant, "__cjs_xmlEncodeEntitiesReentrant");
+		js.wrap(this.__cjs__xmlCopyNode, "__cjs__xmlCopyNode");
+		js.wrap(this.__cjs_xmlNodeDump, "__cjs_xmlNodeDump");
+		js.wrap(this.__cjs__htmlCreateMemoryParserCtxt, "__cjs__htmlCreateMemoryParserCtxt");
+		js.wrap(this.__cjs__htmlCtxtReadDoc, "__cjs__htmlCtxtReadDoc");
+		js.wrap(this.__cjs__htmlCtxtReadFile, "__cjs__htmlCtxtReadFile");
+		js.wrap(this.__cjs__htmlCtxtReadMemory, "__cjs__htmlCtxtReadMemory");
+		js.wrap(this.__cjs__htmlCtxtReset, "__cjs__htmlCtxtReset");
+		js.wrap(this.__cjs__htmlCtxtUseOptions, "__cjs__htmlCtxtUseOptions");
+		js.wrap(this.__cjs__htmlElementAllowedHere, "__cjs__htmlElementAllowedHere");
+		js.wrap(this.__cjs__htmlElementStatusHere, "__cjs__htmlElementStatusHere");
+		js.wrap(this.__cjs__htmlFreeParserCtxt, "__cjs__htmlFreeParserCtxt");
+		js.wrap(this.__cjs__htmlHandleOmittedElem, "__cjs__htmlHandleOmittedElem");
+		js.wrap(this.__cjs__htmlIsAutoClosed, "__cjs__htmlIsAutoClosed");
+		js.wrap(this.__cjs__htmlIsScriptAttribute, "__cjs__htmlIsScriptAttribute");
+		js.wrap(this.__cjs__htmlNodeStatus, "__cjs__htmlNodeStatus");
+		js.wrap(this.__cjs__htmlParseCharRef, "__cjs__htmlParseCharRef");
+		js.wrap(this.__cjs__htmlParseChunk, "__cjs__htmlParseChunk");
+		js.wrap(this.__cjs__htmlParseDoc, "__cjs__htmlParseDoc");
+		js.wrap(this.__cjs__htmlParseDocument, "__cjs__htmlParseDocument");
+		js.wrap(this.__cjs__htmlParseElement, "__cjs__htmlParseElement");
+		js.wrap(this.__cjs__htmlParseFile, "__cjs__htmlParseFile");
+		js.wrap(this.__cjs__htmlReadDoc, "__cjs__htmlReadDoc");
+		js.wrap(this.__cjs__htmlReadFile, "__cjs__htmlReadFile");
+		js.wrap(this.__cjs__htmlReadMemory, "__cjs__htmlReadMemory");
+		js.wrap(this.__cjs__htmlDocDumpMemory, "__cjs__htmlDocDumpMemory");
+		js.wrap(this.__cjs__htmlGetMetaEncoding, "__cjs__htmlGetMetaEncoding");
+		js.wrap(this.__cjs__htmlIsBooleanAttr, "__cjs__htmlIsBooleanAttr");
+		js.wrap(this.__cjs__htmlNewDoc, "__cjs__htmlNewDoc");
+		js.wrap(this.__cjs__htmlNewDocNoDtD, "__cjs__htmlNewDocNoDtD");
+		js.wrap(this.__cjs__htmlSaveFile, "__cjs__htmlSaveFile");
+		js.wrap(this.__cjs__htmlSaveFileEnc, "__cjs__htmlSaveFileEnc");
+		js.wrap(this.__cjs__htmlSaveFileFormat, "__cjs__htmlSaveFileFormat");
+		js.wrap(this.__cjs__htmlSetMetaEncoding, "__cjs__htmlSetMetaEncoding");
+		js.wrap(this.__cjs__htmlElemDescArray, "__cjs__htmlElemDescArray");
+		js.wrap(this.__cjs__htmlEntityDescArray, "__cjs__htmlEntityDescArray");
+		js.wrap(this.__cjs_xmlTextReaderSetErrorHandler, "__cjs_xmlTextReaderSetErrorHandler");
+		js.wrap(this.__cjs_xmlSetGenericErrorFunc, "__cjs_xmlSetGenericErrorFunc");
+		js.wrap(this.__cjs_xmlSetStructuredErrorFunc, "__cjs_xmlSetStructuredErrorFunc");
+		js.wrap(this.__cjs_xmlURIEscapeStr, "__cjs_xmlURIEscapeStr");
+		js.wrap(this.__cjs_xmlURIUnescapeString, "__cjs_xmlURIUnescapeString");
+		js.wrap(this.__cjs_xmlFreeNode, "__cjs_xmlFreeNode");
+		js.wrap(this.__cjs_xmlNewCDataBlock, "__cjs_xmlNewCDataBlock");
+		js.wrap(this.__cjs_xmlChildElementCount, "__cjs_xmlChildElementCount");
+	}
+
+	ECMABRIDGE_standard_lib_xml(js) {
+		this.wrap(js);
+	}
+}

@@ -1,0 +1,202 @@
+/* This file is generated automatically by generatejs.con. Do not edit. */
+
+import win32.base.messages
+
+class ECMABRIDGE_win32_base_messages {
+	__cjs_CreateDebugPipe() {
+		return CreateDebugPipe();
+	}
+
+	__cjs_DestroyDebugPipe() {
+		return DestroyDebugPipe();
+	}
+
+	__cjs_GetAPID() {
+		return GetAPID();
+	}
+
+	__cjs_GetParentAPID() {
+		return GetParentAPID();
+	}
+
+	__cjs_PeekAPMessage() {
+		return PeekAPMessage();
+	}
+
+	__cjs_GetAPMessage(a, b, c) {
+		return GetAPMessage(a, b, c);
+	}
+
+	__cjs_SendAPMessage(a, b, c) {
+		return SendAPMessage(a, b, c);
+	}
+
+	__cjs_send_message(a, b, c, d) {
+		return send_message(a, b, c, d);
+	}
+
+	__cjs_get_message(a, b, c, d) {
+		return get_message(a, b, c, d);
+	}
+
+	__cjs_BeginUpdateSession() {
+		return BeginUpdateSession();
+	}
+
+	__cjs_EndUpdateSession() {
+		return EndUpdateSession();
+	}
+
+	__cjs_EndUpdateSession2() {
+		return EndUpdateSession2();
+	}
+
+	__cjs_CheckPoint(a) {
+		return CheckPoint(a);
+	}
+
+	__cjs_GetRemoteIP(a) {
+		return GetRemoteIP(a);
+	}
+
+	__cjs_LocalTimer(a, b, c) {
+		return LocalTimer(a, b, c);
+	}
+
+	__cjs_HaveMessage() {
+		return HaveMessage();
+	}
+
+	__cjs_Hibernate(a) {
+		return Hibernate(a);
+	}
+
+	__cjs_SetApplicationEventTimeout(a) {
+		return SetApplicationEventTimeout(a);
+	}
+
+	__cjs_CreateRTSocket(a, b) {
+		return CreateRTSocket(a, b);
+	}
+
+	__cjs_CloseRTSocket() {
+		return CloseRTSocket();
+	}
+
+	__cjs_ConceptProtocolSecured() {
+		return ConceptProtocolSecured();
+	}
+
+	__cjs_WaitRTSocket(a) {
+		return WaitRTSocket(a);
+	}
+
+	__cjs_UpgradeTLS(a, b, c, d = null) {
+		return UpgradeTLS(a, b, c, d = null);
+	}
+
+	__cjs_GetProtoSocket() {
+		return GetProtoSocket();
+	}
+
+	__cjs_MetaCode(a, b, c = null) {
+		return MetaCode(a, b, c = null);
+	}
+
+	__cjs_protect() {
+		return protect();
+	}
+
+	__cjs_IsClient() {
+		return IsClient();
+	}
+
+	__cjs_RegisterLooper(a) {
+		return RegisterLooper(a);
+	}
+
+	__cjs_UnregisterLooper(a) {
+		return UnregisterLooper(a);
+	}
+
+	__cjs_InterateLoop() {
+		return InterateLoop();
+	}
+
+	__cjs_MainLoop(a) {
+		return MainLoop(a);
+	}
+
+	__cjs_LinkInfo(a, b, c, d = null) {
+		return LinkInfo(a, b, c, d = null);
+	}
+
+	__cjs_ConfirmRTSocket(a, b) {
+		return ConfirmRTSocket(a, b);
+	}
+
+	__cjs_EnableRTSend(a) {
+		return EnableRTSend(a);
+	}
+
+	__cjs_GetRTSocket() {
+		return GetRTSocket();
+	}
+
+	__cjs_GetRTPeer() {
+		return GetRTPeer();
+	}
+
+	__cjs_SetOnConnectionChanged(a) {
+		return SetOnConnectionChanged(a);
+	}
+
+	__cjs_HasNewProtoSocket() {
+		return HasNewProtoSocket();
+	}
+
+	wrap(js) {
+		js.wrap(this.__cjs_CreateDebugPipe, "__cjs_CreateDebugPipe");
+		js.wrap(this.__cjs_DestroyDebugPipe, "__cjs_DestroyDebugPipe");
+		js.wrap(this.__cjs_GetAPID, "__cjs_GetAPID");
+		js.wrap(this.__cjs_GetParentAPID, "__cjs_GetParentAPID");
+		js.wrap(this.__cjs_PeekAPMessage, "__cjs_PeekAPMessage");
+		js.wrap(this.__cjs_GetAPMessage, "__cjs_GetAPMessage");
+		js.wrap(this.__cjs_SendAPMessage, "__cjs_SendAPMessage");
+		js.wrap(this.__cjs_send_message, "__cjs_send_message");
+		js.wrap(this.__cjs_get_message, "__cjs_get_message");
+		js.wrap(this.__cjs_BeginUpdateSession, "__cjs_BeginUpdateSession");
+		js.wrap(this.__cjs_EndUpdateSession, "__cjs_EndUpdateSession");
+		js.wrap(this.__cjs_EndUpdateSession2, "__cjs_EndUpdateSession2");
+		js.wrap(this.__cjs_CheckPoint, "__cjs_CheckPoint");
+		js.wrap(this.__cjs_GetRemoteIP, "__cjs_GetRemoteIP");
+		js.wrap(this.__cjs_LocalTimer, "__cjs_LocalTimer");
+		js.wrap(this.__cjs_HaveMessage, "__cjs_HaveMessage");
+		js.wrap(this.__cjs_Hibernate, "__cjs_Hibernate");
+		js.wrap(this.__cjs_SetApplicationEventTimeout, "__cjs_SetApplicationEventTimeout");
+		js.wrap(this.__cjs_CreateRTSocket, "__cjs_CreateRTSocket");
+		js.wrap(this.__cjs_CloseRTSocket, "__cjs_CloseRTSocket");
+		js.wrap(this.__cjs_ConceptProtocolSecured, "__cjs_ConceptProtocolSecured");
+		js.wrap(this.__cjs_WaitRTSocket, "__cjs_WaitRTSocket");
+		js.wrap(this.__cjs_UpgradeTLS, "__cjs_UpgradeTLS");
+		js.wrap(this.__cjs_GetProtoSocket, "__cjs_GetProtoSocket");
+		js.wrap(this.__cjs_MetaCode, "__cjs_MetaCode");
+		js.wrap(this.__cjs_protect, "__cjs_protect");
+		js.wrap(this.__cjs_IsClient, "__cjs_IsClient");
+		js.wrap(this.__cjs_RegisterLooper, "__cjs_RegisterLooper");
+		js.wrap(this.__cjs_UnregisterLooper, "__cjs_UnregisterLooper");
+		js.wrap(this.__cjs_InterateLoop, "__cjs_InterateLoop");
+		js.wrap(this.__cjs_MainLoop, "__cjs_MainLoop");
+		js.wrap(this.__cjs_LinkInfo, "__cjs_LinkInfo");
+		js.wrap(this.__cjs_ConfirmRTSocket, "__cjs_ConfirmRTSocket");
+		js.wrap(this.__cjs_EnableRTSend, "__cjs_EnableRTSend");
+		js.wrap(this.__cjs_GetRTSocket, "__cjs_GetRTSocket");
+		js.wrap(this.__cjs_GetRTPeer, "__cjs_GetRTPeer");
+		js.wrap(this.__cjs_SetOnConnectionChanged, "__cjs_SetOnConnectionChanged");
+		js.wrap(this.__cjs_HasNewProtoSocket, "__cjs_HasNewProtoSocket");
+	}
+
+	ECMABRIDGE_win32_base_messages(js) {
+		this.wrap(js);
+	}
+}

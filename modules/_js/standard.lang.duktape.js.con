@@ -1,0 +1,62 @@
+/* This file is generated automatically by generatejs.con. Do not edit. */
+
+import standard.lang.duktape
+
+class ECMABRIDGE_standard_lang_duktape {
+	__cjs_JSNewRuntime() {
+		return JSNewRuntime();
+	}
+
+	__cjs_JSDestroyRuntime(a) {
+		return JSDestroyRuntime(a);
+	}
+
+	__cjs_JSEvaluateScript(a, b) {
+		return JSEvaluateScript(a, b);
+	}
+
+	__cjs_JSEvaluateFile(a, b) {
+		return JSEvaluateFile(a, b);
+	}
+
+	__cjs_JSCall(a, b, c, d) {
+		return JSCall(a, b, c, d);
+	}
+
+	__cjs_JSWrap(a, b, c) {
+		return JSWrap(a, b, c);
+	}
+
+	__cjs_JSVariable(a, b, c) {
+		return JSVariable(a, b, c);
+	}
+
+	__cjs_JSThrow(a, b) {
+		return JSThrow(a, b);
+	}
+
+	__cjs_JSErrorCode(a, b) {
+		return JSErrorCode(a, b);
+	}
+
+	__cjs_JSGC(a) {
+		return JSGC(a);
+	}
+
+	wrap(js) {
+		js.wrap(this.__cjs_JSNewRuntime, "__cjs_JSNewRuntime");
+		js.wrap(this.__cjs_JSDestroyRuntime, "__cjs_JSDestroyRuntime");
+		js.wrap(this.__cjs_JSEvaluateScript, "__cjs_JSEvaluateScript");
+		js.wrap(this.__cjs_JSEvaluateFile, "__cjs_JSEvaluateFile");
+		js.wrap(this.__cjs_JSCall, "__cjs_JSCall");
+		js.wrap(this.__cjs_JSWrap, "__cjs_JSWrap");
+		js.wrap(this.__cjs_JSVariable, "__cjs_JSVariable");
+		js.wrap(this.__cjs_JSThrow, "__cjs_JSThrow");
+		js.wrap(this.__cjs_JSErrorCode, "__cjs_JSErrorCode");
+		js.wrap(this.__cjs_JSGC, "__cjs_JSGC");
+	}
+
+	ECMABRIDGE_standard_lang_duktape(js) {
+		this.wrap(js);
+	}
+}

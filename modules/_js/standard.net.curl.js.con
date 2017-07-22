@@ -1,0 +1,127 @@
+/* This file is generated automatically by generatejs.con. Do not edit. */
+
+import standard.net.curl
+
+class ECMABRIDGE_standard_net_curl {
+	__cjs_curl_global_init(a) {
+		return curl_global_init(a);
+	}
+
+	__cjs_curl_global_cleanup() {
+		return curl_global_cleanup();
+	}
+
+	__cjs_curl_easy_getinfo(a, b, c) {
+		return curl_easy_getinfo(a, b, c);
+	}
+
+	__cjs_curl_easy_init() {
+		return curl_easy_init();
+	}
+
+	__cjs_curl_easy_cleanup(a) {
+		return curl_easy_cleanup(a);
+	}
+
+	__cjs_curl_easy_reset(a) {
+		return curl_easy_reset(a);
+	}
+
+	__cjs_curl_easy_duphandle(a) {
+		return curl_easy_duphandle(a);
+	}
+
+	__cjs_curl_easy_strerror(a) {
+		return curl_easy_strerror(a);
+	}
+
+	__cjs_curl_easy_perform(a) {
+		return curl_easy_perform(a);
+	}
+
+	__cjs_curl_easy_setopt(a, b, c) {
+		return curl_easy_setopt(a, b, c);
+	}
+
+	__cjs_curl_version() {
+		return curl_version();
+	}
+
+	__cjs_curl_getenv(a) {
+		return curl_getenv(a);
+	}
+
+	__cjs_curl_escape(a) {
+		return curl_escape(a);
+	}
+
+	__cjs_curl_unescape(a) {
+		return curl_unescape(a);
+	}
+
+	__cjs_curl_strequal(a, b) {
+		return curl_strequal(a, b);
+	}
+
+	__cjs_curl_strnequal(a, b, c) {
+		return curl_strnequal(a, b, c);
+	}
+
+	__cjs_curl_easy_escape(a, b) {
+		return curl_easy_escape(a, b);
+	}
+
+	__cjs_curl_easy_unescape(a, b) {
+		return curl_easy_unescape(a, b);
+	}
+
+	__cjs_curl_getdate(a) {
+		return curl_getdate(a);
+	}
+
+	__cjs__curl_formnew(a) {
+		return _curl_formnew(a);
+	}
+
+	__cjs__curl_formfree(a) {
+		return _curl_formfree(a);
+	}
+
+	__cjs__curl_easy_send(a, b, c) {
+		return _curl_easy_send(a, b, c);
+	}
+
+	__cjs__curl_easy_recv(a, b, c, d) {
+		return _curl_easy_recv(a, b, c, d);
+	}
+
+	wrap(js) {
+		js.wrap(this.__cjs_curl_global_init, "__cjs_curl_global_init");
+		js.wrap(this.__cjs_curl_global_cleanup, "__cjs_curl_global_cleanup");
+		js.wrap(this.__cjs_curl_easy_getinfo, "__cjs_curl_easy_getinfo");
+		js.wrap(this.__cjs_curl_easy_init, "__cjs_curl_easy_init");
+		js.wrap(this.__cjs_curl_easy_cleanup, "__cjs_curl_easy_cleanup");
+		js.wrap(this.__cjs_curl_easy_reset, "__cjs_curl_easy_reset");
+		js.wrap(this.__cjs_curl_easy_duphandle, "__cjs_curl_easy_duphandle");
+		js.wrap(this.__cjs_curl_easy_strerror, "__cjs_curl_easy_strerror");
+		js.wrap(this.__cjs_curl_easy_perform, "__cjs_curl_easy_perform");
+		js.wrap(this.__cjs_curl_easy_setopt, "__cjs_curl_easy_setopt");
+		js.wrap(this.__cjs_curl_version, "__cjs_curl_version");
+		js.wrap(this.__cjs_curl_getenv, "__cjs_curl_getenv");
+		js.wrap(this.__cjs_curl_escape, "__cjs_curl_escape");
+		js.wrap(this.__cjs_curl_unescape, "__cjs_curl_unescape");
+		js.wrap(this.__cjs_curl_strequal, "__cjs_curl_strequal");
+		js.wrap(this.__cjs_curl_strnequal, "__cjs_curl_strnequal");
+		js.wrap(this.__cjs_curl_easy_escape, "__cjs_curl_easy_escape");
+		js.wrap(this.__cjs_curl_easy_unescape, "__cjs_curl_easy_unescape");
+		js.wrap(this.__cjs_curl_getdate, "__cjs_curl_getdate");
+		js.wrap(this.__cjs__curl_formnew, "__cjs__curl_formnew");
+		js.wrap(this.__cjs__curl_formfree, "__cjs__curl_formfree");
+		js.wrap(this.__cjs__curl_easy_send, "__cjs__curl_easy_send");
+		js.wrap(this.__cjs__curl_easy_recv, "__cjs__curl_easy_recv");
+	}
+
+	ECMABRIDGE_standard_net_curl(js) {
+		this.wrap(js);
+	}
+}

@@ -246,3 +246,4 @@ accel HTTPRequest.con
 accel XMLAPI.con
 accel DUKJS.con
 accel SpreadsheetML.con
+accel JSApp.con

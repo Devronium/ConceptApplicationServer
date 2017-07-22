@@ -1,0 +1,172 @@
+/* This file is generated automatically by generatejs.con. Do not edit. */
+
+import standard.net.tls
+
+class ECMABRIDGE_standard_net_tls {
+	__cjs_TLSServerContext() {
+		return TLSServerContext();
+	}
+
+	__cjs_TLSClientContext(a) {
+		return TLSClientContext(a);
+	}
+
+	__cjs_TLSAddCA(a, b) {
+		return TLSAddCA(a, b);
+	}
+
+	__cjs_TLSSetCAFile(a, b) {
+		return TLSSetCAFile(a, b);
+	}
+
+	__cjs_TLSTrust(a, b) {
+		return TLSTrust(a, b);
+	}
+
+	__cjs_TLSTrustBuffer(a, b) {
+		return TLSTrustBuffer(a, b);
+	}
+
+	__cjs_TLSVerify(a) {
+		return TLSVerify(a);
+	}
+
+	__cjs_TLSTrustLocation(a, b) {
+		return TLSTrustLocation(a, b);
+	}
+
+	__cjs_TLSCertificateFile(a, b, c) {
+		return TLSCertificateFile(a, b, c);
+	}
+
+	__cjs_TLSChainFile(a, b) {
+		return TLSChainFile(a, b);
+	}
+
+	__cjs_TLSPrivateKeyFile(a, b, c) {
+		return TLSPrivateKeyFile(a, b, c);
+	}
+
+	__cjs_TLSCertificate(a, b) {
+		return TLSCertificate(a, b);
+	}
+
+	__cjs_TLSPrivateKey(a, b) {
+		return TLSPrivateKey(a, b);
+	}
+
+	__cjs_TLSSet(a, b) {
+		return TLSSet(a, b);
+	}
+
+	__cjs_TLSAccept(a, b, c) {
+		return TLSAccept(a, b, c);
+	}
+
+	__cjs_TLSConnect(a) {
+		return TLSConnect(a);
+	}
+
+	__cjs_TLSPending(a) {
+		return TLSPending(a);
+	}
+
+	__cjs_TLSRenegotiate(a) {
+		return TLSRenegotiate(a);
+	}
+
+	__cjs_TLSDone(a) {
+		return TLSDone(a);
+	}
+
+	__cjs_TLSWrite(a, b) {
+		return TLSWrite(a, b);
+	}
+
+	__cjs_TLSRead(a, b, c) {
+		return TLSRead(a, b, c);
+	}
+
+	__cjs_TLSError(a) {
+		return TLSError(a);
+	}
+
+	__cjs_TLSGetError(a, b) {
+		return TLSGetError(a, b);
+	}
+
+	__cjs_TLSCheck(a) {
+		return TLSCheck(a);
+	}
+
+	__cjs_TLSCertificateInfo(a) {
+		return TLSCertificateInfo(a);
+	}
+
+	__cjs_TLSLocalInfo(a) {
+		return TLSLocalInfo(a);
+	}
+
+	__cjs_TLSPassphrase(a, b) {
+		return TLSPassphrase(a, b);
+	}
+
+	__cjs_TLSSave(a) {
+		return TLSSave(a);
+	}
+
+	__cjs_TLSRestore(a, b) {
+		return TLSRestore(a, b);
+	}
+
+	__cjs_TLSProxy(a, b, c) {
+		return TLSProxy(a, b, c);
+	}
+
+	__cjs_TLSSerialize(a) {
+		return TLSSerialize(a);
+	}
+
+	__cjs_TLSUnserialize(a, b, c = null) {
+		return TLSUnserialize(a, b, c = null);
+	}
+
+	wrap(js) {
+		js.wrap(this.__cjs_TLSServerContext, "__cjs_TLSServerContext");
+		js.wrap(this.__cjs_TLSClientContext, "__cjs_TLSClientContext");
+		js.wrap(this.__cjs_TLSAddCA, "__cjs_TLSAddCA");
+		js.wrap(this.__cjs_TLSSetCAFile, "__cjs_TLSSetCAFile");
+		js.wrap(this.__cjs_TLSTrust, "__cjs_TLSTrust");
+		js.wrap(this.__cjs_TLSTrustBuffer, "__cjs_TLSTrustBuffer");
+		js.wrap(this.__cjs_TLSVerify, "__cjs_TLSVerify");
+		js.wrap(this.__cjs_TLSTrustLocation, "__cjs_TLSTrustLocation");
+		js.wrap(this.__cjs_TLSCertificateFile, "__cjs_TLSCertificateFile");
+		js.wrap(this.__cjs_TLSChainFile, "__cjs_TLSChainFile");
+		js.wrap(this.__cjs_TLSPrivateKeyFile, "__cjs_TLSPrivateKeyFile");
+		js.wrap(this.__cjs_TLSCertificate, "__cjs_TLSCertificate");
+		js.wrap(this.__cjs_TLSPrivateKey, "__cjs_TLSPrivateKey");
+		js.wrap(this.__cjs_TLSSet, "__cjs_TLSSet");
+		js.wrap(this.__cjs_TLSAccept, "__cjs_TLSAccept");
+		js.wrap(this.__cjs_TLSConnect, "__cjs_TLSConnect");
+		js.wrap(this.__cjs_TLSPending, "__cjs_TLSPending");
+		js.wrap(this.__cjs_TLSRenegotiate, "__cjs_TLSRenegotiate");
+		js.wrap(this.__cjs_TLSDone, "__cjs_TLSDone");
+		js.wrap(this.__cjs_TLSWrite, "__cjs_TLSWrite");
+		js.wrap(this.__cjs_TLSRead, "__cjs_TLSRead");
+		js.wrap(this.__cjs_TLSError, "__cjs_TLSError");
+		js.wrap(this.__cjs_TLSGetError, "__cjs_TLSGetError");
+		js.wrap(this.__cjs_TLSCheck, "__cjs_TLSCheck");
+		js.wrap(this.__cjs_TLSCertificateInfo, "__cjs_TLSCertificateInfo");
+		js.wrap(this.__cjs_TLSLocalInfo, "__cjs_TLSLocalInfo");
+		js.wrap(this.__cjs_TLSPassphrase, "__cjs_TLSPassphrase");
+		js.wrap(this.__cjs_TLSSave, "__cjs_TLSSave");
+		js.wrap(this.__cjs_TLSRestore, "__cjs_TLSRestore");
+		js.wrap(this.__cjs_TLSProxy, "__cjs_TLSProxy");
+		js.wrap(this.__cjs_TLSSerialize, "__cjs_TLSSerialize");
+		js.wrap(this.__cjs_TLSUnserialize, "__cjs_TLSUnserialize");
+	}
+
+	ECMABRIDGE_standard_net_tls(js) {
+		this.wrap(js);
+	}
+}

@@ -1,0 +1,72 @@
+/* This file is generated automatically by generatejs.con. Do not edit. */
+
+import standard.lib.dtmf
+
+class ECMABRIDGE_standard_lib_dtmf {
+	__cjs_DTMFGeneratorInit(a, b = null, c = null) {
+		return DTMFGeneratorInit(a, b = null, c = null);
+	}
+
+	__cjs_DTMFGeneratorDone(a) {
+		return DTMFGeneratorDone(a);
+	}
+
+	__cjs_DTMFGeneratorGenerate(a) {
+		return DTMFGeneratorGenerate(a);
+	}
+
+	__cjs_DTMFGeneratorTransmit(a, b) {
+		return DTMFGeneratorTransmit(a, b);
+	}
+
+	__cjs_DTMFGeneratorReady(a) {
+		return DTMFGeneratorReady(a);
+	}
+
+	__cjs_DTMFGeneratorReset(a) {
+		return DTMFGeneratorReset(a);
+	}
+
+	__cjs_DTMFDetectorInit(a) {
+		return DTMFDetectorInit(a);
+	}
+
+	__cjs_DTMFDetectorDone(a) {
+		return DTMFDetectorDone(a);
+	}
+
+	__cjs_DTMFDetectorThreshold(a, b) {
+		return DTMFDetectorThreshold(a, b);
+	}
+
+	__cjs_DTMFDetectorReset(a) {
+		return DTMFDetectorReset(a);
+	}
+
+	__cjs_DTMFDetectorDetect(a, b) {
+		return DTMFDetectorDetect(a, b);
+	}
+
+	__cjs_DTMFDetectorButtons(a) {
+		return DTMFDetectorButtons(a);
+	}
+
+	wrap(js) {
+		js.wrap(this.__cjs_DTMFGeneratorInit, "__cjs_DTMFGeneratorInit");
+		js.wrap(this.__cjs_DTMFGeneratorDone, "__cjs_DTMFGeneratorDone");
+		js.wrap(this.__cjs_DTMFGeneratorGenerate, "__cjs_DTMFGeneratorGenerate");
+		js.wrap(this.__cjs_DTMFGeneratorTransmit, "__cjs_DTMFGeneratorTransmit");
+		js.wrap(this.__cjs_DTMFGeneratorReady, "__cjs_DTMFGeneratorReady");
+		js.wrap(this.__cjs_DTMFGeneratorReset, "__cjs_DTMFGeneratorReset");
+		js.wrap(this.__cjs_DTMFDetectorInit, "__cjs_DTMFDetectorInit");
+		js.wrap(this.__cjs_DTMFDetectorDone, "__cjs_DTMFDetectorDone");
+		js.wrap(this.__cjs_DTMFDetectorThreshold, "__cjs_DTMFDetectorThreshold");
+		js.wrap(this.__cjs_DTMFDetectorReset, "__cjs_DTMFDetectorReset");
+		js.wrap(this.__cjs_DTMFDetectorDetect, "__cjs_DTMFDetectorDetect");
+		js.wrap(this.__cjs_DTMFDetectorButtons, "__cjs_DTMFDetectorButtons");
+	}
+
+	ECMABRIDGE_standard_lib_dtmf(js) {
+		this.wrap(js);
+	}
+}

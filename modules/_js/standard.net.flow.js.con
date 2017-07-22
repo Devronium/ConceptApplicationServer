@@ -1,0 +1,22 @@
+/* This file is generated automatically by generatejs.con. Do not edit. */
+
+import standard.net.flow
+
+class ECMABRIDGE_standard_net_flow {
+	__cjs_ParseNetflowPacket(a, b) {
+		return ParseNetflowPacket(a, b);
+	}
+
+	__cjs_DoneNetflowPacket(a) {
+		return DoneNetflowPacket(a);
+	}
+
+	wrap(js) {
+		js.wrap(this.__cjs_ParseNetflowPacket, "__cjs_ParseNetflowPacket");
+		js.wrap(this.__cjs_DoneNetflowPacket, "__cjs_DoneNetflowPacket");
+	}
+
+	ECMABRIDGE_standard_net_flow(js) {
+		this.wrap(js);
+	}
+}

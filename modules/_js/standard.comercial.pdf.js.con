@@ -1,0 +1,877 @@
+/* This file is generated automatically by generatejs.con. Do not edit. */
+
+import standard.comercial.pdf
+
+class ECMABRIDGE_standard_comercial_pdf {
+	__cjs__PDF_activate_item(a, b) {
+		return _PDF_activate_item(a, b);
+	}
+
+	__cjs__PDF_add_bookmark(a, b, c, d) {
+		return _PDF_add_bookmark(a, b, c, d);
+	}
+
+	__cjs__PDF_add_bookmark2(a, b, c, d, e) {
+		return _PDF_add_bookmark2(a, b, c, d, e);
+	}
+
+	__cjs__PDF_add_launchlink(a, b, c, d, e, f) {
+		return _PDF_add_launchlink(a, b, c, d, e, f);
+	}
+
+	__cjs__PDF_add_locallink(a, b, c, d, e, f, g) {
+		return _PDF_add_locallink(a, b, c, d, e, f, g);
+	}
+
+	__cjs__PDF_add_nameddest(a, b, c, d) {
+		return _PDF_add_nameddest(a, b, c, d);
+	}
+
+	__cjs__PDF_add_note(a, b, c, d, e, f, g, h, i) {
+		return _PDF_add_note(a, b, c, d, e, f, g, h, i);
+	}
+
+	__cjs__PDF_add_note2(a, b, c, d, e, f, g, h, i, j, k) {
+		return _PDF_add_note2(a, b, c, d, e, f, g, h, i, j, k);
+	}
+
+	__cjs__PDF_add_pdflink(a, b, c, d, e, f, g, h) {
+		return _PDF_add_pdflink(a, b, c, d, e, f, g, h);
+	}
+
+	__cjs__PDF_add_table_cell(a, b, c, d, e, f, g) {
+		return _PDF_add_table_cell(a, b, c, d, e, f, g);
+	}
+
+	__cjs__PDF_add_textflow(a, b, c, d, e) {
+		return _PDF_add_textflow(a, b, c, d, e);
+	}
+
+	__cjs__PDF_add_thumbnail(a, b) {
+		return _PDF_add_thumbnail(a, b);
+	}
+
+	__cjs__PDF_add_weblink(a, b, c, d, e, f) {
+		return _PDF_add_weblink(a, b, c, d, e, f);
+	}
+
+	__cjs__PDF_arc(a, b, c, d, e, f) {
+		return _PDF_arc(a, b, c, d, e, f);
+	}
+
+	__cjs__PDF_arcn(a, b, c, d, e, f) {
+		return _PDF_arcn(a, b, c, d, e, f);
+	}
+
+	__cjs__PDF_attach_file(a, b, c, d, e, f, g, h, i, j) {
+		return _PDF_attach_file(a, b, c, d, e, f, g, h, i, j);
+	}
+
+	__cjs__PDF_attach_file2(a, b, c, d, e, f, g, h, i, j, k, l, m) {
+		return _PDF_attach_file2(a, b, c, d, e, f, g, h, i, j, k, l, m);
+	}
+
+	__cjs__PDF_begin_document(a, b, c, d) {
+		return _PDF_begin_document(a, b, c, d);
+	}
+
+	__cjs__PDF_begin_font(a, b, c, d, e, f, g, h, i, j) {
+		return _PDF_begin_font(a, b, c, d, e, f, g, h, i, j);
+	}
+
+	__cjs__PDF_begin_glyph(a, b, c, d, e, f, g) {
+		return _PDF_begin_glyph(a, b, c, d, e, f, g);
+	}
+
+	__cjs__PDF_begin_item(a, b, c) {
+		return _PDF_begin_item(a, b, c);
+	}
+
+	__cjs__PDF_begin_layer(a, b) {
+		return _PDF_begin_layer(a, b);
+	}
+
+	__cjs__PDF_begin_mc(a, b, c) {
+		return _PDF_begin_mc(a, b, c);
+	}
+
+	__cjs__PDF_begin_page(a, b, c) {
+		return _PDF_begin_page(a, b, c);
+	}
+
+	__cjs__PDF_begin_page_ext(a, b, c, d) {
+		return _PDF_begin_page_ext(a, b, c, d);
+	}
+
+	__cjs__PDF_begin_pattern(a, b, c, d, e, f) {
+		return _PDF_begin_pattern(a, b, c, d, e, f);
+	}
+
+	__cjs__PDF_begin_template(a, b, c) {
+		return _PDF_begin_template(a, b, c);
+	}
+
+	__cjs__PDF_begin_template_ext(a, b, c, d) {
+		return _PDF_begin_template_ext(a, b, c, d);
+	}
+
+	__cjs__PDF_boot() {
+		return _PDF_boot();
+	}
+
+	__cjs__PDF_check_context(a) {
+		return _PDF_check_context(a);
+	}
+
+	__cjs__PDF_circle(a, b, c, d) {
+		return _PDF_circle(a, b, c, d);
+	}
+
+	__cjs__PDF_clip(a) {
+		return _PDF_clip(a);
+	}
+
+	__cjs__PDF_close(a) {
+		return _PDF_close(a);
+	}
+
+	__cjs__PDF_close_image(a, b) {
+		return _PDF_close_image(a, b);
+	}
+
+	__cjs__PDF_close_pdi(a, b) {
+		return _PDF_close_pdi(a, b);
+	}
+
+	__cjs__PDF_close_pdi_document(a, b) {
+		return _PDF_close_pdi_document(a, b);
+	}
+
+	__cjs__PDF_close_pdi_page(a, b) {
+		return _PDF_close_pdi_page(a, b);
+	}
+
+	__cjs__PDF_closepath(a) {
+		return _PDF_closepath(a);
+	}
+
+	__cjs__PDF_closepath_fill_stroke(a) {
+		return _PDF_closepath_fill_stroke(a);
+	}
+
+	__cjs__PDF_closepath_stroke(a) {
+		return _PDF_closepath_stroke(a);
+	}
+
+	__cjs__PDF_concat(a, b, c, d, e, f, g) {
+		return _PDF_concat(a, b, c, d, e, f, g);
+	}
+
+	__cjs__PDF_continue_text(a, b) {
+		return _PDF_continue_text(a, b);
+	}
+
+	__cjs__PDF_continue_text2(a, b, c) {
+		return _PDF_continue_text2(a, b, c);
+	}
+
+	__cjs__PDF_create_3dview(a, b, c, d) {
+		return _PDF_create_3dview(a, b, c, d);
+	}
+
+	__cjs__PDF_create_action(a, b, c) {
+		return _PDF_create_action(a, b, c);
+	}
+
+	__cjs__PDF_create_annotation(a, b, c, d, e, f, g) {
+		return _PDF_create_annotation(a, b, c, d, e, f, g);
+	}
+
+	__cjs__PDF_create_bookmark(a, b, c, d) {
+		return _PDF_create_bookmark(a, b, c, d);
+	}
+
+	__cjs__PDF_create_field(a, b, c, d, e, f, g, h, i) {
+		return _PDF_create_field(a, b, c, d, e, f, g, h, i);
+	}
+
+	__cjs__PDF_create_fieldgroup(a, b, c, d) {
+		return _PDF_create_fieldgroup(a, b, c, d);
+	}
+
+	__cjs__PDF_create_gstate(a, b) {
+		return _PDF_create_gstate(a, b);
+	}
+
+	__cjs__PDF_create_pvf(a, b, c, d, e, f) {
+		return _PDF_create_pvf(a, b, c, d, e, f);
+	}
+
+	__cjs__PDF_create_textflow(a, b, c, d) {
+		return _PDF_create_textflow(a, b, c, d);
+	}
+
+	__cjs__PDF_curveto(a, b, c, d, e, f, g) {
+		return _PDF_curveto(a, b, c, d, e, f, g);
+	}
+
+	__cjs__PDF_define_layer(a, b, c, d) {
+		return _PDF_define_layer(a, b, c, d);
+	}
+
+	__cjs__PDF_delete(a) {
+		return _PDF_delete(a);
+	}
+
+	__cjs__PDF_delete_pvf(a, b, c) {
+		return _PDF_delete_pvf(a, b, c);
+	}
+
+	__cjs__PDF_delete_table(a, b, c) {
+		return _PDF_delete_table(a, b, c);
+	}
+
+	__cjs__PDF_delete_textflow(a, b) {
+		return _PDF_delete_textflow(a, b);
+	}
+
+	__cjs__PDF_encoding_set_char(a, b, c, d, e) {
+		return _PDF_encoding_set_char(a, b, c, d, e);
+	}
+
+	__cjs__PDF_end_document(a, b) {
+		return _PDF_end_document(a, b);
+	}
+
+	__cjs__PDF_end_font(a) {
+		return _PDF_end_font(a);
+	}
+
+	__cjs__PDF_end_glyph(a) {
+		return _PDF_end_glyph(a);
+	}
+
+	__cjs__PDF_end_item(a, b) {
+		return _PDF_end_item(a, b);
+	}
+
+	__cjs__PDF_end_layer(a) {
+		return _PDF_end_layer(a);
+	}
+
+	__cjs__PDF_end_mc(a) {
+		return _PDF_end_mc(a);
+	}
+
+	__cjs__PDF_end_page(a) {
+		return _PDF_end_page(a);
+	}
+
+	__cjs__PDF_end_page_ext(a, b) {
+		return _PDF_end_page_ext(a, b);
+	}
+
+	__cjs__PDF_end_pattern(a) {
+		return _PDF_end_pattern(a);
+	}
+
+	__cjs__PDF_end_template(a) {
+		return _PDF_end_template(a);
+	}
+
+	__cjs__PDF_endpath(a) {
+		return _PDF_endpath(a);
+	}
+
+	__cjs__PDF_fill(a) {
+		return _PDF_fill(a);
+	}
+
+	__cjs__PDF_fill_imageblock(a, b, c, d, e) {
+		return _PDF_fill_imageblock(a, b, c, d, e);
+	}
+
+	__cjs__PDF_fill_pdfblock(a, b, c, d, e) {
+		return _PDF_fill_pdfblock(a, b, c, d, e);
+	}
+
+	__cjs__PDF_fill_stroke(a) {
+		return _PDF_fill_stroke(a);
+	}
+
+	__cjs__PDF_fill_textblock(a, b, c, d, e, f) {
+		return _PDF_fill_textblock(a, b, c, d, e, f);
+	}
+
+	__cjs__PDF_findfont(a, b, c, d) {
+		return _PDF_findfont(a, b, c, d);
+	}
+
+	__cjs__PDF_fit_image(a, b, c, d, e) {
+		return _PDF_fit_image(a, b, c, d, e);
+	}
+
+	__cjs__PDF_fit_pdi_page(a, b, c, d, e) {
+		return _PDF_fit_pdi_page(a, b, c, d, e);
+	}
+
+	__cjs__PDF_fit_table(a, b, c, d, e, f, g) {
+		return _PDF_fit_table(a, b, c, d, e, f, g);
+	}
+
+	__cjs__PDF_fit_textflow(a, b, c, d, e, f, g) {
+		return _PDF_fit_textflow(a, b, c, d, e, f, g);
+	}
+
+	__cjs__PDF_fit_textline(a, b, c, d, e, f) {
+		return _PDF_fit_textline(a, b, c, d, e, f);
+	}
+
+	__cjs__PDF_get_apiname(a) {
+		return _PDF_get_apiname(a);
+	}
+
+	__cjs__PDF_get_buffer(a, b) {
+		return _PDF_get_buffer(a, b);
+	}
+
+	__cjs__PDF_get_errmsg(a) {
+		return _PDF_get_errmsg(a);
+	}
+
+	__cjs__PDF_get_errnum(a) {
+		return _PDF_get_errnum(a);
+	}
+
+	__cjs__PDF_get_kern_amount(a, b, c, d) {
+		return _PDF_get_kern_amount(a, b, c, d);
+	}
+
+	__cjs__PDF_get_majorversion() {
+		return _PDF_get_majorversion();
+	}
+
+	__cjs__PDF_get_minorversion() {
+		return _PDF_get_minorversion();
+	}
+
+	__cjs__PDF_get_opaque(a) {
+		return _PDF_get_opaque(a);
+	}
+
+	__cjs__PDF_get_parameter(a, b, c) {
+		return _PDF_get_parameter(a, b, c);
+	}
+
+	__cjs__PDF_get_pdi_parameter(a, b, c, d, e, f) {
+		return _PDF_get_pdi_parameter(a, b, c, d, e, f);
+	}
+
+	__cjs__PDF_get_pdi_value(a, b, c, d, e) {
+		return _PDF_get_pdi_value(a, b, c, d, e);
+	}
+
+	__cjs__PDF_get_value(a, b, c) {
+		return _PDF_get_value(a, b, c);
+	}
+
+	__cjs__PDF_info_font(a, b, c, d) {
+		return _PDF_info_font(a, b, c, d);
+	}
+
+	__cjs__PDF_info_matchbox(a, b, c, d, e) {
+		return _PDF_info_matchbox(a, b, c, d, e);
+	}
+
+	__cjs__PDF_info_table(a, b, c) {
+		return _PDF_info_table(a, b, c);
+	}
+
+	__cjs__PDF_info_textflow(a, b, c) {
+		return _PDF_info_textflow(a, b, c);
+	}
+
+	__cjs__PDF_info_textline(a, b, c, d, e) {
+		return _PDF_info_textline(a, b, c, d, e);
+	}
+
+	__cjs__PDF_initgraphics(a) {
+		return _PDF_initgraphics(a);
+	}
+
+	__cjs__PDF_lineto(a, b, c) {
+		return _PDF_lineto(a, b, c);
+	}
+
+	__cjs__PDF_load_3ddata(a, b, c, d) {
+		return _PDF_load_3ddata(a, b, c, d);
+	}
+
+	__cjs__PDF_load_font(a, b, c, d, e) {
+		return _PDF_load_font(a, b, c, d, e);
+	}
+
+	__cjs__PDF_load_iccprofile(a, b, c, d) {
+		return _PDF_load_iccprofile(a, b, c, d);
+	}
+
+	__cjs__PDF_load_image(a, b, c, d, e) {
+		return _PDF_load_image(a, b, c, d, e);
+	}
+
+	__cjs__PDF_makespotcolor(a, b, c) {
+		return _PDF_makespotcolor(a, b, c);
+	}
+
+	__cjs__PDF_mc_point(a, b, c) {
+		return _PDF_mc_point(a, b, c);
+	}
+
+	__cjs__PDF_moveto(a, b, c) {
+		return _PDF_moveto(a, b, c);
+	}
+
+	__cjs__PDF_new() {
+		return _PDF_new();
+	}
+
+	__cjs__PDF_open_CCITT(a, b, c, d, e, f, g) {
+		return _PDF_open_CCITT(a, b, c, d, e, f, g);
+	}
+
+	__cjs__PDF_open_file(a, b) {
+		return _PDF_open_file(a, b);
+	}
+
+	__cjs__PDF_open_image(a, b, c, d, e, f, g, h, i, j) {
+		return _PDF_open_image(a, b, c, d, e, f, g, h, i, j);
+	}
+
+	__cjs__PDF_open_image_file(a, b, c, d, e) {
+		return _PDF_open_image_file(a, b, c, d, e);
+	}
+
+	__cjs__PDF_open_pdi(a, b, c, d) {
+		return _PDF_open_pdi(a, b, c, d);
+	}
+
+	__cjs__PDF_open_pdi_document(a, b, c, d) {
+		return _PDF_open_pdi_document(a, b, c, d);
+	}
+
+	__cjs__PDF_open_pdi_page(a, b, c, d) {
+		return _PDF_open_pdi_page(a, b, c, d);
+	}
+
+	__cjs__PDF_place_image(a, b, c, d, e) {
+		return _PDF_place_image(a, b, c, d, e);
+	}
+
+	__cjs__PDF_place_pdi_page(a, b, c, d, e, f) {
+		return _PDF_place_pdi_page(a, b, c, d, e, f);
+	}
+
+	__cjs__PDF_process_pdi(a, b, c, d) {
+		return _PDF_process_pdi(a, b, c, d);
+	}
+
+	__cjs__PDF_rcurveto(a, b, c, d, e, f, g) {
+		return _PDF_rcurveto(a, b, c, d, e, f, g);
+	}
+
+	__cjs__PDF_rect(a, b, c, d, e) {
+		return _PDF_rect(a, b, c, d, e);
+	}
+
+	__cjs__PDF_restore(a) {
+		return _PDF_restore(a);
+	}
+
+	__cjs__PDF_resume_page(a, b) {
+		return _PDF_resume_page(a, b);
+	}
+
+	__cjs__PDF_rlineto(a, b, c) {
+		return _PDF_rlineto(a, b, c);
+	}
+
+	__cjs__PDF_rmoveto(a, b, c) {
+		return _PDF_rmoveto(a, b, c);
+	}
+
+	__cjs__PDF_rotate(a, b) {
+		return _PDF_rotate(a, b);
+	}
+
+	__cjs__PDF_save(a) {
+		return _PDF_save(a);
+	}
+
+	__cjs__PDF_scale(a, b, c) {
+		return _PDF_scale(a, b, c);
+	}
+
+	__cjs__PDF_set_border_color(a, b, c, d) {
+		return _PDF_set_border_color(a, b, c, d);
+	}
+
+	__cjs__PDF_set_border_dash(a, b, c) {
+		return _PDF_set_border_dash(a, b, c);
+	}
+
+	__cjs__PDF_set_border_style(a, b, c) {
+		return _PDF_set_border_style(a, b, c);
+	}
+
+	__cjs__PDF_set_gstate(a, b) {
+		return _PDF_set_gstate(a, b);
+	}
+
+	__cjs__PDF_set_info(a, b, c) {
+		return _PDF_set_info(a, b, c);
+	}
+
+	__cjs__PDF_set_info2(a, b, c, d) {
+		return _PDF_set_info2(a, b, c, d);
+	}
+
+	__cjs__PDF_set_layer_dependency(a, b, c) {
+		return _PDF_set_layer_dependency(a, b, c);
+	}
+
+	__cjs__PDF_set_parameter(a, b, c) {
+		return _PDF_set_parameter(a, b, c);
+	}
+
+	__cjs__PDF_set_text_pos(a, b, c) {
+		return _PDF_set_text_pos(a, b, c);
+	}
+
+	__cjs__PDF_set_value(a, b, c) {
+		return _PDF_set_value(a, b, c);
+	}
+
+	__cjs__PDF_setcolor(a, b, c, d, e, f, g) {
+		return _PDF_setcolor(a, b, c, d, e, f, g);
+	}
+
+	__cjs__PDF_setdash(a, b, c) {
+		return _PDF_setdash(a, b, c);
+	}
+
+	__cjs__PDF_setdashpattern(a, b) {
+		return _PDF_setdashpattern(a, b);
+	}
+
+	__cjs__PDF_setflat(a, b) {
+		return _PDF_setflat(a, b);
+	}
+
+	__cjs__PDF_setfont(a, b, c) {
+		return _PDF_setfont(a, b, c);
+	}
+
+	__cjs__PDF_setgray(a, b) {
+		return _PDF_setgray(a, b);
+	}
+
+	__cjs__PDF_setgray_fill(a, b) {
+		return _PDF_setgray_fill(a, b);
+	}
+
+	__cjs__PDF_setgray_stroke(a, b) {
+		return _PDF_setgray_stroke(a, b);
+	}
+
+	__cjs__PDF_setlinecap(a, b) {
+		return _PDF_setlinecap(a, b);
+	}
+
+	__cjs__PDF_setlinejoin(a, b) {
+		return _PDF_setlinejoin(a, b);
+	}
+
+	__cjs__PDF_setlinewidth(a, b) {
+		return _PDF_setlinewidth(a, b);
+	}
+
+	__cjs__PDF_setmatrix(a, b, c, d, e, f, g) {
+		return _PDF_setmatrix(a, b, c, d, e, f, g);
+	}
+
+	__cjs__PDF_setmiterlimit(a, b) {
+		return _PDF_setmiterlimit(a, b);
+	}
+
+	__cjs__PDF_setpolydash(a, b, c) {
+		return _PDF_setpolydash(a, b, c);
+	}
+
+	__cjs__PDF_setrgbcolor(a, b, c, d) {
+		return _PDF_setrgbcolor(a, b, c, d);
+	}
+
+	__cjs__PDF_setrgbcolor_fill(a, b, c, d) {
+		return _PDF_setrgbcolor_fill(a, b, c, d);
+	}
+
+	__cjs__PDF_setrgbcolor_stroke(a, b, c, d) {
+		return _PDF_setrgbcolor_stroke(a, b, c, d);
+	}
+
+	__cjs__PDF_shading(a, b, c, d, e, f, g, h, i, j, k) {
+		return _PDF_shading(a, b, c, d, e, f, g, h, i, j, k);
+	}
+
+	__cjs__PDF_shading_pattern(a, b, c) {
+		return _PDF_shading_pattern(a, b, c);
+	}
+
+	__cjs__PDF_shfill(a, b) {
+		return _PDF_shfill(a, b);
+	}
+
+	__cjs__PDF_show(a, b) {
+		return _PDF_show(a, b);
+	}
+
+	__cjs__PDF_show2(a, b, c) {
+		return _PDF_show2(a, b, c);
+	}
+
+	__cjs__PDF_show_boxed(a, b, c, d, e, f, g, h) {
+		return _PDF_show_boxed(a, b, c, d, e, f, g, h);
+	}
+
+	__cjs__PDF_show_boxed2(a, b, c, d, e, f, g, h, i) {
+		return _PDF_show_boxed2(a, b, c, d, e, f, g, h, i);
+	}
+
+	__cjs__PDF_show_xy(a, b, c, d) {
+		return _PDF_show_xy(a, b, c, d);
+	}
+
+	__cjs__PDF_show_xy2(a, b, c, d, e) {
+		return _PDF_show_xy2(a, b, c, d, e);
+	}
+
+	__cjs__PDF_shutdown() {
+		return _PDF_shutdown();
+	}
+
+	__cjs__PDF_skew(a, b, c) {
+		return _PDF_skew(a, b, c);
+	}
+
+	__cjs__PDF_stringwidth(a, b, c, d) {
+		return _PDF_stringwidth(a, b, c, d);
+	}
+
+	__cjs__PDF_stringwidth2(a, b, c, d, e) {
+		return _PDF_stringwidth2(a, b, c, d, e);
+	}
+
+	__cjs__PDF_stroke(a) {
+		return _PDF_stroke(a);
+	}
+
+	__cjs__PDF_suspend_page(a, b) {
+		return _PDF_suspend_page(a, b);
+	}
+
+	__cjs__PDF_translate(a, b, c) {
+		return _PDF_translate(a, b, c);
+	}
+
+	__cjs__PDF_utf16_to_utf8(a, b, c, d) {
+		return _PDF_utf16_to_utf8(a, b, c, d);
+	}
+
+	__cjs__PDF_utf32_to_utf16(a, b, c, d, e) {
+		return _PDF_utf32_to_utf16(a, b, c, d, e);
+	}
+
+	__cjs__PDF_utf8_to_utf16(a, b, c, d) {
+		return _PDF_utf8_to_utf16(a, b, c, d);
+	}
+
+	wrap(js) {
+		js.wrap(this.__cjs__PDF_activate_item, "__cjs__PDF_activate_item");
+		js.wrap(this.__cjs__PDF_add_bookmark, "__cjs__PDF_add_bookmark");
+		js.wrap(this.__cjs__PDF_add_bookmark2, "__cjs__PDF_add_bookmark2");
+		js.wrap(this.__cjs__PDF_add_launchlink, "__cjs__PDF_add_launchlink");
+		js.wrap(this.__cjs__PDF_add_locallink, "__cjs__PDF_add_locallink");
+		js.wrap(this.__cjs__PDF_add_nameddest, "__cjs__PDF_add_nameddest");
+		js.wrap(this.__cjs__PDF_add_note, "__cjs__PDF_add_note");
+		js.wrap(this.__cjs__PDF_add_note2, "__cjs__PDF_add_note2");
+		js.wrap(this.__cjs__PDF_add_pdflink, "__cjs__PDF_add_pdflink");
+		js.wrap(this.__cjs__PDF_add_table_cell, "__cjs__PDF_add_table_cell");
+		js.wrap(this.__cjs__PDF_add_textflow, "__cjs__PDF_add_textflow");
+		js.wrap(this.__cjs__PDF_add_thumbnail, "__cjs__PDF_add_thumbnail");
+		js.wrap(this.__cjs__PDF_add_weblink, "__cjs__PDF_add_weblink");
+		js.wrap(this.__cjs__PDF_arc, "__cjs__PDF_arc");
+		js.wrap(this.__cjs__PDF_arcn, "__cjs__PDF_arcn");
+		js.wrap(this.__cjs__PDF_attach_file, "__cjs__PDF_attach_file");
+		js.wrap(this.__cjs__PDF_attach_file2, "__cjs__PDF_attach_file2");
+		js.wrap(this.__cjs__PDF_begin_document, "__cjs__PDF_begin_document");
+		js.wrap(this.__cjs__PDF_begin_font, "__cjs__PDF_begin_font");
+		js.wrap(this.__cjs__PDF_begin_glyph, "__cjs__PDF_begin_glyph");
+		js.wrap(this.__cjs__PDF_begin_item, "__cjs__PDF_begin_item");
+		js.wrap(this.__cjs__PDF_begin_layer, "__cjs__PDF_begin_layer");
+		js.wrap(this.__cjs__PDF_begin_mc, "__cjs__PDF_begin_mc");
+		js.wrap(this.__cjs__PDF_begin_page, "__cjs__PDF_begin_page");
+		js.wrap(this.__cjs__PDF_begin_page_ext, "__cjs__PDF_begin_page_ext");
+		js.wrap(this.__cjs__PDF_begin_pattern, "__cjs__PDF_begin_pattern");
+		js.wrap(this.__cjs__PDF_begin_template, "__cjs__PDF_begin_template");
+		js.wrap(this.__cjs__PDF_begin_template_ext, "__cjs__PDF_begin_template_ext");
+		js.wrap(this.__cjs__PDF_boot, "__cjs__PDF_boot");
+		js.wrap(this.__cjs__PDF_check_context, "__cjs__PDF_check_context");
+		js.wrap(this.__cjs__PDF_circle, "__cjs__PDF_circle");
+		js.wrap(this.__cjs__PDF_clip, "__cjs__PDF_clip");
+		js.wrap(this.__cjs__PDF_close, "__cjs__PDF_close");
+		js.wrap(this.__cjs__PDF_close_image, "__cjs__PDF_close_image");
+		js.wrap(this.__cjs__PDF_close_pdi, "__cjs__PDF_close_pdi");
+		js.wrap(this.__cjs__PDF_close_pdi_document, "__cjs__PDF_close_pdi_document");
+		js.wrap(this.__cjs__PDF_close_pdi_page, "__cjs__PDF_close_pdi_page");
+		js.wrap(this.__cjs__PDF_closepath, "__cjs__PDF_closepath");
+		js.wrap(this.__cjs__PDF_closepath_fill_stroke, "__cjs__PDF_closepath_fill_stroke");
+		js.wrap(this.__cjs__PDF_closepath_stroke, "__cjs__PDF_closepath_stroke");
+		js.wrap(this.__cjs__PDF_concat, "__cjs__PDF_concat");
+		js.wrap(this.__cjs__PDF_continue_text, "__cjs__PDF_continue_text");
+		js.wrap(this.__cjs__PDF_continue_text2, "__cjs__PDF_continue_text2");
+		js.wrap(this.__cjs__PDF_create_3dview, "__cjs__PDF_create_3dview");
+		js.wrap(this.__cjs__PDF_create_action, "__cjs__PDF_create_action");
+		js.wrap(this.__cjs__PDF_create_annotation, "__cjs__PDF_create_annotation");
+		js.wrap(this.__cjs__PDF_create_bookmark, "__cjs__PDF_create_bookmark");
+		js.wrap(this.__cjs__PDF_create_field, "__cjs__PDF_create_field");
+		js.wrap(this.__cjs__PDF_create_fieldgroup, "__cjs__PDF_create_fieldgroup");
+		js.wrap(this.__cjs__PDF_create_gstate, "__cjs__PDF_create_gstate");
+		js.wrap(this.__cjs__PDF_create_pvf, "__cjs__PDF_create_pvf");
+		js.wrap(this.__cjs__PDF_create_textflow, "__cjs__PDF_create_textflow");
+		js.wrap(this.__cjs__PDF_curveto, "__cjs__PDF_curveto");
+		js.wrap(this.__cjs__PDF_define_layer, "__cjs__PDF_define_layer");
+		js.wrap(this.__cjs__PDF_delete, "__cjs__PDF_delete");
+		js.wrap(this.__cjs__PDF_delete_pvf, "__cjs__PDF_delete_pvf");
+		js.wrap(this.__cjs__PDF_delete_table, "__cjs__PDF_delete_table");
+		js.wrap(this.__cjs__PDF_delete_textflow, "__cjs__PDF_delete_textflow");
+		js.wrap(this.__cjs__PDF_encoding_set_char, "__cjs__PDF_encoding_set_char");
+		js.wrap(this.__cjs__PDF_end_document, "__cjs__PDF_end_document");
+		js.wrap(this.__cjs__PDF_end_font, "__cjs__PDF_end_font");
+		js.wrap(this.__cjs__PDF_end_glyph, "__cjs__PDF_end_glyph");
+		js.wrap(this.__cjs__PDF_end_item, "__cjs__PDF_end_item");
+		js.wrap(this.__cjs__PDF_end_layer, "__cjs__PDF_end_layer");
+		js.wrap(this.__cjs__PDF_end_mc, "__cjs__PDF_end_mc");
+		js.wrap(this.__cjs__PDF_end_page, "__cjs__PDF_end_page");
+		js.wrap(this.__cjs__PDF_end_page_ext, "__cjs__PDF_end_page_ext");
+		js.wrap(this.__cjs__PDF_end_pattern, "__cjs__PDF_end_pattern");
+		js.wrap(this.__cjs__PDF_end_template, "__cjs__PDF_end_template");
+		js.wrap(this.__cjs__PDF_endpath, "__cjs__PDF_endpath");
+		js.wrap(this.__cjs__PDF_fill, "__cjs__PDF_fill");
+		js.wrap(this.__cjs__PDF_fill_imageblock, "__cjs__PDF_fill_imageblock");
+		js.wrap(this.__cjs__PDF_fill_pdfblock, "__cjs__PDF_fill_pdfblock");
+		js.wrap(this.__cjs__PDF_fill_stroke, "__cjs__PDF_fill_stroke");
+		js.wrap(this.__cjs__PDF_fill_textblock, "__cjs__PDF_fill_textblock");
+		js.wrap(this.__cjs__PDF_findfont, "__cjs__PDF_findfont");
+		js.wrap(this.__cjs__PDF_fit_image, "__cjs__PDF_fit_image");
+		js.wrap(this.__cjs__PDF_fit_pdi_page, "__cjs__PDF_fit_pdi_page");
+		js.wrap(this.__cjs__PDF_fit_table, "__cjs__PDF_fit_table");
+		js.wrap(this.__cjs__PDF_fit_textflow, "__cjs__PDF_fit_textflow");
+		js.wrap(this.__cjs__PDF_fit_textline, "__cjs__PDF_fit_textline");
+		js.wrap(this.__cjs__PDF_get_apiname, "__cjs__PDF_get_apiname");
+		js.wrap(this.__cjs__PDF_get_buffer, "__cjs__PDF_get_buffer");
+		js.wrap(this.__cjs__PDF_get_errmsg, "__cjs__PDF_get_errmsg");
+		js.wrap(this.__cjs__PDF_get_errnum, "__cjs__PDF_get_errnum");
+		js.wrap(this.__cjs__PDF_get_kern_amount, "__cjs__PDF_get_kern_amount");
+		js.wrap(this.__cjs__PDF_get_majorversion, "__cjs__PDF_get_majorversion");
+		js.wrap(this.__cjs__PDF_get_minorversion, "__cjs__PDF_get_minorversion");
+		js.wrap(this.__cjs__PDF_get_opaque, "__cjs__PDF_get_opaque");
+		js.wrap(this.__cjs__PDF_get_parameter, "__cjs__PDF_get_parameter");
+		js.wrap(this.__cjs__PDF_get_pdi_parameter, "__cjs__PDF_get_pdi_parameter");
+		js.wrap(this.__cjs__PDF_get_pdi_value, "__cjs__PDF_get_pdi_value");
+		js.wrap(this.__cjs__PDF_get_value, "__cjs__PDF_get_value");
+		js.wrap(this.__cjs__PDF_info_font, "__cjs__PDF_info_font");
+		js.wrap(this.__cjs__PDF_info_matchbox, "__cjs__PDF_info_matchbox");
+		js.wrap(this.__cjs__PDF_info_table, "__cjs__PDF_info_table");
+		js.wrap(this.__cjs__PDF_info_textflow, "__cjs__PDF_info_textflow");
+		js.wrap(this.__cjs__PDF_info_textline, "__cjs__PDF_info_textline");
+		js.wrap(this.__cjs__PDF_initgraphics, "__cjs__PDF_initgraphics");
+		js.wrap(this.__cjs__PDF_lineto, "__cjs__PDF_lineto");
+		js.wrap(this.__cjs__PDF_load_3ddata, "__cjs__PDF_load_3ddata");
+		js.wrap(this.__cjs__PDF_load_font, "__cjs__PDF_load_font");
+		js.wrap(this.__cjs__PDF_load_iccprofile, "__cjs__PDF_load_iccprofile");
+		js.wrap(this.__cjs__PDF_load_image, "__cjs__PDF_load_image");
+		js.wrap(this.__cjs__PDF_makespotcolor, "__cjs__PDF_makespotcolor");
+		js.wrap(this.__cjs__PDF_mc_point, "__cjs__PDF_mc_point");
+		js.wrap(this.__cjs__PDF_moveto, "__cjs__PDF_moveto");
+		js.wrap(this.__cjs__PDF_new, "__cjs__PDF_new");
+		js.wrap(this.__cjs__PDF_open_CCITT, "__cjs__PDF_open_CCITT");
+		js.wrap(this.__cjs__PDF_open_file, "__cjs__PDF_open_file");
+		js.wrap(this.__cjs__PDF_open_image, "__cjs__PDF_open_image");
+		js.wrap(this.__cjs__PDF_open_image_file, "__cjs__PDF_open_image_file");
+		js.wrap(this.__cjs__PDF_open_pdi, "__cjs__PDF_open_pdi");
+		js.wrap(this.__cjs__PDF_open_pdi_document, "__cjs__PDF_open_pdi_document");
+		js.wrap(this.__cjs__PDF_open_pdi_page, "__cjs__PDF_open_pdi_page");
+		js.wrap(this.__cjs__PDF_place_image, "__cjs__PDF_place_image");
+		js.wrap(this.__cjs__PDF_place_pdi_page, "__cjs__PDF_place_pdi_page");
+		js.wrap(this.__cjs__PDF_process_pdi, "__cjs__PDF_process_pdi");
+		js.wrap(this.__cjs__PDF_rcurveto, "__cjs__PDF_rcurveto");
+		js.wrap(this.__cjs__PDF_rect, "__cjs__PDF_rect");
+		js.wrap(this.__cjs__PDF_restore, "__cjs__PDF_restore");
+		js.wrap(this.__cjs__PDF_resume_page, "__cjs__PDF_resume_page");
+		js.wrap(this.__cjs__PDF_rlineto, "__cjs__PDF_rlineto");
+		js.wrap(this.__cjs__PDF_rmoveto, "__cjs__PDF_rmoveto");
+		js.wrap(this.__cjs__PDF_rotate, "__cjs__PDF_rotate");
+		js.wrap(this.__cjs__PDF_save, "__cjs__PDF_save");
+		js.wrap(this.__cjs__PDF_scale, "__cjs__PDF_scale");
+		js.wrap(this.__cjs__PDF_set_border_color, "__cjs__PDF_set_border_color");
+		js.wrap(this.__cjs__PDF_set_border_dash, "__cjs__PDF_set_border_dash");
+		js.wrap(this.__cjs__PDF_set_border_style, "__cjs__PDF_set_border_style");
+		js.wrap(this.__cjs__PDF_set_gstate, "__cjs__PDF_set_gstate");
+		js.wrap(this.__cjs__PDF_set_info, "__cjs__PDF_set_info");
+		js.wrap(this.__cjs__PDF_set_info2, "__cjs__PDF_set_info2");
+		js.wrap(this.__cjs__PDF_set_layer_dependency, "__cjs__PDF_set_layer_dependency");
+		js.wrap(this.__cjs__PDF_set_parameter, "__cjs__PDF_set_parameter");
+		js.wrap(this.__cjs__PDF_set_text_pos, "__cjs__PDF_set_text_pos");
+		js.wrap(this.__cjs__PDF_set_value, "__cjs__PDF_set_value");
+		js.wrap(this.__cjs__PDF_setcolor, "__cjs__PDF_setcolor");
+		js.wrap(this.__cjs__PDF_setdash, "__cjs__PDF_setdash");
+		js.wrap(this.__cjs__PDF_setdashpattern, "__cjs__PDF_setdashpattern");
+		js.wrap(this.__cjs__PDF_setflat, "__cjs__PDF_setflat");
+		js.wrap(this.__cjs__PDF_setfont, "__cjs__PDF_setfont");
+		js.wrap(this.__cjs__PDF_setgray, "__cjs__PDF_setgray");
+		js.wrap(this.__cjs__PDF_setgray_fill, "__cjs__PDF_setgray_fill");
+		js.wrap(this.__cjs__PDF_setgray_stroke, "__cjs__PDF_setgray_stroke");
+		js.wrap(this.__cjs__PDF_setlinecap, "__cjs__PDF_setlinecap");
+		js.wrap(this.__cjs__PDF_setlinejoin, "__cjs__PDF_setlinejoin");
+		js.wrap(this.__cjs__PDF_setlinewidth, "__cjs__PDF_setlinewidth");
+		js.wrap(this.__cjs__PDF_setmatrix, "__cjs__PDF_setmatrix");
+		js.wrap(this.__cjs__PDF_setmiterlimit, "__cjs__PDF_setmiterlimit");
+		js.wrap(this.__cjs__PDF_setpolydash, "__cjs__PDF_setpolydash");
+		js.wrap(this.__cjs__PDF_setrgbcolor, "__cjs__PDF_setrgbcolor");
+		js.wrap(this.__cjs__PDF_setrgbcolor_fill, "__cjs__PDF_setrgbcolor_fill");
+		js.wrap(this.__cjs__PDF_setrgbcolor_stroke, "__cjs__PDF_setrgbcolor_stroke");
+		js.wrap(this.__cjs__PDF_shading, "__cjs__PDF_shading");
+		js.wrap(this.__cjs__PDF_shading_pattern, "__cjs__PDF_shading_pattern");
+		js.wrap(this.__cjs__PDF_shfill, "__cjs__PDF_shfill");
+		js.wrap(this.__cjs__PDF_show, "__cjs__PDF_show");
+		js.wrap(this.__cjs__PDF_show2, "__cjs__PDF_show2");
+		js.wrap(this.__cjs__PDF_show_boxed, "__cjs__PDF_show_boxed");
+		js.wrap(this.__cjs__PDF_show_boxed2, "__cjs__PDF_show_boxed2");
+		js.wrap(this.__cjs__PDF_show_xy, "__cjs__PDF_show_xy");
+		js.wrap(this.__cjs__PDF_show_xy2, "__cjs__PDF_show_xy2");
+		js.wrap(this.__cjs__PDF_shutdown, "__cjs__PDF_shutdown");
+		js.wrap(this.__cjs__PDF_skew, "__cjs__PDF_skew");
+		js.wrap(this.__cjs__PDF_stringwidth, "__cjs__PDF_stringwidth");
+		js.wrap(this.__cjs__PDF_stringwidth2, "__cjs__PDF_stringwidth2");
+		js.wrap(this.__cjs__PDF_stroke, "__cjs__PDF_stroke");
+		js.wrap(this.__cjs__PDF_suspend_page, "__cjs__PDF_suspend_page");
+		js.wrap(this.__cjs__PDF_translate, "__cjs__PDF_translate");
+		js.wrap(this.__cjs__PDF_utf16_to_utf8, "__cjs__PDF_utf16_to_utf8");
+		js.wrap(this.__cjs__PDF_utf32_to_utf16, "__cjs__PDF_utf32_to_utf16");
+		js.wrap(this.__cjs__PDF_utf8_to_utf16, "__cjs__PDF_utf8_to_utf16");
+	}
+
+	ECMABRIDGE_standard_comercial_pdf(js) {
+		this.wrap(js);
+	}
+}

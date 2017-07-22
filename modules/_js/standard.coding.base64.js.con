@@ -1,0 +1,22 @@
+/* This file is generated automatically by generatejs.con. Do not edit. */
+
+import standard.coding.base64
+
+class ECMABRIDGE_standard_coding_base64 {
+	__cjs_mime_encode(a) {
+		return mime_encode(a);
+	}
+
+	__cjs_mime_decode(a) {
+		return mime_decode(a);
+	}
+
+	wrap(js) {
+		js.wrap(this.__cjs_mime_encode, "__cjs_mime_encode");
+		js.wrap(this.__cjs_mime_decode, "__cjs_mime_decode");
+	}
+
+	ECMABRIDGE_standard_coding_base64(js) {
+		this.wrap(js);
+	}
+}

@@ -1,0 +1,122 @@
+/* This file is generated automatically by generatejs.con. Do not edit. */
+
+import standard.C.string
+
+class ECMABRIDGE_standard_C_string {
+	__cjs_memchr(a, b, c) {
+		return memchr(a, b, c);
+	}
+
+	__cjs_memcmp(a, b, c) {
+		return memcmp(a, b, c);
+	}
+
+	__cjs_memcpy(a, b, c) {
+		return memcpy(a, b, c);
+	}
+
+	__cjs_memmove(a, b, c) {
+		return memmove(a, b, c);
+	}
+
+	__cjs_memset(a, b, c) {
+		return memset(a, b, c);
+	}
+
+	__cjs_strcat(a, b) {
+		return strcat(a, b);
+	}
+
+	__cjs_strchr(a, b) {
+		return strchr(a, b);
+	}
+
+	__cjs_strcmp(a, b) {
+		return strcmp(a, b);
+	}
+
+	__cjs_strcoll(a, b) {
+		return strcoll(a, b);
+	}
+
+	__cjs_strcpy(a, b) {
+		return strcpy(a, b);
+	}
+
+	__cjs_strcspn(a, b) {
+		return strcspn(a, b);
+	}
+
+	__cjs__strerror(a) {
+		return _strerror(a);
+	}
+
+	__cjs_strlen(a) {
+		return strlen(a);
+	}
+
+	__cjs_strncat(a, b, c) {
+		return strncat(a, b, c);
+	}
+
+	__cjs_strncmp(a, b, c) {
+		return strncmp(a, b, c);
+	}
+
+	__cjs_strncpy(a, b, c) {
+		return strncpy(a, b, c);
+	}
+
+	__cjs_strpbrk(a, b) {
+		return strpbrk(a, b);
+	}
+
+	__cjs_strrchr(a, b) {
+		return strrchr(a, b);
+	}
+
+	__cjs_strspn(a, b) {
+		return strspn(a, b);
+	}
+
+	__cjs_strstr(a, b) {
+		return strstr(a, b);
+	}
+
+	__cjs_strtok(a, b) {
+		return strtok(a, b);
+	}
+
+	__cjs_strxfrm(a, b, c) {
+		return strxfrm(a, b, c);
+	}
+
+	wrap(js) {
+		js.wrap(this.__cjs_memchr, "__cjs_memchr");
+		js.wrap(this.__cjs_memcmp, "__cjs_memcmp");
+		js.wrap(this.__cjs_memcpy, "__cjs_memcpy");
+		js.wrap(this.__cjs_memmove, "__cjs_memmove");
+		js.wrap(this.__cjs_memset, "__cjs_memset");
+		js.wrap(this.__cjs_strcat, "__cjs_strcat");
+		js.wrap(this.__cjs_strchr, "__cjs_strchr");
+		js.wrap(this.__cjs_strcmp, "__cjs_strcmp");
+		js.wrap(this.__cjs_strcoll, "__cjs_strcoll");
+		js.wrap(this.__cjs_strcpy, "__cjs_strcpy");
+		js.wrap(this.__cjs_strcspn, "__cjs_strcspn");
+		js.wrap(this.__cjs__strerror, "__cjs__strerror");
+		js.wrap(this.__cjs_strlen, "__cjs_strlen");
+		js.wrap(this.__cjs_strncat, "__cjs_strncat");
+		js.wrap(this.__cjs_strncmp, "__cjs_strncmp");
+		js.wrap(this.__cjs_strncpy, "__cjs_strncpy");
+		js.wrap(this.__cjs_strpbrk, "__cjs_strpbrk");
+		js.wrap(this.__cjs_strrchr, "__cjs_strrchr");
+		js.wrap(this.__cjs_strspn, "__cjs_strspn");
+		js.wrap(this.__cjs_strstr, "__cjs_strstr");
+		js.wrap(this.__cjs_strtok, "__cjs_strtok");
+		js.wrap(this.__cjs_strxfrm, "__cjs_strxfrm");
+	}
+
+	ECMABRIDGE_standard_C_string(js) {
+		this.wrap(js);
+	}
+}

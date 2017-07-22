@@ -1,0 +1,272 @@
+/* This file is generated automatically by generatejs.con. Do not edit. */
+
+import standard.lib.virt
+
+class ECMABRIDGE_standard_lib_virt {
+	__cjs_virError() {
+		return virError();
+	}
+
+	__cjs_virConnect(a, b, c = null, d = null) {
+		return virConnect(a, b, c = null, d = null);
+	}
+
+	__cjs_virInfo(a) {
+		return virInfo(a);
+	}
+
+	__cjs_virClose(a) {
+		return virClose(a);
+	}
+
+	__cjs_virNumOfActiveDomains(a) {
+		return virNumOfActiveDomains(a);
+	}
+
+	__cjs_virNumOfInactiveDomains(a) {
+		return virNumOfInactiveDomains(a);
+	}
+
+	__cjs_virListAllDomains(a, b) {
+		return virListAllDomains(a, b);
+	}
+
+	__cjs_virDomainOpen(a, b) {
+		return virDomainOpen(a, b);
+	}
+
+	__cjs_virDomainOpenUUID(a, b) {
+		return virDomainOpenUUID(a, b);
+	}
+
+	__cjs_virDomainOpenName(a, b) {
+		return virDomainOpenName(a, b);
+	}
+
+	__cjs_virDomainDone(a) {
+		return virDomainDone(a);
+	}
+
+	__cjs_virDomainMemoryPeek(a, b, c, d, e) {
+		return virDomainMemoryPeek(a, b, c, d, e);
+	}
+
+	__cjs_virDomainShutdown(a, b) {
+		return virDomainShutdown(a, b);
+	}
+
+	__cjs_virDomainSetAutostart(a, b) {
+		return virDomainSetAutostart(a, b);
+	}
+
+	__cjs_virDomainDestroy(a, b) {
+		return virDomainDestroy(a, b);
+	}
+
+	__cjs_virDomainSuspend(a) {
+		return virDomainSuspend(a);
+	}
+
+	__cjs_virDomainResume(a) {
+		return virDomainResume(a);
+	}
+
+	__cjs_virDomainUndefine(a, b) {
+		return virDomainUndefine(a, b);
+	}
+
+	__cjs_virDomainCreate(a) {
+		return virDomainCreate(a);
+	}
+
+	__cjs_virDomainCreateXML(a, b, c) {
+		return virDomainCreateXML(a, b, c);
+	}
+
+	__cjs_virDomainScreenshot(a, b, c = null) {
+		return virDomainScreenshot(a, b, c = null);
+	}
+
+	__cjs_virDomainSendKey(a, b, c, d = null) {
+		return virDomainSendKey(a, b, c, d = null);
+	}
+
+	__cjs_virDomainOpenConsole(a, b, c = null) {
+		return virDomainOpenConsole(a, b, c = null);
+	}
+
+	__cjs_virStreamClose(a) {
+		return virStreamClose(a);
+	}
+
+	__cjs_virStreamRead(a, b, c) {
+		return virStreamRead(a, b, c);
+	}
+
+	__cjs_virStreamWrite(a, b) {
+		return virStreamWrite(a, b);
+	}
+
+	__cjs_virDomainGetCPUStats(a, b, c, d) {
+		return virDomainGetCPUStats(a, b, c, d);
+	}
+
+	__cjs_virDomainInterfaceStats(a, b) {
+		return virDomainInterfaceStats(a, b);
+	}
+
+	__cjs_virDomainMemoryStats(a) {
+		return virDomainMemoryStats(a);
+	}
+
+	__cjs_virDomainBlockStats(a, b) {
+		return virDomainBlockStats(a, b);
+	}
+
+	__cjs_virDomainSnapshotCreate(a, b, c = null) {
+		return virDomainSnapshotCreate(a, b, c = null);
+	}
+
+	__cjs_virDomain(a) {
+		return virDomain(a);
+	}
+
+	__cjs_virDomainHasCurrentSnapshot(a) {
+		return virDomainHasCurrentSnapshot(a);
+	}
+
+	__cjs_virDomainSnapshotList(a, b) {
+		return virDomainSnapshotList(a, b);
+	}
+
+	__cjs_virDomainSnapshot(a, b) {
+		return virDomainSnapshot(a, b);
+	}
+
+	__cjs_virDomainRevertToSnapshot(a, b, c) {
+		return virDomainRevertToSnapshot(a, b, c);
+	}
+
+	__cjs_virDomainSnapshotDelete(a, b, c) {
+		return virDomainSnapshotDelete(a, b, c);
+	}
+
+	__cjs_virDomainSnapshotListChildren(a, b) {
+		return virDomainSnapshotListChildren(a, b);
+	}
+
+	__cjs_virDomainManagedSave(a, b) {
+		return virDomainManagedSave(a, b);
+	}
+
+	__cjs_virDomainManagedSaveRemove(a, b) {
+		return virDomainManagedSaveRemove(a, b);
+	}
+
+	__cjs_virDomainSave(a, b) {
+		return virDomainSave(a, b);
+	}
+
+	__cjs_virDomainHasManagedSaveImage(a) {
+		return virDomainHasManagedSaveImage(a);
+	}
+
+	__cjs_virDomainGetJobInfo(a) {
+		return virDomainGetJobInfo(a);
+	}
+
+	__cjs_virDomainAttachDevice(a, b, c) {
+		return virDomainAttachDevice(a, b, c);
+	}
+
+	__cjs_virDomainBlockJobAbort(a, b, c) {
+		return virDomainBlockJobAbort(a, b, c);
+	}
+
+	__cjs_virDomainMigrate(a, b, c, d = null, e = null, f = null) {
+		return virDomainMigrate(a, b, c, d = null, e = null, f = null);
+	}
+
+	__cjs_virConnectListStoragePools(a) {
+		return virConnectListStoragePools(a);
+	}
+
+	__cjs_virConnectListDefinedStoragePools(a) {
+		return virConnectListDefinedStoragePools(a);
+	}
+
+	__cjs_virConnectListNetworks(a) {
+		return virConnectListNetworks(a);
+	}
+
+	__cjs_virConnectListDefinedNetworks(a) {
+		return virConnectListDefinedNetworks(a);
+	}
+
+	__cjs_virNodeListDevices(a, b) {
+		return virNodeListDevices(a, b);
+	}
+
+	__cjs_virDebug(a) {
+		return virDebug(a);
+	}
+
+	wrap(js) {
+		js.wrap(this.__cjs_virError, "__cjs_virError");
+		js.wrap(this.__cjs_virConnect, "__cjs_virConnect");
+		js.wrap(this.__cjs_virInfo, "__cjs_virInfo");
+		js.wrap(this.__cjs_virClose, "__cjs_virClose");
+		js.wrap(this.__cjs_virNumOfActiveDomains, "__cjs_virNumOfActiveDomains");
+		js.wrap(this.__cjs_virNumOfInactiveDomains, "__cjs_virNumOfInactiveDomains");
+		js.wrap(this.__cjs_virListAllDomains, "__cjs_virListAllDomains");
+		js.wrap(this.__cjs_virDomainOpen, "__cjs_virDomainOpen");
+		js.wrap(this.__cjs_virDomainOpenUUID, "__cjs_virDomainOpenUUID");
+		js.wrap(this.__cjs_virDomainOpenName, "__cjs_virDomainOpenName");
+		js.wrap(this.__cjs_virDomainDone, "__cjs_virDomainDone");
+		js.wrap(this.__cjs_virDomainMemoryPeek, "__cjs_virDomainMemoryPeek");
+		js.wrap(this.__cjs_virDomainShutdown, "__cjs_virDomainShutdown");
+		js.wrap(this.__cjs_virDomainSetAutostart, "__cjs_virDomainSetAutostart");
+		js.wrap(this.__cjs_virDomainDestroy, "__cjs_virDomainDestroy");
+		js.wrap(this.__cjs_virDomainSuspend, "__cjs_virDomainSuspend");
+		js.wrap(this.__cjs_virDomainResume, "__cjs_virDomainResume");
+		js.wrap(this.__cjs_virDomainUndefine, "__cjs_virDomainUndefine");
+		js.wrap(this.__cjs_virDomainCreate, "__cjs_virDomainCreate");
+		js.wrap(this.__cjs_virDomainCreateXML, "__cjs_virDomainCreateXML");
+		js.wrap(this.__cjs_virDomainScreenshot, "__cjs_virDomainScreenshot");
+		js.wrap(this.__cjs_virDomainSendKey, "__cjs_virDomainSendKey");
+		js.wrap(this.__cjs_virDomainOpenConsole, "__cjs_virDomainOpenConsole");
+		js.wrap(this.__cjs_virStreamClose, "__cjs_virStreamClose");
+		js.wrap(this.__cjs_virStreamRead, "__cjs_virStreamRead");
+		js.wrap(this.__cjs_virStreamWrite, "__cjs_virStreamWrite");
+		js.wrap(this.__cjs_virDomainGetCPUStats, "__cjs_virDomainGetCPUStats");
+		js.wrap(this.__cjs_virDomainInterfaceStats, "__cjs_virDomainInterfaceStats");
+		js.wrap(this.__cjs_virDomainMemoryStats, "__cjs_virDomainMemoryStats");
+		js.wrap(this.__cjs_virDomainBlockStats, "__cjs_virDomainBlockStats");
+		js.wrap(this.__cjs_virDomainSnapshotCreate, "__cjs_virDomainSnapshotCreate");
+		js.wrap(this.__cjs_virDomain, "__cjs_virDomain");
+		js.wrap(this.__cjs_virDomainHasCurrentSnapshot, "__cjs_virDomainHasCurrentSnapshot");
+		js.wrap(this.__cjs_virDomainSnapshotList, "__cjs_virDomainSnapshotList");
+		js.wrap(this.__cjs_virDomainSnapshot, "__cjs_virDomainSnapshot");
+		js.wrap(this.__cjs_virDomainRevertToSnapshot, "__cjs_virDomainRevertToSnapshot");
+		js.wrap(this.__cjs_virDomainSnapshotDelete, "__cjs_virDomainSnapshotDelete");
+		js.wrap(this.__cjs_virDomainSnapshotListChildren, "__cjs_virDomainSnapshotListChildren");
+		js.wrap(this.__cjs_virDomainManagedSave, "__cjs_virDomainManagedSave");
+		js.wrap(this.__cjs_virDomainManagedSaveRemove, "__cjs_virDomainManagedSaveRemove");
+		js.wrap(this.__cjs_virDomainSave, "__cjs_virDomainSave");
+		js.wrap(this.__cjs_virDomainHasManagedSaveImage, "__cjs_virDomainHasManagedSaveImage");
+		js.wrap(this.__cjs_virDomainGetJobInfo, "__cjs_virDomainGetJobInfo");
+		js.wrap(this.__cjs_virDomainAttachDevice, "__cjs_virDomainAttachDevice");
+		js.wrap(this.__cjs_virDomainBlockJobAbort, "__cjs_virDomainBlockJobAbort");
+		js.wrap(this.__cjs_virDomainMigrate, "__cjs_virDomainMigrate");
+		js.wrap(this.__cjs_virConnectListStoragePools, "__cjs_virConnectListStoragePools");
+		js.wrap(this.__cjs_virConnectListDefinedStoragePools, "__cjs_virConnectListDefinedStoragePools");
+		js.wrap(this.__cjs_virConnectListNetworks, "__cjs_virConnectListNetworks");
+		js.wrap(this.__cjs_virConnectListDefinedNetworks, "__cjs_virConnectListDefinedNetworks");
+		js.wrap(this.__cjs_virNodeListDevices, "__cjs_virNodeListDevices");
+		js.wrap(this.__cjs_virDebug, "__cjs_virDebug");
+	}
+
+	ECMABRIDGE_standard_lib_virt(js) {
+		this.wrap(js);
+	}
+}

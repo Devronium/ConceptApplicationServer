@@ -1,0 +1,167 @@
+/* This file is generated automatically by generatejs.con. Do not edit. */
+
+import standard.net.socket
+
+class ECMABRIDGE_standard_net_socket {
+	__cjs_SocketSetOption(a, b, c, d) {
+		return SocketSetOption(a, b, c, d);
+	}
+
+	__cjs_SocketGetOption(a, b, c, d) {
+		return SocketGetOption(a, b, c, d);
+	}
+
+	__cjs_SocketError(a) {
+		return SocketError(a);
+	}
+
+	__cjs_SocketAccept(a) {
+		return SocketAccept(a);
+	}
+
+	__cjs_WSParseHandshake(a) {
+		return WSParseHandshake(a);
+	}
+
+	__cjs_WSHandshakeAnswer(a) {
+		return WSHandshakeAnswer(a);
+	}
+
+	__cjs_WSMakeFrame(a, b) {
+		return WSMakeFrame(a, b);
+	}
+
+	__cjs_WSParseFrame(a, b) {
+		return WSParseFrame(a, b);
+	}
+
+	__cjs_GetHostName() {
+		return GetHostName();
+	}
+
+	__cjs_GetDomainName() {
+		return GetDomainName();
+	}
+
+	__cjs_GetHostByAddr(a) {
+		return GetHostByAddr(a);
+	}
+
+	__cjs_GetHostByAddr6(a) {
+		return GetHostByAddr6(a);
+	}
+
+	__cjs_GetHostByName(a) {
+		return GetHostByName(a);
+	}
+
+	__cjs_Ping(a, b, c = null, d = null, e = null) {
+		return Ping(a, b, c = null, d = null, e = null);
+	}
+
+	__cjs_htonl(a) {
+		return htonl(a);
+	}
+
+	__cjs_htons(a) {
+		return htons(a);
+	}
+
+	__cjs_ntohl(a) {
+		return ntohl(a);
+	}
+
+	__cjs_ntohs(a) {
+		return ntohs(a);
+	}
+
+	__cjs_ListInterfaces() {
+		return ListInterfaces();
+	}
+
+	__cjs_MulticastSocket(a, b) {
+		return MulticastSocket(a, b);
+	}
+
+	__cjs_MulticastJoin(a, b, c) {
+		return MulticastJoin(a, b, c);
+	}
+
+	__cjs_MulticastDrop(a, b, c) {
+		return MulticastDrop(a, b, c);
+	}
+
+	__cjs_SocketSetBlocking(a, b) {
+		return SocketSetBlocking(a, b);
+	}
+
+	__cjs_SocketErrno() {
+		return SocketErrno();
+	}
+
+	__cjs_STUN(a, b, c) {
+		return STUN(a, b, c);
+	}
+
+	__cjs_SocketPoll(a, b, c = null) {
+		return SocketPoll(a, b, c = null);
+	}
+
+	__cjs_SCTPSubscribe(a, b) {
+		return SCTPSubscribe(a, b);
+	}
+
+	__cjs_SCTPInit(a, b) {
+		return SCTPInit(a, b);
+	}
+
+	__cjs_SCTPBindx(a, b, c, d) {
+		return SCTPBindx(a, b, c, d);
+	}
+
+	__cjs_SCTPConnectx(a, b, c, d, e) {
+		return SCTPConnectx(a, b, c, d, e);
+	}
+
+	__cjs_SCTPRead(a, b, c, d) {
+		return SCTPRead(a, b, c, d);
+	}
+
+	wrap(js) {
+		js.wrap(this.__cjs_SocketSetOption, "__cjs_SocketSetOption");
+		js.wrap(this.__cjs_SocketGetOption, "__cjs_SocketGetOption");
+		js.wrap(this.__cjs_SocketError, "__cjs_SocketError");
+		js.wrap(this.__cjs_SocketAccept, "__cjs_SocketAccept");
+		js.wrap(this.__cjs_WSParseHandshake, "__cjs_WSParseHandshake");
+		js.wrap(this.__cjs_WSHandshakeAnswer, "__cjs_WSHandshakeAnswer");
+		js.wrap(this.__cjs_WSMakeFrame, "__cjs_WSMakeFrame");
+		js.wrap(this.__cjs_WSParseFrame, "__cjs_WSParseFrame");
+		js.wrap(this.__cjs_GetHostName, "__cjs_GetHostName");
+		js.wrap(this.__cjs_GetDomainName, "__cjs_GetDomainName");
+		js.wrap(this.__cjs_GetHostByAddr, "__cjs_GetHostByAddr");
+		js.wrap(this.__cjs_GetHostByAddr6, "__cjs_GetHostByAddr6");
+		js.wrap(this.__cjs_GetHostByName, "__cjs_GetHostByName");
+		js.wrap(this.__cjs_Ping, "__cjs_Ping");
+		js.wrap(this.__cjs_htonl, "__cjs_htonl");
+		js.wrap(this.__cjs_htons, "__cjs_htons");
+		js.wrap(this.__cjs_ntohl, "__cjs_ntohl");
+		js.wrap(this.__cjs_ntohs, "__cjs_ntohs");
+		js.wrap(this.__cjs_ListInterfaces, "__cjs_ListInterfaces");
+		js.wrap(this.__cjs_MulticastSocket, "__cjs_MulticastSocket");
+		js.wrap(this.__cjs_MulticastJoin, "__cjs_MulticastJoin");
+		js.wrap(this.__cjs_MulticastDrop, "__cjs_MulticastDrop");
+		js.wrap(this.__cjs_SocketSetBlocking, "__cjs_SocketSetBlocking");
+		js.wrap(this.__cjs_SocketErrno, "__cjs_SocketErrno");
+		js.wrap(this.__cjs_STUN, "__cjs_STUN");
+		js.wrap(this.__cjs_SocketPoll, "__cjs_SocketPoll");
+		js.wrap(this.__cjs_SCTPSubscribe, "__cjs_SCTPSubscribe");
+		js.wrap(this.__cjs_SCTPInit, "__cjs_SCTPInit");
+		js.wrap(this.__cjs_SCTPBindx, "__cjs_SCTPBindx");
+		js.wrap(this.__cjs_SCTPConnectx, "__cjs_SCTPConnectx");
+		js.wrap(this.__cjs_SCTPRead, "__cjs_SCTPRead");
+	}
+
+	ECMABRIDGE_standard_net_socket(js) {
+		this.wrap(js);
+	}
+}

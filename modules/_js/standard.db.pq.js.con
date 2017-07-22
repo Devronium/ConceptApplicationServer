@@ -1,0 +1,222 @@
+/* This file is generated automatically by generatejs.con. Do not edit. */
+
+import standard.db.pq
+
+class ECMABRIDGE_standard_db_pq {
+	__cjs_PQConnect(a) {
+		return PQConnect(a);
+	}
+
+	__cjs_PQLogin(a, b, c, d, e, f, g) {
+		return PQLogin(a, b, c, d, e, f, g);
+	}
+
+	__cjs_PQDisconnect(a) {
+		return PQDisconnect(a);
+	}
+
+	__cjs_PQError(a) {
+		return PQError(a);
+	}
+
+	__cjs_PQQueryError(a) {
+		return PQQueryError(a);
+	}
+
+	__cjs_PQQuery(a, b) {
+		return PQQuery(a, b);
+	}
+
+	__cjs_PQQueryParams(a, b, c) {
+		return PQQueryParams(a, b, c);
+	}
+
+	__cjs_PQFreeResult(a) {
+		return PQFreeResult(a);
+	}
+
+	__cjs_PQCountColumns(a) {
+		return PQCountColumns(a);
+	}
+
+	__cjs_PQCountRows(a) {
+		return PQCountRows(a);
+	}
+
+	__cjs_PQAffectedRows(a) {
+		return PQAffectedRows(a);
+	}
+
+	__cjs_PQDescribeCol(a, b, c, d, e) {
+		return PQDescribeCol(a, b, c, d, e);
+	}
+
+	__cjs_PQIsNull(a, b, c) {
+		return PQIsNull(a, b, c);
+	}
+
+	__cjs_PQLength(a, b, c) {
+		return PQLength(a, b, c);
+	}
+
+	__cjs_PQGetValue(a, b, c) {
+		return PQGetValue(a, b, c);
+	}
+
+	__cjs_PQTable(a, b) {
+		return PQTable(a, b);
+	}
+
+	__cjs_PQTableCol(a, b) {
+		return PQTableCol(a, b);
+	}
+
+	__cjs_PQEscape(a, b) {
+		return PQEscape(a, b);
+	}
+
+	__cjs_PQEncryptPassword(a, b) {
+		return PQEncryptPassword(a, b);
+	}
+
+	__cjs_lo_open(a, b, c) {
+		return lo_open(a, b, c);
+	}
+
+	__cjs_lo_close(a, b) {
+		return lo_close(a, b);
+	}
+
+	__cjs_lo_read(a, b, c, d) {
+		return lo_read(a, b, c, d);
+	}
+
+	__cjs_lo_write(a, b, c) {
+		return lo_write(a, b, c);
+	}
+
+	__cjs_lo_lseek(a, b, c, d) {
+		return lo_lseek(a, b, c, d);
+	}
+
+	__cjs_lo_creat(a, b) {
+		return lo_creat(a, b);
+	}
+
+	__cjs_lo_create(a, b) {
+		return lo_create(a, b);
+	}
+
+	__cjs_lo_tell(a, b) {
+		return lo_tell(a, b);
+	}
+
+	__cjs_lo_truncate(a, b, c) {
+		return lo_truncate(a, b, c);
+	}
+
+	__cjs_lo_unlink(a, b) {
+		return lo_unlink(a, b);
+	}
+
+	__cjs_lo_import(a, b) {
+		return lo_import(a, b);
+	}
+
+	__cjs_lo_import_with_oid(a, b, c) {
+		return lo_import_with_oid(a, b, c);
+	}
+
+	__cjs_lo_export(a, b, c) {
+		return lo_export(a, b, c);
+	}
+
+	__cjs_PQQueryAsync(a, b) {
+		return PQQueryAsync(a, b);
+	}
+
+	__cjs_PQQueryParamsAsync(a, b, c) {
+		return PQQueryParamsAsync(a, b, c);
+	}
+
+	__cjs_PQsetnonblocking(a, b) {
+		return PQsetnonblocking(a, b);
+	}
+
+	__cjs_PQisnonblocking(a) {
+		return PQisnonblocking(a);
+	}
+
+	__cjs_PQgetResult(a) {
+		return PQgetResult(a);
+	}
+
+	__cjs_PQconsumeInput(a) {
+		return PQconsumeInput(a);
+	}
+
+	__cjs_PQisBusy(a) {
+		return PQisBusy(a);
+	}
+
+	__cjs_PQflush(a) {
+		return PQflush(a);
+	}
+
+	__cjs_PQsocket(a) {
+		return PQsocket(a);
+	}
+
+	__cjs_PQrequestCancel(a) {
+		return PQrequestCancel(a);
+	}
+
+	wrap(js) {
+		js.wrap(this.__cjs_PQConnect, "__cjs_PQConnect");
+		js.wrap(this.__cjs_PQLogin, "__cjs_PQLogin");
+		js.wrap(this.__cjs_PQDisconnect, "__cjs_PQDisconnect");
+		js.wrap(this.__cjs_PQError, "__cjs_PQError");
+		js.wrap(this.__cjs_PQQueryError, "__cjs_PQQueryError");
+		js.wrap(this.__cjs_PQQuery, "__cjs_PQQuery");
+		js.wrap(this.__cjs_PQQueryParams, "__cjs_PQQueryParams");
+		js.wrap(this.__cjs_PQFreeResult, "__cjs_PQFreeResult");
+		js.wrap(this.__cjs_PQCountColumns, "__cjs_PQCountColumns");
+		js.wrap(this.__cjs_PQCountRows, "__cjs_PQCountRows");
+		js.wrap(this.__cjs_PQAffectedRows, "__cjs_PQAffectedRows");
+		js.wrap(this.__cjs_PQDescribeCol, "__cjs_PQDescribeCol");
+		js.wrap(this.__cjs_PQIsNull, "__cjs_PQIsNull");
+		js.wrap(this.__cjs_PQLength, "__cjs_PQLength");
+		js.wrap(this.__cjs_PQGetValue, "__cjs_PQGetValue");
+		js.wrap(this.__cjs_PQTable, "__cjs_PQTable");
+		js.wrap(this.__cjs_PQTableCol, "__cjs_PQTableCol");
+		js.wrap(this.__cjs_PQEscape, "__cjs_PQEscape");
+		js.wrap(this.__cjs_PQEncryptPassword, "__cjs_PQEncryptPassword");
+		js.wrap(this.__cjs_lo_open, "__cjs_lo_open");
+		js.wrap(this.__cjs_lo_close, "__cjs_lo_close");
+		js.wrap(this.__cjs_lo_read, "__cjs_lo_read");
+		js.wrap(this.__cjs_lo_write, "__cjs_lo_write");
+		js.wrap(this.__cjs_lo_lseek, "__cjs_lo_lseek");
+		js.wrap(this.__cjs_lo_creat, "__cjs_lo_creat");
+		js.wrap(this.__cjs_lo_create, "__cjs_lo_create");
+		js.wrap(this.__cjs_lo_tell, "__cjs_lo_tell");
+		js.wrap(this.__cjs_lo_truncate, "__cjs_lo_truncate");
+		js.wrap(this.__cjs_lo_unlink, "__cjs_lo_unlink");
+		js.wrap(this.__cjs_lo_import, "__cjs_lo_import");
+		js.wrap(this.__cjs_lo_import_with_oid, "__cjs_lo_import_with_oid");
+		js.wrap(this.__cjs_lo_export, "__cjs_lo_export");
+		js.wrap(this.__cjs_PQQueryAsync, "__cjs_PQQueryAsync");
+		js.wrap(this.__cjs_PQQueryParamsAsync, "__cjs_PQQueryParamsAsync");
+		js.wrap(this.__cjs_PQsetnonblocking, "__cjs_PQsetnonblocking");
+		js.wrap(this.__cjs_PQisnonblocking, "__cjs_PQisnonblocking");
+		js.wrap(this.__cjs_PQgetResult, "__cjs_PQgetResult");
+		js.wrap(this.__cjs_PQconsumeInput, "__cjs_PQconsumeInput");
+		js.wrap(this.__cjs_PQisBusy, "__cjs_PQisBusy");
+		js.wrap(this.__cjs_PQflush, "__cjs_PQflush");
+		js.wrap(this.__cjs_PQsocket, "__cjs_PQsocket");
+		js.wrap(this.__cjs_PQrequestCancel, "__cjs_PQrequestCancel");
+	}
+
+	ECMABRIDGE_standard_db_pq(js) {
+		this.wrap(js);
+	}
+}

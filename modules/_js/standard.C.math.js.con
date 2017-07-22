@@ -1,0 +1,137 @@
+/* This file is generated automatically by generatejs.con. Do not edit. */
+
+import standard.C.math
+
+class ECMABRIDGE_standard_C_math {
+	__cjs_abs(a) {
+		return abs(a);
+	}
+
+	__cjs_acos(a) {
+		return acos(a);
+	}
+
+	__cjs_asin(a) {
+		return asin(a);
+	}
+
+	__cjs_atan(a) {
+		return atan(a);
+	}
+
+	__cjs_ceil(a) {
+		return ceil(a);
+	}
+
+	__cjs_cos(a) {
+		return cos(a);
+	}
+
+	__cjs_exp(a) {
+		return exp(a);
+	}
+
+	__cjs_fabs(a) {
+		return fabs(a);
+	}
+
+	__cjs_floor(a) {
+		return floor(a);
+	}
+
+	__cjs_fmod(a, b) {
+		return fmod(a, b);
+	}
+
+	__cjs_labs(a) {
+		return labs(a);
+	}
+
+	__cjs_ldexp(a, b) {
+		return ldexp(a, b);
+	}
+
+	__cjs_log(a) {
+		return log(a);
+	}
+
+	__cjs_log10(a) {
+		return log10(a);
+	}
+
+	__cjs_pow(a, b) {
+		return pow(a, b);
+	}
+
+	__cjs_rand() {
+		return rand();
+	}
+
+	__cjs_sin(a) {
+		return sin(a);
+	}
+
+	__cjs_sqrt(a) {
+		return sqrt(a);
+	}
+
+	__cjs_srand(a) {
+		return srand(a);
+	}
+
+	__cjs_tan(a) {
+		return tan(a);
+	}
+
+	__cjs__number_format(a, b, c, d) {
+		return _number_format(a, b, c, d);
+	}
+
+	__cjs_FFT(a, b) {
+		return FFT(a, b);
+	}
+
+	__cjs_Mix(a, b) {
+		return Mix(a, b);
+	}
+
+	__cjs_PCMAvg(a, b) {
+		return PCMAvg(a, b);
+	}
+
+	__cjs_PCMAmplify(a, b, c) {
+		return PCMAmplify(a, b, c);
+	}
+
+	wrap(js) {
+		js.wrap(this.__cjs_abs, "__cjs_abs");
+		js.wrap(this.__cjs_acos, "__cjs_acos");
+		js.wrap(this.__cjs_asin, "__cjs_asin");
+		js.wrap(this.__cjs_atan, "__cjs_atan");
+		js.wrap(this.__cjs_ceil, "__cjs_ceil");
+		js.wrap(this.__cjs_cos, "__cjs_cos");
+		js.wrap(this.__cjs_exp, "__cjs_exp");
+		js.wrap(this.__cjs_fabs, "__cjs_fabs");
+		js.wrap(this.__cjs_floor, "__cjs_floor");
+		js.wrap(this.__cjs_fmod, "__cjs_fmod");
+		js.wrap(this.__cjs_labs, "__cjs_labs");
+		js.wrap(this.__cjs_ldexp, "__cjs_ldexp");
+		js.wrap(this.__cjs_log, "__cjs_log");
+		js.wrap(this.__cjs_log10, "__cjs_log10");
+		js.wrap(this.__cjs_pow, "__cjs_pow");
+		js.wrap(this.__cjs_rand, "__cjs_rand");
+		js.wrap(this.__cjs_sin, "__cjs_sin");
+		js.wrap(this.__cjs_sqrt, "__cjs_sqrt");
+		js.wrap(this.__cjs_srand, "__cjs_srand");
+		js.wrap(this.__cjs_tan, "__cjs_tan");
+		js.wrap(this.__cjs__number_format, "__cjs__number_format");
+		js.wrap(this.__cjs_FFT, "__cjs_FFT");
+		js.wrap(this.__cjs_Mix, "__cjs_Mix");
+		js.wrap(this.__cjs_PCMAvg, "__cjs_PCMAvg");
+		js.wrap(this.__cjs_PCMAmplify, "__cjs_PCMAmplify");
+	}
+
+	ECMABRIDGE_standard_C_math(js) {
+		this.wrap(js);
+	}
+}

@@ -1,0 +1,237 @@
+/* This file is generated automatically by generatejs.con. Do not edit. */
+
+import standard.db.mysql
+
+class ECMABRIDGE_standard_db_mysql {
+	__cjs_MySQLInit() {
+		return MySQLInit();
+	}
+
+	__cjs_MySQLLibraryDone() {
+		return MySQLLibraryDone();
+	}
+
+	__cjs_MySQLLibraryInit(a, b) {
+		return MySQLLibraryInit(a, b);
+	}
+
+	__cjs_MySQLOptions(a, b, c) {
+		return MySQLOptions(a, b, c);
+	}
+
+	__cjs_MySQLCountParams(a) {
+		return MySQLCountParams(a);
+	}
+
+	__cjs_MySQLPrepare(a, b) {
+		return MySQLPrepare(a, b);
+	}
+
+	__cjs_MySQLBindParameters(a, b) {
+		return MySQLBindParameters(a, b);
+	}
+
+	__cjs_MySQLPreparedExecute(a) {
+		return MySQLPreparedExecute(a);
+	}
+
+	__cjs_MySQLBindStatement(a, b) {
+		return MySQLBindStatement(a, b);
+	}
+
+	__cjs_MySQLSTMTResult(a) {
+		return MySQLSTMTResult(a);
+	}
+
+	__cjs_MySQLFetchRow(a) {
+		return MySQLFetchRow(a);
+	}
+
+	__cjs_MySQLConnect(a, b, c, d, e, f, g, h) {
+		return MySQLConnect(a, b, c, d, e, f, g, h);
+	}
+
+	__cjs_MySQLDisconnect(a) {
+		return MySQLDisconnect(a);
+	}
+
+	__cjs_MySQLAutoCommit(a, b) {
+		return MySQLAutoCommit(a, b);
+	}
+
+	__cjs_MySQLCommit(a) {
+		return MySQLCommit(a);
+	}
+
+	__cjs_MySQLRollback(a) {
+		return MySQLRollback(a);
+	}
+
+	__cjs_MySQLError(a) {
+		return MySQLError(a);
+	}
+
+	__cjs_MySQLSTMTError(a) {
+		return MySQLSTMTError(a);
+	}
+
+	__cjs_MySQLWarningCount(a) {
+		return MySQLWarningCount(a);
+	}
+
+	__cjs_MySQLListTables(a, b) {
+		return MySQLListTables(a, b);
+	}
+
+	__cjs_MySQLListColumns(a, b, c) {
+		return MySQLListColumns(a, b, c);
+	}
+
+	__cjs_MySQLListDatabases(a, b) {
+		return MySQLListDatabases(a, b);
+	}
+
+	__cjs_MySQLFreeResult(a) {
+		return MySQLFreeResult(a);
+	}
+
+	__cjs_MySQLFetchForward(a) {
+		return MySQLFetchForward(a);
+	}
+
+	__cjs_MySQLCountColumns(a) {
+		return MySQLCountColumns(a);
+	}
+
+	__cjs_MySQLCountRows(a) {
+		return MySQLCountRows(a);
+	}
+
+	__cjs_MySQLDescribeCol(a, b, c, d, e, f, g) {
+		return MySQLDescribeCol(a, b, c, d, e, f, g);
+	}
+
+	__cjs_MySQLDescribeCol2(a, b, c, d, e, f, g) {
+		return MySQLDescribeCol2(a, b, c, d, e, f, g);
+	}
+
+	__cjs_MySQLStatement(a) {
+		return MySQLStatement(a);
+	}
+
+	__cjs_MySQLFreeQuery(a) {
+		return MySQLFreeQuery(a);
+	}
+
+	__cjs_MySQLExecute(a, b) {
+		return MySQLExecute(a, b);
+	}
+
+	__cjs_MySQLQuery(a, b) {
+		return MySQLQuery(a, b);
+	}
+
+	__cjs_MySQLStoreResult(a) {
+		return MySQLStoreResult(a);
+	}
+
+	__cjs_MySQLUseResult(a) {
+		return MySQLUseResult(a);
+	}
+
+	__cjs_MySQLFetchAbsolute(a, b) {
+		return MySQLFetchAbsolute(a, b);
+	}
+
+	__cjs_MySQLFetchFirst(a) {
+		return MySQLFetchFirst(a);
+	}
+
+	__cjs_MySQLFetchNext(a) {
+		return MySQLFetchNext(a);
+	}
+
+	__cjs_MySQLFetchLast(a) {
+		return MySQLFetchLast(a);
+	}
+
+	__cjs_MySQLColumnGet(a, b) {
+		return MySQLColumnGet(a, b);
+	}
+
+	__cjs_MySQLSTMTColumnGet(a, b) {
+		return MySQLSTMTColumnGet(a, b);
+	}
+
+	__cjs_MySQLEscape(a, b) {
+		return MySQLEscape(a, b);
+	}
+
+	__cjs_MySQLFD(a) {
+		return MySQLFD(a);
+	}
+
+	__cjs_MySQLSendQuery(a, b) {
+		return MySQLSendQuery(a, b);
+	}
+
+	__cjs_MySQLReadQueryResult(a) {
+		return MySQLReadQueryResult(a);
+	}
+
+	__cjs_MySQLPosition(a) {
+		return MySQLPosition(a);
+	}
+
+	wrap(js) {
+		js.wrap(this.__cjs_MySQLInit, "__cjs_MySQLInit");
+		js.wrap(this.__cjs_MySQLLibraryDone, "__cjs_MySQLLibraryDone");
+		js.wrap(this.__cjs_MySQLLibraryInit, "__cjs_MySQLLibraryInit");
+		js.wrap(this.__cjs_MySQLOptions, "__cjs_MySQLOptions");
+		js.wrap(this.__cjs_MySQLCountParams, "__cjs_MySQLCountParams");
+		js.wrap(this.__cjs_MySQLPrepare, "__cjs_MySQLPrepare");
+		js.wrap(this.__cjs_MySQLBindParameters, "__cjs_MySQLBindParameters");
+		js.wrap(this.__cjs_MySQLPreparedExecute, "__cjs_MySQLPreparedExecute");
+		js.wrap(this.__cjs_MySQLBindStatement, "__cjs_MySQLBindStatement");
+		js.wrap(this.__cjs_MySQLSTMTResult, "__cjs_MySQLSTMTResult");
+		js.wrap(this.__cjs_MySQLFetchRow, "__cjs_MySQLFetchRow");
+		js.wrap(this.__cjs_MySQLConnect, "__cjs_MySQLConnect");
+		js.wrap(this.__cjs_MySQLDisconnect, "__cjs_MySQLDisconnect");
+		js.wrap(this.__cjs_MySQLAutoCommit, "__cjs_MySQLAutoCommit");
+		js.wrap(this.__cjs_MySQLCommit, "__cjs_MySQLCommit");
+		js.wrap(this.__cjs_MySQLRollback, "__cjs_MySQLRollback");
+		js.wrap(this.__cjs_MySQLError, "__cjs_MySQLError");
+		js.wrap(this.__cjs_MySQLSTMTError, "__cjs_MySQLSTMTError");
+		js.wrap(this.__cjs_MySQLWarningCount, "__cjs_MySQLWarningCount");
+		js.wrap(this.__cjs_MySQLListTables, "__cjs_MySQLListTables");
+		js.wrap(this.__cjs_MySQLListColumns, "__cjs_MySQLListColumns");
+		js.wrap(this.__cjs_MySQLListDatabases, "__cjs_MySQLListDatabases");
+		js.wrap(this.__cjs_MySQLFreeResult, "__cjs_MySQLFreeResult");
+		js.wrap(this.__cjs_MySQLFetchForward, "__cjs_MySQLFetchForward");
+		js.wrap(this.__cjs_MySQLCountColumns, "__cjs_MySQLCountColumns");
+		js.wrap(this.__cjs_MySQLCountRows, "__cjs_MySQLCountRows");
+		js.wrap(this.__cjs_MySQLDescribeCol, "__cjs_MySQLDescribeCol");
+		js.wrap(this.__cjs_MySQLDescribeCol2, "__cjs_MySQLDescribeCol2");
+		js.wrap(this.__cjs_MySQLStatement, "__cjs_MySQLStatement");
+		js.wrap(this.__cjs_MySQLFreeQuery, "__cjs_MySQLFreeQuery");
+		js.wrap(this.__cjs_MySQLExecute, "__cjs_MySQLExecute");
+		js.wrap(this.__cjs_MySQLQuery, "__cjs_MySQLQuery");
+		js.wrap(this.__cjs_MySQLStoreResult, "__cjs_MySQLStoreResult");
+		js.wrap(this.__cjs_MySQLUseResult, "__cjs_MySQLUseResult");
+		js.wrap(this.__cjs_MySQLFetchAbsolute, "__cjs_MySQLFetchAbsolute");
+		js.wrap(this.__cjs_MySQLFetchFirst, "__cjs_MySQLFetchFirst");
+		js.wrap(this.__cjs_MySQLFetchNext, "__cjs_MySQLFetchNext");
+		js.wrap(this.__cjs_MySQLFetchLast, "__cjs_MySQLFetchLast");
+		js.wrap(this.__cjs_MySQLColumnGet, "__cjs_MySQLColumnGet");
+		js.wrap(this.__cjs_MySQLSTMTColumnGet, "__cjs_MySQLSTMTColumnGet");
+		js.wrap(this.__cjs_MySQLEscape, "__cjs_MySQLEscape");
+		js.wrap(this.__cjs_MySQLFD, "__cjs_MySQLFD");
+		js.wrap(this.__cjs_MySQLSendQuery, "__cjs_MySQLSendQuery");
+		js.wrap(this.__cjs_MySQLReadQueryResult, "__cjs_MySQLReadQueryResult");
+		js.wrap(this.__cjs_MySQLPosition, "__cjs_MySQLPosition");
+	}
+
+	ECMABRIDGE_standard_db_mysql(js) {
+		this.wrap(js);
+	}
+}

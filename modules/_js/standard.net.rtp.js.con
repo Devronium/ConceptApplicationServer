@@ -1,0 +1,237 @@
+/* This file is generated automatically by generatejs.con. Do not edit. */
+
+import standard.net.rtp
+
+class ECMABRIDGE_standard_net_rtp {
+	__cjs_RTPCreate(a, b) {
+		return RTPCreate(a, b);
+	}
+
+	__cjs_RTPError(a) {
+		return RTPError(a);
+	}
+
+	__cjs_RTPBYEDestroy(a, b, c) {
+		return RTPBYEDestroy(a, b, c);
+	}
+
+	__cjs_RTPDestroy(a) {
+		return RTPDestroy(a);
+	}
+
+	__cjs_RTPAddDestination(a, b, c) {
+		return RTPAddDestination(a, b, c);
+	}
+
+	__cjs_RTPDeleteDestination(a, b, c) {
+		return RTPDeleteDestination(a, b, c);
+	}
+
+	__cjs_RTPClearDestinations(a) {
+		return RTPClearDestinations(a);
+	}
+
+	__cjs_RTPSend(a, b, c, d = null, e = null) {
+		return RTPSend(a, b, c, d = null, e = null);
+	}
+
+	__cjs_RTPBeginDataAccess(a) {
+		return RTPBeginDataAccess(a);
+	}
+
+	__cjs_RTPEndDataAccess(a) {
+		return RTPEndDataAccess(a);
+	}
+
+	__cjs_RTPGetNextPacket(a) {
+		return RTPGetNextPacket(a);
+	}
+
+	__cjs_RTPGotoFirstSourceWithData(a) {
+		return RTPGotoFirstSourceWithData(a);
+	}
+
+	__cjs_RTPGotoNextSourceWithData(a) {
+		return RTPGotoNextSourceWithData(a);
+	}
+
+	__cjs_RTPGotoPreviousSourceWithData(a) {
+		return RTPGotoPreviousSourceWithData(a);
+	}
+
+	__cjs_RTPGetCurrentSourceInfo(a, b) {
+		return RTPGetCurrentSourceInfo(a, b);
+	}
+
+	__cjs_RTPCurrentSourceReceivedBYE(a) {
+		return RTPCurrentSourceReceivedBYE(a);
+	}
+
+	__cjs_RTPPoll(a) {
+		return RTPPoll(a);
+	}
+
+	__cjs_RTPSetDefaultPayloadType(a, b) {
+		return RTPSetDefaultPayloadType(a, b);
+	}
+
+	__cjs_RTPSetDefaultMark(a, b) {
+		return RTPSetDefaultMark(a, b);
+	}
+
+	__cjs_RTPSetDefaultTimestampIncrement(a, b) {
+		return RTPSetDefaultTimestampIncrement(a, b);
+	}
+
+	__cjs_RTPIncrementTimestamp(a, b) {
+		return RTPIncrementTimestamp(a, b);
+	}
+
+	__cjs_RTPIncrementTimestampDefault(a) {
+		return RTPIncrementTimestampDefault(a);
+	}
+
+	__cjs_RTPSetPreTransmissionDelay(a, b) {
+		return RTPSetPreTransmissionDelay(a, b);
+	}
+
+	__cjs_RTPSetReceiveMode(a, b) {
+		return RTPSetReceiveMode(a, b);
+	}
+
+	__cjs_RTPAddToIgnoreList(a, b) {
+		return RTPAddToIgnoreList(a, b);
+	}
+
+	__cjs_RTPDeleteFromIgnoreList(a, b) {
+		return RTPDeleteFromIgnoreList(a, b);
+	}
+
+	__cjs_RTPClearIgnoreList(a) {
+		return RTPClearIgnoreList(a);
+	}
+
+	__cjs_RTPAddToAcceptList(a, b) {
+		return RTPAddToAcceptList(a, b);
+	}
+
+	__cjs_RTPDeleteFromAcceptList(a, b) {
+		return RTPDeleteFromAcceptList(a, b);
+	}
+
+	__cjs_RTPSetMaximumPacketSize(a, b) {
+		return RTPSetMaximumPacketSize(a, b);
+	}
+
+	__cjs_RTPSetSessionBandwidth(a, b) {
+		return RTPSetSessionBandwidth(a, b);
+	}
+
+	__cjs_RTPSetTimestampUnit(a, b) {
+		return RTPSetTimestampUnit(a, b);
+	}
+
+	__cjs_RTPSetNameInterval(a, b) {
+		return RTPSetNameInterval(a, b);
+	}
+
+	__cjs_RTPSetEMailInterval(a, b) {
+		return RTPSetEMailInterval(a, b);
+	}
+
+	__cjs_RTPSetLocationInterval(a, b) {
+		return RTPSetLocationInterval(a, b);
+	}
+
+	__cjs_RTPSetPhoneInterval(a, b) {
+		return RTPSetPhoneInterval(a, b);
+	}
+
+	__cjs_RTPSetToolInterval(a, b) {
+		return RTPSetToolInterval(a, b);
+	}
+
+	__cjs_RTPSetNoteInterval(a, b) {
+		return RTPSetNoteInterval(a, b);
+	}
+
+	__cjs_RTPSetLocalName(a, b) {
+		return RTPSetLocalName(a, b);
+	}
+
+	__cjs_RTPSetLocalEMail(a, b) {
+		return RTPSetLocalEMail(a, b);
+	}
+
+	__cjs_RTPSetLocalLocation(a, b) {
+		return RTPSetLocalLocation(a, b);
+	}
+
+	__cjs_RTPSetLocalPhone(a, b) {
+		return RTPSetLocalPhone(a, b);
+	}
+
+	__cjs_RTPSetLocalTool(a, b) {
+		return RTPSetLocalTool(a, b);
+	}
+
+	__cjs_RTPSetLocalNote(a, b) {
+		return RTPSetLocalNote(a, b);
+	}
+
+	__cjs_RTPWait(a) {
+		return RTPWait(a);
+	}
+
+	wrap(js) {
+		js.wrap(this.__cjs_RTPCreate, "__cjs_RTPCreate");
+		js.wrap(this.__cjs_RTPError, "__cjs_RTPError");
+		js.wrap(this.__cjs_RTPBYEDestroy, "__cjs_RTPBYEDestroy");
+		js.wrap(this.__cjs_RTPDestroy, "__cjs_RTPDestroy");
+		js.wrap(this.__cjs_RTPAddDestination, "__cjs_RTPAddDestination");
+		js.wrap(this.__cjs_RTPDeleteDestination, "__cjs_RTPDeleteDestination");
+		js.wrap(this.__cjs_RTPClearDestinations, "__cjs_RTPClearDestinations");
+		js.wrap(this.__cjs_RTPSend, "__cjs_RTPSend");
+		js.wrap(this.__cjs_RTPBeginDataAccess, "__cjs_RTPBeginDataAccess");
+		js.wrap(this.__cjs_RTPEndDataAccess, "__cjs_RTPEndDataAccess");
+		js.wrap(this.__cjs_RTPGetNextPacket, "__cjs_RTPGetNextPacket");
+		js.wrap(this.__cjs_RTPGotoFirstSourceWithData, "__cjs_RTPGotoFirstSourceWithData");
+		js.wrap(this.__cjs_RTPGotoNextSourceWithData, "__cjs_RTPGotoNextSourceWithData");
+		js.wrap(this.__cjs_RTPGotoPreviousSourceWithData, "__cjs_RTPGotoPreviousSourceWithData");
+		js.wrap(this.__cjs_RTPGetCurrentSourceInfo, "__cjs_RTPGetCurrentSourceInfo");
+		js.wrap(this.__cjs_RTPCurrentSourceReceivedBYE, "__cjs_RTPCurrentSourceReceivedBYE");
+		js.wrap(this.__cjs_RTPPoll, "__cjs_RTPPoll");
+		js.wrap(this.__cjs_RTPSetDefaultPayloadType, "__cjs_RTPSetDefaultPayloadType");
+		js.wrap(this.__cjs_RTPSetDefaultMark, "__cjs_RTPSetDefaultMark");
+		js.wrap(this.__cjs_RTPSetDefaultTimestampIncrement, "__cjs_RTPSetDefaultTimestampIncrement");
+		js.wrap(this.__cjs_RTPIncrementTimestamp, "__cjs_RTPIncrementTimestamp");
+		js.wrap(this.__cjs_RTPIncrementTimestampDefault, "__cjs_RTPIncrementTimestampDefault");
+		js.wrap(this.__cjs_RTPSetPreTransmissionDelay, "__cjs_RTPSetPreTransmissionDelay");
+		js.wrap(this.__cjs_RTPSetReceiveMode, "__cjs_RTPSetReceiveMode");
+		js.wrap(this.__cjs_RTPAddToIgnoreList, "__cjs_RTPAddToIgnoreList");
+		js.wrap(this.__cjs_RTPDeleteFromIgnoreList, "__cjs_RTPDeleteFromIgnoreList");
+		js.wrap(this.__cjs_RTPClearIgnoreList, "__cjs_RTPClearIgnoreList");
+		js.wrap(this.__cjs_RTPAddToAcceptList, "__cjs_RTPAddToAcceptList");
+		js.wrap(this.__cjs_RTPDeleteFromAcceptList, "__cjs_RTPDeleteFromAcceptList");
+		js.wrap(this.__cjs_RTPSetMaximumPacketSize, "__cjs_RTPSetMaximumPacketSize");
+		js.wrap(this.__cjs_RTPSetSessionBandwidth, "__cjs_RTPSetSessionBandwidth");
+		js.wrap(this.__cjs_RTPSetTimestampUnit, "__cjs_RTPSetTimestampUnit");
+		js.wrap(this.__cjs_RTPSetNameInterval, "__cjs_RTPSetNameInterval");
+		js.wrap(this.__cjs_RTPSetEMailInterval, "__cjs_RTPSetEMailInterval");
+		js.wrap(this.__cjs_RTPSetLocationInterval, "__cjs_RTPSetLocationInterval");
+		js.wrap(this.__cjs_RTPSetPhoneInterval, "__cjs_RTPSetPhoneInterval");
+		js.wrap(this.__cjs_RTPSetToolInterval, "__cjs_RTPSetToolInterval");
+		js.wrap(this.__cjs_RTPSetNoteInterval, "__cjs_RTPSetNoteInterval");
+		js.wrap(this.__cjs_RTPSetLocalName, "__cjs_RTPSetLocalName");
+		js.wrap(this.__cjs_RTPSetLocalEMail, "__cjs_RTPSetLocalEMail");
+		js.wrap(this.__cjs_RTPSetLocalLocation, "__cjs_RTPSetLocalLocation");
+		js.wrap(this.__cjs_RTPSetLocalPhone, "__cjs_RTPSetLocalPhone");
+		js.wrap(this.__cjs_RTPSetLocalTool, "__cjs_RTPSetLocalTool");
+		js.wrap(this.__cjs_RTPSetLocalNote, "__cjs_RTPSetLocalNote");
+		js.wrap(this.__cjs_RTPWait, "__cjs_RTPWait");
+	}
+
+	ECMABRIDGE_standard_net_rtp(js) {
+		this.wrap(js);
+	}
+}

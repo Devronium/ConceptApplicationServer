@@ -1,0 +1,82 @@
+/* This file is generated automatically by generatejs.con. Do not edit. */
+
+import standard.lib.hunspell
+
+class ECMABRIDGE_standard_lib_hunspell {
+	__cjs_Hunspell_create(a, b) {
+		return Hunspell_create(a, b);
+	}
+
+	__cjs_Hunspell_create_key(a, b, c) {
+		return Hunspell_create_key(a, b, c);
+	}
+
+	__cjs_Hunspell_destroy(a) {
+		return Hunspell_destroy(a);
+	}
+
+	__cjs_Hunspell_spell(a, b) {
+		return Hunspell_spell(a, b);
+	}
+
+	__cjs_Hunspell_suggest(a, b) {
+		return Hunspell_suggest(a, b);
+	}
+
+	__cjs_Hunspell_get_dic_encoding(a) {
+		return Hunspell_get_dic_encoding(a);
+	}
+
+	__cjs_Hunspell_analyze(a, b) {
+		return Hunspell_analyze(a, b);
+	}
+
+	__cjs_Hunspell_stem(a, b) {
+		return Hunspell_stem(a, b);
+	}
+
+	__cjs_Hunspell_stem2(a, b) {
+		return Hunspell_stem2(a, b);
+	}
+
+	__cjs_Hunspell_generate(a, b, c) {
+		return Hunspell_generate(a, b, c);
+	}
+
+	__cjs_Hunspell_generate2(a, b, c) {
+		return Hunspell_generate2(a, b, c);
+	}
+
+	__cjs_Hunspell_add(a, b) {
+		return Hunspell_add(a, b);
+	}
+
+	__cjs_Hunspell_add_with_affix(a, b, c) {
+		return Hunspell_add_with_affix(a, b, c);
+	}
+
+	__cjs_Hunspell_remove(a, b) {
+		return Hunspell_remove(a, b);
+	}
+
+	wrap(js) {
+		js.wrap(this.__cjs_Hunspell_create, "__cjs_Hunspell_create");
+		js.wrap(this.__cjs_Hunspell_create_key, "__cjs_Hunspell_create_key");
+		js.wrap(this.__cjs_Hunspell_destroy, "__cjs_Hunspell_destroy");
+		js.wrap(this.__cjs_Hunspell_spell, "__cjs_Hunspell_spell");
+		js.wrap(this.__cjs_Hunspell_suggest, "__cjs_Hunspell_suggest");
+		js.wrap(this.__cjs_Hunspell_get_dic_encoding, "__cjs_Hunspell_get_dic_encoding");
+		js.wrap(this.__cjs_Hunspell_analyze, "__cjs_Hunspell_analyze");
+		js.wrap(this.__cjs_Hunspell_stem, "__cjs_Hunspell_stem");
+		js.wrap(this.__cjs_Hunspell_stem2, "__cjs_Hunspell_stem2");
+		js.wrap(this.__cjs_Hunspell_generate, "__cjs_Hunspell_generate");
+		js.wrap(this.__cjs_Hunspell_generate2, "__cjs_Hunspell_generate2");
+		js.wrap(this.__cjs_Hunspell_add, "__cjs_Hunspell_add");
+		js.wrap(this.__cjs_Hunspell_add_with_affix, "__cjs_Hunspell_add_with_affix");
+		js.wrap(this.__cjs_Hunspell_remove, "__cjs_Hunspell_remove");
+	}
+
+	ECMABRIDGE_standard_lib_hunspell(js) {
+		this.wrap(js);
+	}
+}

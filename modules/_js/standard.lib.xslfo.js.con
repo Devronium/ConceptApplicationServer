@@ -1,0 +1,27 @@
+/* This file is generated automatically by generatejs.con. Do not edit. */
+
+import standard.lib.xslfo
+
+class ECMABRIDGE_standard_lib_xslfo {
+	__cjs_FOError() {
+		return FOError();
+	}
+
+	__cjs_FOTransform(a, b, c, d = null, e = null, f = null, g = null) {
+		return FOTransform(a, b, c, d = null, e = null, f = null, g = null);
+	}
+
+	__cjs_FOTransformString(a, b, c, d = null, e = null, f = null, g = null) {
+		return FOTransformString(a, b, c, d = null, e = null, f = null, g = null);
+	}
+
+	wrap(js) {
+		js.wrap(this.__cjs_FOError, "__cjs_FOError");
+		js.wrap(this.__cjs_FOTransform, "__cjs_FOTransform");
+		js.wrap(this.__cjs_FOTransformString, "__cjs_FOTransformString");
+	}
+
+	ECMABRIDGE_standard_lib_xslfo(js) {
+		this.wrap(js);
+	}
+}

@@ -1,0 +1,157 @@
+/* This file is generated automatically by generatejs.con. Do not edit. */
+
+import standard.db.sqlite
+
+class ECMABRIDGE_standard_db_sqlite {
+	__cjs_DBOpen(a) {
+		return DBOpen(a);
+	}
+
+	__cjs_DBClose(a) {
+		return DBClose(a);
+	}
+
+	__cjs_DBError(a) {
+		return DBError(a);
+	}
+
+	__cjs_DBErrorCode(a) {
+		return DBErrorCode(a);
+	}
+
+	__cjs_DBChanges(a) {
+		return DBChanges(a);
+	}
+
+	__cjs_DBLastRowID(a) {
+		return DBLastRowID(a);
+	}
+
+	__cjs_DBNewStmt(a) {
+		return DBNewStmt(a);
+	}
+
+	__cjs_DBBind(a, b, c) {
+		return DBBind(a, b, c);
+	}
+
+	__cjs_DBNameBind(a, b, c) {
+		return DBNameBind(a, b, c);
+	}
+
+	__cjs_DBTimeout(a, b) {
+		return DBTimeout(a, b);
+	}
+
+	__cjs_DBBLOBBind(a, b, c) {
+		return DBBLOBBind(a, b, c);
+	}
+
+	__cjs_DBBLOBNameBind(a, b, c) {
+		return DBBLOBNameBind(a, b, c);
+	}
+
+	__cjs_DBFree(a) {
+		return DBFree(a);
+	}
+
+	__cjs_DBColumns(a) {
+		return DBColumns(a);
+	}
+
+	__cjs_DBFirst(a) {
+		return DBFirst(a);
+	}
+
+	__cjs_DBNext(a) {
+		return DBNext(a);
+	}
+
+	__cjs_DBData(a, b) {
+		return DBData(a, b);
+	}
+
+	__cjs_DBDataRead(a, b, c, d, e, f) {
+		return DBDataRead(a, b, c, d, e, f);
+	}
+
+	__cjs_DBDataWrite(a, b, c, d, e) {
+		return DBDataWrite(a, b, c, d, e);
+	}
+
+	__cjs_DBQuery(a, b) {
+		return DBQuery(a, b);
+	}
+
+	__cjs_DBReset(a) {
+		return DBReset(a);
+	}
+
+	__cjs_DBClearBindings(a) {
+		return DBClearBindings(a);
+	}
+
+	__cjs_DBColumnDeclType(a, b) {
+		return DBColumnDeclType(a, b);
+	}
+
+	__cjs_DBColumnName(a, b) {
+		return DBColumnName(a, b);
+	}
+
+	__cjs_DBColumnType(a, b) {
+		return DBColumnType(a, b);
+	}
+
+	__cjs_DBWrap(a, b) {
+		return DBWrap(a, b);
+	}
+
+	__cjs_DBParamCount(a) {
+		return DBParamCount(a);
+	}
+
+	__cjs_DBBLOBDataBind(a, b, c) {
+		return DBBLOBDataBind(a, b, c);
+	}
+
+	__cjs_DBBLOBNameDataBind(a, b, c) {
+		return DBBLOBNameDataBind(a, b, c);
+	}
+
+	wrap(js) {
+		js.wrap(this.__cjs_DBOpen, "__cjs_DBOpen");
+		js.wrap(this.__cjs_DBClose, "__cjs_DBClose");
+		js.wrap(this.__cjs_DBError, "__cjs_DBError");
+		js.wrap(this.__cjs_DBErrorCode, "__cjs_DBErrorCode");
+		js.wrap(this.__cjs_DBChanges, "__cjs_DBChanges");
+		js.wrap(this.__cjs_DBLastRowID, "__cjs_DBLastRowID");
+		js.wrap(this.__cjs_DBNewStmt, "__cjs_DBNewStmt");
+		js.wrap(this.__cjs_DBBind, "__cjs_DBBind");
+		js.wrap(this.__cjs_DBNameBind, "__cjs_DBNameBind");
+		js.wrap(this.__cjs_DBTimeout, "__cjs_DBTimeout");
+		js.wrap(this.__cjs_DBBLOBBind, "__cjs_DBBLOBBind");
+		js.wrap(this.__cjs_DBBLOBNameBind, "__cjs_DBBLOBNameBind");
+		js.wrap(this.__cjs_DBFree, "__cjs_DBFree");
+		js.wrap(this.__cjs_DBColumns, "__cjs_DBColumns");
+		js.wrap(this.__cjs_DBFirst, "__cjs_DBFirst");
+		js.wrap(this.__cjs_DBNext, "__cjs_DBNext");
+		js.wrap(this.__cjs_DBData, "__cjs_DBData");
+		js.wrap(this.__cjs_DBDataRead, "__cjs_DBDataRead");
+		js.wrap(this.__cjs_DBDataWrite, "__cjs_DBDataWrite");
+		js.wrap(this.__cjs_DBQuery, "__cjs_DBQuery");
+		js.wrap(this.__cjs_DBReset, "__cjs_DBReset");
+		js.wrap(this.__cjs_DBClearBindings, "__cjs_DBClearBindings");
+		js.wrap(this.__cjs_DBColumnDeclType, "__cjs_DBColumnDeclType");
+		js.wrap(this.__cjs_DBColumnName, "__cjs_DBColumnName");
+		js.wrap(this.__cjs_DBColumnType, "__cjs_DBColumnType");
+		js.wrap(this.__cjs_DBWrap, "__cjs_DBWrap");
+		js.wrap(this.__cjs_DBParamCount, "__cjs_DBParamCount");
+		js.wrap(this.__cjs_DBBLOBDataBind, "__cjs_DBBLOBDataBind");
+		js.wrap(this.__cjs_DBBLOBNameDataBind, "__cjs_DBBLOBNameDataBind");
+	}
+
+	ECMABRIDGE_standard_db_sqlite(js) {
+		this.wrap(js);
+	}
+}

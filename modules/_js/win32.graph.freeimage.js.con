@@ -1,0 +1,222 @@
+/* This file is generated automatically by generatejs.con. Do not edit. */
+
+import win32.graph.freeimage
+
+class ECMABRIDGE_win32_graph_freeimage {
+	__cjs_FreeImage_Initialise(a) {
+		return FreeImage_Initialise(a);
+	}
+
+	__cjs_FreeImage_DeInitialise() {
+		return FreeImage_DeInitialise();
+	}
+
+	__cjs_FreeImage_GetVersion() {
+		return FreeImage_GetVersion();
+	}
+
+	__cjs_FreeImage_GetCopyrightMessage() {
+		return FreeImage_GetCopyrightMessage();
+	}
+
+	__cjs_FreeImage_Allocate(a, b, c, d, e, f) {
+		return FreeImage_Allocate(a, b, c, d, e, f);
+	}
+
+	__cjs_FreeImage_AllocateT(a, b, c, d, e, f, g) {
+		return FreeImage_AllocateT(a, b, c, d, e, f, g);
+	}
+
+	__cjs_FreeImage_Load(a, b, c) {
+		return FreeImage_Load(a, b, c);
+	}
+
+	__cjs_FreeImage_LoadU(a, b, c) {
+		return FreeImage_LoadU(a, b, c);
+	}
+
+	__cjs_FreeImage_Save(a, b, c, d) {
+		return FreeImage_Save(a, b, c, d);
+	}
+
+	__cjs_FreeImage_SaveU(a, b, c, d) {
+		return FreeImage_SaveU(a, b, c, d);
+	}
+
+	__cjs_FreeImage_Unload(a) {
+		return FreeImage_Unload(a);
+	}
+
+	__cjs_FreeImage_Clone(a) {
+		return FreeImage_Clone(a);
+	}
+
+	__cjs_FreeImage_SetPixelColor(a, b, c, d, e, f) {
+		return FreeImage_SetPixelColor(a, b, c, d, e, f);
+	}
+
+	__cjs_FreeImage_GetPixelColor(a, b, c, d, e, f) {
+		return FreeImage_GetPixelColor(a, b, c, d, e, f);
+	}
+
+	__cjs_FreeImage_GetImageType(a) {
+		return FreeImage_GetImageType(a);
+	}
+
+	__cjs_FreeImage_GetColorsUsed(a) {
+		return FreeImage_GetColorsUsed(a);
+	}
+
+	__cjs_FreeImage_GetBPP(a) {
+		return FreeImage_GetBPP(a);
+	}
+
+	__cjs_FreeImage_GetWidth(a) {
+		return FreeImage_GetWidth(a);
+	}
+
+	__cjs_FreeImage_GetHeight(a) {
+		return FreeImage_GetHeight(a);
+	}
+
+	__cjs_FreeImage_GetLine(a) {
+		return FreeImage_GetLine(a);
+	}
+
+	__cjs_FreeImage_GetPitch(a) {
+		return FreeImage_GetPitch(a);
+	}
+
+	__cjs_FreeImage_GetDIBSize(a) {
+		return FreeImage_GetDIBSize(a);
+	}
+
+	__cjs_FreeImage_GetDotsPerMeterX(a) {
+		return FreeImage_GetDotsPerMeterX(a);
+	}
+
+	__cjs_FreeImage_GetDotsPerMeterY(a) {
+		return FreeImage_GetDotsPerMeterY(a);
+	}
+
+	__cjs_FreeImage_SetDotsPerMeterX(a, b) {
+		return FreeImage_SetDotsPerMeterX(a, b);
+	}
+
+	__cjs_FreeImage_SetDotsPerMeterY(a, b) {
+		return FreeImage_SetDotsPerMeterY(a, b);
+	}
+
+	__cjs_FreeImage_GetColorType(a) {
+		return FreeImage_GetColorType(a);
+	}
+
+	__cjs_FreeImage_GetRedMask(a) {
+		return FreeImage_GetRedMask(a);
+	}
+
+	__cjs_FreeImage_GetGreenMask(a) {
+		return FreeImage_GetGreenMask(a);
+	}
+
+	__cjs_FreeImage_GetBlueMask(a) {
+		return FreeImage_GetBlueMask(a);
+	}
+
+	__cjs_FreeImage_GetTransparencyCount(a) {
+		return FreeImage_GetTransparencyCount(a);
+	}
+
+	__cjs_FreeImage_SetTransparent(a, b) {
+		return FreeImage_SetTransparent(a, b);
+	}
+
+	__cjs_FreeImage_IsTransparent(a) {
+		return FreeImage_IsTransparent(a);
+	}
+
+	__cjs_FreeImage_GetFileType(a) {
+		return FreeImage_GetFileType(a);
+	}
+
+	__cjs_FreeImage_HasBackgroundColor(a) {
+		return FreeImage_HasBackgroundColor(a);
+	}
+
+	__cjs_FreeImage_Rescale(a, b, c, d) {
+		return FreeImage_Rescale(a, b, c, d);
+	}
+
+	__cjs_FreeImage_Copy(a, b, c, d, e) {
+		return FreeImage_Copy(a, b, c, d, e);
+	}
+
+	__cjs_FreeImage_Paste(a, b, c, d, e) {
+		return FreeImage_Paste(a, b, c, d, e);
+	}
+
+	__cjs_FreeImage_Composite(a, b) {
+		return FreeImage_Composite(a, b);
+	}
+
+	__cjs_FreeImage_Rotate(a, b) {
+		return FreeImage_Rotate(a, b);
+	}
+
+	__cjs_FreeImage_FlipHorizontal(a, b) {
+		return FreeImage_FlipHorizontal(a, b);
+	}
+
+	__cjs_FreeImage_FlipVertical(a, b) {
+		return FreeImage_FlipVertical(a, b);
+	}
+
+	wrap(js) {
+		js.wrap(this.__cjs_FreeImage_Initialise, "__cjs_FreeImage_Initialise");
+		js.wrap(this.__cjs_FreeImage_DeInitialise, "__cjs_FreeImage_DeInitialise");
+		js.wrap(this.__cjs_FreeImage_GetVersion, "__cjs_FreeImage_GetVersion");
+		js.wrap(this.__cjs_FreeImage_GetCopyrightMessage, "__cjs_FreeImage_GetCopyrightMessage");
+		js.wrap(this.__cjs_FreeImage_Allocate, "__cjs_FreeImage_Allocate");
+		js.wrap(this.__cjs_FreeImage_AllocateT, "__cjs_FreeImage_AllocateT");
+		js.wrap(this.__cjs_FreeImage_Load, "__cjs_FreeImage_Load");
+		js.wrap(this.__cjs_FreeImage_LoadU, "__cjs_FreeImage_LoadU");
+		js.wrap(this.__cjs_FreeImage_Save, "__cjs_FreeImage_Save");
+		js.wrap(this.__cjs_FreeImage_SaveU, "__cjs_FreeImage_SaveU");
+		js.wrap(this.__cjs_FreeImage_Unload, "__cjs_FreeImage_Unload");
+		js.wrap(this.__cjs_FreeImage_Clone, "__cjs_FreeImage_Clone");
+		js.wrap(this.__cjs_FreeImage_SetPixelColor, "__cjs_FreeImage_SetPixelColor");
+		js.wrap(this.__cjs_FreeImage_GetPixelColor, "__cjs_FreeImage_GetPixelColor");
+		js.wrap(this.__cjs_FreeImage_GetImageType, "__cjs_FreeImage_GetImageType");
+		js.wrap(this.__cjs_FreeImage_GetColorsUsed, "__cjs_FreeImage_GetColorsUsed");
+		js.wrap(this.__cjs_FreeImage_GetBPP, "__cjs_FreeImage_GetBPP");
+		js.wrap(this.__cjs_FreeImage_GetWidth, "__cjs_FreeImage_GetWidth");
+		js.wrap(this.__cjs_FreeImage_GetHeight, "__cjs_FreeImage_GetHeight");
+		js.wrap(this.__cjs_FreeImage_GetLine, "__cjs_FreeImage_GetLine");
+		js.wrap(this.__cjs_FreeImage_GetPitch, "__cjs_FreeImage_GetPitch");
+		js.wrap(this.__cjs_FreeImage_GetDIBSize, "__cjs_FreeImage_GetDIBSize");
+		js.wrap(this.__cjs_FreeImage_GetDotsPerMeterX, "__cjs_FreeImage_GetDotsPerMeterX");
+		js.wrap(this.__cjs_FreeImage_GetDotsPerMeterY, "__cjs_FreeImage_GetDotsPerMeterY");
+		js.wrap(this.__cjs_FreeImage_SetDotsPerMeterX, "__cjs_FreeImage_SetDotsPerMeterX");
+		js.wrap(this.__cjs_FreeImage_SetDotsPerMeterY, "__cjs_FreeImage_SetDotsPerMeterY");
+		js.wrap(this.__cjs_FreeImage_GetColorType, "__cjs_FreeImage_GetColorType");
+		js.wrap(this.__cjs_FreeImage_GetRedMask, "__cjs_FreeImage_GetRedMask");
+		js.wrap(this.__cjs_FreeImage_GetGreenMask, "__cjs_FreeImage_GetGreenMask");
+		js.wrap(this.__cjs_FreeImage_GetBlueMask, "__cjs_FreeImage_GetBlueMask");
+		js.wrap(this.__cjs_FreeImage_GetTransparencyCount, "__cjs_FreeImage_GetTransparencyCount");
+		js.wrap(this.__cjs_FreeImage_SetTransparent, "__cjs_FreeImage_SetTransparent");
+		js.wrap(this.__cjs_FreeImage_IsTransparent, "__cjs_FreeImage_IsTransparent");
+		js.wrap(this.__cjs_FreeImage_GetFileType, "__cjs_FreeImage_GetFileType");
+		js.wrap(this.__cjs_FreeImage_HasBackgroundColor, "__cjs_FreeImage_HasBackgroundColor");
+		js.wrap(this.__cjs_FreeImage_Rescale, "__cjs_FreeImage_Rescale");
+		js.wrap(this.__cjs_FreeImage_Copy, "__cjs_FreeImage_Copy");
+		js.wrap(this.__cjs_FreeImage_Paste, "__cjs_FreeImage_Paste");
+		js.wrap(this.__cjs_FreeImage_Composite, "__cjs_FreeImage_Composite");
+		js.wrap(this.__cjs_FreeImage_Rotate, "__cjs_FreeImage_Rotate");
+		js.wrap(this.__cjs_FreeImage_FlipHorizontal, "__cjs_FreeImage_FlipHorizontal");
+		js.wrap(this.__cjs_FreeImage_FlipVertical, "__cjs_FreeImage_FlipVertical");
+	}
+
+	ECMABRIDGE_win32_graph_freeimage(js) {
+		this.wrap(js);
+	}
+}

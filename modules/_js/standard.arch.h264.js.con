@@ -1,0 +1,67 @@
+/* This file is generated automatically by generatejs.con. Do not edit. */
+
+import standard.arch.h264
+
+class ECMABRIDGE_standard_arch_h264 {
+	__cjs_H264Encoder(a) {
+		return H264Encoder(a);
+	}
+
+	__cjs_H264Decoder(a) {
+		return H264Decoder(a);
+	}
+
+	__cjs_H264EncoderSet(a, b, c) {
+		return H264EncoderSet(a, b, c);
+	}
+
+	__cjs_H264DecoderSet(a, b, c) {
+		return H264DecoderSet(a, b, c);
+	}
+
+	__cjs_H264EncoderGet(a, b, c) {
+		return H264EncoderGet(a, b, c);
+	}
+
+	__cjs_H264DecoderGet(a, b, c) {
+		return H264DecoderGet(a, b, c);
+	}
+
+	__cjs_H264Encode(a, b, c, d, e, f, g = null, h = null) {
+		return H264Encode(a, b, c, d, e, f, g = null, h = null);
+	}
+
+	__cjs_H264Decode(a, b, c, d, e = null, f = null, g = null) {
+		return H264Decode(a, b, c, d, e = null, f = null, g = null);
+	}
+
+	__cjs_H264EncoderDone(a) {
+		return H264EncoderDone(a);
+	}
+
+	__cjs_H264DecoderDone(a) {
+		return H264DecoderDone(a);
+	}
+
+	__cjs_YUV420Overlay(a, b, c, d, e, f, g, h, i) {
+		return YUV420Overlay(a, b, c, d, e, f, g, h, i);
+	}
+
+	wrap(js) {
+		js.wrap(this.__cjs_H264Encoder, "__cjs_H264Encoder");
+		js.wrap(this.__cjs_H264Decoder, "__cjs_H264Decoder");
+		js.wrap(this.__cjs_H264EncoderSet, "__cjs_H264EncoderSet");
+		js.wrap(this.__cjs_H264DecoderSet, "__cjs_H264DecoderSet");
+		js.wrap(this.__cjs_H264EncoderGet, "__cjs_H264EncoderGet");
+		js.wrap(this.__cjs_H264DecoderGet, "__cjs_H264DecoderGet");
+		js.wrap(this.__cjs_H264Encode, "__cjs_H264Encode");
+		js.wrap(this.__cjs_H264Decode, "__cjs_H264Decode");
+		js.wrap(this.__cjs_H264EncoderDone, "__cjs_H264EncoderDone");
+		js.wrap(this.__cjs_H264DecoderDone, "__cjs_H264DecoderDone");
+		js.wrap(this.__cjs_YUV420Overlay, "__cjs_YUV420Overlay");
+	}
+
+	ECMABRIDGE_standard_arch_h264(js) {
+		this.wrap(js);
+	}
+}

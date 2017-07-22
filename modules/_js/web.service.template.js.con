@@ -1,0 +1,47 @@
+/* This file is generated automatically by generatejs.con. Do not edit. */
+
+import web.service.template
+
+class ECMABRIDGE_web_service_template {
+	__cjs_NewTemplateContext() {
+		return NewTemplateContext();
+	}
+
+	__cjs_TBind(a, b, c) {
+		return TBind(a, b, c);
+	}
+
+	__cjs_TUnBind(a, b) {
+		return TUnBind(a, b);
+	}
+
+	__cjs_TCompile(a, b) {
+		return TCompile(a, b);
+	}
+
+	__cjs_TErrors(a) {
+		return TErrors(a);
+	}
+
+	__cjs_TExecute(a) {
+		return TExecute(a);
+	}
+
+	__cjs_DestroyTemplateContext(a) {
+		return DestroyTemplateContext(a);
+	}
+
+	wrap(js) {
+		js.wrap(this.__cjs_NewTemplateContext, "__cjs_NewTemplateContext");
+		js.wrap(this.__cjs_TBind, "__cjs_TBind");
+		js.wrap(this.__cjs_TUnBind, "__cjs_TUnBind");
+		js.wrap(this.__cjs_TCompile, "__cjs_TCompile");
+		js.wrap(this.__cjs_TErrors, "__cjs_TErrors");
+		js.wrap(this.__cjs_TExecute, "__cjs_TExecute");
+		js.wrap(this.__cjs_DestroyTemplateContext, "__cjs_DestroyTemplateContext");
+	}
+
+	ECMABRIDGE_web_service_template(js) {
+		this.wrap(js);
+	}
+}

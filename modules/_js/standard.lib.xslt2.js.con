@@ -1,0 +1,27 @@
+/* This file is generated automatically by generatejs.con. Do not edit. */
+
+import standard.lib.xslt2
+
+class ECMABRIDGE_standard_lib_xslt2 {
+	__cjs_XSLTProcess(a, b, c) {
+		return XSLTProcess(a, b, c);
+	}
+
+	__cjs_XSLTError() {
+		return XSLTError();
+	}
+
+	__cjs_XSLTRegister(a, b, c = null) {
+		return XSLTRegister(a, b, c = null);
+	}
+
+	wrap(js) {
+		js.wrap(this.__cjs_XSLTProcess, "__cjs_XSLTProcess");
+		js.wrap(this.__cjs_XSLTError, "__cjs_XSLTError");
+		js.wrap(this.__cjs_XSLTRegister, "__cjs_XSLTRegister");
+	}
+
+	ECMABRIDGE_standard_lib_xslt2(js) {
+		this.wrap(js);
+	}
+}

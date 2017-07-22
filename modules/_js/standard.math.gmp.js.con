@@ -1,0 +1,42 @@
+/* This file is generated automatically by generatejs.con. Do not edit. */
+
+import standard.math.gmp
+
+class ECMABRIDGE_standard_math_gmp {
+	__cjs_mpz_clear(a) {
+		return mpz_clear(a);
+	}
+
+	__cjs_mpz_init(a) {
+		return mpz_init(a);
+	}
+
+	__cjs_mpz_clears(a) {
+		return mpz_clears(a);
+	}
+
+	__cjs_mpz_inits(a) {
+		return mpz_inits(a);
+	}
+
+	__cjs_mpf_inits(a) {
+		return mpf_inits(a);
+	}
+
+	__cjs_mpf_clears(a) {
+		return mpf_clears(a);
+	}
+
+	wrap(js) {
+		js.wrap(this.__cjs_mpz_clear, "__cjs_mpz_clear");
+		js.wrap(this.__cjs_mpz_init, "__cjs_mpz_init");
+		js.wrap(this.__cjs_mpz_clears, "__cjs_mpz_clears");
+		js.wrap(this.__cjs_mpz_inits, "__cjs_mpz_inits");
+		js.wrap(this.__cjs_mpf_inits, "__cjs_mpf_inits");
+		js.wrap(this.__cjs_mpf_clears, "__cjs_mpf_clears");
+	}
+
+	ECMABRIDGE_standard_math_gmp(js) {
+		this.wrap(js);
+	}
+}

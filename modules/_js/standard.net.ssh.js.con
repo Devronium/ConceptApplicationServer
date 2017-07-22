@@ -1,0 +1,112 @@
+/* This file is generated automatically by generatejs.con. Do not edit. */
+
+import standard.net.ssh
+
+class ECMABRIDGE_standard_net_ssh {
+	__cjs_SSHConnect(a, b) {
+		return SSHConnect(a, b);
+	}
+
+	__cjs_SSHFingerprint(a) {
+		return SSHFingerprint(a);
+	}
+
+	__cjs_SSHAuth(a, b, c) {
+		return SSHAuth(a, b, c);
+	}
+
+	__cjs_SSHAuthPublicKey(a, b, c) {
+		return SSHAuthPublicKey(a, b, c);
+	}
+
+	__cjs_SSHChannelOpen(a) {
+		return SSHChannelOpen(a);
+	}
+
+	__cjs_SSHLastError(a) {
+		return SSHLastError(a);
+	}
+
+	__cjs_SSHLastErrorString(a) {
+		return SSHLastErrorString(a);
+	}
+
+	__cjs_SSHShell(a) {
+		return SSHShell(a);
+	}
+
+	__cjs_SSHProcess(a, b, c) {
+		return SSHProcess(a, b, c);
+	}
+
+	__cjs_SSHExec(a, b) {
+		return SSHExec(a, b);
+	}
+
+	__cjs_SSHRead(a, b, c, d = null) {
+		return SSHRead(a, b, c, d = null);
+	}
+
+	__cjs_SSHWrite(a, b, c) {
+		return SSHWrite(a, b, c);
+	}
+
+	__cjs_SSHSendEOF(a) {
+		return SSHSendEOF(a);
+	}
+
+	__cjs_SSHSetKeepAlive(a, b, c) {
+		return SSHSetKeepAlive(a, b, c);
+	}
+
+	__cjs_SSHSendKeepAlive(a, b) {
+		return SSHSendKeepAlive(a, b);
+	}
+
+	__cjs_SSHSetBlocking(a, b) {
+		return SSHSetBlocking(a, b);
+	}
+
+	__cjs_SSHChannelClose(a) {
+		return SSHChannelClose(a);
+	}
+
+	__cjs_SSHDisconnect(a) {
+		return SSHDisconnect(a);
+	}
+
+	__cjs_SSHChannelEOF(a) {
+		return SSHChannelEOF(a);
+	}
+
+	__cjs_SSHChannelPTY(a, b) {
+		return SSHChannelPTY(a, b);
+	}
+
+	wrap(js) {
+		js.wrap(this.__cjs_SSHConnect, "__cjs_SSHConnect");
+		js.wrap(this.__cjs_SSHFingerprint, "__cjs_SSHFingerprint");
+		js.wrap(this.__cjs_SSHAuth, "__cjs_SSHAuth");
+		js.wrap(this.__cjs_SSHAuthPublicKey, "__cjs_SSHAuthPublicKey");
+		js.wrap(this.__cjs_SSHChannelOpen, "__cjs_SSHChannelOpen");
+		js.wrap(this.__cjs_SSHLastError, "__cjs_SSHLastError");
+		js.wrap(this.__cjs_SSHLastErrorString, "__cjs_SSHLastErrorString");
+		js.wrap(this.__cjs_SSHShell, "__cjs_SSHShell");
+		js.wrap(this.__cjs_SSHProcess, "__cjs_SSHProcess");
+		js.wrap(this.__cjs_SSHExec, "__cjs_SSHExec");
+		js.wrap(this.__cjs_SSHRead, "__cjs_SSHRead");
+		js.wrap(this.__cjs_SSHWrite, "__cjs_SSHWrite");
+		js.wrap(this.__cjs_SSHSendEOF, "__cjs_SSHSendEOF");
+		js.wrap(this.__cjs_SSHSetKeepAlive, "__cjs_SSHSetKeepAlive");
+		js.wrap(this.__cjs_SSHSendKeepAlive, "__cjs_SSHSendKeepAlive");
+		js.wrap(this.__cjs_SSHSetBlocking, "__cjs_SSHSetBlocking");
+		js.wrap(this.__cjs_SSHChannelClose, "__cjs_SSHChannelClose");
+		js.wrap(this.__cjs_SSHDisconnect, "__cjs_SSHDisconnect");
+		js.wrap(this.__cjs_SSHChannelEOF, "__cjs_SSHChannelEOF");
+		js.wrap(this.__cjs_SSHChannelPTY, "__cjs_SSHChannelPTY");
+	}
+
+	ECMABRIDGE_standard_net_ssh(js) {
+		this.wrap(js);
+	}
+}

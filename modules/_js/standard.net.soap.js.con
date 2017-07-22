@@ -1,0 +1,242 @@
+/* This file is generated automatically by generatejs.con. Do not edit. */
+
+import standard.net.soap
+
+class ECMABRIDGE_standard_net_soap {
+	__cjs_SOAPClientDestroy() {
+		return SOAPClientDestroy();
+	}
+
+	__cjs_SOAPClientGetBlockmode() {
+		return SOAPClientGetBlockmode();
+	}
+
+	__cjs_SOAPClientBlockSocket(a) {
+		return SOAPClientBlockSocket(a);
+	}
+
+	__cjs_SOAPClientInvoke(a, b, c, d) {
+		return SOAPClientInvoke(a, b, c, d);
+	}
+
+	__cjs_SOAPCtxGetFile(a, b) {
+		return SOAPCtxGetFile(a, b);
+	}
+
+	__cjs_SOAPCtxNewWithMethod(a, b, c) {
+		return SOAPCtxNewWithMethod(a, b, c);
+	}
+
+	__cjs_SOAPCtxAddFile(a, b, c, d) {
+		return SOAPCtxAddFile(a, b, c, d);
+	}
+
+	__cjs_SOAPCtxFree(a) {
+		return SOAPCtxFree(a);
+	}
+
+	__cjs_SOAPEnvNewWithFault(a, b, c, d, e) {
+		return SOAPEnvNewWithFault(a, b, c, d, e);
+	}
+
+	__cjs_SOAPEnvNewWithMethod(a, b, c) {
+		return SOAPEnvNewWithMethod(a, b, c);
+	}
+
+	__cjs_SOAPEnvNewWithResponse(a, b) {
+		return SOAPEnvNewWithResponse(a, b);
+	}
+
+	__cjs_SOAPEnvNewFromDoc(a, b) {
+		return SOAPEnvNewFromDoc(a, b);
+	}
+
+	__cjs_SOAPEnvNewFromBuffer(a, b) {
+		return SOAPEnvNewFromBuffer(a, b);
+	}
+
+	__cjs_SOAPEnvNewFromStream(a, b) {
+		return SOAPEnvNewFromStream(a, b);
+	}
+
+	__cjs_SOAPEnvAddItem(a, b, c, d) {
+		return SOAPEnvAddItem(a, b, c, d);
+	}
+
+	__cjs_SOAPEnvAttachment(a, b, c) {
+		return SOAPEnvAttachment(a, b, c);
+	}
+
+	__cjs_SOAPEnvPushItem(a, b, c) {
+		return SOAPEnvPushItem(a, b, c);
+	}
+
+	__cjs_SOAPEnvPopItem(a) {
+		return SOAPEnvPopItem(a);
+	}
+
+	__cjs_SOAPEnvFree(a) {
+		return SOAPEnvFree(a);
+	}
+
+	__cjs_SOAPEnvGetBody(a) {
+		return SOAPEnvGetBody(a);
+	}
+
+	__cjs_SOAPEnvGetMethod(a) {
+		return SOAPEnvGetMethod(a);
+	}
+
+	__cjs_SOAPEnvGetFault(a) {
+		return SOAPEnvGetFault(a);
+	}
+
+	__cjs_SOAPEnvFindUrn(a, b) {
+		return SOAPEnvFindUrn(a, b);
+	}
+
+	__cjs_SOAPEnvFindMethodname(a, b) {
+		return SOAPEnvFindMethodname(a, b);
+	}
+
+	__cjs_SOAPXMLDocPrint(a) {
+		return SOAPXMLDocPrint(a);
+	}
+
+	__cjs_SOAPGetRootDoc(a) {
+		return SOAPGetRootDoc(a);
+	}
+
+	__cjs_SOAPGetEnv(a) {
+		return SOAPGetEnv(a);
+	}
+
+	__cjs_SOAPXMLGetChildren(a) {
+		return SOAPXMLGetChildren(a);
+	}
+
+	__cjs_SOAPXMLGetNext(a) {
+		return SOAPXMLGetNext(a);
+	}
+
+	__cjs_SOAPXMLGetText(a) {
+		return SOAPXMLGetText(a);
+	}
+
+	__cjs_SOAPFaultBuild(a, b, c, d) {
+		return SOAPFaultBuild(a, b, c, d);
+	}
+
+	__cjs_SOAPRouterNew() {
+		return SOAPRouterNew();
+	}
+
+	__cjs_SOAPRouterFindService(a, b, c) {
+		return SOAPRouterFindService(a, b, c);
+	}
+
+	__cjs_SOAPRouterFree(a) {
+		return SOAPRouterFree(a);
+	}
+
+	__cjs_SOAPServerRegisterRouter(a, b) {
+		return SOAPServerRegisterRouter(a, b);
+	}
+
+	__cjs_SOAPServerRun() {
+		return SOAPServerRun();
+	}
+
+	__cjs_SOAPServerDestroy() {
+		return SOAPServerDestroy();
+	}
+
+	__cjs_SOAPRouterRegisterService(a, b, c, d) {
+		return SOAPRouterRegisterService(a, b, c, d);
+	}
+
+	__cjs_SOAPGetCurrentNode(a) {
+		return SOAPGetCurrentNode(a);
+	}
+
+	__cjs_SOAPGetRootNode(a) {
+		return SOAPGetRootNode(a);
+	}
+
+	__cjs_SOAPError(a) {
+		return SOAPError(a);
+	}
+
+	__cjs_SOAPGetServiceUrn(a) {
+		return SOAPGetServiceUrn(a);
+	}
+
+	__cjs_SOAPGetServiceMethod(a) {
+		return SOAPGetServiceMethod(a);
+	}
+
+	__cjs_SOAPXMLGetNodeArray(a) {
+		return SOAPXMLGetNodeArray(a);
+	}
+
+	__cjs_SOAPGetEnvArray(a) {
+		return SOAPGetEnvArray(a);
+	}
+
+	__cjs_SOAPGetCtxArray(a) {
+		return SOAPGetCtxArray(a);
+	}
+
+	wrap(js) {
+		js.wrap(this.__cjs_SOAPClientDestroy, "__cjs_SOAPClientDestroy");
+		js.wrap(this.__cjs_SOAPClientGetBlockmode, "__cjs_SOAPClientGetBlockmode");
+		js.wrap(this.__cjs_SOAPClientBlockSocket, "__cjs_SOAPClientBlockSocket");
+		js.wrap(this.__cjs_SOAPClientInvoke, "__cjs_SOAPClientInvoke");
+		js.wrap(this.__cjs_SOAPCtxGetFile, "__cjs_SOAPCtxGetFile");
+		js.wrap(this.__cjs_SOAPCtxNewWithMethod, "__cjs_SOAPCtxNewWithMethod");
+		js.wrap(this.__cjs_SOAPCtxAddFile, "__cjs_SOAPCtxAddFile");
+		js.wrap(this.__cjs_SOAPCtxFree, "__cjs_SOAPCtxFree");
+		js.wrap(this.__cjs_SOAPEnvNewWithFault, "__cjs_SOAPEnvNewWithFault");
+		js.wrap(this.__cjs_SOAPEnvNewWithMethod, "__cjs_SOAPEnvNewWithMethod");
+		js.wrap(this.__cjs_SOAPEnvNewWithResponse, "__cjs_SOAPEnvNewWithResponse");
+		js.wrap(this.__cjs_SOAPEnvNewFromDoc, "__cjs_SOAPEnvNewFromDoc");
+		js.wrap(this.__cjs_SOAPEnvNewFromBuffer, "__cjs_SOAPEnvNewFromBuffer");
+		js.wrap(this.__cjs_SOAPEnvNewFromStream, "__cjs_SOAPEnvNewFromStream");
+		js.wrap(this.__cjs_SOAPEnvAddItem, "__cjs_SOAPEnvAddItem");
+		js.wrap(this.__cjs_SOAPEnvAttachment, "__cjs_SOAPEnvAttachment");
+		js.wrap(this.__cjs_SOAPEnvPushItem, "__cjs_SOAPEnvPushItem");
+		js.wrap(this.__cjs_SOAPEnvPopItem, "__cjs_SOAPEnvPopItem");
+		js.wrap(this.__cjs_SOAPEnvFree, "__cjs_SOAPEnvFree");
+		js.wrap(this.__cjs_SOAPEnvGetBody, "__cjs_SOAPEnvGetBody");
+		js.wrap(this.__cjs_SOAPEnvGetMethod, "__cjs_SOAPEnvGetMethod");
+		js.wrap(this.__cjs_SOAPEnvGetFault, "__cjs_SOAPEnvGetFault");
+		js.wrap(this.__cjs_SOAPEnvFindUrn, "__cjs_SOAPEnvFindUrn");
+		js.wrap(this.__cjs_SOAPEnvFindMethodname, "__cjs_SOAPEnvFindMethodname");
+		js.wrap(this.__cjs_SOAPXMLDocPrint, "__cjs_SOAPXMLDocPrint");
+		js.wrap(this.__cjs_SOAPGetRootDoc, "__cjs_SOAPGetRootDoc");
+		js.wrap(this.__cjs_SOAPGetEnv, "__cjs_SOAPGetEnv");
+		js.wrap(this.__cjs_SOAPXMLGetChildren, "__cjs_SOAPXMLGetChildren");
+		js.wrap(this.__cjs_SOAPXMLGetNext, "__cjs_SOAPXMLGetNext");
+		js.wrap(this.__cjs_SOAPXMLGetText, "__cjs_SOAPXMLGetText");
+		js.wrap(this.__cjs_SOAPFaultBuild, "__cjs_SOAPFaultBuild");
+		js.wrap(this.__cjs_SOAPRouterNew, "__cjs_SOAPRouterNew");
+		js.wrap(this.__cjs_SOAPRouterFindService, "__cjs_SOAPRouterFindService");
+		js.wrap(this.__cjs_SOAPRouterFree, "__cjs_SOAPRouterFree");
+		js.wrap(this.__cjs_SOAPServerRegisterRouter, "__cjs_SOAPServerRegisterRouter");
+		js.wrap(this.__cjs_SOAPServerRun, "__cjs_SOAPServerRun");
+		js.wrap(this.__cjs_SOAPServerDestroy, "__cjs_SOAPServerDestroy");
+		js.wrap(this.__cjs_SOAPRouterRegisterService, "__cjs_SOAPRouterRegisterService");
+		js.wrap(this.__cjs_SOAPGetCurrentNode, "__cjs_SOAPGetCurrentNode");
+		js.wrap(this.__cjs_SOAPGetRootNode, "__cjs_SOAPGetRootNode");
+		js.wrap(this.__cjs_SOAPError, "__cjs_SOAPError");
+		js.wrap(this.__cjs_SOAPGetServiceUrn, "__cjs_SOAPGetServiceUrn");
+		js.wrap(this.__cjs_SOAPGetServiceMethod, "__cjs_SOAPGetServiceMethod");
+		js.wrap(this.__cjs_SOAPXMLGetNodeArray, "__cjs_SOAPXMLGetNodeArray");
+		js.wrap(this.__cjs_SOAPGetEnvArray, "__cjs_SOAPGetEnvArray");
+		js.wrap(this.__cjs_SOAPGetCtxArray, "__cjs_SOAPGetCtxArray");
+	}
+
+	ECMABRIDGE_standard_net_soap(js) {
+		this.wrap(js);
+	}
+}

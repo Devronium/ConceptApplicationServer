@@ -1,0 +1,102 @@
+/* This file is generated automatically by generatejs.con. Do not edit. */
+
+import standard.net.rtp.lite
+
+class ECMABRIDGE_standard_net_rtp_lite {
+	__cjs_RTP_Create(a) {
+		return RTP_Create(a);
+	}
+
+	__cjs_RTP_Destroy(a) {
+		return RTP_Destroy(a);
+	}
+
+	__cjs_RTP_Send(a, b, c, d, e) {
+		return RTP_Send(a, b, c, d, e);
+	}
+
+	__cjs_RTP_Build(a, b, c, d, e) {
+		return RTP_Build(a, b, c, d, e);
+	}
+
+	__cjs_RTP_Add_Send_Addr(a, b, c, d) {
+		return RTP_Add_Send_Addr(a, b, c, d);
+	}
+
+	__cjs_RTP_Rem_Send_Addr(a, b, c, d) {
+		return RTP_Rem_Send_Addr(a, b, c, d);
+	}
+
+	__cjs_Set_Extension_Profile(a, b) {
+		return Set_Extension_Profile(a, b);
+	}
+
+	__cjs_Add_Extension(a, b) {
+		return Add_Extension(a, b);
+	}
+
+	__cjs_Rem_Ext_Hdr(a) {
+		return Rem_Ext_Hdr(a);
+	}
+
+	__cjs_Add_CRSC(a, b) {
+		return Add_CRSC(a, b);
+	}
+
+	__cjs_Get_Period_us(a) {
+		return Get_Period_us(a);
+	}
+
+	__cjs_RTP_Context_Create(a) {
+		return RTP_Context_Create(a);
+	}
+
+	__cjs_RTP_Context_destroy(a) {
+		return RTP_Context_destroy(a);
+	}
+
+	__cjs_Init_Context(a, b) {
+		return Init_Context(a, b);
+	}
+
+	__cjs_RTP_Session_Save_Cxinfo(a, b) {
+		return RTP_Session_Save_Cxinfo(a, b);
+	}
+
+	__cjs_RTP_Session_Restore_Cxinfo(a, b) {
+		return RTP_Session_Restore_Cxinfo(a, b);
+	}
+
+	__cjs_RTP_Sd_Pkt(a, b, c, d, e, f, g) {
+		return RTP_Sd_Pkt(a, b, c, d, e, f, g);
+	}
+
+	__cjs_RTP_Receive(a, b, c, d) {
+		return RTP_Receive(a, b, c, d);
+	}
+
+	wrap(js) {
+		js.wrap(this.__cjs_RTP_Create, "__cjs_RTP_Create");
+		js.wrap(this.__cjs_RTP_Destroy, "__cjs_RTP_Destroy");
+		js.wrap(this.__cjs_RTP_Send, "__cjs_RTP_Send");
+		js.wrap(this.__cjs_RTP_Build, "__cjs_RTP_Build");
+		js.wrap(this.__cjs_RTP_Add_Send_Addr, "__cjs_RTP_Add_Send_Addr");
+		js.wrap(this.__cjs_RTP_Rem_Send_Addr, "__cjs_RTP_Rem_Send_Addr");
+		js.wrap(this.__cjs_Set_Extension_Profile, "__cjs_Set_Extension_Profile");
+		js.wrap(this.__cjs_Add_Extension, "__cjs_Add_Extension");
+		js.wrap(this.__cjs_Rem_Ext_Hdr, "__cjs_Rem_Ext_Hdr");
+		js.wrap(this.__cjs_Add_CRSC, "__cjs_Add_CRSC");
+		js.wrap(this.__cjs_Get_Period_us, "__cjs_Get_Period_us");
+		js.wrap(this.__cjs_RTP_Context_Create, "__cjs_RTP_Context_Create");
+		js.wrap(this.__cjs_RTP_Context_destroy, "__cjs_RTP_Context_destroy");
+		js.wrap(this.__cjs_Init_Context, "__cjs_Init_Context");
+		js.wrap(this.__cjs_RTP_Session_Save_Cxinfo, "__cjs_RTP_Session_Save_Cxinfo");
+		js.wrap(this.__cjs_RTP_Session_Restore_Cxinfo, "__cjs_RTP_Session_Restore_Cxinfo");
+		js.wrap(this.__cjs_RTP_Sd_Pkt, "__cjs_RTP_Sd_Pkt");
+		js.wrap(this.__cjs_RTP_Receive, "__cjs_RTP_Receive");
+	}
+
+	ECMABRIDGE_standard_net_rtp_lite(js) {
+		this.wrap(js);
+	}
+}

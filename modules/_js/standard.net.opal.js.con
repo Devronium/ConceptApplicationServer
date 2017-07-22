@@ -1,0 +1,257 @@
+/* This file is generated automatically by generatejs.con. Do not edit. */
+
+import standard.net.opal
+
+class ECMABRIDGE_standard_net_opal {
+	__cjs_SIPPhoneCreate() {
+		return SIPPhoneCreate();
+	}
+
+	__cjs_SIPPhoneDestroy(a) {
+		return SIPPhoneDestroy(a);
+	}
+
+	__cjs_SIPPhoneSetPortBase(a, b, c) {
+		return SIPPhoneSetPortBase(a, b, c);
+	}
+
+	__cjs_SIPPhoneSetSilenceDetector(a, b) {
+		return SIPPhoneSetSilenceDetector(a, b);
+	}
+
+	__cjs_SIPPhoneSetJitter(a, b, c) {
+		return SIPPhoneSetJitter(a, b, c);
+	}
+
+	__cjs_SIPPhoneConnect(a, b, c, d, e, f = null, g = null, h = null) {
+		return SIPPhoneConnect(a, b, c, d, e, f = null, g = null, h = null);
+	}
+
+	__cjs_SIPPhoneCall(a, b) {
+		return SIPPhoneCall(a, b);
+	}
+
+	__cjs_SIPPhoneHoldRetrieveCall(a) {
+		return SIPPhoneHoldRetrieveCall(a);
+	}
+
+	__cjs_SIPPhoneHangupCurrentCall(a) {
+		return SIPPhoneHangupCurrentCall(a);
+	}
+
+	__cjs_SIPPhoneTransfer(a, b) {
+		return SIPPhoneTransfer(a, b);
+	}
+
+	__cjs_SIPPhoneForward(a, b) {
+		return SIPPhoneForward(a, b);
+	}
+
+	__cjs_SIPPhoneHangupAll(a, b) {
+		return SIPPhoneHangupAll(a, b);
+	}
+
+	__cjs_SIPPhoneAnswer(a) {
+		return SIPPhoneAnswer(a);
+	}
+
+	__cjs_SIPPhoneReject(a, b) {
+		return SIPPhoneReject(a, b);
+	}
+
+	__cjs_SIPPhoneSendTone(a, b) {
+		return SIPPhoneSendTone(a, b);
+	}
+
+	__cjs_SIPPhoneAddListener(a, b) {
+		return SIPPhoneAddListener(a, b);
+	}
+
+	__cjs_SIPPhoneRemoveListener(a, b) {
+		return SIPPhoneRemoveListener(a, b);
+	}
+
+	__cjs_SIPPhoneUnregister() {
+		return SIPPhoneUnregister();
+	}
+
+	__cjs_SIPPhoneGetCodecs(a) {
+		return SIPPhoneGetCodecs(a);
+	}
+
+	__cjs_SIPPhoneSetCodecsOrder(a, b) {
+		return SIPPhoneSetCodecsOrder(a, b);
+	}
+
+	__cjs_SIPPhoneIsRegistered(a) {
+		return SIPPhoneIsRegistered(a);
+	}
+
+	__cjs_SIPPhoneSetSTUNServer(a, b) {
+		return SIPPhoneSetSTUNServer(a, b);
+	}
+
+	__cjs_SIPPhoneOnEstablishedCall(a, b) {
+		return SIPPhoneOnEstablishedCall(a, b);
+	}
+
+	__cjs_SIPPhoneOnClearedCall(a, b) {
+		return SIPPhoneOnClearedCall(a, b);
+	}
+
+	__cjs_SIPPhoneOnUserInputString(a, b) {
+		return SIPPhoneOnUserInputString(a, b);
+	}
+
+	__cjs_SIPPhoneOnShowIncoming(a, b) {
+		return SIPPhoneOnShowIncoming(a, b);
+	}
+
+	__cjs_SIPPhoneOnShowOutgoing(a, b) {
+		return SIPPhoneOnShowOutgoing(a, b);
+	}
+
+	__cjs_SIPPhoneOnMediaFrame(a, b) {
+		return SIPPhoneOnMediaFrame(a, b);
+	}
+
+	__cjs_SIPPhoneOnAlerting(a, b) {
+		return SIPPhoneOnAlerting(a, b);
+	}
+
+	__cjs_SIPPhoneOnOpenMediaStreamDelegate(a, b) {
+		return SIPPhoneOnOpenMediaStreamDelegate(a, b);
+	}
+
+	__cjs_SIPPhoneOnMediaFrameRequest(a, b) {
+		return SIPPhoneOnMediaFrameRequest(a, b);
+	}
+
+	__cjs_SIPPhoneOnConnectRequest(a, b) {
+		return SIPPhoneOnConnectRequest(a, b);
+	}
+
+	__cjs_SIPMediaStreamRead(a, b, c) {
+		return SIPMediaStreamRead(a, b, c);
+	}
+
+	__cjs_SIPMediaStreamWrite(a, b) {
+		return SIPMediaStreamWrite(a, b);
+	}
+
+	__cjs_SIPMediaStreamWriteAll(a, b) {
+		return SIPMediaStreamWriteAll(a, b);
+	}
+
+	__cjs_SIPMediaStreamClose(a) {
+		return SIPMediaStreamClose(a);
+	}
+
+	__cjs_SIPMediaStreamNotUsed(a) {
+		return SIPMediaStreamNotUsed(a);
+	}
+
+	__cjs_SIPMediaStreamIsSink(a) {
+		return SIPMediaStreamIsSink(a);
+	}
+
+	__cjs_SIPMediaStreamIsOpen(a) {
+		return SIPMediaStreamIsOpen(a);
+	}
+
+	__cjs_SIPMediaStreamIsSource(a) {
+		return SIPMediaStreamIsSource(a);
+	}
+
+	__cjs_SIPMediaStreamIsPaused(a) {
+		return SIPMediaStreamIsPaused(a);
+	}
+
+	__cjs_SIPMediaStreamIsSynchronous(a) {
+		return SIPMediaStreamIsSynchronous(a);
+	}
+
+	__cjs_SIPMediaStreamFormat(a) {
+		return SIPMediaStreamFormat(a);
+	}
+
+	__cjs_SIPMediaStreamSetDataSize(a, b, c) {
+		return SIPMediaStreamSetDataSize(a, b, c);
+	}
+
+	__cjs_SIPMediaStreamGetDataSize(a) {
+		return SIPMediaStreamGetDataSize(a);
+	}
+
+	__cjs_SIPMediaStreamStart(a) {
+		return SIPMediaStreamStart(a);
+	}
+
+	__cjs_SIPMediaStreamPause(a, b) {
+		return SIPMediaStreamPause(a, b);
+	}
+
+	__cjs_SIPPhoneSetNoMediaTimeout(a, b) {
+		return SIPPhoneSetNoMediaTimeout(a, b);
+	}
+
+	__cjs_SIPPhoneGetNoMediaTimeout(a) {
+		return SIPPhoneGetNoMediaTimeout(a);
+	}
+
+	wrap(js) {
+		js.wrap(this.__cjs_SIPPhoneCreate, "__cjs_SIPPhoneCreate");
+		js.wrap(this.__cjs_SIPPhoneDestroy, "__cjs_SIPPhoneDestroy");
+		js.wrap(this.__cjs_SIPPhoneSetPortBase, "__cjs_SIPPhoneSetPortBase");
+		js.wrap(this.__cjs_SIPPhoneSetSilenceDetector, "__cjs_SIPPhoneSetSilenceDetector");
+		js.wrap(this.__cjs_SIPPhoneSetJitter, "__cjs_SIPPhoneSetJitter");
+		js.wrap(this.__cjs_SIPPhoneConnect, "__cjs_SIPPhoneConnect");
+		js.wrap(this.__cjs_SIPPhoneCall, "__cjs_SIPPhoneCall");
+		js.wrap(this.__cjs_SIPPhoneHoldRetrieveCall, "__cjs_SIPPhoneHoldRetrieveCall");
+		js.wrap(this.__cjs_SIPPhoneHangupCurrentCall, "__cjs_SIPPhoneHangupCurrentCall");
+		js.wrap(this.__cjs_SIPPhoneTransfer, "__cjs_SIPPhoneTransfer");
+		js.wrap(this.__cjs_SIPPhoneForward, "__cjs_SIPPhoneForward");
+		js.wrap(this.__cjs_SIPPhoneHangupAll, "__cjs_SIPPhoneHangupAll");
+		js.wrap(this.__cjs_SIPPhoneAnswer, "__cjs_SIPPhoneAnswer");
+		js.wrap(this.__cjs_SIPPhoneReject, "__cjs_SIPPhoneReject");
+		js.wrap(this.__cjs_SIPPhoneSendTone, "__cjs_SIPPhoneSendTone");
+		js.wrap(this.__cjs_SIPPhoneAddListener, "__cjs_SIPPhoneAddListener");
+		js.wrap(this.__cjs_SIPPhoneRemoveListener, "__cjs_SIPPhoneRemoveListener");
+		js.wrap(this.__cjs_SIPPhoneUnregister, "__cjs_SIPPhoneUnregister");
+		js.wrap(this.__cjs_SIPPhoneGetCodecs, "__cjs_SIPPhoneGetCodecs");
+		js.wrap(this.__cjs_SIPPhoneSetCodecsOrder, "__cjs_SIPPhoneSetCodecsOrder");
+		js.wrap(this.__cjs_SIPPhoneIsRegistered, "__cjs_SIPPhoneIsRegistered");
+		js.wrap(this.__cjs_SIPPhoneSetSTUNServer, "__cjs_SIPPhoneSetSTUNServer");
+		js.wrap(this.__cjs_SIPPhoneOnEstablishedCall, "__cjs_SIPPhoneOnEstablishedCall");
+		js.wrap(this.__cjs_SIPPhoneOnClearedCall, "__cjs_SIPPhoneOnClearedCall");
+		js.wrap(this.__cjs_SIPPhoneOnUserInputString, "__cjs_SIPPhoneOnUserInputString");
+		js.wrap(this.__cjs_SIPPhoneOnShowIncoming, "__cjs_SIPPhoneOnShowIncoming");
+		js.wrap(this.__cjs_SIPPhoneOnShowOutgoing, "__cjs_SIPPhoneOnShowOutgoing");
+		js.wrap(this.__cjs_SIPPhoneOnMediaFrame, "__cjs_SIPPhoneOnMediaFrame");
+		js.wrap(this.__cjs_SIPPhoneOnAlerting, "__cjs_SIPPhoneOnAlerting");
+		js.wrap(this.__cjs_SIPPhoneOnOpenMediaStreamDelegate, "__cjs_SIPPhoneOnOpenMediaStreamDelegate");
+		js.wrap(this.__cjs_SIPPhoneOnMediaFrameRequest, "__cjs_SIPPhoneOnMediaFrameRequest");
+		js.wrap(this.__cjs_SIPPhoneOnConnectRequest, "__cjs_SIPPhoneOnConnectRequest");
+		js.wrap(this.__cjs_SIPMediaStreamRead, "__cjs_SIPMediaStreamRead");
+		js.wrap(this.__cjs_SIPMediaStreamWrite, "__cjs_SIPMediaStreamWrite");
+		js.wrap(this.__cjs_SIPMediaStreamWriteAll, "__cjs_SIPMediaStreamWriteAll");
+		js.wrap(this.__cjs_SIPMediaStreamClose, "__cjs_SIPMediaStreamClose");
+		js.wrap(this.__cjs_SIPMediaStreamNotUsed, "__cjs_SIPMediaStreamNotUsed");
+		js.wrap(this.__cjs_SIPMediaStreamIsSink, "__cjs_SIPMediaStreamIsSink");
+		js.wrap(this.__cjs_SIPMediaStreamIsOpen, "__cjs_SIPMediaStreamIsOpen");
+		js.wrap(this.__cjs_SIPMediaStreamIsSource, "__cjs_SIPMediaStreamIsSource");
+		js.wrap(this.__cjs_SIPMediaStreamIsPaused, "__cjs_SIPMediaStreamIsPaused");
+		js.wrap(this.__cjs_SIPMediaStreamIsSynchronous, "__cjs_SIPMediaStreamIsSynchronous");
+		js.wrap(this.__cjs_SIPMediaStreamFormat, "__cjs_SIPMediaStreamFormat");
+		js.wrap(this.__cjs_SIPMediaStreamSetDataSize, "__cjs_SIPMediaStreamSetDataSize");
+		js.wrap(this.__cjs_SIPMediaStreamGetDataSize, "__cjs_SIPMediaStreamGetDataSize");
+		js.wrap(this.__cjs_SIPMediaStreamStart, "__cjs_SIPMediaStreamStart");
+		js.wrap(this.__cjs_SIPMediaStreamPause, "__cjs_SIPMediaStreamPause");
+		js.wrap(this.__cjs_SIPPhoneSetNoMediaTimeout, "__cjs_SIPPhoneSetNoMediaTimeout");
+		js.wrap(this.__cjs_SIPPhoneGetNoMediaTimeout, "__cjs_SIPPhoneGetNoMediaTimeout");
+	}
+
+	ECMABRIDGE_standard_net_opal(js) {
+		this.wrap(js);
+	}
+}

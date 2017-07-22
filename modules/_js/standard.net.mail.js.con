@@ -1,0 +1,47 @@
+/* This file is generated automatically by generatejs.con. Do not edit. */
+
+import standard.net.mail
+
+class ECMABRIDGE_standard_net_mail {
+	__cjs_mail_error() {
+		return mail_error();
+	}
+
+	__cjs_sent_count() {
+		return sent_count();
+	}
+
+	__cjs_pop3_count_messages(a) {
+		return pop3_count_messages(a);
+	}
+
+	__cjs_pop3_get_message(a, b) {
+		return pop3_get_message(a, b);
+	}
+
+	__cjs_pop3_delete_message(a, b) {
+		return pop3_delete_message(a, b);
+	}
+
+	__cjs_pop3_close(a) {
+		return pop3_close(a);
+	}
+
+	__cjs_pop3_error() {
+		return pop3_error();
+	}
+
+	wrap(js) {
+		js.wrap(this.__cjs_mail_error, "__cjs_mail_error");
+		js.wrap(this.__cjs_sent_count, "__cjs_sent_count");
+		js.wrap(this.__cjs_pop3_count_messages, "__cjs_pop3_count_messages");
+		js.wrap(this.__cjs_pop3_get_message, "__cjs_pop3_get_message");
+		js.wrap(this.__cjs_pop3_delete_message, "__cjs_pop3_delete_message");
+		js.wrap(this.__cjs_pop3_close, "__cjs_pop3_close");
+		js.wrap(this.__cjs_pop3_error, "__cjs_pop3_error");
+	}
+
+	ECMABRIDGE_standard_net_mail(js) {
+		this.wrap(js);
+	}
+}

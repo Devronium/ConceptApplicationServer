@@ -1,0 +1,22 @@
+/* This file is generated automatically by generatejs.con. Do not edit. */
+
+import standard.lib.amf
+
+class ECMABRIDGE_standard_lib_amf {
+	__cjs_AMF(a) {
+		return AMF(a);
+	}
+
+	__cjs_UnAMF(a) {
+		return UnAMF(a);
+	}
+
+	wrap(js) {
+		js.wrap(this.__cjs_AMF, "__cjs_AMF");
+		js.wrap(this.__cjs_UnAMF, "__cjs_UnAMF");
+	}
+
+	ECMABRIDGE_standard_lib_amf(js) {
+		this.wrap(js);
+	}
+}

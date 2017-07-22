@@ -1,0 +1,147 @@
+/* This file is generated automatically by generatejs.con. Do not edit. */
+
+import standard.db.sql
+
+class ECMABRIDGE_standard_db_sql {
+	__cjs_ODBCConnect(a, b, c) {
+		return ODBCConnect(a, b, c);
+	}
+
+	__cjs_ODBCDriverConnect(a) {
+		return ODBCDriverConnect(a);
+	}
+
+	__cjs_ODBCFirstDSN() {
+		return ODBCFirstDSN();
+	}
+
+	__cjs_ODBCNextDSN() {
+		return ODBCNextDSN();
+	}
+
+	__cjs_ODBCDriver(a) {
+		return ODBCDriver(a);
+	}
+
+	__cjs_ODBCAddParameter(a, b) {
+		return ODBCAddParameter(a, b);
+	}
+
+	__cjs_ODBCClearParameters(a) {
+		return ODBCClearParameters(a);
+	}
+
+	__cjs_ODBCFreeQuery(a) {
+		return ODBCFreeQuery(a);
+	}
+
+	__cjs_ODBCDescribeCol(a, b, c, d, e, f, g) {
+		return ODBCDescribeCol(a, b, c, d, e, f, g);
+	}
+
+	__cjs_ODBCCountColumns(a) {
+		return ODBCCountColumns(a);
+	}
+
+	__cjs_ODBCCountRows(a) {
+		return ODBCCountRows(a);
+	}
+
+	__cjs_ODBCBindResult(a) {
+		return ODBCBindResult(a);
+	}
+
+	__cjs_ODBCFreeResult(a) {
+		return ODBCFreeResult(a);
+	}
+
+	__cjs_ODBCFetchFirst(a) {
+		return ODBCFetchFirst(a);
+	}
+
+	__cjs_ODBCFetchLast(a) {
+		return ODBCFetchLast(a);
+	}
+
+	__cjs_ODBCFetchPrior(a) {
+		return ODBCFetchPrior(a);
+	}
+
+	__cjs_ODBCFetchNext(a) {
+		return ODBCFetchNext(a);
+	}
+
+	__cjs_ODBCFetchAbsolute(a, b) {
+		return ODBCFetchAbsolute(a, b);
+	}
+
+	__cjs_ODBCPosition(a) {
+		return ODBCPosition(a);
+	}
+
+	__cjs_ODBCSkip(a, b) {
+		return ODBCSkip(a, b);
+	}
+
+	__cjs_ODBCFetchForward(a) {
+		return ODBCFetchForward(a);
+	}
+
+	__cjs_ODBCLock(a) {
+		return ODBCLock(a);
+	}
+
+	__cjs_ODBCUnlock(a) {
+		return ODBCUnlock(a);
+	}
+
+	__cjs_ODBCColumnGet(a, b) {
+		return ODBCColumnGet(a, b);
+	}
+
+	__cjs_ODBCColumnSet(a, b, c) {
+		return ODBCColumnSet(a, b, c);
+	}
+
+	__cjs_ODBCUpdate(a) {
+		return ODBCUpdate(a);
+	}
+
+	__cjs_ODBCDelete(a) {
+		return ODBCDelete(a);
+	}
+
+	wrap(js) {
+		js.wrap(this.__cjs_ODBCConnect, "__cjs_ODBCConnect");
+		js.wrap(this.__cjs_ODBCDriverConnect, "__cjs_ODBCDriverConnect");
+		js.wrap(this.__cjs_ODBCFirstDSN, "__cjs_ODBCFirstDSN");
+		js.wrap(this.__cjs_ODBCNextDSN, "__cjs_ODBCNextDSN");
+		js.wrap(this.__cjs_ODBCDriver, "__cjs_ODBCDriver");
+		js.wrap(this.__cjs_ODBCAddParameter, "__cjs_ODBCAddParameter");
+		js.wrap(this.__cjs_ODBCClearParameters, "__cjs_ODBCClearParameters");
+		js.wrap(this.__cjs_ODBCFreeQuery, "__cjs_ODBCFreeQuery");
+		js.wrap(this.__cjs_ODBCDescribeCol, "__cjs_ODBCDescribeCol");
+		js.wrap(this.__cjs_ODBCCountColumns, "__cjs_ODBCCountColumns");
+		js.wrap(this.__cjs_ODBCCountRows, "__cjs_ODBCCountRows");
+		js.wrap(this.__cjs_ODBCBindResult, "__cjs_ODBCBindResult");
+		js.wrap(this.__cjs_ODBCFreeResult, "__cjs_ODBCFreeResult");
+		js.wrap(this.__cjs_ODBCFetchFirst, "__cjs_ODBCFetchFirst");
+		js.wrap(this.__cjs_ODBCFetchLast, "__cjs_ODBCFetchLast");
+		js.wrap(this.__cjs_ODBCFetchPrior, "__cjs_ODBCFetchPrior");
+		js.wrap(this.__cjs_ODBCFetchNext, "__cjs_ODBCFetchNext");
+		js.wrap(this.__cjs_ODBCFetchAbsolute, "__cjs_ODBCFetchAbsolute");
+		js.wrap(this.__cjs_ODBCPosition, "__cjs_ODBCPosition");
+		js.wrap(this.__cjs_ODBCSkip, "__cjs_ODBCSkip");
+		js.wrap(this.__cjs_ODBCFetchForward, "__cjs_ODBCFetchForward");
+		js.wrap(this.__cjs_ODBCLock, "__cjs_ODBCLock");
+		js.wrap(this.__cjs_ODBCUnlock, "__cjs_ODBCUnlock");
+		js.wrap(this.__cjs_ODBCColumnGet, "__cjs_ODBCColumnGet");
+		js.wrap(this.__cjs_ODBCColumnSet, "__cjs_ODBCColumnSet");
+		js.wrap(this.__cjs_ODBCUpdate, "__cjs_ODBCUpdate");
+		js.wrap(this.__cjs_ODBCDelete, "__cjs_ODBCDelete");
+	}
+
+	ECMABRIDGE_standard_db_sql(js) {
+		this.wrap(js);
+	}
+}

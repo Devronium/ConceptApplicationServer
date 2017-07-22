@@ -1,0 +1,17 @@
+/* This file is generated automatically by generatejs.con. Do not edit. */
+
+import standard.lib.languagedetector
+
+class ECMABRIDGE_standard_lib_languagedetector {
+	__cjs_DetectLanguage(a, b, c = null) {
+		return DetectLanguage(a, b, c = null);
+	}
+
+	wrap(js) {
+		js.wrap(this.__cjs_DetectLanguage, "__cjs_DetectLanguage");
+	}
+
+	ECMABRIDGE_standard_lib_languagedetector(js) {
+		this.wrap(js);
+	}
+}

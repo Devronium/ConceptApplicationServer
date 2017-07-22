@@ -1,0 +1,22 @@
+/* This file is generated automatically by generatejs.con. Do not edit. */
+
+import standard.graph.wk
+
+class ECMABRIDGE_standard_graph_wk {
+	__cjs_WKPDF(a, b, c = null) {
+		return WKPDF(a, b, c = null);
+	}
+
+	__cjs_WKImg(a, b) {
+		return WKImg(a, b);
+	}
+
+	wrap(js) {
+		js.wrap(this.__cjs_WKPDF, "__cjs_WKPDF");
+		js.wrap(this.__cjs_WKImg, "__cjs_WKImg");
+	}
+
+	ECMABRIDGE_standard_graph_wk(js) {
+		this.wrap(js);
+	}
+}

@@ -1,0 +1,167 @@
+/* This file is generated automatically by generatejs.con. Do not edit. */
+
+import standard.lib.thread
+
+class ECMABRIDGE_standard_lib_thread {
+	__cjs_KillThread(a) {
+		return KillThread(a);
+	}
+
+	__cjs_WaitThread(a) {
+		return WaitThread(a);
+	}
+
+	__cjs_ThreadIsActive(a) {
+		return ThreadIsActive(a);
+	}
+
+	__cjs_Sleep(a) {
+		return Sleep(a);
+	}
+
+	__cjs_Greenlets(a) {
+		return Greenlets(a);
+	}
+
+	__cjs_GreenletAdd(a, b) {
+		return GreenletAdd(a, b);
+	}
+
+	__cjs_GreenLoop(a) {
+		return GreenLoop(a);
+	}
+
+	__cjs_yield() {
+		return yield();
+	}
+
+	__cjs__semcreate() {
+		return _semcreate();
+	}
+
+	__cjs__semdone(a) {
+		return _semdone(a);
+	}
+
+	__cjs__seminit(a, b) {
+		return _seminit(a, b);
+	}
+
+	__cjs__semp(a) {
+		return _semp(a);
+	}
+
+	__cjs__semv(a) {
+		return _semv(a);
+	}
+
+	__cjs_IsThreaded() {
+		return IsThreaded();
+	}
+
+	__cjs_CreateWorker(a, b, c, d) {
+		return CreateWorker(a, b, c, d);
+	}
+
+	__cjs_CurrentWorker() {
+		return CurrentWorker();
+	}
+
+	__cjs_FreeWorker(a) {
+		return FreeWorker(a);
+	}
+
+	__cjs_AddWorkerData(a, b, c) {
+		return AddWorkerData(a, b, c);
+	}
+
+	__cjs_GetWorkerData(a, b) {
+		return GetWorkerData(a, b);
+	}
+
+	__cjs_AddWorkerResultData(a) {
+		return AddWorkerResultData(a);
+	}
+
+	__cjs_GetWorkerResultData(a, b, c) {
+		return GetWorkerResultData(a, b, c);
+	}
+
+	__cjs_WorkerSharedGet(a, b, c) {
+		return WorkerSharedGet(a, b, c);
+	}
+
+	__cjs_WorkerSharedSet(a, b, c, d) {
+		return WorkerSharedSet(a, b, c, d);
+	}
+
+	__cjs_WorkerSharedRemove(a, b, c = null) {
+		return WorkerSharedRemove(a, b, c = null);
+	}
+
+	__cjs_WorkerSharedGetSet(a, b, c, d) {
+		return WorkerSharedGetSet(a, b, c, d);
+	}
+
+	__cjs_WorkerSharedClear(a) {
+		return WorkerSharedClear(a);
+	}
+
+	__cjs_WorkerSharedContext() {
+		return WorkerSharedContext();
+	}
+
+	__cjs_WorkerSharedRelease(a) {
+		return WorkerSharedRelease(a);
+	}
+
+	__cjs_WorkerSharedRWLock(a, b) {
+		return WorkerSharedRWLock(a, b);
+	}
+
+	__cjs_WorkerMemoryInfo(a) {
+		return WorkerMemoryInfo(a);
+	}
+
+	__cjs_WorkerGC(a) {
+		return WorkerGC(a);
+	}
+
+	wrap(js) {
+		js.wrap(this.__cjs_KillThread, "__cjs_KillThread");
+		js.wrap(this.__cjs_WaitThread, "__cjs_WaitThread");
+		js.wrap(this.__cjs_ThreadIsActive, "__cjs_ThreadIsActive");
+		js.wrap(this.__cjs_Sleep, "__cjs_Sleep");
+		js.wrap(this.__cjs_Greenlets, "__cjs_Greenlets");
+		js.wrap(this.__cjs_GreenletAdd, "__cjs_GreenletAdd");
+		js.wrap(this.__cjs_GreenLoop, "__cjs_GreenLoop");
+		js.wrap(this.__cjs_yield, "__cjs_yield");
+		js.wrap(this.__cjs__semcreate, "__cjs__semcreate");
+		js.wrap(this.__cjs__semdone, "__cjs__semdone");
+		js.wrap(this.__cjs__seminit, "__cjs__seminit");
+		js.wrap(this.__cjs__semp, "__cjs__semp");
+		js.wrap(this.__cjs__semv, "__cjs__semv");
+		js.wrap(this.__cjs_IsThreaded, "__cjs_IsThreaded");
+		js.wrap(this.__cjs_CreateWorker, "__cjs_CreateWorker");
+		js.wrap(this.__cjs_CurrentWorker, "__cjs_CurrentWorker");
+		js.wrap(this.__cjs_FreeWorker, "__cjs_FreeWorker");
+		js.wrap(this.__cjs_AddWorkerData, "__cjs_AddWorkerData");
+		js.wrap(this.__cjs_GetWorkerData, "__cjs_GetWorkerData");
+		js.wrap(this.__cjs_AddWorkerResultData, "__cjs_AddWorkerResultData");
+		js.wrap(this.__cjs_GetWorkerResultData, "__cjs_GetWorkerResultData");
+		js.wrap(this.__cjs_WorkerSharedGet, "__cjs_WorkerSharedGet");
+		js.wrap(this.__cjs_WorkerSharedSet, "__cjs_WorkerSharedSet");
+		js.wrap(this.__cjs_WorkerSharedRemove, "__cjs_WorkerSharedRemove");
+		js.wrap(this.__cjs_WorkerSharedGetSet, "__cjs_WorkerSharedGetSet");
+		js.wrap(this.__cjs_WorkerSharedClear, "__cjs_WorkerSharedClear");
+		js.wrap(this.__cjs_WorkerSharedContext, "__cjs_WorkerSharedContext");
+		js.wrap(this.__cjs_WorkerSharedRelease, "__cjs_WorkerSharedRelease");
+		js.wrap(this.__cjs_WorkerSharedRWLock, "__cjs_WorkerSharedRWLock");
+		js.wrap(this.__cjs_WorkerMemoryInfo, "__cjs_WorkerMemoryInfo");
+		js.wrap(this.__cjs_WorkerGC, "__cjs_WorkerGC");
+	}
+
+	ECMABRIDGE_standard_lib_thread(js) {
+		this.wrap(js);
+	}
+}

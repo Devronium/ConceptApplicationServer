@@ -1,0 +1,87 @@
+/* This file is generated automatically by generatejs.con. Do not edit. */
+
+import standard.arch.speex
+
+class ECMABRIDGE_standard_arch_speex {
+	__cjs_alaw2ulaw(a) {
+		return alaw2ulaw(a);
+	}
+
+	__cjs_ulaw2alaw(a) {
+		return ulaw2alaw(a);
+	}
+
+	__cjs_alaw2pcm(a) {
+		return alaw2pcm(a);
+	}
+
+	__cjs_ulaw2pcm(a) {
+		return ulaw2pcm(a);
+	}
+
+	__cjs_pcm2ulaw(a) {
+		return pcm2ulaw(a);
+	}
+
+	__cjs_pcm2alaw(a) {
+		return pcm2alaw(a);
+	}
+
+	__cjs_s162alaw(a) {
+		return s162alaw(a);
+	}
+
+	__cjs_alaw2s16(a) {
+		return alaw2s16(a);
+	}
+
+	__cjs_downsample44k(a, b) {
+		return downsample44k(a, b);
+	}
+
+	__cjs_speex_echo_state_init(a, b, c) {
+		return speex_echo_state_init(a, b, c);
+	}
+
+	__cjs_speex_echo_state_destroy(a) {
+		return speex_echo_state_destroy(a);
+	}
+
+	__cjs_speex_echo_state_reset(a) {
+		return speex_echo_state_reset(a);
+	}
+
+	__cjs_speex_echo_playback(a, b) {
+		return speex_echo_playback(a, b);
+	}
+
+	__cjs_speex_echo_capture(a, b, c) {
+		return speex_echo_capture(a, b, c);
+	}
+
+	__cjs_speex_echo_cancellation(a, b, c, d) {
+		return speex_echo_cancellation(a, b, c, d);
+	}
+
+	wrap(js) {
+		js.wrap(this.__cjs_alaw2ulaw, "__cjs_alaw2ulaw");
+		js.wrap(this.__cjs_ulaw2alaw, "__cjs_ulaw2alaw");
+		js.wrap(this.__cjs_alaw2pcm, "__cjs_alaw2pcm");
+		js.wrap(this.__cjs_ulaw2pcm, "__cjs_ulaw2pcm");
+		js.wrap(this.__cjs_pcm2ulaw, "__cjs_pcm2ulaw");
+		js.wrap(this.__cjs_pcm2alaw, "__cjs_pcm2alaw");
+		js.wrap(this.__cjs_s162alaw, "__cjs_s162alaw");
+		js.wrap(this.__cjs_alaw2s16, "__cjs_alaw2s16");
+		js.wrap(this.__cjs_downsample44k, "__cjs_downsample44k");
+		js.wrap(this.__cjs_speex_echo_state_init, "__cjs_speex_echo_state_init");
+		js.wrap(this.__cjs_speex_echo_state_destroy, "__cjs_speex_echo_state_destroy");
+		js.wrap(this.__cjs_speex_echo_state_reset, "__cjs_speex_echo_state_reset");
+		js.wrap(this.__cjs_speex_echo_playback, "__cjs_speex_echo_playback");
+		js.wrap(this.__cjs_speex_echo_capture, "__cjs_speex_echo_capture");
+		js.wrap(this.__cjs_speex_echo_cancellation, "__cjs_speex_echo_cancellation");
+	}
+
+	ECMABRIDGE_standard_arch_speex(js) {
+		this.wrap(js);
+	}
+}

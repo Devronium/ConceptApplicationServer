@@ -1,0 +1,57 @@
+/* This file is generated automatically by generatejs.con. Do not edit. */
+
+import standard.lib.poppler
+
+class ECMABRIDGE_standard_lib_poppler {
+	__cjs_PDFLoadBuffer(a, b, c = null) {
+		return PDFLoadBuffer(a, b, c = null);
+	}
+
+	__cjs_PDFLoad(a, b, c = null) {
+		return PDFLoad(a, b, c = null);
+	}
+
+	__cjs_PDFClose(a) {
+		return PDFClose(a);
+	}
+
+	__cjs_PDFPageCount(a) {
+		return PDFPageCount(a);
+	}
+
+	__cjs_PDFPageText(a, b) {
+		return PDFPageText(a, b);
+	}
+
+	__cjs_PDFFindText(a, b, c) {
+		return PDFFindText(a, b, c);
+	}
+
+	__cjs_PDFPageImageBuffer(a, b, c, d = null, e = null) {
+		return PDFPageImageBuffer(a, b, c, d = null, e = null);
+	}
+
+	__cjs_PDFPageImage(a, b, c, d, e = null, f = null) {
+		return PDFPageImage(a, b, c, d, e = null, f = null);
+	}
+
+	__cjs_PDFAttachments(a) {
+		return PDFAttachments(a);
+	}
+
+	wrap(js) {
+		js.wrap(this.__cjs_PDFLoadBuffer, "__cjs_PDFLoadBuffer");
+		js.wrap(this.__cjs_PDFLoad, "__cjs_PDFLoad");
+		js.wrap(this.__cjs_PDFClose, "__cjs_PDFClose");
+		js.wrap(this.__cjs_PDFPageCount, "__cjs_PDFPageCount");
+		js.wrap(this.__cjs_PDFPageText, "__cjs_PDFPageText");
+		js.wrap(this.__cjs_PDFFindText, "__cjs_PDFFindText");
+		js.wrap(this.__cjs_PDFPageImageBuffer, "__cjs_PDFPageImageBuffer");
+		js.wrap(this.__cjs_PDFPageImage, "__cjs_PDFPageImage");
+		js.wrap(this.__cjs_PDFAttachments, "__cjs_PDFAttachments");
+	}
+
+	ECMABRIDGE_standard_lib_poppler(js) {
+		this.wrap(js);
+	}
+}

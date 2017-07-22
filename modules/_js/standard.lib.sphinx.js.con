@@ -1,0 +1,47 @@
+/* This file is generated automatically by generatejs.con. Do not edit. */
+
+import standard.lib.sphinx
+
+class ECMABRIDGE_standard_lib_sphinx {
+	__cjs_VRConfInit(a) {
+		return VRConfInit(a);
+	}
+
+	__cjs_VRConfDone(a) {
+		return VRConfDone(a);
+	}
+
+	__cjs_VRInit(a) {
+		return VRInit(a);
+	}
+
+	__cjs_VRStart(a) {
+		return VRStart(a);
+	}
+
+	__cjs_VRAddBuffer(a, b) {
+		return VRAddBuffer(a, b);
+	}
+
+	__cjs_VREnd(a) {
+		return VREnd(a);
+	}
+
+	__cjs_VRDone(a) {
+		return VRDone(a);
+	}
+
+	wrap(js) {
+		js.wrap(this.__cjs_VRConfInit, "__cjs_VRConfInit");
+		js.wrap(this.__cjs_VRConfDone, "__cjs_VRConfDone");
+		js.wrap(this.__cjs_VRInit, "__cjs_VRInit");
+		js.wrap(this.__cjs_VRStart, "__cjs_VRStart");
+		js.wrap(this.__cjs_VRAddBuffer, "__cjs_VRAddBuffer");
+		js.wrap(this.__cjs_VREnd, "__cjs_VREnd");
+		js.wrap(this.__cjs_VRDone, "__cjs_VRDone");
+	}
+
+	ECMABRIDGE_standard_lib_sphinx(js) {
+		this.wrap(js);
+	}
+}

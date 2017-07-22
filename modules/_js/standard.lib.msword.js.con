@@ -1,0 +1,22 @@
+/* This file is generated automatically by generatejs.con. Do not edit. */
+
+import standard.lib.msword
+
+class ECMABRIDGE_standard_lib_msword {
+	__cjs_MSWRead(a, b, c = null, d = null, e = null, f = null, g = null, h = null, i = null, j = null) {
+		return MSWRead(a, b, c = null, d = null, e = null, f = null, g = null, h = null, i = null, j = null);
+	}
+
+	__cjs_MSWMeta(a, b) {
+		return MSWMeta(a, b);
+	}
+
+	wrap(js) {
+		js.wrap(this.__cjs_MSWRead, "__cjs_MSWRead");
+		js.wrap(this.__cjs_MSWMeta, "__cjs_MSWMeta");
+	}
+
+	ECMABRIDGE_standard_lib_msword(js) {
+		this.wrap(js);
+	}
+}

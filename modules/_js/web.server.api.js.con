@@ -1,0 +1,112 @@
+/* This file is generated automatically by generatejs.con. Do not edit. */
+
+import web.server.api
+
+class ECMABRIDGE_web_server_api {
+	__cjs_SessionStart(a, b = null) {
+		return SessionStart(a, b = null);
+	}
+
+	__cjs_WebVar(a) {
+		return WebVar(a);
+	}
+
+	__cjs_SessionDestroy() {
+		return SessionDestroy();
+	}
+
+	__cjs_ContentType(a) {
+		return ContentType(a);
+	}
+
+	__cjs_SessionVar(a) {
+		return SessionVar(a);
+	}
+
+	__cjs_SetSessionVar(a, b) {
+		return SetSessionVar(a, b);
+	}
+
+	__cjs_SessionDone() {
+		return SessionDone();
+	}
+
+	__cjs_GetSessionID() {
+		return GetSessionID();
+	}
+
+	__cjs_SessionTimeout(a) {
+		return SessionTimeout(a);
+	}
+
+	__cjs_ServerVar(a) {
+		return ServerVar(a);
+	}
+
+	__cjs_SetCookie(a, b, c, d, e, f) {
+		return SetCookie(a, b, c, d, e, f);
+	}
+
+	__cjs_RemoveCookie(a, b, c, d) {
+		return RemoveCookie(a, b, c, d);
+	}
+
+	__cjs_CookieVar(a) {
+		return CookieVar(a);
+	}
+
+	__cjs_WebFree() {
+		return WebFree();
+	}
+
+	__cjs__PutString(a, b) {
+		return _PutString(a, b);
+	}
+
+	__cjs__POST() {
+		return _POST();
+	}
+
+	__cjs__GET() {
+		return _GET();
+	}
+
+	__cjs__COOKIE() {
+		return _COOKIE();
+	}
+
+	__cjs__VARS() {
+		return _VARS();
+	}
+
+	__cjs_SetHeader(a, b) {
+		return SetHeader(a, b);
+	}
+
+	wrap(js) {
+		js.wrap(this.__cjs_SessionStart, "__cjs_SessionStart");
+		js.wrap(this.__cjs_WebVar, "__cjs_WebVar");
+		js.wrap(this.__cjs_SessionDestroy, "__cjs_SessionDestroy");
+		js.wrap(this.__cjs_ContentType, "__cjs_ContentType");
+		js.wrap(this.__cjs_SessionVar, "__cjs_SessionVar");
+		js.wrap(this.__cjs_SetSessionVar, "__cjs_SetSessionVar");
+		js.wrap(this.__cjs_SessionDone, "__cjs_SessionDone");
+		js.wrap(this.__cjs_GetSessionID, "__cjs_GetSessionID");
+		js.wrap(this.__cjs_SessionTimeout, "__cjs_SessionTimeout");
+		js.wrap(this.__cjs_ServerVar, "__cjs_ServerVar");
+		js.wrap(this.__cjs_SetCookie, "__cjs_SetCookie");
+		js.wrap(this.__cjs_RemoveCookie, "__cjs_RemoveCookie");
+		js.wrap(this.__cjs_CookieVar, "__cjs_CookieVar");
+		js.wrap(this.__cjs_WebFree, "__cjs_WebFree");
+		js.wrap(this.__cjs__PutString, "__cjs__PutString");
+		js.wrap(this.__cjs__POST, "__cjs__POST");
+		js.wrap(this.__cjs__GET, "__cjs__GET");
+		js.wrap(this.__cjs__COOKIE, "__cjs__COOKIE");
+		js.wrap(this.__cjs__VARS, "__cjs__VARS");
+		js.wrap(this.__cjs_SetHeader, "__cjs_SetHeader");
+	}
+
+	ECMABRIDGE_web_server_api(js) {
+		this.wrap(js);
+	}
+}

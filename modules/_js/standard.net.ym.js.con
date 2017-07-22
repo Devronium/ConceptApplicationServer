@@ -1,0 +1,222 @@
+/* This file is generated automatically by generatejs.con. Do not edit. */
+
+import standard.net.ym
+
+class ECMABRIDGE_standard_net_ym {
+	__cjs__yahoo_login(a, b, c) {
+		return _yahoo_login(a, b, c);
+	}
+
+	__cjs__yahoo_logout() {
+		return _yahoo_logout();
+	}
+
+	__cjs__yahoo_refresh() {
+		return _yahoo_refresh();
+	}
+
+	__cjs__yahoo_set_identity_status(a, b) {
+		return _yahoo_set_identity_status(a, b);
+	}
+
+	__cjs__yahoo_get_list() {
+		return _yahoo_get_list();
+	}
+
+	__cjs__yahoo_get_yab() {
+		return _yahoo_get_yab();
+	}
+
+	__cjs__yahoo_set_yab(a, b, c, d, e, f, g, h, i) {
+		return _yahoo_set_yab(a, b, c, d, e, f, g, h, i);
+	}
+
+	__cjs__yahoo_keepalive() {
+		return _yahoo_keepalive();
+	}
+
+	__cjs__yahoo_chat_keepalive() {
+		return _yahoo_chat_keepalive();
+	}
+
+	__cjs__yahoo_send_im(a, b, c, d) {
+		return _yahoo_send_im(a, b, c, d);
+	}
+
+	__cjs__yahoo_send_typing(a, b) {
+		return _yahoo_send_typing(a, b);
+	}
+
+	__cjs__yahoo_set_away(a, b, c) {
+		return _yahoo_set_away(a, b, c);
+	}
+
+	__cjs__yahoo_add_buddy(a, b, c) {
+		return _yahoo_add_buddy(a, b, c);
+	}
+
+	__cjs__yahoo_confirm_buddy(a, b) {
+		return _yahoo_confirm_buddy(a, b);
+	}
+
+	__cjs__yahoo_remove_buddy(a, b) {
+		return _yahoo_remove_buddy(a, b);
+	}
+
+	__cjs__yahoo_reject_buddy(a, b) {
+		return _yahoo_reject_buddy(a, b);
+	}
+
+	__cjs__yahoo_ignore_buddy(a, b) {
+		return _yahoo_ignore_buddy(a, b);
+	}
+
+	__cjs__yahoo_change_buddy_group(a, b, c) {
+		return _yahoo_change_buddy_group(a, b, c);
+	}
+
+	__cjs__yahoo_group_rename(a, b) {
+		return _yahoo_group_rename(a, b);
+	}
+
+	__cjs__yahoo_conference_invite(a, b, c) {
+		return _yahoo_conference_invite(a, b, c);
+	}
+
+	__cjs__yahoo_conference_addinvite(a, b, c, d) {
+		return _yahoo_conference_addinvite(a, b, c, d);
+	}
+
+	__cjs__yahoo_conference_decline(a, b, c) {
+		return _yahoo_conference_decline(a, b, c);
+	}
+
+	__cjs__yahoo_conference_message(a, b, c, d) {
+		return _yahoo_conference_message(a, b, c, d);
+	}
+
+	__cjs__yahoo_conference_logon(a, b) {
+		return _yahoo_conference_logon(a, b);
+	}
+
+	__cjs__yahoo_conference_logoff(a, b) {
+		return _yahoo_conference_logoff(a, b);
+	}
+
+	__cjs__yahoo_get_chatrooms(a) {
+		return _yahoo_get_chatrooms(a);
+	}
+
+	__cjs__yahoo_chat_logon(a, b) {
+		return _yahoo_chat_logon(a, b);
+	}
+
+	__cjs__yahoo_chat_message(a, b, c, d) {
+		return _yahoo_chat_message(a, b, c, d);
+	}
+
+	__cjs__yahoo_chat_logoff() {
+		return _yahoo_chat_logoff();
+	}
+
+	__cjs__yahoo_webcam_get_feed(a) {
+		return _yahoo_webcam_get_feed(a);
+	}
+
+	__cjs__yahoo_webcam_close_feed(a) {
+		return _yahoo_webcam_close_feed(a);
+	}
+
+	__cjs__yahoo_webcam_send_image(a, b) {
+		return _yahoo_webcam_send_image(a, b);
+	}
+
+	__cjs__yahoo_webcam_accept_viewer(a, b) {
+		return _yahoo_webcam_accept_viewer(a, b);
+	}
+
+	__cjs__yahoo_webcam_invite(a) {
+		return _yahoo_webcam_invite(a);
+	}
+
+	__cjs__yahoo_current_status() {
+		return _yahoo_current_status();
+	}
+
+	__cjs__yahoo_get_buddylist() {
+		return _yahoo_get_buddylist();
+	}
+
+	__cjs__yahoo_get_ignorelist() {
+		return _yahoo_get_ignorelist();
+	}
+
+	__cjs__yahoo_get_identities() {
+		return _yahoo_get_identities();
+	}
+
+	__cjs__yahoo_get_cookie(a) {
+		return _yahoo_get_cookie(a);
+	}
+
+	__cjs__yahoo_get_profile_url() {
+		return _yahoo_get_profile_url();
+	}
+
+	__cjs__yahoo_set_callback(a, b) {
+		return _yahoo_set_callback(a, b);
+	}
+
+	__cjs__yahoo_status_code(a) {
+		return _yahoo_status_code(a);
+	}
+
+	wrap(js) {
+		js.wrap(this.__cjs__yahoo_login, "__cjs__yahoo_login");
+		js.wrap(this.__cjs__yahoo_logout, "__cjs__yahoo_logout");
+		js.wrap(this.__cjs__yahoo_refresh, "__cjs__yahoo_refresh");
+		js.wrap(this.__cjs__yahoo_set_identity_status, "__cjs__yahoo_set_identity_status");
+		js.wrap(this.__cjs__yahoo_get_list, "__cjs__yahoo_get_list");
+		js.wrap(this.__cjs__yahoo_get_yab, "__cjs__yahoo_get_yab");
+		js.wrap(this.__cjs__yahoo_set_yab, "__cjs__yahoo_set_yab");
+		js.wrap(this.__cjs__yahoo_keepalive, "__cjs__yahoo_keepalive");
+		js.wrap(this.__cjs__yahoo_chat_keepalive, "__cjs__yahoo_chat_keepalive");
+		js.wrap(this.__cjs__yahoo_send_im, "__cjs__yahoo_send_im");
+		js.wrap(this.__cjs__yahoo_send_typing, "__cjs__yahoo_send_typing");
+		js.wrap(this.__cjs__yahoo_set_away, "__cjs__yahoo_set_away");
+		js.wrap(this.__cjs__yahoo_add_buddy, "__cjs__yahoo_add_buddy");
+		js.wrap(this.__cjs__yahoo_confirm_buddy, "__cjs__yahoo_confirm_buddy");
+		js.wrap(this.__cjs__yahoo_remove_buddy, "__cjs__yahoo_remove_buddy");
+		js.wrap(this.__cjs__yahoo_reject_buddy, "__cjs__yahoo_reject_buddy");
+		js.wrap(this.__cjs__yahoo_ignore_buddy, "__cjs__yahoo_ignore_buddy");
+		js.wrap(this.__cjs__yahoo_change_buddy_group, "__cjs__yahoo_change_buddy_group");
+		js.wrap(this.__cjs__yahoo_group_rename, "__cjs__yahoo_group_rename");
+		js.wrap(this.__cjs__yahoo_conference_invite, "__cjs__yahoo_conference_invite");
+		js.wrap(this.__cjs__yahoo_conference_addinvite, "__cjs__yahoo_conference_addinvite");
+		js.wrap(this.__cjs__yahoo_conference_decline, "__cjs__yahoo_conference_decline");
+		js.wrap(this.__cjs__yahoo_conference_message, "__cjs__yahoo_conference_message");
+		js.wrap(this.__cjs__yahoo_conference_logon, "__cjs__yahoo_conference_logon");
+		js.wrap(this.__cjs__yahoo_conference_logoff, "__cjs__yahoo_conference_logoff");
+		js.wrap(this.__cjs__yahoo_get_chatrooms, "__cjs__yahoo_get_chatrooms");
+		js.wrap(this.__cjs__yahoo_chat_logon, "__cjs__yahoo_chat_logon");
+		js.wrap(this.__cjs__yahoo_chat_message, "__cjs__yahoo_chat_message");
+		js.wrap(this.__cjs__yahoo_chat_logoff, "__cjs__yahoo_chat_logoff");
+		js.wrap(this.__cjs__yahoo_webcam_get_feed, "__cjs__yahoo_webcam_get_feed");
+		js.wrap(this.__cjs__yahoo_webcam_close_feed, "__cjs__yahoo_webcam_close_feed");
+		js.wrap(this.__cjs__yahoo_webcam_send_image, "__cjs__yahoo_webcam_send_image");
+		js.wrap(this.__cjs__yahoo_webcam_accept_viewer, "__cjs__yahoo_webcam_accept_viewer");
+		js.wrap(this.__cjs__yahoo_webcam_invite, "__cjs__yahoo_webcam_invite");
+		js.wrap(this.__cjs__yahoo_current_status, "__cjs__yahoo_current_status");
+		js.wrap(this.__cjs__yahoo_get_buddylist, "__cjs__yahoo_get_buddylist");
+		js.wrap(this.__cjs__yahoo_get_ignorelist, "__cjs__yahoo_get_ignorelist");
+		js.wrap(this.__cjs__yahoo_get_identities, "__cjs__yahoo_get_identities");
+		js.wrap(this.__cjs__yahoo_get_cookie, "__cjs__yahoo_get_cookie");
+		js.wrap(this.__cjs__yahoo_get_profile_url, "__cjs__yahoo_get_profile_url");
+		js.wrap(this.__cjs__yahoo_set_callback, "__cjs__yahoo_set_callback");
+		js.wrap(this.__cjs__yahoo_status_code, "__cjs__yahoo_status_code");
+	}
+
+	ECMABRIDGE_standard_net_ym(js) {
+		this.wrap(js);
+	}
+}

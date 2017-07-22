@@ -1,0 +1,32 @@
+/* This file is generated automatically by generatejs.con. Do not edit. */
+
+import standard.io.rs232
+
+class ECMABRIDGE_standard_io_rs232 {
+	__cjs_OpenComport(a, b, c) {
+		return OpenComport(a, b, c);
+	}
+
+	__cjs_PollComport(a, b, c) {
+		return PollComport(a, b, c);
+	}
+
+	__cjs_SendComport(a, b) {
+		return SendComport(a, b);
+	}
+
+	__cjs_CloseComport(a) {
+		return CloseComport(a);
+	}
+
+	wrap(js) {
+		js.wrap(this.__cjs_OpenComport, "__cjs_OpenComport");
+		js.wrap(this.__cjs_PollComport, "__cjs_PollComport");
+		js.wrap(this.__cjs_SendComport, "__cjs_SendComport");
+		js.wrap(this.__cjs_CloseComport, "__cjs_CloseComport");
+	}
+
+	ECMABRIDGE_standard_io_rs232(js) {
+		this.wrap(js);
+	}
+}

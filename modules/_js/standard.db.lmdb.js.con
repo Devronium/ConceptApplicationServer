@@ -1,0 +1,92 @@
+/* This file is generated automatically by generatejs.con. Do not edit. */
+
+import standard.db.lmdb
+
+class ECMABRIDGE_standard_db_lmdb {
+	__cjs_MapOpen(a, b, c = null, d = null, e = null, f = null) {
+		return MapOpen(a, b, c = null, d = null, e = null, f = null);
+	}
+
+	__cjs_MapClose(a) {
+		return MapClose(a);
+	}
+
+	__cjs_MapPut(a, b, c, d = null, e = null, f = null) {
+		return MapPut(a, b, c, d = null, e = null, f = null);
+	}
+
+	__cjs_MapPutMultiple(a, b, c, d = null, e = null, f = null) {
+		return MapPutMultiple(a, b, c, d = null, e = null, f = null);
+	}
+
+	__cjs_MapGet(a, b, c, d) {
+		return MapGet(a, b, c, d);
+	}
+
+	__cjs_MapGetNumber(a, b, c, d) {
+		return MapGetNumber(a, b, c, d);
+	}
+
+	__cjs_MapGetInt(a, b, c, d) {
+		return MapGetInt(a, b, c, d);
+	}
+
+	__cjs_MapRemove(a, b, c) {
+		return MapRemove(a, b, c);
+	}
+
+	__cjs_MapRemoveValue(a, b, c, d = null) {
+		return MapRemoveValue(a, b, c, d = null);
+	}
+
+	__cjs_MapError(a) {
+		return MapError(a);
+	}
+
+	__cjs_MapInfo(a) {
+		return MapInfo(a);
+	}
+
+	__cjs_MapGetAll(a, b, c, d = null, e = null, f = null, g = null, h = null) {
+		return MapGetAll(a, b, c, d = null, e = null, f = null, g = null, h = null);
+	}
+
+	__cjs_MapGetAllNumber(a, b, c, d = null, e = null, f = null, g = null, h = null, i = null) {
+		return MapGetAllNumber(a, b, c, d = null, e = null, f = null, g = null, h = null, i = null);
+	}
+
+	__cjs_MapGetAllNumberMI(a, b, c, d, e = null, f = null, g = null) {
+		return MapGetAllNumberMI(a, b, c, d, e = null, f = null, g = null);
+	}
+
+	__cjs_MapDrop(a, b) {
+		return MapDrop(a, b);
+	}
+
+	__cjs_MapCount(a, b, c) {
+		return MapCount(a, b, c);
+	}
+
+	wrap(js) {
+		js.wrap(this.__cjs_MapOpen, "__cjs_MapOpen");
+		js.wrap(this.__cjs_MapClose, "__cjs_MapClose");
+		js.wrap(this.__cjs_MapPut, "__cjs_MapPut");
+		js.wrap(this.__cjs_MapPutMultiple, "__cjs_MapPutMultiple");
+		js.wrap(this.__cjs_MapGet, "__cjs_MapGet");
+		js.wrap(this.__cjs_MapGetNumber, "__cjs_MapGetNumber");
+		js.wrap(this.__cjs_MapGetInt, "__cjs_MapGetInt");
+		js.wrap(this.__cjs_MapRemove, "__cjs_MapRemove");
+		js.wrap(this.__cjs_MapRemoveValue, "__cjs_MapRemoveValue");
+		js.wrap(this.__cjs_MapError, "__cjs_MapError");
+		js.wrap(this.__cjs_MapInfo, "__cjs_MapInfo");
+		js.wrap(this.__cjs_MapGetAll, "__cjs_MapGetAll");
+		js.wrap(this.__cjs_MapGetAllNumber, "__cjs_MapGetAllNumber");
+		js.wrap(this.__cjs_MapGetAllNumberMI, "__cjs_MapGetAllNumberMI");
+		js.wrap(this.__cjs_MapDrop, "__cjs_MapDrop");
+		js.wrap(this.__cjs_MapCount, "__cjs_MapCount");
+	}
+
+	ECMABRIDGE_standard_db_lmdb(js) {
+		this.wrap(js);
+	}
+}
