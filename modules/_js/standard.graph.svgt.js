@@ -4,6 +4,4 @@
 
 if (!con.graph)
 	con.graph = { };
-if (!con.graph.svgt)
-	con.graph.svgt = { };
-con.graph.svgt.SVGT = this.__cjs_SVGT;
+con.graph.SVGT = this.__cjs_SVGT;

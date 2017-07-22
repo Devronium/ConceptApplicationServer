@@ -4,7 +4,5 @@
 
 if (!con.lib)
 	con.lib = { };
-if (!con.lib.amf)
-	con.lib.amf = { };
-con.lib.amf.AMF = this.__cjs_AMF;
-con.lib.amf.UnAMF = this.__cjs_UnAMF;
+con.lib.AMF = this.__cjs_AMF;
+con.lib.UnAMF = this.__cjs_UnAMF;

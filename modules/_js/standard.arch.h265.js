@@ -4,11 +4,9 @@
 
 if (!con.arch)
 	con.arch = { };
-if (!con.arch.h265)
-	con.arch.h265 = { };
-con.arch.h265.H265Encoder = this.__cjs_H265Encoder;
-con.arch.h265.H265Decoder = this.__cjs_H265Decoder;
-con.arch.h265.H265Encode = this.__cjs_H265Encode;
-con.arch.h265.H265Decode = this.__cjs_H265Decode;
-con.arch.h265.H265EncoderDone = this.__cjs_H265EncoderDone;
-con.arch.h265.H265DecoderDone = this.__cjs_H265DecoderDone;
+con.arch.H265Encoder = this.__cjs_H265Encoder;
+con.arch.H265Decoder = this.__cjs_H265Decoder;
+con.arch.H265Encode = this.__cjs_H265Encode;
+con.arch.H265Decode = this.__cjs_H265Decode;
+con.arch.H265EncoderDone = this.__cjs_H265EncoderDone;
+con.arch.H265DecoderDone = this.__cjs_H265DecoderDone;

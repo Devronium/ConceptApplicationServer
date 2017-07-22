@@ -107,6 +107,10 @@ class ECMABRIDGE_standard_C_io {
 		return closedir(a);
 	}
 
+	__cjs_dirfd(a) {
+		return dirfd(a);
+	}
+
 	__cjs_dirname(a) {
 		return dirname(a);
 	}
@@ -474,6 +478,7 @@ class ECMABRIDGE_standard_C_io {
 		js.wrap(this.__cjs_seekdir, "__cjs_seekdir");
 		js.wrap(this.__cjs_rewinddir, "__cjs_rewinddir");
 		js.wrap(this.__cjs_closedir, "__cjs_closedir");
+		js.wrap(this.__cjs_dirfd, "__cjs_dirfd");
 		js.wrap(this.__cjs_dirname, "__cjs_dirname");
 		js.wrap(this.__cjs__stat, "__cjs__stat");
 		js.wrap(this.__cjs_filetype, "__cjs_filetype");

@@ -4,6 +4,4 @@
 
 if (!con.lib)
 	con.lib = { };
-if (!con.lib.julius)
-	con.lib.julius = { };
-con.lib.julius.SpeechLoop = this.__cjs_SpeechLoop;
+con.lib.SpeechLoop = this.__cjs_SpeechLoop;

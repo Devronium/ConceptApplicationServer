@@ -4,8 +4,6 @@
 
 if (!con.lib)
 	con.lib = { };
-if (!con.lib.xslfo)
-	con.lib.xslfo = { };
-con.lib.xslfo.FOError = this.__cjs_FOError;
-con.lib.xslfo.FOTransform = this.__cjs_FOTransform;
-con.lib.xslfo.FOTransformString = this.__cjs_FOTransformString;
+con.lib.FOError = this.__cjs_FOError;
+con.lib.FOTransform = this.__cjs_FOTransform;
+con.lib.FOTransformString = this.__cjs_FOTransformString;

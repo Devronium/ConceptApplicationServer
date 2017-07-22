@@ -4,6 +4,4 @@
 
 if (!con.graph)
 	con.graph = { };
-if (!con.graph.svg)
-	con.graph.svg = { };
-con.graph.svg.SVG = this.__cjs_SVG;
+con.graph.SVG = this.__cjs_SVG;

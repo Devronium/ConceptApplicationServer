@@ -4,7 +4,5 @@
 
 if (!con.net)
 	con.net = { };
-if (!con.net.flow)
-	con.net.flow = { };
-con.net.flow.ParseNetflowPacket = this.__cjs_ParseNetflowPacket;
-con.net.flow.DoneNetflowPacket = this.__cjs_DoneNetflowPacket;
+con.net.ParseNetflowPacket = this.__cjs_ParseNetflowPacket;
+con.net.DoneNetflowPacket = this.__cjs_DoneNetflowPacket;

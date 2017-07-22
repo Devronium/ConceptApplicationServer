@@ -4,7 +4,5 @@
 
 if (!con.lib)
 	con.lib = { };
-if (!con.lib.msword)
-	con.lib.msword = { };
-con.lib.msword.MSWRead = this.__cjs_MSWRead;
-con.lib.msword.MSWMeta = this.__cjs_MSWMeta;
+con.lib.MSWRead = this.__cjs_MSWRead;
+con.lib.MSWMeta = this.__cjs_MSWMeta;

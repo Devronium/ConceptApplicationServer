@@ -4,6 +4,4 @@
 
 if (!con.lib)
 	con.lib = { };
-if (!con.lib.languagedetector)
-	con.lib.languagedetector = { };
-con.lib.languagedetector.DetectLanguage = this.__cjs_DetectLanguage;
+con.lib.DetectLanguage = this.__cjs_DetectLanguage;

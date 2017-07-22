@@ -4,7 +4,5 @@
 
 if (!con.lib)
 	con.lib = { };
-if (!con.lib.ocr)
-	con.lib.ocr = { };
-con.lib.ocr.OCR = this.__cjs_OCR;
-con.lib.ocr.OCRDebugFile = this.__cjs_OCRDebugFile;
+con.lib.OCR = this.__cjs_OCR;
+con.lib.OCRDebugFile = this.__cjs_OCRDebugFile;

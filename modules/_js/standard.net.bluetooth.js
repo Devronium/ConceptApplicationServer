@@ -4,14 +4,12 @@
 
 if (!con.net)
 	con.net = { };
-if (!con.net.bluetooth)
-	con.net.bluetooth = { };
-con.net.bluetooth.BTSocketCreate = this.__cjs_BTSocketCreate;
-con.net.bluetooth.BTSocketClose = this.__cjs_BTSocketClose;
-con.net.bluetooth.BTSocketListen = this.__cjs_BTSocketListen;
-con.net.bluetooth.BTSocketAccept = this.__cjs_BTSocketAccept;
-con.net.bluetooth.BTSocketConnect = this.__cjs_BTSocketConnect;
-con.net.bluetooth.BTSocketInfo = this.__cjs_BTSocketInfo;
-con.net.bluetooth.BTDiscover = this.__cjs_BTDiscover;
-con.net.bluetooth.BTRegister = this.__cjs_BTRegister;
-con.net.bluetooth.BTUnregister = this.__cjs_BTUnregister;
+con.net.BTSocketCreate = this.__cjs_BTSocketCreate;
+con.net.BTSocketClose = this.__cjs_BTSocketClose;
+con.net.BTSocketListen = this.__cjs_BTSocketListen;
+con.net.BTSocketAccept = this.__cjs_BTSocketAccept;
+con.net.BTSocketConnect = this.__cjs_BTSocketConnect;
+con.net.BTSocketInfo = this.__cjs_BTSocketInfo;
+con.net.BTDiscover = this.__cjs_BTDiscover;
+con.net.BTRegister = this.__cjs_BTRegister;
+con.net.BTUnregister = this.__cjs_BTUnregister;

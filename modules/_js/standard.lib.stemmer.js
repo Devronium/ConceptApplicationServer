@@ -4,6 +4,4 @@
 
 if (!con.lib)
 	con.lib = { };
-if (!con.lib.stemmer)
-	con.lib.stemmer = { };
-con.lib.stemmer.stem = this.__cjs_stem;
+con.lib.stem = this.__cjs_stem;

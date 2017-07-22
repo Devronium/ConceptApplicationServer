@@ -4,6 +4,4 @@
 
 if (!con.lang)
 	con.lang = { };
-if (!con.lang.cli)
-	con.lang.cli = { };
-con.lang.cli.CLArg = this.__cjs_CLArg;
+con.lang.CLArg = this.__cjs_CLArg;

@@ -4,6 +4,4 @@
 
 if (!con.lib)
 	con.lib = { };
-if (!con.lib.captcha)
-	con.lib.captcha = { };
-con.lib.captcha.Captcha = this.__cjs_Captcha;
+con.lib.Captcha = this.__cjs_Captcha;

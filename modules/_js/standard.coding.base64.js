@@ -4,7 +4,5 @@
 
 if (!con.coding)
 	con.coding = { };
-if (!con.coding.base64)
-	con.coding.base64 = { };
-con.coding.base64.mime_encode = this.__cjs_mime_encode;
-con.coding.base64.mime_decode = this.__cjs_mime_decode;
+con.coding.mime_encode = this.__cjs_mime_encode;
+con.coding.mime_decode = this.__cjs_mime_decode;

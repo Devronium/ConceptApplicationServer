@@ -92,7 +92,7 @@ class Main {
 				var js = "'use strict';\n\n";
 				var arr3 = StrSplit(libname, ".");
 				var prev = "con";
-				for (i = 1; i < length arr3; i++) {
+				for (i = 1; i < length arr3 - 1; i++) {
 					e = arr3[i];
 					js += "if (!$prev.$e)\n";
 					js += "\t$prev.$e = { };\n";

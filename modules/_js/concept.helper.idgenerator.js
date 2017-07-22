@@ -4,6 +4,4 @@
 
 if (!con.helper)
 	con.helper = { };
-if (!con.helper.idgenerator)
-	con.helper.idgenerator = { };
-con.helper.idgenerator.__CONCEPT_INTERFACE_HELPER_GENERATE_UNIQUE_ID = this.__cjs___CONCEPT_INTERFACE_HELPER_GENERATE_UNIQUE_ID;
+con.helper.__CONCEPT_INTERFACE_HELPER_GENERATE_UNIQUE_ID = this.__cjs___CONCEPT_INTERFACE_HELPER_GENERATE_UNIQUE_ID;

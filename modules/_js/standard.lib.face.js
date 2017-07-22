@@ -4,14 +4,12 @@
 
 if (!con.lib)
 	con.lib = { };
-if (!con.lib.face)
-	con.lib.face = { };
-con.lib.face.LoadObject = this.__cjs_LoadObject;
-con.lib.face.CloseObject = this.__cjs_CloseObject;
-con.lib.face.ObjectDetect = this.__cjs_ObjectDetect;
-con.lib.face.FaceRecognize = this.__cjs_FaceRecognize;
-con.lib.face.CloseRecognize = this.__cjs_CloseRecognize;
-con.lib.face.ReadCamera = this.__cjs_ReadCamera;
-con.lib.face.OpenCamera = this.__cjs_OpenCamera;
-con.lib.face.CloseCamera = this.__cjs_CloseCamera;
-con.lib.face.CameraFrame = this.__cjs_CameraFrame;
+con.lib.LoadObject = this.__cjs_LoadObject;
+con.lib.CloseObject = this.__cjs_CloseObject;
+con.lib.ObjectDetect = this.__cjs_ObjectDetect;
+con.lib.FaceRecognize = this.__cjs_FaceRecognize;
+con.lib.CloseRecognize = this.__cjs_CloseRecognize;
+con.lib.ReadCamera = this.__cjs_ReadCamera;
+con.lib.OpenCamera = this.__cjs_OpenCamera;
+con.lib.CloseCamera = this.__cjs_CloseCamera;
+con.lib.CameraFrame = this.__cjs_CameraFrame;

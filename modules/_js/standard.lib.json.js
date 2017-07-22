@@ -4,6 +4,4 @@
 
 if (!con.lib)
 	con.lib = { };
-if (!con.lib.json)
-	con.lib.json = { };
-con.lib.json._JSONDeserialize = this.__cjs__JSONDeserialize;
+con.lib._JSONDeserialize = this.__cjs__JSONDeserialize;
