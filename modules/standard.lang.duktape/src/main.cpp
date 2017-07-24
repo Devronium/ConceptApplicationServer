@@ -10,11 +10,13 @@
 static INVOKE_CALL  InvokePtr        = 0;
 
 #define DUK_CTX(container)    ((container)->ctx)
+#define DUK_BINARY(container) ((container)->binary_mode)
 
 struct duk_wrapper_container {
     duk_context *ctx;
     void **HANDLERS;
     unsigned short HLEN;
+    unsigned char binary_mode;
 };
 
 void on_error(void *udata, const char *msg) {
@@ -104,6 +106,15 @@ void RecursiveValue(duk_context *ctx, void *RESULT, SYS_INT index, INVOKE_CALL I
                 break;
             case DUK_TYPE_OBJECT:
                 CREATE_ARRAY(RESULT);
+                if (duk_is_buffer_data(ctx, index)) {
+                    duk_size_t out_size = 0;
+                    void *bufdata = duk_get_buffer_data(ctx, index, &out_size);
+                    if (out_size > 0) {
+                        Invoke(INVOKE_SET_VARIABLE, RESULT, (INTEGER)VARIABLE_STRING, (const char *)bufdata, (NUMBER)out_size);
+                    } else {
+                        Invoke(INVOKE_SET_VARIABLE, RESULT, (INTEGER)VARIABLE_STRING, (const char *)"", (NUMBER)0);
+                    }
+                } else
                 if (duk_is_array(ctx, index)) {
                     size_t n = duk_get_length(ctx, index);
                     for (size_t i = 0; i < n; i++) {
@@ -163,8 +174,8 @@ CONCEPT_FUNCTION_IMPL(JSEvaluateScript, 2)
 
     duk_context *ctx = DUK_CTX((duk_wrapper_container *)(intptr_t)PARAM(0));
     duk_peval_lstring(ctx, PARAM(1), PARAM_LEN(1));
-
     RecursiveValue(ctx, RESULT, -1, Invoke);
+    duk_pop(ctx);
 END_IMPL
 //------------------------------------------------------------------------
 const char *duk_push_string_file_raw(duk_context *ctx, const char *path, duk_uint_t flags) {
@@ -231,11 +242,13 @@ CONCEPT_FUNCTION_IMPL(JSEvaluateFile, 2)
     duk_context *ctx = DUK_CTX((duk_wrapper_container *)(intptr_t)PARAM(0));
     if (duk_peval_file(ctx, PARAM(1)) != 0) {
         RETURN_NUMBER(0);
-    } else
+    } else {
         RecursiveValue(ctx, RESULT, -1, Invoke);
+        duk_pop(ctx);
+    }
 END_IMPL
 //------------------------------------------------------------------------
-void RecursivePush(duk_context *ctx, void *var, INVOKE_CALL Invoke) {
+void RecursivePush(duk_context *ctx, void *var, INVOKE_CALL Invoke, unsigned char binary_mode) {
     INTEGER    type     = 0;
     char       *szValue = 0;
     NUMBER     nValue   = 0;
@@ -243,7 +256,14 @@ void RecursivePush(duk_context *ctx, void *var, INVOKE_CALL Invoke) {
     Invoke(INVOKE_GET_VARIABLE, var, &type, &szValue, &nValue);
     switch (type) {
         case VARIABLE_STRING:
-            duk_push_lstring(ctx, szValue, (int)nValue);
+            if (binary_mode) {
+                duk_size_t buf_size = (duk_size_t)nValue;
+                void *arraybuffer = duk_push_fixed_buffer(ctx, buf_size);
+                duk_push_buffer_object(ctx, -1, 0, buf_size, DUK_BUFOBJ_ARRAYBUFFER);
+                if ((arraybuffer) && (buf_size > 0) && (szValue))
+                    memcpy(arraybuffer, szValue, buf_size);
+            } else
+                duk_push_lstring(ctx, szValue, (int)nValue);
             break;
         case VARIABLE_NUMBER:
             duk_push_number(ctx, nValue);
@@ -261,7 +281,7 @@ void RecursivePush(duk_context *ctx, void *var, INVOKE_CALL Invoke) {
                             InvokePtr(INVOKE_ARRAY_VARIABLE, var, i, &elem_data);
                             InvokePtr(INVOKE_GET_ARRAY_KEY, var, i, &key);
                             if ((key) && (elem_data)) {
-                                RecursivePush(ctx, elem_data, Invoke);
+                                RecursivePush(ctx, elem_data, Invoke, binary_mode);
                                 duk_put_prop_string(ctx, objid, key);
                             }
                         }
@@ -270,7 +290,7 @@ void RecursivePush(duk_context *ctx, void *var, INVOKE_CALL Invoke) {
                         for (INTEGER i = 0; i < count; i++) {
                             Invoke(INVOKE_ARRAY_VARIABLE, var, (INTEGER)i, &elem_data);
                             if (elem_data) {
-                                RecursivePush(ctx, elem_data, Invoke);
+                                RecursivePush(ctx, elem_data, Invoke, binary_mode);
                                 duk_put_prop_index(ctx, arr_idx, i);
                             }
                         }
@@ -299,7 +319,7 @@ void RecursivePush(duk_context *ctx, void *var, INVOKE_CALL Invoke) {
                             char *key = members[i];
                             void *elem_data =  variable_data[i];
                             if ((key) && (elem_data)) {
-                                RecursivePush(ctx, elem_data, Invoke);
+                                RecursivePush(ctx, elem_data, Invoke, binary_mode);
                                 duk_put_prop_string(ctx, objid, key);
                             }
                     }
@@ -329,6 +349,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(JSCall, 3, 4)
     }
 
     duk_context *ctx = DUK_CTX((duk_wrapper_container *)(intptr_t)PARAM(0));
+    unsigned char binary_mode = DUK_BINARY((duk_wrapper_container *)(intptr_t)PARAM(0));
     const char *func = PARAM(1);
     if ((func) && (func[0])) {
         duk_peval_lstring(ctx, func, PARAM_LEN(1));
@@ -338,7 +359,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(JSCall, 3, 4)
                 void *elem_data = NULL;
                 Invoke(INVOKE_ARRAY_VARIABLE, PARAMETER(2), (INTEGER)i, &elem_data);
                 if (elem_data) {
-                    RecursivePush(ctx, elem_data, Invoke);
+                    RecursivePush(ctx, elem_data, Invoke, binary_mode);
                 }
             }
             if (duk_pcall(ctx, count)) {
@@ -363,10 +384,11 @@ CONCEPT_FUNCTION_IMPL(JSVariable, 3)
     T_HANDLE(JSVariable, 0)
     T_STRING(JSVariable, 1)
 
-    duk_context *ctx = DUK_CTX((duk_wrapper_container *)(intptr_t)PARAM(0));
+    duk_wrapper_container *container = (duk_wrapper_container *)(intptr_t)PARAM(0);
+    duk_context *ctx = DUK_CTX(container);
     const char *key = PARAM(1);
     if ((key) && (key[0])) {
-        RecursivePush(ctx, PARAMETER(2), Invoke);
+        RecursivePush(ctx, PARAMETER(2), Invoke, DUK_BINARY(container));
         duk_put_global_string(ctx, key);
     }
     RETURN_NUMBER(0);
@@ -375,8 +397,9 @@ END_IMPL
 CONCEPT_FUNCTION_IMPL(JSThrow, 2)
     T_HANDLE(JSThrow, 0)
 
-    duk_context *ctx = DUK_CTX((duk_wrapper_container *)(intptr_t)PARAM(0));
-    RecursivePush(ctx, PARAMETER(1), Invoke);
+    duk_wrapper_container *container = (duk_wrapper_container *)(intptr_t)PARAM(0);
+    duk_context *ctx = DUK_CTX(container);
+    RecursivePush(ctx, PARAMETER(1), Invoke, DUK_BINARY(container));
     duk_throw(ctx);
     RETURN_NUMBER(0);
 END_IMPL
@@ -429,12 +452,12 @@ static duk_ret_t concept_handler_func(duk_context *ctx) {
 
     Invoke(INVOKE_CALL_DELEGATE, deleg, &RES, &EXCEPTION, (INTEGER)-1, PARAMETERS);
     if (EXCEPTION) {
-        RecursivePush(ctx, EXCEPTION, Invoke);
+        RecursivePush(ctx, EXCEPTION, Invoke, DUK_BINARY(container));
         FREE_VARIABLE(EXCEPTION);
         duk_throw(ctx);
     }
     if (RES) {
-        RecursivePush(ctx, RES, Invoke);
+        RecursivePush(ctx, RES, Invoke, DUK_BINARY(container));
         FREE_VARIABLE(RES);
     }
     for (duk_idx_t i = 0; i < n; i++) {
@@ -480,5 +503,19 @@ CONCEPT_FUNCTION_IMPL(JSGC, 1)
     duk_context *ctx = DUK_CTX((duk_wrapper_container *)(intptr_t)PARAM(0));
     duk_gc(ctx, 0);
     RETURN_NUMBER(0);
+END_IMPL
+//------------------------------------------------------------------------
+CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(JSModeBinary, 1, 2)
+    T_HANDLE(JSModeBinary, 0)
+    unsigned char binary_mode = 1;
+    if (PARAMETERS_COUNT > 1) {
+        T_NUMBER(JSModeBinary, 1)
+        if (!PARAM_INT(1))
+            binary_mode = 0;
+    }
+    duk_wrapper_container *container = (duk_wrapper_container *)(intptr_t)PARAM(0);
+    int old_binary_mode = container->binary_mode;
+    container->binary_mode = binary_mode;
+    RETURN_NUMBER(old_binary_mode);
 END_IMPL
 //------------------------------------------------------------------------

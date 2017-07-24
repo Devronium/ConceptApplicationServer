@@ -16,6 +16,7 @@
     #define DECLARE_JSVAL(val)    jsval val = JSVAL_VOID;
 #else
     #include "js/Initialization.h"
+    #include "jsfriendapi.h"
 
     #define jsval JS::Value
     #define JSVAL_IS_BOOLEAN(val)   val.isBoolean()
@@ -77,6 +78,7 @@ public:
     std::map<std::string, void *> functions;
     void *ERR_DELEGATE;
     bool recursive;
+    bool binary_mode;
     void *handler;
 #ifndef JS_OLDAPI
     void *global;
@@ -89,6 +91,7 @@ public:
         global = NULL;
 #endif
         recursive = true;
+        binary_mode = false;
     }
 };
 
@@ -175,6 +178,28 @@ void *SetErrorDelegate(JSContext *cx, void *ERR_DELEGATE) {
         data->ERR_DELEGATE = ERR_DELEGATE;
     }
     return OLD_DELEGATE;
+}
+
+bool SetBinary(JSContext *cx, bool use_arraybuffer) {
+    bool old_binary_mode = false;
+    if (cx) {
+        LocalContainer *data = (LocalContainer *)JS_GetContextPrivate(cx);
+        if (!data)
+            data = new LocalContainer();
+        old_binary_mode = data->binary_mode;
+        data->binary_mode = use_arraybuffer;
+    }
+    return old_binary_mode;
+}
+
+bool GetBinary(JSContext *cx) {
+    bool binary_mode = false;
+    if (cx) {
+        LocalContainer *data = (LocalContainer *)JS_GetContextPrivate(cx);
+        if (data)
+            return data->binary_mode;
+    }
+    return binary_mode;
 }
 
 std::map<std::string, void *> *GetFunctions(JSContext *cx) {
@@ -305,7 +330,24 @@ void JS_TO_CONCEPT(void *HANDLER, JSContext *cx, void *member, jsval rval, std::
                     Invoke(INVOKE_GET_VARIABLE, prev_object, &type, &szValue, &nValue);
                     Invoke(INVOKE_SET_VARIABLE, member, type, szValue, nValue);
                 }
-            } else {
+            } else
+#ifndef JS_OLDAPI
+            if (JS_IsArrayBufferObject(object)) {
+                size_t nbytes = JS_GetArrayBufferByteLength(object);
+                void *bytes = NULL;
+                JS::AutoCheckCannotGC nogc;
+                if (nbytes > 0) {
+                    bool sharedDummy;
+                    bytes = JS_GetArrayBufferData(object, &sharedDummy, nogc);
+                }
+                if ((nbytes > 0) && (bytes)) {
+                    SET_BUFFER_VARIABLE(member, bytes, nbytes);
+                } else {
+                    SET_STRING_VARIABLE(member, "");
+                }
+            } else
+#endif
+            {
                 CREATE_ARRAY(member);
 #ifdef JS_OLDAPI
                 (*use_map)[object] = member;
@@ -462,7 +504,9 @@ jsval CONCEPT_TO_JS(void *HANDLER, JSContext *cx, void *member, std::map<void *,
     std::map<void *, int> *use_map = circular_map;
     if (!use_map)
         use_map = new std::map<void *, int>();
-
+#ifndef JS_OLDAPI
+    bool binary_mode = GetBinary(cx);
+#endif
     InvokePtr(INVOKE_GET_VARIABLE, member, &type, &szValue, &nValue);
     switch (type) {
         case VARIABLE_NUMBER:
@@ -478,8 +522,23 @@ jsval CONCEPT_TO_JS(void *HANDLER, JSContext *cx, void *member, std::map<void *,
 #ifdef JS_OLDAPI
                 ret = STRING_TO_JSVAL(JS_NewStringCopyN(cx, szValue, (int)nValue));
 #else
-                JSString *str = JS_NewStringCopyN(cx, szValue, (int)nValue);
-                ret = STRING_TO_JSVAL(str);
+                if (binary_mode) {
+                    size_t buf_size = (size_t)nValue;
+                    void *buf2 = NULL;
+                    if (buf_size) {
+                        buf2 = malloc(buf_size);
+                        if (buf2)
+                            memcpy(buf2, szValue, buf_size);
+                        else
+                            buf_size = 0;
+                    }
+                    // Ownership is tranferred to the new array, do not call free!
+                    JS::RootedObject object(cx, JS_NewArrayBufferWithContents(cx, buf_size, buf2));
+                    ret = OBJECT_TO_JSVAL(*object);
+                } else {
+                    JSString *str = JS_NewStringCopyN(cx, szValue, (int)nValue);
+                    ret = STRING_TO_JSVAL(str);
+                }
 #endif
             }
             break;
@@ -695,7 +754,7 @@ static bool function_handler(JSContext *cx, unsigned argc, JS::Value *vp) {
         index++;
     }
 
-    // -1 in parameter count means that we will prvide a parameter list;
+    // -1 in parameter count means that we will provide a parameter list;
     void *EXCEPTION = 0;
     void *RES       = 0;
     Invoke(INVOKE_CALL_DELEGATE, ft, &RES, &EXCEPTION, (INTEGER)-1, PARAMETERS);
@@ -1240,5 +1299,17 @@ CONCEPT_FUNCTION_IMPL(JSCall, 4)
     if (called) {
         JS_TO_CONCEPT(PARAMETERS->HANDLER, cx, RESULT, rval);
     }
+END_IMPL
+//------------------------------------------------------------------------
+CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(JSModeBinary, 1, 2)
+    T_HANDLE(JSModeBinary, 0)
+    bool binary_mode = true;
+    if (PARAMETERS_COUNT > 1) {
+        T_NUMBER(JSModeBinary, 1)
+        if (!PARAM_INT(1))
+            binary_mode = false;
+    }
+    bool old_binary_mode = SetBinary((JSContext *)(SYS_INT)PARAM(0), binary_mode);
+    RETURN_NUMBER((int)old_binary_mode);
 END_IMPL
 //------------------------------------------------------------------------

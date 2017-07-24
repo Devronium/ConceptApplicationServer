@@ -8,9 +8,12 @@ class JS {
 	protected var context;
 	protected var global;
 	protected var error_delegate;
+	protected var binary_mode = false;
 
 	public var LastError;
 	public var UserData;
+
+	public property BinaryMode { get binary_mode, set SetBinaryMode }
 
 	JS(error_handler = null, size = DEFAULT_JS_MAX_RUNTIME_SIZE, stack_chunk_size = 8192) {
   		if ((!(runtime = JSNewRuntime (size)))
@@ -51,6 +54,11 @@ class JS {
 
 		JSSetErrorReporter(context, this.__error_callback);
 		return true;
+	}
+
+	SetBinaryMode(mode = true) {
+		JSModeBinary(context, mode);
+		return mode;
 	}
 
 	variable(name, val) {

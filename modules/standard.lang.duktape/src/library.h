@@ -17,5 +17,6 @@ extern "C" {
     CONCEPT_FUNCTION(JSThrow)
     CONCEPT_FUNCTION(JSErrorCode)
     CONCEPT_FUNCTION(JSGC)
+    CONCEPT_FUNCTION(JSModeBinary)
 }
 #endif // __LIBRARY_H
