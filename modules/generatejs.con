@@ -1,6 +1,7 @@
 include DirectoryList.con
 
-define PREFIX	"/* This file is generated automatically by generatejs.con. Do not edit. */\n\n"
+define PREFIX		"/* This file is generated automatically by generatejs.con. Do not edit. */\n\n"
+define USE_PROPERTIES	false
 
 class Main {
 	Do(path, prefix = "") {
@@ -94,8 +95,13 @@ class Main {
 				var prev = "con";
 				for (i = 1; i < length arr3 - 1; i++) {
 					e = arr3[i];
-					js += "if (!$prev.$e)\n";
-					js += "\t$prev.$e = { };\n";
+					if (USE_PROPERTIES) {
+						js += "if (!$prev.$e)\n";
+						js += "\tObject.defineProperty($prev, \"$e\", {value: {}, writable: false});\n";
+					} else {
+						js += "if (!$prev.$e)\n";
+						js += "\t$prev.$e = { };\n";
+					}
 					prev = prev + "." + e;
 				}
 				for (i = 0; i < length keys; i++) {
@@ -122,7 +128,10 @@ class Main {
 						wrap += "\t__cjs_$k($parameters) {\n";
 						wrap +=	"\t\treturn $k($parameters);\n";
 						wrap += "\t}\n\n";
-						js += "$prev.$k = this.__cjs_$k;\n";
+						if (USE_PROPERTIES)
+							js += "Object.defineProperty($prev, \"$k\", {value: this.__cjs_$k, writable: false});\n";
+						else
+							js += "$prev.$k = this.__cjs_$k;\n";
 						jswrap += "\t\tjs.wrap(this.__cjs_$k, \"__cjs_$k\");\n";
 					}
 				}

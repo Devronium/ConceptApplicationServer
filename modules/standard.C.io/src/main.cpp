@@ -2266,24 +2266,6 @@ CONCEPT_DLL_API CONCEPT__closedir CONCEPT_API_PARAMETERS {
     return 0;
 }
 //-----------------------------------------------------------------------------------
-
-/*CONCEPT_DLL_API CONCEPT__dirfd CONCEPT_API_PARAMETERS {
-        PARAMETERS_CHECK(1,"'dirfd' takes 1 parameters. See help for details.");
-
-        LOCAL_INIT;
-
-        double       _C_call_result;
-        // Specific variables
-        double       nParam0;
-
-        GET_CHECK_NUMBER(0, nParam0, "Parameter 0 should be a number (STATIC NUMBER).");
-
-        _C_call_result=dirfd((DIR *)(long)nParam0);
-
-        RETURN_NUMBER(_C_call_result);
-        return 0;
-   }*/
-//-----------------------------------------------------------------------------------
 CONCEPT_DLL_API CONCEPT__dirname CONCEPT_API_PARAMETERS {
     PARAMETERS_CHECK(1, "'dirname' takes 1 parameters. See help for details.");
 

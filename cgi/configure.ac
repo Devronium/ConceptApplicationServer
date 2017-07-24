@@ -14,7 +14,7 @@ AC_PROG_CC
 # Checks for libraries.
 # FIXME: Replace `main' with a function in `-lpthread':
 AC_CHECK_LIB([pthread], [pthread_create])
-AC_CHECK_LIB(dl, dlopen)
+AC_CHECK_LIB(dl, dlopen, rt)
 
 # Checks for header files.
 AC_HEADER_STDC

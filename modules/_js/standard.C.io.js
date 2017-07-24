@@ -30,7 +30,6 @@ con.C.telldir = this.__cjs_telldir;
 con.C.seekdir = this.__cjs_seekdir;
 con.C.rewinddir = this.__cjs_rewinddir;
 con.C.closedir = this.__cjs_closedir;
-con.C.dirfd = this.__cjs_dirfd;
 con.C.dirname = this.__cjs_dirname;
 con.C._stat = this.__cjs__stat;
 con.C.filetype = this.__cjs_filetype;
