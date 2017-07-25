@@ -9,6 +9,7 @@ include WebSocket.con
 include File.con
 include Worker.con
 include HTTP2.con
+include DUKJS.con
 
 import standard.C.io
 import standard.C.time
@@ -16,6 +17,7 @@ import standard.lib.str
 import standard.C.casts
 import standard.lib.cripto
 import standard.coding.base64
+import standard.lang.cli
 
 // set to true when in production
 // this will allow only compiled files to run (.accel)
@@ -97,8 +99,9 @@ pragma used
 	var port;
 	var cgihandler;
 	var root;
+	var javascript;
 
-	WDataContainer(socket, app, var headers, var query, var snippet, method, hostname, path, port, cgihandler, root) {
+	WDataContainer(socket, app, var headers, var query, var snippet, method, hostname, path, port, cgihandler, root, javascript = false) {
 		this.socket = socket.Socket;
 		this.app = app;
 		this.headers = headers;
@@ -110,6 +113,7 @@ pragma used
 		this.port = port;
 		this.cgihandler = cgihandler;
 		this.root = root;
+		this.javascript = javascript;
 		if (classof socket == "TLSESocket") {
 			tls = socket.Save();
 			socket.Done();
@@ -1364,9 +1368,15 @@ class ConceptChild {
 
 									var is_server_page = false;
 									var cgi;
+									var is_javascript = false;
 									if (content_type == "application/concept-server-page") {
 										is_server_page = true;
 										cgi = this.Owner.cgi;  
+									} else
+									if (content_type == "application/javascript-server-page") {
+										is_server_page = true;
+										cgi = this.Owner.cgi; 
+										is_javascript = true; 
 									} else
 									if (this.Owner.cgiother) {
 										if (IsSet(this.Owner.cgiother, content_type)) {
@@ -1421,6 +1431,15 @@ class ConceptChild {
 											if (FileExists(app + "index.csp")) {
 												content_type = "application/concept-server-page";
 												app += "index.csp";
+												is_server_page = true;
+												cgi = this.Owner.cgi;
+											} else
+											if (FileExists(app + "index.ess")) {
+												content_type = "application/javascript-server-page";
+												app += "index.ess";
+												is_javascript = true;
+												is_server_page = true;
+												cgi = this.Owner.cgi;
 											} else {
 												content_type = "text/html";
 												app += "index.html";
@@ -1451,7 +1470,7 @@ class ConceptChild {
 											var port = Owner.WSPort;
 											if (TLS)
 												port = Owner.SSLWSPort;
-											var w = new WDataContainer(Socket, app, SubStr(received_data, 0, pos), params, SubStr(received_data, pos + 2), method, this.ServerName, requested_path, port, cgi, host_root);
+											var w = new WDataContainer(Socket, app, SubStr(received_data, 0, pos), params, SubStr(received_data, pos + 2), method, this.ServerName, requested_path, port, cgi, host_root, is_javascript);
 											worker.AddData(BinarizeObject(w));
 											keep_alive = false;
 											break;
@@ -1861,39 +1880,29 @@ class ConceptChild {
 	}
 }
 
-class ConceptCGIChild {
-	var std_out;
-	var std_in;
+class ConceptCGIChildBase {
+	var h2;
+	var stream;
+	var h2headers;
 	var Socket;
 	var pid;
 	var std_in_buffer = "";
 	var std_out_buffer = "";
-	var h2;
-	var stream;
-	var h2headers;
 	var is_post;
 	var last_err_time;
-	var last_pipe_err_time;
-	var last_pipe_err_time_read;
 
-	ConceptCGIChild(method, Socket, std_out, std_in, pid, buffer, h2 = null, stream = null, default_h2_header = null) {
-		this.is_post = true;//(method != "GET");
-		this.std_out = 	std_out;
-		this.std_in = std_in;
-		this.Socket = Socket;
-		this.pid = pid;
-		this.std_in_buffer = buffer;
-		this.h2 = h2;
-		this.stream = stream;
-		this.h2headers = default_h2_header;
-
-		SetNonBlocking(std_out, true);
-		SetNonBlocking(std_in, true);
-		SocketSetBlocking(Socket.Socket, false);
-
-		if (h2) {
-			h2.MaxOutputBuffer = H2_MAX_STDOUT_BUFFER;
-			h2.MaxFileBuffer = H2_MAX_FILE_BUFFER;
+	static ParseHeaders(h2headers, buffer) {
+		var arr = StrSplit(buffer, "\n");
+		for (var i = 0; i < length arr; i++) {
+			var e = arr[i];
+			if (e) {
+				var pos = Pos(e, ":");
+				if (pos > 0) {
+					var k = ToLower(trim(SubStr(e, 0, pos - 1)));
+					var val = trim(SubStr(e, pos));
+					h2headers[k] = val;
+				}
+			}
 		}
 	}
 
@@ -1921,6 +1930,454 @@ class ConceptCGIChild {
 			} catch (exc) {
 				echo "ConceptCGIChild/HTTP/2 Socket close error: $exc\n";
 			}
+		}
+	}
+}
+
+class JSCode {
+	public var js;
+	public var path = "";
+	protected var framework_path = "";
+	protected var[] loaded;
+
+	require(lib) {
+		if (loaded[lib])
+			return true;
+		var libname = "ECMABRIDGE_" + StrReplace(lib, ".", "_");
+		var code = ReadFile(framework_path + lib + ".js.con");
+		if (!code)
+			return false;
+		if (IncludeCode(code))
+			return false;
+		var obj = CreateObject2(libname, js);
+		if (obj) {
+			js.script(ReadFile(framework_path + lib + ".js"));
+			loaded[lib] = true;
+			return true;
+		}
+		return false;
+	}
+
+	jsinclude(filename) {
+		try {
+			if ((path) && (FileExists(path + filename)))
+				js.script(ReadFile(path + filename));
+			else
+				js.script(ReadFile(framework_path + filename));
+		} catch (var exc) {
+			echo exc;
+		}
+	}
+
+	logdata(data) {
+		echo data;
+		echo "\n";
+	}
+
+	JSCode(error_delegate = null, jspath = "") {
+		framework_path = jspath;
+		if (!error_delegate) {
+			error_delegate = function(js, message, struct) {
+				echo message;
+				echo "\n";
+				echo struct;
+			};
+		}
+		js = new JS(error_delegate);
+		js.wrap(this.require, "__cjs_require");
+		js.wrap(this.jsinclude, "include");
+		js.wrap(logdata, "log");
+		js.script("var con = { 'require': __cjs_require, 'include': include, 'log': log };\n");
+	}
+
+	run(var code) {
+		return js.script(code);
+	}
+}
+
+class ConceptJSChild extends ConceptCGIChildBase {
+	var js;
+	var running;
+	var print_started = false;
+	var header_started = false;
+	var write_headers = false;
+
+	GetPath(filename) {
+		var arr = StrSplit(filename, "/");
+		var len = length arr;
+		var directory = "";
+
+		var arr2 = new [];
+		for (var i = len - 1; i >= 0; i--) {
+			var d = arr[i];
+			if (d == "..") {
+				// jump one directory
+				i--;
+			} else
+			if (d != ".")
+				arr2[length arr2] = d;
+		}
+		len = length arr2;
+		for (i = len - 1; i >= 0; i--) {
+			d = arr2[i];
+			if (d) {
+				if (i)
+					directory += d + "/";
+			}
+		}
+		return directory;
+	}
+
+	ParseQueryString(var qstring) {
+		var get_query = [ ];
+		if (qstring) {
+			var arr = StrSplit(qstring, "&");
+			for (var i = 0; i < length arr; i++) {
+				var e = arr[i];
+				if (e) {
+					var pos = Pos(e, "=");
+					if (pos > 0) {
+						var k = URIDecode(SubStr(e, 0, pos - 1));
+						var val = URIDecode(SubStr(e, pos));
+						if (IsSet(get_query, k)) {
+							var prev = get_query[k];
+							if (typeof prev == "array")
+								prev[length prev] = val;
+							else
+								get_query[k] = [prev, val];
+						} else
+							get_query[k] = val;
+					}
+				}
+			}
+		}
+		return get_query;
+	}
+
+	ConceptJSChild(method, Socket, env, buffer, h2 = null, stream = null, default_h2_header = null, headers = null) {
+		this.Socket = Socket;
+		this.std_in_buffer = buffer;
+		this.h2 = h2;
+		this.stream = stream;
+		this.h2headers = default_h2_header;
+		this.is_post = true;
+		var app = env["SCRIPT_FILENAME"];
+		SocketSetBlocking(Socket.Socket, false);
+		if (h2) {
+			h2.MaxOutputBuffer = H2_MAX_STDOUT_BUFFER;
+			h2.MaxFileBuffer = H2_MAX_FILE_BUFFER;
+		}
+		js = new JSCode();
+		js.path = this.GetPath(app);
+		running = true;
+		js.js.wrap(this.print, "print");
+		js.js.wrap(this.header, "header");
+		js.js.wrap(this.done, "done");
+		js.js.wrap(this.critical, "critical");
+		js.js.variable("request", env);
+		if (stream)
+			js.js.variable("headers", stream.Headers);
+		else
+		if (headers)
+			js.js.variable("headers", headers);
+
+		js.js.variable("GET", this.ParseQueryString(env["QUERY_STRING"]));
+		var filecontents = ReadFile(app);
+		if (filecontents)
+			js.run("try { "+ filecontents + " } catch (exc) { critical(exc); }");
+		else
+			this.done();
+		if (buffer)
+			this.post(buffer);
+	}
+
+	reset() {
+		if (js) {
+			// important to avoid memory leak (wrap mantains references!)
+			js.js = null;
+			js = null;
+		}
+	}
+
+	done() {
+		if ((h2) && (!print_started))
+			write_headers = true;
+		running = false;
+	}
+
+	critical(exc) {
+		echo exc;
+		if (typeof exc == "array")
+			exc = ToXML(exc);
+		std_out_buffer += exc;
+		this.done();		
+	}
+
+	space(key, len) {
+		while (length key < len)
+			key += " ";
+		return key;
+	}
+
+	obj_to_string(obj, level = 0, var backref = null, prec_level_str = "", new_line = "\n") {
+		var output = "";
+		if (typeof obj == "array") {
+			if (level <= 1)
+				backref = new [];
+			backref["" + ClsPtr(obj)] = true;
+			var level_str = "";
+			for (var i = 0; i < level ; i++)
+				level_str += "  ";
+			var keys = GetKeys(obj);
+			var max_len = 0;
+			var is_static = true;
+			for (i = 0; i < length keys; i++) {
+				var key = keys[i];
+				if ((key) && (length key > max_len)) {
+					max_len = length key;
+					is_static = false;
+				} else {
+					var val = obj[i];
+					if ((typeof val != "string") && (typeof val != "numeric"))
+						is_static = false;
+				}
+			}
+			var is_object = max_len;
+			if (level) {
+				if (is_object) {
+					output += "{";
+				} else
+					output += "[";
+			}
+			if (is_static) {
+				output += " ";
+				level_str = "";
+				prec_level_str = "";
+			} else
+				output += "\n";
+			for (i = 0; i < length obj; i++) {
+				key = keys[i];
+				val = obj[i];
+				output += "$level_str";
+				if (typeof key == "string")
+					output += this.space(key, max_len) + ": ";
+
+				if (typeof val == "array") {
+					var backref_ptr = ""+ClsPtr(val);
+					if (backref[backref_ptr]) {
+						output += "(reference to already printed object)";
+						if (i < length obj - 1)
+							output += ",";
+						output += new_line;
+					} else {
+						backref[backref_ptr] = true;
+						output += obj_to_string(val, level + 1, backref, level_str);
+					}
+				} else {
+					output += val;
+					if (is_static)
+						output += " ";
+					else
+						output += new_line;
+				}
+			}
+			if (level) {
+				if (is_object)
+					output += "$prec_level_str}" + new_line;
+				else
+					output += "$prec_level_str]" + new_line;
+			}
+			return output;
+		}
+		return "" + obj;
+	}
+
+	header(key, val) {
+		if ((typeof key != "string") || (typeof val == "array") || (!key))
+			return false;
+		if (print_started)
+			return false;
+
+		if (h2) {
+			h2headers[ToLower(key)] = val;
+			return true;
+		}
+		if (!header_started) {
+			if (key != ":status") {
+				std_out_buffer += "HTTP/1.1 200 OK\r\nServer: " + SERVER_NAME + "\r\n";
+			} else {
+				std_out_buffer += "HTTP/1.1 $val\r\nServer: " + SERVER_NAME + "\r\n";
+				header_started = true;
+				return true;
+			}
+		}
+		std_out_buffer += "$key: $val\r\n";
+		header_started = true;
+		return true;
+	}
+
+	print(buffer) {
+		if ((!header_started) && (!h2)) {
+			std_out_buffer += "HTTP/1.1 200 OK\r\nServer: " + SERVER_NAME + "\r\n";
+			header_started = true;
+		}
+		if (!print_started) {
+			if (h2)
+				write_headers = true;
+			else
+				std_out_buffer += "\r\n";
+		}
+		if (typeof buffer == "array")
+			buffer = obj_to_string(buffer, true);
+		print_started = true;
+		std_out_buffer += buffer;
+	}
+
+	Close() {
+		Join();
+		if ((h2) && (stream)) {
+			try {
+				stream.Close(h2);
+				delete h2;
+				delete stream;
+				delete Socket;
+			} catch (var exc) {
+				echo "ConceptJSChild/HTTP/2 Socket close error: $exc\n";
+			}
+		} else
+		if (Socket) {
+			try {
+				Socket.Close();
+				delete Socket;
+			} catch (exc) {
+				echo "ConceptJSChild/Socket close error: $exc\n";
+			}
+		}
+		if (js)
+			this.reset();
+	}
+
+	post(var data) {
+		if ((js) && (data)) {
+			js.js.BinaryMode = true;
+			js.js.call("ondata", [data]);
+			js.js.BinaryMode = false;
+		}
+	}
+
+	Iterate(var ops) {
+		if (!running)
+			this.reset();
+		try {
+			if (stream) {
+				if (stream.HasData()) {
+					var buf = stream.Read();
+					if (this.is_post)
+						this.post(buf);
+					ops++;
+				}
+			} else
+			if (Socket.HasData) {
+				buf = Socket.Read(MAX_RECV_BUFFER);
+				if (!buf) {
+					this.reset();
+					return true;
+				}
+				if (this.is_post)
+					this.post(buf);
+				ops ++;
+			}
+		} catch (var exc) {
+			// socket closed
+			this.reset();
+			return true;
+		}
+
+		if ((std_out_buffer) || (write_headers)) {
+			if (stream) {
+				var stream_write = true;
+				try {
+					if (h2headers) {
+						stream.Response(h2, h2headers);
+						h2headers = null;
+					}
+					if ((stream_write) && (std_out_buffer)) {
+						var close_stream = false;
+						if ((!running) && (stream.AtomicWriteSize(length std_out_buffer) == length std_out_buffer))
+							close_stream = true;
+						var res = stream.SafeWrite(h2, std_out_buffer, close_stream);
+						if (res > 0) {
+							std_out_buffer = SubStr(std_out_buffer, res);
+							ops ++;
+						}
+					}
+				} catch (exc) {
+					this.reset();
+					return true;
+				}
+			} else
+			if (Socket) {
+				try {
+					res = Socket.Write(std_out_buffer);
+					if (res > 0) {
+						std_out_buffer = SubStr(std_out_buffer, res);
+						ops ++;
+						if (length std_out_buffer > CGI_MAX_STDOUT_BUFFER) {
+							echo "CGI stdout buffer overflow\n";
+							return true;
+						}
+						last_err_time = 0;
+					}
+				} catch (exc) {
+					// EAGAIN ?
+					var err = SocketErrno();
+					if ((err != 11) && (err != 35) && (err != 10035)) {
+						this.reset();
+						return true;
+					}
+
+					if ((last_err_time) && (time() - last_err_time >= CGI_MAX_RETRY_SECONDS)) {
+						echo "CGI write congestion\n";
+						this.reset();
+						return true;
+					}
+					last_err_time = time();
+				}
+			}
+		}
+		if ((!std_out_buffer) && (!running)) {
+			H2Close();
+			this.reset();
+			return true;
+		}
+		return false;
+	}
+}
+
+class ConceptCGIChild extends ConceptCGIChildBase {
+	var std_out;
+	var std_in;
+	var last_pipe_err_time;
+	var last_pipe_err_time_read;
+
+	ConceptCGIChild(method, Socket, std_out, std_in, pid, buffer, h2 = null, stream = null, default_h2_header = null) {
+		this.is_post = true;//(method != "GET");
+		this.std_out = 	std_out;
+		this.std_in = std_in;
+		this.Socket = Socket;
+		this.pid = pid;
+		this.std_in_buffer = buffer;
+		this.h2 = h2;
+		this.stream = stream;
+		this.h2headers = default_h2_header;
+
+		SetNonBlocking(std_out, true);
+		SetNonBlocking(std_in, true);
+		SocketSetBlocking(Socket.Socket, false);
+
+		if (h2) {
+			h2.MaxOutputBuffer = H2_MAX_STDOUT_BUFFER;
+			h2.MaxFileBuffer = H2_MAX_FILE_BUFFER;
 		}
 	}
 
@@ -1954,21 +2411,6 @@ class ConceptCGIChild {
 		if (std_in > 0) {
 			close(std_in);
 			std_in = 0;
-		}
-	}
-
-	ParseHeaders(h2headers, buffer) {
-		var arr = StrSplit(buffer, "\n");
-		for (var i = 0; i < length arr; i++) {
-			var e = arr[i];
-			if (e) {
-				var pos = Pos(e, ":");
-				if (pos > 0) {
-					var k = ToLower(trim(SubStr(e, 0, pos - 1)));
-					var val = trim(SubStr(e, pos));
-					h2headers[k] = val;
-				}
-			}
 		}
 	}
 
@@ -2158,7 +2600,81 @@ pragma used
 		return cookie;
 	}
 
+	HeaderKeys(var headers_lowercase) {
+		var[] headers;
+		if (headers_lowercase) {
+			var arr = StrSplit(headers_lowercase, "\r\n");
+			if (arr) {
+				var arr2 = StrSplit(arr[0], " ");
+				var method = arr2[0];
+				var path = arr2[1];
+				if (method)
+					headers[":method"] = ToUpper(method);
+				if (path)
+					headers[":path"] = path;
+			}
+			for (var i = 1; i < length arr; i++) {
+				var header = arr[i];
+				if (header) {
+					var pos = Pos(header, ":");
+					if (pos > 0) {
+						var key = ToLower(trim(SubStr(header, 0, pos - 1)));
+						var val = trim(SubStr(header, pos));
+						headers[key] = val;
+					}
+				}
+			}
+		}
+		return headers;
+	}
+
+	CreateJavascript(Socket, job) {
+		var info = Socket.Info;
+		var address = info["address"];
+		var port = info["port"];
+		var headers_lowercase = ToLower(job.headers);
+
+		var env = [
+				"DOCUMENT_ROOT": job.root,
+				"GATEWAY_INTERFACE": "CGI/1.1",
+				"HTTP_COOKIE": this.GetHeader(job, "cookie", headers_lowercase),
+				"HTTP_HOST": job.hostname,
+				"HTTP_USER_AGENT": this.GetHeader(job, "user-agent", headers_lowercase),
+				"PATH_INFO": job.path,
+				"PATH_TRANSLATED": job.app,
+				"QUERY_STRING": job.query,
+				"REMOTE_ADDR": address,
+				"REMOTE_HOST": address,
+				"REMOTE_PORT": port,
+				"REMOTE_USER": "",
+				"REQUEST_METHOD": job.method,
+				"REQUEST_URI": job.path,
+				"SCRIPT_FILENAME":  job.app,
+				"SCRIPT_NAME": "javascript",
+				"SERVER_ADMIN": "",
+				"SERVER_NAME": job.hostname,
+				"SERVER_PORT": job.port,
+				"SERVER_PROTOCOL": "HTTP/1.1",
+				"SERVER_SOFTWARE":  SERVER_SOFTWARE,
+				"REDIRECT_STATUS": 200,
+				"REDIRECT_STATUS": "CGI",
+				"CONTENT_LENGTH": this.GetHeader(job, "content-length", headers_lowercase),
+				"CONTENT_TYPE": this.GetHeader(job, "content-type", headers_lowercase),
+				"HTTP_ACCEPT_LANGUAGE": this.GetHeader(job, "accept-language", headers_lowercase),
+				"HTTP_ACCEPT_ENCODING": this.GetHeader(job, "accept-encoding", headers_lowercase),
+				"HTTP_REFERER": this.GetHeader(job, "referer", headers_lowercase)
+		];
+		if (classof Socket == "TLSESocket") {
+			env["HTTPS"] = "on";
+			env["HTTPS_CIPHER"] = Socket.CipherName;
+		}
+		return new ConceptJSChild(job.method, Socket, env, job.snippet, null, null, null, HeaderKeys(job.headers));
+	}
+
 	Create(Socket, job, var err_text) {
+		if (job.javascript)
+			return CreateJavascript(Socket, job);
+
 		if (ConceptCGIChild::CreatePipes(var std_out_r, var std_out_w, var std_in_r, var std_in_w, err_text))
 			return null;
 
@@ -2215,7 +2731,6 @@ pragma used
 				err_text = "ConceptWorker: Error creating process\n";
 			return null;
 		}
-
 		return new ConceptCGIChild(job.method, Socket, std_out_r, std_in_w, pid, job.snippet);
 	}
 
@@ -2366,19 +2881,56 @@ pragma used
 		return val;
 	}
 
-	CreateCGI(h2, stream, cgi_handler_path, root, path, app, query, hostname_port, var err_text) {
-		if (ConceptCGIChild::CreatePipes(var std_out_r, var std_out_w, var std_in_r, var std_in_w, err_text))
-			return null;
-
-		var headers = stream.Headers;
-		var Socket = h2.GetSocket();
+	CreateJavascript(Socket, h2, stream, method, root, path, app, query, hostname, local_port, default_header) {
 		var info = Socket.Info;
 		var address = info["address"];
 		var port = info["port"];
+		var headers = stream.Headers;
+
+		var env = [
+				"DOCUMENT_ROOT": root,
+				"GATEWAY_INTERFACE": "CGI/1.1",
+				"HTTP_COOKIE": this.GetHeader("cookie", headers),
+				"HTTP_HOST": hostname,
+				"HTTP_USER_AGENT": this.GetHeader("user-agent", headers),
+				"PATH_INFO": path,
+				"PATH_TRANSLATED": app,
+				"QUERY_STRING": query,
+				"REMOTE_ADDR": address,
+				"REMOTE_HOST": address,
+				"REMOTE_PORT": port,
+				"REMOTE_USER": "",
+				"REQUEST_METHOD": method,
+				"REQUEST_URI": path,
+				"SCRIPT_FILENAME":  app,
+				"SCRIPT_NAME": "javascript",
+				"SERVER_ADMIN": "",
+				"SERVER_NAME": hostname,
+				"SERVER_PORT": local_port,
+				"SERVER_PROTOCOL": "HTTP/1.1",
+				"SERVER_SOFTWARE":  SERVER_SOFTWARE,
+				"REDIRECT_STATUS": 200,
+				"REDIRECT_STATUS": "CGI",
+				"CONTENT_LENGTH": this.GetHeader("content-length", headers),
+				"CONTENT_TYPE": this.GetHeader("content-type", headers),
+				"HTTP_ACCEPT_LANGUAGE": this.GetHeader("accept-language", headers),
+				"HTTP_ACCEPT_ENCODING": this.GetHeader("accept-encoding", headers),
+				"HTTP_REFERER": this.GetHeader("referer", headers)
+		];
+		if (classof Socket == "TLSESocket") {
+			env["HTTPS"] = "on";
+			env["HTTPS_CIPHER"] = Socket.CipherName;
+		}
+		return new ConceptJSChild(method, Socket, env, "", h2, stream, default_header);
+	}
+
+	CreateCGI(h2, stream, cgi_handler_path, root, path, app, query, hostname_port, var err_text, javascript, default_header) {
+		var cgi;
 		var host_arr = StrSplit(hostname_port, ":");
 		var local_port = 443;
 		var hostname;
-
+		var headers = stream.Headers;
+		var Socket = h2.GetSocket();
 		if (length host_arr > 1) {
 			var tmp = value host_arr[length host_arr - 1];
 			if (tmp) {
@@ -2387,6 +2939,20 @@ pragma used
 			}
 		} else
 			hostname = hostname_port;
+
+		if (javascript) {
+			cgi = this.CreateJavascript(Socket, h2, stream, this.GetHeader(":method", headers) ?? "GET", root, path, app, query, hostname, local_port, default_header);
+			CGIChildren[length CGIChildren] = cgi;
+			h2.UserData++;
+			return cgi;
+		}
+
+		if (ConceptCGIChild::CreatePipes(var std_out_r, var std_out_w, var std_in_r, var std_in_w, err_text))
+			return null;
+
+		var info = Socket.Info;
+		var address = info["address"];
+		var port = info["port"];
 		var method = this.GetHeader(":method", headers) ?? "GET";
 		var env = [
 				"DOCUMENT_ROOT=" + root,
@@ -2437,8 +3003,9 @@ pragma used
 			return null;
 		}
 
-		var cgi = new ConceptCGIChild(method, Socket, std_out_r, std_in_w, pid, "", h2, stream);
+		cgi = new ConceptCGIChild(method, Socket, std_out_r, std_in_w, pid, "", h2, stream);
 		if (cgi) {
+			cgi.h2headers = default_header;
 			CGIChildren[length CGIChildren] = cgi;
 			h2.UserData++;
 		}
@@ -2509,18 +3076,27 @@ pragma used
 		if (FileExists(app + "/start.con"))
 			return "start.con";
 		else
-		if (FileExists(app + "index.csp"))
+		if (FileExists(app + "/index.csp"))
 			return "index.csp";
+		else
+		if (FileExists(app + "/index.ess"))
+			return "index.ess";
 		else
 			return "index.html";
 		return "";
 	}
 
-	IsCGI(content_type) {
+	IsCGI(content_type, var javascript = null) {
 		var is_server_page = false;
+		javascript = false;
 		var cgi;
 		if (content_type == "application/concept-server-page") {
 			is_server_page = true;
+			cgi = conceptcgi;
+		} else
+		if (content_type == "application/javascript-server-page") {
+			is_server_page = true;
+			javascript = true;
 			cgi = conceptcgi;
 		} else
 		if (cgiother) {
@@ -2652,7 +3228,7 @@ pragma used
 						app = this.ConceptClient + "/" + SubStr(path, 1);
 						exists = FileExists(app);
 					}
-					var is_cgi = this.IsCGI(content_type);
+					var is_cgi = this.IsCGI(content_type, var javascript);
 					if (is_cgi) {
 						if (Pos(app, ".."))
 							app = ConceptWorker::RealPath(StrReplace(app, "\\", "/"));
@@ -2665,8 +3241,7 @@ pragma used
 								"server" => "CAS5WS",
 								"content-type" => "text/html"
 							];
-							var cgi = this.CreateCGI(h2, stream, is_cgi, root, orig_path, app, params, server, var err_text);
-							cgi.h2headers = default_header;
+							var cgi = this.CreateCGI(h2, stream, is_cgi, root, orig_path, app, params, server, var err_text, javascript, default_header);
 							if (!cgi)
 								throw err_text;
 							return;
@@ -3887,6 +4462,7 @@ class ConceptServer extends RewriteContainer {
 				"ice" => "x-conference/x-cooltalk",
 				"php" => "application/php",
 				"rb" => "application/ruby",
+				"ess" => "application/javascript-server-page",
 				"con" => "application/concept",
 				"csp" => "application/concept-server-page",
 				"accel" => "application/concept-private",

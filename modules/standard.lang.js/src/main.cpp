@@ -77,6 +77,7 @@ class LocalContainer {
 public:
     std::map<std::string, void *> functions;
     void *ERR_DELEGATE;
+    bool err_delegate_lock;
     bool recursive;
     bool binary_mode;
     void *handler;
@@ -91,7 +92,24 @@ public:
         global = NULL;
 #endif
         recursive = true;
+        err_delegate_lock = true;
         binary_mode = false;
+    }
+
+    void ReleaseDelegates(INVOKE_CALL Invoke) {
+        for (std::map<std::string, void *>::const_iterator it = functions.begin(); it != functions.end(); ++it) {
+            void *ft = it->second;
+            if (ft) {
+                FREE_VARIABLE(ft);
+            }
+        }
+        if (!functions.empty())
+            functions.clear();
+
+        if ((ERR_DELEGATE) && (err_delegate_lock)) {
+            FREE_VARIABLE(ERR_DELEGATE);
+        }
+        ERR_DELEGATE = NULL;
     }
 };
 
@@ -166,7 +184,7 @@ void *GetErrorDelegate(JSContext *cx) {
     return NULL;
 }
 
-void *SetErrorDelegate(JSContext *cx, void *ERR_DELEGATE) {
+void *SetErrorDelegate(JSContext *cx, void *ERR_DELEGATE, bool lock) {
     void *OLD_DELEGATE = NULL;
     if (cx) {
         LocalContainer *data = (LocalContainer *)JS_GetContextPrivate(cx);
@@ -174,8 +192,10 @@ void *SetErrorDelegate(JSContext *cx, void *ERR_DELEGATE) {
             data = new LocalContainer();
             JS_SetContextPrivate(cx, data);
         }
-        OLD_DELEGATE = data->ERR_DELEGATE;
+        if (data->err_delegate_lock)
+            OLD_DELEGATE = data->ERR_DELEGATE;
         data->ERR_DELEGATE = ERR_DELEGATE;
+        data->err_delegate_lock = lock;
     }
     return OLD_DELEGATE;
 }
@@ -607,6 +627,13 @@ jsval CONCEPT_TO_JS(void *HANDLER, JSContext *cx, void *member, std::map<void *,
                         ret = OBJECT_TO_JSVAL(*object);
 #endif
                     }
+                } else {
+#ifdef JS_OLDAPI
+                    object = JS_NewArrayObject(cx, 0, NULL);
+#else
+                    JS::RootedObject object(cx, JS_NewArrayObject(cx, count));
+                    ret = OBJECT_TO_JSVAL(*object);
+#endif
                 }
 #ifdef JS_OLDAPI
                 if (object)
@@ -954,7 +981,6 @@ END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(JSDestroyContext, 1)
     T_HANDLE(JSDestroyContext, 0)     // JSContext*
-    ClearFunctions((JSContext *)(SYS_INT)PARAM(0));
     LocalContainer *data = (LocalContainer *)JS_GetContextPrivate((JSContext *)(SYS_INT)PARAM(0));
     if (data) {
 #ifndef JS_OLDAPI
@@ -962,6 +988,7 @@ CONCEPT_FUNCTION_IMPL(JSDestroyContext, 1)
         if (global)
             delete global;
 #endif
+        data->ReleaseDelegates(Invoke);
         delete data;
     }
     JS_DestroyContext((JSContext *)(SYS_INT)PARAM(0));
@@ -982,18 +1009,24 @@ CONCEPT_FUNCTION_IMPL(JSInitStandardClasses, 2)
 #endif
 END_IMPL
 //------------------------------------------------------------------------
-CONCEPT_FUNCTION_IMPL(JSSetErrorReporter, 2)
+CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(JSSetErrorReporter, 2, 3)
     T_HANDLE(JSSetErrorReporter, 0)     // JSContext*
     T_DELEGATE(JSSetErrorReporter, 1)
 
+    bool lock = true;
+    if (PARAMETERS_COUNT > 2) {
+        T_NUMBER(JSSetErrorReporter, 2);
+        if (!PARAM_INT(2))
+            lock = false;
+    }
     if (!(PARAM_INT(0)))
         return (void *)"JSSetErrorReporter: Invalid JSContext (is null)";
 
-    void *ERR_DELEGATE = SetErrorDelegate(((JSContext *)(SYS_INT)PARAM(0)), PARAMETER(1));
+    void *ERR_DELEGATE = SetErrorDelegate(((JSContext *)(SYS_INT)PARAM(0)), PARAMETER(1), lock);
     if (ERR_DELEGATE)
         FREE_VARIABLE(ERR_DELEGATE);
-
-    LOCK_VARIABLE(PARAMETER(1));
+    if (lock)
+        LOCK_VARIABLE(PARAMETER(1));
 #ifdef JS_OLDAPI
     JS_SetErrorReporter(((JSContext *)(SYS_INT)PARAM(0)), ShowError);
 #else

@@ -25,7 +25,7 @@ class JS {
 			return;
 		}
 
-		JSSetErrorReporter(context, this.__error_callback);
+		JSSetErrorReporter(context, this.__error_callback, false);
 
 		if (error_handler)
 			this.error(error_handler);
@@ -52,7 +52,7 @@ class JS {
 			return false;
 		}
 
-		JSSetErrorReporter(context, this.__error_callback);
+		JSSetErrorReporter(context, this.__error_callback, true);
 		return true;
 	}
 
