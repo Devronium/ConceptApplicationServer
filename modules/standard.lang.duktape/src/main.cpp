@@ -95,7 +95,7 @@ CONCEPT_FUNCTION_IMPL(JSDestroyRuntime, 1)
     RETURN_NUMBER(0);
 END_IMPL
 //------------------------------------------------------------------------
-void RecursiveValue(duk_context *ctx, void *RESULT, SYS_INT index, INVOKE_CALL Invoke) {
+void RecursiveValue(duk_context *ctx, void *RESULT, SYS_INT index, INVOKE_CALL Invoke, const char *func_name = NULL) {
         switch (duk_get_type(ctx, index)) {
             case DUK_TYPE_NUMBER:
                 Invoke(INVOKE_SET_VARIABLE, RESULT, (INTEGER)VARIABLE_NUMBER, (char *)"", (NUMBER)duk_get_number(ctx, index));
@@ -134,17 +134,17 @@ void RecursiveValue(duk_context *ctx, void *RESULT, SYS_INT index, INVOKE_CALL I
                     }
                 } else
                 if (duk_is_function(ctx, index)) {
-                    Invoke(INVOKE_SET_VARIABLE, RESULT, (INTEGER)VARIABLE_NUMBER, (const char *)"", (NUMBER)0);
+                    Invoke(INVOKE_SET_VARIABLE, RESULT, (INTEGER)VARIABLE_STRING, (const char *)func_name ? func_name : "anonymous()", (NUMBER)0);
                 } else
                 if (duk_is_object(ctx, index)) {
-                    duk_enum(ctx, index, 0);
+                    duk_enum(ctx, index, DUK_ENUM_INCLUDE_NONENUMERABLE);
                     while (duk_next(ctx, -1, 1)) {
                         const char *key = duk_to_string(ctx, -2);
-                        if (key) {
+                        if ((key) && (strcmp(key, "__proto__"))) {
                             void *elem_data = NULL;
                             Invoke(INVOKE_ARRAY_VARIABLE_BY_KEY, RESULT, key, &elem_data);
                             if (elem_data)
-                                RecursiveValue(ctx, elem_data, -1, Invoke);
+                                RecursiveValue(ctx, elem_data, -1, Invoke, key);
                         }
                         duk_pop_2(ctx);
                     }
@@ -176,14 +176,32 @@ void RecursiveValue(duk_context *ctx, void *RESULT, SYS_INT index, INVOKE_CALL I
     }
 }
 
-CONCEPT_FUNCTION_IMPL(JSEvaluateScript, 2)
+CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(JSEvaluateScript, 2, 4)
     T_HANDLE(JSEvaluateScript, 0)
     T_STRING(JSEvaluateScript, 1)
 
     duk_context *ctx = DUK_CTX((duk_wrapper_container *)(intptr_t)PARAM(0));
-    duk_peval_lstring(ctx, PARAM(1), PARAM_LEN(1));
-    RecursiveValue(ctx, RESULT, -1, Invoke);
-    duk_pop(ctx);
+
+    if (PARAMETERS_COUNT > 2) {
+        T_STRING(JSEvaluateScript, 2)
+        if (PARAMETERS_COUNT > 3) {
+            SET_NUMBER(3, 0);
+        }
+        duk_push_string(ctx, PARAM(2));
+        if (duk_pcompile_lstring_filename(ctx, 0, PARAM(1), PARAM_LEN(1))) {
+            if (PARAMETERS_COUNT > 3) {
+                RecursiveValue(ctx, PARAMETER(3), -1, Invoke);
+            }
+        } else {
+            duk_call(ctx, 0);
+            RecursiveValue(ctx, RESULT, -1, Invoke);
+        }
+        duk_pop(ctx);
+    } else {
+        duk_peval_lstring(ctx, PARAM(1), PARAM_LEN(1));
+        RecursiveValue(ctx, RESULT, -1, Invoke);
+        duk_pop(ctx);
+    }
 END_IMPL
 //------------------------------------------------------------------------
 const char *duk_push_string_file_raw(duk_context *ctx, const char *path, duk_uint_t flags) {

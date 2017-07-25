@@ -45,6 +45,7 @@ define IDLE_SLEEP_THRESHOLD	200
 define IDLE_SLEEP_MS2		50
 define CGI_MAX_RETRY_SECONDS	5
 define EAGAIN_TIMEOUT_SECONDS	5
+define JS_CGI_DONE_TIMEOUT	30
 
 // 128k pipe read buffer
 define PIPE_MAX_STDOUT_BUFFER	0x20000
@@ -1951,7 +1952,7 @@ class JSCode {
 			return false;
 		var obj = CreateObject2(libname, js);
 		if (obj) {
-			js.script(ReadFile(framework_path + lib + ".js"));
+			js.script(ReadFile(framework_path + lib + ".js"), lib + ".js");
 			loaded[lib] = true;
 			return true;
 		}
@@ -1961,9 +1962,9 @@ class JSCode {
 	jsinclude(filename) {
 		try {
 			if ((path) && (FileExists(path + filename)))
-				js.script(ReadFile(path + filename));
+				js.script(ReadFile(path + filename), filename);
 			else
-				js.script(ReadFile(framework_path + filename));
+				js.script(ReadFile(framework_path + filename), filename);
 		} catch (var exc) {
 			echo exc;
 		}
@@ -1987,11 +1988,11 @@ class JSCode {
 		js.wrap(this.require, "__cjs_require");
 		js.wrap(this.jsinclude, "include");
 		js.wrap(logdata, "log");
-		js.script("var con = { 'require': __cjs_require, 'include': include, 'log': log };\n");
+		js.script("var con = { 'require': __cjs_require, 'include': include, 'log': log, 'loop': [ ], 'schedule': function(e) { if (typeof e == 'function') con.loop.push(e); } }; function onidle() { for (var i = 0; i < con.loop.length; i++) { var e = con.loop[i]; if (e) { try { e(); } catch (exc) { critical(exc); } } } }\n");
 	}
 
-	run(var code) {
-		return js.script(code);
+	run(var code, filename = "code.js") {
+		return js.script(code, filename);
 	}
 }
 
@@ -2001,6 +2002,8 @@ class ConceptJSChild extends ConceptCGIChildBase {
 	var print_started = false;
 	var header_started = false;
 	var write_headers = false;
+	var last_idle_call = 0;
+	var timeout = 0;
 
 	GetPath(filename) {
 		var arr = StrSplit(filename, "/");
@@ -2083,12 +2086,17 @@ class ConceptJSChild extends ConceptCGIChildBase {
 
 		js.js.variable("GET", this.ParseQueryString(env["QUERY_STRING"]));
 		var filecontents = ReadFile(app);
-		if (filecontents)
-			js.run("try { "+ filecontents + " } catch (exc) { critical(exc); }");
-		else
+		if (filecontents) {
+			try {
+				js.run("try { "+ filecontents + " } catch (exc) { critical(exc); }", app);
+			} catch (var exc) {
+				this.critical(exc);
+			}
+			if (buffer)
+				this.post(buffer);
+		} else
 			this.done();
-		if (buffer)
-			this.post(buffer);
+		timeout = time() + JS_CGI_DONE_TIMEOUT;
 	}
 
 	reset() {
@@ -2100,6 +2108,7 @@ class ConceptJSChild extends ConceptCGIChildBase {
 	}
 
 	done() {
+		timeout = time() + JS_CGI_DONE_TIMEOUT;
 		if ((h2) && (!print_started))
 			write_headers = true;
 		running = false;
@@ -2107,9 +2116,8 @@ class ConceptJSChild extends ConceptCGIChildBase {
 
 	critical(exc) {
 		echo exc;
-		if (typeof exc == "array")
-			exc = ToXML(exc);
-		std_out_buffer += exc;
+		this.print("Uncaught error:\n");
+		this.print(exc);
 		this.done();		
 	}
 
@@ -2193,6 +2201,7 @@ class ConceptJSChild extends ConceptCGIChildBase {
 	}
 
 	header(key, val) {
+		timeout = time() + JS_CGI_DONE_TIMEOUT;
 		if ((typeof key != "string") || (typeof val == "array") || (!key))
 			return false;
 		if (print_started)
@@ -2217,6 +2226,7 @@ class ConceptJSChild extends ConceptCGIChildBase {
 	}
 
 	print(buffer) {
+		timeout = time() + JS_CGI_DONE_TIMEOUT;
 		if ((!header_started) && (!h2)) {
 			std_out_buffer += "HTTP/1.1 200 OK\r\nServer: " + SERVER_NAME + "\r\n";
 			header_started = true;
@@ -2259,6 +2269,7 @@ class ConceptJSChild extends ConceptCGIChildBase {
 
 	post(var data) {
 		if ((js) && (data)) {
+			timeout = time() + JS_CGI_DONE_TIMEOUT;
 			js.js.BinaryMode = true;
 			js.js.call("ondata", [data]);
 			js.js.BinaryMode = false;
@@ -2266,6 +2277,15 @@ class ConceptJSChild extends ConceptCGIChildBase {
 	}
 
 	Iterate(var ops) {
+		// timed out
+		if (time() > timeout) {
+			if (js.js.call("ontimedout", [ ])) {
+				timeout = time() + JS_CGI_DONE_TIMEOUT;
+			} else {
+				std_out_buffer += "\nJSScript timeout out\nDid you forget to call done()?\n";
+				running = false;
+			}
+		}
 		if (!running)
 			this.reset();
 		try {
@@ -2349,6 +2369,10 @@ class ConceptJSChild extends ConceptCGIChildBase {
 			H2Close();
 			this.reset();
 			return true;
+		}
+		if ((js) && ((!ops) || (microseconds() - last_idle_call > 1000000))) {
+			last_idle_call = microseconds();
+			js.js.call("onidle", [ ]);
 		}
 		return false;
 	}

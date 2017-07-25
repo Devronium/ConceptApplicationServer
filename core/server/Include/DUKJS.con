@@ -53,10 +53,12 @@ class JS {
 	}
 
 	script(var code, code_name = "code.js") {
-		var rval = JSEvaluateScript(context, code);
+		var rval = JSEvaluateScript(context, code, code_name, var err);
 		this.__check_error();
 		if (this.LastError)
 			throw "" + this.LastError;
+		if (err)
+			throw err;
 		return rval;
 	}
 
