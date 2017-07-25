@@ -52,7 +52,7 @@ class JS {
 			return false;
 		}
 
-		JSSetErrorReporter(context, this.__error_callback, true);
+		JSSetErrorReporter(context, this.__error_callback, false);
 		return true;
 	}
 
