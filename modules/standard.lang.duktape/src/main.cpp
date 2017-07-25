@@ -32,6 +32,13 @@ static duk_ret_t native_print(duk_context *ctx) {
 	return 0;
 }
 
+
+static void debug_dump(duk_context *ctx) {
+    duk_push_context_dump(ctx);
+    fprintf(stderr, "%s\n", duk_safe_to_string(ctx, -1));
+    duk_pop(ctx);
+}
+
 CONCEPT_DLL_API ON_CREATE_CONTEXT MANAGEMENT_PARAMETERS {
     InvokePtr       = Invoke;
     return 0;
@@ -131,7 +138,7 @@ void RecursiveValue(duk_context *ctx, void *RESULT, SYS_INT index, INVOKE_CALL I
                 } else
                 if (duk_is_object(ctx, index)) {
                     duk_enum(ctx, index, 0);
-                    while (duk_next(ctx, index, 1)) {
+                    while (duk_next(ctx, -1, 1)) {
                         const char *key = duk_to_string(ctx, -2);
                         if (key) {
                             void *elem_data = NULL;
@@ -141,6 +148,7 @@ void RecursiveValue(duk_context *ctx, void *RESULT, SYS_INT index, INVOKE_CALL I
                         }
                         duk_pop_2(ctx);
                     }
+                    duk_pop(ctx);
                 }
                 break;
             case DUK_TYPE_BUFFER:
@@ -148,7 +156,7 @@ void RecursiveValue(duk_context *ctx, void *RESULT, SYS_INT index, INVOKE_CALL I
                     void *ptr;
                     duk_size_t sz;
 
-                    ptr = duk_get_buffer_data(ctx, -1, &sz);
+                    ptr = duk_get_buffer_data(ctx, index, &sz);
                     if ((ptr) && (sz > 0)) {
                         Invoke(INVOKE_SET_VARIABLE, RESULT, (INTEGER)VARIABLE_STRING, ptr, (NUMBER)sz);
                     } else {
@@ -157,7 +165,7 @@ void RecursiveValue(duk_context *ctx, void *RESULT, SYS_INT index, INVOKE_CALL I
                 }
                 break;
             case DUK_TYPE_BOOLEAN:
-                if (duk_get_boolean(ctx, -1)) {
+                if (duk_get_boolean(ctx, index)) {
                     Invoke(INVOKE_SET_VARIABLE, RESULT, (INTEGER)VARIABLE_NUMBER, (const char *)"", (NUMBER)1);
                 } else {
                     Invoke(INVOKE_SET_VARIABLE, RESULT, (INTEGER)VARIABLE_NUMBER, (const char *)"", (NUMBER)0);
@@ -373,11 +381,12 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(JSCall, 3, 4)
             }
             duk_pop(ctx);
         } else {
+            duk_pop(ctx);
             RETURN_NUMBER(0);
         }
     } else {
         RETURN_NUMBER(0);
-    }
+    }    
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(JSVariable, 3)
@@ -425,6 +434,7 @@ static duk_ret_t concept_handler_func(duk_context *ctx) {
     INVOKE_CALL Invoke = InvokePtr;
     if (!Invoke)
         return 0;
+
 	duk_idx_t n = duk_get_top(ctx);
     void *deleg = NULL;
 
@@ -432,6 +442,8 @@ static duk_ret_t concept_handler_func(duk_context *ctx) {
     duk_get_prop_string(ctx, -1, "\xff_____concept_internal_object");
     //duk_get_global_string(ctx, "\xff_____concept_internal_object");
     struct duk_wrapper_container *container = (struct duk_wrapper_container *)duk_to_pointer(ctx, -1);
+    duk_pop_2(ctx);
+
     if ((!container) || (container->ctx != ctx) || (!container->HANDLERS) || (magic < 0) || (magic >= container->HLEN))
         return 0;
 
