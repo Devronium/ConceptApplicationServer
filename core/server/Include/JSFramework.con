@@ -1,0 +1,184 @@
+import standard.C.io
+import standard.lib.str
+include TinDataBases.con
+
+
+class JSFramework {
+	public var root_path = "";
+	public var js;
+	protected var tin;
+
+	protected var BinaryMode;
+
+	protected var wrap;
+	protected var script;
+
+	safepath(path) {
+		if (root_path) {
+			if ((path[0] != "/") && (path[0] != "\\"))
+				path = root_path + path;
+		}
+		return path;
+	}
+	__FileExists(path) {
+		return FileExists(this.safepath(path));
+	}
+
+	__BinaryIO(binary = true) {
+		if (binary)
+			js.BinaryMode = true;
+		else
+			js.BinaryMode = false;
+	}
+
+	__ReadFile(path, encoding = "") {
+		return ReadFile(this.safepath(path));
+	}
+
+	__WriteFile(data, path) {
+		return WriteFile(data, this.safepath(path));
+	}
+
+	__ErrorNo() {
+		return __errno();
+	}
+
+	console_log(text, text2 = "") {
+		echo text;
+		if (text2) {
+			echo "\t";
+			echo text2;
+		}
+		echo "\n";
+	}
+
+	protected load_fs() {
+		js.wrap(__ReadFile, "ReadFile");
+		js.wrap(__WriteFile, "WriteFile");
+		js.wrap(__FileExists, "FileExists");
+		js.wrap(__ErrorNo, "__ErrorNo");
+		js.wrap(__BinaryIO, "__BinaryIO");
+		js.script("var fs = { 'readFile': function(path, encoding, callback) { if (encoding !== 'utf8') __BinaryIO(true); var data = ReadFile(path, encoding); __BinaryIO(false); if (callback) callback(__ErrorNo(), data); return true; }, 'writeFile': function(path, data, encoding, callback) { var written = WriteFile(path); if (callback) callback(__ErrorNo()); if (written) return true; return false} };\n", "fs");
+	}
+
+	call(func, params) {
+		js.script("var __gluetmpcall = $func");
+		js.call("__gluetmpcall", params);
+		js.script("delete __gluetmpcall;");
+	}
+
+	__tindb_connect(db = "appdb", username = "sysdbadministrator", password = "sysdbadministrator", host = "localhost", port = 2668) {
+		tin = new TinConnection();
+		var err = null;
+		if (tin.DriverOpen(db, host, port)) {
+			var dataset = new TinDataSet(tin, "users");
+			dataset.Auth(username, password, db, function(result, id, err) {
+				this.call("tin.onauth", [err]);
+			});
+			tin.OnNotify = function(subject, data) {
+				this.call("tin.onnotify", [subject, data]);
+			};
+		} else {
+			err = ["code" => -1, "text" => "Cannot connect to server", "info": "$host:$port"];
+		}	
+		return err;
+	}
+
+	__tindb_notify(data, subject) {
+		var err = null;
+		if (!tin) {
+			err = ["code" => -2, "text" => "No connection"];
+			return err;
+		}
+		tin.Notify(data, subject);
+		return err;
+	}
+
+	__tindb_addsubject(subject) {
+		var err = null;
+		if (!tin) {
+			err = ["code" => -2, "text" => "No connection"];
+			return err;
+		}
+		tin.AddSubject(subject);
+		return err;
+	}
+
+	__tindb_sql(sql, parameters, querycallback) {
+		var err = null;
+		if (!tin) {
+			err = ["code" => -2, "text" => "No connection"];
+			return err;
+		}
+		try {
+			var callback = null;
+			if (querycallback) {
+				callback = function(result, id, err, querycallback) {
+					try {
+						if (querycallback)
+							this.call('tin.__data', [querycallback, err, result, id]);
+					} catch (var exc) {
+						echo exc;
+					}
+				};
+			}
+			tin.sql(sql, parameters, callback, querycallback);
+		} catch (var exc) {
+			err = ["code" => -3, "text" => exc];
+		}
+		
+		return err;
+	}
+
+	__tindb_disconnect() {
+		if (tin) {
+			tin.Disconnect();
+			delete tin;
+		}
+	}
+
+	__tindb_iterate() {
+		try {
+			if (tin)
+				tin.Iterate();
+		} catch (var exc) {
+			echo exc;
+		}
+	}
+
+	protected load_tindb() {
+		js.wrap(__tindb_connect, "__tindb_connect");
+		js.wrap(__tindb_sql, "__tindb_sql");
+		js.wrap(__tindb_disconnect, "__tindb_disconnect");
+		js.wrap(__tindb_notify, "__tindb_notify");
+		js.wrap(__tindb_addsubject, "__tindb_addsubject");
+		js.wrap(__tindb_iterate, "__tindb_iterate");
+		js.script("var tin = { 'connect': __tindb_connect, 'sql': function(sql, parameters, callback) { tin.__qindex++; var err = __tindb_sql(sql, parameters, callback ? tin.__qindex : 0); if (err) { if (callback) callback(err, null); return err; } else tin.__callbacks['q' + tin.__qindex] = callback; return err; }, 'disconnect': __tindb_disconnect, 'notify': __tindb_notify, 'addsubject': __tindb_addsubject, '__iterate':  __tindb_iterate, '__callbacks': { }, '__qindex': 0, '__data': function(index, err, data, id) { if (tin.__callbacks['q' + index]) {  try { tin.__callbacks['q' + index](err, data, id); } catch (exc) { } delete tin.__callbacks['q' + index];} }};\n", "tin");
+		js.script("con.schedule(function() { if ((tin) && (tin.__iterate)) tin.__iterate(); });", "tin");
+	}
+
+	require(framework) {
+		if (!js)
+			return false;
+		switch (ToLower(framework)) {
+			case "fs":
+			case "fs.js":
+				this.load_fs();
+				return true;
+			case "tin":
+			case "tindb":
+			case "tin.js":
+			case "tindb.js":
+				this.load_tindb();
+				return true;
+		}
+		return false;
+	}
+
+	JSFramework(js, path = "") {
+		this.js = js;
+		this.root_path = path;
+		js.wrap(console_log, "__console_log");
+		js.script("var console = { 'log': __console_log, 'error': __console_log, 'warn': __console_log };\n");
+	}
+}

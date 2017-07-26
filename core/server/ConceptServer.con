@@ -10,6 +10,7 @@ include File.con
 include Worker.con
 include HTTP2.con
 include DUKJS.con
+include JSFramework.con
 
 import standard.C.io
 import standard.C.time
@@ -36,7 +37,7 @@ define DEFAULT_H2_WORKERS	4
 define PIPE_READ_CPU_TIME_US	2000
 define MAX_HEADER_PARAMETERS	0xFF
 define SERVER_NAME		"CAS5WS"
-define SERVER_SOFTWARE		"Concept Application Server (TLSe,ws/wss/http/https/concept/deprecated concepts/cgi1.1/http2)"
+define SERVER_SOFTWARE		"Concept Application Server (TLSe,ws/wss/http/https/concept/deprecated concepts/cgi1.1/http2/ess)"
 define EXTRA_HEADER		"X-Frame-Options: SAMEORIGIN\r\nX-XSS-Protection: 1; mode=block\r\nX-Content-Type-Options: nosniff\r\n"
 define H2_EXTRA_HEADER		"strict-transport-security" => "max-age=31536000; includeSubDomains; preload", "x-frame-options" => "SAMEORIGIN", "x-xss-protection" => "1; mode=block", "x-content-type-options" => "nosniff"
 define H2_MAX_IDLE_SECONDS	30
@@ -1935,15 +1936,18 @@ class ConceptCGIChildBase {
 	}
 }
 
-class JSCode {
-	public var js;
+class JSCode extends JSFramework {
 	public var path = "";
 	protected var framework_path = "";
 	protected var[] loaded;
 
-	require(lib) {
+	require_lib(lib) {
 		if (loaded[lib])
 			return true;
+		if (this.require(lib)) {
+			loaded[lib] = true;
+			return true;
+		}
 		var libname = "ECMABRIDGE_" + StrReplace(lib, ".", "_");
 		var code = ReadFile(framework_path + lib + ".js.con");
 		if (!code)
@@ -1970,12 +1974,13 @@ class JSCode {
 		}
 	}
 
-	logdata(data) {
+	logdata(data, data2 = "") {
 		echo data;
 		echo "\n";
 	}
 
-	JSCode(error_delegate = null, jspath = "") {
+	JSCode(use_path, error_delegate = null, jspath = "") {
+		path = use_path;
 		framework_path = jspath;
 		if (!error_delegate) {
 			error_delegate = function(js, message, struct) {
@@ -1985,10 +1990,12 @@ class JSCode {
 			};
 		}
 		js = new JS(error_delegate);
-		js.wrap(this.require, "__cjs_require");
+		super(js, use_path);
+
+		js.wrap(this.require_lib, "require");
 		js.wrap(this.jsinclude, "include");
 		js.wrap(logdata, "log");
-		js.script("var con = { 'require': __cjs_require, 'include': include, 'log': log, 'loop': [ ], 'schedule': function(e) { if (typeof e == 'function') con.loop.push(e); } }; function onidle() { for (var i = 0; i < con.loop.length; i++) { var e = con.loop[i]; if (e) { try { e(); } catch (exc) { critical(exc); } } } }\n");
+		js.script("var con = { 'require': require, 'include': include, 'log': log, 'loop': [ ], 'schedule': function(e) { if (typeof e == 'function') con.loop.push(e); } }; function onidle() { for (var i = 0; i < con.loop.length; i++) { var e = con.loop[i]; if (e) { try { e(); } catch (exc) { critical(exc); } } } }\n");
 	}
 
 	run(var code, filename = "code.js") {
@@ -2070,8 +2077,7 @@ class ConceptJSChild extends ConceptCGIChildBase {
 			h2.MaxOutputBuffer = H2_MAX_STDOUT_BUFFER;
 			h2.MaxFileBuffer = H2_MAX_FILE_BUFFER;
 		}
-		js = new JSCode();
-		js.path = this.GetPath(app);
+		js = new JSCode(this.GetPath(app));
 		running = true;
 		js.js.wrap(this.print, "print");
 		js.js.wrap(this.header, "header");
@@ -2263,6 +2269,8 @@ class ConceptJSChild extends ConceptCGIChildBase {
 				echo "ConceptJSChild/Socket close error: $exc\n";
 			}
 		}
+		std_out_buffer = "";
+		std_in_buffer = "";
 		if (js)
 			this.reset();
 	}

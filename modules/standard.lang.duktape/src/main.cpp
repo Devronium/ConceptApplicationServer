@@ -140,7 +140,9 @@ void RecursiveValue(duk_context *ctx, void *RESULT, SYS_INT index, INVOKE_CALL I
                     duk_enum(ctx, index, DUK_ENUM_INCLUDE_NONENUMERABLE);
                     while (duk_next(ctx, -1, 1)) {
                         const char *key = duk_to_string(ctx, -2);
-                        if ((key) && (strcmp(key, "__proto__"))) {
+                        if ((key) && (strcmp(key, "__proto__")) && (strcmp(key, "constructor")) && (strcmp(key, "toString")) &&
+                            (strcmp(key, "toLocaleString")) && (strcmp(key, "valueOf")) && (strcmp(key, "hasOwnProperty")) &&
+                            (strcmp(key, "isPrototypeOf")) && (strcmp(key, "propertyIsEnumerable"))) {
                             void *elem_data = NULL;
                             Invoke(INVOKE_ARRAY_VARIABLE_BY_KEY, RESULT, key, &elem_data);
                             if (elem_data)
