@@ -43,11 +43,23 @@ class JSFramework {
 		return __errno();
 	}
 
-	console_log(text, text2 = "") {
+	console_log(text, text2 = "", text3 = "", text4 = "", text5 = "") {
 		echo text;
 		if (text2) {
 			echo "\t";
 			echo text2;
+		}
+		if (text3) {
+			echo "\t";
+			echo text3;
+		}
+		if (text4) {
+			echo "\t";
+			echo text4;
+		}
+		if (text5) {
+			echo "\t";
+			echo text5;
 		}
 		echo "\n";
 	}
@@ -80,6 +92,7 @@ class JSFramework {
 			};
 		} else {
 			err = ["code" => -1, "text" => "Cannot connect to server", "info": "$host:$port"];
+			this.call("tin.onauth", [err]);
 		}	
 		return err;
 	}

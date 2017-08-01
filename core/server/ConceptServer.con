@@ -47,6 +47,7 @@ define IDLE_SLEEP_MS2		50
 define CGI_MAX_RETRY_SECONDS	5
 define EAGAIN_TIMEOUT_SECONDS	5
 define JS_CGI_DONE_TIMEOUT	30
+define JS_FRAMEWORK		"/js/"
 
 // 128k pipe read buffer
 define PIPE_MAX_STDOUT_BUFFER	0x20000
@@ -58,6 +59,10 @@ define H2_MAX_STDOUT_BUFFER	0x800000
 define H2_MAX_FILE_BUFFER	0x200000
 // 128k file buffer for http 1.1
 define H1_MAX_FILE_BUFFER	0x20000
+
+class DummyContainer {
+	// nothing
+}
 
 class RewriteContainer {
 	var Rewrite;
@@ -1968,13 +1973,30 @@ class JSCode extends JSFramework {
 			if ((path) && (FileExists(path + filename)))
 				js.script(ReadFile(path + filename), filename);
 			else
+			if ((path) && (FileExists(path + filename + ".ess")))
+				js.script(ReadFile(path + filename + ".ess"), filename + ".ess");
+			else
+			if ((path) && (FileExists(path + filename + ".js")))
+				js.script(ReadFile(path + filename + ".js"), filename + ".js");
+			else
+			if (FileExists(framework_path + filename))
 				js.script(ReadFile(framework_path + filename), filename);
+			else
+			if (FileExists(framework_path + filename + ".ess"))
+				js.script(ReadFile(framework_path + filename + ".ess"), filename);
+			else
+			if (FileExists(framework_path + filename + ".js"))
+				js.script(ReadFile(framework_path + filename + ".js"), filename);
+			else
+				return ["message" => "Cannot include file $filename", "name" => "IncludeError"];
 		} catch (var exc) {
 			echo exc;
+			return exc;
 		}
+		return null;
 	}
 
-	logdata(data, data2 = "") {
+	logdata(data) {
 		echo data;
 		echo "\n";
 	}
@@ -1993,9 +2015,9 @@ class JSCode extends JSFramework {
 		super(js, use_path);
 
 		js.wrap(this.require_lib, "require");
-		js.wrap(this.jsinclude, "include");
-		js.wrap(logdata, "log");
-		js.script("var con = { 'require': require, 'include': include, 'log': log, 'loop': [ ], 'schedule': function(e) { if (typeof e == 'function') con.loop.push(e); } }; function onidle() { for (var i = 0; i < con.loop.length; i++) { var e = con.loop[i]; if (e) { try { e(); } catch (exc) { critical(exc); } } } }\n");
+		js.wrap(this.jsinclude, "__cjs_include");
+		js.wrap(this.logdata, "log");
+		js.script("function include(filename) { var err = __cjs_include(filename); if (err) throw err; }; var con = { 'require': require, 'include': include, 'log': log, 'loop': [ ], 'schedule': function(e) { if (typeof e == 'function') con.loop.push(e); } }; function onidle() { for (var i = 0; i < con.loop.length; i++) { var e = con.loop[i]; if (e) { try { e(); } catch (exc) { critical(exc); } } } }\n");
 	}
 
 	run(var code, filename = "code.js") {
@@ -2011,6 +2033,8 @@ class ConceptJSChild extends ConceptCGIChildBase {
 	var write_headers = false;
 	var last_idle_call = 0;
 	var timeout = 0;
+	var sessionid = "";
+	var sessionpath;
 
 	GetPath(filename) {
 		var arr = StrSplit(filename, "/");
@@ -2064,31 +2088,139 @@ class ConceptJSChild extends ConceptCGIChildBase {
 		return get_query;
 	}
 
-	ConceptJSChild(method, Socket, env, buffer, h2 = null, stream = null, default_h2_header = null, headers = null) {
+	dovalue(cookies, str) {
+		var val = trim(str);
+		var pos = Pos(val, "=");
+		if (pos > 0) {
+			var name = trim(SubStr(val, 0, pos - 1));
+			if (name) {
+				var cookie_val = trim(SubStr(val, pos));
+				if (name == "_ess")
+					sessionid = cookie_val;
+				cookies[name] = cookie_val;
+			}
+		}
+	}
+
+	docookie(cookies, cookie) {
+		if (typeof cookie == "string") {
+			var data = StrSplit(cookie, ";");
+			for (var i = 0; i < length data; i++)
+				dovalue(cookies, data[i]);
+		}
+	}
+
+	jsheaders(js, headers) {
+		var[] cookies;
+		if (IsSet(headers, "cookie")) {
+			var cookie_list = headers["cookie"];
+			if (typeof cookie_list == "array") {
+				for (var i = 0; i < length cookie_list; i++)
+					docookie(cookies, cookie_list[i]);
+			} else
+				docookie(cookies, cookie_list);
+		}
+		js.variable("cookies", cookies);
+		return headers;
+	}
+
+	sessionfilename(session_id) {
+		return sessionpath + "/" + sessionid + ".ess";
+	}
+
+	writesession(sessiondata, session_id) {
+		return WriteFile(BinarizeObject(sessiondata), this.sessionfilename(session_id));
+	}
+
+	readsession(session_id) {
+		var data = ReadFile(this.sessionfilename(session_id));
+		if (data)
+			return UnBinarizeObject(data);
+		return null;
+	}
+
+	removesession(session_id) {
+		_unlink(this.sessionfilename(session_id));
+	}
+
+	syncsession() {
+		if (sessionid) {
+			try {
+				var sessiondata = js.js.script("this.session");
+				if (typeof sessiondata == "array") {
+					var info = sessiondata["session"];
+					if (typeof info == "array") {
+						var id = info["id"];	
+						if (id == sessionid) {
+							if (this.writesession(sessiondata, sessionid))
+								return;
+						}
+					}
+				}
+			} catch (var exc) {
+				echo exc;
+			}
+			this.removesession(sessionid);
+		}
+	}
+
+	usesession(expires = 2592000) {
+		var sessiondata;
+		if (sessionid)
+			sessiondata = this.readsession(sessionid);
+		if (sessiondata) {
+			var info = sessiondata["session"];
+			if (info) {
+				var is_expired = info["expires"];
+				if (time() > is_expired) {
+					sessiondata = null;
+				}
+			}
+		}
+		if (!sessiondata) {
+			sessionid = sha256(CryptoRandom(80));
+			var expires_when = time() + expires;
+			sessiondata = ["session" => ["id" => sessionid, "expires" => expires_when, "created" => time()]];
+			this.header("Set-Cookie", "_ess=${sessionid}; Path=/; Max-Age=" + expires);
+			this.writesession(sessiondata, sessionid);
+		}
+
+		js.js.variable("session", sessiondata);
+		return sessiondata;
+	}
+
+	ConceptJSChild(framework, method, Socket, env, buffer, h2 = null, stream = null, default_h2_header = null, headers = null) {
 		this.Socket = Socket;
 		this.std_in_buffer = buffer;
 		this.h2 = h2;
 		this.stream = stream;
 		this.h2headers = default_h2_header;
 		this.is_post = true;
+		this.sessionpath = _getenv("tmp");
+		if (!this.sessionpath)
+			this.sessionpath = _getenv("temp");
+		if (!this.sessionpath)
+			this.sessionpath = _getenv("/tmp");
 		var app = env["SCRIPT_FILENAME"];
 		SocketSetBlocking(Socket.Socket, false);
 		if (h2) {
 			h2.MaxOutputBuffer = H2_MAX_STDOUT_BUFFER;
 			h2.MaxFileBuffer = H2_MAX_FILE_BUFFER;
 		}
-		js = new JSCode(this.GetPath(app));
+		js = new JSCode(this.GetPath(app), null, framework);
 		running = true;
 		js.js.wrap(this.print, "print");
 		js.js.wrap(this.header, "header");
+		js.js.wrap(this.usesession, "usesession");
 		js.js.wrap(this.done, "done");
 		js.js.wrap(this.critical, "critical");
+		js.js.wrap(this.ParseQueryString, "urlparameters");
 		js.js.variable("request", env);
 		if (stream)
-			js.js.variable("headers", stream.Headers);
+			js.js.variable("headers", jsheaders(js.js, stream.Headers));
 		else
 		if (headers)
-			js.js.variable("headers", headers);
+			js.js.variable("headers", jsheaders(js.js, headers));
 
 		js.js.variable("GET", this.ParseQueryString(env["QUERY_STRING"]));
 		var filecontents = ReadFile(app);
@@ -2114,6 +2246,7 @@ class ConceptJSChild extends ConceptCGIChildBase {
 	}
 
 	done() {
+		this.syncsession();
 		timeout = time() + JS_CGI_DONE_TIMEOUT;
 		if ((h2) && (!print_started))
 			write_headers = true;
@@ -2208,13 +2341,27 @@ class ConceptJSChild extends ConceptCGIChildBase {
 
 	header(key, val) {
 		timeout = time() + JS_CGI_DONE_TIMEOUT;
-		if ((typeof key != "string") || (typeof val == "array") || (!key))
+		if ((typeof key != "string") || (!key))
 			return false;
+
 		if (print_started)
 			return false;
 
 		if (h2) {
-			h2headers[ToLower(key)] = val;
+			key = ToLower(key);
+			if (key == "set-cookie") {
+				var cookie = h2headers[key];
+				if (cookie) {
+					if (typeof cookie == "array")
+						val = cookie + val;
+					else
+					if (typeof val == "array")
+						val = val + cookie;
+					else
+						val = [val, cookie];
+				}
+			}
+			h2headers[key] = val;
 			return true;
 		}
 		if (!header_started) {
@@ -2226,7 +2373,11 @@ class ConceptJSChild extends ConceptCGIChildBase {
 				return true;
 			}
 		}
-		std_out_buffer += "$key: $val\r\n";
+		if (typeof val == "array") {
+			for (var i = 0; i < length val; i++)
+				std_out_buffer += "$key: ${val[i]}\r\n";
+		} else
+			std_out_buffer += "$key: $val\r\n";
 		header_started = true;
 		return true;
 	}
@@ -2618,6 +2769,7 @@ pragma used
 	protected var WorkerName;
 	protected var[] Children;
 	protected var Placeholders;
+	protected var Framework = "";
 
 	GetHeader(job, header_name, var headers_lowercase) {
 		var cookie = "";
@@ -2700,7 +2852,7 @@ pragma used
 			env["HTTPS"] = "on";
 			env["HTTPS_CIPHER"] = Socket.CipherName;
 		}
-		return new ConceptJSChild(job.method, Socket, env, job.snippet, null, null, null, HeaderKeys(job.headers));
+		return new ConceptJSChild(this.Framework, job.method, Socket, env, job.snippet, null, null, null, HeaderKeys(job.headers));
 	}
 
 	Create(Socket, job, var err_text) {
@@ -2832,8 +2984,17 @@ pragma used
 		return res;
 	}
 
+	static IniGetPath(inifile, category, key, default_value = "") {
+		var res = trim(IniGet(inifile, category, key, default_value));
+		if (res[0] == ".")
+			return getcwd() + "/" + res;
+		return res;
+	}
+
 	ConceptWorker(n) {
-		WorkerName = n;
+		n = UnBinarizeObject(n);
+		WorkerName = n[0];
+		Framework = this.IniGetPath(n[1], "Paths", "Include") + JS_FRAMEWORK;
 		var empty_iterations = 0;
 		var sleep_value = 0;
 		while (true) {
@@ -2896,6 +3057,7 @@ pragma used
 	protected var mimetypes;
 	protected var conceptcgi;
 	protected var cgiother;
+	protected var Framework;
 
 	GetHeader(key, headers) {
 		if (!IsSet(headers, key))
@@ -2953,7 +3115,7 @@ pragma used
 			env["HTTPS"] = "on";
 			env["HTTPS_CIPHER"] = Socket.CipherName;
 		}
-		return new ConceptJSChild(method, Socket, env, "", h2, stream, default_header);
+		return new ConceptJSChild(this.Framework, method, Socket, env, "", h2, stream, default_header);
 	}
 
 	CreateCGI(h2, stream, cgi_handler_path, root, path, app, query, hostname_port, var err_text, javascript, default_header) {
@@ -3432,6 +3594,7 @@ pragma used
 		var exc;
 		var empty_iterations = 0;
 		var sleep_value = 0;
+		Framework = this.IniGetPath("Paths", "Include") + JS_FRAMEWORK;
 		while (true) {
 			var work_count = 0;
 			var Socket = null;
@@ -4537,9 +4700,8 @@ class ConceptServer extends RewriteContainer {
 		this.SSLWSPort = value IniGet(inifile, "Server", "SecureWebPort", "2681");
 
 		this.IniFile = inifile;
-
 		for (var i = 0; i < DEFAULT_CGI_WORKERS; i++) {
-			Workers[i] = new Worker("ConceptWorker", "Worker${i+1}");
+			Workers[i] = new Worker("ConceptWorker", BinarizeObject(["Worker${i+1}", inifile]));
 			Sleep(100);
 		}
 	}

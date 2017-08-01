@@ -23,9 +23,10 @@ class Worker {
 		return WorkerSharedContext();
 	}
 
-	static SharedContextRelease(shared_context) {
+	static SharedContextRelease(var shared_context) {
 		if (shared_context)
 			WorkerSharedRelease(shared_context);
+		shared_context = null;
 	}
 
 	Join() {

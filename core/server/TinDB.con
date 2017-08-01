@@ -817,13 +817,13 @@ pragma used
 			r.p["StorageWorkers"] = sw;
 			r.p["QueryWorkers"] = qw;
 			// ============ REVIEW THIS => RACE CONDITION !!! =====================
-			for (i = 0; i < length other_workers; i++) {
+			/* for (i = 0; i < length other_workers; i++) {
 				var w = other_workers[i];
 				if (w)
 					qw["QueryWorker #" + (i + 1)] = WorkerMemoryInfo(w);
-			}
+			} */
 			qw["CurrentWorker"] = WorkerMemoryInfo();
-			if (idle_workers) {
+			/* if (idle_workers) {
 				for (i = 0; i < length idle_workers; i++) {
 					w = idle_workers[i];
 					if (w)
@@ -836,7 +836,7 @@ pragma used
 					if (w)
 						sw["StorageWorker #" + (i + 1)] = WorkerMemoryInfo(w);
 				}
-			}
+			}*/
 			// ============ /REVIEW THIS => RACE CONDITION !!! ===================
 			r.p["cw_id"] = WorkerID;
 		} else
@@ -847,7 +847,7 @@ pragma used
 			var worker_gc = BinarizeObject([-100]);
 			var worker_gc_js = BinarizeObject([-9]);
 			for (i = 0; i < length other_workers; i++) {
-				w = other_workers[i];
+				var w = other_workers[i];
 				if (w) {
 					AddWorkerData(w, worker_gc);
 					total_workers++;
