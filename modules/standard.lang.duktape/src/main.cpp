@@ -287,7 +287,7 @@ void RecursivePush(duk_context *ctx, void *var, INVOKE_CALL Invoke, unsigned cha
             if (binary_mode) {
                 duk_size_t buf_size = (duk_size_t)nValue;
                 void *arraybuffer = duk_push_fixed_buffer(ctx, buf_size);
-                duk_push_buffer_object(ctx, -1, 0, buf_size, DUK_BUFOBJ_ARRAYBUFFER);
+                // duk_push_buffer_object(ctx, -1, 0, buf_size, DUK_BUFOBJ_ARRAYBUFFER);
                 if ((arraybuffer) && (buf_size > 0) && (szValue))
                     memcpy(arraybuffer, szValue, buf_size);
             } else
@@ -383,6 +383,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(JSCall, 3, 4)
         duk_peval_lstring(ctx, func, PARAM_LEN(1));
         if (duk_is_callable (ctx, -1)) {
             INTEGER count = Invoke(INVOKE_GET_ARRAY_COUNT, PARAMETER(2));
+            duk_idx_t initial_top = duk_get_top(ctx);
             for (INTEGER i = 0; i < count; i++) {
                 void *elem_data = NULL;
                 Invoke(INVOKE_ARRAY_VARIABLE, PARAMETER(2), (INTEGER)i, &elem_data);
@@ -390,7 +391,8 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(JSCall, 3, 4)
                     RecursivePush(ctx, elem_data, Invoke, binary_mode);
                 }
             }
-            if (duk_pcall(ctx, count)) {
+            duk_idx_t parameters_count = duk_get_top(ctx) - initial_top;
+            if (duk_pcall(ctx, parameters_count)) {
                 if (PARAMETERS_COUNT > 3) {
                     const char *err = duk_safe_to_string(ctx, -1);
                     SET_STRING(3, err);

@@ -67,6 +67,10 @@ class JS {
 			parameters = new [];
 		var rval = JSCall(context, function_name, parameters, var err);
 		this.__check_error(err);
+		if (this.LastError)
+			throw "" + this.LastError;
+		if (err)
+			throw err;
 		return rval;
 	}
 

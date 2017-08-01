@@ -2035,6 +2035,10 @@ class ConceptJSChild extends ConceptCGIChildBase {
 	var timeout = 0;
 	var sessionid = "";
 	var sessionpath;
+	var is_url_encoded = true;
+	var url_buffer = "";
+	var boundary;
+	var content_length = -1;
 
 	GetPath(filename) {
 		var arr = StrSplit(filename, "/");
@@ -2088,15 +2092,21 @@ class ConceptJSChild extends ConceptCGIChildBase {
 		return get_query;
 	}
 
-	dovalue(cookies, str) {
+	dovalue(cookies, str, check_session_cookie = true) {
 		var val = trim(str);
 		var pos = Pos(val, "=");
 		if (pos > 0) {
-			var name = trim(SubStr(val, 0, pos - 1));
+			var name = trim(SubStr(val, 0, pos - 1));			
 			if (name) {
 				var cookie_val = trim(SubStr(val, pos));
-				if (name == "_ess")
-					sessionid = cookie_val;
+				if (check_session_cookie)  {
+					if (name == "_ess")
+						sessionid = cookie_val;
+				} else
+				if (length cookie_val >= 2) {
+					if ((cookie_val[0] == '"') && (cookie_val[length cookie_val - 1] == '"'))
+						cookie_val = SubStr(cookie_val, 1, length cookie_val - 2);
+				}
 				cookies[name] = cookie_val;
 			}
 		}
@@ -2110,6 +2120,53 @@ class ConceptJSChild extends ConceptCGIChildBase {
 		}
 	}
 
+	parsepart(var e) {
+		var pos = Pos(e, "\r\n\r\n");
+		if (pos <= 0)
+			return null;
+		var header = SubStr(e, 0, pos - 1);
+		var data = SubStr(e, pos + 3);
+		var parameters = StrSplit(header, ";");
+		var[] keys;
+		if (parameters) {
+			for (var i = 1; i < length parameters; i++) {
+				dovalue(keys, parameters[i], false);
+			}
+		}
+		keys["data"] = data;
+		return keys;
+	}
+
+	parsemultipart(var data) {
+		if (!boundary)
+			return null;
+
+		var arr = StrSplit(data, "\r\n--" + boundary);
+		var[] parts;
+		for (var i = 0; i < length arr; i++) {
+			var e = arr[i];
+			if (length e < 10) {
+				e = trim(e);
+				// end of data ?
+				if (e == "--")
+					break;
+			}
+			if (e) {
+				var part = parsepart(e);
+				if (part) {
+					var key = length parts;
+					if (IsSet(part, "name")) {
+						key = part["name"];
+						if ((length part == 2) && (IsSet(part, "data")))
+							part = part["data"];
+					}
+					parts[key] = part;
+				}
+			}
+		}
+		return parts;
+	}
+
 	jsheaders(js, headers) {
 		var[] cookies;
 		if (IsSet(headers, "cookie")) {
@@ -2119,6 +2176,29 @@ class ConceptJSChild extends ConceptCGIChildBase {
 					docookie(cookies, cookie_list[i]);
 			} else
 				docookie(cookies, cookie_list);
+		}
+		if (IsSet(headers, "content-type")) {
+			var header = "" + headers["content-type"];
+			var header_lo = ToLower(header);
+			var parameters = StrSplit(header_lo, ";");
+			var content_type = trim("" + parameters[0]);
+			if (content_type != "application/x-www-form-urlencoded") {
+				is_url_encoded = false;
+				if (content_type == "multipart/form-data") {
+					var pos = Pos(header_lo, "boundary=");
+					if (pos > 0) {
+						var boundary = StrSplit(SubStr(header, pos + 8), ";")[0];
+						if (boundary) {
+							this.boundary = trim(boundary);
+							js.variable("boundary", boundary);
+						}
+					}
+				}
+			}
+		}
+		if (IsSet(headers, "content-length")) {
+			this.content_length = value headers["content-length"];
+			js.variable("contentLength", this.content_length);
 		}
 		js.variable("cookies", cookies);
 		return headers;
@@ -2164,7 +2244,7 @@ class ConceptJSChild extends ConceptCGIChildBase {
 		}
 	}
 
-	usesession(expires = 2592000) {
+	usesession(expires = 2592000, path = "/", domain = "", secure = false, httponly = true) {
 		var sessiondata;
 		if (sessionid)
 			sessiondata = this.readsession(sessionid);
@@ -2181,7 +2261,16 @@ class ConceptJSChild extends ConceptCGIChildBase {
 			sessionid = sha256(CryptoRandom(80));
 			var expires_when = time() + expires;
 			sessiondata = ["session" => ["id" => sessionid, "expires" => expires_when, "created" => time()]];
-			this.header("Set-Cookie", "_ess=${sessionid}; Path=/; Max-Age=" + expires);
+			var cookie = "_ess=${sessionid}; Max-Age=" + expires;
+			if (path)
+				cookie += "; Path=$path";
+			if (domain)
+				cookie += "; Domain=$domain";
+			if (secure)
+				cookie += "; Secure";
+			if (httponly)
+				cookie += "; HttpOnly";
+			this.header("Set-Cookie", cookie);
 			this.writesession(sessiondata, sessionid);
 		}
 
@@ -2215,6 +2304,7 @@ class ConceptJSChild extends ConceptCGIChildBase {
 		js.js.wrap(this.done, "done");
 		js.js.wrap(this.critical, "critical");
 		js.js.wrap(this.ParseQueryString, "urlparameters");
+		js.js.wrap(this.parsemultipart, "multipart");
 		js.js.variable("request", env);
 		if (stream)
 			js.js.variable("headers", jsheaders(js.js, stream.Headers));
@@ -2226,12 +2316,14 @@ class ConceptJSChild extends ConceptCGIChildBase {
 		var filecontents = ReadFile(app);
 		if (filecontents) {
 			try {
+				if (buffer)
+					this.parsepostdata(buffer);
 				js.run("try { "+ filecontents + " } catch (exc) { critical(exc); }", app);
+				if (buffer)
+					this.post(buffer, false);
 			} catch (var exc) {
 				this.critical(exc);
 			}
-			if (buffer)
-				this.post(buffer);
 		} else
 			this.done();
 		timeout = time() + JS_CGI_DONE_TIMEOUT;
@@ -2426,9 +2518,22 @@ class ConceptJSChild extends ConceptCGIChildBase {
 			this.reset();
 	}
 
-	post(var data) {
+	parsepostdata(var data) {
+		if (is_url_encoded) {
+			url_buffer += data;
+			var parsed = ParseQueryString(trim(url_buffer));
+			js.js.variable("POST", parsed);
+			js.js.call("onpost", [parsed]);
+			if (length url_buffer > MAX_RECV_BUFFER)
+				url_buffer = "";
+		}
+	}
+
+	post(var data, checkpostdata = true) {
 		if ((js) && (data)) {
 			timeout = time() + JS_CGI_DONE_TIMEOUT;
+			if (checkpostdata)
+				this.parsepostdata(data);
 			js.js.BinaryMode = true;
 			js.js.call("ondata", [data]);
 			js.js.BinaryMode = false;
