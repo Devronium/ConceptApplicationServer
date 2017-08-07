@@ -1,10 +1,13 @@
 //------------ standard header -----------------------------------//
 #include "stdlibrary.h"
 //------------ end of standard header ----------------------------//
+#define MOZ_MEMORY_LEAK_FIX
 #ifdef _WIN32
  #define XP_WIN
+ #define THREAD_LOCAL_STORAGE    __declspec(thread)
 #else
  #define XP_UNIX
+ #define THREAD_LOCAL_STORAGE    __thread
 #endif
 #include "library.h"
 #include <string.h>
@@ -55,6 +58,20 @@ INVOKE_CALL            InvokePtr        = 0;
 CALL_BACK_VARIABLE_SET _SetVariable     = 0;
 
 #ifndef JS_OLDAPI
+
+// namespace js {
+//     void DisableExtraThreads();
+// }
+
+#ifdef MOZ_MEMORY_LEAK_FIX
+    struct local_data {
+        JSRuntime *runtime;
+        int links;
+    };
+
+    static THREAD_LOCAL_STORAGE local_data masterRuntime   = {NULL, 0};
+#endif
+
 static JSClass global_class = {
     "global",
     JSCLASS_GLOBAL_FLAGS,
@@ -913,6 +930,7 @@ CONCEPT_DLL_API ON_CREATE_CONTEXT MANAGEMENT_PARAMETERS {
     InvokePtr       = Invoke;
 #ifndef JS_OLDAPI
     JS_Init();
+    // js::DisableExtraThreads();
 #endif
     /*DEFINE_CLASS("JSErrorReport",
                  "filename",
@@ -936,19 +954,68 @@ CONCEPT_DLL_API ON_DESTROY_CONTEXT MANAGEMENT_PARAMETERS {
 CONCEPT_FUNCTION_IMPL(JSNewRuntime, 1)
     T_NUMBER(JSNewRuntime, 0)     // uint32
     _SetVariable = SetVariable;
-
-    RETURN_NUMBER((SYS_INT)JS_NewRuntime((SYS_INT)PARAM(0)))
+#ifdef JS_OLDAPI
+    JSRuntime *rt = JS_NewRuntime((SYS_INT)PARAM(0));
+    RETURN_NUMBER((SYS_INT)rt)
+#else
+    JSRuntime *rt = NULL;
+#ifdef MOZ_MEMORY_LEAK_FIX
+    if (masterRuntime.runtime) {
+        rt = masterRuntime.runtime;
+        masterRuntime.links++;
+    } else
+#endif
+    {
+        rt = JS_NewRuntime((SYS_INT)PARAM(0));
+        if (rt) {
+            JS::RuntimeOptionsRef(rt).setBaseline(true)
+                                     .setIon(true)
+                                     .setAsmJS(true)
+                                     .setNativeRegExp(true);
+#ifdef MOZ_MEMORY_LEAK_FIX
+            masterRuntime.runtime = rt;
+            masterRuntime.links = 1;
+#endif
+        }
+    }
+    RETURN_NUMBER((SYS_INT)rt)
+#endif
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(JSDestroyRuntime, 1)
     T_HANDLE(JSDestroyRuntime, 0)     // JSRuntime*
-
+#ifdef JS_OLDAPI
     JS_DestroyRuntime((JSRuntime *)(SYS_INT)PARAM(0));
+#else
+    JSRuntime *rt = (JSRuntime *)(SYS_INT)PARAM(0);
+    if (js::CurrentThreadCanAccessRuntime((JSRuntime *)(SYS_INT)PARAM(0))) {
+#ifdef MOZ_MEMORY_LEAK_FIX
+        if (masterRuntime.runtime == rt) {
+            masterRuntime.links--;
+            if (masterRuntime.links <= 0) {
+                JS_DestroyRuntime(masterRuntime.runtime);
+                masterRuntime.runtime = NULL;
+                masterRuntime.links = 0;
+            }
+        } else
+#endif
+            JS_DestroyRuntime(rt);
+    } else {
+        return (void *)"JSDestroyRuntime: called from wrong thread";
+    }
+#endif
     RETURN_NUMBER(0)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(JSShutDown, 0)
     JS_ShutDown();
+    RETURN_NUMBER(0)
+END_IMPL
+//------------------------------------------------------------------------
+CONCEPT_FUNCTION_IMPL(JSInit, 0)
+#ifndef JS_OLDAPI
+    JS_Init();
+#endif
     RETURN_NUMBER(0)
 END_IMPL
 //------------------------------------------------------------------------
@@ -981,6 +1048,13 @@ END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(JSDestroyContext, 1)
     T_HANDLE(JSDestroyContext, 0)     // JSContext*
+#ifndef JS_OLDAPI
+    JSRuntime *rt = JS_GetRuntime((JSContext *)(SYS_INT)PARAM(0));
+    if (rt) {
+        if (!js::CurrentThreadCanAccessRuntime(rt))
+            return (void *)"JSDestroyContext: called from wrong thread";
+    }
+#endif
     LocalContainer *data = (LocalContainer *)JS_GetContextPrivate((JSContext *)(SYS_INT)PARAM(0));
     if (data) {
 #ifndef JS_OLDAPI
@@ -1174,8 +1248,16 @@ CONCEPT_FUNCTION_IMPL(JSEval, 1)
         JS_SetErrorReporter(context, printError);
         bool is_ok = JS_EvaluateScript(context, global, PARAM(0), PARAM_LEN(0), "script.js", 1, &rval);
     #else
+#ifdef MOZ_MEMORY_LEAK_FIX
+        runtime = masterRuntime.runtime;
+        if (!runtime)
+            runtime = JS_NewRuntime(1024L * 1024L);
+        if ((!runtime) || (!(context = JS_NewContext(runtime, 8192))))
+            return (void *)"JSEval: error creating runtime/context";
+#else
         if ((!(runtime = JS_NewRuntime(1024L * 1024L))) || (!(context = JS_NewContext(runtime, 8192))))
             return (void *)"JSEval: error creating runtime/context";
+#endif
 
         SetHandler(context, PARAMETERS->HANDLER);
         JSAutoRequest ar(context);
@@ -1226,6 +1308,11 @@ CONCEPT_FUNCTION_IMPL(JSEval, 1)
         }
     }
     JS_DestroyContext(context);
+#ifndef JS_OLDAPI
+    #ifdef MOZ_MEMORY_LEAK_FIX
+        if (runtime != masterRuntime.runtime)
+    #endif
+#endif
     JS_DestroyRuntime(runtime);
 END_IMPL
 //------------------------------------------------------------------------

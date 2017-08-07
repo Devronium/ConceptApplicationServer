@@ -1,7 +1,7 @@
 import standard.lang.js
 
-// 128M
-define DEFAULT_JS_MAX_RUNTIME_SIZE	134217728
+// 8M
+define DEFAULT_JS_MAX_RUNTIME_SIZE	8388608
 
 class JS {
 	protected var runtime;

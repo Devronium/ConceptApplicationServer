@@ -15,6 +15,7 @@ extern "C" {
     CONCEPT_FUNCTION(JSDestroyContext)
     CONCEPT_FUNCTION(JSDestroyRuntime)
     CONCEPT_FUNCTION(JSShutDown)
+    CONCEPT_FUNCTION(JSInit)
 
     CONCEPT_FUNCTION(JSInitStandardClasses)
 
