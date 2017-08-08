@@ -1,5 +1,3 @@
-include JS.con
-
 class TinDBGlobalUDF {
 	// here you can define extension functions for tindb
 

@@ -12,7 +12,7 @@ import standard.C.time
 
 // <javascript support>
 // include DUKJS.con instead of JS.con for using duktape instead of SpiderMonkey
-include JS.con
+include DUKJS.con
 include SQLParser.con
 include TinDBGlobalUDF.con
 // </javascript support>
