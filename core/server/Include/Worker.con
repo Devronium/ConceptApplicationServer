@@ -84,7 +84,7 @@ class Worker {
 	}
 
 	static Clear() {
-		return WorkerSharedClear();;
+		return WorkerSharedClear();
 	}
 
 	GetKey(masterkey, key) {

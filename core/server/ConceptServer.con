@@ -2063,6 +2063,9 @@ class ConceptJSChild extends ConceptCGIChildBase {
 					directory += d + "/";
 			}
 		}
+		if ((!ON_MSWINDOWS) && (filename) && (filename[0] == "/") && (directory[0] != "/"))
+			return "/" + directory;
+
 		return directory;
 	}
 

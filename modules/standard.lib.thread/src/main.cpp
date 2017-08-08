@@ -406,18 +406,18 @@ public:
     }
 
     void ClearCache() {
+        QUEUE_LOCK(share_lock);
         for (std::map<std::string, std::map<std::string, AnsiString> *>::iterator it = share_data.begin(); it != share_data.end(); ++it) {
             std::map<std::string, AnsiString> *map = it->second;
             if (map)
                 delete map;
         }
         share_data.clear();
+        QUEUE_UNLOCK(share_lock);
     }
 
     ~ShareContext() {
-        QUEUE_LOCK(share_lock);
         ClearCache();
-        QUEUE_UNLOCK(share_lock);
         QUEUE_DONE(share_lock);
     }
 };

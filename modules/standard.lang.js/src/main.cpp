@@ -948,6 +948,8 @@ CONCEPT_DLL_API ON_CREATE_CONTEXT MANAGEMENT_PARAMETERS {
 }
 //---------------------------------------------------------------------------
 CONCEPT_DLL_API ON_DESTROY_CONTEXT MANAGEMENT_PARAMETERS {
+    if (!HANDLER)
+        JS_ShutDown();
     return 0;
 }
 //---------------------------------------------------------------------------
