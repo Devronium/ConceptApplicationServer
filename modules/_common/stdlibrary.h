@@ -263,9 +263,9 @@ typedef INTEGER (*CALL_BACK_CLASS_MEMBER_SET)(void *CLASS_PTR, char *class_membe
 #define CREATE_OBJECT(VARIABLE, class_name)               IS_OK(Invoke(INVOKE_CREATE_OBJECT, HANDLER, VARIABLE, class_name))
 #define GET_MEMBER_VAR(VARIABLE, member_name, MEM_PTR)    Invoke(INVOKE_GET_CLASS_VARIABLE, VARIABLE, member_name, & MEM_PTR)
 
-#define SET_STRING_VARIABLE(VARIABLE, szvariable)         Invoke(INVOKE_SET_VARIABLE, VARIABLE, VARIABLE_STRING, (char *)(szvariable ? szvariable : ""), (NUMBER)0);
-#define SET_NUMBER_VARIABLE(VARIABLE, nvariable)          Invoke(INVOKE_SET_VARIABLE, VARIABLE, VARIABLE_NUMBER, (char *)"", (NUMBER)nvariable);
-#define SET_BUFFER_VARIABLE(VARIABLE, szvariable, len)    Invoke(INVOKE_SET_VARIABLE, VARIABLE, VARIABLE_STRING, (char *)((szvariable && len) ? szvariable : ""), (NUMBER)len);
+#define SET_STRING_VARIABLE(VARIABLE, szvariable)         SetVariable(VARIABLE, VARIABLE_STRING, (char *)(szvariable ? szvariable : ""), 0);
+#define SET_NUMBER_VARIABLE(VARIABLE, nvariable)          SetVariable(VARIABLE, VARIABLE_NUMBER, (char *)"", nvariable);
+#define SET_BUFFER_VARIABLE(VARIABLE, szvariable, len)    SetVariable(VARIABLE, VARIABLE_STRING, (char *)((szvariable && len) ? szvariable : ""), len);
 #define LOCK_VARIABLE(VARIABLE)                           Invoke(INVOKE_LOCK_VARIABLE, VARIABLE)
 
 #define CALL_DELEGATE(DELEG_VAR, ...)                                             \
@@ -311,6 +311,15 @@ double *GetDoubleList(void *arr, INVOKE_CALL _Invoke);
 #define CORE_NEW(SIZE, VARIABLE)    Invoke(INVOKE_NEW_BUFFER, (INTEGER)SIZE, &VARIABLE)
 #define CORE_DELETE(VARIABLE)       Invoke(INVOKE_DELETE_BUFFER, VARIABLE)
 
+#define DUPLICATE_VARIABLE(VARIABLE, NEWVAR)    {                       \
+    CREATE_VARIABLE(NEWVAR);                                            \
+    if (NEWVAR) {                                                       \
+        INTEGER    type     = 0;                                        \
+        char       *szValue = 0;                                        \
+        NUMBER     nValue   = 0;                                        \
+        Invoke(INVOKE_GET_VARIABLE, VARIABLE, &type, &szValue, &nValue);\
+        Invoke(INVOKE_SET_VARIABLE, NEWVAR, type, szValue, nValue);     \
+    }                                                                   \
+}
 //-------------------------------------------------------------------------------------------------------------
 #endif //__STDLIBRARY_H
-

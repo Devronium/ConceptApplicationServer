@@ -2335,6 +2335,7 @@ class ConceptJSChild extends ConceptCGIChildBase {
 	reset() {
 		if (js) {
 			// important to avoid memory leak (wrap mantains references!)
+			js.detach();
 			js.js = null;
 			js = null;
 		}

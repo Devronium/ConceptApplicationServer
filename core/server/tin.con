@@ -736,7 +736,10 @@ class Main {
 
 		if (err) {
 			echo "$query ($time):" + NEW_LINE;
-			echo "${em(err[1])}" + NEW_LINE;
+			if (typeof err == "array")
+				echo "${em(err[1])}" + NEW_LINE;
+			else
+				echo "${em(err)}" + NEW_LINE;
 		} else {
 			var count = 0;
 			if (typeof r != "array")

@@ -838,4 +838,10 @@ class TinDataSet {
 		}
 		return null;
 	}
+
+	__release() {
+		delete Connection;
+		delete UserData;
+		delete _private_data;
+	}
 }

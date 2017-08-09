@@ -2,11 +2,11 @@ import standard.C.io
 import standard.lib.str
 include TinDataBases.con
 
-
 class JSFramework {
 	public var root_path = "";
 	public var js;
 	protected var tin;
+	protected var __authdataset;
 
 	protected var BinaryMode;
 
@@ -87,6 +87,9 @@ class JSFramework {
 			dataset.Auth(username, password, db, function(result, id, err) {
 				this.call("tin.onauth", [err]);
 			});
+			if (__authdataset)
+				__authdataset.__release();
+			__authdataset = dataset;
 			tin.OnNotify = function(subject, data) {
 				this.call("tin.onnotify", [subject, data]);
 			};
@@ -145,6 +148,9 @@ class JSFramework {
 
 	__tindb_disconnect() {
 		if (tin) {
+			if (__authdataset)
+				__authdataset.__release();
+			delete __authdataset;
 			tin.Disconnect();
 			delete tin;
 		}
@@ -186,6 +192,14 @@ class JSFramework {
 				return true;
 		}
 		return false;
+	}
+
+	detach() {
+		this.__tindb_disconnect();
+	}
+
+	finalize() {
+		this.detach();
 	}
 
 	JSFramework(js, path = "") {

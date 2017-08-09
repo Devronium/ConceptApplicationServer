@@ -517,9 +517,12 @@ CONCEPT_FUNCTION_IMPL(JSWrap, 3)
     container->HANDLERS = (void **)realloc(container->HANDLERS, sizeof(void *) * (container->HLEN + 1));
     short delegate_id = 0;
     if (container->HANDLERS) {
-        container->HANDLERS[container->HLEN] = PARAMETER(1);
-        LOCK_VARIABLE(PARAMETER(1));
-        container->HLEN++;
+        void *var = NULL;
+        DUPLICATE_VARIABLE(PARAMETER(1), var);
+        if (var) {
+            container->HANDLERS[container->HLEN] = var;
+            container->HLEN++;
+        }
     } else {
         container->HLEN = 0;
         RETURN_NUMBER(-1);

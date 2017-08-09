@@ -100,7 +100,7 @@ class JS {
 		JSGC(context, runtime);
 	}
 
-	protected done() {
+	done() {
 		LastError = "";
 		if (context) {
 	  		JSDestroyContext(context);

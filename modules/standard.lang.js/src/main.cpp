@@ -1098,11 +1098,16 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(JSSetErrorReporter, 2, 3)
     if (!(PARAM_INT(0)))
         return (void *)"JSSetErrorReporter: Invalid JSContext (is null)";
 
-    void *ERR_DELEGATE = SetErrorDelegate(((JSContext *)(SYS_INT)PARAM(0)), PARAMETER(1), lock);
+    void *DELEG = NULL;
+    if (lock) {
+        DUPLICATE_VARIABLE(PARAMETER(1), DELEG);
+    } else
+        DELEG = PARAMETER(1);
+    void *ERR_DELEGATE = SetErrorDelegate(((JSContext *)(SYS_INT)PARAM(0)), DELEG, lock);
     if (ERR_DELEGATE)
         FREE_VARIABLE(ERR_DELEGATE);
-    if (lock)
-        LOCK_VARIABLE(PARAMETER(1));
+    // if (lock)
+    //    LOCK_VARIABLE(PARAMETER(1));
 #ifdef JS_OLDAPI
     JS_SetErrorReporter(((JSContext *)(SYS_INT)PARAM(0)), ShowError);
 #else
@@ -1325,12 +1330,15 @@ CONCEPT_FUNCTION_IMPL(JSWrap, 4)
     T_STRING(JSWrap, 3) // function name
     _SetVariable = SetVariable;
 
-    void *OLD_DELEGATE = SetFunction(PARAM(3), PARAMETER(2), (JSContext *)PARAM_INT(0), (JSObject *)(SYS_INT)PARAM(1));
-    LOCK_VARIABLE(PARAMETER(2));
+    void *DELEG = NULL;
+    DUPLICATE_VARIABLE(PARAMETER(2), DELEG);
+
+    void *OLD_DELEGATE = SetFunction(PARAM(3), DELEG, (JSContext *)PARAM_INT(0), (JSObject *)(SYS_INT)PARAM(1));
+    // LOCK_VARIABLE(PARAMETER(2));
     if (OLD_DELEGATE) {
         FREE_VARIABLE(OLD_DELEGATE);
     }
-    int param_count = Invoke(INVOKE_COUNT_DELEGATE_PARAMS, PARAMETER(2));
+    int param_count = Invoke(INVOKE_COUNT_DELEGATE_PARAMS, DELEG);
 #ifdef JS_OLDAPI
     RETURN_NUMBER((JS_DefineFunction((JSContext *)(SYS_INT)PARAM(0), (JSObject *)(SYS_INT)PARAM(1), PARAM(3), function_handler, param_count, 0) != 0));
 #else
