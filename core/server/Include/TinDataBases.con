@@ -189,6 +189,11 @@ class TinConnection {
 					} else
 					if ((obj.q == "!") && (OnNotify))
 						OnNotify(obj.p["w"], obj.p["o"]);
+					else
+					if (obj.q == "PING") {
+						var q = new Q(obj.p, "sysdb", "", "PONG");
+						this._Handle(q, null);
+					}
 				}
 				size = FromSize(InternalBuffer, bytes);
 			}
@@ -235,6 +240,11 @@ class TinConnection {
 
 	Info(string what, delegate callback) {
 		var q = new Q([what], "" + Database, "", "INFO");
+		this._Handle(q, callback);
+	}
+
+	Ping(delegate callback) {
+		var q = new Q(["Timestamp" => microseconds()], "" + Database, "", "PING");
 		this._Handle(q, callback);
 	}
 

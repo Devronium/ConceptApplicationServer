@@ -86,6 +86,10 @@ class JSFramework {
 			var dataset = new TinDataSet(tin, "users");
 			dataset.Auth(username, password, db, function(result, id, err) {
 				this.call("tin.onauth", [err]);
+				if (__authdataset) {
+					__authdataset.__release();
+					delete __authdataset;
+				}
 			});
 			if (__authdataset)
 				__authdataset.__release();

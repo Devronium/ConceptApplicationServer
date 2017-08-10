@@ -333,16 +333,20 @@ public:
     int AddLooper(void *DELEGATE, INVOKE_CALL Invoke) {
         for (int i = 0; i < LOOPERS_count; i++) {
             if (!LOOPERS[i]) {
-                Invoke(INVOKE_LOCK_VARIABLE, DELEGATE);
-                LOOPERS[i] = DELEGATE;
+                //Invoke(INVOKE_LOCK_VARIABLE, DELEGATE);
+                void *var = NULL;
+                DUPLICATE_VARIABLE(DELEGATE, var);
+                LOOPERS[i] = var;
                 return i + 1;
             }
         }
         LOOPERS_count++;
         LOOPERS = (void **)realloc(LOOPERS, sizeof(void *) * LOOPERS_count);
         if (LOOPERS) {
-            LOOPERS[LOOPERS_count - 1] = DELEGATE;
-            Invoke(INVOKE_LOCK_VARIABLE, DELEGATE);
+            void *var = NULL;
+            DUPLICATE_VARIABLE(DELEGATE, var);
+            LOOPERS[LOOPERS_count - 1] = var;
+            // Invoke(INVOKE_LOCK_VARIABLE, DELEGATE);
             return LOOPERS_count;
         }
         return -1;
@@ -352,8 +356,11 @@ public:
         if (ConnectionChangedDelegate)
             Invoke(INVOKE_FREE_VARIABLE, ConnectionChangedDelegate);
 
-        ConnectionChangedDelegate = DELEGATE;
-        Invoke(INVOKE_LOCK_VARIABLE, DELEGATE);
+        void *var = NULL;
+        DUPLICATE_VARIABLE(DELEGATE, var);
+
+        ConnectionChangedDelegate = var;
+        // Invoke(INVOKE_LOCK_VARIABLE, DELEGATE);
         return 1;
     }
 
