@@ -752,9 +752,17 @@ pragma used
 		return QueryWorkerBase::ReadJSON(path + "/ring.json");
 	}
 
-	static WorkerMemory() {
+	static WorkerMemory(extra = null) {
 		var arr = WorkerMemoryInfo();
 		arr["when"] = trim(StrReplace(ctime(time()), "\r", ""));
+		if (extra) {
+			var keys = GetKeys(extra);
+			for (var i = 0; i < length keys; i++) {
+				var k = keys[i];
+				if (k)
+					arr["." + k] = extra[k];
+			}
+		}
 		return arr;
 	}
 
@@ -831,7 +839,7 @@ pragma used
 			r.p["QueryWorkers"] = qw;
 			var data_missing = false;
 
-			Worker::Set("..//memory//..", WorkerID, BinarizeObject(QueryWorkerBase::WorkerMemory()));
+			Worker::Set("..//memory//..", WorkerID, BinarizeObject(QueryWorkerBase::WorkerMemory(["contexts" => length buffers])));
 			for (i = 1; i <= length other_workers + 1; i++) {
 				var wid = "QW$i";
 				var data = Worker::Get("..//memory//..", wid);
@@ -1419,7 +1427,7 @@ pragma used
 						echo " => unreachable objects found\n";
 				} else
 				if (socket == -101) {
-					Worker::Set("..//memory//..", WorkerID, BinarizeObject(QueryWorkerBase::WorkerMemory()));
+					Worker::Set("..//memory//..", WorkerID, BinarizeObject(QueryWorkerBase::WorkerMemory(["sockets" => length sockets, "contexts" => length buffers])));
 				} else
 				if (remote_obj) {
 					if (((remote_obj) && (classof remote_obj == "Q") && (remote_obj.o) && ((remote_obj.o == "W") || (remote_obj.o == "Q"))) || (socket == -20))

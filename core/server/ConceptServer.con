@@ -5283,7 +5283,8 @@ class Main {
 		if (USE_DB_SERVICE) {
 			if (ExecuteProcess("concept", ".", ["TinDB.con"], [ ], false) < 0) {
 				if (ExecuteProcess(getcwd() + "/concept", ".", ["TinDB.con"], [ ], false) < 0)
-					s.Log("ConceptServer", "Error running database service");
+					if (ExecuteProcess("/usr/local/bin/concept", ".", ["TinDB.con"], [ ], false) < 0)
+						s.Log("ConceptServer", "Error running database service");
 			}
 		}
 		try {
