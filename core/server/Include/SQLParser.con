@@ -1095,6 +1095,38 @@ class SQLParser {
 						// to do
 						syntax["SET"] = SQLParser::parseSet(buffer, err, offset, parameters);
 						break;
+					case "PRIORITY":
+						command = SQLParser::parseAtom(buffer, err, offset);
+						if (command) {
+							var priority = "0";
+							switch (ToLower(command)) {
+								case "low":
+									priority = "-1";
+									break;
+								case "normal":
+								case "medium":
+									priority = "0";
+									break;
+								case "high":
+									priority = "1";
+									break;
+								default:
+									priority = SQLParser::prepare(command, err, false, parameters);
+									break;
+							}
+							syntax["PRIORITY"] = value priority;
+						} else {
+							SQLParser::error(err, offset, "'PRIORITY' value or 'LOW'/'NORMAL'/'HIGH' expected");
+						}
+						break;
+					case "REDUCE":
+						command = SQLParser::parseAtom(buffer, err, offset);
+						if (command) {
+							syntax["REDUCE"] = SQLParser::stripcode(command);
+						} else {
+							SQLParser::error(err, offset, "JS code expected");
+						}
+						break;
 					case "WHERE":
 						if (!has_where) {
 							has_where = true;

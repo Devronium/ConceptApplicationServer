@@ -334,16 +334,17 @@ class TinConnection {
 						where = q["WHERE"] ?? [ ];
 						dataset = new TinDataSet(this, collection);
 						dataset.UserData = userdata;
-						dataset.Delete(where, querycallback, q["LIMIT"], q["OFFSET"], (q["ORDER"] == -1));
+						dataset.Delete(where, querycallback, q["LIMIT"], q["OFFSET"], (q["ORDER"] == -1), q["PRIORITY"]);
 						queries++;
 					} else
 					if (IsSet(q, "UPDATE")) {
 						collection = q["UPDATE"];
 						where = q["WHERE"] ?? [ ];
-						values = q["SET"];
+						values = q["SET"] ?? [ ];
+						reduce = q["REDUCE"] ?? "";
 						dataset = new TinDataSet(this, collection);
 						dataset.UserData = userdata;
-						dataset.Update(where, values, querycallback, q["LIMIT"], q["OFFSET"], (q["ORDER"] == -1));
+						dataset.Update(where, values, querycallback, q["LIMIT"], q["OFFSET"], (q["ORDER"] == -1), q["PRIORITY"], reduce);
 						queries++;
 					} else
 					if (IsSet(q, "DROP")) {
@@ -555,7 +556,7 @@ class TinDataSet {
 		this.Connection._Handle(q, callback, this.UserData);
 	}
 
-	Update(params, array new_values, delegate callback, len = 0, start = 0, descending = false, priority = 0) {
+	Update(params, array new_values, delegate callback, len = 0, start = 0, descending = false, priority = 0, jsupdate = "") {
 		if (typeof params != "array") {
 			if (typeof params == "object")
 				params = Prepare(params);
@@ -573,6 +574,8 @@ class TinDataSet {
 			q.x["descending"] = descending;
 		if (priority)
 			q.x["priority"] = priority;
+		if (jsupdate)
+			q.x["reduce"] = jsupdate;
 		q.f = new_values;
 		this.Connection._Handle(q, callback, this.UserData);
 	}

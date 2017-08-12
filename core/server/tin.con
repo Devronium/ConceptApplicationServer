@@ -740,9 +740,14 @@ class Main {
 
 		if (err) {
 			echo "$query ($time):" + NEW_LINE;
-			if (typeof err == "array")
-				echo "${em(err[1])}" + NEW_LINE;
-			else
+			if (typeof err == "array") {
+				var et = err[1];
+				if (typeof et == "array") {
+					echo et;
+					echo NEW_LINE;
+				} else
+					echo "${em(et)}" + NEW_LINE;
+			} else
 				echo "${em(err)}" + NEW_LINE;
 		} else {
 			var count = 0;
@@ -1029,10 +1034,11 @@ class Main {
 					if (IsSet(q, "UPDATE")) {
 						collection = q["UPDATE"];
 						where = q["WHERE"] ?? [ ];
-						values = q["SET"];
+						values = q["SET"] ?? [ ];
+						reduce = q["REDUCE"] ?? "";
 						dataset = new TinDataSet(connection, collection);
 						dataset.UserData = [orig_query, microseconds()];
-						dataset.Update(where, values, querycallback, q["LIMIT"], q["OFFSET"], (q["ORDER"] == -1));
+						dataset.Update(where, values, querycallback, q["LIMIT"], q["OFFSET"], (q["ORDER"] == -1), q["PRIORITY"], reduce);
 						queries++;
 						echo "Update request sent, waiting response (${queries} in queue, including this one)..." + NEW_LINE;
 					} else

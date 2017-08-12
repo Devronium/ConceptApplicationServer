@@ -2162,6 +2162,15 @@ pragma used
 		return data;
 	}
 
+	static CopyKeys(self, new_vals) {
+		var self_keys = GetKeys(self);
+		for (var i = 0; i < length self_keys; i++) {
+			var self_key = self_keys[i];
+			if (self_key)
+				new_vals[self_key] = self[self_key];
+		}
+	}
+
 	Execute(var data) {
 		var key;
 		var trigger;
@@ -2530,7 +2539,14 @@ pragma used
 								if ((trigger) && (trigger.OnUpdate))
 									deleg = this.GetDelegate(db, obj.d, trigger.OnUpdate, objects, members);
 
-								var update_data = [GetKeys(obj.f), obj.f, t, unique_fields, deleg, trigger, db, ((IsSet(obj.p, '$')) && (obj.p['$']))];
+								reduce = obj.x["reduce"];
+								js = null;
+								if (reduce) {
+									js = EnsureJSContext(db);
+									js.UserData[0]++;
+									js.script(jstrycatch("var _r = function(self) { " + reduce + "; return self; }"));
+								}
+								var update_data = [GetKeys(obj.f), obj.f, t, unique_fields, deleg, trigger, db, ((IsSet(obj.p, '$')) && (obj.p['$'])), js];
 								t.Query(obj.p, null, obj.x["descending"], obj.x["start"], obj.x["len"], function(o, data) {
 									if (o) {
 										var keys = data[0];
@@ -2541,10 +2557,24 @@ pragma used
 										var trigger = data[5];
 										var db = data[6];
 										var has_rowid = data[7];
-										var word_cache = data[8];
+										var js = data[8];
+										var word_cache = data[9];
 										var changed = new [];
 										var oid_changed = false;
-										for (var i = 0; i < length keys; i++) {
+										var i;
+										if (js) {
+											var self = js.call("_r", [o]);
+											if (js.LastError)
+												throw js.LastError;
+											if ((self) && (typeof self == "array")) {
+												var new_vals = new [];
+												this.CopyKeys(self, new_vals);
+												this.CopyKeys(vals, new_vals);
+												keys = GetKeys(new_vals);
+												vals = new_vals;
+											}
+										}
+										for (i = 0; i < length keys; i++) {
 											var k = keys[i];
 											if ((k) && (k != '$')) {
 												var val = vals[k];
@@ -2589,22 +2619,22 @@ pragma used
 												oid_changed = true;
 
 											if ((syncworker) && (has_rowid)) {
-												data[11] = true;
+												data[12] = true;
 												if (oid) {
-													if (data[12]) {
-														var arr = data[12];
+													if (data[13]) {
+														var arr = data[13];
 														if (typeof arr == "array")
 															arr[length arr] = oid;
 														else
-															data[12] = [arr, oid];
+															data[13] = [arr, oid];
 													} else
-														data[12] = oid;
+														data[13] = oid;
 												}
 											}
 
 											if ((unique_fields) && (!t.IsUnique(o, unique_fields))) {
 												// not unique
-												data[10]++;
+												data[11]++;
 											} else {
 												var filepos = t.Tell();
 												try {
@@ -2615,10 +2645,10 @@ pragma used
 														// set it to null, to force full reindex (before update may modify the object)
 														changed = null;
 													}
-													if (data[9] == 1) {
+													if (data[10] == 1) {
 														// at least one record
 														word_cache = t.BM25UpdateStart();
-														data[8] = word_cache;
+														data[9] = word_cache;
 													}
 													t._StoreHint(o, true, true, oid_changed, changed, word_cache);
 													if ((trigger) && (trigger.OnJSUpdate)) {
@@ -2626,7 +2656,7 @@ pragma used
 														if (trigger_error)
 															throw trigger_error;
 													}
-													data[9]++;
+													data[10]++;
 
 													if (deleg)
 														deleg(t, o);
@@ -2638,25 +2668,27 @@ pragma used
 										}
 									}
 								}, update_data);
-								if (update_data[8])
-									t.BM25UpdateEnd(update_data[8]);
-								if (update_data[9]) {
+								if (update_data[9])
+									t.BM25UpdateEnd(update_data[9]);
+								if (update_data[10]) {
 									// QueryWorker::InvalidateCache(obj.d, obj.c);
-									if ((use_sync_worker) && (update_data[11])) {
-										oid = update_data[12];
+									if ((use_sync_worker) && (update_data[12])) {
+										oid = update_data[13];
 										if (oid)
 											obj.p = ['$oid' => oid];
 										else
 											use_sync_worker = null;
 									}
 									QueryWorker::InvalidateCacheSync(obj, use_sync_worker);
-									non_flushed_writes += update_data[9];
+									non_flushed_writes += update_data[10];
 								}
 								if (unique_fields)
-									r.p = ["\$updated" => update_data[9], "\$notunique" => update_data[10]];
+									r.p = ["\$updated" => update_data[10], "\$notunique" => update_data[11]];
 								else
-									r.p = ["\$updated" => update_data[9]];
+									r.p = ["\$updated" => update_data[10]];
 								t.Unlock(true);
+								if (js)
+									js.gc();
 							}
 						}
 						r.id = 0;
