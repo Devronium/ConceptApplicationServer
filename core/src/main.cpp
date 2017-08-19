@@ -869,27 +869,35 @@ void RemoveGCRoot(void *PIF, void *CONTEXT) {
 }
 
 int GetMemoryStatistics(void *PIF, void *RESULT) {
+    if (((PIFAlizator *)PIF)->in_gc)
+        return 0;
+    ((PIFAlizator *)PIF)->in_gc = 1;
     VariableDATA *objects_var = ((Array *)RESULT)->ModuleGet("objects");
     VariableDATA *array_var   = ((Array *)RESULT)->ModuleGet("arrays");
+    VariableDATA *array_elements   = ((Array *)RESULT)->ModuleGet("arrays_elements");
 
     CLASS_CHECK(objects_var);
     CLASS_CHECK(array_var);
+    CLASS_CHECK(array_elements);
 
     objects_var->TYPE       = VARIABLE_NUMBER;
     array_var->TYPE         = VARIABLE_NUMBER;
     objects_var->CLASS_DATA = new(AllocArray((PIFAlizator *)PIF))Array(PIF);
-    array_var->CLASS_DATA   = new(AllocArray((PIFAlizator *)PIF))Array(PIF);
+    // array_var->CLASS_DATA   = new(AllocArray((PIFAlizator *)PIF))Array(PIF);
     objects_var->TYPE       = VARIABLE_ARRAY;
-    array_var->TYPE         = VARIABLE_ARRAY;
+    // array_var->TYPE         = VARIABLE_ARRAY;
 
     ((Array *)objects_var->CLASS_DATA)->reachable = 0x1C;
-    ((Array *)array_var->CLASS_DATA)->reachable = 0x1C;
+    // ((Array *)array_var->CLASS_DATA)->reachable = 0x1C;
 
 #ifdef POOL_BLOCK_ALLOC
     VariableDATA *variable_var  = ((Array *)RESULT)->ModuleGet("variables");
     VariableDATA *string_var    = ((Array *)RESULT)->ModuleGet("strings");
     VariableDATA *number_var    = ((Array *)RESULT)->ModuleGet("numbers");
     VariableDATA *delegate_var  = ((Array *)RESULT)->ModuleGet("delegates");
+    VariableDATA *var_pool_var  = ((Array *)RESULT)->ModuleGet("variables_pool_memory");
+    VariableDATA *obj_pool_var  = ((Array *)RESULT)->ModuleGet("objects_pool_memory");
+    VariableDATA *arr_pool_var  = ((Array *)RESULT)->ModuleGet("arrays_pool_memory");
 #endif
     VariableDATA *string_memory = ((Array *)RESULT)->ModuleGet("strings_memory");
     VariableDATA *memory = ((Array *)RESULT)->ModuleGet("memory");
@@ -898,6 +906,7 @@ int GetMemoryStatistics(void *PIF, void *RESULT) {
 #ifdef POOL_BLOCK_ALLOC
     VARPool *NEXT_POOL = ((PIFAlizator *)PIF)->POOL;
     while (NEXT_POOL) {
+        var_pool_var->NUMBER_DATA += sizeof(VARPool);
         if (NEXT_POOL->POOL_VARS) {
             for (int i = 0; i < POOL_BLOCK_SIZE; i++) {
                 if (NEXT_POOL->POOL[i].flags != -1) {
@@ -911,9 +920,7 @@ int GetMemoryStatistics(void *PIF, void *RESULT) {
                         case VARIABLE_STRING:
                             string_var->NUMBER_DATA += 1;
                             if (NEXT_POOL->POOL[i].CLASS_DATA) {
-                                int len = ((AnsiString *)NEXT_POOL->POOL[i].CLASS_DATA)->Length();
-                                if (len)
-                                    len++;
+                                intptr_t len = ((AnsiString *)NEXT_POOL->POOL[i].CLASS_DATA)->MemoryLength();
                                 memory->NUMBER_DATA        += sizeof(AnsiString);
                                 string_memory->NUMBER_DATA += len;
                             }
@@ -952,6 +959,7 @@ int GetMemoryStatistics(void *PIF, void *RESULT) {
             if (STACK_TRACE->len == -1) {
                 // concurrent write, abort
                 //ALLOC_UNLOCK
+                ((PIFAlizator *)PIF)->in_gc = 0;
                 return 0;
             }
             VariableDATA **context = (VariableDATA **)STACK_TRACE->LOCAL_CONTEXT;
@@ -978,6 +986,7 @@ int GetMemoryStatistics(void *PIF, void *RESULT) {
     }
     ClassPool *POOL = (ClassPool *)((PIFAlizator *)PIF)->CLASSPOOL;
     while (POOL) {
+        obj_pool_var->NUMBER_DATA += sizeof(ClassPool);
         if (POOL->POOL_VARS < OBJECT_POOL_BLOCK_SIZE) {
             for (int i = 0; i < OBJECT_POOL_BLOCK_SIZE; i++) {
                 CompiledClass *CC = &POOL->POOL[i];
@@ -995,13 +1004,17 @@ int GetMemoryStatistics(void *PIF, void *RESULT) {
     }
     ArrayPool *ARRAYPOOL = (ArrayPool *)((PIFAlizator *)PIF)->ARRAYPOOL;
     intptr_t  index      = 0;
+    intptr_t  all_arrays = 0;
     while (ARRAYPOOL) {
+        arr_pool_var->NUMBER_DATA += sizeof(ArrayPool);
         if (ARRAYPOOL->POOL_VARS < ARRAY_POOL_BLOCK_SIZE) {
             for (int i = 0; i < ARRAY_POOL_BLOCK_SIZE; i++) {
                 Array *ARR = &ARRAYPOOL->POOL[i];
                 if (ARR->flags >= 0) {
-                    VariableDATA *ref = ((Array *)array_var->CLASS_DATA)->ModuleGet(index++);
-                    ref->NUMBER_DATA = ARR->Count();
+                    // VariableDATA *ref = ((Array *)array_var->CLASS_DATA)->ModuleGet(index++);
+                    // ref->NUMBER_DATA = ARR->Count();
+                    array_var->NUMBER_DATA ++;
+                    all_arrays += ARR->Count();
 #ifdef STDMAP_KEYS
                     memory->NUMBER_DATA += sizeof(Array) + ARR->Count() * sizeof(VariableDATA *) + ARR->NODE_COUNT * sizeof(NODE);
 #else
@@ -1023,6 +1036,8 @@ int GetMemoryStatistics(void *PIF, void *RESULT) {
         }
         ARRAYPOOL = (ArrayPool *)ARRAYPOOL->NEXT;
     }
+    array_elements->NUMBER_DATA = all_arrays;
+    ((PIFAlizator *)PIF)->in_gc = 0;
     ALLOC_UNLOCK
     return 0;
 }

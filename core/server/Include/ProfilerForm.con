@@ -250,11 +250,14 @@ class ProfilerForm extends RForm {
 		treeMemory.AddItem(["Unreachable arrays", number_format(minfo["unreachable_arrays"], 0, ".", " ")]);
 		var arrays = minfo["arrays"];
 		var len = 0;
-		if (arrays)
+		var array_elements = minfo["array_elements"];
+		if (typeof arrays == "array") {
 			len = length arrays;
-		var array_elements = 0;
-		for (var i = 0; i < len; i++)
-			array_elements += arrays[i];
+			array_elements = 0;
+			for (var i = 0; i < len; i++)
+				array_elements += arrays[i];
+		} else
+			len = arrays;
 		treeMemory.AddItem(["Arrays", number_format(len, 0, ".", " ")]);
 		treeMemory.AddItem(["Array elements", number_format(array_elements, 0, ".", " ")]);
 		LinkInfo(var data_in, var data_out);
