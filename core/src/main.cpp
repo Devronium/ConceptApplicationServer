@@ -986,7 +986,9 @@ int GetMemoryStatistics(void *PIF, void *RESULT) {
     }
     ClassPool *POOL = (ClassPool *)((PIFAlizator *)PIF)->CLASSPOOL;
     while (POOL) {
+#ifdef POOL_BLOCK_ALLOC
         obj_pool_var->NUMBER_DATA += sizeof(ClassPool);
+#endif
         if (POOL->POOL_VARS < OBJECT_POOL_BLOCK_SIZE) {
             for (int i = 0; i < OBJECT_POOL_BLOCK_SIZE; i++) {
                 CompiledClass *CC = &POOL->POOL[i];
@@ -1006,7 +1008,9 @@ int GetMemoryStatistics(void *PIF, void *RESULT) {
     intptr_t  index      = 0;
     intptr_t  all_arrays = 0;
     while (ARRAYPOOL) {
+#ifdef POOL_BLOCK_ALLOC
         arr_pool_var->NUMBER_DATA += sizeof(ArrayPool);
+#endif
         if (ARRAYPOOL->POOL_VARS < ARRAY_POOL_BLOCK_SIZE) {
             for (int i = 0; i < ARRAY_POOL_BLOCK_SIZE; i++) {
                 Array *ARR = &ARRAYPOOL->POOL[i];
