@@ -25,6 +25,14 @@ class TinBase {
 		}
 	}
 
+	ResetCache() {
+		for (var i = 0; i < length tables; i++) {
+			var t = tables[i];
+			if (t)
+				t.ResetCache();
+		}
+	}
+
 	static Lock(name, write = false) {
 		if (name) {
 			if (write)
@@ -88,6 +96,10 @@ class TinBase {
 			throw "Invalid database selected\n";
 		_mkdir(db);
 		this.DB = db;
+	}
+
+	ManagedCollections() {
+		return GetKeys(tables);
 	}
 
 	Collection(string name, index_only = false) {

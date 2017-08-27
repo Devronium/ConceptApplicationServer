@@ -12,7 +12,7 @@ import standard.C.time
 
 // <javascript support>
 // include DUKJS.con instead of JS.con for using duktape instead of SpiderMonkey
-include DUKJS.con
+include JS.con
 include SQLParser.con
 include TinDBGlobalUDF.con
 // </javascript support>
@@ -2171,6 +2171,31 @@ pragma used
 		}
 	}
 
+	ManagedCollections() {
+		var[] res;
+		for (var i = 0; i < length managed_dbs; i++) {
+			var db = managed_dbs[i];
+			if (db) {
+				var keys = db.ManagedCollections();
+				for (var j = 0; j < length keys; j++) {
+					var k = keys[j];
+					if (k)
+						res[k] = k;
+				}
+			}
+			
+		}
+		return GetKeys(res);
+	}
+
+	CacheReset() {
+		for (var i = 0; i < length managed_dbs; i++) {
+			var db = managed_dbs[i];
+			if (db)
+				db.ResetCache();
+		}
+	}
+
 	Execute(var data) {
 		var key;
 		var trigger;
@@ -2189,12 +2214,13 @@ pragma used
 					return;
 				case -100:
 					jsctx = new [];
+					this.CacheReset();
 					echo "Garbage collector forced in worker #StorageWorker${workerid + 1}\n";
 					if (CheckReachability())
 						echo " => unreachable objects found\n";
 					return;
 				case -101:
-					Worker::Set("..//memory//..", "SW${workerid + 1}" , BinarizeObject(QueryWorkerBase::WorkerMemory()));
+					Worker::Set("..//memory//..", "SW${workerid + 1}" , BinarizeObject(QueryWorkerBase::WorkerMemory(["jscontexts" => length jsctx, "dbs" => this.ManagedCollections()])));
 					return;
 			}
 		}
