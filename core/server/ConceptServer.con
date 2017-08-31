@@ -47,6 +47,7 @@ define IDLE_SLEEP_MS2		50
 define CGI_MAX_RETRY_SECONDS	5
 define EAGAIN_TIMEOUT_SECONDS	5
 define JS_CGI_DONE_TIMEOUT	30
+define JS_MAX_TIMEOUT		1200
 define JS_FRAMEWORK		"/js/"
 
 // 128k pipe read buffer
@@ -2021,6 +2022,7 @@ class JSCode extends JSFramework {
 	}
 
 	run(var code, filename = "code.js") {
+		js.timeout(JS_MAX_TIMEOUT);
 		return js.script(code, filename);
 	}
 }

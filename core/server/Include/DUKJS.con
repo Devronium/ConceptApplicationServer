@@ -52,6 +52,10 @@ class JS {
 		this.error_delegate = error_handler;
 	}
 
+	timeout(seconds) {
+		JSTimeout(context, seconds);
+	}
+
 	script(var code, code_name = "code.js") {
 		var rval = JSEvaluateScript(context, code, code_name, var err);
 		this.__check_error();

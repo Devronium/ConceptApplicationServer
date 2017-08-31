@@ -73,6 +73,10 @@ class JS {
 		JSRecursive(context, recursive);
 	}
 
+	timeout(seconds) {
+		// not implemented
+	}
+
 	script(var code, code_name = "code.js") {
 		LastError = "";
 		if (!JSEvaluateScript(context, global, code, code_name, 1, var rval)) {

@@ -12,7 +12,7 @@ import standard.C.time
 
 // <javascript support>
 // include DUKJS.con instead of JS.con for using duktape instead of SpiderMonkey
-include JS.con
+include DUKJS.con
 include SQLParser.con
 include TinDBGlobalUDF.con
 // </javascript support>
@@ -81,6 +81,10 @@ define LOG_CLEAN_LIMIT		16777216
 define LOG_CLEAN_TIMEOUT	10
 // sync every 100ms
 define LOG_SYNC_US		100000
+
+define REDUCE_TIMEOUT_S		5
+define JS_TIMEOUT_S		0
+define TRIGGER_TIMEOUT_S	60
 
 define PING_CHECK		30
 define PING_INTERVAL		300
@@ -1761,6 +1765,7 @@ pragma used
 							if (js) {
 								// js.variable("out", r.p);
 								// js.script(callback + "(out)", "callback.js");
+								js.timeout(JS_TIMEOUT_S);
 								js.call(callback, [r.p]);
 							}
 							return ["async" => true];
@@ -1921,6 +1926,7 @@ pragma used
 		js.wrap(jsnotify, "___internal__tindb__notify");
 		js.wrap(jsprint, "print");
 		try {
+			js.timeout(0);
 			js.script('var console = {log: print, warn: print, error: print }; var db = {query: function(query, parameters, callback) { var data = ___internal__tindb__query(___internal__tindb__currentdb, query, parameters, callback); if (data.error) throw data.error; return data.data; }, "notify": function(subject, data) { ___internal__tindb__notify(subject, data); }, "name": ___internal__tindb__currentdb }; var alert = print;', "db.js");
 			// global Concept JS functions
 			globaludf = new TinDBGlobalUDF(js);
@@ -1994,6 +2000,7 @@ pragma used
 			js.UserData[1] = true;
 			js.UserData[0]++;
 			js.variable("self", o);
+			js.timeout(TRIGGER_TIMEOUT_S);
 			var new_o = js.script(jstrycatch(code));
 			js.gc();
 			if ((allow_modify) && (new_o)) {
@@ -2036,6 +2043,7 @@ pragma used
 					var js = EnsureJSContext(db);
 					// js.variable("out", data);
 					// js.script(callback + "(out)", "callback.js");
+					js.timeout(JS_TIMEOUT_S);
 					js.call(callback, [data]);
 					js.gc();
 				}
@@ -2275,11 +2283,13 @@ pragma used
 									var js = EnsureJSContext(db);
 									js.UserData[0]++;
 									js.variable("out", new DummyObject());
+									js.timeout(0);
 									js.script(jstrycatch("var _r = function(self) { " + reduce + " }"));
 									t.Query(obj.p, obj.f, obj.x["descending"], obj.x["start"], obj.x["len"], function(o, js) {
 										if (o) {
 											// js.variable("self", o);
 											// js.script("_r();");
+											js.timeout(REDUCE_TIMEOUT_S);
 											js.call("_r", [o]);
 										}
 									}, js);
@@ -2287,6 +2297,7 @@ pragma used
 										r.e = ERR_JS_SCRIPT;
 										r.et = js.LastError;
 									}
+									js.timeout(0);
 									r.p = js.script("out;");
 									js.script("delete out;");
 									if ((r.p) && (typeof r.p == "array"))
@@ -2571,6 +2582,7 @@ pragma used
 								if (reduce) {
 									js = EnsureJSContext(db);
 									js.UserData[0]++;
+									js.timeout(0);
 									js.script(jstrycatch("var _r = function(self) { " + reduce + "; return self; }"));
 								}
 								var update_data = [GetKeys(obj.f), obj.f, t, unique_fields, deleg, trigger, db, ((IsSet(obj.p, '$')) && (obj.p['$'])), js];
@@ -2590,6 +2602,7 @@ pragma used
 										var oid_changed = false;
 										var i;
 										if (js) {
+											js.timeout(REDUCE_TIMEOUT_S);
 											var self = js.call("_r", [o]);
 											if (js.LastError)
 												throw js.LastError;
@@ -2887,6 +2900,7 @@ pragma used
 							js = ResetJSContext(db, true);
 							js.UserData[0]++;
 							try {
+								js.timeout(0);
 								js.script(jstrycatch(code));
 								ResetJS(true);
 								db.StoreJS(code);
@@ -2936,6 +2950,7 @@ pragma used
 										}
 									}
 									js.UserData[0]++;
+									js.timeout(0);
 									r.p = js.script(jstrycatch(code));
 									js.gc();
 									js.UserData[0]--;

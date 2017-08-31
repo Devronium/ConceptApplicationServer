@@ -4,6 +4,7 @@
 #include "AnsiString.h"
 #include "duktape.h"
 #include "library.h"
+#include <time.h>
 //---------------------------------------------------------------------------
 #define DUK_STRING_PUSH_SAFE (1 << 0)
 
@@ -17,6 +18,7 @@ struct duk_wrapper_container {
     void **HANDLERS;
     unsigned short HLEN;
     unsigned char binary_mode;
+    unsigned int timeout;
 };
 
 void on_error(void *udata, const char *msg) {
@@ -39,6 +41,15 @@ static void debug_dump(duk_context *ctx) {
     duk_pop(ctx);
 }
 
+int duk_exec_timeout_check(void *udata) {
+    if (!udata)
+        return 0;
+    struct duk_wrapper_container *ref = (struct duk_wrapper_container *)udata;
+    if ((ref->timeout) && (time(NULL) > ref->timeout))
+        return 1;
+    return 0;
+}
+
 CONCEPT_DLL_API ON_CREATE_CONTEXT MANAGEMENT_PARAMETERS {
     InvokePtr       = Invoke;
     return 0;
@@ -49,12 +60,12 @@ CONCEPT_DLL_API ON_DESTROY_CONTEXT MANAGEMENT_PARAMETERS {
 }
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(JSNewRuntime, 0)
-    duk_context *ctx = duk_create_heap(NULL, NULL, NULL, NULL, on_error);
+    struct duk_wrapper_container *ref = (struct duk_wrapper_container *)malloc(sizeof(struct duk_wrapper_container));
+    duk_context *ctx = duk_create_heap(NULL, NULL, NULL, ref, on_error);
     if (ctx) {
 	    duk_push_c_function(ctx, native_print, DUK_VARARGS);
         duk_put_global_string(ctx, "print");
 
-        struct duk_wrapper_container *ref = (struct duk_wrapper_container *)malloc(sizeof(struct duk_wrapper_container));
         if (ref) {
             memset(ref, 0, sizeof(struct duk_wrapper_container));
             ref->ctx = ctx;
@@ -69,6 +80,8 @@ CONCEPT_FUNCTION_IMPL(JSNewRuntime, 0)
             duk_destroy_heap(ctx);
         }
     } else {
+        if (ref)
+            free(ref);
         RETURN_NUMBER(0);
     }
 END_IMPL
@@ -367,7 +380,20 @@ void RecursivePush(duk_context *ctx, void *var, INVOKE_CALL Invoke, unsigned cha
     }
 
 }
+//------------------------------------------------------------------------
+CONCEPT_FUNCTION_IMPL(JSTimeout, 2)
+    T_HANDLE(JSTimeout, 0)
+    T_NUMBER(JSTimeout, 1)
 
+    duk_wrapper_container *container = (duk_wrapper_container *)(intptr_t)PARAM(0);
+    int timeout = PARAM_INT(1);
+    if (timeout > 0)
+        container->timeout = time(NULL) + timeout;
+    else
+        container->timeout = 0;
+    RETURN_NUMBER(0);
+END_IMPL
+//------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(JSCall, 3, 4)
     T_HANDLE(JSCall, 0)
     T_STRING(JSCall, 1)
