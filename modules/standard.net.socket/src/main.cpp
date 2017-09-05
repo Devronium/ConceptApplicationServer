@@ -616,7 +616,11 @@ CONCEPT_DLL_API CONCEPT_SocketCreate CONCEPT_API_PARAMETERS {
     }
 #endif
     if ((int)type == 0) {
+#ifdef _WIN32
+        DWORD flag = 1;
+#else
         int flag = 1;
+#endif
         setsockopt(sock,
                    SOL_SOCKET,
                    SO_KEEPALIVE,
@@ -628,7 +632,15 @@ CONCEPT_DLL_API CONCEPT_SocketCreate CONCEPT_API_PARAMETERS {
                    SO_REUSEADDR,
                    (char *)&flag,
                    sizeof(flag));
-
+#ifdef _WIN32 
+#ifdef SO_EXCLUSIVEADDRUSE
+        setsockopt(sock,
+                   SOL_SOCKET,
+                   SO_EXCLUSIVEADDRUSE,
+                   (char *)&flag,
+                   sizeof(flag));
+#endif
+#endif
         struct linger so_linger;
         so_linger.l_onoff  = 1;
         so_linger.l_linger = 1;
@@ -2503,4 +2515,21 @@ CONCEPT_FUNCTION_IMPL(SCTPConnectx, 5)
     RETURN_NUMBER(res);
 END_IMPL
 //=====================================================================================//
-
+CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(SocketReusePort, 1, 2)
+    T_NUMBER(SocketReusePort, 0)
+    int flag = 1;
+    if (PARAMETERS_COUNT > 1) {
+        T_NUMBER(SocketReusePort, 1)
+        flag = PARAM_INT(1);
+    }
+    int res = -2;
+#ifdef SO_REUSEPORT
+    res = setsockopt(sock,
+                SOL_SOCKET,
+                SO_REUSEPORT,
+                (char *)&flag,
+                sizeof(flag));
+#endif
+    RETURN_NUMBER(res);
+END_IMPL
+//=====================================================================================//
