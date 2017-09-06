@@ -50,6 +50,8 @@ define JS_CGI_DONE_TIMEOUT	30
 define JS_MAX_TIMEOUT		1200
 define JS_FRAMEWORK		"/js/"
 
+define ACCEPT_WORKERS		false
+
 // 128k pipe read buffer
 define PIPE_MAX_STDOUT_BUFFER	0x20000
 // 2Mb stdout buffer
@@ -3781,6 +3783,8 @@ class ConceptServer extends RewriteContainer {
 	protected var[] H2Workers;
 	protected var TargetH2Worker = 0;
 
+	public var AcceptWorkers = false;
+
 	ConceptServer(inifile="") {
 		super();
 		this.mimetypes = [
@@ -4811,6 +4815,26 @@ class ConceptServer extends RewriteContainer {
 		this.SSLWSPort = value IniGet(inifile, "Server", "SecureWebPort", "2681");
 
 		this.IniFile = inifile;
+
+		if (ACCEPT_WORKERS) {
+			// MS Windows has no SO_REUSEPORT
+			// if (ON_MSWINDOWS)
+			//	this.AcceptWorkers = true;
+
+			if (!SocketReusePort(Socket.Socket))
+				this.AcceptWorkers = true;
+			if (!SocketReusePort(WSSocket.Socket))
+				this.AcceptWorkers = true;
+			if (SSLWSSocket) {
+				if (!SocketReusePort(SSLWSSocket.Socket))
+					this.AcceptWorkers = true;
+			}
+			if (TLSWSSocket) {
+				if (!SocketReusePort(TLSWSSocket.Socket))
+					this.AcceptWorkers = true;
+			}
+		}
+
 		for (var i = 0; i < DEFAULT_CGI_WORKERS; i++) {
 			Workers[i] = new Worker("ConceptWorker", BinarizeObject(["Worker${i+1}", inifile]));
 			Sleep(100);
@@ -5267,7 +5291,23 @@ class ConceptServer extends RewriteContainer {
 	}
 }
 
+class ConceptServerWorker extends ConceptServer {
+	ConceptServerWorker(ini_file) {
+		super(ini_file);
+		this.Start();
+	}
+}
+
 class Main {
+	protected var[] AcceptWorkers;
+
+	protected CreateSharedPortWorkers(ini_file, sharedport_workers) {
+		for (var i = 0; i < sharedport_workers; i++) {
+			AcceptWorkers[i] = new Worker("ConceptServerWorker", ini_file);		
+			Sleep(100);
+		}
+	}
+
 	Main() {
 		var ini_file="/usr/local/etc/concept.ini";
 		if (!FileExists(ini_file))
@@ -5290,6 +5330,8 @@ class Main {
 			}
 		}
 		try {
+			if ((ACCEPT_WORKERS) && (s.AcceptWorkers))
+				CreateSharedPortWorkers(ini_file, ACCEPT_WORKERS);
 			s.Start();
 		} catch (var exc) {
 			echo exc;
