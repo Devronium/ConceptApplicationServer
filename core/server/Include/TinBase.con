@@ -29,7 +29,7 @@ class TinBase {
 		for (var i = 0; i < length tables; i++) {
 			var t = tables[i];
 			if (t)
-				t.ResetCache();
+				t.ResetCache(true);
 		}
 	}
 

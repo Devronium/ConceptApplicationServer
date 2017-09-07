@@ -1235,6 +1235,15 @@ class BM25Index {
 
 	}
 
+	ResetCache() {
+		if (file)
+			file.ResetCache();
+		if (wordsfile)
+			wordsfile.ResetCache();
+		if (graphfile)
+			graphfile.ResetCache();
+	}
+
 	finalize() {
 		Close();
 	}
@@ -1744,8 +1753,10 @@ class BinFile extends File {
 		}
 	}
 
-	ResetCache() {
+	ResetCache(all = false) {
 		cache = new [];
+		if ((all) && (bm25))
+			bm25.ResetCache();
 	}
 
 	protected WriteHeader() {
