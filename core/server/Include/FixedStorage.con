@@ -1,0 +1,526 @@
+include BinFile.con
+
+define MAX_STRUCTURE_SIZE	0xFFFF
+
+class FixedStorage extends BinFile {
+	protected var[] structure;
+	protected var[] keys;
+	protected var description = "";
+	protected var record_size;
+
+	FixedStorage(filename, mode="r+b", use_index = true) {
+		super(filename, mode, use_index);
+	}
+
+	override Open;
+	Open(with_lock = false) {
+		var file_size = filesize(this.name);
+		var valid_file = false;
+		if (file_size < HEADER_SIZE) {
+			WriteFile("", this.name);
+			file_size = 0;
+		} else
+			valid_file = true;
+
+		if (File::Open()) {
+			setvbuf(hFile, 0);
+			if (valid_file) {
+				if (with_lock)
+					this.Lock();
+				fread(var buf, 1, 6, hFile);
+				if ((length buf != 6) || (buf != "CFDB10")) {
+					this.Close();
+					if (with_lock)
+						this.ReleaseLock();
+					var err = _errno();
+					if (err == 13)
+						throw "Datafile is locked";
+					throw "Invalid or corrupted data file (errno ${err})";
+				}
+				var structure_ok = this.ReadStructure();
+				if (with_lock)
+					this.ReleaseLock();
+				if (!structure_ok)
+					throw "Invalid or corrupted data file (no structure info)";
+			} else
+				this.WriteHeader();
+			return true;
+		}
+		return false;
+	}
+
+	protected UpdateStructure() {
+		if (this.structure) {
+			this.keys = GetKeys(this.structure);
+			this.description = "";
+			this.record_size = 0;
+			for (var i = 0; i < length this.keys; i++) {
+				var k = this.keys[i];
+				if (k) {
+					var type = this.structure[k];
+					this.description += type;
+					switch (type[0]) {
+						case "i":
+						case "I":
+						case "u":
+						case "u":
+							this.record_size += (value SubStr(type, 1)) / 8;
+							break;
+						case "f":
+							this.record_size += 4;
+							break;
+						case "d":
+							this.record_size += 8;
+							break;
+						case "s":
+						case ":":
+							this.record_size += value SubStr(type, 1);
+							break;
+						default:
+							throw "Unsupported type specifier: $type";
+					}
+				}
+			}
+		}
+	}
+
+	public SetStructure(array structure) {
+		if (structure)
+			throw "Structure already set";
+		this.structure = structure;
+		this.WriteStructure();
+	}
+
+	override WriteHeader;
+	protected WriteHeader() {
+		var header = pack("su64u64u32:" + HEADER_SIZE, "CFDB10", 0, 0, MODULO_SIZE);
+		fseek(hFile, 0, SEEK_SET);
+		this.Write(header);
+	}
+
+	protected WriteStructure() {
+		fseek(hFile, HEADER_SIZE, SEEK_SET);
+		this.Write(pack("s:" + MAX_STRUCTURE_SIZE, BinarizeObject(structure)));
+	}
+
+	protected ReadStructure() {
+		fseek(hFile, HEADER_SIZE, SEEK_SET);
+		fread(var buf, 1, MAX_STRUCTURE_SIZE, hFile);
+		if ((length buf != MAX_STRUCTURE_SIZE) && (buf))
+			return false;
+		if (buf) {
+			this.structure = UnBinarizeObject(buf);
+			this.UpdateStructure();
+		}
+		return true;
+	}
+
+	protected variablepack(structure, variables) {
+		switch (length variables) {
+			case 0:
+				return pack(structure);
+			case 1:
+				return pack(structure, variables[0]);
+			case 2:
+				return pack(structure, variables[0], variables[1]);
+			case 3:
+				return pack(structure, variables[0], variables[1], variables[2]);
+			case 4:
+				return pack(structure, variables[0], variables[1], variables[2], variables[3]);
+			case 5:
+				return pack(structure, variables[0], variables[1], variables[2], variables[3], variables[4]);
+			case 6:
+				return pack(structure, variables[0], variables[1], variables[2], variables[3], variables[4], variables[5]);
+			case 7:
+				return pack(structure, variables[0], variables[1], variables[2], variables[3], variables[4], variables[5], variables[6]);
+			case 8:
+				return pack(structure, variables[0], variables[1], variables[2], variables[3], variables[4], variables[5], variables[6], variables[7]);
+			case 9:
+				return pack(structure, variables[0], variables[1], variables[2], variables[3], variables[4], variables[5], variables[6], variables[7], variables[8]);
+			case 10:
+				return pack(structure, variables[0], variables[1], variables[2], variables[3], variables[4], variables[5], variables[6], variables[7], variables[8], variables[9]);
+			case 11:
+				return pack(structure, variables[0], variables[1], variables[2], variables[3], variables[4], variables[5], variables[6], variables[7], variables[8], variables[9], variables[10]);
+			case 12:
+				return pack(structure, variables[0], variables[1], variables[2], variables[3], variables[4], variables[5], variables[6], variables[7], variables[8], variables[9], variables[10], variables[11]);
+			case 13:
+				return pack(structure, variables[0], variables[1], variables[2], variables[3], variables[4], variables[5], variables[6], variables[7], variables[8], variables[9], variables[10], variables[11], variables[12]);
+			case 14:
+				return pack(structure, variables[0], variables[1], variables[2], variables[3], variables[4], variables[5], variables[6], variables[7], variables[8], variables[9], variables[10], variables[11], variables[12], variables[13]);
+			case 15:
+				return pack(structure, variables[0], variables[1], variables[2], variables[3], variables[4], variables[5], variables[6], variables[7], variables[8], variables[9], variables[10], variables[11], variables[12], variables[13], variables[14]);
+			case 16:
+				return pack(structure, variables[0], variables[1], variables[2], variables[3], variables[4], variables[5], variables[6], variables[7], variables[8], variables[9], variables[10], variables[11], variables[12], variables[13], variables[14], variables[15]);
+		}
+		throw "Too many variables";
+	}
+
+	variableunpack(buf) {
+		var arr = unpack(description, buf);
+		var[] obj;
+		for (var i = 0; i < length keys; i++) {
+			var k = keys[i];
+			if (k)
+				obj[k] = arr[i];
+		}
+		return obj;
+	}
+
+	override WriteBlock;
+	protected WriteBlock(var data, id) {
+		if (id >= HEADER_SIZE) {
+			if (fseek(hFile, id, SEEK_SET))
+				throw @class + "." + @member + ": Seek error";
+		} else {
+			id = -1;
+			fseek(hFile, 0, SEEK_END);
+		}
+		var buf = "\x00" + data;
+		this.Write(buf);
+		return true;
+	}
+
+	override _Store;
+	protected _Store(var obj, update_index = true, id = -1, changed_keys = null, do_flush = true, change_oid = false, wordcache = null) {
+		if (!hFile)
+			throw "Invalid file descriptor or no open file";
+		if (!structure)
+			throw "No structure set. Call SetStructure first.";
+		var data;
+		var c = new [];
+		var not_oid_update = true;
+		if (typeof obj == "array") {
+			if ((id < 0) && (IsSet(obj, '$')))
+				id = value obj['$'];
+		} else
+			obj = ToArray(obj);
+
+		for (var i = 0; i < length keys; i++) {
+			var k = keys[i];
+			if (k)
+				c[k] = obj[k];
+		}
+
+		if ((changed_keys) && (length changed_keys == 1) && (IsSet(changed_keys, '$oid')))
+			not_oid_update = false;
+		var bm25_document = null;
+		var graph = null;
+		// bm25 index updated
+		if ((bm25) && (c) && (not_oid_update) && ((update_index) || (changed_keys)))
+			bm25_document = bm25.document(c, graph, BM25_GRAPH_LEVEL);
+
+		data = this.variablepack(this.description, c);
+		if (length data != record_size)
+			throw "Invalid data size";
+		if (data) {
+			var orig_id = id;
+			var res = this.WriteBlock(data, id);
+
+			if ((orig_id > 0) && (cache)) {
+				if (IsSet(cache, "" + orig_id))
+					cache = new [];
+			}
+			if (res > 0) {
+				if (do_flush)
+					this.Flush();
+				if (update_index) {
+					if (changed_keys == null)
+						this.UpdateIndex(obj, id);
+					else
+						this.UpdateIndex(changed_keys, id, obj);
+				}
+				if (bm25_document) {
+					if (wordcache) {
+						try {
+							bm25.update(bm25_document, id, changed_keys, graph, false, wordcache, orig_id > 0);
+							if (length wordcache >= BM25_MAX_WORDCACHE)
+								bm25.dumpcache(wordcache);
+						} catch (var exc) {
+							echo "Error in bm25.update $exc\n";
+						}
+					} else {
+						bm25.SetIndexLock(2);
+						try {
+							bm25.update(bm25_document, id, changed_keys, graph, true, null, orig_id > 0);
+						} catch (exc) {
+							echo "Error in bm25.update $exc\n";
+						}
+						bm25.SetIndexLock(false);
+						if (exc)
+							throw exc;
+						this.SyncBM25Info();
+					}
+				}
+			}
+			if (DebugPath) {
+				if (orig_id > 0)
+					WriteFile(data, DebugPath + "/${time()}-${microseconds()}-$id.update.bin");
+				else
+					WriteFile(data, DebugPath + "/${time()}-${microseconds()}-$id.bin");
+			}
+			return id;
+		}
+		return id;
+	}
+
+
+	override InvalidId;
+	InvalidId(id) {
+		if (id < HEADER_SIZE)
+			return true;
+		id -= HEADER_SIZE;
+		if (id < MAX_STRUCTURE_SIZE)
+			return true;
+		if (id % (record_size + 1))
+			return true;
+		return false;
+	}
+
+	override GetOne;
+	GetOne(var id = null, strict = true, offset = -1) {
+		if (offset < 0)
+			id = ftell(hFile);
+		else
+			id = offset;
+		var buf = "";
+		var mod_size = record_size + 1;
+		do {
+			var size = fread(var buf_block, 1, mod_size, hFile);
+			if (size != mod_size) {
+				if (buf)
+					throw @class + "." + @member + ": Corrupted database or invalid read offset (page read)";
+				return "";
+			}
+
+			var flag = buf_block[0];
+			switch (flag) {
+				case "\x00":
+					break;
+				case "\x05":
+					if (strict)
+						return "";
+					// deleted block
+					id = ftell(hFile);
+					continue;
+				default:
+					throw @class + "." + @member + ": Invalid buffer for id $id";
+			}
+			if (Debug)
+				this.__Debug(id);
+
+			buf = SubStr(buf_block, 1);
+		} while (!buf);
+		return buf;
+	}
+
+	override ById;
+	ById(id, fields = null, do_cache = false, cache = null, notify_one = null, notify_data = null) {
+		if (typeof id == "array") {
+			var[] id_flags;
+			var res_array = new [];
+			for (var i = 0; i < length id; i++) {
+				var _id = id[i];
+				var _id_key = "" + _id;
+				if ((_id) && (!InvalidId(_id)) && (!id_flags[_id_key])) {
+					id_flags[_id_key]++;
+					if (do_cache) {
+						var cached_obj = cache[_id_key];
+						if (cached_obj) {
+							res_array[_id_key] = cached_obj;
+							continue;
+						}
+					}
+
+					if (fseek(hFile, _id, SEEK_SET))
+						continue;
+					var res = GetOne(null, true, _id);
+					if (res) {
+						var o = variableunpack(res);
+						if (o != null) {
+							o['$'] = _id;
+							if (notify_one)
+								notify_one(o, notify_data);
+							else
+								res_array[length res_array]  = o;
+							if (do_cache)
+								cache[_id_key] = o;
+						}
+					}
+				}
+			}
+			return res_array;
+		} else {
+			if (InvalidId(id))
+				return null;
+
+			if (do_cache) {
+				var cache_key = "" + id;
+				cached_obj = cache[cache_key];
+				if (cached_obj)
+					return cached_obj;
+			}
+
+			//if (!this.Seek(id))
+			if (fseek(hFile, id, SEEK_SET))
+				return null;
+			res = GetOne(null, true, id);
+			if (res) {
+				o = variableunpack(res);
+				if (o) {
+					o['$'] = id;
+
+					if (do_cache)
+						cache[cache_key] = o;
+				}
+				return o;
+			}
+			return null;
+		}
+	}
+
+	override Scan;
+	Scan(callback, var userdata = null) {
+		fseek(hFile, HEADER_SIZE + MAX_STRUCTURE_SIZE, SEEK_SET);
+		while (var obj = this.GetOne(var id, false)) {
+			var o = variableunpack(obj);
+			if (o) {
+				o['$'] = id;
+				if (callback(o, id, userdata))
+					break;
+			}
+		}
+	}
+
+	override _EmptyBlock;
+	protected _EmptyBlock() {
+		var empty_block = "";
+
+		var block_size = record_size + 1;
+		for (var i = 0; i < block_size; i++)
+			empty_block += "\x00";
+
+		return empty_block;
+	}
+
+	override _DeleteChain;
+	protected _DeleteChain(offset) {
+		if (offset <= 0)
+			return false;
+
+		fseek(hFile, offset, SEEK_SET);
+		this.Write(this._EmptyBlock());
+
+		return true;
+	}
+
+	override _Delete;
+	protected _Delete(id, strict = false, update_index = true) {
+		//if (!this.Seek(id))
+		if (InvalidId(id))
+			return false;
+
+		if (id <= 0)
+			return false;
+
+		if (fseek(hFile, id, SEEK_SET))
+			return false;
+
+
+		var obj = GetOne(null, true, id);
+		if (!obj)
+			return false;
+
+		try {
+			if ((Indexes) && (update_index))
+				this.RemoveIndexes(variableunpack(obj), id);
+		} catch (var exc) {
+			echo "Exception: $exc\n";
+			return false;
+		}
+
+		if (Journal)
+			Journal(obj, this.name, id, 3);
+
+		this._DeleteChain(id);
+		if (cache) {
+			if (IsSet(cache, "" + id))
+				cache = new [];
+		}
+		return true;
+	}
+
+	override Update;
+	Update(o, var id, update_index = true, var oid = null, getoid = false) {
+		oid = null;
+		if (fseek(hFile, id, SEEK_SET))
+			return false;
+		var keys = GetKeys(o);
+		if (keys) {
+			// nothing to update
+			if ((length keys == 1) && (keys[0] == '$'))
+				return true;
+			var res = GetOne(null, true, id);
+			if (res) {
+				var old = variableunpack(res);
+				if (old) {
+					var[] new_values;
+					var[] changed;
+					for (var i = 0; i < length keys; i++) {
+						var k = keys[i];
+						if ((k) && (k != '$')) {
+							// add to array
+							var val = o[k];
+							if (k[0] == "+") {
+								k++;
+								if (SetKey(old, k, val, var first_key, var prec_value, true)) {
+									changed[k] = prec_value;
+									new_values[k] = val;
+								}
+							} else {
+								if (SetKey(old, k, val, first_key, prec_value)) {
+									changed[k] = prec_value;
+									new_values[/*first_key*/k] = val;
+								}
+							}
+						}
+					}
+					if (getoid)
+						oid = old['$oid'];
+					// nothing changed
+					if (!changed)
+						return true;
+					if (update_index)
+						update_index = this.RemoveIndexesIfChanged(changed, id, old);
+
+					if (fseek(hFile, id, SEEK_SET))
+						return false;
+					this._Store(old, update_index, id, new_values);
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+
+	override FetchByIndex;
+	FetchByIndex(addr, start = 0, len = -1) {
+		var[] result;
+		for (var i = 0; i < length addr; i++) {
+			var offset = addr[i] + HEADER_SIZE + MAX_STRUCTURE_SIZE;
+			fseek(hFile, offset, SEEK_SET);
+			var obj = this.GetOne(var id, true, offset);
+			if (obj) {
+				var o = variableunpack(obj);
+				if (o) {
+					o['$'] = id;
+					result[length result] = o;
+				}
+			}
+		}
+		return result;
+	}
+
+	finalize() {
+		File::finalize();
+	}
+}
