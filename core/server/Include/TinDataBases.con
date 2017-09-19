@@ -556,7 +556,7 @@ class TinDataSet {
 		this.Connection._Handle(q, callback, this.UserData);
 	}
 
-	Update(params, array new_values, delegate callback, len = 0, start = 0, descending = false, priority = 0, jsupdate = "") {
+	Update(params, array new_values, callback = null, len = 0, start = 0, descending = false, priority = 0, jsupdate = "") {
 		if (typeof params != "array") {
 			if (typeof params == "object")
 				params = Prepare(params);

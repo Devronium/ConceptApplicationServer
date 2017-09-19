@@ -625,15 +625,13 @@ class SQLParser {
 		syntax["FROM"] = from;
 		var last_join;
 		var[] join_ref;
+		var has_where = false;
 		do {
 			command = ToUpper(SQLParser::parseAtom(buffer, err, offset));
 			if (command) {
 				switch (command) {
 					case ";":
 						return true;
-					case "WHERE":
-						syntax["WHERE"] = SQLParser::parseWhere(buffer, err, offset, parameters);
-						break;
 					case "OFFSET":
 						syntax["OFFSET"] = SQLParser::parseNumber(buffer, err, offset);
 						break;
@@ -714,6 +712,12 @@ class SQLParser {
 							SQLParser::error(err, offset, "JS code expected");
 						}
 						break;
+					case "WHERE":
+						if (!has_where) {
+							has_where = true;
+							syntax["WHERE"] = SQLParser::parseWhere(buffer, err, offset, parameters);
+							break;
+						}
 					default:
 						SQLParser::error(err, offset, "Syntax error in SELECT: unexpected '$command'");
 						return false;
