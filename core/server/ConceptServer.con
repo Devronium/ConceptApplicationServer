@@ -1317,7 +1317,7 @@ class ConceptChild {
 									}
 								}
 							} else
-							if ((method) && ((method=="GET") || (method=="POST"))) {
+							if ((method) && ((method=="GET") || (method=="POST") || (method=="PUT"))) {
 								tstamp=StrReplace(StrReplace(asctime(time()), "\r", ""), "\n", "")+" GMT";
 								var ok = false;
 								var err = 404;
@@ -3462,6 +3462,7 @@ pragma used
 			switch (method) {
 				case "GET":
 				case "POST":
+				case "PUT":
 					if (this.Rewrite)
 						path = this.Rewrite(path, params);
 
@@ -4837,7 +4838,7 @@ class ConceptServer extends RewriteContainer {
 
 		for (var i = 0; i < DEFAULT_CGI_WORKERS; i++) {
 			Workers[i] = new Worker("ConceptWorker", BinarizeObject(["Worker${i+1}", inifile]));
-			Sleep(100);
+			// Sleep(100);
 		}
 	}
 
@@ -5263,7 +5264,7 @@ class ConceptServer extends RewriteContainer {
 					var h2worker_init_parameters = BinarizeObject([this.IniFile, this.ConceptClient, this.mimetypes, this.cgi, this.cgiother]);
 					for (i = 0; i < DEFAULT_H2_WORKERS; i++) {
 						H2Workers[i] = new Worker("ConceptH2Worker", h2worker_init_parameters);
-						Sleep(100);
+						// Sleep(100);
 					}
 				}
 			}
@@ -5304,7 +5305,7 @@ class Main {
 	protected CreateSharedPortWorkers(ini_file, sharedport_workers) {
 		for (var i = 0; i < sharedport_workers; i++) {
 			AcceptWorkers[i] = new Worker("ConceptServerWorker", ini_file);		
-			Sleep(100);
+			// Sleep(100);
 		}
 	}
 
