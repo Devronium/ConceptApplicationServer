@@ -2,7 +2,9 @@
 #include "stdlibrary.h"
 //------------ end of standard header ----------------------------//
 #include "AnsiString.h"
-#include "duktape.h"
+extern "C" {
+    #include "duktape.h"
+}
 #include "library.h"
 #include <time.h>
 //---------------------------------------------------------------------------
@@ -41,13 +43,15 @@ static void debug_dump(duk_context *ctx) {
     duk_pop(ctx);
 }
 
-int duk_exec_timeout_check(void *udata) {
-    if (!udata)
+extern "C" {
+    int duk_exec_timeout_check(void *udata) {
+        if (!udata)
+            return 0;
+        struct duk_wrapper_container *ref = (struct duk_wrapper_container *)udata;
+        if ((ref->timeout) && (time(NULL) > ref->timeout))
+            return 1;
         return 0;
-    struct duk_wrapper_container *ref = (struct duk_wrapper_container *)udata;
-    if ((ref->timeout) && (time(NULL) > ref->timeout))
-        return 1;
-    return 0;
+    }
 }
 
 CONCEPT_DLL_API ON_CREATE_CONTEXT MANAGEMENT_PARAMETERS {
