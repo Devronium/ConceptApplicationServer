@@ -793,7 +793,7 @@ static bool function_handler(JSContext *cx, unsigned argc, JS::Value *vp) {
     int index     = 0;
     for ( ; i < argc; i++) {
         jsval param = argv[i];
-        CREATE_VARIABLE(PARAMETERS[index]);
+        NEW_VARIABLE(HANDLER, PARAMETERS[index]);
         JS_TO_CONCEPT(HANDLER, cx, PARAMETERS[index], param);
         index++;
     }
@@ -1100,7 +1100,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(JSSetErrorReporter, 2, 3)
 
     void *DELEG = NULL;
     if (lock) {
-        DUPLICATE_VARIABLE(PARAMETER(1), DELEG);
+        DUPLICATE_VARIABLE_GC(PARAMETERS->HANDLER, PARAMETER(1), DELEG);
     } else
         DELEG = PARAMETER(1);
     void *ERR_DELEGATE = SetErrorDelegate(((JSContext *)(SYS_INT)PARAM(0)), DELEG, lock);
@@ -1331,7 +1331,7 @@ CONCEPT_FUNCTION_IMPL(JSWrap, 4)
     _SetVariable = SetVariable;
 
     void *DELEG = NULL;
-    DUPLICATE_VARIABLE(PARAMETER(2), DELEG);
+    DUPLICATE_VARIABLE_GC(PARAMETERS->HANDLER, PARAMETER(2), DELEG);
 
     void *OLD_DELEGATE = SetFunction(PARAM(3), DELEG, (JSContext *)PARAM_INT(0), (JSObject *)(SYS_INT)PARAM(1));
     // LOCK_VARIABLE(PARAMETER(2));

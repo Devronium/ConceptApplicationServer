@@ -21,6 +21,7 @@ struct duk_wrapper_container {
     unsigned short HLEN;
     unsigned char binary_mode;
     unsigned int timeout;
+    void *HANDLER;
 };
 
 void on_error(void *udata, const char *msg) {
@@ -73,6 +74,7 @@ CONCEPT_FUNCTION_IMPL(JSNewRuntime, 0)
         if (ref) {
             memset(ref, 0, sizeof(struct duk_wrapper_container));
             ref->ctx = ctx;
+            ref->HANDLER = PARAMETERS->HANDLER;
 
             duk_push_global_stash(ctx);
             duk_push_pointer(ctx, ref); 
@@ -507,7 +509,7 @@ static duk_ret_t concept_handler_func(duk_context *ctx) {
     PARAMETERS[n] = 0;
 
 	for (duk_idx_t i = 0; i < n; i++) {
-        CREATE_VARIABLE(PARAMETERS[i]);
+        NEW_VARIABLE(container->HANDLER, PARAMETERS[i]);
         RecursiveValue(ctx, PARAMETERS[i], i, Invoke);
     }
 
@@ -548,7 +550,7 @@ CONCEPT_FUNCTION_IMPL(JSWrap, 3)
     short delegate_id = 0;
     if (container->HANDLERS) {
         void *var = NULL;
-        DUPLICATE_VARIABLE(PARAMETER(1), var);
+        DUPLICATE_VARIABLE_GC(PARAMETERS->HANDLER, PARAMETER(1), var);
         if (var) {
             container->HANDLERS[container->HLEN] = var;
             container->HLEN++;

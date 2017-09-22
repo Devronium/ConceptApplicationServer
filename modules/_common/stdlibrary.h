@@ -257,6 +257,7 @@ typedef INTEGER (*CALL_BACK_CLASS_MEMBER_SET)(void *CLASS_PTR, char *class_membe
 
 #define DEFINE_CLASS(class_name, ...)                     Invoke(INVOKE_DEFINE_CLASS, HANDLER, class_name, __VA_ARGS__, 0)
 #define CREATE_VARIABLE(VARIABLE)                         Invoke(INVOKE_CREATE_VARIABLE, & VARIABLE)
+#define NEW_VARIABLE(HANDLER, VARIABLE)                   Invoke(INVOKE_CREATE_VARIABLE_2, HANDLER, & VARIABLE)
 #define CREATE_ARRAY(VARIABLE)                            Invoke(INVOKE_CREATE_ARRAY, VARIABLE)
 #define FREE_VARIABLE(VARIABLE)                           Invoke(INVOKE_FREE_VARIABLE, VARIABLE)
 #define FREE_VARIABLE_REFERENCE(VARIABLE)                 Invoke(INVOKE_FREE_VARIABLE_REFERENCE, VARIABLE)
@@ -313,6 +314,17 @@ double *GetDoubleList(void *arr, INVOKE_CALL _Invoke);
 
 #define DUPLICATE_VARIABLE(VARIABLE, NEWVAR)    {                       \
     CREATE_VARIABLE(NEWVAR);                                            \
+    if (NEWVAR) {                                                       \
+        INTEGER    type     = 0;                                        \
+        char       *szValue = 0;                                        \
+        NUMBER     nValue   = 0;                                        \
+        Invoke(INVOKE_GET_VARIABLE, VARIABLE, &type, &szValue, &nValue);\
+        Invoke(INVOKE_SET_VARIABLE, NEWVAR, type, szValue, nValue);     \
+    }                                                                   \
+}
+
+#define DUPLICATE_VARIABLE_GC(HANDLER, VARIABLE, NEWVAR)    {           \
+    NEW_VARIABLE(HANDLER, NEWVAR);                                      \
     if (NEWVAR) {                                                       \
         INTEGER    type     = 0;                                        \
         char       *szValue = 0;                                        \

@@ -330,12 +330,12 @@ public:
 #endif
     }
 
-    int AddLooper(void *DELEGATE, INVOKE_CALL Invoke) {
+    int AddLooper(void *HANDLER, void *DELEGATE, INVOKE_CALL Invoke) {
         for (int i = 0; i < LOOPERS_count; i++) {
             if (!LOOPERS[i]) {
                 //Invoke(INVOKE_LOCK_VARIABLE, DELEGATE);
                 void *var = NULL;
-                DUPLICATE_VARIABLE(DELEGATE, var);
+                DUPLICATE_VARIABLE_GC(HANDLER, DELEGATE, var);
                 LOOPERS[i] = var;
                 return i + 1;
             }
@@ -344,7 +344,7 @@ public:
         LOOPERS = (void **)realloc(LOOPERS, sizeof(void *) * LOOPERS_count);
         if (LOOPERS) {
             void *var = NULL;
-            DUPLICATE_VARIABLE(DELEGATE, var);
+            DUPLICATE_VARIABLE_GC(HANDLER, DELEGATE, var);
             LOOPERS[LOOPERS_count - 1] = var;
             // Invoke(INVOKE_LOCK_VARIABLE, DELEGATE);
             return LOOPERS_count;
@@ -352,12 +352,12 @@ public:
         return -1;
     }
 
-    int SetOnConnectionChanged(void *DELEGATE, INVOKE_CALL Invoke) {
+    int SetOnConnectionChanged(void *HANDLER, void *DELEGATE, INVOKE_CALL Invoke) {
         if (ConnectionChangedDelegate)
             Invoke(INVOKE_FREE_VARIABLE, ConnectionChangedDelegate);
 
         void *var = NULL;
-        DUPLICATE_VARIABLE(DELEGATE, var);
+        DUPLICATE_VARIABLE_GC(HANDLER, DELEGATE, var);
 
         ConnectionChangedDelegate = var;
         // Invoke(INVOKE_LOCK_VARIABLE, DELEGATE);
@@ -5499,7 +5499,7 @@ AnsiString GenerateCode(int level, void *THIS_REF, void *THIS_VAR, void *pifHand
 
                             if ((OE->OperandLeft_ID == 1) && (OE->Function) && (OE->ParametersCount > -1) && (level > 1)) {
                                 void *DELEGATE2 = 0;
-                                CREATE_VARIABLE(DELEGATE2);
+                                NEW_VARIABLE(pifHandler, DELEGATE2);
                                 AnsiString fname;
                                 if (IS_OK(Invoke(INVOKE_CREATE_DELEGATE, THIS_VAR, DELEGATE2, OE->Function))) {
                                     func += GenerateCode(level - 1, THIS_REF, THIS_VAR, pifHandler, DELEGATE2, Invoke, err, mapped_func, &fname, only_ui);
@@ -5616,7 +5616,7 @@ AnsiString GenerateCode(int level, void *THIS_REF, void *THIS_VAR, void *pifHand
                                             decl += decl2;
                                             if (mname_get.Length()) {
                                                 void *DELEGATE2 = NULL;
-                                                CREATE_VARIABLE(DELEGATE2);
+                                                NEW_VARIABLE(pifHandler, DELEGATE2);
                                                 Invoke(INVOKE_CREATE_DELEGATE, USED_VAR, DELEGATE2, mname_get.c_str());
                                                 func += GenerateCode(level - 1, USED_REF, USED_VAR, pifHandler, DELEGATE2, Invoke, err, mapped_func, &mname_func, only_ui);
                                                 FREE_VARIABLE(DELEGATE2);
@@ -5627,7 +5627,7 @@ AnsiString GenerateCode(int level, void *THIS_REF, void *THIS_VAR, void *pifHand
                                             }
                                             if (mname_set.Length()) {
                                                 void *DELEGATE2 = NULL;
-                                                CREATE_VARIABLE(DELEGATE2);
+                                                NEW_VARIABLE(pifHandler, DELEGATE2);
                                                 Invoke(INVOKE_CREATE_DELEGATE, USED_VAR, DELEGATE2, mname_set.c_str());
                                                 func += GenerateCode(level - 1, USED_REF, USED_VAR, pifHandler, DELEGATE2, Invoke, err, mapped_func, &mname_func, only_ui);
                                                 FREE_VARIABLE(DELEGATE2);
@@ -5865,7 +5865,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(MetaCode, 1, 3)
 
         GetVariable(PARAMETER(0), &type2, &cdata, &nfill);
         THIS_REF = cdata;
-        CREATE_VARIABLE(THIS_VAR);
+        NEW_VARIABLE(PARAMETERS->HANDLER, THIS_VAR);
         SetVariable(THIS_VAR, VARIABLE_CLASS, cdata, 0);
     }
     if (PARAMETERS_COUNT > 1) {
@@ -5905,7 +5905,7 @@ END_IMPL
 CONCEPT_FUNCTION_IMPL(RegisterLooper, 1)
     T_DELEGATE(RegisterLooper, 0)
     GET_METACONTAINER
-    int res = mc->AddLooper(PARAMETER(0), Invoke);
+    int res = mc->AddLooper(PARAMETERS->HANDLER, PARAMETER(0), Invoke);
     RETURN_NUMBER(res);
 END_IMPL
 //------------------------------------------------------------------------
@@ -5950,7 +5950,7 @@ END_IMPL
 CONCEPT_FUNCTION_IMPL(SetOnConnectionChanged, 1)
     T_DELEGATE(SetOnConnectionChanged, 0)
     GET_METACONTAINER
-    int res = mc->SetOnConnectionChanged(PARAMETER(0), Invoke);
+    int res = mc->SetOnConnectionChanged(PARAMETERS->HANDLER, PARAMETER(0), Invoke);
     RETURN_NUMBER(res);
 END_IMPL
 //------------------------------------------------------------------------
