@@ -141,8 +141,10 @@ PIFAlizator::PIFAlizator(AnsiString INC_DIR, AnsiString LIB_DIR, AnsiString *S, 
     this->direct_pipe     = 0;
     this->StaticClassList = 0;
 
-    if (!WorkerLockInitialized)
-        WorkerLock = seminit(WorkerLock, 1);
+    if (!WorkerLockInitialized) {
+        seminit(WorkerLock, 1);
+        WorkerLockInitialized = 1;
+    }
     semp(WorkerLock);
 
     if (sibling) {
