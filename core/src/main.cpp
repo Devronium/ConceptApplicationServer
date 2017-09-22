@@ -789,11 +789,44 @@ int CheckReachability(void *PIF) {
         root = (GCRoot *)root->NEXT;
     }
 
+    // Mark locked objects.
+    // A C library may hold a lock on an object or array.
+    // In this case, all child object must be locked to avoid 
+    // garbage collected.
+    // =================================== //
+    ClassPool *POOL = (ClassPool *)((PIFAlizator *)PIF)->CLASSPOOL;
+    while (POOL) {
+        if (POOL->POOL_VARS < OBJECT_POOL_BLOCK_SIZE) {
+            for (int i = 0; i < OBJECT_POOL_BLOCK_SIZE; i++) {
+                CompiledClass *CC = &POOL->POOL[i];
+                if ((CC->flags >= 0) && (CC->reachable >= 0x1C)) {
+                    if ((CC->reachable & 0x03) != reach_id_flag)
+                        MarkRecursive(PIF, CC, reach_id_flag);
+                }
+            }
+        }
+        POOL = (ClassPool *)POOL->NEXT;
+    }
+    ArrayPool *ARRAYPOOL = (ArrayPool *)((PIFAlizator *)PIF)->ARRAYPOOL;
+    while (ARRAYPOOL) {
+        if (ARRAYPOOL->POOL_VARS < ARRAY_POOL_BLOCK_SIZE) {
+            for (int i = 0; i < ARRAY_POOL_BLOCK_SIZE; i++) {
+                Array *ARR = &ARRAYPOOL->POOL[i];
+                if ((ARR->flags >= 0) && (ARR->reachable >= 0x1C)) {
+                    if ((ARR->reachable & 0x03) != reach_id_flag)
+                        MarkRecursive(PIF, ARR, reach_id_flag);
+                }
+            }
+        }
+        ARRAYPOOL = (ArrayPool *)ARRAYPOOL->NEXT;
+    }
+    // =================================== //
+
     GarbageCollector __gc_obj;
     GarbageCollector __gc_array;
     GarbageCollector __gc_vars;
 
-    ClassPool *POOL = (ClassPool *)((PIFAlizator *)PIF)->CLASSPOOL;
+    POOL = (ClassPool *)((PIFAlizator *)PIF)->CLASSPOOL;
     while (POOL) {
         if (POOL->POOL_VARS < OBJECT_POOL_BLOCK_SIZE) {
             for (int i = 0; i < OBJECT_POOL_BLOCK_SIZE; i++) {
@@ -812,7 +845,7 @@ int CheckReachability(void *PIF) {
     }
 
     int arr = 0;
-    ArrayPool *ARRAYPOOL = (ArrayPool *)((PIFAlizator *)PIF)->ARRAYPOOL;
+    ARRAYPOOL = (ArrayPool *)((PIFAlizator *)PIF)->ARRAYPOOL;
     while (ARRAYPOOL) {
         if (ARRAYPOOL->POOL_VARS < ARRAY_POOL_BLOCK_SIZE) {
             for (int i = 0; i < ARRAY_POOL_BLOCK_SIZE; i++) {
@@ -895,6 +928,8 @@ int GetMemoryStatistics(void *PIF, void *RESULT) {
     VariableDATA *string_var    = ((Array *)RESULT)->ModuleGet("strings");
     VariableDATA *number_var    = ((Array *)RESULT)->ModuleGet("numbers");
     VariableDATA *delegate_var  = ((Array *)RESULT)->ModuleGet("delegates");
+    VariableDATA *lock_obj_var  = ((Array *)RESULT)->ModuleGet("objects_locked");
+    VariableDATA *lock_arr_var  = ((Array *)RESULT)->ModuleGet("arrays_locked");
     VariableDATA *var_pool_var  = ((Array *)RESULT)->ModuleGet("variables_pool_memory");
     VariableDATA *obj_pool_var  = ((Array *)RESULT)->ModuleGet("objects_pool_memory");
     VariableDATA *arr_pool_var  = ((Array *)RESULT)->ModuleGet("arrays_pool_memory");
@@ -984,7 +1019,44 @@ int GetMemoryStatistics(void *PIF, void *RESULT) {
         }
         root = (GCRoot *)root->NEXT;
     }
+
+    // Mark locked objects.
+    // A C library may hold a lock on an object or array.
+    // In this case, all child object must be locked to avoid 
+    // garbage collected.
+    // =================================== //
     ClassPool *POOL = (ClassPool *)((PIFAlizator *)PIF)->CLASSPOOL;
+    while (POOL) {
+        if (POOL->POOL_VARS < OBJECT_POOL_BLOCK_SIZE) {
+            for (int i = 0; i < OBJECT_POOL_BLOCK_SIZE; i++) {
+                CompiledClass *CC = &POOL->POOL[i];
+                if ((CC->flags >= 0) && (CC->reachable >= 0x1C)) {
+                    if ((CC->reachable & 0x03) != reach_id_flag) {
+                        lock_obj_var->NUMBER_DATA++;
+                        MarkRecursive(PIF, CC, reach_id_flag);
+                    }
+                }
+            }
+        }
+        POOL = (ClassPool *)POOL->NEXT;
+    }
+    ArrayPool *ARRAYPOOL = (ArrayPool *)((PIFAlizator *)PIF)->ARRAYPOOL;
+    while (ARRAYPOOL) {
+        if (ARRAYPOOL->POOL_VARS < ARRAY_POOL_BLOCK_SIZE) {
+            for (int i = 0; i < ARRAY_POOL_BLOCK_SIZE; i++) {
+                Array *ARR = &ARRAYPOOL->POOL[i];
+                if ((ARR->flags >= 0) && (ARR->reachable >= 0x1C)) {
+                    if ((ARR->reachable & 0x03) != reach_id_flag) {
+                        lock_arr_var->NUMBER_DATA++;
+                        MarkRecursive(PIF, ARR, reach_id_flag);
+                    }
+                }
+            }
+        }
+        ARRAYPOOL = (ArrayPool *)ARRAYPOOL->NEXT;
+    }
+    // =================================== //
+    POOL = (ClassPool *)((PIFAlizator *)PIF)->CLASSPOOL;
     while (POOL) {
 #ifdef POOL_BLOCK_ALLOC
         obj_pool_var->NUMBER_DATA += sizeof(ClassPool);
@@ -1004,7 +1076,7 @@ int GetMemoryStatistics(void *PIF, void *RESULT) {
         }
         POOL = (ClassPool *)POOL->NEXT;
     }
-    ArrayPool *ARRAYPOOL = (ArrayPool *)((PIFAlizator *)PIF)->ARRAYPOOL;
+    ARRAYPOOL = (ArrayPool *)((PIFAlizator *)PIF)->ARRAYPOOL;
     intptr_t  index      = 0;
     intptr_t  all_arrays = 0;
     while (ARRAYPOOL) {
@@ -1451,8 +1523,10 @@ CONCEPT_DLL_API Concept_Compile(char *filename, char *inc_dir, char *lib_dir, Fo
         }
     } else {
         SS.Print(PIF.PRINT_ERRORS(is_cgi));
+        PIFAlizator::Shutdown();
         return -2;
     }
+    PIFAlizator::Shutdown();
     return 0;
 }
 
@@ -1549,6 +1623,7 @@ CONCEPT_DLL_API Concept_Execute(char *filename, char *inc_dir, char *lib_dir, Fo
                 SS.Print("\n\nThere are RUN-TIME errors.\n");
             }
             NotifyParent(pipe_out, parent, -2, PIF.SerializeWarningsErrors());
+            PIFAlizator::Shutdown();
             return -1;
         }
     } else {
@@ -1563,8 +1638,10 @@ CONCEPT_DLL_API Concept_Execute(char *filename, char *inc_dir, char *lib_dir, Fo
         }
 
         NotifyParent(pipe_out, parent, -3, PIF.SerializeWarningsErrors());
+        PIFAlizator::Shutdown();
         return -2;
     }
+    PIFAlizator::Shutdown();
     return 0;
 }
 
@@ -1665,6 +1742,7 @@ CONCEPT_DLL_API Concept_ExecuteBuffer(char *buffer, int len, char *inc_dir, char
                 SS.Print("\n\nThere are RUN-TIME errors.\n");
             }
             NotifyParent(pipe_out, parent, -2, PIF.SerializeWarningsErrors());
+            PIFAlizator::Shutdown();
             return -1;
         }
     } else {
@@ -1679,8 +1757,10 @@ CONCEPT_DLL_API Concept_ExecuteBuffer(char *buffer, int len, char *inc_dir, char
         }
 
         NotifyParent(pipe_out, parent, -3, PIF.SerializeWarningsErrors());
+        PIFAlizator::Shutdown();
         return -2;
     }
+    PIFAlizator::Shutdown();
     return 0;
 }
 
@@ -1907,6 +1987,7 @@ CONCEPT_DLL_API Concept_Execute3_Done(void *PTR) {
     delete Cptr;
     delete SS;
     delete PIF;
+    PIFAlizator::Shutdown();
     return 0;
 }
 

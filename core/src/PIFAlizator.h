@@ -369,6 +369,8 @@ public:
     void *CachedhDLL;
     static int         argc;
     static char        **argv;
+    static HHSEM       WorkerLock;
+    static char        WorkerLockInitialized;
     int                last_result;
     int                direct_pipe;
     int                fixed_class_count;
@@ -418,6 +420,7 @@ public:
     ~PIFAlizator(void);
 
     void EnsureThreadSafe();
+    static void Shutdown();
 };
 #endif //__PIFALIZATOR_H
 

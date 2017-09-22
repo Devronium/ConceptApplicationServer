@@ -25,6 +25,15 @@ char **PIFAlizator::argv = 0;
 int            PIFAlizator::refSOCKET            = -1;
 CHECK_POINT    PIFAlizator::CheckPoint           = 0;
 SECURE_MESSAGE SimpleStream::send_secure_message = 0;
+HHSEM          PIFAlizator::WorkerLock;
+char           PIFAlizator::WorkerLockInitialized= 0;
+
+void PIFAlizator::Shutdown() {
+    if (PIFAlizator::WorkerLockInitialized) {
+        semdel(PIFAlizator::WorkerLock);
+        PIFAlizator::WorkerLockInitialized = 0;
+    }
+}
 
 void PIFAlizator::AcknoledgeRunTimeError(SCStack *STACK_TRACE, AnsiException *Exc) {
     // notify the client about the run-time error ...
@@ -131,6 +140,10 @@ PIFAlizator::PIFAlizator(AnsiString INC_DIR, AnsiString LIB_DIR, AnsiString *S, 
     this->IDGenerator       = 0;
     this->direct_pipe     = 0;
     this->StaticClassList = 0;
+
+    if (!WorkerLockInitialized)
+        WorkerLock = seminit(WorkerLock, 1);
+    semp(WorkerLock);
 
     if (sibling) {
         this->parentPIF = sibling;
@@ -252,6 +265,7 @@ PIFAlizator::PIFAlizator(AnsiString INC_DIR, AnsiString LIB_DIR, AnsiString *S, 
     this->in_gc              = 0;
     this->TSClassCount       = 0;
     this->Workers            = 0;
+    semv(WorkerLock);
 }
 
 void PIFAlizator::SetPipe(int pipein, int pipeout, int apid, int papid, int direct_pipe) {

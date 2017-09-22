@@ -4161,30 +4161,30 @@ class TinDB {
 			var w_obj = StorageWorkers[i]._workerobj;
 			sworkers[length sworkers] = w_obj;
 			all_storage_workers[length all_storage_workers] = w_obj;
-			Sleep(100);
+			// Sleep(100);
 		}
 		for (i = 0; i < idle_workers; i++) {
 			IDLEWorkers[i] = new Worker("StorageWorker", "journal${Journal::LeadingZero(length all_storage_workers)}", context);
 			var idle_obj = IDLEWorkers[i]._workerobj;
 			idleworkers[length idleworkers] = idle_obj;
 			all_storage_workers[length all_storage_workers] = idle_obj;
-			Sleep(100);
+			// Sleep(100);
 		}
 		for (i = 0; i < workers; i++) {
 			QueryWorkers[i] = new Worker("QueryWorker", BinarizeObject(["QW${i+1}", Rotate(sworkers, i), Rotate(idleworkers, i)]), context);
 			var q_obj = QueryWorkers[i]._workerobj;
 			qworkers[length qworkers] = q_obj;
-			Sleep(100);
+			// Sleep(100);
 		}
 		for (i = 0; i < aggregator_workers; i++) {
 			AggregatorWorkers[i] = new Worker("QueryAggregator", BinarizeObject(["QAW${i+1}", Rotate(qworkers, i)]), context);
 			var a_obj = AggregatorWorkers[i]._workerobj;
 			aworkers[length aworkers] = a_obj;
-			Sleep(100);
+			// Sleep(100);
 		}
 
 		JSWorker = new Worker("JSQueryWorker",  BinarizeObject(["QJSW1", sworkers, idleworkers]), context);
-		Sleep(100);
+		// Sleep(100);
 
 		var sync_worker = null;
 		if (TIN_CLUSTER) {

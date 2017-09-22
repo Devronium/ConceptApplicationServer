@@ -1255,6 +1255,7 @@ INTEGER Invoke(INTEGER INVOKE_TYPE, ...) {
                 }
                 CC->NEEDED        = 0;
                 CC->DEFINED_LEVEL = -1;
+                semp(PIFAlizator::WorkerLock);
                 pif->ClassList->Add(CC, DATA_CLASS_CODE);
 #ifdef CACHED_CLASSES
                 HASH_TYPE key = hash_func(CC->NAME.c_str(), CC->NAME.Length());
@@ -1263,6 +1264,7 @@ INTEGER Invoke(INTEGER INVOKE_TYPE, ...) {
                 pif->SyncClassList();
                 if (pif->parentPIF)
                     ((PIFAlizator *)pif->parentPIF)->SyncClassList();
+                semv(PIFAlizator::WorkerLock);
             }
             break;
 
@@ -2128,6 +2130,7 @@ INTEGER Invoke(INTEGER INVOKE_TYPE, ...) {
                     result = INVALID_INVOKE_PARAMETER;
                     break;
                 }
+                semp(PIFAlizator::WorkerLock);
                 if (pif->Errors.Count())
                     pif->Errors.Clear();
                 int start_from = pif->ClassList->Count();
@@ -2181,6 +2184,7 @@ INTEGER Invoke(INTEGER INVOKE_TYPE, ...) {
                     ref_pif->SyncClassList();
                     ref_pif->EnsureThreadSafe();
                 }
+                semv(PIFAlizator::WorkerLock);
             }
             break;
 
