@@ -379,11 +379,26 @@ public:
     }
 
     void RemoveLooper(int pos, INVOKE_CALL Invoke) {
+        if (!LOOPERS)
+            return;
         if ((pos >= 0) && (pos < LOOPERS_count)) {
             if (LOOPERS[pos]) {
                 Invoke(INVOKE_FREE_VARIABLE, LOOPERS[pos]);
                 LOOPERS[pos] = NULL;
             }
+        }
+    }
+
+    void RemoveLoopers(INVOKE_CALL Invoke) {
+        if (LOOPERS) {
+            for (int i = 0; i < LOOPERS_count; i++) {
+                if (LOOPERS[i]) {
+                    RemoveLooper(i, Invoke);
+                }
+            }
+            free(LOOPERS);
+            LOOPERS       = NULL;
+            LOOPERS_count = 0;
         }
     }
 
@@ -5913,6 +5928,12 @@ CONCEPT_FUNCTION_IMPL(InterateLoop, 0)
     GET_METACONTAINER
     int res = mc->Iterate(Invoke);
     RETURN_NUMBER(res);
+END_IMPL
+//------------------------------------------------------------------------
+CONCEPT_FUNCTION_IMPL(QuitLoop, 0)
+    GET_METACONTAINER
+    mc->RemoveLoopers(Invoke);
+    RETURN_NUMBER(0);
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(MainLoop, 0, 1)
