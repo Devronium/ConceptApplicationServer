@@ -248,3 +248,4 @@ accel DUKJS.con
 accel SpreadsheetML.con
 accel JSApp.con
 accel JSFramework.con
+accel async.tin.con

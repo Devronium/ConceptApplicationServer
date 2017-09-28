@@ -1,6 +1,7 @@
 define PROMISE_PENDING		0
 define PROMISE_FULFILLED	1
 define PROMISE_REJECTED		-1
+define PROMISE_ERROR		-2
 
 class Promise {
 	protected var handler;
@@ -9,6 +10,7 @@ class Promise {
 
 	public var onFulfilled;
 	public var onRejected;
+	public var onCatch;
 	public property state { get _state }
 	public property head { get next }
 
@@ -24,32 +26,69 @@ class Promise {
 			if (_next) {
 				p.onFulfilled = p.onFulfilled ?? _next.onFulfilled;
 				p.onRejected = p.onRejected ?? _next.onRejected;
+				p.onCatch = p.onCatch ?? _next.onCatch;
 			}
 			_next = p;			
 		}
 	}
 
+	protected __handleexception(exc) {
+		_state = PROMISE_ERROR;
+		if (this.onCatch)
+			this.onCatch(exc);
+		else
+		if ((this._next) && (this._next.onCatch))
+			this._next.onCatch(exc);
+		else
+			throw exc;
+	}
+
 	resolve(p = null) {
-		if (_state != PROMISE_PENDING)
-			throw "Invalid promise state in ::resolve";
-		_state = PROMISE_FULFILLED;
-		if (this.onFulfilled) {
-			if (this.parameters)
-				do_next(this.onFulfilled(p, this.parameters));
-			else
-				do_next(this.onFulfilled(p));
+		try {
+			if (_state != PROMISE_PENDING)
+				throw "Invalid promise state in ::resolve";
+			_state = PROMISE_FULFILLED;
+			if (this.onFulfilled) {
+				if (this.parameters)
+					do_next(this.onFulfilled(p, this.parameters));
+				else
+					do_next(this.onFulfilled(p));
+			}
+		} catch (var exc) {
+			this.__handleexception(exc);
+		}
+	}
+
+	resolveNoParams() {
+		try {
+			if (_state != PROMISE_PENDING)
+				throw "Invalid promise state in ::resolve";
+			_state = PROMISE_FULFILLED;
+			if (this.onFulfilled) {
+				if (this.parameters)
+					do_next(this.onFulfilled(this.parameters));
+				else
+					do_next(this.onFulfilled());
+			}
+		} catch (var exc) {
+			this.__handleexception(exc);
+
 		}
 	}
 
 	reject(p = null) {
-		if (_state != PROMISE_PENDING)
-			throw "Invalid promise state in ::reject";
-		_state = PROMISE_REJECTED;
-		if (this.onRejected) {
-			if (this.parameters)
-				do_next(this.onRejected(p, this.parameters));
-			else
-				do_next(this.onRejected(p));
+		try {
+			if (_state != PROMISE_PENDING)
+				throw "Invalid promise state in ::reject";
+			_state = PROMISE_REJECTED;
+			if (this.onRejected) {
+				if (this.parameters)
+					do_next(this.onRejected(p, this.parameters));
+				else
+					do_next(this.onRejected(p));
+			}
+		} catch (var exc) {
+			this.__handleexception(exc);
 		}
 	}
 
@@ -61,16 +100,33 @@ class Promise {
 		return p;
 	}
 
+	_catch(delegate onCatch) {
+		this.onCatch = onCatch;
+		return this;
+	}
+
+	capture(delegate onCatch) {
+		return this._catch(onCatch);
+	}
+
+	error(delegate onCatch) {
+		return this._catch(onCatch);
+	}
+
 	signal() {
-		var ref = this;
-		while (ref) {
-			if (ref._state == PROMISE_PENDING) {
-				if (ref.handler) {
-					ref.handler(ref);
-					return true;
+		try {
+			var ref = this;
+			while (ref) {
+				if (ref._state == PROMISE_PENDING) {
+					if (ref.handler) {
+						ref.handler(ref);
+						return true;
+					}
 				}
+				ref = ref._next;
 			}
-			ref = ref._next;
+		} catch (var exc) {
+			this.__handleexception(exc);
 		}
 		return false;
 	}

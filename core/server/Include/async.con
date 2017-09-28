@@ -1,0 +1,14 @@
+import win32.base.messages
+import standard.lang.cli
+import standard.lang.serialize
+
+class Main {
+	Main() {
+		GLOBALS()["context.async"] = true;
+		var obj = CreateObject2("app", CLArg());
+		if (obj)
+			MainLoop();
+		else
+			echo "Cannot start: no app class defined";
+	}
+}

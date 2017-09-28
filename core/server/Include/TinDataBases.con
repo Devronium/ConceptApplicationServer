@@ -80,6 +80,8 @@ class TinConnection {
 	var OnReconnectRequested;
 	var OnNotify;
 	private var[] ConnectOptions;
+	protected var _cli_mode;
+	protected var _keep_open = false;
 
 	DriverOpen(string db, string host = "localhost", number port = 2668) {
 		InternalBuffer = "";
@@ -147,9 +149,18 @@ class TinConnection {
 		return TinDBOid::oidtostr2(o);
 	}
 
+	protected _CheckCLIMode(cli = false) {
+		if (_cli_mode) {
+			if (ActiveQueries)
+				return false;
+			return true;
+		}
+		return cli;
+	}
+
 	Iterate(cli = false) {
 		if (!this.socket)
-			return cli;
+			return this._CheckCLIMode(cli);
 		while (this.socket.GetHasData()) {
 			var buf = this.socket.Read();
 			if (!buf) {
@@ -157,7 +168,7 @@ class TinConnection {
 				ActiveQueries = new [];
 				if (this.OnReconnectRequested)
 					this.OnReconnectRequested(this);
-				return false;
+				return _CheckCLIMode(false);
 			}
 			InternalBuffer += buf;
 			var size = FromSize(InternalBuffer, var bytes);
@@ -198,7 +209,9 @@ class TinConnection {
 				size = FromSize(InternalBuffer, bytes);
 			}
 		}
-		return cli;
+		if (_keep_open)
+			return cli;
+		return this._CheckCLIMode(cli);
 	}
 
 	AddSubject(string subject = "", priority = 0) {

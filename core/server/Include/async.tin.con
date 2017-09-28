@@ -1,0 +1,80 @@
+include TinDataBases.con
+import win32.base.messages
+import standard.lang.cli
+
+class tinasync extends TinConnection {
+	var[] subjects;
+	tinasync(string db = "appdb", string host = "localhost", number port = 2668) {
+		if (this.DriverOpen(db, host, port)) {
+			RegisterLooper(this.Iterate);
+			this._cli_mode = GLOBALS()["context.async"];
+		}
+	}
+
+	protected PromiseHandler(data, id, err, p) {
+		if (err)
+			return p.reject(err);
+		if ((!data) && (id))
+			return p.resolve(id);
+		return p.resolve(data);	
+	}
+
+	auth(string username = "sysdbadministrator", string password = "sysdbadministrator") {
+		var dataset = new TinDataSet(this, "sys");
+		var p = new Promise();
+		dataset.UserData = p;
+		dataset.Auth(username, password, this.Database, function(data, id, err, p) {
+			if (err)
+				return p.reject(err);
+			return p.resolveNoParams();	
+		});
+		return p;
+	}
+
+	override sql;
+	sql(string, parameters = null) {	
+		var p = new Promise();
+		TinConnection::sql(string, parameters, this.PromiseHandler, p);
+		return p;
+	}
+
+	addsubject(string subject = "") {
+		if (!this.subjects[subject]) {
+			this.subjects[subject] = true;
+			this.AddSubject(subject);
+			// keep connection open forever
+			this._keep_open = true;
+			return true;
+		}
+		return false;
+	}
+
+	removesubject(string subject = "") {
+		if (this.subjects[subject]) {
+			this.subjects[subject] = false;
+			var new_subjects = new [];
+			var keys = GetKeys(this.subjects);
+			for (var i = 0; i < length keys; i++) {
+				var k = keys[i];
+				if (this.subjects[k])
+					new_subjects[k] = true;
+			}
+			this.subjects = new_subjects;
+			if (!this.subjects)
+				this._keep_open = false;
+			this.RemoveSubject(subject);
+			return true;
+		}
+		return false;
+	}
+
+	operator << (string) {
+		this.addsubject(string);
+		return this;
+	}
+
+	operator >> (string) {
+		this.removesubject(string);
+		return this;
+	}
+}
