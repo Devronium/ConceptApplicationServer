@@ -1489,13 +1489,21 @@ void RecursiveNode(void *owner, INVOKE_CALL Invoke, pugi::xml_node xml_node) {
     pugi::xml_node child = xml_node.first_child();
     const pugi::xml_text text = xml_node.text();
     if ((!text) || (text.empty())) {
-        void *list = owner;
+        void *list = NULL;
         Invoke(INVOKE_ARRAY_VARIABLE_BY_KEY, owner, (char *)xml_node.name(), &list);
         if (list) {
             CREATE_ARRAY(list);
         }
         if (list) {
             INTEGER i = 0;
+            for (pugi::xml_attribute attr = xml_node.first_attribute(); attr; attr = attr.next_attribute()) {
+                Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, list, (char *)attr.name(), (INTEGER)VARIABLE_STRING, attr.value(), (NUMBER)0);
+                i++;
+            }
+
+            if ((xml_node.empty()) || (!child))
+                return;
+
             do {
                 void *subarr = 0;
                 Invoke(INVOKE_ARRAY_VARIABLE, list, i, &subarr);
