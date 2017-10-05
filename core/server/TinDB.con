@@ -60,6 +60,7 @@ define ERR_FILENAME_S	"Invalid filename"
 define NOTIFY_MORE_DATA	1
 
 define MAX_CACHED_QUERIES	128
+define MAX_CACHED_USER		5000
 define MAX_CACHE_OBJECT_LEN	50000
 // max 8M per object
 define MAX_CACHE_OBJECT_SIZE	8388608
@@ -189,6 +190,16 @@ pragma used
 	var e = false;
 	var et = "";
 	var[] p;
+}
+
+class CacheData {
+	var r;
+	var timeout;
+
+	CacheData(r, timeout) {
+		this.r = r;
+		this.timeout = time() + timeout;
+	}
 }
 
 class SyncContext {
@@ -697,11 +708,12 @@ pragma used
 		QueryWorkerBase::Sync(obj, syncworker);
 	}
 
-	static Cache(obj, r) {
+	static Cache(obj, r, timeout = 0) {
 		var key = "/" + obj.d + "/" + obj.c;
 		var cache_key = QueryWorkerBase::CacheKey(obj);
+		var cache_obj;
 		if (length r < MAX_CACHE_OBJECT_LEN) {
-			var cache_obj = BinarizeObject(r);
+			cache_obj = BinarizeObject(r);
 			if (length cache_obj > MAX_CACHE_OBJECT_SIZE) {
 				// don't cache large objects
 				return;
@@ -709,6 +721,16 @@ pragma used
 			if (Worker::Set(key, cache_key, cache_obj) > MAX_CACHED_QUERIES) {
 				QueryWorkerBase::InvalidateCache(obj.d, obj.c);
 				Worker::Set(key, cache_key, cache_obj);
+			}
+			if (timeout > 0) {
+				key = "\$/" + obj.d + "/" + obj.c;
+				cache_obj = BinarizeObject(new CacheData(r, timeout));
+				if (length cache_obj > MAX_CACHE_OBJECT_SIZE)
+					return;
+				if (Worker::Set(key, cache_key, cache_obj) > MAX_CACHED_USER) {
+					Worker::Remove(key);
+					Worker::Set(key, cache_key, cache_obj);
+				}
 			}
 		} else {
 			Worker::Remove(key, cache_key);
@@ -719,12 +741,38 @@ pragma used
 		var data;
 		if ((obj.o == "Q") && ((!obj.x) || (!obj.x["map"]) || (!obj.x["explain"])) && (obj.c) && (obj.d)) {
 			var key = "/" + obj.d + "/" + obj.c;
+			var r;
+			var data_obj;
 			if (key) {
-				data = Worker::Get(key, QueryWorkerBase::CacheKey(obj));
+				var cache_key = QueryWorkerBase::CacheKey(obj);
+				if ((obj.x) && (obj.x["cache"])) {
+					var key2 = "\$/" + obj.d + "/" + obj.c;
+					data = Worker::Get(key2, cache_key);
+					if (data) {
+						data_obj = UnBinarizeObject(data);
+						if (classof data_obj == "CacheData") {
+							if (time() > data_obj.timeout) {
+								Worker::Remove(key, cache_key);
+							} else {
+								r = new R();
+								r.q = obj.q;
+								r.p = data_obj.r;
+								if (sock < 0)
+									return r;
+								if ((!obj.io) || (obj.io != current_worker))
+									r.Send(sock, obj.io);
+								else
+									r.Send(sock);
+								return true;
+							}
+						}
+					}
+				}
+				data = Worker::Get(key, cache_key);
 				if (data) {
-					var data_obj = UnBinarizeObject(data);
+					data_obj = UnBinarizeObject(data);
 					if ((data_obj) || (typeof data_obj == "array")) {
-						var r = new R();
+						r = new R();
 						r.q = obj.q;
 						r.p = data_obj;
 						if (sock < 0)
@@ -1725,6 +1773,9 @@ pragma used
 					q_obj.x["descending"] = (q["ORDER"] == -1);
 					q_obj.x["reduce"] = q["REDUCE"];
 					q_obj.x["priority"] = q["PRIORITY"];
+					var cache_timeout = q["CACHE"]; 
+					if (cache_timeout > 0)
+						q_obj.x["cache"] = cache_timeout;
 					if (q["EXPLAIN"])
 						q_obj.x["explain"] = true;
 					if (mod) {
@@ -2301,7 +2352,7 @@ pragma used
 									r.p = js.script("out;");
 									js.script("delete out;");
 									if ((r.p) && (typeof r.p == "array"))
-										QueryWorker::Cache(obj, r.p);
+										QueryWorker::Cache(obj, r.p, obj.x["cache"]);
 									js.gc();
 								} catch (var js_error) {
 									js.gc();
@@ -2314,7 +2365,7 @@ pragma used
 							} else
 							if ((!map) || (obj.worker)) {
 								r.p = t.Query(obj.p, obj.f, obj.x["descending"], obj.x["start"], obj.x["len"]);
-								QueryWorker::Cache(obj, r.p);
+								QueryWorker::Cache(obj, r.p, obj.x["cache"]);
 							} else
 							if ((target_worker) && (target_key)) {
 								r.p = null;

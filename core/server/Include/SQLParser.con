@@ -712,6 +712,9 @@ class SQLParser {
 							SQLParser::error(err, offset, "JS code expected");
 						}
 						break;
+					case "CACHE":
+						syntax["CACHE"] = SQLParser::parseNumber(buffer, err, offset);
+						break;
 					case "WHERE":
 						if (!has_where) {
 							has_where = true;

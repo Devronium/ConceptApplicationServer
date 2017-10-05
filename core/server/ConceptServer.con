@@ -1381,12 +1381,17 @@ class ConceptChild {
 									var is_javascript = false;
 									if (content_type == "application/concept-server-page") {
 										is_server_page = true;
-										cgi = this.Owner.cgi;  
+										cgi = this.Owner.cgi;
 									} else
 									if (content_type == "application/javascript-server-page") {
 										is_server_page = true;
-										cgi = this.Owner.cgi; 
-										is_javascript = true; 
+										cgi = this.Owner.cgi;
+										is_javascript = true;
+									} else
+									if (content_type == "application/javascript-async-page") {
+										is_server_page = true;
+										cgi = this.Owner.cgi;
+										is_javascript = 2;
 									} else
 									if (this.Owner.cgiother) {
 										if (IsSet(this.Owner.cgiother, content_type)) {
@@ -1442,6 +1447,13 @@ class ConceptChild {
 												content_type = "application/concept-server-page";
 												app += "index.csp";
 												is_server_page = true;
+												cgi = this.Owner.cgi;
+											} else
+											if (FileExists(app + "index.cas")) {
+												content_type = "application/concept-async-page";
+												app += "index.cas";
+												is_server_page = true;
+												is_javascript = 2;
 												cgi = this.Owner.cgi;
 											} else
 											if (FileExists(app + "index.ess")) {
@@ -2928,12 +2940,12 @@ pragma used
 		return headers;
 	}
 
-	CreateJavascript(Socket, job) {
+	CreateEnv(Socket, job) {
 		var info = Socket.Info;
 		var address = info["address"];
 		var port = info["port"];
-		var headers_lowercase = ToLower(job.headers);
 
+		var headers_lowercase = ToLower(job.headers);
 		var env = [
 				"DOCUMENT_ROOT": job.root,
 				"GATEWAY_INTERFACE": "CGI/1.1",
@@ -2968,12 +2980,27 @@ pragma used
 			env["HTTPS"] = "on";
 			env["HTTPS_CIPHER"] = Socket.CipherName;
 		}
+		return env;
+	}
+
+	CreateJavascript(Socket, job) {
+		var env = this.CreateEnv(Socket, job);
+
 		return new ConceptJSChild(this.Framework, job.method, Socket, env, job.snippet, null, null, null, HeaderKeys(job.headers));
 	}
 
+	CreateCAS(Socket, job) {
+		var env = this.CreateEnv(Socket, job);
+
+		return new ConceptJSChild(this.Framework, job.method, Socket, env, job.snippet, null, null, null, HeaderKeys(job.headers));		
+	}
+
 	Create(Socket, job, var err_text) {
+		if (job.javascript == 2)
+			return CreateCAS(Socket, job);
 		if (job.javascript)
 			return CreateJavascript(Socket, job);
+
 
 		if (ConceptCGIChild::CreatePipes(var std_out_r, var std_out_w, var std_in_r, var std_in_w, err_text))
 			return null;
@@ -3191,7 +3218,7 @@ pragma used
 		return val;
 	}
 
-	CreateJavascript(Socket, h2, stream, method, root, path, app, query, hostname, local_port, default_header) {
+	CreateEnv(Socket, stream, method, root, path, app, query, hostname, local_port, default_header) {
 		var info = Socket.Info;
 		var address = info["address"];
 		var port = info["port"];
@@ -3231,6 +3258,18 @@ pragma used
 			env["HTTPS"] = "on";
 			env["HTTPS_CIPHER"] = Socket.CipherName;
 		}
+		return env;
+	}
+
+	CreateJavascript(Socket, h2, stream, method, root, path, app, query, hostname, local_port, default_header) {
+		var env = CreateEnv(Socket, stream, method, root, path, app, query, hostname, local_port, default_header);
+
+		return new ConceptJSChild(this.Framework, method, Socket, env, "", h2, stream, default_header);
+	}
+
+	CreateCAS(Socket, h2, stream, method, root, path, app, query, hostname, local_port, default_header) {
+		var env = CreateEnv(Socket, stream, method, root, path, app, query, hostname, local_port, default_header);
+
 		return new ConceptJSChild(this.Framework, method, Socket, env, "", h2, stream, default_header);
 	}
 
@@ -3250,6 +3289,12 @@ pragma used
 		} else
 			hostname = hostname_port;
 
+		if (javascript == 2) {
+			cgi = this.CreateCAS(Socket, h2, stream, this.GetHeader(":method", headers) ?? "GET", root, path, app, query, hostname, local_port, default_header);
+			CGIChildren[length CGIChildren] = cgi;
+			h2.UserData++;
+			return cgi;
+		} else
 		if (javascript) {
 			cgi = this.CreateJavascript(Socket, h2, stream, this.GetHeader(":method", headers) ?? "GET", root, path, app, query, hostname, local_port, default_header);
 			CGIChildren[length CGIChildren] = cgi;
@@ -4779,6 +4824,7 @@ class ConceptServer extends RewriteContainer {
 				"ess" => "application/javascript-server-page",
 				"con" => "application/concept",
 				"csp" => "application/concept-server-page",
+				"cap" => "application/concept-async-page",
 				"accel" => "application/concept-private",
 				"package" => "application/concept-private",
 				"ini" => "application/concept-private"

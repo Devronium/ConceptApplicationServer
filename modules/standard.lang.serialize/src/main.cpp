@@ -1485,6 +1485,50 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(ToXML, 1, 3)
     return err_ser;
 END_IMPL
 //---------------------------------------------------------------------------
+void RecursiveNode(void *owner, INVOKE_CALL Invoke, pugi::xml_node xml_node) {
+    pugi::xml_node child = xml_node.first_child();
+    const pugi::xml_text text = xml_node.text();
+    if ((!text) || (text.empty())) {
+        void *list = owner;
+        Invoke(INVOKE_ARRAY_VARIABLE_BY_KEY, owner, (char *)xml_node.name(), &list);
+        if (list) {
+            CREATE_ARRAY(list);
+        }
+        if (list) {
+            INTEGER i = 0;
+            do {
+                void *subarr = 0;
+                Invoke(INVOKE_ARRAY_VARIABLE, list, i, &subarr);
+                if (subarr) {
+                    CREATE_ARRAY(subarr);
+                    RecursiveNode(subarr, Invoke, child);
+                }
+                i++;
+                child = child.next_sibling();
+            } while (child);
+        }
+    } else {
+        Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, owner, (char *)xml_node.name(), (INTEGER)VARIABLE_STRING, text.get(), (NUMBER)0);
+    }
+}
+
+CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(FromXML, 1, 2)
+    T_STRING(FromXML, 0);
+
+    pugi::xml_document doc;
+    pugi::xml_parse_result result = doc.load_string(PARAM(0));
+    CREATE_ARRAY(RESULT);
+    if (result) {
+        pugi::xml_node xml_node = doc.first_child();
+        if (xml_node)
+            RecursiveNode(RESULT, Invoke, xml_node);
+    } else {
+        if (PARAMETERS_COUNT > 1) {
+            SET_STRING(1, result.description());
+        }
+    }
+END_IMPL
+//---------------------------------------------------------------------------
 void DoVariable(RefContainer *rc, char *member, int type, char *szData, NUMBER nData, void *class_data, void *variable_data, void *orig) {
     INVOKE_CALL Invoke = LocalInvoker;
 
