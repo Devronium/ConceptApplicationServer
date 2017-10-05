@@ -34,13 +34,19 @@ class Promise {
 
 	protected __handleexception(exc) {
 		_state = PROMISE_ERROR;
-		if (this.onCatch)
+		if (this.onCatch) {
 			this.onCatch(exc);
-		else
-		if ((this._next) && (this._next.onCatch))
-			this._next.onCatch(exc);
-		else
-			throw exc;
+		} else {
+			var next = this._next;
+			while (next) {
+				if (next.onCatch) {
+					next.onCatch(exc);
+					return;
+				}
+				next = next._next;
+			}
+		}
+		throw exc;
 	}
 
 	resolve(p = null) {

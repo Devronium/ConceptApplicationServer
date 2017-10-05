@@ -1032,7 +1032,9 @@ int GetMemoryStatistics(void *PIF, void *RESULT) {
                 CompiledClass *CC = &POOL->POOL[i];
                 if ((CC->flags >= 0) && (CC->reachable >= 0x1C)) {
                     if ((CC->reachable & 0x03) != reach_id_flag) {
+#ifdef POOL_BLOCK_ALLOC
                         lock_obj_var->NUMBER_DATA++;
+#endif
                         MarkRecursive(PIF, CC, reach_id_flag);
                     }
                 }
@@ -1047,7 +1049,9 @@ int GetMemoryStatistics(void *PIF, void *RESULT) {
                 Array *ARR = &ARRAYPOOL->POOL[i];
                 if ((ARR->flags >= 0) && (ARR->reachable >= 0x1C)) {
                     if ((ARR->reachable & 0x03) != reach_id_flag) {
+#ifdef POOL_BLOCK_ALLOC
                         lock_arr_var->NUMBER_DATA++;
+#endif
                         MarkRecursive(PIF, ARR, reach_id_flag);
                     }
                 }

@@ -966,17 +966,33 @@ LPVOID WorkerFunction(LPVOID DPARAM) {
 }
 
 //---------------------------------------------------------------------------
-CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(CreateWorker, 3, 4)
+CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(CreateWorker, 3, 6)
     T_STRING(CreateWorker, 0)
     SET_NUMBER(1, 0);
     T_STRING(CreateWorker, 2)
     ShareContext *sharecontext = NULL;
     void *worker = NULL;
+    char *filename = NULL;
     if (PARAMETERS_COUNT > 3) {
         T_NUMBER(CreateWorker, 3);
         sharecontext = (ShareContext *)(SYS_INT)PARAM(3);
     }
-    Invoke(INVOKE_CREATE_WORKER, PARAMETERS->HANDLER, &worker);
+    if (PARAMETERS_COUNT > 4) {
+        T_STRING(CreateWorker, 4);
+        filename = PARAM(4);
+    }
+    if ((filename) && (filename[0])) {
+        char error_buffer[8192];
+        Invoke(INVOKE_CREATE_INDEPENDENT_WORKER, PARAMETERS->HANDLER, &worker, filename, error_buffer, (INTEGER)sizeof(error_buffer));
+        if (PARAMETERS_COUNT > 5) {
+            if (worker) {
+                SET_STRING(5, "");
+            } else {
+                SET_STRING(5, error_buffer);
+            }
+        }
+    } else
+        Invoke(INVOKE_CREATE_WORKER, PARAMETERS->HANDLER, &worker);
     if (worker) {
         //void *variable = NULL;
         //Invoke(INVOKE_CREATE_VARIABLE_2, worker, &variable);
@@ -1355,5 +1371,39 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(WorkerGC, 0, 1)
     if (!worker)
         worker = PARAMETERS->HANDLER;
     Invoke(INVOKE_CHECK_REACHABILITY, worker, RESULT);
+END_IMPL
+//------------------------------------------------------------------------
+CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(WorkerErrors, 0, 2)
+    CREATE_ARRAY(RESULT);
+    void *worker = NULL;
+    INTEGER type = 0;
+    if (PARAMETERS_COUNT > 0) {
+        T_NUMBER(WorkerErrors, 0);
+        worker = (void *)(uintptr_t)PARAM(0);
+    }
+    if (!worker)
+        worker = PARAMETERS->HANDLER;
+    if (PARAMETERS_COUNT > 1) {
+        T_NUMBER(WorkerErrors, 1);
+        type = PARAM_INT(1);
+    }
+    char *errors = NULL;
+    INTEGER err_size = 0;
+    int max_error_size = Invoke(INVOKE_WORKER_ERRORS, worker, type, errors, err_size);
+    if (max_error_size > 0) {
+        err_size = max_error_size + 1;
+        errors = (char *)malloc(err_size);
+        if (errors) {
+            errors[0] = 0;
+            errors[max_error_size] = 0;
+            Invoke(INVOKE_WORKER_ERRORS, worker, type, errors, err_size);
+        }
+    }
+    if (errors) {
+        RETURN_STRING(errors);
+        free(errors);
+    } else {
+        RETURN_STRING("");
+    }
 END_IMPL
 //------------------------------------------------------------------------

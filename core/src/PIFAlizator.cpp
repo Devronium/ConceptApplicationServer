@@ -332,7 +332,7 @@ PIFAlizator::~PIFAlizator(void) {
         int count = ModuleList->Count();
         for (INTEGER i = 0; i < count; i++) {
             HMODULE hLIBRARY = (HMODULE)ModuleList->Item(i);
-            if (this->static_result)
+            if ((this->static_result) || (this->Workers))
                 UnImportModule(hLIBRARY, this);
             else
                 UnImportModule(hLIBRARY);

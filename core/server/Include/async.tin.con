@@ -4,8 +4,12 @@ import standard.lang.cli
 
 class tinasync extends TinConnection {
 	var[] subjects;
+	protected var _connected;
+	public property connected { get _connected };
+
 	tinasync(string db = "appdb", string host = "localhost", number port = 2668) {
 		if (this.DriverOpen(db, host, port)) {
+			_connected = true;
 			RegisterLooper(this.Iterate);
 			this._cli_mode = GLOBALS()["context.async"];
 		}
@@ -23,7 +27,7 @@ class tinasync extends TinConnection {
 		var dataset = new TinDataSet(this, "sys");
 		var p = new Promise();
 		dataset.UserData = p;
-		dataset.Auth(username, password, this.Database, function(data, id, err, p) {
+		dataset.Auth(username, password, this.Database ?? "sys", function(data, id, err, p) {
 			if (err)
 				return p.reject(err);
 			return p.resolveNoParams();	

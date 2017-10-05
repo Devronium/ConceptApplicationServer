@@ -91,6 +91,8 @@
 #define INVOKE_COUNT_DELEGATE_PARAMS2         0x57
 #define INVOKE_MEMBER_INFO                    0x58
 #define INVOKE_GET_KEYS                       0x59
+#define INVOKE_CREATE_INDEPENDENT_WORKER      0x5A
+#define INVOKE_WORKER_ERRORS                  0x5B
 #define INVOKE_PROFILE_MEMORY                 0x60
 #define INVOKE_CREATE_WORKER                  0x61
 #define INVOKE_FREE_WORKER                    0x62

@@ -1999,6 +1999,99 @@ INTEGER Invoke(INTEGER INVOKE_TYPE, ...) {
             }
             break;
 
+        case INVOKE_CREATE_INDEPENDENT_WORKER:
+            {
+                PIFAlizator *PIF     = va_arg(ap, PIFAlizator *);
+                PIFAlizator **worker = va_arg(ap, PIFAlizator * *);
+                char *filename = va_arg(ap, char *);
+                char *error_buffer = va_arg(ap, char *);
+                INTEGER error_buffer_size = va_arg(ap, INTEGER);
+                if ((PIF) && (worker) && (filename)) {
+                    AnsiString S;
+                    S.LoadFile(filename);
+                    PIFAlizator *ref_pif = PIF;
+                    while (ref_pif->parentPIF)
+                        ref_pif = (PIFAlizator *)ref_pif->parentPIF;
+
+                    semp(ref_pif->DelegateLock);
+                    ref_pif->Workers++;
+                    ref_pif->EnsureThreadSafe();
+                    *worker                = new PIFAlizator(ref_pif->INCLUDE_DIR, ref_pif->IMPORT_DIR, &S, ref_pif->out, filename, ref_pif->DebugOn, ref_pif->DEBUGGER_TRAP, ref_pif->DEBUGGER_RESERVED, ref_pif->SERVER_PUBLIC_KEY, ref_pif->SERVER_PRIVATE_KEY, ref_pif->CLIENT_PUBLIC_KEY);
+                    if ((!ref_pif->DebugOn) && (!(*worker)->Unserialize(AnsiString(filename) + DEFAULT_BIN_EXTENSION))) {
+                        (*worker)->Optimize(0, true);
+                    } else {
+                        (*worker)->Execute();
+                        if (!(*worker)->ErrorCount()) {
+                            (*worker)->Optimize();
+                        }
+                    }
+                    AnsiString errors;
+                    if ((*worker)->ErrorCount()) {
+                        errors = (*worker)->PRINT_ERRORS(0);
+                        if (PIF->out) {
+                            if ((!error_buffer) || (error_buffer_size <= 0))
+                                PIF->out->Print(errors);
+                        }
+                        delete *worker;
+                        *worker = NULL;
+                    } else {
+                        if (((*worker)->WarningCount()) && (PIF->out))
+                            PIF->out->Print((*worker)->PRINT_WARNINGS(0));
+
+                        (*worker)->apid        = ref_pif->apid;
+                        (*worker)->parent_apid = ref_pif->parent_apid;
+                        (*worker)->pipe_read   = -1;
+                        (*worker)->pipe_write  = -1;
+                        (*worker)->direct_pipe = -1;
+                        (*worker)->Workers     = ref_pif->Workers;
+                    }
+                    semv(ref_pif->DelegateLock);
+                    if ((error_buffer_size > 0) && (error_buffer)) {
+                        if (*worker) {
+                            error_buffer[0] = 0;
+                        } else {
+                            int max_len = error_buffer_size - 1;
+                            if (errors.Length() < max_len)
+                                max_len = errors.Length();
+                            memcpy(error_buffer, errors.c_str(), max_len);
+                            error_buffer[max_len] = 0;
+                        }
+                    }
+                } else
+                    result = INVALID_INVOKE_PARAMETER;
+                // to do
+            }
+            break;
+
+        case INVOKE_WORKER_ERRORS:
+            {
+                PIFAlizator *PIF        = va_arg(ap, PIFAlizator *);
+                INTEGER print_warnings  = va_arg(ap, INTEGER);
+                char *error_buffer      = va_arg(ap, char *);
+                INTEGER error_buffer_size = va_arg(ap, INTEGER);
+                if (PIF) {
+                    AnsiString errors;
+                    semp(PIFAlizator::WorkerLock);
+                    if (print_warnings) {
+                        if (PIF->WarningCount())
+                            errors = PIF->PRINT_WARNINGS(0);
+                    } else
+                    if (PIF->ErrorCount())
+                        errors = PIF->PRINT_ERRORS(0);
+                    semv(PIFAlizator::WorkerLock);
+                    if ((error_buffer) && (error_buffer_size > 0)) {
+                        int max_len = error_buffer_size - 1;
+                        if (errors.Length() < max_len)
+                            max_len = errors.Length();
+                        memcpy(error_buffer, errors.c_str(), max_len);
+                        error_buffer[max_len] = 0;
+                    }
+                    result = errors.Length();
+                } else
+                    result = INVALID_INVOKE_PARAMETER;
+            }
+            break;
+
         case INVOKE_CREATE_OBJECT_2:
             {
                 PIFAlizator  *pif        = va_arg(ap, PIFAlizator *);

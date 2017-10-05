@@ -47,5 +47,6 @@ extern "C" {
     CONCEPT_FUNCTION(WorkerSharedRWLock)
     CONCEPT_FUNCTION(WorkerMemoryInfo)
     CONCEPT_FUNCTION(WorkerGC)
+    CONCEPT_FUNCTION(WorkerErrors)
 }
 #endif // __LIBRARY_H

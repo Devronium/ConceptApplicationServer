@@ -1,6 +1,161 @@
-import win32.base.messages
 import standard.lang.cli
 import standard.lang.serialize
+import standard.C.time
+import standard.C.io
+import standard.lib.cripto
+include Loop.con
+
+class __asynctimer {
+	protected var timeout;
+	protected var _delegate;
+	public var onexception;
+
+	__asynctimer(delegate, timeout) {
+		this._delegate = delegate;
+		this.timeout = microseconds() + timeout * 1000;
+		Loop::add(this.iterate);
+	}
+
+	public cancel() {
+		_delegate = null;
+		timeout = 0;
+	}
+
+	protected iterate() {
+		if (microseconds() >= timeout) {
+			try {
+				if (_delegate)
+					_delegate();
+			} catch (var exc) {
+				if (onexception)
+					onexception(exc);
+			}
+			return true;
+		}
+		return false;
+	}
+}
+
+class async extends Loop {
+	static timeout(delegate, timeout) {
+		return new __asynctimer(delegate, timeout);
+	}
+}
+
+class fs {
+	readFile(path, callback) {
+		if (callback)
+			callback(_errno(), ReadFile(path));
+		return true;
+	}
+
+	writeFile(path, var data = "", callback = null) {
+		var written = WriteFile(data, path);
+		if (callback)
+			callback(_errno());
+		if (written)
+			return true;
+		return false;
+	}
+}
+
+class session {
+	var sessionid = "";
+	var sessionpath;
+	var setheader;
+	var[] data;
+
+	session() {
+		this.sessionpath = _getenv("sessionpath");
+		if (!this.sessionpath)
+			this.sessionpath = _getenv("tmp");
+		if (!this.sessionpath)
+			this.sessionpath = _getenv("temp");
+		if (!this.sessionpath)
+			this.sessionpath = "/tmp";
+	}
+
+	operator[](key) {
+		if ((data) && (IsSet(data, key)))
+			return data[key];
+		return null;
+	}
+
+	sessionfilename(session_id) {
+		return sessionpath + "/" + sessionid + ".ess";
+	}
+
+	writesession(sessiondata, session_id) {
+		return WriteFile(BinarizeObject(sessiondata), this.sessionfilename(session_id));
+	}
+
+	readsession(session_id) {
+		var data = ReadFile(this.sessionfilename(session_id));
+		if (data)
+			return UnBinarizeObject(data);
+		return null;
+	}
+
+	removesession(session_id) {
+		_unlink(this.sessionfilename(session_id));
+	}
+
+	syncsession(array sessiondata) {
+		if (sessionid) {
+			try {
+				if (typeof sessiondata == "array") {
+					var info = sessiondata["session"];
+					if (typeof info == "array") {
+						var id = info["id"];	
+						if (id == sessionid) {
+							if (this.writesession(sessiondata, sessionid))
+								return;
+						}
+					}
+				}
+			} catch (var exc) {
+				echo exc;
+			}
+			this.removesession(sessionid);
+		}
+	}
+
+	usesession(expires = 2592000, path = "/", domain = "", secure = false, httponly = true) {
+		var sessiondata;
+		if (sessionid)
+			sessiondata = this.readsession(sessionid);
+		if (sessiondata) {
+			var info = sessiondata["session"];
+			if (info) {
+				var is_expired = info["expires"];
+				if (time() > is_expired) {
+					sessiondata = null;
+					this.removesession(sessionid);
+				}
+			}
+		}
+		if (!sessiondata) {
+			sessionid = sha256(CryptoRandom(80));
+			var expires_when = time() + expires;
+			sessiondata = ["session" => ["id" => sessionid, "expires" => expires_when, "created" => time()]];
+			var cookie = "_ess=${sessionid}; Max-Age=" + expires;
+			if (path)
+				cookie += "; Path=$path";
+			if (domain)
+				cookie += "; Domain=$domain";
+			if (secure)
+				cookie += "; Secure";
+			if (httponly)
+				cookie += "; HttpOnly";
+			if (this.setheader)
+				this.setheader("Set-Cookie", cookie);
+			this.writesession(sessiondata, sessionid);
+		}
+
+		data = sessiondata;
+		return sessiondata;
+	}
+}
 
 class Main {
 	Main() {

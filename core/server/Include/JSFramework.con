@@ -20,6 +20,7 @@ class JSFramework {
 		}
 		return path;
 	}
+
 	__FileExists(path) {
 		return FileExists(this.safepath(path));
 	}
@@ -70,7 +71,7 @@ class JSFramework {
 		js.wrap(__FileExists, "FileExists");
 		js.wrap(__ErrorNo, "__ErrorNo");
 		js.wrap(__BinaryIO, "__BinaryIO");
-		js.script("var fs = { 'readFile': function(path, encoding, callback) { if (encoding !== 'utf8') __BinaryIO(true); var data = ReadFile(path, encoding); __BinaryIO(false); if (callback) callback(__ErrorNo(), data); return true; }, 'writeFile': function(path, data, encoding, callback) { var written = WriteFile(path); if (callback) callback(__ErrorNo()); if (written) return true; return false} };\n", "fs");
+		js.script("var fs = { 'readFile': function(path, encoding, callback) { if (encoding !== 'utf8') __BinaryIO(true); var data = ReadFile(path, encoding); __BinaryIO(false); if (callback) callback(__ErrorNo(), data); return true; }, 'writeFile': function(path, data, encoding, callback) { var written = WriteFile(data, path); if (callback) callback(__ErrorNo()); if (written) return true; return false} };\n", "fs");
 	}
 
 	call(func, params) {

@@ -5,8 +5,8 @@ class Worker {
 	var _workerthread;
 	var _shared_context;
 
-	Worker(classname, string parameter = "", shared_context = null) {
-		_workerobj = CreateWorker(classname, _workerthread, parameter, shared_context);
+	Worker(classname, string parameter = "", shared_context = null, string filename = "", var error = null) {
+		_workerobj = CreateWorker(classname, _workerthread, parameter, shared_context, filename, error);
 		if (_workerthread) {
 			var iterations=0;
 			while (!ThreadIsActive(_workerthread)) {
@@ -31,13 +31,25 @@ class Worker {
 
 	Join() {
 		if (_workerobj) {
-			WaitThread(_workerthread);
+			if (_workerthread)
+				WaitThread(_workerthread);
 			FreeWorker(_workerobj);
 			_workerobj = null;
 			_workerthread = 0;
 		}
 	}
 
+	Errors() {
+		if (_workerobj)
+			return WorkerErrors(_workerobj);
+		return "";
+	}
+
+	Warnings() {
+		if (_workerobj)
+			return WorkerErrors(_workerobj, 1);
+		return "";
+	}
 
 	AddData(string data, priority = 0) {
 		if (_workerobj) {
@@ -123,11 +135,14 @@ class Worker {
 			FreeWorker(_workerobj);
 			_workerobj = null;
 			_workerthread = 0;
+			return res;
 		}
 		return 0;
 	}
 
 	IsActive() {
+		if (!_workerthread)
+			return false;
 		return ThreadIsActive(_workerthread);
 	}
 

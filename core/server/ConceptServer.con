@@ -2261,6 +2261,7 @@ class ConceptJSChild extends ConceptCGIChildBase {
 				var is_expired = info["expires"];
 				if (time() > is_expired) {
 					sessiondata = null;
+					this.removesession(sessionid);
 				}
 			}
 		}
@@ -2292,11 +2293,13 @@ class ConceptJSChild extends ConceptCGIChildBase {
 		this.stream = stream;
 		this.h2headers = default_h2_header;
 		this.is_post = true;
-		this.sessionpath = _getenv("tmp");
+		this.sessionpath = _getenv("sessionpath");
+		if (!this.sessionpath)
+			this.sessionpath = _getenv("tmp");
 		if (!this.sessionpath)
 			this.sessionpath = _getenv("temp");
 		if (!this.sessionpath)
-			this.sessionpath = _getenv("/tmp");
+			this.sessionpath = "/tmp";
 		var app = env["SCRIPT_FILENAME"];
 		SocketSetBlocking(Socket.Socket, false);
 		if (h2) {
