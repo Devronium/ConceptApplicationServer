@@ -192,6 +192,11 @@ class _webrequest {
 		Worker::Result(BinarizeObject(["q" => id, "do" => "print", "data" => data]));
 	}
 
+	operator << (data) {
+		this.print(data);
+		return this;
+	}
+
 	finalize() {
 		done();
 	}

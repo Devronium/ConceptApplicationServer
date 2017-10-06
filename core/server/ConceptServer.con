@@ -2752,16 +2752,16 @@ class ConceptCASChild extends ConceptAsyncChild {
 	}
 
 	reset() {
-		this.remotenotify("done");
+		this.remotenotify("done", null, -1);
 		worker = null;
 	}
 
-	remotenotify(action, data = null) {
+	remotenotify(action, data = null, priority = 0) {
 		if (worker) {
 			var arr = ["q" => reqid, "do" => action];
 			if (data)
 				arr["data"] = data;
-			worker.AddData(BinarizeObject(arr));
+			worker.AddData(BinarizeObject(arr), priority);
 		}
 	}
 
@@ -3095,7 +3095,7 @@ class ConceptBaseWorker {
 		for (var i = 0; i < length workers; i++) {
 			var worker = workers[i];
 			if (worker) {
-				var max_iterations = 100;
+				var max_iterations = 5;
 				do {
 					var worker_get = worker.GetResult(var data);
 					if (data)
