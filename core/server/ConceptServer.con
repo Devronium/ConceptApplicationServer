@@ -19,6 +19,7 @@ import standard.C.casts
 import standard.lib.cripto
 import standard.coding.base64
 import standard.lang.cli
+import standard.math.rand
 
 // set to true when in production
 // this will allow only compiled files to run (.accel)
@@ -92,6 +93,22 @@ pragma used
 			socket.Done();
 		}
 		socket.Socket = -1;
+	}
+}
+
+class CGIAsyncWorker {
+	static Create(cgiworkers, app, sharedcontext = null, var err = null) {
+		var worker = cgiworkers[app];
+		if (worker)
+			return worker;
+
+		worker = new Worker("Main", "", sharedcontext, app, err);
+		if (err) {
+			worker.Join();
+			return worker;
+		}
+		cgiworkers[app] = worker;
+		return worker;
 	}
 }
 
@@ -2041,8 +2058,7 @@ class JSCode extends JSFramework {
 	}
 }
 
-class ConceptJSChild extends ConceptCGIChildBase {
-	var js;
+class ConceptAsyncChild extends ConceptCGIChildBase {
 	var running;
 	var print_started = false;
 	var header_started = false;
@@ -2186,43 +2202,6 @@ class ConceptJSChild extends ConceptCGIChildBase {
 		return parts;
 	}
 
-	jsheaders(js, headers) {
-		var[] cookies;
-		if (IsSet(headers, "cookie")) {
-			var cookie_list = headers["cookie"];
-			if (typeof cookie_list == "array") {
-				for (var i = 0; i < length cookie_list; i++)
-					docookie(cookies, cookie_list[i]);
-			} else
-				docookie(cookies, cookie_list);
-		}
-		if (IsSet(headers, "content-type")) {
-			var header = "" + headers["content-type"];
-			var header_lo = ToLower(header);
-			var parameters = StrSplit(header_lo, ";");
-			var content_type = trim("" + parameters[0]);
-			if (content_type != "application/x-www-form-urlencoded") {
-				is_url_encoded = false;
-				if (content_type == "multipart/form-data") {
-					var pos = Pos(header_lo, "boundary=");
-					if (pos > 0) {
-						var boundary = StrSplit(SubStr(header, pos + 8), ";")[0];
-						if (boundary) {
-							this.boundary = trim(boundary);
-							js.variable("boundary", boundary);
-						}
-					}
-				}
-			}
-		}
-		if (IsSet(headers, "content-length")) {
-			this.content_length = value headers["content-length"];
-			js.variable("contentLength", this.content_length);
-		}
-		js.variable("cookies", cookies);
-		return headers;
-	}
-
 	sessionfilename(session_id) {
 		return sessionpath + "/" + sessionid + ".ess";
 	}
@@ -2242,10 +2221,9 @@ class ConceptJSChild extends ConceptCGIChildBase {
 		_unlink(this.sessionfilename(session_id));
 	}
 
-	syncsession() {
+	syncsession(sessiondata) {
 		if (sessionid) {
 			try {
-				var sessiondata = js.js.script("this.session");
 				if (typeof sessiondata == "array") {
 					var info = sessiondata["session"];
 					if (typeof info == "array") {
@@ -2263,109 +2241,22 @@ class ConceptJSChild extends ConceptCGIChildBase {
 		}
 	}
 
-	usesession(expires = 2592000, path = "/", domain = "", secure = false, httponly = true) {
-		var sessiondata;
-		if (sessionid)
-			sessiondata = this.readsession(sessionid);
-		if (sessiondata) {
-			var info = sessiondata["session"];
-			if (info) {
-				var is_expired = info["expires"];
-				if (time() > is_expired) {
-					sessiondata = null;
-					this.removesession(sessionid);
-				}
-			}
-		}
-		if (!sessiondata) {
-			sessionid = sha256(CryptoRandom(80));
-			var expires_when = time() + expires;
-			sessiondata = ["session" => ["id" => sessionid, "expires" => expires_when, "created" => time()]];
-			var cookie = "_ess=${sessionid}; Max-Age=" + expires;
-			if (path)
-				cookie += "; Path=$path";
-			if (domain)
-				cookie += "; Domain=$domain";
-			if (secure)
-				cookie += "; Secure";
-			if (httponly)
-				cookie += "; HttpOnly";
-			this.header("Set-Cookie", cookie);
-			this.writesession(sessiondata, sessionid);
-		}
-
-		js.js.variable("session", sessiondata);
-		return sessiondata;
-	}
-
-	ConceptJSChild(framework, method, Socket, env, buffer, h2 = null, stream = null, default_h2_header = null, headers = null) {
-		this.Socket = Socket;
-		this.std_in_buffer = buffer;
-		this.h2 = h2;
-		this.stream = stream;
-		this.h2headers = default_h2_header;
-		this.is_post = true;
-		this.sessionpath = _getenv("sessionpath");
-		if (!this.sessionpath)
-			this.sessionpath = _getenv("tmp");
-		if (!this.sessionpath)
-			this.sessionpath = _getenv("temp");
-		if (!this.sessionpath)
-			this.sessionpath = "/tmp";
-		var app = env["SCRIPT_FILENAME"];
-		SocketSetBlocking(Socket.Socket, false);
-		if (h2) {
-			h2.MaxOutputBuffer = H2_MAX_STDOUT_BUFFER;
-			h2.MaxFileBuffer = H2_MAX_FILE_BUFFER;
-		}
-		js = new JSCode(this.GetPath(app), null, framework);
-		running = true;
-		js.js.wrap(this.print, "print");
-		js.js.wrap(this.header, "header");
-		js.js.wrap(this.usesession, "usesession");
-		js.js.wrap(this.done, "done");
-		js.js.wrap(this.critical, "critical");
-		js.js.wrap(this.ParseQueryString, "urlparameters");
-		js.js.wrap(this.parsemultipart, "multipart");
-		js.js.variable("request", env);
-		if (stream)
-			js.js.variable("headers", jsheaders(js.js, stream.Headers));
-		else
-		if (headers)
-			js.js.variable("headers", jsheaders(js.js, headers));
-
-		js.js.variable("GET", this.ParseQueryString(env["QUERY_STRING"]));
-		var filecontents = ReadFile(app);
-		if (filecontents) {
-			try {
-				if (buffer)
-					this.parsepostdata(buffer);
-				js.run("try { "+ filecontents + " } catch (exc) { critical(exc); }", app);
-				if (buffer)
-					this.post(buffer, false);
-			} catch (var exc) {
-				this.critical(exc);
-			}
-		} else
-			this.done();
+	print(buffer) {
 		timeout = time() + JS_CGI_DONE_TIMEOUT;
-	}
-
-	reset() {
-		if (js) {
-			// important to avoid memory leak (wrap mantains references!)
-			js.detach();
-			js.js = null;
-			js = null;
+		if ((!header_started) && (!h2)) {
+			std_out_buffer += "HTTP/1.1 200 OK\r\nServer: " + SERVER_NAME + "\r\n";
+			header_started = true;
 		}
-	}
-
-	done() {
-		this.syncsession();
-		timeout = time() + JS_CGI_DONE_TIMEOUT;
-		if ((h2) && (!print_started))
-			write_headers = true;
-		running = false;
+		if (!print_started) {
+			if (h2)
+				write_headers = true;
+			else
+				std_out_buffer += "\r\n";
+		}
+		if (typeof buffer == "array")
+			buffer = this.obj_to_string(buffer, true);
+		print_started = true;
+		std_out_buffer += buffer;
 	}
 
 	critical(exc) {
@@ -2497,26 +2388,14 @@ class ConceptJSChild extends ConceptCGIChildBase {
 		return true;
 	}
 
-	print(buffer) {
+	basedone() {
 		timeout = time() + JS_CGI_DONE_TIMEOUT;
-		if ((!header_started) && (!h2)) {
-			std_out_buffer += "HTTP/1.1 200 OK\r\nServer: " + SERVER_NAME + "\r\n";
-			header_started = true;
-		}
-		if (!print_started) {
-			if (h2)
-				write_headers = true;
-			else
-				std_out_buffer += "\r\n";
-		}
-		if (typeof buffer == "array")
-			buffer = obj_to_string(buffer, true);
-		print_started = true;
-		std_out_buffer += buffer;
+		if ((h2) && (!print_started))
+			write_headers = true;
+		running = false;
 	}
 
-	Close() {
-		Join();
+	baseclosesocket() {
 		if ((h2) && (stream)) {
 			try {
 				stream.Close(h2);
@@ -2537,44 +2416,76 @@ class ConceptJSChild extends ConceptCGIChildBase {
 		}
 		std_out_buffer = "";
 		std_in_buffer = "";
-		if (js)
-			this.reset();
 	}
 
-	parsepostdata(var data) {
-		if (is_url_encoded) {
-			url_buffer += data;
-			var parsed = ParseQueryString(trim(url_buffer));
-			js.js.variable("POST", parsed);
-			js.js.call("onpost", [parsed]);
-			if (length url_buffer > MAX_RECV_BUFFER)
-				url_buffer = "";
+	ConceptAsyncChild(Socket, buffer, h2 = null, stream = null, default_h2_header = null) {
+		this.Socket = Socket;
+		this.std_in_buffer = buffer;
+		this.h2 = h2;
+		this.stream = stream;
+		this.h2headers = default_h2_header;
+		this.is_post = true;
+		this.sessionpath = _getenv("sessionpath");
+		if (!this.sessionpath)
+			this.sessionpath = _getenv("tmp");
+		if (!this.sessionpath)
+			this.sessionpath = _getenv("temp");
+		if (!this.sessionpath)
+			this.sessionpath = "/tmp";
+		SocketSetBlocking(Socket.Socket, false);
+		if (h2) {
+			h2.MaxOutputBuffer = H2_MAX_STDOUT_BUFFER;
+			h2.MaxFileBuffer = H2_MAX_FILE_BUFFER;
 		}
 	}
 
-	post(var data, checkpostdata = true) {
-		if ((js) && (data)) {
-			timeout = time() + JS_CGI_DONE_TIMEOUT;
-			if (checkpostdata)
-				this.parsepostdata(data);
-			js.js.BinaryMode = true;
-			js.js.call("ondata", [data]);
-			js.js.BinaryMode = false;
+	jsheaders(js, headers, arr_data = null) {
+		var[] cookies;
+		if (IsSet(headers, "cookie")) {
+			var cookie_list = headers["cookie"];
+			if (typeof cookie_list == "array") {
+				for (var i = 0; i < length cookie_list; i++)
+					docookie(cookies, cookie_list[i]);
+			} else
+				docookie(cookies, cookie_list);
 		}
-	}
-
-	Iterate(var ops) {
-		// timed out
-		if (time() > timeout) {
-			if (js.js.call("ontimedout", [ ])) {
-				timeout = time() + JS_CGI_DONE_TIMEOUT;
-			} else {
-				std_out_buffer += "\nJSScript timeout out\nDid you forget to call done()?\n";
-				running = false;
+		if (IsSet(headers, "content-type")) {
+			var header = "" + headers["content-type"];
+			var header_lo = ToLower(header);
+			var parameters = StrSplit(header_lo, ";");
+			var content_type = trim("" + parameters[0]);
+			if (content_type != "application/x-www-form-urlencoded") {
+				is_url_encoded = false;
+				if (content_type == "multipart/form-data") {
+					var pos = Pos(header_lo, "boundary=");
+					if (pos > 0) {
+						var boundary = StrSplit(SubStr(header, pos + 8), ";")[0];
+						if (boundary) {
+							this.boundary = trim(boundary);
+							if (js)
+								js.variable("boundary", boundary);
+							else
+								arr_data["boundary"] = boundary;
+						}
+					}
+				}
 			}
 		}
-		if (!running)
-			this.reset();
+		if (IsSet(headers, "content-length")) {
+			this.content_length = value headers["content-length"];
+			if (js)
+				js.variable("contentLength", this.content_length);
+			else
+				arr_data["contentLength"] = this.content_length;
+		}
+		if (js)
+			js.variable("cookies", cookies);
+		else
+			arr_data["cookies"] = cookies;
+		return headers;
+	}
+
+	baseiterate(var ops) {
 		try {
 			if (stream) {
 				if (stream.HasData()) {
@@ -2657,6 +2568,150 @@ class ConceptJSChild extends ConceptCGIChildBase {
 			this.reset();
 			return true;
 		}
+		return false;
+	}
+
+	usesession(expires = 2592000, path = "/", domain = "", secure = false, httponly = true) {
+		var sessiondata;
+		if (sessionid)
+			sessiondata = this.readsession(sessionid);
+		if (sessiondata) {
+			var info = sessiondata["session"];
+			if (info) {
+				var is_expired = info["expires"];
+				if (time() > is_expired) {
+					sessiondata = null;
+					this.removesession(sessionid);
+				}
+			}
+		}
+		if (!sessiondata) {
+			sessionid = sha256(CryptoRandom(80));
+			var expires_when = time() + expires;
+			sessiondata = ["session" => ["id" => sessionid, "expires" => expires_when, "created" => time()]];
+			var cookie = "_ess=${sessionid}; Max-Age=" + expires;
+			if (path)
+				cookie += "; Path=$path";
+			if (domain)
+				cookie += "; Domain=$domain";
+			if (secure)
+				cookie += "; Secure";
+			if (httponly)
+				cookie += "; HttpOnly";
+			this.header("Set-Cookie", cookie);
+			this.writesession(sessiondata, sessionid);
+		}
+		return sessiondata;
+	}
+}
+
+
+class ConceptJSChild extends ConceptAsyncChild {
+	var js;
+
+	ConceptJSChild(framework, method, Socket, env, buffer, h2 = null, stream = null, default_h2_header = null, headers = null) {
+		super(Socket, buffer, h2, stream, default_h2_header);
+		var app = env["SCRIPT_FILENAME"];
+
+		js = new JSCode(this.GetPath(app), null, framework);
+		running = true;
+		js.js.wrap(this.print, "print");
+		js.js.wrap(this.header, "header");
+		js.js.wrap(this.jsusesession, "usesession");
+		js.js.wrap(this.done, "done");
+		js.js.wrap(this.critical, "critical");
+		js.js.wrap(this.ParseQueryString, "urlparameters");
+		js.js.wrap(this.parsemultipart, "multipart");
+		js.js.variable("request", env);
+		if (stream)
+			js.js.variable("headers", jsheaders(js.js, stream.Headers));
+		else
+		if (headers)
+			js.js.variable("headers", jsheaders(js.js, headers));
+
+		js.js.variable("GET", this.ParseQueryString(env["QUERY_STRING"]));
+		var filecontents = ReadFile(app);
+		if (filecontents) {
+			try {
+				if (buffer)
+					this.parsepostdata(buffer);
+				js.run("try { "+ filecontents + " } catch (exc) { critical(exc); }", app);
+				if (buffer)
+					this.post(buffer, false);
+			} catch (var exc) {
+				this.critical(exc);
+			}
+		} else
+			this.done();
+		timeout = time() + JS_CGI_DONE_TIMEOUT;
+	}
+
+	jsusesession(expires = 2592000, path = "/", domain = "", secure = false, httponly = true) {
+		var sessiondata = this.usesession(expires, path, domain, secure, httponly);
+		js.js.variable("session", sessiondata);
+		return sessiondata;
+	}
+
+	reset() {
+		if (js) {
+			// important to avoid memory leak (wrap mantains references!)
+			js.detach();
+			js.js = null;
+			js = null;
+		}
+	}
+
+	done() {
+		if ((js) && (js.js))
+			this.syncsession(js.js.script("this.session"));
+		this.basedone();
+	}
+
+	Close() {
+		Join();
+		baseclosesocket();
+		if (js)
+			this.reset();
+	}
+
+	parsepostdata(var data) {
+		if (is_url_encoded) {
+			url_buffer += data;
+			var parsed = ParseQueryString(trim(url_buffer));
+			js.js.variable("POST", parsed);
+			js.js.call("onpost", [parsed]);
+			if (length url_buffer > MAX_RECV_BUFFER)
+				url_buffer = "";
+		}
+	}
+
+	post(var data, checkpostdata = true) {
+		if ((js) && (data)) {
+			timeout = time() + JS_CGI_DONE_TIMEOUT;
+			if (checkpostdata)
+				this.parsepostdata(data);
+			js.js.BinaryMode = true;
+			js.js.call("ondata", [data]);
+			js.js.BinaryMode = false;
+		}
+	}
+
+	Iterate(var ops) {
+		// timed out
+		if (time() > timeout) {
+			if (js.js.call("ontimedout", [ ])) {
+				timeout = time() + JS_CGI_DONE_TIMEOUT;
+			} else {
+				std_out_buffer += "\nJSScript timeout out\nDid you forget to call done()?\n";
+				running = false;
+			}
+		}
+		if (!running)
+			this.reset();
+
+		if (this.baseiterate(ops))
+			return true;
+
 		if ((js) && ((!ops) || (microseconds() - last_idle_call > 1000000))) {
 			last_idle_call = microseconds();
 			js.js.call("onidle", [ ]);
@@ -2664,6 +2719,118 @@ class ConceptJSChild extends ConceptCGIChildBase {
 		return false;
 	}
 }
+
+class ConceptCASChild extends ConceptAsyncChild {
+	var worker;
+	var reqid;
+
+	ConceptCASChild(worker, err_buffer, method, Socket, env, buffer, h2 = null, stream = null, default_h2_header = null, headers = null) {
+		super(Socket, buffer, h2, stream, default_h2_header);
+
+		this.reqid = sha256("" + ClsPtr(Socket) + "." + method + "." + ClsPtr(h2) + "." + ClsPtr(stream) + "." + RandomInteger(0, 0xFFFFFFF)) ;
+
+		var[] env_data;
+		env_data["env"] = env;
+		if (stream)
+			env_data["headers"] = this.jsheaders(null, stream.Headers, env_data);
+		else
+		if (headers)
+			env_data["headers"] = this.jsheaders(null, headers, env_data);
+		env_data["GET"] = this.ParseQueryString(env["QUERY_STRING"]);
+
+		if (err_buffer) {
+			this.critical(err_buffer);
+		} else {
+			this.worker = worker;
+			running = true;
+			this.remotenotify("new", env_data);
+			if (buffer)
+				this.parsepostdata(buffer);
+		}
+
+		timeout = time() + JS_CGI_DONE_TIMEOUT;
+	}
+
+	reset() {
+		this.remotenotify("done");
+		worker = null;
+	}
+
+	remotenotify(action, data = null) {
+		if (worker) {
+			var arr = ["request" => reqid, "do" => action];
+			if (data)
+				arr["data"] = data;
+			worker.AddData(arr);
+		}
+	}
+
+	done() {
+		this.basedone();
+		this.remotenotify("done");
+		worker = null;
+	}
+
+	Close() {
+		Join();
+		baseclosesocket();
+		if (worker)
+			this.reset();
+	}
+
+	parsepostdata(var data) {
+		if (is_url_encoded) {
+			url_buffer += data;
+			var parsed = ParseQueryString(trim(url_buffer));
+			this.remotenotify("post", parsed);
+			this.remotenotify("var", ["POST" => parsed]);
+			if (length url_buffer > MAX_RECV_BUFFER)
+				url_buffer = "";
+		}
+	}
+
+	post(var data, checkpostdata = true) {
+		if ((worker) && (data)) {
+			timeout = time() + JS_CGI_DONE_TIMEOUT;
+			if (checkpostdata)
+				this.parsepostdata(data);
+
+			this.remotenotify("data", data);
+		}
+	}
+
+	onmessage(data) {
+		if (!data)
+			return;
+		var todo = data["do"];
+		if (todo) {
+			switch (todo) {
+				case "print":
+					this.print(data);
+					break;
+				case "done":
+					this.done();
+					break;
+				default:
+					this.critical("Unknown method: $todo\n");
+			}
+		}
+	}
+
+	Iterate(var ops) {
+		// timed out
+		if (time() > timeout) {
+			this.remotenotify("timedout");
+			std_out_buffer += "\nCASScript timeout out\nDid you forget to call done()?\n";
+			running = false;
+		}
+		if (!running)
+			this.reset();
+
+		return this.baseiterate(ops);
+	}
+}
+
 
 class ConceptCGIChild extends ConceptCGIChildBase {
 	var std_out;
@@ -2898,6 +3065,7 @@ pragma used
 	protected var[] Children;
 	protected var Placeholders;
 	protected var Framework = "";
+	protected var[] cgiworkers;
 
 	GetHeader(job, header_name, var headers_lowercase) {
 		var cookie = "";
@@ -2985,14 +3153,12 @@ pragma used
 
 	CreateJavascript(Socket, job) {
 		var env = this.CreateEnv(Socket, job);
-
 		return new ConceptJSChild(this.Framework, job.method, Socket, env, job.snippet, null, null, null, HeaderKeys(job.headers));
 	}
 
 	CreateCAS(Socket, job) {
 		var env = this.CreateEnv(Socket, job);
-
-		return new ConceptJSChild(this.Framework, job.method, Socket, env, job.snippet, null, null, null, HeaderKeys(job.headers));		
+		return new ConceptCASChild(CGIAsyncWorker::Create(this.cgiworkers, job.app, null, var err), err, job.method, Socket, env, job.snippet, null, null, null, HeaderKeys(job.headers));		
 	}
 
 	Create(Socket, job, var err_text) {
@@ -3193,6 +3359,7 @@ pragma used
 	protected var WorkerName;
 	protected var[] Children;
 	protected var[] CGIChildren;
+	protected var[] cgiworkers;
 	protected var Placeholders;
 	protected var CGIPlaceholders;
 	protected var IniFile;
@@ -3263,14 +3430,12 @@ pragma used
 
 	CreateJavascript(Socket, h2, stream, method, root, path, app, query, hostname, local_port, default_header) {
 		var env = CreateEnv(Socket, stream, method, root, path, app, query, hostname, local_port, default_header);
-
 		return new ConceptJSChild(this.Framework, method, Socket, env, "", h2, stream, default_header);
 	}
 
 	CreateCAS(Socket, h2, stream, method, root, path, app, query, hostname, local_port, default_header) {
 		var env = CreateEnv(Socket, stream, method, root, path, app, query, hostname, local_port, default_header);
-
-		return new ConceptJSChild(this.Framework, method, Socket, env, "", h2, stream, default_header);
+		return new ConceptCASChild(CGIAsyncWorker::Create(this.cgiworkers, app, null, var err), err, method, Socket, env, "", h2, stream, default_header);
 	}
 
 	CreateCGI(h2, stream, cgi_handler_path, root, path, app, query, hostname_port, var err_text, javascript, default_header) {
@@ -5359,6 +5524,8 @@ class Main {
 	}
 
 	Main() {
+		RandomSeed(unpack("u32", CryptoRandom(4))[0]);
+
 		var ini_file="/usr/local/etc/concept.ini";
 		if (!FileExists(ini_file))
 			ini_file="/usr/etc/concept.ini";
