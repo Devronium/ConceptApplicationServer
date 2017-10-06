@@ -111,8 +111,9 @@ class XMLAPI {
 		return xmlstr;
 	}
 
-	post(url, callback = null, timeout = 5000) {
+	post(url, callback = null, timeout = 5000, userdata = null) {
 		var request = new HTTPRequest(url);
+		request.UserData = userdata;
 		var xml_data = this.xml("", false);
 		var headers = ["Content-Type" => "application/xml", "Content-Length" => length xml_data];
 		request.OnResponse = callback;

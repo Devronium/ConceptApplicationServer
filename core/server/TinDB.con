@@ -747,12 +747,16 @@ pragma used
 				var cache_key = QueryWorkerBase::CacheKey(obj);
 				if ((obj.x) && (obj.x["cache"])) {
 					var key2 = "\$/" + obj.d + "/" + obj.c;
-					data = Worker::Get(key2, cache_key);
+					if (obj.x["renew"]) {
+						Worker::Remove(key2, cache_key);
+						data = null;
+					} else
+						data = Worker::Get(key2, cache_key);
 					if (data) {
 						data_obj = UnBinarizeObject(data);
 						if (classof data_obj == "CacheData") {
 							if (time() > data_obj.timeout) {
-								Worker::Remove(key, cache_key);
+								Worker::Remove(key2, cache_key);
 							} else {
 								r = new R();
 								r.q = obj.q;

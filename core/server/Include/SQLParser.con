@@ -715,6 +715,9 @@ class SQLParser {
 					case "CACHE":
 						syntax["CACHE"] = SQLParser::parseNumber(buffer, err, offset);
 						break;
+					case "RENEW":
+						syntax["RENEW"] = true;
+						break;
 					case "WHERE":
 						if (!has_where) {
 							has_where = true;

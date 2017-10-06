@@ -317,7 +317,7 @@ class TinConnection {
 						if (mod) {
 							var agg = mod[0][0];
 							if (agg == "COUNT") {
-								dataset.Query(["#" => where], querycallback, fields, q["LIMIT"], q["OFFSET"], (q["ORDER"] == -1), q["PRIORITY"], false, reduce, q["CACHE"]);
+								dataset.Query(["#" => where], querycallback, fields, q["LIMIT"], q["OFFSET"], (q["ORDER"] == -1), q["PRIORITY"], false, reduce, q["CACHE"], q["RENEW"]);
 							} else {
 								throw "Unsupported SQL function $agg";
 								break;
@@ -327,9 +327,9 @@ class TinConnection {
 							var join_query = [where];	
 							for (var j = 0; j < length join; j++)
 								join_query[length join_query] = join[j];
-							dataset.Join(join_query, querycallback, fields, q["LIMIT"], q["OFFSET"], (q["ORDER"] == -1), q["PRIORITY"], reduce, q["CACHE"]);
+							dataset.Join(join_query, querycallback, fields, q["LIMIT"], q["OFFSET"], (q["ORDER"] == -1), q["PRIORITY"], reduce, q["CACHE"], q["RENEW"]);
 						} else {
-							dataset.Query(where, querycallback, fields, q["LIMIT"], q["OFFSET"], (q["ORDER"] == -1), q["PRIORITY"], false, reduce, q["CACHE"]);
+							dataset.Query(where, querycallback, fields, q["LIMIT"], q["OFFSET"], (q["ORDER"] == -1), q["PRIORITY"], false, reduce, q["CACHE"], q["RENEW"]);
 						}
 						queries++;
 					} else
@@ -543,7 +543,7 @@ class TinDataSet {
 		this.Connection._Handle(q, callback, this.UserData);
 	}
 
-	Query(params, delegate callback, fields = null, len = 0, start = 0, descending = false, priority = 0, map = false, reduce = "", cache = 0) {
+	Query(params, delegate callback, fields = null, len = 0, start = 0, descending = false, priority = 0, map = false, reduce = "", cache = 0, renew = false) {
 		if (typeof params != "array") {
 			if (typeof params == "object")
 				params = Prepare(params);
@@ -567,6 +567,8 @@ class TinDataSet {
 			q.x["reduce"] = reduce;
 		if (cache > 0)
 			q.x["cache"] = cache;
+		if (renew)
+			q.x["renew"] = true;
 		q.f = fields;
 		this.Connection._Handle(q, callback, this.UserData);
 	}
@@ -674,7 +676,7 @@ class TinDataSet {
 		return this.Connection._Promise(q, PromiseHandler, this.UserData);
 	}
 
-	Join(params, delegate callback, fields = null, len = 0, start = 0, descending = false, priority = 0, reduce = "", cache = 0) {
+	Join(params, delegate callback, fields = null, len = 0, start = 0, descending = false, priority = 0, reduce = "", cache = 0, renew = false) {
 		if ((!params) || (typeof params != "array"))
 			return false;
 
@@ -691,6 +693,8 @@ class TinDataSet {
 			q.x["reduce"] = reduce;
 		if (cache > 0)
 			q.x["cache"] = cache;
+		if (renew)
+			q.x["renew"] = true;
 		q.f = fields;
 		this.Connection._Handle(q, callback, this.UserData);
 	}
