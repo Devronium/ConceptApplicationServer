@@ -1405,7 +1405,7 @@ class ConceptChild {
 										cgi = this.Owner.cgi;
 										is_javascript = true;
 									} else
-									if (content_type == "application/javascript-async-page") {
+									if (content_type == "application/concept-async-page") {
 										is_server_page = true;
 										cgi = this.Owner.cgi;
 										is_javascript = 2;
@@ -2071,6 +2071,7 @@ class ConceptAsyncChild extends ConceptCGIChildBase {
 	var url_buffer = "";
 	var boundary;
 	var content_length = -1;
+	var reqid;
 
 	GetPath(filename) {
 		var arr = StrSplit(filename, "/");
@@ -2722,7 +2723,6 @@ class ConceptJSChild extends ConceptAsyncChild {
 
 class ConceptCASChild extends ConceptAsyncChild {
 	var worker;
-	var reqid;
 
 	ConceptCASChild(worker, err_buffer, method, Socket, env, buffer, h2 = null, stream = null, default_h2_header = null, headers = null) {
 		super(Socket, buffer, h2, stream, default_h2_header);
@@ -2758,10 +2758,10 @@ class ConceptCASChild extends ConceptAsyncChild {
 
 	remotenotify(action, data = null) {
 		if (worker) {
-			var arr = ["request" => reqid, "do" => action];
+			var arr = ["q" => reqid, "do" => action];
 			if (data)
 				arr["data"] = data;
-			worker.AddData(arr);
+			worker.AddData(BinarizeObject(arr));
 		}
 	}
 
@@ -3059,13 +3059,88 @@ class ConceptCGIChild extends ConceptCGIChildBase {
 	}
 }
 
-class ConceptWorker {
+class ConceptBaseWorker {
+	protected var[] cgiworkers;
+	protected var[] childcache;
+	protected var cacheholders;
+
+	UpdateChildCache(children) {
+		var[] new_cache;
+		for (var i = 0; i < length children; i++){ 
+			var cgi = children[i];
+			if ((cgi) && (cgi.reqid))
+				new_cache[cgi.reqid] = cgi;
+		}
+		cacheholders = 0;
+	}
+
+	ClearCache(child) {
+		if ((child) && (child.reqid)) {
+			if (IsSet(childcache, child.reqid)) {
+				childcache[child.reqid] = null;
+				cacheholders++;
+			}
+		}
+	}
+
+	IterateAsyncWorkers(children) {
+		if (cacheholders > 1000)
+			this.UpdateChildCache(children);
+
+		var workers = cgiworkers;
+		if (!workers)
+			return 0;
+		var ops = 0;
+		var removed_workers = 0;
+		for (var i = 0; i < length workers; i++) {
+			var worker = workers[i];
+			if (worker) {
+				var max_iterations = 100;
+				do {
+					var worker_get = worker.GetResult(var data);
+					if (data)
+						data = UnBinarizeObject(data);
+					if ((worker_get == true) && (data)) {
+						ops++;
+						var request = data["q"];
+						if (request) {
+							var child = childcache[request];
+							if (child)
+								child.onmessage(data);
+						}
+
+						max_iterations--;
+						if (max_iterations <= 0)
+							break;
+					} else
+					if (worker_get) {
+						ops++;
+						worker.Join();
+						workers[i] = null;
+						removed_workers ++;
+					}
+				} while (worker_get == true);
+			}
+		}
+		if (removed_workers) {
+			var new_workers = new [];
+			for (i = 0; i < length workers; i++) {
+				worker = workers[i];	
+				if (worker)
+					new_workers[length new_workers] = worker;
+			}
+			cgiworkers = new_workers;
+		}
+		return ops;
+	}
+}
+
+class ConceptWorker extends ConceptBaseWorker {
 pragma used
 	protected var WorkerName;
 	protected var[] Children;
 	protected var Placeholders;
 	protected var Framework = "";
-	protected var[] cgiworkers;
 
 	GetHeader(job, header_name, var headers_lowercase) {
 		var cookie = "";
@@ -3158,7 +3233,10 @@ pragma used
 
 	CreateCAS(Socket, job) {
 		var env = this.CreateEnv(Socket, job);
-		return new ConceptCASChild(CGIAsyncWorker::Create(this.cgiworkers, job.app, null, var err), err, job.method, Socket, env, job.snippet, null, null, null, HeaderKeys(job.headers));		
+		var cgi = new ConceptCASChild(CGIAsyncWorker::Create(this.cgiworkers, job.app, null, var err), err, job.method, Socket, env, job.snippet, null, null, null, HeaderKeys(job.headers));
+		if (cgi.reqid)
+			this.childcache[cgi.reqid] = cgi;
+		return cgi;
 	}
 
 	Create(Socket, job, var err_text) {
@@ -3257,7 +3335,6 @@ pragma used
 		Placeholders = 0;
 	}
 
-
 	Iterate() {
 		var children = this.Children;
 		var res = 0;
@@ -3267,10 +3344,12 @@ pragma used
 				if (child.Iterate(res)) {
 					child.Close();
 					children[i] = null;
+					this.ClearCache(child);
 					Placeholders ++;
 				}
 			}
 		}
+		this.IterateAsyncWorkers(children);
 		if (Placeholders >= 20)
 			this.Clean();
 		return res;
@@ -3354,12 +3433,11 @@ pragma used
 	}
 }
 
-class ConceptH2Worker extends RewriteContainer {
+class ConceptH2Worker extends RewriteContainer extends ConceptBaseWorker {
 pragma used
 	protected var WorkerName;
 	protected var[] Children;
 	protected var[] CGIChildren;
-	protected var[] cgiworkers;
 	protected var Placeholders;
 	protected var CGIPlaceholders;
 	protected var IniFile;
@@ -3435,7 +3513,10 @@ pragma used
 
 	CreateCAS(Socket, h2, stream, method, root, path, app, query, hostname, local_port, default_header) {
 		var env = CreateEnv(Socket, stream, method, root, path, app, query, hostname, local_port, default_header);
-		return new ConceptCASChild(CGIAsyncWorker::Create(this.cgiworkers, app, null, var err), err, method, Socket, env, "", h2, stream, default_header);
+		var cgi = new ConceptCASChild(CGIAsyncWorker::Create(this.cgiworkers, app, null, var err), err, method, Socket, env, "", h2, stream, default_header);
+		if (cgi.reqid)
+			this.childcache[cgi.reqid] = cgi;
+		return cgi;
 	}
 
 	CreateCGI(h2, stream, cgi_handler_path, root, path, app, query, hostname_port, var err_text, javascript, default_header) {
@@ -3599,6 +3680,9 @@ pragma used
 		if (FileExists(app + "/index.csp"))
 			return "index.csp";
 		else
+		if (FileExists(app + "/index.cas"))
+			return "index.ess";
+		else
 		if (FileExists(app + "/index.ess"))
 			return "index.ess";
 		else
@@ -3617,6 +3701,11 @@ pragma used
 		if (content_type == "application/javascript-server-page") {
 			is_server_page = true;
 			javascript = true;
+			cgi = conceptcgi;
+		} else
+		if (content_type == "application/concept-async-page") {
+			is_server_page = true;
+			javascript = 2;
 			cgi = conceptcgi;
 		} else
 		if (cgiother) {
@@ -3846,11 +3935,13 @@ pragma used
 			if (child) {
 				try {
 					if (child.Iterate(res)) {
+						this.ClearCache(child);
 						child.Close();
 						children[i] = null;
 						CGIPlaceholders ++;
 					}
 				} catch (exc) {
+					this.ClearCache(child);
 					child.Close();
 					children[i] = null;
 					CGIPlaceholders ++;
@@ -3910,7 +4001,7 @@ pragma used
 	}
 
 	ConceptH2Worker(n) {
-		super();
+		RewriteContainer();
 
 		var init_data = UnBinarizeObject(n);
 		IniFile = init_data[0];
@@ -3948,6 +4039,7 @@ pragma used
 			}
 			work_count += this.Iterate();
 			work_count += this.IterateCGI();
+			work_count += this.IterateAsyncWorkers(CGIChildren);
 			if (work_count) {
 				empty_iterations = 0;
 				sleep_value = 0;
@@ -4989,7 +5081,7 @@ class ConceptServer extends RewriteContainer {
 				"ess" => "application/javascript-server-page",
 				"con" => "application/concept",
 				"csp" => "application/concept-server-page",
-				"cap" => "application/concept-async-page",
+				"cas" => "application/concept-async-page",
 				"accel" => "application/concept-private",
 				"package" => "application/concept-private",
 				"ini" => "application/concept-private"
