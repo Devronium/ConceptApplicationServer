@@ -102,7 +102,7 @@ class CGIAsyncWorker {
 		if (worker)
 			return worker;
 
-		worker = new Worker("Main", "", sharedcontext, app, err);
+		worker = new Worker("web", "", sharedcontext, app, err);
 		if (err) {
 			worker.Join();
 			return worker;
@@ -2806,7 +2806,7 @@ class ConceptCASChild extends ConceptAsyncChild {
 		if (todo) {
 			switch (todo) {
 				case "print":
-					this.print(data);
+					this.print(data["data"]);
 					break;
 				case "done":
 					this.done();
@@ -3100,7 +3100,7 @@ class ConceptBaseWorker {
 					var worker_get = worker.GetResult(var data);
 					if (data)
 						data = UnBinarizeObject(data);
-					if ((worker_get == true) && (data)) {
+					if ((worker_get > 0) && (data)) {
 						ops++;
 						var request = data["q"];
 						if (request) {

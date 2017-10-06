@@ -4,6 +4,7 @@ import standard.C.time
 import standard.C.io
 import standard.lib.cripto
 include Loop.con
+include Worker.con
 
 class __asynctimer {
 	protected var timeout;
@@ -158,12 +159,75 @@ class session {
 }
 
 class Main {
-	Main() {
+	static Main() {
 		GLOBALS()["context.async"] = true;
 		var obj = CreateObject2("app", CLArg());
 		if (obj)
 			MainLoop();
 		else
 			echo "Cannot start: no app class defined";
+	}
+}
+
+class _webrequest {
+	var id;
+	var env;
+	var header;
+	var cookie;
+	var GET;
+
+	_webrequest(id, data) {
+		this.id = id;
+		this.env = data["env"];
+		this.header = data["headers"];
+		this.cookie = data["cookies"];
+		this.GET = data["GET"];
+	}
+
+	done() {
+		Worker::Result(BinarizeObject(["q" => id, "do" => "done"]));
+	}
+
+	print(data) {
+		Worker::Result(BinarizeObject(["q" => id, "do" => "print", "data" => data]));
+	}
+
+	finalize() {
+		done();
+	}
+}
+
+class web {
+	var[] cache;
+
+	iterate() {
+		if (Worker::Pending(var data)) {
+			if (data)
+				data = UnBinarizeObject(data);
+			if (data) {
+				switch (data["do"]) {
+					case "new":
+						CreateObject2("app", new _webrequest(data["q"], data["data"]));
+						break;
+					case "post":
+						break;
+					case "var":
+						break;
+					case "data":
+						break;
+					case "done":
+					case "timedout":
+					default:
+						break;
+				}
+			}
+		}
+		return false;
+	}
+
+	web(data = "") {
+		Loop::add(iterate);
+		GLOBALS()["context.async"] = true;
+		MainLoop();
 	}
 }
