@@ -96,13 +96,34 @@ pragma used
 	}
 }
 
+class ContainerWorker extends Worker {
+	var timestamp;
+	var app;
+
+	ContainerWorker(sharedcontext, app, var err) {
+		super("web", "", sharedcontext, app, err);
+		this.timestamp = filelast_mod(app);
+	}
+
+	modified(timestamp) {
+		return (this.timestamp != timestamp);
+	}	
+}
+
 class CGIAsyncWorker {
 	static Create(cgiworkers, app, sharedcontext = null, var err = null) {
 		var worker = cgiworkers[app];
-		if (worker)
-			return worker;
+		if (worker) {
+			if (worker.modified(_filelast_mod(app))) {
+				worker.AddData(BinarizeObject(["q" => "0", "do" => "drop"]), -1);
+				echo "$app changed, refreshing worker ... ";
+				worker.Join();
+				echo "done\n";
+			} else
+				return worker;
+		}
 
-		worker = new Worker("web", "", sharedcontext, app, err);
+		worker = new ContainerWorker(sharedcontext, app, err);
 		if (err) {
 			worker.Join();
 			return worker;
@@ -1929,6 +1950,7 @@ class ConceptCGIChildBase {
 	var std_out_buffer = "";
 	var is_post;
 	var last_err_time;
+	var reqid;
 
 	static ParseHeaders(h2headers, buffer) {
 		var arr = StrSplit(buffer, "\n");
@@ -2071,7 +2093,6 @@ class ConceptAsyncChild extends ConceptCGIChildBase {
 	var url_buffer = "";
 	var boundary;
 	var content_length = -1;
-	var reqid;
 
 	GetPath(filename) {
 		var arr = StrSplit(filename, "/");
@@ -2743,9 +2764,11 @@ class ConceptCASChild extends ConceptAsyncChild {
 		} else {
 			this.worker = worker;
 			running = true;
+			if (buffer) {
+				this.parsepostdata(buffer, env_data);
+				this.post(buffer, false);
+			}
 			this.remotenotify("new", env_data);
-			if (buffer)
-				this.parsepostdata(buffer);
 		}
 
 		timeout = time() + JS_CGI_DONE_TIMEOUT;
@@ -2778,14 +2801,15 @@ class ConceptCASChild extends ConceptAsyncChild {
 			this.reset();
 	}
 
-	parsepostdata(var data) {
+	parsepostdata(var data, env_data = null) {
 		if (is_url_encoded) {
 			url_buffer += data;
 			var parsed = ParseQueryString(trim(url_buffer));
 			this.remotenotify("post", parsed);
-			this.remotenotify("var", ["POST" => parsed]);
 			if (length url_buffer > MAX_RECV_BUFFER)
 				url_buffer = "";
+			if (env_data)
+				env_data["POST"] = parsed;
 		}
 	}
 
@@ -2810,6 +2834,11 @@ class ConceptCASChild extends ConceptAsyncChild {
 					break;
 				case "done":
 					this.done();
+					break;
+				case "header":
+					var val = data["data"];
+					if (val)
+						this.header(val["key"], val["val"]);
 					break;
 				default:
 					this.critical("Unknown method: $todo\n");
@@ -3107,6 +3136,12 @@ class ConceptBaseWorker {
 							var child = childcache[request];
 							if (child)
 								child.onmessage(data);
+						} else
+						if (data["do"] == "drop") {
+							ops++;
+							worker.Join();
+							workers[i] = null;
+							removed_workers ++;
 						}
 
 						max_iterations--;

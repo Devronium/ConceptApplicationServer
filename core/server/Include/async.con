@@ -172,16 +172,38 @@ class Main {
 class _webrequest {
 	var id;
 	var env;
-	var header;
+	var headers;
 	var cookie;
 	var GET;
+	var POST;
+	var owner;
+	var timestamp;
+	var session;
 
-	_webrequest(id, data) {
+	_webrequest(owner, id, data) {
+		this.owner = owner;
+		this.timestamp = microseconds()/1000;
+		owner.requests++;
 		this.id = id;
 		this.env = data["env"];
-		this.header = data["headers"];
+		this.headers = data["headers"];
 		this.cookie = data["cookies"];
 		this.GET = data["GET"];
+		this.POST = data["POST"];
+	}
+
+	usesession(expires = 2592000, path = "/", domain = "", secure = false, httponly = true) {
+		this.session = new session();
+		if (this.cookie) {
+			var ess = this.cookie["_ess"];
+			if (ess)
+				this.session.sessionid = ess;
+		}
+		this.session.usesession(expires, path, domain, secure, httponly);
+	}
+
+	header(key, val) {
+		Worker::Result(BinarizeObject(["q" => id, "do" => "header", ["key" => key, "value" => val]]));
 	}
 
 	done() {
@@ -197,42 +219,75 @@ class _webrequest {
 		return this;
 	}
 
+	sync() {
+		if (this.session)
+			this.session.syncsession(this.session.data);
+	}
+
 	finalize() {
+		this.sync();
+		owner.requests--;
 		done();
+		echo "Request fulfilled in ${microseconds()/1000 - this.timestamp}ms\n";
 	}
 }
 
 class web {
 	var[] cache;
+	var requests;
+	var drop;
 
-	iterate() {
-		if (Worker::Pending(var data)) {
-			if (data)
-				data = UnBinarizeObject(data);
-			if (data) {
-				switch (data["do"]) {
-					case "new":
-						CreateObject2("app", new _webrequest(data["q"], data["data"]));
-						break;
-					case "post":
-						break;
-					case "var":
-						break;
-					case "data":
-						break;
-					case "done":
-					case "timedout":
-					default:
-						break;
-				}
-			}
+	dispatch(data) {
+		switch (data["do"]) {
+			case "new":
+				CreateObject2("app", new _webrequest(this, data["q"], data["data"]));
+				break;
+			case "post":
+				break;
+			case "data":
+				break;
+			case "drop":
+				drop = true;
+				QuitLoop();
+				return true;
+			case "done":
+			case "timedout":
+			default:
+				break;
 		}
 		return false;
+	}
+
+	iterate() {
+		var timeout = 0;
+		if (drop)
+			return true;
+
+		if (!requests)
+			timeout = 1000;
+
+		while (Worker::Pending(var data, timeout)) {
+			if (data)
+				data = UnBinarizeObject(data);
+
+			if ((!data) || (dispatch(data)))
+				break;
+
+			if (!requests)
+				timeout = 1000;
+		}
+		return false;
+	}
+
+	static exit() {
+		Worker::Result(BinarizeObject(["do" => "drop"]));
+		QuitLoop();
 	}
 
 	web(data = "") {
 		Loop::add(iterate);
 		GLOBALS()["context.async"] = true;
 		MainLoop();
+		this.exit();
 	}
 }
