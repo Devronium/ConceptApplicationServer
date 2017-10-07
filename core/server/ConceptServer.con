@@ -3100,6 +3100,7 @@ class ConceptBaseWorker {
 			if ((cgi) && (cgi.reqid))
 				new_cache[cgi.reqid] = cgi;
 		}
+		childcache = new_cache;
 		cacheholders = 0;
 	}
 
@@ -3113,7 +3114,7 @@ class ConceptBaseWorker {
 	}
 
 	IterateAsyncWorkers(children) {
-		if (cacheholders > 1000)
+		if (cacheholders > 100)
 			this.UpdateChildCache(children);
 
 		var workers = cgiworkers;

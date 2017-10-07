@@ -203,7 +203,7 @@ class _webrequest {
 	}
 
 	header(key, val) {
-		Worker::Result(BinarizeObject(["q" => id, "do" => "header", ["key" => key, "value" => val]]));
+		Worker::Result(BinarizeObject(["q" => id, "do" => "header", "data" => ["key" => key, "value" => val]]));
 	}
 
 	done() {
