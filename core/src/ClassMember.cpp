@@ -386,6 +386,11 @@ GreenThreadCycle *ClassMember::CreateThread(void *PIF, intptr_t CONCEPT_CLASS_ID
     gtc->OWNER          = Owner;
     gtc->PIF            = PIF;
     gtc->OPT            = this->OPTIMIZER;
+    gtc->refobject      = NULL;
+    if ((Owner) && (Owner->TYPE == VARIABLE_DELEGATE)) {
+        gtc->refobject  = Owner->CLASS_DATA;
+        ((CompiledClass *)gtc->refobject)->LINKS++;
+    }
 
     gtc->STACK_TRACE.CM               = this;
     gtc->STACK_TRACE.PREV             = NULL;
@@ -418,6 +423,10 @@ void ClassMember::DoneThread(GreenThreadCycle *gtc) {
             ((ConceptInterpreter *)gtc->INTERPRETER)->DestroyEnviroment((PIFAlizator *)gtc->PIF, gtc->LOCAL_CONTEXT, &gtc->STACK_TRACE);
 
         RemoveGCRoot(gtc->PIF, &gtc->STACK_TRACE);
+
+        if ((gtc->refobject) && (((CompiledClass *)gtc->refobject)->LINKS > 1)) {
+            ((CompiledClass *)gtc->refobject)->LINKS--;
+        }
 
         if (gtc->OWNER) {
             FREE_VARIABLE(gtc->OWNER);

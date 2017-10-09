@@ -21,7 +21,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <vector>
 #ifdef USE_STD_QUEUE
 #include <queue>
 #endif
@@ -37,6 +36,11 @@ struct Container {
     void *DELEGATE;
     void *CONTEXT;
     INTEGER *SPINLOCK;
+};
+
+struct GreenLoop {
+    void *first;
+    void *last;
 };
 
 struct WorkerContainer {
@@ -551,6 +555,39 @@ public:
         return size;
     }
 
+    int GetOutputAll(INVOKE_CALL Invoke, void *OUTPUT, int locking = 0, int max_elements = 0) {
+        QUEUE_LOCK(output_lock);
+        int size = output_data.size();
+
+        if (size > 0) {
+            INTEGER idx = 0;
+            int pending = size;
+            do {
+                ThreadDataContainer *temp = (ThreadDataContainer *)output_data.front();
+                if (temp) {
+                    void *var = 0;
+                    Invoke(INVOKE_ARRAY_VARIABLE, OUTPUT, (INTEGER)idx, &var);
+                    if (var)
+                        Invoke(INVOKE_SET_VARIABLE, var, (INTEGER)-1, (char *)temp->data, (NUMBER)temp->len);
+                    idx++;
+                    delete temp;
+                }
+                output_data.pop();
+                if ((max_elements > 0) && (idx >= max_elements))
+                    break;
+                pending--;
+            } while (pending);
+        }
+        if (locking)
+            output_cond_wait = 1;
+        QUEUE_UNLOCK(output_lock);
+        if ((locking) && (!size)) {
+            output_cond.wait(locking);
+            return GetOutputAll(Invoke, OUTPUT, 0, max_elements);
+        }
+        return size;
+    }
+
     ThreadMetaContainer(void *worker) {
         QUEUE_CREATE(input_lock);
         QUEUE_CREATE(output_lock);
@@ -858,7 +895,11 @@ END_IMPL
 CONCEPT_FUNCTION_IMPL(Greenlets, 1)
     T_ARRAY(Greenlets, 0)
 
-    std::vector<void *> *items = new std::vector<void *>;
+    // std::vector<void *> *items = new std::vector<void *>;
+    GreenLoop *loop = (GreenLoop *)malloc(sizeof(GreenLoop));
+    if (loop)
+        memset(loop, 0, sizeof(GreenLoop));
+
     INTEGER count  = Invoke(INVOKE_GET_ARRAY_COUNT, PARAMETER(0));
     void    *prec  = 0;
     void    *first = 0;
@@ -876,8 +917,8 @@ CONCEPT_FUNCTION_IMPL(Greenlets, 1)
                 void *ref = 0;
                 Invoke(INVOKE_GREENTHREAD, var, &ref);
                 if (ref) {
-                    Invoke(INVOKE_LOCK_VARIABLE, var);
-                    items->push_back(ref);
+                    // Invoke(INVOKE_LOCK_VARIABLE, var);
+                    // items->push_back(ref);
                     if (prec)
                         Invoke(INVOKE_GREENLINK, prec, ref);
                     prec = ref;
@@ -888,30 +929,38 @@ CONCEPT_FUNCTION_IMPL(Greenlets, 1)
             }
         }
     }
+    if (loop) {
+        loop->first = first;
+        loop->last = prec;
+    }
 
-    RETURN_NUMBER((uintptr_t)items);
+    // RETURN_NUMBER((uintptr_t)items);
+    RETURN_NUMBER((uintptr_t)loop);
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(GreenletAdd, 2)
     T_HANDLE(GreenletAdd, 0)
     T_DELEGATE(GreenletAdd, 1)
 
-    std::vector<void *> *items = (std::vector<void *> *)(uintptr_t) PARAM(0);
+    // std::vector<void *> *items = (std::vector<void *> *)(uintptr_t) PARAM(0);
+    GreenLoop *loop = (GreenLoop *)(uintptr_t)PARAM(0);
     void *ref = 0;
-    int  res  = Invoke(INVOKE_GREENTHREAD, PARAMETER(1), &ref);
+    int res = Invoke(INVOKE_GREENTHREAD, PARAMETER(1), &ref);
     if (ref) {
-        void *first = items->front();
+        void *first = loop->first;
         // check if run-time insert is possible
         if (!IS_OK(Invoke(INVOKE_GREENINSERT, first, ref))) {
-            void *prec = items->back();
-            items->push_back(ref);
+            void *prec = loop->last;
+            loop->last = ref;
+            // void *prec = items->back();
+            // items->push_back(ref);
             if (prec)
                 Invoke(INVOKE_GREENLINK, prec, ref);
             if (!first)
                 first = ref;
             Invoke(INVOKE_GREENLINK, ref, first);
         }
-        Invoke(INVOKE_LOCK_VARIABLE, PARAMETER(1));
+        // Invoke(INVOKE_LOCK_VARIABLE, PARAMETER(1));
     }
     RETURN_NUMBER(res);
 END_IMPL
@@ -919,14 +968,16 @@ END_IMPL
 CONCEPT_FUNCTION_IMPL(GreenLoop, 1)
     T_HANDLE(GreenLoop, 0)
 
-    std::vector<void *> *items = (std::vector<void *> *)(uintptr_t) PARAM(0);
-    void *first = items->front();
-    void *last  = items->back();
+    // std::vector<void *> *items = (std::vector<void *> *)(uintptr_t) PARAM(0);
+    GreenLoop *loop = (GreenLoop *)(uintptr_t)PARAM(0);
+    void *first = loop->first;
+    void *last  = loop->last;
     int  res    = -2;
     if (first)
         res = Invoke(INVOKE_GREENLOOP, first, last);
 
-    delete items;
+    // delete items;
+    free(loop);
     SET_NUMBER(0, 0);
     RETURN_NUMBER(res);
 END_IMPL
@@ -1116,6 +1167,31 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(GetWorkerResultData, 2, 3)
     } else {
         SET_STRING(1, "");
     }
+    RETURN_NUMBER(size);
+END_IMPL
+//---------------------------------------------------------------------------
+CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(GetWorkerResultDataAll, 2, 4)
+    T_HANDLE(GetWorkerResultDataAll, 0)
+
+    void *worker = (void *)(uintptr_t)PARAM(0);
+    ThreadMetaContainer *tmc = NULL;
+    Invoke(INVOKE_GETPROTODATA, worker, (int)2, &tmc);
+    int max_elements = 0;
+    if (!tmc)
+        return (void *)"Using a worker function on a non-worker";
+
+    int locking = 0;
+    if (PARAMETERS_COUNT > 2) {
+        T_NUMBER(GetWorkerResultDataAll, 2);
+        locking = PARAM_INT(2);
+    }
+    if (PARAMETERS_COUNT > 3) {
+        T_NUMBER(GetWorkerResultDataAll, 3);
+        max_elements = PARAM_INT(3);
+    }
+
+    CREATE_ARRAY(PARAMETER(1));
+    int size  = tmc->GetOutputAll(Invoke, PARAMETER(1), locking, max_elements);
     RETURN_NUMBER(size);
 END_IMPL
 //---------------------------------------------------------------------------

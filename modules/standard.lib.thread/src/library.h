@@ -35,6 +35,7 @@ extern "C" {
     CONCEPT_FUNCTION(GetWorkerData)
     CONCEPT_FUNCTION(AddWorkerResultData)
     CONCEPT_FUNCTION(GetWorkerResultData)
+    CONCEPT_FUNCTION(GetWorkerResultDataAll)
 
     CONCEPT_FUNCTION(WorkerSharedGet)
     CONCEPT_FUNCTION(WorkerSharedSet)

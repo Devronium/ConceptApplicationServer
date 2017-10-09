@@ -355,7 +355,7 @@ struct GreenThreadCycle {
     INTEGER              PREVIOUS_TRY;
     VariableDATA         *OWNER;
     SCStack              STACK_TRACE;
-
+    void                 *refobject;
     void                 *PIF;
     void                 *LAST_THREAD;
     void                 *CURRENT_THREAD;

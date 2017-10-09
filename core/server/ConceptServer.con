@@ -38,7 +38,7 @@ define DEFAULT_H2_WORKERS	4
 define PIPE_READ_CPU_TIME_US	2000
 define MAX_HEADER_PARAMETERS	0xFF
 define SERVER_NAME		"CAS5WS"
-define SERVER_SOFTWARE		"Concept Application Server (TLSe,ws/wss/http/https/concept/deprecated concepts/cgi1.1/http2/ess)"
+define SERVER_SOFTWARE		"Concept Application Server (TLSe,ws/wss/http/https/concept/deprecated concepts/cgi1.1/http2/ess/async)"
 define EXTRA_HEADER		"X-Frame-Options: SAMEORIGIN\r\nX-XSS-Protection: 1; mode=block\r\nX-Content-Type-Options: nosniff\r\n"
 define H2_EXTRA_HEADER		"strict-transport-security" => "max-age=31536000; includeSubDomains; preload", "x-frame-options" => "SAMEORIGIN", "x-xss-protection" => "1; mode=block", "x-content-type-options" => "nosniff"
 define H2_MAX_IDLE_SECONDS	30
@@ -2838,7 +2838,7 @@ class ConceptCASChild extends ConceptAsyncChild {
 				case "header":
 					var val = data["data"];
 					if (val)
-						this.header(val["key"], val["val"]);
+						this.header(val["key"], val["value"]);
 					break;
 				default:
 					this.critical("Unknown method: $todo\n");
@@ -3125,37 +3125,33 @@ class ConceptBaseWorker {
 		for (var i = 0; i < length workers; i++) {
 			var worker = workers[i];
 			if (worker) {
-				var max_iterations = 5;
-				do {
-					var worker_get = worker.GetResult(var data);
-					if (data)
-						data = UnBinarizeObject(data);
-					if ((worker_get > 0) && (data)) {
-						ops++;
-						var request = data["q"];
-						if (request) {
-							var child = childcache[request];
-							if (child)
-								child.onmessage(data);
-						} else
-						if (data["do"] == "drop") {
+				var worker_get = worker.GetAll(var data_arr, 0, 200);
+				if ((data_arr) && (worker_get > 0)) {
+					for (var j = 0; j < length data_arr; j++) {
+						var data = UnBinarizeObject(data_arr[j]);
+						if (data) {
 							ops++;
-							worker.Join();
-							workers[i] = null;
-							removed_workers ++;
+							var request = data["q"];
+							if (request) {
+								var child = childcache[request];
+								if (child)
+									child.onmessage(data);
+							} else
+							if (data["do"] == "drop") {
+								ops++;
+								worker.Join();
+								workers[i] = null;
+								removed_workers ++;
+							}
 						}
-
-						max_iterations--;
-						if (max_iterations <= 0)
-							break;
-					} else
-					if (worker_get) {
-						ops++;
-						worker.Join();
-						workers[i] = null;
-						removed_workers ++;
 					}
-				} while (worker_get == true);
+				} else
+				if (worker_get) {
+					ops++;
+					worker.Join();
+					workers[i] = null;
+					removed_workers ++;
+				}
 			}
 		}
 		if (removed_workers) {
@@ -3219,7 +3215,7 @@ pragma used
 		return headers;
 	}
 
-	CreateEnv(Socket, job) {
+	CreateEnv(Socket, job, scriptname = "javascript") {
 		var info = Socket.Info;
 		var address = info["address"];
 		var port = info["port"];
@@ -3241,7 +3237,7 @@ pragma used
 				"REQUEST_METHOD": job.method,
 				"REQUEST_URI": job.path,
 				"SCRIPT_FILENAME":  job.app,
-				"SCRIPT_NAME": "javascript",
+				"SCRIPT_NAME": scriptname,
 				"SERVER_ADMIN": "",
 				"SERVER_NAME": job.hostname,
 				"SERVER_PORT": job.port,
@@ -3268,7 +3264,7 @@ pragma used
 	}
 
 	CreateCAS(Socket, job) {
-		var env = this.CreateEnv(Socket, job);
+		var env = this.CreateEnv(Socket, job, "conceptasync");
 		var cgi = new ConceptCASChild(CGIAsyncWorker::Create(this.cgiworkers, job.app, null, var err), err, job.method, Socket, env, job.snippet, null, null, null, HeaderKeys(job.headers));
 		if (cgi.reqid)
 			this.childcache[cgi.reqid] = cgi;
@@ -3499,7 +3495,7 @@ pragma used
 		return val;
 	}
 
-	CreateEnv(Socket, stream, method, root, path, app, query, hostname, local_port, default_header) {
+	CreateEnv(Socket, stream, method, root, path, app, query, hostname, local_port, default_header, scriptname = "javascript") {
 		var info = Socket.Info;
 		var address = info["address"];
 		var port = info["port"];
@@ -3521,7 +3517,7 @@ pragma used
 				"REQUEST_METHOD": method,
 				"REQUEST_URI": path,
 				"SCRIPT_FILENAME":  app,
-				"SCRIPT_NAME": "javascript",
+				"SCRIPT_NAME": scriptname,
 				"SERVER_ADMIN": "",
 				"SERVER_NAME": hostname,
 				"SERVER_PORT": local_port,
@@ -3548,7 +3544,7 @@ pragma used
 	}
 
 	CreateCAS(Socket, h2, stream, method, root, path, app, query, hostname, local_port, default_header) {
-		var env = CreateEnv(Socket, stream, method, root, path, app, query, hostname, local_port, default_header);
+		var env = CreateEnv(Socket, stream, method, root, path, app, query, hostname, local_port, default_header, "conceptasync");
 		var cgi = new ConceptCASChild(CGIAsyncWorker::Create(this.cgiworkers, app, null, var err), err, method, Socket, env, "", h2, stream, default_header);
 		if (cgi.reqid)
 			this.childcache[cgi.reqid] = cgi;
@@ -5472,7 +5468,7 @@ class ConceptServer extends RewriteContainer {
 					if ((outsockets[0] == tlssock_fd) || (outsockets[1] == tlssock_fd) || (outsockets[2] == tlssock_fd)) {
 						this.Iterations++;
 						s = tlswssocket.AcceptTCP();
-						if ((s) && (s.Socket>0))
+						if ((s) && (s.Socket > 0))
 							AcceptChild(loop, s, true, 2);
 						else
 							this.Log("ConceptServer", "Invalid socket in accept (websocket)");

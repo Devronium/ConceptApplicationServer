@@ -1663,7 +1663,14 @@ INTEGER Invoke(INTEGER INVOKE_TYPE, ...) {
                 PIFAlizator *PIF = GET_PIF(((CompiledClass *)target->CLASS_DATA));
                 if ((target->TYPE == VARIABLE_DELEGATE) && (target->CLASS_DATA)) {
                     try {
-                        *cycle = ((CompiledClass *)target->CLASS_DATA)->_Class->CreateThread(PIF, (INTEGER)target->DELEGATE_DATA, target);
+                        ((CompiledClass *)target->CLASS_DATA)->reachable = 0x1C;
+                        VariableDATA *var = (VariableDATA *)VAR_ALLOC(PIF);
+                        var->IS_PROPERTY_RESULT = 0;
+                        var->LINKS          = 1;
+                        var->DELEGATE_DATA  = target->DELEGATE_DATA;
+                        var->CLASS_DATA     = target->CLASS_DATA;
+                        var->TYPE        = target->TYPE;
+                        *cycle = ((CompiledClass *)target->CLASS_DATA)->_Class->CreateThread(PIF, (INTEGER)target->DELEGATE_DATA, var);
                     } catch (VariableDATA *LAST_THROW) {
                         FREE_VARIABLE(LAST_THROW);
                     }
