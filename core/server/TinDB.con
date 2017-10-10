@@ -1284,9 +1284,7 @@ class JSQueryWorker extends QueryWorkerBase {
 		t.Open();
 		var current_worker = CurrentWorker();
 
-		while (!Worker::Pending(var aggregation_data))
-			Sleep(5);
-
+		Worker::Pending(var aggregation_data, -1);
 		var ref_data = UnBinarizeObject(aggregation_data);
 		var aggregation_workers = ref_data[0];
 		var all_query_workers = ref_data[1];
@@ -1574,9 +1572,7 @@ pragma used
 		t.Open();
 		var current_worker = CurrentWorker();
 
-		while (!Worker::Pending(var aggregation_data))
-			Sleep(5);
-
+		Worker::Pending(var aggregation_data, -1);
 		var ref_data = UnBinarizeObject(aggregation_data);
 		var aggregation_workers = ref_data[0];
 		var all_query_workers = ref_data[1];
@@ -3304,9 +3300,8 @@ pragma used
 	StorageWorker(n) {
 		if (TIN_JOURNALING)
 			journal = new Journal(n);
-		while (!Worker::Pending(var storage_data))
-			Sleep(5);
 
+		Worker::Pending(var storage_data, -1);
 		var n_data = UnBinarizeObject(storage_data);
 		var all_workers = n_data[0];
 		jsworker = n_data[1];

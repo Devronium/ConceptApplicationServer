@@ -180,9 +180,9 @@ class _webrequest {
 	var timestamp;
 	var session;
 
-	_webrequest(owner, id, data) {
+	_webrequest(owner, id, data, timestamp) {
 		this.owner = owner;
-		this.timestamp = microseconds()/1000;
+		this.timestamp = (timestamp ?? microseconds())/1000;
 		owner.requests++;
 		this.id = id;
 		this.env = data["env"];
@@ -236,11 +236,13 @@ class web {
 	var[] cache;
 	var requests;
 	var drop;
+	var db;
+	var userdata;
 
 	dispatch(data) {
 		switch (data["do"]) {
 			case "new":
-				CreateObject2("app", new _webrequest(this, data["q"], data["data"]));
+				CreateObject2("app", new _webrequest(this, data["q"], data["data"], data["_"]));
 				break;
 			case "post":
 				break;

@@ -33,8 +33,8 @@ define MAX_WS_HEADER		0xFFF
 define MAX_WS_HEADER_BUF	0xFFF
 define USE_TLS_PROXY		false
 define USE_DB_SERVICE		true
-define DEFAULT_CGI_WORKERS	4
-define DEFAULT_H2_WORKERS	4
+define DEFAULT_CGI_WORKERS	2
+define DEFAULT_H2_WORKERS	2
 define PIPE_READ_CPU_TIME_US	2000
 define MAX_HEADER_PARAMETERS	0xFF
 define SERVER_NAME		"CAS5WS"
@@ -2768,7 +2768,7 @@ class ConceptCASChild extends ConceptAsyncChild {
 				this.parsepostdata(buffer, env_data);
 				this.post(buffer, false);
 			}
-			this.remotenotify("new", env_data);
+			this.remotenotify("new", env_data, -1);
 		}
 
 		timeout = time() + JS_CGI_DONE_TIMEOUT;
@@ -2781,7 +2781,7 @@ class ConceptCASChild extends ConceptAsyncChild {
 
 	remotenotify(action, data = null, priority = 0) {
 		if (worker) {
-			var arr = ["q" => reqid, "do" => action];
+			var arr = ["q" => reqid, "do" => action, "_" => microseconds()];
 			if (data)
 				arr["data"] = data;
 			worker.AddData(BinarizeObject(arr), priority);
@@ -5175,10 +5175,17 @@ class ConceptServer extends RewriteContainer {
 			}
 		}
 
-		for (var i = 0; i < DEFAULT_CGI_WORKERS; i++) {
+		var workers_count = this.WorkerCount(DEFAULT_CGI_WORKERS);
+		this.Log("ConceptServer", "Initializing $workers_count CGI workers");
+		for (var i = 0; i < workers_count; i++)
 			Workers[i] = new Worker("ConceptWorker", BinarizeObject(["Worker${i+1}", inifile]));
-			// Sleep(100);
-		}
+	}
+
+	static WorkerCount(workers_count) {
+		var cgi_workers = _floor(sysconf(_SC_NPROCESSORS_ONLN) / 2);
+		if (cgi_workers > workers_count)
+			workers_count = cgi_workers;
+		return workers_count;
 	}
 
 	LoadKeys() {
@@ -5601,10 +5608,10 @@ class ConceptServer extends RewriteContainer {
 				if (value IniGet(this.IniFile, "Server", "HTTP2", "1")) {
 					TLSWSSocket.AddALPN("h2");
 					var h2worker_init_parameters = BinarizeObject([this.IniFile, this.ConceptClient, this.mimetypes, this.cgi, this.cgiother]);
-					for (i = 0; i < DEFAULT_H2_WORKERS; i++) {
+					var workers_count = this.WorkerCount(DEFAULT_H2_WORKERS);
+					this.Log("ConceptServer", "Initializing $workers_count HTTP/2 workers");
+					for (i = 0; i < workers_count; i++)
 						H2Workers[i] = new Worker("ConceptH2Worker", h2worker_init_parameters);
-						// Sleep(100);
-					}
 				}
 			}
 		}
