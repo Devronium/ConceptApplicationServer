@@ -266,12 +266,16 @@ class web {
 		if (!requests)
 			timeout = 1000;
 
-		while (Worker::Pending(var data, timeout)) {
-			if (data)
-				data = UnBinarizeObject(data);
+		if (Worker::PendingAll(var data_arr, timeout, 1000)) {
+			if (data_arr) {
+				for (var i = 0; i < length data_arr; i++) {
+					var data = UnBinarizeObject(data_arr[i]);
 
-			if ((!data) || (dispatch(data)))
-				break;
+					if ((!data) || (dispatch(data)))
+						return false;
+				}
+			} else
+				return false;
 
 			if (!requests)
 				timeout = 1000;

@@ -33,6 +33,7 @@ extern "C" {
     CONCEPT_FUNCTION(FreeWorker)
     CONCEPT_FUNCTION(AddWorkerData)
     CONCEPT_FUNCTION(GetWorkerData)
+    CONCEPT_FUNCTION(GetWorkerDataAll)
     CONCEPT_FUNCTION(AddWorkerResultData)
     CONCEPT_FUNCTION(GetWorkerResultData)
     CONCEPT_FUNCTION(GetWorkerResultDataAll)

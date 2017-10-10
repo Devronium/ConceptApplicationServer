@@ -588,6 +588,39 @@ public:
         return size;
     }
 
+    int GetInputAll(INVOKE_CALL Invoke, void *OUTPUT, int locking = 0, int max_elements = 0) {
+        QUEUE_LOCK(input_lock);
+        int size = input_data.size();
+
+        if (size > 0) {
+            INTEGER idx = 0;
+            int pending = size;
+            do {
+                ThreadDataContainer *temp = (ThreadDataContainer *)input_data.front();
+                if (temp) {
+                    void *var = 0;
+                    Invoke(INVOKE_ARRAY_VARIABLE, OUTPUT, (INTEGER)idx, &var);
+                    if (var)
+                        Invoke(INVOKE_SET_VARIABLE, var, (INTEGER)-1, (char *)temp->data, (NUMBER)temp->len);
+                    idx++;
+                    delete temp;
+                }
+                input_data.pop();
+                if ((max_elements > 0) && (idx >= max_elements))
+                    break;
+                pending--;
+            } while (pending);
+        }
+        if (locking)
+            input_cond_wait = 1;
+        QUEUE_UNLOCK(input_lock);
+        if ((locking) && (!size)) {
+            input_cond.wait(locking);
+            return GetInputAll(Invoke, OUTPUT, 0, max_elements);
+        }
+        return size;
+    }
+
     ThreadMetaContainer(void *worker) {
         QUEUE_CREATE(input_lock);
         QUEUE_CREATE(output_lock);
@@ -1215,6 +1248,27 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(GetWorkerData, 1, 2)
     } else {
         SET_STRING(0, "");
     }
+    RETURN_NUMBER(size);
+END_IMPL
+//---------------------------------------------------------------------------
+CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(GetWorkerDataAll, 1, 3)
+    ThreadMetaContainer * tmc = NULL;
+    Invoke(INVOKE_GETPROTODATA, PARAMETERS->HANDLER, (int)2, &tmc);
+    if (!tmc)
+        return (void *)"Using a worker function on a non-worker";
+
+    int locking = 0;
+    int max_elements = 0;
+    if (PARAMETERS_COUNT > 1) {
+        T_NUMBER(GetWorkerDataAll, 1);
+        locking = PARAM_INT(1);
+    }
+    if (PARAMETERS_COUNT > 2) {
+        T_NUMBER(GetWorkerDataAll, 2);
+        max_elements = PARAM_INT(2);
+    }
+    CREATE_ARRAY(PARAMETER(0));
+    int size  = tmc->GetInputAll(Invoke, PARAMETER(0), locking, max_elements);
     RETURN_NUMBER(size);
 END_IMPL
 //---------------------------------------------------------------------------

@@ -84,6 +84,12 @@ class Worker {
 		return GetWorkerData(data);
 	}
 
+	static PendingAll(var data, timeout_ms = 0, max_elements = 0) {
+		if (timeout_ms)
+			return GetWorkerDataAll(data, timeout_ms, max_elements);
+		return GetWorkerDataAll(data, 0, max_elements);
+	}
+
 	static Result(data) {
 		return AddWorkerResultData(data);
 	}

@@ -218,7 +218,7 @@ class TLSESocket extends TCPSocket {
 		if (this.__Handshake(socket, child_tls, handshake_timeout_ms) != 1) {
 			if (child_tls)
 				TLSEDone(child_tls);
-			SocketClose(socket);
+			SocketClose(socket, true);
 			return null;
 		}
 		this.WritePending();
