@@ -166,7 +166,7 @@ public:
             gettimeofday(&now, NULL);
             struct timespec delay;
             delay.tv_sec  = now.tv_sec + timeout_ms / 1000;
-            delay.tv_nsec = now.tv_usec * 1000 + (timeout_ms % 1000000) * 1000000;
+            delay.tv_nsec = now.tv_usec * 1000 + (timeout_ms % 1000) * 1000000;
             if (delay.tv_nsec >= 1000000000) {
                 delay.tv_nsec -= 1000000000;
                 delay.tv_sec++;

@@ -50,6 +50,7 @@ define EAGAIN_TIMEOUT_SECONDS	5
 define JS_CGI_DONE_TIMEOUT	30
 define JS_MAX_TIMEOUT		1200
 define JS_FRAMEWORK		"/js/"
+define INI_CACHE_TIMEOUT_S	30
 
 define ACCEPT_WORKERS		false
 
@@ -99,6 +100,8 @@ pragma used
 class ContainerWorker extends Worker {
 	var timestamp;
 	var app;
+	var idx;
+	var[] cache;
 
 	ContainerWorker(sharedcontext, app, var err) {
 		super("web", "", sharedcontext, app, err);
@@ -107,7 +110,25 @@ class ContainerWorker extends Worker {
 
 	modified(timestamp) {
 		return (this.timestamp != timestamp);
-	}	
+	}
+
+	CacheData(data, priority) {
+		if (priority < 0)
+			cache = [data] + cache;
+		else
+			cache[length cache] = data;
+	}
+
+	SendCached() {
+		if (cache) {
+			this.AddData(BinarizeObject(cache));
+			cache = new [];
+		}
+	}
+
+	ClearCache() {
+		cache = new [];
+	}
 }
 
 class CGIAsyncWorker {
@@ -117,6 +138,7 @@ class CGIAsyncWorker {
 			if (worker.modified(_filelast_mod(app))) {
 				worker.AddData(BinarizeObject(["q" => "0", "do" => "drop"]), -1);
 				echo "$app changed, refreshing worker ... ";
+				worker.ClearCache();
 				worker.Join();
 				echo "done\n";
 			} else
@@ -130,6 +152,44 @@ class CGIAsyncWorker {
 		}
 		cgiworkers[app] = worker;
 		return worker;
+	}
+}
+
+class IniCache {
+	public var IniFile;
+	protected var[] inicache;
+	protected var inicachetimeout;
+
+	IniGetPath(category, key, default_value = "") {
+		var cachekey = "$key[$category]";
+		if (time() > inicachetimeout) {
+			inicachetimeout = time() + INI_CACHE_TIMEOUT_S;
+			inicache = new [];
+		} else {
+			var cache = inicache[cachekey];
+			if (cache)
+				return cache;
+		}
+		var res = trim(IniGet(IniFile, category, key, default_value));
+		if (res[0] == ".")
+			res = getcwd() + "/" + res;
+		inicache[cachekey] = res;
+		return res;
+	}
+
+	IniKey(category, key, default_value = "") {
+		var cachekey = "$key[$category]";
+		if (time() > inicachetimeout) {
+			inicachetimeout = time() + INI_CACHE_TIMEOUT_S;
+			inicache = new [];
+		} else {
+			var cache = inicache[cachekey];
+			if (cache)
+				return cache;
+		}
+		var res = trim(IniGet(IniFile, category, key, default_value));
+		inicache[cachekey] = res;
+		return res;
 	}
 }
 
@@ -505,10 +565,10 @@ class ConceptChild {
 
 		var host_root="";
 
-		var server_root=IniGet(Owner.IniFile, "Paths", "ServerRoot", "");
+		var server_root = Owner.IniKey("Paths", "ServerRoot", "");
 
 		if (this.ServerName)
-			host_root=IniGet(Owner.IniFile, "Paths", "HostRoot(${this.ServerName})", "");
+			host_root=Owner.IniKey("Paths", "HostRoot(${this.ServerName})", "");
 
 		if (!host_root)
 			host_root=server_root;
@@ -542,7 +602,7 @@ class ConceptChild {
 		//	Owner.Log(ip, "Session ${this.Session}");
 
 		var cwd = getcwd();
-		var shared_pool = value IniGet(Owner.IniFile, "Server", "UseSharedMemoryPool", "0");
+		var shared_pool = value Owner.IniKey("Server", "UseSharedMemoryPool", "0");
 		var inc_dir = this.Owner.IniGetPath("Paths", "Include") + "/";
 		var lib_dir = this.Owner.IniGetPath("Paths", "Library") + "/";
 		var safe_run = this.Owner.IniGetPath("Paths", "SafeMode", "runsafe");
@@ -611,7 +671,7 @@ class ConceptChild {
 		}
 
 		if (multiple_host) {
-			multiple_host = value IniGet(baseid+".manifest", "Application", "Workers", "0");
+			multiple_host = value IniGet(baseid + ".manifest", "Application", "Workers", "0");
 
 			if (multiple_host==1)
 				multiple_host = 100;
@@ -875,7 +935,7 @@ class ConceptChild {
 			}
 		}
 
-		var max_iap = value IniGet(Owner.IniFile, "Server", "MaxInterAppMessageBuffer", "1024");
+		var max_iap = value Owner.IniKey("Server", "MaxInterAppMessageBuffer", "1024");
 		if (max_iap < 0)
 			max_iap = 0;
 
@@ -895,12 +955,12 @@ class ConceptChild {
 
 		Owner.Connections[""+apid] = this;
 
-		var server_root=IniGet(Owner.IniFile, "Paths", "ServiceRoot", "");
+		var server_root = Owner.IniKey("Paths", "ServiceRoot", "");
 		var inc_dir = this.Owner.IniGetPath("Paths", "Include") + "/";
 		var lib_dir = this.Owner.IniGetPath("Paths", "Library") + "/";
 		var safe_run = this.Owner.IniGetPath("Paths", "SafeMode", "runsafe");
 		while (Owner.Running) {
-			var pid=ExecuteProcess(safe_run, server_root,
+			var pid = ExecuteProcess(safe_run, server_root,
 					// parameters
 					["Direct pipe"	=> "0",
 					 "Pipe in"	=> ""+pipein1,
@@ -1168,11 +1228,11 @@ class ConceptChild {
 		socket.SetOption(SOL_SOCKET, SO_KEEPALIVE, 1);
 		socket.SetOption(SOL_SOCKET, SO_LINGER, 0);
 
-		var max_idle = value IniGet(Owner.IniFile, "Server", "MaxInitialIDLE", "10")*1000000;
-		var max_iap = value IniGet(Owner.IniFile, "Server", "MaxInterAppMessageBuffer", "1024");
+		var max_idle = value Owner.IniKey("Server", "MaxInitialIDLE", "10") * 1000000;
+		var max_iap = value Owner.IniKey("Server", "MaxInterAppMessageBuffer", "1024");
 		if (max_iap < 0)
 			max_iap = 0;
-		var max_age = value IniGet(Owner.IniFile, "Server", "MaxAge", "604800");
+		var max_age = value Owner.IniKey("Server", "MaxAge", "604800");
 		this.MaxBuffer = max_iap;
 
 		if (max_idle < 1000000)
@@ -1216,7 +1276,7 @@ class ConceptChild {
 				}
 			}
 			if (this.IsWebSocket) {
-				var force_tls = value IniGet(Owner.IniFile, "Server", "WebTLSOnly", "0");
+				var force_tls = value Owner.IniKey("Server", "WebTLSOnly", "0");
 				step = 2;
 				var remainder = "";
 				while (step <= 2) {
@@ -1360,7 +1420,7 @@ class ConceptChild {
 								var ok = false;
 								var err = 404;
 								var written = 0;
-								if (value IniGet(Owner.IniFile, "Server", "HandleWebResources", "1") == 0) {
+								if (value Owner.IniKey("Server", "HandleWebResources", "1") == 0) {
 									app = "";
 									err = 503;
 								}
@@ -1747,7 +1807,7 @@ class ConceptChild {
 				var key_path = this.Owner.IniGetPath("Paths", "Certificate", "");
 				var public_key = ReadFile(key_path+"/server.certificate");
 				var private_key = ReadFile(key_path+"/server.key");
-				var allow_debug	 = value IniGet(Owner.IniFile, "Server", "AllowDebug", "1");
+				var allow_debug	 = value Owner.IniKey("Server", "AllowDebug", "1");
 				if ((!public_key) || (!private_key)) {
 					Owner.Log("ConceptServer", "Invalid key path $key_path");
 					throw "Invalid keys";
@@ -2748,7 +2808,8 @@ class ConceptCASChild extends ConceptAsyncChild {
 	ConceptCASChild(worker, err_buffer, method, Socket, env, buffer, h2 = null, stream = null, default_h2_header = null, headers = null) {
 		super(Socket, buffer, h2, stream, default_h2_header);
 
-		this.reqid = sha256("" + ClsPtr(Socket) + "." + method + "." + ClsPtr(h2) + "." + ClsPtr(stream) + "." + RandomInteger(0, 0xFFFFFFF)) ;
+		worker.idx++;
+		this.reqid = "" + worker.idx;
 
 		var[] env_data;
 		env_data["env"] = env;
@@ -2784,7 +2845,7 @@ class ConceptCASChild extends ConceptAsyncChild {
 			var arr = ["q" => reqid, "do" => action, "_" => microseconds()];
 			if (data)
 				arr["data"] = data;
-			worker.AddData(BinarizeObject(arr), priority);
+			worker.CacheData(arr, priority);
 		}
 	}
 
@@ -3125,10 +3186,11 @@ class ConceptBaseWorker {
 		for (var i = 0; i < length workers; i++) {
 			var worker = workers[i];
 			if (worker) {
-				var worker_get = worker.GetAll(var data_arr, 0, 200);
+				var worker_get = worker.GetResult(var data_arr);//worker.GetAll(var data_arr);
 				if ((data_arr) && (worker_get > 0)) {
+					data_arr = UnBinarizeObject(data_arr);
 					for (var j = 0; j < length data_arr; j++) {
-						var data = UnBinarizeObject(data_arr[j]);
+						var data = data_arr[j];//UnBinarizeObject(data_arr[j]);
 						if (data) {
 							ops++;
 							var request = data["q"];
@@ -3139,6 +3201,7 @@ class ConceptBaseWorker {
 							} else
 							if (data["do"] == "drop") {
 								ops++;
+								worker.ClearCache();
 								worker.Join();
 								workers[i] = null;
 								removed_workers ++;
@@ -3148,10 +3211,12 @@ class ConceptBaseWorker {
 				} else
 				if (worker_get) {
 					ops++;
+					worker.ClearCache();
 					worker.Join();
 					workers[i] = null;
 					removed_workers ++;
 				}
+				worker.SendCached();
 			}
 		}
 		if (removed_workers) {
@@ -3466,14 +3531,13 @@ pragma used
 	}
 }
 
-class ConceptH2Worker extends RewriteContainer extends ConceptBaseWorker {
+class ConceptH2Worker extends RewriteContainer extends ConceptBaseWorker extends IniCache {
 pragma used
 	protected var WorkerName;
 	protected var[] Children;
 	protected var[] CGIChildren;
 	protected var Placeholders;
 	protected var CGIPlaceholders;
-	protected var IniFile;
 	protected var ConceptClient;
 	protected var mimetypes;
 	protected var conceptcgi;
@@ -3677,13 +3741,6 @@ pragma used
 		return new_children;
 	}
 
-	IniGetPath(category, key, default_value = "") {
-		var res = trim(IniGet(IniFile, category, key, default_value));
-		if (res[0] == ".")
-			return getcwd() + "/" + res;
-		return res;
-	}
-
 	GetRoot(servername) {
 		var host_root="";
 
@@ -3779,7 +3836,7 @@ pragma used
 	}
 
 	MaxAge() {
-		return value IniGet(IniFile, "Server", "MaxAge", "604800");
+		return value this.IniKey("Server", "MaxAge", "604800");
 	}
 
 	OnRequest(h2, stream) {
@@ -4087,7 +4144,7 @@ pragma used
 	}
 }
 
-class ConceptServer extends RewriteContainer {
+class ConceptServer extends RewriteContainer extends IniCache {
 	protected var Socket;
 	protected var WSSocket;
 	protected var TLSWSSocket;
@@ -4098,7 +4155,6 @@ class ConceptServer extends RewriteContainer {
 	public var WSPort;
 	public var SSLWSPort;
 
-	public var IniFile;
 	protected var Loop;
 
 	public var APID;
@@ -4125,7 +4181,9 @@ class ConceptServer extends RewriteContainer {
 	public var AcceptWorkers = false;
 
 	ConceptServer(inifile="") {
-		super();
+		RewriteContainer();
+		this.IniFile = inifile;
+
 		this.mimetypes = [
 				"ez" => "application/andrew-inset",
 				"aw" => "application/applixware",
@@ -5120,7 +5178,7 @@ class ConceptServer extends RewriteContainer {
 				"ini" => "application/concept-private"
 		];
 
-		var v6only=value IniGet(inifile, "Server", "IPv6", "0");
+		var v6only=value this.IniKey("Server", "IPv6", "0");
 		if (v6only) {
 			this.Socket = new TCPSocket(-1, true);
 			this.Socket.SetOption(IPPROTO_IPV6, IPV6_V6ONLY, 0);
@@ -5137,7 +5195,7 @@ class ConceptServer extends RewriteContainer {
 			this.WSSocket = new TCPSocket();
 			this.TLSWSSocket = new TLSESocket();
 		}
-		this.SSLWSSocketName = IniGet(inifile, "Server", "SecureProxyUnixSocket", "");
+		this.SSLWSSocketName = this.IniKey("Server", "SecureProxyUnixSocket", "");
 		if (this.SSLWSSocketName) {
 			_unlink(this.SSLWSSocketName);
 			this.SSLWSSocket = new UNIXSocket();
@@ -5150,11 +5208,9 @@ class ConceptServer extends RewriteContainer {
 		if (this.TLSWSSocket)
 			this.TLSWSSocket.SetOption(IPPROTO_TCP, TCP_NODELAY, 1);
 
-		this.Port = value IniGet(inifile, "Server", "Port", "2662");
-		this.WSPort = value IniGet(inifile, "Server", "WebPort", "2680");
-		this.SSLWSPort = value IniGet(inifile, "Server", "SecureWebPort", "2681");
-
-		this.IniFile = inifile;
+		this.Port = value this.IniKey("Server", "Port", "2662");
+		this.WSPort = value this.IniKey("Server", "WebPort", "2680");
+		this.SSLWSPort = value this.IniKey("Server", "SecureWebPort", "2681");
 
 		if (ACCEPT_WORKERS) {
 			// MS Windows has no SO_REUSEPORT
@@ -5165,10 +5221,6 @@ class ConceptServer extends RewriteContainer {
 				this.AcceptWorkers = true;
 			if (!SocketReusePort(WSSocket.Socket))
 				this.AcceptWorkers = true;
-			if (SSLWSSocket) {
-				if (!SocketReusePort(SSLWSSocket.Socket))
-					this.AcceptWorkers = true;
-			}
 			if (TLSWSSocket) {
 				if (!SocketReusePort(TLSWSSocket.Socket))
 					this.AcceptWorkers = true;
@@ -5189,8 +5241,8 @@ class ConceptServer extends RewriteContainer {
 	}
 
 	LoadKeys() {
-		var public_key = IniGet(this.IniFile, "Server", "WebSocketCertificate", "ssl/publickey.cer");
-		var private_key = IniGet(this.IniFile, "Server", "WebSocketPrivateKey", "ssl/privatekey.pem");
+		var public_key = this.IniKey("Server", "WebSocketCertificate", "ssl/publickey.cer");
+		var private_key = this.IniKey("Server", "WebSocketPrivateKey", "ssl/privatekey.pem");
 
 		if (!this.TLSWSSocket.LoadKeys(public_key, private_key))
 			this.Log("ConceptServer", "Warning: Error loading TLS/SSL keys. HTTPS/WSS will not be supported.");
@@ -5539,13 +5591,6 @@ class ConceptServer extends RewriteContainer {
 		echo "Shutting down...\n";
 	}
 
-	IniGetPath(category, key, default_value = "") {
-		var res = trim(IniGet(this.IniFile, category, key, default_value));
-		if (res[0] == ".")
-			return getcwd() + "/" + res;
-		return res;
-	}
-
 	BrokenPipe(signum) {
 		echo "Broken pipe received $signum\n";
 		// nothing
@@ -5569,11 +5614,11 @@ class ConceptServer extends RewriteContainer {
 	}
 
 	Start() {
-		var max_connections = value IniGet(this.IniFile, "Server", "MaxConnections", "1024");
-		var interface = IniGet(this.IniFile, "Server", "Interface", "");
+		var max_connections = value this.IniKey("Server", "MaxConnections", "1024");
+		var interface = this.IniKey("Server", "Interface", "");
 		this.ConceptClient = this.IniGetPath("Paths", "ConceptClient", "./ConceptClient.js");
 		this.cgi = this.IniGetPath("Paths", "CGIHandler", "conceptcgi");
-		var cgi_other = IniGet(this.IniFile, "Paths", "OtherCGI", "");
+		var cgi_other = this.IniKey("Paths", "OtherCGI", "");
 		if (cgi_other) {
 			var arr = StrSplit(cgi_other, ";");
 			for (var i = 0; i < length arr; i++) {
@@ -5605,7 +5650,7 @@ class ConceptServer extends RewriteContainer {
 				throw "Error initializing Concept server TLS WS socket (port ${this.SSLWSPort} already in use)";
 			} else {
 				this.LoadKeys();
-				if (value IniGet(this.IniFile, "Server", "HTTP2", "1")) {
+				if (value this.IniKey("Server", "HTTP2", "1")) {
 					TLSWSSocket.AddALPN("h2");
 					var h2worker_init_parameters = BinarizeObject([this.IniFile, this.ConceptClient, this.mimetypes, this.cgi, this.cgiother]);
 					var workers_count = this.WorkerCount(DEFAULT_H2_WORKERS);
@@ -5616,8 +5661,8 @@ class ConceptServer extends RewriteContainer {
 			}
 		}
 
-		var user = IniGet(this.IniFile, "Server", "User", "concept");
-		var pwd  = IniGet(this.IniFile, "Server", "UserPassword", "");
+		var user = this.IniKey("Server", "User", "concept");
+		var pwd  = this.IniKey("Server", "UserPassword", "");
 
 		if (!SetCurrentUser(user, pwd))
 			this.Log("ConceptServer", "WARNING: cannot change user to $user");

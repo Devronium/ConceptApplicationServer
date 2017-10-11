@@ -203,15 +203,15 @@ class _webrequest {
 	}
 
 	header(key, val) {
-		Worker::Result(BinarizeObject(["q" => id, "do" => "header", "data" => ["key" => key, "value" => val]]));
+		this.owner.__buffer(["q" => id, "do" => "header", "data" => ["key" => key, "value" => val]]);
 	}
 
 	done() {
-		Worker::Result(BinarizeObject(["q" => id, "do" => "done"]));
+		this.owner.__buffer(["q" => id, "do" => "done"]);
 	}
 
 	print(data) {
-		Worker::Result(BinarizeObject(["q" => id, "do" => "print", "data" => data]));
+		this.owner.__buffer(["q" => id, "do" => "print", "data" => data]);
 	}
 
 	operator << (data) {
@@ -238,6 +238,7 @@ class web {
 	var drop;
 	var db;
 	var userdata;
+	var[] buffercache;
 
 	dispatch(data) {
 		switch (data["do"]) {
@@ -260,6 +261,19 @@ class web {
 		return false;
 	}
 
+	flush() {
+		if (buffercache) {
+			Worker::Result(BinarizeObject(buffercache));
+			buffercache = new [];
+		}
+	}
+
+	__buffer(data) {
+		buffercache[length buffercache] = data;
+		if (length buffercache > 100)
+			this.flush();
+	}
+
 	iterate() {
 		var timeout = 0;
 		if (drop)
@@ -267,11 +281,12 @@ class web {
 
 		if (!requests)
 			timeout = 1000;
-
-		if (Worker::PendingAll(var data_arr, timeout, 1000)) {
+		this.flush();
+		if (Worker::Pending(var data_arr, timeout)) {
 			if (data_arr) {
+				data_arr = UnBinarizeObject(data_arr);
 				for (var i = 0; i < length data_arr; i++) {
-					var data = UnBinarizeObject(data_arr[i]);
+					var data = data_arr[i];
 
 					if ((!data) || (dispatch(data)))
 						return false;

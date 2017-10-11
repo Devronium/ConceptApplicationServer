@@ -10,7 +10,7 @@ class Loop {
 	}
 
 	static iterate() {
-		return InterateLoop();
+		return IterateLoop();
 	}
 
 	static quit() {

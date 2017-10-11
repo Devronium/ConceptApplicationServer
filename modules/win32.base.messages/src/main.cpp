@@ -5924,7 +5924,7 @@ CONCEPT_FUNCTION_IMPL(RegisterLooper, 1)
     RETURN_NUMBER(res);
 END_IMPL
 //------------------------------------------------------------------------
-CONCEPT_FUNCTION_IMPL(InterateLoop, 0)
+CONCEPT_FUNCTION_IMPL(IterateLoop, 0)
     GET_METACONTAINER
     int res = mc->Iterate(Invoke);
     RETURN_NUMBER(res);
