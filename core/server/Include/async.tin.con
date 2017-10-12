@@ -42,6 +42,10 @@ class tinasync extends TinConnection {
 		return p;
 	}
 
+	keepopen(open = true) {
+		this._keep_open = open;
+	}
+
 	addsubject(string subject = "") {
 		if (!this.subjects[subject]) {
 			this.subjects[subject] = true;

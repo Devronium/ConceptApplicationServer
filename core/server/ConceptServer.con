@@ -136,7 +136,7 @@ class CGIAsyncWorker {
 		var worker = cgiworkers[app];
 		if (worker) {
 			if (worker.modified(_filelast_mod(app))) {
-				worker.AddData(BinarizeObject(["q" => "0", "do" => "drop"]), -1);
+				worker.AddData(BinarizeObject([["q" => "0", "do" => "drop"]]), -1);
 				echo "$app changed, refreshing worker ... ";
 				worker.ClearCache();
 				worker.Join();
@@ -5359,31 +5359,31 @@ class ConceptServer extends RewriteContainer extends IniCache {
 
 
 	public Statistics() {
-		/*var clients=this.Connections;
-		var len=length clients;
-		var cpu=0;
-		var t=0;
-		var f=0;
-		var real_len=0;
-		for (var i=0;i<len;i++) {
-			var c=clients[i];
+		var clients = this.Connections;
+		var len = length clients;
+		var cpu = 0;
+		var t = 0;
+		var f = 0;
+		var real_len = 0;
+		for (var i = 0;i < len; i++) {
+			var c = clients[i];
 			if (c) {
 				real_len++;
 				if (c.PID>0) {
-					var ru=getrusage(c.PID);
+					var ru = getrusage(c.PID);
 					if (ru) {
-						cpu+=(ru["ru_utime"]+ru["ru_stime"])/1000;
-						t+=ru["ru_maxrss"];
-						f+=ru["ru_majflt"];
+						cpu += (ru["ru_utime"] + ru["ru_stime"]) / 1000;
+						t += ru["ru_maxrss"];
+						f += ru["ru_majflt"];
 					}
 				}
 			}
 		}
-		var file=new File("a+");
-		file.Name="statistics.txt";
+		var file = new File("a+");
+		file.Name = "statistics.txt";
 		file.Open();
 		file.Write("$real_len\t$cpu\t$t\t$f\n");
-		file.Close();*/
+		file.Close();
 	}
 
 	public Clean() {
@@ -5408,7 +5408,6 @@ class ConceptServer extends RewriteContainer extends IniCache {
 	}
 
 	private AcceptChild(loop, socket, websocket=false, tls=false) {
-		this.Statistics();
 		var child = new ConceptChild(this, socket);
 		if (tls)
 			child.TLS = tls;
@@ -5486,52 +5485,54 @@ class ConceptServer extends RewriteContainer extends IniCache {
 		var sockets = [sock_fd, wsock_fd];
 		var sslsock_fd = -1;
 		var tlssock_fd = -1;
-		if (sslwsocket) {
-			sslsock_fd = sslwsocket.Socket;
-			sockets[2] = sslsock_fd;
-		}
 		if (tlswssocket) {
 			tlssock_fd = tlswssocket.Socket;
-			sockets[3] = tlssock_fd;
+			sockets[2] = tlssock_fd;
+		}
+		if (sslwsocket) {
+			sslsock_fd = sslwsocket.Socket;
+			sockets[3] = sslsock_fd;
 		}
 		while (Running) {
 			try {
 				if ((SocketPoll(sockets, var outsockets, timeout)) && (outsockets)) {
 					// check for connection
-					if ((outsockets[0] == sock_fd) || (outsockets[1] == sock_fd) || (outsockets[2] == sock_fd)) {
-					//if (socket.GetHasData(timeout)) {
-						this.Iterations++;
+					var o0 = outsockets[0];
+					var o1 = outsockets[1];
+					var o2 = outsockets[2];
+					var o3 = outsockets[3];
+
+					this.Iterations++;
+					timeout = 0;
+					if ((o0 == sock_fd) || (o1 == sock_fd) || (o2 == sock_fd) || (o3 == sock_fd)) {
 						var s = socket.Accept();
 						if ((s) && (s.Socket > 0))
 							AcceptChild(loop, s);
 						else
 							this.Log("ConceptServer", "Invalid socket in accept");
 					}
-					//if (wsocket.GetHasData()) {
-					if ((outsockets[0] == wsock_fd) || (outsockets[1] == wsock_fd) || (outsockets[2] == wsock_fd)) {
-						this.Iterations++;
+					if ((o0 == wsock_fd) || (o1 == wsock_fd) || (o2 == wsock_fd) || (o3 == wsock_fd)) {
 						s = wsocket.Accept();
 						if ((s) && (s.Socket>0))
 							AcceptChild(loop, s, true);
 						else
 							this.Log("ConceptServer", "Invalid socket in accept (websocket)");
 					}
-					//if ((sslwsocket) && (sslwsocket.GetHasData())) {
-					if ((outsockets[0] == sslsock_fd) || (outsockets[1] == sslsock_fd) || (outsockets[2] == sslsock_fd)) {
-						this.Iterations++;
-						s = sslwsocket.Accept();
-						if ((s) && (s.Socket>0))
-							AcceptChild(loop, s, true, true);
-						else
-							this.Log("ConceptServer", "Invalid socket in accept (websocket)");
-					}
-					if ((outsockets[0] == tlssock_fd) || (outsockets[1] == tlssock_fd) || (outsockets[2] == tlssock_fd)) {
-						this.Iterations++;
+					if ((o0 == tlssock_fd) || (o1 == tlssock_fd) || (o2 == tlssock_fd) || (o3 == tlssock_fd)) {
 						s = tlswssocket.AcceptTCP();
 						if ((s) && (s.Socket > 0))
 							AcceptChild(loop, s, true, 2);
 						else
 							this.Log("ConceptServer", "Invalid socket in accept (websocket)");
+					}
+					if (sslsock_fd > 0) {
+						if ((o0 == sslsock_fd) || (o1 == sslsock_fd) || (o2 == sslsock_fd) || (o3 == sslsock_fd)) {
+							s = sslwsocket.Accept();
+							if ((s) && (s.Socket>0))
+								AcceptChild(loop, s, true, true);
+							else
+								this.Log("ConceptServer", "Invalid socket in accept (websocket)");
+						}
 					}
 				}
 				if (iterations == this.Iterations) {

@@ -239,6 +239,8 @@ class web {
 	var db;
 	var userdata;
 	var[] buffercache;
+	var idle;
+	var timeout = 3600;
 
 	dispatch(data) {
 		switch (data["do"]) {
@@ -279,10 +281,15 @@ class web {
 		if (drop)
 			return true;
 
-		if (!requests)
+		if (requests) {
+			idle = 0;
+		} else {
 			timeout = 1000;
+			idle++;
+		}
 		this.flush();
 		if (Worker::Pending(var data_arr, timeout)) {
+			idle = 0;
 			if (data_arr) {
 				data_arr = UnBinarizeObject(data_arr);
 				for (var i = 0; i < length data_arr; i++) {
@@ -297,11 +304,17 @@ class web {
 			if (!requests)
 				timeout = 1000;
 		}
+		if ((timeout) && (idle >= timeout)) {
+			this.drop = true;
+			web::exit();
+			return true;
+		}
 		return false;
 	}
 
 	static exit() {
-		Worker::Result(BinarizeObject(["do" => "drop"]));
+		echo "Worker closed\n";
+		Worker::Result(BinarizeObject([["do" => "drop"]]));
 		QuitLoop();
 	}
 
