@@ -3484,32 +3484,34 @@ pragma used
 		var sleep_value = 0;
 		while (true) {
 			var work_count = 0;
-			if (Worker::Pending(var data, sleep_value)) {
-				work_count++;
-				var job = UnBinarizeObject(data);
-				if (job) {
-					if (Pos(job.app, ".."))
-						job.app = this.RealPath(StrReplace(job.app, "\\", "/"));
-					var Socket;
-					try {
-						if (job.tls) {
-							Socket = new TLSESocket(job.socket);
-							Socket.Restore(job.tls);
-						} else
-							Socket = new TCPSocket(job.socket);
+			if (Worker::PendingAll(var data, sleep_value, 100)) {
+				for (var i = 0; i < length data; i++) {
+					work_count++;
+					var job = UnBinarizeObject(data[i]);
+					if (job) {
+						if (Pos(job.app, ".."))
+							job.app = this.RealPath(StrReplace(job.app, "\\", "/"));
+						var Socket;
+						try {
+							if (job.tls) {
+								Socket = new TLSESocket(job.socket);
+								Socket.Restore(job.tls);
+							} else
+								Socket = new TCPSocket(job.socket);
 
-						var child = this.Create(Socket, job, var err_text);
-						if (child) {
-							if (!job.javascript)
-								Socket.Write("HTTP/1.1 200 OK\r\nServer: " + SERVER_NAME + "\r\n");
-							AddChild(child);
-						} else {
-							Socket.Write("HTTP/1.1 503 Service unavailable\r\nServer: " + SERVER_NAME + "\r\nContent-Type: text/html\r\n\r\n<html><head><title>HTTP 503 Service unavailable</title></head><body><h1>HTTP 503 Service unavailable</h1><br/>$err_text</body></html>");
-							Socket.Close(true);
+							var child = this.Create(Socket, job, var err_text);
+							if (child) {
+								if (!job.javascript)
+									Socket.Write("HTTP/1.1 200 OK\r\nServer: " + SERVER_NAME + "\r\n");
+								AddChild(child);
+							} else {
+								Socket.Write("HTTP/1.1 503 Service unavailable\r\nServer: " + SERVER_NAME + "\r\nContent-Type: text/html\r\n\r\n<html><head><title>HTTP 503 Service unavailable</title></head><body><h1>HTTP 503 Service unavailable</h1><br/>$err_text</body></html>");
+								Socket.Close(true);
+							}
+						} catch (var exc) {
+							echo "Exc: $exc\n";
+							delete Socket;
 						}
-					} catch (var exc) {
-						echo "Exc: $exc\n";
-						delete Socket;
 					}
 				}
 			}
@@ -4106,24 +4108,26 @@ pragma used
 		while (true) {
 			var work_count = 0;
 			var Socket = null;
-			if (Worker::Pending(var data, sleep_value)) {
-				work_count++;
-				var job = UnBinarizeObject(data);
-				if (job) {
-					try {
-						if (job.tls) {
-							Socket = new TLSESocket(job.socket);
-							if (!Socket.Restore(job.tls))
-								Socket = null;
-						} else
-							Socket = new TCPSocket(job.socket);
+			if (Worker::PendingAll(var data, sleep_value, 100)) {
+				for (var i = 0; i < length data; i++) {
+					work_count++;
+					var job = UnBinarizeObject(data[i]);
+					if (job) {
+						try {
+							if (job.tls) {
+								Socket = new TLSESocket(job.socket);
+								if (!Socket.Restore(job.tls))
+									Socket = null;
+							} else
+								Socket = new TCPSocket(job.socket);
 
-						if (Socket) {
-							SocketSetBlocking(Socket.Socket, false);
-							this.AddChild(HTTP2::Socket(Socket));
+							if (Socket) {
+								SocketSetBlocking(Socket.Socket, false);
+								this.AddChild(HTTP2::Socket(Socket));
+							}
+						} catch (exc) {
+							delete Socket;
 						}
-					} catch (exc) {
-						delete Socket;
 					}
 				}
 			}
