@@ -20,16 +20,16 @@
 #ifdef _WIN32
     #include <stdio.h>
 
-    char *strndupa(const char *s, int len) {
-        int len2 = s ? strlen(s) : 0;
-        if (len2 < len)
-            len = len2;
-        char *dest = (char *)alloca(len + 1);
-        memcpy(dest, s, len);
-        dest[len] = 0;
-        return dest;
+    #define STRNDUPA(s, len, dest) { \
+        int len2 = s ? strlen(s) : 0; \
+        if (len2 > len) \
+            len2 = len; \
+        dest = (char *)alloca(len2 + 1);\
+        memcpy(dest, s, len2);\
+        dest[len2] = 0;\
     }
 #else
+    #define STRNDUPA(s, len, dest) dest = strndupa(s, len);
     #define _GNU_SOURCE
 #endif
 
@@ -74,7 +74,7 @@ static int getpartial(struct mustach_itf *itf, void *closure, const char *name, 
 	return 0;
 }
 
-static int process(const char *tpl, struct mustach_itf *itf, void *closure, struct MUST_FILE *file, const char *opstr, const char *clstr)
+static int process(const char *tpl, struct mustach_itf *itf, void *closure, struct MUST_FILE *file, char *opstr, char *clstr)
 {
 	char name[NAME_LENGTH_MAX + 1], *partial, c;
 	const char *beg, *term;
@@ -101,6 +101,7 @@ static int process(const char *tpl, struct mustach_itf *itf, void *closure, stru
 		term = strstr(beg, clstr);
 		if (term == NULL)
 			return MUSTACH_ERROR_UNEXPECTED_END;
+
 		tpl = term + cllen;
 		len = (size_t)(term - beg);
 		c = *beg;
@@ -155,11 +156,11 @@ static int process(const char *tpl, struct mustach_itf *itf, void *closure, stru
 			for (l = 0; l < len && !isspace(beg[l]) ; l++);
 			if (l == len)
 				return MUSTACH_ERROR_BAD_SEPARATORS;
-			opstr = strndupa(beg, l);
+			STRNDUPA(beg, l, opstr);
 			while (l < len && isspace(beg[l])) l++;
 			if (l == len)
 				return MUSTACH_ERROR_BAD_SEPARATORS;
-			clstr = strndupa(beg + l, len - l);
+			STRNDUPA((beg + l), (len - l), clstr);
 			oplen = strlen(opstr);
 			cllen = strlen(clstr);
 			break;
