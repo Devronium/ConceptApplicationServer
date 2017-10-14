@@ -63,6 +63,13 @@ char *resolve(mustache_closure *mustacheclosure, const char *name, void *DATA) {
     int invoke_err;
     if (name) {
         invoke_err = mustacheclosure->Invoke(INVOKE_GET_ARRAY_ELEMENT_BY_KEY, DATA, name, &type, &str, &nr);
+        if (invoke_err) {
+            void *var = NULL;
+            invoke_err = mustacheclosure->Invoke(INVOKE_GET_CLASS_VARIABLE, DATA, name, &var);
+            if ((IS_OK(invoke_err)) && (var)) {
+                invoke_err = mustacheclosure->Invoke(INVOKE_GET_VARIABLE, var, &type, &str, &nr);
+            }
+        }
     } else {
         invoke_err = mustacheclosure->Invoke(INVOKE_GET_VARIABLE, DATA, &type, &str, &nr);
     }
@@ -118,6 +125,9 @@ char *mustache_put(void *closure, const char *name, int escape) {
     mustache_closure *mustacheclosure = (mustache_closure *)closure;
     if (!name)
         return NULL;
+
+    if ((name) && (name[0] == '.') && (!name[1]))
+        name = NULL;
 
     void *DATA = mustacheclosure->arrdata;
     if (!DATA)
