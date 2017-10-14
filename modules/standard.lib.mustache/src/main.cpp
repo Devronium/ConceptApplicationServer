@@ -137,17 +137,26 @@ char *mustache_put(void *closure, const char *name, int escape) {
 }
 
 int mustache_enter(void *closure, const char *name) {
+    if (!name)
+        return 0;
     mustache_closure *mustacheclosure = (mustache_closure *)closure;
     int count = 0;
     void *var = NULL;
-    if (IS_OK(mustacheclosure->Invoke(INVOKE_ARRAY_VARIABLE_BY_KEY, mustacheclosure->DATA, name, &var))) {
+    void *arr2;
+    int is_ok; 
+    if ((name) && (name[0] == '.') && (!name[1])) {
+        var = mustacheclosure->DATA;
+        is_ok = 1;
+    } else
+        is_ok = IS_OK(mustacheclosure->Invoke(INVOKE_ARRAY_VARIABLE_BY_KEY, mustacheclosure->DATA, name, &var));
+
+    if (is_ok) {
         if (mustacheclosure->stack_level >= 0x100)
             return MUSTACH_ERROR_TOO_DEPTH;
 
 
         count = mustacheclosure->Invoke(INVOKE_GET_ARRAY_COUNT, var);
         if (count > 0) {
-            void *arr2;
             mustacheclosure->Invoke(INVOKE_ARRAY_VARIABLE, var, (INTEGER)0, &arr2);
             if (arr2) {
                 mustacheclosure->stack[mustacheclosure->stack_level].DATA = mustacheclosure->DATA;
