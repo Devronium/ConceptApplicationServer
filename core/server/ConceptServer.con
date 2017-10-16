@@ -103,8 +103,37 @@ class ContainerWorker extends Worker {
 	var idx;
 	var[] cache;
 
+	static GetPath(filename) {
+		var arr = StrSplit(filename, "/");
+		var len = length arr;
+		var directory = "";
+
+		var arr2 = new [];
+		for (var i = len - 1; i >= 0; i--) {
+			var d = arr[i];
+			if (d == "..") {
+				// jump one directory
+				i--;
+			} else
+			if (d != ".")
+				arr2[length arr2] = d;
+		}
+		len = length arr2;
+		for (i = len - 1; i >= 0; i--) {
+			d = arr2[i];
+			if (d) {
+				if (i)
+					directory += d + "/";
+			}
+		}
+		if ((!ON_MSWINDOWS) && (filename) && (filename[0] == "/") && (directory[0] != "/"))
+			return "/" + directory;
+
+		return directory;
+	}
+
 	ContainerWorker(sharedcontext, app, var err) {
-		super("web", "", sharedcontext, app, err);
+		super("web", this.GetPath(app), sharedcontext, app, err);
 		this.timestamp = filelast_mod(app);
 	}
 

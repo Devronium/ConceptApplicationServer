@@ -3,6 +3,7 @@ import standard.lang.serialize
 import standard.C.time
 import standard.C.io
 import standard.lib.cripto
+import standard.lib.mustache
 include Loop.con
 include Worker.con
 
@@ -44,14 +45,28 @@ class async extends Loop {
 }
 
 class fs {
+	protected var root_path = "";
+
+	safepath(path) {
+		if (root_path) {
+			if ((path[0] != "/") && (path[0] != "\\"))
+				path = root_path + path;
+		}
+		return path;
+	}
+
+	fs(basepath = "") {
+		root_path = basepath;
+	}
+
 	readFile(path, callback) {
 		if (callback)
-			callback(_errno(), ReadFile(path));
+			callback(_errno(), ReadFile(this.safepath(path)));
 		return true;
 	}
 
 	writeFile(path, var data = "", callback = null) {
-		var written = WriteFile(data, path);
+		var written = WriteFile(data, this.safepath(path));
 		if (callback)
 			callback(_errno());
 		if (written)
@@ -179,6 +194,7 @@ class _webrequest {
 	var owner;
 	var timestamp;
 	var session;
+	var template = "";
 
 	_webrequest(owner, id, data, timestamp) {
 		this.owner = owner;
@@ -219,6 +235,57 @@ class _webrequest {
 		return this;
 	}
 
+	put(array data) {
+		if (template) {
+			var fullpath;
+			if (template[0] != "/")
+				fullpath = this.owner.fs.safepath(this.owner.path) + template;
+			else
+				fullpath = template;
+			var tpl = ReadFile(fullpath);
+			if (tpl) {
+				var str = mustache(tpl, data, var err);
+				if (err) {
+					switch (err) {
+						case MUSTACH_ERROR_SYSTEM:
+							this.print("MUSTACH_ERROR_SYSTEM in template");
+							break;
+						case MUSTACH_ERROR_UNEXPECTED_END:
+							this.print("MUSTACH_ERROR_UNEXPECTED_END in template");
+							break;
+						case MUSTACH_ERROR_EMPTY_TAG:
+							this.print("MUSTACH_ERROR_EMPTY_TAG in template");
+							break;
+						case MUSTACH_ERROR_TAG_TOO_LONG:
+							this.print("MUSTACH_ERROR_TAG_TOO_LONG in template");
+							break;
+						case MUSTACH_ERROR_BAD_SEPARATORS:
+							this.print("MUSTACH_ERROR_BAD_SEPARATORS in template");
+							break;
+						case MUSTACH_ERROR_TOO_DEPTH:
+							this.print("MUSTACH_ERROR_TOO_DEPTH in template");
+							break;
+						case MUSTACH_ERROR_CLOSING:
+							this.print("MUSTACH_ERROR_CLOSING in template");
+							break;
+						case MUSTACH_ERROR_BAD_UNESCAPE_TAG:
+							this.print("MUSTACH_ERROR_BAD_UNESCAPE_TAG in template");
+							break;
+						case MUSTACH_ERROR_UNDEFINED:
+							this.print("MUSTACH_ERROR_UNDEFINED in template");
+							break;
+						default:
+							this.print("UNKNOWN ERROR #$err in template");
+					}
+					return null;
+				}
+				data = str;
+			}
+		}
+		this.print(data);
+		return this;
+	}
+
 	sync() {
 		if (this.session)
 			this.session.syncsession(this.session.data);
@@ -238,9 +305,11 @@ class web {
 	var drop;
 	var db;
 	var userdata;
+	var path;
 	var[] buffercache;
 	var idle;
 	var timeout = 3600;
+	var fs;
 
 	dispatch(data) {
 		switch (data["do"]) {
@@ -319,8 +388,12 @@ class web {
 	}
 
 	web(data = "") {
+		this.path = data;
+		this.fs = new fs(data);
 		Loop::add(iterate);
 		GLOBALS()["context.async"] = true;
+		if (this.path)
+			GLOBALS()["context.root"] = this.path;
 		MainLoop();
 		this.exit();
 	}
