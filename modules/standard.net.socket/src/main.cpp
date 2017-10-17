@@ -2524,7 +2524,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(SocketReusePort, 1, 2)
     }
     int res = -2;
 #ifdef SO_REUSEPORT
-    res = setsockopt(sock,
+    res = setsockopt(PARAM_INT(0),
                 SOL_SOCKET,
                 SO_REUSEPORT,
                 (char *)&flag,

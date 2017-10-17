@@ -4344,7 +4344,10 @@ class Main {
 			if (!SetCurrentUser(user, password))
 				echo "TinDB WARNING: cannot change user to $user\n";
 		}
-		var root = RealPath(IniGetPath(ini_file, "Paths", "DB", "../db"));
+		var default_db_path = "/var/lib/concept";
+		if (ON_MSWINDOWS)
+			default_db_path = "../db";
+		var root = RealPath(IniGetPath(ini_file, "Paths", "DB", default_db_path));
 		_mkdir(root);
 		if ((!root) || (_chdir(root))) {
 			echo "Error initializing DB engine\nCannot chdir to '$root'\n";
