@@ -1935,7 +1935,8 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(BinarizeObject, 1, 2)
     if ((TYPE != VARIABLE_CLASS) && (TYPE != VARIABLE_ARRAY))
         return (void *)"BinarizeObject: Parameter 1 must be an object or array";
 
-    RefContainer *rc = new RefContainer();
+    RefContainer rc_stack;
+    RefContainer *rc = &rc_stack; // = new RefContainer();
     rc->BACK_REF_COUNT = 0;
     rc->top_variable   = NULL;
     rc->buf            = 0;
@@ -1960,7 +1961,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(BinarizeObject, 1, 2)
     }
     if (rc->buf)
         free(rc->buf);
-    delete rc;
+    // delete rc;
 END_IMPL
 //---------------------------------------------------------------------------
 int FilterContains(RefContainer *rc, AnsiString *name) {
@@ -2220,7 +2221,8 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(UnBinarizeObject, 1, 3)
         if ((offset < 0) || (offset >= PARAM_LEN(0)))
             return (void *)"UnBinarizeObject: invalid offset";
     }
-    RefContainer *rc = new RefContainer();
+    RefContainer rc_stack;
+    RefContainer *rc = &rc_stack; // = new RefContainer();
     rc->BACK_REF_COUNT = 0;
     rc->top_variable   = RESULT;
     rc->doc            = NULL;
@@ -2250,8 +2252,8 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(UnBinarizeObject, 1, 3)
             SET_STRING(3, "");
         }
     }
-    if (rc)
-        delete rc;
+    // if (rc)
+    //    delete rc;
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(ToSize, 1)

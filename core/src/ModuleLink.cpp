@@ -524,7 +524,8 @@ INTEGER Invoke(INTEGER INVOKE_TYPE, ...) {
                     char *mname = va_arg(ap, char *);
                     void **ptr  = va_arg(ap, void **);
                     result = GetClassMemberVariable(handle->CLASS_DATA, mname, ptr);
-                }
+                } else
+                    result = INVALID_INVOKE_PARAMETER;
                 break;
             }
             break;
