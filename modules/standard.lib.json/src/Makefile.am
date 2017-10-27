@@ -1,7 +1,7 @@
 # what flags you want to pass to the C compiler & linker
-AM_CFLAGS = -O2 @JSON_CFLAGS@ -DWITH_PARSON -fPIC
-AM_CXXFLAGS = -O2 @JSON_CFLAGS@ -DWITH_PARSON -fPIC
-AM_LDFLAGS = -shared @JSON_LIBS@
+AM_CFLAGS = -O2 -DWITH_PARSON -fPIC
+AM_CXXFLAGS = -O2 -DWITH_PARSON -fPIC
+AM_LDFLAGS = -shared
 
 # this lists the binaries to produce, the (non-PHONY, binary) targets in
 # the previous manual Makefile
