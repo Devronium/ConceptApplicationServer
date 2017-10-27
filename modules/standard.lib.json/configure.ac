@@ -13,13 +13,13 @@ AC_PROG_CC
 
 # Checks for libraries.
 # FIXME: Replace `main' with a function in `-lfann':
-AC_CHECK_LIB([json], [json_object_new_object])
+# AC_CHECK_LIB([json], [json_object_new_object])
 
-pkg_modules="json >= 0.8"
-PKG_CHECK_MODULES(JSON, [$pkg_modules])
+# pkg_modules="json >= 0.8"
+# PKG_CHECK_MODULES(JSON, [$pkg_modules])
 
-AC_SUBST(JSON_CFLAGS)
-AC_SUBST(JSON_LIBS)
+# AC_SUBST(JSON_CFLAGS)
+# AC_SUBST(JSON_LIBS)
 
 # Checks for header files.
 AC_HEADER_STDC
