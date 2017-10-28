@@ -7,5 +7,5 @@ AM_LDFLAGS = -shared
 # the previous manual Makefile
 libexecdir=@libexecdir@/concept
 libexec_PROGRAMS = standard.lib.json.so
-standard_lib_json_so_SOURCES = stdlibrary.cpp stdlibrary.h main.cpp AnsiTypes.h AnsiString.cpp AnsiString.h parson.c parson.h
+standard_lib_json_so_SOURCES = stdlibrary.cpp stdlibrary.h main.cpp AnsiTypes.h AnsiString.cpp AnsiString.h parson.c parson.h JSON_checker.c JSON_checker.h
 

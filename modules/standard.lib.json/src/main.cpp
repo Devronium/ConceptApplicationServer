@@ -7,7 +7,15 @@
 #define WITH_PARSON
 
 extern "C" {
+    #include "JSON_checker.h"
 #ifdef WITH_PARSON
+    // NOTE: Using a modified version of parson. Parson doesn't allow duplicate keys in json.
+    // JSON specification does not make any mention of duplicate keys being invalid or valid.
+    // REMOVED THE FOLLOWING LINES FROM json_object_add:
+    // if (json_object_get_value(object, name) != NULL) {
+    //    return JSONFailure;
+    // }
+
     #include "parson.h"
     #define json_type_boolean           JSONBoolean
     #define json_type_double            JSONNumber
@@ -579,5 +587,46 @@ CONCEPT_FUNCTION_IMPL(_JSONDeserialize, 1)
         json_tokener_free(tok);
     }
 #endif
+END_IMPL
+//-----------------------------------------------------//
+CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(_JSONCheck, 1, 2)
+    T_STRING(JSONCheck, 0)
+    int max_depth = 0xFFF;
+    if (PARAMETERS_COUNT > 1) {
+        T_NUMBER(JSONCheck, 1)
+        max_depth = PARAM_INT(1);
+        if (max_depth <= 0)
+            max_depth = 0xFFF;
+    }
+
+    JSON_checker jc = new_JSON_checker(max_depth);
+    int line = 1;
+    int chr = 0;
+    int err = 0;
+
+    int len = PARAM_LEN(0);
+    char *json = PARAM(0);
+    for (int i = 0; i < len; i++) {
+        chr++;
+        int next_char = json[i];
+        if (next_char == '\n') {
+            line++;
+            chr = 1;
+        }
+        if (!JSON_checker_char(jc, next_char)) {
+            err = 1;
+            break;
+        }
+    }
+    if (!JSON_checker_done(jc))
+        err = 1;
+
+    if (err) {
+        CREATE_ARRAY(RESULT);
+        Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, RESULT, "line", (INTEGER)VARIABLE_NUMBER, "", (NUMBER)line);
+        Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, RESULT, "character", (INTEGER)VARIABLE_NUMBER, "", (NUMBER)chr);
+    } else {
+        RETURN_NUMBER(0);
+    }
 END_IMPL
 //-----------------------------------------------------//

@@ -347,9 +347,11 @@ static JSON_Status json_object_add(JSON_Object *object, const char *name, JSON_V
     if (object == NULL || name == NULL || value == NULL) {
         return JSONFailure;
     }
-    if (json_object_get_value(object, name) != NULL) {
-        return JSONFailure;
-    }
+    // It does not make any mention of duplicate keys being invalid or valid, so according to 
+    // the specification I would safely assume that means they are allowed.
+    // if (json_object_get_value(object, name) != NULL) {
+    //    return JSONFailure;
+    // }
     if (object->count >= object->capacity) {
         size_t new_capacity = MAX(object->capacity * 2, STARTING_CAPACITY);
         if (json_object_resize(object, new_capacity) == JSONFailure) {

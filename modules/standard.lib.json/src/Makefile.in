@@ -100,7 +100,7 @@ CONFIG_CLEAN_VPATH_FILES =
 am__installdirs = "$(DESTDIR)$(libexecdir)"
 PROGRAMS = $(libexec_PROGRAMS)
 am_standard_lib_json_so_OBJECTS = stdlibrary.$(OBJEXT) main.$(OBJEXT) \
-	AnsiString.$(OBJEXT) parson.$(OBJEXT)
+	AnsiString.$(OBJEXT) parson.$(OBJEXT) JSON_checker.$(OBJEXT)
 standard_lib_json_so_OBJECTS = $(am_standard_lib_json_so_OBJECTS)
 standard_lib_json_so_LDADD = $(LDADD)
 AM_V_P = $(am__v_P_@AM_V@)
@@ -271,7 +271,7 @@ top_srcdir = @top_srcdir@
 AM_CFLAGS = -O2 -DWITH_PARSON -fPIC
 AM_CXXFLAGS = -O2 -DWITH_PARSON -fPIC
 AM_LDFLAGS = -shared
-standard_lib_json_so_SOURCES = stdlibrary.cpp stdlibrary.h main.cpp AnsiTypes.h AnsiString.cpp AnsiString.h parson.c parson.h
+standard_lib_json_so_SOURCES = stdlibrary.cpp stdlibrary.h main.cpp AnsiTypes.h AnsiString.cpp AnsiString.h parson.c parson.h JSON_checker.c JSON_checker.h
 all: all-am
 
 .SUFFIXES:
@@ -359,6 +359,7 @@ distclean-compile:
 	-rm -f *.tab.c
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/AnsiString.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/JSON_checker.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/parson.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/stdlibrary.Po@am__quote@
