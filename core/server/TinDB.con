@@ -1587,9 +1587,13 @@ pragma used
 		var sleep_value = 0;
 		var data;
 		while (true) {
-			data = "";
-			Worker::Pending(data, sleep_value);
-			Execute(data, sleep_value, t, next_worker, next_a_worker, next_idle_worker, storage_dbs, storage_workers, aggregation_workers, idle_workers, current_worker, storage_dbs_w);
+			Worker::PendingAll(data, sleep_value);
+			if (data) {
+				for (var i = 0; i < length data; i++)
+					Execute(data[i], sleep_value, t, next_worker, next_a_worker, next_idle_worker, storage_dbs, storage_workers, aggregation_workers, idle_workers, current_worker, storage_dbs_w);
+				data = null;
+			} else
+				Execute(null, sleep_value, t, next_worker, next_a_worker, next_idle_worker, storage_dbs, storage_workers, aggregation_workers, idle_workers, current_worker, storage_dbs_w);
 		}
 	}
 }
@@ -3324,19 +3328,20 @@ pragma used
 
 		var data;
 		while (true) {
-			data = "";
-			var qsize = Worker::Pending(data, -1);
-			if (qsize) {
-				try {
-					Execute(UnBinarizeObject(data));
-				} catch (var exc) {
-					echo "Storage worker exception: $exc\n";
+			data = null;
+			var qsize = Worker::PendingAll(data, -1, 100);
+			if (data) {
+				var len = length data;
+				for (var i = 0; i < length data; i++) {
+					try {
+						Execute(UnBinarizeObject(data[i]));
+					} catch (var exc) {
+						echo "Storage worker exception: $exc\n";
+					}
+					if ((non_flushed_writes) && ((non_flushed_writes > BUSY_FSYNC_LIMIT) || ((time() - last_flush) >= BUSY_FSYNC_TIMEOUT)))
+						this.Flush();
 				}
-				data = "";
-				if ((non_flushed_writes) && ((non_flushed_writes > BUSY_FSYNC_LIMIT) || ((time() - last_flush) >= BUSY_FSYNC_TIMEOUT)))
-					this.Flush();
-				else
-				if ((non_flushed_writes) && (qsize == 1))
+				if ((non_flushed_writes) && (qsize == len))
 					this.Flush();
 			}
 		}
@@ -3608,15 +3613,17 @@ class QueryAggregator {
 		QueryWorkers = n[1];
 		var data = "";
 		while (true) {
-			if (Worker::Pending(data, -1)) {
+			if (Worker::PendingAll(data, -1)) {
 				try {
-					Execute(data);
+					if (data) {
+						for (var i = 0; i < length data; i++)
+							Execute(data[i]);
+					}
 				} catch (var exc) {
 					echo "Storage worker exception: $exc\n";
 				}
-				data = "";
+				data = null;
 			}
-			// Sleep(5);
 		}
 	}
 }
@@ -4134,11 +4141,10 @@ class QuerySyncWorker {
 						Dispatch(socket);
 				}
 			}
-			if ((Worker::Pending(data, timeout)) && (data)) {
-				var iterations = 0;
-				do {
+			if ((Worker::PendingAll(data, timeout, BUSY_FSYNC_LIMIT)) && (data)) {
+				for (i = 0; i < length data; i++) {
 					try {
-						var data_container = UnBinarizeObject(data);
+						var data_container = UnBinarizeObject(data[i]);
 						if (typeof data_container == "array") {
 							// is confirmation
 							var confirmation_buffer = data_container[1];
@@ -4156,10 +4162,7 @@ class QuerySyncWorker {
 					} catch (exc) {
 						echo "SyncWorker: $exc\n";
 					}
-					iterations++;
-					if (iterations >= BUSY_FSYNC_LIMIT)
-						break;
-				} while ((Worker::Pending(data, 0)) && (data));
+				}
 			}
 			if (time() > RingTimeout)
 				LoadRing();
