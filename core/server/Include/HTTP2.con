@@ -44,7 +44,7 @@ define H2_SEND_WINDOWUPDATE	32767
 define H2_INITIAL_WINDOW	0xFFFF
 define H2_WINDOWUPDATE_VALUE	0xFFFF
 
-define H2_FILE_READ_BUFFER	0xFFFF
+define H2_FILE_READ_BUFFER	0x20000
 
 define H2_X_INITIAL_WINDOW_SIZE	7FFFF
 define H2_X_INITIAL_WINDOW_SIZE_VAL	1048576
@@ -315,7 +315,7 @@ class HTTP2 {
 				}
 			} else
 			if (index & 0x20) {
-				var max_size = HTTP2::DecodeInt(payload, 5, index, pos);
+				HTTP2::DecodeInt(payload, 5, index, pos);
 			} else
 			if ((index >> 5) == 0) {
 				// literal header field without incremental indexing or never indexed
@@ -446,6 +446,7 @@ class HTTP2Stream {
 	public var PendingBuffer = "";
 	public var IncompleteBuffer = "";
 	public var ResponseFile;
+	public var ResponseFileLimit;
 	public var UserData;
 	public var TotalReceived = 0;
 	public var TotalSent = 0;
@@ -479,6 +480,7 @@ class HTTP2Stream {
 				// nothing
 			}
 			ResponseFile = null;
+			ResponseFileLimit = 0;
 		}
 		if (Status != -4) {
 			socket.RemoveStream(this.StreamID);
@@ -570,9 +572,19 @@ class HTTP2Stream {
 				throw "HTTP2Stream/FileWrite: Error reading file";
 
 			var eof = ResponseFile.EOF;
+			if (ResponseFileLimit) {
+				var pos = ResponseFile.Tell();
+				if (pos >= ResponseFileLimit) {
+					var delta = pos - ResponseFileLimit;
+					if (delta)
+						buffer = SubStr(buffer, 0, length buffer - delta);
+					eof = true;
+				}
+			}
 			if (eof) {
 				ResponseFile.Close();
 				ResponseFile = null;
+				ResponseFileLimit = 0;
 			}
 			var written = Write(socket, buffer, eof);
 
@@ -596,6 +608,7 @@ class HTTP2Stream {
 		if (ResponseFile) {
 			ResponseFile.Close();
 			ResponseFile = null;
+			ResponseFileLimit = 0;
 		}
 	}
 

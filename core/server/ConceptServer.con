@@ -52,6 +52,8 @@ define JS_MAX_TIMEOUT		1200
 define JS_FRAMEWORK		"/js/"
 define INI_CACHE_TIMEOUT_S	30
 
+define IF_CHECK_RANGE
+
 define ACCEPT_WORKERS		false
 
 // 128k pipe read buffer
@@ -94,6 +96,24 @@ pragma used
 			socket.Done();
 		}
 		socket.Socket = -1;
+	}
+}
+
+class ConceptServerUtils {
+	static ParseRange(range) {
+		var[] parsed;
+		if (!range)
+			return parsed;
+		range = StrSplit(range, "=")[1];
+		if (!range)
+			return parsed;
+
+		range = StrSplit(range, ",")[0];
+		if (!range)
+			return parsed;
+
+		parsed = StrNumberSplit(range, "-");
+		return parsed;
 	}
 }
 
@@ -1240,7 +1260,7 @@ class ConceptChild {
 							content_length = -1;
 						break;
 					case "sec-websocket-extensions":
-						extension=trim(arr[1]);
+						extension = trim(arr[1]);
 						break;
 				}
 			}
@@ -1333,20 +1353,20 @@ class ConceptChild {
 							Socket.SetOption(SOL_SOCKET, SO_RCVTIMEO, 600000);
 							var header = StrSplit(SubStr(received_data, 0, pos), "\r\n");
 							// DoWSHeader(StrSplit(received_data, "\r\n"), step);
-							var len=length header;
-							var ws=false;
-							var ws_key="";
-							var app="";
-							var origin="";
-							var session_to_restore="";
-							var parent=-1;
-							var done=true;
-							var if_modified="";
-							var keep_alive=false;
-							var debug=false;
-							var in_content_length=0;
-							var protocol="";
-							var extension="";
+							var len = length header;
+							var ws = false;
+							var ws_key = "";
+							var app = "";
+							var origin = "";
+							var session_to_restore = "";
+							var parent = -1;
+							var done = true;
+							var if_modified = "";
+							var keep_alive = false;
+							var debug = false;
+							var in_content_length = 0;
+							var protocol = "";
+							var extension = "";
 							if (len) {
 								var line=StrSplit(header[0], " ");
 								if (length line > 1) {
@@ -3870,6 +3890,34 @@ pragma used
 		return value this.IniKey("Server", "MaxAge", "604800");
 	}
 
+	CheckRange(stream, headers, var file, var no_content) {
+		// range support
+		headers["accept-ranges"] = "bytes";
+		var range = stream.Headers["range"];
+		if (range) {
+			range = ConceptServerUtils::ParseRange(range);
+			var range_start = range[0];
+			var range_end = range[1];
+			if (!range_end)
+				range_end = file.Size - 1;
+
+			if ((range_start > file.Size) || (range_end > file.Size) || (range_start < 0) || (range_end < 0) || (range_start > range_end) || (!file.Seek(range_start))) {
+				headers[":status"] = 416;
+				no_content = true;
+				file.Close();
+				file = null;
+				headers["content-length"] = 0;
+			} else {
+				headers[":status"] = 206;
+				headers["content-length"] = range_end - range_start + 1;
+				headers["content-range"] = "bytes $range_start-$range_end/${file.Size}";
+				stream.ResponseFileLimit = range_end + 1;
+			}
+			return true;
+		}
+		return false;
+	}
+
 	OnRequest(h2, stream) {
 		if (stream.Headers) {
 			var method = stream.Headers[":method"];
@@ -4017,6 +4065,7 @@ pragma used
 								delete file;
 								no_content = true;
 							} else
+IF_CHECK_RANGE 						if (!this.CheckRange(stream, headers, file, no_content))
 								headers["content-length"] = file.Size;
 							stream.Response(h2, headers, no_content);
 							if (file)
