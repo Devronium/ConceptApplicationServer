@@ -52,7 +52,11 @@ define JS_MAX_TIMEOUT		1200
 define JS_FRAMEWORK		"/js/"
 define INI_CACHE_TIMEOUT_S	30
 
-define IF_CHECK_RANGE
+define CODE_ENABLED		/* enabled */
+define CODE_DISABLED		//
+
+define IF_CHECK_RANGE		CODE_ENABLED
+define IF_CHECK_GZIP		CODE_ENABLED
 
 define ACCEPT_WORKERS		false
 
@@ -66,6 +70,10 @@ define H2_MAX_STDOUT_BUFFER	0x800000
 define H2_MAX_FILE_BUFFER	0x200000
 // 128k file buffer for http 1.1
 define H1_MAX_FILE_BUFFER	0x20000
+// don't gzip files smaller than 1k
+define MIN_GZIP_AUTOCACHE_SIZE	1024
+// 8M limit on text file autocache
+define MAX_GZIP_AUTOCACHE_SIZE	0x800000
 
 class DummyContainer {
 	// nothing
@@ -3918,6 +3926,47 @@ pragma used
 		return false;
 	}
 
+	CheckGzip(var root_buffer, stream, headers) {
+		var encoding = stream.Headers["accept-encoding"];
+		if ((encoding) && (Pos(encoding, "gzip") > 0)) {
+			root_buffer = gzip(root_buffer);
+			headers["content-encoding"] = "gzip";
+		}
+	}
+
+	CheckGzipFile(directory, filename, var file, stream, headers, var file_size, create_cache_dir = false) {
+		if ((file_size < MIN_GZIP_AUTOCACHE_SIZE) || (file_size > MAX_GZIP_AUTOCACHE_SIZE))
+			return;
+		var encoding = stream.Headers["accept-encoding"];
+		if ((encoding) && (Pos(encoding, "gzip") > 0)) {
+			var cache_dir = directory + ".gzipcache/";
+			if (create_cache_dir)
+				_mkdir(cache_dir);
+			if (DirectoryExists(cache_dir)) {
+				var path = cache_dir + filename + ".gz";
+				var timestamp = filelast_mod(file.Name);
+				if ((FileExists(path)) && (filelast_mod(path) == timestamp)) {
+					file.Close();
+					var old_name = file.Name;
+					file.Name = path;
+					if (file.Open()) {
+						file_size = file.Size;
+						headers["content-encoding"] = "gzip";
+					} else {
+						file.Name = old_name;
+						file.Open();
+					}
+				} else {
+					var gzipped = gzip(ReadFile(file.Name), 9);
+					if (gzipped) {
+						WriteFile(gzipped, path);
+						utime(path, timestamp, timestamp);
+					}
+				}					
+			}
+		}
+	}
+
 	OnRequest(h2, stream) {
 		if (stream.Headers) {
 			var method = stream.Headers[":method"];
@@ -3974,6 +4023,7 @@ pragma used
 						if (content_type == "application/concept-private")
 							return InternalError(h2, stream, 403);
 					}
+
 					if (client_resource) {
 						directory = SubStr(directory, 2);
 						app = ConceptClient + directory + path;
@@ -4033,7 +4083,6 @@ pragma used
 					file.Name = app;
 
 					if ((!is_cgi) && ((root_buffer) || (file.Open()))) {
-
 						var headers = [
 							":status" => 200,
 							"server" => "CAS5WS",
@@ -4055,6 +4104,7 @@ pragma used
 								headers[":status"] = 304;
 								stream.Response(h2, headers, true);
 							} else {
+IF_CHECK_GZIP							this.CheckGzip(root_buffer, stream, headers);
 								stream.Response(h2, headers, no_content);
 								stream.Write(h2, root_buffer, true);
 							}
@@ -4065,8 +4115,18 @@ pragma used
 								delete file;
 								no_content = true;
 							} else
-IF_CHECK_RANGE 						if (!this.CheckRange(stream, headers, file, no_content))
-								headers["content-length"] = file.Size;
+IF_CHECK_RANGE 						if (!this.CheckRange(stream, headers, file, no_content)) {
+								var file_size = file.Size;
+
+IF_CHECK_GZIP							if ((content_type == "application/javascript") || (SubStr(content_type, 0, 5) == "text/")) {
+IF_CHECK_GZIP								var used_root = root;
+IF_CHECK_GZIP								if (client_resource)
+IF_CHECK_GZIP									used_root = ConceptClient;
+IF_CHECK_GZIP								CheckGzipFile(used_root + directory, path, file, stream, headers, file_size);
+IF_CHECK_GZIP							}
+
+								headers["content-length"] = file_size;
+							}
 							stream.Response(h2, headers, no_content);
 							if (file)
 								stream.ResponseFile = file;
@@ -4078,7 +4138,7 @@ IF_CHECK_RANGE 						if (!this.CheckRange(stream, headers, file, no_content))
 							"date" => tstamp,
 							"content-type" => "text/html"
 						]);
-						var data =  ReadFile(ConceptClient + "/errors/404.html");
+						var data = ReadFile(ConceptClient + "/errors/404.html");
 						if (!data)
 							data = "Error 404 in processing your request.";
 						

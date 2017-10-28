@@ -51,5 +51,7 @@ CONCEPT_FUNCTION(__object)
 
 CONCEPT_FUNCTION(hpack)
 CONCEPT_FUNCTION(hunpack)
+
+CONCEPT_FUNCTION(gzip)
 }
 #endif // __LIBRARY_H

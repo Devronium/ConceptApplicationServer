@@ -3108,6 +3108,75 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(compress, 1, 3)
     }
 END_IMPL
 //---------------------------------------------------------------------------
+CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(gzip, 1, 3)
+    T_STRING(gzip, 0)
+    mz_ulong max_len = compressBound(PARAM_LEN(0));
+    int level = -1;
+    if (PARAMETERS_COUNT > 1) {
+        T_NUMBER(compress, 1);
+        level = PARAM_INT(1);
+    }
+    if (PARAMETERS_COUNT > 2) {
+        T_NUMBER(compress, 2)
+        max_len = PARAM_INT(2);
+    }
+
+    char *out_buf;
+    CORE_NEW(max_len + 19, out_buf);
+    if (out_buf) {
+        out_buf[max_len] = 0;
+        int res;
+        mz_stream stream;
+        memset(&stream, 0, sizeof(stream));
+        stream.next_in   = (const unsigned char *) PARAM(0);
+        stream.avail_in  = (mz_uint32) PARAM_LEN(0);
+        stream.next_out  = (unsigned char *) out_buf + 10;
+        stream.avail_out = (mz_uint32) max_len;
+
+        if (level < 0)
+            level = MZ_DEFAULT_COMPRESSION;
+
+        res = mz_deflateInit2(&stream, level, MZ_DEFLATED, -MZ_DEFAULT_WINDOW_BITS, 9, MZ_DEFAULT_STRATEGY);
+        if (res == Z_OK) {
+            if (mz_deflate(&stream, MZ_FINISH) != MZ_STREAM_END)
+                res = MZ_BUF_ERROR;
+            max_len = stream.total_out;
+            mz_deflateEnd(&stream);
+        }
+
+        if (res == Z_OK) {
+            max_len += 10;
+            out_buf[0] = 0x1F;
+            out_buf[1] = 0x8B;
+            out_buf[2] = 8;
+            out_buf[3] = 0;
+            out_buf[4] = 0;
+            out_buf[5] = 0;
+            out_buf[6] = 0;
+            out_buf[7] = 0;
+            out_buf[8] = 0;
+            out_buf[9] = 0xFF;
+            mz_ulong crc = mz_crc32(MZ_CRC32_INIT, (mz_uint8 *)PARAM(0), PARAM_LEN(0));
+            unsigned int size = PARAM_LEN(0);
+            out_buf[max_len] = crc & 0xFF;
+            out_buf[max_len + 1] = (crc >> 8) & 0xFF;
+            out_buf[max_len + 2] = (crc >> 16) & 0xFF;
+            out_buf[max_len + 3] = (crc >> 24) & 0xFF;
+            out_buf[max_len + 4] = size & 0xFF;
+            out_buf[max_len + 5] = (size >> 8) & 0xFF;
+            out_buf[max_len + 6] = (size >> 16) & 0xFF;
+            out_buf[max_len + 7] = (size >> 24) & 0xFF;
+            max_len += 8;
+            SetVariable(RESULT, -1, out_buf, max_len);
+        } else {
+            CORE_DELETE(out_buf);
+            RETURN_STRING("");
+        }
+    } else {
+        RETURN_STRING("");
+    }
+END_IMPL
+//---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(uncompress, 1, 2)
     T_STRING(uncompress, 0)
     mz_ulong max_len = PARAM_LEN(0) * 20;
