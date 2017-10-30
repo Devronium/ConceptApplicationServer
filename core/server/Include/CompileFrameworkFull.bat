@@ -249,3 +249,4 @@ accel SpreadsheetML.con
 accel JSApp.con
 accel JSFramework.con
 accel async.tin.con
+accel Unicode.con

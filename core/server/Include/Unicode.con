@@ -1,0 +1,164 @@
+include UnicodeCharsets.con
+import standard.lang.serialize
+import standard.lib.str
+
+class Unicode {
+	var charsets;
+	var charsets2;
+	var charsets3;
+
+	protected __init1() {
+		this.charsets = UNICODE_CHARSETS;
+	}
+
+	protected __init2() {
+		this.charsets2 = UNICODE_CHARSETS2;
+	}
+
+	protected __init3() {
+		this.charsets3 = UNICODE_UTF8;
+	}
+
+	static encodings() {
+		return ["ascii", "utf-8"] + UNICODE_ENCODINGS;
+	}
+
+	charset(utf8str, charset_name) {
+		if (!charset_name)
+			return utf8str;
+		charset_name = ToLower(charset_name);
+		var str2 = "";
+		switch (charset_name) {
+			case "ascii":
+				for (var i = 0; i < length utf8str; i++) {
+					var a = utf8str[i];
+					if (a <= '\x7F')
+						str2 += a;
+				}
+				return str2;
+			case "utf-8":
+			case "utf8":
+				return utf8str;
+		}
+
+		var prefix = SubStr(charset_name, 0, 4);
+		switch (prefix) {
+			case "iso-":
+			case "iec-":
+				charset_name = SubStr(charset_name, 4);
+		}
+
+		var len = UTF8Length(utf8str);
+
+		if (!this.charsets3)
+			this.__init3();
+
+		var use_charset;
+		if (IsSet(this.charsets3, charset_name))
+			use_charset = this.charsets3[charset_name];
+
+		if (!use_charset)
+			throw "Invalid charset $charset_name";
+
+		var char_pos = 0;
+		for (i = 0; i < len; i++) {
+			var prec = char_pos;
+			UTF8NextChar(utf8str, char_pos);
+			var char = SubStr(utf8str, prec, char_pos - prec);
+			if (IsSet(use_charset, char))
+				str2 += use_charset[char];
+			else
+			if (length char == 1)
+				str2 += char;
+		}
+		return str2;
+	}
+
+	convert(var str, charset_name, as_unicode = false) {
+		if (!charset_name)
+			return str;
+		var pack_type = "U16";
+		var is2 = false;
+		var str2 = "";
+		charset_name = ToLower(charset_name);
+		switch (charset_name) {
+			case "ascii":
+				if (as_unicode) {
+					for (var i = 0; i < length str; i++) {
+						var aindex = ord(str[i]);
+						if (aindex <= 0x7F)
+							str2 += pack(pack_type, aindex);
+					}
+					return str2;
+				} else {
+					for (i = 0; i < length str; i++) {
+						var a = str[i];
+						if (a <= '\x7F')
+							str2 += a;
+					}
+					return str2;
+				}
+				break;
+			case "utf-8":
+			case "utf8":
+				if (!as_unicode)
+					return str;
+		}
+
+		var prefix = SubStr(charset_name, 0, 4);
+		switch (prefix) {
+			case "iso-":
+			case "iec-":
+				charset_name = SubStr(charset_name, 4);
+		}
+		var use_charset;
+		if (!this.charsets)
+			this.__init1();
+
+		if (IsSet(this.charsets, charset_name)) {
+			use_charset = this.charsets[charset_name];
+		} else {
+			if (!this.charsets2)
+				this.__init2();
+			if (IsSet(this.charsets2, charset_name)) {
+				use_charset = this.charsets2[charset_name];
+				is2 = true;
+			}
+		}
+		if (!use_charset)
+			throw "Invalid charset $charset_name";
+
+		for (i = 0; i < length str; i++) {
+			var sindex = ord(str[i]);
+			var unicode_val = use_charset[sindex];
+			if ((is2) && (!unicode_val) && (sindex)) {
+				var sindex2 = sindex;
+				sindex2 *= 0x100;
+				sindex2 += ord(str[i]);
+				var unicode_val2 = use_charset[sindex];
+				if (unicode_val2) {
+					unicode_val = unicode_val2;
+					sindex = sindex2;
+					i++;
+				}
+			}
+			if ((!unicode_val) && (sindex) && (sindex > 0x7F)) {
+				// transliteration needed!
+				continue;
+			}
+			if (as_unicode)
+				str2 += pack(pack_type, unicode_val ?? sindex);
+			else
+				str2 += U_(unicode_val ?? sindex);
+		}
+		return str2;
+	}
+
+	utf8(var str, charset_name) {
+		return this.convert(str, charset_name);
+	}
+
+	unicode(var str, charset_name) {
+		return this.convert(str, charset_name, true);
+	}
+}

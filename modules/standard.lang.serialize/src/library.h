@@ -53,5 +53,8 @@ CONCEPT_FUNCTION(hpack)
 CONCEPT_FUNCTION(hunpack)
 
 CONCEPT_FUNCTION(gzip)
+CONCEPT_FUNCTION(gzip_create)
+CONCEPT_FUNCTION(gzip_compress)
+CONCEPT_FUNCTION(gzip_done)
 }
 #endif // __LIBRARY_H

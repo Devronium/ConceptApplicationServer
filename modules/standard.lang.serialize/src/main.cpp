@@ -1305,7 +1305,6 @@ CONCEPT_DLL_API CONCEPT__IsSet CONCEPT_API_PARAMETERS {
     LOCAL_INIT;
 
     char *arr  = 0;
-    char *arr2 = 0;
 
     NUMBER len;
 
@@ -3108,16 +3107,174 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(compress, 1, 3)
     }
 END_IMPL
 //---------------------------------------------------------------------------
+struct gzip_container {
+    mz_stream stream;
+    unsigned char *output_buffer;
+    mz_uint32 max_len;
+    mz_uint32 offset;
+    mz_ulong size;
+    mz_ulong crc;
+};
+
+CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(gzip_create, 0, 2)
+    mz_ulong max_len = 0x10000;
+    int level = -1;
+    if (PARAMETERS_COUNT > 0) {
+        T_NUMBER(gzip_create, 0);
+        level = PARAM_INT(0);
+    }
+    if (PARAMETERS_COUNT > 1) {
+        T_NUMBER(gzip_create, 1)
+        max_len = PARAM_INT(1);
+    }
+    int res;
+    gzip_container *stream = (gzip_container *)malloc(sizeof(gzip_container));
+    if (!stream) {
+        RETURN_NUMBER(0);
+        return 0;
+    }
+    memset(stream, 0, sizeof(gzip_container));
+    stream->output_buffer = (unsigned char *)malloc(max_len + 20);
+    if (!stream->output_buffer) {
+        free(stream);
+        RETURN_NUMBER(0);
+        return 0;
+    }
+    stream->max_len = max_len;
+    stream->crc = MZ_CRC32_INIT;
+    if (stream->output_buffer) {
+            stream->output_buffer[0] = 0x1F;
+            stream->output_buffer[1] = 0x8B;
+            stream->output_buffer[2] = 8;
+            stream->output_buffer[3] = 0;
+            stream->output_buffer[4] = 0;
+            stream->output_buffer[5] = 0;
+            stream->output_buffer[6] = 0;
+            stream->output_buffer[7] = 0;
+            stream->output_buffer[8] = 0;
+            stream->output_buffer[9] = 0xFF;
+            stream->offset = 10;
+    }
+    stream->stream.next_out  = stream->output_buffer + stream->offset;
+    stream->stream.avail_out = stream->max_len;
+
+    if (level < 0)
+        level = MZ_DEFAULT_COMPRESSION;
+
+    res = mz_deflateInit2(&stream->stream, level, MZ_DEFLATED, -MZ_DEFAULT_WINDOW_BITS, 9, MZ_DEFAULT_STRATEGY);
+    if (res != Z_OK) {
+        free(stream->output_buffer);
+        free(stream);
+        stream = NULL;
+    }
+    RETURN_NUMBER((SYS_INT)stream);
+END_IMPL
+//---------------------------------------------------------------------------
+CONCEPT_FUNCTION_IMPL(gzip_compress, 2)
+    T_HANDLE(gzip_compress, 0)
+    T_STRING(gzip_compress, 1)
+
+    gzip_container *stream = (gzip_container *)(uintptr_t)PARAM(0);
+    stream->stream.next_in = (unsigned char *)PARAM(1);
+    stream->stream.avail_in = PARAM_LEN(1);
+    stream->crc = mz_crc32(stream->crc, stream->stream.next_in, stream->stream.avail_in);
+    stream->size += stream->stream.avail_in;
+    unsigned char *tempbuf = NULL;
+    unsigned int tempbuf_size = 0;
+    unsigned int tempbuf_allocsize = 0;
+    do {
+        stream->stream.next_out  = stream->output_buffer + stream->offset;
+        stream->stream.avail_out = stream->max_len;
+        stream->stream.total_out = 0;
+        int err = mz_deflate(&stream->stream, MZ_SYNC_FLUSH);
+        if ((err == MZ_STREAM_END) || (!err)) {
+            mz_uint32 size = stream->stream.total_out + stream->offset;
+            stream->offset = 0;
+            if ((stream->stream.avail_out) && (!tempbuf)) {
+                if (size) {
+                    RETURN_BUFFER((char *)stream->output_buffer, size);
+                } else {
+                    RETURN_STRING("");
+                }
+                break;
+            } else {
+                if (size) {
+                    if (!tempbuf) {
+                        tempbuf_allocsize = compressBound(PARAM_LEN(1)) + 20;
+                        tempbuf = (unsigned char *)malloc(tempbuf_allocsize);
+                    }
+                    if (tempbuf_size + size < tempbuf_allocsize) {
+                        memcpy(tempbuf + tempbuf_size, stream->output_buffer, size);
+                        tempbuf_size += size;
+                    } else
+                        break;
+                } else {
+                    RETURN_STRING("");
+                }
+            }
+        } else {
+            if (PARAMETERS_COUNT > 2) {
+                SET_NUMBER(2, 0);
+            }
+            RETURN_STRING("");
+            break;
+        }
+    } while (stream->stream.avail_out == 0);
+    stream->stream.next_out  = stream->output_buffer + stream->offset;
+    stream->stream.avail_out = stream->max_len;
+    stream->stream.total_out = 0;
+    if (tempbuf) {
+        if (tempbuf_size) {
+            RETURN_BUFFER((const char *)tempbuf, tempbuf_size);
+        } else {
+            RETURN_STRING("");
+        }
+        free(tempbuf);
+    }
+END_IMPL
+//---------------------------------------------------------------------------
+CONCEPT_FUNCTION_IMPL(gzip_done, 1)
+    T_HANDLE(gzip_done, 0);
+
+    unsigned char out_buf[0xFFF];
+
+    gzip_container *stream = (gzip_container *)(uintptr_t)PARAM(0);
+    mz_deflate(&stream->stream, MZ_FINISH);
+    mz_uint32 out_size = stream->stream.total_out + stream->offset;
+    if (out_size > 0xFF0)
+        out_size = 0xFF0;
+    
+    mz_ulong size = stream->size;
+    mz_ulong crc = stream->crc;
+
+    memcpy(out_buf, stream->output_buffer, out_size);
+    out_buf[out_size + 0] = crc & 0xFF;
+    out_buf[out_size + 1] = (crc >> 8) & 0xFF;
+    out_buf[out_size + 2] = (crc >> 16) & 0xFF;
+    out_buf[out_size + 3] = (crc >> 24) & 0xFF;
+    out_buf[out_size + 4] = size & 0xFF;
+    out_buf[out_size + 5] = (size >> 8) & 0xFF;
+    out_buf[out_size + 6] = (size >> 16) & 0xFF;
+    out_buf[out_size + 7] = (size >> 24) & 0xFF;
+
+    RETURN_BUFFER((const char *)out_buf, out_size + 8);
+
+    mz_deflateEnd(&stream->stream);
+    free(stream->output_buffer);
+    free(stream);
+    SET_NUMBER(0, 0);
+END_IMPL
+//---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(gzip, 1, 3)
     T_STRING(gzip, 0)
     mz_ulong max_len = compressBound(PARAM_LEN(0));
     int level = -1;
     if (PARAMETERS_COUNT > 1) {
-        T_NUMBER(compress, 1);
+        T_NUMBER(gzip, 1);
         level = PARAM_INT(1);
     }
     if (PARAMETERS_COUNT > 2) {
-        T_NUMBER(compress, 2)
+        T_NUMBER(gzip, 2)
         max_len = PARAM_INT(2);
     }
 
@@ -3230,7 +3387,6 @@ CONCEPT_FUNCTION_IMPL(hpack, 1)
     CORE_NEW(max_len + 5, out_buf);
     int bit_len = 0;
     if (out_buf) {
-        char tmp[5];
         for (int i = 0; i < len; i++) {
             unsigned char index = buffer[i];
             unsigned int val = HuffTable[index].val;
@@ -3356,7 +3512,7 @@ CONCEPT_FUNCTION_IMPL(hunpack, 1)
                     break;
                 }
 
-                int temp_pos = AddBits(hufvalue, in_buffer, bit_pos, read_bits);
+                AddBits(hufvalue, in_buffer, bit_pos, read_bits);
                 if ((read_bits <= 8) && (hufvalue < 0x100)) {
                     unsigned int c = HuffQuickVals[hufvalue];
                     if ((c) && ((c >> 8) == read_bits)) {
