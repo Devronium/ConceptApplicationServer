@@ -499,7 +499,7 @@ class Main {
 						print(val, level + 1, backref, level_str);
 					}
 				} else {
-					if ((key) && (key == "\$oid"))
+					if ((key) && ((key == "\$oid") || (key == "\$v")))
 						val = safeoid(val);
 					if (typeof val == "string")
 						val = is_string(val, true);

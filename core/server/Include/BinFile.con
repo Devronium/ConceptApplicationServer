@@ -723,7 +723,7 @@ class BM25Index {
 		if (fields) {
 			for (var i = 0; i < length fields; i++) {
 				var f = fields[i];
-				if ((f) && (f != '$') && (f != '$oid') && (IsSet(o, f))) {
+				if ((f) && (f != '$') && (f != '$oid') && (f != '$v') && (IsSet(o, f))) {
 					var k = o[f];
 					if (k) {
 						if (typeof k == "array")
@@ -738,7 +738,7 @@ class BM25Index {
 			var keys = GetKeys(o);
 			for (i = 0; i < length keys; i++) {
 				k = keys[i];	
-				if ((k) && (k != '$') && (k != '$oid')) {
+				if ((k) && (k != '$') && (k != '$oid') && (k != '$v')) {
 					var k2 = o[k];
 					if (k2) {
 						if (typeof k2 == "array")

@@ -165,6 +165,7 @@ pragma used
 	var child_data;
 	var notrig;
 	var w;
+	var version;
 
 	MakeSafe() {
 		this.r = null;
@@ -179,6 +180,8 @@ pragma used
 		this.child = null;
 		this.child_data = null;
 		this.notrig = null;
+		this.w = 0;
+		this.version = 0;
 	}
 }
 
@@ -2450,6 +2453,8 @@ pragma used
 								trigger = _triggers["${obj.d}.${obj.c}"];
 								if (obj.notrig)
 									trigger = null;
+								if ((TIN_CLUSTER) && (!obj.version))
+									obj.version = this.oid();
 								t.Reopen(true);
 								t.Lock(true);
 								// QueryWorker::InvalidateCache(obj.d, obj.c);
@@ -2464,9 +2469,9 @@ pragma used
 												r.et = ERR_NOT_UNIQUE_S;
 												break;
 											}
-											if ((TIN_CLUSTER || (IsSet(o, '$oid'))) && (!o['$oid'])) {
+											if ((TIN_CLUSTER || (IsSet(o, '$oid'))) && (!o['$oid']))
 												o['$oid'] = this.oid();
-											}
+
 											if ((trigger) && (trigger.OnJSBeforeInsert)) {
 												var trigger_error = JSTrigger(db, o, trigger.OnJSBeforeInsert, true);
 												if (trigger_error) {
@@ -2476,6 +2481,9 @@ pragma used
 												}
 											}
 											try {
+												if (obj.version)
+													o['$v'] = obj.version;
+
 												var id2 = t.Store(o);
 											} catch (var store_exc) {
 												echo "Store error: $store_exc\n";
@@ -2518,6 +2526,9 @@ pragma used
 									if ((IsSet(obj.p, '$')) && (obj.p['$'] > 0)) {
 										o = obj.p;
 										id = value o['$'];
+										if (obj.version)
+											o['$v'] = obj.version;
+											
 										if ((trigger) && (trigger.OnJSBeforeUpdate)) {
 											trigger_error = JSTrigger(db, o, trigger.OnJSBeforeUpdate, true);
 											if (trigger_error) {
@@ -2561,6 +2572,7 @@ pragma used
 									} else {
 										if ((typeof obj.p == "array") && (TIN_CLUSTER || (IsSet(obj.p , '$oid'))) && (!obj.p['$oid']))
 											obj.p['$oid'] = this.oid();
+
 										if ((trigger) && (trigger.OnJSBeforeInsert)) {
 											trigger_error = JSTrigger(db, obj.p, trigger.OnJSBeforeInsert, true);
 											if (trigger_error) {
@@ -2569,6 +2581,8 @@ pragma used
 												break;
 											}
 										}
+										if (obj.version)
+											obj.p['$v'] = obj.version;
 										id = t.Store(obj.p);
 										non_flushed_writes++;
 										if (trigger) {
@@ -2640,7 +2654,10 @@ pragma used
 									js.timeout(0);
 									js.script(jstrycatch("var _r = function(self) { " + reduce + "; return self; }"));
 								}
-								var update_data = [GetKeys(obj.f), obj.f, t, unique_fields, deleg, trigger, db, ((IsSet(obj.p, '$')) && (obj.p['$'])), js];
+								if ((TIN_CLUSTER) && (!obj.version))
+									obj.version = this.oid();
+
+								var update_data = [GetKeys(obj.f), obj.f, t, unique_fields, deleg, trigger, db, ((IsSet(obj.p, '$')) && (obj.p['$'])), js, obj.version];
 								t.Query(obj.p, null, obj.x["descending"], obj.x["start"], obj.x["len"], function(o, data) {
 									if (o) {
 										var keys = data[0];
@@ -2652,7 +2669,8 @@ pragma used
 										var db = data[6];
 										var has_rowid = data[7];
 										var js = data[8];
-										var word_cache = data[9];
+										var version_oid = data[9];
+										var word_cache = data[10];
 										var changed = new [];
 										var oid_changed = false;
 										var i;
@@ -2714,22 +2732,22 @@ pragma used
 												oid_changed = true;
 
 											if ((syncworker) && (has_rowid)) {
-												data[12] = true;
+												data[13] = true;
 												if (oid) {
-													if (data[13]) {
-														var arr = data[13];
+													if (data[14]) {
+														var arr = data[14];
 														if (typeof arr == "array")
 															arr[length arr] = oid;
 														else
-															data[13] = [arr, oid];
+															data[14] = [arr, oid];
 													} else
-														data[13] = oid;
+														data[14] = oid;
 												}
 											}
 
 											if ((unique_fields) && (!t.IsUnique(o, unique_fields))) {
 												// not unique
-												data[11]++;
+												data[12]++;
 											} else {
 												var filepos = t.Tell();
 												try {
@@ -2740,18 +2758,20 @@ pragma used
 														// set it to null, to force full reindex (before update may modify the object)
 														changed = null;
 													}
-													if (data[10] == 1) {
+													if (data[11] == 1) {
 														// at least one record
 														word_cache = t.BM25UpdateStart();
-														data[9] = word_cache;
+														data[10] = word_cache;
 													}
+													if (version_oid)
+														o['$v'] = version_oid;
 													t._StoreHint(o, true, true, oid_changed, changed, word_cache);
 													if ((trigger) && (trigger.OnJSUpdate)) {
 														trigger_error = JSTrigger(db, o, trigger.OnJSUpdate);
 														if (trigger_error)
 															throw trigger_error;
 													}
-													data[10]++;
+													data[11]++;
 
 													if (deleg)
 														deleg(t, o);
@@ -2763,24 +2783,24 @@ pragma used
 										}
 									}
 								}, update_data);
-								if (update_data[9])
-									t.BM25UpdateEnd(update_data[9]);
-								if (update_data[10]) {
+								if (update_data[10])
+									t.BM25UpdateEnd(update_data[10]);
+								if (update_data[11]) {
 									// QueryWorker::InvalidateCache(obj.d, obj.c);
-									if ((use_sync_worker) && (update_data[12])) {
-										oid = update_data[13];
+									if ((use_sync_worker) && (update_data[13])) {
+										oid = update_data[14];
 										if (oid)
 											obj.p = ['$oid' => oid];
 										else
 											use_sync_worker = null;
 									}
 									QueryWorker::InvalidateCacheSync(obj, use_sync_worker);
-									non_flushed_writes += update_data[10];
+									non_flushed_writes += update_data[11];
 								}
 								if (unique_fields)
-									r.p = ["\$updated" => update_data[10], "\$notunique" => update_data[11]];
+									r.p = ["\$updated" => update_data[11], "\$notunique" => update_data[12]];
 								else
-									r.p = ["\$updated" => update_data[10]];
+									r.p = ["\$updated" => update_data[11]];
 								t.Unlock(true);
 								if (js)
 									js.gc();
