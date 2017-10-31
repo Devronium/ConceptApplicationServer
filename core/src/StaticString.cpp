@@ -206,20 +206,23 @@ int StaticString::Serialize(FILE *out, int type) {
         Data = ((char *)(void *)this) + DataOffset;
     }
 
+    int len = _LENGTH; 
     switch (type) {
         case SERIALIZE_8BIT_LENGTH:
             concept_fwrite(&uClen, sizeof(uClen), 1, out);
+            len = uClen;
             break;
 
         case SERIALIZE_16BIT_LENGTH:
             concept_fwrite_int(&uSlen, sizeof(uSlen), 1, out);
+            len = uSlen;
             break;
 
         default:
             concept_fwrite_int(&_LENGTH, sizeof(_LENGTH), 1, out);
             break;
     }
-    concept_fwrite_buffer(Data, _LENGTH, 1, out);
+    concept_fwrite_buffer(Data, len, 1, out);
     return 1;
 }
 

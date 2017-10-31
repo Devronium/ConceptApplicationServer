@@ -446,10 +446,12 @@ int TinyString::Serialize(FILE *out, int type) {
     switch (type) {
         case SERIALIZE_8BIT_LENGTH:
             concept_fwrite(&uClen, sizeof(uClen), 1, out);
+            _LENGTH = uClen;
             break;
 
         case SERIALIZE_16BIT_LENGTH:
             concept_fwrite_int(&uSlen, sizeof(uSlen), 1, out);
+            _LENGTH = uSlen;
             break;
 
         default:
