@@ -16,19 +16,33 @@ class TinDBOid {
 	}
 
 	static oidtostr(o) {
-		if ((typeof o == "array") && (IsSet(o, '$oid'))) {
-			var oid = o['$oid'];
-			if ((oid) && (typeof oid == "string"))
-				o['$oid'] = TinDBOid::hex(oid);
+		if (typeof o == "array") {
+			if (IsSet(o, '$oid')) {
+				var oid = o['$oid'];
+				if ((oid) && (typeof oid == "string"))
+					o['$oid'] = TinDBOid::hex(oid);
+			}
+			if (IsSet(o, '$v')) {
+				oid = o['$v'];
+				if ((oid) && (typeof oid == "string"))
+					o['$v'] = TinDBOid::hex(oid);
+			}
 		}
 		return o;
 	}
 
 	static strtooid(o) {
-		if ((typeof o == "array") && (IsSet(o, '$oid'))) {
-			var oid = o['$oid'];
-			if ((oid) && (typeof oid == "string"))
-				o['$oid'] = TinDBOid::oid(oid);
+		if (typeof o == "array") {
+			if (IsSet(o, '$oid')) {
+				var oid = o['$oid'];
+				if ((oid) && (typeof oid == "string"))
+					o['$oid'] = TinDBOid::oid(oid);
+			}
+			if (IsSet(o, '$v')) {
+				oid = o['$v'];
+				if ((oid) && (typeof oid == "string"))
+					o['$v'] = TinDBOid::oid(oid);
+			}
 		}
 		return o;
 	}

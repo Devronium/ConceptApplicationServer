@@ -9,6 +9,7 @@ import standard.net.socket
 import standard.lib.str
 import standard.lib.regex
 import standard.lib.thread
+import standard.lib.cripto
 
 define HEADER_SIZE		64
 define DEFAULT_MODULO_SIZE	64
@@ -22,6 +23,8 @@ define BM25_MODULO_SIZE		48
 define BM25_GRAPH_MODULO_SIZE	72
 define BM25_MAX_WORDCACHE	5000
 define BM25_MAX_WORDLEN		16
+define BM25_USE_HASH		true
+define BM25_HASH		Murmur
 
 // define REGEX_MATCH		preg_match
 define REGEX_MATCH		regex_match
@@ -616,13 +619,16 @@ class BM25Index {
 		this.lang = lang;
 		this.fields = fields;
 		if (basename) {
-			file = FixedStorageHelper::Create(basename + ".words", "r+b", ["w" => "s" + BM25_MAX_WORDLEN, "d" => "U64", "a" => "U64", "l" => "U32"]);
+			var word_format = "s" + BM25_MAX_WORDLEN;
+			if (BM25_USE_HASH)
+				word_format = "U32";
+			file = FixedStorageHelper::Create(basename + ".words", "r+b", ["w" => word_format, "d" => "U64", "a" => "U64", "l" => "U32"]);
 			if (!file.Open()) {
 				echo "Error #${_errno()} opening BM25 index (words): " + file.Name + "\n";
 				file = null;
 				return;
 			}
-			wordsfile = FixedStorageHelper::Create(basename + ".all", "r+b", ["w" => "s" + BM25_MAX_WORDLEN, "a" => "U64"]);
+			wordsfile = FixedStorageHelper::Create(basename + ".all", "r+b", ["w" => word_format, "a" => "U64"]);
 			if (!wordsfile.Open()) {
 				echo "Error #${_errno()} opening BM25 index (all): " + wordsfile.Name + "\n";
 				wordsfile = null;
@@ -710,7 +716,7 @@ class BM25Index {
 	}
 
 	static wordlengthlimit(word) {
-		if (BM25_MAX_WORDLEN)
+		if ((BM25_MAX_WORDLEN) && (!BM25_USE_HASH))
 			word = SubStr("" + word, 0, BM25_MAX_WORDLEN);
 		return word;
 	}
@@ -841,7 +847,7 @@ class BM25Index {
 			arr2 = new [];
 			arr[key] = arr2;
 		}
-		arr2[word] = val;
+		arr2["" + word] = val;
 	}
 
 	statistics(word_query, n, f, lens, start, len, documents = null, add_to_documents = false) {
@@ -880,6 +886,15 @@ class BM25Index {
 		return false;
 	}
 
+	__tostring(arr) {
+		var[] arr2;
+		if (arr) {
+			for (var i = 0; i < length arr; i++)
+				arr2[i] = "" + arr[i];
+		}
+		return arr2;
+	}
+
 	search(string query, start = 0, len = 100) {
 		if (file) {
 			if (len <= 0)
@@ -896,14 +911,23 @@ class BM25Index {
 					len_coef = 30;
 				var threshold = 0;
 				var threshold2 = 0;
+
+				if (BM25_USE_HASH) {
+					for (var i = 0; i < length all_words; i++) {
+						var word = all_words[i];
+						if (word)
+							all_words[i] = BM25_HASH(word);
+					}
+				}
+
 				if (length words == 1) {
 					if (!statistics(["w" => all_words[0]], n, f, lens, start, len_coef, documents, true))
 						return null;
 				} else {
 					if (length all_words < BM25_QUERY_LEVEL) {
 						var all_words2 = new [];
-						for (var i = 0; i < length all_words; i++) {
-							var word = all_words[i];
+						for (i = 0; i < length all_words; i++) {
+							word = all_words[i];
 							if (word) {
 								var word_statistics_arr = wordsfile.Query(["w" => word], null, false, 0, 1);
 								if (word_statistics_arr) {
@@ -921,7 +945,11 @@ class BM25Index {
 							all_words = KeySorted(all_words2);
 					}
 					// first strategy, words at 1 distance
-					var graph = BM25::complete(all_words, BM25_QUERY_LEVEL, 0, true);
+					var graph;
+					if (BM25_USE_HASH)
+						graph = BM25::complete(__tostring(all_words), BM25_QUERY_LEVEL, 0, true);
+					else
+						graph = BM25::complete(all_words, BM25_QUERY_LEVEL, 0, true);
 					var[] match;
 					for (i = 0; i < length graph; i++) {
 						var g = graph[i];	
@@ -994,7 +1022,7 @@ class BM25Index {
 						var d_len = lens[key_id];
 						if (d_len) {
 							for (j = 0; j < length all_words; j++) {
-								var qi = all_words[j];
+								var qi = "" + all_words[j];
 								var d_n = n[key_id];
 								var d_f = f[key_id];
 								if ((d_n) && (d_f)) {
@@ -1111,14 +1139,22 @@ class BM25Index {
 						var word = words[i];
 						if (word) {
 							try {
-								word_arr[length word_arr] = ["w" => word, "d" => id, "a" => document[word], "l" => word_count];
 								//file.Store(["w" => word, "d" => id, "a" => document[word], "l" => word_count], true, false);
 								var w = null;
 								var update_index = true;
+
+								var word_key;
+								if (BM25_USE_HASH)
+									word_key = BM25_HASH(word);
+								else
+									word_key = word;
+
+								word_arr[length word_arr] = ["w" => word_key, "d" => id, "a" => document[word], "l" => word_count];
+
 								if ((wordcache) && (IsSet(wordcache, word))) {
 									w = wordcache[word];
 								} else {
-									var wl = wordsfile.Query(["w" => word], null, false, 0, 1);
+									var wl = wordsfile.Query(["w" => word_key], null, false, 0, 1);
 
 									if (wl)
 										w = wl[0];
@@ -1127,7 +1163,7 @@ class BM25Index {
 									w["a"]++;
 									update_index = false;
 								} else
-									w = ["w" => word, "a" => 1];
+									w = ["w" => word_key, "a" => 1];
 
 								if (wordcache)
 									wordcache[word] = w;
