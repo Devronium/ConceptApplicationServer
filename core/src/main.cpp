@@ -488,7 +488,7 @@ void FreeClassObject(void *refObject) {
     ALLOC_UNLOCK
 }
 
-void *AllocArray(void *PIF) {
+void *AllocArray(void *PIF, bool skip_top) {
     if (!PIF) {
         Array *notPOOLED = (Array *)malloc(sizeof(Array));
         if (notPOOLED)
@@ -500,7 +500,7 @@ void *AllocArray(void *PIF) {
 #ifndef SIMPLE_MULTI_THREADING
     int delta = ((PIFAlizator *)PIF)->object_count - ((PIFAlizator *)PIF)->last_gc_run;
     if (delta >= ((PIFAlizator *)PIF)->dirty_limit) {
-        if (CheckReachability(PIF)) {
+        if (CheckReachability(PIF, skip_top)) {
             // bad programmer, bad !
             ((PIFAlizator *)PIF)->dirty_limit = 1000;
         } else {
@@ -717,7 +717,7 @@ int MarkRecursive(void *PIF, CompiledClass *CC, signed char reach_id_flag) {
     return res;
 }
 
-int CheckReachability(void *PIF) {
+int CheckReachability(void *PIF, bool skip_top) {
     if ((!PIF) || (!((PIFAlizator *)PIF)->RootInstance) || (((PIFAlizator *)PIF)->in_gc))
         return 0;
 
@@ -762,8 +762,11 @@ int CheckReachability(void *PIF) {
     root = ((PIFAlizator *)PIF)->GCROOT;
     while (root) {
         SCStack *STACK_TRACE = (SCStack *)((SCStack *)root->STACK_TRACE)->ROOT;
-        if (STACK_TRACE)
+        if (STACK_TRACE) {
             STACK_TRACE = (SCStack *)STACK_TRACE->TOP;
+            if ((STACK_TRACE) && (skip_top))
+                STACK_TRACE = (SCStack *)STACK_TRACE->PREV;
+        }
 
         while (STACK_TRACE) {
             VariableDATA **context = (VariableDATA **)STACK_TRACE->LOCAL_CONTEXT;

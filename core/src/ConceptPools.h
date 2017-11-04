@@ -78,11 +78,11 @@ void FreeMultipleVars(void **refVARs, int count);
 void *AllocClassObject(void *PIF);
 void FreeClassObject(void *refObject);
 
-void *AllocArray(void *PIF);
+void *AllocArray(void *PIF, bool skip_top = false);
 void FreeArray(void *refObject);
 
 int ModuleCheckReachability(void *PIF);
-int CheckReachability(void *PIF);
+int CheckReachability(void *PIF, bool skip_top = false);
 void AddGCRoot(void *PIF, void *CONTEXT);
 void RemoveGCRoot(void *PIF, void *CONTEXT);
 int GetMemoryStatistics(void *PIF, void *RESULT);

@@ -220,9 +220,9 @@ class PIFAlizator {
 
     friend void *AllocClassObject(void *PIF);
 
-    friend void *AllocArray(void *PIF);
+    friend void *AllocArray(void *PIF, bool skip_top);
 
-    friend int CheckReachability(void *PIF);
+    friend int CheckReachability(void *PIF, bool skip_top);
 
     friend INTEGER Invoke(INTEGER INVOKE_TYPE, ...);
 

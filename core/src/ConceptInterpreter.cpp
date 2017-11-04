@@ -7483,7 +7483,10 @@ VariableDATA **ConceptInterpreter::CreateEnvironment(PIFAlizator *PIF, VariableD
         } else
         if (LOCAL_CONTEXT_i->TYPE == VARIABLE_ARRAY) {
             LOCAL_CONTEXT_i->CLASS_DATA = NULL;
-            LOCAL_CONTEXT_i->CLASS_DATA = new(AllocArray(PIF))Array(PIF);
+            // extremly important: AllocArray is called with "skip top" parameter set to true
+            // this is in case garbage collector is called, and current stack variables are not yet initialized
+            // not to do the same if class objects are allocated here
+            LOCAL_CONTEXT_i->CLASS_DATA = new(AllocArray(PIF, true))Array(PIF);
         } else
             LOCAL_CONTEXT_i->CLASS_DATA = NULL;
     }
