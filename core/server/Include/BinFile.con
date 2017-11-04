@@ -23,8 +23,8 @@ define BM25_QUERY_LEVEL		5
 define BM25_MODULO_SIZE		48
 define BM25_GRAPH_MODULO_SIZE	72
 define BM25_MAX_WORDCACHE	5000
-define BM25_MAX_WORDLEN		16
-define BM25_USE_HASH		true
+define BM25_MAX_WORDLEN		0
+define BM25_USE_HASH		false
 define BM25_HASH		Murmur
 
 // define REGEX_MATCH		preg_match
