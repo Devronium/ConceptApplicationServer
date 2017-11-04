@@ -10,6 +10,7 @@ import standard.lib.str
 import standard.lib.regex
 import standard.lib.thread
 import standard.lib.cripto
+import standard.lang.cli
 
 define HEADER_SIZE		64
 define DEFAULT_MODULO_SIZE	64
@@ -1069,7 +1070,7 @@ class BM25Index {
 		}
 	}
 
-	dumpcache(var wordcache) {
+	dumpcache(var wordcache, var cache1 = null, var cache2 = null) {
 		if (wordcache) {
 			for (var i = 0; i < length wordcache; i++) {
 				var w = wordcache[i];
@@ -1085,7 +1086,20 @@ class BM25Index {
 				}
 			}
 		}
+		if (cache1) {
+			this.dump(file, cache1);
+			cache1 = new [];
+		}
+		if (cache2) {
+			this.dump(graphfile, cache2);
+			cache2 = new [];
+		}
 		wordcache = ["." => null];
+	}
+
+	dump(targetfile, var cache, sync_index = true) {
+		if (cache)
+			targetfile._FastStoreMulti(cache, sync_index, false);
 	}
 
 	notifybulk() {
@@ -1103,7 +1117,7 @@ class BM25Index {
 		}
 	}
 
-	update(document, id, changed_keys = null, graph = null, do_flush = true, var wordcache = null, check_existing_index = true, sync_index = true) {
+	update(document, id, changed_keys = null, graph = null, do_flush = true, var wordcache = null, cache1 = null, cache2 = null, check_existing_index = true, sync_index = true) {
 		if (!document)
 			return false;
 		if ((changed_keys) && (fields)) {
@@ -1134,7 +1148,12 @@ class BM25Index {
 						delete_index(graphfile, id);
 					}
 					var words = GetKeys(document);
-					var word_arr = new [];
+					var word_arr;
+					if (wordcache)
+						word_arr = cache1;
+					else
+						word_arr = new [];
+
 					for (i = 0; i < length words; i++) {
 						var word = words[i];
 						if (word) {
@@ -1176,17 +1195,20 @@ class BM25Index {
 							}
 						}
 					}
-					if (word_arr)
+					if ((word_arr) && (!wordcache))
 						file._FastStoreMulti(word_arr, sync_index, false);
 					if (graph) {
 						for (i = 0; i < length graph; i++) {
 							var g = graph[i];
 							if (g) {
 								g["d"] = id;
+								if (wordcache)
+									cache2[length cache2] = g;
 								//graphfile.Store(g, true, false);
 							}
 						}
-						graphfile._FastStoreMulti(graph, sync_index, false);
+						if (!wordcache)
+							graphfile._FastStoreMulti(graph, sync_index, false);
 					}
 					if (!changed_keys)
 						increment(word_count);
@@ -2172,15 +2194,15 @@ class BinFile extends File {
 		if (bm25) {
 			var word_cache = ["." => 0];
 			bm25.SetIndexLock(2);
-			return word_cache;
+			return [word_cache, new [], new []];
 		}
 		return null;
 	}
 
 	BM25UpdateEnd(word_cache) {
 		if (bm25) {
-			if (word_cache)
-				bm25.dumpcache(word_cache);
+			if ((word_cache) && (word_cache[0]))
+				bm25.dumpcache(word_cache[0], word_cache[1], word_cache[2]);
 			bm25.flush();
 			bm25.SetIndexLock(false);
 		}
@@ -2249,17 +2271,19 @@ class BinFile extends File {
 				}
 				if (bm25_document) {
 					if (wordcache) {
+						var cache1 = null;
+						var cache2 = null;
 						try {
-							bm25.update(bm25_document, id, changed_keys, graph, false, wordcache, orig_id > 0);
+							bm25.update(bm25_document, id, changed_keys, graph, false, wordcache, cache1, cache2, orig_id > 0);
 							if (length wordcache >= BM25_MAX_WORDCACHE)
-								bm25.dumpcache(wordcache);
+								bm25.dumpcache(wordcache, cache1, cache2);
 						} catch (var exc) {
 							echo "Error in bm25.update $exc\n";
 						}
 					} else {
 						bm25.SetIndexLock(2);
 						try {
-							bm25.update(bm25_document, id, changed_keys, graph, true, null, orig_id > 0);
+							bm25.update(bm25_document, id, changed_keys, graph, true, null, null, null, orig_id > 0);
 						} catch (exc) {
 							echo "Error in bm25.update $exc\n";
 						}
@@ -2934,16 +2958,18 @@ class BinFile extends File {
 			return;
 		fseek(hFile, HEADER_SIZE, SEEK_SET);
 		var word_cache = ["." => 0];
+		var cache1 = new [];
+		var cache2 = new [];
 		bm25.SetIndexLock(2);
 		this.Scan(function(c, id, var word_cache) {
 			cache_id = id;
 			cache_obj = c;
 
-			bm25.update(bm25.document(c, var graph, BM25_GRAPH_LEVEL), id, null, graph, false, word_cache, false, true);
+			bm25.update(bm25.document(c, var graph, BM25_GRAPH_LEVEL), id, null, graph, false, word_cache[0], word_cache[1], word_cache[2], false, true);
 			if (length word_cache >= BM25_MAX_WORDCACHE)
-				bm25.dumpcache(word_cache);
-		}, word_cache);
-		bm25.dumpcache(word_cache);
+				bm25.dumpcache(word_cache[0], word_cache[1], word_cache[2]);
+		}, [word_cache, cache1, cache2]);
+		bm25.dumpcache(word_cache, cache1, cache2);
 		bm25.SetIndexLock(false);
 		bm25.flush();
 		fseek(hFile, HEADER_SIZE, SEEK_SET);
@@ -3922,17 +3948,19 @@ class FixedStorage extends BinFile {
 				}
 				if (bm25_document) {
 					if (wordcache) {
+						var cache1 = new [];
+						var cache2 = new [];
 						try {
-							bm25.update(bm25_document, id, changed_keys, graph, false, wordcache, orig_id > 0);
+							bm25.update(bm25_document, id, changed_keys, graph, false, wordcache, cache1, cache2, orig_id > 0);
 							if (length wordcache >= BM25_MAX_WORDCACHE)
-								bm25.dumpcache(wordcache);
+								bm25.dumpcache(wordcache, cache1, cache2);
 						} catch (var exc) {
 							echo "Error in bm25.update $exc\n";
 						}
 					} else {
 						bm25.SetIndexLock(2);
 						try {
-							bm25.update(bm25_document, id, changed_keys, graph, true, null, orig_id > 0);
+							bm25.update(bm25_document, id, changed_keys, graph, true, null, null, null, orig_id > 0);
 						} catch (exc) {
 							echo "Error in bm25.update $exc\n";
 						}
