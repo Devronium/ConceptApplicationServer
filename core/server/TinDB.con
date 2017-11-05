@@ -3348,7 +3348,7 @@ pragma used
 		var data;
 		while (true) {
 			data = null;
-			var qsize = Worker::PendingAll(data, 1000, 100);
+			var qsize = Worker::PendingAll(data, -1, 100);
 			if (data) {
 				var len = length data;
 				for (var i = 0; i < length data; i++) {
