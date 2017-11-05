@@ -253,3 +253,4 @@ accel UnicodeCharsets.con
 accel UnicodeCharsetsFull.con
 accel Unicode.con
 accel UnicodeFull.con
+accel LucyIndex.con

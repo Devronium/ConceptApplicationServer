@@ -6,6 +6,8 @@
 //------------ end of standard header ----------------------------//
 #include "library.h"
 #include <stdio.h>
+#include <stdlib.h>
+#include <stdint.h>
 
 #define CFISH_USE_SHORT_NAMES
 #define LUCY_USE_SHORT_NAMES
@@ -73,12 +75,12 @@ void string_trap(void *context) {
 
 void utf8_trap(void *context) {
     struct caller_context *ctx = (struct caller_context *)context;
-    ctx->output = Str_new_from_utf8((char *)ctx->input, (int)ctx->input2);
+    ctx->output = Str_new_from_utf8((char *)ctx->input, (int)(uintptr_t)ctx->input2);
 }
 
 void simple_search_trap(void *context) {
     struct caller_context *ctx = (struct caller_context *)context;
-    Simple_Search((Simple *)ctx->input, (String *)ctx->input2, (int)ctx->input3, (int)ctx->output, NULL);
+    Simple_Search((Simple *)ctx->input, (String *)ctx->input2, (int)(uintptr_t)ctx->input3, (int)(uintptr_t)ctx->output, NULL);
 }
 
 void simple_new_trap(void *context) {
@@ -105,7 +107,7 @@ String *safe_string(const char *str) {
 }
 
 String *utf8_string(const char *str, int len) {
-    struct caller_context ctx = {(void *)str, (void *)len, NULL, NULL};
+    struct caller_context ctx = {(void *)str, (void *)(uintptr_t)len, NULL, NULL};
     Err *err = Err_trap(utf8_trap, &ctx);
     if (err) {
         show_and_release_error(err);
@@ -510,7 +512,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(lucy_search, 2, 4)
             num_wanted = 10;
     }
     String *query_str = safe_string(PARAM(1));
-    struct caller_context ctx = {lucy, query_str, (void *)offset, (void *)num_wanted};
+    struct caller_context ctx = {lucy, query_str, (void *)(uintptr_t)offset, (void *)(uintptr_t)num_wanted};
     Err *err = Err_trap(simple_search_trap, &ctx);
     if (err) {
         show_and_release_error(err);
