@@ -19,5 +19,7 @@ extern "C" {
     CONCEPT_FUNCTION(lucy_indexer_commit)
     CONCEPT_FUNCTION(lucy_indexer_optimize)
     CONCEPT_FUNCTION(lucy_indexer_done)
+
+    CONCEPT_FUNCTION(lucy_valid_utf8)
 }
 #endif // __LIBRARY_H

@@ -2,6 +2,7 @@ import standard.lib.thread
 import standard.search.lucy
 import standard.lang.serialize
 import standard.C.time
+import standard.lib.str
 
 include DirectoryList.con
 
@@ -116,7 +117,9 @@ class LucyIndex {
 			return "";
 		switch (typeof o) {
 			case "string":
-				return o;
+				if (lucy_valid_utf8(o))
+					return o;
+				return StringToHex(o);
 			case "numeric":
 				return "" + o;
 			case "class":
@@ -145,6 +148,8 @@ class LucyIndex {
 				var val = o[f];
 				switch (typeof val) {
 					case "string":
+						if (!lucy_valid_utf8(val))
+							val = StringToHex(val);
 					case "numeric":
 						new_object[f] = val;
 						break;

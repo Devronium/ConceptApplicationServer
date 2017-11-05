@@ -529,32 +529,41 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(lucy_search, 2, 4)
             if (elem_data) {
                 CREATE_ARRAY(elem_data);
                 Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, elem_data, "$doc_id", (INTEGER)VARIABLE_NUMBER, (char *)"", (NUMBER)HitDoc_Get_Doc_ID(hit));
-                uint32_t size = HitDoc_Get_Size(hit);
-                if (size) {
-                    cfish_Vector *names = HitDoc_Field_Names(hit);
-                    for (INTEGER i = 0; i < size; i++) {
-                        String *key = (String *)Vec_Fetch(names, i);
-                        if (key) {
-                            String *val = (String*)HitDoc_Extract(hit, key);
-                            if (val) {
-                                char *key_utf = Str_To_Utf8(key);
-                                char *val_utf = Str_To_Utf8(val);
-                                if (val_utf) {
-                                    Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, elem_data, key_utf, (INTEGER)VARIABLE_STRING, (char *)val_utf, (NUMBER)0);
-                                    free(val_utf);
-                                }
-                                free(key_utf);
-                                DECREF(val);
+                cfish_Vector *names = HitDoc_Field_Names(hit);
+                uint32_t size = Vec_Get_Size(names);
+                for (INTEGER i = 0; i < size; i++) {
+                    String *key = (String *)Vec_Fetch(names, i);
+                    if (key) {
+                        String *val = (String *)HitDoc_Extract(hit, key);
+                        if (val) {
+                            char *key_utf = Str_To_Utf8(key);
+                            char *val_utf = Str_To_Utf8(val);
+                            if (val_utf) {
+                                Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, elem_data, key_utf, (INTEGER)VARIABLE_STRING, (char *)val_utf, (NUMBER)0);
+                                free(val_utf);
                             }
-                            DECREF(key);
+                            free(key_utf);
+                            DECREF(val);
                         }
+                        // DO NOT CALL:
+                        // Vec_Fetch doesn't increment reference count
+                        // DECREF(key);
                     }
-                    DECREF(names);
                 }
+                DECREF(names);
             }
             index++;
             DECREF(hit);
     }
     DECREF(query_str);
+END_IMPL
+//------------------------------------------------------------------------
+CONCEPT_FUNCTION_IMPL(lucy_valid_utf8, 1)
+    T_STRING(lucy_valid_utf8, 0)
+    if (Str_utf8_valid(PARAM(0), PARAM_LEN(0))) {
+        RETURN_NUMBER(1);
+    } else {
+        RETURN_NUMBER(0);
+    }
 END_IMPL
 //------------------------------------------------------------------------
