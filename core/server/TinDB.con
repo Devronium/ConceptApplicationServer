@@ -2265,7 +2265,6 @@ pragma used
 	Execute(var data) {
 		var key;
 		var trigger;
-
 		if (length data == 1) {
 			var req_type = data[0];
 			switch (req_type) {
@@ -3349,7 +3348,7 @@ pragma used
 		var data;
 		while (true) {
 			data = null;
-			var qsize = Worker::PendingAll(data, -1, 100);
+			var qsize = Worker::PendingAll(data, 1000, 100);
 			if (data) {
 				var len = length data;
 				for (var i = 0; i < length data; i++) {

@@ -18,6 +18,10 @@ define DEFAULT_MODULO_SIZE	64
 define NO_FRAGMENTATION_SIZE	DEFAULT_MODULO_SIZE
 define MAX_STRUCTURE_SIZE	0x2000
 
+include LucyIndex.con
+// define FULLTEXT_INDEX_TYPE	BM25Index
+define FULLTEXT_INDEX_TYPE	LucyIndex
+
 define BM25_GRAPH_LEVEL		5
 define BM25_QUERY_LEVEL		5
 define BM25_MODULO_SIZE		48
@@ -1085,6 +1089,7 @@ class BM25Index {
 					}
 				}
 			}
+			wordcache = ["." => null];
 		}
 		if (cache1) {
 			this.dump(file, cache1);
@@ -1094,7 +1099,6 @@ class BM25Index {
 			this.dump(graphfile, cache2);
 			cache2 = new [];
 		}
-		wordcache = ["." => null];
 	}
 
 	dump(targetfile, var cache, sync_index = true) {
@@ -1436,6 +1440,14 @@ class BinFile extends File {
 		_Index.CacheRoot = _prec_bulk_op;
 	}
 
+	CreateFullText(name, fields = null, lang = "en") {
+		bm25 = new FULLTEXT_INDEX_TYPE(name, fields, lang);
+		if (classof bm25 == "BM25Index") {
+			bm25.dl = fields["dl"];
+			bm25.N = fields["N"];
+		}
+	}
+
 	RefreshIndexes() {
 		index_refresh_time = time();
 		var filename = this.name;
@@ -1457,9 +1469,7 @@ class BinFile extends File {
 					if (fields["lang"])
 						lang = fields["lang"];
 
-					bm25 = new BM25Index(bm25_name, fields["fields"], lang);
-					bm25.dl = fields["dl"];
-					bm25.N = fields["N"];
+					this.CreateFullText(bm25_name, fields["fields"], lang);
 				}
 			}
 		}
@@ -2239,7 +2249,6 @@ class BinFile extends File {
 		// bm25 index updated
 		if ((bm25) && (c) && (not_oid_update) && ((update_index) || (changed_keys)))
 			bm25_document = bm25.document(c, graph, BM25_GRAPH_LEVEL);
-
 		data = BinarizeObject(c);
 		if (data) {
 			var data_comp = "";
@@ -2271,12 +2280,12 @@ class BinFile extends File {
 				}
 				if (bm25_document) {
 					if (wordcache) {
-						var cache1 = null;
-						var cache2 = null;
 						try {
-							bm25.update(bm25_document, id, changed_keys, graph, false, wordcache, cache1, cache2, orig_id > 0);
-							if (length wordcache >= BM25_MAX_WORDCACHE)
-								bm25.dumpcache(wordcache, cache1, cache2);
+							bm25.update(bm25_document, id, changed_keys, graph, false, wordcache[0], wordcache[1], wordcache[2], orig_id > 0);
+							if (length wordcache[0] >= BM25_MAX_WORDCACHE)
+								bm25.dumpcache(wordcache[0], wordcache[1], wordcache[2]);
+							if ((length wordcache[1] >= BM25_MAX_WORDCACHE) || (length wordcache[2] >= BM25_MAX_WORDCACHE))
+								bm25.dumpcache(null, wordcache[1], wordcache[2]);
 						} catch (var exc) {
 							echo "Error in bm25.update $exc\n";
 						}
@@ -2966,8 +2975,10 @@ class BinFile extends File {
 			cache_obj = c;
 
 			bm25.update(bm25.document(c, var graph, BM25_GRAPH_LEVEL), id, null, graph, false, word_cache[0], word_cache[1], word_cache[2], false, true);
-			if (length word_cache >= BM25_MAX_WORDCACHE)
+			if (length word_cache[0] >= BM25_MAX_WORDCACHE)
 				bm25.dumpcache(word_cache[0], word_cache[1], word_cache[2]);
+			if ((length word_cache[1] >= BM25_MAX_WORDCACHE) || (length word_cache[2] >= BM25_MAX_WORDCACHE))
+				bm25.dumpcache(null, word_cache[1], word_cache[2]);
 		}, [word_cache, cache1, cache2]);
 		bm25.dumpcache(word_cache, cache1, cache2);
 		bm25.SetIndexLock(false);
@@ -3117,23 +3128,29 @@ class BinFile extends File {
 		}
 		if (!fields)
 			fields = new [];
-		bm25 = new BM25Index(bm25_name, fields, lang);
+		this.CreateFullText(bm25_name, fields, lang);
 		// sync twice (to ensure no double-indexing)
 		this.SyncBM25Info();
-		// second
 		this.RebuildBM25();
+		// second
 		this.SyncBM25Info();
 		this.FlushDB();
 		cache = new [];
 		cache_id = -1;
 		cache_obj = null;
+
 		return false;
 	}
 
 	SyncBM25Info() {
 		if (bm25) {
 			var bm25_name = this.name + ".bm25";
-			WriteFile(BinarizeObject(["fields" => bm25.fields, "lang" => bm25.lang, "dl" => bm25.dl, "N" => bm25.N]), bm25_name);
+			var bin_data;
+			if (classof bm25 == "BM25Index")
+				bin_data = ["fields" => bm25.fields, "lang" => bm25.lang, "dl" => bm25.dl, "N" => bm25.N];
+			else
+				bin_data = ["fields" => bm25.fields, "lang" => bm25.lang, "dl" => 0, "N" => 0];
+			WriteFile(BinarizeObject(bin_data), bm25_name);
 		}
 	}
 
@@ -3347,7 +3364,7 @@ class BinFile extends File {
 			this.RefreshIndexes();
 
 		if (!bm)
-			bm = new BM25Index();
+			return [ ];
 
 		var qdoc = BM25::query(q, bm.lang);
 		if (!qdoc)
@@ -3948,12 +3965,12 @@ class FixedStorage extends BinFile {
 				}
 				if (bm25_document) {
 					if (wordcache) {
-						var cache1 = new [];
-						var cache2 = new [];
 						try {
-							bm25.update(bm25_document, id, changed_keys, graph, false, wordcache, cache1, cache2, orig_id > 0);
-							if (length wordcache >= BM25_MAX_WORDCACHE)
-								bm25.dumpcache(wordcache, cache1, cache2);
+							bm25.update(bm25_document, id, changed_keys, graph, false, wordcache[0], wordcache[1], wordcache[2], orig_id > 0);
+							if (length wordcache[0] >= BM25_MAX_WORDCACHE)
+								bm25.dumpcache(wordcache[0], wordcache[1], wordcache[2]);
+							if ((length wordcache[1] >= BM25_MAX_WORDCACHE) || (length wordcache[2] >= BM25_MAX_WORDCACHE))
+								bm25.dumpcache(null, wordcache[1], wordcache[2]);
 						} catch (var exc) {
 							echo "Error in bm25.update $exc\n";
 						}
@@ -3967,7 +3984,8 @@ class FixedStorage extends BinFile {
 						bm25.SetIndexLock(false);
 						if (exc)
 							throw exc;
-						this.SyncBM25Info();
+						if (classof bm25 == "BM25Index")
+							this.SyncBM25Info();
 					}
 				}
 			}

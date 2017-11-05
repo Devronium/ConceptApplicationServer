@@ -1,0 +1,302 @@
+import standard.lib.thread
+import standard.search.lucy
+import standard.lang.serialize
+import standard.C.time
+
+include DirectoryList.con
+
+// 10 << 5: 1000 << 5 means 1.0 ranking boost
+// 10 << 5: 0.01
+define LUCY_ID_INDEX_PROEPRTIES		LUCY_STRING | (10 << 5)
+
+class LucyIndex {
+	public var lang = "en";
+	public var[] fields;
+
+	protected var[] all_fields;
+	protected var indexname;
+	protected var name;
+	protected var index;
+	protected var lucy;
+	protected var timestamp;
+
+	protected var locked = false;
+	protected var notcommited;
+
+	LucyIndex(indexname, fields = null, lang = "en") {
+		this.indexname = indexname + ".data";
+		this.name = indexname + ".lock";
+		if (fields) {
+			var[] fields_parsed;
+			for (var i = 0; i < length fields; i++) {
+				var f = fields[i];
+				if (f) {
+					fields_parsed[f] = LUCY_TEXT | LUCY_NO_STORE;
+					this.fields[length this.fields] = f;
+				}
+			}
+			fields_parsed["\$"] = LUCY_ID_INDEX_PROEPRTIES;
+			this.all_fields = fields_parsed;
+		}
+		this.lang = lang ?? "en";
+	}
+
+	Reopen() {
+		this.commit();
+	}
+
+	Lock(write = false) {
+		locked = 1 + write;
+		if (write)
+			return WorkerSharedRWLock(this.name, RWLOCK_WRITE);
+		return WorkerSharedRWLock(this.name, RWLOCK_READ);
+	}
+
+	Unlock(write = false) {
+		if (locked) {
+			locked = false;
+			if (write)
+				return WorkerSharedRWLock(this.name, RWUNLOCK_WRITE);
+			return WorkerSharedRWLock(this.name, RWUNLOCK_READ);
+		}
+		return false;
+	}
+
+	ReleaseLock() {
+		if (locked == 1)
+			this.Unlock();
+		else
+		if (locked == 2)
+			this.Unlock(true);
+	}
+
+	SetIndexLock(lock) {
+		if (lock)
+			this.Lock(lock == 2);
+		else
+			this.ReleaseLock();
+	}
+
+	document(o, dummy1 = null, dummy2 = null) {
+		return o;
+	}
+
+	samefields(fields) {
+		if (!this.fields) {
+			if (fields)
+				return false;
+			return true;
+		}
+		if (!fields)
+			return false;
+
+		if (length fields != length this.fields)
+			return false;
+
+		for (var i = 0; i < length fields; i++) {
+			var k = fields[i];
+			if (k) {
+				var found = false;
+				for (var j = 0; j < length this.fields; j++) {
+					var k2 = this.fields[j];
+					if ((k2) && (k2 == k)) {
+						found = true;
+						break;
+					}
+				}
+				if (!found)
+					return false;
+			}
+		}
+		return true;
+	}
+
+	totext(o, level = 0) {
+		if (level > 0x100)
+			return "";
+		switch (typeof o) {
+			case "string":
+				return o;
+			case "numeric":
+				return "" + o;
+			case "class":
+				o = ToArray(o);
+				// no break here
+			case "array":
+				var text = "";
+				for (var i = 0; i < length o; i++) {
+					var e = totext(o[i], level + 1);
+					if (e) {
+						if (text)
+							text += " ";
+						text += e;
+					}
+				}
+				return text;
+		}
+		return "";
+	}
+
+	protected filter_object(o) {
+		var[] new_object;
+		for (var i = 0; i < length fields; i++) {
+			var f = fields[i];
+			if (IsSet(o, f)) {
+				var val = o[f];
+				switch (typeof val) {
+					case "string":
+					case "numeric":
+						new_object[f] = val;
+						break;
+					case "class":
+						val = ToArray(val);
+						// no break here
+					case "array":
+						val = totext(o);
+						new_object[f] = val;
+				}
+			}
+		}
+		return new_object;
+	}
+
+	protected createindexer() {
+		if (!index) {
+			if (all_fields)
+				index = lucy_indexer_new(this.all_fields, this.indexname, this.lang);
+			else
+				index = lucy_indexer_new(["_" => LUCY_TEXT | LUCY_NO_STORE, "\$" => LUCY_ID_INDEX_PROEPRTIES], this.indexname, this.lang);
+		}
+	}
+
+	update(document, id, changed_keys = null, graph = null, do_flush = true, var wordcache = null, cache1 = null, cache2 = null, check_existing_index = true, sync_index = true) {
+		if (!index) {
+			this.createindexer();
+			if (!index) {
+				this.lang = "en";
+				this.createindexer();
+				if (!index)
+					return false;
+			}
+		}
+		var text;
+		var obj;
+		if (fields) {
+			if (changed_keys) {
+				var key_exists = false;
+				for (var i = 0; i < length changed_keys; i++) {
+					var k = changed_keys[i];
+					if (k) {
+						for (var j = 0; j < length fields; j++) {
+							var k2 = fields[j];
+							if (k == k2) {
+								key_exists = true;
+								break;
+							}
+						}
+						if (key_exists)
+							break;
+					}
+				}
+				if (!key_exists)
+					return false;
+			}
+			obj = filter_object(document);
+			obj["\$"] = id;
+		} else {
+			text = totext(document);
+			if (text)
+				obj = ["_" => text, "\$" => "" + id];
+		}
+
+		if (!obj)
+			return false;
+		
+		if (check_existing_index)
+			lucy_indexer_remove_query(index, "\$:\"$id\"");
+
+		lucy_indexer_add(index, obj);
+		if (do_flush)
+			this.commit();
+		else
+			notcommited++;
+		if (notcommited > 5000)
+			this.commit();
+		return true;
+	}
+
+	commit() {
+		if (index) {
+			lucy_indexer_commit(index);
+			lucy_indexer_done(index);
+			index = null;
+		}
+		notcommited = 0;
+	}
+
+	flush() {
+		this.commit();
+	}
+
+	search(query, start = 0, len = 20) {
+		if ((lucy) && (time() - timestamp > 5)) {
+			lucy_done(lucy);
+			lucy = null;
+		}
+		if (!lucy) {
+			lucy = lucy_new(this.indexname);
+			timestamp = time();
+		}
+		var[] arr;
+		if (lucy) {
+			if (len <= 0)
+				len = 20;
+			var data = lucy_search(lucy, query, start, len);
+			if (data) {
+				for (var i = 0; i < length data; i++) {
+					var e = data[i];
+					if (e) {
+						var id = value e['$'];
+						if (id)
+							arr[length arr] = id;
+					}
+				}
+			}
+		}
+		return arr;
+	}
+
+	ResetIndex() {
+		if (index) {
+			lucy_indexer_done(index);
+			index = null;
+		}
+		if (lucy) {
+			lucy_done(lucy);
+			lucy = null;
+		}
+		notcommited = 0;
+	}
+
+	Close() {
+		this.commit();
+	}
+
+	dumpcache(dummy1 = null, dummy2 = null, dummy3 = null) {
+		// dummy
+		this.commit();
+	}
+
+	ResetCache() {
+		// dummy
+	}
+
+	Delete() {
+		this.ResetIndex();
+		DirectoryList::Delete(this.indexname + "/");
+	}
+
+	finalize() {
+		this.ResetIndex();
+	}
+}
