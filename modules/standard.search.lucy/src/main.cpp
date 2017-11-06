@@ -197,7 +197,6 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(lucy_indexer_new, 2, 3)
         char **keys = (char **)malloc(count * sizeof(char *));
         Invoke(INVOKE_ARRAY_KEYS, PARAMETER(0), keys, (INTEGER)count);
 
-        Doc *doc = Doc_new(NULL, 0);
         int elements = 0;
         char buffer[0xFF];
         int len;
@@ -254,6 +253,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(lucy_indexer_new, 2, 3)
                 DECREF(field_str);
             }
         }
+        free(keys);
     }
     struct caller_context context = {use_schema, use_folder, NULL, NULL};
     err = Err_trap(indexer_new_trap, &context);
