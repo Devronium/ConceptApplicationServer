@@ -3973,6 +3973,7 @@ pragma used
 			var path = stream.Headers[":path"];
 			if (!path)
 				return InternalError(h2, stream, 503);
+			path = URIDecode(path);
 			var server = stream.Headers[":authority"] ?? "";
 			var app;
 			var params = SplitPath(path);
