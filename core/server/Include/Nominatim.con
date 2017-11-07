@@ -1,0 +1,69 @@
+include HTTPRequest.con
+include Loop.con
+import standard.lib.json
+
+class Nominatim {
+	protected var callback;
+	protected var req;
+	protected var timeout;
+
+	protected iterate() {
+		if (req) {
+			req.iterate();
+			if ((timeout) && (time() > timeout)) {
+				this.callback(null);
+				this.callback = null;
+				delete req;
+				return true;
+			}
+			return false;
+		}
+		return true;
+	}
+
+	protected _do(address) {
+		req = new HTTPRequest("http://nominatim.openstreetmap.org/search?$address&format=json");
+		req.OnResponse = function(req) {
+			// to do
+			var header = req.response;
+			if ((header) && (header["code"] == 200))
+				this.callback(JSONDeserialize(req.buffer));
+			else
+				this.callback(null);
+			this.req.OnResponse = null;
+			delete this.req;
+		};
+		req.request();
+		Loop::add(this.iterate);
+	}
+
+	static geocode(address, delegate, timeout = 5) {
+		if (!address)
+			return false;
+		var geocode = new Nominatim();
+		if (timeout > 0)
+			geocode.timeout = time() + timeout;
+		if (typeof address == "array") {
+			var keys = GetKeys(address);
+			var url = "";
+			for (var i = 0; i < length keys; i++) {
+				var k = keys[i];
+				if (k) {
+					var addr = address[k];
+					if (addr) {
+						if (url)
+							url += "&";
+						url += "$k=${URIEncode("" + addr)}";
+					}
+				}	
+			}
+			if (!url)
+				return false;
+			address = url;
+		} else
+			address = "q=" + URIEncode(address);
+		geocode.callback = delegate;
+		geocode._do(address);
+		return true;
+	}
+}
