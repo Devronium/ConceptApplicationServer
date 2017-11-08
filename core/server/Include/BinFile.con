@@ -2362,7 +2362,12 @@ class BinFile extends File {
 		return this._Store(obj, update_index, -1, null, do_flush, change_oid);
 	}
 
-	_StoreHint(var obj, update_index = true, do_flush = true, change_oid = true, changed_keys = null, wordcache = null) {
+	_StoreHint(var obj, update_index = true, do_flush = true, change_oid = true, changed_keys = null, wordcache = null, old_values = null, old_changed = null) {
+		if ((update_index) && (old_values) && (old_changed)) {
+			var id = obj['$'];
+			if (id)
+				update_index = this.RemoveIndexesIfChanged(old_changed, id, old_values);
+		}
 		return this._Store(obj, update_index, -1, changed_keys, do_flush, change_oid, wordcache);
 	}
 
@@ -3925,6 +3930,7 @@ class FixedStorage extends BinFile {
 			throw "Invalid file descriptor or no open file";
 		if (!structure)
 			throw "No structure set. Call SetStructure first.";
+changed_keys = null;
 		var data;
 		var not_oid_update = true;
 		if (typeof obj == "array") {

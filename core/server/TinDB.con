@@ -2672,6 +2672,8 @@ pragma used
 										var word_cache = data[10];
 										var changed = new [];
 										var oid_changed = false;
+										var old_values = new [];
+										var old_changed = new [];
 										var i;
 										if (js) {
 											js.timeout(REDUCE_TIMEOUT_S);
@@ -2720,9 +2722,11 @@ pragma used
 												}
 
 												if ((typeof o_k != typeof val) || (o_k != val)) {
+													old_changed[k] = o_k;
 													o[k] = val;
 													changed[k] = val;
 												}
+												old_values[k] = o_k;
 											}
 										}
 										if (changed) {
@@ -2764,7 +2768,7 @@ pragma used
 													}
 													if (version_oid)
 														o['$v'] = version_oid;
-													t._StoreHint(o, true, true, oid_changed, changed, word_cache);
+													t._StoreHint(o, true, true, oid_changed, changed, word_cache, old_values, old_changed);
 													if ((trigger) && (trigger.OnJSUpdate)) {
 														trigger_error = JSTrigger(db, o, trigger.OnJSUpdate);
 														if (trigger_error)

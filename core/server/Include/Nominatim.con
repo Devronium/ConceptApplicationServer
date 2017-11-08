@@ -21,7 +21,7 @@ class Nominatim {
 		return true;
 	}
 
-	protected _do(address) {
+	protected _do(address, user_agent) {
 		req = new HTTPRequest("http://nominatim.openstreetmap.org/search?$address&format=json");
 		req.OnResponse = function(req) {
 			// to do
@@ -33,11 +33,14 @@ class Nominatim {
 			this.req.OnResponse = null;
 			delete this.req;
 		};
-		req.request();
+		if (user_agent)
+			req.request("GET", ["User-Agent": user_agent]);
+		else
+			req.request();
 		Loop::add(this.iterate);
 	}
 
-	static geocode(address, delegate, timeout = 5) {
+	static geocode(address, delegate, timeout = 5, user_agent = "Concept-Nominatim-Cache") {
 		if (!address)
 			return false;
 		var geocode = new Nominatim();
@@ -63,7 +66,7 @@ class Nominatim {
 		} else
 			address = "q=" + URIEncode(address);
 		geocode.callback = delegate;
-		geocode._do(address);
+		geocode._do(address, user_agent);
 		return true;
 	}
 }
