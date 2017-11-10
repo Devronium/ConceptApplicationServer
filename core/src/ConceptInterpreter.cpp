@@ -7376,7 +7376,7 @@ VariableDATA **ConceptInterpreter::CreateEnvironment(PIFAlizator *PIF, VariableD
     this_ref->IS_PROPERTY_RESULT = 0;
 
     CC_WRITE_LOCK(PIF)
-    if ((this_ref->TYPE == VARIABLE_CLASS) && (this_ref->CLASS_DATA))
+    if (/*(this_ref->TYPE == VARIABLE_CLASS) &&*/ (this_ref->CLASS_DATA))
         ((CompiledClass *)this_ref->CLASS_DATA)->LINKS++;
 
     register INTEGER i;

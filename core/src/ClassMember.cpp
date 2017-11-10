@@ -226,6 +226,7 @@ VariableDATA *ClassMember::Execute(void *PIF, intptr_t CONCEPT_CLASS_ID, Variabl
     STACK_TRACE.PREV             = PREV;
     STACK_TRACE.stack_pos        = 0;
     STACK_TRACE.alloc_from_stack = 0;
+    STACK_TRACE.len              = 0;
 
     void *PREV_TOP = NULL;
     if (PREV) {
@@ -245,8 +246,6 @@ VariableDATA *ClassMember::Execute(void *PIF, intptr_t CONCEPT_CLASS_ID, Variabl
 
     if (CONTEXT)
         STACK_TRACE.len = ((Optimizer *)OPTIMIZER)->dataCount;
-    else
-        STACK_TRACE.len = 0;
 
     if (!PREV)
         AddGCRoot(PIF, &STACK_TRACE);
@@ -399,6 +398,9 @@ GreenThreadCycle *ClassMember::CreateThread(void *PIF, intptr_t CONCEPT_CLASS_ID
     gtc->STACK_TRACE.STACK_CONTEXT    = NULL;
     gtc->STACK_TRACE.stack_pos        = 0;
     gtc->STACK_TRACE.alloc_from_stack = 0;
+    gtc->STACK_TRACE.line             = 0;
+    gtc->STACK_TRACE.LOCAL_CONTEXT    = 0;
+    gtc->STACK_TRACE.len              = 0;
     bool         can_be_run;
     VariableDATA **CONTEXT = ((ConceptInterpreter *)INTERPRETER)->CreateEnvironment((PIFAlizator *)PIF, Owner, &FORMAL_PARAM, 0, &gtc->STACK_TRACE, can_be_run);
     gtc->LOCAL_CONTEXT             = CONTEXT;
