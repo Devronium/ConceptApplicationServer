@@ -1670,6 +1670,7 @@ INTEGER Invoke(INTEGER INVOKE_TYPE, ...) {
                         var->LINKS          = 1;
                         var->DELEGATE_DATA  = target->DELEGATE_DATA;
                         var->CLASS_DATA     = target->CLASS_DATA;
+                        ((CompiledClass *)var->CLASS_DATA)->LINKS++;
                         var->TYPE        = target->TYPE;
                         *cycle = ((CompiledClass *)target->CLASS_DATA)->_Class->CreateThread(PIF, (INTEGER)target->DELEGATE_DATA, var);
                     } catch (VariableDATA *LAST_THROW) {
