@@ -148,6 +148,9 @@ int mustache_enter(void *closure, const char *name) {
         var = mustacheclosure->DATA;
         is_ok = 1;
     } else
+    if (mustacheclosure->arrdata)
+        is_ok = IS_OK(mustacheclosure->Invoke(INVOKE_ARRAY_VARIABLE_BY_KEY, mustacheclosure->arrdata, name, &var));
+    else
         is_ok = IS_OK(mustacheclosure->Invoke(INVOKE_ARRAY_VARIABLE_BY_KEY, mustacheclosure->DATA, name, &var));
 
     if (is_ok) {

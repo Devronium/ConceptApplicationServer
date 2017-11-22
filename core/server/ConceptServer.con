@@ -3830,7 +3830,7 @@ pragma used
 			return "index.csp";
 		else
 		if (FileExists(app + "/index.cas"))
-			return "index.ess";
+			return "index.cas";
 		else
 		if (FileExists(app + "/index.ess"))
 			return "index.ess";
