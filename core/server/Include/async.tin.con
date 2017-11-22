@@ -42,6 +42,18 @@ class tinasync extends TinConnection {
 		return p;
 	}
 
+	ifauth(timeout = 5) {
+		if (this.isauth)
+			return this;
+		timeout += time();
+		do {
+			this.Iterate();
+		} while ((!this.isauth) && (time() <= timeout));
+		if (this.isauth)
+			return this;
+		return null;
+	}
+
 	keepopen(open = true) {
 		this._keep_open = open;
 	}

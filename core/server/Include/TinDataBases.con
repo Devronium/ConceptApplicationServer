@@ -82,6 +82,7 @@ class TinConnection {
 	private var[] ConnectOptions;
 	protected var _cli_mode;
 	protected var _keep_open = false;
+	public var isauth = false;
 
 	DriverOpen(string db, string host = "localhost", number port = 2668) {
 		InternalBuffer = "";
@@ -775,6 +776,7 @@ class TinDataSet {
 			return;
 		}
 
+		this.Connection.isauth = true;
 		var challenge = r["c"];
 		var username = _private_data[0];
 		var pass = sha256(username + ":" + challenge + ":" + sha256(_private_data[1]));

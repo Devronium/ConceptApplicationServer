@@ -4,6 +4,7 @@ import standard.C.time
 import standard.C.io
 import standard.lib.cripto
 import standard.lib.mustache
+include async.tin.con
 include Loop.con
 include Worker.con
 
@@ -49,7 +50,7 @@ class fs {
 
 	safepath(path) {
 		if (root_path) {
-			if ((path[0] != "/") && (path[0] != "\\"))
+			if ((path[0] != "/") && (path[0] != "\\") && (path[1] != ":"))
 				path = root_path + path;
 		}
 		return path;
@@ -60,8 +61,10 @@ class fs {
 	}
 
 	readFile(path, callback) {
-		if (callback)
-			callback(_errno(), ReadFile(this.safepath(path)));
+		if (callback) {
+			var data = ReadFile(this.safepath(path));
+			callback(_errno(), data);
+		}
 		return true;
 	}
 
@@ -191,15 +194,15 @@ class _webrequest {
 	var cookie;
 	var GET;
 	var POST;
-	var owner;
+	var web;
 	var timestamp;
 	var session;
 	var template = "";
 
 	_webrequest(owner, id, data, timestamp) {
-		this.owner = owner;
+		this.web = owner;
 		this.timestamp = (timestamp ?? microseconds())/1000;
-		owner.requests++;
+		web.requests++;
 		this.id = id;
 		this.env = data["env"];
 		this.headers = data["headers"];
@@ -219,15 +222,15 @@ class _webrequest {
 	}
 
 	header(key, val) {
-		this.owner.__buffer(["q" => id, "do" => "header", "data" => ["key" => key, "value" => val]]);
+		this.web.__buffer(["q" => id, "do" => "header", "data" => ["key" => key, "value" => val]]);
 	}
 
 	done() {
-		this.owner.__buffer(["q" => id, "do" => "done"]);
+		this.web.__buffer(["q" => id, "do" => "done"]);
 	}
 
 	print(data) {
-		this.owner.__buffer(["q" => id, "do" => "print", "data" => data]);
+		this.web.__buffer(["q" => id, "do" => "print", "data" => data]);
 	}
 
 	operator << (data) {
@@ -239,7 +242,7 @@ class _webrequest {
 		if (template) {
 			var fullpath;
 			if (template[0] != "/")
-				fullpath = this.owner.fs.safepath(this.owner.path) + template;
+				fullpath = this.web.fs.safepath(this.web.path) + template;
 			else
 				fullpath = template;
 			var tpl = ReadFile(fullpath);
@@ -293,7 +296,7 @@ class _webrequest {
 
 	finalize() {
 		this.sync();
-		owner.requests--;
+		web.requests--;
 		done();
 		echo "Request fulfilled in ${microseconds()/1000 - this.timestamp}ms\n";
 	}
@@ -310,6 +313,27 @@ class web {
 	var idle;
 	var timeout = 3600;
 	var fs;
+	protected var lazy_call;
+
+	withdb(delegate, string username = "sysdbadministrator", string password = "sysdbadministrator", string db = "appdb", string host = "localhost", number port = 2668) {
+		if (this.db) {
+			if (this.db.ifauth()) {
+				delegate();
+				return true;
+			}
+			return false;
+		}
+		this.lazy_call = delegate;
+		this.db = new tinasync(db, host, port);
+		this.db.auth(username, password).then({
+			this.db.keepopen();
+			if (this.lazy_call) {
+				this.lazy_call();
+				delete this.lazy_call;
+			}
+		});
+		return true;
+	}
 
 	dispatch(data) {
 		switch (data["do"]) {
