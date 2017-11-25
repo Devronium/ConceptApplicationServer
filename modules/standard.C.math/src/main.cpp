@@ -686,7 +686,10 @@ AnsiString math_number_format(double d, int dec, char dec_point, char thousand_s
     if (is_negative) {
         reslen++;
     }
-    resbuf = (char *)malloc(reslen + 1);
+    if (!dec_point) {
+        reslen--;
+    }
+    resbuf = (char *)malloc(reslen + 2);
 
     s    = tmpbuf + tmplen - 1;
     t    = resbuf + reslen;
@@ -696,7 +699,8 @@ AnsiString math_number_format(double d, int dec, char dec_point, char thousand_s
         while (isdigit((int)*s)) {
             *t-- = *s--;
         }
-        *t-- = dec_point;          /* copy that dot */
+        if (dec_point)
+            *t-- = dec_point;
         s--;
     }
 

@@ -213,12 +213,14 @@ class _webrequest {
 
 	usesession(expires = 2592000, path = "/", domain = "", secure = false, httponly = true) {
 		this.session = new session();
+		this.session.setheader = this.header;
 		if (this.cookie) {
 			var ess = this.cookie["_ess"];
 			if (ess)
 				this.session.sessionid = ess;
 		}
 		this.session.usesession(expires, path, domain, secure, httponly);
+		this.session.setheader = null;
 	}
 
 	header(key, val) {
