@@ -668,7 +668,7 @@ AnsiString math_number_format(double d, int dec, char dec_point, char thousand_s
         d           = -d;
     }
     dec    = MAX(0, dec);
-    tmpbuf = (char *)malloc(1 + DBL_MAX_10_EXP + 1 + dec + 1);
+    tmpbuf = (char *)malloc(1 + DBL_MAX_10_EXP + 1 + dec + 3);
 
     tmplen = sprintf(tmpbuf, "%.*f", dec, d);
 
@@ -686,11 +686,10 @@ AnsiString math_number_format(double d, int dec, char dec_point, char thousand_s
     if (is_negative) {
         reslen++;
     }
-    if (!dec_point) {
+    if ((!dec_point) && (dec > 0))
         reslen--;
-    }
-    resbuf = (char *)malloc(reslen + 2);
 
+    resbuf = (char *)malloc(reslen + 3);
     s    = tmpbuf + tmplen - 1;
     t    = resbuf + reslen;
     *t-- = 0;
