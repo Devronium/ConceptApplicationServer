@@ -2331,6 +2331,12 @@ AnsiString PIFAlizator::NormalizePath(AnsiString *MODULE_NAME) {
     int path_count  = 0;
     int ignore_next = 0;
 
+    AnsiString result;
+#ifndef _WIN32
+    if ((str) && (len > 0) && (str[0] == '/'))
+        result = "/";
+#endif
+
     // warning: prec_str is in reverse order !
     AnsiString prec_str;
 
@@ -2361,10 +2367,8 @@ AnsiString PIFAlizator::NormalizePath(AnsiString *MODULE_NAME) {
             prec_str += c;
     }
 
-    AnsiString result;
     for (int i = 0; i < ignore_next; i++)
         result += "../";
-
     char not_first = 0;
     for (int i = path_count - 1; i >= 0; i--) {
         int pos = path_pos[i];
