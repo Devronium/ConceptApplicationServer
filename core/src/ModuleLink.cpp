@@ -2026,6 +2026,7 @@ INTEGER Invoke(INTEGER INVOKE_TYPE, ...) {
                     ref_pif->Workers++;
                     ref_pif->EnsureThreadSafe();
                     *worker                = new PIFAlizator(ref_pif->INCLUDE_DIR, ref_pif->IMPORT_DIR, &S, ref_pif->out, filename, ref_pif->DebugOn, ref_pif->DEBUGGER_TRAP, ref_pif->DEBUGGER_RESERVED, ref_pif->SERVER_PUBLIC_KEY, ref_pif->SERVER_PRIVATE_KEY, ref_pif->CLIENT_PUBLIC_KEY);
+                    (*worker)->UpdatePath();
                     if ((!ref_pif->DebugOn) && (!(*worker)->Unserialize(AnsiString(filename) + DEFAULT_BIN_EXTENSION))) {
                         (*worker)->Optimize(0, true);
                     } else {

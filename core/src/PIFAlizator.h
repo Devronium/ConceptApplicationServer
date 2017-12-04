@@ -400,6 +400,7 @@ public:
     PIFAlizator(AnsiString INC_DIR, AnsiString LIB_DIR, AnsiString *S, SimpleStream *Out, AnsiString _FileName = "", INTEGER debug = 0, DEBUGGER_CALLBACK DC = 0, void *DEBUGGER_RESERVED = 0, char *SPubK = 0, char *SPrivK = 0, char *CPubK = 0, PIFAlizator *sibling = NULL, void *static_result = NULL, void *module_list = NULL);
     void SetPipe(int pipein, int pipeout, int apid, int papid, int direct_pipe);
     INTEGER Execute();
+    void UpdatePath();
     void Optimize(int start = 0, char use_compiled_code = 0);
     void OptimizeMemoryUsage();
     bool CheckRunable();

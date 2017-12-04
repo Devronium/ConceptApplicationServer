@@ -2568,6 +2568,10 @@ INTEGER PIFAlizator::Execute(AnsiString *Stream, INTEGER on_line, char _USE_WARN
     return 0;
 }
 
+void PIFAlizator::UpdatePath() {
+    TEMP_INC_DIR = GetPath(&FileName);
+}
+
 void PIFAlizator::SyncClassList() {
     if (this->ClassList) {
         int count = this->ClassList->Count();
