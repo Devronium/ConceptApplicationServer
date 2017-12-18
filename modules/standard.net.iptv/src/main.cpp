@@ -628,7 +628,6 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(M2TSPeek, 1, 4)
     }
 END_IMPL
 //=====================================================================================//
-#include <stdio.h>
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(M2TSDemux, 1, 7)
     T_STRING("M2TSDemux", 0)
     INTEGER offset = 0;
@@ -944,6 +943,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(M2TSDemux, 1, 7)
                                                             switch (ref_str[start + es_offset]) {
                                                                 case 0x09:
                                                                 case 0x52:
+                                                                case 0x81:
                                                                     es_len -= ref_str[start + es_offset + 1] + 2;
                                                                     es_offset += ref_str[start + es_offset + 1] + 2;
                                                                     break;
