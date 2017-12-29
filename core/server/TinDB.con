@@ -2658,9 +2658,14 @@ pragma used
 										if (use_sync_worker) {
 											if (oid) {
 												obj.o = "U";
-												if (TIN_FULLOBJECT)
-													obj.f = syncobj ?? obj.p;
-												else
+												if (TIN_FULLOBJECT) {
+													if (syncobj) {
+														obj.f = syncobj;
+													} else {
+														obj.f = obj.p;
+														use_sync_worker = null;
+													}
+												} else
 													obj.f = obj.p;
 												obj.p = ['$oid' => oid];
 											} else
@@ -2730,7 +2735,7 @@ pragma used
 										obj.p['$'] = id;
 								}
 								if (r.id)
-									QueryWorker::InvalidateCacheSync(obj, syncworker);
+									QueryWorker::InvalidateCacheSync(obj, use_sync_worker);
 
 								if (TIN_FORCESYNC)
 									t.FlushDB(false);
