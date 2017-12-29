@@ -25,6 +25,7 @@ define TIN_JOURNALING	true
 define TIN_CLUSTER	false
 define TIN_CLUSTER_LOG	true
 define TIN_PING		false
+define TIN_FULLOBJECT	true
 
 define READ_BUFFER	0xFFFF
 
@@ -620,6 +621,81 @@ class Journal {
 		last_cleanup = time();
 	}
 
+	DeleteOps(collection, id = -1) {
+		try {
+			if (f) {
+				var name = f.Name;
+				f.Flush();
+				f.Sync();
+				this.Done();
+
+				var f3 = new File("rb");
+				f3.Name = name;
+				if (!f3.Open()) {
+					this.Open(name);
+					return;
+				}
+				var f2 = new File("wb");
+				f2.Name = f3.Name + ".clean";
+				_unlink(f2.Name);
+				if (f2.Open()) {
+					var header = pack("sU32:64", "Journal file", time());
+					if (f2.Write(header) != length header)
+						throw "Error in cleanup log write ${f2.Name}, errno: ${_errno()}\n";
+
+					if (!f3.Seek(64))
+						throw "Error in seek ${f3.Name}, errno: ${_errno()}\n";
+					do {
+						if (f3.Read(var buf, 27) != 27)
+							break;
+						var saved_offset = f3.Tell();
+						var record = unpack("U32U64U64U16U8U32", buf);
+						var offset = record[1];
+						var record_size = record[2];
+						var collection_size = record[3];
+						if (!f3.Seek(record_size, SEEK_CUR))
+							break;
+
+						var log_collection = "";
+						if (f3.Read(log_collection, collection_size) != collection_size)
+							break;
+
+						if ((log_collection != collection) && ((offset != id) || (id != -1))) {
+							SafeWrite(f2, buf);
+							if (!f3.Seek(saved_offset, SEEK_SET))
+								break;
+							var copy_size = record_size + collection_size;
+							f3.Read(buf, copy_size);
+							if (buf)
+								SafeWrite(f2, buf);
+						}
+					} while (buf);
+					f2.Flush();
+					f2.Sync();
+					f2.Close();
+					f3.Close();
+
+					_unlink(name);
+					if (rename(name + ".clean", name))
+						throw  "Error in rename ${name}.clean to $name, errno: ${_errno()}\n";
+
+					this.Open(name);
+				} else {
+					f3.Close();
+					this.Open(name);
+				}
+			}
+		} catch (var exc) {
+			if (f3)
+				f3.Close();
+			if (name) {
+				this.Done();
+				this.Open(name);
+			}
+			echo exc;
+		}
+		last_cleanup = time();
+	}
 
 	Reset() {
 		try {
@@ -704,6 +780,20 @@ pragma used
 			obj.w = time();
 			AddWorkerData(syncworker, BinarizeObject(obj));
 		}
+	}
+
+	static FullObjectSync(o, oid, syncworker) {
+		if ((syncworker) && (oid) && (typeof oid == "string")) {
+			var q = new Q();
+			q.o = "U";
+			q.f = o;
+			q.p = ["$oid" => oid];
+			q.x["start"] = 0;
+			q.x["len"] = 1;
+			QueryWorkerBase::Sync(q, syncworker);
+			return true;
+		}
+		return false;
 	}
 
 	static InvalidateCacheSync(obj, syncworker = null) {
@@ -882,7 +972,7 @@ pragma used
 				r.p = KeySorted(r.p);
 		} else
 		if (type == "version")
-			r.p = ["version" => TIN_VERSION, "forcesync" => TIN_FORCESYNC, "maxopsize" => MAX_OP_SIZE, "debug" => TIN_DEBUG, "js" => true, "cluster" => TIN_CLUSTER, "journaling" => TIN_JOURNALING, "ping" => TIN_PING];
+			r.p = ["version" => TIN_VERSION, "forcesync" => TIN_FORCESYNC, "maxopsize" => MAX_OP_SIZE, "debug" => TIN_DEBUG, "js" => true, "cluster" => TIN_CLUSTER, "cluster.objectsync" => TIN_FULLOBJECT, "journaling" => TIN_JOURNALING, "ping" => TIN_PING];
 		else
 		if (type == "node")
 			r.p = QueryWorkerBase::NodeInfo();
@@ -1724,6 +1814,27 @@ pragma used
 		}
 	}
 
+
+	DeleteFromJournal(obj) {
+		if (journal) {
+			var journal_key = "${obj.d}/${obj.c}";
+			var id = -1;
+			if ((obj.p) && (IsSet(obj.p, '$'))) {
+				id = obj.p['$'];
+				if (id <= 0)
+					id = -1;
+			}
+			journal.DeleteOps(journal_key, id);
+			var bin_data = BinarizeObject([-102, journal_key, id]);
+			for (var i = 0; i < length other_workers; i++) {
+				var worker = other_workers[i];
+				if (worker)
+					AddWorkerData(worker, bin_data);
+			}
+		}
+	}
+
+
 	ForceNumber(val, not_zero = false) {
 		if (typeof val != "numeric") {
 			if (typeof val == "string")
@@ -2290,6 +2401,11 @@ pragma used
 			}
 		}
 		var socket = data[0];
+		if (socket == -102) {
+			if (journal)
+				journal.DeleteOps(data[1], data[2]);
+			return;
+		}
 		var obj = data[1];
 		var target_worker = data[2];
 		var target_key = data[3];
@@ -2536,13 +2652,16 @@ pragma used
 												break;
 											}
 										}
-										if (!t.Update(obj.p, id, true, var oid, use_sync_worker)) {
+										if (!t.Update(obj.p, id, true, var oid, use_sync_worker, use_sync_worker && TIN_FULLOBJECT, var syncobj)) {
 											id = -1;
 										} else
 										if (use_sync_worker) {
 											if (oid) {
 												obj.o = "U";
-												obj.f = obj.p;
+												if (TIN_FULLOBJECT)
+													obj.f = syncobj ?? obj.p;
+												else
+													obj.f = obj.p;
 												obj.p = ['$oid' => oid];
 											} else
 												use_sync_worker = null;
@@ -2674,6 +2793,7 @@ pragma used
 										var oid_changed = false;
 										var old_values = new [];
 										var old_changed = new [];
+										var sync_worker = this.syncworker;
 										var i;
 										if (js) {
 											js.timeout(REDUCE_TIMEOUT_S);
@@ -2769,6 +2889,13 @@ pragma used
 													if (version_oid)
 														o['$v'] = version_oid;
 													t._StoreHint(o, true, true, oid_changed, changed, word_cache, old_values, old_changed);
+
+													if ((sync_worker) && (TIN_FULLOBJECT) && (oid)) {
+														// disable classic sync
+														if (QueryWorker::FullObjectSync(o, oid, sync_worker))
+															data[14] = null;
+													}
+
 													if ((trigger) && (trigger.OnJSUpdate)) {
 														trigger_error = JSTrigger(db, o, trigger.OnJSUpdate);
 														if (trigger_error)
@@ -2885,6 +3012,10 @@ pragma used
 							}
 							t.Unlock(true);
 							r.p = ['$count' => count];
+							if (count) {
+								this.Flush();
+								this.DeleteFromJournal(obj);
+							}
 						}
 						r.id = 0;
 						break;
@@ -3153,6 +3284,7 @@ pragma used
 								// QueryWorker::InvalidateCache(obj.d, obj.c);
 								QueryWorker::InvalidateCacheSync(obj, syncworker);
 								this.ResetDBS(true);
+								this.DeleteFromJournal(obj);
 							}
 						} else {
 							r.e = ERR_COLLECTION;

@@ -2861,9 +2861,10 @@ class BinFile extends File {
 		return false;
 	}
 
-	Update(o, var id, update_index = true, var oid = null, getoid = false) {
+	Update(o, var id, update_index = true, var oid = null, getoid = false, getfull_obj = false, var full_obj = null) {
 		// new_bin = null;
 		oid = null;
+		full_obj = null;
 		//if (!this.Seek(id))
 		if (fseek(hFile, id, SEEK_SET))
 			return false;
@@ -2911,6 +2912,8 @@ class BinFile extends File {
 					this._Store(old, update_index, id, new_values);
 					// if (!update_index)
 					// 	new_bin  = old;
+					if (getfull_obj)
+						full_obj = old;
 					return true;
 				}
 			}
