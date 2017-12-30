@@ -2809,6 +2809,8 @@ pragma used
 										var old_changed = new [];
 										var sync_worker = this.syncworker;
 										var i;
+										if (obj.origp)
+											data[16]++;
 										if (js) {
 											js.timeout(REDUCE_TIMEOUT_S);
 											var self = js.call("_r", [o]);
@@ -2904,7 +2906,7 @@ pragma used
 														o['$v'] = version_oid;
 													t._StoreHint(o, true, true, oid_changed, changed, word_cache, old_values, old_changed);
 
-													if ((sync_worker) && (TIN_FULLOBJECT) && (oid)) {
+													if ((sync_worker) && (TIN_FULLOBJECT) && (oid) && (!obj.origp)) {
 														// disable classic sync
 														if (QueryWorker::FullObjectSync(obj, o, oid, sync_worker))
 															data[15] = true;
@@ -2929,6 +2931,13 @@ pragma used
 								}, update_data);
 								if (update_data[10])
 									t.BM25UpdateEnd(update_data[10]);
+								if ((use_sync_worker) && (obj.origp)) {
+									QueryWorker::InvalidateCacheSync(obj, use_sync_worker);
+									if ((!data[16]) && (obj.f)) {
+										obj.f['$'] = 0;
+										t.Store(obj.f);
+									}
+								} else
 								if (update_data[11]) {
 									// QueryWorker::InvalidateCache(obj.d, obj.c);
 									if (use_sync_worker) {
