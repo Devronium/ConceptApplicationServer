@@ -786,6 +786,7 @@ pragma used
 		if ((syncworker) && (oid) && (typeof oid == "string")) {
 			var q = new Q();
 			q.o = "U";
+			q.q = "nodesync";
 			q.f = o;
 			q.p = ["$oid" => oid];
 			q.x["start"] = 0;

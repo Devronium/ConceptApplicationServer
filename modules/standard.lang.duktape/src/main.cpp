@@ -161,6 +161,8 @@ void RecursiveValue(duk_context *ctx, void *RESULT, SYS_INT index, INVOKE_CALL I
                         const char *key = duk_to_string(ctx, -2);
                         if ((key) && (strcmp(key, "__proto__")) && (strcmp(key, "constructor")) && (strcmp(key, "toString")) &&
                             (strcmp(key, "toLocaleString")) && (strcmp(key, "valueOf")) && (strcmp(key, "hasOwnProperty")) &&
+                            (strcmp(key, "__defineGetter__")) && (strcmp(key, "__defineSetter__")) && 
+                            (strcmp(key, "__lookupGetter__")) && (strcmp(key, "__lookupSetter__")) &&
                             (strcmp(key, "isPrototypeOf")) && (strcmp(key, "propertyIsEnumerable"))) {
                             void *elem_data = NULL;
                             Invoke(INVOKE_ARRAY_VARIABLE_BY_KEY, RESULT, key, &elem_data);
