@@ -19,6 +19,9 @@ include TinDBGlobalUDF.con
 
 define TIN_VERSION	"1.0BETA"
 
+define TIN_PORT		2668
+define TIN_SYNCPORT	2669
+
 define TIN_DEBUG	false
 define TIN_FORCESYNC	true
 define TIN_JOURNALING	true
@@ -67,6 +70,7 @@ define MAX_CACHE_OBJECT_LEN	50000
 define MAX_CACHE_OBJECT_SIZE	8388608
 
 define BUSY_FSYNC_LIMIT	 	10000
+define WORKER_POLL_TIMEOUT	100
 
 // max 5 connections per node
 define SYNC_CONNECTIONS_MAX	5
@@ -782,15 +786,18 @@ pragma used
 		}
 	}
 
-	static FullObjectSync(o, oid, syncworker) {
+	static FullObjectSync(obj, o, oid, syncworker) {
 		if ((syncworker) && (oid) && (typeof oid == "string")) {
 			var q = new Q();
 			q.o = "U";
-			q.q = "nodesync";
+			q.q = "*";
+			q.d = obj.d;
+			q.c = obj.c;
 			q.f = o;
-			q.p = ["$oid" => oid];
+			q.p = ["\$oid" => oid];
 			q.x["start"] = 0;
 			q.x["len"] = 1;
+			q.origp = obj.origp;
 			QueryWorkerBase::Sync(q, syncworker);
 			return true;
 		}
@@ -2781,11 +2788,12 @@ pragma used
 								if ((TIN_CLUSTER) && (!obj.version))
 									obj.version = this.oid();
 
-								var update_data = [GetKeys(obj.f), obj.f, t, unique_fields, deleg, trigger, db, ((IsSet(obj.p, '$')) && (obj.p['$'])), js, obj.version];
+								var update_data = [GetKeys(obj.f), obj, t, unique_fields, deleg, trigger, db, ((IsSet(obj.p, '$')) && (obj.p['$'])), js, obj.version];
 								t.Query(obj.p, null, obj.x["descending"], obj.x["start"], obj.x["len"], function(o, data) {
 									if (o) {
 										var keys = data[0];
-										var vals = data[1];
+										var obj = data[1];
+										var vals = obj.f;
 										var t = data[2];
 										var unique_fields = data[3];
 										var deleg = data[4];
@@ -2898,8 +2906,8 @@ pragma used
 
 													if ((sync_worker) && (TIN_FULLOBJECT) && (oid)) {
 														// disable classic sync
-														if (QueryWorker::FullObjectSync(o, oid, sync_worker))
-															data[14] = null;
+														if (QueryWorker::FullObjectSync(obj, o, oid, sync_worker))
+															data[15] = true;
 													}
 
 													if ((trigger) && (trigger.OnJSUpdate)) {
@@ -2923,12 +2931,17 @@ pragma used
 									t.BM25UpdateEnd(update_data[10]);
 								if (update_data[11]) {
 									// QueryWorker::InvalidateCache(obj.d, obj.c);
-									if ((use_sync_worker) && (update_data[13])) {
-										oid = update_data[14];
-										if (oid)
-											obj.p = ['$oid' => oid];
-										else
+									if (use_sync_worker) {
+										if (update_data[15]) {
 											use_sync_worker = null;
+										} else
+										if (update_data[13]) {
+											oid = update_data[14];
+											if (oid)
+												obj.p = ['$oid' => oid];
+											else
+												use_sync_worker = null;
+										}
 									}
 									QueryWorker::InvalidateCacheSync(obj, use_sync_worker);
 									non_flushed_writes += update_data[11];
@@ -3810,6 +3823,7 @@ class QuerySyncWorker {
 	protected var current_worker;
 	protected var ring_checksum = "";
 	protected var node_checksum = "";
+	protected var ServerSocket;
 
 	Log(str) {
 		var now = trim(StrReplace(ctime(time()), "\r", ""));
@@ -3918,9 +3932,12 @@ class QuerySyncWorker {
 		return CreateNeighbour();
 	}
 
-	SocketReadTimeot(socket, var buffer, len, timeout = SYNC_CONFIRM_TIMEOUT) {
-		if (SocketHasData(socket, timeout))
-			return SocketRead(socket, buffer, len);
+	SocketReadTimeout(socket, var buffer, len, timeout = SYNC_CONFIRM_TIMEOUT) {
+		do {
+			if (SocketHasData(socket, 10))
+				return SocketRead(socket, buffer, len);
+			this.PollSockets();
+		} while (timeout);
 		return -2;
 	}
 
@@ -3933,8 +3950,13 @@ class QuerySyncWorker {
 					var data = NotSynced[i];
 					if (data) {
 						if ((socket) && (SocketIOBase::SendBufferWithSize(socket, data))) {
-							if ((SocketReadTimeot(socket, var buffer, 3) != 3) || (buffer != "\x02OK")) {
-								echo "Node sync error, resetting connection ...\n";
+							var read_code = SocketReadTimeout(socket, var buffer, 3);
+							if ((read_code != 3) || (buffer != "\x02OK")) {
+								if (read_code == -2)
+									echo "Node sync timed out, resetting connection ...\n";
+								else
+									echo "Node sync error(errno: ${SocketErrno()}), resetting connection ...\n";
+								new_notsync[length new_notsync] = data;
 								this.RemoveSocket(socket);
 								socket = 0;
 							} else
@@ -3956,8 +3978,9 @@ class QuerySyncWorker {
 
 	NotifyNeighbours(var data) {
 		if (data) {
-			journal.Log(data, "sync", opid++, 1);
-			NotSynced[length NotSynced] = data;
+			var data2 = compress(data);
+			journal.Log(data2, "sync", opid++, 1);
+			NotSynced[length NotSynced] = data2;
 			Sync();
 		}
 	}
@@ -4169,7 +4192,7 @@ class QuerySyncWorker {
 						buf = SubStr(buf, to_read + bytes);
 						if (SocketWrite(sock, "\x02OK") == 3) {
 							localjournal.Log(buf2, "sync", opid++, 1);
-							NotWritten[length NotWritten] = buf2;
+							NotWritten[length NotWritten] = uncompress(buf2);
 						}
 					} else {
 						ctx.buffer = buf;
@@ -4251,6 +4274,30 @@ class QuerySyncWorker {
 		return target;
 	}
 
+	PollSockets() {
+		var Socket = this.ServerSocket;
+		var server_socket = Socket.Socket;
+		var outsockets = this.poll.wait(0);
+		if (outsockets) {
+			for (var i = 0; i < length outsockets; i++) {
+				var socket = outsockets[i];
+				if (socket == server_socket) {
+					try {
+						var client = Socket.Accept(true);
+						if (ValidHost(client)) {
+							SocketSetOption(client, SOL_SOCKET, SO_RCVTIMEO, 10000);
+							SocketSetOption(client, SOL_SOCKET, SO_SNDTIMEO, 10000);
+						} else
+							SocketClose(client);
+					} catch (var exc) {
+						echo "SyncWorker: $exc\n";
+					}
+				} else
+					Dispatch(socket);
+			}
+		}
+	}
+
 	QuerySyncWorker(n) {
 		current_worker = CurrentWorker();
 		journal = new Journal("sync");
@@ -4280,32 +4327,16 @@ class QuerySyncWorker {
 		this.poll = new Poll();
 		var server_socket = Socket.Socket;
 		this.poll.add(server_socket);
+		this.ServerSocket = Socket;
 		var timeout = 100;
 		while (true) {
-			var data = "";
-			var outsockets = this.poll.wait(0);
-			if (outsockets) {
-				for (var i = 0; i < length outsockets; i++) {
-					var socket = outsockets[i];
-					if (socket == server_socket) {
-						try {
-							var client = Socket.Accept(true);
-							if (ValidHost(client)) {
-								SocketSetOption(client, SOL_SOCKET, SO_RCVTIMEO, 10000);
-								SocketSetOption(client, SOL_SOCKET, SO_SNDTIMEO, 10000);
-							} else
-								SocketClose(client);
-						} catch (var exc) {
-							echo "SyncWorker: $exc\n";
-						}
-					} else
-						Dispatch(socket);
-				}
-			}
-			if ((Worker::PendingAll(data, timeout, BUSY_FSYNC_LIMIT)) && (data)) {
-				for (i = 0; i < length data; i++) {
+			var data = null;
+			this.PollSockets();
+			if ((Worker::PendingAll(data, timeout, WORKER_POLL_TIMEOUT)) && (data)) {
+				for (var i = 0; i < length data; i++) {
 					try {
-						var data_container = UnBinarizeObject(data[i]);
+						var data_i = data[i];
+						var data_container = UnBinarizeObject(data_i);
 						if (typeof data_container == "array") {
 							// is confirmation
 							var confirmation_buffer = data_container[1];
@@ -4316,11 +4347,11 @@ class QuerySyncWorker {
 						} else {
 							if ((classof data_container == "Q") && (!data_container.origp)) {
 								data_container.origp = NodeName;
-								data = BinarizeObject(data_container);
+								data_i = BinarizeObject(data_container);
 							}
-							NotifyNeighbours(data);
+							NotifyNeighbours(data_i);
 						}
-					} catch (exc) {
+					} catch (var exc) {
 						echo "SyncWorker: $exc\n";
 					}
 				}
@@ -4361,7 +4392,7 @@ class TinDB {
 		return new_arr;
 	}
 
-	TinDB(machineid = 1, sync_port = 2669, sync_interface = "", workers = 4, storage_workers = 4, idle_workers = 1, aggregator_workers = 2) {
+	TinDB(machineid = 1, sync_port = TIN_SYNCPORT, sync_interface = "", workers = 4, storage_workers = 4, idle_workers = 1, aggregator_workers = 2) {
 		RandomSeed(unpack("u32", CryptoRandom(4))[0]);
 		var[] sworkers;
 		var[] qworkers;
@@ -4431,7 +4462,7 @@ class TinDB {
 		AccessDB.Reset();
 	}
 
-	Start(port = 2668, max_connections = 1024, working_directory = "", interface = "") {
+	Start(port = TIN_PORT, max_connections = 1024, working_directory = "", interface = "") {
 		if (working_directory)
 			_chdir(working_directory);
 		Socket = new TCPSocket();
