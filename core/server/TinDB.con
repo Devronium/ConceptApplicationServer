@@ -2931,11 +2931,16 @@ pragma used
 								}, update_data);
 								if (update_data[10])
 									t.BM25UpdateEnd(update_data[10]);
-								if ((use_sync_worker) && (obj.origp)) {
-									QueryWorker::InvalidateCacheSync(obj, use_sync_worker);
+								if ((use_sync_worker) && (obj.origp) && (TIN_FULLOBJECT)) {
 									if ((!data[16]) && (obj.f)) {
 										obj.f['$'] = 0;
 										t.Store(obj.f);
+										QueryWorker::InvalidateCacheSync(obj, use_sync_worker);
+										non_flushed_writes ++;
+									} else
+									if (update_data[11]) {
+										QueryWorker::InvalidateCacheSync(obj, use_sync_worker);
+										non_flushed_writes += update_data[11];
 									}
 								} else
 								if (update_data[11]) {
