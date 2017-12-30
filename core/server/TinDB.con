@@ -3933,11 +3933,13 @@ class QuerySyncWorker {
 	}
 
 	SocketReadTimeout(socket, var buffer, len, timeout = SYNC_CONFIRM_TIMEOUT) {
+		var iterations = SYNC_CONFIRM_TIMEOUT / 10;
 		do {
 			if (SocketHasData(socket, 10))
 				return SocketRead(socket, buffer, len);
 			this.PollSockets();
-		} while (timeout);
+			iterations--;
+		} while (iterations > 0);
 		return -2;
 	}
 
