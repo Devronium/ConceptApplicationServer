@@ -2581,19 +2581,23 @@ pragma used
 								t.Reopen(true);
 								t.Lock(true);
 								// QueryWorker::InvalidateCache(obj.d, obj.c);
+								var oid = null;
 								if (multi_insert) {
 									id = new [];
 									t.SetIndexLock(2);
 									for (var i = 0; i < length obj.p; i++) {
 										var o = obj.p[i];
 										if (typeof o == "array") {
+											oid = null;
 											if ((unique_fields) && (!t.IsUnique(o, unique_fields))) {
 												r.e = ERR_NOT_UNIQUE;
 												r.et = ERR_NOT_UNIQUE_S;
 												break;
 											}
-											if ((TIN_CLUSTER || (IsSet(o, '$oid'))) && (!o['$oid']))
-												o['$oid'] = this.oid();
+											if ((TIN_CLUSTER || (IsSet(o, '$oid'))) && (!o['$oid'])) {
+												oid = this.oid();
+												o['$oid'] = oid;
+											}
 
 											if ((trigger) && (trigger.OnJSBeforeInsert)) {
 												var trigger_error = JSTrigger(db, o, trigger.OnJSBeforeInsert, true);
@@ -2614,6 +2618,9 @@ pragma used
 												r.et = store_exc;
 												break;
 											}
+											if ((use_sync_worker) && (TIN_FULLOBJECT) && (oid))
+												QueryWorker::FullObjectSync(obj, o, oid, use_sync_worker);
+
 											non_flushed_writes++;
 											id[length id] = id2;
 											o['$'] = id2;											
@@ -2641,6 +2648,8 @@ pragma used
 									}
 									t.SetIndexLock(false);
 									r.id = id;
+									if ((use_sync_worker) && (TIN_FULLOBJECT))
+										use_sync_worker = null;
 								} else {
 									if ((unique_fields) && (!t.IsUnique(obj.p, unique_fields))) {
 										r.e = ERR_NOT_UNIQUE;
@@ -2660,13 +2669,16 @@ pragma used
 												break;
 											}
 										}
-										if (!t.Update(obj.p, id, true, var oid, use_sync_worker, use_sync_worker && TIN_FULLOBJECT, var syncobj)) {
+										if (!t.Update(obj.p, id, true, oid, use_sync_worker, use_sync_worker && TIN_FULLOBJECT, var syncobj)) {
 											id = -1;
 										} else
 										if (use_sync_worker) {
 											if (oid) {
 												obj.o = "U";
 												if (TIN_FULLOBJECT) {
+													if (QueryWorker::FullObjectSync(obj, syncobj ?? obj.p, oid, use_sync_worker)) {
+														use_sync_worker = null;
+													} else
 													if (syncobj) {
 														obj.f = syncobj;
 													} else {
@@ -2701,8 +2713,10 @@ pragma used
 											}
 										}
 									} else {
-										if ((typeof obj.p == "array") && (TIN_CLUSTER || (IsSet(obj.p , '$oid'))) && (!obj.p['$oid']))
-											obj.p['$oid'] = this.oid();
+										if ((typeof obj.p == "array") && (TIN_CLUSTER || (IsSet(obj.p , '$oid'))) && (!obj.p['$oid'])) {
+											oid = this.oid();
+											obj.p['$oid'] = oid;
+										}
 
 										if ((trigger) && (trigger.OnJSBeforeInsert)) {
 											trigger_error = JSTrigger(db, obj.p, trigger.OnJSBeforeInsert, true);
@@ -2715,6 +2729,10 @@ pragma used
 										if (obj.version)
 											obj.p['$v'] = obj.version;
 										id = t.Store(obj.p);
+										if ((use_sync_worker) && (TIN_FULLOBJECT) && (oid)) {
+											if (QueryWorker::FullObjectSync(obj, obj.p, oid, use_sync_worker))
+												use_sync_worker = null;
+										}
 										non_flushed_writes++;
 										if (trigger) {
 											if (trigger.OnJSInsert) {
@@ -2932,7 +2950,7 @@ pragma used
 								if (update_data[10])
 									t.BM25UpdateEnd(update_data[10]);
 								if ((use_sync_worker) && (obj.origp) && (TIN_FULLOBJECT)) {
-									if ((!data[16]) && (obj.f)) {
+									if ((!update_data[16]) && (obj.f)) {
 										obj.f['$'] = 0;
 										t.Store(obj.f);
 										QueryWorker::InvalidateCacheSync(obj, use_sync_worker);
