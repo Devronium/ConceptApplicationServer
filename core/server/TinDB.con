@@ -3050,6 +3050,10 @@ pragma used
 								}
 							}, update_data);
 							var count = update_data[7];
+							if ((obj.origp) && (use_sync_worker)) {
+								QueryWorker::Sync(obj, use_sync_worker);
+								use_sync_worker = null;
+							}
 							if (count) {
 								if ((use_sync_worker) && (update_data[5])) {
 									oid = update_data[6];
