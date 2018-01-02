@@ -25,6 +25,8 @@
 #include "Lucy/Plan/Schema.h" 
 #include "Lucy/Search/QueryParser.h"
 #include "Lucy/Search/Query.h"
+#include "Lucy/Search/SortRule.h"
+#include "Lucy/Search/SortSpec.h"
 
 #define LUCY_TEXT       0
 #define LUCY_STRING     4
@@ -38,6 +40,7 @@ struct caller_context {
     void *input2;
     void *input3;
     void *output;
+    unsigned char flags;
 };
 
 void stemmer_trap(void *context) {
@@ -80,7 +83,27 @@ void utf8_trap(void *context) {
 
 void simple_search_trap(void *context) {
     struct caller_context *ctx = (struct caller_context *)context;
-    Simple_Search((Simple *)ctx->input, (String *)ctx->input2, (int)(uintptr_t)ctx->input3, (int)(uintptr_t)ctx->output, NULL);
+
+    SortSpec *spec = NULL;
+    if (ctx->flags) {
+        Vector *rules = Vec_new(2);
+
+        SortRule *rule1 = SortRule_new(SortRule_SCORE, NULL, false);
+        // for same score, newer first
+        SortRule *rule2 = SortRule_new(SortRule_DOC_ID, NULL, true);
+
+        Vec_Push(rules, (Obj *)rule1);
+        Vec_Push(rules, (Obj *)rule2);
+
+        // no DECREF on rule1, rule2 (Vec_Push doesn't increment link count)
+        spec = SortSpec_new(rules);
+        DECREF(rules);
+    }
+    Simple_Search((Simple *)ctx->input, (String *)ctx->input2, (int)(uintptr_t)ctx->input3, (int)(uintptr_t)ctx->output, spec);
+
+    if (spec) {
+        DECREF(spec);
+    }
 }
 
 void simple_new_trap(void *context) {
@@ -97,7 +120,7 @@ void show_and_release_error(Err *err) {
 }
 
 String *safe_string(const char *str) {
-    struct caller_context ctx = {(void *)str, NULL, NULL, NULL};
+    struct caller_context ctx = {(void *)str, NULL, NULL, NULL, 0};
     Err *err = Err_trap(string_trap, &ctx);
     if (err) {
         show_and_release_error(err);
@@ -107,7 +130,7 @@ String *safe_string(const char *str) {
 }
 
 String *utf8_string(const char *str, int len) {
-    struct caller_context ctx = {(void *)str, (void *)(uintptr_t)len, NULL, NULL};
+    struct caller_context ctx = {(void *)str, (void *)(uintptr_t)len, NULL, NULL, 0};
     Err *err = Err_trap(utf8_trap, &ctx);
     if (err) {
         show_and_release_error(err);
@@ -157,7 +180,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(lucy_new, 1, 2)
     String *use_folder   = safe_string(PARAM(0));
     String *use_language = safe_string(language);
 
-    struct caller_context ctx = {use_folder, use_language, NULL, NULL};
+    struct caller_context ctx = {use_folder, use_language, NULL, NULL, 0};
     Err *err = Err_trap(simple_new_trap, &ctx);
     Simple *lucy = NULL;
     if (err)
@@ -180,7 +203,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(lucy_indexer_new, 2, 3)
             language = PARAM(2);
     }
     String *use_language    = safe_string(language);
-    struct caller_context ctx = {use_language, NULL, NULL, NULL};
+    struct caller_context ctx = {use_language, NULL, NULL, NULL, 0};
     Err *err = Err_trap(stemmer_trap, &ctx);
     if (err) {
         DECREF(use_language);
@@ -255,7 +278,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(lucy_indexer_new, 2, 3)
         }
         free(keys);
     }
-    struct caller_context context = {use_schema, use_folder, NULL, NULL};
+    struct caller_context context = {use_schema, use_folder, NULL, NULL, 0};
     err = Err_trap(indexer_new_trap, &context);
     Indexer *lucy = NULL;
     if (err)
@@ -348,7 +371,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(lucy_indexer_add, 2, 3)
     }
     free(keys);
     if (elements) {
-        struct caller_context ctx = {lucy, doc, &rank, NULL};
+        struct caller_context ctx = {lucy, doc, &rank, NULL, 0};
         Err *err = Err_trap(indexer_add_trap, &ctx);
         if (err) {
             show_and_release_error(err);
@@ -364,7 +387,7 @@ CONCEPT_FUNCTION_IMPL(lucy_indexer_remove, 2)
     T_NUMBER(lucy_indexer_remove, 1);
     Indexer *lucy = (Indexer *)(SYS_INT)PARAM(0);
 
-    struct caller_context ctx = {lucy, (void *)(SYS_INT)PARAM(1), NULL, NULL};
+    struct caller_context ctx = {lucy, (void *)(SYS_INT)PARAM(1), NULL, NULL, 0};
     Err *err = Err_trap(indexer_remove_trap, &ctx);
     if (err) {
         show_and_release_error(err);
@@ -382,7 +405,7 @@ CONCEPT_FUNCTION_IMPL(lucy_indexer_remove_query, 2)
         RETURN_NUMBER(0);
         return 0;
     }
-    struct caller_context ctx = {lucy, (void *)PARAM(1), NULL, NULL};
+    struct caller_context ctx = {lucy, (void *)PARAM(1), NULL, NULL, 0};
     Err *err = Err_trap(indexer_remove_query_trap, &ctx);
     if (err) {
         show_and_release_error(err);
@@ -492,12 +515,13 @@ CONCEPT_FUNCTION_IMPL(lucy_add, 2)
     RETURN_NUMBER(elements);
 END_IMPL
 //------------------------------------------------------------------------
-CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(lucy_search, 2, 4)
+CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(lucy_search, 2, 5)
     T_HANDLE(lucy_search, 0);
     T_STRING(lucy_search, 1);
     Simple *lucy = (Simple *)(SYS_INT)PARAM(0);
     uint32_t offset = 0;
     uint32_t num_wanted = 10;
+    unsigned char descending = 1;
     CREATE_ARRAY(RESULT);
     if (PARAMETERS_COUNT > 2) {
         T_NUMBER(lucy_search, 2)
@@ -511,8 +535,13 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(lucy_search, 2, 4)
         if (num_wanted <= 0)
             num_wanted = 10;
     }
+    if (PARAMETERS_COUNT > 4) {
+        T_NUMBER(lucy_search, 4)
+        if (!(PARAM_INT(4)))
+            descending = 0;
+    }
     String *query_str = safe_string(PARAM(1));
-    struct caller_context ctx = {lucy, query_str, (void *)(uintptr_t)offset, (void *)(uintptr_t)num_wanted};
+    struct caller_context ctx = {lucy, query_str, (void *)(uintptr_t)offset, (void *)(uintptr_t)num_wanted, descending};
     Err *err = Err_trap(simple_search_trap, &ctx);
     if (err) {
         show_and_release_error(err);
