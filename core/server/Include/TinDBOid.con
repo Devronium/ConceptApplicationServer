@@ -7,6 +7,11 @@ class TinDBOid {
 		return pack("U32U8U16U8U16", time(), serverid / 0x1000000, serverid % 0x1000000, workerid, counter);
 	}
 
+	static info(oid) {
+		var arr = unpack("U32U8U16U8U16", oid);
+		return ["time" => arr[0], "server" => arr[1] * 0x1000000 + arr[2], "worker" => arr[3], "counter" => arr[4]];
+	}
+
 	static hex(oid) {
 		return StringToHex(oid);
 	}

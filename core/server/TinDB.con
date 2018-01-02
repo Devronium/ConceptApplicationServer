@@ -2381,6 +2381,24 @@ pragma used
 		}
 	}
 
+	static CheckVersion(o, version_oid) {
+		if (version_oid) {
+			var object_version = o['$v'];
+			if (object_version) {
+				var obj_info = TinDBOid::info(object_version);
+				var now_info = TinDBOid::info(version_oid);
+				var t1 = obj_info["time"];
+				var t2 = now_info["time"];
+				if (t2 < t1) {
+					// older object!
+					if (obj_info["server"] != now_info["server"])
+						return true;
+				}
+			}
+		}
+		return false;
+	}
+
 	Execute(var data) {
 		var key;
 		var trigger;
@@ -2827,8 +2845,13 @@ pragma used
 										var old_changed = new [];
 										var sync_worker = this.syncworker;
 										var i;
-										if (obj.origp)
+										if (obj.origp) {
 											data[16]++;
+											if ((sync_worker) && (TIN_FULLOBJECT) && (this.CheckVersion(o, version_oid))) {
+												echo "Older object received, ignoring ${TinDBOid::hex(version_oid)}\n";
+												return;
+											}
+										}
 										if (js) {
 											js.timeout(REDUCE_TIMEOUT_S);
 											var self = js.call("_r", [o]);
