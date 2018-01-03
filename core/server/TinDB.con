@@ -4127,7 +4127,7 @@ class QuerySyncWorker {
 
 		data = JSONDeserialize(data);
 		if ((!data) || (typeof data != "array")) {
-			echo "Error paring ring config file\n";
+			echo "Error parsing ring config file\n";
 			return;
 		}
 
