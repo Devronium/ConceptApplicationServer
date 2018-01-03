@@ -4068,6 +4068,17 @@ class QuerySyncWorker {
 			this.RemoveSocket(neighbours[i].socket);
 	}
 
+	static GenerateName(name, host, port = 2669) {
+		if (name)
+			return "" + name;
+		if (host) {
+			if ((port > 0) && (port != 2669))
+				host = host + ":" + port;
+			return "@" + StrReplace(StrReplace(host, ".", "_"), ":", "_");
+		}
+		return "";
+	}
+
 	LoadRing(path = ".") {
 		// set timeout here, in case we fail
 		RingTimeout = time() + RING_RELOAD_TIMEOUT;
@@ -4091,8 +4102,9 @@ class QuerySyncWorker {
 			return;
 		}
 
-		var name = node["name"] ?? "";
+		var name = this.GenerateName(node["name"], node["host"], node["port"]);
 		var host = node["host"] ?? "";
+
 		var vertical = node["vertical"];
 		var v_servers = null;
 		var v_allow = null;
@@ -4131,8 +4143,8 @@ class QuerySyncWorker {
 			if (node_element) {
 				if (typeof node_element == "array") {
 					var node_host = node_element["host"] ?? "";
-					var node_name = node_element["name"] ?? node_host;
 					var node_port = (value node_element["port"]) ?? 2669;
+					var node_name = this.GenerateName(node_element["name"], node_host, node_port);
 					if (node_host) {
 						all_hosts[node_host] = true;
 						if (node_host == host)
@@ -4144,7 +4156,7 @@ class QuerySyncWorker {
 					node_host = node_element;
 					if (node_host == host)
 						this_node_index = length all_nodes;
-					all_nodes["$node_host:2669"] = new SyncNode(node_host, node_host);
+					all_nodes["$node_host:2669"] = new SyncNode(node_host, this.GenerateName("", node_host));
 					all_hosts[node_host] = true;
 				}
 			}
