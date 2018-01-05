@@ -17,7 +17,7 @@ class CompiledClass {
     friend INTEGER Invoke(INTEGER, ...);
     friend int GetVariableByName(int operation, void **VDESC, void **CONTEXT, int Depth, char *VariableName, char *buffer, int buf_size, void *PIF, void *STACK_TRACE);
 
-    friend int MarkRecursive(void *PIF, CompiledClass *CC, signed char reach_id_flag);
+    friend int MarkRecursive(void *PIF, CompiledClass *CC, signed char reach_id_flag, signed char forced_flag);
 
 private:
     ClassCode    *_Class;

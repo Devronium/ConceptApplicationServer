@@ -45,7 +45,7 @@ class ClassCode {
 
     friend INTEGER SetClassMember(void *CLASS_PTR, const char *class_member_name, INTEGER TYPE, const char *STRING_VALUE, NUMBER NUMBER_VALUE);
 
-    friend int MarkRecursive(void *PIF, CompiledClass *CC, signed char reach_id_flag);
+    friend int MarkRecursive(void *PIF, CompiledClass *CC, signed char reach_id_flag, signed char forced_flag);
 
     friend int GetMemoryStatistics(void *PIF, void *RESULT);
 
