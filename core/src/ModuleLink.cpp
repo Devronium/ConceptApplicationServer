@@ -275,7 +275,7 @@ INTEGER GetClassMember(void *CLASS_PTR, const char *class_member_name, INTEGER *
                     AE._DEBUG_INFO_LINE = AE.ID = AE.TYPE = 0;
 
                     PIFAlizator  *PIF   = GET_PIF(((CompiledClass *)CLASS_PTR));
-                    VariableDATA *Owner = (VariableDATA *)VAR_ALLOC(PIF );
+                    VariableDATA *Owner = (VariableDATA *)VAR_ALLOC(PIF);
                     Owner->CLASS_DATA         = CLASS_PTR;
                     Owner->IS_PROPERTY_RESULT = 0;
                     Owner->LINKS = 1;
@@ -369,7 +369,7 @@ INTEGER SetClassMember(void *CLASS_PTR, const char *class_member_name, INTEGER T
                     RuntimeElement AE;
                     AE._DEBUG_INFO_LINE = AE.ID = AE.TYPE = 0;
                     PIFAlizator  *PIF       = GET_PIF(((CompiledClass *)CLASS_PTR));
-                    VariableDATA *Parameter = (VariableDATA *)VAR_ALLOC(PIF );
+                    VariableDATA *Parameter = (VariableDATA *)VAR_ALLOC(PIF);
                     Parameter->IS_PROPERTY_RESULT = 0;
                     Parameter->LINKS = 1;
                     Parameter->TYPE  = TYPE;
@@ -396,7 +396,7 @@ INTEGER SetClassMember(void *CLASS_PTR, const char *class_member_name, INTEGER T
                     } else
                         Parameter->NUMBER_DATA = NUMBER_VALUE;
 
-                    VariableDATA *Owner = (VariableDATA *)VAR_ALLOC(PIF );
+                    VariableDATA *Owner = (VariableDATA *)VAR_ALLOC(PIF);
                     Owner->CLASS_DATA         = CLASS_PTR;
                     Owner->IS_PROPERTY_RESULT = 0;
                     Owner->LINKS = 1;

@@ -499,7 +499,7 @@ void *AllocArray(void *PIF, bool skip_top) {
     ALLOC_LOCK
 #ifndef SIMPLE_MULTI_THREADING
     int delta = ((PIFAlizator *)PIF)->object_count - ((PIFAlizator *)PIF)->last_gc_run;
-    if (delta >= ((PIFAlizator *)PIF)->dirty_limit) {
+    if ((delta >= ((PIFAlizator *)PIF)->dirty_limit) && (!skip_top)) {
         if (CheckReachability(PIF, skip_top)) {
             // bad programmer, bad !
             ((PIFAlizator *)PIF)->dirty_limit = 1000;
@@ -1963,7 +1963,7 @@ CONCEPT_DLL_API Concept_Execute3_RunClone(void *PTR, SOCKET sock, int debug, DEB
     STATIC_ENTRY->TYPE        = VARIABLE_CLASS;
     STATIC_ENTRY->IS_PROPERTY_RESULT = 0;
 
-    CC->CreateInstance(PIF, STATIC_ENTRY, 0, 0, 0, NULL, 1 );
+    CC->CreateInstance(PIF, STATIC_ENTRY, 0, 0, 0, NULL, 1);
     STATIC_ENTRY->CLASS_DATA = 0;
 
     VAR_FREE(STATIC_ENTRY);

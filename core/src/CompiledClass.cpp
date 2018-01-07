@@ -29,12 +29,14 @@ VariableDATA *CompiledClass::CreateVariable(INTEGER reloc, ClassMember *CM, Vari
                 CONTAINER->LINKS++;
             } else {
                 _CONTEXT_i        = (VariableDATA *)VAR_ALLOC(PIF);
+                // ensure no "garbage" gets to the garbage collector in AllocArray
+                _CONTEXT_i->TYPE  = VARIABLE_NUMBER;
                 _CONTEXT_i->LINKS = 1;
             }
             _CONTEXT[reloc] = _CONTEXT_i;
             if (CM->VD) {
                 if (CM->VD->TYPE == VARIABLE_ARRAY) {
-                    _CONTEXT_i->CLASS_DATA = new(AllocArray( PIF))Array( PIF);
+                    _CONTEXT_i->CLASS_DATA = new(AllocArray(PIF))Array(PIF);
                 } else
                 if (CM->VD->TYPE == VARIABLE_STRING) {
                     _CONTEXT_i->CLASS_DATA     = NULL;
@@ -248,7 +250,6 @@ void CompiledClass::UnlinkObjects() {
         if (_CONTEXT_i) {
             // delete no object ! ... it's the garbage collector's job
             if (_CONTEXT_i->CLASS_DATA) {
-
                 FREE_VARIABLE_NO_OBJECTS(_CONTEXT_i);
             }
         }

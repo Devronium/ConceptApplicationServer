@@ -7260,9 +7260,11 @@ VariableDATA *ConceptInterpreter::Interpret(PIFAlizator *PIF, VariableDATA **LOC
                         }
                         RETURN_DATA              = (VariableDATA *)VAR_ALLOC(PIF);
                         RETURN_DATA->LINKS       = 1;
-                        RETURN_DATA->NUMBER_DATA = LOCAL_CONTEXT [OE->OperandRight.ID - 1]->NUMBER_DATA;
                         RETURN_DATA->TYPE        = LOCAL_CONTEXT [OE->OperandRight.ID - 1]->TYPE;
                         RETURN_DATA->IS_PROPERTY_RESULT = 0;
+                        if (RETURN_DATA->TYPE == VARIABLE_NUMBER) {
+                            RETURN_DATA->NUMBER_DATA = LOCAL_CONTEXT [OE->OperandRight.ID - 1]->NUMBER_DATA;
+                        } else
                         if (RETURN_DATA->TYPE == VARIABLE_STRING) {
                             RETURN_DATA->CLASS_DATA     = 0;
                             CONCEPT_STRING(RETURN_DATA) = CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandRight.ID - 1]);
