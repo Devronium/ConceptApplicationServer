@@ -9,6 +9,7 @@
 #include "SHManager.h"
 #include "ModuleLink.h"
 #include "StaticList.h"
+#include "BuiltIns.h"
 #include <stdio.h>
 #include <string.h>
 #include <time.h>
@@ -224,6 +225,8 @@ PIFAlizator::PIFAlizator(AnsiString INC_DIR, AnsiString LIB_DIR, AnsiString *S, 
         DefineConstant("true", "1", 0);
         DefineConstant("false", "0", 0);
         DefineConstant("null", "0", 0);
+
+        BUILTININIT(this);
     }
 
     basic_constants_count = this->ConstantList->Count();
@@ -376,6 +379,7 @@ PIFAlizator::~PIFAlizator(void) {
     }
     free(StaticClassList);
     StaticClassList = NULL;
+    BUILTINDONE();
 }
 
 unsigned int PIFAlizator::LinkStatic(const char *funname) {

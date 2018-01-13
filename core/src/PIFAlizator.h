@@ -230,6 +230,8 @@ class PIFAlizator {
 
     friend int GetMemoryStatistics(void *PIF, void *RESULT);
 
+    friend void BUILTININIT(void *PIF);
+
     StaticList *GeneralMembers;
     int        pipe_read;
     int        pipe_write;

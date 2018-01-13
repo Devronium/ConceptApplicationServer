@@ -8,6 +8,7 @@
 #include <string.h>
 #include "Codes.h"
 #include "PIFAlizator.h"
+#include "BuiltIns.h"
 
 #ifdef _WIN32
  #include <windows.h>       // LoadLibrary
@@ -2439,7 +2440,7 @@ SYS_INT LinkFunction(const char *FUNCTION_NAME, AnsiList *TARGET, void **CACHED_
             return (SYS_INT)_PROC_ADR;
         }
     }
-    return 0;
+    return (SYS_INT)BUILTINADDR(FUNCTION_NAME);
 }
 
 void DoneLinking() {
