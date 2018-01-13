@@ -533,9 +533,8 @@ char AnsiString::operator [](uintptr_t index) {
 
     if (Data) {
         len = _LENGTH;
-        if ((index >= 0) && (index < len)) {
+        if (index < len)
             return Data [index];
-        }
     }
     return 0;
 }

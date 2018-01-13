@@ -1053,6 +1053,7 @@ INTEGER GetPriority(INTEGER OP_ID) {
     if (OP_ID <= OPERATOR_LEVEL_9) {
         return OPERATOR_LEVEL_9;
     }
+    return 0;
 }
 
 #ifdef WITH_MURMURHASHv1
