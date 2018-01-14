@@ -46,7 +46,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(RE_create, 2, 3)
     T_NUMBER(RE_create, 1)
 
     const char *errorp = NULL;
-    Reprog *reg = regcomp(PARAM(0), PARAM_INT(1), &errorp);
+    Reprog *reg = JS_regcomp(PARAM(0), PARAM_INT(1), &errorp);
     if (PARAMETERS->COUNT > 2) {
         if (errorp) {
             SET_STRING(2, errorp);
@@ -63,7 +63,7 @@ CONCEPT_FUNCTION_IMPL(RE_exec, 2)
     Reprog *reg = (Reprog *)(SYS_INT)PARAM(0);
     Resub sub;
     memset(&sub, 0, sizeof(Resub));
-    int res = regexec(reg, PARAM(1), &sub, 0);
+    int res = JS_regexec(reg, PARAM(1), &sub, 0);
     if (!res) {
         const char *sp = sub.sub[0].sp;
         const char *ep = sub.sub[0].ep;
@@ -84,7 +84,7 @@ CONCEPT_FUNCTION_IMPL(RE_test, 2)
     Reprog *reg = (Reprog *)(SYS_INT)PARAM(0);
     Resub sub;
     memset(&sub, 0, sizeof(Resub));
-    int res = regexec(reg, PARAM(1), &sub, 0);
+    int res = JS_regexec(reg, PARAM(1), &sub, 0);
     RETURN_NUMBER(!res);
 END_IMPL
 
@@ -92,7 +92,7 @@ CONCEPT_FUNCTION_IMPL(RE_done, 1)
     T_NUMBER(RE_done, 0)
     Reprog *reg = (Reprog *)(SYS_INT)PARAM(0);
     if (reg) {
-        regfree(reg);
+        JS_regfree(reg);
         SET_NUMBER(0, 0);
     }
     RETURN_NUMBER(0);

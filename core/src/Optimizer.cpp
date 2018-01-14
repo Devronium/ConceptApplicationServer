@@ -2440,13 +2440,13 @@ void Optimizer::AddProfilerCode(int code) {
         AnsiList *PL = new AnsiList(false);
 
         start_param++;
-        PL->Add((void *)start_param, DATA_32_BIT);
+        PL->Add((void *)(intptr_t)start_param, DATA_32_BIT);
 
         start_param++;
-        PL->Add((void *)start_param, DATA_32_BIT);
+        PL->Add((void *)(intptr_t)start_param, DATA_32_BIT);
 
         start_param++;
-        PL->Add((void *)start_param, DATA_32_BIT);
+        PL->Add((void *)(intptr_t)start_param, DATA_32_BIT);
 
         ParameterList->Add(PL, DATA_LIST);
 

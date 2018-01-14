@@ -1391,9 +1391,9 @@ INTEGER PIFAlizator::BuildFunction(ClassCode *CC, AnsiParser *P, INTEGER on_line
             PIFList->Add(AE, DATA_ANALIZER_ELEMENT);
 
             const char *errorp = NULL;
-            Reprog *reg = regcomp(expr.c_str(), P->regexp_flags, &errorp);
+            Reprog *reg = JS_regcomp(expr.c_str(), P->regexp_flags, &errorp);
             if (reg)
-                regfree(reg);
+                JS_regfree(reg);
             if (errorp)
                 Errors.Add(new AnsiException(ERR1340, on_line ? on_line : P->LastLine(), 1340, errorp, FileName, CC->NAME), DATA_EXCEPTION);
             continue;

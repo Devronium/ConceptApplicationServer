@@ -264,7 +264,7 @@ static int lexclass(void)
 {
 	int type = L_CCLASS;
 	int quoted, havesave, havedash;
-	Rune save;
+	Rune save = 0;
 
 	newcclass();
 
@@ -648,6 +648,10 @@ static void compile(Reprog *prog, Renode *node)
 	if (!node)
 		return;
 
+	inst = NULL;
+	split = NULL;
+	jump = NULL;
+
 	switch (node->type) {
 	case P_CAT:
 		compile(prog, node->x);
@@ -821,7 +825,7 @@ static void dumpprog(Reprog *prog)
 }
 #endif
 
-Reprog *regcomp(const char *pattern, int cflags, const char **errorp)
+Reprog *JS_regcomp(const char *pattern, int cflags, const char **errorp)
 {
 	Renode *node;
 	Reinst *split, *jump;
@@ -878,7 +882,7 @@ Reprog *regcomp(const char *pattern, int cflags, const char **errorp)
 	return g.prog;
 }
 
-void regfree(Reprog *prog)
+void JS_regfree(Reprog *prog)
 {
 	if (prog) {
 		free(prog->start);
@@ -1101,7 +1105,7 @@ dead: ;
 	return 0;
 }
 
-int regexec(Reprog *prog, const char *sp, Resub *sub, int eflags)
+int JS_regexec(Reprog *prog, const char *sp, Resub *sub, int eflags)
 {
 	Resub scratch;
 	int i;
