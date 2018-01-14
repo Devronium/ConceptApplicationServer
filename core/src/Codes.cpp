@@ -742,6 +742,11 @@ INTEGER GetType(AnsiString& KeyWord) {
         if ((kptr [0] == INDEX_OPEN [0]) && (kptr [length - 1] == INDEX_CLOSE [0])) {
             return TYPE_INDEXER;
         }
+#ifndef NO_BUILTIN_REGEX
+        if ((length > 2) && ((kptr [0] == '/') && (kptr [length - 1] == '/'))) {
+            return TYPE_REGEX;
+        }
+#endif
     }
 
     if (LexicalCheck(KeyWord, TYPE_NUMBER)) {

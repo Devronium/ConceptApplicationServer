@@ -669,4 +669,101 @@ public:
         }
     }
 };
+
+#define STDMAP_CONSTANTS
+#include <map>
+#ifdef STDMAP_CONSTANTS
+typedef std::map<HASH_TYPE, void *> ConstantMap;
+
+class ConstantsListEmulation {
+    ConstantMap map;
+public:
+    ConstantsListEmulation() {
+    }
+
+    int Count() {
+        return map.size();
+    }
+
+    /* ==========================================
+    void *Item(int i) {
+        if ((i < 0) || (i >= map.size()))
+            return NULL;
+
+        ConstantMap::iterator a = map.begin();
+        for(ConstantMap::iterator it = map.begin(); it != map.end(); ++it) {
+            if (!i)
+                return it->second;
+            i--;
+        }
+        return NULL;
+    }
+
+    void *operator[](int i) {
+        return Item(i);
+    }
+    ============================================= */
+
+    INTEGER Serialize(FILE *out, INTEGER basic_constants_count) {
+        INTEGER constant_list = map.size();
+        INTEGER temp = 0;
+        ConstantMap::iterator a = map.begin();
+        INTEGER start_from = basic_constants_count;
+        for(ConstantMap::iterator it = map.begin(); it != map.end(); ++it) {
+            if (start_from <= 0) {
+                VariableDESCRIPTOR *VD = (VariableDESCRIPTOR *)it->second;
+                if ((VD) && (!VD->USED))
+                    temp++;
+            } else
+                start_from--;
+        }
+        concept_fwrite_int(&temp, sizeof(temp), 1, out);
+        start_from = basic_constants_count;
+        for(ConstantMap::iterator it = map.begin(); it != map.end(); ++it) {
+            if (start_from <= 0) {
+                VariableDESCRIPTOR *VD = (VariableDESCRIPTOR *)it->second;
+                if ((VD) && (!VD->USED)) {
+                    VD->name.Serialize(out, SERIALIZE_8BIT_LENGTH);
+                    VD->value.Serialize(out, SERIALIZE_16BIT_LENGTH);
+                }
+            } else
+                start_from--;
+        }
+        return temp;
+    }
+
+    void Add(void *data, int type) {
+        VariableDESCRIPTOR *VD = (VariableDESCRIPTOR *)data;
+        if (VD)
+            map[hash_func(VD->name.c_str(), VD->name.Length())] = VD;
+    }
+
+    void Delete(const char *varname) {
+        if ((!varname) || (!varname[0]))
+            return;
+        map.erase(hash_func(varname));
+    }
+
+    void *Find(const char *varname) {
+        if ((!varname) || (!varname[0]))
+            return NULL;
+        return map[hash_func(varname)];
+    }
+
+    ~ConstantsListEmulation() {
+        ConstantMap::iterator a = map.begin();
+        for(ConstantMap::iterator it = map.begin(); it != map.end(); ++it) {
+            VariableDESCRIPTOR *VD = (VariableDESCRIPTOR *)it->second;
+            if (VD)
+                delete VD;
+        }
+        map.clear();
+    }
+};
+
+#define ConstantMapType ConstantsListEmulation
+#else
+#define ConstantMapType AnsiList
+#endif
+
 #endif //__CONCEPTTYPES_H

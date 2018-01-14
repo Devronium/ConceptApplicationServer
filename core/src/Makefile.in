@@ -134,7 +134,7 @@ am_libconceptcore_2_0_la_OBJECTS = AnsiException.lo AnsiList.lo \
 	Debugger.lo GarbageCollector.lo main.lo ModuleLink.lo \
 	Optimizer.lo PIFAlizator.lo TinyString.lo SHManager.lo \
 	StaticString.lo StaticList.lo DoubleList.lo BuiltIns.lo \
-	sljitLir.lo dlmalloc.lo
+	sljitLir.lo regexp.lo dlmalloc.lo
 libconceptcore_2_0_la_OBJECTS = $(am_libconceptcore_2_0_la_OBJECTS)
 AM_V_lt = $(am__v_lt_@AM_V@)
 am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
@@ -347,7 +347,7 @@ AM_CFLAGS = --pedantic -Wall -std=c99 -O2 -fPIC
 # this lists the binaries to produce, the (non-PHONY, binary) targets in
 # the previous manual Makefile
 lib_LTLIBRARIES = libconceptcore.2.0.la
-libconceptcore_2_0_la_SOURCES = AnsiException.cpp AnsiList.cpp AnsiParser.cpp AnsiString.cpp Array.cpp ClassCode.cpp ClassMember.cpp Codes.cpp CompiledClass.cpp ConceptInterpreter.cpp Debugger.cpp GarbageCollector.cpp main.cpp ModuleLink.cpp Optimizer.cpp PIFAlizator.cpp TinyString.cpp SHManager.cpp StaticString.cpp StaticList.cpp DoubleList.cpp BuiltIns.cpp JIT/sljitLir.c dlmalloc.c
+libconceptcore_2_0_la_SOURCES = AnsiException.cpp AnsiList.cpp AnsiParser.cpp AnsiString.cpp Array.cpp ClassCode.cpp ClassMember.cpp Codes.cpp CompiledClass.cpp ConceptInterpreter.cpp Debugger.cpp GarbageCollector.cpp main.cpp ModuleLink.cpp Optimizer.cpp PIFAlizator.cpp TinyString.cpp SHManager.cpp StaticString.cpp StaticList.cpp DoubleList.cpp BuiltIns.cpp JIT/sljitLir.c builtin/regexp.c dlmalloc.c
 all: all-am
 
 .SUFFIXES:
@@ -449,6 +449,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TinyString.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/dlmalloc.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/regexp.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/sljitLir.Plo@am__quote@
 
 .c.o:
@@ -478,6 +479,13 @@ sljitLir.lo: JIT/sljitLir.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='JIT/sljitLir.c' object='sljitLir.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o sljitLir.lo `test -f 'JIT/sljitLir.c' || echo '$(srcdir)/'`JIT/sljitLir.c
+
+regexp.lo: builtin/regexp.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT regexp.lo -MD -MP -MF $(DEPDIR)/regexp.Tpo -c -o regexp.lo `test -f 'builtin/regexp.c' || echo '$(srcdir)/'`builtin/regexp.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/regexp.Tpo $(DEPDIR)/regexp.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='builtin/regexp.c' object='regexp.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o regexp.lo `test -f 'builtin/regexp.c' || echo '$(srcdir)/'`builtin/regexp.c
 
 .cpp.o:
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXXCOMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<

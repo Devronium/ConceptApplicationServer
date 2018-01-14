@@ -5,7 +5,7 @@ POOLED_IMPLEMENTATION(AnsiParser)
 
 #define IS_QUOTE(c)    (c == '"') || (c == '\'')
 
-AnsiParser::AnsiParser(AnsiString *TRG, AnsiList *Constants) {
+AnsiParser::AnsiParser(AnsiString *TRG, ConstantMapType *Constants) {
     position           = 0;
     rollback_position  = -1;
     rollback_line      = 0;
@@ -18,6 +18,7 @@ AnsiParser::AnsiParser(AnsiString *TRG, AnsiList *Constants) {
     in_expr            = 0;
     is_end             = 0;
     put_prefix         = 0;
+    regexp_flags       = 0;
     int len = Target->Length();
     if (len >= 3) {
         unsigned char *s = (unsigned char *)Target->c_str();
@@ -81,7 +82,7 @@ bool AnsiParser::Done() {
 
 #define PRED_EQU(a, b)    (((a)[0] == (b)[0]) && ((a)[1] == (b)[1]) ? 1 : 0)
 
-void AnsiParser::NextAtom(AnsiString& result, int no_constants) {
+void AnsiParser::NextAtom(AnsiString& result, int no_constants, int TYPE, int ID) {
     uintptr_t len = Target->Length();
 
     result = NULL_STRING;
@@ -93,10 +94,14 @@ void AnsiParser::NextAtom(AnsiString& result, int no_constants) {
     int      line_comment = 0;
     int      comment      = 0;
     int      only_numbers = 1;
+#ifndef NO_BUILTIN_REGEX
+    char     can_regex    = 0;
+    int      in_regex     = 0;
+#endif
     intptr_t i;
     char     in_var = 0;
     char     c      = 0;
-
+    regexp_flags    = 0;
     if (!Target) {
         return;
     }
@@ -116,7 +121,7 @@ void AnsiParser::NextAtom(AnsiString& result, int no_constants) {
         result             = virtual_result;
         return;
     }
-
+    
     rollback_position = position;
     rollback_line = linia_curenta;
 
@@ -125,8 +130,26 @@ void AnsiParser::NextAtom(AnsiString& result, int no_constants) {
         quote       = '"';
         result      = '"';
         put_a_quote = 0;
+    } else {
+#ifndef NO_BUILTIN_REGEX
+        switch (TYPE) {
+            case TYPE_OPERATOR:
+                switch (ID) {
+                    case KEY_INDEX_CLOSE:
+                    case KEY_P_CLOSE:
+                    case KEY_END:
+                        break;
+                    default:
+                        can_regex = 1;
+                }
+                break;
+            case TYPE_KEYWORD:
+            case TYPE_SEPARATOR:
+                can_regex = 1;
+                break;
+        }
+#endif
     }
-
     char prediction[2];
     for (i = position; i < len; i++) {
         separator = 0;
@@ -245,7 +268,16 @@ void AnsiParser::NextAtom(AnsiString& result, int no_constants) {
                     } else {
                         result = "";
                     }
+                } 
+#ifndef NO_BUILTIN_REGEX
+                else
+                if ((can_regex) && (prediction[0] == '/') && (prediction[1] != '*') && (prediction[1] != '*')) {
+                    in_regex = 1;
+                    quote = '/';
+                    oper = 0;
+                    no_constants = 1;
                 }
+#endif
             } else
             if (comment) {
                 if (c == COMMENT_END [0]) {
@@ -272,11 +304,13 @@ void AnsiParser::NextAtom(AnsiString& result, int no_constants) {
                     break;
                 }
             } else if (oper) {
+                no_constants = 1;
                 break;
             }
 
             if ((!quote) && ((c == STATAMENT_SEPARATOR))) {
                 if (!result.Length()) {
+                    no_constants = 1;
                     result = c;
                     i++;
                 }
@@ -293,12 +327,37 @@ void AnsiParser::NextAtom(AnsiString& result, int no_constants) {
                     result += c;
                     if (!quote) {
                         quote = c;
+                        no_constants = 1;
                     } else if (quote == c) {
                         quote = 0;
                         i++;
                         break;
                     }
                 } else
+#ifndef NO_BUILTIN_REGEX
+                if ((in_regex) && (c == '/')) {
+                    result += c;
+                    no_constants = 1;
+                    quote = 0;
+                    i++;
+                    for (int j = i; j < len; j++) {
+                        char modifier = str_ptr [j];
+                        if ((modifier != 'i') && (modifier != 'm'))
+                            break;
+                        switch (modifier) {
+                            case 'i':
+                                regexp_flags |= 1;
+                                i++;
+                                break;
+                            case 'm':
+                                regexp_flags |= 2;
+                                i++;
+                                break;
+                        }
+                    }
+                    break;
+                } else
+#endif
                 if (!quote) {
                     if ((!oper) && (Contains(SEPARATORS, c))) {
                         if (result.Length()) {
@@ -371,11 +430,40 @@ void AnsiParser::NextAtom(AnsiString& result, int no_constants) {
         position++;
         return;
     }
-
+    if ((!no_constants) && (result.Length() >= 1)) {
+        char first_char = result[0];
+        if ((first_char == '{') || (first_char == '{') || (first_char == '-') || (first_char == '.') || 
+            (first_char == '(') || (first_char == ')') || (first_char == '[') || (first_char == ']') || 
+            ((first_char >= '0') && (first_char <= '9')))
+             no_constants = 1;
+    }
     if ((ConstantList) && (!no_constants)) {
+#ifdef STDMAP_CONSTANTS
+        VariableDESCRIPTOR *VD = (VariableDESCRIPTOR *)ConstantList->Find(result.c_str());
+        if ((VD) && (VD->name == result)) {
+            int tmp_len = VD->value.Length();
+
+            if (position > tmp_len) {
+                // not pretty, but much faster for large files
+                position -= tmp_len;
+                position--;
+                memcpy(str_ptr + position, VD->value.c_str(), tmp_len);
+                str_ptr[position + tmp_len] = ' ';
+            } else {
+                AnsiString tmp_value;
+                tmp_value.LoadBuffer(VD->value.c_str(), tmp_len);
+                (*Target) = tmp_value + " " + (Target->c_str() + position);
+                position  = 0;
+            }
+            NextAtom(result);
+            return;
+        }
+
+#else
         INTEGER Count = ConstantList->Count();
         INTEGER POS;
         do {
+            // fprintf(stderr, "LOOKUP: %s\n", result.c_str());
             POS = 0;
             for (INTEGER i = 0; i < Count; i++) {
                 VariableDESCRIPTOR *VD = (VariableDESCRIPTOR *)(*ConstantList) [i];
@@ -399,6 +487,7 @@ void AnsiParser::NextAtom(AnsiString& result, int no_constants) {
                 }
             }
         } while (POS);
+#endif
     }
 }
 

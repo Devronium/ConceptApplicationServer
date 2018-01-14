@@ -1277,8 +1277,11 @@ INTEGER Invoke(INTEGER INVOKE_TYPE, ...) {
                 char        *value    = va_arg(ap, char *);
 
                 if ((pif) && (CONSTANT) && (value)) {
-                    int ct_count           = pif->ConstantList->Count();
                     VariableDESCRIPTOR *VD = 0;
+#ifdef STDMAP_CONSTANTS
+                    VD = (VariableDESCRIPTOR *)pif->ConstantList->Find(CONSTANT);
+#else
+                    int ct_count           = pif->ConstantList->Count();
                     for (int i = 0; i < ct_count; i++) {
                         VariableDESCRIPTOR *VTEMP = (VariableDESCRIPTOR *)pif->ConstantList->Item(i);
                         if (VTEMP->name == CONSTANT) {
@@ -1286,12 +1289,18 @@ INTEGER Invoke(INTEGER INVOKE_TYPE, ...) {
                             break;
                         }
                     }
+#endif
                     if (!VD) {
                         VD         = new VariableDESCRIPTOR;
+#ifdef STDMAP_CONSTANTS
+                        VD->name  = CONSTANT;
+#endif
                         VD->BY_REF = 0;
                         pif->ConstantList->Add(VD, DATA_VAR_DESCRIPTOR);
                     }
+#ifndef STDMAP_CONSTANTS
                     VD->name  = CONSTANT;
+#endif
                     VD->value = value;
                     VD->USED  = -1;
                 } else {

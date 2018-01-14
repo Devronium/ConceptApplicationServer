@@ -252,7 +252,7 @@ class PIFAlizator {
     AnsiList *IncludedList;
     AnsiList *ModuleList;
     AnsiList ModuleNamesList;
-    AnsiList *ConstantList;
+    ConstantMapType *ConstantList;
     AnsiList UndefinedMembers;
     AnsiList UndefinedClasses;
     AnsiList DeletedMembers;
@@ -269,11 +269,10 @@ class PIFAlizator {
 
 #ifdef CACHED_VARIABLES
     INTEGER VariableIsDescribed(AnsiString& S, DoubleList *VDList, std::map<HASH_TYPE, unsigned int> *CachedVariables = 0, char is_hased = 0);
-
 #else
     INTEGER VariableIsDescribed(AnsiString& S, DoubleList *VDList);
 #endif
-    INTEGER ConstantIsDescribed(AnsiString& S, AnsiList *VDList);
+    INTEGER ConstantIsDescribed(AnsiString& S, ConstantMapType *VDList);
 
     AnsiString GetSpecial(AnsiParser *P, ClassCode *CC, ClassMember *CM, AnsiString special);
     INTEGER BuildFunction(ClassCode *CC, AnsiParser *P, INTEGER on_line = 0, INTEGER ACCESS = ACCESS_PUBLIC, INTEGER OPERATOR = 0, char STATIC = 0, const char *prec_parse = 0, char is_inline = 0);

@@ -12,7 +12,7 @@
 class AnsiParser {
 private:
     AnsiString *Target;
-    AnsiList   *ConstantList;
+    ConstantMapType *ConstantList;
     intptr_t   position;
     intptr_t   rollback_position;
     intptr_t   rollback_line;
@@ -26,17 +26,17 @@ private:
     char put_a_quote;
     char in_formatted;
     char in_expr;
-
 public:
+    char regexp_flags;
     POOLED(AnsiParser)
 
-    AnsiParser(AnsiString *TRG, AnsiList *Constants);
+    AnsiParser(AnsiString *TRG, ConstantMapType *Constants);
     ~AnsiParser(void);
 
     void Atomize();
     intptr_t LastLine();
 
-    void NextAtom(AnsiString& result, int no_constants = 0);
+    void NextAtom(AnsiString& result, int no_constants = 0, int TYPE = -1, int ID = -1);
     AnsiString GetConstant();
     bool Rollback();
     bool Done();

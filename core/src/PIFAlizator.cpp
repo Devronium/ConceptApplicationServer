@@ -16,6 +16,11 @@
 #ifdef _WIN32
  #include <io.h>
 #endif
+#ifndef NO_BUILTIN_REGEX
+extern "C" {
+ #include "builtin/regexp.h"
+}
+#endif
 
 POOLED_IMPLEMENTATION(PIFAlizator)
 
@@ -218,7 +223,7 @@ PIFAlizator::PIFAlizator(AnsiString INC_DIR, AnsiString LIB_DIR, AnsiString *S, 
         AddGeneralMember(INC);
         AddGeneralMember(DEC);
 
-        this->ConstantList = new AnsiList();
+        this->ConstantList = new ConstantMapType();
         DefineConstant("_C_INCLUDE_DIR", INC_DIR);
         DefineConstant("_C_LIB_DIR", LIB_DIR);
         DefineConstant("_C_FILENAME", _FileName);
@@ -228,7 +233,6 @@ PIFAlizator::PIFAlizator(AnsiString INC_DIR, AnsiString LIB_DIR, AnsiString *S, 
 
         BUILTININIT(this);
     }
-
     basic_constants_count = this->ConstantList->Count();
 
     this->CachedhDLL        = 0;
@@ -503,7 +507,12 @@ INTEGER PIFAlizator::VariableIsDescribed(AnsiString& S, DoubleList *VDList) {
     return 0;
 }
 
-INTEGER PIFAlizator::ConstantIsDescribed(AnsiString& S, AnsiList *VDList) {
+INTEGER PIFAlizator::ConstantIsDescribed(AnsiString& S, ConstantMapType *VDList) {
+#ifdef STDMAP_CONSTANTS
+    VariableDESCRIPTOR *VD = (VariableDESCRIPTOR *)VDList->Find(S.c_str());
+    if (VD)
+        return 1;
+#else
     INTEGER Count = VDList->Count();
 
     for (INTEGER i = 0; i < Count; i++) {
@@ -513,6 +522,7 @@ INTEGER PIFAlizator::ConstantIsDescribed(AnsiString& S, AnsiList *VDList) {
             return i + 1;
         }
     }
+#endif
     return 0;
 }
 
@@ -1088,7 +1098,7 @@ INTEGER PIFAlizator::BuildFunction(ClassCode *CC, AnsiParser *P, INTEGER on_line
             sPARSE = cached;
             cached = "";
         } else {
-            P->NextAtom(sPARSE);
+            P->NextAtom(sPARSE, 0, PREC_TYPE, PREC_ID);
         }
 
         char *ptr_parse = sPARSE.c_str();
@@ -1259,6 +1269,136 @@ INTEGER PIFAlizator::BuildFunction(ClassCode *CC, AnsiParser *P, INTEGER on_line
         } else {
             IS_CONSTANT = 0;
         }
+#ifndef NO_BUILTIN_REGEX
+        // regexp support
+        if (TYPE == TYPE_REGEX) {
+            AnalizerElement *AE = new AnalizerElement;
+            AE->ID               = KEY_P_OPEN;
+            AE->TYPE             = TYPE_OPERATOR;
+            AE->_DEBUG_INFO_LINE = on_line ? on_line : P->LastLine();
+            AE->_INFO_OPTIMIZED  = 0;
+            AE->_PARSE_DATA      = "(";
+            AE->_HASH_DATA       = 0;
+            PIFList->Add(AE, DATA_ANALIZER_ELEMENT);
+
+            AE                   = new AnalizerElement;
+            AE->ID               = KEY_NEW;
+            AE->TYPE             = TYPE_OPERATOR;
+            AE->_DEBUG_INFO_LINE = on_line ? on_line : P->LastLine();
+            AE->_INFO_OPTIMIZED  = 0;
+            AE->_PARSE_DATA      = "new";
+            AE->_HASH_DATA       = 0;
+            PIFList->Add(AE, DATA_ANALIZER_ELEMENT);
+
+            _ID = ClassExists("RegExp");
+
+            if (!_ID) {
+                AnsiString regexpClass("RegExp");
+                Warning(WRN10007, on_line ? on_line : P->LastLine(), 10007, regexpClass, FileName);
+
+                ClassCode *CC1 = new ClassCode(regexpClass, this);
+                CC1->DEFINED_LEVEL = this->INCLUDE_LEVEL;
+                CC1->NEEDED        = -1;
+                ClassList->Add(CC1, DATA_CLASS_CODE);
+                _ID = ClassList->Count();
+#ifdef CACHED_CLASSES
+                HASH_TYPE key = hash_func(CC1->NAME.c_str(), CC1->NAME.Length());
+                CachedClasses[key] = _ID;
+#endif
+                AddUndefinedClass(regexpClass, CC->NAME, CM->NAME, on_line ? on_line : P->LastLine());
+            }
+
+            AE                   = new AnalizerElement;
+            AE->ID               = _ID;
+            AE->TYPE             = TYPE_CLASS;
+            AE->_DEBUG_INFO_LINE = on_line ? on_line : P->LastLine();
+            AE->_INFO_OPTIMIZED  = 0;
+            AE->_PARSE_DATA      = "RegExp";
+            AE->_HASH_DATA       = 0;
+            PIFList->Add(AE, DATA_ANALIZER_ELEMENT);
+
+            AE                   = new AnalizerElement;
+            AE->ID               = KEY_P_OPEN;
+            AE->TYPE             = TYPE_OPERATOR;
+            AE->_DEBUG_INFO_LINE = on_line ? on_line : P->LastLine();
+            AE->_INFO_OPTIMIZED  = 0;
+            AE->_PARSE_DATA      = "(";
+            AE->_HASH_DATA       = 0;
+            PIFList->Add(AE, DATA_ANALIZER_ELEMENT);
+
+            StaticString expr;
+            expr.LoadBuffer(sPARSE.c_str() + 1, sPARSE.Length() - 2);
+            VariableDESCRIPTOR *VD = new VariableDESCRIPTOR;
+            VD->value  = expr;
+            VD->USED   = 1;
+            VD->TYPE   = VARIABLE_STRING;
+            VD->nValue = 0;
+            VD->BY_REF = 0;
+            VDList->Add(VD, DATA_VAR_DESCRIPTOR);
+
+            AE                   = new AnalizerElement;
+            AE->ID               = VDList->Count();
+            AE->TYPE             = TYPE_VARIABLE;
+            AE->_DEBUG_INFO_LINE = on_line ? on_line : P->LastLine();
+            AE->_INFO_OPTIMIZED  = 0;
+            AE->_PARSE_DATA      = sPARSE;
+            AE->_HASH_DATA       = 0;
+            PIFList->Add(AE, DATA_ANALIZER_ELEMENT);
+
+            if (P->regexp_flags) {
+                AE                   = new AnalizerElement;
+                AE->ID               = KEY_COMMA;
+                AE->TYPE             = TYPE_OPERATOR;
+                AE->_DEBUG_INFO_LINE = on_line ? on_line : P->LastLine();
+                AE->_INFO_OPTIMIZED  = 0;
+                AE->_PARSE_DATA      = ",";
+                AE->_HASH_DATA       = 0;
+                PIFList->Add(AE, DATA_ANALIZER_ELEMENT);
+
+                VariableDESCRIPTOR *VD = new VariableDESCRIPTOR;
+                VD->USED   = 1;
+                VD->TYPE = VARIABLE_NUMBER;
+                VD->nValue = P->regexp_flags;
+                VD->BY_REF = 0;
+                VDList->Add(VD, DATA_VAR_DESCRIPTOR);
+
+                AE                   = new AnalizerElement;
+                AE->ID               = VDList->Count();
+                AE->TYPE             = TYPE_VARIABLE;
+                AE->_DEBUG_INFO_LINE = on_line ? on_line : P->LastLine();
+                AE->_INFO_OPTIMIZED  = 0;
+                AE->_HASH_DATA       = 0;
+                PIFList->Add(AE, DATA_ANALIZER_ELEMENT);
+            }
+
+            AE                   = new AnalizerElement;
+            AE->ID               = KEY_P_CLOSE;
+            AE->TYPE             = TYPE_OPERATOR;
+            AE->_DEBUG_INFO_LINE = on_line ? on_line : P->LastLine();
+            AE->_INFO_OPTIMIZED  = 0;
+            AE->_PARSE_DATA      = ")";
+            AE->_HASH_DATA       = 0;
+            PIFList->Add(AE, DATA_ANALIZER_ELEMENT);
+
+
+            AE = new AnalizerElement;
+            AE->ID               = KEY_P_CLOSE;
+            AE->TYPE             = TYPE_OPERATOR;
+            AE->_DEBUG_INFO_LINE = on_line ? on_line : P->LastLine();
+            AE->_INFO_OPTIMIZED  = 0;
+            AE->_PARSE_DATA      = ")";
+            AE->_HASH_DATA       = 0;
+            PIFList->Add(AE, DATA_ANALIZER_ELEMENT);
+
+            const char *errorp = NULL;
+            Reprog *reg = regcomp(expr.c_str(), P->regexp_flags, &errorp);
+            if (reg)
+                regfree(reg);
+            if (errorp)
+                Errors.Add(new AnsiException(ERR1340, on_line ? on_line : P->LastLine(), 1340, errorp, FileName, CC->NAME), DATA_EXCEPTION);
+            continue;
+        }
+#endif
 
         if (!_ID) {
             _ID = GetID(sPARSE);
@@ -2524,7 +2664,11 @@ INTEGER PIFAlizator::Execute(AnsiString *Stream, INTEGER on_line, char _USE_WARN
                 INTEGER POS =  ConstantIsDescribed(sPARSE, ConstantList);
 
                 if (POS) {
+#ifdef STDMAP_CONSTANTS
+                    ConstantList->Delete(sPARSE.c_str());
+#else
                     ConstantList->Delete(POS - 1);
+#endif
 
                     Warning(WRN10004, on_line ? on_line : P.LastLine(), 10004, sPARSE);
                 }
@@ -2650,6 +2794,9 @@ int PIFAlizator::Serialize(char *filename, bool is_lib) {
         }
 
         if (is_lib) {
+#ifdef STDMAP_CONSTANTS
+            this->ConstantList->Serialize(out, basic_constants_count);
+#else
             INTEGER constant_list = this->ConstantList->Count();
 
             INTEGER temp = 0;
@@ -2669,7 +2816,7 @@ int PIFAlizator::Serialize(char *filename, bool is_lib) {
                     VD->value.Serialize(out, SERIALIZE_16BIT_LENGTH);
                 }
             }
-
+#endif
             INTEGER include_list = this->IncludedList->Count();
             concept_fwrite_int(&include_list, sizeof(include_list), 1, out);
             for (INTEGER i = 0; i < include_list; i++) {

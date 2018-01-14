@@ -309,6 +309,7 @@
 #define TYPE_CLASS                 0x0C
 #define TYPE_PARAM_LIST            0x0D
 #define TYPE_HEX_NUMBER            0x0E
+#define TYPE_REGEX                 0x0F
 
 #define TYPE_OPTIMIZED_KEYWORD     0x20
 #define TYPE_OPTIMIZED_JUMP_ADR    0x21
