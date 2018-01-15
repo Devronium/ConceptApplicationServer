@@ -109,18 +109,36 @@ void BUILTININIT(void *pif) {
     PIF->DefineConstant("_argv", "CLArg()", 0);
 }
 
-void *BUILTINADDR(const char *name) {
+void BUILTINOBJECTS(void *pif, const char *classname) {
+    PIFAlizator *PIF = (PIFAlizator *)pif;
+    if ((!PIF) || (!classname))
+        return;
+
+    BUILTINCLASS("RegExp", "class RegExp{private var h;RegExp(str,f=0,var e=null){this.h=RE_create(str,f,e);}test(str){return RE_test(this.h,str);}exec(str){return RE_exec(this.h,str);}finalize(){RE_done(this.h);}}");
+}
+
+void *BUILTINADDR(void *pif, const char *name, unsigned char *is_private) {
     if ((!name) || (!name[0]))
         return NULL;
+
+    PIFAlizator *PIF = (PIFAlizator *)pif;
+    if (is_private)
+        *is_private = 0;
 
     BUILTIN(GLOBALS);
     BUILTIN(CLArg);
     BUILTIN(CheckReachability);
     BUILTIN(___CONCEPT_INTERFACE_HELPER_GENERATE_UNIQUE_ID);
-    BUILTIN(RE_create);
-    BUILTIN(RE_exec);
-    BUILTIN(RE_test);
-    BUILTIN(RE_done);
+    if ((!PIF) || (PIF->enable_private)) {
+        if (is_private)
+            *is_private = 1;
+        BUILTIN(RE_create);
+        BUILTIN(RE_exec);
+        BUILTIN(RE_test);
+        BUILTIN(RE_done);
+        if (is_private)
+            *is_private = 0;
+    }
 
     return NULL;
 }

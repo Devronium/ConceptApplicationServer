@@ -734,14 +734,23 @@ public:
 
     void Add(void *data, int type) {
         VariableDESCRIPTOR *VD = (VariableDESCRIPTOR *)data;
-        if (VD)
-            map[hash_func(VD->name.c_str(), VD->name.Length())] = VD;
+        if (VD) {
+            HASH_TYPE key = hash_func(VD->name.c_str(), VD->name.Length());
+            VariableDESCRIPTOR *VD2 = (VariableDESCRIPTOR *)map[key];
+            if (VD2)
+                delete VD2;
+            map[key] = VD;
+        }
     }
 
     void Delete(const char *varname) {
         if ((!varname) || (!varname[0]))
             return;
-        map.erase(hash_func(varname));
+        HASH_TYPE key = hash_func(varname);
+        VariableDESCRIPTOR *VD = (VariableDESCRIPTOR *)map[key];
+        map.erase(key);
+        if (VD)
+            delete VD;
     }
 
     void *Find(const char *varname) {

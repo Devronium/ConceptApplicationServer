@@ -2389,7 +2389,7 @@ INTEGER Invoke(INTEGER INVOKE_TYPE, ...) {
     return result;
 }
 
-SYS_INT LinkFunction(const char *FUNCTION_NAME, AnsiList *TARGET, void **CACHED_hDLL) {
+SYS_INT LinkFunction(void *PIF, const char *FUNCTION_NAME, AnsiList *TARGET, void **CACHED_hDLL) {
 #ifdef CACHE_MEMBERS
  #ifndef NO_HASHING
     HASH_TYPE key = hash_func(FUNCTION_NAME, strlen(FUNCTION_NAME));
@@ -2449,7 +2449,13 @@ SYS_INT LinkFunction(const char *FUNCTION_NAME, AnsiList *TARGET, void **CACHED_
             return (SYS_INT)_PROC_ADR;
         }
     }
-    return (SYS_INT)BUILTINADDR(FUNCTION_NAME);
+    unsigned char is_private = 0;
+    SYS_INT BUILTIN_ID = (SYS_INT)BUILTINADDR(PIF, FUNCTION_NAME, &is_private);
+#ifdef CACHE_MEMBERS
+    if ((BUILTIN_ID) && (!is_private))
+         FunctionMap[key] = BUILTIN_ID;
+#endif
+    return BUILTIN_ID;
 }
 
 void DoneLinking() {

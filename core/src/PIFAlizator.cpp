@@ -144,8 +144,9 @@ PIFAlizator::PIFAlizator(AnsiString INC_DIR, AnsiString LIB_DIR, AnsiString *S, 
     this->StaticLinksSize   = 0;
     this->var_globals       = 0;
     this->IDGenerator       = 0;
-    this->direct_pipe     = 0;
-    this->StaticClassList = 0;
+    this->direct_pipe       = 0;
+    this->StaticClassList   = 0;
+    this->enable_private    = 0;
 
     if (!WorkerLockInitialized) {
         seminit(WorkerLock, 1);
@@ -388,7 +389,7 @@ PIFAlizator::~PIFAlizator(void) {
 
 unsigned int PIFAlizator::LinkStatic(const char *funname) {
     unsigned int res = 0;
-    SYS_INT      ref = LinkFunction(funname, ModuleList, &CachedhDLL);
+    SYS_INT      ref = LinkFunction(this, funname, ModuleList, &CachedhDLL);
 
     if (ref) {
         for (int i = 0; i < this->StaticLinksCount; i++) {
@@ -1291,7 +1292,10 @@ INTEGER PIFAlizator::BuildFunction(ClassCode *CC, AnsiParser *P, INTEGER on_line
             PIFList->Add(AE, DATA_ANALIZER_ELEMENT);
 
             _ID = ClassExists("RegExp");
-
+            if (!_ID) {
+                BUILTINOBJECTS(this, "RegExp");
+                _ID = ClassExists("RegExp");
+            }
             if (!_ID) {
                 AnsiString regexpClass("RegExp");
                 Warning(WRN10007, on_line ? on_line : P->LastLine(), 10007, regexpClass, FileName);

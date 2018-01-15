@@ -232,6 +232,10 @@ class PIFAlizator {
 
     friend void BUILTININIT(void *PIF);
 
+    friend void BUILTINOBJECTS(void *PIF, const char *classname);
+
+    friend void *BUILTINADDR(void *PIF, const char *name, unsigned char *is_private);
+
     StaticList *GeneralMembers;
     int        pipe_read;
     int        pipe_write;
@@ -315,6 +319,7 @@ class PIFAlizator {
     unsigned int PROFILE_DRIVEN_ID;
     int          INCLUDE_LEVEL;
 
+    char         enable_private;
     INTEGER Warning(const char *WRN, int line, int wrn_code, const char *extra, const char *filename = 0);
     void DefineConstant(const char *name, const char *value, int is_string = 1);
 

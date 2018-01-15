@@ -153,5 +153,8 @@
 #define IS_BUILTIN(name, builtinfunction)               IS_BUILTIN2(name, #builtinfunction, builtinfunction)
 #define IS_BUILTIN2(name, funcname, builtinfunction)    if (!strcmp(name, funcname)) return (void *)&CONCEPT_ ## builtinfunction;
 
+#define BUILTINCLASS(cls, code)                         BUILTINCLASS2(classname, PIF, cls, code)
+#define BUILTINCLASS2(name, PIF, cls, code)             if (!strcmp(name, cls)) { PIF->enable_private = 1; PIF->RuntimeIncludeCode(code); PIF->enable_private = 0; return; }
+
 #endif
 

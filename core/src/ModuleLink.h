@@ -37,7 +37,7 @@ typedef POINTER (*EXTERNAL_CALL)(ParamListExtra *PARAMETERS, VariableDATA **LOCA
 
 INTEGER ImportModule(AnsiString& MODULE_MASK, AnsiList *Errors, INTEGER line, AnsiString FILENAME, AnsiList *TARGET, PIFAlizator *Sender, INTEGER _NO_ERROR_REPORT = 0);
 INTEGER UnImportModule(HMODULE hMODULE, PIFAlizator *Sender = 0);
-SYS_INT LinkFunction(const char *FUNCTION_NAME, AnsiList *TARGET, void **CACHED_hDLL);
+SYS_INT LinkFunction(void *PIF, const char *FUNCTION_NAME, AnsiList *TARGET, void **CACHED_hDLL);
 void DoneLinking();
 
 INTEGER SetVariable(VariableDATA *VD, INTEGER TYPE, char *STRING_VALUE, NUMBER NUMBER_VALUE);
