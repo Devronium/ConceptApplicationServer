@@ -6,32 +6,34 @@
 #include <time.h>
 #include "randomc.h"
 
-CRandomMersenne *RanGen = 0;
+void destroy_rangen(void *data, void *handler) {
+    if (data)
+        delete (CRandomMersenne *)data;
+}
 
-void InitRandomEngine() {
-    if (!RanGen)
+CRandomMersenne *InitRandomEngine(INVOKE_CALL Invoke, void *HANDLER) {
+    CRandomMersenne *RanGen = NULL;
+    Invoke(INVOKE_GETPROTODATA, HANDLER, (int)3, &RanGen);
+    if (!RanGen) {
         RanGen = new CRandomMersenne((int)time(0));
+        Invoke(INVOKE_SETPROTODATA, HANDLER, (int)3, RanGen, destroy_rangen);
+    }
+    return RanGen;
 }
 
 //------------------------------------------------------------------------
 CONCEPT_DLL_API ON_CREATE_CONTEXT MANAGEMENT_PARAMETERS {
-    InitRandomEngine();
     return 0;
 }
 
 CONCEPT_DLL_API ON_DESTROY_CONTEXT MANAGEMENT_PARAMETERS {
-    if (!HANDLER) {
-        if (RanGen) {
-            delete RanGen;
-            RanGen = 0;
-        }
-    }
     return 0;
 }
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(RandomSeed, 1)
     T_NUMBER(RandomSeed, 0)
-    InitRandomEngine();
+
+    CRandomMersenne *RanGen = InitRandomEngine(Invoke, PARAMETERS->HANDLER);
     if (!RanGen)
         return (void *)"RandomSeed: Random number generator initialisation failed";
     RanGen->RandomInit(PARAM_INT(0));
@@ -42,7 +44,7 @@ CONCEPT_FUNCTION_IMPL(RandomInteger, 2)
     T_NUMBER(RandomInteger, 0)
     T_NUMBER(RandomInteger, 1)
 
-    InitRandomEngine();
+    CRandomMersenne *RanGen = InitRandomEngine(Invoke, PARAMETERS->HANDLER);
     if (!RanGen)
         return (void *)"RandomInteger: Random number generator initialisation failed";
 
@@ -53,7 +55,7 @@ CONCEPT_FUNCTION_IMPL(RandomIntegerX, 2)
     T_NUMBER(RandomIntegerX, 0)
     T_NUMBER(RandomIntegerX, 1)
 
-    InitRandomEngine();
+    CRandomMersenne *RanGen = InitRandomEngine(Invoke, PARAMETERS->HANDLER);
     if (!RanGen)
         return (void *)"RandomIntegerX: Random number generator initialisation failed";
 
@@ -61,7 +63,7 @@ CONCEPT_FUNCTION_IMPL(RandomIntegerX, 2)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(RandomFloat, 0)
-    InitRandomEngine();
+    CRandomMersenne *RanGen = InitRandomEngine(Invoke, PARAMETERS->HANDLER);
     if (!RanGen)
         return (void *)"RandomFloat: Random number generator initialisation failed";
 
@@ -69,11 +71,10 @@ CONCEPT_FUNCTION_IMPL(RandomFloat, 0)
 END_IMPL
 //------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(RandomBit, 0)
-    InitRandomEngine();
+    CRandomMersenne *RanGen = InitRandomEngine(Invoke, PARAMETERS->HANDLER);
     if (!RanGen)
         return (void *)"RandomBit: Random number generator initialisation failed";
 
     RETURN_NUMBER(RanGen->BRandom())
 END_IMPL
 //------------------------------------------------------------------------
-
