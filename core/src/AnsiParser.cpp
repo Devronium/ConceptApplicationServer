@@ -164,7 +164,37 @@ void AnsiParser::NextAtom(AnsiString& result, int no_constants, int TYPE, int ID
             break;
         }
 
+        int seq_len = 1;
         if ((!quote) && (!comment) && (!line_comment)) {
+            unsigned char utf8_char = (unsigned char)c;
+            if (utf8_char & 0x80) {
+                // utf8 sequence
+                if ((utf8_char & 0xF0) == 0xF0)
+                    seq_len = 4;
+                else
+                if ((utf8_char & 0xE0) == 0xE0)
+                    seq_len = 3;
+                else
+                if ((utf8_char & 0xC0) == 0xC0)
+                    seq_len = 2;
+
+                if (seq_len > 1) {
+                    // invalid utf8
+                    if (i + seq_len > len) {
+                        seq_len = 1;
+                    } else
+                    if ((!comment) && (!quote)) {
+                        for (int j = 1; j < seq_len; j++) {
+                            utf8_char = (unsigned char)str_ptr [i + j];
+                            if ((utf8_char >> 6) != 0x02) {
+                                // invalid utf8
+                                seq_len = 1;
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
             if (c == '#') {
                 if (!comment) {
                     line_comment = 1;
@@ -368,9 +398,12 @@ void AnsiParser::NextAtom(AnsiString& result, int no_constants, int TYPE, int ID
                         }
                     }
                     if (!separator) {
-                        if ((!oper) && (Contains(ATOM_MEMBER, c))) {
+                        if ((!oper) && ((seq_len > 1) || (Contains(ATOM_MEMBER, c)))) {
                             if (!oper) {
                                 result += c;
+                                for (int j = 1; j < seq_len; j++)
+                                    result += str_ptr [i + j];
+                                i += seq_len - 1;
                             } else {
                                 break;
                             }
@@ -463,7 +496,6 @@ void AnsiParser::NextAtom(AnsiString& result, int no_constants, int TYPE, int ID
         INTEGER Count = ConstantList->Count();
         INTEGER POS;
         do {
-            // fprintf(stderr, "LOOKUP: %s\n", result.c_str());
             POS = 0;
             for (INTEGER i = 0; i < Count; i++) {
                 VariableDESCRIPTOR *VD = (VariableDESCRIPTOR *)(*ConstantList) [i];

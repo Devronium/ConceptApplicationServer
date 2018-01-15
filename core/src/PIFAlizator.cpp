@@ -82,7 +82,7 @@ void PIFAlizator::DefineConstant(const char *name, const char *value, int is_str
 
     VD->name   = (char *)name;
     VD->USED   = (signed char)this->INCLUDE_LEVEL;
-    VD->BY_REF = 0;
+    VD->BY_REF = basic_constants_count ? 0 : 1;
 
     AnsiString c_val;
 
@@ -147,6 +147,8 @@ PIFAlizator::PIFAlizator(AnsiString INC_DIR, AnsiString LIB_DIR, AnsiString *S, 
     this->direct_pipe       = 0;
     this->StaticClassList   = 0;
     this->enable_private    = 0;
+    // important for built-in constants
+    this->basic_constants_count = 0;
 
     if (!WorkerLockInitialized) {
         seminit(WorkerLock, 1);
@@ -234,6 +236,7 @@ PIFAlizator::PIFAlizator(AnsiString INC_DIR, AnsiString LIB_DIR, AnsiString *S, 
 
         BUILTININIT(this);
     }
+    // done with built-in constants
     basic_constants_count = this->ConstantList->Count();
 
     this->CachedhDLL        = 0;
@@ -511,8 +514,10 @@ INTEGER PIFAlizator::VariableIsDescribed(AnsiString& S, DoubleList *VDList) {
 INTEGER PIFAlizator::ConstantIsDescribed(AnsiString& S, ConstantMapType *VDList) {
 #ifdef STDMAP_CONSTANTS
     VariableDESCRIPTOR *VD = (VariableDESCRIPTOR *)VDList->Find(S.c_str());
-    if (VD)
+    if ((VD) && (VD->name == S)) {
+        VD->USED = 1;
         return 1;
+    }
 #else
     INTEGER Count = VDList->Count();
 
@@ -2799,7 +2804,7 @@ int PIFAlizator::Serialize(char *filename, bool is_lib) {
 
         if (is_lib) {
 #ifdef STDMAP_CONSTANTS
-            this->ConstantList->Serialize(out, basic_constants_count);
+            this->ConstantList->Serialize(out);
 #else
             INTEGER constant_list = this->ConstantList->Count();
 

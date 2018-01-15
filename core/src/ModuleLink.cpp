@@ -1088,7 +1088,6 @@ INTEGER Invoke(INTEGER INVOKE_TYPE, ...) {
                         FREE_VARIABLE(lOwner);
                         *SENDER_EXCEPTION = LAST_THROW;
                     }
-                    //fprintf(stderr, "SENDER: %i\n", (int)(*SENDER_RESULT)->LINKS);
 #ifdef SIMPLE_MULTI_THREADING
                     if (spin_lock)
                         *spin_lock = 0;

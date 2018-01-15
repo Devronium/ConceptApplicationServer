@@ -813,12 +813,57 @@ AnsiString Strip(AnsiString String) {
     }
 }
 
+inline INTEGER ValidUTF8Chars(AnsiString& S) {
+    INTEGER len = S.Length();
+
+    if (!len)
+        return 0;
+
+    INTEGER utf8_chars = 0;
+    unsigned char *str = (unsigned char *)S.c_str();
+    for (INTEGER i = 0; i < len; i++) {
+        unsigned char utf8_char = str[i];
+        if ((((utf8_char >= 'a') && (utf8_char <= 'z')) ||
+             ((utf8_char >= 'A') && (utf8_char <= 'Z')) || (utf8_char == '_')) ||
+            ((utf8_char >= '0') && (utf8_char <= '9') && (i))) {
+            continue;
+        } else
+        if (utf8_char & 0x80) {
+            // utf8 sequence
+            int seq_len = 1;
+            if ((utf8_char & 0xF0) == 0xF0)
+                seq_len = 4;
+            else
+            if ((utf8_char & 0xE0) == 0xE0)
+                seq_len = 3;
+            else
+            if ((utf8_char & 0xC0) == 0xC0)
+                seq_len = 2;
+            else
+                return 0;
+
+            if (i + seq_len > len) {
+                // invalid utf8
+                return 0;
+            } else
+            for (int j = 1; j < seq_len; j++) {
+                utf8_char = (unsigned char)str [i + j];
+                if ((utf8_char >> 6) != 0x02)
+                    return 0;
+            }
+            utf8_chars ++;
+            i += seq_len - 1;
+        } else
+            return 0;
+    }
+    return utf8_chars;
+}
+
 inline INTEGER ValidName(AnsiString& S) {
     INTEGER len = S.Length();
 
-    if (!len) {
+    if (!len)
         return 0;
-    }
 
     for (INTEGER i = 0; i < len; i++) {
         if ((((S [i] >= 'a') && (S [i] <= 'z')) ||
@@ -826,7 +871,7 @@ inline INTEGER ValidName(AnsiString& S) {
             ((S [i] >= '0') && (S [i] <= '9') && (i))) {
             continue;
         } else {
-            return 0;
+            return ValidUTF8Chars(S);
         }
     }
     return 1;

@@ -676,6 +676,7 @@ public:
 typedef std::map<HASH_TYPE, void *> ConstantMap;
 
 class ConstantsListEmulation {
+private:
     ConstantMap map;
 public:
     ConstantsListEmulation() {
@@ -704,30 +705,24 @@ public:
     }
     ============================================= */
 
-    INTEGER Serialize(FILE *out, INTEGER basic_constants_count) {
+    INTEGER Serialize(FILE *out) {
         INTEGER constant_list = map.size();
         INTEGER temp = 0;
         ConstantMap::iterator a = map.begin();
-        INTEGER start_from = basic_constants_count;
-        for(ConstantMap::iterator it = map.begin(); it != map.end(); ++it) {
-            if (start_from <= 0) {
-                VariableDESCRIPTOR *VD = (VariableDESCRIPTOR *)it->second;
-                if ((VD) && (!VD->USED))
-                    temp++;
-            } else
-                start_from--;
+        for (ConstantMap::iterator it = map.begin(); it != map.end(); ++it) {
+            VariableDESCRIPTOR *VD = (VariableDESCRIPTOR *)it->second;
+            if ((VD) && (!VD->USED) && (!VD->BY_REF))
+                temp++;
         }
         concept_fwrite_int(&temp, sizeof(temp), 1, out);
-        start_from = basic_constants_count;
-        for(ConstantMap::iterator it = map.begin(); it != map.end(); ++it) {
-            if (start_from <= 0) {
+        if (temp) {
+            for (ConstantMap::iterator it = map.begin(); it != map.end(); ++it) {
                 VariableDESCRIPTOR *VD = (VariableDESCRIPTOR *)it->second;
-                if ((VD) && (!VD->USED)) {
+                if ((VD) && (!VD->USED) && (!VD->BY_REF)) {
                     VD->name.Serialize(out, SERIALIZE_8BIT_LENGTH);
                     VD->value.Serialize(out, SERIALIZE_16BIT_LENGTH);
                 }
-            } else
-                start_from--;
+            }
         }
         return temp;
     }
@@ -756,7 +751,10 @@ public:
     void *Find(const char *varname) {
         if ((!varname) || (!varname[0]))
             return NULL;
-        return map[hash_func(varname)];
+        ConstantMap::iterator search = map.find(hash_func(varname));
+        if (search != map.end())
+            return (VariableDESCRIPTOR *)search->second;
+        return NULL;
     }
 
     ~ConstantsListEmulation() {
