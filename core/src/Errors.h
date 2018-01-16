@@ -141,6 +141,7 @@
 #define ERR1320     "Unreachable code"
 #define ERR1330     "A string character must be replaced only by a string. Expressions like string[i] = [ ] are illegal."
 #define ERR1340     "Invalid regular expression"
+#define ERR1350     "Defined constant is recursive"
 #define ERR1400     "Concept Core is out of memory"
 
 #define WRN10001    "Possibly incorrect assignment: do you mean '==' instead of '=' ?"

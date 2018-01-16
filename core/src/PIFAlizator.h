@@ -232,7 +232,7 @@ class PIFAlizator {
 
     friend void BUILTININIT(void *PIF);
 
-    friend void BUILTINOBJECTS(void *PIF, const char *classname);
+    friend int BUILTINOBJECTS(void *PIF, const char *classname);
 
     friend void *BUILTINADDR(void *PIF, const char *name, unsigned char *is_private);
 
@@ -285,7 +285,7 @@ class PIFAlizator {
     INTEGER BuildOverride(ClassCode *CC, AnsiParser *P, INTEGER on_line);
     INTEGER IncludePackage(AnsiString filename);
     INTEGER IncludeFile(AnsiString MODULE_NAME, INTEGER on_line);
-    INTEGER RuntimeIncludeCode(char *CODE);
+    INTEGER RuntimeIncludeCode(const char *CODE);
 
     AnsiString NormalizePath(AnsiString *MODULE_NAME);
 

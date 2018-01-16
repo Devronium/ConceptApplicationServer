@@ -78,6 +78,12 @@ void PIFAlizator::AcknoledgeRunTimeError(SCStack *STACK_TRACE, AnsiException *Ex
 }
 
 void PIFAlizator::DefineConstant(const char *name, const char *value, int is_string) {
+    if ((!name) || (!name[0]))
+        return;
+    if ((value) && (!strcmp(name, value))) {
+        Errors.Add(new AnsiException(ERR1350, 0, 1350, name, FileName, ""), DATA_EXCEPTION);
+        return;
+    }
     VariableDESCRIPTOR *VD = new VariableDESCRIPTOR;
 
     VD->name   = (char *)name;
@@ -99,9 +105,8 @@ void PIFAlizator::DefineConstant(const char *name, const char *value, int is_str
         c_val += value [i];
     }
 
-    if (is_string) {
+    if (is_string)
         c_val += "\"";
-    }
 
     VD->value.LoadBuffer(c_val.c_str(), c_val.Length());
     ConstantList->Add(VD, DATA_VAR_DESCRIPTOR);
@@ -1568,6 +1573,10 @@ INTEGER PIFAlizator::BuildFunction(ClassCode *CC, AnsiParser *P, INTEGER on_line
             _ID = ClassExists(sPARSE.c_str());
 
             if (!_ID) {
+                if (BUILTINOBJECTS(this, sPARSE.c_str()))
+                    _ID = ClassExists(sPARSE.c_str());
+            }
+            if (!_ID) {
                 Warning(WRN10007, on_line ? on_line : P->LastLine(), 10007, sPARSE, FileName);
 
                 ClassCode *CC1 = new ClassCode(sPARSE, this);
@@ -1767,9 +1776,8 @@ INTEGER PIFAlizator::BuildFunction(ClassCode *CC, AnsiParser *P, INTEGER on_line
 
         if (!_ID) {
             _ID = ClassExists(sPARSE.c_str());
-            if (_ID) {
+            if (_ID)
                 TYPE = TYPE_CLASS;
-            }
         }
 
         if (!_ID) {
@@ -1792,24 +1800,27 @@ INTEGER PIFAlizator::BuildFunction(ClassCode *CC, AnsiParser *P, INTEGER on_line
 #endif
                 IS_ARRAY = 0;
             } else {
-                if (!cached.Length()) {
+                if (!cached.Length())
                     P->NextAtom(cached);
-                }
 
                 if ((cached == ".") || (cached == "::")) {
-                    Warning(WRN10007, on_line ? on_line : P->LastLine(), 10007, sPARSE, FileName);
-
-                    ClassCode *CC1 = new ClassCode(sPARSE, this);
-                    CC1->DEFINED_LEVEL = this->INCLUDE_LEVEL;
-                    CC1->NEEDED        = -1;
-                    ClassList->Add(CC1, DATA_CLASS_CODE);
-                    _ID = ClassList->Count();
-                    AddUndefinedClass(sPARSE, CC->NAME, CM->NAME, on_line ? on_line : P->LastLine());
-#ifdef CACHED_CLASSES
-                    HASH_TYPE key = hash_func(sPARSE.c_str(), sPARSE.Length());
-                    CachedClasses[key] = _ID;
-#endif
                     TYPE = TYPE_CLASS;
+                    if (BUILTINOBJECTS(this, sPARSE.c_str())) {
+                        _ID = ClassExists(sPARSE.c_str());
+                    } else {
+                        Warning(WRN10007, on_line ? on_line : P->LastLine(), 10007, sPARSE, FileName);
+
+                        ClassCode *CC1 = new ClassCode(sPARSE, this);
+                        CC1->DEFINED_LEVEL = this->INCLUDE_LEVEL;
+                        CC1->NEEDED        = -1;
+                        ClassList->Add(CC1, DATA_CLASS_CODE);
+                        _ID = ClassList->Count();
+                        AddUndefinedClass(sPARSE, CC->NAME, CM->NAME, on_line ? on_line : P->LastLine());
+#ifdef CACHED_CLASSES
+                        HASH_TYPE key = hash_func(sPARSE.c_str(), sPARSE.Length());
+                        CachedClasses[key] = _ID;
+#endif
+                    }
                 } else {
                     Errors.Add(new AnsiException(ERR010, on_line ? on_line : P->LastLine(), 10, sPARSE, FileName, CC->NAME, CM->NAME), DATA_EXCEPTION);
                     continue;
@@ -2536,7 +2547,7 @@ AnsiString PIFAlizator::NormalizePath(AnsiString *MODULE_NAME) {
     return result;
 }
 
-INTEGER PIFAlizator::RuntimeIncludeCode(char *CODE) {
+INTEGER PIFAlizator::RuntimeIncludeCode(const char *CODE) {
     INCLUDE_LEVEL++;
     AnsiString ModuleStream = CODE;
     Execute(&ModuleStream, 0, USE_WARN, USE_EXC, USE_IMPLICIT);
@@ -2664,25 +2675,29 @@ INTEGER PIFAlizator::Execute(AnsiString *Stream, INTEGER on_line, char _USE_WARN
                 Errors.Add(new AnsiException(ERR820, on_line ? on_line : P.LastLine(), 820, sPARSE, FileName), DATA_EXCEPTION);
             } else {
                 AnsiString         value = P.GetConstant();
-                VariableDESCRIPTOR *VD   = new VariableDESCRIPTOR;
-                VD->BY_REF = 0;
-                VD->name   = sPARSE;
-                VD->value  = value;
-                VD->USED   = this->INCLUDE_LEVEL;
+                if (value == sPARSE) {
+                    Errors.Add(new AnsiException(ERR1350, on_line ? on_line : P.LastLine(), 1350, sPARSE, FileName), DATA_EXCEPTION);
+                } else {
+                    VariableDESCRIPTOR *VD   = new VariableDESCRIPTOR;
+                    VD->BY_REF = 0;
+                    VD->name   = sPARSE;
+                    VD->value  = value;
+                    VD->USED   = this->INCLUDE_LEVEL;
 
-                INTEGER POS =  ConstantIsDescribed(sPARSE, ConstantList);
+                    INTEGER POS =  ConstantIsDescribed(sPARSE, ConstantList);
 
-                if (POS) {
+                    if (POS) {
 #ifdef STDMAP_CONSTANTS
-                    ConstantList->Delete(sPARSE.c_str());
+                        ConstantList->Delete(sPARSE.c_str());
 #else
-                    ConstantList->Delete(POS - 1);
+                        ConstantList->Delete(POS - 1);
 #endif
 
-                    Warning(WRN10004, on_line ? on_line : P.LastLine(), 10004, sPARSE);
-                }
+                        Warning(WRN10004, on_line ? on_line : P.LastLine(), 10004, sPARSE);
+                    }
 
-                ConstantList->Add(VD, DATA_VAR_DESCRIPTOR);
+                    ConstantList->Add(VD, DATA_VAR_DESCRIPTOR);
+                }
             }
         } else
         if ((TYPE == TYPE_KEYWORD) && (_ID == KEY_IMPORT)) {
@@ -2940,6 +2955,8 @@ int PIFAlizator::ComputeSharedSize(char *filename) {
 }
 
 int PIFAlizator::Unserialize(char *filename, bool is_lib) {
+    char old_enable_private = this->enable_private;
+    this->enable_private = 1;
     concept_FILE *in = concept_fopen(filename, "rb");
     char         static_buffer [0xFF];
     int          *Classes            = 0;
@@ -2959,6 +2976,7 @@ int PIFAlizator::Unserialize(char *filename, bool is_lib) {
         if (!concept_fread_buffer(static_buffer, size, 1, in)) {
             concept_fclose(in);
             Errors.Add(new AnsiException(ERR1120, 0, 1120, filename, FileName), DATA_EXCEPTION);
+            this->enable_private = old_enable_private;
             return -3;
         }
         static_buffer [size] = 0;
@@ -2966,6 +2984,7 @@ int PIFAlizator::Unserialize(char *filename, bool is_lib) {
         if (strcmp(static_buffer, cftype)) {
             concept_fclose(in);
             Errors.Add(new AnsiException(ERR1120, 0, 1120, filename, FileName), DATA_EXCEPTION);
+            this->enable_private = old_enable_private;
             return -3;
         }
         char PRAGMA_SET = 0;
@@ -2978,6 +2997,7 @@ int PIFAlizator::Unserialize(char *filename, bool is_lib) {
         if (!concept_fread_int(&module_list, sizeof(module_list), 1, in)) {
             concept_fclose(in);
             Errors.Add(new AnsiException(ERR1120, 0, 1120, filename, FileName), DATA_EXCEPTION);
+            this->enable_private = old_enable_private;
             return -3;
         }
         for (INTEGER i = 0; i < module_list; i++) {
@@ -3000,6 +3020,7 @@ int PIFAlizator::Unserialize(char *filename, bool is_lib) {
             if (!concept_fread_int(&constant_list, sizeof(constant_list), 1, in)) {
                 concept_fclose(in);
                 Errors.Add(new AnsiException(ERR1120, 0, 1120, filename, FileName), DATA_EXCEPTION);
+                this->enable_private = old_enable_private;
                 return -3;
             }
 
@@ -3015,6 +3036,7 @@ int PIFAlizator::Unserialize(char *filename, bool is_lib) {
             if (!concept_fread_int(&include_list, sizeof(include_list), 1, in)) {
                 concept_fclose(in);
                 Errors.Add(new AnsiException(ERR1120, 0, 1120, filename, FileName), DATA_EXCEPTION);
+                this->enable_private = old_enable_private;
                 return -3;
             }
 
@@ -3028,6 +3050,7 @@ int PIFAlizator::Unserialize(char *filename, bool is_lib) {
             if (!concept_fread_int(&class_list, sizeof(class_list), 1, in)) {
                 concept_fclose(in);
                 Errors.Add(new AnsiException(ERR1120, 0, 1120, filename, FileName), DATA_EXCEPTION);
+                this->enable_private = old_enable_private;
                 return -3;
             }
             if (class_list) {
@@ -3047,6 +3070,7 @@ int PIFAlizator::Unserialize(char *filename, bool is_lib) {
                 if (Classes) {
                     delete[] Classes;
                 }
+                this->enable_private = old_enable_private;
                 return -3;
             }
 
@@ -3068,6 +3092,7 @@ int PIFAlizator::Unserialize(char *filename, bool is_lib) {
             if (!concept_fread_int(&general_members, sizeof(general_members), 1, in)) {
                 concept_fclose(in);
                 Errors.Add(new AnsiException(ERR1120, 0, 1120, filename, FileName), DATA_EXCEPTION);
+                this->enable_private = old_enable_private;
                 return -3;
             }
             char is_pooled  = this->is_buffer ? 0 : (char)SHIsPooled();
@@ -3099,6 +3124,7 @@ int PIFAlizator::Unserialize(char *filename, bool is_lib) {
                 delete[] Members_Relocation;
                 Members_Relocation = 0;
             }
+            this->enable_private = old_enable_private;
             return -3;
         }
 
@@ -3125,8 +3151,10 @@ int PIFAlizator::Unserialize(char *filename, bool is_lib) {
         }
         DoneLinking();
         this->SyncClassList();
+        this->enable_private = old_enable_private;
         return 0;
     }
+    this->enable_private = old_enable_private;
     return -3;
 }
 

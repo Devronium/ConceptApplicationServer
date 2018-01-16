@@ -4,6 +4,8 @@
 #include "BuiltInsHelpers.h"
 #include <stdlib.h>
 #include <string.h>
+#include <math.h>
+#include <time.h>
 extern "C" {
     #include "builtin/regexp.h"
 }
@@ -97,9 +99,41 @@ CONCEPT_FUNCTION_IMPL(RE_done, 1)
     }
     RETURN_NUMBER(0);
 END_IMPL
+
+WRAP_FUNCTION(Math, abs)
+WRAP_FUNCTION(Math, acos)
+WRAP_FUNCTION(Math, acosh)
+WRAP_FUNCTION(Math, asin)
+WRAP_FUNCTION(Math, asinh)
+WRAP_FUNCTION(Math, atan)
+WRAP_FUNCTION(Math, atanh)
+WRAP_FUNCTION2(Math, atan2)
+WRAP_FUNCTION(Math, cbrt)
+WRAP_FUNCTION(Math, ceil)
+WRAP_FUNCTION(Math, cos)
+WRAP_FUNCTION(Math, cosh)
+WRAP_FUNCTION(Math, exp)
+WRAP_FUNCTION(Math, expm1)
+WRAP_FUNCTION(Math, floor)
+WRAP_FUNCTION2(Math, hypot)
+WRAP_FUNCTION(Math, log)
+WRAP_FUNCTION(Math, log1p)
+WRAP_FUNCTION(Math, log10)
+WRAP_FUNCTION(Math, log2)
+WRAP_FUNCTION2(Math, pow)
+WRAP_FUNCTION(Math, round)
+WRAP_FUNCTION(Math, sin)
+WRAP_FUNCTION(Math, sinh)
+WRAP_FUNCTION(Math, sqrt)
+WRAP_FUNCTION(Math, tan)
+WRAP_FUNCTION(Math, tanh)
+WRAP_FUNCTION(Math, trunc)
+WRAP_FUNCTION0(Math, rand)
+WRAP_VOID_FUNCTION(Math, srand)
 // ==================================================== //
 // BUILT-IN INITIALIZATION (CONSTANTS, etc.)            //
 // ==================================================== //
+
 
 void BUILTININIT(void *pif) {
     PIFAlizator *PIF = (PIFAlizator *)pif;
@@ -107,14 +141,73 @@ void BUILTININIT(void *pif) {
         return;
     PIF->DefineConstant("_GB", "GLOBALS()", 0);
     PIF->DefineConstant("_argv", "CLArg()", 0);
+
+    DEFINE2(M_PI, "3.14159265358979323846");
+    DEFINE2(M_E, "2.71828182845904523536");
+    DEFINE2(M_LOG2E, "1.44269504088896340736");
+    DEFINE2(M_LOG10E, "0.434294481903251827651");
+    DEFINE2(M_LN2, "0.693147180559945309417");
+    DEFINE2(M_LN10, "2.30258509299404568402");
+    DEFINE2(M_PI_2, "1.57079632679489661923");
+    DEFINE2(M_PI_4, " 0.785398163397448309616");
+    DEFINE2(M_1_PI, " 0.318309886183790671538");
+    DEFINE2(M_2_PI, "0.636619772367581343076");
+    DEFINE2(M_2_SQRTPI, "1.12837916709551257390");
+    DEFINE2(M_SQRT2, "1.41421356237309504880");
+    DEFINE2(M_SQRT1_2, "0.707106781186547524401");
+    DEFINE(DBL_EPSILON);
+    DEFINE(DBL_MIN);
+    DEFINE(DBL_MIN_EXP);
+    DEFINE(DBL_MIN_10_EXP);
+    DEFINE(DBL_MAX);
+    DEFINE(DBL_MAX_EXP);
+    DEFINE(DBL_MAX_10_EXP);
+    DEFINE(DBL_DIG);
+    DEFINE(DBL_MANT_DIG);
+
+    srand((unsigned)time(NULL));
 }
 
-void BUILTINOBJECTS(void *pif, const char *classname) {
+int BUILTINOBJECTS(void *pif, const char *classname) {
     PIFAlizator *PIF = (PIFAlizator *)pif;
-    if ((!PIF) || (!classname))
-        return;
+    // check if privates are enabled (recursive)
+    if ((!PIF) || (!classname) || (PIF->enable_private))
+        return 0;
 
     BUILTINCLASS("RegExp", "class RegExp{private var h;RegExp(str,f=0,var e=null){this.h=RE_create(str,f,e);}test(str){return RE_test(this.h,str);}exec(str){return RE_exec(this.h,str);}finalize(){RE_done(this.h);}}");
+    BUILTINCLASS("Math", "class Math{"
+        DECLARE_WRAPPER(Math, abs)
+        DECLARE_WRAPPER(Math, acos)
+        DECLARE_WRAPPER(Math, acosh)
+        DECLARE_WRAPPER(Math, asin)
+        DECLARE_WRAPPER(Math, asinh)
+        DECLARE_WRAPPER(Math, atan)
+        DECLARE_WRAPPER(Math, atanh)
+        DECLARE_WRAPPER2(Math, atan2)
+        DECLARE_WRAPPER(Math, cbrt)
+        DECLARE_WRAPPER(Math, ceil)
+        DECLARE_WRAPPER(Math, cos)
+        DECLARE_WRAPPER(Math, cosh)
+        DECLARE_WRAPPER(Math, exp)
+        DECLARE_WRAPPER(Math, expm1)
+        DECLARE_WRAPPER(Math, floor)
+        DECLARE_WRAPPER2(Math, hypot)
+        DECLARE_WRAPPER(Math, log)
+        DECLARE_WRAPPER(Math, log1p)
+        DECLARE_WRAPPER(Math, log10)
+        DECLARE_WRAPPER(Math, log2)
+        DECLARE_WRAPPER(Math, pow)
+        DECLARE_WRAPPER(Math, round)
+        DECLARE_WRAPPER(Math, sin)
+        DECLARE_WRAPPER(Math, sqrt)
+        DECLARE_WRAPPER(Math, tan)
+        DECLARE_WRAPPER(Math, tanh)
+        DECLARE_WRAPPER(Math, trunc)
+
+        DECLARE_WRAPPER0(Math, rand)
+        DECLARE_WRAPPER_VOID(Math, srand)
+    "}");
+    return 0;
 }
 
 void *BUILTINADDR(void *pif, const char *name, unsigned char *is_private) {
@@ -129,13 +222,49 @@ void *BUILTINADDR(void *pif, const char *name, unsigned char *is_private) {
     BUILTIN(CLArg);
     BUILTIN(CheckReachability);
     BUILTIN(___CONCEPT_INTERFACE_HELPER_GENERATE_UNIQUE_ID);
+
+    // math
+    BUILTIN(abs)
+    BUILTIN(acos)
+    BUILTIN(acosh)
+    BUILTIN(asin)
+    BUILTIN(asinh)
+    BUILTIN(atan)
+    BUILTIN(atanh)
+    BUILTIN(atan2)
+    BUILTIN(cbrt)
+    BUILTIN(ceil)
+    BUILTIN(cos)
+    BUILTIN(cosh)
+    BUILTIN(exp)
+    BUILTIN(expm1)
+    BUILTIN(floor)
+    BUILTIN(hypot)
+    BUILTIN(log)
+    BUILTIN(log1p)
+    BUILTIN(log10)
+    BUILTIN(log2)
+    BUILTIN(pow)
+    BUILTIN(round)
+    BUILTIN(sin)
+    BUILTIN(sinh)
+    BUILTIN(sqrt)
+    BUILTIN(tan)
+    BUILTIN(tanh)
+    BUILTIN(trunc)
+    BUILTIN(rand)
+    BUILTIN(srand)
+
     if ((!PIF) || (PIF->enable_private)) {
         if (is_private)
             *is_private = 1;
+
+        // regex
         BUILTIN(RE_create);
         BUILTIN(RE_exec);
         BUILTIN(RE_test);
         BUILTIN(RE_done);
+
         if (is_private)
             *is_private = 0;
     }

@@ -58,6 +58,7 @@
 
 #define CONCEPT_FUNCTION(function_name)                                                       void * CONCEPT_ ## function_name CONCEPT_API_PARAMETERS;
 #define CONCEPT_FUNCTION_IMPL(function_name, parameters_count)                                void * CONCEPT_ ## function_name CONCEPT_API_PARAMETERS { if (PARAMETERS->COUNT != parameters_count) { return (void *)(#function_name " takes " #parameters_count " parameters");  } LOCAL_INIT;
+#define CONCEPT_FUNCTION_IMPL2(lib, function_name, parameters_count)                          void * CONCEPT_ ## lib ## _ ## function_name CONCEPT_API_PARAMETERS { if (PARAMETERS->COUNT != parameters_count) { return (void *)(#function_name " takes " #parameters_count " parameters");  } LOCAL_INIT;
 
 #define CONCEPT_FUNCTION_IMPL_VARIABLE_PARAMS(function_name, parameters_count)                void * CONCEPT_ ## function_name CONCEPT_API_PARAMETERS { if (PARAMETERS->COUNT < parameters_count) { return (void *)(#function_name " takes at least " #parameters_count " parameters."); } LOCAL_INIT;
 #define CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(function_name, parameters_min, parameters_max)    void * CONCEPT_ ## function_name CONCEPT_API_PARAMETERS { if ((PARAMETERS->COUNT < parameters_min) || (PARAMETERS->COUNT > parameters_max)) { return (void *)(#function_name " takes at least " #parameters_min ", at most " #parameters_max " parameters."); } LOCAL_INIT;
@@ -154,7 +155,21 @@
 #define IS_BUILTIN2(name, funcname, builtinfunction)    if (!strcmp(name, funcname)) return (void *)&CONCEPT_ ## builtinfunction;
 
 #define BUILTINCLASS(cls, code)                         BUILTINCLASS2(classname, PIF, cls, code)
-#define BUILTINCLASS2(name, PIF, cls, code)             if (!strcmp(name, cls)) { PIF->enable_private = 1; PIF->RuntimeIncludeCode(code); PIF->enable_private = 0; return; }
+#define BUILTINCLASS2(name, PIF, cls, code)             if (!strcmp(name, cls)) { PIF->enable_private = 1; PIF->RuntimeIncludeCode(code); PIF->enable_private = 0; return 1; }
+
+#define WRAP_FUNCTION(lib, name)     CONCEPT_FUNCTION_IMPL(name, 1) T_NUMBER(name, 0) RETURN_NUMBER(name(PARAM(0))); END_IMPL
+#define WRAP_FUNCTION2(lib, name)    CONCEPT_FUNCTION_IMPL(name, 2) T_NUMBER(name, 0) T_NUMBER(name, 1) RETURN_NUMBER(name(PARAM(0), PARAM(1))); END_IMPL
+#define WRAP_FUNCTION0(lib, name)    CONCEPT_FUNCTION_IMPL(name, 0) RETURN_NUMBER(name()); END_IMPL
+#define WRAP_VOID_FUNCTION(lib, name)     CONCEPT_FUNCTION_IMPL(name, 1) T_NUMBER(name, 0) name(PARAM(0)); RETURN_NUMBER(0); END_IMPL
+
+#define MAKE_STRING2(s)     #s
+#define MAKE_STRING(s)      MAKE_STRING2(s)
+#define DEFINE(a)           PIF->DefineConstant(#a, MAKE_STRING(a), 0);
+#define DEFINE2(a, b)       PIF->DefineConstant(#a, b, 0);
+
+#define DECLARE_WRAPPER(lib, a)      "static " #a "(a){return " #a "(a);}"
+#define DECLARE_WRAPPER0(lib, a)     "static " #a "(){return " #a "();}"
+#define DECLARE_WRAPPER2(lib, a)     "static " #a "(a,b){return " #a "(a,b);}"
+#define DECLARE_WRAPPER_VOID(lib, a) "static " #a "(a){" #a "(a);}"
 
 #endif
-
