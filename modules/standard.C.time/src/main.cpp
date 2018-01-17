@@ -10,53 +10,48 @@
 #include <string.h>
 
 #ifdef _WIN32
- #include <windows.h> //I've ommited this line.
- #if defined(_MSC_VER) || defined(_MSC_EXTENSIONS)
-  #define DELTA_EPOCH_IN_MICROSECS    11644473600000000Ui64
- #else
-  #define DELTA_EPOCH_IN_MICROSECS    11644473600000000ULL
- #endif
+    #include <windows.h> //I've ommited this line.
 
-#define localtime_r(a,b)    localtime(a)
-#define gmtime_r(a,b)       gmtime(a)
-#define ctime_r(a,b)        ctime(a)
-#define asctime_r(a,b)      asctime(a)
+    #if defined(_MSC_VER) || defined(_MSC_EXTENSIONS)
+        #define DELTA_EPOCH_IN_MICROSECS  116444736000000000Ui64
+    #else
+        #define DELTA_EPOCH_IN_MICROSECS  116444736000000000ULL
+    #endif
 
-struct timezone {
-    int tz_minuteswest; /* minutes W of Greenwich */
-    int tz_dsttime;     /* type of dst correction */
-};
+    #define localtime_r(a,b)    localtime(a)
+    #define gmtime_r(a,b)       gmtime(a)
+    #define ctime_r(a,b)        ctime(a)
+    #define asctime_r(a,b)      asctime(a)
 
-int gettimeofday(struct timeval *tv, struct timezone *tz) {
-    FILETIME         ft;
-    unsigned __int64 tmpres = 0;
-    static int       tzflag;
+    struct timezone {
+        int tz_minuteswest;
+        int tz_dsttime;
+    };
 
-    if (NULL != tv) {
-        GetSystemTimeAsFileTime(&ft);
+    int gettimeofday(struct timeval *tv, struct timezone *tz) {
+        FILETIME         ft;
+        unsigned __int64 tmpres = 0;
 
-        tmpres  |= ft.dwHighDateTime;
-        tmpres <<= 32;
-        tmpres  |= ft.dwLowDateTime;
+        if (NULL != tv) {
+            GetSystemTimeAsFileTime(&ft);
 
-        /*converting file time to unix epoch*/
-        tmpres     -= DELTA_EPOCH_IN_MICROSECS;
-        tmpres     /= 10; /*convert into microseconds*/
-        tv->tv_sec  = (long)(tmpres / 10000000UL);
-        tv->tv_usec = (long)(tmpres % 10000000UL);
-    }
+            tmpres  |= ft.dwHighDateTime;
+            tmpres <<= 32;
+            tmpres  |= ft.dwLowDateTime;
 
-    if (NULL != tz) {
-        if (!tzflag) {
-            _tzset();
-            tzflag++;
+            tmpres     -= DELTA_EPOCH_IN_MICROSECS;
+            tmpres     /= 10; 
+
+            tv->tv_sec  = (long)(tmpres / 1000000UL);
+            tv->tv_usec = (long)(tmpres % 1000000UL);
         }
-        tz->tz_minuteswest = _timezone / 60;
-        tz->tz_dsttime     = _daylight;
-    }
-    return 0;
-}
 
+        if (NULL != tz) {
+            tz->tz_minuteswest = _timezone / 60;
+            tz->tz_dsttime     = _daylight;
+        }
+        return 0;
+    }
 #else
  #include <sys/time.h>
 #endif

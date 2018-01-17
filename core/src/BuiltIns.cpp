@@ -8,10 +8,16 @@
 #include <time.h>
 #ifdef _WIN32
     #include <windows.h>
+
+    #define localtime_r(a,b)    localtime(a)
+    #define gmtime_r(a,b)       gmtime(a)
+    #define ctime_r(a,b)        ctime(a)
+    #define asctime_r(a,b)      asctime(a)
+
     #if defined(_MSC_VER) || defined(_MSC_EXTENSIONS)
-        #define DELTA_EPOCH_IN_MICROSECS    11644473600000000Ui64
+        #define DELTA_EPOCH_IN_MICROSECS  116444736000000000Ui64
     #else
-        #define DELTA_EPOCH_IN_MICROSECS    11644473600000000ULL 
+        #define DELTA_EPOCH_IN_MICROSECS  116444736000000000ULL
     #endif
 
     struct timezone {
@@ -22,7 +28,6 @@
     int gettimeofday(struct timeval *tv, struct timezone *tz) {
         FILETIME         ft;
         unsigned __int64 tmpres = 0;
-        static int       tzflag;
 
         if (NULL != tv) {
             GetSystemTimeAsFileTime(&ft);
@@ -34,15 +39,11 @@
             tmpres     -= DELTA_EPOCH_IN_MICROSECS;
             tmpres     /= 10; 
 
-            tv->tv_sec  = (long)(tmpres / 10000000UL);
-            tv->tv_usec = (long)(tmpres % 10000000UL);
+            tv->tv_sec  = (long)(tmpres / 1000000UL);
+            tv->tv_usec = (long)(tmpres % 1000000UL);
         }
 
         if (NULL != tz) {
-            if (!tzflag) {
-                _tzset();
-                tzflag++;
-            }
             tz->tz_minuteswest = _timezone / 60;
             tz->tz_dsttime     = _daylight;
         }
@@ -50,6 +51,7 @@
     }
 #else
     #include <sys/time.h>
+    extern long timezone;
 #endif
 
 extern "C" {
@@ -153,6 +155,97 @@ CONCEPT_FUNCTION_IMPL(milliseconds, 0)
     RETURN_NUMBER(ms);
 END_IMPL
 
+CONCEPT_FUNCTION_IMPL(timezone, 0)
+#ifdef _WIN32
+    RETURN_NUMBER(_timezone/60);
+#else
+    RETURN_NUMBER(timezone/60);
+#endif
+END_IMPL
+
+CONCEPT_FUNCTION_IMPL(time, 0)
+    RETURN_NUMBER(time(NULL));
+END_IMPL
+
+CONCEPT_FUNCTION_IMPL(localtime, 1)
+    T_NUMBER(localtime, 0)
+    CREATE_ARRAY(RESULT);
+
+    time_t tempp = PARAM_INT(0);
+    struct tm tmbuf;
+    struct tm *timeinfo = localtime_r(&tempp, &tmbuf);
+    if (timeinfo) {
+        Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, RESULT, "tm_hour", (INTEGER)VARIABLE_NUMBER, (char *)0, (NUMBER)timeinfo->tm_hour);
+        Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, RESULT, "tm_isdst", (INTEGER)VARIABLE_NUMBER, (char *)0, (NUMBER)timeinfo->tm_isdst);
+        Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, RESULT, "tm_mday", (INTEGER)VARIABLE_NUMBER, (char *)0, (NUMBER)timeinfo->tm_mday);
+        Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, RESULT, "tm_min", (INTEGER)VARIABLE_NUMBER, (char *)0, (NUMBER)timeinfo->tm_min);
+        Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, RESULT, "tm_mon", (INTEGER)VARIABLE_NUMBER, (char *)0, (NUMBER)timeinfo->tm_mon);
+        Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, RESULT, "tm_sec", (INTEGER)VARIABLE_NUMBER, (char *)0, (NUMBER)timeinfo->tm_sec);
+        Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, RESULT, "tm_wday", (INTEGER)VARIABLE_NUMBER, (char *)0, (NUMBER)timeinfo->tm_wday);
+        Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, RESULT, "tm_yday", (INTEGER)VARIABLE_NUMBER, (char *)0, (NUMBER)timeinfo->tm_yday);
+        Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, RESULT, "tm_year", (INTEGER)VARIABLE_NUMBER, (char *)0, (NUMBER)timeinfo->tm_year);
+    }
+END_IMPL
+
+CONCEPT_FUNCTION_IMPL(gmtime, 1)
+    T_NUMBER(gmtime, 0)
+    CREATE_ARRAY(RESULT);
+
+    time_t tempp = PARAM_INT(0);
+    struct tm tmbuf;
+    struct tm *timeinfo = gmtime_r(&tempp, &tmbuf);
+    if (timeinfo) {
+        Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, RESULT, "tm_hour", (INTEGER)VARIABLE_NUMBER, (char *)0, (double)timeinfo->tm_hour);
+        Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, RESULT, "tm_isdst", (INTEGER)VARIABLE_NUMBER, (char *)0, (double)timeinfo->tm_isdst);
+        Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, RESULT, "tm_mday", (INTEGER)VARIABLE_NUMBER, (char *)0, (double)timeinfo->tm_mday);
+        Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, RESULT, "tm_min", (INTEGER)VARIABLE_NUMBER, (char *)0, (double)timeinfo->tm_min);
+        Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, RESULT, "tm_mon", (INTEGER)VARIABLE_NUMBER, (char *)0, (double)timeinfo->tm_mon);
+        Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, RESULT, "tm_sec", (INTEGER)VARIABLE_NUMBER, (char *)0, (double)timeinfo->tm_sec);
+        Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, RESULT, "tm_wday", (INTEGER)VARIABLE_NUMBER, (char *)0, (double)timeinfo->tm_wday);
+        Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, RESULT, "tm_yday", (INTEGER)VARIABLE_NUMBER, (char *)0, (double)timeinfo->tm_yday);
+        Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, RESULT, "tm_year", (INTEGER)VARIABLE_NUMBER, (char *)0, (double)timeinfo->tm_year);
+    }
+END_IMPL
+
+CONCEPT_FUNCTION_IMPL(__epoch, 7)
+    T_NUMBER(__epoch, 0);
+    T_NUMBER(__epoch, 1);
+    T_NUMBER(__epoch, 2);
+    T_NUMBER(__epoch, 3);
+    T_NUMBER(__epoch, 4);
+    T_NUMBER(__epoch, 5);
+    T_NUMBER(__epoch, 6);
+
+    struct tm tmbuf;
+    time_t tempp = 0;
+    struct tm *timeinfo = localtime_r(&tempp, &tmbuf);
+
+    timeinfo->tm_year = PARAM_INT(0) - 1900;
+    timeinfo->tm_mon = PARAM_INT(1);
+    timeinfo->tm_mday = PARAM_INT(2);
+    timeinfo->tm_hour = PARAM_INT(3);
+    timeinfo->tm_min = PARAM_INT(4);
+    timeinfo->tm_sec = PARAM_INT(5);
+    uint64_t temp = (uint64_t)mktime(timeinfo) * 1000 + PARAM_INT(6);
+    RETURN_NUMBER(temp);
+END_IMPL
+
+CONCEPT_FUNCTION_IMPL(formatdate, 2)
+    T_NUMBER(formatdate, 0)
+    T_STRING(formatdate, 1)
+
+    char buffer [80];
+    time_t tempp = (time_t)(PARAM(0)/1000);
+    struct tm tmbuf;
+    struct tm *timeinfo = localtime_r(&tempp, &tmbuf);
+    int size = strftime(buffer, 80, PARAM(1), timeinfo);
+    if (size > 0) {
+        RETURN_BUFFER(buffer, size);
+    } else {
+        RETURN_STRING(buffer);
+    }
+END_IMPL
+
 WRAP_FUNCTION(Math, abs)
 WRAP_FUNCTION(Math, acos)
 WRAP_FUNCTION(Math, acosh)
@@ -219,6 +312,8 @@ void BUILTININIT(void *pif) {
     DEFINE2(DBL_MANT_DIG, "53");
 
     srand((unsigned)time(NULL));
+    tzset();
+tzset();
 }
 
 int BUILTINOBJECTS(void *pif, const char *classname) {
@@ -260,6 +355,241 @@ int BUILTINOBJECTS(void *pif, const char *classname) {
         DECLARE_WRAPPER0(Math, rand)
         DECLARE_WRAPPER_VOID(Math, srand)
     "}");
+
+    BUILTINCLASS("Date", ""
+        "class Date {"
+	        "private var year;"
+	        "private var month;"
+	        "private var day;"
+	        "private var hours;"
+	        "private var minutes;"
+	        "private var seconds;"
+	        "private var ms;"
+
+	        "Date(year = -1, month = 0, day = 0, hours = 0, minutes = 0, seconds = 0, ms = 0) {"
+		        "if ((typeof year == \"class\") && (classof year == \"Date\")) {"
+			        "this.year = year.year;"
+			        "this.month = year.month;"
+			        "this.day = year.day;"
+			        "this.hours = year.hours;"
+			        "this.minutes = year.minutes;"
+			        "this.seconds = year.seconds;"
+			        "this.ms = year.ms;"
+			        "return;"
+		        "} else "
+		        "if (typeof year == \"string\")"
+			        "year = value year;"
+		        "else "
+		        "if (typeof year == \"array\") {"
+			        "this.year = year[\"year\"];"
+			        "this.month = year[\"month\"];"
+			        "this.day = year[\"day\"];"
+			        "this.hours = year[\"hours\"];"
+			        "this.minutes = year[\"minutes\"];"
+			        "this.seconds = year[\"seconds\"];"
+			        "this.ms = year[\"milliseconds\"];"
+			        "return;"
+		        "} "
+		        "if (typeof year == \"numeric\") {"
+			        "if (year < 0)"
+				        "year = milliseconds();"
+			        "if ((!month) && (!day) && (!hours) && (!minutes) && (!seconds) && (!ms)) {"
+				        "var timestamp = floor(year / 1000);"
+				        "var arr = localtime(timestamp);"
+				        "this.year = 1900 + arr[\"tm_year\"];"
+				        "this.month = arr[\"tm_mon\"];"
+				        "this.day = arr[\"tm_mday\"];"
+				        "this.hours = arr[\"tm_hour\"];"
+				        "this.minutes = arr[\"tm_min\"];"
+				        "this.seconds = arr[\"tm_sec\"];"
+				        "this.ms = year - timestamp * 1000;"
+			        "} else {"
+				        "while (ms >= 1000) {"
+					        "seconds ++;"
+					        "ms -= 1000;"
+				        "}"
+				        "while (seconds >= 60) {"
+					        "minutes ++;"
+					        "seconds -= 60;"
+				        "}"
+				        "while (minutes >= 60) {"
+					        "hours ++;"
+					        "minutes -= 60;"
+				        "}"
+				        "while (hours >= 24) {"
+					        "day++;"
+					        "hours -= 24;"
+				        "}"
+				        "while (month >= 12) {"
+					        "year++;"
+					        "month -= 12;"
+				        "}"
+				        "this.year = year;"
+				        "this.month = month;"
+				        "this.day = day;"
+				        "this.hours = hours;"
+				        "this.minutes = minutes;"
+				        "this.seconds = seconds;"
+				        "this.ms = ms;"
+			        "}"
+		        "}"
+	        "}"
+
+	        "static now() {"
+		        "return milliseconds();"
+	        "}"
+
+	        "static getTimezoneOffset() {"
+		        "return timezone();"
+	        "}"
+
+	        "getTime() {"
+		        "return __epoch(this.year, this.month, this.day, this.hours, this.minutes, this.seconds, this.ms);"
+	        "}"
+
+	        "getDate() {"
+		        "return this.day;"
+	        "}"
+
+	        "getFullYear() {"
+		        "return this.year;"
+	        "}"
+
+	        "getMonth() {"
+		        "return this.month;"
+	        "}"
+
+	        "getHours() {"
+		        "return this.hours;"
+	        "}"
+
+	        "getMilliseconds() {"
+		        "return this.ms;"
+	        "}"
+
+	        "getMinutes() {"
+		        "return this.minutes;"
+	        "}"
+
+	        "getSeconds() {"
+		        "return this.seconds;"
+	        "}"
+
+	        "getDay() {"
+		        "var arr = localtime(__epoch(this.year, this.month, this.day, this.hours, this.minutes, this.seconds, this.ms) / 1000);"
+		        "return arr[\"tm_wday\"];"
+	        "}"
+
+	        "setFullYear(number year, number month, number day) {"
+		        "this.year = year;"
+		        "if (month >= 0)"
+			        "this.month = month;"
+		        "if (day >= 0)"
+			        "this.day = day;"
+	        "}"
+
+	        "setDate(number date) {"
+		        "if (year < 0)"
+			        "year = 0;"
+		        "this.day = date;"
+	        "}"
+
+	        "setMinutes(number minutes, number sec = -1, number ms = -1) {"
+		        "if (minutes < 0)"
+			        "minutes = 0;"
+		        "this.minutes = minutes;"
+		        "if (sec >= 0)"
+			        "this.seconds = sec;"
+		        "if (ms >= 0)"
+			        "this.ms = ms;"
+	        "}"
+
+	        "setMonth(number month, number day = -1) {"
+		        "if (month < 0)"
+			        "month = 0;"
+		        "this.month = month;"
+		        "if (day >= 0)"
+			        "this.day = day;"
+	        "}"
+
+	        "setSeconds(number seconds, number ms = -1) {"
+		        "if (seconds < 0)"
+			        "seconds = 0;"
+		        "this.seconds = seconds;"
+		        "if (ms >= 0)"
+			        "this.ms = ms;"
+	        "}"
+
+	        "UTC() {"
+		        "var utc = __epoch(this.year, this.month, this.day, this.hours, this.minutes, this.seconds, this.ms) + timezone() * 60000;"
+		        "if (utc < 0)"
+			        "utc = 0;"
+		        "return utc;"
+	        "}"
+
+	        "private U(k) {"
+		        "var timestamp = floor(this.UTC() / 1000);"
+		        "var arr = localtime(timestamp);"
+		        "return arr[k];"
+	        "}"
+
+	        "getUTCDate() {"
+		        "return this.U(\"tm_mday\");"
+	        "}"
+
+	        "getUTCDay() {"
+		        "return this.U(\"tm_wday\");"
+	        "}"
+
+	        "getUTCFullYear() {"
+		        "return this.U(\"tm_year\");"
+	        "}"
+
+	        "getUTCHours() {"
+		        "return this.U(\"tm_hour\");"
+	        "}"
+
+	        "getUTCMinutes() {"
+		        "return this.U(\"tm_min\");"
+	        "}"
+            
+	        "getUTCMonth() {"
+		        "return this.U(\"tm_mon\");"
+	        "}"
+
+	        "getUTCMilliseconds() {"
+		        "return this.ms;"
+	        "}"
+
+	        "getUTCSeconds() {"
+		        "return this.seconds;"
+	        "}"
+
+	        "private L0(n, z = 2) {"
+		        "n = \"\" + n;"
+		        "while (length n < z)"
+			        "n = \"0\" + n;"
+		        "return n;"
+	        "}"
+
+	        "toISOString() {"
+		        "return formatdate(this.UTC(), \"%Y-%m-%dT%H:%M:%S.\") + this.L0(this.ms) + \"Z\";"
+	        "}"
+
+	        "toUTCString() {"
+		        "return formatdate(this.UTC(), \"%a, %d %b %Y %H:%M:%S\") + \" GMT\";"
+	        "}"
+
+	        "toDateString() {"
+		        "return formatdate(__epoch(this.year, this.month, this.day, this.hours, this.minutes, this.seconds, this.ms), \"%a %b %d %Y\");"
+	        "}"
+
+	        "toTimeString() {"
+		        "var tz = -timezone();"
+		        "return formatdate(__epoch(this.year, this.month, this.day, this.hours, this.minutes, this.seconds, this.ms), \"%H:%M:%S GMT+\") + this.L0(floor(tz / 60)) + this.L0(tz % 60);"
+	        "}"
+        "}"
+    );
     return 0;
 }
 
@@ -310,6 +640,12 @@ void *BUILTINADDR(void *pif, const char *name, unsigned char *is_private) {
 
     // time
     BUILTIN(milliseconds)
+    BUILTIN(localtime)
+    BUILTIN(gmtime)
+    BUILTIN(timezone)
+    BUILTIN(time)
+    BUILTIN(__epoch)
+    BUILTIN(formatdate)       
 
     if ((!PIF) || (PIF->enable_private)) {
         if (is_private)
