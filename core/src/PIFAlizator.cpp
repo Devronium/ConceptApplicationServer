@@ -3176,6 +3176,56 @@ void PIFAlizator::OptimizeMemoryUsage() {
     }
 }
 
+void PIFAlizator::OptimizeMember(ClassMember *CM) {
+    if ((!CM) || (CM->OPTIMIZER) || (CM->IS_FUNCTION != 1) || (!CM->Defined_In))
+        return;
+
+    ClassCode *CC = (ClassCode *)CM->Defined_In;
+
+    ClassCode *_CLASS           =   Optimizer::_CLASS;
+    const char*_MEMBER          =   Optimizer::_MEMBER;
+    INTEGER   LAST_DEBUG_TRAP   =   Optimizer::LAST_DEBUG_TRAP;
+    DoubleList *PIFList         =   Optimizer::PIFList;
+    DoubleList *VDList          =   Optimizer::VDList;
+    INTEGER    PIF_POSITION     =   Optimizer::PIF_POSITION;
+    const char *_DEBUG_INFO_FILENAME    =   Optimizer::_DEBUG_INFO_FILENAME;
+    char NO_WARNING_EMPTY       =   Optimizer::NO_WARNING_EMPTY;
+    char NO_WARNING_ATTR        =   Optimizer::NO_WARNING_ATTR;
+    AnsiList *OptimizedPIF      =   Optimizer::OptimizedPIF;
+    AnsiList *ParameterList     =   Optimizer::ParameterList;
+    AnsiList *CONTINUE_Elements =   Optimizer::CONTINUE_Elements;
+    AnsiList *BREAK_Elements    =   Optimizer::BREAK_Elements;
+    char _clean_condition       =   Optimizer::_clean_condition;
+    INTEGER CATCH_ELEMENT       =   Optimizer::CATCH_ELEMENT;
+
+
+    CM->OPTIMIZER = new Optimizer(this, CM->CDATA->PIF_DATA, CM->CDATA->VariableDescriptors, CC->_DEBUG_INFO_FILENAME.c_str(), CC, CM->NAME);
+    Optimizer::ParameterList = new AnsiList();
+    Optimizer::OptimizedPIF = new AnsiList();
+
+    ((Optimizer *)CM->OPTIMIZER)->Optimize();
+    ((Optimizer *)CM->OPTIMIZER)->GenerateIntermediateCode();
+
+    delete Optimizer::ParameterList;
+    delete Optimizer::OptimizedPIF;
+
+    Optimizer::_CLASS           =   _CLASS;
+    Optimizer::_MEMBER          =   _MEMBER;
+    Optimizer::LAST_DEBUG_TRAP  =   LAST_DEBUG_TRAP;
+    Optimizer::PIFList          =   PIFList;
+    Optimizer::VDList           =   VDList;
+    Optimizer::PIF_POSITION     =   PIF_POSITION;
+    Optimizer::_DEBUG_INFO_FILENAME =   _DEBUG_INFO_FILENAME;
+    Optimizer::NO_WARNING_EMPTY =   NO_WARNING_EMPTY;
+    Optimizer::NO_WARNING_ATTR  =   NO_WARNING_ATTR;
+    Optimizer::OptimizedPIF     =   OptimizedPIF;
+    Optimizer::ParameterList    =   ParameterList;
+    Optimizer::CONTINUE_Elements=   CONTINUE_Elements;
+    Optimizer::BREAK_Elements   =   BREAK_Elements;
+    Optimizer::_clean_condition =   _clean_condition;
+    Optimizer::CATCH_ELEMENT    =   CATCH_ELEMENT;
+}
+
 void PIFAlizator::Optimize(int start, char use_compiled_code) {
     int class_count = ClassList->Count();
 
@@ -3194,11 +3244,12 @@ void PIFAlizator::Optimize(int start, char use_compiled_code) {
             continue;
         }
 
-        for (register INTEGER jj = 0; jj < members_count; jj++) {
-            ClassMember *CM = CC->Members ? (ClassMember *)CC->Members->Item(jj) : CC->pMEMBERS[jj];
+        if (!use_compiled_code) {
+            semp(WorkerLock);
+            for (register INTEGER jj = 0; jj < members_count; jj++) {
+                ClassMember *CM = CC->Members ? (ClassMember *)CC->Members->Item(jj) : CC->pMEMBERS[jj];
 
-            INTEGER LOCAL_CLASSID = ((ClassCode *)CM->Defined_In)->CLSID;
-            if (!use_compiled_code) {
+                INTEGER LOCAL_CLASSID = ((ClassCode *)CM->Defined_In)->CLSID;
                 if ((CM->IS_FUNCTION == 1) && (CM->Defined_In == CC) && (!CM->OPTIMIZER)) {
                     CM->OPTIMIZER = new Optimizer(this, CM->CDATA->PIF_DATA, CM->CDATA->VariableDescriptors, ((ClassCode *)(CM->Defined_In))->_DEBUG_INFO_FILENAME.c_str(), CC, CM->NAME);
                     Optimizer::ParameterList = new AnsiList();
@@ -3214,6 +3265,7 @@ void PIFAlizator::Optimize(int start, char use_compiled_code) {
                     Optimizer::OptimizedPIF = NULL;
                 }
             }
+            semv(WorkerLock);
         }
         if (!CC->pMEMBERS) {
             CC->GenerateCode(GeneralMembers);

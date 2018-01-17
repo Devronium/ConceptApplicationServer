@@ -888,6 +888,28 @@ INTEGER Optimizer::OptimizeExpression(TempVariableManager *TVM, INTEGER ID, INTE
             if ((AE_ID == KEY_P_OPEN) || (AE_ID == KEY_P_CLOSE) || (Right == MARKER) || (FIRST_OPERATOR <= START_POSITION)) {
                 this->PIFOwner->Errors.Add(new AnsiException(ERR490, AE ? AE->_DEBUG_INFO_LINE : LAST_LINE, 490, AE ? AE->_PARSE_DATA.c_str() : "", _DEBUG_INFO_FILENAME, _CLASS->NAME, _MEMBER), DATA_EXCEPTION);
             }
+
+#ifndef SKIP_BUILTIN_OPTIMIZATIONS
+            if ((AE_ID == KEY_DLL_CALL) && (Left->TYPE == TYPE_CLASS) && (Left->ID > 0)) {
+                // check if inline
+                ClassCode *CC = (ClassCode *)PIFOwner->ClassList->Item(Left->ID - 1);
+                if (CC) {
+                    char *static_name = PIFOwner->GeneralMembers->Item(Right->ID - 1);
+                    ClassMember *CM;
+                    if (CC->CanBeRunStatic(static_name, &CM)) {
+                        PIFOwner->OptimizeMember(CM);
+                        if ((CM->OPTIMIZER) && ((CM->ACCESS == ACCESS_PUBLIC) || (CM->Defined_In == this->_CLASS))){
+                            int can_inline = ((Optimizer *)CM->OPTIMIZER)->CanInline(CM);
+                            if (can_inline) {
+                                Left->ID = STATIC_CLASS_DLL;
+                                Right->ID = can_inline;
+                            }
+                        }
+                    }
+                }
+            }
+#endif
+
             if ((Check(Left, AE)) || (Check(Right, AE))) {
                 continue;
             }
@@ -1829,6 +1851,44 @@ INTEGER Optimizer::OptimizeAny(TempVariableManager *TVM, INTEGER ID, INTEGER TYP
     return 0;
 }
 
+int Optimizer::CanInline(ClassMember *owner) {
+    RuntimeOptimizedElement *OE, *OE2;
+    if (owner->PARAMETERS_COUNT != owner->MUST_PARAMETERS_COUNT)
+        return 0;
+    if (codeCount == 2) {
+        OE = &CODE[0];
+        if ((OE) && (OE->Operator.TYPE == TYPE_OPERATOR) && (OE->Operator.ID == KEY_DLL_CALL) && 
+            (OE->OperandLeft.TYPE == TYPE_CLASS) && (OE->OperandLeft.ID == STATIC_CLASS_DLL) && 
+            (OE->OperandReserved.TYPE == TYPE_PARAM_LIST) && (OE->OperandReserved.ID <= paramCount)) {
+            // check parameters
+
+            ParamList *pl = NULL;
+            int parameters = 0;
+            if (OE->OperandReserved.ID > 0) {
+                pl = &PARAMS[OE->OperandReserved.ID - 1];
+                parameters = pl->COUNT;
+            }
+
+            if (owner->PARAMETERS_COUNT != parameters)
+                return 0;
+
+            OE2 = &CODE[1];
+            if ((!OE2) || (OE2->Operator.TYPE != TYPE_OPTIMIZED_KEYWORD) || (OE2->Operator.ID != KEY_OPTIMIZED_RETURN) && 
+                (OE2->OperandRight.ID != OE->Result_ID))
+                return 0;
+
+            // parameters order different ?
+            for (int i = 0; i < owner->PARAMETERS_COUNT; i++) {
+                INTEGER index = DELTA_UNREF(pl, pl->PARAM_INDEX) [i];
+                if (index != i + 2)
+                    return 0;
+            }
+            return OE->OperandRight.ID;
+        }
+    }
+    return 0;
+}
+
 int Optimizer::Optimize() {
     TempVariableManager TVM(this->VDList);
 
@@ -1844,7 +1904,6 @@ int Optimizer::Optimize() {
 
     if (PIFOwner->PROFILE_DRIVEN)
         AddProfilerCode(1);
-
     return 0;
 }
 

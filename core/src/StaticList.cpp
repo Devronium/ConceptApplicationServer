@@ -162,4 +162,3 @@ int StaticList::Count() {
 StaticList::~StaticList(void) {
     this->Clear();
 }
-

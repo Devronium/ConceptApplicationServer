@@ -6,6 +6,52 @@
 #include <string.h>
 #include <math.h>
 #include <time.h>
+#ifdef _WIN32
+    #include <windows.h>
+    #if defined(_MSC_VER) || defined(_MSC_EXTENSIONS)
+        #define DELTA_EPOCH_IN_MICROSECS    11644473600000000Ui64
+    #else
+        #define DELTA_EPOCH_IN_MICROSECS    11644473600000000ULL 
+    #endif
+
+    struct timezone {
+        int tz_minuteswest;
+        int tz_dsttime;
+    };
+
+    int gettimeofday(struct timeval *tv, struct timezone *tz) {
+        FILETIME         ft;
+        unsigned __int64 tmpres = 0;
+        static int       tzflag;
+
+        if (NULL != tv) {
+            GetSystemTimeAsFileTime(&ft);
+
+            tmpres  |= ft.dwHighDateTime;
+            tmpres <<= 32;
+            tmpres  |= ft.dwLowDateTime;
+
+            tmpres     -= DELTA_EPOCH_IN_MICROSECS;
+            tmpres     /= 10; 
+
+            tv->tv_sec  = (long)(tmpres / 10000000UL);
+            tv->tv_usec = (long)(tmpres % 10000000UL);
+        }
+
+        if (NULL != tz) {
+            if (!tzflag) {
+                _tzset();
+                tzflag++;
+            }
+            tz->tz_minuteswest = _timezone / 60;
+            tz->tz_dsttime     = _daylight;
+        }
+        return 0;
+    }
+#else
+    #include <sys/time.h>
+#endif
+
 extern "C" {
     #include "builtin/regexp.h"
 }
@@ -100,6 +146,13 @@ CONCEPT_FUNCTION_IMPL(RE_done, 1)
     RETURN_NUMBER(0);
 END_IMPL
 
+CONCEPT_FUNCTION_IMPL(milliseconds, 0)
+    struct timeval tv;
+    gettimeofday(&tv, NULL);
+    unsigned long long ms = (unsigned long long)(tv.tv_sec) * 1000 + (unsigned long long)(tv.tv_usec) / 1000;
+    RETURN_NUMBER(ms);
+END_IMPL
+
 WRAP_FUNCTION(Math, abs)
 WRAP_FUNCTION(Math, acos)
 WRAP_FUNCTION(Math, acosh)
@@ -129,7 +182,7 @@ WRAP_FUNCTION(Math, tan)
 WRAP_FUNCTION(Math, tanh)
 WRAP_FUNCTION(Math, trunc)
 WRAP_FUNCTION0(Math, rand)
-WRAP_VOID_FUNCTION(Math, srand)
+WRAP_VOID_INT_FUNCTION(Math, srand)
 // ==================================================== //
 // BUILT-IN INITIALIZATION (CONSTANTS, etc.)            //
 // ==================================================== //
@@ -254,6 +307,9 @@ void *BUILTINADDR(void *pif, const char *name, unsigned char *is_private) {
     BUILTIN(trunc)
     BUILTIN(rand)
     BUILTIN(srand)
+
+    // time
+    BUILTIN(milliseconds)
 
     if ((!PIF) || (PIF->enable_private)) {
         if (is_private)

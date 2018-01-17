@@ -48,4 +48,3 @@ public:
     ~StaticList(void);
 };
 #endif //__STATICLIST_H
-

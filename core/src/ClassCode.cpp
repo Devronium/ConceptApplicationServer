@@ -262,12 +262,14 @@ int ClassCode::HasMember(const char *name) {
     return 0;
 }
 
-int ClassCode::CanBeRunStatic(const char *name) {
+int ClassCode::CanBeRunStatic(const char *name, ClassMember **member) {
     INTEGER Count = Members->Count();
 
     for (INTEGER i = 0; i < Count; i++) {
         ClassMember *CM = (ClassMember *)Members->Item(i);
         if ((CM->NAME) && (!strcmp(CM->NAME, name))) {
+            if (member)
+                *member = CM;
             return CM->IS_STATIC;
         }
     }
