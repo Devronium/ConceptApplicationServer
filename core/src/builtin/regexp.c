@@ -47,6 +47,7 @@ struct Reclass {
 struct Reprog {
 	Reinst *start, *end;
 	int flags;
+    int lastIndex;
 	unsigned int nsub;
 	Reclass cclass[16];
 };
@@ -858,7 +859,10 @@ Reprog *JS_regcomp(const char *pattern, int cflags, const char **errorp)
 
 	g.prog->nsub = g.nsub;
 	g.prog->start = g.prog->end = malloc((count(node) + 6) * sizeof (Reinst));
-
+    if (cflags & REG_GLOBAL)
+        g.prog->lastIndex = 0;
+    else
+        g.prog->lastIndex = -1;
 	split = emit(g.prog, I_SPLIT);
 	split->x = split + 3;
 	split->y = split + 1;
@@ -1118,4 +1122,12 @@ int JS_regexec(Reprog *prog, const char *sp, Resub *sub, int eflags)
 		sub->sub[i].sp = sub->sub[i].ep = NULL;
 
 	return !match(prog->start, sp, sp, prog->flags | eflags, sub);
+}
+
+void JS_setreglastindex(Reprog *prog, int offset) {
+    prog->lastIndex = offset;
+}
+
+int JS_reglastindex(Reprog *prog) {
+    return prog->lastIndex;
 }

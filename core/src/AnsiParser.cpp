@@ -372,7 +372,7 @@ void AnsiParser::NextAtom(AnsiString& result, int no_constants, int TYPE, int ID
                     i++;
                     for (int j = i; j < len; j++) {
                         char modifier = str_ptr [j];
-                        if ((modifier != 'i') && (modifier != 'm'))
+                        if ((modifier != 'i') && (modifier != 'm') && (modifier != 'g'))
                             break;
                         switch (modifier) {
                             case 'i':
@@ -381,6 +381,10 @@ void AnsiParser::NextAtom(AnsiString& result, int no_constants, int TYPE, int ID
                                 break;
                             case 'm':
                                 regexp_flags |= 2;
+                                i++;
+                                break;
+                            case 'g':
+                                regexp_flags |= 8;
                                 i++;
                                 break;
                         }

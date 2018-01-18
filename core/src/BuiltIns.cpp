@@ -110,15 +110,30 @@ END_IMPL
 CONCEPT_FUNCTION_IMPL(RE_exec, 2) 
     T_HANDLE(RE_exec, 0)
     T_STRING(RE_exec, 1)
+
     Reprog *reg = (Reprog *)(SYS_INT)PARAM(0);
+    int offset = JS_reglastindex(reg);
+    const char *_string = PARAM(1);
+    if (offset >= 0) {
+        if (offset >= PARAM_LEN(1)) {
+            RETURN_NUMBER(0);
+            return 0;
+        }
+        _string += offset;
+    }
     Resub sub;
-    memset(&sub, 0, sizeof(Resub));
-    int res = JS_regexec(reg, PARAM(1), &sub, 0);
+    int res = JS_regexec(reg, _string, &sub, 0);
     if (!res) {
         const char *sp = sub.sub[0].sp;
         const char *ep = sub.sub[0].ep;
         if ((sp) && (ep) && (sp != ep)) {
             uintptr_t delta = ep - sp;
+            if (offset >= 0) {
+                intptr_t relative_offset = (uintptr_t)ep - (uintptr_t)PARAM(1);
+                if (relative_offset < 0)
+                    relative_offset = PARAM_LEN(1);
+                JS_setreglastindex(reg, relative_offset);
+            }
             RETURN_BUFFER(sp, delta);
         } else {
             RETURN_STRING("")
@@ -129,13 +144,43 @@ CONCEPT_FUNCTION_IMPL(RE_exec, 2)
 END_IMPL
 
 CONCEPT_FUNCTION_IMPL(RE_test, 2) 
-    T_HANDLE(RE_exec, 0)
-    T_STRING(RE_exec, 1)
+    T_HANDLE(RE_test, 0)
+    T_STRING(RE_test, 1)
+
     Reprog *reg = (Reprog *)(SYS_INT)PARAM(0);
     Resub sub;
-    memset(&sub, 0, sizeof(Resub));
-    int res = JS_regexec(reg, PARAM(1), &sub, 0);
+
+    int offset = JS_reglastindex(reg);
+    const char *_string = PARAM(1);
+    if (offset >= 0) {
+        if (offset >= PARAM_LEN(1)) {
+            RETURN_NUMBER(0);
+            return 0;
+        }
+        _string += offset;
+    }
+
+    int res = JS_regexec(reg, _string, &sub, 0);
+    if (offset >= 0) {
+        const char *sp = sub.sub[0].sp;
+        const char *ep = sub.sub[0].ep;
+        if ((sp) && (ep) && (sp != ep)) {
+            intptr_t relative_offset = (uintptr_t)ep - (uintptr_t)PARAM(1);
+            if (relative_offset < 0)
+                relative_offset = PARAM_LEN(1);
+            JS_setreglastindex(reg, relative_offset);
+        }
+    }
     RETURN_NUMBER(!res);
+END_IMPL
+
+CONCEPT_FUNCTION_IMPL(RE_lastindex, 1)
+    T_HANDLE(RE_test, 0)
+    Reprog *reg = (Reprog *)(SYS_INT)PARAM(0);
+    int lastIndex = JS_reglastindex(reg);
+    if (lastIndex < 0)
+        lastIndex = 0;
+    RETURN_NUMBER(lastIndex);
 END_IMPL
 
 CONCEPT_FUNCTION_IMPL(RE_done, 1)
@@ -322,7 +367,7 @@ int BUILTINOBJECTS(void *pif, const char *classname) {
     if ((!PIF) || (!classname) || (PIF->enable_private))
         return 0;
 
-    BUILTINCLASS("RegExp", "class RegExp{private var h;RegExp(str,f=0,var e=null){this.h=RE_create(str,f,e);}test(str){return RE_test(this.h,str);}exec(str){return RE_exec(this.h,str);}finalize(){RE_done(this.h);}}");
+    BUILTINCLASS("RegExp", "class RegExp{private var h;property lastIndex{get getLastIndex}RegExp(str,f=0,var e=null){this.h=RE_create(str,f,e);}test(str){return RE_test(this.h,str);}exec(str){return RE_exec(this.h,str);}getLastIndex(){return RE_lastindex(this.h);}finalize(){RE_done(this.h);}}");
     BUILTINCLASS("Math", "class Math{"
         DECLARE_WRAPPER(Math, abs)
         DECLARE_WRAPPER(Math, acos)
@@ -655,6 +700,7 @@ void *BUILTINADDR(void *pif, const char *name, unsigned char *is_private) {
         BUILTIN(RE_create);
         BUILTIN(RE_exec);
         BUILTIN(RE_test);
+        BUILTIN(RE_lastindex);
         BUILTIN(RE_done);
 
         if (is_private)
