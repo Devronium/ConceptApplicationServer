@@ -14,7 +14,7 @@ enum {
 	/* regcomp flags */
 	REG_ICASE = 1,
 	REG_NEWLINE = 2,
-    REG_GLOBAL = 8,
+	REG_GLOBAL = 8,
 
 	/* regexec flags */
 	REG_NOTBOL = 4,

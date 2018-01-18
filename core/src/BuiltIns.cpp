@@ -127,14 +127,36 @@ CONCEPT_FUNCTION_IMPL(RE_exec, 2)
         const char *sp = sub.sub[0].sp;
         const char *ep = sub.sub[0].ep;
         if ((sp) && (ep) && (sp != ep)) {
+            const char *maxep = ep;
             uintptr_t delta = ep - sp;
+            if ((sub.sub[1].sp) && (sub.sub[1].ep)) {
+                CREATE_ARRAY(RESULT);
+
+                INTEGER index = 0;;
+                do {
+                    delta = ep - sp;
+                    if (delta) {
+                        Invoke(INVOKE_SET_ARRAY_ELEMENT, RESULT, (INTEGER)index, (INTEGER)VARIABLE_STRING, sp, (double)delta);
+                    } else {
+                        Invoke(INVOKE_SET_ARRAY_ELEMENT, RESULT, (INTEGER)index, (INTEGER)VARIABLE_STRING, "", (double)0);
+                    }
+                    if (ep > maxep)
+                        maxep = ep;
+                    index++;
+                    if (index >= REG_MAXSUB)
+                        break;
+                    sp = sub.sub[index].sp;
+                    ep = sub.sub[index].ep;
+                } while ((sp) && (ep));
+            } else {
+                RETURN_BUFFER(sp, delta);
+            }
             if (offset >= 0) {
-                intptr_t relative_offset = (uintptr_t)ep - (uintptr_t)PARAM(1);
+                intptr_t relative_offset = (uintptr_t)maxep - (uintptr_t)PARAM(1);
                 if (relative_offset < 0)
                     relative_offset = PARAM_LEN(1);
                 JS_setreglastindex(reg, relative_offset);
             }
-            RETURN_BUFFER(sp, delta);
         } else {
             RETURN_STRING("")
         }
