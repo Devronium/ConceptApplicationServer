@@ -227,15 +227,20 @@ VariableDATA *ClassMember::Execute(void *PIF, intptr_t CONCEPT_CLASS_ID, Variabl
     STACK_TRACE.stack_pos        = 0;
     STACK_TRACE.alloc_from_stack = 0;
     STACK_TRACE.len              = 0;
-
+    VariableDATA *vdcontext      = NULL;
     void *PREV_TOP = NULL;
     if (PREV) {
-        STACK_TRACE.STACK_CONTEXT = NULL;
+        STACK_TRACE.STACK_CONTEXT    = NULL;
         PREV_TOP                     = ((SCStack *)PREV->ROOT)->TOP;
         STACK_TRACE.ROOT             = PREV->ROOT;
         ((SCStack *)PREV->ROOT)->TOP = &STACK_TRACE;
     } else {
         STACK_TRACE.STACK_CONTEXT = (void **)FAST_MALLOC(sizeof(VariableDATA *) * BLOCK_STACK_SIZE);
+#ifdef POOL_STACK
+        // alloc without POOL to avoid fragmentation
+        for (int i = 0; i < BLOCK_STACK_SIZE; i++)
+            STACK_TRACE.STACK_CONTEXT[i] = NULL;
+#endif
         STACK_TRACE.ROOT          = &STACK_TRACE;
     }
     STACK_TRACE.TOP = &STACK_TRACE;
@@ -337,6 +342,16 @@ VariableDATA *ClassMember::Execute(void *PIF, intptr_t CONCEPT_CLASS_ID, Variabl
                 delete data;
             }
         }
+#ifdef POOL_STACK
+        if ((!PREV) && (STACK_TRACE.STACK_CONTEXT)) {
+            // variables 0 to stack_pos will be cleared by DestroyEnvironment
+            for (int i = ((Optimizer *)OPTIMIZER)->dataCount; i < BLOCK_STACK_SIZE; i++) {
+                VariableDATA *VD = (VariableDATA *)STACK_TRACE.STACK_CONTEXT[i];
+                if (VD)
+                    VAR_FREE(VD);
+            }
+        }
+#endif
         ((ConceptInterpreter *)INTERPRETER)->DestroyEnviroment((PIFAlizator *)PIF, CONTEXT, &STACK_TRACE, is_main);
     }
     if (!PREV) {

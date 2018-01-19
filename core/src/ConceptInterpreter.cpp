@@ -7366,7 +7366,13 @@ VariableDATA **ConceptInterpreter::CreateEnvironment(PIFAlizator *PIF, VariableD
     } else
         LOCAL_CONTEXT = (VariableDATA **)FAST_MALLOC(sizeof(VariableDATA *) * OPT->dataCount);
 #ifdef POOL_BLOCK_ALLOC
-    BLOCK_VAR_ALLOC(LOCAL_CONTEXT, PIF, data_count, 0);
+ #ifdef POOL_STACK
+    if (STACK_TRACE->alloc_from_stack) {
+        if (!LOCAL_CONTEXT[0])
+            LOCAL_CONTEXT[0] = (VariableDATA *)VAR_ALLOC(PIF);
+    } else
+ #endif
+        BLOCK_VAR_ALLOC(LOCAL_CONTEXT, PIF, data_count, 0);
     VariableDATA *this_ref = LOCAL_CONTEXT[0];
 #else
     VariableDATA *this_ref = (VariableDATA *)VAR_ALLOC(PIF);
@@ -7383,6 +7389,10 @@ VariableDATA **ConceptInterpreter::CreateEnvironment(PIFAlizator *PIF, VariableD
 
     register INTEGER i;
     for (i = 1; i <= ParamCount; i++) {
+ #ifdef POOL_STACK
+        if ((STACK_TRACE->alloc_from_stack) && (!LOCAL_CONTEXT[i]))
+            LOCAL_CONTEXT[i] = (VariableDATA *)VAR_ALLOC(PIF);
+ #endif
         RuntimeVariableDESCRIPTOR *TARGET = &OPT->DATA [i];
         VariableDATA *sndr = SenderCTX [DELTA_UNREF(FORMAL_PARAM, FORMAL_PARAM->PARAM_INDEX) [i - 1] - 1];
         if (TARGET->TYPE < 0) {
@@ -7456,12 +7466,18 @@ VariableDATA **ConceptInterpreter::CreateEnvironment(PIFAlizator *PIF, VariableD
     while (i < data_count) {
         // variable descriptor
         RuntimeVariableDESCRIPTOR *TARGET = &OPT->DATA [i];
+#ifdef POOL_STACK
+        if ((STACK_TRACE->alloc_from_stack) && (!LOCAL_CONTEXT[i]))
+            LOCAL_CONTEXT[i] = (VariableDATA *)VAR_ALLOC(PIF);
+#endif
+
 #ifdef POOL_BLOCK_ALLOC
         VariableDATA *LOCAL_CONTEXT_i = LOCAL_CONTEXT[i];
 #else
         VariableDATA *LOCAL_CONTEXT_i = (VariableDATA *)VAR_ALLOC(PIF);
         LOCAL_CONTEXT [i] = LOCAL_CONTEXT_i;
 #endif
+
         i++;
         if (TARGET->TYPE < 0)
             LOCAL_CONTEXT_i->TYPE = -TARGET->TYPE;
@@ -7609,9 +7625,22 @@ void ConceptInterpreter::DestroyEnviroment(PIFAlizator *PIF, VariableDATA **LOCA
             }
 #else
             VariableDATA *LOCAL_CONTEXT_i = LOCAL_CONTEXT [i];
+            SCStack *STACK_ROOT = (SCStack *)(STACK_TRACE ? STACK_TRACE->ROOT : NULL);
             if (LOCAL_CONTEXT_i) {
  #ifdef POOL_BLOCK_ALLOC
-                FAST_FREE_VARIABLE2(LOCAL_CONTEXT_i, LOCAL_CONTEXT [i]);
+    #ifdef POOL_STACK
+                if (STACK_TRACE->alloc_from_stack) {
+                    LOCAL_CONTEXT_i->LINKS--;
+                    if (LOCAL_CONTEXT_i->LINKS <= 0) {
+                        CLASS_CHECK_TS(LOCAL_CONTEXT_i);
+                    } else {
+                        LOCAL_CONTEXT[i] = NULL;
+                    }
+                } else 
+    #endif
+                {
+                    FAST_FREE_VARIABLE2(LOCAL_CONTEXT_i, LOCAL_CONTEXT [i]);
+                }
  #else
                 FREE_VARIABLE(LOCAL_CONTEXT_i);
  #endif
@@ -7620,7 +7649,10 @@ void ConceptInterpreter::DestroyEnviroment(PIFAlizator *PIF, VariableDATA **LOCA
         }
         CC_WRITE_UNLOCK(PIF)
 #ifdef POOL_BLOCK_ALLOC
-        BLOCK_VAR_FREE(LOCAL_CONTEXT, data_count);
+    #ifdef POOL_STACK
+        if (!STACK_TRACE->alloc_from_stack)
+    #endif
+            BLOCK_VAR_FREE(LOCAL_CONTEXT, data_count);
 #endif
     }
 

@@ -121,9 +121,9 @@ void *dlrealloc(void *, size_t);
  #define VAR_FREE(refVAR)                                FreeVAR(refVAR)
 
  #define POOL_BLOCK_ALLOC
+ #define POOL_STACK
  #define BLOCK_VAR_ALLOC(context, pif, count, offset)    AllocMultipleVars((void **)context, pif, count, offset)
  #define BLOCK_VAR_FREE(context, count)                  FreeMultipleVars((void **)context, count)
  #define POOL_CONTEXT(var)                               GetPOOLContext(var)
 #endif
 #endif // __CONCEPT_POOLS_H
-
