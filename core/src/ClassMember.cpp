@@ -356,6 +356,15 @@ VariableDATA *ClassMember::Execute(void *PIF, intptr_t CONCEPT_CLASS_ID, Variabl
     }
     if (!PREV) {
         STACK_TRACE.len = 0;
+#ifdef POOL_STACK
+        if ((!is_main) && (STACK_TRACE.STACK_CONTEXT)) {
+            for (int i = 0; i < BLOCK_STACK_SIZE; i++) {
+                VariableDATA *VD = (VariableDATA *)STACK_TRACE.STACK_CONTEXT[i];
+                if (VD)
+                    VAR_FREE(VD);
+            }
+        }
+#endif
         FAST_FREE(STACK_TRACE.STACK_CONTEXT);
         RemoveGCRoot(PIF, &STACK_TRACE);
     }
