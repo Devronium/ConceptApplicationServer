@@ -40,7 +40,7 @@ AnsiString GetDirectory() {
 CONCEPT_DLL_API ON_CREATE_CONTEXT MANAGEMENT_PARAMETERS {
     InvokePtr = Invoke;
 #ifdef _WIN32
-    AnsiString static_path = GetDirectory() + (char *)"..\\share\\snmp\\mibs";
+    AnsiString static_path = GetDirectory() + "..\\share\\snmp\\mibs";
     setenv("MIBDIRS", static_path.c_str(), 0);
 #endif
     SOCK_STARTUP;
@@ -453,7 +453,7 @@ void do_tree(void *PARENT, INVOKE_CALL Invoke, struct tree *tree_head) {
 
         if (tp->module_list) {
             void *RESULT2 = 0;
-            Invoke(INVOKE_ARRAY_VARIABLE_BY_KEY, RESULT, (char *)"module_list", &RESULT2);
+            Invoke(INVOKE_ARRAY_VARIABLE_BY_KEY, RESULT, "module_list", &RESULT2);
             CREATE_ARRAY(RESULT2);
             int i     = 0;
             int index = tp->module_list[i];
@@ -465,7 +465,7 @@ void do_tree(void *PARENT, INVOKE_CALL Invoke, struct tree *tree_head) {
 
         if (tp->enums) {
             void *RESULT2 = 0;
-            Invoke(INVOKE_ARRAY_VARIABLE_BY_KEY, RESULT, (char *)"enums", &RESULT2);
+            Invoke(INVOKE_ARRAY_VARIABLE_BY_KEY, RESULT, "enums", &RESULT2);
             CREATE_ARRAY(RESULT2);
             struct enum_list *p = tp->enums;
             while (p) {
@@ -476,7 +476,7 @@ void do_tree(void *PARENT, INVOKE_CALL Invoke, struct tree *tree_head) {
 
         if (tp->ranges) {
             void *RESULT2 = 0;
-            Invoke(INVOKE_ARRAY_VARIABLE_BY_KEY, RESULT, (char *)"ranges", &RESULT2);
+            Invoke(INVOKE_ARRAY_VARIABLE_BY_KEY, RESULT, "ranges", &RESULT2);
             CREATE_ARRAY(RESULT2);
             struct range_list *p = tp->ranges;
             Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, RESULT2, "low", (INTEGER)VARIABLE_NUMBER, (char *)0, (NUMBER)p->low);
@@ -487,7 +487,7 @@ void do_tree(void *PARENT, INVOKE_CALL Invoke, struct tree *tree_head) {
 
         if (tp->indexes) {
             void *RESULT2 = 0;
-            Invoke(INVOKE_ARRAY_VARIABLE_BY_KEY, RESULT, (char *)"indexes", &RESULT2);
+            Invoke(INVOKE_ARRAY_VARIABLE_BY_KEY, RESULT, "indexes", &RESULT2);
             CREATE_ARRAY(RESULT2);
             struct index_list *p = tp->indexes;
             while (p) {
@@ -498,7 +498,7 @@ void do_tree(void *PARENT, INVOKE_CALL Invoke, struct tree *tree_head) {
 
         if (tp->varbinds) {
             void *RESULT2 = 0;
-            Invoke(INVOKE_ARRAY_VARIABLE_BY_KEY, RESULT, (char *)"varbinds", &RESULT2);
+            Invoke(INVOKE_ARRAY_VARIABLE_BY_KEY, RESULT, "varbinds", &RESULT2);
             CREATE_ARRAY(RESULT2);
             struct varbind_list *p = tp->varbinds;
             while (p) {
@@ -509,7 +509,7 @@ void do_tree(void *PARENT, INVOKE_CALL Invoke, struct tree *tree_head) {
 
         if (tp->child_list) {
             void *RESULT2 = 0;
-            Invoke(INVOKE_ARRAY_VARIABLE_BY_KEY, RESULT, (char *)"children", &RESULT2);
+            Invoke(INVOKE_ARRAY_VARIABLE_BY_KEY, RESULT, "children", &RESULT2);
 
             CREATE_ARRAY(RESULT2);
             do_tree(RESULT2, Invoke, tp->child_list);
@@ -593,7 +593,60 @@ CONCEPT_FUNCTION_IMPL(snmp_open, 1)
     char **argv = GetCharList(PARAMETER(0), Invoke);
     int  argc   = Invoke(INVOKE_GET_ARRAY_COUNT, PARAMETER(0));
     snmp_sess_init(&session);
+#ifdef _WIN32
+    for (int i = 0; i < argc; i++) {
+        const char *arg = argv[i];
+        if ((arg) && (arg[0])) {
+            if (arg[0] == '-') {
+                switch (arg[1]) {
+                    case 'v':
+                        switch (arg[2]) {
+                            case '1':
+                                session.version = SNMP_VERSION_1;
+                                break;
+                            case '2':
+                                session.version = SNMP_VERSION_2c;
+                                break;
+                            case '3':
+                                session.version = SNMP_VERSION_3;
+                                break;
+                        }
+                        break;
+                    case 'c':
+                        if (i < argc - 1) {
+                            i++;
+                            session.community = (u_char *)argv[i];
+                            session.community_len = strlen((const char *)session.community);
+                        }
+                        break;
+                    case 'n':
+                        if (i < argc - 1) {
+                            i++;
+                            session.contextName = argv[i];
+                            session.contextNameLen = strlen(session.contextName);
+                        }
+                        break;
+                    case 'u':
+                        if (i < argc - 1) {
+                            i++;
+                            session.securityName = argv[i];
+                            session.securityNameLen = strlen(session.securityName);
+                        }
+                        break;
+                    case 'L':
+                        if (i < argc - 1) {
+                            i++;
+                            snmp_log_options(argv[i], argc, argv);
+                        }
+                        break;
+                }
+            } else
+                session.peername = strdup(argv[i]);
+        }
+    }
+#else
     snmp_parse_args(argc, argv, &session, "C:", optProc);
+#endif
     delete[] argv;
 
     ss = snmp_open(&session);
@@ -830,7 +883,7 @@ CONCEPT_FUNCTION_IMPL(snmp_synch_response, 3)
                 Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, arr, "@error", (INTEGER)VARIABLE_NUMBER, (char *)0, (NUMBER)response->errstat);
                 Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, arr, "@errstr", (INTEGER)VARIABLE_STRING, (char *)snmp_errstring(response->errstat), (NUMBER)0);
                 if (go_out)
-                    Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, arr, "@noobjects", (INTEGER)VARIABLE_NUMBER, (char *)"", (NUMBER)1);
+                    Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, arr, "@noobjects", (INTEGER)VARIABLE_NUMBER, "", (NUMBER)1);
             }
             snmp_free_pdu(response);
         }

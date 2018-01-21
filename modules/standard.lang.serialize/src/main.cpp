@@ -1484,7 +1484,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(ToXML, 1, 3)
     return err_ser;
 END_IMPL
 //---------------------------------------------------------------------------
-void RecursiveNode(void *owner, INVOKE_CALL Invoke, pugi::xml_node xml_node) {
+void RecursiveNode(void *owner, INVOKE_CALL Invoke, pugi::xml_node xml_node, SYS_INT start = 0, SYS_INT max_len = -1) {
     pugi::xml_node child = xml_node.first_child();
     const pugi::xml_text text = xml_node.text();
     if ((!text) || (text.empty())) {
@@ -1495,6 +1495,7 @@ void RecursiveNode(void *owner, INVOKE_CALL Invoke, pugi::xml_node xml_node) {
         }
         if (list) {
             INTEGER i = 0;
+            SYS_INT offset = 0;
             for (pugi::xml_attribute attr = xml_node.first_attribute(); attr; attr = attr.next_attribute()) {
                 Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, list, (char *)attr.name(), (INTEGER)VARIABLE_STRING, attr.value(), (NUMBER)0);
                 i++;
@@ -1503,7 +1504,15 @@ void RecursiveNode(void *owner, INVOKE_CALL Invoke, pugi::xml_node xml_node) {
             if ((xml_node.empty()) || (!child))
                 return;
 
+            while (start > 0) {
+                child = child.next_sibling();
+                start--;
+                if (!child)
+                    return;
+            }
             do {
+                if ((max_len > -1) && (offset >= max_len))
+                    break;
                 void *subarr = 0;
                 Invoke(INVOKE_ARRAY_VARIABLE, list, i, &subarr);
                 if (subarr) {
@@ -1511,6 +1520,7 @@ void RecursiveNode(void *owner, INVOKE_CALL Invoke, pugi::xml_node xml_node) {
                     RecursiveNode(subarr, Invoke, child);
                 }
                 i++;
+                offset++;
                 child = child.next_sibling();
             } while (child);
         }
@@ -1519,16 +1529,28 @@ void RecursiveNode(void *owner, INVOKE_CALL Invoke, pugi::xml_node xml_node) {
     }
 }
 
-CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(FromXML, 1, 2)
+CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(FromXML, 1, 4)
     T_STRING(FromXML, 0);
-
+    SYS_INT start = 0;
+    SYS_INT len = -1;
+    if (PARAMETERS_COUNT > 2) {
+        T_NUMBER(FromXML, 2);
+        start = (SYS_INT)PARAM(2);
+    }
+    if (PARAMETERS_COUNT > 3) {
+        T_NUMBER(FromXML, 3);
+        len = (SYS_INT)PARAM(3);
+    }
     pugi::xml_document doc;
     pugi::xml_parse_result result = doc.load_string(PARAM(0));
     CREATE_ARRAY(RESULT);
     if (result) {
+        if (PARAMETERS_COUNT > 1) {
+            SET_STRING(1, "");
+        }
         pugi::xml_node xml_node = doc.first_child();
         if (xml_node)
-            RecursiveNode(RESULT, Invoke, xml_node);
+            RecursiveNode(RESULT, Invoke, xml_node, start, len);
     } else {
         if (PARAMETERS_COUNT > 1) {
             SET_STRING(1, result.description());
