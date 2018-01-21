@@ -343,7 +343,7 @@ VariableDATA *ClassMember::Execute(void *PIF, intptr_t CONCEPT_CLASS_ID, Variabl
             }
         }
 #ifdef POOL_STACK
-        if ((!PREV) && (STACK_TRACE.STACK_CONTEXT)) {
+        if ((!PREV) && (STACK_TRACE.STACK_CONTEXT) && (is_main)) {
             // variables 0 to stack_pos will be cleared by DestroyEnvironment
             for (int i = ((Optimizer *)OPTIMIZER)->dataCount; i < BLOCK_STACK_SIZE; i++) {
                 VariableDATA *VD = (VariableDATA *)STACK_TRACE.STACK_CONTEXT[i];
@@ -357,11 +357,14 @@ VariableDATA *ClassMember::Execute(void *PIF, intptr_t CONCEPT_CLASS_ID, Variabl
     if (!PREV) {
         STACK_TRACE.len = 0;
 #ifdef POOL_STACK
+        // clear pre-alocated stack
         if ((!is_main) && (STACK_TRACE.STACK_CONTEXT)) {
             for (int i = 0; i < BLOCK_STACK_SIZE; i++) {
                 VariableDATA *VD = (VariableDATA *)STACK_TRACE.STACK_CONTEXT[i];
-                if (VD)
+                if (VD) {
                     VAR_FREE(VD);
+                    STACK_TRACE.STACK_CONTEXT[i] = NULL;
+                }
             }
         }
 #endif
