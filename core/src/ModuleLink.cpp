@@ -282,8 +282,8 @@ INTEGER GetClassMember(void *CLASS_PTR, const char *class_member_name, INTEGER *
                     Owner->LINKS = 1;
                     Owner->TYPE  = VARIABLE_CLASS;
                     ((CompiledClass *)CLASS_PTR)->LINKS++;
-#ifndef SIMPLE_MULTI_THREADING
                     SCStack *STACK_TRACE = NULL;
+#ifndef SIMPLE_MULTI_THREADING
                     if (PIF) {
                         GCRoot *root = PIF->GCROOT;
                         if (root) {
@@ -696,8 +696,8 @@ INTEGER Invoke(INTEGER INVOKE_TYPE, ...) {
                 FORMAL_PARAM.PARAM_INDEX = 0;
 
                 VariableDATA dummyVD [1];
-#ifndef SIMPLE_MULTI_THREADING
                 SCStack *STACK_TRACE = NULL;
+#ifndef SIMPLE_MULTI_THREADING
                 if (pif) {
                     GCRoot *root = pif->GCROOT;
                     if (root) {
@@ -2186,8 +2186,8 @@ INTEGER Invoke(INTEGER INVOKE_TYPE, ...) {
                         ((INTEGER *)ref)[FORMAL_PARAM.COUNT - 1] = index;
                     }
                 } while (index >= 0);
-#ifndef SIMPLE_MULTI_THREADING
                 SCStack *STACK_TRACE = NULL;
+#ifndef SIMPLE_MULTI_THREADING
                 if (pif) {
                     GCRoot *root = pif->GCROOT;
                     if (root) {
@@ -2257,8 +2257,8 @@ INTEGER Invoke(INTEGER INVOKE_TYPE, ...) {
                         ((INTEGER *)ref)[FORMAL_PARAM.COUNT - 1] = index;
                     }
                 } while (index >= 0);
-#ifndef SIMPLE_MULTI_THREADING
                 SCStack *STACK_TRACE = NULL;
+#ifndef SIMPLE_MULTI_THREADING
                 if (pif) {
                     GCRoot *root = pif->GCROOT;
                     if (root) {

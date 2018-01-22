@@ -568,7 +568,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(M2TSPeek, 1, 4)
     INTEGER offset = 0;
     INTEGER len = (INTEGER)PARAM_LEN(0);
     if (PARAMETERS_COUNT > 1) {
-        T_NUMBER("M2TSDemux", 1);
+        T_NUMBER("M2TSPeek", 1);
         offset = (INTEGER)PARAM(1);
         if (offset > 0)
             len -= offset;
