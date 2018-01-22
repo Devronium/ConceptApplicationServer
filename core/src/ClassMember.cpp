@@ -237,9 +237,7 @@ VariableDATA *ClassMember::Execute(void *PIF, intptr_t CONCEPT_CLASS_ID, Variabl
     } else {
         STACK_TRACE.STACK_CONTEXT = (void **)FAST_MALLOC(sizeof(VariableDATA *) * BLOCK_STACK_SIZE);
 #ifdef POOL_STACK
-        // alloc without POOL to avoid fragmentation
-        for (int i = 0; i < BLOCK_STACK_SIZE; i++)
-            STACK_TRACE.STACK_CONTEXT[i] = NULL;
+        memset(STACK_TRACE.STACK_CONTEXT, 0, sizeof(VariableDATA *) * BLOCK_STACK_SIZE);
 #endif
         STACK_TRACE.ROOT          = &STACK_TRACE;
     }
@@ -359,13 +357,16 @@ VariableDATA *ClassMember::Execute(void *PIF, intptr_t CONCEPT_CLASS_ID, Variabl
 #ifdef POOL_STACK
         // clear pre-alocated stack
         if ((!is_main) && (STACK_TRACE.STACK_CONTEXT)) {
+#ifdef POOL_BLOCK_ALLOC
+            BLOCK_VAR_FREE(STACK_TRACE.STACK_CONTEXT, BLOCK_STACK_SIZE);
+#else
             for (int i = 0; i < BLOCK_STACK_SIZE; i++) {
                 VariableDATA *VD = (VariableDATA *)STACK_TRACE.STACK_CONTEXT[i];
                 if (VD) {
                     VAR_FREE(VD);
-                    STACK_TRACE.STACK_CONTEXT[i] = NULL;
                 }
             }
+#endif
         }
 #endif
         FAST_FREE(STACK_TRACE.STACK_CONTEXT);

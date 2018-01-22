@@ -2800,6 +2800,7 @@ CONCEPT_FUNCTION_IMPL_VARIABLE_PARAMS(pack, 1)
                 i--;
                 used_size      = 0;
                 buf[buf_index] = TYPE;
+                padding = 0;
                 if (TYPE == VARIABLE_ARRAY) {
                     void *pData = LOCAL_CONTEXT[PARAMETERS->PARAM_INDEX[param_index - 1] - 1];
                     nDUMMY_FILL = LocalInvoker(INVOKE_GET_ARRAY_COUNT, pData);
@@ -2810,8 +2811,14 @@ CONCEPT_FUNCTION_IMPL_VARIABLE_PARAMS(pack, 1)
                 } else
                 if (TYPE == VARIABLE_STRING) {
                     used_size = (int)nDUMMY_FILL;
-                    if (used_size > size)
+                    if (used_size > size) {
                         used_size = size;
+                    } else {
+                        padding = (size - used_size) % 0x100;
+                        // padded string
+                        if (padding > 0)
+                            buf[buf_index] = VARIABLE_UNDEFINED;
+                    }
                     memcpy(&buf[buf_index + 1], szDUMMY_FILL, used_size);
                 } else
                 if (TYPE == VARIABLE_NUMBER) {
@@ -2822,7 +2829,7 @@ CONCEPT_FUNCTION_IMPL_VARIABLE_PARAMS(pack, 1)
                 }
 
                 if (used_size < size)
-                    memset(&buf[buf_index + used_size + 1], 0, size - used_size);
+                    memset(&buf[buf_index + used_size + 1], padding, size - used_size);
 
                 buf_index += size + 1;
                 break;
@@ -3046,10 +3053,18 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(unpack, 2, 3)
                     i      = len;
                     break;
                 }
-                if (TYPE == VARIABLE_STRING) {
+                if ((TYPE == VARIABLE_STRING) || (TYPE == VARIABLE_UNDEFINED)) {
                     int size2 = size;
-                    while ((size2) && (!buffer[size2]))
+                    if (TYPE == VARIABLE_UNDEFINED) {
+                        unsigned char padding = (unsigned char)buffer[size2];
                         size2--;
+                        while ((size2) && ((unsigned char)buffer[size2] == padding)) {
+                            size2--;
+                        }
+                    }/* else {
+                        while ((size2) && (!buffer[size2]))
+                            size2--;
+                    }*/
                     if (size2)
                         Invoke(INVOKE_SET_ARRAY_ELEMENT, RESULT, (INTEGER)index, VARIABLE_STRING, buffer + 1, (NUMBER)size2);
                     else

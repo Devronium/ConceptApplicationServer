@@ -282,7 +282,17 @@ INTEGER GetClassMember(void *CLASS_PTR, const char *class_member_name, INTEGER *
                     Owner->LINKS = 1;
                     Owner->TYPE  = VARIABLE_CLASS;
                     ((CompiledClass *)CLASS_PTR)->LINKS++;
-
+#ifndef SIMPLE_MULTI_THREADING
+                    SCStack *STACK_TRACE = NULL;
+                    if (PIF) {
+                        GCRoot *root = PIF->GCROOT;
+                        if (root) {
+                            STACK_TRACE = (SCStack *)root->STACK_TRACE;
+                            if (STACK_TRACE)
+                                STACK_TRACE = (SCStack *)STACK_TRACE->TOP;
+                        }
+                    }
+#endif
                     try {
                         VariableDATA *VarDATA = CCode->ExecuteMember(PIF,
                                                                      index,
@@ -294,7 +304,7 @@ INTEGER GetClassMember(void *CLASS_PTR, const char *class_member_name, INTEGER *
                                                                      0,
                                                                      CCode->CLSID,
                                                                      CCode->CLSID,
-                                                                     NULL
+                                                                     STACK_TRACE
                                                                      );
                         int result = -1;
                         if (VarDATA) {
@@ -686,10 +696,20 @@ INTEGER Invoke(INTEGER INVOKE_TYPE, ...) {
                 FORMAL_PARAM.PARAM_INDEX = 0;
 
                 VariableDATA dummyVD [1];
-
+#ifndef SIMPLE_MULTI_THREADING
+                SCStack *STACK_TRACE = NULL;
+                if (pif) {
+                    GCRoot *root = pif->GCROOT;
+                    if (root) {
+                        STACK_TRACE = (SCStack *)root->STACK_TRACE;
+                        if (STACK_TRACE)
+                            STACK_TRACE = (SCStack *)STACK_TRACE->TOP;
+                    }
+                }
+#endif
                 target->TYPE       = VARIABLE_CLASS;
                 target->CLASS_DATA = NULL;
-                target->CLASS_DATA = CC->CreateInstance(pif, target, 0, &FORMAL_PARAM, (VariableDATA **)&dummyVD, NULL);
+                target->CLASS_DATA = CC->CreateInstance(pif, target, 0, &FORMAL_PARAM, (VariableDATA **)&dummyVD, STACK_TRACE);
                 if (!target->CLASS_DATA) {
                     target->TYPE = VARIABLE_NUMBER;
                     result       = INVALID_INVOKE_PARAMETER;
@@ -1068,6 +1088,17 @@ INTEGER Invoke(INTEGER INVOKE_TYPE, ...) {
                         lOwner->TYPE = VARIABLE_CLASS;
 
                         ((CompiledClass *)RESULT->CLASS_DATA)->LINKS++;
+#ifndef SIMPLE_MULTI_THREADING
+                        SCStack *STACK_TRACE = NULL;
+                        if ((PIF) && (INVOKE_TYPE == INVOKE_CALL_DELEGATE)) {
+                            GCRoot *root = PIF->GCROOT;
+                            if (root) {
+                                STACK_TRACE = (SCStack *)root->STACK_TRACE;
+                                if (STACK_TRACE)
+                                    STACK_TRACE = (SCStack *)STACK_TRACE->TOP;
+                            }
+                        }
+#endif
                         *SENDER_RESULT = ((CompiledClass *)RESULT->CLASS_DATA)->_Class->ExecuteDelegate(PIF,
                                                                                                         (INTEGER)RESULT->DELEGATE_DATA,
                                                                                                         lOwner,
@@ -1079,7 +1110,7 @@ INTEGER Invoke(INTEGER INVOKE_TYPE, ...) {
 #ifdef SIMPLE_MULTI_THREADING
                                                                                                         NULL, spin_lock);
 #else
-                                                                                                        NULL);
+                                                                                                        STACK_TRACE);
 #endif
                         FREE_VARIABLE(lOwner);
                         if (*SENDER_RESULT)
@@ -2155,10 +2186,20 @@ INTEGER Invoke(INTEGER INVOKE_TYPE, ...) {
                         ((INTEGER *)ref)[FORMAL_PARAM.COUNT - 1] = index;
                     }
                 } while (index >= 0);
-
+#ifndef SIMPLE_MULTI_THREADING
+                SCStack *STACK_TRACE = NULL;
+                if (pif) {
+                    GCRoot *root = pif->GCROOT;
+                    if (root) {
+                        STACK_TRACE = (SCStack *)root->STACK_TRACE;
+                        if (STACK_TRACE)
+                            STACK_TRACE = (SCStack *)STACK_TRACE->TOP;
+                    }
+                }
+#endif
                 target->TYPE       = VARIABLE_CLASS;
                 target->CLASS_DATA = NULL;
-                target->CLASS_DATA = CC->CreateInstance(pif, target, 0, &FORMAL_PARAM, (VariableDATA **)CONTEXT, NULL);
+                target->CLASS_DATA = CC->CreateInstance(pif, target, 0, &FORMAL_PARAM, (VariableDATA **)CONTEXT, STACK_TRACE);
                 if (ref)
                     free(ref);
                 if (!target->CLASS_DATA) {
@@ -2216,10 +2257,20 @@ INTEGER Invoke(INTEGER INVOKE_TYPE, ...) {
                         ((INTEGER *)ref)[FORMAL_PARAM.COUNT - 1] = index;
                     }
                 } while (index >= 0);
-
+#ifndef SIMPLE_MULTI_THREADING
+                SCStack *STACK_TRACE = NULL;
+                if (pif) {
+                    GCRoot *root = pif->GCROOT;
+                    if (root) {
+                        STACK_TRACE = (SCStack *)root->STACK_TRACE;
+                        if (STACK_TRACE)
+                            STACK_TRACE = (SCStack *)STACK_TRACE->TOP;
+                    }
+                }
+#endif
                 target->TYPE       = VARIABLE_CLASS;
                 target->CLASS_DATA = NULL;
-                target->CLASS_DATA = CC->CreateInstance(pif, target, 0, &FORMAL_PARAM, (VariableDATA **)CONTEXT, NULL);
+                target->CLASS_DATA = CC->CreateInstance(pif, target, 0, &FORMAL_PARAM, (VariableDATA **)CONTEXT, STACK_TRACE);
                 if (ref)
                     free(ref);
                 if (!target->CLASS_DATA) {
