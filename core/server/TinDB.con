@@ -115,12 +115,15 @@ class Triggers {
 }
 
 class SocketIOBase {
-	static SendBuffer(socket, var to_send) {
+	static SendBuffer(socket, var to_send, callback = null) {
 		if (socket <= 0)
 			return -1;
 		var offset = 0;
 		do {
-			var res = SocketWrite(socket, to_send, false, "", 0, false, offset);
+			if ((offset) && (callback))
+				callback();
+			// send in 64k chunks
+			var res = SocketWrite(socket, to_send, false, "", 0, false, offset, 0x10000);
 			if (res <= 0)
 				return res;
 			offset += res;
@@ -128,9 +131,9 @@ class SocketIOBase {
 		return offset;
 	}
 
-	static SendBufferWithSize(socket, to_send) {
+	static SendBufferWithSize(socket, to_send, callback = null) {
 		to_send = ToSize(length to_send) + to_send;
-		var sent = SocketIOBase::SendBuffer(socket, to_send);
+		var sent = SocketIOBase::SendBuffer(socket, to_send, callback);
 		if (sent != length to_send)
 			return false;
 		return true;
@@ -4046,7 +4049,7 @@ class QuerySyncWorker {
 	}
 
 	SocketReadTimeout(socket, var buffer, len, timeout = SYNC_CONFIRM_TIMEOUT) {
-		var iterations = SYNC_CONFIRM_TIMEOUT / 20;
+		var iterations = timeout / 20;
 		do {
 			if (SocketHasData(socket, 20))
 				return SocketRead(socket, buffer, len);
@@ -4064,7 +4067,7 @@ class QuerySyncWorker {
 				for (var i = 0; i < length NotSynced; i++) {
 					var data = NotSynced[i];
 					if (data) {
-						if ((socket) && (SocketIOBase::SendBufferWithSize(socket, data))) {
+						if ((socket) && (SocketIOBase::SendBufferWithSize(socket, data, this.PollSockets))) {
 							var read_code = SocketReadTimeout(socket, var buffer, 3);
 							if ((read_code != 3) || (buffer != "\x02OK")) {
 								if (read_code == -2)
@@ -4307,8 +4310,9 @@ class QuerySyncWorker {
 		if (res > 0) {
 			var ctx = buffers["" + sock];
 			if (!ctx) {
+				echo "Invalid socket\n";
 				RemoveSocket(sock);
-				return;
+				return sock;
 			}
 			var buf = ctx.buffer + buffer;
 			while (buf) {
@@ -4327,12 +4331,15 @@ class QuerySyncWorker {
 					}
 					ctx.buffer = buf;
 				} else {
+					echo "Message too big, removing node\n";
 					RemoveSocket(sock);
-					break;
+					return sock;
 				}
 			}
 		} else {
+			echo "Error in socket read ($res)\n";
 			RemoveSocket(sock);
+			return sock;
 		}
 	}
 
@@ -4471,7 +4478,7 @@ class QuerySyncWorker {
 			this.PollSockets();
 			if ((Worker::PendingAll(data, timeout, WORKER_POLL_TIMEOUT)) && (data)) {
 				var bulk = null;
-				if (length data > 0)
+				if (length data > 1)
 					bulk = new Bulk(NodeName);
 				var limit = MAX_OP_SIZE / 2;
 				var bulk_size = 0;
@@ -4516,6 +4523,7 @@ class QuerySyncWorker {
 					} catch (var exc) {
 						echo "SyncWorker: $exc\n";
 					}
+					this.PollSockets();
 				}
 				if ((bulk) && (bulk.d)) {
 					if (length bulk.d > 1)
