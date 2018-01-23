@@ -486,6 +486,40 @@ public:
         return size;
     }
 
+    void InputLock() {
+        QUEUE_LOCK(input_lock);
+    }
+
+    int AddInputNoLock(char *S, int len, int priority = 0) {
+        ThreadDataContainer *temp = new ThreadDataContainer();
+        temp->data = S;
+        temp->len = len;
+#if USE_STD_QUEUE
+        input_data.push(temp);
+#else
+        if (priority > 0)
+            input_data.push_front(temp);
+        else
+            input_data.push(temp);
+#endif
+        return input_data.size();
+    }
+
+    void InputUnlock(int do_notify = 0) {
+        if (do_notify) {
+            int size = input_data.size();
+#ifdef _WIN32
+            // If no threads are waiting, the event object's state remains signaled.
+            if ((size == 1) && (input_cond_wait))
+#else
+            // The pthread_cond_signal() and pthread_cond_broadcast() functions have no effect if there are no threads currently blocked on cond. 
+            if (input_cond_wait)
+#endif
+                input_cond.notify();
+        }
+        QUEUE_UNLOCK(input_lock);
+    }
+
     int AddOutput(char *S, int len) {
         ThreadDataContainer *temp = new ThreadDataContainer();
         temp->data = S;
@@ -504,6 +538,34 @@ public:
             output_cond.notify();
         QUEUE_UNLOCK(output_lock);
         return size;
+    }
+
+    void OutputLock() {
+        QUEUE_LOCK(output_lock);
+    }
+
+    int AddOutputNoLock(char *S, int len) {
+        ThreadDataContainer *temp = new ThreadDataContainer();
+        temp->data = S;
+        temp->len = len;
+
+        output_data.push(temp);
+        return output_data.size();;
+    }
+
+    void OutputUnlock(int do_notify = 0) {
+        if (do_notify) {
+            int size = output_data.size();
+#ifdef _WIN32
+            // If no threads are waiting, the event object's state remains signaled.
+            if ((size == 1) && (output_cond_wait))
+#else
+            // The pthread_cond_signal() and pthread_cond_broadcast() functions have no effect if there are no threads currently blocked on cond. 
+            if (output_cond_wait)
+#endif
+                output_cond.notify();
+        }
+        QUEUE_UNLOCK(output_lock);
     }
 
     int GetInput(char **S, int *len, int locking = 0) {
@@ -1153,6 +1215,52 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(AddWorkerData, 2, 3)
     }
 END_IMPL
 //---------------------------------------------------------------------------
+CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(AddWorkerDataAll, 2, 3)
+    T_HANDLE(AddWorkerDataAll, 0)
+    T_ARRAY(AddWorkerDataAll, 1)
+
+    int priority = 0;
+    if (PARAMETERS_COUNT > 2) {
+        T_NUMBER(AddWorkerDataAll, 2);
+        priority = PARAM_INT(2);
+    }
+    void *worker = (void *)(uintptr_t)PARAM(0);
+    ThreadMetaContainer *tmc = NULL;
+    Invoke(INVOKE_GETPROTODATA, worker, (int)2, &tmc);
+    if (!tmc)
+        return (void *)"Using a worker function on a non-worker";
+
+    INTEGER len = Invoke(INVOKE_GET_ARRAY_COUNT, PARAMETER(1));
+    if (len > 0) {
+        char    *str = 0;
+        NUMBER  nDummy;
+        INTEGER type;
+        int size = 0;
+        tmc->InputLock();
+        for (INTEGER i = 0; i < len; i++) {
+            Invoke(INVOKE_GET_ARRAY_ELEMENT, PARAMETER(1), i, &type, &str, &nDummy);
+            if (type == VARIABLE_STRING) {
+                int len = (int)nDummy;
+                if (len > 0) {
+                    char *owned_buffer = NULL;
+                    CORE_NEW(len + 1, owned_buffer);
+                    if (!owned_buffer) {
+                        tmc->InputUnlock(size);
+                        return (void *)"AddWorkerDataAll: Not enough memory";
+                    }
+                    memcpy(owned_buffer, str, len);
+                    owned_buffer[len] = 0;
+                    size += tmc->AddInputNoLock(owned_buffer, len, priority);
+                }
+            }
+        }
+        tmc->InputUnlock(size);
+        RETURN_NUMBER(size);
+    } else {
+        RETURN_NUMBER(-1);
+    }
+END_IMPL
+//---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL(AddWorkerResultData, 1)
     T_STRING(AddWorkerResultData, 0)
 
@@ -1170,6 +1278,45 @@ CONCEPT_FUNCTION_IMPL(AddWorkerResultData, 1)
         memcpy(owned_buffer, PARAM(0), len);
         owned_buffer[len] = 0;
         int size = tmc->AddOutput(owned_buffer, len);
+        RETURN_NUMBER(size);
+    } else {
+        RETURN_NUMBER(-1);
+    }
+END_IMPL
+//---------------------------------------------------------------------------
+CONCEPT_FUNCTION_IMPL(AddWorkerResultDataAll, 1)
+    T_STRING(AddWorkerResultData, 0)
+
+    ThreadMetaContainer * tmc = NULL;
+    Invoke(INVOKE_GETPROTODATA, PARAMETERS->HANDLER, (int)2, &tmc);
+    if (!tmc)
+        return (void *)"Using a worker function on a non-worker";
+
+    INTEGER len = Invoke(INVOKE_GET_ARRAY_COUNT, PARAMETER(1));
+    if (len > 0) {
+        char    *str = 0;
+        NUMBER  nDummy;
+        INTEGER type;
+        int size = 0;
+        tmc->OutputLock();
+        for (INTEGER i = 0; i < len; i++) {
+            Invoke(INVOKE_GET_ARRAY_ELEMENT, PARAMETER(1), i, &type, &str, &nDummy);
+            if (type == VARIABLE_STRING) {
+                int len = (int)nDummy;
+                if (len > 0) {
+                    char *owned_buffer = NULL;
+                    CORE_NEW(len + 1, owned_buffer);
+                    if (!owned_buffer) {
+                        tmc->OutputUnlock();
+                        return (void *)"AddWorkerResultDataAll: Not enough memory";
+                    }
+                    memcpy(owned_buffer, str, len);
+                    owned_buffer[len] = 0;
+                    size += tmc->AddOutputNoLock(owned_buffer, len);
+                }
+            }
+        }
+        tmc->OutputUnlock(size);
         RETURN_NUMBER(size);
     } else {
         RETURN_NUMBER(-1);

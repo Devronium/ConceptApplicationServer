@@ -199,6 +199,17 @@ class _webrequest {
 	var session;
 	var template = "";
 
+	protected var _onpost;
+	protected var _ondata;
+	protected var _ontimedout;
+	protected var _ondone;
+	protected var _registered;
+
+	property onpost { get _onpost, set setonpost }
+	property ondata { get _ondata, set setondata }
+	property ontimedout { get _ontimedout, set setontimedout }
+	property ondone { get _ondone, set setondone }
+
 	_webrequest(owner, id, data, timestamp) {
 		this.web = owner;
 		this.timestamp = (timestamp ?? microseconds())/1000;
@@ -228,6 +239,12 @@ class _webrequest {
 	}
 
 	done() {
+		delete this._onpost;
+		delete this._ondata;
+		delete this._ontimedout;
+		delete this._ondone;
+		this._registered = null;
+		this.web.done(id);
 		this.web.__buffer(["q" => id, "do" => "done"]);
 	}
 
@@ -296,6 +313,44 @@ class _webrequest {
 			this.session.syncsession(this.session.data);
 	}
 
+	register() {
+		if (!_registered) {
+			this.web.register(id, this);
+			_registered = true;
+		}
+	}
+
+	unregister() {
+		if (_registered) {
+			this.web.done(id);
+			_registered = false;
+		}
+	}
+
+	setonpost(deleg) {
+		this.register();
+		this._onpost = deleg;
+		return deleg;
+	}
+
+	setondata(deleg) {
+		this.register();
+		this._ondata = deleg;
+		return deleg;
+	}
+
+	setontimedout(deleg) {
+		this.register();
+		this._ontimedout = deleg;
+		return deleg;
+	}
+
+	setondone(deleg) {
+		this.register();
+		this._ondone = deleg;
+		return deleg;
+	}
+
 	finalize() {
 		this.sync();
 		web.requests--;
@@ -306,6 +361,7 @@ class _webrequest {
 
 class web {
 	var[] cache;
+	var[] requestdata;
 	var requests;
 	var drop;
 	var db;
@@ -337,22 +393,73 @@ class web {
 		return true;
 	}
 
+	done(id) {
+		if ((id) && (IsSet(requestdata, id))) {
+			requestdata[id] = null;
+			if ((length requestdata - requests) > 100) {
+				var new_requests = new [];
+				var keys = GetKeys(requestdata);
+				for (var i = 0; i < length keys; i++) {
+					var k = keys[i];
+					if (k) {
+						var e = this.requests[k];
+						if (e)
+							new_requests[k] = e;
+					}
+				}
+				this.requests = new_requests;
+			}
+		}
+	}
+
+	register(id, obj) {
+		if ((id) && (obj))
+			requestdata[id] = obj;
+	}
+
 	dispatch(data) {
+		var obj;
+		var id = data["q"];
 		switch (data["do"]) {
 			case "new":
-				CreateObject2("app", new _webrequest(this, data["q"], data["data"], data["_"]));
+				CreateObject2("app", new _webrequest(this, id, data["data"], data["_"]));
 				break;
 			case "post":
+				if ((id) && (IsSet(requestdata, id))) {
+					obj = requestdata[id];
+					if ((obj) && (obj.onpost))
+						obj.onpost(data["data"]);
+				}
 				break;
 			case "data":
+				if ((id) && (IsSet(requestdata, id))) {
+					obj = requestdata[id];
+					if ((obj) && (obj.ondata))
+						obj.ondata(data["data"]);
+				}
 				break;
 			case "drop":
+				requestdata = new [];
 				drop = true;
 				QuitLoop();
 				return true;
-			case "done":
 			case "timedout":
+				if ((id) && (IsSet(requestdata, id))) {
+					obj = requestdata[id];
+					if ((obj) && (obj.ontimedout))
+						obj.ontimedout();
+				}
+				break;
+			case "done":
+				if ((id) && (IsSet(requestdata, id))) {
+					obj = requestdata[id];
+					if ((obj) && (obj.ondone))
+						obj.ondone();
+				}
+				this.done(id);
+				break;
 			default:
+				this.done(id);
 				break;
 		}
 		return false;
