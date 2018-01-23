@@ -502,21 +502,19 @@ public:
         else
             input_data.push(temp);
 #endif
-        return input_data.size();
+        int size = input_data.size();
+#ifdef _WIN32
+        // If no threads are waiting, the event object's state remains signaled.
+        if ((size == 1) && (input_cond_wait))
+#else
+        // The pthread_cond_signal() and pthread_cond_broadcast() functions have no effect if there are no threads currently blocked on cond. 
+        if (input_cond_wait)
+#endif
+            input_cond.notify();
+        return size;
     }
 
-    void InputUnlock(int do_notify = 0) {
-        if (do_notify) {
-            int size = input_data.size();
-#ifdef _WIN32
-            // If no threads are waiting, the event object's state remains signaled.
-            if ((size == 1) && (input_cond_wait))
-#else
-            // The pthread_cond_signal() and pthread_cond_broadcast() functions have no effect if there are no threads currently blocked on cond. 
-            if (input_cond_wait)
-#endif
-                input_cond.notify();
-        }
+    void InputUnlock() {
         QUEUE_UNLOCK(input_lock);
     }
 
@@ -550,21 +548,19 @@ public:
         temp->len = len;
 
         output_data.push(temp);
-        return output_data.size();;
+        int size = output_data.size();
+#ifdef _WIN32
+        // If no threads are waiting, the event object's state remains signaled.
+        if ((size == 1) && (output_cond_wait))
+#else
+        // The pthread_cond_signal() and pthread_cond_broadcast() functions have no effect if there are no threads currently blocked on cond. 
+        if (output_cond_wait)
+#endif
+            output_cond.notify();
+        return size;
     }
 
-    void OutputUnlock(int do_notify = 0) {
-        if (do_notify) {
-            int size = output_data.size();
-#ifdef _WIN32
-            // If no threads are waiting, the event object's state remains signaled.
-            if ((size == 1) && (output_cond_wait))
-#else
-            // The pthread_cond_signal() and pthread_cond_broadcast() functions have no effect if there are no threads currently blocked on cond. 
-            if (output_cond_wait)
-#endif
-                output_cond.notify();
-        }
+    void OutputUnlock() {
         QUEUE_UNLOCK(output_lock);
     }
 
@@ -1245,16 +1241,16 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(AddWorkerDataAll, 2, 3)
                     char *owned_buffer = NULL;
                     CORE_NEW(len + 1, owned_buffer);
                     if (!owned_buffer) {
-                        tmc->InputUnlock(size);
+                        tmc->InputUnlock();
                         return (void *)"AddWorkerDataAll: Not enough memory";
                     }
                     memcpy(owned_buffer, str, len);
                     owned_buffer[len] = 0;
-                    size += tmc->AddInputNoLock(owned_buffer, len, priority);
+                    size = tmc->AddInputNoLock(owned_buffer, len, priority);
                 }
             }
         }
-        tmc->InputUnlock(size);
+        tmc->InputUnlock();
         RETURN_NUMBER(size);
     } else {
         RETURN_NUMBER(-1);
@@ -1312,11 +1308,11 @@ CONCEPT_FUNCTION_IMPL(AddWorkerResultDataAll, 1)
                     }
                     memcpy(owned_buffer, str, len);
                     owned_buffer[len] = 0;
-                    size += tmc->AddOutputNoLock(owned_buffer, len);
+                    size = tmc->AddOutputNoLock(owned_buffer, len);
                 }
             }
         }
-        tmc->OutputUnlock(size);
+        tmc->OutputUnlock();
         RETURN_NUMBER(size);
     } else {
         RETURN_NUMBER(-1);

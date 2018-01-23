@@ -29,6 +29,7 @@ define TIN_CLUSTER	false
 define TIN_CLUSTER_LOG	true
 define TIN_PING		false
 define TIN_FULLOBJECT	true
+define TIN_BULKSYNC	100
 
 define READ_BUFFER	0xFFFF
 
@@ -207,6 +208,19 @@ class CacheData {
 	CacheData(r, timeout) {
 		this.r = r;
 		this.timeout = time() + timeout;
+	}
+}
+
+class Bulk {
+	var[] d;
+	var origp;
+
+	Bulk(nodename) {
+		this.origp = nodename;
+	}
+
+	add(o) {
+		d[length d] = o;
 	}
 }
 
@@ -803,6 +817,36 @@ pragma used
 		}
 		return false;
 	}
+
+	static SyncCache(syncworker, var cache) {
+		if ((syncworker) && (cache))
+			AddWorkerDataAll(syncworker, cache);
+		cache = null;
+	}
+
+	static FullObjectCache(var cache, obj, o, oid, syncworker) {
+		if ((syncworker) && (oid) && (typeof oid == "string")) {
+			if (!cache)
+				cache = new [];
+			var q = new Q();
+			q.o = "U";
+			q.q = "*";
+			q.d = obj.d;
+			q.c = obj.c;
+			q.f = o;
+			q.p = ["\$oid" => oid];
+			q.x["start"] = 0;
+			q.x["len"] = 1;
+			q.origp = obj.origp;
+			q.w = time();
+			cache[length cache] = BinarizeObject(q);
+			if (length cache >= TIN_BULKSYNC)
+				QueryWorkerBase::SyncCache(syncworker, cache);
+			return true;
+		}
+		return false;
+	}
+
 
 	static InvalidateCacheSync(obj, syncworker = null) {
 		QueryWorkerBase::InvalidateCache(obj.d, obj.c);
@@ -1716,6 +1760,7 @@ pragma used
 	var syncworker;
 	var machineid;
 	var globaludf;
+	var workercache;
 
 	GetDelegate(dbobject, db, name, var objects, var members, r = null) {
 		var arr = StrSplit(name, ".");
@@ -2636,8 +2681,8 @@ pragma used
 												r.et = store_exc;
 												break;
 											}
-											if ((use_sync_worker) && (TIN_FULLOBJECT) && (oid))
-												QueryWorker::FullObjectSync(obj, o, oid, use_sync_worker);
+											// if ((use_sync_worker) && (TIN_FULLOBJECT) && (oid))
+											//	QueryWorker::FullObjectCache(workercache, obj, o, oid, use_sync_worker);
 
 											non_flushed_writes++;
 											id[length id] = id2;
@@ -2665,9 +2710,12 @@ pragma used
 										}
 									}
 									t.SetIndexLock(false);
+									// QueryWorker::FullObjectSync(obj, obj.p, oid, use_sync_worker);
 									r.id = id;
-									if ((use_sync_worker) && (TIN_FULLOBJECT))
+									if ((use_sync_worker) && (TIN_FULLOBJECT) && (id)) {
+										QueryWorker::InvalidateCacheSync(obj, use_sync_worker);
 										use_sync_worker = null;
+									}
 								} else {
 									if ((unique_fields) && (!t.IsUnique(obj.p, unique_fields))) {
 										r.e = ERR_NOT_UNIQUE;
@@ -2949,7 +2997,7 @@ pragma used
 
 													if ((sync_worker) && (TIN_FULLOBJECT) && (oid) && (!obj.origp)) {
 														// disable classic sync
-														if (QueryWorker::FullObjectSync(obj, o, oid, sync_worker))
+														if (QueryWorker::FullObjectCache(workercache, obj, o, oid, sync_worker))
 															data[15] = true;
 													}
 
@@ -2970,6 +3018,7 @@ pragma used
 										}
 									}
 								}, update_data);
+								QueryWorker::SyncCache(syncworker, workercache);
 								if (update_data[10])
 									t.BM25UpdateEnd(update_data[10]);
 								if ((use_sync_worker) && (obj.origp) && (TIN_FULLOBJECT)) {
@@ -3905,7 +3954,8 @@ class QuerySyncWorker {
 		return new_p;
 	}
 
-	Execute(var data) {
+	Execute(var data, var bulk = null) {
+		bulk = null;
 		var wait_confirmation = false;
 		if (!data)
 			return wait_confirmation;
@@ -3919,6 +3969,10 @@ class QuerySyncWorker {
 					return;
 			} else
 				origin_node = NodeName;
+			if (classof obj == "Bulk") {
+				bulk = obj;
+				return true;
+			}
 			var worker = QueryWorkers[QueryWorkerIndex++];
 			if (QueryWorkerIndex >= length QueryWorkers)
 				QueryWorkerIndex = 0;
@@ -4287,9 +4341,19 @@ class QuerySyncWorker {
 		for (var i = 0; i < length NotWritten; i++) {
 			var buf = NotWritten[i];
 			if (buf) {
-				if (Execute(buf))
-					wait_confirmation[length wait_confirmation] = buf;
-				else
+				if (Execute(buf, var bulk)) {
+					if (bulk) {
+						for (var j = 0; j < length bulk.d; j++) {
+							buf = bulk.d[j];
+							if (Execute(buf)) {
+								wait_confirmation[length wait_confirmation] = buf;
+							} else {
+								localjournal.Log(buf, "sync", opid++, 3);
+							}
+						}							
+					} else
+						wait_confirmation[length wait_confirmation] = buf;
+				} else
 					localjournal.Log(buf, "sync", opid++, 3);
 			}
 		}
@@ -4406,6 +4470,11 @@ class QuerySyncWorker {
 			var data = null;
 			this.PollSockets();
 			if ((Worker::PendingAll(data, timeout, WORKER_POLL_TIMEOUT)) && (data)) {
+				var bulk = null;
+				if (length data > 0)
+					bulk = new Bulk(NodeName);
+				var limit = MAX_OP_SIZE / 2;
+				var bulk_size = 0;
 				for (var i = 0; i < length data; i++) {
 					try {
 						var data_i = data[i];
@@ -4422,11 +4491,38 @@ class QuerySyncWorker {
 								data_container.origp = NodeName;
 								data_i = BinarizeObject(data_container);
 							}
-							NotifyNeighbours(data_i);
+							if (bulk) {
+								bulk_size += length data_i;
+								if (bulk_size >= limit) {
+									// if bulk is larger than limit, create a new bulk
+									var new_bulk = null;
+									if ((bulk) && (bulk.d)) {
+										if (length bulk.d > 1) {
+											NotifyNeighbours(BinarizeObject(bulk));
+											new_bulk = new Bulk(NodeName);
+										} else {
+											NotifyNeighbours(bulk.d[0]);
+											// no new bulk, received packages are too big
+										}
+									}
+									NotifyNeighbours(data_i);
+									bulk = new_bulk;
+									bulk_size = 0;
+								} else
+									bulk.add(data_i);
+							} else
+								NotifyNeighbours(data_i);
 						}
 					} catch (var exc) {
 						echo "SyncWorker: $exc\n";
 					}
+				}
+				if ((bulk) && (bulk.d)) {
+					if (length bulk.d > 1)
+						NotifyNeighbours(BinarizeObject(bulk));
+					else
+						NotifyNeighbours(bulk.d[0]);
+					bulk = null;
 				}
 			}
 			if (time() > RingTimeout)
