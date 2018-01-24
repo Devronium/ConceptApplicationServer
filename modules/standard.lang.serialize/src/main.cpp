@@ -2399,6 +2399,7 @@ CONCEPT_FUNCTION_IMPL_VARIABLE_PARAMS(pack, 1)
     int         used_size;
     size_t      tmp_len;
     for (int i = 0; i < len; i++) {
+        PACK_ENSURE_BUFFER(12)
         char f = format[i];
         if (f == ':') {
             size_pos = -1;
@@ -2789,7 +2790,6 @@ CONCEPT_FUNCTION_IMPL_VARIABLE_PARAMS(pack, 1)
                     size_buf[size_pos] = size;
                     size_pos++;
                 } while (size_pos <= 10);
-
                 size = 0;
                 if (size_pos > 0) {
                     size_buf[size_pos] = 0;
@@ -2810,6 +2810,7 @@ CONCEPT_FUNCTION_IMPL_VARIABLE_PARAMS(pack, 1)
                     used_size = 8;
                 } else
                 if (TYPE == VARIABLE_STRING) {
+                    PACK_ENSURE_BUFFER(size + 1)
                     used_size = (int)nDUMMY_FILL;
                     if (used_size > size) {
                         used_size = size;
@@ -2819,6 +2820,7 @@ CONCEPT_FUNCTION_IMPL_VARIABLE_PARAMS(pack, 1)
                         if (padding > 0)
                             buf[buf_index] = VARIABLE_UNDEFINED;
                     }
+                    PACK_ENSURE_BUFFER(size + 1)
                     memcpy(&buf[buf_index + 1], szDUMMY_FILL, used_size);
                 } else
                 if (TYPE == VARIABLE_NUMBER) {
@@ -2827,7 +2829,6 @@ CONCEPT_FUNCTION_IMPL_VARIABLE_PARAMS(pack, 1)
                     * (double *)(&buf[buf_index + 1]) = (double)nDUMMY_FILL;
                     used_size = 8;
                 }
-
                 if (used_size < size)
                     memset(&buf[buf_index + used_size + 1], padding, size - used_size);
 
