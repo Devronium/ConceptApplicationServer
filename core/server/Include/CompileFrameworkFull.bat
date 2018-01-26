@@ -255,3 +255,4 @@ accel Unicode.con
 accel UnicodeFull.con
 accel LucyIndex.con
 accel Nominatim.con
+accel BASIC.con

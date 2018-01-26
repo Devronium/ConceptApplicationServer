@@ -1,0 +1,18 @@
+#ifndef __LIBRARY_H
+#define __LIBRARY_H
+
+// user definition ...
+
+extern "C" {
+    CONCEPT_DLL_API ON_CREATE_CONTEXT  MANAGEMENT_PARAMETERS;
+    CONCEPT_DLL_API ON_DESTROY_CONTEXT MANAGEMENT_PARAMETERS;
+
+    CONCEPT_FUNCTION(BasicNewRuntime)
+    CONCEPT_FUNCTION(BasicDestroyRuntime)
+    CONCEPT_FUNCTION(BasicEvaluateScript)
+    CONCEPT_FUNCTION(BasicEvaluateFile)
+    CONCEPT_FUNCTION(BasicWrap)
+    CONCEPT_FUNCTION(BasicErrorCode)
+    CONCEPT_FUNCTION(BasicGC)
+}
+#endif // __LIBRARY_H
