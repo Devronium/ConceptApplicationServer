@@ -3559,7 +3559,7 @@ int ConceptInterpreter::StacklessInterpret(PIFAlizator *PIF, GreenThreadCycle *G
 
                             case KEY_INC:
                                 if (CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft.ID - 1]).Length()) {
-                                    CONCEPT_STRING(LOCAL_CONTEXT [OE->Result_ID - 1]).LoadBuffer(CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft.ID - 1]).c_str() + 1, CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft.ID - 1]).Length() - 1);
+                                    CONCEPT_STRING(LOCAL_CONTEXT [OE->Result_ID - 1]).LoadBuffer(CONCEPT_C_STRING(LOCAL_CONTEXT [OE->OperandLeft.ID - 1]) + 1, CONCEPT_C_LENGTH(LOCAL_CONTEXT [OE->OperandLeft.ID - 1]) - 1);
                                     CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft.ID - 1]) = CONCEPT_STRING(LOCAL_CONTEXT [OE->Result_ID - 1]);
                                     //----------------//
                                     PROPERTY_CODE(THIS_REF, TARGET_THREAD->PROPERTIES)
@@ -3571,7 +3571,7 @@ int ConceptInterpreter::StacklessInterpret(PIFAlizator *PIF, GreenThreadCycle *G
                             case KEY_INC_LEFT:
                                 if (CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft.ID - 1]).Length()) {
                                     CONCEPT_STRING(LOCAL_CONTEXT [OE->Result_ID - 1]) = CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft.ID - 1]);
-                                    CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft.ID - 1]).LoadBuffer(CONCEPT_STRING(LOCAL_CONTEXT [OE->Result_ID - 1]).c_str() + 1, CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft.ID - 1]).Length() - 1);
+                                    CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft.ID - 1]).LoadBuffer(CONCEPT_C_STRING(LOCAL_CONTEXT [OE->Result_ID - 1]) + 1, CONCEPT_C_LENGTH(LOCAL_CONTEXT [OE->OperandLeft.ID - 1]) - 1);
                                     //----------------//
                                     PROPERTY_CODE_LEFT(THIS_REF, TARGET_THREAD->PROPERTIES)
                                     //----------------//
@@ -6108,7 +6108,7 @@ VariableDATA *ConceptInterpreter::Interpret(PIFAlizator *PIF, VariableDATA **LOC
 
                         case KEY_INC:
                             if (CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft.ID - 1]).Length()) {
-                                CONCEPT_STRING(LOCAL_CONTEXT [OE->Result_ID - 1]).LoadBuffer(CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft.ID - 1]).c_str() + 1, CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft.ID - 1]).Length() - 1);
+                                CONCEPT_STRING(LOCAL_CONTEXT [OE->Result_ID - 1]).LoadBuffer(CONCEPT_C_STRING(LOCAL_CONTEXT [OE->OperandLeft.ID - 1]) + 1, CONCEPT_C_LENGTH(LOCAL_CONTEXT [OE->OperandLeft.ID - 1]) - 1);
                                 CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft.ID - 1]) = CONCEPT_STRING(LOCAL_CONTEXT [OE->Result_ID - 1]);
                                 //----------------//
                                 PROPERTY_CODE(this, PROPERTIES)
@@ -6120,7 +6120,7 @@ VariableDATA *ConceptInterpreter::Interpret(PIFAlizator *PIF, VariableDATA **LOC
                         case KEY_INC_LEFT:
                             if (CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft.ID - 1]).Length()) {
                                 CONCEPT_STRING(LOCAL_CONTEXT [OE->Result_ID - 1]) = CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft.ID - 1]);
-                                CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft.ID - 1]).LoadBuffer(CONCEPT_STRING(LOCAL_CONTEXT [OE->Result_ID - 1]).c_str() + 1, CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft.ID - 1]).Length() - 1);
+                                CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft.ID - 1]).LoadBuffer(CONCEPT_C_STRING(LOCAL_CONTEXT [OE->Result_ID - 1]) + 1, CONCEPT_C_LENGTH(LOCAL_CONTEXT [OE->OperandLeft.ID - 1]) - 1);
                                 //----------------//
                                 PROPERTY_CODE_LEFT(this, PROPERTIES)
                                 //----------------//

@@ -164,7 +164,7 @@ int GetVariableByName(int operation, void **VDESC, void **CONTEXT, int Depth, ch
     if ((i >= 0) && (i < Depth)) {
         if (((VariableDATA *)CONTEXT [i])->TYPE == VARIABLE_STRING) {
             if (operation == 0) {
-                strncpy(buffer, CONCEPT_STRING(((VariableDATA *)CONTEXT [i])).c_str(), buf_size);
+                strncpy(buffer, CONCEPT_C_STRING(((VariableDATA *)CONTEXT [i])), buf_size);
             } else
             if (operation == 1) {
                 CONCEPT_STRING(((VariableDATA *)CONTEXT [i])) = buffer;
@@ -202,7 +202,7 @@ int GetVariableByName(int operation, void **VDESC, void **CONTEXT, int Depth, ch
                 switch (VD->TYPE) {
                     case VARIABLE_STRING:
                         if (operation == 0) {
-                            strncpy(buffer, CONCEPT_STRING(VD).c_str(), buf_size);
+                            strncpy(buffer, CONCEPT_C_STRING(VD), buf_size);
                         } else
                         if (operation == 1) {
                             CONCEPT_STRING(VD) = buffer;

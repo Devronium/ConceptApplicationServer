@@ -8,7 +8,9 @@
 #include "Array.h"
 #include "ConceptPools.h"
 
-#define CONCEPT_STRING(VARIABLE)    (VARIABLE->CLASS_DATA ? (*((AnsiString *)VARIABLE->CLASS_DATA)) : *((AnsiString *)(VARIABLE->CLASS_DATA = new AnsiString())))
+#define CONCEPT_STRING(VARIABLE)            (VARIABLE->CLASS_DATA ? (*((AnsiString *)VARIABLE->CLASS_DATA)) : *((AnsiString *)(VARIABLE->CLASS_DATA = new AnsiString())))
+#define CONCEPT_C_STRING(VARIABLE)          (VARIABLE->CLASS_DATA ? ((AnsiString *)VARIABLE->CLASS_DATA)->c_str() : "")
+#define CONCEPT_C_LENGTH(VARIABLE)          (VARIABLE->CLASS_DATA ? ((AnsiString *)VARIABLE->CLASS_DATA)->Length() : 0)
 //---------------------------------------------------------
 #ifdef INLINE_COMMON_CALLS
 #define FREE_VARIABLE(VARIABLE)                                                                \

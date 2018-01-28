@@ -638,7 +638,7 @@ VariableDATA *Array::Get(VariableDATA *KEY) {
         }
     } else
     if (KEY->TYPE == VARIABLE_STRING) {
-        const char *k_str = CONCEPT_STRING(KEY).c_str();
+        const char *k_str = CONCEPT_C_STRING(KEY);
         i = FindKey(k_str);
 
         if (i == -1) {

@@ -1,6 +1,10 @@
 #include "AnsiString.h"
 #include "ConceptTypes.h"
 #include "SHManager.h"
+#define WITH_DTOA
+#ifdef WITH_DTOA
+    #include "dtoa.h"
+#endif
 
 POOLED_IMPLEMENTATION(AnsiString)
 
@@ -220,12 +224,16 @@ void AnsiString::operator=(D_LONG_TYPE i) {
 
 void AnsiString::operator=(double d) {
     char buffer [MAX_DECIMALS];
-
+#ifdef WITH_DTOA
+    // 3 times faster
+    dtoa_milo(d, buffer);
+#else
     sprintf(buffer, "%.15g", d);
     size_t len = strlen(buffer);
     if (((len > 1) && ((buffer [len - 1] == '.') || (buffer [len - 1] == ',')))) {
         buffer [len - 1] = 0;
     }
+#endif
     operator=(buffer);
 }
 

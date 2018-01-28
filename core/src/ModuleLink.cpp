@@ -239,8 +239,8 @@ INTEGER GetVariable(VariableDATA *VD, INTEGER *TYPE, char **STRING_VALUE, NUMBER
     *STRING_VALUE = 0;
 
     if (VD->TYPE == VARIABLE_STRING) {
-        *STRING_VALUE = CONCEPT_STRING(VD).c_str();
-        *NUMBER_VALUE = CONCEPT_STRING(VD).Length();
+        *STRING_VALUE = CONCEPT_C_STRING(VD);
+        *NUMBER_VALUE = CONCEPT_C_LENGTH(VD);
     } else
     if ((VD->TYPE == VARIABLE_CLASS) || (VD->TYPE == VARIABLE_ARRAY)) {
         *STRING_VALUE = (char *)VD->CLASS_DATA;
