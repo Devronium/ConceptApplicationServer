@@ -368,7 +368,7 @@ int ClassCode::GetSerialMembers(CompiledClass *CC, int max_members,
                     switch (CC->_CONTEXT [reloc]->TYPE) {
                         case VARIABLE_STRING:
                             n_data [index]  = CONCEPT_C_LENGTH(CC->_CONTEXT [reloc]);
-                            szValue [index] = CONCEPT_C_STRING(CC->_CONTEXT [reloc]);
+                            szValue [index] = (char *)CONCEPT_C_STRING(CC->_CONTEXT [reloc]);
                             break;
 
                         case VARIABLE_CLASS:
