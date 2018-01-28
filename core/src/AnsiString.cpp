@@ -226,6 +226,7 @@ void AnsiString::operator=(double d) {
     char buffer [MAX_DECIMALS];
 #ifdef WITH_DTOA
     // 3 times faster
+    buffer[0] = 0;
     dtoa_milo(d, buffer);
 #else
     sprintf(buffer, "%.15g", d);

@@ -398,11 +398,8 @@ inline void dtoa_milo(double value, char* buffer) {
 
 	if (value == 0) {
 		buffer[0] = '0';
-		buffer[1] = '.';
-		buffer[2] = '0';
-		buffer[3] = '\0';
-	}
-	else {
+		buffer[1] = 0;
+	} else {
 		if (value < 0) {
 			*buffer++ = '-';
 			value = -value;
