@@ -1641,7 +1641,7 @@ class ConceptChild {
 
 									if (exists) {
 										var worker = null;
-										if ((is_server_page) && (cgi)) //(content_type == "application/concept-server-page")
+										if ((is_server_page) && (cgi) && ((TLS) || (!force_tls))) //(content_type == "application/concept-server-page")
 											worker = Owner.ChooseWorker();
 										if (worker) {
 											var port = Owner.WSPort;
