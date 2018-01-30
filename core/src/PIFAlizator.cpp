@@ -486,10 +486,9 @@ INTEGER PIFAlizator::AddUndefinedClass(AnsiString& member, TinyString& _CLASS, c
     }
 
 #ifdef CACHED_VARIABLES
-INTEGER PIFAlizator::VariableIsDescribed(AnsiString& S, DoubleList *VDList, std::map<HASH_TYPE, unsigned int> *CachedVariables, char is_hased) {
+INTEGER PIFAlizator::VariableIsDescribed(AnsiString& S, DoubleList *VDList, HashTable *CachedVariables, char is_hased) {
     if (is_hased) {
-        HASH_TYPE    hash = hash_func(S.c_str(), S.Length());
-        unsigned int res  = (*CachedVariables)[hash];
+        unsigned int res  = CachedVariables->find(S.c_str());
         if (res) {
             if (is_hased == -1)
                 return res;
@@ -840,7 +839,8 @@ INTEGER PIFAlizator::BuildFunction(ClassCode *CC, AnsiParser *P, INTEGER on_line
     }
     DoubleList            *PIFList = CM->CDATA->PIF_DATA;
     DoubleList            *VDList  = CM->CDATA->VariableDescriptors;
-    std::map<double, int> NumberConstantMap;
+    //std::map<double, int> NumberConstantMap;
+    HashTable NumberConstantMap;
 
     VariableDESCRIPTOR *VD = new VariableDESCRIPTOR;
     VD->name   = (char *)THIS_CLASS;
@@ -852,8 +852,8 @@ INTEGER PIFAlizator::BuildFunction(ClassCode *CC, AnsiParser *P, INTEGER on_line
 
     VDList->Add(VD, DATA_VAR_DESCRIPTOR);
 #ifdef CACHED_VARIABLES
-    std::map<HASH_TYPE, unsigned int> CachedVariables;
-    CachedVariables[hash_func(THIS_CLASS)] = 1;
+    HashTable CachedVariables;
+    CachedVariables.add(THIS_CLASS, 1);
 #endif
 
     if (!is_inline) {
@@ -1063,7 +1063,7 @@ INTEGER PIFAlizator::BuildFunction(ClassCode *CC, AnsiParser *P, INTEGER on_line
 
                 VDList->Add(VDPARAM, DATA_VAR_DESCRIPTOR);
 #ifdef CACHED_VARIABLES
-                CachedVariables[hash_func(sPARSE.c_str(), sPARSE.Length())] = VDList->Count();
+                CachedVariables.add(sPARSE.c_str(), VDList->Count(), sPARSE.Length());
 #endif
                 WANT_PARAM = 0;
             } else {
@@ -1220,7 +1220,7 @@ INTEGER PIFAlizator::BuildFunction(ClassCode *CC, AnsiParser *P, INTEGER on_line
                 VDList->Add(VD, DATA_VAR_DESCRIPTOR);
                 _ID = VDList->Count();
 #ifdef CACHED_VARIABLES
-                CachedVariables[hash_func(sPARSE.c_str(), sPARSE.Length())] = _ID;
+                CachedVariables.add(sPARSE.c_str(), _ID, sPARSE.Length());
 #endif
             }
             IS_ARRAY = 0;
@@ -1235,46 +1235,52 @@ INTEGER PIFAlizator::BuildFunction(ClassCode *CC, AnsiParser *P, INTEGER on_line
         }
 
         if (TYPE == TYPE_NUMBER) {
-            double val = sPARSE.ToFloat();
-            int    pos = NumberConstantMap[val];
+            // double val = sPARSE.ToFloat();
+            AnsiString key(sPARSE.ToFloat());
+            int    pos = (int)NumberConstantMap[key.c_str()];
             if (pos > 0) {
                 _ID = pos;
             } else {
                 VariableDESCRIPTOR *VD = new VariableDESCRIPTOR;
                 VD->value  = sPARSE;
-                VD->nValue = val;
+                VD->nValue = sPARSE.ToFloat();
                 VD->USED   = 1;
                 VD->TYPE   = VARIABLE_NUMBER;
                 VD->BY_REF = 2;
 
                 VDList->Add(VD, DATA_VAR_DESCRIPTOR);
                 _ID = VDList->Count();
-                NumberConstantMap[val] = _ID;
+                NumberConstantMap.add(key.c_str(), _ID);
             }
             TYPE        = TYPE_VARIABLE;
             IS_CONSTANT = 1;
         } else
-        if ((TYPE == TYPE_STRING) || (TYPE == TYPE_NUMBER)) {
-            VariableDESCRIPTOR *VD = new VariableDESCRIPTOR;
-            //AnsiString strip=StripString(&sPARSE)
-            AnsiString strip;
-            StripString(&sPARSE, strip);
-            if (strip.Length()) {
-                VD->value.LoadBuffer(strip.c_str(), strip.Length());
-            }
-            VD->USED   = 1;
-            if (TYPE == TYPE_STRING) {
-                VD->TYPE = VARIABLE_STRING;
-                VD->nValue = 0;
+        if (TYPE == TYPE_STRING) {
+            int    pos = (int)NumberConstantMap[sPARSE.c_str()];
+            if (pos > 0) {
+                _ID = pos;
             } else {
-                VD->TYPE   = VARIABLE_NUMBER;
-                VD->nValue = VD->value.ToFloat();
+                VariableDESCRIPTOR *VD = new VariableDESCRIPTOR;
+                //AnsiString strip=StripString(&sPARSE)
+                AnsiString strip;
+                StripString(&sPARSE, strip);
+                if (strip.Length()) {
+                    VD->value.LoadBuffer(strip.c_str(), strip.Length());
+                }
+                VD->USED   = 1;
+                if (TYPE == TYPE_STRING) {
+                    VD->TYPE = VARIABLE_STRING;
+                    VD->nValue = 0;
+                } else {
+                    VD->TYPE   = VARIABLE_NUMBER;
+                    VD->nValue = VD->value.ToFloat();
+                }
+                VD->BY_REF = 2;
+
+                VDList->Add(VD, DATA_VAR_DESCRIPTOR);
+                _ID = VDList->Count();
+                NumberConstantMap.add(sPARSE.c_str(), _ID, strip.Length());
             }
-            VD->BY_REF = 2;
-
-            VDList->Add(VD, DATA_VAR_DESCRIPTOR);
-            _ID = VDList->Count();
-
             TYPE        = TYPE_VARIABLE;
             IS_CONSTANT = 1;
         } else {
@@ -1796,7 +1802,7 @@ INTEGER PIFAlizator::BuildFunction(ClassCode *CC, AnsiParser *P, INTEGER on_line
                 VDList->Add(VD, DATA_VAR_DESCRIPTOR);
                 _ID = VDList->Count();
 #ifdef CACHED_VARIABLES
-                CachedVariables[hash_func(sPARSE.c_str(), sPARSE.Length())] = _ID;
+                CachedVariables.add(sPARSE.c_str(), _ID, sPARSE.Length());
 #endif
                 IS_ARRAY = 0;
             } else {
@@ -3530,7 +3536,7 @@ INTEGER PIFAlizator::FindVariableByName(void *key, const char *name) {
     memcpy(buf, &key, sizeof(void *));
     memcpy(buf + sizeof(void *), name, len);
     len += sizeof(void *);
-    return DebugVarNames[hash_func(buf, len)] - 1;
+    return DebugVarNames[buf] - 1;
 #else
     return -1;
 #endif
@@ -3545,7 +3551,7 @@ void PIFAlizator::RegisterVariableName(void *key, const char *name, INTEGER val)
     memcpy(buf, &key, sizeof(void *));
     memcpy(buf + sizeof(void *), name, len);
     len += sizeof(void *);
-    DebugVarNames[hash_func(buf, len)] = val + 1;
+    DebugVarNames.add(buf, val + 1);
 #endif
 }
 

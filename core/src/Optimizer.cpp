@@ -899,10 +899,13 @@ INTEGER Optimizer::OptimizeExpression(TempVariableManager *TVM, INTEGER ID, INTE
                     if (CC->CanBeRunStatic(static_name, &CM)) {
                         PIFOwner->OptimizeMember(CM);
                         if ((CM->OPTIMIZER) && ((CM->ACCESS == ACCESS_PUBLIC) || (CM->Defined_In == this->_CLASS))){
-                            int can_inline = ((Optimizer *)CM->OPTIMIZER)->CanInline(CM);
+                            const char *remotename = NULL;
+                            int can_inline = ((Optimizer *)CM->OPTIMIZER)->CanInline(CM, &remotename);
                             if (can_inline) {
                                 Left->ID = STATIC_CLASS_DLL;
                                 Right->ID = can_inline;
+                                if (remotename)
+                                    Right->_PARSE_DATA = remotename;
                             }
                         }
                     }
@@ -1851,7 +1854,7 @@ INTEGER Optimizer::OptimizeAny(TempVariableManager *TVM, INTEGER ID, INTEGER TYP
     return 0;
 }
 
-int Optimizer::CanInline(ClassMember *owner) {
+int Optimizer::CanInline(ClassMember *owner, const char **remotename) {
     RuntimeOptimizedElement *OE, *OE2;
     if (owner->PARAMETERS_COUNT != owner->MUST_PARAMETERS_COUNT)
         return 0;
@@ -1883,6 +1886,9 @@ int Optimizer::CanInline(ClassMember *owner) {
                 if (index != i + 2)
                     return 0;
             }
+            if (remotename)
+                *remotename = OE->OperandRight._PARSE_DATA.c_str();
+
             return OE->OperandRight.ID;
         }
     }
@@ -2396,7 +2402,8 @@ int Optimizer::Unserialize(concept_FILE *in, AnsiList *ModuleList, bool is_lib, 
                         if (!OE->OperandRight.ID) {
                             PIFOwner->Errors.Add(new AnsiException(ERR870, 0, 870, OE->OperandRight._PARSE_DATA, _DEBUG_INFO_FILENAME, _CLASS->NAME, _MEMBER), DATA_EXCEPTION);
                         }
-                    } else if ((is_lib) && (OE->OperandLeft.ID > 0)) {
+                    } else
+                    if ((is_lib) && (OE->OperandLeft.ID > 0)) {
                         int newID = ClassNames [OE->OperandLeft.ID - 1] + 1;
                         if (!newID) {
                             int delta = 1;

@@ -7,7 +7,7 @@
 #define CACHED_LIST
 
 #ifdef CACHED_LIST
- #include <map>
+ #include "HashTable.h"
  #include "Codes.h"
 #endif
 
@@ -24,7 +24,7 @@ public:
     int EnsureSpace();
 
 #ifdef CACHED_LIST
-    std::map<HASH_TYPE, unsigned int> CachedElements;
+    HashTable CachedElements;
 #endif
 public:
 #ifdef CACHED_LIST

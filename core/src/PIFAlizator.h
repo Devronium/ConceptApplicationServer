@@ -16,6 +16,10 @@
 
 #include "semhh.h"
 
+#ifdef CACHED_LIST
+    #include "HashTable.h"
+#endif
+
 #ifdef SIMPLE_MULTI_THREADING
     class Semaphore {
         private:
@@ -156,11 +160,11 @@
 #endif
 
 #ifdef CACHED_VARIABLES
- #include <map>
+ #include "HashTable.h"
 #endif
 
 #ifdef DEBUGGER_VAR_NAMES
- #include <map>
+ #include "HashTable.h"
 #endif
 
 #define PDATA_ITEMS               0xFF
@@ -272,7 +276,7 @@ class PIFAlizator {
     INTEGER CheckUndefinedClasses();
 
 #ifdef CACHED_VARIABLES
-    INTEGER VariableIsDescribed(AnsiString& S, DoubleList *VDList, std::map<HASH_TYPE, unsigned int> *CachedVariables = 0, char is_hased = 0);
+    INTEGER VariableIsDescribed(AnsiString& S, DoubleList *VDList, HashTable *CachedVariables = 0, char is_hased = 0);
 #else
     INTEGER VariableIsDescribed(AnsiString& S, DoubleList *VDList);
 #endif
@@ -327,7 +331,7 @@ class PIFAlizator {
 
     char basic_constants_count;
 #ifdef CACHED_LIST
-    std::map<HASH_TYPE, unsigned int> CachedClasses;
+    HashTable CachedClasses;
 #endif
 
     HHSEM DelegateLock;
@@ -419,7 +423,7 @@ public:
     void SyncClassList();
 
 #ifdef DEBUGGER_VAR_NAMES
-    std::map<HASH_TYPE, INTEGER> DebugVarNames;
+    HashTable DebugVarNames;
 #endif
     INTEGER FindVariableByName(void *key, const char *name);
     void RegisterVariableName(void *key, const char *name, INTEGER val);

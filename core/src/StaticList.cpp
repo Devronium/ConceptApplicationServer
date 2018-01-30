@@ -82,10 +82,8 @@ void StaticList::Add(const char *str, int len) {
         count++;
 
 #ifdef CACHED_LIST
-        if (UseMap) {
-            HASH_TYPE key = hash_func(str, len);
-            CachedElements[key] = count;
-        }
+        if (UseMap)
+            CachedElements.add(str, count);
 #endif
     }
 }
@@ -107,8 +105,7 @@ int StaticList::ContainsString(const char *str, int len) {
         return 0;
 #ifdef CACHED_LIST
     if (UseMap) {
-        HASH_TYPE key = hash_func(str, len);
-        int       pos = CachedElements[key];
+        int       pos = CachedElements[str];
         if (pos) {
             char *item = this->Item(pos - 1);
             if ((item) && (!strcmp(item, str)))

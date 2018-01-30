@@ -5,7 +5,6 @@
 #include "ModuleLink.h"
 #include "Debugger.h"
 #include <time.h>
-#include <map>
 #include <math.h>
 #ifndef _WIN32
     #include <unistd.h>

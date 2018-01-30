@@ -78,17 +78,8 @@ ssize_t sock_fd_read(int sock, int *fd) {
 #endif
 
 #ifdef CACHE_MEMBERS
- #include <map>
- #ifndef NO_HASHING
-static std::map<HASH_TYPE, SYS_INT> FunctionMap;
- #else
-struct AnsiString_Compare {
-    bool operator()(const AnsiString& a, const AnsiString& b) {
-        return strcmp(a.c_str(), b.c_str()) < 0;
-    }
-};
-static std::map<AnsiString, SYS_INT, AnsiString_Compare> FunctionMap;
- #endif
+    #include "HashTable.h"
+static HashTable FunctionMap;
 #endif
 
 INTEGER ImportModule(AnsiString& MODULE_MASK, AnsiList *Errors, INTEGER line, AnsiString FILENAME, AnsiList *TARGET, PIFAlizator *Sender, INTEGER _NO_ERROR_REPORT) {
@@ -2441,12 +2432,7 @@ INTEGER Invoke(INTEGER INVOKE_TYPE, ...) {
 
 SYS_INT LinkFunction(void *PIF, const char *FUNCTION_NAME, AnsiList *TARGET, void **CACHED_hDLL) {
 #ifdef CACHE_MEMBERS
- #ifndef NO_HASHING
-    HASH_TYPE key = hash_func(FUNCTION_NAME, strlen(FUNCTION_NAME));
- #else
-    char *key = FUNCTION_NAME;
- #endif
-    SYS_INT val = FunctionMap[key];
+    SYS_INT val = FunctionMap[FUNCTION_NAME];
     if (val)
         return val;
 #endif
@@ -2470,9 +2456,7 @@ SYS_INT LinkFunction(void *PIF, const char *FUNCTION_NAME, AnsiList *TARGET, voi
         }
 
         if (_PROC_ADR) {
-#ifdef CACHE_MEMBERS
-            FunctionMap[key] = (SYS_INT)_PROC_ADR;
-#endif
+            FunctionMap.add(FUNCTION_NAME, (SYS_INT)_PROC_ADR);
             return (SYS_INT)_PROC_ADR;
         }
     }
@@ -2494,7 +2478,7 @@ SYS_INT LinkFunction(void *PIF, const char *FUNCTION_NAME, AnsiList *TARGET, voi
         if (_PROC_ADR) {
             *CACHED_hDLL = hDLL;
 #ifdef CACHE_MEMBERS
-            FunctionMap[key] = (SYS_INT)_PROC_ADR;
+            FunctionMap.add(FUNCTION_NAME, (SYS_INT)_PROC_ADR);
 #endif
             return (SYS_INT)_PROC_ADR;
         }
@@ -2503,7 +2487,7 @@ SYS_INT LinkFunction(void *PIF, const char *FUNCTION_NAME, AnsiList *TARGET, voi
     SYS_INT BUILTIN_ID = (SYS_INT)BUILTINADDR(PIF, FUNCTION_NAME, &is_private);
 #ifdef CACHE_MEMBERS
     if ((BUILTIN_ID) && (!is_private))
-         FunctionMap[key] = BUILTIN_ID;
+         FunctionMap.add(FUNCTION_NAME, BUILTIN_ID);
 #endif
     return BUILTIN_ID;
 }

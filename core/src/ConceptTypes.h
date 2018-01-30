@@ -671,13 +671,12 @@ public:
 };
 
 #define STDMAP_CONSTANTS
-#include <map>
 #ifdef STDMAP_CONSTANTS
-typedef std::map<HASH_TYPE, void *> ConstantMap;
+#include "HashTable.h"
 
 class ConstantsListEmulation {
 private:
-    ConstantMap map;
+    HashTable map;
 public:
     ConstantsListEmulation() {
     }
@@ -686,38 +685,19 @@ public:
         return map.size();
     }
 
-    /* ==========================================
-    void *Item(int i) {
-        if ((i < 0) || (i >= map.size()))
-            return NULL;
-
-        ConstantMap::iterator a = map.begin();
-        for(ConstantMap::iterator it = map.begin(); it != map.end(); ++it) {
-            if (!i)
-                return it->second;
-            i--;
-        }
-        return NULL;
-    }
-
-    void *operator[](int i) {
-        return Item(i);
-    }
-    ============================================= */
-
     INTEGER Serialize(FILE *out) {
         INTEGER constant_list = map.size();
         INTEGER temp = 0;
-        ConstantMap::iterator a = map.begin();
-        for (ConstantMap::iterator it = map.begin(); it != map.end(); ++it) {
-            VariableDESCRIPTOR *VD = (VariableDESCRIPTOR *)it->second;
+        HashTableIterator a = map.begin();
+        for (HashTableIterator it = map.begin(); it != map.end(); ++it) {
+            VariableDESCRIPTOR *VD = (VariableDESCRIPTOR *)map.val(it);
             if ((VD) && (!VD->USED) && (!VD->BY_REF))
                 temp++;
         }
         concept_fwrite_int(&temp, sizeof(temp), 1, out);
         if (temp) {
-            for (ConstantMap::iterator it = map.begin(); it != map.end(); ++it) {
-                VariableDESCRIPTOR *VD = (VariableDESCRIPTOR *)it->second;
+            for (HashTableIterator it = map.begin(); it != map.end(); ++it) {
+                VariableDESCRIPTOR *VD = (VariableDESCRIPTOR *)map.val(it);
                 if ((VD) && (!VD->USED) && (!VD->BY_REF)) {
                     VD->name.Serialize(out, SERIALIZE_8BIT_LENGTH);
                     VD->value.Serialize(out, SERIALIZE_16BIT_LENGTH);
@@ -730,20 +710,19 @@ public:
     void Add(void *data, int type) {
         VariableDESCRIPTOR *VD = (VariableDESCRIPTOR *)data;
         if (VD) {
-            HASH_TYPE key = hash_func(VD->name.c_str(), VD->name.Length());
-            VariableDESCRIPTOR *VD2 = (VariableDESCRIPTOR *)map[key];
+            const char *name = VD->name.c_str();
+            int len = VD->name.Length();
+            VariableDESCRIPTOR *VD2 = (VariableDESCRIPTOR *)map[name];
             if (VD2)
                 delete VD2;
-            map[key] = VD;
+            map.add(name, (intptr_t)VD, len);
         }
     }
 
     void Delete(const char *varname) {
         if ((!varname) || (!varname[0]))
             return;
-        HASH_TYPE key = hash_func(varname);
-        VariableDESCRIPTOR *VD = (VariableDESCRIPTOR *)map[key];
-        map.erase(key);
+        VariableDESCRIPTOR *VD = (VariableDESCRIPTOR *)map.erase(varname);
         if (VD)
             delete VD;
     }
@@ -751,16 +730,14 @@ public:
     void *Find(const char *varname) {
         if ((!varname) || (!varname[0]))
             return NULL;
-        ConstantMap::iterator search = map.find(hash_func(varname));
-        if (search != map.end())
-            return (VariableDESCRIPTOR *)search->second;
-        return NULL;
+
+        return (void *)map.find(varname);
     }
 
     ~ConstantsListEmulation() {
-        ConstantMap::iterator a = map.begin();
-        for(ConstantMap::iterator it = map.begin(); it != map.end(); ++it) {
-            VariableDESCRIPTOR *VD = (VariableDESCRIPTOR *)it->second;
+        HashTableIterator a = map.begin();
+        for(HashTableIterator it = map.begin(); it != map.end(); ++it) {
+            VariableDESCRIPTOR *VD = (VariableDESCRIPTOR *)map.val(it);
             if (VD)
                 delete VD;
         }

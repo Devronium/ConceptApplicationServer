@@ -75,7 +75,7 @@ public:
     Optimizer(PIFAlizator *P, DoubleList *_PIFList, DoubleList *_VDList, const char *Filename, ClassCode *cls, const char *member, bool is_unserialized = false);
     int Optimize();
     int OptimizeMemoryUsage();
-    int CanInline(ClassMember *owner);
+    int CanInline(ClassMember *owner, const char **remotename);
     AnsiString DEBUG_INFO();
 
     ~Optimizer();
