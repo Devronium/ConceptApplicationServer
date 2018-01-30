@@ -97,15 +97,18 @@ static SLJIT_INLINE void free_chunk(void *chunk, sljit_uw size)
 static SLJIT_INLINE void* alloc_chunk(sljit_uw size)
 {
 	void *retval;
-
 #ifdef MAP_ANON
 	retval = mmap(NULL, size, PROT_READ | PROT_WRITE | PROT_EXEC, MAP_PRIVATE | MAP_ANON, -1, 0);
 #else
-	if (dev_zero < 0) {
-		if (open_dev_zero())
-			return NULL;
-	}
-	retval = mmap(NULL, size, PROT_READ | PROT_WRITE | PROT_EXEC, MAP_PRIVATE, dev_zero, 0);
+#define MAP_ANON  0x20 
+	retval = mmap(NULL, size, PROT_READ | PROT_WRITE | PROT_EXEC, MAP_PRIVATE | MAP_ANON, -1, 0);
+    if (retval == MAP_FAILED) {
+	    if (dev_zero < 0) {
+		    if (open_dev_zero())
+			    return NULL;
+	    }
+	    retval = mmap(NULL, size, PROT_READ | PROT_WRITE | PROT_EXEC, MAP_PRIVATE, dev_zero, 0);
+    }
 #endif
 
 	return (retval != MAP_FAILED) ? retval : NULL;
