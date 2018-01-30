@@ -31,12 +31,13 @@ public:
     }
 
     intptr_t find(const char *str) {
-        if (!htable)
+        khash_t (strhashtable) *handle = htable;
+        if (!handle)
             return 0;
 
-        khiter_t k = kh_get(strhashtable, htable, str ? str : "");
-        if (k != kh_end(htable))
-            return kh_val(htable, k);
+        khiter_t k = kh_get(strhashtable, handle, str);
+        if (k != kh_end(handle))
+            return kh_val(handle, k);
         return 0;
     }
 
@@ -45,10 +46,8 @@ public:
     }
 
     intptr_t add(const char *str, intptr_t index, int len = -1) {
-        if (!str) {
-            str = "";
-            len = -1;
-        }
+        if ((!str) || (!str[0]))
+            return -1;
 
         khash_t (strhashtable) *handle = hash();
         if (!handle)
@@ -78,8 +77,7 @@ public:
     intptr_t erase(const char *str) {
         if (!htable)
             return 0;
-        if (!str)
-            str = "";
+
         khiter_t k = kh_get(strhashtable, htable, str);
         intptr_t index = 0;
         if (k != kh_end(htable)) {
@@ -145,4 +143,3 @@ public:
 };
 
 #endif // __HASHTABLE_H
-

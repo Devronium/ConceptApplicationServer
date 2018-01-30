@@ -1256,14 +1256,14 @@ INTEGER PIFAlizator::BuildFunction(ClassCode *CC, AnsiParser *P, INTEGER on_line
             IS_CONSTANT = 1;
         } else
         if (TYPE == TYPE_STRING) {
-            AnsiString strip;
-            StripString(&sPARSE, strip);
-            int    pos = (int)NumberConstantMap[strip.c_str()];
+            int    pos = (int)NumberConstantMap[sPARSE.c_str()];
             if (pos > 0) {
                 _ID = pos;
             } else {
                 VariableDESCRIPTOR *VD = new VariableDESCRIPTOR;
                 //AnsiString strip=StripString(&sPARSE)
+                AnsiString strip;
+                StripString(&sPARSE, strip);
                 if (strip.Length()) {
                     VD->value.LoadBuffer(strip.c_str(), strip.Length());
                 }
@@ -1279,8 +1279,7 @@ INTEGER PIFAlizator::BuildFunction(ClassCode *CC, AnsiParser *P, INTEGER on_line
 
                 VDList->Add(VD, DATA_VAR_DESCRIPTOR);
                 _ID = VDList->Count();
-                if (strip.Length() < 0x100)
-                    NumberConstantMap.add(strip.c_str(), _ID, strip.Length());
+                NumberConstantMap.add(sPARSE.c_str(), _ID, strip.Length());
             }
             TYPE        = TYPE_VARIABLE;
             IS_CONSTANT = 1;
