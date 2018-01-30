@@ -1279,7 +1279,8 @@ INTEGER PIFAlizator::BuildFunction(ClassCode *CC, AnsiParser *P, INTEGER on_line
 
                 VDList->Add(VD, DATA_VAR_DESCRIPTOR);
                 _ID = VDList->Count();
-                NumberConstantMap.add(sPARSE.c_str(), _ID, strip.Length());
+                if (sPARSE.Length() < 0x100)
+                    NumberConstantMap.add(sPARSE.c_str(), _ID, sPARSE.Length());
             }
             TYPE        = TYPE_VARIABLE;
             IS_CONSTANT = 1;
