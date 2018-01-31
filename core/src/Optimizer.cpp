@@ -1876,7 +1876,7 @@ int Optimizer::CanInline(ClassMember *owner, const char **remotename) {
                 return 0;
 
             OE2 = &CODE[1];
-            if ((!OE2) || (OE2->Operator.TYPE != TYPE_OPTIMIZED_KEYWORD) || (OE2->Operator.ID != KEY_OPTIMIZED_RETURN) && 
+            if ((!OE2) || (OE2->Operator.TYPE != TYPE_OPTIMIZED_KEYWORD) || (OE2->Operator.ID != KEY_OPTIMIZED_RETURN) || 
                 (OE2->OperandRight.ID != OE->Result_ID))
                 return 0;
 

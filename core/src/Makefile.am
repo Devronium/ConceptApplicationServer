@@ -1,5 +1,6 @@
 # what flags you want to pass to the C compiler & linker
-AM_CFLAGS = --pedantic -Wall -std=c99 -O2 -fPIC
+AM_CFLAGS = --pedantic -Wall -std=c99 -O3 -fPIC -fno-strict-aliasing -fomit-frame-pointer
+AM_CXXFLAGS = -O3 -fPIC -fno-strict-aliasing -fomit-frame-pointer
 #AM_LDFLAGS = -shared
 
 # this lists the binaries to produce, the (non-PHONY, binary) targets in
