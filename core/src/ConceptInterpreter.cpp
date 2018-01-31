@@ -3552,7 +3552,6 @@ int ConceptInterpreter::StacklessInterpret(PIFAlizator *PIF, GreenThreadCycle *G
                                 // CLASS_CHECK_RESET(LOCAL_CONTEXT [OE->Result_ID - 1], pushed_type)
                                 // ------------------- //
                                 if (CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft.ID - 1]).Length()) {
-                                    LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA = NULL;
                                     CONCEPT_STRING(LOCAL_CONTEXT [OE->Result_ID - 1]) = CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft.ID - 1]);
                                     LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE           = VARIABLE_STRING;
                                     DECLARE_PATH(VARIABLE_STRING);
@@ -4127,6 +4126,7 @@ int ConceptInterpreter::StacklessInterpret(PIFAlizator *PIF, GreenThreadCycle *G
                                         break;
 
                                     case VARIABLE_STRING:
+                                        LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA     = NULL;
                                         CONCEPT_STRING(LOCAL_CONTEXT [OE->Result_ID - 1]) = CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandRight.ID - 1]);
                                         LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE           = VARIABLE_STRING;
                                         DECLARE_PATH(VARIABLE_STRING);
@@ -6338,6 +6338,7 @@ VariableDATA *ConceptInterpreter::Interpret(PIFAlizator *PIF, VariableDATA **LOC
                                     break;
 
                                 case VARIABLE_STRING:
+                                    LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA     = NULL;
                                     CONCEPT_STRING(LOCAL_CONTEXT [OE->Result_ID - 1]) = CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandRight.ID - 1]);
                                     LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE           = VARIABLE_STRING;
                                     DECLARE_PATH(VARIABLE_STRING);
