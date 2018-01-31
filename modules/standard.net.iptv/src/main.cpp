@@ -762,6 +762,8 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(M2TSDemux, 1, 7)
                                 int header_size = start - buf_start;
                                 int remaining = 188 - header_size;
                                 int extra_packets = 0;
+                                if (remaining < 0)
+                                    remaining = 0;
 
                                 unsigned char *ref_str = (unsigned char *)str;
                                 // 4 bytes crc
@@ -945,7 +947,11 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(M2TSDemux, 1, 7)
                                                                 case 0x52:
                                                                 case 0x81:
                                                                     es_len -= ref_str[start + es_offset + 1] + 2;
+                                                                    if (es_len < 0)
+                                                                        es_len = 0;
                                                                     es_offset += ref_str[start + es_offset + 1] + 2;
+                                                                    if (es_offset > es_len)
+                                                                        es_offset = 0;
                                                                     break;
                                                                 case 0x0A:
                                                                 case 0x56:
@@ -953,6 +959,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(M2TSDemux, 1, 7)
                                                                     if (es_len > 3)
                                                                         Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, newpData2, "language", (INTEGER)VARIABLE_STRING, (char *)&ref_str[start + 2 + es_offset], (NUMBER)3);
                                                                     else
+                                                                    if (es_len > 0)
                                                                         Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, newpData2, "language", (INTEGER)VARIABLE_STRING, (char *)&ref_str[start + 2 + es_offset], (NUMBER)es_len);
                                                                     do_break = 1;
                                                                     break;
