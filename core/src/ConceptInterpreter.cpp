@@ -3032,27 +3032,27 @@ int ConceptInterpreter::StacklessInterpret(PIFAlizator *PIF, GreenThreadCycle *G
                         LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE = VARIABLE_STRING;
                         switch (LOCAL_CONTEXT [OE->OperandLeft.ID - 1]->TYPE) {
                             case VARIABLE_NUMBER:
-                                CONCEPT_STRING(LOCAL_CONTEXT [OE->Result_ID - 1]) = "numeric";
+                                NEW_CONCEPT_STRING(LOCAL_CONTEXT [OE->Result_ID - 1]) = "numeric";
                                 break;
 
                             case VARIABLE_STRING:
-                                CONCEPT_STRING(LOCAL_CONTEXT [OE->Result_ID - 1]) = "string";
+                                NEW_CONCEPT_STRING(LOCAL_CONTEXT [OE->Result_ID - 1]) = "string";
                                 break;
 
                             case VARIABLE_CLASS:
-                                CONCEPT_STRING(LOCAL_CONTEXT [OE->Result_ID - 1]) = "class";
+                                NEW_CONCEPT_STRING(LOCAL_CONTEXT [OE->Result_ID - 1]) = "class";
                                 break;
 
                             case VARIABLE_ARRAY:
-                                CONCEPT_STRING(LOCAL_CONTEXT [OE->Result_ID - 1]) = "array";
+                                NEW_CONCEPT_STRING(LOCAL_CONTEXT [OE->Result_ID - 1]) = "array";
                                 break;
 
                             case VARIABLE_DELEGATE:
-                                CONCEPT_STRING(LOCAL_CONTEXT [OE->Result_ID - 1]) = "delegate";
+                                NEW_CONCEPT_STRING(LOCAL_CONTEXT [OE->Result_ID - 1]) = "delegate";
                                 break;
 
                             default:
-                                CONCEPT_STRING(LOCAL_CONTEXT [OE->Result_ID - 1]) = "";
+                                NEW_CONCEPT_STRING(LOCAL_CONTEXT [OE->Result_ID - 1]) = "";
                         }
                         DECLARE_PATH(VARIABLE_STRING);
                         continue;
@@ -3064,10 +3064,10 @@ int ConceptInterpreter::StacklessInterpret(PIFAlizator *PIF, GreenThreadCycle *G
                         //==================//
                         LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE = VARIABLE_STRING;
                         if (LOCAL_CONTEXT [OE->OperandLeft.ID - 1]->TYPE != VARIABLE_CLASS) {
-                            CONCEPT_STRING(LOCAL_CONTEXT [OE->Result_ID - 1]) = "";
+                            NEW_CONCEPT_STRING(LOCAL_CONTEXT [OE->Result_ID - 1]) = "";
                         } else {
                             CCTEMP = (CompiledClass *)LOCAL_CONTEXT [OE->OperandLeft.ID - 1]->CLASS_DATA;
-                            CONCEPT_STRING(LOCAL_CONTEXT [OE->Result_ID - 1]) = CCTEMP->_Class->NAME.c_str();
+                            NEW_CONCEPT_STRING(LOCAL_CONTEXT [OE->Result_ID - 1]) = CCTEMP->_Class->NAME.c_str();
                         }
                         DECLARE_PATH(VARIABLE_STRING);
                         continue;
@@ -3226,7 +3226,7 @@ int ConceptInterpreter::StacklessInterpret(PIFAlizator *PIF, GreenThreadCycle *G
 
                             case KEY_INC:
                                 if (CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft.ID - 1]).Length()) {
-                                    CONCEPT_STRING(LOCAL_CONTEXT [OE->Result_ID - 1]).LoadBuffer(CONCEPT_C_STRING(LOCAL_CONTEXT [OE->OperandLeft.ID - 1]) + 1, CONCEPT_C_LENGTH(LOCAL_CONTEXT [OE->OperandLeft.ID - 1]) - 1);
+                                    NEW_CONCEPT_STRING(LOCAL_CONTEXT [OE->Result_ID - 1]).LoadBuffer(CONCEPT_C_STRING(LOCAL_CONTEXT [OE->OperandLeft.ID - 1]) + 1, CONCEPT_C_LENGTH(LOCAL_CONTEXT [OE->OperandLeft.ID - 1]) - 1);
                                     CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft.ID - 1]) = CONCEPT_STRING(LOCAL_CONTEXT [OE->Result_ID - 1]);
                                     //----------------//
                                     PROPERTY_CODE(THIS_REF, TARGET_THREAD->PROPERTIES)
@@ -3237,7 +3237,7 @@ int ConceptInterpreter::StacklessInterpret(PIFAlizator *PIF, GreenThreadCycle *G
 
                             case KEY_INC_LEFT:
                                 if (CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft.ID - 1]).Length()) {
-                                    CONCEPT_STRING(LOCAL_CONTEXT [OE->Result_ID - 1]) = CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft.ID - 1]);
+                                    NEW_CONCEPT_STRING(LOCAL_CONTEXT [OE->Result_ID - 1]) = CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft.ID - 1]);
                                     CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft.ID - 1]).LoadBuffer(CONCEPT_C_STRING(LOCAL_CONTEXT [OE->Result_ID - 1]) + 1, CONCEPT_C_LENGTH(LOCAL_CONTEXT [OE->OperandLeft.ID - 1]) - 1);
                                     //----------------//
                                     PROPERTY_CODE_LEFT(THIS_REF, TARGET_THREAD->PROPERTIES)
@@ -3250,12 +3250,12 @@ int ConceptInterpreter::StacklessInterpret(PIFAlizator *PIF, GreenThreadCycle *G
                             case KEY_SUM:
                                 switch (LOCAL_CONTEXT [OE->OperandRight.ID - 1]->TYPE) {
                                     case VARIABLE_STRING:
-                                        CONCEPT_STRING(LOCAL_CONTEXT [OE->Result_ID - 1]).Sum(CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft.ID - 1]), CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandRight.ID - 1]));
+                                        NEW_CONCEPT_STRING(LOCAL_CONTEXT [OE->Result_ID - 1]).Sum(CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft.ID - 1]), CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandRight.ID - 1]));
                                         DECLARE_PATH(VARIABLE_STRING);
                                         break;
 
                                     case VARIABLE_NUMBER:
-                                        CONCEPT_STRING(LOCAL_CONTEXT [OE->Result_ID - 1]) = CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft.ID - 1]) + AnsiString(LOCAL_CONTEXT [OE->OperandRight.ID - 1]->NUMBER_DATA);
+                                        NEW_CONCEPT_STRING(LOCAL_CONTEXT [OE->Result_ID - 1]) = CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft.ID - 1]) + AnsiString(LOCAL_CONTEXT [OE->OperandRight.ID - 1]->NUMBER_DATA);
                                         DECLARE_PATH(VARIABLE_STRING);
                                         break;
 
@@ -3422,8 +3422,8 @@ int ConceptInterpreter::StacklessInterpret(PIFAlizator *PIF, GreenThreadCycle *G
                                         break;
 
                                     case VARIABLE_NUMBER:
-                                        CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft.ID - 1]) = CONCEPT_STRING(LOCAL_CONTEXT [OE->Result_ID - 1]);
-                                        CONCEPT_STRING(LOCAL_CONTEXT [OE->Result_ID - 1])      = AnsiString(LOCAL_CONTEXT [OE->OperandLeft.ID - 1]->NUMBER_DATA);
+                                        CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft.ID - 1]) = AnsiString(LOCAL_CONTEXT [OE->OperandRight.ID - 1]->NUMBER_DATA);;
+                                        NEW_CONCEPT_STRING(LOCAL_CONTEXT [OE->Result_ID - 1])      = CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft.ID - 1]);
                                         //----------------------------------------------------------------------------------------//
                                         UPDATE_STRING_VARIABLE_THAT_HAS_INDEX(THIS_REF, LOCAL_CONTEXT [OE->OperandLeft.ID - 1], TARGET_THREAD->PROPERTIES);
                                         //----------------------------------------------------------------------------------------//
@@ -3456,7 +3456,7 @@ int ConceptInterpreter::StacklessInterpret(PIFAlizator *PIF, GreenThreadCycle *G
 
                                     case VARIABLE_NUMBER:
                                         CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft.ID - 1]) += AnsiString(LOCAL_CONTEXT [OE->OperandRight.ID - 1]->NUMBER_DATA);
-                                        CONCEPT_STRING(LOCAL_CONTEXT [OE->Result_ID - 1])       = CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft.ID - 1]);
+                                        NEW_CONCEPT_STRING(LOCAL_CONTEXT [OE->Result_ID - 1])       = CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft.ID - 1]);
                                         DECLARE_PATH(VARIABLE_STRING);
                                         break;
 
@@ -3474,13 +3474,13 @@ int ConceptInterpreter::StacklessInterpret(PIFAlizator *PIF, GreenThreadCycle *G
                             case KEY_INDEX_OPEN:
                                 switch (LOCAL_CONTEXT [OE->OperandRight.ID - 1]->TYPE) {
                                     case VARIABLE_NUMBER:
-                                        CONCEPT_STRING(LOCAL_CONTEXT [OE->Result_ID - 1]) = CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft.ID - 1]) [(D_LONG_TYPE)LOCAL_CONTEXT [OE->OperandRight.ID - 1]->NUMBER_DATA];
+                                        NEW_CONCEPT_STRING(LOCAL_CONTEXT [OE->Result_ID - 1]) = CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft.ID - 1]) [(D_LONG_TYPE)LOCAL_CONTEXT [OE->OperandRight.ID - 1]->NUMBER_DATA];
                                         ((AnsiString *)LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA)->EXTRA_DATA = INSTRUCTION_POINTER;
                                         DECLARE_PATH(VARIABLE_STRING);
                                         break;
 
                                     case VARIABLE_STRING:
-                                        CONCEPT_STRING(LOCAL_CONTEXT [OE->Result_ID - 1]) = CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft.ID - 1]) [CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandRight.ID - 1]).ToInt()];
+                                        NEW_CONCEPT_STRING(LOCAL_CONTEXT [OE->Result_ID - 1]) = CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft.ID - 1]) [CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandRight.ID - 1]).ToInt()];
                                         ((AnsiString *)LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA)->EXTRA_DATA = INSTRUCTION_POINTER;
                                         DECLARE_PATH(VARIABLE_STRING);
                                         break;
@@ -3552,7 +3552,7 @@ int ConceptInterpreter::StacklessInterpret(PIFAlizator *PIF, GreenThreadCycle *G
                                 // CLASS_CHECK_RESET(LOCAL_CONTEXT [OE->Result_ID - 1], pushed_type)
                                 // ------------------- //
                                 if (CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft.ID - 1]).Length()) {
-                                    CONCEPT_STRING(LOCAL_CONTEXT [OE->Result_ID - 1]) = CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft.ID - 1]);
+                                    NEW_CONCEPT_STRING(LOCAL_CONTEXT [OE->Result_ID - 1]) = CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft.ID - 1]);
                                     LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE           = VARIABLE_STRING;
                                     DECLARE_PATH(VARIABLE_STRING);
                                     continue;
@@ -3565,7 +3565,7 @@ int ConceptInterpreter::StacklessInterpret(PIFAlizator *PIF, GreenThreadCycle *G
                                         break;
 
                                     case VARIABLE_STRING:
-                                        CONCEPT_STRING(LOCAL_CONTEXT [OE->Result_ID - 1]) = CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandRight.ID - 1]);
+                                        NEW_CONCEPT_STRING(LOCAL_CONTEXT [OE->Result_ID - 1]) = CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandRight.ID - 1]);
                                         LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE           = VARIABLE_STRING;
                                         DECLARE_PATH(VARIABLE_STRING);
                                         break;
@@ -4126,8 +4126,7 @@ int ConceptInterpreter::StacklessInterpret(PIFAlizator *PIF, GreenThreadCycle *G
                                         break;
 
                                     case VARIABLE_STRING:
-                                        LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA     = NULL;
-                                        CONCEPT_STRING(LOCAL_CONTEXT [OE->Result_ID - 1]) = CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandRight.ID - 1]);
+                                        NEW_CONCEPT_STRING(LOCAL_CONTEXT [OE->Result_ID - 1]) = CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandRight.ID - 1]);
                                         LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE           = VARIABLE_STRING;
                                         DECLARE_PATH(VARIABLE_STRING);
                                         break;
@@ -4785,8 +4784,7 @@ int ConceptInterpreter::EvalNumberExpression(PIFAlizator *PIF, VariableDATA **LO
                     break;
 
                 case VARIABLE_STRING:
-                    LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA = NULL;
-                    CONCEPT_STRING(LOCAL_CONTEXT [OE->Result_ID - 1]) = CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandRight.ID - 1]);
+                    NEW_CONCEPT_STRING(LOCAL_CONTEXT [OE->Result_ID - 1]) = CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandRight.ID - 1]);
                     LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE           = VARIABLE_STRING;
                     break;
 
@@ -5241,27 +5239,27 @@ VariableDATA *ConceptInterpreter::Interpret(PIFAlizator *PIF, VariableDATA **LOC
                     LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE = VARIABLE_STRING;
                     switch (LOCAL_CONTEXT [OE->OperandLeft.ID - 1]->TYPE) {
                         case VARIABLE_NUMBER:
-                            CONCEPT_STRING(LOCAL_CONTEXT [OE->Result_ID - 1]) = "numeric";
+                            NEW_CONCEPT_STRING(LOCAL_CONTEXT [OE->Result_ID - 1]) = "numeric";
                             break;
 
                         case VARIABLE_STRING:
-                            CONCEPT_STRING(LOCAL_CONTEXT [OE->Result_ID - 1]) = "string";
+                            NEW_CONCEPT_STRING(LOCAL_CONTEXT [OE->Result_ID - 1]) = "string";
                             break;
 
                         case VARIABLE_CLASS:
-                            CONCEPT_STRING(LOCAL_CONTEXT [OE->Result_ID - 1]) = "class";
+                            NEW_CONCEPT_STRING(LOCAL_CONTEXT [OE->Result_ID - 1]) = "class";
                             break;
 
                         case VARIABLE_ARRAY:
-                            CONCEPT_STRING(LOCAL_CONTEXT [OE->Result_ID - 1]) = "array";
+                            NEW_CONCEPT_STRING(LOCAL_CONTEXT [OE->Result_ID - 1]) = "array";
                             break;
 
                         case VARIABLE_DELEGATE:
-                            CONCEPT_STRING(LOCAL_CONTEXT [OE->Result_ID - 1]) = "delegate";
+                            NEW_CONCEPT_STRING(LOCAL_CONTEXT [OE->Result_ID - 1]) = "delegate";
                             break;
 
                         default:
-                            CONCEPT_STRING(LOCAL_CONTEXT [OE->Result_ID - 1]) = "";
+                            NEW_CONCEPT_STRING(LOCAL_CONTEXT [OE->Result_ID - 1]) = "";
                     }
                     DECLARE_PATH(VARIABLE_STRING);
                     continue;
@@ -5273,10 +5271,10 @@ VariableDATA *ConceptInterpreter::Interpret(PIFAlizator *PIF, VariableDATA **LOC
                     //==================//
                     LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE = VARIABLE_STRING;
                     if (LOCAL_CONTEXT [OE->OperandLeft.ID - 1]->TYPE != VARIABLE_CLASS) {
-                        CONCEPT_STRING(LOCAL_CONTEXT [OE->Result_ID - 1]) = "";
+                        NEW_CONCEPT_STRING(LOCAL_CONTEXT [OE->Result_ID - 1]) = "";
                     } else {
                         CCTEMP = (CompiledClass *)LOCAL_CONTEXT [OE->OperandLeft.ID - 1]->CLASS_DATA;
-                        CONCEPT_STRING(LOCAL_CONTEXT [OE->Result_ID - 1]) = CCTEMP->_Class->NAME.c_str();
+                        NEW_CONCEPT_STRING(LOCAL_CONTEXT [OE->Result_ID - 1]) = CCTEMP->_Class->NAME.c_str();
                     }
                     DECLARE_PATH(VARIABLE_STRING);
                     continue;
@@ -5434,7 +5432,7 @@ VariableDATA *ConceptInterpreter::Interpret(PIFAlizator *PIF, VariableDATA **LOC
 
                         case KEY_INC:
                             if (CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft.ID - 1]).Length()) {
-                                CONCEPT_STRING(LOCAL_CONTEXT [OE->Result_ID - 1]).LoadBuffer(CONCEPT_C_STRING(LOCAL_CONTEXT [OE->OperandLeft.ID - 1]) + 1, CONCEPT_C_LENGTH(LOCAL_CONTEXT [OE->OperandLeft.ID - 1]) - 1);
+                                NEW_CONCEPT_STRING(LOCAL_CONTEXT [OE->Result_ID - 1]).LoadBuffer(CONCEPT_C_STRING(LOCAL_CONTEXT [OE->OperandLeft.ID - 1]) + 1, CONCEPT_C_LENGTH(LOCAL_CONTEXT [OE->OperandLeft.ID - 1]) - 1);
                                 CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft.ID - 1]) = CONCEPT_STRING(LOCAL_CONTEXT [OE->Result_ID - 1]);
                                 //----------------//
                                 PROPERTY_CODE(this, PROPERTIES)
@@ -5445,7 +5443,7 @@ VariableDATA *ConceptInterpreter::Interpret(PIFAlizator *PIF, VariableDATA **LOC
 
                         case KEY_INC_LEFT:
                             if (CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft.ID - 1]).Length()) {
-                                CONCEPT_STRING(LOCAL_CONTEXT [OE->Result_ID - 1]) = CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft.ID - 1]);
+                                NEW_CONCEPT_STRING(LOCAL_CONTEXT [OE->Result_ID - 1]) = CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft.ID - 1]);
                                 CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft.ID - 1]).LoadBuffer(CONCEPT_C_STRING(LOCAL_CONTEXT [OE->Result_ID - 1]) + 1, CONCEPT_C_LENGTH(LOCAL_CONTEXT [OE->OperandLeft.ID - 1]) - 1);
                                 //----------------//
                                 PROPERTY_CODE_LEFT(this, PROPERTIES)
@@ -5458,12 +5456,12 @@ VariableDATA *ConceptInterpreter::Interpret(PIFAlizator *PIF, VariableDATA **LOC
                         case KEY_SUM:
                             switch (LOCAL_CONTEXT [OE->OperandRight.ID - 1]->TYPE) {
                                 case VARIABLE_STRING:
-                                    CONCEPT_STRING(LOCAL_CONTEXT [OE->Result_ID - 1]).Sum(CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft.ID - 1]), CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandRight.ID - 1]));
+                                    NEW_CONCEPT_STRING(LOCAL_CONTEXT [OE->Result_ID - 1]).Sum(CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft.ID - 1]), CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandRight.ID - 1]));
                                     DECLARE_PATH(VARIABLE_STRING);
                                     break;
 
                                 case VARIABLE_NUMBER:
-                                    CONCEPT_STRING(LOCAL_CONTEXT [OE->Result_ID - 1]) = CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft.ID - 1]) + AnsiString(LOCAL_CONTEXT [OE->OperandRight.ID - 1]->NUMBER_DATA);
+                                    NEW_CONCEPT_STRING(LOCAL_CONTEXT [OE->Result_ID - 1]) = CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft.ID - 1]) + AnsiString(LOCAL_CONTEXT [OE->OperandRight.ID - 1]->NUMBER_DATA);
                                     DECLARE_PATH(VARIABLE_STRING);
                                     break;
 
@@ -5630,8 +5628,8 @@ VariableDATA *ConceptInterpreter::Interpret(PIFAlizator *PIF, VariableDATA **LOC
                                     break;
 
                                 case VARIABLE_NUMBER:
-                                    CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft.ID - 1]) = CONCEPT_STRING(LOCAL_CONTEXT [OE->Result_ID - 1]);
-                                    CONCEPT_STRING(LOCAL_CONTEXT [OE->Result_ID - 1])      = AnsiString(LOCAL_CONTEXT [OE->OperandLeft.ID - 1]->NUMBER_DATA);
+                                    CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft.ID - 1]) = AnsiString(LOCAL_CONTEXT [OE->OperandRight.ID - 1]->NUMBER_DATA);;
+                                    NEW_CONCEPT_STRING(LOCAL_CONTEXT [OE->Result_ID - 1])      = CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft.ID - 1]);
                                     //----------------------------------------------------------------------------------------//
                                     UPDATE_STRING_VARIABLE_THAT_HAS_INDEX(this, LOCAL_CONTEXT [OE->OperandLeft.ID - 1], PROPERTIES);
                                     //----------------------------------------------------------------------------------------//
@@ -5664,7 +5662,7 @@ VariableDATA *ConceptInterpreter::Interpret(PIFAlizator *PIF, VariableDATA **LOC
 
                                 case VARIABLE_NUMBER:
                                     CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft.ID - 1]) += AnsiString(LOCAL_CONTEXT [OE->OperandRight.ID - 1]->NUMBER_DATA);
-                                    CONCEPT_STRING(LOCAL_CONTEXT [OE->Result_ID - 1])       = CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft.ID - 1]);
+                                    NEW_CONCEPT_STRING(LOCAL_CONTEXT [OE->Result_ID - 1])       = CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft.ID - 1]);
                                     DECLARE_PATH(VARIABLE_STRING);
                                     break;
 
@@ -5682,13 +5680,13 @@ VariableDATA *ConceptInterpreter::Interpret(PIFAlizator *PIF, VariableDATA **LOC
                         case KEY_INDEX_OPEN:
                             switch (LOCAL_CONTEXT [OE->OperandRight.ID - 1]->TYPE) {
                                 case VARIABLE_NUMBER:
-                                    CONCEPT_STRING(LOCAL_CONTEXT [OE->Result_ID - 1]) = CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft.ID - 1]) [(D_LONG_TYPE)LOCAL_CONTEXT [OE->OperandRight.ID - 1]->NUMBER_DATA];
+                                    NEW_CONCEPT_STRING(LOCAL_CONTEXT [OE->Result_ID - 1]) = CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft.ID - 1]) [(D_LONG_TYPE)LOCAL_CONTEXT [OE->OperandRight.ID - 1]->NUMBER_DATA];
                                     ((AnsiString *)LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA)->EXTRA_DATA = INSTRUCTION_POINTER;
                                     DECLARE_PATH(VARIABLE_STRING);
                                     break;
 
                                 case VARIABLE_STRING:
-                                    CONCEPT_STRING(LOCAL_CONTEXT [OE->Result_ID - 1]) = CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft.ID - 1]) [CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandRight.ID - 1]).ToInt()];
+                                    NEW_CONCEPT_STRING(LOCAL_CONTEXT [OE->Result_ID - 1]) = CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft.ID - 1]) [CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandRight.ID - 1]).ToInt()];
                                     ((AnsiString *)LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA)->EXTRA_DATA = INSTRUCTION_POINTER;
                                     DECLARE_PATH(VARIABLE_STRING);
                                     break;
@@ -5760,7 +5758,7 @@ VariableDATA *ConceptInterpreter::Interpret(PIFAlizator *PIF, VariableDATA **LOC
                             // CLASS_CHECK_RESET(LOCAL_CONTEXT [OE->Result_ID - 1], LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE)
                             // ------------------- //
                             if (CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft.ID - 1]).Length()) {
-                                CONCEPT_STRING(LOCAL_CONTEXT [OE->Result_ID - 1]) = CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft.ID - 1]);
+                                NEW_CONCEPT_STRING(LOCAL_CONTEXT [OE->Result_ID - 1]) = CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft.ID - 1]);
                                 LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE           = VARIABLE_STRING;
                                 DECLARE_PATH(VARIABLE_STRING);
                                 continue;
@@ -5773,7 +5771,7 @@ VariableDATA *ConceptInterpreter::Interpret(PIFAlizator *PIF, VariableDATA **LOC
                                     break;
 
                                 case VARIABLE_STRING:
-                                    CONCEPT_STRING(LOCAL_CONTEXT [OE->Result_ID - 1]) = CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandRight.ID - 1]);
+                                    NEW_CONCEPT_STRING(LOCAL_CONTEXT [OE->Result_ID - 1]) = CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandRight.ID - 1]);
                                     LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE           = VARIABLE_STRING;
                                     DECLARE_PATH(VARIABLE_STRING);
                                     break;
@@ -6338,8 +6336,7 @@ VariableDATA *ConceptInterpreter::Interpret(PIFAlizator *PIF, VariableDATA **LOC
                                     break;
 
                                 case VARIABLE_STRING:
-                                    LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA     = NULL;
-                                    CONCEPT_STRING(LOCAL_CONTEXT [OE->Result_ID - 1]) = CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandRight.ID - 1]);
+                                    NEW_CONCEPT_STRING(LOCAL_CONTEXT [OE->Result_ID - 1]) = CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandRight.ID - 1]);
                                     LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE           = VARIABLE_STRING;
                                     DECLARE_PATH(VARIABLE_STRING);
                                     break;

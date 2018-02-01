@@ -9,6 +9,7 @@
 #include "ConceptPools.h"
 
 #define CONCEPT_STRING(VARIABLE)            (VARIABLE->CLASS_DATA ? (*((AnsiString *)VARIABLE->CLASS_DATA)) : *((AnsiString *)(VARIABLE->CLASS_DATA = new AnsiString())))
+#define NEW_CONCEPT_STRING(VARIABLE)        (*((AnsiString *)(VARIABLE->CLASS_DATA = new AnsiString())))
 #define CONCEPT_C_STRING(VARIABLE)          (VARIABLE->CLASS_DATA ? ((AnsiString *)VARIABLE->CLASS_DATA)->c_str() : "")
 #define CONCEPT_C_LENGTH(VARIABLE)          (VARIABLE->CLASS_DATA ? ((AnsiString *)VARIABLE->CLASS_DATA)->Length() : 0)
 //---------------------------------------------------------
