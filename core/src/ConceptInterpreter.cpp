@@ -3421,14 +3421,15 @@ int ConceptInterpreter::StacklessInterpret(PIFAlizator *PIF, GreenThreadCycle *G
                                         DECLARE_PATH(VARIABLE_STRING);
                                         break;
 
-                                    case VARIABLE_NUMBER:
-                                        CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft.ID - 1]) = AnsiString(LOCAL_CONTEXT [OE->OperandRight.ID - 1]->NUMBER_DATA);;
-                                        NEW_CONCEPT_STRING(LOCAL_CONTEXT [OE->Result_ID - 1])      = CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft.ID - 1]);
-                                        //----------------------------------------------------------------------------------------//
-                                        UPDATE_STRING_VARIABLE_THAT_HAS_INDEX(THIS_REF, LOCAL_CONTEXT [OE->OperandLeft.ID - 1], TARGET_THREAD->PROPERTIES);
-                                        //----------------------------------------------------------------------------------------//
-                                        DECLARE_PATH(VARIABLE_STRING);
-                                        break;
+                                    // Does not get executed (see above)
+                                    // case VARIABLE_NUMBER:
+                                    //     CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft.ID - 1]) = AnsiString(LOCAL_CONTEXT [OE->OperandRight.ID - 1]->NUMBER_DATA);;
+                                    //     NEW_CONCEPT_STRING(LOCAL_CONTEXT [OE->Result_ID - 1])      = CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft.ID - 1]);
+                                    //     //----------------------------------------------------------------------------------------//
+                                    //     UPDATE_STRING_VARIABLE_THAT_HAS_INDEX(THIS_REF, LOCAL_CONTEXT [OE->OperandLeft.ID - 1], TARGET_THREAD->PROPERTIES);
+                                    //     //----------------------------------------------------------------------------------------//
+                                    //     DECLARE_PATH(VARIABLE_STRING);
+                                    //     break;
 
                                     default:
                                         DECLARE_PATH(0x20);
@@ -5627,14 +5628,15 @@ VariableDATA *ConceptInterpreter::Interpret(PIFAlizator *PIF, VariableDATA **LOC
                                     DECLARE_PATH(VARIABLE_STRING);
                                     break;
 
-                                case VARIABLE_NUMBER:
-                                    CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft.ID - 1]) = AnsiString(LOCAL_CONTEXT [OE->OperandRight.ID - 1]->NUMBER_DATA);;
-                                    NEW_CONCEPT_STRING(LOCAL_CONTEXT [OE->Result_ID - 1])      = CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft.ID - 1]);
-                                    //----------------------------------------------------------------------------------------//
-                                    UPDATE_STRING_VARIABLE_THAT_HAS_INDEX(this, LOCAL_CONTEXT [OE->OperandLeft.ID - 1], PROPERTIES);
-                                    //----------------------------------------------------------------------------------------//
-                                    DECLARE_PATH(VARIABLE_STRING);
-                                    break;
+                                // Does not get executed (see above)
+                                // case VARIABLE_NUMBER:
+                                //     CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft.ID - 1]) = AnsiString(LOCAL_CONTEXT [OE->OperandRight.ID - 1]->NUMBER_DATA);;
+                                //     NEW_CONCEPT_STRING(LOCAL_CONTEXT [OE->Result_ID - 1])      = CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft.ID - 1]);
+                                //     //----------------------------------------------------------------------------------------//
+                                //     UPDATE_STRING_VARIABLE_THAT_HAS_INDEX(this, LOCAL_CONTEXT [OE->OperandLeft.ID - 1], PROPERTIES);
+                                //     //----------------------------------------------------------------------------------------//
+                                //     DECLARE_PATH(VARIABLE_STRING);
+                                //     break;
 
                                 default:
                                     DECLARE_PATH(0x20);
