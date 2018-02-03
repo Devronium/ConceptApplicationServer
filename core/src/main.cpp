@@ -1678,12 +1678,6 @@ CONCEPT_DLL_API Concept_Compile(char *filename, char *inc_dir, char *lib_dir, Fo
             PIF.Errors.Delete(PIF.Errors.Count() - 1);
         }
 
-#ifdef OPTIMIZE_MEMORY
-        if (!PIF.Errors.Count()) {
-            SS.Print("Optimising memory usage ...\n");
-            PIF.OptimizeMemoryUsage();
-        }
-#endif
         if (build_package) {
             SS.Print("Building package ...\n");
         }
@@ -1770,10 +1764,6 @@ CONCEPT_DLL_API Concept_Execute(char *filename, char *inc_dir, char *lib_dir, Fo
         if (!PIF.ErrorCount()) {
             NotifyParent(pipe_out, parent, -1, "Optimizing");
             PIF.Optimize();
-#ifdef OPTIMIZE_MEMORY
-            NotifyParent(pipe_out, parent, -1, "Optimizing memory usage");
-            PIF.OptimizeMemoryUsage();
-#endif
         }
     }
     if (!PIF.ErrorCount()) {
@@ -1890,10 +1880,6 @@ CONCEPT_DLL_API Concept_ExecuteBuffer(char *buffer, int len, char *inc_dir, char
     if (!PIF.ErrorCount()) {
         NotifyParent(pipe_out, parent, -1, "Optimizing");
         PIF.Optimize();
-#ifdef OPTIMIZE_MEMORY
-        NotifyParent(pipe_out, parent, -1, "Optimizing memory usage");
-        PIF.OptimizeMemoryUsage();
-#endif
     }
     if (!PIF.ErrorCount()) {
         PIF.CheckRunable();
@@ -1995,10 +1981,6 @@ CONCEPT_DLL_API_HANDLER Concept_Execute3_Init(char *filename, char *inc_dir, cha
         if (!PIF->ErrorCount()) {
             NotifyParent(pipe_out, parent, -1, "Optimizing");
             PIF->Optimize();
-#ifdef OPTIMIZE_MEMORY
-            NotifyParent(pipe_out, parent, -1, "Optimizing memory usage");
-            PIF.OptimizeMemoryUsage();
-#endif
         }
     }
     if (!PIF->ErrorCount()) {

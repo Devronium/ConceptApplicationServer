@@ -658,7 +658,7 @@ INTEGER Optimizer::OptimizeArray(TempVariableManager *TVM) {
     return 0;
 }
 
-INTEGER Optimizer::OptimizeExpression(TempVariableManager *TVM, INTEGER ID, INTEGER TYPE, INTEGER IS_PARAM_LIST, INTEGER FIRST_CALL, INTEGER FLAGS, AnalizerElement *PREC_METHOD) {
+INTEGER Optimizer::OptimizeExpression(TempVariableManager *TVM, INTEGER ID, INTEGER TYPE, INTEGER IS_PARAM_LIST, INTEGER FIRST_CALL, INTEGER FLAGS, AnalizerElement *PREC_METHOD, signed char may_skip_result) {
     INTEGER         result         = 0;
     INTEGER         START_POSITION = PIF_POSITION;
     INTEGER         PREC_TYPE      = -1;
@@ -671,6 +671,7 @@ INTEGER Optimizer::OptimizeExpression(TempVariableManager *TVM, INTEGER ID, INTE
     INTEGER         PREC_PREC_TYPE = -1;
     INTEGER         PREC_PREC_ID   = -1;
     AnalizerElement *MARKER        = 0;
+    OptimizedElement *LAST_OP      = NULL;
 #ifdef OPTIONAL_SEPARATOR
     INTEGER         VALID_EXPR     = 1;
 #endif
@@ -960,6 +961,8 @@ INTEGER Optimizer::OptimizeExpression(TempVariableManager *TVM, INTEGER ID, INTE
             PIFList->Insert(newAE, idx, DATA_ANALIZER_ELEMENT);
 
             PIF_POSITION -= 2;
+            if (may_skip_result)
+                LAST_OP = OE;
 
             if (AE_ID == KEY_DLL_CALL) {
                 if ((Parameter) && (Parameter->TYPE == TYPE_PARAM_LIST)) {
@@ -1063,6 +1066,10 @@ INTEGER Optimizer::OptimizeExpression(TempVariableManager *TVM, INTEGER ID, INTE
 
             PIFList->Insert(newAE, FIRST_OPERATOR - (OP_TYPE == OPERATOR_UNARY ? 0 : 1), DATA_ANALIZER_ELEMENT);
             PIF_POSITION--;
+
+            if (may_skip_result)
+                LAST_OP = OE;
+
             if ((AE_ID == KEY_NEW) && (Parameter) && (Parameter->TYPE == TYPE_PARAM_LIST)) {
                 CopyElement(Parameter, &OE->OperandReserved);
                 PIF_POSITION--;
@@ -1103,6 +1110,20 @@ INTEGER Optimizer::OptimizeExpression(TempVariableManager *TVM, INTEGER ID, INTE
     if (IS_PARAM_LIST) {
         BuildParameterList(START_POSITION, PREC_METHOD);
         return TYPE_PARAM_LIST;
+    }
+    if ((LAST_OP) && (may_skip_result)) {
+        switch (LAST_OP->Operator.ID) {
+            case KEY_ASG: 
+            case KEY_BY_REF:
+            case KEY_ASU:
+            case KEY_ADI:
+            case KEY_AMU:
+            case KEY_INC:
+            case KEY_DEC:
+            case KEY_SEL:
+                LAST_OP->OperandLeft.TYPE = MAY_IGNORE_RESULT;
+                break;
+        }
     }
     return result;
 }
@@ -1847,7 +1868,7 @@ INTEGER Optimizer::OptimizeAny(TempVariableManager *TVM, INTEGER ID, INTEGER TYP
         OptimizedPIF->Add(OE, DATA_OPTIMIZED_ELEMENT);
     }
     if (AE->TYPE != TYPE_KEYWORD) {
-        return OptimizeExpression(TVM, ID, TYPE, 0, 1, FLAGS);
+        return OptimizeExpression(TVM, ID, TYPE, 0, 1, FLAGS, NULL, 1);
     } else {
         return OptimizeKeyWord(TVM, ID, TYPE);
     }
@@ -1861,7 +1882,7 @@ int Optimizer::CanInline(ClassMember *owner, const char **remotename) {
     if (codeCount == 2) {
         OE = &CODE[0];
         if ((OE) && (OE->Operator.TYPE == TYPE_OPERATOR) && (OE->Operator.ID == KEY_DLL_CALL) && 
-            (OE->OperandLeft.TYPE == TYPE_CLASS) && (OE->OperandLeft.ID == STATIC_CLASS_DLL) && 
+            (OE->OperandLeft.ID == STATIC_CLASS_DLL) && 
             (OE->OperandReserved.TYPE == TYPE_PARAM_LIST) && (OE->OperandReserved.ID <= paramCount)) {
             // check parameters
 
@@ -1911,99 +1932,6 @@ int Optimizer::Optimize() {
     if (PIFOwner->PROFILE_DRIVEN)
         AddProfilerCode(1);
     return 0;
-}
-
-int Optimizer::OptimizeMemoryUsage() {
-    if ((!DATA) || (!CODE)) {
-        return -1;
-    }
-
-    RuntimeOptimizedElement *CUR = 0;
-    int index;
-    RuntimeVariableDESCRIPTOR *VDDATA;
-    char *USAGE_COUNT = 0;
-
-    int optimisation_count = 0;
-    if (dataCount) {
-        USAGE_COUNT = new char [dataCount];
-        for (INTEGER i = 0; i < dataCount; i++) {
-            VDDATA          = &DATA [i];
-            USAGE_COUNT [i] = (VDDATA->USED == (signed char)-2) ? 0 : 2;
-
-            if (!USAGE_COUNT [i]) {
-                optimisation_count++;
-            }
-        }
-    }
-
-    for (INTEGER i = 0; i < codeCount; i++) {
-        CUR = &CODE [i];
-
-        if (CUR->Operator.ID != KEY_OPTIMIZED_GOTO) {
-            if (CUR->OperandLeft.TYPE == TYPE_VARIABLE) {
-                index = CUR->OperandLeft.ID - 1;
-                if ((index >= 0) && (index < dataCount) && (!USAGE_COUNT [index])) {
-                    USAGE_COUNT [index] = 2;
-                    optimisation_count--;
-                }
-            }
-            if (CUR->OperandRight.TYPE == TYPE_VARIABLE) {
-                index = CUR->OperandRight.ID - 1;
-                if ((index >= 0) && (index < dataCount) && (!USAGE_COUNT [index])) {
-                    USAGE_COUNT [index] = 2;
-                    optimisation_count--;
-                }
-            }
-        }
-    }
-
-    for (INTEGER k = 0; k < paramCount; k++) {
-        ParamList *pl = &PARAMS [k];
-        for (INTEGER j = 0; j < pl->COUNT; j++) {
-            INTEGER index = DELTA_UNREF(pl, pl->PARAM_INDEX) [j];
-            if (!USAGE_COUNT [index]) {
-                USAGE_COUNT [index - 1] = 2;
-                optimisation_count--;
-            }
-        }
-    }
-
-    int first_temp = -1;
-    int delta      = 0;
-    if (optimisation_count > 0) {
-        for (INTEGER i = 0; i < codeCount; i++) {
-            CUR = &CODE [i];
-            if (CUR->Operator.TYPE == TYPE_OPERATOR) {
-                index = CUR->Result_ID - 1;
-                if ((index >= 0) && (index < dataCount) && (!USAGE_COUNT [index])) {
-                    if ((CUR->Operator.ID != KEY_ASG) && (CUR->Operator.ID != KEY_BY_REF) &&
-                        (CUR->Operator.ID != KEY_SEL) &&
-                        (CUR->Operator.ID != KEY_DLL_CALL) && (CUR->Operator.ID != KEY_INDEX_OPEN)) {
-                        VDDATA = &DATA [index];
-                        if (first_temp == -1) {
-                            first_temp = CUR->Result_ID;
-                        }
-                        delta++;
-                        CUR->Result_ID = first_temp;
-                    } else {
-                        USAGE_COUNT [index] = 2;
-                        optimisation_count--;
-                    }
-                }
-            }
-        }
-    }
-
-    //-------------------------------------------------------------//
-    for (int ii = 0; ii < codeCount; ii++) {
-        CUR = &CODE [ii];
-    }
-    //-------------------------------------------------------------//
-
-    if (USAGE_COUNT) {
-        delete[] USAGE_COUNT;
-    }
-    return optimisation_count;
 }
 
 Optimizer::~Optimizer() {
@@ -2063,18 +1991,21 @@ void Optimizer::GenerateIntermediateCode() {
         CUR2->Operator._DEBUG_INFO_LINE = CUR->Operator._DEBUG_INFO_LINE;
 
         CUR2->OperandLeft.ID               = CUR->OperandLeft.ID;
-        CUR2->OperandLeft.TYPE             = CUR->OperandLeft.TYPE;
         CUR2->OperandLeft._DEBUG_INFO_LINE = CUR->OperandLeft._DEBUG_INFO_LINE;
         if (CUR->OperandLeft._PARSE_DATA.Length()) {
             CUR2->OperandLeft._PARSE_DATA = CUR->OperandLeft._PARSE_DATA;
         }
 
         CUR2->OperandRight.ID               = CUR->OperandRight.ID;
-        CUR2->OperandRight.TYPE             = CUR->OperandRight.TYPE;
         CUR2->OperandRight._DEBUG_INFO_LINE = CUR->OperandRight._DEBUG_INFO_LINE;
         if (CUR->OperandRight._PARSE_DATA.Length()) {
             CUR2->OperandRight._PARSE_DATA = CUR->OperandRight._PARSE_DATA;
         }
+
+        if (CUR->OperandLeft.TYPE == MAY_IGNORE_RESULT)
+            CUR2->Operator.FLAGS               = MAY_IGNORE_RESULT;
+        else
+            CUR2->Operator.FLAGS               = 0;
     }
     OptimizedPIF->Clear();
     // end optimization

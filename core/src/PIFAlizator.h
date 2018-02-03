@@ -415,7 +415,6 @@ public:
     void UpdatePath();
     void Optimize(int start = 0, char use_compiled_code = 0, char use_lock = 1);
     void OptimizeMember(ClassMember *CM);
-    void OptimizeMemoryUsage();
     bool CheckRunable();
     void *GetStartingPoint();
     int Serialize(char *filename, bool is_lib = false);

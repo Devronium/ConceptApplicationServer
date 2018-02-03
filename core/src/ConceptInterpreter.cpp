@@ -64,6 +64,32 @@ static TinyString DLL_MEMBER = "STATIC_FUNCTION";
         }                                                                                                                                                                                                                                                                                                       \
     }
 
+#define PROPERTY_CODE_IGNORE_RESULT(THISREF, PROPERTIES)                                                                                                                                                                                                                                                                      \
+    if ((PROPERTIES) && (PROPERTIES [OE->OperandLeft.ID - 1].IS_PROPERTY_RESULT)) {                                                                                                                                                                                                                             \
+        try {                                                                                                                                                                                                                                                                                                   \
+            CCTEMP = (CompiledClass *)((VariableDATA *)(PROPERTIES [OE->OperandLeft.ID - 1].CALL_SET))->CLASS_DATA;                                                                                                                                                                                             \
+            WRITE_UNLOCK                                                                                                                                                                                                                                                                                        \
+            CCTEMP->_Class->SetProperty(PIF, PROPERTIES [OE->OperandLeft.ID - 1].IS_PROPERTY_RESULT - 1, (VariableDATA *)(PROPERTIES [OE->OperandLeft.ID - 1].CALL_SET), &OE->OperandLeft, CCTEMP->_Class->CLSID == ClassID, OE->OperandLeft.ID , LOCAL_CONTEXT, ClassID, THISREF->LocalClassID, STACK_TRACE);  \
+        } catch (VariableDATA *LAST_THROW) {                                                                                                                                                                                                                                                                    \
+            THROW_DATA = LAST_THROW;                                                                                                                                                                                                                                                                            \
+            if ((CATCH_INSTRUCTION_POINTER) && (CATCH_VARIABLE)) {                                                                                                                                                                                                                                              \
+                LOCAL_CONTEXT [CATCH_VARIABLE - 1]->LINKS--;                                                                                                                                                                                                                                                    \
+                if (!LOCAL_CONTEXT [CATCH_VARIABLE - 1]->LINKS) {                                                                                                                                                                                                                                               \
+                    VAR_FREE(LOCAL_CONTEXT [CATCH_VARIABLE - 1]); }                                                                                                                                                                                                                                             \
+                LOCAL_CONTEXT [CATCH_VARIABLE - 1] = THROW_DATA;                                                                                                                                                                                                                                                \
+                INSTRUCTION_POINTER       = CATCH_INSTRUCTION_POINTER;                                                                                                                                                                                                                                          \
+                THROW_DATA                = 0;                                                                                                                                                                                                                                                                  \
+                CATCH_INSTRUCTION_POINTER = 0;                                                                                                                                                                                                                                                                  \
+                CATCH_VARIABLE            = 0;                                                                                                                                                                                                                                                                  \
+                RESTORE_TRY_DATA(THISREF);                                                                                                                                                                                                                                                                      \
+            } else {                                                                                                                                                                                                                                                                                            \
+                FAST_FREE(PROPERTIES);                                                                                                                                                                                                                                                                          \
+                PROPERTIES = 0;                                                                                                                                                                                                                                                                                 \
+                WRITE_UNLOCK                                                                                                                                                                                                                                                                                    \
+                return 0; }                                                                                                                                                                                                                                                                                     \
+        }                                                                                                                                                                                                                                                                                                       \
+    }
+
 #define PROPERTY_CODE_LEFT(THISREF, PROPERTIES)                                                                                                                                                                                                                                                                      \
     if ((PROPERTIES) && (PROPERTIES [OE->OperandLeft.ID - 1].IS_PROPERTY_RESULT)) {                                                                                                                                                                                                                                  \
         try {                                                                                                                                                                                                                                                                                                        \
@@ -2676,6 +2702,12 @@ int ConceptInterpreter::StacklessInterpret(PIFAlizator *PIF, GreenThreadCycle *G
                         {
                             WRITE_LOCK
                             if (LOCAL_CONTEXT [OE->OperandLeft.ID - 1]->TYPE != VARIABLE_CLASS) {
+                                if ((OE->Operator.FLAGS == MAY_IGNORE_RESULT) && (LOCAL_CONTEXT [OE->OperandRight.ID - 1]->TYPE == VARIABLE_NUMBER)) {
+                                    LOCAL_CONTEXT [OE->OperandLeft.ID - 1]->NUMBER_DATA = LOCAL_CONTEXT [OE->OperandRight.ID - 1]->NUMBER_DATA;
+                                    LOCAL_CONTEXT [OE->OperandLeft.ID - 1]->TYPE   = VARIABLE_NUMBER;
+                                    PROPERTY_CODE_IGNORE_RESULT(THIS_REF, TARGET_THREAD->PROPERTIES)
+                                    continue;
+                                }
                                 // ------------------- //
                                 //SMART_LOCK(LOCAL_CONTEXT [OE->Result_ID - 1]);
                                 CLASS_CHECK_RESULT(LOCAL_CONTEXT [OE->Result_ID - 1])
@@ -2781,18 +2813,25 @@ int ConceptInterpreter::StacklessInterpret(PIFAlizator *PIF, GreenThreadCycle *G
                                 DECLARE_PATH(RESULT->TYPE);
                                 continue;
                             }
-                            if (((RESULT) && ((RESULT->TYPE == VARIABLE_CLASS) || (RESULT->TYPE == VARIABLE_DELEGATE)) && (!RESULT->CLASS_DATA)) || (!RESULT)) {
-                                WRITE_UNLOCK
-                                CLASS_CHECK_TS(LOCAL_CONTEXT [OE->Result_ID - 1]);
-                                LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
-                                LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = 0;
-                            }
-                            if (RESULT) {
-                                FREE_VARIABLE_TS(LOCAL_CONTEXT [OE->Result_ID - 1]);
-                                LOCAL_CONTEXT [OE->Result_ID - 1] = RESULT;
-                                RESULT->LINKS++;
+                            if (OE->Operator.FLAGS == MAY_IGNORE_RESULT) {
+                                if (RESULT) {
+                                    FREE_VARIABLE(RESULT);
+                                }
+                                continue;
                             } else {
-                                LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = 0;
+                                if (((RESULT) && ((RESULT->TYPE == VARIABLE_CLASS) || (RESULT->TYPE == VARIABLE_DELEGATE)) && (!RESULT->CLASS_DATA)) || (!RESULT)) {
+                                    WRITE_UNLOCK
+                                    CLASS_CHECK_TS(LOCAL_CONTEXT [OE->Result_ID - 1]);
+                                    LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
+                                    LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = 0;
+                                }
+                                if (RESULT) {
+                                    FREE_VARIABLE_TS(LOCAL_CONTEXT [OE->Result_ID - 1]);
+                                    LOCAL_CONTEXT [OE->Result_ID - 1] = RESULT;
+                                    RESULT->LINKS++;
+                                } else {
+                                    LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = 0;
+                                }
                             }
                         } catch (VariableDATA *LAST_THROW) {
                             DECLARE_PATH(LAST_THROW->TYPE);
@@ -4888,6 +4927,12 @@ VariableDATA *ConceptInterpreter::Interpret(PIFAlizator *PIF, VariableDATA **LOC
                     {
                         WRITE_LOCK
                         if (LOCAL_CONTEXT [OE->OperandLeft.ID - 1]->TYPE != VARIABLE_CLASS) {
+                            if ((OE->Operator.FLAGS == MAY_IGNORE_RESULT) && (LOCAL_CONTEXT [OE->OperandRight.ID - 1]->TYPE == VARIABLE_NUMBER)) {
+                                LOCAL_CONTEXT [OE->OperandLeft.ID - 1]->NUMBER_DATA = LOCAL_CONTEXT [OE->OperandRight.ID - 1]->NUMBER_DATA;
+                                LOCAL_CONTEXT [OE->OperandLeft.ID - 1]->TYPE   = VARIABLE_NUMBER;
+                                PROPERTY_CODE_IGNORE_RESULT(this, PROPERTIES)
+                                continue;
+                            }
                             // ------------------- //
                             //SMART_LOCK(LOCAL_CONTEXT [OE->Result_ID - 1]);
                             CLASS_CHECK_RESULT(LOCAL_CONTEXT [OE->Result_ID - 1])
@@ -4993,18 +5038,25 @@ VariableDATA *ConceptInterpreter::Interpret(PIFAlizator *PIF, VariableDATA **LOC
                             DECLARE_PATH(RESULT->TYPE);
                             continue;
                         }
-                        if (((RESULT) && ((RESULT->TYPE == VARIABLE_CLASS) || (RESULT->TYPE == VARIABLE_DELEGATE)) && (!RESULT->CLASS_DATA)) || (!RESULT)) {
-                            WRITE_UNLOCK
-                            CLASS_CHECK_TS(LOCAL_CONTEXT [OE->Result_ID - 1]);
-                            LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
-                            LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = 0;
-                        }
-                        if (RESULT) {
-                            FREE_VARIABLE_TS(LOCAL_CONTEXT [OE->Result_ID - 1]);
-                            LOCAL_CONTEXT [OE->Result_ID - 1] = RESULT;
-                            RESULT->LINKS++;
+                        if (OE->Operator.FLAGS == MAY_IGNORE_RESULT) {
+                            if (RESULT) {
+                                FREE_VARIABLE(RESULT);
+                            }
+                            continue;
                         } else {
-                            LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = 0;
+                            if (((RESULT) && ((RESULT->TYPE == VARIABLE_CLASS) || (RESULT->TYPE == VARIABLE_DELEGATE)) && (!RESULT->CLASS_DATA)) || (!RESULT)) {
+                                WRITE_UNLOCK
+                                CLASS_CHECK_TS(LOCAL_CONTEXT [OE->Result_ID - 1]);
+                                LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
+                                LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = 0;
+                            }
+                            if (RESULT) {
+                                FREE_VARIABLE_TS(LOCAL_CONTEXT [OE->Result_ID - 1]);
+                                LOCAL_CONTEXT [OE->Result_ID - 1] = RESULT;
+                                RESULT->LINKS++;
+                            } else {
+                                LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = 0;
+                            }
                         }
                     } catch (VariableDATA *LAST_THROW) {
                         THROW_DATA = LAST_THROW;

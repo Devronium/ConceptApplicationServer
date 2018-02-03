@@ -264,7 +264,7 @@ INTEGER GetClassMember(void *CLASS_PTR, const char *class_member_name, INTEGER *
                     PLIST.COUNT = 0;
 
                     RuntimeElement AE;
-                    AE._DEBUG_INFO_LINE = AE.ID = AE.TYPE = 0;
+                    AE._DEBUG_INFO_LINE = AE.ID = 0;
 
                     PIFAlizator  *PIF   = GET_PIF(((CompiledClass *)CLASS_PTR));
                     VariableDATA *Owner = (VariableDATA *)VAR_ALLOC(PIF);
@@ -369,7 +369,7 @@ INTEGER SetClassMember(void *CLASS_PTR, const char *class_member_name, INTEGER T
                     index = CCode->GetAbsoluteMemberID(index + 1) - 1;
 
                     RuntimeElement AE;
-                    AE._DEBUG_INFO_LINE = AE.ID = AE.TYPE = 0;
+                    AE._DEBUG_INFO_LINE = AE.ID = 0;
                     PIFAlizator  *PIF       = GET_PIF(((CompiledClass *)CLASS_PTR));
                     VariableDATA *Parameter = (VariableDATA *)VAR_ALLOC(PIF);
                     Parameter->IS_PROPERTY_RESULT = 0;
@@ -1599,9 +1599,7 @@ INTEGER Invoke(INTEGER INVOKE_TYPE, ...) {
                         reftc->Operator_ID       = OE->Operator.ID;
                         reftc->Operator_TYPE     = OE->Operator.TYPE;
                         reftc->OperandLeft_ID    = OE->OperandLeft.ID;
-                        reftc->OperandLeft_TYPE  = OE->OperandLeft.TYPE;
                         reftc->OperandRight_ID   = OE->OperandRight.ID;
-                        reftc->OperandRight_TYPE = OE->OperandRight.TYPE;
                         if ((OE->Operator.TYPE == TYPE_OPERATOR) && (OE->Operator.ID == KEY_DLL_CALL) && (OE->OperandLeft.ID == STATIC_CLASS_DLL)) {
                             reftc->Function = (char *)OE->OperandRight._PARSE_DATA.c_str();
                         } else {

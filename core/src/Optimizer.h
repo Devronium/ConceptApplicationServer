@@ -52,7 +52,7 @@ private:
     INTEGER OptimizeSwitch(TempVariableManager *TVM);
     INTEGER OptimizeArray(TempVariableManager *TVM);
     INTEGER OptimizeForExpression(TempVariableManager *TVM, bool is_increment = false);
-    INTEGER OptimizeExpression(TempVariableManager *TVM, INTEGER ID, INTEGER TYPE, INTEGER IS_PARAM_LIST = 0, INTEGER FIRST_CALL = 1, INTEGER FLAGS = 0, AnalizerElement *PREC_METHOD = 0);
+    INTEGER OptimizeExpression(TempVariableManager *TVM, INTEGER ID, INTEGER TYPE, INTEGER IS_PARAM_LIST = 0, INTEGER FIRST_CALL = 1, INTEGER FLAGS = 0, AnalizerElement *PREC_METHOD = 0, signed char may_skip_result = 0);
     INTEGER OptimizeKeyWord(TempVariableManager *TVM, INTEGER ID, INTEGER TYPE);
     INTEGER OptimizeAny(TempVariableManager *TVM, INTEGER ID = KEY_SEP, INTEGER TYPE = TYPE_SEPARATOR, char FLAGS = 0);
 
@@ -74,7 +74,6 @@ public:
     POOLED(Optimizer)
     Optimizer(PIFAlizator *P, DoubleList *_PIFList, DoubleList *_VDList, const char *Filename, ClassCode *cls, const char *member, bool is_unserialized = false);
     int Optimize();
-    int OptimizeMemoryUsage();
     int CanInline(ClassMember *owner, const char **remotename);
     AnsiString DEBUG_INFO();
 

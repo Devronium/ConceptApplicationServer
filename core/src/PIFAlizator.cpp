@@ -3165,24 +3165,6 @@ int PIFAlizator::Unserialize(char *filename, bool is_lib) {
     return -3;
 }
 
-void PIFAlizator::OptimizeMemoryUsage() {
-    int class_count = ClassList->Count();
-
-    for (register INTEGER ii = 0; ii < class_count; ii++) {
-        ClassCode *CC = (ClassCode *)(*ClassList) [ii];
-
-        int members_count = CC->Members->Count();
-
-        for (register INTEGER jj = 0; jj < members_count; jj++) {
-            ClassMember *CM = (ClassMember *)CC->Members->Item(jj);
-
-            if ((CM->IS_FUNCTION) && (CM->Defined_In == CC) && (CM->OPTIMIZER) && (CM->CDATA)) {
-                ((Optimizer *)CM->OPTIMIZER)->OptimizeMemoryUsage();
-            }
-        }
-    }
-}
-
 void PIFAlizator::OptimizeMember(ClassMember *CM) {
     if ((!CM) || (CM->OPTIMIZER) || (CM->IS_FUNCTION != 1) || (!CM->Defined_In))
         return;

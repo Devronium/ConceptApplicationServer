@@ -33,7 +33,7 @@ VariableDATA *GetClassMember(void *CLASS_PTR, const char *class_member_name) {
                     PLIST.COUNT = 0;
 
                     RuntimeElement AE;
-                    AE._DEBUG_INFO_LINE = AE.ID = AE.TYPE = 0;
+                    AE._DEBUG_INFO_LINE = AE.ID = 0;
                     PIFAlizator  *PIF   = GET_PIF(((CompiledClass *)CLASS_PTR));
                     VariableDATA *Owner = (VariableDATA *)VAR_ALLOC(PIF);
                     Owner->CLASS_DATA         = CLASS_PTR;

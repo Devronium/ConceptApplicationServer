@@ -314,6 +314,7 @@
 #define TYPE_OPTIMIZED_KEYWORD     0x20
 #define TYPE_OPTIMIZED_JUMP_ADR    0x21
 
+#define MAY_IGNORE_RESULT          0x7F
 
 #define INTEGER                    int
 #define SYS_INT                    intptr_t
