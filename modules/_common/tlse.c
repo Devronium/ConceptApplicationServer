@@ -1,5 +1,5 @@
 /********************************************************************************
- Copyright (c) 2016, Eduard Suica
+ Copyright (c) 2016-2018, Eduard Suica
  All rights reserved.
  
  Redistribution and use in source and binary forms, with or without modification,
@@ -4285,9 +4285,12 @@ int tls_choose_cipher(struct TLSContext *context, const unsigned char *buf, int 
                 *scsv_set = 1;
             if (selected_cipher != TLS_NO_COMMON_CIPHER)
                 break;
-        } else
+        }
+#ifndef TLS_ROBOT_MITIGATION
+        else
         if ((selected_cipher == TLS_NO_COMMON_CIPHER) && (tls_cipher_supported(context, cipher)))
             selected_cipher = cipher;
+#endif
     }
     return selected_cipher;
 }
@@ -4839,7 +4842,7 @@ struct TLSPacket *tls_build_hello(struct TLSContext *context) {
         if (context->is_server) {
             // fallback ... this should never happen
             if (!context->cipher)
-                context->cipher = TLS_RSA_WITH_AES_128_CBC_SHA;
+                context->cipher = TLS_DHE_RSA_WITH_AES_128_CBC_SHA;
             
             tls_packet_uint16(packet, context->cipher);
             // no compression
@@ -4887,7 +4890,7 @@ struct TLSPacket *tls_build_hello(struct TLSContext *context) {
 #ifdef TLS_CLIENT_ECDHE
 #ifdef TLS_WITH_CHACHA20_POLY1305
     #ifdef TLS_CLIENT_ECDSA
-                tls_packet_uint16(packet, 42);
+                tls_packet_uint16(packet, TLS_CIPHERS_SIZE(16, 5));
     #ifdef TLS_PREFER_CHACHA20
                 tls_packet_uint16(packet, TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256);
     #endif
@@ -4900,18 +4903,18 @@ struct TLSPacket *tls_build_hello(struct TLSContext *context) {
                 tls_packet_uint16(packet, TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA);
     #else
                 // sizeof ciphers (16 ciphers * 2 bytes)
-                tls_packet_uint16(packet, 32);
+                tls_packet_uint16(packet, TLS_CIPHERS_SIZE(11, 5));
     #endif
 #else
     #ifdef TLS_CLIENT_ECDSA
-                tls_packet_uint16(packet, 36);
+                tls_packet_uint16(packet, TLS_CIPHERS_SIZE(13, 5));
                 tls_packet_uint16(packet, TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256);
                 tls_packet_uint16(packet, TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256);
                 tls_packet_uint16(packet, TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA);
                 tls_packet_uint16(packet, TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA);
     #else
                 // sizeof ciphers (14 ciphers * 2 bytes)
-                tls_packet_uint16(packet, 28);
+                tls_packet_uint16(packet, TLS_CIPHERS_SIZE(9, 5));
     #endif
 #endif
 #ifdef TLS_WITH_CHACHA20_POLY1305
@@ -4931,10 +4934,10 @@ struct TLSPacket *tls_build_hello(struct TLSContext *context) {
 #else
 #ifdef TLS_WITH_CHACHA20_POLY1305
                 // sizeof ciphers (11 ciphers * 2 bytes)
-                tls_packet_uint16(packet, 22);
+                tls_packet_uint16(packet, TLS_CIPHERS_SIZE(6, 5));
 #else
                 // sizeof ciphers (10 ciphers * 2 bytes)
-                tls_packet_uint16(packet, 20);
+                tls_packet_uint16(packet, TLS_CIPHERS_SIZE(5, 5));
 #endif
 #endif
                 // not yet supported, because the first message sent (this one)
@@ -4950,32 +4953,36 @@ struct TLSPacket *tls_build_hello(struct TLSContext *context) {
                 tls_packet_uint16(packet, TLS_DHE_RSA_WITH_CHACHA20_POLY1305_SHA256);
 #endif
 #else
-                tls_packet_uint16(packet, 10);
+                tls_packet_uint16(packet, TLS_CIPHERS_SIZE(0, 5));
 #endif
                 // tls_packet_uint16(packet, TLS_RSA_WITH_AES_256_GCM_SHA384);
+#ifndef TLS_ROBOT_MITIGATION
                 tls_packet_uint16(packet, TLS_RSA_WITH_AES_128_GCM_SHA256);
                 tls_packet_uint16(packet, TLS_RSA_WITH_AES_256_CBC_SHA256);
                 tls_packet_uint16(packet, TLS_RSA_WITH_AES_128_CBC_SHA256);
                 tls_packet_uint16(packet, TLS_RSA_WITH_AES_256_CBC_SHA);
                 tls_packet_uint16(packet, TLS_RSA_WITH_AES_128_CBC_SHA);
+#endif
 #ifndef STRICT_TLS
             } else {
 #ifdef TLS_FORWARD_SECRECY
 #ifdef TLS_CLIENT_ECDHE
-                tls_packet_uint16(packet, 14);
+                tls_packet_uint16(packet, TLS_CIPHERS_SIZE(5, 2));
                 tls_packet_uint16(packet, TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA);
                 tls_packet_uint16(packet, TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA);
 #else
-                tls_packet_uint16(packet, 10);
+                tls_packet_uint16(packet, TLS_CIPHERS_SIZE(3, 2));
 #endif
                 tls_packet_uint16(packet, TLS_DHE_RSA_WITH_AES_256_CBC_SHA);
                 tls_packet_uint16(packet, TLS_DHE_RSA_WITH_AES_256_CBC_SHA);
                 tls_packet_uint16(packet, TLS_DHE_RSA_WITH_AES_128_CBC_SHA);
 #else
-                tls_packet_uint16(packet, 4);
+                tls_packet_uint16(packet, TLS_CIPHERS_SIZE(0, 2));
 #endif
+#ifndef TLS_ROBOT_MITIGATION
                 tls_packet_uint16(packet, TLS_RSA_WITH_AES_256_CBC_SHA);
                 tls_packet_uint16(packet, TLS_RSA_WITH_AES_128_CBC_SHA);
+#endif
             }
 #endif
             // compression
@@ -7850,7 +7857,11 @@ struct TLSContext *tls_import_context(unsigned char *buffer, unsigned int buf_le
         TLS_IMPORT_CHECK_SIZE(buf_pos, key_lengths, buf_len)
         memcpy(temp, &buffer[buf_pos], key_lengths);
         buf_pos += key_lengths;
-        
+#ifdef TLS_REEXPORTABLE
+        context->exportable_keys = (unsigned char *)TLS_MALLOC(key_lengths);
+        memcpy(context->exportable_keys, temp, key_lengths);
+        context->exportable_size = key_lengths;
+#endif
         int is_aead = __private_tls_is_aead(context);
 #ifdef TLS_WITH_CHACHA20_POLY1305
         if (is_aead == 2) {

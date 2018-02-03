@@ -24,6 +24,9 @@
 // basic superficial X509v1 certificate support
 #define TLS_X509_V1_SUPPORT
 
+// disable TLS_RSA_WITH_* ciphers
+#define TLS_ROBOT_MITIGATION
+
 #define SSL_V30                 0x0300
 #define TLS_V10                 0x0301
 #define TLS_V11                 0x0302
@@ -107,6 +110,12 @@
 
 #define TLS_ALERT_WARNING           0x01
 #define TLS_ALERT_CRITICAL          0x02
+
+#ifdef TLS_ROBOT_MITIGATION
+    #define TLS_CIPHERS_SIZE(n, mitigated)         n * 2
+#else
+    #define TLS_CIPHERS_SIZE(n, mitigated)         (n + mitigated) * 2
+#endif
 
 typedef enum {
     close_notify = 0,
