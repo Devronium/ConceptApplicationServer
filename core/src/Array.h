@@ -65,6 +65,8 @@ typedef struct _NODE {
 class Array {
     friend int MarkRecursive(void *PIF, Array *arr, signed char reach_id_flag, signed char forced_flag);
 
+    friend int ClearRecursive(void *PIF, Array *arr, int CLSID, signed char reach_id_flag, signed char forced_flag);
+
     friend int GetMemoryStatistics(void *PIF, void *RESULT);
 
 private:

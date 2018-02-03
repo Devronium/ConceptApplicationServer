@@ -3233,7 +3233,7 @@ void PIFAlizator::OptimizeMember(ClassMember *CM) {
     Optimizer::CATCH_ELEMENT    =   CATCH_ELEMENT;
 }
 
-void PIFAlizator::Optimize(int start, char use_compiled_code) {
+void PIFAlizator::Optimize(int start, char use_compiled_code, char use_lock) {
     int class_count = ClassList->Count();
 
     for (register INTEGER ii = start; ii < class_count; ii++) {
@@ -3252,7 +3252,8 @@ void PIFAlizator::Optimize(int start, char use_compiled_code) {
         }
 
         if (!use_compiled_code) {
-            semp(WorkerLock);
+            if (use_lock)
+                semp(WorkerLock);
             for (register INTEGER jj = 0; jj < members_count; jj++) {
                 ClassMember *CM = CC->Members ? (ClassMember *)CC->Members->Item(jj) : CC->pMEMBERS[jj];
 
@@ -3272,7 +3273,8 @@ void PIFAlizator::Optimize(int start, char use_compiled_code) {
                     Optimizer::OptimizedPIF = NULL;
                 }
             }
-            semv(WorkerLock);
+            if (use_lock)
+                semv(WorkerLock);
         }
         if (!CC->pMEMBERS) {
             CC->GenerateCode(GeneralMembers);

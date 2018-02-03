@@ -2294,16 +2294,35 @@ INTEGER Invoke(INTEGER INVOKE_TYPE, ...) {
                 while (ref_pif->parentPIF)
                     ref_pif = (PIFAlizator *)ref_pif->parentPIF;
                 semp(ref_pif->DelegateLock);
+                // try clean
+                if (pif->fixed_class_count < start_from) {
+                    int not_used = 0;
+                    for (int i = pif->fixed_class_count; i < start_from; i++) {
+                        ClassCode *CC = (ClassCode *)pif->ClassList->Item(i);
+                        if ((CC) && (CC->NAME == "*")) {
+                            not_used++;
+                        }
+                    }
+                    if (not_used == start_from - pif->fixed_class_count) {
+                        for (int i = pif->fixed_class_count; i < start_from; i++) {
+                            ClassCode *CC = (ClassCode *)pif->ClassList->Remove(pif->fixed_class_count);
+                            if (CC)
+                                delete CC;
+                        }
+                        start_from = pif->ClassList->Count();
+                        pif->SyncClassList();
+                    }
+                }
                 pif->RuntimeIncludeCode(code);
                 if ((error_buf) && (error_buf_size > 0))
                     error_buf[0] = 0;
                 if (pif->ClassList->Count() != start_from) {
                     if (!pif->Errors.Count())
-                        pif->Optimize(start_from);
+                        pif->Optimize(start_from, 0, 0);
                     else {
                         int count = pif->ClassList->Count();
                         for (int i = start_from; i < count; i++) {
-                            ClassCode *CC = (ClassCode *)pif->ClassList->Remove(i);
+                            ClassCode *CC = (ClassCode *)pif->ClassList->Remove(start_from);
                             if (CC)
                                 delete CC;
                         }
@@ -2350,15 +2369,22 @@ INTEGER Invoke(INTEGER INVOKE_TYPE, ...) {
                 if ((!class_name) || (!class_name[0]) || (class_name[0] == '*') || (!pif->fixed_class_count))
                     break;
 
+                semp(PIFAlizator::WorkerLock);
                 int count = pif->ClassList->Count();
                 for (int i = pif->fixed_class_count; i < count; i++) {
                     ClassCode *CC = (ClassCode *)pif->ClassList->Item(i);
                     if ((CC) && (CC->NAME == class_name)) {
-                        CC->NAME = "*";
+                        if (ClearVariablesByCLSID(pif, CC->CLSID)) {
+                            pif->ClassList->Remove(i);
+                            pif->SyncClassList();
+                            delete CC;
+                        } else
+                            CC->NAME = "*";
                         result   = INVOKE_SUCCESS;
                         break;
                     }
                 }
+                semv(PIFAlizator::WorkerLock);
             }
             break;
 

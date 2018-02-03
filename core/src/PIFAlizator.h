@@ -228,6 +228,8 @@ class PIFAlizator {
 
     friend int CheckReachability(void *PIF, bool skip_top);
 
+    friend int ClearVariablesByCLSID(void *PIF, int CLSID);
+
     friend INTEGER Invoke(INTEGER INVOKE_TYPE, ...);
 
     friend int GetVariableByName(int operation, void **VDESC, void **CONTEXT, int Depth, char *VariableName, char *buffer, int buf_size, void *PIF, void *STACK_TRACE);
@@ -411,7 +413,7 @@ public:
     void SetPipe(int pipein, int pipeout, int apid, int papid, int direct_pipe);
     INTEGER Execute();
     void UpdatePath();
-    void Optimize(int start = 0, char use_compiled_code = 0);
+    void Optimize(int start = 0, char use_compiled_code = 0, char use_lock = 1);
     void OptimizeMember(ClassMember *CM);
     void OptimizeMemoryUsage();
     bool CheckRunable();

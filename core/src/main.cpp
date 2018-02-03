@@ -725,6 +725,182 @@ int MarkRecursive(void *PIF, CompiledClass *CC, signed char reach_id_flag, signe
     return res;
 }
 
+int ClearRecursive(void *PIF, CompiledClass *CC, int CLSID, signed char reach_id_flag, signed char forced_flag) {
+    ClassCode *base = CC->_Class;
+    CC->reachable = (CC->reachable & 0x1C) | reach_id_flag;
+    int       res   = 1;
+    if (!CC->_CONTEXT)
+        return res;
+
+    for (int i = 0; i < base->DataMembersCount; i++) {
+        VariableDATA *Var = CC->_CONTEXT[i];
+        if ((Var) && (Var->CLASS_DATA)) {
+            if ((Var->TYPE == VARIABLE_CLASS) || (Var->TYPE == VARIABLE_DELEGATE)) {
+                CompiledClass *CC2 = (CompiledClass *)Var->CLASS_DATA;
+                if ((CC2->reachable & 0x03) != reach_id_flag) {
+                    if (CC2->_Class->GetCLSID() == CLSID) {
+                        CLASS_CHECK(Var);
+                        Var->TYPE = VARIABLE_NUMBER;
+                        Var->NUMBER_DATA = 0;
+                    } else {
+                        ClearRecursive(PIF, CC2, CLSID, reach_id_flag, forced_flag);
+                        CC2->reachable |= forced_flag;
+                    }
+                }
+            } else
+            if (Var->TYPE == VARIABLE_ARRAY) {
+                Array *ARR2 = (Array *)Var->CLASS_DATA;
+                if ((ARR2->reachable & 0x03) != reach_id_flag) {
+                    // ClearRecursive(PIF, ARR2, CLSID, reach_id_flag, forced_flag);
+                    ARR2->reachable |= forced_flag;
+                }
+            }
+        }
+    }
+    return res;
+}
+
+int ClearRecursive(void *PIF, Array *arr, int CLSID, signed char reach_id_flag, signed char forced_flag) {
+    arr->reachable = (arr->reachable & 0x1C) | reach_id_flag;
+    int      res      = 1;
+    NODE     *CURRENT = arr->FIRST;
+    for (intptr_t i = 0; i < arr->NODE_COUNT; i++) {
+        for (intptr_t j = 0; j < CURRENT->COUNT; j++) {
+            VariableDATA *Var = CURRENT->ELEMENTS [j];
+            if ((Var) && (Var->CLASS_DATA)) {
+                if ((Var->TYPE == VARIABLE_CLASS) || (Var->TYPE == VARIABLE_DELEGATE)) {
+                    CompiledClass *CC2 = (CompiledClass *)Var->CLASS_DATA;
+                    if ((CC2->reachable & 0x03) != reach_id_flag)
+                        res += ClearRecursive(PIF, CC2, CLSID, reach_id_flag, forced_flag ? forced_flag : CC2->reachable & 0x1C);
+                    CC2->reachable |= forced_flag;
+                    if (CC2->GetClass()->GetCLSID() == CLSID) {
+                        CLASS_CHECK(Var);
+                        Var->TYPE = VARIABLE_NUMBER;
+                        Var->NUMBER_DATA = 0;
+                    }
+                } else
+                if (Var->TYPE == VARIABLE_ARRAY) {
+                    Array *ARR2 = (Array *)Var->CLASS_DATA;
+                    if ((ARR2->reachable & 0x03) != reach_id_flag)
+                        res += ClearRecursive(PIF, ARR2, CLSID, reach_id_flag, forced_flag ? forced_flag : ARR2->reachable & 0x1C);
+                    ARR2->reachable |= forced_flag;
+                }
+            }
+        }
+        NODE *NEXT = CURRENT->NEXT;
+        CURRENT = NEXT;
+    }
+    return res;
+}
+
+int ClearVariablesByCLSID(void *PIF, int CLSID) {
+    if ((!PIF) || (!((PIFAlizator *)PIF)->RootInstance) || (((PIFAlizator *)PIF)->in_gc))
+        return 0;
+    int cleared = 1;
+    ((PIFAlizator *)PIF)->in_gc = 1;
+    GCRoot *root = ((PIFAlizator *)PIF)->GCROOT;
+    while (root) {
+        SCStack *STACK_TRACE = (SCStack *)((SCStack *)root->STACK_TRACE)->ROOT;
+        if (STACK_TRACE)
+            STACK_TRACE = (SCStack *)STACK_TRACE->TOP;
+
+        while (STACK_TRACE) {
+            if (STACK_TRACE->len == -1) {
+                // concurrent write, abort
+                //ALLOC_UNLOCK
+                ((PIFAlizator *)PIF)->in_gc = 0;
+                return 0;
+            }
+            STACK_TRACE = (SCStack *)STACK_TRACE->PREV;
+        }
+        root = (GCRoot *)root->NEXT;
+    }
+
+    CompiledClass *CC_ROOT = (CompiledClass *)((PIFAlizator *)PIF)->RootInstance;
+    if ((!CC_ROOT) || (CC_ROOT->GetClass()->GetCLSID() == CLSID)) {
+        ((PIFAlizator *)PIF)->in_gc = 0;
+        return 0;
+    }
+    signed char  reach_id_flag = CC_ROOT->reachable & 0x03;
+
+    if (reach_id_flag == 1)
+        reach_id_flag = 2;
+    else
+        reach_id_flag = 1;
+
+    ClearRecursive(PIF, CC_ROOT, CLSID, reach_id_flag, 0);
+
+    if (((PIFAlizator *)PIF)->var_globals)
+        ClearRecursive(PIF, (Array *)((PIFAlizator *)PIF)->var_globals, CLSID, reach_id_flag, 0);
+
+    root = ((PIFAlizator *)PIF)->GCROOT;
+    while (root) {
+        SCStack *STACK_TRACE = (SCStack *)((SCStack *)root->STACK_TRACE)->ROOT;
+        if (STACK_TRACE)
+            STACK_TRACE = (SCStack *)STACK_TRACE->TOP;
+
+        while (STACK_TRACE) {
+            VariableDATA **context = (VariableDATA **)STACK_TRACE->LOCAL_CONTEXT;
+            if (context) {
+                for (int i = 0; i < STACK_TRACE->len; i++) {
+                    VariableDATA *Var = context[i];
+                    if ((Var) && (Var->CLASS_DATA)) {
+                        if ((Var->TYPE == VARIABLE_CLASS) || (Var->TYPE == VARIABLE_DELEGATE)) {
+                            CompiledClass *CC2 = (CompiledClass *)Var->CLASS_DATA;
+                            if ((CC2->reachable & 0x03) != reach_id_flag)
+                                ClearRecursive(PIF, CC2, CLSID, reach_id_flag, CC2->reachable & 0x1C);
+                            if (CC2->GetClass()->GetCLSID() == CLSID) {
+                                CLASS_CHECK(Var);
+                                Var->TYPE = VARIABLE_NUMBER;
+                                Var->NUMBER_DATA = 0;
+                            }
+                        } else
+                        if (Var->TYPE == VARIABLE_ARRAY) {
+                            Array *ARR2 = (Array *)Var->CLASS_DATA;
+                            if ((ARR2->reachable & 0x03) != reach_id_flag)
+                                ClearRecursive(PIF, ARR2, CLSID, reach_id_flag, ARR2->reachable & 0x1C);
+                        }
+                    }
+                }
+            }
+            STACK_TRACE = (SCStack *)STACK_TRACE->PREV;
+        }
+        root = (GCRoot *)root->NEXT;
+    }
+    // =================================== //
+    ArrayPool *ARRAYPOOL = (ArrayPool *)((PIFAlizator *)PIF)->ARRAYPOOL;
+    while (ARRAYPOOL) {
+        if (ARRAYPOOL->POOL_VARS < ARRAY_POOL_BLOCK_SIZE) {
+            for (int i = 0; i < ARRAY_POOL_BLOCK_SIZE; i++) {
+                Array *ARR = &ARRAYPOOL->POOL[i];
+                if ((ARR->flags >= 0) && (ARR->reachable >= 0x1C)) {
+                    if ((ARR->reachable & 0x03) != reach_id_flag)
+                        ClearRecursive(PIF, ARR, CLSID, reach_id_flag, ARR->reachable & 0x1C);
+                }
+            }
+        }
+        ARRAYPOOL = (ArrayPool *)ARRAYPOOL->NEXT;
+    }
+    ClassPool *POOL = (ClassPool *)((PIFAlizator *)PIF)->CLASSPOOL;
+    while (POOL) {
+        if (POOL->POOL_VARS < OBJECT_POOL_BLOCK_SIZE) {
+            for (int i = 0; i < OBJECT_POOL_BLOCK_SIZE; i++) {
+                CompiledClass *CC = &POOL->POOL[i];
+                if ((CC->flags >= 0) && (CC->reachable >= 0x1C)) {
+                    if (CC->GetClass()->GetCLSID() == CLSID)
+                        cleared = 0;
+                    if ((CC->reachable & 0x03) != reach_id_flag)
+                        ClearRecursive(PIF, CC, CLSID, reach_id_flag, CC->reachable & 0x1C);
+                }
+            }
+        }
+        POOL = (ClassPool *)POOL->NEXT;
+    }
+    // =================================== //
+    ((PIFAlizator *)PIF)->in_gc = 0;
+    return cleared;
+}
+
 int CheckReachability(void *PIF, bool skip_top) {
     if ((!PIF) || (!((PIFAlizator *)PIF)->RootInstance) || (((PIFAlizator *)PIF)->in_gc))
         return 0;

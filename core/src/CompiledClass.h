@@ -19,6 +19,7 @@ class CompiledClass {
 
     friend int MarkRecursive(void *PIF, CompiledClass *CC, signed char reach_id_flag, signed char forced_flag);
 
+    friend int ClearRecursive(void *PIF, CompiledClass *CC, int CLSID, signed char reach_id_flag, signed char forced_flag);
 private:
     ClassCode    *_Class;
     VariableDATA **_CONTEXT;
