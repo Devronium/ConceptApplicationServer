@@ -477,6 +477,7 @@ struct GreenThreadCycle {
 #define SERIALIZE_FLAGS(flag, out)    concept_fwrite_int(&flag, sizeof(flag), 1, out);
 
 #if __SIZEOF_POINTER__ == 8
+ #define UNSERIALIZE_AE(AE, out, get_parse, is_pooled) \
     {                                                  \
         int _id;                                       \
         concept_fread_int(&_id, sizeof(_id), 1, out);  \
