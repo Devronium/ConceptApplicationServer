@@ -1785,7 +1785,7 @@ CONCEPT_DLL_API Concept_Execute(char *filename, char *inc_dir, char *lib_dir, Fo
         STATIC_ENTRY->TYPE        = VARIABLE_CLASS;
         STATIC_ENTRY->IS_PROPERTY_RESULT = 0;
 
-        CC->CreateInstance(&PIF, STATIC_ENTRY, 0, 0, 0, NULL, 1);
+        CC->CreateInstance(&PIF, STATIC_ENTRY, 0, 0, 0, 0, NULL, 1);
         STATIC_ENTRY->CLASS_DATA = 0;
 
         VAR_FREE(STATIC_ENTRY);
@@ -1900,7 +1900,7 @@ CONCEPT_DLL_API Concept_ExecuteBuffer(char *buffer, int len, char *inc_dir, char
         STATIC_ENTRY->TYPE        = VARIABLE_CLASS;
         STATIC_ENTRY->IS_PROPERTY_RESULT = 0;
 
-        CC->CreateInstance(&PIF, STATIC_ENTRY, 0, 0, 0, NULL, 1);
+        CC->CreateInstance(&PIF, STATIC_ENTRY, 0, 0, 0, 0, NULL, 1);
         STATIC_ENTRY->CLASS_DATA = 0;
 
         VAR_FREE(STATIC_ENTRY);
@@ -2054,7 +2054,7 @@ CONCEPT_DLL_API Concept_Execute3_Run(void *PTR, SOCKET sock, int debug, DEBUGGER
     STATIC_ENTRY->TYPE        = VARIABLE_CLASS;
     STATIC_ENTRY->IS_PROPERTY_RESULT = 0;
 
-    CC->CreateInstance(PIF, STATIC_ENTRY, 0, 0, 0, 0 );
+    CC->CreateInstance(PIF, STATIC_ENTRY, 0, 0, 0, 0, 0 );
     STATIC_ENTRY->CLASS_DATA = 0;
 
     VAR_FREE(STATIC_ENTRY);
@@ -2121,7 +2121,7 @@ CONCEPT_DLL_API Concept_Execute3_RunClone(void *PTR, SOCKET sock, int debug, DEB
     STATIC_ENTRY->TYPE        = VARIABLE_CLASS;
     STATIC_ENTRY->IS_PROPERTY_RESULT = 0;
 
-    CC->CreateInstance(PIF, STATIC_ENTRY, 0, 0, 0, NULL, 1);
+    CC->CreateInstance(PIF, STATIC_ENTRY, 0, 0, 0, 0, NULL, 1);
     STATIC_ENTRY->CLASS_DATA = 0;
 
     VAR_FREE(STATIC_ENTRY);

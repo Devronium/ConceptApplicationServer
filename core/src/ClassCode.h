@@ -94,16 +94,16 @@ public:
     ClassMember *AddMember(PIFAlizator *PIF, const char *name, INTEGER line, const char *FileName, INTEGER ACCESS, char data_only);
     int RemoveMember(PIFAlizator *PIF, const char *name, INTEGER line, const char *FileName);
 
-    VariableDATA *ExecuteMember(PIFAlizator *PIF, INTEGER i, VariableDATA *Owner, const RuntimeElement *AE, INTEGER local, ParamList *FORMAL_PARAM, VariableDATA **SenderCTX, char property, INTEGER CLSID, INTEGER LOCAL_CLSID, SCStack *PREV, char next_is_asg = 0, VariableDATAPROPERTY **PROPERTIES = NULL, int dataLen = -1, int result_id = -1);
+    VariableDATA *ExecuteMember(PIFAlizator *PIF, INTEGER i, VariableDATA *Owner, const RuntimeOptimizedElement *OE, const RuntimeElement *AE, INTEGER local, ParamList *FORMAL_PARAM, VariableDATA **SenderCTX, char property, INTEGER CLSID, INTEGER LOCAL_CLSID, SCStack *PREV, char next_is_asg = 0, VariableDATAPROPERTY **PROPERTIES = NULL, int dataLen = -1, int result_id = -1);
 #ifdef SIMPLE_MULTI_THREADING
-    VariableDATA *ExecuteDelegate(PIFAlizator *PIF, INTEGER i, VariableDATA *Owner, const RuntimeElement *AE, ParamList *FORMAL_PARAM, VariableDATA **SenderCTX, INTEGER CLSID, INTEGER LOCAL_CLSID, SCStack *PREV, INTEGER *thread_lock = NULL);
+    VariableDATA *ExecuteDelegate(PIFAlizator *PIF, INTEGER i, VariableDATA *Owner, const RuntimeOptimizedElement *OE, const RuntimeElement *AE, ParamList *FORMAL_PARAM, VariableDATA **SenderCTX, INTEGER CLSID, INTEGER LOCAL_CLSID, SCStack *PREV, INTEGER *thread_lock = NULL);
 #else
-    VariableDATA *ExecuteDelegate(PIFAlizator *PIF, INTEGER i, VariableDATA *Owner, const RuntimeElement *AE, ParamList *FORMAL_PARAM, VariableDATA **SenderCTX, INTEGER CLSID, INTEGER LOCAL_CLSID, SCStack *PREV);
+    VariableDATA *ExecuteDelegate(PIFAlizator *PIF, INTEGER i, VariableDATA *Owner, const RuntimeOptimizedElement *OE, const RuntimeElement *AE, ParamList *FORMAL_PARAM, VariableDATA **SenderCTX, INTEGER CLSID, INTEGER LOCAL_CLSID, SCStack *PREV);
 #endif
 
     TinyString *GetFilename(PIFAlizator *PIF, INTEGER LOCAL_CLSID, TinyString *default_Value);
-    void SetProperty(PIFAlizator *PIF, INTEGER i, VariableDATA *Owner, const RuntimeElement *AE, INTEGER local, INTEGER VALUE, VariableDATA **SenderCTX, INTEGER CLSID, INTEGER LOCAL_CLSID, SCStack *PREV);
-    CompiledClass *CreateInstance(PIFAlizator *PIF, VariableDATA *Owner, const RuntimeElement *AE, ParamList *FORMAL_PARAM, VariableDATA **SenderCTX, SCStack *PREV, char is_static = 0);
+    void SetProperty(PIFAlizator *PIF, INTEGER i, VariableDATA *Owner, const RuntimeOptimizedElement *OE, const RuntimeElement *AE, INTEGER local, INTEGER VALUE, VariableDATA **SenderCTX, INTEGER CLSID, INTEGER LOCAL_CLSID, SCStack *PREV);
+    CompiledClass *CreateInstance(PIFAlizator *PIF, VariableDATA *Owner, const RuntimeOptimizedElement *OE, const RuntimeElement *AE, ParamList *FORMAL_PARAM, VariableDATA **SenderCTX, SCStack *PREV, char is_static = 0);
     void GenerateCode(StaticList *GeneralMembers);
     int Serialize(PIFAlizator *PIF, FILE *out, bool is_lib = false);
     int Unserialize(PIFAlizator *PIF, concept_FILE *in, AnsiList *ClassList, bool is_lib = false, int *ClassNames = 0, int *Relocation = 0);

@@ -151,5 +151,6 @@
 #define WRN10005    "Unknown pragma"
 #define WRN10006    "Unexpected pragma parameter"
 #define WRN10007    "Implicit declaration for class. Typed parameters may not be accepted."
+#define WRN10008    "Useless expression, unless using an overloaded operator"
 #endif
 

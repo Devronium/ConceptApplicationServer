@@ -264,7 +264,7 @@ INTEGER GetClassMember(void *CLASS_PTR, const char *class_member_name, INTEGER *
                     PLIST.COUNT = 0;
 
                     RuntimeElement AE;
-                    AE._DEBUG_INFO_LINE = AE.ID = 0;
+                    AE.ID = 0;
 
                     PIFAlizator  *PIF   = GET_PIF(((CompiledClass *)CLASS_PTR));
                     VariableDATA *Owner = (VariableDATA *)VAR_ALLOC(PIF);
@@ -288,6 +288,7 @@ INTEGER GetClassMember(void *CLASS_PTR, const char *class_member_name, INTEGER *
                         VariableDATA *VarDATA = CCode->ExecuteMember(PIF,
                                                                      index,
                                                                      Owner,
+                                                                     NULL,
                                                                      &AE,
                                                                      true,
                                                                      CM->IS_FUNCTION == 3 ? 0 : &PLIST,
@@ -369,7 +370,7 @@ INTEGER SetClassMember(void *CLASS_PTR, const char *class_member_name, INTEGER T
                     index = CCode->GetAbsoluteMemberID(index + 1) - 1;
 
                     RuntimeElement AE;
-                    AE._DEBUG_INFO_LINE = AE.ID = 0;
+                    AE.ID = 0;
                     PIFAlizator  *PIF       = GET_PIF(((CompiledClass *)CLASS_PTR));
                     VariableDATA *Parameter = (VariableDATA *)VAR_ALLOC(PIF);
                     Parameter->IS_PROPERTY_RESULT = 0;
@@ -409,6 +410,7 @@ INTEGER SetClassMember(void *CLASS_PTR, const char *class_member_name, INTEGER T
                         CCode->SetProperty(PIF,
                                            index,
                                            Owner,
+                                           NULL,
                                            &AE,
                                            true,
                                            1,
@@ -700,7 +702,7 @@ INTEGER Invoke(INTEGER INVOKE_TYPE, ...) {
 #endif
                 target->TYPE       = VARIABLE_CLASS;
                 target->CLASS_DATA = NULL;
-                target->CLASS_DATA = CC->CreateInstance(pif, target, 0, &FORMAL_PARAM, (VariableDATA **)&dummyVD, STACK_TRACE);
+                target->CLASS_DATA = CC->CreateInstance(pif, target, 0, 0, &FORMAL_PARAM, (VariableDATA **)&dummyVD, STACK_TRACE);
                 if (!target->CLASS_DATA) {
                     target->TYPE = VARIABLE_NUMBER;
                     result       = INVALID_INVOKE_PARAMETER;
@@ -1093,6 +1095,7 @@ INTEGER Invoke(INTEGER INVOKE_TYPE, ...) {
                         *SENDER_RESULT = ((CompiledClass *)RESULT->CLASS_DATA)->_Class->ExecuteDelegate(PIF,
                                                                                                         (INTEGER)RESULT->DELEGATE_DATA,
                                                                                                         lOwner,
+                                                                                                        0,
                                                                                                         0,
                                                                                                         &FORMAL_PARAM,
                                                                                                         CTX,
@@ -1598,24 +1601,24 @@ INTEGER Invoke(INTEGER INVOKE_TYPE, ...) {
 
                         reftc->Operator_ID       = OE->Operator.ID;
                         reftc->Operator_TYPE     = OE->Operator.TYPE;
-                        reftc->OperandLeft_ID    = OE->OperandLeft.ID;
+                        reftc->OperandLeft_ID    = OE->OperandLeft_ID;
                         reftc->OperandRight_ID   = OE->OperandRight.ID;
-                        if ((OE->Operator.TYPE == TYPE_OPERATOR) && (OE->Operator.ID == KEY_DLL_CALL) && (OE->OperandLeft.ID == STATIC_CLASS_DLL)) {
+                        if ((OE->Operator.TYPE == TYPE_OPERATOR) && (OE->Operator.ID == KEY_DLL_CALL) && (OE->OperandLeft_ID == STATIC_CLASS_DLL)) {
                             reftc->Function = (char *)OE->OperandRight._PARSE_DATA.c_str();
                         } else {
                             reftc->Function = 0;
                         }
 
                         if ((OE->Operator.TYPE == TYPE_OPERATOR) && ((OE->Operator.ID == KEY_DLL_CALL) || (OE->Operator.ID == KEY_SEL) || (OE->Operator.ID == KEY_NEW))) {
-                            if ((OE->Operator.ID == KEY_SEL) && (OE->OperandLeft.ID == 1)) {
+                            if ((OE->Operator.ID == KEY_SEL) && (OE->OperandLeft_ID == 1)) {
                                 int         i2          = (int)OE->OperandRight.ID - 1;
                                 int         relocation2 = CC->Relocation(i2);
                                 ClassMember *pMEMBER_i2 = relocation2 ? CC->pMEMBERS [relocation2 - 1] : 0;
                                 if (pMEMBER_i2)
                                     reftc->Function = (char *)pMEMBER_i2->NAME;
                             }
-                            if (((OE->Operator.ID != KEY_NEW) || (OE->OperandLeft.ID != -1)) && (OE->OperandReserved.ID > 0)) {
-                                ParamList *FORMAL_PARAMETERS = &Parameters[OE->OperandReserved.ID - 1];
+                            if (((OE->Operator.ID != KEY_NEW) || (OE->OperandLeft_ID != -1)) && (OE->OperandReserved_ID > 0)) {
+                                ParamList *FORMAL_PARAMETERS = &Parameters[OE->OperandReserved_ID - 1];
                                 reftc->ParametersCount = FORMAL_PARAMETERS->COUNT;
                                 reftc->Parameters      = DELTA_UNREF(FORMAL_PARAMETERS, FORMAL_PARAMETERS->PARAM_INDEX);
                             } else {
@@ -1626,8 +1629,8 @@ INTEGER Invoke(INTEGER INVOKE_TYPE, ...) {
                             reftc->ParametersCount = -1;
                             reftc->Parameters      = 0;
                         }
-                        reftc->OperandReserved_ID   = OE->OperandReserved.ID;
-                        reftc->OperandReserved_TYPE = OE->OperandReserved.TYPE;
+                        reftc->OperandReserved_ID   = OE->OperandReserved_ID;
+                        reftc->OperandReserved_TYPE = OE->OperandReserved_TYPE;
                         reftc->Result_ID            = OE->Result_ID;
                     }
                     *CODE = tc;
@@ -2188,7 +2191,7 @@ INTEGER Invoke(INTEGER INVOKE_TYPE, ...) {
 #endif
                 target->TYPE       = VARIABLE_CLASS;
                 target->CLASS_DATA = NULL;
-                target->CLASS_DATA = CC->CreateInstance(pif, target, 0, &FORMAL_PARAM, (VariableDATA **)CONTEXT, STACK_TRACE);
+                target->CLASS_DATA = CC->CreateInstance(pif, target, 0, 0, &FORMAL_PARAM, (VariableDATA **)CONTEXT, STACK_TRACE);
                 if (ref)
                     free(ref);
                 if (!target->CLASS_DATA) {
@@ -2259,7 +2262,7 @@ INTEGER Invoke(INTEGER INVOKE_TYPE, ...) {
 #endif
                 target->TYPE       = VARIABLE_CLASS;
                 target->CLASS_DATA = NULL;
-                target->CLASS_DATA = CC->CreateInstance(pif, target, 0, &FORMAL_PARAM, (VariableDATA **)CONTEXT, STACK_TRACE);
+                target->CLASS_DATA = CC->CreateInstance(pif, target, 0, 0, &FORMAL_PARAM, (VariableDATA **)CONTEXT, STACK_TRACE);
                 if (ref)
                     free(ref);
                 if (!target->CLASS_DATA) {

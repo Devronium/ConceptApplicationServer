@@ -294,17 +294,16 @@ typedef struct tsRuntimeElement {
     SYS_INT        ID;
     TinyString     _PARSE_DATA;
 
-    unsigned short _DEBUG_INFO_LINE;
     POOLED(tsRuntimeElement)
 } RuntimeElement;
 
 typedef struct tsRuntimeOptimizedElement {
     PartialAnalizerElement Operator;
-    RuntimeElement         OperandLeft;
+    INTEGER                OperandLeft_ID;
     RuntimeElement         OperandRight;
-    SHORT_AnalizerElement  OperandReserved;
+    INTEGER                OperandReserved_ID;
     INTEGER                Result_ID;
-
+    signed char            OperandReserved_TYPE;
     POOLED(tsRuntimeOptimizedElement)
 } RuntimeOptimizedElement;
 
@@ -402,6 +401,10 @@ struct GreenThreadCycle {
     concept_fwrite_int(&AE.TYPE, sizeof(AE.TYPE), 1, out); \
     concept_fwrite_int(&AE.ID, sizeof(AE.ID), 1, out);
 
+#define SERIALIZE_VIRTUAL_AE(TYPE, ID, out)          \
+    concept_fwrite_int(&TYPE, sizeof(TYPE), 1, out); \
+    concept_fwrite_int(&ID, sizeof(ID), 1, out);
+
 #define SERIALIZE_SMALL_VAR_DESCRIPTOR(VD, out)                  \
     /* is a parameter validator ? */                             \
     signed char VD_TYPE = VD->TYPE;                              \
@@ -448,14 +451,14 @@ struct GreenThreadCycle {
 #define SERIALIZE_OPTIMIZED(OE, out)                                                                                             \
     SERIALIZE_SHORT_AE(OE->Operator, out);                                                                                       \
     SERIALIZE_FLAGS(OE->Operator.FLAGS, out);                                                                                    \
-    SERIALIZE_AE(OE->OperandLeft, out, 0);                                                                                       \
+    concept_fwrite_int(&OE->OperandLeft_ID, sizeof(OE->OperandLeft_ID), 1, out);                                                 \
     SERIALIZE_FLAGS(OE->Operator.FLAGS, out);                                                                                    \
-    if ((OE->Operator.TYPE == TYPE_OPERATOR) && (OE->Operator.ID == KEY_DLL_CALL) && (OE->OperandLeft.ID == STATIC_CLASS_DLL)) { \
+    if ((OE->Operator.TYPE == TYPE_OPERATOR) && (OE->Operator.ID == KEY_DLL_CALL) && (OE->OperandLeft_ID == STATIC_CLASS_DLL)) { \
         SERIALIZE_AE(OE->OperandRight, out, 1);                                                                                  \
     } else {                                                                                                                     \
         SERIALIZE_AE(OE->OperandRight, out, 0);                                                                                  \
     }                                                                                                                            \
-    SERIALIZE_SHORT_AE(OE->OperandReserved, out);                                                                                \
+    SERIALIZE_VIRTUAL_AE(OE->OperandReserved_TYPE, OE->OperandReserved_ID, out);                                                 \
     concept_fwrite_int(&OE->Result_ID, sizeof(OE->Result_ID), 1, out);
 
 #define UNSERIALIZE_PARAM_LIST_SIZE(Param, in)                           \
@@ -483,7 +486,6 @@ struct GreenThreadCycle {
         concept_fread_int(&_id, sizeof(_id), 1, out);  \
         AE.ID = _id;                                   \
     }                                                  \
-    AE._DEBUG_INFO_LINE = 0;                           \
     if (get_parse) {                                   \
         AE._PARSE_DATA.Unserialize(out, SERIALIZE_16BIT_LENGTH, is_pooled); }
 #else
@@ -496,6 +498,10 @@ struct GreenThreadCycle {
 #define UNSERIALIZE_SHORT_AE(AE, out)                 \
     concept_fread_int(&AE.TYPE, sizeof(AE.TYPE), 1, out); \
     concept_fread_int(&AE.ID, sizeof(AE.ID), 1, out);     \
+
+#define UNSERIALIZE_VIRTUAL_AE(TYPE, ID, out)       \
+    concept_fread_int(&TYPE, sizeof(TYPE), 1, out); \
+    concept_fread_int(&ID, sizeof(ID), 1, out);     \
 
 #define UNSERIALIZE_VAR_DESCRIPTOR_SIZE(VD, in)                \
     concept_fread_int(&VD->BY_REF, sizeof(VD->BY_REF), 1, in); \
@@ -561,14 +567,14 @@ struct GreenThreadCycle {
 #define UNSERIALIZE_OPTIMIZED(OE, out, is_pooled)                                                                                \
     UNSERIALIZE_SHORT_AE(OE->Operator, out);                                                                                     \
     UNSERIALIZE_FLAGS(OE->Operator.FLAGS, out);                                                                                  \
-    UNSERIALIZE_AE(OE->OperandLeft, out, 0, is_pooled);                                                                          \
+    concept_fread_int(&OE->OperandLeft_ID, sizeof(OE->OperandLeft_ID), 1, out);                                                  \
     UNSERIALIZE_FLAGS(OE->Operator.FLAGS, out);                                                                                  \
-    if ((OE->Operator.TYPE == TYPE_OPERATOR) && (OE->Operator.ID == KEY_DLL_CALL) && (OE->OperandLeft.ID == STATIC_CLASS_DLL)) { \
+    if ((OE->Operator.TYPE == TYPE_OPERATOR) && (OE->Operator.ID == KEY_DLL_CALL) && (OE->OperandLeft_ID == STATIC_CLASS_DLL)) { \
         UNSERIALIZE_AE(OE->OperandRight, out, 1, is_pooled);                                                                     \
     } else {                                                                                                                     \
         UNSERIALIZE_AE(OE->OperandRight, out, 0, is_pooled);                                                                     \
     }                                                                                                                            \
-    UNSERIALIZE_SHORT_AE(OE->OperandReserved, out);                                                                              \
+    UNSERIALIZE_VIRTUAL_AE(OE->OperandReserved_TYPE, OE->OperandReserved_ID, out);                                               \
     concept_fread_int(&OE->Result_ID, sizeof(OE->Result_ID), 1, out);
 
 typedef void (*ForeignPrint)(char *str, int length, void *userdata);
