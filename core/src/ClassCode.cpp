@@ -412,21 +412,39 @@ int ClassCode::GetSerialMembers(CompiledClass *CC, int max_members,
 
 INTEGER ClassCode::Relocation(INTEGER mid) {
     if (RELOCATIONS) {
+#ifdef HASH_RELOCATION
+        khiter_t k = kh_get(inthashtable, RELOCATIONS, mid);
+        if ((k != kh_end(RELOCATIONS)) && (kh_exist(RELOCATIONS, k)))
+            return kh_val(RELOCATIONS, k);
+#else
         INTEGER index;
         MemberLink *link;
         FIND_RELOCATION(mid, index, link, pMEMBERS_COUNT);
         if (link)
             return link->lid + 1;
+#endif
     }
     return 0;
 }
 
+#ifndef HASH_RELOCATION
 void ClassCode::FindRelocation(INTEGER mid, INTEGER &i, MemberLink *&result, INTEGER limit) {
     FIND_RELOCATION(mid, i, result, limit);
 }
+#endif
 
 void ClassCode::SetRelocation(INTEGER mid, INTEGER index) {
     if (RELOCATIONS) {
+#ifdef HASH_RELOCATION
+        khiter_t k = kh_get(inthashtable, RELOCATIONS, mid);
+        if ((k != kh_end(RELOCATIONS)) && (kh_exist(RELOCATIONS, k))) {
+            kh_value(RELOCATIONS, k) = index;
+            return;
+        }
+        int ret;
+        k = kh_put(inthashtable, RELOCATIONS, mid, &ret);
+        kh_value(RELOCATIONS, k) = index;
+#else
         INTEGER i = 0;
         MemberLink *link;
         index--;
@@ -442,6 +460,7 @@ void ClassCode::SetRelocation(INTEGER mid, INTEGER index) {
         }
         RELOCATIONS[i].mid = mid;
         RELOCATIONS[i].lid = index;
+#endif
     }
 }
 
@@ -954,10 +973,14 @@ void ClassCode::GenerateCode(StaticList *GeneralMembers) {
     if (!LocalMembersCount)
         return;
 
+#ifdef HASH_RELOCATION
+    RELOCATIONS = kh_init(inthashtable);
+#else
     RELOCATIONS  = new MemberLink [LocalMembersCount];
+    memset(RELOCATIONS, 0, sizeof(MemberLink) * LocalMembersCount);
+#endif
     RELOCATIONS2 = new CLASS_MEMBERS_DOMAIN[LocalMembersCount];
     memset(RELOCATIONS2, 0, sizeof(CLASS_MEMBERS_DOMAIN) * LocalMembersCount);
-    memset(RELOCATIONS, 0, sizeof(MemberLink) * LocalMembersCount);
 
     pMEMBERS = new ClassMember * [LocalMembersCount];
 
@@ -1098,8 +1121,13 @@ int ClassCode::Unserialize(PIFAlizator *PIF, concept_FILE *in, AnsiList *ClassLi
     if (pMEMBERS)
         delete [] pMEMBERS;
 
-    if (RELOCATIONS)
+    if (RELOCATIONS) {
+#ifdef HASH_RELOCATION
+        kh_destroy(inthashtable, RELOCATIONS);
+#else
         delete [] RELOCATIONS;
+#endif
+    }
 
     if (RELOCATIONS2)
         delete [] RELOCATIONS2;
@@ -1129,17 +1157,28 @@ int ClassCode::Unserialize(PIFAlizator *PIF, concept_FILE *in, AnsiList *ClassLi
     if (!is_lib) {
         INTEGER GeneralMembersCount = PIF->GeneralMembers->Count();
         if (is_pooled) {
+#ifdef HASH_RELOCATION
+            RELOCATIONS = kh_init(inthashtable);
+            RELOCATIONS2 = (CLASS_MEMBERS_DOMAIN *)SHAlloc(sizeof(CLASS_MEMBERS_DOMAIN) * members_count);
+            if (is_created)
+                memset(RELOCATIONS2, 0, sizeof(CLASS_MEMBERS_DOMAIN) * members_count);
+#else
             RELOCATIONS  = (MemberLink *)SHAlloc(sizeof(MemberLink) * members_count);
             RELOCATIONS2 = (CLASS_MEMBERS_DOMAIN *)SHAlloc(sizeof(CLASS_MEMBERS_DOMAIN) * members_count);
             if (is_created) {
                 memset(RELOCATIONS2, 0, sizeof(CLASS_MEMBERS_DOMAIN) * members_count);
                 memset(RELOCATIONS, 0, sizeof(MemberLink) * members_count);
             }
+#endif
         } else {
+#ifdef HASH_RELOCATION
+            RELOCATIONS = kh_init(inthashtable);
+#else
             RELOCATIONS  = new MemberLink [members_count];
+            memset(RELOCATIONS, 0, sizeof(MemberLink) * members_count);
+#endif
             RELOCATIONS2 = new CLASS_MEMBERS_DOMAIN [members_count];
             memset(RELOCATIONS2, 0, sizeof(CLASS_MEMBERS_DOMAIN) * members_count);
-            memset(RELOCATIONS, 0, sizeof(MemberLink) * members_count);
         }
 
         pMEMBERS       = new ClassMember * [members_count];
@@ -1321,7 +1360,11 @@ ClassCode::~ClassCode(void) {
     }
     if (!is_pooled) {
         if (RELOCATIONS) {
+#ifdef HASH_RELOCATION
+            kh_destroy(inthashtable, RELOCATIONS);
+#else
             delete [] RELOCATIONS;
+#endif
         }
         if (RELOCATIONS2) {
             delete [] RELOCATIONS2;

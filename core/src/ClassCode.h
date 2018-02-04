@@ -13,7 +13,6 @@
 #include "ConceptPools.h"
 #include <stdio.h>
 
-#define MAP_RELOC
 #define THIS_CLASS    "this"
 
 class PIFAlizator;
@@ -25,6 +24,12 @@ typedef struct {
     // local member index
     CLASS_MEMBERS_DOMAIN lid;
 } MemberLink;
+
+#ifdef HASH_RELOCATION
+#include "khash.h"
+
+KHASH_MAP_INIT_INT(inthashtable, INTEGER);
+#endif
 
 class ClassCode {
     friend class PIFAlizator;
@@ -68,15 +73,20 @@ private:
 
     ClassMember          **pMEMBERS;
     CLASS_MEMBERS_DOMAIN pMEMBERS_COUNT;
-
+#ifdef HASH_RELOCATION
+    khash_t (inthashtable) *RELOCATIONS;
+#else
     MemberLink *RELOCATIONS;
+#endif
 
     CLASS_MEMBERS_DOMAIN *RELOCATIONS2;
     CLASS_MEMBERS_DOMAIN DataMembersCount;
 
     signed char NEEDED;
     signed char DEFINED_LEVEL;
+#ifndef HASH_RELOCATION
     void FindRelocation(INTEGER mid, INTEGER &i, MemberLink *&result, INTEGER limit);
+#endif
 public:
     POOLED(ClassCode)
 
