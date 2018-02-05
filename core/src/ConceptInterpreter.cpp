@@ -4960,7 +4960,7 @@ int ConceptInterpreter::EvalSimpleExpression(PIFAlizator *PIF, VariableDATA **LO
 
         case KEY_DELETE:
             //SMART_LOCK(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]);
-            CLASS_CHECK_RESULT(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]);
+            CLASS_CHECK(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]);
             // LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA  = 0;
             LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->TYPE        = VARIABLE_NUMBER;
             LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->NUMBER_DATA = 0;
@@ -5037,9 +5037,8 @@ VariableDATA *ConceptInterpreter::Interpret(PIFAlizator *PIF, VariableDATA **LOC
                     {
                         WRITE_LOCK
                         if (LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->TYPE != VARIABLE_CLASS) {
-                            if ((OE->Operator.FLAGS == MAY_IGNORE_RESULT) && (LOCAL_CONTEXT [OE->OperandRight.ID - 1]->TYPE == VARIABLE_NUMBER)) {
+                            if ((OE->Operator.FLAGS == MAY_IGNORE_RESULT) && (LOCAL_CONTEXT [OE->OperandRight.ID - 1]->TYPE == VARIABLE_NUMBER) && (LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->TYPE == VARIABLE_NUMBER)) {
                                 LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->NUMBER_DATA = LOCAL_CONTEXT [OE->OperandRight.ID - 1]->NUMBER_DATA;
-                                LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->TYPE   = VARIABLE_NUMBER;
                                 PROPERTY_CODE_IGNORE_RESULT(this, PROPERTIES)
                                 continue;
                             }
