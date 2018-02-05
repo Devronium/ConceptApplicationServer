@@ -2577,7 +2577,6 @@ int main(int argc, char **argv) {
     int  arg_start    = 2;
     char *force_chdir = getenv("CONCEPT_FORCE_CHDIR");
     int  chdir        = 0;
-    int  mt           = 0;
     if (force_chdir)
         chdir = atoi(force_chdir);
 
@@ -2595,10 +2594,6 @@ int main(int argc, char **argv) {
                     chdir = 1;
                     arg_start++;
                     //arg_start = 3;
-                } else
-                if (!strcmp(arg, "-mt")) {
-                    mt = 1;
-                    arg_start++;
                 } else {
                     fprintf(stderr, "Unknown option : %s\n",  arg);
                     return -1;
@@ -2613,15 +2608,10 @@ int main(int argc, char **argv) {
         filename  = argv[1];
         arg_start = 2;
     } else {
-        fprintf(stderr, "USAGE : %s [-debug] [-chdir] [-mt] filename [arguments]\n", argv[0]);
+        fprintf(stderr, "USAGE : %s [-debug] [-chdir] filename [arguments]\n", argv[0]);
         return -1;
     }
 
-    if (!mt) {
-        AnsiString manifest(filename);
-        manifest += (char *)".manifest";
-        mt        = GetKey(manifest.c_str(), "Application", "Multithreading", "0").ToInt();
-    }
     SetArguments(argc - arg_start, &argv[arg_start]);
     // check for autocompile
     int res = 0;
