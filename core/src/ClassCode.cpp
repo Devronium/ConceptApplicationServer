@@ -1027,10 +1027,25 @@ int ClassCode::Serialize(PIFAlizator *PIF, FILE *out, bool is_lib) {
     concept_fwrite_int(&members_count, sizeof(members_count), 1, out);
     concept_fwrite_int(&CONSTRUCTOR, sizeof(CONSTRUCTOR), 1, out);
     concept_fwrite_int(&DESTRUCTOR, sizeof(DESTRUCTOR), 1, out);
-
+    INTEGER jj;
     for (INTEGER ii = 0; ii < members_count; ii++) {
         ClassMember *CM_TARGET = (ClassMember *)Members->Item(ii);
-        for (INTEGER jj = 0; jj < GeneralMembersCount; jj++) {
+#ifdef CACHED_LIST
+        jj = PIF->GeneralMembers->ContainsString(CM_TARGET->NAME);
+        if (jj > 0) {
+            jj--;
+            concept_fwrite_int(&jj, sizeof(jj), 1, out);
+            char is_defined_in_this_class = ((void *)CM_TARGET->Defined_In == (void *)this);
+            concept_fwrite(&is_defined_in_this_class, sizeof(is_defined_in_this_class), 1, out);
+            if (is_defined_in_this_class) {
+                CM_TARGET->Serialize(out, is_lib);
+            } else {
+                int clsid = ((ClassCode *)CM_TARGET->Defined_In)->CLSID;
+                concept_fwrite_int(&clsid, sizeof(clsid), 1, out);
+            }
+        } else
+#endif
+        for (jj = 0; jj < GeneralMembersCount; jj++) {
             int         reloc = Relocation(jj);
             ClassMember *CM   = reloc ? pMEMBERS [reloc - 1] : 0;
             if ((CM) && (CM == CM_TARGET)) {

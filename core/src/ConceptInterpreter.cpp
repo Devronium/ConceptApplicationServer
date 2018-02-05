@@ -278,6 +278,18 @@ void FREE_VARIABLE(VariableDATA *VARIABLE) {
             PIF->AcknoledgeRunTimeError(STACK_TRACE, new AnsiException(ERR1204, OE->Operator._DEBUG_INFO_LINE, 1204, OE->OperandRight._PARSE_DATA.c_str(), ((ClassCode *)(THISREF->OWNER->Defined_In))->_DEBUG_INFO_FILENAME, ((ClassCode *)(THISREF->OWNER->Defined_In))->NAME, THISREF->OWNER->NAME)); \
     }                                                                                                                                                                                                                                                                                                \
 
+#define EVAL_NUMBER_EXPRESSION2(THISREF, OPERATOR)                                                                                                                                                                                                                                                    \
+    switch (LOCAL_CONTEXT [OE->OperandRight.ID - 1]->TYPE) {                                                                                                                                                                                                                                         \
+        case VARIABLE_NUMBER:                                                                                                                                                                                                                                                                        \
+            LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->NUMBER_DATA OPERATOR LOCAL_CONTEXT [OE->OperandRight.ID - 1]->NUMBER_DATA;                                                                                                                      \
+            break;                                                                                                                                                                                                                                                                                   \
+        case VARIABLE_STRING:                                                                                                                                                                                                                                                                        \
+            LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->NUMBER_DATA OPERATOR CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandRight.ID - 1]).ToFloat();                                                                                                         \
+            break;                                                                                                                                                                                                                                                                                   \
+        default:                                                                                                                                                                                                                                                                                     \
+            PIF->AcknoledgeRunTimeError(STACK_TRACE, new AnsiException(ERR1204, OE->Operator._DEBUG_INFO_LINE, 1204, OE->OperandRight._PARSE_DATA.c_str(), ((ClassCode *)(THISREF->OWNER->Defined_In))->_DEBUG_INFO_FILENAME, ((ClassCode *)(THISREF->OWNER->Defined_In))->NAME, THISREF->OWNER->NAME)); \
+    }                                                                                                                                                                                                                                                                                                \
+
 #define EVAL_INTEGER_EXPRESSION(THISREF, OPERATOR)                                                                                                                                                                                                                                                   \
     switch (LOCAL_CONTEXT [OE->OperandRight.ID - 1]->TYPE) {                                                                                                                                                                                                                                         \
         case VARIABLE_NUMBER:                                                                                                                                                                                                                                                                        \
@@ -5407,6 +5419,27 @@ VariableDATA *ConceptInterpreter::Interpret(PIFAlizator *PIF, VariableDATA **LOC
                     if (OE->OperandLeft_ID) {
                         if (LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->TYPE == VARIABLE_NUMBER) {
                             // optimize frequent used operators
+#ifndef _WIN32
+                            // optimize only on 64 bit systems
+                            if (OE->Operator.FLAGS == MAY_IGNORE_RESULT) {
+                                switch (OE_Operator_ID) {
+                                    case KEY_INC_LEFT:
+                                    case KEY_INC:
+                                        LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->NUMBER_DATA++;
+                                        PROPERTY_CODE_LEFT(this, PROPERTIES)
+                                        continue;
+                                    case KEY_ASU:
+                                        EVAL_NUMBER_EXPRESSION2(this, += )
+                                        PROPERTY_CODE_IGNORE_RESULT(this, PROPERTIES)
+                                        continue;
+                                    case KEY_DEC_LEFT:
+                                    case KEY_DEC:
+                                        LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->NUMBER_DATA--;
+                                        PROPERTY_CODE_LEFT(this, PROPERTIES)
+                                        continue;
+                                }
+                            }
+#endif
                             if (OE_Operator_ID == KEY_LES) {
                                 CLASS_CHECK_RESULT(LOCAL_CONTEXT [OE->Result_ID - 1]);
                                 LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE = LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->TYPE;
@@ -5430,7 +5463,6 @@ VariableDATA *ConceptInterpreter::Interpret(PIFAlizator *PIF, VariableDATA **LOC
                                 CLASS_CHECK_RESULT(LOCAL_CONTEXT [OE->Result_ID - 1]);
                                 LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE = LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->TYPE;
                                 EVAL_NUMBER_EXPRESSION(this, += )
-                                LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->TYPE = VARIABLE_NUMBER;
                                 PROPERTY_CODE(this, PROPERTIES)
                                 continue;
                             } else
@@ -5568,8 +5600,8 @@ VariableDATA *ConceptInterpreter::Interpret(PIFAlizator *PIF, VariableDATA **LOC
 #endif
                     continue;
             }
-        } else
-        if (OE->Operator.TYPE == TYPE_OPTIMIZED_KEYWORD) {
+        } else {
+            // if (OE->Operator.TYPE == TYPE_OPTIMIZED_KEYWORD) {
             switch (OE_Operator_ID) {
                 case KEY_OPTIMIZED_IF:
 
@@ -5593,7 +5625,7 @@ VariableDATA *ConceptInterpreter::Interpret(PIFAlizator *PIF, VariableDATA **LOC
                             }
                             continue;
                     }
-                    break;
+                    continue;
 
                 case KEY_OPTIMIZED_GOTO:
                     DECLARE_PATH(VARIABLE_NUMBER);

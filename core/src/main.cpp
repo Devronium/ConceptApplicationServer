@@ -2624,7 +2624,6 @@ int main(int argc, char **argv) {
         if (res == -3)
             fprintf(stderr, "File not found or insufficient rights : %s\n", filename);
         else
-        if (LastResult)
             res = LastResult();
     }
     return res;
