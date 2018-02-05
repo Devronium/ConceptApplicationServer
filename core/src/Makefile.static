@@ -1,0 +1,91 @@
+CC = g++
+CCOMP = gcc
+RM = del
+CFLAGS = -O3 -DSTATIC_CLI -fno-strict-aliasing -fomit-frame-pointer
+LIBS = -ldl
+BUILDFLAGS= -o concept
+
+OBJS = AnsiString.o TinyString.o AnsiList.o AnsiException.o Codes.o ClassMember.o ClassCode.o AnsiParser.o PIFAlizator.o Optimizer.o ConceptInterpreter.o CompiledClass.o ModuleLink.o Array.o Debugger.o GarbageCollector.o SHManager.o StaticString.o StaticList.o DoubleList.o main.o sljitLir.o dlmalloc.o regexp.o BuiltIns.o
+
+concept: ${OBJS}
+	${CC} -o concept ${BUILDFLAGS} ${CFLAGS} ${OBJS} ${LIBS}
+
+SHManager.o: SHManager.cpp SHManager.h
+	${CC} ${CFLAGS} -c SHManager.cpp
+
+Codes.o: Codes.cpp Codes.h
+	${CC} ${CFLAGS} -c Codes.cpp
+
+AnsiString.o: AnsiString.cpp AnsiString.h
+	${CC} ${CFLAGS} -c AnsiString.cpp
+
+TinyString.o: TinyString.cpp TinyString.h
+	${CC} ${CFLAGS} -c TinyString.cpp
+
+StaticString.o: StaticString.cpp StaticString.h
+	${CC} ${CFLAGS} -c StaticString.cpp
+
+DoubleList.o: DoubleList.cpp DoubleList.h
+	${CC} ${CFLAGS} -c DoubleList.cpp
+
+AnsiList.o: AnsiList.cpp AnsiList.h
+	${CC} ${CFLAGS} -c AnsiList.cpp
+
+AnsiException.o: AnsiException.cpp AnsiException.h
+	${CC} ${CFLAGS} -c AnsiException.cpp
+
+AnsiParser.o: AnsiParser.cpp AnsiParser.h
+	${CC} ${CFLAGS} -c AnsiParser.cpp
+
+PIFAlizator.o: PIFAlizator.cpp PIFAlizator.h
+	${CC} ${CFLAGS} -c PIFAlizator.cpp
+
+Optimizer.o: Optimizer.cpp Optimizer.h
+	${CC} ${CFLAGS} -c Optimizer.cpp
+
+ConceptInterpreter.o: ConceptInterpreter.cpp ConceptInterpreter.h
+	${CC} ${CFLAGS} -c ConceptInterpreter.cpp
+
+ClassCode.o: ClassCode.cpp ClassCode.h
+	${CC} ${CFLAGS} -c ClassCode.cpp
+
+ClassMember.o: ClassMember.cpp ClassMember.h
+	${CC} ${CFLAGS} -c ClassMember.cpp
+
+CompiledClass.o: CompiledClass.cpp CompiledClass.h
+	${CC} ${CFLAGS} -c CompiledClass.cpp
+
+ModuleLink.o: ModuleLink.cpp ModuleLink.h
+	${CC} ${CFLAGS} -c ModuleLink.cpp
+
+Debugger.o: Debugger.cpp Debugger.h
+	${CC} ${CFLAGS} -c Debugger.cpp
+
+Array.o: Array.cpp Array.h
+	${CC} ${CFLAGS} -c Array.cpp
+
+GarbageCollector.o: GarbageCollector.cpp GarbageCollector.h
+	${CC} ${CFLAGS} -c GarbageCollector.cpp
+
+StaticList.o: StaticList.cpp StaticList.h
+	${CC} ${CFLAGS} -c StaticList.cpp
+
+main.o: main.cpp
+	${CC} ${CFLAGS} -c main.cpp
+
+sljitLir.o:
+	${CCOMP} ${CFLAGS} -c JIT/sljitLir.c
+
+dlmalloc.o: dlmalloc.c
+	${CCOMP} ${CFLAGS} -c dlmalloc.c
+
+regexp.o: builtin/regexp.c builtin/regexp.h
+	${CCOMP} ${CFLAGS} -c builtin/regexp.c
+
+BuiltIns.o: BuiltIns.cpp BuiltIns.h
+	${CC} ${CFLAGS} -c BuiltIns.cpp
+
+
+clean:
+	$(RM) concept ${OBJS}
+	@echo all cleaned up!

@@ -2614,7 +2614,6 @@ int ConceptInterpreter::StacklessInterpret(PIFAlizator *PIF, GreenThreadCycle *G
     ParamList     *FORMAL_PARAMETERS;
     VariableDATA  *RESULT;
     CompiledClass *CCTEMP;
-    INTEGER       OPERATOR_ID;
     ClassCode     *CC;
     void          *instancePTR;
     VariableDATA  *RETURN_DATA;
@@ -2629,9 +2628,6 @@ int ConceptInterpreter::StacklessInterpret(PIFAlizator *PIF, GreenThreadCycle *G
     ParamListExtra FORMAL_PARAMETERS2;
 
     FORMAL_PARAMETERS2.PIF = PIF;
-
-    ParamList OPERATOR_PARAM;
-    INTEGER   PARAM_INDEX[1];
 
 #ifdef SIMPLE_MULTI_THREADING
     char IsWriteLocked = 0;
@@ -3066,79 +3062,6 @@ int ConceptInterpreter::StacklessInterpret(PIFAlizator *PIF, GreenThreadCycle *G
                         DECLARE_PATH(LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE);
                         continue;
 
-                    case KEY_TYPE_OF:
-                        //SMART_LOCK(LOCAL_CONTEXT [OE->Result_ID - 1])
-                        //==================//
-                        CLASS_CHECK_RESULT(LOCAL_CONTEXT [OE->Result_ID - 1]);
-                        //==================//
-                        LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE = VARIABLE_STRING;
-                        switch (LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->TYPE) {
-                            case VARIABLE_NUMBER:
-                                NEW_CONCEPT_STRING(LOCAL_CONTEXT [OE->Result_ID - 1]) = "numeric";
-                                break;
-
-                            case VARIABLE_STRING:
-                                NEW_CONCEPT_STRING(LOCAL_CONTEXT [OE->Result_ID - 1]) = "string";
-                                break;
-
-                            case VARIABLE_CLASS:
-                                NEW_CONCEPT_STRING(LOCAL_CONTEXT [OE->Result_ID - 1]) = "class";
-                                break;
-
-                            case VARIABLE_ARRAY:
-                                NEW_CONCEPT_STRING(LOCAL_CONTEXT [OE->Result_ID - 1]) = "array";
-                                break;
-
-                            case VARIABLE_DELEGATE:
-                                NEW_CONCEPT_STRING(LOCAL_CONTEXT [OE->Result_ID - 1]) = "delegate";
-                                break;
-
-                            default:
-                                NEW_CONCEPT_STRING(LOCAL_CONTEXT [OE->Result_ID - 1]) = "";
-                        }
-                        DECLARE_PATH(VARIABLE_STRING);
-                        continue;
-
-                    case KEY_CLASS_NAME:
-                        //SMART_LOCK(LOCAL_CONTEXT [OE->Result_ID - 1])
-                        //==================//
-                        CLASS_CHECK_RESULT(LOCAL_CONTEXT [OE->Result_ID - 1]);
-                        //==================//
-                        LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE = VARIABLE_STRING;
-                        if (LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->TYPE != VARIABLE_CLASS) {
-                            NEW_CONCEPT_STRING(LOCAL_CONTEXT [OE->Result_ID - 1]) = "";
-                        } else {
-                            CCTEMP = (CompiledClass *)LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA;
-                            NEW_CONCEPT_STRING(LOCAL_CONTEXT [OE->Result_ID - 1]) = CCTEMP->_Class->NAME.c_str();
-                        }
-                        DECLARE_PATH(VARIABLE_STRING);
-                        continue;
-
-                    case KEY_BY_REF:
-                        WRITE_LOCK
-                        CLASS_CHECK_RESULT(LOCAL_CONTEXT [OE->Result_ID - 1])
-                        if (LOCAL_CONTEXT [OE->OperandRight.ID - 1]->TYPE == VARIABLE_NUMBER) {
-                            CLASS_CHECK(LOCAL_CONTEXT [OE->OperandLeft_ID - 1])
-                            LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
-                            LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->NUMBER_DATA = LOCAL_CONTEXT [OE->OperandRight.ID - 1]->NUMBER_DATA;
-                            LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->TYPE   = VARIABLE_NUMBER;
-                            PROPERTY_CODE(THIS_REF, TARGET_THREAD->PROPERTIES)
-                            continue;
-                        }
-
-                        // pushed_type = VARIABLE_NUMBER;
-                        LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE = LOCAL_CONTEXT [OE->OperandRight.ID - 1]->TYPE;
-                        break;
-
-                    case KEY_DELETE:
-                        //SMART_LOCK(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]);
-                        CLASS_CHECK_RESULT(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]);
-                        // LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA  = 0;
-                        LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->TYPE        = VARIABLE_NUMBER;
-                        LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->NUMBER_DATA = 0;
-                        DECLARE_PATH(VARIABLE_NUMBER);
-                        continue;
-
                     default:
                         SMART_LOCK(LOCAL_CONTEXT [OE->OperandLeft_ID - 1])
                         SMART_LOCK(LOCAL_CONTEXT [OE->Result_ID - 1])
@@ -3223,6 +3146,17 @@ int ConceptInterpreter::StacklessInterpret(PIFAlizator *PIF, GreenThreadCycle *G
                                 }
                                 continue;
                             }
+#ifdef SIMPLE_MULTI_THREADING
+                            int simple_eval = THIS_REF->EvalSimpleExpression(PIF, LOCAL_CONTEXT, OE, TARGET_THREAD->PROPERTIES, ClassID, THROW_DATA, STACK_TRACE, INSTRUCTION_POINTER, CATCH_INSTRUCTION_POINTER, CATCH_VARIABLE, PREVIOUS_TRY, IsWriteLocked);
+#else
+                            int simple_eval = THIS_REF->EvalSimpleExpression(PIF, LOCAL_CONTEXT, OE, TARGET_THREAD->PROPERTIES, ClassID, THROW_DATA, STACK_TRACE, INSTRUCTION_POINTER, CATCH_INSTRUCTION_POINTER, CATCH_VARIABLE, PREVIOUS_TRY);
+#endif
+                            if (simple_eval == 1)
+                                continue;
+                            else
+                            if (simple_eval == 2)
+                                break;
+
                             CLASS_CHECK_RESULT(LOCAL_CONTEXT [OE->Result_ID - 1]);
                             ////////////////////////////////////////////////////////////
                             //pushed_type = VARIABLE_NUMBER;//LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE;
@@ -3246,1098 +3180,36 @@ int ConceptInterpreter::StacklessInterpret(PIFAlizator *PIF, GreenThreadCycle *G
                         break;
 
                     case VARIABLE_STRING:
-                        switch (OE_Operator_ID) {
-                            // unary operators
-                            case KEY_NOT:
-                                LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = (CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]).Length() == 0);
-                                LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
-                                DECLARE_PATH(VARIABLE_NUMBER);
-                                continue;
-
-                            case KEY_LENGTH:
-                                LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]).Length();
-                                LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
-                                DECLARE_PATH(VARIABLE_NUMBER);
-                                continue;
-
-                            case KEY_VALUE:
-                                LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]).ToFloat();
-                                LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
-                                DECLARE_PATH(VARIABLE_NUMBER);
-                                continue;
-
-                            case KEY_INC:
-                                if (CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]).Length()) {
-                                    NEW_CONCEPT_STRING(LOCAL_CONTEXT [OE->Result_ID - 1]).LoadBuffer(CONCEPT_C_STRING(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]) + 1, CONCEPT_C_LENGTH(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]) - 1);
-                                    CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]) = CONCEPT_STRING(LOCAL_CONTEXT [OE->Result_ID - 1]);
-                                    //----------------//
-                                    PROPERTY_CODE(THIS_REF, TARGET_THREAD->PROPERTIES)
-                                    //----------------//
-                                }
-                                DECLARE_PATH(VARIABLE_STRING);
-                                continue;
-
-                            case KEY_INC_LEFT:
-                                if (CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]).Length()) {
-                                    NEW_CONCEPT_STRING(LOCAL_CONTEXT [OE->Result_ID - 1]) = CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]);
-                                    CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]).LoadBuffer(CONCEPT_C_STRING(LOCAL_CONTEXT [OE->Result_ID - 1]) + 1, CONCEPT_C_LENGTH(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]) - 1);
-                                    //----------------//
-                                    PROPERTY_CODE_LEFT(THIS_REF, TARGET_THREAD->PROPERTIES)
-                                    //----------------//
-                                }
-                                DECLARE_PATH(VARIABLE_STRING);
-                                continue;
-
-                            // binary ...
-                            case KEY_SUM:
-                                switch (LOCAL_CONTEXT [OE->OperandRight.ID - 1]->TYPE) {
-                                    case VARIABLE_STRING:
-                                        NEW_CONCEPT_STRING(LOCAL_CONTEXT [OE->Result_ID - 1]).Sum(CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]), CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandRight.ID - 1]));
-                                        DECLARE_PATH(VARIABLE_STRING);
-                                        break;
-
-                                    case VARIABLE_NUMBER:
-                                        NEW_CONCEPT_STRING(LOCAL_CONTEXT [OE->Result_ID - 1]) = CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]) + AnsiString(LOCAL_CONTEXT [OE->OperandRight.ID - 1]->NUMBER_DATA);
-                                        DECLARE_PATH(VARIABLE_STRING);
-                                        break;
-
-                                    default:
-                                        DECLARE_PATH(0x20);
-                                        Exc = new AnsiException(ERR650, OE->Operator._DEBUG_INFO_LINE, 650,  GetKeyWord(OE->Operator.ID), ((ClassCode *)(THIS_REF->OWNER->Defined_In))->_DEBUG_INFO_FILENAME, ((ClassCode *)(THIS_REF->OWNER->Defined_In))->NAME, THIS_REF->OWNER->NAME);
-                                        PIF->AcknoledgeRunTimeError(STACK_TRACE, Exc);
-                                        break;
-                                }
-                                continue;
-
-                            case KEY_EQU:
-                                switch (LOCAL_CONTEXT [OE->OperandRight.ID - 1]->TYPE) {
-                                    case VARIABLE_STRING:
-                                        LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]) == CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandRight.ID - 1]) ? 1 : 0;
-                                        LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
-                                        DECLARE_PATH(VARIABLE_NUMBER);
-                                        break;
-
-                                    case VARIABLE_NUMBER:
-                                        LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]) == LOCAL_CONTEXT [OE->OperandRight.ID - 1]->NUMBER_DATA ? 1 : 0;
-                                        LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
-                                        DECLARE_PATH(VARIABLE_NUMBER);
-                                        break;
-
-                                    default:
-                                        DECLARE_PATH(0x20);
-                                        Exc = new AnsiException(ERR650, OE->Operator._DEBUG_INFO_LINE, 650,  GetKeyWord(OE->Operator.ID), ((ClassCode *)(THIS_REF->OWNER->Defined_In))->_DEBUG_INFO_FILENAME, ((ClassCode *)(THIS_REF->OWNER->Defined_In))->NAME, THIS_REF->OWNER->NAME);
-                                        PIF->AcknoledgeRunTimeError(STACK_TRACE, Exc);
-                                        break;
-                                }
-                                continue;
-
-                            case KEY_GRE:
-                                switch (LOCAL_CONTEXT [OE->OperandRight.ID - 1]->TYPE) {
-                                    case VARIABLE_STRING:
-                                        LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]) > CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandRight.ID - 1]) ? 1 : 0;
-                                        LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
-                                        DECLARE_PATH(VARIABLE_NUMBER);
-                                        break;
-
-                                    case VARIABLE_NUMBER:
-                                        LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]) > AnsiString(LOCAL_CONTEXT [OE->OperandRight.ID - 1]->NUMBER_DATA) ? 1 : 0;
-                                        LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
-                                        DECLARE_PATH(VARIABLE_NUMBER);
-                                        break;
-
-                                    default:
-                                        DECLARE_PATH(0x20);
-                                        Exc = new AnsiException(ERR650, OE->Operator._DEBUG_INFO_LINE, 650,  GetKeyWord(OE->Operator.ID), ((ClassCode *)(THIS_REF->OWNER->Defined_In))->_DEBUG_INFO_FILENAME, ((ClassCode *)(THIS_REF->OWNER->Defined_In))->NAME, THIS_REF->OWNER->NAME);
-                                        PIF->AcknoledgeRunTimeError(STACK_TRACE, Exc);
-                                        break;
-                                }
-                                continue;
-
-                            case KEY_LES:
-                                switch (LOCAL_CONTEXT [OE->OperandRight.ID - 1]->TYPE) {
-                                    case VARIABLE_STRING:
-                                        LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]) < CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandRight.ID - 1]) ? 1 : 0;
-                                        LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
-                                        DECLARE_PATH(VARIABLE_NUMBER);
-                                        break;
-
-                                    case VARIABLE_NUMBER:
-                                        LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]) < AnsiString(LOCAL_CONTEXT [OE->OperandRight.ID - 1]->NUMBER_DATA) ? 1 : 0;
-                                        LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
-                                        DECLARE_PATH(VARIABLE_NUMBER);
-                                        break;
-
-                                    default:
-                                        DECLARE_PATH(0x20);
-                                        Exc = new AnsiException(ERR650, OE->Operator._DEBUG_INFO_LINE, 650,  GetKeyWord(OE->Operator.ID), ((ClassCode *)(THIS_REF->OWNER->Defined_In))->_DEBUG_INFO_FILENAME, ((ClassCode *)(THIS_REF->OWNER->Defined_In))->NAME, THIS_REF->OWNER->NAME);
-                                        PIF->AcknoledgeRunTimeError(STACK_TRACE, Exc);
-                                        break;
-                                }
-                                continue;
-
-                            case KEY_GEQ:
-                                switch (LOCAL_CONTEXT [OE->OperandRight.ID - 1]->TYPE) {
-                                    case VARIABLE_STRING:
-                                        LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]) >= CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandRight.ID - 1]) ? 1 : 0;
-                                        LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
-                                        DECLARE_PATH(VARIABLE_NUMBER);
-                                        break;
-
-                                    case VARIABLE_NUMBER:
-                                        LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]) >= AnsiString(LOCAL_CONTEXT [OE->OperandRight.ID - 1]->NUMBER_DATA) ? 1 : 0;
-                                        LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
-                                        DECLARE_PATH(VARIABLE_NUMBER);
-                                        break;
-
-                                    default:
-                                        DECLARE_PATH(0x20);
-                                        Exc = new AnsiException(ERR650, OE->Operator._DEBUG_INFO_LINE, 650,  GetKeyWord(OE->Operator.ID), ((ClassCode *)(THIS_REF->OWNER->Defined_In))->_DEBUG_INFO_FILENAME, ((ClassCode *)(THIS_REF->OWNER->Defined_In))->NAME, THIS_REF->OWNER->NAME);
-                                        PIF->AcknoledgeRunTimeError(STACK_TRACE, Exc);
-                                        break;
-                                }
-                                continue;
-
-                            case KEY_LEQ:
-                                switch (LOCAL_CONTEXT [OE->OperandRight.ID - 1]->TYPE) {
-                                    case VARIABLE_STRING:
-                                        LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]) <= CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandRight.ID - 1]) ? 1 : 0;
-                                        LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
-                                        DECLARE_PATH(VARIABLE_NUMBER);
-                                        break;
-
-                                    case VARIABLE_NUMBER:
-                                        LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]) <= AnsiString(LOCAL_CONTEXT [OE->OperandRight.ID - 1]->NUMBER_DATA) ? 1 : 0;
-                                        LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
-                                        DECLARE_PATH(VARIABLE_NUMBER);
-                                        break;
-
-                                    default:
-                                        DECLARE_PATH(0x20);
-                                        Exc = new AnsiException(ERR650, OE->Operator._DEBUG_INFO_LINE, 650,  GetKeyWord(OE->Operator.ID), ((ClassCode *)(THIS_REF->OWNER->Defined_In))->_DEBUG_INFO_FILENAME, ((ClassCode *)(THIS_REF->OWNER->Defined_In))->NAME, THIS_REF->OWNER->NAME);
-                                        PIF->AcknoledgeRunTimeError(STACK_TRACE, Exc);
-                                        break;
-                                }
-                                continue;
-
-                            case KEY_NEQ:
-                                switch (LOCAL_CONTEXT [OE->OperandRight.ID - 1]->TYPE) {
-                                    case VARIABLE_STRING:
-                                        LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]) != CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandRight.ID - 1]) ? 1 : 0;
-                                        LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
-                                        DECLARE_PATH(VARIABLE_NUMBER);
-                                        break;
-
-                                    case VARIABLE_NUMBER:
-                                        LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]) != LOCAL_CONTEXT [OE->OperandRight.ID - 1]->NUMBER_DATA ? 1 : 0;
-                                        LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
-                                        DECLARE_PATH(VARIABLE_NUMBER);
-                                        break;
-
-                                    default:
-                                        DECLARE_PATH(0x20);
-                                        Exc = new AnsiException(ERR650, OE->Operator._DEBUG_INFO_LINE, 650,  GetKeyWord(OE->Operator.ID), ((ClassCode *)(THIS_REF->OWNER->Defined_In))->_DEBUG_INFO_FILENAME, ((ClassCode *)(THIS_REF->OWNER->Defined_In))->NAME, THIS_REF->OWNER->NAME);
-                                        PIF->AcknoledgeRunTimeError(STACK_TRACE, Exc);
-                                        break;
-                                }
-                                continue;
-
-                            case KEY_BY_REF:
-                            case KEY_ASG:
-                                // ------------------- //
-                                ////SMART_LOCK(LOCAL_CONTEXT [OE->OperandLeft_ID - 1])
-                                WRITE_LOCK
-                                CLASS_CHECK_KEEP_EXTRA(LOCAL_CONTEXT [OE->OperandLeft_ID - 1])
-                                // ------------------- //
-                                LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->TYPE = VARIABLE_STRING;
-                                switch (LOCAL_CONTEXT [OE->OperandRight.ID - 1]->TYPE) {
-                                    case VARIABLE_STRING:
-                                        CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]) = CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandRight.ID - 1]);
-                                        if (LOCAL_CONTEXT [OE->Result_ID - 1] != LOCAL_CONTEXT [OE->OperandLeft_ID - 1]) {
-                                            FREE_VARIABLE_RESET(LOCAL_CONTEXT [OE->Result_ID - 1], VARIABLE_NUMBER);
-                                            LOCAL_CONTEXT [OE->Result_ID - 1] = LOCAL_CONTEXT [OE->OperandLeft_ID - 1];
-                                            LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->LINKS++;
-                                        }
-                                        //----------------------------------------------------------------------------------------//
-                                        UPDATE_STRING_VARIABLE_THAT_HAS_INDEX(THIS_REF, LOCAL_CONTEXT [OE->OperandLeft_ID - 1], TARGET_THREAD->PROPERTIES);
-                                        //----------------------------------------------------------------------------------------//
-                                        DECLARE_PATH(VARIABLE_STRING);
-                                        break;
-
-                                    // Does not get executed (see above)
-                                    // case VARIABLE_NUMBER:
-                                    //     CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]) = AnsiString(LOCAL_CONTEXT [OE->OperandRight.ID - 1]->NUMBER_DATA);;
-                                    //     NEW_CONCEPT_STRING(LOCAL_CONTEXT [OE->Result_ID - 1])      = CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]);
-                                    //     //----------------------------------------------------------------------------------------//
-                                    //     UPDATE_STRING_VARIABLE_THAT_HAS_INDEX(THIS_REF, LOCAL_CONTEXT [OE->OperandLeft_ID - 1], TARGET_THREAD->PROPERTIES);
-                                    //     //----------------------------------------------------------------------------------------//
-                                    //     DECLARE_PATH(VARIABLE_STRING);
-                                    //     break;
-
-                                    default:
-                                        DECLARE_PATH(0x20);
-                                        Exc = new AnsiException(ERR650, OE->Operator._DEBUG_INFO_LINE, 650,  GetKeyWord(OE->Operator.ID), ((ClassCode *)(THIS_REF->OWNER->Defined_In))->_DEBUG_INFO_FILENAME, ((ClassCode *)(THIS_REF->OWNER->Defined_In))->NAME, THIS_REF->OWNER->NAME);
-                                        PIF->AcknoledgeRunTimeError(STACK_TRACE, Exc);
-                                        break;
-                                }
-                                //----------------//
-                                PROPERTY_CODE(THIS_REF, TARGET_THREAD->PROPERTIES)
-                                //----------------//
-                                continue;
-
-                            case KEY_ASU:
-                                switch (LOCAL_CONTEXT [OE->OperandRight.ID - 1]->TYPE) {
-                                    case VARIABLE_STRING:
-                                        CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]).IncreaseBuffer(CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandRight.ID - 1]).Length());
-                                        CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]) += CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandRight.ID - 1]);
-                                        if (LOCAL_CONTEXT [OE->Result_ID - 1] != LOCAL_CONTEXT [OE->OperandLeft_ID - 1]) {
-                                            FREE_VARIABLE_RESET(LOCAL_CONTEXT [OE->Result_ID - 1], VARIABLE_NUMBER);
-                                            LOCAL_CONTEXT [OE->Result_ID - 1] = LOCAL_CONTEXT [OE->OperandLeft_ID - 1];
-                                            LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->LINKS++;
-                                        }
-                                        DECLARE_PATH(VARIABLE_STRING);
-                                        break;
-
-                                    case VARIABLE_NUMBER:
-                                        CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]) += AnsiString(LOCAL_CONTEXT [OE->OperandRight.ID - 1]->NUMBER_DATA);
-                                        NEW_CONCEPT_STRING(LOCAL_CONTEXT [OE->Result_ID - 1])       = CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]);
-                                        DECLARE_PATH(VARIABLE_STRING);
-                                        break;
-
-                                    default:
-                                        DECLARE_PATH(0x20);
-                                        Exc = new AnsiException(ERR650, OE->Operator._DEBUG_INFO_LINE, 650,  GetKeyWord(OE->Operator.ID), ((ClassCode *)(THIS_REF->OWNER->Defined_In))->_DEBUG_INFO_FILENAME, ((ClassCode *)(THIS_REF->OWNER->Defined_In))->NAME, THIS_REF->OWNER->NAME);
-                                        PIF->AcknoledgeRunTimeError(STACK_TRACE, Exc);
-                                        break;
-                                }
-                                //----------------//
-                                PROPERTY_CODE(THIS_REF, TARGET_THREAD->PROPERTIES)
-                                //----------------//
-                                continue;
-
-                            case KEY_INDEX_OPEN:
-                                switch (LOCAL_CONTEXT [OE->OperandRight.ID - 1]->TYPE) {
-                                    case VARIABLE_NUMBER:
-                                        NEW_CONCEPT_STRING(LOCAL_CONTEXT [OE->Result_ID - 1]) = CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]) [(D_LONG_TYPE)LOCAL_CONTEXT [OE->OperandRight.ID - 1]->NUMBER_DATA];
-                                        ((AnsiString *)LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA)->EXTRA_DATA = INSTRUCTION_POINTER;
-                                        DECLARE_PATH(VARIABLE_STRING);
-                                        break;
-
-                                    case VARIABLE_STRING:
-                                        NEW_CONCEPT_STRING(LOCAL_CONTEXT [OE->Result_ID - 1]) = CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]) [CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandRight.ID - 1]).ToInt()];
-                                        ((AnsiString *)LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA)->EXTRA_DATA = INSTRUCTION_POINTER;
-                                        DECLARE_PATH(VARIABLE_STRING);
-                                        break;
-
-                                    default:
-                                        DECLARE_PATH(0x20);
-                                        Exc = new AnsiException(ERR640, OE->Operator._DEBUG_INFO_LINE, 640, OE->OperandRight._PARSE_DATA.c_str(), ((ClassCode *)(THIS_REF->OWNER->Defined_In))->_DEBUG_INFO_FILENAME, ((ClassCode *)(THIS_REF->OWNER->Defined_In))->NAME, THIS_REF->OWNER->NAME);
-                                        PIF->AcknoledgeRunTimeError(STACK_TRACE, Exc);
-                                        break;
-                                }
-                                break;
-
-                            case KEY_BAN:
-                                switch (LOCAL_CONTEXT [OE->OperandRight.ID - 1]->TYPE) {
-                                    case VARIABLE_NUMBER:
-                                        LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]).Length() && LOCAL_CONTEXT [OE->OperandRight.ID - 1]->NUMBER_DATA;
-                                        LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
-                                        break;
-
-                                    case VARIABLE_STRING:
-                                        LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]).Length() && CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandRight.ID - 1]).Length();
-                                        LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
-                                        break;
-
-                                    case VARIABLE_CLASS:
-                                    case VARIABLE_DELEGATE:
-                                        LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = (CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]).Length() != 0);
-                                        LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
-                                        break;
-
-                                    case VARIABLE_ARRAY:
-                                        LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]).Length() && ((Array *)LOCAL_CONTEXT [OE->OperandRight.ID - 1]->CLASS_DATA)->Count();
-                                        LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
-                                        break;
-                                }
-                                DECLARE_PATH(VARIABLE_NUMBER);
-                                continue;
-
-                            case KEY_BOR:
-                                switch (LOCAL_CONTEXT [OE->OperandRight.ID - 1]->TYPE) {
-                                    case VARIABLE_NUMBER:
-                                        LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]).Length() || LOCAL_CONTEXT [OE->OperandRight.ID - 1]->NUMBER_DATA;
-                                        LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
-                                        break;
-
-                                    case VARIABLE_STRING:
-                                        LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]).Length() || CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandRight.ID - 1]).Length();
-                                        LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
-                                        break;
-
-                                    case VARIABLE_CLASS:
-                                    case VARIABLE_DELEGATE:
-                                        // always true for class and delegates
-                                        LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = 1;
-                                        LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
-                                        break;
-
-                                    case VARIABLE_ARRAY:
-                                        LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]).Length() || ((Array *)LOCAL_CONTEXT [OE->OperandRight.ID - 1]->CLASS_DATA)->Count();
-                                        LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
-                                        break;
-                                }
-                                DECLARE_PATH(VARIABLE_NUMBER);
-                                continue;
-
-                            case KEY_CND_NULL:
-                                // ------------------- //
-                                //SMART_LOCK(LOCAL_CONTEXT [OE->Result_ID - 1])
-                                // CLASS_CHECK_RESET(LOCAL_CONTEXT [OE->Result_ID - 1], pushed_type)
-                                // ------------------- //
-                                if (CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]).Length()) {
-                                    NEW_CONCEPT_STRING(LOCAL_CONTEXT [OE->Result_ID - 1]) = CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]);
-                                    LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE           = VARIABLE_STRING;
-                                    DECLARE_PATH(VARIABLE_STRING);
-                                    continue;
-                                }
-                                switch (LOCAL_CONTEXT [OE->OperandRight.ID - 1]->TYPE) {
-                                    case VARIABLE_NUMBER:
-                                        LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = LOCAL_CONTEXT [OE->OperandRight.ID - 1]->NUMBER_DATA;
-                                        LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
-                                        DECLARE_PATH(VARIABLE_NUMBER);
-                                        break;
-
-                                    case VARIABLE_STRING:
-                                        NEW_CONCEPT_STRING(LOCAL_CONTEXT [OE->Result_ID - 1]) = CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandRight.ID - 1]);
-                                        LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE           = VARIABLE_STRING;
-                                        DECLARE_PATH(VARIABLE_STRING);
-                                        break;
-
-                                    case VARIABLE_DELEGATE:
-                                        LOCAL_CONTEXT [OE->Result_ID - 1]->DELEGATE_DATA = LOCAL_CONTEXT [OE->OperandRight.ID - 1]->DELEGATE_DATA;
-
-                                    case VARIABLE_CLASS:
-                                        LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA = LOCAL_CONTEXT [OE->OperandRight.ID - 1]->CLASS_DATA;
-                                        LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE       = LOCAL_CONTEXT [OE->OperandRight.ID - 1]->TYPE;
-                                        ((CompiledClass *)LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA)->LINKS++;
-                                        DECLARE_PATH(LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE);
-                                        break;
-
-                                    case VARIABLE_ARRAY:
-                                        LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA = LOCAL_CONTEXT [OE->OperandRight.ID - 1]->CLASS_DATA;
-                                        LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE       = VARIABLE_ARRAY;
-                                        ((Array *)LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA)->LINKS++;
-                                        DECLARE_PATH(VARIABLE_ARRAY);
-                                        break;
-                                }
-                                continue;
-
-                            default:
-                                DECLARE_PATH(0x20);
-                                Exc = new AnsiException(ERR650, OE->Operator._DEBUG_INFO_LINE, 650,  GetKeyWord(OE->Operator.ID), ((ClassCode *)(THIS_REF->OWNER->Defined_In))->_DEBUG_INFO_FILENAME, ((ClassCode *)(THIS_REF->OWNER->Defined_In))->NAME, THIS_REF->OWNER->NAME);
-                                PIF->AcknoledgeRunTimeError(STACK_TRACE, Exc);
-                                break;
-                        }
+#ifdef SIMPLE_MULTI_THREADING
+                        THIS_REF->EvalStringExpression(PIF, LOCAL_CONTEXT, OE, TARGET_THREAD->PROPERTIES, ClassID, THROW_DATA, STACK_TRACE, INSTRUCTION_POINTER, CATCH_INSTRUCTION_POINTER, CATCH_VARIABLE, PREVIOUS_TRY, IsWriteLocked);
+#else
+                        THIS_REF->EvalStringExpression(PIF, LOCAL_CONTEXT, OE, TARGET_THREAD->PROPERTIES, ClassID, THROW_DATA, STACK_TRACE, INSTRUCTION_POINTER, CATCH_INSTRUCTION_POINTER, CATCH_VARIABLE, PREVIOUS_TRY);
+#endif
                         continue;
 
                     case VARIABLE_CLASS:
-                        OPERATOR_ID = 0;
-                        switch (OE_Operator_ID) {
-                            case KEY_BY_REF:
-                                //---------------------------//
-                                if (LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA != LOCAL_CONTEXT [OE->OperandRight.ID - 1]->CLASS_DATA) {
-                                    CLASS_CHECK(LOCAL_CONTEXT [OE->OperandLeft_ID - 1])
-                                } else {
-                                    if (LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA == LOCAL_CONTEXT [OE->OperandRight.ID - 1]->CLASS_DATA) {
-                                        ((CompiledClass *)LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA)->LINKS -= 2;
-                                    } else {
-                                        // CLASS_CHECK_RESET(LOCAL_CONTEXT [OE->Result_ID - 1], pushed_type);
-                                        ((CompiledClass *)LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA)->LINKS -= 1;
-                                    }
-                                }
-                                //---------------------------//
-
-                                LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA = LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA = LOCAL_CONTEXT [OE->OperandRight.ID - 1]->CLASS_DATA;
-                                ((CompiledClass *)LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA)->LINKS += 2;
-
-                                LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->TYPE = VARIABLE_CLASS;
-                                if ((TARGET_THREAD->PROPERTIES) && (TARGET_THREAD->PROPERTIES [OE->OperandLeft_ID - 1].IS_PROPERTY_RESULT)) {
-                                    CCTEMP = (CompiledClass *)((VariableDATA *)TARGET_THREAD->PROPERTIES [OE->OperandLeft_ID - 1].CALL_SET)->CLASS_DATA;
-                                    WRITE_UNLOCK
-                                    CCTEMP->_Class->SetProperty(PIF, TARGET_THREAD->PROPERTIES [OE->OperandLeft_ID - 1].IS_PROPERTY_RESULT - 1, (VariableDATA *)(TARGET_THREAD->PROPERTIES [OE->OperandLeft_ID - 1].CALL_SET), OE, &OE->OperandRight, CCTEMP->_Class->CLSID == ClassID, OE->Result_ID - 1, LOCAL_CONTEXT, ClassID, THIS_REF->LocalClassID, STACK_TRACE);
-                                }
-                                DECLARE_PATH(VARIABLE_CLASS);
-                                continue;
-                                break;
-
-                            case KEY_ASG:
-                                OPERATOR_ID = DEF_ASG;
-                                break;
-
-                            case KEY_INDEX_OPEN:
-                                OPERATOR_ID = DEF_SELECTOR_I;
-                                break;
-
-                            case KEY_SUM:
-                                OPERATOR_ID = DEF_SUM;
-                                break;
-
-                            case KEY_MUL:
-                                OPERATOR_ID = DEF_MUL;
-                                break;
-
-                            case KEY_DIV:
-                                OPERATOR_ID = DEF_DIV;
-                                break;
-
-                            case KEY_REM:
-                                OPERATOR_ID = DEF_REM;
-                                break;
-
-                            case KEY_DIF:
-                                OPERATOR_ID = DEF_DIF;
-                                break;
-
-                            case KEY_SHL:
-                                OPERATOR_ID = DEF_SHL;
-                                break;
-
-                            case KEY_SHR:
-                                OPERATOR_ID = DEF_SHR;
-                                break;
-
-                            case KEY_LES:
-                                OPERATOR_ID = DEF_LES;
-                                break;
-
-                            case KEY_LEQ:
-                                OPERATOR_ID = DEF_LEQ;
-                                break;
-
-                            case KEY_GRE:
-                                OPERATOR_ID = DEF_GRE;
-                                break;
-
-                            case KEY_GEQ:
-                                OPERATOR_ID = DEF_GEQ;
-                                break;
-
-                            case KEY_EQU:
-                                CCTEMP = (CompiledClass *)LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA;
-                                if (!CCTEMP->_Class->Relocation(DEF_EQU)) {
-                                    // CLASS_CHECK_RESET(LOCAL_CONTEXT [OE->Result_ID - 1], pushed_type)
-
-                                    switch (LOCAL_CONTEXT [OE->OperandRight.ID - 1]->TYPE) {
-                                        case VARIABLE_CLASS:
-                                            LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA == LOCAL_CONTEXT [OE->OperandRight.ID - 1]->CLASS_DATA ? 1 : 0;
-                                            LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
-                                            break;
-
-                                        default:
-                                            LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = 0;
-                                            LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
-                                    }
-                                    DECLARE_PATH(VARIABLE_NUMBER);
-                                    continue;
-                                }
-                                OPERATOR_ID = DEF_EQU;
-                                break;
-
-                            case KEY_NEQ:
-                                CCTEMP = (CompiledClass *)LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA;
-                                if (!CCTEMP->_Class->Relocation(DEF_NEQ)) {
-                                    //SMART_LOCK(LOCAL_CONTEXT [OE->Result_ID - 1])
-                                    // CLASS_CHECK_RESET(LOCAL_CONTEXT [OE->Result_ID - 1], pushed_type)
-
-                                    switch (LOCAL_CONTEXT [OE->OperandRight.ID - 1]->TYPE) {
-                                        case VARIABLE_CLASS:
-                                            LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA != LOCAL_CONTEXT [OE->OperandRight.ID - 1]->CLASS_DATA ? 1 : 0;
-                                            LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
-                                            break;
-
-                                        default:
-                                            LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = 1;
-                                            LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
-                                    }
-                                    DECLARE_PATH(VARIABLE_NUMBER);
-                                    continue;
-                                }
-                                OPERATOR_ID = DEF_NEQ;
-                                break;
-
-                            case KEY_AND:
-                                OPERATOR_ID = DEF_AND;
-                                break;
-
-                            case KEY_XOR:
-                                OPERATOR_ID = DEF_XOR;
-                                break;
-
-                            case KEY_OR:
-                                OPERATOR_ID = DEF_OR;
-                                break;
-
-                            case KEY_BAN:
-                                CCTEMP = (CompiledClass *)LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA;
-                                if (!CCTEMP->_Class->Relocation(DEF_BAN)) {
-                                    //SMART_LOCK(LOCAL_CONTEXT [OE->Result_ID - 1])
-                                    // CLASS_CHECK_RESET(LOCAL_CONTEXT [OE->Result_ID - 1], pushed_type)
-                                    switch (LOCAL_CONTEXT [OE->OperandRight.ID - 1]->TYPE) {
-                                        case VARIABLE_NUMBER:
-                                            LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = LOCAL_CONTEXT [OE->OperandRight.ID - 1]->NUMBER_DATA != 0;
-                                            LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
-                                            break;
-
-                                        case VARIABLE_STRING:
-                                            LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandRight.ID - 1]).Length() != 0;
-                                            LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
-                                            break;
-
-                                        case VARIABLE_CLASS:
-                                        case VARIABLE_DELEGATE:
-                                            LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = 1;
-                                            LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
-                                            break;
-
-                                        case VARIABLE_ARRAY:
-                                            LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = ((Array *)LOCAL_CONTEXT [OE->OperandRight.ID - 1]->CLASS_DATA)->Count() != 0;
-                                            LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
-                                            break;
-                                    }
-                                    DECLARE_PATH(VARIABLE_NUMBER);
-                                    continue;
-                                }
-
-                                OPERATOR_ID = DEF_BAN;
-                                break;
-
-                            case KEY_BOR:
-                                CCTEMP = (CompiledClass *)LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA;
-                                if (!CCTEMP->_Class->Relocation(DEF_BOR)) {
-                                    //SMART_LOCK(LOCAL_CONTEXT [OE->Result_ID - 1])
-                                    // CLASS_CHECK_RESET(LOCAL_CONTEXT [OE->Result_ID - 1], pushed_type)
-                                    LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = 1;
-                                    LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
-                                    DECLARE_PATH(VARIABLE_NUMBER);
-                                    continue;
-                                }
-                                OPERATOR_ID = DEF_BOR;
-                                break;
-
-                            case KEY_ASU:
-                                OPERATOR_ID = DEF_ASU;
-                                break;
-
-                            case KEY_ADI:
-                                OPERATOR_ID = DEF_ADI;
-                                break;
-
-                            case KEY_AMU:
-                                OPERATOR_ID = DEF_AMU;
-                                break;
-
-                            case KEY_ADV:
-                                OPERATOR_ID = DEF_ADV;
-                                break;
-
-                            case KEY_ARE:
-                                OPERATOR_ID = DEF_ARE;
-                                break;
-
-                            case KEY_AAN:
-                                OPERATOR_ID = DEF_AAN;
-                                break;
-
-                            case KEY_AXO:
-                                OPERATOR_ID = DEF_AXO;
-                                break;
-
-                            case KEY_AOR:
-                                OPERATOR_ID = DEF_AOR;
-                                break;
-
-                            case KEY_ASL:
-                                OPERATOR_ID = DEF_ASL;
-                                break;
-
-                            case KEY_ASR:
-                                OPERATOR_ID = DEF_ASR;
-                                break;
-
-                            // unari !
-                            case KEY_NOT:
-                                CCTEMP = (CompiledClass *)LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA;
-                                if (!CCTEMP->_Class->Relocation(DEF_NOT)) {
-                                    //SMART_LOCK(LOCAL_CONTEXT [OE->Result_ID - 1])
-                                    // CLASS_CHECK_RESET(LOCAL_CONTEXT [OE->Result_ID - 1], pushed_type)
-                                    LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = 0;
-                                    LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
-                                    DECLARE_PATH(VARIABLE_NUMBER);
-                                    continue;
-                                }
-                                OPERATOR_ID = DEF_NOT;
-                                break;
-
-                            case KEY_COM:
-                                OPERATOR_ID = DEF_COM;
-                                break;
-
-                            case KEY_INC_LEFT:
-                            case KEY_INC:
-                                OPERATOR_ID = DEF_INC;
-                                break;
-
-                            case KEY_DEC_LEFT:
-                            case KEY_DEC:
-                                OPERATOR_ID = DEF_DEC;
-                                break;
-
-                            case KEY_CND_NULL:
-                                if ((LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE == VARIABLE_CLASS) && (LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA == LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA)) {
-                                    DECLARE_PATH(VARIABLE_CLASS);
-                                    continue;
-                                }
-                                //---------------------------//
-                                //SMART_LOCK(LOCAL_CONTEXT [OE->Result_ID - 1])
-                                // CLASS_CHECK_RESET(LOCAL_CONTEXT [OE->Result_ID - 1], pushed_type)
-                                //---------------------------//
-                                LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA = LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA;
-                                ((CompiledClass *)LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA)->LINKS++;
-                                DECLARE_PATH(VARIABLE_CLASS);
-                                continue;
-
-                            default:
-                                DECLARE_PATH(0x20);
-                                Exc = new AnsiException(ERR920, OE->Operator._DEBUG_INFO_LINE, 920,  GetKeyWord(OE->Operator.ID), ((ClassCode *)(THIS_REF->OWNER->Defined_In))->_DEBUG_INFO_FILENAME, ((ClassCode *)(THIS_REF->OWNER->Defined_In))->NAME, THIS_REF->OWNER->NAME);
-                                PIF->AcknoledgeRunTimeError(STACK_TRACE, Exc);
-                                break;
-                        }
-                        //////////////////////////////////////////////////////
-                        //////////////////////////////////////////////////////
-                        LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE = VARIABLE_NUMBER;
-                        //////////////////////////////////////////////////////
-                        if (!OPERATOR_ID) {
-                            DECLARE_PATH(0x20);
-                            continue;
-                        }
-                        if (OE->OperandRight.ID) {
-                            OPERATOR_PARAM.COUNT       = 1;
-                            PARAM_INDEX[0]             = OE->OperandRight.ID;
-                            OPERATOR_PARAM.PARAM_INDEX = DELTA_REF(&OPERATOR_PARAM, PARAM_INDEX);
-
-                        } else {
-                            OPERATOR_PARAM.COUNT = 0;
-                        }
-                        CCTEMP = (CompiledClass *)LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA;
-                        try {
-                            WRITE_UNLOCK
-                            RESULT = CCTEMP->_Class->ExecuteMember(PIF, OPERATOR_ID, LOCAL_CONTEXT [OE->OperandLeft_ID - 1], OE, &OE->OperandRight, CCTEMP->_Class->CLSID == ClassID, &OPERATOR_PARAM, LOCAL_CONTEXT, 0, ClassID, THIS_REF->LocalClassID, STACK_TRACE);
-                            WRITE_LOCK
-                            if (RESULT == LOCAL_CONTEXT [OE->Result_ID - 1]) {
-                                DECLARE_PATH(RESULT->TYPE);
-                                continue;
-                            }
-                            if (OE->Operator.FLAGS == MAY_IGNORE_RESULT) {
-                                if (RESULT) {
-                                    if (!RESULT->LINKS)
-                                        RESULT->LINKS = 1;
-                                    FREE_VARIABLE(RESULT);
-                                }
-                                continue;
-                            }
-                            if (((RESULT) && ((RESULT->TYPE == VARIABLE_CLASS) || (RESULT->TYPE == VARIABLE_DELEGATE)) && (!RESULT->CLASS_DATA)) || (!RESULT)) {
-                                CLASS_CHECK_TS(LOCAL_CONTEXT [OE->Result_ID - 1]);
-                                LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
-                                LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = 0;
-                            }
-                            if (RESULT) {
-                                FREE_VARIABLE_TS(LOCAL_CONTEXT [OE->Result_ID - 1]);
-                                LOCAL_CONTEXT [OE->Result_ID - 1] = RESULT;
-                                RESULT->LINKS++;
-                            } else {
-                                LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = 0;
-                                DECLARE_PATH(0x20);
-                            }
-                        } catch (VariableDATA *LAST_THROW) {
-                            DECLARE_PATH(VARIABLE_NUMBER);
-                            DECLARE_PATH(LAST_THROW->TYPE);
-                            if ((CATCH_INSTRUCTION_POINTER) && (CATCH_VARIABLE)) {
-                                FREE_VARIABLE(LOCAL_CONTEXT [CATCH_VARIABLE - 1]);
-                                LOCAL_CONTEXT [CATCH_VARIABLE - 1] = LAST_THROW;
-                                INSTRUCTION_POINTER       = CATCH_INSTRUCTION_POINTER;
-                                THROW_DATA                = 0;
-                                CATCH_INSTRUCTION_POINTER = 0;
-                                CATCH_VARIABLE            = 0;
-                                //-------------//
-                                RESTORE_TRY_DATA(THIS_REF);
-                                //-------------//
-                            } else {
-                                WRITE_UNLOCK
-                                    FREE_VARIABLE(LAST_THROW);
-                                // uncaught exception
-                                PIF->AcknoledgeRunTimeError(STACK_TRACE, new AnsiException(ERR1300, OE->Operator._DEBUG_INFO_LINE, 1300, OE->OperandRight._PARSE_DATA.c_str(), ((ClassCode *)(THIS_REF->OWNER->Defined_In))->_DEBUG_INFO_FILENAME, ((ClassCode *)(THIS_REF->OWNER->Defined_In))->NAME, THIS_REF->OWNER->NAME));
-                                INSTRUCTION_POINTER = TARGET_THREAD->INSTRUCTION_COUNT;
-                                break;
-                            }
-                        }
-                        break;
+#ifdef SIMPLE_MULTI_THREADING
+                        THIS_REF->EvalClassExpression(PIF, LOCAL_CONTEXT, OE, TARGET_THREAD->PROPERTIES, ClassID, THROW_DATA, STACK_TRACE, OE_Operator_ID, INSTRUCTION_POINTER, CATCH_INSTRUCTION_POINTER, CATCH_VARIABLE, PREVIOUS_TRY, IsWriteLocked);
+#else
+                        THIS_REF->EvalClassExpression(PIF, LOCAL_CONTEXT, OE, TARGET_THREAD->PROPERTIES, ClassID, THROW_DATA, STACK_TRACE, OE_Operator_ID, INSTRUCTION_POINTER, CATCH_INSTRUCTION_POINTER, CATCH_VARIABLE, PREVIOUS_TRY);
+#endif
+                        continue;
 
                     case VARIABLE_ARRAY:
-                        switch (OE_Operator_ID) {
-                            case KEY_ASG:
-                            case KEY_BY_REF:
-                                CLASS_CHECK(LOCAL_CONTEXT [OE->OperandLeft_ID - 1])
-                                //---------------------------//
-                                LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA = LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA = LOCAL_CONTEXT [OE->OperandRight.ID - 1]->CLASS_DATA;
-                                ((Array *)LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA)->LINKS += 2;
-                                LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->TYPE = VARIABLE_ARRAY;
-                                if ((TARGET_THREAD->PROPERTIES) && (TARGET_THREAD->PROPERTIES [OE->OperandLeft_ID - 1].IS_PROPERTY_RESULT)) {
-                                    CCTEMP = (CompiledClass *)((VariableDATA *)(TARGET_THREAD->PROPERTIES [OE->OperandLeft_ID - 1].CALL_SET))->CLASS_DATA;
-                                    WRITE_UNLOCK
-                                    CCTEMP->_Class->SetProperty(PIF, TARGET_THREAD->PROPERTIES [OE->OperandLeft_ID - 1].IS_PROPERTY_RESULT - 1, (VariableDATA *)(TARGET_THREAD->PROPERTIES [OE->OperandLeft_ID - 1].CALL_SET), OE, &OE->OperandRight, CCTEMP->_Class->CLSID == ClassID, OE->Result_ID - 1, LOCAL_CONTEXT, ClassID, THIS_REF->LocalClassID, STACK_TRACE);
-                                }
-                                DECLARE_PATH(VARIABLE_ARRAY);
-                                continue;
-
-                            case KEY_SUM:
-                                switch (LOCAL_CONTEXT [OE->OperandRight.ID - 1]->TYPE) {
-                                    case VARIABLE_STRING:
-                                    case VARIABLE_NUMBER:
-                                    case VARIABLE_CLASS:
-                                        LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE = VARIABLE_NUMBER;
-                                        RETURN_DATA = ((Array *)LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA)->NewArray();
-                                        ((Array *)RETURN_DATA->CLASS_DATA)->AddCopy(LOCAL_CONTEXT [OE->OperandRight.ID - 1]);
-                                        if (LOCAL_CONTEXT [OE->Result_ID - 1] != RETURN_DATA) {
-                                            FREE_VARIABLE_RESET(LOCAL_CONTEXT [OE->Result_ID - 1], VARIABLE_NUMBER);
-                                            LOCAL_CONTEXT [OE->Result_ID - 1] = RETURN_DATA;
-                                            RETURN_DATA->LINKS++;
-                                        }
-                                        DECLARE_PATH(RETURN_DATA->TYPE);
-                                        continue;
-
-                                    case VARIABLE_ARRAY:
-                                        LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE = VARIABLE_NUMBER;
-                                        RETURN_DATA = ((Array *)LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA)->NewArray();
-                                        ((Array *)RETURN_DATA->CLASS_DATA)->Concat((Array *)LOCAL_CONTEXT [OE->OperandRight.ID - 1]->CLASS_DATA);
-                                        if (LOCAL_CONTEXT [OE->Result_ID - 1] != RETURN_DATA) {
-                                            FREE_VARIABLE_RESET(LOCAL_CONTEXT [OE->Result_ID - 1], VARIABLE_NUMBER);
-                                            LOCAL_CONTEXT [OE->Result_ID - 1] = RETURN_DATA;
-                                            RETURN_DATA->LINKS++;
-                                        }
-                                        DECLARE_PATH(RETURN_DATA->TYPE);
-                                        continue;
-                                }
-                                break;
-
-                            case KEY_ASU:
-                                switch (LOCAL_CONTEXT [OE->OperandRight.ID - 1]->TYPE) {
-                                    case VARIABLE_STRING:
-                                    case VARIABLE_NUMBER:
-                                    case VARIABLE_CLASS:
-                                        LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE = VARIABLE_NUMBER;
-                                        RETURN_DATA = ((Array *)LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA)->AddCopy(LOCAL_CONTEXT [OE->OperandRight.ID - 1]);
-                                        if (LOCAL_CONTEXT [OE->Result_ID - 1] != RETURN_DATA) {
-                                            FREE_VARIABLE_RESET(LOCAL_CONTEXT [OE->Result_ID - 1], VARIABLE_NUMBER);
-                                            LOCAL_CONTEXT [OE->Result_ID - 1] = RETURN_DATA;
-                                            RETURN_DATA->LINKS++;
-                                        }
-                                        DECLARE_PATH(RETURN_DATA->TYPE);
-                                        continue;
-
-                                    case VARIABLE_ARRAY:
-                                        //SMART_LOCK(LOCAL_CONTEXT [OE->Result_ID - 1])
-                                        // CLASS_CHECK_RESET(LOCAL_CONTEXT [OE->Result_ID - 1], pushed_type);
-                                        LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA = ((Array *)LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA)->Concat((Array *)LOCAL_CONTEXT [OE->OperandRight.ID - 1]->CLASS_DATA);
-                                        if (LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA) {
-                                            LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE = VARIABLE_ARRAY;
-                                            ((Array *)LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA)->LINKS++;
-                                            DECLARE_PATH(VARIABLE_ARRAY);
-                                        } else {
-                                            LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE = VARIABLE_NUMBER;
-                                            DECLARE_PATH(VARIABLE_NUMBER);
-                                        }
-                                        continue;
-                                }
-                                break;
-
-                            case KEY_LENGTH:
-                                //SMART_LOCK(LOCAL_CONTEXT [OE->Result_ID - 1])
-                                // CLASS_CHECK_RESET(LOCAL_CONTEXT [OE->Result_ID - 1], pushed_type);
-                                LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = ((Array *)LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA)->Count();
-                                LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
-                                DECLARE_PATH(VARIABLE_NUMBER);
-                                continue;
-
-                            case KEY_EQU:
-                                //SMART_LOCK(LOCAL_CONTEXT [OE->Result_ID - 1])
-                                // CLASS_CHECK_RESET(LOCAL_CONTEXT [OE->Result_ID - 1], pushed_type);
-                                if (LOCAL_CONTEXT [OE->OperandRight.ID - 1]->TYPE != VARIABLE_ARRAY) {
-                                    LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = 0;
-                                } else {
-                                    LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = (LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA == LOCAL_CONTEXT [OE->OperandRight.ID - 1]->CLASS_DATA);
-                                }
-                                LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE = VARIABLE_NUMBER;
-                                DECLARE_PATH(VARIABLE_NUMBER);
-                                continue;
-
-                            case KEY_NEQ:
-                                //SMART_LOCK(LOCAL_CONTEXT [OE->Result_ID - 1])
-                                // CLASS_CHECK_RESET(LOCAL_CONTEXT [OE->Result_ID - 1], pushed_type);
-                                if (LOCAL_CONTEXT [OE->OperandRight.ID - 1]->TYPE != VARIABLE_ARRAY) {
-                                    LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = 1;
-                                } else {
-                                    LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = (LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA != LOCAL_CONTEXT [OE->OperandRight.ID - 1]->CLASS_DATA);
-                                }
-                                LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE = VARIABLE_NUMBER;
-                                DECLARE_PATH(VARIABLE_NUMBER);
-                                continue;
-
-                            case KEY_BAN:
-                                //SMART_LOCK(LOCAL_CONTEXT [OE->Result_ID - 1])
-                                // CLASS_CHECK_RESET(LOCAL_CONTEXT [OE->Result_ID - 1], pushed_type);
-                                switch (LOCAL_CONTEXT [OE->OperandRight.ID - 1]->TYPE) {
-                                    case VARIABLE_NUMBER:
-                                        LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = ((Array *)LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA)->Count() && LOCAL_CONTEXT [OE->OperandRight.ID - 1]->NUMBER_DATA;
-                                        LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
-                                        break;
-
-                                    case VARIABLE_STRING:
-                                        LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = ((Array *)LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA)->Count() && CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandRight.ID - 1]).Length();
-                                        LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
-                                        break;
-
-                                    case VARIABLE_CLASS:
-                                    case VARIABLE_DELEGATE:
-                                        LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = (((Array *)LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA)->Count() != 0);
-                                        LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
-                                        break;
-
-                                    case VARIABLE_ARRAY:
-                                        LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = ((Array *)LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA)->Count() && ((Array *)LOCAL_CONTEXT [OE->OperandRight.ID - 1]->CLASS_DATA)->Count();
-                                        LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
-                                        break;
-                                }
-                                DECLARE_PATH(VARIABLE_NUMBER);
-                                continue;
-
-                            case KEY_BOR:
-                                //SMART_LOCK(LOCAL_CONTEXT [OE->Result_ID - 1])
-                                // CLASS_CHECK_RESET(LOCAL_CONTEXT [OE->Result_ID - 1], pushed_type);
-                                switch (LOCAL_CONTEXT [OE->OperandRight.ID - 1]->TYPE) {
-                                    case VARIABLE_NUMBER:
-                                        LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = ((Array *)LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA)->Count() || LOCAL_CONTEXT [OE->OperandRight.ID - 1]->NUMBER_DATA;
-                                        LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
-                                        break;
-
-                                    case VARIABLE_STRING:
-                                        LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = ((Array *)LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA)->Count() || CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandRight.ID - 1]).Length();
-                                        LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
-                                        break;
-
-                                    case VARIABLE_CLASS:
-                                    case VARIABLE_DELEGATE:
-                                        LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = 1;
-                                        LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
-                                        break;
-
-                                    case VARIABLE_ARRAY:
-                                        LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = ((Array *)LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA)->Count() || ((Array *)LOCAL_CONTEXT [OE->OperandRight.ID - 1]->CLASS_DATA)->Count();
-                                        LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
-                                        break;
-                                }
-                                DECLARE_PATH(VARIABLE_NUMBER);
-                                continue;
-
-                            case KEY_NOT:
-                                //SMART_LOCK(LOCAL_CONTEXT [OE->Result_ID - 1])
-                                // CLASS_CHECK_RESET(LOCAL_CONTEXT [OE->Result_ID - 1], pushed_type);
-                                LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = ((Array *)LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA)->Count() == 0;
-                                LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
-                                DECLARE_PATH(VARIABLE_NUMBER);
-                                continue;
-
-                            case KEY_CND_NULL:
-                                if ((LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE == VARIABLE_ARRAY) && (LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA == LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA) && (((Array *)LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA)->Count())) {
-                                    DECLARE_PATH(VARIABLE_ARRAY);
-                                    continue;
-                                }
-                                // ------------------- //
-                                //SMART_LOCK(LOCAL_CONTEXT [OE->Result_ID - 1])
-                                // CLASS_CHECK_RESET(LOCAL_CONTEXT [OE->Result_ID - 1], pushed_type)
-                                // ------------------- //
-                                if (((Array *)LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA)->Count()) {
-                                    LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA = LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA;
-                                    ((Array *)LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA)->LINKS++;
-                                    LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE = VARIABLE_ARRAY;
-                                    DECLARE_PATH(VARIABLE_ARRAY);
-                                    continue;
-                                }
-                                switch (LOCAL_CONTEXT [OE->OperandRight.ID - 1]->TYPE) {
-                                    case VARIABLE_NUMBER:
-                                        LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = LOCAL_CONTEXT [OE->OperandRight.ID - 1]->NUMBER_DATA;
-                                        LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
-                                        DECLARE_PATH(VARIABLE_NUMBER);
-                                        break;
-
-                                    case VARIABLE_STRING:
-                                        NEW_CONCEPT_STRING(LOCAL_CONTEXT [OE->Result_ID - 1]) = CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandRight.ID - 1]);
-                                        LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE           = VARIABLE_STRING;
-                                        DECLARE_PATH(VARIABLE_STRING);
-                                        break;
-
-                                    case VARIABLE_DELEGATE:
-                                        LOCAL_CONTEXT [OE->Result_ID - 1]->DELEGATE_DATA = LOCAL_CONTEXT [OE->OperandRight.ID - 1]->DELEGATE_DATA;
-
-                                    case VARIABLE_CLASS:
-                                        LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA = LOCAL_CONTEXT [OE->OperandRight.ID - 1]->CLASS_DATA;
-                                        LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE       = LOCAL_CONTEXT [OE->OperandRight.ID - 1]->TYPE;
-                                        ((CompiledClass *)LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA)->LINKS++;
-                                        DECLARE_PATH(LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE);
-                                        break;
-
-                                    case VARIABLE_ARRAY:
-                                        LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA = LOCAL_CONTEXT [OE->OperandRight.ID - 1]->CLASS_DATA;
-                                        LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE       = VARIABLE_ARRAY;
-                                        ((Array *)LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA)->LINKS++;
-                                        DECLARE_PATH(VARIABLE_ARRAY);
-                                        break;
-                                }
-                                continue;
-
-                            default:
-                                //SMART_LOCK(LOCAL_CONTEXT [OE->Result_ID - 1])
-                                DECLARE_PATH(0x20);
-                                // CLASS_CHECK_RESET(LOCAL_CONTEXT [OE->Result_ID - 1], pushed_type);
-                                LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE = VARIABLE_NUMBER;
-                                Exc = new AnsiException(ERR910, OE->Operator._DEBUG_INFO_LINE, 910,  GetKeyWord(OE->Operator.ID), ((ClassCode *)(THIS_REF->OWNER->Defined_In))->_DEBUG_INFO_FILENAME, ((ClassCode *)(THIS_REF->OWNER->Defined_In))->NAME, THIS_REF->OWNER->NAME);
-                                PIF->AcknoledgeRunTimeError(STACK_TRACE, Exc);
-                                break;
-                        }
-                        break;
+#ifdef SIMPLE_MULTI_THREADING
+                        THIS_REF->EvalArrayExpression(PIF, LOCAL_CONTEXT, OE, TARGET_THREAD->PROPERTIES, ClassID, THROW_DATA, STACK_TRACE, INSTRUCTION_POINTER, CATCH_INSTRUCTION_POINTER, CATCH_VARIABLE, PREVIOUS_TRY, IsWriteLocked);
+#else
+                        THIS_REF->EvalArrayExpression(PIF, LOCAL_CONTEXT, OE, TARGET_THREAD->PROPERTIES, ClassID, THROW_DATA, STACK_TRACE, INSTRUCTION_POINTER, CATCH_INSTRUCTION_POINTER, CATCH_VARIABLE, PREVIOUS_TRY);
+#endif
+                        continue;
 
                     case VARIABLE_DELEGATE:
-                        switch (OE_Operator_ID) {
-                            case KEY_ASG:
-                            case KEY_BY_REF:
-                                // ------------------- //
-                                if (LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA != LOCAL_CONTEXT [OE->OperandRight.ID - 1]->CLASS_DATA) {
-                                    //SMART_LOCK(LOCAL_CONTEXT [OE->OperandLeft_ID - 1])
-                                    CLASS_CHECK(LOCAL_CONTEXT [OE->OperandLeft_ID - 1])
-                                } else {
-                                    ((CompiledClass *)LOCAL_CONTEXT [OE->OperandRight.ID - 1]->CLASS_DATA)->LINKS -= 1;
-                                }
-
-                                // ------------------- //
-                                LOCAL_CONTEXT [OE->Result_ID - 1]->DELEGATE_DATA = LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->DELEGATE_DATA = LOCAL_CONTEXT [OE->OperandRight.ID - 1]->DELEGATE_DATA;
-                                LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA    = LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA = LOCAL_CONTEXT [OE->OperandRight.ID - 1]->CLASS_DATA;
-                                ((CompiledClass *)LOCAL_CONTEXT [OE->OperandRight.ID - 1]->CLASS_DATA)->LINKS += 2;
-                                LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->TYPE = VARIABLE_DELEGATE;
-                                //----------------//
-                                PROPERTY_CODE(THIS_REF, TARGET_THREAD->PROPERTIES)
-                                //----------------//
-                                DECLARE_PATH(VARIABLE_DELEGATE);
-                                continue;
-
-                            case KEY_EQU:
-                                //SMART_LOCK(LOCAL_CONTEXT [OE->Result_ID - 1])
-                                // CLASS_CHECK_RESET(LOCAL_CONTEXT [OE->Result_ID - 1], pushed_type);
-                                if (LOCAL_CONTEXT [OE->OperandRight.ID - 1]->TYPE != VARIABLE_DELEGATE) {
-                                    LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = 0;
-                                } else {
-                                    LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = ((LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA == LOCAL_CONTEXT [OE->OperandRight.ID - 1]->CLASS_DATA) && (LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->DELEGATE_DATA == LOCAL_CONTEXT [OE->OperandRight.ID - 1]->DELEGATE_DATA));
-                                }
-                                LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE = VARIABLE_NUMBER;
-                                DECLARE_PATH(VARIABLE_NUMBER);
-                                continue;
-
-                            case KEY_NEQ:
-                                //SMART_LOCK(LOCAL_CONTEXT [OE->Result_ID - 1])
-                                // CLASS_CHECK_RESET(LOCAL_CONTEXT [OE->Result_ID - 1], pushed_type);
-                                if (LOCAL_CONTEXT [OE->OperandRight.ID - 1]->TYPE != VARIABLE_DELEGATE) {
-                                    LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = 0;
-                                } else {
-                                    LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = ((LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA != LOCAL_CONTEXT [OE->OperandRight.ID - 1]->CLASS_DATA) || (LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->DELEGATE_DATA != LOCAL_CONTEXT [OE->OperandRight.ID - 1]->DELEGATE_DATA));
-                                }
-                                LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE = VARIABLE_NUMBER;
-                                DECLARE_PATH(VARIABLE_NUMBER);
-                                continue;
-
-                            case KEY_BAN:
-                                //SMART_LOCK(LOCAL_CONTEXT [OE->Result_ID - 1])
-                                // CLASS_CHECK_RESET(LOCAL_CONTEXT [OE->Result_ID - 1], pushed_type);
-                                switch (LOCAL_CONTEXT [OE->OperandRight.ID - 1]->TYPE) {
-                                    case VARIABLE_NUMBER:
-                                        LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = (LOCAL_CONTEXT [OE->OperandRight.ID - 1]->NUMBER_DATA != 0);
-                                        LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
-                                        break;
-
-                                    case VARIABLE_STRING:
-                                        LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = (CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandRight.ID - 1]).Length() != 0);
-                                        LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
-                                        break;
-
-                                    case VARIABLE_CLASS:
-                                    case VARIABLE_DELEGATE:
-                                        LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = 1;
-                                        LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
-                                        break;
-
-                                    case VARIABLE_ARRAY:
-                                        LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = (((Array *)LOCAL_CONTEXT [OE->OperandRight.ID - 1]->CLASS_DATA)->Count() != 0);
-                                        LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
-                                        break;
-                                }
-                                DECLARE_PATH(VARIABLE_NUMBER);
-                                continue;
-
-                            case KEY_BOR:
-                                //SMART_LOCK(LOCAL_CONTEXT [OE->Result_ID - 1])
-                                // CLASS_CHECK_RESET(LOCAL_CONTEXT [OE->Result_ID - 1], pushed_type);
-                                switch (LOCAL_CONTEXT [OE->OperandRight.ID - 1]->TYPE) {
-                                    case VARIABLE_NUMBER:
-                                    case VARIABLE_STRING:
-                                    case VARIABLE_CLASS:
-                                    case VARIABLE_DELEGATE:
-                                    case VARIABLE_ARRAY:
-                                        LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = 1;
-                                        LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
-                                        break;
-                                }
-                                DECLARE_PATH(VARIABLE_NUMBER);
-                                continue;
-
-                            case KEY_NOT:
-                                //SMART_LOCK(LOCAL_CONTEXT [OE->Result_ID - 1])
-                                // CLASS_CHECK_RESET(LOCAL_CONTEXT [OE->Result_ID - 1], pushed_type);
-                                LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = 0;
-                                LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
-                                DECLARE_PATH(VARIABLE_NUMBER);
-                                continue;
-
-                            case KEY_CND_NULL:
-                                if ((LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE == VARIABLE_DELEGATE) && (LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA == LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA) && (LOCAL_CONTEXT [OE->Result_ID - 1]->DELEGATE_DATA == LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->DELEGATE_DATA)) {
-                                    DECLARE_PATH(VARIABLE_DELEGATE);
-                                    continue;
-                                }
-                                //---------------------------//
-                                // CLASS_CHECK_RESET(LOCAL_CONTEXT [OE->Result_ID - 1], pushed_type)
-                                //---------------------------//
-                                LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA    = LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA;
-                                LOCAL_CONTEXT [OE->Result_ID - 1]->DELEGATE_DATA = LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->DELEGATE_DATA;
-                                ((CompiledClass *)LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA)->LINKS++;
-                                DECLARE_PATH(VARIABLE_NUMBER);
-                                continue;
-
-                            default:
-                                DECLARE_PATH(0x20);
-                                //SMART_LOCK(LOCAL_CONTEXT [OE->Result_ID - 1])
-                                // CLASS_CHECK_RESET(LOCAL_CONTEXT [OE->Result_ID - 1], pushed_type);
-                                LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE = VARIABLE_NUMBER;
-                                Exc = new AnsiException(ERR960, OE->Operator._DEBUG_INFO_LINE, 960,  GetKeyWord(OE->Operator.ID), ((ClassCode *)(THIS_REF->OWNER->Defined_In))->_DEBUG_INFO_FILENAME, ((ClassCode *)(THIS_REF->OWNER->Defined_In))->NAME, THIS_REF->OWNER->NAME);
-                                PIF->AcknoledgeRunTimeError(STACK_TRACE, Exc);
-                                break;
-                        }
-                        break;
+#ifdef SIMPLE_MULTI_THREADING
+                        THIS_REF->EvalDelegateExpression(PIF, LOCAL_CONTEXT, OE, TARGET_THREAD->PROPERTIES, ClassID, THROW_DATA, STACK_TRACE, INSTRUCTION_POINTER, CATCH_INSTRUCTION_POINTER, CATCH_VARIABLE, PREVIOUS_TRY, IsWriteLocked);
+#else
+                        THIS_REF->EvalDelegateExpression(PIF, LOCAL_CONTEXT, OE, TARGET_THREAD->PROPERTIES, ClassID, THROW_DATA, STACK_TRACE, INSTRUCTION_POINTER, CATCH_INSTRUCTION_POINTER, CATCH_VARIABLE, PREVIOUS_TRY);
+#endif
+                        continue;
                 }
             } else
             if (OE->Operator.TYPE == TYPE_OPTIMIZED_KEYWORD) {
@@ -4548,6 +3420,1136 @@ int ConceptInterpreter::StacklessInterpret(PIFAlizator *PIF, GreenThreadCycle *G
     if (GREEN)
         ClassMember::DoneThread(GREEN);
     return 0;
+}
+
+#ifdef SIMPLE_MULTI_THREADING
+int ConceptInterpreter::EvalClassExpression(PIFAlizator *PIF, VariableDATA **LOCAL_CONTEXT, const RuntimeOptimizedElement *OE, VariableDATAPROPERTY * &PROPERTIES, intptr_t ClassID, VariableDATA *& THROW_DATA, SCStack *STACK_TRACE, INTEGER OE_Operator_ID, INTEGER &INSTRUCTION_POINTER, INTEGER &CATCH_INSTRUCTION_POINTER, INTEGER &CATCH_VARIABLE, INTEGER &PREVIOUS_TRY, char &IsWriteLocked) {
+#else
+int ConceptInterpreter::EvalClassExpression(PIFAlizator *PIF, VariableDATA **LOCAL_CONTEXT, const RuntimeOptimizedElement *OE, VariableDATAPROPERTY * &PROPERTIES, intptr_t ClassID, VariableDATA *& THROW_DATA, SCStack *STACK_TRACE, INTEGER OE_Operator_ID, INTEGER &INSTRUCTION_POINTER, INTEGER &CATCH_INSTRUCTION_POINTER, INTEGER &CATCH_VARIABLE, INTEGER &PREVIOUS_TRY) {
+#endif
+    CompiledClass  *CCTEMP;
+    DECLARE_PATH(VARIABLE_NUMBER);
+    Optimizer *OPT = (Optimizer *)this->OWNER->OPTIMIZER;
+    INTEGER OPERATOR_ID;
+    ParamList OPERATOR_PARAM;
+    INTEGER   PARAM_INDEX[1];
+    AnsiException *Exc;
+    VariableDATA *RESULT;
+
+    switch (OE_Operator_ID) {
+        case KEY_BY_REF:
+            //---------------------------//
+            if (LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA != LOCAL_CONTEXT [OE->OperandRight.ID - 1]->CLASS_DATA) {
+                CLASS_CHECK_TS(LOCAL_CONTEXT [OE->OperandLeft_ID - 1])
+            } else {
+                if (LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA == LOCAL_CONTEXT [OE->OperandRight.ID - 1]->CLASS_DATA) {
+                    ((CompiledClass *)LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA)->LINKS -= 2;
+                } else {
+                    // CLASS_CHECK_RESET(LOCAL_CONTEXT [OE->Result_ID - 1], pushed_type);
+                    ((CompiledClass *)LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA)->LINKS -= 1;
+                }
+            }
+            //---------------------------//
+
+            LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA = LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA = LOCAL_CONTEXT [OE->OperandRight.ID - 1]->CLASS_DATA;
+            ((CompiledClass *)LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA)->LINKS += 2;
+
+            LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->TYPE = VARIABLE_CLASS;
+            if ((PROPERTIES) && (PROPERTIES [OE->OperandLeft_ID - 1].IS_PROPERTY_RESULT)) {
+                CCTEMP = (CompiledClass *)((VariableDATA *)(PROPERTIES [OE->OperandLeft_ID - 1].CALL_SET))->CLASS_DATA;
+                WRITE_UNLOCK
+                CCTEMP->_Class->SetProperty(PIF, PROPERTIES [OE->OperandLeft_ID - 1].IS_PROPERTY_RESULT - 1, (VariableDATA *)(PROPERTIES [OE->OperandLeft_ID - 1].CALL_SET), OE, &OE->OperandRight, CCTEMP->_Class->CLSID == ClassID, OE->Result_ID - 1, LOCAL_CONTEXT, ClassID, LocalClassID, STACK_TRACE);
+            }
+            DECLARE_PATH(VARIABLE_CLASS);
+            return 1;
+
+        case KEY_ASG:
+            OPERATOR_ID = DEF_ASG;
+            break;
+
+        case KEY_INDEX_OPEN:
+            OPERATOR_ID = DEF_SELECTOR_I;
+            break;
+
+        case KEY_SUM:
+            OPERATOR_ID = DEF_SUM;
+            break;
+
+        case KEY_MUL:
+            OPERATOR_ID = DEF_MUL;
+            break;
+
+        case KEY_DIV:
+            OPERATOR_ID = DEF_DIV;
+            break;
+
+        case KEY_REM:
+            OPERATOR_ID = DEF_REM;
+            break;
+
+        case KEY_DIF:
+            OPERATOR_ID = DEF_DIF;
+            break;
+
+        case KEY_SHL:
+            OPERATOR_ID = DEF_SHL;
+            break;
+
+        case KEY_SHR:
+            OPERATOR_ID = DEF_SHR;
+            break;
+
+        case KEY_LES:
+            OPERATOR_ID = DEF_LES;
+            break;
+
+        case KEY_LEQ:
+            OPERATOR_ID = DEF_LEQ;
+            break;
+
+        case KEY_GRE:
+            OPERATOR_ID = DEF_GRE;
+            break;
+
+        case KEY_GEQ:
+            OPERATOR_ID = DEF_GEQ;
+            break;
+
+        case KEY_EQU:
+            CCTEMP = (CompiledClass *)LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA;
+            if (!CCTEMP->_Class->Relocation(DEF_EQU)) {
+                //SMART_LOCK(LOCAL_CONTEXT [OE->Result_ID - 1])
+                // CLASS_CHECK_RESET(LOCAL_CONTEXT [OE->Result_ID - 1], pushed_type)
+
+                switch (LOCAL_CONTEXT [OE->OperandRight.ID - 1]->TYPE) {
+                    case VARIABLE_CLASS:
+                        LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA == LOCAL_CONTEXT [OE->OperandRight.ID - 1]->CLASS_DATA ? 1 : 0;
+                        LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
+                        break;
+
+                    default:
+                        LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = 0;
+                        LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
+                }
+                DECLARE_PATH(VARIABLE_NUMBER);
+                return 1;
+            }
+            OPERATOR_ID = DEF_EQU;
+            break;
+
+        case KEY_NEQ:
+            CCTEMP = (CompiledClass *)LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA;
+            if (!CCTEMP->_Class->Relocation(DEF_NEQ)) {
+                //SMART_LOCK(LOCAL_CONTEXT [OE->Result_ID - 1])
+                // CLASS_CHECK_RESET(LOCAL_CONTEXT [OE->Result_ID - 1], pushed_type)
+
+                switch (LOCAL_CONTEXT [OE->OperandRight.ID - 1]->TYPE) {
+                    case VARIABLE_CLASS:
+                        LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA != LOCAL_CONTEXT [OE->OperandRight.ID - 1]->CLASS_DATA ? 1 : 0;
+                        LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
+                        break;
+
+                    default:
+                        LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = 1;
+                        LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
+                }
+                DECLARE_PATH(VARIABLE_NUMBER);
+                return 1;
+            }
+            OPERATOR_ID = DEF_NEQ;
+            break;
+
+        case KEY_AND:
+            OPERATOR_ID = DEF_AND;
+            break;
+
+        case KEY_XOR:
+            OPERATOR_ID = DEF_XOR;
+            break;
+
+        case KEY_OR:
+            OPERATOR_ID = DEF_OR;
+            break;
+
+        case KEY_BAN:
+            CCTEMP = (CompiledClass *)LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA;
+            if (!CCTEMP->_Class->Relocation(DEF_BAN)) {
+                //SMART_LOCK(LOCAL_CONTEXT [OE->Result_ID - 1])
+                // CLASS_CHECK_RESET(LOCAL_CONTEXT [OE->Result_ID - 1], pushed_type)
+                switch (LOCAL_CONTEXT [OE->OperandRight.ID - 1]->TYPE) {
+                    case VARIABLE_NUMBER:
+                        LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = LOCAL_CONTEXT [OE->OperandRight.ID - 1]->NUMBER_DATA != 0;
+                        LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
+                        break;
+
+                    case VARIABLE_STRING:
+                        LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandRight.ID - 1]).Length() != 0;
+                        LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
+                        break;
+
+                    case VARIABLE_CLASS:
+                    case VARIABLE_DELEGATE:
+                        LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = 1;
+                        LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
+                        break;
+
+                    case VARIABLE_ARRAY:
+                        LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = ((Array *)LOCAL_CONTEXT [OE->OperandRight.ID - 1]->CLASS_DATA)->Count() != 0;
+                        LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
+                        break;
+                }
+                DECLARE_PATH(VARIABLE_NUMBER);
+                return 1;
+            }
+
+            OPERATOR_ID = DEF_BAN;
+            break;
+
+        case KEY_BOR:
+            CCTEMP = (CompiledClass *)LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA;
+            if (!CCTEMP->_Class->Relocation(DEF_BOR)) {
+                //SMART_LOCK(LOCAL_CONTEXT [OE->Result_ID - 1])
+                // CLASS_CHECK_RESET(LOCAL_CONTEXT [OE->Result_ID - 1], pushed_type)
+                LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = 1;
+                LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
+                DECLARE_PATH(VARIABLE_NUMBER);
+                return 1;
+            }
+            OPERATOR_ID = DEF_BOR;
+            break;
+
+        case KEY_ASU:
+            OPERATOR_ID = DEF_ASU;
+            break;
+
+        case KEY_ADI:
+            OPERATOR_ID = DEF_ADI;
+            break;
+
+        case KEY_AMU:
+            OPERATOR_ID = DEF_AMU;
+            break;
+
+        case KEY_ADV:
+            OPERATOR_ID = DEF_ADV;
+            break;
+
+        case KEY_ARE:
+            OPERATOR_ID = DEF_ARE;
+            break;
+
+        case KEY_AAN:
+            OPERATOR_ID = DEF_AAN;
+            break;
+
+        case KEY_AXO:
+            OPERATOR_ID = DEF_AXO;
+            break;
+
+        case KEY_AOR:
+            OPERATOR_ID = DEF_AOR;
+            break;
+
+        case KEY_ASL:
+            OPERATOR_ID = DEF_ASL;
+            break;
+
+        case KEY_ASR:
+            OPERATOR_ID = DEF_ASR;
+            break;
+
+        // unari !
+        case KEY_NOT:
+            CCTEMP = (CompiledClass *)LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA;
+            if (!CCTEMP->_Class->Relocation(DEF_NOT)) {
+                //SMART_LOCK(LOCAL_CONTEXT [OE->Result_ID - 1])
+                // CLASS_CHECK_RESET(LOCAL_CONTEXT [OE->Result_ID - 1], pushed_type)
+                LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = 0;
+                LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
+                DECLARE_PATH(VARIABLE_NUMBER);
+                return 1;
+            }
+            OPERATOR_ID = DEF_NOT;
+            break;
+
+        case KEY_COM:
+            OPERATOR_ID = DEF_COM;
+            break;
+
+        case KEY_INC_LEFT:
+        case KEY_INC:
+            OPERATOR_ID = DEF_INC;
+            break;
+
+        case KEY_DEC_LEFT:
+        case KEY_DEC:
+            OPERATOR_ID = DEF_DEC;
+            break;
+
+        case KEY_CND_NULL:
+            if ((LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE == VARIABLE_CLASS) && (LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA == LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA)) {
+                DECLARE_PATH(VARIABLE_CLASS);
+                return 1;
+            }
+            //---------------------------//
+            //SMART_LOCK(LOCAL_CONTEXT [OE->Result_ID - 1])
+            // CLASS_CHECK_RESET(LOCAL_CONTEXT [OE->Result_ID - 1], pushed_type)
+            //---------------------------//
+            LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA = LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA;
+            ((CompiledClass *)LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA)->LINKS++;
+            DECLARE_PATH(VARIABLE_CLASS);
+            return 1;
+
+        default:
+            DECLARE_PATH(0x20);
+            Exc = new AnsiException(ERR920, OE->Operator._DEBUG_INFO_LINE, 920,  GetKeyWord(OE->Operator.ID), ((ClassCode *)(OWNER->Defined_In))->_DEBUG_INFO_FILENAME, ((ClassCode *)(OWNER->Defined_In))->NAME, OWNER->NAME);
+            PIF->AcknoledgeRunTimeError(STACK_TRACE, Exc);
+            break;
+    }
+    //////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////
+    LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE = VARIABLE_NUMBER;
+    //////////////////////////////////////////////////////
+    if (!OPERATOR_ID) {
+        DECLARE_PATH(0x20);
+        return 1;
+    }
+    if (OE->OperandRight.ID) {
+        OPERATOR_PARAM.COUNT       = 1;
+        PARAM_INDEX[0]             = OE->OperandRight.ID;
+        OPERATOR_PARAM.PARAM_INDEX = DELTA_REF(&OPERATOR_PARAM, PARAM_INDEX);
+
+    } else {
+        OPERATOR_PARAM.COUNT = 0;
+    }
+    CCTEMP = (CompiledClass *)LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA;
+    try {
+        WRITE_UNLOCK
+        RESULT = CCTEMP->_Class->ExecuteMember(PIF, OPERATOR_ID, LOCAL_CONTEXT [OE->OperandLeft_ID - 1], OE, &OE->OperandRight, CCTEMP->_Class->CLSID == ClassID, &OPERATOR_PARAM, LOCAL_CONTEXT, 0, ClassID, LocalClassID, STACK_TRACE);
+        WRITE_LOCK
+        if (RESULT == LOCAL_CONTEXT [OE->Result_ID - 1]) {
+            DECLARE_PATH(RESULT->TYPE);
+            return 1;
+        }
+        if (OE->Operator.FLAGS == MAY_IGNORE_RESULT) {
+            if (RESULT) {
+                if (!RESULT->LINKS)
+                    RESULT->LINKS = 1;
+                FREE_VARIABLE(RESULT);
+            }
+            return 1;
+        }
+        if (((RESULT) && ((RESULT->TYPE == VARIABLE_CLASS) || (RESULT->TYPE == VARIABLE_DELEGATE)) && (!RESULT->CLASS_DATA)) || (!RESULT)) {
+            CLASS_CHECK_TS(LOCAL_CONTEXT [OE->Result_ID - 1]);
+            LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
+            LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = 0;
+        }
+        if (RESULT) {
+            FREE_VARIABLE_TS(LOCAL_CONTEXT [OE->Result_ID - 1]);
+            LOCAL_CONTEXT [OE->Result_ID - 1] = RESULT;
+            RESULT->LINKS++;
+        } else {
+            LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = 0;
+            DECLARE_PATH(0x20);
+        }
+    } catch (VariableDATA *LAST_THROW) {
+        DECLARE_PATH(VARIABLE_NUMBER);
+        THROW_DATA = LAST_THROW;
+        DECLARE_PATH(LAST_THROW->TYPE);
+        if ((CATCH_INSTRUCTION_POINTER) && (CATCH_VARIABLE)) {
+            FREE_VARIABLE(LOCAL_CONTEXT [CATCH_VARIABLE - 1]);
+            LOCAL_CONTEXT [CATCH_VARIABLE - 1] = THROW_DATA;
+            INSTRUCTION_POINTER       = CATCH_INSTRUCTION_POINTER;
+            THROW_DATA                = 0;
+            CATCH_INSTRUCTION_POINTER = 0;
+            CATCH_VARIABLE            = 0;
+            //-------------//
+            RESTORE_TRY_DATA(this);
+            //-------------//
+        } else {
+            WRITE_UNLOCK
+            if (PROPERTIES)
+                FAST_FREE(PROPERTIES);
+            return 0;
+        }
+    }
+    return 1;
+}
+
+#ifdef SIMPLE_MULTI_THREADING
+int ConceptInterpreter::EvalArrayExpression(PIFAlizator *PIF, VariableDATA **LOCAL_CONTEXT, const RuntimeOptimizedElement *OE, VariableDATAPROPERTY * &PROPERTIES, intptr_t ClassID, VariableDATA *& THROW_DATA, SCStack *STACK_TRACE, INTEGER &INSTRUCTION_POINTER, INTEGER &CATCH_INSTRUCTION_POINTER, INTEGER &CATCH_VARIABLE, INTEGER &PREVIOUS_TRY, char &IsWriteLocked) {
+#else
+int ConceptInterpreter::EvalArrayExpression(PIFAlizator *PIF, VariableDATA **LOCAL_CONTEXT, const RuntimeOptimizedElement *OE, VariableDATAPROPERTY * &PROPERTIES, intptr_t ClassID, VariableDATA *& THROW_DATA, SCStack *STACK_TRACE, INTEGER &INSTRUCTION_POINTER, INTEGER &CATCH_INSTRUCTION_POINTER, INTEGER &CATCH_VARIABLE, INTEGER &PREVIOUS_TRY) {
+#endif
+    CompiledClass  *CCTEMP;
+    DECLARE_PATH(VARIABLE_NUMBER);
+    Optimizer *OPT = (Optimizer *)this->OWNER->OPTIMIZER;
+    AnsiException *Exc;
+    VariableDATA *RETURN_DATA;
+
+    switch (OE->Operator.ID) {
+        case KEY_ASG:
+        case KEY_BY_REF:
+            //SMART_LOCK(LOCAL_CONTEXT [OE->OperandLeft_ID - 1])
+            CLASS_CHECK(LOCAL_CONTEXT [OE->OperandLeft_ID - 1])
+            // next line was commented (?)
+            //---------------------------//
+            LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA = LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA = LOCAL_CONTEXT [OE->OperandRight.ID - 1]->CLASS_DATA;
+            ((Array *)LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA)->LINKS += 2;
+            LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->TYPE = VARIABLE_ARRAY;
+            if ((PROPERTIES) && (PROPERTIES [OE->OperandLeft_ID - 1].IS_PROPERTY_RESULT)) {
+                CCTEMP = (CompiledClass *)((VariableDATA *)(PROPERTIES [OE->OperandLeft_ID - 1].CALL_SET))->CLASS_DATA;
+                WRITE_UNLOCK
+                CCTEMP->_Class->SetProperty(PIF, PROPERTIES [OE->OperandLeft_ID - 1].IS_PROPERTY_RESULT - 1, (VariableDATA *)(PROPERTIES [OE->OperandLeft_ID - 1].CALL_SET), OE, &OE->OperandRight, CCTEMP->_Class->CLSID == ClassID, OE->Result_ID - 1, LOCAL_CONTEXT, ClassID, LocalClassID, STACK_TRACE);
+            }
+            DECLARE_PATH(VARIABLE_ARRAY);
+            return 1;
+
+        case KEY_SUM:
+            switch (LOCAL_CONTEXT [OE->OperandRight.ID - 1]->TYPE) {
+                case VARIABLE_STRING:
+                case VARIABLE_NUMBER:
+                case VARIABLE_CLASS:
+                    LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE = VARIABLE_NUMBER;
+                    RETURN_DATA = ((Array *)LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA)->NewArray();
+                    ((Array *)RETURN_DATA->CLASS_DATA)->AddCopy(LOCAL_CONTEXT [OE->OperandRight.ID - 1]);
+                    if (LOCAL_CONTEXT [OE->Result_ID - 1] != RETURN_DATA) {
+                        FREE_VARIABLE_RESET(LOCAL_CONTEXT [OE->Result_ID - 1], VARIABLE_NUMBER);
+                        LOCAL_CONTEXT [OE->Result_ID - 1] = RETURN_DATA;
+                        RETURN_DATA->LINKS++;
+                    }
+                    DECLARE_PATH(RETURN_DATA->TYPE);
+                    return 1;
+
+                case VARIABLE_ARRAY:
+                    LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE = VARIABLE_NUMBER;
+                    RETURN_DATA = ((Array *)LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA)->NewArray();
+                    ((Array *)RETURN_DATA->CLASS_DATA)->Concat((Array *)LOCAL_CONTEXT [OE->OperandRight.ID - 1]->CLASS_DATA);
+                    if (LOCAL_CONTEXT [OE->Result_ID - 1] != RETURN_DATA) {
+                        FREE_VARIABLE_RESET(LOCAL_CONTEXT [OE->Result_ID - 1], VARIABLE_NUMBER);
+                        LOCAL_CONTEXT [OE->Result_ID - 1] = RETURN_DATA;
+                        RETURN_DATA->LINKS++;
+                    }
+                    DECLARE_PATH(RETURN_DATA->TYPE);
+                    return 1;
+            }
+            break;
+
+        case KEY_ASU:
+            switch (LOCAL_CONTEXT [OE->OperandRight.ID - 1]->TYPE) {
+                case VARIABLE_STRING:
+                case VARIABLE_NUMBER:
+                case VARIABLE_CLASS:
+                    LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE = VARIABLE_NUMBER;
+                    RETURN_DATA = ((Array *)LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA)->AddCopy(LOCAL_CONTEXT [OE->OperandRight.ID - 1]);
+                    if (LOCAL_CONTEXT [OE->Result_ID - 1] != RETURN_DATA) {
+                        FREE_VARIABLE_RESET(LOCAL_CONTEXT [OE->Result_ID - 1], VARIABLE_NUMBER);
+                        LOCAL_CONTEXT [OE->Result_ID - 1] = RETURN_DATA;
+                        RETURN_DATA->LINKS++;
+                    }
+                    DECLARE_PATH(RETURN_DATA->TYPE);
+                    return 1;
+
+                case VARIABLE_ARRAY:
+                    //SMART_LOCK(LOCAL_CONTEXT [OE->Result_ID - 1])
+                    // CLASS_CHECK_RESET(LOCAL_CONTEXT [OE->Result_ID - 1], pushed_type);
+                    LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA = ((Array *)LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA)->Concat((Array *)LOCAL_CONTEXT [OE->OperandRight.ID - 1]->CLASS_DATA);
+                    if (LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA) {
+                        LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE = VARIABLE_ARRAY;
+                        ((Array *)LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA)->LINKS++;
+                        DECLARE_PATH(VARIABLE_ARRAY);
+                    } else {
+                        LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE = VARIABLE_NUMBER;
+                        DECLARE_PATH(VARIABLE_NUMBER);
+                    }
+                    return 1;
+            }
+            break;
+
+        case KEY_LENGTH:
+            //SMART_LOCK(LOCAL_CONTEXT [OE->Result_ID - 1])
+            // CLASS_CHECK_RESET(LOCAL_CONTEXT [OE->Result_ID - 1], pushed_type);
+            LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = ((Array *)LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA)->Count();
+            LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
+            DECLARE_PATH(VARIABLE_NUMBER);
+            return 1;
+
+        case KEY_EQU:
+            //SMART_LOCK(LOCAL_CONTEXT [OE->Result_ID - 1])
+            // CLASS_CHECK_RESET(LOCAL_CONTEXT [OE->Result_ID - 1], pushed_type);
+            if (LOCAL_CONTEXT [OE->OperandRight.ID - 1]->TYPE != VARIABLE_ARRAY) {
+                LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = 0;
+            } else {
+                LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = (LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA == LOCAL_CONTEXT [OE->OperandRight.ID - 1]->CLASS_DATA);
+            }
+            LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE = VARIABLE_NUMBER;
+            DECLARE_PATH(VARIABLE_NUMBER);
+            return 1;
+
+        case KEY_NEQ:
+            //SMART_LOCK(LOCAL_CONTEXT [OE->Result_ID - 1])
+            // CLASS_CHECK_RESET(LOCAL_CONTEXT [OE->Result_ID - 1], pushed_type);
+            if (LOCAL_CONTEXT [OE->OperandRight.ID - 1]->TYPE != VARIABLE_ARRAY) {
+                LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = 1;
+            } else {
+                LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = (LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA != LOCAL_CONTEXT [OE->OperandRight.ID - 1]->CLASS_DATA);
+            }
+            LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE = VARIABLE_NUMBER;
+            DECLARE_PATH(VARIABLE_NUMBER);
+            return 1;
+
+        case KEY_BAN:
+            //SMART_LOCK(LOCAL_CONTEXT [OE->Result_ID - 1])
+            // CLASS_CHECK_RESET(LOCAL_CONTEXT [OE->Result_ID - 1], pushed_type);
+            switch (LOCAL_CONTEXT [OE->OperandRight.ID - 1]->TYPE) {
+                case VARIABLE_NUMBER:
+                    LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = ((Array *)LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA)->Count() && LOCAL_CONTEXT [OE->OperandRight.ID - 1]->NUMBER_DATA;
+                    LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
+                    break;
+
+                case VARIABLE_STRING:
+                    LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = ((Array *)LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA)->Count() && CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandRight.ID - 1]).Length();
+                    LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
+                    break;
+
+                case VARIABLE_CLASS:
+                case VARIABLE_DELEGATE:
+                    LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = (((Array *)LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA)->Count() != 0);
+                    LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
+                    break;
+
+                case VARIABLE_ARRAY:
+                    LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = ((Array *)LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA)->Count() && ((Array *)LOCAL_CONTEXT [OE->OperandRight.ID - 1]->CLASS_DATA)->Count();
+                    LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
+                    break;
+            }
+            DECLARE_PATH(VARIABLE_NUMBER);
+            return 1;
+
+        case KEY_BOR:
+            //SMART_LOCK(LOCAL_CONTEXT [OE->Result_ID - 1])
+            // CLASS_CHECK_RESET(LOCAL_CONTEXT [OE->Result_ID - 1], pushed_type);
+            switch (LOCAL_CONTEXT [OE->OperandRight.ID - 1]->TYPE) {
+                case VARIABLE_NUMBER:
+                    LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = ((Array *)LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA)->Count() || LOCAL_CONTEXT [OE->OperandRight.ID - 1]->NUMBER_DATA;
+                    LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
+                    break;
+
+                case VARIABLE_STRING:
+                    LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = ((Array *)LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA)->Count() || CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandRight.ID - 1]).Length();
+                    LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
+                    break;
+
+                case VARIABLE_CLASS:
+                case VARIABLE_DELEGATE:
+                    LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = 1;
+                    LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
+                    break;
+
+                case VARIABLE_ARRAY:
+                    LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = ((Array *)LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA)->Count() || ((Array *)LOCAL_CONTEXT [OE->OperandRight.ID - 1]->CLASS_DATA)->Count();
+                    LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
+                    break;
+            }
+            DECLARE_PATH(VARIABLE_NUMBER);
+            return 1;
+
+        case KEY_NOT:
+            //SMART_LOCK(LOCAL_CONTEXT [OE->Result_ID - 1])
+            // CLASS_CHECK_RESET(LOCAL_CONTEXT [OE->Result_ID - 1], pushed_type);
+            LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = ((Array *)LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA)->Count() == 0;
+            LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
+            DECLARE_PATH(VARIABLE_NUMBER);
+            return 1;
+
+        case KEY_CND_NULL:
+            if ((LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE == VARIABLE_ARRAY) && (LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA == LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA) && (((Array *)LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA)->Count())) {
+                DECLARE_PATH(VARIABLE_ARRAY);
+                return 1;
+            }
+            // ------------------- //
+            //SMART_LOCK(LOCAL_CONTEXT [OE->Result_ID - 1])
+            // CLASS_CHECK_RESET(LOCAL_CONTEXT [OE->Result_ID - 1], pushed_type)
+            // ------------------- //
+            if (((Array *)LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA)->Count()) {
+                LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA = LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA;
+                ((Array *)LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA)->LINKS++;
+                LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE = VARIABLE_ARRAY;
+                DECLARE_PATH(VARIABLE_ARRAY);
+                return 1;
+            }
+            switch (LOCAL_CONTEXT [OE->OperandRight.ID - 1]->TYPE) {
+                case VARIABLE_NUMBER:
+                    LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = LOCAL_CONTEXT [OE->OperandRight.ID - 1]->NUMBER_DATA;
+                    LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
+                    DECLARE_PATH(VARIABLE_NUMBER);
+                    break;
+
+                case VARIABLE_STRING:
+                    NEW_CONCEPT_STRING(LOCAL_CONTEXT [OE->Result_ID - 1]) = CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandRight.ID - 1]);
+                    LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE           = VARIABLE_STRING;
+                    DECLARE_PATH(VARIABLE_STRING);
+                    break;
+
+                case VARIABLE_DELEGATE:
+                    LOCAL_CONTEXT [OE->Result_ID - 1]->DELEGATE_DATA = LOCAL_CONTEXT [OE->OperandRight.ID - 1]->DELEGATE_DATA;
+
+                case VARIABLE_CLASS:
+                    LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA = LOCAL_CONTEXT [OE->OperandRight.ID - 1]->CLASS_DATA;
+                    LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE       = LOCAL_CONTEXT [OE->OperandRight.ID - 1]->TYPE;
+                    ((CompiledClass *)LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA)->LINKS++;
+                    DECLARE_PATH(LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE);
+                    break;
+
+                case VARIABLE_ARRAY:
+                    LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA = LOCAL_CONTEXT [OE->OperandRight.ID - 1]->CLASS_DATA;
+                    LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE       = VARIABLE_ARRAY;
+                    ((Array *)LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA)->LINKS++;
+                    DECLARE_PATH(VARIABLE_ARRAY);
+                    break;
+            }
+            return 1;
+
+        default:
+            //SMART_LOCK(LOCAL_CONTEXT [OE->Result_ID - 1])
+            DECLARE_PATH(0x20);
+            // CLASS_CHECK_RESET(LOCAL_CONTEXT [OE->Result_ID - 1], pushed_type);
+            LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE = VARIABLE_NUMBER;
+            Exc = new AnsiException(ERR910, OE->Operator._DEBUG_INFO_LINE, 910,  GetKeyWord(OE->Operator.ID), ((ClassCode *)(OWNER->Defined_In))->_DEBUG_INFO_FILENAME, ((ClassCode *)(OWNER->Defined_In))->NAME, OWNER->NAME);
+            PIF->AcknoledgeRunTimeError(STACK_TRACE, Exc);
+            break;
+    }
+    return 1;
+}
+
+#ifdef SIMPLE_MULTI_THREADING
+int ConceptInterpreter::EvalDelegateExpression(PIFAlizator *PIF, VariableDATA **LOCAL_CONTEXT, const RuntimeOptimizedElement *OE, VariableDATAPROPERTY * &PROPERTIES, intptr_t ClassID, VariableDATA *& THROW_DATA, SCStack *STACK_TRACE, INTEGER &INSTRUCTION_POINTER, INTEGER &CATCH_INSTRUCTION_POINTER, INTEGER &CATCH_VARIABLE, INTEGER &PREVIOUS_TRY, char &IsWriteLocked) {
+#else
+int ConceptInterpreter::EvalDelegateExpression(PIFAlizator *PIF, VariableDATA **LOCAL_CONTEXT, const RuntimeOptimizedElement *OE, VariableDATAPROPERTY * &PROPERTIES, intptr_t ClassID, VariableDATA *& THROW_DATA, SCStack *STACK_TRACE, INTEGER &INSTRUCTION_POINTER, INTEGER &CATCH_INSTRUCTION_POINTER, INTEGER &CATCH_VARIABLE, INTEGER &PREVIOUS_TRY) {
+#endif
+    CompiledClass  *CCTEMP;
+    DECLARE_PATH(VARIABLE_NUMBER);
+    Optimizer *OPT = (Optimizer *)this->OWNER->OPTIMIZER;
+    AnsiException *Exc;
+
+    switch (OE->Operator.ID) {
+
+        case KEY_ASG:
+        case KEY_BY_REF:
+            // ------------------- //
+            if (LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA != LOCAL_CONTEXT [OE->OperandRight.ID - 1]->CLASS_DATA) {
+                //SMART_LOCK(LOCAL_CONTEXT [OE->OperandLeft_ID - 1])
+                CLASS_CHECK(LOCAL_CONTEXT [OE->OperandLeft_ID - 1])
+            } else {
+                ((CompiledClass *)LOCAL_CONTEXT [OE->OperandRight.ID - 1]->CLASS_DATA)->LINKS -= 1;
+            }
+
+            // ------------------- //
+            LOCAL_CONTEXT [OE->Result_ID - 1]->DELEGATE_DATA = LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->DELEGATE_DATA = LOCAL_CONTEXT [OE->OperandRight.ID - 1]->DELEGATE_DATA;
+            LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA    = LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA = LOCAL_CONTEXT [OE->OperandRight.ID - 1]->CLASS_DATA;
+            ((CompiledClass *)LOCAL_CONTEXT [OE->OperandRight.ID - 1]->CLASS_DATA)->LINKS += 2;
+            LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->TYPE = VARIABLE_DELEGATE;
+            //----------------//
+            PROPERTY_CODE(this, PROPERTIES)
+            //----------------//
+            DECLARE_PATH(VARIABLE_DELEGATE);
+            return 1;
+
+        case KEY_EQU:
+            //SMART_LOCK(LOCAL_CONTEXT [OE->Result_ID - 1])
+            // CLASS_CHECK_RESET(LOCAL_CONTEXT [OE->Result_ID - 1], pushed_type);
+            if (LOCAL_CONTEXT [OE->OperandRight.ID - 1]->TYPE != VARIABLE_DELEGATE) {
+                LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = 0;
+            } else {
+                LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = ((LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA == LOCAL_CONTEXT [OE->OperandRight.ID - 1]->CLASS_DATA) && (LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->NUMBER_DATA == LOCAL_CONTEXT [OE->OperandRight.ID - 1]->NUMBER_DATA));
+            }
+            LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE = VARIABLE_NUMBER;
+            DECLARE_PATH(VARIABLE_NUMBER);
+            return 1;
+
+        case KEY_NEQ:
+            //SMART_LOCK(LOCAL_CONTEXT [OE->Result_ID - 1])
+            // CLASS_CHECK_RESET(LOCAL_CONTEXT [OE->Result_ID - 1], pushed_type);
+            if (LOCAL_CONTEXT [OE->OperandRight.ID - 1]->TYPE != VARIABLE_DELEGATE) {
+                LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = 0;
+            } else {
+                LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = ((LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA != LOCAL_CONTEXT [OE->OperandRight.ID - 1]->CLASS_DATA) || (LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->NUMBER_DATA != LOCAL_CONTEXT [OE->OperandRight.ID - 1]->NUMBER_DATA));
+            }
+            LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE = VARIABLE_NUMBER;
+            DECLARE_PATH(VARIABLE_NUMBER);
+            return 1;
+
+        case KEY_BAN:
+            //SMART_LOCK(LOCAL_CONTEXT [OE->Result_ID - 1])
+            // CLASS_CHECK_RESET(LOCAL_CONTEXT [OE->Result_ID - 1], pushed_type);
+            switch (LOCAL_CONTEXT [OE->OperandRight.ID - 1]->TYPE) {
+                case VARIABLE_NUMBER:
+                    LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = (LOCAL_CONTEXT [OE->OperandRight.ID - 1]->NUMBER_DATA != 0);
+                    LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
+                    break;
+
+                case VARIABLE_STRING:
+                    LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = (CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandRight.ID - 1]).Length() != 0);
+                    LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
+                    break;
+
+                case VARIABLE_CLASS:
+                case VARIABLE_DELEGATE:
+                    LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = 1;
+                    LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
+                    break;
+
+                case VARIABLE_ARRAY:
+                    LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = (((Array *)LOCAL_CONTEXT [OE->OperandRight.ID - 1]->CLASS_DATA)->Count() != 0);
+                    LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
+                    break;
+            }
+            DECLARE_PATH(VARIABLE_NUMBER);
+            return 1;
+
+        case KEY_BOR:
+            //SMART_LOCK(LOCAL_CONTEXT [OE->Result_ID - 1])
+            // CLASS_CHECK_RESET(LOCAL_CONTEXT [OE->Result_ID - 1], pushed_type);
+            switch (LOCAL_CONTEXT [OE->OperandRight.ID - 1]->TYPE) {
+                case VARIABLE_NUMBER:
+                case VARIABLE_STRING:
+                case VARIABLE_CLASS:
+                case VARIABLE_DELEGATE:
+                case VARIABLE_ARRAY:
+                    LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = 1;
+                    LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
+                    break;
+            }
+            DECLARE_PATH(VARIABLE_NUMBER);
+            return 1;
+
+        case KEY_NOT:
+            //SMART_LOCK(LOCAL_CONTEXT [OE->Result_ID - 1])
+            // CLASS_CHECK_RESET(LOCAL_CONTEXT [OE->Result_ID - 1], pushed_type);
+            LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = 0;
+            LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
+            DECLARE_PATH(VARIABLE_NUMBER);
+            return 1;
+
+        case KEY_CND_NULL:
+            if ((LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE == VARIABLE_DELEGATE) && (LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA == LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA) && (LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA == LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->NUMBER_DATA)) {
+                DECLARE_PATH(VARIABLE_DELEGATE);
+                return 1;
+            }
+            //---------------------------//
+            //SMART_LOCK(LOCAL_CONTEXT [OE->Result_ID - 1])
+            // CLASS_CHECK_RESET(LOCAL_CONTEXT [OE->Result_ID - 1], pushed_type)
+            //---------------------------//
+            LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA  = LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA;
+            LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->NUMBER_DATA;
+            ((CompiledClass *)LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA)->LINKS++;
+            DECLARE_PATH(VARIABLE_NUMBER);
+            return 1;
+
+        default:
+            DECLARE_PATH(0x20);
+            //SMART_LOCK(LOCAL_CONTEXT [OE->Result_ID - 1])
+            // CLASS_CHECK_RESET(LOCAL_CONTEXT [OE->Result_ID - 1], pushed_type);
+            LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE = VARIABLE_NUMBER;
+            Exc = new AnsiException(ERR960, OE->Operator._DEBUG_INFO_LINE, 960,  GetKeyWord(OE->Operator.ID), ((ClassCode *)(OWNER->Defined_In))->_DEBUG_INFO_FILENAME, ((ClassCode *)(OWNER->Defined_In))->NAME, OWNER->NAME);
+            PIF->AcknoledgeRunTimeError(STACK_TRACE, Exc);
+            break;
+    }
+    return 1;
+}
+
+#ifdef SIMPLE_MULTI_THREADING
+int ConceptInterpreter::EvalStringExpression(PIFAlizator *PIF, VariableDATA **LOCAL_CONTEXT, const RuntimeOptimizedElement *OE, VariableDATAPROPERTY * &PROPERTIES, intptr_t ClassID, VariableDATA *& THROW_DATA, SCStack *STACK_TRACE, INTEGER &INSTRUCTION_POINTER, INTEGER &CATCH_INSTRUCTION_POINTER, INTEGER &CATCH_VARIABLE, INTEGER &PREVIOUS_TRY, char &IsWriteLocked) {
+#else
+int ConceptInterpreter::EvalStringExpression(PIFAlizator *PIF, VariableDATA **LOCAL_CONTEXT, const RuntimeOptimizedElement *OE, VariableDATAPROPERTY * &PROPERTIES, intptr_t ClassID, VariableDATA *& THROW_DATA, SCStack *STACK_TRACE, INTEGER &INSTRUCTION_POINTER, INTEGER &CATCH_INSTRUCTION_POINTER, INTEGER &CATCH_VARIABLE, INTEGER &PREVIOUS_TRY) {
+#endif
+    AnsiException *Exc;
+    CompiledClass *CCTEMP;
+    DECLARE_PATH(VARIABLE_NUMBER);
+    Optimizer *OPT = (Optimizer *)this->OWNER->OPTIMIZER;
+    switch (OE->Operator.ID) {
+        // unary operators
+        case KEY_NOT:
+            LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = (CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]).Length() == 0);
+            LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
+            DECLARE_PATH(VARIABLE_NUMBER);
+            return 1;
+
+        case KEY_LENGTH:
+            LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]).Length();
+            LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
+            DECLARE_PATH(VARIABLE_NUMBER);
+            return 1;
+
+        case KEY_VALUE:
+            LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]).ToFloat();
+            LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
+            DECLARE_PATH(VARIABLE_NUMBER);
+            return 1;
+
+        case KEY_INC:
+            if (CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]).Length()) {
+                NEW_CONCEPT_STRING(LOCAL_CONTEXT [OE->Result_ID - 1]).LoadBuffer(CONCEPT_C_STRING(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]) + 1, CONCEPT_C_LENGTH(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]) - 1);
+                CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]) = CONCEPT_STRING(LOCAL_CONTEXT [OE->Result_ID - 1]);
+                //----------------//
+                PROPERTY_CODE(this, PROPERTIES)
+                //----------------//
+            }
+            DECLARE_PATH(VARIABLE_STRING);
+            return 1;
+
+        case KEY_INC_LEFT:
+            if (CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]).Length()) {
+                NEW_CONCEPT_STRING(LOCAL_CONTEXT [OE->Result_ID - 1]) = CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]);
+                CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]).LoadBuffer(CONCEPT_C_STRING(LOCAL_CONTEXT [OE->Result_ID - 1]) + 1, CONCEPT_C_LENGTH(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]) - 1);
+                //----------------//
+                PROPERTY_CODE_LEFT(this, PROPERTIES)
+                //----------------//
+            }
+            DECLARE_PATH(VARIABLE_STRING);
+            return 1;
+
+        // binary ...
+        case KEY_SUM:
+            switch (LOCAL_CONTEXT [OE->OperandRight.ID - 1]->TYPE) {
+                case VARIABLE_STRING:
+                    NEW_CONCEPT_STRING(LOCAL_CONTEXT [OE->Result_ID - 1]).Sum(CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]), CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandRight.ID - 1]));
+                    DECLARE_PATH(VARIABLE_STRING);
+                    break;
+
+                case VARIABLE_NUMBER:
+                    NEW_CONCEPT_STRING(LOCAL_CONTEXT [OE->Result_ID - 1]) = CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]) + AnsiString(LOCAL_CONTEXT [OE->OperandRight.ID - 1]->NUMBER_DATA);
+                    DECLARE_PATH(VARIABLE_STRING);
+                    break;
+
+                default:
+                    DECLARE_PATH(0x20);
+                    Exc = new AnsiException(ERR650, OE->Operator._DEBUG_INFO_LINE, 650,  GetKeyWord(OE->Operator.ID), ((ClassCode *)(OWNER->Defined_In))->_DEBUG_INFO_FILENAME, ((ClassCode *)(OWNER->Defined_In))->NAME, OWNER->NAME);
+                    PIF->AcknoledgeRunTimeError(STACK_TRACE, Exc);
+                    break;
+            }
+            return 1;
+
+        case KEY_EQU:
+            switch (LOCAL_CONTEXT [OE->OperandRight.ID - 1]->TYPE) {
+                case VARIABLE_STRING:
+                    LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]) == CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandRight.ID - 1]) ? 1 : 0;
+                    LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
+                    DECLARE_PATH(VARIABLE_NUMBER);
+                    break;
+
+                case VARIABLE_NUMBER:
+                    LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]) == LOCAL_CONTEXT [OE->OperandRight.ID - 1]->NUMBER_DATA ? 1 : 0;
+                    LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
+                    DECLARE_PATH(VARIABLE_NUMBER);
+                    break;
+
+                default:
+                    DECLARE_PATH(0x20);
+                    Exc = new AnsiException(ERR650, OE->Operator._DEBUG_INFO_LINE, 650,  GetKeyWord(OE->Operator.ID), ((ClassCode *)(OWNER->Defined_In))->_DEBUG_INFO_FILENAME, ((ClassCode *)(OWNER->Defined_In))->NAME, OWNER->NAME);
+                    PIF->AcknoledgeRunTimeError(STACK_TRACE, Exc);
+                    break;
+            }
+            return 1;
+
+        case KEY_GRE:
+            switch (LOCAL_CONTEXT [OE->OperandRight.ID - 1]->TYPE) {
+                case VARIABLE_STRING:
+                    LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]) > CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandRight.ID - 1]) ? 1 : 0;
+                    LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
+                    DECLARE_PATH(VARIABLE_NUMBER);
+                    break;
+
+                case VARIABLE_NUMBER:
+                    LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]) > AnsiString(LOCAL_CONTEXT [OE->OperandRight.ID - 1]->NUMBER_DATA) ? 1 : 0;
+                    LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
+                    DECLARE_PATH(VARIABLE_NUMBER);
+                    break;
+
+                default:
+                    DECLARE_PATH(0x20);
+                    Exc = new AnsiException(ERR650, OE->Operator._DEBUG_INFO_LINE, 650,  GetKeyWord(OE->Operator.ID), ((ClassCode *)(OWNER->Defined_In))->_DEBUG_INFO_FILENAME, ((ClassCode *)(OWNER->Defined_In))->NAME, OWNER->NAME);
+                    PIF->AcknoledgeRunTimeError(STACK_TRACE, Exc);
+                    break;
+            }
+            return 1;
+
+        case KEY_LES:
+            switch (LOCAL_CONTEXT [OE->OperandRight.ID - 1]->TYPE) {
+                case VARIABLE_STRING:
+                    LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]) < CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandRight.ID - 1]) ? 1 : 0;
+                    LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
+                    DECLARE_PATH(VARIABLE_NUMBER);
+                    break;
+
+                case VARIABLE_NUMBER:
+                    LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]) < AnsiString(LOCAL_CONTEXT [OE->OperandRight.ID - 1]->NUMBER_DATA) ? 1 : 0;
+                    LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
+                    DECLARE_PATH(VARIABLE_NUMBER);
+                    break;
+
+                default:
+                    DECLARE_PATH(0x20);
+                    Exc = new AnsiException(ERR650, OE->Operator._DEBUG_INFO_LINE, 650,  GetKeyWord(OE->Operator.ID), ((ClassCode *)(OWNER->Defined_In))->_DEBUG_INFO_FILENAME, ((ClassCode *)(OWNER->Defined_In))->NAME, OWNER->NAME);
+                    PIF->AcknoledgeRunTimeError(STACK_TRACE, Exc);
+                    break;
+            }
+            return 1;
+
+        case KEY_GEQ:
+            switch (LOCAL_CONTEXT [OE->OperandRight.ID - 1]->TYPE) {
+                case VARIABLE_STRING:
+                    LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]) >= CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandRight.ID - 1]) ? 1 : 0;
+                    LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
+                    DECLARE_PATH(VARIABLE_NUMBER);
+                    break;
+
+                case VARIABLE_NUMBER:
+                    LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]) >= AnsiString(LOCAL_CONTEXT [OE->OperandRight.ID - 1]->NUMBER_DATA) ? 1 : 0;
+                    LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
+                    DECLARE_PATH(VARIABLE_NUMBER);
+                    break;
+
+                default:
+                    DECLARE_PATH(0x20);
+                    Exc = new AnsiException(ERR650, OE->Operator._DEBUG_INFO_LINE, 650,  GetKeyWord(OE->Operator.ID), ((ClassCode *)(OWNER->Defined_In))->_DEBUG_INFO_FILENAME, ((ClassCode *)(OWNER->Defined_In))->NAME, OWNER->NAME);
+                    PIF->AcknoledgeRunTimeError(STACK_TRACE, Exc);
+                    break;
+            }
+            return 1;
+
+        case KEY_LEQ:
+            switch (LOCAL_CONTEXT [OE->OperandRight.ID - 1]->TYPE) {
+                case VARIABLE_STRING:
+                    LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]) <= CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandRight.ID - 1]) ? 1 : 0;
+                    LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
+                    DECLARE_PATH(VARIABLE_NUMBER);
+                    break;
+
+                case VARIABLE_NUMBER:
+                    LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]) <= AnsiString(LOCAL_CONTEXT [OE->OperandRight.ID - 1]->NUMBER_DATA) ? 1 : 0;
+                    LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
+                    DECLARE_PATH(VARIABLE_NUMBER);
+                    break;
+
+                default:
+                    DECLARE_PATH(0x20);
+                    Exc = new AnsiException(ERR650, OE->Operator._DEBUG_INFO_LINE, 650,  GetKeyWord(OE->Operator.ID), ((ClassCode *)(OWNER->Defined_In))->_DEBUG_INFO_FILENAME, ((ClassCode *)(OWNER->Defined_In))->NAME, OWNER->NAME);
+                    PIF->AcknoledgeRunTimeError(STACK_TRACE, Exc);
+                    break;
+            }
+            return 1;
+
+        case KEY_NEQ:
+            switch (LOCAL_CONTEXT [OE->OperandRight.ID - 1]->TYPE) {
+                case VARIABLE_STRING:
+                    LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]) != CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandRight.ID - 1]) ? 1 : 0;
+                    LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
+                    DECLARE_PATH(VARIABLE_NUMBER);
+                    break;
+
+                case VARIABLE_NUMBER:
+                    LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]) != LOCAL_CONTEXT [OE->OperandRight.ID - 1]->NUMBER_DATA ? 1 : 0;
+                    LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
+                    DECLARE_PATH(VARIABLE_NUMBER);
+                    break;
+
+                default:
+                    DECLARE_PATH(0x20);
+                    Exc = new AnsiException(ERR650, OE->Operator._DEBUG_INFO_LINE, 650,  GetKeyWord(OE->Operator.ID), ((ClassCode *)(OWNER->Defined_In))->_DEBUG_INFO_FILENAME, ((ClassCode *)(OWNER->Defined_In))->NAME, OWNER->NAME);
+                    PIF->AcknoledgeRunTimeError(STACK_TRACE, Exc);
+                    break;
+            }
+            return 1;
+
+        case KEY_BY_REF:
+        case KEY_ASG:
+            // ------------------- //
+            ////SMART_LOCK(LOCAL_CONTEXT [OE->OperandLeft_ID - 1])
+            WRITE_LOCK
+            CLASS_CHECK_KEEP_EXTRA(LOCAL_CONTEXT [OE->OperandLeft_ID - 1])
+            // ------------------- //
+            LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->TYPE = VARIABLE_STRING;
+            switch (LOCAL_CONTEXT [OE->OperandRight.ID - 1]->TYPE) {
+                case VARIABLE_STRING:
+                    CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]) = CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandRight.ID - 1]);
+                    if (LOCAL_CONTEXT [OE->Result_ID - 1] != LOCAL_CONTEXT [OE->OperandLeft_ID - 1]) {
+                        FREE_VARIABLE_RESET(LOCAL_CONTEXT [OE->Result_ID - 1], VARIABLE_NUMBER);
+                        LOCAL_CONTEXT [OE->Result_ID - 1] = LOCAL_CONTEXT [OE->OperandLeft_ID - 1];
+                        LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->LINKS++;
+                    }
+                    //----------------------------------------------------------------------------------------//
+                    UPDATE_STRING_VARIABLE_THAT_HAS_INDEX(this, LOCAL_CONTEXT [OE->OperandLeft_ID - 1], PROPERTIES);
+                    //----------------------------------------------------------------------------------------//
+                    DECLARE_PATH(VARIABLE_STRING);
+                    break;
+
+                default:
+                    DECLARE_PATH(0x20);
+                    Exc = new AnsiException(ERR650, OE->Operator._DEBUG_INFO_LINE, 650,  GetKeyWord(OE->Operator.ID), ((ClassCode *)(OWNER->Defined_In))->_DEBUG_INFO_FILENAME, ((ClassCode *)(OWNER->Defined_In))->NAME, OWNER->NAME);
+                    PIF->AcknoledgeRunTimeError(STACK_TRACE, Exc);
+                    break;
+            }
+            //----------------//
+            PROPERTY_CODE(this, PROPERTIES)
+            //----------------//
+            return 1;
+
+        case KEY_ASU:
+            switch (LOCAL_CONTEXT [OE->OperandRight.ID - 1]->TYPE) {
+                case VARIABLE_STRING:
+                    CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]).IncreaseBuffer(CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandRight.ID - 1]).Length());
+                    CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]) += CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandRight.ID - 1]);
+                    if (LOCAL_CONTEXT [OE->Result_ID - 1] != LOCAL_CONTEXT [OE->OperandLeft_ID - 1]) {
+                        FREE_VARIABLE_RESET(LOCAL_CONTEXT [OE->Result_ID - 1], VARIABLE_NUMBER);
+                        LOCAL_CONTEXT [OE->Result_ID - 1] = LOCAL_CONTEXT [OE->OperandLeft_ID - 1];
+                        LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->LINKS++;
+                    }
+                    DECLARE_PATH(VARIABLE_STRING);
+                    break;
+
+                case VARIABLE_NUMBER:
+                    CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]) += AnsiString(LOCAL_CONTEXT [OE->OperandRight.ID - 1]->NUMBER_DATA);
+                    NEW_CONCEPT_STRING(LOCAL_CONTEXT [OE->Result_ID - 1])       = CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]);
+                    DECLARE_PATH(VARIABLE_STRING);
+                    break;
+
+                default:
+                    DECLARE_PATH(0x20);
+                    Exc = new AnsiException(ERR650, OE->Operator._DEBUG_INFO_LINE, 650, GetKeyWord(OE->Operator.ID), ((ClassCode *)(OWNER->Defined_In))->_DEBUG_INFO_FILENAME, ((ClassCode *)(OWNER->Defined_In))->NAME, OWNER->NAME);
+                    PIF->AcknoledgeRunTimeError(STACK_TRACE, Exc);
+                    break;
+            }
+            //----------------//
+            PROPERTY_CODE(this, PROPERTIES)
+            //----------------//
+            return 1;
+
+        case KEY_INDEX_OPEN:
+            switch (LOCAL_CONTEXT [OE->OperandRight.ID - 1]->TYPE) {
+                case VARIABLE_NUMBER:
+                    NEW_CONCEPT_STRING(LOCAL_CONTEXT [OE->Result_ID - 1]) = CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]) [(D_LONG_TYPE)LOCAL_CONTEXT [OE->OperandRight.ID - 1]->NUMBER_DATA];
+                    ((AnsiString *)LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA)->EXTRA_DATA = INSTRUCTION_POINTER;
+                    DECLARE_PATH(VARIABLE_STRING);
+                    break;
+
+                case VARIABLE_STRING:
+                    NEW_CONCEPT_STRING(LOCAL_CONTEXT [OE->Result_ID - 1]) = CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]) [CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandRight.ID - 1]).ToInt()];
+                    ((AnsiString *)LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA)->EXTRA_DATA = INSTRUCTION_POINTER;
+                    DECLARE_PATH(VARIABLE_STRING);
+                    break;
+
+                default:
+                    DECLARE_PATH(0x20);
+                    Exc = new AnsiException(ERR640, OE->Operator._DEBUG_INFO_LINE, 640, OE->OperandRight._PARSE_DATA.c_str(), ((ClassCode *)(OWNER->Defined_In))->_DEBUG_INFO_FILENAME, ((ClassCode *)(OWNER->Defined_In))->NAME, OWNER->NAME);
+                    PIF->AcknoledgeRunTimeError(STACK_TRACE, Exc);
+                    break;
+            }
+            break;
+
+        case KEY_BAN:
+            switch (LOCAL_CONTEXT [OE->OperandRight.ID - 1]->TYPE) {
+                case VARIABLE_NUMBER:
+                    LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]).Length() && LOCAL_CONTEXT [OE->OperandRight.ID - 1]->NUMBER_DATA;
+                    LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
+                    break;
+
+                case VARIABLE_STRING:
+                    LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]).Length() && CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandRight.ID - 1]).Length();
+                    LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
+                    break;
+
+                case VARIABLE_CLASS:
+                case VARIABLE_DELEGATE:
+                    LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = (CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]).Length() != 0);
+                    LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
+                    break;
+
+                case VARIABLE_ARRAY:
+                    LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]).Length() && ((Array *)LOCAL_CONTEXT [OE->OperandRight.ID - 1]->CLASS_DATA)->Count();
+                    LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
+                    break;
+            }
+            DECLARE_PATH(VARIABLE_NUMBER);
+            return 1;
+
+        case KEY_BOR:
+            switch (LOCAL_CONTEXT [OE->OperandRight.ID - 1]->TYPE) {
+                case VARIABLE_NUMBER:
+                    LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]).Length() || LOCAL_CONTEXT [OE->OperandRight.ID - 1]->NUMBER_DATA;
+                    LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
+                    break;
+
+                case VARIABLE_STRING:
+                    LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]).Length() || CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandRight.ID - 1]).Length();
+                    LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
+                    break;
+
+                case VARIABLE_CLASS:
+                case VARIABLE_DELEGATE:
+                    // always true for class and delegates
+                    LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = 1;
+                    LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
+                    break;
+
+                case VARIABLE_ARRAY:
+                    LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]).Length() || ((Array *)LOCAL_CONTEXT [OE->OperandRight.ID - 1]->CLASS_DATA)->Count();
+                    LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
+                    break;
+            }
+            DECLARE_PATH(VARIABLE_NUMBER);
+            return 1;
+
+        case KEY_CND_NULL:
+            // ------------------- //
+            //SMART_LOCK(LOCAL_CONTEXT [OE->Result_ID - 1])
+            // CLASS_CHECK_RESET(LOCAL_CONTEXT [OE->Result_ID - 1], LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE)
+            // ------------------- //
+            if (CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]).Length()) {
+                NEW_CONCEPT_STRING(LOCAL_CONTEXT [OE->Result_ID - 1]) = CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]);
+                LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE           = VARIABLE_STRING;
+                DECLARE_PATH(VARIABLE_STRING);
+                return 1;
+            }
+            switch (LOCAL_CONTEXT [OE->OperandRight.ID - 1]->TYPE) {
+                case VARIABLE_NUMBER:
+                    LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = LOCAL_CONTEXT [OE->OperandRight.ID - 1]->NUMBER_DATA;
+                    LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
+                    DECLARE_PATH(VARIABLE_NUMBER);
+                    break;
+
+                case VARIABLE_STRING:
+                    NEW_CONCEPT_STRING(LOCAL_CONTEXT [OE->Result_ID - 1]) = CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandRight.ID - 1]);
+                    LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE           = VARIABLE_STRING;
+                    DECLARE_PATH(VARIABLE_STRING);
+                    break;
+
+                case VARIABLE_DELEGATE:
+                    LOCAL_CONTEXT [OE->Result_ID - 1]->DELEGATE_DATA = LOCAL_CONTEXT [OE->OperandRight.ID - 1]->DELEGATE_DATA;
+
+                case VARIABLE_CLASS:
+                    LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA = LOCAL_CONTEXT [OE->OperandRight.ID - 1]->CLASS_DATA;
+                    LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE       = LOCAL_CONTEXT [OE->OperandRight.ID - 1]->TYPE;
+                    ((CompiledClass *)LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA)->LINKS++;
+                    DECLARE_PATH(LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE);
+                    break;
+
+                case VARIABLE_ARRAY:
+                    LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA = LOCAL_CONTEXT [OE->OperandRight.ID - 1]->CLASS_DATA;
+                    LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE       = VARIABLE_ARRAY;
+                    ((Array *)LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA)->LINKS++;
+                    DECLARE_PATH(VARIABLE_ARRAY);
+                    break;
+            }
+            return 1;
+
+        default:
+            DECLARE_PATH(0x20);
+            Exc = new AnsiException(ERR650, OE->Operator._DEBUG_INFO_LINE, 650,  GetKeyWord(OE->Operator.ID), ((ClassCode *)(OWNER->Defined_In))->_DEBUG_INFO_FILENAME, ((ClassCode *)(OWNER->Defined_In))->NAME, OWNER->NAME);
+            PIF->AcknoledgeRunTimeError(STACK_TRACE, Exc);
+            break;
+    }
+    return 1;
 }
 
 #ifdef SIMPLE_MULTI_THREADING
@@ -4870,6 +4872,92 @@ int ConceptInterpreter::EvalNumberExpression(PIFAlizator *PIF, VariableDATA **LO
     return 1;
 }
 
+
+#ifdef SIMPLE_MULTI_THREADING
+int ConceptInterpreter::EvalSimpleExpression(PIFAlizator *PIF, VariableDATA **LOCAL_CONTEXT, const RuntimeOptimizedElement *OE, VariableDATAPROPERTY * &PROPERTIES, intptr_t ClassID, VariableDATA *& THROW_DATA, SCStack *STACK_TRACE, INTEGER &INSTRUCTION_POINTER, INTEGER &CATCH_INSTRUCTION_POINTER, INTEGER &CATCH_VARIABLE, INTEGER &PREVIOUS_TRY, char &IsWriteLocked) {
+#else
+int ConceptInterpreter::EvalSimpleExpression(PIFAlizator *PIF, VariableDATA **LOCAL_CONTEXT, const RuntimeOptimizedElement *OE, VariableDATAPROPERTY * &PROPERTIES, intptr_t ClassID, VariableDATA *& THROW_DATA, SCStack *STACK_TRACE, INTEGER &INSTRUCTION_POINTER, INTEGER &CATCH_INSTRUCTION_POINTER, INTEGER &CATCH_VARIABLE, INTEGER &PREVIOUS_TRY) {
+#endif
+    CompiledClass  *CCTEMP;
+    DECLARE_PATH(VARIABLE_NUMBER);
+    Optimizer *OPT = (Optimizer *)this->OWNER->OPTIMIZER;
+    switch (OE->Operator.ID) {
+        case KEY_TYPE_OF:
+            //SMART_LOCK(LOCAL_CONTEXT [OE->Result_ID - 1])
+            //==================//
+            CLASS_CHECK_RESULT(LOCAL_CONTEXT [OE->Result_ID - 1]);
+            //==================//
+            LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE = VARIABLE_STRING;
+            switch (LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->TYPE) {
+                case VARIABLE_NUMBER:
+                    NEW_CONCEPT_STRING(LOCAL_CONTEXT [OE->Result_ID - 1]) = "numeric";
+                    break;
+
+                case VARIABLE_STRING:
+                    NEW_CONCEPT_STRING(LOCAL_CONTEXT [OE->Result_ID - 1]) = "string";
+                    break;
+
+                case VARIABLE_CLASS:
+                    NEW_CONCEPT_STRING(LOCAL_CONTEXT [OE->Result_ID - 1]) = "class";
+                    break;
+
+                case VARIABLE_ARRAY:
+                    NEW_CONCEPT_STRING(LOCAL_CONTEXT [OE->Result_ID - 1]) = "array";
+                    break;
+
+                case VARIABLE_DELEGATE:
+                    NEW_CONCEPT_STRING(LOCAL_CONTEXT [OE->Result_ID - 1]) = "delegate";
+                    break;
+
+                default:
+                    NEW_CONCEPT_STRING(LOCAL_CONTEXT [OE->Result_ID - 1]) = "";
+            }
+            DECLARE_PATH(VARIABLE_STRING);
+            return 1;
+
+        case KEY_CLASS_NAME:
+            //SMART_LOCK(LOCAL_CONTEXT [OE->Result_ID - 1])
+            //==================//
+            CLASS_CHECK_RESULT(LOCAL_CONTEXT [OE->Result_ID - 1]);
+            //==================//
+            LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE = VARIABLE_STRING;
+            if (LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->TYPE != VARIABLE_CLASS) {
+                NEW_CONCEPT_STRING(LOCAL_CONTEXT [OE->Result_ID - 1]) = "";
+            } else {
+                CCTEMP = (CompiledClass *)LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA;
+                NEW_CONCEPT_STRING(LOCAL_CONTEXT [OE->Result_ID - 1]) = CCTEMP->_Class->NAME.c_str();
+            }
+            DECLARE_PATH(VARIABLE_STRING);
+            return 1;
+
+        case KEY_BY_REF:
+            WRITE_LOCK
+            CLASS_CHECK_RESULT(LOCAL_CONTEXT [OE->Result_ID - 1])
+            if (LOCAL_CONTEXT [OE->OperandRight.ID - 1]->TYPE == VARIABLE_NUMBER) {
+                CLASS_CHECK(LOCAL_CONTEXT [OE->OperandLeft_ID - 1])
+                LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
+                LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->NUMBER_DATA = LOCAL_CONTEXT [OE->OperandRight.ID - 1]->NUMBER_DATA;
+                LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->TYPE   = VARIABLE_NUMBER;
+                PROPERTY_CODE(this, PROPERTIES)
+                return 1;
+            }
+
+            // pushed_type = VARIABLE_NUMBER;
+            LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE = LOCAL_CONTEXT [OE->OperandRight.ID - 1]->TYPE;
+            return 2;
+
+        case KEY_DELETE:
+            //SMART_LOCK(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]);
+            CLASS_CHECK_RESULT(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]);
+            // LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA  = 0;
+            LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->TYPE        = VARIABLE_NUMBER;
+            LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->NUMBER_DATA = 0;
+            DECLARE_PATH(VARIABLE_NUMBER);
+            return 1;
+    }
+    return 0;
+}
+
 VariableDATA *ConceptInterpreter::Interpret(PIFAlizator *PIF, VariableDATA **LOCAL_CONTEXT, intptr_t ClassID, VariableDATA *& THROW_DATA, SCStack *STACK_TRACE) {
     Optimizer        *OPT = (Optimizer *)this->OWNER->OPTIMIZER;
     register INTEGER INSTRUCTION_POINTER = 0;
@@ -4878,7 +4966,6 @@ VariableDATA *ConceptInterpreter::Interpret(PIFAlizator *PIF, VariableDATA **LOC
     ParamList        *FORMAL_PARAMETERS;
     VariableDATA     *RESULT;
     CompiledClass    *CCTEMP;
-    INTEGER          OPERATOR_ID;
     ClassCode        *CC;
     void             *instancePTR;
     VariableDATA     *RETURN_DATA;
@@ -4895,9 +4982,6 @@ VariableDATA *ConceptInterpreter::Interpret(PIFAlizator *PIF, VariableDATA **LOC
 
     ParamListExtra FORMAL_PARAMETERS2;
     FORMAL_PARAMETERS2.PIF = PIF;
-
-    ParamList OPERATOR_PARAM;
-    INTEGER   PARAM_INDEX[1];
 
 #ifdef USE_JIT_TRACE
     WRITE_LOCK
@@ -5097,36 +5181,6 @@ VariableDATA *ConceptInterpreter::Interpret(PIFAlizator *PIF, VariableDATA **LOC
                     DECLARE_PATH(LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE);
                     continue;
 
-                case KEY_NEW:
-                    //SMART_LOCK(LOCAL_CONTEXT [OE->Result_ID - 1]);
-                    CLASS_CHECK_RESULT(LOCAL_CONTEXT [OE->Result_ID - 1]);
-                    if (OE->OperandLeft_ID == STATIC_CLASS_ARRAY) {
-                        LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE       = VARIABLE_NUMBER;
-                        LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA = new(AllocArray(PIF))Array(PIF);
-                        LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE       = VARIABLE_ARRAY;
-                        DECLARE_PATH(VARIABLE_ARRAY);
-                    } else {
-                        CC = PIF->StaticClassList[OE->OperandLeft_ID - 1];
-                        LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE = VARIABLE_CLASS;
-                        LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA = NULL;
-                        FORMAL_PARAMETERS = 0;
-                        if (OE->OperandReserved_ID) {
-                            FORMAL_PARAMETERS = &OPT->PARAMS [OE->OperandReserved_ID - 1];
-                        }
-                        WRITE_UNLOCK;
-                        instancePTR = CC->CreateInstance(PIF, LOCAL_CONTEXT [OE->Result_ID - 1], OE, &OE->OperandRight, FORMAL_PARAMETERS, LOCAL_CONTEXT, STACK_TRACE);
-
-                        LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA = instancePTR;
-
-                        if (!instancePTR) {
-                            LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE = VARIABLE_NUMBER;
-                            DECLARE_PATH(VARIABLE_NUMBER);
-                        } else {
-                            DECLARE_PATH(VARIABLE_CLASS);
-                        }
-                    }
-                    continue;
-
                 case KEY_DLL_CALL:
                     WRITE_LOCK
                     FORMAL_PARAMETERS = 0;
@@ -5317,77 +5371,34 @@ VariableDATA *ConceptInterpreter::Interpret(PIFAlizator *PIF, VariableDATA **LOC
                     DECLARE_PATH(LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE);
                     continue;
 
-                case KEY_TYPE_OF:
-                    //SMART_LOCK(LOCAL_CONTEXT [OE->Result_ID - 1])
-                    //==================//
+                case KEY_NEW:
+                    //SMART_LOCK(LOCAL_CONTEXT [OE->Result_ID - 1]);
                     CLASS_CHECK_RESULT(LOCAL_CONTEXT [OE->Result_ID - 1]);
-                    //==================//
-                    LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE = VARIABLE_STRING;
-                    switch (LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->TYPE) {
-                        case VARIABLE_NUMBER:
-                            NEW_CONCEPT_STRING(LOCAL_CONTEXT [OE->Result_ID - 1]) = "numeric";
-                            break;
-
-                        case VARIABLE_STRING:
-                            NEW_CONCEPT_STRING(LOCAL_CONTEXT [OE->Result_ID - 1]) = "string";
-                            break;
-
-                        case VARIABLE_CLASS:
-                            NEW_CONCEPT_STRING(LOCAL_CONTEXT [OE->Result_ID - 1]) = "class";
-                            break;
-
-                        case VARIABLE_ARRAY:
-                            NEW_CONCEPT_STRING(LOCAL_CONTEXT [OE->Result_ID - 1]) = "array";
-                            break;
-
-                        case VARIABLE_DELEGATE:
-                            NEW_CONCEPT_STRING(LOCAL_CONTEXT [OE->Result_ID - 1]) = "delegate";
-                            break;
-
-                        default:
-                            NEW_CONCEPT_STRING(LOCAL_CONTEXT [OE->Result_ID - 1]) = "";
-                    }
-                    DECLARE_PATH(VARIABLE_STRING);
-                    continue;
-
-                case KEY_CLASS_NAME:
-                    //SMART_LOCK(LOCAL_CONTEXT [OE->Result_ID - 1])
-                    //==================//
-                    CLASS_CHECK_RESULT(LOCAL_CONTEXT [OE->Result_ID - 1]);
-                    //==================//
-                    LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE = VARIABLE_STRING;
-                    if (LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->TYPE != VARIABLE_CLASS) {
-                        NEW_CONCEPT_STRING(LOCAL_CONTEXT [OE->Result_ID - 1]) = "";
+                    if (OE->OperandLeft_ID == STATIC_CLASS_ARRAY) {
+                        LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE       = VARIABLE_NUMBER;
+                        LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA = new(AllocArray(PIF))Array(PIF);
+                        LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE       = VARIABLE_ARRAY;
+                        DECLARE_PATH(VARIABLE_ARRAY);
                     } else {
-                        CCTEMP = (CompiledClass *)LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA;
-                        NEW_CONCEPT_STRING(LOCAL_CONTEXT [OE->Result_ID - 1]) = CCTEMP->_Class->NAME.c_str();
+                        CC = PIF->StaticClassList[OE->OperandLeft_ID - 1];
+                        LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE = VARIABLE_CLASS;
+                        LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA = NULL;
+                        FORMAL_PARAMETERS = 0;
+                        if (OE->OperandReserved_ID) {
+                            FORMAL_PARAMETERS = &OPT->PARAMS [OE->OperandReserved_ID - 1];
+                        }
+                        WRITE_UNLOCK;
+                        instancePTR = CC->CreateInstance(PIF, LOCAL_CONTEXT [OE->Result_ID - 1], OE, &OE->OperandRight, FORMAL_PARAMETERS, LOCAL_CONTEXT, STACK_TRACE);
+
+                        LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA = instancePTR;
+
+                        if (!instancePTR) {
+                            LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE = VARIABLE_NUMBER;
+                            DECLARE_PATH(VARIABLE_NUMBER);
+                        } else {
+                            DECLARE_PATH(VARIABLE_CLASS);
+                        }
                     }
-                    DECLARE_PATH(VARIABLE_STRING);
-                    continue;
-
-                case KEY_BY_REF:
-                    WRITE_LOCK
-                    CLASS_CHECK_RESULT(LOCAL_CONTEXT [OE->Result_ID - 1])
-                    if (LOCAL_CONTEXT [OE->OperandRight.ID - 1]->TYPE == VARIABLE_NUMBER) {
-                        CLASS_CHECK(LOCAL_CONTEXT [OE->OperandLeft_ID - 1])
-                        LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
-                        LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->NUMBER_DATA = LOCAL_CONTEXT [OE->OperandRight.ID - 1]->NUMBER_DATA;
-                        LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->TYPE   = VARIABLE_NUMBER;
-                        PROPERTY_CODE(this, PROPERTIES)
-                        continue;
-                    }
-
-                    // pushed_type = VARIABLE_NUMBER;
-                    LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE = LOCAL_CONTEXT [OE->OperandRight.ID - 1]->TYPE;
-                    break;
-
-                case KEY_DELETE:
-                    //SMART_LOCK(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]);
-                    CLASS_CHECK_RESULT(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]);
-                    // LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA  = 0;
-                    LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->TYPE        = VARIABLE_NUMBER;
-                    LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->NUMBER_DATA = 0;
-                    DECLARE_PATH(VARIABLE_NUMBER);
                     continue;
 
                 default:
@@ -5493,6 +5504,17 @@ VariableDATA *ConceptInterpreter::Interpret(PIFAlizator *PIF, VariableDATA **LOC
                             }
                             continue;
                         }
+#ifdef SIMPLE_MULTI_THREADING
+                        int simple_eval = EvalSimpleExpression(PIF, LOCAL_CONTEXT, OE, PROPERTIES, ClassID, THROW_DATA, STACK_TRACE, INSTRUCTION_POINTER, CATCH_INSTRUCTION_POINTER, CATCH_VARIABLE, PREVIOUS_TRY, IsWriteLocked);
+#else
+                        int simple_eval = EvalSimpleExpression(PIF, LOCAL_CONTEXT, OE, PROPERTIES, ClassID, THROW_DATA, STACK_TRACE, INSTRUCTION_POINTER, CATCH_INSTRUCTION_POINTER, CATCH_VARIABLE, PREVIOUS_TRY);
+#endif
+                        if (simple_eval == 1)
+                            continue;
+                        else
+                        if (simple_eval == 2)
+                            break;
+
                         CLASS_CHECK_RESULT(LOCAL_CONTEXT [OE->Result_ID - 1]);
                         ////////////////////////////////////////////////////////////
                         //pushed_type = VARIABLE_NUMBER;//LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE;
@@ -5515,1100 +5537,36 @@ VariableDATA *ConceptInterpreter::Interpret(PIFAlizator *PIF, VariableDATA **LOC
                     return 0;
 
                 case VARIABLE_STRING:
-                    switch (OE_Operator_ID) {
-                        // unary operators
-                        case KEY_NOT:
-                            LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = (CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]).Length() == 0);
-                            LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
-                            DECLARE_PATH(VARIABLE_NUMBER);
-                            continue;
-
-                        case KEY_LENGTH:
-                            LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]).Length();
-                            LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
-                            DECLARE_PATH(VARIABLE_NUMBER);
-                            continue;
-
-                        case KEY_VALUE:
-                            LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]).ToFloat();
-                            LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
-                            DECLARE_PATH(VARIABLE_NUMBER);
-                            continue;
-
-                        case KEY_INC:
-                            if (CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]).Length()) {
-                                NEW_CONCEPT_STRING(LOCAL_CONTEXT [OE->Result_ID - 1]).LoadBuffer(CONCEPT_C_STRING(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]) + 1, CONCEPT_C_LENGTH(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]) - 1);
-                                CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]) = CONCEPT_STRING(LOCAL_CONTEXT [OE->Result_ID - 1]);
-                                //----------------//
-                                PROPERTY_CODE(this, PROPERTIES)
-                                //----------------//
-                            }
-                            DECLARE_PATH(VARIABLE_STRING);
-                            continue;
-
-                        case KEY_INC_LEFT:
-                            if (CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]).Length()) {
-                                NEW_CONCEPT_STRING(LOCAL_CONTEXT [OE->Result_ID - 1]) = CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]);
-                                CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]).LoadBuffer(CONCEPT_C_STRING(LOCAL_CONTEXT [OE->Result_ID - 1]) + 1, CONCEPT_C_LENGTH(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]) - 1);
-                                //----------------//
-                                PROPERTY_CODE_LEFT(this, PROPERTIES)
-                                //----------------//
-                            }
-                            DECLARE_PATH(VARIABLE_STRING);
-                            continue;
-
-                        // binary ...
-                        case KEY_SUM:
-                            switch (LOCAL_CONTEXT [OE->OperandRight.ID - 1]->TYPE) {
-                                case VARIABLE_STRING:
-                                    NEW_CONCEPT_STRING(LOCAL_CONTEXT [OE->Result_ID - 1]).Sum(CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]), CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandRight.ID - 1]));
-                                    DECLARE_PATH(VARIABLE_STRING);
-                                    break;
-
-                                case VARIABLE_NUMBER:
-                                    NEW_CONCEPT_STRING(LOCAL_CONTEXT [OE->Result_ID - 1]) = CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]) + AnsiString(LOCAL_CONTEXT [OE->OperandRight.ID - 1]->NUMBER_DATA);
-                                    DECLARE_PATH(VARIABLE_STRING);
-                                    break;
-
-                                default:
-                                    DECLARE_PATH(0x20);
-                                    Exc = new AnsiException(ERR650, OE->Operator._DEBUG_INFO_LINE, 650,  GetKeyWord(OE->Operator.ID), ((ClassCode *)(OWNER->Defined_In))->_DEBUG_INFO_FILENAME, ((ClassCode *)(OWNER->Defined_In))->NAME, OWNER->NAME);
-                                    PIF->AcknoledgeRunTimeError(STACK_TRACE, Exc);
-                                    break;
-                            }
-                            continue;
-
-                        case KEY_EQU:
-                            switch (LOCAL_CONTEXT [OE->OperandRight.ID - 1]->TYPE) {
-                                case VARIABLE_STRING:
-                                    LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]) == CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandRight.ID - 1]) ? 1 : 0;
-                                    LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
-                                    DECLARE_PATH(VARIABLE_NUMBER);
-                                    break;
-
-                                case VARIABLE_NUMBER:
-                                    LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]) == LOCAL_CONTEXT [OE->OperandRight.ID - 1]->NUMBER_DATA ? 1 : 0;
-                                    LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
-                                    DECLARE_PATH(VARIABLE_NUMBER);
-                                    break;
-
-                                default:
-                                    DECLARE_PATH(0x20);
-                                    Exc = new AnsiException(ERR650, OE->Operator._DEBUG_INFO_LINE, 650,  GetKeyWord(OE->Operator.ID), ((ClassCode *)(OWNER->Defined_In))->_DEBUG_INFO_FILENAME, ((ClassCode *)(OWNER->Defined_In))->NAME, OWNER->NAME);
-                                    PIF->AcknoledgeRunTimeError(STACK_TRACE, Exc);
-                                    break;
-                            }
-                            continue;
-
-                        case KEY_GRE:
-                            switch (LOCAL_CONTEXT [OE->OperandRight.ID - 1]->TYPE) {
-                                case VARIABLE_STRING:
-                                    LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]) > CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandRight.ID - 1]) ? 1 : 0;
-                                    LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
-                                    DECLARE_PATH(VARIABLE_NUMBER);
-                                    break;
-
-                                case VARIABLE_NUMBER:
-                                    LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]) > AnsiString(LOCAL_CONTEXT [OE->OperandRight.ID - 1]->NUMBER_DATA) ? 1 : 0;
-                                    LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
-                                    DECLARE_PATH(VARIABLE_NUMBER);
-                                    break;
-
-                                default:
-                                    DECLARE_PATH(0x20);
-                                    Exc = new AnsiException(ERR650, OE->Operator._DEBUG_INFO_LINE, 650,  GetKeyWord(OE->Operator.ID), ((ClassCode *)(OWNER->Defined_In))->_DEBUG_INFO_FILENAME, ((ClassCode *)(OWNER->Defined_In))->NAME, OWNER->NAME);
-                                    PIF->AcknoledgeRunTimeError(STACK_TRACE, Exc);
-                                    break;
-                            }
-                            continue;
-
-                        case KEY_LES:
-                            switch (LOCAL_CONTEXT [OE->OperandRight.ID - 1]->TYPE) {
-                                case VARIABLE_STRING:
-                                    LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]) < CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandRight.ID - 1]) ? 1 : 0;
-                                    LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
-                                    DECLARE_PATH(VARIABLE_NUMBER);
-                                    break;
-
-                                case VARIABLE_NUMBER:
-                                    LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]) < AnsiString(LOCAL_CONTEXT [OE->OperandRight.ID - 1]->NUMBER_DATA) ? 1 : 0;
-                                    LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
-                                    DECLARE_PATH(VARIABLE_NUMBER);
-                                    break;
-
-                                default:
-                                    DECLARE_PATH(0x20);
-                                    Exc = new AnsiException(ERR650, OE->Operator._DEBUG_INFO_LINE, 650,  GetKeyWord(OE->Operator.ID), ((ClassCode *)(OWNER->Defined_In))->_DEBUG_INFO_FILENAME, ((ClassCode *)(OWNER->Defined_In))->NAME, OWNER->NAME);
-                                    PIF->AcknoledgeRunTimeError(STACK_TRACE, Exc);
-                                    break;
-                            }
-                            continue;
-
-                        case KEY_GEQ:
-                            switch (LOCAL_CONTEXT [OE->OperandRight.ID - 1]->TYPE) {
-                                case VARIABLE_STRING:
-                                    LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]) >= CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandRight.ID - 1]) ? 1 : 0;
-                                    LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
-                                    DECLARE_PATH(VARIABLE_NUMBER);
-                                    break;
-
-                                case VARIABLE_NUMBER:
-                                    LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]) >= AnsiString(LOCAL_CONTEXT [OE->OperandRight.ID - 1]->NUMBER_DATA) ? 1 : 0;
-                                    LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
-                                    DECLARE_PATH(VARIABLE_NUMBER);
-                                    break;
-
-                                default:
-                                    DECLARE_PATH(0x20);
-                                    Exc = new AnsiException(ERR650, OE->Operator._DEBUG_INFO_LINE, 650,  GetKeyWord(OE->Operator.ID), ((ClassCode *)(OWNER->Defined_In))->_DEBUG_INFO_FILENAME, ((ClassCode *)(OWNER->Defined_In))->NAME, OWNER->NAME);
-                                    PIF->AcknoledgeRunTimeError(STACK_TRACE, Exc);
-                                    break;
-                            }
-                            continue;
-
-                        case KEY_LEQ:
-                            switch (LOCAL_CONTEXT [OE->OperandRight.ID - 1]->TYPE) {
-                                case VARIABLE_STRING:
-                                    LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]) <= CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandRight.ID - 1]) ? 1 : 0;
-                                    LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
-                                    DECLARE_PATH(VARIABLE_NUMBER);
-                                    break;
-
-                                case VARIABLE_NUMBER:
-                                    LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]) <= AnsiString(LOCAL_CONTEXT [OE->OperandRight.ID - 1]->NUMBER_DATA) ? 1 : 0;
-                                    LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
-                                    DECLARE_PATH(VARIABLE_NUMBER);
-                                    break;
-
-                                default:
-                                    DECLARE_PATH(0x20);
-                                    Exc = new AnsiException(ERR650, OE->Operator._DEBUG_INFO_LINE, 650,  GetKeyWord(OE->Operator.ID), ((ClassCode *)(OWNER->Defined_In))->_DEBUG_INFO_FILENAME, ((ClassCode *)(OWNER->Defined_In))->NAME, OWNER->NAME);
-                                    PIF->AcknoledgeRunTimeError(STACK_TRACE, Exc);
-                                    break;
-                            }
-                            continue;
-
-                        case KEY_NEQ:
-                            switch (LOCAL_CONTEXT [OE->OperandRight.ID - 1]->TYPE) {
-                                case VARIABLE_STRING:
-                                    LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]) != CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandRight.ID - 1]) ? 1 : 0;
-                                    LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
-                                    DECLARE_PATH(VARIABLE_NUMBER);
-                                    break;
-
-                                case VARIABLE_NUMBER:
-                                    LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]) != LOCAL_CONTEXT [OE->OperandRight.ID - 1]->NUMBER_DATA ? 1 : 0;
-                                    LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
-                                    DECLARE_PATH(VARIABLE_NUMBER);
-                                    break;
-
-                                default:
-                                    DECLARE_PATH(0x20);
-                                    Exc = new AnsiException(ERR650, OE->Operator._DEBUG_INFO_LINE, 650,  GetKeyWord(OE->Operator.ID), ((ClassCode *)(OWNER->Defined_In))->_DEBUG_INFO_FILENAME, ((ClassCode *)(OWNER->Defined_In))->NAME, OWNER->NAME);
-                                    PIF->AcknoledgeRunTimeError(STACK_TRACE, Exc);
-                                    break;
-                            }
-                            continue;
-
-                        case KEY_BY_REF:
-                        case KEY_ASG:
-                            // ------------------- //
-                            ////SMART_LOCK(LOCAL_CONTEXT [OE->OperandLeft_ID - 1])
-                            WRITE_LOCK
-                            CLASS_CHECK_KEEP_EXTRA(LOCAL_CONTEXT [OE->OperandLeft_ID - 1])
-                            // ------------------- //
-                            LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->TYPE = VARIABLE_STRING;
-                            switch (LOCAL_CONTEXT [OE->OperandRight.ID - 1]->TYPE) {
-                                case VARIABLE_STRING:
-                                    CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]) = CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandRight.ID - 1]);
-                                    if (LOCAL_CONTEXT [OE->Result_ID - 1] != LOCAL_CONTEXT [OE->OperandLeft_ID - 1]) {
-                                        FREE_VARIABLE_RESET(LOCAL_CONTEXT [OE->Result_ID - 1], VARIABLE_NUMBER);
-                                        LOCAL_CONTEXT [OE->Result_ID - 1] = LOCAL_CONTEXT [OE->OperandLeft_ID - 1];
-                                        LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->LINKS++;
-                                    }
-                                    //----------------------------------------------------------------------------------------//
-                                    UPDATE_STRING_VARIABLE_THAT_HAS_INDEX(this, LOCAL_CONTEXT [OE->OperandLeft_ID - 1], PROPERTIES);
-                                    //----------------------------------------------------------------------------------------//
-                                    DECLARE_PATH(VARIABLE_STRING);
-                                    break;
-
-                                // Does not get executed (see above)
-                                // case VARIABLE_NUMBER:
-                                //     CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]) = AnsiString(LOCAL_CONTEXT [OE->OperandRight.ID - 1]->NUMBER_DATA);;
-                                //     NEW_CONCEPT_STRING(LOCAL_CONTEXT [OE->Result_ID - 1])      = CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]);
-                                //     //----------------------------------------------------------------------------------------//
-                                //     UPDATE_STRING_VARIABLE_THAT_HAS_INDEX(this, LOCAL_CONTEXT [OE->OperandLeft_ID - 1], PROPERTIES);
-                                //     //----------------------------------------------------------------------------------------//
-                                //     DECLARE_PATH(VARIABLE_STRING);
-                                //     break;
-
-                                default:
-                                    DECLARE_PATH(0x20);
-                                    Exc = new AnsiException(ERR650, OE->Operator._DEBUG_INFO_LINE, 650,  GetKeyWord(OE->Operator.ID), ((ClassCode *)(OWNER->Defined_In))->_DEBUG_INFO_FILENAME, ((ClassCode *)(OWNER->Defined_In))->NAME, OWNER->NAME);
-                                    PIF->AcknoledgeRunTimeError(STACK_TRACE, Exc);
-                                    break;
-                            }
-                            //----------------//
-                            PROPERTY_CODE(this, PROPERTIES)
-                            //----------------//
-                            continue;
-
-                        case KEY_ASU:
-                            switch (LOCAL_CONTEXT [OE->OperandRight.ID - 1]->TYPE) {
-                                case VARIABLE_STRING:
-                                    CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]).IncreaseBuffer(CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandRight.ID - 1]).Length());
-                                    CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]) += CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandRight.ID - 1]);
-                                    if (LOCAL_CONTEXT [OE->Result_ID - 1] != LOCAL_CONTEXT [OE->OperandLeft_ID - 1]) {
-                                        FREE_VARIABLE_RESET(LOCAL_CONTEXT [OE->Result_ID - 1], VARIABLE_NUMBER);
-                                        LOCAL_CONTEXT [OE->Result_ID - 1] = LOCAL_CONTEXT [OE->OperandLeft_ID - 1];
-                                        LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->LINKS++;
-                                    }
-                                    DECLARE_PATH(VARIABLE_STRING);
-                                    break;
-
-                                case VARIABLE_NUMBER:
-                                    CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]) += AnsiString(LOCAL_CONTEXT [OE->OperandRight.ID - 1]->NUMBER_DATA);
-                                    NEW_CONCEPT_STRING(LOCAL_CONTEXT [OE->Result_ID - 1])       = CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]);
-                                    DECLARE_PATH(VARIABLE_STRING);
-                                    break;
-
-                                default:
-                                    DECLARE_PATH(0x20);
-                                    Exc = new AnsiException(ERR650, OE->Operator._DEBUG_INFO_LINE, 650, GetKeyWord(OE->Operator.ID), ((ClassCode *)(OWNER->Defined_In))->_DEBUG_INFO_FILENAME, ((ClassCode *)(OWNER->Defined_In))->NAME, OWNER->NAME);
-                                    PIF->AcknoledgeRunTimeError(STACK_TRACE, Exc);
-                                    break;
-                            }
-                            //----------------//
-                            PROPERTY_CODE(this, PROPERTIES)
-                            //----------------//
-                            continue;
-
-                        case KEY_INDEX_OPEN:
-                            switch (LOCAL_CONTEXT [OE->OperandRight.ID - 1]->TYPE) {
-                                case VARIABLE_NUMBER:
-                                    NEW_CONCEPT_STRING(LOCAL_CONTEXT [OE->Result_ID - 1]) = CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]) [(D_LONG_TYPE)LOCAL_CONTEXT [OE->OperandRight.ID - 1]->NUMBER_DATA];
-                                    ((AnsiString *)LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA)->EXTRA_DATA = INSTRUCTION_POINTER;
-                                    DECLARE_PATH(VARIABLE_STRING);
-                                    break;
-
-                                case VARIABLE_STRING:
-                                    NEW_CONCEPT_STRING(LOCAL_CONTEXT [OE->Result_ID - 1]) = CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]) [CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandRight.ID - 1]).ToInt()];
-                                    ((AnsiString *)LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA)->EXTRA_DATA = INSTRUCTION_POINTER;
-                                    DECLARE_PATH(VARIABLE_STRING);
-                                    break;
-
-                                default:
-                                    DECLARE_PATH(0x20);
-                                    Exc = new AnsiException(ERR640, OE->Operator._DEBUG_INFO_LINE, 640, OE->OperandRight._PARSE_DATA.c_str(), ((ClassCode *)(OWNER->Defined_In))->_DEBUG_INFO_FILENAME, ((ClassCode *)(OWNER->Defined_In))->NAME, OWNER->NAME);
-                                    PIF->AcknoledgeRunTimeError(STACK_TRACE, Exc);
-                                    break;
-                            }
-                            break;
-
-                        case KEY_BAN:
-                            switch (LOCAL_CONTEXT [OE->OperandRight.ID - 1]->TYPE) {
-                                case VARIABLE_NUMBER:
-                                    LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]).Length() && LOCAL_CONTEXT [OE->OperandRight.ID - 1]->NUMBER_DATA;
-                                    LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
-                                    break;
-
-                                case VARIABLE_STRING:
-                                    LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]).Length() && CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandRight.ID - 1]).Length();
-                                    LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
-                                    break;
-
-                                case VARIABLE_CLASS:
-                                case VARIABLE_DELEGATE:
-                                    LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = (CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]).Length() != 0);
-                                    LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
-                                    break;
-
-                                case VARIABLE_ARRAY:
-                                    LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]).Length() && ((Array *)LOCAL_CONTEXT [OE->OperandRight.ID - 1]->CLASS_DATA)->Count();
-                                    LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
-                                    break;
-                            }
-                            DECLARE_PATH(VARIABLE_NUMBER);
-                            continue;
-
-                        case KEY_BOR:
-                            switch (LOCAL_CONTEXT [OE->OperandRight.ID - 1]->TYPE) {
-                                case VARIABLE_NUMBER:
-                                    LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]).Length() || LOCAL_CONTEXT [OE->OperandRight.ID - 1]->NUMBER_DATA;
-                                    LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
-                                    break;
-
-                                case VARIABLE_STRING:
-                                    LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]).Length() || CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandRight.ID - 1]).Length();
-                                    LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
-                                    break;
-
-                                case VARIABLE_CLASS:
-                                case VARIABLE_DELEGATE:
-                                    // always true for class and delegates
-                                    LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = 1;
-                                    LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
-                                    break;
-
-                                case VARIABLE_ARRAY:
-                                    LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]).Length() || ((Array *)LOCAL_CONTEXT [OE->OperandRight.ID - 1]->CLASS_DATA)->Count();
-                                    LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
-                                    break;
-                            }
-                            DECLARE_PATH(VARIABLE_NUMBER);
-                            continue;
-
-                        case KEY_CND_NULL:
-                            // ------------------- //
-                            //SMART_LOCK(LOCAL_CONTEXT [OE->Result_ID - 1])
-                            // CLASS_CHECK_RESET(LOCAL_CONTEXT [OE->Result_ID - 1], LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE)
-                            // ------------------- //
-                            if (CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]).Length()) {
-                                NEW_CONCEPT_STRING(LOCAL_CONTEXT [OE->Result_ID - 1]) = CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]);
-                                LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE           = VARIABLE_STRING;
-                                DECLARE_PATH(VARIABLE_STRING);
-                                continue;
-                            }
-                            switch (LOCAL_CONTEXT [OE->OperandRight.ID - 1]->TYPE) {
-                                case VARIABLE_NUMBER:
-                                    LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = LOCAL_CONTEXT [OE->OperandRight.ID - 1]->NUMBER_DATA;
-                                    LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
-                                    DECLARE_PATH(VARIABLE_NUMBER);
-                                    break;
-
-                                case VARIABLE_STRING:
-                                    NEW_CONCEPT_STRING(LOCAL_CONTEXT [OE->Result_ID - 1]) = CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandRight.ID - 1]);
-                                    LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE           = VARIABLE_STRING;
-                                    DECLARE_PATH(VARIABLE_STRING);
-                                    break;
-
-                                case VARIABLE_DELEGATE:
-                                    LOCAL_CONTEXT [OE->Result_ID - 1]->DELEGATE_DATA = LOCAL_CONTEXT [OE->OperandRight.ID - 1]->DELEGATE_DATA;
-
-                                case VARIABLE_CLASS:
-                                    LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA = LOCAL_CONTEXT [OE->OperandRight.ID - 1]->CLASS_DATA;
-                                    LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE       = LOCAL_CONTEXT [OE->OperandRight.ID - 1]->TYPE;
-                                    ((CompiledClass *)LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA)->LINKS++;
-                                    DECLARE_PATH(LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE);
-                                    break;
-
-                                case VARIABLE_ARRAY:
-                                    LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA = LOCAL_CONTEXT [OE->OperandRight.ID - 1]->CLASS_DATA;
-                                    LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE       = VARIABLE_ARRAY;
-                                    ((Array *)LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA)->LINKS++;
-                                    DECLARE_PATH(VARIABLE_ARRAY);
-                                    break;
-                            }
-                            continue;
-
-                        default:
-                            DECLARE_PATH(0x20);
-                            Exc = new AnsiException(ERR650, OE->Operator._DEBUG_INFO_LINE, 650,  GetKeyWord(OE->Operator.ID), ((ClassCode *)(OWNER->Defined_In))->_DEBUG_INFO_FILENAME, ((ClassCode *)(OWNER->Defined_In))->NAME, OWNER->NAME);
-                            PIF->AcknoledgeRunTimeError(STACK_TRACE, Exc);
-                            break;
-                    }
+#ifdef SIMPLE_MULTI_THREADING
+                    EvalStringExpression(PIF, LOCAL_CONTEXT, OE, PROPERTIES, ClassID, THROW_DATA, STACK_TRACE, INSTRUCTION_POINTER, CATCH_INSTRUCTION_POINTER, CATCH_VARIABLE, PREVIOUS_TRY, IsWriteLocked);
+#else
+                    EvalStringExpression(PIF, LOCAL_CONTEXT, OE, PROPERTIES, ClassID, THROW_DATA, STACK_TRACE, INSTRUCTION_POINTER, CATCH_INSTRUCTION_POINTER, CATCH_VARIABLE, PREVIOUS_TRY);
+#endif
                     continue;
 
                 case VARIABLE_CLASS:
-                    OPERATOR_ID = 0;
-                    switch (OE_Operator_ID) {
-                        case KEY_BY_REF:
-                            //---------------------------//
-                            if (LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA != LOCAL_CONTEXT [OE->OperandRight.ID - 1]->CLASS_DATA) {
-                                CLASS_CHECK_TS(LOCAL_CONTEXT [OE->OperandLeft_ID - 1])
-                            } else {
-                                if (LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA == LOCAL_CONTEXT [OE->OperandRight.ID - 1]->CLASS_DATA) {
-                                    ((CompiledClass *)LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA)->LINKS -= 2;
-                                } else {
-                                    // CLASS_CHECK_RESET(LOCAL_CONTEXT [OE->Result_ID - 1], pushed_type);
-                                    ((CompiledClass *)LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA)->LINKS -= 1;
-                                }
-                            }
-                            //---------------------------//
-
-                            LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA = LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA = LOCAL_CONTEXT [OE->OperandRight.ID - 1]->CLASS_DATA;
-                            ((CompiledClass *)LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA)->LINKS += 2;
-
-                            LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->TYPE = VARIABLE_CLASS;
-                            if ((PROPERTIES) && (PROPERTIES [OE->OperandLeft_ID - 1].IS_PROPERTY_RESULT)) {
-                                CCTEMP = (CompiledClass *)((VariableDATA *)(PROPERTIES [OE->OperandLeft_ID - 1].CALL_SET))->CLASS_DATA;
-                                WRITE_UNLOCK
-                                CCTEMP->_Class->SetProperty(PIF, PROPERTIES [OE->OperandLeft_ID - 1].IS_PROPERTY_RESULT - 1, (VariableDATA *)(PROPERTIES [OE->OperandLeft_ID - 1].CALL_SET), OE, &OE->OperandRight, CCTEMP->_Class->CLSID == ClassID, OE->Result_ID - 1, LOCAL_CONTEXT, ClassID, LocalClassID, STACK_TRACE);
-                            }
-                            DECLARE_PATH(VARIABLE_CLASS);
-                            continue;
-
-                        case KEY_ASG:
-                            OPERATOR_ID = DEF_ASG;
-                            break;
-
-                        case KEY_INDEX_OPEN:
-                            OPERATOR_ID = DEF_SELECTOR_I;
-                            break;
-
-                        case KEY_SUM:
-                            OPERATOR_ID = DEF_SUM;
-                            break;
-
-                        case KEY_MUL:
-                            OPERATOR_ID = DEF_MUL;
-                            break;
-
-                        case KEY_DIV:
-                            OPERATOR_ID = DEF_DIV;
-                            break;
-
-                        case KEY_REM:
-                            OPERATOR_ID = DEF_REM;
-                            break;
-
-                        case KEY_DIF:
-                            OPERATOR_ID = DEF_DIF;
-                            break;
-
-                        case KEY_SHL:
-                            OPERATOR_ID = DEF_SHL;
-                            break;
-
-                        case KEY_SHR:
-                            OPERATOR_ID = DEF_SHR;
-                            break;
-
-                        case KEY_LES:
-                            OPERATOR_ID = DEF_LES;
-                            break;
-
-                        case KEY_LEQ:
-                            OPERATOR_ID = DEF_LEQ;
-                            break;
-
-                        case KEY_GRE:
-                            OPERATOR_ID = DEF_GRE;
-                            break;
-
-                        case KEY_GEQ:
-                            OPERATOR_ID = DEF_GEQ;
-                            break;
-
-                        case KEY_EQU:
-                            CCTEMP = (CompiledClass *)LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA;
-                            if (!CCTEMP->_Class->Relocation(DEF_EQU)) {
-                                //SMART_LOCK(LOCAL_CONTEXT [OE->Result_ID - 1])
-                                // CLASS_CHECK_RESET(LOCAL_CONTEXT [OE->Result_ID - 1], pushed_type)
-
-                                switch (LOCAL_CONTEXT [OE->OperandRight.ID - 1]->TYPE) {
-                                    case VARIABLE_CLASS:
-                                        LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA == LOCAL_CONTEXT [OE->OperandRight.ID - 1]->CLASS_DATA ? 1 : 0;
-                                        LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
-                                        break;
-
-                                    default:
-                                        LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = 0;
-                                        LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
-                                }
-                                DECLARE_PATH(VARIABLE_NUMBER);
-                                continue;
-                            }
-                            OPERATOR_ID = DEF_EQU;
-                            break;
-
-                        case KEY_NEQ:
-                            CCTEMP = (CompiledClass *)LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA;
-                            if (!CCTEMP->_Class->Relocation(DEF_NEQ)) {
-                                //SMART_LOCK(LOCAL_CONTEXT [OE->Result_ID - 1])
-                                // CLASS_CHECK_RESET(LOCAL_CONTEXT [OE->Result_ID - 1], pushed_type)
-
-                                switch (LOCAL_CONTEXT [OE->OperandRight.ID - 1]->TYPE) {
-                                    case VARIABLE_CLASS:
-                                        LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA != LOCAL_CONTEXT [OE->OperandRight.ID - 1]->CLASS_DATA ? 1 : 0;
-                                        LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
-                                        break;
-
-                                    default:
-                                        LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = 1;
-                                        LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
-                                }
-                                DECLARE_PATH(VARIABLE_NUMBER);
-                                continue;
-                            }
-                            OPERATOR_ID = DEF_NEQ;
-                            break;
-
-                        case KEY_AND:
-                            OPERATOR_ID = DEF_AND;
-                            break;
-
-                        case KEY_XOR:
-                            OPERATOR_ID = DEF_XOR;
-                            break;
-
-                        case KEY_OR:
-                            OPERATOR_ID = DEF_OR;
-                            break;
-
-                        case KEY_BAN:
-                            CCTEMP = (CompiledClass *)LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA;
-                            if (!CCTEMP->_Class->Relocation(DEF_BAN)) {
-                                //SMART_LOCK(LOCAL_CONTEXT [OE->Result_ID - 1])
-                                // CLASS_CHECK_RESET(LOCAL_CONTEXT [OE->Result_ID - 1], pushed_type)
-                                switch (LOCAL_CONTEXT [OE->OperandRight.ID - 1]->TYPE) {
-                                    case VARIABLE_NUMBER:
-                                        LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = LOCAL_CONTEXT [OE->OperandRight.ID - 1]->NUMBER_DATA != 0;
-                                        LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
-                                        break;
-
-                                    case VARIABLE_STRING:
-                                        LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandRight.ID - 1]).Length() != 0;
-                                        LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
-                                        break;
-
-                                    case VARIABLE_CLASS:
-                                    case VARIABLE_DELEGATE:
-                                        LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = 1;
-                                        LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
-                                        break;
-
-                                    case VARIABLE_ARRAY:
-                                        LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = ((Array *)LOCAL_CONTEXT [OE->OperandRight.ID - 1]->CLASS_DATA)->Count() != 0;
-                                        LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
-                                        break;
-                                }
-                                DECLARE_PATH(VARIABLE_NUMBER);
-                                continue;
-                            }
-
-                            OPERATOR_ID = DEF_BAN;
-                            break;
-
-                        case KEY_BOR:
-                            CCTEMP = (CompiledClass *)LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA;
-                            if (!CCTEMP->_Class->Relocation(DEF_BOR)) {
-                                //SMART_LOCK(LOCAL_CONTEXT [OE->Result_ID - 1])
-                                // CLASS_CHECK_RESET(LOCAL_CONTEXT [OE->Result_ID - 1], pushed_type)
-                                LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = 1;
-                                LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
-                                DECLARE_PATH(VARIABLE_NUMBER);
-                                continue;
-                            }
-                            OPERATOR_ID = DEF_BOR;
-                            break;
-
-                        case KEY_ASU:
-                            OPERATOR_ID = DEF_ASU;
-                            break;
-
-                        case KEY_ADI:
-                            OPERATOR_ID = DEF_ADI;
-                            break;
-
-                        case KEY_AMU:
-                            OPERATOR_ID = DEF_AMU;
-                            break;
-
-                        case KEY_ADV:
-                            OPERATOR_ID = DEF_ADV;
-                            break;
-
-                        case KEY_ARE:
-                            OPERATOR_ID = DEF_ARE;
-                            break;
-
-                        case KEY_AAN:
-                            OPERATOR_ID = DEF_AAN;
-                            break;
-
-                        case KEY_AXO:
-                            OPERATOR_ID = DEF_AXO;
-                            break;
-
-                        case KEY_AOR:
-                            OPERATOR_ID = DEF_AOR;
-                            break;
-
-                        case KEY_ASL:
-                            OPERATOR_ID = DEF_ASL;
-                            break;
-
-                        case KEY_ASR:
-                            OPERATOR_ID = DEF_ASR;
-                            break;
-
-                        // unari !
-                        case KEY_NOT:
-                            CCTEMP = (CompiledClass *)LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA;
-                            if (!CCTEMP->_Class->Relocation(DEF_NOT)) {
-                                //SMART_LOCK(LOCAL_CONTEXT [OE->Result_ID - 1])
-                                // CLASS_CHECK_RESET(LOCAL_CONTEXT [OE->Result_ID - 1], pushed_type)
-                                LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = 0;
-                                LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
-                                DECLARE_PATH(VARIABLE_NUMBER);
-                                continue;
-                            }
-                            OPERATOR_ID = DEF_NOT;
-                            break;
-
-                        case KEY_COM:
-                            OPERATOR_ID = DEF_COM;
-                            break;
-
-                        case KEY_INC_LEFT:
-                        case KEY_INC:
-                            OPERATOR_ID = DEF_INC;
-                            break;
-
-                        case KEY_DEC_LEFT:
-                        case KEY_DEC:
-                            OPERATOR_ID = DEF_DEC;
-                            break;
-
-                        case KEY_CND_NULL:
-                            if ((LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE == VARIABLE_CLASS) && (LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA == LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA)) {
-                                DECLARE_PATH(VARIABLE_CLASS);
-                                continue;
-                            }
-                            //---------------------------//
-                            //SMART_LOCK(LOCAL_CONTEXT [OE->Result_ID - 1])
-                            // CLASS_CHECK_RESET(LOCAL_CONTEXT [OE->Result_ID - 1], pushed_type)
-                            //---------------------------//
-                            LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA = LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA;
-                            ((CompiledClass *)LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA)->LINKS++;
-                            DECLARE_PATH(VARIABLE_CLASS);
-                            continue;
-
-                        default:
-                            DECLARE_PATH(0x20);
-                            Exc = new AnsiException(ERR920, OE->Operator._DEBUG_INFO_LINE, 920,  GetKeyWord(OE->Operator.ID), ((ClassCode *)(OWNER->Defined_In))->_DEBUG_INFO_FILENAME, ((ClassCode *)(OWNER->Defined_In))->NAME, OWNER->NAME);
-                            PIF->AcknoledgeRunTimeError(STACK_TRACE, Exc);
-                            break;
-                    }
-                    //////////////////////////////////////////////////////
-                    //////////////////////////////////////////////////////
-                    LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE = VARIABLE_NUMBER;
-                    //////////////////////////////////////////////////////
-                    if (!OPERATOR_ID) {
-                        DECLARE_PATH(0x20);
-                        continue;
-                    }
-                    if (OE->OperandRight.ID) {
-                        OPERATOR_PARAM.COUNT       = 1;
-                        PARAM_INDEX[0]             = OE->OperandRight.ID;
-                        OPERATOR_PARAM.PARAM_INDEX = DELTA_REF(&OPERATOR_PARAM, PARAM_INDEX);
-
-                    } else {
-                        OPERATOR_PARAM.COUNT = 0;
-                    }
-                    CCTEMP = (CompiledClass *)LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA;
-                    try {
-                        WRITE_UNLOCK
-                        RESULT = CCTEMP->_Class->ExecuteMember(PIF, OPERATOR_ID, LOCAL_CONTEXT [OE->OperandLeft_ID - 1], OE, &OE->OperandRight, CCTEMP->_Class->CLSID == ClassID, &OPERATOR_PARAM, LOCAL_CONTEXT, 0, ClassID, LocalClassID, STACK_TRACE);
-                        WRITE_LOCK
-                        if (RESULT == LOCAL_CONTEXT [OE->Result_ID - 1]) {
-                            DECLARE_PATH(RESULT->TYPE);
-                            continue;
-                        }
-                        if (OE->Operator.FLAGS == MAY_IGNORE_RESULT) {
-                            if (RESULT) {
-                                if (!RESULT->LINKS)
-                                    RESULT->LINKS = 1;
-                                FREE_VARIABLE(RESULT);
-                            }
-                            continue;
-                        }
-                        if (((RESULT) && ((RESULT->TYPE == VARIABLE_CLASS) || (RESULT->TYPE == VARIABLE_DELEGATE)) && (!RESULT->CLASS_DATA)) || (!RESULT)) {
-                            CLASS_CHECK_TS(LOCAL_CONTEXT [OE->Result_ID - 1]);
-                            LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
-                            LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = 0;
-                        }
-                        if (RESULT) {
-                            FREE_VARIABLE_TS(LOCAL_CONTEXT [OE->Result_ID - 1]);
-                            LOCAL_CONTEXT [OE->Result_ID - 1] = RESULT;
-                            RESULT->LINKS++;
-                        } else {
-                            LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = 0;
-                            DECLARE_PATH(0x20);
-                        }
-                    } catch (VariableDATA *LAST_THROW) {
-                        DECLARE_PATH(VARIABLE_NUMBER);
-                        THROW_DATA = LAST_THROW;
-                        DECLARE_PATH(LAST_THROW->TYPE);
-                        if ((CATCH_INSTRUCTION_POINTER) && (CATCH_VARIABLE)) {
-                            FREE_VARIABLE(LOCAL_CONTEXT [CATCH_VARIABLE - 1]);
-                            LOCAL_CONTEXT [CATCH_VARIABLE - 1] = THROW_DATA;
-                            INSTRUCTION_POINTER       = CATCH_INSTRUCTION_POINTER;
-                            THROW_DATA                = 0;
-                            CATCH_INSTRUCTION_POINTER = 0;
-                            CATCH_VARIABLE            = 0;
-                            //-------------//
-                            RESTORE_TRY_DATA(this);
-                            //-------------//
-                        } else {
-                            WRITE_UNLOCK
-                            if (PROPERTIES)
-                                FAST_FREE(PROPERTIES);
-                            return 0;
-                        }
-                    }
-                    break;
+#ifdef SIMPLE_MULTI_THREADING
+                    EvalClassExpression(PIF, LOCAL_CONTEXT, OE, PROPERTIES, ClassID, THROW_DATA, STACK_TRACE, OE_Operator_ID, INSTRUCTION_POINTER, CATCH_INSTRUCTION_POINTER, CATCH_VARIABLE, PREVIOUS_TRY, IsWriteLocked);
+#else
+                    EvalClassExpression(PIF, LOCAL_CONTEXT, OE, PROPERTIES, ClassID, THROW_DATA, STACK_TRACE, OE_Operator_ID, INSTRUCTION_POINTER, CATCH_INSTRUCTION_POINTER, CATCH_VARIABLE, PREVIOUS_TRY);
+#endif
+                    continue;
 
                 case VARIABLE_ARRAY:
-                    switch (OE_Operator_ID) {
-                        case KEY_ASG:
-                        case KEY_BY_REF:
-                            //SMART_LOCK(LOCAL_CONTEXT [OE->OperandLeft_ID - 1])
-                            CLASS_CHECK(LOCAL_CONTEXT [OE->OperandLeft_ID - 1])
-                            // next line was commented (?)
-                            //---------------------------//
-                            LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA = LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA = LOCAL_CONTEXT [OE->OperandRight.ID - 1]->CLASS_DATA;
-                            ((Array *)LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA)->LINKS += 2;
-                            LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->TYPE = VARIABLE_ARRAY;
-                            if ((PROPERTIES) && (PROPERTIES [OE->OperandLeft_ID - 1].IS_PROPERTY_RESULT)) {
-                                CCTEMP = (CompiledClass *)((VariableDATA *)(PROPERTIES [OE->OperandLeft_ID - 1].CALL_SET))->CLASS_DATA;
-                                WRITE_UNLOCK
-                                CCTEMP->_Class->SetProperty(PIF, PROPERTIES [OE->OperandLeft_ID - 1].IS_PROPERTY_RESULT - 1, (VariableDATA *)(PROPERTIES [OE->OperandLeft_ID - 1].CALL_SET), OE, &OE->OperandRight, CCTEMP->_Class->CLSID == ClassID, OE->Result_ID - 1, LOCAL_CONTEXT, ClassID, LocalClassID, STACK_TRACE);
-                            }
-                            DECLARE_PATH(VARIABLE_ARRAY);
-                            continue;
-
-                        case KEY_SUM:
-                            switch (LOCAL_CONTEXT [OE->OperandRight.ID - 1]->TYPE) {
-                                case VARIABLE_STRING:
-                                case VARIABLE_NUMBER:
-                                case VARIABLE_CLASS:
-                                    LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE = VARIABLE_NUMBER;
-                                    RETURN_DATA = ((Array *)LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA)->NewArray();
-                                    ((Array *)RETURN_DATA->CLASS_DATA)->AddCopy(LOCAL_CONTEXT [OE->OperandRight.ID - 1]);
-                                    if (LOCAL_CONTEXT [OE->Result_ID - 1] != RETURN_DATA) {
-                                        FREE_VARIABLE_RESET(LOCAL_CONTEXT [OE->Result_ID - 1], VARIABLE_NUMBER);
-                                        LOCAL_CONTEXT [OE->Result_ID - 1] = RETURN_DATA;
-                                        RETURN_DATA->LINKS++;
-                                    }
-                                    DECLARE_PATH(RETURN_DATA->TYPE);
-                                    continue;
-
-                                case VARIABLE_ARRAY:
-                                    LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE = VARIABLE_NUMBER;
-                                    RETURN_DATA = ((Array *)LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA)->NewArray();
-                                    ((Array *)RETURN_DATA->CLASS_DATA)->Concat((Array *)LOCAL_CONTEXT [OE->OperandRight.ID - 1]->CLASS_DATA);
-                                    if (LOCAL_CONTEXT [OE->Result_ID - 1] != RETURN_DATA) {
-                                        FREE_VARIABLE_RESET(LOCAL_CONTEXT [OE->Result_ID - 1], VARIABLE_NUMBER);
-                                        LOCAL_CONTEXT [OE->Result_ID - 1] = RETURN_DATA;
-                                        RETURN_DATA->LINKS++;
-                                    }
-                                    DECLARE_PATH(RETURN_DATA->TYPE);
-                                    continue;
-                            }
-                            break;
-
-                        case KEY_ASU:
-                            switch (LOCAL_CONTEXT [OE->OperandRight.ID - 1]->TYPE) {
-                                case VARIABLE_STRING:
-                                case VARIABLE_NUMBER:
-                                case VARIABLE_CLASS:
-                                    LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE = VARIABLE_NUMBER;
-                                    RETURN_DATA = ((Array *)LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA)->AddCopy(LOCAL_CONTEXT [OE->OperandRight.ID - 1]);
-                                    if (LOCAL_CONTEXT [OE->Result_ID - 1] != RETURN_DATA) {
-                                        FREE_VARIABLE_RESET(LOCAL_CONTEXT [OE->Result_ID - 1], VARIABLE_NUMBER);
-                                        LOCAL_CONTEXT [OE->Result_ID - 1] = RETURN_DATA;
-                                        RETURN_DATA->LINKS++;
-                                    }
-                                    DECLARE_PATH(RETURN_DATA->TYPE);
-                                    continue;
-
-                                case VARIABLE_ARRAY:
-                                    //SMART_LOCK(LOCAL_CONTEXT [OE->Result_ID - 1])
-                                    // CLASS_CHECK_RESET(LOCAL_CONTEXT [OE->Result_ID - 1], pushed_type);
-                                    LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA = ((Array *)LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA)->Concat((Array *)LOCAL_CONTEXT [OE->OperandRight.ID - 1]->CLASS_DATA);
-                                    if (LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA) {
-                                        LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE = VARIABLE_ARRAY;
-                                        ((Array *)LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA)->LINKS++;
-                                        DECLARE_PATH(VARIABLE_ARRAY);
-                                    } else {
-                                        LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE = VARIABLE_NUMBER;
-                                        DECLARE_PATH(VARIABLE_NUMBER);
-                                    }
-                                    continue;
-                            }
-                            break;
-
-                        case KEY_LENGTH:
-                            //SMART_LOCK(LOCAL_CONTEXT [OE->Result_ID - 1])
-                            // CLASS_CHECK_RESET(LOCAL_CONTEXT [OE->Result_ID - 1], pushed_type);
-                            LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = ((Array *)LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA)->Count();
-                            LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
-                            DECLARE_PATH(VARIABLE_NUMBER);
-                            continue;
-
-                        case KEY_EQU:
-                            //SMART_LOCK(LOCAL_CONTEXT [OE->Result_ID - 1])
-                            // CLASS_CHECK_RESET(LOCAL_CONTEXT [OE->Result_ID - 1], pushed_type);
-                            if (LOCAL_CONTEXT [OE->OperandRight.ID - 1]->TYPE != VARIABLE_ARRAY) {
-                                LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = 0;
-                            } else {
-                                LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = (LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA == LOCAL_CONTEXT [OE->OperandRight.ID - 1]->CLASS_DATA);
-                            }
-                            LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE = VARIABLE_NUMBER;
-                            DECLARE_PATH(VARIABLE_NUMBER);
-                            continue;
-
-                        case KEY_NEQ:
-                            //SMART_LOCK(LOCAL_CONTEXT [OE->Result_ID - 1])
-                            // CLASS_CHECK_RESET(LOCAL_CONTEXT [OE->Result_ID - 1], pushed_type);
-                            if (LOCAL_CONTEXT [OE->OperandRight.ID - 1]->TYPE != VARIABLE_ARRAY) {
-                                LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = 1;
-                            } else {
-                                LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = (LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA != LOCAL_CONTEXT [OE->OperandRight.ID - 1]->CLASS_DATA);
-                            }
-                            LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE = VARIABLE_NUMBER;
-                            DECLARE_PATH(VARIABLE_NUMBER);
-                            continue;
-
-                        case KEY_BAN:
-                            //SMART_LOCK(LOCAL_CONTEXT [OE->Result_ID - 1])
-                            // CLASS_CHECK_RESET(LOCAL_CONTEXT [OE->Result_ID - 1], pushed_type);
-                            switch (LOCAL_CONTEXT [OE->OperandRight.ID - 1]->TYPE) {
-                                case VARIABLE_NUMBER:
-                                    LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = ((Array *)LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA)->Count() && LOCAL_CONTEXT [OE->OperandRight.ID - 1]->NUMBER_DATA;
-                                    LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
-                                    break;
-
-                                case VARIABLE_STRING:
-                                    LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = ((Array *)LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA)->Count() && CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandRight.ID - 1]).Length();
-                                    LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
-                                    break;
-
-                                case VARIABLE_CLASS:
-                                case VARIABLE_DELEGATE:
-                                    LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = (((Array *)LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA)->Count() != 0);
-                                    LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
-                                    break;
-
-                                case VARIABLE_ARRAY:
-                                    LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = ((Array *)LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA)->Count() && ((Array *)LOCAL_CONTEXT [OE->OperandRight.ID - 1]->CLASS_DATA)->Count();
-                                    LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
-                                    break;
-                            }
-                            DECLARE_PATH(VARIABLE_NUMBER);
-                            continue;
-
-                        case KEY_BOR:
-                            //SMART_LOCK(LOCAL_CONTEXT [OE->Result_ID - 1])
-                            // CLASS_CHECK_RESET(LOCAL_CONTEXT [OE->Result_ID - 1], pushed_type);
-                            switch (LOCAL_CONTEXT [OE->OperandRight.ID - 1]->TYPE) {
-                                case VARIABLE_NUMBER:
-                                    LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = ((Array *)LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA)->Count() || LOCAL_CONTEXT [OE->OperandRight.ID - 1]->NUMBER_DATA;
-                                    LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
-                                    break;
-
-                                case VARIABLE_STRING:
-                                    LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = ((Array *)LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA)->Count() || CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandRight.ID - 1]).Length();
-                                    LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
-                                    break;
-
-                                case VARIABLE_CLASS:
-                                case VARIABLE_DELEGATE:
-                                    LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = 1;
-                                    LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
-                                    break;
-
-                                case VARIABLE_ARRAY:
-                                    LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = ((Array *)LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA)->Count() || ((Array *)LOCAL_CONTEXT [OE->OperandRight.ID - 1]->CLASS_DATA)->Count();
-                                    LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
-                                    break;
-                            }
-                            DECLARE_PATH(VARIABLE_NUMBER);
-                            continue;
-
-                        case KEY_NOT:
-                            //SMART_LOCK(LOCAL_CONTEXT [OE->Result_ID - 1])
-                            // CLASS_CHECK_RESET(LOCAL_CONTEXT [OE->Result_ID - 1], pushed_type);
-                            LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = ((Array *)LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA)->Count() == 0;
-                            LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
-                            DECLARE_PATH(VARIABLE_NUMBER);
-                            continue;
-
-                        case KEY_CND_NULL:
-                            if ((LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE == VARIABLE_ARRAY) && (LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA == LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA) && (((Array *)LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA)->Count())) {
-                                DECLARE_PATH(VARIABLE_ARRAY);
-                                continue;
-                            }
-                            // ------------------- //
-                            //SMART_LOCK(LOCAL_CONTEXT [OE->Result_ID - 1])
-                            // CLASS_CHECK_RESET(LOCAL_CONTEXT [OE->Result_ID - 1], pushed_type)
-                            // ------------------- //
-                            if (((Array *)LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA)->Count()) {
-                                LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA = LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA;
-                                ((Array *)LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA)->LINKS++;
-                                LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE = VARIABLE_ARRAY;
-                                DECLARE_PATH(VARIABLE_ARRAY);
-                                continue;
-                            }
-                            switch (LOCAL_CONTEXT [OE->OperandRight.ID - 1]->TYPE) {
-                                case VARIABLE_NUMBER:
-                                    LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = LOCAL_CONTEXT [OE->OperandRight.ID - 1]->NUMBER_DATA;
-                                    LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
-                                    DECLARE_PATH(VARIABLE_NUMBER);
-                                    break;
-
-                                case VARIABLE_STRING:
-                                    NEW_CONCEPT_STRING(LOCAL_CONTEXT [OE->Result_ID - 1]) = CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandRight.ID - 1]);
-                                    LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE           = VARIABLE_STRING;
-                                    DECLARE_PATH(VARIABLE_STRING);
-                                    break;
-
-                                case VARIABLE_DELEGATE:
-                                    LOCAL_CONTEXT [OE->Result_ID - 1]->DELEGATE_DATA = LOCAL_CONTEXT [OE->OperandRight.ID - 1]->DELEGATE_DATA;
-
-                                case VARIABLE_CLASS:
-                                    LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA = LOCAL_CONTEXT [OE->OperandRight.ID - 1]->CLASS_DATA;
-                                    LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE       = LOCAL_CONTEXT [OE->OperandRight.ID - 1]->TYPE;
-                                    ((CompiledClass *)LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA)->LINKS++;
-                                    DECLARE_PATH(LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE);
-                                    break;
-
-                                case VARIABLE_ARRAY:
-                                    LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA = LOCAL_CONTEXT [OE->OperandRight.ID - 1]->CLASS_DATA;
-                                    LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE       = VARIABLE_ARRAY;
-                                    ((Array *)LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA)->LINKS++;
-                                    DECLARE_PATH(VARIABLE_ARRAY);
-                                    break;
-                            }
-                            continue;
-
-                        default:
-                            //SMART_LOCK(LOCAL_CONTEXT [OE->Result_ID - 1])
-                            DECLARE_PATH(0x20);
-                            // CLASS_CHECK_RESET(LOCAL_CONTEXT [OE->Result_ID - 1], pushed_type);
-                            LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE = VARIABLE_NUMBER;
-                            Exc = new AnsiException(ERR910, OE->Operator._DEBUG_INFO_LINE, 910,  GetKeyWord(OE->Operator.ID), ((ClassCode *)(OWNER->Defined_In))->_DEBUG_INFO_FILENAME, ((ClassCode *)(OWNER->Defined_In))->NAME, OWNER->NAME);
-                            PIF->AcknoledgeRunTimeError(STACK_TRACE, Exc);
-                            break;
-                    }
-                    break;
+#ifdef SIMPLE_MULTI_THREADING
+                    EvalArrayExpression(PIF, LOCAL_CONTEXT, OE, PROPERTIES, ClassID, THROW_DATA, STACK_TRACE, INSTRUCTION_POINTER, CATCH_INSTRUCTION_POINTER, CATCH_VARIABLE, PREVIOUS_TRY, IsWriteLocked);
+#else
+                    EvalArrayExpression(PIF, LOCAL_CONTEXT, OE, PROPERTIES, ClassID, THROW_DATA, STACK_TRACE, INSTRUCTION_POINTER, CATCH_INSTRUCTION_POINTER, CATCH_VARIABLE, PREVIOUS_TRY);
+#endif
+                    continue;
 
                 case VARIABLE_DELEGATE:
-                    switch (OE_Operator_ID) {
-                        case KEY_ASG:
-                        case KEY_BY_REF:
-                            // ------------------- //
-                            if (LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA != LOCAL_CONTEXT [OE->OperandRight.ID - 1]->CLASS_DATA) {
-                                //SMART_LOCK(LOCAL_CONTEXT [OE->OperandLeft_ID - 1])
-                                CLASS_CHECK(LOCAL_CONTEXT [OE->OperandLeft_ID - 1])
-                            } else {
-                                ((CompiledClass *)LOCAL_CONTEXT [OE->OperandRight.ID - 1]->CLASS_DATA)->LINKS -= 1;
-                            }
-
-                            // ------------------- //
-                            LOCAL_CONTEXT [OE->Result_ID - 1]->DELEGATE_DATA = LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->DELEGATE_DATA = LOCAL_CONTEXT [OE->OperandRight.ID - 1]->DELEGATE_DATA;
-                            LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA    = LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA = LOCAL_CONTEXT [OE->OperandRight.ID - 1]->CLASS_DATA;
-                            ((CompiledClass *)LOCAL_CONTEXT [OE->OperandRight.ID - 1]->CLASS_DATA)->LINKS += 2;
-                            LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->TYPE = VARIABLE_DELEGATE;
-                            //----------------//
-                            PROPERTY_CODE(this, PROPERTIES)
-                            //----------------//
-                            DECLARE_PATH(VARIABLE_DELEGATE);
-                            continue;
-
-                        case KEY_EQU:
-                            //SMART_LOCK(LOCAL_CONTEXT [OE->Result_ID - 1])
-                            // CLASS_CHECK_RESET(LOCAL_CONTEXT [OE->Result_ID - 1], pushed_type);
-                            if (LOCAL_CONTEXT [OE->OperandRight.ID - 1]->TYPE != VARIABLE_DELEGATE) {
-                                LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = 0;
-                            } else {
-                                LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = ((LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA == LOCAL_CONTEXT [OE->OperandRight.ID - 1]->CLASS_DATA) && (LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->NUMBER_DATA == LOCAL_CONTEXT [OE->OperandRight.ID - 1]->NUMBER_DATA));
-                            }
-                            LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE = VARIABLE_NUMBER;
-                            DECLARE_PATH(VARIABLE_NUMBER);
-                            continue;
-
-                        case KEY_NEQ:
-                            //SMART_LOCK(LOCAL_CONTEXT [OE->Result_ID - 1])
-                            // CLASS_CHECK_RESET(LOCAL_CONTEXT [OE->Result_ID - 1], pushed_type);
-                            if (LOCAL_CONTEXT [OE->OperandRight.ID - 1]->TYPE != VARIABLE_DELEGATE) {
-                                LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = 0;
-                            } else {
-                                LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = ((LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA != LOCAL_CONTEXT [OE->OperandRight.ID - 1]->CLASS_DATA) || (LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->NUMBER_DATA != LOCAL_CONTEXT [OE->OperandRight.ID - 1]->NUMBER_DATA));
-                            }
-                            LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE = VARIABLE_NUMBER;
-                            DECLARE_PATH(VARIABLE_NUMBER);
-                            continue;
-
-                        case KEY_BAN:
-                            //SMART_LOCK(LOCAL_CONTEXT [OE->Result_ID - 1])
-                            // CLASS_CHECK_RESET(LOCAL_CONTEXT [OE->Result_ID - 1], pushed_type);
-                            switch (LOCAL_CONTEXT [OE->OperandRight.ID - 1]->TYPE) {
-                                case VARIABLE_NUMBER:
-                                    LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = (LOCAL_CONTEXT [OE->OperandRight.ID - 1]->NUMBER_DATA != 0);
-                                    LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
-                                    break;
-
-                                case VARIABLE_STRING:
-                                    LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = (CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandRight.ID - 1]).Length() != 0);
-                                    LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
-                                    break;
-
-                                case VARIABLE_CLASS:
-                                case VARIABLE_DELEGATE:
-                                    LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = 1;
-                                    LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
-                                    break;
-
-                                case VARIABLE_ARRAY:
-                                    LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = (((Array *)LOCAL_CONTEXT [OE->OperandRight.ID - 1]->CLASS_DATA)->Count() != 0);
-                                    LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
-                                    break;
-                            }
-                            DECLARE_PATH(VARIABLE_NUMBER);
-                            continue;
-
-                        case KEY_BOR:
-                            //SMART_LOCK(LOCAL_CONTEXT [OE->Result_ID - 1])
-                            // CLASS_CHECK_RESET(LOCAL_CONTEXT [OE->Result_ID - 1], pushed_type);
-                            switch (LOCAL_CONTEXT [OE->OperandRight.ID - 1]->TYPE) {
-                                case VARIABLE_NUMBER:
-                                case VARIABLE_STRING:
-                                case VARIABLE_CLASS:
-                                case VARIABLE_DELEGATE:
-                                case VARIABLE_ARRAY:
-                                    LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = 1;
-                                    LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
-                                    break;
-                            }
-                            DECLARE_PATH(VARIABLE_NUMBER);
-                            continue;
-
-                        case KEY_NOT:
-                            //SMART_LOCK(LOCAL_CONTEXT [OE->Result_ID - 1])
-                            // CLASS_CHECK_RESET(LOCAL_CONTEXT [OE->Result_ID - 1], pushed_type);
-                            LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = 0;
-                            LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
-                            DECLARE_PATH(VARIABLE_NUMBER);
-                            continue;
-
-                        case KEY_CND_NULL:
-                            if ((LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE == VARIABLE_DELEGATE) && (LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA == LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA) && (LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA == LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->NUMBER_DATA)) {
-                                DECLARE_PATH(VARIABLE_DELEGATE);
-                                continue;
-                            }
-                            //---------------------------//
-                            //SMART_LOCK(LOCAL_CONTEXT [OE->Result_ID - 1])
-                            // CLASS_CHECK_RESET(LOCAL_CONTEXT [OE->Result_ID - 1], pushed_type)
-                            //---------------------------//
-                            LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA  = LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA;
-                            LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->NUMBER_DATA;
-                            ((CompiledClass *)LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA)->LINKS++;
-                            DECLARE_PATH(VARIABLE_NUMBER);
-                            continue;
-
-                        default:
-                            DECLARE_PATH(0x20);
-                            //SMART_LOCK(LOCAL_CONTEXT [OE->Result_ID - 1])
-                            // CLASS_CHECK_RESET(LOCAL_CONTEXT [OE->Result_ID - 1], pushed_type);
-                            LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE = VARIABLE_NUMBER;
-                            Exc = new AnsiException(ERR960, OE->Operator._DEBUG_INFO_LINE, 960,  GetKeyWord(OE->Operator.ID), ((ClassCode *)(OWNER->Defined_In))->_DEBUG_INFO_FILENAME, ((ClassCode *)(OWNER->Defined_In))->NAME, OWNER->NAME);
-                            PIF->AcknoledgeRunTimeError(STACK_TRACE, Exc);
-                            break;
-                    }
-                    break;
+#ifdef SIMPLE_MULTI_THREADING
+                    EvalDelegateExpression(PIF, LOCAL_CONTEXT, OE, PROPERTIES, ClassID, THROW_DATA, STACK_TRACE, INSTRUCTION_POINTER, CATCH_INSTRUCTION_POINTER, CATCH_VARIABLE, PREVIOUS_TRY, IsWriteLocked);
+#else
+                    EvalDelegateExpression(PIF, LOCAL_CONTEXT, OE, PROPERTIES, ClassID, THROW_DATA, STACK_TRACE, INSTRUCTION_POINTER, CATCH_INSTRUCTION_POINTER, CATCH_VARIABLE, PREVIOUS_TRY);
+#endif
+                    continue;
             }
         } else
         if (OE->Operator.TYPE == TYPE_OPTIMIZED_KEYWORD) {
