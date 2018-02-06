@@ -3472,9 +3472,9 @@ AnsiString PIFAlizator::DEBUG_CLASS_CONFIGURATION() {
                 res += "\t\tCODE:\n";
                 for (INTEGER k = 0; k < ((Optimizer *)CM->OPTIMIZER)->codeCount; k++) {
                     res += "\t\t\tOPERATOR TYPE:";
-                    res += AnsiString((intptr_t)((Optimizer *)CM->OPTIMIZER)->CODE [k].Operator.TYPE);
+                    res += AnsiString((intptr_t)((Optimizer *)CM->OPTIMIZER)->CODE [k].Operator_TYPE);
                     res += "\tOPERATOR ID:";
-                    res += AnsiString(((Optimizer *)CM->OPTIMIZER)->CODE [k].Operator.ID);
+                    res += AnsiString(((Optimizer *)CM->OPTIMIZER)->CODE [k].Operator_ID);
                     res += "\n";
                 }
             } else {

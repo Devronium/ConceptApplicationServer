@@ -263,8 +263,10 @@ INTEGER GetClassMember(void *CLASS_PTR, const char *class_member_name, INTEGER *
                     ParamList PLIST;
                     PLIST.COUNT = 0;
 
-                    RuntimeElement AE;
-                    AE.ID = 0;
+                    RuntimeOptimizedElement OE;
+                    OE.Operator_DEBUG_INFO_LINE = 0;
+                    OE.Operator_ID = 0;
+                    OE.OperandRight_ID = 0;
 
                     PIFAlizator  *PIF   = GET_PIF(((CompiledClass *)CLASS_PTR));
                     VariableDATA *Owner = (VariableDATA *)VAR_ALLOC(PIF);
@@ -288,8 +290,7 @@ INTEGER GetClassMember(void *CLASS_PTR, const char *class_member_name, INTEGER *
                         VariableDATA *VarDATA = CCode->ExecuteMember(PIF,
                                                                      index,
                                                                      Owner,
-                                                                     NULL,
-                                                                     &AE,
+                                                                     &OE,
                                                                      true,
                                                                      CM->IS_FUNCTION == 3 ? 0 : &PLIST,
                                                                      (VariableDATA **)-1,
@@ -369,8 +370,6 @@ INTEGER SetClassMember(void *CLASS_PTR, const char *class_member_name, INTEGER T
                 if ((CM) && (CM->IS_FUNCTION == 3) && (CM->MEMBER_SET)) {
                     index = CCode->GetAbsoluteMemberID(index + 1) - 1;
 
-                    RuntimeElement AE;
-                    AE.ID = 0;
                     PIFAlizator  *PIF       = GET_PIF(((CompiledClass *)CLASS_PTR));
                     VariableDATA *Parameter = (VariableDATA *)VAR_ALLOC(PIF);
                     Parameter->IS_PROPERTY_RESULT = 0;
@@ -406,12 +405,16 @@ INTEGER SetClassMember(void *CLASS_PTR, const char *class_member_name, INTEGER T
                     Owner->TYPE  = VARIABLE_CLASS;
                     ((CompiledClass *)CLASS_PTR)->LINKS++;
 
+                    RuntimeOptimizedElement OE;
+                    OE.Operator_DEBUG_INFO_LINE = 0;
+                    OE.Operator_ID = 0;
+                    OE.OperandRight_ID = 0;
+
                     try {
                         CCode->SetProperty(PIF,
                                            index,
                                            Owner,
-                                           NULL,
-                                           &AE,
+                                           &OE,
                                            true,
                                            1,
                                            CONTAINER,
@@ -702,7 +705,7 @@ INTEGER Invoke(INTEGER INVOKE_TYPE, ...) {
 #endif
                 target->TYPE       = VARIABLE_CLASS;
                 target->CLASS_DATA = NULL;
-                target->CLASS_DATA = CC->CreateInstance(pif, target, 0, 0, &FORMAL_PARAM, (VariableDATA **)&dummyVD, STACK_TRACE);
+                target->CLASS_DATA = CC->CreateInstance(pif, target, 0, &FORMAL_PARAM, (VariableDATA **)&dummyVD, STACK_TRACE);
                 if (!target->CLASS_DATA) {
                     target->TYPE = VARIABLE_NUMBER;
                     result       = INVALID_INVOKE_PARAMETER;
@@ -1095,7 +1098,6 @@ INTEGER Invoke(INTEGER INVOKE_TYPE, ...) {
                         *SENDER_RESULT = ((CompiledClass *)RESULT->CLASS_DATA)->_Class->ExecuteDelegate(PIF,
                                                                                                         (INTEGER)RESULT->DELEGATE_DATA,
                                                                                                         lOwner,
-                                                                                                        0,
                                                                                                         0,
                                                                                                         &FORMAL_PARAM,
                                                                                                         CTX,
@@ -1599,25 +1601,25 @@ INTEGER Invoke(INTEGER INVOKE_TYPE, ...) {
                         RuntimeOptimizedElement *OE    = &OElist[it];
                         TreeContainer           *reftc = &tc[it];
 
-                        reftc->Operator_ID       = OE->Operator.ID;
-                        reftc->Operator_TYPE     = OE->Operator.TYPE;
+                        reftc->Operator_ID       = OE->Operator_ID;
+                        reftc->Operator_TYPE     = OE->Operator_TYPE;
                         reftc->OperandLeft_ID    = OE->OperandLeft_ID;
-                        reftc->OperandRight_ID   = OE->OperandRight.ID;
-                        if ((OE->Operator.TYPE == TYPE_OPERATOR) && (OE->Operator.ID == KEY_DLL_CALL) && (OE->OperandLeft_ID == STATIC_CLASS_DLL)) {
-                            reftc->Function = (char *)OE->OperandRight._PARSE_DATA.c_str();
+                        reftc->OperandRight_ID   = OE->OperandRight_ID;
+                        if ((OE->Operator_TYPE == TYPE_OPERATOR) && (OE->Operator_ID == KEY_DLL_CALL) && (OE->OperandLeft_ID == STATIC_CLASS_DLL)) {
+                            reftc->Function = (char *)OE->OperandRight_PARSE_DATA.c_str();
                         } else {
                             reftc->Function = 0;
                         }
 
-                        if ((OE->Operator.TYPE == TYPE_OPERATOR) && ((OE->Operator.ID == KEY_DLL_CALL) || (OE->Operator.ID == KEY_SEL) || (OE->Operator.ID == KEY_NEW))) {
-                            if ((OE->Operator.ID == KEY_SEL) && (OE->OperandLeft_ID == 1)) {
-                                int         i2          = (int)OE->OperandRight.ID - 1;
+                        if ((OE->Operator_TYPE == TYPE_OPERATOR) && ((OE->Operator_ID == KEY_DLL_CALL) || (OE->Operator_ID == KEY_SEL) || (OE->Operator_ID == KEY_NEW))) {
+                            if ((OE->Operator_ID == KEY_SEL) && (OE->OperandLeft_ID == 1)) {
+                                int         i2          = (int)OE->OperandRight_ID - 1;
                                 int         relocation2 = CC->Relocation(i2);
                                 ClassMember *pMEMBER_i2 = relocation2 ? CC->pMEMBERS [relocation2 - 1] : 0;
                                 if (pMEMBER_i2)
                                     reftc->Function = (char *)pMEMBER_i2->NAME;
                             }
-                            if (((OE->Operator.ID != KEY_NEW) || (OE->OperandLeft_ID != -1)) && (OE->OperandReserved_ID > 0)) {
+                            if (((OE->Operator_ID != KEY_NEW) || (OE->OperandLeft_ID != -1)) && (OE->OperandReserved_ID > 0)) {
                                 ParamList *FORMAL_PARAMETERS = &Parameters[OE->OperandReserved_ID - 1];
                                 reftc->ParametersCount = FORMAL_PARAMETERS->COUNT;
                                 reftc->Parameters      = DELTA_UNREF(FORMAL_PARAMETERS, FORMAL_PARAMETERS->PARAM_INDEX);
@@ -2191,7 +2193,7 @@ INTEGER Invoke(INTEGER INVOKE_TYPE, ...) {
 #endif
                 target->TYPE       = VARIABLE_CLASS;
                 target->CLASS_DATA = NULL;
-                target->CLASS_DATA = CC->CreateInstance(pif, target, 0, 0, &FORMAL_PARAM, (VariableDATA **)CONTEXT, STACK_TRACE);
+                target->CLASS_DATA = CC->CreateInstance(pif, target, 0, &FORMAL_PARAM, (VariableDATA **)CONTEXT, STACK_TRACE);
                 if (ref)
                     free(ref);
                 if (!target->CLASS_DATA) {
@@ -2262,7 +2264,7 @@ INTEGER Invoke(INTEGER INVOKE_TYPE, ...) {
 #endif
                 target->TYPE       = VARIABLE_CLASS;
                 target->CLASS_DATA = NULL;
-                target->CLASS_DATA = CC->CreateInstance(pif, target, 0, 0, &FORMAL_PARAM, (VariableDATA **)CONTEXT, STACK_TRACE);
+                target->CLASS_DATA = CC->CreateInstance(pif, target, 0, &FORMAL_PARAM, (VariableDATA **)CONTEXT, STACK_TRACE);
                 if (ref)
                     free(ref);
                 if (!target->CLASS_DATA) {

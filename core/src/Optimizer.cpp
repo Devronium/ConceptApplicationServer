@@ -306,7 +306,7 @@ void Optimizer::CopyElement(AnalizerElement *SRC, AnalizerElement *DEST) {
 
 void Optimizer::CopyElement(AnalizerElement *SRC, PartialAnalizerElement *DEST) {
     DEST->_DEBUG_INFO_LINE = SRC ? SRC->_DEBUG_INFO_LINE : 0;
-    DEST->ID   = SRC ? SRC->ID : 0;
+    DEST->ID   = SRC ? (OPERATOR_ID_TYPE)SRC->ID : 0;
     DEST->TYPE = SRC ? SRC->TYPE : 0;
 }
 
@@ -1900,7 +1900,7 @@ int Optimizer::CanInline(ClassMember *owner, const char **remotename) {
         return 0;
     if (codeCount == 2) {
         OE = &CODE[0];
-        if ((OE) && (OE->Operator.TYPE == TYPE_OPERATOR) && (OE->Operator.ID == KEY_DLL_CALL) && 
+        if ((OE) && (OE->Operator_TYPE == TYPE_OPERATOR) && (OE->Operator_ID == KEY_DLL_CALL) && 
             (OE->OperandLeft_ID == STATIC_CLASS_DLL) && 
             (OE->OperandReserved_TYPE == TYPE_PARAM_LIST) && (OE->OperandReserved_ID <= paramCount)) {
             // check parameters
@@ -1916,8 +1916,8 @@ int Optimizer::CanInline(ClassMember *owner, const char **remotename) {
                 return 0;
 
             OE2 = &CODE[1];
-            if ((!OE2) || (OE2->Operator.TYPE != TYPE_OPTIMIZED_KEYWORD) || (OE2->Operator.ID != KEY_OPTIMIZED_RETURN) || 
-                (OE2->OperandRight.ID != OE->Result_ID))
+            if ((!OE2) || (OE2->Operator_TYPE != TYPE_OPTIMIZED_KEYWORD) || (OE2->Operator_ID != KEY_OPTIMIZED_RETURN) || 
+                (OE2->OperandRight_ID != OE->Result_ID))
                 return 0;
 
             // parameters order different ?
@@ -1927,9 +1927,9 @@ int Optimizer::CanInline(ClassMember *owner, const char **remotename) {
                     return 0;
             }
             if (remotename)
-                *remotename = OE->OperandRight._PARSE_DATA.c_str();
+                *remotename = OE->OperandRight_PARSE_DATA.c_str();
 
-            return OE->OperandRight.ID;
+            return OE->OperandRight_ID;
         }
     }
     return 0;
@@ -1960,7 +1960,19 @@ Optimizer::~Optimizer() {
         }
 
         if (CODE) {
+#ifdef NO_MEMALGIN
             delete[] CODE;
+#else
+#ifdef _WIN32
+            for (int i = 0; i < codeCount; i++) {
+                // call destructor manually
+                CODE[i].OperandRight_PARSE_DATA.~TinyString();
+            }
+            _aligned_free(CODE);
+#else
+            free(CODE);
+#endif
+#endif
         }
         if (PARAMS) {
             for (INTEGER i = 0; i < paramCount; i++) {
@@ -1982,7 +1994,24 @@ void Optimizer::GenerateIntermediateCode() {
     paramCount = ParameterList->Count();
 
     if (codeCount) {
+#ifdef NO_MEMALGIN
         CODE = new RuntimeOptimizedElement [codeCount];
+#else
+#ifdef _WIN32
+        #ifdef __SIZEOF_POINTER__
+            CODE = (RuntimeOptimizedElement *)_aligned_malloc(sizeof(RuntimeOptimizedElement) * codeCount, __SIZEOF_POINTER__);
+        #else
+            CODE = (RuntimeOptimizedElement *)_aligned_malloc(sizeof(RuntimeOptimizedElement) * codeCount, 4);
+        #endif
+#else
+        #ifdef __SIZEOF_POINTER__
+            if (!posix_memalign((void **)&CODE, __SIZEOF_POINTER__, sizeof(RuntimeOptimizedElement) * codeCount))
+        #else
+            if (!posix_memalign((void **)&CODE, 8, sizeof(RuntimeOptimizedElement) * codeCount))
+        #endif
+#endif
+        memset(CODE, 0, sizeof(RuntimeOptimizedElement) * codeCount);
+#endif
     }
     if (dataCount) {
         DATA = new RuntimeVariableDESCRIPTOR [dataCount];
@@ -2005,20 +2034,20 @@ void Optimizer::GenerateIntermediateCode() {
         CUR2->OperandReserved_ID   = CUR->OperandReserved.ID;
         CUR2->OperandReserved_TYPE = CUR->OperandReserved.TYPE;
 
-        CUR2->Operator.ID               = CUR->Operator.ID;
-        CUR2->Operator.TYPE             = CUR->Operator.TYPE;
-        CUR2->Operator._DEBUG_INFO_LINE = CUR->Operator._DEBUG_INFO_LINE;
+        CUR2->Operator_ID               = CUR->Operator.ID;
+        CUR2->Operator_TYPE             = CUR->Operator.TYPE;
+        CUR2->Operator_DEBUG_INFO_LINE = CUR->Operator._DEBUG_INFO_LINE;
 
         CUR2->OperandLeft_ID               = CUR->OperandLeft.ID;
-        CUR2->OperandRight.ID               = CUR->OperandRight.ID;
+        CUR2->OperandRight_ID               = CUR->OperandRight.ID;
         if (CUR->OperandRight._PARSE_DATA.Length()) {
-            CUR2->OperandRight._PARSE_DATA = CUR->OperandRight._PARSE_DATA;
+            CUR2->OperandRight_PARSE_DATA = CUR->OperandRight._PARSE_DATA;
         }
 
         if (CUR->OperandLeft.TYPE == MAY_IGNORE_RESULT)
-            CUR2->Operator.FLAGS               = MAY_IGNORE_RESULT;
+            CUR2->Operator_FLAGS               = MAY_IGNORE_RESULT;
         else
-            CUR2->Operator.FLAGS               = 0;
+            CUR2->Operator_FLAGS               = 0;
     }
     OptimizedPIF->Clear();
     // end optimization
@@ -2073,12 +2102,12 @@ AnsiString Optimizer::DEBUG_INFO() {
             res += AnsiString(i) + AnsiString(". ") +
                    AnsiString("(ID: ") + AnsiString(OE->Result_ID) +
                    AnsiString(")\t=> ") +
-                   AnsiString("(ID: ") + AnsiString(OE->Operator.ID) +
-                   AnsiString(" TYPE:") + AnsiString((int)OE->Operator.TYPE) +
-                   AnsiString(") '") + GetKeyWord(OE->Operator.ID) +
+                   AnsiString("(ID: ") + AnsiString(OE->Operator_ID) +
+                   AnsiString(" TYPE:") + AnsiString((int)OE->Operator_TYPE) +
+                   AnsiString(") '") + GetKeyWord(OE->Operator_ID) +
 
                    AnsiString("' (LP: ") + "OPTIMIZED OUT/" + AnsiString(OE->OperandLeft_ID) +
-                   AnsiString(" RP: ") + OE->OperandRight._PARSE_DATA.c_str() + "/" + AnsiString(OE->OperandRight.ID) +
+                   AnsiString(" RP: ") + OE->OperandRight_PARSE_DATA.c_str() + "/" + AnsiString(OE->OperandRight_ID) +
 
                    AnsiString(") GO:") + AnsiString(OE->OperandReserved_ID) +
                    AnsiString("\n");
@@ -2190,7 +2219,7 @@ int Optimizer::ComputeSharedSize(concept_FILE *in) {
         // to do !
         RuntimeOptimizedElement OE;
         UNSERIALIZE_OPTIMIZED((&OE), in, false);
-        int len = OE.OperandRight._PARSE_DATA.Length();
+        int len = OE.OperandRight_PARSE_DATA.Length();
         if (len) {
 #ifdef ARM_ADJUST_SIZE
             size += ARM_ADJUST_SIZE(len + 1);
@@ -2312,14 +2341,14 @@ int Optimizer::Unserialize(concept_FILE *in, AnsiList *ModuleList, bool is_lib, 
         OE = &OE2;
         for (i = 0; i < codeCount; i++) {
             UNSERIALIZE_OPTIMIZED(OE, in, -1);
-            if (OE->Operator.TYPE == TYPE_OPERATOR) {
-                if (OE->Operator.ID == KEY_DLL_CALL) {
+            if (OE->Operator_TYPE == TYPE_OPERATOR) {
+                if (OE->Operator_ID == KEY_DLL_CALL) {
                     if (OE->OperandLeft_ID == STATIC_CLASS_DLL) {
-                        const char *funname = CODE [i].OperandRight._PARSE_DATA.c_str();
+                        const char *funname = CODE [i].OperandRight_PARSE_DATA.c_str();
 
                         int l_res = PIFOwner->LinkStatic(funname);
                         if (!l_res)
-                            PIFOwner->Errors.Add(new AnsiException(ERR870, 0, 870, OE->OperandRight._PARSE_DATA, _DEBUG_INFO_FILENAME, _CLASS->NAME, _MEMBER), DATA_EXCEPTION);
+                            PIFOwner->Errors.Add(new AnsiException(ERR870, 0, 870, OE->OperandRight_PARSE_DATA, _DEBUG_INFO_FILENAME, _CLASS->NAME, _MEMBER), DATA_EXCEPTION);
                     }
                 }
             }
@@ -2331,12 +2360,12 @@ int Optimizer::Unserialize(concept_FILE *in, AnsiList *ModuleList, bool is_lib, 
 
             UNSERIALIZE_OPTIMIZED(OE, in, is_pooled);
             //=====================//
-            if (OE->Operator.TYPE == TYPE_OPERATOR) {
-                if (OE->Operator.ID == KEY_DLL_CALL) {
+            if (OE->Operator_TYPE == TYPE_OPERATOR) {
+                if (OE->Operator_ID == KEY_DLL_CALL) {
                     if (OE->OperandLeft_ID == STATIC_CLASS_DLL) {
-                        OE->OperandRight.ID = PIFOwner->LinkStatic(OE->OperandRight._PARSE_DATA.c_str());
-                        if (!OE->OperandRight.ID) {
-                            PIFOwner->Errors.Add(new AnsiException(ERR870, 0, 870, OE->OperandRight._PARSE_DATA, _DEBUG_INFO_FILENAME, _CLASS->NAME, _MEMBER), DATA_EXCEPTION);
+                        OE->OperandRight_ID = PIFOwner->LinkStatic(OE->OperandRight_PARSE_DATA.c_str());
+                        if (!OE->OperandRight_ID) {
+                            PIFOwner->Errors.Add(new AnsiException(ERR870, 0, 870, OE->OperandRight_PARSE_DATA, _DEBUG_INFO_FILENAME, _CLASS->NAME, _MEMBER), DATA_EXCEPTION);
                         }
                     } else
                     if ((is_lib) && (OE->OperandLeft_ID > 0)) {
@@ -2353,14 +2382,14 @@ int Optimizer::Unserialize(concept_FILE *in, AnsiList *ModuleList, bool is_lib, 
                         }
                         OE->OperandLeft_ID = newID;
 
-                        OE->OperandRight.ID = Relocation [OE->OperandRight.ID - 1] + 1;
+                        OE->OperandRight_ID = Relocation [OE->OperandRight_ID - 1] + 1;
                     }
                 } else
                 if (is_lib) {
-                    if (OE->Operator.ID == KEY_SEL) {
-                        OE->OperandRight.ID = Relocation [OE->OperandRight.ID - 1] + 1;
+                    if (OE->Operator_ID == KEY_SEL) {
+                        OE->OperandRight_ID = Relocation [OE->OperandRight_ID - 1] + 1;
                     } else
-                    if ((OE->Operator.ID == KEY_NEW) && (OE->OperandLeft_ID >= 0)) {
+                    if ((OE->Operator_ID == KEY_NEW) && (OE->OperandLeft_ID >= 0)) {
                         int newID = ClassNames [OE->OperandLeft_ID - 1] + 1;
                         if (!newID) {
                             int delta = 1;

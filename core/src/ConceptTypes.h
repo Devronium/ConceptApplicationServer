@@ -270,8 +270,9 @@ typedef struct tsSHORT_AnalizerElement {
     POOLED(tsSHORT_AnalizerElement)
 } SHORT_AnalizerElement;
 
+#define OPERATOR_ID_TYPE unsigned short
 typedef struct tsPartialAnalizerElement {
-    INTEGER        ID;
+    OPERATOR_ID_TYPE ID;
     unsigned short _DEBUG_INFO_LINE;
     signed char    TYPE;
     signed char    FLAGS;
@@ -290,19 +291,16 @@ typedef struct tsOptimizedElement {
     POOLED(tsOptimizedElement)
 } OptimizedElement;
 
-typedef struct tsRuntimeElement {
-    SYS_INT        ID;
-    TinyString     _PARSE_DATA;
-
-    POOLED(tsRuntimeElement)
-} RuntimeElement;
-
 typedef struct tsRuntimeOptimizedElement {
-    PartialAnalizerElement Operator;
+    SYS_INT                OperandRight_ID;
+    TinyString             OperandRight_PARSE_DATA;
     INTEGER                OperandLeft_ID;
-    RuntimeElement         OperandRight;
     INTEGER                OperandReserved_ID;
     INTEGER                Result_ID;
+    OPERATOR_ID_TYPE       Operator_ID;
+    unsigned short         Operator_DEBUG_INFO_LINE;
+    signed char            Operator_TYPE;
+    signed char            Operator_FLAGS;
     signed char            OperandReserved_TYPE;
     POOLED(tsRuntimeOptimizedElement)
 } RuntimeOptimizedElement;
@@ -383,23 +381,26 @@ struct GreenThreadCycle {
     concept_fwrite_int(DELTA_UNREF(Param, Param->PARAM_INDEX), sizeof(INTEGER), Param->COUNT, out);
 
 #if __SIZEOF_POINTER__ == 8
- #define SERIALIZE_AE(AE, out, put_parse)              \
+ #define SERIALIZE_AE(OE, out, put_parse)              \
     {                                                  \
-        int _id = AE.ID;                               \
+        int _id = OE->OperandRight_ID;                 \
         concept_fwrite_int(&_id, sizeof(_id), 1, out); \
     }                                                  \
     if (put_parse) {                                   \
-        AE._PARSE_DATA.Serialize(out, SERIALIZE_16BIT_LENGTH); }
+        OE->OperandRight_PARSE_DATA.Serialize(out, SERIALIZE_16BIT_LENGTH); }
 #else
- #define SERIALIZE_AE(AE, out, put_parse)              \
-    concept_fwrite_int(&AE.ID, sizeof(AE.ID), 1, out); \
-    if (put_parse) {                                   \
-        AE._PARSE_DATA.Serialize(out, SERIALIZE_16BIT_LENGTH); }
+ #define SERIALIZE_AE(OE, out, put_parse)                                           \
+    concept_fwrite_int(&OE->OperandRight_ID, sizeof(OE->OperandRight_ID), 1, out);  \
+    if (put_parse) {                                                                \
+        OE->OperandRight_PARSE_DATA.Serialize(out, SERIALIZE_16BIT_LENGTH); }
 #endif
 
-#define SERIALIZE_SHORT_AE(AE, out)                        \
-    concept_fwrite_int(&AE.TYPE, sizeof(AE.TYPE), 1, out); \
-    concept_fwrite_int(&AE.ID, sizeof(AE.ID), 1, out);
+#define SERIALIZE_SHORT_AE(OE, out)                            \
+    {                                                          \
+        int tempID = OE->Operator_ID;                          \
+        concept_fwrite_int(&OE->Operator_TYPE, sizeof(OE->Operator_TYPE), 1, out); \
+        concept_fwrite_int(&tempID, sizeof(tempID), 1, out);   \
+    }
 
 #define SERIALIZE_VIRTUAL_AE(TYPE, ID, out)          \
     concept_fwrite_int(&TYPE, sizeof(TYPE), 1, out); \
@@ -449,14 +450,14 @@ struct GreenThreadCycle {
     }
 
 #define SERIALIZE_OPTIMIZED(OE, out)                                                                                             \
-    SERIALIZE_SHORT_AE(OE->Operator, out);                                                                                       \
-    SERIALIZE_FLAGS(OE->Operator.FLAGS, out);                                                                                    \
+    SERIALIZE_SHORT_AE(OE, out);                                                                                                 \
+    SERIALIZE_FLAGS(OE->Operator_FLAGS, out);                                                                                    \
     concept_fwrite_int(&OE->OperandLeft_ID, sizeof(OE->OperandLeft_ID), 1, out);                                                 \
-    SERIALIZE_FLAGS(OE->Operator.FLAGS, out);                                                                                    \
-    if ((OE->Operator.TYPE == TYPE_OPERATOR) && (OE->Operator.ID == KEY_DLL_CALL) && (OE->OperandLeft_ID == STATIC_CLASS_DLL)) { \
-        SERIALIZE_AE(OE->OperandRight, out, 1);                                                                                  \
+    SERIALIZE_FLAGS(OE->Operator_FLAGS, out);                                                                                    \
+    if ((OE->Operator_TYPE == TYPE_OPERATOR) && (OE->Operator_ID == KEY_DLL_CALL) && (OE->OperandLeft_ID == STATIC_CLASS_DLL)) { \
+        SERIALIZE_AE(OE, out, 1);                                                                                                \
     } else {                                                                                                                     \
-        SERIALIZE_AE(OE->OperandRight, out, 0);                                                                                  \
+        SERIALIZE_AE(OE, out, 0);                                                                                                \
     }                                                                                                                            \
     SERIALIZE_VIRTUAL_AE(OE->OperandReserved_TYPE, OE->OperandReserved_ID, out);                                                 \
     concept_fwrite_int(&OE->Result_ID, sizeof(OE->Result_ID), 1, out);
@@ -480,24 +481,28 @@ struct GreenThreadCycle {
 #define SERIALIZE_FLAGS(flag, out)    concept_fwrite_int(&flag, sizeof(flag), 1, out);
 
 #if __SIZEOF_POINTER__ == 8
- #define UNSERIALIZE_AE(AE, out, get_parse, is_pooled) \
+ #define UNSERIALIZE_AE(OE, out, get_parse, is_pooled) \
     {                                                  \
         int _id;                                       \
         concept_fread_int(&_id, sizeof(_id), 1, out);  \
-        AE.ID = _id;                                   \
+        OE->OperandRight_ID = _id;                     \
     }                                                  \
     if (get_parse) {                                   \
-        AE._PARSE_DATA.Unserialize(out, SERIALIZE_16BIT_LENGTH, is_pooled); }
+        OE->OperandRight_PARSE_DATA.Unserialize(out, SERIALIZE_16BIT_LENGTH, is_pooled); }
 #else
- #define UNSERIALIZE_AE(AE, out, get_parse, is_pooled) \
-    concept_fread_int(&AE.ID, sizeof(AE.ID), 1, out);  \
-    if (get_parse) {                                   \
-        AE._PARSE_DATA.Unserialize(out, SERIALIZE_16BIT_LENGTH, is_pooled); }
+ #define UNSERIALIZE_AE(OE, out, get_parse, is_pooled)                              \
+    concept_fread_int(&OE->OperandRight_ID, sizeof(OE->OperandRight_ID), 1, out);   \
+    if (get_parse) {                                                                \
+        OE->OperandRight_PARSE_DATA.Unserialize(out, SERIALIZE_16BIT_LENGTH, is_pooled); }
 #endif
 
-#define UNSERIALIZE_SHORT_AE(AE, out)                 \
-    concept_fread_int(&AE.TYPE, sizeof(AE.TYPE), 1, out); \
-    concept_fread_int(&AE.ID, sizeof(AE.ID), 1, out);     \
+#define UNSERIALIZE_SHORT_AE(OE, out)                                             \
+    {                                                                             \
+        int tempID;                                                               \
+        concept_fread_int(&OE->Operator_TYPE, sizeof(OE->Operator_TYPE), 1, out); \
+        concept_fread_int(&tempID, sizeof(tempID), 1, out);                       \
+        OE->Operator_ID = tempID;                                                 \
+    }
 
 #define UNSERIALIZE_VIRTUAL_AE(TYPE, ID, out)       \
     concept_fread_int(&TYPE, sizeof(TYPE), 1, out); \
@@ -565,14 +570,14 @@ struct GreenThreadCycle {
     }
 
 #define UNSERIALIZE_OPTIMIZED(OE, out, is_pooled)                                                                                \
-    UNSERIALIZE_SHORT_AE(OE->Operator, out);                                                                                     \
-    UNSERIALIZE_FLAGS(OE->Operator.FLAGS, out);                                                                                  \
+    UNSERIALIZE_SHORT_AE(OE, out);                                                                                               \
+    UNSERIALIZE_FLAGS(OE->Operator_FLAGS, out);                                                                                  \
     concept_fread_int(&OE->OperandLeft_ID, sizeof(OE->OperandLeft_ID), 1, out);                                                  \
-    UNSERIALIZE_FLAGS(OE->Operator.FLAGS, out);                                                                                  \
-    if ((OE->Operator.TYPE == TYPE_OPERATOR) && (OE->Operator.ID == KEY_DLL_CALL) && (OE->OperandLeft_ID == STATIC_CLASS_DLL)) { \
-        UNSERIALIZE_AE(OE->OperandRight, out, 1, is_pooled);                                                                     \
+    UNSERIALIZE_FLAGS(OE->Operator_FLAGS, out);                                                                                  \
+    if ((OE->Operator_TYPE == TYPE_OPERATOR) && (OE->Operator_ID == KEY_DLL_CALL) && (OE->OperandLeft_ID == STATIC_CLASS_DLL)) { \
+        UNSERIALIZE_AE(OE, out, 1, is_pooled);                                                                                   \
     } else {                                                                                                                     \
-        UNSERIALIZE_AE(OE->OperandRight, out, 0, is_pooled);                                                                     \
+        UNSERIALIZE_AE(OE, out, 0, is_pooled);                                                                                   \
     }                                                                                                                            \
     UNSERIALIZE_VIRTUAL_AE(OE->OperandReserved_TYPE, OE->OperandReserved_ID, out);                                               \
     concept_fread_int(&OE->Result_ID, sizeof(OE->Result_ID), 1, out);

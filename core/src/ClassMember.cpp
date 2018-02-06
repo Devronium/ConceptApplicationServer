@@ -473,11 +473,11 @@ bool ClassMember::FastOptimizedExecute(void *PIF, void *ref, ParamList *FORMAL_P
         RuntimeOptimizedElement *OE1 = &((Optimizer *)this->OPTIMIZER)->CODE[0];
         RuntimeOptimizedElement *OE2 = &((Optimizer *)this->OPTIMIZER)->CODE[1];
 
-        if ((OE1->Operator.TYPE == TYPE_OPERATOR) && (OE1->Operator.ID == KEY_SEL) && (OE1->OperandLeft_ID == 1) &&
-            (OE2->Operator.TYPE == TYPE_OPERATOR) && ((OE2->Operator.ID == KEY_ASG) || (OE2->Operator.ID == KEY_BY_REF)) && (OE1->Result_ID == OE2->OperandLeft_ID) && (OE2->OperandRight.ID == 2)) {
+        if ((OE1->Operator_TYPE == TYPE_OPERATOR) && (OE1->Operator_ID == KEY_SEL) && (OE1->OperandLeft_ID == 1) &&
+            (OE2->Operator_TYPE == TYPE_OPERATOR) && ((OE2->Operator_ID == KEY_ASG) || (OE2->Operator_ID == KEY_BY_REF)) && (OE1->Result_ID == OE2->OperandLeft_ID) && (OE2->OperandRight_ID == 2)) {
             VariableDATA *sndr = SenderCTX [DELTA_UNREF(FORMAL_PARAM, FORMAL_PARAM->PARAM_INDEX) [0] - 1];
             if (sndr) {
-                int         reloc      = ((CompiledClass *)ref)->_Class->Relocation(OE1->OperandRight.ID - 1);
+                int         reloc      = ((CompiledClass *)ref)->_Class->Relocation(OE1->OperandRight_ID - 1);
                 ClassMember *pMEMBER_i = reloc ? ((CompiledClass *)ref)->_Class->pMEMBERS [reloc - 1] : 0;
                 if ((pMEMBER_i) && (!pMEMBER_i->IS_FUNCTION) && (pMEMBER_i->Defined_In == this->Defined_In)) {
                     int          relocation2 = ((CompiledClass *)ref)->_Class->RELOCATIONS2 [reloc - 1] - 1;

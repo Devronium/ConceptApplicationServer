@@ -32,8 +32,6 @@ VariableDATA *GetClassMember(void *CLASS_PTR, const char *class_member_name) {
                     ParamList PLIST;
                     PLIST.COUNT = 0;
 
-                    RuntimeElement AE;
-                    AE.ID = 0;
                     PIFAlizator  *PIF   = GET_PIF(((CompiledClass *)CLASS_PTR));
                     VariableDATA *Owner = (VariableDATA *)VAR_ALLOC(PIF);
                     Owner->CLASS_DATA         = CLASS_PTR;
@@ -42,12 +40,16 @@ VariableDATA *GetClassMember(void *CLASS_PTR, const char *class_member_name) {
                     Owner->TYPE = VARIABLE_CLASS;
                     ((CompiledClass *)CLASS_PTR)->LINKS++;
 
+                    RuntimeOptimizedElement OE;
+                    OE.Operator_DEBUG_INFO_LINE = 0;
+                    OE.Operator_ID = 0;
+                    OE.OperandRight_ID = 0;
+
                     try {
                         VariableDATA *VarDATA = CCode->ExecuteMember(PIF,
                                                                      index,
                                                                      Owner,
-                                                                     NULL,
-                                                                     &AE,
+                                                                     &OE,
                                                                      true,
                                                                      CM->IS_FUNCTION == 3 ? 0 : &PLIST,
                                                                      (VariableDATA **)-1,
