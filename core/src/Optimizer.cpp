@@ -1963,11 +1963,11 @@ Optimizer::~Optimizer() {
 #ifdef NO_MEMALGIN
             delete[] CODE;
 #else
-#ifdef _WIN32
             for (int i = 0; i < codeCount; i++) {
                 // call destructor manually
                 CODE[i].OperandRight_PARSE_DATA.~TinyString();
             }
+#ifdef _WIN32
             _aligned_free(CODE);
 #else
             free(CODE);
@@ -2321,7 +2321,24 @@ int Optimizer::Unserialize(concept_FILE *in, AnsiList *ModuleList, bool is_lib, 
         if (is_pooled) {
             CODE = (RuntimeOptimizedElement *)SHAlloc(sizeof(RuntimeOptimizedElement) * codeCount);
         } else {
+#ifdef NO_MEMALGIN
             CODE = new RuntimeOptimizedElement [codeCount];
+#else
+#ifdef _WIN32
+        #ifdef __SIZEOF_POINTER__
+            CODE = (RuntimeOptimizedElement *)_aligned_malloc(sizeof(RuntimeOptimizedElement) * codeCount, __SIZEOF_POINTER__);
+        #else
+            CODE = (RuntimeOptimizedElement *)_aligned_malloc(sizeof(RuntimeOptimizedElement) * codeCount, 4);
+        #endif
+#else
+        #ifdef __SIZEOF_POINTER__
+            if (!posix_memalign((void **)&CODE, __SIZEOF_POINTER__, sizeof(RuntimeOptimizedElement) * codeCount))
+        #else
+            if (!posix_memalign((void **)&CODE, 8, sizeof(RuntimeOptimizedElement) * codeCount))
+        #endif
+#endif
+            memset(CODE, 0, sizeof(RuntimeOptimizedElement) * codeCount);
+#endif
         }
     }
 
