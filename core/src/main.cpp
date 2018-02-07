@@ -2536,6 +2536,58 @@ AnsiString GetKeyPath(AnsiString *HOME_BASE, const char *path, const char *categ
     return temp;
 }
 
+void SetEnvVar(char *varname, const char *value) {
+#ifdef _WIN32
+    AnsiString my_str = varname;
+    my_str += (char *)"=";
+    my_str += (char *)value;
+    _putenv(my_str.c_str());
+#else
+    setenv(varname, value, 1);
+#endif
+}
+
+char *hex_to_string(char *str, char *ref, int max_len = 0x1FFF) {
+    int len = strlen(str);
+
+    if (len / 2 > max_len)
+        return NULL;
+    int           idx  = 0;
+    unsigned char *res = (unsigned char *)ref;
+    if ((len > 0) && (len % 2 == 0)) {
+        for (int i = 0; i < len; i += 2) {
+            unsigned char c1 = str[i];
+            unsigned char c2 = str[i + 1];
+            if ((c1 >= 'a') && (c1 <= 'f'))
+                c1 = 10 + c1 - 'a';
+            else
+            if ((c1 >= 'A') && (c1 <= 'F'))
+                c1 = 10 + c1 - 'A';
+            else
+            if ((c1 >= '0') && (c1 <= '9'))
+                c1 -= '0';
+            else
+                return NULL;
+
+            if ((c2 >= 'a') && (c2 <= 'f'))
+                c2 = 10 + c2 - 'a';
+            else
+            if ((c2 >= 'A') && (c2 <= 'F'))
+                c2 = 10 + c2 - 'A';
+            else
+            if ((c2 >= '0') && (c2 <= '9'))
+                c2 -= '0';
+            else
+                return NULL;
+
+            unsigned char c = c1 * 16 + c2;
+            res[idx++] = c;
+        }
+    }
+    res[idx] = 0;
+    return ref;
+}
+
 int need_compilation(char *filename) {
     AnsiString accel_filename = filename;
 
@@ -2554,6 +2606,109 @@ int need_compilation(char *filename) {
 
     return 0;
 } 
+
+void CheckPoint(int _status) {
+    // nothing
+}
+
+int cas_main(int argc, char **argv) {
+    if (argc < 10) {
+        fprintf(stderr, "This program is used internaly by Concept Server and should not be instantiated from shell.\n");
+        return -10;
+    }
+    char *arguments = argv[argc - 1];
+
+    if (arguments)
+        SetEnvVar("CONCEPT_ARGUMENTS", arguments);
+
+    int        use_pools     = atoi(getenv("CONCEPT_UseSharedMemoryPool"));
+#ifdef _WIN32
+    WSAData wsa;
+    WSAStartup(MAKEWORD(2, 2), &wsa);
+    char *concept_root = getenv("CONCEPT_ROOT");
+    if (concept_root)
+        chdir(concept_root);
+#endif
+    int debug = 0;
+    if ((argc >= 10) && (argv[0][1])) {
+        debug = atoi(getenv("CONCEPT_DEBUG"));
+
+        if (debug)
+            SetEnvVar("CONCEPT_DEBUG", "-1");
+    } else
+        debug = atoi(argv[0]);
+
+    char *filename = argv[6];
+    SetEnvVar("CONCEPT_FILENAME", filename);
+    SOCKET sock        = /*dup*/ ((SOCKET)atoi(argv[7]));
+    char   *Include    = argv[8];
+    char   *Library    = argv[9];
+    char   *DEBUG_HOST = 0;
+    int    DEBUG_PORT  = 2663;
+    int    direct_pipe = atoi(argv[1]);
+    int    pipein      = atoi(argv[2]);
+    int    pipeout     = atoi(argv[3]);
+    int    apid        = atoi(argv[4]);
+    int    parent_apid = atoi(argv[5]);
+
+    char *SERVER_PUBLIC_KEY  = 0;
+    char *SERVER_PRIVATE_KEY = 0;
+    char *CLIENT_PUBLIC_KEY  = 0;
+
+    int  autocompile = 0;
+
+    int secured = 0;
+
+    AnsiString got_file = SetWebDirectory(filename);
+    filename = got_file.c_str();
+
+    AnsiString temp1;
+    AnsiString temp2;
+    AnsiString temp3;
+
+    char spbk[8192];
+    char sprk[8192];
+    char cpbk[8192];
+
+    SERVER_PUBLIC_KEY  = (argc > 10) && (argv[10][0]) ? hex_to_string(argv[10], spbk) : 0;
+    SERVER_PRIVATE_KEY = (argc > 11) && (argv[11][0]) ? hex_to_string(argv[11], sprk) : 0;
+    CLIENT_PUBLIC_KEY  = (argc > 12) && (argv[12][0]) ? hex_to_string(argv[12], cpbk) : 0;
+    if ((SERVER_PRIVATE_KEY) && (CLIENT_PUBLIC_KEY))
+        secured = 1;
+
+    int size = -1;
+
+    SetEnvVar("REMOTE_SECURED", secured ? "1" : "0");
+    SetEnvVar("REMOTE_DEBUG", debug ? "1" : "0");
+
+    if (use_pools) {
+        size = Concept_CachedInit(filename);
+        if (size < 0)
+            fprintf(stderr, "Caching disabled - no valid compiled version for %s\n", filename);
+        else
+            fprintf(stderr, "Cache init (%s), computed size: %i\n", filename, size);
+    }
+
+    SetDirectPipe(direct_pipe);
+
+    int res = Concept_Execute2(filename, Include, Library, (ForeignPrint)Print, sock, 0, 0, 0, SERVER_PUBLIC_KEY, SERVER_PRIVATE_KEY, CLIENT_PUBLIC_KEY, pipein, pipeout, apid, parent_apid, CheckPoint, 0);
+    if (res) {
+        switch (res) {
+            case -1:
+            case -2:
+            case -3:
+                fprintf(stderr, "Result: %i\n", res);
+                break;
+        }
+    }
+    if (size > 0)
+        Concept_CachedDone(filename);
+
+#ifdef _WIN32
+    WSACleanup();
+#endif
+    return res;
+}
 
 int main(int argc, char **argv) {
     char       *filename = 0;
@@ -2577,6 +2732,7 @@ int main(int argc, char **argv) {
     int  arg_start    = 2;
     char *force_chdir = getenv("CONCEPT_FORCE_CHDIR");
     int  chdir        = 0;
+    int  cas          = 0;
     if (force_chdir)
         chdir = atoi(force_chdir);
 
@@ -2588,12 +2744,15 @@ int main(int argc, char **argv) {
                 if (!strcmp(arg, "-debug")) {
                     debug = 1;
                     arg_start++;
-                    //arg_start = 3;
                 } else
                 if (!strcmp(arg, "-chdir")) {
                     chdir = 1;
                     arg_start++;
-                    //arg_start = 3;
+                } else
+                if (!strcmp(arg, "-cas")) {
+                    cas = 1;
+                    arg_start++;
+                    return cas_main(argc - (i - 1), argv + (i - 1));
                 } else {
                     fprintf(stderr, "Unknown option : %s\n",  arg);
                     return -1;

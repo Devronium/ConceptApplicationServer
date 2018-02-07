@@ -1960,7 +1960,7 @@ Optimizer::~Optimizer() {
         }
 
         if (CODE) {
-#ifdef NO_MEMALGIN
+#ifdef NO_MEMALIGN
             delete[] CODE;
 #else
             for (int i = 0; i < codeCount; i++) {
@@ -1994,7 +1994,7 @@ void Optimizer::GenerateIntermediateCode() {
     paramCount = ParameterList->Count();
 
     if (codeCount) {
-#ifdef NO_MEMALGIN
+#ifdef NO_MEMALIGN
         CODE = new RuntimeOptimizedElement [codeCount];
 #else
 #ifdef _WIN32
@@ -2319,7 +2319,7 @@ int Optimizer::Unserialize(concept_FILE *in, AnsiList *ModuleList, bool is_lib, 
         if (is_pooled) {
             CODE = (RuntimeOptimizedElement *)SHAlloc(sizeof(RuntimeOptimizedElement) * codeCount);
         } else {
-#ifdef NO_MEMALGIN
+#ifdef NO_MEMALIGN
             CODE = new RuntimeOptimizedElement [codeCount];
 #else
 #ifdef _WIN32
