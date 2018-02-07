@@ -1602,16 +1602,15 @@ INTEGER Invoke(INTEGER INVOKE_TYPE, ...) {
                         TreeContainer           *reftc = &tc[it];
 
                         reftc->Operator_ID       = OE->Operator_ID;
-                        reftc->Operator_TYPE     = OE->Operator_TYPE;
                         reftc->OperandLeft_ID    = OE->OperandLeft_ID;
                         reftc->OperandRight_ID   = OE->OperandRight_ID;
-                        if ((OE->Operator_TYPE == TYPE_OPERATOR) && (OE->Operator_ID == KEY_DLL_CALL) && (OE->OperandLeft_ID == STATIC_CLASS_DLL)) {
+                        if ((OE->Operator_ID == KEY_DLL_CALL) && (OE->OperandLeft_ID == STATIC_CLASS_DLL)) {
                             reftc->Function = (char *)OE->OperandRight_PARSE_DATA.c_str();
                         } else {
                             reftc->Function = 0;
                         }
 
-                        if ((OE->Operator_TYPE == TYPE_OPERATOR) && ((OE->Operator_ID == KEY_DLL_CALL) || (OE->Operator_ID == KEY_SEL) || (OE->Operator_ID == KEY_NEW))) {
+                        if ((OE->Operator_ID == KEY_DLL_CALL) || (OE->Operator_ID == KEY_SEL) || (OE->Operator_ID == KEY_NEW)) {
                             if ((OE->Operator_ID == KEY_SEL) && (OE->OperandLeft_ID == 1)) {
                                 int         i2          = (int)OE->OperandRight_ID - 1;
                                 int         relocation2 = CC->Relocation(i2);

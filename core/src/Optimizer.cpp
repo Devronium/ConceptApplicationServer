@@ -1900,7 +1900,7 @@ int Optimizer::CanInline(ClassMember *owner, const char **remotename) {
         return 0;
     if (codeCount == 2) {
         OE = &CODE[0];
-        if ((OE) && (OE->Operator_TYPE == TYPE_OPERATOR) && (OE->Operator_ID == KEY_DLL_CALL) && 
+        if ((OE) && (OE->Operator_ID == KEY_DLL_CALL) && 
             (OE->OperandLeft_ID == STATIC_CLASS_DLL) && 
             (OE->OperandReserved_TYPE == TYPE_PARAM_LIST) && (OE->OperandReserved_ID <= paramCount)) {
             // check parameters
@@ -1916,7 +1916,7 @@ int Optimizer::CanInline(ClassMember *owner, const char **remotename) {
                 return 0;
 
             OE2 = &CODE[1];
-            if ((!OE2) || (OE2->Operator_TYPE != TYPE_OPTIMIZED_KEYWORD) || (OE2->Operator_ID != KEY_OPTIMIZED_RETURN) || 
+            if ((!OE2) || (OE2->Operator_ID != KEY_OPTIMIZED_RETURN) || 
                 (OE2->OperandRight_ID != OE->Result_ID))
                 return 0;
 
@@ -1998,17 +1998,9 @@ void Optimizer::GenerateIntermediateCode() {
         CODE = new RuntimeOptimizedElement [codeCount];
 #else
 #ifdef _WIN32
-        #ifdef __SIZEOF_POINTER__
-            CODE = (RuntimeOptimizedElement *)_aligned_malloc(sizeof(RuntimeOptimizedElement) * codeCount, __SIZEOF_POINTER__);
-        #else
-            CODE = (RuntimeOptimizedElement *)_aligned_malloc(sizeof(RuntimeOptimizedElement) * codeCount, 4);
-        #endif
+        CODE = (RuntimeOptimizedElement *)_aligned_malloc(sizeof(RuntimeOptimizedElement) * codeCount, sizeof(void *) * 2);
 #else
-        #ifdef __SIZEOF_POINTER__
-            if (!posix_memalign((void **)&CODE, __SIZEOF_POINTER__, sizeof(RuntimeOptimizedElement) * codeCount))
-        #else
-            if (!posix_memalign((void **)&CODE, 8, sizeof(RuntimeOptimizedElement) * codeCount))
-        #endif
+        if (!posix_memalign((void **)&CODE, sizeof(void *) * 2, sizeof(RuntimeOptimizedElement) * codeCount))
 #endif
         memset(CODE, 0, sizeof(RuntimeOptimizedElement) * codeCount);
 #endif
@@ -2035,7 +2027,6 @@ void Optimizer::GenerateIntermediateCode() {
         CUR2->OperandReserved_TYPE = CUR->OperandReserved.TYPE;
 
         CUR2->Operator_ID               = CUR->Operator.ID;
-        CUR2->Operator_TYPE             = CUR->Operator.TYPE;
         CUR2->Operator_DEBUG_INFO_LINE = CUR->Operator._DEBUG_INFO_LINE;
 
         CUR2->OperandLeft_ID               = CUR->OperandLeft.ID;
@@ -2103,7 +2094,6 @@ AnsiString Optimizer::DEBUG_INFO() {
                    AnsiString("(ID: ") + AnsiString(OE->Result_ID) +
                    AnsiString(")\t=> ") +
                    AnsiString("(ID: ") + AnsiString(OE->Operator_ID) +
-                   AnsiString(" TYPE:") + AnsiString((int)OE->Operator_TYPE) +
                    AnsiString(") '") + GetKeyWord(OE->Operator_ID) +
 
                    AnsiString("' (LP: ") + "OPTIMIZED OUT/" + AnsiString(OE->OperandLeft_ID) +
@@ -2130,7 +2120,7 @@ AnsiString Optimizer::DEBUG_INFO() {
     return res;
 }
 
-int Optimizer::Serialize(FILE *out, bool is_lib) {
+int Optimizer::Serialize(FILE *out, bool is_lib, int version) {
     int i;
 
     concept_fwrite_int(&dataCount, sizeof(dataCount), 1, out);
@@ -2160,13 +2150,17 @@ int Optimizer::Serialize(FILE *out, bool is_lib) {
 
     concept_fwrite_int(&codeCount, sizeof(codeCount), 1, out);
     for (i = 0; i < codeCount; i++) {
-        SERIALIZE_OPTIMIZED((&CODE [i]), out);
+        if (version == 1) {
+            SERIALIZE_OPTIMIZEDv2((&CODE [i]), out);
+        } else {
+            SERIALIZE_OPTIMIZED((&CODE [i]), out);
+        }
     }
 
     return 0;
 }
 
-int Optimizer::ComputeSharedSize(concept_FILE *in) {
+int Optimizer::ComputeSharedSize(concept_FILE *in, int version) {
     int     size = 0;
     INTEGER dataCount;
     INTEGER codeCount;
@@ -2218,7 +2212,11 @@ int Optimizer::ComputeSharedSize(concept_FILE *in) {
     for (int i = 0; i < codeCount; i++) {
         // to do !
         RuntimeOptimizedElement OE;
-        UNSERIALIZE_OPTIMIZED((&OE), in, false);
+        if (version) {
+            UNSERIALIZE_OPTIMIZEDv2((&OE), in, false);
+        } else {
+            UNSERIALIZE_OPTIMIZED((&OE), in, false);
+        }
         int len = OE.OperandRight_PARSE_DATA.Length();
         if (len) {
 #ifdef ARM_ADJUST_SIZE
@@ -2231,7 +2229,7 @@ int Optimizer::ComputeSharedSize(concept_FILE *in) {
     return size;
 }
 
-int Optimizer::Unserialize(concept_FILE *in, AnsiList *ModuleList, bool is_lib, int *ClassNames, int *Relocation) {
+int Optimizer::Unserialize(concept_FILE *in, AnsiList *ModuleList, bool is_lib, int *ClassNames, int *Relocation, int version) {
     int         i;
     signed char is_pooled  = this->PIFOwner->is_buffer ? 0 : (signed char)SHIsPooled();
     bool        is_created = this->PIFOwner->is_buffer ? 0 : SHIsCreated();
@@ -2357,16 +2355,18 @@ int Optimizer::Unserialize(concept_FILE *in, AnsiList *ModuleList, bool is_lib, 
         RuntimeOptimizedElement OE2;
         OE = &OE2;
         for (i = 0; i < codeCount; i++) {
-            UNSERIALIZE_OPTIMIZED(OE, in, -1);
-            if (OE->Operator_TYPE == TYPE_OPERATOR) {
-                if (OE->Operator_ID == KEY_DLL_CALL) {
-                    if (OE->OperandLeft_ID == STATIC_CLASS_DLL) {
-                        const char *funname = CODE [i].OperandRight_PARSE_DATA.c_str();
+            if (version) {
+                UNSERIALIZE_OPTIMIZEDv2(OE, in, -1);
+            } else {
+                UNSERIALIZE_OPTIMIZED(OE, in, -1);
+            }
+            if (OE->Operator_ID == KEY_DLL_CALL) {
+                if (OE->OperandLeft_ID == STATIC_CLASS_DLL) {
+                    const char *funname = CODE [i].OperandRight_PARSE_DATA.c_str();
 
-                        int l_res = PIFOwner->LinkStatic(funname);
-                        if (!l_res)
-                            PIFOwner->Errors.Add(new AnsiException(ERR870, 0, 870, OE->OperandRight_PARSE_DATA, _DEBUG_INFO_FILENAME, _CLASS->NAME, _MEMBER), DATA_EXCEPTION);
-                    }
+                    int l_res = PIFOwner->LinkStatic(funname);
+                    if (!l_res)
+                        PIFOwner->Errors.Add(new AnsiException(ERR870, 0, 870, OE->OperandRight_PARSE_DATA, _DEBUG_INFO_FILENAME, _CLASS->NAME, _MEMBER), DATA_EXCEPTION);
                 }
             }
         }
@@ -2375,51 +2375,53 @@ int Optimizer::Unserialize(concept_FILE *in, AnsiList *ModuleList, bool is_lib, 
             //=======================//
             OE = &CODE [i];
 
-            UNSERIALIZE_OPTIMIZED(OE, in, is_pooled);
+            if (version) {
+                UNSERIALIZE_OPTIMIZEDv2(OE, in, is_pooled);
+            } else {
+                UNSERIALIZE_OPTIMIZED(OE, in, is_pooled);
+            }
             //=====================//
-            if (OE->Operator_TYPE == TYPE_OPERATOR) {
-                if (OE->Operator_ID == KEY_DLL_CALL) {
-                    if (OE->OperandLeft_ID == STATIC_CLASS_DLL) {
-                        OE->OperandRight_ID = PIFOwner->LinkStatic(OE->OperandRight_PARSE_DATA.c_str());
-                        if (!OE->OperandRight_ID) {
-                            PIFOwner->Errors.Add(new AnsiException(ERR870, 0, 870, OE->OperandRight_PARSE_DATA, _DEBUG_INFO_FILENAME, _CLASS->NAME, _MEMBER), DATA_EXCEPTION);
-                        }
-                    } else
-                    if ((is_lib) && (OE->OperandLeft_ID > 0)) {
-                        int newID = ClassNames [OE->OperandLeft_ID - 1] + 1;
-                        if (!newID) {
-                            int delta = 1;
-                            for (int k = OE->OperandLeft_ID - 2; k >= 0; k--) {
-                                delta++;
-                                if (ClassNames [k] > -1) {
-                                    newID = ClassNames [k] + delta;
-                                    break;
-                                }
-                            }
-                        }
-                        OE->OperandLeft_ID = newID;
-
-                        OE->OperandRight_ID = Relocation [OE->OperandRight_ID - 1] + 1;
+            if (OE->Operator_ID == KEY_DLL_CALL) {
+                if (OE->OperandLeft_ID == STATIC_CLASS_DLL) {
+                    OE->OperandRight_ID = PIFOwner->LinkStatic(OE->OperandRight_PARSE_DATA.c_str());
+                    if (!OE->OperandRight_ID) {
+                        PIFOwner->Errors.Add(new AnsiException(ERR870, 0, 870, OE->OperandRight_PARSE_DATA, _DEBUG_INFO_FILENAME, _CLASS->NAME, _MEMBER), DATA_EXCEPTION);
                     }
                 } else
-                if (is_lib) {
-                    if (OE->Operator_ID == KEY_SEL) {
-                        OE->OperandRight_ID = Relocation [OE->OperandRight_ID - 1] + 1;
-                    } else
-                    if ((OE->Operator_ID == KEY_NEW) && (OE->OperandLeft_ID >= 0)) {
-                        int newID = ClassNames [OE->OperandLeft_ID - 1] + 1;
-                        if (!newID) {
-                            int delta = 1;
-                            for (int k = OE->OperandLeft_ID - 2; k >= 0; k--) {
-                                delta++;
-                                if (ClassNames [k] > -1) {
-                                    newID = ClassNames [k] + delta;
-                                    break;
-                                }
+                if ((is_lib) && (OE->OperandLeft_ID > 0)) {
+                    int newID = ClassNames [OE->OperandLeft_ID - 1] + 1;
+                    if (!newID) {
+                        int delta = 1;
+                        for (int k = OE->OperandLeft_ID - 2; k >= 0; k--) {
+                            delta++;
+                            if (ClassNames [k] > -1) {
+                                newID = ClassNames [k] + delta;
+                                break;
                             }
                         }
-                        OE->OperandLeft_ID = newID;
                     }
+                    OE->OperandLeft_ID = newID;
+
+                    OE->OperandRight_ID = Relocation [OE->OperandRight_ID - 1] + 1;
+                }
+            } else
+            if (is_lib) {
+                if (OE->Operator_ID == KEY_SEL) {
+                    OE->OperandRight_ID = Relocation [OE->OperandRight_ID - 1] + 1;
+                } else
+                if ((OE->Operator_ID == KEY_NEW) && (OE->OperandLeft_ID >= 0)) {
+                    int newID = ClassNames [OE->OperandLeft_ID - 1] + 1;
+                    if (!newID) {
+                        int delta = 1;
+                        for (int k = OE->OperandLeft_ID - 2; k >= 0; k--) {
+                            delta++;
+                            if (ClassNames [k] > -1) {
+                                newID = ClassNames [k] + delta;
+                                break;
+                            }
+                        }
+                    }
+                    OE->OperandLeft_ID = newID;
                 }
             }
         }

@@ -1006,7 +1006,7 @@ void ClassCode::GenerateCode(StaticList *GeneralMembers) {
     DataMembersCount = var_index;
 }
 
-int ClassCode::Serialize(PIFAlizator *PIF, FILE *out, bool is_lib) {
+int ClassCode::Serialize(PIFAlizator *PIF, FILE *out, bool is_lib, int version) {
     char temp_needed = NEEDED;
 
     if (is_lib) {
@@ -1036,7 +1036,7 @@ int ClassCode::Serialize(PIFAlizator *PIF, FILE *out, bool is_lib) {
             char is_defined_in_this_class = ((void *)CM_TARGET->Defined_In == (void *)this);
             concept_fwrite(&is_defined_in_this_class, sizeof(is_defined_in_this_class), 1, out);
             if (is_defined_in_this_class) {
-                CM_TARGET->Serialize(out, is_lib);
+                CM_TARGET->Serialize(out, is_lib, version);
             } else {
                 int clsid = ((ClassCode *)CM_TARGET->Defined_In)->CLSID;
                 concept_fwrite_int(&clsid, sizeof(clsid), 1, out);
@@ -1051,7 +1051,7 @@ int ClassCode::Serialize(PIFAlizator *PIF, FILE *out, bool is_lib) {
                 char is_defined_in_this_class = ((void *)CM->Defined_In == (void *)this);
                 concept_fwrite(&is_defined_in_this_class, sizeof(is_defined_in_this_class), 1, out);
                 if (is_defined_in_this_class) {
-                    CM->Serialize(out, is_lib);
+                    CM->Serialize(out, is_lib, version);
                 } else {
                     int clsid = ((ClassCode *)CM->Defined_In)->CLSID;
                     concept_fwrite_int(&clsid, sizeof(clsid), 1, out);
@@ -1063,7 +1063,7 @@ int ClassCode::Serialize(PIFAlizator *PIF, FILE *out, bool is_lib) {
     return 0;
 }
 
-int ClassCode::ComputeSharedSize(concept_FILE *in, int general_members) {
+int ClassCode::ComputeSharedSize(concept_FILE *in, int general_members, int version) {
     int size = 0;
 
     size += sizeof(AnsiList);
@@ -1101,7 +1101,7 @@ int ClassCode::ComputeSharedSize(concept_FILE *in, int general_members) {
             signed char IS_FUNCTION = 0;
             size += ClassMember::ComputeSharedSize(in, IS_FUNCTION);
             if (IS_FUNCTION == 1) {
-                size += Optimizer::ComputeSharedSize(in);
+                size += Optimizer::ComputeSharedSize(in, version);
             }
         } else {
             int clsid;
@@ -1111,7 +1111,7 @@ int ClassCode::ComputeSharedSize(concept_FILE *in, int general_members) {
     return size;
 }
 
-int ClassCode::Unserialize(PIFAlizator *PIF, concept_FILE *in, AnsiList *ClassList, bool is_lib, int *ClassNames, int *Relocation) {
+int ClassCode::Unserialize(PIFAlizator *PIF, concept_FILE *in, AnsiList *ClassList, bool is_lib, int *ClassNames, int *Relocation, int version) {
     bool is_created = PIF->is_buffer ? 0 : SHIsCreated();
     bool is_pooled  = PIF->is_buffer ? 0 : SHIsPooled();
     if ((!is_lib) && (Members)) {
@@ -1235,7 +1235,7 @@ int ClassCode::Unserialize(PIFAlizator *PIF, concept_FILE *in, AnsiList *ClassLi
 
             if (CM->IS_FUNCTION == 1) {
                 CM->OPTIMIZER = new Optimizer(PIF, &PIF->PIF, &PIF->VariableDescriptors, ((ClassCode *)(CM->Defined_In))->_DEBUG_INFO_FILENAME, this, CM->NAME, true);
-                ((Optimizer *)CM->OPTIMIZER)->Unserialize(in, PIF->ModuleList, is_lib, ClassNames, Relocation);
+                ((Optimizer *)CM->OPTIMIZER)->Unserialize(in, PIF->ModuleList, is_lib, ClassNames, Relocation, version);
             } else {
                 CM->OPTIMIZER = 0;
             }

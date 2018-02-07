@@ -291,6 +291,9 @@ typedef struct tsOptimizedElement {
     POOLED(tsOptimizedElement)
 } OptimizedElement;
 
+#define IS_OPERATOR(OE)     (OE->Operator_ID < KEYWORDS_START)
+#define IS_KEYWORD(OE)      (OE->Operator_ID >= KEYWORDS_START)
+
 typedef struct tsRuntimeOptimizedElement {
     SYS_INT                OperandRight_ID;
     TinyString             OperandRight_PARSE_DATA;
@@ -299,7 +302,7 @@ typedef struct tsRuntimeOptimizedElement {
     INTEGER                Result_ID;
     OPERATOR_ID_TYPE       Operator_ID;
     unsigned short         Operator_DEBUG_INFO_LINE;
-    signed char            Operator_TYPE;
+    // signed char            Operator_TYPE;
     signed char            Operator_FLAGS;
     signed char            OperandReserved_TYPE;
     POOLED(tsRuntimeOptimizedElement)
@@ -398,7 +401,10 @@ struct GreenThreadCycle {
 #define SERIALIZE_SHORT_AE(OE, out)                            \
     {                                                          \
         int tempID = OE->Operator_ID;                          \
-        concept_fwrite_int(&OE->Operator_TYPE, sizeof(OE->Operator_TYPE), 1, out); \
+        char type = TYPE_OPERATOR;                             \
+        if (IS_KEYWORD(OE))                                    \
+            type = TYPE_OPTIMIZED_KEYWORD;                     \
+        concept_fwrite_int(&type, sizeof(type), 1, out);       \
         concept_fwrite_int(&tempID, sizeof(tempID), 1, out);   \
     }
 
@@ -454,7 +460,19 @@ struct GreenThreadCycle {
     SERIALIZE_FLAGS(OE->Operator_FLAGS, out);                                                                                    \
     concept_fwrite_int(&OE->OperandLeft_ID, sizeof(OE->OperandLeft_ID), 1, out);                                                 \
     SERIALIZE_FLAGS(OE->Operator_FLAGS, out);                                                                                    \
-    if ((OE->Operator_TYPE == TYPE_OPERATOR) && (OE->Operator_ID == KEY_DLL_CALL) && (OE->OperandLeft_ID == STATIC_CLASS_DLL)) { \
+    if ((OE->Operator_ID == KEY_DLL_CALL) && (OE->OperandLeft_ID == STATIC_CLASS_DLL)) {                                         \
+        SERIALIZE_AE(OE, out, 1);                                                                                                \
+    } else {                                                                                                                     \
+        SERIALIZE_AE(OE, out, 0);                                                                                                \
+    }                                                                                                                            \
+    SERIALIZE_VIRTUAL_AE(OE->OperandReserved_TYPE, OE->OperandReserved_ID, out);                                                 \
+    concept_fwrite_int(&OE->Result_ID, sizeof(OE->Result_ID), 1, out);
+
+#define SERIALIZE_OPTIMIZEDv2(OE, out)                                                                                           \
+    concept_fwrite_int(&OE->Operator_ID, sizeof(OE->Operator_ID), 1, out);                                                        \
+    concept_fwrite_int(&OE->OperandLeft_ID, sizeof(OE->OperandLeft_ID), 1, out);                                                 \
+    SERIALIZE_FLAGS(OE->Operator_FLAGS, out);                                                                                    \
+    if ((OE->Operator_ID == KEY_DLL_CALL) && (OE->OperandLeft_ID == STATIC_CLASS_DLL)) {                                         \
         SERIALIZE_AE(OE, out, 1);                                                                                                \
     } else {                                                                                                                     \
         SERIALIZE_AE(OE, out, 0);                                                                                                \
@@ -499,7 +517,7 @@ struct GreenThreadCycle {
 #define UNSERIALIZE_SHORT_AE(OE, out)                                             \
     {                                                                             \
         int tempID;                                                               \
-        concept_fread_int(&OE->Operator_TYPE, sizeof(OE->Operator_TYPE), 1, out); \
+        concept_fread_int(&OE->Operator_FLAGS, sizeof(OE->Operator_FLAGS), 1, out); \
         concept_fread_int(&tempID, sizeof(tempID), 1, out);                       \
         OE->Operator_ID = tempID;                                                 \
     }
@@ -574,7 +592,19 @@ struct GreenThreadCycle {
     UNSERIALIZE_FLAGS(OE->Operator_FLAGS, out);                                                                                  \
     concept_fread_int(&OE->OperandLeft_ID, sizeof(OE->OperandLeft_ID), 1, out);                                                  \
     UNSERIALIZE_FLAGS(OE->Operator_FLAGS, out);                                                                                  \
-    if ((OE->Operator_TYPE == TYPE_OPERATOR) && (OE->Operator_ID == KEY_DLL_CALL) && (OE->OperandLeft_ID == STATIC_CLASS_DLL)) { \
+    if ((OE->Operator_ID == KEY_DLL_CALL) && (OE->OperandLeft_ID == STATIC_CLASS_DLL)) {                                         \
+        UNSERIALIZE_AE(OE, out, 1, is_pooled);                                                                                   \
+    } else {                                                                                                                     \
+        UNSERIALIZE_AE(OE, out, 0, is_pooled);                                                                                   \
+    }                                                                                                                            \
+    UNSERIALIZE_VIRTUAL_AE(OE->OperandReserved_TYPE, OE->OperandReserved_ID, out);                                               \
+    concept_fread_int(&OE->Result_ID, sizeof(OE->Result_ID), 1, out);
+
+#define UNSERIALIZE_OPTIMIZEDv2(OE, out, is_pooled)                                                                              \
+    concept_fread_int(&OE->Operator_ID, sizeof(OE->Operator_ID), 1, out);                                                        \
+    concept_fread_int(&OE->OperandLeft_ID, sizeof(OE->OperandLeft_ID), 1, out);                                                  \
+    UNSERIALIZE_FLAGS(OE->Operator_FLAGS, out);                                                                                  \
+    if ((OE->Operator_ID == KEY_DLL_CALL) && (OE->OperandLeft_ID == STATIC_CLASS_DLL)) {                                         \
         UNSERIALIZE_AE(OE, out, 1, is_pooled);                                                                                   \
     } else {                                                                                                                     \
         UNSERIALIZE_AE(OE, out, 0, is_pooled);                                                                                   \

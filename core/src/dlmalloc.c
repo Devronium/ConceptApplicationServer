@@ -2,7 +2,9 @@
 #define USE_DL_PREFIX
 #define NO_MALLOC_STATS    1
 #define INSECURE           1
-
+#ifdef _WIN32
+    #define MALLOC_ALIGNMENT  ((size_t)(4 * sizeof(void *)))
+#endif
 /*
    This is a version (aka dlmalloc) of malloc/free/realloc written by
    Doug Lea and released to the public domain, as explained at

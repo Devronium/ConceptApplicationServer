@@ -958,7 +958,7 @@ void ConceptInterpreter::AnalizeInstructionPath(Optimizer *OPT) {
     }
     for (int i = 0; i < count; i++) {
         OE = &OPT->CODE[i];
-        if (OE->Operator_TYPE == TYPE_OPERATOR) {
+        if (IS_OPERATOR(OE)) {
             switch (OE->Operator_ID) {
                 case KEY_SEL:
                     if (OE->OperandReserved_ID) {
@@ -1102,7 +1102,7 @@ void ConceptInterpreter::AnalizeInstructionPath(Optimizer *OPT) {
                     break;
             }
         } else
-        if (OE->Operator_TYPE == TYPE_OPTIMIZED_KEYWORD) {
+        if (IS_KEYWORD(OE)) {
             switch (OE->Operator_ID) {
                 case KEY_OPTIMIZED_THROW:
                 case KEY_OPTIMIZED_RETURN:
@@ -1117,7 +1117,7 @@ void ConceptInterpreter::AnalizeInstructionPath(Optimizer *OPT) {
                     // optimize IF .. GOTO to GOTO
                     if ((OE->Operator_ID == KEY_OPTIMIZED_IF) && (OE->OperandReserved_ID < count)) {
                         RuntimeOptimizedElement *OE2 = &OPT->CODE[OE->OperandReserved_ID];
-                        while ((OE2->Operator_TYPE == TYPE_OPTIMIZED_KEYWORD) && (OE2->Operator_ID == KEY_OPTIMIZED_GOTO)) {
+                        while (OE2->Operator_ID == KEY_OPTIMIZED_GOTO) {
                             OE->OperandReserved_ID = OE2->OperandReserved_ID;
                             if (OE2->OperandReserved_ID >= count)
                                 break;
@@ -1137,7 +1137,7 @@ void ConceptInterpreter::AnalizeInstructionPath(Optimizer *OPT) {
         bool optimizable = true;
         while (instruction_pointer <= count) {
             OE = &OPT->CODE[instruction_pointer - 1];
-            if (OE->Operator_TYPE == TYPE_OPERATOR) {
+            if (IS_OPERATOR(OE)) {
                 switch (OE->Operator_ID) {
                     case KEY_NEW:
                         prec_is_new = OE->Result_ID;
@@ -1225,7 +1225,7 @@ void ConceptInterpreter::AnalizeInstructionPath(Optimizer *OPT) {
                         break;
                 }
             } else
-            if (OE->Operator_TYPE == TYPE_OPTIMIZED_KEYWORD) {
+            if (IS_KEYWORD(OE)) {
                 switch (OE->Operator_ID) {
                     case KEY_OPTIMIZED_ECHO:
                     case KEY_OPTIMIZED_TRY_CATCH:
@@ -1281,7 +1281,7 @@ void ConceptInterpreter::AnalizeInstructionPath(Optimizer *OPT) {
             for (int i = start; i < end; i++) {
                 RuntimeOptimizedElement *OE = &OPT->CODE[i];
                 if (OE) {
-                    if (OE->Operator_TYPE == TYPE_OPTIMIZED_KEYWORD) {
+                    if (IS_KEYWORD(OE)) {
                         switch (OE->Operator_ID) {
                             case KEY_OPTIMIZED_GOTO:
                             case KEY_OPTIMIZED_IF:
@@ -1309,7 +1309,7 @@ void ConceptInterpreter::AnalizeInstructionPath(Optimizer *OPT) {
                 memset(dataflags, 0, sizeof(char) * dataCount);
                 for (int i = start; i < end; i++) {
                     OE = &OPT->CODE[i];
-                    if (OE->Operator_TYPE == TYPE_OPERATOR) {
+                    if (IS_OPERATOR(OE)) {
                         switch (OE->Operator_ID) {
                             case KEY_BY_REF:
                                 if (dataflags[OE->OperandLeft_ID - 1])
@@ -1379,7 +1379,7 @@ void ConceptInterpreter::AnalizeInstructionPath(Optimizer *OPT) {
                                 break;
                         }
                     } else
-                    if ((OE->Operator_TYPE == TYPE_OPTIMIZED_KEYWORD) && (OE->Operator_ID == KEY_OPTIMIZED_IF))
+                    if ((IS_KEYWORD(OE)) && (OE->Operator_ID == KEY_OPTIMIZED_IF))
                         dataflags[OE->OperandRight_ID - 1] = 1;
                 }
                 int buf[2];
@@ -1462,7 +1462,7 @@ void ConceptInterpreter::AnalizeInstructionPath(Optimizer *OPT) {
                     reg3 = 0;
                 }
 
-                if (OE->Operator_TYPE == TYPE_OPERATOR) {
+                if (IS_OPERATOR(OE)) {
                     switch (OE->Operator_ID) {
                         case KEY_BY_REF:
                         case KEY_ASG:
@@ -1495,12 +1495,12 @@ void ConceptInterpreter::AnalizeInstructionPath(Optimizer *OPT) {
                             }
                             if (end - i >= 7) {
                                 // detect array init
-                                if ((OPT->CODE[i + 1].Operator_TYPE == TYPE_OPERATOR) && (OPT->CODE[i + 1].Operator_ID == KEY_LES) && (OPT->CODE[i + 1].OperandLeft_ID == OE->OperandLeft_ID) &&
-                                    (OPT->CODE[i + 2].Operator_TYPE == TYPE_OPTIMIZED_KEYWORD) && (OPT->CODE[i + 2].Operator_ID == KEY_OPTIMIZED_IF) && (OPT->CODE[i + 1].Result_ID == OPT->CODE[i + 2].OperandRight_ID) &&
-                                    (OPT->CODE[i + 3].Operator_TYPE == TYPE_OPERATOR) && (OPT->CODE[i + 3].Operator_ID == KEY_INDEX_OPEN) && (OPT->CODE[i + 3].OperandRight_ID == OE->OperandLeft_ID) &&
-                                    (OPT->CODE[i + 4].Operator_TYPE == TYPE_OPERATOR) && ((OPT->CODE[i + 4].Operator_ID == KEY_ASG) || (OPT->CODE[i + 4].Operator_ID == KEY_BY_REF)) && (OPT->CODE[i + 3].Result_ID == OPT->CODE[i + 4].OperandLeft_ID) && (OE->OperandLeft_ID != OPT->CODE[i + 4].OperandRight_ID) &&
-                                    (OPT->CODE[i + 5].Operator_TYPE == TYPE_OPERATOR) && ((OPT->CODE[i + 5].Operator_ID == KEY_INC) || (OPT->CODE[i + 5].Operator_ID == KEY_INC_LEFT) || ((OPT->CODE[i + 5].Operator_ID == KEY_ASU) && (OPT->CODE[i + 5].OperandLeft_ID != OPT->CODE[i + 5].OperandRight_ID))) && (OPT->CODE[i + 5].OperandLeft_ID == OE->OperandLeft_ID) &&
-                                    (OPT->CODE[i + 6].Operator_TYPE == TYPE_OPTIMIZED_KEYWORD) && (OPT->CODE[i + 6].Operator_ID == KEY_OPTIMIZED_GOTO) && (OPT->CODE[i + 6].OperandReserved_ID == i + 1)) {
+                                if ((OPT->CODE[i + 1].Operator_ID == KEY_LES) && (OPT->CODE[i + 1].OperandLeft_ID == OE->OperandLeft_ID) &&
+                                    (OPT->CODE[i + 2].Operator_ID == KEY_OPTIMIZED_IF) && (OPT->CODE[i + 1].Result_ID == OPT->CODE[i + 2].OperandRight_ID) &&
+                                    (OPT->CODE[i + 3].Operator_ID == KEY_INDEX_OPEN) && (OPT->CODE[i + 3].OperandRight_ID == OE->OperandLeft_ID) &&
+                                    ((OPT->CODE[i + 4].Operator_ID == KEY_ASG) || (OPT->CODE[i + 4].Operator_ID == KEY_BY_REF)) && (OPT->CODE[i + 3].Result_ID == OPT->CODE[i + 4].OperandLeft_ID) && (OE->OperandLeft_ID != OPT->CODE[i + 4].OperandRight_ID) &&
+                                    ((OPT->CODE[i + 5].Operator_ID == KEY_INC) || (OPT->CODE[i + 5].Operator_ID == KEY_INC_LEFT) || ((OPT->CODE[i + 5].Operator_ID == KEY_ASU) && (OPT->CODE[i + 5].OperandLeft_ID != OPT->CODE[i + 5].OperandRight_ID))) && (OPT->CODE[i + 5].OperandLeft_ID == OE->OperandLeft_ID) &&
+                                    (OPT->CODE[i + 6].Operator_ID == KEY_OPTIMIZED_GOTO) && (OPT->CODE[i + 6].OperandReserved_ID == i + 1)) {
                                     sljit_emit_op1(compiler, SLJIT_MOV_P, SLJIT_R0, 0, SLJIT_S0, 0);
                                     sljit_emit_op1(compiler, SLJIT_MOV_P, SLJIT_R1, 0, SLJIT_IMM, (sljit_sw)OPT->CODE);
                                     sljit_emit_op1(compiler, SLJIT_MOV_P, SLJIT_R2, 0, SLJIT_IMM, (sljit_sw)i);
@@ -1776,7 +1776,7 @@ void ConceptInterpreter::AnalizeInstructionPath(Optimizer *OPT) {
                             } else
                                 OENext = 0;
 
-                            if ((OENext) && (OENext->Operator_ID == KEY_OPTIMIZED_IF) && (OENext->Operator_TYPE == TYPE_OPTIMIZED_KEYWORD) &&
+                            if ((OENext) && (OENext->Operator_ID == KEY_OPTIMIZED_IF) &&
                                 (OENext->OperandRight_ID == OE->Result_ID) && (usedflags[OE->Result_ID - 1] < 2) &&
                                 (icode >= start) && (icode < end) && (!cnt)) {
                                 OPERAND_LEFT
@@ -1819,7 +1819,7 @@ void ConceptInterpreter::AnalizeInstructionPath(Optimizer *OPT) {
                             } else
                                 OENext = 0;
 
-                            if ((OENext) && (OENext->Operator_ID == KEY_OPTIMIZED_IF) && (OENext->Operator_TYPE == TYPE_OPTIMIZED_KEYWORD) &&
+                            if ((OENext) && (OENext->Operator_ID == KEY_OPTIMIZED_IF) &&
                                 (OENext->OperandRight_ID == OE->Result_ID) && (usedflags[OE->Result_ID - 1] < 2) &&
                                 (icode >= start) && (icode < end) && (!cnt)) {
                                 OPERAND_LEFT
@@ -1862,7 +1862,7 @@ void ConceptInterpreter::AnalizeInstructionPath(Optimizer *OPT) {
                             } else
                                 OENext = 0;
 
-                            if ((OENext) && (OENext->Operator_ID == KEY_OPTIMIZED_IF) && (OENext->Operator_TYPE == TYPE_OPTIMIZED_KEYWORD) &&
+                            if ((OENext) && (OENext->Operator_ID == KEY_OPTIMIZED_IF) &&
                                 (OENext->OperandRight_ID == OE->Result_ID) && (usedflags[OE->Result_ID - 1] < 2) &&
                                 (icode >= start) && (icode < end) && (!cnt)) {
                                 OPERAND_LEFT
@@ -1905,7 +1905,7 @@ void ConceptInterpreter::AnalizeInstructionPath(Optimizer *OPT) {
                             } else
                                 OENext = 0;
 
-                            if ((OENext) && (OENext->Operator_ID == KEY_OPTIMIZED_IF) && (OENext->Operator_TYPE == TYPE_OPTIMIZED_KEYWORD) &&
+                            if ((OENext) && (OENext->Operator_ID == KEY_OPTIMIZED_IF) &&
                                 (OENext->OperandRight_ID == OE->Result_ID) && (usedflags[OE->Result_ID - 1] < 2) &&
                                 (icode >= start) && (icode < end) && (!cnt)) {
                                 OPERAND_LEFT
@@ -1948,7 +1948,7 @@ void ConceptInterpreter::AnalizeInstructionPath(Optimizer *OPT) {
                             } else
                                 OENext = 0;
 
-                            if ((OENext) && (OENext->Operator_ID == KEY_OPTIMIZED_IF) && (OENext->Operator_TYPE == TYPE_OPTIMIZED_KEYWORD) &&
+                            if ((OENext) && (OENext->Operator_ID == KEY_OPTIMIZED_IF) &&
                                 (OENext->OperandRight_ID == OE->Result_ID) && (usedflags[OE->Result_ID - 1] < 2) &&
                                 (icode >= start) && (icode < end) && (!cnt)) {
                                 OPERAND_LEFT
@@ -1991,7 +1991,7 @@ void ConceptInterpreter::AnalizeInstructionPath(Optimizer *OPT) {
                             } else
                                 OENext = 0;
 
-                            if ((OENext) && (OENext->Operator_ID == KEY_OPTIMIZED_IF) && (OENext->Operator_TYPE == TYPE_OPTIMIZED_KEYWORD) &&
+                            if ((OENext) && (OENext->Operator_ID == KEY_OPTIMIZED_IF) &&
                                 (OENext->OperandRight_ID == OE->Result_ID) && (usedflags[OE->Result_ID - 1] < 2) &&
                                 (icode >= start) && (icode < end) && (!cnt)) {
                                 OPERAND_LEFT
@@ -2034,7 +2034,7 @@ void ConceptInterpreter::AnalizeInstructionPath(Optimizer *OPT) {
                             } else
                                 OENext = 0;
 
-                            if ((OENext) && (OENext->Operator_ID == KEY_OPTIMIZED_IF) && (OENext->Operator_TYPE == TYPE_OPTIMIZED_KEYWORD) &&
+                            if ((OENext) && (OENext->Operator_ID == KEY_OPTIMIZED_IF) &&
                                 (OENext->OperandRight_ID == OE->Result_ID) && (usedflags[OE->Result_ID - 1] < 2) &&
                                 (icode >= start) && (icode < end) && (!cnt)) {
                                 OPERAND_LEFT
@@ -2358,7 +2358,7 @@ void ConceptInterpreter::AnalizeInstructionPath(Optimizer *OPT) {
                             } else
                                 OENext = 0;
 
-                            if ((OENext) && (OENext->Operator_TYPE == TYPE_OPERATOR) && ((OENext->Operator_ID == KEY_ASG) || (OENext->Operator_ID == KEY_BY_REF)) && (OENext->OperandLeft_ID == OE->Result_ID) && (dataflags[OE->Result_ID - 1] != 2) && (!cnt)) {
+                            if ((OENext) && ((OENext->Operator_ID == KEY_ASG) || (OENext->Operator_ID == KEY_BY_REF)) && (OENext->OperandLeft_ID == OE->Result_ID) && (dataflags[OE->Result_ID - 1] != 2) && (!cnt)) {
                                 OPERAND_LEFT
                                     OPERAND_RIGHT
                                 // result from OENext
@@ -2396,7 +2396,7 @@ void ConceptInterpreter::AnalizeInstructionPath(Optimizer *OPT) {
                                                     SLJIT_MEM1(SLJIT_R0), OFFSETOF(VariableDATA, NUMBER_DATA));
                                 }
                             } else
-                            if ((OENext) && (OENext->Operator_TYPE == TYPE_OPTIMIZED_KEYWORD) && (OENext->Operator_ID == KEY_OPTIMIZED_IF) && (OENext->OperandRight_ID == OE->Result_ID)) {
+                            if ((OENext) && (OENext->Operator_ID == KEY_OPTIMIZED_IF) && (OENext->OperandRight_ID == OE->Result_ID)) {
                                 if (usedflags[OE->Result_ID - 1] != 1) {
                                     OPERAND_LEFT2
                                     OPERAND_RIGHT2
@@ -2502,8 +2502,8 @@ void ConceptInterpreter::AnalizeInstructionPath(Optimizer *OPT) {
                         default:
                             break;
                     }
-                } else
-                if (OE->Operator_TYPE == TYPE_OPTIMIZED_KEYWORD) {
+                } else {
+                    // if (IS_KEYWORD(OE)) {
                     switch (OE->Operator_ID) {
                         case KEY_OPTIMIZED_IF:
                             // recicling result ... it is set to zero
@@ -2703,7 +2703,7 @@ int ConceptInterpreter::StacklessInterpret(PIFAlizator *PIF, GreenThreadCycle *G
 #endif
             register RuntimeOptimizedElement *OE = &CODE [INSTRUCTION_POINTER++];
             OPERATOR_ID_TYPE OE_Operator_ID      = OE->Operator_ID;
-            if (OE->Operator_TYPE == TYPE_OPERATOR) {
+            if (IS_OPERATOR(OE)) {
                 //WRITE_LOCK
                 switch (OE_Operator_ID) {
                     case KEY_ASG:
@@ -3220,8 +3220,7 @@ int ConceptInterpreter::StacklessInterpret(PIFAlizator *PIF, GreenThreadCycle *G
 #endif
                         continue;
                 }
-            } else
-            if (OE->Operator_TYPE == TYPE_OPTIMIZED_KEYWORD) {
+            } else {
                 switch (OE_Operator_ID) {
                     case KEY_OPTIMIZED_IF:
 
@@ -5027,7 +5026,7 @@ VariableDATA *ConceptInterpreter::Interpret(PIFAlizator *PIF, VariableDATA **LOC
 #endif
         register RuntimeOptimizedElement *OE = &CODE [INSTRUCTION_POINTER++];
         OPERATOR_ID_TYPE OE_Operator_ID      = OE->Operator_ID;
-        if (OE->Operator_TYPE == TYPE_OPERATOR) {
+        if (IS_OPERATOR(OE)) {
             //WRITE_LOCK
             switch (OE_Operator_ID) {
                 case KEY_ASG:
@@ -5181,8 +5180,7 @@ VariableDATA *ConceptInterpreter::Interpret(PIFAlizator *PIF, VariableDATA **LOC
                             //-------------//
                         } else {
                             WRITE_UNLOCK
-                            if (PROPERTIES)
-                                FAST_FREE(PROPERTIES);
+                            FAST_FREE(PROPERTIES);
                             return 0;
                         }
                     }
@@ -5266,8 +5264,7 @@ VariableDATA *ConceptInterpreter::Interpret(PIFAlizator *PIF, VariableDATA **LOC
                                 //-------------//
                             } else {
                                 WRITE_UNLOCK
-                                if (PROPERTIES)
-                                    FAST_FREE(PROPERTIES);
+                                FAST_FREE(PROPERTIES);
                                 return 0;
                             }
                         }
@@ -5315,8 +5312,7 @@ VariableDATA *ConceptInterpreter::Interpret(PIFAlizator *PIF, VariableDATA **LOC
                                     //--------------//
                                 } else {
                                     WRITE_UNLOCK
-                                    if (PROPERTIES)
-                                        FAST_FREE(PROPERTIES);
+                                    FAST_FREE(PROPERTIES);
                                     return 0;
                                 }
                             } else {
@@ -5369,8 +5365,7 @@ VariableDATA *ConceptInterpreter::Interpret(PIFAlizator *PIF, VariableDATA **LOC
                                 //-------------//
                             } else {
                                 WRITE_UNLOCK
-                                if (PROPERTIES)
-                                    FAST_FREE(PROPERTIES);
+                                FAST_FREE(PROPERTIES);
                                 return 0;
                             }
                         }
@@ -5561,6 +5556,7 @@ VariableDATA *ConceptInterpreter::Interpret(PIFAlizator *PIF, VariableDATA **LOC
                     if (EvalNumberExpression(PIF, LOCAL_CONTEXT, OE, PROPERTIES, ClassID, THROW_DATA, STACK_TRACE, INSTRUCTION_POINTER, CATCH_INSTRUCTION_POINTER, CATCH_VARIABLE, PREVIOUS_TRY))
 #endif
                         continue;
+                    FAST_FREE(PROPERTIES);
                     return 0;
 
                 case VARIABLE_STRING:
@@ -5596,7 +5592,7 @@ VariableDATA *ConceptInterpreter::Interpret(PIFAlizator *PIF, VariableDATA **LOC
                     continue;
             }
         } else {
-            // if (OE->Operator_TYPE == TYPE_OPTIMIZED_KEYWORD) {
+            // if (OE->Operator_ID >= KEYWORDS_START) {
             switch (OE_Operator_ID) {
                 case KEY_OPTIMIZED_IF:
 

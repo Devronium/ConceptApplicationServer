@@ -53,7 +53,7 @@ void ClassMember::EnsureVD() {
     VD->nValue = 0;
 }
 
-int ClassMember::Serialize(FILE *out, bool is_lib) {
+int ClassMember::Serialize(FILE *out, bool is_lib, int version) {
     concept_fwrite_int(&ACCESS, sizeof(ACCESS), 1, out);
     char is_funtion_or_operator = IS_FUNCTION;
     if (IS_OPERATOR) {
@@ -85,7 +85,7 @@ int ClassMember::Serialize(FILE *out, bool is_lib) {
 
     SERIALIZE_SMALL_VAR_DESCRIPTOR(refVD, out);
     if (IS_FUNCTION == 1) {
-        ((Optimizer *)OPTIMIZER)->Serialize(out, (INTEGER)is_lib);
+        ((Optimizer *)OPTIMIZER)->Serialize(out, (INTEGER)is_lib, version);
     }
     return 0;
 }
@@ -473,8 +473,8 @@ bool ClassMember::FastOptimizedExecute(void *PIF, void *ref, ParamList *FORMAL_P
         RuntimeOptimizedElement *OE1 = &((Optimizer *)this->OPTIMIZER)->CODE[0];
         RuntimeOptimizedElement *OE2 = &((Optimizer *)this->OPTIMIZER)->CODE[1];
 
-        if ((OE1->Operator_TYPE == TYPE_OPERATOR) && (OE1->Operator_ID == KEY_SEL) && (OE1->OperandLeft_ID == 1) &&
-            (OE2->Operator_TYPE == TYPE_OPERATOR) && ((OE2->Operator_ID == KEY_ASG) || (OE2->Operator_ID == KEY_BY_REF)) && (OE1->Result_ID == OE2->OperandLeft_ID) && (OE2->OperandRight_ID == 2)) {
+        if ((OE1->Operator_ID == KEY_SEL) && (OE1->OperandLeft_ID == 1) &&
+            ((OE2->Operator_ID == KEY_ASG) || (OE2->Operator_ID == KEY_BY_REF)) && (OE1->Result_ID == OE2->OperandLeft_ID) && (OE2->OperandRight_ID == 2)) {
             VariableDATA *sndr = SenderCTX [DELTA_UNREF(FORMAL_PARAM, FORMAL_PARAM->PARAM_INDEX) [0] - 1];
             if (sndr) {
                 int         reloc      = ((CompiledClass *)ref)->_Class->Relocation(OE1->OperandRight_ID - 1);

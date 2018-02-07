@@ -78,9 +78,9 @@ public:
     AnsiString DEBUG_INFO();
 
     ~Optimizer();
-    int Serialize(FILE *out, bool is_lib = false);
-    int Unserialize(concept_FILE *in, AnsiList *ModuleList, bool is_lib = false, int *ClassNames = 0, int *Relocation = 0);
-    static int ComputeSharedSize(concept_FILE *in);
+    int Serialize(FILE *out, bool is_lib = false, int version = 1);
+    int Unserialize(concept_FILE *in, AnsiList *ModuleList, bool is_lib = false, int *ClassNames = 0, int *Relocation = 0, int version = 1);
+    static int ComputeSharedSize(concept_FILE *in, int version = 1);
     void GenerateIntermediateCode();
 };
 #endif // __OPTIMIZER_H

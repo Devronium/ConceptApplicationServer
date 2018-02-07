@@ -115,9 +115,9 @@ public:
     void SetProperty(PIFAlizator *PIF, INTEGER i, VariableDATA *Owner, const RuntimeOptimizedElement *OE, INTEGER local, INTEGER VALUE, VariableDATA **SenderCTX, INTEGER CLSID, INTEGER LOCAL_CLSID, SCStack *PREV);
     CompiledClass *CreateInstance(PIFAlizator *PIF, VariableDATA *Owner, const RuntimeOptimizedElement *OE, ParamList *FORMAL_PARAM, VariableDATA **SenderCTX, SCStack *PREV, char is_static = 0);
     void GenerateCode(StaticList *GeneralMembers);
-    int Serialize(PIFAlizator *PIF, FILE *out, bool is_lib = false);
-    int Unserialize(PIFAlizator *PIF, concept_FILE *in, AnsiList *ClassList, bool is_lib = false, int *ClassNames = 0, int *Relocation = 0);
-    static int ComputeSharedSize(concept_FILE *in, int general_members);
+    int Serialize(PIFAlizator *PIF, FILE *out, bool is_lib = false, int version = 1);
+    int Unserialize(PIFAlizator *PIF, concept_FILE *in, AnsiList *ClassList, bool is_lib = false, int *ClassNames = 0, int *Relocation = 0, int version = 1);
+    static int ComputeSharedSize(concept_FILE *in, int general_members, int version = 1);
 
     static void Hibernate(void *);
     void UpdateNeeded();

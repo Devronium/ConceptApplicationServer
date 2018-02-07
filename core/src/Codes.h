@@ -352,7 +352,6 @@
 
 // end of parsing constants ...
 
-
 #define KEY_OPTIMIZED_IF            0xFF0
 #define KEY_OPTIMIZED_GOTO          0xFF1
 #define KEY_OPTIMIZED_ECHO          0xFF2
@@ -361,6 +360,8 @@
 #define KEY_OPTIMIZED_TRY_CATCH     0xFF5
 #define KEY_OPTIMIZED_END_CATCH     0xFF6
 #define KEY_OPTIMIZED_DEBUG_TRAP    0xFF7
+
+#define KEYWORDS_START              KEY_OPTIMIZED_IF
 
 // operatori definibili
 

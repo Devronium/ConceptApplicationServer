@@ -81,7 +81,7 @@ public:
 #endif
     void EnsureVD();
 
-    int Serialize(FILE *out, bool is_lib = false);
+    int Serialize(FILE *out, bool is_lib = false, int version = 1);
     int Unserialize(concept_FILE *in, AnsiList *ClassList , bool is_lib, int *Relocation, int *ClassNames);
     static int ComputeSharedSize(concept_FILE *in, signed char& IS_FUNCTION);
 

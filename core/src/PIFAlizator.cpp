@@ -2805,14 +2805,18 @@ INTEGER PIFAlizator::WarningCount() {
 
 #define COMPILED_FILE_ID    "CONC0100"
 #define PACKAGE_FILE_ID     "PONC0100"
+
+#define COMPILED_FILE_IDv2  "CONC0101"
+#define PACKAGE_FILE_IDv2   "PONC0101"
+
 int PIFAlizator::Serialize(char *filename, bool is_lib) {
     FILE *out = fopen(filename, "wb");
 
     if (out) {
         if (is_lib) {
-            concept_fwrite(PACKAGE_FILE_ID, strlen(PACKAGE_FILE_ID), 1, out);
+            concept_fwrite(PACKAGE_FILE_IDv2, strlen(PACKAGE_FILE_IDv2), 1, out);
         } else {
-            concept_fwrite(COMPILED_FILE_ID, strlen(COMPILED_FILE_ID), 1, out);
+            concept_fwrite(COMPILED_FILE_IDv2, strlen(COMPILED_FILE_IDv2), 1, out);
         }
         char PRAGMA_SET = USE_WARN | (USE_EXC * 2);
         fputc(PRAGMA_SET, out);
@@ -2927,9 +2931,14 @@ int PIFAlizator::ComputeSharedSize(char *filename) {
 
     FREAD_FAIL(static_buffer, size, 1, in);
     static_buffer [size] = 0;
-    if (strcmp(static_buffer, cftype)) {
-        concept_fclose(in);
-        return 0;
+
+    int version = 1;
+    if (strcmp(static_buffer, COMPILED_FILE_IDv2)) {
+        if (strcmp(static_buffer, cftype)) {
+            concept_fclose(in);
+            return 0;
+        }
+        version = 0;
     }
 
     // pragma !
@@ -2950,7 +2959,7 @@ int PIFAlizator::ComputeSharedSize(char *filename) {
     INTEGER class_count;
     FREAD_INT_FAIL(&class_count, sizeof(class_count), 1, in);
     for (INTEGER ii = 0; ii < class_count; ii++) {
-        size += ClassCode::ComputeSharedSize(in, general_members);
+        size += ClassCode::ComputeSharedSize(in, general_members, version);
     }
 
     INTEGER Cached_ENTRY_CLASS = -1;
@@ -2975,9 +2984,13 @@ int PIFAlizator::Unserialize(char *filename, bool is_lib) {
 #endif
 
     if (in) {
-        const char *cftype = COMPILED_FILE_ID;
-        if (is_lib)
-            cftype = PACKAGE_FILE_ID;
+        const char *cftype = COMPILED_FILE_IDv2;
+        const char *cftype_old = COMPILED_FILE_ID;
+        int version = 1;
+        if (is_lib) {
+            cftype = PACKAGE_FILE_IDv2;
+            cftype_old = PACKAGE_FILE_ID;
+        }
 
         int size = (int)strlen(cftype);
         if (!concept_fread_buffer(static_buffer, size, 1, in)) {
@@ -2989,10 +3002,13 @@ int PIFAlizator::Unserialize(char *filename, bool is_lib) {
         static_buffer [size] = 0;
 
         if (strcmp(static_buffer, cftype)) {
-            concept_fclose(in);
-            Errors.Add(new AnsiException(ERR1120, 0, 1120, filename, FileName), DATA_EXCEPTION);
-            this->enable_private = old_enable_private;
-            return -3;
+            if (strcmp(static_buffer, cftype_old)) {
+                concept_fclose(in);
+                Errors.Add(new AnsiException(ERR1120, 0, 1120, filename, FileName), DATA_EXCEPTION);
+                this->enable_private = old_enable_private;
+                return -3;
+            }
+            version = 0;
         }
         char PRAGMA_SET = 0;
         concept_fread(&PRAGMA_SET, 1, 1, in);
@@ -3138,7 +3154,7 @@ int PIFAlizator::Unserialize(char *filename, bool is_lib) {
         for (INTEGER ii = 0; ii < class_count; ii++) {
             ClassCode *CC = new ClassCode(NULL_STRING, this, !is_lib);
             ClassList->Add(CC, DATA_CLASS_CODE);
-            CC->Unserialize(this, in, ClassList, is_lib, Classes, Members_Relocation);
+            CC->Unserialize(this, in, ClassList, is_lib, Classes, Members_Relocation, version);
 #ifdef CACHED_CLASSES
             HASH_TYPE key = hash_func(CC->NAME.c_str(), CC->NAME.Length());
             CachedClasses[key] = ClassList->Count();
@@ -3472,7 +3488,7 @@ AnsiString PIFAlizator::DEBUG_CLASS_CONFIGURATION() {
                 res += "\t\tCODE:\n";
                 for (INTEGER k = 0; k < ((Optimizer *)CM->OPTIMIZER)->codeCount; k++) {
                     res += "\t\t\tOPERATOR TYPE:";
-                    res += AnsiString((intptr_t)((Optimizer *)CM->OPTIMIZER)->CODE [k].Operator_TYPE);
+                    res += AnsiString(IS_KEYWORD((&(((Optimizer *)CM->OPTIMIZER)->CODE [k]))) ? "keyword" : "operator");
                     res += "\tOPERATOR ID:";
                     res += AnsiString(((Optimizer *)CM->OPTIMIZER)->CODE [k].Operator_ID);
                     res += "\n";
