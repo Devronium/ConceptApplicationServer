@@ -5931,15 +5931,8 @@ VariableDATA **ConceptInterpreter::CreateEnvironment(PIFAlizator *PIF, VariableD
 #endif
 
         i++;
-        if (TARGET->TYPE < 0)
-            LOCAL_CONTEXT_i->TYPE = -TARGET->TYPE;
-        else
-            LOCAL_CONTEXT_i->TYPE = TARGET->TYPE;
-
-        if (TARGET->BY_REF == 2)
-            LOCAL_CONTEXT_i->IS_PROPERTY_RESULT = -1;
-        else
-            LOCAL_CONTEXT_i->IS_PROPERTY_RESULT = 0;
+        LOCAL_CONTEXT_i->TYPE = (TARGET->TYPE < 0) ? -TARGET->TYPE : TARGET->TYPE;
+        LOCAL_CONTEXT_i->IS_PROPERTY_RESULT = (TARGET->BY_REF == 2) ? -1 : 0;
         LOCAL_CONTEXT_i->LINKS = 1;
         if (LOCAL_CONTEXT_i->TYPE == VARIABLE_NUMBER)
             LOCAL_CONTEXT_i->NUMBER_DATA = TARGET->nValue;

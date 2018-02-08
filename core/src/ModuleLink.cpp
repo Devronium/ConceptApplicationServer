@@ -801,7 +801,7 @@ INTEGER Invoke(INTEGER INVOKE_TYPE, ...) {
                     res = ((Array *)target->CLASS_DATA)->ModuleGet(index);
                     INTEGER *type = va_arg(ap, INTEGER *);
                     char    **str = va_arg(ap, char **);
-                    NUMBER  *nr   = va_arg(ap, double *);
+                    NUMBER  *nr   = va_arg(ap, NUMBER *);
                     GetVariable((VariableDATA *)res, type, str, nr);
                 } else {
                     result = INVALID_INVOKE_PARAMETER;
@@ -822,7 +822,7 @@ INTEGER Invoke(INTEGER INVOKE_TYPE, ...) {
                     res = ((Array *)target->CLASS_DATA)->ModuleGet(key);
                     INTEGER *type = va_arg(ap, INTEGER *);
                     char    **str = va_arg(ap, char **);
-                    NUMBER  *nr   = va_arg(ap, double *);
+                    NUMBER  *nr   = va_arg(ap, NUMBER *);
                     GetVariable((VariableDATA *)res, type, str, nr);
                 } else {
                     result = INVALID_INVOKE_PARAMETER;
