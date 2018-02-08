@@ -2,6 +2,7 @@
 #define __CONCEPTINTERPRETER_H
 
 #define USE_JIT_TRACE
+#define JIT_INLINE
 
 #include "Optimizer.h"
 #include "Debugger.h"
@@ -183,6 +184,7 @@ private:
     char callcount;
     void **jittracecode;
     void AnalizeInstructionPath(Optimizer *OPT);
+    int JIT(INTEGER &INSTRUCTION_POINTER, INTEGER INSTRUCTION_COUNT, void **jittrace, VariableDATA **LOCAL_CONTEXT);
 #endif
 #ifdef SIMPLE_MULTI_THREADING
     int EvalNumberExpression(PIFAlizator *PIF, VariableDATA **LOCAL_CONTEXT, const RuntimeOptimizedElement *OE, VariableDATAPROPERTY * &PROPERTIES, intptr_t ClassID, VariableDATA *& THROW_DATA, SCStack *STACK_TRACE, INTEGER &INSTRUCTION_POINTER, INTEGER &CATCH_INSTRUCTION_POINTER, INTEGER &CATCH_VARIABLE, INTEGER &PREVIOUS_TRY, char &IsWriteLocked);

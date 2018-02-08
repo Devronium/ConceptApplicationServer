@@ -3118,7 +3118,7 @@ int PIFAlizator::Unserialize(char *filename, bool is_lib) {
                 this->enable_private = old_enable_private;
                 return -3;
             }
-            char is_pooled  = this->is_buffer ? 0 : (char)SHIsPooled();
+            bool is_pooled  = this->is_buffer ? 0 : SHIsPooled();
             bool is_created = this->is_buffer ? 0 : SHIsCreated();
 
             GeneralMembers->ReInit(general_members, is_pooled);

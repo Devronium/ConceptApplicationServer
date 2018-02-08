@@ -98,7 +98,7 @@ void AnsiParser::NextAtom(AnsiString& result, int no_constants, int TYPE, int ID
     char     can_regex    = 0;
     int      in_regex     = 0;
 #endif
-    intptr_t i;
+    uintptr_t i;
     char     in_var = 0;
     char     c      = 0;
     regexp_flags    = 0;
@@ -164,7 +164,7 @@ void AnsiParser::NextAtom(AnsiString& result, int no_constants, int TYPE, int ID
             break;
         }
 
-        int seq_len = 1;
+        unsigned int seq_len = 1;
         if ((!quote) && (!comment) && (!line_comment)) {
             unsigned char utf8_char = (unsigned char)c;
             if (utf8_char & 0x80) {
@@ -184,7 +184,7 @@ void AnsiParser::NextAtom(AnsiString& result, int no_constants, int TYPE, int ID
                         seq_len = 1;
                     } else
                     if ((!comment) && (!quote)) {
-                        for (int j = 1; j < seq_len; j++) {
+                        for (unsigned int j = 1; j < seq_len; j++) {
                             utf8_char = (unsigned char)str_ptr [i + j];
                             if ((utf8_char >> 6) != 0x02) {
                                 // invalid utf8
@@ -370,7 +370,7 @@ void AnsiParser::NextAtom(AnsiString& result, int no_constants, int TYPE, int ID
                     no_constants = 1;
                     quote = 0;
                     i++;
-                    for (int j = i; j < len; j++) {
+                    for (unsigned int j = i; j < len; j++) {
                         char modifier = str_ptr [j];
                         if ((modifier != 'i') && (modifier != 'm') && (modifier != 'g'))
                             break;
@@ -405,7 +405,7 @@ void AnsiParser::NextAtom(AnsiString& result, int no_constants, int TYPE, int ID
                         if ((!oper) && ((seq_len > 1) || (Contains(ATOM_MEMBER, c)))) {
                             if (!oper) {
                                 result += c;
-                                for (int j = 1; j < seq_len; j++)
+                                for (unsigned int j = 1; j < seq_len; j++)
                                     result += str_ptr [i + j];
                                 i += seq_len - 1;
                             } else {
@@ -462,7 +462,7 @@ void AnsiParser::NextAtom(AnsiString& result, int no_constants, int TYPE, int ID
     intptr_t old_position = position;
     position = i + (c == NEW_LINE);
 
-    if ((!result.Length()) && (position < len)) {
+    if ((!result.Length()) && (position < (intptr_t)len)) {
         result += c;
         position++;
         return;

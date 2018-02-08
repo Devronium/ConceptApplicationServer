@@ -120,7 +120,7 @@ AnsiString::AnsiString(const AnsiString& S) {
 }
 
 void AnsiString::operator=(char *value) {
-    size_t len;
+    intptr_t len;
 
     if (Data == value)
         return;
@@ -144,7 +144,7 @@ void AnsiString::operator=(char *value) {
 }
 
 void AnsiString::operator=(const char *value) {
-    size_t len;
+    intptr_t len;
 
     if (Data == value)
         return;
@@ -168,7 +168,7 @@ void AnsiString::operator=(const char *value) {
 }
 
 void AnsiString::operator=(const AnsiString& S) {
-    size_t len;
+    intptr_t len;
     char   *other_data = S.c_str();
 
     // same buffer!!!
@@ -538,7 +538,7 @@ void AnsiString::operator +=(char c) {
 }
 
 char AnsiString::operator [](uintptr_t index) {
-    size_t len;
+    uintptr_t len;
 
     if (Data) {
         len = _LENGTH;
@@ -549,7 +549,7 @@ char AnsiString::operator [](uintptr_t index) {
 }
 
 char AnsiString::operator [](D_LONG_TYPE index) {
-    size_t len;
+    intptr_t len;
 
     if (Data) {
         len = _LENGTH;
@@ -561,7 +561,7 @@ char AnsiString::operator [](D_LONG_TYPE index) {
 }
 
 char AnsiString::operator [](int index) {
-    size_t len;
+    intptr_t len;
 
     if (Data) {
         len = _LENGTH;
@@ -920,7 +920,7 @@ void AnsiString::ReplaceCharWithString(AnsiString& s, intptr_t position) {
             temp = s;
             ptr = temp.c_str();
         }
-        if (len > _DATA_SIZE) {
+        if (len > (uintptr_t)_DATA_SIZE) {
             _DATA_SIZE = (len / BLOCK_SIZE) * BLOCK_SIZE + BLOCK_SIZE;
             Data       = (char *)realloc(Data, _DATA_SIZE);
         }

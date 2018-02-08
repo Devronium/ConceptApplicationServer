@@ -204,7 +204,7 @@ int CompiledClass::Destroy(PIFAlizator *PIF) {
     this->LINKS++;
     VariableDATA *THROW_DATA = 0;
 
-    STACK(NULL, _Class->DESTRUCTOR_MEMBER->_DEBUG_STARTLINE)
+    STACK(0, _Class->DESTRUCTOR_MEMBER->_DEBUG_STARTLINE)
     VariableDATA * RESULT = _Class->DESTRUCTOR_MEMBER->Execute(PIF, this->_Class->CLSID, OWNER, 0, _CONTEXT, THROW_DATA, NULL);
     UNSTACK;
     if (RESULT) {
@@ -343,7 +343,7 @@ CompiledClass::~CompiledClass() {
                                             if (inspectSize < 0xFFFF)
                                                 inspectSize += INSPECT_INCREMENT;
                                             else
-                                                inspectSize *= 1.5;
+                                                inspectSize += inspectSize/2;
                                             toInspect = (CompiledClass **)FAST_REALLOC(toInspect, sizeof(CompiledClass *) * inspectSize);
                                         }
                                         toInspect[inspectPos++] = (CompiledClass *)_CONTEXT_i->CLASS_DATA;

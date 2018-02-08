@@ -6,7 +6,7 @@
 #include "Array.h"
 #include "ConceptPools.h"
 
-#define GET_PIF(THIS_REF)    ((PIFAlizator *)((ClassPool *)(((uintptr_t)THIS_REF) - sizeof(CompiledClass) * THIS_REF->flags - POOL_OFFSET(ClassPool, POOL)))->PIF)
+#define GET_PIF(THIS_REF)    ((PIFAlizator *)((ClassPool *)(((uintptr_t)THIS_REF) - sizeof(CompiledClass) * THIS_REF->flags - POOL_OFFSET_NON_POD(ClassPool)))->PIF)
 
 class CompiledClass {
     friend class ConceptInterpreter;

@@ -96,8 +96,7 @@ static TSKID_t   __SEMHH_WAIT_SINGLE_TASK(TSKID_t cid, int *prc) {
     if (cid == 0) return __SEMHH_WAIT_SINGLE_TASK(cid, prc);
     if (__SEMHH_TASK_NUM <= 0)
         abend("waitsk", -3, "WaitM, task_num = 0");
-    if (WaitForSingleObject(cid, INFINITE) < 0)
-        abend("waitsk", GetLastError(), "WaitSingle");
+    WaitForSingleObject(cid, INFINITE);
     __SEMHH_DEL_TASK_BY_ID(cid);
     GetExitCodeThread(cid, (DWORD *)prc);
     CloseHandle(cid);

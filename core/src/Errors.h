@@ -23,7 +23,7 @@
 #define ERR200      "Invalid syntax in formal parameter list"
 #define ERR210      "Wrong number of parameters in formal parameter list"
 #define ERR220      "Wrong number of parameters in constructor's formal parameter list"
-#define ERR230      "The constructor of a entry-point class should not take any formal parameter"
+#define ERR230      "The constructor of an entry-point class should not take any formal parameter"
 #define ERR240      "The selector operator can be applied only for objects"
 #define ERR250      "A class variable can't take formal parameters"
 #define ERR260      "Division by 0"

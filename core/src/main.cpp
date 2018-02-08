@@ -30,6 +30,8 @@
  #include <time.h>
 #endif
 
+#define COMPILER_COPYRIGHT    "Concept Compiler (Accelerator) version 5.0\n(c)2006-2018 Devronium Applications srl\n"
+
 POOLED_IMPLEMENTATION(tsVariableDESCRIPTOR);
 POOLED_IMPLEMENTATION(tsVariableDATA);
 POOLED_IMPLEMENTATION(tsUndefinedMember)
@@ -452,7 +454,7 @@ void FreeClassObject(void *refObject) {
     if (((CompiledClass *)refObject)->flags == -1)
         return;
 
-    ClassPool   *CURRENT = (ClassPool *)(((uintptr_t)refObject) - sizeof(CompiledClass) * (((CompiledClass *)refObject)->flags) - POOL_OFFSET(ClassPool, POOL));
+    ClassPool   *CURRENT = (ClassPool *)(((uintptr_t)refObject) - sizeof(CompiledClass) * (((CompiledClass *)refObject)->flags) - POOL_OFFSET_NON_POD(ClassPool));
     PIFAlizator *PIF     = (PIFAlizator *)CURRENT->PIF;
     ALLOC_LOCK
     memset(refObject, 0, sizeof(CompiledClass));
@@ -594,7 +596,7 @@ void FreeArray(void *refObject) {
         return;
     }
 
-    ArrayPool   *CURRENT = (ArrayPool *)(((uintptr_t)refObject) - sizeof(Array) * (((Array *)refObject)->flags) - POOL_OFFSET(ArrayPool, POOL));
+    ArrayPool   *CURRENT = (ArrayPool *)(((uintptr_t)refObject) - sizeof(Array) * (((Array *)refObject)->flags) - POOL_OFFSET_NON_POD(ArrayPool));
     PIFAlizator *PIF     = (PIFAlizator *)CURRENT->PIF;
     ALLOC_LOCK
         ((PIFAlizator *)PIF)->object_count--;
@@ -2182,6 +2184,7 @@ int WINAPI DllEntryPoint(HINSTANCE hinst, uintptr_t reason, void *lpReserved) {
 #include <sys/types.h>
 #include <sys/stat.h> 
 #include <stdio.h>
+#include <time.h>
 #ifdef _WIN32
     #include <direct.h>
     #define chdir _chdir
@@ -2536,11 +2539,11 @@ AnsiString GetKeyPath(AnsiString *HOME_BASE, const char *path, const char *categ
     return temp;
 }
 
-void SetEnvVar(char *varname, const char *value) {
+void SetEnvVar(const char *varname, const char *value) {
 #ifdef _WIN32
     AnsiString my_str = varname;
-    my_str += (char *)"=";
-    my_str += (char *)value;
+    my_str += "=";
+    my_str += value;
     _putenv(my_str.c_str());
 #else
     setenv(varname, value, 1);
@@ -2731,10 +2734,11 @@ int main(int argc, char **argv) {
     int  autocompile  = GetKey(INI_PATH, "Run", "AutoCompile", "0").ToInt();
     int  arg_start    = 2;
     char *force_chdir = getenv("CONCEPT_FORCE_CHDIR");
-    int  chdir        = 0;
-    int  cas          = 0;
+    int  do_chdir      = 0;
+    int  compile      = 0;
+    int  err          = 0;
     if (force_chdir)
-        chdir = atoi(force_chdir);
+        do_chdir = atoi(force_chdir);
 
     if (argc >= 3) {
         filename = argv[2];
@@ -2746,13 +2750,20 @@ int main(int argc, char **argv) {
                     arg_start++;
                 } else
                 if (!strcmp(arg, "-chdir")) {
-                    chdir = 1;
+                    do_chdir = 1;
+                    arg_start++;
+                } else
+                if (!strcmp(arg, "-mt")) {
+                    fprintf(stderr, "-mt option is deprecated. Use workers instead.\n");
+                    return -1;
+                } else
+                if ((!strcmp(arg, "-accel")) || (!strcmp(arg, "-compile")) || (!strcmp(arg, "-a"))) {
+                    compile = 1;
                     arg_start++;
                 } else
                 if (!strcmp(arg, "-cas")) {
-                    cas = 1;
                     arg_start++;
-                    return cas_main(argc - (i - 1), argv + (i - 1));
+                    return cas_main(argc - i, argv + i);
                 } else {
                     fprintf(stderr, "Unknown option : %s\n",  arg);
                     return -1;
@@ -2767,24 +2778,41 @@ int main(int argc, char **argv) {
         filename  = argv[1];
         arg_start = 2;
     } else {
-        fprintf(stderr, "USAGE : %s [-debug] [-chdir] filename [arguments]\n", argv[0]);
+        fprintf(stderr, COMPILER_COPYRIGHT "Usage: %s [-debug] [-chdir] [-compile|-accel|-a] filename [arguments]\nParameters:\n  -debug: runs application in debug mode\n  -chdir: runs application in its own directory instead of current\n  -compile/-accel/-a: compile the application or package\n", argv[0]);
         return -1;
+    }
+
+    if (compile) {
+        fprintf(stdout, COMPILER_COPYRIGHT "Compiling ...\n");
+        int start = clock();
+        err = Concept_Compile(filename, Include, Library, (ForeignPrint)Print, 0, 0, 0, 0, 0, 0, 0, -1, -1, -1, -1);
+        int elapsed = clock() - start;
+        if (err == -3) {
+            fprintf(stderr, "File not found or insufficient rights: '%s'\n", filename);
+        } else {
+            double sec = (double)elapsed / CLOCKS_PER_SEC;
+            int    min = (long)sec / 60;
+            int    scs = (long)sec % 60;
+            if (min)
+                fprintf(stdout, "... done in %i minute(s) and %i second(s)\n", min, scs);
+            else
+                fprintf(stdout, "... done in %.2f second(s)\n", sec);
+        }
+        return err;
     }
 
     SetArguments(argc - arg_start, &argv[arg_start]);
     // check for autocompile
-    int res = 0;
     if ((!debug) && (autocompile) && (need_compilation(filename)))
-        res = Concept_Compile(filename, Include, Library, (ForeignPrint)Print, 0, 0, 0, 0, 0, 0, 0, -1, -1, -1, -1);
+        err = Concept_Compile(filename, Include, Library, (ForeignPrint)Print, 0, 0, 0, 0, 0, 0, 0, -1, -1, -1, -1);
 
-
-    if (!res) {
-        res = Concept_Execute(filename, Include, Library, (ForeignPrint)Print, 0, debug, (DEBUGGER_CALLBACK)DEBUGGER_TRAP, 0, 0, 0, 0, -1, -1, -1, -1, 0);
-        if (res == -3)
+    if (!err) {
+        err = Concept_Execute(filename, Include, Library, (ForeignPrint)Print, 0, debug, (DEBUGGER_CALLBACK)DEBUGGER_TRAP, 0, 0, 0, 0, -1, -1, -1, -1, 0);
+        if (err == -3)
             fprintf(stderr, "File not found or insufficient rights : %s\n", filename);
         else
-            res = LastResult();
+            err = LastResult();
     }
-    return res;
+    return err;
  }
 #endif

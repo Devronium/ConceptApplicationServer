@@ -1854,7 +1854,7 @@ INTEGER Optimizer::OptimizeForExpression(TempVariableManager *TVM, bool is_incre
 
         NO_WARNING_EMPTY = 1;
         NO_WARNING_ATTR  = 1;
-        int result = OptimizeExpression(TVM, KEY_COMMA, TYPE_OPERATOR, 0, 1, KEY_COMMA);
+        int result = OptimizeExpression(TVM, KEY_COMMA, TYPE_OPERATOR, 0, 1, KEY_COMMA, 0, 1);
         NO_WARNING_EMPTY = 0;
         NO_WARNING_ATTR  = 0;
         if (result == -KEY_COMMA) {

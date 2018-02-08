@@ -219,7 +219,7 @@ CONCEPT_FUNCTION_IMPL(milliseconds, 0)
     struct timeval tv;
     gettimeofday(&tv, NULL);
     unsigned long long ms = (unsigned long long)(tv.tv_sec) * 1000 + (unsigned long long)(tv.tv_usec) / 1000;
-    RETURN_NUMBER(ms);
+    RETURN_NUMBER((NUMBER)ms);
 END_IMPL
 
 CONCEPT_FUNCTION_IMPL(timezone, 0)
@@ -231,7 +231,7 @@ CONCEPT_FUNCTION_IMPL(timezone, 0)
 END_IMPL
 
 CONCEPT_FUNCTION_IMPL(time, 0)
-    RETURN_NUMBER(time(NULL));
+    RETURN_NUMBER((NUMBER)time(NULL));
 END_IMPL
 
 CONCEPT_FUNCTION_IMPL(localtime, 1)
@@ -294,7 +294,7 @@ CONCEPT_FUNCTION_IMPL(__epoch, 7)
     timeinfo->tm_min = PARAM_INT(4);
     timeinfo->tm_sec = PARAM_INT(5);
     uint64_t temp = (uint64_t)mktime(timeinfo) * 1000 + PARAM_INT(6);
-    RETURN_NUMBER(temp);
+    RETURN_NUMBER((NUMBER)temp);
 END_IMPL
 
 CONCEPT_FUNCTION_IMPL(formatdate, 2)
@@ -313,7 +313,7 @@ CONCEPT_FUNCTION_IMPL(formatdate, 2)
     }
 END_IMPL
 
-WRAP_FUNCTION(Math, abs)
+WRAP_INT_FUNCTION(Math, abs)
 WRAP_FUNCTION(Math, acos)
 WRAP_FUNCTION(Math, acosh)
 WRAP_FUNCTION(Math, asin)

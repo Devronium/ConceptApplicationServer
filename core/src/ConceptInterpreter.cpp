@@ -2709,12 +2709,12 @@ int ConceptInterpreter::StacklessInterpret(PIFAlizator *PIF, GreenThreadCycle *G
                     case KEY_ASG:
                         {
                             WRITE_LOCK
+                            if ((OE->Operator_FLAGS == MAY_IGNORE_RESULT) && (LOCAL_CONTEXT [OE->OperandRight_ID - 1]->TYPE == VARIABLE_NUMBER) && (LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->TYPE == VARIABLE_NUMBER)) {
+                                LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->NUMBER_DATA = LOCAL_CONTEXT [OE->OperandRight_ID - 1]->NUMBER_DATA;
+                                PROPERTY_CODE_IGNORE_RESULT(THIS_REF, TARGET_THREAD->PROPERTIES)
+                                continue;
+                            }                                // ------------------- //
                             if (LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->TYPE != VARIABLE_CLASS) {
-                                if ((OE->Operator_FLAGS == MAY_IGNORE_RESULT) && (LOCAL_CONTEXT [OE->OperandRight_ID - 1]->TYPE == VARIABLE_NUMBER) && (LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->TYPE == VARIABLE_NUMBER)) {
-                                    LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->NUMBER_DATA = LOCAL_CONTEXT [OE->OperandRight_ID - 1]->NUMBER_DATA;
-                                    PROPERTY_CODE_IGNORE_RESULT(THIS_REF, TARGET_THREAD->PROPERTIES)
-                                    continue;
-                                }                                // ------------------- //
                                 //SMART_LOCK(LOCAL_CONTEXT [OE->Result_ID - 1]);
                                 CLASS_CHECK_RESULT(LOCAL_CONTEXT [OE->Result_ID - 1])
                                 // ------------------- //
@@ -3117,6 +3117,11 @@ int ConceptInterpreter::StacklessInterpret(PIFAlizator *PIF, GreenThreadCycle *G
                                     PROPERTY_CODE_LEFT(THIS_REF, TARGET_THREAD->PROPERTIES)
                                     continue;
                                 } else
+                                if (OE_Operator_ID == KEY_NOT) {
+                                    CLASS_CHECK_RESULT(LOCAL_CONTEXT [OE->Result_ID - 1]);
+                                    LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = !LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->NUMBER_DATA;
+                                    continue;
+                                } else
                                 if (OE_Operator_ID == KEY_MUL) {
                                     CLASS_CHECK_RESULT(LOCAL_CONTEXT [OE->Result_ID - 1]);
                                     EVAL_NUMBER_EXPRESSION(THIS_REF, *)
@@ -3226,8 +3231,8 @@ int ConceptInterpreter::StacklessInterpret(PIFAlizator *PIF, GreenThreadCycle *G
 
                         DECLARE_PATH(LOCAL_CONTEXT [OE->OperandRight_ID - 1]->TYPE);
                         switch (LOCAL_CONTEXT [OE->OperandRight_ID - 1]->TYPE) {
-                            case VARIABLE_STRING:
-                                if (!CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandRight_ID - 1]).Length()) {
+                            case VARIABLE_NUMBER:
+                                if (!LOCAL_CONTEXT [OE->OperandRight_ID - 1]->NUMBER_DATA) {
                                     if ((OE->OperandReserved_ID < INSTRUCTION_POINTER) && (TARGET_THREAD != TARGET_THREAD->NEXT)) {
                                         DO_EXECUTE  = 0;
                                         PREC_THREAD = TARGET_THREAD;
@@ -3241,8 +3246,8 @@ int ConceptInterpreter::StacklessInterpret(PIFAlizator *PIF, GreenThreadCycle *G
                                 }
                                 continue;
 
-                            case VARIABLE_NUMBER:
-                                if (!LOCAL_CONTEXT [OE->OperandRight_ID - 1]->NUMBER_DATA) {
+                            case VARIABLE_STRING:
+                                if (!CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandRight_ID - 1]).Length()) {
                                     if ((OE->OperandReserved_ID < INSTRUCTION_POINTER) && (TARGET_THREAD != TARGET_THREAD->NEXT)) {
                                         DO_EXECUTE  = 0;
                                         PREC_THREAD = TARGET_THREAD;
@@ -4817,10 +4822,6 @@ int ConceptInterpreter::EvalNumberExpression(PIFAlizator *PIF, VariableDATA **LO
             return 1;
 
         // unary operators
-        case KEY_NOT:
-            LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = !LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->NUMBER_DATA;
-            return 1;
-
         case KEY_COM:
             LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = ~(unsigned INTEGER)LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->NUMBER_DATA;
             return 1;
@@ -4966,6 +4967,26 @@ int ConceptInterpreter::EvalSimpleExpression(PIFAlizator *PIF, VariableDATA **LO
     return 0;
 }
 
+#ifdef USE_JIT_TRACE
+int ConceptInterpreter::JIT(INTEGER &INSTRUCTION_POINTER, INTEGER INSTRUCTION_COUNT, void **jittrace, VariableDATA **LOCAL_CONTEXT) {
+    if (jittrace[INSTRUCTION_POINTER]) {
+        executable_code code;
+        int res;
+        do {
+            code.code = jittrace[INSTRUCTION_POINTER];
+            res       = code.func1((sljit_sw)LOCAL_CONTEXT);
+            if (res == INSTRUCTION_POINTER)
+                break;
+            INSTRUCTION_POINTER = res;
+        } while ((INSTRUCTION_POINTER < INSTRUCTION_COUNT) && (jittrace[INSTRUCTION_POINTER]));
+
+        if (INSTRUCTION_POINTER >= INSTRUCTION_COUNT)
+            return 1;
+    }
+    return 0;
+}
+#endif
+
 VariableDATA *ConceptInterpreter::Interpret(PIFAlizator *PIF, VariableDATA **LOCAL_CONTEXT, intptr_t ClassID, VariableDATA *& THROW_DATA, SCStack *STACK_TRACE) {
     Optimizer        *OPT = (Optimizer *)this->OWNER->OPTIMIZER;
     register INTEGER INSTRUCTION_POINTER = 0;
@@ -5002,27 +5023,33 @@ VariableDATA *ConceptInterpreter::Interpret(PIFAlizator *PIF, VariableDATA **LOC
         callcount++;
     void **jittrace = jittracecode;
     WRITE_UNLOCK;
+#ifdef JIT_INLINE
+    int res;
     executable_code code;
+#endif
 #endif
     VariableDATAPROPERTY *PROPERTIES = NULL;
     while (INSTRUCTION_POINTER < INSTRUCTION_COUNT) {
         WRITE_UNLOCK
 #ifdef USE_JIT_TRACE
-        if (jittrace) {
-            if (jittrace[INSTRUCTION_POINTER]) {
-                int res;
-                do {
-                    code.code = jittrace[INSTRUCTION_POINTER];
-                    res       = code.func1((sljit_sw)LOCAL_CONTEXT);
-                    if (res == INSTRUCTION_POINTER)
-                        break;
-                    INSTRUCTION_POINTER = res;
-                } while ((INSTRUCTION_POINTER < INSTRUCTION_COUNT) && (jittrace[INSTRUCTION_POINTER]));
-
-                if (INSTRUCTION_POINTER >= INSTRUCTION_COUNT)
+#ifdef JIT_INLINE
+        // faster with some compilers/architectures
+        if ((jittrace) && (jittrace[INSTRUCTION_POINTER])) {
+            do {
+                code.code = jittrace[INSTRUCTION_POINTER];
+                res       = code.func1((sljit_sw)LOCAL_CONTEXT);
+                if (res == INSTRUCTION_POINTER)
                     break;
-            }
+                INSTRUCTION_POINTER = res;
+            } while ((INSTRUCTION_POINTER < INSTRUCTION_COUNT) && (jittrace[INSTRUCTION_POINTER]));
+
+            if (INSTRUCTION_POINTER >= INSTRUCTION_COUNT)
+                break;
         }
+#else
+        if ((jittrace) && (jittrace[INSTRUCTION_POINTER]) && (JIT(INSTRUCTION_POINTER, INSTRUCTION_COUNT, jittrace, LOCAL_CONTEXT)))
+            break;
+#endif
 #endif
         register RuntimeOptimizedElement *OE = &CODE [INSTRUCTION_POINTER++];
         OPERATOR_ID_TYPE OE_Operator_ID      = OE->Operator_ID;
@@ -5032,12 +5059,12 @@ VariableDATA *ConceptInterpreter::Interpret(PIFAlizator *PIF, VariableDATA **LOC
                 case KEY_ASG:
                     {
                         WRITE_LOCK
+                        if ((OE->Operator_FLAGS == MAY_IGNORE_RESULT) && (LOCAL_CONTEXT [OE->OperandRight_ID - 1]->TYPE == VARIABLE_NUMBER) && (LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->TYPE == VARIABLE_NUMBER)) {
+                            LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->NUMBER_DATA = LOCAL_CONTEXT [OE->OperandRight_ID - 1]->NUMBER_DATA;
+                            PROPERTY_CODE_IGNORE_RESULT(this, PROPERTIES)
+                            continue;
+                        }
                         if (LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->TYPE != VARIABLE_CLASS) {
-                            if ((OE->Operator_FLAGS == MAY_IGNORE_RESULT) && (LOCAL_CONTEXT [OE->OperandRight_ID - 1]->TYPE == VARIABLE_NUMBER) && (LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->TYPE == VARIABLE_NUMBER)) {
-                                LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->NUMBER_DATA = LOCAL_CONTEXT [OE->OperandRight_ID - 1]->NUMBER_DATA;
-                                PROPERTY_CODE_IGNORE_RESULT(this, PROPERTIES)
-                                continue;
-                            }
                             // ------------------- //
                             //SMART_LOCK(LOCAL_CONTEXT [OE->Result_ID - 1]);
                             CLASS_CHECK_RESULT(LOCAL_CONTEXT [OE->Result_ID - 1])
@@ -5469,6 +5496,11 @@ VariableDATA *ConceptInterpreter::Interpret(PIFAlizator *PIF, VariableDATA **LOC
                                 PROPERTY_CODE_LEFT(this, PROPERTIES)
                                 continue;
                             } else
+                            if (OE_Operator_ID == KEY_NOT) {
+                                CLASS_CHECK_RESULT(LOCAL_CONTEXT [OE->Result_ID - 1]);
+                                LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = !LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->NUMBER_DATA;
+                                continue;
+                            } else
                             if (OE_Operator_ID == KEY_MUL) {
                                 CLASS_CHECK_RESULT(LOCAL_CONTEXT [OE->Result_ID - 1]);
                                 EVAL_NUMBER_EXPRESSION(this, *)
@@ -5482,7 +5514,8 @@ VariableDATA *ConceptInterpreter::Interpret(PIFAlizator *PIF, VariableDATA **LOC
                                 case VARIABLE_NUMBER:
 #ifdef OPTIMIZE_FAST_ARRAYS
                                     {
-                                        INTEGER index = (INTEGER)(LOCAL_CONTEXT [OE->OperandRight_ID - 1]->NUMBER_DATA);
+                                        int index;
+                                        double2int(index, LOCAL_CONTEXT [OE->OperandRight_ID - 1]->NUMBER_DATA);
                                         if (index >= 0) {
                                             RETURN_DATA = FAST_CHECK((Array *)LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA, index);
                                             if (!RETURN_DATA)
@@ -5598,14 +5631,14 @@ VariableDATA *ConceptInterpreter::Interpret(PIFAlizator *PIF, VariableDATA **LOC
 
                     DECLARE_PATH(LOCAL_CONTEXT [OE->OperandRight_ID - 1]->TYPE);
                     switch (LOCAL_CONTEXT [OE->OperandRight_ID - 1]->TYPE) {
-                        case VARIABLE_STRING:
-                            if (!CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandRight_ID - 1]).Length()) {
+                        case VARIABLE_NUMBER:
+                            if (!LOCAL_CONTEXT [OE->OperandRight_ID - 1]->NUMBER_DATA) {
                                 INSTRUCTION_POINTER = OE->OperandReserved_ID;
                             }
                             continue;
 
-                        case VARIABLE_NUMBER:
-                            if (!LOCAL_CONTEXT [OE->OperandRight_ID - 1]->NUMBER_DATA) {
+                        case VARIABLE_STRING:
+                            if (!CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandRight_ID - 1]).Length()) {
                                 INSTRUCTION_POINTER = OE->OperandReserved_ID;
                             }
                             continue;

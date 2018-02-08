@@ -1,7 +1,7 @@
 CC = g++
 CCOMP = gcc
 RM = del
-CFLAGS = -O2 -DSTATIC_CLI -fno-strict-aliasing -fomit-frame-pointer
+CFLAGS = -O2 -DSTATIC_CLI -fno-strict-aliasing -fomit-frame-pointer -fprofile-generate
 LIBS = -ldl
 BUILDFLAGS= -o concept
 

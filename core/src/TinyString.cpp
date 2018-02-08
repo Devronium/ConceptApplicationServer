@@ -341,7 +341,7 @@ char TinyString::operator [](int index) {
     }
     if (Data) {
         len = strlen(Data);
-        if ((index < len) && (index >= 0)) {
+        if (((size_t)index < len) && (index >= 0)) {
             return Data [index];
         }
     }
