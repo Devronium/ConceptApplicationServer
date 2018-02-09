@@ -286,33 +286,31 @@ INTEGER GetClassMember(void *CLASS_PTR, const char *class_member_name, INTEGER *
                         }
                     }
 #endif
-                    try {
-                        VariableDATA *VarDATA = CCode->ExecuteMember(PIF,
-                                                                     index,
-                                                                     Owner,
-                                                                     &OE,
-                                                                     true,
-                                                                     CM->IS_FUNCTION == 3 ? 0 : &PLIST,
-                                                                     (VariableDATA **)-1,
-                                                                     0,
-                                                                     CCode->CLSID,
-                                                                     CCode->CLSID,
-                                                                     STACK_TRACE
-                                                                     );
-                        int result = -1;
-                        if (VarDATA) {
-                            if (!VarDATA->LINKS)
-                                VarDATA->LINKS = 1;
-                            result = GetVariable(VarDATA, TYPE, STRING_VALUE, NUMBER_VALUE);
-                            FREE_VARIABLE(VarDATA);
-                        }
-                        FREE_VARIABLE(Owner);
-                        return result;
-                    } catch (VariableDATA *THROW_DATA) {
-                        FREE_VARIABLE(THROW_DATA);
-                        FREE_VARIABLE(Owner);
-                        return -1;
+                    VariableDATA *THROW_DATA;
+                    VariableDATA *VarDATA = CCode->ExecuteMember(PIF,
+                                                                    index,
+                                                                    Owner,
+                                                                    &OE,
+                                                                    true,
+                                                                    CM->IS_FUNCTION == 3 ? 0 : &PLIST,
+                                                                    (VariableDATA **)-1,
+                                                                    0,
+                                                                    CCode->CLSID,
+                                                                    CCode->CLSID,
+                                                                    &THROW_DATA,
+                                                                    STACK_TRACE
+                                                                    );
+                    int result = -1;
+                    if (VarDATA) {
+                        if (!VarDATA->LINKS)
+                            VarDATA->LINKS = 1;
+                        result = GetVariable(VarDATA, TYPE, STRING_VALUE, NUMBER_VALUE);
+                        FREE_VARIABLE(VarDATA);
                     }
+                    FREE_VARIABLE(Owner);
+                    if (THROW_DATA)
+                        return -1;
+                    return result;
                 }
                 index = CCode->RELOCATIONS2 [index] - 1;
                 if (index >= 0) {
@@ -410,27 +408,26 @@ INTEGER SetClassMember(void *CLASS_PTR, const char *class_member_name, INTEGER T
                     OE.Operator_ID = 0;
                     OE.OperandRight_ID = 0;
 
-                    try {
-                        CCode->SetProperty(PIF,
-                                           index,
-                                           Owner,
-                                           &OE,
-                                           true,
-                                           1,
-                                           CONTAINER,
-                                           CCode->CLSID,
-                                           CCode->CLSID,
-                                           NULL);
+                    VariableDATA *THROW_DATA;
+                    CCode->SetProperty(PIF,
+                                        index,
+                                        Owner,
+                                        &OE,
+                                        true,
+                                        1,
+                                        CONTAINER,
+                                        CCode->CLSID,
+                                        CCode->CLSID,
+                                        &THROW_DATA,
+                                        NULL);
 
-                        FREE_VARIABLE(Owner);
-                        FREE_VARIABLE(Parameter);
-                        return 0;
-                    } catch (VariableDATA *THROW_DATA) {
+                    FREE_VARIABLE(Owner);
+                    FREE_VARIABLE(Parameter);
+                    if (THROW_DATA) {
                         FREE_VARIABLE(THROW_DATA);
-                        FREE_VARIABLE(Owner);
-                        FREE_VARIABLE(Parameter);
                         return -1;
                     }
+                    return 0;
                 }
             }
 
@@ -1076,45 +1073,41 @@ INTEGER Invoke(INTEGER INVOKE_TYPE, ...) {
                     VariableDATA *RESULT = target;
                     VariableDATA *lOwner = 0;
 
-                    try {
-                        lOwner = (VariableDATA *)VAR_ALLOC(PIF);
-                        lOwner->CLASS_DATA = target->CLASS_DATA;
-                        lOwner->IS_PROPERTY_RESULT = 0;
-                        lOwner->LINKS = 1;
-                        lOwner->TYPE = VARIABLE_CLASS;
+                    lOwner = (VariableDATA *)VAR_ALLOC(PIF);
+                    lOwner->CLASS_DATA = target->CLASS_DATA;
+                    lOwner->IS_PROPERTY_RESULT = 0;
+                    lOwner->LINKS = 1;
+                    lOwner->TYPE = VARIABLE_CLASS;
 
-                        ((CompiledClass *)RESULT->CLASS_DATA)->LINKS++;
+                    ((CompiledClass *)RESULT->CLASS_DATA)->LINKS++;
 #ifndef SIMPLE_MULTI_THREADING
-                        SCStack *STACK_TRACE = NULL;
-                        if ((PIF) && (INVOKE_TYPE == INVOKE_CALL_DELEGATE)) {
-                            GCRoot *root = PIF->GCROOT;
-                            if (root) {
-                                STACK_TRACE = (SCStack *)root->STACK_TRACE;
-                                if (STACK_TRACE)
-                                    STACK_TRACE = (SCStack *)STACK_TRACE->TOP;
-                            }
+                    SCStack *STACK_TRACE = NULL;
+                    if ((PIF) && (INVOKE_TYPE == INVOKE_CALL_DELEGATE)) {
+                        GCRoot *root = PIF->GCROOT;
+                        if (root) {
+                            STACK_TRACE = (SCStack *)root->STACK_TRACE;
+                            if (STACK_TRACE)
+                                STACK_TRACE = (SCStack *)STACK_TRACE->TOP;
                         }
-#endif
-                        *SENDER_RESULT = ((CompiledClass *)RESULT->CLASS_DATA)->_Class->ExecuteDelegate(PIF,
-                                                                                                        (INTEGER)RESULT->DELEGATE_DATA,
-                                                                                                        lOwner,
-                                                                                                        0,
-                                                                                                        &FORMAL_PARAM,
-                                                                                                        CTX,
-                                                                                                        ((CompiledClass *)RESULT->CLASS_DATA)->_Class->CLSID,
-                                                                                                        ((CompiledClass *)RESULT->CLASS_DATA)->_Class->CLSID,
-#ifdef SIMPLE_MULTI_THREADING
-                                                                                                        NULL, spin_lock);
-#else
-                                                                                                        STACK_TRACE);
-#endif
-                        FREE_VARIABLE(lOwner);
-                        if (*SENDER_RESULT)
-                            (*SENDER_RESULT)->LINKS++;
-                    } catch (VariableDATA *LAST_THROW) {
-                        FREE_VARIABLE(lOwner);
-                        *SENDER_EXCEPTION = LAST_THROW;
                     }
+#endif
+                    *SENDER_RESULT = ((CompiledClass *)RESULT->CLASS_DATA)->_Class->ExecuteDelegate(PIF,
+                                                                                                    (INTEGER)RESULT->DELEGATE_DATA,
+                                                                                                    lOwner,
+                                                                                                    0,
+                                                                                                    &FORMAL_PARAM,
+                                                                                                    CTX,
+                                                                                                    ((CompiledClass *)RESULT->CLASS_DATA)->_Class->CLSID,
+                                                                                                    ((CompiledClass *)RESULT->CLASS_DATA)->_Class->CLSID,
+                                                                                                    SENDER_EXCEPTION,
+#ifdef SIMPLE_MULTI_THREADING
+                                                                                                    NULL, spin_lock);
+#else
+                                                                                                    STACK_TRACE);
+#endif
+                    FREE_VARIABLE(lOwner);
+                    if (*SENDER_RESULT)
+                        (*SENDER_RESULT)->LINKS++;
 #ifdef SIMPLE_MULTI_THREADING
                     if (spin_lock)
                         *spin_lock = 0;
@@ -1696,19 +1689,15 @@ INTEGER Invoke(INTEGER INVOKE_TYPE, ...) {
                 }
                 PIFAlizator *PIF = GET_PIF(((CompiledClass *)target->CLASS_DATA));
                 if ((target->TYPE == VARIABLE_DELEGATE) && (target->CLASS_DATA)) {
-                    try {
-                        ((CompiledClass *)target->CLASS_DATA)->reachable = 0x1C;
-                        VariableDATA *var = (VariableDATA *)VAR_ALLOC(PIF);
-                        var->IS_PROPERTY_RESULT = 0;
-                        var->LINKS          = 1;
-                        var->DELEGATE_DATA  = target->DELEGATE_DATA;
-                        var->CLASS_DATA     = target->CLASS_DATA;
-                        ((CompiledClass *)var->CLASS_DATA)->LINKS++;
-                        var->TYPE        = target->TYPE;
-                        *cycle = ((CompiledClass *)target->CLASS_DATA)->_Class->CreateThread(PIF, (INTEGER)target->DELEGATE_DATA, var);
-                    } catch (VariableDATA *LAST_THROW) {
-                        FREE_VARIABLE(LAST_THROW);
-                    }
+                    ((CompiledClass *)target->CLASS_DATA)->reachable = 0x1C;
+                    VariableDATA *var = (VariableDATA *)VAR_ALLOC(PIF);
+                    var->IS_PROPERTY_RESULT = 0;
+                    var->LINKS          = 1;
+                    var->DELEGATE_DATA  = target->DELEGATE_DATA;
+                    var->CLASS_DATA     = target->CLASS_DATA;
+                    ((CompiledClass *)var->CLASS_DATA)->LINKS++;
+                    var->TYPE        = target->TYPE;
+                    *cycle = ((CompiledClass *)target->CLASS_DATA)->_Class->CreateThread(PIF, (INTEGER)target->DELEGATE_DATA, var);
                 } else {
                     result = INVALID_INVOKE_PARAMETER;
                 }

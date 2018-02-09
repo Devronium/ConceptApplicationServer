@@ -40,106 +40,62 @@ static TinyString DLL_MEMBER = "STATIC_FUNCTION";
 
 #define PROPERTY_CODE(THISREF, PROPERTIES)                                                                                                                                                                                                                                                                      \
     if ((PROPERTIES) && (PROPERTIES [OE->OperandLeft_ID - 1].IS_PROPERTY_RESULT)) {                                                                                                                                                                                                                             \
-        try {                                                                                                                                                                                                                                                                                                   \
-            CCTEMP = (CompiledClass *)((VariableDATA *)(PROPERTIES [OE->OperandLeft_ID - 1].CALL_SET))->CLASS_DATA;                                                                                                                                                                                             \
-            WRITE_UNLOCK                                                                                                                                                                                                                                                                                        \
-            CCTEMP->_Class->SetProperty(PIF, PROPERTIES [OE->OperandLeft_ID - 1].IS_PROPERTY_RESULT - 1, (VariableDATA *)(PROPERTIES [OE->OperandLeft_ID - 1].CALL_SET), OE, CCTEMP->_Class->CLSID == ClassID, OE->Result_ID , LOCAL_CONTEXT, ClassID, THISREF->LocalClassID, STACK_TRACE); \
-        } catch (VariableDATA *LAST_THROW) {                                                                                                                                                                                                                                                                    \
-            THROW_DATA = LAST_THROW;                                                                                                                                                                                                                                                                            \
-            if ((CATCH_INSTRUCTION_POINTER) && (CATCH_VARIABLE)) {                                                                                                                                                                                                                                              \
-                LOCAL_CONTEXT [CATCH_VARIABLE - 1]->LINKS--;                                                                                                                                                                                                                                                    \
-                if (!LOCAL_CONTEXT [CATCH_VARIABLE - 1]->LINKS) {                                                                                                                                                                                                                                               \
-                    VAR_FREE(LOCAL_CONTEXT [CATCH_VARIABLE - 1]); }                                                                                                                                                                                                                                             \
-                LOCAL_CONTEXT [CATCH_VARIABLE - 1] = THROW_DATA;                                                                                                                                                                                                                                                \
-                INSTRUCTION_POINTER       = CATCH_INSTRUCTION_POINTER;                                                                                                                                                                                                                                          \
-                THROW_DATA                = 0;                                                                                                                                                                                                                                                                  \
-                CATCH_INSTRUCTION_POINTER = 0;                                                                                                                                                                                                                                                                  \
-                CATCH_VARIABLE            = 0;                                                                                                                                                                                                                                                                  \
-                RESTORE_TRY_DATA(THISREF);                                                                                                                                                                                                                                                                      \
-            } else {                                                                                                                                                                                                                                                                                            \
+        CCTEMP = (CompiledClass *)((VariableDATA *)(PROPERTIES [OE->OperandLeft_ID - 1].CALL_SET))->CLASS_DATA;                                                                                                                                                                                                 \
+        WRITE_UNLOCK                                                                                                                                                                                                                                                                                            \
+        CCTEMP->_Class->SetProperty(PIF, PROPERTIES [OE->OperandLeft_ID - 1].IS_PROPERTY_RESULT - 1, (VariableDATA *)(PROPERTIES [OE->OperandLeft_ID - 1].CALL_SET), OE, CCTEMP->_Class->CLSID == ClassID, OE->Result_ID , LOCAL_CONTEXT, ClassID, THISREF->LocalClassID, &THROW_DATA, STACK_TRACE);            \
+        if (THROW_DATA) {                                                                                                                                                                                                                                                                                       \
+            if (THISREF->Catch(THROW_DATA, LOCAL_CONTEXT, OE, PROPERTIES, INSTRUCTION_POINTER, CATCH_INSTRUCTION_POINTER, CATCH_VARIABLE, PREVIOUS_TRY)) {                                                                                                                                                      \
                 FAST_FREE(PROPERTIES);                                                                                                                                                                                                                                                                          \
                 PROPERTIES = 0;                                                                                                                                                                                                                                                                                 \
                 WRITE_UNLOCK                                                                                                                                                                                                                                                                                    \
-                return 0; }                                                                                                                                                                                                                                                                                     \
+                return 0;                                                                                                                                                                                                                                                                                       \
+            }                                                                                                                                                                                                                                                                                                   \
         }                                                                                                                                                                                                                                                                                                       \
     }
 
-#define PROPERTY_CODE_IGNORE_RESULT(THISREF, PROPERTIES)                                                                                                                                                                                                                                                                      \
+#define PROPERTY_CODE_IGNORE_RESULT(THISREF, PROPERTIES)                                                                                                                                                                                                                                                        \
     if ((PROPERTIES) && (PROPERTIES [OE->OperandLeft_ID - 1].IS_PROPERTY_RESULT)) {                                                                                                                                                                                                                             \
-        try {                                                                                                                                                                                                                                                                                                   \
-            CCTEMP = (CompiledClass *)((VariableDATA *)(PROPERTIES [OE->OperandLeft_ID - 1].CALL_SET))->CLASS_DATA;                                                                                                                                                                                             \
-            WRITE_UNLOCK                                                                                                                                                                                                                                                                                        \
-            CCTEMP->_Class->SetProperty(PIF, PROPERTIES [OE->OperandLeft_ID - 1].IS_PROPERTY_RESULT - 1, (VariableDATA *)(PROPERTIES [OE->OperandLeft_ID - 1].CALL_SET), OE, CCTEMP->_Class->CLSID == ClassID, OE->OperandLeft_ID , LOCAL_CONTEXT, ClassID, THISREF->LocalClassID, STACK_TRACE);  \
-        } catch (VariableDATA *LAST_THROW) {                                                                                                                                                                                                                                                                    \
-            THROW_DATA = LAST_THROW;                                                                                                                                                                                                                                                                            \
-            if ((CATCH_INSTRUCTION_POINTER) && (CATCH_VARIABLE)) {                                                                                                                                                                                                                                              \
-                LOCAL_CONTEXT [CATCH_VARIABLE - 1]->LINKS--;                                                                                                                                                                                                                                                    \
-                if (!LOCAL_CONTEXT [CATCH_VARIABLE - 1]->LINKS) {                                                                                                                                                                                                                                               \
-                    VAR_FREE(LOCAL_CONTEXT [CATCH_VARIABLE - 1]); }                                                                                                                                                                                                                                             \
-                LOCAL_CONTEXT [CATCH_VARIABLE - 1] = THROW_DATA;                                                                                                                                                                                                                                                \
-                INSTRUCTION_POINTER       = CATCH_INSTRUCTION_POINTER;                                                                                                                                                                                                                                          \
-                THROW_DATA                = 0;                                                                                                                                                                                                                                                                  \
-                CATCH_INSTRUCTION_POINTER = 0;                                                                                                                                                                                                                                                                  \
-                CATCH_VARIABLE            = 0;                                                                                                                                                                                                                                                                  \
-                RESTORE_TRY_DATA(THISREF);                                                                                                                                                                                                                                                                      \
-            } else {                                                                                                                                                                                                                                                                                            \
+        CCTEMP = (CompiledClass *)((VariableDATA *)(PROPERTIES [OE->OperandLeft_ID - 1].CALL_SET))->CLASS_DATA;                                                                                                                                                                                                 \
+        WRITE_UNLOCK                                                                                                                                                                                                                                                                                            \
+        CCTEMP->_Class->SetProperty(PIF, PROPERTIES [OE->OperandLeft_ID - 1].IS_PROPERTY_RESULT - 1, (VariableDATA *)(PROPERTIES [OE->OperandLeft_ID - 1].CALL_SET), OE, CCTEMP->_Class->CLSID == ClassID, OE->OperandLeft_ID , LOCAL_CONTEXT, ClassID, THISREF->LocalClassID, &THROW_DATA, STACK_TRACE);       \
+        if (THROW_DATA) {                                                                                                                                                                                                                                                                                       \
+            if (THISREF->Catch(THROW_DATA, LOCAL_CONTEXT, OE, PROPERTIES, INSTRUCTION_POINTER, CATCH_INSTRUCTION_POINTER, CATCH_VARIABLE, PREVIOUS_TRY)) {                                                                                                                                                      \
                 FAST_FREE(PROPERTIES);                                                                                                                                                                                                                                                                          \
                 PROPERTIES = 0;                                                                                                                                                                                                                                                                                 \
                 WRITE_UNLOCK                                                                                                                                                                                                                                                                                    \
-                return 0; }                                                                                                                                                                                                                                                                                     \
+                return 0;                                                                                                                                                                                                                                                                                       \
+            }                                                                                                                                                                                                                                                                                                   \
         }                                                                                                                                                                                                                                                                                                       \
     }
 
-#define PROPERTY_CODE_LEFT(THISREF, PROPERTIES)                                                                                                                                                                                                                                                                      \
-    if ((PROPERTIES) && (PROPERTIES [OE->OperandLeft_ID - 1].IS_PROPERTY_RESULT)) {                                                                                                                                                                                                                                  \
-        try {                                                                                                                                                                                                                                                                                                        \
-            CCTEMP = (CompiledClass *)((VariableDATA *)(PROPERTIES [OE->OperandLeft_ID - 1].CALL_SET))->CLASS_DATA;                                                                                                                                                                                                  \
-            WRITE_UNLOCK                                                                                                                                                                                                                                                                                             \
-            CCTEMP->_Class->SetProperty(PIF, PROPERTIES [OE->OperandLeft_ID - 1].IS_PROPERTY_RESULT - 1, (VariableDATA *)(PROPERTIES [OE->OperandLeft_ID - 1].CALL_SET), OE, CCTEMP->_Class->CLSID == ClassID, OE->OperandLeft_ID , LOCAL_CONTEXT, ClassID, THISREF->LocalClassID, STACK_TRACE); \
-        } catch (VariableDATA *LAST_THROW) {                                                                                                                                                                                                                                                                         \
-            THROW_DATA = LAST_THROW;                                                                                                                                                                                                                                                                                 \
-            if ((CATCH_INSTRUCTION_POINTER) && (CATCH_VARIABLE)) {                                                                                                                                                                                                                                                   \
-                LOCAL_CONTEXT [CATCH_VARIABLE - 1]->LINKS--;                                                                                                                                                                                                                                                         \
-                if (!LOCAL_CONTEXT [CATCH_VARIABLE - 1]->LINKS) {                                                                                                                                                                                                                                                    \
-                    VAR_FREE(LOCAL_CONTEXT [CATCH_VARIABLE - 1]); }                                                                                                                                                                                                                                                  \
-                LOCAL_CONTEXT [CATCH_VARIABLE - 1] = THROW_DATA;                                                                                                                                                                                                                                                     \
-                INSTRUCTION_POINTER       = CATCH_INSTRUCTION_POINTER;                                                                                                                                                                                                                                               \
-                THROW_DATA                = 0;                                                                                                                                                                                                                                                                       \
-                CATCH_INSTRUCTION_POINTER = 0;                                                                                                                                                                                                                                                                       \
-                CATCH_VARIABLE            = 0;                                                                                                                                                                                                                                                                       \
-                RESTORE_TRY_DATA(THISREF);                                                                                                                                                                                                                                                                           \
-            } else {                                                                                                                                                                                                                                                                                                 \
-                FAST_FREE(PROPERTIES);                                                                                                                                                                                                                                                                               \
-                PROPERTIES = 0;                                                                                                                                                                                                                                                                                      \
-                WRITE_UNLOCK                                                                                                                                                                                                                                                                                         \
-                return 0; }                                                                                                                                                                                                                                                                                          \
-        }                                                                                                                                                                                                                                                                                                            \
+#define PROPERTY_CODE_LEFT(THISREF, PROPERTIES)                                                                                                                                                                                                                                                                 \
+    if ((PROPERTIES) && (PROPERTIES [OE->OperandLeft_ID - 1].IS_PROPERTY_RESULT)) {                                                                                                                                                                                                                             \
+        CCTEMP = (CompiledClass *)((VariableDATA *)(PROPERTIES [OE->OperandLeft_ID - 1].CALL_SET))->CLASS_DATA;                                                                                                                                                                                                 \
+        WRITE_UNLOCK                                                                                                                                                                                                                                                                                            \
+        CCTEMP->_Class->SetProperty(PIF, PROPERTIES [OE->OperandLeft_ID - 1].IS_PROPERTY_RESULT - 1, (VariableDATA *)(PROPERTIES [OE->OperandLeft_ID - 1].CALL_SET), OE, CCTEMP->_Class->CLSID == ClassID, OE->OperandLeft_ID , LOCAL_CONTEXT, ClassID, THISREF->LocalClassID, &THROW_DATA, STACK_TRACE);       \
+        if (THROW_DATA) {                                                                                                                                                                                                                                                                                       \
+            if (THISREF->Catch(THROW_DATA, LOCAL_CONTEXT, OE, PROPERTIES, INSTRUCTION_POINTER, CATCH_INSTRUCTION_POINTER, CATCH_VARIABLE, PREVIOUS_TRY)) {                                                                                                                                                      \
+                FAST_FREE(PROPERTIES);                                                                                                                                                                                                                                                                          \
+                PROPERTIES = 0;                                                                                                                                                                                                                                                                                 \
+                WRITE_UNLOCK                                                                                                                                                                                                                                                                                    \
+                return 0;                                                                                                                                                                                                                                                                                       \
+            }                                                                                                                                                                                                                                                                                                   \
+        }                                                                                                                                                                                                                                                                                                       \
     }
 //---------------------------------------------------------
-#define TEMP_PROPERTY_CODE(THISREF, PROPERTIES)                                                                                                                                                                                                                                                                                      \
-    if ((PROPERTIES) && (PROPERTIES [tempOE->OperandLeft_ID - 1].IS_PROPERTY_RESULT)) {                                                                                                                                                                                                                                              \
-        try {                                                                                                                                                                                                                                                                                                                        \
-            CCTEMP = (CompiledClass *)((VariableDATA *)(PROPERTIES [tempOE->OperandLeft_ID - 1].CALL_SET))->CLASS_DATA;                                                                                                                                                                                                              \
-            WRITE_UNLOCK                                                                                                                                                                                                                                                                                                             \
-            CCTEMP->_Class->SetProperty(PIF, PROPERTIES [tempOE->OperandLeft_ID - 1].IS_PROPERTY_RESULT - 1, (VariableDATA *)(PROPERTIES [tempOE->OperandLeft_ID - 1].CALL_SET), tempOE, CCTEMP->_Class->CLSID == ClassID, tempOE->OperandLeft_ID , LOCAL_CONTEXT, ClassID, THISREF->LocalClassID, STACK_TRACE); \
-        } catch (VariableDATA *LAST_THROW) {                                                                                                                                                                                                                                                                                         \
-            THROW_DATA = LAST_THROW;                                                                                                                                                                                                                                                                                                 \
-            if ((CATCH_INSTRUCTION_POINTER) && (CATCH_VARIABLE)) {                                                                                                                                                                                                                                                                   \
-                LOCAL_CONTEXT [CATCH_VARIABLE - 1]->LINKS--;                                                                                                                                                                                                                                                                         \
-                if (!LOCAL_CONTEXT [CATCH_VARIABLE - 1]->LINKS) {                                                                                                                                                                                                                                                                    \
-                    VAR_FREE(LOCAL_CONTEXT [CATCH_VARIABLE - 1]); }                                                                                                                                                                                                                                                                  \
-                LOCAL_CONTEXT [CATCH_VARIABLE - 1] = THROW_DATA;                                                                                                                                                                                                                                                                     \
-                INSTRUCTION_POINTER       = CATCH_INSTRUCTION_POINTER;                                                                                                                                                                                                                                                               \
-                THROW_DATA                = 0;                                                                                                                                                                                                                                                                                       \
-                CATCH_INSTRUCTION_POINTER = 0;                                                                                                                                                                                                                                                                                       \
-                CATCH_VARIABLE            = 0;                                                                                                                                                                                                                                                                                       \
-                RESTORE_TRY_DATA(THISREF);                                                                                                                                                                                                                                                                                           \
-            } else {                                                                                                                                                                                                                                                                                                                 \
-                FAST_FREE(PROPERTIES);                                                                                                                                                                                                                                                                                               \
-                PROPERTIES = 0;                                                                                                                                                                                                                                                                                                      \
-                WRITE_UNLOCK                                                                                                                                                                                                                                                                                                         \
-                return 0; }                                                                                                                                                                                                                                                                                                          \
-        }                                                                                                                                                                                                                                                                                                                            \
+#define TEMP_PROPERTY_CODE(THISREF, PROPERTIES)                                                                                                                                                                                                                                                                 \
+    if ((PROPERTIES) && (PROPERTIES [tempOE->OperandLeft_ID - 1].IS_PROPERTY_RESULT)) {                                                                                                                                                                                                                         \
+        CCTEMP = (CompiledClass *)((VariableDATA *)(PROPERTIES [tempOE->OperandLeft_ID - 1].CALL_SET))->CLASS_DATA;                                                                                                                                                                                             \
+        WRITE_UNLOCK                                                                                                                                                                                                                                                                                            \
+        CCTEMP->_Class->SetProperty(PIF, PROPERTIES [tempOE->OperandLeft_ID - 1].IS_PROPERTY_RESULT - 1, (VariableDATA *)(PROPERTIES [tempOE->OperandLeft_ID - 1].CALL_SET), tempOE, CCTEMP->_Class->CLSID == ClassID, tempOE->OperandLeft_ID , LOCAL_CONTEXT, ClassID, THISREF->LocalClassID, &THROW_DATA, STACK_TRACE); \
+        if (THROW_DATA) {                                                                                                                                                                                                                                                                                       \
+            if (THISREF->Catch(THROW_DATA, LOCAL_CONTEXT, OE, PROPERTIES, INSTRUCTION_POINTER, CATCH_INSTRUCTION_POINTER, CATCH_VARIABLE, PREVIOUS_TRY)) {                                                                                                                                                      \
+                FAST_FREE(PROPERTIES);                                                                                                                                                                                                                                                                          \
+                PROPERTIES = 0;                                                                                                                                                                                                                                                                                 \
+                WRITE_UNLOCK                                                                                                                                                                                                                                                                                    \
+                return 0;                                                                                                                                                                                                                                                                                       \
+            }                                                                                                                                                                                                                                                                                                   \
+        }                                                                                                                                                                                                                                                                                                       \
     }
 //---------------------------------------------------------
 #define UPDATE_STRING_VARIABLE_THAT_HAS_INDEX(THISREF, VARIABLE, PROPERTIES)                                                        \
@@ -2643,6 +2599,8 @@ int ConceptInterpreter::StacklessInterpret(PIFAlizator *PIF, GreenThreadCycle *G
 
 #ifdef SIMPLE_MULTI_THREADING
     char IsWriteLocked = 0;
+#else
+    bool not_executed;
 #endif
 
     while (TARGET_THREAD) {
@@ -2741,7 +2699,15 @@ int ConceptInterpreter::StacklessInterpret(PIFAlizator *PIF, GreenThreadCycle *G
                                     if ((TARGET_THREAD->PROPERTIES) && (TARGET_THREAD->PROPERTIES [OE->OperandLeft_ID - 1].IS_PROPERTY_RESULT)) {
                                         CCTEMP = (CompiledClass *)((VariableDATA *)(TARGET_THREAD->PROPERTIES [OE->OperandLeft_ID - 1].CALL_SET))->CLASS_DATA;
                                         WRITE_UNLOCK
-                                        CCTEMP->_Class->SetProperty(PIF, TARGET_THREAD->PROPERTIES [OE->OperandLeft_ID - 1].IS_PROPERTY_RESULT - 1, (VariableDATA *)(TARGET_THREAD->PROPERTIES [OE->OperandLeft_ID - 1].CALL_SET), OE, CCTEMP->_Class->CLSID == ClassID, OE->Result_ID - 1, LOCAL_CONTEXT, ClassID, THIS_REF->LocalClassID, STACK_TRACE);
+                                        CCTEMP->_Class->SetProperty(PIF, TARGET_THREAD->PROPERTIES [OE->OperandLeft_ID - 1].IS_PROPERTY_RESULT - 1, (VariableDATA *)(TARGET_THREAD->PROPERTIES [OE->OperandLeft_ID - 1].CALL_SET), OE, CCTEMP->_Class->CLSID == ClassID, OE->Result_ID - 1, LOCAL_CONTEXT, ClassID, THIS_REF->LocalClassID, &THROW_DATA, STACK_TRACE);
+                                        if (THROW_DATA) {
+                                            if (THIS_REF->Catch(THROW_DATA, LOCAL_CONTEXT, OE, TARGET_THREAD->PROPERTIES, INSTRUCTION_POINTER, CATCH_INSTRUCTION_POINTER, CATCH_VARIABLE, PREVIOUS_TRY)) {
+                                                FREE_VARIABLE(THROW_DATA);
+                                                // uncaught exception
+                                                PIF->AcknoledgeRunTimeError(STACK_TRACE, new AnsiException(ERR1300, OE->Operator_DEBUG_INFO_LINE, 1300, OE->OperandRight_PARSE_DATA.c_str(), ((ClassCode *)(THIS_REF->OWNER->Defined_In))->_DEBUG_INFO_FILENAME, ((ClassCode *)(THIS_REF->OWNER->Defined_In))->NAME, THIS_REF->OWNER->NAME));
+                                                INSTRUCTION_POINTER = TARGET_THREAD->INSTRUCTION_COUNT;
+                                            }
+                                        }
                                     }
                                     DECLARE_PATH(LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE);
                                     continue;
@@ -2789,77 +2755,66 @@ int ConceptInterpreter::StacklessInterpret(PIFAlizator *PIF, GreenThreadCycle *G
                             next_is_asg       = OE->OperandReserved_TYPE;
                             FORMAL_PARAMETERS = 0;
                         }
-                        try {
-                            //-------------------------------------------//
-    #ifndef SIMPLE_MULTI_THREADING
-                            bool not_executed = true;
-                            if ((FORMAL_PARAMETERS) && (CCTEMP->_Class == THIS_REF->OWNER->Defined_In)) {
-                                int         relocation = CCTEMP->_Class->Relocation(OE->OperandRight_ID - 1);
-                                ClassMember *pMEMBER_i = relocation ? CCTEMP->_Class->pMEMBERS [relocation - 1] : 0;
-                                if ((pMEMBER_i == THIS_REF->OWNER) && (FORMAL_PARAMETERS->COUNT == pMEMBER_i->MUST_PARAMETERS_COUNT)) {
-                                    not_executed = false;
-                                    VariableDATA *LOCAL_THROW = NULL;
-                                    WRITE_UNLOCK
-                                    RESULT = pMEMBER_i->Execute(PIF, ClassID, LOCAL_CONTEXT [OE->OperandLeft_ID - 1], FORMAL_PARAMETERS, LOCAL_CONTEXT, LOCAL_THROW, STACK_TRACE);
-                                    if (LOCAL_THROW)
-                                        throw LOCAL_THROW;
-                                    WRITE_LOCK
-                                }
-                            }
-                            if (not_executed) {
-    #endif
-                            WRITE_UNLOCK
-                            RESULT = CCTEMP->_Class->ExecuteMember(PIF, OE->OperandRight_ID - 1, LOCAL_CONTEXT [OE->OperandLeft_ID - 1], OE, CCTEMP->_Class->CLSID == ClassID, FORMAL_PARAMETERS, LOCAL_CONTEXT, 0, ClassID, THIS_REF->LocalClassID, STACK_TRACE, next_is_asg, &TARGET_THREAD->PROPERTIES, OPT->dataCount, OE->Result_ID - 1);
-                            WRITE_LOCK
-    #ifndef SIMPLE_MULTI_THREADING
-                            }
-    #endif
-                            //-------------------------------------------//
-                            if (RESULT == LOCAL_CONTEXT [OE->Result_ID - 1]) {
-                                DECLARE_PATH(RESULT->TYPE);
-                                continue;
-                            }
-                            if (OE->Operator_FLAGS == MAY_IGNORE_RESULT) {
-                                if (RESULT) {
-                                    if (!RESULT->LINKS)
-                                        RESULT->LINKS = 1;
-                                    FREE_VARIABLE(RESULT);
-                                }
-                                continue;
-                            } else {
-                                if (((RESULT) && ((RESULT->TYPE == VARIABLE_CLASS) || (RESULT->TYPE == VARIABLE_DELEGATE)) && (!RESULT->CLASS_DATA)) || (!RESULT)) {
-                                    WRITE_UNLOCK
-                                    CLASS_CHECK_TS(LOCAL_CONTEXT [OE->Result_ID - 1]);
-                                    LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
-                                    LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = 0;
-                                }
-                                if (RESULT) {
-                                    FREE_VARIABLE_TS(LOCAL_CONTEXT [OE->Result_ID - 1]);
-                                    LOCAL_CONTEXT [OE->Result_ID - 1] = RESULT;
-                                    RESULT->LINKS++;
-                                } else {
-                                    LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = 0;
-                                }
-                            }
-                        } catch (VariableDATA *LAST_THROW) {
-                            DECLARE_PATH(LAST_THROW->TYPE);
-                            if ((CATCH_INSTRUCTION_POINTER) && (CATCH_VARIABLE)) {
-                                FREE_VARIABLE(LOCAL_CONTEXT [CATCH_VARIABLE - 1]);
-                                LOCAL_CONTEXT [CATCH_VARIABLE - 1] = LAST_THROW;
-                                INSTRUCTION_POINTER       = CATCH_INSTRUCTION_POINTER;
-                                THROW_DATA                = 0;
-                                CATCH_INSTRUCTION_POINTER = 0;
-                                CATCH_VARIABLE            = 0;
-                                //-------------//
-                                RESTORE_TRY_DATA(THIS_REF);
-                                //-------------//
-                            } else {
+                        //-------------------------------------------//
+#ifndef SIMPLE_MULTI_THREADING
+                        not_executed = true;
+                        if ((FORMAL_PARAMETERS) && (CCTEMP->_Class == THIS_REF->OWNER->Defined_In)) {
+                            int         relocation = CCTEMP->_Class->Relocation(OE->OperandRight_ID - 1);
+                            ClassMember *pMEMBER_i = relocation ? CCTEMP->_Class->pMEMBERS [relocation - 1] : 0;
+                            if ((pMEMBER_i == THIS_REF->OWNER) && (FORMAL_PARAMETERS->COUNT == pMEMBER_i->MUST_PARAMETERS_COUNT)) {
+                                not_executed = false;
                                 WRITE_UNLOCK
-                                    FREE_VARIABLE(LAST_THROW);
+                                RESULT = pMEMBER_i->Execute(PIF, ClassID, LOCAL_CONTEXT [OE->OperandLeft_ID - 1], FORMAL_PARAMETERS, LOCAL_CONTEXT, THROW_DATA, STACK_TRACE);
+                                WRITE_LOCK
+                            }
+                        }
+                        if (not_executed) {
+#endif
+                        WRITE_UNLOCK
+                        RESULT = CCTEMP->_Class->ExecuteMember(PIF, OE->OperandRight_ID - 1, LOCAL_CONTEXT [OE->OperandLeft_ID - 1], OE, CCTEMP->_Class->CLSID == ClassID, FORMAL_PARAMETERS, LOCAL_CONTEXT, 0, ClassID, THIS_REF->LocalClassID, &THROW_DATA, STACK_TRACE, next_is_asg, &TARGET_THREAD->PROPERTIES, OPT->dataCount, OE->Result_ID - 1);
+                        WRITE_LOCK
+#ifndef SIMPLE_MULTI_THREADING
+                        }
+#endif
+                        if (THROW_DATA) {
+                            DECLARE_PATH(LAST_THROW->TYPE);
+                            if (THIS_REF->Catch(THROW_DATA, LOCAL_CONTEXT, OE, TARGET_THREAD->PROPERTIES, INSTRUCTION_POINTER, CATCH_INSTRUCTION_POINTER, CATCH_VARIABLE, PREVIOUS_TRY)) {
+                                WRITE_UNLOCK
+                                FREE_VARIABLE(THROW_DATA);
                                 // uncaught exception
                                 PIF->AcknoledgeRunTimeError(STACK_TRACE, new AnsiException(ERR1300, OE->Operator_DEBUG_INFO_LINE, 1300, OE->OperandRight_PARSE_DATA.c_str(), ((ClassCode *)(THIS_REF->OWNER->Defined_In))->_DEBUG_INFO_FILENAME, ((ClassCode *)(THIS_REF->OWNER->Defined_In))->NAME, THIS_REF->OWNER->NAME));
                                 INSTRUCTION_POINTER = TARGET_THREAD->INSTRUCTION_COUNT;
                                 break;
+                            }
+                            WRITE_UNLOCK
+                            continue;
+                        }
+
+                        //-------------------------------------------//
+                        if (RESULT == LOCAL_CONTEXT [OE->Result_ID - 1]) {
+                            DECLARE_PATH(RESULT->TYPE);
+                            continue;
+                        }
+                        if (OE->Operator_FLAGS == MAY_IGNORE_RESULT) {
+                            if (RESULT) {
+                                if (!RESULT->LINKS)
+                                    RESULT->LINKS = 1;
+                                FREE_VARIABLE(RESULT);
+                            }
+                            continue;
+                        } else {
+                            if (((RESULT) && ((RESULT->TYPE == VARIABLE_CLASS) || (RESULT->TYPE == VARIABLE_DELEGATE)) && (!RESULT->CLASS_DATA)) || (!RESULT)) {
+                                WRITE_UNLOCK
+                                CLASS_CHECK_TS(LOCAL_CONTEXT [OE->Result_ID - 1]);
+                                LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
+                                LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = 0;
+                            }
+                            if (RESULT) {
+                                FREE_VARIABLE_TS(LOCAL_CONTEXT [OE->Result_ID - 1]);
+                                LOCAL_CONTEXT [OE->Result_ID - 1] = RESULT;
+                                RESULT->LINKS++;
+                            } else {
+                                LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = 0;
                             }
                         }
                         DECLARE_PATH(LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE);
@@ -2905,70 +2860,62 @@ int ConceptInterpreter::StacklessInterpret(PIFAlizator *PIF, GreenThreadCycle *G
                         if (OE->OperandLeft_ID == STATIC_CLASS_DELEGATE) {
                             // call to delegate function
                             VariableDATA *lOwner = 0;
-                            try {
-                                //-------------------------------------------//
-                                if (LOCAL_CONTEXT [OE->OperandRight_ID - 1]->TYPE != VARIABLE_DELEGATE) {
-                                    Exc = new AnsiException(ERR970, OE->Operator_DEBUG_INFO_LINE, 970, OE->OperandRight_PARSE_DATA.c_str(), ((ClassCode *)(THIS_REF->OWNER->Defined_In))->_DEBUG_INFO_FILENAME, ((ClassCode *)(THIS_REF->OWNER->Defined_In))->NAME, THIS_REF->OWNER->NAME);
-                                    PIF->AcknoledgeRunTimeError(STACK_TRACE, Exc);
-                                    DECLARE_PATH(0x20);
-                                    continue;
-                                }
-                                CCTEMP                     = (CompiledClass *)LOCAL_CONTEXT [OE->OperandRight_ID - 1]->CLASS_DATA;
-                                lOwner                     = (VariableDATA *)VAR_ALLOC(PIF);
-                                lOwner->CLASS_DATA         = CCTEMP;
-                                lOwner->IS_PROPERTY_RESULT = 0;
-                                lOwner->LINKS              = 1;
-                                lOwner->TYPE               = VARIABLE_CLASS;
-                                CCTEMP->LINKS++;
+                            //-------------------------------------------//
+                            if (LOCAL_CONTEXT [OE->OperandRight_ID - 1]->TYPE != VARIABLE_DELEGATE) {
+                                Exc = new AnsiException(ERR970, OE->Operator_DEBUG_INFO_LINE, 970, OE->OperandRight_PARSE_DATA.c_str(), ((ClassCode *)(THIS_REF->OWNER->Defined_In))->_DEBUG_INFO_FILENAME, ((ClassCode *)(THIS_REF->OWNER->Defined_In))->NAME, THIS_REF->OWNER->NAME);
+                                PIF->AcknoledgeRunTimeError(STACK_TRACE, Exc);
+                                DECLARE_PATH(0x20);
+                                continue;
+                            }
+                            CCTEMP                     = (CompiledClass *)LOCAL_CONTEXT [OE->OperandRight_ID - 1]->CLASS_DATA;
+                            lOwner                     = (VariableDATA *)VAR_ALLOC(PIF);
+                            lOwner->CLASS_DATA         = CCTEMP;
+                            lOwner->IS_PROPERTY_RESULT = 0;
+                            lOwner->LINKS              = 1;
+                            lOwner->TYPE               = VARIABLE_CLASS;
+                            CCTEMP->LINKS++;
 
-                                WRITE_UNLOCK
-                                RESULT = CCTEMP->_Class->ExecuteDelegate(PIF,
-                                                                             (INTEGER)LOCAL_CONTEXT [OE->OperandRight_ID - 1]->DELEGATE_DATA,
-                                                                             lOwner,
-                                                                             OE,
-                                                                             FORMAL_PARAMETERS,
-                                                                             LOCAL_CONTEXT,
-                                                                             ClassID,
-                                                                             THIS_REF->LocalClassID,
-                                                                             STACK_TRACE);
-                                WRITE_LOCK
-                                FREE_VARIABLE(lOwner);
-
-                                if (((RESULT) && ((RESULT->TYPE == VARIABLE_CLASS) || (RESULT->TYPE == VARIABLE_DELEGATE)) && (!RESULT->CLASS_DATA)) || (!RESULT)) {
-                                    CLASS_CHECK_TS(LOCAL_CONTEXT [OE->Result_ID - 1]);
-                                    LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
-                                    LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = 0;
-                                }
-                                if (RESULT == LOCAL_CONTEXT [OE->Result_ID - 1]) {
-                                    DECLARE_PATH(RESULT->TYPE);
-                                    continue;
-                                }
-                                if (RESULT) {
-                                    FREE_VARIABLE_TS(LOCAL_CONTEXT [OE->Result_ID - 1]);
-                                    LOCAL_CONTEXT [OE->Result_ID - 1] = RESULT;
-                                    RESULT->LINKS++;
-                                }
-                            } catch (VariableDATA *LAST_THROW) {
+                            WRITE_UNLOCK
+                            RESULT = CCTEMP->_Class->ExecuteDelegate(PIF,
+                                                                            (INTEGER)LOCAL_CONTEXT [OE->OperandRight_ID - 1]->DELEGATE_DATA,
+                                                                            lOwner,
+                                                                            OE,
+                                                                            FORMAL_PARAMETERS,
+                                                                            LOCAL_CONTEXT,
+                                                                            ClassID,
+                                                                            THIS_REF->LocalClassID,
+                                                                            &THROW_DATA,
+                                                                            STACK_TRACE);
+                            WRITE_LOCK
+                            if (THROW_DATA) {
                                 FREE_VARIABLE(lOwner);
                                 DECLARE_PATH(LAST_THROW->TYPE);
-                                if ((CATCH_INSTRUCTION_POINTER) && (CATCH_VARIABLE)) {
-                                    FREE_VARIABLE(LOCAL_CONTEXT [CATCH_VARIABLE - 1]);
-                                    LOCAL_CONTEXT [CATCH_VARIABLE - 1] = LAST_THROW;
-                                    INSTRUCTION_POINTER       = CATCH_INSTRUCTION_POINTER;
-                                    THROW_DATA                = 0;
-                                    CATCH_INSTRUCTION_POINTER = 0;
-                                    CATCH_VARIABLE            = 0;
-                                    //-------------//
-                                    RESTORE_TRY_DATA(THIS_REF);
-                                    //-------------//
-                                } else {
+                                if (THIS_REF->Catch(THROW_DATA, LOCAL_CONTEXT, OE, TARGET_THREAD->PROPERTIES, INSTRUCTION_POINTER, CATCH_INSTRUCTION_POINTER, CATCH_VARIABLE, PREVIOUS_TRY)) {
                                     WRITE_UNLOCK
-                                    FREE_VARIABLE(LAST_THROW);
+                                    FREE_VARIABLE(THROW_DATA);
                                     // uncaught exception
                                     PIF->AcknoledgeRunTimeError(STACK_TRACE, new AnsiException(ERR1300, OE->Operator_DEBUG_INFO_LINE, 1300, OE->OperandRight_PARSE_DATA.c_str(), ((ClassCode *)(THIS_REF->OWNER->Defined_In))->_DEBUG_INFO_FILENAME, ((ClassCode *)(THIS_REF->OWNER->Defined_In))->NAME, THIS_REF->OWNER->NAME));
                                     INSTRUCTION_POINTER = TARGET_THREAD->INSTRUCTION_COUNT;
                                     break;
                                 }
+                                WRITE_UNLOCK
+                                continue;
+                            }
+                            FREE_VARIABLE(lOwner);
+
+                            if (((RESULT) && ((RESULT->TYPE == VARIABLE_CLASS) || (RESULT->TYPE == VARIABLE_DELEGATE)) && (!RESULT->CLASS_DATA)) || (!RESULT)) {
+                                CLASS_CHECK_TS(LOCAL_CONTEXT [OE->Result_ID - 1]);
+                                LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
+                                LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = 0;
+                            }
+                            if (RESULT == LOCAL_CONTEXT [OE->Result_ID - 1]) {
+                                DECLARE_PATH(RESULT->TYPE);
+                                continue;
+                            }
+                            if (RESULT) {
+                                FREE_VARIABLE_TS(LOCAL_CONTEXT [OE->Result_ID - 1]);
+                                LOCAL_CONTEXT [OE->Result_ID - 1] = RESULT;
+                                RESULT->LINKS++;
                             }
                             DECLARE_PATH(LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE);
                             continue;
@@ -3028,44 +2975,35 @@ int ConceptInterpreter::StacklessInterpret(PIFAlizator *PIF, GreenThreadCycle *G
                                 }
                             }
                         } else {
-                            try {
-                                CC = PIF->StaticClassList[OE->OperandLeft_ID - 1];
-                                WRITE_UNLOCK
-                                RESULT = CC->ExecuteMember(PIF, OE->OperandRight_ID - 1, LOCAL_CONTEXT [0], OE, CC->CLSID == ClassID, FORMAL_PARAMETERS, LOCAL_CONTEXT, 0, ClassID, THIS_REF->LocalClassID, STACK_TRACE);
-                                WRITE_LOCK
-                                //-------------------------------------------//
-                                if (((RESULT) && ((RESULT->TYPE == VARIABLE_CLASS) || (RESULT->TYPE == VARIABLE_DELEGATE)) && (!RESULT->CLASS_DATA)) || (!RESULT)) {
-                                    CLASS_CHECK_TS(LOCAL_CONTEXT [OE->Result_ID - 1]);
-                                    LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
-                                    LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = 0;
-                                }
-                                if (RESULT) {
-                                    FREE_VARIABLE_TS(LOCAL_CONTEXT [OE->Result_ID - 1]);
-                                    LOCAL_CONTEXT [OE->Result_ID - 1] = RESULT;
-                                    RESULT->LINKS++;
-                                } else {
-                                    LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = 0;
-                                }
-                            } catch (VariableDATA *LAST_THROW) {
+                            CC = PIF->StaticClassList[OE->OperandLeft_ID - 1];
+                            WRITE_UNLOCK
+                            RESULT = CC->ExecuteMember(PIF, OE->OperandRight_ID - 1, LOCAL_CONTEXT [0], OE, CC->CLSID == ClassID, FORMAL_PARAMETERS, LOCAL_CONTEXT, 0, ClassID, THIS_REF->LocalClassID, &THROW_DATA, STACK_TRACE);
+                            WRITE_LOCK
+                            //-------------------------------------------//
+                            if (THROW_DATA) {
                                 DECLARE_PATH(LAST_THROW->TYPE);
-                                if ((CATCH_INSTRUCTION_POINTER) && (CATCH_VARIABLE)) {
-                                    FREE_VARIABLE(LOCAL_CONTEXT [CATCH_VARIABLE - 1]);
-                                    LOCAL_CONTEXT [CATCH_VARIABLE - 1] = LAST_THROW;
-                                    INSTRUCTION_POINTER       = CATCH_INSTRUCTION_POINTER;
-                                    THROW_DATA                = 0;
-                                    CATCH_INSTRUCTION_POINTER = 0;
-                                    CATCH_VARIABLE            = 0;
-                                    //-------------//
-                                    RESTORE_TRY_DATA(THIS_REF);
-                                    //-------------//
-                                } else {
+                                if (THIS_REF->Catch(THROW_DATA, LOCAL_CONTEXT, OE, TARGET_THREAD->PROPERTIES, INSTRUCTION_POINTER, CATCH_INSTRUCTION_POINTER, CATCH_VARIABLE, PREVIOUS_TRY)) {
                                     WRITE_UNLOCK
-                                        FREE_VARIABLE(LAST_THROW);
+                                    FREE_VARIABLE(THROW_DATA);
                                     // uncaught exception
                                     PIF->AcknoledgeRunTimeError(STACK_TRACE, new AnsiException(ERR1300, OE->Operator_DEBUG_INFO_LINE, 1300, OE->OperandRight_PARSE_DATA.c_str(), ((ClassCode *)(THIS_REF->OWNER->Defined_In))->_DEBUG_INFO_FILENAME, ((ClassCode *)(THIS_REF->OWNER->Defined_In))->NAME, THIS_REF->OWNER->NAME));
                                     INSTRUCTION_POINTER = TARGET_THREAD->INSTRUCTION_COUNT;
                                     break;
                                 }
+                                WRITE_UNLOCK;
+                                continue;
+                            }
+                            if (((RESULT) && ((RESULT->TYPE == VARIABLE_CLASS) || (RESULT->TYPE == VARIABLE_DELEGATE)) && (!RESULT->CLASS_DATA)) || (!RESULT)) {
+                                CLASS_CHECK_TS(LOCAL_CONTEXT [OE->Result_ID - 1]);
+                                LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
+                                LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = 0;
+                            }
+                            if (RESULT) {
+                                FREE_VARIABLE_TS(LOCAL_CONTEXT [OE->Result_ID - 1]);
+                                LOCAL_CONTEXT [OE->Result_ID - 1] = RESULT;
+                                RESULT->LINKS++;
+                            } else {
+                                LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = 0;
                             }
                         }
                         DECLARE_PATH(LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE);
@@ -3435,6 +3373,21 @@ int ConceptInterpreter::StacklessInterpret(PIFAlizator *PIF, GreenThreadCycle *G
     return 0;
 }
 
+int ConceptInterpreter::Catch(VariableDATA *&THROW_DATA, VariableDATA **LOCAL_CONTEXT, const RuntimeOptimizedElement *OE, VariableDATAPROPERTY * &PROPERTIES, INTEGER &INSTRUCTION_POINTER, INTEGER &CATCH_INSTRUCTION_POINTER, INTEGER &CATCH_VARIABLE, INTEGER &PREVIOUS_TRY) {
+    if ((CATCH_INSTRUCTION_POINTER) && (CATCH_VARIABLE)) {
+        Optimizer *OPT = (Optimizer *)this->OWNER->OPTIMIZER;
+        FREE_VARIABLE(LOCAL_CONTEXT [CATCH_VARIABLE - 1]);
+        LOCAL_CONTEXT [CATCH_VARIABLE - 1] = THROW_DATA;
+        INSTRUCTION_POINTER       = CATCH_INSTRUCTION_POINTER;
+        THROW_DATA                = 0;
+        CATCH_INSTRUCTION_POINTER = 0;
+        CATCH_VARIABLE            = 0;
+        RESTORE_TRY_DATA(this);
+        return 0;
+    }
+    return 1;
+}
+
 #ifdef SIMPLE_MULTI_THREADING
 int ConceptInterpreter::EvalClassExpression(PIFAlizator *PIF, VariableDATA **LOCAL_CONTEXT, const RuntimeOptimizedElement *OE, VariableDATAPROPERTY * &PROPERTIES, intptr_t ClassID, VariableDATA *& THROW_DATA, SCStack *STACK_TRACE, OPERATOR_ID_TYPE OE_Operator_ID, INTEGER &INSTRUCTION_POINTER, INTEGER &CATCH_INSTRUCTION_POINTER, INTEGER &CATCH_VARIABLE, INTEGER &PREVIOUS_TRY, char &IsWriteLocked) {
 #else
@@ -3471,7 +3424,9 @@ int ConceptInterpreter::EvalClassExpression(PIFAlizator *PIF, VariableDATA **LOC
             if ((PROPERTIES) && (PROPERTIES [OE->OperandLeft_ID - 1].IS_PROPERTY_RESULT)) {
                 CCTEMP = (CompiledClass *)((VariableDATA *)(PROPERTIES [OE->OperandLeft_ID - 1].CALL_SET))->CLASS_DATA;
                 WRITE_UNLOCK
-                CCTEMP->_Class->SetProperty(PIF, PROPERTIES [OE->OperandLeft_ID - 1].IS_PROPERTY_RESULT - 1, (VariableDATA *)(PROPERTIES [OE->OperandLeft_ID - 1].CALL_SET), OE, CCTEMP->_Class->CLSID == ClassID, OE->Result_ID - 1, LOCAL_CONTEXT, ClassID, LocalClassID, STACK_TRACE);
+                CCTEMP->_Class->SetProperty(PIF, PROPERTIES [OE->OperandLeft_ID - 1].IS_PROPERTY_RESULT - 1, (VariableDATA *)(PROPERTIES [OE->OperandLeft_ID - 1].CALL_SET), OE, CCTEMP->_Class->CLSID == ClassID, OE->Result_ID - 1, LOCAL_CONTEXT, ClassID, LocalClassID, &THROW_DATA, STACK_TRACE);
+                if (THROW_DATA)
+                    return 0;
             }
             DECLARE_PATH(VARIABLE_CLASS);
             return 1;
@@ -3736,55 +3691,45 @@ int ConceptInterpreter::EvalClassExpression(PIFAlizator *PIF, VariableDATA **LOC
         OPERATOR_PARAM.COUNT = 0;
     }
     CCTEMP = (CompiledClass *)LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA;
-    try {
-        WRITE_UNLOCK
-        RESULT = CCTEMP->_Class->ExecuteMember(PIF, OPERATOR_ID, LOCAL_CONTEXT [OE->OperandLeft_ID - 1], OE, CCTEMP->_Class->CLSID == ClassID, &OPERATOR_PARAM, LOCAL_CONTEXT, 0, ClassID, LocalClassID, STACK_TRACE);
-        WRITE_LOCK
-        if (RESULT == LOCAL_CONTEXT [OE->Result_ID - 1]) {
-            DECLARE_PATH(RESULT->TYPE);
-            return 1;
-        }
-        if (OE->Operator_FLAGS == MAY_IGNORE_RESULT) {
-            if (RESULT) {
-                if (!RESULT->LINKS)
-                    RESULT->LINKS = 1;
-                FREE_VARIABLE(RESULT);
-            }
-            return 1;
-        }
-        if (((RESULT) && ((RESULT->TYPE == VARIABLE_CLASS) || (RESULT->TYPE == VARIABLE_DELEGATE)) && (!RESULT->CLASS_DATA)) || (!RESULT)) {
-            CLASS_CHECK_TS(LOCAL_CONTEXT [OE->Result_ID - 1]);
-            LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
-            LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = 0;
-        }
-        if (RESULT) {
-            FREE_VARIABLE_TS(LOCAL_CONTEXT [OE->Result_ID - 1]);
-            LOCAL_CONTEXT [OE->Result_ID - 1] = RESULT;
-            RESULT->LINKS++;
-        } else {
-            LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = 0;
-            DECLARE_PATH(0x20);
-        }
-    } catch (VariableDATA *LAST_THROW) {
+    WRITE_UNLOCK
+    RESULT = CCTEMP->_Class->ExecuteMember(PIF, OPERATOR_ID, LOCAL_CONTEXT [OE->OperandLeft_ID - 1], OE, CCTEMP->_Class->CLSID == ClassID, &OPERATOR_PARAM, LOCAL_CONTEXT, 0, ClassID, LocalClassID, &THROW_DATA, STACK_TRACE);
+    WRITE_LOCK
+    if (THROW_DATA) {
         DECLARE_PATH(VARIABLE_NUMBER);
-        THROW_DATA = LAST_THROW;
         DECLARE_PATH(LAST_THROW->TYPE);
-        if ((CATCH_INSTRUCTION_POINTER) && (CATCH_VARIABLE)) {
-            FREE_VARIABLE(LOCAL_CONTEXT [CATCH_VARIABLE - 1]);
-            LOCAL_CONTEXT [CATCH_VARIABLE - 1] = THROW_DATA;
-            INSTRUCTION_POINTER       = CATCH_INSTRUCTION_POINTER;
-            THROW_DATA                = 0;
-            CATCH_INSTRUCTION_POINTER = 0;
-            CATCH_VARIABLE            = 0;
-            //-------------//
-            RESTORE_TRY_DATA(this);
-            //-------------//
-        } else {
+        if (this->Catch(THROW_DATA, LOCAL_CONTEXT, OE, PROPERTIES, INSTRUCTION_POINTER, CATCH_INSTRUCTION_POINTER, CATCH_VARIABLE, PREVIOUS_TRY)) {
+            FAST_FREE(PROPERTIES);
+            PROPERTIES = 0;
             WRITE_UNLOCK
-            if (PROPERTIES)
-                FAST_FREE(PROPERTIES);
             return 0;
         }
+        return 1;
+    }
+
+    if (RESULT == LOCAL_CONTEXT [OE->Result_ID - 1]) {
+        DECLARE_PATH(RESULT->TYPE);
+        return 1;
+    }
+    if (OE->Operator_FLAGS == MAY_IGNORE_RESULT) {
+        if (RESULT) {
+            if (!RESULT->LINKS)
+                RESULT->LINKS = 1;
+            FREE_VARIABLE(RESULT);
+        }
+        return 1;
+    }
+    if (((RESULT) && ((RESULT->TYPE == VARIABLE_CLASS) || (RESULT->TYPE == VARIABLE_DELEGATE)) && (!RESULT->CLASS_DATA)) || (!RESULT)) {
+        CLASS_CHECK_TS(LOCAL_CONTEXT [OE->Result_ID - 1]);
+        LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
+        LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = 0;
+    }
+    if (RESULT) {
+        FREE_VARIABLE_TS(LOCAL_CONTEXT [OE->Result_ID - 1]);
+        LOCAL_CONTEXT [OE->Result_ID - 1] = RESULT;
+        RESULT->LINKS++;
+    } else {
+        LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = 0;
+        DECLARE_PATH(0x20);
     }
     return 1;
 }
@@ -3813,7 +3758,9 @@ int ConceptInterpreter::EvalArrayExpression(PIFAlizator *PIF, VariableDATA **LOC
             if ((PROPERTIES) && (PROPERTIES [OE->OperandLeft_ID - 1].IS_PROPERTY_RESULT)) {
                 CCTEMP = (CompiledClass *)((VariableDATA *)(PROPERTIES [OE->OperandLeft_ID - 1].CALL_SET))->CLASS_DATA;
                 WRITE_UNLOCK
-                CCTEMP->_Class->SetProperty(PIF, PROPERTIES [OE->OperandLeft_ID - 1].IS_PROPERTY_RESULT - 1, (VariableDATA *)(PROPERTIES [OE->OperandLeft_ID - 1].CALL_SET), OE, CCTEMP->_Class->CLSID == ClassID, OE->Result_ID - 1, LOCAL_CONTEXT, ClassID, LocalClassID, STACK_TRACE);
+                CCTEMP->_Class->SetProperty(PIF, PROPERTIES [OE->OperandLeft_ID - 1].IS_PROPERTY_RESULT - 1, (VariableDATA *)(PROPERTIES [OE->OperandLeft_ID - 1].CALL_SET), OE, CCTEMP->_Class->CLSID == ClassID, OE->Result_ID - 1, LOCAL_CONTEXT, ClassID, LocalClassID, &THROW_DATA, STACK_TRACE);
+                if (THROW_DATA)
+                    return 0;
             }
             DECLARE_PATH(VARIABLE_ARRAY);
             return 1;
@@ -5004,6 +4951,8 @@ VariableDATA *ConceptInterpreter::Interpret(PIFAlizator *PIF, VariableDATA **LOC
 
 #ifdef SIMPLE_MULTI_THREADING
     char IsWriteLocked = 0;
+#else
+    bool             not_executed;
 #endif
     INTEGER CATCH_INSTRUCTION_POINTER = 0;
     INTEGER CATCH_VARIABLE            = 0;
@@ -5092,7 +5041,13 @@ VariableDATA *ConceptInterpreter::Interpret(PIFAlizator *PIF, VariableDATA **LOC
                                 if ((PROPERTIES) && (PROPERTIES [OE->OperandLeft_ID - 1].IS_PROPERTY_RESULT)) {
                                     CCTEMP = (CompiledClass *)((VariableDATA *)(PROPERTIES [OE->OperandLeft_ID - 1].CALL_SET))->CLASS_DATA;
                                     WRITE_UNLOCK
-                                    CCTEMP->_Class->SetProperty(PIF, PROPERTIES [OE->OperandLeft_ID - 1].IS_PROPERTY_RESULT - 1, (VariableDATA *)(PROPERTIES [OE->OperandLeft_ID - 1].CALL_SET), OE, CCTEMP->_Class->CLSID == ClassID, OE->Result_ID - 1, LOCAL_CONTEXT, ClassID, LocalClassID, STACK_TRACE);
+                                    CCTEMP->_Class->SetProperty(PIF, PROPERTIES [OE->OperandLeft_ID - 1].IS_PROPERTY_RESULT - 1, (VariableDATA *)(PROPERTIES [OE->OperandLeft_ID - 1].CALL_SET), OE, CCTEMP->_Class->CLSID == ClassID, OE->Result_ID - 1, LOCAL_CONTEXT, ClassID, LocalClassID, &THROW_DATA, STACK_TRACE);
+                                    if (THROW_DATA) {
+                                        FAST_FREE(PROPERTIES);
+                                        PROPERTIES = 0;
+                                        WRITE_UNLOCK
+                                        return 0;
+                                    }
                                 }
                                 DECLARE_PATH(LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE);
                                 continue;
@@ -5140,75 +5095,62 @@ VariableDATA *ConceptInterpreter::Interpret(PIFAlizator *PIF, VariableDATA **LOC
                         next_is_asg       = OE->OperandReserved_TYPE;
                         FORMAL_PARAMETERS = 0;
                     }
-                    try {
-                        //-------------------------------------------//
+                    //-------------------------------------------//
 #ifndef SIMPLE_MULTI_THREADING
-                        bool not_executed = true;
-                        if ((FORMAL_PARAMETERS) && (CCTEMP->_Class == this->OWNER->Defined_In)) {
-                            int         relocation = CCTEMP->_Class->Relocation(OE->OperandRight_ID - 1);
-                            ClassMember *pMEMBER_i = relocation ? CCTEMP->_Class->pMEMBERS [relocation - 1] : 0;
-                            if ((pMEMBER_i == this->OWNER) && (FORMAL_PARAMETERS->COUNT == pMEMBER_i->MUST_PARAMETERS_COUNT)) {
-                                not_executed = false;
-                                VariableDATA *LOCAL_THROW = NULL;
-                                WRITE_UNLOCK
-                                RESULT = pMEMBER_i->Execute(PIF, ClassID, LOCAL_CONTEXT [OE->OperandLeft_ID - 1], FORMAL_PARAMETERS, LOCAL_CONTEXT, LOCAL_THROW, STACK_TRACE);
-                                if (LOCAL_THROW)
-                                    throw LOCAL_THROW;
-                                WRITE_LOCK
-                            }
-                        }
-                        if (not_executed) {
-#endif
-                        WRITE_UNLOCK
-                        RESULT = CCTEMP->_Class->ExecuteMember(PIF, OE->OperandRight_ID - 1, LOCAL_CONTEXT [OE->OperandLeft_ID - 1], OE, CCTEMP->_Class->CLSID == ClassID, FORMAL_PARAMETERS, LOCAL_CONTEXT, 0, ClassID, LocalClassID, STACK_TRACE, next_is_asg, &PROPERTIES, OPT->dataCount, OE->Result_ID - 1);
-                        WRITE_LOCK
-#ifndef SIMPLE_MULTI_THREADING
-                        }
-#endif
-                        //-------------------------------------------//
-                        if (RESULT == LOCAL_CONTEXT [OE->Result_ID - 1]) {
-                            DECLARE_PATH(RESULT->TYPE);
-                            continue;
-                        }
-                        if (OE->Operator_FLAGS == MAY_IGNORE_RESULT) {
-                            if (RESULT) {
-                                if (!RESULT->LINKS)
-                                    RESULT->LINKS = 1;
-                                FREE_VARIABLE(RESULT);
-                            }
-                            continue;
-                        } else {
-                            if (((RESULT) && ((RESULT->TYPE == VARIABLE_CLASS) || (RESULT->TYPE == VARIABLE_DELEGATE)) && (!RESULT->CLASS_DATA)) || (!RESULT)) {
-                                WRITE_UNLOCK
-                                CLASS_CHECK_TS(LOCAL_CONTEXT [OE->Result_ID - 1]);
-                                LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
-                                LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = 0;
-                            }
-                            if (RESULT) {
-                                FREE_VARIABLE_TS(LOCAL_CONTEXT [OE->Result_ID - 1]);
-                                LOCAL_CONTEXT [OE->Result_ID - 1] = RESULT;
-                                RESULT->LINKS++;
-                            } else {
-                                LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = 0;
-                            }
-                        }
-                    } catch (VariableDATA *LAST_THROW) {
-                        THROW_DATA = LAST_THROW;
-                        DECLARE_PATH(LAST_THROW->TYPE);
-                        if ((CATCH_INSTRUCTION_POINTER) && (CATCH_VARIABLE)) {
-                            FREE_VARIABLE(LOCAL_CONTEXT [CATCH_VARIABLE - 1]);
-                            LOCAL_CONTEXT [CATCH_VARIABLE - 1] = THROW_DATA;
-                            INSTRUCTION_POINTER       = CATCH_INSTRUCTION_POINTER;
-                            THROW_DATA                = 0;
-                            CATCH_INSTRUCTION_POINTER = 0;
-                            CATCH_VARIABLE            = 0;
-                            //-------------//
-                            RESTORE_TRY_DATA(this);
-                            //-------------//
-                        } else {
+                    not_executed = true;
+                    if ((FORMAL_PARAMETERS) && (CCTEMP->_Class == this->OWNER->Defined_In)) {
+                        int         relocation = CCTEMP->_Class->Relocation(OE->OperandRight_ID - 1);
+                        ClassMember *pMEMBER_i = relocation ? CCTEMP->_Class->pMEMBERS [relocation - 1] : 0;
+                        if ((pMEMBER_i == this->OWNER) && (FORMAL_PARAMETERS->COUNT == pMEMBER_i->MUST_PARAMETERS_COUNT)) {
+                            not_executed = false;
                             WRITE_UNLOCK
+                            RESULT = pMEMBER_i->Execute(PIF, ClassID, LOCAL_CONTEXT [OE->OperandLeft_ID - 1], FORMAL_PARAMETERS, LOCAL_CONTEXT, THROW_DATA, STACK_TRACE);
+                            WRITE_LOCK
+                        }
+                    }
+                    if (not_executed) {
+#endif
+                    WRITE_UNLOCK
+                    RESULT = CCTEMP->_Class->ExecuteMember(PIF, OE->OperandRight_ID - 1, LOCAL_CONTEXT [OE->OperandLeft_ID - 1], OE, CCTEMP->_Class->CLSID == ClassID, FORMAL_PARAMETERS, LOCAL_CONTEXT, 0, ClassID, LocalClassID, &THROW_DATA, STACK_TRACE, next_is_asg, &PROPERTIES, OPT->dataCount, OE->Result_ID - 1);
+                    WRITE_LOCK
+#ifndef SIMPLE_MULTI_THREADING
+                    }
+#endif
+                    if (THROW_DATA) {
+                        DECLARE_PATH(THROW_DATA->TYPE);
+                        if (this->Catch(THROW_DATA, LOCAL_CONTEXT, OE, PROPERTIES, INSTRUCTION_POINTER, CATCH_INSTRUCTION_POINTER, CATCH_VARIABLE, PREVIOUS_TRY)) {
                             FAST_FREE(PROPERTIES);
+                            PROPERTIES = 0;
+                            WRITE_UNLOCK
                             return 0;
+                        }
+                        continue;
+                    }
+                    //-------------------------------------------//
+                    if (RESULT == LOCAL_CONTEXT [OE->Result_ID - 1]) {
+                        DECLARE_PATH(RESULT->TYPE);
+                        continue;
+                    }
+                    if (OE->Operator_FLAGS == MAY_IGNORE_RESULT) {
+                        if (RESULT) {
+                            if (!RESULT->LINKS)
+                                RESULT->LINKS = 1;
+                            FREE_VARIABLE(RESULT);
+                        }
+                        continue;
+                    } else {
+                        if (((RESULT) && ((RESULT->TYPE == VARIABLE_CLASS) || (RESULT->TYPE == VARIABLE_DELEGATE)) && (!RESULT->CLASS_DATA)) || (!RESULT)) {
+                            WRITE_UNLOCK
+                            CLASS_CHECK_TS(LOCAL_CONTEXT [OE->Result_ID - 1]);
+                            LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
+                            LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = 0;
+                        }
+                        if (RESULT) {
+                            FREE_VARIABLE_TS(LOCAL_CONTEXT [OE->Result_ID - 1]);
+                            LOCAL_CONTEXT [OE->Result_ID - 1] = RESULT;
+                            RESULT->LINKS++;
+                        } else {
+                            LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = 0;
                         }
                     }
                     DECLARE_PATH(LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE);
@@ -5224,76 +5166,65 @@ VariableDATA *ConceptInterpreter::Interpret(PIFAlizator *PIF, VariableDATA **LOC
                     if (OE->OperandLeft_ID == STATIC_CLASS_DELEGATE) {
                         // call to delegate function
                         VariableDATA *lOwner = 0;
-                        try {
-                            //-------------------------------------------//
-                            if (LOCAL_CONTEXT [OE->OperandRight_ID - 1]->TYPE != VARIABLE_DELEGATE) {
-                                Exc = new AnsiException(ERR970, OE->Operator_DEBUG_INFO_LINE, 970, OE->OperandRight_PARSE_DATA.c_str(), ((ClassCode *)(OWNER->Defined_In))->_DEBUG_INFO_FILENAME, ((ClassCode *)(OWNER->Defined_In))->NAME, OWNER->NAME);
-                                PIF->AcknoledgeRunTimeError(STACK_TRACE, Exc);
-                                DECLARE_PATH(0x20);
-                                continue;
-                            }
-                            CCTEMP                     = (CompiledClass *)LOCAL_CONTEXT [OE->OperandRight_ID - 1]->CLASS_DATA;
-                            lOwner                     = (VariableDATA *)VAR_ALLOC(PIF);
-                            lOwner->CLASS_DATA         = CCTEMP;
-                            lOwner->IS_PROPERTY_RESULT = 0;
-                            lOwner->LINKS              = 1;
-                            lOwner->TYPE               = VARIABLE_CLASS;
-                            CCTEMP->LINKS++;
+                        //-------------------------------------------//
+                        if (LOCAL_CONTEXT [OE->OperandRight_ID - 1]->TYPE != VARIABLE_DELEGATE) {
+                            Exc = new AnsiException(ERR970, OE->Operator_DEBUG_INFO_LINE, 970, OE->OperandRight_PARSE_DATA.c_str(), ((ClassCode *)(OWNER->Defined_In))->_DEBUG_INFO_FILENAME, ((ClassCode *)(OWNER->Defined_In))->NAME, OWNER->NAME);
+                            PIF->AcknoledgeRunTimeError(STACK_TRACE, Exc);
+                            DECLARE_PATH(0x20);
+                            continue;
+                        }
+                        CCTEMP                     = (CompiledClass *)LOCAL_CONTEXT [OE->OperandRight_ID - 1]->CLASS_DATA;
+                        lOwner                     = (VariableDATA *)VAR_ALLOC(PIF);
+                        lOwner->CLASS_DATA         = CCTEMP;
+                        lOwner->IS_PROPERTY_RESULT = 0;
+                        lOwner->LINKS              = 1;
+                        lOwner->TYPE               = VARIABLE_CLASS;
+                        CCTEMP->LINKS++;
 
-                            WRITE_UNLOCK
-                            RESULT = CCTEMP->_Class->ExecuteDelegate(PIF,
-                                                                         (INTEGER)LOCAL_CONTEXT [OE->OperandRight_ID - 1]->DELEGATE_DATA,
-                                                                         lOwner,
-                                                                         OE,
-                                                                         FORMAL_PARAMETERS,
-                                                                         LOCAL_CONTEXT,
-                                                                         ClassID,
-                                                                         LocalClassID,
-                                                                         STACK_TRACE);
-                            WRITE_LOCK
-                            FREE_VARIABLE(lOwner);
-
-                            if (OE->Operator_FLAGS == MAY_IGNORE_RESULT) {
-                                if ((RESULT) && (RESULT != LOCAL_CONTEXT [OE->Result_ID - 1])) {
-                                    if (!RESULT->LINKS)
-                                        RESULT->LINKS = 1;
-                                    FREE_VARIABLE(RESULT);
-                                }
-                                continue;
-                            }
-                            if (((RESULT) && ((RESULT->TYPE == VARIABLE_CLASS) || (RESULT->TYPE == VARIABLE_DELEGATE)) && (!RESULT->CLASS_DATA)) || (!RESULT)) {
-                                CLASS_CHECK_TS(LOCAL_CONTEXT [OE->Result_ID - 1]);
-                                LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
-                                LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = 0;
-                            }
-                            if (RESULT == LOCAL_CONTEXT [OE->Result_ID - 1]) {
-                                DECLARE_PATH(RESULT->TYPE);
-                                continue;
-                            }
-                            if (RESULT) {
-                                FREE_VARIABLE_TS(LOCAL_CONTEXT [OE->Result_ID - 1]);
-                                LOCAL_CONTEXT [OE->Result_ID - 1] = RESULT;
-                                RESULT->LINKS++;
-                            }
-                        } catch (VariableDATA *LAST_THROW) {
-                            FREE_VARIABLE(lOwner);
-                            DECLARE_PATH(LAST_THROW->TYPE);
-                            THROW_DATA = LAST_THROW;
-                            if ((CATCH_INSTRUCTION_POINTER) && (CATCH_VARIABLE)) {
-                                FREE_VARIABLE(LOCAL_CONTEXT [CATCH_VARIABLE - 1]);
-                                LOCAL_CONTEXT [CATCH_VARIABLE - 1] = THROW_DATA;
-                                INSTRUCTION_POINTER       = CATCH_INSTRUCTION_POINTER;
-                                THROW_DATA                = 0;
-                                CATCH_INSTRUCTION_POINTER = 0;
-                                CATCH_VARIABLE            = 0;
-                                //-------------//
-                                RESTORE_TRY_DATA(this);
-                                //-------------//
-                            } else {
-                                WRITE_UNLOCK
+                        WRITE_UNLOCK
+                        RESULT = CCTEMP->_Class->ExecuteDelegate(PIF,
+                                                                        (INTEGER)LOCAL_CONTEXT [OE->OperandRight_ID - 1]->DELEGATE_DATA,
+                                                                        lOwner,
+                                                                        OE,
+                                                                        FORMAL_PARAMETERS,
+                                                                        LOCAL_CONTEXT,
+                                                                        ClassID,
+                                                                        LocalClassID,
+                                                                        &THROW_DATA,
+                                                                        STACK_TRACE);
+                        WRITE_LOCK
+                        FREE_VARIABLE(lOwner);
+                        if (THROW_DATA) {
+                            DECLARE_PATH(THROW_DATA->TYPE);
+                            if (this->Catch(THROW_DATA, LOCAL_CONTEXT, OE, PROPERTIES, INSTRUCTION_POINTER, CATCH_INSTRUCTION_POINTER, CATCH_VARIABLE, PREVIOUS_TRY)) {
                                 FAST_FREE(PROPERTIES);
+                                PROPERTIES = 0;
+                                WRITE_UNLOCK
                                 return 0;
                             }
+                            continue;
+                        }
+                        if (OE->Operator_FLAGS == MAY_IGNORE_RESULT) {
+                            if ((RESULT) && (RESULT != LOCAL_CONTEXT [OE->Result_ID - 1])) {
+                                if (!RESULT->LINKS)
+                                    RESULT->LINKS = 1;
+                                FREE_VARIABLE(RESULT);
+                            }
+                            continue;
+                        }
+                        if (((RESULT) && ((RESULT->TYPE == VARIABLE_CLASS) || (RESULT->TYPE == VARIABLE_DELEGATE)) && (!RESULT->CLASS_DATA)) || (!RESULT)) {
+                            CLASS_CHECK_TS(LOCAL_CONTEXT [OE->Result_ID - 1]);
+                            LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
+                            LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = 0;
+                        }
+                        if (RESULT == LOCAL_CONTEXT [OE->Result_ID - 1]) {
+                            DECLARE_PATH(RESULT->TYPE);
+                            continue;
+                        }
+                        if (RESULT) {
+                            FREE_VARIABLE_TS(LOCAL_CONTEXT [OE->Result_ID - 1]);
+                            LOCAL_CONTEXT [OE->Result_ID - 1] = RESULT;
+                            RESULT->LINKS++;
                         }
                         DECLARE_PATH(LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE);
                         continue;
@@ -5351,50 +5282,42 @@ VariableDATA *ConceptInterpreter::Interpret(PIFAlizator *PIF, VariableDATA **LOC
                             }
                         }
                     } else {
-                        try {
-                            CC = PIF->StaticClassList[OE->OperandLeft_ID - 1];
-                            WRITE_UNLOCK
-                            RESULT = CC->ExecuteMember(PIF, OE->OperandRight_ID - 1, LOCAL_CONTEXT [0], OE, CC->CLSID == ClassID, FORMAL_PARAMETERS, LOCAL_CONTEXT, 0, ClassID, LocalClassID, STACK_TRACE);
-                            WRITE_LOCK
-                            //-------------------------------------------//
-                            if (OE->Operator_FLAGS == MAY_IGNORE_RESULT) {
-                                if ((RESULT) && (RESULT != LOCAL_CONTEXT [OE->Result_ID - 1])) {
-                                    if (!RESULT->LINKS)
-                                        RESULT->LINKS = 1;
-                                    FREE_VARIABLE(RESULT);
-                                }
-                                continue;
-                            }
-                            if (((RESULT) && ((RESULT->TYPE == VARIABLE_CLASS) || (RESULT->TYPE == VARIABLE_DELEGATE)) && (!RESULT->CLASS_DATA)) || (!RESULT)) {
-                                CLASS_CHECK_TS(LOCAL_CONTEXT [OE->Result_ID - 1]);
-                                LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
-                                LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = 0;
-                            }
-                            if (RESULT) {
-                                FREE_VARIABLE_TS(LOCAL_CONTEXT [OE->Result_ID - 1]);
-                                LOCAL_CONTEXT [OE->Result_ID - 1] = RESULT;
-                                RESULT->LINKS++;
-                            } else {
-                                LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = 0;
-                            }
-                        } catch (VariableDATA *LAST_THROW) {
-                            THROW_DATA = LAST_THROW;
-                            DECLARE_PATH(LAST_THROW->TYPE);
-                            if ((CATCH_INSTRUCTION_POINTER) && (CATCH_VARIABLE)) {
-                                FREE_VARIABLE(LOCAL_CONTEXT [CATCH_VARIABLE - 1]);
-                                LOCAL_CONTEXT [CATCH_VARIABLE - 1] = THROW_DATA;
-                                INSTRUCTION_POINTER       = CATCH_INSTRUCTION_POINTER;
-                                THROW_DATA                = 0;
-                                CATCH_INSTRUCTION_POINTER = 0;
-                                CATCH_VARIABLE            = 0;
-                                //-------------//
-                                RESTORE_TRY_DATA(this);
-                                //-------------//
-                            } else {
-                                WRITE_UNLOCK
+                        CC = PIF->StaticClassList[OE->OperandLeft_ID - 1];
+                        WRITE_UNLOCK
+                        RESULT = CC->ExecuteMember(PIF, OE->OperandRight_ID - 1, LOCAL_CONTEXT [0], OE, CC->CLSID == ClassID, FORMAL_PARAMETERS, LOCAL_CONTEXT, 0, ClassID, LocalClassID, &THROW_DATA, STACK_TRACE);
+                        WRITE_LOCK
+                        //-------------------------------------------//
+                        if (THROW_DATA) {
+                            DECLARE_PATH(THROW_DATA->TYPE);
+                            if (this->Catch(THROW_DATA, LOCAL_CONTEXT, OE, PROPERTIES, INSTRUCTION_POINTER, CATCH_INSTRUCTION_POINTER, CATCH_VARIABLE, PREVIOUS_TRY)) {
                                 FAST_FREE(PROPERTIES);
+                                PROPERTIES = 0;
+                                WRITE_UNLOCK
                                 return 0;
                             }
+                            WRITE_UNLOCK
+                            continue;
+                        }
+                        if (OE->Operator_FLAGS == MAY_IGNORE_RESULT) {
+                            if ((RESULT) && (RESULT != LOCAL_CONTEXT [OE->Result_ID - 1])) {
+                                if (!RESULT->LINKS)
+                                    RESULT->LINKS = 1;
+                                FREE_VARIABLE(RESULT);
+                            }
+                            WRITE_UNLOCK
+                            continue;
+                        }
+                        if (((RESULT) && ((RESULT->TYPE == VARIABLE_CLASS) || (RESULT->TYPE == VARIABLE_DELEGATE)) && (!RESULT->CLASS_DATA)) || (!RESULT)) {
+                            CLASS_CHECK_TS(LOCAL_CONTEXT [OE->Result_ID - 1]);
+                            LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
+                            LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = 0;
+                        }
+                        if (RESULT) {
+                            FREE_VARIABLE_TS(LOCAL_CONTEXT [OE->Result_ID - 1]);
+                            LOCAL_CONTEXT [OE->Result_ID - 1] = RESULT;
+                            RESULT->LINKS++;
+                        } else {
+                            LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = 0;
                         }
                     }
                     DECLARE_PATH(LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE);

@@ -551,9 +551,9 @@ CompiledClass *ClassCode::CreateInstance(PIFAlizator *PIF, VariableDATA *Owner, 
     return res;
 }
 
-void ClassCode::SetProperty(PIFAlizator *PIF, INTEGER i, VariableDATA *Owner, const RuntimeOptimizedElement *OE, INTEGER local, INTEGER VALUE, VariableDATA **SenderCTX, INTEGER CLSID, INTEGER LOCAL_CLSID, SCStack *PREV) {
+void ClassCode::SetProperty(PIFAlizator *PIF, INTEGER i, VariableDATA *Owner, const RuntimeOptimizedElement *OE, INTEGER local, INTEGER VALUE, VariableDATA **SenderCTX, INTEGER CLSID, INTEGER LOCAL_CLSID, VariableDATA **LOCAL_THROW, SCStack *PREV) {
     int relocation = this->Relocation(i);
-
+    *LOCAL_THROW = NULL;
     register ClassMember *pMEMBER_i = relocation ? pMEMBERS [relocation - 1] : 0;
 
     if (pMEMBER_i) {
@@ -588,51 +588,45 @@ void ClassCode::SetProperty(PIFAlizator *PIF, INTEGER i, VariableDATA *Owner, co
             PIF->AcknoledgeRunTimeError(PREV, Exc);
             return;
         }
-        try {
-            VariableDATA *RESULT = ExecuteMember(PIF, pMEMBER_i->MEMBER_SET - 1, Owner, OE, 1, ONE_PARAM_LIST, SenderCTX, 1, ((ClassCode *)pMEMBER_i->Defined_In)->CLSID, ((ClassCode *)pMEMBER_i->Defined_In)->CLSID, PREV);
+        VariableDATA *RESULT = ExecuteMember(PIF, pMEMBER_i->MEMBER_SET - 1, Owner, OE, 1, ONE_PARAM_LIST, SenderCTX, 1, ((ClassCode *)pMEMBER_i->Defined_In)->CLSID, ((ClassCode *)pMEMBER_i->Defined_In)->CLSID, LOCAL_THROW, PREV);
+        if (RESULT) {
+            // new zone added //
+            CLASS_CHECK(RESULT);
 
-            if (RESULT) {
-                // new zone added //
-                CLASS_CHECK(RESULT);
+            VariableDATA *NEW_VALUE = SenderCTX [VALUE - 1];
+            RESULT->TYPE = NEW_VALUE->TYPE;
+            switch (RESULT->TYPE) {
+                case VARIABLE_NUMBER:
+                    RESULT->NUMBER_DATA = NEW_VALUE->NUMBER_DATA;
+                    break;
 
-                VariableDATA *NEW_VALUE = SenderCTX [VALUE - 1];
-                RESULT->TYPE = NEW_VALUE->TYPE;
-                switch (RESULT->TYPE) {
-                    case VARIABLE_NUMBER:
-                        RESULT->NUMBER_DATA = NEW_VALUE->NUMBER_DATA;
-                        break;
+                case VARIABLE_STRING:
+                    RESULT->CLASS_DATA     = NULL;
+                    CONCEPT_STRING(RESULT) = CONCEPT_STRING(NEW_VALUE);
+                    break;
 
-                    case VARIABLE_STRING:
-                        RESULT->CLASS_DATA     = NULL;
-                        CONCEPT_STRING(RESULT) = CONCEPT_STRING(NEW_VALUE);
-                        break;
+                case VARIABLE_CLASS:
+                    RESULT->CLASS_DATA = NEW_VALUE->CLASS_DATA;
+                    ((CompiledClass *)RESULT->CLASS_DATA)->LINKS++;
+                    break;
 
-                    case VARIABLE_CLASS:
-                        RESULT->CLASS_DATA = NEW_VALUE->CLASS_DATA;
-                        ((CompiledClass *)RESULT->CLASS_DATA)->LINKS++;
-                        break;
+                case VARIABLE_ARRAY:
+                    RESULT->CLASS_DATA = NEW_VALUE->CLASS_DATA;
+                    ((Array *)RESULT->CLASS_DATA)->LINKS++;
+                    break;
 
-                    case VARIABLE_ARRAY:
-                        RESULT->CLASS_DATA = NEW_VALUE->CLASS_DATA;
-                        ((Array *)RESULT->CLASS_DATA)->LINKS++;
-                        break;
-
-                    case VARIABLE_DELEGATE:
-                        RESULT->CLASS_DATA = NEW_VALUE->CLASS_DATA;
-                        ((CompiledClass *)RESULT->CLASS_DATA)->LINKS++;
-                        RESULT->DELEGATE_DATA = NEW_VALUE->DELEGATE_DATA;
-                        break;
-                }
-                //----------------------------------------------
-                // end zone added //
-                RESULT->LINKS++;
-                FREE_VARIABLE(RESULT);
+                case VARIABLE_DELEGATE:
+                    RESULT->CLASS_DATA = NEW_VALUE->CLASS_DATA;
+                    ((CompiledClass *)RESULT->CLASS_DATA)->LINKS++;
+                    RESULT->DELEGATE_DATA = NEW_VALUE->DELEGATE_DATA;
+                    break;
             }
-            return;
-        } catch (VariableDATA *LAST_THROW) {
-            throw LAST_THROW;
-            return;
+            //----------------------------------------------
+            // end zone added //
+            RESULT->LINKS++;
+            FREE_VARIABLE(RESULT);
         }
+        return;
     }
 
     const char *mname = PIF->GeneralMembers->Item(i);
@@ -654,9 +648,10 @@ TinyString *ClassCode::GetFilename(PIFAlizator *PIF, INTEGER LOCAL_CLSID, TinySt
     return NULL;
 }
 
-VariableDATA *ClassCode::ExecuteDelegate(PIFAlizator *PIF, INTEGER i, VariableDATA *Owner, const RuntimeOptimizedElement *OE, ParamList *FORMAL_PARAM, VariableDATA **SenderCTX, INTEGER CLSID, INTEGER LOCAL_CLSID, SCStack *PREV THREAD_CREATION_LOCKS) {
+VariableDATA *ClassCode::ExecuteDelegate(PIFAlizator *PIF, INTEGER i, VariableDATA *Owner, const RuntimeOptimizedElement *OE, ParamList *FORMAL_PARAM, VariableDATA **SenderCTX, INTEGER CLSID, INTEGER LOCAL_CLSID, VariableDATA **LOCAL_THROW, SCStack *PREV THREAD_CREATION_LOCKS) {
     VariableDATA         *RESULT;
     register ClassMember *pMEMBER_i = i ? pMEMBERS [i - 1] : 0;
+    *LOCAL_THROW = NULL;
 
     if (pMEMBER_i) {
         if (!(ENOUGH_PARAMETERS(pMEMBER_i, FORMAL_PARAM))) {
@@ -679,7 +674,8 @@ VariableDATA *ClassCode::ExecuteDelegate(PIFAlizator *PIF, INTEGER i, VariableDA
         UNSTACK;
 
         if (THROW_DATA) {
-            throw THROW_DATA;
+            FREE_VARIABLE(RESULT);
+            RESULT = NULL;
         }
 
         return RESULT;
@@ -687,13 +683,13 @@ VariableDATA *ClassCode::ExecuteDelegate(PIFAlizator *PIF, INTEGER i, VariableDA
     return 0;
 }
 
-VariableDATA *ClassCode::ExecuteMember(PIFAlizator *PIF, INTEGER i, VariableDATA *Owner, const RuntimeOptimizedElement *OE, INTEGER local, ParamList *FORMAL_PARAM, VariableDATA **SenderCTX, char property, INTEGER CLSID, INTEGER LOCAL_CLSID, SCStack *PREV, char next_is_asg, VariableDATAPROPERTY **PROPERTIES, int dataLen, int result_id) {
+VariableDATA *ClassCode::ExecuteMember(PIFAlizator *PIF, INTEGER i, VariableDATA *Owner, const RuntimeOptimizedElement *OE, INTEGER local, ParamList *FORMAL_PARAM, VariableDATA **SenderCTX, char property, INTEGER CLSID, INTEGER LOCAL_CLSID, VariableDATA **LOCAL_THROW, SCStack *PREV, char next_is_asg, VariableDATAPROPERTY **PROPERTIES, int dataLen, int result_id) {
     INTEGER      IS_PROPERTY = 0;
     VariableDATA *RESULT;
     int          relocation = this->Relocation(i);
+    *LOCAL_THROW = NULL;
 
     register ClassMember *pMEMBER_i = relocation ? pMEMBERS [relocation - 1] : 0;
-
     if (pMEMBER_i) {
         if (((ClassCode *)pMEMBER_i->Defined_In)->CLSID != LOCAL_CLSID) {
             if (pMEMBER_i->ACCESS == ACCESS_PRIVATE) {
@@ -748,18 +744,18 @@ VariableDATA *ClassCode::ExecuteMember(PIFAlizator *PIF, INTEGER i, VariableDATA
                     return 0;
                 }
                 {
-                    VariableDATA *THROW_DATA = 0;
-
                     STACK(PREV, OE ? OE->Operator_DEBUG_INFO_LINE : 0)
-                    RESULT = pMEMBER_i->Execute(PIF, this->CLSID, Owner, FORMAL_PARAM, SenderCTX, THROW_DATA, PREV);
+                    RESULT = pMEMBER_i->Execute(PIF, this->CLSID, Owner, FORMAL_PARAM, SenderCTX, *LOCAL_THROW, PREV);
                     UNSTACK;
 
-                    if (THROW_DATA) {
-                        throw THROW_DATA;
+                    if (*LOCAL_THROW) {
+                        if (RESULT) {
+                            FREE_VARIABLE(RESULT);
+                        }
+                        return NULL;
                     }
                 }
                 return RESULT;
-                break;
 
             case 3:
                 IS_PROPERTY = i + 1;
@@ -786,136 +782,27 @@ VariableDATA *ClassCode::ExecuteMember(PIFAlizator *PIF, INTEGER i, VariableDATA
                     return 0;
                 }
 
-                try {
-                    if (!EMPTY_PARAM_LIST) {
-                        EMPTY_PARAM_LIST              = new ParamList;
-                        EMPTY_PARAM_LIST->COUNT       = 0;
-                        EMPTY_PARAM_LIST->PARAM_INDEX = 0;
-                    }
-                    RESULT = ExecuteMember(PIF, pMEMBER_i->MEMBER_GET - 1, Owner, OE, 1, EMPTY_PARAM_LIST, SenderCTX, 1, ((ClassCode *)pMEMBER_i->Defined_In)->CLSID, ((ClassCode *)pMEMBER_i->Defined_In)->CLSID, PREV);
-                    if (!RESULT) {
-                        RESULT                     = (VariableDATA *)VAR_ALLOC(PIF);
-                        RESULT->CLASS_DATA         = 0;
-                        RESULT->LINKS              = 0;
-                        RESULT->NUMBER_DATA        = 0;
-                        RESULT->TYPE               = VARIABLE_NUMBER;
-                        RESULT->IS_PROPERTY_RESULT = 0;
-                    }
-                    if ((FORMAL_PARAM) && ((!property) || (FORMAL_PARAM->COUNT))) {
-                        if (RESULT->TYPE == VARIABLE_DELEGATE) {
-                            CC_WRITE_LOCK(PIF)
-                            ((CompiledClass *)RESULT->CLASS_DATA)->LINKS++;
-                            CC_WRITE_UNLOCK(PIF)
-                            VariableDATA * lOwner = 0;
-                            try {
-                                lOwner = (VariableDATA *)VAR_ALLOC(PIF);
-                                lOwner->CLASS_DATA         = RESULT->CLASS_DATA;
-                                lOwner->IS_PROPERTY_RESULT = 0;
-                                lOwner->LINKS = 1;
-                                lOwner->TYPE = VARIABLE_CLASS;
-
-                                RESULT = ((CompiledClass *)RESULT->CLASS_DATA)->_Class->ExecuteDelegate(PIF,
-                                                                                                      (INTEGER)RESULT->DELEGATE_DATA,
-                                                                                                      lOwner,
-                                                                                                      OE,
-                                                                                                      FORMAL_PARAM,
-                                                                                                      SenderCTX,
-                                                                                                      CLSID,
-                                                                                                      LOCAL_CLSID,
-                                                                                                      PREV
-                                                                                                      );
-                                FREE_VARIABLE(lOwner);
-                                return RESULT;
-                            } catch (VariableDATA *LAST_THROW) {
-                                FREE_VARIABLE(lOwner);
-                                throw LAST_THROW;
-                                return 0;
-                            }
-                        }
-                        AnsiException *Exc = new AnsiException(ERR390, OE ? OE->Operator_DEBUG_INFO_LINE : 0, 390, (OE ? OE->OperandRight_PARSE_DATA.c_str() : ""), *GetFilename(PIF, CLSID, &((ClassCode *)(pMEMBER_i->Defined_In))->_DEBUG_INFO_FILENAME), NAME);
-                        PIF->AcknoledgeRunTimeError(PREV, Exc);
-
-                        RESULT                     = (VariableDATA *)VAR_ALLOC(PIF);
-                        RESULT->CLASS_DATA         = 0;
-                        RESULT->LINKS              = 0;
-                        RESULT->NUMBER_DATA        = 0;
-                        RESULT->TYPE               = VARIABLE_NUMBER;
-                        RESULT->IS_PROPERTY_RESULT = 0;
-                        return RESULT;
-                    }
-
-                    if (!RESULT->LINKS) {
-                        if (PROPERTIES) {
-                            if (!(*PROPERTIES)) {
-                                *PROPERTIES = (VariableDATAPROPERTY *)FAST_MALLOC(sizeof(VariableDATAPROPERTY) * dataLen);
-                                memset(*PROPERTIES, 0, sizeof(VariableDATAPROPERTY) * dataLen);
-                            }
-                            (*PROPERTIES)[result_id].CALL_SET           = Owner;
-                            (*PROPERTIES)[result_id].IS_PROPERTY_RESULT = i + 1;
-                            RESULT->IS_PROPERTY_RESULT = 1;
-                        } else
-                            RESULT->IS_PROPERTY_RESULT = 0;
-                    } else {
-                        VariableDATA *IMAGE = (VariableDATA *)VAR_ALLOC(PIF);
-
-                        if (PROPERTIES) {
-                            if (!(*PROPERTIES)) {
-                                *PROPERTIES = (VariableDATAPROPERTY *)FAST_MALLOC(sizeof(VariableDATAPROPERTY) * dataLen);
-                                memset(*PROPERTIES, 0, sizeof(VariableDATAPROPERTY) * dataLen);
-                            }
-                            (*PROPERTIES)[result_id].CALL_SET           = Owner;
-                            (*PROPERTIES)[result_id].IS_PROPERTY_RESULT = i + 1;
-                            IMAGE->IS_PROPERTY_RESULT = 1;
-                        } else
-                            IMAGE->IS_PROPERTY_RESULT = 0;
-
-                        IMAGE->LINKS = 0;
-                        IMAGE->TYPE  = RESULT->TYPE;
-                        if (RESULT->TYPE == VARIABLE_STRING) {
-                            IMAGE->CLASS_DATA     = 0;
-                            CONCEPT_STRING(IMAGE) = CONCEPT_STRING(RESULT);
-                        } else
-                        if ((RESULT->TYPE == VARIABLE_CLASS) || (RESULT->TYPE == VARIABLE_ARRAY)) {
-                            IMAGE->CLASS_DATA = RESULT->CLASS_DATA;
-                        } else
-                        if (RESULT->TYPE == VARIABLE_DELEGATE) {
-                            IMAGE->CLASS_DATA    = RESULT->CLASS_DATA;
-                            IMAGE->DELEGATE_DATA = RESULT->DELEGATE_DATA;
-                        } else {
-                            IMAGE->NUMBER_DATA = RESULT->NUMBER_DATA;
-                        }
-                        //----------------------------------------------
-                        if ((IMAGE->TYPE == VARIABLE_CLASS) || (IMAGE->TYPE == VARIABLE_DELEGATE)) {
-                            CC_WRITE_LOCK(PIF)
-                            ((CompiledClass *)IMAGE->CLASS_DATA)->LINKS++;
-                            CC_WRITE_UNLOCK(PIF)
-                        } else
-                        if (IMAGE->TYPE == VARIABLE_ARRAY) {
-                            CC_WRITE_LOCK(PIF)
-                            ((Array *)IMAGE->CLASS_DATA)->LINKS++;
-                            CC_WRITE_UNLOCK(PIF)
-                        }
-                        //----------------------------------------------
-                        RESULT = IMAGE;
-                    }
-                    return RESULT;
-                } catch (VariableDATA *LAST_THROW) {
-                    throw LAST_THROW;
-                    return 0;
+                if (!EMPTY_PARAM_LIST) {
+                    EMPTY_PARAM_LIST              = new ParamList;
+                    EMPTY_PARAM_LIST->COUNT       = 0;
+                    EMPTY_PARAM_LIST->PARAM_INDEX = 0;
                 }
-                break;
-
-            default:
-                CC_WRITE_LOCK(PIF)
-                RESULT = ((CompiledClass *)Owner->CLASS_DATA)->_CONTEXT [relocation2 - 1];
+                RESULT = ExecuteMember(PIF, pMEMBER_i->MEMBER_GET - 1, Owner, OE, 1, EMPTY_PARAM_LIST, SenderCTX, 1, ((ClassCode *)pMEMBER_i->Defined_In)->CLSID, ((ClassCode *)pMEMBER_i->Defined_In)->CLSID, LOCAL_THROW, PREV);
                 if (!RESULT) {
-                    RESULT = ((CompiledClass *)Owner->CLASS_DATA)->CreateVariable(relocation2 - 1, pMEMBER_i);
-                } else
-                if ((RESULT->TYPE == VARIABLE_DELEGATE) && (FORMAL_PARAM) && (!property)) {
-                    ((CompiledClass *)RESULT->CLASS_DATA)->LINKS++;
-                    CC_WRITE_UNLOCK(PIF)
-                    VariableDATA * lOwner = 0;
-                    try {
+                    RESULT                     = (VariableDATA *)VAR_ALLOC(PIF);
+                    RESULT->CLASS_DATA         = 0;
+                    RESULT->LINKS              = 0;
+                    RESULT->NUMBER_DATA        = 0;
+                    RESULT->TYPE               = VARIABLE_NUMBER;
+                    RESULT->IS_PROPERTY_RESULT = 0;
+                }
+                if ((FORMAL_PARAM) && ((!property) || (FORMAL_PARAM->COUNT))) {
+                    if (RESULT->TYPE == VARIABLE_DELEGATE) {
+                        CC_WRITE_LOCK(PIF)
+                        ((CompiledClass *)RESULT->CLASS_DATA)->LINKS++;
+                        CC_WRITE_UNLOCK(PIF)
+                        VariableDATA * lOwner = 0;
+
                         lOwner = (VariableDATA *)VAR_ALLOC(PIF);
                         lOwner->CLASS_DATA         = RESULT->CLASS_DATA;
                         lOwner->IS_PROPERTY_RESULT = 0;
@@ -930,14 +817,120 @@ VariableDATA *ClassCode::ExecuteMember(PIFAlizator *PIF, INTEGER i, VariableDATA
                                                                                                 SenderCTX,
                                                                                                 CLSID,
                                                                                                 LOCAL_CLSID,
-                                                                                                PREV);
+                                                                                                LOCAL_THROW,
+                                                                                                PREV
+                                                                                                );
                         FREE_VARIABLE(lOwner);
+                        if (*LOCAL_THROW) {
+                            if (RESULT) {
+                                FREE_VARIABLE(RESULT);
+                            }
+                            return NULL;
+                        }
                         return RESULT;
-                    } catch (VariableDATA *LAST_THROW) {
-                        FREE_VARIABLE(lOwner);
-                        throw LAST_THROW;
-                        return 0;
                     }
+                    AnsiException *Exc = new AnsiException(ERR390, OE ? OE->Operator_DEBUG_INFO_LINE : 0, 390, (OE ? OE->OperandRight_PARSE_DATA.c_str() : ""), *GetFilename(PIF, CLSID, &((ClassCode *)(pMEMBER_i->Defined_In))->_DEBUG_INFO_FILENAME), NAME);
+                    PIF->AcknoledgeRunTimeError(PREV, Exc);
+
+                    RESULT                     = (VariableDATA *)VAR_ALLOC(PIF);
+                    RESULT->CLASS_DATA         = 0;
+                    RESULT->LINKS              = 0;
+                    RESULT->NUMBER_DATA        = 0;
+                    RESULT->TYPE               = VARIABLE_NUMBER;
+                    RESULT->IS_PROPERTY_RESULT = 0;
+                    return RESULT;
+                }
+
+                if (!RESULT->LINKS) {
+                    if (PROPERTIES) {
+                        if (!(*PROPERTIES)) {
+                            *PROPERTIES = (VariableDATAPROPERTY *)FAST_MALLOC(sizeof(VariableDATAPROPERTY) * dataLen);
+                            memset(*PROPERTIES, 0, sizeof(VariableDATAPROPERTY) * dataLen);
+                        }
+                        (*PROPERTIES)[result_id].CALL_SET           = Owner;
+                        (*PROPERTIES)[result_id].IS_PROPERTY_RESULT = i + 1;
+                        RESULT->IS_PROPERTY_RESULT = 1;
+                    } else
+                        RESULT->IS_PROPERTY_RESULT = 0;
+                } else {
+                    VariableDATA *IMAGE = (VariableDATA *)VAR_ALLOC(PIF);
+
+                    if (PROPERTIES) {
+                        if (!(*PROPERTIES)) {
+                            *PROPERTIES = (VariableDATAPROPERTY *)FAST_MALLOC(sizeof(VariableDATAPROPERTY) * dataLen);
+                            memset(*PROPERTIES, 0, sizeof(VariableDATAPROPERTY) * dataLen);
+                        }
+                        (*PROPERTIES)[result_id].CALL_SET           = Owner;
+                        (*PROPERTIES)[result_id].IS_PROPERTY_RESULT = i + 1;
+                        IMAGE->IS_PROPERTY_RESULT = 1;
+                    } else
+                        IMAGE->IS_PROPERTY_RESULT = 0;
+
+                    IMAGE->LINKS = 0;
+                    IMAGE->TYPE  = RESULT->TYPE;
+                    if (RESULT->TYPE == VARIABLE_STRING) {
+                        IMAGE->CLASS_DATA     = 0;
+                        CONCEPT_STRING(IMAGE) = CONCEPT_STRING(RESULT);
+                    } else
+                    if ((RESULT->TYPE == VARIABLE_CLASS) || (RESULT->TYPE == VARIABLE_ARRAY)) {
+                        IMAGE->CLASS_DATA = RESULT->CLASS_DATA;
+                    } else
+                    if (RESULT->TYPE == VARIABLE_DELEGATE) {
+                        IMAGE->CLASS_DATA    = RESULT->CLASS_DATA;
+                        IMAGE->DELEGATE_DATA = RESULT->DELEGATE_DATA;
+                    } else {
+                        IMAGE->NUMBER_DATA = RESULT->NUMBER_DATA;
+                    }
+                    //----------------------------------------------
+                    if ((IMAGE->TYPE == VARIABLE_CLASS) || (IMAGE->TYPE == VARIABLE_DELEGATE)) {
+                        CC_WRITE_LOCK(PIF)
+                        ((CompiledClass *)IMAGE->CLASS_DATA)->LINKS++;
+                        CC_WRITE_UNLOCK(PIF)
+                    } else
+                    if (IMAGE->TYPE == VARIABLE_ARRAY) {
+                        CC_WRITE_LOCK(PIF)
+                        ((Array *)IMAGE->CLASS_DATA)->LINKS++;
+                        CC_WRITE_UNLOCK(PIF)
+                    }
+                    //----------------------------------------------
+                    RESULT = IMAGE;
+                }
+                return RESULT;
+
+            default:
+                CC_WRITE_LOCK(PIF)
+                RESULT = ((CompiledClass *)Owner->CLASS_DATA)->_CONTEXT [relocation2 - 1];
+                if (!RESULT) {
+                    RESULT = ((CompiledClass *)Owner->CLASS_DATA)->CreateVariable(relocation2 - 1, pMEMBER_i);
+                } else
+                if ((RESULT->TYPE == VARIABLE_DELEGATE) && (FORMAL_PARAM) && (!property)) {
+                    ((CompiledClass *)RESULT->CLASS_DATA)->LINKS++;
+                    CC_WRITE_UNLOCK(PIF)
+                    VariableDATA * lOwner = 0;
+                    lOwner = (VariableDATA *)VAR_ALLOC(PIF);
+                    lOwner->CLASS_DATA         = RESULT->CLASS_DATA;
+                    lOwner->IS_PROPERTY_RESULT = 0;
+                    lOwner->LINKS = 1;
+                    lOwner->TYPE = VARIABLE_CLASS;
+
+                    RESULT = ((CompiledClass *)RESULT->CLASS_DATA)->_Class->ExecuteDelegate(PIF,
+                                                                                            (INTEGER)RESULT->DELEGATE_DATA,
+                                                                                            lOwner,
+                                                                                            OE,
+                                                                                            FORMAL_PARAM,
+                                                                                            SenderCTX,
+                                                                                            CLSID,
+                                                                                            LOCAL_CLSID,
+                                                                                            LOCAL_THROW,
+                                                                                            PREV);
+                    FREE_VARIABLE(lOwner);
+                    if (*LOCAL_THROW) {
+                        if (RESULT) {
+                            FREE_VARIABLE(RESULT);
+                            RESULT = NULL;
+                        }
+                    }
+                    return RESULT;
                 }
                 CC_WRITE_UNLOCK(PIF)
                 if ((FORMAL_PARAM) && (!property)) {

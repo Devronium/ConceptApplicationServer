@@ -45,27 +45,26 @@ VariableDATA *GetClassMember(void *CLASS_PTR, const char *class_member_name) {
                     OE.Operator_ID = 0;
                     OE.OperandRight_ID = 0;
 
-                    try {
-                        VariableDATA *VarDATA = CCode->ExecuteMember(PIF,
-                                                                     index,
-                                                                     Owner,
-                                                                     &OE,
-                                                                     true,
-                                                                     CM->IS_FUNCTION == 3 ? 0 : &PLIST,
-                                                                     (VariableDATA **)-1,
-                                                                     0,
-                                                                     CCode->CLSID,
-                                                                     CCode->CLSID,
-                                                                     NULL
-                                                                     );
-                        FREE_VARIABLE(Owner);
-                        ADD_VAR(VarDATA);
-                        return VarDATA;
-                    } catch (VariableDATA *THROW_DATA) {
+                    VariableDATA *THROW_DATA;
+                    VariableDATA *VarDATA = CCode->ExecuteMember(PIF,
+                                                                    index,
+                                                                    Owner,
+                                                                    &OE,
+                                                                    true,
+                                                                    CM->IS_FUNCTION == 3 ? 0 : &PLIST,
+                                                                    (VariableDATA **)-1,
+                                                                    0,
+                                                                    CCode->CLSID,
+                                                                    CCode->CLSID,
+                                                                    &THROW_DATA,
+                                                                    NULL
+                                                                    );
+                    FREE_VARIABLE(Owner);
+                    ADD_VAR(VarDATA);
+                    if (THROW_DATA) {
                         FREE_VARIABLE(THROW_DATA);
-                        FREE_VARIABLE(Owner);
-                        return 0;
                     }
+                    return VarDATA;
                 } else {
                     if (CCode->RELOCATIONS2) {
                         index = CCode->RELOCATIONS2 [index] - 1;
