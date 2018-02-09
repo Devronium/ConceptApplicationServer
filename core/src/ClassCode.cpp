@@ -788,6 +788,12 @@ VariableDATA *ClassCode::ExecuteMember(PIFAlizator *PIF, INTEGER i, VariableDATA
                     EMPTY_PARAM_LIST->PARAM_INDEX = 0;
                 }
                 RESULT = ExecuteMember(PIF, pMEMBER_i->MEMBER_GET - 1, Owner, OE, 1, EMPTY_PARAM_LIST, SenderCTX, 1, ((ClassCode *)pMEMBER_i->Defined_In)->CLSID, ((ClassCode *)pMEMBER_i->Defined_In)->CLSID, LOCAL_THROW, PREV);
+                if (*LOCAL_THROW) {
+                    if (RESULT) {
+                        FREE_VARIABLE(RESULT);
+                    }
+                    return NULL;
+                }
                 if (!RESULT) {
                     RESULT                     = (VariableDATA *)VAR_ALLOC(PIF);
                     RESULT->CLASS_DATA         = 0;
