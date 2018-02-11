@@ -3206,7 +3206,9 @@ void PIFAlizator::OptimizeMember(ClassMember *CM) {
     ((Optimizer *)CM->OPTIMIZER)->GenerateIntermediateCode(this);
 
     delete helper->ParameterList;
+    helper->ParameterList = NULL;
     delete helper->OptimizedPIF;
+    helper->OptimizedPIF = NULL;
     delete helper;
 
     this->Helper = old_helper;

@@ -144,11 +144,14 @@ int plainstring_not_equals(const struct plainstring *this_string, const char *st
 }
 
 int plainstring_equals_double(const struct plainstring *this_string, double d) {
-    return (plainstring_float(this_string) == d);
+    char buffer [MAX_DECIMALS];
+    cstr_loaddouble(buffer, d);
+
+    return plainstring_equals(this_string, buffer);
 }
 
 int plainstring_not_equals_double(const struct plainstring *this_string, double d) {
-    return (plainstring_float(this_string) != d);
+    return (!plainstring_equals_double(this_string, d));
 }
 
 int plainstring_equals_plainstring(const struct plainstring *this_string, const struct plainstring *ps) {

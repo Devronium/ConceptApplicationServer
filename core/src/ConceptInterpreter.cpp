@@ -4150,6 +4150,50 @@ int ConceptInterpreter::EvalStringExpression(PIFAlizator *PIF, VariableDATA **LO
             DECLARE_PATH(VARIABLE_NUMBER);
             return 1;
 
+        case KEY_EQU:
+            switch (LOCAL_CONTEXT [OE->OperandRight_ID - 1]->TYPE) {
+                case VARIABLE_STRING:
+                    LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = CONCEPT_STRING_EQU(LOCAL_CONTEXT [OE->OperandLeft_ID - 1], LOCAL_CONTEXT [OE->OperandRight_ID - 1]);
+                    LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
+                    DECLARE_PATH(VARIABLE_NUMBER);
+                    break;
+
+                case VARIABLE_NUMBER:
+                    LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = CONCEPT_STRING_EQU_FLOAT(LOCAL_CONTEXT [OE->OperandLeft_ID - 1], LOCAL_CONTEXT [OE->OperandRight_ID - 1]->NUMBER_DATA);
+                    LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
+                    DECLARE_PATH(VARIABLE_NUMBER);
+                    break;
+
+                default:
+                    DECLARE_PATH(0x20);
+                    Exc = new AnsiException(ERR650, OE->Operator_DEBUG_INFO_LINE, 650,  GetKeyWord(OE->Operator_ID), ((ClassCode *)(OWNER->Defined_In))->_DEBUG_INFO_FILENAME, ((ClassCode *)(OWNER->Defined_In))->NAME, OWNER->NAME);
+                    PIF->AcknoledgeRunTimeError(STACK_TRACE, Exc);
+                    break;
+            }
+            return 1;
+
+        case KEY_NEQ:
+            switch (LOCAL_CONTEXT [OE->OperandRight_ID - 1]->TYPE) {
+                case VARIABLE_STRING:
+                    LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = !CONCEPT_STRING_EQU(LOCAL_CONTEXT [OE->OperandLeft_ID - 1], LOCAL_CONTEXT [OE->OperandRight_ID - 1]);
+                    LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
+                    DECLARE_PATH(VARIABLE_NUMBER);
+                    break;
+
+                case VARIABLE_NUMBER:
+                    LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = !CONCEPT_STRING_EQU_FLOAT(LOCAL_CONTEXT [OE->OperandLeft_ID - 1], LOCAL_CONTEXT [OE->OperandRight_ID - 1]->NUMBER_DATA);
+                    LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
+                    DECLARE_PATH(VARIABLE_NUMBER);
+                    break;
+
+                default:
+                    DECLARE_PATH(0x20);
+                    Exc = new AnsiException(ERR650, OE->Operator_DEBUG_INFO_LINE, 650,  GetKeyWord(OE->Operator_ID), ((ClassCode *)(OWNER->Defined_In))->_DEBUG_INFO_FILENAME, ((ClassCode *)(OWNER->Defined_In))->NAME, OWNER->NAME);
+                    PIF->AcknoledgeRunTimeError(STACK_TRACE, Exc);
+                    break;
+            }
+            return 1;
+
         case KEY_INC:
             if (CONCEPT_C_LENGTH(LOCAL_CONTEXT [OE->OperandLeft_ID - 1])) {
                 NEW_CONCEPT_STRING_BUFFER(LOCAL_CONTEXT [OE->Result_ID - 1], CONCEPT_C_STRING(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]) + 1, CONCEPT_C_LENGTH(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]) - 1);
@@ -4184,28 +4228,6 @@ int ConceptInterpreter::EvalStringExpression(PIFAlizator *PIF, VariableDATA **LO
                     NEW_CONCEPT_STRING2(LOCAL_CONTEXT [OE->Result_ID - 1], LOCAL_CONTEXT [OE->OperandLeft_ID - 1]);
                     CONCEPT_STRING_ADD_DOUBLE(LOCAL_CONTEXT [OE->Result_ID - 1], LOCAL_CONTEXT [OE->OperandRight_ID - 1]->NUMBER_DATA);
                     DECLARE_PATH(VARIABLE_STRING);
-                    break;
-
-                default:
-                    DECLARE_PATH(0x20);
-                    Exc = new AnsiException(ERR650, OE->Operator_DEBUG_INFO_LINE, 650,  GetKeyWord(OE->Operator_ID), ((ClassCode *)(OWNER->Defined_In))->_DEBUG_INFO_FILENAME, ((ClassCode *)(OWNER->Defined_In))->NAME, OWNER->NAME);
-                    PIF->AcknoledgeRunTimeError(STACK_TRACE, Exc);
-                    break;
-            }
-            return 1;
-
-        case KEY_EQU:
-            switch (LOCAL_CONTEXT [OE->OperandRight_ID - 1]->TYPE) {
-                case VARIABLE_STRING:
-                    LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = CONCEPT_STRING_EQU(LOCAL_CONTEXT [OE->OperandLeft_ID - 1], LOCAL_CONTEXT [OE->OperandRight_ID - 1]);
-                    LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
-                    DECLARE_PATH(VARIABLE_NUMBER);
-                    break;
-
-                case VARIABLE_NUMBER:
-                    LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = (CONCEPT_STRING_FLOAT(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]) == LOCAL_CONTEXT [OE->OperandRight_ID - 1]->NUMBER_DATA) ? 1 : 0;
-                    LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
-                    DECLARE_PATH(VARIABLE_NUMBER);
                     break;
 
                 default:
@@ -4292,28 +4314,6 @@ int ConceptInterpreter::EvalStringExpression(PIFAlizator *PIF, VariableDATA **LO
 
                 case VARIABLE_NUMBER:
                     CONCEPT_STRING_COMPARE_FLOAT(LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA, LOCAL_CONTEXT [OE->OperandLeft_ID - 1], lessequal, LOCAL_CONTEXT [OE->OperandRight_ID - 1]->NUMBER_DATA);
-                    LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
-                    DECLARE_PATH(VARIABLE_NUMBER);
-                    break;
-
-                default:
-                    DECLARE_PATH(0x20);
-                    Exc = new AnsiException(ERR650, OE->Operator_DEBUG_INFO_LINE, 650,  GetKeyWord(OE->Operator_ID), ((ClassCode *)(OWNER->Defined_In))->_DEBUG_INFO_FILENAME, ((ClassCode *)(OWNER->Defined_In))->NAME, OWNER->NAME);
-                    PIF->AcknoledgeRunTimeError(STACK_TRACE, Exc);
-                    break;
-            }
-            return 1;
-
-        case KEY_NEQ:
-            switch (LOCAL_CONTEXT [OE->OperandRight_ID - 1]->TYPE) {
-                case VARIABLE_STRING:
-                    LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = !CONCEPT_STRING_EQU(LOCAL_CONTEXT [OE->OperandLeft_ID - 1], LOCAL_CONTEXT [OE->OperandRight_ID - 1]);
-                    LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
-                    DECLARE_PATH(VARIABLE_NUMBER);
-                    break;
-
-                case VARIABLE_NUMBER:
-                    LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = CONCEPT_STRING_FLOAT(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]) != LOCAL_CONTEXT [OE->OperandRight_ID - 1]->NUMBER_DATA ? 1 : 0;
                     LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
                     DECLARE_PATH(VARIABLE_NUMBER);
                     break;
@@ -4539,6 +4539,48 @@ int ConceptInterpreter::EvalNumberExpression(PIFAlizator *PIF, VariableDATA **LO
             //----------------//
             return 1;
 
+        case KEY_EQU:
+            switch (LOCAL_CONTEXT [OE->OperandRight_ID - 1]->TYPE) {
+                case VARIABLE_NUMBER:
+                    LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->NUMBER_DATA == LOCAL_CONTEXT [OE->OperandRight_ID - 1]->NUMBER_DATA;
+                    break;
+
+                case VARIABLE_STRING:
+                    LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->NUMBER_DATA == CONCEPT_STRING_FLOAT(LOCAL_CONTEXT [OE->OperandRight_ID - 1]);
+                    break;
+
+                case VARIABLE_CLASS:
+                case VARIABLE_ARRAY:
+                case VARIABLE_DELEGATE:
+                    LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = 0;
+                    break;
+
+                default:
+                    PIF->AcknoledgeRunTimeError(STACK_TRACE, new AnsiException(ERR1204, OE->Operator_DEBUG_INFO_LINE, 1204, OE->OperandRight_PARSE_DATA.c_str(), ((ClassCode *)(OWNER->Defined_In))->_DEBUG_INFO_FILENAME, ((ClassCode *)(OWNER->Defined_In))->NAME, OWNER->NAME));
+            }
+            return 1;
+
+        case KEY_NEQ:
+            switch (LOCAL_CONTEXT [OE->OperandRight_ID - 1]->TYPE) {
+                case VARIABLE_NUMBER:
+                    LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->NUMBER_DATA != LOCAL_CONTEXT [OE->OperandRight_ID - 1]->NUMBER_DATA;
+                    break;
+
+                case VARIABLE_STRING:
+                    LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->NUMBER_DATA != CONCEPT_STRING_FLOAT(LOCAL_CONTEXT [OE->OperandRight_ID - 1]);
+                    break;
+
+                case VARIABLE_CLASS:
+                case VARIABLE_ARRAY:
+                case VARIABLE_DELEGATE:
+                    LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = 1;
+                    break;
+
+                default:
+                    PIF->AcknoledgeRunTimeError(STACK_TRACE, new AnsiException(ERR1204, OE->Operator_DEBUG_INFO_LINE, 1204, OE->OperandRight_PARSE_DATA.c_str(), ((ClassCode *)(OWNER->Defined_In))->_DEBUG_INFO_FILENAME, ((ClassCode *)(OWNER->Defined_In))->NAME, OWNER->NAME));
+            }
+            return 1;
+
         case KEY_DIV:
             EVAL_DIVIDE_EXPRESSION(this, /)
             return 1;
@@ -4593,48 +4635,6 @@ int ConceptInterpreter::EvalNumberExpression(PIFAlizator *PIF, VariableDATA **LO
 
         case KEY_GEQ:
             EVAL_NUMBER_EXPRESSION(this, >=)
-            return 1;
-
-        case KEY_EQU:
-            switch (LOCAL_CONTEXT [OE->OperandRight_ID - 1]->TYPE) {
-                case VARIABLE_NUMBER:
-                    LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->NUMBER_DATA == LOCAL_CONTEXT [OE->OperandRight_ID - 1]->NUMBER_DATA;
-                    break;
-
-                case VARIABLE_STRING:
-                    LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->NUMBER_DATA == CONCEPT_STRING_FLOAT(LOCAL_CONTEXT [OE->OperandRight_ID - 1]);
-                    break;
-
-                case VARIABLE_CLASS:
-                case VARIABLE_ARRAY:
-                case VARIABLE_DELEGATE:
-                    LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = 0;
-                    break;
-
-                default:
-                    PIF->AcknoledgeRunTimeError(STACK_TRACE, new AnsiException(ERR1204, OE->Operator_DEBUG_INFO_LINE, 1204, OE->OperandRight_PARSE_DATA.c_str(), ((ClassCode *)(OWNER->Defined_In))->_DEBUG_INFO_FILENAME, ((ClassCode *)(OWNER->Defined_In))->NAME, OWNER->NAME));
-            }
-            return 1;
-
-        case KEY_NEQ:
-            switch (LOCAL_CONTEXT [OE->OperandRight_ID - 1]->TYPE) {
-                case VARIABLE_NUMBER:
-                    LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->NUMBER_DATA != LOCAL_CONTEXT [OE->OperandRight_ID - 1]->NUMBER_DATA;
-                    break;
-
-                case VARIABLE_STRING:
-                    LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->NUMBER_DATA != CONCEPT_STRING_FLOAT(LOCAL_CONTEXT [OE->OperandRight_ID - 1]);
-                    break;
-
-                case VARIABLE_CLASS:
-                case VARIABLE_ARRAY:
-                case VARIABLE_DELEGATE:
-                    LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = 1;
-                    break;
-
-                default:
-                    PIF->AcknoledgeRunTimeError(STACK_TRACE, new AnsiException(ERR1204, OE->Operator_DEBUG_INFO_LINE, 1204, OE->OperandRight_PARSE_DATA.c_str(), ((ClassCode *)(OWNER->Defined_In))->_DEBUG_INFO_FILENAME, ((ClassCode *)(OWNER->Defined_In))->NAME, OWNER->NAME));
-            }
             return 1;
 
         case KEY_AND:

@@ -63,6 +63,18 @@ class Main {
 
 		if (value "123.5" != "" + 123.5)
 			return true;
+
+		if ("x" == 0)
+			return true;
+
+		if ("1" != 1)
+			return true;
+
+		if (1 == "0")
+			return true;
+
+		if (1 != "1")
+			return true;
 	}
 
 	Inc() {

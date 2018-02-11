@@ -14,6 +14,7 @@ extern "C" {
 
 #define CONCEPT_STRING(VARIABLE, VARIABLE2)     { if (VARIABLE->CLASS_DATA) { plainstring_set_plainstring((struct plainstring *)VARIABLE->CLASS_DATA, (struct plainstring *)VARIABLE2->CLASS_DATA); } else { VARIABLE->CLASS_DATA = plainstring_new_plainstring((struct plainstring *)VARIABLE2->CLASS_DATA); } }
 #define CONCEPT_STRING_EQU(VARIABLE, VARIABLE2) plainstring_equals_plainstring((struct plainstring *)VARIABLE->CLASS_DATA, (struct plainstring *)VARIABLE2->CLASS_DATA)
+#define CONCEPT_STRING_EQU_FLOAT(VARIABLE, d)   plainstring_equals_double((struct plainstring *)VARIABLE->CLASS_DATA, d)
 #define CONCEPT_STRING_ADD_CSTR(VARIABLE, cstr) { if (VARIABLE->CLASS_DATA) { plainstring_add((struct plainstring *)VARIABLE->CLASS_DATA, cstr); } else { VARIABLE->CLASS_DATA = plainstring_new_str(cstr); } }
 #define CONCEPT_STRING_ADD_DOUBLE(VARIABLE, d)  { if (VARIABLE->CLASS_DATA) { plainstring_add_double((struct plainstring *)VARIABLE->CLASS_DATA, d); } else { VARIABLE->CLASS_DATA = plainstring_new_double(d); } }
 #define CONCEPT_STRING_BUFFER(VARIABLE, b, l)   { if (!VARIABLE->CLASS_DATA) { VARIABLE->CLASS_DATA = plainstring_new(); } plainstring_loadbuffer((struct plainstring *)VARIABLE->CLASS_DATA, b, l); }
