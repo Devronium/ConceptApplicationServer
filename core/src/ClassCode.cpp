@@ -74,7 +74,7 @@ ClassCode::ClassCode(const char *name, PIFAlizator *P, char binary_form) {
 }
 
 void ClassCode::Hibernate(void *cc) {
-    CompiledClass *CCLASS = (CompiledClass *)cc;
+    CompiledClass *CCLASS = (struct CompiledClass *)cc;
     INTEGER       Count   = CCLASS->_Class->DataMembersCount;
 
     if (!CCLASS->_CONTEXT) {
@@ -147,22 +147,24 @@ ClassMember *ClassCode::AddMember(PIFAlizator *PIF, const char *name, INTEGER li
     DEST->value  = SRC->value;
 
 int ClassCode::BoundMember(PIFAlizator *PIF, ClassMember *CM, ClassCode *Sender) {
-    AnsiString Mname = ((ClassCode *)CM->Defined_In)->NAME;
+    struct plainstring *Mname = plainstring_new_str(((ClassCode *)CM->Defined_In)->NAME.c_str());
 
-    Mname += "@";
-    Mname += CM->NAME;
+    plainstring_add(Mname, "@");
+    plainstring_add(Mname, CM->NAME);
 
-    int has_it = Sender->HasMember(Mname.c_str());
+    int has_it = Sender->HasMember(plainstring_c_str(Mname));
     if (has_it) {
         return has_it;
     }
 
-    int  ref_id    = PIF->GeneralMembers->ContainsString(Mname.c_str(), Mname.Length());
-    char *ref_name = 0;
+    int  ref_id    = PIF->GeneralMembers->ContainsString(plainstring_c_str(Mname));
+    const char *ref_name = 0;
     if (!ref_id) {
-        PIF->GeneralMembers->Add(Mname);
+        PIF->GeneralMembers->Add(plainstring_c_str(Mname), plainstring_len(Mname));
         ref_id = PIF->GeneralMembers->Count();
     }
+    plainstring_delete(Mname);
+
     ref_name = PIF->GeneralMembers->Item(ref_id - 1);
 
     ClassMember *CM2 = new ClassMember(CM->Defined_In, ref_name, false);
@@ -248,7 +250,7 @@ int ClassCode::RemoveMember(PIFAlizator *PIF, const char *name, INTEGER line, co
     return 0;
 }
 
-int ClassCode::HasMember(const char *name) {
+int ClassCode::HasMember(const char *name) const {
     if (!Members)
         return this->HasMemberInCompiled(name);
     INTEGER Count = Members->Count();
@@ -276,7 +278,7 @@ int ClassCode::CanBeRunStatic(const char *name, ClassMember **member) {
     return 0;
 }
 
-int ClassCode::HasMemberInCompiled(const char *name, INTEGER *m_type) {
+int ClassCode::HasMemberInCompiled(const char *name, INTEGER *m_type) const {
     INTEGER Count = pMEMBERS_COUNT;
 
     if (!pMEMBERS) {
@@ -321,7 +323,7 @@ ClassMember *ClassCode::MemberID(int mid) {
     return 0;
 }
 
-int ClassCode::GetAbsoluteMemberID(int mid) {
+int ClassCode::GetAbsoluteMemberID(int mid) const {
     int j = 0;
     while (Relocation(j++) != mid);
     return j;
@@ -330,7 +332,7 @@ int ClassCode::GetAbsoluteMemberID(int mid) {
 int ClassCode::GetSerialMembers(CompiledClass *CC, int max_members,
                                 char **pmembers, unsigned char *flags, char *access,
                                 char *types, char **szValue,
-                                double *n_data, void **class_data, void **variable_data, int all_members) {
+                                double *n_data, void **class_data, void **variable_data, int all_members) const {
     if (!pMEMBERS) {
         return 0;
     }
@@ -359,7 +361,7 @@ int ClassCode::GetSerialMembers(CompiledClass *CC, int max_members,
                 int reloc = this->RELOCATIONS2 [i] - 1;
                 if ((CC->_CONTEXT) && (!CC->_CONTEXT [reloc]) && (all_members)) {
                     if ((CM->VD) && ((CM->VD->TYPE != VARIABLE_NUMBER) || (CM->VD->nValue)))
-                        CC->CreateVariable(reloc, CM);
+                        CompiledClass_CreateVariable(CC, reloc, CM);
                 }
 
                 if ((CC->_CONTEXT) && (CC->_CONTEXT [reloc])) {
@@ -372,7 +374,7 @@ int ClassCode::GetSerialMembers(CompiledClass *CC, int max_members,
                             break;
 
                         case VARIABLE_CLASS:
-                            szValue [index]    = (char *)((CompiledClass *)CC->_CONTEXT [reloc]->CLASS_DATA)->_Class->NAME.c_str();
+                            szValue [index]    = (char *)((struct CompiledClass *)CC->_CONTEXT [reloc]->CLASS_DATA)->_Class->NAME.c_str();
                             class_data [index] = CC->_CONTEXT [reloc]->CLASS_DATA;
                             break;
 
@@ -388,13 +390,13 @@ int ClassCode::GetSerialMembers(CompiledClass *CC, int max_members,
                             {
                                 class_data [index] = CC->_CONTEXT [reloc]->CLASS_DATA;
                                 int         relocation = CC->_CONTEXT [reloc]->DELEGATE_DATA;
-                                ClassMember *CMD       = relocation ? ((CompiledClass *)CC->_CONTEXT [reloc]->CLASS_DATA)->_Class->pMEMBERS [relocation - 1] : 0;
+                                ClassMember *CMD       = relocation ? ((struct CompiledClass *)CC->_CONTEXT [reloc]->CLASS_DATA)->_Class->pMEMBERS [relocation - 1] : 0;
                                 if (CMD) {
                                     n_data [index] = (intptr_t)CMD->NAME;
                                 } else {
                                     n_data [index] = 0;
                                 }
-                                szValue [index] = (char *)((CompiledClass *)CC->_CONTEXT [reloc]->CLASS_DATA)->_Class->NAME.c_str();
+                                szValue [index] = (char *)((struct CompiledClass *)CC->_CONTEXT [reloc]->CLASS_DATA)->_Class->NAME.c_str();
                             }
                             break;
                     }
@@ -410,7 +412,7 @@ int ClassCode::GetSerialMembers(CompiledClass *CC, int max_members,
     return 0;
 }
 
-INTEGER ClassCode::Relocation(INTEGER mid) {
+INTEGER ClassCode::Relocation(INTEGER mid) const {
     if (RELOCATIONS) {
 #ifdef HASH_RELOCATION
         khiter_t k = kh_get(inthashtable, RELOCATIONS, mid);
@@ -464,9 +466,9 @@ void ClassCode::SetRelocation(INTEGER mid, INTEGER index) {
     }
 }
 
-CompiledClass *ClassCode::CreateInstance(PIFAlizator *PIF, VariableDATA *Owner, const RuntimeOptimizedElement *OE, ParamList *FORMAL_PARAM, VariableDATA **SenderCTX, SCStack *PREV, char is_static) {
+CompiledClass *ClassCode::CreateInstance(PIFAlizator *PIF, VariableDATA *Owner, const RuntimeOptimizedElement *OE, ParamList *FORMAL_PARAM, VariableDATA **SenderCTX, SCStack *PREV, char is_static) const {
     static ParamList dummy = { 0, 0 };
-    CompiledClass    *res  = new(AllocClassObject(PIF))CompiledClass(this);
+    CompiledClass    *res  = new_CompiledClass(PIF, this);
 
     Owner->CLASS_DATA = res;
 
@@ -481,7 +483,7 @@ CompiledClass *ClassCode::CreateInstance(PIFAlizator *PIF, VariableDATA *Owner, 
             //==========================//
 
             if ((!FORMAL_PARAM) || !(ENOUGH_PARAMETERS(CM, FORMAL_PARAM))) {
-                AnsiException *Exc = new AnsiException(ERR220, OE ? OE->Operator_DEBUG_INFO_LINE : 0, 220, AnsiString(CM->NAME) + AnsiString(" requires ") + AnsiString(CM->PARAMETERS_COUNT), ((ClassCode *)(CM->Defined_In))->_DEBUG_INFO_FILENAME, NAME);
+                AnsiException *Exc = new AnsiException(220, ERR220, OE ? OE->Operator_DEBUG_INFO_LINE : 0, CM->NAME, " requires ", CM->PARAMETERS_COUNT, ((ClassCode *)(CM->Defined_In))->_DEBUG_INFO_FILENAME, NAME);
                 PIF->AcknoledgeRunTimeError(PREV, Exc);
                 return 0;
             }
@@ -509,39 +511,39 @@ CompiledClass *ClassCode::CreateInstance(PIFAlizator *PIF, VariableDATA *Owner, 
             FREE_VARIABLE(RESULT);
         } else
         if (THROW_DATA) {
-            AnsiString *data = new AnsiString();
+            struct plainstring *data = plainstring_new();
 
             if (OE) {
-                *data  = ((TinyString)OE->OperandRight_PARSE_DATA).c_str();
-                *data += ", data:";
+                plainstring_set(data, ((TinyString)OE->OperandRight_PARSE_DATA).c_str());
+                plainstring_add(data, ", data:");
             }
 
             // check if is not the static call to Main. In this case the THROW_DATA is/may be deleted
             if (SenderCTX) {
                 if (THROW_DATA->TYPE == VARIABLE_STRING) {
-                    *data += CONCEPT_STRING(THROW_DATA);
+                    plainstring_add(data, CONCEPT_C_STRING(THROW_DATA));
                 } else
                 if (THROW_DATA->TYPE == VARIABLE_NUMBER) {
-                    *data += AnsiString(THROW_DATA->NUMBER_DATA);
+                    plainstring_add_double(data, THROW_DATA->NUMBER_DATA);
                 } else
                 if (THROW_DATA->TYPE == VARIABLE_CLASS) {
-                    *data += ((CompiledClass *)THROW_DATA->CLASS_DATA)->GetClassName();
+                    plainstring_add(data, CompiledClass_GetClassName((struct CompiledClass *)THROW_DATA->CLASS_DATA));
                 } else
                 if (THROW_DATA->TYPE == VARIABLE_ARRAY) {
-                    *data += "Array";
+                    plainstring_add(data, "Array");
                 } else
                 if (THROW_DATA->TYPE == VARIABLE_DELEGATE) {
-                    *data += "Delegate of ";
-                    *data += ((CompiledClass *)THROW_DATA->CLASS_DATA)->GetClassName();
+                    plainstring_add(data, "Delegate of ");
+                    plainstring_add(data, CompiledClass_GetClassName((struct CompiledClass *)THROW_DATA->CLASS_DATA));
                 }
 
                 FREE_VARIABLE(THROW_DATA);
             }
 
-            AnsiException *Exc = new AnsiException(ERR630, OE ? OE->Operator_DEBUG_INFO_LINE : 0, 630,  data->c_str(), ((ClassCode *)(CM->Defined_In))->_DEBUG_INFO_FILENAME, NAME);
+            AnsiException *Exc = new AnsiException(ERR630, OE ? OE->Operator_DEBUG_INFO_LINE : 0, 630, plainstring_c_str(data), ((ClassCode *)(CM->Defined_In))->_DEBUG_INFO_FILENAME, NAME);
             PIF->AcknoledgeRunTimeError(PREV, Exc);
 
-            delete data;
+            plainstring_delete(data);
         }
     } else if ((FORMAL_PARAM) && (FORMAL_PARAM->COUNT)) {
         AnsiException *Exc = new AnsiException(ERR280, OE ? OE->Operator_DEBUG_INFO_LINE : 0, 280, NAME, _DEBUG_INFO_FILENAME, NAME);
@@ -551,7 +553,7 @@ CompiledClass *ClassCode::CreateInstance(PIFAlizator *PIF, VariableDATA *Owner, 
     return res;
 }
 
-void ClassCode::SetProperty(PIFAlizator *PIF, INTEGER i, VariableDATA *Owner, const RuntimeOptimizedElement *OE, INTEGER local, INTEGER VALUE, VariableDATA **SenderCTX, INTEGER CLSID, INTEGER LOCAL_CLSID, VariableDATA **LOCAL_THROW, SCStack *PREV) {
+void ClassCode::SetProperty(PIFAlizator *PIF, INTEGER i, VariableDATA *Owner, const RuntimeOptimizedElement *OE, INTEGER local, INTEGER VALUE, VariableDATA **SenderCTX, INTEGER CLSID, INTEGER LOCAL_CLSID, VariableDATA **LOCAL_THROW, SCStack *PREV) const {
     int relocation = this->Relocation(i);
     *LOCAL_THROW = NULL;
     register ClassMember *pMEMBER_i = relocation ? pMEMBERS [relocation - 1] : 0;
@@ -559,7 +561,7 @@ void ClassCode::SetProperty(PIFAlizator *PIF, INTEGER i, VariableDATA *Owner, co
     if (pMEMBER_i) {
         if (((ClassCode *)pMEMBER_i->Defined_In)->CLSID != LOCAL_CLSID) {
             if (pMEMBER_i->ACCESS == ACCESS_PRIVATE) {
-                char          *mname = PIF->GeneralMembers->Item(i);
+                const char *mname = PIF->GeneralMembers->Item(i);
                 AnsiException *Exc   = new AnsiException(ERR190, OE ? OE->Operator_DEBUG_INFO_LINE : 0, 190, mname ? mname : (OE ? ((TinyString)OE->OperandRight_PARSE_DATA).c_str() : pMEMBER_i->NAME), *GetFilename(PIF, CLSID, &((ClassCode *)(pMEMBER_i->Defined_In))->_DEBUG_INFO_FILENAME), NAME);
                 PIF->AcknoledgeRunTimeError(PREV, Exc);
                 return;
@@ -567,7 +569,7 @@ void ClassCode::SetProperty(PIFAlizator *PIF, INTEGER i, VariableDATA *Owner, co
             if ((pMEMBER_i->ACCESS == ACCESS_PROTECTED) && (!local)) {
                 ClassCode *caller = (ClassCode *)PIF->StaticClassList[LOCAL_CLSID];
                 if ((!caller) || (!caller->Inherits(this->CLSID))) {
-                    char          *mname = PIF->GeneralMembers->Item(i);
+                    const char *mname = PIF->GeneralMembers->Item(i);
                     AnsiException *Exc   = new AnsiException(ERR850, OE ? OE->Operator_DEBUG_INFO_LINE : 0, 850, mname ? mname : (OE ? ((TinyString)OE->OperandRight_PARSE_DATA).c_str() : pMEMBER_i->NAME), *GetFilename(PIF, CLSID, &((ClassCode *)(pMEMBER_i->Defined_In))->_DEBUG_INFO_FILENAME), NAME);
                     PIF->AcknoledgeRunTimeError(PREV, Exc);
                     return;
@@ -583,8 +585,8 @@ void ClassCode::SetProperty(PIFAlizator *PIF, INTEGER i, VariableDATA *Owner, co
         DELTA_UNREF(ONE_PARAM_LIST, ONE_PARAM_LIST->PARAM_INDEX) [0] = VALUE;
 
         if (!pMEMBER_i->MEMBER_SET) {
-            char          *mname = PIF->GeneralMembers->Item(i);
-            AnsiException *Exc   = new AnsiException(ERR410, OE ? OE->Operator_DEBUG_INFO_LINE : 0, 410, mname ? AnsiString(mname) : (TinyString)(OE ? OE->OperandRight_PARSE_DATA.c_str() : ""), *GetFilename(PIF, CLSID, &((ClassCode *)(pMEMBER_i->Defined_In))->_DEBUG_INFO_FILENAME), NAME);
+            const char *mname = PIF->GeneralMembers->Item(i);
+            AnsiException *Exc   = new AnsiException(ERR410, OE ? OE->Operator_DEBUG_INFO_LINE : 0, 410, mname ? mname : (OE ? OE->OperandRight_PARSE_DATA.c_str() : ""), *GetFilename(PIF, CLSID, &((ClassCode *)(pMEMBER_i->Defined_In))->_DEBUG_INFO_FILENAME), NAME);
             PIF->AcknoledgeRunTimeError(PREV, Exc);
             return;
         }
@@ -602,12 +604,12 @@ void ClassCode::SetProperty(PIFAlizator *PIF, INTEGER i, VariableDATA *Owner, co
 
                 case VARIABLE_STRING:
                     RESULT->CLASS_DATA     = NULL;
-                    CONCEPT_STRING(RESULT) = CONCEPT_STRING(NEW_VALUE);
+                    CONCEPT_STRING(RESULT, NEW_VALUE);
                     break;
 
                 case VARIABLE_CLASS:
                     RESULT->CLASS_DATA = NEW_VALUE->CLASS_DATA;
-                    ((CompiledClass *)RESULT->CLASS_DATA)->LINKS++;
+                    ((struct CompiledClass *)RESULT->CLASS_DATA)->LINKS++;
                     break;
 
                 case VARIABLE_ARRAY:
@@ -617,7 +619,7 @@ void ClassCode::SetProperty(PIFAlizator *PIF, INTEGER i, VariableDATA *Owner, co
 
                 case VARIABLE_DELEGATE:
                     RESULT->CLASS_DATA = NEW_VALUE->CLASS_DATA;
-                    ((CompiledClass *)RESULT->CLASS_DATA)->LINKS++;
+                    ((struct CompiledClass *)RESULT->CLASS_DATA)->LINKS++;
                     RESULT->DELEGATE_DATA = NEW_VALUE->DELEGATE_DATA;
                     break;
             }
@@ -635,7 +637,7 @@ void ClassCode::SetProperty(PIFAlizator *PIF, INTEGER i, VariableDATA *Owner, co
     return;
 }
 
-TinyString *ClassCode::GetFilename(PIFAlizator *PIF, INTEGER LOCAL_CLSID, TinyString *default_Value) {
+const TinyString *ClassCode::GetFilename(PIFAlizator *PIF, INTEGER LOCAL_CLSID, const TinyString *default_Value) const {
     if (LOCAL_CLSID < 0)
         return default_Value;
     ClassCode *CC;
@@ -648,19 +650,14 @@ TinyString *ClassCode::GetFilename(PIFAlizator *PIF, INTEGER LOCAL_CLSID, TinySt
     return NULL;
 }
 
-VariableDATA *ClassCode::ExecuteDelegate(PIFAlizator *PIF, INTEGER i, VariableDATA *Owner, const RuntimeOptimizedElement *OE, ParamList *FORMAL_PARAM, VariableDATA **SenderCTX, INTEGER CLSID, INTEGER LOCAL_CLSID, VariableDATA **LOCAL_THROW, SCStack *PREV THREAD_CREATION_LOCKS) {
+VariableDATA *ClassCode::ExecuteDelegate(PIFAlizator *PIF, INTEGER i, VariableDATA *Owner, const RuntimeOptimizedElement *OE, ParamList *FORMAL_PARAM, VariableDATA **SenderCTX, INTEGER CLSID, INTEGER LOCAL_CLSID, VariableDATA **LOCAL_THROW, SCStack *PREV THREAD_CREATION_LOCKS) const {
     VariableDATA         *RESULT;
     register ClassMember *pMEMBER_i = i ? pMEMBERS [i - 1] : 0;
     *LOCAL_THROW = NULL;
 
     if (pMEMBER_i) {
         if (!(ENOUGH_PARAMETERS(pMEMBER_i, FORMAL_PARAM))) {
-            AnsiString szparameters = "none";
-            if (FORMAL_PARAM) {
-                szparameters = AnsiString(FORMAL_PARAM->COUNT);
-            }
-            AnsiException *Exc = new AnsiException(ERR210, OE ? OE->Operator_DEBUG_INFO_LINE : 0, 210, AnsiString("required ") + AnsiString(pMEMBER_i->PARAMETERS_COUNT) + AnsiString(", with ") + AnsiString(pMEMBER_i->MUST_PARAMETERS_COUNT) + AnsiString(" non default parameters, received ") + szparameters, *GetFilename(PIF, CLSID, &((ClassCode *)(pMEMBER_i->Defined_In))->_DEBUG_INFO_FILENAME),  pMEMBER_i->NAME);
-            PIF->AcknoledgeRunTimeError(PREV, Exc);
+            this->BuildParameterError(PIF, OE ? OE->Operator_DEBUG_INFO_LINE : 0, FORMAL_PARAM ? FORMAL_PARAM->COUNT : 0, pMEMBER_i, PREV);
             return 0;
         }
         VariableDATA *THROW_DATA = 0;
@@ -683,7 +680,27 @@ VariableDATA *ClassCode::ExecuteDelegate(PIFAlizator *PIF, INTEGER i, VariableDA
     return 0;
 }
 
-VariableDATA *ClassCode::ExecuteMember(PIFAlizator *PIF, INTEGER i, VariableDATA *Owner, const RuntimeOptimizedElement *OE, INTEGER local, ParamList *FORMAL_PARAM, VariableDATA **SenderCTX, char property, INTEGER CLSID, INTEGER LOCAL_CLSID, VariableDATA **LOCAL_THROW, SCStack *PREV, char next_is_asg, VariableDATAPROPERTY **PROPERTIES, int dataLen, int result_id) {
+void ClassCode::BuildParameterError(PIFAlizator *PIF, int line, int FORMAL_PARAM_COUNT, const ClassMember *pMEMBER_i, SCStack *PREV, int ack_error) const {
+    struct plainstring *err = plainstring_new_str("required ");
+    if (pMEMBER_i)
+        plainstring_add_int(err, pMEMBER_i->PARAMETERS_COUNT);
+    plainstring_add(err, ", with ");
+    if (pMEMBER_i)
+        plainstring_add_int(err, pMEMBER_i->MUST_PARAMETERS_COUNT);
+    plainstring_add(err, " non default parameters, received ");
+    if (FORMAL_PARAM_COUNT)
+        plainstring_add_int(err, FORMAL_PARAM_COUNT);
+    else
+        plainstring_add(err, "none");
+    AnsiException *Exc = new AnsiException(ERR210, line, 210, plainstring_c_str(err), pMEMBER_i ? GetFilename(PIF, CLSID, &((ClassCode *)(pMEMBER_i->Defined_In))->_DEBUG_INFO_FILENAME)->c_str() : "", pMEMBER_i ? ((ClassCode *)(pMEMBER_i->Defined_In))->NAME.c_str() : "", pMEMBER_i ? pMEMBER_i->NAME : "");
+    plainstring_delete(err);
+    if (ack_error)
+        PIF->AcknoledgeRunTimeError(PREV, Exc);
+    else
+        PIF->Errors.Add(Exc, DATA_EXCEPTION);
+}
+
+VariableDATA *ClassCode::ExecuteMember(PIFAlizator *PIF, INTEGER i, VariableDATA *Owner, const RuntimeOptimizedElement *OE, INTEGER local, ParamList *FORMAL_PARAM, VariableDATA **SenderCTX, char property, INTEGER CLSID, INTEGER LOCAL_CLSID, VariableDATA **LOCAL_THROW, SCStack *PREV, char next_is_asg, VariableDATAPROPERTY **PROPERTIES, int dataLen, int result_id) const {
     INTEGER      IS_PROPERTY = 0;
     VariableDATA *RESULT;
     int          relocation = this->Relocation(i);
@@ -693,7 +710,7 @@ VariableDATA *ClassCode::ExecuteMember(PIFAlizator *PIF, INTEGER i, VariableDATA
     if (pMEMBER_i) {
         if (((ClassCode *)pMEMBER_i->Defined_In)->CLSID != LOCAL_CLSID) {
             if (pMEMBER_i->ACCESS == ACCESS_PRIVATE) {
-                char          *mname = PIF->GeneralMembers->Item(i);
+                const char *mname = PIF->GeneralMembers->Item(i);
                 AnsiException *Exc   = new AnsiException(ERR190, OE ? OE->Operator_DEBUG_INFO_LINE : 0, 190, mname ? mname : (OE ? ((TinyString)OE->OperandRight_PARSE_DATA).c_str() : pMEMBER_i->NAME), *GetFilename(PIF, CLSID, &((ClassCode *)(pMEMBER_i->Defined_In))->_DEBUG_INFO_FILENAME), ((ClassCode *)(pMEMBER_i->Defined_In))->NAME, NAME);
                 PIF->AcknoledgeRunTimeError(PREV, Exc);
                 return 0;
@@ -701,7 +718,7 @@ VariableDATA *ClassCode::ExecuteMember(PIFAlizator *PIF, INTEGER i, VariableDATA
             if ((pMEMBER_i->ACCESS == ACCESS_PROTECTED) && (!local)) {
                 ClassCode *caller = (ClassCode *)PIF->StaticClassList[LOCAL_CLSID];
                 if ((!caller) || (!caller->Inherits(this->CLSID))) {
-                    char          *mname = PIF->GeneralMembers->Item(i);
+                    const char *mname = PIF->GeneralMembers->Item(i);
                     AnsiException *Exc   = new AnsiException(ERR850, OE ? OE->Operator_DEBUG_INFO_LINE : 0, 850, mname ? mname : (OE ? ((TinyString)OE->OperandRight_PARSE_DATA).c_str() : pMEMBER_i->NAME), *GetFilename(PIF, CLSID, &((ClassCode *)(pMEMBER_i->Defined_In))->_DEBUG_INFO_FILENAME), ((ClassCode *)(pMEMBER_i->Defined_In))->NAME, NAME);
                     PIF->AcknoledgeRunTimeError(PREV, Exc);
                     return 0;
@@ -724,9 +741,9 @@ VariableDATA *ClassCode::ExecuteMember(PIFAlizator *PIF, INTEGER i, VariableDATA
             case 1:
                 if (!FORMAL_PARAM) {
                     VariableDATA *deleg = (VariableDATA *)VAR_ALLOC(PIF);
-                    deleg->CLASS_DATA = (CompiledClass *)Owner->CLASS_DATA;
+                    deleg->CLASS_DATA = (struct CompiledClass *)Owner->CLASS_DATA;
                     CC_WRITE_LOCK(PIF)
-                    ((CompiledClass *)Owner->CLASS_DATA)->LINKS++;
+                    ((struct CompiledClass *)Owner->CLASS_DATA)->LINKS++;
                     CC_WRITE_UNLOCK(PIF)
                     deleg->IS_PROPERTY_RESULT = 0;
                     deleg->LINKS         = 0;
@@ -735,12 +752,7 @@ VariableDATA *ClassCode::ExecuteMember(PIFAlizator *PIF, INTEGER i, VariableDATA
                     return deleg;
                 } else
                 if (!(ENOUGH_PARAMETERS(pMEMBER_i, FORMAL_PARAM))) {
-                    AnsiString szparameters = "none";
-                    if (FORMAL_PARAM) {
-                        szparameters = AnsiString(FORMAL_PARAM->COUNT);
-                    }
-                    AnsiException *Exc = new AnsiException(ERR210, OE ? OE->Operator_DEBUG_INFO_LINE : 0, 210, AnsiString("required ") + AnsiString(pMEMBER_i->PARAMETERS_COUNT) + AnsiString(", with ") + AnsiString(pMEMBER_i->MUST_PARAMETERS_COUNT) + AnsiString(" non default parameters, received ") + szparameters, *GetFilename(PIF, CLSID, &((ClassCode *)(pMEMBER_i->Defined_In))->_DEBUG_INFO_FILENAME), ((ClassCode *)(pMEMBER_i->Defined_In))->NAME, pMEMBER_i->NAME);
-                    PIF->AcknoledgeRunTimeError(PREV, Exc);
+                    this->BuildParameterError(PIF, OE ? OE->Operator_DEBUG_INFO_LINE : 0, FORMAL_PARAM->COUNT, pMEMBER_i, PREV);
                     return 0;
                 }
                 {
@@ -776,8 +788,8 @@ VariableDATA *ClassCode::ExecuteMember(PIFAlizator *PIF, INTEGER i, VariableDATA
                     return IMAGE;
                 }
                 if (!pMEMBER_i->MEMBER_GET) {
-                    char          *mname = PIF->GeneralMembers->Item(i);
-                    AnsiException *Exc   = new AnsiException(ERR370, OE ? OE->Operator_DEBUG_INFO_LINE : 0, 370, mname ? AnsiString(mname) : (TinyString)(OE ? OE->OperandRight_PARSE_DATA.c_str() : ""), *GetFilename(PIF, CLSID, &((ClassCode *)(pMEMBER_i->Defined_In))->_DEBUG_INFO_FILENAME), NAME);
+                    const char *mname = PIF->GeneralMembers->Item(i);
+                    AnsiException *Exc   = new AnsiException(ERR370, OE ? OE->Operator_DEBUG_INFO_LINE : 0, 370, mname ? mname : (OE ? OE->OperandRight_PARSE_DATA.c_str() : ""), *GetFilename(PIF, CLSID, &((ClassCode *)(pMEMBER_i->Defined_In))->_DEBUG_INFO_FILENAME), NAME);
                     PIF->AcknoledgeRunTimeError(PREV, Exc);
                     return 0;
                 }
@@ -805,7 +817,7 @@ VariableDATA *ClassCode::ExecuteMember(PIFAlizator *PIF, INTEGER i, VariableDATA
                 if ((FORMAL_PARAM) && ((!property) || (FORMAL_PARAM->COUNT))) {
                     if (RESULT->TYPE == VARIABLE_DELEGATE) {
                         CC_WRITE_LOCK(PIF)
-                        ((CompiledClass *)RESULT->CLASS_DATA)->LINKS++;
+                        ((struct CompiledClass *)RESULT->CLASS_DATA)->LINKS++;
                         CC_WRITE_UNLOCK(PIF)
                         VariableDATA * lOwner = 0;
 
@@ -815,7 +827,7 @@ VariableDATA *ClassCode::ExecuteMember(PIFAlizator *PIF, INTEGER i, VariableDATA
                         lOwner->LINKS = 1;
                         lOwner->TYPE = VARIABLE_CLASS;
 
-                        RESULT = ((CompiledClass *)RESULT->CLASS_DATA)->_Class->ExecuteDelegate(PIF,
+                        RESULT = ((struct CompiledClass *)RESULT->CLASS_DATA)->_Class->ExecuteDelegate(PIF,
                                                                                                 (INTEGER)RESULT->DELEGATE_DATA,
                                                                                                 lOwner,
                                                                                                 OE,
@@ -876,7 +888,7 @@ VariableDATA *ClassCode::ExecuteMember(PIFAlizator *PIF, INTEGER i, VariableDATA
                     IMAGE->TYPE  = RESULT->TYPE;
                     if (RESULT->TYPE == VARIABLE_STRING) {
                         IMAGE->CLASS_DATA     = 0;
-                        CONCEPT_STRING(IMAGE) = CONCEPT_STRING(RESULT);
+                        CONCEPT_STRING(IMAGE, RESULT);
                     } else
                     if ((RESULT->TYPE == VARIABLE_CLASS) || (RESULT->TYPE == VARIABLE_ARRAY)) {
                         IMAGE->CLASS_DATA = RESULT->CLASS_DATA;
@@ -890,7 +902,7 @@ VariableDATA *ClassCode::ExecuteMember(PIFAlizator *PIF, INTEGER i, VariableDATA
                     //----------------------------------------------
                     if ((IMAGE->TYPE == VARIABLE_CLASS) || (IMAGE->TYPE == VARIABLE_DELEGATE)) {
                         CC_WRITE_LOCK(PIF)
-                        ((CompiledClass *)IMAGE->CLASS_DATA)->LINKS++;
+                        ((struct CompiledClass *)IMAGE->CLASS_DATA)->LINKS++;
                         CC_WRITE_UNLOCK(PIF)
                     } else
                     if (IMAGE->TYPE == VARIABLE_ARRAY) {
@@ -905,12 +917,12 @@ VariableDATA *ClassCode::ExecuteMember(PIFAlizator *PIF, INTEGER i, VariableDATA
 
             default:
                 CC_WRITE_LOCK(PIF)
-                RESULT = ((CompiledClass *)Owner->CLASS_DATA)->_CONTEXT [relocation2 - 1];
+                RESULT = ((struct CompiledClass *)Owner->CLASS_DATA)->_CONTEXT [relocation2 - 1];
                 if (!RESULT) {
-                    RESULT = ((CompiledClass *)Owner->CLASS_DATA)->CreateVariable(relocation2 - 1, pMEMBER_i);
+                    RESULT = CompiledClass_CreateVariable((struct CompiledClass *)Owner->CLASS_DATA, relocation2 - 1, pMEMBER_i);
                 } else
                 if ((RESULT->TYPE == VARIABLE_DELEGATE) && (FORMAL_PARAM) && (!property)) {
-                    ((CompiledClass *)RESULT->CLASS_DATA)->LINKS++;
+                    ((struct CompiledClass *)RESULT->CLASS_DATA)->LINKS++;
                     CC_WRITE_UNLOCK(PIF)
                     VariableDATA * lOwner = 0;
                     lOwner = (VariableDATA *)VAR_ALLOC(PIF);
@@ -919,7 +931,7 @@ VariableDATA *ClassCode::ExecuteMember(PIFAlizator *PIF, INTEGER i, VariableDATA
                     lOwner->LINKS = 1;
                     lOwner->TYPE = VARIABLE_CLASS;
 
-                    RESULT = ((CompiledClass *)RESULT->CLASS_DATA)->_Class->ExecuteDelegate(PIF,
+                    RESULT = ((struct CompiledClass *)RESULT->CLASS_DATA)->_Class->ExecuteDelegate(PIF,
                                                                                             (INTEGER)RESULT->DELEGATE_DATA,
                                                                                             lOwner,
                                                                                             OE,
@@ -940,8 +952,8 @@ VariableDATA *ClassCode::ExecuteMember(PIFAlizator *PIF, INTEGER i, VariableDATA
                 }
                 CC_WRITE_UNLOCK(PIF)
                 if ((FORMAL_PARAM) && (!property)) {
-                    char          *mname = PIF->GeneralMembers->Item(i);
-                    AnsiException *Exc   = new AnsiException(ERR250, OE ? OE->Operator_DEBUG_INFO_LINE : 0, 250, mname ? AnsiString(mname) : AnsiString(OE ? OE->OperandRight_PARSE_DATA.c_str() : ""), *GetFilename(PIF, CLSID, &_DEBUG_INFO_FILENAME), ((ClassCode *)(pMEMBER_i->Defined_In))->NAME, NAME);
+                    const char *mname = PIF->GeneralMembers->Item(i);
+                    AnsiException *Exc   = new AnsiException(ERR250, OE ? OE->Operator_DEBUG_INFO_LINE : 0, 250, mname ? mname : (OE ? OE->OperandRight_PARSE_DATA.c_str() : ""), *GetFilename(PIF, CLSID, &_DEBUG_INFO_FILENAME), ((ClassCode *)(pMEMBER_i->Defined_In))->NAME, NAME);
                     PIF->AcknoledgeRunTimeError(PREV, Exc);
 
                     RESULT                     = (VariableDATA *)VAR_ALLOC(PIF);
@@ -955,8 +967,8 @@ VariableDATA *ClassCode::ExecuteMember(PIFAlizator *PIF, INTEGER i, VariableDATA
                 return RESULT;
         }
     } else {
-        char          *mname = PIF->GeneralMembers->Item(i);
-        AnsiException *Exc   = new AnsiException(ERR150, OE ? OE->Operator_DEBUG_INFO_LINE : 0, 150, mname ? AnsiString(mname) : AnsiString(OE ? OE->OperandRight_PARSE_DATA.c_str() : ""), *GetFilename(PIF, CLSID, &_DEBUG_INFO_FILENAME), NAME);
+        const char *mname = PIF->GeneralMembers->Item(i);
+        AnsiException *Exc   = new AnsiException(ERR150, OE ? OE->Operator_DEBUG_INFO_LINE : 0, 150, mname ? mname : (OE ? OE->OperandRight_PARSE_DATA.c_str() : ""), *GetFilename(PIF, CLSID, &_DEBUG_INFO_FILENAME), NAME);
         PIF->AcknoledgeRunTimeError(PREV, Exc);
     }
     return 0;
@@ -1035,7 +1047,7 @@ int ClassCode::Serialize(PIFAlizator *PIF, FILE *out, bool is_lib, int version) 
             char is_defined_in_this_class = ((void *)CM_TARGET->Defined_In == (void *)this);
             concept_fwrite(&is_defined_in_this_class, sizeof(is_defined_in_this_class), 1, out);
             if (is_defined_in_this_class) {
-                CM_TARGET->Serialize(out, is_lib, version);
+                CM_TARGET->Serialize(PIF, out, is_lib, version);
             } else {
                 int clsid = ((ClassCode *)CM_TARGET->Defined_In)->CLSID;
                 concept_fwrite_int(&clsid, sizeof(clsid), 1, out);
@@ -1050,7 +1062,7 @@ int ClassCode::Serialize(PIFAlizator *PIF, FILE *out, bool is_lib, int version) 
                 char is_defined_in_this_class = ((void *)CM->Defined_In == (void *)this);
                 concept_fwrite(&is_defined_in_this_class, sizeof(is_defined_in_this_class), 1, out);
                 if (is_defined_in_this_class) {
-                    CM->Serialize(out, is_lib, version);
+                    CM->Serialize(PIF, out, is_lib, version);
                 } else {
                     int clsid = ((ClassCode *)CM->Defined_In)->CLSID;
                     concept_fwrite_int(&clsid, sizeof(clsid), 1, out);
@@ -1076,7 +1088,7 @@ int ClassCode::ComputeSharedSize(concept_FILE *in, int general_members, int vers
 
     FREAD_INT_FAIL(&MyCLSID, sizeof(MyCLSID), 1, in);
 
-    AnsiString::ComputeSharedSize(in, SERIALIZE_16BIT_LENGTH);
+    plainstring_computesharedsize(in, SERIALIZE_16BIT_LENGTH);
 
     INTEGER members_count;
     FREAD_INT_FAIL(&members_count, sizeof(members_count), 1, in);
@@ -1234,7 +1246,7 @@ int ClassCode::Unserialize(PIFAlizator *PIF, concept_FILE *in, AnsiList *ClassLi
 
             if (CM->IS_FUNCTION == 1) {
                 CM->OPTIMIZER = new Optimizer(PIF, &PIF->PIF, &PIF->VariableDescriptors, ((ClassCode *)(CM->Defined_In))->_DEBUG_INFO_FILENAME, this, CM->NAME, true);
-                ((Optimizer *)CM->OPTIMIZER)->Unserialize(in, PIF->ModuleList, is_lib, ClassNames, Relocation, version);
+                ((Optimizer *)CM->OPTIMIZER)->Unserialize(PIF, in, PIF->ModuleList, is_lib, ClassNames, Relocation, version);
             } else {
                 CM->OPTIMIZER = 0;
             }
@@ -1260,7 +1272,7 @@ int ClassCode::Unserialize(PIFAlizator *PIF, concept_FILE *in, AnsiList *ClassLi
 
             ClassMember *CM_inherited = 0;
 
-            AnsiString mem_name(PIF->GeneralMembers->Item(index));
+            const char *mem_name = PIF->GeneralMembers->Item(index);
             if (is_lib) {
                 CM_inherited = (ClassMember *)CC_parent->Members->Item(CC_parent->HasMember(mem_name) - 1);
             } else {
@@ -1307,7 +1319,7 @@ int ClassCode::Unserialize(PIFAlizator *PIF, concept_FILE *in, AnsiList *ClassLi
     return 0;
 }
 
-int ClassCode::Inherits(INTEGER CLSID) {
+int ClassCode::Inherits(INTEGER CLSID) const {
     if (this->CLSID == CLSID)
         return 1;
 
@@ -1384,7 +1396,7 @@ ClassCode::~ClassCode(void) {
     }
 }
 
-GreenThreadCycle *ClassCode::CreateThread(PIFAlizator *PIF, INTEGER i, VariableDATA *Owner) {
+GreenThreadCycle *ClassCode::CreateThread(PIFAlizator *PIF, INTEGER i, VariableDATA *Owner) const {
     register ClassMember *pMEMBER_i = i ? pMEMBERS [i - 1] : 0;
 
     if (pMEMBER_i) {
@@ -1399,7 +1411,7 @@ GreenThreadCycle *ClassCode::CreateThread(PIFAlizator *PIF, INTEGER i, VariableD
 
         if (pMEMBER_i->IS_FUNCTION == 1) {
             if (pMEMBER_i->MUST_PARAMETERS_COUNT) {
-                AnsiException *Exc = new AnsiException(ERR1310, 0, 1310, AnsiString("required ") + AnsiString(pMEMBER_i->PARAMETERS_COUNT) + AnsiString(", with ") + AnsiString(pMEMBER_i->MUST_PARAMETERS_COUNT) + AnsiString(" non default parameters, must 0"), *GetFilename(PIF, CLSID, &((ClassCode *)(pMEMBER_i->Defined_In))->_DEBUG_INFO_FILENAME), ((ClassCode *)(pMEMBER_i->Defined_In))->NAME, pMEMBER_i->NAME);
+                AnsiException *Exc = new AnsiException(1310, ERR1310, 0, "mandatory parameters: ", pMEMBER_i->MUST_PARAMETERS_COUNT, *GetFilename(PIF, CLSID, &((ClassCode *)(pMEMBER_i->Defined_In))->_DEBUG_INFO_FILENAME), ((ClassCode *)(pMEMBER_i->Defined_In))->NAME, pMEMBER_i->NAME);
                 PIF->AcknoledgeRunTimeError(NULL, Exc);
                 return 0;
             }

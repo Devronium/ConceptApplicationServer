@@ -451,18 +451,18 @@ void FreeClassObject(void *refObject) {
     if (!refObject)
         return;
 
-    if (((CompiledClass *)refObject)->flags == -1)
+    if (((struct CompiledClass *)refObject)->flags == -1)
         return;
 
-    ClassPool   *CURRENT = (ClassPool *)(((uintptr_t)refObject) - sizeof(CompiledClass) * (((CompiledClass *)refObject)->flags) - POOL_OFFSET_NON_POD(ClassPool));
+    ClassPool   *CURRENT = (ClassPool *)(((uintptr_t)refObject) - sizeof(CompiledClass) * (((struct CompiledClass *)refObject)->flags) - POOL_OFFSET_NON_POD(ClassPool));
     PIFAlizator *PIF     = (PIFAlizator *)CURRENT->PIF;
     ALLOC_LOCK
     memset(refObject, 0, sizeof(CompiledClass));
     ((PIFAlizator *)PIF)->object_count--;
     PIF->free_class_objects++;
-    if (((CompiledClass *)refObject)->flags < CURRENT->FIRST_VAR)
-        CURRENT->FIRST_VAR = ((CompiledClass *)refObject)->flags;
-    ((CompiledClass *)refObject)->flags = -1;
+    if (((struct CompiledClass *)refObject)->flags < CURRENT->FIRST_VAR)
+        CURRENT->FIRST_VAR = ((struct CompiledClass *)refObject)->flags;
+    ((struct CompiledClass *)refObject)->flags = -1;
     CURRENT->POOL_VARS++;
     ClassPool *PREV = (ClassPool *)CURRENT->PREV;
     ClassPool *NEXT = (ClassPool *)CURRENT->NEXT;
@@ -631,37 +631,9 @@ void FreeArray(void *refObject) {
     ALLOC_UNLOCK
 }
 
-int MarkRecursive(void *PIF, Array *arr, signed char reach_id_flag, signed char forced_flag) {
-    arr->reachable = (arr->reachable & 0x1C) | reach_id_flag;
-    int      res      = 1;
-    NODE     *CURRENT = arr->FIRST;
-    for (intptr_t i = 0; i < arr->NODE_COUNT; i++) {
-        for (intptr_t j = 0; j < CURRENT->COUNT; j++) {
-            VariableDATA *Var = CURRENT->ELEMENTS [j];
-            if ((Var) && (Var->CLASS_DATA)) {
-                if ((Var->TYPE == VARIABLE_CLASS) || (Var->TYPE == VARIABLE_DELEGATE)) {
-                    CompiledClass *CC2 = (CompiledClass *)Var->CLASS_DATA;
-                    if ((CC2->reachable & 0x03) != reach_id_flag)
-                        res += MarkRecursive(PIF, CC2, reach_id_flag, forced_flag ? forced_flag : CC2->reachable & 0x1C);
-                    CC2->reachable |= forced_flag;
-                } else
-                if (Var->TYPE == VARIABLE_ARRAY) {
-                    Array *ARR2 = (Array *)Var->CLASS_DATA;
-                    if ((ARR2->reachable & 0x03) != reach_id_flag)
-                        res += MarkRecursive(PIF, ARR2, reach_id_flag, forced_flag ? forced_flag : ARR2->reachable & 0x1C);
-                    ARR2->reachable |= forced_flag;
-                }
-            }
-        }
-        NODE *NEXT = CURRENT->NEXT;
-        CURRENT = NEXT;
-    }
-    return res;
-}
-
-int MarkRecursive(void *PIF, CompiledClass *CC, signed char reach_id_flag, signed char forced_flag) {
+int MarkRecursiveClass(void *PIF, struct CompiledClass *CC, signed char reach_id_flag, signed char forced_flag) {
     CC->reachable = (CC->reachable & 0x1C) | reach_id_flag;
-    ClassCode *base = CC->_Class;
+    const ClassCode *base = CC->_Class;
     int       res   = 1;
     if (!CC->_CONTEXT)
         return res;
@@ -671,7 +643,7 @@ int MarkRecursive(void *PIF, CompiledClass *CC, signed char reach_id_flag, signe
         VariableDATA *Var = CC->_CONTEXT[i];
         if ((Var) && (Var->CLASS_DATA)) {
             if ((Var->TYPE == VARIABLE_CLASS) || (Var->TYPE == VARIABLE_DELEGATE)) {
-                CompiledClass *CC2 = (CompiledClass *)Var->CLASS_DATA;
+                CompiledClass *CC2 = (struct CompiledClass *)Var->CLASS_DATA;
                 if ((CC2->reachable & 0x03) != reach_id_flag)
                     res += MarkRecursive(PIF, CC2, reach_id_flag, forced_flag ? forced_flag : CC2->reachable & 0x1C);
                 CC2->reachable |= forced_flag;
@@ -686,7 +658,7 @@ int MarkRecursive(void *PIF, CompiledClass *CC, signed char reach_id_flag, signe
     }
 #else
     int           inspectSize = INITIAL_INSPECT_SIZE;
-    CompiledClass **toInspect = (CompiledClass **)realloc(NULL, sizeof(CompiledClass *) * inspectSize);
+    CompiledClass **toInspect = (CompiledClass **)realloc(NULL, sizeof(struct CompiledClass *) * inspectSize);
     toInspect[0] = CC;
     int inspectPos = 1;
     for (int j = 0; j < inspectPos; j++) {
@@ -696,20 +668,20 @@ int MarkRecursive(void *PIF, CompiledClass *CC, signed char reach_id_flag, signe
             VariableDATA *Var = CC->_CONTEXT[i];
             if ((Var) && (Var->CLASS_DATA)) {
                 if ((Var->TYPE == VARIABLE_CLASS) || (Var->TYPE == VARIABLE_DELEGATE)) {
-                    CompiledClass *CC2 = (CompiledClass *)Var->CLASS_DATA;
+                    CompiledClass *CC2 = (struct CompiledClass *)Var->CLASS_DATA;
                     if ((CC2->reachable & 0x03) != reach_id_flag) {
                         if (CC2->_CONTEXT) {
                             if (inspectPos < inspectSize)
                                 toInspect[inspectPos++] = CC2;
                             else {
                                 inspectSize            += INSPECT_INCREMENT;
-                                toInspect               = (CompiledClass **)realloc(toInspect, sizeof(CompiledClass *) * inspectSize);
+                                toInspect               = (CompiledClass **)realloc(toInspect, sizeof(struct CompiledClass *) * inspectSize);
                                 toInspect[inspectPos++] = CC2;
                             }
                         }
                         CC2->reachable = (CC2->reachable & 0x1C) | reach_id_flag;
                         if ((!forced_flag) && (CC2->reachable & 0x1C))
-                            res += MarkRecursive(PIF, CC2, reach_id_flag, 0x1C);
+                            res += MarkRecursiveClass(PIF, CC2, reach_id_flag, 0x1C);
                     }
                     CC2->reachable |= forced_flag;
                 } else
@@ -727,8 +699,36 @@ int MarkRecursive(void *PIF, CompiledClass *CC, signed char reach_id_flag, signe
     return res;
 }
 
+int MarkRecursive(void *PIF, Array *arr, signed char reach_id_flag, signed char forced_flag) {
+    arr->reachable = (arr->reachable & 0x1C) | reach_id_flag;
+    int      res      = 1;
+    NODE     *CURRENT = arr->FIRST;
+    for (intptr_t i = 0; i < arr->NODE_COUNT; i++) {
+        for (intptr_t j = 0; j < CURRENT->COUNT; j++) {
+            VariableDATA *Var = CURRENT->ELEMENTS [j];
+            if ((Var) && (Var->CLASS_DATA)) {
+                if ((Var->TYPE == VARIABLE_CLASS) || (Var->TYPE == VARIABLE_DELEGATE)) {
+                    CompiledClass *CC2 = (struct CompiledClass *)Var->CLASS_DATA;
+                    if ((CC2->reachable & 0x03) != reach_id_flag)
+                        res += MarkRecursiveClass(PIF, CC2, reach_id_flag, forced_flag ? forced_flag : CC2->reachable & 0x1C);
+                    CC2->reachable |= forced_flag;
+                } else
+                if (Var->TYPE == VARIABLE_ARRAY) {
+                    Array *ARR2 = (Array *)Var->CLASS_DATA;
+                    if ((ARR2->reachable & 0x03) != reach_id_flag)
+                        res += MarkRecursive(PIF, ARR2, reach_id_flag, forced_flag ? forced_flag : ARR2->reachable & 0x1C);
+                    ARR2->reachable |= forced_flag;
+                }
+            }
+        }
+        NODE *NEXT = CURRENT->NEXT;
+        CURRENT = NEXT;
+    }
+    return res;
+}
+
 int ClearRecursive(void *PIF, CompiledClass *CC, int CLSID, signed char reach_id_flag, signed char forced_flag) {
-    ClassCode *base = CC->_Class;
+    const ClassCode *base = CC->_Class;
     CC->reachable = (CC->reachable & 0x1C) | reach_id_flag;
     int       res   = 1;
     if (!CC->_CONTEXT)
@@ -738,7 +738,7 @@ int ClearRecursive(void *PIF, CompiledClass *CC, int CLSID, signed char reach_id
         VariableDATA *Var = CC->_CONTEXT[i];
         if ((Var) && (Var->CLASS_DATA)) {
             if ((Var->TYPE == VARIABLE_CLASS) || (Var->TYPE == VARIABLE_DELEGATE)) {
-                CompiledClass *CC2 = (CompiledClass *)Var->CLASS_DATA;
+                CompiledClass *CC2 = (struct CompiledClass *)Var->CLASS_DATA;
                 if ((CC2->reachable & 0x03) != reach_id_flag) {
                     if (CC2->_Class->GetCLSID() == CLSID) {
                         CLASS_CHECK(Var);
@@ -771,11 +771,11 @@ int ClearRecursive(void *PIF, Array *arr, int CLSID, signed char reach_id_flag, 
             VariableDATA *Var = CURRENT->ELEMENTS [j];
             if ((Var) && (Var->CLASS_DATA)) {
                 if ((Var->TYPE == VARIABLE_CLASS) || (Var->TYPE == VARIABLE_DELEGATE)) {
-                    CompiledClass *CC2 = (CompiledClass *)Var->CLASS_DATA;
+                    CompiledClass *CC2 = (struct CompiledClass *)Var->CLASS_DATA;
                     if ((CC2->reachable & 0x03) != reach_id_flag)
                         res += ClearRecursive(PIF, CC2, CLSID, reach_id_flag, forced_flag ? forced_flag : CC2->reachable & 0x1C);
                     CC2->reachable |= forced_flag;
-                    if (CC2->GetClass()->GetCLSID() == CLSID) {
+                    if (CompiledClass_GetClass(CC2)->GetCLSID() == CLSID) {
                         CLASS_CHECK(Var);
                         Var->TYPE = VARIABLE_NUMBER;
                         Var->NUMBER_DATA = 0;
@@ -818,8 +818,8 @@ int ClearVariablesByCLSID(void *PIF, int CLSID) {
         root = (GCRoot *)root->NEXT;
     }
 
-    CompiledClass *CC_ROOT = (CompiledClass *)((PIFAlizator *)PIF)->RootInstance;
-    if ((!CC_ROOT) || (CC_ROOT->GetClass()->GetCLSID() == CLSID)) {
+    CompiledClass *CC_ROOT = (struct CompiledClass *)((PIFAlizator *)PIF)->RootInstance;
+    if ((!CC_ROOT) || (CompiledClass_GetClass(CC_ROOT)->GetCLSID() == CLSID)) {
         ((PIFAlizator *)PIF)->in_gc = 0;
         return 0;
     }
@@ -848,10 +848,10 @@ int ClearVariablesByCLSID(void *PIF, int CLSID) {
                     VariableDATA *Var = context[i];
                     if ((Var) && (Var->CLASS_DATA)) {
                         if ((Var->TYPE == VARIABLE_CLASS) || (Var->TYPE == VARIABLE_DELEGATE)) {
-                            CompiledClass *CC2 = (CompiledClass *)Var->CLASS_DATA;
+                            CompiledClass *CC2 = (struct CompiledClass *)Var->CLASS_DATA;
                             if ((CC2->reachable & 0x03) != reach_id_flag)
                                 ClearRecursive(PIF, CC2, CLSID, reach_id_flag, CC2->reachable & 0x1C);
-                            if (CC2->GetClass()->GetCLSID() == CLSID) {
+                            if (CompiledClass_GetClass(CC2)->GetCLSID() == CLSID) {
                                 CLASS_CHECK(Var);
                                 Var->TYPE = VARIABLE_NUMBER;
                                 Var->NUMBER_DATA = 0;
@@ -889,7 +889,7 @@ int ClearVariablesByCLSID(void *PIF, int CLSID) {
             for (int i = 0; i < OBJECT_POOL_BLOCK_SIZE; i++) {
                 CompiledClass *CC = &POOL->POOL[i];
                 if ((CC->flags >= 0) && (CC->reachable >= 0x1C)) {
-                    if (CC->GetClass()->GetCLSID() == CLSID)
+                    if (CompiledClass_GetClass(CC)->GetCLSID() == CLSID)
                         cleared = 0;
                     if ((CC->reachable & 0x03) != reach_id_flag)
                         ClearRecursive(PIF, CC, CLSID, reach_id_flag, CC->reachable & 0x1C);
@@ -932,7 +932,7 @@ int CheckReachability(void *PIF, bool skip_top) {
     }
     // ============================================================================== //
 
-    CompiledClass *CC_ROOT      = (CompiledClass *)((PIFAlizator *)PIF)->RootInstance;
+    CompiledClass *CC_ROOT      = (struct CompiledClass *)((PIFAlizator *)PIF)->RootInstance;
     signed char   reach_id_flag = CC_ROOT->reachable & 0x03;
 
     if (reach_id_flag == 1)
@@ -941,7 +941,7 @@ int CheckReachability(void *PIF, bool skip_top) {
         reach_id_flag = 1;
 
     if (CC_ROOT)
-        MarkRecursive(PIF, CC_ROOT, reach_id_flag, 0);
+        MarkRecursiveClass(PIF, CC_ROOT, reach_id_flag, 0);
     if (((PIFAlizator *)PIF)->var_globals)
         MarkRecursive(PIF, (Array *)((PIFAlizator *)PIF)->var_globals, reach_id_flag, 0);
 
@@ -961,9 +961,9 @@ int CheckReachability(void *PIF, bool skip_top) {
                     VariableDATA *Var = context[i];
                     if ((Var) && (Var->CLASS_DATA)) {
                         if ((Var->TYPE == VARIABLE_CLASS) || (Var->TYPE == VARIABLE_DELEGATE)) {
-                            CompiledClass *CC2 = (CompiledClass *)Var->CLASS_DATA;
+                            CompiledClass *CC2 = (struct CompiledClass *)Var->CLASS_DATA;
                             if ((CC2->reachable & 0x03) != reach_id_flag)
-                                MarkRecursive(PIF, CC2, reach_id_flag, CC2->reachable & 0x1C);
+                                MarkRecursiveClass(PIF, CC2, reach_id_flag, CC2->reachable & 0x1C);
                         } else
                         if (Var->TYPE == VARIABLE_ARRAY) {
                             Array *ARR2 = (Array *)Var->CLASS_DATA;
@@ -990,7 +990,7 @@ int CheckReachability(void *PIF, bool skip_top) {
                 CompiledClass *CC = &POOL->POOL[i];
                 if ((CC->flags >= 0) && (CC->reachable >= 0x1C)) {
                     if ((CC->reachable & 0x03) != reach_id_flag)
-                        MarkRecursive(PIF, CC, reach_id_flag, CC->reachable & 0x1C);
+                        MarkRecursiveClass(PIF, CC, reach_id_flag, CC->reachable & 0x1C);
                 }
             }
         }
@@ -1025,7 +1025,7 @@ int CheckReachability(void *PIF, bool skip_top) {
                         res++;
                         CC->reachable = reach_id_flag;
                         __gc_obj.Reference(CC);
-                        CC->__GO_GARBAGE(PIF, &__gc_obj, &__gc_array, &__gc_vars, reach_id_flag);
+                        CompiledClass__GO_GARBAGE(CC, PIF, &__gc_obj, &__gc_array, &__gc_vars, reach_id_flag);
                     }
                 }
             }
@@ -1144,8 +1144,8 @@ int GetMemoryStatistics(void *PIF, void *RESULT) {
                         case VARIABLE_STRING:
                             string_var->NUMBER_DATA += 1;
                             if (NEXT_POOL->POOL[i].CLASS_DATA) {
-                                intptr_t len = ((AnsiString *)NEXT_POOL->POOL[i].CLASS_DATA)->MemoryLength();
-                                memory->NUMBER_DATA        += sizeof(AnsiString);
+                                intptr_t len = plainstring_memory_length((struct plainstring *)NEXT_POOL->POOL[i].CLASS_DATA);
+                                memory->NUMBER_DATA        += sizeof(struct plainstring);
                                 string_memory->NUMBER_DATA += len;
                             }
                             break;
@@ -1161,7 +1161,7 @@ int GetMemoryStatistics(void *PIF, void *RESULT) {
     }
 #endif
     ALLOC_LOCK
-    CompiledClass *CC_ROOT      = (CompiledClass *)((PIFAlizator *)PIF)->RootInstance;
+    CompiledClass *CC_ROOT      = (struct CompiledClass *)((PIFAlizator *)PIF)->RootInstance;
     signed char   reach_id_flag = CC_ROOT->reachable & 0x03;
 
     if (reach_id_flag == 1)
@@ -1169,7 +1169,7 @@ int GetMemoryStatistics(void *PIF, void *RESULT) {
     else
         reach_id_flag = 1;
     if (CC_ROOT)
-        MarkRecursive(PIF, CC_ROOT, reach_id_flag, 0);
+        MarkRecursiveClass(PIF, CC_ROOT, reach_id_flag, 0);
     if (((PIFAlizator *)PIF)->var_globals)
         MarkRecursive(PIF, (Array *)((PIFAlizator *)PIF)->var_globals, reach_id_flag, 0);
 
@@ -1192,9 +1192,9 @@ int GetMemoryStatistics(void *PIF, void *RESULT) {
                     VariableDATA *Var = context[i];
                     if ((Var) && (Var->CLASS_DATA)) {
                         if ((Var->TYPE == VARIABLE_CLASS) || (Var->TYPE == VARIABLE_DELEGATE)) {
-                            CompiledClass *CC2 = (CompiledClass *)Var->CLASS_DATA;
+                            CompiledClass *CC2 = (struct CompiledClass *)Var->CLASS_DATA;
                             if ((CC2->reachable & 0x03) != reach_id_flag)
-                                MarkRecursive(PIF, CC2, reach_id_flag, CC2->reachable & 0x1C);
+                                MarkRecursiveClass(PIF, CC2, reach_id_flag, CC2->reachable & 0x1C);
                         } else
                         if (Var->TYPE == VARIABLE_ARRAY) {
                             Array *ARR2 = (Array *)Var->CLASS_DATA;
@@ -1224,7 +1224,7 @@ int GetMemoryStatistics(void *PIF, void *RESULT) {
 #ifdef POOL_BLOCK_ALLOC
                         lock_obj_var->NUMBER_DATA++;
 #endif
-                        MarkRecursive(PIF, CC, reach_id_flag, CC->reachable & 0x1C);
+                        MarkRecursiveClass(PIF, CC, reach_id_flag, CC->reachable & 0x1C);
                     }
                 }
             }
@@ -1258,10 +1258,10 @@ int GetMemoryStatistics(void *PIF, void *RESULT) {
             for (int i = 0; i < OBJECT_POOL_BLOCK_SIZE; i++) {
                 CompiledClass *CC = &POOL->POOL[i];
                 if (CC->flags >= 0) {
-                    VariableDATA *ref = ((Array *)objects_var->CLASS_DATA)->ModuleGet(CC->GetClass()->NAME.c_str());
+                    VariableDATA *ref = ((Array *)objects_var->CLASS_DATA)->ModuleGet(CompiledClass_GetClass(CC)->NAME.c_str());
                     ref->NUMBER_DATA    += 1;
                     memory->NUMBER_DATA += sizeof(CompiledClass);
-                    memory->NUMBER_DATA += CC->GetClass()->DataMembersCount * sizeof(VariableDATA *);
+                    memory->NUMBER_DATA += CompiledClass_GetClass(CC)->DataMembersCount * sizeof(VariableDATA *);
                     if ((CC->flags >= 0) && (CC->reachable < 0x1C) && (CC->reachable != reach_id_flag))
                         unreachable_objects->NUMBER_DATA += 1;
                 }
@@ -1479,17 +1479,17 @@ int concept_fread_int(void *buf, size_t size, size_t len, CachedFILE *in) {
 }
 #endif
 
-int NotifyParent(int pipe_out, int apid, int msg_id, AnsiString DATA) {
+int NotifyParent(int pipe_out, int apid, int msg_id, const char *ptr, int len = -1) {
+    if ((ptr) && (len < 0))
+        len = strlen(ptr);
     if (RemoteNotifyParent) {
-        return RemoteNotifyParent(pipe_out, apid, msg_id, DATA.Length(), DATA.c_str());
+        return RemoteNotifyParent(pipe_out, apid, msg_id, len, ptr);
     }
 
     if ((apid <= 0) || (pipe_out <= 0)) {
         return 0;
     }
 
-    int  len  = DATA.Length();
-    char *ptr = DATA.c_str();
     int params[3];
     params[0] = apid;
     params[1] = msg_id;
@@ -1510,16 +1510,14 @@ int NotifyParent(int pipe_out, int apid, int msg_id, AnsiString DATA) {
     return 1;
 }
 
-void DeturnatedPrint(void *PIF, char *text, int len, void *userdata) {
-    AnsiString data;
-
-    if (len > -1) {
-        data.LoadBuffer(text, len);
-    } else {
-        data = text;
+void DeturnatedPrint(void *PIF, const char *text, int len, void *userdata) {
+    if (len < 0) {
+        if (!text)
+            return;
+        len = strlen(text);
     }
     if (PIF)
-        NotifyParent(((PIFAlizator *)PIF)->pipe_write, ((PIFAlizator *)PIF)->parent_apid, -10, data);
+        NotifyParent(((PIFAlizator *)PIF)->pipe_write, ((PIFAlizator *)PIF)->parent_apid, -10, text, len);
 }
 
 CONCEPT_DLL_API SetNotifyParent(NOTIFY_PARENT np) {
@@ -1609,7 +1607,7 @@ CONCEPT_DLL_API Concept_CachedInit(char *filename) {
         key += AnsiString((intptr_t)buf.st_mtime);
     }
 #endif
-    cache_buffer = SHPoolOpen(key.c_str());
+    cache_buffer = SHPoolOpen(key.c_str(), 0);
     SHLockWait(key.c_str());
     if (cache_buffer) {
         return 0xFFFF;
@@ -1621,7 +1619,7 @@ CONCEPT_DLL_API Concept_CachedInit(char *filename) {
         if (size > 0) {
             // 255 bytes reserved ...
             size        += 0xFF;
-            cache_buffer = SHPoolAlloc(key.c_str(), size);
+            cache_buffer = SHPoolAlloc(key.c_str(), size, 0);
             // don't unlock the semaphore !!
             if (cache_buffer) {
                 return size;

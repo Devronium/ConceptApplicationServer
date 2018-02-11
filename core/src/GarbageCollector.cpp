@@ -12,13 +12,14 @@ GarbageCollector::GarbageCollector() {
 }
 
 void GarbageCollector::Call_All_Destructors(void *PIF) {
-#ifdef USE_MAP_GC
+#ifdef USE_HASHTABLE_GC
     if (BASE) {
-        std::set<void *>::iterator end = BASE->end();
-        for (std::set<void *>::iterator i = BASE->begin(); i != end; ++i) {
-            CompiledClass *ptr = (CompiledClass *)(*i);
-            if (ptr->HasDestructor())
-                ptr->Destroy((PIFAlizator *)PIF);
+        for (khint_t k = kh_begin(BASE); k != kh_end(BASE); ++k) {
+            if (kh_exist(BASE, k)) {
+                CompiledClass *ptr = (struct CompiledClass *)(uintptr_t)kh_key(BASE, k);
+                if (CompiledClass_HasDestructor(ptr))
+                    CompiledClass_Destroy(ptr, (PIFAlizator *)PIF);
+            }
         }
     }
 #else
@@ -27,10 +28,10 @@ void GarbageCollector::Call_All_Destructors(void *PIF) {
 
     while (NODE) {
         NODE2 = NODE->NEXT;
-        CompiledClass *ptr = (CompiledClass *)NODE->DATA;
+        CompiledClass *ptr = (struct CompiledClass *)NODE->DATA;
 
-        if (ptr->HasDestructor()) {
-            ptr->Destroy();
+        if (CompiledClass_HasDestructor(ptr)) {
+            CompiledClass_Destroy(PIF);
         }
 
         NODE = NODE2;
@@ -39,24 +40,24 @@ void GarbageCollector::Call_All_Destructors(void *PIF) {
 }
 
 void GarbageCollector::EndOfExecution_SayBye_Objects() {
-#ifdef USE_MAP_GC
+#ifdef USE_HASHTABLE_GC
     if (BASE) {
-        std::set<void *> *BASE2 = BASE;
+        khash_t (int64hashtable) *BASE2 = BASE;
         BASE = 0;
-        std::set<void *>::iterator end = BASE2->end();
-        for (std::set<void *>::iterator i = BASE2->begin(); i != end; ++i) {
-            CompiledClass *ptr = (CompiledClass *)(*i);
-            if (ptr) {
-                ptr->LINKS = -1;
-                if (ptr->_CONTEXT) {
-                    FAST_FREE(ptr->_CONTEXT);
-                    ptr->_CONTEXT = NULL;
+        for (khint_t k = kh_begin(BASE2); k != kh_end(BASE2); ++k) {
+            if (kh_exist(BASE2, k)) {
+                CompiledClass *ptr = (struct CompiledClass *)(uintptr_t)kh_key(BASE2, k);
+                if (ptr) {
+                    ptr->LINKS = -1;
+                    if (ptr->_CONTEXT) {
+                        FAST_FREE(ptr->_CONTEXT);
+                        ptr->_CONTEXT = NULL;
+                    }
+                    delete_CompiledClass(ptr);
                 }
-                delete ptr;
             }
         }
-        BASE2->clear();
-        delete BASE2;
+        kh_destroy(int64hashtable, BASE2);
     }
 #else
     GarbageElement *NODE  = BASE;
@@ -66,7 +67,7 @@ void GarbageCollector::EndOfExecution_SayBye_Objects() {
     BASE = 0;
     while (NODE) {
         NODE2 = NODE->NEXT;
-        CompiledClass *ptr = (CompiledClass *)NODE->DATA;
+        CompiledClass *ptr = (struct CompiledClass *)NODE->DATA;
         free(NODE);
         NODE = NODE2;
 
@@ -75,26 +76,26 @@ void GarbageCollector::EndOfExecution_SayBye_Objects() {
             FAST_FREE(ptr->_CONTEXT);
             ptr->_CONTEXT = NULL;
         }
-        delete ptr;
+        delete_CompiledClass(ptr);
     }
 #endif
 }
 
 void GarbageCollector::EndOfExecution_SayBye_Arrays() {
-#ifdef USE_MAP_GC
+#ifdef USE_HASHTABLE_GC
     if (BASE) {
-        std::set<void *> *BASE2 = BASE;
+        khash_t (int64hashtable) *BASE2 = BASE;
         BASE = 0;
-        std::set<void *>::iterator end = BASE2->end();
-        for (std::set<void *>::iterator i = BASE2->begin(); i != end; ++i) {
-            Array *ptr = (Array *)(*i);
-            if (ptr) {
-                ptr->LINKS = -1;
-                delete ptr;
+        for (khint_t k = kh_begin(BASE2); k != kh_end(BASE2); ++k) {
+            if (kh_exist(BASE2, k)) {
+                Array *ptr = (Array *)(uintptr_t)kh_key(BASE2, k);
+                if (ptr) {
+                    ptr->LINKS = -1;
+                    delete ptr;
+                }
             }
         }
-        BASE2->clear();
-        delete BASE2;
+        kh_destroy(int64hashtable, BASE2);
     }
 #else
     GarbageElement *NODE  = BASE;
@@ -115,22 +116,23 @@ void GarbageCollector::EndOfExecution_SayBye_Arrays() {
 }
 
 void GarbageCollector::EndOfExecution_SayBye_Variables() {
-#ifdef USE_MAP_GC
+#ifdef USE_HASHTABLE_GC
     if (BASE) {
-        std::set<void *> *BASE2 = BASE;
+        khash_t (int64hashtable) *BASE2 = BASE;
         BASE = 0;
-
-        std::set<void *>::iterator end = BASE2->end();
-        for (std::set<void *>::iterator i = BASE2->begin(); i != end; ++i) {
-            VariableDATA *ptr = (VariableDATA *)(*i);
-            if (ptr) {
-                if ((ptr->CLASS_DATA) && (ptr->TYPE == VARIABLE_STRING))
-                    delete (AnsiString *)ptr->CLASS_DATA;
-                VAR_FREE(ptr);
+        for (khint_t k = kh_begin(BASE2); k != kh_end(BASE2); ++k) {
+            if (kh_exist(BASE2, k)) {
+                VariableDATA *ptr = (VariableDATA *)(uintptr_t)kh_key(BASE2, k);
+                if (ptr) {
+                    if ((ptr->CLASS_DATA) && (ptr->TYPE == VARIABLE_STRING)) {
+                        plainstring_delete((struct plainstring *)ptr->CLASS_DATA);
+                        ptr->CLASS_DATA = NULL;
+                    }
+                    VAR_FREE(ptr);
+                }
             }
         }
-        BASE2->clear();
-        delete BASE2;
+        kh_destroy(int64hashtable, BASE2);
     }
 #else
     GarbageElement *NODE  = BASE;
@@ -149,10 +151,9 @@ void GarbageCollector::EndOfExecution_SayBye_Variables() {
 }
 
 GarbageCollector::~GarbageCollector() {
-#ifdef USE_MAP_GC
+#ifdef USE_HASHTABLE_GC
     if (BASE) {
-        BASE->clear();
-        delete BASE;
+        kh_destroy(int64hashtable, BASE);
         BASE = 0;
     }
 #else

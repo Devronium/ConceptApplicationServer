@@ -72,7 +72,18 @@ void PIFAlizator::AcknoledgeRunTimeError(SCStack *STACK_TRACE, AnsiException *Ex
         cstack     += "\n";
         STACK_TRACE = (SCStack *)STACK_TRACE->PREV;
     }
-    out->ClientError(Exc->ToString() + cstack);
+    int buf_size = 8192;
+    char *buf = (char *)malloc(buf_size + cstack.Length() + 1);
+    if (buf) {
+        Exc->ToString(buf, &buf_size);
+        if (buf_size > 0)
+            buf_size++;
+        else
+            buf_size = 0;
+        memcpy(buf + buf_size, cstack.c_str(), cstack.Length());
+        out->ClientError(buf);
+        free(buf);
+    }
     Errors.Add(Exc, DATA_EXCEPTION);
     INTERNAL_UNLOCK(this)
 }
@@ -152,6 +163,7 @@ PIFAlizator::PIFAlizator(AnsiString INC_DIR, AnsiString LIB_DIR, AnsiString *S, 
     this->direct_pipe       = 0;
     this->StaticClassList   = 0;
     this->enable_private    = 0;
+    this->Helper            = 0;
     // important for built-in constants
     this->basic_constants_count = 0;
 
@@ -310,6 +322,11 @@ void PIFAlizator::Clear() {
 }
 
 PIFAlizator::~PIFAlizator(void) {
+    if (Helper) {
+        delete (OptimizerHelper *)Helper;
+        Helper = NULL;
+    }
+
     for (int i = 0; i < PDATA_ITEMS; i++) {
         if (PDATA[i].destroy_func)
             PDATA[i].destroy_func(PDATA[i].data, this);
@@ -612,7 +629,7 @@ INTEGER PIFAlizator::BuildVariable(ClassCode *CC, AnsiParser *P, INTEGER on_line
         return 0;
     }
 
-    int  ref_id    = GeneralMembers->ContainsString(sPARSE.c_str(), sPARSE.Length());
+    int  ref_id    = GeneralMembers->ContainsString(sPARSE.c_str());
     char *ref_name = 0;
     if (!ref_id) {
         AddGeneralMember(sPARSE);
@@ -767,7 +784,7 @@ INTEGER PIFAlizator::BuildFunction(ClassCode *CC, AnsiParser *P, INTEGER on_line
         sPARSE  += AnsiString((long)OPERATOR);
         OPERATOR = 0;
 
-        ref_id = GeneralMembers->ContainsString(sPARSE.c_str(), sPARSE.Length());
+        ref_id = GeneralMembers->ContainsString(sPARSE.c_str());
         if (!ref_id) {
             AddGeneralMember(sPARSE);
             ref_id = GeneralMembers->Count();
@@ -785,7 +802,7 @@ INTEGER PIFAlizator::BuildFunction(ClassCode *CC, AnsiParser *P, INTEGER on_line
             P->NextAtom(sPARSE);
         }
 
-        ref_id = GeneralMembers->ContainsString(sPARSE.c_str(), sPARSE.Length());
+        ref_id = GeneralMembers->ContainsString(sPARSE.c_str());
         if (!ref_id) {
             if (OPERATOR) {
                 Errors.Add(new AnsiException(ERR320, on_line ? on_line : P->LastLine(), 320, sPARSE, FileName, CC->NAME, sPARSE), DATA_EXCEPTION);
@@ -821,7 +838,7 @@ INTEGER PIFAlizator::BuildFunction(ClassCode *CC, AnsiParser *P, INTEGER on_line
             sPARSE += "@";
             sPARSE += C_FINALIZE;
 
-            ref_id   = GeneralMembers->ContainsString(sPARSE.c_str(), sPARSE.Length());
+            ref_id   = GeneralMembers->ContainsString(sPARSE.c_str());
             ref_name = 0;
             if (!ref_id) {
                 AddGeneralMember(sPARSE);
@@ -1610,7 +1627,7 @@ INTEGER PIFAlizator::BuildFunction(ClassCode *CC, AnsiParser *P, INTEGER on_line
                 if ((AE) && (AE->TYPE == TYPE_CLASS) && (AE->ID > 0)) {
                     ClassCode *CC_temp = (ClassCode *)ClassList->Item(AE->ID - 1);
                     if (CC_temp) {
-                        AnsiString temp_mname = CC_temp->NAME;
+                        AnsiString temp_mname(CC_temp->NAME.c_str());
                         temp_mname += "@";
                         temp_mname += sPARSE;
                         _ID         = CC->HasMember(temp_mname);
@@ -1641,7 +1658,7 @@ INTEGER PIFAlizator::BuildFunction(ClassCode *CC, AnsiParser *P, INTEGER on_line
                 }
             }
             //-----------------------------------------------------------//
-            _ID = GeneralMembers->ContainsString(sPARSE.c_str(), sPARSE.Length());
+            _ID = GeneralMembers->ContainsString(sPARSE.c_str());
             if (!_ID) {
                 if (PREC_ID == KEY_DLL_CALL) {
                     INTEGER cnt = PIFList->Count();
@@ -1677,7 +1694,7 @@ INTEGER PIFAlizator::BuildFunction(ClassCode *CC, AnsiParser *P, INTEGER on_line
                                     sPARSE += "@";
                                     sPARSE += C_FINALIZE;
                                 }
-                                _ID = GeneralMembers->ContainsString(sPARSE.c_str(), sPARSE.Length());
+                                _ID = GeneralMembers->ContainsString(sPARSE.c_str());
                             }
                         }
                     }
@@ -1722,12 +1739,12 @@ INTEGER PIFAlizator::BuildFunction(ClassCode *CC, AnsiParser *P, INTEGER on_line
                     if ((cached == ".") || (cached == "->") || (cached == "::")) {
                         _ID = 0;
                     } else {
-                        _ID = GeneralMembers->ContainsString(sPARSE.c_str(), sPARSE.Length());
+                        _ID = GeneralMembers->ContainsString(sPARSE.c_str());
                     }
                 } else {
                     P->NextAtom(cached);
                     if (cached != "::") {
-                        _ID = GeneralMembers->ContainsString(sPARSE.c_str(), sPARSE.Length());
+                        _ID = GeneralMembers->ContainsString(sPARSE.c_str());
                     }
                 }
 
@@ -1769,7 +1786,7 @@ INTEGER PIFAlizator::BuildFunction(ClassCode *CC, AnsiParser *P, INTEGER on_line
 
                 if ((cached == ".") || (cached == "->") || (cached == "::")) {
                 } else {
-                    _ID = GeneralMembers->ContainsString(sPARSE.c_str(), sPARSE.Length());
+                    _ID = GeneralMembers->ContainsString(sPARSE.c_str());
 
                     if (_ID) {
                         if (STATIC) {
@@ -1962,7 +1979,7 @@ INTEGER PIFAlizator::BuildProperty(ClassCode *CC, AnsiParser *P, INTEGER on_line
 
     P->NextAtom(sPARSE);
 
-    int  ref_id    = GeneralMembers->ContainsString(sPARSE.c_str(), sPARSE.Length());
+    int  ref_id    = GeneralMembers->ContainsString(sPARSE.c_str());
     char *ref_name = 0;
     if (!ref_id) {
         AddGeneralMember(sPARSE);
@@ -2032,7 +2049,7 @@ INTEGER PIFAlizator::BuildProperty(ClassCode *CC, AnsiParser *P, INTEGER on_line
             Errors.Add(new AnsiException(ERR010, on_line ? on_line : P->LastLine(), 010, sPARSE, FileName, CC->NAME, CM->NAME), DATA_EXCEPTION);
         }
 
-        INTEGER POSITION = GeneralMembers->ContainsString(sPARSE.c_str(), sPARSE.Length());
+        INTEGER POSITION = GeneralMembers->ContainsString(sPARSE.c_str());
         if (!POSITION) {
             AddUndefinedMember(sPARSE, CC->NAME, CM->NAME, on_line ? on_line : P->LastLine());
             POSITION = GeneralMembers->Count();
@@ -2070,7 +2087,7 @@ INTEGER PIFAlizator::BuildEvent(ClassCode *CC, AnsiParser *P, INTEGER on_line, I
 
     P->NextAtom(sPARSE);
 
-    int  ref_id    = GeneralMembers->ContainsString(sPARSE.c_str(), sPARSE.Length());
+    int  ref_id    = GeneralMembers->ContainsString(sPARSE.c_str());
     char *ref_name = 0;
     if (!ref_id) {
         AddGeneralMember(sPARSE);
@@ -2107,7 +2124,7 @@ INTEGER PIFAlizator::BuildEvent(ClassCode *CC, AnsiParser *P, INTEGER on_line, I
         Errors.Add(new AnsiException(ERR010, on_line ? on_line : P->LastLine(), 010, sPARSE, FileName, CC->NAME, CM->NAME), DATA_EXCEPTION);
     }
 
-    INTEGER POSITION = GeneralMembers->ContainsString(sPARSE.c_str(), sPARSE.Length());
+    INTEGER POSITION = GeneralMembers->ContainsString(sPARSE.c_str());
     if (!POSITION) {
         AddGeneralMember(sPARSE);
         POSITION = GeneralMembers->Count();
@@ -2710,17 +2727,8 @@ INTEGER PIFAlizator::Execute(AnsiString *Stream, INTEGER on_line, char _USE_WARN
         if ((TYPE == TYPE_KEYWORD) && (_ID == KEY_IMPORT)) {
             sPARSE = Strip2(P.GetConstant());
             sPARSE = this->NormalizePath(&sPARSE);
-            int  li_len           = ModuleNamesList.Count();
-            bool already_imported = false;
-            for (int il = 0; il < li_len; il++) {
-                AnsiString *mod = (AnsiString *)ModuleNamesList.Item(il);
-                if ((mod) && (*mod == sPARSE)) {
-                    already_imported = true;
-                    break;
-                }
-            }
-            if (!already_imported) {
-                ModuleNamesList.Add(new AnsiString(sPARSE), DATA_STRING);
+            if (!ModuleNamesList.ContainsString(sPARSE.c_str())) {
+                ModuleNamesList.Add(sPARSE.c_str(), sPARSE.Length());
                 AnsiString tmp(IMPORT_DIR);
                 tmp += sPARSE;
                 if (!ImportModule(tmp, &Errors, on_line ? on_line : P.LastLine(), FileName, ModuleList, this, 1))
@@ -2824,8 +2832,8 @@ int PIFAlizator::Serialize(char *filename, bool is_lib) {
         INTEGER module_list = this->ModuleNamesList.Count();
         concept_fwrite_int(&module_list, sizeof(module_list), 1, out);
         for (INTEGER i = 0; i < module_list; i++) {
-            AnsiString *member_name = (AnsiString *)ModuleNamesList [i];
-            member_name->Serialize(out, SERIALIZE_16BIT_LENGTH);
+            AnsiString member_name(ModuleNamesList [i]);
+            member_name.Serialize(out, SERIALIZE_16BIT_LENGTH);
         }
 
         if (is_lib) {
@@ -3024,18 +3032,16 @@ int PIFAlizator::Unserialize(char *filename, bool is_lib) {
             return -3;
         }
         for (INTEGER i = 0; i < module_list; i++) {
-            AnsiString *member_name = new AnsiString();
-            member_name->Unserialize(in, SERIALIZE_16BIT_LENGTH);
-            if ((is_lib) && (ListContains(*member_name, &ModuleNamesList))) {
-                delete member_name;
+            AnsiString member_name;
+            member_name.Unserialize(in, SERIALIZE_16BIT_LENGTH);
+            if ((is_lib) && (ModuleNamesList.ContainsString(member_name.c_str())))
                 continue;
-            }
-            ModuleNamesList.Add(member_name, DATA_STRING);
+            ModuleNamesList.Add(member_name.c_str(), member_name.Length());
 
             AnsiString tmp(IMPORT_DIR);
-            tmp += *member_name;
+            tmp += member_name;
             if (!ImportModule(tmp, &Errors, 0, "", ModuleList, this, 1))
-                ImportModule(*member_name, &Errors, 0, "", ModuleList, this);
+                ImportModule(member_name, &Errors, 0, "", ModuleList, this);
         }
 
         if (is_lib) {
@@ -3103,7 +3109,7 @@ int PIFAlizator::Unserialize(char *filename, bool is_lib) {
             AnsiString member_name;
             for (INTEGER i = 0; i < general_members; i++) {
                 member_name.Unserialize(in, SERIALIZE_16BIT_LENGTH);
-                int reloc = GeneralMembers->ContainsString(member_name.c_str(), member_name.Length());
+                int reloc = GeneralMembers->ContainsString(member_name.c_str());
                 if (!reloc) {
                     AddGeneralMember(member_name);
                     reloc = GeneralMembers->Count();
@@ -3187,48 +3193,23 @@ void PIFAlizator::OptimizeMember(ClassMember *CM) {
 
     ClassCode *CC = (ClassCode *)CM->Defined_In;
 
-    ClassCode *_CLASS           =   Optimizer::_CLASS;
-    const char*_MEMBER          =   Optimizer::_MEMBER;
-    INTEGER   LAST_DEBUG_TRAP   =   Optimizer::LAST_DEBUG_TRAP;
-    DoubleList *PIFList         =   Optimizer::PIFList;
-    DoubleList *VDList          =   Optimizer::VDList;
-    INTEGER    PIF_POSITION     =   Optimizer::PIF_POSITION;
-    const char *_DEBUG_INFO_FILENAME    =   Optimizer::_DEBUG_INFO_FILENAME;
-    char NO_WARNING_EMPTY       =   Optimizer::NO_WARNING_EMPTY;
-    char NO_WARNING_ATTR        =   Optimizer::NO_WARNING_ATTR;
-    AnsiList *OptimizedPIF      =   Optimizer::OptimizedPIF;
-    AnsiList *ParameterList     =   Optimizer::ParameterList;
-    AnsiList *CONTINUE_Elements =   Optimizer::CONTINUE_Elements;
-    AnsiList *BREAK_Elements    =   Optimizer::BREAK_Elements;
-    char _clean_condition       =   Optimizer::_clean_condition;
-    INTEGER CATCH_ELEMENT       =   Optimizer::CATCH_ELEMENT;
-
+    void *old_helper = this->Helper;
+    this->Helper = NULL;
 
     CM->OPTIMIZER = new Optimizer(this, CM->CDATA->PIF_DATA, CM->CDATA->VariableDescriptors, CC->_DEBUG_INFO_FILENAME.c_str(), CC, CM->NAME);
-    Optimizer::ParameterList = new AnsiList();
-    Optimizer::OptimizedPIF = new AnsiList();
 
-    ((Optimizer *)CM->OPTIMIZER)->Optimize();
-    ((Optimizer *)CM->OPTIMIZER)->GenerateIntermediateCode();
+    OptimizerHelper *helper = Optimizer::GetHelper(this);
+    helper->ParameterList = new AnsiList();
+    helper->OptimizedPIF = new AnsiList();
 
-    delete Optimizer::ParameterList;
-    delete Optimizer::OptimizedPIF;
+    ((Optimizer *)CM->OPTIMIZER)->Optimize(this);
+    ((Optimizer *)CM->OPTIMIZER)->GenerateIntermediateCode(this);
 
-    Optimizer::_CLASS           =   _CLASS;
-    Optimizer::_MEMBER          =   _MEMBER;
-    Optimizer::LAST_DEBUG_TRAP  =   LAST_DEBUG_TRAP;
-    Optimizer::PIFList          =   PIFList;
-    Optimizer::VDList           =   VDList;
-    Optimizer::PIF_POSITION     =   PIF_POSITION;
-    Optimizer::_DEBUG_INFO_FILENAME =   _DEBUG_INFO_FILENAME;
-    Optimizer::NO_WARNING_EMPTY =   NO_WARNING_EMPTY;
-    Optimizer::NO_WARNING_ATTR  =   NO_WARNING_ATTR;
-    Optimizer::OptimizedPIF     =   OptimizedPIF;
-    Optimizer::ParameterList    =   ParameterList;
-    Optimizer::CONTINUE_Elements=   CONTINUE_Elements;
-    Optimizer::BREAK_Elements   =   BREAK_Elements;
-    Optimizer::_clean_condition =   _clean_condition;
-    Optimizer::CATCH_ELEMENT    =   CATCH_ELEMENT;
+    delete helper->ParameterList;
+    delete helper->OptimizedPIF;
+    delete helper;
+
+    this->Helper = old_helper;
 }
 
 void PIFAlizator::Optimize(int start, char use_compiled_code, char use_lock) {
@@ -3258,17 +3239,18 @@ void PIFAlizator::Optimize(int start, char use_compiled_code, char use_lock) {
                 INTEGER LOCAL_CLASSID = ((ClassCode *)CM->Defined_In)->CLSID;
                 if ((CM->IS_FUNCTION == 1) && (CM->Defined_In == CC) && (!CM->OPTIMIZER)) {
                     CM->OPTIMIZER = new Optimizer(this, CM->CDATA->PIF_DATA, CM->CDATA->VariableDescriptors, ((ClassCode *)(CM->Defined_In))->_DEBUG_INFO_FILENAME.c_str(), CC, CM->NAME);
-                    Optimizer::ParameterList = new AnsiList();
-                    Optimizer::OptimizedPIF = new AnsiList();
+                    OptimizerHelper *helper = Optimizer::GetHelper(this);
+                    helper->ParameterList = new AnsiList();
+                    helper->OptimizedPIF = new AnsiList();
 
-                    ((Optimizer *)CM->OPTIMIZER)->Optimize();
-                    ((Optimizer *)CM->OPTIMIZER)->GenerateIntermediateCode();
+                    ((Optimizer *)CM->OPTIMIZER)->Optimize(this);
+                    ((Optimizer *)CM->OPTIMIZER)->GenerateIntermediateCode(this);
 
-                    delete Optimizer::ParameterList;
-                    Optimizer::ParameterList = NULL;
+                    delete helper->ParameterList;
+                    helper->ParameterList = NULL;
 
-                    delete Optimizer::OptimizedPIF;
-                    Optimizer::OptimizedPIF = NULL;
+                    delete helper->OptimizedPIF;
+                    helper->OptimizedPIF = NULL;
                 }
             }
             if (use_lock)
@@ -3301,6 +3283,7 @@ void *PIFAlizator::GetStartingPoint() {
     return CC;
 }
 
+#ifdef PRINT_DEBUG_INFO
 AnsiString PIFAlizator::DEBUG_INFO() {
     AnsiString res;
 
@@ -3348,6 +3331,7 @@ AnsiString PIFAlizator::DEBUG_INFO() {
     res += PRINT_ERRORS();
     return res;
 }
+#endif
 
 AnsiString PIFAlizator::SerializeWarningsErrors(int ser_warnings) {
     AnsiString result;

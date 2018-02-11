@@ -242,11 +242,11 @@ typedef struct tsVariableDATA {
 } VariableDATA;
 
 typedef struct tsUndefinedMember {
-    AnsiString     name;
+    TinyString     name;
     unsigned short line;
-    AnsiString     filename;
+    TinyString     filename;
     TinyString     _CLASS;
-    AnsiString     _MEMBER;
+    TinyString     _MEMBER;
 
     POOLED(tsUndefinedMember);
 } UndefinedMember;
@@ -361,23 +361,6 @@ struct GreenThreadCycle {
     // interpreter next
     void                 *NEXT;
 };
-
-#define FREAD_FAIL(buffer, size, elems, fin)        \
-    if (!concept_fread(buffer, size, elems, fin)) { \
-        concept_fclose(in);                         \
-        return 0;                                   \
-    }
-
-#ifdef __BIG_ENDIAN__
-    if (!concept_fread_int(buffer, size, elems, fin)) { \
-        concept_fclose(in);                             \
-        return 0;                                       \
-    }
-#else
-    #define FREAD_INT_FAIL  FREAD_FAIL
-#endif
-
-#define SKIP(bytes, fin)    concept_fseek(fin, bytes, SEEK_CUR);
 
 #define SERIALIZE_PARAM_LIST(Param, out)                                   \
     concept_fwrite_int(&Param->COUNT, sizeof(short), 1, out);              \
@@ -613,7 +596,7 @@ struct GreenThreadCycle {
     concept_fread_int(&OE->Result_ID, sizeof(OE->Result_ID), 1, out);
 
 typedef void (*ForeignPrint)(char *str, int length, void *userdata);
-typedef void (*ForeignNotify)(void *PIF, char *str, int length, void *userdata);
+typedef void (*ForeignNotify)(void *PIF, const char *str, int length, void *userdata);
 
 
 class SimpleStream {

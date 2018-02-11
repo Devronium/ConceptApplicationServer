@@ -1,0 +1,114 @@
+class Main {
+	ReplaceCharTest() {
+		var str = "123";
+		str[1] = "two";
+		if (str != "1two3")
+			return true;
+		str[5] = "x";
+		if (str != "1two3")
+			return true;
+	}
+
+	Compare() {
+		var e = ("1" < "2");
+		if (!e)
+			return true;
+
+		e = ("123" < "2");
+		if (!e)
+			return true;
+
+		e = ("1" <= "2");
+		if (!e)
+			return true;
+
+		e = ("123" <= "1");
+		if (e)
+			return true;
+
+		e = ("123" <= 1);
+		if (e)
+			return true;
+
+		e = (123 <= "1");
+		if (e)
+			return true;
+
+		e = (123 >= "1");
+		if (!e)
+			return true;
+
+		e = ("123" >= 1);
+		if (!e)
+			return true;
+
+		e = ("123" == 123);
+		if (!e)
+			return true;
+
+		e = ("123" != 123);
+		if (e)
+			return true;
+
+		e = ("123" != 123.5);
+		if (!e)
+			return true;
+
+		e = (123 == "123.5");
+		if (e)
+			return true;
+
+		if (value "123.5" != 123.5)
+			return true;
+
+		if (value "123.5" != "" + 123.5)
+			return true;
+	}
+
+	Inc() {
+		var str = "123";
+		var old = str++;
+		if (str != "23")
+			return true;
+		if (old != "123")
+			return true;
+		old = ++str;
+		if (str != "3")
+			return true;
+		if (old != str)
+			return true;
+	}
+
+	Null() {
+		var str = "1\x002";
+		var str2 = str[0] + str[1];
+		if (str2 == "1")
+			return true;
+		if (str2 != "1\x00")
+			return true;
+		if (length str2 != 2)
+			return true;
+		str++;
+		if (length str != 2)
+			return true;
+		if (length str[0] != 1)
+			return true;
+		if (str[10] != "")
+			return true;
+	}
+
+	Test(callback) {
+		if (callback()) {
+			echo callback;
+			echo " failed\n";
+		}
+	}
+
+
+	Main() {
+		Test(ReplaceCharTest);
+		Test(Compare);
+		Test(Inc);
+		Test(Null);
+	}
+}

@@ -4,25 +4,27 @@
 
 POOLED_IMPLEMENTATION(CompiledClass)
 
-CompiledClass::CompiledClass(ClassCode *CC) {
-    _Class   = CC;
-    _CONTEXT = 0;
-    LINKS    = 1;
+struct CompiledClass *new_CompiledClass(void *PIF, const ClassCode *CC) {
+    CompiledClass *self = (struct CompiledClass *)AllocClassObject(PIF);
+    self->_Class   = CC;
+    self->_CONTEXT = 0;
+    self->LINKS    = 1;
     //---------------------------------
-    INTEGER Count = _Class->DataMembersCount;
+    INTEGER Count = self->_Class->DataMembersCount;
     if (Count) {
-        _CONTEXT = (VariableDATA **)FAST_MALLOC(sizeof(VariableDATA *) * Count);
+        self->_CONTEXT = (VariableDATA **)FAST_MALLOC(sizeof(VariableDATA *) * Count);
         for (register INTEGER i = 0; i < Count; i++)
-            _CONTEXT[i] = 0;
+            self->_CONTEXT[i] = 0;
     }
+    return self;
 }
 
-VariableDATA *CompiledClass::CreateVariable(INTEGER reloc, ClassMember *CM, VariableDATA *CONTAINER) {
-    VariableDATA *_CONTEXT_i = _CONTEXT[reloc];
+VariableDATA *CompiledClass_CreateVariable(struct CompiledClass *self, INTEGER reloc, ClassMember *CM, VariableDATA *CONTAINER) {
+    VariableDATA *_CONTEXT_i = self->_CONTEXT[reloc];
 
     if (!_CONTEXT_i) {
         if ((CM) && (!CM->IS_FUNCTION)) {
-            PIFAlizator *PIF = GET_PIF(this);
+            PIFAlizator *PIF = GET_PIF(self);
             if (CONTAINER) {
                 _CONTEXT_i = CONTAINER;
                 CLASS_CHECK(CONTAINER);
@@ -33,14 +35,13 @@ VariableDATA *CompiledClass::CreateVariable(INTEGER reloc, ClassMember *CM, Vari
                 _CONTEXT_i->TYPE  = VARIABLE_NUMBER;
                 _CONTEXT_i->LINKS = 1;
             }
-            _CONTEXT[reloc] = _CONTEXT_i;
+            self->_CONTEXT[reloc] = _CONTEXT_i;
             if (CM->VD) {
                 if (CM->VD->TYPE == VARIABLE_ARRAY) {
                     _CONTEXT_i->CLASS_DATA = new(AllocArray(PIF))Array(PIF);
                 } else
                 if (CM->VD->TYPE == VARIABLE_STRING) {
-                    _CONTEXT_i->CLASS_DATA     = NULL;
-                    CONCEPT_STRING(_CONTEXT_i) = CM->VD->value;
+                    NEW_CONCEPT_STRING_BUFFER(_CONTEXT_i, CM->VD->value.c_str(), CM->VD->value.Length());
                 } else
                     _CONTEXT_i->NUMBER_DATA = CM->VD->nValue;
 
@@ -57,23 +58,23 @@ VariableDATA *CompiledClass::CreateVariable(INTEGER reloc, ClassMember *CM, Vari
     return _CONTEXT_i;
 }
 
-AnsiString CompiledClass::GetClassName() {
-    if (_Class) {
-        return _Class->NAME;
+const char *CompiledClass_GetClassName(const struct CompiledClass *self) {
+    if (self->_Class) {
+        return self->_Class->NAME.c_str();
     }
     return NULL_STRING;
 }
 
-void CompiledClass::__GO_GARBAGE(void *PIF, GarbageCollector *__gc_obj, GarbageCollector *__gc_array, GarbageCollector *__gc_vars, signed char check_objects) {
-    if (this->LINKS < 0)
+void CompiledClass__GO_GARBAGE(struct CompiledClass *self, void *PIF, GarbageCollector *__gc_obj, GarbageCollector *__gc_array, GarbageCollector *__gc_vars, signed char check_objects) {
+    if (self->LINKS < 0)
         return;
 
     // ensure is not deleted
-    this->LINKS++;
-    if (_Class->DESTRUCTOR)
-        Destroy((PIFAlizator *)PIF);
+    self->LINKS++;
+    if (self->_Class->DESTRUCTOR)
+        CompiledClass_Destroy(self, (PIFAlizator *)PIF);
 
-    if (!this->_CONTEXT)
+    if (!self->_CONTEXT)
         return;
 #ifdef USE_RECURSIVE_MARKINGS
     VariableDATA **r_CONTEXT = this->_CONTEXT;
@@ -91,7 +92,7 @@ void CompiledClass::__GO_GARBAGE(void *PIF, GarbageCollector *__gc_obj, GarbageC
                 if ((r_CONTEXT [i]->TYPE == VARIABLE_CLASS) || (r_CONTEXT [i]->TYPE == VARIABLE_DELEGATE)) {
                     if (orig_data != this) {
                         __gc_obj->Reference(orig_data);
-                        ((CompiledClass *)orig_data)->__GO_GARBAGE(PIF, __gc_obj, __gc_array, __gc_vars);
+                        ((struct CompiledClass *)orig_data)->__GO_GARBAGE(PIF, __gc_obj, __gc_array, __gc_vars);
                     }
                     orig_data = 0;
                 } else
@@ -107,8 +108,8 @@ void CompiledClass::__GO_GARBAGE(void *PIF, GarbageCollector *__gc_obj, GarbageC
     this->LINKS = -1;
 #else
     int           inspectSize = INITIAL_INSPECT_SIZE;
-    CompiledClass **toInspect = (CompiledClass **)realloc(NULL, sizeof(CompiledClass *) * inspectSize);
-    toInspect[0] = this;
+    CompiledClass **toInspect = (CompiledClass **)realloc(NULL, sizeof(struct CompiledClass *) * inspectSize);
+    toInspect[0] = self;
     int inspectPos = 1;
 
     for (int j = 0; j < inspectPos; j++) {
@@ -118,12 +119,12 @@ void CompiledClass::__GO_GARBAGE(void *PIF, GarbageCollector *__gc_obj, GarbageC
 
         CC->LINKS++;
         if (CC->_Class->DESTRUCTOR)
-            CC->Destroy((PIFAlizator *)PIF);
+            CompiledClass_Destroy(CC, (PIFAlizator *)PIF);
 
         CC->LINKS = -1;
 
         if (CC->_CONTEXT) {
-            ClassCode *base = CC->_Class;
+            const ClassCode *base = CC->_Class;
             for (int i = 0; i < base->DataMembersCount; i++) {
                 VariableDATA *Var = CC->_CONTEXT[i];
                 if (Var) {
@@ -138,7 +139,7 @@ void CompiledClass::__GO_GARBAGE(void *PIF, GarbageCollector *__gc_obj, GarbageC
                     }
                     if (Var->CLASS_DATA) {
                         if ((Var->TYPE == VARIABLE_CLASS) || (Var->TYPE == VARIABLE_DELEGATE)) {
-                            CompiledClass *CC2 = (CompiledClass *)Var->CLASS_DATA;
+                            CompiledClass *CC2 = (struct CompiledClass *)Var->CLASS_DATA;
                             if (CC2->LINKS >= 0) {
                                 if ((check_objects == -1) || ((CC2->reachable & check_objects) != check_objects)) {
                                     if (check_objects != -1)
@@ -149,7 +150,7 @@ void CompiledClass::__GO_GARBAGE(void *PIF, GarbageCollector *__gc_obj, GarbageC
                                             toInspect[inspectPos++] = CC2;
                                         else {
                                             inspectSize            += INSPECT_INCREMENT;
-                                            toInspect               = (CompiledClass **)realloc(toInspect, sizeof(CompiledClass *) * inspectSize);
+                                            toInspect               = (CompiledClass **)realloc(toInspect, sizeof(struct CompiledClass *) * inspectSize);
                                             toInspect[inspectPos++] = CC2;
                                         }
                                     }
@@ -175,37 +176,30 @@ void CompiledClass::__GO_GARBAGE(void *PIF, GarbageCollector *__gc_obj, GarbageC
             }
         }
     }
-    // for (int j = 0; j < inspectPos; j++) {
-    //     CompiledClass *CC = toInspect[j];
-    //     if ((CC) && (CC->_CONTEXT)) {
-    //         FAST_FREE(CC->_CONTEXT);
-    //         CC->_CONTEXT = NULL;
-    //     }
-    // }
     free(toInspect);
 #endif
 }
 
-ClassCode *CompiledClass::GetClass() {
-    return _Class;
+const ClassCode *CompiledClass_GetClass(const struct CompiledClass *self) {
+    return self->_Class;
 }
 
-VariableDATA **CompiledClass::GetContext() {
-    return _CONTEXT;
+VariableDATA **CompiledClass_GetContext(const struct CompiledClass *self) {
+    return self->_CONTEXT;
 }
 
-int CompiledClass::Destroy(PIFAlizator *PIF) {
+int CompiledClass_Destroy(struct CompiledClass *self, PIFAlizator *PIF) {
     VariableDATA *OWNER = (VariableDATA *)VAR_ALLOC(PIF);
 
     OWNER->TYPE       = VARIABLE_CLASS;
     OWNER->LINKS      = 1;
-    OWNER->CLASS_DATA = this;
+    OWNER->CLASS_DATA = self;
     OWNER->IS_PROPERTY_RESULT = 0;
-    this->LINKS++;
+    self->LINKS++;
     VariableDATA *THROW_DATA = 0;
 
-    STACK(0, _Class->DESTRUCTOR_MEMBER->_DEBUG_STARTLINE)
-    VariableDATA * RESULT = _Class->DESTRUCTOR_MEMBER->Execute(PIF, this->_Class->CLSID, OWNER, 0, _CONTEXT, THROW_DATA, NULL);
+    STACK(0, self->_Class->DESTRUCTOR_MEMBER->_DEBUG_STARTLINE)
+    VariableDATA * RESULT = self->_Class->DESTRUCTOR_MEMBER->Execute(PIF, self->_Class->CLSID, OWNER, 0, self->_CONTEXT, THROW_DATA, NULL);
     UNSTACK;
     if (RESULT) {
         FREE_VARIABLE(RESULT);
@@ -218,35 +212,35 @@ int CompiledClass::Destroy(PIFAlizator *PIF) {
 
     if (THROW_DATA) {
         FREE_VARIABLE(THROW_DATA);
-        AnsiException *Exc = new AnsiException(ERR635, 0, 635, 0, _Class->_DEBUG_INFO_FILENAME, _Class->NAME, _Class->DESTRUCTOR_MEMBER->NAME);
-         PIF->AcknoledgeRunTimeError(NULL, Exc);
+        AnsiException *Exc = new AnsiException(ERR635, 0, 635, "", self->_Class->_DEBUG_INFO_FILENAME, self->_Class->NAME, self->_Class->DESTRUCTOR_MEMBER->NAME);
+        PIF->AcknoledgeRunTimeError(NULL, Exc);
     }
-    this->LINKS = -1;
+    self->LINKS = -1;
     return 1;
 }
 
-int CompiledClass::HasDestructor() {
-    if (this->LINKS < 0) {
+int CompiledClass_HasDestructor(const struct CompiledClass *self) {
+    if (self->LINKS < 0) {
         return 0;
     }
 
-    if (_Class->DESTRUCTOR) {
+    if (self->_Class->DESTRUCTOR) {
         return 1;
     }
 
     return 0;
 }
 
-void CompiledClass::UnlinkObjects() {
-    if (this->LINKS < 0) {
+void CompiledClass_UnlinkObjects(struct CompiledClass *self) {
+    if (self->LINKS < 0) {
         return;
     }
-    this->LINKS = -1;
+    self->LINKS = -1;
 
-    INTEGER Count = _Class->DataMembersCount;
+    INTEGER Count = self->_Class->DataMembersCount;
 
     for (register INTEGER i = 0; i < Count; i++) {
-        VariableDATA *_CONTEXT_i = _CONTEXT [i];
+        VariableDATA *_CONTEXT_i = self->_CONTEXT [i];
         if (_CONTEXT_i) {
             // delete no object ! ... it's the garbage collector's job
             if (_CONTEXT_i->CLASS_DATA) {
@@ -255,29 +249,29 @@ void CompiledClass::UnlinkObjects() {
         }
     }
 
-    FAST_FREE(_CONTEXT);
-    _CONTEXT = 0;
+    FAST_FREE(self->_CONTEXT);
+    self->_CONTEXT = 0;
 }
 
-CompiledClass::~CompiledClass() {
-    if (this->LINKS < 0)
+void delete_CompiledClass(struct CompiledClass *self) {
+    if (self->LINKS < 0)
         return;
 
-    if (_Class->DESTRUCTOR) {
-        PIFAlizator *PIF          = GET_PIF(this);
-        Destroy(PIF);
+    if (self->_Class->DESTRUCTOR) {
+        PIFAlizator *PIF          = GET_PIF(self);
+        CompiledClass_Destroy(self, PIF);
     }
 
-    this->LINKS = -1;
-    INTEGER       Count       = _Class->DataMembersCount;
+    self->LINKS = -1;
+    INTEGER       Count       = self->_Class->DataMembersCount;
     CompiledClass **toInspect = NULL;
     unsigned int  inspectSize = 0;
     unsigned int  inspectPos  = 0;
     for (register INTEGER i = 0; i < Count; i++) {
-        VariableDATA *_CONTEXT_i = _CONTEXT [i];
+        VariableDATA *_CONTEXT_i = self->_CONTEXT [i];
         if (_CONTEXT_i) {
             //=======================================//
-            if ((_CONTEXT_i->CLASS_DATA == this) && ((_CONTEXT_i->TYPE == VARIABLE_CLASS) || (_CONTEXT_i->TYPE == VARIABLE_DELEGATE))) {
+            if ((_CONTEXT_i->CLASS_DATA == self) && ((_CONTEXT_i->TYPE == VARIABLE_CLASS) || (_CONTEXT_i->TYPE == VARIABLE_DELEGATE))) {
                 _CONTEXT_i->TYPE       = VARIABLE_NUMBER;
                 _CONTEXT_i->CLASS_DATA = 0;
             }
@@ -289,15 +283,15 @@ CompiledClass::~CompiledClass() {
             if (_CONTEXT_i->LINKS < 1) {
                 if (_CONTEXT_i->CLASS_DATA) {
                     if (_CONTEXT_i->TYPE == VARIABLE_STRING) {
-                        delete (AnsiString *)_CONTEXT_i->CLASS_DATA;
+                        plainstring_delete((struct plainstring *)_CONTEXT_i->CLASS_DATA);
                     } else
                     if ((_CONTEXT_i->TYPE == VARIABLE_CLASS) || (_CONTEXT_i->TYPE == VARIABLE_DELEGATE)) {
-                        if (!--((CompiledClass *)_CONTEXT_i->CLASS_DATA)->LINKS) {
+                        if (!--((struct CompiledClass *)_CONTEXT_i->CLASS_DATA)->LINKS) {
                             if (inspectPos >= inspectSize) {
                                 inspectSize += INSPECT_INCREMENT;
-                                toInspect    = (CompiledClass **)FAST_REALLOC(toInspect, sizeof(CompiledClass *) * inspectSize);
+                                toInspect    = (CompiledClass **)FAST_REALLOC(toInspect, sizeof(struct CompiledClass *) * inspectSize);
                             }
-                            toInspect[inspectPos++] = (CompiledClass *)_CONTEXT_i->CLASS_DATA;
+                            toInspect[inspectPos++] = (struct CompiledClass *)_CONTEXT_i->CLASS_DATA;
                         }
                     } else
                     if (_CONTEXT_i->TYPE == VARIABLE_ARRAY) {
@@ -310,14 +304,14 @@ CompiledClass::~CompiledClass() {
 #endif
         }
     }
-    FAST_FREE(_CONTEXT);
+    FAST_FREE(self->_CONTEXT);
 #ifndef USE_RECURSIVE_MARKINGS
     if (inspectPos) {
         for (unsigned int j = 0; j < inspectPos; j++) {
             CompiledClass *obj = toInspect[j];
-            if (obj->HasDestructor()) {
+            if (CompiledClass_HasDestructor(obj)) {
                 obj->LINKS = 2;
-                obj->Destroy(GET_PIF(this));
+                CompiledClass_Destroy(obj, GET_PIF(self));
             }
             obj->LINKS = -1;
             if (obj->_CONTEXT) {
@@ -335,18 +329,18 @@ CompiledClass::~CompiledClass() {
                         if (_CONTEXT_i->LINKS < 1) {
                             if (_CONTEXT_i->CLASS_DATA) {
                                 if (_CONTEXT_i->TYPE == VARIABLE_STRING) {
-                                    delete (AnsiString *)_CONTEXT_i->CLASS_DATA;
+                                    plainstring_delete((struct plainstring *)_CONTEXT_i->CLASS_DATA);
                                 } else
                                 if ((_CONTEXT_i->TYPE == VARIABLE_CLASS) || (_CONTEXT_i->TYPE == VARIABLE_DELEGATE)) {
-                                    if (!--((CompiledClass *)_CONTEXT_i->CLASS_DATA)->LINKS) {
+                                    if (!--((struct CompiledClass *)_CONTEXT_i->CLASS_DATA)->LINKS) {
                                         if (inspectPos >= inspectSize) {
                                             if (inspectSize < 0xFFFF)
                                                 inspectSize += INSPECT_INCREMENT;
                                             else
                                                 inspectSize += inspectSize/2;
-                                            toInspect = (CompiledClass **)FAST_REALLOC(toInspect, sizeof(CompiledClass *) * inspectSize);
+                                            toInspect = (CompiledClass **)FAST_REALLOC(toInspect, sizeof(struct CompiledClass *) * inspectSize);
                                         }
-                                        toInspect[inspectPos++] = (CompiledClass *)_CONTEXT_i->CLASS_DATA;
+                                        toInspect[inspectPos++] = (struct CompiledClass *)_CONTEXT_i->CLASS_DATA;
                                     }
                                 } else
                                 if (_CONTEXT_i->TYPE == VARIABLE_ARRAY) {
@@ -361,9 +355,10 @@ CompiledClass::~CompiledClass() {
                 FAST_FREE(obj->_CONTEXT);
                 obj->_CONTEXT = NULL;
             }
-            delete obj;
+            FreeClassObject(obj);
         }
         FAST_FREE(toInspect);
     }
 #endif
+    FreeClassObject(self);
 }

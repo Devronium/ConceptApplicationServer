@@ -99,11 +99,11 @@ POOLED_IMPLEMENTATION(Array)
     } else                                                                  \
     if (var->TYPE == VARIABLE_STRING) {                                     \
         ELEMENTS [DISTRIBUTED_COUNT]->CLASS_DATA     = 0;                   \
-        CONCEPT_STRING(ELEMENTS [DISTRIBUTED_COUNT]) = CONCEPT_STRING(var); \
+        CONCEPT_STRING(ELEMENTS [DISTRIBUTED_COUNT], var);                  \
     } else                                                                  \
     if (var->TYPE == VARIABLE_CLASS) {                                      \
         ELEMENTS [DISTRIBUTED_COUNT]->CLASS_DATA = var->CLASS_DATA;         \
-        ((CompiledClass *)var->CLASS_DATA)->LINKS++;                        \
+        ((struct CompiledClass *)var->CLASS_DATA)->LINKS++;                        \
     } else                                                                  \
     if (var->TYPE == VARIABLE_ARRAY) {                                      \
         ELEMENTS [DISTRIBUTED_COUNT]->CLASS_DATA = var->CLASS_DATA;         \
@@ -112,7 +112,7 @@ POOLED_IMPLEMENTATION(Array)
     if (var->TYPE == VARIABLE_DELEGATE) {                                   \
         ELEMENTS [DISTRIBUTED_COUNT]->CLASS_DATA    = var->CLASS_DATA;      \
         ELEMENTS [DISTRIBUTED_COUNT]->DELEGATE_DATA = var->DELEGATE_DATA;   \
-        ((CompiledClass *)var->CLASS_DATA)->LINKS++;                        \
+        ((struct CompiledClass *)var->CLASS_DATA)->LINKS++;                        \
     }                                                                       \
     ELEMENTS [DISTRIBUTED_COUNT]->IS_PROPERTY_RESULT = 0;                   \
     COUNT++;                                                                \
@@ -946,18 +946,18 @@ void Array::EnsureSize(ARRAY_COUNT_TYPE size, VariableDATA *default_value) {
         ELEMENTS [DISTRIBUTED_COUNT]->LINKS = 1;
         if (default_value->TYPE == VARIABLE_STRING) {
             ELEMENTS [DISTRIBUTED_COUNT]->CLASS_DATA     = 0;
-            CONCEPT_STRING(ELEMENTS [DISTRIBUTED_COUNT]) = CONCEPT_STRING(default_value);
+            CONCEPT_STRING(ELEMENTS [DISTRIBUTED_COUNT], default_value);
         } else {
             if (default_value->CLASS_DATA) {
                 ELEMENTS [DISTRIBUTED_COUNT]->CLASS_DATA = default_value->CLASS_DATA;
                 if (default_value->TYPE == VARIABLE_CLASS)
-                    ((CompiledClass *)default_value->CLASS_DATA)->LINKS++;
+                    ((struct CompiledClass *)default_value->CLASS_DATA)->LINKS++;
                 else
                 if (default_value->TYPE == VARIABLE_ARRAY)
                     ((Array *)default_value->CLASS_DATA)->LINKS++;
                 else
                 if (default_value->TYPE == VARIABLE_DELEGATE) {
-                    ((CompiledClass *)default_value->CLASS_DATA)->LINKS++;
+                    ((struct CompiledClass *)default_value->CLASS_DATA)->LINKS++;
                     ELEMENTS [DISTRIBUTED_COUNT]->DELEGATE_DATA = default_value->DELEGATE_DATA;
                 }
             } else
@@ -999,9 +999,9 @@ void Array::__GO_GARBAGE(void *PIF, GarbageCollector *__gc_obj, GarbageCollector
                 }
                 if (Var->CLASS_DATA) {
                     if ((Var->TYPE == VARIABLE_CLASS) || (Var->TYPE == VARIABLE_DELEGATE)) {
-                        if ((check_objects == -1) || ((((CompiledClass *)Var->CLASS_DATA)->reachable & check_objects) != check_objects)) {
+                        if ((check_objects == -1) || ((((struct CompiledClass *)Var->CLASS_DATA)->reachable & check_objects) != check_objects)) {
                             __gc_obj->Reference(Var->CLASS_DATA);
-                            ((CompiledClass *)Var->CLASS_DATA)->__GO_GARBAGE(PIF, __gc_obj, __gc_array, __gc_vars, check_objects);
+                            CompiledClass__GO_GARBAGE((struct CompiledClass *)Var->CLASS_DATA, PIF, __gc_obj, __gc_array, __gc_vars, check_objects);
                         } else {
                             RESET_VARIABLE(Var);
                         }
@@ -1038,7 +1038,7 @@ ARRAY_COUNT_TYPE Array::Count() {
     return COUNT;
 }
 
-char *Array::GetKey(ARRAY_COUNT_TYPE index) {
+const char *Array::GetKey(ARRAY_COUNT_TYPE index) {
 #ifdef STDMAP_KEYS
     if (!Keys)
         return 0;
@@ -1073,74 +1073,75 @@ ARRAY_COUNT_TYPE Array::GetIndex(const char *Key) {
 #endif
 }
 
-#define DO_LEVEL(RESULT, LEVEL)    for (int lev_index = 0; lev_index < LEVEL; lev_index++) { RESULT += "  "; }
+#define DO_LEVEL(RESULT, LEVEL)    for (int lev_index = 0; lev_index < LEVEL; lev_index++) { plainstring_add(RESULT, "  "); }
 
-AnsiString Array::ToString(int level, Array *parent, int parents) {
-    AnsiString result;
+struct plainstring *Array::ToString(int level, Array *parent, int parents) {
+    struct plainstring *result = plainstring_new();
 
     DO_LEVEL(result, level)
 
-    result += "Array {\n";
+    plainstring_add(result, "Array {\n");
 
     for (ARRAY_COUNT_TYPE i = 0; i < COUNT; i++) {
         VariableDATA *VD = this->Get(i);
         if (VD) {
             DO_LEVEL(result, level)
 
-            AnsiString key = AnsiString(GetKey(i));
-            result        += "  ";
-            result        += "[";
-            result        += AnsiString(i);
-            if (key != NULL_STRING) {
-                result += ",\"";
-                result += key;
-                result += "\"] => ";
+            const char *key = GetKey(i);
+            plainstring_add(result, "  [");
+            plainstring_add_double(result, i);
+            if (key) {
+                plainstring_add(result, ",\"");
+                plainstring_add(result, key);
+                plainstring_add(result, "\"] => ");
             } else {
-                result += "] => ";
+                plainstring_add(result, "] => ");
             }
             switch (VD->TYPE) {
                 case VARIABLE_NUMBER:
-                    result += AnsiString(VD->NUMBER_DATA);
+                    plainstring_add_double(result, VD->NUMBER_DATA);
                     break;
 
                 case VARIABLE_STRING:
-                    result += CONCEPT_STRING(VD);
+                    plainstring_add_plainstring(result, (struct plainstring *)VD->CLASS_DATA);
                     break;
 
                 case VARIABLE_ARRAY:
                     {
                         Array *arr = (Array *)VD->CLASS_DATA;
                         if (arr == this) {
-                            result += "This array";
+                            plainstring_add(result, "This array");
                         } else
                         if (arr == parent) {
-                            result += "Parent array";
+                            plainstring_add(result, "Parent array");
                         } else
                         if (level > 10) {
-                            result += "Array";
+                            plainstring_add(result, "Array");
                         } else {
-                            result += "\n";
-                            result += arr->ToString(level + 2, this);
+                            plainstring_add(result, "\n");
+                            struct plainstring *temp = arr->ToString(level + 2, this);
+                            plainstring_add_plainstring(result, temp);
+                            plainstring_delete(temp);
                         }
                     }
                     break;
 
                 case VARIABLE_CLASS:
-                    result += ((CompiledClass *)VD->CLASS_DATA)->_Class->NAME.c_str();
+                    plainstring_add(result, ((struct CompiledClass *)VD->CLASS_DATA)->_Class->NAME.c_str());
                     break;
 
                 case VARIABLE_DELEGATE:
-                    result += ((CompiledClass *)VD->CLASS_DATA)->_Class->NAME.c_str();
-                    result += "::";
-                    result += ((CompiledClass *)VD->CLASS_DATA)->_Class->pMEMBERS [(INTEGER)VD->DELEGATE_DATA - 1]->NAME;
+                    plainstring_add(result, ((struct CompiledClass *)VD->CLASS_DATA)->_Class->NAME.c_str());
+                    plainstring_add(result, "::");
+                    plainstring_add(result, ((struct CompiledClass *)VD->CLASS_DATA)->_Class->pMEMBERS [(INTEGER)VD->DELEGATE_DATA - 1]->NAME);
                     break;
             }
-            result += "\n";
+            plainstring_add(result, "\n");
         }
     }
     DO_LEVEL(result, level)
 
-    result += "}";
+    plainstring_add(result, "}");
     return result;
 }
 
@@ -1225,7 +1226,7 @@ Array *Array::SortArrayElementsByKey() {
 #ifdef STDMAP_KEYS
     if (Keys) {
         KeyMap::iterator end = Keys->end();
-        AnsiString key;
+        const char *key;
         ARRAY_COUNT_TYPE i = 0;
         for (KeyMap::iterator iter = Keys->begin(); iter != end; ++iter) {
             newARRAY->Add(Get(iter->second));
@@ -1249,7 +1250,7 @@ void Array::GetKeys(char **container, int size) {
 #ifdef STDMAP_KEYS
     if (Keys) {
         KeyMap::iterator end = Keys->end();
-        AnsiString key;
+        char *key;
         ARRAY_COUNT_TYPE i = 0;
         for (KeyMap::iterator iter = Keys->begin(); iter != end; ++iter) {
             key = (char *)iter->first;

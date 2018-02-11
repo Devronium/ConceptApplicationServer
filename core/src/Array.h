@@ -4,9 +4,7 @@
 #define OPTIMIZE_FAST_ARRAYS
 // #define STDMAP_KEYS
 
-#include "AnsiString.h"
 #include "ConceptTypes.h"
-#include "AnsiList.h"
 #include "GarbageCollector.h"
 #include "ConceptPools.h"
 #ifdef STDMAP_KEYS
@@ -115,7 +113,7 @@ public:
 
     VariableDATA *NewArray();
 
-    char *GetKey(ARRAY_COUNT_TYPE);
+    const char *GetKey(ARRAY_COUNT_TYPE);
     ARRAY_COUNT_TYPE     GetIndex(const char *Key);
 
     VariableDATA *Get(ARRAY_COUNT_TYPE);
@@ -133,7 +131,7 @@ public:
     Array *SortArrayElementsByKey();
     void GetKeys(char **container, int size);
 
-    AnsiString ToString(int level = 0, Array *parent = 0, int parents = 0);
+    struct plainstring *ToString(int level = 0, Array *parent = 0, int parents = 0);
     Array *Concat(Array *array);
 
     void EnsureSize(ARRAY_COUNT_TYPE size, VariableDATA *default_value);

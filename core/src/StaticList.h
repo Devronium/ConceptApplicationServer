@@ -37,7 +37,7 @@ public:
     void PoolMap(int len);
     void Add(AnsiString& str);
     void Add(TinyString& str);
-    int ContainsString(const char *str, int len = -1);
+    int ContainsString(const char *str);
 
     char *operator[](int i);
     char *Item(int i);

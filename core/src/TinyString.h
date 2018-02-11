@@ -57,7 +57,7 @@ public:
     void operator+=(TinyString& S);
     void operator+=(char c);
 
-    operator const char *();
+    operator const char *() const;
     operator AnsiString();
 
     TinyString operator+(TinyString& S);
@@ -66,13 +66,13 @@ public:
     intptr_t ToInt();
     double ToFloat();
 
-    intptr_t Length();
+    intptr_t Length() const;
 
     intptr_t Pos(TinyString substr);
 
     void LoadBuffer(char *buffer, int size);
 
-    int Serialize(FILE *out, int type);
+    int Serialize(FILE *out, int type) const;
     int Unserialize(concept_FILE *out, int type, signed char use_pool = 0);
 
     ~TinyString();

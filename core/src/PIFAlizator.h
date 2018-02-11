@@ -125,7 +125,7 @@
         WRITE_LOCK                                                                                                                                   \
     } else                                                                                                                                           \
     if (VARIABLE->CLASS_DATA) {                                                                                                                      \
-        if (((VARIABLE->TYPE == VARIABLE_CLASS) || (VARIABLE->TYPE == VARIABLE_DELEGATE)) && (((CompiledClass *)VARIABLE->CLASS_DATA)->LINKS > 1)) { \
+        if (((VARIABLE->TYPE == VARIABLE_CLASS) || (VARIABLE->TYPE == VARIABLE_DELEGATE)) && (((struct CompiledClass *)VARIABLE->CLASS_DATA)->LINKS > 1)) { \
             WRITE_LOCK                                                                                                                               \
         } else                                                                                                                                       \
         if ((VARIABLE->TYPE == VARIABLE_ARRAY) && (((Array *)VARIABLE->CLASS_DATA)->LINKS > 1)) {                                                    \
@@ -214,9 +214,8 @@ class PIFAlizator {
     friend class ClassCode;
     friend class ClassMember;
     friend class ConceptInterpreter;
-    friend class CompiledClass;
     friend class GarbageCollector;
-    friend void DeturnatedPrint(void *PIF, char *text, int len, void *userdata);
+    friend void DeturnatedPrint(void *PIF, const char *text, int len, void *userdata);
 
     friend void *AllocVAR(void *PIF);
 
@@ -261,7 +260,7 @@ class PIFAlizator {
 
     AnsiList *IncludedList;
     AnsiList *ModuleList;
-    AnsiList ModuleNamesList;
+    StaticList ModuleNamesList;
     ConstantMapType *ConstantList;
     AnsiList UndefinedMembers;
     AnsiList UndefinedClasses;
@@ -399,7 +398,9 @@ public:
     char is_buffer;
 
     AnsiString DEBUG_CLASS_CONFIGURATION();
+#ifdef PRINT_DEBUG_INFO
     AnsiString DEBUG_INFO();
+#endif
     AnsiString PRINT_ERRORS(int html = 0);
     AnsiString PRINT_WARNINGS(int html = 0);
     AnsiString SerializeWarningsErrors(int ser_warnings = 0);
@@ -426,6 +427,8 @@ public:
 #ifdef DEBUGGER_VAR_NAMES
     HashTable DebugVarNames;
 #endif
+    void *Helper;
+
     INTEGER FindVariableByName(void *key, const char *name);
     void RegisterVariableName(void *key, const char *name, INTEGER val);
 

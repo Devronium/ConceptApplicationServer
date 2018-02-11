@@ -1,7 +1,6 @@
 #ifndef __CLASSMEMBER
 #define __CLASSMEMBER
 
-#include "AnsiString.h"
 #include "AnsiList.h"
 #include "ConceptTypes.h"
 #include "Errors.h"
@@ -34,22 +33,7 @@ public:
 };
 
 class ClassMember {
-    friend class ClassCode;
-    friend class Optimizer;
-    friend class PIFAlizator;
-    friend class CompiledClass;
-    friend class ConceptInterpreter;
-    friend class Array;
-    friend INTEGER Invoke(INTEGER, ...);
-    friend int GetVariableByName(int operation, void **VDESC, void **CONTEXT, int Depth, char *VariableName, char *buffer, int buf_size, void *PIF, void *STACK_TRACE);
-
-    friend INTEGER GetClassMember(void *CLASS_PTR, const char *class_member_name, INTEGER *TYPE, char **STRING_VALUE, NUMBER *NUMBER_VALUE);
-
-    friend VariableDATA *GetClassMember(void *CLASS_PTR, const char *class_member_name);
-
-    friend INTEGER SetClassMember(void *CLASS_PTR, const char *class_member_name, INTEGER TYPE, const char *STRING_VALUE, NUMBER NUMBER_VALUE);
-
-private:
+public:
     const char *NAME;
     void *Defined_In;
     SmallVariableDESCRIPTOR *VD;
@@ -69,7 +53,7 @@ private:
     signed char       IS_FUNCTION;
     signed char       IS_STATIC;
     unsigned short    _DEBUG_STARTLINE;
-public:
+// public:
     POOLED(ClassMember)
 
     ClassMember(void *DefinedIn, const char *name , char is_data_only, char _not_binary = 1, char is_unserialize = false);
@@ -81,7 +65,7 @@ public:
 #endif
     void EnsureVD();
 
-    int Serialize(FILE *out, bool is_lib = false, int version = 1);
+    int Serialize(void *PIF, FILE *out, bool is_lib = false, int version = 1);
     int Unserialize(concept_FILE *in, AnsiList *ClassList , bool is_lib, int *Relocation, int *ClassNames);
     static int ComputeSharedSize(concept_FILE *in, signed char& IS_FUNCTION);
 

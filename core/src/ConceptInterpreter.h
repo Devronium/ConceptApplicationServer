@@ -8,11 +8,35 @@
 #include "Debugger.h"
 #include "Array.h"
 #include "ConceptPools.h"
+extern "C" {
+    #include "simple/plainstring.h"
+}
 
-#define CONCEPT_STRING(VARIABLE)            (VARIABLE->CLASS_DATA ? (*((AnsiString *)VARIABLE->CLASS_DATA)) : *((AnsiString *)(VARIABLE->CLASS_DATA = new AnsiString())))
-#define NEW_CONCEPT_STRING(VARIABLE)        (*((AnsiString *)(VARIABLE->CLASS_DATA = new AnsiString())))
-#define CONCEPT_C_STRING(VARIABLE)          (VARIABLE->CLASS_DATA ? ((AnsiString *)VARIABLE->CLASS_DATA)->c_str() : "")
-#define CONCEPT_C_LENGTH(VARIABLE)          (VARIABLE->CLASS_DATA ? ((AnsiString *)VARIABLE->CLASS_DATA)->Length() : 0)
+#define CONCEPT_STRING(VARIABLE, VARIABLE2)     { if (VARIABLE->CLASS_DATA) { plainstring_set_plainstring((struct plainstring *)VARIABLE->CLASS_DATA, (struct plainstring *)VARIABLE2->CLASS_DATA); } else { VARIABLE->CLASS_DATA = plainstring_new_plainstring((struct plainstring *)VARIABLE2->CLASS_DATA); } }
+#define CONCEPT_STRING_EQU(VARIABLE, VARIABLE2) plainstring_equals_plainstring((struct plainstring *)VARIABLE->CLASS_DATA, (struct plainstring *)VARIABLE2->CLASS_DATA)
+#define CONCEPT_STRING_ADD_CSTR(VARIABLE, cstr) { if (VARIABLE->CLASS_DATA) { plainstring_add((struct plainstring *)VARIABLE->CLASS_DATA, cstr); } else { VARIABLE->CLASS_DATA = plainstring_new_str(cstr); } }
+#define CONCEPT_STRING_ADD_DOUBLE(VARIABLE, d)  { if (VARIABLE->CLASS_DATA) { plainstring_add_double((struct plainstring *)VARIABLE->CLASS_DATA, d); } else { VARIABLE->CLASS_DATA = plainstring_new_double(d); } }
+#define CONCEPT_STRING_BUFFER(VARIABLE, b, l)   { if (!VARIABLE->CLASS_DATA) { VARIABLE->CLASS_DATA = plainstring_new(); } plainstring_loadbuffer((struct plainstring *)VARIABLE->CLASS_DATA, b, l); }
+#define CONCEPT_STRING_LINK(VARIABLE, b, l)     { if (!VARIABLE->CLASS_DATA) { VARIABLE->CLASS_DATA = plainstring_new(); } plainstring_linkbuffer((struct plainstring *)VARIABLE->CLASS_DATA, b, l); }
+#define CONCEPT_STRING_FLOAT(VARIABLE)          plainstring_float((struct plainstring *)VARIABLE->CLASS_DATA)
+#define CONCEPT_STRING_INT(VARIABLE)            (VARIABLE->CLASS_DATA ? plainstring_int((struct plainstring *)VARIABLE->CLASS_DATA) : 0)
+#define CONCEPT_STRING_SET_CSTR(VARIABLE, cstr) { if (VARIABLE->CLASS_DATA) { plainstring_set((struct plainstring *)VARIABLE->CLASS_DATA, cstr); } else { VARIABLE->CLASS_DATA = plainstring_new_str(cstr); } }
+#define CONCEPT_STRING_REPLACE(VARIABLE, VARIABLE2, index) plainstring_replace_char_with_string((struct plainstring *)VARIABLE->CLASS_DATA, (struct plainstring *)VARIABLE2->CLASS_DATA, index)
+#define NEW_CONCEPT_STRING(VARIABLE)            (VARIABLE->CLASS_DATA = plainstring_new())
+#define NEW_CONCEPT_SUM(VARIABLE, A, B)         {VARIABLE->CLASS_DATA = plainstring_new(); plainstring_sum_of_2((struct plainstring *)VARIABLE->CLASS_DATA, (struct plainstring *)A->CLASS_DATA, (struct plainstring *)B->CLASS_DATA); }
+#define NEW_CONCEPT_STRING2(VARIABLE, VARIABLE2)(VARIABLE->CLASS_DATA = plainstring_new_plainstring((struct plainstring *)VARIABLE2->CLASS_DATA))
+#define NEW_CONCEPT_STRING_CSTR(VARIABLE, cstr) (VARIABLE->CLASS_DATA = plainstring_new_str(cstr))
+#define NEW_CONCEPT_STRING_BUFFER(VARIABLE,b,l) { VARIABLE->CLASS_DATA = plainstring_new();  plainstring_loadbuffer((struct plainstring *)VARIABLE->CLASS_DATA, b, l);}
+
+#define NEW_CONCEPT_STRING_INDEX(VARIABLE, VARIABLE2, index) { VARIABLE->CLASS_DATA = plainstring_new(); plainstring_char_plainstring((struct plainstring *)VARIABLE2->CLASS_DATA, index, (struct plainstring *)VARIABLE->CLASS_DATA); }
+
+#define CONCEPT_C_STRING(VARIABLE)              (VARIABLE->CLASS_DATA ? plainstring_c_str((struct plainstring *)VARIABLE->CLASS_DATA) : "")
+#define CONCEPT_C_LENGTH(VARIABLE)              (VARIABLE->CLASS_DATA ? plainstring_len((struct plainstring *)VARIABLE->CLASS_DATA) : 0)
+
+#define CONCEPT_STRING_COMPARE(val, VARIABLE, type, VARIABLE2) { if (!VARIABLE->CLASS_DATA) { VARIABLE->CLASS_DATA = plainstring_new(); } if (!VARIABLE2->CLASS_DATA) { VARIABLE2->CLASS_DATA = plainstring_new(); } val = plainstring_ ## type ## _plainstring((struct plainstring *)VARIABLE->CLASS_DATA, (struct plainstring *)VARIABLE2->CLASS_DATA); }
+#define CONCEPT_STRING_COMPARE_FLOAT(val, VARIABLE, type, d) { if (!VARIABLE->CLASS_DATA) { VARIABLE->CLASS_DATA = plainstring_new(); } val = plainstring_ ## type ## _double((struct plainstring *)VARIABLE->CLASS_DATA, d); }
+#define CONCEPT_STRING_ASU(VARIABLE, VARIABLE2) { if (!VARIABLE->CLASS_DATA) { VARIABLE->CLASS_DATA = plainstring_new_plainstring((struct plainstring *)VARIABLE2->CLASS_DATA); } else { plainstring_increasebuffer((struct plainstring *)VARIABLE->CLASS_DATA, CONCEPT_C_LENGTH(LOCAL_CONTEXT [OE->OperandRight_ID - 1])); plainstring_add_plainstring((struct plainstring *)VARIABLE->CLASS_DATA, (struct plainstring *)VARIABLE2->CLASS_DATA); } }
+
 //---------------------------------------------------------
 #ifdef INLINE_COMMON_CALLS
 #define FREE_VARIABLE(VARIABLE)                                                                \
@@ -20,11 +44,11 @@
     if (VARIABLE->LINKS < 1) {                                                                 \
         if (VARIABLE->CLASS_DATA) {                                                            \
             if (VARIABLE->TYPE == VARIABLE_STRING) {                                           \
-                delete (AnsiString *)VARIABLE->CLASS_DATA;                                     \
+                plainstring_delete((struct plainstring *)VARIABLE->CLASS_DATA);                \
             } else                                                                             \
             if ((VARIABLE->TYPE == VARIABLE_CLASS) || (VARIABLE->TYPE == VARIABLE_DELEGATE)) { \
-                if (!--((CompiledClass *)VARIABLE->CLASS_DATA)->LINKS)                         \
-                    delete (CompiledClass *)VARIABLE->CLASS_DATA;                              \
+                if (!--((struct CompiledClass *)VARIABLE->CLASS_DATA)->LINKS)                         \
+                    delete_CompiledClass((struct CompiledClass *)VARIABLE->CLASS_DATA);               \
             } else                                                                             \
             if (VARIABLE->TYPE == VARIABLE_ARRAY) {                                            \
                 if (!--((Array *)VARIABLE->CLASS_DATA)->LINKS)                                 \
@@ -38,17 +62,17 @@ void FREE_VARIABLE(VariableDATA *VARIABLE);
 #endif
 
 #ifdef SIMPLE_MULTI_THREADING
-#define FREE_VARIABLE_TS(VARIABLE)                                                              \
+#define FREE_VARIABLE_TS(VARIABLE)                                                             \
     VARIABLE->LINKS--;                                                                         \
     if (VARIABLE->LINKS < 1) {                                                                 \
         if (VARIABLE->CLASS_DATA) {                                                            \
             if (VARIABLE->TYPE == VARIABLE_STRING) {                                           \
-                delete (AnsiString *)VARIABLE->CLASS_DATA;                                     \
+                plainstring_delete((struct plainstring *)VARIABLE->CLASS_DATA);                \
             } else                                                                             \
             if ((VARIABLE->TYPE == VARIABLE_CLASS) || (VARIABLE->TYPE == VARIABLE_DELEGATE)) { \
-                if (!--((CompiledClass *)VARIABLE->CLASS_DATA)->LINKS) {                       \
+                if (!--((struct CompiledClass *)VARIABLE->CLASS_DATA)->LINKS) {                       \
                     WRITE_UNLOCK                                                               \
-                    delete (CompiledClass *)VARIABLE->CLASS_DATA;                              \
+                    delete_CompiledClass((struct CompiledClass *)VARIABLE->CLASS_DATA);               \
                 }                                                                              \
             } else                                                                             \
             if (VARIABLE->TYPE == VARIABLE_ARRAY) {                                            \
@@ -69,11 +93,11 @@ void FREE_VARIABLE(VariableDATA *VARIABLE);
     if (VARIABLE->LINKS < 1) {                                                           \
         if (VARIABLE->CLASS_DATA) {                                                      \
             if (pushed_type == VARIABLE_STRING) {                                        \
-                delete (AnsiString *)VARIABLE->CLASS_DATA;                               \
+                plainstring_delete((struct plainstring *)VARIABLE->CLASS_DATA);          \
             } else                                                                       \
             if ((pushed_type == VARIABLE_CLASS) || (pushed_type == VARIABLE_DELEGATE)) { \
-                if (!--((CompiledClass *)VARIABLE->CLASS_DATA)->LINKS)                   \
-                    delete (CompiledClass *)VARIABLE->CLASS_DATA;                        \
+                if (!--((struct CompiledClass *)VARIABLE->CLASS_DATA)->LINKS)                   \
+                    delete_CompiledClass((struct CompiledClass *)VARIABLE->CLASS_DATA);         \
             } else                                                                       \
             if (pushed_type == VARIABLE_ARRAY) {                                         \
                 if (!--((Array *)VARIABLE->CLASS_DATA)->LINKS)                           \
@@ -88,11 +112,11 @@ void FREE_VARIABLE(VariableDATA *VARIABLE);
     if (VARIABLE->LINKS < 1) {                                                                 \
         if (VARIABLE->CLASS_DATA) {                                                            \
             if (VARIABLE->TYPE == VARIABLE_STRING) {                                           \
-                delete (AnsiString *)VARIABLE->CLASS_DATA;                                     \
+                plainstring_delete((struct plainstring *)VARIABLE->CLASS_DATA);                \
             } else                                                                             \
             if ((VARIABLE->TYPE == VARIABLE_CLASS) || (VARIABLE->TYPE == VARIABLE_DELEGATE)) { \
-                if (!--((CompiledClass *)VARIABLE->CLASS_DATA)->LINKS)                         \
-                    delete (CompiledClass *)VARIABLE->CLASS_DATA;                              \
+                if (!--((struct CompiledClass *)VARIABLE->CLASS_DATA)->LINKS)                         \
+                    delete_CompiledClass((struct CompiledClass *)VARIABLE->CLASS_DATA);               \
             } else                                                                             \
             if (VARIABLE->TYPE == VARIABLE_ARRAY) {                                            \
                 if (!--((Array *)VARIABLE->CLASS_DATA)->LINKS)                                 \
@@ -106,11 +130,11 @@ void FREE_VARIABLE(VariableDATA *VARIABLE);
     if (VARIABLE->LINKS < 1) {                                                                 \
         if (VARIABLE->CLASS_DATA) {                                                            \
             if (VARIABLE->TYPE == VARIABLE_STRING) {                                           \
-                delete (AnsiString *)VARIABLE->CLASS_DATA;                                     \
+                plainstring_delete((struct plainstring *)VARIABLE->CLASS_DATA);                \
             } else                                                                             \
             if ((VARIABLE->TYPE == VARIABLE_CLASS) || (VARIABLE->TYPE == VARIABLE_DELEGATE)) { \
-                if (!--((CompiledClass *)VARIABLE->CLASS_DATA)->LINKS) {                       \
-                    delete (CompiledClass *)VARIABLE->CLASS_DATA; }                            \
+                if (!--((struct CompiledClass *)VARIABLE->CLASS_DATA)->LINKS) {                       \
+                    delete_CompiledClass((struct CompiledClass *)VARIABLE->CLASS_DATA); }             \
             } else                                                                             \
             if (VARIABLE->TYPE == VARIABLE_ARRAY) {                                            \
                 if (!--((Array *)VARIABLE->CLASS_DATA)->LINKS) {                               \
@@ -124,18 +148,18 @@ void FREE_VARIABLE(VariableDATA *VARIABLE);
     VARIABLE->LINKS--;                                                     \
     if (VARIABLE->LINKS < 1) {                                             \
         if ((VARIABLE->TYPE == VARIABLE_STRING) && (VARIABLE->CLASS_DATA)) \
-            delete (AnsiString *)VARIABLE->CLASS_DATA;                     \
+            plainstring_delete((struct plainstring *)VARIABLE->CLASS_DATA);\
         VAR_FREE(VARIABLE);                                                \
     }
 
 #define CLASS_CHECK(VARIABLE)                                                              \
     if ((VARIABLE->TYPE != VARIABLE_NUMBER) && (VARIABLE->CLASS_DATA)) {                   \
         if (VARIABLE->TYPE == VARIABLE_STRING) {                                           \
-            delete (AnsiString *)VARIABLE->CLASS_DATA; }                                   \
+            plainstring_delete((struct plainstring *)VARIABLE->CLASS_DATA); }              \
         else                                                                               \
         if ((VARIABLE->TYPE == VARIABLE_CLASS) || (VARIABLE->TYPE == VARIABLE_DELEGATE)) { \
-            if (!--((CompiledClass *)VARIABLE->CLASS_DATA)->LINKS)                         \
-                delete (CompiledClass *)VARIABLE->CLASS_DATA;                              \
+            if (!--((struct CompiledClass *)VARIABLE->CLASS_DATA)->LINKS)                         \
+                delete_CompiledClass((struct CompiledClass *)VARIABLE->CLASS_DATA);               \
         } else                                                                             \
         if (VARIABLE->TYPE == VARIABLE_ARRAY) {                                            \
             if (!--((Array *)VARIABLE->CLASS_DATA)->LINKS)                                 \
@@ -147,11 +171,11 @@ void FREE_VARIABLE(VariableDATA *VARIABLE);
 #define CLASS_CHECK_RESET(VARIABLE, pushed_type)                                     \
     if ((pushed_type != VARIABLE_NUMBER) && (VARIABLE->CLASS_DATA)) {                \
         if (pushed_type == VARIABLE_STRING) {                                        \
-            delete (AnsiString *)VARIABLE->CLASS_DATA; }                             \
+            plainstring_delete((struct plainstring *)VARIABLE->CLASS_DATA); }        \
         else                                                                         \
         if ((pushed_type == VARIABLE_CLASS) || (pushed_type == VARIABLE_DELEGATE)) { \
-            if (!--((CompiledClass *)VARIABLE->CLASS_DATA)->LINKS)                   \
-                delete (CompiledClass *)VARIABLE->CLASS_DATA;                        \
+            if (!--((struct CompiledClass *)VARIABLE->CLASS_DATA)->LINKS)                   \
+                delete_CompiledClass((struct CompiledClass *)VARIABLE->CLASS_DATA);         \
         } else                                                                       \
         if (pushed_type == VARIABLE_ARRAY) {                                         \
             if (!--((Array *)VARIABLE->CLASS_DATA)->LINKS)                           \

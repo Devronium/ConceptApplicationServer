@@ -100,8 +100,8 @@ char *StaticList::operator[](int i) {
     return this->Item(i);
 }
 
-int StaticList::ContainsString(const char *str, int len) {
-    if ((!str) || (!len))
+int StaticList::ContainsString(const char *str) {
+    if (!str)
         return 0;
 #ifdef CACHED_LIST
     if (UseMap) {

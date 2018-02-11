@@ -53,7 +53,7 @@ void ClassMember::EnsureVD() {
     VD->nValue = 0;
 }
 
-int ClassMember::Serialize(FILE *out, bool is_lib, int version) {
+int ClassMember::Serialize(void *PIF, FILE *out, bool is_lib, int version) {
     concept_fwrite_int(&ACCESS, sizeof(ACCESS), 1, out);
     char is_funtion_or_operator = IS_FUNCTION;
     if (IS_OPERATOR) {
@@ -85,7 +85,7 @@ int ClassMember::Serialize(FILE *out, bool is_lib, int version) {
 
     SERIALIZE_SMALL_VAR_DESCRIPTOR(refVD, out);
     if (IS_FUNCTION == 1) {
-        ((Optimizer *)OPTIMIZER)->Serialize(out, (INTEGER)is_lib, version);
+        ((Optimizer *)OPTIMIZER)->Serialize((PIFAlizator *)PIF, out, (INTEGER)is_lib, version);
     }
     return 0;
 }
@@ -279,31 +279,32 @@ VariableDATA *ClassMember::Execute(void *PIF, intptr_t CONCEPT_CLASS_ID, Variabl
 
                         case VARIABLE_STRING:
                             ((VariableDATA *)((PIFAlizator *)PIF)->static_result)->TYPE           = VARIABLE_STRING;
-                            CONCEPT_STRING(((VariableDATA *)((PIFAlizator *)PIF)->static_result)) = CONCEPT_STRING(RESULT);
+                            CONCEPT_STRING(((VariableDATA *)((PIFAlizator *)PIF)->static_result), RESULT);
                             break;
 
                         case VARIABLE_ARRAY:
                             ((VariableDATA *)((PIFAlizator *)PIF)->static_result)->TYPE           = VARIABLE_STRING;
-                            CONCEPT_STRING(((VariableDATA *)((PIFAlizator *)PIF)->static_result)) = "array";
+                            CONCEPT_STRING_SET_CSTR(((VariableDATA *)((PIFAlizator *)PIF)->static_result), "array");
                             break;
 
                         case VARIABLE_DELEGATE:
                             ((VariableDATA *)((PIFAlizator *)PIF)->static_result)->TYPE = VARIABLE_STRING;
                             if (RESULT->CLASS_DATA) {
-                                CONCEPT_STRING(((VariableDATA *)((PIFAlizator *)PIF)->static_result))  = ((CompiledClass *)RESULT->CLASS_DATA)->_Class->NAME.c_str();
-                                CONCEPT_STRING(((VariableDATA *)((PIFAlizator *)PIF)->static_result)) += "::";
-                                CONCEPT_STRING(((VariableDATA *)((PIFAlizator *)PIF)->static_result)) += ((CompiledClass *)RESULT->CLASS_DATA)->_Class->pMEMBERS [(INTEGER)RESULT->DELEGATE_DATA - 1]->NAME;
+                                CONCEPT_STRING_SET_CSTR(((VariableDATA *)((PIFAlizator *)PIF)->static_result), ((struct CompiledClass *)RESULT->CLASS_DATA)->_Class->NAME.c_str());
+                                CONCEPT_STRING_ADD_CSTR(((VariableDATA *)((PIFAlizator *)PIF)->static_result), "::");
+                                CONCEPT_STRING_ADD_CSTR(((VariableDATA *)((PIFAlizator *)PIF)->static_result), ((struct CompiledClass *)RESULT->CLASS_DATA)->_Class->pMEMBERS [(INTEGER)RESULT->DELEGATE_DATA - 1]->NAME);
                             } else {
-                                CONCEPT_STRING(((VariableDATA *)((PIFAlizator *)PIF)->static_result)) = "delegate";
+                                CONCEPT_STRING_SET_CSTR(((VariableDATA *)((PIFAlizator *)PIF)->static_result), "delegate");
                             }
                             break;
 
                         case VARIABLE_CLASS:
                             ((VariableDATA *)((PIFAlizator *)PIF)->static_result)->TYPE = VARIABLE_STRING;
-                            if (RESULT->CLASS_DATA)
-                                CONCEPT_STRING(((VariableDATA *)((PIFAlizator *)PIF)->static_result)) = ((CompiledClass *)RESULT->CLASS_DATA)->_Class->NAME.c_str();
-                            else
-                                CONCEPT_STRING(((VariableDATA *)((PIFAlizator *)PIF)->static_result)) = "object";
+                            if (RESULT->CLASS_DATA) {
+                                CONCEPT_STRING_SET_CSTR(((VariableDATA *)((PIFAlizator *)PIF)->static_result), ((struct CompiledClass *)RESULT->CLASS_DATA)->_Class->NAME.c_str());
+                            } else {
+                                CONCEPT_STRING_SET_CSTR(((VariableDATA *)((PIFAlizator *)PIF)->static_result), "object");
+                            }
                             break;
                     }
                 }
@@ -311,33 +312,39 @@ VariableDATA *ClassMember::Execute(void *PIF, intptr_t CONCEPT_CLASS_ID, Variabl
                 RESULT = NULL;
             }
             if (THROW_DATA) {
-                AnsiString *data = new AnsiString();
-
+                const char *data = NULL;
+                char *temp = NULL;
                 // check if is not the static call to Main. In this case the THROW_DATA is/may be deleted
                 if (THROW_DATA->TYPE == VARIABLE_STRING) {
-                    *data += CONCEPT_STRING(THROW_DATA);
+                    data = CONCEPT_C_STRING(THROW_DATA);
                 } else
                 if (THROW_DATA->TYPE == VARIABLE_NUMBER) {
-                    *data += AnsiString(THROW_DATA->NUMBER_DATA);
+                    temp = (char *)FAST_MALLOC(0xFF);
+                    cstr_loaddouble(temp, THROW_DATA->NUMBER_DATA);
+                    data = temp;
                 } else
                 if (THROW_DATA->TYPE == VARIABLE_CLASS) {
-                    *data += ((CompiledClass *)THROW_DATA->CLASS_DATA)->GetClassName();
+                    data = CompiledClass_GetClassName((struct CompiledClass *)THROW_DATA->CLASS_DATA);
                 } else
                 if (THROW_DATA->TYPE == VARIABLE_ARRAY) {
-                    *data += "Array";
+                    data = "Array";
                 } else
                 if (THROW_DATA->TYPE == VARIABLE_DELEGATE) {
-                    *data += "Delegate of ";
-                    *data += ((CompiledClass *)THROW_DATA->CLASS_DATA)->GetClassName();
+                    int len = strlen(CompiledClass_GetClassName((struct CompiledClass *)THROW_DATA->CLASS_DATA));
+                    temp = (char *)FAST_MALLOC(len + 13);
+                    temp[len + 12] = 0;
+                    memcpy(temp, "Delegate of ", 12);
+                    memcpy(temp + 12, CompiledClass_GetClassName((struct CompiledClass *)THROW_DATA->CLASS_DATA), len);
+                    data = temp;
                 }
 
                 FREE_VARIABLE(THROW_DATA);
                 THROW_DATA = NULL;
 
-                AnsiException *Exc = new AnsiException(ERR630, 0, 630, data->c_str(), ((ClassCode *)(this->Defined_In))->_DEBUG_INFO_FILENAME, NAME);
+                AnsiException *Exc = new AnsiException(ERR630, 0, 630, data, ((ClassCode *)(this->Defined_In))->_DEBUG_INFO_FILENAME, NAME);
                 ((PIFAlizator *)PIF)->AcknoledgeRunTimeError(PREV, Exc);
 
-                delete data;
+                FAST_FREE(temp);
             }
         }
 #ifdef POOL_STACK
@@ -416,7 +423,7 @@ GreenThreadCycle *ClassMember::CreateThread(void *PIF, intptr_t CONCEPT_CLASS_ID
     gtc->refobject      = NULL;
     if ((Owner) && (Owner->TYPE == VARIABLE_DELEGATE)) {
         gtc->refobject  = Owner->CLASS_DATA;
-        ((CompiledClass *)gtc->refobject)->LINKS++;
+        ((struct CompiledClass *)gtc->refobject)->LINKS++;
     }
 
     gtc->STACK_TRACE.CM               = this;
@@ -454,8 +461,8 @@ void ClassMember::DoneThread(GreenThreadCycle *gtc) {
 
         RemoveGCRoot(gtc->PIF, &gtc->STACK_TRACE);
 
-        if ((gtc->refobject) && (((CompiledClass *)gtc->refobject)->LINKS > 1)) {
-            ((CompiledClass *)gtc->refobject)->LINKS--;
+        if ((gtc->refobject) && (((struct CompiledClass *)gtc->refobject)->LINKS > 1)) {
+            ((struct CompiledClass *)gtc->refobject)->LINKS--;
         }
 
         if (gtc->OWNER) {
@@ -477,17 +484,17 @@ bool ClassMember::FastOptimizedExecute(void *PIF, void *ref, ParamList *FORMAL_P
             ((OE2->Operator_ID == KEY_ASG) || (OE2->Operator_ID == KEY_BY_REF)) && (OE1->Result_ID == OE2->OperandLeft_ID) && (OE2->OperandRight_ID == 2)) {
             VariableDATA *sndr = SenderCTX [DELTA_UNREF(FORMAL_PARAM, FORMAL_PARAM->PARAM_INDEX) [0] - 1];
             if (sndr) {
-                int         reloc      = ((CompiledClass *)ref)->_Class->Relocation(OE1->OperandRight_ID - 1);
-                ClassMember *pMEMBER_i = reloc ? ((CompiledClass *)ref)->_Class->pMEMBERS [reloc - 1] : 0;
+                int         reloc      = ((struct CompiledClass *)ref)->_Class->Relocation(OE1->OperandRight_ID - 1);
+                ClassMember *pMEMBER_i = reloc ? ((struct CompiledClass *)ref)->_Class->pMEMBERS [reloc - 1] : 0;
                 if ((pMEMBER_i) && (!pMEMBER_i->IS_FUNCTION) && (pMEMBER_i->Defined_In == this->Defined_In)) {
-                    int          relocation2 = ((CompiledClass *)ref)->_Class->RELOCATIONS2 [reloc - 1] - 1;
-                    VariableDATA *val        = ((CompiledClass *)ref)->_CONTEXT[relocation2];
+                    int          relocation2 = ((struct CompiledClass *)ref)->_Class->RELOCATIONS2 [reloc - 1] - 1;
+                    VariableDATA *val        = ((struct CompiledClass *)ref)->_CONTEXT[relocation2];
                     if (val) {
                         CLASS_CHECK(val);
                     } else {
                         val        = (VariableDATA *)VAR_ALLOC(PIF);
                         val->LINKS = 1;
-                        ((CompiledClass *)ref)->_CONTEXT[relocation2] = val;
+                        ((struct CompiledClass *)ref)->_CONTEXT[relocation2] = val;
                         val->IS_PROPERTY_RESULT = 0;
                     }
                     val->TYPE = sndr->TYPE;
@@ -498,7 +505,7 @@ bool ClassMember::FastOptimizedExecute(void *PIF, void *ref, ParamList *FORMAL_P
 
                         case VARIABLE_STRING:
                             val->CLASS_DATA     = NULL;
-                            CONCEPT_STRING(val) = CONCEPT_STRING(sndr);
+                            CONCEPT_STRING(val, sndr);
                             break;
 
                         case VARIABLE_DELEGATE:
@@ -506,7 +513,7 @@ bool ClassMember::FastOptimizedExecute(void *PIF, void *ref, ParamList *FORMAL_P
 
                         case VARIABLE_CLASS:
                             val->CLASS_DATA = sndr->CLASS_DATA;
-                            ((CompiledClass *)val->CLASS_DATA)->LINKS++;
+                            ((struct CompiledClass *)val->CLASS_DATA)->LINKS++;
                             break;
 
                         case VARIABLE_ARRAY:

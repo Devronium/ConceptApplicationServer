@@ -252,7 +252,7 @@ TinyString::~TinyString(void) {
     DataOffset = 0;
 }
 
-TinyString::operator const char *() {
+TinyString::operator const char *() const {
     return c_str();
 }
 
@@ -387,7 +387,7 @@ TinyString TinyString::operator +(TinyString& S) {
     return ret;
 }
 
-intptr_t TinyString::Length() {
+intptr_t TinyString::Length() const {
     char *Data = 0;
 
     if (DataOffset) {
@@ -433,7 +433,7 @@ void TinyString::LoadBuffer(char *buffer, int size) {
         DataOffset = 0;
 }
 
-int TinyString::Serialize(FILE *out, int type) {
+int TinyString::Serialize(FILE *out, int type) const {
     char *Data = 0;
 
     if (DataOffset) {

@@ -22,7 +22,7 @@ void SetStaticData(void *data);
 #endif
 
 extern "C" {
-typedef int (*NOTIFY_PARENT)(int pipe_out, int apid, int msg_id, int len, char *data);
+typedef int (*NOTIFY_PARENT)(int pipe_out, int apid, int msg_id, int len, const char *data);
 
 // other functions declared here
 CONCEPT_DLL_API SetArguments(int argc, char **argv);

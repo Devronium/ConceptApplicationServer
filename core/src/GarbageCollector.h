@@ -1,18 +1,20 @@
 #ifndef __GARBAGE_COLLECTOR_H
 #define __GARBAGE_COLLECTOR_H
 #include <stdlib.h>
+#include <stdint.h>
 #include "ConceptPools.h"
 #include "Codes.h"
 //#include "semhh.h"
 
-#define USE_MAP_GC
+#define USE_HASHTABLE_GC
 
 // no freing of the memory when the application closes (faster). Comment this if it should free.
 //#define FAST_EXIT_NO_GC_CALL
 typedef void (*foreach_slot)(void *data);
 
-#ifdef USE_MAP_GC
- #include <set>
+#ifdef USE_HASHTABLE_GC
+    #include "khash.h"
+    KHASH_SET_INIT_INT64(int64hashtable);
 #else
 typedef struct _GarbageElement {
     void            *DATA;
@@ -22,8 +24,8 @@ typedef struct _GarbageElement {
 #endif
 
 class GarbageCollector {
-#ifdef USE_MAP_GC
-    std::set<void *> *BASE;
+#ifdef USE_HASHTABLE_GC
+    khash_t (int64hashtable) *BASE;
 #else
     GarbageElement *BASE;
 #endif
@@ -31,12 +33,13 @@ public:
     POOLED(GarbageCollector)
 
     inline void Foreach(foreach_slot fs) {
-#ifdef USE_MAP_GC
+#ifdef USE_HASHTABLE_GC
         if (!BASE)
             return;
-        std::set<void *>::iterator end = BASE->end();
-        for (std::set<void *>::iterator i = BASE->begin(); i != end; ++i)
-            fs(*i);
+        for (khint_t k = kh_begin(BASE); k != kh_end(BASE); ++k) {
+            if (kh_exist(BASE, k))
+                fs((void *)(uintptr_t)kh_key(BASE, k));
+        }
 #else
         GarbageElement *NODE = BASE;
 
@@ -50,9 +53,13 @@ public:
     }
 
     inline bool IsReferenced(void *data) {
-#ifdef USE_MAP_GC
-        if (BASE)
-            return (BASE->find(data) != BASE->end());
+#ifdef USE_HASHTABLE_GC
+        if (BASE) {
+            khiter_t k = kh_get(int64hashtable, BASE, (uintptr_t)data);
+            if ((k != kh_end(BASE)) && (kh_exist(BASE, k)))
+                return true;
+
+        }
         return false;
 #else
         GarbageElement *NODE = BASE;
@@ -67,11 +74,12 @@ public:
     }
 
     inline void Reference(void *data) {
-#ifdef USE_MAP_GC
+#ifdef USE_HASHTABLE_GC
         if (!BASE)
-            BASE = new std::set<void *>();
+            BASE = kh_init(int64hashtable);
 
-        BASE->insert(data);
+        int ret;
+        khiter_t k = kh_put(int64hashtable, BASE, (uintptr_t)data, &ret);
 #else
         if (!IsReferenced(data)) {
             GarbageElement *NODE = (GarbageElement *)malloc(sizeof(GarbageElement));
@@ -86,9 +94,12 @@ public:
     }
 
     inline void *Unreference(void *data) {
-#ifdef USE_MAP_GC
+#ifdef USE_HASHTABLE_GC
         if (BASE) {
-            BASE->erase(data);
+            khiter_t k = kh_get(int64hashtable, BASE, (uintptr_t)data);
+            intptr_t index = 0;
+            if (k != kh_end(BASE))
+                kh_del(int64hashtable, BASE, k);
             return data;
         }
 #else
@@ -122,4 +133,3 @@ public:
     ~GarbageCollector(void);
 };
 #endif //__GARBAGE_COLLECTOR_H
-

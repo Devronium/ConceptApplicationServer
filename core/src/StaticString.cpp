@@ -113,6 +113,12 @@ void StaticString::operator=(StaticString& S) {
     }
 }
 
+void StaticString::operator=(intptr_t i) {
+    char buffer[16];
+    sprintf(buffer, "%li", i);
+    operator=(buffer);
+}
+
 StaticString::~StaticString(void) {
     char *Data = 0;
 

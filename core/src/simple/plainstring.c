@@ -1,9 +1,11 @@
 #include "plainstring.h"
 #include <stdlib.h>
 #include <string.h>
+#define WITH_DTOA
 
 #define breakeven_point    12
 
+static const char *null_string = "";
 #define fast_memcpy(d, s, n)                                                                 \
     { register size_t nn = (size_t)(n);                                                      \
       if (nn >= breakeven_point) { memcpy((d), (s), nn); }                                   \
@@ -13,14 +15,38 @@
 
 #define MEMCPY    fast_memcpy
 
+void cstr_loaddouble(char *buffer, double d) {
+#ifdef WITH_FPCONV
+    buffer[0] = 0;
+    int len = fpconv_dtoa(d, buffer);
+    if (len > 0)
+        buffer[len] = 0;
+#else
+#ifdef WITH_DTOA
+    // 3 times faster
+    buffer[0] = 0;
+    dtoa_milo_c_wrapper(d, buffer);
+#else
+    sprintf(buffer, "%.15g", d);
+    size_t len = strlen(buffer);
+    if (((len > 1) && ((buffer [len - 1] == '.') || (buffer [len - 1] == ',')))) {
+        buffer [--len] = 0;
+    }
+#endif
+#endif
+}
 
 int plainstring_memory_length(const struct plainstring *this_string) {
     return this_string->DATA_SIZE;
 }
 
 void plainstring_init(struct plainstring *str) {
-    if (str)
-        memset(str, 0, sizeof(struct plainstring));
+    if (str) {
+        str->DATA = 0;
+        str->DATA_SIZE = 0;
+        str->LENGTH = 0;
+        str->EXTRA_DATA = 0;
+    }
 }
 
 struct plainstring *plainstring_new(void) {
@@ -79,12 +105,29 @@ struct plainstring *plainstring_new_plainstring(const struct plainstring *ps) {
     return str;
 }
 
-char plainstring_char(const struct plainstring *this_string, uintptr_t index) {
-    if (this_string->DATA) {
-        if (index < this_string->LENGTH)
+char plainstring_char(const struct plainstring *this_string, intptr_t index) {
+    if ((this_string) && (this_string->DATA)) {
+        if ((index >= 0) && (index < this_string->LENGTH))
             return this_string->DATA[index];
     }
     return 0;
+}
+
+void plainstring_char_plainstring(const struct plainstring *this_string, intptr_t index, struct plainstring *ps) {
+    if (!ps)
+        return;
+    if ((this_string) && (this_string->DATA)) {
+        if ((index >= 0) && (index < this_string->LENGTH)) {
+            plainstring_loadbuffer(ps, &this_string->DATA[index], 1);
+            return;
+        }
+    }
+    if (ps->DATA) {
+        free(ps->DATA);
+        ps->DATA = 0;
+        ps->DATA_SIZE = 0;
+        ps->LENGTH = 0;
+    }
 }
 
 int plainstring_equals(const struct plainstring *this_string, const char *str) {
@@ -109,7 +152,12 @@ int plainstring_not_equals_double(const struct plainstring *this_string, double 
 }
 
 int plainstring_equals_plainstring(const struct plainstring *this_string, const struct plainstring *ps) {
-    if (this_string->LENGTH != ps->LENGTH)
+    if ((!this_string) || (!this_string->LENGTH)) {
+        if ((!ps) || (!ps->LENGTH))
+            return 1;
+    }
+
+    if ((!ps) || (this_string->LENGTH != ps->LENGTH))
         return 0;
 
     if (!this_string->LENGTH)
@@ -167,7 +215,7 @@ int plainstring_greater_plainstring(const struct plainstring *this_string, const
     return 0;
 }
 
-int plainstring_greaterqual_plainstring(const struct plainstring *this_string, const struct plainstring *ps) {
+int plainstring_greaterequal_plainstring(const struct plainstring *this_string, const struct plainstring *ps) {
     intptr_t len = ps->LENGTH < this_string->LENGTH ? ps->LENGTH : this_string->LENGTH;
 
     if (len) {
@@ -188,9 +236,9 @@ int plainstring_less(const struct plainstring *this_string, const char *str) {
 
     const char *ref_Data = this_string->DATA;
     if (!str)
-        str = "";
+        str = null_string;
     if (!ref_Data)
-        ref_Data = "";
+        ref_Data = null_string;
 
     return strcmp(ref_Data, str) < 0;
 }
@@ -201,9 +249,9 @@ int plainstring_lessequal(const struct plainstring *this_string, const char *str
 
     const char *ref_Data = this_string->DATA;
     if (!str)
-        str = "";
+        str = null_string;
     if (!ref_Data)
-        ref_Data = "";
+        ref_Data = null_string;
 
     return strcmp(ref_Data, str) <= 0;
 }
@@ -214,24 +262,48 @@ int plainstring_greater(const struct plainstring *this_string, const char *str) 
 
     const char *ref_Data = this_string->DATA;
     if (!str)
-        str = "";
+        str = null_string;
     if (!ref_Data)
-        ref_Data = "";
+        ref_Data = null_string;
 
     return strcmp(ref_Data, str) > 0;
 }
 
-int plainstring_greaterqual(const struct plainstring *this_string, const char *str) {
+int plainstring_greaterequal(const struct plainstring *this_string, const char *str) {
     if ((this_string->DATA) && (str))
         return strcmp(this_string->DATA, str) >= 0;
 
     const char *ref_Data = this_string->DATA;
     if (!str)
-        str = "";
+        str = null_string;
     if (!ref_Data)
-        ref_Data = "";
+        ref_Data = null_string;
 
     return strcmp(ref_Data, str) >= 0;
+}
+
+int plainstring_less_double(const struct plainstring *this_string, double d) {
+    char buffer [MAX_DECIMALS];
+    cstr_loaddouble(buffer, d);
+    return plainstring_less(this_string, buffer);
+}
+
+int plainstring_lessequal_double(const struct plainstring *this_string, double d) {
+    char buffer [MAX_DECIMALS];
+    cstr_loaddouble(buffer, d);
+    return plainstring_lessequal(this_string, buffer);
+}
+
+int plainstring_greater_double(const struct plainstring *this_string, double d) {
+    char buffer [MAX_DECIMALS];
+    cstr_loaddouble(buffer, d);
+    return plainstring_greater(this_string, buffer);
+}
+
+int plainstring_greaterequal_double(const struct plainstring *this_string, double d) {
+    char buffer [MAX_DECIMALS];
+    cstr_loaddouble(buffer, d);
+    return plainstring_greaterequal(this_string, buffer);
 }
 
 void plainstring_set(struct plainstring *this_string, const char *value) {
@@ -260,17 +332,7 @@ void plainstring_set(struct plainstring *this_string, const char *value) {
 
 void plainstring_set_double(struct plainstring *this_string, double d) {
     char buffer [MAX_DECIMALS];
-#ifdef WITH_DTOA
-    // 3 times faster
-    buffer[0] = 0;
-    dtoa_milo(d, buffer);
-#else
-    sprintf(buffer, "%.15g", d);
-    size_t len = strlen(buffer);
-    if (((len > 1) && ((buffer [len - 1] == '.') || (buffer [len - 1] == ',')))) {
-        buffer [len - 1] = 0;
-    }
-#endif
+    cstr_loaddouble(buffer, d);
     plainstring_set(this_string, buffer);
 }
 
@@ -287,13 +349,14 @@ void plainstring_set_long(struct plainstring *this_string, intptr_t i) {
 }
 
 void plainstring_set_char(struct plainstring *this_string, char c) {
-    char buf[2];
-    buf[0] = c;
-    buf[1] = 0;
-    plainstring_set(this_string, buf);
+    plainstring_loadbuffer(this_string, &c, 1);
 }
 
 void plainstring_set_plainstring(struct plainstring *this_string, const struct plainstring *ps) {
+    if (!ps) {
+        plainstring_set(this_string, null_string);
+        return;
+    }
     if (this_string->DATA == ps->DATA)
         return;
 
@@ -357,10 +420,22 @@ void plainstring_add_plainstring(struct plainstring *this_string, const struct p
         plainstring_addbuffer(this_string, ps->DATA, ps->LENGTH);
 }
 
-const char *plainstring_c_str(struct plainstring *this_string) {
+void plainstring_add_double(struct plainstring *this_string, double d) {
+    char buffer [MAX_DECIMALS];
+    cstr_loaddouble(buffer, d);
+    plainstring_add(this_string, buffer);
+}
+
+void plainstring_add_int(struct plainstring *this_string, int value) {
+    char buffer[MAX_DECIMALS];
+    sprintf(buffer, "%i", value);
+    plainstring_add(this_string, buffer);
+}
+
+const char *plainstring_c_str(const struct plainstring *this_string) {
     if (this_string->LENGTH)
         return this_string->DATA;
-    return 0;
+    return null_string;
 }
 
 struct plainstring *plainstring_sum(struct plainstring *this_string, const struct plainstring *other) {
@@ -378,14 +453,14 @@ struct plainstring *plainstring_sum_str(struct plainstring *this_string, const c
 }
 
 intptr_t plainstring_int(const struct plainstring *this_string) {
-    if ((this_string->DATA) && (this_string->LENGTH))
+    if ((this_string) && (this_string->DATA) && (this_string->LENGTH))
         return atol(this_string->DATA);
 
     return 0;
 }
 
 double plainstring_float(const struct plainstring *this_string) {
-    if ((this_string->DATA) && (this_string->LENGTH))
+    if ((this_string) && (this_string->DATA) && (this_string->LENGTH))
         return atof(this_string->DATA);
 
     return 0;
@@ -548,8 +623,8 @@ void plainstring_asg(struct plainstring *this_string, const struct plainstring *
     this_string->DATA[size] = 0;
 }
 
-void plainstring_repalce_char_with_string(struct plainstring *this_string, const struct plainstring *s, intptr_t index) {
-    if ((index < 0) || (index >= this_string->LENGTH))
+void plainstring_replace_char_with_string(struct plainstring *this_string, const struct plainstring *s, intptr_t index) {
+    if ((!this_string) || (!s) || (index < 0) || (index >= this_string->LENGTH))
         return;
 
     int slen = s->LENGTH;
@@ -579,7 +654,7 @@ void plainstring_repalce_char_with_string(struct plainstring *this_string, const
     }
 }
 
-intptr_t plainstring_len(struct plainstring *this_string) {
+intptr_t plainstring_len(const struct plainstring *this_string) {
     return this_string->LENGTH;
 }
 
@@ -593,31 +668,34 @@ intptr_t plainstring_find(const struct plainstring *this_string, const struct pl
     return result;
 }
 
-int plainstring_serialize(const struct plainstring *this_string, FILE *out, int type) {
-    /*unsigned char  uClen = (unsigned char)this_string->LENGTH;
-    unsigned short uSlen = (unsigned short)this_string->LENGTH;
+int plainstring_computesharedsize(struct concept_FILE *infile, int type) {
+    int            len;
+    unsigned char  uClen = 0;
+    unsigned short uSlen = 0;
 
     switch (type) {
         case SERIALIZE_8BIT_LENGTH:
-            concept_fwrite(&uClen, sizeof(uClen), 1, out);
+            FREAD_FAIL(&uClen, sizeof(uClen), 1, infile);
+            len = uClen;
             break;
 
         case SERIALIZE_16BIT_LENGTH:
-            concept_fwrite_int(&uSlen, sizeof(uSlen), 1, out);
+            FREAD_INT_FAIL(&uSlen, sizeof(uSlen), 1, infile);
+            len = uSlen;
             break;
 
         default:
-            concept_fwrite_int(&this_string->LENGTH, sizeof(this_string->LENGTH), 1, out);
+            FREAD_INT_FAIL(&len, sizeof(len), 1, infile);
             break;
     }
-    concept_fwrite_buffer(this_string->DATA, this_string->LENGTH, 1, out);*/
-    return 1;
+    SKIP(len, infile);
+#ifdef ARM_ADJUST_SIZE
+    return ARM_ADJUST_SIZE(len + 1);
+#else
+    return len + 1;
+#endif
 }
 
-/*
-int plainstring_computesharedsize(concept_FILE *in, int type);
-int plainstring_unserialize(struct plainstring *this_string, concept_FILE *out, int type, signed char use_pool);
-*/
 void plainstring_delete(struct plainstring *this_string) {
     plainstring_deinit(this_string);
     free(this_string);

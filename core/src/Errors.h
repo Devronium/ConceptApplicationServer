@@ -137,7 +137,7 @@
 #define ERR1280     "You cannot define a class inside another class ('}' missing ?)"
 #define ERR1290     "')' expected"
 #define ERR1300     "Uncaught exception in green thread"
-#define ERR1310     "Green threads parameters must take no parameters"
+#define ERR1310     "Green thread constructor must take no parameters"
 #define ERR1320     "Unreachable code"
 #define ERR1330     "A string character must be replaced only by a string. Expressions like string[i] = [ ] are illegal."
 #define ERR1340     "Invalid regular expression"

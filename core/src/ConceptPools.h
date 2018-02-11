@@ -4,7 +4,11 @@
 #include <stdio.h>
 #include <stdint.h>
 #include "semhh.h"
-
+#include <new>
+extern "C" {
+    #include "simple/plainstring.h"
+    #include "cacheio.h"
+}
 // #define SIMPLE_MULTI_THREADING
 #define JIT_RUNTIME_CHECKS
 #define OPTIONAL_SEPARATOR
@@ -27,37 +31,6 @@
 #else
  #define POOLED(PCLS)
  #define POOLED_IMPLEMENTATION(PCLS)
-#endif
-
-#define concept_FILE             CachedFILE
-
-struct CachedFILE {
-    FILE *in;
-
-    char sbuf [8192];
-    int  buf_fill;
-    int  buf_pos;
-};
-
-int cached_fread(void *buf, size_t size, size_t len, CachedFILE *in);
-int cached_fseek(CachedFILE *in, intptr_t offset, int origin);
-CachedFILE *cached_fopen(const char *filename, const char *mode);
-int cached_fclose(CachedFILE *in);
-
-#define concept_fread            cached_fread
-#define concept_fread_buffer     cached_fread
-#define concept_fwrite           fwrite
-#define concept_fwrite_buffer    fwrite
-#define concept_fseek            cached_fseek
-#define concept_fopen            cached_fopen
-#define concept_fclose           cached_fclose
-
-#ifdef __BIG_ENDIAN__
-int concept_fwrite_int(const void *ptr, int size, int count, FILE * stream);
-int concept_fread_int(void *buf, size_t size, size_t len, CachedFILE *in);
-#else
-#define concept_fread_int        cached_fread
-#define concept_fwrite_int       fwrite
 #endif
 
 #define POOL_BLOCK_SIZE           127

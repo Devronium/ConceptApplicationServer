@@ -40,7 +40,7 @@ static TinyString DLL_MEMBER = "STATIC_FUNCTION";
 
 #define PROPERTY_CODE(THISREF, PROPERTIES)                                                                                                                                                                                                                                                                      \
     if ((PROPERTIES) && (PROPERTIES [OE->OperandLeft_ID - 1].IS_PROPERTY_RESULT)) {                                                                                                                                                                                                                             \
-        CCTEMP = (CompiledClass *)((VariableDATA *)(PROPERTIES [OE->OperandLeft_ID - 1].CALL_SET))->CLASS_DATA;                                                                                                                                                                                                 \
+        CCTEMP = (struct CompiledClass *)((VariableDATA *)(PROPERTIES [OE->OperandLeft_ID - 1].CALL_SET))->CLASS_DATA;                                                                                                                                                                                                 \
         WRITE_UNLOCK                                                                                                                                                                                                                                                                                            \
         CCTEMP->_Class->SetProperty(PIF, PROPERTIES [OE->OperandLeft_ID - 1].IS_PROPERTY_RESULT - 1, (VariableDATA *)(PROPERTIES [OE->OperandLeft_ID - 1].CALL_SET), OE, CCTEMP->_Class->CLSID == ClassID, OE->Result_ID , LOCAL_CONTEXT, ClassID, THISREF->LocalClassID, &THROW_DATA, STACK_TRACE);            \
         if (THROW_DATA) {                                                                                                                                                                                                                                                                                       \
@@ -55,7 +55,7 @@ static TinyString DLL_MEMBER = "STATIC_FUNCTION";
 
 #define PROPERTY_CODE_IGNORE_RESULT(THISREF, PROPERTIES)                                                                                                                                                                                                                                                        \
     if ((PROPERTIES) && (PROPERTIES [OE->OperandLeft_ID - 1].IS_PROPERTY_RESULT)) {                                                                                                                                                                                                                             \
-        CCTEMP = (CompiledClass *)((VariableDATA *)(PROPERTIES [OE->OperandLeft_ID - 1].CALL_SET))->CLASS_DATA;                                                                                                                                                                                                 \
+        CCTEMP = (struct CompiledClass *)((VariableDATA *)(PROPERTIES [OE->OperandLeft_ID - 1].CALL_SET))->CLASS_DATA;                                                                                                                                                                                                 \
         WRITE_UNLOCK                                                                                                                                                                                                                                                                                            \
         CCTEMP->_Class->SetProperty(PIF, PROPERTIES [OE->OperandLeft_ID - 1].IS_PROPERTY_RESULT - 1, (VariableDATA *)(PROPERTIES [OE->OperandLeft_ID - 1].CALL_SET), OE, CCTEMP->_Class->CLSID == ClassID, OE->OperandLeft_ID , LOCAL_CONTEXT, ClassID, THISREF->LocalClassID, &THROW_DATA, STACK_TRACE);       \
         if (THROW_DATA) {                                                                                                                                                                                                                                                                                       \
@@ -70,7 +70,7 @@ static TinyString DLL_MEMBER = "STATIC_FUNCTION";
 
 #define PROPERTY_CODE_LEFT(THISREF, PROPERTIES)                                                                                                                                                                                                                                                                 \
     if ((PROPERTIES) && (PROPERTIES [OE->OperandLeft_ID - 1].IS_PROPERTY_RESULT)) {                                                                                                                                                                                                                             \
-        CCTEMP = (CompiledClass *)((VariableDATA *)(PROPERTIES [OE->OperandLeft_ID - 1].CALL_SET))->CLASS_DATA;                                                                                                                                                                                                 \
+        CCTEMP = (struct CompiledClass *)((VariableDATA *)(PROPERTIES [OE->OperandLeft_ID - 1].CALL_SET))->CLASS_DATA;                                                                                                                                                                                                 \
         WRITE_UNLOCK                                                                                                                                                                                                                                                                                            \
         CCTEMP->_Class->SetProperty(PIF, PROPERTIES [OE->OperandLeft_ID - 1].IS_PROPERTY_RESULT - 1, (VariableDATA *)(PROPERTIES [OE->OperandLeft_ID - 1].CALL_SET), OE, CCTEMP->_Class->CLSID == ClassID, OE->OperandLeft_ID , LOCAL_CONTEXT, ClassID, THISREF->LocalClassID, &THROW_DATA, STACK_TRACE);       \
         if (THROW_DATA) {                                                                                                                                                                                                                                                                                       \
@@ -85,7 +85,7 @@ static TinyString DLL_MEMBER = "STATIC_FUNCTION";
 //---------------------------------------------------------
 #define TEMP_PROPERTY_CODE(THISREF, PROPERTIES)                                                                                                                                                                                                                                                                 \
     if ((PROPERTIES) && (PROPERTIES [tempOE->OperandLeft_ID - 1].IS_PROPERTY_RESULT)) {                                                                                                                                                                                                                         \
-        CCTEMP = (CompiledClass *)((VariableDATA *)(PROPERTIES [tempOE->OperandLeft_ID - 1].CALL_SET))->CLASS_DATA;                                                                                                                                                                                             \
+        CCTEMP = (struct CompiledClass *)((VariableDATA *)(PROPERTIES [tempOE->OperandLeft_ID - 1].CALL_SET))->CLASS_DATA;                                                                                                                                                                                             \
         WRITE_UNLOCK                                                                                                                                                                                                                                                                                            \
         CCTEMP->_Class->SetProperty(PIF, PROPERTIES [tempOE->OperandLeft_ID - 1].IS_PROPERTY_RESULT - 1, (VariableDATA *)(PROPERTIES [tempOE->OperandLeft_ID - 1].CALL_SET), tempOE, CCTEMP->_Class->CLSID == ClassID, tempOE->OperandLeft_ID , LOCAL_CONTEXT, ClassID, THISREF->LocalClassID, &THROW_DATA, STACK_TRACE); \
         if (THROW_DATA) {                                                                                                                                                                                                                                                                                       \
@@ -99,26 +99,26 @@ static TinyString DLL_MEMBER = "STATIC_FUNCTION";
     }
 //---------------------------------------------------------
 #define UPDATE_STRING_VARIABLE_THAT_HAS_INDEX(THISREF, VARIABLE, PROPERTIES)                                                        \
-    if ((VARIABLE->CLASS_DATA) && (VARIABLE->TYPE == VARIABLE_STRING) && (((AnsiString *)VARIABLE->CLASS_DATA)->EXTRA_DATA)) {      \
-        RuntimeOptimizedElement *tempOE = &OPT->CODE [((AnsiString *)VARIABLE->CLASS_DATA)->EXTRA_DATA - 1];                        \
-        ((AnsiString *)VARIABLE->CLASS_DATA)->EXTRA_DATA = 0;                                                                       \
-        D_LONG_TYPE _def_index = -1;                                                                                                    \
+    if ((VARIABLE->CLASS_DATA) && (VARIABLE->TYPE == VARIABLE_STRING) && (((struct plainstring *)VARIABLE->CLASS_DATA)->EXTRA_DATA)) { \
+        RuntimeOptimizedElement *tempOE = &OPT->CODE [((struct plainstring *)VARIABLE->CLASS_DATA)->EXTRA_DATA - 1];                \
+        ((struct plainstring *)VARIABLE->CLASS_DATA)->EXTRA_DATA = 0;                                                               \
+        D_LONG_TYPE _def_index = -1;                                                                                                \
         if (LOCAL_CONTEXT [tempOE->OperandLeft_ID - 1]->TYPE == VARIABLE_STRING) {                                                  \
             switch (LOCAL_CONTEXT [tempOE->OperandRight_ID - 1]->TYPE) {                                                            \
                 case VARIABLE_NUMBER:                                                                                               \
-                    _def_index = (D_LONG_TYPE)LOCAL_CONTEXT [tempOE->OperandRight_ID - 1]->NUMBER_DATA;                                 \
+                    _def_index = (D_LONG_TYPE)LOCAL_CONTEXT [tempOE->OperandRight_ID - 1]->NUMBER_DATA;                             \
                     break;                                                                                                          \
                 case VARIABLE_STRING:                                                                                               \
-                    _def_index = CONCEPT_STRING(LOCAL_CONTEXT [tempOE->OperandRight_ID - 1]).ToInt();                               \
+                    _def_index = CONCEPT_STRING_INT(LOCAL_CONTEXT [tempOE->OperandRight_ID - 1]);                                   \
                     break;                                                                                                          \
             }                                                                                                                       \
-            CONCEPT_STRING(LOCAL_CONTEXT [tempOE->OperandLeft_ID - 1]).ReplaceCharWithString(CONCEPT_STRING(VARIABLE), _def_index); \
+            CONCEPT_STRING_REPLACE(LOCAL_CONTEXT [tempOE->OperandLeft_ID - 1], VARIABLE, _def_index);                               \
             TEMP_PROPERTY_CODE(THISREF, PROPERTIES)                                                                                 \
         }                                                                                                                           \
     }                                                                                                                               \
 //---------------------------------------------------------
 #define CHECK_IF_STRING_INDEX_VAR(THISREF, VARIABLE)                                                                                \
-    if ((asg_type != VARIABLE_STRING) && (VARIABLE->TYPE == VARIABLE_STRING) && (VARIABLE->CLASS_DATA) && (((AnsiString *)VARIABLE->CLASS_DATA)->EXTRA_DATA)) {      \
+    if ((asg_type != VARIABLE_STRING) && (VARIABLE->TYPE == VARIABLE_STRING) && (VARIABLE->CLASS_DATA) && (((struct plainstring *)VARIABLE->CLASS_DATA)->EXTRA_DATA)) {      \
         Exc = new AnsiException(ERR1330, OE->Operator_DEBUG_INFO_LINE, 1330, OE->OperandRight_PARSE_DATA.c_str(), ((ClassCode *)(THISREF->OWNER->Defined_In))->_DEBUG_INFO_FILENAME, ((ClassCode *)(THISREF->OWNER->Defined_In))->NAME, THISREF->OWNER->NAME); \
         PIF->AcknoledgeRunTimeError(STACK_TRACE, Exc);                                                                              \
         DECLARE_PATH(0x20);                                                                                                         \
@@ -129,8 +129,8 @@ static TinyString DLL_MEMBER = "STATIC_FUNCTION";
 #define CLASS_CHECK_KEEP_EXTRA(VARIABLE)                                                   \
     if ((VARIABLE->CLASS_DATA) && (VARIABLE->TYPE != VARIABLE_STRING)) {                   \
         if ((VARIABLE->TYPE == VARIABLE_CLASS) || (VARIABLE->TYPE == VARIABLE_DELEGATE)) { \
-            if (!--((CompiledClass *)VARIABLE->CLASS_DATA)->LINKS) {                       \
-                delete (CompiledClass *)VARIABLE->CLASS_DATA; }                            \
+            if (!--((struct CompiledClass *)VARIABLE->CLASS_DATA)->LINKS) {                       \
+                delete_CompiledClass((struct CompiledClass *)VARIABLE->CLASS_DATA); }             \
             VARIABLE->TYPE       = VARIABLE_NUMBER;                                        \
             VARIABLE->CLASS_DATA = NULL;                                                   \
         } else                                                                             \
@@ -149,16 +149,16 @@ static TinyString DLL_MEMBER = "STATIC_FUNCTION";
 #define CLASS_CHECK_TS(VARIABLE)                                                               \
         if ((VARIABLE->TYPE != VARIABLE_NUMBER) && (VARIABLE->CLASS_DATA)) {                   \
             if (VARIABLE->TYPE == VARIABLE_STRING) {                                           \
-                delete (AnsiString *)VARIABLE->CLASS_DATA;                                     \
+                plainstring_delete((struct plainstring *)VARIABLE->CLASS_DATA);                \
             } else                                                                             \
             if ((VARIABLE->TYPE == VARIABLE_CLASS) || (VARIABLE->TYPE == VARIABLE_DELEGATE)) { \
-                if (!--((CompiledClass *)VARIABLE->CLASS_DATA)->LINKS) {                       \
+                if (!--((struct CompiledClass *)VARIABLE->CLASS_DATA)->LINKS) {                       \
                     if (PIF->WriteLock.MasterLock) {                                           \
                         WRITE_UNLOCK                                                           \
-                        delete (CompiledClass *)VARIABLE->CLASS_DATA;                          \
+                        delete_CompiledClass((struct CompiledClass *)VARIABLE->CLASS_DATA);           \
                         WRITE_LOCK                                                             \
                     } else                                                                     \
-                        delete (CompiledClass *)VARIABLE->CLASS_DATA;                          \
+                        delete_CompiledClass((struct CompiledClass *)VARIABLE->CLASS_DATA);           \
                 }                                                                              \
             } else                                                                             \
             if (VARIABLE->TYPE == VARIABLE_ARRAY) {                                            \
@@ -199,11 +199,11 @@ void FREE_VARIABLE(VariableDATA *VARIABLE) {
     if (VARIABLE->LINKS < 1) {
         if (VARIABLE->CLASS_DATA) {
             if (VARIABLE->TYPE == VARIABLE_STRING) {
-                delete (AnsiString *)VARIABLE->CLASS_DATA;
+                plainstring_delete((struct plainstring *)VARIABLE->CLASS_DATA);
             } else
             if ((VARIABLE->TYPE == VARIABLE_CLASS) || (VARIABLE->TYPE == VARIABLE_DELEGATE)) {
-                if (!--((CompiledClass *)VARIABLE->CLASS_DATA)->LINKS)
-                    delete (CompiledClass *)VARIABLE->CLASS_DATA;
+                if (!--((struct CompiledClass *)VARIABLE->CLASS_DATA)->LINKS)
+                    delete_CompiledClass((struct CompiledClass *)VARIABLE->CLASS_DATA);
             } else
             if (VARIABLE->TYPE == VARIABLE_ARRAY) {
                 if (!--((Array *)VARIABLE->CLASS_DATA)->LINKS)
@@ -228,19 +228,19 @@ void FREE_VARIABLE(VariableDATA *VARIABLE) {
             LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->NUMBER_DATA OPERATOR LOCAL_CONTEXT [OE->OperandRight_ID - 1]->NUMBER_DATA;                                                                                                                      \
             break;                                                                                                                                                                                                                                                                                   \
         case VARIABLE_STRING:                                                                                                                                                                                                                                                                        \
-            LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->NUMBER_DATA OPERATOR CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandRight_ID - 1]).ToFloat();                                                                                                         \
+            LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->NUMBER_DATA OPERATOR CONCEPT_STRING_FLOAT(LOCAL_CONTEXT [OE->OperandRight_ID - 1]);                                                                                                             \
             break;                                                                                                                                                                                                                                                                                   \
         default:                                                                                                                                                                                                                                                                                     \
             PIF->AcknoledgeRunTimeError(STACK_TRACE, new AnsiException(ERR1204, OE->Operator_DEBUG_INFO_LINE, 1204, OE->OperandRight_PARSE_DATA.c_str(), ((ClassCode *)(THISREF->OWNER->Defined_In))->_DEBUG_INFO_FILENAME, ((ClassCode *)(THISREF->OWNER->Defined_In))->NAME, THISREF->OWNER->NAME)); \
     }                                                                                                                                                                                                                                                                                                \
 
-#define EVAL_NUMBER_EXPRESSION2(THISREF, OPERATOR)                                                                                                                                                                                                                                                    \
+#define EVAL_NUMBER_EXPRESSION2(THISREF, OPERATOR)                                                                                                                                                                                                                                                   \
     switch (LOCAL_CONTEXT [OE->OperandRight_ID - 1]->TYPE) {                                                                                                                                                                                                                                         \
         case VARIABLE_NUMBER:                                                                                                                                                                                                                                                                        \
-            LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->NUMBER_DATA OPERATOR LOCAL_CONTEXT [OE->OperandRight_ID - 1]->NUMBER_DATA;                                                                                                                      \
+            LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->NUMBER_DATA OPERATOR LOCAL_CONTEXT [OE->OperandRight_ID - 1]->NUMBER_DATA;                                                                                                                                                                       \
             break;                                                                                                                                                                                                                                                                                   \
         case VARIABLE_STRING:                                                                                                                                                                                                                                                                        \
-            LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->NUMBER_DATA OPERATOR CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandRight_ID - 1]).ToFloat();                                                                                                         \
+            LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->NUMBER_DATA OPERATOR CONCEPT_STRING_FLOAT(LOCAL_CONTEXT [OE->OperandRight_ID - 1]);                                                                                                                                                              \
             break;                                                                                                                                                                                                                                                                                   \
         default:                                                                                                                                                                                                                                                                                     \
             PIF->AcknoledgeRunTimeError(STACK_TRACE, new AnsiException(ERR1204, OE->Operator_DEBUG_INFO_LINE, 1204, OE->OperandRight_PARSE_DATA.c_str(), ((ClassCode *)(THISREF->OWNER->Defined_In))->_DEBUG_INFO_FILENAME, ((ClassCode *)(THISREF->OWNER->Defined_In))->NAME, THISREF->OWNER->NAME)); \
@@ -252,7 +252,7 @@ void FREE_VARIABLE(VariableDATA *VARIABLE) {
             LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = (unsigned INTEGER)LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->NUMBER_DATA OPERATOR(unsigned INTEGER) LOCAL_CONTEXT [OE->OperandRight_ID - 1]->NUMBER_DATA;                                                                                  \
             break;                                                                                                                                                                                                                                                                                   \
         case VARIABLE_STRING:                                                                                                                                                                                                                                                                        \
-            LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = (unsigned INTEGER)LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->NUMBER_DATA OPERATOR(unsigned INTEGER)(CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandRight_ID - 1]).ToFloat());                                                                    \
+            LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = (unsigned INTEGER)LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->NUMBER_DATA OPERATOR(unsigned INTEGER) CONCEPT_STRING_FLOAT(LOCAL_CONTEXT [OE->OperandRight_ID - 1]);                                                                         \
             break;                                                                                                                                                                                                                                                                                   \
         default:                                                                                                                                                                                                                                                                                     \
             PIF->AcknoledgeRunTimeError(STACK_TRACE, new AnsiException(ERR1204, OE->Operator_DEBUG_INFO_LINE, 1204, OE->OperandRight_PARSE_DATA.c_str(), ((ClassCode *)(THISREF->OWNER->Defined_In))->_DEBUG_INFO_FILENAME, ((ClassCode *)(THISREF->OWNER->Defined_In))->NAME, THISREF->OWNER->NAME)); \
@@ -264,7 +264,7 @@ void FREE_VARIABLE(VariableDATA *VARIABLE) {
             LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->NUMBER_DATA = (unsigned INTEGER)LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->NUMBER_DATA OPERATOR(unsigned INTEGER) LOCAL_CONTEXT [OE->OperandRight_ID - 1]->NUMBER_DATA;                            \
             break;                                                                                                                                                                                                                                                                                   \
         case VARIABLE_STRING:                                                                                                                                                                                                                                                                        \
-            LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->NUMBER_DATA = (unsigned INTEGER)LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->NUMBER_DATA OPERATOR(unsigned INTEGER)(CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandRight_ID - 1]).ToFloat());              \
+            LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->NUMBER_DATA = (unsigned INTEGER)LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->NUMBER_DATA OPERATOR(unsigned INTEGER) CONCEPT_STRING_FLOAT(LOCAL_CONTEXT [OE->OperandRight_ID - 1]);                   \
             break;                                                                                                                                                                                                                                                                                   \
         default:                                                                                                                                                                                                                                                                                     \
             PIF->AcknoledgeRunTimeError(STACK_TRACE, new AnsiException(ERR1204, OE->Operator_DEBUG_INFO_LINE, 1204, OE->OperandRight_PARSE_DATA.c_str(), ((ClassCode *)(THISREF->OWNER->Defined_In))->_DEBUG_INFO_FILENAME, ((ClassCode *)(THISREF->OWNER->Defined_In))->NAME, THISREF->OWNER->NAME)); \
@@ -274,13 +274,13 @@ void FREE_VARIABLE(VariableDATA *VARIABLE) {
     switch (LOCAL_CONTEXT [OE->OperandRight_ID - 1]->TYPE) {                                                                                                                                                                                                                                               \
         case VARIABLE_NUMBER:                                                                                                                                                                                                                                                                              \
             if (!LOCAL_CONTEXT [OE->OperandRight_ID - 1]->NUMBER_DATA)                                                                                                                                                                                                                                     \
-                PIF->AcknoledgeRunTimeError(STACK_TRACE, new AnsiException(ERR260, OE->Operator_DEBUG_INFO_LINE, 260, OE->OperandRight_PARSE_DATA.c_str(), ((ClassCode *)(THISREF->OWNER->Defined_In))->_DEBUG_INFO_FILENAME, ((ClassCode *)(THISREF->OWNER->Defined_In))->NAME, THISREF->OWNER->NAME));     \
+                PIF->AcknoledgeRunTimeError(STACK_TRACE, new AnsiException(ERR260, OE->Operator_DEBUG_INFO_LINE, 260, OE->OperandRight_PARSE_DATA.c_str(), ((ClassCode *)(THISREF->OWNER->Defined_In))->_DEBUG_INFO_FILENAME, ((ClassCode *)(THISREF->OWNER->Defined_In))->NAME, THISREF->OWNER->NAME));   \
             else                                                                                                                                                                                                                                                                                           \
                 LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->NUMBER_DATA OPERATOR LOCAL_CONTEXT [OE->OperandRight_ID - 1]->NUMBER_DATA;                                                                                                                        \
             break;                                                                                                                                                                                                                                                                                         \
         case VARIABLE_STRING:                                                                                                                                                                                                                                                                              \
             {                                                                                                                                                                                                                                                                                              \
-                double dt = (CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandRight_ID - 1]).ToFloat());                                                                                                                                                                                                           \
+                double dt = CONCEPT_STRING_FLOAT(LOCAL_CONTEXT [OE->OperandRight_ID - 1]);                                                                                                                                                                                                                 \
                 if (!dt)                                                                                                                                                                                                                                                                                   \
                     PIF->AcknoledgeRunTimeError(STACK_TRACE, new AnsiException(ERR260, OE->Operator_DEBUG_INFO_LINE, 260, OE->OperandRight_PARSE_DATA.c_str(), ((ClassCode *)(THISREF->OWNER->Defined_In))->_DEBUG_INFO_FILENAME, ((ClassCode *)(THISREF->OWNER->Defined_In))->NAME, THISREF->OWNER->NAME)); \
                 else                                                                                                                                                                                                                                                                                       \
@@ -288,20 +288,20 @@ void FREE_VARIABLE(VariableDATA *VARIABLE) {
             }                                                                                                                                                                                                                                                                                              \
             break;                                                                                                                                                                                                                                                                                         \
         default:                                                                                                                                                                                                                                                                                           \
-            PIF->AcknoledgeRunTimeError(STACK_TRACE, new AnsiException(ERR1204, OE->Operator_DEBUG_INFO_LINE, 1204, OE->OperandRight_PARSE_DATA.c_str(), ((ClassCode *)(THISREF->OWNER->Defined_In))->_DEBUG_INFO_FILENAME, ((ClassCode *)(THISREF->OWNER->Defined_In))->NAME, THISREF->OWNER->NAME));       \
+            PIF->AcknoledgeRunTimeError(STACK_TRACE, new AnsiException(ERR1204, OE->Operator_DEBUG_INFO_LINE, 1204, OE->OperandRight_PARSE_DATA.c_str(), ((ClassCode *)(THISREF->OWNER->Defined_In))->_DEBUG_INFO_FILENAME, ((ClassCode *)(THISREF->OWNER->Defined_In))->NAME, THISREF->OWNER->NAME));     \
     }
 
 #define EVAL_DIVIDE_INTEGER_EXPRESSION(THISREF, OPERATOR)                                                                                                                                                                                                                                                  \
     switch (LOCAL_CONTEXT [OE->OperandRight_ID - 1]->TYPE) {                                                                                                                                                                                                                                               \
         case VARIABLE_NUMBER:                                                                                                                                                                                                                                                                              \
             if (!LOCAL_CONTEXT [OE->OperandRight_ID - 1]->NUMBER_DATA)                                                                                                                                                                                                                                     \
-                PIF->AcknoledgeRunTimeError(STACK_TRACE, new AnsiException(ERR260, OE->Operator_DEBUG_INFO_LINE, 260, OE->OperandRight_PARSE_DATA.c_str(), ((ClassCode *)(THISREF->OWNER->Defined_In))->_DEBUG_INFO_FILENAME, ((ClassCode *)(THISREF->OWNER->Defined_In))->NAME, THISREF->OWNER->NAME));     \
+                PIF->AcknoledgeRunTimeError(STACK_TRACE, new AnsiException(ERR260, OE->Operator_DEBUG_INFO_LINE, 260, OE->OperandRight_PARSE_DATA.c_str(), ((ClassCode *)(THISREF->OWNER->Defined_In))->_DEBUG_INFO_FILENAME, ((ClassCode *)(THISREF->OWNER->Defined_In))->NAME, THISREF->OWNER->NAME));    \
             else                                                                                                                                                                                                                                                                                           \
                 LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = (INTEGER)LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->NUMBER_DATA OPERATOR(INTEGER) LOCAL_CONTEXT [OE->OperandRight_ID - 1]->NUMBER_DATA;                                                                                                      \
             break;                                                                                                                                                                                                                                                                                         \
         case VARIABLE_STRING:                                                                                                                                                                                                                                                                              \
             {                                                                                                                                                                                                                                                                                              \
-                INTEGER dt = (INTEGER)(CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandRight_ID - 1]).ToFloat());                                                                                                                                                                                                 \
+                INTEGER dt = (INTEGER) CONCEPT_STRING_INT(LOCAL_CONTEXT [OE->OperandRight_ID - 1]);                                                                                                                                                                                                        \
                 if (!dt)                                                                                                                                                                                                                                                                                   \
                     PIF->AcknoledgeRunTimeError(STACK_TRACE, new AnsiException(ERR260, OE->Operator_DEBUG_INFO_LINE, 260, OE->OperandRight_PARSE_DATA.c_str(), ((ClassCode *)(THISREF->OWNER->Defined_In))->_DEBUG_INFO_FILENAME, ((ClassCode *)(THISREF->OWNER->Defined_In))->NAME, THISREF->OWNER->NAME)); \
                 else                                                                                                                                                                                                                                                                                       \
@@ -309,20 +309,20 @@ void FREE_VARIABLE(VariableDATA *VARIABLE) {
             }                                                                                                                                                                                                                                                                                              \
             break;                                                                                                                                                                                                                                                                                         \
         default:                                                                                                                                                                                                                                                                                           \
-            PIF->AcknoledgeRunTimeError(STACK_TRACE, new AnsiException(ERR1204, OE->Operator_DEBUG_INFO_LINE, 1204, OE->OperandRight_PARSE_DATA.c_str(), ((ClassCode *)(THISREF->OWNER->Defined_In))->_DEBUG_INFO_FILENAME, ((ClassCode *)(THISREF->OWNER->Defined_In))->NAME, THISREF->OWNER->NAME));       \
+            PIF->AcknoledgeRunTimeError(STACK_TRACE, new AnsiException(ERR1204, OE->Operator_DEBUG_INFO_LINE, 1204, OE->OperandRight_PARSE_DATA.c_str(), ((ClassCode *)(THISREF->OWNER->Defined_In))->_DEBUG_INFO_FILENAME, ((ClassCode *)(THISREF->OWNER->Defined_In))->NAME, THISREF->OWNER->NAME));     \
     }
 
 #define EVAL_ASG_INTEGER_DIVIDE_EXPRESSION(THISREF, OPERATOR)                                                                                                                                                                                                                                              \
     switch (LOCAL_CONTEXT [OE->OperandRight_ID - 1]->TYPE) {                                                                                                                                                                                                                                               \
         case VARIABLE_NUMBER:                                                                                                                                                                                                                                                                              \
             if (!LOCAL_CONTEXT [OE->OperandRight_ID - 1]->NUMBER_DATA)                                                                                                                                                                                                                                     \
-                PIF->AcknoledgeRunTimeError(STACK_TRACE, new AnsiException(ERR260, OE->Operator_DEBUG_INFO_LINE, 260, OE->OperandRight_PARSE_DATA.c_str(), ((ClassCode *)(THISREF->OWNER->Defined_In))->_DEBUG_INFO_FILENAME, ((ClassCode *)(THISREF->OWNER->Defined_In))->NAME, THISREF->OWNER->NAME));     \
+                PIF->AcknoledgeRunTimeError(STACK_TRACE, new AnsiException(ERR260, OE->Operator_DEBUG_INFO_LINE, 260, OE->OperandRight_PARSE_DATA.c_str(), ((ClassCode *)(THISREF->OWNER->Defined_In))->_DEBUG_INFO_FILENAME, ((ClassCode *)(THISREF->OWNER->Defined_In))->NAME, THISREF->OWNER->NAME));   \
             else                                                                                                                                                                                                                                                                                           \
                 LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->NUMBER_DATA = (INTEGER)LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->NUMBER_DATA OPERATOR(INTEGER) LOCAL_CONTEXT [OE->OperandRight_ID - 1]->NUMBER_DATA;                                                \
             break;                                                                                                                                                                                                                                                                                         \
         case VARIABLE_STRING:                                                                                                                                                                                                                                                                              \
             {                                                                                                                                                                                                                                                                                              \
-                INTEGER dt = (INTEGER)(CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandRight_ID - 1]).ToFloat());                                                                                                                                                                                                 \
+                INTEGER dt = (INTEGER)CONCEPT_STRING_INT(LOCAL_CONTEXT [OE->OperandRight_ID - 1]);                                                                                                                                                                                                         \
                 if (!dt)                                                                                                                                                                                                                                                                                   \
                     PIF->AcknoledgeRunTimeError(STACK_TRACE, new AnsiException(ERR260, OE->Operator_DEBUG_INFO_LINE, 260, OE->OperandRight_PARSE_DATA.c_str(), ((ClassCode *)(THISREF->OWNER->Defined_In))->_DEBUG_INFO_FILENAME, ((ClassCode *)(THISREF->OWNER->Defined_In))->NAME, THISREF->OWNER->NAME)); \
                 else                                                                                                                                                                                                                                                                                       \
@@ -439,7 +439,7 @@ static sljit_sw SLJIT_CALL ArrayDataCopyVD(VariableDATA *idx, VariableDATA *arr,
             switch (data->TYPE) {
                 case VARIABLE_STRING:
                     RESET_VARIABLE(result);
-                    if ((data->CLASS_DATA) && (((AnsiString *)data->CLASS_DATA)->Length()))
+                    if ((data->CLASS_DATA) && (CONCEPT_C_LENGTH(data)))
                         result->NUMBER_DATA = 1;
                     else
                         result->NUMBER_DATA = 0;
@@ -497,7 +497,7 @@ static sljit_sw SLJIT_CALL ArrayDataVDIF(VariableDATA *idx, VariableDATA *arr) {
             return data->NUMBER_DATA ? 1 : 0;
         } else
         if (type == VARIABLE_STRING) {
-            if ((data->CLASS_DATA) && (((AnsiString *)data->CLASS_DATA)->Length()))
+            if ((data->CLASS_DATA) && (CONCEPT_C_LENGTH(data)))
                 res = 1;
             return res;
         } else
@@ -529,7 +529,7 @@ static sljit_sw SLJIT_CALL iArrayDataVDIF(sljit_sw index, VariableDATA *arr) {
             return data->NUMBER_DATA ? 1 : 0;
         } else
         if (type == VARIABLE_STRING) {
-            if ((data->CLASS_DATA) && (((AnsiString *)data->CLASS_DATA)->Length()))
+            if ((data->CLASS_DATA) && (CONCEPT_C_LENGTH(data)))
                 res = 1;
             return res;
         } else
@@ -703,7 +703,7 @@ static sljit_sw SLJIT_CALL LengthVD(VariableDATA *target, VariableDATA *result) 
         case VARIABLE_STRING:
             if (target->CLASS_DATA) {
                 RESET_VARIABLE(result);
-                result->NUMBER_DATA = ((AnsiString *)target->CLASS_DATA)->Length();
+                result->NUMBER_DATA = (CONCEPT_C_LENGTH(target));
                 return 1;
             } else {
                 RESET_VARIABLE(result)
@@ -741,7 +741,7 @@ static int JITRuntimeError(VariableDATA *var, const char *err, int code) {
             TinyString def("JIT");
             PIF->AcknoledgeRunTimeError(STACK_TRACE, new AnsiException(err, STACK_TRACE->line, code, "", CM ? ((ClassCode *)CM->GetClass())->GetFilename(PIF, ((ClassCode *)CM->GetClass())->GetCLSID(), &def)->c_str() : "", CM ? ((ClassCode *)CM->GetClass())->GetName() : "", CM ? CM->GetName() : ""));
         } else
-            PIF->AcknoledgeRunTimeError(STACK_TRACE, new AnsiException(err, 0, code, 0, "JIT"));
+            PIF->AcknoledgeRunTimeError(STACK_TRACE, new AnsiException(err, 0, code, "", "JIT"));
         return 1;
     }
     return 0;
@@ -2691,13 +2691,13 @@ int ConceptInterpreter::StacklessInterpret(PIFAlizator *PIF, GreenThreadCycle *G
 
                                     LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA = LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA = LOCAL_CONTEXT [OE->OperandRight_ID - 1]->CLASS_DATA;
                                     if (asg_type == VARIABLE_CLASS) {
-                                        ((CompiledClass *)LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA)->LINKS += 2 + delta;
+                                        ((struct CompiledClass *)LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA)->LINKS += 2 + delta;
                                     } else {
                                         ((Array *)LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA)->LINKS += 2 + delta;
                                     }
                                     LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE = LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->TYPE = LOCAL_CONTEXT [OE->OperandRight_ID - 1]->TYPE;
                                     if ((TARGET_THREAD->PROPERTIES) && (TARGET_THREAD->PROPERTIES [OE->OperandLeft_ID - 1].IS_PROPERTY_RESULT)) {
-                                        CCTEMP = (CompiledClass *)((VariableDATA *)(TARGET_THREAD->PROPERTIES [OE->OperandLeft_ID - 1].CALL_SET))->CLASS_DATA;
+                                        CCTEMP = (struct CompiledClass *)((VariableDATA *)(TARGET_THREAD->PROPERTIES [OE->OperandLeft_ID - 1].CALL_SET))->CLASS_DATA;
                                         WRITE_UNLOCK
                                         CCTEMP->_Class->SetProperty(PIF, TARGET_THREAD->PROPERTIES [OE->OperandLeft_ID - 1].IS_PROPERTY_RESULT - 1, (VariableDATA *)(TARGET_THREAD->PROPERTIES [OE->OperandLeft_ID - 1].CALL_SET), OE, CCTEMP->_Class->CLSID == ClassID, OE->Result_ID - 1, LOCAL_CONTEXT, ClassID, THIS_REF->LocalClassID, &THROW_DATA, STACK_TRACE);
                                         if (THROW_DATA) {
@@ -2714,7 +2714,7 @@ int ConceptInterpreter::StacklessInterpret(PIFAlizator *PIF, GreenThreadCycle *G
                                 }
                             } else {
                                 //---------------------------------------------------
-                                CCTEMP = (CompiledClass *)LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA;
+                                CCTEMP = (struct CompiledClass *)LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA;
                                 ////////////////////////////////////////////////////////////
                                 // pushed_type = LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE;
                                 ////////////////////////////////////////////////////////////
@@ -2746,7 +2746,7 @@ int ConceptInterpreter::StacklessInterpret(PIFAlizator *PIF, GreenThreadCycle *G
                             DECLARE_PATH(0x20);
                             continue;
                         }
-                        CCTEMP = (CompiledClass *)LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA;
+                        CCTEMP = (struct CompiledClass *)LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA;
 
                         if (OE->OperandReserved_ID) {
                             FORMAL_PARAMETERS = &OPT->PARAMS [OE->OperandReserved_ID - 1];
@@ -2822,7 +2822,7 @@ int ConceptInterpreter::StacklessInterpret(PIFAlizator *PIF, GreenThreadCycle *G
 
                     case KEY_NEW:
                         //SMART_LOCK(LOCAL_CONTEXT [OE->Result_ID - 1]);
-                        CLASS_CHECK_RESULT(LOCAL_CONTEXT [OE->Result_ID - 1]);
+                        CLASS_CHECK(LOCAL_CONTEXT [OE->Result_ID - 1]);
                         if (OE->OperandLeft_ID == STATIC_CLASS_ARRAY) {
                             LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE       = VARIABLE_NUMBER;
                             LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA = new(AllocArray(PIF))Array(PIF);
@@ -2867,7 +2867,7 @@ int ConceptInterpreter::StacklessInterpret(PIFAlizator *PIF, GreenThreadCycle *G
                                 DECLARE_PATH(0x20);
                                 continue;
                             }
-                            CCTEMP                     = (CompiledClass *)LOCAL_CONTEXT [OE->OperandRight_ID - 1]->CLASS_DATA;
+                            CCTEMP                     = (struct CompiledClass *)LOCAL_CONTEXT [OE->OperandRight_ID - 1]->CLASS_DATA;
                             lOwner                     = (VariableDATA *)VAR_ALLOC(PIF);
                             lOwner->CLASS_DATA         = CCTEMP;
                             lOwner->IS_PROPERTY_RESULT = 0;
@@ -2948,7 +2948,7 @@ int ConceptInterpreter::StacklessInterpret(PIFAlizator *PIF, GreenThreadCycle *G
                                         THROW_DATA->LINKS              = 1;
                                         THROW_DATA->IS_PROPERTY_RESULT = 0;
 
-                                        CONCEPT_STRING(THROW_DATA) = STATIC_ERROR;
+                                        CONCEPT_STRING_SET_CSTR(THROW_DATA, STATIC_ERROR);
 
                                         FREE_VARIABLE(LOCAL_CONTEXT [CATCH_VARIABLE - 1]);
                                         LOCAL_CONTEXT [CATCH_VARIABLE - 1] = THROW_DATA;
@@ -2968,7 +2968,7 @@ int ConceptInterpreter::StacklessInterpret(PIFAlizator *PIF, GreenThreadCycle *G
                                     }
                                 } else {
                                     DECLARE_PATH(0x20);
-                                    Exc = new AnsiException(ERR700, OE->Operator_DEBUG_INFO_LINE, 700, AnsiString(OE->OperandRight_PARSE_DATA.c_str()) + AnsiString(": ") + AnsiString(STATIC_ERROR), ((ClassCode *)(THIS_REF->OWNER->Defined_In))->_DEBUG_INFO_FILENAME, ((ClassCode *)(THIS_REF->OWNER->Defined_In))->NAME, THIS_REF->OWNER->NAME);
+                                    Exc = new AnsiException(700, ERR700, OE->Operator_DEBUG_INFO_LINE, OE->OperandRight_PARSE_DATA.c_str(), ": ", STATIC_ERROR, ((ClassCode *)(THIS_REF->OWNER->Defined_In))->_DEBUG_INFO_FILENAME, ((ClassCode *)(THIS_REF->OWNER->Defined_In))->NAME, THIS_REF->OWNER->NAME);
                                     PIF->AcknoledgeRunTimeError(STACK_TRACE, Exc);
                                     RESET_VARIABLE(LOCAL_CONTEXT [OE->Result_ID - 1]);
                                     LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = 0;
@@ -3076,7 +3076,7 @@ int ConceptInterpreter::StacklessInterpret(PIFAlizator *PIF, GreenThreadCycle *G
                                         RETURN_DATA = ((Array *)LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA)->Get(LOCAL_CONTEXT [OE->OperandRight_ID - 1]);
                                         if (!RETURN_DATA) {
                                             DECLARE_PATH(0x20);
-                                            Exc = new AnsiException(ERR1110, OE->Operator_DEBUG_INFO_LINE, 1110, AnsiString(LOCAL_CONTEXT [OE->OperandRight_ID - 1]->NUMBER_DATA), ((ClassCode *)(THIS_REF->OWNER->Defined_In))->_DEBUG_INFO_FILENAME, ((ClassCode *)(THIS_REF->OWNER->Defined_In))->NAME, THIS_REF->OWNER->NAME);
+                                            Exc = new AnsiException(ERR1110, OE->Operator_DEBUG_INFO_LINE, 1110, LOCAL_CONTEXT [OE->OperandRight_ID - 1]->NUMBER_DATA, ((ClassCode *)(THIS_REF->OWNER->Defined_In))->_DEBUG_INFO_FILENAME, ((ClassCode *)(THIS_REF->OWNER->Defined_In))->NAME, THIS_REF->OWNER->NAME);
                                             PIF->AcknoledgeRunTimeError(STACK_TRACE, Exc);
                                             LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE = VARIABLE_NUMBER;
                                             continue;
@@ -3185,7 +3185,7 @@ int ConceptInterpreter::StacklessInterpret(PIFAlizator *PIF, GreenThreadCycle *G
                                 continue;
 
                             case VARIABLE_STRING:
-                                if (!CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandRight_ID - 1]).Length()) {
+                                if (!CONCEPT_C_LENGTH(LOCAL_CONTEXT [OE->OperandRight_ID - 1])) {
                                     if ((OE->OperandReserved_ID < INSTRUCTION_POINTER) && (TARGET_THREAD != TARGET_THREAD->NEXT)) {
                                         DO_EXECUTE  = 0;
                                         PREC_THREAD = TARGET_THREAD;
@@ -3236,7 +3236,7 @@ int ConceptInterpreter::StacklessInterpret(PIFAlizator *PIF, GreenThreadCycle *G
                             WRITE_LOCK
                             switch (LOCAL_CONTEXT [OE->OperandRight_ID - 1]->TYPE) {
                                 case VARIABLE_STRING:
-                                    PIF->out->Print(CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandRight_ID - 1]), CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandRight_ID - 1]).Length());
+                                    PIF->out->Print(CONCEPT_C_STRING(LOCAL_CONTEXT [OE->OperandRight_ID - 1]), CONCEPT_C_LENGTH(LOCAL_CONTEXT [OE->OperandRight_ID - 1]));
                                     break;
 
                                 case VARIABLE_NUMBER:
@@ -3244,19 +3244,22 @@ int ConceptInterpreter::StacklessInterpret(PIFAlizator *PIF, GreenThreadCycle *G
                                     break;
 
                                 case VARIABLE_CLASS:
-                                    CCTEMP = (CompiledClass *)LOCAL_CONTEXT [OE->OperandRight_ID - 1]->CLASS_DATA;
+                                    CCTEMP = (struct CompiledClass *)LOCAL_CONTEXT [OE->OperandRight_ID - 1]->CLASS_DATA;
                                     PIF->out->Print(CCTEMP->_Class->NAME);
                                     break;
 
                                 case VARIABLE_ARRAY:
                                     {
-                                        AnsiString temp(((Array *)LOCAL_CONTEXT [OE->OperandRight_ID - 1]->CLASS_DATA)->ToString());
-                                        PIF->out->Print2(temp);
+                                        struct plainstring *temp = ((Array *)LOCAL_CONTEXT [OE->OperandRight_ID - 1]->CLASS_DATA)->ToString();
+                                        if (temp) {
+                                            PIF->out->Print(plainstring_c_str(temp), plainstring_len(temp));
+                                            plainstring_delete(temp);
+                                        }
                                     }
                                     break;
 
                                 case VARIABLE_DELEGATE:
-                                    CCTEMP = (CompiledClass *)LOCAL_CONTEXT [OE->OperandRight_ID - 1]->CLASS_DATA;
+                                    CCTEMP = (struct CompiledClass *)LOCAL_CONTEXT [OE->OperandRight_ID - 1]->CLASS_DATA;
                                     PIF->out->Print(CCTEMP->_Class->NAME);
                                     PIF->out->Print("::");
                                     PIF->out->Print(CCTEMP->_Class->pMEMBERS [(INTEGER)LOCAL_CONTEXT [OE->OperandRight_ID - 1]->NUMBER_DATA - 1]->NAME);
@@ -3409,20 +3412,20 @@ int ConceptInterpreter::EvalClassExpression(PIFAlizator *PIF, VariableDATA **LOC
                 CLASS_CHECK_TS(LOCAL_CONTEXT [OE->OperandLeft_ID - 1])
             } else {
                 if (LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA == LOCAL_CONTEXT [OE->OperandRight_ID - 1]->CLASS_DATA) {
-                    ((CompiledClass *)LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA)->LINKS -= 2;
+                    ((struct CompiledClass *)LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA)->LINKS -= 2;
                 } else {
                     // CLASS_CHECK_RESET(LOCAL_CONTEXT [OE->Result_ID - 1], pushed_type);
-                    ((CompiledClass *)LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA)->LINKS -= 1;
+                    ((struct CompiledClass *)LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA)->LINKS -= 1;
                 }
             }
             //---------------------------//
 
             LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA = LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA = LOCAL_CONTEXT [OE->OperandRight_ID - 1]->CLASS_DATA;
-            ((CompiledClass *)LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA)->LINKS += 2;
+            ((struct CompiledClass *)LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA)->LINKS += 2;
 
             LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->TYPE = VARIABLE_CLASS;
             if ((PROPERTIES) && (PROPERTIES [OE->OperandLeft_ID - 1].IS_PROPERTY_RESULT)) {
-                CCTEMP = (CompiledClass *)((VariableDATA *)(PROPERTIES [OE->OperandLeft_ID - 1].CALL_SET))->CLASS_DATA;
+                CCTEMP = (struct CompiledClass *)((VariableDATA *)(PROPERTIES [OE->OperandLeft_ID - 1].CALL_SET))->CLASS_DATA;
                 WRITE_UNLOCK
                 CCTEMP->_Class->SetProperty(PIF, PROPERTIES [OE->OperandLeft_ID - 1].IS_PROPERTY_RESULT - 1, (VariableDATA *)(PROPERTIES [OE->OperandLeft_ID - 1].CALL_SET), OE, CCTEMP->_Class->CLSID == ClassID, OE->Result_ID - 1, LOCAL_CONTEXT, ClassID, LocalClassID, &THROW_DATA, STACK_TRACE);
                 if (THROW_DATA)
@@ -3484,7 +3487,7 @@ int ConceptInterpreter::EvalClassExpression(PIFAlizator *PIF, VariableDATA **LOC
             break;
 
         case KEY_EQU:
-            CCTEMP = (CompiledClass *)LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA;
+            CCTEMP = (struct CompiledClass *)LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA;
             if (!CCTEMP->_Class->Relocation(DEF_EQU)) {
                 //SMART_LOCK(LOCAL_CONTEXT [OE->Result_ID - 1])
                 // CLASS_CHECK_RESET(LOCAL_CONTEXT [OE->Result_ID - 1], pushed_type)
@@ -3506,7 +3509,7 @@ int ConceptInterpreter::EvalClassExpression(PIFAlizator *PIF, VariableDATA **LOC
             break;
 
         case KEY_NEQ:
-            CCTEMP = (CompiledClass *)LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA;
+            CCTEMP = (struct CompiledClass *)LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA;
             if (!CCTEMP->_Class->Relocation(DEF_NEQ)) {
                 //SMART_LOCK(LOCAL_CONTEXT [OE->Result_ID - 1])
                 // CLASS_CHECK_RESET(LOCAL_CONTEXT [OE->Result_ID - 1], pushed_type)
@@ -3540,7 +3543,7 @@ int ConceptInterpreter::EvalClassExpression(PIFAlizator *PIF, VariableDATA **LOC
             break;
 
         case KEY_BAN:
-            CCTEMP = (CompiledClass *)LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA;
+            CCTEMP = (struct CompiledClass *)LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA;
             if (!CCTEMP->_Class->Relocation(DEF_BAN)) {
                 //SMART_LOCK(LOCAL_CONTEXT [OE->Result_ID - 1])
                 // CLASS_CHECK_RESET(LOCAL_CONTEXT [OE->Result_ID - 1], pushed_type)
@@ -3551,7 +3554,7 @@ int ConceptInterpreter::EvalClassExpression(PIFAlizator *PIF, VariableDATA **LOC
                         break;
 
                     case VARIABLE_STRING:
-                        LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandRight_ID - 1]).Length() != 0;
+                        LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = CONCEPT_C_LENGTH(LOCAL_CONTEXT [OE->OperandRight_ID - 1]) != 0;
                         LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
                         break;
 
@@ -3574,7 +3577,7 @@ int ConceptInterpreter::EvalClassExpression(PIFAlizator *PIF, VariableDATA **LOC
             break;
 
         case KEY_BOR:
-            CCTEMP = (CompiledClass *)LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA;
+            CCTEMP = (struct CompiledClass *)LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA;
             if (!CCTEMP->_Class->Relocation(DEF_BOR)) {
                 //SMART_LOCK(LOCAL_CONTEXT [OE->Result_ID - 1])
                 // CLASS_CHECK_RESET(LOCAL_CONTEXT [OE->Result_ID - 1], pushed_type)
@@ -3628,7 +3631,7 @@ int ConceptInterpreter::EvalClassExpression(PIFAlizator *PIF, VariableDATA **LOC
 
         // unari !
         case KEY_NOT:
-            CCTEMP = (CompiledClass *)LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA;
+            CCTEMP = (struct CompiledClass *)LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA;
             if (!CCTEMP->_Class->Relocation(DEF_NOT)) {
                 //SMART_LOCK(LOCAL_CONTEXT [OE->Result_ID - 1])
                 // CLASS_CHECK_RESET(LOCAL_CONTEXT [OE->Result_ID - 1], pushed_type)
@@ -3664,7 +3667,7 @@ int ConceptInterpreter::EvalClassExpression(PIFAlizator *PIF, VariableDATA **LOC
             // CLASS_CHECK_RESET(LOCAL_CONTEXT [OE->Result_ID - 1], pushed_type)
             //---------------------------//
             LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA = LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA;
-            ((CompiledClass *)LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA)->LINKS++;
+            ((struct CompiledClass *)LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA)->LINKS++;
             DECLARE_PATH(VARIABLE_CLASS);
             return 1;
 
@@ -3690,7 +3693,7 @@ int ConceptInterpreter::EvalClassExpression(PIFAlizator *PIF, VariableDATA **LOC
     } else {
         OPERATOR_PARAM.COUNT = 0;
     }
-    CCTEMP = (CompiledClass *)LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA;
+    CCTEMP = (struct CompiledClass *)LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA;
     WRITE_UNLOCK
     RESULT = CCTEMP->_Class->ExecuteMember(PIF, OPERATOR_ID, LOCAL_CONTEXT [OE->OperandLeft_ID - 1], OE, CCTEMP->_Class->CLSID == ClassID, &OPERATOR_PARAM, LOCAL_CONTEXT, 0, ClassID, LocalClassID, &THROW_DATA, STACK_TRACE);
     WRITE_LOCK
@@ -3756,7 +3759,7 @@ int ConceptInterpreter::EvalArrayExpression(PIFAlizator *PIF, VariableDATA **LOC
             ((Array *)LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA)->LINKS += 2;
             LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->TYPE = VARIABLE_ARRAY;
             if ((PROPERTIES) && (PROPERTIES [OE->OperandLeft_ID - 1].IS_PROPERTY_RESULT)) {
-                CCTEMP = (CompiledClass *)((VariableDATA *)(PROPERTIES [OE->OperandLeft_ID - 1].CALL_SET))->CLASS_DATA;
+                CCTEMP = (struct CompiledClass *)((VariableDATA *)(PROPERTIES [OE->OperandLeft_ID - 1].CALL_SET))->CLASS_DATA;
                 WRITE_UNLOCK
                 CCTEMP->_Class->SetProperty(PIF, PROPERTIES [OE->OperandLeft_ID - 1].IS_PROPERTY_RESULT - 1, (VariableDATA *)(PROPERTIES [OE->OperandLeft_ID - 1].CALL_SET), OE, CCTEMP->_Class->CLSID == ClassID, OE->Result_ID - 1, LOCAL_CONTEXT, ClassID, LocalClassID, &THROW_DATA, STACK_TRACE);
                 if (THROW_DATA)
@@ -3868,7 +3871,7 @@ int ConceptInterpreter::EvalArrayExpression(PIFAlizator *PIF, VariableDATA **LOC
                     break;
 
                 case VARIABLE_STRING:
-                    LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = ((Array *)LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA)->Count() && CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandRight_ID - 1]).Length();
+                    LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = ((Array *)LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA)->Count() && CONCEPT_C_LENGTH(LOCAL_CONTEXT [OE->OperandRight_ID - 1]);
                     LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
                     break;
 
@@ -3896,7 +3899,7 @@ int ConceptInterpreter::EvalArrayExpression(PIFAlizator *PIF, VariableDATA **LOC
                     break;
 
                 case VARIABLE_STRING:
-                    LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = ((Array *)LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA)->Count() || CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandRight_ID - 1]).Length();
+                    LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = ((Array *)LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA)->Count() || CONCEPT_C_LENGTH(LOCAL_CONTEXT [OE->OperandRight_ID - 1]);
                     LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
                     break;
 
@@ -3946,7 +3949,7 @@ int ConceptInterpreter::EvalArrayExpression(PIFAlizator *PIF, VariableDATA **LOC
                     break;
 
                 case VARIABLE_STRING:
-                    NEW_CONCEPT_STRING(LOCAL_CONTEXT [OE->Result_ID - 1]) = CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandRight_ID - 1]);
+                    NEW_CONCEPT_STRING2(LOCAL_CONTEXT [OE->Result_ID - 1], LOCAL_CONTEXT [OE->OperandRight_ID - 1]);
                     LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE           = VARIABLE_STRING;
                     DECLARE_PATH(VARIABLE_STRING);
                     break;
@@ -3957,7 +3960,7 @@ int ConceptInterpreter::EvalArrayExpression(PIFAlizator *PIF, VariableDATA **LOC
                 case VARIABLE_CLASS:
                     LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA = LOCAL_CONTEXT [OE->OperandRight_ID - 1]->CLASS_DATA;
                     LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE       = LOCAL_CONTEXT [OE->OperandRight_ID - 1]->TYPE;
-                    ((CompiledClass *)LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA)->LINKS++;
+                    ((struct CompiledClass *)LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA)->LINKS++;
                     DECLARE_PATH(LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE);
                     break;
 
@@ -4001,13 +4004,13 @@ int ConceptInterpreter::EvalDelegateExpression(PIFAlizator *PIF, VariableDATA **
                 //SMART_LOCK(LOCAL_CONTEXT [OE->OperandLeft_ID - 1])
                 CLASS_CHECK(LOCAL_CONTEXT [OE->OperandLeft_ID - 1])
             } else {
-                ((CompiledClass *)LOCAL_CONTEXT [OE->OperandRight_ID - 1]->CLASS_DATA)->LINKS -= 1;
+                ((struct CompiledClass *)LOCAL_CONTEXT [OE->OperandRight_ID - 1]->CLASS_DATA)->LINKS -= 1;
             }
 
             // ------------------- //
             LOCAL_CONTEXT [OE->Result_ID - 1]->DELEGATE_DATA = LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->DELEGATE_DATA = LOCAL_CONTEXT [OE->OperandRight_ID - 1]->DELEGATE_DATA;
             LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA    = LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA = LOCAL_CONTEXT [OE->OperandRight_ID - 1]->CLASS_DATA;
-            ((CompiledClass *)LOCAL_CONTEXT [OE->OperandRight_ID - 1]->CLASS_DATA)->LINKS += 2;
+            ((struct CompiledClass *)LOCAL_CONTEXT [OE->OperandRight_ID - 1]->CLASS_DATA)->LINKS += 2;
             LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->TYPE = VARIABLE_DELEGATE;
             //----------------//
             PROPERTY_CODE(this, PROPERTIES)
@@ -4049,7 +4052,7 @@ int ConceptInterpreter::EvalDelegateExpression(PIFAlizator *PIF, VariableDATA **
                     break;
 
                 case VARIABLE_STRING:
-                    LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = (CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandRight_ID - 1]).Length() != 0);
+                    LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = (CONCEPT_C_LENGTH(LOCAL_CONTEXT [OE->OperandRight_ID - 1]) != 0);
                     LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
                     break;
 
@@ -4102,7 +4105,7 @@ int ConceptInterpreter::EvalDelegateExpression(PIFAlizator *PIF, VariableDATA **
             //---------------------------//
             LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA  = LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA;
             LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->NUMBER_DATA;
-            ((CompiledClass *)LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA)->LINKS++;
+            ((struct CompiledClass *)LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA)->LINKS++;
             DECLARE_PATH(VARIABLE_NUMBER);
             return 1;
 
@@ -4130,27 +4133,27 @@ int ConceptInterpreter::EvalStringExpression(PIFAlizator *PIF, VariableDATA **LO
     switch (OE->Operator_ID) {
         // unary operators
         case KEY_NOT:
-            LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = (CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]).Length() == 0);
+            LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = (CONCEPT_C_LENGTH(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]) == 0);
             LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
             DECLARE_PATH(VARIABLE_NUMBER);
             return 1;
 
         case KEY_LENGTH:
-            LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]).Length();
+            LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = CONCEPT_C_LENGTH(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]);
             LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
             DECLARE_PATH(VARIABLE_NUMBER);
             return 1;
 
         case KEY_VALUE:
-            LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]).ToFloat();
+            LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = CONCEPT_STRING_FLOAT(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]);
             LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
             DECLARE_PATH(VARIABLE_NUMBER);
             return 1;
 
         case KEY_INC:
-            if (CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]).Length()) {
-                NEW_CONCEPT_STRING(LOCAL_CONTEXT [OE->Result_ID - 1]).LoadBuffer(CONCEPT_C_STRING(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]) + 1, CONCEPT_C_LENGTH(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]) - 1);
-                CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]) = CONCEPT_STRING(LOCAL_CONTEXT [OE->Result_ID - 1]);
+            if (CONCEPT_C_LENGTH(LOCAL_CONTEXT [OE->OperandLeft_ID - 1])) {
+                NEW_CONCEPT_STRING_BUFFER(LOCAL_CONTEXT [OE->Result_ID - 1], CONCEPT_C_STRING(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]) + 1, CONCEPT_C_LENGTH(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]) - 1);
+                CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft_ID - 1], LOCAL_CONTEXT [OE->Result_ID - 1]);
                 //----------------//
                 PROPERTY_CODE(this, PROPERTIES)
                 //----------------//
@@ -4159,9 +4162,9 @@ int ConceptInterpreter::EvalStringExpression(PIFAlizator *PIF, VariableDATA **LO
             return 1;
 
         case KEY_INC_LEFT:
-            if (CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]).Length()) {
-                NEW_CONCEPT_STRING(LOCAL_CONTEXT [OE->Result_ID - 1]) = CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]);
-                CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]).LoadBuffer(CONCEPT_C_STRING(LOCAL_CONTEXT [OE->Result_ID - 1]) + 1, CONCEPT_C_LENGTH(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]) - 1);
+            if (CONCEPT_C_LENGTH(LOCAL_CONTEXT [OE->OperandLeft_ID - 1])) {
+                NEW_CONCEPT_STRING2(LOCAL_CONTEXT [OE->Result_ID - 1], LOCAL_CONTEXT [OE->OperandLeft_ID - 1]);
+                CONCEPT_STRING_BUFFER(LOCAL_CONTEXT [OE->OperandLeft_ID - 1], CONCEPT_C_STRING(LOCAL_CONTEXT [OE->Result_ID - 1]) + 1, CONCEPT_C_LENGTH(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]) - 1);
                 //----------------//
                 PROPERTY_CODE_LEFT(this, PROPERTIES)
                 //----------------//
@@ -4173,12 +4176,13 @@ int ConceptInterpreter::EvalStringExpression(PIFAlizator *PIF, VariableDATA **LO
         case KEY_SUM:
             switch (LOCAL_CONTEXT [OE->OperandRight_ID - 1]->TYPE) {
                 case VARIABLE_STRING:
-                    NEW_CONCEPT_STRING(LOCAL_CONTEXT [OE->Result_ID - 1]).Sum(CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]), CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandRight_ID - 1]));
+                    NEW_CONCEPT_SUM(LOCAL_CONTEXT [OE->Result_ID - 1], LOCAL_CONTEXT [OE->OperandLeft_ID - 1], LOCAL_CONTEXT [OE->OperandRight_ID - 1]);
                     DECLARE_PATH(VARIABLE_STRING);
                     break;
 
                 case VARIABLE_NUMBER:
-                    NEW_CONCEPT_STRING(LOCAL_CONTEXT [OE->Result_ID - 1]) = CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]) + AnsiString(LOCAL_CONTEXT [OE->OperandRight_ID - 1]->NUMBER_DATA);
+                    NEW_CONCEPT_STRING2(LOCAL_CONTEXT [OE->Result_ID - 1], LOCAL_CONTEXT [OE->OperandLeft_ID - 1]);
+                    CONCEPT_STRING_ADD_DOUBLE(LOCAL_CONTEXT [OE->Result_ID - 1], LOCAL_CONTEXT [OE->OperandRight_ID - 1]->NUMBER_DATA);
                     DECLARE_PATH(VARIABLE_STRING);
                     break;
 
@@ -4193,13 +4197,13 @@ int ConceptInterpreter::EvalStringExpression(PIFAlizator *PIF, VariableDATA **LO
         case KEY_EQU:
             switch (LOCAL_CONTEXT [OE->OperandRight_ID - 1]->TYPE) {
                 case VARIABLE_STRING:
-                    LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]) == CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandRight_ID - 1]) ? 1 : 0;
+                    LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = CONCEPT_STRING_EQU(LOCAL_CONTEXT [OE->OperandLeft_ID - 1], LOCAL_CONTEXT [OE->OperandRight_ID - 1]);
                     LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
                     DECLARE_PATH(VARIABLE_NUMBER);
                     break;
 
                 case VARIABLE_NUMBER:
-                    LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]) == LOCAL_CONTEXT [OE->OperandRight_ID - 1]->NUMBER_DATA ? 1 : 0;
+                    LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = (CONCEPT_STRING_FLOAT(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]) == LOCAL_CONTEXT [OE->OperandRight_ID - 1]->NUMBER_DATA) ? 1 : 0;
                     LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
                     DECLARE_PATH(VARIABLE_NUMBER);
                     break;
@@ -4215,13 +4219,13 @@ int ConceptInterpreter::EvalStringExpression(PIFAlizator *PIF, VariableDATA **LO
         case KEY_GRE:
             switch (LOCAL_CONTEXT [OE->OperandRight_ID - 1]->TYPE) {
                 case VARIABLE_STRING:
-                    LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]) > CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandRight_ID - 1]) ? 1 : 0;
+                    CONCEPT_STRING_COMPARE(LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA, LOCAL_CONTEXT [OE->OperandLeft_ID - 1], greater, LOCAL_CONTEXT [OE->OperandRight_ID - 1]);
                     LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
                     DECLARE_PATH(VARIABLE_NUMBER);
                     break;
 
                 case VARIABLE_NUMBER:
-                    LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]) > AnsiString(LOCAL_CONTEXT [OE->OperandRight_ID - 1]->NUMBER_DATA) ? 1 : 0;
+                    CONCEPT_STRING_COMPARE_FLOAT(LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA, LOCAL_CONTEXT [OE->OperandLeft_ID - 1], greater, LOCAL_CONTEXT [OE->OperandRight_ID - 1]->NUMBER_DATA);
                     LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
                     DECLARE_PATH(VARIABLE_NUMBER);
                     break;
@@ -4237,13 +4241,13 @@ int ConceptInterpreter::EvalStringExpression(PIFAlizator *PIF, VariableDATA **LO
         case KEY_LES:
             switch (LOCAL_CONTEXT [OE->OperandRight_ID - 1]->TYPE) {
                 case VARIABLE_STRING:
-                    LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]) < CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandRight_ID - 1]) ? 1 : 0;
+                    CONCEPT_STRING_COMPARE(LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA, LOCAL_CONTEXT [OE->OperandLeft_ID - 1], less, LOCAL_CONTEXT [OE->OperandRight_ID - 1]);
                     LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
                     DECLARE_PATH(VARIABLE_NUMBER);
                     break;
 
                 case VARIABLE_NUMBER:
-                    LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]) < AnsiString(LOCAL_CONTEXT [OE->OperandRight_ID - 1]->NUMBER_DATA) ? 1 : 0;
+                    CONCEPT_STRING_COMPARE_FLOAT(LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA, LOCAL_CONTEXT [OE->OperandLeft_ID - 1], less, LOCAL_CONTEXT [OE->OperandRight_ID - 1]->NUMBER_DATA);
                     LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
                     DECLARE_PATH(VARIABLE_NUMBER);
                     break;
@@ -4259,13 +4263,13 @@ int ConceptInterpreter::EvalStringExpression(PIFAlizator *PIF, VariableDATA **LO
         case KEY_GEQ:
             switch (LOCAL_CONTEXT [OE->OperandRight_ID - 1]->TYPE) {
                 case VARIABLE_STRING:
-                    LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]) >= CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandRight_ID - 1]) ? 1 : 0;
+                    CONCEPT_STRING_COMPARE(LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA, LOCAL_CONTEXT [OE->OperandLeft_ID - 1], greaterequal, LOCAL_CONTEXT [OE->OperandRight_ID - 1]);
                     LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
                     DECLARE_PATH(VARIABLE_NUMBER);
                     break;
 
                 case VARIABLE_NUMBER:
-                    LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]) >= AnsiString(LOCAL_CONTEXT [OE->OperandRight_ID - 1]->NUMBER_DATA) ? 1 : 0;
+                    CONCEPT_STRING_COMPARE_FLOAT(LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA, LOCAL_CONTEXT [OE->OperandLeft_ID - 1], greaterequal, LOCAL_CONTEXT [OE->OperandRight_ID - 1]->NUMBER_DATA);
                     LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
                     DECLARE_PATH(VARIABLE_NUMBER);
                     break;
@@ -4281,13 +4285,13 @@ int ConceptInterpreter::EvalStringExpression(PIFAlizator *PIF, VariableDATA **LO
         case KEY_LEQ:
             switch (LOCAL_CONTEXT [OE->OperandRight_ID - 1]->TYPE) {
                 case VARIABLE_STRING:
-                    LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]) <= CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandRight_ID - 1]) ? 1 : 0;
+                    CONCEPT_STRING_COMPARE(LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA, LOCAL_CONTEXT [OE->OperandLeft_ID - 1], lessequal, LOCAL_CONTEXT [OE->OperandRight_ID - 1]);
                     LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
                     DECLARE_PATH(VARIABLE_NUMBER);
                     break;
 
                 case VARIABLE_NUMBER:
-                    LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]) <= AnsiString(LOCAL_CONTEXT [OE->OperandRight_ID - 1]->NUMBER_DATA) ? 1 : 0;
+                    CONCEPT_STRING_COMPARE_FLOAT(LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA, LOCAL_CONTEXT [OE->OperandLeft_ID - 1], lessequal, LOCAL_CONTEXT [OE->OperandRight_ID - 1]->NUMBER_DATA);
                     LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
                     DECLARE_PATH(VARIABLE_NUMBER);
                     break;
@@ -4303,13 +4307,13 @@ int ConceptInterpreter::EvalStringExpression(PIFAlizator *PIF, VariableDATA **LO
         case KEY_NEQ:
             switch (LOCAL_CONTEXT [OE->OperandRight_ID - 1]->TYPE) {
                 case VARIABLE_STRING:
-                    LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]) != CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandRight_ID - 1]) ? 1 : 0;
+                    LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = !CONCEPT_STRING_EQU(LOCAL_CONTEXT [OE->OperandLeft_ID - 1], LOCAL_CONTEXT [OE->OperandRight_ID - 1]);
                     LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
                     DECLARE_PATH(VARIABLE_NUMBER);
                     break;
 
                 case VARIABLE_NUMBER:
-                    LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]) != LOCAL_CONTEXT [OE->OperandRight_ID - 1]->NUMBER_DATA ? 1 : 0;
+                    LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = CONCEPT_STRING_FLOAT(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]) != LOCAL_CONTEXT [OE->OperandRight_ID - 1]->NUMBER_DATA ? 1 : 0;
                     LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
                     DECLARE_PATH(VARIABLE_NUMBER);
                     break;
@@ -4332,7 +4336,7 @@ int ConceptInterpreter::EvalStringExpression(PIFAlizator *PIF, VariableDATA **LO
             LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->TYPE = VARIABLE_STRING;
             switch (LOCAL_CONTEXT [OE->OperandRight_ID - 1]->TYPE) {
                 case VARIABLE_STRING:
-                    CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]) = CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandRight_ID - 1]);
+                    CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft_ID - 1], LOCAL_CONTEXT [OE->OperandRight_ID - 1]);
                     if (LOCAL_CONTEXT [OE->Result_ID - 1] != LOCAL_CONTEXT [OE->OperandLeft_ID - 1]) {
                         FREE_VARIABLE_RESET(LOCAL_CONTEXT [OE->Result_ID - 1], VARIABLE_NUMBER);
                         LOCAL_CONTEXT [OE->Result_ID - 1] = LOCAL_CONTEXT [OE->OperandLeft_ID - 1];
@@ -4358,8 +4362,7 @@ int ConceptInterpreter::EvalStringExpression(PIFAlizator *PIF, VariableDATA **LO
         case KEY_ASU:
             switch (LOCAL_CONTEXT [OE->OperandRight_ID - 1]->TYPE) {
                 case VARIABLE_STRING:
-                    CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]).IncreaseBuffer(CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandRight_ID - 1]).Length());
-                    CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]) += CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandRight_ID - 1]);
+                    CONCEPT_STRING_ASU(LOCAL_CONTEXT [OE->OperandLeft_ID - 1], LOCAL_CONTEXT [OE->OperandRight_ID - 1]);
                     if (LOCAL_CONTEXT [OE->Result_ID - 1] != LOCAL_CONTEXT [OE->OperandLeft_ID - 1]) {
                         FREE_VARIABLE_RESET(LOCAL_CONTEXT [OE->Result_ID - 1], VARIABLE_NUMBER);
                         LOCAL_CONTEXT [OE->Result_ID - 1] = LOCAL_CONTEXT [OE->OperandLeft_ID - 1];
@@ -4369,8 +4372,8 @@ int ConceptInterpreter::EvalStringExpression(PIFAlizator *PIF, VariableDATA **LO
                     break;
 
                 case VARIABLE_NUMBER:
-                    CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]) += AnsiString(LOCAL_CONTEXT [OE->OperandRight_ID - 1]->NUMBER_DATA);
-                    NEW_CONCEPT_STRING(LOCAL_CONTEXT [OE->Result_ID - 1])       = CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]);
+                    CONCEPT_STRING_ADD_DOUBLE(LOCAL_CONTEXT [OE->OperandLeft_ID - 1], LOCAL_CONTEXT [OE->OperandRight_ID - 1]->NUMBER_DATA);
+                    NEW_CONCEPT_STRING2(LOCAL_CONTEXT [OE->Result_ID - 1], LOCAL_CONTEXT [OE->OperandLeft_ID - 1]);
                     DECLARE_PATH(VARIABLE_STRING);
                     break;
 
@@ -4388,14 +4391,14 @@ int ConceptInterpreter::EvalStringExpression(PIFAlizator *PIF, VariableDATA **LO
         case KEY_INDEX_OPEN:
             switch (LOCAL_CONTEXT [OE->OperandRight_ID - 1]->TYPE) {
                 case VARIABLE_NUMBER:
-                    NEW_CONCEPT_STRING(LOCAL_CONTEXT [OE->Result_ID - 1]) = CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]) [(D_LONG_TYPE)LOCAL_CONTEXT [OE->OperandRight_ID - 1]->NUMBER_DATA];
-                    ((AnsiString *)LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA)->EXTRA_DATA = INSTRUCTION_POINTER;
+                    NEW_CONCEPT_STRING_INDEX(LOCAL_CONTEXT [OE->Result_ID - 1], LOCAL_CONTEXT [OE->OperandLeft_ID - 1], (D_LONG_TYPE)LOCAL_CONTEXT [OE->OperandRight_ID - 1]->NUMBER_DATA);
+                    ((struct plainstring *)LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA)->EXTRA_DATA = INSTRUCTION_POINTER;
                     DECLARE_PATH(VARIABLE_STRING);
                     break;
 
                 case VARIABLE_STRING:
-                    NEW_CONCEPT_STRING(LOCAL_CONTEXT [OE->Result_ID - 1]) = CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]) [CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandRight_ID - 1]).ToInt()];
-                    ((AnsiString *)LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA)->EXTRA_DATA = INSTRUCTION_POINTER;
+                    NEW_CONCEPT_STRING_INDEX(LOCAL_CONTEXT [OE->Result_ID - 1], LOCAL_CONTEXT [OE->OperandLeft_ID - 1], CONCEPT_STRING_INT(LOCAL_CONTEXT [OE->OperandRight_ID - 1]));
+                    ((struct plainstring *)LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA)->EXTRA_DATA = INSTRUCTION_POINTER;
                     DECLARE_PATH(VARIABLE_STRING);
                     break;
 
@@ -4410,23 +4413,23 @@ int ConceptInterpreter::EvalStringExpression(PIFAlizator *PIF, VariableDATA **LO
         case KEY_BAN:
             switch (LOCAL_CONTEXT [OE->OperandRight_ID - 1]->TYPE) {
                 case VARIABLE_NUMBER:
-                    LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]).Length() && LOCAL_CONTEXT [OE->OperandRight_ID - 1]->NUMBER_DATA;
+                    LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = CONCEPT_C_LENGTH(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]) && LOCAL_CONTEXT [OE->OperandRight_ID - 1]->NUMBER_DATA;
                     LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
                     break;
 
                 case VARIABLE_STRING:
-                    LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]).Length() && CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandRight_ID - 1]).Length();
+                    LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = CONCEPT_C_LENGTH(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]) && CONCEPT_C_LENGTH(LOCAL_CONTEXT [OE->OperandRight_ID - 1]);
                     LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
                     break;
 
                 case VARIABLE_CLASS:
                 case VARIABLE_DELEGATE:
-                    LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = (CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]).Length() != 0);
+                    LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = (CONCEPT_C_LENGTH(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]) != 0);
                     LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
                     break;
 
                 case VARIABLE_ARRAY:
-                    LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]).Length() && ((Array *)LOCAL_CONTEXT [OE->OperandRight_ID - 1]->CLASS_DATA)->Count();
+                    LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = CONCEPT_C_LENGTH(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]) && ((Array *)LOCAL_CONTEXT [OE->OperandRight_ID - 1]->CLASS_DATA)->Count();
                     LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
                     break;
             }
@@ -4436,12 +4439,12 @@ int ConceptInterpreter::EvalStringExpression(PIFAlizator *PIF, VariableDATA **LO
         case KEY_BOR:
             switch (LOCAL_CONTEXT [OE->OperandRight_ID - 1]->TYPE) {
                 case VARIABLE_NUMBER:
-                    LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]).Length() || LOCAL_CONTEXT [OE->OperandRight_ID - 1]->NUMBER_DATA;
+                    LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = CONCEPT_C_LENGTH(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]) || LOCAL_CONTEXT [OE->OperandRight_ID - 1]->NUMBER_DATA;
                     LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
                     break;
 
                 case VARIABLE_STRING:
-                    LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]).Length() || CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandRight_ID - 1]).Length();
+                    LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = CONCEPT_C_LENGTH(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]) || CONCEPT_C_LENGTH(LOCAL_CONTEXT [OE->OperandRight_ID - 1]);
                     LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
                     break;
 
@@ -4453,7 +4456,7 @@ int ConceptInterpreter::EvalStringExpression(PIFAlizator *PIF, VariableDATA **LO
                     break;
 
                 case VARIABLE_ARRAY:
-                    LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]).Length() || ((Array *)LOCAL_CONTEXT [OE->OperandRight_ID - 1]->CLASS_DATA)->Count();
+                    LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = CONCEPT_C_LENGTH(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]) || ((Array *)LOCAL_CONTEXT [OE->OperandRight_ID - 1]->CLASS_DATA)->Count();
                     LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
                     break;
             }
@@ -4465,8 +4468,8 @@ int ConceptInterpreter::EvalStringExpression(PIFAlizator *PIF, VariableDATA **LO
             //SMART_LOCK(LOCAL_CONTEXT [OE->Result_ID - 1])
             // CLASS_CHECK_RESET(LOCAL_CONTEXT [OE->Result_ID - 1], LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE)
             // ------------------- //
-            if (CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]).Length()) {
-                NEW_CONCEPT_STRING(LOCAL_CONTEXT [OE->Result_ID - 1]) = CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]);
+            if (CONCEPT_C_LENGTH(LOCAL_CONTEXT [OE->OperandLeft_ID - 1])) {
+                NEW_CONCEPT_STRING2(LOCAL_CONTEXT [OE->Result_ID - 1], LOCAL_CONTEXT [OE->OperandLeft_ID - 1]);
                 LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE           = VARIABLE_STRING;
                 DECLARE_PATH(VARIABLE_STRING);
                 return 1;
@@ -4479,7 +4482,7 @@ int ConceptInterpreter::EvalStringExpression(PIFAlizator *PIF, VariableDATA **LO
                     break;
 
                 case VARIABLE_STRING:
-                    NEW_CONCEPT_STRING(LOCAL_CONTEXT [OE->Result_ID - 1]) = CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandRight_ID - 1]);
+                    NEW_CONCEPT_STRING2(LOCAL_CONTEXT [OE->Result_ID - 1], LOCAL_CONTEXT [OE->OperandRight_ID - 1]);
                     LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE           = VARIABLE_STRING;
                     DECLARE_PATH(VARIABLE_STRING);
                     break;
@@ -4490,7 +4493,7 @@ int ConceptInterpreter::EvalStringExpression(PIFAlizator *PIF, VariableDATA **LO
                 case VARIABLE_CLASS:
                     LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA = LOCAL_CONTEXT [OE->OperandRight_ID - 1]->CLASS_DATA;
                     LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE       = LOCAL_CONTEXT [OE->OperandRight_ID - 1]->TYPE;
-                    ((CompiledClass *)LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA)->LINKS++;
+                    ((struct CompiledClass *)LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA)->LINKS++;
                     DECLARE_PATH(LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE);
                     break;
 
@@ -4599,7 +4602,7 @@ int ConceptInterpreter::EvalNumberExpression(PIFAlizator *PIF, VariableDATA **LO
                     break;
 
                 case VARIABLE_STRING:
-                    LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->NUMBER_DATA == CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandRight_ID - 1]).ToFloat();
+                    LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->NUMBER_DATA == CONCEPT_STRING_FLOAT(LOCAL_CONTEXT [OE->OperandRight_ID - 1]);
                     break;
 
                 case VARIABLE_CLASS:
@@ -4620,7 +4623,7 @@ int ConceptInterpreter::EvalNumberExpression(PIFAlizator *PIF, VariableDATA **LO
                     break;
 
                 case VARIABLE_STRING:
-                    LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->NUMBER_DATA != CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandRight_ID - 1]).ToFloat();
+                    LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->NUMBER_DATA != CONCEPT_STRING_FLOAT(LOCAL_CONTEXT [OE->OperandRight_ID - 1]);
                     break;
 
                 case VARIABLE_CLASS:
@@ -4653,7 +4656,7 @@ int ConceptInterpreter::EvalNumberExpression(PIFAlizator *PIF, VariableDATA **LO
                     break;
 
                 case VARIABLE_STRING:
-                    LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->NUMBER_DATA && CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandRight_ID - 1]).Length();
+                    LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->NUMBER_DATA && CONCEPT_C_LENGTH(LOCAL_CONTEXT [OE->OperandRight_ID - 1]);
                     break;
 
                 case VARIABLE_CLASS:
@@ -4674,7 +4677,7 @@ int ConceptInterpreter::EvalNumberExpression(PIFAlizator *PIF, VariableDATA **LO
                     break;
 
                 case VARIABLE_STRING:
-                    LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->NUMBER_DATA || CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandRight_ID - 1]).Length();
+                    LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->NUMBER_DATA || CONCEPT_C_LENGTH(LOCAL_CONTEXT [OE->OperandRight_ID - 1]);
                     break;
 
                 case VARIABLE_CLASS:
@@ -4796,7 +4799,7 @@ int ConceptInterpreter::EvalNumberExpression(PIFAlizator *PIF, VariableDATA **LO
                     break;
 
                 case VARIABLE_STRING:
-                    NEW_CONCEPT_STRING(LOCAL_CONTEXT [OE->Result_ID - 1]) = CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandRight_ID - 1]);
+                    NEW_CONCEPT_STRING2(LOCAL_CONTEXT [OE->Result_ID - 1], LOCAL_CONTEXT [OE->OperandRight_ID - 1]);
                     LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE           = VARIABLE_STRING;
                     break;
 
@@ -4806,7 +4809,7 @@ int ConceptInterpreter::EvalNumberExpression(PIFAlizator *PIF, VariableDATA **LO
                 case VARIABLE_CLASS:
                     LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA = LOCAL_CONTEXT [OE->OperandRight_ID - 1]->CLASS_DATA;
                     LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE       = LOCAL_CONTEXT [OE->OperandRight_ID - 1]->TYPE;
-                    ((CompiledClass *)LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA)->LINKS++;
+                    ((struct CompiledClass *)LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA)->LINKS++;
                     break;
 
                 case VARIABLE_ARRAY:
@@ -4846,27 +4849,27 @@ int ConceptInterpreter::EvalSimpleExpression(PIFAlizator *PIF, VariableDATA **LO
             LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE = VARIABLE_STRING;
             switch (LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->TYPE) {
                 case VARIABLE_NUMBER:
-                    NEW_CONCEPT_STRING(LOCAL_CONTEXT [OE->Result_ID - 1]) = "numeric";
+                    NEW_CONCEPT_STRING_CSTR(LOCAL_CONTEXT [OE->Result_ID - 1], "numeric");
                     break;
 
                 case VARIABLE_STRING:
-                    NEW_CONCEPT_STRING(LOCAL_CONTEXT [OE->Result_ID - 1]) = "string";
+                    NEW_CONCEPT_STRING_CSTR(LOCAL_CONTEXT [OE->Result_ID - 1], "string");
                     break;
 
                 case VARIABLE_CLASS:
-                    NEW_CONCEPT_STRING(LOCAL_CONTEXT [OE->Result_ID - 1]) = "class";
+                    NEW_CONCEPT_STRING_CSTR(LOCAL_CONTEXT [OE->Result_ID - 1], "class");
                     break;
 
                 case VARIABLE_ARRAY:
-                    NEW_CONCEPT_STRING(LOCAL_CONTEXT [OE->Result_ID - 1]) = "array";
+                    NEW_CONCEPT_STRING_CSTR(LOCAL_CONTEXT [OE->Result_ID - 1], "array");
                     break;
 
                 case VARIABLE_DELEGATE:
-                    NEW_CONCEPT_STRING(LOCAL_CONTEXT [OE->Result_ID - 1]) = "delegate";
+                    NEW_CONCEPT_STRING_CSTR(LOCAL_CONTEXT [OE->Result_ID - 1], "delegate");
                     break;
 
                 default:
-                    NEW_CONCEPT_STRING(LOCAL_CONTEXT [OE->Result_ID - 1]) = "";
+                    NEW_CONCEPT_STRING_CSTR(LOCAL_CONTEXT [OE->Result_ID - 1], "");
             }
             DECLARE_PATH(VARIABLE_STRING);
             return 1;
@@ -4878,10 +4881,10 @@ int ConceptInterpreter::EvalSimpleExpression(PIFAlizator *PIF, VariableDATA **LO
             //==================//
             LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE = VARIABLE_STRING;
             if (LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->TYPE != VARIABLE_CLASS) {
-                NEW_CONCEPT_STRING(LOCAL_CONTEXT [OE->Result_ID - 1]) = "";
+                NEW_CONCEPT_STRING_CSTR(LOCAL_CONTEXT [OE->Result_ID - 1], "");
             } else {
-                CCTEMP = (CompiledClass *)LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA;
-                NEW_CONCEPT_STRING(LOCAL_CONTEXT [OE->Result_ID - 1]) = CCTEMP->_Class->NAME.c_str();
+                CCTEMP = (struct CompiledClass *)LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA;
+                NEW_CONCEPT_STRING_CSTR(LOCAL_CONTEXT [OE->Result_ID - 1], CCTEMP->_Class->NAME.c_str());
             }
             DECLARE_PATH(VARIABLE_STRING);
             return 1;
@@ -5033,13 +5036,13 @@ VariableDATA *ConceptInterpreter::Interpret(PIFAlizator *PIF, VariableDATA **LOC
 
                                 LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA = LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA = LOCAL_CONTEXT [OE->OperandRight_ID - 1]->CLASS_DATA;
                                 if (asg_type == VARIABLE_CLASS) {
-                                    ((CompiledClass *)LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA)->LINKS += 2 + delta;
+                                    ((struct CompiledClass *)LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA)->LINKS += 2 + delta;
                                 } else {
                                     ((Array *)LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA)->LINKS += 2 + delta;
                                 }
                                 LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE = LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->TYPE = LOCAL_CONTEXT [OE->OperandRight_ID - 1]->TYPE;
                                 if ((PROPERTIES) && (PROPERTIES [OE->OperandLeft_ID - 1].IS_PROPERTY_RESULT)) {
-                                    CCTEMP = (CompiledClass *)((VariableDATA *)(PROPERTIES [OE->OperandLeft_ID - 1].CALL_SET))->CLASS_DATA;
+                                    CCTEMP = (struct CompiledClass *)((VariableDATA *)(PROPERTIES [OE->OperandLeft_ID - 1].CALL_SET))->CLASS_DATA;
                                     WRITE_UNLOCK
                                     CCTEMP->_Class->SetProperty(PIF, PROPERTIES [OE->OperandLeft_ID - 1].IS_PROPERTY_RESULT - 1, (VariableDATA *)(PROPERTIES [OE->OperandLeft_ID - 1].CALL_SET), OE, CCTEMP->_Class->CLSID == ClassID, OE->Result_ID - 1, LOCAL_CONTEXT, ClassID, LocalClassID, &THROW_DATA, STACK_TRACE);
                                     if (THROW_DATA) {
@@ -5054,7 +5057,7 @@ VariableDATA *ConceptInterpreter::Interpret(PIFAlizator *PIF, VariableDATA **LOC
                             }
                         } else {
                             //---------------------------------------------------
-                            CCTEMP = (CompiledClass *)LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA;
+                            CCTEMP = (struct CompiledClass *)LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA;
                             ////////////////////////////////////////////////////////////
                             // pushed_type = LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE;
                             ////////////////////////////////////////////////////////////
@@ -5086,7 +5089,7 @@ VariableDATA *ConceptInterpreter::Interpret(PIFAlizator *PIF, VariableDATA **LOC
                         DECLARE_PATH(0x20);
                         continue;
                     }
-                    CCTEMP = (CompiledClass *)LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA;
+                    CCTEMP = (struct CompiledClass *)LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA;
 
                     if (OE->OperandReserved_ID) {
                         FORMAL_PARAMETERS = &OPT->PARAMS [OE->OperandReserved_ID - 1];
@@ -5173,7 +5176,7 @@ VariableDATA *ConceptInterpreter::Interpret(PIFAlizator *PIF, VariableDATA **LOC
                             DECLARE_PATH(0x20);
                             continue;
                         }
-                        CCTEMP                     = (CompiledClass *)LOCAL_CONTEXT [OE->OperandRight_ID - 1]->CLASS_DATA;
+                        CCTEMP                     = (struct CompiledClass *)LOCAL_CONTEXT [OE->OperandRight_ID - 1]->CLASS_DATA;
                         lOwner                     = (VariableDATA *)VAR_ALLOC(PIF);
                         lOwner->CLASS_DATA         = CCTEMP;
                         lOwner->IS_PROPERTY_RESULT = 0;
@@ -5255,7 +5258,7 @@ VariableDATA *ConceptInterpreter::Interpret(PIFAlizator *PIF, VariableDATA **LOC
                                 THROW_DATA->LINKS              = 1;
                                 THROW_DATA->IS_PROPERTY_RESULT = 0;
 
-                                CONCEPT_STRING(THROW_DATA) = STATIC_ERROR;
+                                CONCEPT_STRING_SET_CSTR(THROW_DATA, STATIC_ERROR);
 
                                 DECLARE_PATH(VARIABLE_STRING);
                                 if ((CATCH_INSTRUCTION_POINTER) && (CATCH_VARIABLE)) {
@@ -5275,7 +5278,7 @@ VariableDATA *ConceptInterpreter::Interpret(PIFAlizator *PIF, VariableDATA **LOC
                                 }
                             } else {
                                 DECLARE_PATH(0x20);
-                                Exc = new AnsiException(ERR700, OE->Operator_DEBUG_INFO_LINE, 700, AnsiString(OE->OperandRight_PARSE_DATA.c_str()) + AnsiString(": ") + AnsiString(STATIC_ERROR), ((ClassCode *)(OWNER->Defined_In))->_DEBUG_INFO_FILENAME, ((ClassCode *)(OWNER->Defined_In))->NAME, OWNER->NAME);
+                                Exc = new AnsiException(700, ERR700, OE->Operator_DEBUG_INFO_LINE, OE->OperandRight_PARSE_DATA.c_str(), ": ", STATIC_ERROR, ((ClassCode *)(OWNER->Defined_In))->_DEBUG_INFO_FILENAME, ((ClassCode *)(OWNER->Defined_In))->NAME, OWNER->NAME);
                                 PIF->AcknoledgeRunTimeError(STACK_TRACE, Exc);
                                 RESET_VARIABLE(LOCAL_CONTEXT [OE->Result_ID - 1]);
                                 LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = 0;
@@ -5325,7 +5328,7 @@ VariableDATA *ConceptInterpreter::Interpret(PIFAlizator *PIF, VariableDATA **LOC
 
                 case KEY_NEW:
                     //SMART_LOCK(LOCAL_CONTEXT [OE->Result_ID - 1]);
-                    CLASS_CHECK_RESULT(LOCAL_CONTEXT [OE->Result_ID - 1]);
+                    CLASS_CHECK(LOCAL_CONTEXT [OE->Result_ID - 1]);
                     if (OE->OperandLeft_ID == STATIC_CLASS_ARRAY) {
                         LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE       = VARIABLE_NUMBER;
                         LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA = new(AllocArray(PIF))Array(PIF);
@@ -5460,7 +5463,7 @@ VariableDATA *ConceptInterpreter::Interpret(PIFAlizator *PIF, VariableDATA **LOC
                                     RETURN_DATA = ((Array *)LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA)->Get(LOCAL_CONTEXT [OE->OperandRight_ID - 1]);
                                     if (!RETURN_DATA) {
                                         DECLARE_PATH(0x20);
-                                        Exc = new AnsiException(ERR1110, OE->Operator_DEBUG_INFO_LINE, 1110, AnsiString(LOCAL_CONTEXT [OE->OperandRight_ID - 1]->NUMBER_DATA), ((ClassCode *)(OWNER->Defined_In))->_DEBUG_INFO_FILENAME, ((ClassCode *)(OWNER->Defined_In))->NAME, OWNER->NAME);
+                                        Exc = new AnsiException(ERR1110, OE->Operator_DEBUG_INFO_LINE, 1110, LOCAL_CONTEXT [OE->OperandRight_ID - 1]->NUMBER_DATA, ((ClassCode *)(OWNER->Defined_In))->_DEBUG_INFO_FILENAME, ((ClassCode *)(OWNER->Defined_In))->NAME, OWNER->NAME);
                                         PIF->AcknoledgeRunTimeError(STACK_TRACE, Exc);
                                         LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE = VARIABLE_NUMBER;
                                         continue;
@@ -5561,7 +5564,7 @@ VariableDATA *ConceptInterpreter::Interpret(PIFAlizator *PIF, VariableDATA **LOC
                             continue;
 
                         case VARIABLE_STRING:
-                            if (!CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandRight_ID - 1]).Length()) {
+                            if (!CONCEPT_C_LENGTH(LOCAL_CONTEXT [OE->OperandRight_ID - 1])) {
                                 INSTRUCTION_POINTER = OE->OperandReserved_ID;
                             }
                             continue;
@@ -5585,7 +5588,7 @@ VariableDATA *ConceptInterpreter::Interpret(PIFAlizator *PIF, VariableDATA **LOC
                         WRITE_LOCK
                         switch (LOCAL_CONTEXT [OE->OperandRight_ID - 1]->TYPE) {
                             case VARIABLE_STRING:
-                                PIF->out->Print(CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandRight_ID - 1]), CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandRight_ID - 1]).Length());
+                                PIF->out->Print(CONCEPT_C_STRING(LOCAL_CONTEXT [OE->OperandRight_ID - 1]), CONCEPT_C_LENGTH(LOCAL_CONTEXT [OE->OperandRight_ID - 1]));
                                 break;
 
                             case VARIABLE_NUMBER:
@@ -5593,19 +5596,22 @@ VariableDATA *ConceptInterpreter::Interpret(PIFAlizator *PIF, VariableDATA **LOC
                                 break;
 
                             case VARIABLE_CLASS:
-                                CCTEMP = (CompiledClass *)LOCAL_CONTEXT [OE->OperandRight_ID - 1]->CLASS_DATA;
+                                CCTEMP = (struct CompiledClass *)LOCAL_CONTEXT [OE->OperandRight_ID - 1]->CLASS_DATA;
                                 PIF->out->Print(CCTEMP->_Class->NAME);
                                 break;
 
                             case VARIABLE_ARRAY:
                                 {
-                                    AnsiString temp(((Array *)LOCAL_CONTEXT [OE->OperandRight_ID - 1]->CLASS_DATA)->ToString());
-                                    PIF->out->Print2(temp);
+                                    struct plainstring *temp = ((Array *)LOCAL_CONTEXT [OE->OperandRight_ID - 1]->CLASS_DATA)->ToString();
+                                    if (temp) {
+                                        PIF->out->Print(plainstring_c_str(temp), plainstring_len(temp));
+                                        plainstring_delete(temp);
+                                    }
                                 }
                                 break;
 
                             case VARIABLE_DELEGATE:
-                                CCTEMP = (CompiledClass *)LOCAL_CONTEXT [OE->OperandRight_ID - 1]->CLASS_DATA;
+                                CCTEMP = (struct CompiledClass *)LOCAL_CONTEXT [OE->OperandRight_ID - 1]->CLASS_DATA;
                                 PIF->out->Print(CCTEMP->_Class->NAME);
                                 PIF->out->Print("::");
                                 PIF->out->Print(CCTEMP->_Class->pMEMBERS [(INTEGER)LOCAL_CONTEXT [OE->OperandRight_ID - 1]->DELEGATE_DATA - 1]->NAME);
@@ -5642,12 +5648,12 @@ VariableDATA *ConceptInterpreter::Interpret(PIFAlizator *PIF, VariableDATA **LOC
                         } else
                         if (RETURN_DATA->TYPE == VARIABLE_STRING) {
                             RETURN_DATA->CLASS_DATA     = 0;
-                            CONCEPT_STRING(RETURN_DATA) = CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandRight_ID - 1]);
+                            CONCEPT_STRING(RETURN_DATA, LOCAL_CONTEXT [OE->OperandRight_ID - 1]);
                         } else {
                             RETURN_DATA->CLASS_DATA = LOCAL_CONTEXT [OE->OperandRight_ID - 1]->CLASS_DATA;
                             if (RETURN_DATA->CLASS_DATA) {
                                 if ((RETURN_DATA->TYPE == VARIABLE_CLASS) || (RETURN_DATA->TYPE == VARIABLE_DELEGATE)) {
-                                    ((CompiledClass *)RETURN_DATA->CLASS_DATA)->LINKS++;
+                                    ((struct CompiledClass *)RETURN_DATA->CLASS_DATA)->LINKS++;
                                 } else
                                 if (RETURN_DATA->TYPE == VARIABLE_ARRAY) {
                                     ((Array *)RETURN_DATA->CLASS_DATA)->LINKS++;
@@ -5760,7 +5766,7 @@ VariableDATA **ConceptInterpreter::CreateEnvironment(PIFAlizator *PIF, VariableD
 
     CC_WRITE_LOCK(PIF)
     if (/*(this_ref->TYPE == VARIABLE_CLASS) &&*/ (this_ref->CLASS_DATA))
-        ((CompiledClass *)this_ref->CLASS_DATA)->LINKS++;
+        ((struct CompiledClass *)this_ref->CLASS_DATA)->LINKS++;
 
     register INTEGER i;
     for (i = 1; i <= ParamCount; i++) {
@@ -5775,23 +5781,23 @@ VariableDATA **ConceptInterpreter::CreateEnvironment(PIFAlizator *PIF, VariableD
             if (sndr->TYPE != -TARGET->TYPE) {
                 VariableDATA *sender = SenderCTX ? SenderCTX [0] : 0;
                 if ((sender) && (sender->TYPE == VARIABLE_CLASS) && (sender->CLASS_DATA)) {
-                    CompiledClass *cc = (CompiledClass *)sender->CLASS_DATA;
-                    PIF->AcknoledgeRunTimeError(STACK_TRACE, new AnsiException(ERR1205, OWNER->_DEBUG_STARTLINE, 1205, AnsiString("parameter ") + AnsiString((intptr_t)i), cc->_Class->_DEBUG_INFO_FILENAME, ((ClassCode *)(OWNER->Defined_In))->NAME, OWNER->NAME));
+                    CompiledClass *cc = (struct CompiledClass *)sender->CLASS_DATA;
+                    PIF->AcknoledgeRunTimeError(STACK_TRACE, new AnsiException(1205, ERR1205, OWNER->_DEBUG_STARTLINE, "parameter ", i, cc->_Class->_DEBUG_INFO_FILENAME.c_str(), ((ClassCode *)(OWNER->Defined_In))->NAME.c_str(), OWNER->NAME));
                 } else {
-                    PIF->AcknoledgeRunTimeError(STACK_TRACE, new AnsiException(ERR1205, OWNER->_DEBUG_STARTLINE, 1205, AnsiString("parameter ") + AnsiString((intptr_t)i), ((ClassCode *)(OWNER->Defined_In))->_DEBUG_INFO_FILENAME, ((ClassCode *)(OWNER->Defined_In))->NAME, OWNER->NAME));
+                    PIF->AcknoledgeRunTimeError(STACK_TRACE, new AnsiException(1205, ERR1205, OWNER->_DEBUG_STARTLINE, "parameter ", i, ((ClassCode *)(OWNER->Defined_In))->_DEBUG_INFO_FILENAME.c_str(), ((ClassCode *)(OWNER->Defined_In))->NAME.c_str(), OWNER->NAME));
                 }
                 can_run = false;
             } else
             if (sndr->TYPE == VARIABLE_CLASS) {
                 INTEGER CLS_ID = (INTEGER)TARGET->nValue - 1;
                 if (CLS_ID >= 0) {
-                    if ((!sndr->CLASS_DATA) || (!((CompiledClass *)sndr->CLASS_DATA)->_Class->Inherits(CLS_ID))) {
+                    if ((!sndr->CLASS_DATA) || (!((struct CompiledClass *)sndr->CLASS_DATA)->_Class->Inherits(CLS_ID))) {
                         VariableDATA *sender = SenderCTX [0];
                         if ((sender) && (sender->TYPE == VARIABLE_CLASS) && (sender->CLASS_DATA)) {
-                            CompiledClass *cc = (CompiledClass *)sender->CLASS_DATA;
-                            PIF->AcknoledgeRunTimeError(STACK_TRACE, new AnsiException(ERR1206, OWNER->_DEBUG_STARTLINE, 1206, AnsiString(OWNER->NAME) + AnsiString(", parameter ") + AnsiString((intptr_t)i), cc->_Class->_DEBUG_INFO_FILENAME, ((ClassCode *)(OWNER->Defined_In))->NAME, OWNER->NAME));
+                            CompiledClass *cc = (struct CompiledClass *)sender->CLASS_DATA;
+                            PIF->AcknoledgeRunTimeError(STACK_TRACE, new AnsiException(1206, ERR1206, OWNER->_DEBUG_STARTLINE, "parameter ", i, cc->_Class->_DEBUG_INFO_FILENAME, ((ClassCode *)(OWNER->Defined_In))->NAME, OWNER->NAME));
                         } else {
-                            PIF->AcknoledgeRunTimeError(STACK_TRACE, new AnsiException(ERR1206, OWNER->_DEBUG_STARTLINE, 1206, AnsiString(OWNER->NAME) + AnsiString(", parameter ") + AnsiString((intptr_t)i), ((ClassCode *)(OWNER->Defined_In))->_DEBUG_INFO_FILENAME, ((ClassCode *)(OWNER->Defined_In))->NAME, OWNER->NAME));
+                            PIF->AcknoledgeRunTimeError(STACK_TRACE, new AnsiException(1206, ERR1206, OWNER->_DEBUG_STARTLINE, "parameter ", i, ((ClassCode *)(OWNER->Defined_In))->_DEBUG_INFO_FILENAME, ((ClassCode *)(OWNER->Defined_In))->NAME, OWNER->NAME));
                         }
                         can_run = false;
                     }
@@ -5818,16 +5824,16 @@ VariableDATA **ConceptInterpreter::CreateEnvironment(PIFAlizator *PIF, VariableD
             LOCAL_CONTEXT_i->LINKS = 1;
             if (PARAM->TYPE == VARIABLE_STRING) {
                 LOCAL_CONTEXT_i->CLASS_DATA     = 0;
-                CONCEPT_STRING(LOCAL_CONTEXT_i) = CONCEPT_STRING(PARAM);
+                CONCEPT_STRING(LOCAL_CONTEXT_i, PARAM);
             } else
             if (PARAM->TYPE == VARIABLE_CLASS) {
                 LOCAL_CONTEXT_i->CLASS_DATA = PARAM->CLASS_DATA;
-                ((CompiledClass *)PARAM->CLASS_DATA)->LINKS++;
+                ((struct CompiledClass *)PARAM->CLASS_DATA)->LINKS++;
             } else
             if (PARAM->TYPE == VARIABLE_DELEGATE) {
                 LOCAL_CONTEXT_i->CLASS_DATA    = PARAM->CLASS_DATA;
                 LOCAL_CONTEXT_i->DELEGATE_DATA = PARAM->DELEGATE_DATA;
-                ((CompiledClass *)PARAM->CLASS_DATA)->LINKS++;
+                ((struct CompiledClass *)PARAM->CLASS_DATA)->LINKS++;
             } else
             if (PARAM->TYPE == VARIABLE_ARRAY) {
                 LOCAL_CONTEXT_i->CLASS_DATA = PARAM->CLASS_DATA;
@@ -5862,8 +5868,7 @@ VariableDATA **ConceptInterpreter::CreateEnvironment(PIFAlizator *PIF, VariableD
         else
         if (LOCAL_CONTEXT_i->TYPE == VARIABLE_STRING) {
             if (TARGET->value.Length()) {
-                LOCAL_CONTEXT_i->CLASS_DATA = new AnsiString();
-                ((AnsiString *)(LOCAL_CONTEXT_i->CLASS_DATA))->LoadBuffer(TARGET->value.c_str(), TARGET->value.Length());
+                NEW_CONCEPT_STRING_BUFFER(LOCAL_CONTEXT_i, TARGET->value.c_str(), TARGET->value.Length());
             } else
                 LOCAL_CONTEXT_i->CLASS_DATA = 0;
         } else
@@ -5913,11 +5918,11 @@ void ConceptInterpreter::DestroyEnviroment(PIFAlizator *PIF, VariableDATA **LOCA
                     if ((LOCAL_CONTEXT_i->TYPE == VARIABLE_CLASS) || (LOCAL_CONTEXT_i->TYPE == VARIABLE_DELEGATE)) {
                         __gc_obj.Reference(LOCAL_CONTEXT_i->CLASS_DATA);
                         if (!i) {
-                            ClassCode *CC = ((CompiledClass *)LOCAL_CONTEXT_i->CLASS_DATA)->_Class;
+                            const ClassCode *CC = ((struct CompiledClass *)LOCAL_CONTEXT_i->CLASS_DATA)->_Class;
                             if ((CC) && (!CC->DESTRUCTOR_MEMBER))
                                 fast_array_clean = 1;
                         }
-                        ((CompiledClass *)LOCAL_CONTEXT_i->CLASS_DATA)->__GO_GARBAGE(PIF, &__gc_obj, &__gc_array, &__gc_vars);
+                        CompiledClass__GO_GARBAGE((struct CompiledClass *)LOCAL_CONTEXT_i->CLASS_DATA, PIF, &__gc_obj, &__gc_array, &__gc_vars);
                     } else
                     if (LOCAL_CONTEXT_i->TYPE == VARIABLE_ARRAY) {
                         __gc_array.Reference(LOCAL_CONTEXT_i->CLASS_DATA);
@@ -5938,7 +5943,7 @@ void ConceptInterpreter::DestroyEnviroment(PIFAlizator *PIF, VariableDATA **LOCA
                 if ((LOCAL_CONTEXT_i) && (LOCAL_CONTEXT_i->flags >= 0) && (LOCAL_CONTEXT_i->CLASS_DATA)) {
                     if ((LOCAL_CONTEXT_i->TYPE == VARIABLE_CLASS) || (LOCAL_CONTEXT_i->TYPE == VARIABLE_DELEGATE)) {
                         __gc_obj.Reference(LOCAL_CONTEXT_i->CLASS_DATA);
-                        ((CompiledClass *)LOCAL_CONTEXT_i->CLASS_DATA)->__GO_GARBAGE(PIF, &__gc_obj, &__gc_array, &__gc_vars);
+                        CompiledClass__GO_GARBAGE((struct CompiledClass *)LOCAL_CONTEXT_i->CLASS_DATA, PIF, &__gc_obj, &__gc_array, &__gc_vars);
                     } else
                     if (LOCAL_CONTEXT_i->TYPE == VARIABLE_ARRAY) {
                         __gc_array.Reference(LOCAL_CONTEXT_i->CLASS_DATA);
@@ -5962,31 +5967,33 @@ void ConceptInterpreter::DestroyEnviroment(PIFAlizator *PIF, VariableDATA **LOCA
             VariableDATA *VARIABLE = LOCAL_CONTEXT [i];
             VARIABLE->LINKS--;
             if (VARIABLE->LINKS < 1) {
-                if (VARIABLE->TYPE == VARIABLE_STRING) {
-                    delete (AnsiString *)VARIABLE->CLASS_DATA;
-                } else
-                if ((VARIABLE->TYPE == VARIABLE_CLASS) || (VARIABLE->TYPE == VARIABLE_DELEGATE)) {
-                    if (!--((CompiledClass *)VARIABLE->CLASS_DATA)->LINKS) {
- #ifdef SIMPLE_MULTI_THREADING
-                        VARIABLE->TYPE = VARIABLE_NUMBER;
-                        CC_WRITE_UNLOCK(PIF)
- #endif
-                        delete (CompiledClass *)VARIABLE->CLASS_DATA;
- #ifdef SIMPLE_MULTI_THREADING
-                        CC_WRITE_LOCK2(PIF)
- #endif
-                    }
-                } else
-                if (VARIABLE->TYPE == VARIABLE_ARRAY) {
-                    if (!--((Array *)VARIABLE->CLASS_DATA)->LINKS) {
- #ifdef SIMPLE_MULTI_THREADING
-                        VARIABLE->TYPE = VARIABLE_NUMBER;
-                        CC_WRITE_UNLOCK(PIF)
- #endif
-                        delete (Array *)VARIABLE->CLASS_DATA;
- #ifdef SIMPLE_MULTI_THREADING
-                        CC_WRITE_LOCK2(PIF)
- #endif
+                if (VARIABLE->CLASS_DATA) {
+                    if (VARIABLE->TYPE == VARIABLE_STRING) {
+                        plainstring_delete((struct plainstring *)VARIABLE->CLASS_DATA);
+                    } else
+                    if ((VARIABLE->TYPE == VARIABLE_CLASS) || (VARIABLE->TYPE == VARIABLE_DELEGATE)) {
+                        if (!--((struct CompiledClass *)VARIABLE->CLASS_DATA)->LINKS) {
+#ifdef SIMPLE_MULTI_THREADING
+                            VARIABLE->TYPE = VARIABLE_NUMBER;
+                            CC_WRITE_UNLOCK(PIF)
+#endif
+                            delete_CompiledClass((struct CompiledClass *)VARIABLE->CLASS_DATA);
+#ifdef SIMPLE_MULTI_THREADING
+                            CC_WRITE_LOCK2(PIF)
+#endif
+                        }
+                    } else
+                    if (VARIABLE->TYPE == VARIABLE_ARRAY) {
+                        if (!--((Array *)VARIABLE->CLASS_DATA)->LINKS) {
+#ifdef SIMPLE_MULTI_THREADING
+                            VARIABLE->TYPE = VARIABLE_NUMBER;
+                            CC_WRITE_UNLOCK(PIF)
+#endif
+                            delete (Array *)VARIABLE->CLASS_DATA;
+#ifdef SIMPLE_MULTI_THREADING
+                            CC_WRITE_LOCK2(PIF)
+#endif
+                        }
                     }
                 }
                 VAR_FREE(VARIABLE);

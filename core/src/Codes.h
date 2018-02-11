@@ -425,12 +425,11 @@
  #define HASH_TYPE    unsigned long long
 #endif
 
-AnsiString GetKeyWord(INTEGER ID);
+const char *GetKeyWord(INTEGER ID);
 INTEGER GetID(AnsiString& KeyWord);
 INTEGER GetType(AnsiString& KeyWord);
 
 AnsiString Strip2(AnsiString String);
-AnsiString Strip(AnsiString String);
 INTEGER IsOperator(AnsiString& S);
 INTEGER GetOperatorType(INTEGER ID);
 INTEGER LexicalCheck(AnsiString& S, INTEGER TYPE);

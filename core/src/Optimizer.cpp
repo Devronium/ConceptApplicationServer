@@ -15,64 +15,41 @@ POOLED_IMPLEMENTATION(Optimizer)
 
 #define MAKE_NULL(AE)    AE.TYPE = 0; AE.ID = 0;
 
-#ifndef SINGLE_PROCESS_DLL
-THREADED_FLAG INTEGER Optimizer::LAST_DEBUG_TRAP;
-
-PIFAlizator *Optimizer::PIFOwner;
-
-THREADED_FLAG AnsiList *Optimizer::BREAK_Elements;
-THREADED_FLAG AnsiList *Optimizer::CONTINUE_Elements;
-
-THREADED_FLAG ClassCode *Optimizer::_CLASS;
-THREADED_FLAG const char*Optimizer::_MEMBER;
-
-THREADED_FLAG DoubleList *Optimizer::PIFList;
-THREADED_FLAG DoubleList *Optimizer::VDList;
-THREADED_FLAG INTEGER    Optimizer::PIF_POSITION;
-THREADED_FLAG const char *Optimizer::_DEBUG_INFO_FILENAME;
-THREADED_FLAG char       Optimizer::NO_WARNING_EMPTY;
-THREADED_FLAG char       Optimizer::NO_WARNING_ATTR;
-THREADED_FLAG char       Optimizer::_clean_condition;
-THREADED_FLAG INTEGER    Optimizer::CATCH_ELEMENT;
-THREADED_FLAG AnsiList   *Optimizer::OptimizedPIF = NULL;
-THREADED_FLAG AnsiList   *Optimizer::ParameterList = NULL;
-#endif
-
 #define END_WHILE_CYCLE(TEMP_ST_POS, NOT_TRUE_POS)                                                       \
     {                                                                                                    \
         int __d_i, __l_i;                                                                                \
-        __l_i = CONTINUE_Elements->Count();                                                              \
+        __l_i = helper->CONTINUE_Elements->Count();                                                      \
         if (__l_i) {                                                                                     \
             for (__d_i = 0; __d_i < __l_i; __d_i++) {                                                    \
-                OptimizedElement *CONTINUE_Element = (OptimizedElement *)CONTINUE_Elements->Item(__d_i); \
+                OptimizedElement *CONTINUE_Element = (OptimizedElement *)helper->CONTINUE_Elements->Item(__d_i); \
                 CONTINUE_Element->OperandReserved.ID = TEMP_ST_POS;                                      \
             }                                                                                            \
         }                                                                                                \
-        delete CONTINUE_Elements;                                                                        \
-        CONTINUE_Elements = PUSHED_CONTINUE_Elements;                                                    \
-        __l_i             = BREAK_Elements->Count();                                                     \
+        delete helper->CONTINUE_Elements;                                                                \
+        helper->CONTINUE_Elements = PUSHED_CONTINUE_Elements;                                            \
+        __l_i             = helper->BREAK_Elements->Count();                                             \
         if (__l_i) {                                                                                     \
             for (__d_i = 0; __d_i < __l_i; __d_i++) {                                                    \
-                OptimizedElement *BREAK_Element = (OptimizedElement *)BREAK_Elements->Item(__d_i);       \
+                OptimizedElement *BREAK_Element = (OptimizedElement *)helper->BREAK_Elements->Item(__d_i); \
                 BREAK_Element->OperandReserved.ID = NOT_TRUE_POS;                                        \
             }                                                                                            \
         }                                                                                                \
-        delete BREAK_Elements;                                                                           \
-        BREAK_Elements = PUSHED_BREAK_Elements;                                                          \
+        delete helper->BREAK_Elements;                                                                   \
+        helper->BREAK_Elements = PUSHED_BREAK_Elements;                                                  \
     }
 
 #define END_SWITCH(NOT_TRUE_POS)                                                                   \
     {                                                                                              \
         int __d_i, __l_i;                                                                          \
-        __l_i = BREAK_Elements->Count();                                                           \
+        __l_i = helper->BREAK_Elements->Count();                                                   \
         if (__l_i) {                                                                               \
             for (__d_i = 0; __d_i < __l_i; __d_i++) {                                              \
-                OptimizedElement *BREAK_Element = (OptimizedElement *)BREAK_Elements->Item(__d_i); \
+                OptimizedElement *BREAK_Element = (OptimizedElement *)helper->BREAK_Elements->Item(__d_i); \
                 BREAK_Element->OperandReserved.ID = NOT_TRUE_POS;                                  \
             }                                                                                      \
         }                                                                                          \
-        delete BREAK_Elements;                                                                     \
-        BREAK_Elements = PUSHED_BREAK_Elements;                                                    \
+        delete helper->BREAK_Elements;                                                             \
+        helper->BREAK_Elements = PUSHED_BREAK_Elements;                                            \
     }
 
 class TempVariableManager {
@@ -124,34 +101,49 @@ public:
     }
 };
 
-Optimizer::Optimizer(PIFAlizator *P, DoubleList *_PIFList, DoubleList *_VDList, const char *Filename, ClassCode *cls, const char *member, bool is_unserialized) {
-    PIFOwner = P;
-    PIFList  = _PIFList;
-    VDList   = _VDList;
+PIFAlizator *Optimizer::PIFOwner = NULL;
 
-    PIF_POSITION         = 0;
+OptimizerHelper *Optimizer::GetHelper(PIFAlizator *P) {
+    OptimizerHelper *helper = (OptimizerHelper *)P->Helper;
+    if (!helper) {
+        helper = new OptimizerHelper();
+        P->Helper = helper;
+    }
+    return helper;
+}
+
+Optimizer::Optimizer(PIFAlizator *P, DoubleList *_PIFList, DoubleList *_VDList, const char *Filename, ClassCode *cls, const char *member, bool is_unserialized) {
+    OptimizerHelper *helper = Optimizer::GetHelper(P);
+    helper->PIFOwner = P;
+    helper->PIFList  = _PIFList;
+    helper->VDList   = _VDList;
+
+    if (!PIFOwner)
+        PIFOwner = P;
+
+    helper->PIF_POSITION         = 0;
     CODE                 = 0;
     DATA                 = 0;
     PARAMS               = 0;
     codeCount            = 0;
     dataCount            = 0;
     paramCount           = 0;
-    CATCH_ELEMENT        = 0;
-    _DEBUG_INFO_FILENAME = Filename;
-    NO_WARNING_EMPTY     = 0;
-    NO_WARNING_ATTR      = 0;
-    _clean_condition     = 0;
-    _CLASS               = cls;
-    _MEMBER              = member;
+    helper->CATCH_ELEMENT        = 0;
+    helper->_DEBUG_INFO_FILENAME = Filename;
+    helper->NO_WARNING_EMPTY     = 0;
+    helper->NO_WARNING_ATTR      = 0;
+    helper->_clean_condition     = 0;
+    helper->_CLASS               = cls;
+    helper->_MEMBER              = member;
     INTERPRETER          = 0;
 
-    Optimizer::BREAK_Elements    = 0;
-    Optimizer::CONTINUE_Elements = 0;
+    helper->BREAK_Elements    = 0;
+    helper->CONTINUE_Elements = 0;
 
-    LAST_DEBUG_TRAP = -1;
+    helper->LAST_DEBUG_TRAP = -1;
 }
 
-bool Optimizer::TryCheckParameters(OptimizedElement *OE, int p_count, int *minp, int *maxp, ClassMember **target_CM, ClassCode *owner_CC) {
+bool Optimizer::TryCheckParameters(OptimizerHelper *helper, OptimizedElement *OE, int p_count, int *minp, int *maxp, ClassMember **target_CM, ClassCode *owner_CC) {
     if (target_CM) {
         *target_CM = 0;
     }
@@ -163,7 +155,7 @@ bool Optimizer::TryCheckParameters(OptimizedElement *OE, int p_count, int *minp,
     *maxp = 0;
 
     if (OE->Operator.ID == KEY_NEW) {
-        ClassCode *CC       = (ClassCode *)PIFOwner->ClassList->Item(OE->OperandLeft.ID - 1);
+        ClassCode *CC       = (ClassCode *)helper->PIFOwner->ClassList->Item(OE->OperandLeft.ID - 1);
         int       param_min = 0;
         int       param_max = 0;
         if ((CC) && (CC->CONSTRUCTOR_MEMBER)) {
@@ -188,8 +180,8 @@ bool Optimizer::TryCheckParameters(OptimizedElement *OE, int p_count, int *minp,
     if ((OE->Operator.ID == KEY_SEL) && (OE->OperandLeft.TYPE == TYPE_VARIABLE) && (OE->OperandLeft.ID == 1)) {
         ClassCode *CC = owner_CC;
         if (!CC) {
-            int len = PIFOwner->ClassList->Count();
-            CC = (ClassCode *)PIFOwner->ClassList->Item(len - 1);
+            int len = helper->PIFOwner->ClassList->Count();
+            CC = (ClassCode *)helper->PIFOwner->ClassList->Item(len - 1);
         }
         if ((CC) && (CC->Members)) {
             int index = CC->HasMember(OE->OperandRight._PARSE_DATA);
@@ -218,18 +210,17 @@ bool Optimizer::TryCheckParameters(OptimizedElement *OE, int p_count, int *minp,
     return true;
 }
 
-void Optimizer::BuildParameterList(INTEGER START_POS, AnalizerElement *METHOD) {
+void Optimizer::BuildParameterList(OptimizerHelper *helper, INTEGER START_POS, AnalizerElement *METHOD) {
     AnalizerElement *AE = 0;
-
     AnsiList *LocalParamList = new AnsiList(false);
 
-    ParameterList->Add(LocalParamList, DATA_LIST);
+    helper->ParameterList->Add(LocalParamList, DATA_LIST);
     bool prec_is_comma      = false;
     bool parameter_expected = true;
     bool at_least_one       = false;
-    int  last = PIF_POSITION - 1;
+    int  last = helper->PIF_POSITION - 1;
 
-    int delta = PIF_POSITION - START_POS;
+    int delta = helper->PIF_POSITION - START_POS;
 
     // not really necessary, but just to be sure ...
     if (METHOD->_HASH_DATA) {
@@ -243,8 +234,8 @@ void Optimizer::BuildParameterList(INTEGER START_POS, AnalizerElement *METHOD) {
         METHOD->_HASH_DATA      = new void * [delta + 1];
     }
 
-    for (INTEGER i = START_POS; i < PIF_POSITION; i++) {
-        AE = (AnalizerElement *)PIFList->Item(i);
+    for (INTEGER i = START_POS; i < helper->PIF_POSITION; i++) {
+        AE = (AnalizerElement *)helper->PIFList->Item(i);
         bool no_delete = true;
         if ((AE->TYPE == TYPE_OPERATOR) && (AE->ID == KEY_COMMA) && (!prec_is_comma) && (at_least_one) && (i != last)) {
             prec_is_comma      = true;
@@ -262,12 +253,12 @@ void Optimizer::BuildParameterList(INTEGER START_POS, AnalizerElement *METHOD) {
             if ((METHOD) && (delta)) {
                 ((void **)METHOD->_HASH_DATA) [index++] = AE;
             } else {
-                Require(AE);
+                Require(helper, AE);
             }
             //============================================//
             LocalParamList->Add((void *)AE->ID, DATA_32_BIT);
         } else {
-            PIFOwner->Errors.Add(new AnsiException(ERR200, AE->_DEBUG_INFO_LINE, 200, AE->_PARSE_DATA, _DEBUG_INFO_FILENAME, _CLASS->NAME, _MEMBER), DATA_EXCEPTION);
+            helper->PIFOwner->Errors.Add(new AnsiException(ERR200, AE->_DEBUG_INFO_LINE, 200, AE->_PARSE_DATA, helper->_DEBUG_INFO_FILENAME, helper->_CLASS->NAME, helper->_MEMBER), DATA_EXCEPTION);
         }
 
         if (index) {
@@ -275,24 +266,24 @@ void Optimizer::BuildParameterList(INTEGER START_POS, AnalizerElement *METHOD) {
         }
 
         if ((delta) && (no_delete)) {
-            PIFList->Remove(i);
+            helper->PIFList->Remove(i);
         } else {
-            PIFList->Delete(i);
+            helper->PIFList->Delete(i);
         }
         i--;
         AE = 0;
-        PIF_POSITION--;
+        helper->PIF_POSITION--;
         at_least_one = true;
-        last         = PIF_POSITION - 1;
+        last         = helper->PIF_POSITION - 1;
     }
     // inserez lista de parametri ...
     AnalizerElement *newAE = new AnalizerElement;
-    newAE->ID               = ParameterList->Count();
+    newAE->ID               = helper->ParameterList->Count();
     newAE->TYPE             = TYPE_PARAM_LIST;
     newAE->_DEBUG_INFO_LINE = AE ? AE->_DEBUG_INFO_LINE             : 0;
     newAE->_INFO_OPTIMIZED  = 1;
     newAE->_HASH_DATA       = 0;
-    PIFList->Insert(newAE, PIF_POSITION++, DATA_ANALIZER_ELEMENT);
+    helper->PIFList->Insert(newAE, helper->PIF_POSITION++, DATA_ANALIZER_ELEMENT);
 }
 
 void Optimizer::CopyElement(AnalizerElement *SRC, AnalizerElement *DEST) {
@@ -315,14 +306,14 @@ void Optimizer::CopyElement(AnalizerElement *SRC, SHORT_AnalizerElement *DEST) {
     DEST->TYPE = SRC ? SRC->TYPE : 0;
 }
 
-INTEGER Optimizer::Check(AnalizerElement *Target, AnalizerElement *AE) {
+INTEGER Optimizer::Check(OptimizerHelper *helper, AnalizerElement *Target, AnalizerElement *AE) {
     if (!Target) {
-        PIFOwner->Errors.Add(new AnsiException(ERR030, AE->_DEBUG_INFO_LINE, 30, "", _DEBUG_INFO_FILENAME, _CLASS->NAME, _MEMBER), DATA_EXCEPTION);
+        helper->PIFOwner->Errors.Add(new AnsiException(ERR030, AE->_DEBUG_INFO_LINE, 30, "", helper->_DEBUG_INFO_FILENAME, helper->_CLASS->NAME, helper->_MEMBER), DATA_EXCEPTION);
         return 1;
     }
     if ((AE->TYPE == TYPE_OPERATOR) && (AE->ID == KEY_NEW)) {
         if (Target->TYPE != TYPE_CLASS) {
-            PIFOwner->Errors.Add(new AnsiException(ERR110, AE->_DEBUG_INFO_LINE, 110, Target->_PARSE_DATA, _DEBUG_INFO_FILENAME, _CLASS->NAME, _MEMBER), DATA_EXCEPTION);
+            helper->PIFOwner->Errors.Add(new AnsiException(ERR110, AE->_DEBUG_INFO_LINE, 110, Target->_PARSE_DATA, helper->_DEBUG_INFO_FILENAME, helper->_CLASS->NAME, helper->_MEMBER), DATA_EXCEPTION);
             return 1;
         }
         return 0;
@@ -330,7 +321,7 @@ INTEGER Optimizer::Check(AnalizerElement *Target, AnalizerElement *AE) {
 
     if ((AE->TYPE == TYPE_OPERATOR) && (AE->ID == KEY_SEL)) {
         if ((Target->TYPE != TYPE_METHOD) && (Target->TYPE != TYPE_VARIABLE)) {
-            PIFOwner->Errors.Add(new AnsiException(ERR130, AE->_DEBUG_INFO_LINE, 130, Target->_PARSE_DATA, _DEBUG_INFO_FILENAME, _CLASS->NAME, _MEMBER), DATA_EXCEPTION);
+            helper->PIFOwner->Errors.Add(new AnsiException(ERR130, AE->_DEBUG_INFO_LINE, 130, Target->_PARSE_DATA, helper->_DEBUG_INFO_FILENAME, helper->_CLASS->NAME, helper->_MEMBER), DATA_EXCEPTION);
             return 1;
         }
         return 0;
@@ -339,7 +330,7 @@ INTEGER Optimizer::Check(AnalizerElement *Target, AnalizerElement *AE) {
     // a se reveni !
     if ((AE->TYPE == TYPE_OPERATOR) && (AE->ID == KEY_DLL_CALL)) {
         if ((Target->TYPE != TYPE_METHOD) && (Target->TYPE != TYPE_CLASS) && (Target->TYPE != TYPE_VARIABLE)) {
-            PIFOwner->Errors.Add(new AnsiException(ERR680, AE->_DEBUG_INFO_LINE, 680, Target->_PARSE_DATA, _DEBUG_INFO_FILENAME, _CLASS->NAME, _MEMBER), DATA_EXCEPTION);
+            helper->PIFOwner->Errors.Add(new AnsiException(ERR680, AE->_DEBUG_INFO_LINE, 680, Target->_PARSE_DATA, helper->_DEBUG_INFO_FILENAME, helper->_CLASS->NAME, helper->_MEMBER), DATA_EXCEPTION);
             return 1;
         }
         return 0;
@@ -347,7 +338,7 @@ INTEGER Optimizer::Check(AnalizerElement *Target, AnalizerElement *AE) {
 
     if ((AE->TYPE == TYPE_OPERATOR) && (AE->ID == KEY_INDEX_OPEN)) {
         if ((Target->TYPE != TYPE_PARAM_LIST) && (Target->TYPE != TYPE_VARIABLE)) {
-            PIFOwner->Errors.Add(new AnsiException(ERR290, AE->_DEBUG_INFO_LINE, 290, Target->_PARSE_DATA, _DEBUG_INFO_FILENAME, _CLASS->NAME, _MEMBER), DATA_EXCEPTION);
+            helper->PIFOwner->Errors.Add(new AnsiException(ERR290, AE->_DEBUG_INFO_LINE, 290, Target->_PARSE_DATA, helper->_DEBUG_INFO_FILENAME, helper->_CLASS->NAME, helper->_MEMBER), DATA_EXCEPTION);
             return 1;
         }
         return 0;
@@ -358,7 +349,7 @@ INTEGER Optimizer::Check(AnalizerElement *Target, AnalizerElement *AE) {
         (Target->TYPE != VARIABLE_NUMBER) &&
         (Target->TYPE != VARIABLE_STRING) &&
         (Target->TYPE != VARIABLE_CONSTANT)) {
-        PIFOwner->Errors.Add(new AnsiException(ERR040, AE->_DEBUG_INFO_LINE, 40, Target->_PARSE_DATA, _DEBUG_INFO_FILENAME, _CLASS->NAME, _MEMBER), DATA_EXCEPTION);
+        helper->PIFOwner->Errors.Add(new AnsiException(ERR040, AE->_DEBUG_INFO_LINE, 40, Target->_PARSE_DATA, helper->_DEBUG_INFO_FILENAME, helper->_CLASS->NAME, helper->_MEMBER), DATA_EXCEPTION);
         return 1;
     }
     return 0;
@@ -389,7 +380,7 @@ INTEGER Optimizer::GetFirstOperator(DoubleList *LST, INTEGER start, INTEGER end)
     return FIRST_POSITION;
 }
 
-INTEGER Optimizer::Require(AnalizerElement *Element) {
+INTEGER Optimizer::Require(OptimizerHelper *helper, AnalizerElement *Element) {
     INTEGER          dislocation = 0;
     OptimizedElement *OE         = 0;
 
@@ -401,7 +392,7 @@ INTEGER Optimizer::Require(AnalizerElement *Element) {
             do {
                 AE = (AnalizerElement *)((void **)Element->_HASH_DATA) [index++];
                 if (AE) {
-                    dislocation += Require(AE);
+                    dislocation += Require(helper, AE);
                     delete AE;
                 } else {
                     break;
@@ -424,7 +415,7 @@ INTEGER Optimizer::Require(AnalizerElement *Element) {
             Element->_HASH_DATA = 0;
 
             dislocation++;
-            dislocation += Require(&OE->OperandLeft);
+            dislocation += Require(helper, &OE->OperandLeft);
 
             if (OP_ID == KEY_BAN) {
                 ifOE = new OptimizedElement;
@@ -438,7 +429,7 @@ INTEGER Optimizer::Require(AnalizerElement *Element) {
                 CopyElement(&OE->OperandLeft, &ifOE->OperandRight);
                 ifOE->Result_ID = 0;
                 dislocation++;
-                OptimizedPIF->Add(ifOE, DATA_OPTIMIZED_ELEMENT);
+                helper->OptimizedPIF->Add(ifOE, DATA_OPTIMIZED_ELEMENT);
             } else
             if ((OP_ID == KEY_BOR) || (OP_ID == KEY_CND_NULL)) {
                 ifOE = new OptimizedElement;
@@ -446,7 +437,7 @@ INTEGER Optimizer::Require(AnalizerElement *Element) {
                 ifOE->Operator.TYPE = TYPE_OPTIMIZED_KEYWORD;
                 ifOE->Operator.ID   = KEY_OPTIMIZED_IF;
                 MAKE_NULL(ifOE->OperandLeft);
-                ifOE->OperandReserved.ID   = OptimizedPIF->Count() + 2;
+                ifOE->OperandReserved.ID   = helper->OptimizedPIF->Count() + 2;
                 ifOE->OperandReserved.TYPE = TYPE_OPTIMIZED_JUMP_ADR;
 
                 CopyElement(&OE->OperandLeft, &ifOE->OperandRight);
@@ -464,29 +455,29 @@ INTEGER Optimizer::Require(AnalizerElement *Element) {
 
                 gotoOE->Result_ID = 0;
 
-                OptimizedPIF->Add(ifOE, DATA_OPTIMIZED_ELEMENT);
-                OptimizedPIF->Add(gotoOE, DATA_OPTIMIZED_ELEMENT);
+                helper->OptimizedPIF->Add(ifOE, DATA_OPTIMIZED_ELEMENT);
+                helper->OptimizedPIF->Add(gotoOE, DATA_OPTIMIZED_ELEMENT);
             }
 
-            dislocation += Require(&OE->OperandRight);
+            dislocation += Require(helper, &OE->OperandRight);
 
             if (OP_ID == KEY_BAN) {
-                ifOE->OperandReserved.ID = OptimizedPIF->Count() ;
+                ifOE->OperandReserved.ID = helper->OptimizedPIF->Count() ;
             } else
             if ((OP_ID == KEY_BOR) || (OP_ID == KEY_CND_NULL)) {
-                gotoOE->OperandReserved.ID = OptimizedPIF->Count();
+                gotoOE->OperandReserved.ID = helper->OptimizedPIF->Count();
             }
 
-            OptimizedPIF->Add(OE, DATA_OPTIMIZED_ELEMENT);
+            helper->OptimizedPIF->Add(OE, DATA_OPTIMIZED_ELEMENT);
         }
     }
     return dislocation;
 }
 
-INTEGER Optimizer::OptimizeArray(TempVariableManager *TVM) {
+INTEGER Optimizer::OptimizeArray(OptimizerHelper *helper, TempVariableManager *TVM) {
     AnalizerElement *newAE = new AnalizerElement;
 
-    AnalizerElement *BASE_AE = (AnalizerElement *)PIFList->Remove(--PIF_POSITION);
+    AnalizerElement *BASE_AE = (AnalizerElement *)helper->PIFList->Remove(--helper->PIF_POSITION);
 
     BASE_AE->_INFO_OPTIMIZED = 1;
     INTEGER            result = 0;
@@ -497,25 +488,25 @@ INTEGER Optimizer::OptimizeArray(TempVariableManager *TVM) {
     VD->nValue = 0;
     VD->BY_REF = 0;
     VD->TYPE   = VARIABLE_NUMBER;
-    VDList->Add(VD, DATA_VAR_DESCRIPTOR);
-    INTEGER result_id = VDList->Count();
+    helper->VDList->Add(VD, DATA_VAR_DESCRIPTOR);
+    INTEGER result_id = helper->VDList->Count();
 
     VD         = new VariableDESCRIPTOR;
     VD->USED   = -1;
     VD->nValue = 0;
     VD->BY_REF = 0;
     VD->TYPE   = VARIABLE_NUMBER;
-    VDList->Add(VD, DATA_VAR_DESCRIPTOR);
-    INTEGER array_id = VDList->Count();
+    helper->VDList->Add(VD, DATA_VAR_DESCRIPTOR);
+    INTEGER array_id = helper->VDList->Count();
 
-    newAE->ID               = VDList->Count();
+    newAE->ID               = helper->VDList->Count();
     newAE->TYPE             = TYPE_VARIABLE;
     newAE->_DEBUG_INFO_LINE = BASE_AE->_DEBUG_INFO_LINE;
     newAE->_INFO_OPTIMIZED  = 1;
     newAE->_HASH_DATA       = 0;
 
     INTEGER index = 0;
-    _clean_condition = 1;
+    helper->_clean_condition = 1;
 
     OptimizedElement *OE = new OptimizedElement;
     CopyElement(BASE_AE, &OE->Operator);
@@ -532,11 +523,11 @@ INTEGER Optimizer::OptimizeArray(TempVariableManager *TVM) {
     OE->Result_ID = array_id;
 
     CopyElement(0, &OE->OperandRight);
-    OptimizedPIF->Add(OE, DATA_OPTIMIZED_ELEMENT);
+    helper->OptimizedPIF->Add(OE, DATA_OPTIMIZED_ELEMENT);
 
     int iteratii = 0;
     while (1) {
-        AnalizerElement *AE = (AnalizerElement *)PIFList->Item(PIF_POSITION);
+        AnalizerElement *AE = (AnalizerElement *)helper->PIFList->Item(helper->PIF_POSITION);
         if (!AE) {
             break;
         }
@@ -544,33 +535,33 @@ INTEGER Optimizer::OptimizeArray(TempVariableManager *TVM) {
 
         if (AE->TYPE != TYPE_KEYWORD) {
             if ((AE->TYPE != TYPE_OPERATOR) || (AE->ID != KEY_INDEX_CLOSE)) {
-                OptimizeExpression(TVM, KEY_COMMA, TYPE_OPERATOR, 0, 1, KEY_INDEX_CLOSE);
-                AnalizerElement *RES     = (AnalizerElement *)PIFList->Item(PIF_POSITION - 1);
-                AnalizerElement *RES_KEY = (AnalizerElement *)PIFList->Item(PIF_POSITION);
+                OptimizeExpression(helper, TVM, KEY_COMMA, TYPE_OPERATOR, 0, 1, KEY_INDEX_CLOSE);
+                AnalizerElement *RES     = (AnalizerElement *)helper->PIFList->Item(helper->PIF_POSITION - 1);
+                AnalizerElement *RES_KEY = (AnalizerElement *)helper->PIFList->Item(helper->PIF_POSITION);
                 if ((RES_KEY) && (RES_KEY->TYPE == TYPE_OPERATOR) && ((RES_KEY->ID == KEY_ARR_KEY) || (RES_KEY->ID == KEY_CND_2))) {
-                    PIFList->Delete(PIF_POSITION);
-                    OptimizeExpression(TVM, KEY_COMMA, TYPE_OPERATOR, 0, 1, KEY_INDEX_CLOSE);
+                    helper->PIFList->Delete(helper->PIF_POSITION);
+                    OptimizeExpression(helper, TVM, KEY_COMMA, TYPE_OPERATOR, 0, 1, KEY_INDEX_CLOSE);
                     RES_KEY = RES;
-                    RES     = (AnalizerElement *)PIFList->Item(PIF_POSITION - 1);
+                    RES     = (AnalizerElement *)helper->PIFList->Item(helper->PIF_POSITION - 1);
                 } else
                     RES_KEY = 0;
                 INTEGER _id     = 0;
                 INTEGER _KEY_id = 0;
 
                 if ((RES_KEY) && (RES_KEY->TYPE != TYPE_VARIABLE))
-                    PIFOwner->Errors.Add(new AnsiException(ERR1260, AE ? AE->_DEBUG_INFO_LINE : 0, 1260, "", _DEBUG_INFO_FILENAME, _CLASS->NAME, _MEMBER), DATA_EXCEPTION);
+                    helper->PIFOwner->Errors.Add(new AnsiException(ERR1260, AE ? AE->_DEBUG_INFO_LINE : 0, 1260, "", helper->_DEBUG_INFO_FILENAME, helper->_CLASS->NAME, helper->_MEMBER), DATA_EXCEPTION);
 
                 if ((!RES) || (RES->TYPE != TYPE_VARIABLE)) {
-                    PIFOwner->Errors.Add(new AnsiException(ERR1100, AE ? AE->_DEBUG_INFO_LINE : 0, 1100, "", _DEBUG_INFO_FILENAME, _CLASS->NAME, _MEMBER), DATA_EXCEPTION);
+                    helper->PIFOwner->Errors.Add(new AnsiException(ERR1100, AE ? AE->_DEBUG_INFO_LINE : 0, 1100, "", helper->_DEBUG_INFO_FILENAME, helper->_CLASS->NAME, helper->_MEMBER), DATA_EXCEPTION);
                 } else {
                     _id = RES->ID;
-                    PIFList->Delete(PIF_POSITION - 1);
-                    PIF_POSITION--;
+                    helper->PIFList->Delete(helper->PIF_POSITION - 1);
+                    helper->PIF_POSITION--;
 
                     if (RES_KEY) {
                         _KEY_id = RES_KEY->ID;
-                        PIFList->Delete(PIF_POSITION - 1);
-                        PIF_POSITION--;
+                        helper->PIFList->Delete(helper->PIF_POSITION - 1);
+                        helper->PIF_POSITION--;
                     }
                 }
 
@@ -595,11 +586,11 @@ INTEGER Optimizer::OptimizeArray(TempVariableManager *TVM) {
                     VD         = new VariableDESCRIPTOR;
                     VD->USED   = -1;
                     VD->nValue = index;
-                    VD->value  = AnsiString(index);
+                    VD->value  = index;
                     VD->BY_REF = 0;
                     VD->TYPE   = VARIABLE_NUMBER;
-                    VDList->Add(VD, DATA_VAR_DESCRIPTOR);
-                    result_index = VDList->Count();
+                    helper->VDList->Add(VD, DATA_VAR_DESCRIPTOR);
+                    result_index = helper->VDList->Count();
                 }
                 index++;
 
@@ -610,7 +601,7 @@ INTEGER Optimizer::OptimizeArray(TempVariableManager *TVM) {
                 OE->OperandRight._INFO_OPTIMIZED  = 1;
 
                 OE->Result_ID = result_id;
-                OptimizedPIF->Add(OE, DATA_OPTIMIZED_ELEMENT);
+                helper->OptimizedPIF->Add(OE, DATA_OPTIMIZED_ELEMENT);
 
                 OE = new OptimizedElement;
                 CopyElement(BASE_AE, &OE->Operator);
@@ -634,33 +625,33 @@ INTEGER Optimizer::OptimizeArray(TempVariableManager *TVM) {
                 VD->nValue = 0;
                 VD->BY_REF = 0;
                 VD->TYPE   = VARIABLE_NUMBER;
-                VDList->Add(VD, DATA_VAR_DESCRIPTOR);
-                INTEGER container_id = VDList->Count();
+                helper->VDList->Add(VD, DATA_VAR_DESCRIPTOR);
+                INTEGER container_id = helper->VDList->Count();
 
                 OE->Result_ID = container_id;
-                OptimizedPIF->Add(OE, DATA_OPTIMIZED_ELEMENT);
+                helper->OptimizedPIF->Add(OE, DATA_OPTIMIZED_ELEMENT);
             } else {
-                PIFList->Delete(PIF_POSITION--);
+                helper->PIFList->Delete(helper->PIF_POSITION--);
                 break;
             }
         } else {
-            PIFOwner->Errors.Add(new AnsiException(ERR1100, AE ? AE->_DEBUG_INFO_LINE : 0, 1100, "", _DEBUG_INFO_FILENAME, _CLASS->NAME, _MEMBER), DATA_EXCEPTION);
+            helper->PIFOwner->Errors.Add(new AnsiException(ERR1100, AE ? AE->_DEBUG_INFO_LINE : 0, 1100, "", helper->_DEBUG_INFO_FILENAME, helper->_CLASS->NAME, helper->_MEMBER), DATA_EXCEPTION);
             break;
         }
     }
-    if ((_clean_condition) && (iteratii != 1)) {
-        PIFOwner->Errors.Add(new AnsiException(ERR1100, BASE_AE ? BASE_AE->_DEBUG_INFO_LINE : 0, 1100, "", _DEBUG_INFO_FILENAME, _CLASS->NAME, _MEMBER), DATA_EXCEPTION);
+    if ((helper->_clean_condition) && (iteratii != 1)) {
+        helper->PIFOwner->Errors.Add(new AnsiException(ERR1100, BASE_AE ? BASE_AE->_DEBUG_INFO_LINE : 0, 1100, "", helper->_DEBUG_INFO_FILENAME, helper->_CLASS->NAME, helper->_MEMBER), DATA_EXCEPTION);
     }
-    PIFList->Insert(newAE, ++PIF_POSITION, DATA_ANALIZER_ELEMENT);
+    helper->PIFList->Insert(newAE, ++helper->PIF_POSITION, DATA_ANALIZER_ELEMENT);
     if (BASE_AE) {
         delete BASE_AE;
     }
     return 0;
 }
 
-INTEGER Optimizer::OptimizeExpression(TempVariableManager *TVM, INTEGER ID, INTEGER TYPE, INTEGER IS_PARAM_LIST, INTEGER FIRST_CALL, INTEGER FLAGS, AnalizerElement *PREC_METHOD, signed char may_skip_result) {
+INTEGER Optimizer::OptimizeExpression(OptimizerHelper *helper, TempVariableManager *TVM, INTEGER ID, INTEGER TYPE, INTEGER IS_PARAM_LIST, INTEGER FIRST_CALL, INTEGER FLAGS, AnalizerElement *PREC_METHOD, signed char may_skip_result) {
     INTEGER         result         = 0;
-    INTEGER         START_POSITION = PIF_POSITION;
+    INTEGER         START_POSITION = helper->PIF_POSITION;
     INTEGER         PREC_TYPE      = -1;
     INTEGER         PREC_ID        = -1;
     INTEGER         VALID          = 0;
@@ -671,20 +662,24 @@ INTEGER Optimizer::OptimizeExpression(TempVariableManager *TVM, INTEGER ID, INTE
     INTEGER         PREC_PREC_TYPE = -1;
     INTEGER         PREC_PREC_ID   = -1;
     AnalizerElement *MARKER        = 0;
+    OptimizedElement *LAST_OP_2    = NULL;
     OptimizedElement *LAST_OP      = NULL;
+    int         minp, maxp;
+    ClassMember *targetCM = 0;
+
 #ifdef OPTIONAL_SEPARATOR
     INTEGER         VALID_EXPR     = 1;
 #endif
-    _clean_condition = 0;
+    helper->_clean_condition = 0;
 
     char is_array   = (FLAGS == KEY_INDEX_CLOSE) ? 1 : 0;
     char is_for_exp = (FLAGS == KEY_COMMA) ? 1 : 0;
 
-    while (PIF_POSITION < PIFList->Count()) {
-        AE = (AnalizerElement *)PIFList->Item(PIF_POSITION++);
+    while (helper->PIF_POSITION < helper->PIFList->Count()) {
+        AE = (AnalizerElement *)helper->PIFList->Item(helper->PIF_POSITION++);
         if (AE) {
 #ifdef OPTIONAL_SEPARATOR
-            if (!PIFOwner->STRICT_MODE) {
+            if (!helper->PIFOwner->STRICT_MODE) {
                 if ((!FLAGS) && (TYPE == TYPE_SEPARATOR) && (ID == KEY_SEP)) {
                     if ((PREC_AE) && (AE->TYPE != TYPE_SEPARATOR)) {
                         if ((LAST_LINE >= 0) && (LAST_LINE != AE->_DEBUG_INFO_LINE)) {
@@ -728,13 +723,13 @@ INTEGER Optimizer::OptimizeExpression(TempVariableManager *TVM, INTEGER ID, INTE
                     if (ITERATII) {
                         VALID = 1;
                     }
-                    PIF_POSITION--;
+                    helper->PIF_POSITION--;
                     break;
                 } else
                 if ((AE->ID == KEY_ARR_KEY) || (AE->ID == KEY_CND_2)) {
-                    _clean_condition = 1;
-                    PIF_POSITION--;
-                    MARKER = (AnalizerElement *)PIFList->Item(PIF_POSITION);
+                    helper->_clean_condition = 1;
+                    helper->PIF_POSITION--;
+                    MARKER = (AnalizerElement *)helper->PIFList->Item(helper->PIF_POSITION);
                     AE     = 0;
                     VALID  = 1;
                     break;
@@ -744,9 +739,9 @@ INTEGER Optimizer::OptimizeExpression(TempVariableManager *TVM, INTEGER ID, INTE
 
         if ((AE->ID == ID) && (AE->TYPE == TYPE)) {
             // sa se termine ...
-            _clean_condition = 1;
-            PIFList->Delete(--PIF_POSITION);
-            MARKER = (AnalizerElement *)PIFList->Item(PIF_POSITION);
+            helper->_clean_condition = 1;
+            helper->PIFList->Delete(--helper->PIF_POSITION);
+            MARKER = (AnalizerElement *)helper->PIFList->Item(helper->PIF_POSITION);
             AE     = 0;
             VALID  = 1;
             break;
@@ -754,16 +749,16 @@ INTEGER Optimizer::OptimizeExpression(TempVariableManager *TVM, INTEGER ID, INTE
         ITERATII++;
 
         if (((AE->TYPE == TYPE_OPERATOR) && (AE->ID == KEY_ASG)) && ((TYPE == TYPE_OPERATOR) && ((ID == KEY_P_CLOSE) || (ID == KEY_INDEX_CLOSE)))) {
-            if (!NO_WARNING_ATTR) {
-                PIFOwner->Warning(WRN10001, AE ? AE->_DEBUG_INFO_LINE : LAST_LINE, 10001, "", _DEBUG_INFO_FILENAME);
+            if (!helper->NO_WARNING_ATTR) {
+                helper->PIFOwner->Warning(WRN10001, AE ? AE->_DEBUG_INFO_LINE : LAST_LINE, 10001, "", helper->_DEBUG_INFO_FILENAME);
             }
         }
 
         if (((AE->TYPE == TYPE_SEPARATOR) && (AE->ID == KEY_SEP)) || (AE->TYPE == TYPE_KEYWORD)) {
             if (!VALID) {
                 if (is_for_exp) {
-                    _clean_condition = 1;
-                    PIFList->Delete(--PIF_POSITION);
+                    helper->_clean_condition = 1;
+                    helper->PIFList->Delete(--helper->PIF_POSITION);
                     AE     = 0;
                     VALID  = 1;
                     result = -KEY_COMMA;
@@ -774,9 +769,9 @@ INTEGER Optimizer::OptimizeExpression(TempVariableManager *TVM, INTEGER ID, INTE
 
         if (AE->TYPE == TYPE_OPERATOR) {
             if (AE->ID == KEY_P_OPEN) {
-                PUSH_CHAR(_clean_condition);
-                PIFList->Delete(--PIF_POSITION);
-                int is_param_list = OptimizeExpression(TVM, KEY_P_CLOSE,
+                PUSH_CHAR(helper->_clean_condition);
+                helper->PIFList->Delete(--helper->PIF_POSITION);
+                int is_param_list = OptimizeExpression(helper, TVM, KEY_P_CLOSE,
                                                        TYPE_OPERATOR,
                                                        ((PREC_TYPE == TYPE_METHOD) || (PREC_TYPE == TYPE_CLASS)) ||
                                                        ((PREC_TYPE == TYPE_VARIABLE) && (PREC_PREC_ID == KEY_DLL_CALL)),
@@ -786,12 +781,12 @@ INTEGER Optimizer::OptimizeExpression(TempVariableManager *TVM, INTEGER ID, INTE
                                                        //===========//
                                                        );
 
-                POP_CHAR(_clean_condition);
+                POP_CHAR(helper->_clean_condition);
                 continue;
             } else
             if ((AE->ID == KEY_P_CLOSE) && (is_for_exp)) {
-                _clean_condition = 1;
-                PIFList->Delete(--PIF_POSITION);
+                helper->_clean_condition = 1;
+                helper->PIFList->Delete(--helper->PIF_POSITION);
                 AE     = 0;
                 VALID  = 1;
                 result = -KEY_COMMA;
@@ -802,14 +797,14 @@ INTEGER Optimizer::OptimizeExpression(TempVariableManager *TVM, INTEGER ID, INTE
                     (PREC_TYPE == TYPE_OPERATOR) ||
                     (PREC_TYPE == TYPE_SEPARATOR) ||
                     (PREC_TYPE == -1)) {
-                    OptimizeArray(TVM);
+                    OptimizeArray(helper, TVM);
                     if (is_array) {
-                        _clean_condition = 0;
+                        helper->_clean_condition = 0;
                     }
                 } else {
-                    OptimizeExpression(TVM, KEY_INDEX_CLOSE, TYPE_OPERATOR, 0, 0);
+                    OptimizeExpression(helper, TVM, KEY_INDEX_CLOSE, TYPE_OPERATOR, 0, 0);
                     if (is_array) {
-                        _clean_condition = 0;
+                        helper->_clean_condition = 0;
                     }
                 }
                 continue;
@@ -824,11 +819,11 @@ INTEGER Optimizer::OptimizeExpression(TempVariableManager *TVM, INTEGER ID, INTE
     }
 
 #ifdef OPTIONAL_SEPARATOR
-    if ((!PIFOwner->STRICT_MODE) && (!VALID) && (VALID_EXPR)) {
+    if ((!helper->PIFOwner->STRICT_MODE) && (!VALID) && (VALID_EXPR)) {
         if ((AE) && (TYPE == TYPE_SEPARATOR) && (ID == KEY_SEP) && (!MARKER)) {
-            _clean_condition = 1;
-            PIF_POSITION--;
-            MARKER = (AnalizerElement *)PIFList->Item(PIF_POSITION);
+            helper->_clean_condition = 1;
+            helper->PIF_POSITION--;
+            MARKER = (AnalizerElement *)helper->PIFList->Item(helper->PIF_POSITION);
             AE     = 0;
             VALID  = 1;
         }
@@ -837,15 +832,15 @@ INTEGER Optimizer::OptimizeExpression(TempVariableManager *TVM, INTEGER ID, INTE
     if (!VALID) {
         AE = 0;
         if ((TYPE == TYPE_OPERATOR) && (ID == KEY_P_CLOSE)) {
-            PIFOwner->Errors.Add(new AnsiException(ERR500, AE ? AE->_DEBUG_INFO_LINE : LAST_LINE, 500, "", _DEBUG_INFO_FILENAME, _CLASS->NAME, _MEMBER), DATA_EXCEPTION);
+            helper->PIFOwner->Errors.Add(new AnsiException(ERR500, AE ? AE->_DEBUG_INFO_LINE : LAST_LINE, 500, "", helper->_DEBUG_INFO_FILENAME, helper->_CLASS->NAME, helper->_MEMBER), DATA_EXCEPTION);
         } else
         if ((TYPE == TYPE_OPERATOR) && (ID == KEY_INDEX_CLOSE)) {
-            PIFOwner->Errors.Add(new AnsiException(ERR510, AE ? AE->_DEBUG_INFO_LINE : LAST_LINE, 510, "", _DEBUG_INFO_FILENAME, _CLASS->NAME, _MEMBER), DATA_EXCEPTION);
+            helper->PIFOwner->Errors.Add(new AnsiException(ERR510, AE ? AE->_DEBUG_INFO_LINE : LAST_LINE, 510, "", helper->_DEBUG_INFO_FILENAME, helper->_CLASS->NAME, helper->_MEMBER), DATA_EXCEPTION);
         } else
         if ((TYPE == TYPE_SEPARATOR) && (ID == KEY_SEP)) {
-            PIFOwner->Errors.Add(new AnsiException(ERR520, AE ? AE->_DEBUG_INFO_LINE : LAST_LINE, 520, "", _DEBUG_INFO_FILENAME, _CLASS->NAME, _MEMBER), DATA_EXCEPTION);
+            helper->PIFOwner->Errors.Add(new AnsiException(ERR520, AE ? AE->_DEBUG_INFO_LINE : LAST_LINE, 520, "", helper->_DEBUG_INFO_FILENAME, helper->_CLASS->NAME, helper->_MEMBER), DATA_EXCEPTION);
         } else {
-            PIFOwner->Errors.Add(new AnsiException(ERR490, AE ? AE->_DEBUG_INFO_LINE : LAST_LINE, 490, "", _DEBUG_INFO_FILENAME, _CLASS->NAME, _MEMBER), DATA_EXCEPTION);
+            helper->PIFOwner->Errors.Add(new AnsiException(ERR490, AE ? AE->_DEBUG_INFO_LINE : LAST_LINE, 490, "", helper->_DEBUG_INFO_FILENAME, helper->_CLASS->NAME, helper->_MEMBER), DATA_EXCEPTION);
         }
         return -1;
     } else {
@@ -857,12 +852,12 @@ INTEGER Optimizer::OptimizeExpression(TempVariableManager *TVM, INTEGER ID, INTE
             VD->nValue = 1;
             VD->TYPE   = VARIABLE_NUMBER;
             VD->BY_REF = 0;
-            VDList->Add(VD, DATA_VAR_DESCRIPTOR);
-            return VDList->Count();
+            helper->VDList->Add(VD, DATA_VAR_DESCRIPTOR);
+            return helper->VDList->Count();
         }
 
         if ((!ITERATII) && (!IS_PARAM_LIST) && ((TYPE == TYPE_OPERATOR) && (ID == KEY_P_CLOSE))) {
-            PIFOwner->Errors.Add(new AnsiException(ERR610, AE ? AE->_DEBUG_INFO_LINE : LAST_LINE, 610, "", _DEBUG_INFO_FILENAME, _CLASS->NAME, _MEMBER), DATA_EXCEPTION);
+            helper->PIFOwner->Errors.Add(new AnsiException(ERR610, AE ? AE->_DEBUG_INFO_LINE : LAST_LINE, 610, "", helper->_DEBUG_INFO_FILENAME, helper->_CLASS->NAME, helper->_MEMBER), DATA_EXCEPTION);
             return -1;
             //}
         }
@@ -871,35 +866,35 @@ INTEGER Optimizer::OptimizeExpression(TempVariableManager *TVM, INTEGER ID, INTE
 
     INTEGER FIRST_OPERATOR;
     do {
-        FIRST_OPERATOR = GetFirstOperator(PIFList, START_POSITION, PIF_POSITION);
+        FIRST_OPERATOR = GetFirstOperator(helper->PIFList, START_POSITION, helper->PIF_POSITION);
         if (FIRST_OPERATOR == -1) {
             break;
         }
 
-        AnalizerElement *AE = (AnalizerElement *)PIFList->Item(FIRST_OPERATOR);
+        AnalizerElement *AE = (AnalizerElement *)helper->PIFList->Item(FIRST_OPERATOR);
         INTEGER OP_TYPE = GetOperatorType(AE->ID);
         AE->_INFO_OPTIMIZED = 1;
         INTEGER AE_ID = AE->ID;
 
         if ((OP_TYPE == OPERATOR_BINARY) || (OP_TYPE == OPERATOR_SELECTOR)) {
-            AnalizerElement *Left  = (AnalizerElement *)PIFList->Item(FIRST_OPERATOR - 1);
-            AnalizerElement *Right = (AnalizerElement *)PIFList->Item(FIRST_OPERATOR + 1);
-            AnalizerElement *Parameter = (AnalizerElement *)PIFList->Item(FIRST_OPERATOR + 2);
+            AnalizerElement *Left  = (AnalizerElement *)helper->PIFList->Item(FIRST_OPERATOR - 1);
+            AnalizerElement *Right = (AnalizerElement *)helper->PIFList->Item(FIRST_OPERATOR + 1);
+            AnalizerElement *Parameter = (AnalizerElement *)helper->PIFList->Item(FIRST_OPERATOR + 2);
 
             if ((AE_ID == KEY_P_OPEN) || (AE_ID == KEY_P_CLOSE) || (Right == MARKER) || (FIRST_OPERATOR <= START_POSITION)) {
-                this->PIFOwner->Errors.Add(new AnsiException(ERR490, AE ? AE->_DEBUG_INFO_LINE : LAST_LINE, 490, AE ? AE->_PARSE_DATA.c_str() : "", _DEBUG_INFO_FILENAME, _CLASS->NAME, _MEMBER), DATA_EXCEPTION);
+                helper->PIFOwner->Errors.Add(new AnsiException(ERR490, AE ? AE->_DEBUG_INFO_LINE : LAST_LINE, 490, AE ? AE->_PARSE_DATA.c_str() : "", helper->_DEBUG_INFO_FILENAME, helper->_CLASS->NAME, helper->_MEMBER), DATA_EXCEPTION);
             }
 
 #ifndef SKIP_BUILTIN_OPTIMIZATIONS
             if ((AE_ID == KEY_DLL_CALL) && (Left->TYPE == TYPE_CLASS) && (Left->ID > 0)) {
                 // check if inline
-                ClassCode *CC = (ClassCode *)PIFOwner->ClassList->Item(Left->ID - 1);
+                ClassCode *CC = (ClassCode *)helper->PIFOwner->ClassList->Item(Left->ID - 1);
                 if (CC) {
-                    char *static_name = PIFOwner->GeneralMembers->Item(Right->ID - 1);
+                    char *static_name = helper->PIFOwner->GeneralMembers->Item(Right->ID - 1);
                     ClassMember *CM;
                     if (CC->CanBeRunStatic(static_name, &CM)) {
-                        PIFOwner->OptimizeMember(CM);
-                        if ((CM->OPTIMIZER) && ((CM->ACCESS == ACCESS_PUBLIC) || (CM->Defined_In == this->_CLASS))){
+                        helper->PIFOwner->OptimizeMember(CM);
+                        if ((CM->OPTIMIZER) && ((CM->ACCESS == ACCESS_PUBLIC) || (CM->Defined_In == helper->_CLASS))){
                             const char *remotename = NULL;
                             int can_inline = ((Optimizer *)CM->OPTIMIZER)->CanInline(CM, &remotename);
                             if (can_inline) {
@@ -914,7 +909,7 @@ INTEGER Optimizer::OptimizeExpression(TempVariableManager *TVM, INTEGER ID, INTE
             }
 #endif
 
-            if ((Check(Left, AE)) || (Check(Right, AE))) {
+            if ((Check(helper, Left, AE)) || (Check(helper, Right, AE))) {
                 continue;
             }
 
@@ -930,8 +925,8 @@ INTEGER Optimizer::OptimizeExpression(TempVariableManager *TVM, INTEGER ID, INTE
 
                 VD->TYPE = VARIABLE_NUMBER;
                 //}
-                VDList->Add(VD, DATA_VAR_DESCRIPTOR);
-                tmp_index = VDList->Count();
+                helper->VDList->Add(VD, DATA_VAR_DESCRIPTOR);
+                tmp_index = helper->VDList->Count();
             }
 
             AnalizerElement *newAE = new AnalizerElement;
@@ -948,9 +943,9 @@ INTEGER Optimizer::OptimizeExpression(TempVariableManager *TVM, INTEGER ID, INTE
 
             // remove LEFT operator RIGHT
             int idx             = FIRST_OPERATOR - 1;
-            AnalizerElement *a1 = (AnalizerElement *)PIFList->Remove(idx);
-            AnalizerElement *a2 = (AnalizerElement *)PIFList->Remove(idx);
-            AnalizerElement *a3 = (AnalizerElement *)PIFList->Remove(idx);
+            AnalizerElement *a1 = (AnalizerElement *)helper->PIFList->Remove(idx);
+            AnalizerElement *a2 = (AnalizerElement *)helper->PIFList->Remove(idx);
+            AnalizerElement *a3 = (AnalizerElement *)helper->PIFList->Remove(idx);
 
             CopyElement((AnalizerElement *)a1, &OE->OperandLeft);
             CopyElement((AnalizerElement *)a2, &OE->Operator);
@@ -958,61 +953,50 @@ INTEGER Optimizer::OptimizeExpression(TempVariableManager *TVM, INTEGER ID, INTE
             delete a1;
             delete a2;
             delete a3;
-            PIFList->Insert(newAE, idx, DATA_ANALIZER_ELEMENT);
+            helper->PIFList->Insert(newAE, idx, DATA_ANALIZER_ELEMENT);
 
-            PIF_POSITION -= 2;
-            if (may_skip_result)
+            helper->PIF_POSITION -= 2;
+            if (may_skip_result) {
+                LAST_OP_2 = LAST_OP;
                 LAST_OP = OE;
+            }
 
             if (AE_ID == KEY_DLL_CALL) {
                 if ((Parameter) && (Parameter->TYPE == TYPE_PARAM_LIST)) {
                     if ((OE->OperandLeft.ID != STATIC_CLASS_DLL) &&
                         (OE->OperandLeft.ID != STATIC_CLASS_DELEGATE)) {
                         if (OE->OperandLeft.TYPE == TYPE_CLASS) {
-                            char *static_name = PIFOwner->GeneralMembers->Item(OE->OperandRight.ID - 1);
-                            if (!((ClassCode *)PIFOwner->ClassList->Item(OE->OperandLeft.ID - 1))->CanBeRunStatic(static_name)) {
+                            char *static_name = helper->PIFOwner->GeneralMembers->Item(OE->OperandRight.ID - 1);
+                            if (!((ClassCode *)helper->PIFOwner->ClassList->Item(OE->OperandLeft.ID - 1))->CanBeRunStatic(static_name)) {
                                 AE = 0;
-                                PIFOwner->Errors.Add(new AnsiException(ERR950, AE ? AE->_DEBUG_INFO_LINE : LAST_LINE, 950, AnsiString(static_name), _DEBUG_INFO_FILENAME, _CLASS->NAME, _MEMBER), DATA_EXCEPTION);
+                                helper->PIFOwner->Errors.Add(new AnsiException(ERR950, AE ? AE->_DEBUG_INFO_LINE : LAST_LINE, 950, static_name, helper->_DEBUG_INFO_FILENAME, helper->_CLASS->NAME, helper->_MEMBER), DATA_EXCEPTION);
                             }
                         } else {
                             AE = 0;
-                            PIFOwner->Errors.Add(new AnsiException(ERR1220, AE ? AE->_DEBUG_INFO_LINE : LAST_LINE, 1220, AnsiString(""), _DEBUG_INFO_FILENAME, _CLASS->NAME, _MEMBER), DATA_EXCEPTION);
+                            helper->PIFOwner->Errors.Add(new AnsiException(ERR1220, AE ? AE->_DEBUG_INFO_LINE : LAST_LINE, 1220, "", helper->_DEBUG_INFO_FILENAME, helper->_CLASS->NAME, helper->_MEMBER), DATA_EXCEPTION);
                         }
                     }
                     CopyElement(Parameter, &OE->OperandReserved);
-                    PIF_POSITION--;
-                    PIFList->Delete(FIRST_OPERATOR);
+                    helper->PIF_POSITION--;
+                    helper->PIFList->Delete(FIRST_OPERATOR);
                 } else {
                     AE = 0;
-                    PIFOwner->Errors.Add(new AnsiException(ERR680, AE ? AE->_DEBUG_INFO_LINE : LAST_LINE, 680, (AE ? AE->_PARSE_DATA : AnsiString()), _DEBUG_INFO_FILENAME, _CLASS->NAME, _MEMBER), DATA_EXCEPTION);
+                    helper->PIFOwner->Errors.Add(new AnsiException(ERR680, AE ? AE->_DEBUG_INFO_LINE : LAST_LINE, 680, (AE ? AE->_PARSE_DATA.c_str() : ""), helper->_DEBUG_INFO_FILENAME, helper->_CLASS->NAME, helper->_MEMBER), DATA_EXCEPTION);
                 }
             } else
             if ((AE_ID == KEY_SEL) && (Parameter)) {
                 if (Parameter->TYPE == TYPE_PARAM_LIST) {
-                    AnsiList    *pc = (AnsiList *)this->ParameterList->Item(Parameter->ID - 1);
-                    int         minp, maxp;
-                    ClassMember *targetCM = 0;
-                    if (!TryCheckParameters(OE, pc ? pc->Count() : 0, &minp, &maxp, &targetCM, this->_CLASS)) {
-                        AnsiString szparameters = "none";
-                        AnsiString target_name;
-                        if (targetCM) {
-                            target_name = targetCM->NAME;
-                        } else {
-                            target_name = "(none)";
-                        }
-                        if (pc) {
-                            szparameters = AnsiString((intptr_t)pc->Count());
-                        }
-
-                        PIFOwner->Errors.Add(new AnsiException(ERR210, OE->Operator._DEBUG_INFO_LINE, 210, target_name + AnsiString(" requires ") + AnsiString(maxp) + AnsiString(", with ") + AnsiString(minp) + AnsiString(" non default parameters, received ") + szparameters, _DEBUG_INFO_FILENAME, this->_CLASS->NAME, this->_MEMBER), DATA_EXCEPTION);
+                    AnsiList    *pc = (AnsiList *)helper->ParameterList->Item(Parameter->ID - 1);
+                    if (!TryCheckParameters(helper, OE, pc ? pc->Count() : 0, &minp, &maxp, &targetCM, helper->_CLASS)) {
+                        helper->_CLASS->BuildParameterError(helper->PIFOwner, OE->Operator._DEBUG_INFO_LINE, pc->Count(), targetCM, NULL, 0);
                     }
                     CopyElement(Parameter, &OE->OperandReserved);
-                    PIF_POSITION--;
-                    PIFList->Delete(FIRST_OPERATOR);
+                    helper->PIF_POSITION--;
+                    helper->PIFList->Delete(FIRST_OPERATOR);
                 } else
                 if ((Parameter->TYPE == TYPE_OPERATOR) && ((Parameter->ID == KEY_ASG) || (Parameter->ID == KEY_BY_REF))) {
                     MAKE_NULL(OE->OperandReserved);
-                    if (FIRST_OPERATOR < PIF_POSITION) {
+                    if (FIRST_OPERATOR < helper->PIF_POSITION) {
                         OE->OperandReserved.TYPE = -1;
                     }
                 } else {
@@ -1023,13 +1007,13 @@ INTEGER Optimizer::OptimizeExpression(TempVariableManager *TVM, INTEGER ID, INTE
             }
         }
         else if ((OP_TYPE == OPERATOR_UNARY) || (OP_TYPE == OPERATOR_UNARY_LEFT)) {
-            AnalizerElement *Target = (AnalizerElement *)PIFList->Item(FIRST_OPERATOR + (OP_TYPE == OPERATOR_UNARY ? 1 : -1));
-            AnalizerElement *Parameter = (OP_TYPE == OPERATOR_UNARY) ? (AnalizerElement *)PIFList->Item(FIRST_OPERATOR + 2) : 0;
+            AnalizerElement *Target = (AnalizerElement *)helper->PIFList->Item(FIRST_OPERATOR + (OP_TYPE == OPERATOR_UNARY ? 1 : -1));
+            AnalizerElement *Parameter = (OP_TYPE == OPERATOR_UNARY) ? (AnalizerElement *)helper->PIFList->Item(FIRST_OPERATOR + 2) : 0;
 
             if (((OP_TYPE == OPERATOR_UNARY) && (Target == MARKER)) || ((OP_TYPE == OPERATOR_UNARY_LEFT) && (FIRST_OPERATOR <= START_POSITION)))
-                this->PIFOwner->Errors.Add(new AnsiException(ERR490, AE ? AE->_DEBUG_INFO_LINE : LAST_LINE, 490, AE ? AE->_PARSE_DATA.c_str() : "", _DEBUG_INFO_FILENAME, _CLASS->NAME, _MEMBER), DATA_EXCEPTION);
+                helper->PIFOwner->Errors.Add(new AnsiException(ERR490, AE ? AE->_DEBUG_INFO_LINE : LAST_LINE, 490, AE ? AE->_PARSE_DATA.c_str() : "", helper->_DEBUG_INFO_FILENAME, helper->_CLASS->NAME, helper->_MEMBER), DATA_EXCEPTION);
 
-            if (Check(Target, AE)) {
+            if (Check(helper, Target, AE)) {
                 return -1;
             }
 
@@ -1043,8 +1027,8 @@ INTEGER Optimizer::OptimizeExpression(TempVariableManager *TVM, INTEGER ID, INTE
 
             VD->TYPE = VARIABLE_NUMBER;
 
-            VDList->Add(VD, DATA_VAR_DESCRIPTOR);
-            tmp_index = VDList->Count();
+            helper->VDList->Add(VD, DATA_VAR_DESCRIPTOR);
+            tmp_index = helper->VDList->Count();
             //}
 
             AnalizerElement *newAE = new AnalizerElement;
@@ -1058,33 +1042,28 @@ INTEGER Optimizer::OptimizeExpression(TempVariableManager *TVM, INTEGER ID, INTE
 
             OE->Result_ID = newAE->ID;
 
-            CopyElement((AnalizerElement *)PIFList->Item(FIRST_OPERATOR), &OE->Operator);
-            PIFList->Delete(FIRST_OPERATOR);
+            CopyElement((AnalizerElement *)helper->PIFList->Item(FIRST_OPERATOR), &OE->Operator);
+            helper->PIFList->Delete(FIRST_OPERATOR);
 
-            CopyElement((AnalizerElement *)PIFList->Item(FIRST_OPERATOR - (OP_TYPE == OPERATOR_UNARY ? 0 : 1)), &OE->OperandLeft);
-            PIFList->Delete(FIRST_OPERATOR - (OP_TYPE == OPERATOR_UNARY ? 0 : 1));
+            CopyElement((AnalizerElement *)helper->PIFList->Item(FIRST_OPERATOR - (OP_TYPE == OPERATOR_UNARY ? 0 : 1)), &OE->OperandLeft);
+            helper->PIFList->Delete(FIRST_OPERATOR - (OP_TYPE == OPERATOR_UNARY ? 0 : 1));
 
-            PIFList->Insert(newAE, FIRST_OPERATOR - (OP_TYPE == OPERATOR_UNARY ? 0 : 1), DATA_ANALIZER_ELEMENT);
-            PIF_POSITION--;
+            helper->PIFList->Insert(newAE, FIRST_OPERATOR - (OP_TYPE == OPERATOR_UNARY ? 0 : 1), DATA_ANALIZER_ELEMENT);
+            helper->PIF_POSITION--;
 
-            if (may_skip_result)
+            if (may_skip_result) {
                 LAST_OP = OE;
+                LAST_OP_2 = LAST_OP;
+            }
 
             if ((AE_ID == KEY_NEW) && (Parameter) && (Parameter->TYPE == TYPE_PARAM_LIST)) {
                 CopyElement(Parameter, &OE->OperandReserved);
-                PIF_POSITION--;
-                PIFList->Delete(FIRST_OPERATOR + 1);
+                helper->PIF_POSITION--;
+                helper->PIFList->Delete(FIRST_OPERATOR + 1);
 
-                AnsiList *pc = (AnsiList *)this->ParameterList->Item(OE->OperandReserved.ID - 1);
-                int      minp, maxp;
-                if (!TryCheckParameters(OE, pc ? pc->Count() : 0, &minp, &maxp)) {
-                    AnsiString szparameters = "none";
-                    if (pc) {
-                        szparameters = AnsiString((intptr_t)pc->Count());
-                    }
-
-                    ClassCode *CC = (ClassCode *)PIFOwner->ClassList->Item(OE->OperandLeft.ID - 1);
-                    PIFOwner->Errors.Add(new AnsiException(ERR220, OE->Operator._DEBUG_INFO_LINE, 220, (CC ? CC->NAME : AnsiString()) + AnsiString(" requires ") + AnsiString(maxp) + AnsiString(", with ") + AnsiString(minp) + AnsiString(" non default parameters, received ") + szparameters, _DEBUG_INFO_FILENAME, this->_CLASS->NAME, this->_MEMBER), DATA_EXCEPTION);
+                AnsiList *pc = (AnsiList *)helper->ParameterList->Item(OE->OperandReserved.ID - 1);
+                if (!TryCheckParameters(helper, OE, pc ? pc->Count() : 0, &minp, &maxp, &targetCM)) {
+                    helper->_CLASS->BuildParameterError(helper->PIFOwner, OE->Operator._DEBUG_INFO_LINE, pc->Count(), targetCM, NULL, 0);
                 }
             } else {
                 MAKE_NULL(OE->OperandReserved);
@@ -1098,17 +1077,17 @@ INTEGER Optimizer::OptimizeExpression(TempVariableManager *TVM, INTEGER ID, INTE
     } while (FIRST_OPERATOR > -1);
 
     // codintie pusa "pe observatie" ... atentie !!
-    if ((PIF_POSITION > START_POSITION + 1) && (!IS_PARAM_LIST) ) {
-        PIFOwner->Errors.Add(new AnsiException(ERR490, AE ? AE->_DEBUG_INFO_LINE : LAST_LINE, 490, "", _DEBUG_INFO_FILENAME, _CLASS->NAME, _MEMBER), DATA_EXCEPTION);
+    if ((helper->PIF_POSITION > START_POSITION + 1) && (!IS_PARAM_LIST) ) {
+        helper->PIFOwner->Errors.Add(new AnsiException(ERR490, AE ? AE->_DEBUG_INFO_LINE : LAST_LINE, 490, "", helper->_DEBUG_INFO_FILENAME, helper->_CLASS->NAME, helper->_MEMBER), DATA_EXCEPTION);
     }
 
     if (FIRST_CALL) {
-        AnalizerElement *AE = (AnalizerElement *)PIFList->Item(PIF_POSITION - 1);
-        Require(AE);
+        AnalizerElement *AE = (AnalizerElement *)helper->PIFList->Item(helper->PIF_POSITION - 1);
+        Require(helper, AE);
     }
 
     if (IS_PARAM_LIST) {
-        BuildParameterList(START_POSITION, PREC_METHOD);
+        BuildParameterList(helper, START_POSITION, PREC_METHOD);
         return TYPE_PARAM_LIST;
     }
     if ((LAST_OP) && (may_skip_result)) {
@@ -1130,7 +1109,7 @@ INTEGER Optimizer::OptimizeExpression(TempVariableManager *TVM, INTEGER ID, INTE
             case KEY_OR:
             case KEY_NOT:
             case KEY_COM:
-                PIFOwner->Warning(WRN10008, LAST_OP->Operator._DEBUG_INFO_LINE, 10008, GetKeyWord(LAST_OP->Operator.ID), _DEBUG_INFO_FILENAME);
+                helper->PIFOwner->Warning(WRN10008, LAST_OP->Operator._DEBUG_INFO_LINE, 10008, GetKeyWord(LAST_OP->Operator.ID), helper->_DEBUG_INFO_FILENAME);
                 break;
             case KEY_ASG: 
             case KEY_BY_REF:
@@ -1143,16 +1122,25 @@ INTEGER Optimizer::OptimizeExpression(TempVariableManager *TVM, INTEGER ID, INTE
             default:
                 LAST_OP->OperandLeft.TYPE = MAY_IGNORE_RESULT;
         }
+        /* if ((LAST_OP_2) && ((LAST_OP->Operator.ID == KEY_ASG) || (LAST_OP->Operator.ID == KEY_BY_REF)) && (LAST_OP_2->Result_ID == LAST_OP->OperandRight.ID)) {
+            if ((LAST_OP_2->Operator.ID != KEY_SEL) && (LAST_OP_2->Operator.ID != KEY_DLL_CALL) && (LAST_OP_2->Operator.ID != KEY_NEW)) {
+                if (LAST_OP->Result_ID == VDList->Count())
+                    VDList->Delete(LAST_OP->Result_ID - 1);
+                if (LAST_OP_2->Result_ID == VDList->Count())
+                    VDList->Delete(LAST_OP_2->Result_ID - 1);
+                LAST_OP_2->Result_ID = LAST_OP->OperandLeft.ID;
+                helper->OptimizedPIF->Delete(helper->OptimizedPIF->Count() - 1);
+            }
+        } */
     }
     return result;
 }
 
-INTEGER Optimizer::OptimizeKeyWord(TempVariableManager *TVM, INTEGER ID, INTEGER TYPE) {
+INTEGER Optimizer::OptimizeKeyWord(OptimizerHelper *helper, TempVariableManager *TVM, INTEGER ID, INTEGER TYPE) {
     INTEGER            STATAMENT_POS;
     INTEGER            ITER_POS;
-    AnalizerElement    *AE = (AnalizerElement *)PIFList->Item(PIF_POSITION++);
+    AnalizerElement    *AE = (AnalizerElement *)helper->PIFList->Item(helper->PIF_POSITION++);
     AnalizerElement    *tempAE;
-    AnsiString         FileName           = _DEBUG_INFO_FILENAME;
     INTEGER            Line               = AE->_DEBUG_INFO_LINE;
     INTEGER            result             = 0;
     OptimizedElement   *OE                = 0;
@@ -1160,16 +1148,16 @@ INTEGER Optimizer::OptimizeKeyWord(TempVariableManager *TVM, INTEGER ID, INTEGER
     INTEGER            NOT_TRUE_POSITION  = 0;
     INTEGER            TEMP_STATAMENT_POS = 0;
     char               temp_result;
-    AnsiList           *PUSHED_BREAK_Elements    = BREAK_Elements;
-    AnsiList           *PUSHED_CONTINUE_Elements = CONTINUE_Elements;
+    AnsiList           *PUSHED_BREAK_Elements    = helper->BREAK_Elements;
+    AnsiList           *PUSHED_CONTINUE_Elements = helper->CONTINUE_Elements;
     AnsiList           *PUSHED_OptimizedPIF      = 0;
     AnsiList           *TEMP_OptimizedPIF        = 0;
     VariableDESCRIPTOR *VDTemp;
 
     switch (AE->ID) {
         case KEY_CONTINUE:
-            if (!CONTINUE_Elements) {
-                PIFOwner->Errors.Add(new AnsiException(ERR600, AE->_DEBUG_INFO_LINE, 600, AE->_PARSE_DATA, _DEBUG_INFO_FILENAME, _CLASS->NAME, _MEMBER), DATA_EXCEPTION);
+            if (! helper->CONTINUE_Elements) {
+                helper->PIFOwner->Errors.Add(new AnsiException(ERR600, AE->_DEBUG_INFO_LINE, 600, AE->_PARSE_DATA, helper->_DEBUG_INFO_FILENAME, helper->_CLASS->NAME, helper->_MEMBER), DATA_EXCEPTION);
                 return 0;
             }
             OEgoto = new OptimizedElement;
@@ -1179,35 +1167,35 @@ INTEGER Optimizer::OptimizeKeyWord(TempVariableManager *TVM, INTEGER ID, INTEGER
             OEgoto->Result_ID            = 0;
             MAKE_NULL(OEgoto->OperandLeft);
             MAKE_NULL(OEgoto->OperandRight);
-            OEgoto->OperandReserved.ID   = OptimizedPIF->Count() + 1;
+            OEgoto->OperandReserved.ID   = helper->OptimizedPIF->Count() + 1;
             OEgoto->OperandReserved.TYPE = TYPE_OPTIMIZED_JUMP_ADR;
-            OptimizedPIF->Add(OEgoto, DATA_OPTIMIZED_ELEMENT);
-            CONTINUE_Elements->Add(OEgoto, DATA_OPTIMIZED_ELEMENT);
+            helper->OptimizedPIF->Add(OEgoto, DATA_OPTIMIZED_ELEMENT);
+            helper->CONTINUE_Elements->Add(OEgoto, DATA_OPTIMIZED_ELEMENT);
 
 #ifdef OPTIONAL_SEPARATOR
-            if (PIFOwner->STRICT_MODE) {
-                if ((((AnalizerElement *)PIFList->Item(PIF_POSITION))->TYPE != TYPE_SEPARATOR) ||
-                    (((AnalizerElement *)PIFList->Item(PIF_POSITION))->ID != KEY_SEP)) {
-                    PIFOwner->Errors.Add(new AnsiException(ERR580, AE->_DEBUG_INFO_LINE, 580, ((AnalizerElement *)PIFList->Item(PIF_POSITION))->_PARSE_DATA, _DEBUG_INFO_FILENAME, _CLASS->NAME, _MEMBER), DATA_EXCEPTION);
+            if (helper->PIFOwner->STRICT_MODE) {
+                if ((((AnalizerElement *)helper->PIFList->Item(helper->PIF_POSITION))->TYPE != TYPE_SEPARATOR) ||
+                    (((AnalizerElement *)helper->PIFList->Item(helper->PIF_POSITION))->ID != KEY_SEP)) {
+                    helper->PIFOwner->Errors.Add(new AnsiException(ERR580, AE->_DEBUG_INFO_LINE, 580, ((AnalizerElement *)helper->PIFList->Item(helper->PIF_POSITION))->_PARSE_DATA, helper->_DEBUG_INFO_FILENAME, helper->_CLASS->NAME, helper->_MEMBER), DATA_EXCEPTION);
                     return 0;
                 }
-                PIF_POSITION++;
+                helper->PIF_POSITION++;
             } else
-            if ((((AnalizerElement *)PIFList->Item(PIF_POSITION))->TYPE == TYPE_SEPARATOR) && (((AnalizerElement *)PIFList->Item(PIF_POSITION))->ID == KEY_SEP))
-                PIF_POSITION++;
+            if ((((AnalizerElement *)helper->PIFList->Item(helper->PIF_POSITION))->TYPE == TYPE_SEPARATOR) && (((AnalizerElement *)helper->PIFList->Item(helper->PIF_POSITION))->ID == KEY_SEP))
+                helper->PIF_POSITION++;
 #else
-            if ((((AnalizerElement *)PIFList->Item(PIF_POSITION))->TYPE != TYPE_SEPARATOR) ||
-                (((AnalizerElement *)PIFList->Item(PIF_POSITION))->ID != KEY_SEP)) {
-                PIFOwner->Errors.Add(new AnsiException(ERR580, AE->_DEBUG_INFO_LINE, 580, ((AnalizerElement *)PIFList->Item(PIF_POSITION))->_PARSE_DATA, _DEBUG_INFO_FILENAME, _CLASS->NAME, _MEMBER), DATA_EXCEPTION);
+            if ((((AnalizerElement *)helper->PIFList->Item(helper->PIF_POSITION))->TYPE != TYPE_SEPARATOR) ||
+                (((AnalizerElement *)helper->PIFList->Item(helper->PIF_POSITION))->ID != KEY_SEP)) {
+                helper->PIFOwner->Errors.Add(new AnsiException(ERR580, AE->_DEBUG_INFO_LINE, 580, ((AnalizerElement *)helper->PIFList->Item(helper->PIF_POSITION))->_PARSE_DATA, helper->_DEBUG_INFO_FILENAME, helper->_CLASS->NAME, helper->_MEMBER), DATA_EXCEPTION);
                 return 0;
             }
-            PIF_POSITION++;
+            helper->PIF_POSITION++;
 #endif
             break;
 
         case KEY_BREAK:
-            if (!BREAK_Elements) {
-                PIFOwner->Errors.Add(new AnsiException(ERR590, AE->_DEBUG_INFO_LINE, 590, AE->_PARSE_DATA, _DEBUG_INFO_FILENAME, _CLASS->NAME, _MEMBER), DATA_EXCEPTION);
+            if (!helper->BREAK_Elements) {
+                helper->PIFOwner->Errors.Add(new AnsiException(ERR590, AE->_DEBUG_INFO_LINE, 590, AE->_PARSE_DATA, helper->_DEBUG_INFO_FILENAME, helper->_CLASS->NAME, helper->_MEMBER), DATA_EXCEPTION);
                 return 0;
             }
             OEgoto = new OptimizedElement;
@@ -1217,28 +1205,28 @@ INTEGER Optimizer::OptimizeKeyWord(TempVariableManager *TVM, INTEGER ID, INTEGER
             OEgoto->Result_ID     = 0;
             MAKE_NULL(OEgoto->OperandLeft);
             MAKE_NULL(OEgoto->OperandRight);
-            OEgoto->OperandReserved.ID   = OptimizedPIF->Count() + 1;
+            OEgoto->OperandReserved.ID   = helper->OptimizedPIF->Count() + 1;
             OEgoto->OperandReserved.TYPE = TYPE_OPTIMIZED_JUMP_ADR;
-            OptimizedPIF->Add(OEgoto, DATA_OPTIMIZED_ELEMENT);
-            BREAK_Elements->Add(OEgoto, DATA_OPTIMIZED_ELEMENT);
+            helper->OptimizedPIF->Add(OEgoto, DATA_OPTIMIZED_ELEMENT);
+            helper->BREAK_Elements->Add(OEgoto, DATA_OPTIMIZED_ELEMENT);
 
-            tempAE = (AnalizerElement *)PIFList->Item(PIF_POSITION);
+            tempAE = (AnalizerElement *)helper->PIFList->Item(helper->PIF_POSITION);
 #ifdef OPTIONAL_SEPARATOR
-            if (PIFOwner->STRICT_MODE) {
+            if (helper->PIFOwner->STRICT_MODE) {
                 if ((tempAE->TYPE != TYPE_SEPARATOR) || (tempAE->ID != KEY_SEP)) {
-                    PIFOwner->Errors.Add(new AnsiException(ERR580, AE->_DEBUG_INFO_LINE, 580, AE->_PARSE_DATA, _DEBUG_INFO_FILENAME, _CLASS->NAME, _MEMBER), DATA_EXCEPTION);
+                    helper->PIFOwner->Errors.Add(new AnsiException(ERR580, AE->_DEBUG_INFO_LINE, 580, AE->_PARSE_DATA, helper->_DEBUG_INFO_FILENAME, helper->_CLASS->NAME, helper->_MEMBER), DATA_EXCEPTION);
                     return 0;
                 }
-                PIF_POSITION++;
+                helper->PIF_POSITION++;
             } else
             if ((tempAE->TYPE == TYPE_SEPARATOR) && (tempAE->ID == KEY_SEP))
-                PIF_POSITION++;
+                helper->PIF_POSITION++;
 #else
             if ((tempAE->TYPE != TYPE_SEPARATOR) || (tempAE->ID != KEY_SEP)) {
-                PIFOwner->Errors.Add(new AnsiException(ERR580, AE->_DEBUG_INFO_LINE, 580, AE->_PARSE_DATA, _DEBUG_INFO_FILENAME, _CLASS->NAME, _MEMBER), DATA_EXCEPTION);
+                helper->PIFOwner->Errors.Add(new AnsiException(ERR580, AE->_DEBUG_INFO_LINE, 580, AE->_PARSE_DATA, helper->_DEBUG_INFO_FILENAME, helper->_CLASS->NAME, helper->_MEMBER), DATA_EXCEPTION);
                 return 0;
             }
-            PIF_POSITION++;
+            helper->PIF_POSITION++;
 #endif
             break;
 
@@ -1247,39 +1235,39 @@ INTEGER Optimizer::OptimizeKeyWord(TempVariableManager *TVM, INTEGER ID, INTEGER
 
         case KEY_BEGIN:
             while ((result != -1) && (result != KEY_END)) {
-                result = OptimizeAny(TVM);
+                result = OptimizeAny(helper, TVM);
             }
             break;
 
         case KEY_IF:
-            tempAE = (AnalizerElement *)PIFList->Item(PIF_POSITION);
+            tempAE = (AnalizerElement *)helper->PIFList->Item(helper->PIF_POSITION);
 
             if ((!tempAE) || (tempAE->TYPE != TYPE_OPERATOR) || (tempAE->ID != KEY_P_OPEN)) {
-                PIFOwner->Errors.Add(new AnsiException(ERR1201, AE->_DEBUG_INFO_LINE, 1201, AE->_PARSE_DATA, _DEBUG_INFO_FILENAME, _CLASS->NAME, _MEMBER), DATA_EXCEPTION);
+                helper->PIFOwner->Errors.Add(new AnsiException(ERR1201, AE->_DEBUG_INFO_LINE, 1201, AE->_PARSE_DATA, helper->_DEBUG_INFO_FILENAME, helper->_CLASS->NAME, helper->_MEMBER), DATA_EXCEPTION);
             }
 
-            PIFList->Delete(PIF_POSITION);
+            helper->PIFList->Delete(helper->PIF_POSITION);
 
-            STATAMENT_POS = OptimizedPIF->Count();
-            OptimizeExpression(TVM, KEY_P_CLOSE, TYPE_OPERATOR);
+            STATAMENT_POS = helper->OptimizedPIF->Count();
+            OptimizeExpression(helper, TVM, KEY_P_CLOSE, TYPE_OPERATOR);
 
             OE = new OptimizedElement;
             OE->Operator._DEBUG_INFO_LINE = Line;
             OE->Operator.TYPE = TYPE_OPTIMIZED_KEYWORD;
             OE->Operator.ID   = KEY_OPTIMIZED_IF;
             MAKE_NULL(OE->OperandLeft);
-            CopyElement((AnalizerElement *)PIFList->Item(PIF_POSITION - 1), &OE->OperandRight);
+            CopyElement((AnalizerElement *)helper->PIFList->Item(helper->PIF_POSITION - 1), &OE->OperandRight);
             OE->Result_ID = 0;
-            OptimizedPIF->Add(OE, DATA_OPTIMIZED_ELEMENT);
+            helper->OptimizedPIF->Add(OE, DATA_OPTIMIZED_ELEMENT);
 
-            OptimizeAny(TVM);
+            OptimizeAny(helper, TVM);
 
-            OE->OperandReserved.ID   = OptimizedPIF->Count();
+            OE->OperandReserved.ID   = helper->OptimizedPIF->Count();
             OE->OperandReserved.TYPE = TYPE_OPTIMIZED_JUMP_ADR;
 
-            AE = (AnalizerElement *)PIFList->Item(PIF_POSITION);
+            AE = (AnalizerElement *)helper->PIFList->Item(helper->PIF_POSITION);
             if ((AE) && (AE->TYPE == TYPE_KEYWORD) && (AE->ID == KEY_ELSE)) {
-                PIF_POSITION++;
+                helper->PIF_POSITION++;
                 OE->OperandReserved.ID++;
 
                 OEgoto = new OptimizedElement;
@@ -1292,28 +1280,28 @@ INTEGER Optimizer::OptimizeKeyWord(TempVariableManager *TVM, INTEGER ID, INTEGER
 
                 OEgoto->OperandReserved.ID   = 0;
                 OEgoto->OperandReserved.TYPE = TYPE_OPTIMIZED_JUMP_ADR;
-                OptimizedPIF->Add(OEgoto, DATA_OPTIMIZED_ELEMENT);
+                helper->OptimizedPIF->Add(OEgoto, DATA_OPTIMIZED_ELEMENT);
                 
-                AE = (AnalizerElement *)PIFList->Item(PIF_POSITION);
+                AE = (AnalizerElement *)helper->PIFList->Item(helper->PIF_POSITION);
                 if ((!AE) || ((AE->TYPE == TYPE_KEYWORD) && (AE->ID == KEY_END)))
-                    PIFOwner->Errors.Add(new AnsiException(ERR531, AE->_DEBUG_INFO_LINE, 531, AE->_PARSE_DATA, _DEBUG_INFO_FILENAME, _CLASS->NAME, _MEMBER), DATA_EXCEPTION);
+                    helper->PIFOwner->Errors.Add(new AnsiException(ERR531, AE->_DEBUG_INFO_LINE, 531, AE->_PARSE_DATA, helper->_DEBUG_INFO_FILENAME, helper->_CLASS->NAME, helper->_MEMBER), DATA_EXCEPTION);
 
-                OptimizeAny(TVM);
-                OEgoto->OperandReserved.ID = OptimizedPIF->Count();
+                OptimizeAny(helper, TVM);
+                OEgoto->OperandReserved.ID = helper->OptimizedPIF->Count();
             }
             break;
 
         case KEY_ELSE:
-            PIFOwner->Errors.Add(new AnsiException(ERR530, AE->_DEBUG_INFO_LINE, 530, AE->_PARSE_DATA, _DEBUG_INFO_FILENAME, _CLASS->NAME, _MEMBER), DATA_EXCEPTION);
+            helper->PIFOwner->Errors.Add(new AnsiException(ERR530, AE->_DEBUG_INFO_LINE, 530, AE->_PARSE_DATA, helper->_DEBUG_INFO_FILENAME, helper->_CLASS->NAME, helper->_MEMBER), DATA_EXCEPTION);
             return 0;
 
         case KEY_CATCH:
-            PIFOwner->Errors.Add(new AnsiException(ERR560, AE->_DEBUG_INFO_LINE, 560, AE->_PARSE_DATA, _DEBUG_INFO_FILENAME, _CLASS->NAME, _MEMBER), DATA_EXCEPTION);
+            helper->PIFOwner->Errors.Add(new AnsiException(ERR560, AE->_DEBUG_INFO_LINE, 560, AE->_PARSE_DATA, helper->_DEBUG_INFO_FILENAME, helper->_CLASS->NAME, helper->_MEMBER), DATA_EXCEPTION);
             return 0;
 
         case KEY_ECHO:
-            STATAMENT_POS = OptimizedPIF->Count();
-            OptimizeExpression(TVM, ID, TYPE);
+            STATAMENT_POS = helper->OptimizedPIF->Count();
+            OptimizeExpression(helper, TVM, ID, TYPE);
 
             OE = new OptimizedElement;
             OE->Operator._DEBUG_INFO_LINE = Line;
@@ -1323,21 +1311,21 @@ INTEGER Optimizer::OptimizeKeyWord(TempVariableManager *TVM, INTEGER ID, INTEGER
             //--------------------------------//
             CopyElement(0, &OE->OperandLeft);
             //--------------------------------//
-            CopyElement((AnalizerElement *)PIFList->Item(PIF_POSITION - 1), &OE->OperandRight);
+            CopyElement((AnalizerElement *)helper->PIFList->Item(helper->PIF_POSITION - 1), &OE->OperandRight);
             OE->Result_ID = 0;
             MAKE_NULL(OE->OperandReserved);
-            OptimizedPIF->Add(OE, DATA_OPTIMIZED_ELEMENT);
+            helper->OptimizedPIF->Add(OE, DATA_OPTIMIZED_ELEMENT);
             break;
 
         case KEY_RETURN:
-            if (PIFOwner->PROFILE_DRIVEN)
-                AddProfilerCode(1);
+            if (helper->PIFOwner->PROFILE_DRIVEN)
+                AddProfilerCode(helper, 1);
 
-            STATAMENT_POS = OptimizedPIF->Count();
-            tempAE        = (AnalizerElement *)PIFList->Item(PIF_POSITION);
+            STATAMENT_POS = helper->OptimizedPIF->Count();
+            tempAE        = (AnalizerElement *)helper->PIFList->Item(helper->PIF_POSITION);
 
 #ifdef OPTIONAL_SEPARATOR
-            if ((tempAE) && (((tempAE->TYPE == TYPE) && (tempAE->ID == ID)) || ((!PIFOwner->STRICT_MODE) && (tempAE->_DEBUG_INFO_LINE != AE->_DEBUG_INFO_LINE)))) {
+            if ((tempAE) && (((tempAE->TYPE == TYPE) && (tempAE->ID == ID)) || ((!helper->PIFOwner->STRICT_MODE) && (tempAE->_DEBUG_INFO_LINE != AE->_DEBUG_INFO_LINE)))) {
 #else
             if ((tempAE) && (tempAE->TYPE == TYPE) && (tempAE->ID == ID)) {
 #endif
@@ -1346,21 +1334,21 @@ INTEGER Optimizer::OptimizeKeyWord(TempVariableManager *TVM, INTEGER ID, INTEGER
                 VD->nValue = 0;
                 VD->BY_REF = 0;
                 VD->TYPE   = VARIABLE_NUMBER;
-                VDList->Add(VD, DATA_VAR_DESCRIPTOR);
+                helper->VDList->Add(VD, DATA_VAR_DESCRIPTOR);
 
                 AnalizerElement *newAE = new AnalizerElement;
-                newAE->ID               = VDList->Count();
+                newAE->ID               = helper->VDList->Count();
                 newAE->TYPE             = TYPE_VARIABLE;
                 newAE->_DEBUG_INFO_LINE = tempAE->_DEBUG_INFO_LINE;
                 newAE->_INFO_OPTIMIZED  = 1;
                 newAE->_HASH_DATA       = 0;
 
-                PIFList->Delete(PIF_POSITION);
+                helper->PIFList->Delete(helper->PIF_POSITION);
 
-                PIFList->Insert(newAE, PIF_POSITION, DATA_ANALIZER_ELEMENT);
-                PIF_POSITION++;
+                helper->PIFList->Insert(newAE, helper->PIF_POSITION, DATA_ANALIZER_ELEMENT);
+                helper->PIF_POSITION++;
             } else {
-                OptimizeExpression(TVM, ID, TYPE);
+                OptimizeExpression(helper, TVM, ID, TYPE);
             }
 
             OE = new OptimizedElement;
@@ -1371,16 +1359,16 @@ INTEGER Optimizer::OptimizeKeyWord(TempVariableManager *TVM, INTEGER ID, INTEGER
             CopyElement(0, &OE->OperandLeft);
             //--------------------------------//
 
-            CopyElement((AnalizerElement *)PIFList->Item(PIF_POSITION - 1), &OE->OperandRight);
+            CopyElement((AnalizerElement *)helper->PIFList->Item(helper->PIF_POSITION - 1), &OE->OperandRight);
             OE->Result_ID = 0;
             MAKE_NULL(OE->OperandReserved);
-            OptimizedPIF->Add(OE, DATA_OPTIMIZED_ELEMENT);
+            helper->OptimizedPIF->Add(OE, DATA_OPTIMIZED_ELEMENT);
             break;
 
         case KEY_TRY:
-            TEMP_STATAMENT_POS = this->CATCH_ELEMENT;
+            TEMP_STATAMENT_POS = helper->CATCH_ELEMENT;
 
-            STATAMENT_POS = OptimizedPIF->Count();
+            STATAMENT_POS = helper->OptimizedPIF->Count();
 
             OE = new OptimizedElement;
             OE->Operator._DEBUG_INFO_LINE = Line;
@@ -1395,30 +1383,30 @@ INTEGER Optimizer::OptimizeKeyWord(TempVariableManager *TVM, INTEGER ID, INTEGER
             //----------------------------------------------
 
             CopyElement(0, &OE->OperandLeft);
-            OE->OperandLeft.ID = this->CATCH_ELEMENT;
+            OE->OperandLeft.ID = helper->CATCH_ELEMENT;
             //----------------------------------------------
-            OptimizedPIF->Add(OE, DATA_OPTIMIZED_ELEMENT);
+            helper->OptimizedPIF->Add(OE, DATA_OPTIMIZED_ELEMENT);
 
-            this->CATCH_ELEMENT = OptimizedPIF->Count();
+            helper->CATCH_ELEMENT = helper->OptimizedPIF->Count();
 
-            OptimizeAny(TVM);
+            OptimizeAny(helper, TVM);
 
-            tempAE = (AnalizerElement *)PIFList->Item(PIF_POSITION);
+            tempAE = (AnalizerElement *)helper->PIFList->Item(helper->PIF_POSITION);
             if ((tempAE->TYPE != TYPE_KEYWORD) || (tempAE->ID != KEY_CATCH)) {
-                PIFOwner->Errors.Add(new AnsiException(ERR540, AE->_DEBUG_INFO_LINE, 540, ((AnalizerElement *)PIFList->Item(PIF_POSITION))->_PARSE_DATA, _DEBUG_INFO_FILENAME, _CLASS->NAME, _MEMBER), DATA_EXCEPTION);
+                helper->PIFOwner->Errors.Add(new AnsiException(ERR540, AE->_DEBUG_INFO_LINE, 540, ((AnalizerElement *)helper->PIFList->Item(helper->PIF_POSITION))->_PARSE_DATA, helper->_DEBUG_INFO_FILENAME, helper->_CLASS->NAME, helper->_MEMBER), DATA_EXCEPTION);
                 return 0;
             }
-            PIF_POSITION++;
-            PIFList->Delete(PIF_POSITION);
-            OptimizeExpression(TVM, KEY_P_CLOSE, TYPE_OPERATOR);
+            helper->PIF_POSITION++;
+            helper->PIFList->Delete(helper->PIF_POSITION);
+            OptimizeExpression(helper, TVM, KEY_P_CLOSE, TYPE_OPERATOR);
 
-            tempAE        = ((AnalizerElement *)PIFList->Item(PIF_POSITION - 1));
-            OE->Result_ID = ((AnalizerElement *)PIFList->Item(PIF_POSITION - 1))->ID;
-            VDTemp        = (VariableDESCRIPTOR *)VDList->Item(OE->Result_ID - 1);
+            tempAE        = ((AnalizerElement *)helper->PIFList->Item(helper->PIF_POSITION - 1));
+            OE->Result_ID = ((AnalizerElement *)helper->PIFList->Item(helper->PIF_POSITION - 1))->ID;
+            VDTemp        = (VariableDESCRIPTOR *)helper->VDList->Item(OE->Result_ID - 1);
             if (VDTemp->BY_REF == 2)
-                PIFOwner->Errors.Add(new AnsiException(ERR541, AE->_DEBUG_INFO_LINE, 541, tempAE->_PARSE_DATA, _DEBUG_INFO_FILENAME, _CLASS->NAME, _MEMBER), DATA_EXCEPTION);
+                helper->PIFOwner->Errors.Add(new AnsiException(ERR541, AE->_DEBUG_INFO_LINE, 541, tempAE->_PARSE_DATA, helper->_DEBUG_INFO_FILENAME, helper->_CLASS->NAME, helper->_MEMBER), DATA_EXCEPTION);
 
-            STATAMENT_POS = OptimizedPIF->Count() + 1;
+            STATAMENT_POS = helper->OptimizedPIF->Count() + 1;
 
             // setez GO-TO-ul
             OEgoto = new OptimizedElement;
@@ -1432,30 +1420,30 @@ INTEGER Optimizer::OptimizeKeyWord(TempVariableManager *TVM, INTEGER ID, INTEGER
             OEgoto->OperandReserved.ID   = 0;
             OEgoto->OperandReserved.TYPE = TYPE_OPTIMIZED_JUMP_ADR;
 
-            OptimizedPIF->Add(OEgoto, DATA_OPTIMIZED_ELEMENT);
+            helper->OptimizedPIF->Add(OEgoto, DATA_OPTIMIZED_ELEMENT);
 
             OE->OperandReserved.ID   = STATAMENT_POS;
             OE->OperandReserved.TYPE = TYPE_OPTIMIZED_JUMP_ADR;
 
-            OptimizeAny(TVM);
+            OptimizeAny(helper, TVM);
 
             OE = new OptimizedElement;
             OE->Operator._DEBUG_INFO_LINE = Line;
             OE->Operator.TYPE = TYPE_OPTIMIZED_KEYWORD;
             OE->Operator.ID   = KEY_OPTIMIZED_END_CATCH;
 
-            this->CATCH_ELEMENT = TEMP_STATAMENT_POS;
+            helper->CATCH_ELEMENT = TEMP_STATAMENT_POS;
 
-            OptimizedPIF->Add(OE, DATA_OPTIMIZED_ELEMENT);
+            helper->OptimizedPIF->Add(OE, DATA_OPTIMIZED_ELEMENT);
 
-            OEgoto->OperandReserved.ID = OptimizedPIF->Count() - 1;
+            OEgoto->OperandReserved.ID = helper->OptimizedPIF->Count() - 1;
             break;
 
         case KEY_THROW:
-            if (PIFOwner->PROFILE_DRIVEN)
-                AddProfilerCode(2);
-            STATAMENT_POS = OptimizedPIF->Count();
-            OptimizeExpression(TVM, ID, TYPE);
+            if (helper->PIFOwner->PROFILE_DRIVEN)
+                AddProfilerCode(helper, 2);
+            STATAMENT_POS = helper->OptimizedPIF->Count();
+            OptimizeExpression(helper, TVM, ID, TYPE);
 
             OE = new OptimizedElement;
             OE->Operator._DEBUG_INFO_LINE = Line;
@@ -1465,17 +1453,17 @@ INTEGER Optimizer::OptimizeKeyWord(TempVariableManager *TVM, INTEGER ID, INTEGER
             //--------------------------------//
             //--------------------------------//
 
-            CopyElement((AnalizerElement *)PIFList->Item(PIF_POSITION - 1), &OE->OperandRight);
+            CopyElement((AnalizerElement *)helper->PIFList->Item(helper->PIF_POSITION - 1), &OE->OperandRight);
             OE->Result_ID = 0;
             MAKE_NULL(OE->OperandReserved);
-            OptimizedPIF->Add(OE, DATA_OPTIMIZED_ELEMENT);
+            helper->OptimizedPIF->Add(OE, DATA_OPTIMIZED_ELEMENT);
             break;
 
         case KEY_DO:
-            STATAMENT_POS     = OptimizedPIF->Count();
-            CONTINUE_Elements = new AnsiList(0);
-            BREAK_Elements    = new AnsiList(0);
-            OptimizeAny(TVM);
+            STATAMENT_POS     = helper->OptimizedPIF->Count();
+            helper->CONTINUE_Elements = new AnsiList(0);
+            helper->BREAK_Elements    = new AnsiList(0);
+            OptimizeAny(helper, TVM);
 
             OE = new OptimizedElement;
             OE->Operator._DEBUG_INFO_LINE = Line;
@@ -1487,30 +1475,30 @@ INTEGER Optimizer::OptimizeKeyWord(TempVariableManager *TVM, INTEGER ID, INTEGER
 
             OE->Result_ID = 0;
 
-            tempAE = (AnalizerElement *)PIFList->Item(PIF_POSITION);
+            tempAE = (AnalizerElement *)helper->PIFList->Item(helper->PIF_POSITION);
             if ((!tempAE) || (tempAE->TYPE != TYPE_KEYWORD) ||
                 (tempAE->ID != KEY_WHILE)) {
-                PIFOwner->Errors.Add(new AnsiException(ERR550, AE->_DEBUG_INFO_LINE, 550, tempAE ? tempAE->_PARSE_DATA : AE->_PARSE_DATA, _DEBUG_INFO_FILENAME), DATA_EXCEPTION);
+                helper->PIFOwner->Errors.Add(new AnsiException(ERR550, AE->_DEBUG_INFO_LINE, 550, tempAE ? tempAE->_PARSE_DATA : AE->_PARSE_DATA, helper->_DEBUG_INFO_FILENAME), DATA_EXCEPTION);
                 delete OE;
                 return 0;
             }
-            PIF_POSITION++;
+            helper->PIF_POSITION++;
 
-            tempAE = (AnalizerElement *)PIFList->Item(PIF_POSITION);
+            tempAE = (AnalizerElement *)helper->PIFList->Item(helper->PIF_POSITION);
 
             if ((!tempAE) || (tempAE->TYPE != TYPE_OPERATOR) || (tempAE->ID != KEY_P_OPEN)) {
-                PIFOwner->Errors.Add(new AnsiException(ERR1201, AE->_DEBUG_INFO_LINE, 1201, AE->_PARSE_DATA, _DEBUG_INFO_FILENAME, _CLASS->NAME, _MEMBER), DATA_EXCEPTION);
+                helper->PIFOwner->Errors.Add(new AnsiException(ERR1201, AE->_DEBUG_INFO_LINE, 1201, AE->_PARSE_DATA, helper->_DEBUG_INFO_FILENAME, helper->_CLASS->NAME, helper->_MEMBER), DATA_EXCEPTION);
             }
 
-            PIFList->Delete(PIF_POSITION);
-            TEMP_STATAMENT_POS = OptimizedPIF->Count();
-            OptimizeExpression(TVM, KEY_P_CLOSE, TYPE_OPERATOR);
+            helper->PIFList->Delete(helper->PIF_POSITION);
+            TEMP_STATAMENT_POS = helper->OptimizedPIF->Count();
+            OptimizeExpression(helper, TVM, KEY_P_CLOSE, TYPE_OPERATOR);
 
-            OptimizedPIF->Add(OE, DATA_OPTIMIZED_ELEMENT);
+            helper->OptimizedPIF->Add(OE, DATA_OPTIMIZED_ELEMENT);
 
-            CopyElement((AnalizerElement *)PIFList->Item(PIF_POSITION - 1), &OE->OperandRight);
+            CopyElement((AnalizerElement *)helper->PIFList->Item(helper->PIF_POSITION - 1), &OE->OperandRight);
 
-            NOT_TRUE_POSITION        = OptimizedPIF->Count() + 1;
+            NOT_TRUE_POSITION        = helper->OptimizedPIF->Count() + 1;
             OE->OperandReserved.ID   = NOT_TRUE_POSITION;
             OE->OperandReserved.TYPE = TYPE_OPTIMIZED_JUMP_ADR;
 
@@ -1525,36 +1513,36 @@ INTEGER Optimizer::OptimizeKeyWord(TempVariableManager *TVM, INTEGER ID, INTEGER
 
             OEgoto->OperandReserved.ID   = STATAMENT_POS;
             OEgoto->OperandReserved.TYPE = TYPE_OPTIMIZED_JUMP_ADR;
-            OptimizedPIF->Add(OEgoto, DATA_OPTIMIZED_ELEMENT);
+            helper->OptimizedPIF->Add(OEgoto, DATA_OPTIMIZED_ELEMENT);
 
             END_WHILE_CYCLE(TEMP_STATAMENT_POS, NOT_TRUE_POSITION);
-            NO_WARNING_EMPTY = 1;
-            tempAE           = (AnalizerElement *)PIFList->Item(PIF_POSITION);
+            helper->NO_WARNING_EMPTY = 1;
+            tempAE           = (AnalizerElement *)helper->PIFList->Item(helper->PIF_POSITION);
 #ifdef OPTIONAL_SEPARATOR
-            if (PIFOwner->STRICT_MODE) {
+            if (helper->PIFOwner->STRICT_MODE) {
                 if ((!tempAE) || (tempAE->TYPE != TYPE_SEPARATOR) || (tempAE->ID != KEY_SEP))
-                    PIFOwner->Errors.Add(new AnsiException(ERR340, tempAE->_DEBUG_INFO_LINE, 340, tempAE->_PARSE_DATA, _DEBUG_INFO_FILENAME, _CLASS->NAME, _MEMBER), DATA_EXCEPTION);
+                    helper->PIFOwner->Errors.Add(new AnsiException(ERR340, tempAE->_DEBUG_INFO_LINE, 340, tempAE->_PARSE_DATA, helper->_DEBUG_INFO_FILENAME, helper->_CLASS->NAME, helper->_MEMBER), DATA_EXCEPTION);
             } else
             if ((tempAE->TYPE != TYPE_SEPARATOR) || (tempAE->ID != KEY_SEP))
-                PIF_POSITION--;
+                helper->PIF_POSITION--;
 #else
             if ((!tempAE) || (tempAE->TYPE != TYPE_SEPARATOR) || (tempAE->ID != KEY_SEP)) {
-                PIFOwner->Errors.Add(new AnsiException(ERR340, tempAE->_DEBUG_INFO_LINE, 340, tempAE->_PARSE_DATA, _DEBUG_INFO_FILENAME, _CLASS->NAME, _MEMBER), DATA_EXCEPTION);
+                helper->PIFOwner->Errors.Add(new AnsiException(ERR340, tempAE->_DEBUG_INFO_LINE, 340, tempAE->_PARSE_DATA, helper->_DEBUG_INFO_FILENAME, helper->_CLASS->NAME, helper->_MEMBER), DATA_EXCEPTION);
             }
 #endif
             break;
 
         case KEY_WHILE:
-            tempAE = (AnalizerElement *)PIFList->Item(PIF_POSITION);
+            tempAE = (AnalizerElement *)helper->PIFList->Item(helper->PIF_POSITION);
 
             if ((!tempAE) || (tempAE->TYPE != TYPE_OPERATOR) || (tempAE->ID != KEY_P_OPEN)) {
-                PIFOwner->Errors.Add(new AnsiException(ERR1201, AE->_DEBUG_INFO_LINE, 1201, AE->_PARSE_DATA, _DEBUG_INFO_FILENAME, _CLASS->NAME, _MEMBER), DATA_EXCEPTION);
+                helper->PIFOwner->Errors.Add(new AnsiException(ERR1201, AE->_DEBUG_INFO_LINE, 1201, AE->_PARSE_DATA, helper->_DEBUG_INFO_FILENAME, helper->_CLASS->NAME, helper->_MEMBER), DATA_EXCEPTION);
             }
 
-            PIFList->Delete(PIF_POSITION);
+            helper->PIFList->Delete(helper->PIF_POSITION);
 
-            STATAMENT_POS = OptimizedPIF->Count();
-            OptimizeExpression(TVM, KEY_P_CLOSE, TYPE_OPERATOR);
+            STATAMENT_POS = helper->OptimizedPIF->Count();
+            OptimizeExpression(helper, TVM, KEY_P_CLOSE, TYPE_OPERATOR);
 
             OE = new OptimizedElement;
             OE->Operator._DEBUG_INFO_LINE = Line;
@@ -1563,16 +1551,16 @@ INTEGER Optimizer::OptimizeKeyWord(TempVariableManager *TVM, INTEGER ID, INTEGER
             MAKE_NULL(OE->OperandLeft);
             //--------------------------------//
             //--------------------------------//
-            CopyElement((AnalizerElement *)PIFList->Item(PIF_POSITION - 1), &OE->OperandRight);
+            CopyElement((AnalizerElement *)helper->PIFList->Item(helper->PIF_POSITION - 1), &OE->OperandRight);
             OE->Result_ID = 0;
 
-            OptimizedPIF->Add(OE, DATA_OPTIMIZED_ELEMENT);
+            helper->OptimizedPIF->Add(OE, DATA_OPTIMIZED_ELEMENT);
 
-            CONTINUE_Elements = new AnsiList(0);
-            BREAK_Elements    = new AnsiList(0);
-            OptimizeAny(TVM);
+            helper->CONTINUE_Elements = new AnsiList(0);
+            helper->BREAK_Elements    = new AnsiList(0);
+            OptimizeAny(helper, TVM);
 
-            NOT_TRUE_POSITION        = OptimizedPIF->Count() + 1;
+            NOT_TRUE_POSITION        = helper->OptimizedPIF->Count() + 1;
             OE->OperandReserved.ID   = NOT_TRUE_POSITION;
             OE->OperandReserved.TYPE = TYPE_OPTIMIZED_JUMP_ADR;
 
@@ -1587,23 +1575,23 @@ INTEGER Optimizer::OptimizeKeyWord(TempVariableManager *TVM, INTEGER ID, INTEGER
 
             OEgoto->OperandReserved.ID   = STATAMENT_POS;
             OEgoto->OperandReserved.TYPE = TYPE_OPTIMIZED_JUMP_ADR;
-            OptimizedPIF->Add(OEgoto, DATA_OPTIMIZED_ELEMENT);
+            helper->OptimizedPIF->Add(OEgoto, DATA_OPTIMIZED_ELEMENT);
 
             END_WHILE_CYCLE(STATAMENT_POS, NOT_TRUE_POSITION);
             break;
 
         case KEY_FOR:
-            tempAE = (AnalizerElement *)PIFList->Item(PIF_POSITION);
+            tempAE = (AnalizerElement *)helper->PIFList->Item(helper->PIF_POSITION);
 
             if ((!tempAE) || (tempAE->TYPE != TYPE_OPERATOR) || (tempAE->ID != KEY_P_OPEN)) {
-                PIFOwner->Errors.Add(new AnsiException(ERR1201, AE->_DEBUG_INFO_LINE, 1201, AE->_PARSE_DATA, _DEBUG_INFO_FILENAME, _CLASS->NAME, _MEMBER), DATA_EXCEPTION);
+                helper->PIFOwner->Errors.Add(new AnsiException(ERR1201, AE->_DEBUG_INFO_LINE, 1201, AE->_PARSE_DATA, helper->_DEBUG_INFO_FILENAME, helper->_CLASS->NAME, helper->_MEMBER), DATA_EXCEPTION);
             }
 
-            PIFList->Delete(PIF_POSITION);
-            OptimizeForExpression(TVM);
+            helper->PIFList->Delete(helper->PIF_POSITION);
+            OptimizeForExpression(helper, TVM);
 
-            STATAMENT_POS = OptimizedPIF->Count();
-            temp_result   = OptimizeExpression(TVM, KEY_SEP, TYPE_SEPARATOR, 0, 1, KEY_FOR);
+            STATAMENT_POS = helper->OptimizedPIF->Count();
+            temp_result   = OptimizeExpression(helper, TVM, KEY_SEP, TYPE_SEPARATOR, 0, 1, KEY_FOR);
 
             OE = new OptimizedElement;
             OE->Operator._DEBUG_INFO_LINE = Line;
@@ -1614,36 +1602,36 @@ INTEGER Optimizer::OptimizeKeyWord(TempVariableManager *TVM, INTEGER ID, INTEGER
             //--------------------------------//
 
             if (temp_result <= 0) {
-                CopyElement((AnalizerElement *)PIFList->Item(PIF_POSITION - 1), &OE->OperandRight);
+                CopyElement((AnalizerElement *)helper->PIFList->Item(helper->PIF_POSITION - 1), &OE->OperandRight);
             } else {
                 OE->OperandRight._DEBUG_INFO_LINE = 0;
                 OE->OperandRight._HASH_DATA       = 0;
                 OE->OperandRight._INFO_OPTIMIZED  = 0;
-                OE->OperandRight.ID   = VDList->Count();
+                OE->OperandRight.ID   = helper->VDList->Count();
                 OE->OperandRight.TYPE = TYPE_VARIABLE;
             }
             OE->Result_ID = 0;
 
-            OptimizedPIF->Add(OE, DATA_OPTIMIZED_ELEMENT);
+            helper->OptimizedPIF->Add(OE, DATA_OPTIMIZED_ELEMENT);
 
-            TEMP_STATAMENT_POS = OptimizedPIF->Count() + 1;
+            TEMP_STATAMENT_POS = helper->OptimizedPIF->Count() + 1;
             // ============ v2 ================== //
-            PUSHED_OptimizedPIF = OptimizedPIF;
-            OptimizedPIF        = new AnsiList(0);
-            OptimizeForExpression(TVM, true);
-            TEMP_OptimizedPIF   = OptimizedPIF;
-            OptimizedPIF        = PUSHED_OptimizedPIF;
+            PUSHED_OptimizedPIF = helper->OptimizedPIF;
+            helper->OptimizedPIF        = new AnsiList(0);
+            OptimizeForExpression(helper, TVM, true);
+            TEMP_OptimizedPIF   = helper->OptimizedPIF;
+            helper->OptimizedPIF        = PUSHED_OptimizedPIF;
             PUSHED_OptimizedPIF = 0;
             // ========== end v2 ================ //
 
-            CONTINUE_Elements = new AnsiList(0);
-            BREAK_Elements    = new AnsiList(0);
-            OptimizeAny(TVM);
+            helper->CONTINUE_Elements = new AnsiList(0);
+            helper->BREAK_Elements    = new AnsiList(0);
+            OptimizeAny(helper, TVM);
             // =================== v2 ====================//
-            ITER_POS = OptimizedPIF->Count();
+            ITER_POS = helper->OptimizedPIF->Count();
             if (TEMP_OptimizedPIF) {
                 int count       = TEMP_OptimizedPIF->Count();
-                int delta_count = OptimizedPIF->Count();
+                int delta_count = helper->OptimizedPIF->Count();
                 for (int i2 = 0; i2 < count; i2++) {
                     OptimizedElement *OE_P = (OptimizedElement *)TEMP_OptimizedPIF->Item(i2);
                     if ((OE_P) && (OE_P->Operator.TYPE == TYPE_OPTIMIZED_KEYWORD)) {
@@ -1651,11 +1639,11 @@ INTEGER Optimizer::OptimizeKeyWord(TempVariableManager *TVM, INTEGER ID, INTEGER
                             OE_P->OperandReserved.ID += delta_count;
                     }
                 }
-                OptimizedPIF->GetFromList(TEMP_OptimizedPIF);
+                helper->OptimizedPIF->GetFromList(TEMP_OptimizedPIF);
                 delete TEMP_OptimizedPIF;
             }
             // ================= end v2 ==================//
-            NOT_TRUE_POSITION        = OptimizedPIF->Count() + 1;
+            NOT_TRUE_POSITION        = helper->OptimizedPIF->Count() + 1;
             OE->OperandReserved.ID   = NOT_TRUE_POSITION;
             OE->OperandReserved.TYPE = TYPE_OPTIMIZED_JUMP_ADR;
 
@@ -1670,63 +1658,63 @@ INTEGER Optimizer::OptimizeKeyWord(TempVariableManager *TVM, INTEGER ID, INTEGER
 
             OEgoto->OperandReserved.ID   = STATAMENT_POS;
             OEgoto->OperandReserved.TYPE = TYPE_OPTIMIZED_JUMP_ADR;
-            OptimizedPIF->Add(OEgoto, DATA_OPTIMIZED_ELEMENT);
+            helper->OptimizedPIF->Add(OEgoto, DATA_OPTIMIZED_ELEMENT);
 
             END_WHILE_CYCLE(ITER_POS, NOT_TRUE_POSITION);
             break;
 
         case KEY_SWITCH:
-            PIF_POSITION--;
-            PIFList->Delete(PIF_POSITION);
-            OptimizeSwitch(TVM);
+            helper->PIF_POSITION--;
+            helper->PIFList->Delete(helper->PIF_POSITION);
+            OptimizeSwitch(helper, TVM);
             break;
 
         default:
-            PIFOwner->Errors.Add(new AnsiException(ERR570, AE->_DEBUG_INFO_LINE, 570, AE->_PARSE_DATA, _DEBUG_INFO_FILENAME, _CLASS->NAME, _MEMBER), DATA_EXCEPTION);
+            helper->PIFOwner->Errors.Add(new AnsiException(ERR570, AE->_DEBUG_INFO_LINE, 570, AE->_PARSE_DATA, helper->_DEBUG_INFO_FILENAME, helper->_CLASS->NAME, helper->_MEMBER), DATA_EXCEPTION);
             return 0;
     }
     return 0;
 }
 
-INTEGER Optimizer::OptimizeSwitch(TempVariableManager *TVM) {
-    AnalizerElement *tempAE    = (AnalizerElement *)PIFList->Item(PIF_POSITION);
+INTEGER Optimizer::OptimizeSwitch(OptimizerHelper *helper, TempVariableManager *TVM) {
+    AnalizerElement *tempAE    = (AnalizerElement *)helper->PIFList->Item(helper->PIF_POSITION);
     AnalizerElement *newAE     = 0;
     AnalizerElement *EXPR_ELEM = 0;
     unsigned short _DEBUG_INFO_LINE = 0;
     if ((!tempAE) || (tempAE->TYPE != TYPE_OPERATOR) || (tempAE->ID != KEY_P_OPEN)) {
-        PIFOwner->Errors.Add(new AnsiException(ERR1201, tempAE ? tempAE->_DEBUG_INFO_LINE : 0, 1201, (tempAE ? tempAE->_PARSE_DATA : AnsiString("")), _DEBUG_INFO_FILENAME, _CLASS->NAME, _MEMBER), DATA_EXCEPTION);
+        helper->PIFOwner->Errors.Add(new AnsiException(ERR1201, tempAE ? tempAE->_DEBUG_INFO_LINE : 0, 1201, (tempAE ? tempAE->_PARSE_DATA.c_str(): ""), helper->_DEBUG_INFO_FILENAME, helper->_CLASS->NAME, helper->_MEMBER), DATA_EXCEPTION);
         if (!tempAE) {
             return -1;
         }
     }
 
-    PIFList->Delete(PIF_POSITION);
-    OptimizeExpression(TVM, KEY_P_CLOSE, TYPE_OPERATOR);
+    helper->PIFList->Delete(helper->PIF_POSITION);
+    OptimizeExpression(helper, TVM, KEY_P_CLOSE, TYPE_OPERATOR);
 
-    AnalizerElement *AE_SWITCH_EXPR = (AnalizerElement *)PIFList->Item(PIF_POSITION - 1);
+    AnalizerElement *AE_SWITCH_EXPR = (AnalizerElement *)helper->PIFList->Item(helper->PIF_POSITION - 1);
 
-    tempAE = (AnalizerElement *)PIFList->Item(PIF_POSITION);
+    tempAE = (AnalizerElement *)helper->PIFList->Item(helper->PIF_POSITION);
 
     if ((!tempAE) || (tempAE->TYPE != TYPE_KEYWORD) || (tempAE->ID != KEY_BEGIN)) {
-        PIFOwner->Errors.Add(new AnsiException(ERR1200, tempAE ? tempAE->_DEBUG_INFO_LINE : 0, 1200, (tempAE ? tempAE->_PARSE_DATA : AnsiString("")), _DEBUG_INFO_FILENAME, _CLASS->NAME, _MEMBER), DATA_EXCEPTION);
+        helper->PIFOwner->Errors.Add(new AnsiException(ERR1200, tempAE ? tempAE->_DEBUG_INFO_LINE : 0, 1200, (tempAE ? tempAE->_PARSE_DATA.c_str() : ""), helper->_DEBUG_INFO_FILENAME, helper->_CLASS->NAME, helper->_MEMBER), DATA_EXCEPTION);
         if (!tempAE) {
             return -1;
         }
     }
-    PIFList->Delete(PIF_POSITION);
+    helper->PIFList->Delete(helper->PIF_POSITION);
 
     bool have_cases = true;
 
-    AnsiList *PUSHED_BREAK_Elements = Optimizer::BREAK_Elements;
-    Optimizer::BREAK_Elements = new AnsiList(0);
+    AnsiList *PUSHED_BREAK_Elements = helper->BREAK_Elements;
+    helper->BREAK_Elements = new AnsiList(0);
     OptimizedElement *OE;
     OptimizedElement *OEgoto;
 
     bool prec_is_case = false;
     while (have_cases) {
-        AnalizerElement *AE = (AnalizerElement *)PIFList->Item(PIF_POSITION);
+        AnalizerElement *AE = (AnalizerElement *)helper->PIFList->Item(helper->PIF_POSITION);
         if ((!AE) || (AE->TYPE != TYPE_KEYWORD)) {
-            PIFOwner->Errors.Add(new AnsiException(ERR1202, AE ? AE->_DEBUG_INFO_LINE : 0, 1202, (AE ? AE->_PARSE_DATA : AnsiString("")), _DEBUG_INFO_FILENAME, _CLASS->NAME, _MEMBER), DATA_EXCEPTION);
+            helper->PIFOwner->Errors.Add(new AnsiException(ERR1202, AE ? AE->_DEBUG_INFO_LINE : 0, 1202, (AE ? AE->_PARSE_DATA.c_str() : ""), helper->_DEBUG_INFO_FILENAME, helper->_CLASS->NAME, helper->_MEMBER), DATA_EXCEPTION);
             break;
         }
         _DEBUG_INFO_LINE = AE->_DEBUG_INFO_LINE;
@@ -1742,15 +1730,15 @@ INTEGER Optimizer::OptimizeSwitch(TempVariableManager *TVM) {
                     MAKE_NULL(OEgoto->OperandRight);
                     OEgoto->OperandReserved.ID   = 0;
                     OEgoto->OperandReserved.TYPE = TYPE_OPTIMIZED_JUMP_ADR;
-                    OptimizedPIF->Add(OEgoto, DATA_OPTIMIZED_ELEMENT);
+                    helper->OptimizedPIF->Add(OEgoto, DATA_OPTIMIZED_ELEMENT);
                     OE->OperandReserved.ID++;
                 }
 
-                PIFList->Delete(PIF_POSITION);
+                helper->PIFList->Delete(helper->PIF_POSITION);
                 newAE = new AnalizerElement;
 
                 CopyElement(AE_SWITCH_EXPR, newAE);
-                PIFList->Insert(newAE, PIF_POSITION, DATA_ANALIZER_ELEMENT);
+                helper->PIFList->Insert(newAE, helper->PIF_POSITION, DATA_ANALIZER_ELEMENT);
 
                 newAE                   = new AnalizerElement;
                 newAE->ID               = KEY_EQU;
@@ -1760,11 +1748,11 @@ INTEGER Optimizer::OptimizeSwitch(TempVariableManager *TVM) {
                 newAE->_DEBUG_INFO_LINE = _DEBUG_INFO_LINE;
                 newAE->_INFO_OPTIMIZED  = 0;
 
-                PIFList->Insert(newAE, PIF_POSITION + 1, DATA_ANALIZER_ELEMENT);
+                helper->PIFList->Insert(newAE, helper->PIF_POSITION + 1, DATA_ANALIZER_ELEMENT);
 
-                OptimizeExpression(TVM, KEY_CND_2, TYPE_OPERATOR);
+                OptimizeExpression(helper, TVM, KEY_CND_2, TYPE_OPERATOR);
 
-                EXPR_ELEM = (AnalizerElement *)PIFList->Item(PIF_POSITION - 1);
+                EXPR_ELEM = (AnalizerElement *)helper->PIFList->Item(helper->PIF_POSITION - 1);
 
                 OE = new OptimizedElement;
                 OE->Operator._DEBUG_INFO_LINE = _DEBUG_INFO_LINE;
@@ -1773,14 +1761,14 @@ INTEGER Optimizer::OptimizeSwitch(TempVariableManager *TVM) {
                 MAKE_NULL(OE->OperandLeft);
                 CopyElement(EXPR_ELEM, &OE->OperandRight);
                 OE->Result_ID = 0;
-                OptimizedPIF->Add(OE, DATA_OPTIMIZED_ELEMENT);
+                helper->OptimizedPIF->Add(OE, DATA_OPTIMIZED_ELEMENT);
 
                 if (prec_is_case) {
-                    OEgoto->OperandReserved.ID = OptimizedPIF->Count();
+                    OEgoto->OperandReserved.ID = helper->OptimizedPIF->Count();
                 }
 
                 while (true) {
-                    tempAE = (AnalizerElement *)PIFList->Item(PIF_POSITION);
+                    tempAE = (AnalizerElement *)helper->PIFList->Item(helper->PIF_POSITION);
                     if (!tempAE) {
                         break;
                     }
@@ -1791,25 +1779,25 @@ INTEGER Optimizer::OptimizeSwitch(TempVariableManager *TVM) {
                          (tempAE->ID == KEY_END))) {
                         break;
                     }
-                    OptimizeAny(TVM);
+                    OptimizeAny(helper, TVM);
                 }
-                OE->OperandReserved.ID   = OptimizedPIF->Count();
+                OE->OperandReserved.ID   = helper->OptimizedPIF->Count();
                 OE->OperandReserved.TYPE = TYPE_OPTIMIZED_JUMP_ADR;
                 prec_is_case             = true;
                 break;
 
             case KEY_DEFAULT:
-                PIFList->Delete(PIF_POSITION);
-                tempAE = (AnalizerElement *)PIFList->Item(PIF_POSITION);
+                helper->PIFList->Delete(helper->PIF_POSITION);
+                tempAE = (AnalizerElement *)helper->PIFList->Item(helper->PIF_POSITION);
                 if ((!tempAE) || (tempAE->TYPE != TYPE_OPERATOR) || (tempAE->ID != KEY_CND_2)) {
-                    PIFOwner->Errors.Add(new AnsiException(ERR1203, tempAE ? tempAE->_DEBUG_INFO_LINE : 0, 1203, (tempAE ? tempAE->_PARSE_DATA : AnsiString("")), _DEBUG_INFO_FILENAME, _CLASS->NAME, _MEMBER), DATA_EXCEPTION);
+                    helper->PIFOwner->Errors.Add(new AnsiException(ERR1203, tempAE ? tempAE->_DEBUG_INFO_LINE : 0, 1203, (tempAE ? tempAE->_PARSE_DATA.c_str() : ""), helper->_DEBUG_INFO_FILENAME, helper->_CLASS->NAME, helper->_MEMBER), DATA_EXCEPTION);
                     END_SWITCH(0);
                     return -1;
                 }
-                PIFList->Delete(PIF_POSITION);
+                helper->PIFList->Delete(helper->PIF_POSITION);
 
                 while (true) {
-                    tempAE = (AnalizerElement *)PIFList->Item(PIF_POSITION);
+                    tempAE = (AnalizerElement *)helper->PIFList->Item(helper->PIF_POSITION);
                     if (!tempAE) {
                         break;
                     }
@@ -1820,30 +1808,30 @@ INTEGER Optimizer::OptimizeSwitch(TempVariableManager *TVM) {
                          (tempAE->ID == KEY_END))) {
                         break;
                     }
-                    OptimizeAny(TVM);
+                    OptimizeAny(helper, TVM);
                 }
                 prec_is_case = false;
                 break;
 
             case KEY_END:
                 // end of cases ...
-                PIFList->Delete(PIF_POSITION);
+                helper->PIFList->Delete(helper->PIF_POSITION);
                 have_cases = false;
                 break;
 
             default:
-                PIFOwner->Errors.Add(new AnsiException(ERR1202, AE->_DEBUG_INFO_LINE, 1202, AE->_PARSE_DATA, _DEBUG_INFO_FILENAME, _CLASS->NAME, _MEMBER), DATA_EXCEPTION);
+                helper->PIFOwner->Errors.Add(new AnsiException(ERR1202, AE->_DEBUG_INFO_LINE, 1202, AE->_PARSE_DATA, helper->_DEBUG_INFO_FILENAME, helper->_CLASS->NAME, helper->_MEMBER), DATA_EXCEPTION);
                 END_SWITCH(0);
                 return -1;
         }
     }
-    END_SWITCH(OptimizedPIF->Count());
+    END_SWITCH(helper->OptimizedPIF->Count());
     return 0;
 }
 
-INTEGER Optimizer::OptimizeForExpression(TempVariableManager *TVM, bool is_increment) {
+INTEGER Optimizer::OptimizeForExpression(OptimizerHelper *helper, TempVariableManager *TVM, bool is_increment) {
     while (1) {
-        AnalizerElement *AE = (AnalizerElement *)PIFList->Item(PIF_POSITION);
+        AnalizerElement *AE = (AnalizerElement *)helper->PIFList->Item(helper->PIF_POSITION);
         if (!AE) {
             return -1;
         }
@@ -1852,11 +1840,11 @@ INTEGER Optimizer::OptimizeForExpression(TempVariableManager *TVM, bool is_incre
             return 0;
         }
 
-        NO_WARNING_EMPTY = 1;
-        NO_WARNING_ATTR  = 1;
-        int result = OptimizeExpression(TVM, KEY_COMMA, TYPE_OPERATOR, 0, 1, KEY_COMMA, 0, 1);
-        NO_WARNING_EMPTY = 0;
-        NO_WARNING_ATTR  = 0;
+        helper->NO_WARNING_EMPTY = 1;
+        helper->NO_WARNING_ATTR  = 1;
+        int result = OptimizeExpression(helper, TVM, KEY_COMMA, TYPE_OPERATOR, 0, 1, KEY_COMMA, 0, 1);
+        helper->NO_WARNING_EMPTY = 0;
+        helper->NO_WARNING_ATTR  = 0;
         if (result == -KEY_COMMA) {
             return 0;
         }
@@ -1864,8 +1852,8 @@ INTEGER Optimizer::OptimizeForExpression(TempVariableManager *TVM, bool is_incre
     return 0;
 }
 
-INTEGER Optimizer::OptimizeAny(TempVariableManager *TVM, INTEGER ID, INTEGER TYPE, char FLAGS) {
-    AnalizerElement *AE = (AnalizerElement *)PIFList->Item(PIF_POSITION);
+INTEGER Optimizer::OptimizeAny(OptimizerHelper *helper, TempVariableManager *TVM, INTEGER ID, INTEGER TYPE, char FLAGS) {
+    AnalizerElement *AE = (AnalizerElement *)helper->PIFList->Item(helper->PIF_POSITION);
 
     TVM->Reset();
 
@@ -1873,23 +1861,23 @@ INTEGER Optimizer::OptimizeAny(TempVariableManager *TVM, INTEGER ID, INTEGER TYP
         return -1;
     }
     if (AE->TYPE == TYPE_SEPARATOR) {
-        if (NO_WARNING_EMPTY) {
-            NO_WARNING_EMPTY = 0;
+        if (helper->NO_WARNING_EMPTY) {
+            helper->NO_WARNING_EMPTY = 0;
         } else {
-            PIFOwner->Warning(WRN10002, AE->_DEBUG_INFO_LINE, 10002, AE->_PARSE_DATA, _DEBUG_INFO_FILENAME);
+            helper->PIFOwner->Warning(WRN10002, AE->_DEBUG_INFO_LINE, 10002, AE->_PARSE_DATA, helper->_DEBUG_INFO_FILENAME);
         }
-    } else if ((PIFOwner->DebugOn) && (AE->_DEBUG_INFO_LINE != LAST_DEBUG_TRAP)) {
-        LAST_DEBUG_TRAP = AE->_DEBUG_INFO_LINE;
+    } else if ((helper->PIFOwner->DebugOn) && (AE->_DEBUG_INFO_LINE != helper->LAST_DEBUG_TRAP)) {
+        helper->LAST_DEBUG_TRAP = AE->_DEBUG_INFO_LINE;
         OptimizedElement *OE = new OptimizedElement;
         OE->Operator._DEBUG_INFO_LINE = AE->_DEBUG_INFO_LINE;
         OE->Operator.TYPE = TYPE_OPTIMIZED_KEYWORD;
         OE->Operator.ID   = KEY_OPTIMIZED_DEBUG_TRAP;
-        OptimizedPIF->Add(OE, DATA_OPTIMIZED_ELEMENT);
+        helper->OptimizedPIF->Add(OE, DATA_OPTIMIZED_ELEMENT);
     }
     if (AE->TYPE != TYPE_KEYWORD) {
-        return OptimizeExpression(TVM, ID, TYPE, 0, 1, FLAGS, NULL, 1);
+        return OptimizeExpression(helper, TVM, ID, TYPE, 0, 1, FLAGS, NULL, 1);
     } else {
-        return OptimizeKeyWord(TVM, ID, TYPE);
+        return OptimizeKeyWord(helper, TVM, ID, TYPE);
     }
     return 0;
 }
@@ -1935,21 +1923,21 @@ int Optimizer::CanInline(ClassMember *owner, const char **remotename) {
     return 0;
 }
 
-int Optimizer::Optimize() {
-    TempVariableManager TVM(this->VDList);
-
-    if (PIFList->Count() == 1) {
-        NO_WARNING_EMPTY = 1;
+int Optimizer::Optimize(PIFAlizator *P) {
+    OptimizerHelper *helper = Optimizer::GetHelper(P);
+    TempVariableManager TVM(helper->VDList);
+    if (helper->PIFList->Count() == 1) {
+        helper->NO_WARNING_EMPTY = 1;
     }
     int start_ref = -1;
-    if (PIFOwner->PROFILE_DRIVEN)
-        AddProfilerCode(0);
+    if (helper->PIFOwner->PROFILE_DRIVEN)
+        AddProfilerCode(helper, 0);
 
-    while (PIF_POSITION < PIFList->Count())
-        OptimizeAny(&TVM);
+    while (helper->PIF_POSITION < helper->PIFList->Count())
+        OptimizeAny(helper, &TVM);
 
-    if (PIFOwner->PROFILE_DRIVEN)
-        AddProfilerCode(1);
+    if (helper->PIFOwner->PROFILE_DRIVEN)
+        AddProfilerCode(helper, 1);
     return 0;
 }
 
@@ -1988,10 +1976,11 @@ Optimizer::~Optimizer() {
     }
 }
 
-void Optimizer::GenerateIntermediateCode() {
-    codeCount  = OptimizedPIF->Count();
-    dataCount  = VDList->Count();
-    paramCount = ParameterList->Count();
+void Optimizer::GenerateIntermediateCode(PIFAlizator *P) {
+    OptimizerHelper *helper = Optimizer::GetHelper(P);
+    codeCount  = helper->OptimizedPIF->Count();
+    dataCount  = helper->VDList->Count();
+    paramCount = helper->ParameterList->Count();
 
     if (codeCount) {
 #ifdef NO_MEMALIGN
@@ -2018,7 +2007,7 @@ void Optimizer::GenerateIntermediateCode() {
     RuntimeOptimizedElement *CUR2 = 0;
     OptimizedElement        *CUR  = 0;
     for (INTEGER i = 0; i < codeCount; i++) {
-        CUR  = (OptimizedElement *)OptimizedPIF->Item(i);
+        CUR  = (OptimizedElement *)helper->OptimizedPIF->Item(i);
         CUR2 = &CODE [i];
 
         CUR2->Result_ID = CUR->Result_ID;
@@ -2040,14 +2029,14 @@ void Optimizer::GenerateIntermediateCode() {
         else
             CUR2->Operator_FLAGS               = 0;
     }
-    OptimizedPIF->Clear();
+    helper->OptimizedPIF->Clear();
     // end optimization
     for (INTEGER j = 0; j < dataCount; j++) {
-        VariableDESCRIPTOR        *VD  = (VariableDESCRIPTOR *)VDList->Item(j);
+        VariableDESCRIPTOR        *VD  = (VariableDESCRIPTOR *)helper->VDList->Item(j);
         RuntimeVariableDESCRIPTOR *VD2 = &DATA [j];
         VD2->BY_REF = VD->BY_REF;
         if (VD->name.Length())
-            PIFOwner->RegisterVariableName(DATA, VD->name.c_str(), j);
+            helper->PIFOwner->RegisterVariableName(DATA, VD->name.c_str(), j);
 
         VD2->nValue = VD->nValue;
         VD2->TYPE   = VD->TYPE;
@@ -2060,9 +2049,9 @@ void Optimizer::GenerateIntermediateCode() {
             VD2->value = VD->value;
         }
     }
-    VDList->Clear();
+    helper->VDList->Clear();
     for (INTEGER k = 0; k < paramCount; k++) {
-        AnsiList *LocalList     = (AnsiList *)ParameterList->Item(k);
+        AnsiList *LocalList     = (AnsiList *)helper->ParameterList->Item(k);
         INTEGER  LocalParaCount = LocalList->Count();
         PARAMS [k].COUNT = LocalParaCount;
         if (LocalParaCount) {
@@ -2075,10 +2064,11 @@ void Optimizer::GenerateIntermediateCode() {
         }
     }
 
-    ParameterList->Clear();
-    PIFList->Clear();
+    helper->ParameterList->Clear();
+    helper->PIFList->Clear();
 }
 
+#ifdef PRINT_DEBUG_INFO
 AnsiString Optimizer::DEBUG_INFO() {
     AnsiString res;
 
@@ -2119,12 +2109,13 @@ AnsiString Optimizer::DEBUG_INFO() {
     }
     return res;
 }
+#endif
 
-int Optimizer::Serialize(FILE *out, bool is_lib, int version) {
+int Optimizer::Serialize(PIFAlizator *PIFOwner, FILE *out, bool is_lib, int version) {
     int i;
 
     concept_fwrite_int(&dataCount, sizeof(dataCount), 1, out);
-    int ccount = this->PIFOwner->ClassList->Count();
+    int ccount = PIFOwner->ClassList->Count();
 
     if (DATA[0].USED == -1)
         DATA[0].nValue = 0xBAD;
@@ -2229,10 +2220,10 @@ int Optimizer::ComputeSharedSize(concept_FILE *in, int version) {
     return size;
 }
 
-int Optimizer::Unserialize(concept_FILE *in, AnsiList *ModuleList, bool is_lib, int *ClassNames, int *Relocation, int version) {
+int Optimizer::Unserialize(PIFAlizator *PIFOwner, concept_FILE *in, AnsiList *ModuleList, bool is_lib, int *ClassNames, int *Relocation, int version) {
     int         i;
-    signed char is_pooled  = this->PIFOwner->is_buffer ? 0 : (signed char)SHIsPooled();
-    bool        is_created = this->PIFOwner->is_buffer ? 0 : SHIsCreated();
+    signed char is_pooled  = PIFOwner->is_buffer ? 0 : (signed char)SHIsPooled();
+    bool        is_created = PIFOwner->is_buffer ? 0 : SHIsCreated();
 
     if (!concept_fread_int(&dataCount, sizeof(dataCount), 1, in)) {
         return -1;
@@ -2339,15 +2330,15 @@ int Optimizer::Unserialize(concept_FILE *in, AnsiList *ModuleList, bool is_lib, 
 #endif
         }
     }
-
+    OptimizerHelper *helper = Optimizer::GetHelper(PIFOwner);
     //ADDED RECENTLY !===//
-    if (OptimizedPIF) {
-        delete OptimizedPIF;
-        OptimizedPIF = 0;
+    if (helper->OptimizedPIF) {
+        delete helper->OptimizedPIF;
+        helper->OptimizedPIF = 0;
     }
-    if (ParameterList) {
-        delete ParameterList;
-        ParameterList = 0;
+    if (helper->ParameterList) {
+        delete helper->ParameterList;
+        helper->ParameterList = 0;
     }
     //=====================//
     RuntimeOptimizedElement *OE;
@@ -2366,7 +2357,7 @@ int Optimizer::Unserialize(concept_FILE *in, AnsiList *ModuleList, bool is_lib, 
 
                     int l_res = PIFOwner->LinkStatic(funname);
                     if (!l_res)
-                        PIFOwner->Errors.Add(new AnsiException(ERR870, 0, 870, OE->OperandRight_PARSE_DATA, _DEBUG_INFO_FILENAME, _CLASS->NAME, _MEMBER), DATA_EXCEPTION);
+                        PIFOwner->Errors.Add(new AnsiException(ERR870, 0, 870, OE->OperandRight_PARSE_DATA, helper->_DEBUG_INFO_FILENAME, helper->_CLASS->NAME, helper->_MEMBER), DATA_EXCEPTION);
                 }
             }
         }
@@ -2385,7 +2376,7 @@ int Optimizer::Unserialize(concept_FILE *in, AnsiList *ModuleList, bool is_lib, 
                 if (OE->OperandLeft_ID == STATIC_CLASS_DLL) {
                     OE->OperandRight_ID = PIFOwner->LinkStatic(OE->OperandRight_PARSE_DATA.c_str());
                     if (!OE->OperandRight_ID) {
-                        PIFOwner->Errors.Add(new AnsiException(ERR870, 0, 870, OE->OperandRight_PARSE_DATA, _DEBUG_INFO_FILENAME, _CLASS->NAME, _MEMBER), DATA_EXCEPTION);
+                        PIFOwner->Errors.Add(new AnsiException(ERR870, 0, 870, OE->OperandRight_PARSE_DATA, helper->_DEBUG_INFO_FILENAME, helper->_CLASS->NAME, helper->_MEMBER), DATA_EXCEPTION);
                     }
                 } else
                 if ((is_lib) && (OE->OperandLeft_ID > 0)) {
@@ -2429,17 +2420,17 @@ int Optimizer::Unserialize(concept_FILE *in, AnsiList *ModuleList, bool is_lib, 
     return 0;
 }
 
-void Optimizer::AddProfilerCode(int code) {
-    if (!PIFOwner->PROFILE_DRIVEN_ID)
-        PIFOwner->PROFILE_DRIVEN_ID = PIFOwner->LinkStatic(PIFOwner->PROFILE_DRIVEN);
-    if (PIFOwner->PROFILE_DRIVEN_ID) {
+void Optimizer::AddProfilerCode(OptimizerHelper *helper, int code) {
+    if (!helper->PIFOwner->PROFILE_DRIVEN_ID)
+        helper->PIFOwner->PROFILE_DRIVEN_ID = helper->PIFOwner->LinkStatic(helper->PIFOwner->PROFILE_DRIVEN);
+    if (helper->PIFOwner->PROFILE_DRIVEN_ID) {
         VariableDESCRIPTOR *VD = new VariableDESCRIPTOR;
         VD->BY_REF = 0;
         VD->value  = NULL_STRING;
         VD->nValue = 0;
         VD->USED   = -2;
         VD->TYPE   = VARIABLE_NUMBER;
-        VDList->Add(VD, DATA_VAR_DESCRIPTOR);
+        helper->VDList->Add(VD, DATA_VAR_DESCRIPTOR);
 
         OptimizedElement *OEProfiler = new OptimizedElement;
 
@@ -2453,39 +2444,39 @@ void Optimizer::AddProfilerCode(int code) {
         OEProfiler->OperandLeft._HASH_DATA       = 0;
         OEProfiler->OperandLeft._PARSE_DATA      = "LIBRARY";
 
-        OEProfiler->OperandRight.ID               = PIFOwner->PROFILE_DRIVEN_ID;
+        OEProfiler->OperandRight.ID               = helper->PIFOwner->PROFILE_DRIVEN_ID;
         OEProfiler->OperandRight.TYPE             = TYPE_METHOD;
         OEProfiler->OperandRight._DEBUG_INFO_LINE = 0;
         OEProfiler->OperandRight._HASH_DATA       = 0;
-        OEProfiler->OperandRight._PARSE_DATA      = PIFOwner->PROFILE_DRIVEN;
+        OEProfiler->OperandRight._PARSE_DATA      = helper->PIFOwner->PROFILE_DRIVEN;
 
-        OEProfiler->Result_ID = VDList->Count();
+        OEProfiler->Result_ID = helper->VDList->Count();
 
-        int start_param = VDList->Count();
+        int start_param = helper->VDList->Count();
 
         VD         = new VariableDESCRIPTOR;
         VD->BY_REF = 0;
-        VD->value  = AnsiString((long)code);
+        VD->value  = code;
         VD->nValue = code;
         VD->USED   = 1;
         VD->TYPE   = VARIABLE_NUMBER;
-        VDList->Add(VD, DATA_VAR_DESCRIPTOR);
+        helper->VDList->Add(VD, DATA_VAR_DESCRIPTOR);
 
         VD         = new VariableDESCRIPTOR;
         VD->BY_REF = 0;
-        VD->value  = this->_CLASS->NAME.c_str();
+        VD->value  = helper->_CLASS->NAME.c_str();
         VD->nValue = 0;
         VD->USED   = 1;
         VD->TYPE   = VARIABLE_STRING;
-        VDList->Add(VD, DATA_VAR_DESCRIPTOR);
+        helper->VDList->Add(VD, DATA_VAR_DESCRIPTOR);
 
         VD         = new VariableDESCRIPTOR;
         VD->BY_REF = 0;
-        VD->value  = this->_MEMBER;
+        VD->value  = helper->_MEMBER;
         VD->nValue = 0;
         VD->USED   = 1;
         VD->TYPE   = VARIABLE_STRING;
-        VDList->Add(VD, DATA_VAR_DESCRIPTOR);
+        helper->VDList->Add(VD, DATA_VAR_DESCRIPTOR);
 
         AnsiList *PL = new AnsiList(false);
 
@@ -2498,11 +2489,11 @@ void Optimizer::AddProfilerCode(int code) {
         start_param++;
         PL->Add((void *)(intptr_t)start_param, DATA_32_BIT);
 
-        ParameterList->Add(PL, DATA_LIST);
+        helper->ParameterList->Add(PL, DATA_LIST);
 
-        OEProfiler->OperandReserved.ID   = ParameterList->Count();
+        OEProfiler->OperandReserved.ID   = helper->ParameterList->Count();
         OEProfiler->OperandReserved.TYPE = TYPE_PARAM_LIST;
 
-        OptimizedPIF->Add(OEProfiler, DATA_OPTIMIZED_ELEMENT);
+        helper->OptimizedPIF->Add(OEProfiler, DATA_OPTIMIZED_ELEMENT);
     }
 }

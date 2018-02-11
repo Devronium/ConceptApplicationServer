@@ -1,7 +1,6 @@
 #ifndef __CLASSCODE
 #define __CLASSCODE
 
-#include "AnsiString.h"
 #include "AnsiList.h"
 #include "StaticList.h"
 #include "ClassMember.h"
@@ -16,7 +15,7 @@
 #define THIS_CLASS    "this"
 
 class PIFAlizator;
-class CompiledClass;
+struct CompiledClass;
 
 typedef struct {
     // general member id
@@ -32,35 +31,11 @@ KHASH_MAP_INIT_INT(inthashtable, INTEGER);
 #endif
 
 class ClassCode {
-    friend class PIFAlizator;
-    friend class ConceptInterpreter;
-    friend class CompiledClass;
-    friend class Optimizer;
-    friend class ClassMember;
-    friend class Array;
-    friend class GarbageCollector;
-    friend INTEGER Invoke(INTEGER, ...);
-    friend int GetVariableByName(int operation, void **VDESC, void **CONTEXT, int Depth, char *VariableName, char *buffer, int buf_size, void *PIF, void *STACK_TRACE);
-
-    friend INTEGER GetClassMember(void *CLASS_PTR, const char *class_member_name, INTEGER *TYPE, char **STRING_VALUE, NUMBER *NUMBER_VALUE);
-
-    friend INTEGER GetClassMemberVariable(void *CLASS_PTR, const char *class_member_name, void **ptr);
-
-    friend VariableDATA *GetClassMember(void *CLASS_PTR, const char *class_member_name);
-
-    friend INTEGER SetClassMember(void *CLASS_PTR, const char *class_member_name, INTEGER TYPE, const char *STRING_VALUE, NUMBER NUMBER_VALUE);
-
-    friend int MarkRecursive(void *PIF, CompiledClass *CC, signed char reach_id_flag, signed char forced_flag);
-
-    friend int ClearRecursive(void *PIF, CompiledClass *CC, int CLSID, signed char reach_id_flag, signed char forced_flag);
-
-    friend int GetMemoryStatistics(void *PIF, void *RESULT);
-
-private:
+public:
     TinyString NAME;
     AnsiList   *Members;
     TinyString _DEBUG_INFO_FILENAME;
-    void       *first_parent;
+    void  *first_parent;
     INTEGER     CONSTRUCTOR;
     ClassMember *CONSTRUCTOR_MEMBER;
 
@@ -87,16 +62,17 @@ private:
 #ifndef HASH_RELOCATION
     void FindRelocation(INTEGER mid, INTEGER &i, MemberLink *&result, INTEGER limit);
 #endif
-public:
+// public:
     POOLED(ClassCode)
+    void BuildParameterError(PIFAlizator *PIF, int line, int FORMAL_PARAM_COUNT, const ClassMember *pMEMBER_i, SCStack *PREV, int ack_error = 1) const;
 
-    int Inherits(INTEGER CLSID);
-    int GetAbsoluteMemberID(int mid);
+    int Inherits(INTEGER CLSID) const;
+    int GetAbsoluteMemberID(int mid) const;
     int BoundMember(PIFAlizator *PIF, ClassMember *CM, ClassCode *Sender);
-    int HasMember(const char *name);
-    int HasMemberInCompiled(const char *name, INTEGER *is_variable = NULL);
+    int HasMember(const char *name) const;
+    int HasMemberInCompiled(const char *name, INTEGER *is_variable = NULL) const;
     ClassMember *MemberID(int mid);
-    int GetSerialMembers(CompiledClass *CC, int max_members, char **pmembers, unsigned char *flags, char *access, char *types, char **szValue, double *n_data, void **class_data, void **variable_data, int all_members = 1);
+    int GetSerialMembers(CompiledClass *CC, int max_members, char **pmembers, unsigned char *flags, char *access, char *types, char **szValue, double *n_data, void **class_data, void **variable_data, int all_members = 1) const;
     int CanBeRunStatic(const char *name, ClassMember **member = NULL);
 
     ClassCode(const char *name, PIFAlizator *P, char binary_form = false);
@@ -104,16 +80,16 @@ public:
     ClassMember *AddMember(PIFAlizator *PIF, const char *name, INTEGER line, const char *FileName, INTEGER ACCESS, char data_only);
     int RemoveMember(PIFAlizator *PIF, const char *name, INTEGER line, const char *FileName);
 
-    VariableDATA *ExecuteMember(PIFAlizator *PIF, INTEGER i, VariableDATA *Owner, const RuntimeOptimizedElement *OE, INTEGER local, ParamList *FORMAL_PARAM, VariableDATA **SenderCTX, char property, INTEGER CLSID, INTEGER LOCAL_CLSID, VariableDATA **LOCAL_THROW, SCStack *PREV, char next_is_asg = 0, VariableDATAPROPERTY **PROPERTIES = NULL, int dataLen = -1, int result_id = -1);
+    VariableDATA *ExecuteMember(PIFAlizator *PIF, INTEGER i, VariableDATA *Owner, const RuntimeOptimizedElement *OE, INTEGER local, ParamList *FORMAL_PARAM, VariableDATA **SenderCTX, char property, INTEGER CLSID, INTEGER LOCAL_CLSID, VariableDATA **LOCAL_THROW, SCStack *PREV, char next_is_asg = 0, VariableDATAPROPERTY **PROPERTIES = NULL, int dataLen = -1, int result_id = -1) const;
 #ifdef SIMPLE_MULTI_THREADING
-    VariableDATA *ExecuteDelegate(PIFAlizator *PIF, INTEGER i, VariableDATA *Owner, const RuntimeOptimizedElement *OE, ParamList *FORMAL_PARAM, VariableDATA **SenderCTX, INTEGER CLSID, INTEGER LOCAL_CLSID, VariableDATA **LOCAL_THROW, SCStack *PREV, INTEGER *thread_lock = NULL);
+    VariableDATA *ExecuteDelegate(PIFAlizator *PIF, INTEGER i, VariableDATA *Owner, const RuntimeOptimizedElement *OE, ParamList *FORMAL_PARAM, VariableDATA **SenderCTX, INTEGER CLSID, INTEGER LOCAL_CLSID, VariableDATA **LOCAL_THROW, SCStack *PREV, INTEGER *thread_lock = NULL) const;
 #else
-    VariableDATA *ExecuteDelegate(PIFAlizator *PIF, INTEGER i, VariableDATA *Owner, const RuntimeOptimizedElement *OE, ParamList *FORMAL_PARAM, VariableDATA **SenderCTX, INTEGER CLSID, INTEGER LOCAL_CLSID, VariableDATA **LOCAL_THROW, SCStack *PREV);
+    VariableDATA *ExecuteDelegate(PIFAlizator *PIF, INTEGER i, VariableDATA *Owner, const RuntimeOptimizedElement *OE, ParamList *FORMAL_PARAM, VariableDATA **SenderCTX, INTEGER CLSID, INTEGER LOCAL_CLSID, VariableDATA **LOCAL_THROW, SCStack *PREV) const;
 #endif
 
-    TinyString *GetFilename(PIFAlizator *PIF, INTEGER LOCAL_CLSID, TinyString *default_Value);
-    void SetProperty(PIFAlizator *PIF, INTEGER i, VariableDATA *Owner, const RuntimeOptimizedElement *OE, INTEGER local, INTEGER VALUE, VariableDATA **SenderCTX, INTEGER CLSID, INTEGER LOCAL_CLSID, VariableDATA **LOCAL_THROW, SCStack *PREV);
-    CompiledClass *CreateInstance(PIFAlizator *PIF, VariableDATA *Owner, const RuntimeOptimizedElement *OE, ParamList *FORMAL_PARAM, VariableDATA **SenderCTX, SCStack *PREV, char is_static = 0);
+    const TinyString *GetFilename(PIFAlizator *PIF, INTEGER LOCAL_CLSID, const TinyString *default_Value) const;
+    void SetProperty(PIFAlizator *PIF, INTEGER i, VariableDATA *Owner, const RuntimeOptimizedElement *OE, INTEGER local, INTEGER VALUE, VariableDATA **SenderCTX, INTEGER CLSID, INTEGER LOCAL_CLSID, VariableDATA **LOCAL_THROW, SCStack *PREV) const;
+    CompiledClass *CreateInstance(PIFAlizator *PIF, VariableDATA *Owner, const RuntimeOptimizedElement *OE, ParamList *FORMAL_PARAM, VariableDATA **SenderCTX, SCStack *PREV, char is_static = 0) const;
     void GenerateCode(StaticList *GeneralMembers);
     int Serialize(PIFAlizator *PIF, FILE *out, bool is_lib = false, int version = 1);
     int Unserialize(PIFAlizator *PIF, concept_FILE *in, AnsiList *ClassList, bool is_lib = false, int *ClassNames = 0, int *Relocation = 0, int version = 1);
@@ -122,15 +98,15 @@ public:
     static void Hibernate(void *);
     void UpdateNeeded();
 
-    GreenThreadCycle *CreateThread(PIFAlizator *PIF, INTEGER i, VariableDATA *Owner);
+    GreenThreadCycle *CreateThread(PIFAlizator *PIF, INTEGER i, VariableDATA *Owner) const;
     void BeforeDestructor(PIFAlizator *PIF);
-    INTEGER Relocation(INTEGER mid);
+    INTEGER Relocation(INTEGER mid) const;
     void SetRelocation(INTEGER mid, INTEGER index);
     ~ClassCode();
 
 #ifdef JIT_RUNTIME_CHECKS
-    inline const char *GetName() { return NAME.c_str(); }
-    inline INTEGER GetCLSID() { return CLSID; }
+    inline const char *GetName() const { return NAME.c_str(); }
+    inline INTEGER GetCLSID() const { return CLSID; }
 #endif
     void EnsureThreadSafe();
 };

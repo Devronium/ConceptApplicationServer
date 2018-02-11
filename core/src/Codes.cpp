@@ -1,9 +1,7 @@
 #include "Codes.h"
 #include <string.h>
 #include <time.h>
-
-static AnsiString _cachedData;
-static INTEGER    _cachedID = 0;
+#include "dtoa.h"
 
 INTEGER GetOperatorType(INTEGER ID) {
     switch (ID) {
@@ -83,7 +81,7 @@ INTEGER GetOperatorType(INTEGER ID) {
     return 0;
 }
 
-AnsiString GetKeyWord(INTEGER ID) {
+const char *GetKeyWord(INTEGER ID) {
     switch (ID) {
         case KEY_BEGIN:
             return BEGIN;
@@ -392,9 +390,6 @@ AnsiString GetKeyWord(INTEGER ID) {
 }
 
 INTEGER GetID(AnsiString& KeyWord) {
-    if (_cachedData == KeyWord)
-        return _cachedID;
-
     char c = KeyWord[0];
     if ((c >= 'A') && (c <= 'Z'))
         return 0;
@@ -762,9 +757,6 @@ INTEGER GetType(AnsiString& KeyWord) {
 INTEGER IsOperator(AnsiString& S) {
     INTEGER id = GetID(S);
 
-    _cachedData = S;
-    _cachedID   = id;
-
     return ((id > __START_OPERATORS) && (id < __END_OPERATORS)) ? 1 : 0;
 }
 
@@ -794,22 +786,6 @@ AnsiString Strip2(AnsiString String) {
                 }
             }
             return AnsiString(data);
-    }
-}
-
-AnsiString Strip(AnsiString String) {
-    char *data;
-
-    switch (String [0]) {
-        case '\'':
-        case '"':
-        case '(':
-            data = String.c_str();
-            data [String.Length() - 1] = 0;
-            return AnsiString(data + 1);
-
-        default:
-            return String;
     }
 }
 
@@ -941,10 +917,8 @@ inline INTEGER LexicalCheck(AnsiString& S, INTEGER TYPE) {
     if (TYPE == TYPE_OPERATOR) {
         if (S.Length() > 7)
             return 0;
-        _cachedID   = GetID(S);
-        _cachedData = S;
 
-        return GetOperatorType(_cachedID);
+        return GetOperatorType(GetID(S));
     }
     return 0;
 }
@@ -1106,6 +1080,10 @@ INTEGER GetPriority(INTEGER OP_ID) {
     return 0;
 }
 
+void dtoa_milo_c_wrapper(double d, char *buf) {
+    dtoa_milo(d, buf);
+}
+
 #ifdef WITH_MURMURHASHv1
 HASH_TYPE hash_func(const void *key, int len) {
     if (!key)
@@ -1237,4 +1215,3 @@ HASH_TYPE hash_func(const void *key_ref, int len) {
     return hash;
 }
 #endif
-

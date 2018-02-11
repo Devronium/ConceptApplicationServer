@@ -5,7 +5,7 @@ CFLAGS = -O2 -DSTATIC_CLI -fno-strict-aliasing -fomit-frame-pointer
 LIBS = -ldl
 BUILDFLAGS= -o concept
 
-OBJS = AnsiString.o TinyString.o AnsiList.o AnsiException.o Codes.o ClassMember.o ClassCode.o AnsiParser.o PIFAlizator.o Optimizer.o ConceptInterpreter.o CompiledClass.o ModuleLink.o Array.o Debugger.o GarbageCollector.o SHManager.o StaticString.o StaticList.o DoubleList.o main.o sljitLir.o dlmalloc.o regexp.o BuiltIns.o
+OBJS = AnsiString.o TinyString.o AnsiList.o AnsiException.o Codes.o ClassMember.o ClassCode.o AnsiParser.o PIFAlizator.o Optimizer.o ConceptInterpreter.o CompiledClass.o ModuleLink.o Array.o Debugger.o GarbageCollector.o SHManager.o StaticString.o StaticList.o DoubleList.o main.o sljitLir.o dlmalloc.o regexp.o plainstring.o BuiltIns.o
 
 concept: ${OBJS}
 	${CC} -o concept ${BUILDFLAGS} ${CFLAGS} ${OBJS} ${LIBS}
@@ -82,9 +82,11 @@ dlmalloc.o: dlmalloc.c
 regexp.o: builtin/regexp.c builtin/regexp.h
 	${CCOMP} ${CFLAGS} -c builtin/regexp.c
 
+plainstring.o: simple/plainstring.c simple/plainstring.h
+	${CCOMP} ${CFLAGS} -c simple/plainstring.c
+
 BuiltIns.o: BuiltIns.cpp BuiltIns.h
 	${CC} ${CFLAGS} -c BuiltIns.cpp
-
 
 clean:
 	$(RM) concept ${OBJS}

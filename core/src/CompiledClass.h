@@ -6,48 +6,26 @@
 #include "Array.h"
 #include "ConceptPools.h"
 
-#define GET_PIF(THIS_REF)    ((PIFAlizator *)((ClassPool *)(((uintptr_t)THIS_REF) - sizeof(CompiledClass) * THIS_REF->flags - POOL_OFFSET_NON_POD(ClassPool)))->PIF)
+#define GET_PIF(THIS_REF)    ((PIFAlizator *)((ClassPool *)(((uintptr_t)THIS_REF) - sizeof(struct CompiledClass) * THIS_REF->flags - POOL_OFFSET(ClassPool, POOL)))->PIF)
 
-class CompiledClass {
-    friend class ConceptInterpreter;
-    friend class ClassCode;
-    friend class ClassMember;
-    friend class Array;
-    friend class GarbageCollector;
-    friend INTEGER Invoke(INTEGER, ...);
-    friend int GetVariableByName(int operation, void **VDESC, void **CONTEXT, int Depth, char *VariableName, char *buffer, int buf_size, void *PIF, void *STACK_TRACE);
-
-    friend int MarkRecursive(void *PIF, CompiledClass *CC, signed char reach_id_flag, signed char forced_flag);
-
-    friend int ClearRecursive(void *PIF, CompiledClass *CC, int CLSID, signed char reach_id_flag, signed char forced_flag);
-private:
-    ClassCode    *_Class;
+struct CompiledClass {
     VariableDATA **_CONTEXT;
-public:
-    POOLED(CompiledClass)
-    void __GO_GARBAGE(void *PIF, GarbageCollector *__gc_obj, GarbageCollector *__gc_array, GarbageCollector *__gc_vars, signed char check_objects = -1);
-
+    const ClassCode *_Class;
     INTEGER LINKS;
-
-    ClassCode *GetClass();
-    VariableDATA **GetContext();
-    VariableDATA *CreateVariable(INTEGER reloc, ClassMember *CM, VariableDATA *CONTAINER = NULL);
-
-    AnsiString GetClassName();
-
-    CompiledClass(ClassCode *CC);
-    int Destroy(PIFAlizator *PIF);
-    int HasDestructor();
-    void UnlinkObjects();
-
-    ~CompiledClass();
-
     signed char flags;
     signed char reachable;
-    inline void operator delete(void *obj) {
-        FreeClassObject(obj);
-    }
 };
+
+void CompiledClass__GO_GARBAGE(struct CompiledClass *self, void *PIF, GarbageCollector *__gc_obj, GarbageCollector *__gc_array, GarbageCollector *__gc_vars, signed char check_objects = -1);
+const ClassCode *CompiledClass_GetClass(const struct CompiledClass *self);
+VariableDATA **CompiledClass_GetContext(const struct CompiledClass *self);
+VariableDATA *CompiledClass_CreateVariable(struct CompiledClass *self, INTEGER reloc, ClassMember *CM, VariableDATA *CONTAINER = NULL);
+const char *CompiledClass_GetClassName(const struct CompiledClass *self);
+struct CompiledClass *new_CompiledClass(void *PIF, const ClassCode *CC);
+int CompiledClass_Destroy(struct CompiledClass *self, PIFAlizator *PIF);
+int CompiledClass_HasDestructor(const struct CompiledClass *self);
+void CompiledClass_UnlinkObjects(struct CompiledClass *self);
+void delete_CompiledClass(struct CompiledClass *self);
 
 typedef struct {
     CompiledClass POOL[OBJECT_POOL_BLOCK_SIZE];

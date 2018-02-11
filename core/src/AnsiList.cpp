@@ -203,7 +203,7 @@ void AnsiList::Clear() {
                     break;
 
                 case DATA_COMPILED_CLASS:
-                    delete (CompiledClass *)DATA;
+                    delete_CompiledClass((struct CompiledClass *)DATA);
                     DATA = 0;
                     break;
 
@@ -311,7 +311,7 @@ void *AnsiList::Delete(int i) {
                         break;
 
                     case DATA_COMPILED_CLASS:
-                        delete (CompiledClass *)DATA;
+                        delete_CompiledClass((struct CompiledClass *)DATA);
                         DATA = 0;
                         break;
 
