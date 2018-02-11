@@ -47,12 +47,12 @@ extern "C" {
                 plainstring_delete((struct plainstring *)VARIABLE->CLASS_DATA);                \
             } else                                                                             \
             if ((VARIABLE->TYPE == VARIABLE_CLASS) || (VARIABLE->TYPE == VARIABLE_DELEGATE)) { \
-                if (!--((struct CompiledClass *)VARIABLE->CLASS_DATA)->LINKS)                         \
-                    delete_CompiledClass((struct CompiledClass *)VARIABLE->CLASS_DATA);               \
+                if (!--((struct CompiledClass *)VARIABLE->CLASS_DATA)->LINKS)                  \
+                    delete_CompiledClass((struct CompiledClass *)VARIABLE->CLASS_DATA);        \
             } else                                                                             \
             if (VARIABLE->TYPE == VARIABLE_ARRAY) {                                            \
-                if (!--((Array *)VARIABLE->CLASS_DATA)->LINKS)                                 \
-                    delete (Array *)VARIABLE->CLASS_DATA;                                      \
+                if (!--((struct Array *)VARIABLE->CLASS_DATA)->LINKS)                          \
+                    delete_Array((struct Array *)VARIABLE->CLASS_DATA);                        \
             }                                                                                  \
         }                                                                                      \
         VAR_FREE(VARIABLE);                                                                    \
@@ -70,15 +70,15 @@ void FREE_VARIABLE(VariableDATA *VARIABLE);
                 plainstring_delete((struct plainstring *)VARIABLE->CLASS_DATA);                \
             } else                                                                             \
             if ((VARIABLE->TYPE == VARIABLE_CLASS) || (VARIABLE->TYPE == VARIABLE_DELEGATE)) { \
-                if (!--((struct CompiledClass *)VARIABLE->CLASS_DATA)->LINKS) {                       \
+                if (!--((struct CompiledClass *)VARIABLE->CLASS_DATA)->LINKS) {                \
                     WRITE_UNLOCK                                                               \
-                    delete_CompiledClass((struct CompiledClass *)VARIABLE->CLASS_DATA);               \
+                    delete_CompiledClass((struct CompiledClass *)VARIABLE->CLASS_DATA);        \
                 }                                                                              \
             } else                                                                             \
             if (VARIABLE->TYPE == VARIABLE_ARRAY) {                                            \
-                if (!--((Array *)VARIABLE->CLASS_DATA)->LINKS) {                               \
+                if (!--((struct Array *)VARIABLE->CLASS_DATA)->LINKS) {                        \
                     WRITE_UNLOCK                                                               \
-                    delete (Array *)VARIABLE->CLASS_DATA;                                      \
+                    delete_Array((struct Array *)VARIABLE->CLASS_DATA);                        \
                 }                                                                              \
             }                                                                                  \
         }                                                                                      \
@@ -96,12 +96,12 @@ void FREE_VARIABLE(VariableDATA *VARIABLE);
                 plainstring_delete((struct plainstring *)VARIABLE->CLASS_DATA);          \
             } else                                                                       \
             if ((pushed_type == VARIABLE_CLASS) || (pushed_type == VARIABLE_DELEGATE)) { \
-                if (!--((struct CompiledClass *)VARIABLE->CLASS_DATA)->LINKS)                   \
-                    delete_CompiledClass((struct CompiledClass *)VARIABLE->CLASS_DATA);         \
+                if (!--((struct CompiledClass *)VARIABLE->CLASS_DATA)->LINKS)            \
+                    delete_CompiledClass((struct CompiledClass *)VARIABLE->CLASS_DATA);  \
             } else                                                                       \
             if (pushed_type == VARIABLE_ARRAY) {                                         \
-                if (!--((Array *)VARIABLE->CLASS_DATA)->LINKS)                           \
-                    delete (Array *)VARIABLE->CLASS_DATA;                                \
+                if (!--((struct Array *)VARIABLE->CLASS_DATA)->LINKS)                    \
+                    delete_Array((struct Array *)VARIABLE->CLASS_DATA);                  \
             }                                                                            \
         }                                                                                \
         VAR_FREE(VARIABLE);                                                              \
@@ -115,12 +115,12 @@ void FREE_VARIABLE(VariableDATA *VARIABLE);
                 plainstring_delete((struct plainstring *)VARIABLE->CLASS_DATA);                \
             } else                                                                             \
             if ((VARIABLE->TYPE == VARIABLE_CLASS) || (VARIABLE->TYPE == VARIABLE_DELEGATE)) { \
-                if (!--((struct CompiledClass *)VARIABLE->CLASS_DATA)->LINKS)                         \
-                    delete_CompiledClass((struct CompiledClass *)VARIABLE->CLASS_DATA);               \
+                if (!--((struct CompiledClass *)VARIABLE->CLASS_DATA)->LINKS)                  \
+                    delete_CompiledClass((struct CompiledClass *)VARIABLE->CLASS_DATA);        \
             } else                                                                             \
             if (VARIABLE->TYPE == VARIABLE_ARRAY) {                                            \
-                if (!--((Array *)VARIABLE->CLASS_DATA)->LINKS)                                 \
-                    delete (Array *)VARIABLE->CLASS_DATA;                                      \
+                if (!--((struct Array *)VARIABLE->CLASS_DATA)->LINKS)                          \
+                    delete_Array((struct Array *)VARIABLE->CLASS_DATA);                        \
             }                                                                                  \
         }                                                                                      \
     }
@@ -133,12 +133,12 @@ void FREE_VARIABLE(VariableDATA *VARIABLE);
                 plainstring_delete((struct plainstring *)VARIABLE->CLASS_DATA);                \
             } else                                                                             \
             if ((VARIABLE->TYPE == VARIABLE_CLASS) || (VARIABLE->TYPE == VARIABLE_DELEGATE)) { \
-                if (!--((struct CompiledClass *)VARIABLE->CLASS_DATA)->LINKS) {                       \
-                    delete_CompiledClass((struct CompiledClass *)VARIABLE->CLASS_DATA); }             \
+                if (!--((struct CompiledClass *)VARIABLE->CLASS_DATA)->LINKS) {                \
+                    delete_CompiledClass((struct CompiledClass *)VARIABLE->CLASS_DATA); }      \
             } else                                                                             \
             if (VARIABLE->TYPE == VARIABLE_ARRAY) {                                            \
-                if (!--((Array *)VARIABLE->CLASS_DATA)->LINKS) {                               \
-                    delete (Array *)VARIABLE->CLASS_DATA; }                                    \
+                if (!--((struct Array *)VARIABLE->CLASS_DATA)->LINKS) {                        \
+                    delete_Array((struct Array *)VARIABLE->CLASS_DATA); }                      \
             }                                                                                  \
         }                                                                                      \
     } else                                                                                     \
@@ -158,12 +158,12 @@ void FREE_VARIABLE(VariableDATA *VARIABLE);
             plainstring_delete((struct plainstring *)VARIABLE->CLASS_DATA); }              \
         else                                                                               \
         if ((VARIABLE->TYPE == VARIABLE_CLASS) || (VARIABLE->TYPE == VARIABLE_DELEGATE)) { \
-            if (!--((struct CompiledClass *)VARIABLE->CLASS_DATA)->LINKS)                         \
-                delete_CompiledClass((struct CompiledClass *)VARIABLE->CLASS_DATA);               \
+            if (!--((struct CompiledClass *)VARIABLE->CLASS_DATA)->LINKS)                  \
+                delete_CompiledClass((struct CompiledClass *)VARIABLE->CLASS_DATA);        \
         } else                                                                             \
         if (VARIABLE->TYPE == VARIABLE_ARRAY) {                                            \
-            if (!--((Array *)VARIABLE->CLASS_DATA)->LINKS)                                 \
-                delete (Array *)VARIABLE->CLASS_DATA;                                      \
+            if (!--((struct Array *)VARIABLE->CLASS_DATA)->LINKS)                          \
+                delete_Array((struct Array *)VARIABLE->CLASS_DATA);                        \
         }                                                                                  \
         VARIABLE->CLASS_DATA = NULL;                                                       \
     }                                                                                      \
@@ -174,12 +174,12 @@ void FREE_VARIABLE(VariableDATA *VARIABLE);
             plainstring_delete((struct plainstring *)VARIABLE->CLASS_DATA); }        \
         else                                                                         \
         if ((pushed_type == VARIABLE_CLASS) || (pushed_type == VARIABLE_DELEGATE)) { \
-            if (!--((struct CompiledClass *)VARIABLE->CLASS_DATA)->LINKS)                   \
-                delete_CompiledClass((struct CompiledClass *)VARIABLE->CLASS_DATA);         \
+            if (!--((struct CompiledClass *)VARIABLE->CLASS_DATA)->LINKS)            \
+                delete_CompiledClass((struct CompiledClass *)VARIABLE->CLASS_DATA);  \
         } else                                                                       \
         if (pushed_type == VARIABLE_ARRAY) {                                         \
-            if (!--((Array *)VARIABLE->CLASS_DATA)->LINKS)                           \
-                delete (Array *)VARIABLE->CLASS_DATA;                                \
+            if (!--((struct Array *)VARIABLE->CLASS_DATA)->LINKS)                    \
+                delete_Array((struct Array *)VARIABLE->CLASS_DATA);                  \
         }                                                                            \
     }                                                                                \
     VARIABLE->CLASS_DATA = NULL;                                                     \

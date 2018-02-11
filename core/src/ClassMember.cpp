@@ -518,7 +518,7 @@ bool ClassMember::FastOptimizedExecute(void *PIF, void *ref, ParamList *FORMAL_P
 
                         case VARIABLE_ARRAY:
                             val->CLASS_DATA = sndr->CLASS_DATA;
-                            ((Array *)val->CLASS_DATA)->LINKS++;
+                            ((struct Array *)val->CLASS_DATA)->LINKS++;
                             break;
                     }
                     return true;

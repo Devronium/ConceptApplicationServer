@@ -38,7 +38,7 @@ VariableDATA *CompiledClass_CreateVariable(struct CompiledClass *self, INTEGER r
             self->_CONTEXT[reloc] = _CONTEXT_i;
             if (CM->VD) {
                 if (CM->VD->TYPE == VARIABLE_ARRAY) {
-                    _CONTEXT_i->CLASS_DATA = new(AllocArray(PIF))Array(PIF);
+                    _CONTEXT_i->CLASS_DATA = new_Array(PIF);
                 } else
                 if (CM->VD->TYPE == VARIABLE_STRING) {
                     NEW_CONCEPT_STRING_BUFFER(_CONTEXT_i, CM->VD->value.c_str(), CM->VD->value.Length());
@@ -98,7 +98,7 @@ void CompiledClass__GO_GARBAGE(struct CompiledClass *self, void *PIF, GarbageCol
                 } else
                 if (r_CONTEXT [i]->TYPE == VARIABLE_ARRAY) {
                     __gc_array->Reference(orig_data);
-                    ((Array *)orig_data)->__GO_GARBAGE(PIF, __gc_obj, __gc_array, __gc_vars);
+                    ((struct Array *)orig_data)->__GO_GARBAGE(PIF, __gc_obj, __gc_array, __gc_vars);
                     orig_data = 0;
                 }
             }
@@ -161,11 +161,11 @@ void CompiledClass__GO_GARBAGE(struct CompiledClass *self, void *PIF, GarbageCol
                             Var->CLASS_DATA = 0;
                         } else
                         if (Var->TYPE == VARIABLE_ARRAY) {
-                            if ((check_objects == -1) || ((((Array *)Var->CLASS_DATA)->reachable & check_objects) != check_objects)) {
+                            if ((check_objects == -1) || ((((struct Array *)Var->CLASS_DATA)->reachable & check_objects) != check_objects)) {
                                 if (check_objects != -1)
-                                    ((Array *)Var->CLASS_DATA)->reachable = check_objects;
+                                    ((struct Array *)Var->CLASS_DATA)->reachable = check_objects;
                                 __gc_array->Reference(Var->CLASS_DATA);
-                                ((Array *)Var->CLASS_DATA)->__GO_GARBAGE(PIF, __gc_obj, __gc_array, __gc_vars, check_objects);
+                                Array_GO_GARBAGE((struct Array *)Var->CLASS_DATA, PIF, __gc_obj, __gc_array, __gc_vars, check_objects);
                                 Var->CLASS_DATA = 0;
                             } else {
                                 RESET_VARIABLE(Var);
@@ -295,8 +295,8 @@ void delete_CompiledClass(struct CompiledClass *self) {
                         }
                     } else
                     if (_CONTEXT_i->TYPE == VARIABLE_ARRAY) {
-                        if (!--((Array *)_CONTEXT_i->CLASS_DATA)->LINKS)
-                            delete (Array *)_CONTEXT_i->CLASS_DATA;
+                        if (!--((struct Array *)_CONTEXT_i->CLASS_DATA)->LINKS)
+                            delete_Array((struct Array *)_CONTEXT_i->CLASS_DATA);
                     }
                 }
                 VAR_FREE(_CONTEXT_i);
@@ -344,8 +344,8 @@ void delete_CompiledClass(struct CompiledClass *self) {
                                     }
                                 } else
                                 if (_CONTEXT_i->TYPE == VARIABLE_ARRAY) {
-                                    if (!--((Array *)_CONTEXT_i->CLASS_DATA)->LINKS)
-                                        delete (Array *)_CONTEXT_i->CLASS_DATA;
+                                    if (!--((struct Array *)_CONTEXT_i->CLASS_DATA)->LINKS)
+                                        delete_Array((struct Array *)_CONTEXT_i->CLASS_DATA);
                                 }
                             }
                             VAR_FREE(_CONTEXT_i);

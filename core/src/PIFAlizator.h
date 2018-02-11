@@ -128,7 +128,7 @@
         if (((VARIABLE->TYPE == VARIABLE_CLASS) || (VARIABLE->TYPE == VARIABLE_DELEGATE)) && (((struct CompiledClass *)VARIABLE->CLASS_DATA)->LINKS > 1)) { \
             WRITE_LOCK                                                                                                                               \
         } else                                                                                                                                       \
-        if ((VARIABLE->TYPE == VARIABLE_ARRAY) && (((Array *)VARIABLE->CLASS_DATA)->LINKS > 1)) {                                                    \
+        if ((VARIABLE->TYPE == VARIABLE_ARRAY) && (((struct Array *)VARIABLE->CLASS_DATA)->LINKS > 1)) {                                                    \
             WRITE_LOCK                                                                                                                               \
         }                                                                                                                                            \
     }

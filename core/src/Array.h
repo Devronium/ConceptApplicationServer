@@ -2,14 +2,10 @@
 #define __ARRAY_H
 
 #define OPTIMIZE_FAST_ARRAYS
-// #define STDMAP_KEYS
 
 #include "ConceptTypes.h"
 #include "GarbageCollector.h"
 #include "ConceptPools.h"
-#ifdef STDMAP_KEYS
- #include <map>
-#endif
 
 #define     KEY_NUMBER          0
 
@@ -28,16 +24,7 @@
 #define ArrayElement            VariableDATA *
 #define ARRAY_COUNT_TYPE        int
 
-#ifdef STDMAP_KEYS
-struct TinyCmp {
-    inline bool operator()(const char *a, const char *b) const {
-        return strcmp(a, b) < 0;
-    }
-};
 
-typedef std::map<const char *, ARRAY_COUNT_TYPE, TinyCmp>   KeyMap;
-typedef std::pair<const char *, ARRAY_COUNT_TYPE>           KeyMapPair;
-#else
 typedef struct _KEY {
     char             *KEY;
     ARRAY_COUNT_TYPE index;
@@ -45,7 +32,6 @@ typedef struct _KEY {
 
     POOLED(_KEY)
 } ArrayKey;
-#endif
 
 typedef struct _NODE {
     ArrayElement   *ELEMENTS;
@@ -60,26 +46,15 @@ typedef struct _NODE {
  #define FAST_CHECK(ARR, index)    (((ARR)->cached_data) && (index < (int)STATIC_ARRAY_THRESHOLD))  ? (ARR)->cached_data[index] : (VariableDATA *)0
 #endif
 
-class Array {
-    friend int MarkRecursive(void *PIF, Array *arr, signed char reach_id_flag, signed char forced_flag);
-
-    friend int ClearRecursive(void *PIF, Array *arr, int CLSID, signed char reach_id_flag, signed char forced_flag);
-
-    friend int GetMemoryStatistics(void *PIF, void *RESULT);
-
-private:
+struct Array {
 #ifdef OPTIMIZE_FAST_ARRAYS
     ARRAY_COUNT_TYPE LastNodeIndex;
     NODE *LastNode;
 #endif
 
-#ifdef STDMAP_KEYS
-    KeyMap * Keys;
-#else
     ArrayKey * Keys;
     ARRAY_COUNT_TYPE LastKey;
     ARRAY_COUNT_TYPE KeysCount;
-#endif
 
     NODE             *FIRST;
     NODE             *LAST;
@@ -87,64 +62,43 @@ private:
     ARRAY_COUNT_TYPE COUNT;
 
     void *PIF;
-    ARRAY_COUNT_TYPE AddKey(const char *KEY, ARRAY_COUNT_TYPE index);
-#ifndef STDMAP_KEYS
-    ARRAY_COUNT_TYPE FindKeyPlace(const char *KEY, ARRAY_COUNT_TYPE *index);
-    ARRAY_COUNT_TYPE FindOrAddKey(const char *KEY);
-    ARRAY_COUNT_TYPE FindPlace(const char *KEY, ARRAY_COUNT_TYPE *in_dirty_zone = NULL);
-    void CleanIndex(bool forced = false);
-#endif
 
-public:
 #ifdef OPTIMIZE_FAST_ARRAYS
     VariableDATA * *cached_data;
 #endif
-    POOLED(Array)
-
-    ARRAY_COUNT_TYPE FindKey(const char *KEY);
-    ARRAY_COUNT_TYPE FindIndex(ARRAY_COUNT_TYPE index);
-
     int LINKS;
-    ARRAY_COUNT_TYPE Count();
-
-    void __GO_GARBAGE(void *PIF, GarbageCollector *__gc_obj, GarbageCollector *__gc_array, GarbageCollector *__gc_vars, signed char check_objects = -1, char main_call = 0);
-
-    void UnlinkObjects();
-
-    VariableDATA *NewArray();
-
-    const char *GetKey(ARRAY_COUNT_TYPE);
-    ARRAY_COUNT_TYPE     GetIndex(const char *Key);
-
-    VariableDATA *Get(ARRAY_COUNT_TYPE);
-    VariableDATA *Get(VariableDATA *KEY);
-
-    // for JIT
-    VariableDATA *GetWithCreate(ARRAY_COUNT_TYPE i, NUMBER default_value = 0);
-    VariableDATA *Add(VariableDATA *VAR_TO_ADD);
-    VariableDATA *AddCopy(VariableDATA *VAR_TO_ADD);
-
-    VariableDATA *ModuleGet(const char *key);
-
-    VariableDATA *ModuleGet(ARRAY_COUNT_TYPE);
-
-    Array *SortArrayElementsByKey();
-    void GetKeys(char **container, int size);
-
-    struct plainstring *ToString(int level = 0, Array *parent = 0, int parents = 0);
-    Array *Concat(Array *array);
-
-    void EnsureSize(ARRAY_COUNT_TYPE size, VariableDATA *default_value);
-
-    Array(void *PIF);
-    ~Array();
 
     signed char flags;
     signed char reachable;
-    inline void operator delete(void *obj) {
-        FreeArray(obj);
-    }
 };
+
+ARRAY_COUNT_TYPE Array_AddKey(struct Array *self, const char *KEY, ARRAY_COUNT_TYPE index);
+ARRAY_COUNT_TYPE Array_FindKeyPlace(struct Array *self, const char *KEY, ARRAY_COUNT_TYPE *index);
+ARRAY_COUNT_TYPE Array_FindOrAddKey(struct Array *self, const char *KEY);
+ARRAY_COUNT_TYPE Array_FindPlace(struct Array *self, const char *KEY, ARRAY_COUNT_TYPE *in_dirty_zone = NULL);
+void Array_CleanIndex(struct Array *self, bool forced = false);
+ARRAY_COUNT_TYPE Array_FindKey(struct Array *self, const char *KEY);
+ARRAY_COUNT_TYPE Array_FindIndex(struct Array *self, ARRAY_COUNT_TYPE index);
+ARRAY_COUNT_TYPE Array_Count(struct Array *self);
+void Array_GO_GARBAGE(struct Array *self, void *PIF, GarbageCollector *__gc_obj, GarbageCollector *__gc_array, GarbageCollector *__gc_vars, signed char check_objects = -1, char main_call = 0);
+void Array_UnlinkObjects(struct Array *self);
+VariableDATA *Array_NewArray(struct Array *self);
+const char *Array_GetKey(struct Array *self, ARRAY_COUNT_TYPE);
+ARRAY_COUNT_TYPE Array_GetIndex(struct Array *self, const char *Key);
+VariableDATA *Array_Get(struct Array *self, ARRAY_COUNT_TYPE);
+VariableDATA *Array_Get(struct Array *self, VariableDATA *KEY);
+VariableDATA *Array_GetWithCreate(struct Array *self, ARRAY_COUNT_TYPE i, NUMBER default_value = 0);
+VariableDATA *Array_Add(struct Array *self, VariableDATA *VAR_TO_ADD);
+VariableDATA *Array_AddCopy(struct Array *self, VariableDATA *VAR_TO_ADD);
+VariableDATA *Array_ModuleGet(struct Array *self, const char *key);
+VariableDATA *Array_ModuleGet(struct Array *self, ARRAY_COUNT_TYPE);
+struct Array *Array_SortArrayElementsByKey(struct Array *self);
+void Array_GetKeys(struct Array *self, char **container, int size);
+struct plainstring *Array_ToString(struct Array *self, int level = 0, Array *parent = 0, int parents = 0);
+struct Array *Array_Concat(struct Array *self, struct Array *array);
+void Array_EnsureSize(struct Array *self, ARRAY_COUNT_TYPE size, VariableDATA *default_value);
+struct Array *new_Array(void *PIF, bool skip_top = false);
+void delete_Array(struct Array *self);
 
 typedef struct {
     Array         POOL[ARRAY_POOL_BLOCK_SIZE];

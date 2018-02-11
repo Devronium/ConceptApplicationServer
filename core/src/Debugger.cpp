@@ -246,7 +246,7 @@ int GetVariableByName(int operation, void **VDESC, void **CONTEXT, int Depth, ch
 
                     case VARIABLE_ARRAY:
                         if (operation == 0) {
-                            struct plainstring *temp = ((Array *)VD->CLASS_DATA)->ToString();
+                            struct plainstring *temp = Array_ToString((struct Array *)VD->CLASS_DATA);
                             if (temp) {
                                 strncpy(buffer, plainstring_c_str(temp), buf_size);
                                 plainstring_delete(temp);

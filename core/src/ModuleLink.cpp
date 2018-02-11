@@ -213,8 +213,8 @@ INTEGER SetVariable(VariableDATA *VD, INTEGER TYPE, char *STRING_VALUE, NUMBER N
                 VD->DELEGATE_DATA = (int)NUMBER_VALUE;
             ((struct CompiledClass *)VD->CLASS_DATA)->reachable = 0x1C;
         } else {
-            ((Array *)VD->CLASS_DATA)->LINKS++;
-            ((Array *)VD->CLASS_DATA)->reachable = 0x1C;
+            ((struct Array *)VD->CLASS_DATA)->LINKS++;
+            ((struct Array *)VD->CLASS_DATA)->reachable = 0x1C;
         }
     } else {
         VD->NUMBER_DATA = NUMBER_VALUE;
@@ -387,7 +387,7 @@ INTEGER SetClassMember(void *CLASS_PTR, const char *class_member_name, INTEGER T
                     } else
                     if (TYPE == VARIABLE_ARRAY) {
                         Parameter->CLASS_DATA = (void *)STRING_VALUE;
-                        ((Array *)CLASS_PTR)->LINKS++;
+                        ((struct Array *)CLASS_PTR)->LINKS++;
                     } else
                     if (TYPE == VARIABLE_STRING) {
                         Parameter->CLASS_DATA     = 0;
@@ -543,7 +543,7 @@ INTEGER Invoke(INTEGER INVOKE_TYPE, ...) {
                         ((struct CompiledClass *)target->CLASS_DATA)->reachable = 0x1C;
                     else
                     if (target->TYPE == VARIABLE_ARRAY)
-                        ((Array *)target->CLASS_DATA)->reachable = 0x1C;
+                        ((struct Array *)target->CLASS_DATA)->reachable = 0x1C;
                 } else {
                     result = INVALID_INVOKE_PARAMETER;
                 }
@@ -559,8 +559,8 @@ INTEGER Invoke(INTEGER INVOKE_TYPE, ...) {
                         ((struct CompiledClass *)target->CLASS_DATA)->reachable = 0x1C;
                     } else
                     if (target->TYPE == VARIABLE_ARRAY) {
-                        ((Array *)target->CLASS_DATA)->LINKS++;
-                        ((Array *)target->CLASS_DATA)->reachable = 0x1C;
+                        ((struct Array *)target->CLASS_DATA)->LINKS++;
+                        ((struct Array *)target->CLASS_DATA)->reachable = 0x1C;
                     } else {
                         result = INVALID_INVOKE_PARAMETER;
                     }
@@ -579,7 +579,7 @@ INTEGER Invoke(INTEGER INVOKE_TYPE, ...) {
                         ((struct CompiledClass *)target->CLASS_DATA)->LINKS--;
                     } else
                     if (target->TYPE == VARIABLE_ARRAY) {
-                        ((Array *)target->CLASS_DATA)->LINKS--;
+                        ((struct Array *)target->CLASS_DATA)->LINKS--;
                     } else {
                         result = INVALID_INVOKE_PARAMETER;
                     }
@@ -617,8 +617,8 @@ INTEGER Invoke(INTEGER INVOKE_TYPE, ...) {
                                     delete_CompiledClass((struct CompiledClass *)VARIABLE->CLASS_DATA);
                             } else
                             if (VARIABLE->TYPE == VARIABLE_ARRAY) {
-                                if (!--((Array *)VARIABLE->CLASS_DATA)->LINKS)
-                                    delete (Array *)VARIABLE->CLASS_DATA;
+                                if (!--((struct Array *)VARIABLE->CLASS_DATA)->LINKS)
+                                    delete_Array((struct Array *)VARIABLE->CLASS_DATA);
                             }
                         }
                         VAR_FREE(VARIABLE);
@@ -647,7 +647,7 @@ INTEGER Invoke(INTEGER INVOKE_TYPE, ...) {
                     CLASS_CHECK(target);
                     target->TYPE = VARIABLE_NUMBER;
                     PIFAlizator *PIF = (PIFAlizator *)POOL_CONTEXT(target);
-                    target->CLASS_DATA = new(AllocArray(PIF))Array(PIF);
+                    target->CLASS_DATA = new_Array(PIF);
                     target->TYPE = VARIABLE_ARRAY;
                 } else
                     result = INVALID_INVOKE_PARAMETER;
@@ -758,8 +758,7 @@ INTEGER Invoke(INTEGER INVOKE_TYPE, ...) {
                     break;
                 }
                 if ((target->TYPE == VARIABLE_ARRAY) && (target->CLASS_DATA)) {
-                    // TO DO !
-                    *res = ((Array *)target->CLASS_DATA)->ModuleGet(index);
+                    *res = Array_ModuleGet((struct Array *)target->CLASS_DATA, index);
                 } else {
                     result = INVALID_INVOKE_PARAMETER;
                 }
@@ -776,7 +775,7 @@ INTEGER Invoke(INTEGER INVOKE_TYPE, ...) {
                     break;
                 }
                 if ((target->TYPE == VARIABLE_ARRAY) && (target->CLASS_DATA)) {
-                    *res = ((Array *)target->CLASS_DATA)->ModuleGet(key);
+                    *res = Array_ModuleGet((struct Array *)target->CLASS_DATA, key);
                 } else {
                     result = INVALID_INVOKE_PARAMETER;
                 }
@@ -794,7 +793,7 @@ INTEGER Invoke(INTEGER INVOKE_TYPE, ...) {
                 }
                 if ((target->TYPE == VARIABLE_ARRAY) && (target->CLASS_DATA)) {
                     // TO DO !
-                    res = ((Array *)target->CLASS_DATA)->ModuleGet(index);
+                    res = Array_ModuleGet((struct Array *)target->CLASS_DATA, index);
                     INTEGER *type = va_arg(ap, INTEGER *);
                     char    **str = va_arg(ap, char **);
                     NUMBER  *nr   = va_arg(ap, NUMBER *);
@@ -815,7 +814,7 @@ INTEGER Invoke(INTEGER INVOKE_TYPE, ...) {
                     break;
                 }
                 if ((target->TYPE == VARIABLE_ARRAY) && (target->CLASS_DATA)) {
-                    res = ((Array *)target->CLASS_DATA)->ModuleGet(key);
+                    res = Array_ModuleGet((struct Array *)target->CLASS_DATA, key);
                     INTEGER *type = va_arg(ap, INTEGER *);
                     char    **str = va_arg(ap, char **);
                     NUMBER  *nr   = va_arg(ap, NUMBER *);
@@ -836,8 +835,7 @@ INTEGER Invoke(INTEGER INVOKE_TYPE, ...) {
                     break;
                 }
                 if ((target->TYPE == VARIABLE_ARRAY) && (target->CLASS_DATA)) {
-                    res = ((Array *)target->CLASS_DATA)->ModuleGet(index);
-
+                    res = Array_ModuleGet((struct Array *)target->CLASS_DATA, index);
                     INTEGER type = va_arg(ap, INTEGER);
                     char    *str = va_arg(ap, char *);
                     NUMBER  nr   = va_arg(ap, double);
@@ -858,8 +856,7 @@ INTEGER Invoke(INTEGER INVOKE_TYPE, ...) {
                     break;
                 }
                 if ((target->TYPE == VARIABLE_ARRAY) && (target->CLASS_DATA)) {
-                    res = ((Array *)target->CLASS_DATA)->ModuleGet(key);
-
+                    res = Array_ModuleGet((struct Array *)target->CLASS_DATA, key);
                     INTEGER type = va_arg(ap, INTEGER);
                     char    *str = va_arg(ap, char *);
                     NUMBER  nr   = va_arg(ap, double);
@@ -880,7 +877,7 @@ INTEGER Invoke(INTEGER INVOKE_TYPE, ...) {
                     break;
                 }
                 if ((target->TYPE == VARIABLE_ARRAY) && (target->CLASS_DATA)) {
-                    *key = ((Array *)target->CLASS_DATA)->GetKey(index);
+                    *key = Array_GetKey((struct Array *)target->CLASS_DATA, index);
                 } else {
                     result = INVALID_INVOKE_PARAMETER;
                 }
@@ -898,9 +895,9 @@ INTEGER Invoke(INTEGER INVOKE_TYPE, ...) {
                 }
                 if ((target->TYPE == VARIABLE_ARRAY) && (target->CLASS_DATA)) {
                     if (index >= 0) {
-                        result = ((Array *)target->CLASS_DATA)->FindIndex(index) != -1;
+                        result = Array_FindIndex((struct Array *)target->CLASS_DATA, index) != -1;
                     } else {
-                        result = ((Array *)target->CLASS_DATA)->FindKey(key) != -1;
+                        result = Array_FindKey((struct Array *)target->CLASS_DATA, key) != -1;
                     }
                 } else {
                     result = INVALID_INVOKE_PARAMETER;
@@ -918,7 +915,7 @@ INTEGER Invoke(INTEGER INVOKE_TYPE, ...) {
                     break;
                 }
                 if ((target->TYPE == VARIABLE_ARRAY) && (target->CLASS_DATA)) {
-                    *index = ((Array *)target->CLASS_DATA)->GetIndex(key);
+                    *index = Array_GetIndex((struct Array *)target->CLASS_DATA, key);
                 } else {
                     result = INVALID_INVOKE_PARAMETER;
                 }
@@ -933,7 +930,7 @@ INTEGER Invoke(INTEGER INVOKE_TYPE, ...) {
                     break;
                 }
                 if ((target->TYPE == VARIABLE_ARRAY) && (target->CLASS_DATA)) {
-                    result = ((Array *)target->CLASS_DATA)->Count();
+                    result = Array_Count((struct Array *)target->CLASS_DATA);
                 } else {
                     result = INVALID_INVOKE_PARAMETER;
                 }
@@ -950,7 +947,7 @@ INTEGER Invoke(INTEGER INVOKE_TYPE, ...) {
                     break;
                 }
                 if ((target->TYPE == VARIABLE_ARRAY) && (target->CLASS_DATA)) {
-                    ((Array *)target->CLASS_DATA)->GetKeys(keys, keys_size);
+                    Array_GetKeys((struct Array *)target->CLASS_DATA, keys, keys_size);
                 } else {
                     result = INVALID_INVOKE_PARAMETER;
                 }
@@ -1436,7 +1433,7 @@ INTEGER Invoke(INTEGER INVOKE_TYPE, ...) {
                         result = ((struct CompiledClass *)target->CLASS_DATA)->LINKS;
                     } else
                     if (target->TYPE == VARIABLE_ARRAY) {
-                        result = ((Array *)target->CLASS_DATA)->LINKS;
+                        result = ((struct Array *)target->CLASS_DATA)->LINKS;
                     }
                 }
             }
@@ -1466,7 +1463,7 @@ INTEGER Invoke(INTEGER INVOKE_TYPE, ...) {
                 Array **res   = va_arg(ap, Array * *);
 
                 if (target) {
-                    *res = target->SortArrayElementsByKey();
+                    *res = Array_SortArrayElementsByKey(target);
                     if (*res)
                         (*res)->LINKS = 0;
                 } else {
@@ -1787,7 +1784,7 @@ INTEGER Invoke(INTEGER INVOKE_TYPE, ...) {
                 Array       **arr = va_arg(ap, Array * *);
                 if ((pif) && (arr)) {
                     if (!pif->var_globals) {
-                        pif->var_globals = new(AllocArray(pif))Array(pif);
+                        pif->var_globals = new_Array(pif);
                         // never to be deleted
                         pif->var_globals->LINKS = 2;
                     }
@@ -1973,7 +1970,7 @@ INTEGER Invoke(INTEGER INVOKE_TYPE, ...) {
                 va_end(ap);
                 CLASS_CHECK(RESULT);
                 RESULT->TYPE       = VARIABLE_NUMBER;
-                RESULT->CLASS_DATA = new(AllocArray(PIF))Array(PIF);
+                RESULT->CLASS_DATA = new_Array(PIF);
                 RESULT->TYPE       = VARIABLE_ARRAY;
                 return GetMemoryStatistics(PIF, RESULT->CLASS_DATA);
             }

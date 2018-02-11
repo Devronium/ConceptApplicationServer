@@ -208,7 +208,7 @@ void AnsiList::Clear() {
                     break;
 
                 case DATA_ARRAY:
-                    delete (Array *)DATA;
+                    delete_Array((struct Array *)DATA);
                     DATA = 0;
                     break;
 
@@ -316,7 +316,7 @@ void *AnsiList::Delete(int i) {
                         break;
 
                     case DATA_ARRAY:
-                        delete (Array *)DATA;
+                        delete_Array((struct Array *)DATA);
                         DATA = 0;
                         break;
 

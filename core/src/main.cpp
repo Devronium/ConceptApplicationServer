@@ -44,6 +44,8 @@ POOLED_IMPLEMENTATION(tsParamList)
 THREADED_FLAG NOTIFY_PARENT RemoteNotifyParent = 0;
 THREADED_FLAG void *cache_buffer = 0;
 
+int MarkRecursive(void *PIF, struct Array *arr, signed char reach_id_flag, signed char forced_flag);
+
 struct Container {
     void *R1;
     void *R2;
@@ -454,7 +456,7 @@ void FreeClassObject(void *refObject) {
     if (((struct CompiledClass *)refObject)->flags == -1)
         return;
 
-    ClassPool   *CURRENT = (ClassPool *)(((uintptr_t)refObject) - sizeof(CompiledClass) * (((struct CompiledClass *)refObject)->flags) - POOL_OFFSET_NON_POD(ClassPool));
+    ClassPool   *CURRENT = (ClassPool *)(((uintptr_t)refObject) - sizeof(CompiledClass) * (((struct CompiledClass *)refObject)->flags) - POOL_OFFSET(ClassPool, POOL));
     PIFAlizator *PIF     = (PIFAlizator *)CURRENT->PIF;
     ALLOC_LOCK
     memset(refObject, 0, sizeof(CompiledClass));
@@ -492,7 +494,7 @@ void FreeClassObject(void *refObject) {
 
 void *AllocArray(void *PIF, bool skip_top) {
     if (!PIF) {
-        Array *notPOOLED = (Array *)malloc(sizeof(Array));
+        Array *notPOOLED = (struct Array *)malloc(sizeof(Array));
         if (notPOOLED)
             notPOOLED->flags = -2;
         return notPOOLED;
@@ -587,23 +589,23 @@ void FreeArray(void *refObject) {
     if (!refObject)
         return;
 
-    if (((Array *)refObject)->flags == -1)
+    if (((struct Array *)refObject)->flags == -1)
         return;
 
-    if (((Array *)refObject)->flags == -2) {
+    if (((struct Array *)refObject)->flags == -2) {
         // not a pooled array (module-created array) for backwards compatibility
         free(refObject);
         return;
     }
 
-    ArrayPool   *CURRENT = (ArrayPool *)(((uintptr_t)refObject) - sizeof(Array) * (((Array *)refObject)->flags) - POOL_OFFSET_NON_POD(ArrayPool));
+    ArrayPool   *CURRENT = (ArrayPool *)(((uintptr_t)refObject) - sizeof(Array) * (((struct Array *)refObject)->flags) - POOL_OFFSET(ArrayPool, POOL));
     PIFAlizator *PIF     = (PIFAlizator *)CURRENT->PIF;
     ALLOC_LOCK
         ((PIFAlizator *)PIF)->object_count--;
     PIF->free_arrays++;
-    if (((Array *)refObject)->flags < CURRENT->FIRST_VAR)
-        CURRENT->FIRST_VAR = ((Array *)refObject)->flags;
-    ((Array *)refObject)->flags = -1;
+    if (((struct Array *)refObject)->flags < CURRENT->FIRST_VAR)
+        CURRENT->FIRST_VAR = ((struct Array *)refObject)->flags;
+    ((struct Array *)refObject)->flags = -1;
     CURRENT->POOL_VARS++;
     ArrayPool *PREV = (ArrayPool *)CURRENT->PREV;
     ArrayPool *NEXT = (ArrayPool *)CURRENT->NEXT;
@@ -645,11 +647,11 @@ int MarkRecursiveClass(void *PIF, struct CompiledClass *CC, signed char reach_id
             if ((Var->TYPE == VARIABLE_CLASS) || (Var->TYPE == VARIABLE_DELEGATE)) {
                 CompiledClass *CC2 = (struct CompiledClass *)Var->CLASS_DATA;
                 if ((CC2->reachable & 0x03) != reach_id_flag)
-                    res += MarkRecursive(PIF, CC2, reach_id_flag, forced_flag ? forced_flag : CC2->reachable & 0x1C);
+                    res += MarkRecursiveClass(PIF, CC2, reach_id_flag, forced_flag ? forced_flag : CC2->reachable & 0x1C);
                 CC2->reachable |= forced_flag;
             } else
             if (Var->TYPE == VARIABLE_ARRAY) {
-                Array *ARR2 = (Array *)Var->CLASS_DATA;
+                Array *ARR2 = (struct Array *)Var->CLASS_DATA;
                 if ((ARR2->reachable & 0x03) != reach_id_flag)
                     res += MarkRecursive(PIF, ARR2, reach_id_flag, forced_flag ? forced_flag : ARR2->reachable & 0x1C);
                 ARR2->reachable |= forced_flag;
@@ -686,7 +688,7 @@ int MarkRecursiveClass(void *PIF, struct CompiledClass *CC, signed char reach_id
                     CC2->reachable |= forced_flag;
                 } else
                 if (Var->TYPE == VARIABLE_ARRAY) {
-                    Array *ARR2 = (Array *)Var->CLASS_DATA;
+                    Array *ARR2 = (struct Array *)Var->CLASS_DATA;
                     if ((ARR2->reachable & 0x03) != reach_id_flag)
                         res += MarkRecursive(PIF, ARR2, reach_id_flag, forced_flag ? forced_flag : ARR2->reachable & 0x1C);
                     ARR2->reachable |= forced_flag;
@@ -699,7 +701,7 @@ int MarkRecursiveClass(void *PIF, struct CompiledClass *CC, signed char reach_id
     return res;
 }
 
-int MarkRecursive(void *PIF, Array *arr, signed char reach_id_flag, signed char forced_flag) {
+int MarkRecursive(void *PIF, struct Array *arr, signed char reach_id_flag, signed char forced_flag) {
     arr->reachable = (arr->reachable & 0x1C) | reach_id_flag;
     int      res      = 1;
     NODE     *CURRENT = arr->FIRST;
@@ -714,7 +716,7 @@ int MarkRecursive(void *PIF, Array *arr, signed char reach_id_flag, signed char 
                     CC2->reachable |= forced_flag;
                 } else
                 if (Var->TYPE == VARIABLE_ARRAY) {
-                    Array *ARR2 = (Array *)Var->CLASS_DATA;
+                    Array *ARR2 = (struct Array *)Var->CLASS_DATA;
                     if ((ARR2->reachable & 0x03) != reach_id_flag)
                         res += MarkRecursive(PIF, ARR2, reach_id_flag, forced_flag ? forced_flag : ARR2->reachable & 0x1C);
                     ARR2->reachable |= forced_flag;
@@ -751,7 +753,7 @@ int ClearRecursive(void *PIF, CompiledClass *CC, int CLSID, signed char reach_id
                 }
             } else
             if (Var->TYPE == VARIABLE_ARRAY) {
-                Array *ARR2 = (Array *)Var->CLASS_DATA;
+                Array *ARR2 = (struct Array *)Var->CLASS_DATA;
                 if ((ARR2->reachable & 0x03) != reach_id_flag) {
                     // ClearRecursive(PIF, ARR2, CLSID, reach_id_flag, forced_flag);
                     ARR2->reachable |= forced_flag;
@@ -782,7 +784,7 @@ int ClearRecursive(void *PIF, Array *arr, int CLSID, signed char reach_id_flag, 
                     }
                 } else
                 if (Var->TYPE == VARIABLE_ARRAY) {
-                    Array *ARR2 = (Array *)Var->CLASS_DATA;
+                    Array *ARR2 = (struct Array *)Var->CLASS_DATA;
                     if ((ARR2->reachable & 0x03) != reach_id_flag)
                         res += ClearRecursive(PIF, ARR2, CLSID, reach_id_flag, forced_flag ? forced_flag : ARR2->reachable & 0x1C);
                     ARR2->reachable |= forced_flag;
@@ -833,7 +835,7 @@ int ClearVariablesByCLSID(void *PIF, int CLSID) {
     ClearRecursive(PIF, CC_ROOT, CLSID, reach_id_flag, 0);
 
     if (((PIFAlizator *)PIF)->var_globals)
-        ClearRecursive(PIF, (Array *)((PIFAlizator *)PIF)->var_globals, CLSID, reach_id_flag, 0);
+        ClearRecursive(PIF, (struct Array *)((PIFAlizator *)PIF)->var_globals, CLSID, reach_id_flag, 0);
 
     root = ((PIFAlizator *)PIF)->GCROOT;
     while (root) {
@@ -858,7 +860,7 @@ int ClearVariablesByCLSID(void *PIF, int CLSID) {
                             }
                         } else
                         if (Var->TYPE == VARIABLE_ARRAY) {
-                            Array *ARR2 = (Array *)Var->CLASS_DATA;
+                            Array *ARR2 = (struct Array *)Var->CLASS_DATA;
                             if ((ARR2->reachable & 0x03) != reach_id_flag)
                                 ClearRecursive(PIF, ARR2, CLSID, reach_id_flag, ARR2->reachable & 0x1C);
                         }
@@ -943,7 +945,7 @@ int CheckReachability(void *PIF, bool skip_top) {
     if (CC_ROOT)
         MarkRecursiveClass(PIF, CC_ROOT, reach_id_flag, 0);
     if (((PIFAlizator *)PIF)->var_globals)
-        MarkRecursive(PIF, (Array *)((PIFAlizator *)PIF)->var_globals, reach_id_flag, 0);
+        MarkRecursive(PIF, (struct Array *)((PIFAlizator *)PIF)->var_globals, reach_id_flag, 0);
 
     root = ((PIFAlizator *)PIF)->GCROOT;
     while (root) {
@@ -966,7 +968,7 @@ int CheckReachability(void *PIF, bool skip_top) {
                                 MarkRecursiveClass(PIF, CC2, reach_id_flag, CC2->reachable & 0x1C);
                         } else
                         if (Var->TYPE == VARIABLE_ARRAY) {
-                            Array *ARR2 = (Array *)Var->CLASS_DATA;
+                            Array *ARR2 = (struct Array *)Var->CLASS_DATA;
                             if ((ARR2->reachable & 0x03) != reach_id_flag)
                                 MarkRecursive(PIF, ARR2, reach_id_flag, ARR2->reachable & 0x1C);
                         }
@@ -1044,7 +1046,7 @@ int CheckReachability(void *PIF, bool skip_top) {
                         res++;
                         __gc_array.Reference(ARR);
                         ARR->reachable = reach_id_flag;
-                        ARR->__GO_GARBAGE(PIF, &__gc_obj, &__gc_array, &__gc_vars, reach_id_flag);
+                        Array_GO_GARBAGE(ARR, PIF, &__gc_obj, &__gc_array, &__gc_vars, reach_id_flag);
                     }
                 }
             }
@@ -1094,9 +1096,9 @@ int GetMemoryStatistics(void *PIF, void *RESULT) {
     if (((PIFAlizator *)PIF)->in_gc)
         return 0;
     ((PIFAlizator *)PIF)->in_gc = 1;
-    VariableDATA *objects_var = ((Array *)RESULT)->ModuleGet("objects");
-    VariableDATA *array_var   = ((Array *)RESULT)->ModuleGet("arrays");
-    VariableDATA *array_elements   = ((Array *)RESULT)->ModuleGet("arrays_elements");
+    VariableDATA *objects_var = Array_ModuleGet((struct Array *)RESULT, "objects");
+    VariableDATA *array_var   = Array_ModuleGet((struct Array *)RESULT, "arrays");
+    VariableDATA *array_elements   = Array_ModuleGet((struct Array *)RESULT, "arrays_elements");
 
     CLASS_CHECK(objects_var);
     CLASS_CHECK(array_var);
@@ -1104,29 +1106,29 @@ int GetMemoryStatistics(void *PIF, void *RESULT) {
 
     objects_var->TYPE       = VARIABLE_NUMBER;
     array_var->TYPE         = VARIABLE_NUMBER;
-    objects_var->CLASS_DATA = new(AllocArray((PIFAlizator *)PIF))Array(PIF);
+    objects_var->CLASS_DATA = new_Array(PIF);
     // array_var->CLASS_DATA   = new(AllocArray((PIFAlizator *)PIF))Array(PIF);
     objects_var->TYPE       = VARIABLE_ARRAY;
     // array_var->TYPE         = VARIABLE_ARRAY;
 
-    ((Array *)objects_var->CLASS_DATA)->reachable = 0x1C;
-    // ((Array *)array_var->CLASS_DATA)->reachable = 0x1C;
+    ((struct Array *)objects_var->CLASS_DATA)->reachable = 0x1C;
+    // ((struct Array *)array_var->CLASS_DATA)->reachable = 0x1C;
 
 #ifdef POOL_BLOCK_ALLOC
-    VariableDATA *variable_var  = ((Array *)RESULT)->ModuleGet("variables");
-    VariableDATA *string_var    = ((Array *)RESULT)->ModuleGet("strings");
-    VariableDATA *number_var    = ((Array *)RESULT)->ModuleGet("numbers");
-    VariableDATA *delegate_var  = ((Array *)RESULT)->ModuleGet("delegates");
-    VariableDATA *lock_obj_var  = ((Array *)RESULT)->ModuleGet("objects_locked");
-    VariableDATA *lock_arr_var  = ((Array *)RESULT)->ModuleGet("arrays_locked");
-    VariableDATA *var_pool_var  = ((Array *)RESULT)->ModuleGet("variables_pool_memory");
-    VariableDATA *obj_pool_var  = ((Array *)RESULT)->ModuleGet("objects_pool_memory");
-    VariableDATA *arr_pool_var  = ((Array *)RESULT)->ModuleGet("arrays_pool_memory");
+    VariableDATA *variable_var  = Array_ModuleGet((struct Array *)RESULT, "variables");
+    VariableDATA *string_var    = Array_ModuleGet((struct Array *)RESULT, "strings");
+    VariableDATA *number_var    = Array_ModuleGet((struct Array *)RESULT, "numbers");
+    VariableDATA *delegate_var  = Array_ModuleGet((struct Array *)RESULT, "delegates");
+    VariableDATA *lock_obj_var  = Array_ModuleGet((struct Array *)RESULT, "objects_locked");
+    VariableDATA *lock_arr_var  = Array_ModuleGet((struct Array *)RESULT, "arrays_locked");
+    VariableDATA *var_pool_var  = Array_ModuleGet((struct Array *)RESULT, "variables_pool_memory");
+    VariableDATA *obj_pool_var  = Array_ModuleGet((struct Array *)RESULT, "objects_pool_memory");
+    VariableDATA *arr_pool_var  = Array_ModuleGet((struct Array *)RESULT, "arrays_pool_memory");
 #endif
-    VariableDATA *string_memory = ((Array *)RESULT)->ModuleGet("strings_memory");
-    VariableDATA *memory = ((Array *)RESULT)->ModuleGet("memory");
-    VariableDATA *unreachable_objects = ((Array *)RESULT)->ModuleGet("unreachable_objects");
-    VariableDATA *unreachable_arrays  = ((Array *)RESULT)->ModuleGet("unreachable_arrays");
+    VariableDATA *string_memory = Array_ModuleGet((struct Array *)RESULT, "strings_memory");
+    VariableDATA *memory = Array_ModuleGet((struct Array *)RESULT, "memory");
+    VariableDATA *unreachable_objects = Array_ModuleGet((struct Array *)RESULT, "unreachable_objects");
+    VariableDATA *unreachable_arrays  = Array_ModuleGet((struct Array *)RESULT, "unreachable_arrays");
 #ifdef POOL_BLOCK_ALLOC
     VARPool *NEXT_POOL = ((PIFAlizator *)PIF)->POOL;
     while (NEXT_POOL) {
@@ -1171,7 +1173,7 @@ int GetMemoryStatistics(void *PIF, void *RESULT) {
     if (CC_ROOT)
         MarkRecursiveClass(PIF, CC_ROOT, reach_id_flag, 0);
     if (((PIFAlizator *)PIF)->var_globals)
-        MarkRecursive(PIF, (Array *)((PIFAlizator *)PIF)->var_globals, reach_id_flag, 0);
+        MarkRecursive(PIF, (struct Array *)((PIFAlizator *)PIF)->var_globals, reach_id_flag, 0);
 
     GCRoot *root = ((PIFAlizator *)PIF)->GCROOT;
     while (root) {
@@ -1197,7 +1199,7 @@ int GetMemoryStatistics(void *PIF, void *RESULT) {
                                 MarkRecursiveClass(PIF, CC2, reach_id_flag, CC2->reachable & 0x1C);
                         } else
                         if (Var->TYPE == VARIABLE_ARRAY) {
-                            Array *ARR2 = (Array *)Var->CLASS_DATA;
+                            Array *ARR2 = (struct Array *)Var->CLASS_DATA;
                             if ((ARR2->reachable & 0x03) != reach_id_flag)
                                 MarkRecursive(PIF, ARR2, reach_id_flag, ARR2->reachable & 0x1C);
                         }
@@ -1258,7 +1260,7 @@ int GetMemoryStatistics(void *PIF, void *RESULT) {
             for (int i = 0; i < OBJECT_POOL_BLOCK_SIZE; i++) {
                 CompiledClass *CC = &POOL->POOL[i];
                 if (CC->flags >= 0) {
-                    VariableDATA *ref = ((Array *)objects_var->CLASS_DATA)->ModuleGet(CompiledClass_GetClass(CC)->NAME.c_str());
+                    VariableDATA *ref = Array_ModuleGet((struct Array *)objects_var->CLASS_DATA, CompiledClass_GetClass(CC)->NAME.c_str());
                     ref->NUMBER_DATA    += 1;
                     memory->NUMBER_DATA += sizeof(CompiledClass);
                     memory->NUMBER_DATA += CompiledClass_GetClass(CC)->DataMembersCount * sizeof(VariableDATA *);
@@ -1280,14 +1282,11 @@ int GetMemoryStatistics(void *PIF, void *RESULT) {
             for (int i = 0; i < ARRAY_POOL_BLOCK_SIZE; i++) {
                 Array *ARR = &ARRAYPOOL->POOL[i];
                 if (ARR->flags >= 0) {
-                    // VariableDATA *ref = ((Array *)array_var->CLASS_DATA)->ModuleGet(index++);
+                    // VariableDATA *ref = ((struct Array *)array_var->CLASS_DATA)->ModuleGet(index++);
                     // ref->NUMBER_DATA = ARR->Count();
                     array_var->NUMBER_DATA ++;
-                    all_arrays += ARR->Count();
-#ifdef STDMAP_KEYS
-                    memory->NUMBER_DATA += sizeof(Array) + ARR->Count() * sizeof(VariableDATA *) + ARR->NODE_COUNT * sizeof(NODE);
-#else
-                    memory->NUMBER_DATA += sizeof(Array) + ARR->Count() * sizeof(VariableDATA *) + ARR->NODE_COUNT * sizeof(NODE) + ARR->KeysCount/KEY_INCREMENT * KEY_INCREMENT * sizeof(ArrayKey);
+                    all_arrays += Array_Count(ARR);
+                    memory->NUMBER_DATA += sizeof(Array) + Array_Count(ARR) * sizeof(VariableDATA *) + ARR->NODE_COUNT * sizeof(NODE) + ARR->KeysCount/KEY_INCREMENT * KEY_INCREMENT * sizeof(ArrayKey);
                     if (ARR->KeysCount % KEY_INCREMENT)
                         memory->NUMBER_DATA += KEY_INCREMENT * sizeof(ArrayKey);
                     ArrayKey *KEYS = ARR->Keys;
@@ -1297,7 +1296,6 @@ int GetMemoryStatistics(void *PIF, void *RESULT) {
                                 string_memory->NUMBER_DATA += strlen(KEYS[j].KEY) + 1;
                         }
                     }
-#endif
                     if ((ARR->flags >= 0) && (ARR->reachable < 0x1C) && (ARR->reachable != reach_id_flag))
                         unreachable_arrays->NUMBER_DATA += 1;
                 }

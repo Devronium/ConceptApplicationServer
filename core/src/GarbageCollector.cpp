@@ -88,10 +88,10 @@ void GarbageCollector::EndOfExecution_SayBye_Arrays() {
         BASE = 0;
         for (khint_t k = kh_begin(BASE2); k != kh_end(BASE2); ++k) {
             if (kh_exist(BASE2, k)) {
-                Array *ptr = (Array *)(uintptr_t)kh_key(BASE2, k);
+                Array *ptr = (struct Array *)(uintptr_t)kh_key(BASE2, k);
                 if (ptr) {
                     ptr->LINKS = -1;
-                    delete ptr;
+                    delete_Array(ptr);
                 }
             }
         }
@@ -104,13 +104,13 @@ void GarbageCollector::EndOfExecution_SayBye_Arrays() {
     BASE = 0;
     while (NODE) {
         NODE2 = NODE->NEXT;
-        Array *ptr = (Array *)NODE->DATA;
+        Array *ptr = (struct Array *)NODE->DATA;
         free(NODE);
         NODE = NODE2;
 
         ptr->LINKS = -1;
 
-        delete ptr;
+        delete_Array(ptr);
     }
 #endif
 }

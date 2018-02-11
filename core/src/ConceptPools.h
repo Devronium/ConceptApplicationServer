@@ -40,7 +40,6 @@ extern "C" {
 #define BLOCK_STACK_SIZE          8192 //1024
 
 #define POOL_OFFSET(type, field)  ((uintptr_t)&(((type *)0)->field))
-#define POOL_OFFSET_NON_POD(type)  0
 
 void *AllocVAR(void *pif);
 void *GetPOOLContext(void *refVAR);

@@ -20,8 +20,8 @@ POOLED_IMPLEMENTATION(Array)
 #define ENSURE_ELEMENTS(TARGET_NODE, INDEX)                                                                                     \
     if (TARGET_NODE->COUNT <= INDEX) {                                                                                          \
         int prec_size = TARGET_NODE->COUNT;                                                                                     \
-        if (COUNT >= REALLOC_TRESHOLD)                                                                                          \
-            TARGET_NODE->COUNT = DYNAMIC_INCREMENT(COUNT);                                                                      \
+        if (self->COUNT >= REALLOC_TRESHOLD)                                                                                    \
+            TARGET_NODE->COUNT = DYNAMIC_INCREMENT(self->COUNT);                                                                \
         else                                                                                                                    \
             TARGET_NODE->COUNT = INDEX + 1;                                                                                     \
         TARGET_NODE->ELEMENTS = (ArrayElement *)FAST_REALLOC(TARGET_NODE->ELEMENTS, TARGET_NODE->COUNT * sizeof(ArrayElement)); \
@@ -30,26 +30,26 @@ POOLED_IMPLEMENTATION(Array)
     }
 
 #define ADD_LINKED_VARIABLE(var)                                  \
-    ARRAY_COUNT_TYPE DISTRIBUTED_COUNT = DYNAMIC_DISTRIBUTION(COUNT);\
-    ARRAY_COUNT_TYPE TARGET_NODE = DYNAMIC_TARGET(COUNT);         \
+    ARRAY_COUNT_TYPE DISTRIBUTED_COUNT = DYNAMIC_DISTRIBUTION(self->COUNT);\
+    ARRAY_COUNT_TYPE TARGET_NODE = DYNAMIC_TARGET(self->COUNT);   \
     NODE             *REF_NODE;                                   \
-    if (TARGET_NODE >= NODE_COUNT) {                              \
+    if (TARGET_NODE >= self->NODE_COUNT) {                        \
         NODE *NEW_NODE;                                           \
         CREATE_NODE(NEW_NODE);                                    \
-        if (LAST)                                                 \
-            LAST->NEXT = NEW_NODE;                                \
+        if (self->LAST)                                           \
+            self->LAST->NEXT = NEW_NODE;                          \
         else                                                      \
-            FIRST = NEW_NODE;                                     \
+            self->FIRST = NEW_NODE;                               \
         REF_NODE = NEW_NODE;                                      \
-        LAST     = NEW_NODE;                                      \
-        if (!FIRST)                                               \
-            FIRST = NEW_NODE;                                     \
-        NODE_COUNT++;                                             \
+        self->LAST     = NEW_NODE;                                \
+        if (!self->FIRST)                                         \
+            self->FIRST = NEW_NODE;                               \
+        self->NODE_COUNT++;                                       \
     } else {                                                      \
-        if ((TARGET_NODE == NODE_COUNT - 1) && (LAST)) {          \
-            REF_NODE = LAST;                                      \
+        if ((TARGET_NODE == self->NODE_COUNT - 1) && (self->LAST)) { \
+            REF_NODE = self->LAST;                                \
         } else {                                                  \
-            NODE *CURRENT_NODE = FIRST;                           \
+            NODE *CURRENT_NODE = self->FIRST;                     \
             for (ARRAY_COUNT_TYPE i = 0; i < TARGET_NODE; i++) {  \
                 CURRENT_NODE = CURRENT_NODE->NEXT; }              \
             REF_NODE = CURRENT_NODE;                              \
@@ -60,30 +60,30 @@ POOLED_IMPLEMENTATION(Array)
     ELEMENTS [DISTRIBUTED_COUNT] = var;                           \
     ELEMENTS [DISTRIBUTED_COUNT]->LINKS++;                        \
     ELEMENTS [DISTRIBUTED_COUNT]->IS_PROPERTY_RESULT = 0;         \
-    COUNT++;                                                      \
+    self->COUNT++;                                                \
     return ELEMENTS [DISTRIBUTED_COUNT];
 
 #define ADD_COPY_VARIABLE(var, pif)                                         \
-    ARRAY_COUNT_TYPE DISTRIBUTED_COUNT = DYNAMIC_DISTRIBUTION(COUNT);       \
-    ARRAY_COUNT_TYPE TARGET_NODE = DYNAMIC_TARGET(COUNT);                   \
+    ARRAY_COUNT_TYPE DISTRIBUTED_COUNT = DYNAMIC_DISTRIBUTION(self->COUNT); \
+    ARRAY_COUNT_TYPE TARGET_NODE = DYNAMIC_TARGET(self->COUNT);             \
     NODE             *REF_NODE;                                             \
-    if (TARGET_NODE >= NODE_COUNT) {                                        \
+    if (TARGET_NODE >= self->NODE_COUNT) {                                  \
         NODE *NEW_NODE;                                                     \
         CREATE_NODE(NEW_NODE);                                              \
-        if (LAST)                                                           \
-            LAST->NEXT = NEW_NODE;                                          \
+        if (self->LAST)                                                     \
+            self->LAST->NEXT = NEW_NODE;                                    \
         else                                                                \
-            FIRST = NEW_NODE;                                               \
+            self->FIRST = NEW_NODE;                                         \
         REF_NODE = NEW_NODE;                                                \
-        LAST     = NEW_NODE;                                                \
-        if (!FIRST)                                                         \
-            FIRST = NEW_NODE;                                               \
-        NODE_COUNT++;                                                       \
+        self->LAST     = NEW_NODE;                                          \
+        if (!self->FIRST)                                                   \
+            self->FIRST = NEW_NODE;                                         \
+        self->NODE_COUNT++;                                                 \
     } else {                                                                \
-        if ((TARGET_NODE == NODE_COUNT - 1) && (LAST)) {                    \
-            REF_NODE = LAST;                                                \
+        if ((TARGET_NODE == self->NODE_COUNT - 1) && (self->LAST)) {        \
+            REF_NODE = self->LAST;                                          \
         } else {                                                            \
-            NODE *CURRENT_NODE = FIRST;                                     \
+            NODE *CURRENT_NODE = self->FIRST;                               \
             for (ARRAY_COUNT_TYPE i = 0; i < TARGET_NODE; i++) {            \
                 CURRENT_NODE = CURRENT_NODE->NEXT; }                        \
             REF_NODE = CURRENT_NODE;                                        \
@@ -103,42 +103,42 @@ POOLED_IMPLEMENTATION(Array)
     } else                                                                  \
     if (var->TYPE == VARIABLE_CLASS) {                                      \
         ELEMENTS [DISTRIBUTED_COUNT]->CLASS_DATA = var->CLASS_DATA;         \
-        ((struct CompiledClass *)var->CLASS_DATA)->LINKS++;                        \
+        ((struct CompiledClass *)var->CLASS_DATA)->LINKS++;                 \
     } else                                                                  \
     if (var->TYPE == VARIABLE_ARRAY) {                                      \
         ELEMENTS [DISTRIBUTED_COUNT]->CLASS_DATA = var->CLASS_DATA;         \
-        ((Array *)var->CLASS_DATA)->LINKS++;                                \
+        ((struct Array *)var->CLASS_DATA)->LINKS++;                                \
     } else                                                                  \
     if (var->TYPE == VARIABLE_DELEGATE) {                                   \
         ELEMENTS [DISTRIBUTED_COUNT]->CLASS_DATA    = var->CLASS_DATA;      \
         ELEMENTS [DISTRIBUTED_COUNT]->DELEGATE_DATA = var->DELEGATE_DATA;   \
-        ((struct CompiledClass *)var->CLASS_DATA)->LINKS++;                        \
+        ((struct CompiledClass *)var->CLASS_DATA)->LINKS++;                 \
     }                                                                       \
     ELEMENTS [DISTRIBUTED_COUNT]->IS_PROPERTY_RESULT = 0;                   \
-    COUNT++;                                                                \
-    ARRAY_CACHED_RETURN(ELEMENTS [DISTRIBUTED_COUNT], COUNT);               \
+    self->COUNT++;                                                          \
+    ARRAY_CACHED_RETURN(ELEMENTS [DISTRIBUTED_COUNT], self->COUNT);         \
                                                                             \
     return ELEMENTS [DISTRIBUTED_COUNT];
 
 #define ADD_VARIABLE(val, pif)                                            \
-    ARRAY_COUNT_TYPE DISTRIBUTED_COUNT = DYNAMIC_DISTRIBUTION(COUNT);       \
-    ARRAY_COUNT_TYPE TARGET_NODE = DYNAMIC_TARGET(COUNT);                   \
+    ARRAY_COUNT_TYPE DISTRIBUTED_COUNT = DYNAMIC_DISTRIBUTION(self->COUNT); \
+    ARRAY_COUNT_TYPE TARGET_NODE = DYNAMIC_TARGET(self->COUNT);           \
     NODE             *REF_NODE;                                           \
-    if (TARGET_NODE >= NODE_COUNT) {                                      \
+    if (TARGET_NODE >= self->NODE_COUNT) {                                \
         NODE *NEW_NODE;                                                   \
         CREATE_NODE(NEW_NODE);                                            \
-        if (LAST)                                                         \
-            LAST->NEXT = NEW_NODE;                                        \
+        if (self->LAST)                                                   \
+            self->LAST->NEXT = NEW_NODE;                                  \
         else                                                              \
-            FIRST = NEW_NODE;                                             \
+            self->FIRST = NEW_NODE;                                       \
         REF_NODE = NEW_NODE;                                              \
-        LAST     = NEW_NODE;                                              \
-        NODE_COUNT++;                                                     \
+        self->LAST     = NEW_NODE;                                        \
+        self->NODE_COUNT++;                                               \
     } else {                                                              \
-        if ((TARGET_NODE == NODE_COUNT - 1) && (LAST)) {                  \
-            REF_NODE = LAST;                                              \
+        if ((TARGET_NODE == self->NODE_COUNT - 1) && (self->LAST)) {      \
+            REF_NODE = self->LAST;                                        \
         } else {                                                          \
-            NODE *CURRENT_NODE = FIRST;                                   \
+            NODE *CURRENT_NODE = self->FIRST;                             \
             for (ARRAY_COUNT_TYPE i = 0; i < TARGET_NODE; i++) {          \
                 CURRENT_NODE = CURRENT_NODE->NEXT; }                      \
             REF_NODE = CURRENT_NODE;                                      \
@@ -152,25 +152,25 @@ POOLED_IMPLEMENTATION(Array)
     ELEMENTS [DISTRIBUTED_COUNT]->IS_PROPERTY_RESULT = 0;                 \
     ELEMENTS [DISTRIBUTED_COUNT]->NUMBER_DATA        = val;               \
                                                                           \
-    ARRAY_CACHED_RETURN(ELEMENTS [DISTRIBUTED_COUNT], COUNT);             \
-    COUNT++;                                                              \
+    ARRAY_CACHED_RETURN(ELEMENTS [DISTRIBUTED_COUNT], self->COUNT);       \
+    self->COUNT++;                                                        \
     return ELEMENTS [DISTRIBUTED_COUNT];
 \
 
 #define ADD_MULTIPLE_VARIABLE2                                    \
-    ARRAY_COUNT_TYPE DISTRIBUTED_COUNT = DYNAMIC_DISTRIBUTION(COUNT); \
-    ARRAY_COUNT_TYPE TARGET_NODE = DYNAMIC_TARGET(COUNT);         \
-    if (TARGET_NODE >= NODE_COUNT) {                              \
+    ARRAY_COUNT_TYPE DISTRIBUTED_COUNT = DYNAMIC_DISTRIBUTION(self->COUNT); \
+    ARRAY_COUNT_TYPE TARGET_NODE = DYNAMIC_TARGET(self->COUNT);   \
+    if (TARGET_NODE >= self->NODE_COUNT) {                        \
         NODE *NEW_NODE;                                           \
         CREATE_NODE(NEW_NODE);                                    \
-        if (LAST)                                                 \
-            LAST->NEXT = NEW_NODE;                                \
+        if (self->LAST)                                           \
+            self->LAST->NEXT = NEW_NODE;                          \
         else                                                      \
-            FIRST = NEW_NODE;                                     \
-        LAST = NEW_NODE;                                          \
-        NODE_COUNT++;                                             \
+            self->FIRST = NEW_NODE;                               \
+        self->LAST = NEW_NODE;                                    \
+        self->NODE_COUNT++;                                       \
     }                                                             \
-    COUNT++;                                                      \
+    self->COUNT++;                                                \
 
 #define CREATE_VARIABLE(DATA, pif)                    \
     {                                                 \
@@ -183,25 +183,25 @@ POOLED_IMPLEMENTATION(Array)
 //----------------------------------------------------------------------------------
 #ifdef OPTIMIZE_FAST_ARRAYS
  #define CACHE_ARRAY_BLOCK                                                                               \
-    if ((COUNT > STATIC_ARRAY_THRESHOLD_MINSIZE) && (i < STATIC_ARRAY_THRESHOLD)) {                      \
-        if (cached_data) {                                                                               \
-            VariableDATA *res = cached_data[i];                                                          \
+    if ((self->COUNT > STATIC_ARRAY_THRESHOLD_MINSIZE) && (i < STATIC_ARRAY_THRESHOLD)) {                \
+        if (self->cached_data) {                                                                         \
+            VariableDATA *res = self->cached_data[i];                                                    \
             if (res)                                                                                     \
                 return res;                                                                              \
         } else {                                                                                         \
-            cached_data = (VariableDATA **)FAST_MALLOC(STATIC_ARRAY_THRESHOLD * sizeof(VariableDATA *)); \
-            memset(cached_data, 0, STATIC_ARRAY_THRESHOLD * sizeof(VariableDATA *));                     \
+            self->cached_data = (VariableDATA **)FAST_MALLOC(STATIC_ARRAY_THRESHOLD * sizeof(VariableDATA *)); \
+            memset(self->cached_data, 0, STATIC_ARRAY_THRESHOLD * sizeof(VariableDATA *));               \
         }                                                                                                \
     }
 
- #define ARRAY_CACHED_RETURN(VAR, i_i)                   \
-    if ((cached_data) && (i_i < STATIC_ARRAY_THRESHOLD)) \
-        cached_data[i_i] = VAR;
+ #define ARRAY_CACHED_RETURN(VAR, i_i)                         \
+    if ((self->cached_data) && (i_i < STATIC_ARRAY_THRESHOLD)) \
+        self->cached_data[i_i] = VAR;
 
  #define CACHE_CREATE_CHECK                                                                          \
-    if ((!cached_data) && (COUNT > STATIC_ARRAY_THRESHOLD_MINSIZE)) {                                \
-        cached_data = (VariableDATA **)FAST_MALLOC(STATIC_ARRAY_THRESHOLD * sizeof(VariableDATA *)); \
-        memset(cached_data, 0, STATIC_ARRAY_THRESHOLD * sizeof(VariableDATA *));                     \
+    if ((!self->cached_data) && (self->COUNT > STATIC_ARRAY_THRESHOLD_MINSIZE)) {                    \
+        self->cached_data = (VariableDATA **)FAST_MALLOC(STATIC_ARRAY_THRESHOLD * sizeof(VariableDATA *)); \
+        memset(self->cached_data, 0, STATIC_ARRAY_THRESHOLD * sizeof(VariableDATA *));               \
     }
 #else
  #define CACHE_ARRAY_BLOCK
@@ -209,34 +209,32 @@ POOLED_IMPLEMENTATION(Array)
  #define CACHE_CREATE_CHECK
 #endif
 
-Array::Array(void *PIF) {
+struct Array *new_Array(void *PIF, bool skip_top) {
+    struct Array *self = (struct Array *)AllocArray(PIF, skip_top);
 #ifdef OPTIMIZE_FAST_ARRAYS
-    LastNodeIndex = -1;
-    LastNode      = 0;
-    cached_data   = 0;
+    self->LastNodeIndex = -1;
+    self->LastNode      = 0;
+    self->cached_data   = 0;
 #endif
 
-    COUNT = 0;
-    FIRST = 0;
+    self->COUNT         = 0;
+    self->FIRST         = 0;
+    self->Keys          = 0;
+    self->KeysCount     = 0;
+    self->LastKey       = 0;
+    self->LINKS         = 1;
+    self->LAST          = self->FIRST;
+    self->NODE_COUNT    = 0;
+    self->PIF           = PIF;
 
-#ifdef STDMAP_KEYS
-    Keys = 0;
-#else
-    Keys      = 0;
-    KeysCount = 0;
-    LastKey   = 0;
-#endif
-    LINKS      = 1;
-    LAST       = FIRST;
-    NODE_COUNT = 0;
-    this->PIF  = PIF;
+    return self;
 }
 
-ARRAY_COUNT_TYPE Array::FindIndex(ARRAY_COUNT_TYPE index) {
-    if (index < COUNT) {
+ARRAY_COUNT_TYPE Array_FindIndex(struct Array *self, ARRAY_COUNT_TYPE index) {
+    if (index < self->COUNT) {
         ARRAY_COUNT_TYPE target_node = DYNAMIC_TARGET(index);
         ARRAY_COUNT_TYPE d_count     = DYNAMIC_DISTRIBUTION(index);
-        NODE             *CURRENT    = FIRST;
+        NODE             *CURRENT    = self->FIRST;
         for (ARRAY_COUNT_TYPE k = 0; k < target_node; k++) {
             CURRENT = CURRENT->NEXT;
         }
@@ -249,91 +247,37 @@ ARRAY_COUNT_TYPE Array::FindIndex(ARRAY_COUNT_TYPE index) {
     return -1;
 }
 
-#ifdef STDMAP_KEYS
-ARRAY_COUNT_TYPE Array::FindKey(const char *KEY) {
-    if (!Keys)
-        return -1;
-
-    KeyMap::iterator iter = Keys->find(KEY);
-    if (iter != Keys->end())
-        return iter->second;
-    return -1;
-}
-
-#else
-
-ARRAY_COUNT_TYPE Array::FindKey(const char *KEY) {
-    if (!KeysCount) {
+ARRAY_COUNT_TYPE Array_FindKey(struct Array *self, const char *KEY) {
+    if (!self->KeysCount) {
         return -1;
     }
 
-    if ((KeysCount > 10) && (LastKey != -1)) {
-        if (LastKey < KeysCount) {
-            if (!strcmp(KEY, Keys [LastKey].KEY)) {
-                return Keys [LastKey].index;
+    if ((self->KeysCount > 10) && (self->LastKey != -1)) {
+        if (self->LastKey < self->KeysCount) {
+            if (!strcmp(KEY, self->Keys [self->LastKey].KEY)) {
+                return self->Keys [self->LastKey].index;
             }
         } else
-        if (LastKey < KeysCount - 1) {
-            if (!strcmp(KEY, Keys [++LastKey].KEY)) {
-                return Keys [LastKey].index;
+        if (self->LastKey < self->KeysCount - 1) {
+            if (!strcmp(KEY, self->Keys [++self->LastKey].KEY)) {
+                return self->Keys [self->LastKey].index;
             }
         }
     }
-    ARRAY_COUNT_TYPE LocalKeysCount = this->KeysCount;
+    ARRAY_COUNT_TYPE LocalKeysCount = self->KeysCount;
     for (int i = LocalKeysCount - 1; i >= 0; i--) {
-        if (Keys [i].dirty) {
+        if (self->Keys [i].dirty) {
             LocalKeysCount--;
             // the strcmp part should be moved AFTER binary lookup
             // it would make more sense this way
-            if (!strcmp(KEY, Keys [i].KEY))
-                return Keys [i].index;
+            if (!strcmp(KEY, self->Keys [i].KEY))
+                return self->Keys [i].index;
         } else
             break;
     }
 
-    LastKey = -1;
+    self->LastKey = -1;
 
-#ifdef PREVIOUS_SEARCH_VERSION
-    ARRAY_COUNT_TYPE START = LocalKeysCount / 2;
-    ARRAY_COUNT_TYPE DELTA = LocalKeysCount - START;
-    while (1) {
-        ARRAY_COUNT_TYPE order;
-        if ((START < 0) || (START >= LocalKeysCount)) {
-            return -1;
-        }
-        order = strcmp(str, Keys [START].KEY);
-        if (DELTA) {
-            if (!order) {
-                LastKey = START;
-                return Keys [START].index;
-            }
-
-            ARRAY_COUNT_TYPE PREC_START = START;
-            if (order > 0) {
-                START += DELTA;
-                if (START >= LocalKeysCount) {
-                    START = LocalKeysCount - 1;
-                    if (PREC_START == START)
-                        return -1;
-                }
-            } else {
-                START -= DELTA;
-                if (START < 0) {
-                    START = 0;
-                    if (PREC_START == START)
-                        return -1;
-                }
-            }
-            DELTA = DELTA == 1 ? 0 : DELTA / 2 + DELTA % 2;
-        } else {
-            if (!order) {
-                LastKey = START;
-                return Keys [START].index;
-            }
-            return -1;
-        }
-    }
-#else
     INTEGER start = 0;
     INTEGER end = LocalKeysCount - 1;
     INTEGER middle = end / 2;
@@ -341,49 +285,46 @@ ARRAY_COUNT_TYPE Array::FindKey(const char *KEY) {
     int order = 0;
     int last_middle = 0;
     while (start <= end) {
-        order  = strcmp(KEY, Keys [middle].KEY);
+        order  = strcmp(KEY, self->Keys [middle].KEY);
         last_middle = middle;
         if (order > 0)
             start = middle + 1;
         else
         if (!order) {
-            return Keys[middle].index;
+            return self->Keys[middle].index;
         } else
             end = middle - 1;
         middle = (start + end) / 2;
     }
     return -1;
-#endif
 }
-#endif
 
-#ifndef STDMAP_KEYS
-ARRAY_COUNT_TYPE Array::FindPlace(const char *KEY, ARRAY_COUNT_TYPE *in_dirty_zone) {
-    if (!KeysCount)
+ARRAY_COUNT_TYPE Array_FindPlace(struct Array *self, const char *KEY, ARRAY_COUNT_TYPE *in_dirty_zone) {
+    if (!self->KeysCount)
         return 0;
 
-    ARRAY_COUNT_TYPE LocalKeysCount = this->KeysCount;
+    ARRAY_COUNT_TYPE LocalKeysCount = self->KeysCount;
 
     // ugly !
-    ArrayKey *TargetKeys = this->Keys;
+    ArrayKey *TargetKeys = self->Keys;
 
     if (in_dirty_zone) {
         LocalKeysCount = 0;
-        for (int i = KeysCount - 1; i >= 0; i--) {
-            if (Keys [i].dirty) {
+        for (int i = self->KeysCount - 1; i >= 0; i--) {
+            if (self->Keys [i].dirty) {
                 LocalKeysCount++;
-                TargetKeys = &Keys[i];
+                TargetKeys = &self->Keys[i];
             } else
                 break;
         }
         if (!LocalKeysCount) {
             *in_dirty_zone = 0;
-            return KeysCount;
+            return self->KeysCount;
         }
-        *in_dirty_zone = KeysCount - LocalKeysCount;
+        *in_dirty_zone = self->KeysCount - LocalKeysCount;
     } else {
         for (int i = LocalKeysCount - 1; i >= 0; i--) {
-            if (Keys [i].dirty)
+            if (self->Keys [i].dirty)
                 LocalKeysCount--;
             else
                 break;
@@ -395,55 +336,7 @@ ARRAY_COUNT_TYPE Array::FindPlace(const char *KEY, ARRAY_COUNT_TYPE *in_dirty_zo
             return LocalKeysCount;
         }
     }
-#ifdef PREVIOUS_SEARCH_VERSION
-    ARRAY_COUNT_TYPE START = LocalKeysCount / 2;
-    ARRAY_COUNT_TYPE DELTA = LocalKeysCount - START;
-    while (1) {
-        ARRAY_COUNT_TYPE order;
-        if (START < 0) {
-            return 0;
-        }
-        if (START >= LocalKeysCount) {
-            return LocalKeysCount;
-        }
-        if (!DELTA) {
-            order  = strcmp(str, TargetKeys [START].KEY);
-            START += (order  >= 0);
-            if (START < 0) {
-                START = 0;
-            } else
-            if (START >= LocalKeysCount) {
-                START = LocalKeysCount;
-            }
-            return START;
-        } else {
-            order = strcmp(str, TargetKeys [START].KEY);
-            ARRAY_COUNT_TYPE PREC_START = START;
-            if (order > 0) {
-                START += DELTA;
-                if (START >= LocalKeysCount) {
-                    START = LocalKeysCount - 1;
-                    if (PREC_START == START) {
-                        START++;
-                        return START;
-                    }
-                }
-            } else {
-                START -= DELTA;
-                if (START < 0) {
-                    START = 0;
-                    if (PREC_START == START) {
-                        START += (order >= 0);
-                        return START;
-                    }
-                }
-            }
 
-            DELTA = DELTA == 1 ? 0 : DELTA / 2 + DELTA % 2;
-        }
-    }
-    return START;
-#else
     INTEGER start = 0;
     INTEGER end = LocalKeysCount - 1;
     INTEGER middle = end / 2;
@@ -465,17 +358,16 @@ ARRAY_COUNT_TYPE Array::FindPlace(const char *KEY, ARRAY_COUNT_TYPE *in_dirty_zo
     if (order > 0)
         last_middle++;
     return last_middle;
-#endif
 }
 
-void Array::CleanIndex(bool forced) {
+void Array_CleanIndex(struct Array *self, bool forced) {
     ArrayKey         DirtyKeys[MAX_DIRTY_DELTA];
     ARRAY_COUNT_TYPE indexes[MAX_DIRTY_DELTA];
     ARRAY_COUNT_TYPE count         = 0;
     bool             time_to_clean = false;
 
-    for (int i = KeysCount - 1; i >= 0; i--) {
-        if (Keys [i].dirty) {
+    for (int i = self->KeysCount - 1; i >= 0; i--) {
+        if (self->Keys [i].dirty) {
             count++;
             if (count >= MAX_DIRTY_DELTA) {
                 time_to_clean = true;
@@ -485,16 +377,16 @@ void Array::CleanIndex(bool forced) {
             break;
     }
     if ((count) && ((forced) || (time_to_clean))) {
-        ARRAY_COUNT_TYPE delta = KeysCount - count;
-        memcpy(DirtyKeys, &Keys[delta], sizeof(ArrayKey) * count);
+        ARRAY_COUNT_TYPE delta = self->KeysCount - count;
+        memcpy(DirtyKeys, &self->Keys[delta], sizeof(ArrayKey) * count);
 
         for (int i = 0; i < count; i++) {
-            indexes[i]         = FindPlace(DirtyKeys[i].KEY);
+            indexes[i]         = Array_FindPlace(self, DirtyKeys[i].KEY);
             DirtyKeys[i].dirty = 0;
         }
 
-        ARRAY_COUNT_TYPE array_end  = KeysCount;
-        ARRAY_COUNT_TYPE tail_end   = KeysCount - count;
+        ARRAY_COUNT_TYPE array_end  = self->KeysCount;
+        ARRAY_COUNT_TYPE tail_end   = self->KeysCount - count;
         ARRAY_COUNT_TYPE next_space = -1;
         for (int i = count - 1; i >= 0; i--) {
             // copy tail
@@ -504,16 +396,16 @@ void Array::CleanIndex(bool forced) {
 
             ARRAY_COUNT_TYPE offset = array_end - delta;
             if (delta) {
-                memmove(&Keys [offset], &Keys [place], sizeof(ArrayKey) * delta);
+                memmove(&self->Keys [offset], &self->Keys [place], sizeof(ArrayKey) * delta);
                 next_space = offset - 1;
             }
             if (next_space < 0)
                 next_space = offset - 1;
 
-            if (Keys[next_space].KEY == DirtyKeys[i].KEY)
-                Keys[next_space].dirty = 0;
+            if (self->Keys[next_space].KEY == DirtyKeys[i].KEY)
+                self->Keys[next_space].dirty = 0;
             else
-                memcpy(&Keys[next_space], &DirtyKeys[i], sizeof(ArrayKey));
+                memcpy(&self->Keys[next_space], &DirtyKeys[i], sizeof(ArrayKey));
 
             tail_end  = place;
             array_end = next_space;
@@ -524,75 +416,62 @@ void Array::CleanIndex(bool forced) {
         }
     }
 }
-#endif
 
-ARRAY_COUNT_TYPE Array::AddKey(const char *KEY, ARRAY_COUNT_TYPE index) {
-#ifdef STDMAP_KEYS
-    if (!Keys)
-        Keys = new KeyMap();
-
-    int  len  = KEY ? strlen(KEY) : 0;
-    char *buf = (char *)FAST_MALLOC(len + 1);
-    memcpy(buf, KEY, len);
-    buf[len] = 0;
-    Keys->insert(KeyMapPair(buf, index));
-    return Keys->size();
-#else
-    if (!(KeysCount % KEY_INCREMENT))
-        Keys = (ArrayKey *)FAST_REALLOC(Keys, sizeof(ArrayKey) * (KeysCount / KEY_INCREMENT + 1) * KEY_INCREMENT);
-    ARRAY_COUNT_TYPE place = FindPlace(KEY);
+ARRAY_COUNT_TYPE Array_AddKey(struct Array *self, const char *KEY, ARRAY_COUNT_TYPE index) {
+    if (!(self->KeysCount % KEY_INCREMENT))
+        self->Keys = (ArrayKey *)FAST_REALLOC(self->Keys, sizeof(ArrayKey) * (self->KeysCount / KEY_INCREMENT + 1) * KEY_INCREMENT);
+    ARRAY_COUNT_TYPE place = Array_FindPlace(self, KEY);
 
     int len = KEY ? strlen(KEY) : 0;
-    ARRAY_COUNT_TYPE delta = KeysCount - place;
+    ARRAY_COUNT_TYPE delta = self->KeysCount - place;
     char             dirty = 0;
 
-    if ((KeysCount > DIRTY_TRESHOLD) && (delta)) {
+    if ((self->KeysCount > DIRTY_TRESHOLD) && (delta)) {
         ARRAY_COUNT_TYPE delta_place = 0;
-        place  = FindPlace(KEY, &delta_place);
+        place  = Array_FindPlace(self, KEY, &delta_place);
         place += delta_place;
-        delta  = KeysCount - place;
+        delta  = self->KeysCount - place;
         dirty  = 1;
     }
 
-    if (place < KeysCount)
-        memmove((void *)&Keys [place + 1], (void *)&Keys [place], sizeof(ArrayKey) * delta);
+    if (place < self->KeysCount)
+        memmove((void *)&self->Keys [place + 1], (void *)&self->Keys [place], sizeof(ArrayKey) * delta);
 
-    Keys [place].KEY   = (char *)FAST_MALLOC(len + 1);
-    Keys [place].index = index;
-    Keys [place].dirty = dirty;
-    memcpy(Keys [place].KEY, KEY, len);
-    Keys [place].KEY [len] = 0;
-    KeysCount++;
-    CleanIndex();
+    self->Keys [place].KEY   = (char *)FAST_MALLOC(len + 1);
+    self->Keys [place].index = index;
+    self->Keys [place].dirty = dirty;
+    memcpy(self->Keys [place].KEY, KEY, len);
+    self->Keys [place].KEY [len] = 0;
+    self->KeysCount++;
+    Array_CleanIndex(self);
 
-    return KeysCount;
-#endif
+    return self->KeysCount;
 }
 
-VariableDATA *Array::Add(VariableDATA *VAR_TO_ADD) {
+VariableDATA *Array_Add(struct Array *self, VariableDATA *VAR_TO_ADD) {
     ADD_LINKED_VARIABLE(VAR_TO_ADD);
     return 0;
 }
 
-VariableDATA *Array::AddCopy(VariableDATA *VAR_TO_ADD) {
-    ADD_COPY_VARIABLE(VAR_TO_ADD, PIF);
+VariableDATA *Array_AddCopy(struct Array *self, VariableDATA *VAR_TO_ADD) {
+    ADD_COPY_VARIABLE(VAR_TO_ADD, self->PIF);
     return 0;
 }
 
-Array *Array::Concat(Array *array) {
+struct Array *Array_Concat(struct Array *self, struct Array *array) {
     ARRAY_COUNT_TYPE count = array->COUNT;
 
     for (ARRAY_COUNT_TYPE i = 0; i < count; i++) {
-        Add(array->Get(i));
+        Array_Add(self, Array_Get(array, i));
     }
-    return this;
+    return self;
 }
 
-VariableDATA *Array::Get(ARRAY_COUNT_TYPE i) {
+VariableDATA *Array_Get(struct Array *self, ARRAY_COUNT_TYPE i) {
     if (i < 0) {
         return 0;
     }
-    if (i < COUNT) {
+    if (i < self->COUNT) {
         CACHE_ARRAY_BLOCK;
 
         ARRAY_COUNT_TYPE target_node = DYNAMIC_TARGET(i);
@@ -600,24 +479,24 @@ VariableDATA *Array::Get(ARRAY_COUNT_TYPE i) {
 
         NODE *CURRENT;
 #ifdef OPTIMIZE_FAST_ARRAYS
-        if (LastNodeIndex == target_node) {
-            CURRENT = LastNode;
+        if (self->LastNodeIndex == target_node) {
+            CURRENT = self->LastNode;
         } else
-        if ((LastNodeIndex != -1) && (LastNodeIndex < target_node)) {
-            CURRENT = LastNode;
-            for (ARRAY_COUNT_TYPE k = LastNodeIndex; k < target_node; k++)
+        if ((self->LastNodeIndex != -1) && (self->LastNodeIndex < target_node)) {
+            CURRENT = self->LastNode;
+            for (ARRAY_COUNT_TYPE k = self->LastNodeIndex; k < target_node; k++)
                 CURRENT = CURRENT->NEXT;
-            LastNode      = CURRENT;
-            LastNodeIndex = target_node;
+            self->LastNode      = CURRENT;
+            self->LastNodeIndex = target_node;
         } else {
 #endif
-        CURRENT = FIRST;
+        CURRENT = self->FIRST;
         for (ARRAY_COUNT_TYPE k = 0; k < target_node; k++)
             CURRENT = CURRENT->NEXT;
 
 #ifdef OPTIMIZE_FAST_ARRAYS
-        LastNode      = CURRENT;
-        LastNodeIndex = target_node;
+        self->LastNode      = CURRENT;
+        self->LastNodeIndex = target_node;
     }
 #endif
         ENSURE_ELEMENTS(CURRENT, d_count);
@@ -628,7 +507,7 @@ VariableDATA *Array::Get(ARRAY_COUNT_TYPE i) {
     return 0;
 }
 
-VariableDATA *Array::Get(VariableDATA *KEY) {
+VariableDATA *Array_Get(struct Array *self, VariableDATA *KEY) {
     ARRAY_COUNT_TYPE i = -1;
 
     if (KEY->TYPE == VARIABLE_NUMBER) {
@@ -639,15 +518,15 @@ VariableDATA *Array::Get(VariableDATA *KEY) {
     } else
     if (KEY->TYPE == VARIABLE_STRING) {
         const char *k_str = CONCEPT_C_STRING(KEY);
-        i = FindKey(k_str);
+        i = Array_FindKey(self, k_str);
 
         if (i == -1) {
-            AddKey(k_str, COUNT);
-            ADD_VARIABLE(0, PIF);
+            Array_AddKey(self, k_str, self->COUNT);
+            ADD_VARIABLE(0, self->PIF);
         }
     }
 
-    if (i < COUNT) {
+    if (i < self->COUNT) {
         CACHE_ARRAY_BLOCK;
 
         ARRAY_COUNT_TYPE target_node = DYNAMIC_TARGET(i);
@@ -655,46 +534,46 @@ VariableDATA *Array::Get(VariableDATA *KEY) {
 
         NODE *CURRENT;
 #ifdef OPTIMIZE_FAST_ARRAYS
-        if (LastNodeIndex == target_node) {
-            CURRENT = LastNode;
+        if (self->LastNodeIndex == target_node) {
+            CURRENT = self->LastNode;
         } else
-        if ((LastNodeIndex != -1) && (LastNodeIndex < target_node)) {
-            CURRENT = LastNode;
-            for (ARRAY_COUNT_TYPE k = LastNodeIndex; k < target_node; k++) {
+        if ((self->LastNodeIndex != -1) && (self->LastNodeIndex < target_node)) {
+            CURRENT = self->LastNode;
+            for (ARRAY_COUNT_TYPE k = self->LastNodeIndex; k < target_node; k++) {
                 CURRENT = CURRENT->NEXT;
             }
-            LastNode      = CURRENT;
-            LastNodeIndex = target_node;
+            self->LastNode      = CURRENT;
+            self->LastNodeIndex = target_node;
         } else {
 #endif
-        CURRENT = FIRST;
+        CURRENT = self->FIRST;
         for (ARRAY_COUNT_TYPE k = 0; k < target_node; k++) {
             CURRENT = CURRENT->NEXT;
         }
 
 #ifdef OPTIMIZE_FAST_ARRAYS
-        LastNode      = CURRENT;
-        LastNodeIndex = target_node;
+        self->LastNode      = CURRENT;
+        self->LastNodeIndex = target_node;
     }
 #endif
         ENSURE_ELEMENTS(CURRENT, d_count);
         ArrayElement *ELEMENTS = CURRENT->ELEMENTS;
         if (!ELEMENTS [d_count]) {
-            CREATE_VARIABLE(ELEMENTS [d_count], PIF);
+            CREATE_VARIABLE(ELEMENTS [d_count], self->PIF);
         }
         ARRAY_CACHED_RETURN(ELEMENTS [d_count], i);
         return ELEMENTS [d_count];
     }
     ARRAY_COUNT_TYPE target = i;
-    while (COUNT < target) {
+    while (self->COUNT < target) {
         ADD_MULTIPLE_VARIABLE2;
     }
-    ADD_VARIABLE(0, PIF);
+    ADD_VARIABLE(0, self->PIF);
     return 0;
 }
 
-VariableDATA *Array::GetWithCreate(ARRAY_COUNT_TYPE i, NUMBER default_value) {
-    if (i < COUNT) {
+VariableDATA *Array_GetWithCreate(struct Array *self, ARRAY_COUNT_TYPE i, NUMBER default_value) {
+    if (i < self->COUNT) {
         CACHE_ARRAY_BLOCK;
 
         ARRAY_COUNT_TYPE target_node = DYNAMIC_TARGET(i);
@@ -702,32 +581,32 @@ VariableDATA *Array::GetWithCreate(ARRAY_COUNT_TYPE i, NUMBER default_value) {
 
         NODE *CURRENT;
 #ifdef OPTIMIZE_FAST_ARRAYS
-        if (LastNodeIndex == target_node) {
-            CURRENT = LastNode;
+        if (self->LastNodeIndex == target_node) {
+            CURRENT = self->LastNode;
         } else
-        if ((LastNodeIndex != -1) && (LastNodeIndex < target_node)) {
-            CURRENT = LastNode;
-            for (ARRAY_COUNT_TYPE k = LastNodeIndex; k < target_node; k++) {
+        if ((self->LastNodeIndex != -1) && (self->LastNodeIndex < target_node)) {
+            CURRENT = self->LastNode;
+            for (ARRAY_COUNT_TYPE k = self->LastNodeIndex; k < target_node; k++) {
                 CURRENT = CURRENT->NEXT;
             }
-            LastNode      = CURRENT;
-            LastNodeIndex = target_node;
+            self->LastNode      = CURRENT;
+            self->LastNodeIndex = target_node;
         } else {
 #endif
-        CURRENT = FIRST;
+        CURRENT = self->FIRST;
         for (ARRAY_COUNT_TYPE k = 0; k < target_node; k++) {
             CURRENT = CURRENT->NEXT;
         }
 
 #ifdef OPTIMIZE_FAST_ARRAYS
-        LastNode      = CURRENT;
-        LastNodeIndex = target_node;
+        self->LastNode      = CURRENT;
+        self->LastNodeIndex = target_node;
     }
 #endif
         ENSURE_ELEMENTS(CURRENT, d_count);
         ArrayElement *ELEMENTS = CURRENT->ELEMENTS;
         if (!ELEMENTS [d_count]) {
-            CREATE_VARIABLE(ELEMENTS [d_count], PIF);
+            CREATE_VARIABLE(ELEMENTS [d_count], self->PIF);
         }
 
         ARRAY_CACHED_RETURN(ELEMENTS [d_count], i);
@@ -735,74 +614,73 @@ VariableDATA *Array::GetWithCreate(ARRAY_COUNT_TYPE i, NUMBER default_value) {
     }
 
     ARRAY_COUNT_TYPE target = i;
-    while (COUNT < target) {
+    while (self->COUNT < target) {
         ADD_MULTIPLE_VARIABLE2;
     }
-    ADD_VARIABLE(default_value, PIF);
+    ADD_VARIABLE(default_value, self->PIF);
     return 0;
 }
 
-VariableDATA *Array::ModuleGet(ARRAY_COUNT_TYPE i) {
-    if (i < COUNT) {
+VariableDATA *Array_ModuleGet(struct Array *self, ARRAY_COUNT_TYPE i) {
+    if (i <self-> COUNT) {
         ARRAY_COUNT_TYPE target_node = DYNAMIC_TARGET(i);
         ARRAY_COUNT_TYPE d_count     = DYNAMIC_DISTRIBUTION(i);
 
         NODE *CURRENT;
 #ifdef OPTIMIZE_FAST_ARRAYS
-        if (LastNodeIndex == target_node) {
-            CURRENT = LastNode;
+        if (self->LastNodeIndex == target_node) {
+            CURRENT = self->LastNode;
         } else
-        if ((LastNodeIndex != -1) && (LastNodeIndex < target_node)) {
-            CURRENT = LastNode;
-            for (ARRAY_COUNT_TYPE k = LastNodeIndex; k < target_node; k++) {
+        if ((self->LastNodeIndex != -1) && (self->LastNodeIndex < target_node)) {
+            CURRENT = self->LastNode;
+            for (ARRAY_COUNT_TYPE k = self->LastNodeIndex; k < target_node; k++) {
                 CURRENT = CURRENT->NEXT;
             }
-            LastNode      = CURRENT;
-            LastNodeIndex = target_node;
+            self->LastNode      = CURRENT;
+            self->LastNodeIndex = target_node;
         } else {
 #endif
-        CURRENT = FIRST;
+        CURRENT = self->FIRST;
         for (ARRAY_COUNT_TYPE k = 0; k < target_node; k++) {
             CURRENT = CURRENT->NEXT;
         }
 #ifdef OPTIMIZE_FAST_ARRAYS
-        LastNode      = CURRENT;
-        LastNodeIndex = target_node;
+        self->LastNode      = CURRENT;
+        self->LastNodeIndex = target_node;
     }
 #endif
         ENSURE_ELEMENTS(CURRENT, d_count);
         ArrayElement *ELEMENTS = CURRENT->ELEMENTS;
         if (!ELEMENTS [d_count]) {
-            CREATE_VARIABLE(ELEMENTS [d_count], PIF);
+            CREATE_VARIABLE(ELEMENTS [d_count], self->PIF);
         }
         return ELEMENTS [d_count];
     }
     ARRAY_COUNT_TYPE target = i;
-    while (COUNT < target) {
+    while (self->COUNT < target) {
         ADD_MULTIPLE_VARIABLE2;
     }
-    ADD_VARIABLE(0, PIF);
+    ADD_VARIABLE(0, self->PIF);
     return 0;
 }
 
-#ifndef STDMAP_KEYS
-ARRAY_COUNT_TYPE Array::FindKeyPlace(const char *KEY, ARRAY_COUNT_TYPE *index) {
+ARRAY_COUNT_TYPE Array_FindKeyPlace(struct Array *self, const char *KEY, ARRAY_COUNT_TYPE *index) {
     *index = 0;
-    if (!KeysCount) {
+    if (!self->KeysCount) {
         return -1;
     }
 
-    ARRAY_COUNT_TYPE LocalKeysCount = this->KeysCount;
+    ARRAY_COUNT_TYPE LocalKeysCount = self->KeysCount;
     for (int i = LocalKeysCount - 1; i >= 0; i--) {
-        if (Keys [i].dirty) {
+        if (self->Keys [i].dirty) {
             LocalKeysCount--;
-            if (!strcmp(KEY, Keys [i].KEY))
-                return Keys [i].index;
+            if (!strcmp(KEY, self->Keys [i].KEY))
+                return self->Keys [i].index;
         } else
             break;
     }
 
-    LastKey = -1;
+    self->LastKey = -1;
 
     INTEGER start = 0;
     INTEGER end = LocalKeysCount - 1;
@@ -811,13 +689,13 @@ ARRAY_COUNT_TYPE Array::FindKeyPlace(const char *KEY, ARRAY_COUNT_TYPE *index) {
     int order = 0;
     int last_middle = 0;
     while (start <= end) {
-        order  = strcmp(KEY, Keys [middle].KEY);
+        order  = strcmp(KEY, self->Keys [middle].KEY);
         last_middle = middle;
         if (order > 0)
             start = middle + 1;
         else
         if (!order) {
-            return Keys[middle].index;
+            return self->Keys[middle].index;
         } else
             end = middle - 1;
         middle = (start + end) / 2;
@@ -828,111 +706,100 @@ ARRAY_COUNT_TYPE Array::FindKeyPlace(const char *KEY, ARRAY_COUNT_TYPE *index) {
     return -1;
 }
 
-ARRAY_COUNT_TYPE Array::FindOrAddKey(const char *KEY) {
+ARRAY_COUNT_TYPE Array_FindOrAddKey(struct Array *self, const char *KEY) {
     ARRAY_COUNT_TYPE index;
-    ARRAY_COUNT_TYPE place = FindKeyPlace(KEY, &index);
+    ARRAY_COUNT_TYPE place = Array_FindKeyPlace(self, KEY, &index);
     if (place != -1)
         return place;
     place = index;
 
-    if (!(KeysCount % KEY_INCREMENT))
-        Keys = (ArrayKey *)FAST_REALLOC(Keys, sizeof(ArrayKey) * (KeysCount / KEY_INCREMENT + 1) * KEY_INCREMENT);
+    if (!(self->KeysCount % KEY_INCREMENT))
+        self->Keys = (ArrayKey *)FAST_REALLOC(self->Keys, sizeof(ArrayKey) * (self->KeysCount / KEY_INCREMENT + 1) * KEY_INCREMENT);
 
     int len = KEY ? strlen(KEY) : 0;
-    ARRAY_COUNT_TYPE delta = KeysCount - place;
+    ARRAY_COUNT_TYPE delta = self->KeysCount - place;
     char             dirty = 0;
 
-    if ((KeysCount > DIRTY_TRESHOLD) && (delta)) {
+    if ((self->KeysCount > DIRTY_TRESHOLD) && (delta)) {
         ARRAY_COUNT_TYPE delta_place = 0;
-        place  = FindPlace(KEY, &delta_place);
+        place  = Array_FindPlace(self, KEY, &delta_place);
         place += delta_place;
-        delta  = KeysCount - place;
+        delta  = self->KeysCount - place;
         dirty  = 1;
     }
 
-    if (place < KeysCount)
-        memmove((void *)&Keys [place + 1], (void *)&Keys [place], sizeof(ArrayKey) * delta);
+    if (place < self->KeysCount)
+        memmove((void *)&self->Keys [place + 1], (void *)&self->Keys [place], sizeof(ArrayKey) * delta);
 
-    Keys [place].KEY   = (char *)FAST_MALLOC(len + 1);
-    Keys [place].index = COUNT;
-    Keys [place].dirty = dirty;
-    memcpy(Keys [place].KEY, KEY, len);
-    Keys [place].KEY [len] = 0;
-    KeysCount++;
-    CleanIndex();
+    self->Keys [place].KEY   = (char *)FAST_MALLOC(len + 1);
+    self->Keys [place].index = self->COUNT;
+    self->Keys [place].dirty = dirty;
+    memcpy(self->Keys [place].KEY, KEY, len);
+    self->Keys [place].KEY [len] = 0;
+    self->KeysCount++;
+    Array_CleanIndex(self);
     return -1;
     //return KeysCount;
 }
-#endif
 
-VariableDATA *Array::ModuleGet(const char *key) {
+VariableDATA *Array_ModuleGet(struct Array *self, const char *key) {
     ARRAY_COUNT_TYPE i = -1;
 
-    // if (!unsafe_non_existing_key_len)
-#ifdef STDMAP_KEYS
-    i = FindKey(key);
-
+    i = Array_FindOrAddKey(self, key);
     if (i == -1) {
-        AddKey(key, COUNT);
-        ADD_VARIABLE(0, PIF);
+        ADD_VARIABLE(0, self->PIF);
     }
-#else
-    i = FindOrAddKey(key);
-    if (i == -1) {
-        ADD_VARIABLE(0, PIF);
-    }
-#endif
 
-    if (i < COUNT) {
+    if (i < self->COUNT) {
         ARRAY_COUNT_TYPE target_node = DYNAMIC_TARGET(i);
         ARRAY_COUNT_TYPE d_count     = DYNAMIC_DISTRIBUTION(i);
 
-        NODE *CURRENT = FIRST;
+        NODE *CURRENT = self->FIRST;
         for (ARRAY_COUNT_TYPE k = 0; k < target_node; k++) {
             CURRENT = CURRENT->NEXT;
         }
         ENSURE_ELEMENTS(CURRENT, d_count);
         ArrayElement *ELEMENTS = CURRENT->ELEMENTS;
         if (!ELEMENTS [d_count]) {
-            CREATE_VARIABLE(ELEMENTS [d_count], PIF);
+            CREATE_VARIABLE(ELEMENTS [d_count], self->PIF);
         }
         return ELEMENTS [d_count];
     }
     ARRAY_COUNT_TYPE target = i;
-    while (COUNT < target) {
+    while (self->COUNT < target) {
         ADD_MULTIPLE_VARIABLE2;
     }
-    ADD_VARIABLE(0, PIF);
+    ADD_VARIABLE(0, self->PIF);
     return 0;
 }
 
-void Array::EnsureSize(ARRAY_COUNT_TYPE size, VariableDATA *default_value) {
+void Array_EnsureSize(struct Array *self, ARRAY_COUNT_TYPE size, VariableDATA *default_value) {
 #ifdef OPTIMIZE_FAST_ARRAYS
-    if ((size > STATIC_ARRAY_THRESHOLD_MINSIZE) && (!cached_data)) {
-        cached_data = (VariableDATA **)FAST_MALLOC(STATIC_ARRAY_THRESHOLD * sizeof(VariableDATA *));
-        memset(cached_data, 0, STATIC_ARRAY_THRESHOLD * sizeof(VariableDATA *));
+    if ((size > STATIC_ARRAY_THRESHOLD_MINSIZE) && (!self->cached_data)) {
+        self->cached_data = (VariableDATA **)FAST_MALLOC(STATIC_ARRAY_THRESHOLD * sizeof(VariableDATA *));
+        memset(self->cached_data, 0, STATIC_ARRAY_THRESHOLD * sizeof(VariableDATA *));
     }
 #endif
     ARRAY_COUNT_TYPE PREC_TARGET_NODE = -1;
     NODE *REF_NODE = 0;
-    while (COUNT < size) {
-        ARRAY_COUNT_TYPE DISTRIBUTED_COUNT = DYNAMIC_DISTRIBUTION(COUNT);
-        ARRAY_COUNT_TYPE TARGET_NODE = DYNAMIC_TARGET(COUNT);
+    while (self->COUNT < size) {
+        ARRAY_COUNT_TYPE DISTRIBUTED_COUNT = DYNAMIC_DISTRIBUTION(self->COUNT);
+        ARRAY_COUNT_TYPE TARGET_NODE = DYNAMIC_TARGET(self->COUNT);
         if (PREC_TARGET_NODE != TARGET_NODE) {
-            if (TARGET_NODE >= NODE_COUNT) {
+            if (TARGET_NODE >= self->NODE_COUNT) {
                 NODE *NEW_NODE;
                 CREATE_NODE(NEW_NODE);
-                if (LAST)
-                    LAST->NEXT = NEW_NODE;
+                if (self->LAST)
+                    self->LAST->NEXT = NEW_NODE;
                 else
-                    FIRST = NEW_NODE;
+                    self->FIRST = NEW_NODE;
                 REF_NODE = NEW_NODE;
-                LAST     = NEW_NODE;
-                if (!FIRST)
-                    FIRST = NEW_NODE;
-                NODE_COUNT++;
+                self->LAST     = NEW_NODE;
+                if (!self->FIRST)
+                    self->FIRST = NEW_NODE;
+                self->NODE_COUNT++;
             } else {
-                NODE *CURRENT_NODE = FIRST;
+                NODE *CURRENT_NODE = self->FIRST;
                 for (ARRAY_COUNT_TYPE i = 0; i < TARGET_NODE; i++)
                     CURRENT_NODE = CURRENT_NODE->NEXT;
                 REF_NODE = CURRENT_NODE;
@@ -941,7 +808,7 @@ void Array::EnsureSize(ARRAY_COUNT_TYPE size, VariableDATA *default_value) {
         }
         ENSURE_ELEMENTS(REF_NODE, DISTRIBUTED_COUNT);
         ArrayElement *ELEMENTS = REF_NODE->ELEMENTS;
-        ELEMENTS [DISTRIBUTED_COUNT]        = (VariableDATA *)VAR_ALLOC(PIF);
+        ELEMENTS [DISTRIBUTED_COUNT]        = (VariableDATA *)VAR_ALLOC(self->PIF);
         ELEMENTS [DISTRIBUTED_COUNT]->TYPE  = default_value->TYPE;
         ELEMENTS [DISTRIBUTED_COUNT]->LINKS = 1;
         if (default_value->TYPE == VARIABLE_STRING) {
@@ -954,7 +821,7 @@ void Array::EnsureSize(ARRAY_COUNT_TYPE size, VariableDATA *default_value) {
                     ((struct CompiledClass *)default_value->CLASS_DATA)->LINKS++;
                 else
                 if (default_value->TYPE == VARIABLE_ARRAY)
-                    ((Array *)default_value->CLASS_DATA)->LINKS++;
+                    ((struct Array *)default_value->CLASS_DATA)->LINKS++;
                 else
                 if (default_value->TYPE == VARIABLE_DELEGATE) {
                     ((struct CompiledClass *)default_value->CLASS_DATA)->LINKS++;
@@ -965,20 +832,20 @@ void Array::EnsureSize(ARRAY_COUNT_TYPE size, VariableDATA *default_value) {
                 ELEMENTS [DISTRIBUTED_COUNT]->NUMBER_DATA = default_value->NUMBER_DATA;
         }
         ELEMENTS [DISTRIBUTED_COUNT]->IS_PROPERTY_RESULT = 0;
-        ARRAY_CACHED_RETURN(ELEMENTS [DISTRIBUTED_COUNT], COUNT)
-        COUNT++;
+        ARRAY_CACHED_RETURN(ELEMENTS [DISTRIBUTED_COUNT], self->COUNT)
+        self->COUNT++;
     }
 }
 
-void Array::__GO_GARBAGE(void *PIF, GarbageCollector *__gc_obj, GarbageCollector *__gc_array, GarbageCollector *__gc_vars, signed char check_objects, char main_call) {
-    if (this->LINKS < 0)
+void Array_GO_GARBAGE(struct Array *self, void *PIF, GarbageCollector *__gc_obj, GarbageCollector *__gc_array, GarbageCollector *__gc_vars, signed char check_objects, char main_call) {
+    if (self->LINKS < 0)
         return;
 
-    bool single_link = ((main_call) && (this->LINKS == 1));
-    this->LINKS = -1;
-    NODE *CURRENT = FIRST;
+    bool single_link = ((main_call) && (self->LINKS == 1));
+    self->LINKS = -1;
+    NODE *CURRENT = self->FIRST;
 
-    for (ARRAY_COUNT_TYPE i = 0; i < NODE_COUNT; i++) {
+    for (ARRAY_COUNT_TYPE i = 0; i < self->NODE_COUNT; i++) {
         for (ARRAY_COUNT_TYPE j = 0; j < CURRENT->COUNT; j++) {
             VariableDATA *Var = CURRENT->ELEMENTS [j];
             if (Var) {
@@ -1007,9 +874,9 @@ void Array::__GO_GARBAGE(void *PIF, GarbageCollector *__gc_obj, GarbageCollector
                         }
                     } else
                     if (Var->TYPE == VARIABLE_ARRAY) {
-                        if ((check_objects == -1) || ((((Array *)Var->CLASS_DATA)->reachable & check_objects) != check_objects)) {
+                        if ((check_objects == -1) || ((((struct Array *)Var->CLASS_DATA)->reachable & check_objects) != check_objects)) {
                             __gc_array->Reference(Var->CLASS_DATA);
-                            ((Array *)Var->CLASS_DATA)->__GO_GARBAGE(PIF, __gc_obj, __gc_array, __gc_vars, check_objects);
+                            Array_GO_GARBAGE((struct Array *)Var->CLASS_DATA, PIF, __gc_obj, __gc_array, __gc_vars, check_objects);
                         } else {
                             RESET_VARIABLE(Var);
                         }
@@ -1021,73 +888,51 @@ void Array::__GO_GARBAGE(void *PIF, GarbageCollector *__gc_obj, GarbageCollector
     }
 }
 
-VariableDATA *Array::NewArray() {
-    VariableDATA *DATA = (VariableDATA *)VAR_ALLOC(PIF);
-    Array *newARRAY    = new(AllocArray(PIF))Array(PIF);
+VariableDATA *Array_NewArray(struct Array *self) {
+    VariableDATA *DATA = (VariableDATA *)VAR_ALLOC(self->PIF);
+    struct Array *newARRAY   = new_Array(self->PIF);
 
     DATA->TYPE               = VARIABLE_ARRAY;
     DATA->LINKS              = 0;
     DATA->CLASS_DATA         = newARRAY;
     DATA->IS_PROPERTY_RESULT = 0;
 
-    newARRAY->Concat(this);
+    Array_Concat(newARRAY, self);
     return DATA;
 }
 
-ARRAY_COUNT_TYPE Array::Count() {
-    return COUNT;
+ARRAY_COUNT_TYPE Array_Count(struct Array *self) {
+    return self->COUNT;
 }
 
-const char *Array::GetKey(ARRAY_COUNT_TYPE index) {
-#ifdef STDMAP_KEYS
-    if (!Keys)
-        return 0;
-
-    KeyMap::iterator end = Keys->end();
-    for (KeyMap::iterator iter = Keys->begin(); iter != end; ++iter) {
-        if (iter->second == index)
-            return (char *)iter->first;
-    }
-    return 0;
-#else
-    for (ARRAY_COUNT_TYPE i = 0; i < KeysCount; i++) {
-        if (Keys [i].index == index) {
-            return Keys [i].KEY;
+const char *Array_GetKey(struct Array *self, ARRAY_COUNT_TYPE index) {
+    for (ARRAY_COUNT_TYPE i = 0; i < self->KeysCount; i++) {
+        if (self->Keys [i].index == index) {
+            return self->Keys [i].KEY;
         }
     }
     return 0;
-#endif
 }
 
-ARRAY_COUNT_TYPE Array::GetIndex(const char *Key) {
-#ifdef STDMAP_KEYS
-    if (!Keys)
-        return -1;
-
-    KeyMap::iterator iter = Keys->find(Key);
-    if (iter != Keys->end())
-        return iter->second;
-    return -1;
-#else
-    return this->FindKey(Key);
-#endif
+ARRAY_COUNT_TYPE Array_GetIndex(struct Array *self, const char *Key) {
+    return Array_FindKey(self, Key);
 }
 
 #define DO_LEVEL(RESULT, LEVEL)    for (int lev_index = 0; lev_index < LEVEL; lev_index++) { plainstring_add(RESULT, "  "); }
 
-struct plainstring *Array::ToString(int level, Array *parent, int parents) {
+struct plainstring *Array_ToString(struct Array *self, int level, Array *parent, int parents) {
     struct plainstring *result = plainstring_new();
 
     DO_LEVEL(result, level)
 
     plainstring_add(result, "Array {\n");
 
-    for (ARRAY_COUNT_TYPE i = 0; i < COUNT; i++) {
-        VariableDATA *VD = this->Get(i);
+    for (ARRAY_COUNT_TYPE i = 0; i < self->COUNT; i++) {
+        VariableDATA *VD = Array_Get(self, i);
         if (VD) {
             DO_LEVEL(result, level)
 
-            const char *key = GetKey(i);
+            const char *key = Array_GetKey(self, i);
             plainstring_add(result, "  [");
             plainstring_add_double(result, i);
             if (key) {
@@ -1108,8 +953,8 @@ struct plainstring *Array::ToString(int level, Array *parent, int parents) {
 
                 case VARIABLE_ARRAY:
                     {
-                        Array *arr = (Array *)VD->CLASS_DATA;
-                        if (arr == this) {
+                        Array *arr = (struct Array *)VD->CLASS_DATA;
+                        if (arr == self) {
                             plainstring_add(result, "This array");
                         } else
                         if (arr == parent) {
@@ -1119,7 +964,7 @@ struct plainstring *Array::ToString(int level, Array *parent, int parents) {
                             plainstring_add(result, "Array");
                         } else {
                             plainstring_add(result, "\n");
-                            struct plainstring *temp = arr->ToString(level + 2, this);
+                            struct plainstring *temp = Array_ToString(arr, level + 2, self);
                             plainstring_add_plainstring(result, temp);
                             plainstring_delete(temp);
                         }
@@ -1145,10 +990,10 @@ struct plainstring *Array::ToString(int level, Array *parent, int parents) {
     return result;
 }
 
-void Array::UnlinkObjects() {
-    NODE *CURRENT = FIRST;
+void Array_UnlinkObjects(struct Array *self) {
+    NODE *CURRENT = self->FIRST;
 
-    for (ARRAY_COUNT_TYPE i = 0; i < NODE_COUNT; i++) {
+    for (ARRAY_COUNT_TYPE i = 0; i < self->NODE_COUNT; i++) {
         for (ARRAY_COUNT_TYPE j = 0; j < CURRENT->COUNT; j++) {
             VariableDATA *Var = CURRENT->ELEMENTS [j];
             if (Var) {
@@ -1167,26 +1012,26 @@ void Array::UnlinkObjects() {
         FAST_FREE(CURRENT);
         CURRENT = NEXT;
     }
-    COUNT      = 0;
-    FIRST      = 0;
-    NODE_COUNT = 0;
+    self->COUNT      = 0;
+    self->FIRST      = 0;
+    self->NODE_COUNT = 0;
 }
 
-Array::~Array() {
+void delete_Array(struct Array *self) {
     bool delete_var = true;
 
-    if (this->LINKS < 0)
+    if (self->LINKS < 0)
         delete_var = false;
 
-    this->LINKS = -1;
+    self->LINKS = -1;
 #ifdef OPTIMIZE_FAST_ARRAYS
-    if (cached_data) {
-        FAST_FREE(cached_data);
-        cached_data = 0;
+    if (self->cached_data) {
+        FAST_FREE(self->cached_data);
+        self->cached_data = 0;
     }
 #endif
-    NODE *CURRENT = FIRST;
-    for (ARRAY_COUNT_TYPE i = 0; i < NODE_COUNT; i++) {
+    NODE *CURRENT = self->FIRST;
+    for (ARRAY_COUNT_TYPE i = 0; i < self->NODE_COUNT; i++) {
         if (delete_var) {
             for (ARRAY_COUNT_TYPE j = 0; j < CURRENT->COUNT; j++) {
                 VariableDATA *Var = CURRENT->ELEMENTS [j];
@@ -1201,68 +1046,31 @@ Array::~Array() {
         FAST_FREE(CURRENT);
         CURRENT = NEXT;
     }
-#ifdef STDMAP_KEYS
-    if (Keys) {
-        KeyMap::iterator end = Keys->end();
-        for (KeyMap::iterator iter = Keys->begin(); iter != end; ++iter) {
-            FAST_FREE((char *)iter->first);
+    if (self->Keys) {
+        for (ARRAY_COUNT_TYPE i = 0; i < self->KeysCount; i++) {
+            if (self->Keys [i].KEY)
+                FAST_FREE(self->Keys [i].KEY);
         }
-        delete Keys;
+        FAST_FREE(self->Keys);
     }
-#else
-    if (Keys) {
-        for (ARRAY_COUNT_TYPE i = 0; i < KeysCount; i++) {
-            if (Keys [i].KEY)
-                FAST_FREE(Keys [i].KEY);
-        }
-        FAST_FREE(Keys);
-    }
-#endif
+    FreeArray(self);
 }
 
-Array *Array::SortArrayElementsByKey() {
-    Array *newARRAY = new(AllocArray(PIF))Array(PIF);
-
-#ifdef STDMAP_KEYS
-    if (Keys) {
-        KeyMap::iterator end = Keys->end();
-        const char *key;
-        ARRAY_COUNT_TYPE i = 0;
-        for (KeyMap::iterator iter = Keys->begin(); iter != end; ++iter) {
-            newARRAY->Add(Get(iter->second));
-            key = (char *)iter->first;
-            newARRAY->AddKey(key, i++);
-        }
+struct Array *Array_SortArrayElementsByKey(struct Array *self) {
+    Array *newARRAY = new_Array(self->PIF);
+    Array_CleanIndex(self, true);
+    for (ARRAY_COUNT_TYPE i = 0; i < self->KeysCount; i++) {
+        Array_Add(newARRAY, Array_Get(self, self->Keys [i].index));
+        Array_AddKey(newARRAY, self->Keys [i].KEY, i);
     }
-#else
-    CleanIndex(true);
-    for (ARRAY_COUNT_TYPE i = 0; i < KeysCount; i++) {
-        newARRAY->Add(Get(Keys [i].index));
-        newARRAY->AddKey(Keys [i].KEY, i);
-    }
-#endif
-
     return newARRAY;
 }
 
-void Array::GetKeys(char **container, int size) {
+void Array_GetKeys(struct Array *self, char **container, int size) {
     memset(container, 0, size * sizeof(char *));
-#ifdef STDMAP_KEYS
-    if (Keys) {
-        KeyMap::iterator end = Keys->end();
-        char *key;
-        ARRAY_COUNT_TYPE i = 0;
-        for (KeyMap::iterator iter = Keys->begin(); iter != end; ++iter) {
-            key = (char *)iter->first;
-            if ((iter->second >= 0) && (iter->second < size))
-                container[iter->second] = key;
-        }
+    Array_CleanIndex(self, true);
+    for (ARRAY_COUNT_TYPE i = 0; i < self->KeysCount; i++) {
+        if ((self->Keys [i].index >= 0) && (self->Keys [i].index < size))
+            container[self->Keys [i].index] = self->Keys [i].KEY;
     }
-#else
-    CleanIndex(true);
-    for (ARRAY_COUNT_TYPE i = 0; i < KeysCount; i++) {
-        if ((Keys [i].index >= 0) && (Keys [i].index < size))
-            container[Keys [i].index] = Keys [i].KEY;
-    }
-#endif
 }

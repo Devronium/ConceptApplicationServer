@@ -129,14 +129,14 @@ static TinyString DLL_MEMBER = "STATIC_FUNCTION";
 #define CLASS_CHECK_KEEP_EXTRA(VARIABLE)                                                   \
     if ((VARIABLE->CLASS_DATA) && (VARIABLE->TYPE != VARIABLE_STRING)) {                   \
         if ((VARIABLE->TYPE == VARIABLE_CLASS) || (VARIABLE->TYPE == VARIABLE_DELEGATE)) { \
-            if (!--((struct CompiledClass *)VARIABLE->CLASS_DATA)->LINKS) {                       \
-                delete_CompiledClass((struct CompiledClass *)VARIABLE->CLASS_DATA); }             \
+            if (!--((struct CompiledClass *)VARIABLE->CLASS_DATA)->LINKS) {                \
+                delete_CompiledClass((struct CompiledClass *)VARIABLE->CLASS_DATA); }      \
             VARIABLE->TYPE       = VARIABLE_NUMBER;                                        \
             VARIABLE->CLASS_DATA = NULL;                                                   \
         } else                                                                             \
         if (VARIABLE->TYPE == VARIABLE_ARRAY) {                                            \
-            if (!--((Array *)VARIABLE->CLASS_DATA)->LINKS) {                               \
-                delete (Array *)VARIABLE->CLASS_DATA; }                                    \
+            if (!--((struct Array *)VARIABLE->CLASS_DATA)->LINKS) {                        \
+                delete_Array((struct Array *)VARIABLE->CLASS_DATA); }                      \
             VARIABLE->TYPE       = VARIABLE_NUMBER;                                        \
             VARIABLE->CLASS_DATA = NULL;                                                   \
         } else                                                                             \
@@ -152,23 +152,23 @@ static TinyString DLL_MEMBER = "STATIC_FUNCTION";
                 plainstring_delete((struct plainstring *)VARIABLE->CLASS_DATA);                \
             } else                                                                             \
             if ((VARIABLE->TYPE == VARIABLE_CLASS) || (VARIABLE->TYPE == VARIABLE_DELEGATE)) { \
-                if (!--((struct CompiledClass *)VARIABLE->CLASS_DATA)->LINKS) {                       \
+                if (!--((struct CompiledClass *)VARIABLE->CLASS_DATA)->LINKS) {                \
                     if (PIF->WriteLock.MasterLock) {                                           \
                         WRITE_UNLOCK                                                           \
-                        delete_CompiledClass((struct CompiledClass *)VARIABLE->CLASS_DATA);           \
+                        delete_CompiledClass((struct CompiledClass *)VARIABLE->CLASS_DATA);    \
                         WRITE_LOCK                                                             \
                     } else                                                                     \
-                        delete_CompiledClass((struct CompiledClass *)VARIABLE->CLASS_DATA);           \
+                        delete_CompiledClass((struct CompiledClass *)VARIABLE->CLASS_DATA);    \
                 }                                                                              \
             } else                                                                             \
             if (VARIABLE->TYPE == VARIABLE_ARRAY) {                                            \
-                if (!--((Array *)VARIABLE->CLASS_DATA)->LINKS) {                               \
+                if (!--((struct Array *)VARIABLE->CLASS_DATA)->LINKS) {                        \
                     if (PIF->WriteLock.MasterLock) {                                           \
                         WRITE_UNLOCK                                                           \
-                        delete (Array *)VARIABLE->CLASS_DATA;                                  \
+                        delete_Array((struct Array *)VARIABLE->CLASS_DATA);                    \
                         WRITE_LOCK                                                             \
                     } else                                                                     \
-                        delete (Array *)VARIABLE->CLASS_DATA;                                  \
+                        delete_Array((struct Array *)VARIABLE->CLASS_DATA);                    \
                 }                                                                              \
             }                                                                                  \
             VARIABLE->CLASS_DATA = NULL;                                                       \
@@ -206,8 +206,8 @@ void FREE_VARIABLE(VariableDATA *VARIABLE) {
                     delete_CompiledClass((struct CompiledClass *)VARIABLE->CLASS_DATA);
             } else
             if (VARIABLE->TYPE == VARIABLE_ARRAY) {
-                if (!--((Array *)VARIABLE->CLASS_DATA)->LINKS)
-                    delete (Array *)VARIABLE->CLASS_DATA;
+                if (!--((struct Array *)VARIABLE->CLASS_DATA)->LINKS)
+                    delete_Array((struct Array *)VARIABLE->CLASS_DATA);
             }
         }
         VAR_FREE(VARIABLE);
@@ -405,11 +405,11 @@ static sljit_sw SLJIT_CALL ArrayDataVD(VariableDATA *arr, VariableDATA *idx, Var
     double2int(index, idx->NUMBER_DATA);
     if ((arr->TYPE == VARIABLE_ARRAY) && (arr->CLASS_DATA) && (index >= 0)) {
   #ifdef OPTIMIZE_FAST_ARRAYS
-        VariableDATA *data = FAST_CHECK((Array *)arr->CLASS_DATA, index);
+        VariableDATA *data = FAST_CHECK((struct Array *)arr->CLASS_DATA, index);
         if (!data)
-            data = ((Array *)arr->CLASS_DATA)->GetWithCreate(index);
+            data = Array_GetWithCreate((struct Array *)arr->CLASS_DATA, index);
   #else
-        VariableDATA *data = ((Array *)arr->CLASS_DATA)->GetWithCreate(index);
+        VariableDATA *data = ((struct Array *)arr->CLASS_DATA)->GetWithCreate(index);
   #endif
         if ((data) && (data->TYPE != VARIABLE_NUMBER))
             return 0;
@@ -425,11 +425,11 @@ static sljit_sw SLJIT_CALL ArrayDataCopyVD(VariableDATA *idx, VariableDATA *arr,
 
     if ((arr->TYPE == VARIABLE_ARRAY) && (arr->CLASS_DATA) && (index >= 0)) {
   #ifdef OPTIMIZE_FAST_ARRAYS
-        VariableDATA *data = FAST_CHECK((Array *)arr->CLASS_DATA, index);
+        VariableDATA *data = FAST_CHECK((struct Array *)arr->CLASS_DATA, index);
         if (!data)
-            data = ((Array *)arr->CLASS_DATA)->GetWithCreate(index);
+            data = Array_GetWithCreate((struct Array *)arr->CLASS_DATA, index);
   #else
-        VariableDATA *data = ((Array *)arr->CLASS_DATA)->GetWithCreate(index);
+        VariableDATA *data = ((struct Array *)arr->CLASS_DATA)->GetWithCreate(index);
   #endif
         if (data->TYPE == VARIABLE_NUMBER) {
             RESET_VARIABLE(result);
@@ -453,7 +453,7 @@ static sljit_sw SLJIT_CALL ArrayDataCopyVD(VariableDATA *idx, VariableDATA *arr,
 
                 case VARIABLE_ARRAY:
                     RESET_VARIABLE(result);
-                    if ((data->CLASS_DATA) && (((Array *)data->CLASS_DATA)->Count()))
+                    if ((data->CLASS_DATA) && (Array_Count((struct Array *)data->CLASS_DATA)))
                         result->NUMBER_DATA = 1;
                     else
                         result->NUMBER_DATA = 0;
@@ -480,14 +480,14 @@ static sljit_sw SLJIT_CALL ArrayDataVDIF(VariableDATA *idx, VariableDATA *arr) {
 
     double2int(index, (idx->NUMBER_DATA));
     sljit_sw res      = 2;
-    Array    *arrData = (Array *)arr->CLASS_DATA;
+    Array    *arrData = (struct Array *)arr->CLASS_DATA;
     if ((arr->TYPE == VARIABLE_ARRAY) && (arrData) && (index >= 0)) {
         res = 0;
   #ifdef OPTIMIZE_FAST_ARRAYS
         VariableDATA **cached_data = arrData->cached_data;
         VariableDATA *data         = ((index < STATIC_ARRAY_THRESHOLD) && (cached_data)) ? cached_data[index] : 0;
         if (!data)
-            data = arrData->GetWithCreate(index);
+            data = Array_GetWithCreate(arrData, index);
   #else
         VariableDATA *data = arrData->GetWithCreate(index);
   #endif
@@ -502,7 +502,7 @@ static sljit_sw SLJIT_CALL ArrayDataVDIF(VariableDATA *idx, VariableDATA *arr) {
             return res;
         } else
         if (type == VARIABLE_ARRAY) {
-            if ((data->CLASS_DATA) && (((Array *)data->CLASS_DATA)->Count()))
+            if ((data->CLASS_DATA) && (Array_Count((struct Array *)data->CLASS_DATA)))
                 res = 1;
             return res;
         } else
@@ -517,11 +517,11 @@ static sljit_sw SLJIT_CALL iArrayDataVDIF(sljit_sw index, VariableDATA *arr) {
     if ((arr->TYPE == VARIABLE_ARRAY) && (arr->CLASS_DATA) && (index >= 0)) {
         res = 0;
   #ifdef OPTIMIZE_FAST_ARRAYS
-        VariableDATA *data = FAST_CHECK((Array *)arr->CLASS_DATA, index);
+        VariableDATA *data = FAST_CHECK((struct Array *)arr->CLASS_DATA, index);
         if (!data)
-            data = ((Array *)arr->CLASS_DATA)->GetWithCreate(index);
+            data = Array_GetWithCreate((struct Array *)arr->CLASS_DATA, index);
   #else
-        VariableDATA *data = ((Array *)arr->CLASS_DATA)->GetWithCreate(index);
+        VariableDATA *data = ((struct Array *)arr->CLASS_DATA)->GetWithCreate(index);
   #endif
         int type = data->TYPE;
 
@@ -534,7 +534,7 @@ static sljit_sw SLJIT_CALL iArrayDataVDIF(sljit_sw index, VariableDATA *arr) {
             return res;
         } else
         if (type == VARIABLE_ARRAY) {
-            if ((data->CLASS_DATA) && (((Array *)data->CLASS_DATA)->Count()))
+            if ((data->CLASS_DATA) && (Array_Count((struct Array *)data->CLASS_DATA)))
                 res = 1;
             return res;
         } else
@@ -575,7 +575,7 @@ static sljit_sw SLJIT_CALL ArraySETREGION(VariableDATA **data, RuntimeOptimizedE
     double2int(iterator, data[target]->NUMBER_DATA);
     NUMBER limit_val = data[limit]->NUMBER_DATA;
 
-    Array *arr_object = (Array *)arr_var->CLASS_DATA;
+    Array *arr_object = (struct Array *)arr_var->CLASS_DATA;
 
     VariableDATA **cached_data = arr_object->cached_data;
     if (iterator < 0)
@@ -586,7 +586,7 @@ static sljit_sw SLJIT_CALL ArraySETREGION(VariableDATA **data, RuntimeOptimizedE
   #ifdef OPTIMIZE_FAST_ARRAYS
             VariableDATA *data_var = ((iterator < STATIC_ARRAY_THRESHOLD) && (cached_data)) ? cached_data[iterator] : 0;
             if (!data_var)
-                data_var = arr_object->GetWithCreate(iterator, val_var->NUMBER_DATA);
+                data_var = Array_GetWithCreate(arr_object, val_var->NUMBER_DATA);
   #else
             VariableDATA *data_var = arr_object->GetWithCreate(iterator, val_var->NUMBER_DATA);
   #endif
@@ -612,7 +612,7 @@ static sljit_sw SLJIT_CALL ArraySETREGION(VariableDATA **data, RuntimeOptimizedE
   #ifdef OPTIMIZE_FAST_ARRAYS
             VariableDATA *data_var = ((iterator < STATIC_ARRAY_THRESHOLD) && (cached_data)) ? cached_data[iterator] : 0;
             if (!data_var)
-                data_var = arr_object->GetWithCreate(iterator, val_var->NUMBER_DATA);
+                data_var = Array_GetWithCreate(arr_object, iterator, val_var->NUMBER_DATA);
   #else
             VariableDATA *data_var = arr_object->GetWithCreate(iterator, val_var->NUMBER_DATA);
   #endif
@@ -637,13 +637,13 @@ static sljit_sw SLJIT_CALL ArrayDataASGVD(VariableDATA *arr, VariableDATA *idx, 
 
     double2int(index, (idx->NUMBER_DATA));
 
-    Array *arrData = (Array *)arr->CLASS_DATA;
+    Array *arrData = (struct Array *)arr->CLASS_DATA;
     if ((arr->TYPE == VARIABLE_ARRAY) && (arrData) && (index >= 0)) {
   #ifdef OPTIMIZE_FAST_ARRAYS
         VariableDATA **cached_data = arrData->cached_data;
         VariableDATA *data         = ((index < STATIC_ARRAY_THRESHOLD) && (cached_data)) ? cached_data[index] : 0;
         if (!data)
-            data = arrData->GetWithCreate(index);
+            data = Array_GetWithCreate(arrData, index);
   #else
         VariableDATA *data = arrData->GetWithCreate(index);
   #endif
@@ -670,11 +670,11 @@ static sljit_sw SLJIT_CALL c_ARRAYELEMENTINIT(VariableDATA *start, VariableDATA 
     if ((arr->TYPE == VARIABLE_ARRAY) && (arr->CLASS_DATA) && (from >= 0)) {
         for (int index = from; index < to; index++) {
   #ifdef OPTIMIZE_FAST_ARRAYS
-            VariableDATA *data = FAST_CHECK((Array *)arr->CLASS_DATA, index);
+            VariableDATA *data = FAST_CHECK((struct Array *)arr->CLASS_DATA, index);
             if (!data)
-                data = ((Array *)arr->CLASS_DATA)->GetWithCreate(index);
+                data = Array_GetWithCreate((struct Array *)arr->CLASS_DATA,  index);
   #else
-            VariableDATA *data = ((Array *)arr->CLASS_DATA)->GetWithCreate(index);
+            VariableDATA *data = ((struct Array *)arr->CLASS_DATA)->GetWithCreate(index);
   #endif
             if (data->TYPE == VARIABLE_NUMBER) {
                 data->NUMBER_DATA = newvalue;
@@ -695,7 +695,7 @@ static sljit_sw SLJIT_CALL LengthVD(VariableDATA *target, VariableDATA *result) 
         case VARIABLE_ARRAY:
             if (target->CLASS_DATA) {
                 RESET_VARIABLE(result);
-                result->NUMBER_DATA = ((Array *)target->CLASS_DATA)->Count();
+                result->NUMBER_DATA = Array_Count((struct Array *)target->CLASS_DATA);
                 return 1;
             }
             break;
@@ -2693,7 +2693,7 @@ int ConceptInterpreter::StacklessInterpret(PIFAlizator *PIF, GreenThreadCycle *G
                                     if (asg_type == VARIABLE_CLASS) {
                                         ((struct CompiledClass *)LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA)->LINKS += 2 + delta;
                                     } else {
-                                        ((Array *)LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA)->LINKS += 2 + delta;
+                                        ((struct Array *)LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA)->LINKS += 2 + delta;
                                     }
                                     LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE = LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->TYPE = LOCAL_CONTEXT [OE->OperandRight_ID - 1]->TYPE;
                                     if ((TARGET_THREAD->PROPERTIES) && (TARGET_THREAD->PROPERTIES [OE->OperandLeft_ID - 1].IS_PROPERTY_RESULT)) {
@@ -2825,7 +2825,7 @@ int ConceptInterpreter::StacklessInterpret(PIFAlizator *PIF, GreenThreadCycle *G
                         CLASS_CHECK(LOCAL_CONTEXT [OE->Result_ID - 1]);
                         if (OE->OperandLeft_ID == STATIC_CLASS_ARRAY) {
                             LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE       = VARIABLE_NUMBER;
-                            LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA = new(AllocArray(PIF))Array(PIF);
+                            LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA = new_Array(PIF);
                             LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE       = VARIABLE_ARRAY;
                             DECLARE_PATH(VARIABLE_ARRAY);
                         } else {
@@ -3073,7 +3073,7 @@ int ConceptInterpreter::StacklessInterpret(PIFAlizator *PIF, GreenThreadCycle *G
                                     case VARIABLE_NUMBER:
                                     case VARIABLE_STRING:
                                         // LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE = pushed_type;
-                                        RETURN_DATA = ((Array *)LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA)->Get(LOCAL_CONTEXT [OE->OperandRight_ID - 1]);
+                                        RETURN_DATA = Array_Get((struct Array *)LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA, LOCAL_CONTEXT [OE->OperandRight_ID - 1]);
                                         if (!RETURN_DATA) {
                                             DECLARE_PATH(0x20);
                                             Exc = new AnsiException(ERR1110, OE->Operator_DEBUG_INFO_LINE, 1110, LOCAL_CONTEXT [OE->OperandRight_ID - 1]->NUMBER_DATA, ((ClassCode *)(THIS_REF->OWNER->Defined_In))->_DEBUG_INFO_FILENAME, ((ClassCode *)(THIS_REF->OWNER->Defined_In))->NAME, THIS_REF->OWNER->NAME);
@@ -3200,7 +3200,7 @@ int ConceptInterpreter::StacklessInterpret(PIFAlizator *PIF, GreenThreadCycle *G
                                 continue;
 
                             case VARIABLE_ARRAY:
-                                if (!((Array *)LOCAL_CONTEXT [OE->OperandRight_ID - 1]->CLASS_DATA)->Count()) {
+                                if (!Array_Count((struct Array *)LOCAL_CONTEXT [OE->OperandRight_ID - 1]->CLASS_DATA)) {
                                     if ((OE->OperandReserved_ID < INSTRUCTION_POINTER) && (TARGET_THREAD != TARGET_THREAD->NEXT)) {
                                         DO_EXECUTE  = 0;
                                         PREC_THREAD = TARGET_THREAD;
@@ -3250,7 +3250,7 @@ int ConceptInterpreter::StacklessInterpret(PIFAlizator *PIF, GreenThreadCycle *G
 
                                 case VARIABLE_ARRAY:
                                     {
-                                        struct plainstring *temp = ((Array *)LOCAL_CONTEXT [OE->OperandRight_ID - 1]->CLASS_DATA)->ToString();
+                                        struct plainstring *temp = Array_ToString((struct Array *)LOCAL_CONTEXT [OE->OperandRight_ID - 1]->CLASS_DATA);
                                         if (temp) {
                                             PIF->out->Print(plainstring_c_str(temp), plainstring_len(temp));
                                             plainstring_delete(temp);
@@ -3565,7 +3565,7 @@ int ConceptInterpreter::EvalClassExpression(PIFAlizator *PIF, VariableDATA **LOC
                         break;
 
                     case VARIABLE_ARRAY:
-                        LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = ((Array *)LOCAL_CONTEXT [OE->OperandRight_ID - 1]->CLASS_DATA)->Count() != 0;
+                        LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = Array_Count((struct Array *)LOCAL_CONTEXT [OE->OperandRight_ID - 1]->CLASS_DATA) != 0;
                         LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
                         break;
                 }
@@ -3756,7 +3756,7 @@ int ConceptInterpreter::EvalArrayExpression(PIFAlizator *PIF, VariableDATA **LOC
             // next line was commented (?)
             //---------------------------//
             LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA = LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA = LOCAL_CONTEXT [OE->OperandRight_ID - 1]->CLASS_DATA;
-            ((Array *)LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA)->LINKS += 2;
+            ((struct Array *)LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA)->LINKS += 2;
             LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->TYPE = VARIABLE_ARRAY;
             if ((PROPERTIES) && (PROPERTIES [OE->OperandLeft_ID - 1].IS_PROPERTY_RESULT)) {
                 CCTEMP = (struct CompiledClass *)((VariableDATA *)(PROPERTIES [OE->OperandLeft_ID - 1].CALL_SET))->CLASS_DATA;
@@ -3774,8 +3774,8 @@ int ConceptInterpreter::EvalArrayExpression(PIFAlizator *PIF, VariableDATA **LOC
                 case VARIABLE_NUMBER:
                 case VARIABLE_CLASS:
                     LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE = VARIABLE_NUMBER;
-                    RETURN_DATA = ((Array *)LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA)->NewArray();
-                    ((Array *)RETURN_DATA->CLASS_DATA)->AddCopy(LOCAL_CONTEXT [OE->OperandRight_ID - 1]);
+                    RETURN_DATA = Array_NewArray((struct Array *)LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA);
+                    Array_AddCopy((struct Array *)RETURN_DATA->CLASS_DATA, LOCAL_CONTEXT [OE->OperandRight_ID - 1]);
                     if (LOCAL_CONTEXT [OE->Result_ID - 1] != RETURN_DATA) {
                         FREE_VARIABLE_RESET(LOCAL_CONTEXT [OE->Result_ID - 1], VARIABLE_NUMBER);
                         LOCAL_CONTEXT [OE->Result_ID - 1] = RETURN_DATA;
@@ -3786,8 +3786,8 @@ int ConceptInterpreter::EvalArrayExpression(PIFAlizator *PIF, VariableDATA **LOC
 
                 case VARIABLE_ARRAY:
                     LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE = VARIABLE_NUMBER;
-                    RETURN_DATA = ((Array *)LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA)->NewArray();
-                    ((Array *)RETURN_DATA->CLASS_DATA)->Concat((Array *)LOCAL_CONTEXT [OE->OperandRight_ID - 1]->CLASS_DATA);
+                    RETURN_DATA = Array_NewArray((struct Array *)LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA);
+                    Array_Concat((struct Array *)RETURN_DATA->CLASS_DATA, (struct Array *)LOCAL_CONTEXT [OE->OperandRight_ID - 1]->CLASS_DATA);
                     if (LOCAL_CONTEXT [OE->Result_ID - 1] != RETURN_DATA) {
                         FREE_VARIABLE_RESET(LOCAL_CONTEXT [OE->Result_ID - 1], VARIABLE_NUMBER);
                         LOCAL_CONTEXT [OE->Result_ID - 1] = RETURN_DATA;
@@ -3804,7 +3804,7 @@ int ConceptInterpreter::EvalArrayExpression(PIFAlizator *PIF, VariableDATA **LOC
                 case VARIABLE_NUMBER:
                 case VARIABLE_CLASS:
                     LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE = VARIABLE_NUMBER;
-                    RETURN_DATA = ((Array *)LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA)->AddCopy(LOCAL_CONTEXT [OE->OperandRight_ID - 1]);
+                    RETURN_DATA = Array_AddCopy((struct Array *)LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA, LOCAL_CONTEXT [OE->OperandRight_ID - 1]);
                     if (LOCAL_CONTEXT [OE->Result_ID - 1] != RETURN_DATA) {
                         FREE_VARIABLE_RESET(LOCAL_CONTEXT [OE->Result_ID - 1], VARIABLE_NUMBER);
                         LOCAL_CONTEXT [OE->Result_ID - 1] = RETURN_DATA;
@@ -3816,10 +3816,10 @@ int ConceptInterpreter::EvalArrayExpression(PIFAlizator *PIF, VariableDATA **LOC
                 case VARIABLE_ARRAY:
                     //SMART_LOCK(LOCAL_CONTEXT [OE->Result_ID - 1])
                     // CLASS_CHECK_RESET(LOCAL_CONTEXT [OE->Result_ID - 1], pushed_type);
-                    LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA = ((Array *)LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA)->Concat((Array *)LOCAL_CONTEXT [OE->OperandRight_ID - 1]->CLASS_DATA);
+                    LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA = Array_Concat((struct Array *)LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA, (struct Array *)LOCAL_CONTEXT [OE->OperandRight_ID - 1]->CLASS_DATA);
                     if (LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA) {
                         LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE = VARIABLE_ARRAY;
-                        ((Array *)LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA)->LINKS++;
+                        ((struct Array *)LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA)->LINKS++;
                         DECLARE_PATH(VARIABLE_ARRAY);
                     } else {
                         LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE = VARIABLE_NUMBER;
@@ -3832,7 +3832,7 @@ int ConceptInterpreter::EvalArrayExpression(PIFAlizator *PIF, VariableDATA **LOC
         case KEY_LENGTH:
             //SMART_LOCK(LOCAL_CONTEXT [OE->Result_ID - 1])
             // CLASS_CHECK_RESET(LOCAL_CONTEXT [OE->Result_ID - 1], pushed_type);
-            LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = ((Array *)LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA)->Count();
+            LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = Array_Count((struct Array *)LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA);
             LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
             DECLARE_PATH(VARIABLE_NUMBER);
             return 1;
@@ -3866,23 +3866,23 @@ int ConceptInterpreter::EvalArrayExpression(PIFAlizator *PIF, VariableDATA **LOC
             // CLASS_CHECK_RESET(LOCAL_CONTEXT [OE->Result_ID - 1], pushed_type);
             switch (LOCAL_CONTEXT [OE->OperandRight_ID - 1]->TYPE) {
                 case VARIABLE_NUMBER:
-                    LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = ((Array *)LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA)->Count() && LOCAL_CONTEXT [OE->OperandRight_ID - 1]->NUMBER_DATA;
+                    LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = Array_Count((struct Array *)LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA) && LOCAL_CONTEXT [OE->OperandRight_ID - 1]->NUMBER_DATA;
                     LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
                     break;
 
                 case VARIABLE_STRING:
-                    LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = ((Array *)LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA)->Count() && CONCEPT_C_LENGTH(LOCAL_CONTEXT [OE->OperandRight_ID - 1]);
+                    LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = Array_Count((struct Array *)LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA) && CONCEPT_C_LENGTH(LOCAL_CONTEXT [OE->OperandRight_ID - 1]);
                     LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
                     break;
 
                 case VARIABLE_CLASS:
                 case VARIABLE_DELEGATE:
-                    LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = (((Array *)LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA)->Count() != 0);
+                    LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = (Array_Count((struct Array *)LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA) != 0);
                     LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
                     break;
 
                 case VARIABLE_ARRAY:
-                    LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = ((Array *)LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA)->Count() && ((Array *)LOCAL_CONTEXT [OE->OperandRight_ID - 1]->CLASS_DATA)->Count();
+                    LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = Array_Count((struct Array *)LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA) && Array_Count((struct Array *)LOCAL_CONTEXT [OE->OperandRight_ID - 1]->CLASS_DATA);
                     LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
                     break;
             }
@@ -3894,12 +3894,12 @@ int ConceptInterpreter::EvalArrayExpression(PIFAlizator *PIF, VariableDATA **LOC
             // CLASS_CHECK_RESET(LOCAL_CONTEXT [OE->Result_ID - 1], pushed_type);
             switch (LOCAL_CONTEXT [OE->OperandRight_ID - 1]->TYPE) {
                 case VARIABLE_NUMBER:
-                    LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = ((Array *)LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA)->Count() || LOCAL_CONTEXT [OE->OperandRight_ID - 1]->NUMBER_DATA;
+                    LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = Array_Count((struct Array *)LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA) || LOCAL_CONTEXT [OE->OperandRight_ID - 1]->NUMBER_DATA;
                     LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
                     break;
 
                 case VARIABLE_STRING:
-                    LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = ((Array *)LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA)->Count() || CONCEPT_C_LENGTH(LOCAL_CONTEXT [OE->OperandRight_ID - 1]);
+                    LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = Array_Count((struct Array *)LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA) || CONCEPT_C_LENGTH(LOCAL_CONTEXT [OE->OperandRight_ID - 1]);
                     LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
                     break;
 
@@ -3910,7 +3910,7 @@ int ConceptInterpreter::EvalArrayExpression(PIFAlizator *PIF, VariableDATA **LOC
                     break;
 
                 case VARIABLE_ARRAY:
-                    LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = ((Array *)LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA)->Count() || ((Array *)LOCAL_CONTEXT [OE->OperandRight_ID - 1]->CLASS_DATA)->Count();
+                    LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = Array_Count((struct Array *)LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA) || Array_Count((struct Array *)LOCAL_CONTEXT [OE->OperandRight_ID - 1]->CLASS_DATA);
                     LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
                     break;
             }
@@ -3920,13 +3920,13 @@ int ConceptInterpreter::EvalArrayExpression(PIFAlizator *PIF, VariableDATA **LOC
         case KEY_NOT:
             //SMART_LOCK(LOCAL_CONTEXT [OE->Result_ID - 1])
             // CLASS_CHECK_RESET(LOCAL_CONTEXT [OE->Result_ID - 1], pushed_type);
-            LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = ((Array *)LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA)->Count() == 0;
+            LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = Array_Count((struct Array *)LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA) == 0;
             LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
             DECLARE_PATH(VARIABLE_NUMBER);
             return 1;
 
         case KEY_CND_NULL:
-            if ((LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE == VARIABLE_ARRAY) && (LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA == LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA) && (((Array *)LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA)->Count())) {
+            if ((LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE == VARIABLE_ARRAY) && (LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA == LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA) && (Array_Count((struct Array *)LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA))) {
                 DECLARE_PATH(VARIABLE_ARRAY);
                 return 1;
             }
@@ -3934,9 +3934,9 @@ int ConceptInterpreter::EvalArrayExpression(PIFAlizator *PIF, VariableDATA **LOC
             //SMART_LOCK(LOCAL_CONTEXT [OE->Result_ID - 1])
             // CLASS_CHECK_RESET(LOCAL_CONTEXT [OE->Result_ID - 1], pushed_type)
             // ------------------- //
-            if (((Array *)LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA)->Count()) {
+            if (Array_Count((struct Array *)LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA)) {
                 LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA = LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA;
-                ((Array *)LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA)->LINKS++;
+                ((struct Array *)LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA)->LINKS++;
                 LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE = VARIABLE_ARRAY;
                 DECLARE_PATH(VARIABLE_ARRAY);
                 return 1;
@@ -3967,7 +3967,7 @@ int ConceptInterpreter::EvalArrayExpression(PIFAlizator *PIF, VariableDATA **LOC
                 case VARIABLE_ARRAY:
                     LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA = LOCAL_CONTEXT [OE->OperandRight_ID - 1]->CLASS_DATA;
                     LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE       = VARIABLE_ARRAY;
-                    ((Array *)LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA)->LINKS++;
+                    ((struct Array *)LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA)->LINKS++;
                     DECLARE_PATH(VARIABLE_ARRAY);
                     break;
             }
@@ -4063,7 +4063,7 @@ int ConceptInterpreter::EvalDelegateExpression(PIFAlizator *PIF, VariableDATA **
                     break;
 
                 case VARIABLE_ARRAY:
-                    LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = (((Array *)LOCAL_CONTEXT [OE->OperandRight_ID - 1]->CLASS_DATA)->Count() != 0);
+                    LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = (Array_Count((struct Array *)LOCAL_CONTEXT [OE->OperandRight_ID - 1]->CLASS_DATA) != 0);
                     LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
                     break;
             }
@@ -4429,7 +4429,7 @@ int ConceptInterpreter::EvalStringExpression(PIFAlizator *PIF, VariableDATA **LO
                     break;
 
                 case VARIABLE_ARRAY:
-                    LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = CONCEPT_C_LENGTH(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]) && ((Array *)LOCAL_CONTEXT [OE->OperandRight_ID - 1]->CLASS_DATA)->Count();
+                    LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = CONCEPT_C_LENGTH(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]) && Array_Count((struct Array *)LOCAL_CONTEXT [OE->OperandRight_ID - 1]->CLASS_DATA);
                     LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
                     break;
             }
@@ -4456,7 +4456,7 @@ int ConceptInterpreter::EvalStringExpression(PIFAlizator *PIF, VariableDATA **LO
                     break;
 
                 case VARIABLE_ARRAY:
-                    LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = CONCEPT_C_LENGTH(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]) || ((Array *)LOCAL_CONTEXT [OE->OperandRight_ID - 1]->CLASS_DATA)->Count();
+                    LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = CONCEPT_C_LENGTH(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]) || Array_Count((struct Array *)LOCAL_CONTEXT [OE->OperandRight_ID - 1]->CLASS_DATA);
                     LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
                     break;
             }
@@ -4500,7 +4500,7 @@ int ConceptInterpreter::EvalStringExpression(PIFAlizator *PIF, VariableDATA **LO
                 case VARIABLE_ARRAY:
                     LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA = LOCAL_CONTEXT [OE->OperandRight_ID - 1]->CLASS_DATA;
                     LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE       = VARIABLE_ARRAY;
-                    ((Array *)LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA)->LINKS++;
+                    ((struct Array *)LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA)->LINKS++;
                     DECLARE_PATH(VARIABLE_ARRAY);
                     break;
             }
@@ -4665,7 +4665,7 @@ int ConceptInterpreter::EvalNumberExpression(PIFAlizator *PIF, VariableDATA **LO
                     break;
 
                 case VARIABLE_ARRAY:
-                    LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->NUMBER_DATA && ((Array *)LOCAL_CONTEXT [OE->OperandRight_ID - 1]->CLASS_DATA)->Count();
+                    LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->NUMBER_DATA && Array_Count((struct Array *)LOCAL_CONTEXT [OE->OperandRight_ID - 1]->CLASS_DATA);
                     break;
             }
             return 1;
@@ -4686,7 +4686,7 @@ int ConceptInterpreter::EvalNumberExpression(PIFAlizator *PIF, VariableDATA **LO
                     break;
 
                 case VARIABLE_ARRAY:
-                    LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->NUMBER_DATA || ((Array *)LOCAL_CONTEXT [OE->OperandRight_ID - 1]->CLASS_DATA)->Count();
+                    LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->NUMBER_DATA || Array_Count((struct Array *)LOCAL_CONTEXT [OE->OperandRight_ID - 1]->CLASS_DATA);
                     break;
             }
             return 1;
@@ -4815,7 +4815,7 @@ int ConceptInterpreter::EvalNumberExpression(PIFAlizator *PIF, VariableDATA **LO
                 case VARIABLE_ARRAY:
                     LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA = LOCAL_CONTEXT [OE->OperandRight_ID - 1]->CLASS_DATA;
                     LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE       = VARIABLE_ARRAY;
-                    ((Array *)LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA)->LINKS++;
+                    ((struct Array *)LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA)->LINKS++;
                     break;
             }
             return 1;
@@ -5038,7 +5038,7 @@ VariableDATA *ConceptInterpreter::Interpret(PIFAlizator *PIF, VariableDATA **LOC
                                 if (asg_type == VARIABLE_CLASS) {
                                     ((struct CompiledClass *)LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA)->LINKS += 2 + delta;
                                 } else {
-                                    ((Array *)LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA)->LINKS += 2 + delta;
+                                    ((struct Array *)LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA)->LINKS += 2 + delta;
                                 }
                                 LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE = LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->TYPE = LOCAL_CONTEXT [OE->OperandRight_ID - 1]->TYPE;
                                 if ((PROPERTIES) && (PROPERTIES [OE->OperandLeft_ID - 1].IS_PROPERTY_RESULT)) {
@@ -5331,7 +5331,7 @@ VariableDATA *ConceptInterpreter::Interpret(PIFAlizator *PIF, VariableDATA **LOC
                     CLASS_CHECK(LOCAL_CONTEXT [OE->Result_ID - 1]);
                     if (OE->OperandLeft_ID == STATIC_CLASS_ARRAY) {
                         LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE       = VARIABLE_NUMBER;
-                        LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA = new(AllocArray(PIF))Array(PIF);
+                        LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA = new_Array(PIF);
                         LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE       = VARIABLE_ARRAY;
                         DECLARE_PATH(VARIABLE_ARRAY);
                     } else {
@@ -5443,9 +5443,9 @@ VariableDATA *ConceptInterpreter::Interpret(PIFAlizator *PIF, VariableDATA **LOC
                                         int index;
                                         double2int(index, LOCAL_CONTEXT [OE->OperandRight_ID - 1]->NUMBER_DATA);
                                         if (index >= 0) {
-                                            RETURN_DATA = FAST_CHECK((Array *)LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA, index);
+                                            RETURN_DATA = FAST_CHECK((struct Array *)LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA, index);
                                             if (!RETURN_DATA)
-                                                RETURN_DATA = ((Array *)LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA)->GetWithCreate(index);
+                                                RETURN_DATA = Array_GetWithCreate((struct Array *)LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA, index);
                                             if (RETURN_DATA) {
                                                 if (LOCAL_CONTEXT [OE->Result_ID - 1] != RETURN_DATA) {
                                                     FREE_VARIABLE_RESET(LOCAL_CONTEXT [OE->Result_ID - 1], VARIABLE_NUMBER);
@@ -5460,7 +5460,7 @@ VariableDATA *ConceptInterpreter::Interpret(PIFAlizator *PIF, VariableDATA **LOC
 
                                 case VARIABLE_STRING:
                                     // LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE = pushed_type;
-                                    RETURN_DATA = ((Array *)LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA)->Get(LOCAL_CONTEXT [OE->OperandRight_ID - 1]);
+                                    RETURN_DATA = Array_Get((struct Array *)LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA, LOCAL_CONTEXT [OE->OperandRight_ID - 1]);
                                     if (!RETURN_DATA) {
                                         DECLARE_PATH(0x20);
                                         Exc = new AnsiException(ERR1110, OE->Operator_DEBUG_INFO_LINE, 1110, LOCAL_CONTEXT [OE->OperandRight_ID - 1]->NUMBER_DATA, ((ClassCode *)(OWNER->Defined_In))->_DEBUG_INFO_FILENAME, ((ClassCode *)(OWNER->Defined_In))->NAME, OWNER->NAME);
@@ -5570,7 +5570,7 @@ VariableDATA *ConceptInterpreter::Interpret(PIFAlizator *PIF, VariableDATA **LOC
                             continue;
 
                         case VARIABLE_ARRAY:
-                            if (!((Array *)LOCAL_CONTEXT [OE->OperandRight_ID - 1]->CLASS_DATA)->Count()) {
+                            if (!Array_Count((struct Array *)LOCAL_CONTEXT [OE->OperandRight_ID - 1]->CLASS_DATA)) {
                                 INSTRUCTION_POINTER = OE->OperandReserved_ID;
                             }
                             continue;
@@ -5602,7 +5602,7 @@ VariableDATA *ConceptInterpreter::Interpret(PIFAlizator *PIF, VariableDATA **LOC
 
                             case VARIABLE_ARRAY:
                                 {
-                                    struct plainstring *temp = ((Array *)LOCAL_CONTEXT [OE->OperandRight_ID - 1]->CLASS_DATA)->ToString();
+                                    struct plainstring *temp = Array_ToString((struct Array *)LOCAL_CONTEXT [OE->OperandRight_ID - 1]->CLASS_DATA);
                                     if (temp) {
                                         PIF->out->Print(plainstring_c_str(temp), plainstring_len(temp));
                                         plainstring_delete(temp);
@@ -5656,7 +5656,7 @@ VariableDATA *ConceptInterpreter::Interpret(PIFAlizator *PIF, VariableDATA **LOC
                                     ((struct CompiledClass *)RETURN_DATA->CLASS_DATA)->LINKS++;
                                 } else
                                 if (RETURN_DATA->TYPE == VARIABLE_ARRAY) {
-                                    ((Array *)RETURN_DATA->CLASS_DATA)->LINKS++;
+                                    ((struct Array *)RETURN_DATA->CLASS_DATA)->LINKS++;
                                 }
                             }
                         }
@@ -5837,7 +5837,7 @@ VariableDATA **ConceptInterpreter::CreateEnvironment(PIFAlizator *PIF, VariableD
             } else
             if (PARAM->TYPE == VARIABLE_ARRAY) {
                 LOCAL_CONTEXT_i->CLASS_DATA = PARAM->CLASS_DATA;
-                ((Array *)PARAM->CLASS_DATA)->LINKS++;
+                ((struct Array *)PARAM->CLASS_DATA)->LINKS++;
             } else
                 LOCAL_CONTEXT_i->NUMBER_DATA = PARAM->NUMBER_DATA;
             LOCAL_CONTEXT_i->IS_PROPERTY_RESULT = 0;
@@ -5877,7 +5877,7 @@ VariableDATA **ConceptInterpreter::CreateEnvironment(PIFAlizator *PIF, VariableD
             // extremly important: AllocArray is called with "skip top" parameter set to true
             // this is in case garbage collector is called, and current stack variables are not yet initialized
             // not to do the same if class objects are allocated here
-            LOCAL_CONTEXT_i->CLASS_DATA = new(AllocArray(PIF, true))Array(PIF);
+            LOCAL_CONTEXT_i->CLASS_DATA = new_Array(PIF, true);
         } else
             LOCAL_CONTEXT_i->CLASS_DATA = NULL;
     }
@@ -5926,7 +5926,7 @@ void ConceptInterpreter::DestroyEnviroment(PIFAlizator *PIF, VariableDATA **LOCA
                     } else
                     if (LOCAL_CONTEXT_i->TYPE == VARIABLE_ARRAY) {
                         __gc_array.Reference(LOCAL_CONTEXT_i->CLASS_DATA);
-                        ((Array *)LOCAL_CONTEXT_i->CLASS_DATA)->__GO_GARBAGE(PIF, &__gc_obj, &__gc_array, &__gc_vars, -1, fast_array_clean);
+                        Array_GO_GARBAGE((struct Array *)LOCAL_CONTEXT_i->CLASS_DATA, PIF, &__gc_obj, &__gc_array, &__gc_vars, -1, fast_array_clean);
                     }
                 }
                 __gc_vars.Reference(LOCAL_CONTEXT_i);
@@ -5934,7 +5934,7 @@ void ConceptInterpreter::DestroyEnviroment(PIFAlizator *PIF, VariableDATA **LOCA
         }
         if (PIF->var_globals) {
             __gc_array.Reference(PIF->var_globals);
-            PIF->var_globals->__GO_GARBAGE(PIF, &__gc_obj, &__gc_array, &__gc_vars);
+            Array_GO_GARBAGE(PIF->var_globals, PIF, &__gc_obj, &__gc_array, &__gc_vars);
         }
         VARPool *POOL = PIF->POOL;
         while (POOL) {
@@ -5947,7 +5947,7 @@ void ConceptInterpreter::DestroyEnviroment(PIFAlizator *PIF, VariableDATA **LOCA
                     } else
                     if (LOCAL_CONTEXT_i->TYPE == VARIABLE_ARRAY) {
                         __gc_array.Reference(LOCAL_CONTEXT_i->CLASS_DATA);
-                        ((Array *)LOCAL_CONTEXT_i->CLASS_DATA)->__GO_GARBAGE(PIF, &__gc_obj, &__gc_array, &__gc_vars);
+                        Array_GO_GARBAGE((struct Array *)LOCAL_CONTEXT_i->CLASS_DATA, PIF, &__gc_obj, &__gc_array, &__gc_vars);
                     }
                 }
             }
@@ -5984,12 +5984,12 @@ void ConceptInterpreter::DestroyEnviroment(PIFAlizator *PIF, VariableDATA **LOCA
                         }
                     } else
                     if (VARIABLE->TYPE == VARIABLE_ARRAY) {
-                        if (!--((Array *)VARIABLE->CLASS_DATA)->LINKS) {
+                        if (!--((struct Array *)VARIABLE->CLASS_DATA)->LINKS) {
 #ifdef SIMPLE_MULTI_THREADING
                             VARIABLE->TYPE = VARIABLE_NUMBER;
                             CC_WRITE_UNLOCK(PIF)
 #endif
-                            delete (Array *)VARIABLE->CLASS_DATA;
+                            delete_Array((struct Array *)VARIABLE->CLASS_DATA);
 #ifdef SIMPLE_MULTI_THREADING
                             CC_WRITE_LOCK2(PIF)
 #endif

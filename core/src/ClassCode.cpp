@@ -614,7 +614,7 @@ void ClassCode::SetProperty(PIFAlizator *PIF, INTEGER i, VariableDATA *Owner, co
 
                 case VARIABLE_ARRAY:
                     RESULT->CLASS_DATA = NEW_VALUE->CLASS_DATA;
-                    ((Array *)RESULT->CLASS_DATA)->LINKS++;
+                    ((struct Array *)RESULT->CLASS_DATA)->LINKS++;
                     break;
 
                 case VARIABLE_DELEGATE:
@@ -907,7 +907,7 @@ VariableDATA *ClassCode::ExecuteMember(PIFAlizator *PIF, INTEGER i, VariableDATA
                     } else
                     if (IMAGE->TYPE == VARIABLE_ARRAY) {
                         CC_WRITE_LOCK(PIF)
-                        ((Array *)IMAGE->CLASS_DATA)->LINKS++;
+                        ((struct Array *)IMAGE->CLASS_DATA)->LINKS++;
                         CC_WRITE_UNLOCK(PIF)
                     }
                     //----------------------------------------------

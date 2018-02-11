@@ -1,0 +1,58 @@
+import standard.lang.serialize
+
+class Main {
+	Keys() {
+		var[] arr;
+		for (var i = 0; i < 100000; i++)
+			arr["" + i] = i;
+		for (i = 0; i < 100000; i++)
+			if (arr["" + i] != i)
+				return true;
+		arr = new [];
+		for (i = 0; i < 1000000; i++)
+			arr[i] = i;
+		for (i = 0; i < 1000000; i++)
+			if (arr[i] != i)
+				return true;
+	}
+
+	Concat() {
+		var arr1 = [1, 2];
+		var arr2 = [3, 4];
+		var arr = arr1 + arr2;
+		if (length arr != length arr1 + length arr2)
+			return true;
+		if ((arr[0] != 1) || (arr[1] != 2) || (arr[2] != 3) || (arr[3] != 4))
+			return true;
+		arr = ["key1" => 1, "key2" => 2, 3 ,4];
+		var keys = GetKeys(arr);
+		if (length keys != length arr)
+			return true;
+		if ((("" + keys[0]) != "key1") || (("" + keys[1]) != "key2") || (("" + keys[2]) != "0") || (("" + keys[3]) != "0"))
+			return true;
+		arr = [1, 2, 3];
+		arr += 4;
+		if (length arr != 4)
+			return true;
+		if ((arr[0] != 1) || (arr[3] != 4))
+			return true;
+		if (!arr)
+			return true;
+		arr = new [];
+		if (arr)
+			return true;
+	}
+
+	Test(callback) {
+		if (callback()) {
+			echo callback;
+			echo " failed\n";
+		}
+	}
+
+
+	Main() {
+		Test(Keys);
+		Test(Concat);
+	}
+}
