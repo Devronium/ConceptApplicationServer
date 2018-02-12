@@ -78,5 +78,6 @@ public:
     inline const char *GetName() { return NAME; }
 #endif
     void EnsureThreadSafe();
+    void EndMainCall(void *PIF, VariableDATA *&RESULT, VariableDATA *&THROW_DATA, SCStack *PREV, SCStack *STACK_TRACE);
 };
 #endif // __CLASSMEMBER

@@ -208,6 +208,100 @@ static int STACK_HIT = 0;
  #define MAX_RECURSIVE_CALL    2100
 #endif
 
+void ClassMember::EndMainCall(void *PIF, VariableDATA *&RESULT, VariableDATA *&THROW_DATA, SCStack *PREV, SCStack *STACK_TRACE) {
+    if (RESULT) {
+        if (RESULT->TYPE == VARIABLE_NUMBER)
+            ((PIFAlizator *)PIF)->last_result = (int)RESULT->NUMBER_DATA;
+
+        if (((PIFAlizator *)PIF)->static_result) {
+            CLASS_CHECK(((VariableDATA *)((PIFAlizator *)PIF)->static_result));
+            switch (RESULT->TYPE) {
+                case VARIABLE_NUMBER:
+                    ((VariableDATA *)((PIFAlizator *)PIF)->static_result)->TYPE        = VARIABLE_NUMBER;
+                    ((VariableDATA *)((PIFAlizator *)PIF)->static_result)->NUMBER_DATA = RESULT->NUMBER_DATA;
+                    break;
+
+                case VARIABLE_STRING:
+                    ((VariableDATA *)((PIFAlizator *)PIF)->static_result)->TYPE           = VARIABLE_STRING;
+                    CONCEPT_STRING(((VariableDATA *)((PIFAlizator *)PIF)->static_result), RESULT);
+                    break;
+
+                case VARIABLE_ARRAY:
+                    ((VariableDATA *)((PIFAlizator *)PIF)->static_result)->TYPE           = VARIABLE_STRING;
+                    CONCEPT_STRING_SET_CSTR(((VariableDATA *)((PIFAlizator *)PIF)->static_result), "array");
+                    break;
+
+                case VARIABLE_DELEGATE:
+                    ((VariableDATA *)((PIFAlizator *)PIF)->static_result)->TYPE = VARIABLE_STRING;
+                    if (RESULT->CLASS_DATA) {
+                        CONCEPT_STRING_SET_CSTR(((VariableDATA *)((PIFAlizator *)PIF)->static_result), ((struct CompiledClass *)RESULT->CLASS_DATA)->_Class->NAME.c_str());
+                        CONCEPT_STRING_ADD_CSTR(((VariableDATA *)((PIFAlizator *)PIF)->static_result), "::");
+                        CONCEPT_STRING_ADD_CSTR(((VariableDATA *)((PIFAlizator *)PIF)->static_result), ((struct CompiledClass *)RESULT->CLASS_DATA)->_Class->pMEMBERS [(INTEGER)RESULT->DELEGATE_DATA - 1]->NAME);
+                    } else {
+                        CONCEPT_STRING_SET_CSTR(((VariableDATA *)((PIFAlizator *)PIF)->static_result), "delegate");
+                    }
+                    break;
+
+                case VARIABLE_CLASS:
+                    ((VariableDATA *)((PIFAlizator *)PIF)->static_result)->TYPE = VARIABLE_STRING;
+                    if (RESULT->CLASS_DATA) {
+                        CONCEPT_STRING_SET_CSTR(((VariableDATA *)((PIFAlizator *)PIF)->static_result), ((struct CompiledClass *)RESULT->CLASS_DATA)->_Class->NAME.c_str());
+                    } else {
+                        CONCEPT_STRING_SET_CSTR(((VariableDATA *)((PIFAlizator *)PIF)->static_result), "object");
+                    }
+                    break;
+            }
+        }
+        FREE_VARIABLE(RESULT);
+        RESULT = NULL;
+    }
+    if (THROW_DATA) {
+        const char *data = NULL;
+        char *temp = NULL;
+        // check if is not the static call to Main. In this case the THROW_DATA is/may be deleted
+        if (THROW_DATA->TYPE == VARIABLE_STRING) {
+            data = CONCEPT_C_STRING(THROW_DATA);
+        } else
+        if (THROW_DATA->TYPE == VARIABLE_NUMBER) {
+            temp = (char *)FAST_MALLOC(0xFF);
+            cstr_loaddouble(temp, THROW_DATA->NUMBER_DATA);
+            data = temp;
+        } else
+        if (THROW_DATA->TYPE == VARIABLE_CLASS) {
+            data = CompiledClass_GetClassName((struct CompiledClass *)THROW_DATA->CLASS_DATA);
+        } else
+        if (THROW_DATA->TYPE == VARIABLE_ARRAY) {
+            data = "Array";
+        } else
+        if (THROW_DATA->TYPE == VARIABLE_DELEGATE) {
+            int len = strlen(CompiledClass_GetClassName((struct CompiledClass *)THROW_DATA->CLASS_DATA));
+            temp = (char *)FAST_MALLOC(len + 13);
+            temp[len + 12] = 0;
+            memcpy(temp, "Delegate of ", 12);
+            memcpy(temp + 12, CompiledClass_GetClassName((struct CompiledClass *)THROW_DATA->CLASS_DATA), len);
+            data = temp;
+        }
+
+        AnsiException *Exc = new AnsiException(ERR630, 0, 630, data, ((ClassCode *)(this->Defined_In))->_DEBUG_INFO_FILENAME, NAME);
+        ((PIFAlizator *)PIF)->AcknoledgeRunTimeError(PREV, Exc);
+
+        FREE_VARIABLE(THROW_DATA);
+        THROW_DATA = NULL;
+
+        FAST_FREE(temp);
+    }
+#ifdef POOL_STACK
+    if ((!PREV) && (STACK_TRACE->STACK_CONTEXT)) {
+        // variables 0 to stack_pos will be cleared by DestroyEnvironment
+        for (int i = ((Optimizer *)OPTIMIZER)->dataCount; i < BLOCK_STACK_SIZE; i++) {
+            VariableDATA *VD = (VariableDATA *)STACK_TRACE->STACK_CONTEXT[i];
+            if (VD)
+                VAR_FREE(VD);
+        }
+    }
+#endif
+}
+
 VariableDATA *ClassMember::Execute(void *PIF, intptr_t CONCEPT_CLASS_ID, VariableDATA *Owner, ParamList *FORMAL_PARAM, VariableDATA **SenderCTX, VariableDATA *& THROW_DATA, SCStack *PREV, char is_main THREAD_CREATION_LOCKS) {
 #ifdef EMPIRIC_STACK_CHECK
     if (++STACK_HIT > MAX_RECURSIVE_CALL) {
@@ -264,99 +358,8 @@ VariableDATA *ClassMember::Execute(void *PIF, intptr_t CONCEPT_CLASS_ID, Variabl
         ((SCStack *)PREV->ROOT)->TOP = PREV_TOP;
     STACK_TRACE.len = -1;
     if (CONTEXT) {
-        if (is_main) {
-            if (RESULT) {
-                if (RESULT->TYPE == VARIABLE_NUMBER)
-                    ((PIFAlizator *)PIF)->last_result = (int)RESULT->NUMBER_DATA;
-
-                if (((PIFAlizator *)PIF)->static_result) {
-                    CLASS_CHECK(((VariableDATA *)((PIFAlizator *)PIF)->static_result));
-                    switch (RESULT->TYPE) {
-                        case VARIABLE_NUMBER:
-                            ((VariableDATA *)((PIFAlizator *)PIF)->static_result)->TYPE        = VARIABLE_NUMBER;
-                            ((VariableDATA *)((PIFAlizator *)PIF)->static_result)->NUMBER_DATA = RESULT->NUMBER_DATA;
-                            break;
-
-                        case VARIABLE_STRING:
-                            ((VariableDATA *)((PIFAlizator *)PIF)->static_result)->TYPE           = VARIABLE_STRING;
-                            CONCEPT_STRING(((VariableDATA *)((PIFAlizator *)PIF)->static_result), RESULT);
-                            break;
-
-                        case VARIABLE_ARRAY:
-                            ((VariableDATA *)((PIFAlizator *)PIF)->static_result)->TYPE           = VARIABLE_STRING;
-                            CONCEPT_STRING_SET_CSTR(((VariableDATA *)((PIFAlizator *)PIF)->static_result), "array");
-                            break;
-
-                        case VARIABLE_DELEGATE:
-                            ((VariableDATA *)((PIFAlizator *)PIF)->static_result)->TYPE = VARIABLE_STRING;
-                            if (RESULT->CLASS_DATA) {
-                                CONCEPT_STRING_SET_CSTR(((VariableDATA *)((PIFAlizator *)PIF)->static_result), ((struct CompiledClass *)RESULT->CLASS_DATA)->_Class->NAME.c_str());
-                                CONCEPT_STRING_ADD_CSTR(((VariableDATA *)((PIFAlizator *)PIF)->static_result), "::");
-                                CONCEPT_STRING_ADD_CSTR(((VariableDATA *)((PIFAlizator *)PIF)->static_result), ((struct CompiledClass *)RESULT->CLASS_DATA)->_Class->pMEMBERS [(INTEGER)RESULT->DELEGATE_DATA - 1]->NAME);
-                            } else {
-                                CONCEPT_STRING_SET_CSTR(((VariableDATA *)((PIFAlizator *)PIF)->static_result), "delegate");
-                            }
-                            break;
-
-                        case VARIABLE_CLASS:
-                            ((VariableDATA *)((PIFAlizator *)PIF)->static_result)->TYPE = VARIABLE_STRING;
-                            if (RESULT->CLASS_DATA) {
-                                CONCEPT_STRING_SET_CSTR(((VariableDATA *)((PIFAlizator *)PIF)->static_result), ((struct CompiledClass *)RESULT->CLASS_DATA)->_Class->NAME.c_str());
-                            } else {
-                                CONCEPT_STRING_SET_CSTR(((VariableDATA *)((PIFAlizator *)PIF)->static_result), "object");
-                            }
-                            break;
-                    }
-                }
-                FREE_VARIABLE(RESULT);
-                RESULT = NULL;
-            }
-            if (THROW_DATA) {
-                const char *data = NULL;
-                char *temp = NULL;
-                // check if is not the static call to Main. In this case the THROW_DATA is/may be deleted
-                if (THROW_DATA->TYPE == VARIABLE_STRING) {
-                    data = CONCEPT_C_STRING(THROW_DATA);
-                } else
-                if (THROW_DATA->TYPE == VARIABLE_NUMBER) {
-                    temp = (char *)FAST_MALLOC(0xFF);
-                    cstr_loaddouble(temp, THROW_DATA->NUMBER_DATA);
-                    data = temp;
-                } else
-                if (THROW_DATA->TYPE == VARIABLE_CLASS) {
-                    data = CompiledClass_GetClassName((struct CompiledClass *)THROW_DATA->CLASS_DATA);
-                } else
-                if (THROW_DATA->TYPE == VARIABLE_ARRAY) {
-                    data = "Array";
-                } else
-                if (THROW_DATA->TYPE == VARIABLE_DELEGATE) {
-                    int len = strlen(CompiledClass_GetClassName((struct CompiledClass *)THROW_DATA->CLASS_DATA));
-                    temp = (char *)FAST_MALLOC(len + 13);
-                    temp[len + 12] = 0;
-                    memcpy(temp, "Delegate of ", 12);
-                    memcpy(temp + 12, CompiledClass_GetClassName((struct CompiledClass *)THROW_DATA->CLASS_DATA), len);
-                    data = temp;
-                }
-
-                FREE_VARIABLE(THROW_DATA);
-                THROW_DATA = NULL;
-
-                AnsiException *Exc = new AnsiException(ERR630, 0, 630, data, ((ClassCode *)(this->Defined_In))->_DEBUG_INFO_FILENAME, NAME);
-                ((PIFAlizator *)PIF)->AcknoledgeRunTimeError(PREV, Exc);
-
-                FAST_FREE(temp);
-            }
-        }
-#ifdef POOL_STACK
-        if ((!PREV) && (STACK_TRACE.STACK_CONTEXT) && (is_main)) {
-            // variables 0 to stack_pos will be cleared by DestroyEnvironment
-            for (int i = ((Optimizer *)OPTIMIZER)->dataCount; i < BLOCK_STACK_SIZE; i++) {
-                VariableDATA *VD = (VariableDATA *)STACK_TRACE.STACK_CONTEXT[i];
-                if (VD)
-                    VAR_FREE(VD);
-            }
-        }
-#endif
+        if (is_main) 
+            this->EndMainCall(PIF, RESULT, THROW_DATA, PREV, &STACK_TRACE);
         ((ConceptInterpreter *)INTERPRETER)->DestroyEnviroment((PIFAlizator *)PIF, CONTEXT, &STACK_TRACE, is_main);
     }
     if (!PREV) {

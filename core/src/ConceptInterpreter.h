@@ -235,6 +235,7 @@ public:
     VariableDATA *Interpret(PIFAlizator *PIF, VariableDATA **LOCAL_CONTEXT, intptr_t ClassID, VariableDATA *& THROW_DATA, SCStack *STACK_TRACE);
     static int StacklessInterpret(PIFAlizator *PIF, GreenThreadCycle *GREEN);
 
+    void DestroyGC(PIFAlizator *PIF, VariableDATA **LOCAL_CONTEXT, SCStack *STACK_TRACE);
     ~ConceptInterpreter(void);
 };
 #endif // __CONCEPTINTERPRETER_H

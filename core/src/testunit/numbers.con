@@ -1,0 +1,46 @@
+import standard.lang.serialize
+
+class Main {
+	Simple() {
+		if ((typeof 1) != "numeric")
+			return true;
+		if ((typeof "1") != "string")
+			return true;
+		if ((typeof this) != "class")
+			return true;
+		if ((typeof [ ]) != "array")
+			return true;
+		if ((typeof this.Simple) != "delegate")
+			return true;	
+		if (classof this != "Main")
+			return true;
+		if ("" != classof 1)
+			return true;
+		if ("" != classof [ ])
+			return true;
+		if ("" != classof Simple)
+			return true;
+		var a = 1;
+		delete a;
+		if (a)
+			return true;
+		a =& 2;
+		if (a != 2)
+			return true; 
+		a =& "2";
+		if ((a != "2") || (typeof a != "string"))
+			return true; 
+	}
+
+	Test(callback) {
+		if (callback()) {
+			echo callback;
+			echo " failed\n";
+		}
+	}
+
+
+	Main() {
+		Test(Simple);
+	}
+}

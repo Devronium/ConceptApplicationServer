@@ -34,9 +34,7 @@ POOLED_IMPLEMENTATION(ConceptInterpreter)
 static TinyString DLL_CLASS = "STATIC/LIBRARY";
 static TinyString DLL_MEMBER = "STATIC_FUNCTION";
 
-// CODUL CE VERIFICA DE PROPRIETATI ...
-// To avoid another function call in time-critical function
-//---------------------------------------------------------
+#define IS_SIMPLE(id)   ((id == KEY_TYPE_OF) || (id == KEY_CLASS_NAME) || (id == KEY_BY_REF) || (id == KEY_DELETE))
 
 #define PROPERTY_CODE(THISREF, PROPERTIES)                                                                                                                                                                                                                                                                      \
     if ((PROPERTIES) && (PROPERTIES [OE->OperandLeft_ID - 1].IS_PROPERTY_RESULT)) {                                                                                                                                                                                                                             \
@@ -3015,57 +3013,46 @@ int ConceptInterpreter::StacklessInterpret(PIFAlizator *PIF, GreenThreadCycle *G
                         if (OE->OperandLeft_ID) {
                             if (LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->TYPE == VARIABLE_NUMBER) {
                                 // optimize frequent used operators
+                                CLASS_CHECK_RESULT(LOCAL_CONTEXT [OE->Result_ID - 1]);
+                                LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE = VARIABLE_NUMBER;
                                 if (OE_Operator_ID == KEY_LES) {
-                                    CLASS_CHECK_RESULT(LOCAL_CONTEXT [OE->Result_ID - 1]);
-                                    LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE = LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->TYPE;
                                     EVAL_NUMBER_EXPRESSION(THIS_REF, <)
                                     continue;
                                 } else
                                 if (OE_Operator_ID == KEY_INC_LEFT) {
-                                    CLASS_CHECK_RESULT(LOCAL_CONTEXT [OE->Result_ID - 1]);
-                                    LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE = LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->TYPE;
                                     LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = (LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->NUMBER_DATA)++;
                                     PROPERTY_CODE_LEFT(THIS_REF, TARGET_THREAD->PROPERTIES)
                                     continue;
                                 } else
                                 if (OE_Operator_ID == KEY_SUM) {
-                                    CLASS_CHECK_RESULT(LOCAL_CONTEXT [OE->Result_ID - 1]);
-                                    LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE = LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->TYPE;
                                     EVAL_NUMBER_EXPRESSION(THIS_REF, +)
                                     continue;
                                 } else
                                 if (OE_Operator_ID == KEY_ASU) {
-                                    CLASS_CHECK_RESULT(LOCAL_CONTEXT [OE->Result_ID - 1]);
-                                    LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE = LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->TYPE;
                                     EVAL_NUMBER_EXPRESSION(THIS_REF, += )
-                                    LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->TYPE = VARIABLE_NUMBER;
                                     PROPERTY_CODE(THIS_REF, TARGET_THREAD->PROPERTIES)
                                     continue;
                                 } else
                                 if (OE_Operator_ID == KEY_DIF) {
-                                    CLASS_CHECK_RESULT(LOCAL_CONTEXT [OE->Result_ID - 1]);
-                                    LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE = LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->TYPE;
                                     EVAL_NUMBER_EXPRESSION(THIS_REF, -)
                                     continue;
                                 } else
                                 if (OE_Operator_ID == KEY_DEC) {
-                                    CLASS_CHECK_RESULT(LOCAL_CONTEXT [OE->Result_ID - 1]);
-                                    LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE = LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->TYPE;
                                     LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = --(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->NUMBER_DATA);
                                     PROPERTY_CODE_LEFT(THIS_REF, TARGET_THREAD->PROPERTIES)
                                     continue;
                                 } else
                                 if (OE_Operator_ID == KEY_NOT) {
-                                    CLASS_CHECK_RESULT(LOCAL_CONTEXT [OE->Result_ID - 1]);
                                     LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = !LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->NUMBER_DATA;
                                     continue;
                                 } else
                                 if (OE_Operator_ID == KEY_MUL) {
-                                    CLASS_CHECK_RESULT(LOCAL_CONTEXT [OE->Result_ID - 1]);
                                     EVAL_NUMBER_EXPRESSION(THIS_REF, *)
                                     PROPERTY_CODE_LEFT(THIS_REF, TARGET_THREAD->PROPERTIES)
                                     continue;
                                 }
+                                if (!IS_SIMPLE(OE_Operator_ID))
+                                    goto numbereval;
                             } else
                             if ((OE_Operator_ID == KEY_INDEX_OPEN) && (LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->TYPE == VARIABLE_ARRAY)) {
                                 WRITE_LOCK
@@ -3098,16 +3085,18 @@ int ConceptInterpreter::StacklessInterpret(PIFAlizator *PIF, GreenThreadCycle *G
                                 }
                                 continue;
                             }
+                            if (IS_SIMPLE(OE_Operator_ID)) {
 #ifdef SIMPLE_MULTI_THREADING
-                            int simple_eval = THIS_REF->EvalSimpleExpression(PIF, LOCAL_CONTEXT, OE, TARGET_THREAD->PROPERTIES, ClassID, THROW_DATA, STACK_TRACE, INSTRUCTION_POINTER, CATCH_INSTRUCTION_POINTER, CATCH_VARIABLE, PREVIOUS_TRY, IsWriteLocked);
+                                int simple_eval = THIS_REF->EvalSimpleExpression(PIF, LOCAL_CONTEXT, OE, TARGET_THREAD->PROPERTIES, ClassID, THROW_DATA, STACK_TRACE, INSTRUCTION_POINTER, CATCH_INSTRUCTION_POINTER, CATCH_VARIABLE, PREVIOUS_TRY, IsWriteLocked);
 #else
-                            int simple_eval = THIS_REF->EvalSimpleExpression(PIF, LOCAL_CONTEXT, OE, TARGET_THREAD->PROPERTIES, ClassID, THROW_DATA, STACK_TRACE, INSTRUCTION_POINTER, CATCH_INSTRUCTION_POINTER, CATCH_VARIABLE, PREVIOUS_TRY);
+                                int simple_eval = THIS_REF->EvalSimpleExpression(PIF, LOCAL_CONTEXT, OE, TARGET_THREAD->PROPERTIES, ClassID, THROW_DATA, STACK_TRACE, INSTRUCTION_POINTER, CATCH_INSTRUCTION_POINTER, CATCH_VARIABLE, PREVIOUS_TRY);
 #endif
-                            if (simple_eval == 1)
-                                continue;
-                            else
-                            if (simple_eval == 2)
-                                break;
+                                if (simple_eval == 1)
+                                    continue;
+                                else
+                                if (simple_eval == 2)
+                                    break;
+                            }
 
                             CLASS_CHECK_RESULT(LOCAL_CONTEXT [OE->Result_ID - 1]);
                             ////////////////////////////////////////////////////////////
@@ -3122,6 +3111,7 @@ int ConceptInterpreter::StacklessInterpret(PIFAlizator *PIF, GreenThreadCycle *G
 
                 switch (LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE) {
                     case VARIABLE_NUMBER:
+numbereval:
 #ifdef SIMPLE_MULTI_THREADING
                         if (THIS_REF->EvalNumberExpression(PIF, LOCAL_CONTEXT, OE, TARGET_THREAD->PROPERTIES, ClassID, THROW_DATA, STACK_TRACE, INSTRUCTION_POINTER, CATCH_INSTRUCTION_POINTER, CATCH_VARIABLE, PREVIOUS_TRY, IsWriteLocked))
 #else
@@ -5430,56 +5420,46 @@ VariableDATA *ConceptInterpreter::Interpret(PIFAlizator *PIF, VariableDATA **LOC
                                 }
                             }
 #endif
+                            CLASS_CHECK_RESULT(LOCAL_CONTEXT [OE->Result_ID - 1]);
+                            LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE = VARIABLE_NUMBER;
                             if (OE_Operator_ID == KEY_LES) {
-                                CLASS_CHECK_RESULT(LOCAL_CONTEXT [OE->Result_ID - 1]);
-                                LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE = LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->TYPE;
                                 EVAL_NUMBER_EXPRESSION(this, <)
                                 continue;
                             } else
                             if (OE_Operator_ID == KEY_INC_LEFT) {
-                                CLASS_CHECK_RESULT(LOCAL_CONTEXT [OE->Result_ID - 1]);
-                                LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE = LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->TYPE;
                                 LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = (LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->NUMBER_DATA)++;
                                 PROPERTY_CODE_LEFT(this, PROPERTIES)
                                 continue;
                             } else
                             if (OE_Operator_ID == KEY_SUM) {
-                                CLASS_CHECK_RESULT(LOCAL_CONTEXT [OE->Result_ID - 1]);
-                                LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE = LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->TYPE;
                                 EVAL_NUMBER_EXPRESSION(this, +)
                                 continue;
                             } else
                             if (OE_Operator_ID == KEY_ASU) {
-                                CLASS_CHECK_RESULT(LOCAL_CONTEXT [OE->Result_ID - 1]);
-                                LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE = LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->TYPE;
                                 EVAL_NUMBER_EXPRESSION(this, += )
                                 PROPERTY_CODE(this, PROPERTIES)
                                 continue;
                             } else
                             if (OE_Operator_ID == KEY_DIF) {
-                                CLASS_CHECK_RESULT(LOCAL_CONTEXT [OE->Result_ID - 1]);
-                                LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE = LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->TYPE;
                                 EVAL_NUMBER_EXPRESSION(this, -)
                                 continue;
                             } else
                             if (OE_Operator_ID == KEY_DEC) {
-                                CLASS_CHECK_RESULT(LOCAL_CONTEXT [OE->Result_ID - 1]);
-                                LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE = LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->TYPE;
                                 LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = --(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->NUMBER_DATA);
                                 PROPERTY_CODE_LEFT(this, PROPERTIES)
                                 continue;
                             } else
                             if (OE_Operator_ID == KEY_NOT) {
-                                CLASS_CHECK_RESULT(LOCAL_CONTEXT [OE->Result_ID - 1]);
                                 LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = !LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->NUMBER_DATA;
                                 continue;
                             } else
                             if (OE_Operator_ID == KEY_MUL) {
-                                CLASS_CHECK_RESULT(LOCAL_CONTEXT [OE->Result_ID - 1]);
                                 EVAL_NUMBER_EXPRESSION(this, *)
                                 PROPERTY_CODE_LEFT(this, PROPERTIES)
                                 continue;
                             }
+                            if (!IS_SIMPLE(OE_Operator_ID))
+                                goto numbereval;
                         } else
                         if ((OE_Operator_ID == KEY_INDEX_OPEN) && (LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->TYPE == VARIABLE_ARRAY)) {
                             WRITE_LOCK
@@ -5532,16 +5512,18 @@ VariableDATA *ConceptInterpreter::Interpret(PIFAlizator *PIF, VariableDATA **LOC
                             }
                             continue;
                         }
+                        if (IS_SIMPLE(OE_Operator_ID)) {
 #ifdef SIMPLE_MULTI_THREADING
-                        int simple_eval = EvalSimpleExpression(PIF, LOCAL_CONTEXT, OE, PROPERTIES, ClassID, THROW_DATA, STACK_TRACE, INSTRUCTION_POINTER, CATCH_INSTRUCTION_POINTER, CATCH_VARIABLE, PREVIOUS_TRY, IsWriteLocked);
+                            int simple_eval = EvalSimpleExpression(PIF, LOCAL_CONTEXT, OE, PROPERTIES, ClassID, THROW_DATA, STACK_TRACE, INSTRUCTION_POINTER, CATCH_INSTRUCTION_POINTER, CATCH_VARIABLE, PREVIOUS_TRY, IsWriteLocked);
 #else
-                        int simple_eval = EvalSimpleExpression(PIF, LOCAL_CONTEXT, OE, PROPERTIES, ClassID, THROW_DATA, STACK_TRACE, INSTRUCTION_POINTER, CATCH_INSTRUCTION_POINTER, CATCH_VARIABLE, PREVIOUS_TRY);
+                            int simple_eval = EvalSimpleExpression(PIF, LOCAL_CONTEXT, OE, PROPERTIES, ClassID, THROW_DATA, STACK_TRACE, INSTRUCTION_POINTER, CATCH_INSTRUCTION_POINTER, CATCH_VARIABLE, PREVIOUS_TRY);
 #endif
-                        if (simple_eval == 1)
-                            continue;
-                        else
-                        if (simple_eval == 2)
-                            break;
+                            if (simple_eval == 1)
+                                continue;
+                            else
+                            if (simple_eval == 2)
+                                break;
+                        }
                         CLASS_CHECK_RESULT(LOCAL_CONTEXT [OE->Result_ID - 1]);
                         ////////////////////////////////////////////////////////////
                         //pushed_type = VARIABLE_NUMBER;//LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE;
@@ -5556,6 +5538,7 @@ VariableDATA *ConceptInterpreter::Interpret(PIFAlizator *PIF, VariableDATA **LOC
 fallbacklabel:
             switch (LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE) {
                 case VARIABLE_NUMBER:
+numbereval:
 #ifdef SIMPLE_MULTI_THREADING
                     if (EvalNumberExpression(PIF, LOCAL_CONTEXT, OE, PROPERTIES, ClassID, THROW_DATA, STACK_TRACE, INSTRUCTION_POINTER, CATCH_INSTRUCTION_POINTER, CATCH_VARIABLE, PREVIOUS_TRY, IsWriteLocked))
 #else
@@ -5913,72 +5896,11 @@ void ConceptInterpreter::DestroyEnviroment(PIFAlizator *PIF, VariableDATA **LOCA
     register INTEGER data_count = OPT->dataCount;
 #ifndef FAST_EXIT_NO_GC_CALL
     if (static_call_main) {
-#ifdef SIMPLE_MULTI_THREADING
-        // wait for the threads to end
-        while (PIF->ThreadsCount > 1) {
-#ifdef _WIN32
-            Sleep(100);
-#else
-            usleep(100000);
-#endif
-        }
-#endif
-        GarbageCollector __gc_obj;
-        GarbageCollector __gc_array;
-        GarbageCollector __gc_vars;
-        VariableDATA *LOCAL_CONTEXT_i;
-        char fast_array_clean = 0;
-        for (i = 0; i < data_count; i++) {
-            LOCAL_CONTEXT_i = LOCAL_CONTEXT [i];
-            if (LOCAL_CONTEXT_i) {
-                if (LOCAL_CONTEXT_i->CLASS_DATA) {
-                    if ((LOCAL_CONTEXT_i->TYPE == VARIABLE_CLASS) || (LOCAL_CONTEXT_i->TYPE == VARIABLE_DELEGATE)) {
-                        __gc_obj.Reference(LOCAL_CONTEXT_i->CLASS_DATA);
-                        if (!i) {
-                            const ClassCode *CC = ((struct CompiledClass *)LOCAL_CONTEXT_i->CLASS_DATA)->_Class;
-                            if ((CC) && (!CC->DESTRUCTOR_MEMBER))
-                                fast_array_clean = 1;
-                        }
-                        CompiledClass__GO_GARBAGE((struct CompiledClass *)LOCAL_CONTEXT_i->CLASS_DATA, PIF, &__gc_obj, &__gc_array, &__gc_vars);
-                    } else
-                    if (LOCAL_CONTEXT_i->TYPE == VARIABLE_ARRAY) {
-                        __gc_array.Reference(LOCAL_CONTEXT_i->CLASS_DATA);
-                        Array_GO_GARBAGE((struct Array *)LOCAL_CONTEXT_i->CLASS_DATA, PIF, &__gc_obj, &__gc_array, &__gc_vars, -1, fast_array_clean);
-                    }
-                }
-                __gc_vars.Reference(LOCAL_CONTEXT_i);
-            }
-        }
-        if (PIF->var_globals) {
-            __gc_array.Reference(PIF->var_globals);
-            Array_GO_GARBAGE(PIF->var_globals, PIF, &__gc_obj, &__gc_array, &__gc_vars);
-        }
-        VARPool *POOL = PIF->POOL;
-        while (POOL) {
-            for (int i = 0; i < POOL_BLOCK_SIZE; i++) {
-                LOCAL_CONTEXT_i = &POOL->POOL[i];
-                if ((LOCAL_CONTEXT_i) && (LOCAL_CONTEXT_i->flags >= 0) && (LOCAL_CONTEXT_i->CLASS_DATA)) {
-                    if ((LOCAL_CONTEXT_i->TYPE == VARIABLE_CLASS) || (LOCAL_CONTEXT_i->TYPE == VARIABLE_DELEGATE)) {
-                        __gc_obj.Reference(LOCAL_CONTEXT_i->CLASS_DATA);
-                        CompiledClass__GO_GARBAGE((struct CompiledClass *)LOCAL_CONTEXT_i->CLASS_DATA, PIF, &__gc_obj, &__gc_array, &__gc_vars);
-                    } else
-                    if (LOCAL_CONTEXT_i->TYPE == VARIABLE_ARRAY) {
-                        __gc_array.Reference(LOCAL_CONTEXT_i->CLASS_DATA);
-                        Array_GO_GARBAGE((struct Array *)LOCAL_CONTEXT_i->CLASS_DATA, PIF, &__gc_obj, &__gc_array, &__gc_vars);
-                    }
-                }
-            }
-            POOL = (VARPool *)POOL->NEXT;
-        }
-        //======================================================//
-        __gc_obj.EndOfExecution_SayBye_Objects();
-        __gc_array.EndOfExecution_SayBye_Arrays();
-        __gc_vars.EndOfExecution_SayBye_Variables();
+        this->DestroyEnviroment(PIF, LOCAL_CONTEXT, STACK_TRACE);
     } else
 #endif
     {
         CC_WRITE_LOCK(PIF)
-
         for (i = 0; i < data_count; i++) {
 #ifdef SIMPLE_MULTI_THREADING
             VariableDATA *VARIABLE = LOCAL_CONTEXT [i];
@@ -6057,6 +5979,73 @@ void ConceptInterpreter::DestroyEnviroment(PIFAlizator *PIF, VariableDATA **LOCA
     } else {
         FAST_FREE(LOCAL_CONTEXT);
     }
+}
+
+void ConceptInterpreter::DestroyGC(PIFAlizator *PIF, VariableDATA **LOCAL_CONTEXT, SCStack *STACK_TRACE) {
+#ifdef SIMPLE_MULTI_THREADING
+    // wait for the threads to end
+    while (PIF->ThreadsCount > 1) {
+#ifdef _WIN32
+        Sleep(100);
+#else
+        usleep(100000);
+#endif
+    }
+#endif
+    Optimizer *OPT = (Optimizer *)this->OWNER->OPTIMIZER;
+    INTEGER i;
+    INTEGER data_count = OPT->dataCount;
+    GarbageCollector __gc_obj;
+    GarbageCollector __gc_array;
+    GarbageCollector __gc_vars;
+    VariableDATA *LOCAL_CONTEXT_i;
+    char fast_array_clean = 0;
+    for (i = 0; i < data_count; i++) {
+        LOCAL_CONTEXT_i = LOCAL_CONTEXT [i];
+        if (LOCAL_CONTEXT_i) {
+            if (LOCAL_CONTEXT_i->CLASS_DATA) {
+                if ((LOCAL_CONTEXT_i->TYPE == VARIABLE_CLASS) || (LOCAL_CONTEXT_i->TYPE == VARIABLE_DELEGATE)) {
+                    __gc_obj.Reference(LOCAL_CONTEXT_i->CLASS_DATA);
+                    if (!i) {
+                        const ClassCode *CC = ((struct CompiledClass *)LOCAL_CONTEXT_i->CLASS_DATA)->_Class;
+                        if ((CC) && (!CC->DESTRUCTOR_MEMBER))
+                            fast_array_clean = 1;
+                    }
+                    CompiledClass__GO_GARBAGE((struct CompiledClass *)LOCAL_CONTEXT_i->CLASS_DATA, PIF, &__gc_obj, &__gc_array, &__gc_vars);
+                } else
+                if (LOCAL_CONTEXT_i->TYPE == VARIABLE_ARRAY) {
+                    __gc_array.Reference(LOCAL_CONTEXT_i->CLASS_DATA);
+                    Array_GO_GARBAGE((struct Array *)LOCAL_CONTEXT_i->CLASS_DATA, PIF, &__gc_obj, &__gc_array, &__gc_vars, -1, fast_array_clean);
+                }
+            }
+            __gc_vars.Reference(LOCAL_CONTEXT_i);
+        }
+    }
+    if (PIF->var_globals) {
+        __gc_array.Reference(PIF->var_globals);
+        Array_GO_GARBAGE(PIF->var_globals, PIF, &__gc_obj, &__gc_array, &__gc_vars);
+    }
+    VARPool *POOL = PIF->POOL;
+    while (POOL) {
+        for (int i = 0; i < POOL_BLOCK_SIZE; i++) {
+            LOCAL_CONTEXT_i = &POOL->POOL[i];
+            if ((LOCAL_CONTEXT_i) && (LOCAL_CONTEXT_i->flags >= 0) && (LOCAL_CONTEXT_i->CLASS_DATA)) {
+                if ((LOCAL_CONTEXT_i->TYPE == VARIABLE_CLASS) || (LOCAL_CONTEXT_i->TYPE == VARIABLE_DELEGATE)) {
+                    __gc_obj.Reference(LOCAL_CONTEXT_i->CLASS_DATA);
+                    CompiledClass__GO_GARBAGE((struct CompiledClass *)LOCAL_CONTEXT_i->CLASS_DATA, PIF, &__gc_obj, &__gc_array, &__gc_vars);
+                } else
+                if (LOCAL_CONTEXT_i->TYPE == VARIABLE_ARRAY) {
+                    __gc_array.Reference(LOCAL_CONTEXT_i->CLASS_DATA);
+                    Array_GO_GARBAGE((struct Array *)LOCAL_CONTEXT_i->CLASS_DATA, PIF, &__gc_obj, &__gc_array, &__gc_vars);
+                }
+            }
+        }
+        POOL = (VARPool *)POOL->NEXT;
+    }
+    //======================================================//
+    __gc_obj.EndOfExecution_SayBye_Objects();
+    __gc_array.EndOfExecution_SayBye_Arrays();
+    __gc_vars.EndOfExecution_SayBye_Variables();
 }
 
 ConceptInterpreter::~ConceptInterpreter(void) {
