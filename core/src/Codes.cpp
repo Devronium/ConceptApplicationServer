@@ -385,6 +385,9 @@ const char *GetKeyWord(INTEGER ID) {
 
         case KEY_OPTIMIZED_TRY_CATCH:
             return "OPTIMIZED_TRY_CATCH";
+
+        case KEY_OPTIMIZED_END_CATCH:
+            return "OPTIMIZED_END_CATCH";
     }
     return NULL_STRING;
 }
