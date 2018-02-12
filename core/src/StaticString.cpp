@@ -183,7 +183,7 @@ intptr_t StaticString::Length() {
     return _LENGTH;
 }
 
-void StaticString::LoadBuffer(char *buffer, int size) {
+void StaticString::LoadBuffer(const char *buffer, int size) {
     char *Data = 0;
 
     if (DataOffset) {

@@ -27,7 +27,6 @@ private:
     intptr_t _LENGTH;
 public:
     inline intptr_t MemoryLength() { return _DATA_SIZE; }
-    uintptr_t EXTRA_DATA;
     POOLED(AnsiString);
 
     AnsiString(void);

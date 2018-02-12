@@ -21,6 +21,7 @@ public:
     AnsiException(const char *text, int line, intptr_t ID, const char *extra, const char *FileName, const char *class_name = "", const char *member_name = "");
     AnsiException(intptr_t ID, const char *text, int line, const char *extra1, const char *extra2, const char *extra3, const char *FileName, const char *class_name = "", const char *member_name = "");
     AnsiException(intptr_t ID, const char *text, int line, const char *extra1, int extra2, const char *FileName, const char *class_name = "", const char *member_name = "");
+    AnsiException(intptr_t ID, const char *text, int line, int extra1, const char *extra2, const char *FileName, const char *class_name = "", const char *member_name = "");
     AnsiException(intptr_t ID, const char *text, int line, const char *extra1, const char *extra2, int extra3, const char *FileName, const char *class_name = "", const char *member_name = "");
     AnsiException(const char *text, int line, intptr_t ID, double extra, const char *FileName, const char *class_name = "", const char *member_name = "");
     const char *GetText();

@@ -132,10 +132,12 @@ void plainstring_char_plainstring(const struct plainstring *this_string, intptr_
 
 int plainstring_equals(const struct plainstring *this_string, const char *str) {
     if ((!str) || (!str[0])) {
-        if (!this_string->LENGTH)
+        if ((!this_string) || (!this_string->LENGTH))
             return 1;
         return 0;
     }
+    if (!this_string)
+        return 0;
     return !strcmp(this_string->DATA, str);
 }
 
@@ -145,8 +147,9 @@ int plainstring_not_equals(const struct plainstring *this_string, const char *st
 
 int plainstring_equals_double(const struct plainstring *this_string, double d) {
     char buffer [MAX_DECIMALS];
+    if (!this_string)
+        return 0;
     cstr_loaddouble(buffer, d);
-
     return plainstring_equals(this_string, buffer);
 }
 
@@ -158,6 +161,8 @@ int plainstring_equals_plainstring(const struct plainstring *this_string, const 
     if ((!this_string) || (!this_string->LENGTH)) {
         if ((!ps) || (!ps->LENGTH))
             return 1;
+        if (!this_string)
+            return 0;
     }
 
     if ((!ps) || (this_string->LENGTH != ps->LENGTH))

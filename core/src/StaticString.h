@@ -33,7 +33,7 @@ public:
     double ToFloat();
 
     intptr_t Length();
-    void LoadBuffer(char *buffer, int size);
+    void LoadBuffer(const char *buffer, int size);
 
     int Serialize(FILE *out, int type);
     static int ComputeSharedSize(concept_FILE *in, int type);

@@ -44,7 +44,8 @@ void PIFAlizator::Shutdown() {
 void PIFAlizator::AcknoledgeRunTimeError(SCStack *STACK_TRACE, AnsiException *Exc) {
     // notify the client about the run-time error ...
     // --------------------------------------- //
-    AnsiString cstack = "Stack:\n";
+    struct plainstring cstack;
+    plainstring_init(&cstack);
 
     INTERNAL_LOCK(this)
     int first = 1;
@@ -55,36 +56,37 @@ void PIFAlizator::AcknoledgeRunTimeError(SCStack *STACK_TRACE, AnsiException *Ex
         ClassMember *CM = (ClassMember *)STACK_TRACE->CM;
         if (CM) {
             if (CM->Defined_In) {
-                cstack += ((ClassCode *)CM->Defined_In)->NAME.c_str();
-                cstack += ".";
+                plainstring_add(&cstack, ((ClassCode *)CM->Defined_In)->NAME.c_str());
+                plainstring_add_char(&cstack, '.');
             } else
-                cstack += "::";
-            cstack += CM->NAME;
+                plainstring_add(&cstack, "::");
+            plainstring_add(&cstack, CM->NAME);
         } else {
-            cstack += "STATIC/LIBRARY.STATIC_FUNCTION";
+            plainstring_add(&cstack, "STATIC/LIBRARY.STATIC_FUNCTION");
         }
-        cstack += ":";
+        plainstring_add_char(&cstack, ':');
         if (first) {
-            cstack += AnsiString((D_LONG_TYPE)Exc->GetLine());
+            plainstring_add_int(&cstack, Exc->GetLine());
             first   = 0;
         } else
-            cstack += AnsiString((D_LONG_TYPE)STACK_TRACE->line);
-        cstack     += "\n";
+            plainstring_add_int(&cstack, STACK_TRACE->line);
+        plainstring_add_char(&cstack, '\n');
         STACK_TRACE = (SCStack *)STACK_TRACE->PREV;
     }
     int buf_size = 8192;
-    char *buf = (char *)malloc(buf_size + cstack.Length() + 1);
+    char *buf = (char *)malloc(buf_size + plainstring_len(&cstack) + 1);
     if (buf) {
         Exc->ToString(buf, &buf_size);
         if (buf_size > 0)
             buf_size++;
         else
             buf_size = 0;
-        memcpy(buf + buf_size, cstack.c_str(), cstack.Length());
+        memcpy(buf + buf_size, plainstring_c_str(&cstack), plainstring_len(&cstack));
         out->ClientError(buf);
         free(buf);
     }
     Errors.Add(Exc, DATA_EXCEPTION);
+    plainstring_deinit(&cstack);
     INTERNAL_UNLOCK(this)
 }
 
@@ -101,25 +103,27 @@ void PIFAlizator::DefineConstant(const char *name, const char *value, int is_str
     VD->USED   = (signed char)this->INCLUDE_LEVEL;
     VD->BY_REF = basic_constants_count ? 0 : 1;
 
-    AnsiString c_val;
+    struct plainstring c_val;
+    plainstring_init(&c_val);
 
     if (is_string) {
-        c_val += "\"";
+        plainstring_add_char(&c_val, '\"');
     }
 
     size_t len = strlen(value);
 
     for (unsigned int i = 0; i < len; i++) {
         if (value [i] == '\\') {
-            c_val += value [i];
+            plainstring_add_char(&c_val, value [i]);
         }
-        c_val += value [i];
+        plainstring_add_char(&c_val, value [i]);
     }
 
     if (is_string)
-        c_val += "\"";
+        plainstring_add_char(&c_val, '\"');
 
-    VD->value.LoadBuffer(c_val.c_str(), c_val.Length());
+    VD->value.LoadBuffer(plainstring_c_str(&c_val), plainstring_len(&c_val));
+    plainstring_deinit(&c_val);
     ConstantList->Add(VD, DATA_VAR_DESCRIPTOR);
 }
 
@@ -553,22 +557,13 @@ INTEGER PIFAlizator::ConstantIsDescribed(AnsiString& S, ConstantMapType *VDList)
     return 0;
 }
 
-INTEGER PIFAlizator::ListContains(AnsiString& S, AnsiList *VDList, char is_tiny) {
+INTEGER PIFAlizator::ListContains(const char *S, AnsiList *VDList) {
     INTEGER Count = VDList->Count();
 
-    if (is_tiny) {
-        for (INTEGER i = 0; i < Count; i++) {
-            TinyString *STR = (TinyString *)(*VDList) [i];
-            if (*STR == S) {
-                return i + 1;
-            }
-        }
-    } else {
-        for (INTEGER i = 0; i < Count; i++) {
-            AnsiString *STR = (AnsiString *)(*VDList) [i];
-            if (*STR == S) {
-                return i + 1;
-            }
+    for (INTEGER i = 0; i < Count; i++) {
+        TinyString *STR = (TinyString *)(*VDList) [i];
+        if (*STR == S) {
+            return i + 1;
         }
     }
     return 0;
@@ -1133,7 +1128,7 @@ INTEGER PIFAlizator::BuildFunction(ClassCode *CC, AnsiParser *P, INTEGER on_line
 
         if ((!sPARSE.Length()) && (P->Done())) {
             if (BEGIN_END_LEVEL) {
-                Errors.Add(new AnsiException(ERR1210, on_line ? on_line : P->LastLine(), 1210, AnsiString((intptr_t)BEGIN_END_LEVEL) + AnsiString(" level(s)"), FileName, CC->NAME, CM->NAME), DATA_EXCEPTION);
+                Errors.Add(new AnsiException(1210, ERR1210, on_line ? on_line : P->LastLine(), BEGIN_END_LEVEL, " level(s)", FileName, CC->NAME, CM->NAME), DATA_EXCEPTION);
             }
             break;
         }
@@ -1332,7 +1327,7 @@ INTEGER PIFAlizator::BuildFunction(ClassCode *CC, AnsiParser *P, INTEGER on_line
             }
             if (!_ID) {
                 AnsiString regexpClass("RegExp");
-                Warning(WRN10007, on_line ? on_line : P->LastLine(), 10007, regexpClass, FileName);
+                Warning(WRN10007, on_line ? on_line : P->LastLine(), 10007, regexpClass, FileName, CC ? CC->NAME.c_str() : "", CM ? CM->NAME : "");
 
                 ClassCode *CC1 = new ClassCode(regexpClass, this);
                 CC1->DEFINED_LEVEL = this->INCLUDE_LEVEL;
@@ -1601,7 +1596,7 @@ INTEGER PIFAlizator::BuildFunction(ClassCode *CC, AnsiParser *P, INTEGER on_line
                     _ID = ClassExists(sPARSE.c_str());
             }
             if (!_ID) {
-                Warning(WRN10007, on_line ? on_line : P->LastLine(), 10007, sPARSE, FileName);
+                Warning(WRN10007, on_line ? on_line : P->LastLine(), 10007, sPARSE, FileName, CC ? CC->NAME.c_str() : "", CM ? CM->NAME : "");
 
                 ClassCode *CC1 = new ClassCode(sPARSE, this);
                 CC1->DEFINED_LEVEL = this->INCLUDE_LEVEL;
@@ -1832,7 +1827,7 @@ INTEGER PIFAlizator::BuildFunction(ClassCode *CC, AnsiParser *P, INTEGER on_line
                     if (BUILTINOBJECTS(this, sPARSE.c_str())) {
                         _ID = ClassExists(sPARSE.c_str());
                     } else {
-                        Warning(WRN10007, on_line ? on_line : P->LastLine(), 10007, sPARSE, FileName);
+                        Warning(WRN10007, on_line ? on_line : P->LastLine(), 10007, sPARSE, FileName, CC ? CC->NAME.c_str() : "", CM ? CM->NAME : "");
 
                         ClassCode *CC1 = new ClassCode(sPARSE, this);
                         CC1->DEFINED_LEVEL = this->INCLUDE_LEVEL;
@@ -1945,9 +1940,9 @@ INTEGER PIFAlizator::BuildFunction(ClassCode *CC, AnsiParser *P, INTEGER on_line
         VariableDESCRIPTOR *VD = (VariableDESCRIPTOR *)VDList->Item(i);
         if (!VD->USED) {
             if (OPERATOR) {
-                Warning(WRN10003, on_line ? on_line : P->LastLine(), 10003, AnsiString("var '") + VD->name.c_str() + AnsiString("' in operator '") + CM->NAME + "'");
+                Warning3(WRN10003, on_line ? on_line : P->LastLine(), 10003, VD->name.c_str(), " in operator ", CM->NAME, CC ? CC->NAME.c_str() : "", CM ? CM->NAME : "");
             } else {
-                Warning(WRN10003, on_line ? on_line : P->LastLine(), 10003, AnsiString("var '") + VD->name.c_str() + AnsiString("' in function '") + CM->NAME + "'");
+                Warning3(WRN10003, on_line ? on_line : P->LastLine(), 10003, VD->name.c_str(), " in function ", CM->NAME, CC ? CC->NAME.c_str() : "", CM ? CM->NAME : "");
             }
         }
     }
@@ -2398,9 +2393,17 @@ INTEGER PIFAlizator::BuildClass(AnsiParser *P, INTEGER on_line) {
     return 0;
 }
 
-INTEGER PIFAlizator::Warning(const char *WRN, int line, int wrn_code, const char *extra, const char *filename) {
+INTEGER PIFAlizator::Warning(const char *WRN, int line, int wrn_code, const char *extra, const char *filename, const char *class_name, const char *member_name) {
     if (USE_WARN) {
-        Warnings.Add(new AnsiException(WRN, line, wrn_code, extra, filename ? filename : FileName.c_str()), DATA_EXCEPTION);
+        Warnings.Add(new AnsiException(WRN, line, wrn_code, extra, filename ? filename : FileName.c_str(), class_name, member_name), DATA_EXCEPTION);
+        return 1;
+    }
+    return 0;
+}
+
+INTEGER PIFAlizator::Warning3(const char *WRN, int line, int wrn_code, const char *extra1, const char *extra2, const char *extra3, const char *filename, const char *class_name, const char *member_name) {
+    if (USE_WARN) {
+        Warnings.Add(new AnsiException(wrn_code, WRN, line, extra1, extra2, extra3, filename ? filename : FileName.c_str(), class_name, member_name), DATA_EXCEPTION);
         return 1;
     }
     return 0;
@@ -2421,7 +2424,7 @@ INTEGER PIFAlizator::BuildPragma(AnsiParser *P, ClassCode *CC) {
         if (first_param == PRAGMA_OFF) {
             USE_WARN = 0;
         } else {
-            Warning(WRN10006, P->LastLine(), 10006, first_param);
+            Warning(WRN10006, P->LastLine(), 10006, first_param, 0, CC ? CC->NAME.c_str() : "");
         }
     } else
     if (first_param == PRAGMA_EXCEPTIONS) {
@@ -2432,7 +2435,7 @@ INTEGER PIFAlizator::BuildPragma(AnsiParser *P, ClassCode *CC) {
         if (first_param == PRAGMA_OFF) {
             USE_EXC = 0;
         } else {
-            Warning(WRN10006, P->LastLine(), 10006, first_param);
+            Warning(WRN10006, P->LastLine(), 10006, first_param, 0, CC ? CC->NAME.c_str() : "");
         }
     } else
     if (first_param == PRAGMA_IMPLICIT) {
@@ -2443,7 +2446,7 @@ INTEGER PIFAlizator::BuildPragma(AnsiParser *P, ClassCode *CC) {
         if (first_param == PRAGMA_OFF) {
             USE_IMPLICIT = 0;
         } else {
-            Warning(WRN10006, P->LastLine(), 10006, first_param);
+            Warning(WRN10006, P->LastLine(), 10006, first_param, 0, CC ? CC->NAME.c_str() : "");
         }
     } else
     if (first_param == PRAGMA_USED) {
@@ -2461,48 +2464,48 @@ INTEGER PIFAlizator::BuildPragma(AnsiParser *P, ClassCode *CC) {
         if (first_param == PRAGMA_OFF) {
             STRICT_MODE = 0;
         } else {
-            Warning(WRN10006, P->LastLine(), 10006, first_param);
+            Warning(WRN10006, P->LastLine(), 10006, first_param, 0, CC ? CC->NAME.c_str() : "");
         }
     } else {
-        Warning(WRN10005, P->LastLine(), 10005, first_param);
+        Warning(WRN10005, P->LastLine(), 10005, first_param, CC ? CC->NAME.c_str() : "");
     }
 
     return 0;
 }
 
-INTEGER PIFAlizator::IncludePackage(AnsiString filename) {
+INTEGER PIFAlizator::IncludePackage(const char *filename) {
     AnsiString RELATIVE_MODULE_NAME = TEMP_INC_DIR + filename;
-
+    AnsiString MODULE_NAME_DIR;
     RELATIVE_MODULE_NAME = this->NormalizePath(&RELATIVE_MODULE_NAME);
     // filename with no absolute path in it
     AnsiString clean_filename_dir;
 
-    if (ListContains(RELATIVE_MODULE_NAME, IncludedList))
+    if (ListContains(RELATIVE_MODULE_NAME.c_str(), IncludedList))
         return 1;
 
     FILE *in = fopen(AnsiString(RELATIVE_MODULE_NAME + (char *)DEFAULT_PACK_EXTENSION).c_str(), "rb");
 
     if (!in) {
-        AnsiString MODULE_NAME_DIR = AnsiString(INCLUDE_DIR) + filename;
+        MODULE_NAME_DIR = INCLUDE_DIR + filename;
         if (ListContains(filename, IncludedList)) {
             return 1;
         }
 
         in = fopen(AnsiString(MODULE_NAME_DIR + (char *)DEFAULT_PACK_EXTENSION).c_str(), "rb");
         clean_filename_dir = filename;
-        filename           = MODULE_NAME_DIR;
+        filename           = MODULE_NAME_DIR.c_str();;
     } else {
-        filename           = RELATIVE_MODULE_NAME;
+        filename           = RELATIVE_MODULE_NAME.c_str();
         clean_filename_dir = RELATIVE_MODULE_NAME;
     }
     if (in) {
         fclose(in);
-        IncludedList->Add(new AnsiString(clean_filename_dir), DATA_STRING);
+        IncludedList->Add(new TinyString(clean_filename_dir), DATA_TINYSTRING);
 
         AnsiString OLD_TEMP_INC_DIR = TEMP_INC_DIR;
         TEMP_INC_DIR = GetPath(&clean_filename_dir);
 
-        Unserialize(AnsiString(filename + (char *)DEFAULT_PACK_EXTENSION).c_str(), true);
+        Unserialize(AnsiString(AnsiString(filename) + (char *)DEFAULT_PACK_EXTENSION).c_str(), true);
 
         TEMP_INC_DIR = OLD_TEMP_INC_DIR;
 
@@ -2579,7 +2582,7 @@ INTEGER PIFAlizator::RuntimeIncludeCode(const char *CODE) {
     return 1;
 }
 
-INTEGER PIFAlizator::IncludeFile(AnsiString MODULE_NAME, INTEGER on_line) {
+INTEGER PIFAlizator::IncludeFile(const char *MODULE_NAME, INTEGER on_line) {
     INCLUDE_LEVEL++;
     AnsiString FILENAME             = MODULE_NAME;
     AnsiString RELATIVE_MODULE_NAME = TEMP_INC_DIR + MODULE_NAME;
@@ -2590,20 +2593,20 @@ INTEGER PIFAlizator::IncludeFile(AnsiString MODULE_NAME, INTEGER on_line) {
     if (!IncludePackage(MODULE_NAME)) {
         AnsiString ModuleStream;
         if (ModuleStream.LoadFile(RELATIVE_MODULE_NAME.c_str())) {
-            AnsiString MODULE_NAME_DIR = AnsiString(INCLUDE_DIR) + MODULE_NAME;
+            AnsiString MODULE_NAME_DIR = INCLUDE_DIR + MODULE_NAME;
             if (ModuleStream.LoadFile(MODULE_NAME_DIR.c_str())) {
                 Errors.Add(new AnsiException(ERR270, on_line, 270, MODULE_NAME, FileName), DATA_EXCEPTION);
                 INCLUDE_LEVEL--;
                 return 0;
             }
             clean_filename_dir = MODULE_NAME;
-            MODULE_NAME        = MODULE_NAME_DIR;
+            MODULE_NAME        = MODULE_NAME_DIR.c_str();
         } else {
-            MODULE_NAME        = RELATIVE_MODULE_NAME;
+            MODULE_NAME        = RELATIVE_MODULE_NAME.c_str();
             clean_filename_dir = RELATIVE_MODULE_NAME;
         }
-        if (!ListContains(clean_filename_dir, IncludedList)) {
-            IncludedList->Add(new AnsiString(clean_filename_dir), DATA_STRING);
+        if (!ListContains(clean_filename_dir.c_str(), IncludedList)) {
+            IncludedList->Add(new TinyString(clean_filename_dir), DATA_TINYSTRING);
             AnsiString OldFile = FileName;
             FileName = MODULE_NAME;
 
@@ -3447,6 +3450,7 @@ AnsiString PIFAlizator::PRINT_WARNINGS(int html) {
     return res;
 }
 
+#ifdef PRINT_DEBUG_INFO
 AnsiString PIFAlizator::DEBUG_CLASS_CONFIGURATION() {
     AnsiString res;
 
@@ -3499,6 +3503,7 @@ AnsiString PIFAlizator::DEBUG_CLASS_CONFIGURATION() {
     }
     return res;
 }
+#endif
 
 char *PIFAlizator::CheckMember(const char *member_name) {
     int  ref_id    = GeneralMembers->ContainsString(member_name);

@@ -157,11 +157,6 @@ void AnsiList::Clear() {
                     DATA = 0;
                     break;
 
-                case DATA_STRING:
-                    delete (AnsiString *)DATA;
-                    DATA = 0;
-                    break;
-
                 case DATA_VAR_DESCRIPTOR:
                     delete (VariableDESCRIPTOR *)DATA;
                     DATA = 0;
@@ -262,11 +257,6 @@ void *AnsiList::Delete(int i) {
                 switch (Cursor->data_type) {
                     case DATA_TINYSTRING:
                         delete (TinyString *)DATA;
-                        DATA = 0;
-                        break;
-
-                    case DATA_STRING:
-                        delete (AnsiString *)DATA;
                         DATA = 0;
                         break;
 

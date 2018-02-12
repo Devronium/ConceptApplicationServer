@@ -39,6 +39,12 @@ AnsiException::AnsiException(intptr_t ID, const char *text, int line, const char
     AnsiException(ID, text, line, extra1, extra_str, "", FileName, class_name, member_name);
 }
 
+AnsiException::AnsiException(intptr_t ID, const char *text, int line, int extra1, const char *extra2, const char *FileName, const char *class_name, const char *member_name) {
+    char extra_str[21];
+    sprintf(extra_str, "%i", extra1);
+    AnsiException(ID, text, line, extra_str, extra2, "", FileName, class_name, member_name);
+}
+
 AnsiException::AnsiException(intptr_t ID, const char *text, int line, const char *extra1, const char *extra2, int extra3, const char *FileName, const char *class_name, const char *member_name) {
     char extra_str[21];
     sprintf(extra_str, "%i", extra2);
@@ -138,7 +144,7 @@ void AnsiException::set_string2(char **var, const char *text1, const char *text2
             if (len2)
                 memcpy(*var + len1, text2, len2);
             if (len3)
-                memcpy(*var + len3, text2, len3);
+                memcpy(*var + len1 + len2, text3, len3);
             (*var)[len] = 0;
         }
     } else

@@ -288,8 +288,8 @@ class PIFAlizator {
     INTEGER BuildProperty(ClassCode *CC, AnsiParser *P, INTEGER on_line = 0, INTEGER ACCESS = ACCESS_PUBLIC);
     INTEGER BuildEvent(ClassCode *CC, AnsiParser *P, INTEGER on_line = 0, INTEGER ACCESS = ACCESS_PUBLIC);
     INTEGER BuildOverride(ClassCode *CC, AnsiParser *P, INTEGER on_line);
-    INTEGER IncludePackage(AnsiString filename);
-    INTEGER IncludeFile(AnsiString MODULE_NAME, INTEGER on_line);
+    INTEGER IncludePackage(const char *filename);
+    INTEGER IncludeFile(const char *MODULE_NAME, INTEGER on_line);
     INTEGER RuntimeIncludeCode(const char *CODE);
 
     AnsiString NormalizePath(AnsiString *MODULE_NAME);
@@ -300,7 +300,7 @@ class PIFAlizator {
 
     INTEGER Execute(AnsiString *Stream, INTEGER on_line = 0, char _USE_WARN = DEFAULT_USE_WARNINGS, char _USE_EXC = DEFAULT_USE_EXCEPTIONS, char _USE_IMPLICIT = DEFAULT_USE_IMPLICIT);
     SYS_INT ClassExists(const char *name, char by_addr = 0, int *index = 0);
-    INTEGER ListContains(AnsiString& S, AnsiList *VDList, char is_tiny = false);
+    INTEGER ListContains(const char *S, AnsiList *VDList);
     INTEGER BuildVariable(ClassCode *CC, AnsiParser *P, INTEGER on_line, INTEGER ACCESS);
     INTEGER ExtendClass(ClassCode *CC, AnsiParser *P, INTEGER on_line, INTEGER OWNER_CLSID);
 
@@ -325,7 +325,8 @@ class PIFAlizator {
     int          INCLUDE_LEVEL;
 
     char         enable_private;
-    INTEGER Warning(const char *WRN, int line, int wrn_code, const char *extra, const char *filename = 0);
+    INTEGER Warning(const char *WRN, int line, int wrn_code, const char *extra, const char *filename = 0, const char *class_name = 0, const char *member_name = 0);
+    INTEGER Warning3(const char *WRN, int line, int wrn_code, const char *extra1, const char *extra2, const char *extra3, const char *filename = 0, const char *class_name = 0, const char *member_name = 0);
     void DefineConstant(const char *name, const char *value, int is_string = 1);
 
     char *CheckMember(const char *member_name);
@@ -397,8 +398,8 @@ public:
 
     char is_buffer;
 
-    AnsiString DEBUG_CLASS_CONFIGURATION();
 #ifdef PRINT_DEBUG_INFO
+    AnsiString DEBUG_CLASS_CONFIGURATION();
     AnsiString DEBUG_INFO();
 #endif
     AnsiString PRINT_ERRORS(int html = 0);

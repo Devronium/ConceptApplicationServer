@@ -4,7 +4,6 @@
 #include "ConceptPools.h"
 
 #define DATA_HANDLER              -1
-#define DATA_STRING               0x01
 #define DATA_VAR_DESCRIPTOR       0x02
 #define DATA_VECTOR               0x03
 #define DATA_32_BIT               0x04

@@ -58,14 +58,12 @@ AnsiString::AnsiString() {
     Data       = NULL;
     _DATA_SIZE = 0;
     _LENGTH    = 0;
-    EXTRA_DATA = 0;
 }
 
 AnsiString::AnsiString(char *value) {
     Data       = NULL;
     _LENGTH    = 0;
     _DATA_SIZE = 0;
-    EXTRA_DATA = 0;
     operator=(value);
 }
 
@@ -73,7 +71,6 @@ AnsiString::AnsiString(const char *value) {
     Data       = NULL;
     _LENGTH    = 0;
     _DATA_SIZE = 0;
-    EXTRA_DATA = 0;
     operator=((char *)value);
 }
 
@@ -81,7 +78,6 @@ AnsiString::AnsiString(D_LONG_TYPE i) {
     Data       = NULL;
     _LENGTH    = 0;
     _DATA_SIZE = 0;
-    EXTRA_DATA = 0;
     operator=(i);
 }
 
@@ -89,7 +85,6 @@ AnsiString::AnsiString(int i) {
     Data       = NULL;
     _LENGTH    = 0;
     _DATA_SIZE = 0;
-    EXTRA_DATA = 0;
     operator=((D_LONG_TYPE)i);
 }
 
@@ -97,7 +92,6 @@ AnsiString::AnsiString(char c) {
     Data       = NULL;
     _LENGTH    = 0;
     _DATA_SIZE = 0;
-    EXTRA_DATA = 0;
     operator=(c);
 }
 
@@ -105,7 +99,6 @@ AnsiString::AnsiString(double d) {
     Data       = NULL;
     _LENGTH    = 0;
     _DATA_SIZE = 0;
-    EXTRA_DATA = 0;
     operator=(d);
 }
 
@@ -113,7 +106,6 @@ AnsiString::AnsiString(const AnsiString& S) {
     Data       = NULL;
     _LENGTH    = 0;
     _DATA_SIZE = 0;
-    EXTRA_DATA = 0;
     if (S._LENGTH) {
         this->LoadBuffer(S.Data, S._LENGTH);
     }
