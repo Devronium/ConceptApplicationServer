@@ -1,6 +1,5 @@
 #include "Codes.h"
 #include "ConceptTypes.h"
-#include "AnsiString.h"
 #include "CompiledClass.h"
 #include "Debugger.h"
 #include "ConceptInterpreter.h"
@@ -69,10 +68,8 @@ VariableDATA *GetClassMember(void *CLASS_PTR, const char *class_member_name) {
                     if (CCode->RELOCATIONS2) {
                         index = CCode->RELOCATIONS2 [index] - 1;
                         if (index >= 0) {
-                            if ((CONTEXT) && (!CONTEXT [index])) {
-                                if ((CM->VD) && ((CM->VD->TYPE != VARIABLE_NUMBER) || (CM->VD->nValue)))
-                                    CompiledClass_CreateVariable((struct CompiledClass *)CLASS_PTR, index, CM);
-                            }
+                            if ((CONTEXT) && (!CONTEXT [index]))
+                                CompiledClass_CreateVariable((struct CompiledClass *)CLASS_PTR, index, CM);
                             return CONTEXT [index];
                         }
                     }
@@ -83,20 +80,15 @@ VariableDATA *GetClassMember(void *CLASS_PTR, const char *class_member_name) {
     return 0;
 }
 
-VariableDATA *GetClassMembers(void *CLASS_PTR, const char *members_string) {
-    AnsiString ParsedVariableName = members_string;
-    AnsiString _S(".");
-    int        point            = ParsedVariableName.Pos(_S);
-    void       *CLASS_PTR_LOCAL = CLASS_PTR;
-
-    while (point > 0) {
-        AnsiString temp_varname = ParsedVariableName;
-        AnsiString temp2        = temp_varname;
-        temp2.c_str() [point - 1] = 0;
-        temp_varname       = (char *)temp2.c_str();
-        temp2              = ParsedVariableName.c_str() + point;
-        ParsedVariableName = temp2;
-        VariableDATA *Temp = GetClassMember(CLASS_PTR_LOCAL, temp_varname);
+VariableDATA *GetClassMembers(void *CLASS_PTR, char *members_string) {
+    const char *ParsedVariableName = members_string;
+    void *CLASS_PTR_LOCAL = CLASS_PTR;
+    char *pch = strchr((char *)members_string, '.');
+    while (pch) {
+        pch[0] = 0;
+        pch++;
+        ParsedVariableName = pch;
+        VariableDATA *Temp = GetClassMember(CLASS_PTR_LOCAL, members_string);
         if ((Temp) && (Temp->TYPE == VARIABLE_CLASS)) {
             CLASS_PTR_LOCAL = Temp->CLASS_DATA;
         } else {
@@ -105,7 +97,8 @@ VariableDATA *GetClassMembers(void *CLASS_PTR, const char *members_string) {
         if (!CLASS_PTR_LOCAL) {
             return 0;
         }
-        point = ParsedVariableName.Pos(_S);
+        members_string = pch;
+        pch = strchr(pch, '.');
     }
     return CLASS_PTR_LOCAL ? GetClassMember(CLASS_PTR_LOCAL, ParsedVariableName) : 0;
 }
@@ -152,21 +145,16 @@ int GetVariableByName(int operation, void **VDESC, void **CONTEXT, int Depth, ch
     }
     CLEAN_VARS;
 
-    AnsiString ParsedVariableName = VariableName;
-    AnsiString temp_varname       = VariableName;
-    int        point = ParsedVariableName.Pos(AnsiString("."));
-    if (point > 0) {
-        temp_varname = ParsedVariableName;
-        AnsiString temp2 = temp_varname;
-        temp2.c_str() [point - 1] = 0;
-        temp_varname       = (char *)temp2.c_str();
-        temp2              = ParsedVariableName.c_str() + point;
-        ParsedVariableName = temp2;
-    } else {
-        point = 0;
+    
+    char *temp_varname = strdup(VariableName);
+    char *ParsedVariableName = temp_varname;
+    char *pch = strchr(temp_varname, '.');
+    if (pch) {
+        pch [0] = 0;
+        pch ++;
+        ParsedVariableName = pch;
     }
-
-    INTEGER i = ((PIFAlizator *)PIF)->FindVariableByName(VDESC, temp_varname.c_str());
+    INTEGER i = ((PIFAlizator *)PIF)->FindVariableByName(VDESC, temp_varname);
     if ((i >= 0) && (i < Depth)) {
         if (((VariableDATA *)CONTEXT [i])->TYPE == VARIABLE_STRING) {
             if (operation == 0) {
@@ -177,8 +165,8 @@ int GetVariableByName(int operation, void **VDESC, void **CONTEXT, int Depth, ch
             }
 
             CLEAN_VARS;
-
-            return point ? 0 : VARIABLE_STRING;
+            free(temp_varname);
+            return pch ? 0 : VARIABLE_STRING;
         } else
         if (((VariableDATA *)CONTEXT [i])->TYPE == VARIABLE_NUMBER) {
             if (operation == 0) {
@@ -190,20 +178,22 @@ int GetVariableByName(int operation, void **VDESC, void **CONTEXT, int Depth, ch
             }
 
             CLEAN_VARS;
-
-            return point ? 0 : VARIABLE_NUMBER;
+            free(temp_varname);
+            return pch ? 0 : VARIABLE_NUMBER;
         } else
         if (((VariableDATA *)CONTEXT [i])->TYPE == VARIABLE_CLASS) {
             if (operation == 0) {
                 strncpy(buffer, CompiledClass_GetClassName((struct CompiledClass *)((VariableDATA *)CONTEXT [i])->CLASS_DATA), buf_size);
             }
-            if (!point) {
+            if (!pch) {
                 CLEAN_VARS;
+                free(temp_varname);
                 return VARIABLE_CLASS;
             } else {
-                VariableDATA *VD = GetClassMembers(((VariableDATA *)CONTEXT [i])->CLASS_DATA, ParsedVariableName.c_str());
+                VariableDATA *VD = GetClassMembers(((VariableDATA *)CONTEXT [i])->CLASS_DATA, ParsedVariableName);
                 if (!VD) {
                     CLEAN_VARS;
+                    free(temp_varname);
                     return 0;
                 }
                 switch (VD->TYPE) {
@@ -214,12 +204,12 @@ int GetVariableByName(int operation, void **VDESC, void **CONTEXT, int Depth, ch
                         if (operation == 1) {
                             CONCEPT_STRING_SET_CSTR(VD, buffer);
                             if (VD->IS_PROPERTY_RESULT) {
-                                SetClassMember(((VariableDATA *)CONTEXT [i])->CLASS_DATA, ParsedVariableName.c_str(), VARIABLE_STRING, buffer, 0);
+                                SetClassMember(((VariableDATA *)CONTEXT [i])->CLASS_DATA, ParsedVariableName, VARIABLE_STRING, buffer, 0);
                             }
                         }
                         CLEAN_VARS;
+                        free(temp_varname);
                         return VD->TYPE;
-                        break;
 
                     case VARIABLE_NUMBER:
                         if (operation == 0) {
@@ -229,20 +219,20 @@ int GetVariableByName(int operation, void **VDESC, void **CONTEXT, int Depth, ch
                         if (operation == 1) {
                             VD->NUMBER_DATA = atof(buffer);
                             if (VD->IS_PROPERTY_RESULT) {
-                                SetClassMember(((VariableDATA *)CONTEXT [i])->CLASS_DATA, ParsedVariableName.c_str(), VARIABLE_NUMBER, "", VD->NUMBER_DATA);
+                                SetClassMember(((VariableDATA *)CONTEXT [i])->CLASS_DATA, ParsedVariableName, VARIABLE_NUMBER, "", VD->NUMBER_DATA);
                             }
                         }
                         CLEAN_VARS;
+                        free(temp_varname);
                         return VD->TYPE;
-                        break;
 
                     case VARIABLE_CLASS:
                         if (operation == 0) {
                             strncpy(buffer, CompiledClass_GetClassName((struct CompiledClass *)VD->CLASS_DATA), buf_size);
                         }
                         CLEAN_VARS;
+                        free(temp_varname);
                         return VD->TYPE;
-                        break;
 
                     case VARIABLE_ARRAY:
                         if (operation == 0) {
@@ -253,34 +243,34 @@ int GetVariableByName(int operation, void **VDESC, void **CONTEXT, int Depth, ch
                             }
                         }
                         CLEAN_VARS;
+                        free(temp_varname);
                         return VD->TYPE;
-                        break;
 
                     case VARIABLE_DELEGATE:
-                        {
-                            if (operation == 0) {
-                                struct plainstring *str = plainstring_new_str(CompiledClass_GetClassName((struct CompiledClass *)VD->CLASS_DATA));
-                                plainstring_add_char(str, '.');
-                                plainstring_add(str, ((struct CompiledClass *)VD->CLASS_DATA)->_Class->pMEMBERS [(INTEGER)VD->DELEGATE_DATA]->NAME);
-                                strncpy(buffer, plainstring_c_str(str), buf_size);
-                                plainstring_delete(str);
-                            }
-                            CLEAN_VARS;
-                            return VD->TYPE;
+                        if (operation == 0) {
+                            struct plainstring *str = plainstring_new_str(CompiledClass_GetClassName((struct CompiledClass *)VD->CLASS_DATA));
+                            plainstring_add_char(str, '.');
+                            plainstring_add(str, ((struct CompiledClass *)VD->CLASS_DATA)->_Class->pMEMBERS [(INTEGER)VD->DELEGATE_DATA]->NAME);
+                            strncpy(buffer, plainstring_c_str(str), buf_size);
+                            plainstring_delete(str);
                         }
-                        break;
+                        CLEAN_VARS;
+                        free(temp_varname);
+                        return VD->TYPE;
 
                     default:
                         CLEAN_VARS;
+                        free(temp_varname);
                         return 0;
                 }
             }
         }
         CLEAN_VARS;
+        free(temp_varname);
         return 0;
     }
-    //}
     CLEAN_VARS;
+    free(temp_varname);
     return 0;
 }
 

@@ -88,10 +88,6 @@ void StaticList::Add(const char *str, int len) {
     }
 }
 
-void StaticList::Add(AnsiString& str) {
-    this->Add(str.c_str(), str.Length());
-}
-
 void StaticList::Add(TinyString& str) {
     this->Add(str.c_str(), str.Length());
 }

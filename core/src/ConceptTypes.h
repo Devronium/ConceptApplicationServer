@@ -408,7 +408,7 @@ struct GreenThreadCycle {
     }                                                            \
     concept_fwrite(&VD_DUMMY, sizeof(VD_DUMMY), 1, out);         \
     if ((VD_TYPE == VARIABLE_NUMBER) && (VD->nValue)) {          \
-        VD->value = AnsiString(VD->nValue); }                    \
+        VD->value = TinyString(VD->nValue).c_str(); }            \
     if (VD->value.Length()) {                                    \
         concept_fwrite_int(&VD_TYPE, sizeof(VD_TYPE), 1, out);   \
         VD->value.Serialize(out, SERIALIZE_32BIT_LENGTH);        \
@@ -429,7 +429,7 @@ struct GreenThreadCycle {
     }                                                            \
     concept_fwrite_int(&VD->BY_REF, sizeof(VD->BY_REF), 1, out); \
     if ((VD_TYPE == VARIABLE_NUMBER) && (VD->nValue)) {          \
-        VD->value = AnsiString(VD->nValue); }                    \
+        VD->value = TinyString(VD->nValue).c_str(); }            \
     if (VD->value.Length()) {                                    \
         concept_fwrite_int(&VD_TYPE, sizeof(VD_TYPE), 1, out);   \
         VD->value.Serialize(out, SERIALIZE_32BIT_LENGTH);        \
@@ -653,14 +653,10 @@ public:
         }
     }
 
-    void Print2(AnsiString& s, int message_id = -1) {
-        this->Print(s.c_str(), s.Length(), message_id);
-    }
-
     void Print(double val) {
-        AnsiString value(val);
-
-        Print(value.c_str());
+        char buffer[0xFF];
+        cstr_loaddouble(buffer, val);
+        Print(buffer);
     }
 
     void ClientError(const char *error_text, int err_id = -11) {

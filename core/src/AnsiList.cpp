@@ -1,6 +1,5 @@
 #include "AnsiList.h"
 
-#include "AnsiString.h"
 #include "ConceptTypes.h"
 #include "AnsiException.h"
 #include "ClassCode.h"

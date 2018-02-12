@@ -1,7 +1,6 @@
 #ifndef __STATICLIST_H
 #define __STATICLIST_H
 #include "ConceptPools.h"
-#include "AnsiString.h"
 #include "TinyString.h"
 
 #define CACHED_LIST
@@ -35,7 +34,6 @@ public:
     StaticList();
     void Add(const char *str, int len = -1);
     void PoolMap(int len);
-    void Add(AnsiString& str);
     void Add(TinyString& str);
     int ContainsString(const char *str);
 

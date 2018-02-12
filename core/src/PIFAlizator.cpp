@@ -3521,13 +3521,17 @@ char *PIFAlizator::CheckMember(const char *member_name) {
 
 INTEGER PIFAlizator::FindVariableByName(void *key, const char *name) {
 #ifdef DEBUGGER_VAR_NAMES
-    int  len = strlen(name);
-    char buf[0x108];
+    int len = strlen(name);
+    char buf[0x100 + sizeof(void *) * 2 + 1];
+    buf[0] = 0;
+    if (sizeof(void *) == 8)
+        sprintf(buf, "%16llx", key);
+    else
+        sprintf(buf, "%08x", key);
     if (len > 0x100)
         len = 0x100;
-    memcpy(buf, &key, sizeof(void *));
-    memcpy(buf + sizeof(void *), name, len);
-    len += sizeof(void *);
+    memcpy(buf + sizeof(void *) * 2, name, len);
+    buf[sizeof(void *) * 2 + len] = 0;
     return DebugVarNames[buf] - 1;
 #else
     return -1;
@@ -3536,13 +3540,17 @@ INTEGER PIFAlizator::FindVariableByName(void *key, const char *name) {
 
 void PIFAlizator::RegisterVariableName(void *key, const char *name, INTEGER val) {
 #ifdef DEBUGGER_VAR_NAMES
-    int  len = strlen(name);
-    char buf[0x108];
+    int len = strlen(name);
+    char buf[0x100 + sizeof(void *) * 2 + 1];
+    buf[0] = 0;
+    if (sizeof(void *) == 8)
+        sprintf(buf, "%16llx", key);
+    else
+        sprintf(buf, "%08x", key);
     if (len > 0x100)
         len = 0x100;
-    memcpy(buf, &key, sizeof(void *));
-    memcpy(buf + sizeof(void *), name, len);
-    len += sizeof(void *);
+    memcpy(buf + sizeof(void *) * 2, name, len);
+    buf[sizeof(void *) * 2 + len] = 0;
     DebugVarNames.add(buf, val + 1);
 #endif
 }
