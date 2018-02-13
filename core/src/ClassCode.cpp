@@ -43,15 +43,13 @@ ParamList * ClassCode::EMPTY_PARAM_LIST = 0;
                     break; \
             } \
         }
-static int delegate_count;
+
 struct ClassDelegate *new_Delegate(void *CLASS_DATA, CLASS_MEMBERS_DOMAIN DELEGATE_DATA) {
-    delegate_count++;
     struct ClassDelegate *self = (struct ClassDelegate *)malloc(sizeof(struct ClassDelegate));
     self->CLASS_DATA = CLASS_DATA;
     self->DELEGATE_DATA = DELEGATE_DATA;
     if (CLASS_DATA)
         ((CompiledClass *)CLASS_DATA)->LINKS ++;
-    //fprintf(stderr, "xDELEGATES: %i\n", delegate_count);
     return self;
 }
 
@@ -76,19 +74,6 @@ void delete_Delegate(void *self) {
             delete_CompiledClass((struct CompiledClass *)deleg->CLASS_DATA);
     }
     free(deleg);
-    delegate_count--;
-    // fprintf(stderr, "DELEGATES: %i\n", delegate_count);
-}
-
-void delete_Delegate_no_class(void *self) {
-    if (!self)
-        return;
-    struct ClassDelegate *deleg = (struct ClassDelegate *)self;
-    if (deleg->CLASS_DATA)
-        ((struct CompiledClass *)deleg->CLASS_DATA)->LINKS--;
-    free(deleg);
-    delegate_count--;
-    // fprintf(stderr, "DELEGATES: %i\n", delegate_count);
 }
 
 void free_Delegate(void *self) {
@@ -96,8 +81,6 @@ void free_Delegate(void *self) {
         return;
     struct ClassDelegate *deleg = (struct ClassDelegate *)self;
     free(deleg);
-    delegate_count--;
-    // fprintf(stderr, "DELEGATES: %i\n", delegate_count);
 }
 
 struct ClassDelegate *copy_Delegate(const void *deleg) {
@@ -452,13 +435,13 @@ int ClassCode::GetSerialMembers(CompiledClass *CC, int max_members,
                             {
                                 class_data [index] = delegate_Class(CC->_CONTEXT [reloc]->CLASS_DATA);
                                 int         relocation = delegate_Member(CC->_CONTEXT [reloc]->CLASS_DATA);
-                                ClassMember *CMD       = relocation ? ((struct CompiledClass *)CC->_CONTEXT [reloc]->CLASS_DATA)->_Class->pMEMBERS [relocation - 1] : 0;
+                                ClassMember *CMD       = relocation ? ((struct CompiledClass *)delegate_Class(CC->_CONTEXT [reloc]->CLASS_DATA))->_Class->pMEMBERS [relocation - 1] : 0;
                                 if (CMD) {
                                     n_data [index] = (intptr_t)CMD->NAME;
                                 } else {
                                     n_data [index] = 0;
                                 }
-                                szValue [index] = (char *)((struct CompiledClass *)CC->_CONTEXT [reloc]->CLASS_DATA)->_Class->NAME.c_str();
+                                szValue [index] = (char *)((struct CompiledClass *)delegate_Class(CC->_CONTEXT [reloc]->CLASS_DATA))->_Class->NAME.c_str();
                             }
                             break;
                     }
@@ -596,7 +579,7 @@ CompiledClass *ClassCode::CreateInstance(PIFAlizator *PIF, VariableDATA *Owner, 
                 } else
                 if (THROW_DATA->TYPE == VARIABLE_DELEGATE) {
                     plainstring_add(data, "Delegate of ");
-                    plainstring_add(data, CompiledClass_GetClassName((struct CompiledClass *)THROW_DATA->CLASS_DATA));
+                    plainstring_add(data, CompiledClass_GetClassName((struct CompiledClass *)delegate_Class(THROW_DATA->CLASS_DATA)));
                 }
 
                 FREE_VARIABLE(THROW_DATA);
@@ -954,7 +937,7 @@ VariableDATA *ClassCode::ExecuteMember(PIFAlizator *PIF, INTEGER i, VariableDATA
                         IMAGE->CLASS_DATA = RESULT->CLASS_DATA;
                     } else
                     if (RESULT->TYPE == VARIABLE_DELEGATE) {
-                        IMAGE->CLASS_DATA    = copy_Delegate(RESULT->CLASS_DATA);
+                        IMAGE->CLASS_DATA = copy_Delegate(RESULT->CLASS_DATA);
                     } else {
                         IMAGE->NUMBER_DATA = RESULT->NUMBER_DATA;
                     }

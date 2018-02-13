@@ -5939,29 +5939,26 @@ void ConceptInterpreter::DestroyEnviroment(PIFAlizator *PIF, VariableDATA **LOCA
                     if (VARIABLE->TYPE == VARIABLE_STRING) {
                         plainstring_delete((struct plainstring *)VARIABLE->CLASS_DATA);
                     } else
-                    if ((VARIABLE->TYPE == VARIABLE_CLASS) || (VARIABLE->TYPE == VARIABLE_DELEGATE)) {
+                    if (VARIABLE->TYPE == VARIABLE_CLASS) {
                         if (!--((struct CompiledClass *)VARIABLE->CLASS_DATA)->LINKS) {
-#ifdef SIMPLE_MULTI_THREADING
                             VARIABLE->TYPE = VARIABLE_NUMBER;
                             CC_WRITE_UNLOCK(PIF)
-#endif
                             delete_CompiledClass((struct CompiledClass *)VARIABLE->CLASS_DATA);
-#ifdef SIMPLE_MULTI_THREADING
                             CC_WRITE_LOCK2(PIF)
-#endif
                         }
                     } else
                     if (VARIABLE->TYPE == VARIABLE_ARRAY) {
                         if (!--((struct Array *)VARIABLE->CLASS_DATA)->LINKS) {
-#ifdef SIMPLE_MULTI_THREADING
                             VARIABLE->TYPE = VARIABLE_NUMBER;
                             CC_WRITE_UNLOCK(PIF)
-#endif
                             delete_Array((struct Array *)VARIABLE->CLASS_DATA);
-#ifdef SIMPLE_MULTI_THREADING
                             CC_WRITE_LOCK2(PIF)
-#endif
                         }
+                    } else
+                    if (VARIABLE->TYE == VARIABLE_DELEGATE) {
+                        CC_WRITE_UNLOCK(PIF)
+                        delete_Delegate(VARIABLE->CLASS_DATA);
+                        CC_WRITE_LOCK2(PIF)
                     }
                 }
                 VAR_FREE(VARIABLE);
@@ -6037,9 +6034,9 @@ void ConceptInterpreter::DestroyGC(PIFAlizator *PIF, VariableDATA **LOCAL_CONTEX
                     void *CLASS_DATA = LOCAL_CONTEXT_i->CLASS_DATA;
                     if (LOCAL_CONTEXT_i->TYPE == VARIABLE_DELEGATE) {
                         CLASS_DATA = delegate_Class(CLASS_DATA);
-                        delete_Delegate(LOCAL_CONTEXT_i->CLASS_DATA);
+                        free_Delegate(LOCAL_CONTEXT_i->CLASS_DATA);
                         LOCAL_CONTEXT_i->TYPE = VARIABLE_NUMBER;
-                        LOCAL_CONTEXT_i->CLASS_DATA = NULL;
+                        LOCAL_CONTEXT_i->NUMBER_DATA = 0;
                     }
                     __gc_obj.Reference(CLASS_DATA);
                     if (!i) {
@@ -6071,7 +6068,8 @@ void ConceptInterpreter::DestroyGC(PIFAlizator *PIF, VariableDATA **LOCAL_CONTEX
                     if (LOCAL_CONTEXT_i->TYPE == VARIABLE_DELEGATE) {
                         CLASS_DATA = delegate_Class(CLASS_DATA);
                         free_Delegate(LOCAL_CONTEXT_i->CLASS_DATA);
-                        LOCAL_CONTEXT_i->CLASS_DATA = NULL;
+                        LOCAL_CONTEXT_i->TYPE = VARIABLE_NUMBER;
+                        LOCAL_CONTEXT_i->NUMBER_DATA = 0;
                     }
                     __gc_obj.Reference(CLASS_DATA);
                     CompiledClass__GO_GARBAGE((struct CompiledClass *)CLASS_DATA, PIF, &__gc_obj, &__gc_array, &__gc_vars);

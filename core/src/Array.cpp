@@ -867,7 +867,8 @@ void Array_GO_GARBAGE(struct Array *self, void *PIF, GarbageCollector *__gc_obj,
                         if (Var->TYPE == VARIABLE_DELEGATE) {
                             CLASS_DATA = delegate_Class(CLASS_DATA);
                             free_Delegate(Var->CLASS_DATA);
-                            Var->CLASS_DATA = NULL;
+                            Var->TYPE = VARIABLE_NUMBER;
+                            Var->NUMBER_DATA = 0;
                         }
                         if ((check_objects == -1) || ((((struct CompiledClass *)CLASS_DATA)->reachable & check_objects) != check_objects)) {
                             __gc_obj->Reference(CLASS_DATA);
@@ -981,7 +982,7 @@ struct plainstring *Array_ToString(struct Array *self, int level, Array *parent,
                 case VARIABLE_DELEGATE:
                     plainstring_add(result, ((struct CompiledClass *)delegate_Class(VD->CLASS_DATA))->_Class->NAME.c_str());
                     plainstring_add(result, "::");
-                    plainstring_add(result, ((struct CompiledClass *)VD->CLASS_DATA)->_Class->pMEMBERS [(INTEGER)delegate_Member(VD->CLASS_DATA) - 1]->NAME);
+                    plainstring_add(result, ((struct CompiledClass *)delegate_Class(VD->CLASS_DATA))->_Class->pMEMBERS [(INTEGER)delegate_Member(VD->CLASS_DATA) - 1]->NAME);
                     break;
             }
             plainstring_add(result, "\n");

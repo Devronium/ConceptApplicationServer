@@ -380,14 +380,14 @@ INTEGER SetClassMember(void *CLASS_PTR, const char *class_member_name, INTEGER T
 
                     if (TYPE == VARIABLE_CLASS) {
                         Parameter->CLASS_DATA = (void *)STRING_VALUE;
-                        ((struct CompiledClass *)CLASS_PTR)->LINKS++;
+                        ((struct CompiledClass *)STRING_VALUE)->LINKS++;
                     } else
                     if (TYPE == VARIABLE_DELEGATE) {
                         Parameter->CLASS_DATA = new_Delegate((void *)STRING_VALUE, (int)NUMBER_VALUE);
                     } else
                     if (TYPE == VARIABLE_ARRAY) {
                         Parameter->CLASS_DATA = (void *)STRING_VALUE;
-                        ((struct Array *)CLASS_PTR)->LINKS++;
+                        ((struct Array *)STRING_VALUE)->LINKS++;
                     } else
                     if (TYPE == VARIABLE_STRING) {
                         Parameter->CLASS_DATA     = 0;
@@ -690,7 +690,7 @@ INTEGER Invoke(INTEGER INVOKE_TYPE, ...) {
                 FORMAL_PARAM.COUNT       = 0;
                 FORMAL_PARAM.PARAM_INDEX = 0;
 
-                VariableDATA dummyVD [1];
+                VariableDATA *dummyVD [1] = {NULL};
                 SCStack *STACK_TRACE = NULL;
 #ifndef SIMPLE_MULTI_THREADING
                 if (pif) {
@@ -704,7 +704,7 @@ INTEGER Invoke(INTEGER INVOKE_TYPE, ...) {
 #endif
                 target->TYPE       = VARIABLE_CLASS;
                 target->CLASS_DATA = NULL;
-                target->CLASS_DATA = CC->CreateInstance(pif, target, 0, &FORMAL_PARAM, (VariableDATA **)&dummyVD, STACK_TRACE);
+                target->CLASS_DATA = CC->CreateInstance(pif, target, 0, &FORMAL_PARAM, dummyVD, STACK_TRACE);
                 if (!target->CLASS_DATA) {
                     target->TYPE = VARIABLE_NUMBER;
                     result       = INVALID_INVOKE_PARAMETER;

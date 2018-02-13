@@ -79,7 +79,7 @@ public:
             BASE = kh_init(int64hashtable);
 
         int ret;
-        khiter_t k = kh_put(int64hashtable, BASE, (uintptr_t)data, &ret);
+        kh_put(int64hashtable, BASE, (uintptr_t)data, &ret);
 #else
         if (!IsReferenced(data)) {
             GarbageElement *NODE = (GarbageElement *)malloc(sizeof(GarbageElement));
@@ -97,7 +97,6 @@ public:
 #ifdef USE_HASHTABLE_GC
         if (BASE) {
             khiter_t k = kh_get(int64hashtable, BASE, (uintptr_t)data);
-            intptr_t index = 0;
             if (k != kh_end(BASE))
                 kh_del(int64hashtable, BASE, k);
             return data;
