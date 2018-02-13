@@ -205,12 +205,14 @@ INTEGER SetVariable(VariableDATA *VD, INTEGER TYPE, char *STRING_VALUE, NUMBER N
             }
         }
     } else
-    if ((VD->TYPE == VARIABLE_CLASS) || (VD->TYPE == VARIABLE_ARRAY) || (VD->TYPE == VARIABLE_DELEGATE)) {
+    if (VD->TYPE == VARIABLE_DELEGATE) {
+        VD->CLASS_DATA = new_Delegate((void *)STRING_VALUE, (int)NUMBER_VALUE);
+        ((struct CompiledClass *)delegate_Class(VD->CLASS_DATA))->reachable = 0x1C;
+    } else
+    if ((VD->TYPE == VARIABLE_CLASS) || (VD->TYPE == VARIABLE_ARRAY)) {
         VD->CLASS_DATA = (void *)STRING_VALUE;
-        if ((TYPE == VARIABLE_CLASS) || (TYPE == VARIABLE_DELEGATE)) {
+        if (TYPE == VARIABLE_CLASS) {
             ((struct CompiledClass *)VD->CLASS_DATA)->LINKS++;
-            if (TYPE == VARIABLE_DELEGATE)
-                VD->DELEGATE_DATA = (int)NUMBER_VALUE;
             ((struct CompiledClass *)VD->CLASS_DATA)->reachable = 0x1C;
         } else {
             ((struct Array *)VD->CLASS_DATA)->LINKS++;
@@ -237,8 +239,8 @@ INTEGER GetVariable(VariableDATA *VD, INTEGER *TYPE, char **STRING_VALUE, NUMBER
         *NUMBER_VALUE = 0;
     } else
     if (VD->TYPE == VARIABLE_DELEGATE) {
-        *STRING_VALUE = (char *)VD->CLASS_DATA;
-        *NUMBER_VALUE = VD->DELEGATE_DATA;
+        *STRING_VALUE = (char *)delegate_Class(VD->CLASS_DATA);
+        *NUMBER_VALUE = delegate_Member(VD->CLASS_DATA);
     } else {
         *NUMBER_VALUE = VD->NUMBER_DATA;
     }
@@ -381,9 +383,7 @@ INTEGER SetClassMember(void *CLASS_PTR, const char *class_member_name, INTEGER T
                         ((struct CompiledClass *)CLASS_PTR)->LINKS++;
                     } else
                     if (TYPE == VARIABLE_DELEGATE) {
-                        Parameter->CLASS_DATA = (void *)STRING_VALUE;
-                        ((struct CompiledClass *)CLASS_PTR)->LINKS++;
-                        Parameter->DELEGATE_DATA = (int)NUMBER_VALUE;
+                        Parameter->CLASS_DATA = new_Delegate((void *)STRING_VALUE, (int)NUMBER_VALUE);
                     } else
                     if (TYPE == VARIABLE_ARRAY) {
                         Parameter->CLASS_DATA = (void *)STRING_VALUE;
@@ -540,7 +540,7 @@ INTEGER Invoke(INTEGER INVOKE_TYPE, ...) {
                     target->LINKS++;
                     // skipped by GC
                     if ((target->TYPE == VARIABLE_CLASS) || (target->TYPE == VARIABLE_DELEGATE))
-                        ((struct CompiledClass *)target->CLASS_DATA)->reachable = 0x1C;
+                        ((struct CompiledClass *)DYNAMIC_DATA(target))->reachable = 0x1C;
                     else
                     if (target->TYPE == VARIABLE_ARRAY)
                         ((struct Array *)target->CLASS_DATA)->reachable = 0x1C;
@@ -555,8 +555,8 @@ INTEGER Invoke(INTEGER INVOKE_TYPE, ...) {
                 VariableDATA *target = va_arg(ap, VariableDATA *);
                 if (target) {
                     if ((target->TYPE == VARIABLE_CLASS) || (target->TYPE == VARIABLE_DELEGATE)) {
-                        ((struct CompiledClass *)target->CLASS_DATA)->LINKS++;
-                        ((struct CompiledClass *)target->CLASS_DATA)->reachable = 0x1C;
+                        ((struct CompiledClass *)DYNAMIC_DATA(target))->LINKS++;
+                        ((struct CompiledClass *)DYNAMIC_DATA(target))->reachable = 0x1C;
                     } else
                     if (target->TYPE == VARIABLE_ARRAY) {
                         ((struct Array *)target->CLASS_DATA)->LINKS++;
@@ -576,7 +576,7 @@ INTEGER Invoke(INTEGER INVOKE_TYPE, ...) {
                 VariableDATA *target = va_arg(ap, VariableDATA *);
                 if (target) {
                     if ((target->TYPE == VARIABLE_CLASS) || (target->TYPE == VARIABLE_DELEGATE)) {
-                        ((struct CompiledClass *)target->CLASS_DATA)->LINKS--;
+                        ((struct CompiledClass *)DYNAMIC_DATA(target))->LINKS--;
                     } else
                     if (target->TYPE == VARIABLE_ARRAY) {
                         ((struct Array *)target->CLASS_DATA)->LINKS--;
@@ -612,13 +612,16 @@ INTEGER Invoke(INTEGER INVOKE_TYPE, ...) {
                             if (VARIABLE->TYPE == VARIABLE_STRING) {
                                 plainstring_delete((struct plainstring *)VARIABLE->CLASS_DATA);
                             } else
-                            if ((VARIABLE->TYPE == VARIABLE_CLASS) || (VARIABLE->TYPE == VARIABLE_DELEGATE)) {
+                            if (VARIABLE->TYPE == VARIABLE_CLASS) {
                                 if (!--((struct CompiledClass *)VARIABLE->CLASS_DATA)->LINKS)
                                     delete_CompiledClass((struct CompiledClass *)VARIABLE->CLASS_DATA);
                             } else
                             if (VARIABLE->TYPE == VARIABLE_ARRAY) {
                                 if (!--((struct Array *)VARIABLE->CLASS_DATA)->LINKS)
                                     delete_Array((struct Array *)VARIABLE->CLASS_DATA);
+                            } else
+                            if (VARIABLE->TYPE == VARIABLE_DELEGATE) {
+                                delete_Delegate(VARIABLE->CLASS_DATA);
                             }
                         }
                         VAR_FREE(VARIABLE);
@@ -963,17 +966,15 @@ INTEGER Invoke(INTEGER INVOKE_TYPE, ...) {
                 if (((target->TYPE == VARIABLE_CLASS) || (target->TYPE == VARIABLE_DELEGATE)) && (target->CLASS_DATA) && (deleg) && (class_member_name)) {
                     CLASS_CHECK(deleg);
                     int     m_type = 0;
-                    INTEGER index  = ((struct CompiledClass *)target->CLASS_DATA)->_Class->HasMemberInCompiled(class_member_name, &m_type);
+                    INTEGER index  = ((struct CompiledClass *)DYNAMIC_DATA(target))->_Class->HasMemberInCompiled(class_member_name, &m_type);
                     if (index) {
                         index--;
-                        ClassMember *CM = index < ((struct CompiledClass *)target->CLASS_DATA)->_Class->pMEMBERS_COUNT ? ((struct CompiledClass *)target->CLASS_DATA)->_Class->pMEMBERS[index] : 0;
+                        ClassMember *CM = index < ((struct CompiledClass *)DYNAMIC_DATA(target))->_Class->pMEMBERS_COUNT ? ((struct CompiledClass *)DYNAMIC_DATA(target))->_Class->pMEMBERS[index] : 0;
 
                         if ((CM) && (CM->IS_FUNCTION)) {
                             deleg->TYPE          = VARIABLE_DELEGATE;
-                            deleg->DELEGATE_DATA = index + 1;
-                            deleg->CLASS_DATA    = target->CLASS_DATA;
-                            ((struct CompiledClass *)target->CLASS_DATA)->LINKS++;
-                            ((struct CompiledClass *)target->CLASS_DATA)->reachable = 0x1C;
+                            deleg->CLASS_DATA    = new_Delegate(DYNAMIC_DATA(target), index + 1);
+                            ((struct CompiledClass *)DYNAMIC_DATA(target))->reachable = 0x1C;
                         } else
                             result = INVALID_INVOKE_PARAMETER;
                     } else
@@ -1007,7 +1008,7 @@ INTEGER Invoke(INTEGER INVOKE_TYPE, ...) {
                     result = INVALID_INVOKE_PARAMETER;
                     break;
                 }
-                PIFAlizator *PIF = GET_PIF(((struct CompiledClass *)target->CLASS_DATA));
+                PIFAlizator *PIF = GET_PIF(((struct CompiledClass *)DYNAMIC_DATA(target)));
 #ifdef SIMPLE_MULTI_THREADING
                 char thread_created = 0;
                 if (((INVOKE_TYPE == INVOKE_CALL_DELEGATE_THREAD) || (INVOKE_TYPE == INVOKE_CALL_DELEGATE_THREAD_SAFE) || (INVOKE_TYPE == INVOKE_CALL_DELEGATE_THREAD_SPINLOCK)) && (target->TYPE == VARIABLE_DELEGATE) && (target->CLASS_DATA)) {
@@ -1069,13 +1070,14 @@ INTEGER Invoke(INTEGER INVOKE_TYPE, ...) {
                     VariableDATA *RESULT = target;
                     VariableDATA *lOwner = 0;
 
+                    CompiledClass *CLASS_DATA = (CompiledClass *)delegate_Class(RESULT->CLASS_DATA);
                     lOwner = (VariableDATA *)VAR_ALLOC(PIF);
-                    lOwner->CLASS_DATA = target->CLASS_DATA;
+                    lOwner->CLASS_DATA = CLASS_DATA;
                     lOwner->IS_PROPERTY_RESULT = 0;
                     lOwner->LINKS = 1;
                     lOwner->TYPE = VARIABLE_CLASS;
 
-                    ((struct CompiledClass *)RESULT->CLASS_DATA)->LINKS++;
+                    CLASS_DATA->LINKS++;
 #ifndef SIMPLE_MULTI_THREADING
                     SCStack *STACK_TRACE = NULL;
                     if ((PIF) && (INVOKE_TYPE == INVOKE_CALL_DELEGATE)) {
@@ -1087,19 +1089,19 @@ INTEGER Invoke(INTEGER INVOKE_TYPE, ...) {
                         }
                     }
 #endif
-                    *SENDER_RESULT = ((struct CompiledClass *)RESULT->CLASS_DATA)->_Class->ExecuteDelegate(PIF,
-                                                                                                    (INTEGER)RESULT->DELEGATE_DATA,
-                                                                                                    lOwner,
-                                                                                                    0,
-                                                                                                    &FORMAL_PARAM,
-                                                                                                    CTX,
-                                                                                                    ((struct CompiledClass *)RESULT->CLASS_DATA)->_Class->CLSID,
-                                                                                                    ((struct CompiledClass *)RESULT->CLASS_DATA)->_Class->CLSID,
-                                                                                                    SENDER_EXCEPTION,
+                    *SENDER_RESULT = CLASS_DATA->_Class->ExecuteDelegate(PIF,
+                                                                        (INTEGER)delegate_Member(RESULT->CLASS_DATA),
+                                                                        lOwner,
+                                                                        0,
+                                                                        &FORMAL_PARAM,
+                                                                        CTX,
+                                                                        CLASS_DATA->_Class->CLSID,
+                                                                        CLASS_DATA->_Class->CLSID,
+                                                                        SENDER_EXCEPTION,
 #ifdef SIMPLE_MULTI_THREADING
-                                                                                                    NULL, spin_lock);
+                                                                        NULL, spin_lock);
 #else
-                                                                                                    STACK_TRACE);
+                                                                        STACK_TRACE);
 #endif
                     FREE_VARIABLE(lOwner);
                     if (*SENDER_RESULT)
@@ -1141,7 +1143,7 @@ INTEGER Invoke(INTEGER INVOKE_TYPE, ...) {
                     result = INVALID_INVOKE_PARAMETER;
                     break;
                 }
-                PIFAlizator *PIF = GET_PIF(((struct CompiledClass *)target->CLASS_DATA));
+                PIFAlizator *PIF = GET_PIF(((struct CompiledClass *)DYNAMIC_DATA(target)));
                 NEW_THREAD
             }
             break;
@@ -1155,7 +1157,7 @@ INTEGER Invoke(INTEGER INVOKE_TYPE, ...) {
                     break;
                 }
 
-                PIFAlizator *PIF = GET_PIF(((struct CompiledClass *)target->CLASS_DATA));
+                PIFAlizator *PIF = GET_PIF(((struct CompiledClass *)DYNAMIC_DATA(target)));
                 if (!PIF) {
                     result = CANNOT_INVOKE_IN_THIS_CASE;
                     break;
@@ -1176,8 +1178,8 @@ INTEGER Invoke(INTEGER INVOKE_TYPE, ...) {
                     break;
                 }
                 if ((target->TYPE == VARIABLE_DELEGATE) && (target->CLASS_DATA)) {
-                    int         mid = target->DELEGATE_DATA;
-                    ClassMember *CM = mid ? ((struct CompiledClass *)target->CLASS_DATA)->_Class->pMEMBERS [mid - 1] : 0;
+                    int         mid = delegate_Member(target->CLASS_DATA);
+                    ClassMember *CM = mid ? ((struct CompiledClass *)delegate_Class(target->CLASS_DATA))->_Class->pMEMBERS [mid - 1] : 0;
                     if (CM) {
                         result = CM->PARAMETERS_COUNT;
                     } else {
@@ -1199,8 +1201,8 @@ INTEGER Invoke(INTEGER INVOKE_TYPE, ...) {
                     break;
                 }
                 if ((target->TYPE == VARIABLE_DELEGATE) && (target->CLASS_DATA)) {
-                    int         mid = target->DELEGATE_DATA;
-                    ClassMember *CM = mid ? ((struct CompiledClass *)target->CLASS_DATA)->_Class->pMEMBERS [mid - 1] : 0;
+                    int         mid = delegate_Member(target->CLASS_DATA);
+                    ClassMember *CM = mid ? ((struct CompiledClass *)delegate_Class(target->CLASS_DATA))->_Class->pMEMBERS [mid - 1] : 0;
                     if (CM) {
                         *params     = CM->PARAMETERS_COUNT;
                         *min_params = CM->MUST_PARAMETERS_COUNT;
@@ -1223,10 +1225,10 @@ INTEGER Invoke(INTEGER INVOKE_TYPE, ...) {
                     break;
                 }
                 if ((target->TYPE == VARIABLE_DELEGATE) && (target->CLASS_DATA)) {
-                    int         mid = target->DELEGATE_DATA;
-                    ClassMember *CM = mid ? ((struct CompiledClass *)target->CLASS_DATA)->_Class->pMEMBERS [mid - 1] : 0;
+                    int         mid = delegate_Member(target->CLASS_DATA);
+                    ClassMember *CM = mid ? ((struct CompiledClass *)delegate_Class(target->CLASS_DATA))->_Class->pMEMBERS [mid - 1] : 0;
                     if (CM) {
-                        *class_name  = (char *)((struct CompiledClass *)target->CLASS_DATA)->_Class->NAME.c_str();
+                        *class_name  = (char *)((struct CompiledClass *)delegate_Class(target->CLASS_DATA))->_Class->NAME.c_str();
                         *member_name = (char *)CM->NAME;
                     } else {
                         result = CANNOT_INVOKE_IN_THIS_CASE;
@@ -1430,7 +1432,7 @@ INTEGER Invoke(INTEGER INVOKE_TYPE, ...) {
                 }
                 if (target->CLASS_DATA) {
                     if ((target->TYPE == VARIABLE_CLASS) || (target->TYPE == VARIABLE_DELEGATE)) {
-                        result = ((struct CompiledClass *)target->CLASS_DATA)->LINKS;
+                        result = ((struct CompiledClass *)DYNAMIC_DATA(target))->LINKS;
                     } else
                     if (target->TYPE == VARIABLE_ARRAY) {
                         result = ((struct Array *)target->CLASS_DATA)->LINKS;
@@ -1577,8 +1579,8 @@ INTEGER Invoke(INTEGER INVOKE_TYPE, ...) {
                     result = INVALID_INVOKE_PARAMETER;
                     break;
                 }
-                const ClassCode *CC = ((struct CompiledClass *)target->CLASS_DATA)->_Class;
-                int         relocation = target->DELEGATE_DATA;
+                const ClassCode *CC = ((struct CompiledClass *)delegate_Class(target->CLASS_DATA))->_Class;
+                int         relocation = delegate_Member(target->CLASS_DATA);
                 ClassMember *pMEMBER_i = relocation ? CC->pMEMBERS [relocation - 1] : 0;
                 if ((pMEMBER_i) && (pMEMBER_i->OPTIMIZER)) {
                     RuntimeOptimizedElement *OElist = ((Optimizer *)pMEMBER_i->OPTIMIZER)->CODE;
@@ -1683,17 +1685,16 @@ INTEGER Invoke(INTEGER INVOKE_TYPE, ...) {
                     result = INVALID_INVOKE_PARAMETER;
                     break;
                 }
-                PIFAlizator *PIF = GET_PIF(((struct CompiledClass *)target->CLASS_DATA));
                 if ((target->TYPE == VARIABLE_DELEGATE) && (target->CLASS_DATA)) {
-                    ((struct CompiledClass *)target->CLASS_DATA)->reachable = 0x1C;
+                    PIFAlizator *PIF = GET_PIF(((struct CompiledClass *)delegate_Class(target->CLASS_DATA)));
+                    ((struct CompiledClass *)delegate_Class(target->CLASS_DATA))->reachable = 0x1C;
                     VariableDATA *var = (VariableDATA *)VAR_ALLOC(PIF);
                     var->IS_PROPERTY_RESULT = 0;
                     var->LINKS          = 1;
-                    var->DELEGATE_DATA  = target->DELEGATE_DATA;
-                    var->CLASS_DATA     = target->CLASS_DATA;
+                    var->CLASS_DATA     = delegate_Class(target->CLASS_DATA);
+                    var->TYPE           = VARIABLE_CLASS;
                     ((struct CompiledClass *)var->CLASS_DATA)->LINKS++;
-                    var->TYPE        = target->TYPE;
-                    *cycle = ((struct CompiledClass *)target->CLASS_DATA)->_Class->CreateThread(PIF, (INTEGER)target->DELEGATE_DATA, var);
+                    *cycle = ((struct CompiledClass *)delegate_Class(target->CLASS_DATA))->_Class->CreateThread(PIF, (INTEGER)delegate_Member(target->CLASS_DATA), var);
                 } else {
                     result = INVALID_INVOKE_PARAMETER;
                 }
@@ -1903,10 +1904,10 @@ INTEGER Invoke(INTEGER INVOKE_TYPE, ...) {
 
                 if (((target->TYPE == VARIABLE_CLASS) || (target->TYPE == VARIABLE_DELEGATE)) && (target->CLASS_DATA) && (class_member_name)) {
                     int     m_type = 0;
-                    INTEGER index  = ((struct CompiledClass *)target->CLASS_DATA)->_Class->HasMemberInCompiled(class_member_name, &m_type);
+                    INTEGER index  = ((struct CompiledClass *)DYNAMIC_DATA(target))->_Class->HasMemberInCompiled(class_member_name, &m_type);
                     if (index) {
                         index--;
-                        ClassMember *CM = index < ((struct CompiledClass *)target->CLASS_DATA)->_Class->pMEMBERS_COUNT ? ((struct CompiledClass *)target->CLASS_DATA)->_Class->pMEMBERS[index] : 0;
+                        ClassMember *CM = index < ((struct CompiledClass *)DYNAMIC_DATA(target))->_Class->pMEMBERS_COUNT ? ((struct CompiledClass *)DYNAMIC_DATA(target))->_Class->pMEMBERS[index] : 0;
 
                         if (CM) {
                             if (mdef) {

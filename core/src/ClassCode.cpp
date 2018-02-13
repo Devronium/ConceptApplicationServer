@@ -43,6 +43,68 @@ ParamList * ClassCode::EMPTY_PARAM_LIST = 0;
                     break; \
             } \
         }
+static int delegate_count;
+struct ClassDelegate *new_Delegate(void *CLASS_DATA, CLASS_MEMBERS_DOMAIN DELEGATE_DATA) {
+    delegate_count++;
+    struct ClassDelegate *self = (struct ClassDelegate *)malloc(sizeof(struct ClassDelegate));
+    self->CLASS_DATA = CLASS_DATA;
+    self->DELEGATE_DATA = DELEGATE_DATA;
+    if (CLASS_DATA)
+        ((CompiledClass *)CLASS_DATA)->LINKS ++;
+    //fprintf(stderr, "xDELEGATES: %i\n", delegate_count);
+    return self;
+}
+
+void *delegate_Class(const void *self) {
+    if (!self)
+        return 0;
+    return ((struct ClassDelegate *)self)->CLASS_DATA;
+}
+
+CLASS_MEMBERS_DOMAIN delegate_Member(const void *self) {
+    if (!self)
+        return 0;
+    return ((struct ClassDelegate *)self)->DELEGATE_DATA;
+}
+
+void delete_Delegate(void *self) {
+    if (!self)
+        return;
+    struct ClassDelegate *deleg = (struct ClassDelegate *)self;
+    if (deleg->CLASS_DATA) {
+        if (!(--((struct CompiledClass *)deleg->CLASS_DATA)->LINKS))
+            delete_CompiledClass((struct CompiledClass *)deleg->CLASS_DATA);
+    }
+    free(deleg);
+    delegate_count--;
+    // fprintf(stderr, "DELEGATES: %i\n", delegate_count);
+}
+
+void delete_Delegate_no_class(void *self) {
+    if (!self)
+        return;
+    struct ClassDelegate *deleg = (struct ClassDelegate *)self;
+    if (deleg->CLASS_DATA)
+        ((struct CompiledClass *)deleg->CLASS_DATA)->LINKS--;
+    free(deleg);
+    delegate_count--;
+    // fprintf(stderr, "DELEGATES: %i\n", delegate_count);
+}
+
+void free_Delegate(void *self) {
+    if (!self)
+        return;
+    struct ClassDelegate *deleg = (struct ClassDelegate *)self;
+    free(deleg);
+    delegate_count--;
+    // fprintf(stderr, "DELEGATES: %i\n", delegate_count);
+}
+
+struct ClassDelegate *copy_Delegate(const void *deleg) {
+    if (!deleg)
+        return 0;
+    return new_Delegate(((struct ClassDelegate *)deleg)->CLASS_DATA, ((struct ClassDelegate *)deleg)->DELEGATE_DATA);
+}
 
 ClassCode::ClassCode(const char *name, PIFAlizator *P, char binary_form) {
     if (binary_form) {
@@ -388,8 +450,8 @@ int ClassCode::GetSerialMembers(CompiledClass *CC, int max_members,
 
                         case VARIABLE_DELEGATE:
                             {
-                                class_data [index] = CC->_CONTEXT [reloc]->CLASS_DATA;
-                                int         relocation = CC->_CONTEXT [reloc]->DELEGATE_DATA;
+                                class_data [index] = delegate_Class(CC->_CONTEXT [reloc]->CLASS_DATA);
+                                int         relocation = delegate_Member(CC->_CONTEXT [reloc]->CLASS_DATA);
                                 ClassMember *CMD       = relocation ? ((struct CompiledClass *)CC->_CONTEXT [reloc]->CLASS_DATA)->_Class->pMEMBERS [relocation - 1] : 0;
                                 if (CMD) {
                                     n_data [index] = (intptr_t)CMD->NAME;
@@ -618,9 +680,7 @@ void ClassCode::SetProperty(PIFAlizator *PIF, INTEGER i, VariableDATA *Owner, co
                     break;
 
                 case VARIABLE_DELEGATE:
-                    RESULT->CLASS_DATA = NEW_VALUE->CLASS_DATA;
-                    ((struct CompiledClass *)RESULT->CLASS_DATA)->LINKS++;
-                    RESULT->DELEGATE_DATA = NEW_VALUE->DELEGATE_DATA;
+                    RESULT->CLASS_DATA = copy_Delegate(NEW_VALUE->CLASS_DATA);
                     break;
             }
             //----------------------------------------------
@@ -703,6 +763,7 @@ void ClassCode::BuildParameterError(PIFAlizator *PIF, int line, int FORMAL_PARAM
 VariableDATA *ClassCode::ExecuteMember(PIFAlizator *PIF, INTEGER i, VariableDATA *Owner, const RuntimeOptimizedElement *OE, INTEGER local, ParamList *FORMAL_PARAM, VariableDATA **SenderCTX, char property, INTEGER CLSID, INTEGER LOCAL_CLSID, VariableDATA **LOCAL_THROW, SCStack *PREV, char next_is_asg, VariableDATAPROPERTY **PROPERTIES, int dataLen, int result_id) const {
     INTEGER      IS_PROPERTY = 0;
     VariableDATA *RESULT;
+    struct CompiledClass *CLASS_DATA;
     int          relocation = this->Relocation(i);
     *LOCAL_THROW = NULL;
 
@@ -741,13 +802,11 @@ VariableDATA *ClassCode::ExecuteMember(PIFAlizator *PIF, INTEGER i, VariableDATA
             case 1:
                 if (!FORMAL_PARAM) {
                     VariableDATA *deleg = (VariableDATA *)VAR_ALLOC(PIF);
-                    deleg->CLASS_DATA = (struct CompiledClass *)Owner->CLASS_DATA;
-                    CC_WRITE_LOCK(PIF)
-                    ((struct CompiledClass *)Owner->CLASS_DATA)->LINKS++;
-                    CC_WRITE_UNLOCK(PIF)
                     deleg->IS_PROPERTY_RESULT = 0;
                     deleg->LINKS         = 0;
-                    deleg->DELEGATE_DATA = relocation;
+                    CC_WRITE_LOCK(PIF)
+                    deleg->CLASS_DATA    = new_Delegate(Owner->CLASS_DATA, relocation);
+                    CC_WRITE_UNLOCK(PIF)
                     deleg->TYPE          = VARIABLE_DELEGATE;
                     return deleg;
                 } else
@@ -816,28 +875,29 @@ VariableDATA *ClassCode::ExecuteMember(PIFAlizator *PIF, INTEGER i, VariableDATA
                 }
                 if ((FORMAL_PARAM) && ((!property) || (FORMAL_PARAM->COUNT))) {
                     if (RESULT->TYPE == VARIABLE_DELEGATE) {
+                        CLASS_DATA = (struct CompiledClass *)delegate_Class(RESULT->CLASS_DATA);
                         CC_WRITE_LOCK(PIF)
-                        ((struct CompiledClass *)RESULT->CLASS_DATA)->LINKS++;
+                        CLASS_DATA->LINKS++;
                         CC_WRITE_UNLOCK(PIF)
                         VariableDATA * lOwner = 0;
 
                         lOwner = (VariableDATA *)VAR_ALLOC(PIF);
-                        lOwner->CLASS_DATA         = RESULT->CLASS_DATA;
+                        lOwner->CLASS_DATA         = CLASS_DATA;
                         lOwner->IS_PROPERTY_RESULT = 0;
                         lOwner->LINKS = 1;
                         lOwner->TYPE = VARIABLE_CLASS;
 
-                        RESULT = ((struct CompiledClass *)RESULT->CLASS_DATA)->_Class->ExecuteDelegate(PIF,
-                                                                                                (INTEGER)RESULT->DELEGATE_DATA,
-                                                                                                lOwner,
-                                                                                                OE,
-                                                                                                FORMAL_PARAM,
-                                                                                                SenderCTX,
-                                                                                                CLSID,
-                                                                                                LOCAL_CLSID,
-                                                                                                LOCAL_THROW,
-                                                                                                PREV
-                                                                                                );
+                        RESULT = CLASS_DATA->_Class->ExecuteDelegate(PIF,
+                                                                    (INTEGER)delegate_Member(RESULT->CLASS_DATA),
+                                                                    lOwner,
+                                                                    OE,
+                                                                    FORMAL_PARAM,
+                                                                    SenderCTX,
+                                                                    CLSID,
+                                                                    LOCAL_CLSID,
+                                                                    LOCAL_THROW,
+                                                                    PREV
+                                                                    );
                         FREE_VARIABLE(lOwner);
                         if (*LOCAL_THROW) {
                             if (RESULT) {
@@ -894,13 +954,12 @@ VariableDATA *ClassCode::ExecuteMember(PIFAlizator *PIF, INTEGER i, VariableDATA
                         IMAGE->CLASS_DATA = RESULT->CLASS_DATA;
                     } else
                     if (RESULT->TYPE == VARIABLE_DELEGATE) {
-                        IMAGE->CLASS_DATA    = RESULT->CLASS_DATA;
-                        IMAGE->DELEGATE_DATA = RESULT->DELEGATE_DATA;
+                        IMAGE->CLASS_DATA    = copy_Delegate(RESULT->CLASS_DATA);
                     } else {
                         IMAGE->NUMBER_DATA = RESULT->NUMBER_DATA;
                     }
                     //----------------------------------------------
-                    if ((IMAGE->TYPE == VARIABLE_CLASS) || (IMAGE->TYPE == VARIABLE_DELEGATE)) {
+                    if (IMAGE->TYPE == VARIABLE_CLASS) {
                         CC_WRITE_LOCK(PIF)
                         ((struct CompiledClass *)IMAGE->CLASS_DATA)->LINKS++;
                         CC_WRITE_UNLOCK(PIF)
@@ -922,25 +981,26 @@ VariableDATA *ClassCode::ExecuteMember(PIFAlizator *PIF, INTEGER i, VariableDATA
                     RESULT = CompiledClass_CreateVariable((struct CompiledClass *)Owner->CLASS_DATA, relocation2 - 1, pMEMBER_i);
                 } else
                 if ((RESULT->TYPE == VARIABLE_DELEGATE) && (FORMAL_PARAM) && (!property)) {
-                    ((struct CompiledClass *)RESULT->CLASS_DATA)->LINKS++;
+                    CLASS_DATA = (struct CompiledClass *)delegate_Class(RESULT->CLASS_DATA);
+                    CLASS_DATA->LINKS++;
                     CC_WRITE_UNLOCK(PIF)
                     VariableDATA * lOwner = 0;
                     lOwner = (VariableDATA *)VAR_ALLOC(PIF);
-                    lOwner->CLASS_DATA         = RESULT->CLASS_DATA;
+                    lOwner->CLASS_DATA         = CLASS_DATA;
                     lOwner->IS_PROPERTY_RESULT = 0;
                     lOwner->LINKS = 1;
                     lOwner->TYPE = VARIABLE_CLASS;
 
-                    RESULT = ((struct CompiledClass *)RESULT->CLASS_DATA)->_Class->ExecuteDelegate(PIF,
-                                                                                            (INTEGER)RESULT->DELEGATE_DATA,
-                                                                                            lOwner,
-                                                                                            OE,
-                                                                                            FORMAL_PARAM,
-                                                                                            SenderCTX,
-                                                                                            CLSID,
-                                                                                            LOCAL_CLSID,
-                                                                                            LOCAL_THROW,
-                                                                                            PREV);
+                    RESULT = CLASS_DATA->_Class->ExecuteDelegate(PIF,
+                                                                (INTEGER)delegate_Member(RESULT->CLASS_DATA),
+                                                                lOwner,
+                                                                OE,
+                                                                FORMAL_PARAM,
+                                                                SenderCTX,
+                                                                CLSID,
+                                                                LOCAL_CLSID,
+                                                                LOCAL_THROW,
+                                                                PREV);
                     FREE_VARIABLE(lOwner);
                     if (*LOCAL_THROW) {
                         if (RESULT) {

@@ -107,12 +107,10 @@ POOLED_IMPLEMENTATION(Array)
     } else                                                                  \
     if (var->TYPE == VARIABLE_ARRAY) {                                      \
         ELEMENTS [DISTRIBUTED_COUNT]->CLASS_DATA = var->CLASS_DATA;         \
-        ((struct Array *)var->CLASS_DATA)->LINKS++;                                \
+        ((struct Array *)var->CLASS_DATA)->LINKS++;                         \
     } else                                                                  \
     if (var->TYPE == VARIABLE_DELEGATE) {                                   \
-        ELEMENTS [DISTRIBUTED_COUNT]->CLASS_DATA    = var->CLASS_DATA;      \
-        ELEMENTS [DISTRIBUTED_COUNT]->DELEGATE_DATA = var->DELEGATE_DATA;   \
-        ((struct CompiledClass *)var->CLASS_DATA)->LINKS++;                 \
+        ELEMENTS [DISTRIBUTED_COUNT]->CLASS_DATA = copy_Delegate(var->CLASS_DATA); \
     }                                                                       \
     ELEMENTS [DISTRIBUTED_COUNT]->IS_PROPERTY_RESULT = 0;                   \
     self->COUNT++;                                                          \
@@ -824,8 +822,7 @@ void Array_EnsureSize(struct Array *self, ARRAY_COUNT_TYPE size, VariableDATA *d
                     ((struct Array *)default_value->CLASS_DATA)->LINKS++;
                 else
                 if (default_value->TYPE == VARIABLE_DELEGATE) {
-                    ((struct CompiledClass *)default_value->CLASS_DATA)->LINKS++;
-                    ELEMENTS [DISTRIBUTED_COUNT]->DELEGATE_DATA = default_value->DELEGATE_DATA;
+                    ELEMENTS [DISTRIBUTED_COUNT]->CLASS_DATA = copy_Delegate(default_value->CLASS_DATA);
                 }
             } else
             if (default_value->TYPE == VARIABLE_NUMBER)
@@ -866,9 +863,15 @@ void Array_GO_GARBAGE(struct Array *self, void *PIF, GarbageCollector *__gc_obj,
                 }
                 if (Var->CLASS_DATA) {
                     if ((Var->TYPE == VARIABLE_CLASS) || (Var->TYPE == VARIABLE_DELEGATE)) {
-                        if ((check_objects == -1) || ((((struct CompiledClass *)Var->CLASS_DATA)->reachable & check_objects) != check_objects)) {
-                            __gc_obj->Reference(Var->CLASS_DATA);
-                            CompiledClass__GO_GARBAGE((struct CompiledClass *)Var->CLASS_DATA, PIF, __gc_obj, __gc_array, __gc_vars, check_objects);
+                        void *CLASS_DATA = Var->CLASS_DATA;
+                        if (Var->TYPE == VARIABLE_DELEGATE) {
+                            CLASS_DATA = delegate_Class(CLASS_DATA);
+                            free_Delegate(Var->CLASS_DATA);
+                            Var->CLASS_DATA = NULL;
+                        }
+                        if ((check_objects == -1) || ((((struct CompiledClass *)CLASS_DATA)->reachable & check_objects) != check_objects)) {
+                            __gc_obj->Reference(CLASS_DATA);
+                            CompiledClass__GO_GARBAGE((struct CompiledClass *)CLASS_DATA, PIF, __gc_obj, __gc_array, __gc_vars, check_objects);
                         } else {
                             RESET_VARIABLE(Var);
                         }
@@ -976,9 +979,9 @@ struct plainstring *Array_ToString(struct Array *self, int level, Array *parent,
                     break;
 
                 case VARIABLE_DELEGATE:
-                    plainstring_add(result, ((struct CompiledClass *)VD->CLASS_DATA)->_Class->NAME.c_str());
+                    plainstring_add(result, ((struct CompiledClass *)delegate_Class(VD->CLASS_DATA))->_Class->NAME.c_str());
                     plainstring_add(result, "::");
-                    plainstring_add(result, ((struct CompiledClass *)VD->CLASS_DATA)->_Class->pMEMBERS [(INTEGER)VD->DELEGATE_DATA - 1]->NAME);
+                    plainstring_add(result, ((struct CompiledClass *)VD->CLASS_DATA)->_Class->pMEMBERS [(INTEGER)delegate_Member(VD->CLASS_DATA) - 1]->NAME);
                     break;
             }
             plainstring_add(result, "\n");

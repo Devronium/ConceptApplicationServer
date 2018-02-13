@@ -1,0 +1,20 @@
+import standard.lang.serialize
+
+class Main {
+	Simple() {
+		if (Simple != Simple)
+			return true;
+	}
+
+	Test(callback) {
+		if (callback()) {
+			echo callback;
+			echo " failed\n";
+		}
+	}
+
+
+	Main() {
+		Test(Simple);
+	}
+}

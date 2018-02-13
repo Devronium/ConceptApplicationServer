@@ -645,7 +645,7 @@ int MarkRecursiveClass(void *PIF, struct CompiledClass *CC, signed char reach_id
         VariableDATA *Var = CC->_CONTEXT[i];
         if ((Var) && (Var->CLASS_DATA)) {
             if ((Var->TYPE == VARIABLE_CLASS) || (Var->TYPE == VARIABLE_DELEGATE)) {
-                CompiledClass *CC2 = (struct CompiledClass *)Var->CLASS_DATA;
+                CompiledClass *CC2 = (struct CompiledClass *)DYNAMIC_DATA(Var);
                 if ((CC2->reachable & 0x03) != reach_id_flag)
                     res += MarkRecursiveClass(PIF, CC2, reach_id_flag, forced_flag ? forced_flag : CC2->reachable & 0x1C);
                 CC2->reachable |= forced_flag;
@@ -670,7 +670,7 @@ int MarkRecursiveClass(void *PIF, struct CompiledClass *CC, signed char reach_id
             VariableDATA *Var = CC->_CONTEXT[i];
             if ((Var) && (Var->CLASS_DATA)) {
                 if ((Var->TYPE == VARIABLE_CLASS) || (Var->TYPE == VARIABLE_DELEGATE)) {
-                    CompiledClass *CC2 = (struct CompiledClass *)Var->CLASS_DATA;
+                    CompiledClass *CC2 = (struct CompiledClass *)DYNAMIC_DATA(Var);
                     if ((CC2->reachable & 0x03) != reach_id_flag) {
                         if (CC2->_CONTEXT) {
                             if (inspectPos < inspectSize)
@@ -710,7 +710,7 @@ int MarkRecursive(void *PIF, struct Array *arr, signed char reach_id_flag, signe
             VariableDATA *Var = CURRENT->ELEMENTS [j];
             if ((Var) && (Var->CLASS_DATA)) {
                 if ((Var->TYPE == VARIABLE_CLASS) || (Var->TYPE == VARIABLE_DELEGATE)) {
-                    CompiledClass *CC2 = (struct CompiledClass *)Var->CLASS_DATA;
+                    CompiledClass *CC2 = (struct CompiledClass *)DYNAMIC_DATA(Var);
                     if ((CC2->reachable & 0x03) != reach_id_flag)
                         res += MarkRecursiveClass(PIF, CC2, reach_id_flag, forced_flag ? forced_flag : CC2->reachable & 0x1C);
                     CC2->reachable |= forced_flag;
@@ -740,7 +740,7 @@ int ClearRecursive(void *PIF, CompiledClass *CC, int CLSID, signed char reach_id
         VariableDATA *Var = CC->_CONTEXT[i];
         if ((Var) && (Var->CLASS_DATA)) {
             if ((Var->TYPE == VARIABLE_CLASS) || (Var->TYPE == VARIABLE_DELEGATE)) {
-                CompiledClass *CC2 = (struct CompiledClass *)Var->CLASS_DATA;
+                CompiledClass *CC2 = (struct CompiledClass *)DYNAMIC_DATA(Var);
                 if ((CC2->reachable & 0x03) != reach_id_flag) {
                     if (CC2->_Class->GetCLSID() == CLSID) {
                         CLASS_CHECK(Var);
@@ -773,7 +773,7 @@ int ClearRecursive(void *PIF, Array *arr, int CLSID, signed char reach_id_flag, 
             VariableDATA *Var = CURRENT->ELEMENTS [j];
             if ((Var) && (Var->CLASS_DATA)) {
                 if ((Var->TYPE == VARIABLE_CLASS) || (Var->TYPE == VARIABLE_DELEGATE)) {
-                    CompiledClass *CC2 = (struct CompiledClass *)Var->CLASS_DATA;
+                    CompiledClass *CC2 = (struct CompiledClass *)DYNAMIC_DATA(Var);
                     if ((CC2->reachable & 0x03) != reach_id_flag)
                         res += ClearRecursive(PIF, CC2, CLSID, reach_id_flag, forced_flag ? forced_flag : CC2->reachable & 0x1C);
                     CC2->reachable |= forced_flag;
@@ -850,7 +850,7 @@ int ClearVariablesByCLSID(void *PIF, int CLSID) {
                     VariableDATA *Var = context[i];
                     if ((Var) && (Var->CLASS_DATA)) {
                         if ((Var->TYPE == VARIABLE_CLASS) || (Var->TYPE == VARIABLE_DELEGATE)) {
-                            CompiledClass *CC2 = (struct CompiledClass *)Var->CLASS_DATA;
+                            CompiledClass *CC2 = (struct CompiledClass *)DYNAMIC_DATA(Var);
                             if ((CC2->reachable & 0x03) != reach_id_flag)
                                 ClearRecursive(PIF, CC2, CLSID, reach_id_flag, CC2->reachable & 0x1C);
                             if (CompiledClass_GetClass(CC2)->GetCLSID() == CLSID) {
@@ -963,7 +963,7 @@ int CheckReachability(void *PIF, bool skip_top) {
                     VariableDATA *Var = context[i];
                     if ((Var) && (Var->CLASS_DATA)) {
                         if ((Var->TYPE == VARIABLE_CLASS) || (Var->TYPE == VARIABLE_DELEGATE)) {
-                            CompiledClass *CC2 = (struct CompiledClass *)Var->CLASS_DATA;
+                            CompiledClass *CC2 = (struct CompiledClass *)DYNAMIC_DATA(Var);
                             if ((CC2->reachable & 0x03) != reach_id_flag)
                                 MarkRecursiveClass(PIF, CC2, reach_id_flag, CC2->reachable & 0x1C);
                         } else
@@ -1194,7 +1194,7 @@ int GetMemoryStatistics(void *PIF, void *RESULT) {
                     VariableDATA *Var = context[i];
                     if ((Var) && (Var->CLASS_DATA)) {
                         if ((Var->TYPE == VARIABLE_CLASS) || (Var->TYPE == VARIABLE_DELEGATE)) {
-                            CompiledClass *CC2 = (struct CompiledClass *)Var->CLASS_DATA;
+                            CompiledClass *CC2 = (struct CompiledClass *)DYNAMIC_DATA(Var);
                             if ((CC2->reachable & 0x03) != reach_id_flag)
                                 MarkRecursiveClass(PIF, CC2, reach_id_flag, CC2->reachable & 0x1C);
                         } else

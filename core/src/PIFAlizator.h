@@ -125,10 +125,10 @@
         WRITE_LOCK                                                                                                                                   \
     } else                                                                                                                                           \
     if (VARIABLE->CLASS_DATA) {                                                                                                                      \
-        if (((VARIABLE->TYPE == VARIABLE_CLASS) || (VARIABLE->TYPE == VARIABLE_DELEGATE)) && (((struct CompiledClass *)VARIABLE->CLASS_DATA)->LINKS > 1)) { \
+        if (((VARIABLE->TYPE == VARIABLE_CLASS) || (VARIABLE->TYPE == VARIABLE_DELEGATE)) && (((struct CompiledClass *)DYNAMIC_DATA(VARIABLE))->LINKS > 1)) { \
             WRITE_LOCK                                                                                                                               \
         } else                                                                                                                                       \
-        if ((VARIABLE->TYPE == VARIABLE_ARRAY) && (((struct Array *)VARIABLE->CLASS_DATA)->LINKS > 1)) {                                                    \
+        if ((VARIABLE->TYPE == VARIABLE_ARRAY) && (((struct Array *)VARIABLE->CLASS_DATA)->LINKS > 1)) {                                             \
             WRITE_LOCK                                                                                                                               \
         }                                                                                                                                            \
     }

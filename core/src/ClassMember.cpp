@@ -234,9 +234,9 @@ void ClassMember::EndMainCall(void *PIF, VariableDATA *&RESULT, VariableDATA *&T
                 case VARIABLE_DELEGATE:
                     ((VariableDATA *)((PIFAlizator *)PIF)->static_result)->TYPE = VARIABLE_STRING;
                     if (RESULT->CLASS_DATA) {
-                        CONCEPT_STRING_SET_CSTR(((VariableDATA *)((PIFAlizator *)PIF)->static_result), ((struct CompiledClass *)RESULT->CLASS_DATA)->_Class->NAME.c_str());
+                        CONCEPT_STRING_SET_CSTR(((VariableDATA *)((PIFAlizator *)PIF)->static_result), ((struct CompiledClass *)delegate_Class(RESULT->CLASS_DATA))->_Class->NAME.c_str());
                         CONCEPT_STRING_ADD_CSTR(((VariableDATA *)((PIFAlizator *)PIF)->static_result), "::");
-                        CONCEPT_STRING_ADD_CSTR(((VariableDATA *)((PIFAlizator *)PIF)->static_result), ((struct CompiledClass *)RESULT->CLASS_DATA)->_Class->pMEMBERS [(INTEGER)RESULT->DELEGATE_DATA - 1]->NAME);
+                        CONCEPT_STRING_ADD_CSTR(((VariableDATA *)((PIFAlizator *)PIF)->static_result), ((struct CompiledClass *)delegate_Class(RESULT->CLASS_DATA))->_Class->pMEMBERS [(INTEGER)delegate_Member(RESULT->CLASS_DATA) - 1]->NAME);
                     } else {
                         CONCEPT_STRING_SET_CSTR(((VariableDATA *)((PIFAlizator *)PIF)->static_result), "delegate");
                     }
@@ -274,11 +274,12 @@ void ClassMember::EndMainCall(void *PIF, VariableDATA *&RESULT, VariableDATA *&T
             data = "Array";
         } else
         if (THROW_DATA->TYPE == VARIABLE_DELEGATE) {
-            int len = strlen(CompiledClass_GetClassName((struct CompiledClass *)THROW_DATA->CLASS_DATA));
+            const char *class_name = CompiledClass_GetClassName((struct CompiledClass *)delegate_Class(THROW_DATA->CLASS_DATA));
+            int len = strlen(class_name);
             temp = (char *)FAST_MALLOC(len + 13);
             temp[len + 12] = 0;
             memcpy(temp, "Delegate of ", 12);
-            memcpy(temp + 12, CompiledClass_GetClassName((struct CompiledClass *)THROW_DATA->CLASS_DATA), len);
+            memcpy(temp + 12, class_name, len);
             data = temp;
         }
 
@@ -425,7 +426,7 @@ GreenThreadCycle *ClassMember::CreateThread(void *PIF, intptr_t CONCEPT_CLASS_ID
     gtc->OPT            = this->OPTIMIZER;
     gtc->refobject      = NULL;
     if ((Owner) && (Owner->TYPE == VARIABLE_DELEGATE)) {
-        gtc->refobject  = Owner->CLASS_DATA;
+        gtc->refobject  = delegate_Class(Owner->CLASS_DATA);
         ((struct CompiledClass *)gtc->refobject)->LINKS++;
     }
 
@@ -512,7 +513,8 @@ bool ClassMember::FastOptimizedExecute(void *PIF, void *ref, ParamList *FORMAL_P
                             break;
 
                         case VARIABLE_DELEGATE:
-                            val->DELEGATE_DATA = sndr->DELEGATE_DATA;
+                            val->CLASS_DATA = copy_Delegate(sndr->CLASS_DATA);
+                            break;
 
                         case VARIABLE_CLASS:
                             val->CLASS_DATA = sndr->CLASS_DATA;

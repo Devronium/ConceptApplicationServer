@@ -126,7 +126,7 @@ static TinyString DLL_MEMBER = "STATIC_FUNCTION";
 
 #define CLASS_CHECK_KEEP_EXTRA(VARIABLE)                                                   \
     if ((VARIABLE->CLASS_DATA) && (VARIABLE->TYPE != VARIABLE_STRING)) {                   \
-        if ((VARIABLE->TYPE == VARIABLE_CLASS) || (VARIABLE->TYPE == VARIABLE_DELEGATE)) { \
+        if (VARIABLE->TYPE == VARIABLE_CLASS) {                                            \
             if (!--((struct CompiledClass *)VARIABLE->CLASS_DATA)->LINKS) {                \
                 delete_CompiledClass((struct CompiledClass *)VARIABLE->CLASS_DATA); }      \
             VARIABLE->TYPE       = VARIABLE_NUMBER;                                        \
@@ -140,6 +140,11 @@ static TinyString DLL_MEMBER = "STATIC_FUNCTION";
         } else                                                                             \
         if (VARIABLE->TYPE == VARIABLE_NUMBER) {                                           \
             VARIABLE->CLASS_DATA = NULL;                                                   \
+        } else                                                                             \
+        if (VARIABLE->TYPE == VARIABLE_DELEGATE) {                                         \
+            delete_Delegate(VARIABLE->CLASS_DATA);                                         \
+            VARIABLE->TYPE       = VARIABLE_NUMBER;                                        \
+            VARIABLE->CLASS_DATA = NULL;                                                   \
         }                                                                                  \
     }
 //---------------------------------------------------------
@@ -149,7 +154,7 @@ static TinyString DLL_MEMBER = "STATIC_FUNCTION";
             if (VARIABLE->TYPE == VARIABLE_STRING) {                                           \
                 plainstring_delete((struct plainstring *)VARIABLE->CLASS_DATA);                \
             } else                                                                             \
-            if ((VARIABLE->TYPE == VARIABLE_CLASS) || (VARIABLE->TYPE == VARIABLE_DELEGATE)) { \
+            if (VARIABLE->TYPE == VARIABLE_CLASS) {                                            \
                 if (!--((struct CompiledClass *)VARIABLE->CLASS_DATA)->LINKS) {                \
                     if (PIF->WriteLock.MasterLock) {                                           \
                         WRITE_UNLOCK                                                           \
@@ -168,6 +173,14 @@ static TinyString DLL_MEMBER = "STATIC_FUNCTION";
                     } else                                                                     \
                         delete_Array((struct Array *)VARIABLE->CLASS_DATA);                    \
                 }                                                                              \
+            } else                                                                             \
+            if (VARIABLE->TYPE == VARIABLE_DELEGATE) {                                         \
+                if (PIF->WriteLock.MasterLock) {                                               \
+                    WRITE_UNLOCK                                                               \
+                    delete_Delegate(VARIABLE->CLASS_DATA);                                     \
+                    WRITE_LOCK                                                                 \
+                } else                                                                         \
+                    delete_Delegate(VARIABLE->CLASS_DATA);                                     \
             }                                                                                  \
             VARIABLE->CLASS_DATA = NULL;                                                       \
         }  
@@ -199,14 +212,16 @@ void FREE_VARIABLE(VariableDATA *VARIABLE) {
             if (VARIABLE->TYPE == VARIABLE_STRING) {
                 plainstring_delete((struct plainstring *)VARIABLE->CLASS_DATA);
             } else
-            if ((VARIABLE->TYPE == VARIABLE_CLASS) || (VARIABLE->TYPE == VARIABLE_DELEGATE)) {
+            if (VARIABLE->TYPE == VARIABLE_CLASS) {
                 if (!--((struct CompiledClass *)VARIABLE->CLASS_DATA)->LINKS)
                     delete_CompiledClass((struct CompiledClass *)VARIABLE->CLASS_DATA);
             } else
             if (VARIABLE->TYPE == VARIABLE_ARRAY) {
                 if (!--((struct Array *)VARIABLE->CLASS_DATA)->LINKS)
                     delete_Array((struct Array *)VARIABLE->CLASS_DATA);
-            }
+            } else
+            if (VARIABLE->TYPE == VARIABLE_DELEGATE)
+                delete_Delegate(VARIABLE->CLASS_DATA);
         }
         VAR_FREE(VARIABLE);
     }
@@ -2865,7 +2880,7 @@ int ConceptInterpreter::StacklessInterpret(PIFAlizator *PIF, GreenThreadCycle *G
                                 DECLARE_PATH(0x20);
                                 continue;
                             }
-                            CCTEMP                     = (struct CompiledClass *)LOCAL_CONTEXT [OE->OperandRight_ID - 1]->CLASS_DATA;
+                            CCTEMP                     = (struct CompiledClass *)delegate_Class(LOCAL_CONTEXT [OE->OperandRight_ID - 1]->CLASS_DATA);
                             lOwner                     = (VariableDATA *)VAR_ALLOC(PIF);
                             lOwner->CLASS_DATA         = CCTEMP;
                             lOwner->IS_PROPERTY_RESULT = 0;
@@ -2875,7 +2890,7 @@ int ConceptInterpreter::StacklessInterpret(PIFAlizator *PIF, GreenThreadCycle *G
 
                             WRITE_UNLOCK
                             RESULT = CCTEMP->_Class->ExecuteDelegate(PIF,
-                                                                            (INTEGER)LOCAL_CONTEXT [OE->OperandRight_ID - 1]->DELEGATE_DATA,
+                                                                            (INTEGER)delegate_Member(LOCAL_CONTEXT [OE->OperandRight_ID - 1]->CLASS_DATA),
                                                                             lOwner,
                                                                             OE,
                                                                             FORMAL_PARAMETERS,
@@ -3249,10 +3264,10 @@ numbereval:
                                     break;
 
                                 case VARIABLE_DELEGATE:
-                                    CCTEMP = (struct CompiledClass *)LOCAL_CONTEXT [OE->OperandRight_ID - 1]->CLASS_DATA;
+                                    CCTEMP = (struct CompiledClass *)delegate_Class(LOCAL_CONTEXT [OE->OperandRight_ID - 1]->CLASS_DATA);
                                     PIF->out->Print(CCTEMP->_Class->NAME);
                                     PIF->out->Print("::");
-                                    PIF->out->Print(CCTEMP->_Class->pMEMBERS [(INTEGER)LOCAL_CONTEXT [OE->OperandRight_ID - 1]->NUMBER_DATA - 1]->NAME);
+                                    PIF->out->Print(CCTEMP->_Class->pMEMBERS [(INTEGER)delegate_Member(LOCAL_CONTEXT [OE->OperandRight_ID - 1]->CLASS_DATA) - 1]->NAME);
                                     break;
                             }
                         }
@@ -3261,7 +3276,7 @@ numbereval:
                     case KEY_OPTIMIZED_RETURN:
                         DECLARE_PATH(LOCAL_CONTEXT [OE->OperandRight_ID - 1]->TYPE);
                         WRITE_UNLOCK
-                            INSTRUCTION_POINTER = TARGET_THREAD->INSTRUCTION_COUNT;
+                        INSTRUCTION_POINTER = TARGET_THREAD->INSTRUCTION_COUNT;
                         break;
 
                     case KEY_OPTIMIZED_THROW:
@@ -3945,7 +3960,10 @@ int ConceptInterpreter::EvalArrayExpression(PIFAlizator *PIF, VariableDATA **LOC
                     break;
 
                 case VARIABLE_DELEGATE:
-                    LOCAL_CONTEXT [OE->Result_ID - 1]->DELEGATE_DATA = LOCAL_CONTEXT [OE->OperandRight_ID - 1]->DELEGATE_DATA;
+                    LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA = copy_Delegate(LOCAL_CONTEXT [OE->OperandRight_ID - 1]->CLASS_DATA);
+                    LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE       = VARIABLE_DELEGATE;
+                    DECLARE_PATH(VARIABLE_DELEGATE);
+                    break;
 
                 case VARIABLE_CLASS:
                     LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA = LOCAL_CONTEXT [OE->OperandRight_ID - 1]->CLASS_DATA;
@@ -3994,17 +4012,24 @@ int ConceptInterpreter::EvalDelegateExpression(PIFAlizator *PIF, VariableDATA **
                 //SMART_LOCK(LOCAL_CONTEXT [OE->OperandLeft_ID - 1])
                 CLASS_CHECK(LOCAL_CONTEXT [OE->OperandLeft_ID - 1])
             } else {
-                ((struct CompiledClass *)LOCAL_CONTEXT [OE->OperandRight_ID - 1]->CLASS_DATA)->LINKS -= 1;
+                ((struct CompiledClass *)DYNAMIC_DATA(LOCAL_CONTEXT [OE->OperandRight_ID - 1]))->LINKS -= 1;
             }
 
             // ------------------- //
-            LOCAL_CONTEXT [OE->Result_ID - 1]->DELEGATE_DATA = LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->DELEGATE_DATA = LOCAL_CONTEXT [OE->OperandRight_ID - 1]->DELEGATE_DATA;
-            LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA    = LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA = LOCAL_CONTEXT [OE->OperandRight_ID - 1]->CLASS_DATA;
-            ((struct CompiledClass *)LOCAL_CONTEXT [OE->OperandRight_ID - 1]->CLASS_DATA)->LINKS += 2;
+            //LOCAL_CONTEXT [OE->Result_ID - 1]->DELEGATE_DATA = LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->DELEGATE_DATA = LOCAL_CONTEXT [OE->OperandRight_ID - 1]->DELEGATE_DATA;
+            LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA = copy_Delegate(LOCAL_CONTEXT [OE->OperandRight_ID - 1]->CLASS_DATA);
             LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->TYPE = VARIABLE_DELEGATE;
-            //----------------//
-            PROPERTY_CODE(this, PROPERTIES)
-            //----------------//
+            if (OE->Operator_FLAGS == MAY_IGNORE_RESULT) {
+                LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE = VARIABLE_NUMBER;
+                //----------------//
+                PROPERTY_CODE_IGNORE_RESULT(this, PROPERTIES)
+                //----------------//
+            } else {
+                LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA    = copy_Delegate(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA);
+                //----------------//
+                PROPERTY_CODE(this, PROPERTIES)
+                //----------------//
+            }
             DECLARE_PATH(VARIABLE_DELEGATE);
             return 1;
 
@@ -4014,7 +4039,7 @@ int ConceptInterpreter::EvalDelegateExpression(PIFAlizator *PIF, VariableDATA **
             if (LOCAL_CONTEXT [OE->OperandRight_ID - 1]->TYPE != VARIABLE_DELEGATE) {
                 LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = 0;
             } else {
-                LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = ((LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA == LOCAL_CONTEXT [OE->OperandRight_ID - 1]->CLASS_DATA) && (LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->NUMBER_DATA == LOCAL_CONTEXT [OE->OperandRight_ID - 1]->NUMBER_DATA));
+                LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = ((delegate_Class(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA) == delegate_Class(LOCAL_CONTEXT [OE->OperandRight_ID - 1]->CLASS_DATA)) && (delegate_Member(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA) == delegate_Member(LOCAL_CONTEXT [OE->OperandRight_ID - 1])));
             }
             LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE = VARIABLE_NUMBER;
             DECLARE_PATH(VARIABLE_NUMBER);
@@ -4026,7 +4051,7 @@ int ConceptInterpreter::EvalDelegateExpression(PIFAlizator *PIF, VariableDATA **
             if (LOCAL_CONTEXT [OE->OperandRight_ID - 1]->TYPE != VARIABLE_DELEGATE) {
                 LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = 0;
             } else {
-                LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = ((LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA != LOCAL_CONTEXT [OE->OperandRight_ID - 1]->CLASS_DATA) || (LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->NUMBER_DATA != LOCAL_CONTEXT [OE->OperandRight_ID - 1]->NUMBER_DATA));
+                LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = ((delegate_Class(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA) != delegate_Class(LOCAL_CONTEXT [OE->OperandRight_ID - 1]->CLASS_DATA)) || (delegate_Member(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA)!= delegate_Member(LOCAL_CONTEXT [OE->OperandRight_ID - 1]->CLASS_DATA)));
             }
             LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE = VARIABLE_NUMBER;
             DECLARE_PATH(VARIABLE_NUMBER);
@@ -4085,7 +4110,7 @@ int ConceptInterpreter::EvalDelegateExpression(PIFAlizator *PIF, VariableDATA **
             return 1;
 
         case KEY_CND_NULL:
-            if ((LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE == VARIABLE_DELEGATE) && (LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA == LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA) && (LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA == LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->NUMBER_DATA)) {
+            if ((LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE == VARIABLE_DELEGATE) && (delegate_Class(LOCAL_CONTEXT [OE->Result_ID - 1]) == delegate_Class(LOCAL_CONTEXT [OE->OperandLeft_ID - 1])) && (delegate_Member(LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA) == delegate_Member(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA))) {
                 DECLARE_PATH(VARIABLE_DELEGATE);
                 return 1;
             }
@@ -4093,9 +4118,7 @@ int ConceptInterpreter::EvalDelegateExpression(PIFAlizator *PIF, VariableDATA **
             //SMART_LOCK(LOCAL_CONTEXT [OE->Result_ID - 1])
             // CLASS_CHECK_RESET(LOCAL_CONTEXT [OE->Result_ID - 1], pushed_type)
             //---------------------------//
-            LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA  = LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA;
-            LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->NUMBER_DATA;
-            ((struct CompiledClass *)LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA)->LINKS++;
+            LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA  = copy_Delegate(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA);
             DECLARE_PATH(VARIABLE_NUMBER);
             return 1;
 
@@ -4478,7 +4501,10 @@ int ConceptInterpreter::EvalStringExpression(PIFAlizator *PIF, VariableDATA **LO
                     break;
 
                 case VARIABLE_DELEGATE:
-                    LOCAL_CONTEXT [OE->Result_ID - 1]->DELEGATE_DATA = LOCAL_CONTEXT [OE->OperandRight_ID - 1]->DELEGATE_DATA;
+                    LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA = copy_Delegate(LOCAL_CONTEXT [OE->OperandRight_ID - 1]->CLASS_DATA);
+                    LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE       = VARIABLE_DELEGATE;
+                    DECLARE_PATH(VARIABLE_DELEGATE);
+                    break;
 
                 case VARIABLE_CLASS:
                     LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA = LOCAL_CONTEXT [OE->OperandRight_ID - 1]->CLASS_DATA;
@@ -4794,7 +4820,9 @@ int ConceptInterpreter::EvalNumberExpression(PIFAlizator *PIF, VariableDATA **LO
                     break;
 
                 case VARIABLE_DELEGATE:
-                    LOCAL_CONTEXT [OE->Result_ID - 1]->DELEGATE_DATA = LOCAL_CONTEXT [OE->OperandRight_ID - 1]->DELEGATE_DATA;
+                    LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA = copy_Delegate(LOCAL_CONTEXT [OE->OperandRight_ID - 1]->CLASS_DATA);
+                    LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE       = VARIABLE_DELEGATE;
+                    break;
 
                 case VARIABLE_CLASS:
                     LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA = LOCAL_CONTEXT [OE->OperandRight_ID - 1]->CLASS_DATA;
@@ -5243,7 +5271,7 @@ VariableDATA *ConceptInterpreter::Interpret(PIFAlizator *PIF, VariableDATA **LOC
                             DECLARE_PATH(0x20);
                             continue;
                         }
-                        CCTEMP                     = (struct CompiledClass *)LOCAL_CONTEXT [OE->OperandRight_ID - 1]->CLASS_DATA;
+                        CCTEMP                     = (struct CompiledClass *)delegate_Class(LOCAL_CONTEXT [OE->OperandRight_ID - 1]->CLASS_DATA);
                         lOwner                     = (VariableDATA *)VAR_ALLOC(PIF);
                         lOwner->CLASS_DATA         = CCTEMP;
                         lOwner->IS_PROPERTY_RESULT = 0;
@@ -5253,7 +5281,7 @@ VariableDATA *ConceptInterpreter::Interpret(PIFAlizator *PIF, VariableDATA **LOC
 
                         WRITE_UNLOCK
                         RESULT = CCTEMP->_Class->ExecuteDelegate(PIF,
-                                                                        (INTEGER)LOCAL_CONTEXT [OE->OperandRight_ID - 1]->DELEGATE_DATA,
+                                                                        (INTEGER)delegate_Member(LOCAL_CONTEXT [OE->OperandRight_ID - 1]->CLASS_DATA),
                                                                         lOwner,
                                                                         OE,
                                                                         FORMAL_PARAMETERS,
@@ -5611,10 +5639,13 @@ numbereval:
                         if (RETURN_DATA->TYPE == VARIABLE_STRING) {
                             RETURN_DATA->CLASS_DATA     = 0;
                             CONCEPT_STRING(RETURN_DATA, LOCAL_CONTEXT [OE->OperandRight_ID - 1]);
+                        } else
+                        if (RETURN_DATA->TYPE == VARIABLE_DELEGATE) {
+                            RETURN_DATA->CLASS_DATA = copy_Delegate(LOCAL_CONTEXT [OE->OperandRight_ID - 1]->CLASS_DATA);
                         } else {
                             RETURN_DATA->CLASS_DATA = LOCAL_CONTEXT [OE->OperandRight_ID - 1]->CLASS_DATA;
                             if (RETURN_DATA->CLASS_DATA) {
-                                if ((RETURN_DATA->TYPE == VARIABLE_CLASS) || (RETURN_DATA->TYPE == VARIABLE_DELEGATE)) {
+                                if (RETURN_DATA->TYPE == VARIABLE_CLASS) {
                                     ((struct CompiledClass *)RETURN_DATA->CLASS_DATA)->LINKS++;
                                 } else
                                 if (RETURN_DATA->TYPE == VARIABLE_ARRAY) {
@@ -5658,10 +5689,10 @@ numbereval:
                                 break;
 
                             case VARIABLE_DELEGATE:
-                                CCTEMP = (struct CompiledClass *)LOCAL_CONTEXT [OE->OperandRight_ID - 1]->CLASS_DATA;
+                                CCTEMP = (struct CompiledClass *)delegate_Class(LOCAL_CONTEXT [OE->OperandRight_ID - 1]->CLASS_DATA);
                                 PIF->out->Print(CCTEMP->_Class->NAME);
                                 PIF->out->Print("::");
-                                PIF->out->Print(CCTEMP->_Class->pMEMBERS [(INTEGER)LOCAL_CONTEXT [OE->OperandRight_ID - 1]->DELEGATE_DATA - 1]->NAME);
+                                PIF->out->Print(CCTEMP->_Class->pMEMBERS [(INTEGER)delegate_Member(LOCAL_CONTEXT [OE->OperandRight_ID - 1]->CLASS_DATA) - 1]->NAME);
                                 break;
                         }
                     }
@@ -5831,9 +5862,7 @@ VariableDATA **ConceptInterpreter::CreateEnvironment(PIFAlizator *PIF, VariableD
                 ((struct CompiledClass *)PARAM->CLASS_DATA)->LINKS++;
             } else
             if (PARAM->TYPE == VARIABLE_DELEGATE) {
-                LOCAL_CONTEXT_i->CLASS_DATA    = PARAM->CLASS_DATA;
-                LOCAL_CONTEXT_i->DELEGATE_DATA = PARAM->DELEGATE_DATA;
-                ((struct CompiledClass *)PARAM->CLASS_DATA)->LINKS++;
+                LOCAL_CONTEXT_i->CLASS_DATA    = copy_Delegate(PARAM->CLASS_DATA);
             } else
             if (PARAM->TYPE == VARIABLE_ARRAY) {
                 LOCAL_CONTEXT_i->CLASS_DATA = PARAM->CLASS_DATA;
@@ -5896,7 +5925,7 @@ void ConceptInterpreter::DestroyEnviroment(PIFAlizator *PIF, VariableDATA **LOCA
     register INTEGER data_count = OPT->dataCount;
 #ifndef FAST_EXIT_NO_GC_CALL
     if (static_call_main) {
-        this->DestroyEnviroment(PIF, LOCAL_CONTEXT, STACK_TRACE);
+        this->DestroyGC(PIF, LOCAL_CONTEXT, STACK_TRACE);
     } else
 #endif
     {
@@ -6005,13 +6034,20 @@ void ConceptInterpreter::DestroyGC(PIFAlizator *PIF, VariableDATA **LOCAL_CONTEX
         if (LOCAL_CONTEXT_i) {
             if (LOCAL_CONTEXT_i->CLASS_DATA) {
                 if ((LOCAL_CONTEXT_i->TYPE == VARIABLE_CLASS) || (LOCAL_CONTEXT_i->TYPE == VARIABLE_DELEGATE)) {
-                    __gc_obj.Reference(LOCAL_CONTEXT_i->CLASS_DATA);
+                    void *CLASS_DATA = LOCAL_CONTEXT_i->CLASS_DATA;
+                    if (LOCAL_CONTEXT_i->TYPE == VARIABLE_DELEGATE) {
+                        CLASS_DATA = delegate_Class(CLASS_DATA);
+                        delete_Delegate(LOCAL_CONTEXT_i->CLASS_DATA);
+                        LOCAL_CONTEXT_i->TYPE = VARIABLE_NUMBER;
+                        LOCAL_CONTEXT_i->CLASS_DATA = NULL;
+                    }
+                    __gc_obj.Reference(CLASS_DATA);
                     if (!i) {
-                        const ClassCode *CC = ((struct CompiledClass *)LOCAL_CONTEXT_i->CLASS_DATA)->_Class;
+                        const ClassCode *CC = ((struct CompiledClass *)CLASS_DATA)->_Class;
                         if ((CC) && (!CC->DESTRUCTOR_MEMBER))
                             fast_array_clean = 1;
                     }
-                    CompiledClass__GO_GARBAGE((struct CompiledClass *)LOCAL_CONTEXT_i->CLASS_DATA, PIF, &__gc_obj, &__gc_array, &__gc_vars);
+                    CompiledClass__GO_GARBAGE((struct CompiledClass *)CLASS_DATA, PIF, &__gc_obj, &__gc_array, &__gc_vars);
                 } else
                 if (LOCAL_CONTEXT_i->TYPE == VARIABLE_ARRAY) {
                     __gc_array.Reference(LOCAL_CONTEXT_i->CLASS_DATA);
@@ -6031,8 +6067,14 @@ void ConceptInterpreter::DestroyGC(PIFAlizator *PIF, VariableDATA **LOCAL_CONTEX
             LOCAL_CONTEXT_i = &POOL->POOL[i];
             if ((LOCAL_CONTEXT_i) && (LOCAL_CONTEXT_i->flags >= 0) && (LOCAL_CONTEXT_i->CLASS_DATA)) {
                 if ((LOCAL_CONTEXT_i->TYPE == VARIABLE_CLASS) || (LOCAL_CONTEXT_i->TYPE == VARIABLE_DELEGATE)) {
-                    __gc_obj.Reference(LOCAL_CONTEXT_i->CLASS_DATA);
-                    CompiledClass__GO_GARBAGE((struct CompiledClass *)LOCAL_CONTEXT_i->CLASS_DATA, PIF, &__gc_obj, &__gc_array, &__gc_vars);
+                    void *CLASS_DATA = LOCAL_CONTEXT_i->CLASS_DATA;
+                    if (LOCAL_CONTEXT_i->TYPE == VARIABLE_DELEGATE) {
+                        CLASS_DATA = delegate_Class(CLASS_DATA);
+                        free_Delegate(LOCAL_CONTEXT_i->CLASS_DATA);
+                        LOCAL_CONTEXT_i->CLASS_DATA = NULL;
+                    }
+                    __gc_obj.Reference(CLASS_DATA);
+                    CompiledClass__GO_GARBAGE((struct CompiledClass *)CLASS_DATA, PIF, &__gc_obj, &__gc_array, &__gc_vars);
                 } else
                 if (LOCAL_CONTEXT_i->TYPE == VARIABLE_ARRAY) {
                     __gc_array.Reference(LOCAL_CONTEXT_i->CLASS_DATA);

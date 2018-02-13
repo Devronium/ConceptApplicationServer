@@ -139,7 +139,13 @@ void CompiledClass__GO_GARBAGE(struct CompiledClass *self, void *PIF, GarbageCol
                     }
                     if (Var->CLASS_DATA) {
                         if ((Var->TYPE == VARIABLE_CLASS) || (Var->TYPE == VARIABLE_DELEGATE)) {
-                            CompiledClass *CC2 = (struct CompiledClass *)Var->CLASS_DATA;
+                            void *CLASS_DATA = Var->CLASS_DATA;
+                            if (Var->TYPE == VARIABLE_DELEGATE) {
+                                CLASS_DATA = delegate_Class(CLASS_DATA);
+                                free_Delegate(Var->CLASS_DATA);
+                                Var->CLASS_DATA = NULL;
+                            }
+                            CompiledClass *CC2 = (struct CompiledClass *)CLASS_DATA;
                             if (CC2->LINKS >= 0) {
                                 if ((check_objects == -1) || ((CC2->reachable & check_objects) != check_objects)) {
                                     if (check_objects != -1)
@@ -286,12 +292,18 @@ void delete_CompiledClass(struct CompiledClass *self) {
                         plainstring_delete((struct plainstring *)_CONTEXT_i->CLASS_DATA);
                     } else
                     if ((_CONTEXT_i->TYPE == VARIABLE_CLASS) || (_CONTEXT_i->TYPE == VARIABLE_DELEGATE)) {
-                        if (!--((struct CompiledClass *)_CONTEXT_i->CLASS_DATA)->LINKS) {
+                        void *CLASS_DATA = _CONTEXT_i->CLASS_DATA;
+                        if (_CONTEXT_i->TYPE == VARIABLE_DELEGATE) {
+                            CLASS_DATA = delegate_Class(CLASS_DATA);
+                            delete_Delegate_no_class(_CONTEXT_i->CLASS_DATA);
+                            _CONTEXT_i->CLASS_DATA = NULL;
+                        }
+                        if (!--((struct CompiledClass *)CLASS_DATA)->LINKS) {
                             if (inspectPos >= inspectSize) {
                                 inspectSize += INSPECT_INCREMENT;
                                 toInspect    = (CompiledClass **)FAST_REALLOC(toInspect, sizeof(struct CompiledClass *) * inspectSize);
                             }
-                            toInspect[inspectPos++] = (struct CompiledClass *)_CONTEXT_i->CLASS_DATA;
+                            toInspect[inspectPos++] = (struct CompiledClass *)CLASS_DATA;
                         }
                     } else
                     if (_CONTEXT_i->TYPE == VARIABLE_ARRAY) {

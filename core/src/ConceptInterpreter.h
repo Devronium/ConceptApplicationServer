@@ -47,14 +47,16 @@ extern "C" {
             if (VARIABLE->TYPE == VARIABLE_STRING) {                                           \
                 plainstring_delete((struct plainstring *)VARIABLE->CLASS_DATA);                \
             } else                                                                             \
-            if ((VARIABLE->TYPE == VARIABLE_CLASS) || (VARIABLE->TYPE == VARIABLE_DELEGATE)) { \
+            if (VARIABLE->TYPE == VARIABLE_CLASS) {                                            \
                 if (!--((struct CompiledClass *)VARIABLE->CLASS_DATA)->LINKS)                  \
                     delete_CompiledClass((struct CompiledClass *)VARIABLE->CLASS_DATA);        \
             } else                                                                             \
             if (VARIABLE->TYPE == VARIABLE_ARRAY) {                                            \
                 if (!--((struct Array *)VARIABLE->CLASS_DATA)->LINKS)                          \
                     delete_Array((struct Array *)VARIABLE->CLASS_DATA);                        \
-            }                                                                                  \
+            } else                                                                             \
+            if (VARIABLE->TYPE == VARIABLE_DELEGATE)                                           \
+                delete_Delegate(VARIABLE->CLASS_DATA);                                         \
         }                                                                                      \
         VAR_FREE(VARIABLE);                                                                    \
     }
@@ -70,7 +72,7 @@ void FREE_VARIABLE(VariableDATA *VARIABLE);
             if (VARIABLE->TYPE == VARIABLE_STRING) {                                           \
                 plainstring_delete((struct plainstring *)VARIABLE->CLASS_DATA);                \
             } else                                                                             \
-            if ((VARIABLE->TYPE == VARIABLE_CLASS) || (VARIABLE->TYPE == VARIABLE_DELEGATE)) { \
+            if (VARIABLE->TYPE == VARIABLE_CLASS) {                                            \
                 if (!--((struct CompiledClass *)VARIABLE->CLASS_DATA)->LINKS) {                \
                     WRITE_UNLOCK                                                               \
                     delete_CompiledClass((struct CompiledClass *)VARIABLE->CLASS_DATA);        \
@@ -81,6 +83,10 @@ void FREE_VARIABLE(VariableDATA *VARIABLE);
                     WRITE_UNLOCK                                                               \
                     delete_Array((struct Array *)VARIABLE->CLASS_DATA);                        \
                 }                                                                              \
+            } else                                                                             \
+            if (VARIABLE->TYPE == VARIABLE_DELEGATE) {                                         \
+                WRITE_UNLOCK                                                                   \
+                delete_Delegate(VARIABLE->CLASS_DATA);                                         \
             }                                                                                  \
         }                                                                                      \
         VAR_FREE(VARIABLE);                                                                    \
@@ -96,14 +102,16 @@ void FREE_VARIABLE(VariableDATA *VARIABLE);
             if (pushed_type == VARIABLE_STRING) {                                        \
                 plainstring_delete((struct plainstring *)VARIABLE->CLASS_DATA);          \
             } else                                                                       \
-            if ((pushed_type == VARIABLE_CLASS) || (pushed_type == VARIABLE_DELEGATE)) { \
+            if (pushed_type == VARIABLE_CLASS) {                                         \
                 if (!--((struct CompiledClass *)VARIABLE->CLASS_DATA)->LINKS)            \
                     delete_CompiledClass((struct CompiledClass *)VARIABLE->CLASS_DATA);  \
             } else                                                                       \
             if (pushed_type == VARIABLE_ARRAY) {                                         \
                 if (!--((struct Array *)VARIABLE->CLASS_DATA)->LINKS)                    \
                     delete_Array((struct Array *)VARIABLE->CLASS_DATA);                  \
-            }                                                                            \
+            } else                                                                       \
+            if (pushed_type == VARIABLE_DELEGATE)                                        \
+                delete_Delegate(VARIABLE->CLASS_DATA);                                   \
         }                                                                                \
         VAR_FREE(VARIABLE);                                                              \
     }
@@ -115,14 +123,16 @@ void FREE_VARIABLE(VariableDATA *VARIABLE);
             if (VARIABLE->TYPE == VARIABLE_STRING) {                                           \
                 plainstring_delete((struct plainstring *)VARIABLE->CLASS_DATA);                \
             } else                                                                             \
-            if ((VARIABLE->TYPE == VARIABLE_CLASS) || (VARIABLE->TYPE == VARIABLE_DELEGATE)) { \
+            if (VARIABLE->TYPE == VARIABLE_CLASS) {                                            \
                 if (!--((struct CompiledClass *)VARIABLE->CLASS_DATA)->LINKS)                  \
                     delete_CompiledClass((struct CompiledClass *)VARIABLE->CLASS_DATA);        \
             } else                                                                             \
             if (VARIABLE->TYPE == VARIABLE_ARRAY) {                                            \
                 if (!--((struct Array *)VARIABLE->CLASS_DATA)->LINKS)                          \
                     delete_Array((struct Array *)VARIABLE->CLASS_DATA);                        \
-            }                                                                                  \
+            } else                                                                             \
+            if (VARIABLE->TYPE == VARIABLE_DELEGATE)                                           \
+                delegate_Delegate(VARIABLE->CLASS_DATA);                                       \
         }                                                                                      \
     }
 
@@ -133,14 +143,16 @@ void FREE_VARIABLE(VariableDATA *VARIABLE);
             if (VARIABLE->TYPE == VARIABLE_STRING) {                                           \
                 plainstring_delete((struct plainstring *)VARIABLE->CLASS_DATA);                \
             } else                                                                             \
-            if ((VARIABLE->TYPE == VARIABLE_CLASS) || (VARIABLE->TYPE == VARIABLE_DELEGATE)) { \
+            if (VARIABLE->TYPE == VARIABLE_CLASS) {                                            \
                 if (!--((struct CompiledClass *)VARIABLE->CLASS_DATA)->LINKS) {                \
                     delete_CompiledClass((struct CompiledClass *)VARIABLE->CLASS_DATA); }      \
             } else                                                                             \
             if (VARIABLE->TYPE == VARIABLE_ARRAY) {                                            \
                 if (!--((struct Array *)VARIABLE->CLASS_DATA)->LINKS) {                        \
                     delete_Array((struct Array *)VARIABLE->CLASS_DATA); }                      \
-            }                                                                                  \
+            } else                                                                             \
+            if (VARIABLE->TYPE == VARIABLE_DELEGATE)                                           \
+                delete_Delegate(VARIABLE->CLASS_DATA);                                         \
         }                                                                                      \
     } else                                                                                     \
         RESET_VAR = NULL;
@@ -158,14 +170,16 @@ void FREE_VARIABLE(VariableDATA *VARIABLE);
         if (VARIABLE->TYPE == VARIABLE_STRING) {                                           \
             plainstring_delete((struct plainstring *)VARIABLE->CLASS_DATA); }              \
         else                                                                               \
-        if ((VARIABLE->TYPE == VARIABLE_CLASS) || (VARIABLE->TYPE == VARIABLE_DELEGATE)) { \
+        if (VARIABLE->TYPE == VARIABLE_CLASS) {                                            \
             if (!--((struct CompiledClass *)VARIABLE->CLASS_DATA)->LINKS)                  \
                 delete_CompiledClass((struct CompiledClass *)VARIABLE->CLASS_DATA);        \
         } else                                                                             \
         if (VARIABLE->TYPE == VARIABLE_ARRAY) {                                            \
             if (!--((struct Array *)VARIABLE->CLASS_DATA)->LINKS)                          \
                 delete_Array((struct Array *)VARIABLE->CLASS_DATA);                        \
-        }                                                                                  \
+        } else                                                                             \
+        if (VARIABLE->TYPE == VARIABLE_DELEGATE)                                           \
+            delete_Delegate(VARIABLE->CLASS_DATA);                                         \
         VARIABLE->CLASS_DATA = NULL;                                                       \
     }                                                                                      \
 
@@ -174,14 +188,16 @@ void FREE_VARIABLE(VariableDATA *VARIABLE);
         if (pushed_type == VARIABLE_STRING) {                                        \
             plainstring_delete((struct plainstring *)VARIABLE->CLASS_DATA); }        \
         else                                                                         \
-        if ((pushed_type == VARIABLE_CLASS) || (pushed_type == VARIABLE_DELEGATE)) { \
+        if (pushed_type == VARIABLE_CLASS) { \
             if (!--((struct CompiledClass *)VARIABLE->CLASS_DATA)->LINKS)            \
                 delete_CompiledClass((struct CompiledClass *)VARIABLE->CLASS_DATA);  \
         } else                                                                       \
         if (pushed_type == VARIABLE_ARRAY) {                                         \
             if (!--((struct Array *)VARIABLE->CLASS_DATA)->LINKS)                    \
                 delete_Array((struct Array *)VARIABLE->CLASS_DATA);                  \
-        }                                                                            \
+        } else                                                                       \
+        if (pushed_type == VARIABLE_DELEGATE)                                        \
+            delete_Delegate(VARIABLE->CLASS_DATA);                                   \
     }                                                                                \
     VARIABLE->CLASS_DATA = NULL;                                                     \
 
@@ -218,6 +234,7 @@ private:
     int EvalArrayExpression(PIFAlizator *PIF, VariableDATA **LOCAL_CONTEXT, const RuntimeOptimizedElement *OE, VariableDATAPROPERTY * &PROPERTIES, intptr_t ClassID, VariableDATA *& THROW_DATA, SCStack *STACK_TRACE, INTEGER &INSTRUCTION_POINTER, INTEGER &CATCH_INSTRUCTION_POINTER, INTEGER &CATCH_VARIABLE, INTEGER &PREVIOUS_TRY, char &IsWriteLocked);
     int EvalDelegateExpression(PIFAlizator *PIF, VariableDATA **LOCAL_CONTEXT, const RuntimeOptimizedElement *OE, VariableDATAPROPERTY * &PROPERTIES, intptr_t ClassID, VariableDATA *& THROW_DATA, SCStack *STACK_TRACE, INTEGER &INSTRUCTION_POINTER, INTEGER &CATCH_INSTRUCTION_POINTER, INTEGER &CATCH_VARIABLE, INTEGER &PREVIOUS_TRY, char &IsWriteLocked);
     int EvalSimpleExpression(PIFAlizator *PIF, VariableDATA **LOCAL_CONTEXT, const RuntimeOptimizedElement *OE, VariableDATAPROPERTY * &PROPERTIES, intptr_t ClassID, VariableDATA *& THROW_DATA, SCStack *STACK_TRACE, INTEGER &INSTRUCTION_POINTER, INTEGER &CATCH_INSTRUCTION_POINTER, INTEGER &CATCH_VARIABLE, INTEGER &PREVIOUS_TRY, char &IsWriteLocked);
+    int EvalCall(PIFAlizator *PIF, VariableDATA **LOCAL_CONTEXT, const RuntimeOptimizedElement *OE, VariableDATAPROPERTY * &PROPERTIES, intptr_t ClassID, VariableDATA *& THROW_DATA, SCStack *STACK_TRACE, INTEGER &INSTRUCTION_POINTER, INTEGER &CATCH_INSTRUCTION_POINTER, INTEGER &CATCH_VARIABLE, INTEGER &PREVIOUS_TRY, char &IsWriteLocked);
 #else
     int EvalNumberExpression(PIFAlizator *PIF, VariableDATA **LOCAL_CONTEXT, const RuntimeOptimizedElement *OE, VariableDATAPROPERTY * &PROPERTIES, intptr_t ClassID, VariableDATA *& THROW_DATA, SCStack *STACK_TRACE, INTEGER &INSTRUCTION_POINTER, INTEGER &CATCH_INSTRUCTION_POINTER, INTEGER &CATCH_VARIABLE, INTEGER &PREVIOUS_TRY);
     int EvalStringExpression(PIFAlizator *PIF, VariableDATA **LOCAL_CONTEXT, const RuntimeOptimizedElement *OE, VariableDATAPROPERTY * &PROPERTIES, intptr_t ClassID, VariableDATA *& THROW_DATA, SCStack *STACK_TRACE, INTEGER &INSTRUCTION_POINTER, INTEGER &CATCH_INSTRUCTION_POINTER, INTEGER &CATCH_VARIABLE, INTEGER &PREVIOUS_TRY);
@@ -225,6 +242,7 @@ private:
     int EvalArrayExpression(PIFAlizator *PIF, VariableDATA **LOCAL_CONTEXT, const RuntimeOptimizedElement *OE, VariableDATAPROPERTY * &PROPERTIES, intptr_t ClassID, VariableDATA *& THROW_DATA, SCStack *STACK_TRACE, INTEGER &INSTRUCTION_POINTER, INTEGER &CATCH_INSTRUCTION_POINTER, INTEGER &CATCH_VARIABLE, INTEGER &PREVIOUS_TRY);
     int EvalDelegateExpression(PIFAlizator *PIF, VariableDATA **LOCAL_CONTEXT, const RuntimeOptimizedElement *OE, VariableDATAPROPERTY * &PROPERTIES, intptr_t ClassID, VariableDATA *& THROW_DATA, SCStack *STACK_TRACE, INTEGER &INSTRUCTION_POINTER, INTEGER &CATCH_INSTRUCTION_POINTER, INTEGER &CATCH_VARIABLE, INTEGER &PREVIOUS_TRY);
     int EvalSimpleExpression(PIFAlizator *PIF, VariableDATA **LOCAL_CONTEXT, const RuntimeOptimizedElement *OE, VariableDATAPROPERTY * &PROPERTIES, intptr_t ClassID, VariableDATA *& THROW_DATA, SCStack *STACK_TRACE, INTEGER &INSTRUCTION_POINTER, INTEGER &CATCH_INSTRUCTION_POINTER, INTEGER &CATCH_VARIABLE, INTEGER &PREVIOUS_TRY);
+    int EvalCall(PIFAlizator *PIF, VariableDATA **LOCAL_CONTEXT, const RuntimeOptimizedElement *OE, VariableDATAPROPERTY * &PROPERTIES, intptr_t ClassID, VariableDATA *& THROW_DATA, SCStack *STACK_TRACE, INTEGER &INSTRUCTION_POINTER, INTEGER &CATCH_INSTRUCTION_POINTER, INTEGER &CATCH_VARIABLE, INTEGER &PREVIOUS_TRY);
 #endif
     int Catch(VariableDATA *&THROW_DATA, VariableDATA **LOCAL_CONTEXT, const RuntimeOptimizedElement *OE, VariableDATAPROPERTY * &PROPERTIES, INTEGER &INSTRUCTION_POINTER, INTEGER &CATCH_INSTRUCTION_POINTER, INTEGER &CATCH_VARIABLE, INTEGER &PREVIOUS_TRY);
 public:

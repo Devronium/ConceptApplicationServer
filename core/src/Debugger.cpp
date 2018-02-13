@@ -248,9 +248,9 @@ int GetVariableByName(int operation, void **VDESC, void **CONTEXT, int Depth, ch
 
                     case VARIABLE_DELEGATE:
                         if (operation == 0) {
-                            struct plainstring *str = plainstring_new_str(CompiledClass_GetClassName((struct CompiledClass *)VD->CLASS_DATA));
+                            struct plainstring *str = plainstring_new_str(CompiledClass_GetClassName((struct CompiledClass *)delegate_Class(VD->CLASS_DATA)));
                             plainstring_add_char(str, '.');
-                            plainstring_add(str, ((struct CompiledClass *)VD->CLASS_DATA)->_Class->pMEMBERS [(INTEGER)VD->DELEGATE_DATA]->NAME);
+                            plainstring_add(str, ((struct CompiledClass *)delegate_Class(VD->CLASS_DATA))->_Class->pMEMBERS [(INTEGER)delegate_Member(VD->CLASS_DATA)]->NAME);
                             strncpy(buffer, plainstring_c_str(str), buf_size);
                             plainstring_delete(str);
                         }

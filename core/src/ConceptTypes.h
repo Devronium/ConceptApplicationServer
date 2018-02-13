@@ -229,10 +229,7 @@ typedef struct tsVariableDATAPROPERTY {
 typedef struct tsVariableDATA {
     union {
         NUMBER NUMBER_DATA;
-        struct {
-            POINTER              CLASS_DATA;
-            CLASS_MEMBERS_DOMAIN DELEGATE_DATA;
-        };
+        POINTER CLASS_DATA;
     };
     unsigned short LINKS;
     signed char    TYPE;
@@ -361,6 +358,8 @@ struct GreenThreadCycle {
     // interpreter next
     void                 *NEXT;
 };
+
+#define DYNAMIC_DATA(VARIABLE)  (VARIABLE->TYPE == VARIABLE_DELEGATE ? delegate_Class(VARIABLE->CLASS_DATA) : VARIABLE->CLASS_DATA)
 
 #define SERIALIZE_PARAM_LIST(Param, out)                                   \
     concept_fwrite_int(&Param->COUNT, sizeof(short), 1, out);              \

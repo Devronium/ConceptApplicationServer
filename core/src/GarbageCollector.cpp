@@ -124,8 +124,12 @@ void GarbageCollector::EndOfExecution_SayBye_Variables() {
             if (kh_exist(BASE2, k)) {
                 VariableDATA *ptr = (VariableDATA *)(uintptr_t)kh_key(BASE2, k);
                 if (ptr) {
-                    if ((ptr->CLASS_DATA) && (ptr->TYPE == VARIABLE_STRING)) {
-                        plainstring_delete((struct plainstring *)ptr->CLASS_DATA);
+                    if (ptr->CLASS_DATA) {
+                        if (ptr->TYPE == VARIABLE_STRING)
+                            plainstring_delete((struct plainstring *)ptr->CLASS_DATA);
+                        else
+                        if (ptr->TYPE == VARIABLE_DELEGATE)
+                            free_Delegate(ptr->CLASS_DATA);
                         ptr->CLASS_DATA = NULL;
                     }
                     VAR_FREE(ptr);

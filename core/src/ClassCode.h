@@ -110,5 +110,19 @@ public:
 #endif
     void EnsureThreadSafe();
 };
+
+struct ClassDelegate {
+    void *CLASS_DATA;
+    CLASS_MEMBERS_DOMAIN DELEGATE_DATA;
+};
+
+struct ClassDelegate *new_Delegate(void *CLASS_DATA, CLASS_MEMBERS_DOMAIN DELEGATE_DATA);
+void delete_Delegate(void *deleg);
+void delete_Delegate_no_class(void *self);
+void free_Delegate(void *self);
+struct ClassDelegate *copy_Delegate(const void *self);
+void *delegate_Class(const void *self);
+CLASS_MEMBERS_DOMAIN delegate_Member(const void *self);
+
 #endif // __CLASSCODE
 
