@@ -707,16 +707,14 @@ VariableDATA *ClassCode::ExecuteDelegate(PIFAlizator *PIF, INTEGER i, VariableDA
 
         STACK(PREV, OE ? OE->Operator_DEBUG_INFO_LINE : 0)
 #ifdef SIMPLE_MULTI_THREADING
-        RESULT = pMEMBER_i->Execute(PIF, this->CLSID, Owner, FORMAL_PARAM, SenderCTX, THROW_DATA, PREV, 0, thread_lock);
+        RESULT = pMEMBER_i->Execute(PIF, this->CLSID, Owner, FORMAL_PARAM, SenderCTX, *LOCAL_THROW, PREV, 0, thread_lock);
 #else
-        RESULT = pMEMBER_i->Execute(PIF, this->CLSID, Owner, FORMAL_PARAM, SenderCTX, THROW_DATA, PREV);
+        RESULT = pMEMBER_i->Execute(PIF, this->CLSID, Owner, FORMAL_PARAM, SenderCTX, *LOCAL_THROW, PREV);
 #endif
         UNSTACK;
 
-        if (THROW_DATA) {
-            FREE_VARIABLE(THROW_DATA);
+        if (*LOCAL_THROW)
             RESULT = NULL;
-        }
 
         return RESULT;
     }
