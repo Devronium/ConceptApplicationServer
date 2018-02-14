@@ -524,7 +524,7 @@ void *AllocArray(void *PIF, bool skip_top) {
     if (!POOL) {
         POOL            = (ArrayPool *)malloc(sizeof(ArrayPool));
         POOL->FIRST_VAR = 0;
-        POOL->POOL_VARS = OBJECT_POOL_BLOCK_SIZE;
+        POOL->POOL_VARS = ARRAY_POOL_BLOCK_SIZE;
         POOL->NEXT      = NULL;
         POOL->PREV      = NULL;
         POOL->PIF       = PIF;

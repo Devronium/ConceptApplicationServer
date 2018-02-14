@@ -4008,13 +4008,7 @@ int ConceptInterpreter::EvalDelegateExpression(PIFAlizator *PIF, VariableDATA **
         case KEY_ASG:
         case KEY_BY_REF:
             // ------------------- //
-            if (LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA != LOCAL_CONTEXT [OE->OperandRight_ID - 1]->CLASS_DATA) {
-                //SMART_LOCK(LOCAL_CONTEXT [OE->OperandLeft_ID - 1])
-                CLASS_CHECK(LOCAL_CONTEXT [OE->OperandLeft_ID - 1])
-            } else {
-                ((struct CompiledClass *)DYNAMIC_DATA(LOCAL_CONTEXT [OE->OperandRight_ID - 1]))->LINKS -= 1;
-            }
-
+            CLASS_CHECK(LOCAL_CONTEXT [OE->OperandLeft_ID - 1])
             // ------------------- //
             //LOCAL_CONTEXT [OE->Result_ID - 1]->DELEGATE_DATA = LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->DELEGATE_DATA = LOCAL_CONTEXT [OE->OperandRight_ID - 1]->DELEGATE_DATA;
             LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA = copy_Delegate(LOCAL_CONTEXT [OE->OperandRight_ID - 1]->CLASS_DATA);
@@ -5955,7 +5949,7 @@ void ConceptInterpreter::DestroyEnviroment(PIFAlizator *PIF, VariableDATA **LOCA
                             CC_WRITE_LOCK2(PIF)
                         }
                     } else
-                    if (VARIABLE->TYE == VARIABLE_DELEGATE) {
+                    if (VARIABLE->TYPE == VARIABLE_DELEGATE) {
                         CC_WRITE_UNLOCK(PIF)
                         delete_Delegate(VARIABLE->CLASS_DATA);
                         CC_WRITE_LOCK2(PIF)

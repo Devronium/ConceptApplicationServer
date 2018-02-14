@@ -779,8 +779,7 @@ VariableDATA *ClassCode::ExecuteMember(PIFAlizator *PIF, INTEGER i, VariableDATA
             }
         }
 
-        int relocation2 = this->RELOCATIONS2 [relocation - 1];
-
+        int relocation2;
         switch (pMEMBER_i->IS_FUNCTION) {
             case 1:
                 if (!FORMAL_PARAM) {
@@ -958,6 +957,7 @@ VariableDATA *ClassCode::ExecuteMember(PIFAlizator *PIF, INTEGER i, VariableDATA
                 return RESULT;
 
             default:
+                relocation2 = this->RELOCATIONS2 [relocation - 1];
                 CC_WRITE_LOCK(PIF)
                 RESULT = ((struct CompiledClass *)Owner->CLASS_DATA)->_CONTEXT [relocation2 - 1];
                 if (!RESULT) {
