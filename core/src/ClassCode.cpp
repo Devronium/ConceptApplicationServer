@@ -714,7 +714,7 @@ VariableDATA *ClassCode::ExecuteDelegate(PIFAlizator *PIF, INTEGER i, VariableDA
         UNSTACK;
 
         if (THROW_DATA) {
-            FREE_VARIABLE(RESULT);
+            FREE_VARIABLE(THROW_DATA);
             RESULT = NULL;
         }
 
