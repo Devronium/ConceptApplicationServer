@@ -4,11 +4,13 @@
 #include "library.h"
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 #ifndef _WIN32
     #include <arpa/inet.h>
 #endif
 
 #define MAX_PACKET_LOOK_AHEAD   20
+#define bin2bcd(val) (((val)/10)<<4) + (val)%10 
 
 static const unsigned int crc_table[256] = {
         0x00000000, 0x04c11db7, 0x09823b6e, 0x0d4326d9, 0x130476dc, 0x17c56b6b,
@@ -626,6 +628,382 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(M2TSPeek, 1, 4)
     } else {
         RETURN_NUMBER(-1);
     }
+END_IMPL
+//=====================================================================================//
+long mjd(long Y, long M, long D) {
+    // return 367 * Year - 7 * (Year + (Month + 9) / 12) / 4 - 3 * ((Year + (Month - 9) / 7) / 100 + 1) / 4 + 275 * Month / 9 + Day + 1721028 - 2400000;
+    long L = 0;
+    if ((M == 1) || (M == 2))
+        L = 1;
+    return 14956 + D + (int)((Y -L) * 365.25) + (int)((M + 1 + L * 12) * 30.6001);
+}
+
+CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(M2TSEPG, 11, 15)
+    // network id
+    T_NUMBER(M2TSEPG, 0)
+    // program id
+    T_NUMBER(M2TSEPG, 1)
+    // transport stream id
+    T_NUMBER(M2TSEPG, 2)
+    // start time in epoch
+    T_NUMBER(M2TSEPG, 3)
+    // duration in seconds
+    T_NUMBER(M2TSEPG, 4)
+    // title
+    T_STRING(M2TSEPG, 5)
+    // description
+    T_STRING(M2TSEPG, 6)
+    // language
+    T_STRING(M2TSEPG, 7)
+    // continuity
+    T_NUMBER(M2TSEPG, 8)
+    // section_number
+    T_NUMBER(M2TSEPG, 9)
+    // total sections
+    T_NUMBER(M2TSEPG, 10)
+
+    int event_information_section = 0x4E;
+    int event_id = PARAM_INT(1);
+    int version = 12;
+
+    if (PARAMETERS_COUNT > 11) {
+        T_NUMBER(M2TSEPG, 11)
+        if (PARAM_INT(11) > 0) {
+            event_information_section = 0x50 + (PARAM_INT(11) - 1);
+        }
+
+    }
+
+    if (PARAMETERS_COUNT > 12) {
+        T_NUMBER(M2TSEPG, 12)
+        version = PARAM_INT(12);
+    }
+
+    if (PARAMETERS_COUNT > 13) {
+        T_NUMBER(M2TSEPG, 13)
+        event_id = PARAM_INT(13);
+    }
+
+    int segment_last_section_number = (unsigned char)PARAM_INT(10);
+    if (PARAMETERS_COUNT > 14) {
+        T_NUMBER(M2TSEPG, 14)
+        segment_last_section_number = PARAM_INT(14);
+    }
+
+    if (PARAM_LEN(7) != 3)
+        return (void *)"M2TSEPG: language id must have 3 characters";
+
+    char *buf = NULL;
+    // more than enough
+    int len = (188 + PARAM_LEN(5) + PARAM_LEN(6) + PARAM_LEN(7)) * 2;
+
+    int continuity = PARAM_INT(8);
+    if (continuity < 0)
+        continuity = 0;
+    if (continuity > 15)
+        continuity = 0;
+
+    CORE_NEW(len, buf);
+    int descriptor_len = PARAM_LEN(5) + PARAM_LEN(6) + 9;
+    int section_len = descriptor_len + 27;
+
+    buf[0] = 'G';
+    buf[1] = 0x40;
+    buf[2] = 0x12;
+    buf[3] = 0x10 | continuity;
+    buf[4] = 0x00;
+    buf[5] = event_information_section;
+    buf[6] = 0xF0 | (section_len / 0x100);
+    buf[7] = section_len % 0x100;
+    (*(unsigned short *)&buf[8]) = htons(PARAM_INT(1));
+    // 5 bits version
+    version &= 0x1F;
+    buf[10] = 0xC1 | (version << 1);
+    // section_number
+    buf[11] = (unsigned char)PARAM_INT(9);
+    // last section number
+    buf[12] = (unsigned char)PARAM_INT(10);
+    SET_NUMBER(9, PARAM_INT(9) + 1);
+    // networkid
+    (*(unsigned short *)&buf[13]) = htons(PARAM_INT(2));
+    (*(unsigned short *)&buf[15]) = htons(PARAM_INT(0));
+    // segment last section number
+    buf[17] = segment_last_section_number;
+    // last table id
+    buf[18] = event_information_section;
+
+    // event id
+    (*(unsigned short *)&buf[19]) = htons(event_id);
+    time_t rawtime = (time_t)PARAM(3);
+    // check thread-safety!
+    struct tm * timeinfo = localtime(&rawtime);
+    unsigned short mjd_info = mjd(timeinfo->tm_year, timeinfo->tm_mon + 1, timeinfo->tm_mday);
+    (*(unsigned short *)&buf[21]) = htons(mjd_info);
+
+    buf[23] = bin2bcd(timeinfo->tm_hour);
+    buf[24] = bin2bcd(timeinfo->tm_min);
+    buf[25] = bin2bcd(timeinfo->tm_sec);
+
+    int duration = PARAM_INT(4);
+    buf[26] = bin2bcd(duration / 3600);
+    duration %= 3600;
+    buf[27] = bin2bcd(duration / 60);
+    duration %= 60;
+    buf[28] = bin2bcd(duration);
+
+    buf[29] = 0x00;
+    buf[29] |= descriptor_len / 0x100;
+    buf[30] = descriptor_len % 0x100;
+    buf[31] = 0x4D;
+    buf[32] = PARAM_LEN(5) + PARAM_LEN(6) + 7;
+    len = 33;
+    memcpy(&buf[len], PARAM(7), PARAM_LEN(7));
+    len += PARAM_LEN(7);
+    buf[len ++] = PARAM_LEN(5) + 1;
+    // utf8 encoding
+    buf[len] = 0x15;
+    len ++;
+    memcpy(&buf[len], PARAM(5), PARAM_LEN(5));
+    len += PARAM_LEN(5);
+
+    buf[len ++] = PARAM_LEN(6) + 1;
+    buf[len] = 0x15;
+    len ++;
+    memcpy(&buf[len], PARAM(6), PARAM_LEN(6));
+    len += PARAM_LEN(6);
+
+    unsigned int crc32 = fast_crc32((char *)&buf[5], len - 5);
+    (*(unsigned int *)&buf[len]) = htonl(crc32);
+    len += 4;
+    char *ptr = buf;
+    int buffer_len = len;
+    while (len > 0) {
+        continuity ++;
+        if (len < 188) {
+            memset(&ptr[len], 0xFF, 188 - len);
+            buffer_len += 188 - len;
+            break;
+        }
+        ptr += 188;
+        len -= 184;
+        memmove(ptr + 4, ptr, 184);
+        ptr[0] = 'G';
+        ptr[1] = 0x00;
+        ptr[2] = 0x12;
+        ptr[3] = 0x10 | continuity;
+        buffer_len += 4;
+    }
+    SET_NUMBER(8, continuity);
+    SetVariable(RESULT, -1, buf, buffer_len);
+END_IMPL
+//=====================================================================================//
+CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(M2TSEPG2, 8, 9)
+    // network id
+    T_NUMBER(M2TSEPG2, 0)
+    // program id
+    T_NUMBER(M2TSEPG2, 1)
+    // transport stream id
+    T_NUMBER(M2TSEPG2, 2)
+    // start time in epoch
+    T_ARRAY(M2TSEPG2, 3)
+    // language
+    T_STRING(M2TSEPG2, 4)
+    // continuity
+    T_NUMBER(M2TSEPG2, 5)
+    // section_number
+    T_NUMBER(M2TSEPG2, 6)
+    // total sections
+    T_NUMBER(M2TSEPG2, 7)
+
+    int event_information_section = 0x4E;
+    if (PARAMETERS_COUNT > 8) {
+        T_NUMBER(M2TSEPG2, 8)
+        if (PARAM_INT(8) > 0) {
+            event_information_section = 0x50 + (PARAM_INT(8) - 1);
+        }
+    }
+
+    if (PARAM_LEN(4) != 3)
+        return (void *)"M2TSEPG: language id must have 3 characters";
+
+    char *buf = NULL;
+    int event_id = PARAM_INT(1);
+    // more than enough
+    int len = 188 + PARAM_LEN(4);
+    int strlength = 0;
+    int count = Invoke(INVOKE_GET_ARRAY_COUNT, PARAMETER(3));
+    for (INTEGER i = 0; i < count; i++) {
+        void *var;
+        Invoke(INVOKE_ARRAY_VARIABLE, PARAMETER(3), i, &var);
+        if (var) {
+            INTEGER type=0;
+            char *szData;
+            NUMBER nData;
+            Invoke(INVOKE_GET_VARIABLE,var,&type,&szData,&nData);
+            if (type == VARIABLE_ARRAY) {
+                Invoke(INVOKE_GET_ARRAY_ELEMENT_BY_KEY, var, "title", &type, &szData, &nData);
+                if (type == VARIABLE_STRING) {
+                    strlength += (int)nData + 1;
+                }
+                Invoke(INVOKE_GET_ARRAY_ELEMENT_BY_KEY, var, "desc", &type, &szData, &nData);
+                if (type == VARIABLE_STRING) {
+                    strlength += (int)nData + 1;
+                }
+            }
+        }
+    }
+    len += strlength + count * 10;
+    len *= 2;
+
+    int continuity = PARAM_INT(5);
+    if (continuity < 0)
+        continuity = 0;
+    if (continuity > 15)
+        continuity = 0;
+
+    CORE_NEW(len, buf);
+    int descriptor_len = strlength + 7;
+    int section_len = descriptor_len + 27;
+
+    buf[0] = 'G';
+    buf[1] = 0x40;
+    buf[2] = 0x12;
+    buf[3] = 0x10 | continuity;
+    buf[4] = 0x00;
+    buf[5] = 0x4E;
+    buf[6] = 0xF0 | (section_len / 0x100);
+    buf[7] = section_len % 0x100;
+    (*(unsigned short *)&buf[8]) = htons(PARAM_INT(1));
+    buf[10] = 0xD9;
+    // section_number
+    buf[11] = (unsigned char)PARAM_INT(6);
+    // last section number
+    buf[12] = (unsigned char)PARAM_INT(7);
+    SET_NUMBER(6, PARAM_INT(6) + 1);
+    // networkid
+    (*(unsigned short *)&buf[13]) = htons(PARAM_INT(2));
+    (*(unsigned short *)&buf[15]) = htons(PARAM_INT(0));
+    // segment last section number
+    buf[17] = buf[12];
+    // last table id
+    buf[18] = 0x4E;
+
+    len = 19;
+    for (INTEGER i = 0; i < count; i++) {
+        void *var;
+        Invoke(INVOKE_ARRAY_VARIABLE, PARAMETER(3), i, &var);
+        if (var) {
+            INTEGER type=0;
+            char *szData;
+            NUMBER nData;
+            Invoke(INVOKE_GET_VARIABLE,var,&type,&szData,&nData);
+            if (type == VARIABLE_ARRAY) {
+                // event id
+                (*(unsigned short *)&buf[len]) = htons(event_id);
+                event_id ++;
+                len += 2;
+                time_t rawtime = 0;
+                Invoke(INVOKE_GET_ARRAY_ELEMENT_BY_KEY, var, "start", &type, &szData, &nData);
+                if (type == VARIABLE_NUMBER)
+                    rawtime = (int)nData;
+                // check thread-safety!
+                struct tm * timeinfo = localtime(&rawtime);
+                unsigned short mjd_info = mjd(timeinfo->tm_year, timeinfo->tm_mon + 1, timeinfo->tm_mday);
+                (*(unsigned short *)&buf[len]) = htons(mjd_info);
+                len += 2;
+                buf[len++] = bin2bcd(timeinfo->tm_hour);
+                buf[len++] = bin2bcd(timeinfo->tm_min);
+                buf[len++] = bin2bcd(timeinfo->tm_sec);
+
+                int duration = 0;
+                Invoke(INVOKE_GET_ARRAY_ELEMENT_BY_KEY, var, "duration", &type, &szData, &nData);
+                if (type == VARIABLE_NUMBER)
+                    duration = (int)nData;
+
+                char *title = "";
+                char *desc = "";
+                INTEGER title_len = 0;
+                INTEGER desc_len = 0;
+                Invoke(INVOKE_GET_ARRAY_ELEMENT_BY_KEY, var, "title", &type, &szData, &nData);
+                if (type == VARIABLE_STRING) {
+                    title = szData;
+                    title_len = (INTEGER)nData;
+                }
+                Invoke(INVOKE_GET_ARRAY_ELEMENT_BY_KEY, var, "desc", &type, &szData, &nData);
+                if (type == VARIABLE_STRING) {
+                    desc = szData;
+                    desc_len = (INTEGER)nData;
+                }
+
+                buf[len++] = bin2bcd(duration / 3600);
+                duration %= 3600;
+                buf[len++] = bin2bcd(duration / 60);
+                duration %= 60;
+                buf[len++] = bin2bcd(duration);
+
+                buf[len] = 0x00;
+                buf[len++] |= descriptor_len / 0x100;
+                buf[len++] = descriptor_len % 0x100;
+                buf[len++] = 0x4D;
+                buf[len++] = title_len + desc_len + 7;
+
+                memcpy(&buf[len], PARAM(4), PARAM_LEN(4));
+                len += PARAM_LEN(4);
+
+                buf[len++] = title_len + 1;
+                // utf8 encoding
+                buf[len++] = 0x15;
+                memcpy(&buf[len], title, title_len);
+                len += title_len;
+
+                buf[len++] = desc_len + 1;
+                buf[len++] = 0x15;
+
+                memcpy(&buf[len], desc, desc_len);
+                len += desc_len;
+            }
+        }
+    }
+
+    unsigned int crc32 = fast_crc32((char *)&buf[5], len - 5);
+    (*(unsigned int *)&buf[len]) = htonl(crc32);
+    len += 4;
+    char *ptr = buf;
+    int buffer_len = len;
+    while (len > 0) {
+        continuity ++;
+        if (len < 188) {
+            memset(&ptr[len], 0xFF, 188 - len);
+            buffer_len += 188 - len;
+            break;
+        }
+        ptr += 188;
+        len -= 184;
+        memmove(ptr + 4, ptr, 184);
+        ptr[0] = 'G';
+        ptr[1] = 0x00;
+        ptr[2] = 0x12;
+        ptr[3] = 0x10 | continuity;
+        buffer_len += 4;
+    }
+    SET_NUMBER(5, continuity);
+    SetVariable(RESULT, -1, buf, buffer_len);
+END_IMPL
+//=====================================================================================//
+CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(M2TSOriginalNetworkID, 1, 2)
+    T_STRING(M2TSOriginalNetworkID, 0);
+    int offset = 0;
+    if (PARAMETERS_COUNT > 1) {
+        T_NUMBER(M2TSOriginalNetworkID, 1);
+        offset = PARAM_INT(1);
+    }
+    int OriginalNetworkId = 0;
+    if (PARAM_LEN(0) - offset > 188) {
+        char *ptr = PARAM(0) + offset;
+        if ((ptr[0] == 'G') && !(ptr[1] & 0x80) && (ptr[4] == 0x00) && (ptr[5] == 0x42))
+            OriginalNetworkId = ntohs((*(unsigned short *)&ptr[13]));
+    }
+    RETURN_NUMBER(OriginalNetworkId);
 END_IMPL
 //=====================================================================================//
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(M2TSDemux, 1, 7)

@@ -412,7 +412,53 @@ static sljit_sw SLJIT_CALL c_CHECKTYPES1(VariableDATA *a) {
     return 1;
 }
 
-static sljit_sw SLJIT_CALL ArrayDataVD(VariableDATA *arr, VariableDATA *idx, VariableDATA *result) {
+#ifdef EXPERIMENTAL_FEATURES
+static sljit_sw SLJIT_CALL ClassDataVD(Optimizer *OPT, RuntimeOptimizedElement *OE, void **data) {
+    VariableDATA **LOCAL_CONTEXT = (VariableDATA **)data[0];
+    SCStack *STACK_CONTEXT = (SCStack *)data[1];
+    VariableDATAPROPERTY **PROPERTIES = (VariableDATAPROPERTY **)data[2];
+
+    VariableDATA *arr = LOCAL_CONTEXT[OE->OperandLeft_ID - 1];
+    if ((arr->TYPE == VARIABLE_CLASS) && (arr->CLASS_DATA)) {
+        CompiledClass *CCTEMP = (CompiledClass *)arr->CLASS_DATA;
+        signed char    next_is_asg;
+        VariableDATA  *THROW_DATA = 0;
+        VariableDATA  *data = 0;
+        ParamList *FORMAL_PARAMETERS;
+        ConceptInterpreter *THIS_REF = (ConceptInterpreter *)OPT->INTERPRETER;
+
+        if (OE->OperandReserved_ID) {
+            FORMAL_PARAMETERS = &OPT->PARAMS [OE->OperandReserved_ID - 1];
+            next_is_asg       = 0;
+        } else {
+            next_is_asg       = OE->OperandReserved_TYPE;
+            FORMAL_PARAMETERS = 0;
+        }
+        // data = CCTEMP->_Class->ExecuteMember(OPT->PIFOwner, OE->OperandRight_ID - 1, LOCAL_CONTEXT [OE->OperandLeft_ID - 1], OE, CCTEMP->_Class->CLSID == ClassID, FORMAL_PARAMETERS, LOCAL_CONTEXT, 0, -1, -1, &THROW_DATA, NULL, next_is_asg, NULL, OPT->dataCount, OE->Result_ID - 1);
+        data = CCTEMP->_Class->ExecuteMember(OPT->PIFOwner, OE->OperandRight_ID - 1, LOCAL_CONTEXT [OE->OperandLeft_ID - 1], OE, 1, FORMAL_PARAMETERS, LOCAL_CONTEXT, 0, -1, -1, &THROW_DATA, STACK_CONTEXT, next_is_asg, PROPERTIES, OPT->dataCount, OE->Result_ID - 1);
+        if (data == LOCAL_CONTEXT [OE->Result_ID - 1])
+            return 1;
+        if (((data) && ((data->TYPE == VARIABLE_CLASS) || (data->TYPE == VARIABLE_DELEGATE)) && (!data->CLASS_DATA)) || (!data)) {
+            CLASS_CHECK_TS(LOCAL_CONTEXT [OE->Result_ID - 1]);
+            LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
+            LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = 0;
+        }
+        if (data) {
+            FREE_VARIABLE_TS(LOCAL_CONTEXT [OE->Result_ID - 1]);
+            LOCAL_CONTEXT [OE->Result_ID - 1] = data;
+            data->LINKS++;
+        } else {
+            LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = 0;
+        }
+        if ((data) && (data->TYPE != VARIABLE_NUMBER))
+            return 0;
+        return 1;
+    }
+    return 0;
+}
+#endif
+
+static sljit_sw SLJIT_CALL ArrayDataVD(VariableDATA *arr, VariableDATA *idx) {
     int index;
 
     double2int(index, idx->NUMBER_DATA);
@@ -1114,7 +1160,9 @@ void ConceptInterpreter::AnalizeInstructionPath(Optimizer *OPT) {
                         break;
 
                     case KEY_DELETE:
+#ifndef EXPERIMENTAL_FEATURES
                     case KEY_SEL:
+#endif
                     case KEY_TYPE_OF:
                     case KEY_CLASS_NAME:
                     case KEY_DLL_CALL:
@@ -1269,11 +1317,19 @@ void ConceptInterpreter::AnalizeInstructionPath(Optimizer *OPT) {
             }
 
             compiler = sljit_create_compiler(NULL);
+#ifdef EXPERIMENTAL_FEATURES
+ #ifdef ARM_PATCH
+            sljit_emit_enter(compiler, 0, 2, 4, 3, 0, 0, 0);
+ #else
+            sljit_emit_enter(compiler, 0, 2, 3, 3, 0, 0, 0);
+ #endif
+#else
  #ifdef ARM_PATCH
             sljit_emit_enter(compiler, 0, 1, 4, 3, 0, 0, 0);
  #else
             sljit_emit_enter(compiler, 0, 1, 3, 3, 0, 0, 0);
  #endif
+#endif
             if (dataflags) {
                 memset(dataflags, 0, sizeof(char) * dataCount);
                 for (int i = start; i < end; i++) {
@@ -2416,10 +2472,10 @@ void ConceptInterpreter::AnalizeInstructionPath(Optimizer *OPT) {
                                 OPERAND_RIGHT
                                 OPERAND_RESULT
  #ifdef ARM_PATCH
-                                    sljit_emit_op1(compiler, SLJIT_MOV, SLJIT_TEMPORARY_EREG1, 0, SLJIT_IMM, SLJIT_FUNC_OFFSET(ArrayDataVD));
-                                sljit_emit_ijump(compiler, SLJIT_CALL3, SLJIT_TEMPORARY_EREG1, 0);
+                                sljit_emit_op1(compiler, SLJIT_MOV, SLJIT_TEMPORARY_EREG1, 0, SLJIT_IMM, SLJIT_FUNC_OFFSET(ArrayDataVD));
+                                sljit_emit_ijump(compiler, SLJIT_CALL2, SLJIT_TEMPORARY_EREG1, 0);
  #else
-                                sljit_emit_ijump(compiler, SLJIT_CALL3, SLJIT_IMM, SLJIT_FUNC_OFFSET(ArrayDataVD));
+                                sljit_emit_ijump(compiler, SLJIT_CALL2, SLJIT_IMM, SLJIT_FUNC_OFFSET(ArrayDataVD));
  #endif
                                 sljit_emit_op1(compiler, SLJIT_MOV, SLJIT_R2, 0, SLJIT_RETURN_REG, 0);
                                 struct sljit_jump *jump = sljit_emit_cmp(compiler, SLJIT_NOT_EQUAL,
@@ -2444,6 +2500,31 @@ void ConceptInterpreter::AnalizeInstructionPath(Optimizer *OPT) {
                             reg3 = 0;
                             break;
 
+#ifdef EXPERIMENTAL_FEATURES
+                        case KEY_SEL:
+                            {
+                                reg1 = 0;
+                                reg2 = 0;
+                                reg3 = 0;
+
+                                sljit_emit_op1(compiler, SLJIT_MOV_P, SLJIT_R0, 0, SLJIT_IMM, (sljit_sw)OPT);
+                                sljit_emit_op1(compiler, SLJIT_MOV_P, SLJIT_R1, 0, SLJIT_IMM, (sljit_sw)OE);
+                                sljit_emit_op1(compiler, SLJIT_MOV_P, SLJIT_R2, 0, SLJIT_S1, 0);
+#ifdef ARM_PATCH
+                                sljit_emit_op1(compiler, SLJIT_MOV, SLJIT_TEMPORARY_EREG1, 0, SLJIT_IMM, SLJIT_FUNC_OFFSET(ClassDataVD));
+                                sljit_emit_ijump(compiler, SLJIT_CALL3, SLJIT_TEMPORARY_EREG1, 0);
+#else
+                                sljit_emit_ijump(compiler, SLJIT_CALL3, SLJIT_IMM, SLJIT_FUNC_OFFSET(ClassDataVD));
+#endif
+                                struct sljit_jump *jump = sljit_emit_cmp(compiler, SLJIT_NOT_EQUAL,
+                                                                            SLJIT_RETURN_REG, 0,
+                                                                            SLJIT_IMM, 0);
+
+                                sljit_emit_return(compiler, SLJIT_MOV, SLJIT_IMM, i + 1);
+                                sljit_set_label(jump, sljit_emit_label(compiler));
+                            }
+                            break;
+#endif
                         case KEY_LENGTH:
                             if (!usedflags[OE->Result_ID - 1])
                                 continue;
@@ -2650,7 +2731,7 @@ int ConceptInterpreter::StacklessInterpret(PIFAlizator *PIF, GreenThreadCycle *G
                     int res;
                     do {
                         code.code = jittrace[INSTRUCTION_POINTER];
-                        res       = code.func1((sljit_sw)LOCAL_CONTEXT);
+                        res       = code.func3((sljit_sw)LOCAL_CONTEXT, (sljit_sw)STACK_TRACE, (sljit_sw)TARGET_THREAD->PROPERTIES);
                         if (res == INSTRUCTION_POINTER)
                             break;
                         INSTRUCTION_POINTER = res;
@@ -4997,6 +5078,13 @@ VariableDATA *ConceptInterpreter::Interpret(PIFAlizator *PIF, VariableDATA **LOC
     static INTEGER hits[0x1000];
     static INTEGER iterations = 0;
 #endif
+#ifdef EXPERIMENTAL_FEATURES
+    void *JITDATA[4];
+    JITDATA[0] = (void *)LOCAL_CONTEXT;
+    JITDATA[1] = (void *)STACK_TRACE;
+    JITDATA[2] = (void *)&PROPERTIES;
+    JITDATA[3] = (void *)ClassID;
+#endif
     while (INSTRUCTION_POINTER < INSTRUCTION_COUNT) {
         WRITE_UNLOCK
 #ifdef USE_JIT_TRACE
@@ -5005,7 +5093,11 @@ VariableDATA *ConceptInterpreter::Interpret(PIFAlizator *PIF, VariableDATA **LOC
         if ((jittrace) && (jittrace[INSTRUCTION_POINTER])) {
             do {
                 code.code = jittrace[INSTRUCTION_POINTER];
+#ifdef EXPERIMENTAL_FEATURES
+                res       = code.func2((sljit_sw)LOCAL_CONTEXT, (sljit_sw)JITDATA);
+#else
                 res       = code.func1((sljit_sw)LOCAL_CONTEXT);
+#endif
                 if (res == INSTRUCTION_POINTER)
                     break;
                 INSTRUCTION_POINTER = res;
