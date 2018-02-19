@@ -13,7 +13,7 @@ struct CompiledClass *new_CompiledClass(void *PIF, const ClassCode *CC) {
     INTEGER Count = self->_Class->DataMembersCount;
     if (Count) {
         self->_CONTEXT = (VariableDATA **)FAST_MALLOC(sizeof(VariableDATA *) * Count);
-        for (register INTEGER i = 0; i < Count; i++)
+        for (INTEGER i = 0; i < Count; i++)
             self->_CONTEXT[i] = 0;
     }
     return self;
@@ -251,7 +251,7 @@ void CompiledClass_UnlinkObjects(struct CompiledClass *self) {
 
     INTEGER Count = self->_Class->DataMembersCount;
 
-    for (register INTEGER i = 0; i < Count; i++) {
+    for (INTEGER i = 0; i < Count; i++) {
         VariableDATA *_CONTEXT_i = self->_CONTEXT [i];
         if (_CONTEXT_i) {
             // delete no object ! ... it's the garbage collector's job
@@ -279,7 +279,7 @@ void delete_CompiledClass(struct CompiledClass *self) {
     CompiledClass **toInspect = NULL;
     unsigned int  inspectSize = 0;
     unsigned int  inspectPos  = 0;
-    for (register INTEGER i = 0; i < Count; i++) {
+    for (INTEGER i = 0; i < Count; i++) {
         VariableDATA *_CONTEXT_i = self->_CONTEXT [i];
         if (_CONTEXT_i) {
             //=======================================//
@@ -339,7 +339,7 @@ void delete_CompiledClass(struct CompiledClass *self) {
             obj->LINKS = -1;
             if (obj->_CONTEXT) {
                 INTEGER Count = obj->_Class->DataMembersCount;
-                for (register INTEGER i = 0; i < Count; i++) {
+                for (INTEGER i = 0; i < Count; i++) {
                     VariableDATA *_CONTEXT_i = obj->_CONTEXT [i];
                     if (_CONTEXT_i) {
                         //=======================================//

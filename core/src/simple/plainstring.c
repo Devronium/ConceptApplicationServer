@@ -80,14 +80,6 @@ struct plainstring *plainstring_new_int(int i) {
     return str;
 }
 
-struct plainstring *plainstring_new_long(intptr_t i) {
-    struct plainstring *str = plainstring_new();
-    if (!str)
-        return str;
-    plainstring_set_long(str, i);
-    return str;
-}
-
 struct plainstring *plainstring_new_double(double d) {
     struct plainstring *str = plainstring_new();
     if (!str)
@@ -347,12 +339,6 @@ void plainstring_set_double(struct plainstring *this_string, double d) {
 void plainstring_set_int(struct plainstring *this_string, int i) {
     char buffer[MAX_DECIMALS];
     sprintf(buffer, "%i", i);
-    plainstring_set(this_string, buffer);
-}
-
-void plainstring_set_long(struct plainstring *this_string, intptr_t i) {
-    char buffer[MAX_DECIMALS];
-    sprintf(buffer, "%li", i);
     plainstring_set(this_string, buffer);
 }
 

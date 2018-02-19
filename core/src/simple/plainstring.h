@@ -26,7 +26,6 @@ struct plainstring *plainstring_new(void);
 struct plainstring *plainstring_new_str(const char *value);
 struct plainstring *plainstring_new_char(char c);
 struct plainstring *plainstring_new_int(int i);
-struct plainstring *plainstring_new_long(intptr_t i);
 struct plainstring *plainstring_new_double(double d);
 struct plainstring *plainstring_new_plainstring(const struct plainstring *ps);
 char plainstring_char(const struct plainstring *this_string, intptr_t index);
@@ -62,7 +61,6 @@ int plainstring_greaterequal(const struct plainstring *this_string, const char *
 void plainstring_set(struct plainstring *this_string, const char *value);
 void plainstring_set_double(struct plainstring *this_string, double d);
 void plainstring_set_int(struct plainstring *this_string, int i);
-void plainstring_set_long(struct plainstring *this_string, intptr_t i);
 void plainstring_set_char(struct plainstring *this_string, char c);
 void plainstring_set_plainstring(struct plainstring *this_string, const struct plainstring *ps);
 

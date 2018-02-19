@@ -15,6 +15,8 @@ private:
     intptr_t   _ID;
     static void set_string(char **var, const char *text);
     static void set_string2(char **var, const char *text1, const char *text2, const char *text3);
+    void init(const char *text, int line, intptr_t ID, const char *extra, const char *FileName, const char *class_name = "", const char *member_name = "");
+    void init(intptr_t ID, const char *text, int line, const char *extra1, const char *extra2, const char *extra3, const char *FileName, const char *class_name = "", const char *member_name = "");
 public:
     POOLED(AnsiException)
 

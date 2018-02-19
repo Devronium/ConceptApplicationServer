@@ -2703,10 +2703,10 @@ int ConceptInterpreter::StacklessInterpret(PIFAlizator *PIF, GreenThreadCycle *G
         int          ClassID         = THIS_REF->LocalClassID;
         VariableDATA **LOCAL_CONTEXT = TARGET_THREAD->LOCAL_CONTEXT;
 
-        register INTEGER INSTRUCTION_POINTER = TARGET_THREAD->INSTRUCTION_POINTER;
-        register INTEGER INSTRUCTION_COUNT   = TARGET_THREAD->INSTRUCTION_COUNT;
+        INTEGER INSTRUCTION_POINTER = TARGET_THREAD->INSTRUCTION_POINTER;
+        INTEGER INSTRUCTION_COUNT   = TARGET_THREAD->INSTRUCTION_COUNT;
 
-        register RuntimeOptimizedElement *CODE = OPT->CODE;
+        RuntimeOptimizedElement *CODE = OPT->CODE;
         INTEGER CATCH_INSTRUCTION_POINTER      = TARGET_THREAD->CATCH_INSTRUCTION_POINTER;
         INTEGER CATCH_VARIABLE = TARGET_THREAD->CATCH_VARIABLE;
         INTEGER PREVIOUS_TRY   = TARGET_THREAD->PREVIOUS_TRY;
@@ -2753,7 +2753,7 @@ int ConceptInterpreter::StacklessInterpret(PIFAlizator *PIF, GreenThreadCycle *G
                 continue;
             }
 #endif
-            register RuntimeOptimizedElement *OE = &CODE [INSTRUCTION_POINTER++];
+            RuntimeOptimizedElement *OE = &CODE [INSTRUCTION_POINTER++];
             OPERATOR_ID_TYPE OE_Operator_ID      = OE->Operator_ID;
             if (IS_OPERATOR(OE)) {
                 //WRITE_LOCK
@@ -5032,8 +5032,8 @@ int ConceptInterpreter::JIT(INTEGER &INSTRUCTION_POINTER, INTEGER INSTRUCTION_CO
 
 VariableDATA *ConceptInterpreter::Interpret(PIFAlizator *PIF, VariableDATA **LOCAL_CONTEXT, intptr_t ClassID, VariableDATA *& THROW_DATA, SCStack *STACK_TRACE) {
     Optimizer        *OPT = (Optimizer *)this->OWNER->OPTIMIZER;
-    register INTEGER INSTRUCTION_POINTER = 0;
-    register INTEGER INSTRUCTION_COUNT   = OPT->codeCount;
+    INTEGER INSTRUCTION_POINTER = 0;
+    INTEGER INSTRUCTION_COUNT   = OPT->codeCount;
     char             *STATIC_ERROR       = 0;
     ParamList        *FORMAL_PARAMETERS;
     VariableDATA     *RESULT;
@@ -5043,7 +5043,7 @@ VariableDATA *ConceptInterpreter::Interpret(PIFAlizator *PIF, VariableDATA **LOC
     VariableDATA     *RETURN_DATA;
     AnsiException    *Exc;
     signed char      next_is_asg;
-    register RuntimeOptimizedElement *CODE = OPT->CODE;
+    RuntimeOptimizedElement *CODE = OPT->CODE;
 
 #ifdef SIMPLE_MULTI_THREADING
     char IsWriteLocked = 0;
@@ -5111,7 +5111,7 @@ VariableDATA *ConceptInterpreter::Interpret(PIFAlizator *PIF, VariableDATA **LOC
             break;
 #endif
 #endif
-        register RuntimeOptimizedElement *OE = &CODE [INSTRUCTION_POINTER++];
+        RuntimeOptimizedElement *OE = &CODE [INSTRUCTION_POINTER++];
         OPERATOR_ID_TYPE OE_Operator_ID      = OE->Operator_ID;
 #ifdef PROFILE_HIT_COUNT
         hits[OE_Operator_ID]++;
@@ -5885,7 +5885,7 @@ VariableDATA **ConceptInterpreter::CreateEnvironment(PIFAlizator *PIF, VariableD
     if (/*(this_ref->TYPE == VARIABLE_CLASS) &&*/ (this_ref->CLASS_DATA))
         ((struct CompiledClass *)this_ref->CLASS_DATA)->LINKS++;
 
-    register INTEGER i;
+    INTEGER i;
     for (i = 1; i <= ParamCount; i++) {
  #ifdef POOL_STACK
         if ((STACK_TRACE->alloc_from_stack) && (!LOCAL_CONTEXT[i]))
@@ -6007,8 +6007,8 @@ void ConceptInterpreter::DestroyEnviroment(PIFAlizator *PIF, VariableDATA **LOCA
         }
     }
     Optimizer *OPT = (Optimizer *)this->OWNER->OPTIMIZER;
-    register INTEGER i;
-    register INTEGER data_count = OPT->dataCount;
+    INTEGER i;
+    INTEGER data_count = OPT->dataCount;
 #ifndef FAST_EXIT_NO_GC_CALL
     if (static_call_main) {
         this->DestroyGC(PIF, LOCAL_CONTEXT, STACK_TRACE);

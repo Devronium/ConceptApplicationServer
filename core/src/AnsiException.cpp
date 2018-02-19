@@ -7,7 +7,7 @@
 
 POOLED_IMPLEMENTATION(AnsiException)
 
-AnsiException::AnsiException(const char *text, int line, intptr_t ID, const char *extra, const char *FileName, const char *class_name, const char *member_name) {
+void AnsiException::init(const char *text, int line, intptr_t ID, const char *extra, const char *FileName, const char *class_name, const char *member_name) {
     _line   = line;
     _ID     = ID;
     AnsiException::set_string(&_TEXT, text);
@@ -17,7 +17,11 @@ AnsiException::AnsiException(const char *text, int line, intptr_t ID, const char
     AnsiException::set_string(&_CLASS, class_name);
 }
 
-AnsiException::AnsiException(intptr_t ID, const char *text, int line, const char *extra1, const char *extra2, const char *extra3, const char *FileName, const char *class_name, const char *member_name) {
+AnsiException::AnsiException(const char *text, int line, intptr_t ID, const char *extra, const char *FileName, const char *class_name, const char *member_name) {
+    this->init(text, line, ID, extra, FileName, class_name, member_name);
+}
+
+void AnsiException::init(intptr_t ID, const char *text, int line, const char *extra1, const char *extra2, const char *extra3, const char *FileName, const char *class_name, const char *member_name) {
     _line   = line;
     _ID     = ID;
     AnsiException::set_string(&_TEXT, text);
@@ -27,28 +31,32 @@ AnsiException::AnsiException(intptr_t ID, const char *text, int line, const char
     AnsiException::set_string(&_CLASS, class_name);
 }
 
+AnsiException::AnsiException(intptr_t ID, const char *text, int line, const char *extra1, const char *extra2, const char *extra3, const char *FileName, const char *class_name, const char *member_name) {
+    this->init(ID, text, line, extra1, extra2, extra3, FileName, class_name, member_name);
+}
+
 AnsiException::AnsiException(const char *text, int line, intptr_t ID, double extra, const char *FileName, const char *class_name, const char *member_name) {
     char extra_str[0xFF];
     cstr_loaddouble(extra_str, extra);
-    AnsiException(text, line, ID, extra_str, FileName, class_name, member_name);
+    this->init(text, line, ID, extra_str, FileName, class_name, member_name);
 }
 
 AnsiException::AnsiException(intptr_t ID, const char *text, int line, const char *extra1, int extra2, const char *FileName, const char *class_name, const char *member_name) {
     char extra_str[21];
     sprintf(extra_str, "%i", extra2);
-    AnsiException(ID, text, line, extra1, extra_str, "", FileName, class_name, member_name);
+    this->init(ID, text, line, extra1, extra_str, "", FileName, class_name, member_name);
 }
 
 AnsiException::AnsiException(intptr_t ID, const char *text, int line, int extra1, const char *extra2, const char *FileName, const char *class_name, const char *member_name) {
     char extra_str[21];
     sprintf(extra_str, "%i", extra1);
-    AnsiException(ID, text, line, extra_str, extra2, "", FileName, class_name, member_name);
+    this->init(ID, text, line, extra_str, extra2, "", FileName, class_name, member_name);
 }
 
 AnsiException::AnsiException(intptr_t ID, const char *text, int line, const char *extra1, const char *extra2, int extra3, const char *FileName, const char *class_name, const char *member_name) {
     char extra_str[21];
-    sprintf(extra_str, "%i", extra2);
-    AnsiException(ID, text, line, extra1, extra2, extra_str, FileName, class_name, member_name);
+    sprintf(extra_str, "%i", extra3);
+    this->init(ID, text, line, extra1, extra2, extra_str, FileName, class_name, member_name);
 }
 
 const char *AnsiException::GetText() {

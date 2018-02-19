@@ -64,11 +64,7 @@ class Optimizer {
     friend class ClassMember;
     friend class PIFAlizator;
     friend INTEGER Invoke(INTEGER INVOKE_TYPE, ...);
-#ifdef EXPERIMENTAL_FEATURES
 public:
-#else
-private:
-#endif
     static PIFAlizator *PIFOwner;
     void *INTERPRETER;
     RuntimeOptimizedElement *CODE;

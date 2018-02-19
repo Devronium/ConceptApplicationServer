@@ -21,10 +21,10 @@ POOLED_IMPLEMENTATION(AnsiString)
 #define breakeven_point    12
 
 #define fast_memcpy(d, s, n)                                                                 \
-    { register size_t nn = (size_t)(n);                                                      \
+    { size_t nn = (size_t)(n);                                                               \
       if (nn >= breakeven_point) { memcpy((d), (s), nn); }                                   \
       else if (nn > 0) {                                                                     \
-          register char *dd; register const char *ss;                                        \
+          char *dd; const char *ss;                                                          \
           for (ss = (s), dd = (d); nn > 0; nn--) { *dd++ = *ss++; } } }
 
 //#define MEMCPY      memcpy
@@ -209,8 +209,11 @@ void AnsiString::operator=(char c) {
 
 void AnsiString::operator=(D_LONG_TYPE i) {
     char buffer [MAX_DECIMALS];
-
+#if __SIZEOF_POINTER__ == 8
+    sprintf(buffer, "%lli", (long long)i);
+#else
     sprintf(buffer, "%li", i);
+#endif
     operator=(buffer);
 }
 

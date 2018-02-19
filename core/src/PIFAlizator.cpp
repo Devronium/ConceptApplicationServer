@@ -755,21 +755,21 @@ AnsiString PIFAlizator::GetSpecial(AnsiParser *P, ClassCode *CC, ClassMember *CM
 }
 
 INTEGER PIFAlizator::BuildFunction(ClassCode *CC, AnsiParser *P, INTEGER on_line, INTEGER ACCESS, INTEGER OPERATOR, char STATIC, const char *prec_parse, char is_inline) {
-    INTEGER                      BEGIN_END_LEVEL = 0;
-    INTEGER                      ATOMIC_LEVEL    = 0;
-    bool                         is_destructor   = false;
-    register INTEGER             TYPE            = -1;
-    register SYS_INT             _ID             = -1;
-    register INTEGER             PREC_TYPE       = -1;
-    register SYS_INT             PREC_ID         = -1;
-    AnsiString                   sPARSE;
-    AnsiString                   cachedMember;
-    AnsiString                   cached;
-    char                         is_cached;
-    char                         *ref_name        = 0;
-    ClassMember                  *CM              = 0;
-    char                         IN_VAR_STATAMENT = 0;
-    INTEGER                      inline_count     = 0;
+    INTEGER             BEGIN_END_LEVEL = 0;
+    INTEGER             ATOMIC_LEVEL    = 0;
+    bool                is_destructor   = false;
+    INTEGER             TYPE            = -1;
+    SYS_INT             _ID             = -1;
+    INTEGER             PREC_TYPE       = -1;
+    SYS_INT             PREC_ID         = -1;
+    AnsiString          sPARSE;
+    AnsiString          cachedMember;
+    AnsiString          cached;
+    char                is_cached;
+    char                *ref_name        = 0;
+    ClassMember         *CM              = 0;
+    char                IN_VAR_STATAMENT = 0;
+    INTEGER             inline_count     = 0;
 
     int ref_id = 0;
 
@@ -3220,7 +3220,7 @@ void PIFAlizator::OptimizeMember(ClassMember *CM) {
 void PIFAlizator::Optimize(int start, char use_compiled_code, char use_lock) {
     int class_count = ClassList->Count();
 
-    for (register INTEGER ii = start; ii < class_count; ii++) {
+    for (INTEGER ii = start; ii < class_count; ii++) {
         ClassCode *CC = (ClassCode *)ClassList->Item(ii);
         if (use_compiled_code) {
             if (!CC->NEEDED)
@@ -3238,7 +3238,7 @@ void PIFAlizator::Optimize(int start, char use_compiled_code, char use_lock) {
         if (!use_compiled_code) {
             if (use_lock)
                 semp(WorkerLock);
-            for (register INTEGER jj = 0; jj < members_count; jj++) {
+            for (INTEGER jj = 0; jj < members_count; jj++) {
                 ClassMember *CM = CC->Members ? (ClassMember *)CC->Members->Item(jj) : CC->pMEMBERS[jj];
 
                 INTEGER LOCAL_CLASSID = ((ClassCode *)CM->Defined_In)->CLSID;
@@ -3419,8 +3419,9 @@ AnsiString PIFAlizator::PRINT_ERRORS(int html) {
                AnsiString("E") + AnsiString(Ex->GetID()) +
                AnsiString(" on line ") + AnsiString(Ex->GetLine()) +
                AnsiString(": ") + Ex->GetText();
-        if (Ex->GetExtra() != "") {
-            res += AnsiString(" (\'") + Ex->GetExtra() + AnsiString("\') ");
+        const char *extra = Ex->GetExtra();
+        if ((extra) && (extra[0])) {
+            res += AnsiString(" (\'") + extra + AnsiString("\') ");
         }
 
         res += AnsiString("\n");
@@ -3524,10 +3525,11 @@ INTEGER PIFAlizator::FindVariableByName(void *key, const char *name) {
     int len = strlen(name);
     char buf[0x100 + sizeof(void *) * 2 + 1];
     buf[0] = 0;
-    if (sizeof(void *) == 8)
-        sprintf(buf, "%16llx", key);
-    else
-        sprintf(buf, "%08x", key);
+#if __SIZEOF_POINTER__ == 8
+    sprintf(buf, "%16llx", (unsigned long long)key);
+#else
+    sprintf(buf, "%08x", (unsigned int)key);
+#endif
     if (len > 0x100)
         len = 0x100;
     memcpy(buf + sizeof(void *) * 2, name, len);
@@ -3543,10 +3545,11 @@ void PIFAlizator::RegisterVariableName(void *key, const char *name, INTEGER val)
     int len = strlen(name);
     char buf[0x100 + sizeof(void *) * 2 + 1];
     buf[0] = 0;
-    if (sizeof(void *) == 8)
-        sprintf(buf, "%16llx", key);
-    else
-        sprintf(buf, "%08x", key);
+#if __SIZEOF_POINTER__ == 8
+    sprintf(buf, "%16llx", (unsigned long long)key);
+#else
+    sprintf(buf, "%08x", (unsigned int)key);
+#endif
     if (len > 0x100)
         len = 0x100;
     memcpy(buf + sizeof(void *) * 2, name, len);

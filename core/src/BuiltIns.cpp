@@ -313,6 +313,100 @@ CONCEPT_FUNCTION_IMPL(formatdate, 2)
     }
 END_IMPL
 
+#ifndef DISABLE_INTROSPECTION
+CONCEPT_FUNCTION_IMPL(bytecode, 1)
+    T_DELEGATE(bytecode, 0)
+    CREATE_ARRAY(RESULT);
+    VariableDATA *VD = PARAMETER(0);
+    const ClassCode *CC = ((struct CompiledClass *)delegate_Class(VD->CLASS_DATA))->_Class;
+    int         relocation = delegate_Member(VD->CLASS_DATA);
+    ClassMember *pMEMBER_i = relocation ? CC->pMEMBERS [relocation - 1] : 0;
+    Array *arr = (Array *)(RESULT->CLASS_DATA);
+    if ((pMEMBER_i) && (pMEMBER_i->OPTIMIZER)) {
+        RuntimeOptimizedElement *OElist = ((Optimizer *)pMEMBER_i->OPTIMIZER)->CODE;
+        ParamList *Parameters           = ((Optimizer *)pMEMBER_i->OPTIMIZER)->PARAMS;
+        int       count = ((Optimizer *)pMEMBER_i->OPTIMIZER)->codeCount;
+        TreeContainer *tc = (TreeContainer *)malloc(sizeof(TreeContainer) * count);
+        for (INTEGER it = 0; it < count; it++) {
+            RuntimeOptimizedElement *OE    = &OElist[it];
+            VariableDATA *VD = Array_ModuleGet(arr, it);
+            if (VD) {
+                CREATE_ARRAY(VD);
+                VariableDATA *VD2 = Array_ModuleGet((Array *)VD->CLASS_DATA, "op");
+                VD2->CLASS_DATA = plainstring_new_str(GetKeyWord(OE->Operator_ID));
+                VD2->TYPE = VARIABLE_STRING;
+
+                VD2 = Array_ModuleGet((Array *)VD->CLASS_DATA, "left");
+                if (OE->OperandLeft_ID > 0)
+                    VD2->CLASS_DATA = plainstring_new_int(OE->OperandLeft_ID);
+                else
+                    VD2->CLASS_DATA = plainstring_new();
+                VD2->TYPE = VARIABLE_STRING;
+
+                VD2 = Array_ModuleGet((Array *)VD->CLASS_DATA, "right");
+                if (OE->OperandRight_ID > 0) {
+                    if (OE->OperandRight_PARSE_DATA.Length()) {
+                        VD2->CLASS_DATA = plainstring_new_str(OE->OperandRight_PARSE_DATA.c_str());
+                        plainstring_add((struct plainstring *)VD2->CLASS_DATA, " (");
+                        plainstring_add_int((struct plainstring *)VD2->CLASS_DATA, OE->OperandRight_ID);
+                        plainstring_add((struct plainstring *)VD2->CLASS_DATA, ")");
+                    } else
+                        VD2->CLASS_DATA = plainstring_new_int(OE->OperandRight_ID);
+                } else
+                    VD2->CLASS_DATA = plainstring_new();
+                VD2->TYPE = VARIABLE_STRING;
+
+                VD2 = Array_ModuleGet((Array *)VD->CLASS_DATA, "result");
+                if (OE->Result_ID > 0)
+                    VD2->CLASS_DATA = plainstring_new_int(OE->Result_ID);
+                else
+                    VD2->CLASS_DATA = plainstring_new();
+                VD2->TYPE = VARIABLE_STRING;
+
+                VD2 = Array_ModuleGet((Array *)VD->CLASS_DATA, "jump");
+                if (OE->OperandReserved_ID > 0)
+                    VD2->CLASS_DATA = plainstring_new_int(OE->OperandReserved_ID);
+                else
+                    VD2->CLASS_DATA = plainstring_new();
+                VD2->TYPE = VARIABLE_STRING;
+
+
+                VD2 = Array_ModuleGet((Array *)VD->CLASS_DATA, "line");
+                VD2->NUMBER_DATA = OE->Operator_DEBUG_INFO_LINE;
+            }
+        }
+    }
+END_IMPL
+
+CONCEPT_FUNCTION_IMPL(callstack, 0)
+    CREATE_ARRAY(RESULT);
+    PIFAlizator *PIF = (PIFAlizator *)PARAMETERS->PIF;
+    GCRoot  *root        = PIF->GCROOT;
+    SCStack *STACK_TRACE = NULL;
+    if (root) {
+        STACK_TRACE = (SCStack *)root->STACK_TRACE;
+        if (STACK_TRACE)
+            STACK_TRACE = (SCStack *)STACK_TRACE->TOP;
+    }
+    INTEGER i = 0;
+    while (STACK_TRACE) {
+        ClassMember *CM = (ClassMember *)STACK_TRACE->CM;
+        VariableDATA *VD = Array_ModuleGet((Array *)RESULT->CLASS_DATA, i);
+        VD->CLASS_DATA = plainstring_new();
+        VD->TYPE = VARIABLE_STRING;
+        if (CM) {
+            plainstring_add((struct plainstring *)VD->CLASS_DATA, CM->Defined_In ? ((ClassCode *)CM->Defined_In)->NAME.c_str() : "::");
+            plainstring_add((struct plainstring *)VD->CLASS_DATA, CM->NAME);
+        } else {
+            plainstring_add((struct plainstring *)VD->CLASS_DATA, "STATIC/LIBRARY.STATIC_FUNCTION");
+        }
+        plainstring_add_char((struct plainstring *)VD->CLASS_DATA, ':');
+        plainstring_add_int((struct plainstring *)VD->CLASS_DATA, STACK_TRACE->line);
+        STACK_TRACE = (SCStack *)STACK_TRACE->PREV;
+    }
+END_IMPL
+#endif
+
 WRAP_INT_FUNCTION(Math, abs)
 WRAP_FUNCTION(Math, acos)
 WRAP_FUNCTION(Math, acosh)
@@ -657,6 +751,47 @@ int BUILTINOBJECTS(void *pif, const char *classname) {
 	        "}"
         "}"
     );
+    BUILTINCLASS("Exception", ""
+        "class Exception {"
+	        "var stack;"
+	        "var message;"
+	        "var code;"
+            "var previous;"
+
+	        "Exception(message = \"\", code = 0, previous = null) {"
+                "this.message = message;"
+                "this.code = code;"
+                "this.previous = previous;"
+                "this.stack = callstack();"
+            "}"
+
+            "protected __tostr(v, max_level = 3) {"
+                "if (max_level <= 0)"
+                    "return \"\";"
+                "switch (typeof v) {"
+                    "case \"string\":"
+                        "return v;"
+                    "case \"numeric\":"
+                        "return \"\" + v;"
+                    "case \"class\":"
+                        "return classof v;"
+                    "case \"array\":"
+                        "var a = \"\";"
+                        "for (var i = 0; i < length v; i++)"
+                            "a += __tostr(v[i], max_level - 1) + \"\\n\";"
+                        "return a;"
+                    "default:"
+                        "return typeof v;"
+                "}"
+            "}"
+
+            "ToString() {"
+                "if (code)"
+                    "return this.__tostr(this.message) + \"\\nCode: \" + this.__tostr(this.code) + \"\\nCall stack:\\n\" + this.__tostr(this.stack);"
+                "return this.__tostr(this.message) + \"\\nCall stack:\\n\" + this.__tostr(this.stack);"
+            "}"
+        "}"
+    );
     return 0;
 }
 
@@ -712,7 +847,12 @@ void *BUILTINADDR(void *pif, const char *name, unsigned char *is_private) {
     BUILTIN(timezone)
     BUILTIN(time)
     BUILTIN(__epoch)
-    BUILTIN(formatdate)       
+    BUILTIN(formatdate)
+
+#ifndef DISABLE_INTROSPECTION
+    BUILTIN(bytecode)
+    BUILTIN(callstack)
+#endif
 
     if ((!PIF) || (PIF->enable_private)) {
         if (is_private)

@@ -126,7 +126,7 @@ void ClassCode::Hibernate(void *cc) {
         return;
     }
 
-    for (register INTEGER i = 0; i < Count; i++) {
+    for (INTEGER i = 0; i < Count; i++) {
         VariableDATA *_CONTEXT_i = CCLASS->_CONTEXT [i];
         if (_CONTEXT_i) {
             switch (_CONTEXT_i->TYPE) {
@@ -601,7 +601,7 @@ CompiledClass *ClassCode::CreateInstance(PIFAlizator *PIF, VariableDATA *Owner, 
 void ClassCode::SetProperty(PIFAlizator *PIF, INTEGER i, VariableDATA *Owner, const RuntimeOptimizedElement *OE, INTEGER local, INTEGER VALUE, VariableDATA **SenderCTX, INTEGER CLSID, INTEGER LOCAL_CLSID, VariableDATA **LOCAL_THROW, SCStack *PREV) const {
     int relocation = this->Relocation(i);
     *LOCAL_THROW = NULL;
-    register ClassMember *pMEMBER_i = relocation ? pMEMBERS [relocation - 1] : 0;
+    ClassMember *pMEMBER_i = relocation ? pMEMBERS [relocation - 1] : 0;
 
     if (pMEMBER_i) {
         if (((ClassCode *)pMEMBER_i->Defined_In)->CLSID != LOCAL_CLSID) {
@@ -695,7 +695,7 @@ const TinyString *ClassCode::GetFilename(PIFAlizator *PIF, INTEGER LOCAL_CLSID, 
 
 VariableDATA *ClassCode::ExecuteDelegate(PIFAlizator *PIF, INTEGER i, VariableDATA *Owner, const RuntimeOptimizedElement *OE, ParamList *FORMAL_PARAM, VariableDATA **SenderCTX, INTEGER CLSID, INTEGER LOCAL_CLSID, VariableDATA **LOCAL_THROW, SCStack *PREV THREAD_CREATION_LOCKS) const {
     VariableDATA         *RESULT;
-    register ClassMember *pMEMBER_i = i ? pMEMBERS [i - 1] : 0;
+    ClassMember *pMEMBER_i = i ? pMEMBERS [i - 1] : 0;
     *LOCAL_THROW = NULL;
 
     if (pMEMBER_i) {
@@ -748,7 +748,7 @@ VariableDATA *ClassCode::ExecuteMember(PIFAlizator *PIF, INTEGER i, VariableDATA
     int          relocation = this->Relocation(i);
     *LOCAL_THROW = NULL;
 
-    register ClassMember *pMEMBER_i = relocation ? pMEMBERS [relocation - 1] : 0;
+    ClassMember *pMEMBER_i = relocation ? pMEMBERS [relocation - 1] : 0;
     if (pMEMBER_i) {
         if (((ClassCode *)pMEMBER_i->Defined_In)->CLSID != LOCAL_CLSID) {
             if (pMEMBER_i->ACCESS == ACCESS_PRIVATE) {
@@ -1438,7 +1438,7 @@ ClassCode::~ClassCode(void) {
 }
 
 GreenThreadCycle *ClassCode::CreateThread(PIFAlizator *PIF, INTEGER i, VariableDATA *Owner) const {
-    register ClassMember *pMEMBER_i = i ? pMEMBERS [i - 1] : 0;
+    ClassMember *pMEMBER_i = i ? pMEMBERS [i - 1] : 0;
 
     if (pMEMBER_i) {
         while (pMEMBER_i->IS_FUNCTION == 2) {
