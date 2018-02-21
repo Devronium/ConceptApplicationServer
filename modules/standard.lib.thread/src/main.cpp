@@ -62,8 +62,22 @@ struct WorkerContainer {
 #define QUEUE_SEMAPHORE     HHSEM
 #endif
 
-INVOKE_CALL LocalInvoker;
+static INVOKE_CALL LocalInvoker;
 static int MultiThreaded = 0;
+
+class ThreadDataContainer {
+public:
+    char *data;
+    int len;
+
+    void ClearBuffers() {
+        INVOKE_CALL Invoke = LocalInvoker;
+        if ((Invoke) && (data)) {
+            CORE_DELETE(data);
+            data = NULL;
+        }
+    }
+};
 
 struct SimpleQueueNODE {
     void *DATA;
@@ -148,6 +162,11 @@ public:
                     PREV->NEXT = NEXT;
                 node_count--;
                 deleted++;
+                struct ThreadDataContainer *S = (ThreadDataContainer *)NODE->DATA;
+                if (S) {
+                    S->ClearBuffers();
+                    delete S;
+                }
                 delete NODE;
             } else
                 PREV = NODE;
@@ -444,20 +463,6 @@ public:
     ~ShareContext() {
         ClearCache();
         QUEUE_DONE(share_lock);
-    }
-};
-
-class ThreadDataContainer {
-public:
-    char *data;
-    int len;
-
-    void ClearBuffers() {
-        INVOKE_CALL Invoke = LocalInvoker;
-        if ((Invoke) && (data)) {
-            CORE_DELETE(data);
-            data = NULL;
-        }
     }
 };
 

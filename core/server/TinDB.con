@@ -1167,6 +1167,7 @@ pragma used
 			if ((p2) && (typeof p2 == "numeric"))
 				priority = p2;
 		}
+		var queue_key = sock;
 		switch (obj.o) {
 			case "H":
 				if ((ctx) && (!ctx.code)) {
@@ -1260,6 +1261,8 @@ pragma used
 						if ((obj.o == "I") || (obj.o == "D") || (obj.o == "R") || (obj.o == "U") || (obj.o == "X") || (obj.o == "Y") || (obj.o == "Z") || (obj.o == "F")) {
 							var storage_key = "" + obj.d + "/" + obj.c;
 							storage = storage_dbs_w[storage_key];
+							// non-resetable key
+							queue_key = 0;
 							if (!storage) {
 								storage = WriterWorker(obj.d, obj.c, storage_workers[next_worker++]);
 								if (next_worker >= length storage_workers)
@@ -1282,7 +1285,7 @@ pragma used
 								storage_dbs[storage_key] = storage;
 							}
 						}
-						AddWorkerData(storage, BinarizeObject([sock, obj, current_worker, ctx_key]), priority);
+						AddWorkerData(storage, BinarizeObject([sock, obj, current_worker, ctx_key]), priority, queue_key);
 					}
 				} else
 				if (RequestAuth)
@@ -1479,6 +1482,21 @@ pragma used
 		SocketClose(sock);
 		this.sockets = res;
 		this.buffers = buf;
+	}
+
+	RemoveFromQueue(queue_key, storage_workers) {
+		if ((queue_key > 0) && (storage_workers)) {
+			for (var i = 0; i < length storage_workers; i++) {
+				var deleted = RemoveWorkerData(storage_workers[i], queue_key);
+				if (deleted)
+					echo "Removed $deleted queries from queue (client disconnected)\n";
+			}
+		}
+	}
+
+	RemoveSocket2(sock, storage_workers) {
+		RemoveFromQueue(sock, storage_workers);
+		RemoveSocket(sock);
 	}
 
 	RandomString(len) {
@@ -1681,12 +1699,12 @@ pragma used
 							ctx.buffer = buf;
 						} else {
 							// drop socket ... packet to large
-							RemoveSocket(sock);
+							RemoveSocket2(sock, storage_workers);
 							break;
 						}
 					}
 				} else
-					RemoveSocket(sock);
+					RemoveSocket2(sock, storage_workers);
 			}
 			sleep_value = 2;
 			return;
