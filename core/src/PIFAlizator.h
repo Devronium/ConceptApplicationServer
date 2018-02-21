@@ -281,7 +281,7 @@ class PIFAlizator {
 #else
     INTEGER VariableIsDescribed(AnsiString& S, DoubleList *VDList);
 #endif
-    INTEGER ConstantIsDescribed(AnsiString& S, ConstantMapType *VDList);
+    INTEGER ConstantIsDescribed(AnsiString& S, ConstantMapType *VDList, VariableDESCRIPTOR **old = NULL);
 
     AnsiString GetSpecial(AnsiParser *P, ClassCode *CC, ClassMember *CM, AnsiString special);
     INTEGER BuildFunction(ClassCode *CC, AnsiParser *P, INTEGER on_line = 0, INTEGER ACCESS = ACCESS_PUBLIC, INTEGER OPERATOR = 0, char STATIC = 0, const char *prec_parse = 0, char is_inline = 0);

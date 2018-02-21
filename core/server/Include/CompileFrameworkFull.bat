@@ -248,7 +248,7 @@ accel DUKJS.con
 accel SpreadsheetML.con
 accel JSApp.con
 accel JSFramework.con
-accel tin.async.con
+accel async.tin.con
 accel UnicodeCharsets.con
 accel UnicodeCharsetsFull.con
 accel Unicode.con

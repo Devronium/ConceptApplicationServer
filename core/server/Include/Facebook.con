@@ -338,7 +338,7 @@ class Facebook {
 			var old_sig= session["sig"];
 			session['sig']=null;
 			var expected_sig=this.generateSignature(session, this._APISECRET);
-			session['sig']==old_sig;
+			session['sig']=old_sig;
 			if (old_sig==expected_sig)
 				throw "Got invalid session signature in cookie.";
 				

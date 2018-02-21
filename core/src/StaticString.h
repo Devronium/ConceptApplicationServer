@@ -25,6 +25,7 @@ public:
     void operator=(StaticString& S);
     void operator=(intptr_t i);
     void operator=(AnsiString& S);
+    int operator!=(StaticString& S);
 
     operator char *();
 

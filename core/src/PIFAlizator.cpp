@@ -536,11 +536,15 @@ INTEGER PIFAlizator::VariableIsDescribed(AnsiString& S, DoubleList *VDList) {
     return 0;
 }
 
-INTEGER PIFAlizator::ConstantIsDescribed(AnsiString& S, ConstantMapType *VDList) {
+INTEGER PIFAlizator::ConstantIsDescribed(AnsiString& S, ConstantMapType *VDList, VariableDESCRIPTOR **old) {
+    if (old)
+        *old = NULL;
 #ifdef STDMAP_CONSTANTS
     VariableDESCRIPTOR *VD = (VariableDESCRIPTOR *)VDList->Find(S.c_str());
     if ((VD) && (VD->name == S)) {
         VD->USED = 1;
+        if (old)
+            *old = VD;
         return 1;
     }
 #else
@@ -550,6 +554,8 @@ INTEGER PIFAlizator::ConstantIsDescribed(AnsiString& S, ConstantMapType *VDList)
         VariableDESCRIPTOR *VD = (VariableDESCRIPTOR *)VDList->Item(i);
         if (VD->name == S) {
             VD->USED = 1;
+            if (old)
+                *old = VD;
             return i + 1;
         }
     }
@@ -2711,16 +2717,18 @@ INTEGER PIFAlizator::Execute(AnsiString *Stream, INTEGER on_line, char _USE_WARN
                     VD->value  = value;
                     VD->USED   = this->INCLUDE_LEVEL;
 
-                    INTEGER POS =  ConstantIsDescribed(sPARSE, ConstantList);
-
+                    VariableDESCRIPTOR *oldConstant = NULL;
+                    INTEGER POS = ConstantIsDescribed(sPARSE, ConstantList, &oldConstant);
                     if (POS) {
+                        if ((oldConstant) && (oldConstant->value != VD->value))
+                            Warning(WRN10009, on_line ? on_line : P.LastLine(), 10009, sPARSE);
+                        else
+                            Warning(WRN10004, on_line ? on_line : P.LastLine(), 10004, sPARSE);
 #ifdef STDMAP_CONSTANTS
                         ConstantList->Delete(sPARSE.c_str());
 #else
                         ConstantList->Delete(POS - 1);
 #endif
-
-                        Warning(WRN10004, on_line ? on_line : P.LastLine(), 10004, sPARSE);
                     }
 
                     ConstantList->Add(VD, DATA_VAR_DESCRIPTOR);
@@ -2866,7 +2874,7 @@ int PIFAlizator::Serialize(char *filename, bool is_lib) {
             INTEGER include_list = this->IncludedList->Count();
             concept_fwrite_int(&include_list, sizeof(include_list), 1, out);
             for (INTEGER i = 0; i < include_list; i++) {
-                AnsiString *member_name = (AnsiString *)IncludedList->Item(i);
+                TinyString *member_name = (TinyString *)IncludedList->Item(i);
                 member_name->Serialize(out, SERIALIZE_16BIT_LENGTH);
             }
 

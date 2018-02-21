@@ -140,7 +140,6 @@ class RScintilla extends VisibleRemoteObject {
 
 	static function CreateGeneralEditor(owner, number lexer=SCLEX_XML, string keywords="") {
 		var tst=new RScintilla(owner);
-
 		tst.SciMessage(SCI_STYLECLEARALL,0,0);
 		tst.SciMessage(SCI_SETLEXER, lexer, 0);
 

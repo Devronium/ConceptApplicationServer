@@ -123,6 +123,20 @@ void StaticString::operator=(intptr_t i) {
     operator=(buffer);
 }
 
+int StaticString::operator!=(StaticString& S) {
+    if (_LENGTH != S._LENGTH)
+        return 1;
+
+    if (!_LENGTH)
+        return 0;
+
+    if (memcmp(this->c_str(), S.c_str(), _LENGTH))
+        return 1;
+
+    return 0;
+}
+
+
 StaticString::~StaticString(void) {
     char *Data = 0;
 

@@ -121,7 +121,7 @@
 #define ERR1202     "Bad switch syntax; 'case', 'default' or '}' expected "
 #define ERR1203     "For syntax compatibility reasons, 'default' should be followed by ':'"
 #define ERR1204     "Invalid right operand type in STATIC NUMBER expression (not a number)"
-#define ERR1205     "Parameter missmatch in function call"
+#define ERR1205     "Parameter type missmatch in function call"
 #define ERR1206     "Parameter missmatch in function call (wrong object type)"
 #define ERR1207     "You can't provide a default value for a dynamic object in parameters list. Default values can be only numbers or string."
 #define ERR1208     "Formal parameter type is different from the default value type"
@@ -147,10 +147,11 @@
 #define WRN10001    "Possibly incorrect assignment: do you mean '==' instead of '=' ?"
 #define WRN10002    "Empty statement encountered. Is this your intention ?"
 #define WRN10003    "Variable is declared, but never used"
-#define WRN10004    "Constant redefinition"
+#define WRN10004    "Constant redefinition, same value"
 #define WRN10005    "Unknown pragma"
 #define WRN10006    "Unexpected pragma parameter"
 #define WRN10007    "Implicit declaration for class. Typed parameters may not be accepted."
 #define WRN10008    "Useless expression, unless using an overloaded operator"
+#define WRN10009    "Constant redefinition, different value"
 #endif
 

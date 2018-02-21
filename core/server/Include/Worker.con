@@ -51,12 +51,18 @@ class Worker {
 		return "";
 	}
 
-	AddData(string data, priority = 0) {
+	AddData(string data, priority = 0, key = 0) {
 		if (_workerobj) {
 			if (priority > 0)
-				return AddWorkerData(_workerobj, data, priority);
-			return AddWorkerData(_workerobj, data);
+				return AddWorkerData(_workerobj, data, priority, key);
+			return AddWorkerData(_workerobj, data, 0, key);
 		}
+		return -1;
+	}
+
+	RemoveData(key) {
+		if (_workerobj)
+			return RemoveWorkerData(_workerobj, key);
 		return -1;
 	}
 
