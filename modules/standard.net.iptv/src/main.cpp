@@ -666,6 +666,13 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(M2TSEPG, 11, 15)
     int event_id = PARAM_INT(1);
     int version = 12;
 
+    int param5_len = PARAM_LEN(5);
+    int param6_len = PARAM_LEN(6);
+    if (param5_len > 245)
+        param5_len = 245;
+    if (param6_len > 245)
+        param6_len = 245;
+
     if (PARAMETERS_COUNT > 11) {
         T_NUMBER(M2TSEPG, 11)
         if (PARAM_INT(11) > 0) {
@@ -693,9 +700,9 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(M2TSEPG, 11, 15)
     if (PARAM_LEN(7) != 3)
         return (void *)"M2TSEPG: language id must have 3 characters";
 
-    char *buf = NULL;
+    unsigned char *buf = NULL;
     // more than enough
-    int len = (188 + PARAM_LEN(5) + PARAM_LEN(6) + PARAM_LEN(7)) * 2;
+    int len = (188 + param5_len + param6_len + PARAM_LEN(7)) * 2;
 
     int continuity = PARAM_INT(8);
     if (continuity < 0)
@@ -704,7 +711,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(M2TSEPG, 11, 15)
         continuity = 0;
 
     CORE_NEW(len, buf);
-    int descriptor_len = PARAM_LEN(5) + PARAM_LEN(6) + 9;
+    int descriptor_len = param5_len + param6_len + 9;
     int section_len = descriptor_len + 27;
 
     buf[0] = 'G';
@@ -755,27 +762,25 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(M2TSEPG, 11, 15)
     buf[29] |= descriptor_len / 0x100;
     buf[30] = descriptor_len % 0x100;
     buf[31] = 0x4D;
-    buf[32] = PARAM_LEN(5) + PARAM_LEN(6) + 7;
+    buf[32] = param5_len + param6_len + 7;
     len = 33;
     memcpy(&buf[len], PARAM(7), PARAM_LEN(7));
     len += PARAM_LEN(7);
-    buf[len ++] = PARAM_LEN(5) + 1;
+    buf[len ++] = param5_len + 1;
     // utf8 encoding
-    buf[len] = 0x15;
-    len ++;
-    memcpy(&buf[len], PARAM(5), PARAM_LEN(5));
-    len += PARAM_LEN(5);
+    buf[len ++] = 0x15;
+    memcpy(&buf[len], PARAM(5), param5_len);
+    len += param5_len;
 
-    buf[len ++] = PARAM_LEN(6) + 1;
-    buf[len] = 0x15;
-    len ++;
-    memcpy(&buf[len], PARAM(6), PARAM_LEN(6));
-    len += PARAM_LEN(6);
+    buf[len ++] = param6_len + 1;
+    buf[len ++] = 0x15;
+    memcpy(&buf[len], PARAM(6), param6_len);
+    len += param6_len;
 
     unsigned int crc32 = fast_crc32((char *)&buf[5], len - 5);
     (*(unsigned int *)&buf[len]) = htonl(crc32);
     len += 4;
-    char *ptr = buf;
+    unsigned char *ptr = buf;
     int buffer_len = len;
     while (len > 0) {
         continuity ++;
@@ -794,200 +799,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(M2TSEPG, 11, 15)
         buffer_len += 4;
     }
     SET_NUMBER(8, continuity);
-    SetVariable(RESULT, -1, buf, buffer_len);
-END_IMPL
-//=====================================================================================//
-CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(M2TSEPG2, 8, 9)
-    // network id
-    T_NUMBER(M2TSEPG2, 0)
-    // program id
-    T_NUMBER(M2TSEPG2, 1)
-    // transport stream id
-    T_NUMBER(M2TSEPG2, 2)
-    // start time in epoch
-    T_ARRAY(M2TSEPG2, 3)
-    // language
-    T_STRING(M2TSEPG2, 4)
-    // continuity
-    T_NUMBER(M2TSEPG2, 5)
-    // section_number
-    T_NUMBER(M2TSEPG2, 6)
-    // total sections
-    T_NUMBER(M2TSEPG2, 7)
-
-    int event_information_section = 0x4E;
-    if (PARAMETERS_COUNT > 8) {
-        T_NUMBER(M2TSEPG2, 8)
-        if (PARAM_INT(8) > 0) {
-            event_information_section = 0x50 + (PARAM_INT(8) - 1);
-        }
-    }
-
-    if (PARAM_LEN(4) != 3)
-        return (void *)"M2TSEPG: language id must have 3 characters";
-
-    char *buf = NULL;
-    int event_id = PARAM_INT(1);
-    // more than enough
-    int len = 188 + PARAM_LEN(4);
-    int strlength = 0;
-    int count = Invoke(INVOKE_GET_ARRAY_COUNT, PARAMETER(3));
-    for (INTEGER i = 0; i < count; i++) {
-        void *var;
-        Invoke(INVOKE_ARRAY_VARIABLE, PARAMETER(3), i, &var);
-        if (var) {
-            INTEGER type=0;
-            char *szData;
-            NUMBER nData;
-            Invoke(INVOKE_GET_VARIABLE,var,&type,&szData,&nData);
-            if (type == VARIABLE_ARRAY) {
-                Invoke(INVOKE_GET_ARRAY_ELEMENT_BY_KEY, var, "title", &type, &szData, &nData);
-                if (type == VARIABLE_STRING) {
-                    strlength += (int)nData + 1;
-                }
-                Invoke(INVOKE_GET_ARRAY_ELEMENT_BY_KEY, var, "desc", &type, &szData, &nData);
-                if (type == VARIABLE_STRING) {
-                    strlength += (int)nData + 1;
-                }
-            }
-        }
-    }
-    len += strlength + count * 10;
-    len *= 2;
-
-    int continuity = PARAM_INT(5);
-    if (continuity < 0)
-        continuity = 0;
-    if (continuity > 15)
-        continuity = 0;
-
-    CORE_NEW(len, buf);
-    int descriptor_len = strlength + 7;
-    int section_len = descriptor_len + 27;
-
-    buf[0] = 'G';
-    buf[1] = 0x40;
-    buf[2] = 0x12;
-    buf[3] = 0x10 | continuity;
-    buf[4] = 0x00;
-    buf[5] = 0x4E;
-    buf[6] = 0xF0 | (section_len / 0x100);
-    buf[7] = section_len % 0x100;
-    (*(unsigned short *)&buf[8]) = htons(PARAM_INT(1));
-    buf[10] = 0xD9;
-    // section_number
-    buf[11] = (unsigned char)PARAM_INT(6);
-    // last section number
-    buf[12] = (unsigned char)PARAM_INT(7);
-    SET_NUMBER(6, PARAM_INT(6) + 1);
-    // networkid
-    (*(unsigned short *)&buf[13]) = htons(PARAM_INT(2));
-    (*(unsigned short *)&buf[15]) = htons(PARAM_INT(0));
-    // segment last section number
-    buf[17] = buf[12];
-    // last table id
-    buf[18] = 0x4E;
-
-    len = 19;
-    for (INTEGER i = 0; i < count; i++) {
-        void *var;
-        Invoke(INVOKE_ARRAY_VARIABLE, PARAMETER(3), i, &var);
-        if (var) {
-            INTEGER type=0;
-            char *szData;
-            NUMBER nData;
-            Invoke(INVOKE_GET_VARIABLE,var,&type,&szData,&nData);
-            if (type == VARIABLE_ARRAY) {
-                // event id
-                (*(unsigned short *)&buf[len]) = htons(event_id);
-                event_id ++;
-                len += 2;
-                time_t rawtime = 0;
-                Invoke(INVOKE_GET_ARRAY_ELEMENT_BY_KEY, var, "start", &type, &szData, &nData);
-                if (type == VARIABLE_NUMBER)
-                    rawtime = (int)nData;
-                // check thread-safety!
-                struct tm * timeinfo = localtime(&rawtime);
-                unsigned short mjd_info = mjd(timeinfo->tm_year, timeinfo->tm_mon + 1, timeinfo->tm_mday);
-                (*(unsigned short *)&buf[len]) = htons(mjd_info);
-                len += 2;
-                buf[len++] = bin2bcd(timeinfo->tm_hour);
-                buf[len++] = bin2bcd(timeinfo->tm_min);
-                buf[len++] = bin2bcd(timeinfo->tm_sec);
-
-                int duration = 0;
-                Invoke(INVOKE_GET_ARRAY_ELEMENT_BY_KEY, var, "duration", &type, &szData, &nData);
-                if (type == VARIABLE_NUMBER)
-                    duration = (int)nData;
-
-                char *title = "";
-                char *desc = "";
-                INTEGER title_len = 0;
-                INTEGER desc_len = 0;
-                Invoke(INVOKE_GET_ARRAY_ELEMENT_BY_KEY, var, "title", &type, &szData, &nData);
-                if (type == VARIABLE_STRING) {
-                    title = szData;
-                    title_len = (INTEGER)nData;
-                }
-                Invoke(INVOKE_GET_ARRAY_ELEMENT_BY_KEY, var, "desc", &type, &szData, &nData);
-                if (type == VARIABLE_STRING) {
-                    desc = szData;
-                    desc_len = (INTEGER)nData;
-                }
-
-                buf[len++] = bin2bcd(duration / 3600);
-                duration %= 3600;
-                buf[len++] = bin2bcd(duration / 60);
-                duration %= 60;
-                buf[len++] = bin2bcd(duration);
-
-                buf[len] = 0x00;
-                buf[len++] |= descriptor_len / 0x100;
-                buf[len++] = descriptor_len % 0x100;
-                buf[len++] = 0x4D;
-                buf[len++] = title_len + desc_len + 7;
-
-                memcpy(&buf[len], PARAM(4), PARAM_LEN(4));
-                len += PARAM_LEN(4);
-
-                buf[len++] = title_len + 1;
-                // utf8 encoding
-                buf[len++] = 0x15;
-                memcpy(&buf[len], title, title_len);
-                len += title_len;
-
-                buf[len++] = desc_len + 1;
-                buf[len++] = 0x15;
-
-                memcpy(&buf[len], desc, desc_len);
-                len += desc_len;
-            }
-        }
-    }
-
-    unsigned int crc32 = fast_crc32((char *)&buf[5], len - 5);
-    (*(unsigned int *)&buf[len]) = htonl(crc32);
-    len += 4;
-    char *ptr = buf;
-    int buffer_len = len;
-    while (len > 0) {
-        continuity ++;
-        if (len < 188) {
-            memset(&ptr[len], 0xFF, 188 - len);
-            buffer_len += 188 - len;
-            break;
-        }
-        ptr += 188;
-        len -= 184;
-        memmove(ptr + 4, ptr, 184);
-        ptr[0] = 'G';
-        ptr[1] = 0x00;
-        ptr[2] = 0x12;
-        ptr[3] = 0x10 | continuity;
-        buffer_len += 4;
-    }
-    SET_NUMBER(5, continuity);
-    SetVariable(RESULT, -1, buf, buffer_len);
+    SetVariable(RESULT, -1, (char *)buf, buffer_len);
 END_IMPL
 //=====================================================================================//
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(M2TSOriginalNetworkID, 1, 2)
