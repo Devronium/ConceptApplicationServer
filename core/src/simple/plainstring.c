@@ -130,7 +130,7 @@ int plainstring_equals(const struct plainstring *this_string, const char *str) {
     }
     if (!this_string)
         return 0;
-    return !strcmp(this_string->DATA, str);
+    return !strcmp(this_string->DATA ? this_string->DATA : null_string, str ? str : null_string);
 }
 
 int plainstring_not_equals(const struct plainstring *this_string, const char *str) {
