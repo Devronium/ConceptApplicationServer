@@ -21,9 +21,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#ifdef USE_STD_QUEUE
-#include <queue>
-#endif
 #include "semhh.h"
 #include <map>
 #include <string>
@@ -68,10 +65,10 @@ struct WorkerContainer {
 INVOKE_CALL LocalInvoker;
 static int MultiThreaded = 0;
 
-#ifndef USE_STD_QUEUE
 struct SimpleQueueNODE {
     void *DATA;
     void *NEXT;
+    intptr_t KEY;
 };
 
 class SimpleQueue {
@@ -85,10 +82,11 @@ public:
         node_count = 0;
     }
 
-    void push(void *data) {
+    void push(void *data, intptr_t key) {
         SimpleQueueNODE *NODE = new SimpleQueueNODE();
         NODE->NEXT = NULL;
         NODE->DATA = data;
+        NODE->KEY = key;
         if (LAST)
             LAST->NEXT = NODE;
         else
@@ -97,10 +95,11 @@ public:
         node_count++;
     }
 
-    void push_front(void *data) {
+    void push_front(void *data, intptr_t key) {
         SimpleQueueNODE *NODE = new SimpleQueueNODE();
         NODE->NEXT = ROOT;
         NODE->DATA = data;
+        NODE->KEY = key;
         if (!ROOT)
             LAST = NODE;
         ROOT = NODE;
@@ -133,8 +132,30 @@ public:
             delete NODE;
         }
     }
+
+    int remove(intptr_t key) {
+        SimpleQueueNODE *NODE = ROOT;
+        SimpleQueueNODE *PREV = NULL;
+        int deleted = 0;
+        while (NODE) {
+            SimpleQueueNODE *NEXT = (SimpleQueueNODE *)NODE->NEXT;
+            if (NODE->KEY == key) {
+                if (NODE == ROOT)
+                    ROOT = NEXT;
+                if (NODE == LAST)
+                    LAST = PREV;
+                if (PREV)
+                    PREV->NEXT = NEXT;
+                node_count--;
+                deleted++;
+                delete NODE;
+            } else
+                PREV = NODE;
+            NODE = NEXT;
+        }
+        return deleted;
+    }
 };
-#endif
 
 class CondWait {
 private:
@@ -442,13 +463,9 @@ public:
 
 class ThreadMetaContainer {
 private:
-#ifdef USE_STD_QUEUE
-    std::queue<ThreadDataContainer *> input_data;
-    std::queue<ThreadDataContainer *> output_data;
-#else
     SimpleQueue input_data;
     SimpleQueue output_data;
-#endif
+
     QUEUE_SEMAPHORE input_lock;
     QUEUE_SEMAPHORE output_lock;
 
@@ -460,19 +477,15 @@ public:
     ShareContext *sharecontext;
     void *worker;
 
-    int AddInput(char *S, int len, int priority = 0) {
+    int AddInput(char *S, int len, int priority = 0, intptr_t key = 0) {
         ThreadDataContainer *temp = new ThreadDataContainer();
         temp->data = S;
         temp->len = len;
         QUEUE_LOCK(input_lock);
-#if USE_STD_QUEUE
-        input_data.push(temp);
-#else
         if (priority > 0)
-            input_data.push_front(temp);
+            input_data.push_front(temp, key);
         else
-            input_data.push(temp);
-#endif
+            input_data.push(temp, key);
         int size = input_data.size();
 #ifdef _WIN32
         // If no threads are waiting, the event object's state remains signaled.
@@ -490,18 +503,14 @@ public:
         QUEUE_LOCK(input_lock);
     }
 
-    int AddInputNoLock(char *S, int len, int priority = 0) {
+    int AddInputNoLock(char *S, int len, int priority = 0, intptr_t key = 0) {
         ThreadDataContainer *temp = new ThreadDataContainer();
         temp->data = S;
         temp->len = len;
-#if USE_STD_QUEUE
-        input_data.push(temp);
-#else
         if (priority > 0)
-            input_data.push_front(temp);
+            input_data.push_front(temp, key);
         else
-            input_data.push(temp);
-#endif
+            input_data.push(temp, key);
         int size = input_data.size();
 #ifdef _WIN32
         // If no threads are waiting, the event object's state remains signaled.
@@ -518,13 +527,13 @@ public:
         QUEUE_UNLOCK(input_lock);
     }
 
-    int AddOutput(char *S, int len) {
+    int AddOutput(char *S, int len, intptr_t key = 0) {
         ThreadDataContainer *temp = new ThreadDataContainer();
         temp->data = S;
         temp->len = len;
 
         QUEUE_LOCK(output_lock);
-        output_data.push(temp);
+        output_data.push(temp, key);
         int size = output_data.size();
 #ifdef _WIN32
         // If no threads are waiting, the event object's state remains signaled.
@@ -542,12 +551,12 @@ public:
         QUEUE_LOCK(output_lock);
     }
 
-    int AddOutputNoLock(char *S, int len) {
+    int AddOutputNoLock(char *S, int len, intptr_t key = 0) {
         ThreadDataContainer *temp = new ThreadDataContainer();
         temp->data = S;
         temp->len = len;
 
-        output_data.push(temp);
+        output_data.push(temp, key);
         int size = output_data.size();
 #ifdef _WIN32
         // If no threads are waiting, the event object's state remains signaled.
@@ -558,6 +567,22 @@ public:
 #endif
             output_cond.notify();
         return size;
+    }
+
+    int RemoveInputKey(intptr_t key) {
+        int deleted = 0;
+        QUEUE_LOCK(input_lock);
+        deleted = input_data.remove(key);
+        QUEUE_UNLOCK(input_lock);
+        return deleted;
+    }
+
+    int RemoveOutputKey(intptr_t key) {
+        int deleted = 0;
+        QUEUE_LOCK(output_lock);
+        deleted = output_data.remove(key);
+        QUEUE_UNLOCK(output_lock);
+        return deleted;
     }
 
     void OutputUnlock() {
@@ -1181,7 +1206,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(CreateWorker, 3, 6)
     RETURN_NUMBER((uintptr_t)worker);
 END_IMPL
 //---------------------------------------------------------------------------
-CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(AddWorkerData, 2, 3)
+CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(AddWorkerData, 2, 4)
     T_HANDLE(AddWorkerData, 0)
     T_STRING(AddWorkerData, 1)
 
@@ -1189,6 +1214,11 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(AddWorkerData, 2, 3)
     if (PARAMETERS_COUNT > 2) {
         T_NUMBER(AddWorkerData, 2);
         priority = PARAM_INT(2);
+    }
+    intptr_t key = 0;
+    if (PARAMETERS_COUNT > 3) {
+        T_NUMBER(AddWorkerData, 3);
+        key = (intptr_t)PARAM(3);
     }
     void *worker = (void *)(uintptr_t)PARAM(0);
     ThreadMetaContainer *tmc = NULL;
@@ -1204,14 +1234,14 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(AddWorkerData, 2, 3)
             return (void *)"AddWorkerData: Not enough memory";
         memcpy(owned_buffer, PARAM(1), len);
         owned_buffer[len] = 0;
-        int size = tmc->AddInput(owned_buffer, len, priority);
+        int size = tmc->AddInput(owned_buffer, len, priority, key);
         RETURN_NUMBER(size);
     } else {
         RETURN_NUMBER(-1);
     }
 END_IMPL
 //---------------------------------------------------------------------------
-CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(AddWorkerDataAll, 2, 3)
+CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(AddWorkerDataAll, 2, 4)
     T_HANDLE(AddWorkerDataAll, 0)
     T_ARRAY(AddWorkerDataAll, 1)
 
@@ -1219,6 +1249,11 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(AddWorkerDataAll, 2, 3)
     if (PARAMETERS_COUNT > 2) {
         T_NUMBER(AddWorkerDataAll, 2);
         priority = PARAM_INT(2);
+    }
+    intptr_t key = 0;
+    if (PARAMETERS_COUNT > 3) {
+        T_NUMBER(AddWorkerDataAll, 3);
+        key = (intptr_t)PARAM(3);
     }
     void *worker = (void *)(uintptr_t)PARAM(0);
     ThreadMetaContainer *tmc = NULL;
@@ -1246,7 +1281,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(AddWorkerDataAll, 2, 3)
                     }
                     memcpy(owned_buffer, str, len);
                     owned_buffer[len] = 0;
-                    size = tmc->AddInputNoLock(owned_buffer, len, priority);
+                    size = tmc->AddInputNoLock(owned_buffer, len, priority, key);
                 }
             }
         }
@@ -1369,6 +1404,20 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(GetWorkerResultDataAll, 2, 4)
     CREATE_ARRAY(PARAMETER(1));
     int size  = tmc->GetOutputAll(Invoke, PARAMETER(1), locking, max_elements);
     RETURN_NUMBER(size);
+END_IMPL
+//---------------------------------------------------------------------------
+CONCEPT_FUNCTION_IMPL(RemoveWorkerData, 2)
+    T_HANDLE(RemoveWorkerData, 0)
+    T_NUMBER(RemoveWorkerData, 1)
+
+    void *worker = (void *)(uintptr_t)PARAM(0);
+    ThreadMetaContainer *tmc = NULL;
+    Invoke(INVOKE_GETPROTODATA, worker, (int)2, &tmc);
+    if (!tmc)
+        return (void *)"Using a worker function on a non-worker";
+    
+    int deleted = tmc->RemoveInputKey((intptr_t)PARAM(1));
+    RETURN_NUMBER(deleted);
 END_IMPL
 //---------------------------------------------------------------------------
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(GetWorkerData, 1, 2)
