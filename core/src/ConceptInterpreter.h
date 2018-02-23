@@ -40,7 +40,7 @@ extern "C" {
 
 //---------------------------------------------------------
 #ifdef INLINE_COMMON_CALLS
-#define FREE_VARIABLE(VARIABLE)                                                                \
+#define FREE_VARIABLE(VARIABLE, SCStack *STACK_TRACE)                                          \
     VARIABLE->LINKS--;                                                                         \
     if (VARIABLE->LINKS < 1) {                                                                 \
         if (VARIABLE->CLASS_DATA) {                                                            \
@@ -49,23 +49,23 @@ extern "C" {
             } else                                                                             \
             if (VARIABLE->TYPE == VARIABLE_CLASS) {                                            \
                 if (!--((struct CompiledClass *)VARIABLE->CLASS_DATA)->LINKS)                  \
-                    delete_CompiledClass((struct CompiledClass *)VARIABLE->CLASS_DATA);        \
+                    delete_CompiledClass((struct CompiledClass *)VARIABLE->CLASS_DATA, STACK_TRACE); \
             } else                                                                             \
             if (VARIABLE->TYPE == VARIABLE_ARRAY) {                                            \
                 if (!--((struct Array *)VARIABLE->CLASS_DATA)->LINKS)                          \
                     delete_Array((struct Array *)VARIABLE->CLASS_DATA);                        \
             } else                                                                             \
             if (VARIABLE->TYPE == VARIABLE_DELEGATE)                                           \
-                delete_Delegate(VARIABLE->CLASS_DATA);                                         \
+                delete_Delegate(VARIABLE->CLASS_DATA, STACK_TRACE);                            \
         }                                                                                      \
         VAR_FREE(VARIABLE);                                                                    \
     }
 #else
-void FREE_VARIABLE(VariableDATA *VARIABLE);
+void FREE_VARIABLE(VariableDATA *VARIABLE, SCStack *STACK_TRACE);
 #endif
 
 #ifdef SIMPLE_MULTI_THREADING
-#define FREE_VARIABLE_TS(VARIABLE)                                                             \
+#define FREE_VARIABLE_TS(VARIABLE, STACK_TRACE)                                                \
     VARIABLE->LINKS--;                                                                         \
     if (VARIABLE->LINKS < 1) {                                                                 \
         if (VARIABLE->CLASS_DATA) {                                                            \
@@ -75,7 +75,7 @@ void FREE_VARIABLE(VariableDATA *VARIABLE);
             if (VARIABLE->TYPE == VARIABLE_CLASS) {                                            \
                 if (!--((struct CompiledClass *)VARIABLE->CLASS_DATA)->LINKS) {                \
                     WRITE_UNLOCK                                                               \
-                    delete_CompiledClass((struct CompiledClass *)VARIABLE->CLASS_DATA);        \
+                    delete_CompiledClass((struct CompiledClass *)VARIABLE->CLASS_DATA, STACK_TRACE); \
                 }                                                                              \
             } else                                                                             \
             if (VARIABLE->TYPE == VARIABLE_ARRAY) {                                            \
@@ -86,7 +86,7 @@ void FREE_VARIABLE(VariableDATA *VARIABLE);
             } else                                                                             \
             if (VARIABLE->TYPE == VARIABLE_DELEGATE) {                                         \
                 WRITE_UNLOCK                                                                   \
-                delete_Delegate(VARIABLE->CLASS_DATA);                                         \
+                delete_Delegate(VARIABLE->CLASS_DATA, STACK_TRACE);                            \
             }                                                                                  \
         }                                                                                      \
         VAR_FREE(VARIABLE);                                                                    \
@@ -165,21 +165,21 @@ void FREE_VARIABLE(VariableDATA *VARIABLE);
         VAR_FREE(VARIABLE);                                                \
     }
 
-#define CLASS_CHECK(VARIABLE)                                                              \
+#define CLASS_CHECK(VARIABLE, STACK_TRACE)                                                 \
     if ((VARIABLE->TYPE != VARIABLE_NUMBER) && (VARIABLE->CLASS_DATA)) {                   \
         if (VARIABLE->TYPE == VARIABLE_STRING) {                                           \
             plainstring_delete((struct plainstring *)VARIABLE->CLASS_DATA); }              \
         else                                                                               \
         if (VARIABLE->TYPE == VARIABLE_CLASS) {                                            \
             if (!--((struct CompiledClass *)VARIABLE->CLASS_DATA)->LINKS)                  \
-                delete_CompiledClass((struct CompiledClass *)VARIABLE->CLASS_DATA);        \
+                delete_CompiledClass((struct CompiledClass *)VARIABLE->CLASS_DATA, STACK_TRACE); \
         } else                                                                             \
         if (VARIABLE->TYPE == VARIABLE_ARRAY) {                                            \
             if (!--((struct Array *)VARIABLE->CLASS_DATA)->LINKS)                          \
                 delete_Array((struct Array *)VARIABLE->CLASS_DATA);                        \
         } else                                                                             \
         if (VARIABLE->TYPE == VARIABLE_DELEGATE)                                           \
-            delete_Delegate(VARIABLE->CLASS_DATA);                                         \
+            delete_Delegate(VARIABLE->CLASS_DATA, STACK_TRACE);                            \
         VARIABLE->CLASS_DATA = NULL;                                                       \
     }                                                                                      \
 
@@ -201,9 +201,9 @@ void FREE_VARIABLE(VariableDATA *VARIABLE);
     }                                                                                \
     VARIABLE->CLASS_DATA = NULL;                                                     \
 
-#define RESET_VARIABLE(VARIABLE)             \
+#define RESET_VARIABLE(VARIABLE, STACK_TRACE)\
     if (VARIABLE->TYPE != VARIABLE_NUMBER) { \
-        CLASS_CHECK(VARIABLE)                \
+        CLASS_CHECK(VARIABLE, STACK_TRACE);  \
         VARIABLE->TYPE = VARIABLE_NUMBER;    \
     }
 //---------------------------------------------------------

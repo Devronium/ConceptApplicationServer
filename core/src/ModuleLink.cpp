@@ -182,7 +182,7 @@ INTEGER SetVariable(VariableDATA *VD, INTEGER TYPE, char *STRING_VALUE, NUMBER N
     if (VD->IS_PROPERTY_RESULT == -1)
         return -2;
     //---------------//
-    CLASS_CHECK(VD);
+    CLASS_CHECK(VD, NULL);
     VD->CLASS_DATA = NULL;
     //---------------//
     char copy_buffer = 0;
@@ -306,9 +306,9 @@ INTEGER GetClassMember(void *CLASS_PTR, const char *class_member_name, INTEGER *
                         if (!VarDATA->LINKS)
                             VarDATA->LINKS = 1;
                         result = GetVariable(VarDATA, TYPE, STRING_VALUE, NUMBER_VALUE);
-                        FREE_VARIABLE(VarDATA);
+                        FREE_VARIABLE(VarDATA, STACK_TRACE);
                     }
-                    FREE_VARIABLE(Owner);
+                    FREE_VARIABLE(Owner, STACK_TRACE);
                     if (THROW_DATA)
                         return -1;
                     return result;
@@ -420,10 +420,10 @@ INTEGER SetClassMember(void *CLASS_PTR, const char *class_member_name, INTEGER T
                                         &THROW_DATA,
                                         NULL);
 
-                    FREE_VARIABLE(Owner);
-                    FREE_VARIABLE(Parameter);
+                    FREE_VARIABLE(Owner, NULL);
+                    FREE_VARIABLE(Parameter, NULL);
                     if (THROW_DATA) {
-                        FREE_VARIABLE(THROW_DATA);
+                        FREE_VARIABLE(THROW_DATA, NULL);
                         return -1;
                     }
                     return 0;
@@ -647,7 +647,7 @@ INTEGER Invoke(INTEGER INVOKE_TYPE, ...) {
             {
                 VariableDATA *target = va_arg(ap, VariableDATA *);
                 if (target) {
-                    CLASS_CHECK(target);
+                    CLASS_CHECK(target, NULL);
                     target->TYPE = VARIABLE_NUMBER;
                     PIFAlizator *PIF = (PIFAlizator *)POOL_CONTEXT(target);
                     target->CLASS_DATA = new_Array(PIF);
@@ -667,7 +667,7 @@ INTEGER Invoke(INTEGER INVOKE_TYPE, ...) {
                     break;
                 }
 
-                CLASS_CHECK(target);
+                CLASS_CHECK(target, NULL);
                 target->TYPE = VARIABLE_NUMBER;
 
                 int       class_count = pif->ClassList->Count();
@@ -723,7 +723,7 @@ INTEGER Invoke(INTEGER INVOKE_TYPE, ...) {
                     break;
                 }
 
-                CLASS_CHECK(target);
+                CLASS_CHECK(target, NULL);
                 target->TYPE = VARIABLE_NUMBER;
 
                 int       class_count = pif->ClassList->Count();
@@ -964,7 +964,7 @@ INTEGER Invoke(INTEGER INVOKE_TYPE, ...) {
                 char         *class_member_name = va_arg(ap, char *);
 
                 if (((target->TYPE == VARIABLE_CLASS) || (target->TYPE == VARIABLE_DELEGATE)) && (target->CLASS_DATA) && (deleg) && (class_member_name)) {
-                    CLASS_CHECK(deleg);
+                    CLASS_CHECK(deleg, NULL);
                     int     m_type = 0;
                     INTEGER index  = ((struct CompiledClass *)DYNAMIC_DATA(target))->_Class->HasMemberInCompiled(class_member_name, &m_type);
                     if (index) {
@@ -1103,7 +1103,7 @@ INTEGER Invoke(INTEGER INVOKE_TYPE, ...) {
 #else
                                                                         STACK_TRACE);
 #endif
-                    FREE_VARIABLE(lOwner);
+                    FREE_VARIABLE(lOwner, NULL);
                     if (*SENDER_RESULT)
                         (*SENDER_RESULT)->LINKS++;
 #ifdef SIMPLE_MULTI_THREADING
@@ -1112,7 +1112,7 @@ INTEGER Invoke(INTEGER INVOKE_TYPE, ...) {
 #endif
                     if ((CTX) && ((intptr_t)CTX != -1)) {
                         for (int i = 0; i < parameters; i++) {
-                            FREE_VARIABLE(CTX [i]);
+                            FREE_VARIABLE(CTX [i], NULL);
                         }
                         if (!is_list) {
                             FAST_FREE(CTX);
@@ -1969,7 +1969,7 @@ INTEGER Invoke(INTEGER INVOKE_TYPE, ...) {
                 PIFAlizator  *PIF    = va_arg(ap, PIFAlizator *);
                 VariableDATA *RESULT = va_arg(ap, VariableDATA *);
                 va_end(ap);
-                CLASS_CHECK(RESULT);
+                CLASS_CHECK(RESULT, NULL);
                 RESULT->TYPE       = VARIABLE_NUMBER;
                 RESULT->CLASS_DATA = new_Array(PIF);
                 RESULT->TYPE       = VARIABLE_ARRAY;
@@ -2129,7 +2129,7 @@ INTEGER Invoke(INTEGER INVOKE_TYPE, ...) {
                     break;
                 }
 
-                CLASS_CHECK(target);
+                CLASS_CHECK(target, NULL);
                 target->TYPE = VARIABLE_NUMBER;
 
                 int       class_count = pif->ClassList->Count();
@@ -2200,7 +2200,7 @@ INTEGER Invoke(INTEGER INVOKE_TYPE, ...) {
                     break;
                 }
 
-                CLASS_CHECK(target);
+                CLASS_CHECK(target, NULL);
                 target->TYPE = VARIABLE_NUMBER;
 
                 int       class_count = pif->ClassList->Count();

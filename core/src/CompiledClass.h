@@ -22,10 +22,10 @@ VariableDATA **CompiledClass_GetContext(const struct CompiledClass *self);
 VariableDATA *CompiledClass_CreateVariable(struct CompiledClass *self, INTEGER reloc, ClassMember *CM, VariableDATA *CONTAINER = NULL);
 const char *CompiledClass_GetClassName(const struct CompiledClass *self);
 struct CompiledClass *new_CompiledClass(void *PIF, const ClassCode *CC);
-int CompiledClass_Destroy(struct CompiledClass *self, PIFAlizator *PIF);
+int CompiledClass_Destroy(struct CompiledClass *self, PIFAlizator *PIF, SCStack *STACK_TRACE = NULL);
 int CompiledClass_HasDestructor(const struct CompiledClass *self);
 void CompiledClass_UnlinkObjects(struct CompiledClass *self);
-void delete_CompiledClass(struct CompiledClass *self);
+void delete_CompiledClass(struct CompiledClass *self, SCStack *STACK_TRACE = NULL);
 
 typedef struct {
     CompiledClass POOL[OBJECT_POOL_BLOCK_SIZE];

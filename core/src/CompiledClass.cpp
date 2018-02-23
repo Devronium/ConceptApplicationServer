@@ -27,7 +27,7 @@ VariableDATA *CompiledClass_CreateVariable(struct CompiledClass *self, INTEGER r
             PIFAlizator *PIF = GET_PIF(self);
             if (CONTAINER) {
                 _CONTEXT_i = CONTAINER;
-                CLASS_CHECK(CONTAINER);
+                CLASS_CHECK(CONTAINER, NULL);
                 CONTAINER->LINKS++;
             } else {
                 _CONTEXT_i        = (VariableDATA *)VAR_ALLOC(PIF);
@@ -167,7 +167,7 @@ void CompiledClass__GO_GARBAGE(struct CompiledClass *self, void *PIF, GarbageCol
                                         }
                                     }
                                 } else {
-                                    RESET_VARIABLE(Var);
+                                    RESET_VARIABLE(Var, NULL);
                                 }
                             }
                             Var->CLASS_DATA = 0;
@@ -180,7 +180,7 @@ void CompiledClass__GO_GARBAGE(struct CompiledClass *self, void *PIF, GarbageCol
                                 Array_GO_GARBAGE((struct Array *)Var->CLASS_DATA, PIF, __gc_obj, __gc_array, __gc_vars, check_objects);
                                 Var->CLASS_DATA = 0;
                             } else {
-                                RESET_VARIABLE(Var);
+                                RESET_VARIABLE(Var, NULL);
                             }
                         }
                     }
@@ -200,7 +200,7 @@ VariableDATA **CompiledClass_GetContext(const struct CompiledClass *self) {
     return self->_CONTEXT;
 }
 
-int CompiledClass_Destroy(struct CompiledClass *self, PIFAlizator *PIF) {
+int CompiledClass_Destroy(struct CompiledClass *self, PIFAlizator *PIF, SCStack *STACK_TRACE) {
     VariableDATA *OWNER = (VariableDATA *)VAR_ALLOC(PIF);
 
     OWNER->TYPE       = VARIABLE_CLASS;
@@ -210,22 +210,22 @@ int CompiledClass_Destroy(struct CompiledClass *self, PIFAlizator *PIF) {
     self->LINKS++;
     VariableDATA *THROW_DATA = 0;
 
-    STACK(0, self->_Class->DESTRUCTOR_MEMBER->_DEBUG_STARTLINE)
-    VariableDATA * RESULT = self->_Class->DESTRUCTOR_MEMBER->Execute(PIF, self->_Class->CLSID, OWNER, 0, self->_CONTEXT, THROW_DATA, NULL);
+    STACK(STACK_TRACE, self->_Class->DESTRUCTOR_MEMBER->_DEBUG_STARTLINE)
+    VariableDATA * RESULT = self->_Class->DESTRUCTOR_MEMBER->Execute(PIF, self->_Class->CLSID, OWNER, 0, self->_CONTEXT, THROW_DATA, STACK_TRACE);
     UNSTACK;
     if (RESULT) {
-        FREE_VARIABLE(RESULT);
+        FREE_VARIABLE(RESULT, STACK_TRACE);
     }
 
     // avoid double deleting of the class !!!
     OWNER->TYPE       = VARIABLE_NUMBER;
     OWNER->CLASS_DATA = 0;
-    FREE_VARIABLE(OWNER);
+    FREE_VARIABLE(OWNER, STACK_TRACE);
 
     if (THROW_DATA) {
-        FREE_VARIABLE(THROW_DATA);
+        FREE_VARIABLE(THROW_DATA, STACK_TRACE);
         AnsiException *Exc = new AnsiException(ERR635, 0, 635, "", self->_Class->_DEBUG_INFO_FILENAME, self->_Class->NAME, self->_Class->DESTRUCTOR_MEMBER->NAME);
-        PIF->AcknoledgeRunTimeError(NULL, Exc);
+        PIF->AcknoledgeRunTimeError(STACK_TRACE, Exc);
     }
     self->LINKS = -1;
     return 1;
@@ -265,13 +265,13 @@ void CompiledClass_UnlinkObjects(struct CompiledClass *self) {
     self->_CONTEXT = 0;
 }
 
-void delete_CompiledClass(struct CompiledClass *self) {
+void delete_CompiledClass(struct CompiledClass *self, SCStack *STACK_TRACE) {
     if (self->LINKS < 0)
         return;
 
     if (self->_Class->DESTRUCTOR) {
         PIFAlizator *PIF          = GET_PIF(self);
-        CompiledClass_Destroy(self, PIF);
+        CompiledClass_Destroy(self, PIF, STACK_TRACE);
     }
 
     self->LINKS = -1;

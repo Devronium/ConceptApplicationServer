@@ -391,11 +391,16 @@ CONCEPT_FUNCTION_IMPL(callstack, 0)
     INTEGER i = 0;
     while (STACK_TRACE) {
         ClassMember *CM = (ClassMember *)STACK_TRACE->CM;
-        VariableDATA *VD = Array_ModuleGet((Array *)RESULT->CLASS_DATA, i);
+        VariableDATA *VD = Array_ModuleGet((Array *)RESULT->CLASS_DATA, i++);
         VD->CLASS_DATA = plainstring_new();
         VD->TYPE = VARIABLE_STRING;
         if (CM) {
-            plainstring_add((struct plainstring *)VD->CLASS_DATA, CM->Defined_In ? ((ClassCode *)CM->Defined_In)->NAME.c_str() : "::");
+            if (CM->Defined_In) {
+                plainstring_add((struct plainstring *)VD->CLASS_DATA, ((ClassCode *)CM->Defined_In)->NAME.c_str());
+                plainstring_add((struct plainstring *)VD->CLASS_DATA, ".");
+            } else {
+                plainstring_add((struct plainstring *)VD->CLASS_DATA, "::");
+            }
             plainstring_add((struct plainstring *)VD->CLASS_DATA, CM->NAME);
         } else {
             plainstring_add((struct plainstring *)VD->CLASS_DATA, "STATIC/LIBRARY.STATIC_FUNCTION");

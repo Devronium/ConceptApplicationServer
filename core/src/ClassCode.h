@@ -117,7 +117,7 @@ struct ClassDelegate {
 };
 
 struct ClassDelegate *new_Delegate(void *CLASS_DATA, CLASS_MEMBERS_DOMAIN DELEGATE_DATA);
-void delete_Delegate(void *deleg);
+void delete_Delegate(void *deleg, SCStack *STACK_TRACE = NULL);
 void free_Delegate(void *self);
 struct ClassDelegate *copy_Delegate(const void *self);
 void *delegate_Class(const void *self);

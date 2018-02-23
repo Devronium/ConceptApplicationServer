@@ -743,7 +743,7 @@ int ClearRecursive(void *PIF, CompiledClass *CC, int CLSID, signed char reach_id
                 CompiledClass *CC2 = (struct CompiledClass *)DYNAMIC_DATA(Var);
                 if ((CC2->reachable & 0x03) != reach_id_flag) {
                     if (CC2->_Class->GetCLSID() == CLSID) {
-                        CLASS_CHECK(Var);
+                        CLASS_CHECK(Var, NULL);
                         Var->TYPE = VARIABLE_NUMBER;
                         Var->NUMBER_DATA = 0;
                     } else {
@@ -778,7 +778,7 @@ int ClearRecursive(void *PIF, Array *arr, int CLSID, signed char reach_id_flag, 
                         res += ClearRecursive(PIF, CC2, CLSID, reach_id_flag, forced_flag ? forced_flag : CC2->reachable & 0x1C);
                     CC2->reachable |= forced_flag;
                     if (CompiledClass_GetClass(CC2)->GetCLSID() == CLSID) {
-                        CLASS_CHECK(Var);
+                        CLASS_CHECK(Var, NULL);
                         Var->TYPE = VARIABLE_NUMBER;
                         Var->NUMBER_DATA = 0;
                     }
@@ -854,7 +854,7 @@ int ClearVariablesByCLSID(void *PIF, int CLSID) {
                             if ((CC2->reachable & 0x03) != reach_id_flag)
                                 ClearRecursive(PIF, CC2, CLSID, reach_id_flag, CC2->reachable & 0x1C);
                             if (CompiledClass_GetClass(CC2)->GetCLSID() == CLSID) {
-                                CLASS_CHECK(Var);
+                                CLASS_CHECK(Var, NULL);
                                 Var->TYPE = VARIABLE_NUMBER;
                                 Var->NUMBER_DATA = 0;
                             }
@@ -1100,9 +1100,9 @@ int GetMemoryStatistics(void *PIF, void *RESULT) {
     VariableDATA *array_var   = Array_ModuleGet((struct Array *)RESULT, "arrays");
     VariableDATA *array_elements   = Array_ModuleGet((struct Array *)RESULT, "arrays_elements");
 
-    CLASS_CHECK(objects_var);
-    CLASS_CHECK(array_var);
-    CLASS_CHECK(array_elements);
+    CLASS_CHECK(objects_var, NULL);
+    CLASS_CHECK(array_var, NULL);
+    CLASS_CHECK(array_elements, NULL);
 
     objects_var->TYPE       = VARIABLE_NUMBER;
     array_var->TYPE         = VARIABLE_NUMBER;

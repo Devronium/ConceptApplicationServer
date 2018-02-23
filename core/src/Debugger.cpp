@@ -11,7 +11,7 @@
 VariableDATA *VarToClean [0xFF];
 int          VarCnt = 0;
 
-#define CLEAN_VARS    { for (int i = 0; i < VarCnt; i ++) { FREE_VARIABLE(VarToClean [i]); } VarCnt = 0; }
+#define CLEAN_VARS    { for (int i = 0; i < VarCnt; i ++) { FREE_VARIABLE(VarToClean [i], NULL); } VarCnt = 0; }
 #define ADD_VAR(VAR)    { if (VAR) VarToClean [VarCnt ++] = VAR; }
 
 VariableDATA *GetClassMember(void *CLASS_PTR, const char *class_member_name) {
@@ -58,10 +58,10 @@ VariableDATA *GetClassMember(void *CLASS_PTR, const char *class_member_name) {
                                                                     &THROW_DATA,
                                                                     NULL
                                                                     );
-                    FREE_VARIABLE(Owner);
+                    FREE_VARIABLE(Owner, NULL);
                     ADD_VAR(VarDATA);
                     if (THROW_DATA) {
-                        FREE_VARIABLE(THROW_DATA);
+                        FREE_VARIABLE(THROW_DATA, NULL);
                     }
                     return VarDATA;
                 } else {

@@ -848,7 +848,7 @@ void Array_GO_GARBAGE(struct Array *self, void *PIF, GarbageCollector *__gc_obj,
             if (Var) {
                 // faster, but problematic with destructor call
                 if ((single_link) && (Var->LINKS == 1) && ((Var->TYPE == VARIABLE_NUMBER) || (Var->TYPE == VARIABLE_STRING)) && (!__gc_vars->IsReferenced(Var))) {
-                     FREE_VARIABLE(Var);
+                     FREE_VARIABLE(Var, NULL);
                      CURRENT->ELEMENTS [j] = NULL;
                      continue;
                 }
@@ -874,7 +874,7 @@ void Array_GO_GARBAGE(struct Array *self, void *PIF, GarbageCollector *__gc_obj,
                             __gc_obj->Reference(CLASS_DATA);
                             CompiledClass__GO_GARBAGE((struct CompiledClass *)CLASS_DATA, PIF, __gc_obj, __gc_array, __gc_vars, check_objects);
                         } else {
-                            RESET_VARIABLE(Var);
+                            RESET_VARIABLE(Var, NULL);
                         }
                     } else
                     if (Var->TYPE == VARIABLE_ARRAY) {
@@ -882,7 +882,7 @@ void Array_GO_GARBAGE(struct Array *self, void *PIF, GarbageCollector *__gc_obj,
                             __gc_array->Reference(Var->CLASS_DATA);
                             Array_GO_GARBAGE((struct Array *)Var->CLASS_DATA, PIF, __gc_obj, __gc_array, __gc_vars, check_objects);
                         } else {
-                            RESET_VARIABLE(Var);
+                            RESET_VARIABLE(Var, NULL);
                         }
                     }
                 }
@@ -1007,7 +1007,7 @@ void Array_UnlinkObjects(struct Array *self) {
                     Var->CLASS_DATA = 0;
 
                 }
-                FREE_VARIABLE(Var);
+                FREE_VARIABLE(Var, NULL);
             }
         }
         NODE *NEXT = CURRENT->NEXT;
@@ -1040,7 +1040,7 @@ void delete_Array(struct Array *self) {
             for (ARRAY_COUNT_TYPE j = 0; j < CURRENT->COUNT; j++) {
                 VariableDATA *Var = CURRENT->ELEMENTS [j];
                 if (Var) {
-                    FREE_VARIABLE(Var);
+                    FREE_VARIABLE(Var, NULL);
                 }
             }
         }

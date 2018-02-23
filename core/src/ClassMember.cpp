@@ -214,7 +214,7 @@ void ClassMember::EndMainCall(void *PIF, VariableDATA *&RESULT, VariableDATA *&T
             ((PIFAlizator *)PIF)->last_result = (int)RESULT->NUMBER_DATA;
 
         if (((PIFAlizator *)PIF)->static_result) {
-            CLASS_CHECK(((VariableDATA *)((PIFAlizator *)PIF)->static_result));
+            CLASS_CHECK(((VariableDATA *)((PIFAlizator *)PIF)->static_result), PREV);
             switch (RESULT->TYPE) {
                 case VARIABLE_NUMBER:
                     ((VariableDATA *)((PIFAlizator *)PIF)->static_result)->TYPE        = VARIABLE_NUMBER;
@@ -252,7 +252,7 @@ void ClassMember::EndMainCall(void *PIF, VariableDATA *&RESULT, VariableDATA *&T
                     break;
             }
         }
-        FREE_VARIABLE(RESULT);
+        FREE_VARIABLE(RESULT, PREV);
         RESULT = NULL;
     }
     if (THROW_DATA) {
@@ -286,7 +286,7 @@ void ClassMember::EndMainCall(void *PIF, VariableDATA *&RESULT, VariableDATA *&T
         AnsiException *Exc = new AnsiException(ERR630, 0, 630, data, ((ClassCode *)(this->Defined_In))->_DEBUG_INFO_FILENAME, NAME);
         ((PIFAlizator *)PIF)->AcknoledgeRunTimeError(PREV, Exc);
 
-        FREE_VARIABLE(THROW_DATA);
+        FREE_VARIABLE(THROW_DATA, PREV);
         THROW_DATA = NULL;
 
         FAST_FREE(temp);
@@ -457,7 +457,7 @@ void ClassMember::DoneThread(GreenThreadCycle *gtc) {
     if (gtc) {
         gtc->STACK_TRACE.len = -1;
         if (gtc->THROW_DATA) {
-            FREE_VARIABLE(gtc->THROW_DATA);
+            FREE_VARIABLE(gtc->THROW_DATA, NULL);
         }
 
         if (gtc->LOCAL_CONTEXT)
@@ -470,7 +470,7 @@ void ClassMember::DoneThread(GreenThreadCycle *gtc) {
         }
 
         if (gtc->OWNER) {
-            FREE_VARIABLE(gtc->OWNER);
+            FREE_VARIABLE(gtc->OWNER, NULL);
         }
 
         if (gtc->PROPERTIES)
@@ -494,7 +494,7 @@ bool ClassMember::FastOptimizedExecute(void *PIF, void *ref, ParamList *FORMAL_P
                     int          relocation2 = ((struct CompiledClass *)ref)->_Class->RELOCATIONS2 [reloc - 1] - 1;
                     VariableDATA *val        = ((struct CompiledClass *)ref)->_CONTEXT[relocation2];
                     if (val) {
-                        CLASS_CHECK(val);
+                        CLASS_CHECK(val, NULL);
                     } else {
                         val        = (VariableDATA *)VAR_ALLOC(PIF);
                         val->LINKS = 1;

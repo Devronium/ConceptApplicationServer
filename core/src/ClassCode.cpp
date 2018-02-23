@@ -65,13 +65,13 @@ CLASS_MEMBERS_DOMAIN delegate_Member(const void *self) {
     return ((struct ClassDelegate *)self)->DELEGATE_DATA;
 }
 
-void delete_Delegate(void *self) {
+void delete_Delegate(void *self, SCStack *STACK_TRACE) {
     if (!self)
         return;
     struct ClassDelegate *deleg = (struct ClassDelegate *)self;
     if (deleg->CLASS_DATA) {
         if (!(--((struct CompiledClass *)deleg->CLASS_DATA)->LINKS))
-            delete_CompiledClass((struct CompiledClass *)deleg->CLASS_DATA);
+            delete_CompiledClass((struct CompiledClass *)deleg->CLASS_DATA, STACK_TRACE);
     }
     free(deleg);
 }
@@ -553,7 +553,7 @@ CompiledClass *ClassCode::CreateInstance(PIFAlizator *PIF, VariableDATA *Owner, 
                 if (RESULT->TYPE == VARIABLE_NUMBER)
                     PIF->last_result = (int)RESULT->NUMBER_DATA;
             }
-            FREE_VARIABLE(RESULT);
+            FREE_VARIABLE(RESULT, PREV);
         } else
         if (THROW_DATA) {
             struct plainstring *data = plainstring_new();
@@ -582,7 +582,7 @@ CompiledClass *ClassCode::CreateInstance(PIFAlizator *PIF, VariableDATA *Owner, 
                     plainstring_add(data, CompiledClass_GetClassName((struct CompiledClass *)delegate_Class(THROW_DATA->CLASS_DATA)));
                 }
 
-                FREE_VARIABLE(THROW_DATA);
+                FREE_VARIABLE(THROW_DATA, PREV);
             }
 
             AnsiException *Exc = new AnsiException(ERR630, OE ? OE->Operator_DEBUG_INFO_LINE : 0, 630, plainstring_c_str(data), ((ClassCode *)(CM->Defined_In))->_DEBUG_INFO_FILENAME, NAME);
@@ -638,7 +638,7 @@ void ClassCode::SetProperty(PIFAlizator *PIF, INTEGER i, VariableDATA *Owner, co
         VariableDATA *RESULT = ExecuteMember(PIF, pMEMBER_i->MEMBER_SET - 1, Owner, OE, 1, ONE_PARAM_LIST, SenderCTX, 1, ((ClassCode *)pMEMBER_i->Defined_In)->CLSID, ((ClassCode *)pMEMBER_i->Defined_In)->CLSID, LOCAL_THROW, PREV);
         if (RESULT) {
             // new zone added //
-            CLASS_CHECK(RESULT);
+            CLASS_CHECK(RESULT, PREV);
 
             VariableDATA *NEW_VALUE = SenderCTX [VALUE - 1];
             RESULT->TYPE = NEW_VALUE->TYPE;
@@ -669,7 +669,7 @@ void ClassCode::SetProperty(PIFAlizator *PIF, INTEGER i, VariableDATA *Owner, co
             //----------------------------------------------
             // end zone added //
             RESULT->LINKS++;
-            FREE_VARIABLE(RESULT);
+            FREE_VARIABLE(RESULT, PREV);
         }
         return;
     }
@@ -801,7 +801,7 @@ VariableDATA *ClassCode::ExecuteMember(PIFAlizator *PIF, INTEGER i, VariableDATA
 
                     if (*LOCAL_THROW) {
                         if (RESULT) {
-                            FREE_VARIABLE(RESULT);
+                            FREE_VARIABLE(RESULT, PREV);
                         }
                         return NULL;
                     }
@@ -841,7 +841,7 @@ VariableDATA *ClassCode::ExecuteMember(PIFAlizator *PIF, INTEGER i, VariableDATA
                 RESULT = ExecuteMember(PIF, pMEMBER_i->MEMBER_GET - 1, Owner, OE, 1, EMPTY_PARAM_LIST, SenderCTX, 1, ((ClassCode *)pMEMBER_i->Defined_In)->CLSID, ((ClassCode *)pMEMBER_i->Defined_In)->CLSID, LOCAL_THROW, PREV);
                 if (*LOCAL_THROW) {
                     if (RESULT) {
-                        FREE_VARIABLE(RESULT);
+                        FREE_VARIABLE(RESULT, PREV);
                     }
                     return NULL;
                 }
@@ -878,10 +878,10 @@ VariableDATA *ClassCode::ExecuteMember(PIFAlizator *PIF, INTEGER i, VariableDATA
                                                                     LOCAL_THROW,
                                                                     PREV
                                                                     );
-                        FREE_VARIABLE(lOwner);
+                        FREE_VARIABLE(lOwner, PREV);
                         if (*LOCAL_THROW) {
                             if (RESULT) {
-                                FREE_VARIABLE(RESULT);
+                                FREE_VARIABLE(RESULT, PREV);
                             }
                             return NULL;
                         }
@@ -982,10 +982,10 @@ VariableDATA *ClassCode::ExecuteMember(PIFAlizator *PIF, INTEGER i, VariableDATA
                                                                 LOCAL_CLSID,
                                                                 LOCAL_THROW,
                                                                 PREV);
-                    FREE_VARIABLE(lOwner);
+                    FREE_VARIABLE(lOwner, PREV);
                     if (*LOCAL_THROW) {
                         if (RESULT) {
-                            FREE_VARIABLE(RESULT);
+                            FREE_VARIABLE(RESULT, PREV);
                             RESULT = NULL;
                         }
                     }
