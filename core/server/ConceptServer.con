@@ -3112,7 +3112,8 @@ class ConceptCGIChild extends ConceptCGIChildBase {
 					echo "CGI pipe congestion\n";
 					return true;
 				}
-				last_pipe_err_time_read = time();
+				if (!last_pipe_err_time_read)
+					last_pipe_err_time_read = time();
 			}
 
 		}
@@ -3176,7 +3177,8 @@ class ConceptCGIChild extends ConceptCGIChildBase {
 						echo "CGI write congestion\n";
 						return true;
 					}
-					last_err_time = time();
+					if (!last_err_time)
+						last_err_time = time();
 				}
 			}
 		}
