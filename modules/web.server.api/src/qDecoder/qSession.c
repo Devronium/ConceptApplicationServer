@@ -176,7 +176,11 @@ int qSession(char *repository, char *sesid) {
         _EntryAdd(_session_first_entry, INTER_CONNECTIONS, connstr);
 
         /* set timeout interval */
-        qSessionSetTimeout((time_t)atol(qSessionValue(INTER_INTERVAL_SEC)));
+        const char *val = qSessionValue(INTER_INTERVAL_SEC);
+        if (val)
+            qSessionSetTimeout((time_t)atol(val));
+        else
+            qSessionSetTimeout(_session_timeout_interval);
     }
 
     /* set globals */

@@ -3169,7 +3169,7 @@ int ConceptInterpreter::StacklessInterpret(PIFAlizator *PIF, GreenThreadCycle *G
                                             continue;
                                         }
                                         if (LOCAL_CONTEXT [OE->Result_ID - 1] != RETURN_DATA) {
-                                            FREE_VARIABLE_RESET(LOCAL_CONTEXT [OE->Result_ID - 1], VARIABLE_NUMBER);
+                                            FREE_VARIABLE(LOCAL_CONTEXT [OE->Result_ID - 1], STACK_TRACE);
                                             LOCAL_CONTEXT [OE->Result_ID - 1] = RETURN_DATA;
                                             RETURN_DATA->LINKS++;
                                         }
@@ -5593,7 +5593,7 @@ VariableDATA *ConceptInterpreter::Interpret(PIFAlizator *PIF, VariableDATA **LOC
                                                 RETURN_DATA = Array_GetWithCreate((struct Array *)LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA, index);
                                             if (RETURN_DATA) {
                                                 if (LOCAL_CONTEXT [OE->Result_ID - 1] != RETURN_DATA) {
-                                                    FREE_VARIABLE_RESET(LOCAL_CONTEXT [OE->Result_ID - 1], VARIABLE_NUMBER);
+                                                    FREE_VARIABLE(LOCAL_CONTEXT [OE->Result_ID - 1], STACK_TRACE);
                                                     LOCAL_CONTEXT [OE->Result_ID - 1] = RETURN_DATA;
                                                     RETURN_DATA->LINKS++;
                                                 }
@@ -5614,7 +5614,7 @@ VariableDATA *ConceptInterpreter::Interpret(PIFAlizator *PIF, VariableDATA **LOC
                                         continue;
                                     }
                                     if (LOCAL_CONTEXT [OE->Result_ID - 1] != RETURN_DATA) {
-                                        FREE_VARIABLE_RESET(LOCAL_CONTEXT [OE->Result_ID - 1], VARIABLE_NUMBER);
+                                        FREE_VARIABLE(LOCAL_CONTEXT [OE->Result_ID - 1], STACK_TRACE);
                                         LOCAL_CONTEXT [OE->Result_ID - 1] = RETURN_DATA;
                                         RETURN_DATA->LINKS++;
                                     }
