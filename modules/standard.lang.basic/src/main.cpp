@@ -7,8 +7,11 @@ extern "C" {
 }
 #include "library.h"
 #include <math.h>
+#include <stdlib.h>
+#include <string.h>
 #include <map>
 #include <string>
+#include <algorithm>
 
 typedef std::map<std::string, void *> StringMap;
 //---------------------------------------------------------------------------
