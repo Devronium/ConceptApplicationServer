@@ -3867,7 +3867,7 @@ int ConceptInterpreter::EvalArrayExpression(PIFAlizator *PIF, VariableDATA **LOC
                     RETURN_DATA = Array_NewArray((struct Array *)LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA);
                     Array_AddCopy((struct Array *)RETURN_DATA->CLASS_DATA, LOCAL_CONTEXT [OE->OperandRight_ID - 1]);
                     if (LOCAL_CONTEXT [OE->Result_ID - 1] != RETURN_DATA) {
-                        FREE_VARIABLE_RESET(LOCAL_CONTEXT [OE->Result_ID - 1], VARIABLE_NUMBER);
+                        FREE_VARIABLE_RESET(LOCAL_CONTEXT [OE->Result_ID - 1]);
                         LOCAL_CONTEXT [OE->Result_ID - 1] = RETURN_DATA;
                         RETURN_DATA->LINKS++;
                     }
@@ -3879,7 +3879,7 @@ int ConceptInterpreter::EvalArrayExpression(PIFAlizator *PIF, VariableDATA **LOC
                     RETURN_DATA = Array_NewArray((struct Array *)LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA);
                     Array_Concat((struct Array *)RETURN_DATA->CLASS_DATA, (struct Array *)LOCAL_CONTEXT [OE->OperandRight_ID - 1]->CLASS_DATA);
                     if (LOCAL_CONTEXT [OE->Result_ID - 1] != RETURN_DATA) {
-                        FREE_VARIABLE_RESET(LOCAL_CONTEXT [OE->Result_ID - 1], VARIABLE_NUMBER);
+                        FREE_VARIABLE_RESET(LOCAL_CONTEXT [OE->Result_ID - 1]);
                         LOCAL_CONTEXT [OE->Result_ID - 1] = RETURN_DATA;
                         RETURN_DATA->LINKS++;
                     }
@@ -3896,7 +3896,7 @@ int ConceptInterpreter::EvalArrayExpression(PIFAlizator *PIF, VariableDATA **LOC
                     LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE = VARIABLE_NUMBER;
                     RETURN_DATA = Array_AddCopy((struct Array *)LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA, LOCAL_CONTEXT [OE->OperandRight_ID - 1]);
                     if (LOCAL_CONTEXT [OE->Result_ID - 1] != RETURN_DATA) {
-                        FREE_VARIABLE_RESET(LOCAL_CONTEXT [OE->Result_ID - 1], VARIABLE_NUMBER);
+                        FREE_VARIABLE_RESET(LOCAL_CONTEXT [OE->Result_ID - 1]);
                         LOCAL_CONTEXT [OE->Result_ID - 1] = RETURN_DATA;
                         RETURN_DATA->LINKS++;
                     }
@@ -4430,7 +4430,7 @@ int ConceptInterpreter::EvalStringExpression(PIFAlizator *PIF, VariableDATA **LO
                 case VARIABLE_STRING:
                     CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft_ID - 1], LOCAL_CONTEXT [OE->OperandRight_ID - 1]);
                     if (LOCAL_CONTEXT [OE->Result_ID - 1] != LOCAL_CONTEXT [OE->OperandLeft_ID - 1]) {
-                        FREE_VARIABLE_RESET(LOCAL_CONTEXT [OE->Result_ID - 1], VARIABLE_NUMBER);
+                        FREE_VARIABLE_RESET(LOCAL_CONTEXT [OE->Result_ID - 1]);
                         LOCAL_CONTEXT [OE->Result_ID - 1] = LOCAL_CONTEXT [OE->OperandLeft_ID - 1];
                         LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->LINKS++;
                     }
@@ -4456,7 +4456,7 @@ int ConceptInterpreter::EvalStringExpression(PIFAlizator *PIF, VariableDATA **LO
                 case VARIABLE_STRING:
                     CONCEPT_STRING_ASU(LOCAL_CONTEXT [OE->OperandLeft_ID - 1], LOCAL_CONTEXT [OE->OperandRight_ID - 1]);
                     if (LOCAL_CONTEXT [OE->Result_ID - 1] != LOCAL_CONTEXT [OE->OperandLeft_ID - 1]) {
-                        FREE_VARIABLE_RESET(LOCAL_CONTEXT [OE->Result_ID - 1], VARIABLE_NUMBER);
+                        FREE_VARIABLE_RESET(LOCAL_CONTEXT [OE->Result_ID - 1]);
                         LOCAL_CONTEXT [OE->Result_ID - 1] = LOCAL_CONTEXT [OE->OperandLeft_ID - 1];
                         LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->LINKS++;
                     }

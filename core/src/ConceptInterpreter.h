@@ -95,24 +95,9 @@ void FREE_VARIABLE(VariableDATA *VARIABLE, SCStack *STACK_TRACE);
 #define FREE_VARIABLE_TS    FREE_VARIABLE
 #endif
 
-#define FREE_VARIABLE_RESET(VARIABLE, pushed_type)                                       \
+#define FREE_VARIABLE_RESET(VARIABLE)                                                    \
     VARIABLE->LINKS--;                                                                   \
     if (VARIABLE->LINKS < 1) {                                                           \
-        if (VARIABLE->CLASS_DATA) {                                                      \
-            if (pushed_type == VARIABLE_STRING) {                                        \
-                plainstring_delete((struct plainstring *)VARIABLE->CLASS_DATA);          \
-            } else                                                                       \
-            if (pushed_type == VARIABLE_CLASS) {                                         \
-                if (!--((struct CompiledClass *)VARIABLE->CLASS_DATA)->LINKS)            \
-                    delete_CompiledClass((struct CompiledClass *)VARIABLE->CLASS_DATA);  \
-            } else                                                                       \
-            if (pushed_type == VARIABLE_ARRAY) {                                         \
-                if (!--((struct Array *)VARIABLE->CLASS_DATA)->LINKS)                    \
-                    delete_Array((struct Array *)VARIABLE->CLASS_DATA);                  \
-            } else                                                                       \
-            if (pushed_type == VARIABLE_DELEGATE)                                        \
-                delete_Delegate(VARIABLE->CLASS_DATA);                                   \
-        }                                                                                \
         VAR_FREE(VARIABLE);                                                              \
     }
 
