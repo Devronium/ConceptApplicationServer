@@ -479,7 +479,6 @@ void BUILTININIT(void *pif) {
 
     srand((unsigned)time(NULL));
     tzset();
-tzset();
 }
 
 int BUILTINOBJECTS(void *pif, const char *classname) {

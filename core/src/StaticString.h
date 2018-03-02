@@ -9,10 +9,11 @@
 #define SERIALIZE_16BIT_LENGTH    2
 #define SERIALIZE_32BIT_LENGTH    4
 
+#define LENGTH_DATA_TYPE   int
+
 class StaticString {
 private:
     intptr_t DataOffset;
-    int      _LENGTH;
 public:
     POOLED(StaticString);
 
@@ -27,13 +28,14 @@ public:
     void operator=(AnsiString& S);
     int operator!=(StaticString& S);
 
-    operator char *();
+    operator const char *();
 
-    char *c_str();
+    const char *c_str() const;
     intptr_t ToInt();
     double ToFloat();
 
-    intptr_t Length();
+    LENGTH_DATA_TYPE Length() const;
+    LENGTH_DATA_TYPE Size() const;
     void LoadBuffer(const char *buffer, int size);
 
     int Serialize(FILE *out, int type);

@@ -1004,7 +1004,6 @@ VariableDATA *ClassCode::ExecuteMember(PIFAlizator *PIF, INTEGER i, VariableDATA
                     RESULT->TYPE               = VARIABLE_NUMBER;
                     RESULT->IS_PROPERTY_RESULT = 0;
                 }
-
                 return RESULT;
         }
     } else {

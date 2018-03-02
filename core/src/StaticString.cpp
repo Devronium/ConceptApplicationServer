@@ -26,56 +26,41 @@ POOLED_IMPLEMENTATION(StaticString)
 
 StaticString::StaticString() {
     DataOffset = 0;
-    _LENGTH    = 0;
 }
 
 StaticString::StaticString(char *value) {
     DataOffset = 0;
-    _LENGTH    = 0;
     operator=(value);
 }
 
 StaticString::StaticString(const char *value) {
     DataOffset = 0;
-    _LENGTH    = 0;
     operator=((char *)value);
 }
 
 StaticString::StaticString(const StaticString& S) {
     DataOffset = 0;
-    _LENGTH    = 0;
-    if (S._LENGTH) {
-        char *Data = 0;
-        if (S.DataOffset) {
-            Data = ((char *)(void *)&S) + S.DataOffset;
-        }
-        this->LoadBuffer(Data, S._LENGTH);
-    }
+    if (S.Length())
+        this->LoadBuffer(S.c_str(), S.Length());
 }
 
 void StaticString::operator=(const char *value) {
-    char *Data = 0;
-
+    char *Data;
+    size_t len;
     if (DataOffset) {
         Data = ((char *)(void *)this) + DataOffset;
-    }
-
-    size_t len;
-    if (Data) {
         free(Data);
-        Data       = 0;
         DataOffset = 0;
     }
-    _LENGTH = 0;
     if (value) {
         len     = strlen(value);
-        _LENGTH = len;
         if (len) {
-            Data       = (char *)realloc(Data, len + 1);
-            Data [len] = 0;
+            Data = (char *)malloc(sizeof(LENGTH_DATA_TYPE) + len + 1);
+            *(LENGTH_DATA_TYPE *)Data = len;
+            Data += sizeof(LENGTH_DATA_TYPE);
             MEMCPY(Data, value, len)
-
-            DataOffset = (intptr_t)Data - (intptr_t) this;
+            Data [len] = 0;
+            DataOffset = (intptr_t)Data - (intptr_t) this - sizeof(LENGTH_DATA_TYPE);
         }
     }
 }
@@ -91,25 +76,20 @@ void StaticString::operator=(StaticString& S) {
 
     if (DataOffset) {
         Data = ((char *)(void *)this) + DataOffset;
-    }
-
-    if (Data) {
+        free(Data);
         DataOffset = 0;
-        if (Data) {
-            free(Data);
-        }
     }
-    _LENGTH = 0;
 
-    char *other_data = S.c_str();
+    const char *other_data = S.c_str();
     len = S.Length();
     if (len) {
-        _LENGTH    = len;
-        Data       = (char *)malloc(len + 1);
-        Data [len] = 0;
+        Data = (char *)malloc(sizeof(LENGTH_DATA_TYPE) + len + 1);
+        *(LENGTH_DATA_TYPE *)Data = len;
+        Data += sizeof(LENGTH_DATA_TYPE);
         MEMCPY(Data, other_data, len);
+        Data [len] = 0;
 
-        DataOffset = (intptr_t)Data - (intptr_t) this;
+        DataOffset = (intptr_t)Data - (intptr_t) this - sizeof(LENGTH_DATA_TYPE);
     }
 }
 
@@ -124,13 +104,13 @@ void StaticString::operator=(intptr_t i) {
 }
 
 int StaticString::operator!=(StaticString& S) {
-    if (_LENGTH != S._LENGTH)
+    if (Length() != S.Length())
         return 1;
 
-    if (!_LENGTH)
+    if (!Length())
         return 0;
 
-    if (memcmp(this->c_str(), S.c_str(), _LENGTH))
+    if (memcmp(this->c_str(), S.c_str(), Length()))
         return 1;
 
     return 0;
@@ -147,58 +127,45 @@ StaticString::~StaticString(void) {
     }
 }
 
-StaticString::operator char *() {
+StaticString::operator const char *() {
     return c_str();
 }
 
-char *StaticString::c_str() {
-    char *Data = 0;
-
-    if (!_LENGTH)
-        return (char *)"";
-
+const char *StaticString::c_str() const {
     if (DataOffset)
-        Data = ((char *)(void *)this) + DataOffset;
+        return ((char *)(void *)this) + DataOffset + sizeof(LENGTH_DATA_TYPE);
 
-    if (!Data)
-        return (char *)"";
-
-    return Data;
+    return "";
 }
 
 intptr_t StaticString::ToInt() {
-    char *Data = 0;
-
-    if (DataOffset) {
-        Data = ((char *)(void *)this) + DataOffset;
-    }
-
-    if (Data) {
-        return atol(Data);
-    }
-
+    if (DataOffset)
+        return atol(((char *)(void *)this) + DataOffset + sizeof(LENGTH_DATA_TYPE));
     return 0;
 }
 
 double StaticString::ToFloat() {
     char *Data = 0;
 
-    if (DataOffset) {
-        Data = ((char *)(void *)this) + DataOffset;
-    }
-
-    if (Data) {
-        return atof(Data);
-    }
+    if (DataOffset)
+        return atof(((char *)(void *)this) + DataOffset + sizeof(LENGTH_DATA_TYPE));
     return 0;
 }
 
-intptr_t StaticString::Length() {
-    if (!DataOffset) {
+LENGTH_DATA_TYPE StaticString::Length() const {
+    if (!DataOffset)
         return 0;
-    }
 
-    return _LENGTH;
+    char *Data = ((char *)(void *)this) + DataOffset;
+    return *((LENGTH_DATA_TYPE *)Data);
+}
+
+LENGTH_DATA_TYPE StaticString::Size() const {
+    if (!DataOffset)
+        return 0;
+
+    char *Data = ((char *)(void *)this) + DataOffset;
+    return *((LENGTH_DATA_TYPE *)Data) + sizeof(LENGTH_DATA_TYPE);
 }
 
 void StaticString::LoadBuffer(const char *buffer, int size) {
@@ -207,27 +174,27 @@ void StaticString::LoadBuffer(const char *buffer, int size) {
     if (DataOffset) {
         Data = ((char *)(void *)this) + DataOffset;
         free(Data);
-        Data       = 0;
         DataOffset = 0;
     }
-    _LENGTH = size;
-
     if (size) {
-        Data = (char *)malloc(size + 1);
+        Data = (char *)malloc(sizeof(LENGTH_DATA_TYPE) + size + 1);
+        *(LENGTH_DATA_TYPE *)Data = size;
+        Data += sizeof(LENGTH_DATA_TYPE);
         MEMCPY(Data, buffer, size);
         Data [size] = 0;
-
-        DataOffset = (intptr_t)Data - (intptr_t) this;
+        DataOffset = (intptr_t)Data - (intptr_t) this - sizeof(LENGTH_DATA_TYPE);
     }
 }
 
 int StaticString::Serialize(FILE *out, int type) {
+    LENGTH_DATA_TYPE _LENGTH = 0;
     unsigned char  uClen = (unsigned char)_LENGTH;
     unsigned short uSlen = (unsigned short)_LENGTH;
     char           *Data = 0;
 
     if (DataOffset) {
-        Data = ((char *)(void *)this) + DataOffset;
+        Data = ((char *)(void *)this) + DataOffset + sizeof(LENGTH_DATA_TYPE);
+        _LENGTH = this->Length();
     }
 
     int len = _LENGTH; 
@@ -271,6 +238,10 @@ int StaticString::ComputeSharedSize(concept_FILE *in, int type) {
             break;
     }
     SKIP(len, in);
+    if (len) {
+        len += sizeof(LENGTH_DATA_TYPE);
+    } else
+        return 0;
 #ifdef ARM_ADJUST_SIZE
     return ARM_ADJUST_SIZE(len + 1);
 #else
@@ -280,13 +251,12 @@ int StaticString::ComputeSharedSize(concept_FILE *in, int type) {
 
 int StaticString::Unserialize(concept_FILE *in, int type, signed char use_pool) {
     int            len;
-    unsigned char  uClen = (unsigned char)_LENGTH;
-    unsigned short uSlen = (unsigned short)_LENGTH;
+    unsigned char  uClen;
+    unsigned short uSlen;
     char           *Data = 0;
 
-    if (DataOffset) {
+    if (DataOffset)
         Data = ((char *)(void *)this) + DataOffset;
-    }
 
     switch (type) {
         case SERIALIZE_8BIT_LENGTH:
@@ -314,24 +284,25 @@ int StaticString::Unserialize(concept_FILE *in, int type, signed char use_pool) 
     Data = 0;
     if (len) {
         if (use_pool == 1) {
-            _LENGTH = len;
-            Data    = (char *)SHAlloc(len + 1);
+            Data    = (char *)SHAlloc(sizeof(LENGTH_DATA_TYPE) + len + 1);
+            *(LENGTH_DATA_TYPE *)Data = len;
+            Data += sizeof(LENGTH_DATA_TYPE);
             concept_fread_buffer(Data, len, 1, in);
             Data [len] = 0;
-            DataOffset = (intptr_t)Data - (intptr_t) this;
+            DataOffset = (intptr_t)Data - (intptr_t) this - sizeof(LENGTH_DATA_TYPE);
         } else {
-            _LENGTH = len;
-            Data    = (char *)malloc(len + 1);
+            Data    = (char *)malloc(sizeof(LENGTH_DATA_TYPE) + len + 1);
+            *(LENGTH_DATA_TYPE *)Data = len;
+            Data += sizeof(LENGTH_DATA_TYPE);
             concept_fread_buffer(Data, len, 1, in);
             Data [len] = 0;
-            if (use_pool == -1) {
-                SHAlloc(len + 1);
-            }
-            DataOffset = (intptr_t)Data - (intptr_t) this;
+            if (use_pool == -1)
+                SHAlloc(sizeof(LENGTH_DATA_TYPE) + len + 1);
+
+            DataOffset = (intptr_t)Data - (intptr_t) this - sizeof(LENGTH_DATA_TYPE);
         }
     } else {
         DataOffset = 0;
-        _LENGTH    = 0;
     }
     return 1;
 }

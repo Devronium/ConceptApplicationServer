@@ -120,7 +120,7 @@ int ClassMember::ComputeSharedSize(concept_FILE *in, signed char& IS_FUNCTION) {
     }
     VariableDESCRIPTOR VD;
     UNSERIALIZE_VAR_DESCRIPTOR_SIZE((&VD), in);
-    int vd_size = VD.value.Length();
+    int vd_size = VD.value.Size();
     if (vd_size) {
         size += vd_size + 1;
     }

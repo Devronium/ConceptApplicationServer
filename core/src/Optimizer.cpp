@@ -2168,7 +2168,7 @@ int Optimizer::ComputeSharedSize(concept_FILE *in, int version) {
         RuntimeVariableDESCRIPTOR VD;
         UNSERIALIZE_VAR_DESCRIPTOR_SIZE((&VD), in);
 
-        int vd_size = VD.value.Length();
+        int vd_size = VD.value.Size();
         if (vd_size) {
 #ifdef ARM_ADJUST_SIZE
             size += ARM_ADJUST_SIZE(vd_size + 1);

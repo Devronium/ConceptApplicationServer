@@ -233,6 +233,9 @@ private:
 public:
     POOLED(ConceptInterpreter)
     ConceptInterpreter(Optimizer *O, INTEGER LocalClsID, ClassMember *Owner);
+#ifndef INLINE_PARAMETER_CHECK
+    void CheckParameters(PIFAlizator *PIF, VariableDATA **SenderCTX, const RuntimeVariableDESCRIPTOR *TARGET, const VariableDATA *sndr, SCStack *STACK_TRACE, INTEGER i, bool& can_run);
+#endif
     VariableDATA **CreateEnvironment(PIFAlizator *PIF, VariableDATA *Sender, ParamList *FORMAL_PARAM, VariableDATA **SenderCTX, SCStack *STACK_TRACE, bool& can_run);
     void DestroyEnviroment(PIFAlizator *PIF, VariableDATA **LOCAL_CONTEXT, SCStack *STACK_TRACE, char static_call_main = 0);
     VariableDATA *Interpret(PIFAlizator *PIF, VariableDATA **LOCAL_CONTEXT, intptr_t ClassID, VariableDATA *& THROW_DATA, SCStack *STACK_TRACE);

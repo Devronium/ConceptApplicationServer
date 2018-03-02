@@ -1365,15 +1365,15 @@ INTEGER PIFAlizator::BuildFunction(ClassCode *CC, AnsiParser *P, INTEGER on_line
             AE->_HASH_DATA       = 0;
             PIFList->Add(AE, DATA_ANALIZER_ELEMENT);
 
-            StaticString expr;
-            expr.LoadBuffer(sPARSE.c_str() + 1, sPARSE.Length() - 2);
             VariableDESCRIPTOR *VD = new VariableDESCRIPTOR;
-            VD->value  = expr;
+            VD->value.LoadBuffer(sPARSE.c_str() + 1, sPARSE.Length() - 2);
             VD->USED   = 1;
             VD->TYPE   = VARIABLE_STRING;
             VD->nValue = 0;
             VD->BY_REF = 0;
             VDList->Add(VD, DATA_VAR_DESCRIPTOR);
+
+            const char *expr = VD->value.c_str();
 
             AE                   = new AnalizerElement;
             AE->ID               = VDList->Count();
@@ -1430,7 +1430,7 @@ INTEGER PIFAlizator::BuildFunction(ClassCode *CC, AnsiParser *P, INTEGER on_line
             PIFList->Add(AE, DATA_ANALIZER_ELEMENT);
 
             const char *errorp = NULL;
-            Reprog *reg = JS_regcomp(expr.c_str(), P->regexp_flags, &errorp);
+            Reprog *reg = JS_regcomp(expr, P->regexp_flags, &errorp);
             if (reg)
                 JS_regfree(reg);
             if (errorp)

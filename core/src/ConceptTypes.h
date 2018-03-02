@@ -184,7 +184,7 @@ typedef struct tsTreeContainer {
 typedef struct tsTreeVD {
     signed char TYPE;
     NUMBER      nValue;
-    char        *Value;
+    const char  *Value;
     int         Length;
     signed char IsRef;
 } TreeVD;

@@ -3379,7 +3379,7 @@ numbereval:
                             CATCH_VARIABLE            = 0;
                             // check for recursive try catch bug April 16, 2012 //
                             if (PREVIOUS_TRY)
-                                PREVIOUS_TRY = OPT->CODE [PREVIOUS_TRY - 1].OperandLeft_ID;
+                                PREVIOUS_TRY = CODE [PREVIOUS_TRY - 1].OperandLeft_ID;
                             // end of check for recursive try catch bug         //
                             //------------------//
                             RESTORE_TRY_DATA(THIS_REF);
@@ -5721,8 +5721,8 @@ numbereval:
                         }
                         RETURN_DATA              = (VariableDATA *)VAR_ALLOC(PIF);
                         RETURN_DATA->LINKS       = 1;
-                        RETURN_DATA->TYPE        = LOCAL_CONTEXT [OE->OperandRight_ID - 1]->TYPE;
                         RETURN_DATA->IS_PROPERTY_RESULT = 0;
+                        RETURN_DATA->TYPE        = LOCAL_CONTEXT [OE->OperandRight_ID - 1]->TYPE;
                         if (RETURN_DATA->TYPE == VARIABLE_NUMBER) {
                             RETURN_DATA->NUMBER_DATA = LOCAL_CONTEXT [OE->OperandRight_ID - 1]->NUMBER_DATA;
                         } else
@@ -5802,7 +5802,7 @@ numbereval:
                         CATCH_VARIABLE            = 0;
                         // check for recursive try catch bug April 16, 2012 //
                         if (PREVIOUS_TRY)
-                            PREVIOUS_TRY = OPT->CODE [PREVIOUS_TRY - 1].OperandLeft_ID;
+                            PREVIOUS_TRY = CODE [PREVIOUS_TRY - 1].OperandLeft_ID;
                         // end of check for recursive try catch bug         //
                         //------------------//
                         RESTORE_TRY_DATA(this);
@@ -5852,6 +5852,36 @@ numbereval:
     return RETURN_DATA;
 }
 
+#ifndef INLINE_PARAMETER_CHECK
+void ConceptInterpreter::CheckParameters(PIFAlizator *PIF, VariableDATA **SenderCTX, const RuntimeVariableDESCRIPTOR *TARGET, const VariableDATA *sndr, SCStack *STACK_TRACE, INTEGER i, bool& can_run) {
+    if (sndr->TYPE != -TARGET->TYPE) {
+        const VariableDATA *sender = SenderCTX ? SenderCTX [0] : 0;
+        if ((sender) && (sender->TYPE == VARIABLE_CLASS) && (sender->CLASS_DATA)) {
+            CompiledClass *cc = (struct CompiledClass *)sender->CLASS_DATA;
+            PIF->AcknoledgeRunTimeError(STACK_TRACE, new AnsiException(1205, ERR1205, OWNER->_DEBUG_STARTLINE, "parameter ", i, cc->_Class->_DEBUG_INFO_FILENAME.c_str(), ((ClassCode *)(OWNER->Defined_In))->NAME.c_str(), OWNER->NAME));
+        } else {
+            PIF->AcknoledgeRunTimeError(STACK_TRACE, new AnsiException(1205, ERR1205, OWNER->_DEBUG_STARTLINE, "parameter ", i, ((ClassCode *)(OWNER->Defined_In))->_DEBUG_INFO_FILENAME.c_str(), ((ClassCode *)(OWNER->Defined_In))->NAME.c_str(), OWNER->NAME));
+        }
+        can_run = false;
+    } else
+    if (sndr->TYPE == VARIABLE_CLASS) {
+        INTEGER CLS_ID = (INTEGER)TARGET->nValue - 1;
+        if (CLS_ID >= 0) {
+            if ((!sndr->CLASS_DATA) || (!((struct CompiledClass *)sndr->CLASS_DATA)->_Class->Inherits(CLS_ID))) {
+                const VariableDATA *sender = SenderCTX [0];
+                if ((sender) && (sender->TYPE == VARIABLE_CLASS) && (sender->CLASS_DATA)) {
+                    CompiledClass *cc = (struct CompiledClass *)sender->CLASS_DATA;
+                    PIF->AcknoledgeRunTimeError(STACK_TRACE, new AnsiException(1206, ERR1206, OWNER->_DEBUG_STARTLINE, "parameter ", i, cc->_Class->_DEBUG_INFO_FILENAME, ((ClassCode *)(OWNER->Defined_In))->NAME, OWNER->NAME));
+                } else {
+                    PIF->AcknoledgeRunTimeError(STACK_TRACE, new AnsiException(1206, ERR1206, OWNER->_DEBUG_STARTLINE, "parameter ", i, ((ClassCode *)(OWNER->Defined_In))->_DEBUG_INFO_FILENAME, ((ClassCode *)(OWNER->Defined_In))->NAME, OWNER->NAME));
+                }
+                can_run = false;
+            }
+        }
+    }
+}
+#endif
+
 VariableDATA **ConceptInterpreter::CreateEnvironment(PIFAlizator *PIF, VariableDATA *Sender, ParamList *FORMAL_PARAM, VariableDATA **SenderCTX, SCStack *STACK_TRACE, bool& can_run) {
     VariableDATA **LOCAL_CONTEXT;
     Optimizer *OPT = (Optimizer *)this->OWNER->OPTIMIZER;
@@ -5886,18 +5916,20 @@ VariableDATA **ConceptInterpreter::CreateEnvironment(PIFAlizator *PIF, VariableD
     this_ref->IS_PROPERTY_RESULT = 0;
 
     CC_WRITE_LOCK(PIF)
-    if (/*(this_ref->TYPE == VARIABLE_CLASS) &&*/ (this_ref->CLASS_DATA))
+    if (this_ref->CLASS_DATA)
         ((struct CompiledClass *)this_ref->CLASS_DATA)->LINKS++;
 
     INTEGER i;
+    RuntimeVariableDESCRIPTOR *DATA = OPT->DATA;
     for (i = 1; i <= ParamCount; i++) {
  #ifdef POOL_STACK
         if ((STACK_TRACE->alloc_from_stack) && (!LOCAL_CONTEXT[i]))
             LOCAL_CONTEXT[i] = (VariableDATA *)VAR_ALLOC(PIF);
  #endif
-        RuntimeVariableDESCRIPTOR *TARGET = &OPT->DATA [i];
+        RuntimeVariableDESCRIPTOR *TARGET = &DATA [i];
         VariableDATA *sndr = SenderCTX [DELTA_UNREF(FORMAL_PARAM, FORMAL_PARAM->PARAM_INDEX) [i - 1] - 1];
         if (TARGET->TYPE < 0) {
+#ifdef INLINE_PARAMETER_CHECK
             // validator !
             if (sndr->TYPE != -TARGET->TYPE) {
                 VariableDATA *sender = SenderCTX ? SenderCTX [0] : 0;
@@ -5924,6 +5956,9 @@ VariableDATA **ConceptInterpreter::CreateEnvironment(PIFAlizator *PIF, VariableD
                     }
                 }
             }
+#else
+            this->CheckParameters(PIF, SenderCTX, TARGET, sndr, STACK_TRACE, i, can_run);
+#endif
         }
         // if IS_PROPERTY_RESULT is -1 => is constant !
         if ((TARGET->BY_REF) && (sndr->IS_PROPERTY_RESULT != -1)) {
@@ -5965,7 +6000,7 @@ VariableDATA **ConceptInterpreter::CreateEnvironment(PIFAlizator *PIF, VariableD
 
     while (i < data_count) {
         // variable descriptor
-        RuntimeVariableDESCRIPTOR *TARGET = &OPT->DATA [i];
+        RuntimeVariableDESCRIPTOR *TARGET = &DATA [i];
 #ifdef POOL_STACK
         if ((STACK_TRACE->alloc_from_stack) && (!LOCAL_CONTEXT[i]))
             LOCAL_CONTEXT[i] = (VariableDATA *)VAR_ALLOC(PIF);
