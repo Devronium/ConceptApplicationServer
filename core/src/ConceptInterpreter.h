@@ -38,6 +38,25 @@ extern "C" {
 #define CONCEPT_STRING_COMPARE_FLOAT(val, VARIABLE, type, d) { if (!VARIABLE->CLASS_DATA) { VARIABLE->CLASS_DATA = plainstring_new(); } val = plainstring_ ## type ## _double((struct plainstring *)VARIABLE->CLASS_DATA, d); }
 #define CONCEPT_STRING_ASU(VARIABLE, VARIABLE2) { if (!VARIABLE->CLASS_DATA) { VARIABLE->CLASS_DATA = plainstring_new_plainstring((struct plainstring *)VARIABLE2->CLASS_DATA); } else { plainstring_increasebuffer((struct plainstring *)VARIABLE->CLASS_DATA, CONCEPT_C_LENGTH(LOCAL_CONTEXT [OE->OperandRight_ID - 1])); plainstring_add_plainstring((struct plainstring *)VARIABLE->CLASS_DATA, (struct plainstring *)VARIABLE2->CLASS_DATA); } }
 
+#if defined(USE_JIT) || defined(USE_JIT_TRACE)
+//#define ARM_PATCH
+extern "C" {
+    #include "JIT/sljitLir.h"
+
+    #define IS_REAL(n)       ((n) - (double)(INTEGER)(n)) != 0.0
+    #define IS_INTEGER(n)    ((n) - (double)(INTEGER)(n)) == 0.0
+
+    union executable_code {
+        void *code;
+        sljit_sw(SLJIT_CALL * func0)(void);
+        sljit_sw(SLJIT_CALL * func1)(sljit_sw a);
+        sljit_sw(SLJIT_CALL * func2)(sljit_sw a, sljit_sw b);
+        sljit_sw(SLJIT_CALL * func3)(sljit_sw a, sljit_sw b, sljit_sw c);
+    };
+    typedef union executable_code   executable_code;
+}
+#endif
+
 //---------------------------------------------------------
 #ifdef INLINE_COMMON_CALLS
 #define FREE_VARIABLE(VARIABLE, SCStack *STACK_TRACE)                                          \
@@ -209,6 +228,8 @@ private:
 #ifdef USE_JIT_TRACE
     char callcount;
     void **jittracecode;
+    executable_code initcode;
+    void *ContextCreateJIT(Optimizer *OPT);
     void AnalizeInstructionPath(Optimizer *OPT);
     int JIT(INTEGER &INSTRUCTION_POINTER, INTEGER INSTRUCTION_COUNT, void **jittrace, VariableDATA **LOCAL_CONTEXT);
 #endif
@@ -245,4 +266,3 @@ public:
     ~ConceptInterpreter(void);
 };
 #endif // __CONCEPTINTERPRETER_H
-

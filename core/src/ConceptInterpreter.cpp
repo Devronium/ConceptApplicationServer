@@ -9,25 +9,6 @@
     #include <unistd.h>
 #endif
 
-#if defined(USE_JIT) || defined(USE_JIT_TRACE)
-//#define ARM_PATCH
-extern "C" {
- #include "JIT/sljitLir.h"
-
-union executable_code {
-    void *code;
-    sljit_sw(SLJIT_CALL * func0)(void);
-    sljit_sw(SLJIT_CALL * func1)(sljit_sw a);
-    sljit_sw(SLJIT_CALL * func2)(sljit_sw a, sljit_sw b);
-    sljit_sw(SLJIT_CALL * func3)(sljit_sw a, sljit_sw b, sljit_sw c);
-};
-typedef union executable_code   executable_code;
-
- #define IS_REAL(n)       ((n) - (double)(INTEGER)(n)) != 0.0
- #define IS_INTEGER(n)    ((n) - (double)(INTEGER)(n)) == 0.0
-}
-#endif
-
 POOLED_IMPLEMENTATION(tsSCStack)
 POOLED_IMPLEMENTATION(ConceptInterpreter)
 
@@ -912,11 +893,12 @@ static sljit_sw SLJIT_CALL c_ORVD(VariableDATA *left, VariableDATA *right, Varia
 #endif
 
 ConceptInterpreter::ConceptInterpreter(Optimizer *O, INTEGER LocalClsID, ClassMember *Owner) {
-    LocalClassID = LocalClsID;
-    OWNER        = Owner;
+    LocalClassID    = LocalClsID;
+    OWNER           = Owner;
 #ifdef USE_JIT_TRACE
-    callcount    = 0;
-    jittracecode = 0;
+    callcount       = 0;
+    jittracecode    = 0;
+    initcode.code   = 0;
 #endif
 }
 
@@ -932,11 +914,118 @@ ConceptInterpreter::ConceptInterpreter(Optimizer *O, INTEGER LocalClsID, ClassMe
  #define OPERAND_LEFT2      if (reg2 != OE->OperandLeft_ID) { sljit_emit_op1(compiler, SLJIT_MOV_P, SLJIT_R1, 0, SLJIT_MEM1(SLJIT_S0), sizeof(VariableDATA *) * (OE->OperandLeft_ID - 1)); reg2 = OE->OperandLeft_ID; }
  #define OPERAND_RIGHT2     if (reg1 != OE->OperandRight_ID) { sljit_emit_op1(compiler, SLJIT_MOV_P, SLJIT_R0, 0, SLJIT_MEM1(SLJIT_S0), sizeof(VariableDATA *) * (OE->OperandRight_ID - 1)); reg1 = OE->OperandRight_ID; }
 
+static sljit_sw SLJIT_CALL CreateArrayVariable(VariableDATA *LOCAL_CONTEXT_i, PIFAlizator *PIF) {
+    LOCAL_CONTEXT_i->CLASS_DATA = NULL;
+    LOCAL_CONTEXT_i->CLASS_DATA = new_Array(PIF, true);
+    return 0;
+}
+
+static sljit_sw SLJIT_CALL CreateStringVariable(VariableDATA *LOCAL_CONTEXT_i, RuntimeVariableDESCRIPTOR *TARGET, PIFAlizator *PIF) {
+    NEW_CONCEPT_STRING_BUFFER(LOCAL_CONTEXT_i, TARGET->value.c_str(), TARGET->value.Length());
+    return 0;
+}
+
+static sljit_sw SLJIT_CALL AllocVariable(PIFAlizator *PIF) {
+    return (sljit_sw)VAR_ALLOC(PIF);
+}
+
+void *ConceptInterpreter::ContextCreateJIT(Optimizer *OPT) {
+    if ((!OPT) || (!OWNER))
+        return NULL;
+
+    INTEGER data_count = OPT->dataCount;
+    INTEGER i = OWNER->PARAMETERS_COUNT + 1;
+
+    if ((data_count - i) <= 1)
+        return NULL;
+    struct sljit_compiler *compiler = sljit_create_compiler(NULL);
+#ifdef ARM_PATCH
+    sljit_emit_enter(compiler, 0, 2, 4, 3, 0, 0, 0);
+#else
+    sljit_emit_enter(compiler, 0, 2, 3, 3, 0, 0, 0);
+#endif
+    while (i < data_count) {
+        // variable descriptor
+        RuntimeVariableDESCRIPTOR *TARGET = &OPT->DATA [i];
+        // R0 = VariableDATA
+#ifdef POOL_BLOCK_ALLOC
+        sljit_emit_op1(compiler, SLJIT_MOV_P, SLJIT_R0, 0, SLJIT_MEM1(SLJIT_S0), sizeof(VariableDATA *) * i);
+        struct sljit_jump *jump = sljit_emit_cmp(compiler, SLJIT_NOT_ZERO, SLJIT_R0, 0, SLJIT_IMM, 0);
+#endif
+        sljit_emit_op1(compiler, SLJIT_MOV_P, SLJIT_R0, 0, SLJIT_S1, 0);
+#ifdef ARM_PATCH
+        sljit_emit_op1(compiler, SLJIT_MOV, SLJIT_TEMPORARY_EREG1, 0, SLJIT_IMM, SLJIT_FUNC_OFFSET(AllocVariable));
+        sljit_emit_ijump(compiler, SLJIT_CALL1, SLJIT_TEMPORARY_EREG1, 0);
+#else
+        sljit_emit_ijump(compiler, SLJIT_CALL1, SLJIT_IMM, SLJIT_FUNC_OFFSET(AllocVariable));
+#endif
+        sljit_emit_op1(compiler, SLJIT_MOV_P, SLJIT_R0, 0, SLJIT_RETURN_REG, 0);
+        sljit_emit_op1(compiler, SLJIT_MOV_P, SLJIT_MEM1(SLJIT_S0), sizeof(VariableDATA *) * i, SLJIT_R0, 0);
+#ifdef POOL_BLOCK_ALLOC
+        sljit_set_label(jump, sljit_emit_label(compiler));
+#endif
+        sljit_emit_op1(compiler, SLJIT_MOV_U16, SLJIT_MEM1(SLJIT_R0), OFFSETOF(VariableDATA, LINKS), SLJIT_IMM, (sljit_u16)1);
+        if (TARGET->BY_REF == 2)
+            sljit_emit_op1(compiler, SLJIT_MOV_S8, SLJIT_MEM1(SLJIT_R0), OFFSETOF(VariableDATA, IS_PROPERTY_RESULT), SLJIT_IMM, (sljit_s8)-1);
+        else
+            sljit_emit_op1(compiler, SLJIT_MOV_S8, SLJIT_MEM1(SLJIT_R0), OFFSETOF(VariableDATA, IS_PROPERTY_RESULT), SLJIT_IMM, (sljit_s8)0);
+        
+        signed char TYPE = TARGET->TYPE;
+        if (TYPE < 0)
+            TYPE = -TYPE;
+        sljit_emit_op1(compiler, SLJIT_MOV_S8, SLJIT_MEM1(SLJIT_R0), OFFSETOF(VariableDATA, TYPE), SLJIT_IMM, (sljit_s8)TYPE);
+
+        switch (TYPE) {
+            case VARIABLE_NUMBER:
+                sljit_emit_fop1(compiler, SLJIT_MOV_F64,    
+                                          SLJIT_MEM1(SLJIT_R0), OFFSETOF(VariableDATA, NUMBER_DATA),
+                                          SLJIT_MEM0(), (sljit_sw) &TARGET->nValue);
+                break;
+            case VARIABLE_ARRAY:
+                sljit_emit_op1(compiler, SLJIT_MOV_P, SLJIT_R1, 0, SLJIT_S1, 0);
+#ifdef ARM_PATCH
+                sljit_emit_op1(compiler, SLJIT_MOV, SLJIT_TEMPORARY_EREG1, 0, SLJIT_IMM, SLJIT_FUNC_OFFSET(CreateArrayVariable));
+                sljit_emit_ijump(compiler, SLJIT_CALL2, SLJIT_TEMPORARY_EREG1, 0);
+#else
+                sljit_emit_ijump(compiler, SLJIT_CALL2, SLJIT_IMM, SLJIT_FUNC_OFFSET(CreateArrayVariable));
+#endif
+                break;
+            case VARIABLE_STRING:
+                if (TARGET->value.Length()) {
+                    sljit_emit_op1(compiler, SLJIT_MOV_P, SLJIT_R1, 0, SLJIT_IMM, (sljit_sw)TARGET);
+                    sljit_emit_op1(compiler, SLJIT_MOV_P, SLJIT_R2, 0, SLJIT_S1, 0);
+#ifdef ARM_PATCH
+                    sljit_emit_op1(compiler, SLJIT_MOV, SLJIT_TEMPORARY_EREG1, 0, SLJIT_IMM, SLJIT_FUNC_OFFSET(CreateStringVariable));
+                    sljit_emit_ijump(compiler, SLJIT_CALL3, SLJIT_TEMPORARY_EREG1, 0);
+#else
+                    sljit_emit_ijump(compiler, SLJIT_CALL3, SLJIT_IMM, SLJIT_FUNC_OFFSET(CreateStringVariable));
+#endif
+                    break;
+                }
+                // no break here
+            default:
+                sljit_emit_op1(compiler, SLJIT_MOV_P, SLJIT_MEM1(SLJIT_R0), OFFSETOF(VariableDATA, CLASS_DATA), SLJIT_IMM, (sljit_sw)0);
+                break;
+        }
+        i++;
+    }
+    sljit_emit_return(compiler, SLJIT_MOV, SLJIT_IMM, data_count);
+
+    void *code = sljit_generate_code(compiler);
+    sljit_free_compiler(compiler);
+
+    return code;
+}
+
 void ConceptInterpreter::AnalizeInstructionPath(Optimizer *OPT) {
     int count = OPT->codeCount;
 
     if (!count)
         return;
+
+    if (!initcode.code)
+        initcode.code = this->ContextCreateJIT(OPT);
+
     struct sljit_compiler *compiler = 0;
     int dataCount           = OPT->dataCount;
     int instruction_pointer = 1;
@@ -2975,15 +3064,15 @@ int ConceptInterpreter::StacklessInterpret(PIFAlizator *PIF, GreenThreadCycle *G
 
                             WRITE_UNLOCK
                             RESULT = CCTEMP->_Class->ExecuteDelegate(PIF,
-                                                                            (INTEGER)delegate_Member(LOCAL_CONTEXT [OE->OperandRight_ID - 1]->CLASS_DATA),
-                                                                            lOwner,
-                                                                            OE,
-                                                                            FORMAL_PARAMETERS,
-                                                                            LOCAL_CONTEXT,
-                                                                            ClassID,
-                                                                            THIS_REF->LocalClassID,
-                                                                            &THROW_DATA,
-                                                                            STACK_TRACE);
+                                                                    (INTEGER)delegate_Member(LOCAL_CONTEXT [OE->OperandRight_ID - 1]->CLASS_DATA),
+                                                                    lOwner,
+                                                                    OE,
+                                                                    FORMAL_PARAMETERS,
+                                                                    LOCAL_CONTEXT,
+                                                                    ClassID,
+                                                                    THIS_REF->LocalClassID,
+                                                                    &THROW_DATA,
+                                                                    STACK_TRACE);
                             WRITE_LOCK
                             if (THROW_DATA) {
                                 FREE_VARIABLE(lOwner, STACK_TRACE);
@@ -5371,15 +5460,15 @@ VariableDATA *ConceptInterpreter::Interpret(PIFAlizator *PIF, VariableDATA **LOC
 
                         WRITE_UNLOCK
                         RESULT = CCTEMP->_Class->ExecuteDelegate(PIF,
-                                                                        (INTEGER)delegate_Member(LOCAL_CONTEXT [OE->OperandRight_ID - 1]->CLASS_DATA),
-                                                                        lOwner,
-                                                                        OE,
-                                                                        FORMAL_PARAMETERS,
-                                                                        LOCAL_CONTEXT,
-                                                                        ClassID,
-                                                                        LocalClassID,
-                                                                        &THROW_DATA,
-                                                                        STACK_TRACE);
+                                                                (INTEGER)delegate_Member(LOCAL_CONTEXT [OE->OperandRight_ID - 1]->CLASS_DATA),
+                                                                lOwner,
+                                                                OE,
+                                                                FORMAL_PARAMETERS,
+                                                                LOCAL_CONTEXT,
+                                                                ClassID,
+                                                                LocalClassID,
+                                                                &THROW_DATA,
+                                                                STACK_TRACE);
                         WRITE_LOCK
                         FREE_VARIABLE(lOwner, STACK_TRACE);
                         if (THROW_DATA) {
@@ -5545,8 +5634,10 @@ VariableDATA *ConceptInterpreter::Interpret(PIFAlizator *PIF, VariableDATA **LOC
                                 continue;
                             } else
                             if (OE_Operator_ID == KEY_INC_LEFT) {
+                                WRITE_LOCK
                                 LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = (LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->NUMBER_DATA)++;
                                 PROPERTY_CODE_LEFT(this, PROPERTIES)
+                                WRITE_UNLOCK
                                 continue;
                             } else
                             if (OE_Operator_ID == KEY_SUM) {
@@ -5554,8 +5645,10 @@ VariableDATA *ConceptInterpreter::Interpret(PIFAlizator *PIF, VariableDATA **LOC
                                 continue;
                             } else
                             if (OE_Operator_ID == KEY_ASU) {
+                                WRITE_LOCK
                                 EVAL_NUMBER_EXPRESSION(this, += )
                                 PROPERTY_CODE(this, PROPERTIES)
+                                WRITE_UNLOCK
                                 continue;
                             } else
                             if (OE_Operator_ID == KEY_DIF) {
@@ -5563,8 +5656,10 @@ VariableDATA *ConceptInterpreter::Interpret(PIFAlizator *PIF, VariableDATA **LOC
                                 continue;
                             } else
                             if (OE_Operator_ID == KEY_DEC) {
+                                WRITE_LOCK
                                 LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = --(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->NUMBER_DATA);
                                 PROPERTY_CODE_LEFT(this, PROPERTIES)
+                                WRITE_UNLOCK
                                 continue;
                             } else
                             if (OE_Operator_ID == KEY_NOT) {
@@ -5987,7 +6082,7 @@ VariableDATA **ConceptInterpreter::CreateEnvironment(PIFAlizator *PIF, VariableD
                 ((struct CompiledClass *)PARAM->CLASS_DATA)->LINKS++;
             } else
             if (PARAM->TYPE == VARIABLE_DELEGATE) {
-                LOCAL_CONTEXT_i->CLASS_DATA    = copy_Delegate(PARAM->CLASS_DATA);
+                LOCAL_CONTEXT_i->CLASS_DATA = copy_Delegate(PARAM->CLASS_DATA);
             } else
             if (PARAM->TYPE == VARIABLE_ARRAY) {
                 LOCAL_CONTEXT_i->CLASS_DATA = PARAM->CLASS_DATA;
@@ -5997,8 +6092,14 @@ VariableDATA **ConceptInterpreter::CreateEnvironment(PIFAlizator *PIF, VariableD
             LOCAL_CONTEXT_i->IS_PROPERTY_RESULT = 0;
         }
     }
-
     while (i < data_count) {
+#ifdef USE_JIT_TRACE
+        if ((initcode.code) && (i > OWNER->PARAMETERS_COUNT)) {
+            initcode.func2((sljit_sw)LOCAL_CONTEXT, (sljit_sw)PIF);
+            CC_WRITE_UNLOCK(PIF)
+            return LOCAL_CONTEXT;
+        }
+#endif
         // variable descriptor
         RuntimeVariableDESCRIPTOR *TARGET = &DATA [i];
 #ifdef POOL_STACK
@@ -6224,6 +6325,10 @@ ConceptInterpreter::~ConceptInterpreter(void) {
         }
         free(jittracecode);
         jittracecode = 0;
+    }
+    if (initcode.code) {
+        sljit_free_code(initcode.code);
+        initcode.code = 0;
     }
 #endif
 }
