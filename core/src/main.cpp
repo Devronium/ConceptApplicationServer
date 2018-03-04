@@ -307,6 +307,7 @@ void *AllocVAR(void *PIF) {
             if (NEXT_POOL->POOL_VARS) {
                 for (i = NEXT_POOL->FIRST_VAR; i < POOL_BLOCK_SIZE; i++) {
                     if (NEXT_POOL->POOL[i].flags == -1) {
+                        ((PIFAlizator *)PIF)->CACHEDPOOL = NEXT_POOL;
                         NEXT_POOL->POOL_VARS--;
                         NEXT_POOL->POOL[i].flags = i;
                         if (NEXT_POOL->POOL_VARS)
@@ -314,8 +315,6 @@ void *AllocVAR(void *PIF) {
                         else
                             NEXT_POOL->FIRST_VAR = POOL_BLOCK_SIZE;
                         ((PIFAlizator *)PIF)->free_vars--;
-                        if (((PIFAlizator *)PIF)->free_vars)
-                            ((PIFAlizator *)PIF)->CACHEDPOOL = NEXT_POOL;
                         return &NEXT_POOL->POOL[i];
                     }
                 }

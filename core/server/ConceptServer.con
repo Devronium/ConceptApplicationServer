@@ -45,8 +45,9 @@ define H2_MAX_IDLE_SECONDS	30
 define IDLE_SLEEP_MS		10
 define IDLE_SLEEP_THRESHOLD	200
 define IDLE_SLEEP_MS2		50
-define CGI_MAX_RETRY_SECONDS	5
-define EAGAIN_TIMEOUT_SECONDS	5
+define CGI_MAX_RETRY_SECONDS	10
+define EAGAIN_TIMEOUT_SECONDS	10
+define TLS_NEGOTIATION_TIMEOUT	10
 define JS_CGI_DONE_TIMEOUT	30
 define JS_MAX_TIMEOUT		1200
 define JS_FRAMEWORK		"/js/"
@@ -1317,7 +1318,7 @@ class ConceptChild {
 				socket.MakeExportable();
 				var start_time = time();
 				while (!socket.HandshakeIterate()) {
-					if (time() - start_time > 5) {
+					if (time() - start_time > TLS_NEGOTIATION_TIMEOUT) {
 						echo "Handshake timeout error";
 						throw "Handshake timeout error";
 					}

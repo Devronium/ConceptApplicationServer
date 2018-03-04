@@ -936,7 +936,7 @@ void *ConceptInterpreter::ContextCreateJIT(Optimizer *OPT) {
     INTEGER data_count = OPT->dataCount;
     INTEGER i = OWNER->PARAMETERS_COUNT + 1;
 
-    if ((data_count - i) <= 1)
+    if ((data_count - i) <= 2)
         return NULL;
     struct sljit_compiler *compiler = sljit_create_compiler(NULL);
 #ifdef ARM_PATCH

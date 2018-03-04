@@ -294,7 +294,7 @@ void delete_CompiledClass(struct CompiledClass *self, SCStack *STACK_TRACE) {
             }
             //=======================================//
 #ifdef USE_RECURSIVE_MARKINGS
-            FREE_VARIABLE(_CONTEXT_i);
+            FREE_VARIABLE(_CONTEXT_i, STACK_TRACE);
 #else
             _CONTEXT_i->LINKS--;
             if (_CONTEXT_i->LINKS < 1) {
