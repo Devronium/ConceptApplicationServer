@@ -5840,6 +5840,21 @@ class ConceptServerWorker extends ConceptServer {
 	}
 }
 
+class ConceptPingWorker {
+	ConceptPingWorker(data) {
+		data = UnBinarizeObject(data);
+		var ping = data[0];
+		var timeout = data[1] * 1000;
+		echo "Initializing ping worker, command: $ping, interval: ${timeout}ms\n";
+		while (true) {
+			var err = _system(ping);
+			if (err)
+				echo "Error $err executing $ping\n";
+			Sleep(timeout);
+		}
+	}
+}
+
 class Main {
 	protected var[] AcceptWorkers;
 
@@ -5853,15 +5868,15 @@ class Main {
 	Main() {
 		RandomSeed(unpack("u32", CryptoRandom(4))[0]);
 
-		var ini_file="/usr/local/etc/concept.ini";
+		var ini_file = "/usr/local/etc/concept.ini";
 		if (!FileExists(ini_file))
-			ini_file="/usr/etc/concept.ini";
+			ini_file = "/usr/etc/concept.ini";
 		if (!FileExists(ini_file))
-			ini_file="/etc/concept.ini";
+			ini_file = "/etc/concept.ini";
 		if (!FileExists(ini_file))
-			ini_file=getcwd()+"/concept.ini";
+			ini_file = getcwd()+"/concept.ini";
 		
-		var s=new ConceptServer(ini_file);
+		var s = new ConceptServer(ini_file);
 		if (USE_TLS_PROXY) {
 			if (ExecuteProcess("concept", ".", ["-mt", "ConceptTLSProxyServer.con"], [ ], false) < 0)
 				s.Log("ConceptServer", "Error initializing Concept SSL proxy");
@@ -5873,6 +5888,17 @@ class Main {
 						s.Log("ConceptServer", "Error running database service");
 			}
 		}
+
+		var ping = trim(IniGet(ini_file, "Watchdog", "Command", ""));
+		var timeout;
+		if (ping) {
+			timeout = value IniGet(ini_file, "Watchdog", "Interval", "30");
+			if (timeout < 1)
+				timeout = 1;
+
+			new Worker("ConceptPingWorker", BinarizeObject([ping, timeout]));
+		}
+
 		try {
 			if ((ACCEPT_WORKERS) && (s.AcceptWorkers))
 				CreateSharedPortWorkers(ini_file, ACCEPT_WORKERS);
