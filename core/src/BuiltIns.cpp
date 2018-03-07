@@ -378,6 +378,71 @@ CONCEPT_FUNCTION_IMPL(bytecode, 1)
     }
 END_IMPL
 
+CONCEPT_FUNCTION_IMPL(bytedata, 1)
+    T_DELEGATE(bytecode, 0)
+    CREATE_ARRAY(RESULT);
+    VariableDATA *VD = PARAMETER(0);
+    const ClassCode *CC = ((struct CompiledClass *)delegate_Class(VD->CLASS_DATA))->_Class;
+    int         relocation = delegate_Member(VD->CLASS_DATA);
+    ClassMember *pMEMBER_i = relocation ? CC->pMEMBERS [relocation - 1] : 0;
+    Array *arr = (Array *)(RESULT->CLASS_DATA);
+    if ((pMEMBER_i) && (pMEMBER_i->OPTIMIZER)) {
+        RuntimeVariableDESCRIPTOR *datalist = ((Optimizer *)pMEMBER_i->OPTIMIZER)->DATA;
+        int count = ((Optimizer *)pMEMBER_i->OPTIMIZER)->dataCount;
+        for (INTEGER it = 0; it < count; it++) {
+            RuntimeVariableDESCRIPTOR *data = &datalist[it];
+            VariableDATA *VD = Array_ModuleGet(arr, it);
+            if (VD) {
+                CREATE_ARRAY(VD);
+                VariableDATA *VD2 = Array_ModuleGet((Array *)VD->CLASS_DATA, "type");
+                VariableDATA *VD3;
+                int type = data->TYPE;
+                if (type < 0)
+                    type = -type;
+
+                switch (type) {
+                    case VARIABLE_STRING:
+                        VD2->CLASS_DATA = plainstring_new_str("string");
+                        VD3 = Array_ModuleGet((Array *)VD->CLASS_DATA, "val");
+                        VD3->CLASS_DATA = plainstring_new();
+                        plainstring_loadbuffer((struct plainstring *)VD3->CLASS_DATA, data->value.c_str(), data->value.Length());
+                        VD3->TYPE = VARIABLE_NUMBER;
+                        break;
+                    case VARIABLE_NUMBER:
+                        VD2->CLASS_DATA = plainstring_new_str("numeric");
+                        VD3 = Array_ModuleGet((Array *)VD->CLASS_DATA, "val");
+                        VD3->NUMBER_DATA = data->nValue;
+                        VD3->TYPE = VARIABLE_NUMBER;
+                        break;
+                    case VARIABLE_ARRAY:
+                        VD2->CLASS_DATA = plainstring_new_str("array");
+                        break;
+                    case VARIABLE_CLASS:
+                        VD2->CLASS_DATA = plainstring_new_str("object");
+                        break;
+                    case VARIABLE_DELEGATE:
+                        VD2->CLASS_DATA = plainstring_new_str("delegate");
+                        break;
+                    default:
+                        VD2->CLASS_DATA = plainstring_new_str("unknown");
+                        break;
+                }
+                VD2->TYPE = VARIABLE_STRING;
+                if (data->BY_REF == 2) {
+                    VD3 = Array_ModuleGet((Array *)VD->CLASS_DATA, "constant");
+                    VD3->TYPE = VARIABLE_NUMBER;
+                    VD3->NUMBER_DATA = 1.0;
+                } else
+                if (data->BY_REF) {
+                    VD3 = Array_ModuleGet((Array *)VD->CLASS_DATA, "by_addr");
+                    VD3->TYPE = VARIABLE_NUMBER;
+                    VD3->NUMBER_DATA = 1.0;
+                }
+            }
+        }
+    }
+END_IMPL
+
 CONCEPT_FUNCTION_IMPL(callstack, 0)
     CREATE_ARRAY(RESULT);
     PIFAlizator *PIF = (PIFAlizator *)PARAMETERS->PIF;
@@ -753,6 +818,12 @@ int BUILTINOBJECTS(void *pif, const char *classname) {
 		        "var tz = -timezone();"
 		        "return formatdate(__epoch(this.year, this.month, this.day, this.hours, this.minutes, this.seconds, this.ms), \"%H:%M:%S GMT+\") + this.L0(floor(tz / 60)) + this.L0(tz % 60);"
 	        "}"
+
+            "operator-(x) {"
+                "var stamp = this.getTime();"
+                "if (typeof x == \"class\") stamp -= x.getTime(); else stamp -= x;\n"
+                "return stamp;"
+	        "}"
         "}"
     );
     BUILTINCLASS("Error", ""
@@ -862,6 +933,7 @@ void *BUILTINADDR(void *pif, const char *name, unsigned char *is_private) {
 
 #ifndef DISABLE_INTROSPECTION
     BUILTIN(bytecode)
+    BUILTIN(bytedata)
     BUILTIN(callstack)
 #endif
 

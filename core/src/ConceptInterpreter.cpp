@@ -208,6 +208,35 @@ void FREE_VARIABLE(VariableDATA *VARIABLE, SCStack *STACK_TRACE) {
     }
 }
 #endif
+
+void COPY_VARIABLE(VariableDATA *DEST, VariableDATA *SRC, SCStack *STACK_TRACE) {
+    CLASS_CHECK_TS(DEST, STACK_TRACE);
+    DEST->TYPE = SRC->TYPE;
+    DEST->IS_PROPERTY_RESULT = 0;
+    switch (SRC->TYPE) {
+        case VARIABLE_NUMBER:
+            DEST->NUMBER_DATA = SRC->NUMBER_DATA;
+            return;
+        case VARIABLE_STRING:
+            if (SRC->CLASS_DATA) {
+                NEW_CONCEPT_STRING2(DEST, SRC);
+            } else {
+                DEST->CLASS_DATA = NULL;
+            }
+            return;
+        case VARIABLE_CLASS:
+            DEST->CLASS_DATA = SRC->CLASS_DATA;
+            ((struct CompiledClass *)DEST->CLASS_DATA)->LINKS++;
+            return;
+        case VARIABLE_ARRAY:
+            DEST->CLASS_DATA = SRC->CLASS_DATA;
+            ((struct Array *)DEST->CLASS_DATA)->LINKS++;
+            return;
+        case VARIABLE_DELEGATE:
+            DEST->CLASS_DATA = copy_Delegate(SRC->CLASS_DATA);
+            return;
+    }
+}
 //---------------------------------------------------------
 #define RESTORE_TRY_DATA(THISREF)                                                    \
     if (PREVIOUS_TRY) {                                                              \
@@ -2951,7 +2980,7 @@ int ConceptInterpreter::StacklessInterpret(PIFAlizator *PIF, GreenThreadCycle *G
                             if ((pMEMBER_i == THIS_REF->OWNER) && (FORMAL_PARAMETERS->COUNT == pMEMBER_i->MUST_PARAMETERS_COUNT)) {
                                 not_executed = false;
                                 WRITE_UNLOCK
-                                RESULT = pMEMBER_i->Execute(PIF, ClassID, LOCAL_CONTEXT [OE->OperandLeft_ID - 1], FORMAL_PARAMETERS, LOCAL_CONTEXT, THROW_DATA, STACK_TRACE);
+                                RESULT = pMEMBER_i->Execute(PIF, ClassID, LOCAL_CONTEXT [OE->OperandLeft_ID - 1], FORMAL_PARAMETERS, LOCAL_CONTEXT, THROW_DATA, STACK_TRACE, LOCAL_CONTEXT [OE->Result_ID - 1]);
                                 WRITE_LOCK
                             }
                         }
@@ -2983,9 +3012,8 @@ int ConceptInterpreter::StacklessInterpret(PIFAlizator *PIF, GreenThreadCycle *G
                             continue;
                         }
                         if (OE->Operator_FLAGS == MAY_IGNORE_RESULT) {
-                            if (RESULT) {
-                                if (!RESULT->LINKS)
-                                    RESULT->LINKS = 1;
+                            if ((RESULT) && (!RESULT->LINKS)) {
+                                RESULT->LINKS = 1;
                                 FREE_VARIABLE(RESULT, STACK_TRACE);
                             }
                             continue;
@@ -5347,7 +5375,7 @@ VariableDATA *ConceptInterpreter::Interpret(PIFAlizator *PIF, VariableDATA **LOC
                     if ((pMEMBER_i == this->OWNER) && (FORMAL_PARAMETERS->COUNT == pMEMBER_i->MUST_PARAMETERS_COUNT)) {
                         not_executed = false;
                         WRITE_UNLOCK
-                        RESULT = pMEMBER_i->Execute(PIF, ClassID, LOCAL_CONTEXT [OE->OperandLeft_ID - 1], FORMAL_PARAMETERS, LOCAL_CONTEXT, THROW_DATA, STACK_TRACE);
+                        RESULT = pMEMBER_i->Execute(PIF, ClassID, LOCAL_CONTEXT [OE->OperandLeft_ID - 1], FORMAL_PARAMETERS, LOCAL_CONTEXT, THROW_DATA, STACK_TRACE, LOCAL_CONTEXT [OE->Result_ID - 1]);
                         WRITE_LOCK
                     }
                 }
@@ -5375,9 +5403,8 @@ VariableDATA *ConceptInterpreter::Interpret(PIFAlizator *PIF, VariableDATA **LOC
                     continue;
                 }
                 if (OE->Operator_FLAGS == MAY_IGNORE_RESULT) {
-                    if (RESULT) {
-                        if (!RESULT->LINKS)
-                            RESULT->LINKS = 1;
+                    if ((RESULT) && (!RESULT->LINKS)) {
+                        RESULT->LINKS = 1;
                         FREE_VARIABLE(RESULT, STACK_TRACE);
                     }
                     continue;

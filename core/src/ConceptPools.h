@@ -4,7 +4,6 @@
 #include <stdio.h>
 #include <stdint.h>
 #include "semhh.h"
-#include <new>
 extern "C" {
     #include "simple/plainstring.h"
     #include "cacheio.h"
