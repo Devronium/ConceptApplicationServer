@@ -536,7 +536,7 @@ CompiledClass *ClassCode::CreateInstance(PIFAlizator *PIF, VariableDATA *Owner, 
             if ((FORMAL_PARAM->COUNT == 1) && (CM->FastOptimizedExecute(PIF, res, FORMAL_PARAM, SenderCTX)))
                 return res;
 #endif
-        } else if (CM->PARAMETERS_COUNT) {
+        } else if (CM->MUST_PARAMETERS_COUNT) {
             AnsiException *Exc = new AnsiException(ERR230, 0, 230, NULL_STRING, _DEBUG_INFO_FILENAME, NAME);
             PIF->AcknoledgeRunTimeError(PREV, Exc);
             return 0;
@@ -546,7 +546,7 @@ CompiledClass *ClassCode::CreateInstance(PIFAlizator *PIF, VariableDATA *Owner, 
             PIF->RootInstance = res;
         VariableDATA *THROW_DATA = 0;
         STACK(PREV, OE ? OE->Operator_DEBUG_INFO_LINE : 0)
-        VariableDATA * RESULT = CM->Execute(PIF, this->CLSID, Owner, FORMAL_PARAM, SenderCTX, THROW_DATA, PREV, NULL, is_static);
+        VariableDATA * RESULT = CM->Execute(PIF, this->CLSID, Owner, FORMAL_PARAM, SenderCTX, THROW_DATA, PREV, NULL, 0, is_static);
         UNSTACK;
         if (RESULT) {
             if (is_static) {
@@ -707,9 +707,9 @@ VariableDATA *ClassCode::ExecuteDelegate(PIFAlizator *PIF, INTEGER i, VariableDA
 
         STACK(PREV, OE ? OE->Operator_DEBUG_INFO_LINE : 0)
 #ifdef SIMPLE_MULTI_THREADING
-        RESULT = pMEMBER_i->Execute(PIF, this->CLSID, Owner, FORMAL_PARAM, SenderCTX, *LOCAL_THROW, PREV, NULL, 0, thread_lock);
+        RESULT = pMEMBER_i->Execute(PIF, this->CLSID, Owner, FORMAL_PARAM, SenderCTX, *LOCAL_THROW, PREV, NULL, 0, 0, thread_lock);
 #else
-        RESULT = pMEMBER_i->Execute(PIF, this->CLSID, Owner, FORMAL_PARAM, SenderCTX, *LOCAL_THROW, PREV, NULL);
+        RESULT = pMEMBER_i->Execute(PIF, this->CLSID, Owner, FORMAL_PARAM, SenderCTX, *LOCAL_THROW, PREV, NULL, 0);
 #endif
         UNSTACK;
 
@@ -796,7 +796,7 @@ VariableDATA *ClassCode::ExecuteMember(PIFAlizator *PIF, INTEGER i, VariableDATA
                 }
                 {
                     STACK(PREV, OE ? OE->Operator_DEBUG_INFO_LINE : 0)
-                    RESULT = pMEMBER_i->Execute(PIF, this->CLSID, Owner, FORMAL_PARAM, SenderCTX, *LOCAL_THROW, PREV, (result_id > 0) ? SenderCTX[result_id] : NULL);
+                    RESULT = pMEMBER_i->Execute(PIF, this->CLSID, Owner, FORMAL_PARAM, SenderCTX, *LOCAL_THROW, PREV, (result_id > 0) ? SenderCTX[result_id] : NULL, OE ? OE->Operator_FLAGS : 0);
                     UNSTACK;
 
                     if (*LOCAL_THROW) {

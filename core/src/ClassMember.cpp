@@ -303,7 +303,7 @@ void ClassMember::EndMainCall(void *PIF, VariableDATA *&RESULT, VariableDATA *&T
 #endif
 }
 
-VariableDATA *ClassMember::Execute(void *PIF, intptr_t CONCEPT_CLASS_ID, VariableDATA *Owner, ParamList *FORMAL_PARAM, VariableDATA **SenderCTX, VariableDATA *& THROW_DATA, SCStack *PREV, VariableDATA *USE_RESULT, char is_main THREAD_CREATION_LOCKS) {
+VariableDATA *ClassMember::Execute(void *PIF, intptr_t CONCEPT_CLASS_ID, VariableDATA *Owner, ParamList *FORMAL_PARAM, VariableDATA **SenderCTX, VariableDATA *& THROW_DATA, SCStack *PREV, VariableDATA *USE_RESULT, INTEGER FLAGS, char is_main THREAD_CREATION_LOCKS) {
 #ifdef EMPIRIC_STACK_CHECK
     if (++STACK_HIT > MAX_RECURSIVE_CALL) {
         ((PIFAlizator *)PIF)->Errors.Add(new AnsiException(ERR840, _DEBUG_STARTLINE, 840, NAME, _DEBUG_FILENAME), DATA_EXCEPTION);
@@ -362,7 +362,7 @@ VariableDATA *ClassMember::Execute(void *PIF, intptr_t CONCEPT_CLASS_ID, Variabl
         if (is_main) 
             this->EndMainCall(PIF, RESULT, THROW_DATA, PREV, &STACK_TRACE);
         else
-        if ((USE_RESULT) && (RESULT) && (!THROW_DATA)) {
+        if ((USE_RESULT) && (RESULT) && (!THROW_DATA) && (FLAGS != MAY_IGNORE_RESULT)) {
             COPY_VARIABLE(USE_RESULT, RESULT, PREV);
             FREE_VARIABLE(RESULT, PREV);
             RESULT = USE_RESULT;

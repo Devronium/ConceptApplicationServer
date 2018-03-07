@@ -299,7 +299,6 @@ typedef struct tsRuntimeOptimizedElement {
     INTEGER                Result_ID;
     OPERATOR_ID_TYPE       Operator_ID;
     unsigned short         Operator_DEBUG_INFO_LINE;
-    // signed char            Operator_TYPE;
     signed char            Operator_FLAGS;
     signed char            OperandReserved_TYPE;
     POOLED(tsRuntimeOptimizedElement)

@@ -211,7 +211,7 @@ int CompiledClass_Destroy(struct CompiledClass *self, PIFAlizator *PIF, SCStack 
     VariableDATA *THROW_DATA = 0;
 
     STACK(STACK_TRACE, self->_Class->DESTRUCTOR_MEMBER->_DEBUG_STARTLINE)
-    VariableDATA * RESULT = self->_Class->DESTRUCTOR_MEMBER->Execute(PIF, self->_Class->CLSID, OWNER, 0, self->_CONTEXT, THROW_DATA, STACK_TRACE, NULL);
+    VariableDATA * RESULT = self->_Class->DESTRUCTOR_MEMBER->Execute(PIF, self->_Class->CLSID, OWNER, 0, self->_CONTEXT, THROW_DATA, STACK_TRACE, NULL, 0);
     UNSTACK;
     if (RESULT) {
         FREE_VARIABLE(RESULT, STACK_TRACE);

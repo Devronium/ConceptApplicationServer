@@ -390,6 +390,7 @@ public:
 
     static AnsiString GetPath(AnsiString *S);
     void AcknoledgeRunTimeError(SCStack *STACK_TRACE, AnsiException *Exc);
+    void RunTimeError(int err, const char *text, const RuntimeOptimizedElement *OE, const ClassMember *OWNER, SCStack *STACK_TRACE = NULL);
 
     DoubleList PIF;
     DoubleList VariableDescriptors;

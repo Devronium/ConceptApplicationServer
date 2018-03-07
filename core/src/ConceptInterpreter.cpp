@@ -98,8 +98,7 @@ static TinyString DLL_MEMBER = "STATIC_FUNCTION";
 //---------------------------------------------------------
 #define CHECK_IF_STRING_INDEX_VAR(THISREF, VARIABLE)                                                                                \
     if ((asg_type != VARIABLE_STRING) && (VARIABLE->TYPE == VARIABLE_STRING) && (VARIABLE->CLASS_DATA) && (((struct plainstring *)VARIABLE->CLASS_DATA)->EXTRA_DATA)) {      \
-        Exc = new AnsiException(ERR1330, OE->Operator_DEBUG_INFO_LINE, 1330, OE->OperandRight_PARSE_DATA.c_str(), ((ClassCode *)(THISREF->OWNER->Defined_In))->_DEBUG_INFO_FILENAME, ((ClassCode *)(THISREF->OWNER->Defined_In))->NAME, THISREF->OWNER->NAME); \
-        PIF->AcknoledgeRunTimeError(STACK_TRACE, Exc);                                                                              \
+        PIF->RunTimeError(1330, ERR1330, OE, THISREF->OWNER, STACK_TRACE);                                                          \
         DECLARE_PATH(0x20);                                                                                                         \
         continue;                                                                                                                   \
     }
@@ -210,7 +209,7 @@ void FREE_VARIABLE(VariableDATA *VARIABLE, SCStack *STACK_TRACE) {
 #endif
 
 void COPY_VARIABLE(VariableDATA *DEST, VariableDATA *SRC, SCStack *STACK_TRACE) {
-    CLASS_CHECK_TS(DEST, STACK_TRACE);
+    CLASS_CHECK(DEST, STACK_TRACE);
     DEST->TYPE = SRC->TYPE;
     DEST->IS_PROPERTY_RESULT = 0;
     switch (SRC->TYPE) {
@@ -254,7 +253,7 @@ void COPY_VARIABLE(VariableDATA *DEST, VariableDATA *SRC, SCStack *STACK_TRACE) 
             LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->NUMBER_DATA OPERATOR CONCEPT_STRING_FLOAT(LOCAL_CONTEXT [OE->OperandRight_ID - 1]);                                                                                                             \
             break;                                                                                                                                                                                                                                                                                   \
         default:                                                                                                                                                                                                                                                                                     \
-            PIF->AcknoledgeRunTimeError(STACK_TRACE, new AnsiException(ERR1204, OE->Operator_DEBUG_INFO_LINE, 1204, OE->OperandRight_PARSE_DATA.c_str(), ((ClassCode *)(THISREF->OWNER->Defined_In))->_DEBUG_INFO_FILENAME, ((ClassCode *)(THISREF->OWNER->Defined_In))->NAME, THISREF->OWNER->NAME)); \
+            PIF->RunTimeError(1204, ERR1204, OE, THISREF->OWNER, STACK_TRACE);                                                                                                                                                                                                                       \
     }                                                                                                                                                                                                                                                                                                \
 
 #define EVAL_NUMBER_EXPRESSION2(THISREF, OPERATOR)                                                                                                                                                                                                                                                   \
@@ -266,7 +265,7 @@ void COPY_VARIABLE(VariableDATA *DEST, VariableDATA *SRC, SCStack *STACK_TRACE) 
             LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->NUMBER_DATA OPERATOR CONCEPT_STRING_FLOAT(LOCAL_CONTEXT [OE->OperandRight_ID - 1]);                                                                                                                                                              \
             break;                                                                                                                                                                                                                                                                                   \
         default:                                                                                                                                                                                                                                                                                     \
-            PIF->AcknoledgeRunTimeError(STACK_TRACE, new AnsiException(ERR1204, OE->Operator_DEBUG_INFO_LINE, 1204, OE->OperandRight_PARSE_DATA.c_str(), ((ClassCode *)(THISREF->OWNER->Defined_In))->_DEBUG_INFO_FILENAME, ((ClassCode *)(THISREF->OWNER->Defined_In))->NAME, THISREF->OWNER->NAME)); \
+            PIF->RunTimeError(1204, ERR1204, OE, THISREF->OWNER, STACK_TRACE);                                                                                                                                                                                                                       \
     }                                                                                                                                                                                                                                                                                                \
 
 #define EVAL_INTEGER_EXPRESSION(THISREF, OPERATOR)                                                                                                                                                                                                                                                   \
@@ -278,7 +277,7 @@ void COPY_VARIABLE(VariableDATA *DEST, VariableDATA *SRC, SCStack *STACK_TRACE) 
             LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = (unsigned INTEGER)LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->NUMBER_DATA OPERATOR(unsigned INTEGER) CONCEPT_STRING_FLOAT(LOCAL_CONTEXT [OE->OperandRight_ID - 1]);                                                                         \
             break;                                                                                                                                                                                                                                                                                   \
         default:                                                                                                                                                                                                                                                                                     \
-            PIF->AcknoledgeRunTimeError(STACK_TRACE, new AnsiException(ERR1204, OE->Operator_DEBUG_INFO_LINE, 1204, OE->OperandRight_PARSE_DATA.c_str(), ((ClassCode *)(THISREF->OWNER->Defined_In))->_DEBUG_INFO_FILENAME, ((ClassCode *)(THISREF->OWNER->Defined_In))->NAME, THISREF->OWNER->NAME)); \
+            PIF->RunTimeError(1204, ERR1204, OE, THISREF->OWNER, STACK_TRACE);                                                                                                                                                                                                                       \
     }                                                                                                                                                                                                                                                                                                \
 
 #define EVAL_ASG_INTEGER_EXPRESSION(THISREF, OPERATOR)                                                                                                                                                                                                                                               \
@@ -290,14 +289,14 @@ void COPY_VARIABLE(VariableDATA *DEST, VariableDATA *SRC, SCStack *STACK_TRACE) 
             LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->NUMBER_DATA = (unsigned INTEGER)LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->NUMBER_DATA OPERATOR(unsigned INTEGER) CONCEPT_STRING_FLOAT(LOCAL_CONTEXT [OE->OperandRight_ID - 1]);                   \
             break;                                                                                                                                                                                                                                                                                   \
         default:                                                                                                                                                                                                                                                                                     \
-            PIF->AcknoledgeRunTimeError(STACK_TRACE, new AnsiException(ERR1204, OE->Operator_DEBUG_INFO_LINE, 1204, OE->OperandRight_PARSE_DATA.c_str(), ((ClassCode *)(THISREF->OWNER->Defined_In))->_DEBUG_INFO_FILENAME, ((ClassCode *)(THISREF->OWNER->Defined_In))->NAME, THISREF->OWNER->NAME)); \
+            PIF->RunTimeError(1204, ERR1204, OE, THISREF->OWNER, STACK_TRACE);                                                                                                                                                                                                                       \
     }                                                                                                                                                                                                                                                                                                \
 
 #define EVAL_DIVIDE_EXPRESSION(THISREF, OPERATOR)                                                                                                                                                                                                                                                          \
     switch (LOCAL_CONTEXT [OE->OperandRight_ID - 1]->TYPE) {                                                                                                                                                                                                                                               \
         case VARIABLE_NUMBER:                                                                                                                                                                                                                                                                              \
             if (!LOCAL_CONTEXT [OE->OperandRight_ID - 1]->NUMBER_DATA)                                                                                                                                                                                                                                     \
-                PIF->AcknoledgeRunTimeError(STACK_TRACE, new AnsiException(ERR260, OE->Operator_DEBUG_INFO_LINE, 260, OE->OperandRight_PARSE_DATA.c_str(), ((ClassCode *)(THISREF->OWNER->Defined_In))->_DEBUG_INFO_FILENAME, ((ClassCode *)(THISREF->OWNER->Defined_In))->NAME, THISREF->OWNER->NAME));   \
+                PIF->RunTimeError(260, ERR260, OE, THISREF->OWNER, STACK_TRACE);                                                                                                                                                                                                                           \
             else                                                                                                                                                                                                                                                                                           \
                 LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->NUMBER_DATA OPERATOR LOCAL_CONTEXT [OE->OperandRight_ID - 1]->NUMBER_DATA;                                                                                                                        \
             break;                                                                                                                                                                                                                                                                                         \
@@ -305,20 +304,20 @@ void COPY_VARIABLE(VariableDATA *DEST, VariableDATA *SRC, SCStack *STACK_TRACE) 
             {                                                                                                                                                                                                                                                                                              \
                 double dt = CONCEPT_STRING_FLOAT(LOCAL_CONTEXT [OE->OperandRight_ID - 1]);                                                                                                                                                                                                                 \
                 if (!dt)                                                                                                                                                                                                                                                                                   \
-                    PIF->AcknoledgeRunTimeError(STACK_TRACE, new AnsiException(ERR260, OE->Operator_DEBUG_INFO_LINE, 260, OE->OperandRight_PARSE_DATA.c_str(), ((ClassCode *)(THISREF->OWNER->Defined_In))->_DEBUG_INFO_FILENAME, ((ClassCode *)(THISREF->OWNER->Defined_In))->NAME, THISREF->OWNER->NAME)); \
+                    PIF->RunTimeError(260, ERR260, OE, THISREF->OWNER, STACK_TRACE);                                                                                                                                                                                                                       \
                 else                                                                                                                                                                                                                                                                                       \
                     LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->NUMBER_DATA OPERATOR dt;                                                                                                                                                                      \
             }                                                                                                                                                                                                                                                                                              \
             break;                                                                                                                                                                                                                                                                                         \
         default:                                                                                                                                                                                                                                                                                           \
-            PIF->AcknoledgeRunTimeError(STACK_TRACE, new AnsiException(ERR1204, OE->Operator_DEBUG_INFO_LINE, 1204, OE->OperandRight_PARSE_DATA.c_str(), ((ClassCode *)(THISREF->OWNER->Defined_In))->_DEBUG_INFO_FILENAME, ((ClassCode *)(THISREF->OWNER->Defined_In))->NAME, THISREF->OWNER->NAME));     \
+            PIF->RunTimeError(1204, ERR1204, OE, THISREF->OWNER, STACK_TRACE);                                                                                                                                                                                                                             \
     }
 
 #define EVAL_DIVIDE_INTEGER_EXPRESSION(THISREF, OPERATOR)                                                                                                                                                                                                                                                  \
     switch (LOCAL_CONTEXT [OE->OperandRight_ID - 1]->TYPE) {                                                                                                                                                                                                                                               \
         case VARIABLE_NUMBER:                                                                                                                                                                                                                                                                              \
             if (!LOCAL_CONTEXT [OE->OperandRight_ID - 1]->NUMBER_DATA)                                                                                                                                                                                                                                     \
-                PIF->AcknoledgeRunTimeError(STACK_TRACE, new AnsiException(ERR260, OE->Operator_DEBUG_INFO_LINE, 260, OE->OperandRight_PARSE_DATA.c_str(), ((ClassCode *)(THISREF->OWNER->Defined_In))->_DEBUG_INFO_FILENAME, ((ClassCode *)(THISREF->OWNER->Defined_In))->NAME, THISREF->OWNER->NAME));    \
+                PIF->RunTimeError(260, ERR260, OE, THISREF->OWNER, STACK_TRACE);                                                                                                                                                                                                                           \
             else                                                                                                                                                                                                                                                                                           \
                 LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = (INTEGER)LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->NUMBER_DATA OPERATOR(INTEGER) LOCAL_CONTEXT [OE->OperandRight_ID - 1]->NUMBER_DATA;                                                                                                      \
             break;                                                                                                                                                                                                                                                                                         \
@@ -326,20 +325,20 @@ void COPY_VARIABLE(VariableDATA *DEST, VariableDATA *SRC, SCStack *STACK_TRACE) 
             {                                                                                                                                                                                                                                                                                              \
                 INTEGER dt = (INTEGER) CONCEPT_STRING_INT(LOCAL_CONTEXT [OE->OperandRight_ID - 1]);                                                                                                                                                                                                        \
                 if (!dt)                                                                                                                                                                                                                                                                                   \
-                    PIF->AcknoledgeRunTimeError(STACK_TRACE, new AnsiException(ERR260, OE->Operator_DEBUG_INFO_LINE, 260, OE->OperandRight_PARSE_DATA.c_str(), ((ClassCode *)(THISREF->OWNER->Defined_In))->_DEBUG_INFO_FILENAME, ((ClassCode *)(THISREF->OWNER->Defined_In))->NAME, THISREF->OWNER->NAME)); \
+                    PIF->RunTimeError(260, ERR260, OE, THISREF->OWNER, STACK_TRACE);                                                                                                                                                                                                                       \
                 else                                                                                                                                                                                                                                                                                       \
                     LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = (INTEGER)LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->NUMBER_DATA OPERATOR dt;                                                                                                                                                             \
             }                                                                                                                                                                                                                                                                                              \
             break;                                                                                                                                                                                                                                                                                         \
         default:                                                                                                                                                                                                                                                                                           \
-            PIF->AcknoledgeRunTimeError(STACK_TRACE, new AnsiException(ERR1204, OE->Operator_DEBUG_INFO_LINE, 1204, OE->OperandRight_PARSE_DATA.c_str(), ((ClassCode *)(THISREF->OWNER->Defined_In))->_DEBUG_INFO_FILENAME, ((ClassCode *)(THISREF->OWNER->Defined_In))->NAME, THISREF->OWNER->NAME));     \
+            PIF->RunTimeError(1204, ERR1204, OE, THISREF->OWNER, STACK_TRACE);                                                                                                                                                                                                                             \
     }
 
 #define EVAL_ASG_INTEGER_DIVIDE_EXPRESSION(THISREF, OPERATOR)                                                                                                                                                                                                                                              \
     switch (LOCAL_CONTEXT [OE->OperandRight_ID - 1]->TYPE) {                                                                                                                                                                                                                                               \
         case VARIABLE_NUMBER:                                                                                                                                                                                                                                                                              \
             if (!LOCAL_CONTEXT [OE->OperandRight_ID - 1]->NUMBER_DATA)                                                                                                                                                                                                                                     \
-                PIF->AcknoledgeRunTimeError(STACK_TRACE, new AnsiException(ERR260, OE->Operator_DEBUG_INFO_LINE, 260, OE->OperandRight_PARSE_DATA.c_str(), ((ClassCode *)(THISREF->OWNER->Defined_In))->_DEBUG_INFO_FILENAME, ((ClassCode *)(THISREF->OWNER->Defined_In))->NAME, THISREF->OWNER->NAME));   \
+                PIF->RunTimeError(260, ERR260, OE, THISREF->OWNER, STACK_TRACE);                                                                                                                                                                                                                           \
             else                                                                                                                                                                                                                                                                                           \
                 LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->NUMBER_DATA = (INTEGER)LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->NUMBER_DATA OPERATOR(INTEGER) LOCAL_CONTEXT [OE->OperandRight_ID - 1]->NUMBER_DATA;                                                \
             break;                                                                                                                                                                                                                                                                                         \
@@ -347,13 +346,13 @@ void COPY_VARIABLE(VariableDATA *DEST, VariableDATA *SRC, SCStack *STACK_TRACE) 
             {                                                                                                                                                                                                                                                                                              \
                 INTEGER dt = (INTEGER)CONCEPT_STRING_INT(LOCAL_CONTEXT [OE->OperandRight_ID - 1]);                                                                                                                                                                                                         \
                 if (!dt)                                                                                                                                                                                                                                                                                   \
-                    PIF->AcknoledgeRunTimeError(STACK_TRACE, new AnsiException(ERR260, OE->Operator_DEBUG_INFO_LINE, 260, OE->OperandRight_PARSE_DATA.c_str(), ((ClassCode *)(THISREF->OWNER->Defined_In))->_DEBUG_INFO_FILENAME, ((ClassCode *)(THISREF->OWNER->Defined_In))->NAME, THISREF->OWNER->NAME)); \
+                    PIF->RunTimeError(260, ERR260, OE, THISREF->OWNER, STACK_TRACE);                                                                                                                                                                                                                       \
                 else                                                                                                                                                                                                                                                                                       \
                     LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->NUMBER_DATA = (INTEGER)LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->NUMBER_DATA OPERATOR dt;                                                                                                       \
             }                                                                                                                                                                                                                                                                                              \
             break;                                                                                                                                                                                                                                                                                         \
         default:                                                                                                                                                                                                                                                                                           \
-            PIF->AcknoledgeRunTimeError(STACK_TRACE, new AnsiException(ERR1204, OE->Operator_DEBUG_INFO_LINE, 1204, OE->OperandRight_PARSE_DATA.c_str(), ((ClassCode *)(THISREF->OWNER->Defined_In))->_DEBUG_INFO_FILENAME, ((ClassCode *)(THISREF->OWNER->Defined_In))->NAME, THISREF->OWNER->NAME));       \
+            PIF->RunTimeError(1204, ERR1204, OE, THISREF->OWNER, STACK_TRACE);                                                                                                                                                                                                                             \
     }
 
 //---------------------------------------------------------
@@ -2797,7 +2796,6 @@ int ConceptInterpreter::StacklessInterpret(PIFAlizator *PIF, GreenThreadCycle *G
     ClassCode     *CC;
     void          *instancePTR;
     VariableDATA  *RETURN_DATA;
-    AnsiException *Exc;
     signed char    next_is_asg;
     VariableDATA  *THROW_DATA  = 0;
     SCStack       *STACK_TRACE = NULL;
@@ -2920,7 +2918,7 @@ int ConceptInterpreter::StacklessInterpret(PIFAlizator *PIF, GreenThreadCycle *G
                                             if (THIS_REF->Catch(THROW_DATA, LOCAL_CONTEXT, OE, TARGET_THREAD->PROPERTIES, INSTRUCTION_POINTER, CATCH_INSTRUCTION_POINTER, CATCH_VARIABLE, PREVIOUS_TRY)) {
                                                 FREE_VARIABLE(THROW_DATA, STACK_TRACE);
                                                 // uncaught exception
-                                                PIF->AcknoledgeRunTimeError(STACK_TRACE, new AnsiException(ERR1300, OE->Operator_DEBUG_INFO_LINE, 1300, OE->OperandRight_PARSE_DATA.c_str(), ((ClassCode *)(THIS_REF->OWNER->Defined_In))->_DEBUG_INFO_FILENAME, ((ClassCode *)(THIS_REF->OWNER->Defined_In))->NAME, THIS_REF->OWNER->NAME));
+                                                PIF->RunTimeError(1300, ERR1300, OE, THIS_REF->OWNER, STACK_TRACE);
                                                 INSTRUCTION_POINTER = TARGET_THREAD->INSTRUCTION_COUNT;
                                             }
                                         }
@@ -2957,8 +2955,7 @@ int ConceptInterpreter::StacklessInterpret(PIFAlizator *PIF, GreenThreadCycle *G
                         // execute member !!!
                         WRITE_LOCK
                         if (LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->TYPE != VARIABLE_CLASS) {
-                            Exc = new AnsiException(ERR240, OE->Operator_DEBUG_INFO_LINE, 240, OE->OperandRight_PARSE_DATA.c_str(), ((ClassCode *)(THIS_REF->OWNER->Defined_In))->_DEBUG_INFO_FILENAME, ((ClassCode *)(THIS_REF->OWNER->Defined_In))->NAME, THIS_REF->OWNER->NAME);
-                            PIF->AcknoledgeRunTimeError(STACK_TRACE, Exc);
+                            PIF->RunTimeError(240, ERR240, OE, THIS_REF->OWNER, STACK_TRACE);
                             DECLARE_PATH(0x20);
                             continue;
                         }
@@ -2980,7 +2977,7 @@ int ConceptInterpreter::StacklessInterpret(PIFAlizator *PIF, GreenThreadCycle *G
                             if ((pMEMBER_i == THIS_REF->OWNER) && (FORMAL_PARAMETERS->COUNT == pMEMBER_i->MUST_PARAMETERS_COUNT)) {
                                 not_executed = false;
                                 WRITE_UNLOCK
-                                RESULT = pMEMBER_i->Execute(PIF, ClassID, LOCAL_CONTEXT [OE->OperandLeft_ID - 1], FORMAL_PARAMETERS, LOCAL_CONTEXT, THROW_DATA, STACK_TRACE, LOCAL_CONTEXT [OE->Result_ID - 1]);
+                                RESULT = pMEMBER_i->Execute(PIF, ClassID, LOCAL_CONTEXT [OE->OperandLeft_ID - 1], FORMAL_PARAMETERS, LOCAL_CONTEXT, THROW_DATA, STACK_TRACE, LOCAL_CONTEXT [OE->Result_ID - 1], OE->Operator_FLAGS);
                                 WRITE_LOCK
                             }
                         }
@@ -2998,7 +2995,7 @@ int ConceptInterpreter::StacklessInterpret(PIFAlizator *PIF, GreenThreadCycle *G
                                 WRITE_UNLOCK
                                 FREE_VARIABLE(THROW_DATA, STACK_TRACE);
                                 // uncaught exception
-                                PIF->AcknoledgeRunTimeError(STACK_TRACE, new AnsiException(ERR1300, OE->Operator_DEBUG_INFO_LINE, 1300, OE->OperandRight_PARSE_DATA.c_str(), ((ClassCode *)(THIS_REF->OWNER->Defined_In))->_DEBUG_INFO_FILENAME, ((ClassCode *)(THIS_REF->OWNER->Defined_In))->NAME, THIS_REF->OWNER->NAME));
+                                PIF->RunTimeError(1300, ERR1300, OE, THIS_REF->OWNER, STACK_TRACE);
                                 INSTRUCTION_POINTER = TARGET_THREAD->INSTRUCTION_COUNT;
                                 break;
                             }
@@ -3077,8 +3074,7 @@ int ConceptInterpreter::StacklessInterpret(PIFAlizator *PIF, GreenThreadCycle *G
                             VariableDATA *lOwner = 0;
                             //-------------------------------------------//
                             if (LOCAL_CONTEXT [OE->OperandRight_ID - 1]->TYPE != VARIABLE_DELEGATE) {
-                                Exc = new AnsiException(ERR970, OE->Operator_DEBUG_INFO_LINE, 970, OE->OperandRight_PARSE_DATA.c_str(), ((ClassCode *)(THIS_REF->OWNER->Defined_In))->_DEBUG_INFO_FILENAME, ((ClassCode *)(THIS_REF->OWNER->Defined_In))->NAME, THIS_REF->OWNER->NAME);
-                                PIF->AcknoledgeRunTimeError(STACK_TRACE, Exc);
+                                PIF->RunTimeError(970, ERR970, OE, THIS_REF->OWNER, STACK_TRACE);
                                 DECLARE_PATH(0x20);
                                 continue;
                             }
@@ -3109,7 +3105,7 @@ int ConceptInterpreter::StacklessInterpret(PIFAlizator *PIF, GreenThreadCycle *G
                                     WRITE_UNLOCK
                                     FREE_VARIABLE(THROW_DATA, STACK_TRACE);
                                     // uncaught exception
-                                    PIF->AcknoledgeRunTimeError(STACK_TRACE, new AnsiException(ERR1300, OE->Operator_DEBUG_INFO_LINE, 1300, OE->OperandRight_PARSE_DATA.c_str(), ((ClassCode *)(THIS_REF->OWNER->Defined_In))->_DEBUG_INFO_FILENAME, ((ClassCode *)(THIS_REF->OWNER->Defined_In))->NAME, THIS_REF->OWNER->NAME));
+                                    PIF->RunTimeError(1300, ERR1300, OE, THIS_REF->OWNER, STACK_TRACE);
                                     INSTRUCTION_POINTER = TARGET_THREAD->INSTRUCTION_COUNT;
                                     break;
                                 }
@@ -3148,8 +3144,7 @@ int ConceptInterpreter::StacklessInterpret(PIFAlizator *PIF, GreenThreadCycle *G
                             try {
                                 STATIC_ERROR = (char *)((EXTERNAL_CALL)(PIF->StaticLinks [OE->OperandRight_ID - 1]))(&FORMAL_PARAMETERS2, LOCAL_CONTEXT, LOCAL_CONTEXT [OE->Result_ID - 1], SetVariable, GetVariable, PIF->out->sock, PIF->SERVER_PUBLIC_KEY, PIF->SERVER_PRIVATE_KEY, PIF->CLIENT_PUBLIC_KEY, SetClassMember, GetClassMember, Invoke);
                             } catch (...) {
-                                Exc = new AnsiException(ERR690, OE->Operator_DEBUG_INFO_LINE, 690, OE->OperandRight_PARSE_DATA.c_str(), ((ClassCode *)(THIS_REF->OWNER->Defined_In))->_DEBUG_INFO_FILENAME, ((ClassCode *)(THIS_REF->OWNER->Defined_In))->NAME, THIS_REF->OWNER->NAME);
-                                PIF->AcknoledgeRunTimeError(STACK_TRACE, Exc);
+                                PIF->RunTimeError(690, ERR690, OE, THIS_REF->OWNER, STACK_TRACE);
                             }
                             WRITE_LOCK
                             UNSTACK;
@@ -3177,14 +3172,13 @@ int ConceptInterpreter::StacklessInterpret(PIFAlizator *PIF, GreenThreadCycle *G
                                     } else {
                                         WRITE_UNLOCK
                                         // uncaught exception
-                                        PIF->AcknoledgeRunTimeError(STACK_TRACE, new AnsiException(ERR1300, OE->Operator_DEBUG_INFO_LINE, 1300, OE->OperandRight_PARSE_DATA.c_str(), ((ClassCode *)(THIS_REF->OWNER->Defined_In))->_DEBUG_INFO_FILENAME, ((ClassCode *)(THIS_REF->OWNER->Defined_In))->NAME, THIS_REF->OWNER->NAME));
+                                        PIF->RunTimeError(1300, ERR1300, OE, THIS_REF->OWNER, STACK_TRACE);
                                         INSTRUCTION_POINTER = TARGET_THREAD->INSTRUCTION_COUNT;
                                         break;
                                     }
                                 } else {
                                     DECLARE_PATH(0x20);
-                                    Exc = new AnsiException(700, ERR700, OE->Operator_DEBUG_INFO_LINE, OE->OperandRight_PARSE_DATA.c_str(), ": ", STATIC_ERROR, ((ClassCode *)(THIS_REF->OWNER->Defined_In))->_DEBUG_INFO_FILENAME, ((ClassCode *)(THIS_REF->OWNER->Defined_In))->NAME, THIS_REF->OWNER->NAME);
-                                    PIF->AcknoledgeRunTimeError(STACK_TRACE, Exc);
+                                    PIF->RunTimeError(700, ERR700, OE, THIS_REF->OWNER, STACK_TRACE);
                                     RESET_VARIABLE(LOCAL_CONTEXT [OE->Result_ID - 1], STACK_TRACE);
                                     LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = 0;
                                 }
@@ -3201,7 +3195,7 @@ int ConceptInterpreter::StacklessInterpret(PIFAlizator *PIF, GreenThreadCycle *G
                                     WRITE_UNLOCK
                                     FREE_VARIABLE(THROW_DATA, STACK_TRACE);
                                     // uncaught exception
-                                    PIF->AcknoledgeRunTimeError(STACK_TRACE, new AnsiException(ERR1300, OE->Operator_DEBUG_INFO_LINE, 1300, OE->OperandRight_PARSE_DATA.c_str(), ((ClassCode *)(THIS_REF->OWNER->Defined_In))->_DEBUG_INFO_FILENAME, ((ClassCode *)(THIS_REF->OWNER->Defined_In))->NAME, THIS_REF->OWNER->NAME));
+                                    PIF->RunTimeError(1300, ERR1300, OE, THIS_REF->OWNER, STACK_TRACE);
                                     INSTRUCTION_POINTER = TARGET_THREAD->INSTRUCTION_COUNT;
                                     break;
                                 }
@@ -3280,8 +3274,7 @@ int ConceptInterpreter::StacklessInterpret(PIFAlizator *PIF, GreenThreadCycle *G
                                         RETURN_DATA = Array_Get((struct Array *)LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA, LOCAL_CONTEXT [OE->OperandRight_ID - 1]);
                                         if (!RETURN_DATA) {
                                             DECLARE_PATH(0x20);
-                                            Exc = new AnsiException(ERR1110, OE->Operator_DEBUG_INFO_LINE, 1110, LOCAL_CONTEXT [OE->OperandRight_ID - 1]->NUMBER_DATA, ((ClassCode *)(THIS_REF->OWNER->Defined_In))->_DEBUG_INFO_FILENAME, ((ClassCode *)(THIS_REF->OWNER->Defined_In))->NAME, THIS_REF->OWNER->NAME);
-                                            PIF->AcknoledgeRunTimeError(STACK_TRACE, Exc);
+                                            PIF->RunTimeError(1110, ERR1110, OE, THIS_REF->OWNER, STACK_TRACE);
                                             LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE = VARIABLE_NUMBER;
                                             continue;
                                         }
@@ -3296,8 +3289,7 @@ int ConceptInterpreter::StacklessInterpret(PIFAlizator *PIF, GreenThreadCycle *G
                                     default:
                                         DECLARE_PATH(0x20);
                                         // LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE = pushed_type;
-                                        Exc = new AnsiException(ERR900, OE->Operator_DEBUG_INFO_LINE, 900, OE->OperandRight_PARSE_DATA.c_str(), ((ClassCode *)(THIS_REF->OWNER->Defined_In))->_DEBUG_INFO_FILENAME, ((ClassCode *)(THIS_REF->OWNER->Defined_In))->NAME, THIS_REF->OWNER->NAME);
-                                        PIF->AcknoledgeRunTimeError(STACK_TRACE, Exc);
+                                        PIF->RunTimeError(900, ERR900, OE, THIS_REF->OWNER, STACK_TRACE);
                                         continue;
                                 }
                                 continue;
@@ -3503,7 +3495,7 @@ numbereval:
                             //------------------//
                         } else {
                             WRITE_UNLOCK
-                            PIF->AcknoledgeRunTimeError(STACK_TRACE, new AnsiException(ERR1300, OE->Operator_DEBUG_INFO_LINE, 1300, OE->OperandRight_PARSE_DATA.c_str(), ((ClassCode *)(THIS_REF->OWNER->Defined_In))->_DEBUG_INFO_FILENAME, ((ClassCode *)(THIS_REF->OWNER->Defined_In))->NAME, THIS_REF->OWNER->NAME));
+                            PIF->RunTimeError(1300, ERR1300, OE, THIS_REF->OWNER, STACK_TRACE);
                             INSTRUCTION_POINTER = TARGET_THREAD->INSTRUCTION_COUNT;
                         }
                         continue;
@@ -3609,7 +3601,6 @@ int ConceptInterpreter::EvalClassExpression(PIFAlizator *PIF, VariableDATA **LOC
     INTEGER OPERATOR_ID;
     ParamList OPERATOR_PARAM;
     INTEGER   PARAM_INDEX[1];
-    AnsiException *Exc;
     VariableDATA *RESULT;
 
     switch (OE_Operator_ID) {
@@ -3880,8 +3871,7 @@ int ConceptInterpreter::EvalClassExpression(PIFAlizator *PIF, VariableDATA **LOC
 
         default:
             DECLARE_PATH(0x20);
-            Exc = new AnsiException(ERR920, OE->Operator_DEBUG_INFO_LINE, 920,  GetKeyWord(OE->Operator_ID), ((ClassCode *)(OWNER->Defined_In))->_DEBUG_INFO_FILENAME, ((ClassCode *)(OWNER->Defined_In))->NAME, OWNER->NAME);
-            PIF->AcknoledgeRunTimeError(STACK_TRACE, Exc);
+            PIF->RunTimeError(920, ERR920, OE, OWNER, STACK_TRACE);
             break;
     }
     //////////////////////////////////////////////////////
@@ -3952,7 +3942,6 @@ int ConceptInterpreter::EvalArrayExpression(PIFAlizator *PIF, VariableDATA **LOC
     CompiledClass  *CCTEMP;
     DECLARE_PATH(VARIABLE_NUMBER);
     Optimizer *OPT = (Optimizer *)this->OWNER->OPTIMIZER;
-    AnsiException *Exc;
     VariableDATA *RETURN_DATA;
 
     switch (OE->Operator_ID) {
@@ -4188,8 +4177,7 @@ int ConceptInterpreter::EvalArrayExpression(PIFAlizator *PIF, VariableDATA **LOC
             DECLARE_PATH(0x20);
             // CLASS_CHECK_RESET(LOCAL_CONTEXT [OE->Result_ID - 1], pushed_type);
             LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE = VARIABLE_NUMBER;
-            Exc = new AnsiException(ERR910, OE->Operator_DEBUG_INFO_LINE, 910,  GetKeyWord(OE->Operator_ID), ((ClassCode *)(OWNER->Defined_In))->_DEBUG_INFO_FILENAME, ((ClassCode *)(OWNER->Defined_In))->NAME, OWNER->NAME);
-            PIF->AcknoledgeRunTimeError(STACK_TRACE, Exc);
+            PIF->RunTimeError(910, ERR910, OE, OWNER, STACK_TRACE);
             break;
     }
     return 1;
@@ -4203,7 +4191,6 @@ int ConceptInterpreter::EvalDelegateExpression(PIFAlizator *PIF, VariableDATA **
     CompiledClass  *CCTEMP;
     DECLARE_PATH(VARIABLE_NUMBER);
     Optimizer *OPT = (Optimizer *)this->OWNER->OPTIMIZER;
-    AnsiException *Exc;
 
     switch (OE->Operator_ID) {
 
@@ -4323,8 +4310,7 @@ int ConceptInterpreter::EvalDelegateExpression(PIFAlizator *PIF, VariableDATA **
             //SMART_LOCK(LOCAL_CONTEXT [OE->Result_ID - 1])
             // CLASS_CHECK_RESET(LOCAL_CONTEXT [OE->Result_ID - 1], pushed_type);
             LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE = VARIABLE_NUMBER;
-            Exc = new AnsiException(ERR960, OE->Operator_DEBUG_INFO_LINE, 960,  GetKeyWord(OE->Operator_ID), ((ClassCode *)(OWNER->Defined_In))->_DEBUG_INFO_FILENAME, ((ClassCode *)(OWNER->Defined_In))->NAME, OWNER->NAME);
-            PIF->AcknoledgeRunTimeError(STACK_TRACE, Exc);
+            PIF->RunTimeError(960, ERR960, OE, OWNER, STACK_TRACE);
             break;
     }
     return 1;
@@ -4335,7 +4321,6 @@ int ConceptInterpreter::EvalStringExpression(PIFAlizator *PIF, VariableDATA **LO
 #else
 int ConceptInterpreter::EvalStringExpression(PIFAlizator *PIF, VariableDATA **LOCAL_CONTEXT, const RuntimeOptimizedElement *OE, VariableDATAPROPERTY * &PROPERTIES, intptr_t ClassID, VariableDATA *& THROW_DATA, SCStack *STACK_TRACE, INTEGER &INSTRUCTION_POINTER, INTEGER &CATCH_INSTRUCTION_POINTER, INTEGER &CATCH_VARIABLE, INTEGER &PREVIOUS_TRY) {
 #endif
-    AnsiException *Exc;
     CompiledClass *CCTEMP;
     DECLARE_PATH(VARIABLE_NUMBER);
     Optimizer *OPT = (Optimizer *)this->OWNER->OPTIMIZER;
@@ -4375,8 +4360,7 @@ int ConceptInterpreter::EvalStringExpression(PIFAlizator *PIF, VariableDATA **LO
 
                 default:
                     DECLARE_PATH(0x20);
-                    Exc = new AnsiException(ERR650, OE->Operator_DEBUG_INFO_LINE, 650,  GetKeyWord(OE->Operator_ID), ((ClassCode *)(OWNER->Defined_In))->_DEBUG_INFO_FILENAME, ((ClassCode *)(OWNER->Defined_In))->NAME, OWNER->NAME);
-                    PIF->AcknoledgeRunTimeError(STACK_TRACE, Exc);
+                    PIF->RunTimeError(650, ERR650, OE, OWNER, STACK_TRACE);
                     break;
             }
             return 1;
@@ -4397,8 +4381,7 @@ int ConceptInterpreter::EvalStringExpression(PIFAlizator *PIF, VariableDATA **LO
 
                 default:
                     DECLARE_PATH(0x20);
-                    Exc = new AnsiException(ERR650, OE->Operator_DEBUG_INFO_LINE, 650,  GetKeyWord(OE->Operator_ID), ((ClassCode *)(OWNER->Defined_In))->_DEBUG_INFO_FILENAME, ((ClassCode *)(OWNER->Defined_In))->NAME, OWNER->NAME);
-                    PIF->AcknoledgeRunTimeError(STACK_TRACE, Exc);
+                    PIF->RunTimeError(650, ERR650, OE, OWNER, STACK_TRACE);
                     break;
             }
             return 1;
@@ -4441,8 +4424,7 @@ int ConceptInterpreter::EvalStringExpression(PIFAlizator *PIF, VariableDATA **LO
 
                 default:
                     DECLARE_PATH(0x20);
-                    Exc = new AnsiException(ERR650, OE->Operator_DEBUG_INFO_LINE, 650,  GetKeyWord(OE->Operator_ID), ((ClassCode *)(OWNER->Defined_In))->_DEBUG_INFO_FILENAME, ((ClassCode *)(OWNER->Defined_In))->NAME, OWNER->NAME);
-                    PIF->AcknoledgeRunTimeError(STACK_TRACE, Exc);
+                    PIF->RunTimeError(650, ERR650, OE, OWNER, STACK_TRACE);
                     break;
             }
             return 1;
@@ -4463,8 +4445,7 @@ int ConceptInterpreter::EvalStringExpression(PIFAlizator *PIF, VariableDATA **LO
 
                 default:
                     DECLARE_PATH(0x20);
-                    Exc = new AnsiException(ERR650, OE->Operator_DEBUG_INFO_LINE, 650,  GetKeyWord(OE->Operator_ID), ((ClassCode *)(OWNER->Defined_In))->_DEBUG_INFO_FILENAME, ((ClassCode *)(OWNER->Defined_In))->NAME, OWNER->NAME);
-                    PIF->AcknoledgeRunTimeError(STACK_TRACE, Exc);
+                    PIF->RunTimeError(650, ERR650, OE, OWNER, STACK_TRACE);
                     break;
             }
             return 1;
@@ -4485,8 +4466,7 @@ int ConceptInterpreter::EvalStringExpression(PIFAlizator *PIF, VariableDATA **LO
 
                 default:
                     DECLARE_PATH(0x20);
-                    Exc = new AnsiException(ERR650, OE->Operator_DEBUG_INFO_LINE, 650,  GetKeyWord(OE->Operator_ID), ((ClassCode *)(OWNER->Defined_In))->_DEBUG_INFO_FILENAME, ((ClassCode *)(OWNER->Defined_In))->NAME, OWNER->NAME);
-                    PIF->AcknoledgeRunTimeError(STACK_TRACE, Exc);
+                    PIF->RunTimeError(650, ERR650, OE, OWNER, STACK_TRACE);
                     break;
             }
             return 1;
@@ -4507,8 +4487,7 @@ int ConceptInterpreter::EvalStringExpression(PIFAlizator *PIF, VariableDATA **LO
 
                 default:
                     DECLARE_PATH(0x20);
-                    Exc = new AnsiException(ERR650, OE->Operator_DEBUG_INFO_LINE, 650,  GetKeyWord(OE->Operator_ID), ((ClassCode *)(OWNER->Defined_In))->_DEBUG_INFO_FILENAME, ((ClassCode *)(OWNER->Defined_In))->NAME, OWNER->NAME);
-                    PIF->AcknoledgeRunTimeError(STACK_TRACE, Exc);
+                    PIF->RunTimeError(650, ERR650, OE, OWNER, STACK_TRACE);
                     break;
             }
             return 1;
@@ -4529,8 +4508,7 @@ int ConceptInterpreter::EvalStringExpression(PIFAlizator *PIF, VariableDATA **LO
 
                 default:
                     DECLARE_PATH(0x20);
-                    Exc = new AnsiException(ERR650, OE->Operator_DEBUG_INFO_LINE, 650,  GetKeyWord(OE->Operator_ID), ((ClassCode *)(OWNER->Defined_In))->_DEBUG_INFO_FILENAME, ((ClassCode *)(OWNER->Defined_In))->NAME, OWNER->NAME);
-                    PIF->AcknoledgeRunTimeError(STACK_TRACE, Exc);
+                    PIF->RunTimeError(650, ERR650, OE, OWNER, STACK_TRACE);
                     break;
             }
             return 1;
@@ -4559,8 +4537,7 @@ int ConceptInterpreter::EvalStringExpression(PIFAlizator *PIF, VariableDATA **LO
 
                 default:
                     DECLARE_PATH(0x20);
-                    Exc = new AnsiException(ERR650, OE->Operator_DEBUG_INFO_LINE, 650,  GetKeyWord(OE->Operator_ID), ((ClassCode *)(OWNER->Defined_In))->_DEBUG_INFO_FILENAME, ((ClassCode *)(OWNER->Defined_In))->NAME, OWNER->NAME);
-                    PIF->AcknoledgeRunTimeError(STACK_TRACE, Exc);
+                    PIF->RunTimeError(650, ERR650, OE, OWNER, STACK_TRACE);
                     break;
             }
             //----------------//
@@ -4588,8 +4565,7 @@ int ConceptInterpreter::EvalStringExpression(PIFAlizator *PIF, VariableDATA **LO
 
                 default:
                     DECLARE_PATH(0x20);
-                    Exc = new AnsiException(ERR650, OE->Operator_DEBUG_INFO_LINE, 650, GetKeyWord(OE->Operator_ID), ((ClassCode *)(OWNER->Defined_In))->_DEBUG_INFO_FILENAME, ((ClassCode *)(OWNER->Defined_In))->NAME, OWNER->NAME);
-                    PIF->AcknoledgeRunTimeError(STACK_TRACE, Exc);
+                    PIF->RunTimeError(650, ERR650, OE, OWNER, STACK_TRACE);
                     break;
             }
             //----------------//
@@ -4613,8 +4589,7 @@ int ConceptInterpreter::EvalStringExpression(PIFAlizator *PIF, VariableDATA **LO
 
                 default:
                     DECLARE_PATH(0x20);
-                    Exc = new AnsiException(ERR640, OE->Operator_DEBUG_INFO_LINE, 640, OE->OperandRight_PARSE_DATA.c_str(), ((ClassCode *)(OWNER->Defined_In))->_DEBUG_INFO_FILENAME, ((ClassCode *)(OWNER->Defined_In))->NAME, OWNER->NAME);
-                    PIF->AcknoledgeRunTimeError(STACK_TRACE, Exc);
+                    PIF->RunTimeError(640, ERR640, OE, OWNER, STACK_TRACE);
                     break;
             }
             break;
@@ -4720,8 +4695,7 @@ int ConceptInterpreter::EvalStringExpression(PIFAlizator *PIF, VariableDATA **LO
 
         default:
             DECLARE_PATH(0x20);
-            Exc = new AnsiException(ERR650, OE->Operator_DEBUG_INFO_LINE, 650,  GetKeyWord(OE->Operator_ID), ((ClassCode *)(OWNER->Defined_In))->_DEBUG_INFO_FILENAME, ((ClassCode *)(OWNER->Defined_In))->NAME, OWNER->NAME);
-            PIF->AcknoledgeRunTimeError(STACK_TRACE, Exc);
+            PIF->RunTimeError(650, ERR650, OE, OWNER, STACK_TRACE);
             break;
     }
     return 1;
@@ -4768,7 +4742,7 @@ int ConceptInterpreter::EvalNumberExpression(PIFAlizator *PIF, VariableDATA **LO
                     break;
 
                 default:
-                    PIF->AcknoledgeRunTimeError(STACK_TRACE, new AnsiException(ERR1204, OE->Operator_DEBUG_INFO_LINE, 1204, OE->OperandRight_PARSE_DATA.c_str(), ((ClassCode *)(OWNER->Defined_In))->_DEBUG_INFO_FILENAME, ((ClassCode *)(OWNER->Defined_In))->NAME, OWNER->NAME));
+                    PIF->RunTimeError(1024, ERR1204, OE, OWNER, STACK_TRACE);
             }
             return 1;
 
@@ -4789,7 +4763,7 @@ int ConceptInterpreter::EvalNumberExpression(PIFAlizator *PIF, VariableDATA **LO
                     break;
 
                 default:
-                    PIF->AcknoledgeRunTimeError(STACK_TRACE, new AnsiException(ERR1204, OE->Operator_DEBUG_INFO_LINE, 1204, OE->OperandRight_PARSE_DATA.c_str(), ((ClassCode *)(OWNER->Defined_In))->_DEBUG_INFO_FILENAME, ((ClassCode *)(OWNER->Defined_In))->NAME, OWNER->NAME));
+                    PIF->RunTimeError(1024, ERR1204, OE, OWNER, STACK_TRACE);
             }
             return 1;
 
@@ -5039,7 +5013,7 @@ int ConceptInterpreter::EvalNumberExpression(PIFAlizator *PIF, VariableDATA **LO
             return 1;
 
         default:
-            PIF->AcknoledgeRunTimeError(STACK_TRACE, new AnsiException(ERR660, OE->Operator_DEBUG_INFO_LINE, 660,  GetKeyWord(OE->Operator_ID), ((ClassCode *)(OWNER->Defined_In))->_DEBUG_INFO_FILENAME, ((ClassCode *)(OWNER->Defined_In))->NAME, OWNER->NAME));
+            PIF->RunTimeError(660, ERR660, OE, OWNER, STACK_TRACE);
             break;
     }
     return 1;
@@ -5162,7 +5136,6 @@ VariableDATA *ConceptInterpreter::Interpret(PIFAlizator *PIF, VariableDATA **LOC
     ClassCode        *CC;
     void             *instancePTR;
     VariableDATA     *RETURN_DATA;
-    AnsiException    *Exc;
     signed char      next_is_asg;
     RuntimeOptimizedElement *CODE = OPT->CODE;
 
@@ -5352,8 +5325,7 @@ VariableDATA *ConceptInterpreter::Interpret(PIFAlizator *PIF, VariableDATA **LOC
                 // execute member !!!
                 WRITE_LOCK
                 if (LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->TYPE != VARIABLE_CLASS) {
-                    Exc = new AnsiException(ERR240, OE->Operator_DEBUG_INFO_LINE, 240, OE->OperandRight_PARSE_DATA.c_str(), ((ClassCode *)(OWNER->Defined_In))->_DEBUG_INFO_FILENAME, ((ClassCode *)(OWNER->Defined_In))->NAME, OWNER->NAME);
-                    PIF->AcknoledgeRunTimeError(STACK_TRACE, Exc);
+                    PIF->RunTimeError(240, ERR240, OE, OWNER, STACK_TRACE);
                     DECLARE_PATH(0x20);
                     continue;
                 }
@@ -5375,7 +5347,7 @@ VariableDATA *ConceptInterpreter::Interpret(PIFAlizator *PIF, VariableDATA **LOC
                     if ((pMEMBER_i == this->OWNER) && (FORMAL_PARAMETERS->COUNT == pMEMBER_i->MUST_PARAMETERS_COUNT)) {
                         not_executed = false;
                         WRITE_UNLOCK
-                        RESULT = pMEMBER_i->Execute(PIF, ClassID, LOCAL_CONTEXT [OE->OperandLeft_ID - 1], FORMAL_PARAMETERS, LOCAL_CONTEXT, THROW_DATA, STACK_TRACE, LOCAL_CONTEXT [OE->Result_ID - 1]);
+                        RESULT = pMEMBER_i->Execute(PIF, ClassID, LOCAL_CONTEXT [OE->OperandLeft_ID - 1], FORMAL_PARAMETERS, LOCAL_CONTEXT, THROW_DATA, STACK_TRACE, LOCAL_CONTEXT [OE->Result_ID - 1], OE->Operator_FLAGS);
                         WRITE_LOCK
                     }
                 }
@@ -5472,8 +5444,7 @@ VariableDATA *ConceptInterpreter::Interpret(PIFAlizator *PIF, VariableDATA **LOC
                         VariableDATA *lOwner = 0;
                         //-------------------------------------------//
                         if (LOCAL_CONTEXT [OE->OperandRight_ID - 1]->TYPE != VARIABLE_DELEGATE) {
-                            Exc = new AnsiException(ERR970, OE->Operator_DEBUG_INFO_LINE, 970, OE->OperandRight_PARSE_DATA.c_str(), ((ClassCode *)(OWNER->Defined_In))->_DEBUG_INFO_FILENAME, ((ClassCode *)(OWNER->Defined_In))->NAME, OWNER->NAME);
-                            PIF->AcknoledgeRunTimeError(STACK_TRACE, Exc);
+                            PIF->RunTimeError(970, ERR970, OE, OWNER, STACK_TRACE);
                             DECLARE_PATH(0x20);
                             continue;
                         }
@@ -5546,8 +5517,7 @@ VariableDATA *ConceptInterpreter::Interpret(PIFAlizator *PIF, VariableDATA **LOC
                         try {
                             STATIC_ERROR = (char *)((EXTERNAL_CALL)(PIF->StaticLinks [OE->OperandRight_ID - 1]))(&FORMAL_PARAMETERS2, LOCAL_CONTEXT, LOCAL_CONTEXT [OE->Result_ID - 1], SetVariable, GetVariable, PIF->out->sock, PIF->SERVER_PUBLIC_KEY, PIF->SERVER_PRIVATE_KEY, PIF->CLIENT_PUBLIC_KEY, SetClassMember, GetClassMember, Invoke);
                         } catch (...) {
-                            Exc = new AnsiException(ERR690, OE->Operator_DEBUG_INFO_LINE, 690, OE->OperandRight_PARSE_DATA.c_str(), ((ClassCode *)(OWNER->Defined_In))->_DEBUG_INFO_FILENAME, ((ClassCode *)(OWNER->Defined_In))->NAME, OWNER->NAME);
-                            PIF->AcknoledgeRunTimeError(STACK_TRACE, Exc);
+                            PIF->RunTimeError(690, ERR690, OE, OWNER, STACK_TRACE);
                         }
                         WRITE_LOCK
                         UNSTACK;
@@ -5579,8 +5549,7 @@ VariableDATA *ConceptInterpreter::Interpret(PIFAlizator *PIF, VariableDATA **LOC
                                 }
                             } else {
                                 DECLARE_PATH(0x20);
-                                Exc = new AnsiException(700, ERR700, OE->Operator_DEBUG_INFO_LINE, OE->OperandRight_PARSE_DATA.c_str(), ": ", STATIC_ERROR, ((ClassCode *)(OWNER->Defined_In))->_DEBUG_INFO_FILENAME, ((ClassCode *)(OWNER->Defined_In))->NAME, OWNER->NAME);
-                                PIF->AcknoledgeRunTimeError(STACK_TRACE, Exc);
+                                PIF->RunTimeError(700, ERR700, OE, OWNER, STACK_TRACE);
                                 RESET_VARIABLE(LOCAL_CONTEXT [OE->Result_ID - 1], STACK_TRACE);
                                 LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = 0;
                             }
@@ -5730,8 +5699,7 @@ VariableDATA *ConceptInterpreter::Interpret(PIFAlizator *PIF, VariableDATA **LOC
                                     RETURN_DATA = Array_Get((struct Array *)LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA, LOCAL_CONTEXT [OE->OperandRight_ID - 1]);
                                     if (!RETURN_DATA) {
                                         DECLARE_PATH(0x20);
-                                        Exc = new AnsiException(ERR1110, OE->Operator_DEBUG_INFO_LINE, 1110, LOCAL_CONTEXT [OE->OperandRight_ID - 1]->NUMBER_DATA, ((ClassCode *)(OWNER->Defined_In))->_DEBUG_INFO_FILENAME, ((ClassCode *)(OWNER->Defined_In))->NAME, OWNER->NAME);
-                                        PIF->AcknoledgeRunTimeError(STACK_TRACE, Exc);
+                                        PIF->RunTimeError(1110, ERR1110, OE, OWNER, STACK_TRACE);
                                         LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE = VARIABLE_NUMBER;
                                         continue;
                                     }
@@ -5746,8 +5714,7 @@ VariableDATA *ConceptInterpreter::Interpret(PIFAlizator *PIF, VariableDATA **LOC
                                 default:
                                     DECLARE_PATH(0x20);
                                     // LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE = pushed_type;
-                                    Exc = new AnsiException(ERR900, OE->Operator_DEBUG_INFO_LINE, 900, OE->OperandRight_PARSE_DATA.c_str(), ((ClassCode *)(OWNER->Defined_In))->_DEBUG_INFO_FILENAME, ((ClassCode *)(OWNER->Defined_In))->NAME, OWNER->NAME);
-                                    PIF->AcknoledgeRunTimeError(STACK_TRACE, Exc);
+                                    PIF->RunTimeError(900, ERR900, OE, OWNER, STACK_TRACE);
                                     continue;
                             }
                             continue;

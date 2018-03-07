@@ -90,6 +90,13 @@ void PIFAlizator::AcknoledgeRunTimeError(SCStack *STACK_TRACE, AnsiException *Ex
     INTERNAL_UNLOCK(this)
 }
 
+void PIFAlizator::RunTimeError(int err, const char *text, const RuntimeOptimizedElement *OE, const ClassMember *OWNER, SCStack *STACK_TRACE) {
+    if (OE)
+        this->AcknoledgeRunTimeError(STACK_TRACE, new AnsiException(text, OE->Operator_DEBUG_INFO_LINE, err, GetKeyWord(OE->Operator_ID), ((ClassCode *)(OWNER->Defined_In))->_DEBUG_INFO_FILENAME, ((ClassCode *)(OWNER->Defined_In))->NAME, OWNER->NAME));
+    else
+        this->AcknoledgeRunTimeError(STACK_TRACE, new AnsiException(text, 0, err, OWNER->NAME, ((ClassCode *)(OWNER->Defined_In))->_DEBUG_INFO_FILENAME, ((ClassCode *)(OWNER->Defined_In))->NAME, OWNER->NAME));
+}
+
 void PIFAlizator::DefineConstant(const char *name, const char *value, int is_string) {
     if ((!name) || (!name[0]))
         return;
