@@ -448,12 +448,12 @@ static sljit_sw SLJIT_CALL ClassDataVD(Optimizer *OPT, RuntimeOptimizedElement *
         if (data == LOCAL_CONTEXT [OE->Result_ID - 1])
             return 1;
         if (((data) && ((data->TYPE == VARIABLE_CLASS) || (data->TYPE == VARIABLE_DELEGATE)) && (!data->CLASS_DATA)) || (!data)) {
-            CLASS_CHECK_TS(LOCAL_CONTEXT [OE->Result_ID - 1], STACK_TRACE);
+            CLASS_CHECK_TS(LOCAL_CONTEXT [OE->Result_ID - 1], STACK_CONTEXT);
             LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
             LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = 0;
         }
         if (data) {
-            FREE_VARIABLE_TS(LOCAL_CONTEXT [OE->Result_ID - 1]);
+            FREE_VARIABLE_TS(LOCAL_CONTEXT [OE->Result_ID - 1], STACK_CONTEXT);
             LOCAL_CONTEXT [OE->Result_ID - 1] = data;
             data->LINKS++;
         } else {
@@ -5029,6 +5029,22 @@ int ConceptInterpreter::EvalSimpleExpression(PIFAlizator *PIF, VariableDATA **LO
     DECLARE_PATH(VARIABLE_NUMBER);
     Optimizer *OPT = (Optimizer *)this->OWNER->OPTIMIZER;
     switch (OE->Operator_ID) {
+        case KEY_BY_REF:
+            WRITE_LOCK
+            CLASS_CHECK_RESULT(LOCAL_CONTEXT [OE->Result_ID - 1])
+            if (LOCAL_CONTEXT [OE->OperandRight_ID - 1]->TYPE == VARIABLE_NUMBER) {
+                CLASS_CHECK(LOCAL_CONTEXT [OE->OperandLeft_ID - 1], STACK_TRACE)
+                LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
+                LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->NUMBER_DATA = LOCAL_CONTEXT [OE->OperandRight_ID - 1]->NUMBER_DATA;
+                LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->TYPE   = VARIABLE_NUMBER;
+                PROPERTY_CODE(this, PROPERTIES)
+                return 1;
+            }
+
+            // pushed_type = VARIABLE_NUMBER;
+            LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE = LOCAL_CONTEXT [OE->OperandRight_ID - 1]->TYPE;
+            return 2;
+
         case KEY_TYPE_OF:
             //SMART_LOCK(LOCAL_CONTEXT [OE->Result_ID - 1])
             //==================//
@@ -5076,22 +5092,6 @@ int ConceptInterpreter::EvalSimpleExpression(PIFAlizator *PIF, VariableDATA **LO
             }
             DECLARE_PATH(VARIABLE_STRING);
             return 1;
-
-        case KEY_BY_REF:
-            WRITE_LOCK
-            CLASS_CHECK_RESULT(LOCAL_CONTEXT [OE->Result_ID - 1])
-            if (LOCAL_CONTEXT [OE->OperandRight_ID - 1]->TYPE == VARIABLE_NUMBER) {
-                CLASS_CHECK(LOCAL_CONTEXT [OE->OperandLeft_ID - 1], STACK_TRACE)
-                LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
-                LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->NUMBER_DATA = LOCAL_CONTEXT [OE->OperandRight_ID - 1]->NUMBER_DATA;
-                LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->TYPE   = VARIABLE_NUMBER;
-                PROPERTY_CODE(this, PROPERTIES)
-                return 1;
-            }
-
-            // pushed_type = VARIABLE_NUMBER;
-            LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE = LOCAL_CONTEXT [OE->OperandRight_ID - 1]->TYPE;
-            return 2;
 
         case KEY_DELETE:
             //SMART_LOCK(LOCAL_CONTEXT [OE->OperandLeft_ID - 1]);
@@ -5400,27 +5400,33 @@ VariableDATA *ConceptInterpreter::Interpret(PIFAlizator *PIF, VariableDATA **LOC
 
             case KEY_NEW:
                 //SMART_LOCK(LOCAL_CONTEXT [OE->Result_ID - 1]);
-                CLASS_CHECK(LOCAL_CONTEXT [OE->Result_ID - 1], STACK_TRACE);
+                if ((OE->OperandRight_ID > 0) && (LOCAL_CONTEXT [OE->OperandRight_ID - 1]->TYPE != VARIABLE_CLASS) && (!PROPERTIES)) {
+                    // skip next instruction (is asg)
+                    INSTRUCTION_POINTER++;
+                    RESULT = LOCAL_CONTEXT [OE->OperandRight_ID - 1];
+                } else
+                    RESULT = LOCAL_CONTEXT [OE->Result_ID - 1];
+                CLASS_CHECK(RESULT, STACK_TRACE);
                 if (OE->OperandLeft_ID == STATIC_CLASS_ARRAY) {
-                    LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE       = VARIABLE_NUMBER;
-                    LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA = new_Array(PIF);
-                    LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE       = VARIABLE_ARRAY;
+                    RESULT->TYPE       = VARIABLE_NUMBER;
+                    RESULT->CLASS_DATA = new_Array(PIF);
+                    RESULT->TYPE       = VARIABLE_ARRAY;
                     DECLARE_PATH(VARIABLE_ARRAY);
                 } else {
                     CC = PIF->StaticClassList[OE->OperandLeft_ID - 1];
-                    LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE = VARIABLE_CLASS;
-                    LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA = NULL;
+                    RESULT->TYPE = VARIABLE_CLASS;
+                    RESULT->CLASS_DATA = NULL;
                     FORMAL_PARAMETERS = 0;
                     if (OE->OperandReserved_ID) {
                         FORMAL_PARAMETERS = &OPT->PARAMS [OE->OperandReserved_ID - 1];
                     }
                     WRITE_UNLOCK;
-                    instancePTR = CC->CreateInstance(PIF, LOCAL_CONTEXT [OE->Result_ID - 1], OE, FORMAL_PARAMETERS, LOCAL_CONTEXT, STACK_TRACE);
+                    instancePTR = CC->CreateInstance(PIF, RESULT, OE, FORMAL_PARAMETERS, LOCAL_CONTEXT, STACK_TRACE);
 
-                    LOCAL_CONTEXT [OE->Result_ID - 1]->CLASS_DATA = instancePTR;
+                    RESULT->CLASS_DATA = instancePTR;
 
                     if (!instancePTR) {
-                        LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE = VARIABLE_NUMBER;
+                        RESULT->TYPE = VARIABLE_NUMBER;
                         DECLARE_PATH(VARIABLE_NUMBER);
                     } else {
                         DECLARE_PATH(VARIABLE_CLASS);

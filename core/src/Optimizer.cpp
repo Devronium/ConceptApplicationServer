@@ -135,6 +135,7 @@ Optimizer::Optimizer(PIFAlizator *P, DoubleList *_PIFList, DoubleList *_VDList, 
     helper->_clean_condition     = 0;
     helper->_CLASS               = cls;
     helper->_MEMBER              = member;
+    helper->LOCAL_VARIABLES      = helper->VDList->Count();
     INTERPRETER          = 0;
 
     helper->BREAK_Elements    = 0;
@@ -671,7 +672,7 @@ INTEGER Optimizer::OptimizeExpression(OptimizerHelper *helper, TempVariableManag
     INTEGER         VALID_EXPR     = 1;
 #endif
     helper->_clean_condition = 0;
-
+    INTEGER start = helper->PIF_POSITION;
     char is_array   = (FLAGS == KEY_INDEX_CLOSE) ? 1 : 0;
     char is_for_exp = (FLAGS == KEY_COMMA) ? 1 : 0;
 
@@ -738,7 +739,6 @@ INTEGER Optimizer::OptimizeExpression(OptimizerHelper *helper, TempVariableManag
         }
 
         if ((AE->ID == ID) && (AE->TYPE == TYPE)) {
-            // sa se termine ...
             helper->_clean_condition = 1;
             helper->PIFList->Delete(--helper->PIF_POSITION);
             MARKER = (AnalizerElement *)helper->PIFList->Item(helper->PIF_POSITION);
@@ -914,6 +914,9 @@ INTEGER Optimizer::OptimizeExpression(OptimizerHelper *helper, TempVariableManag
             }
 
             int tmp_index;
+            if ((AE_ID == KEY_SEL) || (AE_ID == KEY_DLL_CALL) || (AE_ID == KEY_INDEX_OPEN))
+                helper->has_references = 1;
+
             if ((!IS_PARAM_LIST) && (((AE_ID == KEY_SEL) || (AE_ID == KEY_DLL_CALL)) && (Parameter) && (Parameter->TYPE == TYPE_PARAM_LIST))) {
                 tmp_index = TVM->GetVar();
             } else {
@@ -1003,7 +1006,7 @@ INTEGER Optimizer::OptimizeExpression(OptimizerHelper *helper, TempVariableManag
                     MAKE_NULL(OE->OperandReserved);
                 }
             } else {
-               MAKE_NULL(OE->OperandReserved);
+                MAKE_NULL(OE->OperandReserved);
             }
         }
         else if ((OP_TYPE == OPERATOR_UNARY) || (OP_TYPE == OPERATOR_UNARY_LEFT)) {
@@ -1076,7 +1079,6 @@ INTEGER Optimizer::OptimizeExpression(OptimizerHelper *helper, TempVariableManag
         }
     } while (FIRST_OPERATOR > -1);
 
-    // codintie pusa "pe observatie" ... atentie !!
     if ((helper->PIF_POSITION > START_POSITION + 1) && (!IS_PARAM_LIST) ) {
         helper->PIFOwner->Errors.Add(new AnsiException(ERR490, AE ? AE->_DEBUG_INFO_LINE : LAST_LINE, 490, "", helper->_DEBUG_INFO_FILENAME, helper->_CLASS->NAME, helper->_MEMBER), DATA_EXCEPTION);
     }
@@ -1090,7 +1092,11 @@ INTEGER Optimizer::OptimizeExpression(OptimizerHelper *helper, TempVariableManag
         BuildParameterList(helper, START_POSITION, PREC_METHOD);
         return TYPE_PARAM_LIST;
     }
+
     if ((LAST_OP) && (may_skip_result)) {
+        if ((LAST_OP->Operator.ID == KEY_ASG) && (LAST_OP_2) && (LAST_OP_2->Operator.ID == KEY_NEW) && (LAST_OP_2->Result_ID == LAST_OP->OperandRight.ID))
+            LAST_OP_2->OperandRight.ID = LAST_OP->OperandLeft.ID;
+
         switch (LAST_OP->Operator.ID) {
             case KEY_SUM:
             case KEY_DIF:
@@ -1461,6 +1467,7 @@ INTEGER Optimizer::OptimizeKeyWord(OptimizerHelper *helper, TempVariableManager 
 
         case KEY_DO:
             STATAMENT_POS     = helper->OptimizedPIF->Count();
+            helper->has_loops = 1;
             helper->CONTINUE_Elements = new AnsiList(0);
             helper->BREAK_Elements    = new AnsiList(0);
             OptimizeAny(helper, TVM);
@@ -1533,6 +1540,7 @@ INTEGER Optimizer::OptimizeKeyWord(OptimizerHelper *helper, TempVariableManager 
             break;
 
         case KEY_WHILE:
+            helper->has_loops = 1;
             tempAE = (AnalizerElement *)helper->PIFList->Item(helper->PIF_POSITION);
 
             if ((!tempAE) || (tempAE->TYPE != TYPE_OPERATOR) || (tempAE->ID != KEY_P_OPEN)) {
@@ -1581,6 +1589,7 @@ INTEGER Optimizer::OptimizeKeyWord(OptimizerHelper *helper, TempVariableManager 
             break;
 
         case KEY_FOR:
+            helper->has_loops = 1;
             tempAE = (AnalizerElement *)helper->PIFList->Item(helper->PIF_POSITION);
 
             if ((!tempAE) || (tempAE->TYPE != TYPE_OPERATOR) || (tempAE->ID != KEY_P_OPEN)) {
@@ -1938,7 +1947,47 @@ int Optimizer::Optimize(PIFAlizator *P) {
 
     if (helper->PIFOwner->PROFILE_DRIVEN)
         AddProfilerCode(helper, 1);
+
+    this->OptimizePass2(helper);
     return 0;
+}
+
+void Optimizer::RemoveCode(OptimizerHelper *helper, INTEGER index) {
+    delete (OptimizedElement *)helper->OptimizedPIF->Remove(index);
+    int count = helper->OptimizedPIF->Count();
+    for (INTEGER i = 0; i < count; i++) {
+        OptimizedElement *CUR = (OptimizedElement *)helper->OptimizedPIF->Item(i);
+        switch (CUR->Operator.ID) {
+            case KEY_OPTIMIZED_GOTO:
+            case KEY_OPTIMIZED_IF:
+            case KEY_OPTIMIZED_TRY_CATCH:
+                if (CUR->OperandReserved.ID >= index)
+                    CUR->OperandReserved.ID--;
+                break;
+        }
+    }
+}
+
+void Optimizer::OptimizePass2(OptimizerHelper *helper) {
+    int count = helper->OptimizedPIF->Count() - 1;
+    OptimizedElement *CUR = 0;
+    OptimizedElement *NEXT = 0;
+    OptimizedElement *PREV = 0;
+    OptimizedElement *CacheElements = 0;
+    for (INTEGER i = 0; i < count; i++) {
+        if (!NEXT)
+            CUR = (OptimizedElement *)helper->OptimizedPIF->Item(i);
+        else
+            CUR = NEXT;
+        NEXT = (OptimizedElement *)helper->OptimizedPIF->Item(i + 1);
+        if ((CUR->Operator.ID == KEY_NEW) && (NEXT->Operator.ID == KEY_BY_REF) && (CUR->Result_ID == NEXT->OperandRight.ID)) {
+            CUR->Result_ID = NEXT->OperandLeft.ID;
+            this->RemoveCode(helper, i + 1);
+            NEXT= NULL;
+            count--;
+        }
+        PREV = CUR;
+    }
 }
 
 Optimizer::~Optimizer() {

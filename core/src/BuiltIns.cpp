@@ -91,6 +91,11 @@ CONCEPT_FUNCTION_IMPL(CheckReachability, 0)
     RETURN_NUMBER(res); 
 END_IMPL
 
+CONCEPT_FUNCTION_IMPL(MemoryInfo, 0) 
+    CREATE_ARRAY(RESULT);
+    GetMemoryStatistics(PARAMETERS->PIF, RESULT->CLASS_DATA);
+END_IMPL
+
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(RE_create, 2, 3)
     T_STRING(RE_create, 0)
     T_NUMBER(RE_create, 1)
@@ -887,7 +892,6 @@ void *BUILTINADDR(void *pif, const char *name, unsigned char *is_private) {
 
     BUILTIN(GLOBALS);
     BUILTIN(CLArg);
-    BUILTIN(CheckReachability);
     BUILTIN(___CONCEPT_INTERFACE_HELPER_GENERATE_UNIQUE_ID);
 
     // math
@@ -931,6 +935,8 @@ void *BUILTINADDR(void *pif, const char *name, unsigned char *is_private) {
     BUILTIN(__epoch)
     BUILTIN(formatdate)
 
+    BUILTIN(CheckReachability);
+    BUILTIN(MemoryInfo);
 #ifndef DISABLE_INTROSPECTION
     BUILTIN(bytecode)
     BUILTIN(bytedata)

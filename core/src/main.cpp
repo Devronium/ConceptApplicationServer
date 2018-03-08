@@ -351,7 +351,7 @@ void *AllocVAR(void *PIF) {
 
 int ModuleCheckReachability(void *PIF) {
 #ifndef SIMPLE_MULTI_THREADING
-    if (CheckReachability(PIF)) {
+    if (!CheckReachability(PIF)) {
         ((PIFAlizator *)PIF)->dirty_limit = 1000;
         VarClean((PIFAlizator *)PIF);
         return 1;

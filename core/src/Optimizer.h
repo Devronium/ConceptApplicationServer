@@ -17,20 +17,24 @@ class OptimizerHelper {
 public:
     PIFAlizator *PIFOwner;
     ClassCode *_CLASS;
-    const char*_MEMBER;
-    INTEGER   LAST_DEBUG_TRAP;
     DoubleList *PIFList;
     DoubleList *VDList;
-    INTEGER    PIF_POSITION;
-    const char *_DEBUG_INFO_FILENAME;
-    char NO_WARNING_EMPTY;
-    char NO_WARNING_ATTR;
     AnsiList *OptimizedPIF;
     AnsiList *ParameterList;
     AnsiList *CONTINUE_Elements;
     AnsiList *BREAK_Elements;
-    char _clean_condition;
+    const char *_DEBUG_INFO_FILENAME;
+    const char *_MEMBER;
+    INTEGER   LAST_DEBUG_TRAP;
+    INTEGER    PIF_POSITION;
     INTEGER CATCH_ELEMENT;
+    INTEGER LOCAL_VARIABLES;
+
+    char NO_WARNING_EMPTY;
+    char NO_WARNING_ATTR;
+    char _clean_condition;
+    char has_references;
+    char has_loops;
 
     OptimizerHelper() {
         PIFOwner = 0;
@@ -49,6 +53,9 @@ public:
         BREAK_Elements = 0;
         _clean_condition = 0;
         CATCH_ELEMENT = 0;
+        LOCAL_VARIABLES = 0;
+        has_references = 0;
+        has_loops = 0;
     }
 
     ~OptimizerHelper() {
@@ -92,7 +99,8 @@ public:
     void BuildParameterList(OptimizerHelper *helper, INTEGER START_POS, AnalizerElement *METHOD);
     bool TryCheckParameters(OptimizerHelper *helper, OptimizedElement *OE, int p_count, int *minp, int *maxp, ClassMember **target_CM = 0, ClassCode *owner_CC = 0);
     void AddProfilerCode(OptimizerHelper *helper, int code);
-
+    void RemoveCode(OptimizerHelper *helper, INTEGER index);
+    void OptimizePass2(OptimizerHelper *helper);
 public:
     static OptimizerHelper *GetHelper(PIFAlizator *P);
     POOLED(Optimizer)
