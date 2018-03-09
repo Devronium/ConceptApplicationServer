@@ -3020,13 +3020,11 @@ int ConceptInterpreter::StacklessInterpret(PIFAlizator *PIF, GreenThreadCycle *G
                                 CLASS_CHECK_TS(LOCAL_CONTEXT [OE->Result_ID - 1], STACK_TRACE);
                                 LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
                                 LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = 0;
-                            }
+                            } else
                             if (RESULT) {
                                 FREE_VARIABLE_TS(LOCAL_CONTEXT [OE->Result_ID - 1], STACK_TRACE);
                                 LOCAL_CONTEXT [OE->Result_ID - 1] = RESULT;
                                 RESULT->LINKS++;
-                            } else {
-                                LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = 0;
                             }
                         }
                         DECLARE_PATH(LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE);
@@ -5386,13 +5384,11 @@ VariableDATA *ConceptInterpreter::Interpret(PIFAlizator *PIF, VariableDATA **LOC
                         CLASS_CHECK_TS(LOCAL_CONTEXT [OE->Result_ID - 1], STACK_TRACE);
                         LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE        = VARIABLE_NUMBER;
                         LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = 0;
-                    }
+                    } else
                     if (RESULT) {
                         FREE_VARIABLE_TS(LOCAL_CONTEXT [OE->Result_ID - 1], STACK_TRACE);
                         LOCAL_CONTEXT [OE->Result_ID - 1] = RESULT;
                         RESULT->LINKS++;
-                    } else {
-                        LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = 0;
                     }
                 }
                 DECLARE_PATH(LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE);

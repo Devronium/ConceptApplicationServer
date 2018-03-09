@@ -1973,18 +1973,29 @@ void Optimizer::OptimizePass2(OptimizerHelper *helper) {
     OptimizedElement *CUR = 0;
     OptimizedElement *NEXT = 0;
     OptimizedElement *PREV = 0;
-    OptimizedElement *CacheElements = 0;
+    OptimizedElement *JUMP = 0;
     for (INTEGER i = 0; i < count; i++) {
         if (!NEXT)
             CUR = (OptimizedElement *)helper->OptimizedPIF->Item(i);
         else
             CUR = NEXT;
         NEXT = (OptimizedElement *)helper->OptimizedPIF->Item(i + 1);
-        if ((CUR->Operator.ID == KEY_NEW) && (NEXT->Operator.ID == KEY_BY_REF) && (CUR->Result_ID == NEXT->OperandRight.ID)) {
-            CUR->Result_ID = NEXT->OperandLeft.ID;
-            this->RemoveCode(helper, i + 1);
-            NEXT= NULL;
-            count--;
+        switch (CUR->Operator.ID) {
+            case KEY_NEW:
+                if ((NEXT->Operator.ID == KEY_BY_REF) && (CUR->Result_ID == NEXT->OperandRight.ID) && (NEXT->OperandLeft.TYPE == MAY_IGNORE_RESULT)) {
+                    CUR->Result_ID = NEXT->OperandLeft.ID;
+                    this->RemoveCode(helper, i + 1);
+                    NEXT= NULL;
+                    count--;
+                }
+                break;
+            /*case KEY_OPTIMIZED_IF:
+            case KEY_OPTIMIZED_GOTO:
+                JUMP = (OptimizedElement *)helper->OptimizedPIF->Item(CUR->OperandReserved.ID);
+                if ((JUMP) && (JUMP->Operator.ID == KEY_OPTIMIZED_GOTO)) {
+                    CUR->OperandReserved.ID = JUMP->OperandReserved.ID;
+                }
+                break;*/
         }
         PREV = CUR;
     }
@@ -2113,6 +2124,19 @@ void Optimizer::GenerateIntermediateCode(PIFAlizator *P) {
         }
     }
 
+    for (INTEGER i = 0; i < codeCount; i++) {
+        RuntimeOptimizedElement *OE = &CODE[i];
+        // optimize IF .. GOTO to GOTO
+        if (((OE->Operator_ID == KEY_OPTIMIZED_IF) || (OE->Operator_ID == KEY_OPTIMIZED_GOTO)) && (OE->OperandReserved_ID < codeCount)) {
+            RuntimeOptimizedElement *OE2 = &CODE[OE->OperandReserved_ID];
+            while (OE2->Operator_ID == KEY_OPTIMIZED_GOTO) {
+                OE->OperandReserved_ID = OE2->OperandReserved_ID;
+                if (OE2->OperandReserved_ID >= codeCount)
+                    break;
+                OE2 = &CODE[OE2->OperandReserved_ID];
+            }
+        }
+    }
     helper->ParameterList->Clear();
     helper->PIFList->Clear();
 }
