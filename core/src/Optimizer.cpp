@@ -1168,12 +1168,8 @@ INTEGER Optimizer::OptimizeExpression(OptimizerHelper *helper, TempVariableManag
                 if ((!NO_JUNK) && (LAST_OP->Result_ID == helper->VDList->Count()) && (LAST_OP->Result_ID > helper->LOCAL_VARIABLES) && 
                     (LAST_OP->Operator.ID != KEY_SEL) && (LAST_OP->Operator.ID != KEY_DLL_CALL) && (LAST_OP->Operator.ID != KEY_NEW)) {
                     if (helper->JUNK) {
-                        AnalizerElement *tempAE = (AnalizerElement *)helper->PIFList->Item(helper->PIF_POSITION - 1);
-                        if ((tempAE) && (tempAE->ID == LAST_OP->Result_ID)) {
-                            helper->VDList->Delete(LAST_OP->Result_ID - 1);
-                            LAST_OP->Result_ID = helper->JUNK;
-                            tempAE->ID = helper->JUNK;
-                        }
+                        helper->VDList->Delete(LAST_OP->Result_ID - 1);
+                        LAST_OP->Result_ID = helper->JUNK;
                     } else
                         helper->JUNK = LAST_OP->Result_ID;
                 }
