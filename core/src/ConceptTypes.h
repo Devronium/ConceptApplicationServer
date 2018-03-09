@@ -290,6 +290,8 @@ typedef struct tsOptimizedElement {
 
 #define IS_OPERATOR(OE)     (OE->Operator_ID < KEYWORDS_START)
 #define IS_KEYWORD(OE)      (OE->Operator_ID >= KEYWORDS_START)
+#define IS_OPERATOR_ID(ID)  (ID < KEYWORDS_START)
+#define IS_KEYWORD_ID(ID)   (ID >= KEYWORDS_START)
 
 typedef struct tsRuntimeOptimizedElement {
     SYS_INT                OperandRight_ID;

@@ -19,7 +19,7 @@ static TinyString DLL_MEMBER = "STATIC_FUNCTION";
 
 #define PROPERTY_CODE(THISREF, PROPERTIES)                                                                                                                                                                                                                                                                      \
     if ((PROPERTIES) && (PROPERTIES [OE->OperandLeft_ID - 1].IS_PROPERTY_RESULT)) {                                                                                                                                                                                                                             \
-        CCTEMP = (struct CompiledClass *)((VariableDATA *)(PROPERTIES [OE->OperandLeft_ID - 1].CALL_SET))->CLASS_DATA;                                                                                                                                                                                                 \
+        CCTEMP = (struct CompiledClass *)((VariableDATA *)(PROPERTIES [OE->OperandLeft_ID - 1].CALL_SET))->CLASS_DATA;                                                                                                                                                                                          \
         WRITE_UNLOCK                                                                                                                                                                                                                                                                                            \
         CCTEMP->_Class->SetProperty(PIF, PROPERTIES [OE->OperandLeft_ID - 1].IS_PROPERTY_RESULT - 1, (VariableDATA *)(PROPERTIES [OE->OperandLeft_ID - 1].CALL_SET), OE, CCTEMP->_Class->CLSID == ClassID, OE->Result_ID , LOCAL_CONTEXT, ClassID, THISREF->LocalClassID, &THROW_DATA, STACK_TRACE);            \
         if (THROW_DATA) {                                                                                                                                                                                                                                                                                       \
@@ -34,7 +34,7 @@ static TinyString DLL_MEMBER = "STATIC_FUNCTION";
 
 #define PROPERTY_CODE_IGNORE_RESULT(THISREF, PROPERTIES)                                                                                                                                                                                                                                                        \
     if ((PROPERTIES) && (PROPERTIES [OE->OperandLeft_ID - 1].IS_PROPERTY_RESULT)) {                                                                                                                                                                                                                             \
-        CCTEMP = (struct CompiledClass *)((VariableDATA *)(PROPERTIES [OE->OperandLeft_ID - 1].CALL_SET))->CLASS_DATA;                                                                                                                                                                                                 \
+        CCTEMP = (struct CompiledClass *)((VariableDATA *)(PROPERTIES [OE->OperandLeft_ID - 1].CALL_SET))->CLASS_DATA;                                                                                                                                                                                          \
         WRITE_UNLOCK                                                                                                                                                                                                                                                                                            \
         CCTEMP->_Class->SetProperty(PIF, PROPERTIES [OE->OperandLeft_ID - 1].IS_PROPERTY_RESULT - 1, (VariableDATA *)(PROPERTIES [OE->OperandLeft_ID - 1].CALL_SET), OE, CCTEMP->_Class->CLSID == ClassID, OE->OperandLeft_ID , LOCAL_CONTEXT, ClassID, THISREF->LocalClassID, &THROW_DATA, STACK_TRACE);       \
         if (THROW_DATA) {                                                                                                                                                                                                                                                                                       \
@@ -49,7 +49,7 @@ static TinyString DLL_MEMBER = "STATIC_FUNCTION";
 
 #define PROPERTY_CODE_LEFT(THISREF, PROPERTIES)                                                                                                                                                                                                                                                                 \
     if ((PROPERTIES) && (PROPERTIES [OE->OperandLeft_ID - 1].IS_PROPERTY_RESULT)) {                                                                                                                                                                                                                             \
-        CCTEMP = (struct CompiledClass *)((VariableDATA *)(PROPERTIES [OE->OperandLeft_ID - 1].CALL_SET))->CLASS_DATA;                                                                                                                                                                                                 \
+        CCTEMP = (struct CompiledClass *)((VariableDATA *)(PROPERTIES [OE->OperandLeft_ID - 1].CALL_SET))->CLASS_DATA;                                                                                                                                                                                          \
         WRITE_UNLOCK                                                                                                                                                                                                                                                                                            \
         CCTEMP->_Class->SetProperty(PIF, PROPERTIES [OE->OperandLeft_ID - 1].IS_PROPERTY_RESULT - 1, (VariableDATA *)(PROPERTIES [OE->OperandLeft_ID - 1].CALL_SET), OE, CCTEMP->_Class->CLSID == ClassID, OE->OperandLeft_ID , LOCAL_CONTEXT, ClassID, THISREF->LocalClassID, &THROW_DATA, STACK_TRACE);       \
         if (THROW_DATA) {                                                                                                                                                                                                                                                                                       \
@@ -183,6 +183,7 @@ static TinyString DLL_MEMBER = "STATIC_FUNCTION";
 }
 
 #define CLASS_CHECK_RESULT(VARIABLE)    INTERNAL_CLASS_CHECK_RESULT(PIF, VARIABLE);
+#define RESET_PROPERTIES(PROPERTIES, ID){if (PROPERTIES) PROPERTIES[ID - 1].IS_PROPERTY_RESULT = 0;}
 
 #ifndef INLINE_COMMON_CALLS
 void FREE_VARIABLE(VariableDATA *VARIABLE, SCStack *STACK_TRACE) {
@@ -2959,6 +2960,7 @@ int ConceptInterpreter::StacklessInterpret(PIFAlizator *PIF, GreenThreadCycle *G
                             DECLARE_PATH(0x20);
                             continue;
                         }
+                        RESET_PROPERTIES(TARGET_THREAD->PROPERTIES, OE->Result_ID);
                         CCTEMP = (struct CompiledClass *)LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA;
 
                         if (OE->OperandReserved_ID) {
@@ -5327,6 +5329,7 @@ VariableDATA *ConceptInterpreter::Interpret(PIFAlizator *PIF, VariableDATA **LOC
                     DECLARE_PATH(0x20);
                     continue;
                 }
+                RESET_PROPERTIES(PROPERTIES, OE->Result_ID);
                 CCTEMP = (struct CompiledClass *)LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->CLASS_DATA;
 
                 if (OE->OperandReserved_ID) {

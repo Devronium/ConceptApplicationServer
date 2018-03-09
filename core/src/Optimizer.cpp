@@ -52,13 +52,13 @@ POOLED_IMPLEMENTATION(Optimizer)
         helper->BREAK_Elements = PUSHED_BREAK_Elements;                                            \
     }
 
-class TempVariableManager {
+class TempVariableManagerBase {
     int        *variables;
     int        var_size;
     int        pos;
     DoubleList *VDList;
 public:
-    TempVariableManager(DoubleList *vlist) {
+    TempVariableManagerBase(DoubleList *vlist) {
         VDList    = vlist;
         variables = NULL;
         var_size  = 0;
@@ -95,9 +95,31 @@ public:
         return res;
     }
     
-    ~TempVariableManager() {
+    ~TempVariableManagerBase() {
         if (variables)
             free(variables);
+    }
+};
+
+class TempVariableManager {
+protected:
+    TempVariableManagerBase pool1;
+    TempVariableManagerBase pool2;
+public:
+    TempVariableManager(DoubleList *vlist) : pool1(vlist), pool2(vlist) {
+    }
+
+    void Reset() {
+        pool1.Reset();
+        pool2.Reset();
+    }
+
+    int GetVar() {
+        return pool1.GetVar();
+    }
+
+    int GetVar2() {
+        return pool2.GetVar();
     }
 };
 
@@ -919,6 +941,19 @@ INTEGER Optimizer::OptimizeExpression(OptimizerHelper *helper, TempVariableManag
 
             if ((!IS_PARAM_LIST) && (((AE_ID == KEY_SEL) || (AE_ID == KEY_DLL_CALL)) && (Parameter) && (Parameter->TYPE == TYPE_PARAM_LIST))) {
                 tmp_index = TVM->GetVar();
+            } else
+            if ((AE_ID == KEY_SEL) && (LAST_OP) && (LAST_OP->Operator.ID == KEY_SEL) && (LAST_OP->Result_ID == Left->ID) && 
+                (LAST_OP->Result_ID > helper->LOCAL_VARIABLES) && (LAST_OP->OperandReserved.TYPE != TYPE_PARAM_LIST) &&
+                ((!Parameter) || ((Parameter->TYPE != TYPE_OPERATOR) || 
+                ((Parameter->ID != KEY_ASG) && (Parameter->ID != KEY_BY_REF))))) {
+                // optimization for: a.b.c. Reuse result variable.
+                // ensure that next is not an assignment (crashes with set/properties)
+                tmp_index = LAST_OP->Result_ID;
+            } else
+            if ((AE_ID == KEY_SEL) &&
+                ((!Parameter) || ((Parameter->TYPE != TYPE_OPERATOR) || 
+                ((Parameter->ID != KEY_ASG) && (Parameter->ID != KEY_BY_REF))))) {
+                tmp_index = TVM->GetVar2();
             } else {
                 VariableDESCRIPTOR *VD = new VariableDESCRIPTOR;
                 VD->BY_REF = 0;
@@ -930,6 +965,7 @@ INTEGER Optimizer::OptimizeExpression(OptimizerHelper *helper, TempVariableManag
                 //}
                 helper->VDList->Add(VD, DATA_VAR_DESCRIPTOR);
                 tmp_index = helper->VDList->Count();
+                // tmp_index = TVM->GetVar2();
             }
 
             AnalizerElement *newAE = new AnalizerElement;
@@ -959,10 +995,8 @@ INTEGER Optimizer::OptimizeExpression(OptimizerHelper *helper, TempVariableManag
             helper->PIFList->Insert(newAE, idx, DATA_ANALIZER_ELEMENT);
 
             helper->PIF_POSITION -= 2;
-            if (may_skip_result) {
-                LAST_OP_2 = LAST_OP;
-                LAST_OP = OE;
-            }
+            LAST_OP_2 = LAST_OP;
+            LAST_OP = OE;
 
             if (AE_ID == KEY_DLL_CALL) {
                 if ((Parameter) && (Parameter->TYPE == TYPE_PARAM_LIST)) {
@@ -1020,7 +1054,7 @@ INTEGER Optimizer::OptimizeExpression(OptimizerHelper *helper, TempVariableManag
                 return -1;
             }
 
-            int tmp_index;
+            // int tmp_index = TVM->GetVar2();
 
             VariableDESCRIPTOR *VD = new VariableDESCRIPTOR;
             VD->BY_REF = 0;
@@ -1031,7 +1065,7 @@ INTEGER Optimizer::OptimizeExpression(OptimizerHelper *helper, TempVariableManag
             VD->TYPE = VARIABLE_NUMBER;
 
             helper->VDList->Add(VD, DATA_VAR_DESCRIPTOR);
-            tmp_index = helper->VDList->Count();
+            int tmp_index = helper->VDList->Count();
             //}
 
             AnalizerElement *newAE = new AnalizerElement;
@@ -1054,10 +1088,8 @@ INTEGER Optimizer::OptimizeExpression(OptimizerHelper *helper, TempVariableManag
             helper->PIFList->Insert(newAE, FIRST_OPERATOR - (OP_TYPE == OPERATOR_UNARY ? 0 : 1), DATA_ANALIZER_ELEMENT);
             helper->PIF_POSITION--;
 
-            if (may_skip_result) {
-                LAST_OP = OE;
-                LAST_OP_2 = LAST_OP;
-            }
+            LAST_OP = OE;
+            LAST_OP_2 = LAST_OP;
 
             if ((AE_ID == KEY_NEW) && (Parameter) && (Parameter->TYPE == TYPE_PARAM_LIST)) {
                 CopyElement(Parameter, &OE->OperandReserved);
