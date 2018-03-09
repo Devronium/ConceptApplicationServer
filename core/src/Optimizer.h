@@ -25,10 +25,11 @@ public:
     AnsiList *BREAK_Elements;
     const char *_DEBUG_INFO_FILENAME;
     const char *_MEMBER;
-    INTEGER   LAST_DEBUG_TRAP;
-    INTEGER    PIF_POSITION;
+    INTEGER LAST_DEBUG_TRAP;
+    INTEGER PIF_POSITION;
     INTEGER CATCH_ELEMENT;
     INTEGER LOCAL_VARIABLES;
+    INTEGER JUNK;
 
     char NO_WARNING_EMPTY;
     char NO_WARNING_ATTR;
@@ -54,6 +55,7 @@ public:
         _clean_condition = 0;
         CATCH_ELEMENT = 0;
         LOCAL_VARIABLES = 0;
+        JUNK = 0;
         has_references = 0;
         has_loops = 0;
     }

@@ -689,6 +689,7 @@ INTEGER Optimizer::OptimizeExpression(OptimizerHelper *helper, TempVariableManag
     OptimizedElement *LAST_OP      = NULL;
     int         minp, maxp;
     ClassMember *targetCM = 0;
+    INTEGER         NO_JUNK        = 0;
 
 #ifdef OPTIONAL_SEPARATOR
     INTEGER         VALID_EXPR     = 1;
@@ -936,8 +937,11 @@ INTEGER Optimizer::OptimizeExpression(OptimizerHelper *helper, TempVariableManag
             }
 
             int tmp_index;
-            if ((AE_ID == KEY_SEL) || (AE_ID == KEY_DLL_CALL) || (AE_ID == KEY_INDEX_OPEN))
+            if ((AE_ID == KEY_SEL) || (AE_ID == KEY_DLL_CALL) || (AE_ID == KEY_INDEX_OPEN)) {
                 helper->has_references = 1;
+                if (AE_ID != KEY_INDEX_OPEN)
+                    NO_JUNK = 1;
+            }
 
             if ((((AE_ID == KEY_SEL) || (AE_ID == KEY_DLL_CALL)) && (Parameter) && (Parameter->TYPE == TYPE_PARAM_LIST))) {
                 tmp_index = TVM->GetVar();
@@ -1126,8 +1130,10 @@ INTEGER Optimizer::OptimizeExpression(OptimizerHelper *helper, TempVariableManag
     }
 
     if ((LAST_OP) && (may_skip_result)) {
-        if ((LAST_OP->Operator.ID == KEY_ASG) && (LAST_OP_2) && (LAST_OP_2->Operator.ID == KEY_NEW) && (LAST_OP_2->Result_ID == LAST_OP->OperandRight.ID))
+        if ((LAST_OP->Operator.ID == KEY_ASG) && (LAST_OP_2) && (LAST_OP_2->Operator.ID == KEY_NEW) && (LAST_OP_2->Result_ID == LAST_OP->OperandRight.ID)) {
             LAST_OP_2->OperandRight.ID = LAST_OP->OperandLeft.ID;
+            NO_JUNK = 1;
+        }
 
         switch (LAST_OP->Operator.ID) {
             case KEY_SUM:
@@ -1149,7 +1155,7 @@ INTEGER Optimizer::OptimizeExpression(OptimizerHelper *helper, TempVariableManag
             case KEY_COM:
                 helper->PIFOwner->Warning(WRN10008, LAST_OP->Operator._DEBUG_INFO_LINE, 10008, GetKeyWord(LAST_OP->Operator.ID), helper->_DEBUG_INFO_FILENAME);
                 break;
-            case KEY_ASG: 
+            case KEY_ASG:
             case KEY_BY_REF:
             case KEY_ASU:
             case KEY_ADI:
@@ -1159,6 +1165,18 @@ INTEGER Optimizer::OptimizeExpression(OptimizerHelper *helper, TempVariableManag
             case KEY_SEL:
             default:
                 LAST_OP->OperandLeft.TYPE = MAY_IGNORE_RESULT;
+                if ((!NO_JUNK) && (LAST_OP->Result_ID == helper->VDList->Count()) && (LAST_OP->Result_ID > helper->LOCAL_VARIABLES) && 
+                    (LAST_OP->Operator.ID != KEY_SEL) && (LAST_OP->Operator.ID != KEY_DLL_CALL) && (LAST_OP->Operator.ID != KEY_NEW)) {
+                    if (helper->JUNK) {
+                        AnalizerElement *tempAE = (AnalizerElement *)helper->PIFList->Item(helper->PIF_POSITION - 1);
+                        if ((tempAE) && (tempAE->ID == LAST_OP->Result_ID)) {
+                            helper->VDList->Delete(LAST_OP->Result_ID - 1);
+                            LAST_OP->Result_ID = helper->JUNK;
+                            tempAE->ID = helper->JUNK;
+                        }
+                    } else
+                        helper->JUNK = LAST_OP->Result_ID;
+                }
         }
         /* if ((LAST_OP_2) && ((LAST_OP->Operator.ID == KEY_ASG) || (LAST_OP->Operator.ID == KEY_BY_REF)) && (LAST_OP_2->Result_ID == LAST_OP->OperandRight.ID)) {
             if ((LAST_OP_2->Operator.ID != KEY_SEL) && (LAST_OP_2->Operator.ID != KEY_DLL_CALL) && (LAST_OP_2->Operator.ID != KEY_NEW)) {
@@ -1973,7 +1991,7 @@ int Optimizer::Optimize(PIFAlizator *P) {
     int start_ref = -1;
     if (helper->PIFOwner->PROFILE_DRIVEN)
         AddProfilerCode(helper, 0);
-
+    helper->JUNK = 0;
     while (helper->PIF_POSITION < helper->PIFList->Count())
         OptimizeAny(helper, &TVM);
 
@@ -2015,10 +2033,12 @@ void Optimizer::OptimizePass2(OptimizerHelper *helper) {
         switch (CUR->Operator.ID) {
             case KEY_NEW:
                 if ((NEXT->Operator.ID == KEY_BY_REF) && (CUR->Result_ID == NEXT->OperandRight.ID) && (NEXT->OperandLeft.TYPE == MAY_IGNORE_RESULT)) {
-                    CUR->Result_ID = NEXT->OperandLeft.ID;
-                    this->RemoveCode(helper, i + 1);
-                    NEXT= NULL;
-                    count--;
+                    if (CUR->Result_ID != helper->JUNK) {
+                        CUR->Result_ID = NEXT->OperandLeft.ID;
+                        this->RemoveCode(helper, i + 1);
+                        NEXT= NULL;
+                        count--;
+                    }
                 }
                 break;
             /*case KEY_OPTIMIZED_IF:
