@@ -7674,7 +7674,7 @@ void tls_close_notify(struct TLSContext *context) {
         return;
     context->critical_error = 1;
     DEBUG_PRINT("CLOSE\n");
-    __private_tls_write_packet(tls_build_alert(context, 1, close_notify));
+    __private_tls_write_packet(tls_build_alert(context, 0, close_notify));
 }
 
 void tls_alert(struct TLSContext *context, unsigned char critical, int code) {
