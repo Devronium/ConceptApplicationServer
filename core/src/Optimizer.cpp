@@ -939,7 +939,7 @@ INTEGER Optimizer::OptimizeExpression(OptimizerHelper *helper, TempVariableManag
             if ((AE_ID == KEY_SEL) || (AE_ID == KEY_DLL_CALL) || (AE_ID == KEY_INDEX_OPEN))
                 helper->has_references = 1;
 
-            if ((!IS_PARAM_LIST) && (((AE_ID == KEY_SEL) || (AE_ID == KEY_DLL_CALL)) && (Parameter) && (Parameter->TYPE == TYPE_PARAM_LIST))) {
+            if ((((AE_ID == KEY_SEL) || (AE_ID == KEY_DLL_CALL)) && (Parameter) && (Parameter->TYPE == TYPE_PARAM_LIST))) {
                 tmp_index = TVM->GetVar();
             } else
             if ((AE_ID == KEY_SEL) && (LAST_OP) && (LAST_OP->Operator.ID == KEY_SEL) && (LAST_OP->Result_ID == Left->ID) && 
@@ -952,7 +952,7 @@ INTEGER Optimizer::OptimizeExpression(OptimizerHelper *helper, TempVariableManag
             } else
             if ((AE_ID == KEY_SEL) &&
                 ((!Parameter) || ((Parameter->TYPE != TYPE_OPERATOR) || 
-                ((Parameter->ID != KEY_ASG) && (Parameter->ID != KEY_BY_REF))))) {
+                ((Parameter->TYPE != TYPE_PARAM_LIST) && (Parameter->ID != KEY_ASG) && (Parameter->ID != KEY_BY_REF))))) {
                 tmp_index = TVM->GetVar2();
             } else {
                 VariableDESCRIPTOR *VD = new VariableDESCRIPTOR;
