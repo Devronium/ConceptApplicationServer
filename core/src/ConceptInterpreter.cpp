@@ -188,7 +188,7 @@ static TinyString DLL_MEMBER = "STATIC_FUNCTION";
 #ifndef INLINE_COMMON_CALLS
 void FREE_VARIABLE(VariableDATA *VARIABLE, SCStack *STACK_TRACE) {
     VARIABLE->LINKS--;
-    if (VARIABLE->LINKS < 1) {
+    if (!VARIABLE->LINKS) {
         if (VARIABLE->CLASS_DATA) {
             if (VARIABLE->TYPE == VARIABLE_STRING) {
                 plainstring_delete((struct plainstring *)VARIABLE->CLASS_DATA);
@@ -3178,7 +3178,7 @@ int ConceptInterpreter::StacklessInterpret(PIFAlizator *PIF, GreenThreadCycle *G
                                     }
                                 } else {
                                     DECLARE_PATH(0x20);
-                                    PIF->RunTimeError(700, ERR700, OE, THIS_REF->OWNER, STACK_TRACE);
+                                    PIF->RunTimeError(700, ERR700, OE, THIS_REF->OWNER, STACK_TRACE, STATIC_ERROR);
                                     RESET_VARIABLE(LOCAL_CONTEXT [OE->Result_ID - 1], STACK_TRACE);
                                     LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = 0;
                                 }
@@ -5554,7 +5554,7 @@ VariableDATA *ConceptInterpreter::Interpret(PIFAlizator *PIF, VariableDATA **LOC
                                 }
                             } else {
                                 DECLARE_PATH(0x20);
-                                PIF->RunTimeError(700, ERR700, OE, OWNER, STACK_TRACE);
+                                PIF->RunTimeError(700, ERR700, OE, OWNER, STACK_TRACE, STATIC_ERROR);
                                 RESET_VARIABLE(LOCAL_CONTEXT [OE->Result_ID - 1], STACK_TRACE);
                                 LOCAL_CONTEXT [OE->Result_ID - 1]->NUMBER_DATA = 0;
                             }
@@ -6159,7 +6159,7 @@ void ConceptInterpreter::DestroyEnviroment(PIFAlizator *PIF, VariableDATA **LOCA
 #ifdef SIMPLE_MULTI_THREADING
             VariableDATA *VARIABLE = LOCAL_CONTEXT [i];
             VARIABLE->LINKS--;
-            if (VARIABLE->LINKS < 1) {
+            if (!VARIABLE->LINKS) {
                 if (VARIABLE->CLASS_DATA) {
                     if (VARIABLE->TYPE == VARIABLE_STRING) {
                         plainstring_delete((struct plainstring *)VARIABLE->CLASS_DATA);
@@ -6196,7 +6196,7 @@ void ConceptInterpreter::DestroyEnviroment(PIFAlizator *PIF, VariableDATA **LOCA
     #ifdef POOL_STACK
                 if (STACK_TRACE->alloc_from_stack) {
                     LOCAL_CONTEXT_i->LINKS--;
-                    if (LOCAL_CONTEXT_i->LINKS <= 0) {
+                    if (!LOCAL_CONTEXT_i->LINKS) {
                         CLASS_CHECK_TS(LOCAL_CONTEXT_i, STACK_TRACE);
                     } else {
                         LOCAL_CONTEXT[i] = NULL;

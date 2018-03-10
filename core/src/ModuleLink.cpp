@@ -607,7 +607,7 @@ INTEGER Invoke(INTEGER INVOKE_TYPE, ...) {
                 if (target) {
                     VariableDATA *VARIABLE = target;
                     VARIABLE->LINKS--;
-                    if (VARIABLE->LINKS < 1) {
+                    if (!VARIABLE->LINKS) {
                         if (VARIABLE->CLASS_DATA) {
                             if (VARIABLE->TYPE == VARIABLE_STRING) {
                                 plainstring_delete((struct plainstring *)VARIABLE->CLASS_DATA);

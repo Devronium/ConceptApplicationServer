@@ -119,7 +119,7 @@ void FreeMultipleVars(void **refVARs, int count) {
 
     for (int i = count - 1; i >= 0; i--) {
         VariableDATA *refVAR = CONTEXT[i];
-        if ((refVAR) && (refVAR->LINKS <= 0)) {
+        if ((refVAR) && (!refVAR->LINKS)) {
             if (refVAR->flags >= 0) {
                 CURRENT = (VARPool *)(((uintptr_t)refVAR) - sizeof(VariableDATA) * (((VariableDATA *)refVAR)->flags) - POOL_OFFSET(VARPool, POOL));
                 if (((VariableDATA *)refVAR)->flags < CURRENT->FIRST_VAR)

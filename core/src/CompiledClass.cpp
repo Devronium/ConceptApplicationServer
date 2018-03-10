@@ -297,7 +297,7 @@ void delete_CompiledClass(struct CompiledClass *self, SCStack *STACK_TRACE) {
             FREE_VARIABLE(_CONTEXT_i, STACK_TRACE);
 #else
             _CONTEXT_i->LINKS--;
-            if (_CONTEXT_i->LINKS < 1) {
+            if (!_CONTEXT_i->LINKS) {
                 if (_CONTEXT_i->CLASS_DATA) {
                     if (_CONTEXT_i->TYPE == VARIABLE_STRING) {
                         plainstring_delete((struct plainstring *)_CONTEXT_i->CLASS_DATA);
@@ -354,7 +354,7 @@ void delete_CompiledClass(struct CompiledClass *self, SCStack *STACK_TRACE) {
                         }
                         //=======================================//
                         _CONTEXT_i->LINKS--;
-                        if (_CONTEXT_i->LINKS < 1) {
+                        if (!_CONTEXT_i->LINKS) {
                             if (_CONTEXT_i->CLASS_DATA) {
                                 if (_CONTEXT_i->TYPE == VARIABLE_STRING) {
                                     plainstring_delete((struct plainstring *)_CONTEXT_i->CLASS_DATA);

@@ -368,6 +368,27 @@ VariableDATA *ClassMember::Execute(void *PIF, intptr_t CONCEPT_CLASS_ID, Variabl
             RESULT = USE_RESULT;
             RESULT->LINKS++;
         }
+#if defined(POOL_BLOCK_ALLOC) && defined(POOL_STACK) && (!defined(SIMPLE_MULTI_THREADING))
+        // faster inline context cleaning
+        if ((PREV) && (STACK_TRACE.alloc_from_stack)) {
+            INTEGER data_count = ((Optimizer *)this->OPTIMIZER)->dataCount;
+            for (INTEGER i = 0; i < data_count; i++) {
+                VariableDATA *LOCAL_CONTEXT_i = CONTEXT [i];
+                if (LOCAL_CONTEXT_i) {
+                    LOCAL_CONTEXT_i->LINKS--;
+                    if (LOCAL_CONTEXT_i->LINKS) {
+                        CONTEXT[i] = NULL;
+                        continue;
+                    }
+                    CLASS_CHECK(LOCAL_CONTEXT_i, &STACK_TRACE);
+                }
+            }
+            SCStack *STACK_ROOT = (SCStack *)STACK_TRACE.ROOT;
+            if ((STACK_ROOT) && (STACK_ROOT->STACK_CONTEXT)) {
+                STACK_ROOT->stack_pos        -= data_count;
+            }
+        } else
+#endif
         ((ConceptInterpreter *)INTERPRETER)->DestroyEnviroment((PIFAlizator *)PIF, CONTEXT, &STACK_TRACE, is_main);
     }
     if (!PREV) {

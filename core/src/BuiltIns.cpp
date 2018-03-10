@@ -341,43 +341,54 @@ CONCEPT_FUNCTION_IMPL(bytecode, 1)
                 VD2->CLASS_DATA = plainstring_new_str(GetKeyWord(OE->Operator_ID));
                 VD2->TYPE = VARIABLE_STRING;
 
-                VD2 = Array_ModuleGet((Array *)VD->CLASS_DATA, "left");
-                if (OE->OperandLeft_ID > 0)
-                    VD2->CLASS_DATA = plainstring_new_int(OE->OperandLeft_ID);
-                else
-                    VD2->CLASS_DATA = plainstring_new();
-                VD2->TYPE = VARIABLE_STRING;
+                if (OE->OperandLeft_ID > 0) {
+                    if (OE->Operator_ID == KEY_NEW) {
+                        VD2 = Array_ModuleGet((Array *)VD->CLASS_DATA, "class");
+                        ClassCode *CC = (ClassCode *)((PIFAlizator *)PARAMETERS->PIF)->ClassList->Item(OE->OperandLeft_ID - 1);
+                        if (CC) {
+                            VD2->CLASS_DATA = plainstring_new_str(CC->NAME.c_str());
+                            VD2->TYPE = VARIABLE_STRING;
+                        } else {
+                            VD2->NUMBER_DATA = OE->OperandReserved_ID - 1;
+                        }
+                    } else {
+                        VD2 = Array_ModuleGet((Array *)VD->CLASS_DATA, "left");
+                        VD2->NUMBER_DATA = OE->OperandLeft_ID - 1;
+                    }
+                }
 
-                VD2 = Array_ModuleGet((Array *)VD->CLASS_DATA, "right");
                 if (OE->OperandRight_ID > 0) {
+                    VD2 = Array_ModuleGet((Array *)VD->CLASS_DATA, "right");
                     if (OE->OperandRight_PARSE_DATA.Length()) {
                         VD2->CLASS_DATA = plainstring_new_str(OE->OperandRight_PARSE_DATA.c_str());
                         plainstring_add((struct plainstring *)VD2->CLASS_DATA, " (");
-                        plainstring_add_int((struct plainstring *)VD2->CLASS_DATA, OE->OperandRight_ID);
+                        plainstring_add_int((struct plainstring *)VD2->CLASS_DATA, OE->OperandRight_ID - 1);
                         plainstring_add((struct plainstring *)VD2->CLASS_DATA, ")");
+                        VD2->TYPE = VARIABLE_STRING;
                     } else
-                        VD2->CLASS_DATA = plainstring_new_int(OE->OperandRight_ID);
-                } else
-                    VD2->CLASS_DATA = plainstring_new();
-                VD2->TYPE = VARIABLE_STRING;
+                        VD2->NUMBER_DATA = OE->OperandRight_ID - 1;
+                }
 
-                VD2 = Array_ModuleGet((Array *)VD->CLASS_DATA, "result");
-                if (OE->Result_ID > 0)
-                    VD2->CLASS_DATA = plainstring_new_int(OE->Result_ID);
-                else
-                    VD2->CLASS_DATA = plainstring_new();
-                VD2->TYPE = VARIABLE_STRING;
+                if (OE->OperandReserved_ID > 0) {
+                    const char *key = "reserved";
+                    if ((OE->Operator_ID == KEY_OPTIMIZED_IF) || (OE->Operator_ID == KEY_OPTIMIZED_GOTO) || ((OE->Operator_ID == KEY_OPTIMIZED_TRY_CATCH)))
+                        key = "jump";
+                    else
+                    if ((OE->Operator_ID == KEY_NEW) || (OE->Operator_ID == KEY_SEL) || (OE->Operator_ID == KEY_DLL_CALL))
+                        key = "parameter_list";
+                    VD2 = Array_ModuleGet((Array *)VD->CLASS_DATA, key);
+                    VD2->NUMBER_DATA = OE->OperandReserved_ID;
+                }
 
-                VD2 = Array_ModuleGet((Array *)VD->CLASS_DATA, "jump");
-                if (OE->OperandReserved_ID > 0)
-                    VD2->CLASS_DATA = plainstring_new_int(OE->OperandReserved_ID);
-                else
-                    VD2->CLASS_DATA = plainstring_new();
-                VD2->TYPE = VARIABLE_STRING;
+                if (OE->Result_ID > 0) {
+                    VD2 = Array_ModuleGet((Array *)VD->CLASS_DATA, "result");
+                    VD2->NUMBER_DATA = OE->Result_ID - 1;
+                }
 
-
-                VD2 = Array_ModuleGet((Array *)VD->CLASS_DATA, "line");
-                VD2->NUMBER_DATA = OE->Operator_DEBUG_INFO_LINE;
+                if (OE->Operator_DEBUG_INFO_LINE) {
+                    VD2 = Array_ModuleGet((Array *)VD->CLASS_DATA, "line");
+                    VD2->NUMBER_DATA = OE->Operator_DEBUG_INFO_LINE;
+                }
             }
         }
     }
@@ -398,50 +409,39 @@ CONCEPT_FUNCTION_IMPL(bytedata, 1)
             RuntimeVariableDESCRIPTOR *data = &datalist[it];
             VariableDATA *VD = Array_ModuleGet(arr, it);
             if (VD) {
-                CREATE_ARRAY(VD);
-                VariableDATA *VD2 = Array_ModuleGet((Array *)VD->CLASS_DATA, "type");
-                VariableDATA *VD3;
                 int type = data->TYPE;
                 if (type < 0)
                     type = -type;
 
                 switch (type) {
                     case VARIABLE_STRING:
-                        VD2->CLASS_DATA = plainstring_new_str("string");
-                        VD3 = Array_ModuleGet((Array *)VD->CLASS_DATA, "val");
-                        VD3->CLASS_DATA = plainstring_new();
-                        plainstring_loadbuffer((struct plainstring *)VD3->CLASS_DATA, data->value.c_str(), data->value.Length());
-                        VD3->TYPE = VARIABLE_NUMBER;
+                        if (data->BY_REF == 2)
+                            VD->CLASS_DATA = plainstring_new_str("const \"");
+                        else
+                            VD->CLASS_DATA = plainstring_new_str("\"");
+                        plainstring_addbuffer((struct plainstring *)VD->CLASS_DATA, data->value.c_str(), data->value.Length());
+                        plainstring_add_char((struct plainstring *)VD->CLASS_DATA, '"');
+                        VD->TYPE = VARIABLE_STRING;
                         break;
                     case VARIABLE_NUMBER:
-                        VD2->CLASS_DATA = plainstring_new_str("numeric");
-                        VD3 = Array_ModuleGet((Array *)VD->CLASS_DATA, "val");
-                        VD3->NUMBER_DATA = data->nValue;
-                        VD3->TYPE = VARIABLE_NUMBER;
+                        VD->NUMBER_DATA = data->nValue;
                         break;
                     case VARIABLE_ARRAY:
-                        VD2->CLASS_DATA = plainstring_new_str("array");
+                        VD->CLASS_DATA = plainstring_new_str("[array]");
+                        VD->TYPE = VARIABLE_STRING;
                         break;
                     case VARIABLE_CLASS:
-                        VD2->CLASS_DATA = plainstring_new_str("object");
+                        VD->CLASS_DATA = plainstring_new_str("[object]");
+                        VD->TYPE = VARIABLE_STRING;
                         break;
                     case VARIABLE_DELEGATE:
-                        VD2->CLASS_DATA = plainstring_new_str("delegate");
+                        VD->CLASS_DATA = plainstring_new_str("[delegate]");
+                        VD->TYPE = VARIABLE_STRING;
                         break;
                     default:
-                        VD2->CLASS_DATA = plainstring_new_str("unknown");
+                        VD->CLASS_DATA = plainstring_new_str("[unknown]");
+                        VD->TYPE = VARIABLE_STRING;
                         break;
-                }
-                VD2->TYPE = VARIABLE_STRING;
-                if (data->BY_REF == 2) {
-                    VD3 = Array_ModuleGet((Array *)VD->CLASS_DATA, "constant");
-                    VD3->TYPE = VARIABLE_NUMBER;
-                    VD3->NUMBER_DATA = 1.0;
-                } else
-                if (data->BY_REF) {
-                    VD3 = Array_ModuleGet((Array *)VD->CLASS_DATA, "by_addr");
-                    VD3->TYPE = VARIABLE_NUMBER;
-                    VD3->NUMBER_DATA = 1.0;
                 }
             }
         }

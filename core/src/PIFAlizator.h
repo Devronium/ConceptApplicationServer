@@ -209,38 +209,10 @@ typedef struct {
     unsigned char FIRST_VAR;
 } VARPool;
 
+int ClearVariablesByCLSID(void *PIF, int CLSID);
+
 class PIFAlizator {
-    friend class Optimizer;
-    friend class ClassCode;
-    friend class ClassMember;
-    friend class ConceptInterpreter;
-    friend class GarbageCollector;
-    friend void DeturnatedPrint(void *PIF, const char *text, int len, void *userdata);
-
-    friend void *AllocVAR(void *PIF);
-
-    friend void AllocMultipleVars(void **context, void *PIF, int count, int offset);
-
-    friend void *AllocClassObject(void *PIF);
-
-    friend void *AllocArray(void *PIF, bool skip_top);
-
-    friend int CheckReachability(void *PIF, bool skip_top);
-
-    friend int ClearVariablesByCLSID(void *PIF, int CLSID);
-
-    friend INTEGER Invoke(INTEGER INVOKE_TYPE, ...);
-
-    friend int GetVariableByName(int operation, void **VDESC, void **CONTEXT, int Depth, char *VariableName, char *buffer, int buf_size, void *PIF, void *STACK_TRACE);
-
-    friend int GetMemoryStatistics(void *PIF, void *RESULT);
-
-    friend void BUILTININIT(void *PIF);
-
-    friend int BUILTINOBJECTS(void *PIF, const char *classname);
-
-    friend void *BUILTINADDR(void *PIF, const char *name, unsigned char *is_private);
-
+public:
     StaticList *GeneralMembers;
     int        pipe_read;
     int        pipe_write;
@@ -344,7 +316,7 @@ class PIFAlizator {
     unsigned int Workers;
     unsigned int TSClassCount;
     ProtoData PDATA[PDATA_ITEMS];
-public:
+
 #ifdef SIMPLE_MULTI_THREADING
     HHSEM AllocLock;
 #endif
@@ -390,7 +362,7 @@ public:
 
     static AnsiString GetPath(AnsiString *S);
     void AcknoledgeRunTimeError(SCStack *STACK_TRACE, AnsiException *Exc);
-    void RunTimeError(int err, const char *text, const RuntimeOptimizedElement *OE, const ClassMember *OWNER, SCStack *STACK_TRACE = NULL);
+    void RunTimeError(int err, const char *text, const RuntimeOptimizedElement *OE, const ClassMember *OWNER, SCStack *STACK_TRACE = NULL, const char *ERROR_EXTRA = NULL);
 
     DoubleList PIF;
     DoubleList VariableDescriptors;
