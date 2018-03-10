@@ -350,7 +350,7 @@ PIFAlizator::~PIFAlizator(void) {
     while (C_POOL) {
 
         C_NEXT = (ClassPool *)C_POOL->NEXT;
-        free(C_POOL);
+        OBJECT_FREE(C_POOL);
         C_POOL = C_NEXT;
     }
 
@@ -359,7 +359,7 @@ PIFAlizator::~PIFAlizator(void) {
     while (A_POOL) {
 
         A_NEXT = (ArrayPool *)A_POOL->NEXT;
-        free(A_POOL);
+        OBJECT_FREE(A_POOL);
         A_POOL = A_NEXT;
     }
 
@@ -3585,8 +3585,5 @@ void PIFAlizator::EnsureThreadSafe() {
         if (CC)
             CC->EnsureThreadSafe();
     }
-}
-
-void PIFAlizator::Hibernate() {
 }
 

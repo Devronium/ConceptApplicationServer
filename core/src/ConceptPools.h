@@ -97,4 +97,7 @@ void *dlrealloc(void *, size_t);
  #define BLOCK_VAR_FREE(context, count)                  FreeMultipleVars((void **)context, count)
  #define POOL_CONTEXT(var)                               GetPOOLContext(var)
 #endif
+
+#define OBJECT_MALLOC(size)         FAST_MALLOC(size)
+#define OBJECT_FREE(ptr)            FAST_FREE(ptr)
 #endif // __CONCEPT_POOLS_H

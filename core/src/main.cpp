@@ -388,7 +388,7 @@ void *AllocClassObject(void *PIF) {
     int       i;
     ((PIFAlizator *)PIF)->object_count++;
     if (!POOL) {
-        POOL            = (ClassPool *)malloc(sizeof(ClassPool));
+        POOL            = (ClassPool *)OBJECT_MALLOC(sizeof(ClassPool));
         POOL->FIRST_VAR = 0;
         POOL->POOL_VARS = OBJECT_POOL_BLOCK_SIZE;
         POOL->NEXT      = NULL;
@@ -426,7 +426,7 @@ void *AllocClassObject(void *PIF) {
         }
     }
     ((PIFAlizator *)PIF)->CACHEDCLASSPOOL = NULL;
-    NEXT_POOL = (ClassPool *)malloc(sizeof(ClassPool));
+    NEXT_POOL = (ClassPool *)OBJECT_MALLOC(sizeof(ClassPool));
     if (!NEXT_POOL) {
         ((PIFAlizator *)PIF)->out->ClientError(ERR1400 "\n");
         exit(-100);
@@ -474,7 +474,7 @@ void FreeClassObject(void *refObject) {
         PIF->free_class_objects -= OBJECT_POOL_BLOCK_SIZE;
         if (PIF->CACHEDCLASSPOOL == CURRENT)
             PIF->CACHEDCLASSPOOL = NULL;
-        free(CURRENT);
+        OBJECT_FREE(CURRENT);
     } else
     if ((CURRENT != PIF->CLASSPOOL) && (CURRENT->POOL_VARS > ((ClassPool *)PIF->CLASSPOOL)->POOL_VARS)) {
         PIF->CACHEDCLASSPOOL = CURRENT;
@@ -493,7 +493,7 @@ void FreeClassObject(void *refObject) {
 
 void *AllocArray(void *PIF, bool skip_top) {
     if (!PIF) {
-        Array *notPOOLED = (struct Array *)malloc(sizeof(Array));
+        Array *notPOOLED = (struct Array *)OBJECT_MALLOC(sizeof(Array));
         if (notPOOLED)
             notPOOLED->flags = -2;
         return notPOOLED;
@@ -521,7 +521,7 @@ void *AllocArray(void *PIF, bool skip_top) {
     ArrayPool *NEXT_POOL;
     int       i;
     if (!POOL) {
-        POOL            = (ArrayPool *)malloc(sizeof(ArrayPool));
+        POOL            = (ArrayPool *)OBJECT_MALLOC(sizeof(ArrayPool));
         POOL->FIRST_VAR = 0;
         POOL->POOL_VARS = ARRAY_POOL_BLOCK_SIZE;
         POOL->NEXT      = NULL;
@@ -562,7 +562,7 @@ void *AllocArray(void *PIF, bool skip_top) {
         }
     }
     ((PIFAlizator *)PIF)->CACHEDARRAYPOOL = NULL;
-    NEXT_POOL = (ArrayPool *)malloc(sizeof(ArrayPool));
+    NEXT_POOL = (ArrayPool *)OBJECT_MALLOC(sizeof(ArrayPool));
     if (!NEXT_POOL) {
         ((PIFAlizator *)PIF)->out->ClientError(ERR1400 "\n");
         exit(-100);
@@ -593,7 +593,7 @@ void FreeArray(void *refObject) {
 
     if (((struct Array *)refObject)->flags == -2) {
         // not a pooled array (module-created array) for backwards compatibility
-        free(refObject);
+        OBJECT_FREE(refObject);
         return;
     }
 
@@ -615,7 +615,7 @@ void FreeArray(void *refObject) {
         PIF->free_arrays -= ARRAY_POOL_BLOCK_SIZE;
         if (PIF->CACHEDARRAYPOOL == CURRENT)
             PIF->CACHEDARRAYPOOL = NULL;
-        free(CURRENT);
+        OBJECT_FREE(CURRENT);
     } else
     if ((CURRENT != PIF->ARRAYPOOL) && (CURRENT->POOL_VARS > ((ArrayPool *)PIF->ARRAYPOOL)->POOL_VARS)) {
         PIF->CACHEDARRAYPOOL = CURRENT;

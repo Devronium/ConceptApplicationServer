@@ -1551,21 +1551,6 @@ INTEGER Invoke(INTEGER INVOKE_TYPE, ...) {
             }
             break;
 
-        case INVOKE_HIBERNATE:
-            {
-                PIFAlizator *pif  = va_arg(ap, PIFAlizator *);
-                char        *flag = va_arg(ap, char *);
-                if (!pif) {
-                    result = INVALID_INVOKE_PARAMETER;
-                } else {
-                    if (*flag) {
-                        pif->Hibernate();
-                    } else {
-                    }
-                }
-            }
-            break;
-
         case INVOKE_DELEGATE_BYTECODE:
             {
                 VariableDATA *target = va_arg(ap, VariableDATA *);

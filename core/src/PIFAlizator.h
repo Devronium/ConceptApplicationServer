@@ -395,7 +395,6 @@ public:
     int Serialize(char *filename, bool is_lib = false);
     int Unserialize(char *filename, bool is_lib = false);
     static int ComputeSharedSize(char *filename);
-    void Hibernate();
     void SyncClassList();
 
 #ifdef DEBUGGER_VAR_NAMES

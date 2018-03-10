@@ -266,8 +266,10 @@ void CompiledClass_UnlinkObjects(struct CompiledClass *self) {
 }
 
 void delete_CompiledClass(struct CompiledClass *self, SCStack *STACK_TRACE) {
-    if (self->LINKS < 0)
+    if (self->LINKS < 0) {
+        FreeClassObject(self);
         return;
+    }
 
     if (self->_Class->DESTRUCTOR) {
         PIFAlizator *PIF          = GET_PIF(self);
