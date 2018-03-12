@@ -141,12 +141,6 @@ void FreeMultipleVars(void **refVARs, int count) {
             }
         }
     }
-    /*if (pif) {
-        if (pif->free_vars > BLOCK_SIZE * 10)
-           VarClean(pif);
-        else
-           pif->CACHEDPOOL = CURRENT;
-    }*/
 }
 
 void FreeVAR(void *refVAR) {
@@ -458,7 +452,7 @@ void FreeClassObject(void *refObject) {
     ClassPool   *CURRENT = (ClassPool *)(((uintptr_t)refObject) - sizeof(CompiledClass) * (((struct CompiledClass *)refObject)->flags) - POOL_OFFSET(ClassPool, POOL));
     PIFAlizator *PIF     = (PIFAlizator *)CURRENT->PIF;
     ALLOC_LOCK
-    memset(refObject, 0, sizeof(CompiledClass));
+    // memset(refObject, 0, sizeof(CompiledClass));
     ((PIFAlizator *)PIF)->object_count--;
     PIF->free_class_objects++;
     if (((struct CompiledClass *)refObject)->flags < CURRENT->FIRST_VAR)
@@ -490,6 +484,37 @@ void FreeClassObject(void *refObject) {
     //}
     ALLOC_UNLOCK
 }
+
+/*void FreeMultipleObjects(void **refObjects, int count) {
+    CompiledClass **CONTEXT = (CompiledClass **)refObjects;
+    for (int i = 0; i < count; i++) {
+        CompiledClass *refObject = CONTEXT[i];
+        if ((refObject) && (refObject->flags >= 0)) {
+            ClassPool *CURRENT = (ClassPool *)(((uintptr_t)refObject) - sizeof(CompiledClass) * (((struct CompiledClass *)refObject)->flags) - POOL_OFFSET(ClassPool, POOL));
+            if (refObject->flags < CURRENT->FIRST_VAR)
+                CURRENT->FIRST_VAR = refObject->flags;
+            PIFAlizator *PIF = (PIFAlizator *)CURRENT->PIF;
+            PIF->free_class_objects++;
+            refObject->flags = -1;
+            CURRENT->POOL_VARS++;
+            ((PIFAlizator *)PIF)->object_count--;
+            if (CURRENT->POOL_VARS == OBJECT_POOL_BLOCK_SIZE) {
+                ClassPool *PREV = (ClassPool *)CURRENT->PREV;
+                ClassPool *NEXT = (ClassPool *)CURRENT->NEXT;
+                if (PREV) {
+                    PREV->NEXT = NEXT;
+                    if (NEXT)
+                        NEXT->PREV = CURRENT->PREV;
+                    PIF->free_class_objects -= OBJECT_POOL_BLOCK_SIZE;
+                    if (PIF->CACHEDCLASSPOOL == CURRENT)
+                        PIF->CACHEDCLASSPOOL = NULL;
+                    OBJECT_FREE(CURRENT);
+                }
+            }
+        }
+    }
+}*/
+
 
 void *AllocArray(void *PIF, bool skip_top) {
     if (!PIF) {
@@ -2795,6 +2820,8 @@ int main(int argc, char **argv) {
         }
         return err;
     }
+    if (do_chdir)
+        SetWebDirectory(filename);
 
     SetArguments(argc - arg_start, &argv[arg_start]);
     // check for autocompile
