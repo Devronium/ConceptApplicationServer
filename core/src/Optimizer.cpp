@@ -2382,11 +2382,6 @@ int Optimizer::Unserialize(PIFAlizator *PIFOwner, concept_FILE *in, AnsiList *Mo
             VD       = &DATA [i];
             VD->USED = 1;
             UNSERIALIZE_VAR_DESCRIPTOR(VD, in, is_pooled);
-
-            //}
-
-            //REMOVED RECENTLY !===//
-            //====================//
         }
     }
 

@@ -188,14 +188,14 @@ void StaticString::LoadBuffer(const char *buffer, int size) {
 
 int StaticString::Serialize(FILE *out, int type) {
     LENGTH_DATA_TYPE _LENGTH = 0;
-    unsigned char  uClen = (unsigned char)_LENGTH;
-    unsigned short uSlen = (unsigned short)_LENGTH;
     char           *Data = 0;
 
     if (DataOffset) {
         Data = ((char *)(void *)this) + DataOffset + sizeof(LENGTH_DATA_TYPE);
         _LENGTH = this->Length();
     }
+    unsigned char  uClen = (unsigned char)_LENGTH;
+    unsigned short uSlen = (unsigned short)_LENGTH;
 
     int len = _LENGTH; 
     switch (type) {

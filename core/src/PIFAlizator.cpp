@@ -1605,8 +1605,9 @@ INTEGER PIFAlizator::BuildFunction(ClassCode *CC, AnsiParser *P, INTEGER on_line
             _ID = ClassExists(sPARSE.c_str());
 
             if (!_ID) {
-                if (BUILTINOBJECTS(this, sPARSE.c_str()))
+                if (BUILTINOBJECTS(this, sPARSE.c_str())) {
                     _ID = ClassExists(sPARSE.c_str());
+                }
             }
             if (!_ID) {
                 Warning(WRN10007, on_line ? on_line : P->LastLine(), 10007, sPARSE, FileName, CC ? CC->NAME.c_str() : "", CM ? CM->NAME : "");
@@ -3090,7 +3091,9 @@ int PIFAlizator::Unserialize(char *filename, bool is_lib) {
             AnsiString include_name;
             for (INTEGER i = 0; i < include_list; i++) {
                 include_name.Unserialize(in, SERIALIZE_16BIT_LENGTH);
+                this->enable_private = old_enable_private;
                 IncludeFile(include_name, 0);
+                this->enable_private = 1;
             }
 
             INTEGER class_list;
@@ -3108,6 +3111,13 @@ int PIFAlizator::Unserialize(char *filename, bool is_lib) {
             for (INTEGER i = 0; i < class_list; i++) {
                 class_name.Unserialize(in, SERIALIZE_16BIT_LENGTH);
                 Classes [i] = ClassExists(class_name.c_str()) - 1;
+                if (Classes [i] < 0) {
+                    this->enable_private = old_enable_private;
+                    if (BUILTINOBJECTS(this, class_name.c_str())) {
+                        Classes [i] = ClassExists(class_name.c_str()) - 1;
+                    }
+                    this->enable_private = 1;
+                }
             }
 
             INTEGER general_members;

@@ -7,7 +7,6 @@ import standard.C.casts
 import standard.C.time
 import standard.net.socket
 import standard.lib.str
-import standard.lib.regex
 import standard.lib.thread
 import standard.lib.cripto
 import standard.lang.cli
@@ -31,8 +30,6 @@ define BM25_MAX_WORDLEN		0
 define BM25_USE_HASH		false
 define BM25_HASH		Murmur
 
-// define REGEX_MATCH		preg_match
-define REGEX_MATCH		regex_match
 define MAX_CACHE_OBJECTS	1000
 
 define READ_VBUF_SIZE		4096
@@ -68,7 +65,7 @@ class TinQueryParser {
 			min_mode = 3;
 		} else
 		if (IsSet(arr, "*")) {
-			min = arr["*"];
+			min = new RegExp(arr["*"], 1);
 			min_mode = 4;
 		} else
 		if (IsSet(arr, "!=")) {
@@ -170,15 +167,21 @@ class TinQueryParser {
 			if (min_mode == 6)
 				return Equals(key, min);
 
-			if ((typeof key != "string") || (typeof min != "string"))
+			if (typeof key == "numeric")
+				key = "" + key;
+
+			if (typeof key != "string")
 				return false;
 
 			if (min_mode == 4) {
-				if ((min) && (REGEX_MATCH(key, min) <= 0))
+				if (!min.test(key))
 					return false;
-			} else
-			if ((min) && (Pos(key, min) != 1))
-				return false;
+			} else {
+				if (typeof min != "string")
+					return false;
+				if ((min) && (Pos(key, min) != 1))
+					return false;
+			}
 		}
 		if (max_mode == 1) {
 			if (key >= max)
@@ -277,18 +280,25 @@ class TinQueryParser {
 				} else
 					return 0;
 			} else {
-				if ((typeof key != "string") || (typeof min != "string"))
+				if (typeof key == "numeric")
+					key = "" + key;
+
+				if (typeof key != "string")
 					result |= QUERY_LESS;
 				else
 				if (min_mode == 4) {
-					if ((min) && (REGEX_MATCH(key, min) <= 0))
+					if (!min.test(key))
 						result |= QUERY_LESS | QUERY_GREAT;
-				} else
-				if ((min) && (Pos(key, min) != 1)) {
-					if (key < min)
+				} else {
+					if (typeof min != "string")
 						result |= QUERY_LESS;
 					else
-						result |= QUERY_GREAT;
+					if ((min) && (Pos(key, min) != 1)) {
+						if (key < min)
+							result |= QUERY_LESS;
+						else
+							result |= QUERY_GREAT;
+					}
 				}
 			}
 		}
