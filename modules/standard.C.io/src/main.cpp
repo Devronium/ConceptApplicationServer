@@ -16,6 +16,12 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <dirent.h>
+#ifdef __FreeBSD__
+    #include <sys/sysctl.h>
+#endif
+#ifdef __APPLE__
+    #include <sys/sysctl.h>
+#endif
 
 #include <utime.h>
 #include <time.h>
@@ -1352,7 +1358,7 @@ CONCEPT_DLL_API CONCEPT__fseek CONCEPT_API_PARAMETERS {
             break;
     }
     // function call
-    _C_call_result = (int)fseeko((FILE *)(SYS_INT)nParam0, nParam1, (int)nParam2);
+    _C_call_result = (int)fseeko((FILE *)(SYS_INT)nParam0, (SYS_INT)nParam1, (int)nParam2);
 
     SetVariable(RESULT, VARIABLE_NUMBER, "", _C_call_result);
     return 0;
@@ -3855,9 +3861,9 @@ CONCEPT_FUNCTION_IMPL(ftruncate, 2)
     FILE * file = (FILE *)(SYS_INT)PARAM(0);
     int fd = fileno(file);
 #ifdef _WIN32
-    int res = chsize(fd, PARAM(1));
+    int res = chsize(fd, (SYS_INT)PARAM(1));
 #else
-    int res = ftruncate(fd, PARAM(1));
+    int res = ftruncate(fd, (SYS_INT)PARAM(1));
 #endif
     RETURN_NUMBER(res);
 END_IMPL
@@ -4420,3 +4426,84 @@ CONCEPT_FUNCTION_IMPL(setvbuf, 2)
     RETURN_NUMBER(err);
 END_IMPL
 //-----------------------------------------------------------------------------------
+#ifdef _WIN32
+static float CalculateCPULoad(unsigned long long idleTicks, unsigned long long totalTicks) {
+    static unsigned long long _previousTotalTicks = 0;
+    static unsigned long long _previousIdleTicks = 0;
+
+    unsigned long long totalTicksSinceLastTime = totalTicks - _previousTotalTicks;
+    unsigned long long idleTicksSinceLastTime = idleTicks - _previousIdleTicks;
+
+    float ret = 1.0f - ((totalTicksSinceLastTime > 0) ? ((float)idleTicksSinceLastTime) / totalTicksSinceLastTime : 0);
+
+    _previousTotalTicks = totalTicks;
+    _previousIdleTicks = idleTicks;
+    return ret;
+}
+
+static unsigned long long FileTimeToInt64(const FILETIME & ft) {
+    return (((unsigned long long)(ft.dwHighDateTime)) << 32) | ((unsigned long long)ft.dwLowDateTime);
+}
+
+float GetCPULoad() {
+    FILETIME idleTime, kernelTime, userTime;
+    return GetSystemTimes(&idleTime, &kernelTime, &userTime) ? CalculateCPULoad(FileTimeToInt64(idleTime), FileTimeToInt64(kernelTime) + FileTimeToInt64(userTime)) : -1.0f;
+}
+#endif
+
+CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(cpuload, 0, 1)
+    int timeout = 100;
+    if (PARAMETERS_COUNT > 0) {
+        T_NUMBER(cpuload, 0);
+        timeout = PARAM_INT(0);
+    }
+    if (timeout <= 0)
+        timeout = 1;
+#ifdef _WIN32
+    double usage = GetCPULoad();
+    Sleep(timeout);
+    usage = GetCPULoad();
+    RETURN_NUMBER(usage);
+#else
+#if defined(__FreeBSD__) || defined(__APPLE__)
+   int ncpu;
+   size_t len = sizeof(int);
+   if (sysctlbyname("hw.ncpu", &ncpu, &len, NULL, 0) == -1 || !len)
+        ncpu = 1;
+   FILE *fp = popen("ps -o %cpu -p `pgrep -S idle`", "r");
+   if (fp) {
+       double usage = -1.0f;
+       fscanf(fp," %*s\n%lf", &usage);
+       fclose(fp);
+       if (usage > 0) {
+           usage /= ncpu;
+           usage = (100.0f - usage) / 100;
+       }
+       RETURN_NUMBER(usage);
+   } else {
+       RETURN_NUMBER(-1);
+   }
+#else
+#ifdef __linux__
+    double a[4], b[4], loadavg;
+    FILE *fp = fopen("/proc/stat","r");
+    if (fp) {
+        fscanf(fp,"%*s %lf %lf %lf %lf", &a[0], &a[1], &a[2], &a[3]);
+        fclose(fp);
+        usleep(timeout * 1000));
+
+        fp = fopen("/proc/stat","r");
+        fscanf(fp,"%*s %lf %lf %lf %lf", &b[0], &b[1], &b[2], &b[3]);
+        fclose(fp);
+
+        loadavg = ((b[0]+b[1]+b[2]) - (a[0]+a[1]+a[2])) / ((b[0]+b[1]+b[2]+b[3]) - (a[0]+a[1]+a[2]+a[3]));
+        RETURN_NUMBER(loadavg);
+    } else {
+        RETURN_NUMBER(-1);
+    }
+#else
+    RETURN_NUMBER(-1);
+#endif
+#endif
+#endif
+END_IMPL
