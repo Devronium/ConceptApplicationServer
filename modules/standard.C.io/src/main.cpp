@@ -12,6 +12,7 @@
 #include "library.h"
 #include <string.h>
 #include "AnsiString.h"
+#include <math.h>
 #include <stdint.h>
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -4427,6 +4428,8 @@ CONCEPT_FUNCTION_IMPL(setvbuf, 2)
 END_IMPL
 //-----------------------------------------------------------------------------------
 #ifdef _WIN32
+static int has_ticks = 0;
+
 static float CalculateCPULoad(unsigned long long idleTicks, unsigned long long totalTicks) {
     static unsigned long long _previousTotalTicks = 0;
     static unsigned long long _previousIdleTicks = 0;
@@ -4436,12 +4439,16 @@ static float CalculateCPULoad(unsigned long long idleTicks, unsigned long long t
 
     float ret = 1.0f - ((totalTicksSinceLastTime > 0) ? ((float)idleTicksSinceLastTime) / totalTicksSinceLastTime : 0);
 
+    if ((_previousTotalTicks) && (_previousTotalTicks != totalTicks))
+        has_ticks = 1;
+    else
+        has_ticks = 0;
     _previousTotalTicks = totalTicks;
     _previousIdleTicks = idleTicks;
     return ret;
 }
 
-static unsigned long long FileTimeToInt64(const FILETIME & ft) {
+static unsigned long long FileTimeToInt64(const FILETIME &ft) {
     return (((unsigned long long)(ft.dwHighDateTime)) << 32) | ((unsigned long long)ft.dwLowDateTime);
 }
 
@@ -4452,7 +4459,7 @@ float GetCPULoad() {
 #endif
 
 CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(cpuload, 0, 1)
-    int timeout = 100;
+    int timeout = 50;
     if (PARAMETERS_COUNT > 0) {
         T_NUMBER(cpuload, 0);
         timeout = PARAM_INT(0);
@@ -4461,8 +4468,10 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(cpuload, 0, 1)
         timeout = 1;
 #ifdef _WIN32
     double usage = GetCPULoad();
-    Sleep(timeout);
-    usage = GetCPULoad();
+    if (!has_ticks) {
+        Sleep(timeout);
+        usage = GetCPULoad();
+    }
     RETURN_NUMBER(usage);
 #else
 #if defined(__FreeBSD__) || defined(__APPLE__)
@@ -4485,18 +4494,36 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(cpuload, 0, 1)
    }
 #else
 #ifdef __linux__
+    static double abase = 0.0f;
+    static double abase2 = 0.0f;
+    static time_t last_read = 0;
     double a[4], b[4], loadavg;
     FILE *fp = fopen("/proc/stat","r");
     if (fp) {
-        fscanf(fp,"%*s %lf %lf %lf %lf", &a[0], &a[1], &a[2], &a[3]);
-        fclose(fp);
-        usleep(timeout * 1000));
+        if (!last_read) {
+            fscanf(fp,"%*s %lf %lf %lf %lf", &a[0], &a[1], &a[2], &a[3]);
+            fclose(fp);
+            usleep(timeout * 1000);
 
-        fp = fopen("/proc/stat","r");
+            fp = fopen("/proc/stat","r");
+            abase = a[0] + a[1] + a[2] + a[3];
+            abase2 = a[0] + a[1] + a[2];
+            last_read = time(NULL);
+        }
         fscanf(fp,"%*s %lf %lf %lf %lf", &b[0], &b[1], &b[2], &b[3]);
         fclose(fp);
 
-        loadavg = ((b[0]+b[1]+b[2]) - (a[0]+a[1]+a[2])) / ((b[0]+b[1]+b[2]+b[3]) - (a[0]+a[1]+a[2]+a[3]));
+        double ab = (b[0]+b[1]+b[2]+b[3]) - (abase);
+        if (ab != 0.0f)
+            loadavg = ((b[0]+b[1]+b[2]) - (abase2)) / ab;
+        else
+            loadavg = 0;
+
+        if ((time(NULL) - last_read) >= 2) {
+            abase = b[0] + b[1] + b[2] + b[3];
+            abase2 = b[0] + b[1] + b[2];
+            last_read = time(NULL);
+        }
         RETURN_NUMBER(loadavg);
     } else {
         RETURN_NUMBER(-1);
