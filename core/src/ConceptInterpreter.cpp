@@ -6042,7 +6042,7 @@ VariableDATA **ConceptInterpreter::CreateEnvironment(PIFAlizator *PIF, VariableD
     this_ref->TYPE               = VARIABLE_CLASS;
     this_ref->CLASS_DATA         = Sender->CLASS_DATA;
     this_ref->LINKS              = 1;
-    this_ref->IS_PROPERTY_RESULT = 0;
+    this_ref->IS_PROPERTY_RESULT = -1;
 
     CC_WRITE_LOCK(PIF)
     if (this_ref->CLASS_DATA)
