@@ -210,7 +210,7 @@ void AllocMultipleVars(void **context, void *PIF, int count, int offset) {
         ((PIFAlizator *)PIF)->free_vars += POOL_BLOCK_SIZE;
     }
 
-    NEXT_POOL = POOL;
+    NEXT_POOL = ((PIFAlizator *)PIF)->CACHEDPOOL ? ((PIFAlizator *)PIF)->CACHEDPOOL : POOL;
     if (((PIFAlizator *)PIF)->free_vars) {
         int iterations = 0;
         while ((NEXT_POOL) && (((PIFAlizator *)PIF)->free_vars)) {
@@ -223,8 +223,12 @@ void AllocMultipleVars(void **context, void *PIF, int count, int offset) {
                     context[offset++] = &NEXT_POOL->POOL[i];
                     count--;
                     NEXT_POOL->FIRST_VAR = i + 1;
-                    if (!count)
+                    if (!count) {
+                        if (NEXT_POOL->POOL_VARS)
+                            ((PIFAlizator *)PIF)->CACHEDPOOL = NEXT_POOL;
                         return;
+                    }
+                    iterations = 0;
                 }
             }
             //}
@@ -232,7 +236,7 @@ void AllocMultipleVars(void **context, void *PIF, int count, int offset) {
             if (((PIFAlizator *)PIF)->free_vars < POOL_BLOCK_SIZE)
                 break;
             // memory is too fragmented ...
-            if (iterations > 1000)
+            if ((iterations > 1000) && (((PIFAlizator *)PIF)->free_vars < 10000))
                 break;
             NEXT_POOL = (VARPool *)NEXT_POOL->NEXT;
         }
@@ -268,6 +272,8 @@ void AllocMultipleVars(void **context, void *PIF, int count, int offset) {
         POOL->PREV                 = NEXT_POOL;
         ((PIFAlizator *)PIF)->POOL = NEXT_POOL;
         POOL = NEXT_POOL;
+        if (NEXT_POOL->POOL_VARS)
+            ((PIFAlizator *)PIF)->CACHEDPOOL = NEXT_POOL;
     }
 }
 
@@ -309,6 +315,8 @@ void *AllocVAR(void *PIF) {
                         else
                             NEXT_POOL->FIRST_VAR = POOL_BLOCK_SIZE;
                         ((PIFAlizator *)PIF)->free_vars--;
+                        if (((PIFAlizator *)PIF)->free_vars)
+                            ((PIFAlizator *)PIF)->CACHEDPOOL = NEXT_POOL;
                         return &NEXT_POOL->POOL[i];
                     }
                 }
@@ -317,7 +325,7 @@ void *AllocVAR(void *PIF) {
             if (((PIFAlizator *)PIF)->free_vars < POOL_BLOCK_SIZE)
                 break;
             // memory is too fragmented ...
-            if (iterations > 200)
+            if ((iterations > 200) && (((PIFAlizator *)PIF)->free_vars < 1000))
                 break;
             NEXT_POOL = (VARPool *)NEXT_POOL->NEXT;
         }
