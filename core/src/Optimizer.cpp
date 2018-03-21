@@ -105,8 +105,37 @@ class TempVariableManager {
 protected:
     TempVariableManagerBase pool1;
     TempVariableManagerBase pool2;
+    INTEGER *vars;
+    INTEGER var_len;
 public:
     TempVariableManager(DoubleList *vlist) : pool1(vlist), pool2(vlist) {
+        vars = NULL;
+        var_len = 0;
+    }
+
+    int cached_selector(int id) {
+        if (id < 0)
+            return 0;
+
+        if (id < var_len)
+            return vars[id - 1];
+
+        id++;
+        int old_var_len = var_len;
+        var_len = (id / 32 + 1) * 32;
+        vars = (INTEGER *)realloc(vars, sizeof(INTEGER) * var_len);
+        for (int i = old_var_len; i < var_len; i++)
+            vars[i] = 0;
+        return 0;
+    }
+
+    void cache(int id, int val) {
+        vars[id - 1] = val;
+    }
+
+    ~TempVariableManager() {
+        if (vars)
+            free(vars);
     }
 
     void Reset() {
@@ -958,6 +987,22 @@ INTEGER Optimizer::OptimizeExpression(OptimizerHelper *helper, TempVariableManag
                 ((!Parameter) || ((Parameter->TYPE != TYPE_OPERATOR) || 
                 ((Parameter->TYPE != TYPE_PARAM_LIST) && (Parameter->ID != KEY_ASG) && (Parameter->ID != KEY_BY_REF))))) {
                 tmp_index = TVM->GetVar2();
+            } else
+            if ((AE_ID == KEY_SEL) && (Left) && (Left->ID == 1) && ((!Parameter) || (Parameter->TYPE != TYPE_PARAM_LIST))) {
+                tmp_index = TVM->cached_selector(Right->ID);
+                if (!tmp_index) {
+                    VariableDESCRIPTOR *VD = new VariableDESCRIPTOR;
+                    VD->BY_REF = 0;
+                    VD->value  = NULL_STRING;
+                    VD->nValue = 0;
+                    VD->USED   = -2;
+
+                    VD->TYPE = VARIABLE_NUMBER;
+                    //}
+                    helper->VDList->Add(VD, DATA_VAR_DESCRIPTOR);
+                    tmp_index = helper->VDList->Count();
+                    TVM->cache(Right->ID, tmp_index);
+                }
             } else {
                 VariableDESCRIPTOR *VD = new VariableDESCRIPTOR;
                 VD->BY_REF = 0;

@@ -2811,6 +2811,8 @@ int ConceptInterpreter::StacklessInterpret(PIFAlizator *PIF, GreenThreadCycle *G
 #ifdef SIMPLE_MULTI_THREADING
     char IsWriteLocked = 0;
 #else
+    ClassMember *pMEMBER_i;
+    int relocation;
     bool not_executed;
 #endif
 
@@ -2973,32 +2975,38 @@ int ConceptInterpreter::StacklessInterpret(PIFAlizator *PIF, GreenThreadCycle *G
                         //-------------------------------------------//
 #ifndef SIMPLE_MULTI_THREADING
                         not_executed = true;
-                        if (CCTEMP->_Class == THIS_REF->OWNER->Defined_In) {
-                            int relocation = CCTEMP->_Class->Relocation(OE->OperandRight_ID - 1);
-                            ClassMember *pMEMBER_i = relocation ? CCTEMP->_Class->pMEMBERS [relocation - 1] : 0;
-                            if ((FORMAL_PARAMETERS) && (pMEMBER_i->IS_FUNCTION == 1)) {
-                                if (FORMAL_PARAMETERS->COUNT == pMEMBER_i->MUST_PARAMETERS_COUNT) {
-                                    not_executed = false;
-                                    WRITE_UNLOCK
-                                    RESULT = pMEMBER_i->Execute(PIF, ClassID, LOCAL_CONTEXT [OE->OperandLeft_ID - 1], FORMAL_PARAMETERS, LOCAL_CONTEXT, THROW_DATA, STACK_TRACE, LOCAL_CONTEXT [OE->Result_ID - 1], OE->Operator_FLAGS);
-                                    WRITE_LOCK
+                        relocation = CCTEMP->_Class->Relocation(OE->OperandRight_ID - 1);
+                        pMEMBER_i = relocation ? CCTEMP->_Class->pMEMBERS [relocation - 1] : 0;
+                        if ((pMEMBER_i) && ((CCTEMP->_Class == THIS_REF->OWNER->Defined_In) || (pMEMBER_i->ACCESS == 1))) {
+                            if (FORMAL_PARAMETERS) {
+                                if (pMEMBER_i->IS_FUNCTION == 1) {
+                                    if ((FORMAL_PARAMETERS->COUNT == pMEMBER_i->MUST_PARAMETERS_COUNT)) {
+                                        not_executed = false;
+                                        WRITE_UNLOCK
+                                        RESULT = pMEMBER_i->Execute(PIF, CCTEMP->_Class->CLSID, LOCAL_CONTEXT [OE->OperandLeft_ID - 1], FORMAL_PARAMETERS, LOCAL_CONTEXT, THROW_DATA, STACK_TRACE, LOCAL_CONTEXT [OE->Result_ID - 1], OE->Operator_FLAGS);
+                                        WRITE_LOCK
+                                    }
                                 }
-                            } else
-                            if ((!FORMAL_PARAMETERS) && (!pMEMBER_i->IS_FUNCTION)) {
-                                not_executed = false;
-                                int relocation2 = CCTEMP->_Class->RELOCATIONS2 [relocation - 1];
-                                RESULT = CCTEMP->_CONTEXT [relocation2 - 1];
-                                if (!RESULT)
-                                    RESULT = CompiledClass_CreateVariable(CCTEMP, relocation2 - 1, pMEMBER_i);
+                            } else {
+                                if (!pMEMBER_i->IS_FUNCTION) {
+                                    // not_executed = false;
+                                    relocation = CCTEMP->_Class->RELOCATIONS2 [relocation - 1];
+                                    RESULT = CCTEMP->_CONTEXT [relocation - 1];
+                                    if (!RESULT)
+                                        RESULT = CompiledClass_CreateVariable(CCTEMP, relocation - 1, pMEMBER_i);
+                                    goto nothrow;
+                                }
                             }
                         }
                         if (not_executed) {
-#endif
+                            WRITE_UNLOCK
+                            RESULT = CCTEMP->_Class->ExecuteMember(PIF, OE->OperandRight_ID - 1, LOCAL_CONTEXT [OE->OperandLeft_ID - 1], OE, CCTEMP->_Class->CLSID == ClassID, FORMAL_PARAMETERS, LOCAL_CONTEXT, 0, ClassID, THIS_REF->LocalClassID, &THROW_DATA, STACK_TRACE, next_is_asg, &TARGET_THREAD->PROPERTIES, OPT->dataCount, OE->Result_ID - 1, relocation);
+                            WRITE_LOCK
+                        }
+#else
                         WRITE_UNLOCK
                         RESULT = CCTEMP->_Class->ExecuteMember(PIF, OE->OperandRight_ID - 1, LOCAL_CONTEXT [OE->OperandLeft_ID - 1], OE, CCTEMP->_Class->CLSID == ClassID, FORMAL_PARAMETERS, LOCAL_CONTEXT, 0, ClassID, THIS_REF->LocalClassID, &THROW_DATA, STACK_TRACE, next_is_asg, &TARGET_THREAD->PROPERTIES, OPT->dataCount, OE->Result_ID - 1);
                         WRITE_LOCK
-#ifndef SIMPLE_MULTI_THREADING
-                        }
 #endif
                         if (THROW_DATA) {
                             DECLARE_PATH(LAST_THROW->TYPE);
@@ -3013,7 +3021,7 @@ int ConceptInterpreter::StacklessInterpret(PIFAlizator *PIF, GreenThreadCycle *G
                             WRITE_UNLOCK
                             continue;
                         }
-
+nothrow:
                         //-------------------------------------------//
                         if (RESULT == LOCAL_CONTEXT [OE->Result_ID - 1]) {
                             DECLARE_PATH(RESULT->TYPE);
@@ -5151,6 +5159,8 @@ VariableDATA *ConceptInterpreter::Interpret(PIFAlizator *PIF, VariableDATA **LOC
 #ifdef SIMPLE_MULTI_THREADING
     char IsWriteLocked = 0;
 #else
+    ClassMember      *pMEMBER_i;
+    int              relocation;
     bool             not_executed;
 #endif
     INTEGER CATCH_INSTRUCTION_POINTER = 0;
@@ -5351,32 +5361,38 @@ VariableDATA *ConceptInterpreter::Interpret(PIFAlizator *PIF, VariableDATA **LOC
                 //-------------------------------------------//
 #ifndef SIMPLE_MULTI_THREADING
                 not_executed = true;
-                if (CCTEMP->_Class == this->OWNER->Defined_In) {
-                    int relocation = CCTEMP->_Class->Relocation(OE->OperandRight_ID - 1);
-                    ClassMember *pMEMBER_i = relocation ? CCTEMP->_Class->pMEMBERS [relocation - 1] : 0;
-                    if ((FORMAL_PARAMETERS) && (pMEMBER_i->IS_FUNCTION == 1)) {
-                        if (FORMAL_PARAMETERS->COUNT == pMEMBER_i->MUST_PARAMETERS_COUNT) {
-                            not_executed = false;
-                            WRITE_UNLOCK
-                            RESULT = pMEMBER_i->Execute(PIF, ClassID, LOCAL_CONTEXT [OE->OperandLeft_ID - 1], FORMAL_PARAMETERS, LOCAL_CONTEXT, THROW_DATA, STACK_TRACE, LOCAL_CONTEXT [OE->Result_ID - 1], OE->Operator_FLAGS);
-                            WRITE_LOCK
+                relocation = CCTEMP->_Class->Relocation(OE->OperandRight_ID - 1);
+                pMEMBER_i = relocation ? CCTEMP->_Class->pMEMBERS [relocation - 1] : 0;
+                if ((pMEMBER_i) && ((CCTEMP->_Class == this->OWNER->Defined_In) || (pMEMBER_i->ACCESS == 1))) {
+                    if (FORMAL_PARAMETERS) {
+                        if (pMEMBER_i->IS_FUNCTION == 1) {
+                            if ((FORMAL_PARAMETERS->COUNT == pMEMBER_i->MUST_PARAMETERS_COUNT)) {
+                                not_executed = false;
+                                WRITE_UNLOCK
+                                RESULT = pMEMBER_i->Execute(PIF, CCTEMP->_Class->CLSID, LOCAL_CONTEXT [OE->OperandLeft_ID - 1], FORMAL_PARAMETERS, LOCAL_CONTEXT, THROW_DATA, STACK_TRACE, LOCAL_CONTEXT [OE->Result_ID - 1], OE->Operator_FLAGS);
+                                WRITE_LOCK
+                            }
                         }
-                    } else
-                    if ((!FORMAL_PARAMETERS) && (!pMEMBER_i->IS_FUNCTION)) {
-                        not_executed = false;
-                        int relocation2 = CCTEMP->_Class->RELOCATIONS2 [relocation - 1];
-                        RESULT = CCTEMP->_CONTEXT [relocation2 - 1];
-                        if (!RESULT)
-                            RESULT = CompiledClass_CreateVariable(CCTEMP, relocation2 - 1, pMEMBER_i);
+                    } else {
+                        if (!pMEMBER_i->IS_FUNCTION) {
+                            // not_executed = false;
+                            relocation = CCTEMP->_Class->RELOCATIONS2 [relocation - 1];
+                            RESULT = CCTEMP->_CONTEXT [relocation - 1];
+                            if (!RESULT)
+                                RESULT = CompiledClass_CreateVariable(CCTEMP, relocation - 1, pMEMBER_i);
+                            goto nothrow;
+                        }
                     }
                 }
                 if (not_executed) {
-#endif
+                    WRITE_UNLOCK
+                    RESULT = CCTEMP->_Class->ExecuteMember(PIF, OE->OperandRight_ID - 1, LOCAL_CONTEXT [OE->OperandLeft_ID - 1], OE, CCTEMP->_Class->CLSID == ClassID, FORMAL_PARAMETERS, LOCAL_CONTEXT, 0, ClassID, LocalClassID, &THROW_DATA, STACK_TRACE, next_is_asg, &PROPERTIES, OPT->dataCount, OE->Result_ID - 1, relocation);
+                    WRITE_LOCK
+                }
+#else
                 WRITE_UNLOCK
                 RESULT = CCTEMP->_Class->ExecuteMember(PIF, OE->OperandRight_ID - 1, LOCAL_CONTEXT [OE->OperandLeft_ID - 1], OE, CCTEMP->_Class->CLSID == ClassID, FORMAL_PARAMETERS, LOCAL_CONTEXT, 0, ClassID, LocalClassID, &THROW_DATA, STACK_TRACE, next_is_asg, &PROPERTIES, OPT->dataCount, OE->Result_ID - 1);
                 WRITE_LOCK
-#ifndef SIMPLE_MULTI_THREADING
-                }
 #endif
                 if (THROW_DATA) {
                     DECLARE_PATH(THROW_DATA->TYPE);
@@ -5389,6 +5405,7 @@ VariableDATA *ConceptInterpreter::Interpret(PIFAlizator *PIF, VariableDATA **LOC
                     continue;
                 }
                 //-------------------------------------------//
+nothrow:
                 if (RESULT == LOCAL_CONTEXT [OE->Result_ID - 1]) {
                     DECLARE_PATH(RESULT->TYPE);
                     continue;

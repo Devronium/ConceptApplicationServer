@@ -741,18 +741,19 @@ void ClassCode::BuildParameterError(PIFAlizator *PIF, int line, int FORMAL_PARAM
         PIF->Errors.Add(Exc, DATA_EXCEPTION);
 }
 
-VariableDATA *ClassCode::ExecuteMember(PIFAlizator *PIF, INTEGER i, VariableDATA *Owner, const RuntimeOptimizedElement *OE, INTEGER local, ParamList *FORMAL_PARAM, VariableDATA **SenderCTX, char property, INTEGER CLSID, INTEGER LOCAL_CLSID, VariableDATA **LOCAL_THROW, SCStack *PREV, char next_is_asg, VariableDATAPROPERTY **PROPERTIES, int dataLen, int result_id) const {
+VariableDATA *ClassCode::ExecuteMember(PIFAlizator *PIF, INTEGER i, VariableDATA *Owner, const RuntimeOptimizedElement *OE, INTEGER local, ParamList *FORMAL_PARAM, VariableDATA **SenderCTX, char property, INTEGER CLSID, INTEGER LOCAL_CLSID, VariableDATA **LOCAL_THROW, SCStack *PREV, char next_is_asg, VariableDATAPROPERTY **PROPERTIES, int dataLen, int result_id, int relocation) const {
     INTEGER      IS_PROPERTY = 0;
     VariableDATA *RESULT;
     struct CompiledClass *CLASS_DATA;
-    int          relocation = this->Relocation(i);
+    if (relocation <= 0)
+        relocation = this->Relocation(i);
     *LOCAL_THROW = NULL;
 
     ClassMember *pMEMBER_i = relocation ? pMEMBERS [relocation - 1] : 0;
     if (pMEMBER_i) {
         if (((ClassCode *)pMEMBER_i->Defined_In)->CLSID != LOCAL_CLSID) {
             if (pMEMBER_i->ACCESS == ACCESS_PRIVATE) {
-                const char *mname = PIF->GeneralMembers->Item(i);
+                const char *mname = pMEMBER_i->NAME;
                 AnsiException *Exc   = new AnsiException(ERR190, OE ? OE->Operator_DEBUG_INFO_LINE : 0, 190, mname ? mname : (OE ? ((TinyString)OE->OperandRight_PARSE_DATA).c_str() : pMEMBER_i->NAME), *GetFilename(PIF, CLSID, &((ClassCode *)(pMEMBER_i->Defined_In))->_DEBUG_INFO_FILENAME), ((ClassCode *)(pMEMBER_i->Defined_In))->NAME, NAME);
                 PIF->AcknoledgeRunTimeError(PREV, Exc);
                 return 0;
@@ -760,7 +761,7 @@ VariableDATA *ClassCode::ExecuteMember(PIFAlizator *PIF, INTEGER i, VariableDATA
             if ((pMEMBER_i->ACCESS == ACCESS_PROTECTED) && (!local)) {
                 ClassCode *caller = (ClassCode *)PIF->StaticClassList[LOCAL_CLSID];
                 if ((!caller) || (!caller->Inherits(this->CLSID))) {
-                    const char *mname = PIF->GeneralMembers->Item(i);
+                    const char *mname = pMEMBER_i->NAME;
                     AnsiException *Exc   = new AnsiException(ERR850, OE ? OE->Operator_DEBUG_INFO_LINE : 0, 850, mname ? mname : (OE ? ((TinyString)OE->OperandRight_PARSE_DATA).c_str() : pMEMBER_i->NAME), *GetFilename(PIF, CLSID, &((ClassCode *)(pMEMBER_i->Defined_In))->_DEBUG_INFO_FILENAME), ((ClassCode *)(pMEMBER_i->Defined_In))->NAME, NAME);
                     PIF->AcknoledgeRunTimeError(PREV, Exc);
                     return 0;
