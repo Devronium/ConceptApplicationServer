@@ -67,36 +67,6 @@ void *GetPOOLContext(void *refVAR) {
     return 0;
 }
 
-void VarClean(PIFAlizator *pif) {
-    VARPool *CURRENT   = pif->POOL;
-    VARPool *NEXT      = (VARPool *)CURRENT->NEXT;
-    int     iterations = 0;
-
-    while (NEXT) {
-        // skip first block
-        CURRENT = NEXT;
-        NEXT    = (VARPool *)CURRENT->NEXT;
-        if (CURRENT->POOL_VARS == POOL_BLOCK_SIZE) {
-            VARPool *PREV = (VARPool *)CURRENT->PREV;
-
-            PREV->NEXT = NEXT;
-            if (NEXT)
-                NEXT->PREV = PREV;
-            pif->CACHEDPOOL = NULL;
-            ((PIFAlizator *)CURRENT->PIF)->free_vars -= POOL_BLOCK_SIZE;
-
-            if (((PIFAlizator *)CURRENT->PIF)->free_vars <= POOL_BLOCK_SIZE)
-                NEXT = NULL;
-            FAST_FREE(CURRENT);
-            iterations = 0;
-        } else {
-            iterations++;
-            if (iterations == 5)
-                break;
-        }
-    }
-}
-
 void RemoveBlock(VARPool *CURRENT) {
     VARPool *PREV = (VARPool *)CURRENT->PREV;
     VARPool *NEXT = (VARPool *)CURRENT->NEXT;
@@ -110,6 +80,30 @@ void RemoveBlock(VARPool *CURRENT) {
     if (((PIFAlizator *)CURRENT->PIF)->POOL == CURRENT)
         ((PIFAlizator *)CURRENT->PIF)->POOL = NEXT;
     FAST_FREE(CURRENT);
+}
+
+void VarClean(PIFAlizator *pif, int max_iterations) {
+    VARPool *CURRENT   = pif->POOL;
+    if (!CURRENT)
+        return;
+
+    VARPool *NEXT      = (VARPool *)CURRENT->NEXT;
+    int     iterations = 0;
+
+    while (NEXT) {
+        // skip first block
+        CURRENT = NEXT;
+        NEXT    = (VARPool *)CURRENT->NEXT;
+        if (CURRENT->POOL_VARS == POOL_BLOCK_SIZE) {
+            iterations = 0;
+            RemoveBlock(CURRENT);
+        } else
+        if (max_iterations > 0) {
+            iterations++;
+            if (iterations == max_iterations)
+                break;
+        }
+    }
 }
 
 void FreeMultipleVars(void **refVARs, int count) {
@@ -130,8 +124,6 @@ void FreeMultipleVars(void **refVARs, int count) {
                 CURRENT->POOL_VARS++;
                 if (CURRENT->POOL_VARS == POOL_BLOCK_SIZE) {
                     RemoveBlock(CURRENT);
-                    if (CURRENT == pif->CACHEDPOOL)
-                        pif->CACHEDPOOL = NULL;
                     CURRENT = NULL;
                 }
             } else
@@ -166,13 +158,7 @@ void FreeVAR(void *refVAR) {
     VARPool *NEXT = (VARPool *)CURRENT->NEXT;
     PIFAlizator *PIF = (PIFAlizator *)CURRENT->PIF;
     if (CURRENT->POOL_VARS == POOL_BLOCK_SIZE) /*&& (PREV))*/ {
-        /*PREV->NEXT = NEXT;
-        if (NEXT)
-            NEXT->PREV = CURRENT->PREV;*/
         ((PIFAlizator *)CURRENT->PIF)->free_vars -= POOL_BLOCK_SIZE;
-        if (((PIFAlizator *)CURRENT->PIF)->CACHEDPOOL == CURRENT)
-            ((PIFAlizator *)CURRENT->PIF)->CACHEDPOOL = NULL;
-        /*FAST_FREE(CURRENT);*/
         RemoveBlock(CURRENT);
     } else
     if ((PREV) && (NEXT)) {
@@ -208,9 +194,12 @@ void AllocMultipleVars(void **context, void *PIF, int count, int offset) {
             POOL->POOL[i].flags = -1;
         ((PIFAlizator *)PIF)->POOL       = POOL;
         ((PIFAlizator *)PIF)->free_vars += POOL_BLOCK_SIZE;
-    }
-
-    NEXT_POOL = ((PIFAlizator *)PIF)->CACHEDPOOL ? ((PIFAlizator *)PIF)->CACHEDPOOL : POOL;
+        NEXT_POOL = POOL;
+    } else
+    if ((((PIFAlizator *)PIF)->CACHEDPOOL) && ((((PIFAlizator *)PIF)->CACHEDPOOL)->POOL_VARS <= count))
+        NEXT_POOL = ((PIFAlizator *)PIF)->CACHEDPOOL;
+    else
+        NEXT_POOL = POOL;
     if (((PIFAlizator *)PIF)->free_vars) {
         int iterations = 0;
         while ((NEXT_POOL) && (((PIFAlizator *)PIF)->free_vars)) {
@@ -353,9 +342,9 @@ void *AllocVAR(void *PIF) {
 
 int ModuleCheckReachability(void *PIF) {
 #ifndef SIMPLE_MULTI_THREADING
-    if (!CheckReachability(PIF)) {
+    if (CheckReachability(PIF)) {
         ((PIFAlizator *)PIF)->dirty_limit = 1000;
-        VarClean((PIFAlizator *)PIF);
+        VarClean((PIFAlizator *)PIF, 0);
         return 1;
     }
     return 0;
@@ -482,7 +471,8 @@ void FreeClassObject(void *refObject) {
         PIF->CACHEDCLASSPOOL = CURRENT;
         if (NEXT)
             NEXT->PREV = CURRENT->PREV;
-        PREV->NEXT = NEXT;
+        if (PREV)
+            PREV->NEXT = NEXT;
 
         CURRENT->NEXT = PIF->CLASSPOOL;
         CURRENT->PREV = NULL;
@@ -1153,9 +1143,15 @@ int GetMemoryStatistics(void *PIF, void *RESULT) {
     VariableDATA *delegate_var  = Array_ModuleGet((struct Array *)RESULT, "delegates");
     VariableDATA *lock_obj_var  = Array_ModuleGet((struct Array *)RESULT, "objects_locked");
     VariableDATA *lock_arr_var  = Array_ModuleGet((struct Array *)RESULT, "arrays_locked");
+    VariableDATA *var_pools     = Array_ModuleGet((struct Array *)RESULT, "variables_pools");
     VariableDATA *var_pool_var  = Array_ModuleGet((struct Array *)RESULT, "variables_pool_memory");
+    VariableDATA *var_pool_unallocated  = Array_ModuleGet((struct Array *)RESULT, "unallocated_variables");
+    VariableDATA *obj_pools     = Array_ModuleGet((struct Array *)RESULT, "objects_pools");
     VariableDATA *obj_pool_var  = Array_ModuleGet((struct Array *)RESULT, "objects_pool_memory");
+    VariableDATA *obj_unallocated = Array_ModuleGet((struct Array *)RESULT, "unallocated_objects");
+    VariableDATA *arr_pools     = Array_ModuleGet((struct Array *)RESULT, "arrays_pools");
     VariableDATA *arr_pool_var  = Array_ModuleGet((struct Array *)RESULT, "arrays_pool_memory");
+    VariableDATA *arr_unallocated = Array_ModuleGet((struct Array *)RESULT, "unallocated_arrays");
 #endif
     VariableDATA *string_memory = Array_ModuleGet((struct Array *)RESULT, "strings_memory");
     VariableDATA *memory = Array_ModuleGet((struct Array *)RESULT, "memory");
@@ -1165,6 +1161,7 @@ int GetMemoryStatistics(void *PIF, void *RESULT) {
     VARPool *NEXT_POOL = ((PIFAlizator *)PIF)->POOL;
     while (NEXT_POOL) {
         var_pool_var->NUMBER_DATA += sizeof(VARPool);
+        var_pools->NUMBER_DATA++;
         if (NEXT_POOL->POOL_VARS) {
             for (int i = 0; i < POOL_BLOCK_SIZE; i++) {
                 if (NEXT_POOL->POOL[i].flags != -1) {
@@ -1188,7 +1185,8 @@ int GetMemoryStatistics(void *PIF, void *RESULT) {
                             delegate_var->NUMBER_DATA += 1;
                             break;
                     }
-                }
+                } else
+                    var_pool_unallocated->NUMBER_DATA ++;
             }
         }
         NEXT_POOL = (VARPool *)NEXT_POOL->NEXT;
@@ -1250,6 +1248,7 @@ int GetMemoryStatistics(void *PIF, void *RESULT) {
     // =================================== //
     ClassPool *POOL = (ClassPool *)((PIFAlizator *)PIF)->CLASSPOOL;
     while (POOL) {
+        obj_pools->NUMBER_DATA ++;
         if (POOL->POOL_VARS < OBJECT_POOL_BLOCK_SIZE) {
             for (int i = 0; i < OBJECT_POOL_BLOCK_SIZE; i++) {
                 CompiledClass *CC = &POOL->POOL[i];
@@ -1267,6 +1266,7 @@ int GetMemoryStatistics(void *PIF, void *RESULT) {
     }
     ArrayPool *ARRAYPOOL = (ArrayPool *)((PIFAlizator *)PIF)->ARRAYPOOL;
     while (ARRAYPOOL) {
+        arr_pools->NUMBER_DATA ++;
         if (ARRAYPOOL->POOL_VARS < ARRAY_POOL_BLOCK_SIZE) {
             for (int i = 0; i < ARRAY_POOL_BLOCK_SIZE; i++) {
                 Array *ARR = &ARRAYPOOL->POOL[i];
@@ -1298,7 +1298,8 @@ int GetMemoryStatistics(void *PIF, void *RESULT) {
                     memory->NUMBER_DATA += CompiledClass_GetClass(CC)->DataMembersCount * sizeof(VariableDATA *);
                     if ((CC->flags >= 0) && (CC->reachable < 0x1C) && (CC->reachable != reach_id_flag))
                         unreachable_objects->NUMBER_DATA += 1;
-                }
+                } else
+                    obj_unallocated->NUMBER_DATA++;
             }
         }
         POOL = (ClassPool *)POOL->NEXT;
@@ -1330,7 +1331,8 @@ int GetMemoryStatistics(void *PIF, void *RESULT) {
                     }
                     if ((ARR->flags >= 0) && (ARR->reachable < 0x1C) && (ARR->reachable != reach_id_flag))
                         unreachable_arrays->NUMBER_DATA += 1;
-                }
+                } else
+                    arr_unallocated->NUMBER_DATA++;
             }
         }
         ARRAYPOOL = (ArrayPool *)ARRAYPOOL->NEXT;
