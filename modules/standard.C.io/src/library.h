@@ -153,5 +153,7 @@ CONCEPT_FUNCTION(Impersonate)
 CONCEPT_FUNCTION(setvbuf)
 
 CONCEPT_FUNCTION(cpuload)
+
+CONCEPT_FUNCTION(sendfile)
 }
 #endif // __LIBRARY_H

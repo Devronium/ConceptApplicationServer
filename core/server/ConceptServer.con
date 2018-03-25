@@ -3191,6 +3191,49 @@ class ConceptCGIChild extends ConceptCGIChildBase {
 		return false;
 	}
 
+	SendFileIterate(var ops) {
+		var running = ExecuteIsRunning(pid);
+		if (running) {
+			if (Socket.HasData) {
+				if (sendfile(std_in, Socket.Socket, MAX_RECV_BUFFER) < 0) {
+					var err = SocketErrno();
+					if ((err != 11) && (err != 35) && (err != 10035))
+						return true;
+
+					if ((last_err_time) && (time() - last_err_time >= CGI_MAX_RETRY_SECONDS)) {
+						echo "CGI write congestion\n";
+						return true;
+					}
+				} else {
+					last_err_time = 0;
+					ops ++;
+				}
+			}
+		}
+		err = sendfile(Socket.Socket, std_out, MAX_RECV_BUFFER);
+		if (err <= 0) {
+			var pipe_err = _errno();
+			if ((pipe_err != 11) && (pipe_err != 35) && (pipe_err != 28) && (pipe_err != 22) && (err)) {
+				echo "CGI pipe read error: $pipe_err\n";
+				return true;
+			}
+			if ((last_pipe_err_time_read) && (time() - last_pipe_err_time_read >= CGI_MAX_RETRY_SECONDS)) {
+				echo "CGI pipe congestion\n";
+				return true;
+			}
+			if (!last_pipe_err_time_read)
+				last_pipe_err_time_read = time();
+		} else {
+			last_pipe_err_time_read = 0;
+			ops++;
+		}
+
+		if ((!running) && (!err))
+			return true;
+
+		return false;
+	}
+
 	static CreatePipes(var std_out_r, var std_out_w, var std_in_r, var std_in_w, var err_text) {
 		if (socketpair(std_out_r, std_out_w)) {
 			err_text = "ConceptCGIChild: Error creating pipe (stdout)";

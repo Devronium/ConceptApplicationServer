@@ -19,9 +19,22 @@
 #include <dirent.h>
 #ifdef __FreeBSD__
     #include <sys/sysctl.h>
+    #include <sys/types.h>
+    #include <sys/socket.h>
+    #include <sys/uio.h>
+    #define WITH_SENDFILE
 #endif
 #ifdef __APPLE__
     #include <sys/sysctl.h>
+    #include <sys/types.h>
+    #include <sys/socket.h>
+    #include <sys/uio.h>
+    #define WITH_SENDFILE
+#endif
+
+#ifdef __linux__
+    #include <sys/sendfile.h>
+    #define WITH_SENDFILE
 #endif
 
 #include <utime.h>
@@ -4532,5 +4545,30 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(cpuload, 0, 1)
     RETURN_NUMBER(-1);
 #endif
 #endif
+#endif
+END_IMPL
+//-----------------------------------------------------------------------------------
+CONCEPT_FUNCTION_IMPL(sendfile, 3)
+    T_NUMBER(sendfile, 0)
+    T_NUMBER(sendfile, 1)
+    T_NUMBER(sendfile, 2)
+#ifdef WITH_SENDFILE
+    if ((!PARAM_INT(0)) && (!PARAM_INT(1)) && (!PARAM_INT(2))) {
+        // call sendfile(0, 0, 0) to check support
+        RETURN_NUMBER(0);
+        return 0;
+    }
+#if defined(__FreeBSD__) || defined(__APPLE__)
+    int res = sendfile(PARAM_INT(1), PARAM_INT(0), 0, (size_t)PARAM(2), NULL, NULL, 0);
+#else
+    int res = sendfile(PARAM_INT(0),PARAM_INT(1), NULL, (size_t)PARAM(2));
+#endif
+    RETURN_NUMBER(res)
+#else
+    if ((!PARAM_INT(0)) && (!PARAM_INT(1)) && (!PARAM_INT(2))) {
+        RETURN_NUMBER(-1);
+        return 0;
+    }
+    RETURN_NUMBER(-2)
 #endif
 END_IMPL
