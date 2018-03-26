@@ -154,6 +154,6 @@ CONCEPT_FUNCTION(setvbuf)
 
 CONCEPT_FUNCTION(cpuload)
 
-CONCEPT_FUNCTION(sendfile)
+CONCEPT_FUNCTION(pipesocket)
 }
 #endif // __LIBRARY_H

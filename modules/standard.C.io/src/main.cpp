@@ -4548,10 +4548,27 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(cpuload, 0, 1)
 #endif
 END_IMPL
 //-----------------------------------------------------------------------------------
-CONCEPT_FUNCTION_IMPL(sendfile, 3)
+#ifdef _WIN32
+typedef BOOL PASCAL (*TransmitFilePtr)(SOCKET hSocket, HANDLE hFile, DWORD nNumberOfBytesToWrite, DWORD nNumberOfBytesPerSend, LPOVERLAPPED lpOverlapped, LPVOID lpTransmitBuffers, DWORD dwFlags);
+#endif
+CONCEPT_FUNCTION_IMPL(pipesocket, 3)
     T_NUMBER(sendfile, 0)
     T_NUMBER(sendfile, 1)
     T_NUMBER(sendfile, 2)
+#ifdef _WIN32
+    static int module_loaded;
+    static TransmitFilePtr TransmitFile;
+    if (!module_loaded) {
+        module_loaded = 1;
+        HMODULE module = LoadLibrary("mswsock.dll");
+        if (module)
+            TransmitFile = (TransmitFilePtr)GetProcAddress(module, "TransmitFile");
+    }
+    if (!TransmitFile) {
+        RETURN_NUMBER(-2);
+        return 0;
+    }
+#endif
 #ifdef WITH_SENDFILE
     if ((!PARAM_INT(0)) && (!PARAM_INT(1)) && (!PARAM_INT(2))) {
         // call sendfile(0, 0, 0) to check support
@@ -4559,16 +4576,25 @@ CONCEPT_FUNCTION_IMPL(sendfile, 3)
         return 0;
     }
 #if defined(__FreeBSD__) || defined(__APPLE__)
-    int res = sendfile(PARAM_INT(1), PARAM_INT(0), 0, (size_t)PARAM(2), NULL, NULL, 0);
+    int res = sendfile(PARAM_INT(0), PARAM_INT(1), 0, (size_t)PARAM(2), NULL, NULL, 0);
 #else
-    int res = sendfile(PARAM_INT(0),PARAM_INT(1), NULL, (size_t)PARAM(2));
+    int res = splice(PARAM_INT(0), NULL, PARAM_INT(1), NULL, (size_t)PARAM(2), SPLICE_F_NONBLOCK);
 #endif
     RETURN_NUMBER(res)
+#else
+#ifdef _WIN32
+    HANDLE h = (HANDLE)_get_osfhandle(PARAM_INT(0));
+    if (!TransmitFile((SOCKET)PARAM_INT(1), (HANDLE)_get_osfhandle(PARAM_INT(0)), (DWORD)0, 0, NULL, NULL, 4 /* TF_WRITE_BEHIND */)) {
+        RETURN_NUMBER(-1);
+    } else {
+        RETURN_NUMBER(1);
+    }
 #else
     if ((!PARAM_INT(0)) && (!PARAM_INT(1)) && (!PARAM_INT(2))) {
         RETURN_NUMBER(-1);
         return 0;
     }
     RETURN_NUMBER(-2)
+#endif
 #endif
 END_IMPL

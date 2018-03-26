@@ -2985,6 +2985,7 @@ class ConceptCGIChild extends ConceptCGIChildBase {
 	var std_in;
 	var last_pipe_err_time;
 	var last_pipe_err_time_read;
+	var is_tls;
 
 	ConceptCGIChild(method, Socket, std_out, std_in, pid, buffer, h2 = null, stream = null, default_h2_header = null) {
 		this.is_post = true;//(method != "GET");
@@ -3002,9 +3003,12 @@ class ConceptCGIChild extends ConceptCGIChildBase {
 		SocketSetBlocking(Socket.Socket, false);
 
 		if (h2) {
+			is_tls = true;
 			h2.MaxOutputBuffer = H2_MAX_STDOUT_BUFFER;
 			h2.MaxFileBuffer = H2_MAX_FILE_BUFFER;
-		}
+		} else
+		if (classof Socket == "TLSESocket")
+			is_tls = true;
 	}
 
 	Close() {
@@ -3087,37 +3091,61 @@ class ConceptCGIChild extends ConceptCGIChildBase {
 				}
 			}
 		}
-
-		if ((std_out) && (length std_out_buffer < PIPE_MAX_STDOUT_BUFFER)) {
-			var s = microseconds();
-			var bytes_read = 0;
-			do {
-				res = read(std_out, var buffer, MAX_RECV_BUFFER);
-				if (res > 0) {
-					bytes_read += res;
-					std_out_buffer += buffer;
-					ops ++;
-					last_pipe_err_time_read = 0;
-					// CPU time
-					if ((microseconds() - s > PIPE_READ_CPU_TIME_US) || (bytes_read >= MAX_RECV_BUFFER))
-						break;
+		if (std_out) {
+			// pipesocket code (splice/sendfile/TransmitFile)
+			var err = -2;
+			if (!is_tls) {
+				err = pipesocket(std_out, Socket.Socket, MAX_RECV_BUFFER);
+				if (err != -2) {
+					// pipesocket supported
+					if (err <= 0) {
+						pipe_err = _errno();
+						if (!pipe_err)
+							pipe_err = SocketErrno();
+						if ((pipe_err != 11) && (pipe_err != 35) && (pipe_err != 28) && (pipe_err != 22) && (pipe_err != 10035) && (err)) {
+							echo "CGI pipe read error: $pipe_err\n";
+							return true;
+						}
+						if ((last_pipe_err_time_read) && (time() - last_pipe_err_time_read >= CGI_MAX_RETRY_SECONDS)) {
+							echo "CGI pipe congestion\n";
+							return true;
+						}
+						if (!last_pipe_err_time_read)
+							last_pipe_err_time_read = time();
+					}
 				}
-			} while (res > 0);
-			// read returns 0 if pipe closed
-			if (res <= 0) {
-				pipe_err = _errno();
-				if ((pipe_err != 11) && (pipe_err != 35) && (pipe_err != 28) && (pipe_err != 22) && (res)) {
-					echo "CGI pipe read error: $pipe_err\n";
-					return true;
-				}
-				if ((last_pipe_err_time_read) && (time() - last_pipe_err_time_read >= CGI_MAX_RETRY_SECONDS)) {
-					echo "CGI pipe congestion\n";
-					return true;
-				}
-				if (!last_pipe_err_time_read)
-					last_pipe_err_time_read = time();
 			}
-
+			// end of pipesocket code
+			if ((err == -2) && (length std_out_buffer < PIPE_MAX_STDOUT_BUFFER)) {
+				var s = microseconds();
+				var bytes_read = 0;
+				do {
+					res = read(std_out, var buffer, MAX_RECV_BUFFER);
+					if (res > 0) {
+						bytes_read += res;
+						std_out_buffer += buffer;
+						ops ++;
+						last_pipe_err_time_read = 0;
+						// CPU time
+						if ((microseconds() - s > PIPE_READ_CPU_TIME_US) || (bytes_read >= MAX_RECV_BUFFER))
+							break;
+					}
+				} while (res > 0);
+				// read returns 0 if pipe closed
+				if (res <= 0) {
+					pipe_err = _errno();
+					if ((pipe_err != 11) && (pipe_err != 35) && (pipe_err != 28) && (pipe_err != 22) && (res)) {
+						echo "CGI pipe read error: $pipe_err\n";
+						return true;
+					}
+					if ((last_pipe_err_time_read) && (time() - last_pipe_err_time_read >= CGI_MAX_RETRY_SECONDS)) {
+						echo "CGI pipe congestion\n";
+						return true;
+					}
+					if (!last_pipe_err_time_read)
+						last_pipe_err_time_read = time();
+				}
+			}
 		}
 		if (std_out_buffer) {
 			if (stream) {
@@ -3171,7 +3199,7 @@ class ConceptCGIChild extends ConceptCGIChildBase {
 					}
 				} catch (exc) {
 					// EAGAIN ?
-					var err = SocketErrno();
+					err = SocketErrno();
 					if ((err != 11) && (err != 35) && (err != 10035))
 						return true;
 
@@ -3191,55 +3219,12 @@ class ConceptCGIChild extends ConceptCGIChildBase {
 		return false;
 	}
 
-	SendFileIterate(var ops) {
-		var running = ExecuteIsRunning(pid);
-		if (running) {
-			if (Socket.HasData) {
-				if (sendfile(std_in, Socket.Socket, MAX_RECV_BUFFER) < 0) {
-					var err = SocketErrno();
-					if ((err != 11) && (err != 35) && (err != 10035))
-						return true;
-
-					if ((last_err_time) && (time() - last_err_time >= CGI_MAX_RETRY_SECONDS)) {
-						echo "CGI write congestion\n";
-						return true;
-					}
-				} else {
-					last_err_time = 0;
-					ops ++;
-				}
-			}
-		}
-		err = sendfile(Socket.Socket, std_out, MAX_RECV_BUFFER);
-		if (err <= 0) {
-			var pipe_err = _errno();
-			if ((pipe_err != 11) && (pipe_err != 35) && (pipe_err != 28) && (pipe_err != 22) && (err)) {
-				echo "CGI pipe read error: $pipe_err\n";
-				return true;
-			}
-			if ((last_pipe_err_time_read) && (time() - last_pipe_err_time_read >= CGI_MAX_RETRY_SECONDS)) {
-				echo "CGI pipe congestion\n";
-				return true;
-			}
-			if (!last_pipe_err_time_read)
-				last_pipe_err_time_read = time();
-		} else {
-			last_pipe_err_time_read = 0;
-			ops++;
-		}
-
-		if ((!running) && (!err))
-			return true;
-
-		return false;
-	}
-
 	static CreatePipes(var std_out_r, var std_out_w, var std_in_r, var std_in_w, var err_text) {
-		if (socketpair(std_out_r, std_out_w)) {
+		if (/*socketpair*/pipe(std_out_r, std_out_w)) {
 			err_text = "ConceptCGIChild: Error creating pipe (stdout)";
 			return -1;
 		}
-		if (socketpair(std_in_r, std_in_w)) {
+		if (/*socketpair*/pipe(std_in_r, std_in_w)) {
 			close(std_out_r);
 			close(std_out_w);
 			err_text = "ConceptCGIChild: Error creating pipe (stdin)";
