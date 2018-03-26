@@ -1146,17 +1146,18 @@ int GetMemoryStatistics(void *PIF, void *RESULT) {
     VariableDATA *var_pools     = Array_ModuleGet((struct Array *)RESULT, "variables_pools");
     VariableDATA *var_pool_var  = Array_ModuleGet((struct Array *)RESULT, "variables_pool_memory");
     VariableDATA *var_pool_unallocated  = Array_ModuleGet((struct Array *)RESULT, "unallocated_variables");
-    VariableDATA *obj_pools     = Array_ModuleGet((struct Array *)RESULT, "objects_pools");
     VariableDATA *obj_pool_var  = Array_ModuleGet((struct Array *)RESULT, "objects_pool_memory");
-    VariableDATA *obj_unallocated = Array_ModuleGet((struct Array *)RESULT, "unallocated_objects");
-    VariableDATA *arr_pools     = Array_ModuleGet((struct Array *)RESULT, "arrays_pools");
     VariableDATA *arr_pool_var  = Array_ModuleGet((struct Array *)RESULT, "arrays_pool_memory");
-    VariableDATA *arr_unallocated = Array_ModuleGet((struct Array *)RESULT, "unallocated_arrays");
 #endif
     VariableDATA *string_memory = Array_ModuleGet((struct Array *)RESULT, "strings_memory");
     VariableDATA *memory = Array_ModuleGet((struct Array *)RESULT, "memory");
     VariableDATA *unreachable_objects = Array_ModuleGet((struct Array *)RESULT, "unreachable_objects");
     VariableDATA *unreachable_arrays  = Array_ModuleGet((struct Array *)RESULT, "unreachable_arrays");
+
+    VariableDATA *obj_pools     = Array_ModuleGet((struct Array *)RESULT, "objects_pools");
+    VariableDATA *obj_unallocated = Array_ModuleGet((struct Array *)RESULT, "unallocated_objects");
+    VariableDATA *arr_pools     = Array_ModuleGet((struct Array *)RESULT, "arrays_pools");
+    VariableDATA *arr_unallocated = Array_ModuleGet((struct Array *)RESULT, "unallocated_arrays");
 #ifdef POOL_BLOCK_ALLOC
     VARPool *NEXT_POOL = ((PIFAlizator *)PIF)->POOL;
     while (NEXT_POOL) {

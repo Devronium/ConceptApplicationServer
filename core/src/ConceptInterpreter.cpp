@@ -360,9 +360,7 @@ void COPY_VARIABLE(VariableDATA *DEST, VariableDATA *SRC, SCStack *STACK_TRACE) 
 //#ifndef SINGLE_PROCESS_DLL
 //#endif
 
-#if defined(USE_JIT) || defined (USE_JIT_TRACE)
-extern "C" {
- #if (__BIG_ENDIAN__ == 1) || (BIG_ENDIAN == 1) || (defined(__BYTE_ORDER) && (__BYTE_ORDER == __BIG_ENDIAN))
+#if (__BIG_ENDIAN__ == 1) || (BIG_ENDIAN == 1) || (defined(__BYTE_ORDER) && (__BYTE_ORDER == __BIG_ENDIAN))
 union i_cast {
     double dn;
     int    bits[2];
@@ -383,9 +381,27 @@ union i_cast {
 // 6755399441055744 = 1.5 x 2^52 (round)
    #define double2int(i, d)    { volatile union i_cast u; u.dn = (d) + 6755399441055744.0; i = (int)u.bits[0]; }
   #endif
- #endif
+#endif
 
- #ifdef USE_JIT_TRACE
+#if defined(USE_JIT) || defined (USE_JIT_TRACE)
+extern "C" {
+#ifdef USE_JIT_TRACE
+ #ifdef ARM_PATCH
+    #define JIT_CALL_FUNC(func)
+                            if (usedflags[OE->Result_ID - 1]) { \
+                                sljit_emit_op1(compiler, SLJIT_MOV, SLJIT_TEMPORARY_EREG1, 0, SLJIT_IMM, SLJIT_FUNC_OFFSET(func)); \
+                                sljit_emit_ijump(compiler, SLJIT_CALL3, SLJIT_TEMPORARY_EREG1, 0); \
+                            } else { \
+                                sljit_emit_op1(compiler, SLJIT_MOV, SLJIT_TEMPORARY_EREG1, 0, SLJIT_IMM, SLJIT_FUNC_OFFSET(func ## _v2)); \
+                                sljit_emit_ijump(compiler, SLJIT_CALL2, SLJIT_TEMPORARY_EREG1, 0); \
+                            }
+ #else
+    #define JIT_CALL_FUNC(func) \
+                            if (usedflags[OE->Result_ID - 1]) \
+                                sljit_emit_ijump(compiler, SLJIT_CALL3, SLJIT_IMM, SLJIT_FUNC_OFFSET(func)); \
+                            else \
+                                sljit_emit_ijump(compiler, SLJIT_CALL2, SLJIT_IMM, SLJIT_FUNC_OFFSET(func ## _v2));
+ #endif
 static sljit_sw SLJIT_CALL c_CHECKTYPES3(VariableDATA *a, VariableDATA *b, VariableDATA *c) {
     if ((a->TYPE != VARIABLE_NUMBER) || (a->IS_PROPERTY_RESULT == 1))
         return 0;
@@ -840,6 +856,7 @@ static sljit_sw SLJIT_CALL c_modVD(VariableDATA *left, VariableDATA *right, Vari
     return 0;
 }
 
+// version A
 static sljit_sw SLJIT_CALL c_modVD2(VariableDATA *left, VariableDATA *right, VariableDATA *result) {
     sljit_sw o2 = (sljit_sw)right->NUMBER_DATA;
 
@@ -887,6 +904,50 @@ static sljit_sw SLJIT_CALL c_ASRVD(VariableDATA *left, VariableDATA *right, Vari
     result->NUMBER_DATA = left->NUMBER_DATA;
     return 0;
 }
+
+// version B
+static sljit_sw SLJIT_CALL c_modVD2_v2(VariableDATA *left, VariableDATA *right, VariableDATA *result) {
+    sljit_sw o2 = (sljit_sw)right->NUMBER_DATA;
+
+    if (o2)
+        left->NUMBER_DATA = (sljit_sw)left->NUMBER_DATA % o2;
+    else {
+  #ifdef JIT_RUNTIME_CHECKS
+        JITRuntimeError(right, ERR260, 260);
+  #endif
+        if (left->NUMBER_DATA < 0)
+            left->NUMBER_DATA = -HUGE_VAL;
+        else
+            left->NUMBER_DATA = HUGE_VAL;
+    }
+    return 0;
+}
+
+static sljit_sw SLJIT_CALL c_AANVD_v2(VariableDATA *left, VariableDATA *right) {
+    left->NUMBER_DATA   = (unsigned INTEGER)left->NUMBER_DATA & (unsigned INTEGER)right->NUMBER_DATA;
+    return 0;
+}
+
+static sljit_sw SLJIT_CALL c_AXOVD_v2(VariableDATA *left, VariableDATA *right) {
+    left->NUMBER_DATA   = (unsigned INTEGER)left->NUMBER_DATA ^ (unsigned INTEGER)right->NUMBER_DATA;
+    return 0;
+}
+
+static sljit_sw SLJIT_CALL c_AORVD_v2(VariableDATA *left, VariableDATA *right) {
+    left->NUMBER_DATA   = (unsigned INTEGER)left->NUMBER_DATA | (unsigned INTEGER)right->NUMBER_DATA;
+    return 0;
+}
+
+static sljit_sw SLJIT_CALL c_ASLVD_v2(VariableDATA *left, VariableDATA *right) {
+    left->NUMBER_DATA   = (unsigned INTEGER)left->NUMBER_DATA << (unsigned INTEGER)right->NUMBER_DATA;
+    return 0;
+}
+
+static sljit_sw SLJIT_CALL c_ASRVD_v2(VariableDATA *left, VariableDATA *right) {
+    left->NUMBER_DATA   = (unsigned INTEGER)left->NUMBER_DATA >> (unsigned INTEGER)right->NUMBER_DATA;
+    return 0;
+}
+// end version B
 
 static sljit_sw SLJIT_CALL c_COMVD(VariableDATA *left, VariableDATA *result) {
     result->NUMBER_DATA = ~(unsigned INTEGER)left->NUMBER_DATA;
@@ -1614,9 +1675,9 @@ void ConceptInterpreter::AnalizeInstructionPath(Optimizer *OPT) {
                                 if (usedflags[OE->Result_ID - 1])
                                     OPERAND_RESULT2
 
-                                        sljit_emit_fop1(compiler, SLJIT_MOV_F64,
-                                                        SLJIT_MEM1(SLJIT_R0), OFFSETOF(VariableDATA, NUMBER_DATA),
-                                                        SLJIT_MEM1(SLJIT_R2), OFFSETOF(VariableDATA, NUMBER_DATA));
+                                sljit_emit_fop1(compiler, SLJIT_MOV_F64,
+                                                SLJIT_MEM1(SLJIT_R0), OFFSETOF(VariableDATA, NUMBER_DATA),
+                                                SLJIT_MEM1(SLJIT_R2), OFFSETOF(VariableDATA, NUMBER_DATA));
 
                                 if (usedflags[OE->Result_ID - 1])
                                     sljit_emit_fop1(compiler, SLJIT_MOV_F64,
@@ -1627,9 +1688,9 @@ void ConceptInterpreter::AnalizeInstructionPath(Optimizer *OPT) {
                                 if (usedflags[OE->Result_ID - 1])
                                     OPERAND_RESULT
 
-                                        sljit_emit_fop1(compiler, SLJIT_MOV_F64,
-                                                        SLJIT_MEM1(SLJIT_R0), OFFSETOF(VariableDATA, NUMBER_DATA),
-                                                        SLJIT_MEM1(SLJIT_R1), OFFSETOF(VariableDATA, NUMBER_DATA));
+                                sljit_emit_fop1(compiler, SLJIT_MOV_F64,
+                                                SLJIT_MEM1(SLJIT_R0), OFFSETOF(VariableDATA, NUMBER_DATA),
+                                                SLJIT_MEM1(SLJIT_R1), OFFSETOF(VariableDATA, NUMBER_DATA));
 
                                 if (usedflags[OE->Result_ID - 1])
                                     sljit_emit_fop1(compiler, SLJIT_MOV_F64,
@@ -1670,10 +1731,10 @@ void ConceptInterpreter::AnalizeInstructionPath(Optimizer *OPT) {
                             if (usedflags[OE->Result_ID - 1])
                                 OPERAND_RESULT
 
-                                    sljit_emit_fop2(compiler, SLJIT_ADD_F64,
-                                                    SLJIT_MEM1(SLJIT_R0), OFFSETOF(VariableDATA, NUMBER_DATA),
-                                                    SLJIT_MEM1(SLJIT_R0), OFFSETOF(VariableDATA, NUMBER_DATA),
-                                                    SLJIT_MEM0(), (sljit_sw) & d_true);
+                            sljit_emit_fop2(compiler, SLJIT_ADD_F64,
+                                            SLJIT_MEM1(SLJIT_R0), OFFSETOF(VariableDATA, NUMBER_DATA),
+                                            SLJIT_MEM1(SLJIT_R0), OFFSETOF(VariableDATA, NUMBER_DATA),
+                                            SLJIT_MEM0(), (sljit_sw) & d_true);
 
                             if (usedflags[OE->Result_ID - 1])
                                 sljit_emit_fop1(compiler, SLJIT_MOV_F64,
@@ -1686,10 +1747,10 @@ void ConceptInterpreter::AnalizeInstructionPath(Optimizer *OPT) {
                             if (usedflags[OE->Result_ID - 1])
                                 OPERAND_RESULT
 
-                                    sljit_emit_fop2(compiler, SLJIT_SUB_F64,
-                                                    SLJIT_MEM1(SLJIT_R0), OFFSETOF(VariableDATA, NUMBER_DATA),
-                                                    SLJIT_MEM1(SLJIT_R0), OFFSETOF(VariableDATA, NUMBER_DATA),
-                                                    SLJIT_MEM0(), (sljit_sw) & d_true);
+                            sljit_emit_fop2(compiler, SLJIT_SUB_F64,
+                                            SLJIT_MEM1(SLJIT_R0), OFFSETOF(VariableDATA, NUMBER_DATA),
+                                            SLJIT_MEM1(SLJIT_R0), OFFSETOF(VariableDATA, NUMBER_DATA),
+                                            SLJIT_MEM0(), (sljit_sw) & d_true);
 
                             if (usedflags[OE->Result_ID - 1])
                                 sljit_emit_fop1(compiler, SLJIT_MOV_F64,
@@ -1701,12 +1762,12 @@ void ConceptInterpreter::AnalizeInstructionPath(Optimizer *OPT) {
                         case KEY_INC_LEFT:
                             if (usedflags[OE->Result_ID - 1])
                                 OPERAND_RESULT
-                                    OPERAND_LEFT
+                            OPERAND_LEFT
 
-                                if (usedflags[OE->Result_ID - 1])
-                                    sljit_emit_fop1(compiler, SLJIT_MOV_F64,
-                                                    SLJIT_MEM1(SLJIT_R2), OFFSETOF(VariableDATA, NUMBER_DATA),
-                                                    SLJIT_MEM1(SLJIT_R0), OFFSETOF(VariableDATA, NUMBER_DATA));
+                            if (usedflags[OE->Result_ID - 1])
+                                sljit_emit_fop1(compiler, SLJIT_MOV_F64,
+                                                SLJIT_MEM1(SLJIT_R2), OFFSETOF(VariableDATA, NUMBER_DATA),
+                                                SLJIT_MEM1(SLJIT_R0), OFFSETOF(VariableDATA, NUMBER_DATA));
 
                             sljit_emit_fop2(compiler, SLJIT_ADD_F64,
                                             SLJIT_MEM1(SLJIT_R0), OFFSETOF(VariableDATA, NUMBER_DATA),
@@ -1719,10 +1780,10 @@ void ConceptInterpreter::AnalizeInstructionPath(Optimizer *OPT) {
                             if (usedflags[OE->Result_ID - 1])
                                 OPERAND_RESULT
 
-                                if (usedflags[OE->Result_ID - 1])
-                                    sljit_emit_fop1(compiler, SLJIT_MOV_F64,
-                                                    SLJIT_MEM1(SLJIT_R2), OFFSETOF(VariableDATA, NUMBER_DATA),
-                                                    SLJIT_MEM1(SLJIT_R0), OFFSETOF(VariableDATA, NUMBER_DATA));
+                            if (usedflags[OE->Result_ID - 1])
+                                sljit_emit_fop1(compiler, SLJIT_MOV_F64,
+                                                SLJIT_MEM1(SLJIT_R2), OFFSETOF(VariableDATA, NUMBER_DATA),
+                                                SLJIT_MEM1(SLJIT_R0), OFFSETOF(VariableDATA, NUMBER_DATA));
 
                             sljit_emit_fop2(compiler, SLJIT_SUB_F64,
                                             SLJIT_MEM1(SLJIT_R0), OFFSETOF(VariableDATA, NUMBER_DATA),
@@ -1733,7 +1794,7 @@ void ConceptInterpreter::AnalizeInstructionPath(Optimizer *OPT) {
 
                         case KEY_ASU:
                             OPERAND_LEFT
-                                OPERAND_RIGHT
+                            OPERAND_RIGHT
                             if (usedflags[OE->Result_ID - 1])
                                 OPERAND_RESULT
 
@@ -1751,14 +1812,14 @@ void ConceptInterpreter::AnalizeInstructionPath(Optimizer *OPT) {
 
                         case KEY_ADI:
                             OPERAND_LEFT
-                                OPERAND_RIGHT
+                            OPERAND_RIGHT
                             if (usedflags[OE->Result_ID - 1])
                                 OPERAND_RESULT
 
-                                sljit_emit_fop2(compiler, SLJIT_SUB_F64,
-                                                SLJIT_MEM1(SLJIT_R0), OFFSETOF(VariableDATA, NUMBER_DATA),
-                                                SLJIT_MEM1(SLJIT_R0), OFFSETOF(VariableDATA, NUMBER_DATA),
-                                                SLJIT_MEM1(SLJIT_R1), OFFSETOF(VariableDATA, NUMBER_DATA));
+                            sljit_emit_fop2(compiler, SLJIT_SUB_F64,
+                                            SLJIT_MEM1(SLJIT_R0), OFFSETOF(VariableDATA, NUMBER_DATA),
+                                            SLJIT_MEM1(SLJIT_R0), OFFSETOF(VariableDATA, NUMBER_DATA),
+                                            SLJIT_MEM1(SLJIT_R1), OFFSETOF(VariableDATA, NUMBER_DATA));
 
                             if (usedflags[OE->Result_ID - 1])
                                 sljit_emit_fop1(compiler, SLJIT_MOV_F64,
@@ -1769,14 +1830,14 @@ void ConceptInterpreter::AnalizeInstructionPath(Optimizer *OPT) {
 
                         case KEY_AMU:
                             OPERAND_LEFT
-                                OPERAND_RIGHT
+                            OPERAND_RIGHT
                             if (usedflags[OE->Result_ID - 1])
                                 OPERAND_RESULT
 
-                                sljit_emit_fop2(compiler, SLJIT_MUL_F64,
-                                                SLJIT_MEM1(SLJIT_R0), OFFSETOF(VariableDATA, NUMBER_DATA),
-                                                SLJIT_MEM1(SLJIT_R0), OFFSETOF(VariableDATA, NUMBER_DATA),
-                                                SLJIT_MEM1(SLJIT_R1), OFFSETOF(VariableDATA, NUMBER_DATA));
+                            sljit_emit_fop2(compiler, SLJIT_MUL_F64,
+                                            SLJIT_MEM1(SLJIT_R0), OFFSETOF(VariableDATA, NUMBER_DATA),
+                                            SLJIT_MEM1(SLJIT_R0), OFFSETOF(VariableDATA, NUMBER_DATA),
+                                            SLJIT_MEM1(SLJIT_R1), OFFSETOF(VariableDATA, NUMBER_DATA));
 
                             if (usedflags[OE->Result_ID - 1])
                                 sljit_emit_fop1(compiler, SLJIT_MOV_F64,
@@ -1787,14 +1848,14 @@ void ConceptInterpreter::AnalizeInstructionPath(Optimizer *OPT) {
 
                         case KEY_ADV:
                             OPERAND_LEFT
-                                OPERAND_RIGHT
+                            OPERAND_RIGHT
                             if (usedflags[OE->Result_ID - 1])
                                 OPERAND_RESULT
 
-                                sljit_emit_fop2(compiler, SLJIT_DIV_F64,
-                                                SLJIT_MEM1(SLJIT_R0), OFFSETOF(VariableDATA, NUMBER_DATA),
-                                                SLJIT_MEM1(SLJIT_R0), OFFSETOF(VariableDATA, NUMBER_DATA),
-                                                SLJIT_MEM1(SLJIT_R1), OFFSETOF(VariableDATA, NUMBER_DATA));
+                            sljit_emit_fop2(compiler, SLJIT_DIV_F64,
+                                            SLJIT_MEM1(SLJIT_R0), OFFSETOF(VariableDATA, NUMBER_DATA),
+                                            SLJIT_MEM1(SLJIT_R0), OFFSETOF(VariableDATA, NUMBER_DATA),
+                                            SLJIT_MEM1(SLJIT_R1), OFFSETOF(VariableDATA, NUMBER_DATA));
 
                             if (usedflags[OE->Result_ID - 1])
                                 sljit_emit_fop1(compiler, SLJIT_MOV_F64,
@@ -1816,12 +1877,15 @@ void ConceptInterpreter::AnalizeInstructionPath(Optimizer *OPT) {
 
                         case KEY_POZ:
                         case KEY_VALUE:
+                            if (!usedflags[OE->Result_ID - 1])
+                                continue;
+
                             OPERAND_RESULT
                             OPERAND_LEFT
 
-                                sljit_emit_fop1(compiler, SLJIT_MOV_F64,
-                                                SLJIT_MEM1(SLJIT_R2), OFFSETOF(VariableDATA, NUMBER_DATA),
-                                                SLJIT_MEM1(SLJIT_R0), OFFSETOF(VariableDATA, NUMBER_DATA));
+                            sljit_emit_fop1(compiler, SLJIT_MOV_F64,
+                                            SLJIT_MEM1(SLJIT_R2), OFFSETOF(VariableDATA, NUMBER_DATA),
+                                            SLJIT_MEM1(SLJIT_R0), OFFSETOF(VariableDATA, NUMBER_DATA));
                             break;
 
                         case KEY_MUL:
@@ -1912,6 +1976,9 @@ void ConceptInterpreter::AnalizeInstructionPath(Optimizer *OPT) {
                             break;
 
                         case KEY_LES:
+                            if (!usedflags[OE->Result_ID - 1])
+                                continue;
+
                             if (i + 1 < end) {
                                 OENext = &OPT->CODE[i + 1];
                                 cnt    = labels[i - start + 1];
@@ -1955,6 +2022,9 @@ void ConceptInterpreter::AnalizeInstructionPath(Optimizer *OPT) {
                             break;
 
                         case KEY_LEQ:
+                            if (!usedflags[OE->Result_ID - 1])
+                                continue;
+
                             if (i + 1 < end) {
                                 OENext = &OPT->CODE[i + 1];
                                 cnt    = labels[i - start + 1];
@@ -1998,6 +2068,9 @@ void ConceptInterpreter::AnalizeInstructionPath(Optimizer *OPT) {
                             break;
 
                         case KEY_GRE:
+                            if (!usedflags[OE->Result_ID - 1])
+                                continue;
+
                             if (i + 1 < end) {
                                 OENext = &OPT->CODE[i + 1];
                                 cnt    = labels[i - start + 1];
@@ -2041,6 +2114,9 @@ void ConceptInterpreter::AnalizeInstructionPath(Optimizer *OPT) {
                             break;
 
                         case KEY_GEQ:
+                            if (!usedflags[OE->Result_ID - 1])
+                                continue;
+
                             if (i + 1 < end) {
                                 OENext = &OPT->CODE[i + 1];
                                 cnt    = labels[i - start + 1];
@@ -2084,6 +2160,9 @@ void ConceptInterpreter::AnalizeInstructionPath(Optimizer *OPT) {
                             break;
 
                         case KEY_EQU:
+                            if (!usedflags[OE->Result_ID - 1])
+                                continue;
+
                             if (i + 1 < end) {
                                 OENext = &OPT->CODE[i + 1];
                                 cnt    = labels[i - start + 1];
@@ -2127,6 +2206,9 @@ void ConceptInterpreter::AnalizeInstructionPath(Optimizer *OPT) {
                             break;
 
                         case KEY_NEQ:
+                            if (!usedflags[OE->Result_ID - 1])
+                                continue;
+
                             if (i + 1 < end) {
                                 OENext = &OPT->CODE[i + 1];
                                 cnt    = labels[i - start + 1];
@@ -2170,6 +2252,9 @@ void ConceptInterpreter::AnalizeInstructionPath(Optimizer *OPT) {
                             break;
 
                         case KEY_NOT:
+                            if (!usedflags[OE->Result_ID - 1])
+                                continue;
+
                             if (i + 1 < end) {
                                 OENext = &OPT->CODE[i + 1];
                                 cnt    = labels[i - start + 1];
@@ -2211,26 +2296,32 @@ void ConceptInterpreter::AnalizeInstructionPath(Optimizer *OPT) {
                             break;
 
                         case KEY_NEG:
+                            if (!usedflags[OE->Result_ID - 1])
+                                continue;
+
                             OPERAND_RESULT
                             OPERAND_LEFT
 
-                                sljit_emit_fop1(compiler, SLJIT_NEG_F64,
-                                                SLJIT_MEM1(SLJIT_R2), OFFSETOF(VariableDATA, NUMBER_DATA),
-                                                SLJIT_MEM1(SLJIT_R0), OFFSETOF(VariableDATA, NUMBER_DATA));
+                            sljit_emit_fop1(compiler, SLJIT_NEG_F64,
+                                            SLJIT_MEM1(SLJIT_R2), OFFSETOF(VariableDATA, NUMBER_DATA),
+                                            SLJIT_MEM1(SLJIT_R0), OFFSETOF(VariableDATA, NUMBER_DATA));
                             break;
 
                         case KEY_CND_NULL:
+                            if (!usedflags[OE->Result_ID - 1])
+                                continue;
+
                             OPERAND_RESULT
                             OPERAND_LEFT
                             OPERAND_RIGHT
 
-                                sljit_emit_fop1(compiler, SLJIT_MOV_F64,
-                                                SLJIT_MEM1(SLJIT_R2), OFFSETOF(VariableDATA, NUMBER_DATA),
-                                                SLJIT_MEM1(SLJIT_R0), OFFSETOF(VariableDATA, NUMBER_DATA));
+                            sljit_emit_fop1(compiler, SLJIT_MOV_F64,
+                                            SLJIT_MEM1(SLJIT_R2), OFFSETOF(VariableDATA, NUMBER_DATA),
+                                            SLJIT_MEM1(SLJIT_R0), OFFSETOF(VariableDATA, NUMBER_DATA));
 
                             jump = sljit_emit_fcmp(compiler, SLJIT_NOT_EQUAL_F64,
-                                                   SLJIT_MEM1(SLJIT_R0), OFFSETOF(VariableDATA, NUMBER_DATA),
-                                                   SLJIT_MEM0(), (sljit_sw) & d_false);
+                                                    SLJIT_MEM1(SLJIT_R0), OFFSETOF(VariableDATA, NUMBER_DATA),
+                                                    SLJIT_MEM0(), (sljit_sw) & d_false);
 
                             sljit_emit_fop1(compiler, SLJIT_MOV_F64,
                                             SLJIT_MEM1(SLJIT_R2), OFFSETOF(VariableDATA, NUMBER_DATA),
@@ -2240,16 +2331,19 @@ void ConceptInterpreter::AnalizeInstructionPath(Optimizer *OPT) {
                             break;
 
                         case KEY_REM:
+                            if (!usedflags[OE->Result_ID - 1])
+                                continue;
+
                             OPERAND_LEFT
                             OPERAND_RIGHT
                             OPERAND_RESULT
 
- #ifdef ARM_PATCH
-                                sljit_emit_op1(compiler, SLJIT_MOV, SLJIT_TEMPORARY_EREG1, 0, SLJIT_IMM, SLJIT_FUNC_OFFSET(c_modVD));
+#ifdef ARM_PATCH
+                            sljit_emit_op1(compiler, SLJIT_MOV, SLJIT_TEMPORARY_EREG1, 0, SLJIT_IMM, SLJIT_FUNC_OFFSET(c_modVD));
                             sljit_emit_ijump(compiler, SLJIT_CALL3, SLJIT_TEMPORARY_EREG1, 0);
- #else
+#else
                             sljit_emit_ijump(compiler, SLJIT_CALL3, SLJIT_IMM, SLJIT_FUNC_OFFSET(c_modVD));
- #endif
+#endif
                             reg1 = 0;
                             reg2 = 0;
                             reg3 = 0;
@@ -2258,32 +2352,31 @@ void ConceptInterpreter::AnalizeInstructionPath(Optimizer *OPT) {
                         case KEY_ARE:
                             OPERAND_LEFT
                             OPERAND_RIGHT
-                            OPERAND_RESULT
+                            if (usedflags[OE->Result_ID - 1])
+                                OPERAND_RESULT
 
- #ifdef ARM_PATCH
-                                sljit_emit_op1(compiler, SLJIT_MOV, SLJIT_TEMPORARY_EREG1, 0, SLJIT_IMM, SLJIT_FUNC_OFFSET(c_modVD2));
-                            sljit_emit_ijump(compiler, SLJIT_CALL3, SLJIT_TEMPORARY_EREG1, 0);
- #else
-                            sljit_emit_ijump(compiler, SLJIT_CALL3, SLJIT_IMM, SLJIT_FUNC_OFFSET(c_modVD2));
- #endif
+                            JIT_CALL_FUNC(c_modVD2)
                             reg1 = 0;
                             reg2 = 0;
                             reg3 = 0;
                             break;
 
                         case KEY_BOR:
+                            if (!usedflags[OE->Result_ID - 1])
+                                continue;
+
                             OPERAND_RESULT
                             OPERAND_LEFT
                             OPERAND_RIGHT
 
-                                sljit_emit_fop2(compiler, SLJIT_ADD_F64,
-                                                SLJIT_MEM1(SLJIT_R2), OFFSETOF(VariableDATA, NUMBER_DATA),
-                                                SLJIT_MEM1(SLJIT_R0), OFFSETOF(VariableDATA, NUMBER_DATA),
-                                                SLJIT_MEM1(SLJIT_R1), OFFSETOF(VariableDATA, NUMBER_DATA));
+                            sljit_emit_fop2(compiler, SLJIT_ADD_F64,
+                                            SLJIT_MEM1(SLJIT_R2), OFFSETOF(VariableDATA, NUMBER_DATA),
+                                            SLJIT_MEM1(SLJIT_R0), OFFSETOF(VariableDATA, NUMBER_DATA),
+                                            SLJIT_MEM1(SLJIT_R1), OFFSETOF(VariableDATA, NUMBER_DATA));
 
                             jump = sljit_emit_fcmp(compiler, SLJIT_NOT_EQUAL_F64,
-                                                   SLJIT_MEM1(SLJIT_R2), OFFSETOF(VariableDATA, NUMBER_DATA),
-                                                   SLJIT_MEM0(), (sljit_sw) & d_false);
+                                                    SLJIT_MEM1(SLJIT_R2), OFFSETOF(VariableDATA, NUMBER_DATA),
+                                                    SLJIT_MEM0(), (sljit_sw) & d_false);
 
                             jump2 = sljit_emit_jump(compiler, SLJIT_JUMP);
                             sljit_set_label(jump, sljit_emit_label(compiler));
@@ -2296,6 +2389,9 @@ void ConceptInterpreter::AnalizeInstructionPath(Optimizer *OPT) {
                             break;
 
                         case KEY_BAN:
+                            if (!usedflags[OE->Result_ID - 1])
+                                continue;
+
                             OPERAND_RESULT
                             OPERAND_LEFT
                             OPERAND_RIGHT
@@ -2306,8 +2402,8 @@ void ConceptInterpreter::AnalizeInstructionPath(Optimizer *OPT) {
                                                 SLJIT_MEM1(SLJIT_R1), OFFSETOF(VariableDATA, NUMBER_DATA));
 
                             jump = sljit_emit_fcmp(compiler, SLJIT_NOT_EQUAL_F64,
-                                                   SLJIT_MEM1(SLJIT_R2), OFFSETOF(VariableDATA, NUMBER_DATA),
-                                                   SLJIT_MEM0(), (sljit_sw) & d_false);
+                                                    SLJIT_MEM1(SLJIT_R2), OFFSETOF(VariableDATA, NUMBER_DATA),
+                                                    SLJIT_MEM0(), (sljit_sw) & d_false);
 
                             jump2 = sljit_emit_jump(compiler, SLJIT_JUMP);
                             sljit_set_label(jump, sljit_emit_label(compiler));
@@ -2322,26 +2418,25 @@ void ConceptInterpreter::AnalizeInstructionPath(Optimizer *OPT) {
                         case KEY_AAN:
                             OPERAND_LEFT
                             OPERAND_RIGHT
-                            OPERAND_RESULT
+                            if (usedflags[OE->Result_ID - 1])
+                                OPERAND_RESULT
 
- #ifdef ARM_PATCH
-                                sljit_emit_op1(compiler, SLJIT_MOV, SLJIT_TEMPORARY_EREG1, 0, SLJIT_IMM, SLJIT_FUNC_OFFSET(c_AANVD));
-                            sljit_emit_ijump(compiler, SLJIT_CALL3, SLJIT_TEMPORARY_EREG1, 0);
- #else
-                            sljit_emit_ijump(compiler, SLJIT_CALL3, SLJIT_IMM, SLJIT_FUNC_OFFSET(c_AANVD));
- #endif
+                            JIT_CALL_FUNC(c_AANVD)
                             reg1 = 0;
                             reg2 = 0;
                             reg3 = 0;
                             break;
 
                         case KEY_AND:
+                            if (!usedflags[OE->Result_ID - 1])
+                                continue;
+
                             OPERAND_LEFT
                             OPERAND_RIGHT
                             OPERAND_RESULT
 
  #ifdef ARM_PATCH
-                                sljit_emit_op1(compiler, SLJIT_MOV, SLJIT_TEMPORARY_EREG1, 0, SLJIT_IMM, SLJIT_FUNC_OFFSET(c_ANDVD));
+                            sljit_emit_op1(compiler, SLJIT_MOV, SLJIT_TEMPORARY_EREG1, 0, SLJIT_IMM, SLJIT_FUNC_OFFSET(c_ANDVD));
                             sljit_emit_ijump(compiler, SLJIT_CALL3, SLJIT_TEMPORARY_EREG1, 0);
  #else
                             sljit_emit_ijump(compiler, SLJIT_CALL3, SLJIT_IMM, SLJIT_FUNC_OFFSET(c_ANDVD));
@@ -2354,14 +2449,10 @@ void ConceptInterpreter::AnalizeInstructionPath(Optimizer *OPT) {
                         case KEY_AXO:
                             OPERAND_LEFT
                             OPERAND_RIGHT
-                            OPERAND_RESULT
+                            if (usedflags[OE->Result_ID - 1])
+                                OPERAND_RESULT
 
- #ifdef ARM_PATCH
-                                sljit_emit_op1(compiler, SLJIT_MOV, SLJIT_TEMPORARY_EREG1, 0, SLJIT_IMM, SLJIT_FUNC_OFFSET(c_AXOVD));
-                            sljit_emit_ijump(compiler, SLJIT_CALL3, SLJIT_TEMPORARY_EREG1, 0);
- #else
-                            sljit_emit_ijump(compiler, SLJIT_CALL3, SLJIT_IMM, SLJIT_FUNC_OFFSET(c_AXOVD));
- #endif
+                            JIT_CALL_FUNC(c_AXOVD)
                             reg1 = 0;
                             reg2 = 0;
                             reg3 = 0;
@@ -2370,14 +2461,11 @@ void ConceptInterpreter::AnalizeInstructionPath(Optimizer *OPT) {
                         case KEY_AOR:
                             OPERAND_LEFT
                             OPERAND_RIGHT
-                            OPERAND_RESULT
+                            if (usedflags[OE->Result_ID - 1])
+                                OPERAND_RESULT
 
- #ifdef ARM_PATCH
-                                sljit_emit_op1(compiler, SLJIT_MOV, SLJIT_TEMPORARY_EREG1, 0, SLJIT_IMM, SLJIT_FUNC_OFFSET(c_AORVD));
-                            sljit_emit_ijump(compiler, SLJIT_CALL3, SLJIT_TEMPORARY_EREG1, 0);
- #else
-                            sljit_emit_ijump(compiler, SLJIT_CALL3, SLJIT_IMM, SLJIT_FUNC_OFFSET(c_AORVD));
- #endif
+                            JIT_CALL_FUNC(c_AORVD)
+
                             reg1 = 0;
                             reg2 = 0;
                             reg3 = 0;
@@ -2386,14 +2474,10 @@ void ConceptInterpreter::AnalizeInstructionPath(Optimizer *OPT) {
                         case KEY_ASL:
                             OPERAND_LEFT
                             OPERAND_RIGHT
-                            OPERAND_RESULT
+                            if (usedflags[OE->Result_ID - 1])
+                                OPERAND_RESULT
 
- #ifdef ARM_PATCH
-                                sljit_emit_op1(compiler, SLJIT_MOV, SLJIT_TEMPORARY_EREG1, 0, SLJIT_IMM, SLJIT_FUNC_OFFSET(c_ASLVD));
-                            sljit_emit_ijump(compiler, SLJIT_CALL3, SLJIT_TEMPORARY_EREG1, 0);
- #else
-                            sljit_emit_ijump(compiler, SLJIT_CALL3, SLJIT_IMM, SLJIT_FUNC_OFFSET(c_ASLVD));
- #endif
+                            JIT_CALL_FUNC(c_ASLVD)
                             reg1 = 0;
                             reg2 = 0;
                             reg3 = 0;
@@ -2402,25 +2486,24 @@ void ConceptInterpreter::AnalizeInstructionPath(Optimizer *OPT) {
                         case KEY_ASR:
                             OPERAND_LEFT
                             OPERAND_RIGHT
-                            OPERAND_RESULT
+                            if (usedflags[OE->Result_ID - 1])
+                                OPERAND_RESULT
 
- #ifdef ARM_PATCH
-                                sljit_emit_op1(compiler, SLJIT_MOV, SLJIT_TEMPORARY_EREG1, 0, SLJIT_IMM, SLJIT_FUNC_OFFSET(c_ASRVD));
-                            sljit_emit_ijump(compiler, SLJIT_CALL3, SLJIT_TEMPORARY_EREG1, 0);
- #else
-                            sljit_emit_ijump(compiler, SLJIT_CALL3, SLJIT_IMM, SLJIT_FUNC_OFFSET(c_ASRVD));
- #endif
+                            JIT_CALL_FUNC(c_ASRVD)
                             reg1 = 0;
                             reg2 = 0;
                             reg3 = 0;
                             break;
 
                         case KEY_COM:
+                            if (!usedflags[OE->Result_ID - 1])
+                                continue;
+
                             OPERAND_LEFT
                             OPERAND_RESULT2
 
  #ifdef ARM_PATCH
-                                sljit_emit_op1(compiler, SLJIT_MOV, SLJIT_TEMPORARY_EREG1, 0, SLJIT_IMM, SLJIT_FUNC_OFFSET(c_COMVD));
+                            sljit_emit_op1(compiler, SLJIT_MOV, SLJIT_TEMPORARY_EREG1, 0, SLJIT_IMM, SLJIT_FUNC_OFFSET(c_COMVD));
                             sljit_emit_ijump(compiler, SLJIT_CALL2, SLJIT_TEMPORARY_EREG1, 0);
  #else
                             sljit_emit_ijump(compiler, SLJIT_CALL2, SLJIT_IMM, SLJIT_FUNC_OFFSET(c_COMVD));
@@ -2431,12 +2514,15 @@ void ConceptInterpreter::AnalizeInstructionPath(Optimizer *OPT) {
                             break;
 
                         case KEY_SHL:
+                            if (!usedflags[OE->Result_ID - 1])
+                                continue;
+
                             OPERAND_LEFT
                             OPERAND_RIGHT
                             OPERAND_RESULT
 
  #ifdef ARM_PATCH
-                                sljit_emit_op1(compiler, SLJIT_MOV, SLJIT_TEMPORARY_EREG1, 0, SLJIT_IMM, SLJIT_FUNC_OFFSET(c_SHLVD));
+                            sljit_emit_op1(compiler, SLJIT_MOV, SLJIT_TEMPORARY_EREG1, 0, SLJIT_IMM, SLJIT_FUNC_OFFSET(c_SHLVD));
                             sljit_emit_ijump(compiler, SLJIT_CALL3, SLJIT_TEMPORARY_EREG1, 0);
  #else
                             sljit_emit_ijump(compiler, SLJIT_CALL3, SLJIT_IMM, SLJIT_FUNC_OFFSET(c_SHLVD));
@@ -2447,12 +2533,15 @@ void ConceptInterpreter::AnalizeInstructionPath(Optimizer *OPT) {
                             break;
 
                         case KEY_SHR:
+                            if (!usedflags[OE->Result_ID - 1])
+                                continue;
+
                             OPERAND_LEFT
                             OPERAND_RIGHT
                             OPERAND_RESULT
 
  #ifdef ARM_PATCH
-                                sljit_emit_op1(compiler, SLJIT_MOV, SLJIT_TEMPORARY_EREG1, 0, SLJIT_IMM, SLJIT_FUNC_OFFSET(c_SHRVD));
+                            sljit_emit_op1(compiler, SLJIT_MOV, SLJIT_TEMPORARY_EREG1, 0, SLJIT_IMM, SLJIT_FUNC_OFFSET(c_SHRVD));
                             sljit_emit_ijump(compiler, SLJIT_CALL3, SLJIT_TEMPORARY_EREG1, 0);
  #else
                             sljit_emit_ijump(compiler, SLJIT_CALL3, SLJIT_IMM, SLJIT_FUNC_OFFSET(c_SHRVD));
@@ -2463,12 +2552,15 @@ void ConceptInterpreter::AnalizeInstructionPath(Optimizer *OPT) {
                             break;
 
                         case KEY_XOR:
+                            if (!usedflags[OE->Result_ID - 1])
+                                continue;
+
                             OPERAND_LEFT
                             OPERAND_RIGHT
                             OPERAND_RESULT
 
  #ifdef ARM_PATCH
-                                sljit_emit_op1(compiler, SLJIT_MOV, SLJIT_TEMPORARY_EREG1, 0, SLJIT_IMM, SLJIT_FUNC_OFFSET(c_XORVD));
+                            sljit_emit_op1(compiler, SLJIT_MOV, SLJIT_TEMPORARY_EREG1, 0, SLJIT_IMM, SLJIT_FUNC_OFFSET(c_XORVD));
                             sljit_emit_ijump(compiler, SLJIT_CALL3, SLJIT_TEMPORARY_EREG1, 0);
  #else
                             sljit_emit_ijump(compiler, SLJIT_CALL3, SLJIT_IMM, SLJIT_FUNC_OFFSET(c_XORVD));
@@ -2479,12 +2571,15 @@ void ConceptInterpreter::AnalizeInstructionPath(Optimizer *OPT) {
                             break;
 
                         case KEY_OR:
+                            if (!usedflags[OE->Result_ID - 1])
+                                continue;
+
                             OPERAND_LEFT
                             OPERAND_RIGHT
                             OPERAND_RESULT
 
  #ifdef ARM_PATCH
-                                sljit_emit_op1(compiler, SLJIT_MOV, SLJIT_TEMPORARY_EREG1, 0, SLJIT_IMM, SLJIT_FUNC_OFFSET(c_ORVD));
+                            sljit_emit_op1(compiler, SLJIT_MOV, SLJIT_TEMPORARY_EREG1, 0, SLJIT_IMM, SLJIT_FUNC_OFFSET(c_ORVD));
                             sljit_emit_ijump(compiler, SLJIT_CALL3, SLJIT_TEMPORARY_EREG1, 0);
  #else
                             sljit_emit_ijump(compiler, SLJIT_CALL3, SLJIT_IMM, SLJIT_FUNC_OFFSET(c_ORVD));
@@ -2495,6 +2590,9 @@ void ConceptInterpreter::AnalizeInstructionPath(Optimizer *OPT) {
                             break;
 
                         case KEY_INDEX_OPEN:
+                            if (!usedflags[OE->Result_ID - 1])
+                                continue;
+
                             if ((i + 1 < end) && (usedflags[OE->Result_ID - 1] != 3)) {
                                 cnt    = labels[i - start + 1];
                                 OENext = &OPT->CODE[i + 1];
