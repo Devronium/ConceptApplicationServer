@@ -4640,9 +4640,13 @@ int ConceptInterpreter::EvalStringExpression(PIFAlizator *PIF, VariableDATA **LO
                 case VARIABLE_STRING:
                     CONCEPT_STRING(LOCAL_CONTEXT [OE->OperandLeft_ID - 1], LOCAL_CONTEXT [OE->OperandRight_ID - 1]);
                     if (LOCAL_CONTEXT [OE->Result_ID - 1] != LOCAL_CONTEXT [OE->OperandLeft_ID - 1]) {
-                        FREE_VARIABLE_RESET(LOCAL_CONTEXT [OE->Result_ID - 1]);
-                        LOCAL_CONTEXT [OE->Result_ID - 1] = LOCAL_CONTEXT [OE->OperandLeft_ID - 1];
-                        LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->LINKS++;
+                        if (OE->Operator_FLAGS == MAY_IGNORE_RESULT) {
+                            LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE = VARIABLE_NUMBER;
+                        } else {
+                            FREE_VARIABLE_RESET(LOCAL_CONTEXT [OE->Result_ID - 1]);
+                            LOCAL_CONTEXT [OE->Result_ID - 1] = LOCAL_CONTEXT [OE->OperandLeft_ID - 1];
+                            LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->LINKS++;
+                        }
                     }
                     //----------------------------------------------------------------------------------------//
                     UPDATE_STRING_VARIABLE_THAT_HAS_INDEX(this, LOCAL_CONTEXT [OE->OperandLeft_ID - 1], PROPERTIES);
@@ -4653,10 +4657,10 @@ int ConceptInterpreter::EvalStringExpression(PIFAlizator *PIF, VariableDATA **LO
                 default:
                     DECLARE_PATH(0x20);
                     PIF->RunTimeError(650, ERR650, OE, OWNER, STACK_TRACE);
-                    break;
+                    return 1;
             }
             //----------------//
-            PROPERTY_CODE(this, PROPERTIES)
+            PROPERTY_CODE_LEFT(this, PROPERTIES)
             //----------------//
             return 1;
 
@@ -4665,9 +4669,13 @@ int ConceptInterpreter::EvalStringExpression(PIFAlizator *PIF, VariableDATA **LO
                 case VARIABLE_STRING:
                     CONCEPT_STRING_ASU(LOCAL_CONTEXT [OE->OperandLeft_ID - 1], LOCAL_CONTEXT [OE->OperandRight_ID - 1]);
                     if (LOCAL_CONTEXT [OE->Result_ID - 1] != LOCAL_CONTEXT [OE->OperandLeft_ID - 1]) {
-                        FREE_VARIABLE_RESET(LOCAL_CONTEXT [OE->Result_ID - 1]);
-                        LOCAL_CONTEXT [OE->Result_ID - 1] = LOCAL_CONTEXT [OE->OperandLeft_ID - 1];
-                        LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->LINKS++;
+                        if (OE->Operator_FLAGS == MAY_IGNORE_RESULT) {
+                            LOCAL_CONTEXT [OE->Result_ID - 1]->TYPE = VARIABLE_NUMBER;
+                        } else {
+                            FREE_VARIABLE_RESET(LOCAL_CONTEXT [OE->Result_ID - 1]);
+                            LOCAL_CONTEXT [OE->Result_ID - 1] = LOCAL_CONTEXT [OE->OperandLeft_ID - 1];
+                            LOCAL_CONTEXT [OE->OperandLeft_ID - 1]->LINKS++;
+                        }
                     }
                     DECLARE_PATH(VARIABLE_STRING);
                     break;
@@ -4684,7 +4692,7 @@ int ConceptInterpreter::EvalStringExpression(PIFAlizator *PIF, VariableDATA **LO
                     break;
             }
             //----------------//
-            PROPERTY_CODE(this, PROPERTIES)
+            PROPERTY_CODE_LEFT(this, PROPERTIES)
             //----------------//
             return 1;
 
