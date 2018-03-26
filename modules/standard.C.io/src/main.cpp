@@ -4552,9 +4552,9 @@ END_IMPL
 typedef BOOL PASCAL (*TransmitFilePtr)(SOCKET hSocket, HANDLE hFile, DWORD nNumberOfBytesToWrite, DWORD nNumberOfBytesPerSend, LPOVERLAPPED lpOverlapped, LPVOID lpTransmitBuffers, DWORD dwFlags);
 #endif
 CONCEPT_FUNCTION_IMPL(pipesocket, 3)
-    T_NUMBER(sendfile, 0)
-    T_NUMBER(sendfile, 1)
-    T_NUMBER(sendfile, 2)
+    T_NUMBER(pipesocket, 0)
+    T_NUMBER(pipesocket, 1)
+    T_NUMBER(pipesocket, 2)
 #ifdef _WIN32
     static int module_loaded;
     static TransmitFilePtr TransmitFile;

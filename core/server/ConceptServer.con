@@ -3112,7 +3112,8 @@ class ConceptCGIChild extends ConceptCGIChildBase {
 						}
 						if (!last_pipe_err_time_read)
 							last_pipe_err_time_read = time();
-					}
+					} else
+						last_pipe_err_time_read = 0;
 				}
 			}
 			// end of pipesocket code
