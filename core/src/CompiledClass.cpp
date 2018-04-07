@@ -12,7 +12,7 @@ struct CompiledClass *new_CompiledClass(void *PIF, const ClassCode *CC) {
     //---------------------------------
     INTEGER Count = self->_Class->DataMembersCount;
     if (Count) {
-        self->_CONTEXT = (VariableDATA **)FAST_MALLOC(sizeof(VariableDATA *) * Count);
+        self->_CONTEXT = (VariableDATA **)FAST_MALLOC(PIF, sizeof(VariableDATA *) * Count);
         for (INTEGER i = 0; i < Count; i++)
             self->_CONTEXT[i] = 0;
     }
@@ -261,7 +261,7 @@ void CompiledClass_UnlinkObjects(struct CompiledClass *self) {
         }
     }
 
-    FAST_FREE(self->_CONTEXT);
+    FAST_FREE(GET_PIF(self), self->_CONTEXT);
     self->_CONTEXT = 0;
 }
 
@@ -271,10 +271,9 @@ void delete_CompiledClass(struct CompiledClass *self, SCStack *STACK_TRACE) {
         return;
     }
 
-    if (self->_Class->DESTRUCTOR) {
-        PIFAlizator *PIF          = GET_PIF(self);
+    PIFAlizator *PIF          = GET_PIF(self);
+    if (self->_Class->DESTRUCTOR)
         CompiledClass_Destroy(self, PIF, STACK_TRACE);
-    }
 
     self->LINKS = -1;
     INTEGER       Count       = self->_Class->DataMembersCount;
@@ -314,7 +313,7 @@ void delete_CompiledClass(struct CompiledClass *self, SCStack *STACK_TRACE) {
                         if (!--((struct CompiledClass *)CLASS_DATA)->LINKS) {
                             if (inspectPos >= inspectSize) {
                                 inspectSize += INSPECT_INCREMENT;
-                                toInspect    = (CompiledClass **)FAST_REALLOC(toInspect, sizeof(struct CompiledClass *) * inspectSize);
+                                toInspect    = (CompiledClass **)FAST_REALLOC(PIF, toInspect, sizeof(struct CompiledClass *) * inspectSize);
                             }
                             toInspect[inspectPos++] = (struct CompiledClass *)CLASS_DATA;
                         }
@@ -329,14 +328,14 @@ void delete_CompiledClass(struct CompiledClass *self, SCStack *STACK_TRACE) {
 #endif
         }
     }
-    FAST_FREE(self->_CONTEXT);
+    FAST_FREE(PIF, self->_CONTEXT);
 #ifndef USE_RECURSIVE_MARKINGS
     if (inspectPos) {
         for (unsigned int j = 0; j < inspectPos; j++) {
             CompiledClass *obj = toInspect[j];
             if (CompiledClass_HasDestructor(obj)) {
                 obj->LINKS = 2;
-                CompiledClass_Destroy(obj, GET_PIF(self));
+                CompiledClass_Destroy(obj, PIF);
             }
             obj->LINKS = -1;
             if (obj->_CONTEXT) {
@@ -374,7 +373,7 @@ void delete_CompiledClass(struct CompiledClass *self, SCStack *STACK_TRACE) {
                                                 inspectSize += INSPECT_INCREMENT;
                                             else
                                                 inspectSize += inspectSize/2;
-                                            toInspect = (CompiledClass **)FAST_REALLOC(toInspect, sizeof(struct CompiledClass *) * inspectSize);
+                                            toInspect = (CompiledClass **)FAST_REALLOC(PIF, toInspect, sizeof(struct CompiledClass *) * inspectSize);
                                         }
                                         toInspect[inspectPos++] = (struct CompiledClass *)CLASS_DATA;
                                     }
@@ -388,12 +387,12 @@ void delete_CompiledClass(struct CompiledClass *self, SCStack *STACK_TRACE) {
                         }
                     }
                 }
-                FAST_FREE(obj->_CONTEXT);
+                FAST_FREE(PIF, obj->_CONTEXT);
                 obj->_CONTEXT = NULL;
             }
             FreeClassObject(obj);
         }
-        FAST_FREE(toInspect);
+        FAST_FREE(PIF, toInspect);
     }
 #endif
     FreeClassObject(self);

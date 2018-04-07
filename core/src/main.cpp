@@ -79,7 +79,7 @@ void RemoveBlock(VARPool *CURRENT) {
         ((PIFAlizator *)CURRENT->PIF)->CACHEDPOOL = NULL;
     if (((PIFAlizator *)CURRENT->PIF)->POOL == CURRENT)
         ((PIFAlizator *)CURRENT->PIF)->POOL = NEXT;
-    FAST_FREE(CURRENT);
+    FAST_FREE(CURRENT->PIF, CURRENT);
 }
 
 void VarClean(PIFAlizator *pif, int max_iterations) {
@@ -129,7 +129,7 @@ void FreeMultipleVars(void **refVARs, int count) {
             } else
             if (refVAR->flags == -2) {
                 // module allocated!
-                FAST_FREE(refVAR);
+                FAST_FREE(NULL, refVAR);
             }
         }
     }
@@ -144,7 +144,7 @@ void FreeVAR(void *refVAR) {
 
     if (((VariableDATA *)refVAR)->flags == -2) {
         // not a pooled variable (module-created variable) for backwards compatibility
-        FAST_FREE(refVAR);
+        FAST_FREE(NULL, refVAR);
         return;
     }
 
@@ -184,7 +184,7 @@ void AllocMultipleVars(void **context, void *PIF, int count, int offset) {
     VARPool *NEXT_POOL;
     int     i;
     if (!POOL) {
-        POOL            = (VARPool *)FAST_MALLOC(sizeof(VARPool));
+        POOL            = (VARPool *)FAST_MALLOC(PIF, sizeof(VARPool));
         POOL->POOL_VARS = POOL_BLOCK_SIZE;
         POOL->FIRST_VAR = 0;
         POOL->NEXT      = NULL;
@@ -232,7 +232,7 @@ void AllocMultipleVars(void **context, void *PIF, int count, int offset) {
     }
 
     while (count) {
-        NEXT_POOL = (VARPool *)FAST_MALLOC(sizeof(VARPool));
+        NEXT_POOL = (VARPool *)FAST_MALLOC(PIF, sizeof(VARPool));
         if (!NEXT_POOL) {
             ((PIFAlizator *)PIF)->out->ClientError(ERR1400 "\n");
             exit(-100);
@@ -269,7 +269,7 @@ void AllocMultipleVars(void **context, void *PIF, int count, int offset) {
 void *AllocVAR(void *PIF) {
     if (!PIF) {
         // pool variable
-        VariableDATA *notPOOLED = (VariableDATA *)FAST_MALLOC(sizeof(VariableDATA));
+        VariableDATA *notPOOLED = (VariableDATA *)FAST_MALLOC(NULL, sizeof(VariableDATA));
         if (notPOOLED)
             notPOOLED->flags = -2;
         return notPOOLED;
@@ -278,7 +278,7 @@ void *AllocVAR(void *PIF) {
     VARPool *NEXT_POOL;
     int     i;
     if (!POOL) {
-        POOL            = (VARPool *)FAST_MALLOC(sizeof(VARPool));
+        POOL            = (VARPool *)FAST_MALLOC(PIF, sizeof(VARPool));
         POOL->FIRST_VAR = 0;
         POOL->POOL_VARS = POOL_BLOCK_SIZE;
         POOL->NEXT      = NULL;
@@ -320,7 +320,7 @@ void *AllocVAR(void *PIF) {
         }
     }
     ((PIFAlizator *)PIF)->CACHEDPOOL = NULL;
-    NEXT_POOL = (VARPool *)FAST_MALLOC(sizeof(VARPool));
+    NEXT_POOL = (VARPool *)FAST_MALLOC(PIF, sizeof(VARPool));
     if (!NEXT_POOL) {
         ((PIFAlizator *)PIF)->out->ClientError(ERR1400 "\n");
         exit(-100);
@@ -379,7 +379,7 @@ void *AllocClassObject(void *PIF) {
     int       i;
     ((PIFAlizator *)PIF)->object_count++;
     if (!POOL) {
-        POOL            = (ClassPool *)OBJECT_MALLOC(sizeof(ClassPool));
+        POOL            = (ClassPool *)OBJECT_MALLOC(PIF, sizeof(ClassPool));
         POOL->FIRST_VAR = 0;
         POOL->POOL_VARS = OBJECT_POOL_BLOCK_SIZE;
         POOL->NEXT      = NULL;
@@ -417,7 +417,7 @@ void *AllocClassObject(void *PIF) {
         }
     }
     ((PIFAlizator *)PIF)->CACHEDCLASSPOOL = NULL;
-    NEXT_POOL = (ClassPool *)OBJECT_MALLOC(sizeof(ClassPool));
+    NEXT_POOL = (ClassPool *)OBJECT_MALLOC(PIF, sizeof(ClassPool));
     if (!NEXT_POOL) {
         ((PIFAlizator *)PIF)->out->ClientError(ERR1400 "\n");
         exit(-100);
@@ -465,7 +465,7 @@ void FreeClassObject(void *refObject) {
         PIF->free_class_objects -= OBJECT_POOL_BLOCK_SIZE;
         if (PIF->CACHEDCLASSPOOL == CURRENT)
             PIF->CACHEDCLASSPOOL = NULL;
-        OBJECT_FREE(CURRENT);
+        OBJECT_FREE(PIF, CURRENT);
     } else
     if ((CURRENT != PIF->CLASSPOOL) && (CURRENT->POOL_VARS > ((ClassPool *)PIF->CLASSPOOL)->POOL_VARS)) {
         PIF->CACHEDCLASSPOOL = CURRENT;
@@ -516,7 +516,7 @@ void FreeClassObject(void *refObject) {
 
 void *AllocArray(void *PIF, bool skip_top) {
     if (!PIF) {
-        Array *notPOOLED = (struct Array *)OBJECT_MALLOC(sizeof(Array));
+        Array *notPOOLED = (struct Array *)OBJECT_MALLOC(NULL, sizeof(Array));
         if (notPOOLED)
             notPOOLED->flags = -2;
         return notPOOLED;
@@ -544,7 +544,7 @@ void *AllocArray(void *PIF, bool skip_top) {
     ArrayPool *NEXT_POOL;
     int       i;
     if (!POOL) {
-        POOL            = (ArrayPool *)OBJECT_MALLOC(sizeof(ArrayPool));
+        POOL            = (ArrayPool *)OBJECT_MALLOC(PIF, sizeof(ArrayPool));
         POOL->FIRST_VAR = 0;
         POOL->POOL_VARS = ARRAY_POOL_BLOCK_SIZE;
         POOL->NEXT      = NULL;
@@ -585,7 +585,7 @@ void *AllocArray(void *PIF, bool skip_top) {
         }
     }
     ((PIFAlizator *)PIF)->CACHEDARRAYPOOL = NULL;
-    NEXT_POOL = (ArrayPool *)OBJECT_MALLOC(sizeof(ArrayPool));
+    NEXT_POOL = (ArrayPool *)OBJECT_MALLOC(PIF, sizeof(ArrayPool));
     if (!NEXT_POOL) {
         ((PIFAlizator *)PIF)->out->ClientError(ERR1400 "\n");
         exit(-100);
@@ -616,7 +616,7 @@ void FreeArray(void *refObject) {
 
     if (((struct Array *)refObject)->flags == -2) {
         // not a pooled array (module-created array) for backwards compatibility
-        OBJECT_FREE(refObject);
+        OBJECT_FREE(NULL, refObject);
         return;
     }
 
@@ -638,7 +638,7 @@ void FreeArray(void *refObject) {
         PIF->free_arrays -= ARRAY_POOL_BLOCK_SIZE;
         if (PIF->CACHEDARRAYPOOL == CURRENT)
             PIF->CACHEDARRAYPOOL = NULL;
-        OBJECT_FREE(CURRENT);
+        OBJECT_FREE(PIF, CURRENT);
     } else
     if ((CURRENT != PIF->ARRAYPOOL) && (CURRENT->POOL_VARS > ((ArrayPool *)PIF->ARRAYPOOL)->POOL_VARS)) {
         PIF->CACHEDARRAYPOOL = CURRENT;
@@ -1086,7 +1086,7 @@ int CheckReachability(void *PIF, bool skip_top) {
 
 void AddGCRoot(void *PIF, void *CONTEXT) {
     ALLOC_LOCK
-    GCRoot *root = (GCRoot *)FAST_MALLOC(sizeof(GCRoot));
+    GCRoot *root = (GCRoot *)FAST_MALLOC(PIF, sizeof(GCRoot));
 
     root->STACK_TRACE            = CONTEXT;
     root->NEXT                   = ((PIFAlizator *)PIF)->GCROOT;
@@ -1105,7 +1105,7 @@ void RemoveGCRoot(void *PIF, void *CONTEXT) {
                 prec->NEXT = root->NEXT;
             else
                 ((PIFAlizator *)PIF)->GCROOT = (GCRoot *)root->NEXT;
-            FAST_FREE(root);
+            FAST_FREE(PIF, root);
             break;
         }
         prec = root;

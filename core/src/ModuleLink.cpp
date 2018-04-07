@@ -1036,7 +1036,7 @@ INTEGER Invoke(INTEGER INVOKE_TYPE, ...) {
                         parameters = i - 1;
                         is_list    = true;
                     } else {
-                        CTX = parameters ? (VariableDATA **)FAST_MALLOC(sizeof(VariableDATA *) * parameters) : (VariableDATA **)0 ;
+                        CTX = parameters ? (VariableDATA **)FAST_MALLOC(PIF, sizeof(VariableDATA *) * parameters) : (VariableDATA **)0 ;
                     }
                     ParamList FORMAL_PARAM;
                     FORMAL_PARAM.COUNT       = parameters;
@@ -1115,7 +1115,7 @@ INTEGER Invoke(INTEGER INVOKE_TYPE, ...) {
                             FREE_VARIABLE(CTX [i], NULL);
                         }
                         if (!is_list) {
-                            FAST_FREE(CTX);
+                            FAST_FREE(PIF, CTX);
                         }
                     }
                     if (FORMAL_PARAM.PARAM_INDEX) {

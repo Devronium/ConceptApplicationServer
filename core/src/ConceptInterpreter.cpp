@@ -24,7 +24,7 @@ static TinyString DLL_MEMBER = "STATIC_FUNCTION";
         CCTEMP->_Class->SetProperty(PIF, PROPERTIES [OE->OperandLeft_ID - 1].IS_PROPERTY_RESULT - 1, (VariableDATA *)(PROPERTIES [OE->OperandLeft_ID - 1].CALL_SET), OE, CCTEMP->_Class->CLSID == ClassID, OE->Result_ID , LOCAL_CONTEXT, ClassID, THISREF->LocalClassID, &THROW_DATA, STACK_TRACE);            \
         if (THROW_DATA) {                                                                                                                                                                                                                                                                                       \
             if (THISREF->Catch(THROW_DATA, LOCAL_CONTEXT, OE, PROPERTIES, INSTRUCTION_POINTER, CATCH_INSTRUCTION_POINTER, CATCH_VARIABLE, PREVIOUS_TRY)) {                                                                                                                                                      \
-                FAST_FREE(PROPERTIES);                                                                                                                                                                                                                                                                          \
+                FAST_FREE(PIF, PROPERTIES);                                                                                                                                                                                                                                                                     \
                 PROPERTIES = 0;                                                                                                                                                                                                                                                                                 \
                 WRITE_UNLOCK                                                                                                                                                                                                                                                                                    \
                 return 0;                                                                                                                                                                                                                                                                                       \
@@ -39,7 +39,7 @@ static TinyString DLL_MEMBER = "STATIC_FUNCTION";
         CCTEMP->_Class->SetProperty(PIF, PROPERTIES [OE->OperandLeft_ID - 1].IS_PROPERTY_RESULT - 1, (VariableDATA *)(PROPERTIES [OE->OperandLeft_ID - 1].CALL_SET), OE, CCTEMP->_Class->CLSID == ClassID, OE->OperandLeft_ID , LOCAL_CONTEXT, ClassID, THISREF->LocalClassID, &THROW_DATA, STACK_TRACE);       \
         if (THROW_DATA) {                                                                                                                                                                                                                                                                                       \
             if (THISREF->Catch(THROW_DATA, LOCAL_CONTEXT, OE, PROPERTIES, INSTRUCTION_POINTER, CATCH_INSTRUCTION_POINTER, CATCH_VARIABLE, PREVIOUS_TRY)) {                                                                                                                                                      \
-                FAST_FREE(PROPERTIES);                                                                                                                                                                                                                                                                          \
+                FAST_FREE(PIF, PROPERTIES);                                                                                                                                                                                                                                                                      \
                 PROPERTIES = 0;                                                                                                                                                                                                                                                                                 \
                 WRITE_UNLOCK                                                                                                                                                                                                                                                                                    \
                 return 0;                                                                                                                                                                                                                                                                                       \
@@ -54,7 +54,7 @@ static TinyString DLL_MEMBER = "STATIC_FUNCTION";
         CCTEMP->_Class->SetProperty(PIF, PROPERTIES [OE->OperandLeft_ID - 1].IS_PROPERTY_RESULT - 1, (VariableDATA *)(PROPERTIES [OE->OperandLeft_ID - 1].CALL_SET), OE, CCTEMP->_Class->CLSID == ClassID, OE->OperandLeft_ID , LOCAL_CONTEXT, ClassID, THISREF->LocalClassID, &THROW_DATA, STACK_TRACE);       \
         if (THROW_DATA) {                                                                                                                                                                                                                                                                                       \
             if (THISREF->Catch(THROW_DATA, LOCAL_CONTEXT, OE, PROPERTIES, INSTRUCTION_POINTER, CATCH_INSTRUCTION_POINTER, CATCH_VARIABLE, PREVIOUS_TRY)) {                                                                                                                                                      \
-                FAST_FREE(PROPERTIES);                                                                                                                                                                                                                                                                          \
+                FAST_FREE(PIF, PROPERTIES);                                                                                                                                                                                                                                                                     \
                 PROPERTIES = 0;                                                                                                                                                                                                                                                                                 \
                 WRITE_UNLOCK                                                                                                                                                                                                                                                                                    \
                 return 0;                                                                                                                                                                                                                                                                                       \
@@ -69,7 +69,7 @@ static TinyString DLL_MEMBER = "STATIC_FUNCTION";
         CCTEMP->_Class->SetProperty(PIF, PROPERTIES [tempOE->OperandLeft_ID - 1].IS_PROPERTY_RESULT - 1, (VariableDATA *)(PROPERTIES [tempOE->OperandLeft_ID - 1].CALL_SET), tempOE, CCTEMP->_Class->CLSID == ClassID, tempOE->OperandLeft_ID , LOCAL_CONTEXT, ClassID, THISREF->LocalClassID, &THROW_DATA, STACK_TRACE); \
         if (THROW_DATA) {                                                                                                                                                                                                                                                                                       \
             if (THISREF->Catch(THROW_DATA, LOCAL_CONTEXT, OE, PROPERTIES, INSTRUCTION_POINTER, CATCH_INSTRUCTION_POINTER, CATCH_VARIABLE, PREVIOUS_TRY)) {                                                                                                                                                      \
-                FAST_FREE(PROPERTIES);                                                                                                                                                                                                                                                                          \
+                FAST_FREE(PIF, PROPERTIES);                                                                                                                                                                                                                                                                     \
                 PROPERTIES = 0;                                                                                                                                                                                                                                                                                 \
                 WRITE_UNLOCK                                                                                                                                                                                                                                                                                    \
                 return 0;                                                                                                                                                                                                                                                                                       \
@@ -4013,7 +4013,7 @@ int ConceptInterpreter::EvalClassExpression(PIFAlizator *PIF, VariableDATA **LOC
         DECLARE_PATH(VARIABLE_NUMBER);
         DECLARE_PATH(LAST_THROW->TYPE);
         if (this->Catch(THROW_DATA, LOCAL_CONTEXT, OE, PROPERTIES, INSTRUCTION_POINTER, CATCH_INSTRUCTION_POINTER, CATCH_VARIABLE, PREVIOUS_TRY)) {
-            FAST_FREE(PROPERTIES);
+            FAST_FREE(PIF, PROPERTIES);
             PROPERTIES = 0;
             WRITE_UNLOCK
             return 0;
@@ -5412,7 +5412,7 @@ VariableDATA *ConceptInterpreter::Interpret(PIFAlizator *PIF, VariableDATA **LOC
                                 WRITE_UNLOCK
                                 CCTEMP->_Class->SetProperty(PIF, PROPERTIES [OE->OperandLeft_ID - 1].IS_PROPERTY_RESULT - 1, (VariableDATA *)(PROPERTIES [OE->OperandLeft_ID - 1].CALL_SET), OE, CCTEMP->_Class->CLSID == ClassID, OE->Result_ID - 1, LOCAL_CONTEXT, ClassID, LocalClassID, &THROW_DATA, STACK_TRACE);
                                 if (THROW_DATA) {
-                                    FAST_FREE(PROPERTIES);
+                                    FAST_FREE(PIF, PROPERTIES);
                                     PROPERTIES = 0;
                                     WRITE_UNLOCK
                                     return 0;
@@ -5503,7 +5503,7 @@ VariableDATA *ConceptInterpreter::Interpret(PIFAlizator *PIF, VariableDATA **LOC
                 if (THROW_DATA) {
                     DECLARE_PATH(THROW_DATA->TYPE);
                     if (this->Catch(THROW_DATA, LOCAL_CONTEXT, OE, PROPERTIES, INSTRUCTION_POINTER, CATCH_INSTRUCTION_POINTER, CATCH_VARIABLE, PREVIOUS_TRY)) {
-                        FAST_FREE(PROPERTIES);
+                        FAST_FREE(PIF, PROPERTIES);
                         PROPERTIES = 0;
                         WRITE_UNLOCK
                         return 0;
@@ -5618,7 +5618,7 @@ nothrow:
                         if (THROW_DATA) {
                             DECLARE_PATH(THROW_DATA->TYPE);
                             if (this->Catch(THROW_DATA, LOCAL_CONTEXT, OE, PROPERTIES, INSTRUCTION_POINTER, CATCH_INSTRUCTION_POINTER, CATCH_VARIABLE, PREVIOUS_TRY)) {
-                                FAST_FREE(PROPERTIES);
+                                FAST_FREE(PIF, PROPERTIES);
                                 PROPERTIES = 0;
                                 WRITE_UNLOCK
                                 return 0;
@@ -5690,7 +5690,7 @@ nothrow:
                                     //--------------//
                                 } else {
                                     WRITE_UNLOCK
-                                    FAST_FREE(PROPERTIES);
+                                    FAST_FREE(PIF, PROPERTIES);
                                     return 0;
                                 }
                             } else {
@@ -5709,7 +5709,7 @@ nothrow:
                         if (THROW_DATA) {
                             DECLARE_PATH(THROW_DATA->TYPE);
                             if (this->Catch(THROW_DATA, LOCAL_CONTEXT, OE, PROPERTIES, INSTRUCTION_POINTER, CATCH_INSTRUCTION_POINTER, CATCH_VARIABLE, PREVIOUS_TRY)) {
-                                FAST_FREE(PROPERTIES);
+                                FAST_FREE(PIF, PROPERTIES);
                                 PROPERTIES = 0;
                                 WRITE_UNLOCK
                                 return 0;
@@ -5898,7 +5898,7 @@ numbereval:
                     if (EvalNumberExpression(PIF, LOCAL_CONTEXT, OE, PROPERTIES, ClassID, THROW_DATA, STACK_TRACE, INSTRUCTION_POINTER, CATCH_INSTRUCTION_POINTER, CATCH_VARIABLE, PREVIOUS_TRY))
 #endif
                         continue;
-                    FAST_FREE(PROPERTIES);
+                    FAST_FREE(PIF, PROPERTIES);
                     return 0;
 
                 case VARIABLE_STRING:
@@ -5943,7 +5943,7 @@ numbereval:
 
                         WRITE_UNLOCK
                         if (PROPERTIES)
-                            FAST_FREE(PROPERTIES);
+                            FAST_FREE(PIF, PROPERTIES);
                         return LOCAL_CONTEXT [OE->OperandRight_ID - 1];
                     } else {
                         if (OWNER->IS_OPERATOR) {
@@ -5951,7 +5951,7 @@ numbereval:
                             LOCAL_CONTEXT [OE->OperandRight_ID - 1]->IS_PROPERTY_RESULT = 0;
                             WRITE_UNLOCK
                             if (PROPERTIES)
-                                FAST_FREE(PROPERTIES);
+                                FAST_FREE(PIF, PROPERTIES);
                             return LOCAL_CONTEXT [OE->OperandRight_ID - 1];
                         }
                         RETURN_DATA              = (VariableDATA *)VAR_ALLOC(PIF);
@@ -5980,7 +5980,7 @@ numbereval:
                         }
                         WRITE_UNLOCK
                         if (PROPERTIES)
-                            FAST_FREE(PROPERTIES);
+                            FAST_FREE(PIF, PROPERTIES);
                         return RETURN_DATA;
                     }
                     break;
@@ -6045,7 +6045,7 @@ numbereval:
                     } else {
                         WRITE_UNLOCK
                         if (PROPERTIES)
-                            FAST_FREE(PROPERTIES);
+                            FAST_FREE(PIF, PROPERTIES);
                         return 0;
                     }
                     continue;
@@ -6083,7 +6083,7 @@ numbereval:
     THROW_DATA = 0;
     RETURN_DATA = 0;
     if (PROPERTIES)
-        FAST_FREE(PROPERTIES);
+        FAST_FREE(PIF, PROPERTIES);
     return RETURN_DATA;
 }
 
@@ -6131,7 +6131,7 @@ VariableDATA **ConceptInterpreter::CreateEnvironment(PIFAlizator *PIF, VariableD
         STACK_ROOT->stack_pos        += data_count;
         STACK_TRACE->alloc_from_stack = 1;
     } else
-        LOCAL_CONTEXT = (VariableDATA **)FAST_MALLOC(sizeof(VariableDATA *) * OPT->dataCount);
+        LOCAL_CONTEXT = (VariableDATA **)FAST_MALLOC(PIF, sizeof(VariableDATA *) * OPT->dataCount);
 #ifdef POOL_BLOCK_ALLOC
  #ifdef POOL_STACK
     if (STACK_TRACE->alloc_from_stack) {
@@ -6139,7 +6139,7 @@ VariableDATA **ConceptInterpreter::CreateEnvironment(PIFAlizator *PIF, VariableD
             LOCAL_CONTEXT[0] = (VariableDATA *)VAR_ALLOC(PIF);
     } else
  #endif
-        BLOCK_VAR_ALLOC(LOCAL_CONTEXT, PIF, data_count, 0);
+    BLOCK_VAR_ALLOC(LOCAL_CONTEXT, PIF, data_count, 0);
     VariableDATA *this_ref = LOCAL_CONTEXT[0];
 #else
     VariableDATA *this_ref = (VariableDATA *)VAR_ALLOC(PIF);
@@ -6369,7 +6369,7 @@ void ConceptInterpreter::DestroyEnviroment(PIFAlizator *PIF, VariableDATA **LOCA
             STACK_TRACE->alloc_from_stack = 0;
         }
     } else {
-        FAST_FREE(LOCAL_CONTEXT);
+        FAST_FREE(PIF, LOCAL_CONTEXT);
     }
 }
 

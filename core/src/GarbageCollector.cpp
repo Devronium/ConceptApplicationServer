@@ -50,7 +50,7 @@ void GarbageCollector::EndOfExecution_SayBye_Objects() {
                 if (ptr) {
                     ptr->LINKS = -1;
                     if (ptr->_CONTEXT) {
-                        FAST_FREE(ptr->_CONTEXT);
+                        FAST_FREE(GET_PIF(ptr), ptr->_CONTEXT);
                         ptr->_CONTEXT = NULL;
                     }
                     delete_CompiledClass(ptr);

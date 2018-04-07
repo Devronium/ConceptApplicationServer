@@ -815,7 +815,7 @@ VariableDATA *ClassCode::ExecuteMember(PIFAlizator *PIF, INTEGER i, VariableDATA
                     VariableDATA *IMAGE = (VariableDATA *)VAR_ALLOC(PIF);
 
                     if (!(*PROPERTIES)) {
-                        *PROPERTIES = (VariableDATAPROPERTY *)FAST_MALLOC(sizeof(VariableDATAPROPERTY) * dataLen);
+                        *PROPERTIES = (VariableDATAPROPERTY *)FAST_MALLOC(PIF, sizeof(VariableDATAPROPERTY) * dataLen);
                         memset(*PROPERTIES, 0, sizeof(VariableDATAPROPERTY) * dataLen);
                     }
                     (*PROPERTIES)[result_id].CALL_SET           = Owner;
@@ -903,7 +903,7 @@ VariableDATA *ClassCode::ExecuteMember(PIFAlizator *PIF, INTEGER i, VariableDATA
                 if (!RESULT->LINKS) {
                     if (PROPERTIES) {
                         if (!(*PROPERTIES)) {
-                            *PROPERTIES = (VariableDATAPROPERTY *)FAST_MALLOC(sizeof(VariableDATAPROPERTY) * dataLen);
+                            *PROPERTIES = (VariableDATAPROPERTY *)FAST_MALLOC(PIF, sizeof(VariableDATAPROPERTY) * dataLen);
                             memset(*PROPERTIES, 0, sizeof(VariableDATAPROPERTY) * dataLen);
                         }
                         (*PROPERTIES)[result_id].CALL_SET           = Owner;
@@ -916,7 +916,7 @@ VariableDATA *ClassCode::ExecuteMember(PIFAlizator *PIF, INTEGER i, VariableDATA
 
                     if (PROPERTIES) {
                         if (!(*PROPERTIES)) {
-                            *PROPERTIES = (VariableDATAPROPERTY *)FAST_MALLOC(sizeof(VariableDATAPROPERTY) * dataLen);
+                            *PROPERTIES = (VariableDATAPROPERTY *)FAST_MALLOC(PIF, sizeof(VariableDATAPROPERTY) * dataLen);
                             memset(*PROPERTIES, 0, sizeof(VariableDATAPROPERTY) * dataLen);
                         }
                         (*PROPERTIES)[result_id].CALL_SET           = Owner;

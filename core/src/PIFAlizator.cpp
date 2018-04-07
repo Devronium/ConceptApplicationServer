@@ -183,7 +183,9 @@ PIFAlizator::PIFAlizator(AnsiString INC_DIR, AnsiString LIB_DIR, AnsiString *S, 
         WorkerLockInitialized = 1;
     }
     semp(WorkerLock);
-
+#ifdef USE_MEMORY_SPACE
+    FAST_MSPACE_CREATE(this->memory);
+#endif
     if (sibling) {
         this->parentPIF = sibling;
         this->ClassList = sibling->ClassList;
@@ -350,7 +352,7 @@ PIFAlizator::~PIFAlizator(void) {
     while (C_POOL) {
 
         C_NEXT = (ClassPool *)C_POOL->NEXT;
-        OBJECT_FREE(C_POOL);
+        OBJECT_FREE(this, C_POOL);
         C_POOL = C_NEXT;
     }
 
@@ -359,7 +361,7 @@ PIFAlizator::~PIFAlizator(void) {
     while (A_POOL) {
 
         A_NEXT = (ArrayPool *)A_POOL->NEXT;
-        OBJECT_FREE(A_POOL);
+        OBJECT_FREE(this, A_POOL);
         A_POOL = A_NEXT;
     }
 
@@ -408,7 +410,7 @@ PIFAlizator::~PIFAlizator(void) {
     VARPool *NEXT;
     while (POOL) {
         NEXT = (VARPool *)POOL->NEXT;
-        FAST_FREE(POOL);
+        FAST_FREE(this, POOL);
         POOL = NEXT;
     }
 
@@ -416,11 +418,14 @@ PIFAlizator::~PIFAlizator(void) {
     while (root) {
         GCRoot *p = root;
         root = (GCRoot *)root->NEXT;
-        FAST_FREE(p);
+        FAST_FREE(this, p);
     }
     free(StaticClassList);
     StaticClassList = NULL;
     BUILTINDONE();
+#ifdef USE_MEMORY_SPACE
+    FAST_MSPACE_DESTROY(this->memory);
+#endif
 }
 
 unsigned int PIFAlizator::LinkStatic(const char *funname) {

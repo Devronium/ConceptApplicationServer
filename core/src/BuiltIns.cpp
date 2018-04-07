@@ -6,6 +6,7 @@
 #include <string.h>
 #include <math.h>
 #include <time.h>
+
 #ifdef _WIN32
     #include <windows.h>
 
@@ -316,6 +317,23 @@ CONCEPT_FUNCTION_IMPL(formatdate, 2)
     } else {
         RETURN_STRING(buffer);
     }
+END_IMPL
+
+CONCEPT_FUNCTION_IMPL(allocinfo, 0)
+    CREATE_ARRAY(RESULT);
+#ifdef USE_DLMALLOC
+    struct dl_mallinfo info = FAST_MALLINFO(PARAMETERS->PIF);
+    Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, RESULT, "arena", (INTEGER)VARIABLE_NUMBER, (char *)0, (NUMBER)info.arena);
+    Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, RESULT, "ordblks", (INTEGER)VARIABLE_NUMBER, (char *)0, (NUMBER)info.ordblks);
+    Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, RESULT, "smblks", (INTEGER)VARIABLE_NUMBER, (char *)0, (NUMBER)info.smblks);
+    Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, RESULT, "hblks", (INTEGER)VARIABLE_NUMBER, (char *)0, (NUMBER)info.hblks);
+    Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, RESULT, "hblkhd", (INTEGER)VARIABLE_NUMBER, (char *)0, (NUMBER)info.hblkhd);
+    Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, RESULT, "usmblks", (INTEGER)VARIABLE_NUMBER, (char *)0, (NUMBER)info.usmblks);
+    Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, RESULT, "fsmblks", (INTEGER)VARIABLE_NUMBER, (char *)0, (NUMBER)info.fsmblks);
+    Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, RESULT, "uordblks", (INTEGER)VARIABLE_NUMBER, (char *)0, (NUMBER)info.uordblks);
+    Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, RESULT, "keepcost", (INTEGER)VARIABLE_NUMBER, (char *)0, (NUMBER)info.keepcost);
+    Invoke(INVOKE_SET_ARRAY_ELEMENT_BY_KEY, RESULT, "footprint", (INTEGER)VARIABLE_NUMBER, (char *)0, (NUMBER)FAST_FOOTPRINT(PARAMETERS->PIF));
+#endif
 END_IMPL
 
 #ifndef DISABLE_INTROSPECTION
@@ -937,6 +955,7 @@ void *BUILTINADDR(void *pif, const char *name, unsigned char *is_private) {
 
     BUILTIN(CheckReachability);
     BUILTIN(MemoryInfo);
+    BUILTIN(allocinfo);
 #ifndef DISABLE_INTROSPECTION
     BUILTIN(bytecode)
     BUILTIN(bytedata)

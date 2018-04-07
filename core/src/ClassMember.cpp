@@ -263,7 +263,7 @@ void ClassMember::EndMainCall(void *PIF, VariableDATA *&RESULT, VariableDATA *&T
             data = CONCEPT_C_STRING(THROW_DATA);
         } else
         if (THROW_DATA->TYPE == VARIABLE_NUMBER) {
-            temp = (char *)FAST_MALLOC(0xFF);
+            temp = (char *)FAST_MALLOC(PIF, 0xFF);
             cstr_loaddouble(temp, THROW_DATA->NUMBER_DATA);
             data = temp;
         } else
@@ -276,7 +276,7 @@ void ClassMember::EndMainCall(void *PIF, VariableDATA *&RESULT, VariableDATA *&T
         if (THROW_DATA->TYPE == VARIABLE_DELEGATE) {
             const char *class_name = CompiledClass_GetClassName((struct CompiledClass *)delegate_Class(THROW_DATA->CLASS_DATA));
             int len = strlen(class_name);
-            temp = (char *)FAST_MALLOC(len + 13);
+            temp = (char *)FAST_MALLOC(PIF, len + 13);
             temp[len + 12] = 0;
             memcpy(temp, "Delegate of ", 12);
             memcpy(temp + 12, class_name, len);
@@ -289,7 +289,7 @@ void ClassMember::EndMainCall(void *PIF, VariableDATA *&RESULT, VariableDATA *&T
         FREE_VARIABLE(THROW_DATA, PREV);
         THROW_DATA = NULL;
 
-        FAST_FREE(temp);
+        FAST_FREE(PIF, temp);
     }
 #ifdef POOL_STACK
     if ((!PREV) && (STACK_TRACE->STACK_CONTEXT)) {
@@ -330,7 +330,7 @@ VariableDATA *ClassMember::Execute(void *PIF, intptr_t CONCEPT_CLASS_ID, Variabl
         STACK_TRACE.ROOT             = PREV->ROOT;
         ((SCStack *)PREV->ROOT)->TOP = &STACK_TRACE;
     } else {
-        STACK_TRACE.STACK_CONTEXT = (void **)FAST_MALLOC(sizeof(VariableDATA *) * BLOCK_STACK_SIZE);
+        STACK_TRACE.STACK_CONTEXT = (void **)FAST_MALLOC(PIF, sizeof(VariableDATA *) * BLOCK_STACK_SIZE);
 #ifdef POOL_STACK
         memset(STACK_TRACE.STACK_CONTEXT, 0, sizeof(VariableDATA *) * BLOCK_STACK_SIZE);
 #endif
@@ -408,7 +408,7 @@ VariableDATA *ClassMember::Execute(void *PIF, intptr_t CONCEPT_CLASS_ID, Variabl
 #endif
         }
 #endif
-        FAST_FREE(STACK_TRACE.STACK_CONTEXT);
+        FAST_FREE(PIF, STACK_TRACE.STACK_CONTEXT);
         RemoveGCRoot(PIF, &STACK_TRACE);
     }
 #ifdef EMPIRIC_STACK_CHECK
@@ -502,7 +502,7 @@ void ClassMember::DoneThread(GreenThreadCycle *gtc) {
         }
 
         if (gtc->PROPERTIES)
-            FAST_FREE(gtc->PROPERTIES);
+            FAST_FREE(gtc->PIF, gtc->PROPERTIES);
         free(gtc);
     }
 }

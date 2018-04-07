@@ -48,18 +48,15 @@ class __Thread {
 		var path=this.GetPath(exec_data);
 		if (Pos(exec_data, " "))
 			exec_data="\""+exec_data+"\"";
-		//if (Pos(path, " "))
-		//	path="\""+path+"\"";
-		//exec_data="concept "+exec_data;
-		//if (ON_MSWINDOWS)//
 
 		semv(Semaphore);
-		//_chdir(path);
 		do {
 			_t.Data[Data]="Running";
-			var res=system(exec_data);
-			if (res!=0)
-				res=system("concept "+exec_data);
+			if (ON_MSWINDOWS)
+				var res=_system("concept -chdir $exec_data");
+			else
+				res=_system(exec_data);
+
 
 			if (res<0) {
 				echo "Service '${Data}' failed with code $res\n";
@@ -158,11 +155,11 @@ class Main {
 				}
 			}
 		} else
-			echo "Simple Concept Service Manager 1.0 (c)2011 RadGs Software\nThis application cannot be run from the command line(it is ivoked by the Concept Application Server)";
+			echo "Simple Concept Service Manager 1.0 (c)2011-2018 Devronium Applications\nThis application cannot be run from the command line(it is invoked by the Concept Application Server)";
 	}
 
 	function Main() {
-		WriteFile("Launching service with apid "+GetAPID()+"\n","ServiceManager.log");
+		WriteFile("Launching service with apid "+GetAPID()+" (working directory: ${getcwd()})\n","ServiceManager.log");
 		_putenv("CONCEPT_FORCE_CHDIR=1");
 		if (FileExists(SERVICES_XML))
 			as=Serializable::UnSerialize(SERVICES_XML);

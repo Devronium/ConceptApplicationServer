@@ -16,6 +16,7 @@ extern "C" {
 // on FreeBSD dlmalloc is the default memory allocator
 // works when using posix locks instead of spin locks
  #define USE_DLMALLOC
+ #define USE_MEMORY_SPACE
 #endif
 
 #ifdef USE_BOOST_LIBRARY
@@ -59,23 +60,64 @@ void RemoveGCRoot(void *PIF, void *CONTEXT);
 int GetMemoryStatistics(void *PIF, void *RESULT);
 
 #ifdef USE_DLMALLOC
-extern "C" {
-void *dlmalloc(size_t);
-void *dlcalloc(size_t, size_t);
-void  dlfree(void *);
+ extern "C" {
+     void *dlmalloc(size_t);
+     void *dlcalloc(size_t, size_t);
+     void  dlfree(void *);
+     void *dlrealloc(void *, size_t);
+     size_t dlmalloc_footprint(void);
 
-void *dlrealloc(void *, size_t);
-}
+     struct dl_mallinfo {
+        size_t arena;
+        size_t ordblks;
+        size_t smblks;
+        size_t hblks;
+        size_t hblkhd;
+        size_t usmblks;
+        size_t fsmblks;
+        size_t uordblks;
+        size_t fordblks;
+        size_t keepcost;
+     };
 
- #define FAST_MALLOC(size)          dlmalloc(size)
- #define FAST_CALLOC(size)          dlcalloc(num, size)
- #define FAST_FREE(ptr)             dlfree(ptr)
- #define FAST_REALLOC(ptr, size)    dlrealloc(ptr, size)
+     struct dl_mallinfo dlmallinfo(void);
+#ifdef USE_MEMORY_SPACE
+     void *create_mspace(size_t capacity, int locked);
+     size_t destroy_mspace(void *msp);
+     void *mspace_malloc(void *msp, size_t bytes);
+     void mspace_free(void *msp, void *mem);
+     void *mspace_realloc(void *msp, void *mem, size_t newsize);
+     void *mspace_calloc(void *msp, size_t n_elements, size_t elem_size);
+     size_t mspace_footprint(void *msp);
+     struct dl_mallinfo mspace_mallinfo(void *msp);
+#endif
+ }
+
+#ifdef USE_MEMORY_SPACE
+ #define FAST_MALLOC(pif, size)          (pif ? mspace_malloc(((PIFAlizator *)(pif))->memory, size) : dlmalloc(size))
+ #define FAST_CALLOC(pif, size)          (pif ? mspace_calloc(((PIFAlizator *)(pif))->memory, num, size) : dlcalloc(num, size))
+ #define FAST_FREE(pif, ptr)             (pif ? mspace_free(((PIFAlizator *)(pif))->memory, ptr) : dlfree(ptr))
+ #define FAST_REALLOC(pif, ptr, size)    (pif ? mspace_realloc(((PIFAlizator *)(pif))->memory, ptr, size) : dlrealloc(ptr, size))
+ #define FAST_MALLINFO(pif)              mspace_mallinfo(((PIFAlizator *)(pif))->memory)
+ #define FAST_FOOTPRINT(pif)             mspace_footprint(((PIFAlizator *)(pif))->memory)
+
+ #define FAST_MSPACE_CREATE(memory)      memory = create_mspace(0, 0)
+ #define FAST_MSPACE_DESTROY(memory)     destroy_mspace(memory)
 #else
- #define FAST_MALLOC(size)          malloc(size)
- #define FAST_CALLOC(size)          calloc(size)
- #define FAST_FREE(ptr)             free(ptr)
- #define FAST_REALLOC(ptr, size)    realloc(ptr, size)
+ #define FAST_MALLOC(pif, size)          dlmalloc(size)
+ #define FAST_CALLOC(pif, size)          dlcalloc(num, size)
+ #define FAST_FREE(pif, ptr)             dlfree(ptr)
+ #define FAST_REALLOC(pif, ptr, size)    dlrealloc(ptr, size)
+ #define FAST_MALLINFO(pif)              dlmallinfo()
+ #define FAST_FOOTPRINT(pif)             dlmalloc_footprint()
+#endif
+#else
+ #define FAST_MALLOC(pif, size)          malloc(size)
+ #define FAST_CALLOC(pif, size)          calloc(size)
+ #define FAST_FREE(pif, ptr)             free(ptr)
+ #define FAST_REALLOC(pif, ptr, size)    realloc(ptr, size)
+ #define FAST_MALLINFO(pif)              mallinfo()
+ #define FAST_FOOTPRINT(pif)             -1
 #endif
 
 #ifdef SIMPLE_MULTI_THREADING
@@ -98,6 +140,6 @@ void *dlrealloc(void *, size_t);
  #define POOL_CONTEXT(var)                               GetPOOLContext(var)
 #endif
 
-#define OBJECT_MALLOC(size)         FAST_MALLOC(size)
-#define OBJECT_FREE(ptr)            FAST_FREE(ptr)
+#define OBJECT_MALLOC(pif, size)                         FAST_MALLOC(pif, size)
+#define OBJECT_FREE(pif, ptr)                            FAST_FREE(pif, ptr)
 #endif // __CONCEPT_POOLS_H

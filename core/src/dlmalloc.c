@@ -2,6 +2,8 @@
 #define USE_DL_PREFIX
 #define NO_MALLOC_STATS    1
 #define INSECURE           1
+#define NO_MALLINFO        0
+#define MSPACES            1
 #ifdef _WIN32
     #define MALLOC_ALIGNMENT  ((size_t)(4 * sizeof(void *)))
 #endif

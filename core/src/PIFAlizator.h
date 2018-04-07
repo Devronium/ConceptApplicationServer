@@ -344,6 +344,9 @@ public:
     int    free_arrays;
     void   *RootInstance;
     GCRoot *GCROOT;
+#ifdef USE_MEMORY_SPACE
+    void   *memory;
+#endif
     int    dirty_limit;
     int    last_gc_run;
     char   in_gc;
