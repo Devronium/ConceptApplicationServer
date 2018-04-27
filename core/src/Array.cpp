@@ -8,7 +8,7 @@ POOLED_IMPLEMENTATION(Array)
 
 //--- macros ------------------------------------------------------------
 #define CREATE_NODE(NEW_NODE)                                           \
-    NEW_NODE           = (NODE *)FAST_MALLOC(self->PIF, sizeof(NODE));  \
+    NEW_NODE           = (NODE *)FAST_MALLOC(PIF, sizeof(NODE));        \
     NEW_NODE->ELEMENTS = NULL;                                          \
     NEW_NODE->COUNT    = 0;                                             \
     NEW_NODE->NEXT     = 0;
@@ -24,7 +24,7 @@ POOLED_IMPLEMENTATION(Array)
             TARGET_NODE->COUNT = DYNAMIC_INCREMENT(self->COUNT);                                                                \
         else                                                                                                                    \
             TARGET_NODE->COUNT = INDEX + 1;                                                                                     \
-        TARGET_NODE->ELEMENTS = (ArrayElement *)FAST_REALLOC(self->PIF, TARGET_NODE->ELEMENTS, TARGET_NODE->COUNT * sizeof(ArrayElement)); \
+        TARGET_NODE->ELEMENTS = (ArrayElement *)FAST_REALLOC(PIF, TARGET_NODE->ELEMENTS, TARGET_NODE->COUNT * sizeof(ArrayElement)); \
         for (int i = prec_size; i < TARGET_NODE->COUNT; i++)                                                                    \
             TARGET_NODE->ELEMENTS[i] = NULL;                                                                                    \
     }
@@ -187,7 +187,7 @@ POOLED_IMPLEMENTATION(Array)
             if (res)                                                                                     \
                 return res;                                                                              \
         } else {                                                                                         \
-            self->cached_data = (VariableDATA **)FAST_MALLOC(self->PIF, STATIC_ARRAY_THRESHOLD * sizeof(VariableDATA *)); \
+            self->cached_data = (VariableDATA **)FAST_MALLOC(PIF, STATIC_ARRAY_THRESHOLD * sizeof(VariableDATA *)); \
             memset(self->cached_data, 0, STATIC_ARRAY_THRESHOLD * sizeof(VariableDATA *));               \
         }                                                                                                \
     }
@@ -198,7 +198,7 @@ POOLED_IMPLEMENTATION(Array)
 
  #define CACHE_CREATE_CHECK                                                                          \
     if ((!self->cached_data) && (self->COUNT > STATIC_ARRAY_THRESHOLD_MINSIZE)) {                    \
-        self->cached_data = (VariableDATA **)FAST_MALLOC(self->PIF, STATIC_ARRAY_THRESHOLD * sizeof(VariableDATA *)); \
+        self->cached_data = (VariableDATA **)FAST_MALLOC(PIF, STATIC_ARRAY_THRESHOLD * sizeof(VariableDATA *)); \
         memset(self->cached_data, 0, STATIC_ARRAY_THRESHOLD * sizeof(VariableDATA *));               \
     }
 #else
@@ -223,7 +223,6 @@ struct Array *new_Array(void *PIF, bool skip_top) {
     self->LINKS         = 1;
     self->LAST          = self->FIRST;
     self->NODE_COUNT    = 0;
-    self->PIF           = PIF;
 
     return self;
 }
@@ -416,8 +415,9 @@ void Array_CleanIndex(struct Array *self, bool forced) {
 }
 
 ARRAY_COUNT_TYPE Array_AddKey(struct Array *self, const char *KEY, ARRAY_COUNT_TYPE index) {
+    void *PIF = GET_ARRAY_PIF(self);
     if (!(self->KeysCount % KEY_INCREMENT))
-        self->Keys = (ArrayKey *)FAST_REALLOC(self->PIF, self->Keys, sizeof(ArrayKey) * (self->KeysCount / KEY_INCREMENT + 1) * KEY_INCREMENT);
+        self->Keys = (ArrayKey *)FAST_REALLOC(PIF, self->Keys, sizeof(ArrayKey) * (self->KeysCount / KEY_INCREMENT + 1) * KEY_INCREMENT);
     ARRAY_COUNT_TYPE place = Array_FindPlace(self, KEY);
 
     int len = KEY ? strlen(KEY) : 0;
@@ -435,7 +435,7 @@ ARRAY_COUNT_TYPE Array_AddKey(struct Array *self, const char *KEY, ARRAY_COUNT_T
     if (place < self->KeysCount)
         memmove((void *)&self->Keys [place + 1], (void *)&self->Keys [place], sizeof(ArrayKey) * delta);
 
-    self->Keys [place].KEY   = (char *)FAST_MALLOC(self->PIF, len + 1);
+    self->Keys [place].KEY   = (char *)FAST_MALLOC(PIF, len + 1);
     self->Keys [place].index = index;
     self->Keys [place].dirty = dirty;
     memcpy(self->Keys [place].KEY, KEY, len);
@@ -447,12 +447,14 @@ ARRAY_COUNT_TYPE Array_AddKey(struct Array *self, const char *KEY, ARRAY_COUNT_T
 }
 
 VariableDATA *Array_Add(struct Array *self, VariableDATA *VAR_TO_ADD) {
+    void *PIF = GET_ARRAY_PIF(self);
     ADD_LINKED_VARIABLE(VAR_TO_ADD);
     return 0;
 }
 
 VariableDATA *Array_AddCopy(struct Array *self, VariableDATA *VAR_TO_ADD) {
-    ADD_COPY_VARIABLE(VAR_TO_ADD, self->PIF);
+    void *PIF = GET_ARRAY_PIF(self);
+    ADD_COPY_VARIABLE(VAR_TO_ADD, PIF);
     return 0;
 }
 
@@ -469,6 +471,7 @@ VariableDATA *Array_Get(struct Array *self, ARRAY_COUNT_TYPE i) {
     if (i < 0) {
         return 0;
     }
+    void *PIF = GET_ARRAY_PIF(self);
     if (i < self->COUNT) {
         CACHE_ARRAY_BLOCK;
 
@@ -507,7 +510,7 @@ VariableDATA *Array_Get(struct Array *self, ARRAY_COUNT_TYPE i) {
 
 VariableDATA *Array_Get(struct Array *self, VariableDATA *KEY) {
     ARRAY_COUNT_TYPE i = -1;
-
+    void *PIF = GET_ARRAY_PIF(self);
     if (KEY->TYPE == VARIABLE_NUMBER) {
         i = (ARRAY_COUNT_TYPE)KEY->NUMBER_DATA;
         if (i < 0) {
@@ -520,7 +523,7 @@ VariableDATA *Array_Get(struct Array *self, VariableDATA *KEY) {
 
         if (i == -1) {
             Array_AddKey(self, k_str, self->COUNT);
-            ADD_VARIABLE(0, self->PIF);
+            ADD_VARIABLE(0, PIF);
         }
     }
 
@@ -557,7 +560,7 @@ VariableDATA *Array_Get(struct Array *self, VariableDATA *KEY) {
         ENSURE_ELEMENTS(CURRENT, d_count);
         ArrayElement *ELEMENTS = CURRENT->ELEMENTS;
         if (!ELEMENTS [d_count]) {
-            CREATE_VARIABLE(ELEMENTS [d_count], self->PIF);
+            CREATE_VARIABLE(ELEMENTS [d_count], PIF);
         }
         ARRAY_CACHED_RETURN(ELEMENTS [d_count], i);
         return ELEMENTS [d_count];
@@ -566,11 +569,12 @@ VariableDATA *Array_Get(struct Array *self, VariableDATA *KEY) {
     while (self->COUNT < target) {
         ADD_MULTIPLE_VARIABLE2;
     }
-    ADD_VARIABLE(0, self->PIF);
+    ADD_VARIABLE(0, PIF);
     return 0;
 }
 
 VariableDATA *Array_GetWithCreate(struct Array *self, ARRAY_COUNT_TYPE i, NUMBER default_value) {
+    void *PIF = GET_ARRAY_PIF(self);
     if (i < self->COUNT) {
         CACHE_ARRAY_BLOCK;
 
@@ -604,7 +608,7 @@ VariableDATA *Array_GetWithCreate(struct Array *self, ARRAY_COUNT_TYPE i, NUMBER
         ENSURE_ELEMENTS(CURRENT, d_count);
         ArrayElement *ELEMENTS = CURRENT->ELEMENTS;
         if (!ELEMENTS [d_count]) {
-            CREATE_VARIABLE(ELEMENTS [d_count], self->PIF);
+            CREATE_VARIABLE(ELEMENTS [d_count], PIF);
         }
 
         ARRAY_CACHED_RETURN(ELEMENTS [d_count], i);
@@ -615,11 +619,12 @@ VariableDATA *Array_GetWithCreate(struct Array *self, ARRAY_COUNT_TYPE i, NUMBER
     while (self->COUNT < target) {
         ADD_MULTIPLE_VARIABLE2;
     }
-    ADD_VARIABLE(default_value, self->PIF);
+    ADD_VARIABLE(default_value, PIF);
     return 0;
 }
 
 VariableDATA *Array_ModuleGet(struct Array *self, ARRAY_COUNT_TYPE i) {
+    void *PIF = GET_ARRAY_PIF(self);
     if (i <self-> COUNT) {
         ARRAY_COUNT_TYPE target_node = DYNAMIC_TARGET(i);
         ARRAY_COUNT_TYPE d_count     = DYNAMIC_DISTRIBUTION(i);
@@ -650,7 +655,7 @@ VariableDATA *Array_ModuleGet(struct Array *self, ARRAY_COUNT_TYPE i) {
         ENSURE_ELEMENTS(CURRENT, d_count);
         ArrayElement *ELEMENTS = CURRENT->ELEMENTS;
         if (!ELEMENTS [d_count]) {
-            CREATE_VARIABLE(ELEMENTS [d_count], self->PIF);
+            CREATE_VARIABLE(ELEMENTS [d_count], PIF);
         }
         return ELEMENTS [d_count];
     }
@@ -658,7 +663,7 @@ VariableDATA *Array_ModuleGet(struct Array *self, ARRAY_COUNT_TYPE i) {
     while (self->COUNT < target) {
         ADD_MULTIPLE_VARIABLE2;
     }
-    ADD_VARIABLE(0, self->PIF);
+    ADD_VARIABLE(0, PIF);
     return 0;
 }
 
@@ -710,9 +715,9 @@ ARRAY_COUNT_TYPE Array_FindOrAddKey(struct Array *self, const char *KEY) {
     if (place != -1)
         return place;
     place = index;
-
+    void *PIF = GET_ARRAY_PIF(self);
     if (!(self->KeysCount % KEY_INCREMENT))
-        self->Keys = (ArrayKey *)FAST_REALLOC(self->PIF, self->Keys, sizeof(ArrayKey) * (self->KeysCount / KEY_INCREMENT + 1) * KEY_INCREMENT);
+        self->Keys = (ArrayKey *)FAST_REALLOC(PIF, self->Keys, sizeof(ArrayKey) * (self->KeysCount / KEY_INCREMENT + 1) * KEY_INCREMENT);
 
     int len = KEY ? strlen(KEY) : 0;
     ARRAY_COUNT_TYPE delta = self->KeysCount - place;
@@ -729,7 +734,7 @@ ARRAY_COUNT_TYPE Array_FindOrAddKey(struct Array *self, const char *KEY) {
     if (place < self->KeysCount)
         memmove((void *)&self->Keys [place + 1], (void *)&self->Keys [place], sizeof(ArrayKey) * delta);
 
-    self->Keys [place].KEY   = (char *)FAST_MALLOC(self->PIF, len + 1);
+    self->Keys [place].KEY   = (char *)FAST_MALLOC(PIF, len + 1);
     self->Keys [place].index = self->COUNT;
     self->Keys [place].dirty = dirty;
     memcpy(self->Keys [place].KEY, KEY, len);
@@ -742,10 +747,10 @@ ARRAY_COUNT_TYPE Array_FindOrAddKey(struct Array *self, const char *KEY) {
 
 VariableDATA *Array_ModuleGet(struct Array *self, const char *key) {
     ARRAY_COUNT_TYPE i = -1;
-
+    void *PIF = GET_ARRAY_PIF(self);
     i = Array_FindOrAddKey(self, key);
     if (i == -1) {
-        ADD_VARIABLE(0, self->PIF);
+        ADD_VARIABLE(0, PIF);
     }
 
     if (i < self->COUNT) {
@@ -759,7 +764,7 @@ VariableDATA *Array_ModuleGet(struct Array *self, const char *key) {
         ENSURE_ELEMENTS(CURRENT, d_count);
         ArrayElement *ELEMENTS = CURRENT->ELEMENTS;
         if (!ELEMENTS [d_count]) {
-            CREATE_VARIABLE(ELEMENTS [d_count], self->PIF);
+            CREATE_VARIABLE(ELEMENTS [d_count], PIF);
         }
         return ELEMENTS [d_count];
     }
@@ -767,14 +772,15 @@ VariableDATA *Array_ModuleGet(struct Array *self, const char *key) {
     while (self->COUNT < target) {
         ADD_MULTIPLE_VARIABLE2;
     }
-    ADD_VARIABLE(0, self->PIF);
+    ADD_VARIABLE(0, PIF);
     return 0;
 }
 
 void Array_EnsureSize(struct Array *self, ARRAY_COUNT_TYPE size, VariableDATA *default_value) {
+    void *PIF = GET_ARRAY_PIF(self);
 #ifdef OPTIMIZE_FAST_ARRAYS
     if ((size > STATIC_ARRAY_THRESHOLD_MINSIZE) && (!self->cached_data)) {
-        self->cached_data = (VariableDATA **)FAST_MALLOC(self->PIF, STATIC_ARRAY_THRESHOLD * sizeof(VariableDATA *));
+        self->cached_data = (VariableDATA **)FAST_MALLOC(PIF, STATIC_ARRAY_THRESHOLD * sizeof(VariableDATA *));
         memset(self->cached_data, 0, STATIC_ARRAY_THRESHOLD * sizeof(VariableDATA *));
     }
 #endif
@@ -806,7 +812,7 @@ void Array_EnsureSize(struct Array *self, ARRAY_COUNT_TYPE size, VariableDATA *d
         }
         ENSURE_ELEMENTS(REF_NODE, DISTRIBUTED_COUNT);
         ArrayElement *ELEMENTS = REF_NODE->ELEMENTS;
-        ELEMENTS [DISTRIBUTED_COUNT]        = (VariableDATA *)VAR_ALLOC(self->PIF);
+        ELEMENTS [DISTRIBUTED_COUNT]        = (VariableDATA *)VAR_ALLOC(PIF);
         ELEMENTS [DISTRIBUTED_COUNT]->TYPE  = default_value->TYPE;
         ELEMENTS [DISTRIBUTED_COUNT]->LINKS = 1;
         if (default_value->TYPE == VARIABLE_STRING) {
@@ -893,8 +899,9 @@ void Array_GO_GARBAGE(struct Array *self, void *PIF, GarbageCollector *__gc_obj,
 }
 
 VariableDATA *Array_NewArray(struct Array *self) {
-    VariableDATA *DATA = (VariableDATA *)VAR_ALLOC(self->PIF);
-    struct Array *newARRAY   = new_Array(self->PIF);
+    void *PIF = GET_ARRAY_PIF(self);
+    VariableDATA *DATA = (VariableDATA *)VAR_ALLOC(PIF);
+    struct Array *newARRAY   = new_Array(PIF);
 
     DATA->TYPE               = VARIABLE_ARRAY;
     DATA->LINKS              = 0;
@@ -996,7 +1003,7 @@ struct plainstring *Array_ToString(struct Array *self, int level, Array *parent,
 
 void Array_UnlinkObjects(struct Array *self) {
     NODE *CURRENT = self->FIRST;
-
+    void *PIF = GET_ARRAY_PIF(self);
     for (ARRAY_COUNT_TYPE i = 0; i < self->NODE_COUNT; i++) {
         for (ARRAY_COUNT_TYPE j = 0; j < CURRENT->COUNT; j++) {
             VariableDATA *Var = CURRENT->ELEMENTS [j];
@@ -1012,8 +1019,8 @@ void Array_UnlinkObjects(struct Array *self) {
         }
         NODE *NEXT = CURRENT->NEXT;
         if (CURRENT->ELEMENTS)
-            FAST_FREE(self->PIF, CURRENT->ELEMENTS);
-        FAST_FREE(self->PIF, CURRENT);
+            FAST_FREE(PIF, CURRENT->ELEMENTS);
+        FAST_FREE(PIF, CURRENT);
         CURRENT = NEXT;
     }
     self->COUNT      = 0;
@@ -1028,9 +1035,10 @@ void delete_Array(struct Array *self) {
         delete_var = false;
 
     self->LINKS = -1;
+    void *PIF = GET_ARRAY_PIF(self);
 #ifdef OPTIMIZE_FAST_ARRAYS
     if (self->cached_data) {
-        FAST_FREE(self->PIF, self->cached_data);
+        FAST_FREE(PIF, self->cached_data);
         self->cached_data = 0;
     }
 #endif
@@ -1046,22 +1054,22 @@ void delete_Array(struct Array *self) {
         }
         NODE *NEXT = CURRENT->NEXT;
         if (CURRENT->ELEMENTS)
-            FAST_FREE(self->PIF, CURRENT->ELEMENTS);
-        FAST_FREE(self->PIF, CURRENT);
+            FAST_FREE(PIF, CURRENT->ELEMENTS);
+        FAST_FREE(PIF, CURRENT);
         CURRENT = NEXT;
     }
     if (self->Keys) {
         for (ARRAY_COUNT_TYPE i = 0; i < self->KeysCount; i++) {
             if (self->Keys [i].KEY)
-                FAST_FREE(self->PIF, self->Keys [i].KEY);
+                FAST_FREE(PIF, self->Keys [i].KEY);
         }
-        FAST_FREE(self->PIF, self->Keys);
+        FAST_FREE(PIF, self->Keys);
     }
     FreeArray(self);
 }
 
 struct Array *Array_SortArrayElementsByKey(struct Array *self) {
-    Array *newARRAY = new_Array(self->PIF);
+    Array *newARRAY = new_Array(GET_ARRAY_PIF(self));
     Array_CleanIndex(self, true);
     for (ARRAY_COUNT_TYPE i = 0; i < self->KeysCount; i++) {
         Array_Add(newARRAY, Array_Get(self, self->Keys [i].index));

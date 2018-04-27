@@ -7,6 +7,8 @@
 #include "GarbageCollector.h"
 #include "ConceptPools.h"
 
+#define GET_ARRAY_PIF(THIS_REF)    (THIS_REF->flags >= 0 ? ((PIFAlizator *)((ArrayPool *)(((uintptr_t)THIS_REF) - sizeof(struct Array) * THIS_REF->flags - POOL_OFFSET(ArrayPool, POOL)))->PIF) : NULL)
+
 #define     KEY_NUMBER          0
 
 #define     ARRAY_INCREMENT     0x40
@@ -47,27 +49,23 @@ typedef struct _NODE {
 #endif
 
 struct Array {
+    NODE *FIRST;
+    NODE *LAST;
 #ifdef OPTIMIZE_FAST_ARRAYS
-    ARRAY_COUNT_TYPE LastNodeIndex;
     NODE *LastNode;
 #endif
-
-    ArrayKey * Keys;
+    ArrayKey *Keys;
+#ifdef OPTIMIZE_FAST_ARRAYS
+    VariableDATA **cached_data;
+#endif
     ARRAY_COUNT_TYPE LastKey;
     ARRAY_COUNT_TYPE KeysCount;
-
-    NODE             *FIRST;
-    NODE             *LAST;
     ARRAY_COUNT_TYPE NODE_COUNT;
     ARRAY_COUNT_TYPE COUNT;
-
-    void *PIF;
-
 #ifdef OPTIMIZE_FAST_ARRAYS
-    VariableDATA * *cached_data;
+    ARRAY_COUNT_TYPE LastNodeIndex;
 #endif
     int LINKS;
-
     signed char flags;
     signed char reachable;
 };

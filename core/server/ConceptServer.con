@@ -3098,7 +3098,7 @@ class ConceptCGIChild extends ConceptCGIChildBase {
 				err = pipesocket(std_out, Socket.Socket, MAX_RECV_BUFFER);
 				if (err != -2) {
 					// pipesocket supported
-					if (err <= 0) {
+					if (err < 0) {
 						pipe_err = _errno();
 						if (!pipe_err)
 							pipe_err = SocketErrno();
