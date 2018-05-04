@@ -906,7 +906,7 @@ static sljit_sw SLJIT_CALL c_ASRVD(VariableDATA *left, VariableDATA *right, Vari
 }
 
 // version B
-static sljit_sw SLJIT_CALL c_modVD2_v2(VariableDATA *left, VariableDATA *right, VariableDATA *result) {
+static sljit_sw SLJIT_CALL c_modVD2_v2(VariableDATA *left, VariableDATA *right) {
     sljit_sw o2 = (sljit_sw)right->NUMBER_DATA;
 
     if (o2)

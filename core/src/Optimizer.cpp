@@ -972,7 +972,7 @@ INTEGER Optimizer::OptimizeExpression(OptimizerHelper *helper, TempVariableManag
                     NO_JUNK = 1;
             }
 
-            if ((((AE_ID == KEY_SEL) || (AE_ID == KEY_DLL_CALL)) && (Parameter) && (Parameter->TYPE == TYPE_PARAM_LIST))) {
+            if ((((AE_ID == KEY_SEL) || (AE_ID == KEY_DLL_CALL)) && (Parameter) && (Parameter->TYPE == TYPE_PARAM_LIST) && (!IS_PARAM_LIST))) {
                 tmp_index = TVM->GetVar();
             } else
             if ((AE_ID == KEY_SEL) && (LAST_OP) && (LAST_OP->Operator.ID == KEY_SEL) && (LAST_OP->Result_ID == Left->ID) && 

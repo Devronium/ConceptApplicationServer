@@ -707,6 +707,8 @@ class Main {
 						csv=  "";
 					}
 				}
+				if (csv)
+					f.Write(csv);
 				f.Close();
 			}
 		} else
