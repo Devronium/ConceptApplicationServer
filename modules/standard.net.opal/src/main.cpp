@@ -20,6 +20,20 @@ public:
 static INVOKE_CALL InvokePtr  = 0;
 SimpleOpalProcess  *pInstance = 0;
 
+void *COPY_VAR(void *handler, INVOKE_CALL Invoke, void *deleg) {
+    void *var = NULL;
+    char    *szData;
+    INTEGER type;
+    NUMBER  nData;
+
+    Invoke(INVOKE_CREATE_VARIABLE_2, handler, &var);
+    if (var) {
+            Invoke(INVOKE_GET_VARIABLE, deleg, &type, &szData, &nData);
+            Invoke(INVOKE_SET_VARIABLE, var, type, szData, nData);
+    }
+    return var;
+}
+
 CONCEPT_DLL_API ON_CREATE_CONTEXT MANAGEMENT_PARAMETERS {
     InvokePtr = Invoke;
     pInstance = new SimpleOpalProcess();
@@ -321,11 +335,11 @@ CONCEPT_FUNCTION_IMPL(SIPPhoneOnConnectRequest, 2)
     T_DELEGATE(SIPPhoneOnConnectRequest, 1)
 
     MyManager * opal = (MyManager *)PARAM_INT(0);
-    Invoke(INVOKE_EXTERNAL_THREADING, PARAMETER(1));
-    Invoke(INVOKE_LOCK_VARIABLE, PARAMETER(1));
+    void *var = COPY_VAR(PARAMETERS->HANDLER, Invoke, PARAMETER(1));
+    Invoke(INVOKE_EXTERNAL_THREADING, var);
     if (opal->OnConnectRequest)
         Invoke(INVOKE_FREE_VARIABLE, opal->OnConnectRequest);
-    opal->OnConnectRequest = PARAMETER(1);
+    opal->OnConnectRequest = var;
     RETURN_NUMBER(0)
 END_IMPL
 //-----------------------------------------------------//
@@ -334,11 +348,11 @@ CONCEPT_FUNCTION_IMPL(SIPPhoneOnEstablishedCall, 2)
     T_DELEGATE(SIPPhoneOnEstablishedCall, 1)
 
     MyManager * opal = (MyManager *)PARAM_INT(0);
-    Invoke(INVOKE_EXTERNAL_THREADING, PARAMETER(1));
-    Invoke(INVOKE_LOCK_VARIABLE, PARAMETER(1));
+    void *var = COPY_VAR(PARAMETERS->HANDLER, Invoke, PARAMETER(1));
+    Invoke(INVOKE_EXTERNAL_THREADING, var);
     if (opal->OnEstablishedCallDelegate)
         Invoke(INVOKE_FREE_VARIABLE, opal->OnEstablishedCallDelegate);
-    opal->OnEstablishedCallDelegate = PARAMETER(1);
+    opal->OnEstablishedCallDelegate = var;
     RETURN_NUMBER(0)
 END_IMPL
 //-----------------------------------------------------//
@@ -347,11 +361,11 @@ CONCEPT_FUNCTION_IMPL(SIPPhoneOnClearedCall, 2)
     T_DELEGATE(SIPPhoneOnClearedCall, 1)
 
     MyManager * opal = (MyManager *)PARAM_INT(0);
-    Invoke(INVOKE_EXTERNAL_THREADING, PARAMETER(1));
-    Invoke(INVOKE_LOCK_VARIABLE, PARAMETER(1));
+    void *var = COPY_VAR(PARAMETERS->HANDLER, Invoke, PARAMETER(1));
+    Invoke(INVOKE_EXTERNAL_THREADING, var);
     if (opal->OnClearedCallDelegate)
         Invoke(INVOKE_FREE_VARIABLE, opal->OnClearedCallDelegate);
-    opal->OnClearedCallDelegate = PARAMETER(1);
+    opal->OnClearedCallDelegate = var;
     RETURN_NUMBER(0)
 END_IMPL
 //-----------------------------------------------------//
@@ -360,11 +374,11 @@ CONCEPT_FUNCTION_IMPL(SIPPhoneOnShowIncoming, 2)
     T_DELEGATE(SIPPhoneOnShowIncoming, 1)
 
     MyManager * opal = (MyManager *)PARAM_INT(0);
-    Invoke(INVOKE_EXTERNAL_THREADING, PARAMETER(1));
-    Invoke(INVOKE_LOCK_VARIABLE, PARAMETER(1));
+    void *var = COPY_VAR(PARAMETERS->HANDLER, Invoke, PARAMETER(1));
+    Invoke(INVOKE_EXTERNAL_THREADING, var);
     if (opal->OnShowIncomingDelegate)
         Invoke(INVOKE_FREE_VARIABLE, opal->OnShowIncomingDelegate);
-    opal->OnShowIncomingDelegate = PARAMETER(1);
+    opal->OnShowIncomingDelegate = var;
     RETURN_NUMBER(0)
 END_IMPL
 //-----------------------------------------------------//
@@ -373,11 +387,11 @@ CONCEPT_FUNCTION_IMPL(SIPPhoneOnShowOutgoing, 2)
     T_DELEGATE(SIPPhoneOnShowOutgoing, 1)
 
     MyManager * opal = (MyManager *)PARAM_INT(0);
-    Invoke(INVOKE_EXTERNAL_THREADING, PARAMETER(1));
-    Invoke(INVOKE_LOCK_VARIABLE, PARAMETER(1));
+    void *var = COPY_VAR(PARAMETERS->HANDLER, Invoke, PARAMETER(1));
+    Invoke(INVOKE_EXTERNAL_THREADING, var);
     if (opal->OnShowOutgoingDelegate)
         Invoke(INVOKE_FREE_VARIABLE, opal->OnShowOutgoingDelegate);
-    opal->OnShowOutgoingDelegate = PARAMETER(1);
+    opal->OnShowOutgoingDelegate = var;
     RETURN_NUMBER(0)
 END_IMPL
 //-----------------------------------------------------//
@@ -386,11 +400,11 @@ CONCEPT_FUNCTION_IMPL(SIPPhoneOnMediaFrame, 2)
     T_DELEGATE(SIPPhoneOnMediaFrame, 1)
 
     MyManager * opal = (MyManager *)PARAM_INT(0);
-    Invoke(INVOKE_EXTERNAL_THREADING, PARAMETER(1));
-    Invoke(INVOKE_LOCK_VARIABLE, PARAMETER(1));
+    void *var = COPY_VAR(PARAMETERS->HANDLER, Invoke, PARAMETER(1));
+    Invoke(INVOKE_EXTERNAL_THREADING, var);
     if (opal->OnMediaFrameDelegate)
         Invoke(INVOKE_FREE_VARIABLE, opal->OnMediaFrameDelegate);
-    opal->OnMediaFrameDelegate = PARAMETER(1);
+    opal->OnMediaFrameDelegate = var;
     RETURN_NUMBER(0)
 END_IMPL
 //-----------------------------------------------------//
@@ -399,11 +413,11 @@ CONCEPT_FUNCTION_IMPL(SIPPhoneOnMediaFrameRequest, 2)
     T_DELEGATE(SIPPhoneOnMediaFrameRequest, 1)
 
     MyManager * opal = (MyManager *)PARAM_INT(0);
-    Invoke(INVOKE_EXTERNAL_THREADING, PARAMETER(1));
-    Invoke(INVOKE_LOCK_VARIABLE, PARAMETER(1));
+    void *var = COPY_VAR(PARAMETERS->HANDLER, Invoke, PARAMETER(1));
+    Invoke(INVOKE_EXTERNAL_THREADING, var);
     if (opal->OnMediaFrameRequestDelegate)
         Invoke(INVOKE_FREE_VARIABLE, opal->OnMediaFrameRequestDelegate);
-    opal->OnMediaFrameRequestDelegate = PARAMETER(1);
+    opal->OnMediaFrameRequestDelegate = var;
     RETURN_NUMBER(0)
 END_IMPL
 //-----------------------------------------------------//
@@ -412,11 +426,11 @@ CONCEPT_FUNCTION_IMPL(SIPPhoneOnUserInputString, 2)
     T_DELEGATE(SIPPhoneOnUserInputString, 1)
 
     MyManager * opal = (MyManager *)PARAM_INT(0);
-    Invoke(INVOKE_EXTERNAL_THREADING, PARAMETER(1));
-    Invoke(INVOKE_LOCK_VARIABLE, PARAMETER(1));
+    void *var = COPY_VAR(PARAMETERS->HANDLER, Invoke, PARAMETER(1));
+    Invoke(INVOKE_EXTERNAL_THREADING, var);
     if (opal->OnUserInputStringDelegate)
         Invoke(INVOKE_FREE_VARIABLE, opal->OnUserInputStringDelegate);
-    opal->OnUserInputStringDelegate = PARAMETER(1);
+    opal->OnUserInputStringDelegate = var;
     RETURN_NUMBER(0)
 END_IMPL
 //-----------------------------------------------------//
@@ -425,11 +439,11 @@ CONCEPT_FUNCTION_IMPL(SIPPhoneOnAlerting, 2)
     T_DELEGATE(SIPPhoneOnAlerting, 1)
 
     MyManager * opal = (MyManager *)PARAM_INT(0);
-    Invoke(INVOKE_EXTERNAL_THREADING, PARAMETER(1));
-    Invoke(INVOKE_LOCK_VARIABLE, PARAMETER(1));
+    void *var = COPY_VAR(PARAMETERS->HANDLER, Invoke, PARAMETER(1));
+    Invoke(INVOKE_EXTERNAL_THREADING, var);
     if (opal->OnAlertingDelegate)
         Invoke(INVOKE_FREE_VARIABLE, opal->OnAlertingDelegate);
-    opal->OnAlertingDelegate = PARAMETER(1);
+    opal->OnAlertingDelegate = var;
     RETURN_NUMBER(0)
 END_IMPL
 //-----------------------------------------------------
@@ -438,11 +452,11 @@ CONCEPT_FUNCTION_IMPL(SIPPhoneOnOpenMediaStreamDelegate, 2)
     T_DELEGATE(SIPPhoneOnOpenMediaStreamDelegate, 1)
 
     MyManager * opal = (MyManager *)PARAM_INT(0);
-    Invoke(INVOKE_EXTERNAL_THREADING, PARAMETER(1));
-    Invoke(INVOKE_LOCK_VARIABLE, PARAMETER(1));
+    void *var = COPY_VAR(PARAMETERS->HANDLER, Invoke, PARAMETER(1));
+    Invoke(INVOKE_EXTERNAL_THREADING, var);
     if (opal->OnOpenMediaStreamDelegate)
         Invoke(INVOKE_FREE_VARIABLE, opal->OnOpenMediaStreamDelegate);
-    opal->OnOpenMediaStreamDelegate = PARAMETER(1);
+    opal->OnOpenMediaStreamDelegate = var;
     RETURN_NUMBER(0)
 END_IMPL
 //-----------------------------------------------------//
