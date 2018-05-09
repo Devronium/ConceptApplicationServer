@@ -1103,7 +1103,7 @@ INTEGER Invoke(INTEGER INVOKE_TYPE, ...) {
 #else
                                                                         STACK_TRACE);
 #endif
-                    FREE_VARIABLE(lOwner, NULL);
+                    FREE_VARIABLE(lOwner, STACK_TRACE);
                     if (*SENDER_RESULT)
                         (*SENDER_RESULT)->LINKS++;
 #ifdef SIMPLE_MULTI_THREADING
@@ -1112,7 +1112,7 @@ INTEGER Invoke(INTEGER INVOKE_TYPE, ...) {
 #endif
                     if ((CTX) && ((intptr_t)CTX != -1)) {
                         for (int i = 0; i < parameters; i++) {
-                            FREE_VARIABLE(CTX [i], NULL);
+                            FREE_VARIABLE(CTX [i], STACK_TRACE);
                         }
                         if (!is_list) {
                             FAST_FREE(PIF, CTX);

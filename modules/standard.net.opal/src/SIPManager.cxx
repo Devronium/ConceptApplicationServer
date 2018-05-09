@@ -85,6 +85,7 @@ MyManager::MyManager()
 
   OnConnectRequest = NULL;
   pauseBeforeDialing = false;
+  seminit(DelegateLock, 1);
 }
 
 
@@ -416,6 +417,7 @@ bool MyManager::HoldRetrieveCall()
       return true;
     }
   }
+  return false;
 }
 
 
@@ -509,6 +511,7 @@ int MyManager::CallDelegate(void *deleg, PString str) {
     int len=str.GetLength();
     if (len>0)
         data=(char *)str.GetPointer();
+    semp(DelegateLock);
     ((INVOKE_CALL)Invoke)(INVOKE_THREAD_LOCK, deleg, (INTEGER)1);
     ((INVOKE_CALL)Invoke)(INVOKE_CALL_DELEGATE,deleg,&RES,&EXCEPTION,(INTEGER)1,(INTEGER)VARIABLE_STRING,data,(NUMBER)(SYS_INT)len);
     if (EXCEPTION)
@@ -516,6 +519,7 @@ int MyManager::CallDelegate(void *deleg, PString str) {
     if (RES)
         ((INVOKE_CALL)Invoke)(INVOKE_FREE_VARIABLE,RES);
     ((INVOKE_CALL)Invoke)(INVOKE_THREAD_LOCK, deleg, (INTEGER)0);
+    semv(DelegateLock);
     return 1;
   }
   return 0;
@@ -531,6 +535,7 @@ int MyManager::CallDelegateWithResult(void *deleg, PString str) {
     int res=0;
     if (len>0)
         data=(char *)str.GetPointer();
+    semp(DelegateLock);
     ((INVOKE_CALL)Invoke)(INVOKE_THREAD_LOCK, deleg, (INTEGER)1);
     ((INVOKE_CALL)Invoke)(INVOKE_CALL_DELEGATE,deleg,&RES,&EXCEPTION,(INTEGER)1,(INTEGER)VARIABLE_STRING,data,(NUMBER)(SYS_INT)len);
     if (EXCEPTION)
@@ -545,6 +550,7 @@ int MyManager::CallDelegateWithResult(void *deleg, PString str) {
         ((INVOKE_CALL)Invoke)(INVOKE_FREE_VARIABLE,RES);
     }
     ((INVOKE_CALL)Invoke)(INVOKE_THREAD_LOCK, deleg, (INTEGER)0);
+    semv(DelegateLock);
     return res;
   }
   return 0;
@@ -558,11 +564,13 @@ int MyManager::CallDelegate2(void *deleg, BYTE *data, int len, int type) {
     if (!len)
         data=(BYTE *)d_static;
     //((INVOKE_CALL)Invoke)(INVOKE_THREAD_LOCK, deleg, (INTEGER)1);
+    semp(DelegateLock);
     ((INVOKE_CALL)Invoke)(INVOKE_CALL_DELEGATE,deleg,&RES,&EXCEPTION,(INTEGER)2,(INTEGER)VARIABLE_STRING,data,(NUMBER)len,(INTEGER)VARIABLE_NUMBER,"",(NUMBER)type);
     if (EXCEPTION)
         ((INVOKE_CALL)Invoke)(INVOKE_FREE_VARIABLE,EXCEPTION);
     if (RES)
         ((INVOKE_CALL)Invoke)(INVOKE_FREE_VARIABLE,RES);
+    semv(DelegateLock);
     //((INVOKE_CALL)Invoke)(INVOKE_THREAD_LOCK, deleg, (INTEGER)0);
     return 1;
   }
@@ -574,6 +582,7 @@ int MyManager::CallDelegate3(void *deleg, RTP_DataFrame & frame) {
     void *RES=0;
     void *EXCEPTION=0;
     //((INVOKE_CALL)Invoke)(INVOKE_THREAD_LOCK, deleg, (INTEGER)1);
+    semp(DelegateLock);
     ((INVOKE_CALL)Invoke)(INVOKE_CALL_DELEGATE,deleg,&RES,&EXCEPTION,(INTEGER)1,(INTEGER)VARIABLE_NUMBER,"",(NUMBER)frame.GetPayloadType());
     if (EXCEPTION)
         ((INVOKE_CALL)Invoke)(INVOKE_FREE_VARIABLE,EXCEPTION);
@@ -591,6 +600,7 @@ int MyManager::CallDelegate3(void *deleg, RTP_DataFrame & frame) {
         }
         ((INVOKE_CALL)Invoke)(INVOKE_FREE_VARIABLE,RES);
     }
+    semv(DelegateLock);
     //((INVOKE_CALL)Invoke)(INVOKE_THREAD_LOCK, deleg, (INTEGER)0);
     return 1;
   }

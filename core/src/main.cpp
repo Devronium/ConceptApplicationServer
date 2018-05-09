@@ -2224,7 +2224,7 @@ int WINAPI DllEntryPoint(HINSTANCE hinst, uintptr_t reason, void *lpReserved) {
     #define INI_PATH    "/usr/local/etc/concept.ini"
 #endif
 #ifndef LINUX_PATH
-    #define LINUX_PATH  "/usr/local/bin"
+    #define LINUX_PATH  "/usr/local/bin/"
 #endif
 #endif
 

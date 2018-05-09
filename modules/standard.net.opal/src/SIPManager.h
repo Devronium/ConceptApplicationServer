@@ -44,6 +44,8 @@
  #include <t38/t38proto.h>
 #endif
 
+#include "semhh.h"
+
 class MyManager;
 class SIPEndPoint;
 class H323EndPoint;
@@ -136,6 +138,7 @@ protected:
     PString             aor;
     SIPRegister::Params params;
     OpalMediaFormatList allMediaFormats;
+    HHSEM DelegateLock;
 
     bool InitialiseH323EP(PArgList& args, PBoolean secure, H323EndPoint *h323EP);
 
