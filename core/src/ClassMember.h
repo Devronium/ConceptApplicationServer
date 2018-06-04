@@ -59,9 +59,9 @@ public:
     ClassMember(void *DefinedIn, const char *name , char is_data_only, char _not_binary = 1, char is_unserialize = false);
     ~ClassMember(void);
 #ifdef SIMPLE_MULTI_THREADING
-    VariableDATA *Execute(void *PIF, intptr_t CONCEPT_CLASS_ID, VariableDATA *Owner, ParamList *FORMAL_PARAM, VariableDATA **SenderCTX, VariableDATA *& THROW_DATA, SCStack *PREV, VariableDATA *USE_RESULT, INTEGER FLAGS, char is_main = 0, INTEGER *thread_lock = NULL);
+    VariableDATA *Execute(void *PIF, intptr_t CONCEPT_CLASS_ID, VariableDATA *Owner, const ParamList *FORMAL_PARAM, VariableDATA **SenderCTX, VariableDATA *& THROW_DATA, SCStack *PREV, VariableDATA *USE_RESULT, INTEGER FLAGS, char is_main = 0, INTEGER *thread_lock = NULL);
 #else
-    VariableDATA *Execute(void *PIF, intptr_t CONCEPT_CLASS_ID, VariableDATA *Owner, ParamList *FORMAL_PARAM, VariableDATA **SenderCTX, VariableDATA *& THROW_DATA, SCStack *PREV, VariableDATA *USE_RESULT, INTEGER FLAGS, char is_main = 0);
+    VariableDATA *Execute(void *PIF, intptr_t CONCEPT_CLASS_ID, VariableDATA *Owner, const ParamList *FORMAL_PARAM, VariableDATA **SenderCTX, VariableDATA *& THROW_DATA, SCStack *PREV, VariableDATA *USE_RESULT, INTEGER FLAGS, char is_main = 0);
 #endif
     void EnsureVD();
 
@@ -71,7 +71,7 @@ public:
 
     GreenThreadCycle *CreateThread(void *PIF, intptr_t CONCEPT_CLASS_ID, VariableDATA *Owner);
     static void DoneThread(GreenThreadCycle *gtc);
-    bool FastOptimizedExecute(void *PIF, void *ref, ParamList *FORMAL_PARAM, VariableDATA **SenderCTX);
+    bool FastOptimizedExecute(void *PIF, void *ref, const ParamList *FORMAL_PARAM, VariableDATA **SenderCTX);
 
 #ifdef JIT_RUNTIME_CHECKS
     inline void *GetClass() { return Defined_In; }

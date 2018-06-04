@@ -146,8 +146,10 @@ const char *GetKeyWord(INTEGER ID) {
         case KEY_PUBLIC:
             return PUBLIC;
 
+#ifndef DISABLE_DEPRECATED_FEATURES
         case KEY_CEVENT:
             return CEVENT;
+#endif
 
         case KEY_PROPERTY:
             return PROPERTY;
@@ -169,10 +171,10 @@ const char *GetKeyWord(INTEGER ID) {
 
         case KEY_IN:
             return C_IN;
-
+#ifndef DISABLE_DEPRECATED_FEATURES
         case KEY_TRIGERS:
             return TRIGERS;
-
+#endif
         case KEY_VAR:
             return VAR;
 
@@ -391,6 +393,56 @@ const char *GetKeyWord(INTEGER ID) {
     }
     return NULL_STRING;
 }
+
+unsigned char GetShortID(unsigned short id) {
+    switch (id) {
+        case KEY_ARR_KEY:
+            return 0xE0;
+        case KEY_CND_2:
+            return 0xE1;
+        case KEY_OPTIMIZED_IF:
+            return 0xE2;
+        case KEY_OPTIMIZED_GOTO:
+            return 0xE3;
+        case KEY_OPTIMIZED_ECHO:
+            return 0xE4;
+        case KEY_OPTIMIZED_RETURN:
+            return 0xE5;
+        case KEY_OPTIMIZED_THROW:
+            return 0xE6;
+        case KEY_OPTIMIZED_TRY_CATCH:
+            return 0xE7;
+        case KEY_OPTIMIZED_END_CATCH:
+            return 0xE8;
+    }
+    return id - __START_OPERATORS;
+}
+
+unsigned short GetLongID(unsigned char id) {
+    unsigned short new_id = id;
+    switch (new_id) {
+        case 0xE0:
+            return KEY_ARR_KEY;
+        case 0xE1:
+            return KEY_CND_2;
+        case 0xE2:
+            return KEY_OPTIMIZED_IF;
+        case 0xE3:
+            return KEY_OPTIMIZED_GOTO;
+        case 0xE4:
+            return KEY_OPTIMIZED_ECHO;
+        case 0xE5:
+            return KEY_OPTIMIZED_RETURN;
+        case 0xE6:
+            return KEY_OPTIMIZED_THROW;
+        case 0xE7:
+            return KEY_OPTIMIZED_TRY_CATCH;
+        case 0xE8:
+            return KEY_OPTIMIZED_END_CATCH;
+    }
+    return new_id + __START_OPERATORS;
+}
+
 
 INTEGER GetID(AnsiString& KeyWord) {
     char c = KeyWord[0];
@@ -613,9 +665,11 @@ INTEGER GetID(AnsiString& KeyWord) {
             if (KeyWord == CLASS) {
                 return KEY_CLASS;
             }
+#ifndef DISABLE_DEPRECATED_FEATURES
             if (KeyWord == CEVENT) {
                 return KEY_CEVENT;
             }
+#endif
             if (KeyWord == C_VALUE) {
                 return KEY_VALUE;
             }
@@ -691,9 +745,11 @@ INTEGER GetID(AnsiString& KeyWord) {
             if (KeyWord == OVERRIDE) {
                 return KEY_OVERRIDE;
             }
+#ifndef DISABLE_DEPRECATED_FEATURES
             if (KeyWord == TRIGERS) {
                 return KEY_TRIGERS;
             }
+#endif
             break;
 
         case 9:

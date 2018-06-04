@@ -303,7 +303,7 @@ void ClassMember::EndMainCall(void *PIF, VariableDATA *&RESULT, VariableDATA *&T
 #endif
 }
 
-VariableDATA *ClassMember::Execute(void *PIF, intptr_t CONCEPT_CLASS_ID, VariableDATA *Owner, ParamList *FORMAL_PARAM, VariableDATA **SenderCTX, VariableDATA *& THROW_DATA, SCStack *PREV, VariableDATA *USE_RESULT, INTEGER FLAGS, char is_main THREAD_CREATION_LOCKS) {
+VariableDATA *ClassMember::Execute(void *PIF, intptr_t CONCEPT_CLASS_ID, VariableDATA *Owner, const ParamList *FORMAL_PARAM, VariableDATA **SenderCTX, VariableDATA *& THROW_DATA, SCStack *PREV, VariableDATA *USE_RESULT, INTEGER FLAGS, char is_main THREAD_CREATION_LOCKS) {
 #ifdef EMPIRIC_STACK_CHECK
     if (++STACK_HIT > MAX_RECURSIVE_CALL) {
         ((PIFAlizator *)PIF)->Errors.Add(new AnsiException(ERR840, _DEBUG_STARTLINE, 840, NAME, _DEBUG_FILENAME), DATA_EXCEPTION);
@@ -372,17 +372,21 @@ VariableDATA *ClassMember::Execute(void *PIF, intptr_t CONCEPT_CLASS_ID, Variabl
         // faster inline context cleaning
         if ((PREV) && (STACK_TRACE.alloc_from_stack)) {
             INTEGER data_count = ((Optimizer *)this->OPTIMIZER)->dataCount;
+            // if (((ConceptInterpreter *)INTERPRETER)->donecode.code) {
+            //     ((ConceptInterpreter *)INTERPRETER)->donecode.func1((sljit_sw)CONTEXT);
+            // } else {
             for (INTEGER i = 0; i < data_count; i++) {
-                VariableDATA *LOCAL_CONTEXT_i = CONTEXT [i];
+                VariableDATA *LOCAL_CONTEXT_i = CONTEXT[i];
                 if (LOCAL_CONTEXT_i) {
                     LOCAL_CONTEXT_i->LINKS--;
                     if (LOCAL_CONTEXT_i->LINKS) {
                         CONTEXT[i] = NULL;
                         continue;
                     }
-                    CLASS_CHECK(LOCAL_CONTEXT_i, &STACK_TRACE);
+                    CLASS_CHECK_NO_RESET(LOCAL_CONTEXT_i, &STACK_TRACE);
                 }
             }
+            // }
             SCStack *STACK_ROOT = (SCStack *)STACK_TRACE.ROOT;
             if ((STACK_ROOT) && (STACK_ROOT->STACK_CONTEXT)) {
                 STACK_ROOT->stack_pos        -= data_count;
@@ -507,7 +511,7 @@ void ClassMember::DoneThread(GreenThreadCycle *gtc) {
     }
 }
 
-bool ClassMember::FastOptimizedExecute(void *PIF, void *ref, ParamList *FORMAL_PARAM, VariableDATA **SenderCTX) {
+bool ClassMember::FastOptimizedExecute(void *PIF, void *ref, const ParamList *FORMAL_PARAM, VariableDATA **SenderCTX) {
     if ((FORMAL_PARAM) && (FORMAL_PARAM->COUNT == 1) && (this->IS_FUNCTION == 1) && (this->OPTIMIZER) && (((Optimizer *)this->OPTIMIZER)->codeCount == 2)) {
         RuntimeOptimizedElement *OE1 = &((Optimizer *)this->OPTIMIZER)->CODE[0];
         RuntimeOptimizedElement *OE2 = &((Optimizer *)this->OPTIMIZER)->CODE[1];

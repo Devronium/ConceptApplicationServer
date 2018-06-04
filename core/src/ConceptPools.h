@@ -9,6 +9,7 @@ extern "C" {
     #include "cacheio.h"
 }
 // #define SIMPLE_MULTI_THREADING
+#define DISABLE_DEPRECATED_FEATURES
 #define JIT_RUNTIME_CHECKS
 #define OPTIONAL_SEPARATOR
 

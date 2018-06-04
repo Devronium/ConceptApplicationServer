@@ -2094,6 +2094,7 @@ INTEGER PIFAlizator::BuildProperty(ClassCode *CC, AnsiParser *P, INTEGER on_line
     return 0;
 }
 
+#ifndef DISABLE_DEPRECATED_FEATURES
 INTEGER PIFAlizator::BuildEvent(ClassCode *CC, AnsiParser *P, INTEGER on_line, INTEGER ACCESS) {
     INTEGER    TYPE = -1;
     INTEGER    _ID  = -1;
@@ -2171,6 +2172,7 @@ INTEGER PIFAlizator::BuildEvent(ClassCode *CC, AnsiParser *P, INTEGER on_line, I
 #endif
     return 0;
 }
+#endif
 
 INTEGER PIFAlizator::ExtendClass(ClassCode *CC, AnsiParser *P, INTEGER on_line, INTEGER OWNER_CLSID) {
     AnsiString sPARSE;
@@ -2351,6 +2353,7 @@ INTEGER PIFAlizator::BuildClass(AnsiParser *P, INTEGER on_line) {
             ACCESS           = ACCESS_PUBLIC;
             ALREADY_REPORTED = 0;
         } else
+#ifndef DISABLE_DEPRECATED_FEATURES
         if ((TYPE == TYPE_KEYWORD) && (_ID == KEY_CEVENT)) {
             if (STATIC) {
                 Errors.Add(new AnsiException(ERR940, on_line ? on_line : P->LastLine(), 940, sPARSE, FileName, CC->NAME), DATA_EXCEPTION);
@@ -2360,6 +2363,7 @@ INTEGER PIFAlizator::BuildClass(AnsiParser *P, INTEGER on_line) {
             ACCESS           = ACCESS_PUBLIC;
             ALREADY_REPORTED = 0;
         } else
+#endif
         if ((TYPE == TYPE_KEYWORD) && (_ID == KEY_PROPERTY)) {
             if (STATIC) {
                 Errors.Add(new AnsiException(ERR940, on_line ? on_line : P->LastLine(), 940, sPARSE, FileName, CC->NAME), DATA_EXCEPTION);
@@ -2841,14 +2845,17 @@ INTEGER PIFAlizator::WarningCount() {
 #define COMPILED_FILE_IDv2  "CONC0101"
 #define PACKAGE_FILE_IDv2   "PONC0101"
 
+#define COMPILED_FILE_IDv3  "CONC0102"
+#define PACKAGE_FILE_IDv3   "PONC0102"
+
 int PIFAlizator::Serialize(char *filename, bool is_lib) {
     FILE *out = fopen(filename, "wb");
 
     if (out) {
         if (is_lib) {
-            concept_fwrite(PACKAGE_FILE_IDv2, strlen(PACKAGE_FILE_IDv2), 1, out);
+            concept_fwrite(PACKAGE_FILE_IDv3, strlen(PACKAGE_FILE_IDv3), 1, out);
         } else {
-            concept_fwrite(COMPILED_FILE_IDv2, strlen(COMPILED_FILE_IDv2), 1, out);
+            concept_fwrite(COMPILED_FILE_IDv3, strlen(COMPILED_FILE_IDv3), 1, out);
         }
         char PRAGMA_SET = USE_WARN | (USE_EXC * 2);
         fputc(PRAGMA_SET, out);
@@ -2965,6 +2972,9 @@ int PIFAlizator::ComputeSharedSize(char *filename) {
     static_buffer [size] = 0;
 
     int version = 1;
+    if (!strcmp(static_buffer, COMPILED_FILE_IDv3)) {
+        version = 2;
+    } else
     if (strcmp(static_buffer, COMPILED_FILE_IDv2)) {
         if (strcmp(static_buffer, cftype)) {
             concept_fclose(in);
@@ -3016,10 +3026,12 @@ int PIFAlizator::Unserialize(char *filename, bool is_lib) {
 #endif
 
     if (in) {
+        const char *cftype2 = COMPILED_FILE_IDv3;
         const char *cftype = COMPILED_FILE_IDv2;
         const char *cftype_old = COMPILED_FILE_ID;
         int version = 1;
         if (is_lib) {
+            cftype2 = PACKAGE_FILE_IDv3;
             cftype = PACKAGE_FILE_IDv2;
             cftype_old = PACKAGE_FILE_ID;
         }
@@ -3033,6 +3045,9 @@ int PIFAlizator::Unserialize(char *filename, bool is_lib) {
         }
         static_buffer [size] = 0;
 
+        if (!strcmp(static_buffer, cftype2)) {
+            version = 2;
+        } else
         if (strcmp(static_buffer, cftype)) {
             if (strcmp(static_buffer, cftype_old)) {
                 concept_fclose(in);

@@ -258,7 +258,9 @@ public:
     AnsiString GetSpecial(AnsiParser *P, ClassCode *CC, ClassMember *CM, AnsiString special);
     INTEGER BuildFunction(ClassCode *CC, AnsiParser *P, INTEGER on_line = 0, INTEGER ACCESS = ACCESS_PUBLIC, INTEGER OPERATOR = 0, char STATIC = 0, const char *prec_parse = 0, char is_inline = 0);
     INTEGER BuildProperty(ClassCode *CC, AnsiParser *P, INTEGER on_line = 0, INTEGER ACCESS = ACCESS_PUBLIC);
+#ifndef DISABLE_DEPRECATED_FEATURES
     INTEGER BuildEvent(ClassCode *CC, AnsiParser *P, INTEGER on_line = 0, INTEGER ACCESS = ACCESS_PUBLIC);
+#endif
     INTEGER BuildOverride(ClassCode *CC, AnsiParser *P, INTEGER on_line);
     INTEGER IncludePackage(const char *filename);
     INTEGER IncludeFile(const char *MODULE_NAME, INTEGER on_line);

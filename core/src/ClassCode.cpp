@@ -511,8 +511,8 @@ void ClassCode::SetRelocation(INTEGER mid, INTEGER index) {
     }
 }
 
-CompiledClass *ClassCode::CreateInstance(PIFAlizator *PIF, VariableDATA *Owner, const RuntimeOptimizedElement *OE, ParamList *FORMAL_PARAM, VariableDATA **SenderCTX, SCStack *PREV, char is_static) const {
-    static ParamList dummy = { 0, 0 };
+CompiledClass *ClassCode::CreateInstance(PIFAlizator *PIF, VariableDATA *Owner, const RuntimeOptimizedElement *OE, const ParamList *FORMAL_PARAM, VariableDATA **SenderCTX, SCStack *PREV, char is_static) const {
+    static const ParamList dummy = { 0, 0 };
     CompiledClass    *res  = new_CompiledClass(PIF, this);
 
     Owner->CLASS_DATA = res;
@@ -527,7 +527,7 @@ CompiledClass *ClassCode::CreateInstance(PIFAlizator *PIF, VariableDATA *Owner, 
             }
             //==========================//
 
-            if ((!FORMAL_PARAM) || !(ENOUGH_PARAMETERS(CM, FORMAL_PARAM))) {
+            if (!(ENOUGH_PARAMETERS(CM, FORMAL_PARAM))) {
                 AnsiException *Exc = new AnsiException(220, ERR220, OE ? OE->Operator_DEBUG_INFO_LINE : 0, CM->NAME, " requires ", CM->PARAMETERS_COUNT, ((ClassCode *)(CM->Defined_In))->_DEBUG_INFO_FILENAME, NAME);
                 PIF->AcknoledgeRunTimeError(PREV, Exc);
                 return 0;
@@ -768,7 +768,7 @@ VariableDATA *ClassCode::ExecuteMember(PIFAlizator *PIF, INTEGER i, VariableDATA
                 }
             }
         }
-
+#ifndef DISABLE_DEPRECATED_FEATURES
         while (pMEMBER_i->IS_FUNCTION == 2) {
             i          = pMEMBER_i->MEMBER_GET - 1;
             relocation = this->Relocation(i);
@@ -777,6 +777,7 @@ VariableDATA *ClassCode::ExecuteMember(PIFAlizator *PIF, INTEGER i, VariableDATA
                 return 0;
             }
         }
+#endif
 
         int relocation2;
         switch (pMEMBER_i->IS_FUNCTION) {
@@ -1441,6 +1442,7 @@ GreenThreadCycle *ClassCode::CreateThread(PIFAlizator *PIF, INTEGER i, VariableD
     ClassMember *pMEMBER_i = i ? pMEMBERS [i - 1] : 0;
 
     if (pMEMBER_i) {
+#ifndef DISABLE_DEPRECATED_FEATURES
         while (pMEMBER_i->IS_FUNCTION == 2) {
             i = pMEMBER_i->MEMBER_GET - 1;
             int relocation = this->Relocation(i);
@@ -1449,7 +1451,7 @@ GreenThreadCycle *ClassCode::CreateThread(PIFAlizator *PIF, INTEGER i, VariableD
                 return 0;
             }
         }
-
+#endif
         if (pMEMBER_i->IS_FUNCTION == 1) {
             if (pMEMBER_i->MUST_PARAMETERS_COUNT) {
                 AnsiException *Exc = new AnsiException(1310, ERR1310, 0, "mandatory parameters: ", pMEMBER_i->MUST_PARAMETERS_COUNT, *GetFilename(PIF, CLSID, &((ClassCode *)(pMEMBER_i->Defined_In))->_DEBUG_INFO_FILENAME), ((ClassCode *)(pMEMBER_i->Defined_In))->NAME, pMEMBER_i->NAME);

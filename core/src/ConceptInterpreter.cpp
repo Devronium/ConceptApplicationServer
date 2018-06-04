@@ -989,6 +989,7 @@ ConceptInterpreter::ConceptInterpreter(Optimizer *O, INTEGER LocalClsID, ClassMe
     callcount       = 0;
     jittracecode    = 0;
     initcode.code   = 0;
+    // donecode.code   = 0;
 #endif
 }
 
@@ -1017,6 +1018,17 @@ static sljit_sw SLJIT_CALL CreateStringVariable(VariableDATA *LOCAL_CONTEXT_i, R
 
 static sljit_sw SLJIT_CALL AllocVariable(PIFAlizator *PIF) {
     return (sljit_sw)VAR_ALLOC(PIF);
+}
+
+static sljit_sw SLJIT_CALL ReleaseVariable(VariableDATA *LOCAL_CONTEXT_i) {
+    if (LOCAL_CONTEXT_i) {
+        LOCAL_CONTEXT_i->LINKS--;
+        if (LOCAL_CONTEXT_i->LINKS)
+            return 0;
+
+        CLASS_CHECK_NO_RESET(LOCAL_CONTEXT_i, NULL);
+    }
+    return (sljit_sw)LOCAL_CONTEXT_i;
 }
 
 void *ConceptInterpreter::ContextCreateJIT(Optimizer *OPT) {
@@ -1107,6 +1119,38 @@ void *ConceptInterpreter::ContextCreateJIT(Optimizer *OPT) {
     return code;
 }
 
+void *ConceptInterpreter::ContextDestroyJIT(Optimizer *OPT) {
+    if ((!OPT) || (!OWNER))
+        return NULL;
+    struct sljit_compiler *compiler = sljit_create_compiler(NULL);
+#ifdef ARM_PATCH
+    sljit_emit_enter(compiler, 0, 1, 4, 3, 0, 0, 0);
+#else
+    sljit_emit_enter(compiler, 0, 1, 3, 3, 0, 0, 0);
+#endif
+    INTEGER data_count = OPT->dataCount;
+    for (int i = 0; i < data_count; i++) {
+        // R0 = VariableDATA
+        sljit_emit_op1(compiler, SLJIT_MOV_P, SLJIT_R0, 0, SLJIT_MEM1(SLJIT_S0), sizeof(VariableDATA *) * i);
+        struct sljit_jump *jump = sljit_emit_cmp(compiler, SLJIT_ZERO, SLJIT_R0, 0, SLJIT_IMM, 0);
+        // sljit_emit_op1(compiler, SLJIT_MOV_P, SLJIT_R0, 0, SLJIT_S1, 0);
+#ifdef ARM_PATCH
+        sljit_emit_op1(compiler, SLJIT_MOV, SLJIT_TEMPORARY_EREG1, 0, SLJIT_IMM, SLJIT_FUNC_OFFSET(ReleaseVariable));
+        sljit_emit_ijump(compiler, SLJIT_CALL1, SLJIT_TEMPORARY_EREG1, 0);
+#else
+        sljit_emit_ijump(compiler, SLJIT_CALL1, SLJIT_IMM, SLJIT_FUNC_OFFSET(ReleaseVariable));
+#endif
+        sljit_emit_op1(compiler, SLJIT_MOV_P, SLJIT_R0, 0, SLJIT_RETURN_REG, 0);
+        sljit_emit_op1(compiler, SLJIT_MOV_P, SLJIT_MEM1(SLJIT_S0), sizeof(VariableDATA *) * i, SLJIT_R0, 0);
+    }
+    sljit_emit_return(compiler, SLJIT_MOV, SLJIT_IMM, data_count);
+
+    void *code = sljit_generate_code(compiler);
+    sljit_free_compiler(compiler);
+
+    return code;
+}
+
 void ConceptInterpreter::AnalizeInstructionPath(Optimizer *OPT) {
     int count = OPT->codeCount;
 
@@ -1115,6 +1159,9 @@ void ConceptInterpreter::AnalizeInstructionPath(Optimizer *OPT) {
 
     if (!initcode.code)
         initcode.code = this->ContextCreateJIT(OPT);
+
+    // if (!donecode.code)
+    //    donecode.code = this->ContextDestroyJIT(OPT);
 
     struct sljit_compiler *compiler = 0;
     int dataCount           = OPT->dataCount;
@@ -6117,7 +6164,7 @@ void ConceptInterpreter::CheckParameters(PIFAlizator *PIF, VariableDATA **Sender
 }
 #endif
 
-VariableDATA **ConceptInterpreter::CreateEnvironment(PIFAlizator *PIF, VariableDATA *Sender, ParamList *FORMAL_PARAM, VariableDATA **SenderCTX, SCStack *STACK_TRACE, bool& can_run) {
+VariableDATA **ConceptInterpreter::CreateEnvironment(PIFAlizator *PIF, VariableDATA *Sender, const ParamList *FORMAL_PARAM, VariableDATA **SenderCTX, SCStack *STACK_TRACE, bool& can_run) {
     VariableDATA **LOCAL_CONTEXT;
     Optimizer *OPT = (Optimizer *)this->OWNER->OPTIMIZER;
 
@@ -6470,5 +6517,9 @@ ConceptInterpreter::~ConceptInterpreter(void) {
         sljit_free_code(initcode.code);
         initcode.code = 0;
     }
+    // if (donecode.code) {
+    //    sljit_free_code(donecode.code);
+    //    donecode.code = 0;
+    // }
 #endif
 }

@@ -89,9 +89,9 @@ public:
 
     const TinyString *GetFilename(PIFAlizator *PIF, INTEGER LOCAL_CLSID, const TinyString *default_Value) const;
     void SetProperty(PIFAlizator *PIF, INTEGER i, VariableDATA *Owner, const RuntimeOptimizedElement *OE, INTEGER local, INTEGER VALUE, VariableDATA **SenderCTX, INTEGER CLSID, INTEGER LOCAL_CLSID, VariableDATA **LOCAL_THROW, SCStack *PREV) const;
-    CompiledClass *CreateInstance(PIFAlizator *PIF, VariableDATA *Owner, const RuntimeOptimizedElement *OE, ParamList *FORMAL_PARAM, VariableDATA **SenderCTX, SCStack *PREV, char is_static = 0) const;
+    CompiledClass *CreateInstance(PIFAlizator *PIF, VariableDATA *Owner, const RuntimeOptimizedElement *OE, const ParamList *FORMAL_PARAM, VariableDATA **SenderCTX, SCStack *PREV, char is_static = 0) const;
     void GenerateCode(StaticList *GeneralMembers);
-    int Serialize(PIFAlizator *PIF, FILE *out, bool is_lib = false, int version = 1);
+    int Serialize(PIFAlizator *PIF, FILE *out, bool is_lib = false, int version = 2);
     int Unserialize(PIFAlizator *PIF, concept_FILE *in, AnsiList *ClassList, bool is_lib = false, int *ClassNames = 0, int *Relocation = 0, int version = 1);
     static int ComputeSharedSize(concept_FILE *in, int general_members, int version = 1);
 

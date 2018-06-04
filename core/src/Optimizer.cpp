@@ -153,6 +153,9 @@ public:
 };
 
 PIFAlizator *Optimizer::PIFOwner = NULL;
+#ifdef USE_OPTIMIZER_CACHE
+    OptimizerCacheList *Optimizer::CacheList = NULL;
+#endif
 
 OptimizerHelper *Optimizer::GetHelper(PIFAlizator *P) {
     OptimizerHelper *helper = (OptimizerHelper *)P->Helper;
@@ -966,6 +969,33 @@ INTEGER Optimizer::OptimizeExpression(OptimizerHelper *helper, TempVariableManag
             }
 
             int tmp_index;
+            int idx = FIRST_OPERATOR - 1;
+#ifdef USE_OPTIMIZER_CACHE
+            if ((CacheList) && (AE_ID == KEY_SEL) && ((!Parameter) || (Parameter->TYPE != TYPE_PARAM_LIST))) {
+                tmp_index = CacheList->Find(AE_ID, Left->ID, Right->ID);
+                if (tmp_index) {
+                    AnalizerElement *newAE = new AnalizerElement;
+                    newAE->ID               = tmp_index;
+                    newAE->TYPE             = TYPE_VARIABLE;
+                    newAE->_DEBUG_INFO_LINE = AE->_DEBUG_INFO_LINE;
+                    newAE->_INFO_OPTIMIZED  = 0;
+                    newAE->_HASH_DATA       = 0;
+
+                    AnalizerElement *a1 = (AnalizerElement *)helper->PIFList->Remove(idx);
+                    AnalizerElement *a2 = (AnalizerElement *)helper->PIFList->Remove(idx);
+                    AnalizerElement *a3 = (AnalizerElement *)helper->PIFList->Remove(idx);
+                    delete a1;
+                    delete a2;
+                    delete a3;
+
+                    helper->PIFList->Insert(newAE, idx, DATA_ANALIZER_ELEMENT);
+
+                    helper->PIF_POSITION -= 2;
+                    continue;
+                } else
+                    goto nooptimizations;
+            }
+#endif
             if ((AE_ID == KEY_SEL) || (AE_ID == KEY_DLL_CALL) || (AE_ID == KEY_INDEX_OPEN)) {
                 helper->has_references = 1;
                 if (AE_ID != KEY_INDEX_OPEN)
@@ -1033,7 +1063,6 @@ nooptimizations:
             OE->Result_ID = newAE->ID;
 
             // remove LEFT operator RIGHT
-            int idx             = FIRST_OPERATOR - 1;
             AnalizerElement *a1 = (AnalizerElement *)helper->PIFList->Remove(idx);
             AnalizerElement *a2 = (AnalizerElement *)helper->PIFList->Remove(idx);
             AnalizerElement *a3 = (AnalizerElement *)helper->PIFList->Remove(idx);
@@ -1094,6 +1123,10 @@ nooptimizations:
             } else {
                 MAKE_NULL(OE->OperandReserved);
             }
+#ifdef USE_OPTIMIZER_CACHE
+            if ((CacheList) && (AE_ID == KEY_SEL) && ((!Parameter) || (Parameter->TYPE != TYPE_PARAM_LIST)))
+                CacheList->Add(OE);
+#endif
         }
         else if ((OP_TYPE == OPERATOR_UNARY) || (OP_TYPE == OPERATOR_UNARY_LEFT)) {
             AnalizerElement *Target = (AnalizerElement *)helper->PIFList->Item(FIRST_OPERATOR + (OP_TYPE == OPERATOR_UNARY ? 1 : -1));
@@ -1349,6 +1382,11 @@ INTEGER Optimizer::OptimizeKeyWord(OptimizerHelper *helper, TempVariableManager 
             helper->PIFList->Delete(helper->PIF_POSITION);
 
             STATAMENT_POS = helper->OptimizedPIF->Count();
+
+#ifdef USE_OPTIMIZER_CACHE
+            CacheList = new OptimizerCacheList();
+#endif
+
             OptimizeExpression(helper, TVM, KEY_P_CLOSE, TYPE_OPERATOR);
 
             OE = new OptimizedElement;
@@ -1389,6 +1427,10 @@ INTEGER Optimizer::OptimizeKeyWord(OptimizerHelper *helper, TempVariableManager 
                 OptimizeAny(helper, TVM);
                 OEgoto->OperandReserved.ID = helper->OptimizedPIF->Count();
             }
+#ifdef USE_OPTIMIZER_CACHE
+            delete CacheList;
+            CacheList = NULL;
+#endif
             break;
 
         case KEY_ELSE:
@@ -1959,7 +2001,6 @@ INTEGER Optimizer::OptimizeAny(OptimizerHelper *helper, TempVariableManager *TVM
     AnalizerElement *AE = (AnalizerElement *)helper->PIFList->Item(helper->PIF_POSITION);
 
     TVM->Reset();
-
     if (!AE) {
         return -1;
     }
@@ -2310,10 +2351,16 @@ int Optimizer::Serialize(PIFAlizator *PIFOwner, FILE *out, bool is_lib, int vers
 
     concept_fwrite_int(&codeCount, sizeof(codeCount), 1, out);
     for (i = 0; i < codeCount; i++) {
-        if (version == 1) {
-            SERIALIZE_OPTIMIZEDv2((&CODE [i]), out);
-        } else {
-            SERIALIZE_OPTIMIZED((&CODE [i]), out);
+        switch (version) {
+            case 2:
+                SERIALIZE_OPTIMIZEDv3((&CODE [i]), out);
+                break;
+            case 1:
+                SERIALIZE_OPTIMIZEDv2((&CODE [i]), out);
+                break;
+            default:
+                SERIALIZE_OPTIMIZED((&CODE [i]), out);
+                break;
         }
     }
 
@@ -2372,10 +2419,16 @@ int Optimizer::ComputeSharedSize(concept_FILE *in, int version) {
     for (int i = 0; i < codeCount; i++) {
         // to do !
         RuntimeOptimizedElement OE;
-        if (version) {
-            UNSERIALIZE_OPTIMIZEDv2((&OE), in, false);
-        } else {
-            UNSERIALIZE_OPTIMIZED((&OE), in, false);
+        switch (version) {
+            case 2:
+                UNSERIALIZE_OPTIMIZEDv3((&OE), in, false);
+                break;
+            case 1:
+                UNSERIALIZE_OPTIMIZEDv2((&OE), in, false);
+                break;
+            default:
+                UNSERIALIZE_OPTIMIZED((&OE), in, false);
+                break;
         }
         int len = OE.OperandRight_PARSE_DATA.Length();
         if (len) {
@@ -2510,10 +2563,15 @@ int Optimizer::Unserialize(PIFAlizator *PIFOwner, concept_FILE *in, AnsiList *Mo
         RuntimeOptimizedElement OE2;
         OE = &OE2;
         for (i = 0; i < codeCount; i++) {
-            if (version) {
-                UNSERIALIZE_OPTIMIZEDv2(OE, in, -1);
-            } else {
-                UNSERIALIZE_OPTIMIZED(OE, in, -1);
+            switch (version) {
+                case 2:
+                    UNSERIALIZE_OPTIMIZEDv3(OE, in, -1);
+                    break;
+                case 1:
+                    UNSERIALIZE_OPTIMIZEDv2(OE, in, -1);
+                    break;
+                default:
+                    UNSERIALIZE_OPTIMIZED(OE, in, -1);
             }
             if (OE->Operator_ID == KEY_DLL_CALL) {
                 if (OE->OperandLeft_ID == STATIC_CLASS_DLL) {
@@ -2530,10 +2588,16 @@ int Optimizer::Unserialize(PIFAlizator *PIFOwner, concept_FILE *in, AnsiList *Mo
             //=======================//
             OE = &CODE [i];
 
-            if (version) {
-                UNSERIALIZE_OPTIMIZEDv2(OE, in, is_pooled);
-            } else {
-                UNSERIALIZE_OPTIMIZED(OE, in, is_pooled);
+            switch (version) {
+                case 2:
+                    UNSERIALIZE_OPTIMIZEDv3(OE, in, is_pooled);
+                    break;
+                case 1:
+                    UNSERIALIZE_OPTIMIZEDv2(OE, in, is_pooled);
+                    break;
+                default:
+                    UNSERIALIZE_OPTIMIZED(OE, in, is_pooled);
+                    break;
             }
             //=====================//
             if (OE->Operator_ID == KEY_DLL_CALL) {

@@ -13,6 +13,52 @@
 
 class TempVariableManager;
 
+#ifdef USE_OPTIMIZER_CACHE
+class OptimizerCacheList {
+protected:
+    OptimizedElement **Cache;
+    INTEGER CacheSize;
+    INTEGER CacheCount;
+public:
+    OptimizerCacheList() {
+        Cache = NULL;
+        CacheSize = 0;
+        CacheCount = 0;
+    }
+
+    void Add(OptimizedElement *OE) {
+        if (CacheCount >= CacheSize) {
+            CacheSize += 32;
+            Cache = (OptimizedElement **)realloc((void *)Cache, sizeof(OptimizedElement *) * CacheSize);
+        }
+        if (Cache)
+            Cache[CacheCount++] = OE;
+    }
+
+    INTEGER Find(OPERATOR_ID_TYPE OP_ID, INTEGER OperandLeft, INTEGER OperandRight) {
+        if (!Cache)
+            return 0;
+        for (int i = 0; i < CacheCount; i++) {
+            OptimizedElement *OE = Cache[i];
+            if ((OE) && (OE->Operator.ID == OP_ID) && (OE->OperandLeft.ID == OperandLeft) && (OE->OperandRight.ID == OperandRight))
+                return OE->Result_ID;
+        }
+        return 0;
+    }
+
+    void Clear() {
+        if (Cache) {
+            free(Cache);
+            Cache = NULL;
+        }
+    }
+
+    ~OptimizerCacheList() {
+        Clear();
+    }
+};
+#endif
+
 class OptimizerHelper {
 public:
     PIFAlizator *PIFOwner;
@@ -75,6 +121,9 @@ class Optimizer {
     friend INTEGER Invoke(INTEGER INVOKE_TYPE, ...);
 public:
     static PIFAlizator *PIFOwner;
+#ifdef USE_OPTIMIZER_CACHE
+    static OptimizerCacheList *CacheList;
+#endif
     void *INTERPRETER;
     RuntimeOptimizedElement *CODE;
     INTEGER codeCount;
@@ -114,7 +163,7 @@ public:
 #endif
 
     ~Optimizer();
-    int Serialize(PIFAlizator *PIFOwner, FILE *out, bool is_lib = false, int version = 1);
+    int Serialize(PIFAlizator *PIFOwner, FILE *out, bool is_lib = false, int version = 2);
     int Unserialize(PIFAlizator *PIFOwner, concept_FILE *in, AnsiList *ModuleList, bool is_lib = false, int *ClassNames = 0, int *Relocation = 0, int version = 1);
     static int ComputeSharedSize(concept_FILE *in, int version = 1);
     void GenerateIntermediateCode(PIFAlizator *P);

@@ -123,6 +123,7 @@ MyManager::~MyManager() {
       //delete sipEP;
       sipEP = NULL;
   }
+  semdel(DelegateLock);
 }
 
 PBoolean MyManager::OnIncomingConnection(OpalConnection & connection, unsigned options, OpalConnection::StringOptions * stringOptions) {

@@ -30,7 +30,9 @@
 #define KEY_FUNCTION            0x13
 #define KEY_PRIVATE             0x14
 #define KEY_PUBLIC              0x15
+#ifndef DISABLE_DEPRECATED_FEATURES
 #define KEY_CEVENT              0x16
+#endif
 #define KEY_PROPERTY            0x17
 #define KEY_SET                 0x18
 #define KEY_GET                 0x19
@@ -38,7 +40,9 @@
 #define KEY_INCLUDE             0x1B
 #define KEY_IMPORT              0x1C
 #define KEY_IN                  0x1D
+#ifndef DISABLE_DEPRECATED_FEATURES
 #define KEY_TRIGERS             0x1E
+#endif
 #define KEY_VAR                 0x1F
 #define KEY_QUOTE1              0x20
 #define KEY_QUOTE2              0x21
@@ -314,7 +318,9 @@
 #define TYPE_OPTIMIZED_KEYWORD     0x20
 #define TYPE_OPTIMIZED_JUMP_ADR    0x21
 
+#define MAY_LOOP                   0x7E
 #define MAY_IGNORE_RESULT          0x7F
+
 
 #define INTEGER                    int
 #define SYS_INT                    intptr_t
@@ -428,6 +434,8 @@
 const char *GetKeyWord(INTEGER ID);
 INTEGER GetID(AnsiString& KeyWord);
 INTEGER GetType(AnsiString& KeyWord);
+unsigned char GetShortID(unsigned short id);
+unsigned short GetLongID(unsigned char id);
 
 AnsiString Strip2(AnsiString String);
 INTEGER IsOperator(AnsiString& S);

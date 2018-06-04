@@ -188,6 +188,23 @@ void COPY_VARIABLE(VariableDATA *DEST, VariableDATA *SRC, SCStack *STACK_TRACE);
         VARIABLE->CLASS_DATA = NULL;                                                       \
     }                                                                                      \
 
+#define CLASS_CHECK_NO_RESET(VARIABLE, STACK_TRACE)                                        \
+    if ((VARIABLE->TYPE != VARIABLE_NUMBER) && (VARIABLE->CLASS_DATA)) {                   \
+        if (VARIABLE->TYPE == VARIABLE_STRING) {                                           \
+            plainstring_delete((struct plainstring *)VARIABLE->CLASS_DATA); }              \
+        else                                                                               \
+        if (VARIABLE->TYPE == VARIABLE_CLASS) {                                            \
+            if (!--((struct CompiledClass *)VARIABLE->CLASS_DATA)->LINKS)                  \
+                delete_CompiledClass((struct CompiledClass *)VARIABLE->CLASS_DATA, STACK_TRACE); \
+        } else                                                                             \
+        if (VARIABLE->TYPE == VARIABLE_ARRAY) {                                            \
+            if (!--((struct Array *)VARIABLE->CLASS_DATA)->LINKS)                          \
+                delete_Array((struct Array *)VARIABLE->CLASS_DATA);                        \
+        } else                                                                             \
+        if (VARIABLE->TYPE == VARIABLE_DELEGATE)                                           \
+            delete_Delegate(VARIABLE->CLASS_DATA, STACK_TRACE);                            \
+    }
+
 #define CLASS_CHECK_RESET(VARIABLE, pushed_type)                                     \
     if ((pushed_type != VARIABLE_NUMBER) && (VARIABLE->CLASS_DATA)) {                \
         if (pushed_type == VARIABLE_STRING) {                                        \
@@ -230,7 +247,9 @@ private:
     char callcount;
     void **jittracecode;
     executable_code initcode;
+    // executable_code donecode;
     void *ContextCreateJIT(Optimizer *OPT);
+    void *ContextDestroyJIT(Optimizer *OPT);
     void AnalizeInstructionPath(Optimizer *OPT);
     int JIT(INTEGER &INSTRUCTION_POINTER, INTEGER INSTRUCTION_COUNT, void **jittrace, VariableDATA **LOCAL_CONTEXT);
 #endif
@@ -256,7 +275,7 @@ public:
 #ifndef INLINE_PARAMETER_CHECK
     void CheckParameters(PIFAlizator *PIF, VariableDATA **SenderCTX, const RuntimeVariableDESCRIPTOR *TARGET, const VariableDATA *sndr, SCStack *STACK_TRACE, INTEGER i, bool& can_run);
 #endif
-    VariableDATA **CreateEnvironment(PIFAlizator *PIF, VariableDATA *Sender, ParamList *FORMAL_PARAM, VariableDATA **SenderCTX, SCStack *STACK_TRACE, bool& can_run);
+    VariableDATA **CreateEnvironment(PIFAlizator *PIF, VariableDATA *Sender, const ParamList *FORMAL_PARAM, VariableDATA **SenderCTX, SCStack *STACK_TRACE, bool& can_run);
     void DestroyEnviroment(PIFAlizator *PIF, VariableDATA **LOCAL_CONTEXT, SCStack *STACK_TRACE, char static_call_main = 0);
     VariableDATA *Interpret(PIFAlizator *PIF, VariableDATA **LOCAL_CONTEXT, intptr_t ClassID, VariableDATA *& THROW_DATA, SCStack *STACK_TRACE);
     static int StacklessInterpret(PIFAlizator *PIF, GreenThreadCycle *GREEN);
