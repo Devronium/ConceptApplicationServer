@@ -369,30 +369,29 @@ class Main {
 	var[] variables;
 
 	static em(text, add_quote = false) {
-		if (ON_MSWINDOWS) {
-			if (add_quote)
-				return "\"$text\"";
-			return text;
-		}
-		return "\x1b[31;1m" + text + "\x1b[0m";
+		if (vt100())
+			return "\x1b[31;1m" + text + "\x1b[0m";
+		if (add_quote)
+			return "\"$text\"";
+		return text;
 	}
 
 	static bold(text, add_quote = false) {
-		if (ON_MSWINDOWS) {
-			if (add_quote)
-				return "\"$text\"";
-			return text;
-		}
-		return "\x1b[1m" + text + "\x1b[0m";
+		if (vt100())
+			return "\x1b[1m" + text + "\x1b[0m";
+
+		if (add_quote)
+			return "\"$text\"";
+		return text;
 	}
 
 	static is_string(text, add_quote = false) {
-		if (ON_MSWINDOWS) {
-			if (add_quote)
-				return "\"$text\"";
-			return text;
-		}
-		return "\x1b[33;1m" + text + "\x1b[0m";
+		if (vt100())
+			return "\x1b[33;1m" + text + "\x1b[0m";
+
+		if (add_quote)
+			return "\"$text\"";
+		return text;
 	}
 
 	GetParameters(arg, var db) {
@@ -1596,6 +1595,7 @@ class Main {
 	}
 
 	Main() {
+		enablevt100();
 		echo "TinDB client console application v0.1" + NEW_LINE;
 		echo "Developed by Eduard Suica, released into public domain" + NEW_LINE;
 		echo "Type ${em("help", true)} for help\n" + NEW_LINE;

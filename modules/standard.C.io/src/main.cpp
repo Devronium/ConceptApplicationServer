@@ -73,6 +73,9 @@ static INVOKE_CALL LocalInvoker  = NULL;
  #define fdatasync    _commit
 //win32_pipe(phandles)
 
+ #ifndef ENABLE_VIRTUAL_TERMINAL_PROCESSING
+    #define ENABLE_VIRTUAL_TERMINAL_PROCESSING 0x0004
+ #endif
 
 int win32_pipe(int *handles) {
     HANDLE read_pipe;
@@ -4596,5 +4599,57 @@ CONCEPT_FUNCTION_IMPL(pipesocket, 3)
     }
     RETURN_NUMBER(-2)
 #endif
+#endif
+END_IMPL
+//-----------------------------------------------------------------------------------
+CONCEPT_FUNCTION_IMPL(vt100, 0)
+#ifdef _WIN32
+    DWORD dwVersion = 0; 
+    DWORD dwMajorVersion = 0;
+    DWORD dwMinorVersion = 0; 
+
+    dwVersion = GetVersion();
+    dwMajorVersion = (DWORD)(LOBYTE(LOWORD(dwVersion)));
+    dwMinorVersion = (DWORD)(HIBYTE(LOWORD(dwVersion)));
+
+    if ((dwVersion >= 6) && (dwMinorVersion >= 2)) {
+        RETURN_NUMBER(1);
+    } else {
+        RETURN_NUMBER(0);
+    }
+#else
+    RETURN_NUMBER(1);
+#endif
+END_IMPL
+//-----------------------------------------------------------------------------------
+CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(enablevt100, 0, 1)
+    int enabled = 1;
+    if (PARAMETERS_COUNT > 0) {
+        T_NUMBER(enablevt100, 0)
+        enabled = PARAM_INT(0);
+    }
+#ifdef _WIN32
+    DWORD dwVersion = 0; 
+    DWORD dwMajorVersion = 0;
+    DWORD dwMinorVersion = 0; 
+
+    dwVersion = GetVersion();
+    dwMajorVersion = (DWORD)(LOBYTE(LOWORD(dwVersion)));
+    dwMinorVersion = (DWORD)(HIBYTE(LOWORD(dwVersion)));
+
+    if ((dwVersion >= 6) && (dwMinorVersion >= 2)) {
+        HANDLE hStdout = GetStdHandle(STD_OUTPUT_HANDLE);
+        DWORD fdwSaveOldMode = fdwSaveOldMode;
+        GetConsoleMode(hStdout, &fdwSaveOldMode);
+        if (enabled)
+            SetConsoleMode(hStdout, fdwSaveOldMode | ENABLE_VIRTUAL_TERMINAL_PROCESSING);
+        else
+            SetConsoleMode(hStdout, fdwSaveOldMode & ~ENABLE_VIRTUAL_TERMINAL_PROCESSING);
+        RETURN_NUMBER(1);
+    } else {
+        RETURN_NUMBER(0);
+    }
+#else
+    RETURN_NUMBER(1);
 #endif
 END_IMPL
