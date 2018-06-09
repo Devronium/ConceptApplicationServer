@@ -91,6 +91,7 @@ int GetMemoryStatistics(void *PIF, void *RESULT);
      void *mspace_calloc(void *msp, size_t n_elements, size_t elem_size);
      size_t mspace_footprint(void *msp);
      struct dl_mallinfo mspace_mallinfo(void *msp);
+     int dlmallopt(int param_number, int value);
 #endif
  }
 
@@ -102,7 +103,13 @@ int GetMemoryStatistics(void *PIF, void *RESULT);
  #define FAST_MALLINFO(pif)              mspace_mallinfo(((PIFAlizator *)(pif))->memory)
  #define FAST_FOOTPRINT(pif)             mspace_footprint(((PIFAlizator *)(pif))->memory)
 
+#ifdef _WIN32
  #define FAST_MSPACE_CREATE(memory)      memory = create_mspace(0, 0)
+#else
+ // set page size to 64K. On most systems default max_mmap_count is 65530 and page size 4096 ~ 256MB of memory. 
+ // With page size of 64k, we get about 4GB of memory.
+ #define FAST_MSPACE_CREATE(memory)      dlmallopt(-2, 64 * 1024); memory = create_mspace(0, 0)
+#endif
  #define FAST_MSPACE_DESTROY(memory)     destroy_mspace(memory)
 #else
  #define FAST_MALLOC(pif, size)          dlmalloc(size)

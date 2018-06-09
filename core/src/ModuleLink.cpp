@@ -1078,8 +1078,9 @@ INTEGER Invoke(INTEGER INVOKE_TYPE, ...) {
                     lOwner->TYPE = VARIABLE_CLASS;
 
                     CLASS_DATA->LINKS++;
-#ifndef SIMPLE_MULTI_THREADING
+
                     SCStack *STACK_TRACE = NULL;
+#ifndef SIMPLE_MULTI_THREADING
                     if ((PIF) && (INVOKE_TYPE == INVOKE_CALL_DELEGATE)) {
                         GCRoot *root = PIF->GCROOT;
                         if (root) {
