@@ -3295,6 +3295,27 @@ function ConceptClient(url, container, loading, absolute_paths, debug) {
 		}
 	}
 
+	this.BootstrapVersion = function() {
+		var version = '0';
+		var plugin = $.fn.modal;
+		if (plugin) {
+			if ((plugin.Constructor) && (plugin.Constructor.VERSION))
+				version = plugin.Constructor.VERSION;
+			else
+			if (plugin.toString().indexOf('bs.modal') === -1)
+				version = '2.x';
+			else
+				version = '3.x';
+		}
+		return version;
+	}
+
+	this.ModalHeader = function(id) {
+		if (this.BootstrapVersion() >= '4')
+			return '<h5 class="modal-title" id="' + id + 'Title"></h5><button type="button" class="close" data-dismiss="modal" id="' + id + 'Close"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>';
+		return '<button type="button" class="close" data-dismiss="modal" id="' + id + 'Close"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button><h4 class="modal-title" id="' + id + 'Title"></h4>';
+	}
+
 	this.ModalAlert = function(Title, Content, Type, Buttons, Response) {
 		var container = document.getElementById("alertDialog");
 		if (container)
@@ -3325,7 +3346,7 @@ function ConceptClient(url, container, loading, absolute_paths, debug) {
 				break;
 		}
 
-		container.innerHTML = '<div class="RMessageBox modal-dialog"><div class="modal-content"><div class="RMessageBoxHeader modal-header ' + type + '"><button type="button" class="close" data-dismiss="modal" id="alertClose"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button><h4 class="modal-title" id="alertTitle"></h4></div><div class="RMessageBoxContent modal-body"><p id="alertMessage"></p></div><div class="RMessageBoxButtons modal-footer" id="alertButtons"></div></div></div>';
+		container.innerHTML = '<div class="RMessageBox modal-dialog"><div class="modal-content"><div class="RMessageBoxHeader modal-header ' + type + '">' + this.ModalHeader("alert") + '</div><div class="RMessageBoxContent modal-body"><p id="alertMessage"></p></div><div class="RMessageBoxButtons modal-footer" id="alertButtons"></div></div></div>';
 			
 		this.Container.appendChild(container);
 
@@ -3469,7 +3490,7 @@ function ConceptClient(url, container, loading, absolute_paths, debug) {
 		container = document.createElement("div");
 		container.className = "RMessageBox modal";
 		container.id = "inputDialog";
-		container.innerHTML = '<div class="RMessageBox login-dialog modal-dialog"><div class="modal-content"><div class="RMessageBoxHeader modal-header btn-primary"><button type="button" class="close" data-dismiss="modal" id="inputClose"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button><h4 class="modal-title" id="inputTitle"></h4></div><div class="RMessageBoxContent modal-body"><input type="text" id="inputInput" class="RMessageBoxInput form-control"/></div><div class="RMessageBoxButtons modal-footer" id="inputButtons"></div></div></div>';
+		container.innerHTML = '<div class="RMessageBox login-dialog modal-dialog"><div class="modal-content"><div class="RMessageBoxHeader modal-header btn-primary">' + this.ModalHeader("input") + '</div><div class="RMessageBoxContent modal-body"><input type="text" id="inputInput" class="RMessageBoxInput form-control"/></div><div class="RMessageBoxButtons modal-footer" id="inputButtons"></div></div></div>';
 			
 		this.Container.appendChild(container);
 		
@@ -3531,7 +3552,7 @@ function ConceptClient(url, container, loading, absolute_paths, debug) {
 		container = document.createElement("div");
 		container.className = "RMessageBox modal";
 		container.id = "colorDialog";
-		container.innerHTML = '<div class="RMessageBox login-dialog modal-dialog"><div class="modal-content"><div class="RMessageBoxHeader modal-header btn-info"><button type="button" class="close" data-dismiss="modal" id="colorClose"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button><h4 class="modal-title" id="colorTitle"></h4></div><div class="RMessageBoxContent modal-body"><div class="input-group colorpicker-component"><span class="input-group-addon"><i></i></span><input type="text" id="colorInput" value="" class="form-control" /></div></div><div class="RMessageBoxButtons modal-footer" id="colorButtons"></div></div></div>';
+		container.innerHTML = '<div class="RMessageBox login-dialog modal-dialog"><div class="modal-content"><div class="RMessageBoxHeader modal-header btn-info">' + this.ModalHeader("color") + '</div><div class="RMessageBoxContent modal-body"><div class="input-group colorpicker-component"><span class="input-group-addon"><i></i></span><input type="text" id="colorInput" value="" class="form-control" /></div></div><div class="RMessageBoxButtons modal-footer" id="colorButtons"></div></div></div>';
 
 		this.Container.appendChild(container);
 		
@@ -3597,7 +3618,7 @@ function ConceptClient(url, container, loading, absolute_paths, debug) {
 		container = document.createElement("div");
 		container.className = "RMessageBox modal";
 		container.id = "fontDialog";
-		container.innerHTML = '<div class="RMessageBox login-dialog modal-dialog"><div class="modal-content"><div class="RMessageBoxHeader modal-header btn-info"><button type="button" class="close" data-dismiss="modal" id="fontClose"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button><h4 class="modal-title" id="fontTitle"></h4></div><div class="RMessageBoxContent modal-body"><label for="fontInput" id="fontLabel">The quick brown fox jumps over the lazy dog</label><select class="form-control" id="fontInput" onchange="document.getElementById(\'fontLabel\').style.fontFamily = this.value;"><optgroup label="Web safe fonts"><option selected="selected"> </option><option>Arial</option><option>Arial Black</option><option>Charcoal</option><option>Book Antiqua</option><option>Comic Sans MS</option><option>Courier New</option><option>Gadget</option><option>Garamond</option><option>Geneva</option><option>Georgia</option><option>Helvetica</option><option>Impact</option><option>Lucida Console</option><option>Lucida Grande</option><option>Lucida Sans Unicode</option><option>Palatino</option><option>Palatino Linotype</option><option>Serif</option><option>Tahoma</option><option>Trebuchet MS</option></optgroup></select></div><div class="RMessageBoxButtons modal-footer" id="fontButtons"></div></div></div>';
+		container.innerHTML = '<div class="RMessageBox login-dialog modal-dialog"><div class="modal-content"><div class="RMessageBoxHeader modal-header btn-info">' + this.ModalHeader("font") + '</div><div class="RMessageBoxContent modal-body"><label for="fontInput" id="fontLabel">The quick brown fox jumps over the lazy dog</label><select class="form-control" id="fontInput" onchange="document.getElementById(\'fontLabel\').style.fontFamily = this.value;"><optgroup label="Web safe fonts"><option selected="selected"> </option><option>Arial</option><option>Arial Black</option><option>Charcoal</option><option>Book Antiqua</option><option>Comic Sans MS</option><option>Courier New</option><option>Gadget</option><option>Garamond</option><option>Geneva</option><option>Georgia</option><option>Helvetica</option><option>Impact</option><option>Lucida Console</option><option>Lucida Grande</option><option>Lucida Sans Unicode</option><option>Palatino</option><option>Palatino Linotype</option><option>Serif</option><option>Tahoma</option><option>Trebuchet MS</option></optgroup></select></div><div class="RMessageBoxButtons modal-footer" id="fontButtons"></div></div></div>';
 		this.Container.appendChild(container);
 		
 		container.style.display = "block";
@@ -3658,7 +3679,7 @@ function ConceptClient(url, container, loading, absolute_paths, debug) {
 		container = document.createElement("div");
 		container.className = "RMessageBox modal";
 		container.id = "fileDialog";
-		container.innerHTML = '<div class="RMessageBox login-dialog modal-dialog"><div class="modal-content"><div class="RMessageBoxHeader modal-header btn-info"><button type="button" class="close" data-dismiss="modal" id="fileClose"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button><h4 class="modal-title" id="fileTitle"></h4></div><div class="RMessageBoxContent modal-body"><span class="btn btn-primary btn-file">Open file <input type="file" id="fileInput"/></span></div><div class="RMessageBoxButtons modal-footer" id="fileButtons"></div></div></div>';
+		container.innerHTML = '<div class="RMessageBox login-dialog modal-dialog"><div class="modal-content"><div class="RMessageBoxHeader modal-header btn-info">' + this.ModalHeader("file") + '</div><div class="RMessageBoxContent modal-body"><span class="btn btn-primary btn-file">Open file <input type="file" id="fileInput"/></span></div><div class="RMessageBoxButtons modal-footer" id="fileButtons"></div></div></div>';
 		this.Container.appendChild(container);
 		
 		container.style.display = "block";
@@ -3720,7 +3741,7 @@ function ConceptClient(url, container, loading, absolute_paths, debug) {
 		container = document.createElement("div");
 		container.className = "RMessageBox modal";
 		container.id = "fileDialog";
-		container.innerHTML = '<div class="RMessageBox modal-dialog"><div class="modal-content"><div class="RMessageBoxHeader modal-header btn-primary"><button type="button" class="close" data-dismiss="modal" id="fileClose"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button><h4 class="modal-title" id="fileTitle"></h4></div><div class="RMessageBoxContent modal-body" id="fileDialogContent"></div><div class="RMessageBoxButtons modal-footer" id="fileButtons"></div></div></div>';
+		container.innerHTML = '<div class="RMessageBox modal-dialog"><div class="modal-content"><div class="RMessageBoxHeader modal-header btn-primary">' + this.ModalHeader("file") + '</div><div class="RMessageBoxContent modal-body" id="fileDialogContent"></div><div class="RMessageBoxButtons modal-footer" id="fileButtons"></div></div></div>';
 		this.Container.appendChild(container);
 
 		container.style.display = "block";
@@ -3786,7 +3807,7 @@ function ConceptClient(url, container, loading, absolute_paths, debug) {
 		container = document.createElement("div");
 		container.className = "RMessageBox modal";
 		container.id = "loginDialog";
-		container.innerHTML = '<div class="RMessageBox RMessageBoxPassword dialog modal-dialog"><div class="modal-content"><div class="RMessageBoxHeader modal-header btn-primary"><button type="button" class="close" data-dismiss="modal" id="loginClose"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button><h4 class="modal-title" id="loginTitle"></h4></div><div class="RMessageBoxContent modal-body"><div class="form-group"><input type="email" id="usernameLogin" placeholder="Username" class="RMessageBoxInput form-control"/></div><div class="form-group"><input type="password" id="passwordLogin" placeholder="Password" class="RMessageBoxInput form-control"/></div><div class="RMessageBoxButtons modal-footer" id="loginButtons"></div></div></div></div>';
+		container.innerHTML = '<div class="RMessageBox RMessageBoxPassword dialog modal-dialog"><div class="modal-content"><div class="RMessageBoxHeader modal-header btn-primary">' + this.ModalHeader("login") + '</div><div class="RMessageBoxContent modal-body"><div class="form-group"><input type="email" id="usernameLogin" placeholder="Username" class="RMessageBoxInput form-control"/></div><div class="form-group"><input type="password" id="passwordLogin" placeholder="Password" class="RMessageBoxInput form-control"/></div><div class="RMessageBoxButtons modal-footer" id="loginButtons"></div></div></div></div>';
 		this.Container.appendChild(container);
 
 		container.style.display = "block";
@@ -3827,7 +3848,7 @@ function ConceptClient(url, container, loading, absolute_paths, debug) {
 
 			if (!self.MainForm) {
 				button = document.createElement("button");
-				button.className = "RButton btn-link pull-left";
+				button.className = "RButton btn btn-link pull-left";
 				button.innerHTML = "Sign-up";
 				button.setAttribute("data-dismiss", "modal");
 				button.onclick = function() {
@@ -11341,7 +11362,10 @@ function ConceptClient(url, container, loading, absolute_paths, debug) {
 				if (parent) {
 					control = document.createElement("div");
 					control.className = "modal RForm";
-					control.innerHTML = '<div class="modal-dialog RChildForm" id="d' + RID + '"><div id="f' + RID + '" class="modal-content"><div id="h' + RID + '" class="RFormHeader modal-header btn-primary"><button id="close' + RID + '" type="button" class="close" data-dismiss="modal" onclick="if (document.getElementById(\'r' + RID + '\').ConceptDelete) { document.getElementById(\'r' + RID + '\').ConceptDelete.SendMessage(\'\' + ' + RID + ', MSG_EVENT_FIRED, \'\' + EVENT_ON_DELETEEVENT, \'\', 0); } else { document.getElementById(\'r' + RID + '\').style.display=\'none\'; } if (document.getElementById(\'r' + RID + '\').ConceptHide) { document.getElementById(\'r' + RID + '\').ConceptHide.SendMessage(\'\' + ' + RID + ', MSG_EVENT_FIRED, \'\' + EVENT_ON_HIDE, \'\', 0); } if (document.getElementById(\'r' + RID + '\').ConceptVisibility) { document.getElementById(\'r' + RID + '\').ConceptVisibility.SendMessage(\'\' + ' + RID + ', MSG_EVENT_FIRED, \'\' + EVENT_ON_VISIBILITY, \'0\', 0); } if (document.getElementById(\'r' + RID + '\').ConceptUnrealize) { document.getElementById(\'r' + RID + '\').ConceptUnrealize.SendMessage(\'\' + ' + RID + ', MSG_EVENT_FIRED, \'\' + EVENT_ON_UNREALIZE, \'\', 0); }"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button><h4 class="modal-title" id="t' + RID + '">&nbsp;</h4></div><div class="RFormContent modal-body navbar-form" id="c' + RID + '"></div></div></div>';
+					if (this.BootstrapVersion() >= '4')
+						control.innerHTML = '<div class="modal-dialog RChildForm" id="d' + RID + '"><div id="f' + RID + '" class="modal-content"><div id="h' + RID + '" class="RFormHeader modal-header btn-primary"><h5 class="modal-title" id="t' + RID + '">&nbsp;</h5><button id="close' + RID + '" type="button" class="close" data-dismiss="modal" onclick="if (document.getElementById(\'r' + RID + '\').ConceptDelete) { document.getElementById(\'r' + RID + '\').ConceptDelete.SendMessage(\'\' + ' + RID + ', MSG_EVENT_FIRED, \'\' + EVENT_ON_DELETEEVENT, \'\', 0); } else { document.getElementById(\'r' + RID + '\').style.display=\'none\'; } if (document.getElementById(\'r' + RID + '\').ConceptHide) { document.getElementById(\'r' + RID + '\').ConceptHide.SendMessage(\'\' + ' + RID + ', MSG_EVENT_FIRED, \'\' + EVENT_ON_HIDE, \'\', 0); } if (document.getElementById(\'r' + RID + '\').ConceptVisibility) { document.getElementById(\'r' + RID + '\').ConceptVisibility.SendMessage(\'\' + ' + RID + ', MSG_EVENT_FIRED, \'\' + EVENT_ON_VISIBILITY, \'0\', 0); } if (document.getElementById(\'r' + RID + '\').ConceptUnrealize) { document.getElementById(\'r' + RID + '\').ConceptUnrealize.SendMessage(\'\' + ' + RID + ', MSG_EVENT_FIRED, \'\' + EVENT_ON_UNREALIZE, \'\', 0); }"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button></div><div class="RFormContent modal-body navbar-form" id="c' + RID + '"></div></div></div>';
+					else
+						control.innerHTML = '<div class="modal-dialog RChildForm" id="d' + RID + '"><div id="f' + RID + '" class="modal-content"><div id="h' + RID + '" class="RFormHeader modal-header btn-primary"><button id="close' + RID + '" type="button" class="close" data-dismiss="modal" onclick="if (document.getElementById(\'r' + RID + '\').ConceptDelete) { document.getElementById(\'r' + RID + '\').ConceptDelete.SendMessage(\'\' + ' + RID + ', MSG_EVENT_FIRED, \'\' + EVENT_ON_DELETEEVENT, \'\', 0); } else { document.getElementById(\'r' + RID + '\').style.display=\'none\'; } if (document.getElementById(\'r' + RID + '\').ConceptHide) { document.getElementById(\'r' + RID + '\').ConceptHide.SendMessage(\'\' + ' + RID + ', MSG_EVENT_FIRED, \'\' + EVENT_ON_HIDE, \'\', 0); } if (document.getElementById(\'r' + RID + '\').ConceptVisibility) { document.getElementById(\'r' + RID + '\').ConceptVisibility.SendMessage(\'\' + ' + RID + ', MSG_EVENT_FIRED, \'\' + EVENT_ON_VISIBILITY, \'0\', 0); } if (document.getElementById(\'r' + RID + '\').ConceptUnrealize) { document.getElementById(\'r' + RID + '\').ConceptUnrealize.SendMessage(\'\' + ' + RID + ', MSG_EVENT_FIRED, \'\' + EVENT_ON_UNREALIZE, \'\', 0); }"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button><h4 class="modal-title" id="t' + RID + '">&nbsp;</h4></div><div class="RFormContent modal-body navbar-form" id="c' + RID + '"></div></div></div>';
 					$(control).draggable({ handle: "#h" + RID });
 					$(control).resizable();
 					control.style.position = "absolute";
