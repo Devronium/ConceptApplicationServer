@@ -2581,6 +2581,8 @@ class ConceptAsyncChild extends ConceptCGIChildBase {
 
 	jsheaders(js, headers, arr_data = null) {
 		var[] cookies;
+		if (!headers)
+			return [ ];
 		if (IsSet(headers, "cookie")) {
 			var cookie_list = headers["cookie"];
 			if (typeof cookie_list == "array") {
@@ -3640,7 +3642,7 @@ pragma used
 	protected var Framework;
 
 	GetHeader(key, headers) {
-		if (!IsSet(headers, key))
+		if ((!headers) || (!IsSet(headers, key)))
 			return "";
 		var val = headers[key];
 		if (typeof val == "array") {
@@ -5374,6 +5376,12 @@ class ConceptServer extends RewriteContainer extends IniCache {
 			this.WSSocket = new TCPSocket();
 			this.TLSWSSocket = new TLSESocket();
 		}
+		if (!this.Socket.SetOption(IPPROTO_TCP, TCP_FASTOPEN, 128)) {
+			this.WSSocket.SetOption(IPPROTO_TCP, TCP_FASTOPEN, 128);
+			if (this.TLSWSSocket)
+				this.TLSWSSocket.SetOption(IPPROTO_TCP, TCP_FASTOPEN, 128);
+			echo "TCP fast open enabled\n";
+		}
 		this.SSLWSSocketName = this.IniKey("Server", "SecureProxyUnixSocket", "");
 		if (this.SSLWSSocketName) {
 			_unlink(this.SSLWSSocketName);
@@ -5819,6 +5827,8 @@ class ConceptServer extends RewriteContainer extends IniCache {
 		if (Socket.Listen(this.Port, max_connections, interface))
 			throw "Error initializing Concept server (port ${this.Port} already in use)";
 
+		WSSocket.SetOption(IPPROTO_TCP, TCP_FASTOPEN, 128);
+
 		if (WSSocket.Listen(this.WSPort, max_connections, interface))
 			throw "Error initializing Concept server WS socket (port ${this.WSPort} already in use)";
 
@@ -5826,6 +5836,7 @@ class ConceptServer extends RewriteContainer extends IniCache {
 			throw "Error initializing Concept server SSL WS socket (port ${this.SSLWSSocketName} already in use)";
 
 		if (TLSWSSocket) {
+			TLSWSSocket.SetOption(IPPROTO_TCP, TCP_FASTOPEN, 128);
 			if (TLSWSSocket.Listen(this.SSLWSPort, max_connections, interface)) {
 				throw "Error initializing Concept server TLS WS socket (port ${this.SSLWSPort} already in use)";
 			} else {

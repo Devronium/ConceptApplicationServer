@@ -428,6 +428,10 @@ int getdomainname(char *const domain, unsigned int dsize) {
  #define POLLNVAL    0x0020
 #endif
 
+#ifndef TCP_FASTOPEN
+ #define TCP_FASTOPEN   23
+#endif
+
 
 CONCEPT_DLL_API ON_CREATE_CONTEXT MANAGEMENT_PARAMETERS {
 #ifdef _WIN32
@@ -544,6 +548,7 @@ CONCEPT_DLL_API ON_CREATE_CONTEXT MANAGEMENT_PARAMETERS {
 #ifdef MSG_NOSIGNAL
     DEFINE_ECONSTANT(MSG_NOSIGNAL)
 #endif
+    DEFINE_ECONSTANT(TCP_FASTOPEN)
     return 0;
 }
 //=====================================================================================//
