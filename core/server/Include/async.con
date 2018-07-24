@@ -7,6 +7,7 @@ import standard.lib.mustache
 include async.tin.con
 include Loop.con
 include Worker.con
+include JWT.con
 
 class __asynctimer {
 	protected var timeout;
@@ -75,6 +76,46 @@ class fs {
 		if (written)
 			return true;
 		return false;
+	}
+}
+
+class accesstoken {
+	var[] data;
+	var setheader;
+
+	protected var has_token;
+
+	accesstoken(key, cookie = null) {
+		if (cookie) {
+			var token = cookie["token"];
+			if (token) {
+				var payload = JWT::validate(token, key);
+				if (payload) {
+					data = payload;
+					this.has_token = true;
+				}
+			}
+		}
+	}
+
+	sync(string key, expires = 2592000, path = "/", domain = "", secure = false, httponly = true) {
+		var expires_when = time() + expires;
+		var sessiondata = data;
+		sessiondata["exp"] = expires_when;
+		var sessionid = JWT::build(sessiondata, key);
+		var cookie = "token=${sessionid}; Max-Age=" + expires;
+		if (path)
+			cookie += "; Path=$path";
+		if (domain)
+			cookie += "; Domain=$domain";
+		if (secure)
+			cookie += "; Secure";
+		if (httponly)
+			cookie += "; HttpOnly";
+		if (this.setheader)
+			this.setheader("Set-Cookie", cookie);
+
+		return data;
 	}
 }
 
@@ -199,6 +240,7 @@ class _webrequest {
 	var web;
 	var timestamp;
 	var session;
+	var token;
 	var template = "";
 
 	protected var _onpost;
@@ -234,6 +276,10 @@ class _webrequest {
 		}
 		this.session.usesession(expires, path, domain, secure, httponly);
 		this.session.setheader = null;
+	}
+
+	usetoken(string key, expires = 2592000, path = "/", domain = "", secure = false, httponly = true) {
+		this.token = new accesstoken(key, this.cookie);
 	}
 
 	header(key, val) {
@@ -310,9 +356,14 @@ class _webrequest {
 		return this;
 	}
 
-	sync() {
+	sync(key = "", expires = 2592000, path = "/", domain = "", secure = false, httponly = true) {
 		if (this.session)
 			this.session.syncsession(this.session.data);
+		if (this.token) {
+			this.token.setheader = this.header;
+			this.token.sync(key, expires, path, domain, secure, httponly);
+			this.token.setheader = null;
+		}
 	}
 
 	register() {
