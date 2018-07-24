@@ -355,7 +355,7 @@ int do_hmac_sha256(char *key_gc, int key_len, const uint8_t *data, int data_len,
     sha256        sha;
     unsigned char key[64];
     unsigned char block[1024];
-    int           i, c, d;
+    int           i, d;
 
     /* Parse and verify arguments. */
     //int hexadecimals = (argc == 2 && strcmp(argv[1], "-x") == 0);
@@ -364,12 +364,9 @@ int do_hmac_sha256(char *key_gc, int key_len, const uint8_t *data, int data_len,
     for (i = 0; i < key_len; i++) {
         if ((i > 0) && (i % 64 == 0))
             sha256_update(&sha, key, 64);
-        key[i % 64] = c;
+        key[i % 64] = key_gc[i];
     }
-    /* Display an error and exit if the key is invalid. */
-    if ((i == 0) || (c == '?')) {
-        return -1;
-    }
+
     /* Initialize the HMAC-SHA256 digest with the key or its hash. */
     if (i <= 64) {
         hmac_sha256_initialize(&hmac, key, i);
@@ -1196,7 +1193,7 @@ CONCEPT_FUNCTION_IMPL(hmac_md5, 3)
     unsigned char buf[16];
 
     if (PARAM_LEN(0) % 2)
-        FAIL_ERROR("hmac_sha1: key length must be multiple of 2");
+        FAIL_ERROR("hmac_md5: key length must be multiple of 2");
 
     char key_len = PARAM_LEN(0) / 2;
     char *key    = new char[key_len + 1];

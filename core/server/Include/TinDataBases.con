@@ -162,53 +162,56 @@ class TinConnection {
 	Iterate(cli = false) {
 		if (!this.socket)
 			return this._CheckCLIMode(cli);
-		while (this.socket.GetHasData()) {
-			var buf = this.socket.Read();
-			if (!buf) {
-				InternalBuffer = "";
-				ActiveQueries = new [];
-				if (this.OnReconnectRequested)
-					this.OnReconnectRequested(this);
-				return _CheckCLIMode(false);
-			}
-			InternalBuffer += buf;
-			var size = FromSize(InternalBuffer, var bytes);
-			while ((size > 0) && (size <= length InternalBuffer - bytes)) {
-				var buf2 = SubStr(InternalBuffer, bytes, size);
-				InternalBuffer = SubStr(InternalBuffer, bytes + size);
-				var obj = UnBinarizeObject(buf2);
-				if (obj) {
-					if (IsSet(ActiveQueries, obj.q)) {
-						var callback;
-						var single_object = false;
-						if (obj.e == NOTIFY_MORE_DATA) {
-							callback = this._QueryById(obj.q);
-							obj.e = 0;
-							single_object = true;
-						} else {
-							callback = this._RemoveQuery(obj.q);
+		try {
+			while (this.socket.GetHasData()) {
+				var buf = this.socket.Read();
+				if (!buf)
+					throw "Error reading data";
+				InternalBuffer += buf;
+				var size = FromSize(InternalBuffer, var bytes);
+				while ((size > 0) && (size <= length InternalBuffer - bytes)) {
+					var buf2 = SubStr(InternalBuffer, bytes, size);
+					InternalBuffer = SubStr(InternalBuffer, bytes + size);
+					var obj = UnBinarizeObject(buf2);
+					if (obj) {
+						if (IsSet(ActiveQueries, obj.q)) {
+							var callback;
+							var single_object = false;
+							if (obj.e == NOTIFY_MORE_DATA) {
+								callback = this._QueryById(obj.q);
+								obj.e = 0;
+								single_object = true;
+							} else {
+								callback = this._RemoveQuery(obj.q);
+							}
+							if (callback) {
+								var err = null;
+								if (obj.e)
+									err = [obj.e, obj.et];
+								if (typeof callback == "array") {
+									var deleg = callback[0];
+									deleg(Prepare(obj.p, single_object), obj.id, err, callback[1]);
+								} else
+									callback(Prepare(obj.p, single_object), obj.id, err);
+							}
+						} else
+						if ((obj.q == "!") && (OnNotify))
+							OnNotify(obj.p["w"], obj.p["o"]);
+						else
+						if (obj.q == "PING") {
+							var q = new Q(obj.p, "sysdb", "", "PONG");
+							this._Handle(q, null);
 						}
-						if (callback) {
-							var err = null;
-							if (obj.e)
-								err = [obj.e, obj.et];
-							if (typeof callback == "array") {
-								var deleg = callback[0];
-								deleg(Prepare(obj.p, single_object), obj.id, err, callback[1]);
-							} else
-								callback(Prepare(obj.p, single_object), obj.id, err);
-						}
-					} else
-					if ((obj.q == "!") && (OnNotify))
-						OnNotify(obj.p["w"], obj.p["o"]);
-					else
-					if (obj.q == "PING") {
-						var q = new Q(obj.p, "sysdb", "", "PONG");
-						this._Handle(q, null);
 					}
+					size = FromSize(InternalBuffer, bytes);
 				}
-				size = FromSize(InternalBuffer, bytes);
 			}
+		} catch (var exc) {
+			InternalBuffer = "";
+			ActiveQueries = new [];
+			if (this.OnReconnectRequested)
+				this.OnReconnectRequested(this);
+			return _CheckCLIMode(false);
 		}
 		if (_keep_open)
 			return cli;

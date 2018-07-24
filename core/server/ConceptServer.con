@@ -2343,6 +2343,8 @@ class ConceptAsyncChild extends ConceptCGIChildBase {
 	}
 
 	sessionfilename(session_id) {
+		if ((Pos(session_id, ".") > 0) || (Pos(session_id, "/") > 0) || (Pos(session_id, "\\") > 0))
+			session_id = "dummy";
 		return sessionpath + "/" + sessionid + ".ess";
 	}
 

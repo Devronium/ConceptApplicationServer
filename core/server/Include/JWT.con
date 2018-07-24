@@ -1,0 +1,124 @@
+import standard.lib.cripto
+import standard.coding.base64
+import standard.lib.json
+import standard.lib.str
+import standard.C.casts
+import standard.lang.serialize
+
+class JWT {
+	static base64(data) {
+		return StrReplace(StrReplace(StrReplace(StrReplace(StrReplace(mime_encode(data), "=", ""), "\r", ""), "\n", ""), "+", "-"), "/", "_");
+	}
+
+	static frombase64(data) {
+		return mime_decode(StrReplace(StrReplace(data, "-", "+"), "_", "/"));
+	}
+
+	static protected jsonbase64(obj) {
+		return JWT::base64(JSONSerialize(obj, true));
+	}
+
+	static pad(key, len) {
+		while (length key < len)
+			key += "\x00";
+		return key;
+	}
+
+	static NativeHS256(key, str) {
+		if (hmac_sha256(StringToHex(key), str, var out, true))
+			return JWT::HS256(key, str);
+		return out;
+	}
+
+	static HS256(key, var str) {
+		var block_len = 64;
+		if (length key > block_len)
+			key = HexToString(sha256(key));
+		else
+		if (length key < block_len)
+			key = JWT::pad(key, block_len);
+
+		var okey = "";
+		var ikey = "";
+		for (var i = 0; i < block_len; i++) {
+			var k = tounumber(key[i], 8);
+			okey += toubin(k ^ 0x5c, 8);
+			ikey += toubin(k ^ 0x36, 8);
+		}
+
+		return HexToString(sha256(okey + HexToString(sha256(ikey + str))));
+	}
+
+	static signature(header, key, str) {
+		switch (ToUpper("" + header["alg"])) {
+			case "none":
+				return "";
+			case "HS256":
+			default:
+				return JWT::NativeHS256(key, str);
+		}
+	}
+
+	static build(payload, key, header = null) {
+		if ((!header) || (typeof header != "array"))
+			header = ["alg": "HS256"];
+
+		
+		var str = JWT::jsonbase64(header) + ".";
+		if ((typeof payload == "array") || (typeof payload == "object"))
+		 	str += JWT::jsonbase64(payload);
+		else
+		 	str += JWT::base64("" + payload);
+
+		var signature = JWT::signature(header, key, str);
+		if (signature)
+			return str + "." + JWT::base64(signature);
+		return str;
+	}
+
+	static validate(token, key = "") {
+		var arr = StrSplit(token, ".");
+		if (length arr < 2)
+			return null;
+
+		// no key present
+		if ((!key) && (length arr != 2))
+			return null;
+
+		// no signature
+		if ((key) && (length arr != 3))
+			return null;
+
+		var header = JWT::frombase64(arr[0]);
+		if (!header)
+			return null;
+		header = JSONDeserialize(header);
+		if (!header)
+			return null;
+
+		var payload = JWT::frombase64(arr[1]);
+		if (!payload)
+			return null;
+		payload = JSONDeserialize(payload);
+		if (!payload)
+			return null;
+
+		if (!key)
+			return payload;
+
+		var sig = JWT::signature(header, key, arr[0] + "." + arr[1]);
+		if (JWT::frombase64(arr[2]) == sig) {
+			if (IsSet(payload, "exp")) {
+				var exp = payload["exp"];
+				if ((exp) && (exp < time()))
+					return null;
+			}
+			if (IsSet(payload, "nbf")) {
+				if (payload["nbf"] > time())
+					return null;
+			}
+			return payload;
+		}
+		return null;
+	}
+}
