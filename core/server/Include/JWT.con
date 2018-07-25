@@ -121,4 +121,40 @@ class JWT {
 		}
 		return null;
 	}
+
+	static makekey(kid = "", alg = "HS256") {
+		var key = [ ];
+		switch (ToUpper(alg)) {
+			case "HS256":
+				key["kty"] = "oct";
+				if ((kid) && (typeof kid == "string"))
+					key["kid"] = kid;
+				key["alg"] = "HS256";
+				key["k"] = JWT::base64(HexToString(sha256(CryptoRandom(256))));
+				break;
+			default:
+				return null;
+		}
+		return JSONSerialize(key, true, 1);
+	}
+
+	static loadkey(key, var kid = null) {
+		if (typeof key == "string")
+			key = JSONDeserialize(key);
+		if (typeof key != "array")
+			return "";
+		switch (ToUpper("" + key["alg"])) {
+			case "HS256":
+				var k = key["k"];
+				if (k) {
+					kid = key["kid"];
+					if (ToLower("" + key["kty"]) == "oct")
+						return JWT::frombase64(key["k"]);
+
+					return "";
+				}
+				break;
+		}
+		return "";
+	}
 }

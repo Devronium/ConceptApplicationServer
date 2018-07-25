@@ -153,7 +153,7 @@ CONCEPT_FUNCTION_IMPL(RE_exec, 2)
                         break;
                     sp = sub.sub[index].sp;
                     ep = sub.sub[index].ep;
-                } while ((sp) && (ep));
+                } while (index < sub.nsub);
             } else {
                 RETURN_BUFFER(sp, delta);
             }

@@ -243,7 +243,7 @@ void AnsiParser::NextAtom(AnsiString& result, int no_constants, int TYPE, int ID
                 break;
             }
 
-            if (c == '.') {
+            if ((c == '.') && (!oper)) {
                 if (!only_numbers) {
                     break;
                 } else
@@ -301,7 +301,7 @@ void AnsiParser::NextAtom(AnsiString& result, int no_constants, int TYPE, int ID
                 } 
 #ifndef NO_BUILTIN_REGEX
                 else
-                if ((can_regex) && (prediction[0] == '/') && (prediction[1] != '*') && (prediction[1] != '*')) {
+                if ((can_regex) && (prediction[0] == '/') && (prediction[1] != '*') && (prediction[1] != '/')) {
                     in_regex = 1;
                     quote = '/';
                     oper = 0;
@@ -365,7 +365,7 @@ void AnsiParser::NextAtom(AnsiString& result, int no_constants, int TYPE, int ID
                     }
                 } else
 #ifndef NO_BUILTIN_REGEX
-                if ((in_regex) && (c == '/')) {
+                if ((in_regex) && (c == '/') && (!escape)) {
                     result += c;
                     no_constants = 1;
                     quote = 0;

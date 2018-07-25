@@ -98,7 +98,7 @@ class accesstoken {
 		}
 	}
 
-	sync(string key, expires = 2592000, path = "/", domain = "", secure = false, httponly = true) {
+	sync(string key, expires = 2592000, path = "/", domain = "", samesite="Strict", secure = false, httponly = true) {
 		var expires_when = time() + expires;
 		var sessiondata = data;
 		sessiondata["exp"] = expires_when;
@@ -108,6 +108,8 @@ class accesstoken {
 			cookie += "; Path=$path";
 		if (domain)
 			cookie += "; Domain=$domain";
+		if (samesite)
+			cookie += "; SameSite=$samesite";
 		if (secure)
 			cookie += "; Secure";
 		if (httponly)
@@ -182,7 +184,7 @@ class session {
 		}
 	}
 
-	usesession(expires = 2592000, path = "/", domain = "", secure = false, httponly = true) {
+	usesession(expires = 2592000, path = "/", domain = "", samesite = "Strict", secure = false, httponly = true) {
 		var sessiondata;
 		if (sessionid)
 			sessiondata = this.readsession(sessionid);
@@ -205,6 +207,8 @@ class session {
 				cookie += "; Path=$path";
 			if (domain)
 				cookie += "; Domain=$domain";
+			if (samesite)
+				cookie += "; SameSite=$samesite";
 			if (secure)
 				cookie += "; Secure";
 			if (httponly)
@@ -264,6 +268,35 @@ class _webrequest {
 		this.cookie = data["cookies"];
 		this.GET = data["GET"];
 		this.POST = data["POST"];
+	}
+
+
+	csrf(webhost) {
+		if (this.headers) {
+			var host = "";
+			if ((IsSet(this.headers, "referer")) && (this.headers["referer"])) {
+				var re = /^((\w+):)?(\/\/((\w+)?(:(\w+))?@)?([^\/\?:]+)(:(\d+))?)?(\/?([^\/\?#][^\?#]*)?)?(\?([^#]+))?(#(\w*))?/;
+				var arr = re.exec(this.headers["referer"]);
+				host = arr[8] ?? "";
+			} else
+			if (IsSet(this.headers, ":authority"))
+				host = this.headers[":authority"];
+			else
+			if (IsSet(this.headers, "host"))
+				host = this.headers["host"];
+
+			// is a possible forgery?
+			if ((host) && (webhost)) {
+				host = ToLower(host);
+				if (classof webhost == "RegExp") {
+					if (webhost.test(host))
+						return false;
+				} else
+				if (host == ToLower(webhost))
+					return false;
+			}
+		}
+		return true;
 	}
 
 	usesession(expires = 2592000, path = "/", domain = "", secure = false, httponly = true) {
