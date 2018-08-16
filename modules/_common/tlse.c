@@ -6425,9 +6425,17 @@ int tls_parse_hello(struct TLSContext *context, const unsigned char *buf, int bu
                 if ((buf[res] == extension_len - 1) && (extension_len > 4)) {
                     DEBUG_DUMP_HEX_LABEL("SUPPORTED VERSIONS", &buf[res], extension_len);
                     // tls 1.3 draft version 28
-                    if ((ntohs(*(unsigned short *)&buf[res + 1]) == 0x7F1C) || (ntohs(*(unsigned short *)&buf[res + 1]) == TLS_V13)) {
-                        context->version = TLS_V13;
-                        DEBUG_PRINT("TLS 1.3 SUPPORTED\n");
+                    int i;
+                    int limit = (int)buf[res];
+                    if (limit == extension_len - 1) {
+                        limit--;
+                        for (i = 1; i < limit; i += 2) {
+                            if ((ntohs(*(unsigned short *)&buf[res + i]) == 0x7F1C) || (ntohs(*(unsigned short *)&buf[res + i]) == TLS_V13)) {
+                                context->version = TLS_V13;
+                                DEBUG_PRINT("TLS 1.3 SUPPORTED\n");
+                                break;
+                            }
+                        }
                     }
                 }
             } else

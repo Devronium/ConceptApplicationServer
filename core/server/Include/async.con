@@ -82,8 +82,10 @@ class fs {
 class accesstoken {
 	var[] data;
 	var setheader;
+	var default_expires;
 
 	protected var has_token;
+	protected var privatekey;
 
 	accesstoken(key, cookie = null) {
 		if (cookie) {
@@ -96,13 +98,14 @@ class accesstoken {
 				}
 			}
 		}
+		this.privatekey = key;
 	}
 
-	sync(string key, expires = 2592000, path = "/", domain = "", samesite="Strict", secure = false, httponly = true) {
+	sync(expires = 2592000, path = "/", domain = "", samesite="", secure = false, httponly = true) {
 		var expires_when = time() + expires;
 		var sessiondata = data;
 		sessiondata["exp"] = expires_when;
-		var sessionid = JWT::build(sessiondata, key);
+		var sessionid = JWT::build(sessiondata, this.privatekey);
 		var cookie = "token=${sessionid}; Max-Age=" + expires;
 		if (path)
 			cookie += "; Path=$path";
@@ -184,7 +187,7 @@ class session {
 		}
 	}
 
-	usesession(expires = 2592000, path = "/", domain = "", samesite = "Strict", secure = false, httponly = true) {
+	usesession(expires = 2592000, path = "/", domain = "", samesite = "", secure = false, httponly = true) {
 		var sessiondata;
 		if (sessionid)
 			sessiondata = this.readsession(sessionid);
@@ -316,7 +319,7 @@ class _webrequest {
 	}
 
 	header(key, val) {
-		this.web.__buffer(["q" => id, "do" => "header", "data" => ["key" => key, "value" => val]]);
+		this.web.__buffer(["q" => id, "do" => "header", "data" => ["key" => key, "value" => val]], key);
 	}
 
 	done() {
@@ -389,12 +392,12 @@ class _webrequest {
 		return this;
 	}
 
-	sync(key = "", expires = 2592000, path = "/", domain = "", secure = false, httponly = true) {
+	sync(expires = 2592000, path = "/", domain = "", samesite = "", secure = false, httponly = true) {
 		if (this.session)
 			this.session.syncsession(this.session.data);
 		if (this.token) {
 			this.token.setheader = this.header;
-			this.token.sync(key, expires, path, domain, secure, httponly);
+			this.token.sync(this.token.default_expires ?? expires, path, domain, samesite, secure, httponly);
 			this.token.setheader = null;
 		}
 	}
@@ -454,6 +457,7 @@ class web {
 	var userdata;
 	var path;
 	var[] buffercache;
+	var[] headercache;
 	var idle;
 	var timeout = 3600;
 	var fs;
@@ -552,15 +556,23 @@ class web {
 	}
 
 	flush() {
-		if (buffercache) {
-			Worker::Result(BinarizeObject(buffercache));
+		if ((buffercache) || (headercache)) {
+			if (headercache) {
+				Worker::Result(BinarizeObject(headercache + buffercache));
+				headercache = new [];
+			} else
+				Worker::Result(BinarizeObject(buffercache));
 			buffercache = new [];
 		}
 	}
 
-	__buffer(data) {
-		buffercache[length buffercache] = data;
-		if (length buffercache > 100)
+	__buffer(data, prepend_key = null) {
+		if (prepend_key)
+			headercache[prepend_key] = data;
+		else
+			buffercache[length buffercache] = data;
+
+		if ((length buffercache + length headercache) > 100)
 			this.flush();
 	}
 

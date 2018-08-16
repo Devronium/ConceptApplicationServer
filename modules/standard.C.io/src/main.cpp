@@ -4639,7 +4639,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(enablevt100, 0, 1)
 
     if ((dwVersion >= 6) && (dwMinorVersion >= 2)) {
         HANDLE hStdout = GetStdHandle(STD_OUTPUT_HANDLE);
-        DWORD fdwSaveOldMode = fdwSaveOldMode;
+        DWORD fdwSaveOldMode;
         GetConsoleMode(hStdout, &fdwSaveOldMode);
         if (enabled)
             SetConsoleMode(hStdout, fdwSaveOldMode | ENABLE_VIRTUAL_TERMINAL_PROCESSING);

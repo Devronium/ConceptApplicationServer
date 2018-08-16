@@ -842,10 +842,10 @@ int BUILTINOBJECTS(void *pif, const char *classname) {
 		        "return formatdate(__epoch(this.year, this.month, this.day, this.hours, this.minutes, this.seconds, this.ms), \"%H:%M:%S GMT+\") + this.L0(floor(tz / 60)) + this.L0(tz % 60);"
 	        "}"
 
-            "operator-(x) {"
-                "var stamp = this.getTime();"
-                "if (typeof x == \"class\") stamp -= x.getTime(); else stamp -= x;\n"
-                "return stamp;"
+	        "operator-(x) {"
+		        "var stamp = this.getTime();"
+		        "if (typeof x == \"class\") stamp -= x.getTime(); else stamp -= x;\n"
+		        "return stamp;"
 	        "}"
         "}"
     );

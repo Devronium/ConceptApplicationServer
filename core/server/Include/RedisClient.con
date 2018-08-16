@@ -1,6 +1,6 @@
 include TCPSocket.con
 include UNIXSocket.con
-include TLSSocket.con
+include TLSESocket.con
 
 import standard.lib.str
 import standard.lang.serialize
@@ -46,7 +46,7 @@ class RedisClient {
 				return null;
 			switch (ConnectionType) {
 				case REDIS_TLS:
-					socket = new TLSSocket();
+					socket = new TLSESocket();
 					break;
 				case REDIS_UNIX:
 					socket = new UNIXSocket();
