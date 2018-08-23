@@ -16612,7 +16612,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(calc, 1, 2)
 END_IMPL
 //---------------------------------------------------------------------------
 int ucs2_to_utf8(int ucs2, char **utf8, char *utf8return) {  /* Convert UCS-2 to UTF-8 */
-    static char         firstByteMark[7] = { 0x00, 0x00, 0xC0, 0xE0, 0xF0, 0xF8, 0xFC };
+    static unsigned char firstByteMark[7] = { 0x00, 0x00, 0xC0, 0xE0, 0xF0, 0xF8, 0xFC };
     const unsigned long byteMask         = 0xBF;
     const unsigned long byteMark         = 0x80;
     int utf8len = 0;

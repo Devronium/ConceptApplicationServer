@@ -129,11 +129,11 @@ CONCEPT_DLL_API ON_CREATE_CONTEXT MANAGEMENT_PARAMETERS {
     DEFINE_ECONSTANT(MEMCACHED_HASH_JENKINS)
     DEFINE_ECONSTANT(MEMCACHED_HASH_CUSTOM)
     DEFINE_ECONSTANT(MEMCACHED_HASH_MAX)
-    DEFINE_ECONSTANT(MEMCACHED_CONNECTION_UNKNOWN)
+    // DEFINE_ECONSTANT(MEMCACHED_CONNECTION_UNKNOWN)
     DEFINE_ECONSTANT(MEMCACHED_CONNECTION_TCP)
     DEFINE_ECONSTANT(MEMCACHED_CONNECTION_UDP)
     DEFINE_ECONSTANT(MEMCACHED_CONNECTION_UNIX_SOCKET)
-    DEFINE_ECONSTANT(MEMCACHED_CONNECTION_MAX)
+    // DEFINE_ECONSTANT(MEMCACHED_CONNECTION_MAX)
 
 #ifdef _WIN32
     WSAStartup(MAKEWORD(1, 0), &wsa);
@@ -661,7 +661,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(MemCachedIncrement, 2, 3)
         T_NUMBER(MemCachedIncrement, 2)
         offset = PARAM_INT(2);
     }
-    unsigned long long value;
+    uint64_t value;
     memcached_st       *memc = (memcached_st *)PARAM_INT(0);
     RETURN_NUMBER(memcached_increment(memc, PARAM(1), PARAM_LEN(1), offset, &value))
 END_IMPL
@@ -675,7 +675,7 @@ CONCEPT_FUNCTION_IMPL_MINMAX_PARAMS(MemCachedDecrement, 2, 3)
         T_NUMBER(MemCachedDecrement, 2)
         offset = PARAM_INT(2);
     }
-    unsigned long long value;
+    uint64_t value;
     memcached_st       *memc = (memcached_st *)PARAM_INT(0);
     RETURN_NUMBER(memcached_decrement(memc, PARAM(1), PARAM_LEN(1), offset, &value))
 END_IMPL

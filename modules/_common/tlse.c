@@ -4524,6 +4524,8 @@ void tls_destroy_context(struct TLSContext *context) {
         if (context->root_certificates) {
             for (i = 0; i < context->root_count; i++)
                 tls_destroy_certificate(context->root_certificates[i]);
+            TLS_FREE(context->root_certificates);
+            context->root_certificates = NULL;
         }
         if (context->private_key)
             tls_destroy_certificate(context->private_key);
@@ -6682,12 +6684,12 @@ int __private_tls_build_random(struct TLSPacket *packet) {
     
     // max supported version
     if (packet->context->is_server)
-        *(unsigned short *)&rand_bytes[0] = htons(packet->context->version);
+        *(unsigned short *)rand_bytes = htons(packet->context->version);
     else
     if (packet->context->dtls)
-        *(unsigned short *)&rand_bytes[0] = htons(DTLS_V12);
+        *(unsigned short *)rand_bytes = htons(DTLS_V12);
     else
-        *(unsigned short *)&rand_bytes[0] = htons(TLS_V12);
+        *(unsigned short *)rand_bytes = htons(TLS_V12);
     //DEBUG_DUMP_HEX_LABEL("PREMASTER KEY", rand_bytes, bytes);
     
     TLS_FREE(packet->context->premaster_key);
@@ -9880,6 +9882,7 @@ int SSL_CTX_root_ca(struct TLSContext *context, const char *pem_filename) {
                             ssl_data->certificate_verify = tls_default_verify;
                     }
                 }
+                TLS_FREE(buf);
             }
         }
         fclose(f);
