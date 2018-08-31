@@ -2871,7 +2871,7 @@ class ConceptCASChild extends ConceptAsyncChild {
 		super(Socket, buffer, h2, stream, default_h2_header);
 
 		worker.idx++;
-		this.reqid = "" + worker.idx;
+		this.reqid = "" + worker.idx + "." + sha1(CryptoRandom(32));
 
 		var[] env_data;
 		env_data["env"] = env;

@@ -20,12 +20,12 @@
     #else
         #define DELTA_EPOCH_IN_MICROSECS  116444736000000000ULL
     #endif
-
+#ifndef HAVE_TIMEZONE
     struct timezone {
         int tz_minuteswest;
         int tz_dsttime;
     };
-
+#endif
     int gettimeofday(struct timeval *tv, struct timezone *tz) {
         FILETIME         ft;
         unsigned __int64 tmpres = 0;

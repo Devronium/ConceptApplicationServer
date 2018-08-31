@@ -484,7 +484,7 @@ class web {
 	}
 
 	done(id) {
-		if ((id) && (IsSet(requestdata, id))) {
+		if ((id) && (typeof id == "string") && (IsSet(requestdata, id))) {
 			requestdata[id] = null;
 			if ((length requestdata - requests) > 100) {
 				var new_requests = new [];
@@ -503,7 +503,7 @@ class web {
 	}
 
 	register(id, obj) {
-		if ((id) && (obj))
+		if ((id) && (typeof id == "string") && (obj))
 			requestdata[id] = obj;
 	}
 
@@ -515,14 +515,14 @@ class web {
 				CreateObject2("app", new _webrequest(this, id, data["data"], data["_"]));
 				break;
 			case "post":
-				if ((id) && (IsSet(requestdata, id))) {
+				if ((id) && (typeof id == "string") && (IsSet(requestdata, id))) {
 					obj = requestdata[id];
 					if ((obj) && (obj.onpost))
 						obj.onpost(data["data"]);
 				}
 				break;
 			case "data":
-				if ((id) && (IsSet(requestdata, id))) {
+				if ((id) && (typeof id == "string") && (IsSet(requestdata, id))) {
 					obj = requestdata[id];
 					if ((obj) && (obj.ondata))
 						obj.ondata(data["data"]);
@@ -534,14 +534,14 @@ class web {
 				QuitLoop();
 				return true;
 			case "timedout":
-				if ((id) && (IsSet(requestdata, id))) {
+				if ((id) && (typeof id == "string") && (IsSet(requestdata, id))) {
 					obj = requestdata[id];
 					if ((obj) && (obj.ontimedout))
 						obj.ontimedout();
 				}
 				break;
 			case "done":
-				if ((id) && (IsSet(requestdata, id))) {
+				if ((id) && (typeof id == "string") && (IsSet(requestdata, id))) {
 					obj = requestdata[id];
 					if ((obj) && (obj.ondone))
 						obj.ondone();
