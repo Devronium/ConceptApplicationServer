@@ -3288,7 +3288,7 @@ class ConceptBaseWorker {
 						if (data) {
 							ops++;
 							var request = data["q"];
-							if (request) {
+							if ((request) && (typeof request == "string")) {
 								var child = childcache[request];
 								if (child)
 									child.onmessage(data);
