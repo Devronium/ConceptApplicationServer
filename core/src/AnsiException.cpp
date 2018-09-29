@@ -162,6 +162,7 @@ void AnsiException::set_string2(char **var, const char *text1, const char *text2
 AnsiException::~AnsiException(void) {
     free(_TEXT);
     free(_FILE);
+    free(_EXTRA);
     free(_MEMBER);
     free(_CLASS);
 }
