@@ -78,7 +78,7 @@
 
 #define TLS_DH_DEFAULT_P            "87A8E61DB4B6663CFFBBD19C651959998CEEF608660DD0F25D2CEED4435E3B00E00DF8F1D61957D4FAF7DF4561B2AA3016C3D91134096FAA3BF4296D830E9A7C209E0C6497517ABD5A8A9D306BCF67ED91F9E6725B4758C022E0B1EF4275BF7B6C5BFC11D45F9088B941F54EB1E59BB8BC39A0BF12307F5C4FDB70C581B23F76B63ACAE1CAA6B7902D52526735488A0EF13C6D9A51BFA4AB3AD8347796524D8EF6A167B5A41825D967E144E5140564251CCACB83E6B486F6B3CA3F7971506026C0B857F689962856DED4010ABD0BE621C3A3960A54E710C375F26375D7014103A4B54330C198AF126116D2276E11715F693877FAD7EF09CADB094AE91E1A1597"
 #define TLS_DH_DEFAULT_G            "3FB32C9B73134D0B2E77506660EDBD484CA7B18F21EF205407F4793A1A0BA12510DBC15077BE463FFF4FED4AAC0BB555BE3A6C1B0C6B47B1BC3773BF7E8C6F62901228F8C28CBB18A55AE31341000A650196F931C77A57F2DDF463E5E9EC144B777DE62AAAB8A8628AC376D282D6ED3864E67982428EBC831D14348F6F2F9193B5045AF2767164E1DFC967C1FB3F2E55A4BD1BFFE83B9C80D052B985D182EA0ADB2A3B7313D3FE14C8484B1E052588B9B7D2BBD2DF016199ECD06E1557CD0915B3353BBB64E0EC377FD028370DF92B52C7891428CDC67EB6184B523D1DB246C32F63078490F00EF8D647D148D47954515E2327CFEF98C582664B4C0F6CC41659"
-#define __TLS_DHE_KEY_SIZE          2048
+#define TLS_DHE_KEY_SIZE          2048
 
 // you should never use weak DH groups (1024 bits)
 // but if you have old devices (like grandstream ip phones)
@@ -87,7 +87,7 @@
 // #ifdef TLS_WEAK_DH_LEGACY_DEVICES
 //     #define TLS_DH_DEFAULT_P            "B10B8F96A080E01DDE92DE5EAE5D54EC52C99FBCFB06A3C69A6A9DCA52D23B616073E28675A23D189838EF1E2EE652C013ECB4AEA906112324975C3CD49B83BFACCBDD7D90C4BD7098488E9C219A73724EFFD6FAE5644738FAA31A4FF55BCCC0A151AF5F0DC8B4BD45BF37DF365C1A65E68CFDA76D4DA708DF1FB2BC2E4A4371"
 //     #define TLS_DH_DEFAULT_G            "A4D1CBD5C3FD34126765A442EFB99905F8104DD258AC507FD6406CFF14266D31266FEA1E5C41564B777E690F5504F213160217B4B01B886A5E91547F9E2749F4D7FBD7D3B9A92EE1909D0D2263F80A76A6A24C087A091F531DBF0A0169B6A28AD662A4D18E73AFA32D779D5918D08BC8858F4DCEF97C2A24855E6EEB22B3B2E5"
-//     #define __TLS_DHE_KEY_SIZE          1024
+//     #define TLS_DHE_KEY_SIZE          1024
 // #endif
 
 #ifndef TLS_MALLOC
@@ -102,7 +102,7 @@
 
 #ifdef DEBUG
 #define DEBUG_PRINT(...)            fprintf(stderr, __VA_ARGS__)
-#define DEBUG_DUMP_HEX(buf, len)    {int __i__; for (__i__ = 0; __i__ < len; __i__++) { DEBUG_PRINT("%02X ", (unsigned int)(buf)[__i__]); } }
+#define DEBUG_DUMP_HEX(buf, len)    {int _i_; for (_i_ = 0; _i_ < len; _i_++) { DEBUG_PRINT("%02X ", (unsigned int)(buf)[_i_]); } }
 #define DEBUG_INDEX(fields)         print_index(fields)
 #define DEBUG_DUMP(buf, length)     fwrite(buf, 1, length, stderr);
 #define DEBUG_DUMP_HEX_LABEL(title, buf, len)    {fprintf(stderr, "%s (%i): ", title, (int)len); DEBUG_DUMP_HEX(buf, len); fprintf(stderr, "\n");}
@@ -129,43 +129,43 @@
 
 #define TLS_SERIALIZED_OBJECT   0xFE
 
-#define __TLS_CLIENT_HELLO_MINSIZE  41
-#define __TLS_CLIENT_RANDOM_SIZE    32
-#define __TLS_SERVER_RANDOM_SIZE    32
-#define __TLS_MAX_SESSION_ID        32
-#define __TLS_SHA256_MAC_SIZE       32
-#define __TLS_SHA1_MAC_SIZE         20
-#define __TLS_SHA384_MAC_SIZE       48
-#define __TLS_MAX_MAC_SIZE          __TLS_SHA384_MAC_SIZE
-#define __TLS_MAX_KEY_EXPANSION_SIZE 192 // 160
+#define TLS_CLIENT_HELLO_MINSIZE    41
+#define TLS_CLIENT_RANDOM_SIZE      32
+#define TLS_SERVER_RANDOM_SIZE      32
+#define TLS_MAX_SESSION_ID          32
+#define TLS_SHA256_MAC_SIZE         32
+#define TLS_SHA1_MAC_SIZE           20
+#define TLS_SHA384_MAC_SIZE         48
+#define TLS_MAX_MAC_SIZE            TLS_SHA384_MAC_SIZE
+#define TLS_MAX_KEY_EXPANSION_SIZE  192 // 160
 // 512bits (sha256) = 64 bytes
-#define __TLS_MAX_HASH_LEN          64
-#define __TLS_AES_IV_LENGTH         16
-#define __TLS_AES_BLOCK_SIZE        16
-#define __TLS_AES_GCM_IV_LENGTH     4
-#define __TLS_13_AES_GCM_IV_LENGTH  12
-#define __TLS_GCM_TAG_LEN           16
-#define __TLS_MAX_TAG_LEN           16
-#define __TLS_MIN_FINISHED_OPAQUE_LEN 12
+#define TLS_MAX_HASH_LEN            64
+#define TLS_AES_IV_LENGTH           16
+#define TLS_AES_BLOCK_SIZE          16
+#define TLS_AES_GCM_IV_LENGTH       4
+#define TLS_13_AES_GCM_IV_LENGTH    12
+#define TLS_GCM_TAG_LEN             16
+#define TLS_MAX_TAG_LEN             16
+#define TLS_MIN_FINISHED_OPAQUE_LEN 12
 
-#define __TLS_BLOB_INCREMENT        0xFFF
-#define __TLS_ASN1_MAXLEVEL         0xFF
+#define TLS_BLOB_INCREMENT        0xFFF
+#define TLS_ASN1_MAXLEVEL         0xFF
 
-#define __DTLS_COOKIE_SIZE          32
+#define DTLS_COOKIE_SIZE          32
 
-#define __TLS_MAX_SHA_SIZE 48
-#define __TLS_V11_HASH_SIZE 36      // 16(md5) + 20(sha1)
-#define __TLS_MAX_HASH_SIZE __TLS_MAX_SHA_SIZE
-#define __TLS_MAX_RSA_KEY   2048    // 16kbits
+#define TLS_MAX_SHA_SIZE 48
+#define TLS_V11_HASH_SIZE 36      // 16(md5) + 20(sha1)
+#define TLS_MAX_HASH_SIZE TLS_MAX_SHA_SIZE
+#define TLS_MAX_RSA_KEY   2048    // 16kbits
 
-#define __TLS_MAX_TLS_APP_SIZE      0x4000
+#define TLS_MAXTLS_APP_SIZE      0x4000
 // max 1 second sleep
-#define __TLS_MAX_ERROR_SLEEP_uS    1000000
+#define TLS_MAX_ERROR_SLEEP_uS    1000000
 // max 5 seconds context sleep
-#define __TLS_MAX_ERROR_IDLE_S      5
+#define TLS_MAX_ERROR_IDLE_S      5
 
-#define __TLS_V13_MAX_KEY_SIZE      32
-#define __TLS_V13_MAX_IV_SIZE       12
+#define TLS_V13_MAX_KEY_SIZE      32
+#define TLS_V13_MAX_IV_SIZE       12
 
 #define VERSION_SUPPORTED(version, err)  if ((version != TLS_V13) && (version != TLS_V12) && (version != TLS_V11) && (version != TLS_V10) && (version != DTLS_V13) && (version != DTLS_V12) && (version != DTLS_V10)) { if ((version == SSL_V30) && (context->connection_status == 0)) { version = TLS_V12; } else { DEBUG_PRINT("UNSUPPORTED TLS VERSION %x\n", (int)version); return err;} }
 #define CHECK_SIZE(size, buf_size, err)  if (((int)size > (int)buf_size) || ((int)buf_size < 0)) return err;
@@ -173,7 +173,7 @@
 #define CHECK_HANDSHAKE_STATE(context, n, limit)  { if (context->hs_messages[n] >= limit) { DEBUG_PRINT("* UNEXPECTED MESSAGE (%i)\n", (int)n); payload_res = TLS_UNEXPECTED_MESSAGE; break; } context->hs_messages[n]++; }
 
 #ifdef TLS_WITH_CHACHA20_POLY1305
-#define __TLS_CHACHA20_IV_LENGTH    12
+#define TLS_CHACHA20_IV_LENGTH    12
 
 // ChaCha20 implementation by D. J. Bernstein
 // Public domain.
@@ -202,9 +202,9 @@
     #define chacha_ctx                                  chacha20poly1305_state
     #define poly1305_context                            poly1305_state
 
-    #define __private_tls_poly1305_init(ctx, key, len)  poly1305_init(ctx, key, len)
-    #define __private_tls_poly1305_update(ctx, in, len) poly1305_process(ctx, in, len)
-    #define __private_tls_poly1305_finish(ctx, mac)     poly1305_done(ctx, mac, 16)
+    #define _private_tls_poly1305_init(ctx, key, len)  poly1305_init(ctx, key, len)
+    #define _private_tls_poly1305_update(ctx, in, len) poly1305_process(ctx, in, len)
+    #define _private_tls_poly1305_finish(ctx, mac)     poly1305_done(ctx, mac, 16)
 #else
 struct chacha_ctx {
     u_int input[16];
@@ -238,13 +238,13 @@ typedef struct chacha_ctx chacha_ctx;
 #define ROTL32(v, n) \
   (U32V((v) << (n)) | ((v) >> (32 - (n))))
 
-#define __private_tls_U8TO32_LITTLE(p) \
+#define _private_tls_U8TO32_LITTLE(p) \
   (((u32)((p)[0])) | \
    ((u32)((p)[1]) <<  8) | \
    ((u32)((p)[2]) << 16) | \
    ((u32)((p)[3]) << 24))
 
-#define __private_tls_U32TO8_LITTLE(p, v) \
+#define _private_tls_U32TO8_LITTLE(p, v) \
   do { \
     (p)[0] = U8V((v)); \
     (p)[1] = U8V((v) >>  8); \
@@ -271,67 +271,67 @@ static unsigned char dtls_secret[32];
 static inline void chacha_keysetup(chacha_ctx *x, const u8 *k, u32 kbits) {
     const char *constants;
 
-    x->input[4] = __private_tls_U8TO32_LITTLE(k + 0);
-    x->input[5] = __private_tls_U8TO32_LITTLE(k + 4);
-    x->input[6] = __private_tls_U8TO32_LITTLE(k + 8);
-    x->input[7] = __private_tls_U8TO32_LITTLE(k + 12);
+    x->input[4] = _private_tls_U8TO32_LITTLE(k + 0);
+    x->input[5] = _private_tls_U8TO32_LITTLE(k + 4);
+    x->input[6] = _private_tls_U8TO32_LITTLE(k + 8);
+    x->input[7] = _private_tls_U8TO32_LITTLE(k + 12);
     if (kbits == 256) { /* recommended */
         k += 16;
         constants = sigma;
     } else { /* kbits == 128 */
         constants = tau;
     }
-    x->input[8] = __private_tls_U8TO32_LITTLE(k + 0);
-    x->input[9] = __private_tls_U8TO32_LITTLE(k + 4);
-    x->input[10] = __private_tls_U8TO32_LITTLE(k + 8);
-    x->input[11] = __private_tls_U8TO32_LITTLE(k + 12);
-    x->input[0] = __private_tls_U8TO32_LITTLE(constants + 0);
-    x->input[1] = __private_tls_U8TO32_LITTLE(constants + 4);
-    x->input[2] = __private_tls_U8TO32_LITTLE(constants + 8);
-    x->input[3] = __private_tls_U8TO32_LITTLE(constants + 12);
+    x->input[8] = _private_tls_U8TO32_LITTLE(k + 0);
+    x->input[9] = _private_tls_U8TO32_LITTLE(k + 4);
+    x->input[10] = _private_tls_U8TO32_LITTLE(k + 8);
+    x->input[11] = _private_tls_U8TO32_LITTLE(k + 12);
+    x->input[0] = _private_tls_U8TO32_LITTLE(constants + 0);
+    x->input[1] = _private_tls_U8TO32_LITTLE(constants + 4);
+    x->input[2] = _private_tls_U8TO32_LITTLE(constants + 8);
+    x->input[3] = _private_tls_U8TO32_LITTLE(constants + 12);
 }
 
 static inline void chacha_key(chacha_ctx *x, u8 *k) {
-    __private_tls_U32TO8_LITTLE(k, x->input[4]);
-    __private_tls_U32TO8_LITTLE(k + 4, x->input[5]);
-    __private_tls_U32TO8_LITTLE(k + 8, x->input[6]);
-    __private_tls_U32TO8_LITTLE(k + 12, x->input[7]);
+    _private_tls_U32TO8_LITTLE(k, x->input[4]);
+    _private_tls_U32TO8_LITTLE(k + 4, x->input[5]);
+    _private_tls_U32TO8_LITTLE(k + 8, x->input[6]);
+    _private_tls_U32TO8_LITTLE(k + 12, x->input[7]);
 
-    __private_tls_U32TO8_LITTLE(k + 16, x->input[8]);
-    __private_tls_U32TO8_LITTLE(k + 20, x->input[9]);
-    __private_tls_U32TO8_LITTLE(k + 24, x->input[10]);
-    __private_tls_U32TO8_LITTLE(k + 28, x->input[11]);
+    _private_tls_U32TO8_LITTLE(k + 16, x->input[8]);
+    _private_tls_U32TO8_LITTLE(k + 20, x->input[9]);
+    _private_tls_U32TO8_LITTLE(k + 24, x->input[10]);
+    _private_tls_U32TO8_LITTLE(k + 28, x->input[11]);
 }
 
 static inline void chacha_nonce(chacha_ctx *x, u8 *nonce) {
-    __private_tls_U32TO8_LITTLE(nonce + 0, x->input[13]);
-    __private_tls_U32TO8_LITTLE(nonce + 4, x->input[14]);
-    __private_tls_U32TO8_LITTLE(nonce + 8, x->input[15]);
+    _private_tls_U32TO8_LITTLE(nonce + 0, x->input[13]);
+    _private_tls_U32TO8_LITTLE(nonce + 4, x->input[14]);
+    _private_tls_U32TO8_LITTLE(nonce + 8, x->input[15]);
 }
 
 static inline void chacha_ivsetup(chacha_ctx *x, const u8 *iv, const u8 *counter) {
-    x->input[12] = counter == NULL ? 0 : __private_tls_U8TO32_LITTLE(counter + 0);
-    x->input[13] = counter == NULL ? 0 : __private_tls_U8TO32_LITTLE(counter + 4);
+    x->input[12] = counter == NULL ? 0 : _private_tls_U8TO32_LITTLE(counter + 0);
+    x->input[13] = counter == NULL ? 0 : _private_tls_U8TO32_LITTLE(counter + 4);
     if (iv) {
-        x->input[14] = __private_tls_U8TO32_LITTLE(iv + 0);
-        x->input[15] = __private_tls_U8TO32_LITTLE(iv + 4);
+        x->input[14] = _private_tls_U8TO32_LITTLE(iv + 0);
+        x->input[15] = _private_tls_U8TO32_LITTLE(iv + 4);
     }
 }
 
 static inline void chacha_ivsetup_96bitnonce(chacha_ctx *x, const u8 *iv, const u8 *counter) {
-    x->input[12] = counter == NULL ? 0 : __private_tls_U8TO32_LITTLE(counter + 0);
+    x->input[12] = counter == NULL ? 0 : _private_tls_U8TO32_LITTLE(counter + 0);
     if (iv) {
-        x->input[13] = __private_tls_U8TO32_LITTLE(iv + 0);
-        x->input[14] = __private_tls_U8TO32_LITTLE(iv + 4);
-        x->input[15] = __private_tls_U8TO32_LITTLE(iv + 8);
+        x->input[13] = _private_tls_U8TO32_LITTLE(iv + 0);
+        x->input[14] = _private_tls_U8TO32_LITTLE(iv + 4);
+        x->input[15] = _private_tls_U8TO32_LITTLE(iv + 8);
     }
 }
 
 static inline void chacha_ivupdate(chacha_ctx *x, const u8 *iv, const u8 *aad, const u8 *counter) {
-    x->input[12] = counter == NULL ? 0 : __private_tls_U8TO32_LITTLE(counter + 0);
-    x->input[13] = __private_tls_U8TO32_LITTLE(iv + 0);
-    x->input[14] = __private_tls_U8TO32_LITTLE(iv + 4) ^ __private_tls_U8TO32_LITTLE(aad);
-    x->input[15] = __private_tls_U8TO32_LITTLE(iv + 8) ^ __private_tls_U8TO32_LITTLE(aad + 4);
+    x->input[12] = counter == NULL ? 0 : _private_tls_U8TO32_LITTLE(counter + 0);
+    x->input[13] = _private_tls_U8TO32_LITTLE(iv + 0);
+    x->input[14] = _private_tls_U8TO32_LITTLE(iv + 4) ^ _private_tls_U8TO32_LITTLE(aad);
+    x->input[15] = _private_tls_U8TO32_LITTLE(iv + 8) ^ _private_tls_U8TO32_LITTLE(aad + 4);
 }
 
 static inline void chacha_encrypt_bytes(chacha_ctx *x, const u8 *m, u8 *c, u32 bytes) {
@@ -415,40 +415,40 @@ static inline void chacha_encrypt_bytes(chacha_ctx *x, const u8 *m, u8 *c, u32 b
         x15 = PLUS(x15, j15);
 
         if (bytes < 64) {
-            __private_tls_U32TO8_LITTLE(x->ks + 0, x0);
-            __private_tls_U32TO8_LITTLE(x->ks + 4, x1);
-            __private_tls_U32TO8_LITTLE(x->ks + 8, x2);
-            __private_tls_U32TO8_LITTLE(x->ks + 12, x3);
-            __private_tls_U32TO8_LITTLE(x->ks + 16, x4);
-            __private_tls_U32TO8_LITTLE(x->ks + 20, x5);
-            __private_tls_U32TO8_LITTLE(x->ks + 24, x6);
-            __private_tls_U32TO8_LITTLE(x->ks + 28, x7);
-            __private_tls_U32TO8_LITTLE(x->ks + 32, x8);
-            __private_tls_U32TO8_LITTLE(x->ks + 36, x9);
-            __private_tls_U32TO8_LITTLE(x->ks + 40, x10);
-            __private_tls_U32TO8_LITTLE(x->ks + 44, x11);
-            __private_tls_U32TO8_LITTLE(x->ks + 48, x12);
-            __private_tls_U32TO8_LITTLE(x->ks + 52, x13);
-            __private_tls_U32TO8_LITTLE(x->ks + 56, x14);
-            __private_tls_U32TO8_LITTLE(x->ks + 60, x15);
+            _private_tls_U32TO8_LITTLE(x->ks + 0, x0);
+            _private_tls_U32TO8_LITTLE(x->ks + 4, x1);
+            _private_tls_U32TO8_LITTLE(x->ks + 8, x2);
+            _private_tls_U32TO8_LITTLE(x->ks + 12, x3);
+            _private_tls_U32TO8_LITTLE(x->ks + 16, x4);
+            _private_tls_U32TO8_LITTLE(x->ks + 20, x5);
+            _private_tls_U32TO8_LITTLE(x->ks + 24, x6);
+            _private_tls_U32TO8_LITTLE(x->ks + 28, x7);
+            _private_tls_U32TO8_LITTLE(x->ks + 32, x8);
+            _private_tls_U32TO8_LITTLE(x->ks + 36, x9);
+            _private_tls_U32TO8_LITTLE(x->ks + 40, x10);
+            _private_tls_U32TO8_LITTLE(x->ks + 44, x11);
+            _private_tls_U32TO8_LITTLE(x->ks + 48, x12);
+            _private_tls_U32TO8_LITTLE(x->ks + 52, x13);
+            _private_tls_U32TO8_LITTLE(x->ks + 56, x14);
+            _private_tls_U32TO8_LITTLE(x->ks + 60, x15);
         }
 
-        x0 = XOR(x0, __private_tls_U8TO32_LITTLE(m + 0));
-        x1 = XOR(x1, __private_tls_U8TO32_LITTLE(m + 4));
-        x2 = XOR(x2, __private_tls_U8TO32_LITTLE(m + 8));
-        x3 = XOR(x3, __private_tls_U8TO32_LITTLE(m + 12));
-        x4 = XOR(x4, __private_tls_U8TO32_LITTLE(m + 16));
-        x5 = XOR(x5, __private_tls_U8TO32_LITTLE(m + 20));
-        x6 = XOR(x6, __private_tls_U8TO32_LITTLE(m + 24));
-        x7 = XOR(x7, __private_tls_U8TO32_LITTLE(m + 28));
-        x8 = XOR(x8, __private_tls_U8TO32_LITTLE(m + 32));
-        x9 = XOR(x9, __private_tls_U8TO32_LITTLE(m + 36));
-        x10 = XOR(x10, __private_tls_U8TO32_LITTLE(m + 40));
-        x11 = XOR(x11, __private_tls_U8TO32_LITTLE(m + 44));
-        x12 = XOR(x12, __private_tls_U8TO32_LITTLE(m + 48));
-        x13 = XOR(x13, __private_tls_U8TO32_LITTLE(m + 52));
-        x14 = XOR(x14, __private_tls_U8TO32_LITTLE(m + 56));
-        x15 = XOR(x15, __private_tls_U8TO32_LITTLE(m + 60));
+        x0 = XOR(x0, _private_tls_U8TO32_LITTLE(m + 0));
+        x1 = XOR(x1, _private_tls_U8TO32_LITTLE(m + 4));
+        x2 = XOR(x2, _private_tls_U8TO32_LITTLE(m + 8));
+        x3 = XOR(x3, _private_tls_U8TO32_LITTLE(m + 12));
+        x4 = XOR(x4, _private_tls_U8TO32_LITTLE(m + 16));
+        x5 = XOR(x5, _private_tls_U8TO32_LITTLE(m + 20));
+        x6 = XOR(x6, _private_tls_U8TO32_LITTLE(m + 24));
+        x7 = XOR(x7, _private_tls_U8TO32_LITTLE(m + 28));
+        x8 = XOR(x8, _private_tls_U8TO32_LITTLE(m + 32));
+        x9 = XOR(x9, _private_tls_U8TO32_LITTLE(m + 36));
+        x10 = XOR(x10, _private_tls_U8TO32_LITTLE(m + 40));
+        x11 = XOR(x11, _private_tls_U8TO32_LITTLE(m + 44));
+        x12 = XOR(x12, _private_tls_U8TO32_LITTLE(m + 48));
+        x13 = XOR(x13, _private_tls_U8TO32_LITTLE(m + 52));
+        x14 = XOR(x14, _private_tls_U8TO32_LITTLE(m + 56));
+        x15 = XOR(x15, _private_tls_U8TO32_LITTLE(m + 60));
 
         j12 = PLUSONE(j12);
         if (!j12) {
@@ -459,22 +459,22 @@ static inline void chacha_encrypt_bytes(chacha_ctx *x, const u8 *m, u8 *c, u32 b
              */
         }
 
-        __private_tls_U32TO8_LITTLE(c + 0, x0);
-        __private_tls_U32TO8_LITTLE(c + 4, x1);
-        __private_tls_U32TO8_LITTLE(c + 8, x2);
-        __private_tls_U32TO8_LITTLE(c + 12, x3);
-        __private_tls_U32TO8_LITTLE(c + 16, x4);
-        __private_tls_U32TO8_LITTLE(c + 20, x5);
-        __private_tls_U32TO8_LITTLE(c + 24, x6);
-        __private_tls_U32TO8_LITTLE(c + 28, x7);
-        __private_tls_U32TO8_LITTLE(c + 32, x8);
-        __private_tls_U32TO8_LITTLE(c + 36, x9);
-        __private_tls_U32TO8_LITTLE(c + 40, x10);
-        __private_tls_U32TO8_LITTLE(c + 44, x11);
-        __private_tls_U32TO8_LITTLE(c + 48, x12);
-        __private_tls_U32TO8_LITTLE(c + 52, x13);
-        __private_tls_U32TO8_LITTLE(c + 56, x14);
-        __private_tls_U32TO8_LITTLE(c + 60, x15);
+        _private_tls_U32TO8_LITTLE(c + 0, x0);
+        _private_tls_U32TO8_LITTLE(c + 4, x1);
+        _private_tls_U32TO8_LITTLE(c + 8, x2);
+        _private_tls_U32TO8_LITTLE(c + 12, x3);
+        _private_tls_U32TO8_LITTLE(c + 16, x4);
+        _private_tls_U32TO8_LITTLE(c + 20, x5);
+        _private_tls_U32TO8_LITTLE(c + 24, x6);
+        _private_tls_U32TO8_LITTLE(c + 28, x7);
+        _private_tls_U32TO8_LITTLE(c + 32, x8);
+        _private_tls_U32TO8_LITTLE(c + 36, x9);
+        _private_tls_U32TO8_LITTLE(c + 40, x10);
+        _private_tls_U32TO8_LITTLE(c + 44, x11);
+        _private_tls_U32TO8_LITTLE(c + 48, x12);
+        _private_tls_U32TO8_LITTLE(c + 52, x13);
+        _private_tls_U32TO8_LITTLE(c + 56, x14);
+        _private_tls_U32TO8_LITTLE(c + 60, x15);
 
         if (bytes <= 64) {
             if (bytes < 64) {
@@ -513,7 +513,7 @@ static inline void chacha20_block(chacha_ctx *x, unsigned char *c, int len) {
         x->input[i] = PLUS(x->input[i], state[i]);
 
     for (i = 0; i < len; i += 4) {
-        __private_tls_U32TO8_LITTLE(c + i, x->input[i/4]);
+        _private_tls_U32TO8_LITTLE(c + i, x->input[i/4]);
     }
 }
 
@@ -548,7 +548,7 @@ typedef struct poly1305_state_internal_t {
 } poly1305_state_internal_t;
 
 /* interpret four 8 bit unsigned integers as a 32 bit unsigned integer in little endian */
-static unsigned long __private_tls_U8TO32(const unsigned char *p) {
+static unsigned long _private_tls_U8TO32(const unsigned char *p) {
     return
         (((unsigned long)(p[0] & 0xff)      ) |
          ((unsigned long)(p[1] & 0xff) <<  8) |
@@ -557,22 +557,22 @@ static unsigned long __private_tls_U8TO32(const unsigned char *p) {
 }
 
 /* store a 32 bit unsigned integer as four 8 bit unsigned integers in little endian */
-static void __private_tls_U32TO8(unsigned char *p, unsigned long v) {
+static void _private_tls_U32TO8(unsigned char *p, unsigned long v) {
     p[0] = (v      ) & 0xff;
     p[1] = (v >>  8) & 0xff;
     p[2] = (v >> 16) & 0xff;
     p[3] = (v >> 24) & 0xff;
 }
 
-void __private_tls_poly1305_init(poly1305_context *ctx, const unsigned char key[32]) {
+void _private_tls_poly1305_init(poly1305_context *ctx, const unsigned char key[32]) {
     poly1305_state_internal_t *st = (poly1305_state_internal_t *)ctx;
 
     /* r &= 0xffffffc0ffffffc0ffffffc0fffffff */
-    st->r[0] = (__private_tls_U8TO32(&key[ 0])     ) & 0x3ffffff;
-    st->r[1] = (__private_tls_U8TO32(&key[ 3]) >> 2) & 0x3ffff03;
-    st->r[2] = (__private_tls_U8TO32(&key[ 6]) >> 4) & 0x3ffc0ff;
-    st->r[3] = (__private_tls_U8TO32(&key[ 9]) >> 6) & 0x3f03fff;
-    st->r[4] = (__private_tls_U8TO32(&key[12]) >> 8) & 0x00fffff;
+    st->r[0] = (_private_tls_U8TO32(&key[ 0])     ) & 0x3ffffff;
+    st->r[1] = (_private_tls_U8TO32(&key[ 3]) >> 2) & 0x3ffff03;
+    st->r[2] = (_private_tls_U8TO32(&key[ 6]) >> 4) & 0x3ffc0ff;
+    st->r[3] = (_private_tls_U8TO32(&key[ 9]) >> 6) & 0x3f03fff;
+    st->r[4] = (_private_tls_U8TO32(&key[12]) >> 8) & 0x00fffff;
 
     /* h = 0 */
     st->h[0] = 0;
@@ -582,16 +582,16 @@ void __private_tls_poly1305_init(poly1305_context *ctx, const unsigned char key[
     st->h[4] = 0;
 
     /* save pad for later */
-    st->pad[0] = __private_tls_U8TO32(&key[16]);
-    st->pad[1] = __private_tls_U8TO32(&key[20]);
-    st->pad[2] = __private_tls_U8TO32(&key[24]);
-    st->pad[3] = __private_tls_U8TO32(&key[28]);
+    st->pad[0] = _private_tls_U8TO32(&key[16]);
+    st->pad[1] = _private_tls_U8TO32(&key[20]);
+    st->pad[2] = _private_tls_U8TO32(&key[24]);
+    st->pad[3] = _private_tls_U8TO32(&key[28]);
 
     st->leftover = 0;
     st->final = 0;
 }
 
-static void __private_tls_poly1305_blocks(poly1305_state_internal_t *st, const unsigned char *m, size_t bytes) {
+static void _private_tls_poly1305_blocks(poly1305_state_internal_t *st, const unsigned char *m, size_t bytes) {
     const unsigned long hibit = (st->final) ? 0 : (1UL << 24); /* 1 << 128 */
     unsigned long r0,r1,r2,r3,r4;
     unsigned long s1,s2,s3,s4;
@@ -618,11 +618,11 @@ static void __private_tls_poly1305_blocks(poly1305_state_internal_t *st, const u
 
     while (bytes >= poly1305_block_size) {
         /* h += m[i] */
-        h0 += (__private_tls_U8TO32(m+ 0)     ) & 0x3ffffff;
-        h1 += (__private_tls_U8TO32(m+ 3) >> 2) & 0x3ffffff;
-        h2 += (__private_tls_U8TO32(m+ 6) >> 4) & 0x3ffffff;
-        h3 += (__private_tls_U8TO32(m+ 9) >> 6) & 0x3ffffff;
-        h4 += (__private_tls_U8TO32(m+12) >> 8) | hibit;
+        h0 += (_private_tls_U8TO32(m+ 0)     ) & 0x3ffffff;
+        h1 += (_private_tls_U8TO32(m+ 3) >> 2) & 0x3ffffff;
+        h2 += (_private_tls_U8TO32(m+ 6) >> 4) & 0x3ffffff;
+        h3 += (_private_tls_U8TO32(m+ 9) >> 6) & 0x3ffffff;
+        h4 += (_private_tls_U8TO32(m+12) >> 8) | hibit;
 
         /* h *= r */
         d0 = ((unsigned long long)h0 * r0) + ((unsigned long long)h1 * s4) + ((unsigned long long)h2 * s3) + ((unsigned long long)h3 * s2) + ((unsigned long long)h4 * s1);
@@ -651,7 +651,7 @@ static void __private_tls_poly1305_blocks(poly1305_state_internal_t *st, const u
     st->h[4] = h4;
 }
 
-void __private_tls_poly1305_finish(poly1305_context *ctx, unsigned char mac[16]) {
+void _private_tls_poly1305_finish(poly1305_context *ctx, unsigned char mac[16]) {
     poly1305_state_internal_t *st = (poly1305_state_internal_t *)ctx;
     unsigned long h0,h1,h2,h3,h4,c;
     unsigned long g0,g1,g2,g3,g4;
@@ -665,7 +665,7 @@ void __private_tls_poly1305_finish(poly1305_context *ctx, unsigned char mac[16])
         for (; i < poly1305_block_size; i++)
             st->buffer[i] = 0;
         st->final = 1;
-        __private_tls_poly1305_blocks(st, st->buffer, poly1305_block_size);
+        _private_tls_poly1305_blocks(st, st->buffer, poly1305_block_size);
     }
 
     /* fully carry h */
@@ -715,10 +715,10 @@ void __private_tls_poly1305_finish(poly1305_context *ctx, unsigned char mac[16])
     f = (unsigned long long)h2 + st->pad[2] + (f >> 32); h2 = (unsigned long)f;
     f = (unsigned long long)h3 + st->pad[3] + (f >> 32); h3 = (unsigned long)f;
 
-    __private_tls_U32TO8(mac +  0, h0);
-    __private_tls_U32TO8(mac +  4, h1);
-    __private_tls_U32TO8(mac +  8, h2);
-    __private_tls_U32TO8(mac + 12, h3);
+    _private_tls_U32TO8(mac +  0, h0);
+    _private_tls_U32TO8(mac +  4, h1);
+    _private_tls_U32TO8(mac +  8, h2);
+    _private_tls_U32TO8(mac + 12, h3);
 
     /* zero out the state */
     st->h[0] = 0;
@@ -737,7 +737,7 @@ void __private_tls_poly1305_finish(poly1305_context *ctx, unsigned char mac[16])
     st->pad[3] = 0;
 }
 
-void __private_tls_poly1305_update(poly1305_context *ctx, const unsigned char *m, size_t bytes) {
+void _private_tls_poly1305_update(poly1305_context *ctx, const unsigned char *m, size_t bytes) {
     poly1305_state_internal_t *st = (poly1305_state_internal_t *)ctx;
     size_t i;
     /* handle leftover */
@@ -752,14 +752,14 @@ void __private_tls_poly1305_update(poly1305_context *ctx, const unsigned char *m
         st->leftover += want;
         if (st->leftover < poly1305_block_size)
             return;
-        __private_tls_poly1305_blocks(st, st->buffer, poly1305_block_size);
+        _private_tls_poly1305_blocks(st, st->buffer, poly1305_block_size);
         st->leftover = 0;
     }
 
     /* process full blocks */
     if (bytes >= poly1305_block_size) {
         size_t want = (bytes & ~(poly1305_block_size - 1));
-        __private_tls_poly1305_blocks(st, m, want);
+        _private_tls_poly1305_blocks(st, m, want);
         m += want;
         bytes -= want;
     }
@@ -799,24 +799,24 @@ int chacha20_poly1305_aead(struct chacha_ctx *ctx,  unsigned char *pt, unsigned 
     chacha_encrypt_bytes(ctx, pt, out, len);
     
     poly1305_context aead_ctx;
-    __private_tls_poly1305_init(&aead_ctx, poly_key);
-    __private_tls_poly1305_update(&aead_ctx, aad, aad_len);
+    _private_tls_poly1305_init(&aead_ctx, poly_key);
+    _private_tls_poly1305_update(&aead_ctx, aad, aad_len);
     int rem = aad_len % 16;
     if (rem)
-        __private_tls_poly1305_update(&aead_ctx, zeropad, 16 - rem);
-    __private_tls_poly1305_update(&aead_ctx, out, len);
+        _private_tls_poly1305_update(&aead_ctx, zeropad, 16 - rem);
+    _private_tls_poly1305_update(&aead_ctx, out, len);
     rem = len % 16;
     if (rem)
-        __private_tls_poly1305_update(&aead_ctx, zeropad, 16 - rem);
+        _private_tls_poly1305_update(&aead_ctx, zeropad, 16 - rem);
 
     unsigned char trail[16];
-    __private_tls_U32TO8(&trail[0], aad_len);
+    _private_tls_U32TO8(&trail[0], aad_len);
     *(int *)&trail[4] = 0;
-    __private_tls_U32TO8(&trail[8], len);
+    _private_tls_U32TO8(&trail[8], len);
     *(int *)&trail[12] = 0;
 
-    __private_tls_poly1305_update(&aead_ctx, trail, 16);
-    __private_tls_poly1305_finish(&aead_ctx, out + len);
+    _private_tls_poly1305_update(&aead_ctx, trail, 16);
+    _private_tls_poly1305_finish(&aead_ctx, out + len);
     
     return len + POLY1305_TAGLEN;
 }
@@ -854,7 +854,7 @@ typedef enum {
     sha256 = 4,
     sha384 = 5,
     sha512 = 6,
-    __md5_sha1 = 255
+    _md5_sha1 = 255
 } TLSHashAlgorithm;
 
 typedef enum {
@@ -864,7 +864,7 @@ typedef enum {
     ecdsa = 3
 } TLSSignatureAlgorithm;
 
-struct __private_OID_chain {
+struct _private_OID_chain {
     void *top;
     unsigned char *oid;
 };
@@ -922,23 +922,23 @@ typedef struct {
 #endif
     } ctx_remote;
     union {
-        unsigned char local_mac[__TLS_MAX_MAC_SIZE];
-        unsigned char local_aead_iv[__TLS_AES_GCM_IV_LENGTH];
+        unsigned char local_mac[TLS_MAX_MAC_SIZE];
+        unsigned char local_aead_iv[TLS_AES_GCM_IV_LENGTH];
 #ifdef WITH_TLS_13
-        unsigned char local_iv[__TLS_13_AES_GCM_IV_LENGTH];
+        unsigned char local_iv[TLS_13_AES_GCM_IV_LENGTH];
 #endif
 #ifdef TLS_WITH_CHACHA20_POLY1305
-        unsigned char local_nonce[__TLS_CHACHA20_IV_LENGTH];
+        unsigned char local_nonce[TLS_CHACHA20_IV_LENGTH];
 #endif
     } ctx_local_mac;
     union {
-        unsigned char remote_aead_iv[__TLS_AES_GCM_IV_LENGTH];
-        unsigned char remote_mac[__TLS_MAX_MAC_SIZE];
+        unsigned char remote_aead_iv[TLS_AES_GCM_IV_LENGTH];
+        unsigned char remote_mac[TLS_MAX_MAC_SIZE];
 #ifdef WITH_TLS_13
-        unsigned char remote_iv[__TLS_13_AES_GCM_IV_LENGTH];
+        unsigned char remote_iv[TLS_13_AES_GCM_IV_LENGTH];
 #endif
 #ifdef TLS_WITH_CHACHA20_POLY1305
-        unsigned char remote_nonce[__TLS_CHACHA20_IV_LENGTH];
+        unsigned char remote_nonce[TLS_CHACHA20_IV_LENGTH];
 #endif
     } ctx_remote_mac;
     unsigned char created;
@@ -1157,9 +1157,9 @@ void init_curves() {
 #endif
 
 struct TLSContext {
-    unsigned char remote_random[__TLS_CLIENT_RANDOM_SIZE];
-    unsigned char local_random[__TLS_SERVER_RANDOM_SIZE];
-    unsigned char session[__TLS_MAX_SESSION_ID];
+    unsigned char remote_random[TLS_CLIENT_RANDOM_SIZE];
+    unsigned char local_random[TLS_SERVER_RANDOM_SIZE];
+    unsigned char session[TLS_MAX_SESSION_ID];
     unsigned char session_size;
     unsigned short cipher;
     unsigned short version;
@@ -1234,6 +1234,7 @@ struct TLSContext {
     unsigned char alpn_count;
     char *negotiated_alpn;
     unsigned int sleep_until;
+    unsigned short tls13_version;
 };
 
 struct TLSPacket {
@@ -1305,9 +1306,9 @@ static const unsigned char TLS_EC_secp384r1_OID[] = {0x2B, 0x81, 0x04, 0x00, 0x2
 static const unsigned char TLS_EC_secp521r1_OID[] = {0x2B, 0x81, 0x04, 0x00, 0x23, 0x00};
 
 struct TLSCertificate *asn1_parse(struct TLSContext *context, const unsigned char *buffer, int size, int client_cert);
-int __private_tls_update_hash(struct TLSContext *context, const unsigned char *in, unsigned int len);
+int _private_tls_update_hash(struct TLSContext *context, const unsigned char *in, unsigned int len);
 struct TLSPacket *tls_build_finished(struct TLSContext *context);
-unsigned int __private_tls_hmac_message(unsigned char local, struct TLSContext *context, const unsigned char *buf, int buf_len, const unsigned char *buf2, int buf_len2, unsigned char *out, unsigned int outlen, uint64_t remote_sequence_number);
+unsigned int _private_tls_hmac_message(unsigned char local, struct TLSContext *context, const unsigned char *buf, int buf_len, const unsigned char *buf2, int buf_len2, unsigned char *out, unsigned int outlen, uint64_t remote_sequence_number);
 int tls_random(unsigned char *key, int len);
 void tls_destroy_packet(struct TLSPacket *packet);
 struct TLSPacket *tls_build_hello(struct TLSContext *context, int tls13_downgrade);
@@ -1316,17 +1317,17 @@ struct TLSPacket *tls_build_done(struct TLSContext *context);
 struct TLSPacket *tls_build_alert(struct TLSContext *context, char critical, unsigned char code);
 struct TLSPacket *tls_build_change_cipher_spec(struct TLSContext *context);
 struct TLSPacket *tls_build_verify_request(struct TLSContext *context);
-int __private_tls_crypto_create(struct TLSContext *context, int key_length, int iv_length, unsigned char *localkey, unsigned char *localiv, unsigned char *remotekey, unsigned char *remoteiv);
-int __private_tls_get_hash(struct TLSContext *context, unsigned char *hout);
-int __private_tls_done_hash(struct TLSContext *context, unsigned char *hout);
-int __private_tls_get_hash_idx(struct TLSContext *context);
-int __private_tls_build_random(struct TLSPacket *packet);
-unsigned int __private_tls_mac_length(struct TLSContext *context);
-void __private_dtls_handshake_data(struct TLSContext *context, struct TLSPacket *packet, unsigned int dataframe);
+int _private_tls_crypto_create(struct TLSContext *context, int key_length, int iv_length, unsigned char *localkey, unsigned char *localiv, unsigned char *remotekey, unsigned char *remoteiv);
+int _private_tls_get_hash(struct TLSContext *context, unsigned char *hout);
+int _private_tls_done_hash(struct TLSContext *context, unsigned char *hout);
+int _private_tls_get_hash_idx(struct TLSContext *context);
+int _private_tls_build_random(struct TLSPacket *packet);
+unsigned int _private_tls_mac_length(struct TLSContext *context);
+void _private_dtls_handshake_data(struct TLSContext *context, struct TLSPacket *packet, unsigned int dataframe);
 #ifdef TLS_FORWARD_SECRECY
-void __private_tls_dhe_free(struct TLSContext *context);
-void __private_tls_ecc_dhe_free(struct TLSContext *context);
-void __private_tls_dh_clear_key(DHKey *key);
+void _private_tls_dhe_free(struct TLSContext *context);
+void _private_tls_ecc_dhe_free(struct TLSContext *context);
+void _private_tls_dh_clear_key(DHKey *key);
 #endif
 
 #ifdef WITH_TLS_13
@@ -1341,13 +1342,13 @@ static unsigned char dependecies_loaded = 0;
 // base64 stuff
 static const char cd64[] = "|$$$}rstuvwxyz{$$$$$$$>?@ABCDEFGHIJKLMNOPQRSTUVW$$$$$$XYZ[\\]^_`abcdefghijklmnopq";
 
-void __private_b64_decodeblock(unsigned char in[4], unsigned char out[3]) {
+void _private_b64_decodeblock(unsigned char in[4], unsigned char out[3]) {
     out[0] = (unsigned char )(in[0] << 2 | in[1] >> 4);
     out[1] = (unsigned char )(in[1] << 4 | in[2] >> 2);
     out[2] = (unsigned char )(((in[2] << 6) & 0xc0) | in[3]);
 }
 
-int __private_b64_decode(const char *in_buffer, int in_buffer_size, unsigned char *out_buffer) {
+int _private_b64_decode(const char *in_buffer, int in_buffer_size, unsigned char *out_buffer) {
     unsigned char in[4], out[3], v;
     int           i, len;
     
@@ -1373,7 +1374,7 @@ int __private_b64_decode(const char *in_buffer, int in_buffer_size, unsigned cha
             }
         }
         if (len) {
-            __private_b64_decodeblock(in, out);
+            _private_b64_decodeblock(in, out);
             for (i = 0; i < len - 1; i++) {
                 out_ptr[0] = out[i];
                 out_ptr++;
@@ -1417,7 +1418,7 @@ void tls_init() {
 }
 
 #ifdef TLS_FORWARD_SECRECY
-int __private_tls_dh_shared_secret(DHKey *private_key, DHKey *public_key, unsigned char *out, unsigned long *outlen) {
+int _private_tls_dh_shared_secret(DHKey *private_key, DHKey *public_key, unsigned char *out, unsigned long *outlen) {
     void *tmp;
     unsigned long x;
     int err;
@@ -1450,7 +1451,7 @@ int __private_tls_dh_shared_secret(DHKey *private_key, DHKey *public_key, unsign
     return 0;
 }
 
-unsigned char *__private_tls_decrypt_dhe(struct TLSContext *context, const unsigned char *buffer, unsigned int len, unsigned int *size, int clear_key) {
+unsigned char *_private_tls_decrypt_dhe(struct TLSContext *context, const unsigned char *buffer, unsigned int len, unsigned int *size, int clear_key) {
     *size = 0;
     if ((!len) || (!context) || (!context->dhe)) {
         DEBUG_PRINT("No private DHE key set\n");
@@ -1477,14 +1478,14 @@ unsigned char *__private_tls_decrypt_dhe(struct TLSContext *context, const unsig
     client_key.p = context->dhe->p;
     client_key.g = context->dhe->g;
     client_key.y = Yc;
-    int err = __private_tls_dh_shared_secret(context->dhe, &client_key, out, &out_size);
+    int err = _private_tls_dh_shared_secret(context->dhe, &client_key, out, &out_size);
     // don't delete p and g
     client_key.p = NULL;
     client_key.g = NULL;
-    __private_tls_dh_clear_key(&client_key);
+    _private_tls_dh_clear_key(&client_key);
     // not needing the dhe key anymore
     if (clear_key)
-        __private_tls_dhe_free(context);
+        _private_tls_dhe_free(context);
     if (err) {
         DEBUG_PRINT("DHE DECRYPT ERROR %i\n", err);
         TLS_FREE(out);
@@ -1496,7 +1497,7 @@ unsigned char *__private_tls_decrypt_dhe(struct TLSContext *context, const unsig
     return out;
 }
 
-unsigned char *__private_tls_decrypt_ecc_dhe(struct TLSContext *context, const unsigned char *buffer, unsigned int len, unsigned int *size, int clear_key) {
+unsigned char *_private_tls_decrypt_ecc_dhe(struct TLSContext *context, const unsigned char *buffer, unsigned int len, unsigned int *size, int clear_key) {
     *size = 0;
     if ((!len) || (!context) || (!context->ecc_dhe)) {
         DEBUG_PRINT("No private ECC DHE key set\n");
@@ -1523,7 +1524,7 @@ unsigned char *__private_tls_decrypt_ecc_dhe(struct TLSContext *context, const u
     int err = ecc_shared_secret(context->ecc_dhe, &client_key, out, &out_size);
     ecc_free(&client_key);
     if (clear_key)
-        __private_tls_ecc_dhe_free(context);
+        _private_tls_ecc_dhe_free(context);
     if (err) {
         DEBUG_PRINT("ECC DHE DECRYPT ERROR %i\n", err);
         TLS_FREE(out);
@@ -1536,7 +1537,7 @@ unsigned char *__private_tls_decrypt_ecc_dhe(struct TLSContext *context, const u
 }
 #endif
 
-unsigned char *__private_tls_decrypt_rsa(struct TLSContext *context, const unsigned char *buffer, unsigned int len, unsigned int *size) {
+unsigned char *_private_tls_decrypt_rsa(struct TLSContext *context, const unsigned char *buffer, unsigned int len, unsigned int *size) {
     *size = 0;
     if ((!len) || (!context) || (!context->private_key) || (!context->private_key->der_bytes) || (!context->private_key->der_len)) {
         DEBUG_PRINT("No private key set\n");
@@ -1566,7 +1567,7 @@ unsigned char *__private_tls_decrypt_rsa(struct TLSContext *context, const unsig
     return out;
 }
 
-unsigned char *__private_tls_encrypt_rsa(struct TLSContext *context, const unsigned char *buffer, unsigned int len, unsigned int *size) {
+unsigned char *_private_tls_encrypt_rsa(struct TLSContext *context, const unsigned char *buffer, unsigned int len, unsigned int *size) {
     *size = 0;
     if ((!len) || (!context) || (!context->certificates) || (!context->certificates_count) || (!context->certificates[0]) ||
         (!context->certificates[0]->der_bytes) || (!context->certificates[0]->der_len)) {
@@ -1582,7 +1583,7 @@ unsigned char *__private_tls_encrypt_rsa(struct TLSContext *context, const unsig
         DEBUG_PRINT("Error importing RSA certificate (code: %i)\n", err);
         return NULL;
     }
-    unsigned long out_size = __TLS_MAX_RSA_KEY;
+    unsigned long out_size = TLS_MAX_RSA_KEY;
     unsigned char *out = (unsigned char *)TLS_MALLOC(out_size);
     int hash_idx = find_hash("sha256");
     int prng_idx = find_prng("sprng");
@@ -1597,7 +1598,7 @@ unsigned char *__private_tls_encrypt_rsa(struct TLSContext *context, const unsig
 }
 
 #ifdef TLS_LEGACY_SUPPORT
-int __private_rsa_verify_hash_md5sha1(const unsigned char *sig, unsigned long siglen, unsigned char *hash, unsigned long hashlen, int *stat, rsa_key *key) {
+int _private_rsa_verify_hash_md5sha1(const unsigned char *sig, unsigned long siglen, unsigned char *hash, unsigned long hashlen, int *stat, rsa_key *key) {
     unsigned long modulus_bitlen, modulus_bytelen, x;
     int           err;
     unsigned char *tmpbuf = NULL;
@@ -1649,7 +1650,7 @@ int __private_rsa_verify_hash_md5sha1(const unsigned char *sig, unsigned long si
 }
 #endif
 
-int __private_tls_verify_rsa(struct TLSContext *context, unsigned int hash_type, const unsigned char *buffer, unsigned int len, const unsigned char *message, unsigned int message_len) {
+int _private_tls_verify_rsa(struct TLSContext *context, unsigned int hash_type, const unsigned char *buffer, unsigned int len, const unsigned char *message, unsigned int message_len) {
     tls_init();
     rsa_key key;
     int err;
@@ -1674,7 +1675,7 @@ int __private_tls_verify_rsa(struct TLSContext *context, unsigned int hash_type,
         return TLS_GENERIC_ERROR;
     }
     int hash_idx = -1;
-    unsigned char hash[__TLS_MAX_HASH_LEN];
+    unsigned char hash[TLS_MAX_HASH_LEN];
     unsigned int hash_len = 0;
     hash_state state;
     switch (hash_type) {
@@ -1729,7 +1730,7 @@ int __private_tls_verify_rsa(struct TLSContext *context, unsigned int hash_type,
             hash_len = 64;
             break;
 #ifdef TLS_LEGACY_SUPPORT
-        case __md5_sha1:
+        case _md5_sha1:
             hash_idx = find_hash("md5");
             err = md5_init(&state);
             if (!err) {
@@ -1761,8 +1762,8 @@ int __private_tls_verify_rsa(struct TLSContext *context, unsigned int hash_type,
     }
     int rsa_stat = 0;
 #ifdef TLS_LEGACY_SUPPORT
-    if (hash_type == __md5_sha1)
-        err = __private_rsa_verify_hash_md5sha1(buffer, len, hash, hash_len, &rsa_stat, &key);
+    if (hash_type == _md5_sha1)
+        err = _private_rsa_verify_hash_md5sha1(buffer, len, hash, hash_len, &rsa_stat, &key);
     else
 #endif
 #ifdef WITH_TLS_13
@@ -1778,7 +1779,7 @@ int __private_tls_verify_rsa(struct TLSContext *context, unsigned int hash_type,
 }
 
 #ifdef TLS_LEGACY_SUPPORT
-int __private_rsa_sign_hash_md5sha1(const unsigned char *in, unsigned long inlen, unsigned char *out, unsigned long *outlen, prng_state *prng, int prng_idx, unsigned long saltlen, rsa_key *key) {
+int _private_rsa_sign_hash_md5sha1(const unsigned char *in, unsigned long inlen, unsigned char *out, unsigned long *outlen, prng_state *prng, int prng_idx, unsigned long saltlen, rsa_key *key) {
     unsigned long modulus_bitlen, modulus_bytelen, x;
     int err;
     
@@ -1801,7 +1802,7 @@ int __private_rsa_sign_hash_md5sha1(const unsigned char *in, unsigned long inlen
 }
 #endif
 
-int __private_tls_sign_rsa(struct TLSContext *context, unsigned int hash_type, const unsigned char *message, unsigned int message_len, unsigned char *out, unsigned long *outlen) {
+int _private_tls_sign_rsa(struct TLSContext *context, unsigned int hash_type, const unsigned char *message, unsigned int message_len, unsigned char *out, unsigned long *outlen) {
     if ((!outlen) || (!context) || (!out) || (!outlen) || (!context->private_key) || (!context->private_key->der_bytes) || (!context->private_key->der_len)) {
         DEBUG_PRINT("No private key set\n");
         return TLS_GENERIC_ERROR;
@@ -1816,7 +1817,7 @@ int __private_tls_sign_rsa(struct TLSContext *context, unsigned int hash_type, c
         return TLS_GENERIC_ERROR;
     }
     int hash_idx = -1;
-    unsigned char hash[__TLS_MAX_HASH_LEN];
+    unsigned char hash[TLS_MAX_HASH_LEN];
     unsigned int hash_len = 0;
     hash_state state;
     switch (hash_type) {
@@ -1870,7 +1871,7 @@ int __private_tls_sign_rsa(struct TLSContext *context, unsigned int hash_type, c
             }
             hash_len = 64;
             break;
-        case __md5_sha1:
+        case _md5_sha1:
             hash_idx = find_hash("md5");
             err = md5_init(&state);
             if (!err) {
@@ -1896,12 +1897,12 @@ int __private_tls_sign_rsa(struct TLSContext *context, unsigned int hash_type, c
             break;
     }
 #ifdef TLS_LEGACY_SUPPORT
-    if (hash_type == __md5_sha1) {
+    if (hash_type == _md5_sha1) {
         if (err) {
             DEBUG_PRINT("Unsupported hash type: %i\n", hash_type);
             return TLS_GENERIC_ERROR;
         }
-        err = __private_rsa_sign_hash_md5sha1(hash, hash_len, out, outlen, NULL, find_prng("sprng"), 0, &key);
+        err = _private_rsa_sign_hash_md5sha1(hash, hash_len, out, outlen, NULL, find_prng("sprng"), 0, &key);
     } else
 #endif
     {
@@ -1924,7 +1925,7 @@ int __private_tls_sign_rsa(struct TLSContext *context, unsigned int hash_type, c
 }
 
 #ifdef TLS_ECDSA_SUPPORTED
-static int __private_tls_is_point(ecc_key *key) {
+static int _private_tls_is_point(ecc_key *key) {
     void *prime, *b, *t1, *t2;
     int  err;
     
@@ -1997,7 +1998,7 @@ error:
     return err;
 }
 
-int __private_tls_ecc_import_key(const unsigned char *private_key, int private_len, const unsigned char *public_key, int public_len, ecc_key *key, const ltc_ecc_set_type *dp) {
+int _private_tls_ecc_import_key(const unsigned char *private_key, int private_len, const unsigned char *public_key, int public_len, ecc_key *key, const ltc_ecc_set_type *dp) {
     int           err;
     
     if ((!key) || (!ltc_mp.name))
@@ -2037,7 +2038,7 @@ int __private_tls_ecc_import_key(const unsigned char *private_key, int private_l
     }
     
     /* is it a point on the curve?  */
-    if ((err = __private_tls_is_point(key)) != CRYPT_OK) {
+    if ((err = _private_tls_is_point(key)) != CRYPT_OK) {
         DEBUG_PRINT("KEY IS NOT ON CURVE\n");
         mp_clear_multi(key->pubkey.x, key->pubkey.y, key->pubkey.z, key->k, NULL);
         return err;
@@ -2047,7 +2048,7 @@ int __private_tls_ecc_import_key(const unsigned char *private_key, int private_l
     return CRYPT_OK;
 }
 
-int __private_tls_sign_ecdsa(struct TLSContext *context, unsigned int hash_type, const unsigned char *message, unsigned int message_len, unsigned char *out, unsigned long *outlen) {
+int _private_tls_sign_ecdsa(struct TLSContext *context, unsigned int hash_type, const unsigned char *message, unsigned int message_len, unsigned char *out, unsigned long *outlen) {
     if ((!outlen) || (!context) || (!out) || (!outlen) || (!context->ec_private_key) ||
         (!context->ec_private_key->priv) || (!context->ec_private_key->priv_len) || (!context->ec_private_key->pk) || (!context->ec_private_key->pk_len)) {
         DEBUG_PRINT("No private ECDSA key set\n");
@@ -2093,13 +2094,13 @@ int __private_tls_sign_ecdsa(struct TLSContext *context, unsigned int hash_type,
     ltc_ecc_set_type *dp = (ltc_ecc_set_type *)&curve->dp;
     
     // broken ... fix this
-    err = __private_tls_ecc_import_key(context->ec_private_key->priv, context->ec_private_key->priv_len, context->ec_private_key->pk, context->ec_private_key->pk_len, &key, dp);
+    err = _private_tls_ecc_import_key(context->ec_private_key->priv, context->ec_private_key->priv_len, context->ec_private_key->pk, context->ec_private_key->pk_len, &key, dp);
     if (err) {
         DEBUG_PRINT("Error importing ECC certificate (code: %i)\n", (int)err);
         return TLS_GENERIC_ERROR;
     }
     int hash_idx = -1;
-    unsigned char hash[__TLS_MAX_HASH_LEN];
+    unsigned char hash[TLS_MAX_HASH_LEN];
     unsigned int hash_len = 0;
     hash_state state;
     switch (hash_type) {
@@ -2153,7 +2154,7 @@ int __private_tls_sign_ecdsa(struct TLSContext *context, unsigned int hash_type,
             }
             hash_len = 64;
             break;
-        case __md5_sha1:
+        case _md5_sha1:
             hash_idx = find_hash("md5");
             err = md5_init(&state);
             if (!err) {
@@ -2196,7 +2197,7 @@ int __private_tls_sign_ecdsa(struct TLSContext *context, unsigned int hash_type,
 }
 
 #if defined(TLS_CLIENT_ECDSA) || defined(WITH_TLS_13)
-int __private_tls_ecc_import_pk(const unsigned char *public_key, int public_len, ecc_key *key, const ltc_ecc_set_type *dp) {
+int _private_tls_ecc_import_pk(const unsigned char *public_key, int public_len, ecc_key *key, const ltc_ecc_set_type *dp) {
     int           err;
     
     if ((!key) || (!ltc_mp.name))
@@ -2232,7 +2233,7 @@ int __private_tls_ecc_import_pk(const unsigned char *public_key, int public_len,
     }
     
     /* is it a point on the curve?  */
-    if ((err = __private_tls_is_point(key)) != CRYPT_OK) {
+    if ((err = _private_tls_is_point(key)) != CRYPT_OK) {
         DEBUG_PRINT("KEY IS NOT ON CURVE\n");
         mp_clear_multi(key->pubkey.x, key->pubkey.y, key->pubkey.z, key->k, NULL);
         return err;
@@ -2242,7 +2243,7 @@ int __private_tls_ecc_import_pk(const unsigned char *public_key, int public_len,
     return CRYPT_OK;
 }
 
-int __private_tls_verify_ecdsa(struct TLSContext *context, unsigned int hash_type, const unsigned char *buffer, unsigned int len, const unsigned char *message, unsigned int message_len, const struct ECCCurveParameters *curve_hint) {
+int _private_tls_verify_ecdsa(struct TLSContext *context, unsigned int hash_type, const unsigned char *buffer, unsigned int len, const unsigned char *message, unsigned int message_len, const struct ECCCurveParameters *curve_hint) {
     tls_init();
     ecc_key key;
     int err;
@@ -2256,21 +2257,21 @@ int __private_tls_verify_ecdsa(struct TLSContext *context, unsigned int hash_typ
             DEBUG_PRINT("No client certificate set\n");
             return TLS_GENERIC_ERROR;
         }
-        err = __private_tls_ecc_import_pk(context->client_certificates[0]->pk, context->client_certificates[0]->pk_len, &key, (ltc_ecc_set_type *)&curve_hint->dp);
+        err = _private_tls_ecc_import_pk(context->client_certificates[0]->pk, context->client_certificates[0]->pk_len, &key, (ltc_ecc_set_type *)&curve_hint->dp);
     } else {
         if ((!len) || (!context) || (!context->certificates) || (!context->certificates_count) || (!context->certificates[0]) ||
             (!context->certificates[0]->pk) || (!context->certificates[0]->pk_len) || (!curve_hint)) {
             DEBUG_PRINT("No server certificate set\n");
             return TLS_GENERIC_ERROR;
         }
-        err = __private_tls_ecc_import_pk(context->certificates[0]->pk, context->certificates[0]->pk_len, &key, (ltc_ecc_set_type *)&curve_hint->dp);
+        err = _private_tls_ecc_import_pk(context->certificates[0]->pk, context->certificates[0]->pk_len, &key, (ltc_ecc_set_type *)&curve_hint->dp);
     }
     if (err) {
         DEBUG_PRINT("Error importing ECC certificate (code: %i)", err);
         return TLS_GENERIC_ERROR;
     }
     int hash_idx = -1;
-    unsigned char hash[__TLS_MAX_HASH_LEN];
+    unsigned char hash[TLS_MAX_HASH_LEN];
     unsigned int hash_len = 0;
     hash_state state;
     switch (hash_type) {
@@ -2325,7 +2326,7 @@ int __private_tls_verify_ecdsa(struct TLSContext *context, unsigned int hash_typ
             hash_len = 64;
             break;
 #ifdef TLS_LEGACY_SUPPORT
-        case __md5_sha1:
+        case _md5_sha1:
             hash_idx = find_hash("md5");
             err = md5_init(&state);
             if (!err) {
@@ -2366,7 +2367,7 @@ int __private_tls_verify_ecdsa(struct TLSContext *context, unsigned int hash_typ
 
 #endif
 
-unsigned int __private_tls_random_int(int limit) {
+unsigned int _private_tls_random_int(int limit) {
     unsigned int res = 0;
     tls_random((unsigned char *)&res, sizeof(int));
     if (limit)
@@ -2374,7 +2375,7 @@ unsigned int __private_tls_random_int(int limit) {
     return res;
 }
 
-void __private_tls_sleep(unsigned int microseconds) {
+void _private_tls_sleep(unsigned int microseconds) {
 #ifdef _WIN32
     Sleep(microseconds/1000);
 #else
@@ -2387,18 +2388,18 @@ void __private_tls_sleep(unsigned int microseconds) {
 #endif
 }
 
-void __private_random_sleep(struct TLSContext *context, int max_microseconds) {
+void _private_random_sleep(struct TLSContext *context, int max_microseconds) {
     if (context)
-        context->sleep_until = time(NULL) + __private_tls_random_int(max_microseconds/1000000 * __TLS_MAX_ERROR_IDLE_S);
+        context->sleep_until = time(NULL) + _private_tls_random_int(max_microseconds/1000000 * TLS_MAX_ERROR_IDLE_S);
     else
-        __private_tls_sleep(__private_tls_random_int(max_microseconds));
+        _private_tls_sleep(_private_tls_random_int(max_microseconds));
 }
 
-void __private_tls_prf_helper(int hash_idx, unsigned long dlen, unsigned char *output, unsigned int outlen, const unsigned char *secret, const unsigned int secret_len,
+void _private_tls_prf_helper(int hash_idx, unsigned long dlen, unsigned char *output, unsigned int outlen, const unsigned char *secret, const unsigned int secret_len,
                               const unsigned char *label, unsigned int label_len, unsigned char *seed, unsigned int seed_len,
                               unsigned char *seed_b, unsigned int seed_b_len) {
-    unsigned char digest_out0[__TLS_MAX_HASH_LEN];
-    unsigned char digest_out1[__TLS_MAX_HASH_LEN];
+    unsigned char digest_out0[TLS_MAX_HASH_LEN];
+    unsigned char digest_out1[TLS_MAX_HASH_LEN];
     unsigned int i;
     hmac_state hmac;
     
@@ -2438,7 +2439,7 @@ void __private_tls_prf_helper(int hash_idx, unsigned long dlen, unsigned char *o
 }
 
 #ifdef WITH_TLS_13
-int __private_tls_hkdf_label(const char *label, unsigned char label_len, const unsigned char *data, unsigned char data_len, unsigned char *hkdflabel, unsigned short length, const char *prefix) {
+int _private_tls_hkdf_label(const char *label, unsigned char label_len, const unsigned char *data, unsigned char data_len, unsigned char *hkdflabel, unsigned short length, const char *prefix) {
     *(unsigned short *)&hkdflabel[0] = htons(length);
     int prefix_len;
     if (prefix) {
@@ -2456,8 +2457,8 @@ int __private_tls_hkdf_label(const char *label, unsigned char label_len, const u
     return 4 + prefix_len + label_len + data_len;
 }
 
-int __private_tls_hkdf_extract(unsigned int mac_length, unsigned char *output, unsigned int outlen, const unsigned char *salt, unsigned int salt_len, const unsigned char *ikm, unsigned char ikm_len) {
-    unsigned char digest_out[__TLS_MAX_HASH_LEN];
+int _private_tls_hkdf_extract(unsigned int mac_length, unsigned char *output, unsigned int outlen, const unsigned char *salt, unsigned int salt_len, const unsigned char *ikm, unsigned char ikm_len) {
+    unsigned char digest_out[TLS_MAX_HASH_LEN];
     unsigned long dlen = outlen;
     static unsigned char dummy_label[1] = { 0 };
     if ((!salt) || (salt_len == 0)) {
@@ -2465,7 +2466,7 @@ int __private_tls_hkdf_extract(unsigned int mac_length, unsigned char *output, u
         salt = dummy_label;
     }
     int hash_idx;
-    if (mac_length == __TLS_SHA384_MAC_SIZE) {
+    if (mac_length == TLS_SHA384_MAC_SIZE) {
         hash_idx = find_hash("sha384");
         dlen = mac_length;
     } else
@@ -2479,11 +2480,11 @@ int __private_tls_hkdf_extract(unsigned int mac_length, unsigned char *output, u
     return dlen;
 }
 
-void __private_tls_hkdf_expand(unsigned int mac_length, unsigned char *output, unsigned int outlen, const unsigned char *secret, unsigned int secret_len, const unsigned char *info, unsigned char info_len) {
-    unsigned char digest_out[__TLS_MAX_HASH_LEN];
+void _private_tls_hkdf_expand(unsigned int mac_length, unsigned char *output, unsigned int outlen, const unsigned char *secret, unsigned int secret_len, const unsigned char *info, unsigned char info_len) {
+    unsigned char digest_out[TLS_MAX_HASH_LEN];
     unsigned long dlen = 32;
     int hash_idx;
-    if (mac_length == __TLS_SHA384_MAC_SIZE) {
+    if (mac_length == TLS_SHA384_MAC_SIZE) {
         hash_idx = find_hash("sha384");
         dlen = mac_length;
     } else
@@ -2516,15 +2517,15 @@ void __private_tls_hkdf_expand(unsigned int mac_length, unsigned char *output, u
     }
 }
 
-void __private_tls_hkdf_expand_label(unsigned int mac_length, unsigned char *output, unsigned int outlen, const unsigned char *secret, unsigned int secret_len, const char *label, unsigned char label_len, const unsigned char *data, unsigned char data_len) {
+void _private_tls_hkdf_expand_label(unsigned int mac_length, unsigned char *output, unsigned int outlen, const unsigned char *secret, unsigned int secret_len, const char *label, unsigned char label_len, const unsigned char *data, unsigned char data_len) {
     unsigned char hkdf_label[512];
-    int len = __private_tls_hkdf_label(label, label_len, data, data_len, hkdf_label, outlen, NULL);
+    int len = _private_tls_hkdf_label(label, label_len, data, data_len, hkdf_label, outlen, NULL);
     DEBUG_DUMP_HEX_LABEL("INFO", hkdf_label, len);
-    __private_tls_hkdf_expand(mac_length, output, outlen, secret, secret_len, hkdf_label, len);
+    _private_tls_hkdf_expand(mac_length, output, outlen, secret, secret_len, hkdf_label, len);
 }
 #endif
 
-void __private_tls_prf(struct TLSContext *context,
+void _private_tls_prf(struct TLSContext *context,
                        unsigned char *output, unsigned int outlen, const unsigned char *secret, const unsigned int secret_len,
                        const unsigned char *label, unsigned int label_len, unsigned char *seed, unsigned int seed_len,
                        unsigned char *seed_b, unsigned int seed_b_len) {
@@ -2538,16 +2539,16 @@ void __private_tls_prf(struct TLSContext *context,
         int half_secret = (secret_len + 1) / 2;
         
         memset(output, 0, outlen);
-        __private_tls_prf_helper(md5_hash_idx, 16, output, outlen, secret, half_secret, label, label_len, seed, seed_len, seed_b, seed_b_len);
-        __private_tls_prf_helper(sha1_hash_idx, 20, output, outlen, secret + (secret_len - half_secret), secret_len - half_secret, label, label_len, seed, seed_len, seed_b, seed_b_len);
+        _private_tls_prf_helper(md5_hash_idx, 16, output, outlen, secret, half_secret, label, label_len, seed, seed_len, seed_b, seed_b_len);
+        _private_tls_prf_helper(sha1_hash_idx, 20, output, outlen, secret + (secret_len - half_secret), secret_len - half_secret, label, label_len, seed, seed_len, seed_b, seed_b_len);
     } else {
         // sha256_hmac
-        unsigned char digest_out0[__TLS_MAX_HASH_LEN];
-        unsigned char digest_out1[__TLS_MAX_HASH_LEN];
+        unsigned char digest_out0[TLS_MAX_HASH_LEN];
+        unsigned char digest_out1[TLS_MAX_HASH_LEN];
         unsigned long dlen = 32;
         int hash_idx;
-        unsigned int mac_length = __private_tls_mac_length(context);
-        if (mac_length == __TLS_SHA384_MAC_SIZE) {
+        unsigned int mac_length = _private_tls_mac_length(context);
+        if (mac_length == TLS_SHA384_MAC_SIZE) {
             hash_idx = find_hash("sha384");
             dlen = mac_length;
         } else
@@ -2591,7 +2592,7 @@ void __private_tls_prf(struct TLSContext *context,
     }
 }
 
-int __private_tls_key_length(struct TLSContext *context) {
+int _private_tls_key_length(struct TLSContext *context) {
     switch (context->cipher) {
         case TLS_RSA_WITH_AES_128_CBC_SHA:
         case TLS_RSA_WITH_AES_128_CBC_SHA256:
@@ -2628,7 +2629,7 @@ int __private_tls_key_length(struct TLSContext *context) {
     return 0;
 }
 
-int __private_tls_is_aead(struct TLSContext *context) {
+int _private_tls_is_aead(struct TLSContext *context) {
     switch (context->cipher) {
         case TLS_RSA_WITH_AES_128_GCM_SHA256:
         case TLS_RSA_WITH_AES_256_GCM_SHA384:
@@ -2652,7 +2653,7 @@ int __private_tls_is_aead(struct TLSContext *context) {
 
 
 
-unsigned int __private_tls_mac_length(struct TLSContext *context) {
+unsigned int _private_tls_mac_length(struct TLSContext *context) {
     switch (context->cipher) {
         case TLS_RSA_WITH_AES_128_CBC_SHA:
         case TLS_RSA_WITH_AES_256_CBC_SHA:
@@ -2662,7 +2663,7 @@ unsigned int __private_tls_mac_length(struct TLSContext *context) {
         case TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA:
         case TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA:
         case TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA:
-            return __TLS_SHA1_MAC_SIZE;
+            return TLS_SHA1_MAC_SIZE;
         case TLS_RSA_WITH_AES_128_CBC_SHA256:
         case TLS_RSA_WITH_AES_256_CBC_SHA256:
         case TLS_RSA_WITH_AES_128_GCM_SHA256:
@@ -2682,7 +2683,7 @@ unsigned int __private_tls_mac_length(struct TLSContext *context) {
         case TLS_AES_128_CCM_SHA256:
         case TLS_AES_128_CCM_8_SHA256:
 #endif
-            return __TLS_SHA256_MAC_SIZE;
+            return TLS_SHA256_MAC_SIZE;
         case TLS_RSA_WITH_AES_256_GCM_SHA384:
         case TLS_DHE_RSA_WITH_AES_256_GCM_SHA384:
         case TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384:
@@ -2691,17 +2692,17 @@ unsigned int __private_tls_mac_length(struct TLSContext *context) {
 #ifdef WITH_TLS_13
         case TLS_AES_256_GCM_SHA384:
 #endif
-            return __TLS_SHA384_MAC_SIZE;
+            return TLS_SHA384_MAC_SIZE;
     }
     return 0;
 }
 
 #ifdef WITH_TLS_13
-int __private_tls13_key(struct TLSContext *context, int handshake) {
+int _private_tls13_key(struct TLSContext *context, int handshake) {
     tls_init();
 
-    int key_length = __private_tls_key_length(context);
-    int mac_length = __private_tls_mac_length(context);
+    int key_length = _private_tls_key_length(context);
+    int mac_length = _private_tls_mac_length(context);
 
     if ((!context->premaster_key) || (!context->premaster_key_len))
         return 0; 
@@ -2715,16 +2716,16 @@ int __private_tls13_key(struct TLSContext *context, int handshake) {
     unsigned char *serverkey = NULL;
     unsigned char *clientiv = NULL;
     unsigned char *serveriv = NULL;
-    int is_aead = __private_tls_is_aead(context);
+    int is_aead = _private_tls_is_aead(context);
 
-    unsigned char local_keybuffer[__TLS_V13_MAX_KEY_SIZE];
-    unsigned char local_ivbuffer[__TLS_V13_MAX_IV_SIZE];
-    unsigned char remote_keybuffer[__TLS_V13_MAX_KEY_SIZE];
-    unsigned char remote_ivbuffer[__TLS_V13_MAX_IV_SIZE];
+    unsigned char local_keybuffer[TLS_V13_MAX_KEY_SIZE];
+    unsigned char local_ivbuffer[TLS_V13_MAX_IV_SIZE];
+    unsigned char remote_keybuffer[TLS_V13_MAX_KEY_SIZE];
+    unsigned char remote_ivbuffer[TLS_V13_MAX_IV_SIZE];
 
-    unsigned char prk[__TLS_MAX_HASH_SIZE];
-    unsigned char hash[__TLS_MAX_HASH_SIZE];
-    static unsigned char earlysecret[__TLS_MAX_HASH_SIZE];
+    unsigned char prk[TLS_MAX_HASH_SIZE];
+    unsigned char hash[TLS_MAX_HASH_SIZE];
+    static unsigned char earlysecret[TLS_MAX_HASH_SIZE];
 
     const char *server_key = "s ap traffic";
     const char *client_key = "c ap traffic";
@@ -2733,10 +2734,10 @@ int __private_tls13_key(struct TLSContext *context, int handshake) {
         client_key = "c hs traffic";
     }
 
-    unsigned char salt[__TLS_MAX_HASH_SIZE];
+    unsigned char salt[TLS_MAX_HASH_SIZE];
 
     hash_state md;
-    if (mac_length == __TLS_SHA384_MAC_SIZE) {
+    if (mac_length == TLS_SHA384_MAC_SIZE) {
         sha384_init(&md);
         sha384_done(&md, hash);
     } else {
@@ -2746,17 +2747,17 @@ int __private_tls13_key(struct TLSContext *context, int handshake) {
     // extract secret "early"
     if ((context->master_key) && (context->master_key_len) && (!handshake)) {
         DEBUG_DUMP_HEX_LABEL("USING PREVIOUS SECRET", context->master_key, context->master_key_len);
-        __private_tls_hkdf_expand_label(mac_length, salt, mac_length, context->master_key, context->master_key_len, "derived", 7, hash, mac_length);
+        _private_tls_hkdf_expand_label(mac_length, salt, mac_length, context->master_key, context->master_key_len, "derived", 7, hash, mac_length);
         DEBUG_DUMP_HEX_LABEL("salt", salt, mac_length);
-        __private_tls_hkdf_extract(mac_length, prk, mac_length, salt, mac_length, earlysecret, mac_length);
+        _private_tls_hkdf_extract(mac_length, prk, mac_length, salt, mac_length, earlysecret, mac_length);
     } else {
-        __private_tls_hkdf_extract(mac_length, prk, mac_length, NULL, 0, earlysecret, mac_length);
+        _private_tls_hkdf_extract(mac_length, prk, mac_length, NULL, 0, earlysecret, mac_length);
         // derive secret for handshake "tls13 derived":
         DEBUG_DUMP_HEX_LABEL("null hash", hash, mac_length);
-        __private_tls_hkdf_expand_label(mac_length, salt, mac_length, prk, mac_length, "derived", 7, hash, mac_length);
+        _private_tls_hkdf_expand_label(mac_length, salt, mac_length, prk, mac_length, "derived", 7, hash, mac_length);
         // extract secret "handshake":
         DEBUG_DUMP_HEX_LABEL("salt", salt, mac_length);
-        __private_tls_hkdf_extract(mac_length, prk, mac_length, salt, mac_length, context->premaster_key, context->premaster_key_len);
+        _private_tls_hkdf_extract(mac_length, prk, mac_length, salt, mac_length, context->premaster_key, context->premaster_key_len);
     }
 
     if (!is_aead) {
@@ -2764,44 +2765,44 @@ int __private_tls13_key(struct TLSContext *context, int handshake) {
         return 0;
     }
 
-    unsigned char secret[__TLS_MAX_MAC_SIZE];
-    unsigned char hs_secret[__TLS_MAX_HASH_SIZE];
+    unsigned char secret[TLS_MAX_MAC_SIZE];
+    unsigned char hs_secret[TLS_MAX_HASH_SIZE];
 
     int hash_size;
     if (handshake)
-        hash_size = __private_tls_get_hash(context, hash);
+        hash_size = _private_tls_get_hash(context, hash);
     else
-        hash_size = __private_tls_done_hash(context, hash);
+        hash_size = _private_tls_done_hash(context, hash);
     DEBUG_DUMP_HEX_LABEL("messages hash", hash, hash_size);
 
     if (context->is_server) {
-        __private_tls_hkdf_expand_label(mac_length, hs_secret, mac_length, prk, mac_length, server_key, 12, context->server_finished_hash ? context->server_finished_hash : hash, hash_size);
+        _private_tls_hkdf_expand_label(mac_length, hs_secret, mac_length, prk, mac_length, server_key, 12, context->server_finished_hash ? context->server_finished_hash : hash, hash_size);
         DEBUG_DUMP_HEX_LABEL(server_key, hs_secret, mac_length);
         serverkey = local_keybuffer;
         serveriv = local_ivbuffer;
         clientkey = remote_keybuffer;
         clientiv = remote_ivbuffer;
     } else {
-        __private_tls_hkdf_expand_label(mac_length, hs_secret, mac_length, prk, mac_length, client_key, 12, context->server_finished_hash ? context->server_finished_hash : hash, hash_size);
+        _private_tls_hkdf_expand_label(mac_length, hs_secret, mac_length, prk, mac_length, client_key, 12, context->server_finished_hash ? context->server_finished_hash : hash, hash_size);
         serverkey = remote_keybuffer;
         serveriv = remote_ivbuffer;
         clientkey = local_keybuffer;
         clientiv = local_ivbuffer;
     }
 
-    int iv_length = __TLS_13_AES_GCM_IV_LENGTH;
+    int iv_length = TLS_13_AES_GCM_IV_LENGTH;
     if (is_aead == 2)
-        iv_length = __TLS_CHACHA20_IV_LENGTH;
+        iv_length = TLS_CHACHA20_IV_LENGTH;
 
-    __private_tls_hkdf_expand_label(mac_length, local_keybuffer, key_length, hs_secret, mac_length, "key", 3, NULL, 0);
-    __private_tls_hkdf_expand_label(mac_length, local_ivbuffer, iv_length, hs_secret, mac_length, "iv", 2, NULL, 0);
+    _private_tls_hkdf_expand_label(mac_length, local_keybuffer, key_length, hs_secret, mac_length, "key", 3, NULL, 0);
+    _private_tls_hkdf_expand_label(mac_length, local_ivbuffer, iv_length, hs_secret, mac_length, "iv", 2, NULL, 0);
     if (context->is_server)
-        __private_tls_hkdf_expand_label(mac_length, secret, mac_length, prk, mac_length, client_key, 12, context->server_finished_hash ? context->server_finished_hash : hash, hash_size);
+        _private_tls_hkdf_expand_label(mac_length, secret, mac_length, prk, mac_length, client_key, 12, context->server_finished_hash ? context->server_finished_hash : hash, hash_size);
     else
-        __private_tls_hkdf_expand_label(mac_length, secret, mac_length, prk, mac_length, server_key, 12, context->server_finished_hash ? context->server_finished_hash : hash, hash_size);
+        _private_tls_hkdf_expand_label(mac_length, secret, mac_length, prk, mac_length, server_key, 12, context->server_finished_hash ? context->server_finished_hash : hash, hash_size);
 
-    __private_tls_hkdf_expand_label(mac_length, remote_keybuffer, key_length, secret, mac_length, "key", 3, NULL, 0);
-    __private_tls_hkdf_expand_label(mac_length, remote_ivbuffer, iv_length, secret, mac_length, "iv", 2, NULL, 0);
+    _private_tls_hkdf_expand_label(mac_length, remote_keybuffer, key_length, secret, mac_length, "key", 3, NULL, 0);
+    _private_tls_hkdf_expand_label(mac_length, remote_ivbuffer, iv_length, secret, mac_length, "iv", 2, NULL, 0);
 
     DEBUG_DUMP_HEX_LABEL("CLIENT KEY", clientkey, key_length)
     DEBUG_DUMP_HEX_LABEL("CLIENT IV", clientiv, iv_length)
@@ -2815,12 +2816,12 @@ int __private_tls13_key(struct TLSContext *context, int handshake) {
         context->remote_finished_key = (unsigned char *)TLS_MALLOC(mac_length);
 
         if (context->finished_key) {
-            __private_tls_hkdf_expand_label(mac_length, context->finished_key, mac_length, hs_secret, mac_length, "finished", 8, NULL, 0);
+            _private_tls_hkdf_expand_label(mac_length, context->finished_key, mac_length, hs_secret, mac_length, "finished", 8, NULL, 0);
             DEBUG_DUMP_HEX_LABEL("FINISHED", context->finished_key, mac_length)
         }
 
         if (context->remote_finished_key) {
-            __private_tls_hkdf_expand_label(mac_length, context->remote_finished_key, mac_length, secret, mac_length, "finished", 8, NULL, 0);
+            _private_tls_hkdf_expand_label(mac_length, context->remote_finished_key, mac_length, secret, mac_length, "finished", 8, NULL, 0);
             DEBUG_DUMP_HEX_LABEL("FINISHED", context->finished_key, mac_length)
         }
     } else {
@@ -2841,7 +2842,7 @@ int __private_tls13_key(struct TLSContext *context, int handshake) {
             memcpy(context->crypto.ctx_remote_mac.remote_iv, clientiv, iv_length);
             memcpy(context->crypto.ctx_local_mac.local_iv, serveriv, iv_length);
         }
-        if (__private_tls_crypto_create(context, key_length, iv_length, serverkey, serveriv, clientkey, clientiv))
+        if (_private_tls_crypto_create(context, key_length, iv_length, serverkey, serveriv, clientkey, clientiv))
             return 0;
     } else {
 #ifdef TLS_WITH_CHACHA20_POLY1305
@@ -2854,7 +2855,7 @@ int __private_tls13_key(struct TLSContext *context, int handshake) {
             memcpy(context->crypto.ctx_local_mac.local_iv, clientiv, iv_length);
             memcpy(context->crypto.ctx_remote_mac.remote_iv, serveriv, iv_length);
         }
-        if (__private_tls_crypto_create(context, key_length, iv_length, clientkey, clientiv, serverkey, serveriv))
+        if (_private_tls_crypto_create(context, key_length, iv_length, clientkey, clientiv, serverkey, serveriv))
             return 0;
     }
     context->crypto.created = 1 + is_aead;
@@ -2891,8 +2892,8 @@ int __private_tls13_key(struct TLSContext *context, int handshake) {
 }
 #endif
 
-int __private_tls_expand_key(struct TLSContext *context) {
-    unsigned char key[__TLS_MAX_KEY_EXPANSION_SIZE];
+int _private_tls_expand_key(struct TLSContext *context) {
+    unsigned char key[TLS_MAX_KEY_EXPANSION_SIZE];
 #ifdef WITH_TLS_13
     if ((context->version == TLS_V13) || (context->version == DTLS_V13))
         return 0;
@@ -2901,8 +2902,8 @@ int __private_tls_expand_key(struct TLSContext *context) {
     if ((!context->master_key) || (!context->master_key_len))
         return 0;
     
-    int key_length = __private_tls_key_length(context);
-    int mac_length = __private_tls_mac_length(context);
+    int key_length = _private_tls_key_length(context);
+    int mac_length = _private_tls_mac_length(context);
     
     if ((!key_length) || (!mac_length)) {
         DEBUG_PRINT("KEY EXPANSION FAILED, KEY LENGTH: %i, MAC LENGTH: %i\n", key_length, mac_length);
@@ -2912,27 +2913,27 @@ int __private_tls_expand_key(struct TLSContext *context) {
     unsigned char *serverkey = NULL;
     unsigned char *clientiv = NULL;
     unsigned char *serveriv = NULL;
-    int iv_length = __TLS_AES_IV_LENGTH;
-    int is_aead = __private_tls_is_aead(context);
+    int iv_length = TLS_AES_IV_LENGTH;
+    int is_aead = _private_tls_is_aead(context);
     if (context->is_server)
-        __private_tls_prf(context, key, sizeof(key), context->master_key, context->master_key_len, (unsigned char *)"key expansion", 13, context->local_random, __TLS_SERVER_RANDOM_SIZE, context->remote_random, __TLS_CLIENT_RANDOM_SIZE);
+        _private_tls_prf(context, key, sizeof(key), context->master_key, context->master_key_len, (unsigned char *)"key expansion", 13, context->local_random, TLS_SERVER_RANDOM_SIZE, context->remote_random, TLS_CLIENT_RANDOM_SIZE);
     else
-        __private_tls_prf(context, key, sizeof(key), context->master_key, context->master_key_len, (unsigned char *)"key expansion", 13, context->remote_random, __TLS_SERVER_RANDOM_SIZE, context->local_random, __TLS_CLIENT_RANDOM_SIZE);
+        _private_tls_prf(context, key, sizeof(key), context->master_key, context->master_key_len, (unsigned char *)"key expansion", 13, context->remote_random, TLS_SERVER_RANDOM_SIZE, context->local_random, TLS_CLIENT_RANDOM_SIZE);
     
-    DEBUG_DUMP_HEX_LABEL("LOCAL RANDOM ", context->local_random, __TLS_SERVER_RANDOM_SIZE);
-    DEBUG_DUMP_HEX_LABEL("REMOTE RANDOM", context->remote_random, __TLS_CLIENT_RANDOM_SIZE);
+    DEBUG_DUMP_HEX_LABEL("LOCAL RANDOM ", context->local_random, TLS_SERVER_RANDOM_SIZE);
+    DEBUG_DUMP_HEX_LABEL("REMOTE RANDOM", context->remote_random, TLS_CLIENT_RANDOM_SIZE);
     DEBUG_PRINT("\n=========== EXPANSION ===========\n");
-    DEBUG_DUMP_HEX(key, __TLS_MAX_KEY_EXPANSION_SIZE);
+    DEBUG_DUMP_HEX(key, TLS_MAX_KEY_EXPANSION_SIZE);
     DEBUG_PRINT("\n");
         
     int pos = 0;
 #ifdef TLS_WITH_CHACHA20_POLY1305
     if (is_aead == 2) {
-        iv_length = __TLS_CHACHA20_IV_LENGTH;
+        iv_length = TLS_CHACHA20_IV_LENGTH;
     } else
 #endif
     if (is_aead) {
-        iv_length = __TLS_AES_GCM_IV_LENGTH;
+        iv_length = TLS_AES_GCM_IV_LENGTH;
     } else {
         if (context->is_server) {
             memcpy(context->crypto.ctx_remote_mac.remote_mac, &key[pos], mac_length);
@@ -2955,7 +2956,7 @@ int __private_tls_expand_key(struct TLSContext *context) {
     pos += iv_length;
     serveriv = &key[pos];
     pos += iv_length;
-    DEBUG_PRINT("EXPANSION %i/%i\n", (int)pos, (int)__TLS_MAX_KEY_EXPANSION_SIZE);
+    DEBUG_PRINT("EXPANSION %i/%i\n", (int)pos, (int)TLS_MAX_KEY_EXPANSION_SIZE);
     DEBUG_DUMP_HEX_LABEL("CLIENT KEY", clientkey, key_length)
     DEBUG_DUMP_HEX_LABEL("CLIENT IV", clientiv, iv_length)
     DEBUG_DUMP_HEX_LABEL("CLIENT MAC KEY", context->is_server ? context->crypto.ctx_remote_mac.remote_mac : context->crypto.ctx_local_mac.local_mac, mac_length)
@@ -2974,7 +2975,7 @@ int __private_tls_expand_key(struct TLSContext *context) {
             memcpy(context->crypto.ctx_remote_mac.remote_aead_iv, clientiv, iv_length);
             memcpy(context->crypto.ctx_local_mac.local_aead_iv, serveriv, iv_length);
         }
-        if (__private_tls_crypto_create(context, key_length, iv_length, serverkey, serveriv, clientkey, clientiv))
+        if (_private_tls_crypto_create(context, key_length, iv_length, serverkey, serveriv, clientkey, clientiv))
             return 0;
     } else {
 #ifdef TLS_WITH_CHACHA20_POLY1305
@@ -2987,7 +2988,7 @@ int __private_tls_expand_key(struct TLSContext *context) {
             memcpy(context->crypto.ctx_local_mac.local_aead_iv, clientiv, iv_length);
             memcpy(context->crypto.ctx_remote_mac.remote_aead_iv, serveriv, iv_length);
         }
-        if (__private_tls_crypto_create(context, key_length, iv_length, clientkey, clientiv, serverkey, serveriv))
+        if (_private_tls_crypto_create(context, key_length, iv_length, clientkey, clientiv, serverkey, serveriv))
             return 0;
     }
     
@@ -3015,7 +3016,7 @@ int __private_tls_expand_key(struct TLSContext *context) {
     return 1;
 }
 
-int __private_tls_compute_key(struct TLSContext *context, unsigned int key_len) {
+int _private_tls_compute_key(struct TLSContext *context, unsigned int key_len) {
 #ifdef WITH_TLS_13
     if ((context->version == TLS_V13) || (context->version == DTLS_V13))
         return 0;
@@ -3025,7 +3026,7 @@ int __private_tls_compute_key(struct TLSContext *context, unsigned int key_len) 
         return 0;
     }
     unsigned char master_secret_label[] = "master secret";
-#ifdef __TLS_CHECK_PREMASTER_KEY
+#ifdef TLS_CHECK_PREMASTER_KEY
     if (!tls_cipher_is_ephemeral(context)) {
         unsigned short version = ntohs(*(unsigned short *)context->premaster_key);
         // this check is not true for DHE/ECDHE ciphers
@@ -3044,20 +3045,20 @@ int __private_tls_compute_key(struct TLSContext *context, unsigned int key_len) 
             return 0;
         context->master_key_len = key_len;
         if (context->is_server) {
-            __private_tls_prf(context,
+            _private_tls_prf(context,
                               context->master_key, context->master_key_len,
                               context->premaster_key, context->premaster_key_len,
                               master_secret_label, 13,
-                              context->remote_random, __TLS_CLIENT_RANDOM_SIZE,
-                              context->local_random, __TLS_SERVER_RANDOM_SIZE
+                              context->remote_random, TLS_CLIENT_RANDOM_SIZE,
+                              context->local_random, TLS_SERVER_RANDOM_SIZE
             );
         } else {
-            __private_tls_prf(context,
+            _private_tls_prf(context,
                               context->master_key, context->master_key_len,
                               context->premaster_key, context->premaster_key_len,
                               master_secret_label, 13,
-                              context->local_random, __TLS_CLIENT_RANDOM_SIZE,
-                              context->remote_random, __TLS_SERVER_RANDOM_SIZE
+                              context->local_random, TLS_CLIENT_RANDOM_SIZE,
+                              context->remote_random, TLS_SERVER_RANDOM_SIZE
             );
         }
         TLS_FREE(context->premaster_key);
@@ -3066,7 +3067,7 @@ int __private_tls_compute_key(struct TLSContext *context, unsigned int key_len) 
         DEBUG_PRINT("\n=========== Master key ===========\n");
         DEBUG_DUMP_HEX(context->master_key, context->master_key_len);
         DEBUG_PRINT("\n");
-        __private_tls_expand_key(context);
+        _private_tls_expand_key(context);
         return 1;
     }
     return 0;
@@ -3102,7 +3103,7 @@ unsigned char *tls_pem_decode(const unsigned char *data_in, unsigned int input_l
                     cert_index--;
                     start_at = 0;
                 } else {
-                    idx = __private_b64_decode((const char *)&data_in[start_at], end_idx - start_at, output);
+                    idx = _private_b64_decode((const char *)&data_in[start_at], end_idx - start_at, output);
                     break;
                 }
             } else
@@ -3117,7 +3118,7 @@ unsigned char *tls_pem_decode(const unsigned char *data_in, unsigned int input_l
     return output;
 }
 
-int __is_oid(const unsigned char *oid, const unsigned char *compare_to, int compare_to_len) {
+int _is_oid(const unsigned char *oid, const unsigned char *compare_to, int compare_to_len) {
     int i = 0;
     while ((oid[i]) && (i < compare_to_len)) {
         if (oid[i] != compare_to[i])
@@ -3128,7 +3129,7 @@ int __is_oid(const unsigned char *oid, const unsigned char *compare_to, int comp
     return 1;
 }
 
-int __is_oid2(const unsigned char *oid, const unsigned char *compare_to, int compare_to_len, int oid_len) {
+int _is_oid2(const unsigned char *oid, const unsigned char *compare_to, int compare_to_len, int oid_len) {
     int i = 0;
     if (oid_len < compare_to_len)
         compare_to_len = oid_len;
@@ -3445,50 +3446,50 @@ void tls_certificate_set_serial(struct TLSCertificate *cert, const unsigned char
 }
 
 void tls_certificate_set_algorithm(unsigned int *algorithm, const unsigned char *val, int len) {
-    if ((len == 7) && (__is_oid(val, TLS_EC_PUBLIC_KEY_OID, 7))) {
+    if ((len == 7) && (_is_oid(val, TLS_EC_PUBLIC_KEY_OID, 7))) {
         *algorithm = TLS_EC_PUBLIC_KEY;
         return;
     }
     if (len == 8) {
-        if (__is_oid(val, TLS_EC_prime192v1_OID, len)) {
+        if (_is_oid(val, TLS_EC_prime192v1_OID, len)) {
             *algorithm = TLS_EC_prime192v1;
             return;
         }
-        if (__is_oid(val, TLS_EC_prime192v2_OID, len)) {
+        if (_is_oid(val, TLS_EC_prime192v2_OID, len)) {
             *algorithm = TLS_EC_prime192v2;
             return;
         }
-        if (__is_oid(val, TLS_EC_prime192v3_OID, len)) {
+        if (_is_oid(val, TLS_EC_prime192v3_OID, len)) {
             *algorithm = TLS_EC_prime192v3;
             return;
         }
-        if (__is_oid(val, TLS_EC_prime239v1_OID, len)) {
+        if (_is_oid(val, TLS_EC_prime239v1_OID, len)) {
             *algorithm = TLS_EC_prime239v1;
             return;
         }
-        if (__is_oid(val, TLS_EC_prime239v2_OID, len)) {
+        if (_is_oid(val, TLS_EC_prime239v2_OID, len)) {
             *algorithm = TLS_EC_prime239v2;
             return;
         }
-        if (__is_oid(val, TLS_EC_prime239v3_OID, len)) {
+        if (_is_oid(val, TLS_EC_prime239v3_OID, len)) {
             *algorithm = TLS_EC_prime239v3;
             return;
         }
-        if (__is_oid(val, TLS_EC_prime256v1_OID, len)) {
+        if (_is_oid(val, TLS_EC_prime256v1_OID, len)) {
             *algorithm = TLS_EC_prime256v1;
             return;
         }
     }
     if (len == 5) {
-        if (__is_oid2(val, TLS_EC_secp224r1_OID, len, sizeof(TLS_EC_secp224r1_OID) - 1)) {
+        if (_is_oid2(val, TLS_EC_secp224r1_OID, len, sizeof(TLS_EC_secp224r1_OID) - 1)) {
             *algorithm = TLS_EC_secp224r1;
             return;
         }
-        if (__is_oid2(val, TLS_EC_secp384r1_OID, len, sizeof(TLS_EC_secp384r1_OID) - 1)) {
+        if (_is_oid2(val, TLS_EC_secp384r1_OID, len, sizeof(TLS_EC_secp384r1_OID) - 1)) {
             *algorithm = TLS_EC_secp384r1;
             return;
         }
-        if (__is_oid2(val, TLS_EC_secp521r1_OID, len, sizeof(TLS_EC_secp521r1_OID) - 1)) {
+        if (_is_oid2(val, TLS_EC_secp521r1_OID, len, sizeof(TLS_EC_secp521r1_OID) - 1)) {
             *algorithm = TLS_EC_secp521r1;
             return;
         }
@@ -3496,32 +3497,32 @@ void tls_certificate_set_algorithm(unsigned int *algorithm, const unsigned char 
     if (len != 9)
         return;
     
-    if (__is_oid(val, TLS_RSA_SIGN_SHA256_OID, 9)) {
+    if (_is_oid(val, TLS_RSA_SIGN_SHA256_OID, 9)) {
         *algorithm = TLS_RSA_SIGN_SHA256;
         return;
     }
     
-    if (__is_oid(val, TLS_RSA_SIGN_RSA_OID, 9)) {
+    if (_is_oid(val, TLS_RSA_SIGN_RSA_OID, 9)) {
         *algorithm = TLS_RSA_SIGN_RSA;
         return;
     }
     
-    if (__is_oid(val, TLS_RSA_SIGN_SHA1_OID, 9)) {
+    if (_is_oid(val, TLS_RSA_SIGN_SHA1_OID, 9)) {
         *algorithm = TLS_RSA_SIGN_SHA1;
         return;
     }
     
-    if (__is_oid(val, TLS_RSA_SIGN_SHA512_OID, 9)) {
+    if (_is_oid(val, TLS_RSA_SIGN_SHA512_OID, 9)) {
         *algorithm = TLS_RSA_SIGN_SHA512;
         return;
     }
     
-    if (__is_oid(val, TLS_RSA_SIGN_SHA384_OID, 9)) {
+    if (_is_oid(val, TLS_RSA_SIGN_SHA384_OID, 9)) {
         *algorithm = TLS_RSA_SIGN_SHA384;
         return;
     }
     
-    if (__is_oid(val, TLS_RSA_SIGN_MD5_OID, 9)) {
+    if (_is_oid(val, TLS_RSA_SIGN_MD5_OID, 9)) {
         *algorithm = TLS_RSA_SIGN_MD5;
         return;
     }
@@ -3567,7 +3568,7 @@ struct TLSPacket *tls_create_packet(struct TLSContext *context, unsigned char ty
     if (payload_size_hint > 0)
         packet->size = payload_size_hint + 10;
     else
-        packet->size = __TLS_BLOB_INCREMENT;
+        packet->size = TLS_BLOB_INCREMENT;
     packet->buf = (unsigned char *)TLS_MALLOC(packet->size);
     packet->context = context;
     if (!packet->buf) {
@@ -3608,7 +3609,7 @@ void tls_destroy_packet(struct TLSPacket *packet) {
     }
 }
 
-int __private_tls_crypto_create(struct TLSContext *context, int key_length, int iv_length, unsigned char *localkey, unsigned char *localiv, unsigned char *remotekey, unsigned char *remoteiv) {
+int _private_tls_crypto_create(struct TLSContext *context, int key_length, int iv_length, unsigned char *localkey, unsigned char *localiv, unsigned char *remotekey, unsigned char *remoteiv) {
     if (context->crypto.created) {
         if (context->crypto.created == 1) {
             cbc_done(&context->crypto.ctx_remote.aes_remote);
@@ -3628,7 +3629,7 @@ int __private_tls_crypto_create(struct TLSContext *context, int key_length, int 
         context->crypto.created = 0;
     }
     tls_init();
-    int is_aead = __private_tls_is_aead(context);
+    int is_aead = _private_tls_is_aead(context);
     int cipherID = find_cipher("aes");
     DEBUG_PRINT("Using cipher ID: %x\n", (int)context->cipher);
 #ifdef TLS_WITH_CHACHA20_POLY1305
@@ -3662,7 +3663,7 @@ int __private_tls_crypto_create(struct TLSContext *context, int key_length, int 
     return 0;
 }
 
-int __private_tls_crypto_encrypt(struct TLSContext *context, unsigned char *buf, unsigned char *ct, unsigned int len) {
+int _private_tls_crypto_encrypt(struct TLSContext *context, unsigned char *buf, unsigned char *ct, unsigned int len) {
     if (context->crypto.created == 1)
         return cbc_encrypt(buf, ct, len, &context->crypto.ctx_local.aes_local);
 
@@ -3670,7 +3671,7 @@ int __private_tls_crypto_encrypt(struct TLSContext *context, unsigned char *buf,
     return TLS_GENERIC_ERROR;
 }
 
-int __private_tls_crypto_decrypt(struct TLSContext *context, unsigned char *buf, unsigned char *pt, unsigned int len) {
+int _private_tls_crypto_decrypt(struct TLSContext *context, unsigned char *buf, unsigned char *pt, unsigned int len) {
     if (context->crypto.created == 1)
         return cbc_decrypt(buf, pt, len, &context->crypto.ctx_remote.aes_remote);
     
@@ -3678,7 +3679,7 @@ int __private_tls_crypto_decrypt(struct TLSContext *context, unsigned char *buf,
     return TLS_GENERIC_ERROR;
 }
 
-void __private_tls_crypto_done(struct TLSContext *context) {
+void _private_tls_crypto_done(struct TLSContext *context) {
     unsigned char dummy_buffer[32];
     unsigned long tag_len = 0;
     switch (context->crypto.created) {
@@ -3731,23 +3732,23 @@ void tls_packet_update(struct TLSPacket *packet) {
                 if ((packet->buf[0] == TLS_HANDSHAKE) && (packet->len > header_size)) {
                     unsigned char handshake_type = packet->buf[header_size];
                     if ((handshake_type != 0x00) && (handshake_type != 0x03))
-                        __private_tls_update_hash(packet->context, packet->buf + header_size, packet->len - header_size - footer_size);
+                        _private_tls_update_hash(packet->context, packet->buf + header_size, packet->len - header_size - footer_size);
                 }
                 if ((packet->context->cipher_spec_set) && (packet->context->crypto.created)) {
-                    int block_size = __TLS_AES_BLOCK_SIZE;
+                    int block_size = TLS_AES_BLOCK_SIZE;
                     int mac_size = 0;
                     unsigned int length = 0;
                     unsigned char padding = 0;
                     unsigned int pt_length = packet->len - header_size;
                     
                     if (packet->context->crypto.created == 1) {
-                        mac_size = __private_tls_mac_length(packet->context);
+                        mac_size = _private_tls_mac_length(packet->context);
 #ifdef TLS_LEGACY_SUPPORT
                         if (packet->context->version == TLS_V10)
                             length = packet->len - header_size + mac_size;
                         else
 #endif
-                            length = packet->len - header_size + __TLS_AES_IV_LENGTH + mac_size;
+                            length = packet->len - header_size + TLS_AES_IV_LENGTH + mac_size;
                         padding = block_size - length % block_size;
                         length += padding;
 #ifdef TLS_WITH_CHACHA20_POLY1305
@@ -3757,7 +3758,7 @@ void tls_packet_update(struct TLSPacket *packet) {
                         length = packet->len - header_size + mac_size;
 #endif
                     } else {
-                        mac_size = __TLS_GCM_TAG_LEN;
+                        mac_size = TLS_GCM_TAG_LEN;
                         length = packet->len - header_size + 8 + mac_size;
                     }
                     if (packet->context->crypto.created == 1) {
@@ -3772,8 +3773,8 @@ void tls_packet_update(struct TLSPacket *packet) {
                                 if (packet->context->version != TLS_V10)
 #endif
                                 {
-                                    tls_random(buf, __TLS_AES_IV_LENGTH);
-                                    buf_pos += __TLS_AES_IV_LENGTH;
+                                    tls_random(buf, TLS_AES_IV_LENGTH);
+                                    buf_pos += TLS_AES_IV_LENGTH;
                                 }
                                 // copy payload
                                 memcpy(buf + buf_pos, packet->buf + header_size, packet->len - header_size);
@@ -3783,16 +3784,16 @@ void tls_packet_update(struct TLSPacket *packet) {
                                     memcpy(temp_buf, packet->buf, 3);
                                     *(unsigned short *)&temp_buf[3] = *(unsigned short *)&packet->buf[header_size - 2];
                                     uint64_t dtls_sequence_number = ntohll(*(uint64_t *)&packet->buf[3]);
-                                    __private_tls_hmac_message(1, packet->context, temp_buf, 5, packet->buf + header_size, packet->len  - header_size, buf + buf_pos, mac_size, dtls_sequence_number);
+                                    _private_tls_hmac_message(1, packet->context, temp_buf, 5, packet->buf + header_size, packet->len  - header_size, buf + buf_pos, mac_size, dtls_sequence_number);
                                 } else
-                                    __private_tls_hmac_message(1, packet->context, packet->buf, packet->len, NULL, 0, buf + buf_pos, mac_size, 0);
+                                    _private_tls_hmac_message(1, packet->context, packet->buf, packet->len, NULL, 0, buf + buf_pos, mac_size, 0);
                                 buf_pos += mac_size;
                                 
                                 memset(buf + buf_pos, padding - 1, padding);
                                 buf_pos += padding;
                                 
                                 //DEBUG_DUMP_HEX_LABEL("PT BUFFER", buf, length);
-                                __private_tls_crypto_encrypt(packet->context, buf, ct + header_size, length);
+                                _private_tls_crypto_encrypt(packet->context, buf, ct + header_size, length);
                                 TLS_FREE(packet->buf);
                                 packet->buf = ct;
                                 packet->len = length + header_size;
@@ -3813,7 +3814,7 @@ void tls_packet_update(struct TLSPacket *packet) {
                     if (packet->context->crypto.created == 2) {
 #endif
                         // + 1 = type
-                        int ct_size = length + header_size + 12 + __TLS_MAX_TAG_LEN + 1;
+                        int ct_size = length + header_size + 12 + TLS_MAX_TAG_LEN + 1;
                         unsigned char *ct = (unsigned char *)TLS_MALLOC(ct_size);
                         if (ct) {
                             memset(ct, 0, ct_size);
@@ -3833,7 +3834,7 @@ void tls_packet_update(struct TLSPacket *packet) {
                                 if (packet->context->crypto.created == 3)
                                     *((unsigned short *)&aad[3]) = htons(packet->len + POLY1305_TAGLEN - header_size);
                                 else
-                                    *((unsigned short *)&aad[3]) = htons(packet->len + __TLS_GCM_TAG_LEN - header_size);
+                                    *((unsigned short *)&aad[3]) = htons(packet->len + TLS_GCM_TAG_LEN - header_size);
                                 aad_size = 5;
                                 sequence = aad + 5;
                                 if (packet->context->dtls)
@@ -3863,19 +3864,19 @@ void tls_packet_update(struct TLSPacket *packet) {
                                 ct_pos += chacha20_poly1305_aead(&packet->context->crypto.ctx_local.chacha_local, packet->buf + header_size, pt_length, aad, aad_size, poly1305_key, ct + ct_pos);
                             } else {
 #endif
-                                unsigned char iv[__TLS_13_AES_GCM_IV_LENGTH];
+                                unsigned char iv[TLS_13_AES_GCM_IV_LENGTH];
 #ifdef WITH_TLS_13
                                 if ((packet->context->version == TLS_V13) || (packet->context->version == DTLS_V13)) {
-                                    memcpy(iv, packet->context->crypto.ctx_local_mac.local_iv, __TLS_13_AES_GCM_IV_LENGTH);
+                                    memcpy(iv, packet->context->crypto.ctx_local_mac.local_iv, TLS_13_AES_GCM_IV_LENGTH);
                                     int i;
-                                    int offset = __TLS_13_AES_GCM_IV_LENGTH - 8;
+                                    int offset = TLS_13_AES_GCM_IV_LENGTH - 8;
                                     for (i = 0; i < 8; i++)
                                         iv[offset + i] = packet->context->crypto.ctx_local_mac.local_iv[offset + i] ^ sequence[i];
                                 } else {
 #endif
-                                    memcpy(iv, packet->context->crypto.ctx_local_mac.local_aead_iv, __TLS_AES_GCM_IV_LENGTH);
-                                    tls_random(iv + __TLS_AES_GCM_IV_LENGTH, 8);
-                                    memcpy(ct + ct_pos, iv + __TLS_AES_GCM_IV_LENGTH, 8);
+                                    memcpy(iv, packet->context->crypto.ctx_local_mac.local_aead_iv, TLS_AES_GCM_IV_LENGTH);
+                                    tls_random(iv + TLS_AES_GCM_IV_LENGTH, 8);
+                                    memcpy(ct + ct_pos, iv + TLS_AES_GCM_IV_LENGTH, 8);
                                     ct_pos += 8;
 #ifdef WITH_TLS_13
                                 }
@@ -3887,7 +3888,7 @@ void tls_packet_update(struct TLSPacket *packet) {
                                 gcm_process(&packet->context->crypto.ctx_local.aes_gcm_local, packet->buf + header_size, pt_length, ct + ct_pos, GCM_ENCRYPT);
                                 ct_pos += pt_length;
                                 
-                                unsigned long taglen = __TLS_GCM_TAG_LEN;
+                                unsigned long taglen = TLS_GCM_TAG_LEN;
                                 gcm_done(&packet->context->crypto.ctx_local.aes_gcm_local, ct + ct_pos, &taglen);
                                 ct_pos += taglen;
 #ifdef TLS_WITH_CHACHA20_POLY1305
@@ -3934,7 +3935,7 @@ int tls_packet_append(struct TLSPacket *packet, const unsigned char *buf, unsign
     unsigned int new_len = packet->len + len;
     
     if (new_len > packet->size) {
-        packet->size = (new_len / __TLS_BLOB_INCREMENT + 1) * __TLS_BLOB_INCREMENT;
+        packet->size = (new_len / TLS_BLOB_INCREMENT + 1) * TLS_BLOB_INCREMENT;
         packet->buf = (unsigned char *)TLS_REALLOC(packet->buf, packet->size);
         if (!packet->buf) {
             packet->size = 0;
@@ -4003,7 +4004,7 @@ int tls_random(unsigned char *key, int len) {
     return 0;
 }
 
-TLSHash *__private_tls_ensure_hash(struct TLSContext *context) {
+TLSHash *_private_tls_ensure_hash(struct TLSContext *context) {
     TLSHash *hash = context->handshake_hash;
     if (!hash) {
         hash = (TLSHash *)TLS_MALLOC(sizeof(TLSHash));
@@ -4014,28 +4015,28 @@ TLSHash *__private_tls_ensure_hash(struct TLSContext *context) {
     return hash;
 }
 
-void __private_tls_destroy_hash(struct TLSContext *context) {
+void _private_tls_destroy_hash(struct TLSContext *context) {
     if (context) {
         TLS_FREE(context->handshake_hash);
         context->handshake_hash = NULL;
     }
 }
 
-void __private_tls_create_hash(struct TLSContext *context) {
+void _private_tls_create_hash(struct TLSContext *context) {
     if (!context)
         return;
     
-    TLSHash *hash = __private_tls_ensure_hash(context);
+    TLSHash *hash = _private_tls_ensure_hash(context);
     if ((context->version == TLS_V12) || (context->version == DTLS_V12) || (context->version == TLS_V13) || (context->version == DTLS_V13)) {
-        int hash_size = __private_tls_mac_length(context);
+        int hash_size = _private_tls_mac_length(context);
         if (hash->created) {
-            unsigned char temp[__TLS_MAX_SHA_SIZE];
-            if (hash_size == __TLS_SHA384_MAC_SIZE)
+            unsigned char temp[TLS_MAX_SHA_SIZE];
+            if (hash_size == TLS_SHA384_MAC_SIZE)
                 sha384_done(&hash->hash, temp);
             else
                 sha256_done(&hash->hash, temp);
         }
-        if (hash_size == __TLS_SHA384_MAC_SIZE)
+        if (hash_size == TLS_SHA384_MAC_SIZE)
             sha384_init(&hash->hash);
         else
             sha256_init(&hash->hash);
@@ -4044,7 +4045,7 @@ void __private_tls_create_hash(struct TLSContext *context) {
 #ifdef TLS_LEGACY_SUPPORT
         // TLS_V11
         if (hash->created) {
-            unsigned char temp[__TLS_V11_HASH_SIZE];
+            unsigned char temp[TLS_V11_HASH_SIZE];
             md5_done(&hash->hash, temp);
             sha1_done(&hash->hash2, temp);
         }
@@ -4055,13 +4056,13 @@ void __private_tls_create_hash(struct TLSContext *context) {
     }
 }
 
-int __private_tls_update_hash(struct TLSContext *context, const unsigned char *in, unsigned int len) {
+int _private_tls_update_hash(struct TLSContext *context, const unsigned char *in, unsigned int len) {
     if (!context)
         return 0;
-    TLSHash *hash = __private_tls_ensure_hash(context);
+    TLSHash *hash = _private_tls_ensure_hash(context);
     if ((context->version == TLS_V12) || (context->version == DTLS_V12) || (context->version == TLS_V13) || (context->version == DTLS_V13)) {
         if (!hash->created) {
-            __private_tls_create_hash(context);
+            _private_tls_create_hash(context);
 #ifdef TLS_LEGACY_SUPPORT
             // cache first hello in case of protocol downgrade
             if ((!context->is_server) && (!context->cached_handshake) && (!context->request_client_certificate) && (len)) {
@@ -4073,17 +4074,17 @@ int __private_tls_update_hash(struct TLSContext *context, const unsigned char *i
             }
 #endif
         }
-        int hash_size = __private_tls_mac_length(context);
-        if (hash_size == __TLS_SHA384_MAC_SIZE) {
+        int hash_size = _private_tls_mac_length(context);
+        if (hash_size == TLS_SHA384_MAC_SIZE) {
             sha384_process(&hash->hash, in, len);
         } else {
             sha256_process(&hash->hash, in, len);
-            hash_size = __TLS_SHA256_MAC_SIZE;
+            hash_size = TLS_SHA256_MAC_SIZE;
         }
     } else {
 #ifdef TLS_LEGACY_SUPPORT
         if (!hash->created)
-            __private_tls_create_hash(context);
+            _private_tls_create_hash(context);
         md5_process(&hash->hash, in, len);
         sha1_process(&hash->hash2, in, len);
 #endif
@@ -4102,13 +4103,13 @@ int __private_tls_update_hash(struct TLSContext *context, const unsigned char *i
 }
 
 #ifdef TLS_LEGACY_SUPPORT
-int __private_tls_change_hash_type(struct TLSContext *context) {
+int _private_tls_change_hash_type(struct TLSContext *context) {
     if (!context)
         return 0;
-    TLSHash *hash = __private_tls_ensure_hash(context);
+    TLSHash *hash = _private_tls_ensure_hash(context);
     if ((hash) && (hash->created) && (context->cached_handshake) && (context->cached_handshake_len)) {
-        __private_tls_destroy_hash(context);
-        int res = __private_tls_update_hash(context, context->cached_handshake, context->cached_handshake_len);
+        _private_tls_destroy_hash(context);
+        int res = _private_tls_update_hash(context, context->cached_handshake, context->cached_handshake_len);
         TLS_FREE(context->cached_handshake);
         context->cached_handshake = NULL;
         context->cached_handshake_len = 0;
@@ -4118,36 +4119,36 @@ int __private_tls_change_hash_type(struct TLSContext *context) {
 }
 #endif
 
-int __private_tls_done_hash(struct TLSContext *context, unsigned char *hout) {
+int _private_tls_done_hash(struct TLSContext *context, unsigned char *hout) {
     if (!context)
         return 0;
     
-    TLSHash *hash = __private_tls_ensure_hash(context);
+    TLSHash *hash = _private_tls_ensure_hash(context);
     if (!hash->created)
         return 0;
     
     int hash_size = 0;
     if ((context->version == TLS_V12) || (context->version == DTLS_V12) || (context->version == TLS_V13) || (context->version == DTLS_V13)) {
-        unsigned char temp[__TLS_MAX_SHA_SIZE];
+        unsigned char temp[TLS_MAX_SHA_SIZE];
         if (!hout)
             hout = temp;
-        //__TLS_HASH_DONE(&hash->hash, hout);
-        hash_size = __private_tls_mac_length(context);
-        if (hash_size == __TLS_SHA384_MAC_SIZE)
+        //TLS_HASH_DONE(&hash->hash, hout);
+        hash_size = _private_tls_mac_length(context);
+        if (hash_size == TLS_SHA384_MAC_SIZE)
             sha384_done(&hash->hash, hout);
         else {
             sha256_done(&hash->hash, hout);
-            hash_size = __TLS_SHA256_MAC_SIZE;
+            hash_size = TLS_SHA256_MAC_SIZE;
         }
     } else {
 #ifdef TLS_LEGACY_SUPPORT
         // TLS_V11
-        unsigned char temp[__TLS_V11_HASH_SIZE];
+        unsigned char temp[TLS_V11_HASH_SIZE];
         if (!hout)
             hout = temp;
         md5_done(&hash->hash, hout);
         sha1_done(&hash->hash2, hout + 16);
-        hash_size = __TLS_V11_HASH_SIZE;
+        hash_size = TLS_V11_HASH_SIZE;
 #endif
     }
     hash->created = 0;
@@ -4160,37 +4161,37 @@ int __private_tls_done_hash(struct TLSContext *context, unsigned char *hout) {
     return hash_size;
 }
 
-int __private_tls_get_hash_idx(struct TLSContext *context) {
+int _private_tls_get_hash_idx(struct TLSContext *context) {
     if (!context)
         return -1;
-    switch (__private_tls_mac_length(context)) {
-        case __TLS_SHA256_MAC_SIZE:
+    switch (_private_tls_mac_length(context)) {
+        case TLS_SHA256_MAC_SIZE:
             return find_hash("sha256");
-        case __TLS_SHA384_MAC_SIZE:
+        case TLS_SHA384_MAC_SIZE:
             return find_hash("sha384");
-        case __TLS_SHA1_MAC_SIZE:
+        case TLS_SHA1_MAC_SIZE:
             return find_hash("sha1");
     }
     return -1;
 }
 
-int __private_tls_get_hash(struct TLSContext *context, unsigned char *hout) {
+int _private_tls_get_hash(struct TLSContext *context, unsigned char *hout) {
     if (!context)
         return 0;
     
-    TLSHash *hash = __private_tls_ensure_hash(context);
+    TLSHash *hash = _private_tls_ensure_hash(context);
     if (!hash->created)
         return 0;
     
     int hash_size = 0;
     if ((context->version == TLS_V12) || (context->version == DTLS_V12) || (context->version == TLS_V13) || (context->version == DTLS_V13)) {
-        hash_size = __private_tls_mac_length(context);
+        hash_size = _private_tls_mac_length(context);
         hash_state prec;
         memcpy(&prec, &hash->hash, sizeof(hash_state));
-        if (hash_size == __TLS_SHA384_MAC_SIZE)
+        if (hash_size == TLS_SHA384_MAC_SIZE)
             sha384_done(&hash->hash, hout);
         else {
-            hash_size = __TLS_SHA256_MAC_SIZE;
+            hash_size = TLS_SHA256_MAC_SIZE;
             sha256_done(&hash->hash, hout);
         }
         memcpy(&hash->hash, &prec, sizeof(hash_state));
@@ -4207,13 +4208,13 @@ int __private_tls_get_hash(struct TLSContext *context, unsigned char *hout) {
         sha1_done(&hash->hash2, hout + 16);
         memcpy(&hash->hash2, &prec, sizeof(hash_state));
         
-        hash_size = __TLS_V11_HASH_SIZE;
+        hash_size = TLS_V11_HASH_SIZE;
 #endif
     }
     return hash_size;
 }
 
-int __private_tls_write_packet(struct TLSPacket *packet) {
+int _private_tls_write_packet(struct TLSPacket *packet) {
     if (!packet)
         return -1;
     struct TLSContext *context = packet->context;
@@ -4242,7 +4243,7 @@ int __private_tls_write_packet(struct TLSPacket *packet) {
     return context->tls_buffer_len;
 }
 
-int __private_tls_write_app_data(struct TLSContext *context, const unsigned char *buf, unsigned int buf_len) {
+int _private_tls_write_app_data(struct TLSContext *context, const unsigned char *buf, unsigned int buf_len) {
     if (!context)
         return -1;
     if ((!buf) || (!buf_len))
@@ -4426,22 +4427,22 @@ struct TLSContext *tls_accept(struct TLSContext *context) {
 }
 
 #ifdef TLS_FORWARD_SECRECY
-void __private_tls_dhe_free(struct TLSContext *context) {
+void _private_tls_dhe_free(struct TLSContext *context) {
     if (context->dhe) {
-        __private_tls_dh_clear_key(context->dhe);
+        _private_tls_dh_clear_key(context->dhe);
         TLS_FREE(context->dhe);
         context->dhe = NULL;
     }
 }
 
-void __private_tls_dhe_create(struct TLSContext *context) {
-    __private_tls_dhe_free(context);
+void _private_tls_dhe_create(struct TLSContext *context) {
+    _private_tls_dhe_free(context);
     context->dhe = (DHKey *)TLS_MALLOC(sizeof(DHKey));
     if (context->dhe)
         memset(context->dhe, 0, sizeof(DHKey));
 }
 
-void __private_tls_ecc_dhe_free(struct TLSContext *context) {
+void _private_tls_ecc_dhe_free(struct TLSContext *context) {
     if (context->ecc_dhe) {
         ecc_free(context->ecc_dhe);
         TLS_FREE(context->ecc_dhe);
@@ -4449,8 +4450,8 @@ void __private_tls_ecc_dhe_free(struct TLSContext *context) {
     }
 }
 
-void __private_tls_ecc_dhe_create(struct TLSContext *context) {
-    __private_tls_ecc_dhe_free(context);
+void _private_tls_ecc_dhe_create(struct TLSContext *context) {
+    _private_tls_ecc_dhe_free(context);
     context->ecc_dhe = (ecc_key *)TLS_MALLOC(sizeof(ecc_key));
     memset(context->ecc_dhe, 0, sizeof(ecc_key));
 }
@@ -4574,10 +4575,10 @@ void tls_destroy_context(struct TLSContext *context) {
     TLS_FREE(context->master_key);
     TLS_FREE(context->premaster_key);
     if (context->crypto.created)
-        __private_tls_crypto_done(context);
+        _private_tls_crypto_done(context);
     TLS_FREE(context->message_buffer);
-    __private_tls_done_hash(context, NULL);
-    __private_tls_destroy_hash(context);
+    _private_tls_done_hash(context, NULL);
+    _private_tls_destroy_hash(context);
     TLS_FREE(context->tls_buffer);
     TLS_FREE(context->application_buffer);
     // zero out the keys before free
@@ -4588,8 +4589,8 @@ void tls_destroy_context(struct TLSContext *context) {
     TLS_FREE(context->dtls_cookie);
     TLS_FREE(context->cached_handshake);
 #ifdef TLS_FORWARD_SECRECY
-    __private_tls_dhe_free(context);
-    __private_tls_ecc_dhe_free(context);
+    _private_tls_dhe_free(context);
+    _private_tls_ecc_dhe_free(context);
 #endif
 #ifdef TLS_ACCEPT_SECURE_RENEGOTIATION
     TLS_FREE(context->verify_data);
@@ -4604,7 +4605,7 @@ void tls_destroy_context(struct TLSContext *context) {
 }
 
 #ifdef TLS_ACCEPT_SECURE_RENEGOTIATION
-void __private_tls_reset_context(struct TLSContext *context) {
+void _private_tls_reset_context(struct TLSContext *context) {
     unsigned int i;
     if (!context)
         return;
@@ -4644,9 +4645,9 @@ void __private_tls_reset_context(struct TLSContext *context) {
     TLS_FREE(context->premaster_key);
     context->premaster_key = NULL;
     if (context->crypto.created)
-        __private_tls_crypto_done(context);
-    __private_tls_done_hash(context, NULL);
-    __private_tls_destroy_hash(context);
+        _private_tls_crypto_done(context);
+    _private_tls_done_hash(context, NULL);
+    _private_tls_destroy_hash(context);
     TLS_FREE(context->application_buffer);
     context->application_buffer = NULL;
     // zero out the keys before free
@@ -4662,8 +4663,8 @@ void __private_tls_reset_context(struct TLSContext *context) {
     context->cached_handshake = NULL;
     context->connection_status = 0;
 #ifdef TLS_FORWARD_SECRECY
-    __private_tls_dhe_free(context);
-    __private_tls_ecc_dhe_free(context);
+    _private_tls_dhe_free(context);
+    _private_tls_ecc_dhe_free(context);
 #endif
 }
 #endif
@@ -4798,7 +4799,7 @@ int tls_cipher_is_fs(struct TLSContext *context, unsigned short cipher) {
 }
 
 #ifdef WITH_KTLS
-int __private_tls_prefer_ktls(struct TLSContext *context, unsigned short cipher) {
+int _private_tls_prefer_ktls(struct TLSContext *context, unsigned short cipher) {
     if ((context->version == TLS_V13) || (context->version == DTLS_V13) || (context->version != TLS_V12) && (context->version != DTLS_V12))
         return 0;
 
@@ -4828,7 +4829,7 @@ int tls_choose_cipher(struct TLSContext *context, const unsigned char *buf, int 
 #ifdef WITH_KTLS
     for (i = 0; i < buf_len; i+=2) {
         unsigned short cipher = ntohs(*(unsigned short *)&buf[i]);
-        if (__private_tls_prefer_ktls(context, cipher)) {
+        if (_private_tls_prefer_ktls(context, cipher)) {
             selected_cipher = cipher;
             break;
         }
@@ -4972,7 +4973,7 @@ const char *tls_cipher_name(struct TLSContext *context) {
 }
 
 #ifdef TLS_FORWARD_SECRECY
-int __private_tls_dh_export_Y(unsigned char *Ybuf, unsigned long *Ylen, DHKey *key) {
+int _private_tls_dh_export_Y(unsigned char *Ybuf, unsigned long *Ylen, DHKey *key) {
     unsigned long len;
     
     if ((Ybuf == NULL) || (Ylen == NULL) || (key == NULL))
@@ -4986,7 +4987,7 @@ int __private_tls_dh_export_Y(unsigned char *Ybuf, unsigned long *Ylen, DHKey *k
     return 0;
  }
 
-int __private_tls_dh_export_pqY(unsigned char *pbuf, unsigned long *plen, unsigned char *gbuf, unsigned long *glen, unsigned char *Ybuf, unsigned long *Ylen, DHKey *key) {
+int _private_tls_dh_export_pqY(unsigned char *pbuf, unsigned long *plen, unsigned char *gbuf, unsigned long *glen, unsigned char *Ybuf, unsigned long *Ylen, DHKey *key) {
     unsigned long len;
     int err;
     
@@ -5023,7 +5024,7 @@ int __private_tls_dh_export_pqY(unsigned char *pbuf, unsigned long *plen, unsign
     return 0;
 }
 
-void __private_tls_dh_clear_key(DHKey *key) {
+void _private_tls_dh_clear_key(DHKey *key) {
     mp_clear_multi(key->g, key->p, key->x, key->y, NULL);
     key->g = NULL;
     key->p = NULL;
@@ -5031,7 +5032,7 @@ void __private_tls_dh_clear_key(DHKey *key) {
     key->y = NULL;
 }
 
-int __private_tls_dh_make_key(int keysize, DHKey *key, const char *pbuf, const char *gbuf, int pbuf_len, int gbuf_len) {
+int _private_tls_dh_make_key(int keysize, DHKey *key, const char *pbuf, const char *gbuf, int pbuf_len, int gbuf_len) {
     unsigned char *buf;
     int err;
     if (!key)
@@ -5065,13 +5066,13 @@ int __private_tls_dh_make_key(int keysize, DHKey *key, const char *pbuf, const c
     if (gbuf_len <= 0) {
         if ((err = mp_read_radix(key->g, gbuf, 16)) != CRYPT_OK) {
             TLS_FREE(buf);
-            __private_tls_dh_clear_key(key);
+            _private_tls_dh_clear_key(key);
             return TLS_GENERIC_ERROR;
         }
     } else {
         if ((err = mp_read_unsigned_bin(key->g, (unsigned char *)gbuf, gbuf_len)) != CRYPT_OK) {
             TLS_FREE(buf);
-            __private_tls_dh_clear_key(key);
+            _private_tls_dh_clear_key(key);
             return TLS_GENERIC_ERROR;
         }
     }
@@ -5079,26 +5080,26 @@ int __private_tls_dh_make_key(int keysize, DHKey *key, const char *pbuf, const c
     if (pbuf_len <= 0) {
         if ((err = mp_read_radix(key->p, pbuf, 16)) != CRYPT_OK) {
             TLS_FREE(buf);
-            __private_tls_dh_clear_key(key);
+            _private_tls_dh_clear_key(key);
             return TLS_GENERIC_ERROR;
         }
     } else {
         if ((err = mp_read_unsigned_bin(key->p, (unsigned char *)pbuf, pbuf_len)) != CRYPT_OK) {
             TLS_FREE(buf);
-            __private_tls_dh_clear_key(key);
+            _private_tls_dh_clear_key(key);
             return TLS_GENERIC_ERROR;
         }
     }
     
     if ((err = mp_read_unsigned_bin(key->x, buf, keysize)) != CRYPT_OK) {
         TLS_FREE(buf);
-        __private_tls_dh_clear_key(key);
+        _private_tls_dh_clear_key(key);
         return TLS_GENERIC_ERROR;
     }
     
     if ((err = mp_exptmod(key->g, key->x, key->p, key->y)) != CRYPT_OK) {
         TLS_FREE(buf);
-        __private_tls_dh_clear_key(key);
+        _private_tls_dh_clear_key(key);
         return TLS_GENERIC_ERROR;
     }
     
@@ -5148,48 +5149,48 @@ struct TLSPacket *tls_build_client_key_exchange(struct TLSContext *context) {
             unsigned long dh_g_len = sizeof(dh_g);
             unsigned long dh_Ys_len = sizeof(dh_Ys);
             
-            if (__private_tls_dh_export_pqY(dh_p, &dh_p_len, dh_g, &dh_g_len, dh_Ys, &dh_Ys_len, context->dhe)) {
+            if (_private_tls_dh_export_pqY(dh_p, &dh_p_len, dh_g, &dh_g_len, dh_Ys, &dh_Ys_len, context->dhe)) {
                 DEBUG_PRINT("ERROR EXPORTING DHE KEY %p\n", context->dhe);
                 TLS_FREE(packet);
-                __private_tls_dhe_free(context);
+                _private_tls_dhe_free(context);
                 return NULL;
             }
-            __private_tls_dhe_free(context);
+            _private_tls_dhe_free(context);
             DEBUG_DUMP_HEX_LABEL("Yc", dh_Ys, dh_Ys_len);
             tls_packet_uint24(packet, dh_Ys_len + 2);
             if (context->dtls)
-                __private_dtls_handshake_data(context, packet, dh_Ys_len + 2);
+                _private_dtls_handshake_data(context, packet, dh_Ys_len + 2);
             tls_packet_uint16(packet, dh_Ys_len);
             tls_packet_append(packet, dh_Ys, dh_Ys_len);
         } else
         if (context->ecc_dhe) {
-            unsigned char out[__TLS_MAX_RSA_KEY];
-            unsigned long out_len = __TLS_MAX_RSA_KEY;
+            unsigned char out[TLS_MAX_RSA_KEY];
+            unsigned long out_len = TLS_MAX_RSA_KEY;
             
             if (ecc_ansi_x963_export(context->ecc_dhe, out, &out_len)) {
                 DEBUG_PRINT("Error exporting ECC key\n");
                 TLS_FREE(packet);
                 return NULL;
             }
-            __private_tls_ecc_dhe_free(context);
+            _private_tls_ecc_dhe_free(context);
             tls_packet_uint24(packet, out_len + 1);
             if (context->dtls) {
-                __private_dtls_handshake_data(context, packet, out_len + 1);
+                _private_dtls_handshake_data(context, packet, out_len + 1);
                 context->dtls_seq++;
             }
             tls_packet_uint8(packet, out_len);
             tls_packet_append(packet, out, out_len);
         }
-        __private_tls_compute_key(context, 48);
+        _private_tls_compute_key(context, 48);
     } else
 #endif
-    __private_tls_build_random(packet);
+    _private_tls_build_random(packet);
     context->connection_status = 2;
     tls_packet_update(packet);
     return packet;
 }
 
-void __private_dtls_handshake_data(struct TLSContext *context, struct TLSPacket *packet, unsigned int framelength) {
+void _private_dtls_handshake_data(struct TLSContext *context, struct TLSPacket *packet, unsigned int framelength) {
     // message seq
     tls_packet_uint16(packet, context->dtls_seq);
     // fragment offset
@@ -5198,7 +5199,7 @@ void __private_dtls_handshake_data(struct TLSContext *context, struct TLSPacket 
     tls_packet_uint24(packet, framelength);
 }
 
-void __private_dtls_handshake_copyframesize(struct TLSContext *context, struct TLSPacket *packet) {
+void _private_dtls_handshake_copyframesize(struct TLSContext *context, struct TLSPacket *packet) {
     packet->buf[22] = packet->buf[14];
     packet->buf[23] = packet->buf[15];
     packet->buf[24] = packet->buf[16];
@@ -5215,12 +5216,12 @@ struct TLSPacket *tls_build_server_key_exchange(struct TLSContext *context, int 
     unsigned char dummy[3];
     tls_packet_append(packet, dummy, 3);
     if (context->dtls)
-        __private_dtls_handshake_data(context, packet, 0);
+        _private_dtls_handshake_data(context, packet, 0);
     int start_len = packet->len;
 #ifdef TLS_FORWARD_SECRECY
     if (method == KEA_dhe_rsa) {
         tls_init();
-        __private_tls_dhe_create(context);
+        _private_tls_dhe_create(context);
         
         const char *default_dhe_p = context->default_dhe_p;
         const char *default_dhe_g = context->default_dhe_g;
@@ -5228,14 +5229,14 @@ struct TLSPacket *tls_build_server_key_exchange(struct TLSContext *context, int 
         if ((!default_dhe_p) || (!default_dhe_g)) {
             default_dhe_p = TLS_DH_DEFAULT_P;
             default_dhe_g = TLS_DH_DEFAULT_G;
-            key_size = __TLS_DHE_KEY_SIZE / 8;
+            key_size = TLS_DHE_KEY_SIZE / 8;
         } else {
             if (default_dhe_p)
                 key_size = strlen(default_dhe_p);
             else
                 key_size = strlen(default_dhe_g);
         }
-        if (__private_tls_dh_make_key(key_size, context->dhe, default_dhe_p, default_dhe_g, 0, 0)) {
+        if (_private_tls_dh_make_key(key_size, context->dhe, default_dhe_p, default_dhe_g, 0, 0)) {
             DEBUG_PRINT("ERROR CREATING DHE KEY\n");
             TLS_FREE(packet);
             TLS_FREE(context->dhe);
@@ -5250,7 +5251,7 @@ struct TLSPacket *tls_build_server_key_exchange(struct TLSContext *context, int 
         unsigned long dh_g_len = sizeof(dh_g);
         unsigned long dh_Ys_len = sizeof(dh_Ys);
         
-        if (__private_tls_dh_export_pqY(dh_p, &dh_p_len, dh_g, &dh_g_len, dh_Ys, &dh_Ys_len, context->dhe)) {
+        if (_private_tls_dh_export_pqY(dh_p, &dh_p_len, dh_g, &dh_g_len, dh_Ys, &dh_Ys_len, context->dhe)) {
             DEBUG_PRINT("ERROR EXPORTING DHE KEY\n");
             TLS_FREE(packet);
             return NULL;
@@ -5280,7 +5281,7 @@ struct TLSPacket *tls_build_server_key_exchange(struct TLSContext *context, int 
         tls_packet_uint8(packet, 3);
         tls_packet_uint16(packet, context->curve->iana);
         tls_init();
-        __private_tls_ecc_dhe_create(context);
+        _private_tls_ecc_dhe_create(context);
         
         ltc_ecc_set_type *dp = (ltc_ecc_set_type *)&context->curve->dp;
         
@@ -5291,8 +5292,8 @@ struct TLSPacket *tls_build_server_key_exchange(struct TLSContext *context, int 
             TLS_FREE(packet);
             return NULL;
         }
-        unsigned char out[__TLS_MAX_RSA_KEY];
-        unsigned long out_len = __TLS_MAX_RSA_KEY;
+        unsigned char out[TLS_MAX_RSA_KEY];
+        unsigned long out_len = TLS_MAX_RSA_KEY;
         if (ecc_ansi_x963_export(context->ecc_dhe, out, &out_len)) {
             DEBUG_PRINT("Error exporting ECC key\n");
             TLS_FREE(packet);
@@ -5310,15 +5311,15 @@ struct TLSPacket *tls_build_server_key_exchange(struct TLSContext *context, int 
     
     // signature
     unsigned int params_len = packet->len - start_len;
-    unsigned int message_len = params_len + __TLS_CLIENT_RANDOM_SIZE + __TLS_SERVER_RANDOM_SIZE;
+    unsigned int message_len = params_len + TLS_CLIENT_RANDOM_SIZE + TLS_SERVER_RANDOM_SIZE;
     unsigned char *message = (unsigned char *)TLS_MALLOC(message_len);
     if (message) {
-        unsigned char out[__TLS_MAX_RSA_KEY];
-        unsigned long out_len = __TLS_MAX_RSA_KEY;
+        unsigned char out[TLS_MAX_RSA_KEY];
+        unsigned long out_len = TLS_MAX_RSA_KEY;
         
         int hash_algorithm;
         if ((context->version != TLS_V13) && (context->version != DTLS_V13) && (context->version != TLS_V12) && (context->version != DTLS_V12)) {
-            hash_algorithm = __md5_sha1;
+            hash_algorithm = _md5_sha1;
         } else {
             if ((context->version == TLS_V13) || (context->version == DTLS_V13) || (context->version == TLS_V12) || (context->version == DTLS_V12))
                 hash_algorithm = sha256;
@@ -5339,19 +5340,19 @@ struct TLSPacket *tls_build_server_key_exchange(struct TLSContext *context, int 
             }
         }
         
-        memcpy(message, context->remote_random, __TLS_CLIENT_RANDOM_SIZE);
-        memcpy(message + __TLS_CLIENT_RANDOM_SIZE, context->local_random, __TLS_SERVER_RANDOM_SIZE);
-        memcpy(message + __TLS_CLIENT_RANDOM_SIZE + __TLS_SERVER_RANDOM_SIZE, packet->buf + start_len, params_len);
+        memcpy(message, context->remote_random, TLS_CLIENT_RANDOM_SIZE);
+        memcpy(message + TLS_CLIENT_RANDOM_SIZE, context->local_random, TLS_SERVER_RANDOM_SIZE);
+        memcpy(message + TLS_CLIENT_RANDOM_SIZE + TLS_SERVER_RANDOM_SIZE, packet->buf + start_len, params_len);
 #ifdef TLS_ECDSA_SUPPORTED
         if (tls_is_ecdsa(context)) {
-            if (__private_tls_sign_ecdsa(context, hash_algorithm, message, message_len, out, &out_len) == 1) {
+            if (_private_tls_sign_ecdsa(context, hash_algorithm, message, message_len, out, &out_len) == 1) {
                 DEBUG_PRINT("Signing OK! (ECDSA, length %lu)\n", out_len);
                 tls_packet_uint16(packet, out_len);
                 tls_packet_append(packet, out, out_len);
             }
         } else
 #endif
-        if (__private_tls_sign_rsa(context, hash_algorithm, message, message_len, out, &out_len) == 1) {
+        if (_private_tls_sign_rsa(context, hash_algorithm, message, message_len, out, &out_len) == 1) {
             DEBUG_PRINT("Signing OK! (length %lu)\n", out_len);
             tls_packet_uint16(packet, out_len);
             tls_packet_append(packet, out, out_len);
@@ -5369,7 +5370,7 @@ struct TLSPacket *tls_build_server_key_exchange(struct TLSContext *context, int 
         remaining %= 0x100;
         packet->buf[payload_pos + 2] = remaining;
         if (context->dtls) {
-            __private_dtls_handshake_copyframesize(context, packet);
+            _private_dtls_handshake_copyframesize(context, packet);
             context->dtls_seq++;
         }
     }
@@ -5377,11 +5378,11 @@ struct TLSPacket *tls_build_server_key_exchange(struct TLSContext *context, int 
     return packet;
 }
 
-void __private_tls_set_session_id(struct TLSContext *context) {
-    if (((context->version == TLS_V13) || (context->version == DTLS_V13)) && (context->session) && (context->session_size == __TLS_MAX_SESSION_ID))
+void _private_tls_set_session_id(struct TLSContext *context) {
+    if (((context->version == TLS_V13) || (context->version == DTLS_V13)) && (context->session) && (context->session_size == TLS_MAX_SESSION_ID))
         return;
-    if (tls_random(context->session, __TLS_MAX_SESSION_ID))
-        context->session_size = __TLS_MAX_SESSION_ID;
+    if (tls_random(context->session, TLS_MAX_SESSION_ID))
+        context->session_size = TLS_MAX_SESSION_ID;
     else
         context->session_size = 0;
 }
@@ -5392,21 +5393,21 @@ struct TLSPacket *tls_build_hello(struct TLSContext *context, int tls13_downgrad
         static unsigned char sha256_helloretryrequest[] = {0xCF, 0x21, 0xAD, 0x74, 0xE5, 0x9A, 0x61, 0x11, 0xBE, 0x1D, 0x8C, 0x02, 0x1E, 0x65, 0xB8, 0x91, 0xC2, 0xA2, 0x11, 0x16, 0x7A, 0xBB, 0x8C, 0x5E, 0x07, 0x9E, 0x09, 0xE2, 0xC8, 0xA8, 0x33, 0x9C};
         memcpy(context->local_random, sha256_helloretryrequest, 32);
         unsigned char header[4] = {0xFE, 0, 0, 0};
-        unsigned char hash[__TLS_MAX_SHA_SIZE ];
-        int hash_len = __private_tls_done_hash(context, hash);
+        unsigned char hash[TLS_MAX_SHA_SIZE ];
+        int hash_len = _private_tls_done_hash(context, hash);
         header[3] = (unsigned char)hash_len;
-        __private_tls_update_hash(context, header, sizeof(header));
-        __private_tls_update_hash(context, hash, hash_len);
+        _private_tls_update_hash(context, header, sizeof(header));
+        _private_tls_update_hash(context, hash, hash_len);
     } else
     if ((!context->is_server) || ((context->version != TLS_V13) && (context->version != DTLS_V13)))
 #endif
-    if (!tls_random(context->local_random, __TLS_SERVER_RANDOM_SIZE))
+    if (!tls_random(context->local_random, TLS_SERVER_RANDOM_SIZE))
         return NULL;
     if ((context->is_server) && (tls13_downgrade)) {
         if ((tls13_downgrade == TLS_V12) || (tls13_downgrade == DTLS_V12))
-            memcpy(context->local_random + __TLS_SERVER_RANDOM_SIZE - 8, "DOWNGRD\x01", 8);
+            memcpy(context->local_random + TLS_SERVER_RANDOM_SIZE - 8, "DOWNGRD\x01", 8);
         else
-            memcpy(context->local_random + __TLS_SERVER_RANDOM_SIZE - 8, "DOWNGRD\x00", 8);
+            memcpy(context->local_random + TLS_SERVER_RANDOM_SIZE - 8, "DOWNGRD\x00", 8);
     }
     unsigned short packet_version = context->version;
     unsigned short version = context->version;
@@ -5428,20 +5429,20 @@ struct TLSPacket *tls_build_hello(struct TLSContext *context, int tls13_downgrad
         tls_packet_append(packet, dummy, 3);
 
         if (context->dtls)
-            __private_dtls_handshake_data(context, packet, 0);
+            _private_dtls_handshake_data(context, packet, 0);
 
         int start_len = packet->len;
         tls_packet_uint16(packet, version);
         if (context->is_server)
-            tls_packet_append(packet, context->local_random, __TLS_SERVER_RANDOM_SIZE);
+            tls_packet_append(packet, context->local_random, TLS_SERVER_RANDOM_SIZE);
         else
-            tls_packet_append(packet, context->local_random, __TLS_CLIENT_RANDOM_SIZE);
+            tls_packet_append(packet, context->local_random, TLS_CLIENT_RANDOM_SIZE);
 
 #ifdef IGNORE_SESSION_ID
         // session size
         tls_packet_uint8(packet, 0);
 #else
-        __private_tls_set_session_id(context);
+        _private_tls_set_session_id(context);
         // session size
         tls_packet_uint8(packet, context->session_size);
         if (context->session_size)
@@ -5453,8 +5454,8 @@ struct TLSPacket *tls_build_hello(struct TLSContext *context, int tls13_downgrad
         int alpn_negotiated_len = 0;
         int i;
 #ifdef WITH_TLS_13
-        unsigned char shared_key[__TLS_MAX_RSA_KEY];
-        unsigned long shared_key_len = __TLS_MAX_RSA_KEY;
+        unsigned char shared_key[TLS_MAX_RSA_KEY];
+        unsigned long shared_key_len = TLS_MAX_RSA_KEY;
         unsigned short shared_key_short = 0;
         int selected_group = 0;
         if ((context->version == TLS_V13) || (context->version == DTLS_V13)) {
@@ -5483,7 +5484,7 @@ struct TLSPacket *tls_build_hello(struct TLSContext *context, int tls13_downgrad
                         tls_destroy_packet(packet);
                         return tls_build_alert(context, 1, internal_error);
                     }
-                    __private_tls_ecc_dhe_free(context);
+                    _private_tls_ecc_dhe_free(context);
                     extension_len += 8 + shared_key_len;
                     shared_key_short = (unsigned short)shared_key_len;
                     if (context->curve)
@@ -5491,8 +5492,8 @@ struct TLSPacket *tls_build_hello(struct TLSContext *context, int tls13_downgrad
                 } else
                 if (context->dhe) {
                     selected_group = context->dhe->iana;
-                    __private_tls_dh_export_Y(shared_key, &shared_key_len, context->dhe);
-                    __private_tls_dhe_free(context);
+                    _private_tls_dh_export_Y(shared_key, &shared_key_len, context->dhe);
+                    _private_tls_dhe_free(context);
                     extension_len += 8 + shared_key_len;
                     shared_key_short = (unsigned short)shared_key_len;
                 }
@@ -5766,7 +5767,7 @@ struct TLSPacket *tls_build_hello(struct TLSContext *context, int tls13_downgrad
                 tls_packet_uint16(packet, 2);
                 // draft 28
                 if (context->version == TLS_V13)
-                    tls_packet_uint16(packet, 0x7F1C);
+                    tls_packet_uint16(packet, context->tls13_version ? context->tls13_version : TLS_V13);
                 else
                     tls_packet_uint16(packet, context->version);
             } else {
@@ -5810,7 +5811,7 @@ struct TLSPacket *tls_build_hello(struct TLSContext *context, int tls13_downgrad
             remaining %= 0x100;
             packet->buf[payload_pos + 2] = remaining;
             if (context->dtls) {
-                __private_dtls_handshake_copyframesize(context, packet);
+                _private_dtls_handshake_copyframesize(context, packet);
                 context->dtls_seq++;
             }
         }
@@ -5831,7 +5832,7 @@ struct TLSPacket *tls_certificate_request(struct TLSContext *context) {
         unsigned char dummy[3];
         tls_packet_append(packet, dummy, 3);
         if (context->dtls)
-            __private_dtls_handshake_data(context, packet, 0);
+            _private_dtls_handshake_data(context, packet, 0);
         int start_len = packet->len;
 #ifdef WITH_TLS_13
         if ((context->version == TLS_V13) || (context->version == DTLS_V13)) {
@@ -5896,7 +5897,7 @@ struct TLSPacket *tls_certificate_request(struct TLSContext *context) {
             packet->buf[payload_pos + 2] = remaining;
 
             if (context->dtls) {
-                __private_dtls_handshake_copyframesize(context, packet);
+                _private_dtls_handshake_copyframesize(context, packet);
                 context->dtls_seq++;
             }
         }
@@ -5905,25 +5906,25 @@ struct TLSPacket *tls_certificate_request(struct TLSContext *context) {
     return packet;
 }
 
-int __private_dtls_build_cookie(struct TLSContext *context) {
+int _private_dtls_build_cookie(struct TLSContext *context) {
     if ((!context->dtls_cookie) || (!context->dtls_cookie_len)) {
-        context->dtls_cookie = (unsigned char *)TLS_MALLOC(__DTLS_COOKIE_SIZE);
+        context->dtls_cookie = (unsigned char *)TLS_MALLOC(DTLS_COOKIE_SIZE);
         if (!context->dtls_cookie)
             return 0;
 
 #ifdef WITH_RANDOM_DLTS_COOKIE
-        if (!tls_random(context->dtls_cookie, __DTLS_COOKIE_SIZE)) {
+        if (!tls_random(context->dtls_cookie, DTLS_COOKIE_SIZE)) {
             TLS_FREE(context->dtls_cookie);
             context->dtls_cookie = NULL;
             return 0;
         }
-        context->dtls_cookie_len = __DTLS_COOKIE_SIZE;
+        context->dtls_cookie_len = DTLS_COOKIE_SIZE;
 #else
         hmac_state hmac;
         hmac_init(&hmac, find_hash("sha256"), dtls_secret, sizeof(dtls_secret));
-        hmac_process(&hmac, context->remote_random, __TLS_CLIENT_RANDOM_SIZE);
+        hmac_process(&hmac, context->remote_random, TLS_CLIENT_RANDOM_SIZE);
 
-        unsigned long out_size = __DTLS_COOKIE_SIZE;
+        unsigned long out_size = DTLS_COOKIE_SIZE;
         hmac_done(&hmac, context->dtls_cookie, &out_size);
 #endif
     }
@@ -5935,7 +5936,7 @@ struct TLSPacket *tls_build_verify_request(struct TLSContext *context) {
         return NULL;
     
     if ((!context->dtls_cookie) || (!context->dtls_cookie_len)) {
-        if (!__private_dtls_build_cookie(context))
+        if (!_private_dtls_build_cookie(context))
             return NULL;
     }
 
@@ -5961,7 +5962,7 @@ struct TLSPacket *tls_build_verify_request(struct TLSContext *context) {
     return packet;
 }
 
-int __private_dtls_check_packet(const unsigned char *buf, int buf_len) {
+int _private_dtls_check_packet(const unsigned char *buf, int buf_len) {
     CHECK_SIZE(11, buf_len, TLS_NEED_MORE_DATA)
 
     unsigned int bytes_to_follow = buf[0] * 0x10000 + buf[1] * 0x100 + buf[2];
@@ -5976,11 +5977,11 @@ int __private_dtls_check_packet(const unsigned char *buf, int buf_len) {
     return bytes_to_follow;
 }
 
-void __private_dtls_reset(struct TLSContext *context) {
+void _private_dtls_reset(struct TLSContext *context) {
     context->dtls_epoch_local = 0;
     context->dtls_epoch_remote = 0;
     context->dtls_seq = 0;
-    __private_tls_destroy_hash(context);
+    _private_tls_destroy_hash(context);
     context->connection_status = 0;
 }
 
@@ -5991,7 +5992,7 @@ int tls_parse_verify_request(struct TLSContext *context, const unsigned char *bu
         return TLS_UNEXPECTED_MESSAGE;
     }
     int res = 11;
-    int bytes_to_follow = __private_dtls_check_packet(buf, buf_len);
+    int bytes_to_follow = _private_dtls_check_packet(buf, buf_len);
     if (bytes_to_follow < 0)
         return bytes_to_follow;
 
@@ -6014,18 +6015,18 @@ int tls_parse_verify_request(struct TLSContext *context, const unsigned char *bu
     }
 
     // reset context
-    __private_dtls_reset(context);
+    _private_dtls_reset(context);
     return res;
 }
 
-void __private_dtls_reset_cookie(struct TLSContext *context) {
+void _private_dtls_reset_cookie(struct TLSContext *context) {
     TLS_FREE(context->dtls_cookie);
     context->dtls_cookie = NULL;
     context->dtls_cookie_len = 0;
 }
 
 #ifdef WITH_TLS_13
-int __private_tls_parse_key_share(struct TLSContext *context, const unsigned char *buf, int buf_len) {
+int _private_tls_parse_key_share(struct TLSContext *context, const unsigned char *buf, int buf_len) {
     int i = 0;
     struct ECCCurveParameters *curve = 0;
     DHKey *dhkey = 0;
@@ -6112,7 +6113,7 @@ int __private_tls_parse_key_share(struct TLSContext *context, const unsigned cha
         context->curve = curve;
 #ifdef TLS_CURVE25519
         if (curve == &x25519) {
-            if (!tls_random(context->local_random, __TLS_SERVER_RANDOM_SIZE))
+            if (!tls_random(context->local_random, TLS_SERVER_RANDOM_SIZE))
                 return TLS_GENERIC_ERROR;
             unsigned char secret[32];
             static const unsigned char basepoint[32] = {9};
@@ -6142,7 +6143,7 @@ int __private_tls_parse_key_share(struct TLSContext *context, const unsigned cha
             return 0;
         }
 #endif
-        __private_tls_ecc_dhe_create(context);       
+        _private_tls_ecc_dhe_create(context);       
         ltc_ecc_set_type *dp = (ltc_ecc_set_type *)&context->curve->dp;
         if (ecc_make_key_ex(NULL, find_prng("sprng"), context->ecc_dhe, dp)) {
             TLS_FREE(context->ecc_dhe);
@@ -6150,7 +6151,7 @@ int __private_tls_parse_key_share(struct TLSContext *context, const unsigned cha
             DEBUG_PRINT("Error generating ECC DHE key\n");
             return TLS_GENERIC_ERROR;
         }
-        if (!tls_random(context->local_random, __TLS_SERVER_RANDOM_SIZE))
+        if (!tls_random(context->local_random, TLS_SERVER_RANDOM_SIZE))
             return TLS_GENERIC_ERROR;
 
         ecc_key client_key;
@@ -6179,10 +6180,10 @@ int __private_tls_parse_key_share(struct TLSContext *context, const unsigned cha
         return 0;
     } else
     if (dhkey) {
-        __private_tls_dhe_create(context);
-        if (!tls_random(context->local_random, __TLS_SERVER_RANDOM_SIZE))
+        _private_tls_dhe_create(context);
+        if (!tls_random(context->local_random, TLS_SERVER_RANDOM_SIZE))
             return TLS_GENERIC_ERROR;
-        if (__private_tls_dh_make_key(dhe_key_size / 8, context->dhe, (const char *)dhkey->p, (const char *)dhkey->g, 0, 0)) {
+        if (_private_tls_dh_make_key(dhe_key_size / 8, context->dhe, (const char *)dhkey->p, (const char *)dhkey->g, 0, 0)) {
             TLS_FREE(context->dhe);
             context->dhe = NULL;
             DEBUG_PRINT("Error generating DHE key\n");
@@ -6190,7 +6191,7 @@ int __private_tls_parse_key_share(struct TLSContext *context, const unsigned cha
         }
 
         unsigned int dhe_out_size;
-        out2 = __private_tls_decrypt_dhe(context, buffer, key_size, &dhe_out_size, 0);
+        out2 = _private_tls_decrypt_dhe(context, buffer, key_size, &dhe_out_size, 0);
         if (!out2) {
             DEBUG_PRINT("Error generating DHE shared key\n");
             return TLS_GENERIC_ERROR;
@@ -6223,13 +6224,13 @@ int tls_parse_hello(struct TLSContext *context, const unsigned char *buf, int bu
     
     int res = 0;
     int downgraded = 0;
-    int hello_min_size = context->dtls ? __TLS_CLIENT_HELLO_MINSIZE + 8 : __TLS_CLIENT_HELLO_MINSIZE;
+    int hello_min_size = context->dtls ? TLS_CLIENT_HELLO_MINSIZE + 8 : TLS_CLIENT_HELLO_MINSIZE;
     CHECK_SIZE(hello_min_size, buf_len, TLS_NEED_MORE_DATA)
     // big endian
     unsigned int bytes_to_follow = buf[0] * 0x10000 + buf[1] * 0x100 + buf[2];
     res += 3;
     if (context->dtls) {
-        int dtls_check = __private_dtls_check_packet(buf, buf_len);
+        int dtls_check = _private_dtls_check_packet(buf, buf_len);
         if (dtls_check < 0)
             return dtls_check;
         // 16 bit message seq + 24 bit fragment offset + 24 bit fragment length
@@ -6258,16 +6259,16 @@ int tls_parse_hello(struct TLSContext *context, const unsigned char *buf, int bu
     if (downgraded) {
         context->version = version;
         if (!context->is_server)
-            __private_tls_change_hash_type(context);
+            _private_tls_change_hash_type(context);
     }
 #endif
 #endif
-    memcpy(context->remote_random, &buf[res], __TLS_CLIENT_RANDOM_SIZE);
-    res += __TLS_CLIENT_RANDOM_SIZE;
+    memcpy(context->remote_random, &buf[res], TLS_CLIENT_RANDOM_SIZE);
+    res += TLS_CLIENT_RANDOM_SIZE;
     
     unsigned char session_len = buf[res++];
     CHECK_SIZE(session_len, buf_len - res, TLS_NEED_MORE_DATA)
-    if ((session_len) && (session_len <= __TLS_MAX_SESSION_ID)) {
+    if ((session_len) && (session_len <= TLS_MAX_SESSION_ID)) {
         memcpy(context->session, &buf[res], session_len);
         context->session_size = session_len;
         DEBUG_DUMP_HEX_LABEL("REMOTE SESSION ID: ", context->session, context->session_size);
@@ -6285,21 +6286,21 @@ int tls_parse_hello(struct TLSContext *context, const unsigned char *buf, int bu
             if (tls_cookie_len) {
                 CHECK_SIZE(tls_cookie_len, buf_len - res, TLS_NEED_MORE_DATA)
                 if ((!context->dtls_cookie_len) || (!context->dtls_cookie))
-                    __private_dtls_build_cookie(context);
+                    _private_dtls_build_cookie(context);
 
                 if ((context->dtls_cookie_len != tls_cookie_len) || (!context->dtls_cookie)) {
                     *dtls_verified = 2;
-                    __private_dtls_reset_cookie(context);
+                    _private_dtls_reset_cookie(context);
                     DEBUG_PRINT("INVALID DTLS COOKIE\n");
                     return TLS_BROKEN_PACKET;
                 }
                 if (memcmp(context->dtls_cookie, &buf[res], tls_cookie_len)) {
                     *dtls_verified = 3;
-                    __private_dtls_reset_cookie(context);
+                    _private_dtls_reset_cookie(context);
                     DEBUG_PRINT("MISMATCH DTLS COOKIE\n");
                     return TLS_BROKEN_PACKET;
                 }
-                __private_dtls_reset_cookie(context);
+                _private_dtls_reset_cookie(context);
                 context->dtls_seq++;
                 *dtls_verified = 1;
                 res += tls_cookie_len;
@@ -6475,6 +6476,7 @@ int tls_parse_hello(struct TLSContext *context, const unsigned char *buf, int bu
                         for (i = 1; i < limit; i += 2) {
                             if ((ntohs(*(unsigned short *)&buf[res + i]) == 0x7F1C) || (ntohs(*(unsigned short *)&buf[res + i]) == TLS_V13)) {
                                 context->version = TLS_V13;
+                                context->tls13_version = ntohs(*(unsigned short *)&buf[res + i]);
                                 DEBUG_PRINT("TLS 1.3 SUPPORTED\n");
                                 break;
                             }
@@ -6522,7 +6524,7 @@ int tls_parse_hello(struct TLSContext *context, const unsigned char *buf, int bu
         }
         if ((downgraded) && (scsv_set)) {
             DEBUG_PRINT("NO DOWNGRADE (SCSV SET)\n");
-            __private_tls_write_packet(tls_build_alert(context, 1, inappropriate_fallback));
+            _private_tls_write_packet(tls_build_alert(context, 1, inappropriate_fallback));
             context->critical_error = 1;
             return TLS_NOT_SAFE;
         }
@@ -6530,7 +6532,7 @@ int tls_parse_hello(struct TLSContext *context, const unsigned char *buf, int bu
     }
 #ifdef WITH_TLS_13
     if ((key_share) && (key_size) && ((context->version == TLS_V13) || (context->version == DTLS_V13))) {
-        int key_share_err = __private_tls_parse_key_share(context, key_share, key_size);
+        int key_share_err = _private_tls_parse_key_share(context, key_share, key_size);
         if (key_share_err) {
             // request hello retry
             if (context->connection_status != 4) {
@@ -6557,7 +6559,7 @@ int tls_parse_certificate(struct TLSContext *context, const unsigned char *buf, 
         return 3 + size_of_all_certificates;
     res += 3;
     if (context->dtls) {
-        int dtls_check = __private_dtls_check_packet(buf, buf_len);
+        int dtls_check = _private_dtls_check_packet(buf, buf_len);
         if (dtls_check < 0)
             return dtls_check;
         res += 8;
@@ -6656,7 +6658,7 @@ int tls_parse_certificate(struct TLSContext *context, const unsigned char *buf, 
     return res;
 }
 
-int __private_tls_parse_dh(struct TLSContext *context, const unsigned char *buf, int buf_len, const unsigned char **out, int *out_size) {
+int _private_tls_parse_dh(struct TLSContext *context, const unsigned char *buf, int buf_len, const unsigned char **out, int *out_size) {
     int res = 0;
     *out = NULL;
     *out_size = 0;
@@ -6671,7 +6673,7 @@ int __private_tls_parse_dh(struct TLSContext *context, const unsigned char *buf,
     return res;
 }
 
-int __private_tls_parse_random(struct TLSContext *context, const unsigned char *buf, int buf_len) {
+int _private_tls_parse_random(struct TLSContext *context, const unsigned char *buf, int buf_len) {
     int res = 0;
     int ephemeral = tls_cipher_is_ephemeral(context);
     unsigned short size;
@@ -6691,14 +6693,14 @@ int __private_tls_parse_random(struct TLSContext *context, const unsigned char *
     switch (ephemeral) {
 #ifdef TLS_FORWARD_SECRECY
         case 1:
-            random = __private_tls_decrypt_dhe(context, &buf[res], size, &out_len, 1);
+            random = _private_tls_decrypt_dhe(context, &buf[res], size, &out_len, 1);
             break;
         case 2:
-            random = __private_tls_decrypt_ecc_dhe(context, &buf[res], size, &out_len, 1);
+            random = _private_tls_decrypt_ecc_dhe(context, &buf[res], size, &out_len, 1);
             break;
 #endif
         default:
-            random = __private_tls_decrypt_rsa(context, &buf[res], size, &out_len);
+            random = _private_tls_decrypt_rsa(context, &buf[res], size, &out_len);
     }
     
     if ((random) && (out_len > 2)) {
@@ -6707,7 +6709,7 @@ int __private_tls_parse_random(struct TLSContext *context, const unsigned char *
         TLS_FREE(context->premaster_key);
         context->premaster_key = random;
         context->premaster_key_len = out_len;
-        __private_tls_compute_key(context, 48);
+        _private_tls_compute_key(context, 48);
     } else {
         TLS_FREE(random);
         return 0;
@@ -6716,7 +6718,7 @@ int __private_tls_parse_random(struct TLSContext *context, const unsigned char *
     return res;
 }
 
-int __private_tls_build_random(struct TLSPacket *packet) {
+int _private_tls_build_random(struct TLSPacket *packet) {
     int res = 0;
     unsigned char rand_bytes[48];
     int bytes = 48;
@@ -6742,13 +6744,13 @@ int __private_tls_build_random(struct TLSPacket *packet) {
     memcpy(packet->context->premaster_key, rand_bytes, packet->context->premaster_key_len);
     
     unsigned int out_len;
-    unsigned char *random = __private_tls_encrypt_rsa(packet->context, packet->context->premaster_key, packet->context->premaster_key_len, &out_len);
+    unsigned char *random = _private_tls_encrypt_rsa(packet->context, packet->context->premaster_key, packet->context->premaster_key_len, &out_len);
     
-    __private_tls_compute_key(packet->context, bytes);
+    _private_tls_compute_key(packet->context, bytes);
     if ((random) && (out_len > 2)) {
         tls_packet_uint24(packet, out_len + 2);
         if (packet->context->dtls)
-            __private_dtls_handshake_data(packet->context, packet, out_len + 2);
+            _private_dtls_handshake_data(packet->context, packet, out_len + 2);
         tls_packet_uint16(packet, out_len);
         tls_packet_append(packet, random, out_len);
     } else
@@ -6760,10 +6762,10 @@ int __private_tls_build_random(struct TLSPacket *packet) {
     return out_len + 2;
 }
 
-const unsigned char *__private_tls_parse_signature(struct TLSContext *context, const unsigned char *buf, int buf_len, int *hash_algorithm, int *sign_algorithm, int *sig_size, int *offset) {
+const unsigned char *_private_tls_parse_signature(struct TLSContext *context, const unsigned char *buf, int buf_len, int *hash_algorithm, int *sign_algorithm, int *sig_size, int *offset) {
     int res = 0;
     CHECK_SIZE(2, buf_len, NULL)
-    *hash_algorithm = __md5_sha1;
+    *hash_algorithm = _md5_sha1;
     *sign_algorithm = rsa_sign;
     *sig_size = 0;
     if ((context->version == TLS_V12) || (context->version == DTLS_V12) || (context->version == TLS_V13) || (context->version == DTLS_V13)) {
@@ -6788,7 +6790,7 @@ int tls_parse_server_key_exchange(struct TLSContext *context, const unsigned cha
     unsigned int size = buf[0] * 0x10000 + buf[1] * 0x100 + buf[2];
     res += 3;
     if (context->dtls) {
-        int dtls_check = __private_dtls_check_packet(buf, buf_len);
+        int dtls_check = _private_dtls_check_packet(buf, buf_len);
         if (dtls_check < 0)
             return dtls_check;
         res += 8;
@@ -6861,21 +6863,21 @@ int tls_parse_server_key_exchange(struct TLSContext *context, const unsigned cha
     int dh_Ys_len = 0;
     if (has_ds_params) {
         DEBUG_PRINT("          dh_p: ");
-        dh_res = __private_tls_parse_dh(context, &buf[res], buf_len - res, &dh_p, &dh_p_len);
+        dh_res = _private_tls_parse_dh(context, &buf[res], buf_len - res, &dh_p, &dh_p_len);
         if (dh_res <= 0)
             return TLS_BROKEN_PACKET;
         res += dh_res;
         DEBUG_PRINT("\n");
         
         DEBUG_PRINT("          dh_q: ");
-        dh_res = __private_tls_parse_dh(context, &buf[res], buf_len - res, &dh_g, &dh_g_len);
+        dh_res = _private_tls_parse_dh(context, &buf[res], buf_len - res, &dh_g, &dh_g_len);
         if (dh_res <= 0)
             return TLS_BROKEN_PACKET;
         res += dh_res;
         DEBUG_PRINT("\n");
         
         DEBUG_PRINT("          dh_Ys: ");
-        dh_res = __private_tls_parse_dh(context, &buf[res], buf_len - res, &dh_Ys, &dh_Ys_len);
+        dh_res = _private_tls_parse_dh(context, &buf[res], buf_len - res, &dh_Ys, &dh_Ys_len);
         if (dh_res <= 0)
             return TLS_BROKEN_PACKET;
         res += dh_res;
@@ -6889,21 +6891,21 @@ int tls_parse_server_key_exchange(struct TLSContext *context, const unsigned cha
         packet_size -= 8;
     int offset = 0;
     DEBUG_PRINT("          SIGNATURE (%i/%i/%i): ", packet_size, dh_res, key_size);
-    const unsigned char *signature = __private_tls_parse_signature(context, &buf[res], buf_len - res, &hash_algorithm, &sign_algorithm, &sign_size, &offset);
+    const unsigned char *signature = _private_tls_parse_signature(context, &buf[res], buf_len - res, &hash_algorithm, &sign_algorithm, &sign_size, &offset);
     DEBUG_PRINT("\n");
     if ((sign_size <= 0) || (!signature))
         return TLS_BROKEN_PACKET;
     res += offset;
     // check signature
-    unsigned int message_len = packet_size + __TLS_CLIENT_RANDOM_SIZE + __TLS_SERVER_RANDOM_SIZE;
+    unsigned int message_len = packet_size + TLS_CLIENT_RANDOM_SIZE + TLS_SERVER_RANDOM_SIZE;
     unsigned char *message = (unsigned char *)TLS_MALLOC(message_len);
     if (message) {        
-        memcpy(message, context->local_random, __TLS_CLIENT_RANDOM_SIZE);
-        memcpy(message + __TLS_CLIENT_RANDOM_SIZE, context->remote_random, __TLS_SERVER_RANDOM_SIZE);
-        memcpy(message + __TLS_CLIENT_RANDOM_SIZE + __TLS_SERVER_RANDOM_SIZE, packet_ref, packet_size);
+        memcpy(message, context->local_random, TLS_CLIENT_RANDOM_SIZE);
+        memcpy(message + TLS_CLIENT_RANDOM_SIZE, context->remote_random, TLS_SERVER_RANDOM_SIZE);
+        memcpy(message + TLS_CLIENT_RANDOM_SIZE + TLS_SERVER_RANDOM_SIZE, packet_ref, packet_size);
 #ifdef TLS_CLIENT_ECDSA
         if (tls_is_ecdsa(context)) {
-            if (__private_tls_verify_ecdsa(context, hash_algorithm, signature, sign_size, message, message_len, NULL) != 1) {
+            if (_private_tls_verify_ecdsa(context, hash_algorithm, signature, sign_size, message, message_len, NULL) != 1) {
                 DEBUG_PRINT("ECC Server signature FAILED!\n");
                 TLS_FREE(message);
                 return TLS_BROKEN_PACKET;
@@ -6911,7 +6913,7 @@ int tls_parse_server_key_exchange(struct TLSContext *context, const unsigned cha
         } else 
 #endif
         {
-            if (__private_tls_verify_rsa(context, hash_algorithm, signature, sign_size, message, message_len) != 1) {
+            if (_private_tls_verify_rsa(context, hash_algorithm, signature, sign_size, message, message_len) != 1) {
                 DEBUG_PRINT("Server signature FAILED!\n");
                 TLS_FREE(message);
                 return TLS_BROKEN_PACKET;
@@ -6927,13 +6929,13 @@ int tls_parse_server_key_exchange(struct TLSContext *context, const unsigned cha
     }
 #ifdef TLS_FORWARD_SECRECY
     if (ephemeral == 1) {
-        __private_tls_dhe_create(context);
+        _private_tls_dhe_create(context);
         DEBUG_DUMP_HEX_LABEL("DHP", dh_p, dh_p_len);
         DEBUG_DUMP_HEX_LABEL("DHG", dh_g, dh_g_len);
         int dhe_key_size = dh_p_len;
         if (dh_g_len > dh_p_len)
             dhe_key_size = dh_g_len;
-        if (__private_tls_dh_make_key(dhe_key_size, context->dhe, (const char *)dh_p, (const char *)dh_g, dh_p_len, dh_g_len)) {
+        if (_private_tls_dh_make_key(dhe_key_size, context->dhe, (const char *)dh_p, (const char *)dh_g, dh_p_len, dh_g_len)) {
             DEBUG_PRINT("ERROR CREATING DHE KEY\n");
             TLS_FREE(context->dhe);
             context->dhe = NULL;
@@ -6941,7 +6943,7 @@ int tls_parse_server_key_exchange(struct TLSContext *context, const unsigned cha
         }
         
         unsigned int dh_key_size = 0;
-        unsigned char *key = __private_tls_decrypt_dhe(context, dh_Ys, dh_Ys_len, &dh_key_size, 0);
+        unsigned char *key = _private_tls_decrypt_dhe(context, dh_Ys, dh_Ys_len, &dh_key_size, 0);
         DEBUG_DUMP_HEX_LABEL("DH COMMON SECRET", key, dh_key_size);
         if ((key) && (dh_key_size)) {
             TLS_FREE(context->premaster_key);
@@ -6951,7 +6953,7 @@ int tls_parse_server_key_exchange(struct TLSContext *context, const unsigned cha
     } else
     if ((ephemeral == 2) && (curve) && (pk_key) && (key_size)) {
         tls_init();
-        __private_tls_ecc_dhe_create(context);
+        _private_tls_ecc_dhe_create(context);
         
         ltc_ecc_set_type *dp = (ltc_ecc_set_type *)&curve->dp;
         if (ecc_make_key_ex(NULL, find_prng("sprng"), context->ecc_dhe, dp)) {
@@ -6965,7 +6967,7 @@ int tls_parse_server_key_exchange(struct TLSContext *context, const unsigned cha
         context->premaster_key_len = 0;
         
         unsigned int out_len = 0;
-        context->premaster_key = __private_tls_decrypt_ecc_dhe(context, pk_key, key_size, &out_len, 0);
+        context->premaster_key = _private_tls_decrypt_ecc_dhe(context, pk_key, key_size, &out_len, 0);
         if (context->premaster_key)
             context->premaster_key_len = out_len;
     }
@@ -6986,7 +6988,7 @@ int tls_parse_client_key_exchange(struct TLSContext *context, const unsigned cha
     unsigned int size = buf[0] * 0x10000 + buf[1] * 0x100 + buf[2];
     res += 3;
     if (context->dtls) {
-        int dtls_check = __private_dtls_check_packet(buf, buf_len);
+        int dtls_check = _private_dtls_check_packet(buf, buf_len);
         if (dtls_check < 0)
             return dtls_check;
         res += 8;
@@ -6997,7 +6999,7 @@ int tls_parse_client_key_exchange(struct TLSContext *context, const unsigned cha
     if (!size)
         return res;
     
-    dh_res = __private_tls_parse_random(context, &buf[res], size);
+    dh_res = _private_tls_parse_random(context, &buf[res], size);
     if (dh_res <= 0) {
         DEBUG_PRINT("broken key\n");
         return TLS_BROKEN_PACKET;
@@ -7016,7 +7018,7 @@ int tls_parse_server_hello_done(struct TLSContext *context, const unsigned char 
     unsigned int size = buf[0] * 0x10000 + buf[1] * 0x100 + buf[2];
     res += 3;
     if (context->dtls) {
-        int dtls_check = __private_dtls_check_packet(buf, buf_len);
+        int dtls_check = _private_dtls_check_packet(buf, buf_len);
         if (dtls_check < 0)
             return dtls_check;
         res += 8;
@@ -7041,26 +7043,26 @@ int tls_parse_finished(struct TLSContext *context, const unsigned char *buf, int
     unsigned int size = buf[0] * 0x10000 + buf[1] * 0x100 + buf[2];
     res += 3;
     if (context->dtls) {
-        int dtls_check = __private_dtls_check_packet(buf, buf_len);
+        int dtls_check = _private_dtls_check_packet(buf, buf_len);
         if (dtls_check < 0)
             return dtls_check;
         res += 8;
     }
     
-    if (size < __TLS_MIN_FINISHED_OPAQUE_LEN) {
+    if (size < TLS_MIN_FINISHED_OPAQUE_LEN) {
         DEBUG_PRINT("Invalid finished pachet size: %i\n", size);
         return TLS_BROKEN_PACKET;
     }
     
     CHECK_SIZE(size, buf_len - res, TLS_NEED_MORE_DATA);
     
-    unsigned char hash[__TLS_MAX_SHA_SIZE];
-    unsigned int hash_len = __private_tls_get_hash(context, hash);
+    unsigned char hash[TLS_MAX_SHA_SIZE];
+    unsigned int hash_len = _private_tls_get_hash(context, hash);
 
 #ifdef WITH_TLS_13
     if ((context->version == TLS_V13) || (context->version == DTLS_V13)) {
-        unsigned char hash_out[__TLS_MAX_SHA_SIZE];
-        unsigned long out_size = __TLS_MAX_SHA_SIZE;
+        unsigned char hash_out[TLS_MAX_SHA_SIZE];
+        unsigned long out_size = TLS_MAX_SHA_SIZE;
         if ((!context->remote_finished_key) || (!hash_len)) {
             DEBUG_PRINT("NO FINISHED KEY COMPUTED OR NO HANDSHAKE HASH\n");
             return TLS_NOT_VERIFIED;
@@ -7071,7 +7073,7 @@ int tls_parse_finished(struct TLSContext *context, const unsigned char *buf, int
 
         out_size = hash_len;
         hmac_state hmac;    
-        hmac_init(&hmac, __private_tls_get_hash_idx(context), context->remote_finished_key, hash_len);
+        hmac_init(&hmac, _private_tls_get_hash_idx(context), context->remote_finished_key, hash_len);
         hmac_process(&hmac, hash, hash_len);
         hmac_done(&hmac, hash_out, &out_size);
 
@@ -7084,7 +7086,7 @@ int tls_parse_finished(struct TLSContext *context, const unsigned char *buf, int
         if (context->is_server) {
             context->connection_status = 0xFF;
             res += size;
-            __private_tls13_key(context, 0);
+            _private_tls13_key(context, 0);
             context->local_sequence_number = 0;
             context->remote_sequence_number = 0;
             return res;
@@ -7101,9 +7103,9 @@ int tls_parse_finished(struct TLSContext *context, const unsigned char *buf, int
     
         // server verifies client's message
         if (context->is_server)
-            __private_tls_prf(context, out, size, context->master_key, context->master_key_len, (unsigned char *)"client finished", 15, hash, hash_len, NULL, 0);
+            _private_tls_prf(context, out, size, context->master_key, context->master_key_len, (unsigned char *)"client finished", 15, hash, hash_len, NULL, 0);
         else
-            __private_tls_prf(context, out, size, context->master_key, context->master_key_len, (unsigned char *)"server finished", 15, hash, hash_len, NULL, 0);
+            _private_tls_prf(context, out, size, context->master_key, context->master_key_len, (unsigned char *)"server finished", 15, hash, hash_len, NULL, 0);
     
         if (memcmp(out, &buf[res], size)) {
             TLS_FREE(out);
@@ -7151,10 +7153,10 @@ int tls_parse_verify_tls13(struct TLSContext *context, const unsigned char *buf,
     if (size < 2)
         return buf_len;
 
-    unsigned char out[__TLS_MAX_RSA_KEY];
-    unsigned long out_len = __TLS_MAX_RSA_KEY;
+    unsigned char out[TLS_MAX_RSA_KEY];
+    unsigned long out_len = TLS_MAX_RSA_KEY;
 
-    unsigned char signing_data[__TLS_MAX_HASH_SIZE + 98];
+    unsigned char signing_data[TLS_MAX_HASH_SIZE + 98];
     int signing_data_len;
 
     // first 64 bytes to 0x20 (32)
@@ -7168,7 +7170,7 @@ int tls_parse_verify_tls13(struct TLSContext *context, const unsigned char *buf,
     signing_data[97] = 0;
     signing_data_len = 98;
 
-    signing_data_len += __private_tls_get_hash(context, signing_data + 98);
+    signing_data_len += _private_tls_get_hash(context, signing_data + 98);
     DEBUG_DUMP_HEX_LABEL("signature data", signing_data, signing_data_len);
     unsigned short signature = ntohs(*(unsigned short *)&buf[3]);
     unsigned short signature_size = ntohs(*(unsigned short *)&buf[5]);
@@ -7178,19 +7180,19 @@ int tls_parse_verify_tls13(struct TLSContext *context, const unsigned char *buf,
 #ifdef TLS_ECDSA_SUPPORTED
         case 0x0403:
             // secp256r1 + sha256
-            valid = __private_tls_verify_ecdsa(context, sha256, buf + 7, signature_size, signing_data, signing_data_len, &secp256r1);
+            valid = _private_tls_verify_ecdsa(context, sha256, buf + 7, signature_size, signing_data, signing_data_len, &secp256r1);
             break;
         case 0x0503:
             // secp384r1 + sha384
-            valid = __private_tls_verify_ecdsa(context, sha384, buf + 7, signature_size, signing_data, signing_data_len, &secp384r1);
+            valid = _private_tls_verify_ecdsa(context, sha384, buf + 7, signature_size, signing_data, signing_data_len, &secp384r1);
             break;
         case 0x0603:
             // secp521r1 + sha512
-            valid = __private_tls_verify_ecdsa(context, sha512, buf + 7, signature_size, signing_data, signing_data_len, &secp521r1);
+            valid = _private_tls_verify_ecdsa(context, sha512, buf + 7, signature_size, signing_data, signing_data_len, &secp521r1);
             break;
 #endif
         case 0x0804:
-            valid = __private_tls_verify_rsa(context, sha256, buf + 7, signature_size, signing_data, signing_data_len);
+            valid = _private_tls_verify_rsa(context, sha256, buf + 7, signature_size, signing_data, signing_data_len);
             break;
         default:
             DEBUG_PRINT("Unsupported signature: %x\n", (int)signature);
@@ -7224,12 +7226,12 @@ int tls_parse_verify(struct TLSContext *context, const unsigned char *buf, int b
         DEBUG_PRINT("ALGORITHM %i/%i (%i)\n", hash, algorithm, (int)size);
         DEBUG_DUMP_HEX_LABEL("VERIFY", &buf[7], bytes_to_follow - 7);
         
-        res = __private_tls_verify_rsa(context, hash, &buf[7], size, context->cached_handshake, context->cached_handshake_len);
+        res = _private_tls_verify_rsa(context, hash, &buf[7], size, context->cached_handshake, context->cached_handshake_len);
     } else {
 #ifdef TLS_LEGACY_SUPPORT
         unsigned short size = ntohs(*(unsigned short *)&buf[3]);
         CHECK_SIZE(size, bytes_to_follow - 2, TLS_BAD_CERTIFICATE)
-        res = __private_tls_verify_rsa(context, md5, &buf[5], size, context->cached_handshake, context->cached_handshake_len);
+        res = _private_tls_verify_rsa(context, md5, &buf[5], size, context->cached_handshake, context->cached_handshake_len);
 #endif
     }
     if (context->cached_handshake) {
@@ -7253,7 +7255,7 @@ int tls_parse_payload(struct TLSContext *context, const unsigned char *buf, int 
     if (context->connection_status == 0xFF) {
 #ifndef TLS_ACCEPT_SECURE_RENEGOTIATION
         // renegotiation disabled (emit warning alert)
-        __private_tls_write_packet(tls_build_alert(context, 0, no_renegotiation));
+        _private_tls_write_packet(tls_build_alert(context, 0, no_renegotiation));
         return 1;
 #endif
     }
@@ -7286,8 +7288,8 @@ int tls_parse_payload(struct TLSContext *context, const unsigned char *buf, int 
                         if (context->critical_error)
                             payload_res = TLS_UNEXPECTED_MESSAGE;
                         else {
-                            __private_tls_reset_context(context);
-                            __private_tls_write_packet(tls_build_hello(context, 0));
+                            _private_tls_reset_context(context);
+                            _private_tls_write_packet(tls_build_hello(context, 0));
                             return 1;
                         }
 #else
@@ -7435,53 +7437,53 @@ int tls_parse_payload(struct TLSContext *context, const unsigned char *buf, int 
                 return TLS_NOT_UNDERSTOOD;
         }
         if ((type != 0x00) && (update_hash))
-            __private_tls_update_hash(context, buf, payload_size + 1);
+            _private_tls_update_hash(context, buf, payload_size + 1);
         
         if (certificate_verify_alert != no_error) {
-            __private_tls_write_packet(tls_build_alert(context, 1, certificate_verify_alert));
+            _private_tls_write_packet(tls_build_alert(context, 1, certificate_verify_alert));
             context->critical_error = 1;
         }
         
         if (payload_res < 0) {
             switch (payload_res) {
                 case TLS_UNEXPECTED_MESSAGE:
-                    __private_tls_write_packet(tls_build_alert(context, 1, unexpected_message));
+                    _private_tls_write_packet(tls_build_alert(context, 1, unexpected_message));
                     break;
                 case TLS_COMPRESSION_NOT_SUPPORTED:
-                    __private_tls_write_packet(tls_build_alert(context, 1, decompression_failure));
+                    _private_tls_write_packet(tls_build_alert(context, 1, decompression_failure));
                     break;
                 case TLS_BROKEN_PACKET:
-                    __private_tls_write_packet(tls_build_alert(context, 1, decode_error));
+                    _private_tls_write_packet(tls_build_alert(context, 1, decode_error));
                     break;
                 case TLS_NO_MEMORY:
-                    __private_tls_write_packet(tls_build_alert(context, 1, internal_error));
+                    _private_tls_write_packet(tls_build_alert(context, 1, internal_error));
                     break;
                 case TLS_NOT_VERIFIED:
-                    __private_tls_write_packet(tls_build_alert(context, 1, bad_record_mac));
+                    _private_tls_write_packet(tls_build_alert(context, 1, bad_record_mac));
                     break;
                 case TLS_BAD_CERTIFICATE:
                     if (context->is_server) {
                         // bad client certificate, continue
-                        __private_tls_write_packet(tls_build_alert(context, 0, bad_certificate));
+                        _private_tls_write_packet(tls_build_alert(context, 0, bad_certificate));
                         payload_res = 0;
                     } else
-                        __private_tls_write_packet(tls_build_alert(context, 1, bad_certificate));
+                        _private_tls_write_packet(tls_build_alert(context, 1, bad_certificate));
                     break;
                 case TLS_UNSUPPORTED_CERTIFICATE:
-                    __private_tls_write_packet(tls_build_alert(context, 1, unsupported_certificate));
+                    _private_tls_write_packet(tls_build_alert(context, 1, unsupported_certificate));
                     break;
                 case TLS_NO_COMMON_CIPHER:
-                    __private_tls_write_packet(tls_build_alert(context, 1, insufficient_security));
+                    _private_tls_write_packet(tls_build_alert(context, 1, insufficient_security));
                     break;
                 case TLS_NOT_UNDERSTOOD:
-                    __private_tls_write_packet(tls_build_alert(context, 1, internal_error));
+                    _private_tls_write_packet(tls_build_alert(context, 1, internal_error));
                     break;
                 case TLS_NO_RENEGOTIATION:
-                    __private_tls_write_packet(tls_build_alert(context, 0, no_renegotiation));
+                    _private_tls_write_packet(tls_build_alert(context, 0, no_renegotiation));
                     payload_res = 0;
                     break;
                 case TLS_DECRYPTION_FAILED:
-                    __private_tls_write_packet(tls_build_alert(context, 1, decryption_failed_RESERVED));
+                    _private_tls_write_packet(tls_build_alert(context, 1, decryption_failed_RESERVED));
                     break;
             }
             if (payload_res < 0)
@@ -7495,86 +7497,86 @@ int tls_parse_payload(struct TLSContext *context, const unsigned char *buf, int 
             case 1:
                 if (context->client_verified == 2) {
                     DEBUG_PRINT("<= Building CERTIFICATE \n");
-                    __private_tls_write_packet(tls_build_certificate(context));
+                    _private_tls_write_packet(tls_build_certificate(context));
                     context->client_verified = 0;
                 }
                 // client handshake
                 DEBUG_PRINT("<= Building KEY EXCHANGE\n");
-                __private_tls_write_packet(tls_build_client_key_exchange(context));
+                _private_tls_write_packet(tls_build_client_key_exchange(context));
                 DEBUG_PRINT("<= Building CHANGE CIPHER SPEC\n");
-                __private_tls_write_packet(tls_build_change_cipher_spec(context));
+                _private_tls_write_packet(tls_build_change_cipher_spec(context));
                 context->cipher_spec_set = 1;
                 context->local_sequence_number = 0;
                 DEBUG_PRINT("<= Building CLIENT FINISHED\n");
-                __private_tls_write_packet(tls_build_finished(context));
+                _private_tls_write_packet(tls_build_finished(context));
                 context->cipher_spec_set = 0;
                 break;
             case 2:
                 // server handshake
                 if ((context->dtls) && (dtls_cookie_verified == 0)) {
-                    __private_tls_write_packet(tls_build_verify_request(context));
-                    __private_dtls_reset(context);
+                    _private_tls_write_packet(tls_build_verify_request(context));
+                    _private_dtls_reset(context);
                 } else {
                     DEBUG_PRINT("<= SENDING SERVER HELLO\n");
 #ifdef WITH_TLS_13
                     if (context->connection_status == 3) {
                         context->connection_status = 2;
-                        __private_tls_write_packet(tls_build_hello(context, 0));
-                        __private_tls_write_packet(tls_build_change_cipher_spec(context));
-                        __private_tls13_key(context, 1);
+                        _private_tls_write_packet(tls_build_hello(context, 0));
+                        _private_tls_write_packet(tls_build_change_cipher_spec(context));
+                        _private_tls13_key(context, 1);
                         context->cipher_spec_set = 1;
                         DEBUG_PRINT("<= SENDING ENCRYPTED EXTENSIONS\n");
-                        __private_tls_write_packet(tls_build_encrypted_extensions(context));
+                        _private_tls_write_packet(tls_build_encrypted_extensions(context));
                         if (context->request_client_certificate) {
                             DEBUG_PRINT("<= SENDING CERTIFICATE REQUEST\n");
-                            __private_tls_write_packet(tls_certificate_request(context));
+                            _private_tls_write_packet(tls_certificate_request(context));
                         }
                         DEBUG_PRINT("<= SENDING CERTIFICATE\n");
-                        __private_tls_write_packet(tls_build_certificate(context));
+                        _private_tls_write_packet(tls_build_certificate(context));
                         DEBUG_PRINT("<= SENDING CERTIFICATE VERIFY\n");
-                        __private_tls_write_packet(tls_build_certificate_verify(context));
+                        _private_tls_write_packet(tls_build_certificate_verify(context));
                         DEBUG_PRINT("<= SENDING FINISHED\n");
-                        __private_tls_write_packet(tls_build_finished(context));
+                        _private_tls_write_packet(tls_build_finished(context));
                         // new key
                         TLS_FREE(context->server_finished_hash);
-                        context->server_finished_hash = (unsigned char *)TLS_MALLOC(__private_tls_mac_length(context));
+                        context->server_finished_hash = (unsigned char *)TLS_MALLOC(_private_tls_mac_length(context));
                         if (context->server_finished_hash)
-                            __private_tls_get_hash(context, context->server_finished_hash);
+                            _private_tls_get_hash(context, context->server_finished_hash);
                         break;
                     }
 #endif
-                    __private_tls_write_packet(tls_build_hello(context, 0));
+                    _private_tls_write_packet(tls_build_hello(context, 0));
                     DEBUG_PRINT("<= SENDING CERTIFICATE\n");
-                    __private_tls_write_packet(tls_build_certificate(context));
+                    _private_tls_write_packet(tls_build_certificate(context));
                     int ephemeral_cipher = tls_cipher_is_ephemeral(context);
                     if (ephemeral_cipher) {
                         DEBUG_PRINT("<= SENDING EPHEMERAL DH KEY\n");
-                        __private_tls_write_packet(tls_build_server_key_exchange(context, ephemeral_cipher == 1 ? KEA_dhe_rsa : KEA_ec_diffie_hellman));
+                        _private_tls_write_packet(tls_build_server_key_exchange(context, ephemeral_cipher == 1 ? KEA_dhe_rsa : KEA_ec_diffie_hellman));
                     }
                     if (context->request_client_certificate) {
                         DEBUG_PRINT("<= SENDING CERTIFICATE REQUEST\n");
-                        __private_tls_write_packet(tls_certificate_request(context));
+                        _private_tls_write_packet(tls_certificate_request(context));
                     }
                     DEBUG_PRINT("<= SENDING DONE\n");
-                    __private_tls_write_packet(tls_build_done(context));
+                    _private_tls_write_packet(tls_build_done(context));
                 }
                 break;
             case 3:
                 // finished
-                __private_tls_write_packet(tls_build_change_cipher_spec(context));
-                __private_tls_write_packet(tls_build_finished(context));
+                _private_tls_write_packet(tls_build_change_cipher_spec(context));
+                _private_tls_write_packet(tls_build_finished(context));
                 context->connection_status = 0xFF;
                 break;
             case 4:
                 // dtls only
                 context->dtls_seq = 1;
-                __private_tls_write_packet(tls_build_hello(context, 0));
+                _private_tls_write_packet(tls_build_hello(context, 0));
                 break;
 #ifdef WITH_TLS_13
             case 5:
                 // hello retry request
                 DEBUG_PRINT("<= SENDING HELLO RETRY REQUEST\n");
-                __private_tls_write_packet(tls_build_hello(context, 0));
+                _private_tls_write_packet(tls_build_hello(context, 0));
                 break;
 #endif
         }
@@ -7585,14 +7587,14 @@ int tls_parse_payload(struct TLSContext *context, const unsigned char *buf, int 
     return orig_len;
 }
 
-unsigned int __private_tls_hmac_message(unsigned char local, struct TLSContext *context, const unsigned char *buf, int buf_len, const unsigned char *buf2, int buf_len2, unsigned char *out, unsigned int outlen, uint64_t remote_sequence_number) {
+unsigned int _private_tls_hmac_message(unsigned char local, struct TLSContext *context, const unsigned char *buf, int buf_len, const unsigned char *buf2, int buf_len2, unsigned char *out, unsigned int outlen, uint64_t remote_sequence_number) {
     hmac_state hash;
     int mac_size = outlen;
     int hash_idx;
-    if (mac_size == __TLS_SHA1_MAC_SIZE)
+    if (mac_size == TLS_SHA1_MAC_SIZE)
         hash_idx = find_hash("sha1");
     else
-    if (mac_size == __TLS_SHA384_MAC_SIZE)
+    if (mac_size == TLS_SHA384_MAC_SIZE)
         hash_idx = find_hash("sha384");
     else
         hash_idx = find_hash("sha256");
@@ -7662,13 +7664,13 @@ int tls_parse_message(struct TLSContext *context, unsigned char *buf, int buf_le
         DEBUG_DUMP_HEX_LABEL("encrypted", &buf[header_size], length);
         if (!context->crypto.created) {
             DEBUG_PRINT("Encryption context not created\n");
-            __private_random_sleep(context, __TLS_MAX_ERROR_SLEEP_uS);
+            _private_random_sleep(context, TLS_MAX_ERROR_SLEEP_uS);
             return TLS_BROKEN_PACKET;
         }
         pt = (unsigned char *)TLS_MALLOC(length);
         if (!pt) {
             DEBUG_PRINT("Error in TLS_MALLOC (%i bytes)\n", (int)length);
-            __private_random_sleep(context, __TLS_MAX_ERROR_SLEEP_uS);
+            _private_random_sleep(context, TLS_MAX_ERROR_SLEEP_uS);
             return TLS_NO_MEMORY;
         }
 
@@ -7679,7 +7681,7 @@ int tls_parse_message(struct TLSContext *context, unsigned char *buf, int buf_le
         if (context->crypto.created == 2) {
             int delta = 8;
             int pt_length;
-            unsigned char iv[__TLS_13_AES_GCM_IV_LENGTH];
+            unsigned char iv[TLS_13_AES_GCM_IV_LENGTH];
             gcm_reset(&context->crypto.ctx_remote.aes_gcm_remote);
 
 #ifdef WITH_TLS_13
@@ -7694,17 +7696,17 @@ int tls_parse_message(struct TLSContext *context, unsigned char *buf, int buf_le
                     *((uint64_t *)sequence) = *(uint64_t *)&buf[3];
                 else
                     *((uint64_t *)sequence) = htonll(context->remote_sequence_number);
-                memcpy(iv, context->crypto.ctx_remote_mac.remote_iv, __TLS_13_AES_GCM_IV_LENGTH);
+                memcpy(iv, context->crypto.ctx_remote_mac.remote_iv, TLS_13_AES_GCM_IV_LENGTH);
                 int i;
-                int offset = __TLS_13_AES_GCM_IV_LENGTH - 8;
+                int offset = TLS_13_AES_GCM_IV_LENGTH - 8;
                 for (i = 0; i < 8; i++)
                     iv[offset + i] = context->crypto.ctx_remote_mac.remote_aead_iv[offset + i] ^ sequence[i];
-                pt_length = buf_len - header_size - __TLS_GCM_TAG_LEN;
+                pt_length = buf_len - header_size - TLS_GCM_TAG_LEN;
                 delta = 0;
             } else {
 #endif
                 aad_size = 13;
-                pt_length = length - 8 - __TLS_GCM_TAG_LEN;
+                pt_length = length - 8 - TLS_GCM_TAG_LEN;
                 // build aad and iv
                 if (context->dtls)
                     *((uint64_t *)aad) = htonll(dtls_sequence_number);
@@ -7723,7 +7725,7 @@ int tls_parse_message(struct TLSContext *context, unsigned char *buf, int buf_le
             if (pt_length < 0) {
                 DEBUG_PRINT("Invalid packet length");
                 TLS_FREE(pt);
-                __private_random_sleep(context, __TLS_MAX_ERROR_SLEEP_uS);
+                _private_random_sleep(context, TLS_MAX_ERROR_SLEEP_uS);
                 return TLS_BROKEN_PACKET;
             }
             DEBUG_DUMP_HEX_LABEL("aad", aad, aad_size);
@@ -7737,9 +7739,9 @@ int tls_parse_message(struct TLSContext *context, unsigned char *buf, int buf_le
             unsigned char tag[32];
             unsigned long taglen = 32;
             int res3 = gcm_done(&context->crypto.ctx_remote.aes_gcm_remote, tag, &taglen);
-            if ((res0) || (res1) || (res2) || (res3) || (taglen != __TLS_GCM_TAG_LEN)) {
+            if ((res0) || (res1) || (res2) || (res3) || (taglen != TLS_GCM_TAG_LEN)) {
                 DEBUG_PRINT("ERROR: gcm_add_iv: %i, gcm_add_aad: %i, gcm_process: %i, gcm_done: %i\n", res0, res1, res2, res3);
-                __private_random_sleep(context, __TLS_MAX_ERROR_SLEEP_uS);
+                _private_random_sleep(context, TLS_MAX_ERROR_SLEEP_uS);
                 return TLS_BROKEN_PACKET;
             }
             DEBUG_DUMP_HEX_LABEL("decrypted", pt, pt_length);
@@ -7750,8 +7752,8 @@ int tls_parse_message(struct TLSContext *context, unsigned char *buf, int buf_le
                 DEBUG_DUMP_HEX_LABEL("TAG RECEIVED", buf + header_size + delta + pt_length, taglen);
                 DEBUG_DUMP_HEX_LABEL("TAG COMPUTED", tag, taglen);
                 TLS_FREE(pt);
-                __private_random_sleep(context, __TLS_MAX_ERROR_SLEEP_uS);
-                __private_tls_write_packet(tls_build_alert(context, 1, bad_record_mac));
+                _private_random_sleep(context, TLS_MAX_ERROR_SLEEP_uS);
+                _private_tls_write_packet(tls_build_alert(context, 1, bad_record_mac));
                 return TLS_INTEGRITY_FAILED;
             }
             ptr = pt;
@@ -7768,7 +7770,7 @@ int tls_parse_message(struct TLSContext *context, unsigned char *buf, int buf_le
             if (pt_length < 0) {
                 DEBUG_PRINT("Invalid packet length");
                 TLS_FREE(pt);
-                __private_random_sleep(context, __TLS_MAX_ERROR_SLEEP_uS);
+                _private_random_sleep(context, TLS_MAX_ERROR_SLEEP_uS);
                 return TLS_BROKEN_PACKET;
             }
 #ifdef WITH_TLS_13
@@ -7809,24 +7811,24 @@ int tls_parse_message(struct TLSContext *context, unsigned char *buf, int buf_le
 
             chacha20_poly1305_key(&context->crypto.ctx_remote.chacha_remote, poly1305_key);
             poly1305_context ctx;
-            __private_tls_poly1305_init(&ctx, poly1305_key);
-            __private_tls_poly1305_update(&ctx, aad, aad_size);
+            _private_tls_poly1305_init(&ctx, poly1305_key);
+            _private_tls_poly1305_update(&ctx, aad, aad_size);
             static unsigned char zeropad[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
             int rem = aad_size % 16;
             if (rem)
-                __private_tls_poly1305_update(&ctx, zeropad, 16 - rem);
-            __private_tls_poly1305_update(&ctx, buf + header_size, pt_length);
+                _private_tls_poly1305_update(&ctx, zeropad, 16 - rem);
+            _private_tls_poly1305_update(&ctx, buf + header_size, pt_length);
             rem = pt_length % 16;
             if (rem)
-                __private_tls_poly1305_update(&ctx, zeropad, 16 - rem);
+                _private_tls_poly1305_update(&ctx, zeropad, 16 - rem);
             
-            __private_tls_U32TO8(&trail[0], aad_size == 5 ? 5 : 13);
+            _private_tls_U32TO8(&trail[0], aad_size == 5 ? 5 : 13);
             *(int *)&trail[4] = 0;
-            __private_tls_U32TO8(&trail[8], pt_length);
+            _private_tls_U32TO8(&trail[8], pt_length);
             *(int *)&trail[12] = 0;
 
-            __private_tls_poly1305_update(&ctx, trail, 16);
-            __private_tls_poly1305_finish(&ctx, mac_tag);
+            _private_tls_poly1305_update(&ctx, trail, 16);
+            _private_tls_poly1305_finish(&ctx, mac_tag);
             if (memcmp(mac_tag, buf + header_size + pt_length, POLY1305_TAGLEN)) {
                 DEBUG_PRINT("INTEGRITY CHECK FAILED (msg length %i)\n", length);
                 DEBUG_DUMP_HEX_LABEL("POLY1305 TAG RECEIVED", buf + header_size + pt_length, POLY1305_TAGLEN);
@@ -7837,17 +7839,17 @@ int tls_parse_message(struct TLSContext *context, unsigned char *buf, int buf_le
                 if (context->dtls)
                     return header_size + length;
 
-                __private_random_sleep(context, __TLS_MAX_ERROR_SLEEP_uS);
-                __private_tls_write_packet(tls_build_alert(context, 1, bad_record_mac));
+                _private_random_sleep(context, TLS_MAX_ERROR_SLEEP_uS);
+                _private_tls_write_packet(tls_build_alert(context, 1, bad_record_mac));
                 return TLS_INTEGRITY_FAILED;
             }
 #endif
         } else {
-            int err = __private_tls_crypto_decrypt(context, buf + header_size, pt, length);
+            int err = _private_tls_crypto_decrypt(context, buf + header_size, pt, length);
             if (err) {
                 TLS_FREE(pt);
                 DEBUG_PRINT("Decryption error %i\n", (int)err);
-                __private_random_sleep(context, __TLS_MAX_ERROR_SLEEP_uS);
+                _private_random_sleep(context, TLS_MAX_ERROR_SLEEP_uS);
                 return TLS_BROKEN_PACKET;
             }
             unsigned char padding_byte = pt[length - 1];
@@ -7862,8 +7864,8 @@ int tls_parse_message(struct TLSContext *context, unsigned char *buf, int buf_le
                     if (pt[i] != padding_byte) {
                         TLS_FREE(pt);
                         DEBUG_PRINT("BROKEN PACKET (POODLE ?)\n");
-                        __private_random_sleep(context, __TLS_MAX_ERROR_SLEEP_uS);
-                        __private_tls_write_packet(tls_build_alert(context, 1, decrypt_error));
+                        _private_random_sleep(context, TLS_MAX_ERROR_SLEEP_uS);
+                        _private_tls_write_packet(tls_build_alert(context, 1, decrypt_error));
                         return TLS_BROKEN_PACKET;
                     }
                 }
@@ -7876,35 +7878,35 @@ int tls_parse_message(struct TLSContext *context, unsigned char *buf, int buf_le
             DEBUG_DUMP_HEX_LABEL("decrypted", pt, decrypted_length);
             ptr = pt;
 #ifdef TLS_LEGACY_SUPPORT
-            if ((context->version != TLS_V10) && (decrypted_length > __TLS_AES_IV_LENGTH)) {
-                decrypted_length -= __TLS_AES_IV_LENGTH;
-                ptr += __TLS_AES_IV_LENGTH;
+            if ((context->version != TLS_V10) && (decrypted_length > TLS_AES_IV_LENGTH)) {
+                decrypted_length -= TLS_AES_IV_LENGTH;
+                ptr += TLS_AES_IV_LENGTH;
             }
 #else
-            if (decrypted_length > __TLS_AES_IV_LENGTH) {
-                decrypted_length -= __TLS_AES_IV_LENGTH;
-                ptr += __TLS_AES_IV_LENGTH;
+            if (decrypted_length > TLS_AES_IV_LENGTH) {
+                decrypted_length -= TLS_AES_IV_LENGTH;
+                ptr += TLS_AES_IV_LENGTH;
             }
 #endif
             length = decrypted_length;
             
-            unsigned int mac_size = __private_tls_mac_length(context);
+            unsigned int mac_size = _private_tls_mac_length(context);
             if ((length < mac_size) || (!mac_size)) {
                 TLS_FREE(pt);
                 DEBUG_PRINT("BROKEN PACKET\n");
-                __private_random_sleep(context, __TLS_MAX_ERROR_SLEEP_uS);
-                __private_tls_write_packet(tls_build_alert(context, 1, decrypt_error));
+                _private_random_sleep(context, TLS_MAX_ERROR_SLEEP_uS);
+                _private_tls_write_packet(tls_build_alert(context, 1, decrypt_error));
                 return TLS_BROKEN_PACKET;
             }
             
             length -= mac_size;
             
             const unsigned char *message_hmac = &ptr[length];
-            unsigned char hmac_out[__TLS_MAX_MAC_SIZE];
+            unsigned char hmac_out[TLS_MAX_MAC_SIZE];
             unsigned char temp_buf[5];
             memcpy(temp_buf, buf, 3);
             *(unsigned short *)&temp_buf[3] = htons(length);
-            unsigned int hmac_out_len = __private_tls_hmac_message(0, context, temp_buf, 5, ptr, length, hmac_out, mac_size, dtls_sequence_number);
+            unsigned int hmac_out_len = _private_tls_hmac_message(0, context, temp_buf, 5, ptr, length, hmac_out, mac_size, dtls_sequence_number);
             if ((hmac_out_len != mac_size) || (memcmp(message_hmac, hmac_out, mac_size))) {
                 DEBUG_PRINT("INTEGRITY CHECK FAILED (msg length %i)\n", length);
                 DEBUG_DUMP_HEX_LABEL("HMAC RECEIVED", message_hmac, mac_size);
@@ -7915,8 +7917,8 @@ int tls_parse_message(struct TLSContext *context, unsigned char *buf, int buf_le
                 if (context->dtls)
                     return header_size + length;
 
-                __private_random_sleep(context, __TLS_MAX_ERROR_SLEEP_uS);
-                __private_tls_write_packet(tls_build_alert(context, 1, bad_record_mac));
+                _private_random_sleep(context, TLS_MAX_ERROR_SLEEP_uS);
+                _private_tls_write_packet(tls_build_alert(context, 1, bad_record_mac));
 
                 return TLS_INTEGRITY_FAILED;
             }
@@ -7939,12 +7941,12 @@ int tls_parse_message(struct TLSContext *context, unsigned char *buf, int buf_le
             if (context->connection_status != 0xFF) {
                 DEBUG_PRINT("UNEXPECTED APPLICATION DATA MESSAGE\n");
                 payload_res = TLS_UNEXPECTED_MESSAGE;
-                __private_tls_write_packet(tls_build_alert(context, 1, unexpected_message));
+                _private_tls_write_packet(tls_build_alert(context, 1, unexpected_message));
             } else {
                 DEBUG_PRINT("APPLICATION DATA MESSAGE (TLS VERSION: %x):\n", (int)context->version);
                 DEBUG_DUMP(ptr, length);
                 DEBUG_PRINT("\n");
-                __private_tls_write_app_data(context, ptr, length);
+                _private_tls_write_app_data(context, ptr, length);
             }
             break;
             // handshake
@@ -7963,7 +7965,7 @@ int tls_parse_message(struct TLSContext *context, unsigned char *buf, int buf_le
                 }
 #endif
                 DEBUG_PRINT("UNEXPECTED CHANGE CIPHER SPEC MESSAGE (%i)\n", context->connection_status);
-                __private_tls_write_packet(tls_build_alert(context, 1, unexpected_message));
+                _private_tls_write_packet(tls_build_alert(context, 1, unexpected_message));
                 payload_res = TLS_UNEXPECTED_MESSAGE;
             } else {
                 DEBUG_PRINT("CHANGE CIPHER SPEC MESSAGE\n");
@@ -8047,7 +8049,7 @@ void print_index(const unsigned int *fields) {
     }
 }
 
-int __is_field(const unsigned int *fields, const unsigned int *prefix) {
+int _is_field(const unsigned int *fields, const unsigned int *prefix) {
     int i = 0;
     while (prefix[i]) {
         if (fields[i] != prefix[i])
@@ -8057,7 +8059,7 @@ int __is_field(const unsigned int *fields, const unsigned int *prefix) {
     return 1;
 }
 
-int __private_tls_hash_len(int algorithm) {
+int _private_tls_hash_len(int algorithm) {
     switch (algorithm) {
         case TLS_RSA_SIGN_MD5:
             return 16;
@@ -8073,7 +8075,7 @@ int __private_tls_hash_len(int algorithm) {
     return 0;
 }
 
-unsigned char *__private_tls_compute_hash(int algorithm, const unsigned char *message, unsigned int message_len) {
+unsigned char *_private_tls_compute_hash(int algorithm, const unsigned char *message, unsigned int message_len) {
     unsigned char *hash = NULL;
     if ((!message) || (!message_len))
         return hash;
@@ -8157,7 +8159,7 @@ int tls_certificate_verify_signature(struct TLSCertificate *cert, struct TLSCert
         return 0;
     }
     tls_init();
-    int hash_len = __private_tls_hash_len(cert->algorithm);
+    int hash_len = _private_tls_hash_len(cert->algorithm);
     if (hash_len <= 0)
         return 0;
     
@@ -8247,19 +8249,19 @@ int tls_certificate_chain_is_valid_root(struct TLSContext *context, struct TLSCe
     return bad_certificate;
 }
 
-int __private_is_oid(struct __private_OID_chain *ref_chain, const unsigned char *looked_oid, int looked_oid_len) {
+int _private_is_oid(struct _private_OID_chain *ref_chain, const unsigned char *looked_oid, int looked_oid_len) {
     while (ref_chain) {
         if (ref_chain->oid) {
-            if (__is_oid2(ref_chain->oid, looked_oid, 16, looked_oid_len))
+            if (_is_oid2(ref_chain->oid, looked_oid, 16, looked_oid_len))
                 return 1;
         }
-        ref_chain = (struct __private_OID_chain *)ref_chain->top;
+        ref_chain = (struct _private_OID_chain *)ref_chain->top;
     }
     return 0;
 }
 
-int __private_asn1_parse(struct TLSContext *context, struct TLSCertificate *cert, const unsigned char *buffer, int size, int level, unsigned int *fields, unsigned char *has_key, int client_cert, unsigned char *top_oid, struct __private_OID_chain *chain) {
-    struct __private_OID_chain local_chain;
+int _private_asn1_parse(struct TLSContext *context, struct TLSCertificate *cert, const unsigned char *buffer, int size, int level, unsigned int *fields, unsigned char *has_key, int client_cert, unsigned char *top_oid, struct _private_OID_chain *chain) {
+    struct _private_OID_chain local_chain;
     local_chain.top = chain;
     int pos = 0;
     // X.690
@@ -8282,7 +8284,7 @@ int __private_asn1_parse(struct TLSContext *context, struct TLSCertificate *cert
         unsigned int octets = 0;
         unsigned int temp;
         idx++;
-        if (level <= __TLS_ASN1_MAXLEVEL)
+        if (level <= TLS_ASN1_MAXLEVEL)
             fields[level - 1] = idx;
         unsigned int length = asn1_get_len((unsigned char *)&buffer[pos], size - pos, &octets);
         if ((octets > 4) || (octets > size - pos))  {
@@ -8313,7 +8315,7 @@ int __private_asn1_parse(struct TLSContext *context, struct TLSCertificate *cert
                         cert_data = &buffer[start_pos];
                     }
                     // private key on server or public key on client
-                    if ((!cert->version) && (__is_field(fields, priv_der_id))) {
+                    if ((!cert->version) && (_is_field(fields, priv_der_id))) {
                         TLS_FREE(cert->der_bytes);
                         temp = length + (pos - start_pos);
                         cert->der_bytes = (unsigned char *)TLS_MALLOC(temp);
@@ -8336,8 +8338,8 @@ int __private_asn1_parse(struct TLSContext *context, struct TLSCertificate *cert
                     DEBUG_PRINT("CONSTRUCT TYPE %02X\n", (int)type);
             }
             local_has_key = 0;
-            __private_asn1_parse(context, cert, &buffer[pos], length, level + 1, fields, &local_has_key, client_cert, top_oid, &local_chain);
-            if ((((local_has_key) && (context) && ((!context->is_server) || (client_cert))) || (!context)) && (__is_field(fields, pk_id))) {
+            _private_asn1_parse(context, cert, &buffer[pos], length, level + 1, fields, &local_has_key, client_cert, top_oid, &local_chain);
+            if ((((local_has_key) && (context) && ((!context->is_server) || (client_cert))) || (!context)) && (_is_field(fields, pk_id))) {
                 TLS_FREE(cert->der_bytes);
                 temp = length + (pos - start_pos);
                 cert->der_bytes = (unsigned char *)TLS_MALLOC(temp);
@@ -8361,7 +8363,7 @@ int __private_asn1_parse(struct TLSContext *context, struct TLSCertificate *cert
                     break;
                 case 0x02:
                     // integer
-                    if (__is_field(fields, pk_id)) {
+                    if (_is_field(fields, pk_id)) {
                         if (has_key)
                             *has_key = 1;
                         
@@ -8371,9 +8373,9 @@ int __private_asn1_parse(struct TLSContext *context, struct TLSCertificate *cert
                         if (idx == 2)
                             tls_certificate_set_exponent(cert, &buffer[pos], length);
                     } else
-                    if (__is_field(fields, serial_id))
+                    if (_is_field(fields, serial_id))
                         tls_certificate_set_serial(cert, &buffer[pos], length);
-                    if (__is_field(fields, version_id)) {
+                    if (_is_field(fields, version_id)) {
                         if (length == 1)
                             cert->version = buffer[pos];
 #ifdef TLS_X509_V1_SUPPORT
@@ -8387,13 +8389,13 @@ int __private_asn1_parse(struct TLSContext *context, struct TLSCertificate *cert
                         fields_temp[0] = fields[level - 2];
                         fields_temp[1] = fields[level - 1];
                         fields_temp[2] = 0;
-                        if (__is_field(fields_temp, priv_id))
+                        if (_is_field(fields_temp, priv_id))
                             tls_certificate_set_priv(cert, &buffer[pos], length);
                     }
                     DEBUG_PRINT("INTEGER(%i): ", length);
                     DEBUG_DUMP_HEX(&buffer[pos], length);
                     if ((chain) && (length > 2)) {
-                        if (__private_is_oid(chain, san_oid, sizeof(san_oid) - 1)) {
+                        if (_private_is_oid(chain, san_oid, sizeof(san_oid) - 1)) {
                             cert->san = (unsigned char **)TLS_REALLOC(cert->san, sizeof(unsigned char *) * (cert->san_length + 1));
                             if (cert->san) {
                                 cert->san[cert->san_length] = NULL;
@@ -8407,7 +8409,7 @@ int __private_asn1_parse(struct TLSContext *context, struct TLSCertificate *cert
                     DEBUG_PRINT("\n");
                     break;
                 case 0x03:
-                    if (__is_field(fields, pk_id)) {
+                    if (_is_field(fields, pk_id)) {
                         if (has_key)
                             *has_key = 1;                        
                     }
@@ -8415,29 +8417,29 @@ int __private_asn1_parse(struct TLSContext *context, struct TLSCertificate *cert
                     DEBUG_PRINT("BITSTREAM(%i): ", length);
                     DEBUG_DUMP_HEX(&buffer[pos], length);
                     DEBUG_PRINT("\n");
-                    if (__is_field(fields, sign_id)) {
+                    if (_is_field(fields, sign_id)) {
                         tls_certificate_set_sign_key(cert, &buffer[pos], length);
                     } else
-                    if ((cert->ec_algorithm) && (__is_field(fields, pk_id))) {
+                    if ((cert->ec_algorithm) && (_is_field(fields, pk_id))) {
                         tls_certificate_set_key(cert, &buffer[pos], length);
                     } else {
                         if ((buffer[pos] == 0x00) && (length > 256))
-                            __private_asn1_parse(context, cert, &buffer[pos]+1, length - 1, level + 1, fields, &local_has_key, client_cert, top_oid, &local_chain);
+                            _private_asn1_parse(context, cert, &buffer[pos]+1, length - 1, level + 1, fields, &local_has_key, client_cert, top_oid, &local_chain);
                         else
-                            __private_asn1_parse(context, cert, &buffer[pos], length, level + 1, fields, &local_has_key, client_cert, top_oid, &local_chain);
+                            _private_asn1_parse(context, cert, &buffer[pos], length, level + 1, fields, &local_has_key, client_cert, top_oid, &local_chain);
 #ifdef TLS_FORWARD_SECRECY
     #ifdef TLS_ECDSA_SUPPORTED
                         if (top_oid) {
-                            if (__is_oid2(top_oid, TLS_EC_prime256v1_OID, sizeof(oid), sizeof(TLS_EC_prime256v1) - 1)) {
+                            if (_is_oid2(top_oid, TLS_EC_prime256v1_OID, sizeof(oid), sizeof(TLS_EC_prime256v1) - 1)) {
                                 cert->ec_algorithm = secp256r1.iana;
                             } else
-                            if (__is_oid2(top_oid, TLS_EC_secp224r1_OID, sizeof(oid), sizeof(TLS_EC_secp224r1_OID) - 1)) {
+                            if (_is_oid2(top_oid, TLS_EC_secp224r1_OID, sizeof(oid), sizeof(TLS_EC_secp224r1_OID) - 1)) {
                                 cert->ec_algorithm = secp224r1.iana;
                             } else
-                            if (__is_oid2(top_oid, TLS_EC_secp384r1_OID, sizeof(oid), sizeof(TLS_EC_secp384r1_OID) - 1)) {
+                            if (_is_oid2(top_oid, TLS_EC_secp384r1_OID, sizeof(oid), sizeof(TLS_EC_secp384r1_OID) - 1)) {
                                 cert->ec_algorithm = secp384r1.iana;
                             } else
-                            if (__is_oid2(top_oid, TLS_EC_secp521r1_OID, sizeof(oid), sizeof(TLS_EC_secp521r1_OID) - 1)) {
+                            if (_is_oid2(top_oid, TLS_EC_secp521r1_OID, sizeof(oid), sizeof(TLS_EC_secp521r1_OID) - 1)) {
                                 cert->ec_algorithm = secp521r1.iana;
                             }
                             if ((cert->ec_algorithm) && (!cert->pk))
@@ -8448,20 +8450,20 @@ int __private_asn1_parse(struct TLSContext *context, struct TLSCertificate *cert
                     }
                     break;
                 case 0x04:
-                    if ((top_oid) && (__is_field(fields, ecc_priv_id)) && (!cert->priv)) {
+                    if ((top_oid) && (_is_field(fields, ecc_priv_id)) && (!cert->priv)) {
                         DEBUG_PRINT("BINARY STRING(%i): ", length);
                         DEBUG_DUMP_HEX(&buffer[pos], length);
                         DEBUG_PRINT("\n");
                         tls_certificate_set_priv(cert, &buffer[pos], length);
                     } else
-                        __private_asn1_parse(context, cert, &buffer[pos], length, level + 1, fields, &local_has_key, client_cert, top_oid, &local_chain);
+                        _private_asn1_parse(context, cert, &buffer[pos], length, level + 1, fields, &local_has_key, client_cert, top_oid, &local_chain);
                     break;
                 case 0x05:
                     DEBUG_PRINT("NULL\n");
                     break;
                 case 0x06:
                     // object identifier
-                    if (__is_field(fields, pk_id)) {
+                    if (_is_field(fields, pk_id)) {
 #ifdef TLS_ECDSA_SUPPORTED
                         if ((length == 8) || (length == 5))
                             tls_certificate_set_algorithm(&cert->ec_algorithm, &buffer[pos], length);
@@ -8469,14 +8471,14 @@ int __private_asn1_parse(struct TLSContext *context, struct TLSCertificate *cert
 #endif
                             tls_certificate_set_algorithm(&cert->key_algorithm, &buffer[pos], length);
                     }
-                    if (__is_field(fields, algorithm_id))
+                    if (_is_field(fields, algorithm_id))
                         tls_certificate_set_algorithm(&cert->algorithm, &buffer[pos], length);
                     
                     DEBUG_PRINT("OBJECT IDENTIFIER(%i): ", length);
                     DEBUG_DUMP_HEX(&buffer[pos], length);
                     DEBUG_PRINT("\n");
                     // check previous oid
-                    if (__is_oid2(oid, ocsp_oid, 16, sizeof(ocsp_oid) - 1))
+                    if (_is_oid2(oid, ocsp_oid, 16, sizeof(ocsp_oid) - 1))
                         tls_certificate_set_copy(&cert->ocsp, &buffer[pos], length);
 
                     if (length < 16)
@@ -8497,7 +8499,7 @@ int __private_asn1_parse(struct TLSContext *context, struct TLSCertificate *cert
                     DEBUG_DUMP(&buffer[pos], length);
                     DEBUG_PRINT("]\n");
                     
-                    if (__is_field(fields, validity_id)) {
+                    if (_is_field(fields, validity_id)) {
                         if (idx == 1)
                             tls_certificate_set_copy_date(&cert->not_before, &buffer[pos], length);
                         else
@@ -8522,36 +8524,36 @@ int __private_asn1_parse(struct TLSContext *context, struct TLSCertificate *cert
                 case 0x1C:
                 case 0x1D:
                 case 0x1E:
-                    if (__is_field(fields, issurer_id)) {
-                        if (__is_oid(oid, country_oid, 3))
+                    if (_is_field(fields, issurer_id)) {
+                        if (_is_oid(oid, country_oid, 3))
                             tls_certificate_set_copy(&cert->issuer_country, &buffer[pos], length);
                         else
-                        if (__is_oid(oid, state_oid, 3))
+                        if (_is_oid(oid, state_oid, 3))
                             tls_certificate_set_copy(&cert->issuer_state, &buffer[pos], length);
                         else
-                        if (__is_oid(oid, location_oid, 3))
+                        if (_is_oid(oid, location_oid, 3))
                             tls_certificate_set_copy(&cert->issuer_location, &buffer[pos], length);
                         else
-                        if (__is_oid(oid, entity_oid, 3))
+                        if (_is_oid(oid, entity_oid, 3))
                             tls_certificate_set_copy(&cert->issuer_entity, &buffer[pos], length);
                         else
-                        if (__is_oid(oid, subject_oid, 3))
+                        if (_is_oid(oid, subject_oid, 3))
                             tls_certificate_set_copy(&cert->issuer_subject, &buffer[pos], length);
                     } else
-                    if (__is_field(fields, owner_id)) {
-                        if (__is_oid(oid, country_oid, 3))
+                    if (_is_field(fields, owner_id)) {
+                        if (_is_oid(oid, country_oid, 3))
                             tls_certificate_set_copy(&cert->country, &buffer[pos], length);
                         else
-                        if (__is_oid(oid, state_oid, 3))
+                        if (_is_oid(oid, state_oid, 3))
                             tls_certificate_set_copy(&cert->state, &buffer[pos], length);
                         else
-                        if (__is_oid(oid, location_oid, 3))
+                        if (_is_oid(oid, location_oid, 3))
                             tls_certificate_set_copy(&cert->location, &buffer[pos], length);
                         else
-                        if (__is_oid(oid, entity_oid, 3))
+                        if (_is_oid(oid, entity_oid, 3))
                             tls_certificate_set_copy(&cert->entity, &buffer[pos], length);
                         else
-                        if (__is_oid(oid, subject_oid, 3))
+                        if (_is_oid(oid, subject_oid, 3))
                             tls_certificate_set_copy(&cert->subject, &buffer[pos], length);
                     }
                     DEBUG_PRINT("STR: [");
@@ -8576,10 +8578,10 @@ int __private_asn1_parse(struct TLSContext *context, struct TLSCertificate *cert
     }
     if ((level == 2) && (cert->sign_key) && (cert->sign_len) && (cert_len) && (cert_data)) {
         TLS_FREE(cert->fingerprint);
-        cert->fingerprint = __private_tls_compute_hash(cert->algorithm, cert_data, cert_len);
+        cert->fingerprint = _private_tls_compute_hash(cert->algorithm, cert_data, cert_len);
 #ifdef DEBUG
         if (cert->fingerprint) {
-            DEBUG_DUMP_HEX_LABEL("FINGERPRINT", cert->fingerprint, __private_tls_hash_len(cert->algorithm));
+            DEBUG_DUMP_HEX_LABEL("FINGERPRINT", cert->fingerprint, _private_tls_hash_len(cert->algorithm));
         }
 #endif
     }
@@ -8587,8 +8589,8 @@ int __private_asn1_parse(struct TLSContext *context, struct TLSCertificate *cert
 }
 
 struct TLSCertificate *asn1_parse(struct TLSContext *context, const unsigned char *buffer, int size, int client_cert) {
-    unsigned int fields[__TLS_ASN1_MAXLEVEL];
-    memset(fields, 0, sizeof(int) * __TLS_ASN1_MAXLEVEL);
+    unsigned int fields[TLS_ASN1_MAXLEVEL];
+    memset(fields, 0, sizeof(int) * TLS_ASN1_MAXLEVEL);
     struct TLSCertificate *cert = tls_create_certificate();
     if (cert) {
         if (client_cert < 0) {
@@ -8596,9 +8598,9 @@ struct TLSCertificate *asn1_parse(struct TLSContext *context, const unsigned cha
             // private key
             unsigned char top_oid[16];
             memset(top_oid, 0, sizeof(top_oid));
-            __private_asn1_parse(context, cert, buffer, size, 1, fields, NULL, client_cert, top_oid, NULL);
+            _private_asn1_parse(context, cert, buffer, size, 1, fields, NULL, client_cert, top_oid, NULL);
         } else
-            __private_asn1_parse(context, cert, buffer, size, 1, fields, NULL, client_cert, NULL, NULL);
+            _private_asn1_parse(context, cert, buffer, size, 1, fields, NULL, client_cert, NULL, NULL);
     }
     return cert;
 }
@@ -8721,10 +8723,10 @@ struct TLSPacket *tls_build_certificate_verify(struct TLSContext *context) {
     tls_packet_uint24(packet, 0);
 
     int start_len = packet->len;    
-    unsigned char out[__TLS_MAX_RSA_KEY];
-    unsigned long out_len = __TLS_MAX_RSA_KEY;
+    unsigned char out[TLS_MAX_RSA_KEY];
+    unsigned long out_len = TLS_MAX_RSA_KEY;
 
-    unsigned char signing_data[__TLS_MAX_HASH_SIZE + 98];
+    unsigned char signing_data[TLS_MAX_HASH_SIZE + 98];
     int signing_data_len;
 
     // first 64 bytes to 0x20 (32)
@@ -8738,7 +8740,7 @@ struct TLSPacket *tls_build_certificate_verify(struct TLSContext *context) {
     signing_data[97] = 0;
     signing_data_len = 98;
 
-    signing_data_len += __private_tls_get_hash(context, signing_data + 98);
+    signing_data_len += _private_tls_get_hash(context, signing_data + 98);
     DEBUG_DUMP_HEX_LABEL("verify data", signing_data, signing_data_len);
     int hash_algorithm = sha256;
 #ifdef TLS_ECDSA_SUPPORTED
@@ -8772,7 +8774,7 @@ struct TLSPacket *tls_build_certificate_verify(struct TLSContext *context) {
     int packet_size = 2;
 #ifdef TLS_ECDSA_SUPPORTED
     if (tls_is_ecdsa(context)) {
-        if (__private_tls_sign_ecdsa(context, hash_algorithm, signing_data, signing_data_len, out, &out_len) == 1) {
+        if (_private_tls_sign_ecdsa(context, hash_algorithm, signing_data, signing_data_len, out, &out_len) == 1) {
             DEBUG_PRINT("ECDSA signing OK! (ECDSA, length %lu)\n", out_len);
             tls_packet_uint16(packet, out_len);
             tls_packet_append(packet, out, out_len);
@@ -8780,7 +8782,7 @@ struct TLSPacket *tls_build_certificate_verify(struct TLSContext *context) {
         }
     } else
 #endif
-    if (__private_tls_sign_rsa(context, hash_algorithm, signing_data, signing_data_len, out, &out_len) == 1) {
+    if (_private_tls_sign_rsa(context, hash_algorithm, signing_data, signing_data_len, out, &out_len) == 1) {
         DEBUG_PRINT("RSA signing OK! (length %lu)\n", out_len);
         tls_packet_uint16(packet, out_len);
         tls_packet_append(packet, out, out_len);
@@ -8853,7 +8855,7 @@ struct TLSPacket *tls_build_certificate(struct TLSContext *context) {
             tls_packet_uint24(packet, all_certificate_size + 3);
 
         if (context->dtls)
-            __private_dtls_handshake_data(context, packet, all_certificate_size + 3);
+            _private_dtls_handshake_data(context, packet, all_certificate_size + 3);
 
         tls_packet_uint24(packet, all_certificate_size);
         for (i = 0; i < certificates_count; i++) {
@@ -8885,7 +8887,7 @@ struct TLSPacket *tls_build_certificate(struct TLSContext *context) {
 #endif
 
         if (context->dtls)
-            __private_dtls_handshake_data(context, packet, all_certificate_size);
+            _private_dtls_handshake_data(context, packet, all_certificate_size);
     }
     tls_packet_update(packet);
     if (context->dtls)
@@ -8919,23 +8921,23 @@ struct TLSPacket *tls_build_encrypted_extensions(struct TLSContext *context) {
 #endif
 
 struct TLSPacket *tls_build_finished(struct TLSContext *context) {
-    struct TLSPacket *packet = tls_create_packet(context, TLS_HANDSHAKE, context->version, __TLS_MIN_FINISHED_OPAQUE_LEN + 64);
+    struct TLSPacket *packet = tls_create_packet(context, TLS_HANDSHAKE, context->version, TLS_MIN_FINISHED_OPAQUE_LEN + 64);
     tls_packet_uint8(packet, 0x14);
 #ifdef WITH_TLS_13
     if ((context->version == TLS_V13) || (context->version == DTLS_V13))
-        tls_packet_uint24(packet, __private_tls_mac_length(context));
+        tls_packet_uint24(packet, _private_tls_mac_length(context));
     else
 #endif
-        tls_packet_uint24(packet, __TLS_MIN_FINISHED_OPAQUE_LEN);
+        tls_packet_uint24(packet, TLS_MIN_FINISHED_OPAQUE_LEN);
     if (context->dtls)
-        __private_dtls_handshake_data(context, packet, __TLS_MIN_FINISHED_OPAQUE_LEN);
+        _private_dtls_handshake_data(context, packet, TLS_MIN_FINISHED_OPAQUE_LEN);
     // verify
-    unsigned char hash[__TLS_MAX_HASH_SIZE];
-    unsigned long out_size = __TLS_MIN_FINISHED_OPAQUE_LEN;
+    unsigned char hash[TLS_MAX_HASH_SIZE];
+    unsigned long out_size = TLS_MIN_FINISHED_OPAQUE_LEN;
 #ifdef WITH_TLS_13
-    unsigned char out[__TLS_MAX_HASH_SIZE];
+    unsigned char out[TLS_MAX_HASH_SIZE];
 #else
-    unsigned char out[__TLS_MIN_FINISHED_OPAQUE_LEN];
+    unsigned char out[TLS_MIN_FINISHED_OPAQUE_LEN];
 #endif
     unsigned int hash_len;
     
@@ -8943,7 +8945,7 @@ struct TLSPacket *tls_build_finished(struct TLSContext *context) {
     if (context->is_server) {
 #ifdef WITH_TLS_13
         if ((context->version == TLS_V13) || (context->version == DTLS_V13)) {
-            hash_len = __private_tls_get_hash(context, hash);
+            hash_len = _private_tls_get_hash(context, hash);
             if ((!context->finished_key) || (!hash_len)) {
                 DEBUG_PRINT("NO FINISHED KEY COMPUTED OR NO HANDSHAKE HASH\n");
                 packet->broken = 1;
@@ -8955,19 +8957,19 @@ struct TLSPacket *tls_build_finished(struct TLSContext *context) {
 
             out_size = hash_len;
             hmac_state hmac;    
-            hmac_init(&hmac, __private_tls_get_hash_idx(context), context->finished_key, hash_len);
+            hmac_init(&hmac, _private_tls_get_hash_idx(context), context->finished_key, hash_len);
             hmac_process(&hmac, hash, hash_len);
             hmac_done(&hmac, out, &out_size);
         } else
 #endif
         {
-            hash_len = __private_tls_done_hash(context, hash);
-            __private_tls_prf(context, out, __TLS_MIN_FINISHED_OPAQUE_LEN, context->master_key, context->master_key_len, (unsigned char *)"server finished", 15, hash, hash_len, NULL, 0);
-            __private_tls_destroy_hash(context);
+            hash_len = _private_tls_done_hash(context, hash);
+            _private_tls_prf(context, out, TLS_MIN_FINISHED_OPAQUE_LEN, context->master_key, context->master_key_len, (unsigned char *)"server finished", 15, hash, hash_len, NULL, 0);
+            _private_tls_destroy_hash(context);
         }
     } else {
-        hash_len = __private_tls_get_hash(context, hash);
-        __private_tls_prf(context, out, __TLS_MIN_FINISHED_OPAQUE_LEN, context->master_key, context->master_key_len, (unsigned char *)"client finished", 15, hash, hash_len, NULL, 0);
+        hash_len = _private_tls_get_hash(context, hash);
+        _private_tls_prf(context, out, TLS_MIN_FINISHED_OPAQUE_LEN, context->master_key, context->master_key_len, (unsigned char *)"client finished", 15, hash, hash_len, NULL, 0);
     }
     tls_packet_append(packet, out, out_size);
     tls_packet_update(packet);
@@ -9006,7 +9008,7 @@ struct TLSPacket *tls_build_done(struct TLSContext *context) {
     tls_packet_uint8(packet, 0x0E);
     tls_packet_uint24(packet, 0);
     if (context->dtls) {
-        __private_dtls_handshake_data(context, packet, 0);
+        _private_dtls_handshake_data(context, packet, 0);
         context->dtls_seq++;
     }
     tls_packet_update(packet);
@@ -9026,7 +9028,7 @@ int tls_client_connect(struct TLSContext *context) {
     if ((context->is_server) || (context->critical_error))
         return TLS_UNEXPECTED_MESSAGE;
     
-    return __private_tls_write_packet(tls_build_hello(context, 0));
+    return _private_tls_write_packet(tls_build_hello(context, 0));
 }
 
 int tls_write(struct TLSContext *context, const unsigned char *data, unsigned int len) {
@@ -9034,9 +9036,9 @@ int tls_write(struct TLSContext *context, const unsigned char *data, unsigned in
         return TLS_GENERIC_ERROR;
     if (context->connection_status != 0xFF)
         return TLS_UNEXPECTED_MESSAGE;
-    if (len > __TLS_MAX_TLS_APP_SIZE)
-        len = __TLS_MAX_TLS_APP_SIZE;
-    int actually_written = __private_tls_write_packet(tls_build_message(context, data, len));
+    if (len > TLS_MAXTLS_APP_SIZE)
+        len = TLS_MAXTLS_APP_SIZE;
+    int actually_written = _private_tls_write_packet(tls_build_message(context, data, len));
     if (actually_written <= 0)
         return actually_written;
     return len;
@@ -9052,7 +9054,7 @@ struct TLSPacket *tls_build_alert(struct TLSContext *context, char critical, uns
     return packet;
 }
 
-int __private_tls_read_from_file(const char *fname, void *buf, int max_len) {
+int _private_tls_read_from_file(const char *fname, void *buf, int max_len) {
     FILE *f = fopen(fname, "rb");
     if (f) {
         int size = fread(buf, 1, max_len, f);
@@ -9148,7 +9150,7 @@ void tls_close_notify(struct TLSContext *context) {
         return;
     context->critical_error = 1;
     DEBUG_PRINT("CLOSE\n");
-    __private_tls_write_packet(tls_build_alert(context, 0, close_notify));
+    _private_tls_write_packet(tls_build_alert(context, 0, close_notify));
 }
 
 void tls_alert(struct TLSContext *context, unsigned char critical, int code) {
@@ -9157,7 +9159,7 @@ void tls_alert(struct TLSContext *context, unsigned char critical, int code) {
     if ((!context->critical_error) && (critical))
         context->critical_error = 1;
     DEBUG_PRINT("ALERT\n");
-    __private_tls_write_packet(tls_build_alert(context, critical, code));
+    _private_tls_write_packet(tls_build_alert(context, critical, code));
 }
 
 int tls_pending(struct TLSContext *context) {
@@ -9199,14 +9201,14 @@ int tls_export_context(struct TLSContext *context, unsigned char *buffer, unsign
         // aead
 #ifdef WITH_TLS_13
         if ((context->version == TLS_V13) || (context->version == DTLS_V13)) {
-            tls_packet_uint8(packet, __TLS_13_AES_GCM_IV_LENGTH);
-            tls_packet_append(packet, context->crypto.ctx_local_mac.local_iv, __TLS_13_AES_GCM_IV_LENGTH);
-            tls_packet_append(packet, context->crypto.ctx_remote_mac.remote_iv, __TLS_13_AES_GCM_IV_LENGTH);
+            tls_packet_uint8(packet, TLS_13_AES_GCM_IV_LENGTH);
+            tls_packet_append(packet, context->crypto.ctx_local_mac.local_iv, TLS_13_AES_GCM_IV_LENGTH);
+            tls_packet_append(packet, context->crypto.ctx_remote_mac.remote_iv, TLS_13_AES_GCM_IV_LENGTH);
         } else {
 #endif
-            tls_packet_uint8(packet, __TLS_AES_GCM_IV_LENGTH);
-            tls_packet_append(packet, context->crypto.ctx_local_mac.local_aead_iv, __TLS_AES_GCM_IV_LENGTH);
-            tls_packet_append(packet, context->crypto.ctx_remote_mac.remote_aead_iv, __TLS_AES_GCM_IV_LENGTH);
+            tls_packet_uint8(packet, TLS_AES_GCM_IV_LENGTH);
+            tls_packet_append(packet, context->crypto.ctx_local_mac.local_aead_iv, TLS_AES_GCM_IV_LENGTH);
+            tls_packet_append(packet, context->crypto.ctx_remote_mac.remote_aead_iv, TLS_AES_GCM_IV_LENGTH);
 #ifdef WITH_TLS_13
         }
 #endif
@@ -9214,22 +9216,22 @@ int tls_export_context(struct TLSContext *context, unsigned char *buffer, unsign
     } else
     if (context->crypto.created == 3) {
         // ChaCha20
-        tls_packet_uint8(packet, __TLS_CHACHA20_IV_LENGTH);
-        tls_packet_append(packet, context->crypto.ctx_local_mac.local_nonce, __TLS_CHACHA20_IV_LENGTH);
-        tls_packet_append(packet, context->crypto.ctx_remote_mac.remote_nonce, __TLS_CHACHA20_IV_LENGTH);
+        tls_packet_uint8(packet, TLS_CHACHA20_IV_LENGTH);
+        tls_packet_append(packet, context->crypto.ctx_local_mac.local_nonce, TLS_CHACHA20_IV_LENGTH);
+        tls_packet_append(packet, context->crypto.ctx_remote_mac.remote_nonce, TLS_CHACHA20_IV_LENGTH);
 #endif
     } else {
-        unsigned char iv[__TLS_AES_IV_LENGTH];
-        unsigned long len = __TLS_AES_IV_LENGTH;
+        unsigned char iv[TLS_AES_IV_LENGTH];
+        unsigned long len = TLS_AES_IV_LENGTH;
         
-        memset(iv, 0, __TLS_AES_IV_LENGTH);
+        memset(iv, 0, TLS_AES_IV_LENGTH);
         cbc_getiv(iv, &len, &context->crypto.ctx_local.aes_local);
-        tls_packet_uint8(packet, __TLS_AES_IV_LENGTH);
+        tls_packet_uint8(packet, TLS_AES_IV_LENGTH);
         tls_packet_append(packet, iv, len);
         
-        memset(iv, 0, __TLS_AES_IV_LENGTH);
+        memset(iv, 0, TLS_AES_IV_LENGTH);
         cbc_getiv(iv, &len, &context->crypto.ctx_remote.aes_remote);
-        tls_packet_append(packet, iv, __TLS_AES_IV_LENGTH);
+        tls_packet_append(packet, iv, TLS_AES_IV_LENGTH);
     }
     
     tls_packet_uint8(packet, context->exportable_size);
@@ -9251,7 +9253,7 @@ int tls_export_context(struct TLSContext *context, unsigned char *buffer, unsign
         tls_packet_append(packet, context->crypto.ctx_remote.chacha_remote.ks, CHACHA_BLOCKLEN);
 #endif
     } else {
-        unsigned char mac_length = (unsigned char)__private_tls_mac_length(context);
+        unsigned char mac_length = (unsigned char)_private_tls_mac_length(context);
         tls_packet_uint8(packet, mac_length);
         tls_packet_append(packet, context->crypto.ctx_local_mac.local_mac, mac_length);
         tls_packet_append(packet, context->crypto.ctx_remote_mac.remote_mac, mac_length);
@@ -9321,10 +9323,10 @@ struct TLSContext *tls_import_context(const unsigned char *buffer, unsigned int 
         } else
             context->is_server = server;
         
-        unsigned char local_iv[__TLS_AES_IV_LENGTH];
-        unsigned char remote_iv[__TLS_AES_IV_LENGTH];
+        unsigned char local_iv[TLS_AES_IV_LENGTH];
+        unsigned char remote_iv[TLS_AES_IV_LENGTH];
         unsigned char iv_len = buffer[10];
-        if (iv_len >  __TLS_AES_IV_LENGTH) {
+        if (iv_len >  TLS_AES_IV_LENGTH) {
             DEBUG_PRINT("INVALID IV LENGTH\n");
             tls_destroy_context(context);
             return NULL;
@@ -9349,12 +9351,12 @@ struct TLSContext *tls_import_context(const unsigned char *buffer, unsigned int 
 #else
         context->exportable = 0;
 #endif
-        int is_aead = __private_tls_is_aead(context);
+        int is_aead = _private_tls_is_aead(context);
 #ifdef TLS_WITH_CHACHA20_POLY1305
         if (is_aead == 2) {
             // ChaCha20
-            if (iv_len > __TLS_CHACHA20_IV_LENGTH)
-                iv_len = __TLS_CHACHA20_IV_LENGTH;
+            if (iv_len > TLS_CHACHA20_IV_LENGTH)
+                iv_len = TLS_CHACHA20_IV_LENGTH;
             memcpy(context->crypto.ctx_local_mac.local_nonce, local_iv, iv_len);
             memcpy(context->crypto.ctx_remote_mac.remote_nonce, remote_iv, iv_len);
         } else
@@ -9362,14 +9364,14 @@ struct TLSContext *tls_import_context(const unsigned char *buffer, unsigned int 
         if (is_aead) {
 #ifdef WITH_TLS_13
             if ((context->version == TLS_V13) || (context->version == DTLS_V13)) {
-                if (iv_len > __TLS_13_AES_GCM_IV_LENGTH)
-                    iv_len = __TLS_13_AES_GCM_IV_LENGTH;
+                if (iv_len > TLS_13_AES_GCM_IV_LENGTH)
+                    iv_len = TLS_13_AES_GCM_IV_LENGTH;
                 memcpy(context->crypto.ctx_local_mac.local_iv, local_iv, iv_len);
                 memcpy(context->crypto.ctx_remote_mac.remote_iv, remote_iv, iv_len);
             } else {
 #endif
-                if (iv_len > __TLS_AES_GCM_IV_LENGTH)
-                    iv_len = __TLS_AES_GCM_IV_LENGTH;
+                if (iv_len > TLS_AES_GCM_IV_LENGTH)
+                    iv_len = TLS_AES_GCM_IV_LENGTH;
                 memcpy(context->crypto.ctx_local_mac.local_aead_iv, local_iv, iv_len);
                 memcpy(context->crypto.ctx_remote_mac.remote_aead_iv, remote_iv, iv_len);
 #ifdef WITH_TLS_13
@@ -9377,13 +9379,13 @@ struct TLSContext *tls_import_context(const unsigned char *buffer, unsigned int 
 #endif
         }
         if (context->is_server) {
-            if (__private_tls_crypto_create(context, key_lengths / 2, iv_len, temp, local_iv, temp + key_lengths / 2, remote_iv)) {
+            if (_private_tls_crypto_create(context, key_lengths / 2, iv_len, temp, local_iv, temp + key_lengths / 2, remote_iv)) {
                 DEBUG_PRINT("ERROR CREATING KEY CONTEXT\n");
                 tls_destroy_context(context);
                 return NULL;
             }
         } else {
-            if (__private_tls_crypto_create(context, key_lengths / 2, iv_len, temp + key_lengths / 2, remote_iv, temp, local_iv)) {
+            if (_private_tls_crypto_create(context, key_lengths / 2, iv_len, temp + key_lengths / 2, remote_iv, temp, local_iv)) {
                 DEBUG_PRINT("ERROR CREATING KEY CONTEXT (CLIENT)\n");
                 tls_destroy_context(context);
                 return NULL;
@@ -9392,7 +9394,7 @@ struct TLSContext *tls_import_context(const unsigned char *buffer, unsigned int 
         memset(temp, 0, sizeof(temp));
         
         unsigned char mac_length = buffer[buf_pos++];
-        if (mac_length > __TLS_MAX_MAC_SIZE) {
+        if (mac_length > TLS_MAX_MAC_SIZE) {
             DEBUG_PRINT("INVALID MAC SIZE\n");
             tls_destroy_context(context);
             return NULL;
@@ -9710,7 +9712,7 @@ int tls_make_ktls(struct TLSContext *context, int socket) {
 void tls_print_certificate(const char *fname) {
     unsigned char buf[0xFFFF];
     char out_buf[0xFFFF];
-    int size = __private_tls_read_from_file(fname, buf, 0xFFFF);
+    int size = _private_tls_read_from_file(fname, buf, 0xFFFF);
     if (size > 0) {
         int idx = 0;
         unsigned int len;
@@ -9765,7 +9767,7 @@ void EVP_cleanup() {
     // dummy function
 }
 
-int __tls_ssl_private_send_pending(int client_sock, struct TLSContext *context) {
+int _tls_ssl_private_send_pending(int client_sock, struct TLSContext *context) {
     unsigned int out_buffer_len = 0;
     const unsigned char *out_buffer = tls_get_write_buffer(context, &out_buffer_len);
     unsigned int out_buffer_index = 0;
@@ -9807,7 +9809,7 @@ int SSLv3_client_method() {
 int SSL_CTX_use_certificate_file(struct TLSContext *context, const char *filename, int dummy) {
     // max 64k buffer
     unsigned char buf[0xFFFF];
-    int size = __private_tls_read_from_file(filename, buf, sizeof(buf));
+    int size = _private_tls_read_from_file(filename, buf, sizeof(buf));
     if (size > 0)
         return tls_load_certificates(context, buf, size);
     return size;
@@ -9815,7 +9817,7 @@ int SSL_CTX_use_certificate_file(struct TLSContext *context, const char *filenam
 
 int SSL_CTX_use_PrivateKey_file(struct TLSContext *context, const char *filename, int dummy) {
     unsigned char buf[0xFFFF];
-    int size = __private_tls_read_from_file(filename, buf, sizeof(buf));
+    int size = _private_tls_read_from_file(filename, buf, sizeof(buf));
     if (size > 0)
         return tls_load_private_key(context, buf, size);
     
@@ -9948,7 +9950,7 @@ void SSL_CTX_set_verify(struct TLSContext *context, int mode, tls_validation_fun
         ssl_data->certificate_verify = verify_callback;
 }
 
-int __private_tls_safe_read(struct TLSContext *context, void *buffer, int buf_size) {
+int _private_tls_safe_read(struct TLSContext *context, void *buffer, int buf_size) {
     SSLUserData *ssl_data = (SSLUserData *)context->user_data;
     if ((!ssl_data) || (ssl_data->fd <= 0))
         return TLS_GENERIC_ERROR;
@@ -9970,9 +9972,9 @@ int SSL_accept(struct TLSContext *context) {
     unsigned char client_message[0xFFFF];
     // accept
     int read_size = 0;
-    while ((read_size = __private_tls_safe_read(context, (char *)client_message, sizeof(client_message))) > 0) {
+    while ((read_size = _private_tls_safe_read(context, (char *)client_message, sizeof(client_message))) > 0) {
         if (tls_consume_stream(context, client_message, read_size, ssl_data->certificate_verify) >= 0) {
-            int res = __tls_ssl_private_send_pending(ssl_data->fd, context);
+            int res = _tls_ssl_private_send_pending(ssl_data->fd, context);
             if (res < 0)
                 return res;
         }
@@ -9993,16 +9995,16 @@ int SSL_connect(struct TLSContext *context) {
     int res = tls_client_connect(context);
     if (res < 0)
         return res;
-    res = __tls_ssl_private_send_pending(ssl_data->fd, context);
+    res = _tls_ssl_private_send_pending(ssl_data->fd, context);
     if (res < 0)
         return res;
     
     int read_size;
     unsigned char client_message[0xFFFF];
 
-    while ((read_size = __private_tls_safe_read(context, (char *)client_message, sizeof(client_message))) > 0) {
+    while ((read_size = _private_tls_safe_read(context, (char *)client_message, sizeof(client_message))) > 0) {
         if (tls_consume_stream(context, client_message, read_size, ssl_data->certificate_verify) >= 0) {
-            res = __tls_ssl_private_send_pending(ssl_data->fd, context);
+            res = _tls_ssl_private_send_pending(ssl_data->fd, context);
             if (res < 0)
                 return res;
         }
@@ -10034,7 +10036,7 @@ int SSL_write(struct TLSContext *context, const void *buf, unsigned int len) {
     
     int written_size = tls_write(context, (const unsigned char *)buf, len);
     if (written_size > 0) {
-        int res = __tls_ssl_private_send_pending(ssl_data->fd, context);
+        int res = _tls_ssl_private_send_pending(ssl_data->fd, context);
         if (res <= 0)
             return res;
     }
@@ -10058,9 +10060,9 @@ int SSL_read(struct TLSContext *context, void *buf, unsigned int len) {
         unsigned char client_message[0xFFFF];
         // accept
         int read_size;
-        while ((read_size = __private_tls_safe_read(context, (char *)client_message, sizeof(client_message))) > 0) {
+        while ((read_size = _private_tls_safe_read(context, (char *)client_message, sizeof(client_message))) > 0) {
             if (tls_consume_stream(context, client_message, read_size, ssl_data->certificate_verify) > 0) {
-                __tls_ssl_private_send_pending(ssl_data->fd, context);
+                _tls_ssl_private_send_pending(ssl_data->fd, context);
                 break;
             }
             if ((context->critical_error) && (!context->application_buffer_len)) {
@@ -10103,7 +10105,7 @@ int SSL_set_io(struct TLSContext *context, void *recv_cb, void *send_cb) {
 struct SRTPContext {
     symmetric_CTR aes;
     unsigned int salt[4];
-    unsigned char mac[__TLS_SHA1_MAC_SIZE];
+    unsigned char mac[TLS_SHA1_MAC_SIZE];
     unsigned int tag_size;
     unsigned int roc;
     unsigned short seq;
@@ -10141,7 +10143,7 @@ struct SRTPContext *srtp_init(unsigned char mode, unsigned char auth_mode) {
     return context;
 }
 
-static int __private_tls_srtp_key_derive(const void *key, int keylen, const void *salt, unsigned char label, void *out, int outlen) {
+static int _private_tls_srtp_key_derive(const void *key, int keylen, const void *salt, unsigned char label, void *out, int outlen) {
     unsigned char iv[16];
     memcpy(iv, salt, 14);
     iv[14] = iv[15] = 0;
@@ -10175,18 +10177,18 @@ int srtp_key(struct SRTPContext *context, const void *key, int keylen, const voi
 
         memset(iv, 0, sizeof(iv));
 
-        if (__private_tls_srtp_key_derive(key, keylen, salt, 0, key_buf, sizeof(key_buf)))
+        if (_private_tls_srtp_key_derive(key, keylen, salt, 0, key_buf, sizeof(key_buf)))
             return TLS_GENERIC_ERROR;
 
         DEBUG_DUMP_HEX_LABEL("KEY", key_buf, 16)
 
-        if (__private_tls_srtp_key_derive(key, keylen, salt, 1, context->mac, 20))
+        if (_private_tls_srtp_key_derive(key, keylen, salt, 1, context->mac, 20))
             return TLS_GENERIC_ERROR;
 
         DEBUG_DUMP_HEX_LABEL("AUTH", context->mac, 20)
 
         memset(context->salt, 0, sizeof(context->salt));
-        if (__private_tls_srtp_key_derive(key, keylen, salt, 2, context->salt, 14))
+        if (_private_tls_srtp_key_derive(key, keylen, salt, 2, context->salt, 14))
             return TLS_GENERIC_ERROR;
 
         DEBUG_DUMP_HEX_LABEL("SALT", ((unsigned char *)context->salt), 14)
@@ -10208,7 +10210,7 @@ int srtp_inline(struct SRTPContext *context, const char *b64, int tag_bits) {
     int len = strlen(b64);
     if (len >= sizeof(out_buffer))
         len = sizeof(out_buffer);
-    int size = __private_b64_decode(b64, len, (unsigned char *)out_buffer);
+    int size = _private_b64_decode(b64, len, (unsigned char *)out_buffer);
     if (size <= 0)
         return TLS_GENERIC_ERROR;
     switch (context->mode) {
@@ -10258,8 +10260,8 @@ int srtp_encrypt(struct SRTPContext *context, const unsigned char *pt_header, in
     *out_buffer_len = out_len;
 
     if (context->auth_mode == SRTP_AUTH_HMAC_SHA1) {
-        unsigned char digest_out[__TLS_SHA1_MAC_SIZE];
-        unsigned long dlen = __TLS_SHA1_MAC_SIZE;
+        unsigned char digest_out[TLS_SHA1_MAC_SIZE];
+        unsigned long dlen = TLS_SHA1_MAC_SIZE;
         hmac_state hmac;
         int err = hmac_init(&hmac, find_hash("sha1"), context->mac, 20);
         if (!err) {
@@ -10310,8 +10312,8 @@ int srtp_decrypt(struct SRTPContext *context, const unsigned char *pt_header, in
             return TLS_GENERIC_ERROR;
 
         if (context->auth_mode == SRTP_AUTH_HMAC_SHA1) {
-            unsigned char digest_out[__TLS_SHA1_MAC_SIZE];
-            unsigned long dlen = __TLS_SHA1_MAC_SIZE;
+            unsigned char digest_out[TLS_SHA1_MAC_SIZE];
+            unsigned long dlen = TLS_SHA1_MAC_SIZE;
             hmac_state hmac;
             int err = hmac_init(&hmac, find_hash("sha1"), context->mac, 20);
             if (!err) {
