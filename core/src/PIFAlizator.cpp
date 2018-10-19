@@ -794,7 +794,7 @@ INTEGER PIFAlizator::BuildFunction(ClassCode *CC, AnsiParser *P, INTEGER on_line
     if (is_inline) {
         sPARSE   = prec_parse;
         sPARSE  += "#";
-        sPARSE  += AnsiString((long)OPERATOR);
+        sPARSE  += AnsiString((intptr_t)OPERATOR);
         OPERATOR = 0;
 
         ref_id = GeneralMembers->ContainsString(sPARSE.c_str());
@@ -909,7 +909,6 @@ INTEGER PIFAlizator::BuildFunction(ClassCode *CC, AnsiParser *P, INTEGER on_line
                 sPARSE         = sPARSE_FORWARD;
                 sPARSE_FORWARD = "";
             } else {
-
                 P->NextAtom(sPARSE);
             }
 
@@ -1509,7 +1508,7 @@ INTEGER PIFAlizator::BuildFunction(ClassCode *CC, AnsiParser *P, INTEGER on_line
                 if (_ID == KEY_FUNCTION) {
                     AnsiString temp_name(CM->NAME);
                     temp_name += "#";
-                    temp_name += AnsiString((long)++inline_count);
+                    temp_name += AnsiString((intptr_t)++inline_count);
                     int inline_ref_id = this->BuildFunction(CC, P,  0, ACCESS_PUBLIC, 0, STATIC, temp_name.c_str());
                     // add this
                     AnalizerElement *AE = new AnalizerElement;

@@ -927,6 +927,8 @@ inline INTEGER ValidHexNumber(AnsiString& S) {
             return 0;
         }
     }
+    if ((S [0] != '0') || (S [1] != 'x'))
+        return 0;
     return 1;
 }
 
@@ -944,6 +946,8 @@ inline INTEGER ValidNumber(AnsiString& S) {
         if (EXP_PREC) {
             EXP_PREC = 0;
             if ((S [i] != '+') && (S [i] != '-')) {
+                if ((S [i] >= '0') && (S [i] <= '9'))
+                    continue;
                 return 0;
             }
         } else
@@ -1205,7 +1209,7 @@ unsigned int MurmurHash3(const char *key, int len) {
     static const uint32_t n  = 0xe6546b64;
 
     if (!seed) {
-        srand((int)time(NULL) | ((unsigned long)(void *)key));
+        srand((int)time(NULL) | ((unsigned long long)(void *)key));
         while (!seed)
             seed = rand();
     }
