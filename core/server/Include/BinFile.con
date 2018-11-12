@@ -2622,7 +2622,7 @@ class BinFile extends File {
 			case "array":
 				var as_str = "";
 				for (var i = 0; i < length val; i++) {
-					if (as_str)
+					if (i)
 						as_str += ", ";
 					as_str += this.ValueToString(val[i]);
 				}
@@ -2638,7 +2638,7 @@ class BinFile extends File {
 		if (typeof field == "array") {
 			var key = "";
 			for (var i = 0; i < length field; i ++) {
-				if (key)
+				if (i)
 					key += ", ";
 				key += this.FieldAsString(o, field[i]);
 			}
