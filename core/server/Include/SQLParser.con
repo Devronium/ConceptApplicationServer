@@ -718,6 +718,23 @@ class SQLParser {
 					case "RENEW":
 						syntax["RENEW"] = true;
 						break;
+					case "GROUP":
+						command = ToUpper(SQLParser::parseAtom(buffer, err, offset));
+						if (command != "BY") {
+							SQLParser::error(err, offset, "Syntax error in SELECT/GROUP BY: expected 'BY' received '$command'");
+						} else {
+							command = SQLParser::parseAtom(buffer, err, offset);
+							if ((length command > 1) && (command[0] == '[') && (command[length command - 1] == ']'))
+								command = JSONDeserialize(command);
+							else
+								command = SQLParser::strip(command);
+							if (command) {
+								syntax["GROUP"] = command;
+							} else {
+								SQLParser::error(err, offset, "Syntax error in SELECT/GROUP BY: field name expected after GROUP BY");
+							}
+						}
+						break;
 					case "WHERE":
 						if (!has_where) {
 							has_where = true;

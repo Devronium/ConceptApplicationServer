@@ -547,7 +547,7 @@ class TinDataSet {
 		this.Connection._Handle(q, callback, this.UserData);
 	}
 
-	Query(params, delegate callback, fields = null, len = 0, start = 0, descending = false, priority = 0, map = false, reduce = "", cache = 0, renew = false) {
+	Query(params, delegate callback, fields = null, len = 0, start = 0, descending = false, priority = 0, map = false, reduce = "", cache = 0, renew = false, group_by = null) {
 		if (typeof params != "array") {
 			if (typeof params == "object")
 				params = Prepare(params);
@@ -573,6 +573,8 @@ class TinDataSet {
 			q.x["cache"] = cache;
 		if (renew)
 			q.x["renew"] = true;
+		if (group_by)
+			q.x["group"] = group_by;
 		q.f = fields;
 		this.Connection._Handle(q, callback, this.UserData);
 	}
@@ -680,7 +682,7 @@ class TinDataSet {
 		return this.Connection._Promise(q, PromiseHandler, this.UserData);
 	}
 
-	Join(params, delegate callback, fields = null, len = 0, start = 0, descending = false, priority = 0, reduce = "", cache = 0, renew = false) {
+	Join(params, delegate callback, fields = null, len = 0, start = 0, descending = false, priority = 0, reduce = "", cache = 0, renew = false, group_by = null) {
 		if ((!params) || (typeof params != "array"))
 			return false;
 
@@ -699,6 +701,8 @@ class TinDataSet {
 			q.x["cache"] = cache;
 		if (renew)
 			q.x["renew"] = true;
+		if (group_by)
+			q.x["group"] = group_by;
 		q.f = fields;
 		this.Connection._Handle(q, callback, this.UserData);
 	}

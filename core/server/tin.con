@@ -273,7 +273,7 @@ class IOWorker extends Worker{
 		buf = rtrim(buf);
 		var buffer_upercase = StrReplace(ToUpper(buf), "\t", " ");
 		if (buffer_upercase) {
-			var syntax = ["INSERT INTO ", "DELETE FROM ", "REDUCE { ", "CODE { ", "CREATE ", "AFTER ", "BEFORE ", "SELECT ", "FROM ", "UPDATE ", "CREATE BM25 INDEX ON ", "CREATE INDEX(", "CREATE TRIGGER ", "SEQUENCE ", "USE ", "VALUES ", "* FROM ", "WHERE ", "OFFSET ", "LIMIT ", "LEFT JOIN ", "ORDER ASC", "ORDER DESC", "COLLECTIONS", "TOP", "GC", "CLEAR", "MEMORY", "VERSION", "IN (", "AND ", "{ }", "QUIT", "DROP COLLECTION ", "DROP INDEX(", "DROP BM25 INDEX ON ", "SET ", "DONE", "NODE", "RING", "OUTPUT ", "EXPLAIN SELECT ", "PING"];
+			var syntax = ["INSERT INTO ", "DELETE FROM ", "REDUCE { ", "CODE { ", "CREATE ", "AFTER ", "BEFORE ", "SELECT ", "FROM ", "UPDATE ", "CREATE BM25 INDEX ON ", "CREATE INDEX(", "CREATE TRIGGER ", "SEQUENCE ", "USE ", "VALUES ", "* FROM ", "WHERE ", "OFFSET ", "LIMIT ", "LEFT JOIN ", "ORDER ASC", "ORDER DESC", "GROUP BY", "COLLECTIONS", "TOP", "GC", "CLEAR", "MEMORY", "VERSION", "IN (", "AND ", "{ }", "QUIT", "DROP COLLECTION ", "DROP INDEX(", "DROP BM25 INDEX ON ", "SET ", "DONE", "NODE", "RING", "OUTPUT ", "EXPLAIN SELECT ", "PING"];
 			var[] values;
 			for (var i = 0; i < length syntax; i++) {
 				var k = syntax[i];
@@ -996,7 +996,7 @@ class Main {
 						if (mod) {
 							var agg = mod[0][0];
 							if (agg == "COUNT") {
-								dataset.Query(["#" => where], querycallback, fields, q["LIMIT"], q["OFFSET"], (q["ORDER"] == -1), q["PRIORITY"], false, reduce, q["CACHE"], q["RENEW"]);
+								dataset.Query(["#" => where], querycallback, fields, q["LIMIT"], q["OFFSET"], (q["ORDER"] == -1), q["PRIORITY"], false, reduce, q["CACHE"], q["RENEW"], q["GROUP"]);
 							} else {
 								echo "Unsupported SQL function ${em(agg)}" + NEW_LINE;
 								break;
@@ -1006,9 +1006,9 @@ class Main {
 							var join_query = [where];	
 							for (var j = 0; j < length join; j++)
 								join_query[length join_query] = join[j];
-							dataset.Join(join_query, querycallback, fields, q["LIMIT"], q["OFFSET"], (q["ORDER"] == -1), q["PRIORITY"], reduce, q["CACHE"], q["RENEW"]);
+							dataset.Join(join_query, querycallback, fields, q["LIMIT"], q["OFFSET"], (q["ORDER"] == -1), q["PRIORITY"], reduce, q["CACHE"], q["RENEW"], q["GROUP"]);
 						} else {
-							dataset.Query(where, querycallback, fields, q["LIMIT"], q["OFFSET"], (q["ORDER"] == -1), q["PRIORITY"], false, reduce, q["CACHE"], q["RENEW"]);
+							dataset.Query(where, querycallback, fields, q["LIMIT"], q["OFFSET"], (q["ORDER"] == -1), q["PRIORITY"], false, reduce, q["CACHE"], q["RENEW"], q["GROUP"]);
 						}
 						queries++;
 						echo "SQL-like query sent, waiting response (${queries} in queue, including this one)..." + NEW_LINE;
