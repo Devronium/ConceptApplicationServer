@@ -856,9 +856,9 @@ pragma used
 		QueryWorkerBase::Sync(obj, syncworker);
 	}
 
-	static Cache(obj, r, timeout = 0) {
+	static Cache(obj, r, timeout = 0, cache_key_hint = "") {
 		var key = "/" + obj.d + "/" + obj.c;
-		var cache_key = QueryWorkerBase::CacheKey(obj);
+		var cache_key = cache_key_hint ?? QueryWorkerBase::CacheKey(obj);
 		var cache_obj;
 		if (length r < MAX_CACHE_OBJECT_LEN) {
 			cache_obj = BinarizeObject(r);
@@ -2554,6 +2554,7 @@ pragma used
 									js.UserData[0]++;
 									js.variable("out", new DummyObject());
 									js.timeout(0);
+									var cache_key = QueryWorkerBase::CacheKey(obj);
 									js.script(jstrycatch("var _r = function(self) { " + reduce + " }"));
 									t.Query(obj.p, obj.f, obj.x["descending"], obj.x["start"], obj.x["len"], function(o, js) {
 										if (o) {
@@ -2571,7 +2572,7 @@ pragma used
 									r.p = js.script("out;");
 									js.script("delete out;");
 									if ((r.p) && (typeof r.p == "array"))
-										QueryWorker::Cache(obj, r.p, obj.x["cache"]);
+										QueryWorker::Cache(obj, r.p, obj.x["cache"], cache_key);
 									js.gc();
 								} catch (var js_error) {
 									js.gc();
@@ -2583,8 +2584,9 @@ pragma used
 								js.UserData[0]--;
 							} else
 							if ((!map) || (obj.worker)) {
+								cache_key = QueryWorkerBase::CacheKey(obj);
 								r.p = t.Query(obj.p, obj.f, obj.x["descending"], obj.x["start"], obj.x["len"], null, null, group);
-								QueryWorker::Cache(obj, r.p, obj.x["cache"]);
+								QueryWorker::Cache(obj, r.p, obj.x["cache"], cache_key);
 							} else
 							if ((target_worker) && (target_key)) {
 								r.p = null;
