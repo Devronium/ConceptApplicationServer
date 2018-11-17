@@ -3638,6 +3638,8 @@ class BinFile extends File {
 		var result = new [];
 		var filter_ids;
 		var filter_by_id = false;
+		if ((group_by) && (typeof group_by != "array"))
+			group_by = [ group_by ];
 
 		if (IsSet(q/*keys*/, '$')) {
 			filter_by_id = true;
@@ -3667,7 +3669,6 @@ class BinFile extends File {
 				}
 			}
 		}
-
 		if (index_to_use) {
 			var non_indexed_query = [ ];
 			for (i = 0; i < length keys; i++) {
