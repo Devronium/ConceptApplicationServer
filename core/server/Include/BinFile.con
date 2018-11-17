@@ -2653,6 +2653,26 @@ class BinFile extends File {
 		return this.ValueToString(o[field]);
 	}
 
+	protected GroupKey(obj, group_by, arr, return_placeholder = false, count = false) {
+		for (var i = 0; i < length group_by; i++) {
+			var group_key = this.FieldAsString(obj, group_by[i]);
+			if ((count) && (i == length group_by - 1)) {
+				arr[group_key] ++;
+				break;
+			}
+			var new_arr = arr[group_key];
+
+			if (!new_arr) {
+				new_arr = new [];
+				arr[group_key] = new_arr;
+			}
+			arr = new_arr;
+		}
+		if (return_placeholder)
+			return arr;
+		arr[length arr] = obj;
+	}
+
 	ById(id, fields = null, do_cache = false, cache = null, notify_one = null, notify_data = null, group_by = null) {
 		if (typeof id == "array") {
 			var[] id_flags;
@@ -2665,17 +2685,10 @@ class BinFile extends File {
 					if (do_cache) {
 						var cached_obj = cache[_id_key];
 						if (cached_obj) {
-							if (group_by) {
-								var group_key = this.FieldAsString(cached_obj, group_by);
-								var group_array = res_array[group_key];
-								if (!group_array) {
-									group_array = new [];
-									res_array[group_key] = group_array;
-								}
-								group_array[length group_array] = cached_obj;
-							} else {
+							if (group_by)
+								this.GroupKey(cached_obj, group_by, res_array);
+							else
 								res_array[length res_array] = cached_obj;
-							}
 							// res_array[_id_key] = cached_obj;
 							continue;
 						}
@@ -2694,17 +2707,10 @@ class BinFile extends File {
 							if (notify_one) {
 								notify_one(o, notify_data);
 							} else {
-								if (group_by) {
-									group_key = this.FieldAsString(o, group_by);
-									group_array = res_array[group_key];
-									if (!group_array) {
-										group_array = new [];
-										res_array[group_key] = group_array;
-									}
-									group_array[length group_array] = o;
-								} else {
+								if (group_by)
+									this.GroupKey(o, group_by, res_array);
+								else
 									res_array[length res_array] = o;
-								}
 							}
 							if (do_cache)
 								cache[_id_key] = o;
@@ -3719,15 +3725,9 @@ class BinFile extends File {
 					if (!this.ScanFilter(-1, -1, userdata, 0, o))
 						return false;
 				}
-				if ((group_by) && (!count)) {
-					var group_key = this.FieldAsString(o, group_by);
-					var group_array = result[group_key];
-					if (!group_array) {
-						group_array = new [];
-						result[group_key] = group_array;
-					}
-					result = group_array;
-				}
+				if ((group_by) && (!count))
+					result = this.GroupKey(o, group_by, result, true);
+
 				if (fields) {
 					var new_o = [ ];
 					for (var i = 0; i < length fields; i++) {
@@ -3739,7 +3739,7 @@ class BinFile extends File {
 				}
 				if (count) {
 					if (group_by)
-						result[this.FieldAsString(o, group_by)] ++;
+						this.GroupKey(o, group_by, result, true, true);
 					else
 						result[0]++;
 					if (len) {
