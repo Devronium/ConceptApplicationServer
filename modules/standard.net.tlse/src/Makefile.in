@@ -101,7 +101,8 @@ am__installdirs = "$(DESTDIR)$(libexecdir)"
 PROGRAMS = $(libexec_PROGRAMS)
 am__dirstamp = $(am__leading_dot)dirstamp
 am_standard_net_tlse_so_OBJECTS = stdlibrary.$(OBJEXT) main.$(OBJEXT) \
-	AnsiString.$(OBJEXT) tomcrypt/bn_error.$(OBJEXT) \
+	AnsiString.$(OBJEXT) curve25519.$(OBJEXT) \
+	tomcrypt/bn_error.$(OBJEXT) \
 	tomcrypt/bn_fast_mp_invmod.$(OBJEXT) \
 	tomcrypt/bn_fast_mp_montgomery_reduce.$(OBJEXT) \
 	tomcrypt/bn_fast_s_mp_mul_digs.$(OBJEXT) \
@@ -496,12 +497,12 @@ top_srcdir = @top_srcdir@
 
 # what flags you want to pass to the C compiler & linker
 AUTOMAKE_OPTIONS = subdir-objects
-AM_CFLAGS = -O2 -fPIC -I. -I./tomcrypt -DTLS_WITH_CHACHA20_POLY1305 -DLTC_PTHREAD -DTLS_SRTP
-AM_CXXFLAGS = -O2 -fPIC -I. -I./tomcrypt -DTLS_WITH_CHACHA20_POLY1305 -DLTC_PTHREAD -DTLS_SRTP
+AM_CFLAGS = -O2 -fPIC -I. -I./tomcrypt -DTLS_WITH_CHACHA20_POLY1305 -DLTC_PTHREAD -DTLS_SRTP -DTLS_CURVE25519
+AM_CXXFLAGS = -O2 -fPIC -I. -I./tomcrypt -DTLS_WITH_CHACHA20_POLY1305 -DLTC_PTHREAD -DTLS_SRTP -DTLS_CURVE25519
 AM_LDFLAGS = -shared
 standard_net_tlse_so_SOURCES = stdlibrary.cpp stdlibrary.h main.cpp \
-	AnsiTypes.h AnsiString.cpp AnsiString.h tomcrypt/bn_error.c \
-	tomcrypt/bn_fast_mp_invmod.c \
+	AnsiTypes.h AnsiString.cpp AnsiString.h curve25519.c \
+	tomcrypt/bn_error.c tomcrypt/bn_fast_mp_invmod.c \
 	tomcrypt/bn_fast_mp_montgomery_reduce.c \
 	tomcrypt/bn_fast_s_mp_mul_digs.c \
 	tomcrypt/bn_fast_s_mp_mul_high_digs.c \
@@ -1325,6 +1326,7 @@ distclean-compile:
 	-rm -f *.tab.c
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/AnsiString.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/curve25519.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/stdlibrary.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@tomcrypt/$(DEPDIR)/aes.Po@am__quote@
