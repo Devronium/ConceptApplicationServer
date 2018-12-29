@@ -336,7 +336,7 @@ void PIFAlizator::Clear() {
 
 PIFAlizator::~PIFAlizator(void) {
     if (Helper) {
-        delete (OptimizerHelper *)Helper;
+        delete_OptimizerHelper((struct OptimizerHelper *)Helper);
         Helper = NULL;
     }
 
@@ -3243,20 +3243,20 @@ void PIFAlizator::OptimizeMember(ClassMember *CM) {
     void *old_helper = this->Helper;
     this->Helper = NULL;
 
-    CM->OPTIMIZER = new Optimizer(this, CM->CDATA->PIF_DATA, CM->CDATA->VariableDescriptors, CC->_DEBUG_INFO_FILENAME.c_str(), CC, CM->NAME);
+    CM->OPTIMIZER = new_Optimizer(this, CM->CDATA->PIF_DATA, CM->CDATA->VariableDescriptors, CC->_DEBUG_INFO_FILENAME.c_str(), CC, CM->NAME);
 
-    OptimizerHelper *helper = Optimizer::GetHelper(this);
+    OptimizerHelper *helper = Optimizer_GetHelper(this);
     helper->ParameterList = new AnsiList();
     helper->OptimizedPIF = new AnsiList();
 
-    ((Optimizer *)CM->OPTIMIZER)->Optimize(this);
-    ((Optimizer *)CM->OPTIMIZER)->GenerateIntermediateCode(this);
+    Optimizer_Optimize((struct Optimizer *)CM->OPTIMIZER, this);
+    Optimizer_GenerateIntermediateCode((struct Optimizer *)CM->OPTIMIZER, this);
 
     delete helper->ParameterList;
     helper->ParameterList = NULL;
     delete helper->OptimizedPIF;
     helper->OptimizedPIF = NULL;
-    delete helper;
+    delete_OptimizerHelper(helper);
 
     this->Helper = old_helper;
 }
@@ -3287,13 +3287,13 @@ void PIFAlizator::Optimize(int start, char use_compiled_code, char use_lock) {
 
                 INTEGER LOCAL_CLASSID = ((ClassCode *)CM->Defined_In)->CLSID;
                 if ((CM->IS_FUNCTION == 1) && (CM->Defined_In == CC) && (!CM->OPTIMIZER)) {
-                    CM->OPTIMIZER = new Optimizer(this, CM->CDATA->PIF_DATA, CM->CDATA->VariableDescriptors, ((ClassCode *)(CM->Defined_In))->_DEBUG_INFO_FILENAME.c_str(), CC, CM->NAME);
-                    OptimizerHelper *helper = Optimizer::GetHelper(this);
+                    CM->OPTIMIZER = new_Optimizer(this, CM->CDATA->PIF_DATA, CM->CDATA->VariableDescriptors, ((ClassCode *)(CM->Defined_In))->_DEBUG_INFO_FILENAME.c_str(), CC, CM->NAME);
+                    OptimizerHelper *helper = Optimizer_GetHelper(this);
                     helper->ParameterList = new AnsiList();
                     helper->OptimizedPIF = new AnsiList();
 
-                    ((Optimizer *)CM->OPTIMIZER)->Optimize(this);
-                    ((Optimizer *)CM->OPTIMIZER)->GenerateIntermediateCode(this);
+                    Optimizer_Optimize((struct Optimizer *)CM->OPTIMIZER, this);
+                    Optimizer_GenerateIntermediateCode((struct Optimizer *)CM->OPTIMIZER, this);
 
                     delete helper->ParameterList;
                     helper->ParameterList = NULL;
@@ -3343,7 +3343,7 @@ AnsiString PIFAlizator::DEBUG_INFO() {
             ClassMember *CM = (ClassMember *)CC->Members->Item(jj);
 
             if (CM->OPTIMIZER) {
-                res += ((Optimizer *)CM->OPTIMIZER)->DEBUG_INFO();
+                res += ((struct Optimizer *)CM->OPTIMIZER)->DEBUG_INFO();
             }
             if (CM->CDATA) {
                 DoubleList *PIFList = CM->CDATA->PIF_DATA;
@@ -3515,17 +3515,17 @@ AnsiString PIFAlizator::DEBUG_CLASS_CONFIGURATION() {
             res += CM->NAME;
             if (CM->IS_FUNCTION == 1) {
                 res += " is a function\n\t\tDATA:\n";
-                for (INTEGER k = 0; k < ((Optimizer *)CM->OPTIMIZER)->dataCount; k++) {
+                for (INTEGER k = 0; k < ((struct Optimizer *)CM->OPTIMIZER)->dataCount; k++) {
                     res += "\t\t\tTYPE:";
-                    res += AnsiString((intptr_t)((Optimizer *)CM->OPTIMIZER)->DATA [k].TYPE);
+                    res += AnsiString((intptr_t)((struct Optimizer *)CM->OPTIMIZER)->DATA [k].TYPE);
                     res += "\n";
                 }
                 res += "\t\tCODE:\n";
-                for (INTEGER k = 0; k < ((Optimizer *)CM->OPTIMIZER)->codeCount; k++) {
+                for (INTEGER k = 0; k < ((struct Optimizer *)CM->OPTIMIZER)->codeCount; k++) {
                     res += "\t\t\tOPERATOR TYPE:";
-                    res += AnsiString(IS_KEYWORD((&(((Optimizer *)CM->OPTIMIZER)->CODE [k]))) ? "keyword" : "operator");
+                    res += AnsiString(IS_KEYWORD((&(((struct Optimizer *)CM->OPTIMIZER)->CODE [k]))) ? "keyword" : "operator");
                     res += "\tOPERATOR ID:";
-                    res += AnsiString(((Optimizer *)CM->OPTIMIZER)->CODE [k].Operator_ID);
+                    res += AnsiString(((struct Optimizer *)CM->OPTIMIZER)->CODE [k].Operator_ID);
                     res += "\n";
                 }
             } else {

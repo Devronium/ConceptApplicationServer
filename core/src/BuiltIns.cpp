@@ -346,9 +346,9 @@ CONCEPT_FUNCTION_IMPL(bytecode, 1)
     ClassMember *pMEMBER_i = relocation ? CC->pMEMBERS [relocation - 1] : 0;
     Array *arr = (Array *)(RESULT->CLASS_DATA);
     if ((pMEMBER_i) && (pMEMBER_i->OPTIMIZER)) {
-        RuntimeOptimizedElement *OElist = ((Optimizer *)pMEMBER_i->OPTIMIZER)->CODE;
-        ParamList *Parameters           = ((Optimizer *)pMEMBER_i->OPTIMIZER)->PARAMS;
-        int       count = ((Optimizer *)pMEMBER_i->OPTIMIZER)->codeCount;
+        RuntimeOptimizedElement *OElist = ((struct Optimizer *)pMEMBER_i->OPTIMIZER)->CODE;
+        ParamList *Parameters           = ((struct Optimizer *)pMEMBER_i->OPTIMIZER)->PARAMS;
+        int       count = ((struct Optimizer *)pMEMBER_i->OPTIMIZER)->codeCount;
         TreeContainer *tc = (TreeContainer *)malloc(sizeof(TreeContainer) * count);
         for (INTEGER it = 0; it < count; it++) {
             RuntimeOptimizedElement *OE    = &OElist[it];
@@ -421,8 +421,8 @@ CONCEPT_FUNCTION_IMPL(bytedata, 1)
     ClassMember *pMEMBER_i = relocation ? CC->pMEMBERS [relocation - 1] : 0;
     Array *arr = (Array *)(RESULT->CLASS_DATA);
     if ((pMEMBER_i) && (pMEMBER_i->OPTIMIZER)) {
-        RuntimeVariableDESCRIPTOR *datalist = ((Optimizer *)pMEMBER_i->OPTIMIZER)->DATA;
-        int count = ((Optimizer *)pMEMBER_i->OPTIMIZER)->dataCount;
+        RuntimeVariableDESCRIPTOR *datalist = ((struct Optimizer *)pMEMBER_i->OPTIMIZER)->DATA;
+        int count = ((struct Optimizer *)pMEMBER_i->OPTIMIZER)->dataCount;
         for (INTEGER it = 0; it < count; it++) {
             RuntimeVariableDESCRIPTOR *data = &datalist[it];
             VariableDATA *VD = Array_ModuleGet(arr, it);

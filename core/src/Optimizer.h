@@ -13,54 +13,7 @@
 
 class TempVariableManager;
 
-#ifdef USE_OPTIMIZER_CACHE
-class OptimizerCacheList {
-protected:
-    OptimizedElement **Cache;
-    INTEGER CacheSize;
-    INTEGER CacheCount;
-public:
-    OptimizerCacheList() {
-        Cache = NULL;
-        CacheSize = 0;
-        CacheCount = 0;
-    }
-
-    void Add(OptimizedElement *OE) {
-        if (CacheCount >= CacheSize) {
-            CacheSize += 32;
-            Cache = (OptimizedElement **)realloc((void *)Cache, sizeof(OptimizedElement *) * CacheSize);
-        }
-        if (Cache)
-            Cache[CacheCount++] = OE;
-    }
-
-    INTEGER Find(OPERATOR_ID_TYPE OP_ID, INTEGER OperandLeft, INTEGER OperandRight) {
-        if (!Cache)
-            return 0;
-        for (int i = 0; i < CacheCount; i++) {
-            OptimizedElement *OE = Cache[i];
-            if ((OE) && (OE->Operator.ID == OP_ID) && (OE->OperandLeft.ID == OperandLeft) && (OE->OperandRight.ID == OperandRight))
-                return OE->Result_ID;
-        }
-        return 0;
-    }
-
-    void Clear() {
-        if (Cache) {
-            free(Cache);
-            Cache = NULL;
-        }
-    }
-
-    ~OptimizerCacheList() {
-        Clear();
-    }
-};
-#endif
-
-class OptimizerHelper {
-public:
+struct OptimizerHelper {
     PIFAlizator *PIFOwner;
     ClassCode *_CLASS;
     DoubleList *PIFList;
@@ -82,48 +35,13 @@ public:
     char _clean_condition;
     char has_references;
     char has_loops;
-
-    OptimizerHelper() {
-        PIFOwner = 0;
-        _CLASS = 0;
-        _MEMBER = 0;
-        LAST_DEBUG_TRAP = 0;
-        PIFList = 0;
-        VDList = 0;
-        PIF_POSITION = 0;
-        _DEBUG_INFO_FILENAME = 0;
-        NO_WARNING_EMPTY = 0;
-        NO_WARNING_ATTR = 0;
-        OptimizedPIF = 0;
-        ParameterList = 0;
-        CONTINUE_Elements = 0;
-        BREAK_Elements = 0;
-        _clean_condition = 0;
-        CATCH_ELEMENT = 0;
-        LOCAL_VARIABLES = 0;
-        JUNK = 0;
-        has_references = 0;
-        has_loops = 0;
-    }
-
-    ~OptimizerHelper() {
-        if (ParameterList)
-            delete ParameterList;
-        if (OptimizedPIF)
-            delete OptimizedPIF;
-    }
 };
 
-class Optimizer {
-    friend class ConceptInterpreter;
-    friend class ClassMember;
-    friend class PIFAlizator;
-    friend INTEGER Invoke(INTEGER INVOKE_TYPE, ...);
-public:
-    static PIFAlizator *PIFOwner;
-#ifdef USE_OPTIMIZER_CACHE
-    static OptimizerCacheList *CacheList;
-#endif
+
+void delete_OptimizerHelper(struct OptimizerHelper *self);
+struct OptimizerHelper *new_OptimizerHelper();
+
+struct Optimizer {
     void *INTERPRETER;
     RuntimeOptimizedElement *CODE;
     INTEGER codeCount;
@@ -131,42 +49,36 @@ public:
     INTEGER              dataCount;
     ParamList            *PARAMS;
     INTEGER              paramCount;
+};
 
-    INTEGER OptimizeSwitch(OptimizerHelper *helper, TempVariableManager *TVM);
-    INTEGER OptimizeArray(OptimizerHelper *helper, TempVariableManager *TVM);
-    INTEGER OptimizeForExpression(OptimizerHelper *helper, TempVariableManager *TVM, bool is_increment = false);
-    INTEGER OptimizeExpression(OptimizerHelper *helper, TempVariableManager *TVM, INTEGER ID, INTEGER TYPE, INTEGER IS_PARAM_LIST = 0, INTEGER FIRST_CALL = 1, INTEGER FLAGS = 0, AnalizerElement *PREC_METHOD = 0, signed char may_skip_result = 0);
-    INTEGER OptimizeKeyWord(OptimizerHelper *helper, TempVariableManager *TVM, INTEGER ID, INTEGER TYPE);
-    INTEGER OptimizeAny(OptimizerHelper *helper, TempVariableManager *TVM, INTEGER ID = KEY_SEP, INTEGER TYPE = TYPE_SEPARATOR, char FLAGS = 0);
+INTEGER Optimizer_OptimizeSwitch(struct Optimizer *self, struct OptimizerHelper *helper, TempVariableManager *TVM);
+INTEGER Optimizer_OptimizeArray(struct Optimizer *self, struct OptimizerHelper *helper, TempVariableManager *TVM);
+INTEGER Optimizer_OptimizeForExpression(struct Optimizer *self, struct OptimizerHelper *helper, TempVariableManager *TVM, bool is_increment = false);
+INTEGER Optimizer_OptimizeExpression(struct Optimizer *self, struct OptimizerHelper *helper, TempVariableManager *TVM, INTEGER ID, INTEGER TYPE, INTEGER IS_PARAM_LIST = 0, INTEGER FIRST_CALL = 1, INTEGER FLAGS = 0, AnalizerElement *PREC_METHOD = 0, signed char may_skip_result = 0);
+INTEGER Optimizer_OptimizeKeyWord(struct Optimizer *self, struct OptimizerHelper *helper, TempVariableManager *TVM, INTEGER ID, INTEGER TYPE);
+INTEGER Optimizer_OptimizeAny(struct Optimizer *self, struct OptimizerHelper *helper, TempVariableManager *TVM, INTEGER ID = KEY_SEP, INTEGER TYPE = TYPE_SEPARATOR, char FLAGS = 0);
+INTEGER Optimizer_GetFirstOperator(struct Optimizer *self, DoubleList *LST, INTEGER start, INTEGER end);
+INTEGER Optimizer_Check(struct Optimizer *self, struct OptimizerHelper *helper, AnalizerElement *Target, AnalizerElement *AE);
+INTEGER Optimizer_Require(struct Optimizer *self, struct OptimizerHelper *helper, AnalizerElement *Element);
 
-    INTEGER GetFirstOperator(DoubleList *LST, INTEGER start, INTEGER end);
-    INTEGER Check(OptimizerHelper *helper, AnalizerElement *Target, AnalizerElement *AE);
-
-    INTEGER Require(OptimizerHelper *helper, AnalizerElement *Element);
-
-    void CopyElement(AnalizerElement *SRC, AnalizerElement *DEST);
-    void CopyElement(AnalizerElement *SRC, SHORT_AnalizerElement *DEST);
-    void CopyElement(AnalizerElement *SRC, PartialAnalizerElement *DEST);
-    void BuildParameterList(OptimizerHelper *helper, INTEGER START_POS, AnalizerElement *METHOD);
-    bool TryCheckParameters(OptimizerHelper *helper, OptimizedElement *OE, int p_count, int *minp, int *maxp, ClassMember **target_CM = 0, ClassCode *owner_CC = 0);
-    void AddProfilerCode(OptimizerHelper *helper, int code);
-    void RemoveCode(OptimizerHelper *helper, INTEGER index);
-    void OptimizePass2(OptimizerHelper *helper);
-public:
-    static OptimizerHelper *GetHelper(PIFAlizator *P);
-    POOLED(Optimizer)
-    Optimizer(PIFAlizator *P, DoubleList *_PIFList, DoubleList *_VDList, const char *Filename, ClassCode *cls, const char *member, bool is_unserialized = false);
-    int Optimize(PIFAlizator *P);
-    int CanInline(ClassMember *owner, const char **remotename);
+void Optimizer_BuildParameterList(struct Optimizer *self, struct OptimizerHelper *helper, INTEGER START_POS, AnalizerElement *METHOD);
+bool Optimizer_TryCheckParameters(struct OptimizerHelper *helper, OptimizedElement *OE, int p_count, int *minp, int *maxp, ClassMember **target_CM = 0, ClassCode *owner_CC = 0);
+void Optimizer_AddProfilerCode(struct OptimizerHelper *helper, int code);
+void Optimizer_RemoveCode(struct OptimizerHelper *helper, INTEGER index);
+void Optimizer_OptimizePass2(struct OptimizerHelper *helper);
+OptimizerHelper *Optimizer_GetHelper(PIFAlizator *P);
+struct Optimizer *new_Optimizer(PIFAlizator *P, DoubleList *_PIFList, DoubleList *_VDList, const char *Filename, ClassCode *cls, const char *member, bool is_unserialized = false);
+int Optimizer_Optimize(struct Optimizer *self, PIFAlizator *P);
+int Optimizer_CanInline(struct Optimizer *self, ClassMember *owner, const char **remotename);
 #ifdef PRINT_DEBUG_INFO
-    AnsiString DEBUG_INFO();
+    AnsiString Optimizer_DEBUG_INFO(struct Optimizer *self);
 #endif
 
-    ~Optimizer();
-    int Serialize(PIFAlizator *PIFOwner, FILE *out, bool is_lib = false, int version = 2);
-    int Unserialize(PIFAlizator *PIFOwner, concept_FILE *in, AnsiList *ModuleList, bool is_lib = false, int *ClassNames = 0, int *Relocation = 0, int version = 1);
-    static int ComputeSharedSize(concept_FILE *in, int version = 1);
-    void GenerateIntermediateCode(PIFAlizator *P);
-};
+void delete_Optimizer(struct Optimizer *self);
+int Optimizer_Serialize(struct Optimizer *self, PIFAlizator *PIFOwner, FILE *out, bool is_lib = false, int version = 2);
+int Optimizer_Unserialize(struct Optimizer *self, PIFAlizator *PIFOwner, concept_FILE *in, AnsiList *ModuleList, bool is_lib = false, int *ClassNames = 0, int *Relocation = 0, int version = 1);
+int Optimizer_ComputeSharedSize(concept_FILE *in, int version = 1);
+void Optimizer_GenerateIntermediateCode(struct Optimizer *self, PIFAlizator *P);
+
 #endif // __OPTIMIZER_H
 

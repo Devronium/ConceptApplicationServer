@@ -1154,7 +1154,7 @@ int ClassCode::ComputeSharedSize(concept_FILE *in, int general_members, int vers
             signed char IS_FUNCTION = 0;
             size += ClassMember::ComputeSharedSize(in, IS_FUNCTION);
             if (IS_FUNCTION == 1) {
-                size += Optimizer::ComputeSharedSize(in, version);
+                size += Optimizer_ComputeSharedSize(in, version);
             }
         } else {
             int clsid;
@@ -1287,8 +1287,8 @@ int ClassCode::Unserialize(PIFAlizator *PIF, concept_FILE *in, AnsiList *ClassLi
             }
 
             if (CM->IS_FUNCTION == 1) {
-                CM->OPTIMIZER = new Optimizer(PIF, &PIF->PIF, &PIF->VariableDescriptors, ((ClassCode *)(CM->Defined_In))->_DEBUG_INFO_FILENAME, this, CM->NAME, true);
-                ((Optimizer *)CM->OPTIMIZER)->Unserialize(PIF, in, PIF->ModuleList, is_lib, ClassNames, Relocation, version);
+                CM->OPTIMIZER = new_Optimizer(PIF, &PIF->PIF, &PIF->VariableDescriptors, ((ClassCode *)(CM->Defined_In))->_DEBUG_INFO_FILENAME, this, CM->NAME, true);
+                Optimizer_Unserialize((struct Optimizer *)CM->OPTIMIZER, PIF, in, PIF->ModuleList, is_lib, ClassNames, Relocation, version);
             } else {
                 CM->OPTIMIZER = 0;
             }

@@ -85,7 +85,7 @@ int ClassMember::Serialize(void *PIF, FILE *out, bool is_lib, int version) {
 
     SERIALIZE_SMALL_VAR_DESCRIPTOR(refVD, out);
     if (IS_FUNCTION == 1) {
-        ((Optimizer *)OPTIMIZER)->Serialize((PIFAlizator *)PIF, out, (INTEGER)is_lib, version);
+        Optimizer_Serialize((struct Optimizer *)OPTIMIZER, (PIFAlizator *)PIF, out, (INTEGER)is_lib, version);
     }
     return 0;
 }
@@ -190,7 +190,7 @@ int ClassMember::Unserialize(concept_FILE *in, AnsiList *ClassList , bool is_lib
 ClassMember::~ClassMember(void) {
     if (OPTIMIZER) {
         if (MEMBER_GET != -1) {
-            delete (Optimizer *)OPTIMIZER;
+            delete_Optimizer((struct Optimizer *)OPTIMIZER);
         }
     }
 
@@ -294,7 +294,7 @@ void ClassMember::EndMainCall(void *PIF, VariableDATA *&RESULT, VariableDATA *&T
 #ifdef POOL_STACK
     if ((!PREV) && (STACK_TRACE->STACK_CONTEXT)) {
         // variables 0 to stack_pos will be cleared by DestroyEnvironment
-        for (int i = ((Optimizer *)OPTIMIZER)->dataCount; i < BLOCK_STACK_SIZE; i++) {
+        for (int i = ((struct Optimizer *)OPTIMIZER)->dataCount; i < BLOCK_STACK_SIZE; i++) {
             VariableDATA *VD = (VariableDATA *)STACK_TRACE->STACK_CONTEXT[i];
             if (VD)
                 VAR_FREE(VD);
@@ -311,10 +311,10 @@ VariableDATA *ClassMember::Execute(void *PIF, intptr_t CONCEPT_CLASS_ID, Variabl
     }
 #endif
 
-    ConceptInterpreter *INTERPRETER = (ConceptInterpreter *)((Optimizer *)this->OPTIMIZER)->INTERPRETER;
+    struct ConceptInterpreter *INTERPRETER = (struct ConceptInterpreter *)((struct Optimizer *)this->OPTIMIZER)->INTERPRETER;
     if (!INTERPRETER) {
-        INTERPRETER = new ConceptInterpreter((Optimizer *)OPTIMIZER, ((ClassCode *)Defined_In)->CLSID, this);
-        ((Optimizer *)this->OPTIMIZER)->INTERPRETER = INTERPRETER;
+        INTERPRETER = new_ConceptInterpreter((struct Optimizer *)OPTIMIZER, ((ClassCode *)Defined_In)->CLSID, this);
+        ((struct Optimizer *)this->OPTIMIZER)->INTERPRETER = INTERPRETER;
     }
     SCStack STACK_TRACE;
     STACK_TRACE.CM               = this;
@@ -339,11 +339,11 @@ VariableDATA *ClassMember::Execute(void *PIF, intptr_t CONCEPT_CLASS_ID, Variabl
     STACK_TRACE.TOP = &STACK_TRACE;
 
     bool         can_run;
-    VariableDATA **CONTEXT = ((ConceptInterpreter *)INTERPRETER)->CreateEnvironment((PIFAlizator *)PIF, Owner, FORMAL_PARAM, SenderCTX, &STACK_TRACE, can_run);
+    VariableDATA **CONTEXT = ConceptInterpreter_CreateEnvironment((struct ConceptInterpreter *)INTERPRETER, (PIFAlizator *)PIF, Owner, FORMAL_PARAM, SenderCTX, &STACK_TRACE, can_run);
     STACK_TRACE.LOCAL_CONTEXT = (void **)CONTEXT;
 
     if (CONTEXT)
-        STACK_TRACE.len = ((Optimizer *)OPTIMIZER)->dataCount;
+        STACK_TRACE.len = ((struct Optimizer *)OPTIMIZER)->dataCount;
 
     if (!PREV)
         AddGCRoot(PIF, &STACK_TRACE);
@@ -354,7 +354,7 @@ VariableDATA *ClassMember::Execute(void *PIF, intptr_t CONCEPT_CLASS_ID, Variabl
 #endif
     VariableDATA *RESULT = NULL;
     if (can_run)
-        RESULT = ((ConceptInterpreter *)INTERPRETER)->Interpret((PIFAlizator *)PIF, CONTEXT, CONCEPT_CLASS_ID, THROW_DATA, &STACK_TRACE);
+        RESULT = ConceptInterpreter_Interpret((struct ConceptInterpreter *)INTERPRETER, (PIFAlizator *)PIF, CONTEXT, CONCEPT_CLASS_ID, THROW_DATA, &STACK_TRACE);
     if (PREV)
         ((SCStack *)PREV->ROOT)->TOP = PREV_TOP;
     STACK_TRACE.len = -1;
@@ -371,10 +371,7 @@ VariableDATA *ClassMember::Execute(void *PIF, intptr_t CONCEPT_CLASS_ID, Variabl
 #if defined(POOL_BLOCK_ALLOC) && defined(POOL_STACK) && (!defined(SIMPLE_MULTI_THREADING))
         // faster inline context cleaning
         if ((PREV) && (STACK_TRACE.alloc_from_stack)) {
-            INTEGER data_count = ((Optimizer *)this->OPTIMIZER)->dataCount;
-            // if (((ConceptInterpreter *)INTERPRETER)->donecode.code) {
-            //     ((ConceptInterpreter *)INTERPRETER)->donecode.func1((sljit_sw)CONTEXT);
-            // } else {
+            INTEGER data_count = ((struct Optimizer *)this->OPTIMIZER)->dataCount;
             for (INTEGER i = 0; i < data_count; i++) {
                 VariableDATA *LOCAL_CONTEXT_i = CONTEXT[i];
                 if (LOCAL_CONTEXT_i) {
@@ -393,7 +390,7 @@ VariableDATA *ClassMember::Execute(void *PIF, intptr_t CONCEPT_CLASS_ID, Variabl
             }
         } else
 #endif
-        ((ConceptInterpreter *)INTERPRETER)->DestroyEnviroment((PIFAlizator *)PIF, CONTEXT, &STACK_TRACE, is_main);
+        ConceptInterpreter_DestroyEnviroment((struct ConceptInterpreter *)INTERPRETER, (PIFAlizator *)PIF, CONTEXT, &STACK_TRACE, is_main);
     }
     if (!PREV) {
         STACK_TRACE.len = 0;
@@ -428,10 +425,10 @@ GreenThreadCycle *ClassMember::CreateThread(void *PIF, intptr_t CONCEPT_CLASS_ID
     // cannot query anthing else except functions
     if (this->IS_FUNCTION != 1)
         return 0;
-    ConceptInterpreter *INTERPRETER = (ConceptInterpreter *)((Optimizer *)this->OPTIMIZER)->INTERPRETER;
+    struct ConceptInterpreter *INTERPRETER = (struct ConceptInterpreter *)((struct Optimizer *)this->OPTIMIZER)->INTERPRETER;
     if (!INTERPRETER) {
-        INTERPRETER = new ConceptInterpreter((Optimizer *)OPTIMIZER, ((ClassCode *)Defined_In)->CLSID, this);
-        ((Optimizer *)this->OPTIMIZER)->INTERPRETER = INTERPRETER;
+        INTERPRETER = new_ConceptInterpreter((struct Optimizer *)OPTIMIZER, ((ClassCode *)Defined_In)->CLSID, this);
+        ((struct Optimizer *)this->OPTIMIZER)->INTERPRETER = INTERPRETER;
     }
 
     ParamList FORMAL_PARAM;
@@ -444,7 +441,7 @@ GreenThreadCycle *ClassMember::CreateThread(void *PIF, intptr_t CONCEPT_CLASS_ID
 
     gtc->CATCH_INSTRUCTION_POINTER = 0;
     gtc->CATCH_VARIABLE            = 0;
-    gtc->INSTRUCTION_COUNT         = ((Optimizer *)this->OPTIMIZER)->codeCount;
+    gtc->INSTRUCTION_COUNT         = ((struct Optimizer *)this->OPTIMIZER)->codeCount;
     gtc->INSTRUCTION_POINTER       = 0;
     gtc->INTERPRETER    = INTERPRETER;
     gtc->NEXT           = 0;
@@ -473,11 +470,11 @@ GreenThreadCycle *ClassMember::CreateThread(void *PIF, intptr_t CONCEPT_CLASS_ID
     gtc->STACK_TRACE.LOCAL_CONTEXT    = 0;
     gtc->STACK_TRACE.len              = 0;
     bool         can_be_run;
-    VariableDATA **CONTEXT = ((ConceptInterpreter *)INTERPRETER)->CreateEnvironment((PIFAlizator *)PIF, Owner, &FORMAL_PARAM, 0, &gtc->STACK_TRACE, can_be_run);
+    VariableDATA **CONTEXT = ConceptInterpreter_CreateEnvironment((struct ConceptInterpreter *)INTERPRETER, (PIFAlizator *)PIF, Owner, &FORMAL_PARAM, 0, &gtc->STACK_TRACE, can_be_run);
     gtc->LOCAL_CONTEXT             = CONTEXT;
     gtc->STACK_TRACE.LOCAL_CONTEXT = (void **)CONTEXT;
     if (CONTEXT)
-        gtc->STACK_TRACE.len = ((Optimizer *)this->OPTIMIZER)->dataCount;
+        gtc->STACK_TRACE.len = ((struct Optimizer *)this->OPTIMIZER)->dataCount;
     else
         gtc->STACK_TRACE.len = 0;
     AddGCRoot(PIF, &gtc->STACK_TRACE);
@@ -493,7 +490,7 @@ void ClassMember::DoneThread(GreenThreadCycle *gtc) {
         }
 
         if (gtc->LOCAL_CONTEXT)
-            ((ConceptInterpreter *)gtc->INTERPRETER)->DestroyEnviroment((PIFAlizator *)gtc->PIF, gtc->LOCAL_CONTEXT, &gtc->STACK_TRACE);
+            ConceptInterpreter_DestroyEnviroment((struct ConceptInterpreter *)gtc->INTERPRETER, (PIFAlizator *)gtc->PIF, gtc->LOCAL_CONTEXT, &gtc->STACK_TRACE);
 
         RemoveGCRoot(gtc->PIF, &gtc->STACK_TRACE);
 
@@ -512,9 +509,9 @@ void ClassMember::DoneThread(GreenThreadCycle *gtc) {
 }
 
 bool ClassMember::FastOptimizedExecute(void *PIF, void *ref, const ParamList *FORMAL_PARAM, VariableDATA **SenderCTX) {
-    if ((FORMAL_PARAM) && (FORMAL_PARAM->COUNT == 1) && (this->IS_FUNCTION == 1) && (this->OPTIMIZER) && (((Optimizer *)this->OPTIMIZER)->codeCount == 2)) {
-        RuntimeOptimizedElement *OE1 = &((Optimizer *)this->OPTIMIZER)->CODE[0];
-        RuntimeOptimizedElement *OE2 = &((Optimizer *)this->OPTIMIZER)->CODE[1];
+    if ((FORMAL_PARAM) && (FORMAL_PARAM->COUNT == 1) && (this->IS_FUNCTION == 1) && (this->OPTIMIZER) && (((struct Optimizer *)this->OPTIMIZER)->codeCount == 2)) {
+        RuntimeOptimizedElement *OE1 = &((struct Optimizer *)this->OPTIMIZER)->CODE[0];
+        RuntimeOptimizedElement *OE2 = &((struct Optimizer *)this->OPTIMIZER)->CODE[1];
 
         if ((OE1->Operator_ID == KEY_SEL) && (OE1->OperandLeft_ID == 1) &&
             ((OE2->Operator_ID == KEY_ASG) || (OE2->Operator_ID == KEY_BY_REF)) && (OE1->Result_ID == OE2->OperandLeft_ID) && (OE2->OperandRight_ID == 2)) {
@@ -568,15 +565,15 @@ bool ClassMember::FastOptimizedExecute(void *PIF, void *ref, const ParamList *FO
 
 void ClassMember::EnsureThreadSafe() {
     if (this->IS_FUNCTION == 1) {
-        ConceptInterpreter *INTERPRETER = (ConceptInterpreter *)((Optimizer *)this->OPTIMIZER)->INTERPRETER;
+        struct ConceptInterpreter *INTERPRETER = (struct ConceptInterpreter *)((struct Optimizer *)this->OPTIMIZER)->INTERPRETER;
         if (!INTERPRETER) {
-            INTERPRETER = new ConceptInterpreter((Optimizer *)OPTIMIZER, ((ClassCode *)Defined_In)->CLSID, this);
-            ((Optimizer *)this->OPTIMIZER)->INTERPRETER = INTERPRETER;
+            INTERPRETER = new_ConceptInterpreter((struct Optimizer *)OPTIMIZER, ((ClassCode *)Defined_In)->CLSID, this);
+            ((struct Optimizer *)this->OPTIMIZER)->INTERPRETER = INTERPRETER;
         }
 #ifdef USE_JIT_TRACE
         if (!INTERPRETER->jittracecode) {
             INTERPRETER->callcount = 1;
-            INTERPRETER->AnalizeInstructionPath((Optimizer *)this->OPTIMIZER);
+            ConceptInterpreter_AnalizeInstructionPath(INTERPRETER, (struct Optimizer *)this->OPTIMIZER);
         }
 #endif
     }

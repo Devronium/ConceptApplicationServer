@@ -1569,9 +1569,9 @@ INTEGER Invoke(INTEGER INVOKE_TYPE, ...) {
                 int         relocation = delegate_Member(target->CLASS_DATA);
                 ClassMember *pMEMBER_i = relocation ? CC->pMEMBERS [relocation - 1] : 0;
                 if ((pMEMBER_i) && (pMEMBER_i->OPTIMIZER)) {
-                    RuntimeOptimizedElement *OElist = ((Optimizer *)pMEMBER_i->OPTIMIZER)->CODE;
-                    ParamList *Parameters           = ((Optimizer *)pMEMBER_i->OPTIMIZER)->PARAMS;
-                    int       count = ((Optimizer *)pMEMBER_i->OPTIMIZER)->codeCount;
+                    RuntimeOptimizedElement *OElist = ((struct Optimizer *)pMEMBER_i->OPTIMIZER)->CODE;
+                    ParamList *Parameters           = ((struct Optimizer *)pMEMBER_i->OPTIMIZER)->PARAMS;
+                    int       count = ((struct Optimizer *)pMEMBER_i->OPTIMIZER)->codeCount;
                     *len = count;
                     TreeContainer *tc = (TreeContainer *)malloc(sizeof(TreeContainer) * count);
                     for (int it = 0; it < count; it++) {
@@ -1612,8 +1612,8 @@ INTEGER Invoke(INTEGER INVOKE_TYPE, ...) {
                         reftc->Result_ID            = OE->Result_ID;
                     }
                     *CODE = tc;
-                    count = ((Optimizer *)pMEMBER_i->OPTIMIZER)->dataCount;
-                    RuntimeVariableDESCRIPTOR *VDS = ((Optimizer *)pMEMBER_i->OPTIMIZER)->DATA;
+                    count = ((struct Optimizer *)pMEMBER_i->OPTIMIZER)->dataCount;
+                    RuntimeVariableDESCRIPTOR *VDS = ((struct Optimizer *)pMEMBER_i->OPTIMIZER)->DATA;
                     *dlen = count;
                     TreeVD *tvd = (TreeVD *)malloc(sizeof(TreeVD) * count);
                     for (int it = 0; it < count; it++) {
@@ -1702,7 +1702,7 @@ INTEGER Invoke(INTEGER INVOKE_TYPE, ...) {
                 va_end(ap);
                 if (cycle) {
                     cycle->LAST_THREAD = last;
-                    return ConceptInterpreter::StacklessInterpret((PIFAlizator *)cycle->PIF, cycle);
+                    return ConceptInterpreter_StacklessInterpret((PIFAlizator *)cycle->PIF, cycle);
                 } else
                     return CANNOT_INVOKE_INTERFACE;
             }
