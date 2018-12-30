@@ -2430,7 +2430,7 @@ INTEGER Invoke(INTEGER INVOKE_TYPE, ...) {
                 void **str = va_arg(ap, void **);
                 *str = 0;
                 if (size > 0) {
-                    *str = malloc(size);
+                    *str = FAST_MALLOC(pif, size);
                     if (*str)
                         MemoryTable_add(&pif->LibraryAllocations, *str, size);
                     else
@@ -2448,12 +2448,12 @@ INTEGER Invoke(INTEGER INVOKE_TYPE, ...) {
                 void **str = va_arg(ap, void **);
                 MemoryTable_erase(&pif->LibraryAllocations, *str);
                 if (size > 0) {
-                    *str = realloc(*str, size);
+                    *str = FAST_REALLOC(pif, *str, size);
                     if (*str)
                         MemoryTable_add(&pif->LibraryAllocations, *str, size);
                 } else
                 if (*str)
-                    free(*str);
+                    FAST_FREE(pif, *str);
             }
             break;
 
@@ -2465,7 +2465,7 @@ INTEGER Invoke(INTEGER INVOKE_TYPE, ...) {
                 void *str = va_arg(ap, void *);
                 if (str) {
                     MemoryTable_erase(&pif->LibraryAllocations, str);
-                    free(str);
+                    FAST_FREE(pif, str);
                 }
             }
             break;
